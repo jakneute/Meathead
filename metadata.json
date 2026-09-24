@@ -1,0 +1,8 @@
+{
+  "name": "Meathead",
+  "description": "A high-octane 2D side-scrolling shooter. Play as Meathead, a beefy hero who steals enemy weapons and body checks fools.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
