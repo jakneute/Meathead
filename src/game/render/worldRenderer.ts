@@ -50,7 +50,10 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   ctx.translate(-state.camera.x, -state.camera.y);
 
   drawBlocks(ctx, state, colors);
-  if (stageId === 'Toxic Tommy' && state.arenaLocked) {
+  // Tommy's arena stays drawn from the moment you're shut in, including while he explodes
+  // (the arena unlocks the instant he dies)
+  const inTommyArena = stageId === 'Toxic Tommy' && state.doorState === 'done' && state.player.pos.x >= BOSS_DOOR_X;
+  if (inTommyArena) {
     drawTommyShaft(ctx, state);
   } else if (stageId && (state.arenaLocked || state.camera.x >= BOSS_DOOR_X - 100)) {
     const hurricane = state.enemies.find(e => e.type === 'boss' && e.bossState === 'hurricane' && e.health > 0);
@@ -63,7 +66,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   drawProjectiles(ctx, state, 'puddles');
   state.pickups.forEach(p => drawPickup(ctx, p));
   drawEnemies(ctx, state, view);
-  if (stageId === 'Toxic Tommy' && state.arenaLocked && state.tommyBoards) drawTommyPool(ctx, state);
+  if (inTommyArena && state.tommyBoards) drawTommyPool(ctx, state);
   if (status !== GameStatus.LEVEL_INTRO || state.introTimer >= 80) {
     drawPlayer(ctx, state.player, state, {
       currentWeapon: view.currentWeapon,
