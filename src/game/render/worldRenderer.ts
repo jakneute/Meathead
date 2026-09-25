@@ -50,14 +50,15 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   ctx.translate(-state.camera.x, -state.camera.y);
 
   drawBlocks(ctx, state, colors);
-  // Tommy's arena stays drawn from the moment you're shut in, including while he explodes
-  // (the arena unlocks the instant he dies)
-  const inTommyArena = stageId === 'Toxic Tommy' && state.doorState === 'done' && state.player.pos.x >= BOSS_DOOR_X;
+  // The boss arena is drawn whenever any of it is on screen: from the moment the door
+  // opens onto it, through the fight, his death and the victory lap
+  const arenaInView = !!stageId && state.camera.x + CANVAS_WIDTH > ARENA_LEFT;
+  const inTommyArena = arenaInView && stageId === 'Toxic Tommy';
   if (inTommyArena) {
     drawTommyShaft(ctx, state);
-  } else if (stageId && (state.arenaLocked || state.camera.x >= BOSS_DOOR_X - 100)) {
+  } else if (arenaInView) {
     const hurricane = state.enemies.find(e => e.type === 'boss' && e.bossState === 'hurricane' && e.health > 0);
-    drawCustomBossArena(ctx, stageId, state.frame || 0, hurricane ? hurricane.pos.x + hurricane.width / 2 : null);
+    drawCustomBossArena(ctx, stageId!, state.frame || 0, hurricane ? hurricane.pos.x + hurricane.width / 2 : null);
   }
   drawBossHazards(ctx, state);
   if (state.bossCorpse) drawBossCorpse(ctx, state.bossCorpse, state.frame);
