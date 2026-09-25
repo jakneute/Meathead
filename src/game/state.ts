@@ -240,6 +240,18 @@ export const resetPlayerCombatState = (player: Player) => {
   player.hurtFormTimer = 0;
 };
 
+/** The boss is dead: Meathead drops out of any hurt, flinch or special pose into a plain neutral stance. */
+export const calmPlayer = (player: Player) => {
+  resetPlayerCombatState(player);
+  player.invincibilityTimer = 0;
+  player.hurtTimer = 0;
+  player.smugTimer = 0;
+  player.isHarmlessPushback = false;
+  player.isDucking = false;
+  player.squash = 0;
+  player.vel.x = 0;
+};
+
 /**
  * Wipes everything tied to the current attempt at a stage: entities, hazards,
  * timers and speech. Used when leaving to the menu, starting a stage and respawning.

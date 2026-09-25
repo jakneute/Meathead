@@ -9,7 +9,7 @@ import { BOSS_DIALOGUE } from '../dialogue';
 import { FrameContext } from './context';
 import { Controls } from './input';
 import { respawn, getStartX } from './level';
-import { resetPlayerCombatState, DEFAULT_SHAKE } from './state';
+import { calmPlayer, DEFAULT_SHAKE } from './state';
 import { updateBarfStream, updateFlameSegments } from './weapons';
 import { speak, claimLine, MEATHEAD_INTRO_VOICE } from './speech';
 import { pickRandom, rectsOverlap, boundsOf } from './utils';
@@ -182,7 +182,7 @@ const MAX_WEAKNESS_HOLD = 600;
 
 const updateVictorySequence = (ctx: FrameContext) => {
   const { state } = ctx;
-  resetPlayerCombatState(state.player);
+  calmPlayer(state.player);
   state.playerStunTimer = 0;
   state.projectiles = [];
   state.damageNumbers = [];

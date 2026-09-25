@@ -9,7 +9,7 @@ import {
 } from '../constants';
 import { BOSS_DIALOGUE, BOSS_WEAPON_REACTIONS } from '../dialogue';
 import type { FrameContext } from './context';
-import { GameState, resetPlayerCombatState } from './state';
+import { GameState, calmPlayer } from './state';
 import { Fx } from './effects';
 import { speak, isSpeaking, getBossVoice, takeFreshLine } from './speech';
 import { BossDef, BossHelpers, FLOOR_Y, speakAsBoss } from './bosses/shared';
@@ -218,7 +218,7 @@ const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolea
   getBossDef(stageId)?.onDeath?.(state);
 
   // Stop any lingering puke shield, stream, taser, etc.
-  resetPlayerCombatState(state.player);
+  calmPlayer(state.player);
   state.playerStunTimer = 0;
 
   if (wasWeakness) {
