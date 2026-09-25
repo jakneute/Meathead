@@ -214,6 +214,8 @@ export interface Projectile extends Entity {
   damage: number;
   owner: 'player' | 'enemy';
   isBoulder?: boolean;
+  /** Ernie's lobbed boulder: its impacts shake the room like his stomps. */
+  isHeaved?: boolean;
   isIce?: boolean;
   isTsunami?: boolean;
   isShrapnel?: boolean;

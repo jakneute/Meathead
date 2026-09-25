@@ -93,7 +93,7 @@ const heaveBoulder = (ctx: FrameContext, boss: Enemy) => {
   const x = insideArena(midX(boss) - size / 2), y = boss.pos.y - size + 10;
   const vx = Math.max(-HEAVE_MAX_SPEED_X, Math.min(HEAVE_MAX_SPEED_X, (midX(player) - midX(boss)) / HEAVE_FLIGHT));
   const vy = -0.5 * GRAVITY * HEAVE_FLIGHT;
-  ctx.bossHelpers.addProjectile(enemyProjectile(`b-ernie-heave-${Date.now()}`, x, y, vx, vy, size, size, BULLET_DAMAGE, { isBoulder: true }));
+  ctx.bossHelpers.addProjectile(enemyProjectile(`b-ernie-heave-${Date.now()}`, x, y, vx, vy, size, size, BULLET_DAMAGE, { isBoulder: true, isHeaved: true }));
   ctx.bossHelpers.playGunSound('gun');
   boss.bossState = 'running';
   boss.slideTargetX = midX(boss) < ARENA_MID ? ARENA_RIGHT - boss.width - 30 : ARENA_LEFT + 30;
