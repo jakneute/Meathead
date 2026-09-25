@@ -258,8 +258,10 @@ export const endUppercut = (ctx: FrameContext) => {
 const updateCrouch = (ctx: FrameContext, input: FrameInput) => {
   const { player } = ctx.state;
   if (!player.isGrounded || player.vel.y < 0) return;
+  // Holding fire with the flamethrower keeps you standing (down aims the stream instead)
+  const isFlamethrowing = ctx.currentWeapon === 'FLAMETHROWER' && input.shoot;
   player.isDucking = input.moveDown && player.lockTimer <= 0 && !player.isUppercutting && !player.isDivekicking && !player.isTasing
-    && (!player.isCharging || player.isSliding);
+    && !isFlamethrowing && (!player.isCharging || player.isSliding);
 };
 
 /**
