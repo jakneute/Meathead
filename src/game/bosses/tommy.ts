@@ -18,6 +18,7 @@ const SUBMERGED_DEPTH = 15;    // how far under the surface he swims
 const SWIM_MIN_X = ARENA_LEFT + 25;
 const SWIM_MAX_X = ARENA_RIGHT - 25;
 const BOARD_Y = 480;
+export const TOMMY_BOARD_Y = BOARD_Y;
 const DEFAULT_EMERGE_Y = 405;
 const EMERGE_DAMAGE = 15;
 const PUKE_FRAMES = 230;
@@ -299,4 +300,8 @@ export const tommy: BossDef = {
   update,
   shield: { isUp: isTommyShielded, color: '#27AE60', sound: 'barf' },
   onWeaknessHit: stunWithOil,
+  // Every board floats back up, so Meathead can walk across the pool afterwards
+  onDeath: state => state.tommyBoards.forEach(b => {
+    b.status = 'active'; b.y = b.baseY; b.riseProgress = 1; b.shakeX = 0; b.telegraphTimer = 0; b.shatterTimer = 0;
+  }),
 };

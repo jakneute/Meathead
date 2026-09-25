@@ -12,6 +12,7 @@ import { drawBoulder, drawRockChip } from './boulders';
 import { drawBullet, drawEnemyBullet, drawIcePellet, drawDart, drawPoopLog, drawCocaine, drawMethBarrel, drawSludgeBlob } from './projectileArt';
 import { drawParticle } from './particles';
 import { drawBossCorpse } from './corpses';
+import { drawVictoryPee } from './victoryPee';
 import { drawPlayer } from './playerRenderer';
 import {
   drawOilSlicks, drawOscarFire, drawOscarLaser, drawOscarRocket, drawFlyingCigarette, drawTaserOverload,
@@ -70,6 +71,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
       invincibilityEnabled: view.invincibilityEnabled,
     });
     drawTaserOverload(ctx, state.player, state.frame);
+    drawVictoryPee(ctx, state);
     drawPlayerSpeech(ctx, state);
   }
   drawOscarFire(ctx, state);

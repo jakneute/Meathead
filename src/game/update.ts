@@ -20,6 +20,7 @@ import { updateEnemy } from './systems/enemies';
 import { updateProjectile, updateSpecialMovesVsBarrels } from './systems/projectiles';
 import { updateOscarHazards } from './bosses/oscar';
 import { isGoreColor } from './effects';
+import { updateVictoryPee, peeFinished } from './victoryPee';
 import { getBossDef, getArenaRight, getStageWidth } from './boss';
 
 const INTRO_JUMP_START = 80;
@@ -173,21 +174,57 @@ const updateBossTransition = (ctx: FrameContext) => {
 };
 
 /** After the boss dies, spell out "VICTORY" one letter at a time, then report back. */
+/** Frames the finished VICTORY stays up before the weapon screen (plain kills). */
+const VICTORY_HOLD = 120;
+/** After a weakness kill: a beat after he zips up, and a cap in case he never gets there. */
+const AFTER_PEE_HOLD = 30;
+const MAX_WEAKNESS_HOLD = 600;
+
 const updateVictorySequence = (ctx: FrameContext) => {
   const { state } = ctx;
   resetPlayerCombatState(state.player);
   state.playerStunTimer = 0;
   state.projectiles = [];
   state.damageNumbers = [];
-  moveLooseParticles(ctx);
+  if (state.bossCorpse) {
+    // Weakness kill: the gore keeps dripping while he goes and pisses on the corpse
+    dripStuckGore(state);
+    updateParticles(ctx);
+    updateVictoryPee(ctx);
+  } else {
+    moveLooseParticles(ctx);
+  }
 
   const fullStr = "VICTORY";
-  if (state.victoryString.length >= fullStr.length) return;
   state.postVictoryTimer++;
-  if (state.postVictoryTimer >= 30) {
-    state.victoryString += fullStr[state.victoryString.length];
-    state.postVictoryTimer = 0;
-    if (state.victoryString.length === fullStr.length) setTimeout(() => ctx.events.onBossDefeated(ctx.stageId || ""), 2000);
+  if (state.victoryString.length < fullStr.length) {
+    if (state.postVictoryTimer >= 30) {
+      state.victoryString += fullStr[state.victoryString.length];
+      state.postVictoryTimer = 0;
+    }
+    return;
+  }
+  // Spelled out: hold, then freeze on the weapon screen (after the whiz, on a weakness kill)
+  const done = state.bossCorpse
+    ? (peeFinished(state.player.peeTimer) && state.postVictoryTimer >= AFTER_PEE_HOLD) || state.postVictoryTimer >= MAX_WEAKNESS_HOLD
+    : state.postVictoryTimer >= VICTORY_HOLD;
+  if (done && !state.victoryReported) {
+    state.victoryReported = true;
+    ctx.events.onBossDefeated(ctx.stageId || "");
+  }
+};
+
+/** Blood stuck to the walls and ceiling keeps letting go in drops. */
+const dripStuckGore = (state: FrameContext['state']) => {
+  if (state.frame % 2 !== 0) return;
+  const stuck = state.particles.filter(p => p.isStuck && p.isBossGore);
+  for (let k = 0; k < Math.min(3, stuck.length); k++) {
+    const src = stuck[Math.floor(Math.random() * stuck.length)];
+    state.particles.push({
+      pos: { x: src.pos.x + src.size / 2, y: src.pos.y + src.size },
+      vel: { x: 0, y: 0.3 + Math.random() * 0.5 },
+      life: 120, color: src.color, size: 2 + Math.random() * 3,
+    });
   }
 };
 
@@ -278,6 +315,11 @@ const updatePickups = (ctx: FrameContext) => {
 };
 
 const updateParticlesAndNumbers = (ctx: FrameContext) => {
+  updateParticles(ctx);
+  updateDamageNumbers(ctx);
+};
+
+const updateParticles = (ctx: FrameContext) => {
   const { state, stageId } = ctx;
   // Tommy's arena floor is a sludge pool: blood just sinks into it
   const bloodSplatsOnFloor = !(state.arenaLocked && getBossDef(stageId)?.arena?.floorless);
@@ -310,6 +352,10 @@ const updateParticlesAndNumbers = (ctx: FrameContext) => {
     }
     return p.life > 0;
   });
+};
+
+const updateDamageNumbers = (ctx: FrameContext) => {
+  const { state } = ctx;
   state.damageNumbers = state.damageNumbers.filter(d => {
     d.pos.x += d.vel.x;
     d.pos.y += d.vel.y;

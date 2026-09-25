@@ -108,6 +108,8 @@ export interface Player extends Entity {
   taserOverloadTimer?: number;
   // Sludge
   barfTimer?: number;
+  /** Victory lap after a weakness kill: frames spent relieving himself on the corpse. */
+  peeTimer?: number;
 }
 
 export type BossState =

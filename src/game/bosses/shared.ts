@@ -86,6 +86,8 @@ export interface BossDef {
   onMeleeHit?: (ctx: FrameContext, boss: Enemy) => void;
   /** He bumped into Meathead and hurt him. */
   onTouchPlayer?: (ctx: FrameContext, boss: Enemy) => void;
+  /** He's just died (tidy up his arena). */
+  onDeath?: (state: GameState) => void;
   /** Replaces the taser's usual effect on him. */
   onTaser?: (ctx: FrameContext, boss: Enemy) => void;
 }

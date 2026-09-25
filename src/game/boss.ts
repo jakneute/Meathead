@@ -215,6 +215,7 @@ const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolea
   state.damageNumbers = []; // no numbers or callouts hanging over the death / victory freeze
   state.oilCells = [];
   state.icicles = [];
+  getBossDef(stageId)?.onDeath?.(state);
 
   // Stop any lingering puke shield, stream, taser, etc.
   resetPlayerCombatState(state.player);

@@ -59,6 +59,8 @@ export interface GameState {
   bossExplosionTimer: number;
   bossExplosionPos: Vector2;
   bossCorpse: BossCorpse | null;
+  /** The boss-defeated event has been sent (so it only goes once). */
+  victoryReported: boolean;
   /** Forces React to switch the equipped weapon back to GUN (after respawn). */
   shouldSyncWeapon: boolean;
 
@@ -193,6 +195,7 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
   bossExplosionTimer: 0,
   bossExplosionPos: { x: 0, y: 0 },
   bossCorpse: null,
+  victoryReported: false,
   shouldSyncWeapon: false,
   tsunamiActive: false,
   tsunamiX: -1,
@@ -272,6 +275,7 @@ export const resetStageState = (s: GameState) => {
   s.postVictoryTimer = 0;
   s.bossExplosionTimer = 0;
   s.bossCorpse = null;
+  s.victoryReported = false;
 
   s.tsunamiActive = false;
   s.bossVolcanoes = [];
@@ -305,4 +309,5 @@ export const resetStageState = (s: GameState) => {
   p.uppercutUsed = false;
   p.killSatisfactionTimer = 0;
   p.bossKillSatisfactionTimer = 0;
+  p.peeTimer = 0;
 };
