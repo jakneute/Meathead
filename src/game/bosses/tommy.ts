@@ -10,7 +10,7 @@ import {
 } from '../../constants';
 import type { FrameContext } from '../context';
 import type { GameState } from '../state';
-import { BossDef, ARENA_MID, midX, hurtPlayer, speakAsBoss, enemyProjectile } from './shared';
+import { BossDef, ARENA_MID, FLOOR_Y, midX, hurtPlayer, speakAsBoss, enemyProjectile } from './shared';
 
 const TOMMY = 'Toxic Tommy';
 const SLUDGE_Y = 510;          // default sludge surface
@@ -280,8 +280,11 @@ const stunWithOil = (ctx: FrameContext, boss: Enemy) => {
   speakAsBoss(TOMMY, "BLAARGH! CRUDE OIL?! I CAN'T CHUNDER!", ctx.bossHelpers);
 };
 
-/** A safe catwalk just inside the door, then eight boards floating across the pool. */
+/** Steps up to the door, a safe catwalk just inside it, then eight boards floating across the pool. */
 const buildArena = (state: GameState, blocks: Block[]) => {
+  // Two small steps up to the door (Meathead walks straight up them), toward the raised catwalk inside
+  blocks.push({ x: BOSS_DOOR_X - 110, y: FLOOR_Y - 23, w: 110, h: 23, type: 'ground' });
+  blocks.push({ x: BOSS_DOOR_X - 55, y: FLOOR_Y - 46, w: 55, h: 46, type: 'ground' });
   blocks.push({ x: BOSS_DOOR_X, y: BOARD_Y, w: 90, h: 70, type: 'ground' });
   const count = 8, w = 68;
   const startX = BOSS_DOOR_X + 105, endX = ARENA_RIGHT - 25;

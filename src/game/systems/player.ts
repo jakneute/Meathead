@@ -35,7 +35,8 @@ export interface FrameInput {
 }
 
 export const DEATH_SCREEN_FRAMES = 180;
-const STEP_UP_HEIGHT = 6;
+const STEP_UP_HEIGHT = 6;      // any lip this small is stepped over, even in the air
+const STAIR_HEIGHT = 26;       // walking on the ground, he climbs steps up to this tall
 
 export const killPlayer = (ctx: FrameContext, message: string) => {
   const { state, fx } = ctx;
@@ -411,15 +412,17 @@ const moveHorizontally = (ctx: FrameContext) => {
   const { state } = ctx;
   const { player } = state;
   const prevX = player.pos.x;
+  // On the ground (isGrounded flickers off for a frame between landings, so check the floor too)
+  const onGround = player.isGrounded || standingOnSolid(state);
   // Hector's pull drags us directly instead of feeding our momentum
   player.pos.x += player.vel.x + state.totalPullForceX;
   checkBossDoor(ctx);
 
   for (const b of state.blocks) {
     if (!isSolid(state, b) || !rectsOverlap(boundsOf(player), b)) continue;
-    // A lip only a few pixels above our feet (e.g. stepping from a bobbing board onto a ledge): step up
+    // A step or lip just above our feet: walk up onto it (stairs on the ground, tiny lips in the air)
     const feet = player.pos.y + player.height;
-    if (feet - b.y <= STEP_UP_HEIGHT && player.vel.y >= 0) {
+    if (feet - b.y <= (onGround ? STAIR_HEIGHT : STEP_UP_HEIGHT) && player.vel.y >= 0) {
       player.pos.y = b.y - player.height;
       continue;
     }
