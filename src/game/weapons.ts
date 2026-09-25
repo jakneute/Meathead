@@ -347,7 +347,10 @@ export const detonateNuke = (ctx: FrameContext, pos: Vector2) => {
     fx.spawnDamageNumber(e.pos, OIL_ROCKET_NUKE_DAMAGE, true, '#FF0000');
     if (e.health > 0) return;
     if (e.type === 'boss') killBoss(ctx, e, 0, true);
-    else fx.blowAwayEnemy(e, { x: (Math.random() - 0.5) * 40, y: -25 }, 'oil_kill', 0, 3);
+    else {
+      fx.blowAwayEnemy(e, { x: (Math.random() - 0.5) * 40, y: -25 }, 'oil_kill', 0, 3);
+      fx.spawnKillCallout(e, 'nuke');
+    }
   });
 
   fx.playGunSound('tsunami');

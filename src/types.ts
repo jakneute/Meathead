@@ -257,4 +257,6 @@ export interface DamageNumber {
   maxLife: number;
   isCritical: boolean;
   color?: string;
+  /** Big kill callout ("SPLAT!"): pops in and floats instead of falling. */
+  isCallout?: boolean;
 }

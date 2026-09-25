@@ -283,18 +283,19 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
         fx.spawnDeathShower(enemy.pos, 0, 3, false, 80);
         fx.spawnPickup(enemy.pos);
         fx.speakVulgarity('dart_kill');
-        fx.spawnDamageNumber(enemy.pos, "OVERDOSE!", true, "#FF00FF");
+        fx.spawnKillCallout(enemy, 'overdose');
       } else {
         enemy.health -= p.damage;
         fx.spawnDamageNumber(enemy.pos, p.damage);
         if (enemy.health <= 0) {
           fx.blowAwayEnemy(enemy, { x: (Math.random() - 0.5) * 10, y: -15 }, 'dart_kill');
-          fx.spawnDamageNumber(enemy.pos, "OVERDOSE!", true, "#FF00FF");
+          fx.spawnKillCallout(enemy, 'overdose');
         }
       }
       return false;
     }
 
+    const wasFrozen = !!(enemy.frozenTimer && enemy.frozenTimer > 0);
     enemy.health -= p.damage;
     if (enemy.isOiled && !p.isOilRocket) {
       // Oiled enemies go flying from any hit
@@ -305,7 +306,9 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
     if (p.isIce) enemy.frozenTimer = SHOTGUN_FREEZE_TIME;
     fx.spawnDamageNumber(enemy.pos, p.damage, p.isBoulder);
     if (enemy.health <= 0) {
-      fx.spawnDeathShower(enemy.pos, 0, 1.2);
+      // Killing an enemy that was already frozen shatters it
+      if (wasFrozen) { fx.spawnGlassShatter(enemy.pos); fx.spawnKillCallout(enemy, 'shatter'); }
+      else fx.spawnDeathShower(enemy.pos, 0, 1.2);
       fx.spawnPickup(enemy.pos);
       fx.speakVulgarity(p.isBoulder ? 'boulder_kill' : (p.isIce ? 'shotgun_kill' : (p.isSludge ? 'sludge_kill' : 'gun_kill')));
       player.killSatisfactionTimer = 60;
@@ -380,7 +383,7 @@ const resolveEnemyProjectileHit = (ctx: FrameContext, p: Projectile): boolean =>
   if (player.invincibilityTimer > 0) return true;
 
   const hurtbox = boundsOf(player);
-  if (player.isDucking) { hurtbox.y += 28; hurtbox.h -= 28; }
+  if (player.isDucking || player.isSliding) { hurtbox.y += 28; hurtbox.h -= 28; }
   else if (player.isCharging) { hurtbox.w += 10; hurtbox.h -= 10; }
   else if (player.isUppercutting) { hurtbox.w -= 15; hurtbox.h += 40; hurtbox.y -= 30; hurtbox.x += 7.5; }
   if (!rectsOverlap(boundsOf(p), hurtbox)) return true;

@@ -194,6 +194,16 @@ const runSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
     player.chargeTimer--;
     // Charging ignores gravity in the air
     if (!player.isGrounded) player.vel.y = 0;
+    // Slides kick up a dust trail
+    if (player.isSliding && player.isGrounded && state.frame % 2 === 0) {
+      state.particles.push({
+        pos: { x: player.pos.x + player.width / 2 - player.chargeFace * 10, y: player.pos.y + player.height - 4 },
+        vel: { x: -player.chargeFace * (1 + Math.random() * 2), y: -Math.random() * 2 },
+        life: 18,
+        color: Math.random() > 0.5 ? '#A8A29E' : '#D6D3D1',
+        size: 4 + Math.random() * 5,
+      });
+    }
     // Hold the button to keep charging, up to the full duration
     if (player.chargeTimer <= 0 || !input.special) endCharge(ctx);
   }

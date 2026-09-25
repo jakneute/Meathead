@@ -2,7 +2,7 @@ import { Vector2, PickupType, VulgarityType, Enemy } from '../types';
 import {
   PARTICLE_PALETTES, BOULDER_SHRAPNEL_DAMAGE, VULGARITY_TEXT_DURATION, VOICE_LINE_COOLDOWN_FRAMES,
 } from '../constants';
-import { VULGARITIES, BOSS_DIALOGUE, KILL_LINES } from '../dialogue';
+import { VULGARITIES, BOSS_DIALOGUE, KILL_LINES, KILL_CALLOUTS, KillCallout } from '../dialogue';
 import { GameState } from './state';
 import { playSound, playGlassShatterSound } from './audio';
 import { speak, cancelSpeech, isSpeaking, canSpeak, MEATHEAD_VOICE } from './speech';
@@ -26,6 +26,22 @@ export const createFx = (state: GameState) => {
       life: isText ? 90 : 45,
       maxLife: isText ? 90 : 45,
       isCritical,
+      color,
+    });
+  };
+
+  /** Big "SPLAT!"-style callout over a special kill. */
+  const spawnKillCallout = (e: { pos: Vector2, width: number }, kind: KillCallout) => {
+    const { lines, color } = KILL_CALLOUTS[kind];
+    state.damageNumbers.push({
+      id: `callout-${Date.now()}-${Math.random()}`,
+      text: pickRandom(lines),
+      pos: { x: e.pos.x + e.width / 2, y: e.pos.y - 10 },
+      vel: { x: (Math.random() - 0.5) * 1.5, y: -3 },
+      life: 75,
+      maxLife: 75,
+      isCritical: true,
+      isCallout: true,
       color,
     });
   };
@@ -184,6 +200,7 @@ export const createFx = (state: GameState) => {
 
   return {
     spawnDamageNumber,
+    spawnKillCallout,
     spawnExplosion,
     spawnSteamExplosionParticles,
     spawnPoopExplosion,

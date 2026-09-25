@@ -1,6 +1,7 @@
 // Regular enemy movement, oiled-enemy collisions and body contact with the player.
 
-import { Enemy, Rect } from '../../types';
+import { Enemy, Rect, Player } from '../../types';
+import { KillCallout } from '../../dialogue';
 import {
   CANVAS_WIDTH, GRAVITY, PLAYER_INVINCIBILITY_FRAMES, PLAYER_STUN_INVINCIBILITY,
   PLAYER_PUSHBACK_DURATION, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, BOSS_CHARGE_DAMAGE,
@@ -203,7 +204,7 @@ const resolveOiledSlideCollision = (ctx: FrameContext, e: Enemy, enemies: Enemy[
     if (e.health <= 0) {
       e.health = 0;
       fx.blowAwayEnemy(e, { x: -slideDir * 12, y: -12 }, 'oil_kill', -slideDir);
-      fx.spawnDamageNumber(e.pos, 'CRUSHED!', true, '#FFA500');
+      fx.spawnKillCallout(e, 'crush');
     }
     if (other.health <= 0) {
       if (other.type === 'boss') {
@@ -211,11 +212,19 @@ const resolveOiledSlideCollision = (ctx: FrameContext, e: Enemy, enemies: Enemy[
       } else {
         other.health = 0;
         fx.blowAwayEnemy(other, { x: slideDir * 14, y: -14 }, 'oil_kill', slideDir);
-        fx.spawnDamageNumber(other.pos, 'CRUSHED!', true, '#FFA500');
+        fx.spawnKillCallout(other, 'crush');
       }
     }
     break;
   }
+};
+
+/** Which callout a melee kill earns. Shattering a frozen enemy beats everything. */
+const getMeleeKillCallout = (player: Player, wasFrozen: boolean): KillCallout => {
+  if (wasFrozen) return 'shatter';
+  if (player.isUppercutting) return 'uppercut';
+  if (player.isCharging) return player.isSliding ? 'slide' : 'charge';
+  return 'shield';
 };
 
 /** Mass used for knockback and recoil (GML `mass`). */
@@ -315,12 +324,13 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
         e.vel = { x: player.facing * 8, y: 18 };
         fx.spawnDeathShower(e.pos, player.facing, 2.5);
         fx.spawnExplosion(e.pos, '#8B0000', 16, 0, 12);
-        fx.spawnDamageNumber(e.pos, "SPLAT!", true, '#FF0000');
+        fx.spawnKillCallout(e, wasFrozen ? 'shatter' : 'divekick');
         fx.speakVulgarity('charge_kill');
       } else {
         e.vel = { x: player.isUppercutting ? 0 : player.facing * 30, y: player.isUppercutting ? -30 : -5 };
         if (wasFrozen) fx.spawnGlassShatter(e.pos);
         else fx.spawnDeathShower(e.pos, player.facing);
+        fx.spawnKillCallout(e, getMeleeKillCallout(player, wasFrozen));
         fx.speakVulgarity(hasShield ? 'sludge_kill' : (player.isUppercutting ? 'uppercut_kill' : 'charge_kill'));
       }
       fx.spawnPickup(e.pos);

@@ -272,3 +272,23 @@ export const KILL_LINES: Record<Exclude<VulgarityType, 'hurt'>, string[]> = {
   oil_kill: VULGARITIES.OIL_KILL,
   death: VULGARITIES.DEATH,
 };
+
+/** Kinds of kill that get a big on-screen callout. */
+export type KillCallout =
+  | 'charge' | 'slide' | 'uppercut' | 'divekick' | 'shatter' | 'shield'
+  | 'crush' | 'overdose' | 'nuke' | 'tsunami' | 'fried';
+
+/** Callout text (one picked at random) and colour for each special kill. */
+export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string }> = {
+  charge:   { lines: ["BODIED!", "PLOWED!", "TRUCKED!", "STEAMROLLED!", "SHOULDERED!"], color: '#FF8C00' },
+  slide:    { lines: ["SWEPT!", "LEG DAY!", "ANKLES TAKEN!", "SLIDE TACKLE!"], color: '#FFD700' },
+  uppercut: { lines: ["LAUNCHED!", "CHIN CHECKED!", "SKY HIGH!", "ORBITAL!", "LIFTOFF!"], color: '#00E5FF' },
+  divekick: { lines: ["SPLAT!", "STOMPED!", "CURB STOMP!", "PANCAKED!", "FLATTENED!"], color: '#FF0000' },
+  shatter:  { lines: ["SHATTERED!", "ICED!", "BRAIN FREEZE!", "SMASHED CUBES!"], color: '#B3F0FF' },
+  shield:   { lines: ["SLIMED!", "BARFED ON!", "FILTHY!"], color: '#7CFC00' },
+  crush:    { lines: ["CRUSHED!", "STRIKE!", "BOWLED OVER!"], color: '#FFA500' },
+  overdose: { lines: ["OVERDOSE!", "FLATLINED!", "OD'D!"], color: '#FF00FF' },
+  nuke:     { lines: ["NUKED!", "VAPORIZED!", "KABOOM!"], color: '#FFFFFF' },
+  tsunami:  { lines: ["WASHED OUT!", "DROWNED!", "WIPEOUT!"], color: '#1E90FF' },
+  fried:    { lines: ["FRIED!", "ZAPPED!", "SHORT CIRCUIT!"], color: '#FFFF00' },
+};

@@ -69,6 +69,7 @@ export const updateTsunami = (ctx: FrameContext) => {
     } else {
       e.health = 0;
       fx.blowAwayEnemy(e, { x: dir * 20, y: -10 }, 'tsunami_kill', dir);
+      fx.spawnKillCallout(e, 'tsunami');
       state.player.killSatisfactionTimer = 60;
     }
   });

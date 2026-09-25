@@ -9,6 +9,19 @@ export interface PlayerDrawOptions {
   invincibilityEnabled: boolean;
 }
 
+// Palette
+const skinTone = '#E0AC69';
+const skinShadow = '#C68B45';
+const skinHighlight = '#F5D0A9';
+const skinVein = '#EF4444';
+const pantsColor = '#1E3A8A'; // Navy tactical pants
+const pantsShadow = '#172554';
+const bootColor = '#18181B'; // Dark combat boots
+const bootToe = '#94A3B8'; // Steel toe
+const beltColor = '#78350F'; // Leather belt
+const beltBuckle = '#FACC15'; // Gold buckle
+const wristbandColor = '#09090B'; // Spiked wristband
+
 /** Draws Meathead: effects auras, then body layers back-to-front, then the held weapon. */
 export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled }: PlayerDrawOptions) => {
   if (state.deathTimer > 0) return;
@@ -43,11 +56,11 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
 
   // Animation States
   const isHurt = p.pushbackTimer > 0 || (p.invincibilityTimer > 40);
-  // A crouch slide is drawn as a duck, not a shoulder charge
+  // A crouch slide has its own pose (drawSlideTackle), not the shoulder-charge afterimages
   const isCharging = p.isCharging && !p.isSliding;
   const isUppercutting = p.isUppercutting;
   const isDivekicking = !!p.isDivekicking;
-  const isDucking = p.isDucking || p.isSliding;
+  const isDucking = p.isDucking;
   const isAirborne = !p.isGrounded;
   const isWalking = p.isGrounded && Math.abs(p.vel.x) > 0.4 && !isCharging && !isDucking && !isDivekicking;
   const isIdle = p.isGrounded && !isWalking && !isCharging && !isDucking && !isUppercutting && !isDivekicking && !isHurt;
@@ -61,6 +74,13 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       ctx.save();
       ctx.translate(tX, tY);
       ctx.scale(p.facing, 1);
+
+  if (p.isSliding) {
+    drawSlideTackle(ctx, state.frame);
+    ctx.restore();
+    ctx.restore();
+    return;
+  }
       ctx.globalAlpha = 0.35 / trail;
       ctx.fillStyle = trail % 2 === 0 ? '#EF4444' : '#F59E0B';
       // Afterimage silhouette
@@ -109,6 +129,13 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       ctx.save();
       ctx.translate(tX, tY);
       ctx.scale(p.facing, 1);
+
+  if (p.isSliding) {
+    drawSlideTackle(ctx, state.frame);
+    ctx.restore();
+    ctx.restore();
+    return;
+  }
       ctx.globalAlpha = 0.4 / trail;
       ctx.fillStyle = trail % 2 === 0 ? '#EF4444' : '#F59E0B';
       ctx.beginPath();
@@ -136,6 +163,13 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   ctx.save();
   ctx.translate(anchorX, anchorY);
   ctx.scale(p.facing, 1);
+
+  if (p.isSliding) {
+    drawSlideTackle(ctx, state.frame);
+    ctx.restore();
+    ctx.restore();
+    return;
+  }
 
   // Compute cycle variables
   const idleBreath = Math.sin(state.frame * 0.08) * 1.5;
@@ -171,19 +205,6 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
 
   ctx.translate(0, bodyY);
   ctx.rotate(bodyRot);
-
-  // Palette
-  const skinTone = '#E0AC69';
-  const skinShadow = '#C68B45';
-  const skinHighlight = '#F5D0A9';
-  const skinVein = '#EF4444';
-  const pantsColor = '#1E3A8A'; // Navy tactical pants
-  const pantsShadow = '#172554';
-  const bootColor = '#18181B'; // Dark combat boots
-  const bootToe = '#94A3B8'; // Steel toe
-  const beltColor = '#78350F'; // Leather belt
-  const beltBuckle = '#FACC15'; // Gold buckle
-  const wristbandColor = '#09090B'; // Spiked wristband
 
   // ==========================================
   // LAYER 1: BACK ARM (Off-Hand)
@@ -901,6 +922,138 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     }
     ctx.restore();
   }
+
+  ctx.restore();
+};
+
+/**
+ * Slide tackle (crouch + charge): leaning way back, lead boot skimming the
+ * floor steel-toe first, back leg tucked under, one palm planted behind.
+ * Drawn in the player's local frame: (0,0) is between the feet, +x is forward.
+ */
+const drawSlideTackle = (ctx: CanvasRenderingContext2D, frame: number) => {
+  const rattle = frame % 4 < 2 ? 0 : 1; // floor vibration
+  ctx.save();
+  ctx.translate(0, rattle);
+
+  // Dust cloud kicked up behind
+  for (let i = 0; i < 5; i++) {
+    const dx = -30 - ((frame * 3 + i * 13) % 40);
+    const r = 5 + ((frame + i * 7) % 6);
+    ctx.fillStyle = `rgba(190, 175, 150, ${0.55 - ((frame * 3 + i * 13) % 40) / 90})`;
+    ctx.beginPath();
+    ctx.arc(dx, -4 - (i % 2) * 5, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Back arm: palm planted on the floor behind for balance
+  ctx.save();
+  ctx.fillStyle = skinShadow;
+  ctx.beginPath(); ctx.arc(-24, -30, 7, 0, Math.PI * 2); ctx.fill();
+  ctx.translate(-24, -30);
+  ctx.rotate(0.45);
+  ctx.fillRect(-4, 0, 8, 22);
+  ctx.fillStyle = wristbandColor;
+  ctx.fillRect(-5, 16, 10, 4);
+  ctx.fillStyle = skinShadow;
+  ctx.beginPath(); ctx.ellipse(0, 25, 6, 4, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  // Back leg tucked under
+  ctx.fillStyle = pantsShadow;
+  ctx.beginPath();
+  ctx.moveTo(-10, -15); ctx.lineTo(4, -10); ctx.lineTo(3, -3); ctx.lineTo(-10, -7);
+  ctx.closePath(); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(4, -8); ctx.lineTo(-12, -5); ctx.lineTo(-12, 0); ctx.lineTo(3, -2);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = bootColor;
+  ctx.fillRect(-22, -6, 11, 6);
+
+  // Lead leg straight out along the floor, steel toe first
+  ctx.fillStyle = pantsColor;
+  ctx.beginPath();
+  ctx.moveTo(-8, -17); ctx.lineTo(22, -10); ctx.lineTo(22, -1); ctx.lineTo(-6, -6);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = bootColor;
+  ctx.fillRect(20, -11, 16, 10);
+  ctx.fillStyle = bootToe;
+  ctx.fillRect(30, -10, 7, 8);
+  ctx.fillStyle = '#09090B';
+  ctx.fillRect(20, -2, 17, 2);
+
+  // Sparks off the steel toe
+  if (frame % 3 !== 0) {
+    ctx.fillStyle = frame % 2 === 0 ? '#FDE047' : '#FB923C';
+    for (let s = 0; s < 3; s++) {
+      ctx.fillRect(38 + ((frame * 5 + s * 7) % 12), -3 - ((frame + s * 3) % 6), 3, 2);
+    }
+  }
+
+  // Torso leaning way back from the hips, belt at the waist
+  ctx.save();
+  ctx.translate(-8, -15);
+  ctx.rotate(-0.9);
+  ctx.fillStyle = skinTone;
+  ctx.fillRect(-13, -26, 26, 26);
+  ctx.fillStyle = skinShadow;
+  ctx.fillRect(-0.75, -17, 1.5, 13);
+  ctx.fillRect(-8, -12, 16, 1.2);
+  ctx.fillRect(-7, -7, 14, 1.2);
+  ctx.fillStyle = skinTone;
+  ctx.beginPath(); ctx.roundRect(-12, -25, 11, 9, [3, 1, 3, 4]); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(1, -25, 11, 9, [1, 3, 4, 3]); ctx.fill();
+  ctx.fillStyle = skinShadow;
+  ctx.fillRect(-12, -17, 24, 1.5);
+  ctx.fillStyle = skinHighlight;
+  ctx.fillRect(-10, -23.5, 7, 2);
+  ctx.fillRect(3, -23.5, 7, 2);
+  ctx.fillStyle = beltColor;
+  ctx.fillRect(-13, -3, 26, 6);
+  ctx.fillStyle = beltBuckle;
+  ctx.fillRect(-5, -4, 10, 8);
+  ctx.fillStyle = '#451A03';
+  ctx.fillRect(-2, -2, 4, 4);
+  ctx.restore();
+
+  // Head up and forward, yelling
+  const hx = -27, hy = -42;
+  ctx.fillStyle = skinTone;
+  ctx.beginPath(); ctx.roundRect(hx - 10, hy - 12, 20, 20, [4, 4, 3, 3]); ctx.fill();
+  ctx.fillStyle = 'rgba(120, 53, 15, 0.25)';
+  ctx.fillRect(hx - 9, hy + 1, 18, 7);
+  ctx.fillStyle = '#18181B';
+  ctx.fillRect(hx - 10, hy - 16, 20, 5);
+  ctx.fillRect(hx - 11, hy - 14, 2, 7);
+  ctx.fillStyle = '#09090B';
+  ctx.beginPath();
+  ctx.moveTo(hx - 8, hy - 9); ctx.lineTo(hx - 1, hy - 6); ctx.lineTo(hx - 1, hy - 4); ctx.lineTo(hx - 8, hy - 7);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(hx + 8, hy - 9); ctx.lineTo(hx + 1, hy - 6); ctx.lineTo(hx + 1, hy - 4); ctx.lineTo(hx + 8, hy - 7);
+  ctx.fill();
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(hx - 7.5, hy - 5.5, 5, 3);
+  ctx.fillRect(hx + 1.5, hy - 5.5, 5, 3);
+  ctx.fillStyle = '#09090B';
+  ctx.fillRect(hx - 5, hy - 5, 2.5, 2.5);
+  ctx.fillRect(hx + 4, hy - 5, 2.5, 2.5);
+  ctx.fillStyle = '#450A0A';
+  ctx.beginPath(); ctx.ellipse(hx + 1, hy + 4, 5, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(hx - 2, hy + 1.5, 6, 1.5);
+
+  // Lead arm thrust forward, gun leading the slide
+  ctx.fillStyle = skinTone;
+  ctx.beginPath(); ctx.arc(-18, -34, 8, 0, Math.PI * 2); ctx.fill();
+  ctx.fillRect(-18, -38, 18, 8);
+  ctx.fillStyle = wristbandColor;
+  ctx.fillRect(-2, -39, 5, 10);
+  ctx.fillStyle = skinTone;
+  ctx.beginPath(); ctx.arc(6, -34, 5.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#374151';
+  ctx.fillRect(8, -39, 15, 6);
+  ctx.fillRect(9, -35, 5, 7);
 
   ctx.restore();
 };

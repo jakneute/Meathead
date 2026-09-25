@@ -276,7 +276,8 @@ const updateParticlesAndNumbers = (ctx: FrameContext) => {
   state.damageNumbers = state.damageNumbers.filter(d => {
     d.pos.x += d.vel.x;
     d.pos.y += d.vel.y;
-    d.vel.y += 0.15;
+    if (d.isCallout) d.vel.y *= 0.92; // callouts float
+    else d.vel.y += 0.15;
     d.life--;
     return d.life > 0;
   });

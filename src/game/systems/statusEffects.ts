@@ -76,7 +76,10 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
     target.health -= TASER_DOT_DAMAGE;
     fx.spawnDamageNumber(target.pos, TASER_DOT_DAMAGE);
     if (target.health <= 0) {
-      if (target.type === 'enemy') fx.blowAwayEnemy(target as Enemy, { x: (Math.random() - 0.5) * 10, y: -15 }, 'taser_kill');
+      if (target.type === 'enemy') {
+        fx.blowAwayEnemy(target as Enemy, { x: (Math.random() - 0.5) * 10, y: -15 }, 'taser_kill');
+        fx.spawnKillCallout(target, 'fried');
+      }
       player.taserTargetId = null;
     }
   }
@@ -158,7 +161,7 @@ export const updateEnemyStatusEffects = (ctx: FrameContext) => {
           if (e.type === 'boss') killBoss(ctx, e, 0, false);
           else {
             fx.blowAwayEnemy(e, { x: (Math.random() - 0.5) * 10, y: -15 }, 'dart_kill');
-            fx.spawnDamageNumber(e.pos, "OVERDOSE!", true, "#FF00FF");
+            fx.spawnKillCallout(e, 'overdose');
           }
         }
       }

@@ -1,4 +1,4 @@
-import { GameStatus, Pickup, Enemy, TommyBoard } from '../../types';
+import { GameStatus, Pickup, Enemy, TommyBoard, DamageNumber } from '../../types';
 import {
   CANVAS_WIDTH, CANVAS_HEIGHT, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT,
 } from '../../constants';
@@ -862,6 +862,7 @@ const drawParticlesAndDamageNumbers = (ctx: CanvasRenderingContext2D, state: Gam
   const { particles, damageNumbers } = state;
   particles.forEach(p => { ctx.save(); if (!p.isStuck) ctx.globalAlpha = p.life < 100 ? p.life / 100 : 1; else ctx.globalAlpha = 0.85; ctx.fillStyle = p.color; ctx.fillRect(p.pos.x, p.pos.y, p.size, p.size); ctx.restore(); });
   damageNumbers.forEach(d => {
+    if (d.isCallout) { drawCallout(ctx, d); return; }
     ctx.save();
     ctx.globalAlpha = d.life / d.maxLife;
     const txt = d.text || (d.value !== undefined ? d.value.toString() : "");
@@ -910,6 +911,27 @@ const drawBarryLighting = (ctx: CanvasRenderingContext2D, state: GameState, stag
       ctx.restore();
     }
   }
+};
+
+/** Kill callouts slam in oversized, settle with a slight tilt, then fade. */
+const drawCallout = (ctx: CanvasRenderingContext2D, d: DamageNumber) => {
+  const age = d.maxLife - d.life;
+  const scale = age < 8 ? 2.2 - (age / 8) * 1.2 : 1;
+  const tilt = (d.id.length % 2 === 0 ? 1 : -1) * 0.08;
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, d.life / 20);
+  ctx.translate(d.pos.x, d.pos.y);
+  ctx.rotate(tilt);
+  ctx.scale(scale, scale);
+  ctx.font = `bold 22px ${FONT}`;
+  ctx.textAlign = 'center';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = 'black';
+  ctx.strokeText(d.text || '', 0, 0);
+  ctx.fillStyle = d.color || '#FFD700';
+  ctx.fillText(d.text || '', 0, 0);
+  ctx.restore();
 };
 
 const drawVictoryText = (ctx: CanvasRenderingContext2D, text: string) => {
