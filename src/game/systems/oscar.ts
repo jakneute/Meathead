@@ -273,9 +273,9 @@ const flickCigarette = (ctx: FrameContext, boss: Enemy) => {
   const T = OSCAR_CIGARETTE_FLIGHT;
   state.projectiles.push({
     id: `oscar-cig-${state.frame}`,
-    pos: { x: m.x - 5, y: m.y - 3 },
+    pos: { x: m.x - 10, y: m.y - 6 },
     vel: { x: (boss.impactX - m.x) / T, y: (boss.impactY - m.y) / T - 0.5 * OSCAR_CIGARETTE_GRAVITY * T },
-    width: 10, height: 6, health: 1, maxHealth: 1,
+    width: 20, height: 12, health: 1, maxHealth: 1,
     type: 'projectile', damage: 0, owner: 'enemy', isCigarette: true, life: T + 40, zapFrames: 0,
   });
   boss.hasCigarette = false;
@@ -462,9 +462,11 @@ export const updateCigarette = (ctx: FrameContext, p: Projectile): boolean => {
   p.pos.x += p.vel.x;
   p.pos.y += p.vel.y;
   p.life = (p.life ?? 0) - 1;
-  if (state.frame % 3 === 0) {
-    state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y }, vel: { x: (Math.random() - 0.5) * 0.6, y: -0.8 }, life: 24, color: '#BDBDBD', size: 2 + Math.random() * 3 });
+  // Smoke and a trail of embers so you can follow it through the air
+  if (state.frame % 2 === 0) {
+    state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y }, vel: { x: (Math.random() - 0.5) * 0.6, y: -0.8 }, life: 30, color: '#BDBDBD', size: 4 + Math.random() * 4 });
   }
+  state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, vel: { x: -p.vel.x * 0.2 + (Math.random() - 0.5), y: -p.vel.y * 0.2 + (Math.random() - 0.5) }, life: 14, color: Math.random() > 0.5 ? '#FF5722' : '#FFB300', size: 2 + Math.random() * 3 });
   const box = boundsOf(p);
   if (p.life <= 0 || state.blocks.some(b => b.type !== 'pit' && rectsOverlap(box, b))) {
     landCigarette(ctx, { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 });

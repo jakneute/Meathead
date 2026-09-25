@@ -192,10 +192,13 @@ const drawLauncher = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) =>
   ctx.fill();
 };
 
-const drawCigarette = (ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, frame: number) => {
+/** Drawn from the filter end, or around its middle when `centered` (for tumbling through the air). */
+const drawCigarette = (ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, frame: number, scale = 1, centered = false) => {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(angle);
+  ctx.scale(scale, scale);
+  if (centered) ctx.translate(-8.25, 0);
   ctx.fillStyle = '#D7A86E';        // filter
   ctx.fillRect(0, -1.5, 4, 3);
   ctx.fillStyle = '#FAFAFA';        // paper
@@ -229,8 +232,8 @@ const drawCigaretteAndArm = (ctx: CanvasRenderingContext2D, e: Enemy, frame: num
   if (!flicking) {
     if (!e.hasCigarette) return;
     const angle = facing === 1 ? 0.25 : Math.PI - 0.25;
-    drawCigarette(ctx, mouth.x, mouth.y, angle, frame);
-    drawSmokeWisp(ctx, mouth.x + Math.cos(angle) * 16, mouth.y + Math.sin(angle) * 16, frame);
+    drawCigarette(ctx, mouth.x, mouth.y, angle, frame, 1.5);
+    drawSmokeWisp(ctx, mouth.x + Math.cos(angle) * 24, mouth.y + Math.sin(angle) * 24, frame);
     return;
   }
 
@@ -246,7 +249,7 @@ const drawCigaretteAndArm = (ctx: CanvasRenderingContext2D, e: Enemy, frame: num
   else if (t < 0.85) hand = lerp(mouth, cocked, (t - 0.45) / 0.4);
   else hand = lerp(cocked, flung, Math.min(1, (t - 0.85) / 0.15));
 
-  if (t < 0.45 && e.hasCigarette) drawCigarette(ctx, mouth.x, mouth.y, facing === 1 ? 0.25 : Math.PI - 0.25, frame);
+  if (t < 0.45 && e.hasCigarette) drawCigarette(ctx, mouth.x, mouth.y, facing === 1 ? 0.25 : Math.PI - 0.25, frame, 1.5);
   ctx.save();
   ctx.strokeStyle = '#3E2723';
   ctx.lineWidth = 9;
@@ -261,8 +264,9 @@ const drawCigaretteAndArm = (ctx: CanvasRenderingContext2D, e: Enemy, frame: num
   ctx.fill();
   ctx.restore();
   if (t >= 0.45 && e.hasCigarette) {
-    drawCigarette(ctx, hand.x, hand.y - 4, facing === 1 ? -0.4 : Math.PI + 0.4, frame);
-    drawSmokeWisp(ctx, hand.x + facing * 14, hand.y - 10, frame);
+    // Held up high between his fingers so you can see what's coming
+    drawCigarette(ctx, hand.x, hand.y - 6, facing === 1 ? -0.4 : Math.PI + 0.4, frame, 2.2);
+    drawSmokeWisp(ctx, hand.x + facing * 30, hand.y - 20, frame);
   }
 };
 
@@ -429,19 +433,19 @@ export const drawFlyingCigarette = (ctx: CanvasRenderingContext2D, p: Projectile
     ctx.shadowColor = '#00E5FF';
     ctx.shadowBlur = 10;
     ctx.beginPath();
-    ctx.arc(cx, cy, 10 + Math.random() * 4, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 30 + Math.random() * 6, 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
   }
   // Drawn bigger than the one in his mouth so you can spot (and zap) it
   ctx.save();
   ctx.translate(cx, cy);
-  ctx.scale(1.8, 1.8);
-  ctx.fillStyle = 'rgba(255, 112, 67, 0.25)';
+  const pulse = 1 + Math.sin(frame * 0.4) * 0.15;
+  ctx.fillStyle = 'rgba(255, 112, 67, 0.3)';
   ctx.beginPath();
-  ctx.arc(0, 0, 9, 0, Math.PI * 2);
+  ctx.arc(0, 0, 26 * pulse, 0, Math.PI * 2);
   ctx.fill();
-  drawCigarette(ctx, 0, 0, p.isTased ? (Math.random() - 0.5) : frame * 0.5, frame);
+  drawCigarette(ctx, 0, 0, p.isTased ? (Math.random() - 0.5) : frame * 0.25, frame, 2.8, true);
   ctx.restore();
 };
 
