@@ -17,6 +17,7 @@ import { FrameContext, killBoss } from './context';
 import { hitBoss } from './boss';
 import { pickRandom, rectsOverlap, boundsOf } from './utils';
 import { findFlyingCigarette } from './bosses/oscar';
+import { icicleBounds, meltIcicle } from './bosses/artie';
 
 /** The bits of this frame's input that weapons care about. */
 export interface WeaponInput {
@@ -287,6 +288,10 @@ export const updateFlameSegments = (ctx: FrameContext) => {
     }
 
     const box = { x: seg.x - seg.size / 2, y: seg.y - seg.size / 2, w: seg.size, h: seg.size };
+
+    // Melts Artie's icicles (the flame carries on)
+    const icicle = state.icicles.findIndex(i => rectsOverlap(box, icicleBounds(i)));
+    if (icicle >= 0) meltIcicle(ctx, icicle);
 
     // Burn the first enemy touched
     const e = state.enemies.find(en => en.health > 0 && !en.isBlownAway && rectsOverlap(box, boundsOf(en)));

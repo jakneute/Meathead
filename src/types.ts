@@ -252,6 +252,18 @@ export interface FlameSegment {
   density: number;
 }
 
+/** An icicle Artie shakes loose from the ceiling. */
+export interface Icicle {
+  x: number;        // centre
+  y: number;        // top
+  length: number;
+  vy: number;
+  /** Frames until it drops (-1 once it's falling). */
+  fallIn: number;
+  /** Frames since it formed (it grows out of the ceiling). */
+  age: number;
+}
+
 /** A strip of oil left on a floor, ceiling or wall by Oily Oscar's rockets. */
 export interface OilCell {
   surface: 'floor' | 'ceiling' | 'left' | 'right';

@@ -7,6 +7,7 @@ import { GameState } from '../state';
 import { drawCustomBossArena } from './arenaRenderers';
 import { drawBoss, drawBossOverlay } from './bosses';
 import { drawVentTelegraph, drawVent, drawMagma, isMagma } from './victorVents';
+import { drawIcicles, drawIceBlock, drawIceShard } from './artieIce';
 import { drawPlayer } from './playerRenderer';
 import {
   drawOilSlicks, drawOscarFire, drawOscarLaser, drawOscarRocket, drawFlyingCigarette, drawTaserOverload,
@@ -51,6 +52,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     drawCustomBossArena(ctx, stageId, state.frame || 0, hurricane ? hurricane.pos.x + hurricane.width / 2 : null);
   }
   drawBossHazards(ctx, state);
+  drawIcicles(ctx, state);
   drawOilSlicks(ctx, state);
   drawProjectiles(ctx, state, 'puddles');
   state.pickups.forEach(p => drawPickup(ctx, p));
@@ -763,6 +765,7 @@ const drawProjectiles = (ctx: CanvasRenderingContext2D, state: GameState, layer:
       ctx.restore();
     }
     else if (isMagma(p)) drawMagma(ctx, p, state.frame);
+    else if (p.isIce && p.owner === 'enemy') (p.width > 30 ? drawIceBlock : drawIceShard)(ctx, p, state.frame);
     else if (p.isOscarRocket) drawOscarRocket(ctx, p, state.frame);
     else if (p.isCigarette) drawFlyingCigarette(ctx, p, state.frame);
     else if (p.isOilRocket) {

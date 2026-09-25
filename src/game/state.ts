@@ -1,6 +1,6 @@
 import {
   Player, Enemy, Projectile, Particle, Pickup, DamageNumber, Block, Volcano,
-  SteamExplosion, PoopTelegraph, TommyBoard, Vector2, WeaponType, FlameSegment, OilCell,
+  SteamExplosion, PoopTelegraph, TommyBoard, Vector2, WeaponType, FlameSegment, OilCell, Icicle,
 } from '../types';
 import { INITIAL_PLAYER_HEALTH, SCREEN_SHAKE_MAX } from '../constants';
 import { resetLineCooldowns } from './speech';
@@ -75,6 +75,8 @@ export interface GameState {
 
   /** Oily Oscar's oil slicks (and the fire on them). */
   oilCells: OilCell[];
+  /** Artie's icicles hanging from (or falling from) the ceiling. */
+  icicles: Icicle[];
 
   playerStunTimer: number;
   screenShakeTimer: number;
@@ -196,6 +198,7 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
   tommySludgeOiledTimer: 0,
   tommyScrollY: 0,
   oilCells: [],
+  icicles: [],
   playerStunTimer: 0,
   screenShakeTimer: 0,
   screenShakeMagnitude: DEFAULT_SHAKE,
@@ -270,6 +273,7 @@ export const resetStageState = (s: GameState) => {
   s.tommySludgeOiledTimer = 0;
   s.tommyScrollY = 0;
   s.oilCells = [];
+  s.icicles = [];
 
   s.playerStunTimer = 0;
   s.screenShakeTimer = 0;

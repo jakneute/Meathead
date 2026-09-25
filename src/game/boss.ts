@@ -210,6 +210,7 @@ const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolea
   state.tsunamiX = -1;
   state.tommySludgeOiledTimer = 0;
   state.oilCells = [];
+  state.icicles = [];
 
   // Stop any lingering puke shield, stream, taser, etc.
   resetPlayerCombatState(state.player);
