@@ -23,6 +23,8 @@ const update = (ctx: FrameContext, boss: Enemy) => {
       break;
     case 'telegraphing':
       boss.vel.x = 0;
+      // Counts the warnings down (the renderer builds them up as they near zero)
+      state.bossVolcanoTelegraphs.forEach(t => { if (t.life > 0) t.life--; });
       if (boss.stateTimer! <= 0) {
         boss.bossState = 'attacking';
         boss.stateTimer = ERUPTION_FRAMES;

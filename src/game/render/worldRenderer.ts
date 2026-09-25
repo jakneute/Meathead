@@ -6,6 +6,7 @@ import { STAGE_COLORS } from '../../stages';
 import { GameState } from '../state';
 import { drawCustomBossArena } from './arenaRenderers';
 import { drawBoss, drawBossOverlay } from './bosses';
+import { drawVentTelegraph, drawVent, drawMagma, isMagma } from './victorVents';
 import { drawPlayer } from './playerRenderer';
 import {
   drawOilSlicks, drawOscarFire, drawOscarLaser, drawOscarRocket, drawFlyingCigarette, drawTaserOverload,
@@ -160,76 +161,9 @@ const drawTommyShaft = (ctx: CanvasRenderingContext2D, state: GameState) => {
 
 /** Victor's volcano vents and telegraphs, steam blasts, and Hector's poop warnings. */
 const drawBossHazards = (ctx: CanvasRenderingContext2D, state: GameState) => {
-  // DRAW VOLCANO VENTS & EFFECTS
-  state.bossVolcanoTelegraphs.forEach(v => {
-    ctx.save();
-    ctx.globalAlpha = 0.5 + Math.sin(state.frame * 0.2) * 0.3;
-    ctx.fillStyle = 'red';
-    if (v.type === 'wall') {
-      const isLeft = v.pos.x < 7600;
-      ctx.fillRect(v.pos.x + (isLeft ? 0 : -60), v.pos.y - 20, 60, 40);
-      // Arrow
-      ctx.fillStyle = 'yellow';
-      ctx.beginPath();
-      const ax = v.pos.x + (isLeft ? 30 : -30);
-      ctx.moveTo(ax, v.pos.y - 10);
-      ctx.lineTo(ax + (isLeft ? 20 : -20), v.pos.y);
-      ctx.lineTo(ax, v.pos.y + 10);
-      ctx.fill();
-    } else {
-      ctx.fillRect(v.pos.x - 30, v.pos.y - 60, 60, 60);
-      // Arrow
-      ctx.fillStyle = 'yellow';
-      ctx.beginPath();
-      ctx.moveTo(v.pos.x - 10, v.pos.y - 30);
-      ctx.lineTo(v.pos.x, v.pos.y - 50);
-      ctx.lineTo(v.pos.x + 10, v.pos.y - 30);
-      ctx.fill();
-    }
-    ctx.restore();
-  });
-
-  state.bossVolcanoes.forEach(v => {
-    ctx.save();
-    // Draw the Vent itself
-    ctx.fillStyle = '#4E342E';
-    ctx.strokeStyle = '#BA4A00';
-    ctx.lineWidth = 3;
-    if (v.type === 'wall') {
-      const isLeft = v.pos.x < 7600;
-      ctx.beginPath();
-      if (isLeft) {
-        ctx.moveTo(v.pos.x, v.pos.y - 30);
-        ctx.lineTo(v.pos.x + 25, v.pos.y - 15);
-        ctx.lineTo(v.pos.x + 25, v.pos.y + 15);
-        ctx.lineTo(v.pos.x, v.pos.y + 30);
-      } else {
-        ctx.moveTo(v.pos.x, v.pos.y - 30);
-        ctx.lineTo(v.pos.x - 25, v.pos.y - 15);
-        ctx.lineTo(v.pos.x - 25, v.pos.y + 15);
-        ctx.lineTo(v.pos.x, v.pos.y + 30);
-      }
-      ctx.fill(); ctx.stroke();
-      // Heat glow
-      ctx.fillStyle = (state.frame % 4 === 0) ? '#FFD700' : '#FF4500';
-      ctx.beginPath();
-      ctx.arc(v.pos.x + (isLeft ? 5 : -5), v.pos.y, 8, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      ctx.beginPath();
-      ctx.moveTo(v.pos.x - 30, v.pos.y);
-      ctx.lineTo(v.pos.x - 15, v.pos.y - 25);
-      ctx.lineTo(v.pos.x + 15, v.pos.y - 25);
-      ctx.lineTo(v.pos.x + 30, v.pos.y);
-      ctx.fill(); ctx.stroke();
-      // Heat glow
-      ctx.fillStyle = (state.frame % 4 === 0) ? '#FFD700' : '#FF4500';
-      ctx.beginPath();
-      ctx.arc(v.pos.x, v.pos.y - 5, 8, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-  });
+  // Victor's vents: cracking warnings, then the erupting cones
+  state.bossVolcanoTelegraphs.forEach(v => drawVentTelegraph(ctx, v, state.frame));
+  state.bossVolcanoes.forEach(v => drawVent(ctx, v, state.frame));
 
   state.bossSteamExplosions.forEach(s => {
     ctx.save();
@@ -828,6 +762,7 @@ const drawProjectiles = (ctx: CanvasRenderingContext2D, state: GameState, layer:
       ctx.beginPath(); ctx.arc(2, -4, 2, 0, Math.PI*2); ctx.fill();
       ctx.restore();
     }
+    else if (isMagma(p)) drawMagma(ctx, p, state.frame);
     else if (p.isOscarRocket) drawOscarRocket(ctx, p, state.frame);
     else if (p.isCigarette) drawFlyingCigarette(ctx, p, state.frame);
     else if (p.isOilRocket) {
