@@ -1,6 +1,7 @@
 import { Player, WeaponType } from '../../types';
 import { COLORS, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../constants';
 import { peeProgress } from '../victoryPee';
+import { drawShoulderCharge, drawUppercut, drawDivekick } from './playerMoves';
 import { GameState } from '../state';
 
 export interface PlayerDrawOptions {
@@ -77,84 +78,6 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const isUnarmed = !!state.bossCorpse && !!state.victoryString;
   const isRelieving = isUnarmed && peeProgress(p.peeTimer).out;
 
-  // 3. Charging Afterimages & Energy Trails
-  if (isCharging) {
-    ctx.save();
-    for (let trail = 1; trail <= 3; trail++) {
-      const tX = p.pos.x + p.width / 2 - p.facing * trail * 16;
-      const tY = p.pos.y + p.height;
-      ctx.save();
-      ctx.translate(tX, tY);
-      ctx.scale(p.facing, 1);
-      ctx.globalAlpha = 0.35 / trail;
-      ctx.fillStyle = trail % 2 === 0 ? '#EF4444' : '#F59E0B';
-      // Afterimage silhouette
-      ctx.beginPath();
-      ctx.ellipse(0, -32, 22, 34, 0.4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-    // Speed streaks
-    ctx.strokeStyle = '#FDE047';
-    ctx.lineWidth = 2;
-    for (let s = 0; s < 4; s++) {
-      const sy = p.pos.y + 12 + s * 14;
-      const sx = p.pos.x + (p.facing === 1 ? -15 : p.width + 15);
-      ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.lineTo(sx - p.facing * (20 + (animFrame * 7 + s * 11) % 25), sy);
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-
-  // 4. Uppercutting Vapor & Upward Energy Cone
-  if (isUppercutting) {
-    ctx.save();
-    const grad = ctx.createLinearGradient(0, p.pos.y + p.height, 0, p.pos.y - 40);
-    grad.addColorStop(0, 'rgba(0, 229, 255, 0)');
-    grad.addColorStop(0.5, 'rgba(0, 229, 255, 0.3)');
-    grad.addColorStop(1, 'rgba(255, 255, 255, 0.8)');
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.moveTo(p.pos.x - 10, p.pos.y + p.height);
-    ctx.lineTo(p.pos.x + p.width / 2, p.pos.y - 35);
-    ctx.lineTo(p.pos.x + p.width + 10, p.pos.y + p.height);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-  }
-
-  // 5. Divekick Energy Trails & 60-degree Foot Aura
-  if (isDivekicking) {
-    ctx.save();
-    for (let trail = 1; trail <= 3; trail++) {
-      const tX = p.pos.x + p.width / 2 - p.facing * trail * 10;
-      const tY = p.pos.y + p.height / 2 - trail * 16;
-      ctx.save();
-      ctx.translate(tX, tY);
-      ctx.scale(p.facing, 1);
-      ctx.globalAlpha = 0.4 / trail;
-      ctx.fillStyle = trail % 2 === 0 ? '#EF4444' : '#F59E0B';
-      ctx.beginPath();
-      ctx.ellipse(0, 0, 18, 30, 0.95, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-    // Speed streaks along 60 degree vector
-    ctx.strokeStyle = '#FDE047';
-    ctx.lineWidth = 2.5;
-    for (let s = 0; s < 4; s++) {
-      const sx = p.pos.x + (p.facing === 1 ? -10 : p.width + 10) - p.facing * s * 8;
-      const sy = p.pos.y - s * 14;
-      ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.lineTo(sx - p.facing * 20, sy - 34);
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-
   // Set local coordinate frame: (0, 0) is at player feet center
   const anchorX = p.pos.x + p.width / 2;
   const anchorY = p.pos.y + p.height;
@@ -170,6 +93,14 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
 
   if (p.isSliding) {
     drawSlideTackle(ctx, animFrame);
+    ctx.restore();
+    ctx.restore();
+    return;
+  }
+  // The special moves are full poses of their own (unless he's been knocked out of one)
+  const movePose = hurtT >= 0 ? null : isCharging ? drawShoulderCharge : isUppercutting ? drawUppercut : isDivekicking ? drawDivekick : null;
+  if (movePose) {
+    movePose(ctx, animFrame);
     ctx.restore();
     ctx.restore();
     return;

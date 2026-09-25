@@ -41,7 +41,7 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
   const { player } = state;
   const { currentWeapon, facing, pos, width, isDucking } = player;
   const shootX = pos.x + (facing === 1 ? width : -10);
-  const shootY = isDucking ? pos.y + 52 : pos.y + 25;
+  const shootY = isDucking ? pos.y + 41 : pos.y + 25; // level with the gun's muzzle
   const useAmmo = () => { if (!cheats.infiniteAmmo) player.weaponAmmo[currentWeapon]--; };
   const addProjectile = (p: Projectile) => state.projectiles.push(p);
 
