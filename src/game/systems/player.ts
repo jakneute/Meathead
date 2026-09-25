@@ -4,7 +4,7 @@
 
 import { Enemy, WeaponType, Rect, Block } from '../../types';
 import {
-  MAX_AMMO, FLAMETHROWER_SPEED_MULT,
+  MAX_AMMO,
   PLAYER_MOVE_SPEED, PLAYER_ACCEL_BASE, PLAYER_FRICTION_BASE, PLAYER_AIR_FRICTION, CROUCH_SLIDE_FRICTION_MULT,
   ICE_FRICTION_MULTIPLIER, MIN_MOVE_SPEED, PLAYER_GRAVITY, PLAYER_TERMINAL_VELOCITY, PLAYER_JUMP_SPEED,
   JUMP_HOLD_FRAMES, COYOTE_AIR_FRAMES, COYOTE_JUMP_FRAMES, JUMP_BUFFER_FRAMES, LANDING_SHAKE_SPEED,
@@ -16,11 +16,12 @@ import { STAGES_SET_1 } from '../../stages';
 import { FrameContext } from '../context';
 import { GameState, shakeScreen } from '../state';
 import { Controls } from '../input';
-import { fireWeapon } from '../weapons';
+import { fireWeapon, updateFlamethrower } from '../weapons';
 import { rectsOverlap, boundsOf } from '../utils';
 
 export interface FrameInput {
   shoot: boolean;
+  shootPressed: boolean;
   moveLeft: boolean;
   moveRight: boolean;
   moveUp: boolean;
@@ -29,7 +30,6 @@ export interface FrameInput {
   jumpPressed: boolean;
   special: boolean;
   specialPressed: boolean;
-  isFiringFlamethrower: boolean;
 }
 
 export const DEATH_SCREEN_FRAMES = 180;
@@ -49,12 +49,14 @@ export const killPlayer = (ctx: FrameContext, message: string) => {
  * divekicks (so stomps can chain) and steering while bouncing upward.
  */
 export const gateControls = (ctx: FrameContext, c: Controls): FrameInput => {
-  const { state, currentWeapon } = ctx;
+  const { state } = ctx;
   const { player } = state;
   const jumpPressed = c.jump && !player.jumpHeldLastFrame;
   const specialPressed = c.special && !player.specialHeldLastFrame;
+  const shootPressed = c.shoot && !player.shootHeldLastFrame;
   player.jumpHeldLastFrame = c.jump;
   player.specialHeldLastFrame = c.special;
+  player.shootHeldLastFrame = c.shoot;
 
   const canAct = state.playerStunTimer <= 0 && player.pushbackTimer <= 0;
   const locked = player.lockTimer > 0;
@@ -63,6 +65,7 @@ export const gateControls = (ctx: FrameContext, c: Controls): FrameInput => {
   const shoot = act && c.shoot;
   return {
     shoot,
+    shootPressed: act && shootPressed,
     moveLeft: canSteer && c.left,
     moveRight: canSteer && c.right,
     moveUp: act && c.up,
@@ -72,7 +75,6 @@ export const gateControls = (ctx: FrameContext, c: Controls): FrameInput => {
     special: canAct && c.special,
     // During the lock only down+special (divekick) gets through
     specialPressed: canAct && specialPressed && (!locked || c.down),
-    isFiringFlamethrower: currentWeapon === 'FLAMETHROWER' && shoot && hasAmmo(ctx, 'FLAMETHROWER'),
   };
 };
 
@@ -120,19 +122,20 @@ export const updatePlayerActions = (ctx: FrameContext, input: FrameInput) => {
   const { state, currentWeapon } = ctx;
   const { player } = state;
 
-  if (!input.isFiringFlamethrower) player.flameTimer = 0;
   startSpecialMoves(ctx, input);
   const movDir = player.isTasing ? 0 : (input.moveRight ? 1 : 0) - (input.moveLeft ? 1 : 0);
   runSpecialMoves(ctx, input);
 
-  if (movDir !== 0 && !player.isCharging && !player.isDivekicking && !player.isTasing) player.facing = movDir as 1 | -1;
+  // The flamethrower stream locks your facing (GML lockTurning)
+  if (movDir !== 0 && !player.isCharging && !player.isDivekicking && !player.isTasing && !player.isFlaming) player.facing = movDir as 1 | -1;
   updateCrouch(ctx, input);
-  updateHorizontalVelocity(ctx, movDir, input.isFiringFlamethrower);
+  updateHorizontalVelocity(ctx, movDir);
   if (state.totalPullForceX !== 0) player.vel.x += state.totalPullForceX;
 
   player.currentWeapon = currentWeapon;
-  if (input.shoot && player.shootCooldown <= 0 && hasAmmo(ctx, currentWeapon) && currentWeapon !== 'TASER') {
-    fireWeapon(ctx, input.moveUp, input.moveDown);
+  updateFlamethrower(ctx, input);
+  if (input.shoot && player.shootCooldown <= 0 && hasAmmo(ctx, currentWeapon) && currentWeapon !== 'TASER' && currentWeapon !== 'FLAMETHROWER') {
+    fireWeapon(ctx, input);
   }
 };
 
@@ -145,7 +148,7 @@ const isPerformingSpecial = (ctx: FrameContext) => {
 const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
   const { state, cheats, fx } = ctx;
   const { player } = state;
-  if (!input.specialPressed || input.isFiringFlamethrower || player.isTasing || state.playerStunTimer > 0) return;
+  if (!input.specialPressed || player.isTasing || state.playerStunTimer > 0) return;
   const free = cheats.infinitePower;
   const locked = player.lockTimer > 0; // only divekicks are allowed during recoil
 
@@ -255,7 +258,7 @@ export const endUppercut = (ctx: FrameContext) => {
 const updateCrouch = (ctx: FrameContext, input: FrameInput) => {
   const { player } = ctx.state;
   if (!player.isGrounded || player.vel.y < 0) return;
-  player.isDucking = input.moveDown && player.lockTimer <= 0 && !player.isUppercutting && !player.isDivekicking && !input.isFiringFlamethrower && !player.isTasing
+  player.isDucking = input.moveDown && player.lockTimer <= 0 && !player.isUppercutting && !player.isDivekicking && !player.isTasing
     && (!player.isCharging || player.isSliding);
 };
 
@@ -263,13 +266,12 @@ const updateCrouch = (ctx: FrameContext, input: FrameInput) => {
  * Walking with momentum (GML handleMovementX): lerp toward the target speed,
  * brake harder when reversing, and slide to a stop using the surface's friction.
  */
-const updateHorizontalVelocity = (ctx: FrameContext, movDir: number, isFiringFlamethrower: boolean) => {
+const updateHorizontalVelocity = (ctx: FrameContext, movDir: number) => {
   const { state, stageId } = ctx;
   const { player } = state;
   if (isPerformingSpecial(ctx) || player.lockTimer > 0 || player.pushbackTimer > 0) return;
 
-  const speed = isFiringFlamethrower ? PLAYER_MOVE_SPEED * FLAMETHROWER_SPEED_MULT : PLAYER_MOVE_SPEED;
-  const targetVel = movDir * speed;
+  const targetVel = movDir * PLAYER_MOVE_SPEED;
   const effectiveDir = player.isDucking ? 0 : movDir;
   // Tommy's floating boards aren't terrain blocks, so count being grounded in his arena as a floor too
   const onFloor = standingOnSolid(state) || (stageId === 'Toxic Tommy' && state.arenaLocked && player.isGrounded);

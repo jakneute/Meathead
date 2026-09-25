@@ -5,6 +5,8 @@ import {
   CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, PLAYER_INVINCIBILITY_FRAMES,
   PLAYER_PUSHBACK_DURATION, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, ENEMY_HIT_COOLDOWN,
   BOULDER_BOUNCE_DAMPING, BOULDER_SHRAPNEL_COUNT, SHOTGUN_FREEZE_TIME, NEEDLE_OVERDOSE_THRESHOLD,
+  SHOTGUN_MAX_BOUNCES, SHOTGUN_BOUNCE_VARIANCE_DEG, BOULDER_GRAVITY, BOULDER_MAX_SPEED, BOULDER_WALK_NUDGE,
+  BOULDER_PUNT, BOULDER_BILLIARD_LOSS, BOULDER_DAMAGE_PER_SPEED, GML_SCALE,
   SLUDGE_DOT_DAMAGE, SLUDGE_DOT_TICK, SLUDGE_LINGER_DURATION, OIL_ROCKET_OILED_PUSHBACK_MULT,
 } from '../../constants';
 import { BOSS_DIALOGUE } from '../../dialogue';
@@ -13,6 +15,7 @@ import { getBossDamage, checkIsWeakness, isTommyShielded, stunTommyWithOil, arti
 import { explodeOilRocket } from '../weapons';
 import { pickRandom, rectsOverlap, boundsOf } from '../utils';
 import { getAttackHitbox } from './player';
+import { shakeScreen, GameState } from '../state';
 
 /** Moves one projectile and resolves its collisions. Returns false to remove it. */
 export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
@@ -57,6 +60,10 @@ export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
     }
     return false;
   }
+
+  // Player shotgun pellets and boulders use the GameMaker version's physics
+  if (p.owner === 'player' && p.isIce) return updatePellet(ctx, p);
+  if (p.owner === 'player' && p.isBoulder) return updatePlayerBoulder(ctx, p);
 
   const hasPhysics = p.isBoulder || (p.isIce && (p.width > 30 || p.width <= 20 || p.owner === 'player')) || p.isShrapnel || p.isCocaine || p.isMethBarrel || p.isSludge || p.isPoop;
   if (hasPhysics) {
@@ -182,8 +189,107 @@ const updatePhysicsProjectile = (ctx: FrameContext, p: Projectile): boolean => {
 
 const shatterBoulder = (ctx: FrameContext, p: Projectile) => {
   ctx.fx.spawnRockShatter(p.pos);
+  if (p.owner === 'player') {
+    // GML boulder: just breaks apart, with a shake based on its speed
+    shakeScreen(ctx.state, 8, Math.min(10, (Math.abs(p.vel.x) + Math.abs(p.vel.y)) / GML_SCALE * 0.5) * GML_SCALE);
+    return;
+  }
   ctx.fx.spawnBoulderShrapnel(p.pos, BOULDER_SHRAPNEL_COUNT, p.vel.x > 0 ? 1 : -1);
 };
+
+const solidAt = (state: GameState, box: { x: number, y: number, w: number, h: number }) =>
+  state.blocks.find(b => b.type !== 'pit' && rectsOverlap(box, b));
+
+/**
+ * GML oShotgunBullet: flies straight, ricochets off terrain at a random angle,
+ * and melts away after a couple of bounces or when its lifetime runs out.
+ */
+const updatePellet = (ctx: FrameContext, p: Projectile): boolean => {
+  const { state } = ctx;
+  p.life = (p.life ?? 0) - 1;
+  const variance = () => (Math.random() - 0.5) * 2 * SHOTGUN_BOUNCE_VARIANCE_DEG * Math.PI / 180;
+  const speed = Math.hypot(p.vel.x, p.vel.y);
+  const redirect = (angle: number) => { p.vel.x = Math.cos(angle) * speed; p.vel.y = Math.sin(angle) * speed; p.bounces = (p.bounces || 0) + 1; };
+
+  if (solidAt(state, { ...boundsOf(p), x: p.pos.x + p.vel.x })) redirect(Math.PI - Math.atan2(p.vel.y, p.vel.x) + variance());
+  if (solidAt(state, { ...boundsOf(p), y: p.pos.y + p.vel.y })) redirect(-Math.atan2(p.vel.y, p.vel.x) + variance());
+  p.pos.x += p.vel.x;
+  p.pos.y += p.vel.y;
+
+  if (p.life <= 0 || (p.bounces || 0) > SHOTGUN_MAX_BOUNCES) {
+    spawnIceMist(state, p, 8);
+    return false;
+  }
+  if (p.pos.x < state.camera.x - 400 || p.pos.x > state.camera.x + CANVAS_WIDTH + 400) return false;
+  return resolvePlayerProjectileHits(ctx, p);
+};
+
+const spawnIceMist = (state: GameState, p: Projectile, count: number) => {
+  const mist = ['#FFFFFF', '#E0FFFF', '#AFEEEE', '#B0E0E6'];
+  for (let i = 0; i < count; i++) {
+    state.particles.push({
+      pos: { x: p.pos.x + Math.random() * 14 - 7, y: p.pos.y + Math.random() * 14 - 7 },
+      vel: { x: p.vel.x * 0.1 + (Math.random() - 0.5) * 2, y: -Math.random() * 2 - 0.5 },
+      life: 20 + Math.random() * 25, color: pickRandom(mist), size: 2 + Math.random() * 5,
+    });
+  }
+};
+
+/**
+ * GML oBoulderBullet: a heavy ball. Gravity pulls it to the floor where it
+ * rolls; walking into it nudges it and a charge/divekick punts it; it breaks
+ * against walls and knocks into other boulders like billiard balls.
+ */
+const updatePlayerBoulder = (ctx: FrameContext, p: Projectile): boolean => {
+  const { state } = ctx;
+  const { player } = state;
+  p.life = (p.life ?? 0) - 1;
+  p.vel.y += BOULDER_GRAVITY;
+
+  // Pushed around by the player
+  if (rectsOverlap(boundsOf(p), boundsOf(player))) {
+    const mult = (player.isCharging || player.isDivekicking) ? BOULDER_PUNT : BOULDER_WALK_NUDGE;
+    p.vel.x = clamp(p.vel.x + player.vel.x * mult, -BOULDER_MAX_SPEED, BOULDER_MAX_SPEED);
+    p.vel.y = clamp(p.vel.y + player.vel.y * mult, -BOULDER_MAX_SPEED, BOULDER_MAX_SPEED);
+    if (mult === BOULDER_PUNT) shakeScreen(state, 6, Math.min(10, Math.abs(p.vel.x) / GML_SCALE * 0.5) * GML_SCALE);
+  }
+
+  // Floor / ceiling: stop dead (no bounce)
+  const floor = solidAt(state, { ...boundsOf(p), y: p.pos.y + p.vel.y });
+  if (floor) {
+    if (Math.abs(p.vel.y) / GML_SCALE > 4) shakeScreen(state, 6, Math.min(10, Math.abs(p.vel.y) / GML_SCALE) * GML_SCALE * 0.5);
+    p.pos.y = p.vel.y > 0 ? floor.y - p.height : floor.y + floor.h;
+    p.vel.y = 0;
+  } else {
+    p.pos.y += p.vel.y;
+  }
+
+  // Walls break it
+  if (solidAt(state, { x: p.pos.x + p.vel.x, y: p.pos.y - GML_SCALE * 8, w: p.width, h: p.height - GML_SCALE * 8 })) {
+    shatterBoulder(ctx, p);
+    return false;
+  }
+  p.pos.x += p.vel.x;
+
+  // Billiards: swap speeds with any boulder we roll into
+  for (const other of state.projectiles) {
+    if (other === p || !other.isBoulder || other.owner !== 'player' || other.health <= 0) continue;
+    if (!rectsOverlap({ ...boundsOf(p), x: p.pos.x + Math.sign(p.vel.x) * 2 }, boundsOf(other))) continue;
+    const mine = p.vel.x;
+    p.vel.x = other.vel.x * BOULDER_BILLIARD_LOSS;
+    other.vel.x = mine * BOULDER_BILLIARD_LOSS;
+    ctx.fx.spawnExplosion({ x: (p.pos.x + other.pos.x) / 2 + p.width / 2, y: p.pos.y + p.height / 2 }, '#FDE047', 5, 0, 6);
+    shakeScreen(state, 6, Math.min(10, Math.max(Math.abs(p.vel.x), Math.abs(other.vel.x)) / GML_SCALE * 0.5) * GML_SCALE);
+    p.pos.x += Math.sign(p.pos.x - other.pos.x || 1) * 4 * GML_SCALE;
+    break;
+  }
+
+  if (p.life <= 0) { shatterBoulder(ctx, p); return false; }
+  if (p.pos.y > 1000) return false;
+  return resolvePlayerProjectileHits(ctx, p);
+};
+
+const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 
 /** Enemies standing in a sludge puddle take damage over time (bosses take one hit, then it's used up). */
 const damageEnemiesInSludgePuddle = (ctx: FrameContext, p: Projectile) => {
@@ -296,6 +402,8 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
     }
 
     const wasFrozen = !!(enemy.frozenTimer && enemy.frozenTimer > 0);
+    if (p.isBoulder) return boulderHitsEnemy(ctx, p, enemy);
+
     enemy.health -= p.damage;
     if (enemy.isOiled && !p.isOilRocket) {
       // Oiled enemies go flying from any hit
@@ -305,6 +413,7 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
     }
     if (p.isIce) enemy.frozenTimer = SHOTGUN_FREEZE_TIME;
     fx.spawnDamageNumber(enemy.pos, p.damage, p.isBoulder);
+    if (p.isIce) spawnIceMist(state, p, 8);
     if (enemy.health <= 0) {
       // Killing an enemy that was already frozen shatters it
       if (wasFrozen) { fx.spawnGlassShatter(enemy.pos); fx.spawnKillCallout(enemy, 'shatter'); }
@@ -320,8 +429,9 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
 
   for (const barrel of state.projectiles.filter(pr => pr.isMethBarrel)) {
     if (!rectsOverlap(boundsOf(p), boundsOf(barrel)) || p.isDart) continue;
-    barrel.health = Math.max(0, barrel.health - p.damage);
-    fx.spawnDamageNumber(barrel.pos, p.damage);
+    const damage = p.isBoulder ? BOULDER_DAMAGE_PER_SPEED * Math.max(1, Math.hypot(p.vel.x, p.vel.y) / GML_SCALE) : p.damage;
+    barrel.health = Math.max(0, barrel.health - damage);
+    fx.spawnDamageNumber(barrel.pos, damage);
     if (p.isBoulder) shatterBoulder(ctx, p);
     if (p.isSludge) p.health = 0;
     return false;
@@ -445,4 +555,31 @@ export const updateSpecialMovesVsBarrels = (ctx: FrameContext) => {
     if (p.health <= 0) p.health = 0;
     else { p.vel.x = player.facing * 10; p.vel.y = -6; }
   });
+};
+
+/**
+ * GML boulder vs enemy: damage scales with the boulder's speed (rolling fast or
+ * dropping hard). A kill doesn't stop it; a survivor breaks it.
+ */
+const boulderHitsEnemy = (ctx: FrameContext, p: Projectile, enemy: Enemy): boolean => {
+  const { state, fx } = ctx;
+  const absX = Math.abs(p.vel.x) / GML_SCALE;
+  const absY = p.vel.y < 0 ? 1 : Math.abs(p.vel.y) / GML_SCALE;
+  const speed = Math.max(absX, absY);
+  const damage = BOULDER_DAMAGE_PER_SPEED * Math.max(1, speed);
+  enemy.health -= damage;
+  fx.spawnDamageNumber(enemy.pos, damage, true);
+  shakeScreen(state, 6, Math.min(10, speed * 0.1) * GML_SCALE);
+
+  if (enemy.health > 0) {
+    shatterBoulder(ctx, p);
+    return false;
+  }
+  const flattened = absX >= absY;
+  fx.spawnDeathShower(enemy.pos, flattened ? Math.sign(p.vel.x) : 0, 1.5);
+  fx.spawnKillCallout(enemy, flattened ? 'flattened' : 'squished');
+  fx.spawnPickup(enemy.pos);
+  fx.speakVulgarity('boulder_kill');
+  state.player.killSatisfactionTimer = 60;
+  return true;
 };

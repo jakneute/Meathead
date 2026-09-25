@@ -10,7 +10,7 @@ import { FrameContext } from './context';
 import { Controls } from './input';
 import { respawn, getStartX } from './level';
 import { resetPlayerCombatState, DEFAULT_SHAKE } from './state';
-import { updateBarfStream } from './weapons';
+import { updateBarfStream, updateFlameSegments } from './weapons';
 import { speak, MEATHEAD_INTRO_VOICE } from './speech';
 import { pickRandom, rectsOverlap, boundsOf } from './utils';
 import { killPlayer, gateControls, tickPlayerTimers, updatePlayerActions, updatePlayerPhysics } from './systems/player';
@@ -28,6 +28,8 @@ const INTRO_JUMP_FRAMES = 60;
  */
 export const stepGame = (ctx: FrameContext, status: GameStatus, controls: Controls): boolean => {
   const { state } = ctx;
+  // A paused game is frozen solid: no timers, no animation
+  if (status === GameStatus.PAUSED) return false;
   state.frame++;
   if (state.screenShakeTimer > 0 && --state.screenShakeTimer === 0) state.screenShakeMagnitude = DEFAULT_SHAKE;
 
@@ -197,6 +199,8 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
   updateTsunami(ctx);
   updateSteamExplosions(ctx);
 
+  // Meathead only animates during live gameplay (not intros, boss deaths or victory)
+  state.playerAnimFrame++;
   const input = gateControls(ctx, controls);
   tickPlayerTimers(ctx, input);
   updateTaser(ctx, input);
@@ -208,6 +212,7 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
 
   updatePlayerActions(ctx, input);
   updatePlayerPhysics(ctx, input);
+  updateFlameSegments(ctx);
   updateTommyArena(ctx);
   if (state.ernieVibrationTimer > 0) {
     state.ernieVibrationTimer--;

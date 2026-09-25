@@ -6,7 +6,10 @@ import {
   CANVAS_WIDTH, GRAVITY, PLAYER_INVINCIBILITY_FRAMES, PLAYER_STUN_INVINCIBILITY,
   PLAYER_PUSHBACK_DURATION, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, BOSS_CHARGE_DAMAGE,
   PLAYER_MASS, ENEMY_MASS, ENEMY_DAZE_FRAMES, UPPERCUT_LAUNCH_SPEED, UPPERCUT_LAUNCH_X, BOUNCE_FRAMES,
-  COOLDOWN_CHARGE, COOLDOWN_UPPERCUT, GML_SCALE, FROZEN_PUSH_MULTIPLIER,
+  COOLDOWN_CHARGE, COOLDOWN_UPPERCUT, GML_SCALE, FROZEN_PUSH_MULTIPLIER, FROZEN_DAMAGE_MULTIPLIER,
+  FROZEN_WALL_IMPACT_MULTIPLIER, FROZEN_GROUND_IMPACT_MULTIPLIER, FROZEN_ENEMY_IMPACT_DAMAGE,
+  DAMAGE_WALL_IMPACT_SCALER, DAMAGE_FALL_SCALER, IMPACT_DAMAGE_THRESHOLD,
+  ENEMY_DOMINO_TRANSFER, ENEMY_DOMINO_LOSS, DOMINO_DAMAGE_SCALER,
   BOSS_UPPERCUT_DAMAGE, ENEMY_UPPERCUT_DAMAGE, BOSS_DIVEKICK_DAMAGE, ENEMY_DIVEKICK_DAMAGE,
   ENEMY_HIT_COOLDOWN, ENEMY_BULLET_DAMAGE, FILTH_SHIELD_CONTACT_DAMAGE, OIL_ROCKET_OILED_DURATION,
   OILED_COLLISION_DAMAGE,
@@ -36,13 +39,22 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
 
   const { player } = state;
   if ((e.frozenTimer && e.frozenTimer > 0) || (e.isTased && player.isTasing && player.taserTargetId === e.id)) {
-    if (e.frozenTimer) e.frozenTimer--;
+    // A frozen enemy stays frozen while it's flying from a shove
+    if (e.frozenTimer && !isBeingShoved(e)) e.frozenTimer--;
   } else {
     e.isTased = false;
   }
 
+  const shoveSpeed = e.vel.x;
   moveEnemy(ctx, e);
   if (e.sludgeTimer && e.sludgeTimer > 0) e.sludgeTimer--;
+  if (e.type !== 'boss') {
+    if (slamIntoWalls(ctx, e, shoveSpeed)) return false;
+    if (!e.isOiled && isBeingShoved(e) && (!e.enemyCollisionCooldown || e.enemyCollisionCooldown <= 0)) {
+      resolveShoveCollision(ctx, e, enemies);
+    }
+    if (e.health <= 0) return false;
+  }
 
   if (e.isOiled && !e.isBlownAway && e.health > 0 && Math.abs(e.vel.x) > 1.2 && (!e.enemyCollisionCooldown || e.enemyCollisionCooldown <= 0)) {
     resolveOiledSlideCollision(ctx, e, enemies);
@@ -84,14 +96,15 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
   // Air enemies bob around their spawn height (sludge drags them down to the floor)
   if (air) {
     if (e.initialY === undefined) e.initialY = e.pos.y;
-    if (!isHeld) {
-      if (isStunned) {
-        e.pauseTimer!--;
-        e.pos.x += e.vel.x;
-        e.vel.x *= 0.92;
-        e.pos.y += e.vel.y;
-        e.vel.y *= 0.92;
-      } else if (e.sludgeTimer && e.sludgeTimer > 0) {
+    if (isStunned) {
+      // Knockback still carries frozen enemies
+      e.pauseTimer!--;
+      e.pos.x += e.vel.x;
+      e.vel.x *= 0.92;
+      e.pos.y += e.vel.y;
+      e.vel.y *= 0.92;
+    } else if (!isHeld) {
+      if (e.sludgeTimer && e.sludgeTimer > 0) {
         e.pos.y = Math.min(e.pos.y + 3.5, 550 - e.height);
       } else {
         e.pos.y += Math.sin((state.frame + (e.initialX || 0)) / 25) * 1.2;
@@ -100,7 +113,8 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
     }
   }
 
-  if (e.type === 'boss' || isHeld) return;
+  // Frozen/tased enemies can't act, but a shove still moves them
+  if (e.type === 'boss' || (isHeld && !isStunned)) return;
 
   if (air) {
     if (isStunned) return;
@@ -123,6 +137,7 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
     e.vel.y += GRAVITY * 0.75;
     e.vel.x *= (e.isOiled ? 0.985 : 0.97);
     if (e.pos.y >= floorLevel) {
+      slamIntoFloor(ctx, e, e.vel.y);
       e.pos.y = floorLevel;
       e.vel.y = 0;
       e.vel.x *= (e.isOiled ? 0.95 : 0.7);
@@ -279,7 +294,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
 
     // Frozen enemies take double damage, fly further, and shatter
     const wasFrozen = !!(e.frozenTimer && e.frozenTimer > 0);
-    if (wasFrozen) damage *= 2;
+    if (wasFrozen) damage *= FROZEN_DAMAGE_MULTIPLIER;
 
     e.health -= damage;
     e.hitCooldown = ENEMY_HIT_COOLDOWN;
@@ -299,7 +314,6 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     if (e.health > 0) {
       const mass = getEnemyMass(e);
       if (e.type !== 'boss') {
-        if (wasFrozen) e.frozenTimer = 0;
         knockBackEnemy(ctx, e, mass, wasFrozen);
       }
       if (player.isDivekicking) {
@@ -380,4 +394,109 @@ const knockBackEnemy = (ctx: FrameContext, e: Enemy, mass: number, wasFrozen: bo
     if (!player.isDivekicking) e.vel.y = 0;
   }
   e.pauseTimer = ENEMY_DAZE_FRAMES;
+};
+
+// ---------------------------------------------------------------------------
+// Shove physics (ported from the GML oEnemyParent): walls and floors hurt,
+// shoved enemies domino into each other, and frozen enemies become projectiles.
+// ---------------------------------------------------------------------------
+
+const isBeingShoved = (e: Enemy) => (e.pauseTimer || 0) > 0 && Math.abs(e.vel.x) > 0.5;
+const isFrozen = (e: Enemy) => !!(e.frozenTimer && e.frozenTimer > 0);
+const toGml = (v: number) => Math.abs(v) / GML_SCALE;
+
+/** Kill an enemy from an impact, splattering it (or shattering it if frozen). */
+const impactKill = (ctx: FrameContext, e: Enemy, callout: KillCallout, splatDir: number) => {
+  const { fx, state } = ctx;
+  e.health = 0;
+  if (isFrozen(e)) {
+    fx.spawnGlassShatter(e.pos);
+    fx.spawnKillCallout(e, 'shatter');
+  } else {
+    fx.spawnDeathShower({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 }, splatDir, 1.5);
+    fx.spawnKillCallout(e, callout);
+  }
+  fx.spawnPickup(e.pos);
+  fx.speakVulgarity('charge_kill');
+  state.player.killSatisfactionTimer = 60;
+};
+
+/** Knocked into a wall: damage scales with speed (hugely if frozen). Returns true if it died. */
+const slamIntoWalls = (ctx: FrameContext, e: Enemy, speed: number): boolean => {
+  const { state, fx } = ctx;
+  if ((e.pauseTimer || 0) <= 0 && Math.abs(speed) < 1) return false;
+  const wall = state.blocks.find(b => (b.type === 'wall' || (b.type === 'door' && state.doorState !== 'opening' && state.doorState !== 'open' && state.doorState !== 'closing'))
+    && rectsOverlap(boundsOf(e), b));
+  if (!wall) return false;
+
+  const dir = Math.sign(speed) || (e.pos.x + e.width / 2 < wall.x + wall.w / 2 ? 1 : -1);
+  e.pos.x = dir > 0 ? wall.x - e.width : wall.x + wall.w;
+  e.vel.x = 0;
+
+  const damage = toGml(speed) * DAMAGE_WALL_IMPACT_SCALER * (isFrozen(e) ? FROZEN_WALL_IMPACT_MULTIPLIER : 1);
+  if (damage <= IMPACT_DAMAGE_THRESHOLD) return false;
+  e.health -= damage;
+  fx.spawnDamageNumber(e.pos, damage, isFrozen(e));
+  fx.spawnExplosion({ x: dir > 0 ? wall.x : wall.x + wall.w, y: e.pos.y + e.height / 2 }, '#FDE047', 5, -dir * 4, 8);
+  shakeScreen(state, 8, Math.min(10, toGml(speed)) * GML_SCALE * 0.6);
+  if (e.health <= 0) { impactKill(ctx, e, 'wallsplat', -dir); return true; }
+  return false;
+};
+
+/** Knocked down onto the floor: fall damage from the landing speed (hugely if frozen). */
+const slamIntoFloor = (ctx: FrameContext, e: Enemy, speed: number) => {
+  const { fx, state } = ctx;
+  const damage = toGml(speed) * DAMAGE_FALL_SCALER * (isFrozen(e) ? FROZEN_GROUND_IMPACT_MULTIPLIER : 1);
+  if (speed <= 0 || damage <= IMPACT_DAMAGE_THRESHOLD) return;
+  e.health -= damage;
+  fx.spawnDamageNumber(e.pos, damage, isFrozen(e));
+  if (toGml(speed) > 6) shakeScreen(state, 8, Math.min(10, toGml(speed)) * GML_SCALE * 0.5);
+  if (e.health <= 0) impactKill(ctx, e, 'groundsplat', 0);
+};
+
+/**
+ * A shoved enemy hitting another one. Frozen enemies are projectiles: they
+ * hurt what they hit and keep going. Otherwise it's a domino: both take damage
+ * and most of the shove transfers to the enemy that got hit.
+ */
+const resolveShoveCollision = (ctx: FrameContext, e: Enemy, enemies: Enemy[]) => {
+  const { fx } = ctx;
+  for (const other of enemies) {
+    if (other === e || other.type === 'boss' || other.isBlownAway || other.health <= 0) continue;
+    if (other.enemyCollisionCooldown && other.enemyCollisionCooldown > 0) continue;
+    if (!rectsOverlap(boundsOf(e), boundsOf(other))) continue;
+
+    e.enemyCollisionCooldown = 20;
+    other.enemyCollisionCooldown = 20;
+    const midX = (e.pos.x + e.width / 2 + other.pos.x + other.width / 2) / 2;
+    const midY = (e.pos.y + e.height / 2 + other.pos.y + other.height / 2) / 2;
+
+    if (isFrozen(e)) {
+      other.health -= FROZEN_ENEMY_IMPACT_DAMAGE;
+      other.vel.x = e.vel.x * 0.5;
+      other.pauseTimer = Math.max(other.pauseTimer || 0, 30);
+      fx.spawnDamageNumber(other.pos, FROZEN_ENEMY_IMPACT_DAMAGE, true);
+      fx.spawnExplosion({ x: midX, y: midY }, '#B3F0FF', 8, 0, 8);
+    } else {
+      const massResistance = Math.min(1, Math.max(0.1, 1 - getEnemyMass(e) / 1000));
+      const damage = (toGml(e.vel.x) + toGml(e.vel.y)) * DOMINO_DAMAGE_SCALER * massResistance;
+      if (damage > 2) {
+        e.health -= damage;
+        other.health -= damage;
+        fx.spawnDamageNumber(other.pos, damage);
+        fx.spawnExplosion({ x: midX, y: midY }, '#FDE047', 3, 0, 6);
+      }
+      other.vel.x = e.vel.x * ENEMY_DOMINO_TRANSFER;
+      other.pauseTimer = Math.max(other.pauseTimer || 0, e.pauseTimer || 0);
+      e.vel.x *= ENEMY_DOMINO_LOSS;
+    }
+    fx.playGunSound();
+
+    if (other.health <= 0) {
+      fx.blowAwayEnemy(other, { x: Math.sign(e.vel.x) * 10, y: -10 }, 'charge_kill', Math.sign(e.vel.x));
+      fx.spawnKillCallout(other, isFrozen(other) ? 'shatter' : 'crush');
+    }
+    if (e.health <= 0) impactKill(ctx, e, 'crush', -Math.sign(e.vel.x));
+    break;
+  }
 };

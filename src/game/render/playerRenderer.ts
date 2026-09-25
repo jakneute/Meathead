@@ -25,12 +25,13 @@ const wristbandColor = '#09090B'; // Spiked wristband
 /** Draws Meathead: effects auras, then body layers back-to-front, then the held weapon. */
 export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled }: PlayerDrawOptions) => {
   if (state.deathTimer > 0) return;
+  const animFrame = state.playerAnimFrame;
   ctx.save();
 
   // 1. Filth Shield Aura
   if (p.filthShieldTimer && p.filthShieldTimer > 0 && !state.victoryString && showFilthShield) {
     ctx.save();
-    const pulse = Math.sin(state.frame * 0.15) * 0.2;
+    const pulse = Math.sin(animFrame * 0.15) * 0.2;
     ctx.globalAlpha = 0.55 + pulse;
     ctx.fillStyle = '#ADFF2F';
     ctx.beginPath();
@@ -40,8 +41,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.lineWidth = 4;
     ctx.stroke();
     for (let i = 0; i < 3; i++) {
-      const bx = p.pos.x + p.width / 2 + Math.cos(state.frame * 0.1 + i * 2) * 32;
-      const by = p.pos.y + p.height / 2 + Math.sin(state.frame * 0.1 + i * 2) * 32;
+      const bx = p.pos.x + p.width / 2 + Math.cos(animFrame * 0.1 + i * 2) * 32;
+      const by = p.pos.y + p.height / 2 + Math.sin(animFrame * 0.1 + i * 2) * 32;
       ctx.fillStyle = '#C5E1A5';
       ctx.beginPath(); ctx.arc(bx, by, 5, 0, Math.PI * 2); ctx.fill();
     }
@@ -49,7 +50,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   }
 
   // 2. Invincibility / Hurt Flicker
-  const isFlicker = (p.invincibilityTimer > 0 || invincibilityEnabled) && Math.floor(state.frame / 2) % 2 === 0;
+  const isFlicker = (p.invincibilityTimer > 0 || invincibilityEnabled) && Math.floor(animFrame / 2) % 2 === 0;
   if (isFlicker) {
     ctx.globalAlpha = 0.45;
   }
@@ -76,7 +77,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       ctx.scale(p.facing, 1);
 
   if (p.isSliding) {
-    drawSlideTackle(ctx, state.frame);
+    drawSlideTackle(ctx, animFrame);
     ctx.restore();
     ctx.restore();
     return;
@@ -97,7 +98,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       const sx = p.pos.x + (p.facing === 1 ? -15 : p.width + 15);
       ctx.beginPath();
       ctx.moveTo(sx, sy);
-      ctx.lineTo(sx - p.facing * (20 + (state.frame * 7 + s * 11) % 25), sy);
+      ctx.lineTo(sx - p.facing * (20 + (animFrame * 7 + s * 11) % 25), sy);
       ctx.stroke();
     }
     ctx.restore();
@@ -131,7 +132,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       ctx.scale(p.facing, 1);
 
   if (p.isSliding) {
-    drawSlideTackle(ctx, state.frame);
+    drawSlideTackle(ctx, animFrame);
     ctx.restore();
     ctx.restore();
     return;
@@ -165,18 +166,18 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   ctx.scale(p.facing, 1);
 
   if (p.isSliding) {
-    drawSlideTackle(ctx, state.frame);
+    drawSlideTackle(ctx, animFrame);
     ctx.restore();
     ctx.restore();
     return;
   }
 
   // Compute cycle variables
-  const idleBreath = Math.sin(state.frame * 0.08) * 1.5;
-  const walkPhase = (state.frame * 0.28) % (Math.PI * 2);
+  const idleBreath = Math.sin(animFrame * 0.08) * 1.5;
+  const walkPhase = (animFrame * 0.28) % (Math.PI * 2);
   const walkStride = Math.sin(walkPhase);
   const walkBob = Math.abs(Math.sin(walkPhase)) * 3;
-  const chargePhase = (state.frame * 0.55) % (Math.PI * 2);
+  const chargePhase = (animFrame * 0.55) % (Math.PI * 2);
   const chargeStride = Math.sin(chargePhase);
 
   // Dynamic rotation & vertical offsets based on stance
@@ -274,7 +275,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fill();
   } else {
     // Idle / Walk pumping arm in opposition
-    const armAngle = isWalking ? -walkStride * 0.6 : Math.sin(state.frame * 0.08) * 0.1;
+    const armAngle = isWalking ? -walkStride * 0.6 : Math.sin(animFrame * 0.08) * 0.1;
     ctx.save();
     ctx.translate(-6, -40);
     ctx.rotate(armAngle);
@@ -680,7 +681,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillStyle = '#EF4444'; // Glowing red cherry tip
     ctx.fillRect(headX + 13, mouthY - 1, 2.5, 3);
     // Smoke puff
-    if (state.frame % 10 < 5) {
+    if (animFrame % 10 < 5) {
       ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
       ctx.beginPath(); ctx.arc(headX + 17, mouthY - 3, 2.5, 0, Math.PI * 2); ctx.fill();
     }
@@ -911,7 +912,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // 7. Stun Stars Effect when Stunned
   if (state.playerStunTimer > 0) {
     ctx.save();
-    const starAngle = state.frame * 0.2;
+    const starAngle = animFrame * 0.2;
     for (let s = 0; s < 3; s++) {
       const sx = p.pos.x + p.width / 2 + Math.cos(starAngle + s * 2.1) * 22;
       const sy = p.pos.y - 12 + Math.sin(starAngle + s * 2.1) * 8;

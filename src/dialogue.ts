@@ -276,7 +276,8 @@ export const KILL_LINES: Record<Exclude<VulgarityType, 'hurt'>, string[]> = {
 /** Kinds of kill that get a big on-screen callout. */
 export type KillCallout =
   | 'charge' | 'slide' | 'uppercut' | 'divekick' | 'shatter' | 'shield'
-  | 'crush' | 'overdose' | 'nuke' | 'tsunami' | 'fried';
+  | 'crush' | 'overdose' | 'nuke' | 'tsunami' | 'fried'
+  | 'wallsplat' | 'groundsplat' | 'flattened' | 'squished';
 
 /** Callout text (one picked at random) and colour for each special kill. */
 export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string }> = {
@@ -291,4 +292,8 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
   nuke:     { lines: ["NUKED!", "VAPORIZED!", "KABOOM!"], color: '#FFFFFF' },
   tsunami:  { lines: ["WASHED OUT!", "DROWNED!", "WIPEOUT!"], color: '#1E90FF' },
   fried:    { lines: ["FRIED!", "ZAPPED!", "SHORT CIRCUIT!"], color: '#FFFF00' },
+  wallsplat:   { lines: ["WALL SPLAT!", "SPLATTERED!", "REDECORATED!"], color: '#DC2626' },
+  groundsplat: { lines: ["FACEPLANT!", "GROUNDED!", "KISSED CONCRETE!"], color: '#F97316' },
+  flattened:   { lines: ["ROLLED!", "ROADKILL!", "PAVED!"], color: '#A16207' },
+  squished:    { lines: ["SQUISHED!", "GRAVITY WINS!", "DROPPED!"], color: '#A16207' },
 };

@@ -1,6 +1,6 @@
 import {
   Player, Enemy, Projectile, Particle, Pickup, DamageNumber, Block, Volcano,
-  SteamExplosion, PoopTelegraph, TommyBoard, Vector2, WeaponType,
+  SteamExplosion, PoopTelegraph, TommyBoard, Vector2, WeaponType, FlameSegment,
 } from '../types';
 import { INITIAL_PLAYER_HEALTH, SCREEN_SHAKE_MAX } from '../constants';
 
@@ -10,10 +10,13 @@ export type DoorState = 'closed' | 'opening' | 'open' | 'closing' | 'done';
 export interface GameState {
   stageId: string | null;
   frame: number;
+  /** Drives Meathead's animations; only advances during live gameplay. */
+  playerAnimFrame: number;
 
   player: Player;
   enemies: Enemy[];
   projectiles: Projectile[];
+  flameSegments: FlameSegment[];
   pickups: Pickup[];
   particles: Particle[];
   damageNumbers: DamageNumber[];
@@ -107,6 +110,7 @@ export const createPlayer = (ammo: Record<WeaponType, number>): Player => ({
   recoiling: false,
   jumpHeldLastFrame: false,
   specialHeldLastFrame: false,
+  shootHeldLastFrame: false,
   shootCooldown: 0,
   invincibilityTimer: 0,
   pushbackTimer: 0,
@@ -118,8 +122,10 @@ export const createPlayer = (ammo: Record<WeaponType, number>): Player => ({
   isTasing: false,
   taserTargetId: null,
   taserTimer: 0,
-  flameTimer: 0,
+  isFlaming: false,
   flameAngle: 0,
+  flameRange: 0,
+  flameDrainTimer: 0,
   filthShieldTimer: 0,
   barfTimer: 0,
 });
@@ -136,9 +142,11 @@ export const shakeScreen = (s: GameState, frames: number, magnitude: number = DE
 export const createGameState = (stageId: string | null, ammo: Record<WeaponType, number>): GameState => ({
   stageId,
   frame: 0,
+  playerAnimFrame: 0,
   player: createPlayer(ammo),
   enemies: [],
   projectiles: [],
+  flameSegments: [],
   pickups: [],
   particles: [],
   damageNumbers: [],
@@ -186,7 +194,8 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
 export const resetPlayerCombatState = (player: Player) => {
   player.filthShieldTimer = 0;
   player.barfTimer = 0;
-  player.flameTimer = 0;
+  player.isFlaming = false;
+  player.flameRange = 0;
   player.isTasing = false;
   player.taserTargetId = null;
   player.taserTimer = 0;
@@ -207,6 +216,7 @@ export const resetPlayerCombatState = (player: Player) => {
 export const resetStageState = (s: GameState) => {
   s.enemies = [];
   s.projectiles = [];
+  s.flameSegments = [];
   s.pickups = [];
   s.particles = [];
   s.damageNumbers = [];

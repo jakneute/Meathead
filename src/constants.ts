@@ -97,7 +97,6 @@ export const PLAYER_MASS = 350;
 export const RECOIL_FRAMES = 30;                // controls locked after bouncing off an enemy
 export const BOUNCE_FRAMES = 5;                 // controls locked after a divekick stomp
 export const ENEMY_DAZE_FRAMES = 60;
-export const FROZEN_PUSH_MULTIPLIER = 1.7;       // frozen enemies fly further when shoved
 /** Enemy masses by id prefix; heavier enemies get pushed less and bounce you back harder. */
 export const ENEMY_MASS: Record<string, number> = {
   flyer: 100,
@@ -133,29 +132,75 @@ export const BULLET_DAMAGE = 25;
 export const GUN_COOLDOWN = 12;
 export const GUN_VELOCITY = 18;
 
-// BOULDER (EARTHQUAKE)
-export const BOULDER_DAMAGE = 250;
+// BOULDER (EARTHQUAKE) - ported from the GML oBoulderBlunderbuss / oBoulderBullet.
+// A heavy ball: rolls slowly, can be nudged by walking into it or punted with a
+// charge/divekick, hits harder the faster it moves, keeps rolling after a kill,
+// breaks on walls, and bounces off other boulders like billiard balls.
+export const BOULDER_COOLDOWN = 45;
+export const BOULDER_ROLL_SPEED = gml(2);
+export const BOULDER_LOB_SPEED = gml(6);           // up+fire: lobbed at 45 degrees
+export const BOULDER_GRAVITY = gml(0.5);
+export const BOULDER_MAX_SPEED = gml(10);
+export const BOULDER_LIFETIME = 300;
+export const BOULDER_DAMAGE_PER_SPEED = 50;         // damage = this x speed (in GML units, min 1)
+export const BOULDER_WALK_NUDGE = 0.05;             // share of the player's speed a walk-in pushes
+export const BOULDER_PUNT = 0.6;                    // ...and a charge or divekick
+export const BOULDER_BILLIARD_LOSS = 0.8;
+// Enemy (Ernie) boulders keep the original bouncing physics
 export const BOULDER_SPEED = 7;
-export const BOULDER_COOLDOWN = 40;
 export const BOULDER_BOUNCE_DAMPING = 0.6;
 export const BOULDER_SHRAPNEL_COUNT = 12;
 export const BOULDER_SHRAPNEL_DAMAGE = 60;
 
-// SHOTGUN (ICE)
-export const SHOTGUN_DAMAGE = 15;
-export const SHOTGUN_COOLDOWN = 20;
-export const SHOTGUN_FREEZE_TIME = 90; 
-export const SHOTGUN_PELLET_COUNT = 7;
+// SHOTGUN ICE (ARTIE) - ported from the GML oShotgunIce / oShotgunBullet.
+// A fan of straight-flying pellets that ricochet off terrain and freeze on hit.
+export const SHOTGUN_COOLDOWN = 30;
+export const SHOTGUN_PELLET_COUNT = 10;
+export const SHOTGUN_SPREAD_DEG = 45;
+export const SHOTGUN_JITTER_DEG = 5;
+export const SHOTGUN_PELLET_SPEED_MIN = gml(7);
+export const SHOTGUN_PELLET_SPEED_MAX = gml(11);
+export const SHOTGUN_PELLET_LIFETIME = 60;
+export const SHOTGUN_MAX_BOUNCES = 2;
+export const SHOTGUN_BOUNCE_VARIANCE_DEG = 50;
+export const SHOTGUN_DAMAGE = 11;                  // per pellet (web enemy health scale)
+export const SHOTGUN_FREEZE_TIME = 60;
 
-// FLAMETHROWER (VOLCANO)
-export const FLAMETHROWER_DAMAGE = 8;
-export const FLAMETHROWER_RANGE = 220;
-export const FLAMETHROWER_MAX_RANGE = 800; 
-export const FLAMETHROWER_RAMP_FRAMES = 180; 
-export const FLAMETHROWER_SPEED_MULT = 0.45;
+// FROZEN ENEMY PHYSICS - ported from the GML oEnemyParent.
+// Frozen enemies can't act, take double melee damage, fly further when shoved,
+// and turn into projectiles that smash into walls, the floor and other enemies.
+export const FROZEN_DAMAGE_MULTIPLIER = 2;
+export const FROZEN_PUSH_MULTIPLIER = 1.7;
+export const FROZEN_WALL_IMPACT_MULTIPLIER = 6.7;
+export const FROZEN_GROUND_IMPACT_MULTIPLIER = 5.4;
+export const FROZEN_ENEMY_IMPACT_DAMAGE = 20;
+
+// SHOVED ENEMY PHYSICS - ported from the GML oEnemyParent.
+export const DAMAGE_WALL_IMPACT_SCALER = 2.0;      // x speed (GML units) when slammed into a wall
+export const DAMAGE_FALL_SCALER = 1.5;             // x speed (GML units) when slammed into the floor
+export const IMPACT_DAMAGE_THRESHOLD = 5;          // smaller impacts do nothing
+export const ENEMY_DOMINO_TRANSFER = 0.6;          // share of a shove passed to the enemy you hit
+export const ENEMY_DOMINO_LOSS = 0.5;              // share of the shove you keep
+export const DOMINO_DAMAGE_SCALER = 1.0;
+
+// FLAMETHROWER (VOLCANO) - ported from the GML oMoltenFlamethrower / oMoltenStream.
+// A stream of 15 short-lived flame segments that grows out to full range,
+// stops at walls, sweeps slowly up/down to aim, and locks your facing.
+export const FLAMETHROWER_SEGMENTS = 15;
+export const FLAMETHROWER_MAX_RANGE = gml(185);
+export const FLAMETHROWER_START_RANGE = gml(5);
+export const FLAMETHROWER_GROWTH = 0.025;           // lerp toward max range per frame while held
+export const FLAMETHROWER_SHRINK = 0.2;             // lerp back when released
+export const FLAMETHROWER_AIM_LERP = 0.01;          // how fast up/down aiming sweeps
+export const FLAMETHROWER_AIM_DEG = 45;
+export const FLAMETHROWER_NOZZLE_GAP = gml(10);
+export const FLAMETHROWER_SEGMENT_LIFETIME = 15;
+export const FLAMETHROWER_SEGMENT_SIZE = gml(8);
+export const FLAMETHROWER_DAMAGE = 1.5;             // per segment that touches an enemy
+export const FLAMETHROWER_AMMO_EVERY = 2;           // frames per unit of fuel
 export const FIRE_TICK_RATE = 12;
 export const FIRE_DOT_DAMAGE = 4;
-export const FIRE_DOT_DAMAGE_HEAVY = 112; 
+export const FIRE_DOT_DAMAGE_HEAVY = 112;
 
 // TSUNAMI (HURRICANE)
 export const TSUNAMI_COOLDOWN = 120;

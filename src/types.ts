@@ -73,6 +73,7 @@ export interface Player extends Entity {
   // Previous frame's buttons, for detecting presses
   jumpHeldLastFrame: boolean;
   specialHeldLastFrame: boolean;
+  shootHeldLastFrame: boolean;
 
   shootCooldown: number;
   invincibilityTimer: number;
@@ -89,8 +90,10 @@ export interface Player extends Entity {
   // Filth Shield
   filthShieldTimer?: number;
   // Flamethrower
-  flameTimer?: number;
-  flameAngle?: number;
+  isFlaming?: boolean;         // stream active: locks facing
+  flameAngle?: number;         // current aim in radians (negative = up)
+  flameRange?: number;         // current stream length
+  flameDrainTimer?: number;
   // Taser
   isTasing?: boolean;
   taserTargetId?: string | null;
@@ -197,6 +200,19 @@ export interface Projectile extends Entity {
   isTased?: boolean;
   isOnFire?: boolean;
   fireTimer?: number;
+}
+
+/** One piece of the flamethrower stream (GML oMoltenStream). */
+export interface FlameSegment {
+  x: number;
+  y: number;
+  size: number;
+  gap: number;
+  dirX: number;
+  dirY: number;
+  life: number;
+  alpha: number;
+  density: number;
 }
 
 export type BlockType = 'wall' | 'ground' | 'platform' | 'door' | 'pit';

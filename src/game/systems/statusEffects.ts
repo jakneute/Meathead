@@ -26,7 +26,7 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
     return;
   }
 
-  if (!player.isTasing) fireWeapon(ctx, input.moveUp, input.moveDown);
+  if (!player.isTasing) fireWeapon(ctx, input);
   if (!player.isTasing) return;
 
   player.taserTimer = (player.taserTimer || 0) + 1;
@@ -169,7 +169,7 @@ export const updateEnemyStatusEffects = (ctx: FrameContext) => {
 
     if (e.type === 'boss') {
       if (e.health > 0 && state.arenaLocked) updateBossAI(e, stageId, player, currentWeapon, cheats.invincible, state, ctx.bossHelpers);
-    } else if ((e.frozenTimer && e.frozenTimer > 0) || (e.isTased && player.isTasing && player.taserTargetId === e.id)) {
+    } else if (((e.frozenTimer && e.frozenTimer > 0) || (e.isTased && player.isTasing && player.taserTargetId === e.id)) && (e.pauseTimer || 0) <= 0) {
       e.vel.x = 0;
       e.vel.y = 0;
     } else {

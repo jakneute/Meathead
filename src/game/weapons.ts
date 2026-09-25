@@ -1,25 +1,40 @@
 import { Projectile, Enemy, Vector2 } from '../types';
 import {
-  BULLET_DAMAGE, BOULDER_DAMAGE, BOULDER_SPEED, SHOTGUN_DAMAGE,
-  SHOTGUN_COOLDOWN, FLAMETHROWER_DAMAGE,
-  FLAMETHROWER_RANGE, FLAMETHROWER_MAX_RANGE, FLAMETHROWER_RAMP_FRAMES,
+  BULLET_DAMAGE, SHOTGUN_DAMAGE, SHOTGUN_COOLDOWN, SHOTGUN_PELLET_COUNT, SHOTGUN_SPREAD_DEG, SHOTGUN_JITTER_DEG,
+  SHOTGUN_PELLET_SPEED_MIN, SHOTGUN_PELLET_SPEED_MAX, SHOTGUN_PELLET_LIFETIME,
+  BOULDER_COOLDOWN, BOULDER_ROLL_SPEED, BOULDER_LOB_SPEED, BOULDER_LIFETIME,
+  FLAMETHROWER_DAMAGE, FLAMETHROWER_SEGMENTS, FLAMETHROWER_MAX_RANGE, FLAMETHROWER_START_RANGE,
+  FLAMETHROWER_GROWTH, FLAMETHROWER_SHRINK, FLAMETHROWER_AIM_LERP, FLAMETHROWER_AIM_DEG, FLAMETHROWER_NOZZLE_GAP,
+  FLAMETHROWER_SEGMENT_LIFETIME, FLAMETHROWER_SEGMENT_SIZE, FLAMETHROWER_AMMO_EVERY, GML_SCALE,
   TSUNAMI_COOLDOWN, COLORS, PARTICLE_PALETTES,
   TASER_RANGE, CANVAS_WIDTH, GUN_COOLDOWN, GUN_VELOCITY,
-  BOULDER_COOLDOWN, SHOTGUN_PELLET_COUNT, NEEDLE_DAMAGE, NEEDLE_COOLDOWN,
-  SLUDGE_COOLDOWN, FILTH_SHIELD_DURATION, SLUDGE_DAMAGE,
+  NEEDLE_DAMAGE, NEEDLE_COOLDOWN, SLUDGE_COOLDOWN, FILTH_SHIELD_DURATION, SLUDGE_DAMAGE,
   OIL_ROCKET_DAMAGE, OIL_ROCKET_COOLDOWN, OIL_ROCKET_SPLASH_RADIUS, OIL_ROCKET_SPLASH_DAMAGE,
   OIL_ROCKET_OILED_DURATION, OIL_ROCKET_NUKE_DAMAGE, ENEMY_HIT_COOLDOWN,
 } from '../constants';
 import { GameState } from './state';
 import { FrameContext, killBoss } from './context';
 import { getBossDamage, checkIsWeakness, artieWeaknessLeap, speakAsBoss } from './boss';
-import { pickRandom } from './utils';
+import { pickRandom, rectsOverlap, boundsOf } from './utils';
+
+/** The bits of this frame's input that weapons care about. */
+export interface WeaponInput {
+  shoot: boolean;
+  shootPressed: boolean;
+  moveUp: boolean;
+  moveDown: boolean;
+}
+
+const gml = (v: number) => v * GML_SCALE;
+
+const pointInSolid = (state: GameState, x: number, y: number) =>
+  state.blocks.some(b => b.type !== 'pit' && b.type !== 'door' && x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h);
 
 /**
  * Fires the player's current weapon (called when fire is held and off cooldown).
  * The taser is special: this only starts it; update.ts keeps it running.
  */
-export const fireWeapon = (ctx: FrameContext, isMoveUp: boolean, isMoveDown: boolean) => {
+export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
   const { state, fx, cheats } = ctx;
   const { player } = state;
   const { currentWeapon, facing, pos, width, isDucking } = player;
@@ -42,16 +57,21 @@ export const fireWeapon = (ctx: FrameContext, isMoveUp: boolean, isMoveDown: boo
       break;
 
     case 'BOULDER': {
-      // Only one player boulder in play at a time
-      if (state.projectiles.some(p => p.owner === 'player' && p.isBoulder)) break;
-      const vy = isMoveUp ? -18 : 0;
-      const vx = isMoveUp ? facing * (BOULDER_SPEED * 0.9) : facing * BOULDER_SPEED;
+      // GML oBoulderBlunderbuss: one boulder per press; up+fire lobs it
+      if (!input.shootPressed) break;
+      const size = 48;
+      const lob = input.moveUp;
+      const cx = shootX + facing * gml(12) + (lob ? -facing * gml(12) : 0);
+      const cy = shootY - (lob ? gml(24) : gml(12));
+      const spawn = { x: cx - size / 2, y: cy - size / 2, w: size, h: size };
+      // Don't fire into a wall
+      if (state.blocks.some(b => b.type !== 'pit' && rectsOverlap(spawn, b))) break;
       addProjectile({
-        id: `b-${Date.now()}`,
-        pos: { x: pos.x + (facing === 1 ? width : -40), y: pos.y + 20 },
-        vel: { x: vx, y: vy },
-        width: 48, height: 48, health: 1, maxHealth: 1,
-        type: 'projectile', damage: BOULDER_DAMAGE, owner: 'player', isBoulder: true
+        id: `b-${Date.now()}-${Math.random()}`,
+        pos: { x: spawn.x, y: spawn.y },
+        vel: lob ? { x: facing * BOULDER_LOB_SPEED, y: -BOULDER_LOB_SPEED } : { x: facing * BOULDER_ROLL_SPEED, y: 0 },
+        width: size, height: size, health: 1, maxHealth: 1,
+        type: 'projectile', damage: 0, owner: 'player', isBoulder: true, life: BOULDER_LIFETIME, rotation: 0,
       });
       player.shootCooldown = BOULDER_COOLDOWN;
       useAmmo();
@@ -59,15 +79,21 @@ export const fireWeapon = (ctx: FrameContext, isMoveUp: boolean, isMoveDown: boo
     }
 
     case 'SHOTGUN':
+      // GML oShotgunIce: an evenly spaced fan of pellets with a little jitter
+      if (!input.shootPressed) break;
       for (let i = 0; i < SHOTGUN_PELLET_COUNT; i++) {
-        const angle = (i - Math.floor(SHOTGUN_PELLET_COUNT / 2)) * 0.15;
-        const speed = 11 + Math.random() * 6;
+        const offset = i * (SHOTGUN_SPREAD_DEG / (SHOTGUN_PELLET_COUNT - 1)) - SHOTGUN_SPREAD_DEG / 2;
+        const jitter = Math.round((Math.random() - 0.5) * 2 * SHOTGUN_JITTER_DEG);
+        const angle = (offset + jitter) * Math.PI / 180;
+        const speedX = SHOTGUN_PELLET_SPEED_MIN + Math.random() * (SHOTGUN_PELLET_SPEED_MAX - SHOTGUN_PELLET_SPEED_MIN);
+        const speedY = SHOTGUN_PELLET_SPEED_MIN + Math.random() * (SHOTGUN_PELLET_SPEED_MAX - SHOTGUN_PELLET_SPEED_MIN);
         addProjectile({
           id: `pellet-${Date.now()}-${i}`,
           pos: { x: shootX, y: shootY },
-          vel: { x: Math.cos(angle) * facing * speed, y: Math.sin(angle) * speed },
+          vel: { x: facing * Math.cos(angle) * speedX, y: -Math.sin(angle) * speedY },
           width: 10, height: 10, health: 1, maxHealth: 1,
-          type: 'projectile', damage: SHOTGUN_DAMAGE, owner: 'player', isIce: true
+          type: 'projectile', damage: SHOTGUN_DAMAGE, owner: 'player', isIce: true,
+          life: SHOTGUN_PELLET_LIFETIME, bounces: 0,
         });
       }
       player.shootCooldown = SHOTGUN_COOLDOWN;
@@ -89,7 +115,7 @@ export const fireWeapon = (ctx: FrameContext, isMoveUp: boolean, isMoveDown: boo
       break;
 
     case 'FLAMETHROWER':
-      fireFlamethrower(ctx, isMoveUp, isMoveDown);
+      // Handled every frame by updateFlamethrower (it needs to grow and shrink)
       break;
 
     case 'SLUDGE':
@@ -154,87 +180,177 @@ export const updateBarfStream = (state: GameState) => {
   });
 };
 
-/** A cone of fire that ramps up in range the longer it's held. Burns enemies and enemy shots. */
-const fireFlamethrower = (ctx: FrameContext, isMoveUp: boolean, isMoveDown: boolean) => {
-  const { state, fx, cheats, stageId, currentWeapon } = ctx;
+/**
+ * GML oMoltenFlamethrower: while fire is held, lay down a stream of flame
+ * segments from the nozzle. The stream grows toward full range, stops at the
+ * first wall, and its aim sweeps slowly toward up/down. Releasing shrinks it.
+ * Runs every frame while the flamethrower is equipped.
+ */
+export const updateFlamethrower = (ctx: FrameContext, input: WeaponInput) => {
+  const { state, fx, cheats, currentWeapon } = ctx;
   const { player } = state;
-  const { facing, pos, width, isDucking } = player;
-
-  let targetAngle = 0;
-  if (isMoveUp) targetAngle = -Math.PI / 4;
-  else if (isMoveDown) targetAngle = Math.PI / 4;
-  player.flameAngle = targetAngle;
-
-  player.flameTimer = (player.flameTimer || 0) + 1;
-  const rampPct = Math.min(1.0, player.flameTimer / FLAMETHROWER_RAMP_FRAMES);
-  const currentRange = FLAMETHROWER_RANGE + (FLAMETHROWER_MAX_RANGE - FLAMETHROWER_RANGE) * rampPct;
-
-  // Everything below only happens every other frame
-  if (state.frame % 2 !== 0) return;
-  if (!cheats.infiniteAmmo) player.weaponAmmo['FLAMETHROWER']--;
-  fx.playGunSound('flame');
-
-  const spawnX = pos.x + (facing === 1 ? width - 5 : 5);
-  const spawnY = isDucking ? pos.y + 45 : pos.y + 30;
-
-  for (let i = 0; i < 6; i++) {
-    const jitter = (Math.random() - 0.5) * 0.4;
-    const speed = (8 + Math.random() * 8) * (1 + rampPct * 1.5);
-    const finalAngle = targetAngle + jitter;
-    state.particles.push({
-      pos: { x: spawnX, y: spawnY },
-      vel: { x: Math.cos(finalAngle) * facing * speed + player.vel.x, y: Math.sin(finalAngle) * speed },
-      life: 15 + Math.random() * 20,
-      color: pickRandom(PARTICLE_PALETTES.FIRE),
-      size: 8 + Math.random() * 12
-    });
+  if (currentWeapon !== 'FLAMETHROWER') {
+    player.isFlaming = false;
+    player.flameAngle = 0;
+    player.flameRange = FLAMETHROWER_START_RANGE;
+    return;
   }
 
-  const inCone = (entity: Enemy | Projectile) => {
-    const dx = entity.pos.x + entity.width / 2 - spawnX;
-    const dy = entity.pos.y + entity.height / 2 - spawnY;
-    if (dx * dx + dy * dy > currentRange * currentRange) return false;
-    return Math.abs(Math.atan2(dy, dx * facing) - targetAngle) < 0.35;
-  };
+  // Aim sweeps slowly (negative angle = up, in canvas terms)
+  const aimRad = FLAMETHROWER_AIM_DEG * Math.PI / 180;
+  const target = input.moveUp ? -aimRad : input.moveDown ? aimRad : 0;
+  player.flameAngle = (player.flameAngle || 0) + (target - (player.flameAngle || 0)) * FLAMETHROWER_AIM_LERP;
 
-  // Burn away enemy projectiles (except rubble, magma, enemy boulders and small ice shards)
-  state.projectiles.forEach(p => {
-    if (p.owner !== 'enemy' || !inCone(p)) return;
-    const isIndestructible = p.id.startsWith('debris-') || p.id.startsWith('magma-') || p.isBoulder || (p.isIce && p.width <= 20);
-    if ((p.isIce && p.width > 30) || !isIndestructible) {
-      p.health = 0;
-      fx.spawnExplosion(
-        { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 },
-        p.isIce ? COLORS.PROJECTILE_ICE : (p.id.startsWith('magma') ? '#FF4500' : COLORS.PROJECTILE_ENEMY),
-        Math.min(10, Math.ceil(p.width / 5)), 0, 10
-      );
+  const firing = input.shoot && !player.isDucking && !player.isTasing;
+  const hasFuel = cheats.infiniteAmmo || player.weaponAmmo.FLAMETHROWER > 0;
+  const range = player.flameRange ?? FLAMETHROWER_START_RANGE;
+
+  if (firing) {
+    player.flameDrainTimer = (player.flameDrainTimer || 0) + 1;
+    if (player.flameDrainTimer >= FLAMETHROWER_AMMO_EVERY && hasFuel) {
+      if (!cheats.infiniteAmmo) player.weaponAmmo.FLAMETHROWER--;
+      player.flameDrainTimer = 0;
     }
-  });
+  } else {
+    player.flameDrainTimer = 0;
+  }
 
-  state.enemies.forEach(e => {
-    if (e.health <= 0 || e.isBlownAway || !inCone(e)) return;
-    if (e.type === 'boss') {
-      if (!state.arenaLocked || (e.hitCooldown && e.hitCooldown > 0)) return;
-      const dmg = getBossDamage(e, stageId, currentWeapon);
-      const isW = checkIsWeakness(stageId, currentWeapon);
-      e.health -= dmg;
-      e.hitCooldown = 60;
-      fx.spawnDamageNumber(e.pos, dmg, isW);
-      if (stageId === 'Artie Avalanche' && isW && e.health > 0) artieWeaknessLeap(e);
-      if (e.health <= 0) killBoss(ctx, e, facing, isW);
-    } else if (e.isOiled) {
-      e.isOiled = false;
-      detonateNuke(ctx, { x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 });
-    } else {
-      e.health -= FLAMETHROWER_DAMAGE;
-      fx.spawnDamageNumber(e.pos, FLAMETHROWER_DAMAGE);
-      if (e.health <= 0) {
-        e.isBlownAway = true;
-        e.vel = { x: (3 + rampPct * 10) * facing, y: -5 };
-        player.killSatisfactionTimer = 60;
+  const nozzle = {
+    x: player.pos.x + (player.facing === 1 ? player.width - 5 : 5),
+    y: player.isDucking ? player.pos.y + 45 : player.pos.y + 30,
+  };
+  const dir = { x: player.facing * Math.cos(player.flameAngle), y: Math.sin(player.flameAngle) };
+
+  if (firing && hasFuel) {
+    player.isFlaming = true;
+    const gap = range / FLAMETHROWER_SEGMENTS;
+    for (let i = 0; i < FLAMETHROWER_SEGMENTS; i++) {
+      const dist = FLAMETHROWER_NOZZLE_GAP + i * gap;
+      const x = nozzle.x + dir.x * dist + player.vel.x;
+      const y = nozzle.y + dir.y * dist + player.vel.y;
+      if (pointInSolid(state, x, y)) break;
+      const size = FLAMETHROWER_SEGMENT_SIZE * (1 + (dist / GML_SCALE) * 0.01);
+      state.flameSegments.push({
+        x, y, size, gap, dirX: dir.x, dirY: dir.y,
+        life: FLAMETHROWER_SEGMENT_LIFETIME, alpha: 1, density: 1 - i / FLAMETHROWER_SEGMENTS,
+      });
+    }
+    if (range < FLAMETHROWER_MAX_RANGE) player.flameRange = range + (FLAMETHROWER_MAX_RANGE - range) * FLAMETHROWER_GROWTH;
+    if (state.frame % 2 === 0) fx.playGunSound('flame');
+  } else if (firing) {
+    // Out of fuel: just sputtering smoke
+    player.isFlaming = false;
+    player.flameRange = range + (FLAMETHROWER_START_RANGE - range) * FLAMETHROWER_SHRINK;
+    if (Math.random() < 0.33) {
+      state.particles.push({
+        pos: { x: nozzle.x + dir.x * gml(15), y: nozzle.y + dir.y * gml(15) },
+        vel: { x: dir.x * 2 + (Math.random() - 0.5), y: dir.y * 2 - Math.random() },
+        life: 25, color: '#6B7280', size: 5 + Math.random() * 6,
+      });
+    }
+  } else {
+    player.isFlaming = false;
+    player.flameRange = Math.max(FLAMETHROWER_START_RANGE, range + (0 - range) * FLAMETHROWER_SHRINK);
+  }
+};
+
+/**
+ * GML oMoltenStream: each flame segment lives for a few frames, sheds fire
+ * particles, burns the first enemy it touches (and is used up), and melts
+ * enemy projectiles.
+ */
+export const updateFlameSegments = (ctx: FrameContext) => {
+  const { state, fx } = ctx;
+
+  state.flameSegments = state.flameSegments.filter(seg => {
+    seg.life--;
+    seg.alpha -= 0.1;
+    if (seg.life <= 0 || seg.alpha <= 0) return false;
+
+    // Fire particles along the segment, thinning out toward the tip
+    const count = Math.ceil(seg.alpha * 5 * seg.density);
+    const spread = 15 * Math.PI / 180;
+    const baseAngle = Math.atan2(seg.dirY, seg.dirX);
+    for (let i = 0; i < count; i++) {
+      const along = Math.random() * seg.gap;
+      const jitter = (seg.size / 8) * (1 + (1 - seg.density) * 3);
+      const a = baseAngle + (Math.random() - 0.5) * 2 * spread;
+      const speed = gml(1 + Math.random() * 1.5);
+      state.particles.push({
+        pos: { x: seg.x + seg.dirX * along + (Math.random() - 0.5) * 2 * jitter, y: seg.y + seg.dirY * along + (Math.random() - 0.5) * 2 * jitter },
+        vel: { x: Math.cos(a) * speed, y: Math.sin(a) * speed },
+        life: 8 + Math.random() * 10,
+        color: pickRandom(PARTICLE_PALETTES.FIRE),
+        size: 4 + Math.random() * 6 * seg.density + 2,
+      });
+    }
+
+    const box = { x: seg.x - seg.size / 2, y: seg.y - seg.size / 2, w: seg.size, h: seg.size };
+
+    // Burn the first enemy touched
+    const e = state.enemies.find(en => en.health > 0 && !en.isBlownAway && rectsOverlap(box, boundsOf(en)));
+    if (e) {
+      burnEnemy(ctx, e);
+      return false;
+    }
+
+    // Melt enemy projectiles (not rubble, magma, enemy boulders or small ice shards)
+    const p = state.projectiles.find(pr => pr.owner === 'enemy' && pr.health > 0 && rectsOverlap(box, boundsOf(pr)));
+    if (p) {
+      const isIndestructible = p.id.startsWith('debris-') || p.id.startsWith('magma-') || p.isBoulder || (p.isIce && p.width <= 20);
+      if ((p.isIce && p.width > 30) || !isIndestructible) {
+        p.health = 0;
+        fx.spawnSteamExplosionParticles({ x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, 10);
+        fx.spawnExplosion(
+          { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 },
+          p.isIce ? COLORS.PROJECTILE_ICE : (p.id.startsWith('magma') ? '#FF4500' : COLORS.PROJECTILE_ENEMY),
+          Math.min(10, Math.ceil(p.width / 5)), 0, 10
+        );
+        return false;
       }
     }
+    return true;
   });
+};
+
+/** One flame segment touching an enemy. */
+const burnEnemy = (ctx: FrameContext, e: Enemy) => {
+  const { state, fx, stageId, currentWeapon } = ctx;
+  const { player } = state;
+
+  if (e.type === 'boss') {
+    if (!state.arenaLocked || (e.hitCooldown && e.hitCooldown > 0)) return;
+    const dmg = getBossDamage(e, stageId, currentWeapon);
+    const isW = checkIsWeakness(stageId, currentWeapon);
+    e.health -= dmg;
+    e.hitCooldown = 60;
+    fx.spawnDamageNumber(e.pos, dmg, isW);
+    if (stageId === 'Artie Avalanche' && isW && e.health > 0) artieWeaknessLeap(e);
+    if (e.health <= 0) killBoss(ctx, e, player.facing, isW);
+    return;
+  }
+  if (e.isOiled) {
+    // Fire meets oil
+    e.isOiled = false;
+    detonateNuke(ctx, { x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 });
+    return;
+  }
+
+  e.health -= FLAMETHROWER_DAMAGE;
+  // Sizzle
+  for (let i = 0; i < 3; i++) {
+    state.particles.push({
+      pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + Math.random() * e.height * 0.6 },
+      vel: { x: (Math.random() - 0.5) * 2, y: -1 - Math.random() * 2 },
+      life: 15 + Math.random() * 10,
+      color: Math.random() > 0.7 ? '#4B5563' : '#F97316',
+      size: 2 + Math.random() * 3,
+    });
+  }
+  if (e.health <= 0) {
+    fx.blowAwayEnemy(e, { x: player.facing * 4, y: -6 }, 'flamethrower_kill', player.facing);
+    player.killSatisfactionTimer = 60;
+  }
 };
 
 /** Nearest on-screen enemy or meth barrel in front of the player, within taser range. */
