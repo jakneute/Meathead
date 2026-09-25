@@ -11,6 +11,7 @@ import { drawIcicles, drawIceBlock, drawIceShard } from './artieIce';
 import { drawBoulder, drawRockChip } from './boulders';
 import { drawBullet, drawEnemyBullet, drawIcePellet, drawDart, drawPoopLog, drawCocaine, drawMethBarrel, drawSludgeBlob } from './projectileArt';
 import { drawParticle } from './particles';
+import { drawBossCorpse } from './corpses';
 import { drawPlayer } from './playerRenderer';
 import {
   drawOilSlicks, drawOscarFire, drawOscarLaser, drawOscarRocket, drawFlyingCigarette, drawTaserOverload,
@@ -55,6 +56,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     drawCustomBossArena(ctx, stageId, state.frame || 0, hurricane ? hurricane.pos.x + hurricane.width / 2 : null);
   }
   drawBossHazards(ctx, state);
+  if (state.bossCorpse) drawBossCorpse(ctx, state.bossCorpse, state.frame);
   drawIcicles(ctx, state);
   drawOilSlicks(ctx, state);
   drawProjectiles(ctx, state, 'puddles');

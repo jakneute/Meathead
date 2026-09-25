@@ -219,6 +219,10 @@ const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolea
   if (wasWeakness) {
     state.bossExplosionTimer = 180;
     state.bossExplosionPos = pos;
+    // What's left of him stays behind, wrecked the way the weapon would
+    // (in a floorless arena he floats, half sunk, at the surface)
+    const floor = getBossDef(stageId)?.arena?.floorless ? state.tommySludgeY - 25 : FLOOR_Y;
+    state.bossCorpse = { stageId: stageId || '', weapon, x: pos.x, y: floor, facing: playerFacing < 0 ? -1 : 1, frame0: state.frame };
     helpers.spawnDeathShower(state.bossExplosionPos, playerFacing, 35, true, 120);
   } else {
     helpers.spawnDeathShower(pos, playerFacing, 6, true, 45);

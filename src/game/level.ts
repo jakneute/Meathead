@@ -27,6 +27,7 @@ export const buildLevel = (state: GameState, stageId: string | null, skipToBoss:
   state.tommyScrollY = 0;
   state.oilCells = [];
   state.icicles = [];
+  state.bossCorpse = null;
 
   state.blocks = buildTerrain(state, stageId);
   state.enemies = [

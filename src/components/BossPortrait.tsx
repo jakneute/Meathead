@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Enemy } from '../types';
-import { drawBoss } from '../game/render/bosses';
+import { drawBoss, makeSitter } from '../game/render/bosses';
 
 /**
  * Stage-select portrait: the boss's actual in-game sprite, drawn big and
@@ -21,18 +20,6 @@ const BACKDROPS: Record<string, [string, string]> = {
   'Oily Oscar': ['#7A4A1C', '#1A110F'],
   'Drug Trade Dale': ['#B0306A', '#2A0A2E'],
 };
-
-/** How each boss poses for his portrait (a calm, fully-visible state). */
-const POSES: Record<string, Partial<Enemy>> = {
-  'Toxic Tommy': { bossState: 'emerge_shatter' },
-  'Oily Oscar': { hasCigarette: true, oscarFacing: 1 },
-};
-
-const makeSitter = (id: string): Enemy => ({
-  id: 'boss', pos: { x: 0, y: 0 }, vel: { x: 0, y: 0 }, width: 80, height: 80, health: 666, maxHealth: 666,
-  type: 'boss', enemyType: 'tank', behavior: 'shoot', patrolRange: 0, initialX: 0, shootTimer: 0,
-  bossState: 'idle', stateTimer: 60, ...POSES[id],
-});
 
 const BossPortrait: React.FC<{ id: string }> = ({ id }) => {
   const ref = useRef<HTMLCanvasElement>(null);

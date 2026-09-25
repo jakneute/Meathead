@@ -7,6 +7,16 @@ import { resetLineCooldowns } from './speech';
 
 export type DoorState = 'closed' | 'opening' | 'open' | 'closing' | 'done';
 
+/** A boss killed with his weakness, left wrecked in the arena (see render/corpses.ts). */
+export interface BossCorpse {
+  stageId: string;
+  weapon: WeaponType;
+  x: number;       // centre
+  y: number;       // the floor he's lying on
+  facing: 1 | -1;  // which way he fell
+  frame0: number;  // when he died
+}
+
 /** Everything the simulation mutates each frame. Lives in a ref, outside React. */
 export interface GameState {
   stageId: string | null;
@@ -48,6 +58,7 @@ export interface GameState {
   postVictoryTimer: number;
   bossExplosionTimer: number;
   bossExplosionPos: Vector2;
+  bossCorpse: BossCorpse | null;
   /** Forces React to switch the equipped weapon back to GUN (after respawn). */
   shouldSyncWeapon: boolean;
 
@@ -181,6 +192,7 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
   postVictoryTimer: 0,
   bossExplosionTimer: 0,
   bossExplosionPos: { x: 0, y: 0 },
+  bossCorpse: null,
   shouldSyncWeapon: false,
   tsunamiActive: false,
   tsunamiX: -1,
@@ -259,6 +271,7 @@ export const resetStageState = (s: GameState) => {
   s.victoryString = "";
   s.postVictoryTimer = 0;
   s.bossExplosionTimer = 0;
+  s.bossCorpse = null;
 
   s.tsunamiActive = false;
   s.bossVolcanoes = [];

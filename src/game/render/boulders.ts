@@ -6,7 +6,7 @@ import { ERNIE_BOULDER_SIZE } from '../bosses/ernie';
 interface RockPalette { light: string; mid: string; dark: string; crack: string; speck: string }
 
 const ERNIE_ROCK: RockPalette = { light: '#A1887F', mid: '#6D4C41', dark: '#3E2723', crack: '#1B0F0C', speck: '#BCAAA4' };
-const PLAYER_ROCK: RockPalette = { light: '#D7A86E', mid: '#8B5A2B', dark: '#4E2F12', crack: '#2A1808', speck: '#F0D2A8' };
+export const PLAYER_ROCK: RockPalette = { light: '#D7A86E', mid: '#8B5A2B', dark: '#4E2F12', crack: '#2A1808', speck: '#F0D2A8' };
 
 /** A craggy, shaded rock. `seed` keeps each boulder's lumps and cracks its own. */
 export const drawRock = (ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, angle: number, pal: RockPalette, seed: number) => {

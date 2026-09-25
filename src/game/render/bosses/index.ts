@@ -36,6 +36,19 @@ const BOSS_SPRITES: Record<string, BossSprite> = {
   'Oily Oscar': { body: drawOscar, gear: drawOscarGear },
 };
 
+/** How each boss poses when drawn outside a fight (portraits, corpses): a calm, fully-visible state. */
+const POSES: Record<string, Partial<Enemy>> = {
+  'Toxic Tommy': { bossState: 'emerge_shatter' },
+  'Oily Oscar': { hasCigarette: true, oscarFacing: 1 },
+};
+
+/** A stand-in boss at (0,0) for drawing the sprite on its own. */
+export const makeSitter = (id: string): Enemy => ({
+  id: 'boss', pos: { x: 0, y: 0 }, vel: { x: 0, y: 0 }, width: 80, height: 80, health: 666, maxHealth: 666,
+  type: 'boss', enemyType: 'tank', behavior: 'shoot', patrolRange: 0, initialX: 0, shootTimer: 0,
+  bossState: 'idle', stateTimer: 60, ...POSES[id],
+});
+
 export const drawBoss = (ctx: CanvasRenderingContext2D, e: Enemy, id: string | null, frame: number) => {
   const sprite = id ? BOSS_SPRITES[id] : undefined;
   const { pos, width, height } = e;
