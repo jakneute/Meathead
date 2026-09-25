@@ -8,6 +8,7 @@ import { drawCustomBossArena } from './arenaRenderers';
 import { drawBoss, drawBossOverlay } from './bosses';
 import { drawVentTelegraph, drawVent, drawMagma, isMagma } from './victorVents';
 import { drawIcicles, drawIceBlock, drawIceShard } from './artieIce';
+import { drawBoulder, drawRockChip } from './boulders';
 import { drawPlayer } from './playerRenderer';
 import {
   drawOilSlicks, drawOscarFire, drawOscarLaser, drawOscarRocket, drawFlyingCigarette, drawTaserOverload,
@@ -679,9 +680,8 @@ const drawProjectiles = (ctx: CanvasRenderingContext2D, state: GameState, layer:
   state.projectiles.forEach(p => {
     if ((layer === 'puddles') !== !!(p.isSludge && p.isLingering)) return;
     ctx.save();
-    if (p.isBoulder) {
-      ctx.save(); ctx.translate(p.pos.x + p.width/2, p.pos.y + p.height/2); ctx.rotate(p.pos.x * 0.05); ctx.fillStyle = p.owner === 'player' ? '#8B4513' : '#4E342E'; ctx.beginPath(); const seg = 10, bR = p.width / 2; for (let i = 0; i < seg; i++) { const a = (i / seg) * Math.PI * 2, v = 0.85 + Math.abs(Math.sin(i * 3 + (p.id.length % 5))) * 0.3, r = bR * v, x = Math.cos(a) * r, y = Math.sin(a) * r; if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); } ctx.closePath(); ctx.fill(); ctx.strokeStyle = 'black'; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
-    }
+    if (p.isBoulder) drawBoulder(ctx, p, state.frame);
+    else if (p.isShrapnel) drawRockChip(ctx, p, state.frame);
     else if (p.isSludge) {
       ctx.save();
       ctx.translate(p.pos.x + p.width/2, p.pos.y + p.height/2);

@@ -116,7 +116,7 @@ export type BossState =
   | 'blackout' | 'blackout_teleport' | 'ground_pound' | 'lightning_storm' | 'exhausted'
   | 'submerged_chase' | 'telegraph_emerge' | 'emerge_shatter' | 'puke_closing_in'
   | 'puke_going_outward' | 'vulnerable_idle' | 'dive_in_sludge' | 'weakness_stunned'
-  | 'aiming' | 'flicking' | 'taser_held' | 'ash_face' | 'high';
+  | 'aiming' | 'flicking' | 'taser_held' | 'ash_face' | 'high' | 'running';
 
 export interface Enemy extends Entity {
   enemyType: 'drone' | 'tank' | 'turret' | 'flyer' | 'shield';
