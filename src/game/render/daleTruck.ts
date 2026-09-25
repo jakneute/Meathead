@@ -19,16 +19,21 @@ export const drawDaleTruck = (ctx: CanvasRenderingContext2D, e: Enemy, frame: nu
   if (e.truckX < BOSS_DOOR_X) drawIncomingWarning(ctx, frame);
 
   const x = e.truckX, y = TRUCK_Y;
-  const bounce = Math.sin(frame * 0.9) * 1.2; // rattling over the floor
+  const crashing = !!e.truckCrashing;
+  // Rattling over the floor; out of control it bucks and fishtails on its rims
+  const bounce = crashing ? Math.sin(frame * 1.7) * 3 + 4 : Math.sin(frame * 0.9) * 1.2;
+  const lean = crashing ? Math.sin(frame * 0.6) * 0.05 - 0.02 : 0;
   drawShadowAndSpeedLines(ctx, x, y, frame);
   ctx.save();
-  ctx.translate(0, bounce);
+  ctx.translate(x + TRUCK_W / 2, y + TRUCK_H);
+  ctx.rotate(lean);
+  ctx.translate(-(x + TRUCK_W / 2), -(y + TRUCK_H) + bounce);
   drawTrailer(ctx, x, y);
   drawCab(ctx, x + TRAILER_W + 6, y, frame);
   ctx.restore();
-  // Wheels roll with the truck
+  // Wheels roll with the truck (flat once the tires are blown)
   const spin = x / WHEEL_R;
-  [x + 46, x + 96, x + 196, x + TRAILER_W + 62].forEach(wx => drawWheel(ctx, wx, y + TRUCK_H - WHEEL_R + 2, spin));
+  [x + 46, x + 96, x + 196, x + TRAILER_W + 62].forEach(wx => drawWheel(ctx, wx, y + TRUCK_H - WHEEL_R + 2, spin, crashing));
   ctx.restore();
 };
 
@@ -254,9 +259,17 @@ const drawCab = (ctx: CanvasRenderingContext2D, x: number, y: number, frame: num
   ctx.fillText('D34L3R', x + w - 18, bottom - 12);
 };
 
-const drawWheel = (ctx: CanvasRenderingContext2D, x: number, y: number, spin: number) => {
+const drawWheel = (ctx: CanvasRenderingContext2D, x: number, y: number, spin: number, flat: boolean) => {
   ctx.fillStyle = '#111111';
-  ctx.beginPath(); ctx.arc(x, y, WHEEL_R, 0, Math.PI * 2); ctx.fill();
+  if (flat) {
+    // Blown out: the tire slumps and flaps, the rim rides low
+    ctx.beginPath(); ctx.ellipse(x, y + 8, WHEEL_R + 4, WHEEL_R * 0.55, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#1F2937';
+    ctx.fillRect(x - WHEEL_R - 6, y + 10 + Math.sin(spin * 3) * 3, 10, 4);
+    y += 6;
+  } else {
+    ctx.beginPath(); ctx.arc(x, y, WHEEL_R, 0, Math.PI * 2); ctx.fill();
+  }
   ctx.fillStyle = '#9CA3AF';
   ctx.beginPath(); ctx.arc(x, y, WHEEL_R * 0.55, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = '#4B5563';

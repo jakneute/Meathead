@@ -284,7 +284,7 @@ export const KILL_LINES: Record<Exclude<VulgarityType, 'hurt'>, string[]> = {
 export type KillCallout =
   | 'charge' | 'slide' | 'uppercut' | 'divekick' | 'shatter' | 'shield'
   | 'crush' | 'overdose' | 'nuke' | 'tsunami' | 'fried'
-  | 'wallsplat' | 'groundsplat' | 'flattened' | 'squished' | 'truck';
+  | 'wallsplat' | 'groundsplat' | 'flattened' | 'squished' | 'truck' | 'blowout' | 'crash';
 
 /** Callout text (one picked at random) and colour for each special kill. */
 export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string }> = {
@@ -303,6 +303,8 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
   groundsplat: { lines: ["FACEPLANT!", "GROUNDED!", "KISSED CONCRETE!"], color: '#F97316' },
   flattened:   { lines: ["ROLLED!", "ROADKILL!", "PAVED!"], color: '#A16207' },
   truck:       { lines: ["TOTALED!", "DELIVERY DENIED!", "WRECKED!", "SHIPMENT LOST!"], color: '#7CFC00' },
+  blowout:     { lines: ["BLOWOUT!", "TIRES POPPED!", "SLICK RIDE!"], color: '#7CFC00' },
+  crash:       { lines: ["HIT AND RUN!", "SELF-DELIVERED!", "RUN OVER!", "SIGNED FOR IT!"], color: '#FF4500' },
   squished:    { lines: ["SQUISHED!", "GRAVITY WINS!", "DROPPED!"], color: '#A16207' },
 };
 
@@ -313,6 +315,7 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
 /** Drug Trade Dale's lines when his truck gets wrecked. */
 export const DALE_LINES = {
   TRUCK_WRECKED: ["MY TRUCK! THAT WAS UNINSURED!", "YOU BARFED ON MY SUPPLY CHAIN!", "DO YOU KNOW WHAT THAT LOAD WAS WORTH?!"],
+  RUN_OVER: ["WHO TAUGHT YOU TO DRIVE?!", "MY OWN TRUCK?! I'M SUING!", "OW, MY SPINE! I DON'T HAVE INSURANCE!"],
 };
 
 /** Blackout Barry's lines for his needle weakness. */

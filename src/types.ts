@@ -159,6 +159,8 @@ export interface Enemy extends Entity {
   dashCount?: number;
   truckX?: number;
   truckActive?: boolean;
+  /** Tires blown out on Meathead's sludge: the truck is careening into Dale. */
+  truckCrashing?: boolean;
   /** Standing in Meathead's sludge: frames toward the next tick, and the last frame it ticked. */
   sludgeDotTimer?: number;
   sludgeDotFrame?: number;

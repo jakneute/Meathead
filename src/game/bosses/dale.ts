@@ -2,8 +2,9 @@
 // the shipment: a spray of cocaine, rolling meth barrels, or a speed-fuelled
 // dash back and forth across the room.
 // Weakness, the sludge barfer: a direct hit leaves a puddle under him that
-// slowly eats at him while he stands in it, and Meathead's filth shield wrecks
-// the truck outright (no shipment that round).
+// slowly eats at him while he stands in it, Meathead's filth shield wrecks the
+// truck outright, and a puddle in the truck's path blows its tires so it
+// crashes into Dale himself. Either way, no shipment that round.
 
 import { Enemy, Projectile } from '../../types';
 import {
@@ -23,10 +24,12 @@ const METH_COUNT = 5;
 const DASH_BOUNCES = 8;
 const DASH_SPEED = 25;
 const WRECKED_REST_FRAMES = 150;     // fuming after his truck gets wrecked
-const SLUDGE_HIT_DAMAGE = 75;        // direct barfer hits (a bit under the usual weakness damage)
+const SLUDGE_HIT_DAMAGE = 40;        // direct barfer hits (well under the usual weakness damage: the barfer's other tricks matter more)
 const PUDDLE_FRAMES = 360;           // the puddle a direct hit leaves under him
 const PUDDLE_TICK_FRAMES = 30;       // standing in sludge: a small hit this often...
 const PUDDLE_TICK_DAMAGE = 2;        // ...of this much
+const CRASH_DAMAGE = 150;            // his own truck, tires blown, plowing into him
+const CRASH_REST_FRAMES = 180;
 
 type Shipment = NonNullable<Enemy['shipmentType']>;
 const SHIPMENTS: Shipment[] = ['cocaine', 'speed', 'meth'];
@@ -61,6 +64,13 @@ const driveTruck = (ctx: FrameContext, boss: Enemy) => {
   const hits = (e: { pos: { x: number, y: number }, width: number, height: number }) =>
     e.pos.x < truck.x + truck.w && e.pos.x + e.width > truck.x && e.pos.y < truck.y + truck.h && e.pos.y + e.height > truck.y;
 
+  // Driving over Meathead's sludge blows the tires out; it careens on into Dale
+  if (!boss.truckCrashing) {
+    const puddle = state.projectiles.find(p => p.owner === 'player' && p.isSludge && p.isLingering && (p.life || 0) > 0 &&
+      p.pos.x < truck.x + truck.w && p.pos.x + p.width > truck.x);
+    if (puddle) blowOutTires(ctx, boss, puddle);
+  }
+
   if (hits(player)) {
     // The filth shield eats the truck like it eats bullets
     if (player.filthShieldTimer && player.filthShieldTimer > 0) { wreckTruck(ctx, boss); return; }
@@ -69,6 +79,17 @@ const driveTruck = (ctx: FrameContext, boss: Enemy) => {
     }
   }
   state.projectiles.forEach((p: Projectile) => { if (p.isMethBarrel && p.health > 0 && hits(p)) p.health = -1; });
+
+  if (boss.truckCrashing) {
+    // Rims grinding on the floor
+    if (state.frame % 2 === 0) {
+      for (const wx of [truck.x + 46, truck.x + truck.w - 40]) {
+        ctx.fx.spawnExplosion({ x: wx, y: truck.y + truck.h - 4 }, '#FFD700', 3, -6, 5);
+        ctx.fx.spawnExplosion({ x: wx, y: truck.y + truck.h - 10 }, '#6B7280', 2, -3, 3);
+      }
+    }
+    if (truck.x + truck.w >= boss.pos.x + 20) { crashIntoDale(ctx, boss); return; }
+  }
 
   if (boss.truckX! > TRUCK.endX) {
     boss.truckActive = false;
@@ -86,6 +107,7 @@ const wreckTruck = (ctx: FrameContext, boss: Enemy) => {
   const center = { x: boss.truckX! + TRUCK.w / 2, y: TRUCK.y + TRUCK.h / 2 };
   state.player.filthShieldTimer = 0;
   boss.truckActive = false;
+  boss.truckCrashing = false;
   boss.bossState = 'idle';
   boss.stateTimer = WRECKED_REST_FRAMES;
 
@@ -108,6 +130,43 @@ const wreckTruck = (ctx: FrameContext, boss: Enemy) => {
   // One of them has something to say about it
   if (Math.random() < 0.5) fx.speakVulgarity('truck_wreck');
   else speakAsBoss('Drug Trade Dale', pickRandom(DALE_LINES.TRUCK_WRECKED), ctx.bossHelpers);
+};
+
+/** The truck rolled over a sludge puddle: tires pop, and it's out of control. */
+const blowOutTires = (ctx: FrameContext, boss: Enemy, puddle: Projectile) => {
+  const { state, fx } = ctx;
+  boss.truckCrashing = true;
+  puddle.life = 0;
+  const at = { x: puddle.pos.x + puddle.width / 2, y: puddle.pos.y };
+  fx.spawnExplosion(at, '#7CFC00', 25, 0, 14);
+  fx.spawnExplosion(at, '#111111', 12, 0, 10); // shredded rubber
+  fx.playGunSound('gun');
+  fx.playGunSound('barf');
+  shakeScreen(state, 12, 8);
+  fx.spawnKillCallout({ pos: { x: Math.max(at.x, state.camera.x + 200), y: TRUCK.y - 10 }, width: 0 }, 'blowout');
+};
+
+/** His own truck plows into him: heavy damage, the cargo's lost. */
+const crashIntoDale = (ctx: FrameContext, boss: Enemy) => {
+  const { state, fx } = ctx;
+  const at = { x: boss.pos.x + boss.width / 2, y: boss.pos.y + boss.height / 2 };
+  boss.truckActive = false;
+  boss.truckCrashing = false;
+  boss.health -= CRASH_DAMAGE;
+  boss.hitCooldown = 60;
+  fx.spawnDamageNumber(boss.pos, CRASH_DAMAGE, true);
+  for (let i = 0; i < 4; i++) fx.spawnExplosion({ x: at.x - 60 + i * 30, y: at.y + (Math.random() - 0.5) * 50 }, pickRandom(PARTICLE_PALETTES.FIRE), 14, 0, 16);
+  fx.spawnExplosion(at, '#212121', 30, 0, 14);
+  fx.spawnExplosion(at, '#7F8C8D', 20, 0, 20);
+  fx.spawnPowderExplosion(at, 30);
+  fx.spawnDeathShower(at, 1, 1.5);
+  fx.playGunSound('tsunami');
+  shakeScreen(state, 40, 18);
+  fx.spawnKillCallout({ pos: { x: at.x, y: boss.pos.y - 30 }, width: 0 }, 'crash');
+  if (boss.health <= 0) { ctx.bossHelpers.killBoss(boss, 1, true, 'SLUDGE'); return; }
+  boss.bossState = 'idle';
+  boss.stateTimer = CRASH_REST_FRAMES;
+  speakAsBoss('Drug Trade Dale', pickRandom(DALE_LINES.RUN_OVER), ctx.bossHelpers);
 };
 
 const useShipment = (ctx: FrameContext, boss: Enemy) => {
