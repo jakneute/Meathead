@@ -76,6 +76,8 @@ export interface BossDef {
   shield?: { isUp: (boss: Enemy, state: GameState) => boolean; color: string; sound?: SoundType };
   /** Takes a projectile his own way instead of being damaged by it. True if handled. */
   catchProjectile?: (ctx: FrameContext, boss: Enemy, p: Projectile) => boolean;
+  /** Standing in one of Meathead's sludge puddles (called for each puddle, every frame). Replaces the usual one-off hit. */
+  onStandInSludge?: (ctx: FrameContext, boss: Enemy) => void;
   /** Needles stuck in him tick his own way (runs after the needle DOT timer advances). */
   needleTick?: (ctx: FrameContext, boss: Enemy) => void;
   /** A weakness hit that didn't kill him. */

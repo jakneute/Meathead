@@ -1,11 +1,11 @@
-// Drug Trade Dale's sprite, his delivery truck, and the drugs he's using.
+// Drug Trade Dale's sprite and the drugs he's using (his truck is in ../daleTruck.ts).
 // Drawn in the boss's local space (0,0 = his top-left corner).
 
 import { Enemy } from '../../../types';
-import { COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, DALE_SPEED_WINDUP } from '../../../constants';
+import { COLORS, ARENA_LEFT, ARENA_RIGHT, DALE_SPEED_WINDUP } from '../../../constants';
 
 export const drawDale = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
-  const { width, height, pos } = e;
+  const { width, height } = e;
   // Speed: a strobing high while he dashes, and twitching harder and harder as the needle goes in
   if (e.bossState === 'speed_dash') {
     ctx.filter = `hue-rotate(${frame * 10}deg) saturate(3)`;
@@ -146,59 +146,12 @@ export const drawDale = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number)
   ctx.stroke();
   ctx.fillStyle = '#FFD700';
   ctx.fillRect(width * 0.52, height * 0.27, 3, 3);
-  if (e.bossState === 'using_shipment') ctx.fillStyle = '#fff'; ctx.fillRect(width * 0.1, -20, width * 0.8, 20); 
+  // (A stray bar used to be drawn over his head here every frame; it only belongs to the shipment pop-up)
+  if (e.bossState === 'using_shipment') { ctx.fillStyle = '#fff'; ctx.fillRect(width * 0.1, -20, width * 0.8, 20); }
   if (e.bossState === 'speed_dash') {
     ctx.save(); ctx.translate(width * 0.2, height * 0.3); ctx.rotate(-0.5);
     ctx.fillStyle = COLORS.PROJECTILE_DART; ctx.fillRect(0, -2, 16, 4);
     ctx.fillStyle = 'red'; ctx.fillRect(16, -4, 6, 8); ctx.restore();
-  }
-  if (e.truckActive && e.truckX !== undefined) {
-    if (e.truckX < BOSS_DOOR_X) {
-         if (Math.floor(frame / 15) % 2 === 0) {
-             ctx.save();
-             const warnX = BOSS_DOOR_X + 50 - pos.x; 
-             const warnY = 350 - pos.y;
-             ctx.fillStyle = '#FF0000';
-             ctx.strokeStyle = '#FFFFFF';
-             ctx.lineWidth = 4;
-             ctx.beginPath();
-             ctx.moveTo(warnX, warnY - 30);
-             ctx.lineTo(warnX + 30, warnY + 30);
-             ctx.lineTo(warnX - 30, warnY + 30);
-             ctx.closePath();
-             ctx.fill();
-             ctx.stroke();
-             ctx.fillStyle = 'white';
-             ctx.font = 'bold 40px sans-serif'; 
-             ctx.textAlign = 'center';
-             ctx.fillText('!', warnX, warnY + 22);
-             ctx.restore();
-         }
-    }
-    ctx.save();
-    const tx = e.truckX - pos.x;
-    const ty = 400 - pos.y;
-
-    // Trailer
-    ctx.fillStyle = '#ECF0F1'; ctx.fillRect(tx, ty, 250, 150); ctx.strokeRect(tx, ty, 250, 150);
-    // Cab Connector
-    ctx.fillStyle = '#555'; ctx.fillRect(tx + 250, ty + 100, 20, 20);
-    // Cab
-    ctx.fillStyle = '#C0392B'; ctx.fillRect(tx + 270, ty + 40, 80, 110); ctx.strokeRect(tx + 270, ty + 40, 80, 110);
-    // Window
-    ctx.fillStyle = '#85C1E9'; ctx.fillRect(tx + 275, ty + 50, 60, 40);
-    // Wheels
-    ctx.fillStyle = '#111'; 
-    const wheelY = ty + 150;
-    ctx.beginPath(); ctx.arc(tx + 60, wheelY, 24, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(tx + 190, wheelY, 24, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(tx + 310, wheelY, 24, 0, Math.PI*2); ctx.fill();
-
-    // Text
-    ctx.fillStyle = '#E74C3C'; ctx.font = 'bold 16px "Press Start 2P"'; ctx.textAlign = 'center';
-    ctx.fillText("DALE'S", tx + 125, ty + 60);
-    ctx.fillText("DRUG'S", tx + 125, ty + 90);
-    ctx.restore();
   }
 };
 

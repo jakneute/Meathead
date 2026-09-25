@@ -308,6 +308,8 @@ const damageEnemiesInSludgePuddle = (ctx: FrameContext, p: Projectile) => {
     if (en.enemyType === 'flyer') en.sludgeTimer = 45; // keeps flyers pinned down
 
     if (en.type === 'boss') {
+      const onStandInSludge = getBossDef(stageId)?.onStandInSludge;
+      if (onStandInSludge) { onStandInSludge(ctx, en); continue; }
       if (en.hitCooldown && en.hitCooldown > 0) continue;
       p.life = 0;
       hitBoss(ctx, en, 'SLUDGE', { facing: 0, damage: isWeakTo(stageId, 'SLUDGE') ? 50 : 15 });

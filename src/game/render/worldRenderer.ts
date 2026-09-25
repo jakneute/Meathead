@@ -51,6 +51,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   }
   drawBossHazards(ctx, state);
   drawOilSlicks(ctx, state);
+  drawProjectiles(ctx, state, 'puddles');
   state.pickups.forEach(p => drawPickup(ctx, p));
   drawEnemies(ctx, state, view);
   if (stageId === 'Toxic Tommy' && state.arenaLocked && state.tommyBoards) drawTommyPool(ctx, state);
@@ -66,7 +67,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   drawOscarFire(ctx, state);
   drawOscarLaser(ctx, state);
   if (state.player.isTasing && state.player.currentWeapon === 'TASER') drawTaserBeam(ctx, state);
-  drawProjectiles(ctx, state);
+  drawProjectiles(ctx, state, 'flying');
   drawParticlesAndDamageNumbers(ctx, state);
   drawBarryLighting(ctx, state, stageId);
   ctx.restore();
@@ -737,8 +738,10 @@ const drawTaserBeam = (ctx: CanvasRenderingContext2D, state: GameState) => {
   ctx.restore();
 };
 
-const drawProjectiles = (ctx: CanvasRenderingContext2D, state: GameState) => {
+/** Puddles lie on the floor under everyone; everything else flies over them. */
+const drawProjectiles = (ctx: CanvasRenderingContext2D, state: GameState, layer: 'puddles' | 'flying') => {
   state.projectiles.forEach(p => {
+    if ((layer === 'puddles') !== !!(p.isSludge && p.isLingering)) return;
     ctx.save();
     if (p.isBoulder) {
       ctx.save(); ctx.translate(p.pos.x + p.width/2, p.pos.y + p.height/2); ctx.rotate(p.pos.x * 0.05); ctx.fillStyle = p.owner === 'player' ? '#8B4513' : '#4E342E'; ctx.beginPath(); const seg = 10, bR = p.width / 2; for (let i = 0; i < seg; i++) { const a = (i / seg) * Math.PI * 2, v = 0.85 + Math.abs(Math.sin(i * 3 + (p.id.length % 5))) * 0.3, r = bR * v, x = Math.cos(a) * r, y = Math.sin(a) * r; if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); } ctx.closePath(); ctx.fill(); ctx.strokeStyle = 'black'; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();

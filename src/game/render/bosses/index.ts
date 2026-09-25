@@ -10,6 +10,7 @@ import { drawBarry, drawBarryTolerance } from './barry';
 import { drawTommy } from './tommy';
 import { drawOscar } from './oscar';
 import { drawOscarGear } from '../oscarRenderer';
+import { drawDaleTruck } from '../daleTruck';
 
 type Draw = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => void;
 
@@ -27,7 +28,7 @@ const BOSS_SPRITES: Record<string, BossSprite> = {
   'Victor Volcano': { body: drawVictor },
   'Ernie Earthquake': { body: drawErnie },
   'Hector Hurricane': { body: drawHector },
-  'Drug Trade Dale': { body: drawDale, overlay: drawDaleDrugs },
+  'Drug Trade Dale': { body: drawDale, gear: drawDaleTruck, overlay: drawDaleDrugs },
   'Blackout Barry': { body: drawBarry, overlay: drawBarryTolerance },
   'Toxic Tommy': { body: drawTommy },
   'Oily Oscar': { body: drawOscar, gear: drawOscarGear },

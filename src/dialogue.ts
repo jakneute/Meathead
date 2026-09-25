@@ -277,13 +277,14 @@ export const KILL_LINES: Record<Exclude<VulgarityType, 'hurt'>, string[]> = {
   sludge_kill: VULGARITIES.SLUDGE_KILL,
   oil_kill: VULGARITIES.OIL_KILL,
   death: VULGARITIES.DEATH,
+  truck_wreck: ["BARF BEATS BUMPER, BITCH!", "YOUR DELIVERY GOT DENIED!", "RETURN TO SENDER, DALE!", "TOTALED BY A PROTEIN SHAKE!"],
 };
 
 /** Kinds of kill that get a big on-screen callout. */
 export type KillCallout =
   | 'charge' | 'slide' | 'uppercut' | 'divekick' | 'shatter' | 'shield'
   | 'crush' | 'overdose' | 'nuke' | 'tsunami' | 'fried'
-  | 'wallsplat' | 'groundsplat' | 'flattened' | 'squished';
+  | 'wallsplat' | 'groundsplat' | 'flattened' | 'squished' | 'truck';
 
 /** Callout text (one picked at random) and colour for each special kill. */
 export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string }> = {
@@ -301,6 +302,7 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
   wallsplat:   { lines: ["WALL SPLAT!", "SPLATTERED!", "REDECORATED!"], color: '#DC2626' },
   groundsplat: { lines: ["FACEPLANT!", "GROUNDED!", "KISSED CONCRETE!"], color: '#F97316' },
   flattened:   { lines: ["ROLLED!", "ROADKILL!", "PAVED!"], color: '#A16207' },
+  truck:       { lines: ["TOTALED!", "DELIVERY DENIED!", "WRECKED!", "SHIPMENT LOST!"], color: '#7CFC00' },
   squished:    { lines: ["SQUISHED!", "GRAVITY WINS!", "DROPPED!"], color: '#A16207' },
 };
 
@@ -308,6 +310,11 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
  * What each boss might shout when hit by each of Meathead's weapons.
  * Weakness combos sound panicked; everything else is trash talk.
  */
+/** Drug Trade Dale's lines when his truck gets wrecked. */
+export const DALE_LINES = {
+  TRUCK_WRECKED: ["MY TRUCK! THAT WAS UNINSURED!", "YOU BARFED ON MY SUPPLY CHAIN!", "DO YOU KNOW WHAT THAT LOAD WAS WORTH?!"],
+};
+
 /** Blackout Barry's lines for his needle weakness. */
 export const BARRY_LINES = {
   HIGH: ["WHOA... WHO TURNED ON ALL THE LAVA LAMPS?", "I CAN SEE ELECTRICITY, MAN. IT'S PURPLE.", "I'M A KITE! LOOK AT ME, I'M A KITE!"],

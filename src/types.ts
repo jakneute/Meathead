@@ -35,7 +35,7 @@ export interface Entity {
 
 export type WeaponType = 'GUN' | 'BOULDER' | 'SHOTGUN' | 'FLAMETHROWER' | 'TSUNAMI' | 'NEEDLES' | 'TASER' | 'SLUDGE' | 'OIL_ROCKET';
 
-export type VulgarityType = 'gun_kill' | 'boulder_kill' | 'shotgun_kill' | 'flamethrower_kill' | 'tsunami_kill' | 'hurt' | 'death' | 'charge_kill' | 'uppercut_kill' | 'dart_kill' | 'taser_kill' | 'sludge_kill' | 'oil_kill';
+export type VulgarityType = 'gun_kill' | 'boulder_kill' | 'shotgun_kill' | 'flamethrower_kill' | 'tsunami_kill' | 'hurt' | 'death' | 'charge_kill' | 'uppercut_kill' | 'dart_kill' | 'taser_kill' | 'sludge_kill' | 'oil_kill' | 'truck_wreck';
 
 export type SoundType = 'gun' | 'ice' | 'flame' | 'tsunami' | 'dart' | 'horn' | 'ignite' | 'barf' | 'oil' | 'taser';
 
@@ -159,6 +159,11 @@ export interface Enemy extends Entity {
   dashCount?: number;
   truckX?: number;
   truckActive?: boolean;
+  /** Standing in Meathead's sludge: frames toward the next tick, and the last frame it ticked. */
+  sludgeDotTimer?: number;
+  sludgeDotFrame?: number;
+  /** A direct sludge hit is waiting to splash a puddle under him. */
+  puddlePending?: boolean;
   // Blackout Barry
   electrifiedTimer?: number;
   /** Frames left in which needles just bounce off him (after an overload). */

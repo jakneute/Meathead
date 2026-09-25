@@ -1,14 +1,20 @@
 // Drug Trade Dale: a delivery truck barrels through the arena, then he uses
 // the shipment: a spray of cocaine, rolling meth barrels, or a speed-fuelled
 // dash back and forth across the room.
+// Weakness, the sludge barfer: a direct hit leaves a puddle under him that
+// slowly eats at him while he stands in it, and Meathead's filth shield wrecks
+// the truck outright (no shipment that round).
 
 import { Enemy, Projectile } from '../../types';
 import {
   ARENA_RIGHT, BOSS_DOOR_X, STAGE_WIDTH, DALE_TRUCK_SPEED, DALE_SPEED_WINDUP, DALE_TRUCK_DAMAGE, DALE_PUSHBACK_VEL,
-  METH_BARREL_DAMAGE, PLAYER_PUSHBACK_VEL_Y,
+  METH_BARREL_DAMAGE, PLAYER_PUSHBACK_VEL_Y, PARTICLE_PALETTES,
 } from '../../constants';
+import { DALE_LINES } from '../../dialogue';
 import type { FrameContext } from '../context';
-import { BossDef, hurtPlayer, enemyProjectile } from './shared';
+import { shakeScreen } from '../state';
+import { pickRandom } from '../utils';
+import { BossDef, FLOOR_Y, hurtPlayer, enemyProjectile, speakAsBoss } from './shared';
 
 const HOME_X = ARENA_RIGHT - 120;
 const TRUCK = { startX: BOSS_DOOR_X - 600, endX: STAGE_WIDTH + 200, y: 400, w: 350, h: 150 };
@@ -16,11 +22,18 @@ const COCAINE_COUNT = 10;
 const METH_COUNT = 5;
 const DASH_BOUNCES = 8;
 const DASH_SPEED = 25;
+const WRECKED_REST_FRAMES = 150;     // fuming after his truck gets wrecked
+const SLUDGE_HIT_DAMAGE = 75;        // direct barfer hits (a bit under the usual weakness damage)
+const PUDDLE_FRAMES = 360;           // the puddle a direct hit leaves under him
+const PUDDLE_TICK_FRAMES = 30;       // standing in sludge: a small hit this often...
+const PUDDLE_TICK_DAMAGE = 2;        // ...of this much
 
 type Shipment = NonNullable<Enemy['shipmentType']>;
 const SHIPMENTS: Shipment[] = ['cocaine', 'speed', 'meth'];
 
 const update = (ctx: FrameContext, boss: Enemy) => {
+  // Projectiles can't be added while projectiles are updating, so the puddle from a hit lands here
+  if (boss.puddlePending) { boss.puddlePending = false; splashPuddle(ctx, boss); }
   switch (boss.bossState) {
     case 'idle':
       if (boss.stateTimer! <= 0) sendTruck(ctx, boss);
@@ -48,8 +61,12 @@ const driveTruck = (ctx: FrameContext, boss: Enemy) => {
   const hits = (e: { pos: { x: number, y: number }, width: number, height: number }) =>
     e.pos.x < truck.x + truck.w && e.pos.x + e.width > truck.x && e.pos.y < truck.y + truck.h && e.pos.y + e.height > truck.y;
 
-  if (hits(player) && player.invincibilityTimer <= 0 && !cheats.invincible) {
-    hurtPlayer(ctx, DALE_TRUCK_DAMAGE, 'truck', { x: DALE_PUSHBACK_VEL.x, y: PLAYER_PUSHBACK_VEL_Y });
+  if (hits(player)) {
+    // The filth shield eats the truck like it eats bullets
+    if (player.filthShieldTimer && player.filthShieldTimer > 0) { wreckTruck(ctx, boss); return; }
+    if (player.invincibilityTimer <= 0 && !cheats.invincible) {
+      hurtPlayer(ctx, DALE_TRUCK_DAMAGE, 'truck', { x: DALE_PUSHBACK_VEL.x, y: PLAYER_PUSHBACK_VEL_Y });
+    }
   }
   state.projectiles.forEach((p: Projectile) => { if (p.isMethBarrel && p.health > 0 && hits(p)) p.health = -1; });
 
@@ -61,6 +78,36 @@ const driveTruck = (ctx: FrameContext, boss: Enemy) => {
     // Speed gets a long, readable wind-up: he visibly shoots up before dashing
     boss.stateTimer = boss.shipmentType === 'speed' ? DALE_SPEED_WINDUP : 30;
   }
+};
+
+/** Meathead's filth shield took the hit: the truck blows up, the shipment's lost, the shield's used up. */
+const wreckTruck = (ctx: FrameContext, boss: Enemy) => {
+  const { state, fx } = ctx;
+  const center = { x: boss.truckX! + TRUCK.w / 2, y: TRUCK.y + TRUCK.h / 2 };
+  state.player.filthShieldTimer = 0;
+  boss.truckActive = false;
+  boss.bossState = 'idle';
+  boss.stateTimer = WRECKED_REST_FRAMES;
+
+  // Fireballs down its length, smoke, twisted metal, barf, and the cargo everywhere
+  for (let i = 0; i < 5; i++) {
+    const at = { x: boss.truckX! + 40 + i * 70, y: center.y + (Math.random() - 0.5) * 60 };
+    fx.spawnExplosion(at, pickRandom(PARTICLE_PALETTES.FIRE), 14, 0, 16);
+  }
+  fx.spawnExplosion(center, '#212121', 30, 0, 14);
+  fx.spawnExplosion(center, '#7F8C8D', 20, 0, 20);
+  fx.spawnExplosion(center, '#7CFC00', 20, 0, 12);
+  fx.spawnPowderExplosion(center, 30);
+  fx.spawnMethExplosion({ x: center.x + 60, y: center.y }, 20);
+  fx.playGunSound('tsunami');
+  fx.playGunSound('barf');
+  shakeScreen(state, 30, 14);
+
+  // Kept on screen (the truck may still be half behind the door)
+  fx.spawnKillCallout({ pos: { x: Math.max(center.x, state.camera.x + 220), y: TRUCK.y - 10 }, width: 0 }, 'truck');
+  // One of them has something to say about it
+  if (Math.random() < 0.5) fx.speakVulgarity('truck_wreck');
+  else speakAsBoss('Drug Trade Dale', pickRandom(DALE_LINES.TRUCK_WRECKED), ctx.bossHelpers);
 };
 
 const useShipment = (ctx: FrameContext, boss: Enemy) => {
@@ -127,11 +174,44 @@ const dash = (ctx: FrameContext, boss: Enemy) => {
   }
 };
 
+/** A direct barf hit splashes a puddle at his feet (or tops up the one already there). */
+const splashPuddle = (ctx: FrameContext, boss: Enemy) => {
+  const { state } = ctx;
+  const x = boss.pos.x - 25, w = boss.width + 50, h = 16;
+  const mid = boss.pos.x + boss.width / 2;
+  const existing = state.projectiles.find(p => p.owner === 'player' && p.isSludge && p.isLingering &&
+    p.pos.x < mid && p.pos.x + p.width > mid);
+  if (existing) { existing.life = Math.max(existing.life || 0, PUDDLE_FRAMES); return; }
+  state.projectiles.push({
+    id: `dale-puddle-${state.frame}`, pos: { x, y: FLOOR_Y - h }, vel: { x: 0, y: 0 }, width: w, height: h,
+    health: 1, maxHealth: 1, type: 'projectile', damage: 0, owner: 'player', isSludge: true, isLingering: true, life: PUDDLE_FRAMES,
+  });
+};
+
+/** Standing in sludge eats at him slowly (once per frame, however many puddles he's in). */
+const soakInSludge = (ctx: FrameContext, boss: Enemy) => {
+  const { state, fx } = ctx;
+  if (boss.sludgeDotFrame === state.frame) return;
+  boss.sludgeDotFrame = state.frame;
+  if (state.frame % 5 === 0) {
+    state.particles.push({ pos: { x: boss.pos.x + Math.random() * boss.width, y: FLOOR_Y - 8 }, vel: { x: 0, y: -1 - Math.random() * 2 }, life: 20, color: '#7CFC00', size: 3 + Math.random() * 4 });
+  }
+  boss.sludgeDotTimer = (boss.sludgeDotTimer || 0) + 1;
+  if (boss.sludgeDotTimer < PUDDLE_TICK_FRAMES) return;
+  boss.sludgeDotTimer = 0;
+  boss.health -= PUDDLE_TICK_DAMAGE;
+  fx.spawnDamageNumber(boss.pos, PUDDLE_TICK_DAMAGE, false, '#7CFC00');
+  if (boss.health <= 0) ctx.bossHelpers.killBoss(boss, 0, true, 'SLUDGE');
+};
+
 export const dale: BossDef = {
   id: 'Drug Trade Dale',
   weakness: 'SLUDGE',
+  weaknessDamage: SLUDGE_HIT_DAMAGE,
   spawn: { x: HOME_X },
   // Everything on his stage hits harder; bumping into him mid-attack knocks you back further
   contact: { damage: 7.5, pushbackFrames: boss => (boss.bossState !== 'idle' ? 24 : undefined) },
   update,
+  onWeaknessHit: (_ctx, boss, p) => { if (p?.isSludge) boss.puddlePending = true; },
+  onStandInSludge: soakInSludge,
 };
