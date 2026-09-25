@@ -127,6 +127,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const walkBob = Math.abs(Math.sin(walkPhase)) * 3;
   const chargePhase = (animFrame * 0.55) % (Math.PI * 2);
   const chargeStride = Math.sin(chargePhase);
+  // 0 rising fast .. 1 falling fast
+  const airFall = Math.max(0, Math.min(1, (p.vel.y + 6) / 12));
 
   // Dynamic rotation & vertical offsets based on stance
   let bodyRot = 0;
@@ -174,6 +176,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     bodyY = -walkBob;
   } else if (isIdle) {
     bodyY = -idleBreath * 0.5;
+  } else if (isAirborne) {
+    bodyRot = -0.06 + airFall * 0.12; // leaning back on the way up, forward coming down
   }
 
   // Lean into the run
@@ -259,7 +263,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     drawReachingArm(ctx, -6, -40, -1, -30, 7, -22, skinShadow);
   } else {
     // Idle / Walk pumping arm in opposition
-    const armAngle = isWalking ? -walkStride * 0.6 : Math.sin(animFrame * 0.08) * 0.1;
+    // Swung back on the way up, thrown up for balance on the way down
+    const armAngle = isWalking ? -walkStride * 0.6
+      : isAirborne ? 1.0 + airFall * 1.1 + Math.sin(animFrame * 0.3) * 0.08
+      : Math.sin(animFrame * 0.08) * 0.1;
     ctx.save();
     ctx.translate(-6, -40);
     ctx.rotate(armAngle);
@@ -385,11 +392,12 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillStyle = '#27272A';
     ctx.beginPath(); ctx.ellipse(17, -9.5, 3, 2.5, 0.3, 0, Math.PI * 2); ctx.fill();
   } else if (isAirborne) {
-    // Air state: knees tucked slightly
-    drawPantLeg(ctx, -9, -20, 9, 14, pantsShadow);
-    drawBoot(ctx, -10, -6, 11, 7, false);
-    drawPantLeg(ctx, 2, -22, 10, 15, pantsColor, true);
-    drawBoot(ctx, 2, -7, 13, 7, true);
+    // Jumping: lead knee driven up and the back heel kicked out on the way up,
+    // both legs reaching down for the landing on the way down
+    const fall = airFall;
+    const lerp = (a: number, b: number) => a + (b - a) * fall;
+    drawJointedLeg(ctx, -4, -22, lerp(0.4, 0.2), lerp(0.7, 0.2), pantsShadow, false);
+    drawJointedLeg(ctx, 5, -22, lerp(-1.25, -0.35), lerp(1.55, 0.3), pantsColor, true);
   } else if (isHurt) {
     // Staggered backwards
     drawPantLeg(ctx, -14, -20, 10, 16, pantsShadow);
@@ -1269,4 +1277,20 @@ const drawBoot = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number
     ctx.fillStyle = '#E2E8F0';
     ctx.fillRect(x + w - 4.5, y + 1.6, 2, 1.2);
   }
+};
+
+/** A leg bent at the knee: thigh from the hip, then the shin (angles from straight down; negative = forward). */
+const drawJointedLeg = (ctx: CanvasRenderingContext2D, hipX: number, hipY: number, thighAngle: number, kneeBend: number, color: string, near: boolean) => {
+  const w = near ? 10 : 9;
+  ctx.save();
+  ctx.translate(hipX, hipY);
+  ctx.rotate(thighAngle);
+  drawPantLeg(ctx, -w / 2, 0, w, 12, color, near);
+  ctx.translate(0, 11);
+  ctx.rotate(kneeBend);
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.arc(0, 0, w / 2, 0, Math.PI * 2); ctx.fill();
+  drawPantLeg(ctx, -w / 2 + 0.5, 0, w - 1, 10, color);
+  drawBoot(ctx, -w / 2, 9, w + 4, 7, near);
+  ctx.restore();
 };
