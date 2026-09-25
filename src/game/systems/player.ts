@@ -10,7 +10,7 @@ import {
   JUMP_HOLD_FRAMES, COYOTE_AIR_FRAMES, COYOTE_JUMP_FRAMES, JUMP_BUFFER_FRAMES, LANDING_SHAKE_SPEED,
   CHARGE_SPEED, CHARGE_DURATION, SLIDE_SPEED, SLIDE_DURATION, COOLDOWN_CHARGE,
   UPPERCUT_SPEED, UPPERCUT_DURATION, COOLDOWN_UPPERCUT, DIVEKICK_SPEED, DIVEKICK_ANGLE,
-  PLAYER_MASS, RECOIL_FRAMES, PLAYER_STUN_INVINCIBILITY, GML_SCALE, SPECIAL_HURT_FRAMES,
+  PLAYER_MASS, RECOIL_FRAMES, PLAYER_STUN_INVINCIBILITY, GML_SCALE, SPECIAL_HURT_FRAMES, ARENA_LEFT, ARENA_RIGHT,
 } from '../../constants';
 import { STAGES_SET_1 } from '../../stages';
 import { FrameContext } from '../context';
@@ -34,6 +34,7 @@ export interface FrameInput {
 
 export const DEATH_SCREEN_FRAMES = 180;
 const ICE_STAGES = ['Artie Avalanche', 'Blackout Barry'];
+const STEP_UP_HEIGHT = 6;
 
 export const killPlayer = (ctx: FrameContext, message: string) => {
   const { state, fx } = ctx;
@@ -312,6 +313,8 @@ export const updatePlayerPhysics = (ctx: FrameContext, input: FrameInput) => {
   pushOutOfSolids(state);
 
   if (player.pos.x < 50) player.pos.x = 50;
+  // Safety net: nothing can push you out through the walls of a locked boss arena
+  if (state.arenaLocked) player.pos.x = Math.max(ARENA_LEFT, Math.min(ARENA_RIGHT - player.width, player.pos.x));
   // Footstep dust while running
   if (player.isGrounded && !isPerformingSpecial(ctx) && Math.abs(player.vel.x) > PLAYER_MOVE_SPEED * 0.6 && state.playerAnimFrame % 11 === 0) {
     spawnDust(state, player.pos.x + player.width / 2 - Math.sign(player.vel.x) * 10, player.pos.y + player.height, 2, -Math.sign(player.vel.x));
@@ -407,13 +410,23 @@ const checkBossDoor = (ctx: FrameContext) => {
 const moveHorizontally = (ctx: FrameContext) => {
   const { state } = ctx;
   const { player } = state;
+  const prevX = player.pos.x;
   player.pos.x += player.vel.x;
   checkBossDoor(ctx);
 
   for (const b of state.blocks) {
     if (!isSolid(state, b) || !rectsOverlap(boundsOf(player), b)) continue;
-    if (player.vel.x > 0) player.pos.x = b.x - player.width;
-    else if (player.vel.x < 0) player.pos.x = b.x + b.w;
+    // A lip only a few pixels above our feet (e.g. stepping from a bobbing board onto a ledge): step up
+    const feet = player.pos.y + player.height;
+    if (feet - b.y <= STEP_UP_HEIGHT && player.vel.y >= 0) {
+      player.pos.y = b.y - player.height;
+      continue;
+    }
+    // Only push back out the side we came from. If we were already overlapping
+    // before this move, the vertical pass / de-clip settles it instead; snapping
+    // to the far side here could teleport us through a wall.
+    if (prevX + player.width <= b.x) player.pos.x = b.x - player.width;
+    else if (prevX >= b.x + b.w) player.pos.x = b.x + b.w;
     else continue;
     if (player.isCharging) { player.isCharging = false; player.isSliding = false; }
     player.vel.x = 0;
