@@ -7,8 +7,7 @@ import { INITIAL_PLAYER_HEALTH, MAX_AMMO, createFullAmmo } from './constants';
 import { getStages, getStartingWeapons, sortWeapons, BOSS_WEAPON_MAP, WEAPONS_AFTER_SET_0, ALL_WEAPONS } from './stages';
 import { VULGARITIES, BOSS_DIALOGUE } from './dialogue';
 import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS } from './game/gamepad';
-import { speak, cancelSpeech, isSpeaking, getBossVoice, MEATHEAD_MENU_VOICE } from './game/speech';
-import { pickRandom } from './game/utils';
+import { speak, cancelSpeech, isSpeaking, getBossVoice, claimLine, takeFreshLine, MEATHEAD_MENU_VOICE } from './game/speech';
 
 /** Shows the dev cheat panel on the title screen. */
 const SHOW_CHEATS = true;
@@ -84,7 +83,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (status === GameStatus.BOSS_INTRO && selectedStage && bossTaunt) {
       cancelSpeech();
-      speak(bossTaunt, getBossVoice(selectedStage));
+      if (claimLine(bossTaunt)) speak(bossTaunt, getBossVoice(selectedStage));
     }
   }, [status, selectedStage, bossTaunt]);
 
@@ -193,7 +192,9 @@ const App: React.FC = () => {
   /** Meathead complains if you pick a boss he already killed. */
   const speakRebuke = () => {
     if (isSpeaking() || Date.now() - lastRebukeEndRef.current < REBUKE_COOLDOWN_MS) return;
-    speak(pickRandom(VULGARITIES.REBUKE), MEATHEAD_MENU_VOICE, {
+    const line = takeFreshLine(VULGARITIES.REBUKE);
+    if (!line) return;
+    speak(line, MEATHEAD_MENU_VOICE, {
       onDone: () => { lastRebukeEndRef.current = Date.now(); },
     });
   };

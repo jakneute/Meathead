@@ -25,6 +25,28 @@ export const MEATHEAD_VOICE: Voice = { pitch: 0.1, rate: 1.2 };
 export const MEATHEAD_INTRO_VOICE: Voice = { pitch: 0.1, rate: 1.0 };
 export const MEATHEAD_MENU_VOICE: Voice = { pitch: 0.1, rate: 1.1 };
 
+/**
+ * Every spoken line goes on its own cooldown so the same line can't repeat in
+ * quick succession. If every line in a pool is still cooling down, nothing plays.
+ */
+export const LINE_REPEAT_COOLDOWN_MS = 45_000;
+const lastSaidAt = new Map<string, number>();
+
+const isFresh = (line: string, now: number) => now - (lastSaidAt.get(line) ?? -Infinity) >= LINE_REPEAT_COOLDOWN_MS;
+
+/** Picks a random line that hasn't been said recently and marks it as said. Null if none are available. */
+export const takeFreshLine = (lines: readonly string[]): string | null => {
+  const now = Date.now();
+  const fresh = lines.filter(l => isFresh(l, now));
+  if (fresh.length === 0) return null;
+  const line = fresh[Math.floor(Math.random() * fresh.length)];
+  lastSaidAt.set(line, now);
+  return line;
+};
+
+/** Claims one specific line. False if it was said too recently. */
+export const claimLine = (line: string): boolean => takeFreshLine([line]) !== null;
+
 export const canSpeak = () => typeof window !== 'undefined' && 'speechSynthesis' in window;
 
 export const isSpeaking = () => canSpeak() && window.speechSynthesis.speaking;

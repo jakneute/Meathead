@@ -16,7 +16,7 @@ import {
 import { BOSS_DIALOGUE, BOSS_WEAPON_REACTIONS } from '../dialogue';
 import { GameState, resetPlayerCombatState } from './state';
 import { Fx } from './effects';
-import { speak, isSpeaking, getBossVoice } from './speech';
+import { speak, isSpeaking, getBossVoice, claimLine, takeFreshLine } from './speech';
 
 /** Boss AI, weaknesses and damage rules. Drawing lives in render/bossRenderer.ts. */
 
@@ -57,6 +57,7 @@ export const createBossHelpers = (state: GameState, fx: Fx, onBossDeath: () => v
 
 /** Shows the line over the boss's head and speaks it (unless someone is already talking). */
 export const speakAsBoss = (bossId: string, text: string, helpers: BossHelpers) => {
+  if (!claimLine(text)) return; // said too recently
   helpers.setBossVulgarity(text, BOSS_VULGARITY_DURATION);
   if (isSpeaking()) return;
   speak(text, getBossVoice(bossId));
@@ -71,8 +72,11 @@ export const maybeReactToWeapon = (boss: Enemy, weapon: WeaponType, stageId: str
   if (Math.random() >= BOSS_WEAPON_REACTION_CHANCE) return;
   const lines = BOSS_WEAPON_REACTIONS[stageId]?.[weapon];
   if (!lines) return;
+  const line = takeFreshLine(lines);
+  if (!line) return;
   state.bossReactionCooldown = BOSS_WEAPON_REACTION_COOLDOWN;
-  speakAsBoss(stageId, lines[Math.floor(Math.random() * lines.length)], helpers);
+  helpers.setBossVulgarity(line, BOSS_VULGARITY_DURATION);
+  if (!isSpeaking()) speak(line, getBossVoice(stageId));
 };
 
 /** Toxic Tommy can't be hurt while he's under (or at) the sludge surface. */

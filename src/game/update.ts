@@ -11,7 +11,7 @@ import { Controls } from './input';
 import { respawn, getStartX } from './level';
 import { resetPlayerCombatState, DEFAULT_SHAKE } from './state';
 import { updateBarfStream, updateFlameSegments } from './weapons';
-import { speak, MEATHEAD_INTRO_VOICE } from './speech';
+import { speak, claimLine, MEATHEAD_INTRO_VOICE } from './speech';
 import { pickRandom, rectsOverlap, boundsOf } from './utils';
 import { killPlayer, gateControls, tickPlayerTimers, updatePlayerActions, updatePlayerPhysics, getSpecialForm, interruptSpecialWithHurt } from './systems/player';
 import { updateTsunami, updateSteamExplosions, updateVolcanoes, updateTommyArena } from './systems/hazards';
@@ -105,7 +105,7 @@ const updateLevelIntro = (ctx: FrameContext) => {
   player.facing = 1;
 
   const quotes = stageId ? BOSS_DIALOGUE.INTRO_QUOTES[stageId] : undefined;
-  if (state.introTimer === 30 && !cheats.skipToBoss && quotes) {
+  if (state.introTimer === 30 && !cheats.skipToBoss && quotes && claimLine(quotes[0])) {
     const quote = quotes[0];
     state.isMeatheadSpeaking = true;
     speak(quote, MEATHEAD_INTRO_VOICE, {

@@ -5,7 +5,7 @@ import {
 import { VULGARITIES, BOSS_DIALOGUE, KILL_LINES, KILL_CALLOUTS, KillCallout } from '../dialogue';
 import { GameState } from './state';
 import { playSound, playGlassShatterSound } from './audio';
-import { speak, cancelSpeech, isSpeaking, canSpeak, MEATHEAD_VOICE } from './speech';
+import { speak, cancelSpeech, isSpeaking, canSpeak, takeFreshLine, MEATHEAD_VOICE } from './speech';
 import { pickRandom } from './utils';
 
 const MAX_PARTICLES = 2500;
@@ -160,23 +160,22 @@ export const createFx = (state: GameState) => {
    */
   const speakVulgarity = (category: VulgarityType, hurtSource?: string) => {
     if (!canSpeak()) return;
+    if (category !== 'death') {
+      if (state.isMeatheadSpeaking || isSpeaking()) return;
+      if (category === 'hurt' ? state.hurtVoiceCooldown > 0 : state.voiceLineCooldown > 0) return;
+    }
+    // Skip entirely if every line in the pool was said recently
+    const text = takeFreshLine(category === 'hurt' ? getHurtLines(hurtSource) : KILL_LINES[category]);
+    if (!text) return;
+
     if (category === 'death') {
       cancelSpeech();
-      state.isMeatheadSpeaking = false;
       state.voiceLineCooldown = 0;
       state.hurtVoiceCooldown = 0;
-    } else {
-      if (state.isMeatheadSpeaking || isSpeaking()) return;
-      if (category === 'hurt') {
-        if (state.hurtVoiceCooldown > 0) return;
-        state.voiceLineCooldown = 0;
-        state.hurtVoiceCooldown = 45;
-      } else if (state.voiceLineCooldown > 0) {
-        return;
-      }
+    } else if (category === 'hurt') {
+      state.voiceLineCooldown = 0;
+      state.hurtVoiceCooldown = 45;
     }
-
-    const text = pickRandom(category === 'hurt' ? getHurtLines(hurtSource) : KILL_LINES[category]);
     state.playerLastVulgarity = text;
     state.playerVulgarityTimer = VULGARITY_TEXT_DURATION;
     state.isMeatheadSpeaking = true;
