@@ -37,6 +37,8 @@ const TONES: Partial<Record<SoundType, ToneSpec>> = {
   ignite: { wave: 'sawtooth', freq: 50, endFreq: 350, sweep: 'linear', sweepTime: 0.5, gain: 0.3, endGain: 0.001, fadeTime: 0.6 },
   oil:    { wave: 'sine', freq: 100, endFreq: 200, sweep: 'exp', sweepTime: 0.2, gain: 0.1, endGain: 0.001, fadeTime: 0.2 },
   taser:  { wave: 'sawtooth', freq: () => 440 + Math.random() * 200, endFreq: 100, sweep: 'linear', sweepTime: 0.05, gain: 0.04, endGain: 0.001, fadeTime: 0.05 },
+  // A water-droplet plink: a high sine that bends up (played in a stream for the victory whiz)
+  tinkle: { wave: 'sine', freq: () => 1300 + Math.random() * 1300, endFreq: 3400, sweep: 'exp', sweepTime: 0.045, gain: 0.045, endGain: 0.001, fadeTime: 0.07 },
 };
 
 const playTone = (ctx: AudioContext, spec: ToneSpec) => {

@@ -101,6 +101,18 @@ export const drawVictoryPee = (ctx: CanvasRenderingContext2D, state: GameState) 
   ctx.strokeStyle = '#B45309';                                                                  // a vein, naturally
   ctx.lineWidth = 0.8;
   ctx.beginPath(); ctx.moveTo(1, 1.5); ctx.quadraticCurveTo(4, 0.5, 7, 1.8); ctx.stroke();
+  // Both hands holding it (the arms reaching down are drawn with Meathead)
+  ctx.scale(1 / 1.4, 1 / 1.4);
+  for (const [hx, shade] of [[1.5, SKIN_SHADOW], [6.5, SKIN]] as const) {
+    ctx.fillStyle = shade;
+    ctx.beginPath();
+    ctx.ellipse(hx, 0, 4.5, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#8A5A2B';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.moveTo(hx - 2, -3); ctx.lineTo(hx - 2, 3); ctx.moveTo(hx + 1, -3.5); ctx.lineTo(hx + 1, 3.5); ctx.stroke(); // knuckles
+  }
+  ctx.scale(1.4, 1.4);
   // Last drips during the shake
   if (shaking) {
     ctx.fillStyle = PEE;

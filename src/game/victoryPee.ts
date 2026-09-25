@@ -44,6 +44,9 @@ export const updateVictoryPee = (ctx: FrameContext) => {
     p.vel.x = 0;
     if ((p.peeTimer || 0) < PEE_FRAMES + PEE_SHAKE_FRAMES) p.peeTimer = (p.peeTimer || 0) + 1;
     state.playerAnimFrame++;
+    // Tinkle tinkle, once the stream reaches him
+    const t = p.peeTimer || 0;
+    if (t > 12 && t <= PEE_FRAMES && (state.frame % 5 === 0 || Math.random() < 0.08)) ctx.fx.playGunSound('tinkle');
   }
 
   // In a wide arena the camera keeps him and the corpse in view

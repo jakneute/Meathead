@@ -1,5 +1,6 @@
 import { Player, WeaponType } from '../../types';
 import { COLORS, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../constants';
+import { peeProgress } from '../victoryPee';
 import { GameState } from '../state';
 
 export interface PlayerDrawOptions {
@@ -72,6 +73,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const isAirborne = !p.isGrounded;
   const isWalking = p.isGrounded && Math.abs(p.vel.x) > 0.4 && !isCharging && !isDucking && !isDivekicking;
   const isIdle = p.isGrounded && !isWalking && !isCharging && !isDucking && !isUppercutting && !isDivekicking && !isHurt;
+  // Victory lap after a weakness kill: weapon put away, and both hands on the job while he pisses
+  const isUnarmed = !!state.bossCorpse && !!state.victoryString;
+  const isRelieving = isUnarmed && peeProgress(p.peeTimer).out;
 
   // 3. Charging Afterimages & Energy Trails
   if (isCharging) {
@@ -305,6 +309,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.beginPath();
     ctx.arc(-8, -10, 5, 0, Math.PI * 2);
     ctx.fill();
+  } else if (isRelieving) {
+    // Reaching down and forward to hold it (the hand itself is drawn with it, over the top)
+    drawReachingArm(ctx, -6, -40, -1, -30, 7, -22, skinShadow);
   } else {
     // Idle / Walk pumping arm in opposition
     const armAngle = isWalking ? -walkStride * 0.6 : Math.sin(animFrame * 0.08) * 0.1;
@@ -824,6 +831,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillRect(2, -22, 10, 4);
     ctx.fillStyle = skinTone;
     ctx.beginPath(); ctx.arc(7, -16, 5.5, 0, Math.PI * 2); ctx.fill();
+  } else if (isRelieving) {
+    drawReachingArm(ctx, 8, -42, 13, -32, 12, -21, skinTone);
   } else {
     // Walking / Standing / Ducking Aiming Pose
     const armPump = isWalking ? walkStride * 8 : 0;
@@ -869,7 +878,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     const wpnY = armBaseY + 2;
 
     ctx.save();
-    if (currentWeapon === 'GUN') {
+    if (isUnarmed) {
+      // Weapon put away for the victory lap
+    } else if (currentWeapon === 'GUN') {
       // Heavy pump-action shotgun
       ctx.fillStyle = '#27272A';
       ctx.fillRect(wpnX, wpnY, 22, 7);
@@ -1131,5 +1142,29 @@ const drawGroundShadow = (ctx: CanvasRenderingContext2D, p: Player, state: GameS
   ctx.beginPath();
   ctx.ellipse(cx, groundY, p.width * 0.65 * (0.5 + 0.5 * k), 5 * (0.5 + 0.5 * k), 0, 0, Math.PI * 2);
   ctx.fill();
+  ctx.restore();
+};
+
+/** An arm bent at the elbow reaching from the shoulder to a point, ending in a wristband (no fist). */
+const drawReachingArm = (ctx: CanvasRenderingContext2D, sx: number, sy: number, ex: number, ey: number, hx: number, hy: number, skin: string) => {
+  ctx.save();
+  ctx.fillStyle = skin;
+  ctx.beginPath();
+  ctx.arc(sx, sy, 7.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = skin;
+  ctx.lineCap = 'round';
+  ctx.lineWidth = 9;
+  ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+  ctx.lineWidth = 8;
+  ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(hx - 3, hy - 2); ctx.stroke();
+  ctx.strokeStyle = wristbandColor;
+  ctx.lineWidth = 8;
+  ctx.lineCap = 'butt';
+  const dx = hx - ex, dy = hy - ey, len = Math.hypot(dx, dy) || 1;
+  ctx.beginPath();
+  ctx.moveTo(hx - 3 - (dx / len) * 6, hy - 2 - (dy / len) * 6);
+  ctx.lineTo(hx - 3 - (dx / len) * 1, hy - 2 - (dy / len) * 1);
+  ctx.stroke();
   ctx.restore();
 };
