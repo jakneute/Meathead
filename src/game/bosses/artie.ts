@@ -17,8 +17,8 @@ const MUST_MOVE_FRAMES = 120;   // past this he won't pick the ice block
 const CHARGE_SPEED = 7.5;
 
 const ICICLES_AT_FULL_HP = 2;   // per jump; ramps up as he loses health...
-const ICICLES_AT_ZERO_HP = 6;   // ...to this many
-const MAX_ICICLES = 10;         // on the ceiling / in the air at once
+const ICICLES_AT_ZERO_HP = 5;   // ...to this many
+const MAX_ICICLES = 8;          // on the ceiling / in the air at once
 const ICICLE_WARNING = 45;      // frames the first one hangs before dropping
 const ICICLE_STAGGER = 14;      // then one after another
 const ICICLE_RUSHED = 8;        // burned: they come down almost at once...
