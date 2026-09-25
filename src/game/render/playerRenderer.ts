@@ -1,5 +1,5 @@
 import { Player, WeaponType } from '../../types';
-import { COLORS, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../constants';
+import { COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../constants';
 import { peeProgress } from '../victoryPee';
 import { drawShoulderCharge, drawUppercut, drawDivekick } from './playerMoves';
 import { GameState } from '../state';
@@ -26,11 +26,17 @@ const beltBuckle = '#FACC15'; // Gold buckle
 const wristbandColor = '#09090B'; // Spiked wristband
 const backArmShade = '#A87038';   // shadow side of the far arm
 const stubbleColor = 'rgba(60, 30, 10, 0.35)';
+const bloodFresh = '#B91C1C';
+const bloodDark = '#7F1D1D';
+
+/** How beaten up he is this frame (0 at full health, 1 at none): cuts and blood build up with it. */
+let gore = 0;
 
 /** Draws Meathead: effects auras, then body layers back-to-front, then the held weapon. */
 export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled }: PlayerDrawOptions) => {
   if (state.deathTimer > 0) return;
   const animFrame = state.playerAnimFrame;
+  gore = Math.max(0, Math.min(1, 1 - p.health / INITIAL_PLAYER_HEALTH));
   ctx.save();
 
   // 1. Filth Shield Aura
@@ -295,6 +301,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillStyle = backArmShade;
     ctx.fillRect(-3, 22, 6, 0.9);
     ctx.fillRect(-0.5, 22, 0.9, 3);
+    if (gore > 0.4) smear(ctx, 1, 2, 4, 3, bloodDark);
+    if (gore > 0.7) drip(ctx, 2, 3, 8);
     ctx.restore();
   }
   ctx.restore();
@@ -552,6 +560,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   ctx.lineTo(12, torsoTop + 2);
   ctx.closePath();
   ctx.fill();
+  drawTorsoBlood(ctx, torsoTop, torsoHeight, pecY);
   ctx.restore();
 
   // ==========================================
@@ -794,6 +803,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillRect(headX - 9.5, headY + 2, 1, 4);
     ctx.fillRect(headX + 8.5, headY + 2, 1, 4);
   }
+  drawHeadBlood(ctx, headX, headY, animFrame);
   // Beaten up: a shiner, a split lip and sweat running off his temple
   if (p.health < 35 && !isRelieving) {
     ctx.fillStyle = 'rgba(88, 28, 135, 0.45)';
@@ -946,6 +956,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fill();
     ctx.fillStyle = skinShadow;
     for (let k = 0; k < 3; k++) ctx.fillRect(armBaseX + 13 + armPump * 0.3 + k * 2, armBaseY + 8.5, 0.8, 2);
+    drawLeadArmBlood(ctx, armBaseX, armBaseY, armPump * 0.3);
 
     // Render Equipped Weapon in Meathead's lead hand!
     const wpnX = armBaseX + 10 + armPump * 0.3;
@@ -1247,6 +1258,15 @@ const drawReachingArm = (ctx: CanvasRenderingContext2D, sx: number, sy: number, 
 const drawPantLeg = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string, pocket = false) => {
   ctx.fillStyle = color;
   ctx.fillRect(x, y, w, h);
+  // Blood soaking into the fabric as he takes a beating
+  if (gore > 0.5) {
+    ctx.fillStyle = 'rgba(60, 5, 10, 0.55)';
+    ctx.beginPath(); ctx.ellipse(x + w * 0.6, y + h * 0.25, w * 0.3, h * 0.2, 0.3, 0, Math.PI * 2); ctx.fill();
+  }
+  if (gore > 0.8) {
+    ctx.fillStyle = 'rgba(60, 5, 10, 0.5)';
+    ctx.beginPath(); ctx.ellipse(x + w * 0.35, y + h * 0.7, w * 0.35, h * 0.22, -0.2, 0, Math.PI * 2); ctx.fill();
+  }
   ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
   ctx.fillRect(x, y, w * 0.3, h);
   ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
@@ -1293,4 +1313,89 @@ const drawJointedLeg = (ctx: CanvasRenderingContext2D, hipX: number, hipY: numbe
   drawPantLeg(ctx, -w / 2 + 0.5, 0, w - 1, 10, color);
   drawBoot(ctx, -w / 2, 9, w + 4, 7, near);
   ctx.restore();
+};
+
+// ---------------------------------------------------------------------------
+// Blood: cuts, smears and drips that build up as he loses health (by `gore`)
+// ---------------------------------------------------------------------------
+
+/** An irregular smear of blood. */
+const smear = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color = bloodFresh) => {
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.ellipse(x, y, w / 2, h / 2, 0.4, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(x + w * 0.3, y + h * 0.2, w * 0.3, h * 0.35, -0.3, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = bloodDark;
+  ctx.beginPath(); ctx.arc(x - w * 0.15, y - h * 0.1, Math.min(w, h) * 0.22, 0, Math.PI * 2); ctx.fill();
+};
+
+/** A trickle of blood running down from (x, y), ending in a bead. */
+const drip = (ctx: CanvasRenderingContext2D, x: number, y: number, len: number) => {
+  ctx.fillStyle = bloodFresh;
+  ctx.fillRect(x - 0.5, y, 1, len);
+  ctx.beginPath(); ctx.ellipse(x, y + len, 0.9, 1.3, 0, 0, Math.PI * 2); ctx.fill();
+};
+
+/** A slash: a dark gash with a fresh red rim. */
+const cut = (ctx: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number) => {
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = bloodFresh;
+  ctx.lineWidth = 1.8;
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  ctx.strokeStyle = '#450A0A';
+  ctx.lineWidth = 0.7;
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+};
+
+const drawHeadBlood = (ctx: CanvasRenderingContext2D, hx: number, hy: number, frame: number) => {
+  if (gore < 0.15) return;
+  cut(ctx, hx + 4, hy + 1.5, hx + 7, hy - 0.5);                          // cheek
+  if (gore >= 0.3) drip(ctx, hx + 2, hy + 1.5, gore >= 0.55 ? 6 : 2);    // nosebleed, down to the chin
+  if (gore >= 0.45) {
+    cut(ctx, hx - 7, hy - 8, hx - 3, hy - 9);                            // split brow
+    drip(ctx, hx - 6.5, hy - 7.5, gore >= 0.6 ? 11 : 4);
+  }
+  if (gore >= 0.7) {
+    // Scalp gash with blood streaming down the forehead
+    smear(ctx, hx + 3, hy - 11.5, 5, 2.5);
+    drip(ctx, hx + 2, hy - 11, 6);
+    drip(ctx, hx + 4.5, hy - 11, 4);
+  }
+  if (gore >= 0.85) {
+    ctx.fillStyle = bloodFresh;
+    for (let i = 0; i < 7; i++) ctx.fillRect(hx - 8 + (i * 5.3) % 16, hy - 6 + (i * 3.7) % 13, 1, 1);
+  }
+  // Blood dripping off his chin when he's in a bad way
+  if (gore >= 0.6) {
+    const t = (frame % 36) / 36;
+    if (t < 0.6) {
+      ctx.fillStyle = bloodFresh;
+      ctx.beginPath(); ctx.ellipse(hx + 2, hy + 8.5 + t * t * 60, 0.9, 1.4, 0, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+};
+
+const drawTorsoBlood = (ctx: CanvasRenderingContext2D, top: number, h: number, pecY: number) => {
+  if (gore < 0.2) return;
+  smear(ctx, 6, pecY + 4, 4, 3);
+  if (gore >= 0.35) {
+    cut(ctx, -10, top + 3, 5, top + 10);                                 // slash across the pecs
+    drip(ctx, -6, top + 5, 5);
+    drip(ctx, 1, top + 8, 4);
+  }
+  if (gore >= 0.5) drip(ctx, 2.5, top - 1, Math.min(h - 3, 12));         // running down from his chin
+  if (gore >= 0.65) {
+    smear(ctx, -4, top + h - 8, 6, 4, bloodDark);                        // abs
+    drip(ctx, -3, top + h - 7, 6);
+  }
+  if (gore >= 0.8) {
+    cut(ctx, 7, top + h - 12, 12, top + h - 5);
+    smear(ctx, 10, top + h - 5, 6, 4);
+  }
+};
+
+const drawLeadArmBlood = (ctx: CanvasRenderingContext2D, ax: number, ay: number, pump: number) => {
+  if (gore < 0.25) return;
+  cut(ctx, ax - 1, ay + 3, ax + 4, ay + 5);                              // bicep
+  if (gore >= 0.5) smear(ctx, ax + 15 + pump, ay + 7, 5, 3.5);           // bloody knuckles
+  if (gore >= 0.75) drip(ctx, ax + 3, ay + 5, 6);
 };
