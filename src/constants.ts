@@ -263,6 +263,17 @@ export const HECTOR_PULL_STRENGTH_ULT = 1.5;
 // ERNIE EARTHQUAKE
 export const ERNIE_STOMP_VIBRATION_DURATION = 40;
 
+// TOXIC TOMMY: how much he speeds up as he loses health (values at 0 HP)
+export const TOMMY_SWIM_SPEED = 5.0;
+export const TOMMY_SWIM_SPEED_RAMP = 1.5;       // extra swim speed at 0 HP
+export const TOMMY_CHASE_FRAMES = 110;           // stalking time before surfacing
+export const TOMMY_CHASE_RAMP = 25;              // frames shaved off at 0 HP
+export const TOMMY_TELEGRAPH_FRAMES = 62;        // board shake warning before he bursts up
+export const TOMMY_TELEGRAPH_RAMP = 10;          // frames shaved off at 0 HP
+
+// BLACKOUT BARRY: a mild speed-up as he loses health
+export const BARRY_SPEEDUP_AT_ZERO_HP = 0.2;     // his phases run up to 20% faster
+
 // DRUG TRADE DALE
 export const DALE_TRUCK_SPEED = 11;
 export const DALE_SPEED_WINDUP = 55;     // frames Dale spends injecting before his speed dash

@@ -10,6 +10,8 @@ import {
   TOMMY_PUKE_PUSHBACK_DURATION,
   PLAYER_INVINCIBILITY_FRAMES, PLAYER_PUSHBACK_DURATION,
   PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y,
+  TOMMY_SWIM_SPEED, TOMMY_SWIM_SPEED_RAMP, TOMMY_CHASE_FRAMES, TOMMY_CHASE_RAMP,
+  TOMMY_TELEGRAPH_FRAMES, TOMMY_TELEGRAPH_RAMP, BARRY_SPEEDUP_AT_ZERO_HP,
 } from '../constants';
 import { BOSS_DIALOGUE, BOSS_WEAPON_REACTIONS } from '../dialogue';
 import { GameState, resetPlayerCombatState } from './state';
@@ -485,15 +487,20 @@ const handleVictorAI = (boss: Enemy, player: Player, healthPct: number, state: G
 };
 
 const handleBlackoutAI = (boss: Enemy, player: Player, state: GameState, helpers: BossHelpers) => {
+  // Mild speed-up as he loses health: every phase timing shrinks a little
+  const missingHpRatio = Math.max(0, Math.min(1, 1 - boss.health / boss.maxHealth));
+  const pace = 1 - missingHpRatio * BARRY_SPEEDUP_AT_ZERO_HP;
+  const frames = (n: number) => Math.max(1, Math.round(n * pace));
+
   if (boss.bossState === 'idle' && boss.stateTimer! <= 0) {
     boss.bossState = 'blackout_teleport';
-    boss.stateTimer = 260; // Snappier teleportation phase
+    boss.stateTimer = frames(260);
     boss.jumpCount = 0; 
     boss.shootTimer = 0; 
     helpers.setScreenShake(10);
   } else if (boss.bossState === 'blackout_teleport') {
     boss.shootTimer = (boss.shootTimer || 0) + 1;
-    const teleportInterval = Math.max(6, Math.floor(26 - (boss.jumpCount || 0) * 2));
+    const teleportInterval = Math.max(6, Math.floor(frames(26) - (boss.jumpCount || 0) * 2));
     
     if (boss.shootTimer >= teleportInterval) {
       boss.shootTimer = 0;
@@ -510,7 +517,7 @@ const handleBlackoutAI = (boss: Enemy, player: Player, state: GameState, helpers
     if (boss.stateTimer! <= 0) {
       boss.bossState = 'telegraphing';
       boss.jumpCount = Math.random() > 0.5 ? 1 : 0; // 0 = Downward (Ground Pound), 1 = Outward (Lightning Storm)
-      boss.stateTimer = 90; 
+      boss.stateTimer = frames(90); 
       boss.pos.y = 100;
       boss.pos.x = (player.pos.x < 7600) ? 7700 : BOSS_DOOR_X + 250;
       boss.electrifiedTimer = 0;
@@ -526,7 +533,7 @@ const handleBlackoutAI = (boss: Enemy, player: Player, state: GameState, helpers
         boss.activeLightningStrikes = [];
       } else {
         boss.bossState = 'lightning_storm';
-        boss.stateTimer = 130;
+        boss.stateTimer = frames(130);
         boss.activeLightningStrikes = [];
         helpers.setScreenShake(15);
         helpers.playGunSound('ignite');
@@ -571,7 +578,7 @@ const handleBlackoutAI = (boss: Enemy, player: Player, state: GameState, helpers
         if (boss.electrifiedTimer <= 0) {
           // Half-second electrification complete; Barry enters exhausted state
           boss.bossState = 'exhausted';
-          boss.stateTimer = 150;
+          boss.stateTimer = frames(150);
           boss.pos.y = 470;
         }
       }
@@ -580,7 +587,7 @@ const handleBlackoutAI = (boss: Enemy, player: Player, state: GameState, helpers
     boss.activeLightningStrikes = boss.activeLightningStrikes || [];
 
     // Periodically spawn new vertical strikes across the arena (excluding directly under boss)
-    if (boss.stateTimer! % 10 === 0 && boss.stateTimer! > 25) {
+    if (boss.stateTimer! % frames(10) === 0 && boss.stateTimer! > 25) {
       const safeXMin = boss.pos.x - 70;
       const safeXMax = boss.pos.x + boss.width + 70;
 
@@ -627,7 +634,7 @@ const handleBlackoutAI = (boss: Enemy, player: Player, state: GameState, helpers
 
     if (boss.stateTimer! <= 0) {
       boss.bossState = 'exhausted';
-      boss.stateTimer = 150;
+      boss.stateTimer = frames(150);
       boss.activeLightningStrikes = [];
     }
   } else if (boss.bossState === 'exhausted') {
@@ -640,7 +647,7 @@ const handleBlackoutAI = (boss: Enemy, player: Player, state: GameState, helpers
     
     if (boss.stateTimer! <= 0) {
       boss.bossState = 'idle';
-      boss.stateTimer = 35;
+      boss.stateTimer = frames(35);
       boss.pos.y = 470;
     }
   }
@@ -656,11 +663,11 @@ const handleTommyAI = (
   const sludgeY = state.tommySludgeY || 510;
   // Health-based scaling factors (0.0 at full health, 1.0 at 0 health)
   const missingHpRatio = Math.max(0, Math.min(1, 1 - (boss.health / (boss.maxHealth || 250))));
-  // Movement speed: base speed boosted from 2.5 to 5.0, scaling up to 8.5 at low health
-  const baseSpeed = 5.0 + missingHpRatio * 3.5;
-  // Randomized emerge timer helper: base chase duration scaled from ~90-130 frames down to ~45-75 frames at low health
+  // He gets a bit faster and more aggressive as he loses health
+  const baseSpeed = TOMMY_SWIM_SPEED + missingHpRatio * TOMMY_SWIM_SPEED_RAMP;
+  // Randomized stalking time before he surfaces
   const getRandomChaseDuration = () => {
-    const base = 110 - missingHpRatio * 55;
+    const base = TOMMY_CHASE_FRAMES - missingHpRatio * TOMMY_CHASE_RAMP;
     const variation = (Math.random() - 0.5) * 40; // ±20 frames of randomness
     return Math.max(35, Math.round(base + variation));
   };
@@ -726,7 +733,7 @@ const handleTommyAI = (
       if (chosen) {
         boss.targetedBoardIndex = chosen.index;
         // Telegraph timer with randomized variation (scaled by missing HP)
-        const baseTelegraph = 62 - missingHpRatio * 22;
+        const baseTelegraph = TOMMY_TELEGRAPH_FRAMES - missingHpRatio * TOMMY_TELEGRAPH_RAMP;
         const telegraphVariation = (Math.random() - 0.5) * 14; // ±7 frames
         const telegraphTime = Math.max(30, Math.round(baseTelegraph + telegraphVariation));
         chosen.telegraphTimer = telegraphTime;
@@ -744,7 +751,7 @@ const handleTommyAI = (
           Math.abs(b.x + b.w / 2 - (boss.pos.x + boss.width / 2))
         )[0];
         boss.targetedBoardIndex = fallback.index;
-        const telegraphTime = Math.max(30, Math.round(55 - missingHpRatio * 20));
+        const telegraphTime = Math.max(30, Math.round(TOMMY_TELEGRAPH_FRAMES - 7 - missingHpRatio * TOMMY_TELEGRAPH_RAMP));
         fallback.telegraphTimer = telegraphTime;
         boss.bossState = 'telegraph_emerge';
         boss.stateTimer = telegraphTime;

@@ -187,7 +187,8 @@ const updatePhysicsProjectile = (ctx: FrameContext, p: Projectile): boolean => {
 
   if (p.isSludge && p.isLingering) {
     p.life!--;
-    damageEnemiesInSludgePuddle(ctx, p);
+    // Only Meathead's sludge hurts enemies (Tommy's own puke puddles used to hurt him)
+    if (p.owner === 'player') damageEnemiesInSludgePuddle(ctx, p);
     if (state.frame % 4 === 0) {
       state.particles.push({ pos: { x: p.pos.x + Math.random() * p.width, y: p.pos.y + p.height / 2 }, vel: { x: (Math.random() - 0.5) * 2, y: -Math.random() * 6 }, life: 25, color: '#ADFF2F', size: 6 + Math.random() * 8 });
     }
