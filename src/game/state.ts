@@ -33,6 +33,8 @@ export interface GameState {
   playerVulgarityTimer: number;
   bossLastVulgarity: string;
   bossVulgarityTimer: number;
+  /** Frames until a boss may react to a weapon hit again. */
+  bossReactionCooldown: number;
   voiceLineCooldown: number;
   hurtVoiceCooldown: number;
   isMeatheadSpeaking: boolean;
@@ -159,6 +161,7 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
   playerVulgarityTimer: 0,
   bossLastVulgarity: "",
   bossVulgarityTimer: 0,
+  bossReactionCooldown: 0,
   voiceLineCooldown: 0,
   hurtVoiceCooldown: 0,
   isMeatheadSpeaking: false,
@@ -231,6 +234,7 @@ export const resetStageState = (s: GameState) => {
   s.playerVulgarityTimer = 0;
   s.bossLastVulgarity = "";
   s.bossVulgarityTimer = 0;
+  s.bossReactionCooldown = 0;
   s.hurtVoiceCooldown = 0;
   s.isMeatheadSpeaking = false;
 

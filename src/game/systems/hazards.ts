@@ -7,7 +7,7 @@ import {
   TSUNAMI_WAVE_SPEED, TSUNAMI_DAMAGE_BOSS, TSUNAMI_DAMAGE_WEAKNESS,
 } from '../../constants';
 import { FrameContext, killBoss } from '../context';
-import { checkIsWeakness } from '../boss';
+import { checkIsWeakness, maybeReactToWeapon } from '../boss';
 import { pickRandom } from '../utils';
 import { killPlayer, landPlayer } from './player';
 
@@ -65,6 +65,7 @@ export const updateTsunami = (ctx: FrameContext) => {
       e.health -= dmg;
       e.hitCooldown = ENEMY_HIT_COOLDOWN;
       fx.spawnDamageNumber(e.pos, dmg, isW);
+      maybeReactToWeapon(e, 'TSUNAMI', stageId, state, ctx.bossHelpers);
       if (e.health <= 0) killBoss(ctx, e, dir, isW);
     } else {
       e.health = 0;

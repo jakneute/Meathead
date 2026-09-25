@@ -91,6 +91,7 @@ export const tickPlayerTimers = (ctx: FrameContext, input: FrameInput) => {
   if (state.playerVulgarityTimer > 0 && --state.playerVulgarityTimer <= 0) state.playerLastVulgarity = "";
   if (state.bossVulgarityTimer > 0 && --state.bossVulgarityTimer <= 0) state.bossLastVulgarity = "";
   if (state.voiceLineCooldown > 0) state.voiceLineCooldown--;
+  if (state.bossReactionCooldown > 0) state.bossReactionCooldown--;
   if (state.hurtVoiceCooldown > 0) state.hurtVoiceCooldown--;
   if (player.invincibilityTimer > 0) player.invincibilityTimer--;
   if (player.hurtTimer && player.hurtTimer > 0) player.hurtTimer--;

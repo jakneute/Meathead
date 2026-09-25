@@ -7,7 +7,7 @@ import {
   FIRE_DOT_DAMAGE_HEAVY, NEEDLE_DOT_TICK_RATE, NEEDLE_DOT_DAMAGE_PER_STACK,
 } from '../../constants';
 import { FrameContext, killBoss } from '../context';
-import { updateBossAI, getBossDamage, checkIsWeakness, isTommyShielded } from '../boss';
+import { updateBossAI, getBossDamage, checkIsWeakness, isTommyShielded, maybeReactToWeapon } from '../boss';
 import { fireWeapon, findTaserTarget } from '../weapons';
 import { FrameInput, hasAmmo } from './player';
 
@@ -67,6 +67,7 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
     boss.health -= dmg;
     boss.hitCooldown = ENEMY_HIT_COOLDOWN;
     fx.spawnDamageNumber(boss.pos, dmg, isW);
+    maybeReactToWeapon(boss, 'TASER', stageId, state, ctx.bossHelpers);
     if (boss.health <= 0) killBoss(ctx, boss, player.facing, isW);
     return;
   }

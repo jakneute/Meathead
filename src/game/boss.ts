@@ -6,12 +6,12 @@ import {
   HECTOR_PULL_STRENGTH, GRAVITY,
   DALE_TRUCK_SPEED, METH_BARREL_DAMAGE, HECTOR_PULL_STRENGTH_ULT,
   TASER_BOSS_DAMAGE_REDUCTION, DALE_TRUCK_DAMAGE, DALE_PUSHBACK_VEL,
-  BOSS_VULGARITY_DURATION, ERNIE_STOMP_VIBRATION_DURATION,
+  BOSS_VULGARITY_DURATION, ERNIE_STOMP_VIBRATION_DURATION, BOSS_WEAPON_REACTION_CHANCE, BOSS_WEAPON_REACTION_COOLDOWN,
   TOMMY_PUKE_PUSHBACK_DURATION,
   PLAYER_INVINCIBILITY_FRAMES, PLAYER_PUSHBACK_DURATION,
   PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y,
 } from '../constants';
-import { BOSS_DIALOGUE } from '../dialogue';
+import { BOSS_DIALOGUE, BOSS_WEAPON_REACTIONS } from '../dialogue';
 import { GameState, resetPlayerCombatState } from './state';
 import { Fx } from './effects';
 import { speak, isSpeaking, getBossVoice } from './speech';
@@ -58,6 +58,19 @@ export const speakAsBoss = (bossId: string, text: string, helpers: BossHelpers) 
   helpers.setBossVulgarity(text, BOSS_VULGARITY_DURATION);
   if (isSpeaking()) return;
   speak(text, getBossVoice(bossId));
+};
+
+/**
+ * Sometimes a boss shouts back about the weapon that just hit them. Never on
+ * the killing blow, and never over another boss line that's still showing.
+ */
+export const maybeReactToWeapon = (boss: Enemy, weapon: WeaponType, stageId: string | null, state: GameState, helpers: BossHelpers) => {
+  if (!stageId || boss.health <= 0 || state.bossReactionCooldown > 0 || state.bossVulgarityTimer > 0) return;
+  if (Math.random() >= BOSS_WEAPON_REACTION_CHANCE) return;
+  const lines = BOSS_WEAPON_REACTIONS[stageId]?.[weapon];
+  if (!lines) return;
+  state.bossReactionCooldown = BOSS_WEAPON_REACTION_COOLDOWN;
+  speakAsBoss(stageId, lines[Math.floor(Math.random() * lines.length)], helpers);
 };
 
 /** Toxic Tommy can't be hurt while he's under (or at) the sludge surface. */

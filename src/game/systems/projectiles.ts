@@ -1,6 +1,6 @@
 // Projectile movement, bouncing/lingering physics and all projectile hit resolution.
 
-import { Enemy, Projectile } from '../../types';
+import { Enemy, Projectile, WeaponType } from '../../types';
 import {
   CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, PLAYER_INVINCIBILITY_FRAMES,
   PLAYER_PUSHBACK_DURATION, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, ENEMY_HIT_COOLDOWN,
@@ -11,11 +11,21 @@ import {
 } from '../../constants';
 import { BOSS_DIALOGUE } from '../../dialogue';
 import { FrameContext, killBoss } from '../context';
-import { getBossDamage, checkIsWeakness, isTommyShielded, stunTommyWithOil, artieWeaknessLeap } from '../boss';
+import { getBossDamage, checkIsWeakness, isTommyShielded, stunTommyWithOil, artieWeaknessLeap, maybeReactToWeapon } from '../boss';
 import { explodeOilRocket } from '../weapons';
 import { pickRandom, rectsOverlap, boundsOf } from '../utils';
 import { getAttackHitbox } from './player';
 import { shakeScreen, GameState } from '../state';
+
+/** Which of Meathead's weapons a player projectile came from. */
+const weaponOf = (p: Projectile): WeaponType => {
+  if (p.isBoulder) return 'BOULDER';
+  if (p.isIce) return 'SHOTGUN';
+  if (p.isDart) return 'NEEDLES';
+  if (p.isSludge) return 'SLUDGE';
+  if (p.isOilRocket) return 'OIL_ROCKET';
+  return 'GUN';
+};
 
 /** Moves one projectile and resolves its collisions. Returns false to remove it. */
 export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
@@ -310,6 +320,7 @@ const damageEnemiesInSludgePuddle = (ctx: FrameContext, p: Projectile) => {
       en.hitCooldown = ENEMY_HIT_COOLDOWN;
       fx.spawnDamageNumber(en.pos, dmg, isW);
       p.life = 0;
+      maybeReactToWeapon(en, 'SLUDGE', stageId, state, ctx.bossHelpers);
       if (en.health <= 0) killBoss(ctx, en, 0, isW);
     } else if (isDotTick) {
       en.health -= SLUDGE_DOT_DAMAGE;
@@ -461,6 +472,7 @@ const hitBossWithProjectile = (ctx: FrameContext, boss: Enemy, p: Projectile): b
     if (!boss.needleOffsets) boss.needleOffsets = [];
     if (boss.needleOffsets.length >= 3) boss.needleOffsets.shift();
     stickNeedle(boss, p, BOSS_NEEDLE);
+    maybeReactToWeapon(boss, 'NEEDLES', stageId, state, ctx.bossHelpers);
     p.health = 0;
     return false;
   }
@@ -481,6 +493,7 @@ const hitBossWithProjectile = (ctx: FrameContext, boss: Enemy, p: Projectile): b
   fx.spawnDamageNumber(boss.pos, dmg, isW);
   if (stageId === 'Artie Avalanche' && isW && boss.health > 0 && !isDartOrSludge) artieWeaknessLeap(boss);
   if (stageId === 'Toxic Tommy' && isW && boss.health > 0) stunTommyWithOil(boss, state, ctx.bossHelpers);
+  maybeReactToWeapon(boss, weaponOf(p), stageId, state, ctx.bossHelpers);
   if (boss.health <= 0) killBoss(ctx, boss, p.vel.x > 0 ? 1 : -1, isW);
   if (p.isSludge) p.health = 0;
   return !isDartOrSludge;

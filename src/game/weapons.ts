@@ -14,7 +14,7 @@ import {
 } from '../constants';
 import { GameState } from './state';
 import { FrameContext, killBoss } from './context';
-import { getBossDamage, checkIsWeakness, artieWeaknessLeap, speakAsBoss } from './boss';
+import { getBossDamage, checkIsWeakness, artieWeaknessLeap, speakAsBoss, maybeReactToWeapon } from './boss';
 import { pickRandom, rectsOverlap, boundsOf } from './utils';
 
 /** The bits of this frame's input that weapons care about. */
@@ -326,6 +326,7 @@ const burnEnemy = (ctx: FrameContext, e: Enemy) => {
     e.hitCooldown = 60;
     fx.spawnDamageNumber(e.pos, dmg, isW);
     if (stageId === 'Artie Avalanche' && isW && e.health > 0) artieWeaknessLeap(e);
+    maybeReactToWeapon(e, 'FLAMETHROWER', stageId, state, ctx.bossHelpers);
     if (e.health <= 0) killBoss(ctx, e, player.facing, isW);
     return;
   }
@@ -410,6 +411,7 @@ export const explodeOilRocket = (ctx: FrameContext, pos: Vector2, rocketVelX?: n
         fx.spawnExplosion({ x: e.pos.x + e.width / 2, y: Math.min(e.pos.y + 20, state.tommySludgeY) }, '#111111', 25, 0, 10);
         speakAsBoss('Toxic Tommy', "BLAARGH! CRUDE OIL?! I CAN'T CHUNDER!", ctx.bossHelpers);
       }
+      maybeReactToWeapon(e, 'OIL_ROCKET', stageId, state, ctx.bossHelpers);
       if (e.health <= 0) killBoss(ctx, e, 0, isW);
       return;
     }
