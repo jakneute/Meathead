@@ -33,7 +33,10 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
 
   // World space (camera + screen shake)
   ctx.save();
-  if (state.screenShakeTimer > 0) ctx.translate((Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15);
+  if (state.screenShakeTimer > 0) {
+    const m = state.screenShakeMagnitude * 2;
+    ctx.translate((Math.random() - 0.5) * m, (Math.random() - 0.5) * m);
+  }
   ctx.translate(-state.camera.x, -state.camera.y);
 
   drawBlocks(ctx, state, colors);

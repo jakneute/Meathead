@@ -19,10 +19,8 @@ export const VOICE_LINE_COOLDOWN_FRAMES = 60;
 // ==========================================
 // 2. PHYSICS & ENVIRONMENT
 // ==========================================
+/** Gravity for enemies, bosses, projectiles and pickups (the player has their own below). */
 export const GRAVITY = 0.65;
-export const FRICTION_DEFAULT = 0.99; 
-export const FRICTION_ICE_STAGE = 0.985;
-export const FRICTION_ICE_STOP = 0.99;
 export const DOOR_OPEN_SPEED = 5;
 
 // ==========================================
@@ -39,8 +37,6 @@ export const ARENA_RIGHT = 7960;
 // 3. PLAYER CORE STATS
 // ==========================================
 export const INITIAL_PLAYER_HEALTH = 100;
-export const PLAYER_SPEED = 4.2; 
-export const PLAYER_JUMP_FORCE = -15; 
 export const PLAYER_INVINCIBILITY_FRAMES = 60;
 export const TOMMY_PUKE_INVINCIBILITY_FRAMES = 60;
 export const TOMMY_PUKE_PUSHBACK_DURATION = 16;
@@ -50,15 +46,67 @@ export const PLAYER_PUSHBACK_VEL_X = 7;
 export const PLAYER_PUSHBACK_VEL_Y = -4;
 export const PLAYER_STUN_DURATION = 40;
 
-// SPECIAL MOVES
-export const MAX_SPECIAL_CHARGES = 2;
-export const SPECIAL_CHARGE_REGEN_FRAMES = 90;
-export const CHARGE_SPEED = 13.5; 
+// ==========================================
+// 3b. PLAYER MOVEMENT & SPECIAL MOVES
+// Ported from the GameMaker version (scripts/consts). Values are written in
+// GameMaker units and scaled with gml(): that game uses a 480x270 view,
+// this one 800x600. Frame counts carry over as-is (both run at 60fps).
+// ==========================================
+export const GML_SCALE = 600 / 270;
+const gml = (value: number) => value * GML_SCALE;
+
+// Walking
+export const PLAYER_MOVE_SPEED = gml(2);
+export const PLAYER_ACCEL_BASE = 0.08;          // lerp factor toward target speed
+export const PLAYER_FRICTION_BASE = 0.2;        // lerp factor toward 0 on the ground
+export const PLAYER_AIR_FRICTION = 0.05;        // lerp factor toward 0 in the air
+export const CROUCH_SLIDE_FRICTION_MULT = 0.4;  // crouching keeps some momentum
+export const ICE_FRICTION_MULTIPLIER = 0.15;    // surface frictionMultiplier on ice stages
+export const MIN_MOVE_SPEED = gml(0.01);        // below this, x velocity snaps to 0
+
+// Jumping
+export const PLAYER_GRAVITY = gml(0.275);
+export const PLAYER_TERMINAL_VELOCITY = gml(9);
+export const PLAYER_JUMP_SPEED = gml(-3.15);    // held constant while the jump button is down
+export const JUMP_HOLD_FRAMES = 15;
+export const COYOTE_AIR_FRAMES = 7;             // hang time before gravity kicks in off a ledge
+export const COYOTE_JUMP_FRAMES = 7;            // grace period to still jump after leaving the ground
+export const JUMP_BUFFER_FRAMES = 5;
+export const LANDING_SHAKE_SPEED = gml(8);      // hard landings/bonks above this shake the camera
+
+// Shoulder charge (hold to extend) and crouch slide
+export const CHARGE_SPEED = gml(6.5);
 export const CHARGE_DURATION = 30;
-export const UPPERCUT_FORCE = -16; 
-export const UPPERCUT_AIR_SPEED = 3.0; 
-export const UPPERCUT_AIR_ACCEL = 0.5; 
-export const JUMP_PREP_FRAMES = 2;
+export const SLIDE_SPEED = gml(4.5);
+export const SLIDE_DURATION = 45;
+export const COOLDOWN_CHARGE = 30;
+
+// Uppercut
+export const UPPERCUT_SPEED = gml(6.5);
+export const UPPERCUT_DURATION = 20;
+export const COOLDOWN_UPPERCUT = 30;
+export const UPPERCUT_LAUNCH_SPEED = gml(9);    // how hard a surviving enemy gets popped up
+export const UPPERCUT_LAUNCH_X = gml(1.5);
+
+// Divekick
+export const DIVEKICK_SPEED = gml(12);
+export const DIVEKICK_ANGLE = 60;
+
+// Hit reactions
+export const PLAYER_MASS = 350;
+export const RECOIL_FRAMES = 30;                // controls locked after bouncing off an enemy
+export const BOUNCE_FRAMES = 5;                 // controls locked after a divekick stomp
+export const ENEMY_DAZE_FRAMES = 60;
+export const FROZEN_PUSH_MULTIPLIER = 1.7;       // frozen enemies fly further when shoved
+/** Enemy masses by id prefix; heavier enemies get pushed less and bounce you back harder. */
+export const ENEMY_MASS: Record<string, number> = {
+  flyer: 100,
+  'heavy-flyer': 300,
+  shield: 250,
+  tank: 300,
+  rusher: 250,
+  boss: 500,
+};
 
 // ==========================================
 // 4. WEAPON TUNING (THE "MEAT")
@@ -157,8 +205,6 @@ export const BOSS_UPPERCUT_DAMAGE = 50;
 export const ENEMY_UPPERCUT_DAMAGE = 150;
 export const BOSS_DIVEKICK_DAMAGE = 50;
 export const ENEMY_DIVEKICK_DAMAGE = 150;
-export const DIVEKICK_SPEED_X = 14;
-export const DIVEKICK_SPEED_Y = 24;
 export const WEAKNESS_DAMAGE = 100;
 export const ENEMY_HIT_COOLDOWN = 60;
 

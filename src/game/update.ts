@@ -9,7 +9,7 @@ import { BOSS_DIALOGUE } from '../dialogue';
 import { FrameContext } from './context';
 import { Controls } from './input';
 import { respawn, getStartX } from './level';
-import { resetPlayerCombatState } from './state';
+import { resetPlayerCombatState, DEFAULT_SHAKE } from './state';
 import { updateBarfStream } from './weapons';
 import { speak, MEATHEAD_INTRO_VOICE } from './speech';
 import { pickRandom, rectsOverlap, boundsOf } from './utils';
@@ -29,7 +29,7 @@ const INTRO_JUMP_FRAMES = 60;
 export const stepGame = (ctx: FrameContext, status: GameStatus, controls: Controls): boolean => {
   const { state } = ctx;
   state.frame++;
-  if (state.screenShakeTimer > 0) state.screenShakeTimer--;
+  if (state.screenShakeTimer > 0 && --state.screenShakeTimer === 0) state.screenShakeMagnitude = DEFAULT_SHAKE;
 
   if (state.deathTimer > 0) { updateDeathScreen(ctx); return false; }
   if (state.bossExplosionTimer > 0) { updateBossExplosion(ctx); return false; }

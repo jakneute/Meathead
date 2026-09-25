@@ -1,23 +1,19 @@
 import React from 'react';
 import { WeaponType } from '../types';
-import { MAX_SPECIAL_CHARGES } from '../constants';
 
 interface HUDProps {
   health: number;
   maxHealth: number;
-  specialCharges: number;
-  specialChargeTimer: number;
-  maxChargeTimer: number;
+  /** 0..1 readiness of the shoulder charge and the uppercut. */
+  chargeMeter: number;
+  uppercutMeter: number;
   currentWeapon: WeaponType;
   ammo: number;
   maxAmmo: number;
 }
 
-const HUD: React.FC<HUDProps> = ({ health, maxHealth, specialCharges, specialChargeTimer, maxChargeTimer, currentWeapon, ammo, maxAmmo }) => {
+const HUD: React.FC<HUDProps> = ({ health, maxHealth, chargeMeter, uppercutMeter, currentWeapon, ammo, maxAmmo }) => {
   const healthPercent = Math.max(0, (health / maxHealth) * 100);
-  
-  // Calculate recharge progress of the current pending charge
-  const rechargePercent = (specialChargeTimer / maxChargeTimer) * 100;
 
   const hasLimitedAmmo = maxAmmo !== Infinity;
   const ammoPercent = hasLimitedAmmo ? Math.max(0, (ammo / maxAmmo) * 100) : 100;
@@ -42,21 +38,8 @@ const HUD: React.FC<HUDProps> = ({ health, maxHealth, specialCharges, specialCha
           <div className="flex items-center gap-4">
             <span className="text-white text-[10px] font-black italic">PWR</span>
             <div className="flex gap-1 items-center h-5">
-              {Array.from({ length: MAX_SPECIAL_CHARGES }, (_, i) => {
-                const isFull = i < specialCharges;
-                const isRecharging = i === specialCharges;
-                return (
-                  <div key={i} className="w-8 h-4 bg-black border-2 border-white relative shadow-[1px_1px_0px_white]">
-                    {isFull && <div className="absolute inset-0 bg-yellow-500" />}
-                    {isRecharging && (
-                      <div 
-                        className="absolute inset-y-0 left-0 bg-yellow-500/50" 
-                        style={{ width: `${rechargePercent}%` }}
-                      />
-                    )}
-                  </div>
-                );
-              })}
+              <MoveMeter label="CHG" value={chargeMeter} />
+              <MoveMeter label="UPC" value={uppercutMeter} />
             </div>
           </div>
 
@@ -82,6 +65,17 @@ const HUD: React.FC<HUDProps> = ({ health, maxHealth, specialCharges, specialCha
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+/** One special move's cooldown: fills up as it recharges, solid when ready. */
+const MoveMeter: React.FC<{ label: string, value: number }> = ({ label, value }) => {
+  const ready = value >= 1;
+  return (
+    <div className="w-10 h-4 bg-black border-2 border-white relative shadow-[1px_1px_0px_white] overflow-hidden">
+      <div className={`absolute inset-y-0 left-0 ${ready ? 'bg-yellow-500' : 'bg-yellow-500/50'}`} style={{ width: `${Math.max(0, value) * 100}%` }} />
+      <span className={`absolute inset-0 flex items-center justify-center text-[5px] font-black ${ready ? 'text-black' : 'text-white/70'}`}>{label}</span>
     </div>
   );
 };

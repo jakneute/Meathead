@@ -40,27 +40,49 @@ export type VulgarityType = 'gun_kill' | 'boulder_kill' | 'shotgun_kill' | 'flam
 export type SoundType = 'gun' | 'ice' | 'flame' | 'tsunami' | 'dart' | 'horn' | 'ignite' | 'barf' | 'oil' | 'taser';
 
 export interface Player extends Entity {
+  facing: 1 | -1;
+  isGrounded: boolean;
+  isDucking: boolean;
+
+  // Jumping (see JUMP_* / COYOTE_* constants)
+  coyoteAirTimer: number;
+  coyoteJumpTimer: number;
+  jumpBufferTimer: number;
+  jumpHoldTimer: number;
+
+  // Special moves
   isCharging: boolean;
+  isSliding: boolean;
   isUppercutting: boolean;
   isDivekicking?: boolean;
-  isDucking: boolean;
-  specialCharges: number;
-  specialChargeTimer: number;
-  chargeDuration: number;
-  isJumping: boolean;
-  isGrounded: boolean;
-  facing: 1 | -1;
+  chargeFace: 1 | -1;
+  chargeTimer: number;
+  chargeCooldown: number;
+  chargeUsed: boolean;        // one charge per airtime
+  uppercutTimer: number;
+  uppercutCooldown: number;
+  uppercutUsed: boolean;      // one uppercut per airtime
+  diveKickSpeedX: number;
+  uppercutHitIds: string[];   // enemies already hit by the current uppercut
+  diveKickHitIds: string[];   // enemies already stomped by the current divekick
+
+  // Recoil from bouncing off an enemy (controls locked while lockTimer runs)
+  lockTimer: number;
+  recoiling: boolean;
+
+  // Previous frame's buttons, for detecting presses
+  jumpHeldLastFrame: boolean;
+  specialHeldLastFrame: boolean;
+
   shootCooldown: number;
-  jumpPrepTimer: number;
   invincibilityTimer: number;
+  /** Knockback from taking damage; input is ignored while it runs. */
   pushbackTimer: number;
   hurtTimer?: number;
   smugTimer?: number;
   isHarmlessPushback?: boolean;
   killSatisfactionTimer: number;
   bossKillSatisfactionTimer: number;
-  jumpInputReleased: boolean;
-  chargeInputReleased: boolean;
   currentWeapon: WeaponType;
   availableWeapons: WeaponType[];
   weaponAmmo: Record<WeaponType, number>;

@@ -9,7 +9,7 @@ import {
 import { FrameContext, killBoss } from '../context';
 import { checkIsWeakness } from '../boss';
 import { pickRandom } from '../utils';
-import { killPlayer } from './player';
+import { killPlayer, landPlayer } from './player';
 
 /** The player's tsunami sweeps across the screen, killing regular enemies outright. */
 export const updateTsunami = (ctx: FrameContext) => {
@@ -155,12 +155,7 @@ export const updateTommyArena = (ctx: FrameContext) => {
       if (player.vel.y >= 0 && player.pos.x + player.width > b.x - 4 && player.pos.x < b.x + b.w + 4 && feetY >= bobY - 4 && feetY <= bobY + 22) {
         player.pos.y = bobY - player.height;
         player.vel.y = 0;
-        player.isGrounded = true;
-        if (player.isDivekicking) {
-          player.isDivekicking = false;
-          player.vel.x = 0;
-          fx.playGunSound();
-        }
+        landPlayer(ctx);
       }
     }
   });

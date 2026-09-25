@@ -4,6 +4,8 @@ import { Enemy, Rect } from '../../types';
 import {
   CANVAS_WIDTH, GRAVITY, PLAYER_INVINCIBILITY_FRAMES, PLAYER_STUN_INVINCIBILITY,
   PLAYER_PUSHBACK_DURATION, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, BOSS_CHARGE_DAMAGE,
+  PLAYER_MASS, ENEMY_MASS, ENEMY_DAZE_FRAMES, UPPERCUT_LAUNCH_SPEED, UPPERCUT_LAUNCH_X, BOUNCE_FRAMES,
+  COOLDOWN_CHARGE, COOLDOWN_UPPERCUT, GML_SCALE, FROZEN_PUSH_MULTIPLIER,
   BOSS_UPPERCUT_DAMAGE, ENEMY_UPPERCUT_DAMAGE, BOSS_DIVEKICK_DAMAGE, ENEMY_DIVEKICK_DAMAGE,
   ENEMY_HIT_COOLDOWN, ENEMY_BULLET_DAMAGE, FILTH_SHIELD_CONTACT_DAMAGE, OIL_ROCKET_OILED_DURATION,
   OILED_COLLISION_DAMAGE,
@@ -11,7 +13,8 @@ import {
 import { FrameContext, killBoss } from '../context';
 import { isTommyShielded } from '../boss';
 import { rectsOverlap, boundsOf } from '../utils';
-import { killPlayer, getAttackHitbox, harmlessBounce, getContactHurtSource } from './player';
+import { getAttackHitbox, harmlessBounce, recoilOff, getContactHurtSource } from './player';
+import { shakeScreen } from '../state';
 
 /** Moves one enemy and resolves its contact with the player. Returns false to remove it. */
 export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolean => {
@@ -111,7 +114,8 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
   }
 
   const floorLevel = 550 - e.height;
-  if (e.pos.y < floorLevel - 1) {
+  // Airborne if above the floor or just launched upward (uppercuts, explosions)
+  if (e.pos.y < floorLevel - 1 || e.vel.y < 0) {
     // Launched into the air by knockback
     e.pos.x += e.vel.x;
     e.pos.y += e.vel.y;
@@ -214,19 +218,32 @@ const resolveOiledSlideCollision = (ctx: FrameContext, e: Enemy, enemies: Enemy[
   }
 };
 
+/** Mass used for knockback and recoil (GML `mass`). */
+export const getEnemyMass = (e: Enemy) => {
+  if (e.type === 'boss') return ENEMY_MASS.boss;
+  const prefix = Object.keys(ENEMY_MASS).sort((a, b) => b.length - a.length).find(k => e.id.startsWith(k));
+  return prefix ? ENEMY_MASS[prefix] : 200;
+};
+
 /**
  * Special moves (and the filth shield) hurt enemies on contact; otherwise
  * touching an enemy hurts the player. Returns false if the enemy was destroyed.
+ * Hit reactions follow the GameMaker version's oHurtbox: kills plow straight
+ * through, survivors get shoved by mass and bounce you back.
  */
 const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   const { state, fx, stageId, cheats } = ctx;
   const { player } = state;
   const onScreen = e.pos.x + e.width > state.camera.x && e.pos.x < state.camera.x + CANVAS_WIDTH;
   const hasShield = !!(player.filthShieldTimer && player.filthShieldTimer > 0);
-  const isAttacking = player.isCharging || player.isUppercutting || player.isDivekicking || hasShield;
+  const isAttacking = player.isCharging || player.isUppercutting || !!player.isDivekicking || hasShield;
   const attackHit = isAttacking && rectsOverlap(getAttackHitbox(ctx), boundsOf(e));
 
   if (attackHit && onScreen && (!e.hitCooldown || e.hitCooldown <= 0)) {
+    // Each uppercut / divekick only hits a given enemy once
+    if (player.isUppercutting && player.uppercutHitIds.includes(e.id)) return true;
+    if (player.isDivekicking && player.diveKickHitIds.includes(e.id)) return true;
+
     if (e.type === 'boss' && !state.arenaLocked) {
       harmlessBounce(ctx, e, 18, -4);
       return true;
@@ -235,9 +252,6 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
       fx.spawnExplosion(player.pos, '#27AE60', 12, 0, 6);
       fx.playGunSound('barf');
       harmlessBounce(ctx, e, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y);
-      player.isCharging = false;
-      player.isUppercutting = false;
-      player.isDivekicking = false;
       player.invincibilityTimer = PLAYER_STUN_INVINCIBILITY;
       return true;
     }
@@ -254,55 +268,44 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
       fx.spawnExplosion({ x: player.pos.x + player.width / 2, y: player.pos.y + player.height / 2 }, '#43A047', 15, 0, 15);
     }
 
-    // Frozen enemies take double damage and shatter
+    // Frozen enemies take double damage, fly further, and shatter
     const wasFrozen = !!(e.frozenTimer && e.frozenTimer > 0);
     if (wasFrozen) damage *= 2;
 
     e.health -= damage;
     e.hitCooldown = ENEMY_HIT_COOLDOWN;
-    fx.spawnDamageNumber(e.pos, damage, player.isUppercutting || player.isDivekicking || wasFrozen || hasShield);
+    fx.spawnDamageNumber(e.pos, damage, player.isUppercutting || !!player.isDivekicking || wasFrozen || hasShield);
+
+    // A charge or uppercut that connects goes on cooldown
+    if (player.isCharging) { player.chargeUsed = true; player.chargeCooldown = COOLDOWN_CHARGE; }
+    if (player.isUppercutting) {
+      player.uppercutUsed = true;
+      player.uppercutCooldown = COOLDOWN_UPPERCUT;
+      player.uppercutHitIds.push(e.id);
+      shakeScreen(state, 10, 6 * GML_SCALE);
+      fx.spawnExplosion({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 }, '#FFD700', 15, 0, 12);
+    }
+    if (player.isDivekicking) player.diveKickHitIds.push(e.id);
 
     if (e.health > 0) {
-      if (wasFrozen) e.frozenTimer = 0;
-      if (e.id.startsWith('rusher')) { e.vel.x = player.facing * 15; e.pauseTimer = 120; }
-      else if (e.type !== 'boss') e.pauseTimer = 60;
-
+      const mass = getEnemyMass(e);
+      if (e.type !== 'boss') {
+        if (wasFrozen) e.frozenTimer = 0;
+        knockBackEnemy(ctx, e, mass, wasFrozen);
+      }
       if (player.isDivekicking) {
-        // Non-lethal divekick: Meathead clips into the enemy and takes damage himself
-        player.isDivekicking = false;
-        player.isGrounded = false;
-        player.vel.x = player.facing * 2;
-        player.vel.y = 4;
-        if (!cheats.invincible) {
-          const isDale = stageId === 'Drug Trade Dale';
-          player.health -= e.type === 'boss' ? (isDale ? 10 : 8) : (isDale ? 7.5 : 5.5);
-          player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;
-          player.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;
-          player.isHarmlessPushback = false;
-          player.smugTimer = 0;
-          fx.speakVulgarity('hurt', getContactHurtSource(ctx, e));
-          if (player.health <= 0) {
-            player.health = 0;
-            if (state.deathTimer <= 0) killPlayer(ctx, "YOU DIED");
-          }
-        }
-        state.screenShakeTimer = 12;
-        fx.spawnExplosion({ x: player.pos.x + player.width / 2, y: player.pos.y + player.height / 2 }, '#FF0000', 14, 0, 8);
-        fx.playGunSound();
+        // Stomp: a satisfying bounce, and you can divekick again mid-bounce
+        player.vel.y *= -0.5;
+        player.vel.x *= 0.5;
+        player.lockTimer = BOUNCE_FRAMES;
+        player.recoiling = true;
       } else {
-        player.vel = { x: (player.pos.x + player.width / 2 < e.pos.x + e.width / 2 ? -1 : 1) * PLAYER_PUSHBACK_VEL_X, y: PLAYER_PUSHBACK_VEL_Y };
-        player.pushbackTimer = PLAYER_PUSHBACK_DURATION;
-        player.isCharging = false;
-        player.isUppercutting = false;
-        player.invincibilityTimer = PLAYER_STUN_INVINCIBILITY;
-        player.isHarmlessPushback = true;
-        player.smugTimer = 35;
-        player.hurtTimer = 0;
+        recoilOff(ctx, mass);
       }
       return true;
     }
 
-    // Lethal hit
+    // Lethal hit: charges and uppercuts plow straight through
     if (e.type === 'boss') {
       killBoss(ctx, e, player.facing, false);
     } else {
@@ -345,4 +348,26 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     if (e.id.startsWith('rusher')) e.pauseTimer = 60;
   }
   return true;
+};
+
+/**
+ * Shove a surviving enemy (GML pushback): the push scales with the player's
+ * speed and the mass ratio, and heavy enemies resist it. Uppercuts launch them.
+ * The enemy is dazed for a moment either way.
+ */
+const knockBackEnemy = (ctx: FrameContext, e: Enemy, mass: number, wasFrozen: boolean) => {
+  const { player } = ctx.state;
+  const massResistance = Math.min(1, Math.max(0.1, 1 - mass / 1000));
+  let pushX = ((player.vel.x * PLAYER_MASS / mass) / 2) * massResistance;
+  if (wasFrozen) pushX *= FROZEN_PUSH_MULTIPLIER;
+
+  if (player.isUppercutting) {
+    const launch = UPPERCUT_LAUNCH_SPEED * Math.min(1, Math.max(0.4, 1 - mass / 1500));
+    e.vel.y = -launch;
+    e.vel.x = player.facing * UPPERCUT_LAUNCH_X + pushX;
+  } else {
+    e.vel.x = pushX;
+    if (!player.isDivekicking) e.vel.y = 0;
+  }
+  e.pauseTimer = ENEMY_DAZE_FRAMES;
 };

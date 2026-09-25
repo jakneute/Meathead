@@ -2,7 +2,7 @@ import {
   Player, Enemy, Projectile, Particle, Pickup, DamageNumber, Block, Volcano,
   SteamExplosion, PoopTelegraph, TommyBoard, Vector2, WeaponType,
 } from '../types';
-import { INITIAL_PLAYER_HEALTH, MAX_SPECIAL_CHARGES } from '../constants';
+import { INITIAL_PLAYER_HEALTH, SCREEN_SHAKE_MAX } from '../constants';
 
 export type DoorState = 'closed' | 'opening' | 'open' | 'closing' | 'done';
 
@@ -69,6 +69,8 @@ export interface GameState {
 
   playerStunTimer: number;
   screenShakeTimer: number;
+  /** Max camera offset in pixels while screenShakeTimer runs. */
+  screenShakeMagnitude: number;
 }
 
 export const createPlayer = (ammo: Record<WeaponType, number>): Player => ({
@@ -80,24 +82,36 @@ export const createPlayer = (ammo: Record<WeaponType, number>): Player => ({
   health: INITIAL_PLAYER_HEALTH,
   maxHealth: INITIAL_PLAYER_HEALTH,
   type: 'player',
+  facing: 1,
+  isGrounded: false,
+  isDucking: false,
+  coyoteAirTimer: 0,
+  coyoteJumpTimer: 0,
+  jumpBufferTimer: 0,
+  jumpHoldTimer: 0,
   isCharging: false,
+  isSliding: false,
   isUppercutting: false,
   isDivekicking: false,
-  isDucking: false,
-  specialCharges: MAX_SPECIAL_CHARGES,
-  specialChargeTimer: 0,
-  chargeDuration: 0,
-  isJumping: false,
-  isGrounded: false,
-  facing: 1,
+  chargeFace: 1,
+  chargeTimer: 0,
+  chargeCooldown: 0,
+  chargeUsed: false,
+  uppercutTimer: 0,
+  uppercutCooldown: 0,
+  uppercutUsed: false,
+  diveKickSpeedX: 0,
+  uppercutHitIds: [],
+  diveKickHitIds: [],
+  lockTimer: 0,
+  recoiling: false,
+  jumpHeldLastFrame: false,
+  specialHeldLastFrame: false,
   shootCooldown: 0,
-  jumpPrepTimer: 0,
   invincibilityTimer: 0,
   pushbackTimer: 0,
   killSatisfactionTimer: 0,
   bossKillSatisfactionTimer: 0,
-  jumpInputReleased: true,
-  chargeInputReleased: true,
   currentWeapon: 'GUN',
   availableWeapons: ['GUN'],
   weaponAmmo: { ...ammo },
@@ -111,6 +125,13 @@ export const createPlayer = (ammo: Record<WeaponType, number>): Player => ({
 });
 
 export const TOMMY_SLUDGE_Y = 510;
+export const DEFAULT_SHAKE = SCREEN_SHAKE_MAX / 2;
+
+/** Shakes the camera for at least `frames`, at least as hard as `magnitude`. */
+export const shakeScreen = (s: GameState, frames: number, magnitude: number = DEFAULT_SHAKE) => {
+  s.screenShakeMagnitude = s.screenShakeTimer > 0 ? Math.max(s.screenShakeMagnitude, magnitude) : magnitude;
+  s.screenShakeTimer = Math.max(s.screenShakeTimer, frames);
+};
 
 export const createGameState = (stageId: string | null, ammo: Record<WeaponType, number>): GameState => ({
   stageId,
@@ -158,6 +179,7 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
   tommyScrollY: 0,
   playerStunTimer: 0,
   screenShakeTimer: 0,
+  screenShakeMagnitude: DEFAULT_SHAKE,
 });
 
 /** Cancels any attack, special move or weapon effect the player is in the middle of. */
@@ -171,7 +193,10 @@ export const resetPlayerCombatState = (player: Player) => {
   player.isCharging = false;
   player.isUppercutting = false;
   player.isDivekicking = false;
+  player.isSliding = false;
   player.pushbackTimer = 0;
+  player.lockTimer = 0;
+  player.recoiling = false;
 };
 
 /**
@@ -226,6 +251,14 @@ export const resetStageState = (s: GameState) => {
   resetPlayerCombatState(p);
   p.health = INITIAL_PLAYER_HEALTH;
   p.invincibilityTimer = 0;
+  p.isGrounded = false;
+  p.coyoteAirTimer = 0;
+  p.coyoteJumpTimer = 0;
+  p.jumpHoldTimer = 0;
+  p.chargeCooldown = 0;
+  p.chargeUsed = false;
+  p.uppercutCooldown = 0;
+  p.uppercutUsed = false;
   p.killSatisfactionTimer = 0;
   p.bossKillSatisfactionTimer = 0;
 };

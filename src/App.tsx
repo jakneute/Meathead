@@ -3,7 +3,7 @@ import HUD from './components/HUD';
 import Overlay, { CheatFlags } from './components/Overlay';
 import GameCanvas from './components/GameCanvas';
 import { GameStatus, WeaponType } from './types';
-import { INITIAL_PLAYER_HEALTH, MAX_SPECIAL_CHARGES, SPECIAL_CHARGE_REGEN_FRAMES, MAX_AMMO, createFullAmmo } from './constants';
+import { INITIAL_PLAYER_HEALTH, MAX_AMMO, createFullAmmo } from './constants';
 import { getStages, getStartingWeapons, sortWeapons, BOSS_WEAPON_MAP, WEAPONS_AFTER_SET_0, ALL_WEAPONS } from './stages';
 import { VULGARITIES, BOSS_DIALOGUE } from './dialogue';
 import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS } from './game/gamepad';
@@ -53,8 +53,8 @@ const navigatePauseMenu = (index: number, dx: number, dy: number, numWeapons: nu
 const App: React.FC = () => {
   const [status, setStatus] = useState<GameStatus>(GameStatus.START);
   const [health, setHealth] = useState(INITIAL_PLAYER_HEALTH);
-  const [specialCharges, setSpecialCharges] = useState(MAX_SPECIAL_CHARGES);
-  const [specialChargeTimer, setSpecialChargeTimer] = useState(0);
+  const [chargeMeter, setChargeMeter] = useState(1);
+  const [uppercutMeter, setUppercutMeter] = useState(1);
   const [bossTaunt, setBossTaunt] = useState("YOU'RE TOAST.");
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
   const [defeatedStages, setDefeatedStages] = useState<string[]>([]);
@@ -202,8 +202,8 @@ const App: React.FC = () => {
     if (defeatedStages.includes(stage)) { speakRebuke(); return; }
     setSelectedStage(stage);
     setHealth(INITIAL_PLAYER_HEALTH);
-    setSpecialCharges(MAX_SPECIAL_CHARGES);
-    setSpecialChargeTimer(0);
+    setChargeMeter(1);
+    setUppercutMeter(1);
     resetLoadout();
     setIsVictoryPhase(false);
     setStatus(GameStatus.LEVEL_INTRO);
@@ -287,10 +287,10 @@ const App: React.FC = () => {
     setStatus(GameStatus.BOSS_VICTORY_SPEECH);
   };
 
-  const handlePlayerUpdate = (h: number, charges: number, chargeTimer: number, ammo?: Record<WeaponType, number>, forcedWeapon?: WeaponType) => {
+  const handlePlayerUpdate = (h: number, charge: number, uppercut: number, ammo?: Record<WeaponType, number>, forcedWeapon?: WeaponType) => {
     setHealth(h);
-    setSpecialCharges(charges);
-    setSpecialChargeTimer(chargeTimer);
+    setChargeMeter(charge);
+    setUppercutMeter(uppercut);
     if (ammo) setWeaponAmmo(ammo);
     if (forcedWeapon) setCurrentWeapon(forcedWeapon);
   };
@@ -381,9 +381,8 @@ const App: React.FC = () => {
           <HUD
             health={health}
             maxHealth={INITIAL_PLAYER_HEALTH}
-            specialCharges={specialCharges}
-            specialChargeTimer={specialChargeTimer}
-            maxChargeTimer={SPECIAL_CHARGE_REGEN_FRAMES}
+            chargeMeter={chargeMeter}
+            uppercutMeter={uppercutMeter}
             currentWeapon={currentWeapon}
             ammo={weaponAmmo[currentWeapon]}
             maxAmmo={MAX_AMMO[currentWeapon]}

@@ -43,10 +43,11 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
 
   // Animation States
   const isHurt = p.pushbackTimer > 0 || (p.invincibilityTimer > 40);
-  const isCharging = p.isCharging;
+  // A crouch slide is drawn as a duck, not a shoulder charge
+  const isCharging = p.isCharging && !p.isSliding;
   const isUppercutting = p.isUppercutting;
   const isDivekicking = !!p.isDivekicking;
-  const isDucking = p.isDucking;
+  const isDucking = p.isDucking || p.isSliding;
   const isAirborne = !p.isGrounded;
   const isWalking = p.isGrounded && Math.abs(p.vel.x) > 0.4 && !isCharging && !isDucking && !isDivekicking;
   const isIdle = p.isGrounded && !isWalking && !isCharging && !isDucking && !isUppercutting && !isDivekicking && !isHurt;

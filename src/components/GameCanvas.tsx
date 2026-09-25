@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { GameStatus, WeaponType } from '../types';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, COOLDOWN_CHARGE, COOLDOWN_UPPERCUT } from '../constants';
 import { GameState, createGameState, resetStageState } from '../game/state';
 import { buildLevel } from '../game/level';
 import { Cheats, GameEvents, createFrameContext } from '../game/context';
@@ -16,7 +16,8 @@ interface GameCanvasProps extends GameEvents {
   initialAmmo: Record<WeaponType, number>;
   cheats: Cheats;
   bossTauntText: string;
-  onPlayerUpdate: (health: number, specialCharges: number, specialChargeTimer: number, ammo?: Record<WeaponType, number>, forcedWeapon?: WeaponType) => void;
+  /** Meters are 0..1: how ready the charge and uppercut are (0 while on cooldown or spent until landing). */
+  onPlayerUpdate: (health: number, chargeMeter: number, uppercutMeter: number, ammo?: Record<WeaponType, number>, forcedWeapon?: WeaponType) => void;
 }
 
 const FRAME_MS = 1000 / 60;
@@ -74,7 +75,14 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
         const { player } = state;
         const forcedWeapon: WeaponType | undefined = state.shouldSyncWeapon ? 'GUN' : undefined;
         state.shouldSyncWeapon = false;
-        p.onPlayerUpdate(player.health, player.specialCharges, player.specialChargeTimer, player.weaponAmmo, forcedWeapon);
+        const meter = (used: boolean, cooldown: number, max: number) => used ? 0 : 1 - cooldown / max;
+        p.onPlayerUpdate(
+          player.health,
+          meter(player.chargeUsed, player.chargeCooldown, COOLDOWN_CHARGE),
+          meter(player.uppercutUsed, player.uppercutCooldown, COOLDOWN_UPPERCUT),
+          player.weaponAmmo,
+          forcedWeapon,
+        );
       }
       draw();
     };
