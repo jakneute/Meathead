@@ -291,23 +291,24 @@ export const TOMMY_TELEGRAPH_RAMP = 10;          // frames shaved off at 0 HP
 export const BARRY_SPEEDUP_AT_ZERO_HP = 0.2;     // his phases run up to 20% faster
 
 // OILY OSCAR
-export const OSCAR_IDLE_FRAMES = 70;           // repositioning between attacks (shrinks as he loses health)
-export const OSCAR_IDLE_RAMP = 25;             // frames shaved off at 0 HP
-export const OSCAR_SLIDE_SPEED = 4.5;          // his greasy repositioning slide
+export const OSCAR_IDLE_FRAMES = 40;           // repositioning between attacks (shrinks as he loses health)
+export const OSCAR_IDLE_RAMP = 15;             // frames shaved off at 0 HP
+export const OSCAR_SLIDE_SPEED = 5.5;          // his greasy repositioning slide
 export const OSCAR_PREFERRED_DISTANCE = 380;   // how far from Meathead he likes to shoot from
-export const OSCAR_LOCK_FRAMES = 75;           // laser on your feet this long (while you're grounded) = fire
-export const OSCAR_MAX_AIM_FRAMES = 300;       // fires anyway after this long
-export const OSCAR_ROCKET_SPEED = 15;
+export const OSCAR_LOCK_FRAMES = 45;           // laser on your feet this long (while you're grounded) = fire
+export const OSCAR_MAX_AIM_FRAMES = 180;       // fires anyway after this long
+export const OSCAR_FIRE_WARNING = 20;          // locked on: laser freezes and blinks fast, then he fires
+export const OSCAR_ROCKET_SPEED = 19;
 export const OSCAR_SPLASH_RADIUS = 105;
 export const OSCAR_SPLASH_DAMAGE = 18;
-export const OSCAR_OIL_RADIUS = 165;           // walls/floor/ceiling this close to the blast get oiled
+export const OSCAR_OIL_RADIUS = 215;           // walls/floor/ceiling this close to the blast get oiled
 export const OSCAR_OIL_CELL = 24;              // oil is tracked in strips this long
 export const OSCAR_OIL_FRAMES = 720;           // unlit oil dries up after this long
 export const OSCAR_OIL_SPEED_MULT = 0.35;      // walking speed on oil
 export const OSCAR_OIL_JUMP_MULT = 0.35;       // jump height on oil (you have to dash out)
-export const OSCAR_FLICK_WINDUP = 40;
-export const OSCAR_CIGARETTE_FLIGHT = 60;      // frames the flicked cigarette is in the air
-export const OSCAR_CIGARETTE_GRAVITY = 0.3;
+export const OSCAR_FLICK_WINDUP = 26;
+export const OSCAR_CIGARETTE_FLIGHT = 45;      // frames the flicked cigarette is in the air
+export const OSCAR_CIGARETTE_GRAVITY = 0.4;
 export const OSCAR_FIRE_FRAMES = 240;          // how long each strip of oil burns
 export const OSCAR_FIRE_SPREAD_DELAY = 4;      // frames for fire to jump to the next strip
 export const OSCAR_FIRE_DAMAGE = 8;

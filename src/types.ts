@@ -174,6 +174,7 @@ export interface Enemy extends Entity {
   aimX?: number;              // where the laser sight points (world)
   aimY?: number;
   lockProgress?: number;      // 0..1, fires at 1
+  fireWarning?: number;       // frames left in the blinking "about to fire" window
   aimFrames?: number;
   hasCigarette?: boolean;
   impactX?: number;           // where his last rocket hit (the cigarette goes there)

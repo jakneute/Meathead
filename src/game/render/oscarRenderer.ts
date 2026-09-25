@@ -352,22 +352,24 @@ export const drawOscarLaser = (ctx: CanvasRenderingContext2D, state: GameState) 
   if (!boss || boss.aimX === undefined || boss.aimY === undefined) return;
   const L = getOscarLauncher(boss);
   const lock = boss.lockProgress || 0;
-  const blinkOff = lock > 0.8 && state.frame % 6 < 2;
+  // Ready to fire: strobe hard so the player knows to get out of the way now
+  const firing = (boss.fireWarning || 0) > 0;
+  const blinkOff = firing && state.frame % 4 < 2;
+  if (blinkOff) return;
   ctx.save();
-  ctx.strokeStyle = `rgba(255, 23, 68, ${0.35 + lock * 0.55})`;
-  ctx.lineWidth = 1 + lock * 2;
+  ctx.strokeStyle = firing ? '#FFFFFF' : `rgba(255, 23, 68, ${0.35 + lock * 0.55})`;
+  ctx.lineWidth = firing ? 4 : 1 + lock * 2;
   ctx.shadowColor = '#FF1744';
   ctx.shadowBlur = 6;
-  if (!blinkOff) {
-    ctx.beginPath();
-    ctx.moveTo(L.muzzleX, L.muzzleY);
-    ctx.lineTo(boss.aimX, boss.aimY);
-    ctx.stroke();
-  }
+  ctx.shadowBlur = firing ? 16 : 6;
+  ctx.beginPath();
+  ctx.moveTo(L.muzzleX, L.muzzleY);
+  ctx.lineTo(boss.aimX, boss.aimY);
+  ctx.stroke();
   // Reticle
   const r = 6 + 26 * (1 - lock);
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = '#FF1744';
+  ctx.lineWidth = firing ? 3 : 2;
+  ctx.strokeStyle = firing ? '#FFFFFF' : '#FF1744';
   ctx.beginPath();
   ctx.arc(boss.aimX, boss.aimY, r, 0, Math.PI * 2);
   ctx.stroke();

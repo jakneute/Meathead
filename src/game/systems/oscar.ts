@@ -10,7 +10,7 @@ import {
   OSCAR_OIL_CELL, OSCAR_OIL_FRAMES, OSCAR_FLICK_WINDUP, OSCAR_CIGARETTE_FLIGHT, OSCAR_CIGARETTE_GRAVITY,
   OSCAR_FIRE_FRAMES, OSCAR_FIRE_SPREAD_DELAY, OSCAR_FIRE_DAMAGE, OSCAR_TASER_HOLD_FRAMES,
   OSCAR_TASER_RELEASE_GRACE, OSCAR_BURST_DAMAGE, OSCAR_CIGARETTE_ZAP_FRAMES, OSCAR_CIGARETTE_COMBO_DAMAGE,
-  OSCAR_ASH_FACE_FRAMES,
+  OSCAR_ASH_FACE_FRAMES, OSCAR_FIRE_WARNING,
 } from '../../constants';
 import { OSCAR_LINES } from '../../dialogue';
 import { FrameContext, killBoss } from '../context';
@@ -165,6 +165,7 @@ const startIdle = (boss: Enemy, frames: number) => {
   boss.stateTimer = frames;
   boss.lockProgress = 0;
   boss.aimFrames = 0;
+  boss.fireWarning = 0;
 };
 
 const faceTarget = (boss: Enemy, x: number) => {
@@ -219,10 +220,15 @@ const updateIdle = (ctx: FrameContext, boss: Enemy) => {
  */
 const updateAim = (ctx: FrameContext, boss: Enemy) => {
   const { player } = ctx.state;
+  // Locked on: the laser freezes where it is and blinks, then he fires. That's the moment to move.
+  if (boss.fireWarning && boss.fireWarning > 0) {
+    if (--boss.fireWarning === 0) fireRocket(ctx, boss);
+    return;
+  }
   boss.aimFrames = (boss.aimFrames || 0) + 1;
   const footX = midX(player), footY = player.pos.y + player.height;
   const grounded = player.isGrounded;
-  const follow = grounded ? 0.22 : 0.07;
+  const follow = grounded ? 0.3 : 0.1;
   boss.aimX = boss.aimX! + (footX - boss.aimX!) * follow;
   boss.aimY = boss.aimY! + (footY - boss.aimY!) * follow;
 
@@ -230,7 +236,10 @@ const updateAim = (ctx: FrameContext, boss: Enemy) => {
   if (grounded && onTarget) boss.lockProgress = Math.min(1, (boss.lockProgress || 0) + 1 / OSCAR_LOCK_FRAMES);
   else if (!grounded) boss.lockProgress = Math.max(0, (boss.lockProgress || 0) - 2 / OSCAR_LOCK_FRAMES);
 
-  if (boss.lockProgress! >= 1 || boss.aimFrames >= OSCAR_MAX_AIM_FRAMES) fireRocket(ctx, boss);
+  if (boss.lockProgress! >= 1 || boss.aimFrames >= OSCAR_MAX_AIM_FRAMES) {
+    boss.lockProgress = 1;
+    boss.fireWarning = OSCAR_FIRE_WARNING;
+  }
 };
 
 const fireRocket = (ctx: FrameContext, boss: Enemy) => {
@@ -250,7 +259,8 @@ const fireRocket = (ctx: FrameContext, boss: Enemy) => {
   shakeScreen(state, 6, 4);
   boss.vel.x = -(boss.oscarFacing || -1) * 2.5; // recoil
   boss.bossState = 'shooting';
-  boss.stateTimer = 20;
+  boss.stateTimer = 12;
+  boss.fireWarning = 0;
   boss.impactX = undefined;
   boss.impactY = undefined;
 };
@@ -506,6 +516,7 @@ export const holdOscarWithTaser = (ctx: FrameContext, boss: Enemy) => {
     boss.bossState = 'taser_held';
     boss.taserGrace = 0;
     boss.lockProgress = 0;
+    boss.fireWarning = 0;
     boss.vel.x = 0;
     if (Math.random() < 0.5) speakAsBoss(OSCAR, pickRandom(OSCAR_LINES.HELD), ctx.bossHelpers);
   }
