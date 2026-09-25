@@ -1,7 +1,8 @@
 // Artie Avalanche's ice: icicles hanging from (and falling from) the ceiling,
 // the big ice blocks he throws, and the shards they burst into. World space.
+// Also the block of ice a frozen boss is stuck in (Ernie).
 
-import { Projectile } from '../../types';
+import { Enemy, Projectile } from '../../types';
 import { GameState } from '../state';
 
 const FLOOR_Y = 550;
@@ -170,5 +171,37 @@ export const drawIceShard = (ctx: CanvasRenderingContext2D, p: Projectile, frame
   ctx.strokeStyle = '#3B8DBA';
   ctx.lineWidth = 1.5;
   ctx.stroke();
+  ctx.restore();
+};
+
+/** A boss frozen solid (Ernie hit by the shotgun mid-move): a block of ice around him, turning with him as he topples. */
+export const drawIceEncasing = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
+  if (!e.frozenTimer || e.frozenTimer <= 0) return;
+  const cx = e.pos.x + e.width / 2, cy = e.pos.y + e.height / 2;
+  const hw = e.width / 2 + 10, hh = e.height / 2 + 10;
+  ctx.save();
+  ctx.translate(cx, cy);
+  if (e.rotation) ctx.rotate(e.rotation);
+  ctx.shadowColor = '#7FDBFF';
+  ctx.shadowBlur = 14;
+  ctx.fillStyle = 'rgba(170, 230, 255, 0.45)';
+  ctx.beginPath();
+  ctx.moveTo(-hw + 6, -hh); ctx.lineTo(hw - 4, -hh + 3); ctx.lineTo(hw, hh - 8); ctx.lineTo(hw - 10, hh);
+  ctx.lineTo(-hw + 3, hh - 2); ctx.lineTo(-hw, -hh + 10);
+  ctx.closePath();
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = '#E8FBFF';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  // Facets and a glint
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(-hw + 10, -hh + 6); ctx.lineTo(-hw * 0.2, -hh * 0.1); ctx.lineTo(hw - 12, hh - 10);
+  ctx.moveTo(-hw * 0.2, -hh * 0.1); ctx.lineTo(-hw + 8, hh - 12);
+  ctx.stroke();
+  ctx.fillStyle = frame % 24 < 4 ? '#FFFFFF' : 'rgba(255, 255, 255, 0.5)';
+  ctx.fillRect(-hw + 12, -hh + 10, 8, 4);
   ctx.restore();
 };

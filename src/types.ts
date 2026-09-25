@@ -116,7 +116,7 @@ export type BossState =
   | 'blackout' | 'blackout_teleport' | 'ground_pound' | 'lightning_storm' | 'exhausted'
   | 'submerged_chase' | 'telegraph_emerge' | 'emerge_shatter' | 'puke_closing_in'
   | 'puke_going_outward' | 'vulnerable_idle' | 'dive_in_sludge' | 'weakness_stunned'
-  | 'aiming' | 'flicking' | 'taser_held' | 'ash_face' | 'high' | 'running';
+  | 'aiming' | 'flicking' | 'taser_held' | 'ash_face' | 'high' | 'running' | 'frozen';
 
 export interface Enemy extends Entity {
   enemyType: 'drone' | 'tank' | 'turret' | 'flyer' | 'shield';
@@ -164,6 +164,8 @@ export interface Enemy extends Entity {
   /** Standing in Meathead's sludge: frames toward the next tick, and the last frame it ticked. */
   sludgeDotTimer?: number;
   sludgeDotFrame?: number;
+  /** Ernie: scrambling back to where he was headed after being frozen and shattered. */
+  scrambling?: boolean;
   /** A direct sludge hit is waiting to splash a puddle under him. */
   puddlePending?: boolean;
   // Blackout Barry

@@ -262,7 +262,7 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
          ctx.restore();
       }
     }
-    if (e.frozenTimer && e.frozenTimer > 0) { ctx.fillStyle = 'rgba(0, 255, 255, 0.4)'; ctx.fillRect(e.pos.x - 5, e.pos.y - 5, e.width + 10, e.height + 10); }
+    if (e.type !== 'boss' && e.frozenTimer && e.frozenTimer > 0) { ctx.fillStyle = 'rgba(0, 255, 255, 0.4)'; ctx.fillRect(e.pos.x - 5, e.pos.y - 5, e.width + 10, e.height + 10); }
     if (e.isTased && player.isTasing && player.taserTargetId === e.id) {
       ctx.fillStyle = 'rgba(0, 229, 255, 0.4)';
       ctx.fillRect(e.pos.x - 5, e.pos.y - 5, e.width + 10, e.height + 10);

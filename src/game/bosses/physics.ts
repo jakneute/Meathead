@@ -10,6 +10,7 @@ const KNOCKDOWN_GRAVITY = 1.5;
 const KNOCKDOWN_RECOVERY = 30; // max frames left on the floor after a knockdown lands
 
 export const applyBossPhysics = (ctx: FrameContext, boss: Enemy, physics: BossPhysics) => {
+  if (boss.bossState === 'frozen') return; // frozen solid in place
   if (boss.bossState === 'stunned_drop') { fallAfterKnockdown(boss); return; }
   const { state } = ctx;
   const dirToPlayer = dirTo(boss, state.player);
