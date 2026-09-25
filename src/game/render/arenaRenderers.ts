@@ -4,7 +4,9 @@ import { ARENA_LEFT, ARENA_RIGHT, GROUND_Y } from '../../constants';
 export const drawCustomBossArena = (
   ctx: CanvasRenderingContext2D,
   stageId: string,
-  frame: number
+  frame: number,
+  /** Where the wind is being sucked toward (Hector's hurricane), if anywhere. */
+  windTargetX: number | null = null
 ) => {
   const arenaLeft = ARENA_LEFT;
   const arenaRight = ARENA_RIGHT;
@@ -25,7 +27,7 @@ export const drawCustomBossArena = (
       drawErnieArena(ctx, arenaLeft, arenaRight, arenaW, ceilingY, groundY, frame);
       break;
     case 'Hector Hurricane':
-      drawHectorArena(ctx, arenaLeft, arenaRight, arenaW, ceilingY, groundY, frame);
+      drawHectorArena(ctx, arenaLeft, arenaRight, arenaW, ceilingY, groundY, frame, windTargetX);
       break;
     case 'Drug Trade Dale':
       drawDaleArena(ctx, arenaLeft, arenaRight, arenaW, ceilingY, groundY, frame);
@@ -530,7 +532,8 @@ const drawHectorArena = (
   w: number,
   top: number,
   bottom: number,
-  frame: number
+  frame: number,
+  windTargetX: number | null
 ) => {
   // 1. High-Altitude Turbulent Storm Sky Background
   const skyGrad = ctx.createLinearGradient(left, top, left, bottom);
@@ -648,18 +651,47 @@ const drawHectorArena = (
     ctx.fill();
   }
 
-  // 6. Fast Gale Wind Wisps Streaking Across Arena
-  ctx.strokeStyle = 'rgba(174, 214, 241, 0.4)';
+  // 6. Wind wisps: a calm breeze normally; during the hurricane they rush in
+  // toward Hector from both sides, showing which way you're being pulled
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(left, top, w, bottom - top);
+  ctx.clip();
   ctx.lineWidth = 1.5;
   for (let i = 0; i < 14; i++) {
     const wy = top + 40 + ((i * 37) % (bottom - top - 80));
-    const wx = left + ((frame * (12 + (i % 4) * 3) + i * 85) % (w + 200)) - 100;
     const wlen = 60 + (i % 3) * 35;
+    if (windTargetX === null) {
+      ctx.strokeStyle = 'rgba(174, 214, 241, 0.3)';
+      const wx = left + ((frame * (4 + (i % 4)) + i * 85) % (w + 200)) - 100;
+      ctx.beginPath();
+      ctx.moveTo(wx, wy);
+      ctx.lineTo(wx + wlen, wy);
+      ctx.stroke();
+      continue;
+    }
+    const fromLeft = i % 2 === 0;
+    const span = fromLeft ? windTargetX - left : right - windTargetX;
+    if (span < 40) continue;
+    const travel = ((frame * (14 + (i % 4) * 3) + i * 85) % (span + wlen)) - wlen;
+    const tail = fromLeft ? left + travel : right - travel;
+    const head = fromLeft ? Math.min(windTargetX, tail + wlen) : Math.max(windTargetX, tail - wlen);
+    const nearTarget = 1 - Math.min(1, Math.abs(head - windTargetX) / span);
+    ctx.strokeStyle = `rgba(200, 235, 255, ${0.25 + 0.4 * nearTarget})`;
     ctx.beginPath();
-    ctx.moveTo(wx, wy);
-    ctx.lineTo(wx + wlen, wy);
+    ctx.moveTo(tail, wy);
+    ctx.lineTo(head, wy);
+    ctx.stroke();
+    // Arrow tip pointing into the storm
+    const dir = fromLeft ? 1 : -1;
+    ctx.beginPath();
+    ctx.moveTo(head, wy);
+    ctx.lineTo(head - dir * 7, wy - 4);
+    ctx.moveTo(head, wy);
+    ctx.lineTo(head - dir * 7, wy + 4);
     ctx.stroke();
   }
+  ctx.restore();
 };
 
 /* =========================================================================

@@ -15,7 +15,7 @@ import {
   OILED_COLLISION_DAMAGE,
 } from '../../constants';
 import { FrameContext, killBoss } from '../context';
-import { isTommyShielded } from '../boss';
+import { isTommyShielded, hectorLeapToOtherSide } from '../boss';
 import { rectsOverlap, boundsOf } from '../utils';
 import { getAttackHitbox, harmlessBounce, recoilOff, getContactHurtSource } from './player';
 import { shakeScreen } from '../state';
@@ -368,7 +368,8 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
       player.pushbackTimer = (stageId === 'Drug Trade Dale' && e.bossState !== 'idle') ? 24 : PLAYER_PUSHBACK_DURATION;
       player.vel = { x: (player.pos.x < e.pos.x ? -1 : 1) * PLAYER_PUSHBACK_VEL_X, y: PLAYER_PUSHBACK_VEL_Y };
     }
-    if (e.id === 'boss' && stageId === 'Hector Hurricane' && e.bossState === 'hurricane') e.stateTimer = 0;
+    // Hector resets his cycle after landing a hit on you
+    if (e.id === 'boss' && stageId === 'Hector Hurricane') hectorLeapToOtherSide(e, ctx.bossHelpers);
     if (e.id.startsWith('rusher')) e.pauseTimer = 60;
   }
   return true;

@@ -4,7 +4,7 @@ import {
 import {
   BULLET_DAMAGE, BOULDER_SPEED, BOSS_DOOR_X,
   HECTOR_PULL_STRENGTH, GRAVITY,
-  DALE_TRUCK_SPEED, DALE_SPEED_WINDUP, METH_BARREL_DAMAGE, HECTOR_PULL_STRENGTH_ULT,
+  DALE_TRUCK_SPEED, DALE_SPEED_WINDUP, METH_BARREL_DAMAGE, HECTOR_PULL_MAX, HECTOR_PULL_RANGE, HECTOR_PULL_EDGE, HECTOR_PULL_FAR, HECTOR_PULL_NEAR, HECTOR_PULL_FARTHEST, ARENA_LEFT, ARENA_RIGHT,
   TASER_BOSS_DAMAGE_REDUCTION, DALE_TRUCK_DAMAGE, DALE_PUSHBACK_VEL,
   BOSS_VULGARITY_DURATION, ERNIE_STOMP_VIBRATION_DURATION, BOSS_WEAPON_REACTION_CHANCE, BOSS_WEAPON_REACTION_COOLDOWN,
   TOMMY_PUKE_PUSHBACK_DURATION,
@@ -363,8 +363,9 @@ const handleDaleAI = (boss: Enemy, player: Player, invincibilityEnabled: boolean
 
 const handleHectorAI = (boss: Enemy, player: Player, invincibilityEnabled: boolean, state: GameState, helpers: BossHelpers) => {
   if (boss.bossState === 'hurricane') {
-    const forceDir = (boss.pos.x + boss.width/2 - (player.pos.x + player.width/2)) > 0 ? 1 : -1;
-    state.totalPullForceX += forceDir * HECTOR_PULL_STRENGTH_ULT;
+    const gap = (boss.pos.x + boss.width / 2) - (player.pos.x + player.width / 2);
+    const forceDir = gap > 0 ? 1 : -1;
+    state.totalPullForceX += forceDir * getHectorPull(Math.abs(gap));
     
     state.projectiles.forEach((p: Projectile) => {
       if (p.owner === 'player' && p.isBoulder) {
@@ -397,6 +398,9 @@ const handleHectorAI = (boss: Enemy, player: Player, invincibilityEnabled: boole
     
     if (Math.abs((boss.pos.x + boss.width/2) - (player.pos.x + player.width/2)) < 300 && player.invincibilityTimer <= 0 && !invincibilityEnabled) {
       player.health -= 3; if (player.health > 0) { player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES; player.pushbackTimer = PLAYER_PUSHBACK_DURATION; helpers.speakVulgarity('hurt', 'wind'); }
+      // Landing a hit resets him: he leaps across the arena and starts over
+      hectorLeapToOtherSide(boss, helpers);
+      return;
     }
     if (boss.stateTimer! <= 0) { boss.bossState = 'idle'; boss.stateTimer = 40; helpers.clearPoopTelegraphs(); }
   } else if (boss.bossState === 'jumping') {
@@ -405,6 +409,36 @@ const handleHectorAI = (boss: Enemy, player: Player, invincibilityEnabled: boole
     boss.bossState = 'jumping'; boss.vel.y = -22 - Math.random() * 4;
     const targetX = boss.pos.x > 7600 ? 7300 : 7900; boss.vel.x = (targetX - boss.pos.x) * 0.035;
   }
+};
+
+/**
+ * How hard the hurricane drags Meathead at a given distance. Always some pull,
+ * growing the closer you get: walkable past half a screen, stronger than
+ * walking inside it, strongest point-blank.
+ */
+export const getHectorPull = (distance: number) => {
+  const innerEdge = HECTOR_PULL_RANGE - HECTOR_PULL_EDGE;
+  if (distance >= HECTOR_PULL_RANGE) {
+    const farthest = ARENA_RIGHT - ARENA_LEFT;
+    const k = Math.min(1, (distance - HECTOR_PULL_RANGE) / (farthest - HECTOR_PULL_RANGE));
+    return HECTOR_PULL_FAR + (HECTOR_PULL_FARTHEST - HECTOR_PULL_FAR) * k;
+  }
+  if (distance > innerEdge) {
+    const k = (HECTOR_PULL_RANGE - distance) / HECTOR_PULL_EDGE;
+    return HECTOR_PULL_FAR + (HECTOR_PULL_NEAR - HECTOR_PULL_FAR) * k;
+  }
+  return HECTOR_PULL_NEAR + (HECTOR_PULL_MAX - HECTOR_PULL_NEAR) * (1 - distance / innerEdge);
+};
+
+/** Hector abandons whatever he's doing and leaps to the far end of the arena to start a new cycle. */
+export const hectorLeapToOtherSide = (boss: Enemy, helpers: BossHelpers) => {
+  if (boss.bossState === 'jumping') return;
+  boss.bossState = 'jumping';
+  boss.isGroundedBoss = false;
+  boss.vel.y = -22 - Math.random() * 4;
+  const targetX = boss.pos.x > 7600 ? 7300 : 7900;
+  boss.vel.x = (targetX - boss.pos.x) * 0.035;
+  helpers.clearPoopTelegraphs();
 };
 
 const handleArtieAI = (boss: Enemy, player: Player, state: GameState, helpers: BossHelpers) => {

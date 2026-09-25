@@ -257,8 +257,17 @@ export const WEAKNESS_DAMAGE = 100;
 export const ENEMY_HIT_COOLDOWN = 60;
 
 // HECTOR HURRICANE
-export const HECTOR_PULL_STRENGTH = 1.0;
-export const HECTOR_PULL_STRENGTH_ULT = 1.5;
+export const HECTOR_PULL_STRENGTH = 1.0;            // pull on his flying poop logs
+// Hector's hurricane pull on Meathead, in px/frame of drag (walking is ~4.4).
+// You're always pulled, harder the closer you are: past half a screen it's
+// mild enough to walk out of; inside that it beats walking, so you have to
+// shoulder-charge back out to a safe distance.
+export const HECTOR_PULL_RANGE = CANVAS_WIDTH / 2;  // the "safe distance"
+export const HECTOR_PULL_EDGE = 40;                 // px over which the pull ramps up inside that range
+export const HECTOR_PULL_FARTHEST = 0.8;            // across the whole arena
+export const HECTOR_PULL_FAR = 1.8;                 // at the safe distance: still walkable
+export const HECTOR_PULL_NEAR = 4.8;                // just inside: slightly beats walking
+export const HECTOR_PULL_MAX = 5.5;                 // point-blank
 
 // ERNIE EARTHQUAKE
 export const ERNIE_STOMP_VIBRATION_DURATION = 40;

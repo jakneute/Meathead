@@ -43,7 +43,8 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   if (stageId === 'Toxic Tommy' && state.arenaLocked) {
     drawTommyShaft(ctx, state);
   } else if (stageId && (state.arenaLocked || state.camera.x >= BOSS_DOOR_X - 100)) {
-    drawCustomBossArena(ctx, stageId, state.frame || 0);
+    const hurricane = state.enemies.find(e => e.type === 'boss' && e.bossState === 'hurricane' && e.health > 0);
+    drawCustomBossArena(ctx, stageId, state.frame || 0, hurricane ? hurricane.pos.x + hurricane.width / 2 : null);
   }
   drawBossHazards(ctx, state);
   state.pickups.forEach(p => drawPickup(ctx, p));

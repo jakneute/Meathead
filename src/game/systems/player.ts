@@ -134,7 +134,6 @@ export const updatePlayerActions = (ctx: FrameContext, input: FrameInput) => {
   if (movDir !== 0 && !player.isCharging && !player.isDivekicking && !player.isTasing && !player.isFlaming) player.facing = movDir as 1 | -1;
   updateCrouch(ctx, input);
   updateHorizontalVelocity(ctx, movDir);
-  if (state.totalPullForceX !== 0) player.vel.x += state.totalPullForceX;
 
   player.currentWeapon = currentWeapon;
   updateFlamethrower(ctx, input);
@@ -411,7 +410,8 @@ const moveHorizontally = (ctx: FrameContext) => {
   const { state } = ctx;
   const { player } = state;
   const prevX = player.pos.x;
-  player.pos.x += player.vel.x;
+  // Hector's pull drags us directly instead of feeding our momentum
+  player.pos.x += player.vel.x + state.totalPullForceX;
   checkBossDoor(ctx);
 
   for (const b of state.blocks) {

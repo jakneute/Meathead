@@ -501,9 +501,10 @@ export const drawBoss = (ctx: CanvasRenderingContext2D, e: Enemy, id: string | n
             const rx = (Math.random() - 0.5) * 300;
             const ry = (Math.random() - 0.5) * 300;
             const len = 20 + Math.random() * 30;
+            const inward = rx < 0 ? 1 : -1; // blown in toward the eye of the storm
             ctx.beginPath();
             ctx.moveTo(rx, ry);
-            ctx.lineTo(rx - len, ry + len/2);
+            ctx.lineTo(rx + inward * len, ry + len/2);
             ctx.stroke();
          }
 
