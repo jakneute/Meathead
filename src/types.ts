@@ -1,4 +1,3 @@
-
 export enum GameStatus {
   START = 'START',
   STAGE_SELECT = 'STAGE_SELECT',
@@ -7,7 +6,6 @@ export enum GameStatus {
   BOSS_TRANSITION = 'BOSS_TRANSITION',
   BOSS_INTRO = 'BOSS_INTRO',
   BOSS_VICTORY_SPEECH = 'BOSS_VICTORY_SPEECH',
-  GAME_OVER = 'GAME_OVER',
   VICTORY = 'VICTORY',
   PAUSED = 'PAUSED'
 }
@@ -15,6 +13,13 @@ export enum GameStatus {
 export interface Vector2 {
   x: number;
   y: number;
+}
+
+export interface Rect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
 }
 
 export interface Entity {
@@ -32,6 +37,8 @@ export type WeaponType = 'GUN' | 'BOULDER' | 'SHOTGUN' | 'FLAMETHROWER' | 'TSUNA
 
 export type VulgarityType = 'gun_kill' | 'boulder_kill' | 'shotgun_kill' | 'flamethrower_kill' | 'tsunami_kill' | 'hurt' | 'death' | 'charge_kill' | 'uppercut_kill' | 'dart_kill' | 'taser_kill' | 'sludge_kill' | 'oil_kill';
 
+export type SoundType = 'gun' | 'ice' | 'flame' | 'tsunami' | 'dart' | 'horn' | 'ignite' | 'barf' | 'oil' | 'taser';
+
 export interface Player extends Entity {
   isCharging: boolean;
   isUppercutting: boolean;
@@ -45,7 +52,6 @@ export interface Player extends Entity {
   facing: 1 | -1;
   shootCooldown: number;
   jumpPrepTimer: number;
-  landTimer: number;
   invincibilityTimer: number;
   pushbackTimer: number;
   hurtTimer?: number;
@@ -53,7 +59,6 @@ export interface Player extends Entity {
   isHarmlessPushback?: boolean;
   killSatisfactionTimer: number;
   bossKillSatisfactionTimer: number;
-  hasUsedAirMove: boolean;
   jumpInputReleased: boolean;
   chargeInputReleased: boolean;
   currentWeapon: WeaponType;
@@ -61,16 +66,23 @@ export interface Player extends Entity {
   weaponAmmo: Record<WeaponType, number>;
   // Filth Shield
   filthShieldTimer?: number;
-  // Flamethrower specific
+  // Flamethrower
   flameTimer?: number;
   flameAngle?: number;
-  // Taser specific
+  // Taser
   isTasing?: boolean;
   taserTargetId?: string | null;
   taserTimer?: number;
-  // Sludge specific
+  // Sludge
   barfTimer?: number;
 }
+
+export type BossState =
+  | 'idle' | 'jumping' | 'attacking' | 'hurricane' | 'telegraphing' | 'stunned_drop'
+  | 'truck_incoming' | 'using_shipment' | 'speed_dash' | 'shooting' | 'teleporting'
+  | 'blackout' | 'blackout_teleport' | 'ground_pound' | 'lightning_storm' | 'exhausted'
+  | 'submerged_chase' | 'telegraph_emerge' | 'emerge_shatter' | 'puke_closing_in'
+  | 'puke_going_outward' | 'vulnerable_idle' | 'dive_in_sludge' | 'weakness_stunned';
 
 export interface Enemy extends Entity {
   enemyType: 'drone' | 'tank' | 'turret' | 'flyer' | 'shield';
@@ -85,38 +97,38 @@ export interface Enemy extends Entity {
   sludgeTimer?: number;
   isBlownAway?: boolean;
   rotation?: number;
-  // Dart/DOT Fields
+  pauseTimer?: number;
+  // Needle / DOT
   needleCount?: number;
   needleOffsets?: { x: number, y: number, rot: number }[];
   dotTimer?: number;
   needleTimer?: number;
-  // Taser/Fire/Oil Fields
+  // Taser / fire / oil
   isTased?: boolean;
   isOnFire?: boolean;
   fireTimer?: number;
   isOiled?: boolean;
   oiledTimer?: number;
   enemyCollisionCooldown?: number;
-  // Boss fields
-  bossState?: 'idle' | 'jumping' | 'attacking' | 'hurricane' | 'telegraphing' | 'stunned_drop' | 'truck_incoming' | 'using_shipment' | 'speed_dash' | 'shooting' | 'teleporting' | 'blackout' | 'blackout_teleport' | 'ground_pound' | 'lightning_storm' | 'exhausted' | 'submerged_chase' | 'telegraph_emerge' | 'emerge_shatter' | 'puke_closing_in' | 'puke_going_outward' | 'vulnerable_idle' | 'dive_in_sludge' | 'weakness_stunned';
+  // Boss
+  bossState?: BossState;
   stateTimer?: number;
   jumpCount?: number;
-  pauseTimer?: number;
   isGroundedBoss?: boolean;
   sideTimer?: number;
   said75?: boolean;
   said50?: boolean;
   said25?: boolean;
-  // Dale Specifics
+  // Drug Trade Dale
   shipmentType?: 'cocaine' | 'speed' | 'meth';
   shipmentCount?: number;
   dashCount?: number;
   truckX?: number;
   truckActive?: boolean;
-  // Blackout Barry Specifics
+  // Blackout Barry
   electrifiedTimer?: number;
   activeLightningStrikes?: { x: number; duration: number; maxDuration: number; width: number }[];
-  // Toxic Tommy Specifics
+  // Toxic Tommy
   targetedBoardIndex?: number;
   pukeSweepProgress?: number;
   pukeType?: 'closing_in' | 'going_outward';
@@ -165,6 +177,12 @@ export interface Projectile extends Entity {
   fireTimer?: number;
 }
 
+export type BlockType = 'wall' | 'ground' | 'platform' | 'door' | 'pit';
+
+export interface Block extends Rect {
+  type: BlockType;
+}
+
 export interface Volcano {
   pos: Vector2;
   life: number;
@@ -175,6 +193,12 @@ export interface SteamExplosion {
   pos: Vector2;
   life: number;
   radius: number;
+}
+
+export interface PoopTelegraph {
+  pos: Vector2;
+  life: number;
+  spawnX: number;
 }
 
 export type PickupType = 'small_health' | 'large_health' | 'small_ammo' | 'large_ammo';

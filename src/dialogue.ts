@@ -1,373 +1,6 @@
-import { WeaponType } from './types';
+import { VulgarityType } from './types';
 
-/**
- * MEATHEAD MASTER TWEAKING SHEET
- * All gameplay, balance, and feel variables are centralized here.
- */
-
-// ==========================================
-// 1. ENGINE & CANVAS CONFIG
-// ==========================================
-export const CANVAS_WIDTH = 800;
-export const CANVAS_HEIGHT = 600;
-export const FPS_TICK = 1000 / 60;
-export const SCREEN_SHAKE_MAX = 15;
-export const VULGARITY_TEXT_DURATION = 120;
-export const BOSS_VULGARITY_DURATION = 150;
-export const VOICE_LINE_COOLDOWN_FRAMES = 60;
-
-// ==========================================
-// 2. PHYSICS & ENVIRONMENT
-// ==========================================
-export const GRAVITY = 0.65;
-export const FRICTION_DEFAULT = 0.99; 
-export const FRICTION_ICE_STAGE = 0.985;
-export const FRICTION_ICE_STOP = 0.99;
-export const BOSS_DOOR_X = 7200;
-export const DOOR_WIDTH = 40;
-export const DOOR_OPEN_SPEED = 5;
-
-// ==========================================
-// 3. PLAYER CORE STATS
-// ==========================================
-export const INITIAL_PLAYER_HEALTH = 100;
-export const PLAYER_SPEED = 4.2; 
-export const PLAYER_JUMP_FORCE = -15; 
-export const PLAYER_INVINCIBILITY_FRAMES = 60;
-export const TOMMY_PUKE_INVINCIBILITY_FRAMES = 60;
-export const TOMMY_PUKE_PUSHBACK_DURATION = 16;
-export const PLAYER_STUN_INVINCIBILITY = 30;
-export const PLAYER_PUSHBACK_DURATION = 16;
-export const PLAYER_PUSHBACK_VEL_X = 7;
-export const PLAYER_PUSHBACK_VEL_Y = -4;
-export const PLAYER_STUN_DURATION = 40;
-
-// SPECIAL MOVES
-export const MAX_SPECIAL_CHARGES = 2;
-export const SPECIAL_CHARGE_REGEN_FRAMES = 90;
-export const CHARGE_SPEED = 13.5; 
-export const CHARGE_DURATION = 30;
-export const UPPERCUT_FORCE = -16; 
-export const UPPERCUT_AIR_SPEED = 3.0; 
-export const UPPERCUT_AIR_ACCEL = 0.5; 
-export const JUMP_PREP_FRAMES = 2;
-
-// ==========================================
-// 4. WEAPON TUNING (THE "MEAT")
-// ==========================================
-
-// GLOBAL AMMO
-export const MAX_AMMO: Record<WeaponType, number> = {
-  'GUN': Infinity,
-  'BOULDER': 20,
-  'SHOTGUN': 50,
-  'FLAMETHROWER': 500,
-  'TSUNAMI': 8,
-  'NEEDLES': 120,
-  'TASER': 400,
-  'SLUDGE': 24,
-  'OIL_ROCKET': 15
-};
-
-// BASIC GUN
-export const BULLET_DAMAGE = 25;
-export const GUN_COOLDOWN = 12;
-export const GUN_VELOCITY = 18;
-
-// BOULDER (EARTHQUAKE)
-export const BOULDER_DAMAGE = 250;
-export const BOULDER_SPEED = 7;
-export const BOULDER_COOLDOWN = 40;
-export const BOULDER_BOUNCE_DAMPING = 0.6;
-export const BOULDER_SHRAPNEL_COUNT = 12;
-export const BOULDER_SHRAPNEL_DAMAGE = 60;
-
-// SHOTGUN (ICE)
-export const SHOTGUN_DAMAGE = 15;
-export const SHOTGUN_COOLDOWN = 20;
-export const SHOTGUN_FREEZE_TIME = 90; 
-export const SHOTGUN_PELLET_COUNT = 7;
-
-// FLAMETHROWER (VOLCANO)
-export const FLAMETHROWER_DAMAGE = 8;
-export const FLAMETHROWER_RANGE = 220;
-export const FLAMETHROWER_MAX_RANGE = 800; 
-export const FLAMETHROWER_RAMP_FRAMES = 180; 
-export const FLAMETHROWER_SPEED_MULT = 0.45;
-export const FIRE_TICK_RATE = 12;
-export const FIRE_DOT_DAMAGE = 4;
-export const FIRE_DOT_DAMAGE_HEAVY = 112; 
-
-// TSUNAMI (HURRICANE)
-export const TSUNAMI_COOLDOWN = 120;
-export const TSUNAMI_WAVE_SPEED = 15;
-export const TSUNAMI_DAMAGE_BOSS = 50;
-export const TSUNAMI_DAMAGE_WEAKNESS = 150;
-
-// NEEDLE CANNON (DALE)
-export const NEEDLE_DAMAGE = 10;
-export const NEEDLE_COOLDOWN = 7;
-export const NEEDLE_DOT_TICK_RATE = 30;
-export const NEEDLE_DOT_DAMAGE_PER_STACK = 2;
-export const NEEDLE_OVERDOSE_THRESHOLD = 4;
-
-// TASER (BLACKOUT)
-export const TASER_RANGE = 800;
-export const TASER_DOT_DAMAGE = 3; 
-export const TASER_TICK_RATE = 6;
-export const TASER_AMMO_CONSUMPTION_RATE = 5;
-export const TASER_FIRE_THRESHOLD = 120;
-export const TASER_BOSS_DAMAGE_REDUCTION = 0.5;
-
-// SLUDGE BARFER (TOMMY)
-export const SLUDGE_DAMAGE = 12; 
-export const SLUDGE_DOT_DAMAGE = 18; 
-export const SLUDGE_DOT_TICK = 6;
-export const SLUDGE_LINGER_DURATION = 90; 
-export const SLUDGE_COOLDOWN = 90; 
-export const FILTH_SHIELD_DURATION = 240; 
-export const FILTH_SHIELD_CONTACT_DAMAGE = 250;
-
-// OIL ROCKET (OSCAR)
-export const OIL_ROCKET_DAMAGE = 45;
-export const OIL_ROCKET_SPLASH_DAMAGE = 80;
-export const OIL_ROCKET_SPLASH_RADIUS = 120;
-export const OIL_ROCKET_COOLDOWN = 45;
-export const OIL_ROCKET_OILED_DURATION = 300; // 5 seconds
-export const OIL_ROCKET_OILED_PUSHBACK_MULT = 2.5;
-export const OIL_ROCKET_NUKE_DAMAGE = 1500;
-export const OILED_COLLISION_DAMAGE = 25;
-
-// ==========================================
-// 5. BOSS & ENEMY TUNING
-// ==========================================
-export const BOSS_CHARGE_DAMAGE = 50;
-export const BOSS_UPPERCUT_DAMAGE = 50;
-export const ENEMY_UPPERCUT_DAMAGE = 150;
-export const BOSS_DIVEKICK_DAMAGE = 50;
-export const ENEMY_DIVEKICK_DAMAGE = 150;
-export const DIVEKICK_SPEED_X = 14;
-export const DIVEKICK_SPEED_Y = 24;
-export const WEAKNESS_DAMAGE = 100;
-export const ENEMY_HIT_COOLDOWN = 60;
-
-// HECTOR HURRICANE
-export const HECTOR_PULL_STRENGTH = 1.0;
-export const HECTOR_PULL_STRENGTH_ULT = 1.5;
-
-// ERNIE EARTHQUAKE
-export const ERNIE_STOMP_VIBRATION_DURATION = 40;
-
-// DRUG TRADE DALE
-export const DALE_TRUCK_SPEED = 11;
-export const DALE_TRUCK_DAMAGE = 20;
-export const DALE_PUSHBACK_VEL = { x: 30, y: -15 };
-export const METH_BARREL_DAMAGE = 14;
-export const METH_BARREL_HEALTH = 100;
-export const ENEMY_BULLET_DAMAGE = 16;
-
-// ==========================================
-// 6. PICKUPS & PROGRESSION
-// ==========================================
-export const AMMO_PICKUP_PCT = {
-  SMALL: 0.25,
-  LARGE: 0.60
-};
-export const HEALTH_PICKUP_SMALL = 20;
-export const HEALTH_PICKUP_LARGE = 50;
-
-// ==========================================
-// 7. STAGE & UI VISUALS
-// ==========================================
-export const STAGES_SET_0 = [
-  { id: 'Artie Avalanche', color: 'bg-blue-600' },
-  { id: 'Victor Volcano', color: 'bg-orange-600' },
-  { id: 'Ernie Earthquake', color: 'bg-amber-800' },
-  { id: 'Hector Hurricane', color: 'bg-cyan-600' }
-];
-
-export const STAGES_SET_1 = [
-  { id: 'Toxic Tommy', color: 'bg-green-600' },
-  { id: 'Blackout Barry', color: 'bg-gray-900' },
-  { id: 'Oily Oscar', color: 'bg-yellow-900' },
-  { id: 'Drug Trade Dale', color: 'bg-pink-600' }
-];
-
-export const STAGES = (rank: number) => rank === 0 ? STAGES_SET_0 : STAGES_SET_1;
-
-export const BOSS_SET_TITLES: Record<number, string> = {
-  0: "THE FOUR ASSHOLES",
-  1: "ANOTHER GROUP OF FOUR ASSHOLES"
-};
-
-export interface BossLocationData {
-  city: string;
-  state: string;
-  stateCode: string;
-  region: string;
-  coords: { x: number; y: number };
-  coordinatesText: string;
-  threatBrief: string;
-}
-
-export const BOSS_LOCATIONS: Record<string, BossLocationData> = {
-  'Artie Avalanche': {
-    city: 'ANCHORAGE',
-    state: 'ALASKA',
-    stateCode: 'AK',
-    region: 'ALASKA INSET',
-    coords: { x: 58, y: 236 },
-    coordinatesText: "61°13'N 149°54'W",
-    threatBrief: 'SUB-ZERO GLACIAL BLIZZARD ZONE'
-  },
-  'Victor Volcano': {
-    city: 'HILO',
-    state: 'HAWAII',
-    stateCode: 'HI',
-    region: 'PACIFIC ISLANDS',
-    coords: { x: 172, y: 262 },
-    coordinatesText: "19°43'N 155°05'W",
-    threatBrief: 'ACTIVE MAGMA CALDERA ANARCHY'
-  },
-  'Ernie Earthquake': {
-    city: 'SAN FRANCISCO',
-    state: 'CALIFORNIA',
-    stateCode: 'CA',
-    region: 'PACIFIC COAST',
-    coords: { x: 50, y: 126 },
-    coordinatesText: "37°46'N 122°25'W",
-    threatBrief: 'SAN ANDREAS FAULT PULVERIZATION'
-  },
-  'Hector Hurricane': {
-    city: 'MIAMI',
-    state: 'FLORIDA',
-    stateCode: 'FL',
-    region: 'ATLANTIC COAST',
-    coords: { x: 370, y: 252 },
-    coordinatesText: "25°46'N 80°11'W",
-    threatBrief: 'CAT-5 STORM SURGE & FLOODING'
-  },
-  'Toxic Tommy': {
-    city: 'FLINT',
-    state: 'MICHIGAN',
-    stateCode: 'MI',
-    region: 'GREAT LAKES',
-    coords: { x: 326, y: 88 },
-    coordinatesText: "43°00'N 83°41'W",
-    threatBrief: 'BIO-CORROSIVE SEWAGE OVERFLOW'
-  },
-  'Blackout Barry': {
-    city: 'NEW YORK CITY',
-    state: 'NEW YORK',
-    stateCode: 'NY',
-    region: 'MID-ATLANTIC',
-    coords: { x: 396, y: 106 },
-    coordinatesText: "40°42'N 74°00'W",
-    threatBrief: 'HIGH-VOLTAGE POWER GRID CRISIS'
-  },
-  'Oily Oscar': {
-    city: 'HOUSTON',
-    state: 'TEXAS',
-    stateCode: 'TX',
-    region: 'GULF COAST',
-    coords: { x: 250, y: 218 },
-    coordinatesText: "29°45'N 95°22'W",
-    threatBrief: 'PETROCHEMICAL REFINERY INFERNO'
-  },
-  'Drug Trade Dale': {
-    city: 'ALBUQUERQUE',
-    state: 'NEW MEXICO',
-    stateCode: 'NM',
-    region: 'SOUTHWEST DESERT',
-    coords: { x: 146, y: 162 },
-    coordinatesText: "35°05'N 106°39'W",
-    threatBrief: 'ILLEGAL PHARMACEUTICAL CARTEL'
-  }
-};
-
-export const STAGE_COLORS: Record<string, { ground: string, bg: string, accent: string }> = {
-  'Artie Avalanche': { ground: '#AED6F1', bg: '#1B2631', accent: '#2E86C1' },
-  'Victor Volcano': { ground: '#BA4A00', bg: '#1A0602', accent: '#FF4500' },
-  'Ernie Earthquake': { ground: '#6E2C00', bg: '#1C1C1C', accent: '#A04000' },
-  'Hector Hurricane': { ground: '#16A085', bg: '#0E2F44', accent: '#00FFFF' },
-  'Toxic Tommy': { ground: '#27AE60', bg: '#091A0D', accent: '#ADFF2F' },
-  'Blackout Barry': { ground: '#2C3E50', bg: '#000', accent: '#3498DB' },
-  'Oily Oscar': { ground: '#3E2723', bg: '#1A110F', accent: '#212121' },
-  'Drug Trade Dale': { ground: '#8E44AD', bg: '#1D0C24', accent: '#FFFFFF' },
-};
-
-export const WEAPON_NAMES: Record<string, string> = {
-  'Artie Avalanche': 'Shotgun Ice',
-  'Victor Volcano': 'Flamethrower',
-  'Ernie Earthquake': "Big Fuckin' Boulder",
-  'Hector Hurricane': 'TSUNAMI!',
-  'Toxic Tommy': 'Sludge Barfer',
-  'Blackout Barry': 'Taser Overload',
-  'Oily Oscar': 'Oil Rocket Launcher',
-  'Drug Trade Dale': 'Rusty Needle Cannon'
-};
-
-export const WEAPON_DESCRIPTIONS: Record<string, string> = {
-  'Artie Avalanche': "Freeze those noodle armed fucks in a block of ice and shatter them into a million pieces with your bulging biceps.",
-  'Victor Volcano': "Lock your feet and obliterate enemies and their projectiles.",
-  'Ernie Earthquake': "Roll over the competition with ground based pulverization, or fire upwards to heave it like a shotput.",
-  'Hector Hurricane': "Screen nuke! Watch as every living thing in your vicinity just fucking dies to torrential destruction!",
-  'Toxic Tommy': "Barf out a sample of your finest toxic waste and watch your foes rot in its filth while you become comfortably protected in it.",
-  'Blackout Barry': "It's one of those 'human remote controls' the police use! Hold your charge and zap those bastards until they get set on fire!",
-  'Oily Oscar': "Coat those greasy bastards in flammable oil and watch them slide around before you nuke them with the flamethrower.",
-  'Drug Trade Dale': "Inject the enemy with drugs! Which drugs? All the drugs! Keep pumping them until they overdose!"
-};
-
-export const BOSS_WEAPON_MAP: Record<string, WeaponType> = {
-  'Artie Avalanche': 'SHOTGUN',
-  'Victor Volcano': 'FLAMETHROWER',
-  'Ernie Earthquake': 'BOULDER',
-  'Hector Hurricane': 'TSUNAMI',
-  'Toxic Tommy': 'SLUDGE',
-  'Blackout Barry': 'TASER',
-  'Oily Oscar': 'OIL_ROCKET',
-  'Drug Trade Dale': 'NEEDLES'
-};
-
-export const WEAPONS_AFTER_SET_0: WeaponType[] = ['GUN', 'SHOTGUN', 'FLAMETHROWER', 'BOULDER', 'TSUNAMI'];
-export const ALL_WEAPONS: WeaponType[] = ['GUN', 'SHOTGUN', 'FLAMETHROWER', 'OIL_ROCKET', 'BOULDER', 'TSUNAMI', 'SLUDGE', 'TASER', 'NEEDLES'];
-export const ALL_WEAPONS_SET_0 = WEAPONS_AFTER_SET_0;
-
-// PALETTES
-export const COLORS = {
-  MEATHEAD_SKIN: '#E67E22',
-  MEATHEAD_PANTS: '#273746',
-  MEATHEAD_GLOW: '#FFC300',
-  GUN: '#5D6D7E',
-  GROUND: '#1C2833',
-  ENEMY_DRONE: '#8E44AD',
-  ENEMY_TANK: '#C0392B',
-  ENEMY_FLYER: '#3498DB',
-  ENEMY_SHIELD: '#7F8C8D',
-  PROJECTILE_PLAYER: '#F1C40F',
-  PROJECTILE_ENEMY: '#E74C3C',
-  PROJECTILE_ICE: '#00FFFF',
-  PROJECTILE_DART: '#D1D5DB',
-  TASER_BOLT: '#00E5FF',
-  BG_DARK: '#0B0B0B',
-  BG_LIGHT: '#1B2631',
-};
-
-export const PARTICLE_PALETTES = {
-  GORE: ['#8B0000', '#FF0000', '#B22222', '#7C0A02', '#5A0000', '#FF1111'],
-  FLESH: ['#FF8A80', '#FF5252', '#FF1744', '#D50000', '#C62828'], 
-  ROCK: ['#4E342E', '#3E2723', '#212121', '#757575'],
-  GLASS: ['#ADD8E6', '#F0F8FF', '#FFFFFF', '#B0C4DE'],
-  FIRE: ['#FF4500', '#FF8C00', '#FFA500', '#FFD700', '#FF0000'],
-  WATER: ['#00BFFF', '#1E90FF', '#4169E1', '#0000FF', '#ADD8E6'],
-  STEAM: ['#FFFFFF', '#E0F7FA', '#B2EBF2', '#E1F5FE'],
-  POOP: ['#5D4037', '#3E2723', '#4E342E', '#795548', '#212121'],
-  POWDER: ['#FFFFFF', '#F0F0F0', '#E0E0E0', '#D0D0D0', '#B0B0B0'],
-  METH: ['#00E5FF', '#18FFFF', '#E1F5FE', '#81D4FA', '#01579B'],
-  SPARKS: ['#00E5FF', '#18FFFF', '#FFFFFF', '#FFFF00'],
-  SLUDGE: ['#1B5E20', '#2E7D32', '#43A047', '#66BB6A', '#004D40'],
-  OIL: ['#212121', '#3E2723', '#000000', '#4E342E', '#37474F']
-};
+/** Everything Meathead and the bosses say (on screen and through speech synthesis). */
 
 export const VULGARITIES = {
   GUN_KILL: ["FUCK YOU", "EAT SHIT", "DIE PIG", "GET Rekt", "WORTHLESS SCUM", "PISS OFF", "MOTHERFUCKER", "GARBAGE", "WASTE OF MEAT", "SHUT UP", "KNEEL", "WEAKLING", "PATHETIC", "PIECE OF TRASH", "SMASHED", "WASH MY SHORTS", "BRO DO YOU EVEN SURVIVE?", "DELTS OF DOOM", "STERILE BITCH", "DO YOU EVEN LIFT?", "DIE ASSHOLE", "NO DEPTH ON THAT SQUAT", "PUMP COVER DESTOWNED", "STAY SMALL", "CHICKEN LEGGED TRASH", "ZERO REPS", "LACKING SYMMETRY", "SKIPPING LEG DAY IS A SIN", "GO BACK TO THE TREADMILL", "FLOPPY ARM BITCH", "CARDIO-LOOKING MOTHERFUCKER", "SIT DOWN AND DIE", "ABSOLUTELY ATROPHIED"],
@@ -387,7 +20,14 @@ export const VULGARITIES = {
   LOCAL_VICTORY: ["YOUR BIOLOGY WAS INFERIOR. THE PUMP PREVAILS.", "GAINS ACHIEVED. WEAKNESS DELETED.", "THAT WAS just A WARM-UP SET.", "IMAGINE BEING ORGANIC AND THIS WEAK.", "IV HAD TOUGHER WORKOUTS IN THE SAUNA.", "PURE BEEF BEATS METAL EVERY TIME."]
 };
 
-export const BOSS_DIALOGUE = {
+type HealthThreshold = 0 | 25 | 50 | 75;
+
+export const BOSS_DIALOGUE: {
+  HURT: Record<string, string[]>;
+  SPECIFIC_HAZARD_HURT: Record<string, string[]>;
+  THRESHOLDS: Record<string, Record<HealthThreshold, string>>;
+  INTRO_QUOTES: Record<string, string[]>;
+} = {
   HURT: {
     'Artie Avalanche': [
       "IL SHOVE THAT ICICLE UP YOUR ASS!",
@@ -615,4 +255,20 @@ export const BOSS_DIALOGUE = {
     'Drug Trade Dale': ["I will ransack your steroid supply.", "Another junkie? How'd you get past my guards?"],
     'default': ["I'll break you in half!", "YOU'RE TOAST."]
   }
+};
+
+/** Line pools for each of Meathead's non-hurt voice categories. */
+export const KILL_LINES: Record<Exclude<VulgarityType, 'hurt'>, string[]> = {
+  gun_kill: VULGARITIES.GUN_KILL,
+  boulder_kill: VULGARITIES.BOULDER_KILL,
+  shotgun_kill: VULGARITIES.SHOTGUN_KILL,
+  flamethrower_kill: VULGARITIES.FLAMETHROWER_KILL,
+  tsunami_kill: VULGARITIES.TSUNAMI_KILL,
+  charge_kill: VULGARITIES.CHARGE_KILL,
+  uppercut_kill: VULGARITIES.UPPERCUT_KILL,
+  dart_kill: VULGARITIES.DART_KILL,
+  taser_kill: VULGARITIES.TASER_KILL,
+  sludge_kill: VULGARITIES.SLUDGE_KILL,
+  oil_kill: VULGARITIES.OIL_KILL,
+  death: VULGARITIES.DEATH,
 };

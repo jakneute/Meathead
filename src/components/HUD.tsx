@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { WeaponType } from '../types';
+import { MAX_SPECIAL_CHARGES } from '../constants';
 
 interface HUDProps {
   health: number;
@@ -42,7 +42,7 @@ const HUD: React.FC<HUDProps> = ({ health, maxHealth, specialCharges, specialCha
           <div className="flex items-center gap-4">
             <span className="text-white text-[10px] font-black italic">PWR</span>
             <div className="flex gap-1 items-center h-5">
-              {[...Array(2)].map((_, i) => {
+              {Array.from({ length: MAX_SPECIAL_CHARGES }, (_, i) => {
                 const isFull = i < specialCharges;
                 const isRecharging = i === specialCharges;
                 return (

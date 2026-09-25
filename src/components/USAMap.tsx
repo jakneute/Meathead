@@ -1,10 +1,10 @@
 import React from 'react';
-import { BOSS_LOCATIONS, BossLocationData } from '../constants';
+import { BOSS_LOCATIONS, BossLocationData, StageInfo } from '../stages';
 
 interface USAMapProps {
   selectedBossId: string;
   defeatedStages: string[];
-  currentStages: { id: string; color: string }[];
+  currentStages: StageInfo[];
   onSelectStage?: (stageId: string) => void;
 }
 

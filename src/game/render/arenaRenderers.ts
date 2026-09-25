@@ -1,16 +1,16 @@
-import { BOSS_DOOR_X, DOOR_WIDTH } from './constants';
+import { ARENA_LEFT, ARENA_RIGHT, GROUND_Y } from '../../constants';
 
+/** Decorative backdrops for each boss arena (drawn in world coordinates). */
 export const drawCustomBossArena = (
   ctx: CanvasRenderingContext2D,
   stageId: string,
-  state: any
+  frame: number
 ) => {
-  const arenaLeft = BOSS_DOOR_X + DOOR_WIDTH; // 7240
-  const arenaRight = 7960;
-  const arenaW = arenaRight - arenaLeft; // 720
-  const groundY = 550;
+  const arenaLeft = ARENA_LEFT;
+  const arenaRight = ARENA_RIGHT;
+  const arenaW = arenaRight - arenaLeft;
+  const groundY = GROUND_Y;
   const ceilingY = 100;
-  const frame = state.frame || 0;
 
   ctx.save();
 

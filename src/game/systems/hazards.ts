@@ -1,0 +1,185 @@
+// Screen-wide effects and stage hazards: the tsunami, steam blasts, volcano vents and Toxic Tommy's arena.
+
+import { TommyBoard } from '../../types';
+import {
+  CANVAS_WIDTH, BOSS_DOOR_X, PLAYER_INVINCIBILITY_FRAMES, PLAYER_PUSHBACK_DURATION,
+  PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, ENEMY_HIT_COOLDOWN, PARTICLE_PALETTES,
+  TSUNAMI_WAVE_SPEED, TSUNAMI_DAMAGE_BOSS, TSUNAMI_DAMAGE_WEAKNESS,
+} from '../../constants';
+import { FrameContext, killBoss } from '../context';
+import { checkIsWeakness } from '../boss';
+import { pickRandom } from '../utils';
+import { killPlayer } from './player';
+
+/** The player's tsunami sweeps across the screen, killing regular enemies outright. */
+export const updateTsunami = (ctx: FrameContext) => {
+  const { state, fx, stageId, currentWeapon } = ctx;
+  if (!state.tsunamiActive) return;
+  const dir = state.tsunamiDir;
+  state.tsunamiX += TSUNAMI_WAVE_SPEED * dir;
+  const dist = Math.abs(state.tsunamiX - state.tsunamiStartX);
+  const progress = dist / (CANVAS_WIDTH * 1.5);
+  const tsunamiTopY = Math.pow(Math.min(1.0, dist / (CANVAS_WIDTH * 1.25)), 0.6) * 560;
+  const waveHeight = 600 - tsunamiTopY;
+
+  // Wave face particles, curved so the middle leads
+  const density = 35, bendMult = 120;
+  for (let i = 0; i <= density; i++) {
+    const yPct = i / density;
+    const normalizedY = (yPct - 0.5) * 2;
+    const px = state.tsunamiX + (normalizedY * normalizedY) * bendMult * dir;
+    const py = tsunamiTopY + (yPct * waveHeight);
+    state.particles.push({ pos: { x: px + (Math.random() - 0.5) * 40, y: py + (Math.random() - 0.5) * 15 }, vel: { x: (TSUNAMI_WAVE_SPEED * 0.4 + Math.random() * 8) * dir, y: (Math.random() - 0.5) * 4 }, life: 12 + Math.random() * 18, color: pickRandom(PARTICLE_PALETTES.WATER), size: 8 + Math.random() * 12, isWater: true });
+    if (i < 3 && Math.random() > 0.4) state.particles.push({ pos: { x: px, y: py }, vel: { x: (TSUNAMI_WAVE_SPEED * 0.9) * dir, y: (Math.random() - 0.5) * 10 }, life: 20 + Math.random() * 10, color: '#FFFFFF', size: 5 + Math.random() * 5, isWater: true });
+  }
+
+  // Water hitting Victor's volcano vents turns them into steam explosions
+  if (stageId === 'Victor Volcano') {
+    state.bossVolcanoes = state.bossVolcanoes.filter(v => {
+      if (Math.abs(v.pos.x - state.tsunamiX) >= 60) return true;
+      state.bossSteamExplosions.push({ pos: { ...v.pos }, life: 45, radius: 100 });
+      fx.spawnSteamExplosionParticles(v.pos, 40);
+      state.screenShakeTimer = 12;
+      return false;
+    });
+  }
+
+  state.projectiles.forEach(p => {
+    if (!p.isMethBarrel || p.health <= 0) return;
+    if (Math.abs(p.pos.x + p.width / 2 - state.tsunamiX) < 120) {
+      p.vel = { x: dir * 20, y: -10 };
+      p.rotation = (p.rotation || 0) + 0.5;
+      p.health -= TSUNAMI_DAMAGE_BOSS;
+      fx.spawnDamageNumber(p.pos, TSUNAMI_DAMAGE_BOSS);
+    }
+  });
+
+  state.enemies.forEach(e => {
+    if (e.health <= 0 || e.isBlownAway) return;
+    const inWave = Math.abs(e.pos.x + e.width / 2 - state.tsunamiX) < 120 && e.pos.y + e.height > tsunamiTopY;
+    if (!inWave) return;
+    if (e.type === 'boss') {
+      if (!state.arenaLocked || (e.hitCooldown && e.hitCooldown > 0)) return;
+      const isW = checkIsWeakness(stageId, currentWeapon);
+      const dmg = isW ? TSUNAMI_DAMAGE_WEAKNESS : TSUNAMI_DAMAGE_BOSS;
+      e.health -= dmg;
+      e.hitCooldown = ENEMY_HIT_COOLDOWN;
+      fx.spawnDamageNumber(e.pos, dmg, isW);
+      if (e.health <= 0) killBoss(ctx, e, dir, isW);
+    } else {
+      e.health = 0;
+      fx.blowAwayEnemy(e, { x: dir * 20, y: -10 }, 'tsunami_kill', dir);
+      state.player.killSatisfactionTimer = 60;
+    }
+  });
+
+  if (progress >= 1.0) state.tsunamiActive = false;
+};
+
+export const updateSteamExplosions = (ctx: FrameContext) => {
+  const { state, fx } = ctx;
+  const { player } = state;
+  state.bossSteamExplosions = state.bossSteamExplosions.filter(exp => {
+    exp.life--;
+    const dx = player.pos.x + player.width / 2 - exp.pos.x;
+    const dy = player.pos.y + player.height / 2 - exp.pos.y;
+    if (dx * dx + dy * dy < exp.radius * exp.radius && player.invincibilityTimer <= 0 && !ctx.cheats.invincible) {
+      player.health -= 8;
+      if (player.health > 0) {
+        player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;
+        player.pushbackTimer = PLAYER_PUSHBACK_DURATION;
+        player.vel.x = dx > 0 ? PLAYER_PUSHBACK_VEL_X : -PLAYER_PUSHBACK_VEL_X;
+        player.vel.y = PLAYER_PUSHBACK_VEL_Y;
+        fx.speakVulgarity('hurt', 'steam');
+      }
+    }
+    if (state.frame % 3 === 0) fx.spawnSteamExplosionParticles(exp.pos, 6);
+    return exp.life > 0;
+  });
+};
+
+/** Victor's active vents spit magma every 12 frames. */
+export const updateVolcanoes = (ctx: FrameContext) => {
+  const { state } = ctx;
+  state.bossVolcanoes = state.bossVolcanoes.filter(v => {
+    v.life--;
+    if (state.frame % 12 === 0) {
+      const velX = v.type === 'wall' ? (v.pos.x < BOSS_DOOR_X + 400 ? 9 : -9) : (Math.random() - 0.5) * 4;
+      const velY = v.type === 'ground' ? -9 : (Math.random() - 0.5) * 7;
+      state.projectiles.push({ id: `magma-${Date.now()}`, pos: { x: v.pos.x, y: v.pos.y }, vel: { x: velX, y: velY }, width: 14, height: 14, health: 1, maxHealth: 1, type: 'projectile', damage: 45, owner: 'enemy' });
+    }
+    return v.life > 0;
+  });
+};
+
+/** Toxic Tommy's arena: bobbing boards that shatter and regrow over a lethal sludge pool. */
+export const updateTommyArena = (ctx: FrameContext) => {
+  const { state, stageId, fx } = ctx;
+  const { player } = state;
+  if (stageId !== 'Toxic Tommy' || !state.arenaLocked || !state.tommyBoards) return;
+
+  state.tommyScrollY = (state.tommyScrollY + 2.5) % 400;
+  if (state.tommySludgeOiledTimer > 0) state.tommySludgeOiledTimer--;
+
+  let activeCount = 0;
+  state.tommyBoards.forEach((b: TommyBoard) => {
+    if (b.status === 'shattering') {
+      if (--b.shatterTimer <= 0) b.status = 'shattered';
+    } else if (b.status === 'rising') {
+      b.riseProgress += 0.012;
+      b.y = b.baseY + (1 - b.riseProgress) * 60;
+      if (state.frame % 5 === 0) fx.spawnExplosion({ x: b.x + Math.random() * b.w, y: state.tommySludgeY }, '#27AE60', 2, 0, 3);
+      if (b.riseProgress >= 1) {
+        b.status = 'active';
+        b.y = b.baseY;
+        b.riseProgress = 1;
+        fx.playGunSound('barf');
+        fx.spawnExplosion({ x: b.x + b.w / 2, y: b.y }, '#27AE60', 10, 0, 6);
+      }
+    }
+
+    if (b.telegraphTimer && b.telegraphTimer > 0) {
+      b.telegraphTimer--;
+      b.shakeX = (Math.random() - 0.5) * 6;
+      if (state.frame % 3 === 0) fx.spawnExplosion({ x: b.x + Math.random() * b.w, y: b.y }, '#ADFF2F', 3, 0, 3);
+    } else {
+      b.shakeX = 0;
+    }
+
+    if (b.status === 'active' || b.status === 'rising') activeCount++;
+
+    // Standing on an active board (or a rising one that's nearly surfaced)
+    if (b.status === 'active' || (b.status === 'rising' && b.riseProgress > 0.8)) {
+      const bobY = b.y + Math.sin(state.frame * 0.05 + b.index * 0.8) * 3;
+      const feetY = player.pos.y + player.height;
+      if (player.vel.y >= 0 && player.pos.x + player.width > b.x - 4 && player.pos.x < b.x + b.w + 4 && feetY >= bobY - 4 && feetY <= bobY + 22) {
+        player.pos.y = bobY - player.height;
+        player.vel.y = 0;
+        player.isGrounded = true;
+        if (player.isDivekicking) {
+          player.isDivekicking = false;
+          player.vel.x = 0;
+          fx.playGunSound();
+        }
+      }
+    }
+  });
+
+  // Once only 5 boards remain, one shattered board starts rising again
+  if (activeCount <= 5) {
+    const toRise = state.tommyBoards.find(b => b.status === 'shattered');
+    if (toRise) {
+      toRise.status = 'rising';
+      toRise.riseProgress = 0;
+      toRise.y = toRise.baseY + 60;
+      fx.spawnExplosion({ x: toRise.x + toRise.w / 2, y: state.tommySludgeY }, '#27AE60', 15, 0, 8);
+    }
+  }
+
+  // Falling into the sludge is instant death
+  if (player.pos.y + player.height >= state.tommySludgeY + 8 && player.health > 0) {
+    player.health = 0;
+    killPlayer(ctx, "DISSOLVED IN TOXIC SLUDGE");
+    fx.playGunSound('barf');
+  }
+};
