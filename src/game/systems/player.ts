@@ -35,6 +35,7 @@ export interface FrameInput {
 }
 
 export const DEATH_SCREEN_FRAMES = 180;
+const ANGRY_FRAMES = 50;
 const STEP_UP_HEIGHT = 6;      // any lip this small is stepped over, even in the air
 const STAIR_HEIGHT = 26;       // walking on the ground, he climbs steps up to this tall
 
@@ -99,6 +100,7 @@ export const tickPlayerTimers = (ctx: FrameContext, input: FrameInput) => {
   if (player.invincibilityTimer > 0) player.invincibilityTimer--;
   if (player.hurtTimer && player.hurtTimer > 0) player.hurtTimer--;
   if (player.smugTimer && player.smugTimer > 0) player.smugTimer--;
+  if (player.angryTimer && player.angryTimer > 0) player.angryTimer--;
   if (player.killSatisfactionTimer > 0) player.killSatisfactionTimer--;
   if (player.bossKillSatisfactionTimer > 0) player.bossKillSatisfactionTimer--;
   if (player.pushbackTimer > 0) {
@@ -111,6 +113,7 @@ export const tickPlayerTimers = (ctx: FrameContext, input: FrameInput) => {
     player.lockTimer--;
     if (player.recoiling) player.vel.x += (0 - player.vel.x) * 0.1;
     if (player.lockTimer === 0 && !player.isDivekicking) player.recoiling = false;
+    if (player.lockTimer === 0) player.slideRecoil = false;
   }
   if (player.hurtFormTimer && player.hurtFormTimer > 0 && --player.hurtFormTimer === 0) player.hurtForm = null;
   if (player.squash) player.squash = Math.abs(player.squash) < 0.02 ? 0 : player.squash * 0.8;
@@ -266,7 +269,10 @@ const updateCrouch = (ctx: FrameContext, input: FrameInput) => {
   if (!player.isGrounded || player.vel.y < 0) return;
   // Holding fire with the flamethrower keeps you standing (down aims the stream instead)
   const isFlamethrowing = ctx.currentWeapon === 'FLAMETHROWER' && input.shoot;
-  player.isDucking = input.moveDown && player.lockTimer <= 0 && !player.isUppercutting && !player.isDivekicking && !player.isTasing
+  // Bouncing back off an enemy mid-slide keeps him down, until down is let go
+  if (!input.moveDown) player.slideRecoil = false;
+  const lockAllowsCrouch = player.lockTimer <= 0 || !!player.slideRecoil;
+  player.isDucking = input.moveDown && lockAllowsCrouch && !player.isUppercutting && !player.isDivekicking && !player.isTasing
     && !isFlamethrowing && (!player.isCharging || player.isSliding);
 };
 
@@ -564,6 +570,9 @@ export const getAttackHitbox = (ctx: FrameContext): Rect => {
  */
 export const recoilOff = (ctx: FrameContext, enemyMass: number) => {
   const { player } = ctx.state;
+  const wasSliding = player.isSliding;
+  // A charge that didn't finish them off: grim determination
+  if (player.isCharging) player.angryTimer = ANGRY_FRAMES;
   const ratio = enemyMass / PLAYER_MASS;
   player.vel.x = -player.vel.x * ratio;
   player.vel.y = -player.vel.y * ratio;
@@ -576,12 +585,22 @@ export const recoilOff = (ctx: FrameContext, enemyMass: number) => {
   player.isHarmlessPushback = true;
   player.smugTimer = 35;
   player.hurtTimer = 0;
+  stayCrouchedIfSliding(player, wasSliding);
+};
+
+/** A slide that bounces off something stays low: he skids back still crouched. */
+const stayCrouchedIfSliding = (player: Player, wasSliding: boolean) => {
+  player.slideRecoil = wasSliding;
+  if (!wasSliding) return;
+  player.isDucking = true;
+  player.vel.y = 0;
 };
 
 /** Bounce the player off harmlessly (e.g. hitting a boss before the arena locks). */
 export const harmlessBounce = (ctx: FrameContext, e: Enemy, velX: number, velY: number) => {
   const { player } = ctx.state;
   const pushDir = player.pos.x + player.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;
+  const wasSliding = player.isSliding;
   player.vel = { x: pushDir * velX, y: velY };
   player.lockTimer = RECOIL_FRAMES;
   player.recoiling = true;
@@ -592,6 +611,7 @@ export const harmlessBounce = (ctx: FrameContext, e: Enemy, velX: number, velY: 
   player.isHarmlessPushback = true;
   player.smugTimer = 40;
   player.hurtTimer = 0;
+  stayCrouchedIfSliding(player, wasSliding);
 };
 
 export const getContactHurtSource = (ctx: FrameContext, e: Enemy) =>

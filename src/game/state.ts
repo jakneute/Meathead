@@ -239,6 +239,7 @@ export const resetPlayerCombatState = (player: Player) => {
   player.pushbackTimer = 0;
   player.lockTimer = 0;
   player.recoiling = false;
+  player.slideRecoil = false;
   player.hurtForm = null;
   player.hurtFormTimer = 0;
 };
@@ -249,6 +250,7 @@ export const calmPlayer = (player: Player) => {
   player.invincibilityTimer = 0;
   player.hurtTimer = 0;
   player.smugTimer = 0;
+  player.angryTimer = 0;
   player.isHarmlessPushback = false;
   player.isDucking = false;
   player.squash = 0;

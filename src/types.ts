@@ -89,6 +89,10 @@ export interface Player extends Entity {
   pushbackTimer: number;
   hurtTimer?: number;
   smugTimer?: number;
+  /** Bounced off an enemy mid-slide: he stays crouched through the recoil for as long as down is held. */
+  slideRecoil?: boolean;
+  /** A charge or slide that didn't kill: he sets his jaw in grim determination for a moment. */
+  angryTimer?: number;
   isHarmlessPushback?: boolean;
   killSatisfactionTimer: number;
   bossKillSatisfactionTimer: number;

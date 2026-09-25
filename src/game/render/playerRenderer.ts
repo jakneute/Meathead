@@ -80,6 +80,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // Victory lap after a weakness kill: weapon put away, and both hands on the job while he pisses
   const isUnarmed = !!state.bossCorpse && !!state.victoryString;
   const isRelieving = isUnarmed && peeProgress(p.peeTimer).out;
+  // Grim determination after a charge that didn't kill (like the Doom guy's rampage face)
+  const isAngry = !!p.angryTimer && p.angryTimer > 0 && !isHurt && !isRelieving;
 
   // Set local coordinate frame: (0, 0) is at player feet center
   const anchorX = p.pos.x + p.width / 2;
@@ -606,7 +608,20 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
 
   // Heavy Angry Eyebrows
   ctx.fillStyle = '#09090B';
-  if (isHurt) {
+  if (isAngry) {
+    // Crushed down into a deep scowl
+    ctx.beginPath();
+    ctx.moveTo(headX - 9, headY - 10); ctx.lineTo(headX - 0.5, headY - 4.5); ctx.lineTo(headX - 0.5, headY - 2.5); ctx.lineTo(headX - 9, headY - 7.5);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(headX + 9, headY - 10); ctx.lineTo(headX + 0.5, headY - 4.5); ctx.lineTo(headX + 0.5, headY - 2.5); ctx.lineTo(headX + 9, headY - 7.5);
+    ctx.fill();
+    // Furrow lines between the brows
+    ctx.fillStyle = '#A0662E';
+    ctx.fillRect(headX - 1.2, headY - 9, 0.8, 3.5);
+    ctx.fillRect(headX + 0.6, headY - 9, 0.8, 3.5);
+    ctx.fillStyle = '#09090B';
+  } else if (isHurt) {
     // Arched high in shock/pain
     ctx.fillRect(headX - 8, headY - 9, 6, 2.5);
     ctx.fillRect(headX + 2, headY - 9, 6, 2.5);
@@ -643,6 +658,14 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillStyle = '#FFFFFF';
     ctx.beginPath(); ctx.arc(lEyeX, eyeY, 1.5, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(rEyeX, eyeY, 1.5, 0, Math.PI * 2); ctx.fill();
+  } else if (isAngry) {
+    // Locked on: narrowed to slits under the scowl, pupils fixed dead ahead
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(lEyeX - 2.5, eyeY - 0.5, 5, 2.2);
+    ctx.fillRect(rEyeX - 2.5, eyeY - 0.5, 5, 2.2);
+    ctx.fillStyle = '#09090B';
+    ctx.fillRect(lEyeX + 0.3, eyeY - 0.3, 1.6, 1.8);
+    ctx.fillRect(rEyeX + 0.3, eyeY - 0.3, 1.6, 1.8);
   } else if (isHurt) {
     // Wide shocked bloodshot eyes
     ctx.fillStyle = '#FFFFFF';
@@ -713,6 +736,16 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
       ctx.beginPath(); ctx.arc(headX + 17, mouthY - 3, 2.5, 0, Math.PI * 2); ctx.fill();
     }
+  } else if (isAngry) {
+    // Teeth bared in a wide, clenched grimace, gums showing
+    ctx.fillStyle = '#7F1D1D';
+    ctx.beginPath(); ctx.roundRect(headX - 7, mouthY - 1, 14, 5.5, 1.5); ctx.fill();
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(headX - 6, mouthY - 0.2, 12, 1.8);
+    ctx.fillRect(headX - 6, mouthY + 1.9, 12, 1.8);
+    ctx.fillStyle = '#18181B';
+    for (let k = -4; k <= 4; k += 2.6) ctx.fillRect(headX + k, mouthY - 0.2, 0.6, 3.9);
+    ctx.fillRect(headX - 6, mouthY + 1.6, 12, 0.4);
   } else if (p.shootHeldLastFrame && !isUnarmed) {
     // Firing: lip curled back off bared teeth
     ctx.fillStyle = '#450A0A';
@@ -741,6 +774,17 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillStyle = '#18181B';
     ctx.fillRect(headX - 2, mouthY + 0.5, 0.8, 2);
     ctx.fillRect(headX + 1, mouthY + 0.5, 0.8, 2);
+  }
+  if (isAngry) {
+    // A second vein throbbing on his temple, and a set, clenched jaw
+    ctx.strokeStyle = skinVein;
+    ctx.lineWidth = animFrame % 10 < 5 ? 1.6 : 1.1;
+    ctx.beginPath();
+    ctx.moveTo(headX + 3, headY - 11); ctx.lineTo(headX + 6, headY - 9); ctx.lineTo(headX + 5, headY - 6.5);
+    ctx.stroke();
+    ctx.fillStyle = '#A0662E';
+    ctx.fillRect(headX - 9.5, headY + 2, 1, 4);
+    ctx.fillRect(headX + 8.5, headY + 2, 1, 4);
   }
   // Beaten up: a shiner, a split lip and sweat running off his temple
   if (p.health < 35 && !isRelieving) {
