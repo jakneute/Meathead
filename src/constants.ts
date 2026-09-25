@@ -99,6 +99,7 @@ export const PLAYER_MASS = 350;
 export const RECOIL_FRAMES = 30;                // controls locked after bouncing off an enemy
 export const BOUNCE_FRAMES = 5;                 // controls locked after a divekick stomp
 export const ENEMY_DAZE_FRAMES = 60;
+export const SPECIAL_HURT_FRAMES = 32;          // recovery animation after being hit mid-special
 /** Enemy masses by id prefix; heavier enemies get pushed less and bounce you back harder. */
 export const ENEMY_MASS: Record<string, number> = {
   flyer: 100,

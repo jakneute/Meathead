@@ -2,7 +2,7 @@
 // Movement and special moves mirror the GameMaker version's oPlayer step order:
 // cooldowns -> special inputs -> special moves -> facing -> crouch -> X -> Y.
 
-import { Enemy, WeaponType, Rect, Block } from '../../types';
+import { Enemy, WeaponType, Rect, Block, Player } from '../../types';
 import {
   MAX_AMMO,
   PLAYER_MOVE_SPEED, PLAYER_ACCEL_BASE, PLAYER_FRICTION_BASE, PLAYER_AIR_FRICTION, CROUCH_SLIDE_FRICTION_MULT,
@@ -10,7 +10,7 @@ import {
   JUMP_HOLD_FRAMES, COYOTE_AIR_FRAMES, COYOTE_JUMP_FRAMES, JUMP_BUFFER_FRAMES, LANDING_SHAKE_SPEED,
   CHARGE_SPEED, CHARGE_DURATION, SLIDE_SPEED, SLIDE_DURATION, COOLDOWN_CHARGE,
   UPPERCUT_SPEED, UPPERCUT_DURATION, COOLDOWN_UPPERCUT, DIVEKICK_SPEED, DIVEKICK_ANGLE,
-  PLAYER_MASS, RECOIL_FRAMES, PLAYER_STUN_INVINCIBILITY, GML_SCALE,
+  PLAYER_MASS, RECOIL_FRAMES, PLAYER_STUN_INVINCIBILITY, GML_SCALE, SPECIAL_HURT_FRAMES,
 } from '../../constants';
 import { STAGES_SET_1 } from '../../stages';
 import { FrameContext } from '../context';
@@ -109,6 +109,8 @@ export const tickPlayerTimers = (ctx: FrameContext, input: FrameInput) => {
     if (player.recoiling) player.vel.x += (0 - player.vel.x) * 0.1;
     if (player.lockTimer === 0 && !player.isDivekicking) player.recoiling = false;
   }
+  if (player.hurtFormTimer && player.hurtFormTimer > 0 && --player.hurtFormTimer === 0) player.hurtForm = null;
+  if (player.squash) player.squash = Math.abs(player.squash) < 0.02 ? 0 : player.squash * 0.8;
   if (player.chargeCooldown > 0) player.chargeCooldown--;
   if (player.uppercutCooldown > 0) player.uppercutCooldown--;
   if (player.filthShieldTimer && player.filthShieldTimer > 0) player.filthShieldTimer--;
@@ -310,6 +312,10 @@ export const updatePlayerPhysics = (ctx: FrameContext, input: FrameInput) => {
   pushOutOfSolids(state);
 
   if (player.pos.x < 50) player.pos.x = 50;
+  // Footstep dust while running
+  if (player.isGrounded && !isPerformingSpecial(ctx) && Math.abs(player.vel.x) > PLAYER_MOVE_SPEED * 0.6 && state.playerAnimFrame % 11 === 0) {
+    spawnDust(state, player.pos.x + player.width / 2 - Math.sign(player.vel.x) * 10, player.pos.y + player.height, 2, -Math.sign(player.vel.x));
+  }
   if (state.arenaLocked && ctx.stageId !== 'Toxic Tommy' && player.pos.y < 100) { player.pos.y = 100; player.vel.y = 0; }
 };
 
@@ -342,6 +348,7 @@ const updateVerticalVelocity = (ctx: FrameContext, input: FrameInput) => {
   if (player.jumpBufferTimer > 0 && player.coyoteJumpTimer > 0 && !player.isDucking && !player.isTasing) {
     player.jumpBufferTimer = 0;
     player.jumpHoldTimer = JUMP_HOLD_FRAMES;
+    player.squash = -0.5; // stretch on take-off
     player.isGrounded = false;
     player.coyoteAirTimer = 0;
     player.coyoteJumpTimer = 0;
@@ -425,7 +432,7 @@ const moveVertically = (ctx: FrameContext) => {
 
     if (impactSpeed >= 0) {
       player.pos.y = b.y - player.height;
-      if (!player.isGrounded) landPlayer(ctx);
+      if (!player.isGrounded) landPlayer(ctx, impactSpeed);
     } else if (impactSpeed < 0) {
       player.pos.y = b.y + b.h;
       // Bonk: a ceiling ends an uppercut and a held jump
@@ -444,12 +451,49 @@ const shakeHard = (state: GameState, velocity: number) => {
   shakeScreen(state, 10, gmlForce * GML_SCALE);
 };
 
+/** A few puffs of dust along the floor, drifting in direction `dir`. */
+const spawnDust = (state: GameState, x: number, y: number, count: number, dir: number) => {
+  for (let i = 0; i < count; i++) {
+    state.particles.push({
+      pos: { x: x + (Math.random() - 0.5) * 10, y: y - 2 - Math.random() * 4 },
+      vel: { x: dir * (1 + Math.random() * 3), y: -Math.random() * 1.5 },
+      life: 14 + Math.random() * 10,
+      color: Math.random() > 0.5 ? '#A8A29E' : '#D6D3D1',
+      size: 3 + Math.random() * 4,
+    });
+  }
+};
+
+/** Which special move the player is in the middle of, if any. */
+export const getSpecialForm = (p: Player): Player['hurtForm'] =>
+  p.isSliding ? 'slide' : p.isCharging ? 'charge' : p.isUppercutting ? 'uppercut' : p.isDivekicking ? 'divekick' : null;
+
+/** Taking a hit cancels the special move and plays that move's hurt/recovery animation. */
+export const interruptSpecialWithHurt = (ctx: FrameContext, form: NonNullable<Player['hurtForm']>) => {
+  const { player } = ctx.state;
+  if (player.isCharging) endCharge(ctx);
+  if (player.isUppercutting) endUppercut(ctx);
+  player.isSliding = false;
+  player.isDivekicking = false;
+  player.recoiling = false;
+  player.hurtForm = form;
+  player.hurtFormTimer = SPECIAL_HURT_FRAMES;
+};
+
 /** Called when the player touches down on any floor (terrain or Tommy's boards). */
-export const landPlayer = (ctx: FrameContext) => {
+export const landPlayer = (ctx: FrameContext, impactSpeed: number = 0) => {
   const { state, fx } = ctx;
   const { player } = state;
   player.isGrounded = true;
   player.coyoteAirTimer = COYOTE_AIR_FRAMES;
+
+  // Squash and kick up dust in proportion to how hard we landed
+  const impact = Math.min(1, impactSpeed / PLAYER_TERMINAL_VELOCITY);
+  if (impact > 0.3) {
+    player.squash = impact * 0.9;
+    spawnDust(state, player.pos.x + player.width / 2, player.pos.y + player.height, Math.round(impact * 10), 1);
+    spawnDust(state, player.pos.x + player.width / 2, player.pos.y + player.height, Math.round(impact * 10), -1);
+  }
   if (!player.isDivekicking) return;
 
   player.isDivekicking = false;

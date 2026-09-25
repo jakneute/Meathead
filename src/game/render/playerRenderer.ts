@@ -1,5 +1,5 @@
 import { Player, WeaponType } from '../../types';
-import { COLORS } from '../../constants';
+import { COLORS, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../constants';
 import { GameState } from '../state';
 
 export interface PlayerDrawOptions {
@@ -55,8 +55,15 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.globalAlpha = 0.45;
   }
 
+  drawGroundShadow(ctx, p, state);
+  // White flash for the first few frames of taking damage
+  if (p.hurtTimer && p.hurtTimer > PLAYER_INVINCIBILITY_FRAMES - 6) ctx.filter = 'brightness(2.4) saturate(0.3)';
+
+  // Recovery animation after being hit mid-special (0 -> 1)
+  const hurtT = p.hurtForm && p.hurtFormTimer ? 1 - p.hurtFormTimer / SPECIAL_HURT_FRAMES : -1;
+
   // Animation States
-  const isHurt = p.pushbackTimer > 0 || (p.invincibilityTimer > 40);
+  const isHurt = p.pushbackTimer > 0 || (p.invincibilityTimer > 40) || hurtT >= 0;
   // A crouch slide has its own pose (drawSlideTackle), not the shoulder-charge afterimages
   const isCharging = p.isCharging && !p.isSliding;
   const isUppercutting = p.isUppercutting;
@@ -75,13 +82,6 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       ctx.save();
       ctx.translate(tX, tY);
       ctx.scale(p.facing, 1);
-
-  if (p.isSliding) {
-    drawSlideTackle(ctx, animFrame);
-    ctx.restore();
-    ctx.restore();
-    return;
-  }
       ctx.globalAlpha = 0.35 / trail;
       ctx.fillStyle = trail % 2 === 0 ? '#EF4444' : '#F59E0B';
       // Afterimage silhouette
@@ -130,13 +130,6 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       ctx.save();
       ctx.translate(tX, tY);
       ctx.scale(p.facing, 1);
-
-  if (p.isSliding) {
-    drawSlideTackle(ctx, animFrame);
-    ctx.restore();
-    ctx.restore();
-    return;
-  }
       ctx.globalAlpha = 0.4 / trail;
       ctx.fillStyle = trail % 2 === 0 ? '#EF4444' : '#F59E0B';
       ctx.beginPath();
@@ -165,6 +158,12 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   ctx.translate(anchorX, anchorY);
   ctx.scale(p.facing, 1);
 
+  // Squash on landing, stretch on take-off and when moving fast vertically
+  const isSpecial = p.isCharging || p.isUppercutting || !!p.isDivekicking;
+  const airStretch = !p.isGrounded && !isSpecial ? Math.min(1, Math.abs(p.vel.y) / PLAYER_TERMINAL_VELOCITY) * 0.1 : 0;
+  const squash = p.squash || 0;
+  ctx.scale(1 + squash * 0.25 - airStretch * 0.5, 1 - squash * 0.25 + airStretch);
+
   if (p.isSliding) {
     drawSlideTackle(ctx, animFrame);
     ctx.restore();
@@ -183,7 +182,31 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // Dynamic rotation & vertical offsets based on stance
   let bodyRot = 0;
   let bodyY = 0;
-  if (isDivekicking) {
+  let spinAroundCenter = false;
+  if (hurtT >= 0) {
+    const ease = 1 - Math.pow(1 - hurtT, 3);
+    switch (p.hurtForm) {
+      case 'slide':
+        // Knocked flat mid-slide, scrambling back up
+        bodyRot = -0.95 * (1 - ease);
+        bodyY = 6 * (1 - ease);
+        break;
+      case 'charge':
+        // Torso whips back from the forward lean, then steadies
+        bodyRot = hurtT < 0.25 ? 0.35 - 0.9 * (hurtT / 0.25) : -0.55 * Math.pow(1 - (hurtT - 0.25) / 0.75, 2);
+        break;
+      case 'uppercut':
+        // Knocked out of the uppercut into a backflip tumble
+        bodyRot = -Math.PI * 2 * (1 - ease);
+        spinAroundCenter = true;
+        break;
+      case 'divekick':
+        // Flipped back out of the dive
+        bodyRot = hurtT < 0.3 ? 0.95 - 1.65 * (hurtT / 0.3) : -0.7 * Math.pow(1 - (hurtT - 0.3) / 0.7, 2);
+        spinAroundCenter = true;
+        break;
+    }
+  } else if (isDivekicking) {
     bodyRot = 0.95; // 55-60 degree downward plummet angle!
     bodyY = -8;
   } else if (isCharging) {
@@ -204,8 +227,17 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     bodyY = -idleBreath * 0.5;
   }
 
-  ctx.translate(0, bodyY);
-  ctx.rotate(bodyRot);
+  // Lean into the run
+  if (isWalking && hurtT < 0) bodyRot += Math.sign(p.vel.x) * p.facing * Math.min(1, Math.abs(p.vel.x) / PLAYER_MOVE_SPEED) * 0.07;
+
+  if (spinAroundCenter) {
+    ctx.translate(0, bodyY - 32);
+    ctx.rotate(bodyRot);
+    ctx.translate(0, 32);
+  } else {
+    ctx.translate(0, bodyY);
+    ctx.rotate(bodyRot);
+  }
 
   // ==========================================
   // LAYER 1: BACK ARM (Off-Hand)
@@ -636,13 +668,19 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.beginPath(); ctx.arc(lEyeX, eyeY, 1.5, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(rEyeX, eyeY, 1.5, 0, Math.PI * 2); ctx.fill();
   } else {
-    // Narrowed badass squint
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(lEyeX - 2.5, eyeY - 1.5, 5, 3);
-    ctx.fillRect(rEyeX - 2.5, eyeY - 1.5, 5, 3);
-    ctx.fillStyle = '#09090B';
-    ctx.fillRect(lEyeX, eyeY - 1, 2.5, 2.5); // Pupil focused forward
-    ctx.fillRect(rEyeX, eyeY - 1, 2.5, 2.5);
+    // Narrowed badass squint (with the occasional blink while idle)
+    if (isIdle && animFrame % 190 < 7) {
+      ctx.fillStyle = '#09090B';
+      ctx.fillRect(lEyeX - 2.5, eyeY, 5, 1.2);
+      ctx.fillRect(rEyeX - 2.5, eyeY, 5, 1.2);
+    } else {
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(lEyeX - 2.5, eyeY - 1.5, 5, 3);
+      ctx.fillRect(rEyeX - 2.5, eyeY - 1.5, 5, 3);
+      ctx.fillStyle = '#09090B';
+      ctx.fillRect(lEyeX, eyeY - 1, 2.5, 2.5); // Pupil focused forward
+      ctx.fillRect(rEyeX, eyeY - 1, 2.5, 2.5);
+    }
   }
 
   // Mouth / Gritted Teeth
@@ -909,6 +947,22 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // Restore local transform
   ctx.restore();
 
+  // Pain sparks when knocked out of a special move
+  if (hurtT >= 0 && hurtT < 0.5) {
+    ctx.save();
+    ctx.globalAlpha = 1 - hurtT * 2;
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2 + hurtT * 3;
+      const r = 18 + hurtT * 30;
+      const sx = p.pos.x + p.width / 2 + Math.cos(a) * r;
+      const sy = p.pos.y + 14 + Math.sin(a) * r * 0.6;
+      ctx.fillStyle = i % 2 ? '#FFFFFF' : '#EF4444';
+      ctx.fillRect(sx - 3, sy - 1, 6, 2);
+      ctx.fillRect(sx - 1, sy - 3, 2, 6);
+    }
+    ctx.restore();
+  }
+
   // 7. Stun Stars Effect when Stunned
   if (state.playerStunTimer > 0) {
     ctx.save();
@@ -1056,5 +1110,26 @@ const drawSlideTackle = (ctx: CanvasRenderingContext2D, frame: number) => {
   ctx.fillRect(8, -39, 15, 6);
   ctx.fillRect(9, -35, 5, 7);
 
+  ctx.restore();
+};
+
+/** Soft shadow on the ground below Meathead, shrinking and fading with height. */
+const drawGroundShadow = (ctx: CanvasRenderingContext2D, p: Player, state: GameState) => {
+  const cx = p.pos.x + p.width / 2;
+  const feetY = p.pos.y + p.height;
+  let groundY = Infinity;
+  for (const b of state.blocks) {
+    if (b.type === 'pit' || b.type === 'door' || cx < b.x || cx > b.x + b.w || b.y < feetY - 4) continue;
+    groundY = Math.min(groundY, b.y);
+  }
+  const height = groundY - feetY;
+  if (!isFinite(groundY) || height > 320) return;
+  const k = 1 - height / 320;
+  ctx.save();
+  ctx.globalAlpha *= 0.35 * k;
+  ctx.fillStyle = '#000000';
+  ctx.beginPath();
+  ctx.ellipse(cx, groundY, p.width * 0.65 * (0.5 + 0.5 * k), 5 * (0.5 + 0.5 * k), 0, 0, Math.PI * 2);
+  ctx.fill();
   ctx.restore();
 };

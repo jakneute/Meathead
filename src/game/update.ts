@@ -13,7 +13,7 @@ import { resetPlayerCombatState, DEFAULT_SHAKE } from './state';
 import { updateBarfStream, updateFlameSegments } from './weapons';
 import { speak, MEATHEAD_INTRO_VOICE } from './speech';
 import { pickRandom, rectsOverlap, boundsOf } from './utils';
-import { killPlayer, gateControls, tickPlayerTimers, updatePlayerActions, updatePlayerPhysics } from './systems/player';
+import { killPlayer, gateControls, tickPlayerTimers, updatePlayerActions, updatePlayerPhysics, getSpecialForm, interruptSpecialWithHurt } from './systems/player';
 import { updateTsunami, updateSteamExplosions, updateVolcanoes, updateTommyArena } from './systems/hazards';
 import { updateTaser, updateBurningProjectiles, updateEnemyStatusEffects } from './systems/statusEffects';
 import { updateEnemy } from './systems/enemies';
@@ -156,6 +156,7 @@ const updateBossTransition = (ctx: FrameContext) => {
       state.doorOpenAmount = 0;
       state.doorState = 'done';
       player.isCharging = false;
+      player.isSliding = false;
       player.isUppercutting = false;
       player.isDivekicking = false;
       ctx.events.onBossEncounter();
@@ -201,6 +202,8 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
 
   // Meathead only animates during live gameplay (not intros, boss deaths or victory)
   state.playerAnimFrame++;
+  const formBeforeHits = getSpecialForm(player);
+  const healthBeforeHits = player.health;
   const input = gateControls(ctx, controls);
   tickPlayerTimers(ctx, input);
   updateTaser(ctx, input);
@@ -228,6 +231,11 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
   updateParticlesAndNumbers(ctx);
   updateCamera(ctx);
 
+  // Hurt mid-special: cancel the move and play its recovery animation
+  if (player.health < healthBeforeHits && player.health > 0) {
+    const form = getSpecialForm(player) || formBeforeHits;
+    if (form) interruptSpecialWithHurt(ctx, form);
+  }
   if ((player.health <= 0 || player.pos.y > 1000) && state.deathTimer <= 0) killPlayer(ctx, "YOU DIED");
   if (player.isTasing && player.currentWeapon === 'TASER' && state.frame % 3 === 0) ctx.fx.playGunSound('taser');
   return true;

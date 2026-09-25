@@ -530,6 +530,7 @@ const resolveEnemyProjectileHit = (ctx: FrameContext, p: Projectile): boolean =>
       player.vel.x = pDir * PLAYER_PUSHBACK_VEL_X;
       player.vel.y = PLAYER_PUSHBACK_VEL_Y;
       player.isCharging = false;
+      player.isSliding = false;
       player.isUppercutting = false;
       player.isDivekicking = false;
     }

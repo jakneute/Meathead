@@ -110,6 +110,9 @@ export const createPlayer = (ammo: Record<WeaponType, number>): Player => ({
   diveKickHitIds: [],
   lockTimer: 0,
   recoiling: false,
+  hurtForm: null,
+  hurtFormTimer: 0,
+  squash: 0,
   jumpHeldLastFrame: false,
   specialHeldLastFrame: false,
   shootHeldLastFrame: false,
@@ -209,6 +212,8 @@ export const resetPlayerCombatState = (player: Player) => {
   player.pushbackTimer = 0;
   player.lockTimer = 0;
   player.recoiling = false;
+  player.hurtForm = null;
+  player.hurtFormTimer = 0;
 };
 
 /**

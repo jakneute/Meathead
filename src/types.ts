@@ -66,6 +66,12 @@ export interface Player extends Entity {
   uppercutHitIds: string[];   // enemies already hit by the current uppercut
   diveKickHitIds: string[];   // enemies already stomped by the current divekick
 
+  // Hit mid-special: which move was interrupted, and the recovery animation's timer
+  hurtForm?: 'slide' | 'charge' | 'uppercut' | 'divekick' | null;
+  hurtFormTimer?: number;
+  /** Squash (+) / stretch (-) amount for landing and jumping, decays to 0. */
+  squash?: number;
+
   // Recoil from bouncing off an enemy (controls locked while lockTimer runs)
   lockTimer: number;
   recoiling: boolean;
