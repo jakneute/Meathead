@@ -2,7 +2,7 @@
 
 import { GameStatus, WeaponType } from '../types';
 import {
-  CANVAS_WIDTH, GRAVITY, STAGE_WIDTH, BOSS_DOOR_X, DOOR_WIDTH, DOOR_OPEN_SPEED, MAX_AMMO,
+  CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, getStageWidth, DOOR_OPEN_SPEED, MAX_AMMO,
   AMMO_PICKUP_PCT, HEALTH_PICKUP_SMALL, HEALTH_PICKUP_LARGE, PLAYER_STUN_DURATION, PARTICLE_PALETTES,
 } from '../constants';
 import { BOSS_DIALOGUE } from '../dialogue';
@@ -18,6 +18,7 @@ import { updateTsunami, updateSteamExplosions, updateVolcanoes, updateTommyArena
 import { updateTaser, updateBurningProjectiles, updateEnemyStatusEffects } from './systems/statusEffects';
 import { updateEnemy } from './systems/enemies';
 import { updateProjectile, updateSpecialMovesVsBarrels } from './systems/projectiles';
+import { updateOscarHazards } from './systems/oscar';
 
 const INTRO_JUMP_START = 80;
 const INTRO_JUMP_FRAMES = 60;
@@ -212,6 +213,7 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
   updateBurningProjectiles(ctx);
   updateEnemyStatusEffects(ctx);
   updateVolcanoes(ctx);
+  updateOscarHazards(ctx);
 
   updatePlayerActions(ctx, input);
   updatePlayerPhysics(ctx, input);
@@ -299,10 +301,14 @@ const updateParticlesAndNumbers = (ctx: FrameContext) => {
 const updateCamera = (ctx: FrameContext) => {
   const { state, stageId } = ctx;
   const { player } = state;
+  const followX = player.pos.x - CANVAS_WIDTH / 2 + player.width / 2;
   if (!state.arenaLocked && state.victoryString === "" && state.bossExplosionTimer <= 0) {
     // Camera follows the player but can't scroll past the closed boss door
-    const maxX = state.doorState === 'closed' ? BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH : STAGE_WIDTH - CANVAS_WIDTH;
-    state.camera.x = Math.max(0, Math.min(maxX, player.pos.x - CANVAS_WIDTH / 2 + player.width / 2));
+    const maxX = state.doorState === 'closed' ? BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH : getStageWidth(stageId) - CANVAS_WIDTH;
+    state.camera.x = Math.max(0, Math.min(maxX, followX));
+  } else if (state.arenaLocked && stageId === 'Oily Oscar') {
+    // Oscar's arena is two screens wide, so the camera scrolls inside it
+    state.camera.x = Math.max(BOSS_DOOR_X, Math.min(getStageWidth(stageId) - CANVAS_WIDTH, followX));
   }
   if (stageId === 'Toxic Tommy' && state.arenaLocked) {
     // Tommy's arena has no ceiling: follow high jumps

@@ -10,14 +10,15 @@ import {
   JUMP_HOLD_FRAMES, COYOTE_AIR_FRAMES, COYOTE_JUMP_FRAMES, JUMP_BUFFER_FRAMES, LANDING_SHAKE_SPEED,
   CHARGE_SPEED, CHARGE_DURATION, SLIDE_SPEED, SLIDE_DURATION, COOLDOWN_CHARGE,
   UPPERCUT_SPEED, UPPERCUT_DURATION, COOLDOWN_UPPERCUT, DIVEKICK_SPEED, DIVEKICK_ANGLE,
-  PLAYER_MASS, RECOIL_FRAMES, PLAYER_STUN_INVINCIBILITY, GML_SCALE, SPECIAL_HURT_FRAMES, ARENA_LEFT, ARENA_RIGHT,
+  PLAYER_MASS, RECOIL_FRAMES, PLAYER_STUN_INVINCIBILITY, GML_SCALE, SPECIAL_HURT_FRAMES, ARENA_LEFT, getArenaRight,
+  OSCAR_OIL_SPEED_MULT, OSCAR_OIL_JUMP_MULT,
 } from '../../constants';
-import { STAGES_SET_1 } from '../../stages';
 import { FrameContext } from '../context';
 import { GameState, shakeScreen } from '../state';
 import { Controls } from '../input';
 import { fireWeapon, updateFlamethrower } from '../weapons';
 import { rectsOverlap, boundsOf } from '../utils';
+import { isStandingInOil } from './oscar';
 
 export interface FrameInput {
   shoot: boolean;
@@ -115,6 +116,7 @@ export const tickPlayerTimers = (ctx: FrameContext, input: FrameInput) => {
   if (player.chargeCooldown > 0) player.chargeCooldown--;
   if (player.uppercutCooldown > 0) player.uppercutCooldown--;
   if (player.filthShieldTimer && player.filthShieldTimer > 0) player.filthShieldTimer--;
+  if (player.taserOverloadTimer && player.taserOverloadTimer > 0) player.taserOverloadTimer--;
 
   // Jump buffer: a press is remembered for a few frames
   if (input.jumpPressed) player.jumpBufferTimer = JUMP_BUFFER_FRAMES;
@@ -276,7 +278,9 @@ const updateHorizontalVelocity = (ctx: FrameContext, movDir: number) => {
   const { player } = state;
   if (isPerformingSpecial(ctx) || player.lockTimer > 0 || player.pushbackTimer > 0) return;
 
-  const targetVel = movDir * PLAYER_MOVE_SPEED;
+  // Oily Oscar's oil: slow, slippery going (a shoulder charge gets you out)
+  const inOil = isStandingInOil(state);
+  const targetVel = movDir * PLAYER_MOVE_SPEED * (inOil ? OSCAR_OIL_SPEED_MULT : 1);
   const effectiveDir = player.isDucking ? 0 : movDir;
   // Tommy's floating boards aren't terrain blocks, so count being grounded in his arena as a floor too
   const onFloor = standingOnSolid(state) || (stageId === 'Toxic Tommy' && state.arenaLocked && player.isGrounded);
@@ -285,7 +289,8 @@ const updateHorizontalVelocity = (ctx: FrameContext, movDir: number) => {
   let friction = onFloor ? PLAYER_FRICTION_BASE * surfaceFriction : PLAYER_AIR_FRICTION;
   if (player.isDucking && player.isGrounded) friction *= CROUCH_SLIDE_FRICTION_MULT;
   // Sticky surfaces (multiplier > 1) also slow acceleration, like the GML version
-  const accel = Math.min(0.5, Math.max(0.005, PLAYER_ACCEL_BASE / (surfaceFriction > 1 ? surfaceFriction * surfaceFriction : 1)));
+  let accel = Math.min(0.5, Math.max(0.005, PLAYER_ACCEL_BASE / (surfaceFriction > 1 ? surfaceFriction * surfaceFriction : 1)));
+  if (inOil) { friction = 0.03; accel = 0.04; }
 
   const lerpTo = (target: number, t: number) => { player.vel.x += (target - player.vel.x) * t; };
   if (effectiveDir !== 0) {
@@ -313,7 +318,7 @@ export const updatePlayerPhysics = (ctx: FrameContext, input: FrameInput) => {
 
   if (player.pos.x < 50) player.pos.x = 50;
   // Safety net: nothing can push you out through the walls of a locked boss arena
-  if (state.arenaLocked) player.pos.x = Math.max(ARENA_LEFT, Math.min(ARENA_RIGHT - player.width, player.pos.x));
+  if (state.arenaLocked) player.pos.x = Math.max(ARENA_LEFT, Math.min(getArenaRight(ctx.stageId) - player.width, player.pos.x));
   // Footstep dust while running
   if (player.isGrounded && !isPerformingSpecial(ctx) && Math.abs(player.vel.x) > PLAYER_MOVE_SPEED * 0.6 && state.playerAnimFrame % 11 === 0) {
     spawnDust(state, player.pos.x + player.width / 2 - Math.sign(player.vel.x) * 10, player.pos.y + player.height, 2, -Math.sign(player.vel.x));
@@ -349,7 +354,8 @@ const updateVerticalVelocity = (ctx: FrameContext, input: FrameInput) => {
   // Start a jump (buffered press + coyote time)
   if (player.jumpBufferTimer > 0 && player.coyoteJumpTimer > 0 && !player.isDucking && !player.isTasing) {
     player.jumpBufferTimer = 0;
-    player.jumpHoldTimer = JUMP_HOLD_FRAMES;
+    // Oil underfoot: your feet slip and you barely get off the ground
+    player.jumpHoldTimer = isStandingInOil(ctx.state) ? Math.round(JUMP_HOLD_FRAMES * OSCAR_OIL_JUMP_MULT) : JUMP_HOLD_FRAMES;
     player.squash = -0.5; // stretch on take-off
     player.isGrounded = false;
     player.coyoteAirTimer = 0;
@@ -377,20 +383,14 @@ const collidesWithSolid = (state: GameState, box: Rect) =>
 const standingOnSolid = (state: GameState) =>
   collidesWithSolid(state, { ...boundsOf(state.player), y: state.player.pos.y + 1 });
 
-/** Touching the closed boss door starts the boss transition (or clears unfinished stages). */
+/** Touching the closed boss door starts the boss transition. */
 const checkBossDoor = (ctx: FrameContext) => {
-  const { state, stageId, fx, events } = ctx;
+  const { state, fx, events } = ctx;
   const { player } = state;
   if (state.doorState !== 'closed') return;
   const door = state.blocks.find(b => b.type === 'door');
   if (!door || !rectsOverlap(boundsOf(player), door)) return;
 
-  // Set 1 stages without a finished boss fight are cleared just by reaching the door
-  const isSet1 = STAGES_SET_1.some(s => s.id === stageId);
-  if (isSet1 && stageId !== 'Drug Trade Dale' && stageId !== 'Blackout Barry' && stageId !== 'Toxic Tommy') {
-    events.onBossDefeated(stageId || "");
-    return;
-  }
   state.doorState = 'opening';
   player.vel.x = 0;
   player.vel.y = 0;

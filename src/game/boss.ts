@@ -116,6 +116,7 @@ export const checkIsWeakness = (stageId: string | null, currentWeapon: WeaponTyp
     if (stageId === 'Drug Trade Dale' && currentWeapon === 'SLUDGE') return true;
     if (stageId === 'Blackout Barry' && currentWeapon === 'NEEDLES') return true;
     if (stageId === 'Toxic Tommy' && currentWeapon === 'OIL_ROCKET') return true;
+    if (stageId === 'Oily Oscar' && currentWeapon === 'TASER') return true;
     return false;
   }
   if (stageId === 'Hector Hurricane' && p.isBoulder) return true;
@@ -155,6 +156,7 @@ export const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness:
   state.tsunamiActive = false;
   state.tsunamiX = -1;
   state.tommySludgeOiledTimer = 0;
+  state.oilCells = [];
 
   // Clear lingering effects like puke shield, stream, taser, etc. when stage/boss is cleared
   resetPlayerCombatState(state.player);
@@ -222,7 +224,9 @@ export const updateBossAI = (
     handleTommyAI(boss, player, invincibilityEnabled, state, helpers);
   }
 
-  if (boss.bossState !== 'stunned_drop' && stageId !== 'Drug Trade Dale' && stageId !== 'Blackout Barry' && stageId !== 'Toxic Tommy') {
+  // Oscar, Dale, Barry and Tommy move themselves
+  const selfPropelled = ['Drug Trade Dale', 'Blackout Barry', 'Toxic Tommy', 'Oily Oscar'].includes(stageId || '');
+  if (boss.bossState !== 'stunned_drop' && !selfPropelled) {
     const gravityMult = (stageId === 'Artie Avalanche' || (stageId === 'Ernie Earthquake' && !boss.isGroundedBoss)) ? 0.5 : 1.0;
     boss.vel.y += GRAVITY * gravityMult; 
     boss.pos.x += boss.vel.x; 

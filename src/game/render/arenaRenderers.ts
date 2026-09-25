@@ -1,4 +1,4 @@
-import { ARENA_LEFT, ARENA_RIGHT, GROUND_Y } from '../../constants';
+import { ARENA_LEFT, GROUND_Y, getArenaRight } from '../../constants';
 
 /** Decorative backdrops for each boss arena (drawn in world coordinates). */
 export const drawCustomBossArena = (
@@ -9,7 +9,7 @@ export const drawCustomBossArena = (
   windTargetX: number | null = null
 ) => {
   const arenaLeft = ARENA_LEFT;
-  const arenaRight = ARENA_RIGHT;
+  const arenaRight = getArenaRight(stageId);
   const arenaW = arenaRight - arenaLeft;
   const groundY = GROUND_Y;
   const ceilingY = 100;
@@ -1228,8 +1228,10 @@ const drawOscarArena = (
     ctx.fill();
   });
 
-  // Background Cracking Vessel
-  const vesselX = left + w / 2;
+  // Background Cracking Vessels (one per screen of arena)
+  const vesselCount = Math.max(1, Math.round(w / 720));
+  for (let v = 0; v < vesselCount; v++) {
+  const vesselX = left + (w / vesselCount) * (v + 0.5);
   ctx.fillStyle = '#1e1310';
   ctx.fillRect(vesselX - 55, top + 110, 110, bottom - top - 110);
   ctx.strokeStyle = '#3e2723';
@@ -1253,6 +1255,30 @@ const drawOscarArena = (
   const needleAng = (frame * 0.05) % (Math.PI * 1.2) - 0.6;
   ctx.lineTo(vesselX + Math.cos(needleAng) * 9, top + 150 + Math.sin(needleAng) * 9);
   ctx.stroke();
+  }
+
+  // NO SMOKING signs (he doesn't care)
+  for (let v = 0; v < vesselCount; v++) {
+    const sx = left + (w / vesselCount) * v + (w / vesselCount) * 0.25, sy = top + 190;
+    ctx.fillStyle = '#ECEFF1';
+    ctx.fillRect(sx - 22, sy - 22, 44, 56);
+    ctx.fillStyle = '#FAFAFA';
+    ctx.fillRect(sx - 10, sy - 2, 18, 5);
+    ctx.fillStyle = '#FF7043';
+    ctx.fillRect(sx + 8, sy - 2, 3, 5);
+    ctx.strokeStyle = '#D32F2F';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(sx, sy, 16, 0, Math.PI * 2);
+    ctx.moveTo(sx - 11, sy - 11);
+    ctx.lineTo(sx + 11, sy + 11);
+    ctx.stroke();
+    ctx.fillStyle = '#212121';
+    ctx.font = 'bold 6px "Press Start 2P"';
+    ctx.textAlign = 'center';
+    ctx.fillText('NO', sx, sy + 24);
+    ctx.fillText('SMOKING', sx, sy + 31);
+  }
 
   // 3. Dense Rusted Pipe Network Across Upper Wall
   ctx.fillStyle = '#3e2723';
@@ -1262,7 +1288,8 @@ const drawOscarArena = (
   ctx.strokeRect(left, top + 75, w, 16);
 
   // Vertical pipe feeds
-  const pipeXs = [left + 260, left + 460];
+  const pipeXs: number[] = [];
+  for (let px = left + 260; px < right - 150; px += 200) pipeXs.push(px);
   pipeXs.forEach((px) => {
     ctx.fillStyle = '#2c1d18';
     ctx.fillRect(px - 10, top + 75, 20, bottom - top - 75);
@@ -1300,24 +1327,17 @@ const drawOscarArena = (
   drawRefineryColumn(left);
   drawRefineryColumn(right - 24);
 
-  // 5. Iridescent Petroleum Oil Slick on Floor
-  ctx.fillStyle = '#140c0a';
+  // 5. Steel grating walkway along the floor (real oil slicks are drawn on top of it)
+  ctx.fillStyle = '#2b211d';
   ctx.fillRect(left, bottom - 14, w, 14);
-
-  // Rainbow oil sheen gradient
-  const rainbowSlick = ctx.createLinearGradient(left, bottom - 12, right, bottom - 12);
-  rainbowSlick.addColorStop(0, 'rgba(255, 0, 128, 0.4)');
-  rainbowSlick.addColorStop(0.25, 'rgba(0, 255, 255, 0.5)');
-  rainbowSlick.addColorStop(0.5, 'rgba(255, 255, 0, 0.45)');
-  rainbowSlick.addColorStop(0.75, 'rgba(128, 0, 255, 0.5)');
-  rainbowSlick.addColorStop(1, 'rgba(0, 255, 128, 0.4)');
-  ctx.fillStyle = rainbowSlick;
-  ctx.fillRect(left, bottom - 10, w, 6);
-
-  // Black crude puddles
-  ctx.fillStyle = '#070403';
+  ctx.strokeStyle = '#3e302a';
+  ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.ellipse(left + 220, bottom - 4, 45, 4, 0, 0, Math.PI * 2);
-  ctx.ellipse(left + 500, bottom - 4, 60, 5, 0, 0, Math.PI * 2);
-  ctx.fill();
+  for (let gx = left; gx < right; gx += 12) {
+    ctx.moveTo(gx, bottom - 14);
+    ctx.lineTo(gx + 8, bottom);
+  }
+  ctx.stroke();
+  ctx.fillStyle = '#5d4037';
+  ctx.fillRect(left, bottom - 15, w, 2);
 };

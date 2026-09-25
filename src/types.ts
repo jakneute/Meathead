@@ -104,6 +104,8 @@ export interface Player extends Entity {
   isTasing?: boolean;
   taserTargetId?: string | null;
   taserTimer?: number;
+  /** Frames until the taser works again (it overloads after bursting Oily Oscar). */
+  taserOverloadTimer?: number;
   // Sludge
   barfTimer?: number;
 }
@@ -113,7 +115,8 @@ export type BossState =
   | 'truck_incoming' | 'using_shipment' | 'speed_dash' | 'shooting' | 'teleporting'
   | 'blackout' | 'blackout_teleport' | 'ground_pound' | 'lightning_storm' | 'exhausted'
   | 'submerged_chase' | 'telegraph_emerge' | 'emerge_shatter' | 'puke_closing_in'
-  | 'puke_going_outward' | 'vulnerable_idle' | 'dive_in_sludge' | 'weakness_stunned';
+  | 'puke_going_outward' | 'vulnerable_idle' | 'dive_in_sludge' | 'weakness_stunned'
+  | 'aiming' | 'flicking' | 'taser_held' | 'ash_face';
 
 export interface Enemy extends Entity {
   enemyType: 'drone' | 'tank' | 'turret' | 'flyer' | 'shield';
@@ -165,6 +168,20 @@ export interface Enemy extends Entity {
   pukeType?: 'closing_in' | 'going_outward';
   pukeDir?: number;
   emergeY?: number;
+  // Oily Oscar
+  oscarFacing?: 1 | -1;
+  slideTargetX?: number;
+  aimX?: number;              // where the laser sight points (world)
+  aimY?: number;
+  lockProgress?: number;      // 0..1, fires at 1
+  aimFrames?: number;
+  hasCigarette?: boolean;
+  impactX?: number;           // where his last rocket hit (the cigarette goes there)
+  impactY?: number;
+  taserHold?: number;         // frames held by the taser
+  taserHeldThisFrame?: boolean;
+  taserGrace?: number;
+  fireHurtTimer?: number;
 }
 
 export interface TommyBoard {
@@ -194,6 +211,10 @@ export interface Projectile extends Entity {
   isMethBarrel?: boolean;
   isSludge?: boolean;
   isOilRocket?: boolean;
+  isOscarRocket?: boolean;
+  isCigarette?: boolean;
+  /** Frames the taser has been on this cigarette. */
+  zapFrames?: number;
   isDarkness?: boolean;
   isLingering?: boolean;
   isSliding?: boolean;
@@ -219,6 +240,21 @@ export interface FlameSegment {
   life: number;
   alpha: number;
   density: number;
+}
+
+/** A strip of oil left on a floor, ceiling or wall by Oily Oscar's rockets. */
+export interface OilCell {
+  surface: 'floor' | 'ceiling' | 'left' | 'right';
+  index: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  life: number;
+  /** Frames of fire left (0 = not burning). */
+  burn: number;
+  /** Frames until fire spreading from a neighbour reaches it (-1 = none coming). */
+  igniteIn: number;
 }
 
 export type BlockType = 'wall' | 'ground' | 'platform' | 'door' | 'pit';

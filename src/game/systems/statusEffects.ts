@@ -9,6 +9,7 @@ import {
 import { FrameContext, killBoss } from '../context';
 import { updateBossAI, getBossDamage, checkIsWeakness, isTommyShielded, maybeReactToWeapon } from '../boss';
 import { fireWeapon, findTaserTarget } from '../weapons';
+import { updateOscar, holdOscarWithTaser, zapCigarette, findFlyingCigarette } from './oscar';
 import { FrameInput, hasAmmo } from './player';
 
 /**
@@ -19,7 +20,8 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
   const { state, fx, stageId, currentWeapon, cheats } = ctx;
   const { player, enemies, projectiles } = state;
 
-  if (!(currentWeapon === 'TASER' && input.shoot && hasAmmo(ctx, 'TASER'))) {
+  const overloaded = (player.taserOverloadTimer || 0) > 0;
+  if (!(currentWeapon === 'TASER' && input.shoot && hasAmmo(ctx, 'TASER')) || overloaded) {
     player.isTasing = false;
     player.taserTargetId = null;
     player.taserTimer = 0;
@@ -41,6 +43,9 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
     const nearest = findTaserTarget(state);
     if (nearest) player.taserTargetId = nearest.id;
   }
+  // Oily Oscar's flicked cigarette steals the lock from anything else
+  const cigarette = findFlyingCigarette(state);
+  if (cigarette) player.taserTargetId = cigarette.id;
 
   const target: Enemy | Projectile | undefined = enemies.find(e => e.id === player.taserTargetId) || projectiles.find(p => p.id === player.taserTargetId);
   if (target && (target.pos.x + target.width < state.camera.x || target.pos.x > state.camera.x + CANVAS_WIDTH)) {
@@ -55,8 +60,18 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
     return;
   }
 
+  if ((target as Projectile).isCigarette) {
+    zapCigarette(ctx, target as Projectile);
+    return;
+  }
+
   if (target.type === 'boss') {
     const boss = target as Enemy;
+    // Oscar's weakness works differently: the taser holds him until it bursts
+    if (stageId === 'Oily Oscar') {
+      holdOscarWithTaser(ctx, boss);
+      return;
+    }
     if (boss.hitCooldown && boss.hitCooldown > 0) return;
     if (stageId === 'Toxic Tommy' && isTommyShielded(boss, state)) {
       fx.spawnExplosion(boss.pos, '#27AE60', 4, 0, 3);
@@ -169,7 +184,10 @@ export const updateEnemyStatusEffects = (ctx: FrameContext) => {
     }
 
     if (e.type === 'boss') {
-      if (e.health > 0 && state.arenaLocked) updateBossAI(e, stageId, player, currentWeapon, cheats.invincible, state, ctx.bossHelpers);
+      if (e.health > 0 && state.arenaLocked) {
+        updateBossAI(e, stageId, player, currentWeapon, cheats.invincible, state, ctx.bossHelpers);
+        if (stageId === 'Oily Oscar' && e.health > 0) updateOscar(ctx, e);
+      }
     } else if (((e.frozenTimer && e.frozenTimer > 0) || (e.isTased && player.isTasing && player.taserTargetId === e.id)) && (e.pauseTimer || 0) <= 0) {
       e.vel.x = 0;
       e.vel.y = 0;

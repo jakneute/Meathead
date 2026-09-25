@@ -151,6 +151,12 @@ export const BOSS_DIALOGUE: {
     ]
   },
   SPECIFIC_HAZARD_HURT: {
+    'fire': [
+      "MY LEG HAIR IS ON FIRE, OSCAR!",
+      "I'M GETTING CHARBROILED OVER HERE!",
+      "HOT FOOT! HOT FOOT! HOT FUCKING FOOT!",
+      "A GREASE FIRE ON MY GLUTES?! YOU'RE DEAD, OSCAR!"
+    ],
     'steam': [
       "HOT STEAM IN MY FACE! STOP SCALDING THE MERCHANDISE!",
       "MY SKIN IS PEELING FROM THAT STEAM VENT!",
@@ -302,6 +308,14 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
  * What each boss might shout when hit by each of Meathead's weapons.
  * Weakness combos sound panicked; everything else is trash talk.
  */
+/** Oily Oscar's lines for his taser weakness and his cigarette. */
+export const OSCAR_LINES = {
+  HELD: ["HEY! HANDS OFF THE MERCHANDISE!", "I'M GROUNDED! LITERALLY GROUNDED!", "THAT TICKLES... THAT BURNS... THAT TICKLES!"],
+  BURST: ["MY FILLINGS! MY BEAUTIFUL GOLD FILLINGS!", "THAT ONE WENT RIGHT THROUGH THE GREASE!", "YOU FRIED MY GAUGES, PAL!"],
+  ASH: ["*COUGH* ...THAT WAS MY LAST SMOKE.", "THE SURGEON GENERAL WARNED ME ABOUT THIS.", "MY EYEBROWS! I JUST HAD 'EM WAXED!"],
+  IGNITE: ["LIGHT 'EM UP!", "SMOKING SECTION'S OPEN, FRIEND!", "NOTHING BEATS AN AFTER-DINNER FIRE!"],
+};
+
 export const BOSS_WEAPON_REACTIONS: Record<string, Record<WeaponType, string[]>> = {
   'Artie Avalanche': {
     GUN: ["A PEASHOOTER? HOW QUAINT.", "BULLETS CHIP ICE, NOT MY EGO.", "IS THAT ALL YOUR TINY GUN CAN DO?"],

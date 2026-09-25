@@ -34,6 +34,12 @@ export const BOSS_DOOR_X = 7200;
 export const DOOR_WIDTH = 40;
 export const ARENA_LEFT = BOSS_DOOR_X + DOOR_WIDTH;
 export const ARENA_RIGHT = 7960;
+/** Oily Oscar's refinery is twice as wide as a normal boss room, so the camera scrolls inside it. */
+export const OSCAR_ARENA_RIGHT = ARENA_RIGHT + (ARENA_RIGHT - ARENA_LEFT);
+/** Inner face of the arena's right wall. */
+export const getArenaRight = (stageId: string | null) => stageId === 'Oily Oscar' ? OSCAR_ARENA_RIGHT : ARENA_RIGHT;
+/** Where the level ends (the outside of the arena's right wall). */
+export const getStageWidth = (stageId: string | null) => stageId === 'Oily Oscar' ? OSCAR_ARENA_RIGHT + 40 : STAGE_WIDTH;
 
 // ==========================================
 // 3. PLAYER CORE STATS
@@ -225,6 +231,7 @@ export const TASER_TICK_RATE = 6;
 export const TASER_AMMO_CONSUMPTION_RATE = 5;
 export const TASER_FIRE_THRESHOLD = 120;
 export const TASER_BOSS_DAMAGE_REDUCTION = 0.5;
+export const TASER_OVERLOAD_FRAMES = 300;   // taser is unusable after bursting Oily Oscar
 
 // SLUDGE BARFER (TOMMY)
 export const SLUDGE_DAMAGE = 12; 
@@ -282,6 +289,34 @@ export const TOMMY_TELEGRAPH_RAMP = 10;          // frames shaved off at 0 HP
 
 // BLACKOUT BARRY: a mild speed-up as he loses health
 export const BARRY_SPEEDUP_AT_ZERO_HP = 0.2;     // his phases run up to 20% faster
+
+// OILY OSCAR
+export const OSCAR_IDLE_FRAMES = 70;           // repositioning between attacks (shrinks as he loses health)
+export const OSCAR_IDLE_RAMP = 25;             // frames shaved off at 0 HP
+export const OSCAR_SLIDE_SPEED = 4.5;          // his greasy repositioning slide
+export const OSCAR_PREFERRED_DISTANCE = 380;   // how far from Meathead he likes to shoot from
+export const OSCAR_LOCK_FRAMES = 75;           // laser on your feet this long (while you're grounded) = fire
+export const OSCAR_MAX_AIM_FRAMES = 300;       // fires anyway after this long
+export const OSCAR_ROCKET_SPEED = 15;
+export const OSCAR_SPLASH_RADIUS = 105;
+export const OSCAR_SPLASH_DAMAGE = 18;
+export const OSCAR_OIL_RADIUS = 165;           // walls/floor/ceiling this close to the blast get oiled
+export const OSCAR_OIL_CELL = 24;              // oil is tracked in strips this long
+export const OSCAR_OIL_FRAMES = 720;           // unlit oil dries up after this long
+export const OSCAR_OIL_SPEED_MULT = 0.35;      // walking speed on oil
+export const OSCAR_OIL_JUMP_MULT = 0.35;       // jump height on oil (you have to dash out)
+export const OSCAR_FLICK_WINDUP = 40;
+export const OSCAR_CIGARETTE_FLIGHT = 60;      // frames the flicked cigarette is in the air
+export const OSCAR_CIGARETTE_GRAVITY = 0.3;
+export const OSCAR_FIRE_FRAMES = 240;          // how long each strip of oil burns
+export const OSCAR_FIRE_SPREAD_DELAY = 4;      // frames for fire to jump to the next strip
+export const OSCAR_FIRE_DAMAGE = 8;
+export const OSCAR_TASER_HOLD_FRAMES = 150;    // hold him this long and the taser bursts
+export const OSCAR_TASER_RELEASE_GRACE = 8;    // beam can flicker off this long without letting go
+export const OSCAR_BURST_DAMAGE = 140;
+export const OSCAR_CIGARETTE_ZAP_FRAMES = 6;   // taser contact before the cigarette blows
+export const OSCAR_CIGARETTE_COMBO_DAMAGE = 200;
+export const OSCAR_ASH_FACE_FRAMES = 130;
 
 // DRUG TRADE DALE
 export const DALE_TRUCK_SPEED = 11;

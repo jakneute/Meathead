@@ -1,6 +1,6 @@
 import {
   Player, Enemy, Projectile, Particle, Pickup, DamageNumber, Block, Volcano,
-  SteamExplosion, PoopTelegraph, TommyBoard, Vector2, WeaponType, FlameSegment,
+  SteamExplosion, PoopTelegraph, TommyBoard, Vector2, WeaponType, FlameSegment, OilCell,
 } from '../types';
 import { INITIAL_PLAYER_HEALTH, SCREEN_SHAKE_MAX } from '../constants';
 import { resetLineCooldowns } from './speech';
@@ -72,6 +72,9 @@ export interface GameState {
   tommySludgeY: number;
   tommySludgeOiledTimer: number;
   tommyScrollY: number;
+
+  /** Oily Oscar's oil slicks (and the fire on them). */
+  oilCells: OilCell[];
 
   playerStunTimer: number;
   screenShakeTimer: number;
@@ -192,6 +195,7 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
   tommySludgeY: TOMMY_SLUDGE_Y,
   tommySludgeOiledTimer: 0,
   tommyScrollY: 0,
+  oilCells: [],
   playerStunTimer: 0,
   screenShakeTimer: 0,
   screenShakeMagnitude: DEFAULT_SHAKE,
@@ -206,6 +210,7 @@ export const resetPlayerCombatState = (player: Player) => {
   player.isTasing = false;
   player.taserTargetId = null;
   player.taserTimer = 0;
+  player.taserOverloadTimer = 0;
   player.isCharging = false;
   player.isUppercutting = false;
   player.isDivekicking = false;
@@ -264,6 +269,7 @@ export const resetStageState = (s: GameState) => {
   s.tommySludgeY = TOMMY_SLUDGE_Y;
   s.tommySludgeOiledTimer = 0;
   s.tommyScrollY = 0;
+  s.oilCells = [];
 
   s.playerStunTimer = 0;
   s.screenShakeTimer = 0;

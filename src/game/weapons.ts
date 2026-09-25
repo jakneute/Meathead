@@ -16,6 +16,7 @@ import { GameState } from './state';
 import { FrameContext, killBoss } from './context';
 import { getBossDamage, checkIsWeakness, artieWeaknessLeap, speakAsBoss, maybeReactToWeapon } from './boss';
 import { pickRandom, rectsOverlap, boundsOf } from './utils';
+import { findFlyingCigarette } from './systems/oscar';
 
 /** The bits of this frame's input that weapons care about. */
 export interface WeaponInput {
@@ -359,6 +360,9 @@ export const findTaserTarget = (state: GameState): Enemy | Projectile | null => 
   const { player, camera } = state;
   const playerMidX = player.pos.x + player.width / 2;
   const playerMidY = player.pos.y + player.height / 2;
+  // Oily Oscar's flicked cigarette takes priority over everything
+  const cigarette = findFlyingCigarette(state);
+  if (cigarette) return cigarette;
   let nearest: Enemy | Projectile | null = null;
   let minDist = TASER_RANGE;
 

@@ -7,6 +7,9 @@ import { GameState } from '../state';
 import { drawCustomBossArena } from './arenaRenderers';
 import { drawBoss, drawDaleDrugs } from './bossRenderer';
 import { drawPlayer } from './playerRenderer';
+import {
+  drawOilSlicks, drawOscarFire, drawOscarGear, drawOscarLaser, drawOscarRocket, drawFlyingCigarette, drawTaserOverload,
+} from './oscarRenderer';
 
 export interface WorldView {
   status: GameStatus;
@@ -47,6 +50,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     drawCustomBossArena(ctx, stageId, state.frame || 0, hurricane ? hurricane.pos.x + hurricane.width / 2 : null);
   }
   drawBossHazards(ctx, state);
+  drawOilSlicks(ctx, state);
   state.pickups.forEach(p => drawPickup(ctx, p));
   drawEnemies(ctx, state, view);
   if (stageId === 'Toxic Tommy' && state.arenaLocked && state.tommyBoards) drawTommyPool(ctx, state);
@@ -56,8 +60,11 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
       showFilthShield: status === GameStatus.PLAYING,
       invincibilityEnabled: view.invincibilityEnabled,
     });
+    drawTaserOverload(ctx, state.player, state.frame);
     drawPlayerSpeech(ctx, state);
   }
+  drawOscarFire(ctx, state);
+  drawOscarLaser(ctx, state);
   if (state.player.isTasing && state.player.currentWeapon === 'TASER') drawTaserBeam(ctx, state);
   drawProjectiles(ctx, state);
   drawParticlesAndDamageNumbers(ctx, state);
@@ -293,7 +300,10 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
       ctx.filter = (ctx.filter && ctx.filter !== 'none' ? ctx.filter + ' ' : '') + 'brightness(0.4) contrast(1.2)';
     }
     if (e.type === 'boss') {
-      if (state.bossExplosionTimer <= 0) drawBoss(ctx, e, stageId, state.frame);
+      if (state.bossExplosionTimer <= 0) {
+        drawBoss(ctx, e, stageId, state.frame);
+        if (stageId === 'Oily Oscar') drawOscarGear(ctx, e, state.frame);
+      }
       const curT = (status === GameStatus.BOSS_INTRO && bossTauntText) ? bossTauntText : (state.bossVulgarityTimer > 0 ? state.bossLastVulgarity : null);
       if (curT && state.bossExplosionTimer <= 0) { ctx.save(); ctx.font = 'bold 12px "Press Start 2P"'; ctx.fillStyle = 'white'; ctx.shadowColor = 'black'; ctx.shadowBlur = 6; ctx.textAlign = 'center'; ctx.fillText(curT, e.pos.x + e.width / 2, e.pos.y - 30); ctx.restore(); }
       drawDaleDrugs(ctx, e, state.frame);
@@ -818,6 +828,8 @@ const drawProjectiles = (ctx: CanvasRenderingContext2D, state: GameState) => {
       ctx.beginPath(); ctx.arc(2, -4, 2, 0, Math.PI*2); ctx.fill();
       ctx.restore();
     }
+    else if (p.isOscarRocket) drawOscarRocket(ctx, p, state.frame);
+    else if (p.isCigarette) drawFlyingCigarette(ctx, p, state.frame);
     else if (p.isOilRocket) {
       ctx.save();
       ctx.translate(p.pos.x + p.width / 2, p.pos.y + p.height / 2);

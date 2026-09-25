@@ -1,5 +1,5 @@
 import { Block, Enemy, Rect, PickupType } from '../types';
-import { BOSS_DOOR_X, DOOR_WIDTH, STAGE_WIDTH, GROUND_Y, createFullAmmo } from '../constants';
+import { BOSS_DOOR_X, DOOR_WIDTH, GROUND_Y, createFullAmmo, getArenaRight, getStageWidth } from '../constants';
 import { isKnownStage } from '../stages';
 import { GameState, resetStageState } from './state';
 
@@ -24,6 +24,7 @@ export const buildLevel = (state: GameState, stageId: string | null, skipToBoss:
   state.tommySludgeY = 510;
   state.tommySludgeOiledTimer = 0;
   state.tommyScrollY = 0;
+  state.oilCells = [];
 
   state.blocks = buildTerrain(state, stageId);
   state.enemies = [
@@ -49,16 +50,17 @@ export const respawn = (state: GameState, stageId: string | null, skipToBoss: bo
 const buildTerrain = (state: GameState, stageId: string | null): Block[] => {
   const doorX = BOSS_DOOR_X;
   const isTommy = stageId === 'Toxic Tommy';
+  const stageWidth = getStageWidth(stageId);
 
   const blocks: Block[] = [
     { x: -100, y: -1000, w: 100, h: 2000, type: 'wall' },
-    { x: STAGE_WIDTH, y: -1000, w: 100, h: 2000, type: 'wall' },
-    { x: 0, y: -200, w: STAGE_WIDTH, h: 200, type: 'wall' },
+    { x: stageWidth, y: -1000, w: 100, h: 2000, type: 'wall' },
+    { x: 0, y: -200, w: stageWidth, h: 200, type: 'wall' },
     // Tommy's arena has no floor, just a sludge pool
-    { x: 0, y: GROUND_Y, w: isTommy ? doorX : STAGE_WIDTH, h: 50, type: 'ground' },
+    { x: 0, y: GROUND_Y, w: isTommy ? doorX : stageWidth, h: 50, type: 'ground' },
     { x: doorX, y: 400, w: DOOR_WIDTH, h: 150, type: 'door' },
     { x: doorX, y: -1000, w: DOOR_WIDTH, h: 1400, type: 'wall' },
-    { x: 7960, y: 100, w: 40, h: 500, type: 'wall' },
+    { x: getArenaRight(stageId), y: 100, w: 40, h: 500, type: 'wall' },
   ];
 
   if (isTommy) {
@@ -66,7 +68,7 @@ const buildTerrain = (state: GameState, stageId: string | null): Block[] => {
     blocks.push({ x: doorX, y: 480, w: 90, h: 70, type: 'ground' });
     state.tommyBoards = createTommyBoards();
   } else {
-    blocks.push({ x: doorX, y: 0, w: STAGE_WIDTH - doorX, h: 100, type: 'wall' });
+    blocks.push({ x: doorX, y: 0, w: stageWidth - doorX, h: 100, type: 'wall' });
   }
 
   const addPlatform = (p: Rect, pickupChance = 0) => {
@@ -165,5 +167,6 @@ const createBoss = (stageId: string): Enemy => {
     stateTimer: isTommy ? 120 : 60,
     truckX: 0,
     truckActive: false,
+    hasCigarette: true,
   };
 };

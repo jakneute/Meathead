@@ -13,6 +13,7 @@ import { BOSS_DIALOGUE } from '../../dialogue';
 import { FrameContext, killBoss } from '../context';
 import { getBossDamage, checkIsWeakness, isTommyShielded, stunTommyWithOil, artieWeaknessLeap, maybeReactToWeapon } from '../boss';
 import { explodeOilRocket } from '../weapons';
+import { updateOscarRocket, updateCigarette } from './oscar';
 import { pickRandom, rectsOverlap, boundsOf } from '../utils';
 import { getAttackHitbox } from './player';
 import { shakeScreen, GameState } from '../state';
@@ -38,6 +39,8 @@ export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
   }
   if (p.health <= 0) return false;
   if (p.isOilRocket) return updateOilRocket(ctx, p);
+  if (p.isOscarRocket) return updateOscarRocket(ctx, p);
+  if (p.isCigarette) return updateCigarette(ctx, p);
 
   // Filth shield swallows enemy shots
   if (p.owner === 'enemy' && player.filthShieldTimer && player.filthShieldTimer > 0) {
