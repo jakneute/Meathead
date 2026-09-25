@@ -125,7 +125,7 @@ export const STAGE_COLORS: Record<string, { ground: string, bg: string, accent: 
   'Toxic Tommy': { ground: '#27AE60', bg: '#091A0D', accent: '#ADFF2F' },
   'Blackout Barry': { ground: '#2C3E50', bg: '#000', accent: '#3498DB' },
   'Oily Oscar': { ground: '#3E2723', bg: '#1A110F', accent: '#212121' },
-  'Drug Trade Dale': { ground: '#8E44AD', bg: '#1D0C24', accent: '#FFFFFF' },
+  'Drug Trade Dale': { ground: '#B5703D', bg: '#2A1B3D', accent: '#40E0D0' },
 };
 
 export const WEAPON_NAMES: Record<string, string> = {

@@ -265,6 +265,7 @@ export const ERNIE_STOMP_VIBRATION_DURATION = 40;
 
 // DRUG TRADE DALE
 export const DALE_TRUCK_SPEED = 11;
+export const DALE_SPEED_WINDUP = 55;     // frames Dale spends injecting before his speed dash
 export const DALE_TRUCK_DAMAGE = 20;
 export const DALE_PUSHBACK_VEL = { x: 30, y: -15 };
 export const METH_BARREL_DAMAGE = 14;

@@ -4,7 +4,7 @@ import {
 import {
   BULLET_DAMAGE, BOULDER_SPEED, BOSS_DOOR_X,
   HECTOR_PULL_STRENGTH, GRAVITY,
-  DALE_TRUCK_SPEED, METH_BARREL_DAMAGE, HECTOR_PULL_STRENGTH_ULT,
+  DALE_TRUCK_SPEED, DALE_SPEED_WINDUP, METH_BARREL_DAMAGE, HECTOR_PULL_STRENGTH_ULT,
   TASER_BOSS_DAMAGE_REDUCTION, DALE_TRUCK_DAMAGE, DALE_PUSHBACK_VEL,
   BOSS_VULGARITY_DURATION, ERNIE_STOMP_VIBRATION_DURATION, BOSS_WEAPON_REACTION_CHANCE, BOSS_WEAPON_REACTION_COOLDOWN,
   TOMMY_PUKE_PUSHBACK_DURATION,
@@ -290,9 +290,15 @@ const handleDaleAI = (boss: Enemy, player: Player, invincibilityEnabled: boolean
       const drugs: ('cocaine' | 'speed' | 'meth')[] = ['cocaine', 'speed', 'meth'];
       boss.shipmentType = drugs[Math.floor(Math.random() * drugs.length)];
       boss.shipmentCount = boss.shipmentType === 'cocaine' ? 10 : (boss.shipmentType === 'meth' ? 5 : 1);
-      boss.stateTimer = 30;
+      // Speed gets a long, readable wind-up: he visibly shoots up before dashing
+      boss.stateTimer = boss.shipmentType === 'speed' ? DALE_SPEED_WINDUP : 30;
     }
   } else if (boss.bossState === 'using_shipment') {
+    // The needle goes in halfway through the speed wind-up
+    if (boss.shipmentType === 'speed' && boss.stateTimer === Math.floor(DALE_SPEED_WINDUP * 0.55)) {
+      helpers.playGunSound('dart');
+      helpers.setScreenShake(6);
+    }
     if (boss.stateTimer! <= 0) {
       if (boss.shipmentType === 'cocaine') {
         const rangeRoll = Math.random();

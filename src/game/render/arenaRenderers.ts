@@ -663,7 +663,9 @@ const drawHectorArena = (
 };
 
 /* =========================================================================
- * 5. DRUG TRADE DALE: NEON VICE PENTHOUSE & CARTEL EMPIRE
+ * 5. DRUG TRADE DALE: ALBUQUERQUE, NEW MEXICO AT DUSK
+ * Sandia Mountains glowing pink, mesas, Balloon Fiesta balloons, an adobe
+ * with chile ristras, a suspicious RV, and Route 66.
  * ========================================================================= */
 const drawDaleArena = (
   ctx: CanvasRenderingContext2D,
@@ -674,158 +676,297 @@ const drawDaleArena = (
   bottom: number,
   frame: number
 ) => {
-  // 1. Miami Vice Synthwave Sunset Skyline
-  const skyGrad = ctx.createLinearGradient(left, top, left, bottom);
-  skyGrad.addColorStop(0, '#10051e');
-  skyGrad.addColorStop(0.4, '#2d083a');
-  skyGrad.addColorStop(0.7, '#6b1164');
-  skyGrad.addColorStop(1, '#b02a64');
-  ctx.fillStyle = skyGrad;
+  // 1. High-desert dusk sky
+  const sky = ctx.createLinearGradient(left, top, left, bottom);
+  sky.addColorStop(0, '#1b1f4b');
+  sky.addColorStop(0.35, '#5a3a7a');
+  sky.addColorStop(0.62, '#e0735a');
+  sky.addColorStop(0.8, '#f7b267');
+  sky.addColorStop(1, '#f4d58d');
+  ctx.fillStyle = sky;
   ctx.fillRect(left, top, w, bottom - top);
 
-  // Sunset horizon grid
-  ctx.strokeStyle = 'rgba(255, 0, 128, 0.25)';
-  ctx.lineWidth = 1;
-  for (let y = top + 220; y < bottom; y += 22) {
-    ctx.beginPath();
-    ctx.moveTo(left, y);
-    ctx.lineTo(right, y);
-    ctx.stroke();
+  // First stars
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+  for (let i = 0; i < 18; i++) {
+    const sx = left + ((i * 97) % w);
+    const sy = top + 8 + ((i * 53) % 90);
+    if ((frame + i * 13) % 90 < 80) ctx.fillRect(sx, sy, 2, 2);
   }
 
-  // Skyline skyscraper silhouettes
-  const bldgWidths = [50, 40, 70, 45, 60, 55, 80, 50, 65, 45];
-  let curX = left + 30;
-  bldgWidths.forEach((bw, bIdx) => {
-    const bh = 90 + ((bIdx * 37) % 110);
-    ctx.fillStyle = '#0a0314';
-    ctx.fillRect(curX, bottom - bh, bw, bh);
-    // Glowing skyscraper windows
-    ctx.fillStyle = bIdx % 2 === 0 ? '#00ffff' : '#ff007f';
-    for (let wy = bottom - bh + 10; wy < bottom - 10; wy += 14) {
-      for (let wx = curX + 6; wx < curX + bw - 6; wx += 12) {
-        if ((wx + wy + bIdx) % 3 === 0) {
-          ctx.fillRect(wx, wy, 4, 6);
-        }
-      }
+  // Setting sun with heat-haze bands
+  const sunX = left + w * 0.68;
+  const sunY = bottom - 150;
+  const sunGlow = ctx.createRadialGradient(sunX, sunY, 10, sunX, sunY, 120);
+  sunGlow.addColorStop(0, 'rgba(255, 230, 150, 0.9)');
+  sunGlow.addColorStop(1, 'rgba(255, 160, 90, 0)');
+  ctx.fillStyle = sunGlow;
+  ctx.fillRect(sunX - 120, sunY - 120, 240, 240);
+  ctx.fillStyle = '#ffd27a';
+  ctx.beginPath(); ctx.arc(sunX, sunY, 34, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(240, 130, 90, 0.9)';
+  for (let b = 0; b < 4; b++) ctx.fillRect(sunX - 40, sunY + 6 + b * 8, 80, 2 + b);
+
+  // 2. Sandia Mountains: long ridge lit watermelon-pink
+  const ridge = (baseY: number, amp: number, seed: number, color: string) => {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(left, bottom);
+    for (let x = 0; x <= w; x += 12) {
+      const y = baseY - amp * (0.55 + 0.45 * Math.sin((x + seed) * 0.011)) - (Math.sin((x + seed) * 0.07) * 6) - ((x * 7 + seed) % 11);
+      ctx.lineTo(left + x, y);
     }
-    curX += bw + 8;
+    ctx.lineTo(right, bottom);
+    ctx.closePath();
+    ctx.fill();
+  };
+  ridge(bottom - 150, 90, 40, '#9c5b8f');
+  ridge(bottom - 120, 70, 300, '#c96f8a');
+  // Pink alpenglow along the crest
+  ctx.strokeStyle = 'rgba(255, 170, 190, 0.55)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let x = 0; x <= w; x += 12) {
+    const y = bottom - 120 - 70 * (0.55 + 0.45 * Math.sin((x + 300) * 0.011)) - (Math.sin((x + 300) * 0.07) * 6) - ((x * 7 + 300) % 11);
+    if (x === 0) ctx.moveTo(left, y); else ctx.lineTo(left + x, y);
+  }
+  ctx.stroke();
+
+  // 3. Mesas in the middle distance
+  const mesa = (mx: number, mw: number, mh: number) => {
+    ctx.fillStyle = '#8a4b3a';
+    ctx.beginPath();
+    ctx.moveTo(mx, bottom - 60);
+    ctx.lineTo(mx + 14, bottom - 60 - mh);
+    ctx.lineTo(mx + mw - 14, bottom - 60 - mh);
+    ctx.lineTo(mx + mw, bottom - 60);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#a65d45';
+    ctx.fillRect(mx + 14, bottom - 60 - mh, mw - 28, 6);
+    ctx.fillStyle = 'rgba(60, 25, 20, 0.35)';
+    for (let st = 1; st < 4; st++) ctx.fillRect(mx + 6 + st * 3, bottom - 60 - mh + st * (mh / 4), mw - 12 - st * 6, 2);
+  };
+  mesa(left + 150, 150, 55);
+  mesa(left + 470, 110, 40);
+  ctx.fillStyle = '#b87050';
+  ctx.fillRect(left, bottom - 60, w, 60);
+
+  // 4. Balloon Fiesta: hot-air balloons drifting and bobbing
+  const balloons: [number, number, string, string][] = [
+    [0.18, 150, '#e63946', '#ffd166'],
+    [0.5, 95, '#118ab2', '#f1faee'],
+    [0.82, 175, '#06d6a0', '#ef476f'],
+  ];
+  balloons.forEach(([fx, by, c1, c2], i) => {
+    const bx = left + ((fx * w + frame * (0.15 + i * 0.05)) % (w + 80)) - 40;
+    const bob = Math.sin(frame * 0.03 + i * 2) * 5;
+    const cy = top + by + bob;
+    ctx.save();
+    ctx.beginPath(); ctx.ellipse(bx, cy, 20, 24, 0, 0, Math.PI * 2); ctx.clip();
+    for (let st = -3; st <= 3; st++) {
+      ctx.fillStyle = st % 2 === 0 ? c1 : c2;
+      ctx.fillRect(bx + st * 7 - 3.5, cy - 26, 7, 52);
+    }
+    ctx.restore();
+    ctx.strokeStyle = '#3d2b1f';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(bx - 10, cy + 20); ctx.lineTo(bx - 5, cy + 34);
+    ctx.moveTo(bx + 10, cy + 20); ctx.lineTo(bx + 5, cy + 34);
+    ctx.stroke();
+    ctx.fillStyle = '#7a4e2d';
+    ctx.fillRect(bx - 6, cy + 34, 12, 8);
   });
 
-  // Palm tree silhouettes in foreground window
-  const drawPalm = (px: number) => {
-    ctx.fillStyle = '#06010a';
-    ctx.beginPath();
-    ctx.moveTo(px - 5, bottom);
-    ctx.quadraticCurveTo(px + 8, bottom - 70, px + 12, bottom - 140);
-    ctx.lineTo(px + 17, bottom - 140);
-    ctx.quadraticCurveTo(px + 13, bottom - 70, px + 5, bottom);
-    ctx.fill();
-
-    // Fronds
-    const frondAngles = [-1.8, -1.2, -0.6, 0, 0.6, 1.2, 1.8];
-    frondAngles.forEach((fa) => {
-      ctx.save();
-      ctx.translate(px + 14, bottom - 140);
-      ctx.rotate(fa);
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.quadraticCurveTo(25, -15, 55, 10);
-      ctx.quadraticCurveTo(25, 5, 0, 0);
-      ctx.fill();
-      ctx.restore();
-    });
-  };
-  drawPalm(left + 90);
-  drawPalm(right - 110);
-
-  // 2. Giant Glowing Neon Signage: "DALE'S CARTEL // VICE CITY"
-  const neonX = left + w / 2;
-  const neonY = top + 55;
+  // 5. Motel-style neon roadside sign
+  const signX = left + w / 2;
+  const signY = top + 36;
   ctx.save();
+  ctx.fillStyle = '#123a3a';
+  ctx.fillRect(signX - 150, signY - 22, 300, 52);
+  ctx.strokeStyle = '#40e0d0';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(signX - 150, signY - 22, 300, 52);
+  // Chasing bulbs around the edge
+  for (let i = 0; i < 30; i++) {
+    const onTop = i < 15;
+    const bx = signX - 145 + (i % 15) * 20.7;
+    const by = onTop ? signY - 22 : signY + 30;
+    ctx.fillStyle = (i + Math.floor(frame / 6)) % 3 === 0 ? '#fff4b0' : '#7a6a2a';
+    ctx.beginPath(); ctx.arc(bx, by, 2.5, 0, Math.PI * 2); ctx.fill();
+  }
   ctx.textAlign = 'center';
-  ctx.font = 'bold 22px "Press Start 2P", sans-serif';
-
-  // Neon pink glow
-  ctx.shadowColor = '#ff007f';
-  ctx.shadowBlur = 14;
-  ctx.fillStyle = '#ff69b4';
-  ctx.fillText("DALE'S EMPIRE", neonX, neonY);
-  ctx.shadowBlur = 0;
-
-  // Subtitle in neon cyan
-  ctx.font = 'bold 11px monospace';
-  ctx.shadowColor = '#00ffff';
+  ctx.font = 'bold 18px "Press Start 2P", sans-serif';
+  ctx.shadowColor = '#ff4f9a';
+  ctx.shadowBlur = 12;
+  ctx.fillStyle = Math.floor(frame / 45) % 8 === 0 ? '#7a2a4a' : '#ff6fb0'; // occasional flicker
+  ctx.fillText("DALE'S", signX, signY + 2);
+  ctx.shadowColor = '#40e0d0';
   ctx.shadowBlur = 8;
-  ctx.fillStyle = '#00ffff';
-  ctx.fillText("✦ CARTEL GLOBAL HEADQUARTERS ✦", neonX, neonY + 22);
+  ctx.fillStyle = '#7ff5ea';
+  ctx.font = 'bold 9px monospace';
+  ctx.fillText("PHARMACY * NO QUESTIONS * ALBUQUERQUE NM", signX, signY + 20);
   ctx.restore();
 
-  // 3. Bundles of Banded Cash in Warehouse Shadows
-  const drawCashPallet = (cx: number) => {
-    for (let r = 0; r < 3; r++) {
-      for (let c = 0; c < 4; c++) {
-        const bx = cx + c * 22;
-        const by = bottom - 14 - r * 14;
-        ctx.fillStyle = '#27ae60';
-        ctx.fillRect(bx, by, 20, 12);
-        ctx.strokeStyle = '#145a32';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(bx, by, 20, 12);
-        // Gold band
-        ctx.fillStyle = '#f1c40f';
-        ctx.fillRect(bx + 7, by, 6, 12);
-      }
+  // 6. Adobe building with vigas, ristras and turquoise trim (left)
+  const adX = left + 30, adW = 150, adH = 95, adY = bottom - adH;
+  ctx.fillStyle = '#c98b5b';
+  ctx.beginPath();
+  ctx.moveTo(adX, bottom); ctx.lineTo(adX, adY + 8);
+  ctx.quadraticCurveTo(adX + 4, adY, adX + 14, adY);
+  ctx.lineTo(adX + adW - 14, adY);
+  ctx.quadraticCurveTo(adX + adW - 4, adY, adX + adW, adY + 8);
+  ctx.lineTo(adX + adW, bottom);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = 'rgba(120, 70, 40, 0.3)';
+  ctx.fillRect(adX, bottom - 16, adW, 16);
+  // Vigas (roof beams poking out)
+  ctx.fillStyle = '#5b3a24';
+  for (let v = 0; v < 6; v++) ctx.fillRect(adX + 10 + v * 25, adY + 12, 10, 6);
+  // Turquoise door and window
+  ctx.fillStyle = '#2bb3a6';
+  ctx.fillRect(adX + 26, bottom - 50, 26, 50);
+  ctx.fillRect(adX + 88, adY + 32, 34, 24);
+  ctx.fillStyle = '#ffcf70';
+  ctx.fillRect(adX + 92, adY + 36, 26, 16);
+  // Red chile ristras hanging by the door
+  const ristra = (rx: number) => {
+    for (let k = 0; k < 7; k++) {
+      ctx.fillStyle = k % 2 ? '#c1121f' : '#9d0208';
+      ctx.beginPath(); ctx.ellipse(rx + (k % 2 ? 3 : -3), adY + 24 + k * 6, 4, 5, 0, 0, Math.PI * 2); ctx.fill();
     }
   };
-  drawCashPallet(left + 40);
-  drawCashPallet(right - 130);
+  ristra(adX + 16);
+  ristra(adX + 62);
 
-  // 4. Luxury Black Obsidian Pillars with Neon Strips
-  const drawDalePillar = (px: number) => {
-    ctx.fillStyle = '#0d0414';
-    ctx.fillRect(px, top, 24, bottom - top);
-    ctx.strokeStyle = '#d4ac0d';
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(px, top, 24, bottom - top);
-
-    // Glowing hot pink LED strip
-    ctx.shadowColor = '#ff007f';
-    ctx.shadowBlur = 6;
-    ctx.fillStyle = '#ff007f';
-    ctx.fillRect(px + 10, top + 20, 4, bottom - top - 40);
-    ctx.shadowBlur = 0;
-
-    // Security camera with blinking red LED
-    ctx.fillStyle = '#34495e';
-    ctx.fillRect(px + 4, top + 15, 16, 10);
-    const camBlink = Math.floor(frame / 20) % 2 === 0;
-    ctx.fillStyle = camBlink ? '#ff0000' : '#4a0000';
+  // 7. Beat-up RV with suspicious smoke (right)
+  const rvX = right - 210, rvY = bottom - 74;
+  ctx.fillStyle = '#e8dcc0';
+  ctx.fillRect(rvX, rvY, 170, 60);
+  ctx.fillStyle = '#8a5a2b';
+  ctx.fillRect(rvX, rvY + 30, 170, 8);
+  ctx.fillStyle = '#6b4a2a';
+  ctx.fillRect(rvX, rvY + 40, 170, 4);
+  ctx.fillStyle = '#e8dcc0';
+  ctx.beginPath(); ctx.moveTo(rvX + 170, rvY); ctx.lineTo(rvX + 190, rvY + 22); ctx.lineTo(rvX + 190, rvY + 60); ctx.lineTo(rvX + 170, rvY + 60); ctx.fill();
+  ctx.fillStyle = '#3c4f5c';
+  ctx.fillRect(rvX + 20, rvY + 10, 26, 16);
+  ctx.fillRect(rvX + 110, rvY + 10, 26, 16);
+  ctx.beginPath(); ctx.moveTo(rvX + 172, rvY + 6); ctx.lineTo(rvX + 186, rvY + 22); ctx.lineTo(rvX + 172, rvY + 22); ctx.fill();
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath(); ctx.arc(rvX + 35, bottom - 10, 11, 0, Math.PI * 2); ctx.arc(rvX + 150, bottom - 10, 11, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#777';
+  ctx.beginPath(); ctx.arc(rvX + 35, bottom - 10, 4, 0, Math.PI * 2); ctx.arc(rvX + 150, bottom - 10, 4, 0, Math.PI * 2); ctx.fill();
+  // Rust spots
+  ctx.fillStyle = 'rgba(140, 70, 30, 0.6)';
+  ctx.fillRect(rvX + 60, rvY + 48, 9, 5);
+  ctx.fillRect(rvX + 95, rvY + 4, 6, 4);
+  // Chemistry smoke puffing from the roof vent
+  ctx.fillStyle = '#555';
+  ctx.fillRect(rvX + 70, rvY - 8, 12, 8);
+  for (let k = 0; k < 5; k++) {
+    const age = (frame * 0.6 + k * 20) % 100;
+    ctx.fillStyle = `rgba(230, 230, 240, ${0.5 - age / 220})`;
     ctx.beginPath();
-    ctx.arc(px + 12, top + 20, 2.5, 0, Math.PI * 2);
+    ctx.arc(rvX + 76 + age * 0.35 + Math.sin(age * 0.1) * 4, rvY - 10 - age * 0.9, 5 + age * 0.12, 0, Math.PI * 2);
     ctx.fill();
-  };
-  drawDalePillar(left);
-  drawDalePillar(right - 24);
-
-  // 5. Polished Checkered Italian Marble Floor with Neon Reflections
-  const tileW = 28;
-  const tileH = 14;
-  for (let tx = left; tx < right; tx += tileW) {
-    const isAlt = Math.floor((tx - left) / tileW) % 2 === 0;
-    ctx.fillStyle = isAlt ? '#ffffff' : '#111111';
-    ctx.fillRect(tx, bottom - tileH, tileW, tileH);
-    ctx.strokeStyle = '#2c3e50';
-    ctx.lineWidth = 0.5;
-    ctx.strokeRect(tx, bottom - tileH, tileW, tileH);
   }
 
-  // Neon floor sheen
-  const sheenGrad = ctx.createLinearGradient(left, bottom - tileH, left, bottom);
-  sheenGrad.addColorStop(0, 'rgba(255, 0, 128, 0.35)');
-  sheenGrad.addColorStop(1, 'transparent');
-  ctx.fillStyle = sheenGrad;
-  ctx.fillRect(left, bottom - tileH, w, tileH);
+  // 8. Route 66 shield on a post
+  const r66X = left + w / 2 + 10;
+  ctx.fillStyle = '#5b4a3a';
+  ctx.fillRect(r66X - 2, bottom - 70, 4, 70);
+  ctx.fillStyle = '#f5f0e1';
+  ctx.beginPath();
+  ctx.moveTo(r66X - 18, bottom - 96); ctx.lineTo(r66X + 18, bottom - 96);
+  ctx.lineTo(r66X + 16, bottom - 78); ctx.quadraticCurveTo(r66X, bottom - 62, r66X - 16, bottom - 78);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.fillStyle = '#1a1a1a';
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 12px sans-serif';
+  ctx.fillText('66', r66X, bottom - 76);
+  ctx.font = 'bold 5px sans-serif';
+  ctx.fillText('US ROUTE', r66X, bottom - 89);
+
+  // 9. Desert plants: yucca and agave
+  const yucca = (yx: number, s: number) => {
+    ctx.strokeStyle = '#4f6f3a';
+    ctx.lineWidth = 2;
+    for (let k = -4; k <= 4; k++) {
+      ctx.beginPath();
+      ctx.moveTo(yx, bottom);
+      ctx.lineTo(yx + k * 4 * s, bottom - (22 - Math.abs(k) * 2) * s);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = '#6b5a3a';
+    ctx.beginPath(); ctx.moveTo(yx, bottom - 18 * s); ctx.lineTo(yx + 2, bottom - 48 * s); ctx.stroke();
+    ctx.fillStyle = '#f2ecd0';
+    for (let k = 0; k < 5; k++) ctx.fillRect(yx - 1 + (k % 2) * 3, bottom - (46 - k * 5) * s, 3, 3);
+  };
+  yucca(left + 220, 1);
+  yucca(right - 240, 0.8);
+  const agave = (ax: number) => {
+    ctx.fillStyle = '#6f9a7a';
+    for (let k = -3; k <= 3; k++) {
+      ctx.beginPath();
+      ctx.moveTo(ax - 3, bottom); ctx.lineTo(ax + k * 7, bottom - 16 + Math.abs(k) * 2); ctx.lineTo(ax + 3, bottom);
+      ctx.fill();
+    }
+  };
+  agave(left + 330);
+  agave(right - 30);
+
+  // 10. Tumbleweed rolling through
+  const twX = left + ((frame * 2.2) % (w + 120)) - 60;
+  const twY = bottom - 16 - Math.abs(Math.sin(frame * 0.12)) * 10;
+  ctx.save();
+  ctx.translate(twX, twY);
+  ctx.rotate(frame * 0.15);
+  ctx.strokeStyle = '#a07a4a';
+  ctx.lineWidth = 1.5;
+  for (let k = 0; k < 7; k++) {
+    ctx.beginPath();
+    ctx.arc(0, 0, 8 + (k % 3) * 2, k, k + 2.5);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // 11. Adobe columns at the arena edges
+  const column = (px: number) => {
+    ctx.fillStyle = '#b8794d';
+    ctx.fillRect(px, top, 24, bottom - top);
+    ctx.fillStyle = 'rgba(90, 50, 25, 0.25)';
+    ctx.fillRect(px + 16, top, 8, bottom - top);
+    ctx.fillStyle = '#5b3a24';
+    for (let vy = top + 30; vy < bottom - 20; vy += 90) ctx.fillRect(px - 4, vy, 32, 6);
+    ctx.fillStyle = '#2bb3a6';
+    ctx.fillRect(px + 4, top + 8, 16, 4);
+  };
+  column(left);
+  column(right - 24);
+
+  // 12. Sun-baked caliche ground with cracks
+  const groundGrad = ctx.createLinearGradient(left, bottom - 14, left, bottom);
+  groundGrad.addColorStop(0, '#d9a066');
+  groundGrad.addColorStop(1, '#b5703d');
+  ctx.fillStyle = groundGrad;
+  ctx.fillRect(left, bottom - 14, w, 14);
+  ctx.strokeStyle = 'rgba(90, 45, 20, 0.55)';
+  ctx.lineWidth = 1;
+  for (let cx = left + 10; cx < right; cx += 46) {
+    ctx.beginPath();
+    ctx.moveTo(cx, bottom - 13);
+    ctx.lineTo(cx + 8, bottom - 8);
+    ctx.lineTo(cx + 4, bottom - 3);
+    ctx.moveTo(cx + 8, bottom - 8);
+    ctx.lineTo(cx + 18, bottom - 10);
+    ctx.stroke();
+  }
 };
 
 /* =========================================================================

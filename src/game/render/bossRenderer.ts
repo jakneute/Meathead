@@ -1,5 +1,5 @@
 import { Enemy } from '../../types';
-import { COLORS, BOSS_DOOR_X } from '../../constants';
+import { COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, DALE_SPEED_WINDUP } from '../../constants';
 
 /** Per-boss sprite drawing (all procedural canvas art). */
 
@@ -8,6 +8,15 @@ export const drawBoss = (ctx: CanvasRenderingContext2D, e: Enemy, id: string | n
   if (e.rotation) { ctx.translate(width / 2, height / 2); ctx.rotate(e.rotation); ctx.translate(-width / 2, -height / 2); }
   if (id === 'Drug Trade Dale' && e.bossState === 'speed_dash') {
     ctx.filter = `hue-rotate(${frame * 10}deg) saturate(3)`;
+  }
+  // Twitching harder and harder as the speed hits during the wind-up
+  if (id === 'Drug Trade Dale' && e.bossState === 'using_shipment' && e.shipmentType === 'speed') {
+    const t = 1 - (e.stateTimer || 0) / DALE_SPEED_WINDUP;
+    if (t > 0.55) {
+      const j = (t - 0.55) * 10;
+      ctx.translate((Math.random() - 0.5) * j, (Math.random() - 0.5) * j);
+      ctx.filter = `hue-rotate(${Math.floor(frame * 12 * t)}deg) saturate(${1 + t * 2})`;
+    }
   }
   switch (id) {
     case 'Artie Avalanche': {
@@ -1472,7 +1481,11 @@ export const drawBoss = (ctx: CanvasRenderingContext2D, e: Enemy, id: string | n
   ctx.restore();
 };
 
-export const drawDaleDrugs = (ctx: CanvasRenderingContext2D, e: Enemy) => {
+export const drawDaleDrugs = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
+  if (e.bossState === 'using_shipment' && e.shipmentType === 'speed' && e.stateTimer! > 0) {
+    drawSpeedWindup(ctx, e, frame);
+    return;
+  }
   if (e.bossState === 'using_shipment' && e.shipmentCount! > 0) {
     const stackX = e.pos.x - 60, groundY = 550;
     ctx.save();
@@ -1487,12 +1500,159 @@ export const drawDaleDrugs = (ctx: CanvasRenderingContext2D, e: Enemy) => {
         const bx = stackX + (col * 30) - 10, by = groundY - (row * 35) - 40;
         ctx.fillRect(bx, by, 30, 40); ctx.strokeRect(bx, by, 30, 40);
         ctx.fillStyle = '#FFD700'; ctx.font = '8px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText("METH", bx + 15, by + 25);
-      } else if (e.shipmentType === 'speed' && e.stateTimer! > 0) {
-        const bx = stackX, by = groundY - 20;
-        ctx.fillStyle = COLORS.PROJECTILE_DART; ctx.fillRect(bx + 5, by, 15, 4);
-        ctx.fillStyle = 'red'; ctx.fillRect(bx, by - 2, 6, 8);
       }
     }
+    ctx.restore();
+  }
+};
+
+/** A big, glowing syringe. (0,0) is the needle tip; it points along -x before rotation. */
+const drawBigSyringe = (ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, fill: number, plunge: number, frame: number) => {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  // Glow
+  ctx.shadowColor = '#ff2fa0';
+  ctx.shadowBlur = 16;
+  // Needle
+  ctx.strokeStyle = '#e5e7eb';
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(24, 0); ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#9ca3af';
+  ctx.fillRect(22, -4, 6, 8);
+  // Barrel
+  const barrelX = 28, barrelL = 46;
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+  ctx.fillRect(barrelX, -9, barrelL, 18);
+  // Neon drug inside, draining as the plunger goes in
+  const juice = barrelL * fill;
+  ctx.shadowColor = '#ff2fa0';
+  ctx.shadowBlur = 12;
+  ctx.fillStyle = frame % 8 < 4 ? '#ff2fa0' : '#ff6fcf';
+  ctx.fillRect(barrelX + 2, -7, juice, 14);
+  ctx.shadowBlur = 0;
+  // Bubbles
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+  for (let b = 0; b < 3; b++) {
+    const bx = barrelX + 4 + ((frame * 1.5 + b * 13) % Math.max(4, juice - 4));
+    ctx.fillRect(bx, -3 + (b % 2) * 4, 2, 2);
+  }
+  // Graduation marks and outline
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(barrelX, -9, barrelL, 18);
+  for (let m = 1; m < 5; m++) { ctx.beginPath(); ctx.moveTo(barrelX + m * 9, -9); ctx.lineTo(barrelX + m * 9, -4); ctx.stroke(); }
+  // Finger flange
+  ctx.fillStyle = '#e5e7eb';
+  ctx.fillRect(barrelX + barrelL, -15, 4, 30);
+  // Plunger rod + red thumb press (slides in as it plunges)
+  const rodOut = 34 * (1 - plunge);
+  ctx.fillStyle = '#9ca3af';
+  ctx.fillRect(barrelX + barrelL - 2 - (barrelL - 4) * plunge, -3, rodOut + (barrelL - 4) * plunge + 6, 6);
+  ctx.fillStyle = '#ef4444';
+  ctx.fillRect(barrelX + barrelL + 4 + rodOut, -12, 6, 24);
+  // Glint
+  if (frame % 30 < 6) {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(barrelX + 6 + (frame % 30) * 6, -8, 3, 16);
+  }
+  ctx.restore();
+};
+
+/**
+ * Dale's speed wind-up, made unmissable: he hoists a giant syringe, jabs it
+ * into his neck and pumps it, while a danger lane shows where he'll charge.
+ */
+const drawSpeedWindup = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
+  const t = 1 - (e.stateTimer || 0) / DALE_SPEED_WINDUP; // 0 -> 1
+  const cx = e.pos.x + e.width / 2;
+  const top = e.pos.y;
+
+  // Danger lane across the arena at Dale's height, chevrons racing toward his first dash (left)
+  if (t > 0.15) {
+    ctx.save();
+    const flash = 0.18 + 0.14 * Math.sin(frame * 0.6);
+    ctx.fillStyle = `rgba(255, 30, 60, ${flash * Math.min(1, (t - 0.15) * 4)})`;
+    ctx.fillRect(ARENA_LEFT, top + 8, ARENA_RIGHT - ARENA_LEFT, e.height - 8);
+    ctx.fillStyle = `rgba(255, 220, 220, ${0.6 * Math.min(1, (t - 0.15) * 4)})`;
+    const off = (frame * 6) % 40;
+    for (let x = ARENA_RIGHT - off; x > ARENA_LEFT; x -= 40) {
+      ctx.beginPath();
+      ctx.moveTo(x, top + e.height / 2);
+      ctx.lineTo(x + 14, top + 18);
+      ctx.lineTo(x + 20, top + 18);
+      ctx.lineTo(x + 6, top + e.height / 2);
+      ctx.lineTo(x + 20, top + e.height - 6);
+      ctx.lineTo(x + 14, top + e.height - 6);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // Pulse rings once it's in
+  if (t > 0.55) {
+    ctx.save();
+    for (let r = 0; r < 2; r++) {
+      const ring = ((frame * 3 + r * 30) % 60) / 60;
+      ctx.strokeStyle = `rgba(255, 47, 160, ${0.7 * (1 - ring)})`;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(cx, top + e.height / 2, 30 + ring * 60, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // The syringe: raise overhead, stab into the neck, then pump
+  const neck = { x: cx + 6, y: top + 14 };
+  // The barrel extends along +x from the tip, so an angle near -1.9 holds it
+  // up and behind his head with the needle pointing down into his neck.
+  let sx, sy, angle, plunge = 0;
+  if (t < 0.4) {
+    // Hoist it up from his side
+    const k = t / 0.4;
+    const ease = 1 - Math.pow(1 - k, 2);
+    sx = cx - 56 + ease * 40;
+    sy = top + 34 - ease * 70;
+    angle = -0.5 - ease * 1.4;
+  } else if (t < 0.55) {
+    // Stab down into the neck
+    const k = (t - 0.4) / 0.15;
+    sx = cx - 16 + (neck.x - (cx - 16)) * k;
+    sy = top - 36 + (neck.y - (top - 36)) * k;
+    angle = -1.9;
+  } else {
+    // Pump it in
+    sx = neck.x;
+    sy = neck.y;
+    angle = -1.9;
+    plunge = (t - 0.55) / 0.45;
+  }
+  drawBigSyringe(ctx, sx, sy, angle, 1 - plunge * 0.95, plunge, frame);
+
+  // Impact burst at the moment of the jab
+  if (t >= 0.55 && t < 0.65) {
+    ctx.save();
+    ctx.fillStyle = '#ffffff';
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      ctx.fillRect(neck.x + Math.cos(a) * 16 - 2, neck.y + Math.sin(a) * 16 - 2, 4, 4);
+    }
+    ctx.restore();
+  }
+
+  // Flashing warning over his head
+  if (Math.floor(frame / 5) % 2 === 0) {
+    ctx.save();
+    ctx.font = 'bold 26px "Press Start 2P", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#000000';
+    ctx.strokeText('!!', cx, top - 58);
+    ctx.fillStyle = '#ff2fa0';
+    ctx.fillText('!!', cx, top - 58);
     ctx.restore();
   }
 };
