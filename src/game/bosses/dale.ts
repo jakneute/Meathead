@@ -74,7 +74,11 @@ const driveTruck = (ctx: FrameContext, boss: Enemy) => {
   if (hits(player)) {
     // The filth shield eats the truck like it eats bullets
     if (player.filthShieldTimer && player.filthShieldTimer > 0) { wreckTruck(ctx, boss); return; }
-    if (player.invincibilityTimer <= 0 && !cheats.invincible) {
+    const canHurt = player.invincibilityTimer <= 0 && !cheats.invincible;
+    // Out of control and it catches you: it piles into you instead of Dale
+    // (if you're still flashing from an earlier hit, it carries on past you)
+    if (boss.truckCrashing && canHurt) { crashIntoPlayer(ctx, boss); return; }
+    if (canHurt) {
       hurtPlayer(ctx, DALE_TRUCK_DAMAGE, 'truck', { x: DALE_PUSHBACK_VEL.x, y: PLAYER_PUSHBACK_VEL_Y });
     }
   }
@@ -144,6 +148,22 @@ const blowOutTires = (ctx: FrameContext, boss: Enemy, puddle: Projectile) => {
   fx.playGunSound('barf');
   shakeScreen(state, 12, 8);
   fx.spawnKillCallout({ pos: { x: Math.max(at.x, state.camera.x + 200), y: TRUCK.y - 10 }, width: 0 }, 'blowout');
+};
+
+/** The blown-out truck hit Meathead before it reached Dale: only Meathead gets hurt. */
+const crashIntoPlayer = (ctx: FrameContext, boss: Enemy) => {
+  const { state, fx } = ctx;
+  const at = { x: boss.truckX! + TRUCK.w - 20, y: TRUCK.y + TRUCK.h / 2 };
+  boss.truckActive = false;
+  boss.truckCrashing = false;
+  boss.bossState = 'idle';
+  boss.stateTimer = WRECKED_REST_FRAMES;
+  hurtPlayer(ctx, DALE_TRUCK_DAMAGE, 'truck', { x: DALE_PUSHBACK_VEL.x, y: PLAYER_PUSHBACK_VEL_Y });
+  fx.spawnExplosion(at, pickRandom(PARTICLE_PALETTES.FIRE), 20, 0, 16);
+  fx.spawnExplosion(at, '#212121', 20, 0, 12);
+  fx.spawnPowderExplosion(at, 20);
+  fx.playGunSound('tsunami');
+  shakeScreen(state, 20, 12);
 };
 
 /** His own truck plows into him: heavy damage, the cargo's lost. */
