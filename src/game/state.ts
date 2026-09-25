@@ -54,6 +54,8 @@ export interface GameState {
   introTimer: number;
   deathTimer: number;
   deathString: string;
+  /** Easter egg: set fire to an oiled-up Toxic Tommy and the sewer goes nuclear (plays out as the death screen). */
+  sewerNuke: Vector2 | null;
   victoryString: string;
   postVictoryTimer: number;
   bossExplosionTimer: number;
@@ -190,6 +192,7 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
   introTimer: 0,
   deathTimer: 0,
   deathString: "",
+  sewerNuke: null,
   victoryString: "",
   postVictoryTimer: 0,
   bossExplosionTimer: 0,
@@ -283,6 +286,7 @@ export const resetStageState = (s: GameState) => {
   s.introTimer = 0;
   s.deathTimer = 0;
   s.deathString = "";
+  s.sewerNuke = null;
   s.victoryString = "";
   s.postVictoryTimer = 0;
   s.bossExplosionTimer = 0;

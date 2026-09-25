@@ -37,7 +37,7 @@ export type WeaponType = 'GUN' | 'BOULDER' | 'SHOTGUN' | 'FLAMETHROWER' | 'TSUNA
 
 export type VulgarityType = 'gun_kill' | 'boulder_kill' | 'shotgun_kill' | 'flamethrower_kill' | 'tsunami_kill' | 'hurt' | 'death' | 'charge_kill' | 'uppercut_kill' | 'dart_kill' | 'taser_kill' | 'sludge_kill' | 'oil_kill' | 'truck_wreck';
 
-export type SoundType = 'gun' | 'ice' | 'flame' | 'tsunami' | 'dart' | 'horn' | 'ignite' | 'barf' | 'oil' | 'taser' | 'tinkle';
+export type SoundType = 'gun' | 'ice' | 'flame' | 'tsunami' | 'dart' | 'horn' | 'ignite' | 'barf' | 'oil' | 'taser' | 'tinkle' | 'nuke';
 
 export interface Player extends Entity {
   facing: 1 | -1;
@@ -186,6 +186,8 @@ export interface Enemy extends Entity {
   slideTargetX?: number;
   aimX?: number;              // where the laser sight points (world)
   aimY?: number;
+  /** Alternates each shot: 'tracked' follows Meathead up into the air, 'floor' only follows his x along the floor. */
+  oscarAimMode?: 'tracked' | 'floor';
   lockProgress?: number;      // 0..1, fires at 1
   fireWarning?: number;       // frames left in the blinking "about to fire" window
   aimFrames?: number;

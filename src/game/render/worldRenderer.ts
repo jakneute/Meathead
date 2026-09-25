@@ -14,6 +14,7 @@ import { drawParticle } from './particles';
 import { drawBossCorpse } from './corpses';
 import { drawVictoryPee } from './victoryPee';
 import { drawPlayer } from './playerRenderer';
+import { drawSewerNukeInside, drawSewerNukeFlash, drawSewerNukeOutside } from './sewerNuke';
 import {
   drawOilSlicks, drawOscarFire, drawOscarLaser, drawOscarRocket, drawFlyingCigarette, drawTaserOverload,
 } from './oscarRenderer';
@@ -36,6 +37,9 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     return;
   }
+
+  // The sewer nuke easter egg takes over the whole screen once it cuts outside
+  if (state.sewerNuke && drawSewerNukeOutside(ctx, state)) return;
 
   const colors = STAGE_COLORS[stageId || ""] || { ground: COLORS.GROUND, bg: COLORS.BG_DARK, accent: '#fff' };
   ctx.fillStyle = colors.bg;
@@ -84,11 +88,13 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   drawProjectiles(ctx, state, 'flying');
   drawParticlesAndDamageNumbers(ctx, state);
   drawBarryLighting(ctx, state, stageId);
+  if (state.sewerNuke) drawSewerNukeInside(ctx, state);
   ctx.restore();
 
   // Screen space
   if (state.victoryString && (status === GameStatus.PLAYING || status === GameStatus.VICTORY)) drawVictoryText(ctx, state.victoryString);
-  if (state.deathTimer > 0 && state.deathString) drawDeathMessage(ctx, state.deathString);
+  if (state.sewerNuke) drawSewerNukeFlash(ctx, state);
+  else if (state.deathTimer > 0 && state.deathString) drawDeathMessage(ctx, state.deathString);
 };
 
 const drawBlocks = (ctx: CanvasRenderingContext2D, state: GameState, colors: { ground: string, accent: string }) => {

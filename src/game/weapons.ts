@@ -18,6 +18,7 @@ import { hitBoss } from './boss';
 import { pickRandom, rectsOverlap, boundsOf } from './utils';
 import { findFlyingCigarette } from './bosses/oscar';
 import { icicleBounds, meltIcicle } from './bosses/artie';
+import { detonateSewerNuke, TOXIC_TOMMY } from './sewerNuke';
 
 /** The bits of this frame's input that weapons care about. */
 export interface WeaponInput {
@@ -325,6 +326,9 @@ const burnEnemy = (ctx: FrameContext, e: Enemy) => {
   const { player } = state;
 
   if (e.type === 'boss') {
+    if (state.sewerNuke) return;
+    // Setting fire to an oil-soaked Toxic Tommy: never a good idea
+    if (ctx.stageId === TOXIC_TOMMY && e.isOiled && state.arenaLocked) { detonateSewerNuke(ctx, e); return; }
     if (!state.arenaLocked || (e.hitCooldown && e.hitCooldown > 0)) return;
     hitBoss(ctx, e, 'FLAMETHROWER', { facing: player.facing });
     return;

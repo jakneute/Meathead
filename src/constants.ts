@@ -293,7 +293,7 @@ export const OSCAR_IDLE_FRAMES = 40;           // repositioning between attacks 
 export const OSCAR_IDLE_RAMP = 15;             // frames shaved off at 0 HP
 export const OSCAR_SLIDE_SPEED = 5.5;          // his greasy repositioning slide
 export const OSCAR_PREFERRED_DISTANCE = 380;   // how far from Meathead he likes to shoot from
-export const OSCAR_LOCK_FRAMES = 45;           // laser on your feet this long (while you're grounded) = fire
+export const OSCAR_LOCK_FRAMES = 45;           // laser on target this long = fire
 export const OSCAR_MAX_AIM_FRAMES = 180;       // fires anyway after this long
 export const OSCAR_FIRE_WARNING = 20;          // locked on: laser freezes and blinks fast, then he fires
 export const OSCAR_ROCKET_SPEED = 19;

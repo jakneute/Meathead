@@ -370,7 +370,12 @@ export const drawOscarLaser = (ctx: CanvasRenderingContext2D, state: GameState) 
   ctx.moveTo(L.muzzleX, L.muzzleY);
   ctx.lineTo(boss.aimX, boss.aimY);
   ctx.stroke();
-  // Reticle
+  // Reticle (squashed flat onto the floor when he's aiming at the floor)
+  if (boss.oscarAimMode === 'floor') {
+    ctx.translate(boss.aimX, boss.aimY);
+    ctx.scale(1.4, 0.4);
+    ctx.translate(-boss.aimX, -boss.aimY);
+  }
   const r = 6 + 26 * (1 - lock);
   ctx.lineWidth = firing ? 3 : 2;
   ctx.strokeStyle = firing ? '#FFFFFF' : '#FF1744';

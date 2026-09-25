@@ -205,6 +205,7 @@ const updateIdle = (ctx: FrameContext, boss: Enemy) => {
     boss.bossState = 'aiming';
     boss.lockProgress = 0;
     boss.aimFrames = 0;
+    boss.oscarAimMode = boss.oscarAimMode === 'tracked' ? 'floor' : 'tracked';
     // The laser sweeps in from the floor between them
     boss.aimX = midX(boss) + (playerX - midX(boss)) * 0.4;
     boss.aimY = FLOOR_Y;
@@ -212,8 +213,11 @@ const updateIdle = (ctx: FrameContext, boss: Enemy) => {
 };
 
 /**
- * The laser tracks Meathead's feet. It locks on while he's on the ground;
- * jumping throws it off (it drifts after him and the lock drains).
+ * He alternates between two ways of aiming, so jumping around can't trick him
+ * into wasting shots on the ceiling:
+ * - tracked: the laser follows Meathead wherever he is, up into the air too
+ * - floor: the laser stays on the floor and only follows his x
+ * Either way it locks on once it's on him, blinks, and fires: that's the moment to move.
  */
 const updateAim = (ctx: FrameContext, boss: Enemy) => {
   const { player } = ctx.state;
@@ -223,15 +227,15 @@ const updateAim = (ctx: FrameContext, boss: Enemy) => {
     return;
   }
   boss.aimFrames = (boss.aimFrames || 0) + 1;
-  const footX = midX(player), footY = player.pos.y + player.height;
-  const grounded = player.isGrounded;
-  const follow = grounded ? 0.3 : 0.1;
-  boss.aimX = boss.aimX! + (footX - boss.aimX!) * follow;
-  boss.aimY = boss.aimY! + (footY - boss.aimY!) * follow;
+  const targetX = midX(player);
+  // Tracked: his feet on the ground, his body in the air. Floor: the floor under him.
+  const targetY = boss.oscarAimMode === 'floor' ? FLOOR_Y
+    : player.isGrounded ? player.pos.y + player.height : player.pos.y + player.height / 2;
+  boss.aimX = boss.aimX! + (targetX - boss.aimX!) * 0.3;
+  boss.aimY = boss.aimY! + (targetY - boss.aimY!) * 0.3;
 
-  const onTarget = Math.hypot(footX - boss.aimX, footY - boss.aimY) < 30;
-  if (grounded && onTarget) boss.lockProgress = Math.min(1, (boss.lockProgress || 0) + 1 / OSCAR_LOCK_FRAMES);
-  else if (!grounded) boss.lockProgress = Math.max(0, (boss.lockProgress || 0) - 2 / OSCAR_LOCK_FRAMES);
+  const onTarget = Math.hypot(targetX - boss.aimX, targetY - boss.aimY) < 30;
+  if (onTarget) boss.lockProgress = Math.min(1, (boss.lockProgress || 0) + 1 / OSCAR_LOCK_FRAMES);
 
   if (boss.lockProgress! >= 1 || boss.aimFrames >= OSCAR_MAX_AIM_FRAMES) {
     boss.lockProgress = 1;

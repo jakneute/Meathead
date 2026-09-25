@@ -10,6 +10,7 @@ import { BOSS_DIALOGUE } from '../dialogue';
 import { FrameContext } from './context';
 import { Controls } from './input';
 import { respawn, getStartX } from './level';
+import { updateSewerNuke } from './sewerNuke';
 import { calmPlayer, DEFAULT_SHAKE } from './state';
 import { updateBarfStream, updateFlameSegments } from './weapons';
 import { say, MEATHEAD_INTRO_VOICE } from './speech';
@@ -64,6 +65,7 @@ const moveLooseParticles = (ctx: FrameContext) => {
 const updateDeathScreen = (ctx: FrameContext) => {
   const { state } = ctx;
   state.deathTimer--;
+  if (state.sewerNuke) updateSewerNuke(ctx);
   if (state.deathTimer === 0) respawn(state, ctx.stageId, ctx.cheats.skipToBoss);
   moveLooseParticles(ctx);
 };
