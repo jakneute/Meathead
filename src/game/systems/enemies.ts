@@ -15,7 +15,7 @@ import {
   OILED_COLLISION_DAMAGE,
 } from '../../constants';
 import { FrameContext, killBoss } from '../context';
-import { isTommyShielded, hectorLeapToOtherSide } from '../boss';
+import { getBossDef } from '../boss';
 import { rectsOverlap, boundsOf } from '../utils';
 import { getAttackHitbox, harmlessBounce, recoilOff, getContactHurtSource } from './player';
 import { shakeScreen } from '../state';
@@ -259,6 +259,8 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   const { state, fx, stageId, cheats } = ctx;
   const { player } = state;
   const onScreen = e.pos.x + e.width > state.camera.x && e.pos.x < state.camera.x + CANVAS_WIDTH;
+  const stageDef = getBossDef(stageId);
+  const bossDef = e.type === 'boss' ? stageDef : undefined;
   const hasShield = !!(player.filthShieldTimer && player.filthShieldTimer > 0);
   const isAttacking = player.isCharging || player.isUppercutting || !!player.isDivekicking || hasShield;
   const attackHit = isAttacking && rectsOverlap(getAttackHitbox(ctx), boundsOf(e));
@@ -272,14 +274,14 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
       harmlessBounce(ctx, e, 18, -4);
       return true;
     }
-    if (e.type === 'boss' && stageId === 'Toxic Tommy' && isTommyShielded(e, state)) {
-      fx.spawnExplosion(player.pos, '#27AE60', 12, 0, 6);
-      fx.playGunSound('barf');
+    if (bossDef?.shield?.isUp(e, state)) {
+      fx.spawnExplosion(player.pos, bossDef.shield.color, 12, 0, 6);
+      if (bossDef.shield.sound) fx.playGunSound(bossDef.shield.sound);
       harmlessBounce(ctx, e, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y);
       player.invincibilityTimer = PLAYER_STUN_INVINCIBILITY;
       return true;
     }
-    if (e.id === 'boss' && stageId === 'Hector Hurricane' && e.bossState === 'hurricane') e.stateTimer = 0;
+    bossDef?.onMeleeHit?.(ctx, e);
 
     let damage = 0;
     if (player.isCharging) damage = BOSS_CHARGE_DAMAGE;
@@ -358,18 +360,17 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     ? { x: player.pos.x + 2, y: player.pos.y + (player.height - 26), w: player.width - 4, h: 26 }
     : boundsOf(player);
   if (!isAttacking && player.invincibilityTimer <= 0 && rectsOverlap(hurtbox, boundsOf(e))) {
-    if (!cheats.invincible) player.health -= (stageId === 'Drug Trade Dale' ? 7.5 : 5.5);
+    if (!cheats.invincible) player.health -= stageDef?.contact?.damage ?? 5.5;
     if (player.health > 0) {
       player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;
       player.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;
       player.isHarmlessPushback = false;
       player.smugTimer = 0;
       fx.speakVulgarity('hurt', getContactHurtSource(ctx, e));
-      player.pushbackTimer = (stageId === 'Drug Trade Dale' && e.bossState !== 'idle') ? 24 : PLAYER_PUSHBACK_DURATION;
+      player.pushbackTimer = stageDef?.contact?.pushbackFrames?.(e) ?? PLAYER_PUSHBACK_DURATION;
       player.vel = { x: (player.pos.x < e.pos.x ? -1 : 1) * PLAYER_PUSHBACK_VEL_X, y: PLAYER_PUSHBACK_VEL_Y };
     }
-    // Hector resets his cycle after landing a hit on you
-    if (e.id === 'boss' && stageId === 'Hector Hurricane') hectorLeapToOtherSide(e, ctx.bossHelpers);
+    bossDef?.onTouchPlayer?.(ctx, e);
     if (e.id.startsWith('rusher')) e.pauseTimer = 60;
   }
   return true;

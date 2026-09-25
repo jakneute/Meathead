@@ -1,4 +1,5 @@
-import { ARENA_LEFT, GROUND_Y, getArenaRight } from '../../constants';
+import { ARENA_LEFT, GROUND_Y } from '../../constants';
+import { getArenaRight } from '../boss';
 
 /** Decorative backdrops for each boss arena (drawn in world coordinates). */
 export const drawCustomBossArena = (

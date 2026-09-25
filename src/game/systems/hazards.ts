@@ -3,17 +3,17 @@
 import { TommyBoard } from '../../types';
 import {
   CANVAS_WIDTH, BOSS_DOOR_X, PLAYER_INVINCIBILITY_FRAMES, PLAYER_PUSHBACK_DURATION,
-  PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, ENEMY_HIT_COOLDOWN, PARTICLE_PALETTES,
+  PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, PARTICLE_PALETTES,
   TSUNAMI_WAVE_SPEED, TSUNAMI_DAMAGE_BOSS, TSUNAMI_DAMAGE_WEAKNESS,
 } from '../../constants';
-import { FrameContext, killBoss } from '../context';
-import { checkIsWeakness, maybeReactToWeapon } from '../boss';
+import { FrameContext } from '../context';
+import { hitBoss, isWeakTo } from '../boss';
 import { pickRandom } from '../utils';
 import { killPlayer, landPlayer } from './player';
 
 /** The player's tsunami sweeps across the screen, killing regular enemies outright. */
 export const updateTsunami = (ctx: FrameContext) => {
-  const { state, fx, stageId, currentWeapon } = ctx;
+  const { state, fx, stageId } = ctx;
   if (!state.tsunamiActive) return;
   const dir = state.tsunamiDir;
   state.tsunamiX += TSUNAMI_WAVE_SPEED * dir;
@@ -60,13 +60,7 @@ export const updateTsunami = (ctx: FrameContext) => {
     if (!inWave) return;
     if (e.type === 'boss') {
       if (!state.arenaLocked || (e.hitCooldown && e.hitCooldown > 0)) return;
-      const isW = checkIsWeakness(stageId, currentWeapon);
-      const dmg = isW ? TSUNAMI_DAMAGE_WEAKNESS : TSUNAMI_DAMAGE_BOSS;
-      e.health -= dmg;
-      e.hitCooldown = ENEMY_HIT_COOLDOWN;
-      fx.spawnDamageNumber(e.pos, dmg, isW);
-      maybeReactToWeapon(e, 'TSUNAMI', stageId, state, ctx.bossHelpers);
-      if (e.health <= 0) killBoss(ctx, e, dir, isW);
+      hitBoss(ctx, e, 'TSUNAMI', { facing: dir, damage: isWeakTo(stageId, 'TSUNAMI') ? TSUNAMI_DAMAGE_WEAKNESS : TSUNAMI_DAMAGE_BOSS });
     } else {
       e.health = 0;
       fx.blowAwayEnemy(e, { x: dir * 20, y: -10 }, 'tsunami_kill', dir);

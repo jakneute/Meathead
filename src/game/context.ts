@@ -1,7 +1,7 @@
 import { Enemy, WeaponType } from '../types';
 import { GameState } from './state';
 import { createFx, Fx } from './effects';
-import { BossHelpers, createBossHelpers, triggerBossDeath } from './boss';
+import { BossHelpers, createBossHelpers } from './boss';
 
 export interface Cheats {
   invincible: boolean;
@@ -40,9 +40,9 @@ export const createFrameContext = (
   const fx = createFx(state);
   return {
     state, stageId, currentWeapon, cheats, events, fx,
-    bossHelpers: createBossHelpers(state, fx, events.onBossDeath),
+    bossHelpers: createBossHelpers(state, fx, events.onBossDeath, stageId, currentWeapon),
   };
 };
 
 export const killBoss = (ctx: FrameContext, boss: Enemy, facing: number, wasWeakness: boolean, weapon: WeaponType = ctx.currentWeapon) =>
-  triggerBossDeath(boss, facing, wasWeakness, ctx.stageId, weapon, ctx.state, ctx.bossHelpers);
+  ctx.bossHelpers.killBoss(boss, facing, wasWeakness, weapon);

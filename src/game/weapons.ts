@@ -10,13 +10,13 @@ import {
   TASER_RANGE, CANVAS_WIDTH, GUN_COOLDOWN, GUN_VELOCITY,
   NEEDLE_DAMAGE, NEEDLE_COOLDOWN, SLUDGE_COOLDOWN, FILTH_SHIELD_DURATION, SLUDGE_DAMAGE,
   OIL_ROCKET_DAMAGE, OIL_ROCKET_COOLDOWN, OIL_ROCKET_SPLASH_RADIUS, OIL_ROCKET_SPLASH_DAMAGE,
-  OIL_ROCKET_OILED_DURATION, OIL_ROCKET_NUKE_DAMAGE, ENEMY_HIT_COOLDOWN,
+  OIL_ROCKET_OILED_DURATION, OIL_ROCKET_NUKE_DAMAGE,
 } from '../constants';
 import { GameState } from './state';
 import { FrameContext, killBoss } from './context';
-import { getBossDamage, checkIsWeakness, artieWeaknessLeap, speakAsBoss, maybeReactToWeapon } from './boss';
+import { hitBoss } from './boss';
 import { pickRandom, rectsOverlap, boundsOf } from './utils';
-import { findFlyingCigarette } from './systems/oscar';
+import { findFlyingCigarette } from './bosses/oscar';
 
 /** The bits of this frame's input that weapons care about. */
 export interface WeaponInput {
@@ -316,19 +316,12 @@ export const updateFlameSegments = (ctx: FrameContext) => {
 
 /** One flame segment touching an enemy. */
 const burnEnemy = (ctx: FrameContext, e: Enemy) => {
-  const { state, fx, stageId, currentWeapon } = ctx;
+  const { state, fx } = ctx;
   const { player } = state;
 
   if (e.type === 'boss') {
     if (!state.arenaLocked || (e.hitCooldown && e.hitCooldown > 0)) return;
-    const dmg = getBossDamage(e, stageId, currentWeapon);
-    const isW = checkIsWeakness(stageId, currentWeapon);
-    e.health -= dmg;
-    e.hitCooldown = 60;
-    fx.spawnDamageNumber(e.pos, dmg, isW);
-    if (stageId === 'Artie Avalanche' && isW && e.health > 0) artieWeaknessLeap(e);
-    maybeReactToWeapon(e, 'FLAMETHROWER', stageId, state, ctx.bossHelpers);
-    if (e.health <= 0) killBoss(ctx, e, player.facing, isW);
+    hitBoss(ctx, e, 'FLAMETHROWER', { facing: player.facing });
     return;
   }
   if (e.isOiled) {
@@ -383,7 +376,7 @@ export const findTaserTarget = (state: GameState): Enemy | Projectile | null => 
 
 /** Oil rocket impact: splash damage, coats targets in oil and knocks them back. */
 export const explodeOilRocket = (ctx: FrameContext, pos: Vector2, rocketVelX?: number) => {
-  const { state, fx, stageId, currentWeapon } = ctx;
+  const { state, fx } = ctx;
   fx.spawnOilSplatter(pos);
 
   state.enemies.forEach(e => {
@@ -394,29 +387,9 @@ export const explodeOilRocket = (ctx: FrameContext, pos: Vector2, rocketVelX?: n
 
     if (e.type === 'boss') {
       if (e.hitCooldown && e.hitCooldown > 0) return;
-      const isW = checkIsWeakness(stageId, currentWeapon, { isOilRocket: true });
-      const dmg = getBossDamage(e, stageId, currentWeapon, { isOilRocket: true });
-      e.health -= dmg;
-      e.hitCooldown = ENEMY_HIT_COOLDOWN;
       e.isOiled = true;
       e.oiledTimer = OIL_ROCKET_OILED_DURATION;
-      fx.spawnDamageNumber(e.pos, dmg, isW);
-
-      if (stageId === 'Toxic Tommy' && isW && e.health > 0) {
-        e.bossState = 'weakness_stunned';
-        e.stateTimer = 75;
-        e.pukeSweepProgress = 0;
-        // Pop him up out of the sludge if he was submerged
-        if (e.pos.y >= state.tommySludgeY - 30) {
-          e.pos.y = 480 - e.height + 5;
-          e.vel.y = -8;
-        }
-        state.tommySludgeOiledTimer = 240;
-        fx.spawnExplosion({ x: e.pos.x + e.width / 2, y: Math.min(e.pos.y + 20, state.tommySludgeY) }, '#111111', 25, 0, 10);
-        speakAsBoss('Toxic Tommy', "BLAARGH! CRUDE OIL?! I CAN'T CHUNDER!", ctx.bossHelpers);
-      }
-      maybeReactToWeapon(e, 'OIL_ROCKET', stageId, state, ctx.bossHelpers);
-      if (e.health <= 0) killBoss(ctx, e, 0, isW);
+      hitBoss(ctx, e, 'OIL_ROCKET', { facing: 0, p: { isOilRocket: true } });
       return;
     }
 

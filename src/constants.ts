@@ -36,10 +36,6 @@ export const ARENA_LEFT = BOSS_DOOR_X + DOOR_WIDTH;
 export const ARENA_RIGHT = 7960;
 /** Oily Oscar's refinery is twice as wide as a normal boss room, so the camera scrolls inside it. */
 export const OSCAR_ARENA_RIGHT = ARENA_RIGHT + (ARENA_RIGHT - ARENA_LEFT);
-/** Inner face of the arena's right wall. */
-export const getArenaRight = (stageId: string | null) => stageId === 'Oily Oscar' ? OSCAR_ARENA_RIGHT : ARENA_RIGHT;
-/** Where the level ends (the outside of the arena's right wall). */
-export const getStageWidth = (stageId: string | null) => stageId === 'Oily Oscar' ? OSCAR_ARENA_RIGHT + 40 : STAGE_WIDTH;
 
 // ==========================================
 // 3. PLAYER CORE STATS

@@ -1,7 +1,7 @@
 import { Enemy, Player, Projectile } from '../../types';
 import { OSCAR_FLICK_WINDUP, OSCAR_TASER_HOLD_FRAMES, TASER_OVERLOAD_FRAMES } from '../../constants';
 import { GameState } from '../state';
-import { getOscarLauncher, getOscarMouth, flameStrength } from '../systems/oscar';
+import { getOscarLauncher, getOscarMouth, flameStrength } from '../bosses/oscar';
 
 /** Oily Oscar's gear, laser sight, rockets, cigarette, oil slicks and fire. */
 

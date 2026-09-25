@@ -2,14 +2,14 @@
 
 import { Enemy, Projectile } from '../../types';
 import {
-  CANVAS_WIDTH, ENEMY_HIT_COOLDOWN, TASER_RANGE, TASER_DOT_DAMAGE, TASER_FIRE_THRESHOLD,
+  CANVAS_WIDTH, TASER_RANGE, TASER_DOT_DAMAGE, TASER_FIRE_THRESHOLD,
   TASER_TICK_RATE, TASER_AMMO_CONSUMPTION_RATE, FIRE_TICK_RATE, FIRE_DOT_DAMAGE,
   FIRE_DOT_DAMAGE_HEAVY, NEEDLE_DOT_TICK_RATE, NEEDLE_DOT_DAMAGE_PER_STACK,
 } from '../../constants';
 import { FrameContext, killBoss } from '../context';
-import { updateBossAI, getBossDamage, checkIsWeakness, isTommyShielded, maybeReactToWeapon } from '../boss';
+import { updateBossAI, getBossDef, hitBoss } from '../boss';
 import { fireWeapon, findTaserTarget } from '../weapons';
-import { updateOscar, holdOscarWithTaser, zapCigarette, findFlyingCigarette } from './oscar';
+import { zapCigarette, findFlyingCigarette } from '../bosses/oscar';
 import { FrameInput, hasAmmo } from './player';
 
 /**
@@ -67,23 +67,15 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
 
   if (target.type === 'boss') {
     const boss = target as Enemy;
-    // Oscar's weakness works differently: the taser holds him until it bursts
-    if (stageId === 'Oily Oscar') {
-      holdOscarWithTaser(ctx, boss);
-      return;
-    }
+    const def = getBossDef(stageId);
+    // Some bosses react to the taser their own way (Oscar gets held until it bursts)
+    if (def?.onTaser) { def.onTaser(ctx, boss); return; }
     if (boss.hitCooldown && boss.hitCooldown > 0) return;
-    if (stageId === 'Toxic Tommy' && isTommyShielded(boss, state)) {
-      fx.spawnExplosion(boss.pos, '#27AE60', 4, 0, 3);
+    if (def?.shield?.isUp(boss, state)) {
+      fx.spawnExplosion(boss.pos, def.shield.color, 4, 0, 3);
       return;
     }
-    const dmg = getBossDamage(boss, stageId, currentWeapon);
-    const isW = checkIsWeakness(stageId, currentWeapon);
-    boss.health -= dmg;
-    boss.hitCooldown = ENEMY_HIT_COOLDOWN;
-    fx.spawnDamageNumber(boss.pos, dmg, isW);
-    maybeReactToWeapon(boss, 'TASER', stageId, state, ctx.bossHelpers);
-    if (boss.health <= 0) killBoss(ctx, boss, player.facing, isW);
+    hitBoss(ctx, boss, 'TASER', { facing: player.facing });
     return;
   }
 
@@ -133,7 +125,7 @@ export const updateBurningProjectiles = (ctx: FrameContext) => {
 
 /** Fire and needle damage-over-time, boss AI, and freezing from ice/taser. */
 export const updateEnemyStatusEffects = (ctx: FrameContext) => {
-  const { state, fx, stageId, currentWeapon, cheats } = ctx;
+  const { state, fx, stageId } = ctx;
   const { player } = state;
 
   state.enemies.forEach(e => {
@@ -155,19 +147,10 @@ export const updateEnemyStatusEffects = (ctx: FrameContext) => {
 
     if (e.health > 0 && e.needleCount && e.needleCount > 0) {
       e.dotTimer = (e.dotTimer || 0) + 1;
-      if (stageId === 'Blackout Barry' && e.type === 'boss') {
-        // Barry's weakness: up to 3 needles stick for 10s, each dealing 15/s
-        if (e.needleTimer) e.needleTimer--;
-        if (e.needleTimer! <= 0) {
-          e.needleCount = 0;
-          e.needleOffsets = [];
-        } else if (e.dotTimer >= 60) {
-          const dotDmg = e.needleCount * 15;
-          e.health -= dotDmg;
-          fx.spawnDamageNumber(e.pos, dotDmg);
-          e.dotTimer = 0;
-          if (e.health <= 0) killBoss(ctx, e, 0, false, 'NEEDLES');
-        }
+      const needleTick = e.type === 'boss' ? getBossDef(stageId)?.needleTick : undefined;
+      if (needleTick) {
+        // A boss weak to needles handles them his own way
+        needleTick(ctx, e);
       } else if (e.dotTimer >= NEEDLE_DOT_TICK_RATE) {
         const dotDmg = e.needleCount * NEEDLE_DOT_DAMAGE_PER_STACK;
         e.health -= dotDmg;
@@ -184,10 +167,7 @@ export const updateEnemyStatusEffects = (ctx: FrameContext) => {
     }
 
     if (e.type === 'boss') {
-      if (e.health > 0 && state.arenaLocked) {
-        updateBossAI(e, stageId, player, currentWeapon, cheats.invincible, state, ctx.bossHelpers);
-        if (stageId === 'Oily Oscar' && e.health > 0) updateOscar(ctx, e);
-      }
+      if (e.health > 0 && state.arenaLocked) updateBossAI(ctx, e);
     } else if (((e.frozenTimer && e.frozenTimer > 0) || (e.isTased && player.isTasing && player.taserTargetId === e.id)) && (e.pauseTimer || 0) <= 0) {
       e.vel.x = 0;
       e.vel.y = 0;

@@ -2,7 +2,7 @@
 
 import { GameStatus, WeaponType } from '../types';
 import {
-  CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, getStageWidth, DOOR_OPEN_SPEED, MAX_AMMO,
+  CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, ARENA_RIGHT, DOOR_OPEN_SPEED, MAX_AMMO,
   AMMO_PICKUP_PCT, HEALTH_PICKUP_SMALL, HEALTH_PICKUP_LARGE, PLAYER_STUN_DURATION, PARTICLE_PALETTES,
 } from '../constants';
 import { BOSS_DIALOGUE } from '../dialogue';
@@ -18,7 +18,8 @@ import { updateTsunami, updateSteamExplosions, updateVolcanoes, updateTommyArena
 import { updateTaser, updateBurningProjectiles, updateEnemyStatusEffects } from './systems/statusEffects';
 import { updateEnemy } from './systems/enemies';
 import { updateProjectile, updateSpecialMovesVsBarrels } from './systems/projectiles';
-import { updateOscarHazards } from './systems/oscar';
+import { updateOscarHazards } from './bosses/oscar';
+import { getBossDef, getArenaRight, getStageWidth } from './boss';
 
 const INTRO_JUMP_START = 80;
 const INTRO_JUMP_FRAMES = 60;
@@ -140,8 +141,9 @@ const updateBossTransition = (ctx: FrameContext) => {
   const { state, stageId } = ctx;
   const { player } = state;
   const targetCameraX = BOSS_DOOR_X;
-  const targetPlayerX = stageId === 'Toxic Tommy' ? targetCameraX + 45 : targetCameraX + 150;
-  const targetPlayerY = stageId === 'Toxic Tommy' ? 480 - 64 : 486;
+  const entry = getBossDef(stageId)?.arena?.entry ?? { x: 150, y: 486 };
+  const targetPlayerX = targetCameraX + entry.x;
+  const targetPlayerY = entry.y;
   const glideSpeed = 4;
 
   if (state.doorState === 'opening') {
@@ -306,12 +308,12 @@ const updateCamera = (ctx: FrameContext) => {
     // Camera follows the player but can't scroll past the closed boss door
     const maxX = state.doorState === 'closed' ? BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH : getStageWidth(stageId) - CANVAS_WIDTH;
     state.camera.x = Math.max(0, Math.min(maxX, followX));
-  } else if (state.arenaLocked && stageId === 'Oily Oscar') {
-    // Oscar's arena is two screens wide, so the camera scrolls inside it
+  } else if (state.arenaLocked && getArenaRight(stageId) > ARENA_RIGHT) {
+    // A wider-than-usual arena (Oscar's) scrolls with you
     state.camera.x = Math.max(BOSS_DOOR_X, Math.min(getStageWidth(stageId) - CANVAS_WIDTH, followX));
   }
-  if (stageId === 'Toxic Tommy' && state.arenaLocked) {
-    // Tommy's arena has no ceiling: follow high jumps
+  if (state.arenaLocked && getBossDef(stageId)?.arena?.openTop) {
+    // No ceiling (Tommy's arena): follow high jumps
     const targetCamY = player.pos.y < 220 ? player.pos.y - 220 : 0;
     state.camera.y += (targetCamY - state.camera.y) * 0.15;
   } else {

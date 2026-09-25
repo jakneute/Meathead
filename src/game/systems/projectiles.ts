@@ -1,32 +1,23 @@
 // Projectile movement, bouncing/lingering physics and all projectile hit resolution.
 
-import { Enemy, Projectile, WeaponType } from '../../types';
+import { Enemy, Projectile } from '../../types';
 import {
   CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, PLAYER_INVINCIBILITY_FRAMES,
-  PLAYER_PUSHBACK_DURATION, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, ENEMY_HIT_COOLDOWN,
+  PLAYER_PUSHBACK_DURATION, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y,
   BOULDER_BOUNCE_DAMPING, BOULDER_SHRAPNEL_COUNT, SHOTGUN_FREEZE_TIME, NEEDLE_OVERDOSE_THRESHOLD,
   SHOTGUN_MAX_BOUNCES, SHOTGUN_BOUNCE_VARIANCE_DEG, BOULDER_GRAVITY, BOULDER_MAX_SPEED, BOULDER_WALK_NUDGE,
   BOULDER_PUNT, BOULDER_BILLIARD_LOSS, BOULDER_DAMAGE_PER_SPEED, GML_SCALE,
   SLUDGE_DOT_DAMAGE, SLUDGE_DOT_TICK, SLUDGE_LINGER_DURATION, OIL_ROCKET_OILED_PUSHBACK_MULT,
 } from '../../constants';
 import { BOSS_DIALOGUE } from '../../dialogue';
-import { FrameContext, killBoss } from '../context';
-import { getBossDamage, checkIsWeakness, isTommyShielded, stunTommyWithOil, artieWeaknessLeap, maybeReactToWeapon } from '../boss';
+import { FrameContext } from '../context';
+import { getBossDef, hitBoss, isWeakTo, maybeReactToWeapon, weaponOf } from '../boss';
 import { explodeOilRocket } from '../weapons';
-import { updateOscarRocket, updateCigarette } from './oscar';
+import { stickNeedle, ENEMY_NEEDLE } from '../needles';
+import { updateOscarRocket, updateCigarette } from '../bosses/oscar';
 import { pickRandom, rectsOverlap, boundsOf } from '../utils';
 import { getAttackHitbox } from './player';
 import { shakeScreen, GameState } from '../state';
-
-/** Which of Meathead's weapons a player projectile came from. */
-const weaponOf = (p: Projectile): WeaponType => {
-  if (p.isBoulder) return 'BOULDER';
-  if (p.isIce) return 'SHOTGUN';
-  if (p.isDart) return 'NEEDLES';
-  if (p.isSludge) return 'SLUDGE';
-  if (p.isOilRocket) return 'OIL_ROCKET';
-  return 'GUN';
-};
 
 /** Moves one projectile and resolves its collisions. Returns false to remove it. */
 export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
@@ -318,52 +309,14 @@ const damageEnemiesInSludgePuddle = (ctx: FrameContext, p: Projectile) => {
 
     if (en.type === 'boss') {
       if (en.hitCooldown && en.hitCooldown > 0) continue;
-      const isW = stageId === 'Drug Trade Dale';
-      const dmg = isW ? 50 : 15;
-      en.health -= dmg;
-      en.hitCooldown = ENEMY_HIT_COOLDOWN;
-      fx.spawnDamageNumber(en.pos, dmg, isW);
       p.life = 0;
-      maybeReactToWeapon(en, 'SLUDGE', stageId, state, ctx.bossHelpers);
-      if (en.health <= 0) killBoss(ctx, en, 0, isW);
+      hitBoss(ctx, en, 'SLUDGE', { facing: 0, damage: isWeakTo(stageId, 'SLUDGE') ? 50 : 15 });
     } else if (isDotTick) {
       en.health -= SLUDGE_DOT_DAMAGE;
       fx.spawnDamageNumber(en.pos, SLUDGE_DOT_DAMAGE);
       if (en.health <= 0) fx.blowAwayEnemy(en, { x: 0, y: -5 }, 'sludge_kill');
     }
   }
-};
-
-interface NeedleStickSpec {
-  /** Minimum distance from the entry edge. */
-  minDepth: number;
-  /** Maximum penetration as a fraction of body width. */
-  maxDepthPct: number;
-  minY: number;
-  bottomMargin: number;
-  minSpacing: number;
-  nudge: number;
-}
-
-const BOSS_NEEDLE: NeedleStickSpec = { minDepth: 6, maxDepthPct: 0.4, minY: 10, bottomMargin: 10, minSpacing: 12, nudge: 10 };
-const ENEMY_NEEDLE: NeedleStickSpec = { minDepth: 4, maxDepthPct: 0.45, minY: 4, bottomMargin: 5, minSpacing: 10, nudge: 8 };
-
-/** Records where a dart stuck into an enemy so it can be drawn poking out of them. */
-const stickNeedle = (enemy: Enemy, p: Projectile, spec: NeedleStickSpec) => {
-  if (!enemy.needleOffsets) enemy.needleOffsets = [];
-  const clampDepth = (d: number) => Math.max(spec.minDepth, Math.min(enemy.width * spec.maxDepthPct, d));
-  const clampY = (y: number) => Math.max(spec.minY, Math.min(enemy.height - spec.bottomMargin, y));
-  const hitX = p.vel.x >= 0
-    ? clampDepth((p.pos.x + p.width) - enemy.pos.x)
-    : enemy.width - clampDepth((enemy.pos.x + enemy.width) - p.pos.x);
-  let hitY = clampY((p.pos.y + p.height / 2) - enemy.pos.y);
-  // Spread needles out so they don't stack on top of each other
-  for (let attempt = 0; attempt < 5; attempt++) {
-    if (!enemy.needleOffsets.some(o => Math.hypot(o.x - hitX, o.y - hitY) < spec.minSpacing)) break;
-    hitY = clampY(hitY + ((attempt % 2 === 0) ? spec.nudge : -spec.nudge));
-  }
-  const rot = Math.atan2(p.vel.y, p.vel.x) + (Math.random() - 0.5) * 0.25;
-  enemy.needleOffsets.push({ x: hitX, y: hitY, rot });
 };
 
 /** Player projectile vs. enemies, bosses and meth barrels. Returns false if the projectile is spent. */
@@ -459,48 +412,25 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
  * Returns true if a regular (non dart/sludge) hit landed.
  */
 const hitBossWithProjectile = (ctx: FrameContext, boss: Enemy, p: Projectile): boolean => {
-  const { state, fx, stageId, currentWeapon } = ctx;
+  const { state, fx, stageId } = ctx;
+  const def = getBossDef(stageId);
+  const weapon = weaponOf(p);
 
-  if (stageId === 'Toxic Tommy' && isTommyShielded(boss, state)) {
-    fx.spawnExplosion(p.pos, '#27AE60', 10, 0, 5);
-    fx.playGunSound('barf');
+  if (def?.shield?.isUp(boss, state)) {
+    fx.spawnExplosion(p.pos, def.shield.color, 10, 0, 5);
+    if (def.shield.sound) fx.playGunSound(def.shield.sound);
     return false;
   }
   if (boss.hitCooldown && boss.hitCooldown > 0) return false;
-  const isDartOrSludge = !!(p.isDart || p.isSludge);
-
-  if (p.isDart && stageId === 'Blackout Barry') {
-    // Barry's weakness: needles stick (max 3) and drain him over time instead of hitting
-    boss.needleCount = Math.min(3, (boss.needleCount || 0) + 1);
-    boss.needleTimer = 600;
-    if (!boss.needleOffsets) boss.needleOffsets = [];
-    if (boss.needleOffsets.length >= 3) boss.needleOffsets.shift();
-    stickNeedle(boss, p, BOSS_NEEDLE);
-    maybeReactToWeapon(boss, 'NEEDLES', stageId, state, ctx.bossHelpers);
-    p.health = 0;
+  // Some bosses take certain projectiles their own way (Barry's needles stick in him)
+  if (def?.catchProjectile?.(ctx, boss, p)) {
+    maybeReactToWeapon(boss, weapon, stageId, state, ctx.bossHelpers);
     return false;
   }
 
-  // Ernie gets knocked out of the air by ice
-  if (stageId === 'Ernie Earthquake' && !boss.isGroundedBoss && p.isIce && !isDartOrSludge) {
-    boss.bossState = 'stunned_drop';
-    boss.stateTimer = 90;
-    boss.vel.y = 15;
-    boss.rotation = Math.PI / 2;
-    fx.spawnGlassShatter(p.pos);
-  }
-
-  const dmg = getBossDamage(boss, stageId, currentWeapon, p);
-  const isW = checkIsWeakness(stageId, currentWeapon, p);
-  boss.health -= dmg;
-  boss.hitCooldown = ENEMY_HIT_COOLDOWN;
-  fx.spawnDamageNumber(boss.pos, dmg, isW);
-  if (stageId === 'Artie Avalanche' && isW && boss.health > 0 && !isDartOrSludge) artieWeaknessLeap(boss);
-  if (stageId === 'Toxic Tommy' && isW && boss.health > 0) stunTommyWithOil(boss, state, ctx.bossHelpers);
-  maybeReactToWeapon(boss, weaponOf(p), stageId, state, ctx.bossHelpers);
-  if (boss.health <= 0) killBoss(ctx, boss, p.vel.x > 0 ? 1 : -1, isW);
+  hitBoss(ctx, boss, weapon, { facing: p.vel.x > 0 ? 1 : -1, p });
   if (p.isSludge) p.health = 0;
-  return !isDartOrSludge;
+  return !(p.isDart || p.isSludge);
 };
 
 /** Enemy projectile hitting the player. Returns false if the projectile is spent. */
@@ -516,7 +446,7 @@ const resolveEnemyProjectileHit = (ctx: FrameContext, p: Projectile): boolean =>
   if (!rectsOverlap(boundsOf(p), hurtbox)) return true;
 
   // Uppercuts and divekicks slice cleanly through Tommy's vomit
-  if (p.isSludge && stageId === 'Toxic Tommy' && (player.isUppercutting || player.isDivekicking)) {
+  if (p.isSludge && (player.isUppercutting || player.isDivekicking)) {
     fx.spawnExplosion(p.pos, '#27AE60', 10, 0, 5);
     return false;
   }

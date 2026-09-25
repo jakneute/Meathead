@@ -3,8 +3,8 @@
 
 import { Enemy, Projectile, OilCell, Rect, Player } from '../../types';
 import {
-  ARENA_LEFT, OSCAR_ARENA_RIGHT, GROUND_Y, TASER_RANGE, TASER_OVERLOAD_FRAMES, ENEMY_HIT_COOLDOWN,
-  PLAYER_INVINCIBILITY_FRAMES, PLAYER_PUSHBACK_DURATION, PLAYER_PUSHBACK_VEL_X, PARTICLE_PALETTES,
+  ARENA_LEFT, OSCAR_ARENA_RIGHT, TASER_RANGE, TASER_OVERLOAD_FRAMES, ENEMY_HIT_COOLDOWN,
+  PLAYER_PUSHBACK_VEL_X, PARTICLE_PALETTES,
   OSCAR_IDLE_FRAMES, OSCAR_IDLE_RAMP, OSCAR_SLIDE_SPEED, OSCAR_PREFERRED_DISTANCE, OSCAR_LOCK_FRAMES,
   OSCAR_MAX_AIM_FRAMES, OSCAR_ROCKET_SPEED, OSCAR_SPLASH_RADIUS, OSCAR_SPLASH_DAMAGE, OSCAR_OIL_RADIUS,
   OSCAR_OIL_CELL, OSCAR_OIL_FRAMES, OSCAR_FLICK_WINDUP, OSCAR_CIGARETTE_FLIGHT, OSCAR_CIGARETTE_GRAVITY,
@@ -13,19 +13,16 @@ import {
   OSCAR_ASH_FACE_FRAMES, OSCAR_FIRE_WARNING,
 } from '../../constants';
 import { OSCAR_LINES } from '../../dialogue';
-import { FrameContext, killBoss } from '../context';
+import type { FrameContext } from '../context';
 import { GameState, shakeScreen } from '../state';
-import { speakAsBoss } from '../boss';
 import { pickRandom, rectsOverlap, boundsOf } from '../utils';
+import { BossDef, FLOOR_Y, CEILING_Y, speakAsBoss, hurtPlayer as hurtMeathead, midX } from './shared';
 
 const OSCAR = 'Oily Oscar';
-const FLOOR_Y = GROUND_Y;
-const CEILING_Y = 100;
-const ARENA_RIGHT = OSCAR_ARENA_RIGHT;
+const ARENA_RIGHT = OSCAR_ARENA_RIGHT; // his room is double-wide
 const LAUNCHER_LENGTH = 44;
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
-const midX = (e: { pos: { x: number }, width: number }) => e.pos.x + e.width / 2;
 
 const findOscar = (state: GameState) => state.enemies.find(e => e.type === 'boss' && e.health > 0);
 
@@ -305,7 +302,7 @@ export const updateOscarRocket = (ctx: FrameContext, p: Projectile): boolean => 
 };
 
 const explodeOscarRocket = (ctx: FrameContext, at: { x: number, y: number }) => {
-  const { state, fx, cheats } = ctx;
+  const { state, fx } = ctx;
   const { player } = state;
   const pos = { x: clamp(at.x, ARENA_LEFT, ARENA_RIGHT), y: clamp(at.y, CEILING_Y, FLOOR_Y) };
   fx.spawnOilSplatter(pos);
@@ -319,25 +316,12 @@ const explodeOscarRocket = (ctx: FrameContext, at: { x: number, y: number }) => 
   const nx = clamp(pos.x, hb.x, hb.x + hb.w), ny = clamp(pos.y, hb.y, hb.y + hb.h);
   if (Math.hypot(nx - pos.x, ny - pos.y) < OSCAR_SPLASH_RADIUS && player.invincibilityTimer <= 0) {
     const dir = midX(player) < pos.x ? -1 : 1;
-    hurtPlayer(ctx, cheats.invincible ? 0 : OSCAR_SPLASH_DAMAGE, dir * PLAYER_PUSHBACK_VEL_X * 1.4, -8, 'oil');
+    hurtMeathead(ctx, OSCAR_SPLASH_DAMAGE, 'oil', { x: dir * PLAYER_PUSHBACK_VEL_X * 1.4, y: -8 });
   }
 
   coatWithOil(state, pos);
   const boss = findOscar(state);
   if (boss) { boss.impactX = pos.x; boss.impactY = pos.y; }
-};
-
-const hurtPlayer = (ctx: FrameContext, damage: number, velX: number, velY: number, source: string) => {
-  const { player } = ctx.state;
-  player.health -= damage;
-  if (player.health <= 0) return;
-  player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;
-  player.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;
-  player.isHarmlessPushback = false;
-  player.smugTimer = 0;
-  player.pushbackTimer = PLAYER_PUSHBACK_DURATION;
-  player.vel = { x: velX, y: velY };
-  if (damage > 0) ctx.fx.speakVulgarity('hurt', source);
 };
 
 /** Oils every floor, ceiling and wall strip within reach of the blast. */
@@ -399,7 +383,7 @@ const ignite = (state: GameState, cell: OilCell) => {
 
 /** Oil dries up, fire spreads strip by strip, burns for a few seconds, then the oil is gone. */
 export const updateOscarHazards = (ctx: FrameContext) => {
-  const { state, fx, cheats } = ctx;
+  const { state, fx } = ctx;
   const { player } = state;
   if (state.oilCells.length === 0) return;
 
@@ -423,7 +407,7 @@ export const updateOscarHazards = (ctx: FrameContext) => {
 
   if (hurtBy && player.invincibilityTimer <= 0) {
     const dir = midX(player) < hurtBy.x + hurtBy.w / 2 ? -1 : 1;
-    hurtPlayer(ctx, cheats.invincible ? 0 : OSCAR_FIRE_DAMAGE, dir * PLAYER_PUSHBACK_VEL_X, -9, 'fire');
+    hurtMeathead(ctx, OSCAR_FIRE_DAMAGE, 'fire', { x: dir * PLAYER_PUSHBACK_VEL_X, y: -9 });
     fx.spawnExplosion({ x: midX(player), y: player.pos.y + player.height }, '#FF4500', 8, 0, 6);
   }
 };
@@ -446,7 +430,7 @@ const hurtOscarWithFire = (ctx: FrameContext, boss: Enemy) => {
   boss.fireHurtTimer = 30;
   boss.health -= 12;
   fx.spawnDamageNumber(boss.pos, 12);
-  if (boss.health <= 0) killBoss(ctx, boss, 0, false);
+  if (boss.health <= 0) ctx.bossHelpers.killBoss(boss, 0, false);
 };
 
 // ---------------------------------------------------------------------------
@@ -542,7 +526,7 @@ const burstOscar = (ctx: FrameContext, boss: Enemy) => {
   fx.playGunSound('tsunami');
   shakeScreen(state, 20, 10);
   overloadTaser(ctx);
-  if (boss.health <= 0) { killBoss(ctx, boss, player.facing, true, 'TASER'); return; }
+  if (boss.health <= 0) { ctx.bossHelpers.killBoss(boss, player.facing, true, 'TASER'); return; }
   boss.vel.x = (midX(boss) < midX(player) ? -1 : 1) * 11;
   startIdle(boss, 70);
   speakAsBoss(OSCAR, pickRandom(OSCAR_LINES.BURST), ctx.bossHelpers);
@@ -573,7 +557,7 @@ export const zapCigarette = (ctx: FrameContext, cig: Projectile) => {
   boss.hitCooldown = ENEMY_HIT_COOLDOWN;
   fx.spawnDamageNumber(boss.pos, OSCAR_CIGARETTE_COMBO_DAMAGE, true);
   spawnCallout(state, { x: face.x, y: boss.pos.y - 50 }, 'SMOKED!', '#FF8C00');
-  if (boss.health <= 0) { killBoss(ctx, boss, player.facing, true, 'TASER'); return; }
+  if (boss.health <= 0) { ctx.bossHelpers.killBoss(boss, player.facing, true, 'TASER'); return; }
   boss.bossState = 'ash_face';
   boss.stateTimer = OSCAR_ASH_FACE_FRAMES;
   boss.vel.x = 0;
@@ -602,4 +586,14 @@ const spawnCallout = (state: GameState, pos: { x: number, y: number }, text: str
     text, pos: { ...pos }, vel: { x: 0, y: -3 },
     life: 75, maxLife: 75, isCritical: true, isCallout: true, color,
   });
+};
+
+export const oscar: BossDef = {
+  id: OSCAR,
+  weakness: 'TASER',
+  // Starts where he's visible from the door, like the other bosses
+  spawn: { x: ARENA_LEFT + 600, fields: { hasCigarette: true } },
+  arena: { right: OSCAR_ARENA_RIGHT },
+  update: updateOscar,
+  onTaser: holdOscarWithTaser,
 };

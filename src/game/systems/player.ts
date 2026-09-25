@@ -10,7 +10,7 @@ import {
   JUMP_HOLD_FRAMES, COYOTE_AIR_FRAMES, COYOTE_JUMP_FRAMES, JUMP_BUFFER_FRAMES, LANDING_SHAKE_SPEED,
   CHARGE_SPEED, CHARGE_DURATION, SLIDE_SPEED, SLIDE_DURATION, COOLDOWN_CHARGE,
   UPPERCUT_SPEED, UPPERCUT_DURATION, COOLDOWN_UPPERCUT, DIVEKICK_SPEED, DIVEKICK_ANGLE,
-  PLAYER_MASS, RECOIL_FRAMES, PLAYER_STUN_INVINCIBILITY, GML_SCALE, SPECIAL_HURT_FRAMES, ARENA_LEFT, getArenaRight,
+  PLAYER_MASS, RECOIL_FRAMES, PLAYER_STUN_INVINCIBILITY, GML_SCALE, SPECIAL_HURT_FRAMES, ARENA_LEFT,
   OSCAR_OIL_SPEED_MULT, OSCAR_OIL_JUMP_MULT,
 } from '../../constants';
 import { FrameContext } from '../context';
@@ -18,7 +18,8 @@ import { GameState, shakeScreen } from '../state';
 import { Controls } from '../input';
 import { fireWeapon, updateFlamethrower } from '../weapons';
 import { rectsOverlap, boundsOf } from '../utils';
-import { isStandingInOil } from './oscar';
+import { isStandingInOil } from '../bosses/oscar';
+import { getBossDef, getArenaRight } from '../boss';
 
 export interface FrameInput {
   shoot: boolean;
@@ -34,7 +35,6 @@ export interface FrameInput {
 }
 
 export const DEATH_SCREEN_FRAMES = 180;
-const ICE_STAGES = ['Artie Avalanche', 'Blackout Barry'];
 const STEP_UP_HEIGHT = 6;
 
 export const killPlayer = (ctx: FrameContext, message: string) => {
@@ -282,9 +282,10 @@ const updateHorizontalVelocity = (ctx: FrameContext, movDir: number) => {
   const inOil = isStandingInOil(state);
   const targetVel = movDir * PLAYER_MOVE_SPEED * (inOil ? OSCAR_OIL_SPEED_MULT : 1);
   const effectiveDir = player.isDucking ? 0 : movDir;
-  // Tommy's floating boards aren't terrain blocks, so count being grounded in his arena as a floor too
-  const onFloor = standingOnSolid(state) || (stageId === 'Toxic Tommy' && state.arenaLocked && player.isGrounded);
-  const surfaceFriction = ICE_STAGES.includes(stageId || '') ? ICE_FRICTION_MULTIPLIER : 1.0;
+  const bossDef = getBossDef(stageId);
+  // A floorless arena's platforms (Tommy's floating boards) aren't terrain blocks, so being grounded there counts as a floor too
+  const onFloor = standingOnSolid(state) || (!!bossDef?.arena?.floorless && state.arenaLocked && player.isGrounded);
+  const surfaceFriction = bossDef?.slipperyFloor ? ICE_FRICTION_MULTIPLIER : 1.0;
 
   let friction = onFloor ? PLAYER_FRICTION_BASE * surfaceFriction : PLAYER_AIR_FRICTION;
   if (player.isDucking && player.isGrounded) friction *= CROUCH_SLIDE_FRICTION_MULT;
@@ -323,7 +324,7 @@ export const updatePlayerPhysics = (ctx: FrameContext, input: FrameInput) => {
   if (player.isGrounded && !isPerformingSpecial(ctx) && Math.abs(player.vel.x) > PLAYER_MOVE_SPEED * 0.6 && state.playerAnimFrame % 11 === 0) {
     spawnDust(state, player.pos.x + player.width / 2 - Math.sign(player.vel.x) * 10, player.pos.y + player.height, 2, -Math.sign(player.vel.x));
   }
-  if (state.arenaLocked && ctx.stageId !== 'Toxic Tommy' && player.pos.y < 100) { player.pos.y = 100; player.vel.y = 0; }
+  if (state.arenaLocked && !getBossDef(ctx.stageId)?.arena?.openTop && player.pos.y < 100) { player.pos.y = 100; player.vel.y = 0; }
 };
 
 const updateVerticalVelocity = (ctx: FrameContext, input: FrameInput) => {

@@ -1,7 +1,8 @@
 import { Block, Enemy, Rect, PickupType } from '../types';
-import { BOSS_DOOR_X, DOOR_WIDTH, GROUND_Y, createFullAmmo, getArenaRight, getStageWidth } from '../constants';
+import { BOSS_DOOR_X, DOOR_WIDTH, GROUND_Y, createFullAmmo } from '../constants';
 import { isKnownStage } from '../stages';
 import { GameState, resetStageState } from './state';
+import { createBoss, getBossDef, getArenaRight, getStageWidth } from './boss';
 
 /** Where the player starts: the stage start, or just before the boss door when skipping. */
 export const getStartX = (skipToBoss: boolean) => skipToBoss ? BOSS_DOOR_X - 800 : 0;
@@ -50,26 +51,22 @@ export const respawn = (state: GameState, stageId: string | null, skipToBoss: bo
 const buildTerrain = (state: GameState, stageId: string | null): Block[] => {
   const doorX = BOSS_DOOR_X;
   const isTommy = stageId === 'Toxic Tommy';
+  const arena = getBossDef(stageId)?.arena;
   const stageWidth = getStageWidth(stageId);
 
   const blocks: Block[] = [
     { x: -100, y: -1000, w: 100, h: 2000, type: 'wall' },
     { x: stageWidth, y: -1000, w: 100, h: 2000, type: 'wall' },
     { x: 0, y: -200, w: stageWidth, h: 200, type: 'wall' },
-    // Tommy's arena has no floor, just a sludge pool
-    { x: 0, y: GROUND_Y, w: isTommy ? doorX : stageWidth, h: 50, type: 'ground' },
+    // A floorless arena (Tommy's sludge pool) has ground only up to the door
+    { x: 0, y: GROUND_Y, w: arena?.floorless ? doorX : stageWidth, h: 50, type: 'ground' },
     { x: doorX, y: 400, w: DOOR_WIDTH, h: 150, type: 'door' },
     { x: doorX, y: -1000, w: DOOR_WIDTH, h: 1400, type: 'wall' },
     { x: getArenaRight(stageId), y: 100, w: 40, h: 500, type: 'wall' },
   ];
 
-  if (isTommy) {
-    // No arena ceiling; a safe catwalk just inside the door, then floating boards
-    blocks.push({ x: doorX, y: 480, w: 90, h: 70, type: 'ground' });
-    state.tommyBoards = createTommyBoards();
-  } else {
-    blocks.push({ x: doorX, y: 0, w: stageWidth - doorX, h: 100, type: 'wall' });
-  }
+  if (!arena?.openTop) blocks.push({ x: doorX, y: 0, w: stageWidth - doorX, h: 100, type: 'wall' });
+  arena?.build?.(state, blocks);
 
   const addPlatform = (p: Rect, pickupChance = 0) => {
     if (p.x + p.w > doorX) return;
@@ -108,27 +105,6 @@ const addPickupOnPlatform = (state: GameState, block: Rect) => {
   });
 };
 
-/** Eight boards spanning Toxic Tommy's sludge pool. */
-const createTommyBoards = () => {
-  const boardCount = 8;
-  const arenaStartX = BOSS_DOOR_X + 105;
-  const arenaEndX = 7935;
-  const spacing = (arenaEndX - arenaStartX - 68) / (boardCount - 1);
-  return Array.from({ length: boardCount }, (_, i) => ({
-    index: i,
-    x: arenaStartX + i * spacing,
-    baseY: 480,
-    y: 480,
-    w: 68,
-    h: 18,
-    status: 'active' as const,
-    shatterTimer: 0,
-    riseProgress: 1,
-    shakeX: 0,
-    telegraphTimer: 0,
-  }));
-};
-
 /** The same enemy squad repeats every 1000px up to the boss door. */
 const spawnStageEnemies = (): Enemy[] => {
   const enemies: Enemy[] = [];
@@ -143,30 +119,4 @@ const spawnStageEnemies = (): Enemy[] => {
     );
   }
   return enemies;
-};
-
-const createBoss = (stageId: string): Enemy => {
-  const startsFarRight = ['Drug Trade Dale', 'Blackout Barry', 'Toxic Tommy', 'Oily Oscar'].includes(stageId);
-  const isTommy = stageId === 'Toxic Tommy';
-  const x = startsFarRight ? 7840 : 7700;
-  return {
-    id: 'boss',
-    pos: { x, y: isTommy ? 525 : 470 },
-    vel: { x: 0, y: 0 },
-    width: 80,
-    height: 80,
-    health: 666,
-    maxHealth: 666,
-    type: 'boss',
-    enemyType: 'tank',
-    behavior: 'shoot',
-    patrolRange: 0,
-    initialX: x,
-    shootTimer: 0,
-    bossState: isTommy ? 'submerged_chase' : 'idle',
-    stateTimer: isTommy ? 120 : 60,
-    truckX: 0,
-    truckActive: false,
-    hasCigarette: true,
-  };
 };
