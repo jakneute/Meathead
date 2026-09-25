@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import '@fontsource/press-start-2p';
 import './index.css';
 
 const rootElement = document.getElementById('root');
