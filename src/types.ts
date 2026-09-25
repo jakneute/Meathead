@@ -329,6 +329,8 @@ export interface Particle {
   isWater?: boolean;
   isBossGore?: boolean;
   isStuck?: boolean;
+  /** Blood that's hit the floor and lies there (fades normally, unlike isStuck). */
+  isSplat?: boolean;
 }
 
 export interface DamageNumber {

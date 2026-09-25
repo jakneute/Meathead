@@ -9,6 +9,8 @@ import { drawBoss, drawBossOverlay } from './bosses';
 import { drawVentTelegraph, drawVent, drawMagma, isMagma } from './victorVents';
 import { drawIcicles, drawIceBlock, drawIceShard } from './artieIce';
 import { drawBoulder, drawRockChip } from './boulders';
+import { drawBullet, drawEnemyBullet, drawIcePellet, drawDart, drawPoopLog, drawCocaine, drawMethBarrel, drawSludgeBlob } from './projectileArt';
+import { drawParticle } from './particles';
 import { drawPlayer } from './playerRenderer';
 import {
   drawOilSlicks, drawOscarFire, drawOscarLaser, drawOscarRocket, drawFlyingCigarette, drawTaserOverload,
@@ -713,19 +715,13 @@ const drawProjectiles = (ctx: CanvasRenderingContext2D, state: GameState, layer:
              const bSize = 2 + Math.abs(Math.sin(state.frame * 0.05 + i)) * 3;
              ctx.beginPath(); ctx.arc(bpx, bpy, bSize, 0, Math.PI * 2); ctx.fill();
           }
-      } else {
-          ctx.rotate(state.frame * 0.3 + p.id.length);
-          ctx.fillStyle = '#1B5E20';
-          ctx.fillRect(-p.width/2, -p.height/2, p.width, p.height);
-          ctx.strokeStyle = '#ADFF2F';
-          ctx.lineWidth = 2;
-          ctx.strokeRect(-p.width/2, -p.height/2, p.width, p.height);
       }
       ctx.restore();
+      if (!p.isLingering) drawSludgeBlob(ctx, p, state.frame);
     }
-    else if (p.isCocaine) { ctx.save(); ctx.translate(p.pos.x + p.width/2, p.pos.y + p.height/2); ctx.rotate(state.frame * 0.1); ctx.fillStyle = '#fff'; ctx.fillRect(-p.width/2, -p.height/2, p.width, p.height); ctx.strokeStyle = '#ccc'; ctx.strokeRect(-p.width/2, -p.height/2, p.width, p.height); ctx.restore(); }
-    else if (p.isMethBarrel) { ctx.save(); ctx.translate(p.pos.x + p.width/2, p.pos.y + p.height/2); ctx.rotate(p.rotation || 0); ctx.fillStyle = '#111'; ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 2; ctx.fillRect(-p.width/2, -p.height/2, p.width, p.height); ctx.strokeRect(-p.width/2, -p.height/2, p.width, p.height); ctx.fillStyle = '#FFD700'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText("METH", 0, 5); ctx.restore(); }
-    else if (p.isDart) { ctx.save(); ctx.translate(p.pos.x + p.width/2, p.pos.y + p.height/2); ctx.fillStyle = COLORS.PROJECTILE_DART; ctx.fillRect(-p.width/2 + (p.vel.x > 0 ? 5 : 0), -p.height/2, p.width - 5, p.height); ctx.fillStyle = 'red'; ctx.fillRect(p.vel.x > 0 ? -p.width/2 : p.width/2 - 5, -p.height/2 - 1, 6, p.height + 2); ctx.restore(); }
+    else if (p.isCocaine) drawCocaine(ctx, p, state.frame);
+    else if (p.isMethBarrel) drawMethBarrel(ctx, p, state.frame);
+    else if (p.isDart) drawDart(ctx, p);
     else if (p.isDarkness) {
       ctx.save();
       ctx.translate(p.pos.x + p.width/2, p.pos.y + p.height/2);
@@ -745,25 +741,7 @@ const drawProjectiles = (ctx: CanvasRenderingContext2D, state: GameState, layer:
       ctx.fill();
       ctx.restore();
     }
-    else if (p.isPoop) {
-      ctx.save();
-      ctx.translate(p.pos.x + p.width/2, p.pos.y + p.height/2);
-      ctx.rotate(state.frame * 0.2 + p.id.length);
-      // Log
-      ctx.fillStyle = '#5D4037';
-      ctx.beginPath();
-      if(ctx.roundRect) ctx.roundRect(-p.width/2, -p.height/2, p.width, p.height, 8);
-      else ctx.rect(-p.width/2, -p.height/2, p.width, p.height);
-      ctx.fill();
-      ctx.strokeStyle = '#3E2723';
-      ctx.stroke();
-      // Corn
-      ctx.fillStyle = '#FFEB3B';
-      ctx.beginPath(); ctx.arc(-5, -2, 2, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(4, 3, 2, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(2, -4, 2, 0, Math.PI*2); ctx.fill();
-      ctx.restore();
-    }
+    else if (p.isPoop) drawPoopLog(ctx, p, state.frame);
     else if (isMagma(p)) drawMagma(ctx, p, state.frame);
     else if (p.isIce && p.owner === 'enemy') (p.width > 30 ? drawIceBlock : drawIceShard)(ctx, p, state.frame);
     else if (p.isOscarRocket) drawOscarRocket(ctx, p, state.frame);
@@ -804,14 +782,21 @@ const drawProjectiles = (ctx: CanvasRenderingContext2D, state: GameState, layer:
 
       ctx.restore();
     }
-    else { ctx.fillStyle = (p.isIce) ? COLORS.PROJECTILE_ICE : (p.owner === 'player' ? COLORS.PROJECTILE_PLAYER : COLORS.PROJECTILE_ENEMY); ctx.fillRect(p.pos.x, p.pos.y, p.width, p.height); }
+    else if (p.isIce) drawIcePellet(ctx, p, state.frame);
+    else if (p.owner === 'player') drawBullet(ctx, p);
+    else drawEnemyBullet(ctx, p, state.frame);
     ctx.restore();
   });
 };
 
 const drawParticlesAndDamageNumbers = (ctx: CanvasRenderingContext2D, state: GameState) => {
   const { particles, damageNumbers } = state;
-  particles.forEach(p => { ctx.save(); if (!p.isStuck) ctx.globalAlpha = p.life < 100 ? p.life / 100 : 1; else ctx.globalAlpha = 0.85; ctx.fillStyle = p.color; ctx.fillRect(p.pos.x, p.pos.y, p.size, p.size); ctx.restore(); });
+  particles.forEach(p => {
+    ctx.save();
+    ctx.globalAlpha = p.isStuck ? 0.85 : (p.life < 100 ? p.life / 100 : 1);
+    drawParticle(ctx, p);
+    ctx.restore();
+  });
   damageNumbers.forEach(d => {
     if (d.isCallout) { drawCallout(ctx, d); return; }
     ctx.save();

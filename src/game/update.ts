@@ -19,6 +19,7 @@ import { updateTaser, updateBurningProjectiles, updateEnemyStatusEffects } from 
 import { updateEnemy } from './systems/enemies';
 import { updateProjectile, updateSpecialMovesVsBarrels } from './systems/projectiles';
 import { updateOscarHazards } from './bosses/oscar';
+import { isGoreColor } from './effects';
 import { getBossDef, getArenaRight, getStageWidth } from './boss';
 
 const INTRO_JUMP_START = 80;
@@ -276,11 +277,29 @@ const updatePickups = (ctx: FrameContext) => {
 };
 
 const updateParticlesAndNumbers = (ctx: FrameContext) => {
-  const { state } = ctx;
+  const { state, stageId } = ctx;
+  // Tommy's arena floor is a sludge pool: blood just sinks into it
+  const bloodSplatsOnFloor = !(state.arenaLocked && getBossDef(stageId)?.arena?.floorless);
   state.particles = state.particles.filter(p => {
+    if (p.isSplat) {
+      p.life--;
+      return p.life > 0;
+    }
     if (!p.isStuck) {
       p.pos.x += p.vel.x;
       p.pos.y += p.vel.y;
+      // Blood arcs down and splats on the floor
+      if (!p.isBossGore && isGoreColor(p.color)) {
+        p.vel.y += 0.35;
+        p.vel.x *= 0.99;
+        if (bloodSplatsOnFloor && p.pos.y + p.size >= 550) {
+          p.isSplat = true;
+          p.pos.y = 548 - p.size / 2; // centred on the floor line
+          p.vel = { x: 0, y: 0 };
+          p.life = Math.max(p.life, 150 + Math.random() * 90);
+          return true;
+        }
+      }
       // Glass and fire fall and bounce on the floor
       if (p.isGlass || (p.color && PARTICLE_PALETTES.FIRE.includes(p.color))) {
         p.vel.y += 0.25;

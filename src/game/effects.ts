@@ -14,6 +14,10 @@ const MAX_PARTICLES = 2500;
  * Visual/audio side effects bound to the current game state: particles,
  * floating damage numbers, pickups and Meathead's voice lines.
  */
+/** Blood and flesh colours (not the fire reds). */
+const GORE_COLORS = new Set([...PARTICLE_PALETTES.GORE, ...PARTICLE_PALETTES.FLESH].filter(c => !PARTICLE_PALETTES.FIRE.includes(c)));
+export const isGoreColor = (color: string) => GORE_COLORS.has(color);
+
 export const createFx = (state: GameState) => {
   const spawnDamageNumber = (pos: Vector2, value: number | string, isCritical: boolean = false, color?: string) => {
     const isText = typeof value === 'string';
