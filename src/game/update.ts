@@ -178,6 +178,7 @@ const updateVictorySequence = (ctx: FrameContext) => {
   resetPlayerCombatState(state.player);
   state.playerStunTimer = 0;
   state.projectiles = [];
+  state.damageNumbers = [];
   moveLooseParticles(ctx);
 
   const fullStr = "VICTORY";

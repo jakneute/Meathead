@@ -4,7 +4,7 @@
 
 import { Enemy, Projectile, WeaponType, VulgarityType } from '../types';
 import {
-  ARENA_RIGHT, STAGE_WIDTH, BULLET_DAMAGE, WEAKNESS_DAMAGE, ENEMY_HIT_COOLDOWN, TASER_BOSS_DAMAGE_REDUCTION,
+  ARENA_LEFT, ARENA_RIGHT, STAGE_WIDTH, BULLET_DAMAGE, WEAKNESS_DAMAGE, ENEMY_HIT_COOLDOWN, TASER_BOSS_DAMAGE_REDUCTION,
   BOSS_VULGARITY_DURATION, BOSS_WEAPON_REACTION_CHANCE, BOSS_WEAPON_REACTION_COOLDOWN,
 } from '../constants';
 import { BOSS_DIALOGUE, BOSS_WEAPON_REACTIONS } from '../dialogue';
@@ -180,6 +180,9 @@ export const updateBossAI = (ctx: FrameContext, boss: Enemy) => {
 // Death
 // ---------------------------------------------------------------------------
 
+/** How far a weakness-kill corpse is kept from the walls (it sprawls about this far). */
+const CORPSE_WALL_GAP = 115;
+
 /** Which of Meathead's kill lines fits the weapon that finished the boss. */
 const KILL_LINE_FOR: Partial<Record<WeaponType, VulgarityType>> = {
   BOULDER: 'boulder_kill',
@@ -209,6 +212,7 @@ const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolea
   state.tsunamiActive = false;
   state.tsunamiX = -1;
   state.tommySludgeOiledTimer = 0;
+  state.damageNumbers = []; // no numbers or callouts hanging over the death / victory freeze
   state.oilCells = [];
   state.icicles = [];
 
@@ -222,7 +226,9 @@ const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolea
     // What's left of him stays behind, wrecked the way the weapon would
     // (in a floorless arena he floats, half sunk, at the surface)
     const floor = getBossDef(stageId)?.arena?.floorless ? state.tommySludgeY - 25 : FLOOR_Y;
-    state.bossCorpse = { stageId: stageId || '', weapon, x: pos.x, y: floor, facing: playerFacing < 0 ? -1 : 1, frame0: state.frame };
+    // Nudged out of the corners so the whole mess stays in view
+    const corpseX = Math.max(ARENA_LEFT + CORPSE_WALL_GAP, Math.min(getArenaRight(stageId) - CORPSE_WALL_GAP, pos.x));
+    state.bossCorpse = { stageId: stageId || '', weapon, x: corpseX, y: floor, facing: playerFacing < 0 ? -1 : 1, frame0: state.frame };
     helpers.spawnDeathShower(state.bossExplosionPos, playerFacing, 35, true, 120);
   } else {
     helpers.spawnDeathShower(pos, playerFacing, 6, true, 45);
