@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import HUD from './components/HUD';
 import Overlay, { CheatFlags } from './components/Overlay';
 import GameCanvas from './components/GameCanvas';
+import EndingCutscene from './components/EndingCutscene';
 import { GameStatus, WeaponType } from './types';
 import { INITIAL_PLAYER_HEALTH, MAX_AMMO, createFullAmmo } from './constants';
 import { getStages, getStartingWeapons, sortWeapons, BOSS_WEAPON_MAP, WEAPONS_AFTER_SET_0, ALL_WEAPONS } from './stages';
@@ -23,7 +24,10 @@ const PAD_REPEAT_MS = 180;
 const REBUKE_COOLDOWN_MS = 1000;
 
 const HUD_SCREENS = [GameStatus.LEVEL_INTRO, GameStatus.PLAYING, GameStatus.BOSS_TRANSITION, GameStatus.PAUSED, GameStatus.BOSS_INTRO, GameStatus.BOSS_VICTORY_SPEECH];
-const UNPAUSABLE_SCREENS = [GameStatus.BOSS_TRANSITION, GameStatus.BOSS_INTRO, GameStatus.BOSS_VICTORY_SPEECH, GameStatus.LEVEL_INTRO, GameStatus.VICTORY];
+const UNPAUSABLE_SCREENS = [GameStatus.BOSS_TRANSITION, GameStatus.BOSS_INTRO, GameStatus.BOSS_VICTORY_SPEECH, GameStatus.LEVEL_INTRO, GameStatus.VICTORY, GameStatus.ENDING];
+
+/** The ending plays once this set of bosses is beaten (later sets will move it). */
+const ENDING_AFTER_RANK = 1;
 
 /** Stage select is a 2x2 grid: horizontal flips the column, vertical flips the row. */
 const navigateStageGrid = (index: number, dx: number, dy: number) => {
@@ -142,7 +146,7 @@ const App: React.FC = () => {
       case GameStatus.BOSS_VICTORY_SPEECH:
         setIsVictoryPhase(false);
         if (defeatedStages.length >= 4) {
-          setStatus(GameStatus.VICTORY);
+          setStatus(progressionRank >= ENDING_AFTER_RANK ? GameStatus.ENDING : GameStatus.VICTORY);
         } else {
           setStatus(GameStatus.STAGE_SELECT);
           setSelectedStage(null);
@@ -170,6 +174,17 @@ const App: React.FC = () => {
   };
 
   const handleResume = () => setStatus(GameStatus.PLAYING);
+
+  /** After THE END: back to the title screen. */
+  const handleEndingDone = () => {
+    setDefeatedStages([]);
+    setAvailableWeapons(getStartingWeapons(progressionRank, cheats.allWeapons));
+    resetLoadout();
+    setSelectedStage(null);
+    setSelectedIndex(0);
+    setIsVictoryPhase(false);
+    setStatus(GameStatus.START);
+  };
 
   const handleBossSelect = () => {
     setSelectedStage(null);
@@ -406,8 +421,9 @@ const App: React.FC = () => {
           onSelectStage={handleSelectStage}
           onSelectIndex={setSelectedIndex}
           onWeaponIconClick={handleWeaponIconClick}
-          cheats={SHOW_CHEATS ? { flags: cheatFlags, onToggle: handleToggleCheat, onChangeRank: handleChangeRank } : undefined}
+          cheats={SHOW_CHEATS ? { flags: cheatFlags, onToggle: handleToggleCheat, onChangeRank: handleChangeRank, onPlayEnding: () => setStatus(GameStatus.ENDING) } : undefined}
         />
+        {status === GameStatus.ENDING && <EndingCutscene onDone={handleEndingDone} />}
         <GameCanvas
           status={status}
           stageId={selectedStage}

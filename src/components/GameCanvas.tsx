@@ -88,7 +88,7 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
     };
 
     // In menus: clear the stage and draw a single blank frame
-    if (status === GameStatus.START || status === GameStatus.STAGE_SELECT) {
+    if (status === GameStatus.START || status === GameStatus.STAGE_SELECT || status === GameStatus.ENDING) {
       resetStageState(state);
       state.frame = 0;
       draw();

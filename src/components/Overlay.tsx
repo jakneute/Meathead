@@ -40,6 +40,7 @@ interface OverlayProps {
     flags: CheatFlags;
     onToggle: (flag: keyof CheatFlags) => void;
     onChangeRank: (delta: number) => void;
+    onPlayEnding: () => void;
   };
 }
 
@@ -71,7 +72,7 @@ const CheatToggle: React.FC<{ label: string, on: boolean, onColor: string, onCli
   </button>
 );
 
-const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['cheats']> }> = ({ rank, cheats: { flags, onToggle, onChangeRank } }) => (
+const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['cheats']> }> = ({ rank, cheats: { flags, onToggle, onChangeRank, onPlayEnding } }) => (
   <div className="absolute top-2 right-2 z-[60] flex flex-col gap-1 items-end max-w-[150px]">
     <div className="flex w-full border-2 border-gray-600 bg-gray-900 shadow-[2px_2px_0px_white] items-center overflow-hidden">
       <button onClick={() => onChangeRank(-1)} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-white font-black text-[10px]">-</button>
@@ -84,6 +85,8 @@ const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['che
     <CheatToggle label="ALL WEAPONS" on={flags.allWeapons} onColor="bg-yellow-500" onClick={() => onToggle('allWeapons')} />
     <CheatToggle label="INF AMMO" on={flags.infiniteAmmo} onColor="bg-blue-500" onClick={() => onToggle('infiniteAmmo')} />
     <CheatToggle label="INF POWER" on={flags.infinitePower} onColor="bg-purple-500" onClick={() => onToggle('infinitePower')} />
+    <div className="h-2 w-full" />
+    <button onClick={onPlayEnding} className="w-full px-2 py-1 border-2 border-gray-600 bg-gray-800 text-yellow-300 font-black text-[7px] uppercase shadow-[2px_2px_0px_white] hover:bg-gray-700">VIEW ENDING (DEBUG)</button>
   </div>
 );
 

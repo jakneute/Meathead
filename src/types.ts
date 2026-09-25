@@ -7,6 +7,8 @@ export enum GameStatus {
   BOSS_INTRO = 'BOSS_INTRO',
   BOSS_VICTORY_SPEECH = 'BOSS_VICTORY_SPEECH',
   VICTORY = 'VICTORY',
+  /** The ending cutscene (after the second set of bosses, for now). */
+  ENDING = 'ENDING',
   PAUSED = 'PAUSED'
 }
 
