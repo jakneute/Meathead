@@ -47,6 +47,7 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
 
   const shoveSpeed = e.vel.x;
   moveEnemy(ctx, e);
+  if (e.type !== 'boss' && knockedOutOfBounds(ctx, e)) return false;
   if (e.sludgeTimer && e.sludgeTimer > 0) e.sludgeTimer--;
   if (e.type !== 'boss') {
     if (slamIntoWalls(ctx, e, shoveSpeed)) return false;
@@ -61,6 +62,46 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
   }
 
   return resolvePlayerContact(ctx, e);
+};
+
+/** How far past the top of the screen (or below the floor) an enemy has to go to be gone for good. */
+const OUT_OF_BOUNDS_TOP = -30;
+const OUT_OF_BOUNDS_BOTTOM = 720;
+
+/** Is there floor under this enemy? (Stages have none missing yet; pits will be gaps in the ground.) */
+const hasFloorBelow = (state: FrameContext['state'], e: Enemy) => {
+  const cx = e.pos.x + e.width / 2;
+  return state.blocks.some(b => b.type === 'ground' && cx >= b.x && cx <= b.x + b.w && b.y <= 551 && b.y + b.h >= 550);
+};
+
+/**
+ * Knocked clean off the stage: an enemy uppercut up past the top of the screen
+ * is gone ("TO THE MOON!"), and so is one shoved off a ledge down a pit.
+ */
+const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
+  const { state, fx } = ctx;
+  const up = e.pos.y + e.height < OUT_OF_BOUNDS_TOP;
+  const down = e.pos.y > OUT_OF_BOUNDS_BOTTOM;
+  if (!up && !down) return false;
+  e.health = 0;
+  const cx = e.pos.x + e.width / 2;
+  // The callout shows on screen, at the edge they left by
+  const calloutX = Math.max(state.camera.x + 90, Math.min(state.camera.x + CANVAS_WIDTH - 90, cx));
+  const edge = { pos: { x: calloutX - 10, y: up ? 75 : 530 }, width: 20 };
+  fx.spawnKillCallout(edge, up ? 'moon' : 'cliff');
+  if (up) {
+    // A twinkle where they vanished into the sky
+    for (let i = 0; i < 10; i++) {
+      state.particles.push({
+        pos: { x: cx, y: 6 }, vel: { x: (Math.random() - 0.5) * 5, y: Math.random() * 2.5 },
+        life: 25 + Math.random() * 15, color: i % 2 ? '#FFFFFF' : '#FDE047', size: 2 + Math.random() * 3,
+      });
+    }
+  }
+  fx.spawnPickup({ x: e.pos.x, y: 500 });
+  fx.speakVulgarity(up ? 'uppercut_kill' : 'charge_kill');
+  state.player.killSatisfactionTimer = 60;
+  return true;
 };
 
 const isAirEnemy = (e: Enemy) => e.enemyType === 'flyer' || e.enemyType === 'drone' || e.behavior === 'fly' || e.behavior === 'hover';
@@ -129,14 +170,15 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
   }
 
   const floorLevel = 550 - e.height;
-  // Airborne if above the floor or just launched upward (uppercuts, explosions)
-  if (e.pos.y < floorLevel - 1 || e.vel.y < 0) {
+  const overFloor = hasFloorBelow(state, e);
+  // Airborne if above the floor, just launched upward (uppercuts, explosions) or shoved over a pit
+  if (e.pos.y < floorLevel - 1 || e.vel.y < 0 || !overFloor) {
     // Launched into the air by knockback
     e.pos.x += e.vel.x;
     e.pos.y += e.vel.y;
     e.vel.y += GRAVITY * 0.75;
     e.vel.x *= (e.isOiled ? 0.985 : 0.97);
-    if (e.pos.y >= floorLevel) {
+    if (overFloor && e.pos.y >= floorLevel) {
       slamIntoFloor(ctx, e, e.vel.y);
       e.pos.y = floorLevel;
       e.vel.y = 0;
