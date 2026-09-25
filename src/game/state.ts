@@ -3,6 +3,7 @@ import {
   SteamExplosion, PoopTelegraph, TommyBoard, Vector2, WeaponType, FlameSegment,
 } from '../types';
 import { INITIAL_PLAYER_HEALTH, SCREEN_SHAKE_MAX } from '../constants';
+import { resetLineCooldowns } from './speech';
 
 export type DoorState = 'closed' | 'opening' | 'open' | 'closing' | 'done';
 
@@ -222,6 +223,7 @@ export const resetPlayerCombatState = (player: Player) => {
  * The level itself is rebuilt separately by buildLevel().
  */
 export const resetStageState = (s: GameState) => {
+  resetLineCooldowns();
   s.enemies = [];
   s.projectiles = [];
   s.flameSegments = [];

@@ -44,6 +44,9 @@ export const takeFreshLine = (lines: readonly string[]): string | null => {
   return line;
 };
 
+/** Forget which lines were said recently (on death, respawn and starting a stage). */
+export const resetLineCooldowns = () => lastSaidAt.clear();
+
 /** Claims one specific line. False if it was said too recently. */
 export const claimLine = (line: string): boolean => takeFreshLine([line]) !== null;
 
