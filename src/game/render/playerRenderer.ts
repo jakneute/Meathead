@@ -3,6 +3,7 @@ import { COLORS, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILI
 import { peeProgress } from '../victoryPee';
 import { drawShoulderCharge, drawUppercut, drawDivekick } from './playerMoves';
 import { GameState } from '../state';
+import { beginSprite, endSprite } from './spriteOutline';
 
 export interface PlayerDrawOptions {
   currentWeapon: WeaponType;
@@ -23,6 +24,8 @@ const bootToe = '#94A3B8'; // Steel toe
 const beltColor = '#78350F'; // Leather belt
 const beltBuckle = '#FACC15'; // Gold buckle
 const wristbandColor = '#09090B'; // Spiked wristband
+const backArmShade = '#A87038';   // shadow side of the far arm
+const stubbleColor = 'rgba(60, 30, 10, 0.35)';
 
 /** Draws Meathead: effects auras, then body layers back-to-front, then the held weapon. */
 export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled }: PlayerDrawOptions) => {
@@ -81,9 +84,18 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // Set local coordinate frame: (0, 0) is at player feet center
   const anchorX = p.pos.x + p.width / 2;
   const anchorY = p.pos.y + p.height;
+  // The body goes into an offscreen sprite (origin at his feet) so it gets a cartoon outline
+  const world = ctx;
+  const sprite = beginSprite(world);
+  if (sprite) ctx = sprite;
   ctx.save();
-  ctx.translate(anchorX, anchorY);
+  if (!sprite) ctx.translate(anchorX, anchorY);
   ctx.scale(p.facing, 1);
+  const finishBody = () => {
+    ctx.restore();
+    ctx = world;
+    if (sprite) endSprite(world, anchorX, anchorY);
+  };
 
   // Squash on landing, stretch on take-off and when moving fast vertically
   const isSpecial = p.isCharging || p.isUppercutting || !!p.isDivekicking;
@@ -93,7 +105,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
 
   if (p.isSliding) {
     drawSlideTackle(ctx, animFrame);
-    ctx.restore();
+    finishBody();
     ctx.restore();
     return;
   }
@@ -101,7 +113,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const movePose = hurtT >= 0 ? null : isCharging ? drawShoulderCharge : isUppercutting ? drawUppercut : isDivekicking ? drawDivekick : null;
   if (movePose) {
     movePose(ctx, animFrame);
-    ctx.restore();
+    finishBody();
     ctx.restore();
     return;
   }
@@ -249,12 +261,16 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.save();
     ctx.translate(-6, -40);
     ctx.rotate(armAngle);
-    // Shoulder & Bicep
+    // Shoulder, bulging bicep and forearm
     ctx.fillStyle = skinShadow;
     ctx.beginPath();
     ctx.arc(0, 0, 7.5, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillRect(-5, 0, 9, 14);
+    ctx.beginPath(); ctx.ellipse(-0.5, 6.5, 5.5, 7.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(-4.5, 7, 8.5, 7);
+    ctx.fillStyle = backArmShade;
+    ctx.beginPath(); ctx.ellipse(-3, 7, 2, 5.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(-4.5, 10, 2, 4);
     // Forearm & Spiked Wristband
     ctx.fillStyle = wristbandColor;
     ctx.fillRect(-6, 12, 11, 5);
@@ -262,11 +278,14 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillStyle = '#E5E7EB';
     ctx.fillRect(-4, 13, 2, 3);
     ctx.fillRect(1, 13, 2, 3);
-    // Fist
+    // Fist, knuckles showing
     ctx.fillStyle = skinShadow;
     ctx.beginPath();
     ctx.arc(0, 21, 5.5, 0, Math.PI * 2);
     ctx.fill();
+    ctx.fillStyle = backArmShade;
+    ctx.fillRect(-3, 22, 6, 0.9);
+    ctx.fillRect(-0.5, 22, 0.9, 3);
     ctx.restore();
   }
   ctx.restore();
@@ -346,10 +365,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fill();
 
     // Back boot firmly planted on the floor
-    ctx.fillStyle = bootColor;
-    ctx.fillRect(-20, -6, 14, 6);
-    ctx.fillStyle = '#09090B';
-    ctx.fillRect(-20, -1, 14, 2);
+    drawBoot(ctx, -20, -6, 14, 6, false);
 
     // Front thigh
     ctx.fillStyle = pantsColor;
@@ -362,38 +378,22 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fill();
 
     // Front boot firmly planted on the floor
-    ctx.fillStyle = bootColor;
-    ctx.fillRect(6, -6, 15, 6);
-    ctx.fillStyle = bootToe;
-    ctx.fillRect(15, -5, 6, 5);
-    ctx.fillStyle = '#09090B';
-    ctx.fillRect(6, -1, 15, 2);
+    drawBoot(ctx, 6, -6, 15, 6, true);
+    // Knee pad on the front thigh
+    ctx.fillStyle = '#27272A';
+    ctx.beginPath(); ctx.ellipse(17, -9.5, 3, 2.5, 0.3, 0, Math.PI * 2); ctx.fill();
   } else if (isAirborne) {
     // Air state: knees tucked slightly
-    ctx.fillStyle = pantsShadow;
-    ctx.fillRect(-9, -20, 9, 14);
-    ctx.fillStyle = bootColor;
-    ctx.fillRect(-10, -6, 11, 7);
-
-    ctx.fillStyle = pantsColor;
-    ctx.fillRect(2, -22, 10, 15);
-    ctx.fillStyle = bootColor;
-    ctx.fillRect(2, -7, 13, 7);
-    ctx.fillStyle = bootToe;
-    ctx.fillRect(9, -6, 6, 5);
+    drawPantLeg(ctx, -9, -20, 9, 14, pantsShadow);
+    drawBoot(ctx, -10, -6, 11, 7, false);
+    drawPantLeg(ctx, 2, -22, 10, 15, pantsColor, true);
+    drawBoot(ctx, 2, -7, 13, 7, true);
   } else if (isHurt) {
     // Staggered backwards
-    ctx.fillStyle = pantsShadow;
-    ctx.fillRect(-14, -20, 10, 16);
-    ctx.fillStyle = bootColor;
-    ctx.fillRect(-16, -4, 13, 6);
-
-    ctx.fillStyle = pantsColor;
-    ctx.fillRect(2, -22, 10, 18);
-    ctx.fillStyle = bootColor;
-    ctx.fillRect(3, -4, 13, 6);
-    ctx.fillStyle = bootToe;
-    ctx.fillRect(10, -3, 6, 5);
+    drawPantLeg(ctx, -14, -20, 10, 16, pantsShadow);
+    drawBoot(ctx, -16, -4, 13, 6, false);
+    drawPantLeg(ctx, 2, -22, 10, 18, pantsColor, true);
+    drawBoot(ctx, 3, -4, 13, 6, true);
   } else if (isWalking) {
     // Smooth 2-legged walking cycle with knee bend & heel strike
     // Back leg
@@ -401,9 +401,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.save();
     ctx.translate(-4, -20);
     ctx.rotate(-walkStride * 0.5);
-    ctx.fillRect(-5, 0, 9, 14);
-    ctx.fillStyle = bootColor;
-    ctx.fillRect(-6, 12, 12, 7);
+    drawPantLeg(ctx, -5, 0, 9, 14, pantsShadow);
+    drawBoot(ctx, -6, 12, 12, 7, false);
     ctx.restore();
 
     // Front leg
@@ -411,25 +410,15 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.save();
     ctx.translate(4, -20);
     ctx.rotate(walkStride * 0.5);
-    ctx.fillRect(-4, 0, 10, 14);
-    ctx.fillStyle = bootColor;
-    ctx.fillRect(-5, 12, 14, 7);
-    ctx.fillStyle = bootToe;
-    ctx.fillRect(3, 13, 6, 5);
+    drawPantLeg(ctx, -4, 0, 10, 14, pantsColor);
+    drawBoot(ctx, -5, 12, 14, 7, true);
     ctx.restore();
   } else {
     // Idle grounded solid stance
-    ctx.fillStyle = pantsShadow;
-    ctx.fillRect(-10, -22, 10, 16);
-    ctx.fillStyle = bootColor;
-    ctx.fillRect(-11, -6, 12, 7);
-
-    ctx.fillStyle = pantsColor;
-    ctx.fillRect(2, -22, 10, 16);
-    ctx.fillStyle = bootColor;
-    ctx.fillRect(2, -6, 14, 7);
-    ctx.fillStyle = bootToe;
-    ctx.fillRect(10, -5, 6, 5);
+    drawPantLeg(ctx, -10, -22, 10, 16, pantsShadow);
+    drawBoot(ctx, -11, -6, 12, 7, false);
+    drawPantLeg(ctx, 2, -22, 10, 16, pantsColor, true);
+    drawBoot(ctx, 2, -6, 14, 7, true);
     // Tread grips
     ctx.fillStyle = '#09090B';
     ctx.fillRect(2, 0, 14, 2);
@@ -460,6 +449,15 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   ctx.fillStyle = '#E5E7EB';
   ctx.fillRect(-10, beltY + 2, 2, 2);
   ctx.fillRect(8, beltY + 2, 2, 2);
+  // Stitching along both edges, and a glint on the buckle
+  ctx.fillStyle = '#D97706';
+  for (let sx = -12; sx < 12; sx += 2.5) {
+    if (sx > -6 && sx < 5) continue;
+    ctx.fillRect(sx, beltY + 0.8, 1.3, 0.6);
+    ctx.fillRect(sx, beltY + beltH - 1.3, 1.3, 0.6);
+  }
+  ctx.fillStyle = '#FEF9C3';
+  ctx.fillRect(-4, beltY, 2.5, 1.2);
   ctx.restore();
 
   // ==========================================
@@ -469,9 +467,23 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const torsoTop = isDucking ? -36 : -50;
   const torsoHeight = isDucking ? 21 : 24;
   const pecY = isDucking ? -34 : -48;
-  // Torso Base
-  ctx.fillStyle = skinTone;
+  // Torso Base: lit from the front, shadowed round the back, lats flaring out
+  const torsoShade = ctx.createLinearGradient(-14, 0, 14, 0);
+  torsoShade.addColorStop(0, skinShadow);
+  torsoShade.addColorStop(0.3, skinTone);
+  torsoShade.addColorStop(1, skinTone);
+  ctx.fillStyle = torsoShade;
   ctx.fillRect(-14, torsoTop, 28, torsoHeight);
+  ctx.beginPath();
+  ctx.moveTo(-14, torsoTop + 4); ctx.lineTo(-16, torsoTop + 9); ctx.lineTo(-14, torsoTop + 16);
+  ctx.moveTo(14, torsoTop + 4); ctx.lineTo(16, torsoTop + 9); ctx.lineTo(14, torsoTop + 16);
+  ctx.fill();
+  // Serratus ridges and obliques down the front side
+  ctx.fillStyle = skinShadow;
+  for (let i = 0; i < 3; i++) ctx.fillRect(9.5, torsoTop + 11 + i * 3, 3, 0.9);
+  ctx.beginPath();
+  ctx.moveTo(10, torsoTop + torsoHeight - 1); ctx.lineTo(13.5, torsoTop + torsoHeight - 7); ctx.lineTo(13.5, torsoTop + torsoHeight - 1);
+  ctx.fill();
 
   // Chiseled 6-Pack Abs (compacted during crouch)
   ctx.fillStyle = skinShadow;
@@ -508,10 +520,18 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   ctx.fillStyle = skinShadow;
   ctx.fillRect(-0.75, pecY, 1.5, isDucking ? 8.5 : 10);
   ctx.fillRect(-13, pecY + (isDucking ? 7.5 : 9), 26, 1.5);
-  // Upper pec highlights
+  // Upper pec highlights, and the underside of each pec in shadow
   ctx.fillStyle = skinHighlight;
   ctx.fillRect(-11, pecY + 1.5, 8, 2);
   ctx.fillRect(3, pecY + 1.5, 8, 2);
+  ctx.fillRect(5, pecY + 4, 4, 1.2);
+  ctx.fillStyle = 'rgba(120, 70, 20, 0.35)';
+  ctx.fillRect(-12, pecY + (isDucking ? 6 : 7.5), 11, 1.5);
+  ctx.fillRect(2, pecY + (isDucking ? 6 : 7.5), 10, 1.5);
+  // Sweat sheen
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+  ctx.fillRect(6, pecY + 2, 1.5, 1);
+  ctx.fillRect(3, torsoTop + 15, 1, 1);
 
   // Trapezius muscles rising behind neck
   ctx.fillStyle = skinShadow;
@@ -537,9 +557,30 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   ctx.roundRect(headX - 10, headY - 12, 20, 20, [4, 4, 3, 3]);
   ctx.fill();
 
-  // 5 O'clock Stubble Shadow along jawline
+  // Back of the head in shadow, ear, cheekbone and a square chin
+  ctx.fillStyle = 'rgba(150, 90, 35, 0.35)';
+  ctx.fillRect(headX - 10, headY - 11, 3.5, 18);
+  ctx.fillStyle = skinShadow;
+  ctx.beginPath(); ctx.roundRect(headX - 12, headY - 7, 3.5, 7, 1.5); ctx.fill();
+  ctx.fillStyle = '#A0662E';
+  ctx.fillRect(headX - 11.2, headY - 5, 1.2, 3);
+  ctx.fillStyle = skinHighlight;
+  ctx.fillRect(headX + 4, headY - 1, 4.5, 1.2);
+  ctx.fillRect(headX + 7.5, headY - 10, 1.2, 5);
+
+  // 5 O'clock Stubble Shadow along jawline, speckled
   ctx.fillStyle = 'rgba(120, 53, 15, 0.25)';
   ctx.fillRect(headX - 9, headY + 1, 18, 7);
+  ctx.fillStyle = stubbleColor;
+  for (let i = 0; i < 14; i++) ctx.fillRect(headX - 8.5 + (i * 3.7) % 17, headY + 2 + (i * 2.3) % 5.5, 0.8, 0.8);
+  // Jaw underline and chin cleft
+  ctx.fillStyle = '#A0662E';
+  ctx.fillRect(headX - 8, headY + 7.2, 16, 0.8);
+  ctx.fillRect(headX + 0.8, headY + 5.5, 0.7, 2);
+  // Nose
+  ctx.fillStyle = skinShadow;
+  ctx.fillRect(headX + 1.2, headY - 3, 1.1, 4);
+  ctx.fillRect(headX + 0.2, headY + 0.8, 3.5, 1);
 
   // Military Buzzcut / Flat-Top Hair
   ctx.fillStyle = '#18181B';
@@ -548,6 +589,11 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // Temple fade sides
   ctx.fillRect(headX - 11, headY - 14, 2, 7);
   ctx.fillRect(headX + 9, headY - 14, 2, 7);
+  // Bristle texture and shine on the flat-top
+  ctx.fillStyle = '#3F3F46';
+  ctx.fillRect(headX - 8, headY - 15.5, 13, 1);
+  ctx.fillStyle = '#52525B';
+  for (let i = 0; i < 6; i++) ctx.fillRect(headX - 8 + i * 3, headY - 16.8, 1, 1.3);
 
   // Forehead Bulging Rage Vein
   ctx.strokeStyle = skinVein;
@@ -618,6 +664,12 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       ctx.fillStyle = '#09090B';
       ctx.fillRect(lEyeX, eyeY - 1, 2.5, 2.5); // Pupil focused forward
       ctx.fillRect(rEyeX, eyeY - 1, 2.5, 2.5);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(lEyeX + 1.4, eyeY - 0.8, 0.8, 0.8);
+      ctx.fillRect(rEyeX + 1.4, eyeY - 0.8, 0.8, 0.8);
+      ctx.fillStyle = skinShadow;
+      ctx.fillRect(lEyeX - 2.5, eyeY + 1.5, 5, 0.8);
+      ctx.fillRect(rEyeX - 2.5, eyeY + 1.5, 5, 0.8);
     }
   }
 
@@ -661,6 +713,24 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
       ctx.beginPath(); ctx.arc(headX + 17, mouthY - 3, 2.5, 0, Math.PI * 2); ctx.fill();
     }
+  } else if (p.shootHeldLastFrame && !isUnarmed) {
+    // Firing: lip curled back off bared teeth
+    ctx.fillStyle = '#450A0A';
+    ctx.beginPath();
+    ctx.moveTo(headX - 6, mouthY); ctx.lineTo(headX + 6, mouthY - 1.5); ctx.lineTo(headX + 6, mouthY + 4); ctx.lineTo(headX - 6, mouthY + 3.5);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(headX - 5, mouthY + 0.3, 10.5, 1.4);
+    ctx.fillRect(headX - 5, mouthY + 2.2, 10.5, 1.2);
+    ctx.fillStyle = '#18181B';
+    ctx.fillRect(headX - 2, mouthY, 0.7, 3.5);
+    ctx.fillRect(headX + 1.5, mouthY, 0.7, 3.5);
+  } else if (isAirborne && p.vel.y < -4) {
+    // "HUP!" on the way up
+    ctx.fillStyle = '#450A0A';
+    ctx.beginPath(); ctx.ellipse(headX + 0.5, mouthY + 1.5, 3, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(headX - 1.8, mouthY - 0.6, 4.5, 1);
   } else {
     // Clenched teeth badass snarl
     ctx.fillStyle = '#18181B';
@@ -671,6 +741,16 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillStyle = '#18181B';
     ctx.fillRect(headX - 2, mouthY + 0.5, 0.8, 2);
     ctx.fillRect(headX + 1, mouthY + 0.5, 0.8, 2);
+  }
+  // Beaten up: a shiner, a split lip and sweat running off his temple
+  if (p.health < 35 && !isRelieving) {
+    ctx.fillStyle = 'rgba(88, 28, 135, 0.45)';
+    ctx.beginPath(); ctx.ellipse(rEyeX + 0.5, eyeY + 1, 3.5, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#B91C1C';
+    ctx.fillRect(headX + 3, mouthY + 3, 1, 2.5);
+    const drip = (animFrame % 40) / 40;
+    ctx.fillStyle = '#7DD3FC';
+    ctx.beginPath(); ctx.ellipse(headX - 8, headY - 9 + drip * 10, 1, 1.5, 0, 0, Math.PI * 2); ctx.fill();
   }
   ctx.restore();
 
@@ -780,9 +860,18 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.arc(armBaseX + 2, armBaseY - 2, 3.5, 0, Math.PI * 2);
     ctx.fill();
 
-    // Upper arm / Forearm extending forward to hold weapon
+    // Upper arm / Forearm extending forward to hold weapon, bicep bulging underneath
     ctx.fillStyle = skinTone;
     ctx.fillRect(armBaseX - 2, armBaseY + 2, 12 + armPump * 0.3, 8);
+    ctx.beginPath(); ctx.ellipse(armBaseX + 2.5, armBaseY + 7.5, 6, 4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = skinShadow;
+    ctx.fillRect(armBaseX - 1, armBaseY + 10.2, 8, 1.2);
+    ctx.beginPath(); ctx.arc(armBaseX, armBaseY, 8, 0.6, 1.6); ctx.lineTo(armBaseX, armBaseY); ctx.fill();
+    ctx.fillStyle = skinTone;
+    ctx.beginPath(); ctx.arc(armBaseX, armBaseY, 6.8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = skinHighlight;
+    ctx.beginPath(); ctx.arc(armBaseX + 2, armBaseY - 2, 3.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(armBaseX + 3, armBaseY + 3, 4, 1);
     // Vein on bicep
     ctx.strokeStyle = skinVein;
     ctx.lineWidth = 1;
@@ -803,6 +892,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.beginPath();
     ctx.arc(armBaseX + 15 + armPump * 0.3, armBaseY + 6, 5.5, 0, Math.PI * 2);
     ctx.fill();
+    ctx.fillStyle = skinShadow;
+    for (let k = 0; k < 3; k++) ctx.fillRect(armBaseX + 13 + armPump * 0.3 + k * 2, armBaseY + 8.5, 0.8, 2);
 
     // Render Equipped Weapon in Meathead's lead hand!
     const wpnX = armBaseX + 10 + armPump * 0.3;
@@ -886,8 +977,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   }
   ctx.restore();
 
-  // Restore local transform
-  ctx.restore();
+  // Back out of his local frame and stamp the outlined sprite into the world
+  finishBody();
 
   // Pain sparks when knocked out of a special move
   if (hurtT >= 0 && hurtT < 0.5) {
@@ -1098,4 +1189,40 @@ const drawReachingArm = (ctx: CanvasRenderingContext2D, sx: number, sy: number, 
   ctx.lineTo(hx - 3 - (dx / len) * 1, hy - 2 - (dy / len) * 1);
   ctx.stroke();
   ctx.restore();
+};
+
+/** A trouser leg: shaded down the back, a crease at the knee and (on the near leg) a cargo pocket. */
+const drawPantLeg = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string, pocket = false) => {
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+  ctx.fillRect(x, y, w * 0.3, h);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+  ctx.fillRect(x + w - 2, y + 1, 1.2, h - 2);
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+  ctx.fillRect(x + 1, y + h * 0.58, w - 2, 0.9);
+  if (pocket) {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+    ctx.fillRect(x + w * 0.35, y + 2, w * 0.5, h * 0.35);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.fillRect(x + w * 0.35, y + 2, w * 0.5, 0.8);
+  }
+};
+
+/** A combat boot: laces, a thick sole and (on the near foot) a shiny steel toe. */
+const drawBoot = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, steelToe: boolean) => {
+  ctx.fillStyle = bootColor;
+  ctx.beginPath(); ctx.roundRect(x, y, w, h, [2, 3, 1, 1]); ctx.fill();
+  ctx.fillStyle = '#3F3F46';
+  ctx.fillRect(x + 1, y + 0.8, w * 0.45, 0.9);
+  ctx.fillStyle = '#71717A';
+  for (let i = 0; i < 2; i++) ctx.fillRect(x + 2 + i * 3, y + 2, 1.6, 0.8);
+  ctx.fillStyle = '#09090B';
+  ctx.fillRect(x, y + h - 1.6, w, 1.6);
+  if (steelToe) {
+    ctx.fillStyle = bootToe;
+    ctx.beginPath(); ctx.roundRect(x + w - 6, y + 1, 6, h - 2.6, [1, 2.5, 0, 0]); ctx.fill();
+    ctx.fillStyle = '#E2E8F0';
+    ctx.fillRect(x + w - 4.5, y + 1.6, 2, 1.2);
+  }
 };

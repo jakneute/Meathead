@@ -15,6 +15,8 @@ const BELT = '#78350F';
 const BUCKLE = '#FACC15';
 const WRISTBAND = '#09090B';
 
+import { glowLayer } from './spriteOutline';
+
 type Ctx = CanvasRenderingContext2D;
 
 // ---------------------------------------------------------------------------
@@ -190,12 +192,13 @@ const chargeBody = (ctx: Ctx, frame: number, main: boolean) => {
   arm(ctx, [10, -20], [16, -8], [6, -6], false);
   // The shoulder itself: a huge delt, glowing hot
   if (main) {
-    const glow = ctx.createRadialGradient(14, -22, 2, 14, -22, 26);
+    const g = glowLayer(ctx);
+    const glow = g.createRadialGradient(14, -22, 2, 14, -22, 26);
     glow.addColorStop(0, 'rgba(255, 220, 90, 0.9)');
     glow.addColorStop(0.4, 'rgba(255, 110, 20, 0.45)');
     glow.addColorStop(1, 'rgba(255, 60, 0, 0)');
-    ctx.fillStyle = glow;
-    ctx.beginPath(); ctx.arc(14, -22, 26, 0, Math.PI * 2); ctx.fill();
+    g.fillStyle = glow;
+    g.beginPath(); g.arc(14, -22, 26, 0, Math.PI * 2); g.fill();
   }
   ctx.fillStyle = SKIN;
   ctx.beginPath(); ctx.arc(14, -22, 11, 0, Math.PI * 2); ctx.fill();
@@ -255,12 +258,13 @@ const uppercutBody = (ctx: Ctx, frame: number, main: boolean) => {
   // Lead arm straight up
   const fist: [number, number] = [15, -64];
   if (main) {
-    const glow = ctx.createRadialGradient(fist[0], fist[1], 2, fist[0], fist[1], 30);
+    const g = glowLayer(ctx);
+    const glow = g.createRadialGradient(fist[0], fist[1], 2, fist[0], fist[1], 30);
     glow.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
     glow.addColorStop(0.3, 'rgba(56, 189, 248, 0.6)');
     glow.addColorStop(1, 'rgba(56, 189, 248, 0)');
-    ctx.fillStyle = glow;
-    ctx.beginPath(); ctx.arc(fist[0], fist[1], 30, 0, Math.PI * 2); ctx.fill();
+    g.fillStyle = glow;
+    g.beginPath(); g.arc(fist[0], fist[1], 30, 0, Math.PI * 2); g.fill();
   }
   arm(ctx, [11, -22], [16, -43], fist, false, 7.5);
   ctx.strokeStyle = VEIN;
@@ -331,12 +335,13 @@ const diveBody = (ctx: Ctx, frame: number, main: boolean) => {
   leg(ctx, [2, 0], [18, 0], [34, 0], 0, false);
   if (!main) return;
   // The boot's on fire
-  const glow = ctx.createRadialGradient(40, 0, 2, 40, 0, 20);
+  const g = glowLayer(ctx);
+  const glow = g.createRadialGradient(40, 0, 2, 40, 0, 20);
   glow.addColorStop(0, 'rgba(255, 245, 180, 0.95)');
   glow.addColorStop(0.4, 'rgba(255, 120, 20, 0.55)');
   glow.addColorStop(1, 'rgba(255, 60, 0, 0)');
-  ctx.fillStyle = glow;
-  ctx.beginPath(); ctx.arc(40, 0, 20, 0, Math.PI * 2); ctx.fill();
+  g.fillStyle = glow;
+  g.beginPath(); g.arc(40, 0, 20, 0, Math.PI * 2); g.fill();
   for (let k = 0; k < 4; k++) {
     const t = ((frame * 3 + k * 6) % 20) / 20;
     ctx.fillStyle = k % 2 === 0 ? '#FF6D00' : '#FFD600';
