@@ -5,13 +5,13 @@
 import { Enemy, Projectile, WeaponType, VulgarityType } from '../types';
 import {
   ARENA_LEFT, ARENA_RIGHT, STAGE_WIDTH, BULLET_DAMAGE, WEAKNESS_DAMAGE, ENEMY_HIT_COOLDOWN, TASER_BOSS_DAMAGE_REDUCTION,
-  BOSS_VULGARITY_DURATION, BOSS_WEAPON_REACTION_CHANCE, BOSS_WEAPON_REACTION_COOLDOWN,
+  BOSS_WEAPON_REACTION_CHANCE, BOSS_WEAPON_REACTION_COOLDOWN, SPOKEN_TEXT_LINGER,
 } from '../constants';
 import { BOSS_DIALOGUE, BOSS_WEAPON_REACTIONS } from '../dialogue';
 import type { FrameContext } from './context';
 import { GameState, calmPlayer } from './state';
 import { Fx } from './effects';
-import { speak, isSpeaking, getBossVoice, takeFreshLine } from './speech';
+import { pickFreshLine } from './speech';
 import { BossDef, BossHelpers, FLOOR_Y, speakAsBoss } from './bosses/shared';
 import { applyBossPhysics } from './bosses/physics';
 import { artie } from './bosses/artie';
@@ -74,6 +74,7 @@ export const createBossHelpers = (
     killBoss: (boss, facing, wasWeakness, weapon = currentWeapon) =>
       triggerBossDeath(boss, facing, wasWeakness, stageId, weapon, state, helpers),
     setBossVulgarity: (t, d) => { state.bossLastVulgarity = t; state.bossVulgarityTimer = d; },
+    endBossVulgarity: (t) => { if (state.bossLastVulgarity === t) state.bossVulgarityTimer = Math.min(state.bossVulgarityTimer, SPOKEN_TEXT_LINGER); },
     setScreenShake: (d) => { state.screenShakeTimer = d; },
     setErnieVibration: (d) => { state.ernieVibrationTimer = d; },
     setPlayerStun: (d) => { state.playerStunTimer = d; },
@@ -147,11 +148,8 @@ export const maybeReactToWeapon = (boss: Enemy, weapon: WeaponType, stageId: str
   if (Math.random() >= BOSS_WEAPON_REACTION_CHANCE) return;
   const lines = BOSS_WEAPON_REACTIONS[stageId]?.[weapon];
   if (!lines) return;
-  const line = takeFreshLine(lines);
-  if (!line) return;
-  state.bossReactionCooldown = BOSS_WEAPON_REACTION_COOLDOWN;
-  helpers.setBossVulgarity(line, BOSS_VULGARITY_DURATION);
-  if (!isSpeaking()) speak(line, getBossVoice(stageId));
+  const line = pickFreshLine(lines);
+  if (line && speakAsBoss(stageId, line, helpers, 'casual')) state.bossReactionCooldown = BOSS_WEAPON_REACTION_COOLDOWN;
 };
 
 // ---------------------------------------------------------------------------

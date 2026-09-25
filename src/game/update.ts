@@ -4,6 +4,7 @@ import { GameStatus, WeaponType } from '../types';
 import {
   CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, ARENA_RIGHT, DOOR_OPEN_SPEED, MAX_AMMO,
   AMMO_PICKUP_PCT, HEALTH_PICKUP_SMALL, HEALTH_PICKUP_LARGE, PLAYER_STUN_DURATION, PARTICLE_PALETTES,
+  SPOKEN_TEXT_HOLD, SPOKEN_TEXT_LINGER,
 } from '../constants';
 import { BOSS_DIALOGUE } from '../dialogue';
 import { FrameContext } from './context';
@@ -11,7 +12,7 @@ import { Controls } from './input';
 import { respawn, getStartX } from './level';
 import { calmPlayer, DEFAULT_SHAKE } from './state';
 import { updateBarfStream, updateFlameSegments } from './weapons';
-import { speak, claimLine, MEATHEAD_INTRO_VOICE } from './speech';
+import { say, MEATHEAD_INTRO_VOICE } from './speech';
 import { pickRandom, rectsOverlap, boundsOf } from './utils';
 import { killPlayer, gateControls, tickPlayerTimers, updatePlayerActions, updatePlayerPhysics, getSpecialForm, interruptSpecialWithHurt } from './systems/player';
 import { updateTsunami, updateSteamExplosions, updateVolcanoes, updateTommyArena } from './systems/hazards';
@@ -109,15 +110,14 @@ const updateLevelIntro = (ctx: FrameContext) => {
   player.facing = 1;
 
   const quotes = stageId ? BOSS_DIALOGUE.INTRO_QUOTES[stageId] : undefined;
-  if (state.introTimer === 30 && !cheats.skipToBoss && quotes && claimLine(quotes[0])) {
+  if (state.introTimer === 30 && !cheats.skipToBoss && quotes) {
     const quote = quotes[0];
-    state.isMeatheadSpeaking = true;
-    speak(quote, MEATHEAD_INTRO_VOICE, {
-      onStart: () => { state.isMeatheadSpeaking = true; },
+    const said = say(quote, MEATHEAD_INTRO_VOICE, 'queue', {
+      onShow: spoken => { state.playerLastVulgarity = quote; state.playerVulgarityTimer = spoken ? SPOKEN_TEXT_HOLD : 180; },
+      onHide: () => { if (state.playerLastVulgarity === quote) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, SPOKEN_TEXT_LINGER); },
       onDone: () => { state.isMeatheadSpeaking = false; },
     });
-    state.playerLastVulgarity = quote;
-    state.playerVulgarityTimer = 180;
+    if (said) state.isMeatheadSpeaking = true;
   }
 
   if (state.introTimer < INTRO_JUMP_START) {

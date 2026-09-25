@@ -474,7 +474,7 @@ const landCigarette = (ctx: FrameContext, at: { x: number, y: number }) => {
   fx.playGunSound('ignite');
   fx.spawnExplosion(at, '#FF8C00', 14, 0, 8);
   const boss = findOscar(state);
-  if (boss && Math.random() < 0.35) speakAsBoss(OSCAR, pickRandom(OSCAR_LINES.IGNITE), ctx.bossHelpers);
+  if (boss && Math.random() < 0.35) speakAsBoss(OSCAR, pickRandom(OSCAR_LINES.IGNITE), ctx.bossHelpers, 'casual');
 };
 
 /** The nearest flicked cigarette in taser range. The taser goes for it over anything else. */
@@ -504,7 +504,7 @@ export const holdOscarWithTaser = (ctx: FrameContext, boss: Enemy) => {
     boss.lockProgress = 0;
     boss.fireWarning = 0;
     boss.vel.x = 0;
-    if (Math.random() < 0.5) speakAsBoss(OSCAR, pickRandom(OSCAR_LINES.HELD), ctx.bossHelpers);
+    if (Math.random() < 0.5) speakAsBoss(OSCAR, pickRandom(OSCAR_LINES.HELD), ctx.bossHelpers, 'casual');
   }
   boss.taserHeldThisFrame = true;
   boss.isTased = true;

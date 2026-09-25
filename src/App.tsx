@@ -7,7 +7,7 @@ import { INITIAL_PLAYER_HEALTH, MAX_AMMO, createFullAmmo } from './constants';
 import { getStages, getStartingWeapons, sortWeapons, BOSS_WEAPON_MAP, WEAPONS_AFTER_SET_0, ALL_WEAPONS } from './stages';
 import { VULGARITIES, BOSS_DIALOGUE } from './dialogue';
 import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS } from './game/gamepad';
-import { speak, cancelSpeech, isSpeaking, getBossVoice, claimLine, takeFreshLine, MEATHEAD_MENU_VOICE } from './game/speech';
+import { speak, say, isSpeaking, getBossVoice, takeFreshLine, MEATHEAD_MENU_VOICE } from './game/speech';
 
 /** Shows the dev cheat panel on the title screen. */
 const SHOW_CHEATS = true;
@@ -82,8 +82,8 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (status === GameStatus.BOSS_INTRO && selectedStage && bossTaunt) {
-      cancelSpeech();
-      if (claimLine(bossTaunt)) speak(bossTaunt, getBossVoice(selectedStage));
+      // The taunt cuts off anything still playing (its text is on the intro screen)
+      say(bossTaunt, getBossVoice(selectedStage), 'urgent', { onShow: () => {}, onHide: () => {} });
     }
   }, [status, selectedStage, bossTaunt]);
 

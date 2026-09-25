@@ -205,7 +205,7 @@ const catchNeedle = (ctx: FrameContext, boss: Enemy, p: Projectile) => {
     ctx.fx.spawnExplosion(p.pos, '#9CA3AF', 6, -Math.sign(p.vel.x) * 3, 4);
     ctx.fx.spawnDamageNumber({ x: boss.pos.x + boss.width / 2, y: boss.pos.y - 20 }, 'TOLERANCE', false, '#C084FC');
     ctx.fx.playGunSound('ice');
-    speakAsBoss(BARRY, pickRandom(BARRY_LINES.TOLERANCE), ctx.bossHelpers);
+    speakAsBoss(BARRY, pickRandom(BARRY_LINES.TOLERANCE), ctx.bossHelpers, 'casual');
     return true;
   }
   if ((boss.needleCount || 0) >= MAX_NEEDLES) { overload(ctx, boss, p); return true; }

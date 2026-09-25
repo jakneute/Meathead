@@ -4,11 +4,12 @@
 import { Block, BossState, Enemy, Player, Projectile, PoopTelegraph, SoundType, Volcano, WeaponType } from '../../types';
 import {
   ARENA_LEFT, ARENA_RIGHT, GROUND_Y, BOSS_VULGARITY_DURATION, PLAYER_INVINCIBILITY_FRAMES, PLAYER_PUSHBACK_DURATION,
+  SPOKEN_TEXT_HOLD,
 } from '../../constants';
 import type { FrameContext } from '../context';
 import type { GameState } from '../state';
 import type { Fx } from '../effects';
-import { speak, isSpeaking, getBossVoice, claimLine } from '../speech';
+import { say, getBossVoice, SpeechPriority } from '../speech';
 
 // ---------------------------------------------------------------------------
 // Arena geometry (the standard boss room)
@@ -101,6 +102,8 @@ export interface BossHelpers extends Fx {
   /** Kills the boss (death shower, victory, Meathead's line). `weapon` defaults to the equipped one. */
   killBoss: (boss: Enemy, facing: number, wasWeakness: boolean, weapon?: WeaponType) => void;
   setBossVulgarity: (text: string, duration: number) => void;
+  /** The boss finished saying `text`: take it down shortly (if it's still the one showing). */
+  endBossVulgarity: (text: string) => void;
   setScreenShake: (duration: number) => void;
   setErnieVibration: (duration: number) => void;
   setPlayerStun: (duration: number) => void;
@@ -115,13 +118,17 @@ export interface BossHelpers extends Fx {
   setTsunamiActive: (active: boolean) => void;
 }
 
-/** Shows the line over the boss's head and speaks it (unless someone is already talking). */
-export const speakAsBoss = (bossId: string, text: string, helpers: BossHelpers) => {
-  if (!claimLine(text)) return; // said too recently
-  helpers.setBossVulgarity(text, BOSS_VULGARITY_DURATION);
-  if (isSpeaking()) return;
-  speak(text, getBossVoice(bossId));
-};
+/**
+ * The boss says a line. Its text goes up over his head when he actually starts
+ * saying it and comes down when he's done. 'queue' lines (the default: health
+ * callouts, big moments) wait their turn; 'casual' ones are dropped if someone's
+ * talking. Returns false if it was dropped.
+ */
+export const speakAsBoss = (bossId: string, text: string, helpers: BossHelpers, priority: SpeechPriority = 'queue') =>
+  say(text, getBossVoice(bossId), priority, {
+    onShow: spoken => helpers.setBossVulgarity(text, spoken ? SPOKEN_TEXT_HOLD : BOSS_VULGARITY_DURATION),
+    onHide: () => helpers.endBossVulgarity(text),
+  });
 
 /**
  * A boss attack hurts Meathead: damage (unless the invincibility cheat is on),

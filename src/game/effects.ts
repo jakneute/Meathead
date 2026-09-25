@@ -1,11 +1,11 @@
 import { Vector2, PickupType, VulgarityType, Enemy } from '../types';
 import {
-  PARTICLE_PALETTES, BOULDER_SHRAPNEL_DAMAGE, VULGARITY_TEXT_DURATION, VOICE_LINE_COOLDOWN_FRAMES,
+  PARTICLE_PALETTES, BOULDER_SHRAPNEL_DAMAGE, VULGARITY_TEXT_DURATION, VOICE_LINE_COOLDOWN_FRAMES, SPOKEN_TEXT_HOLD, SPOKEN_TEXT_LINGER,
 } from '../constants';
 import { VULGARITIES, BOSS_DIALOGUE, KILL_LINES, KILL_CALLOUTS, KillCallout } from '../dialogue';
 import { GameState } from './state';
 import { playSound, playGlassShatterSound } from './audio';
-import { speak, cancelSpeech, isSpeaking, canSpeak, takeFreshLine, MEATHEAD_VOICE } from './speech';
+import { say, isSpeaking, canSpeak, pickFreshLine, MEATHEAD_VOICE } from './speech';
 import { pickRandom } from './utils';
 
 const MAX_PARTICLES = 2500;
@@ -163,33 +163,38 @@ export const createFx = (state: GameState) => {
    * never talks over one that is still playing, and respects cooldowns.
    */
   const speakVulgarity = (category: VulgarityType, hurtSource?: string) => {
-    if (!canSpeak()) return;
     if (category !== 'death') {
       if (state.isMeatheadSpeaking || isSpeaking()) return;
       if (category === 'hurt' ? state.hurtVoiceCooldown > 0 : state.voiceLineCooldown > 0) return;
     }
     // Skip entirely if every line in the pool was said recently
-    const text = takeFreshLine(category === 'hurt' ? getHurtLines(hurtSource) : KILL_LINES[category]);
+    const text = pickFreshLine(category === 'hurt' ? getHurtLines(hurtSource) : KILL_LINES[category]);
     if (!text) return;
 
+    // Dying cuts off whoever's talking; anything else only speaks up when it's quiet.
+    // The text over his head goes up when he starts saying it and down when he's done.
+    const said = say(text, MEATHEAD_VOICE, category === 'death' ? 'urgent' : 'casual', {
+      onShow: spoken => {
+        state.playerLastVulgarity = text;
+        state.playerVulgarityTimer = spoken ? SPOKEN_TEXT_HOLD : VULGARITY_TEXT_DURATION;
+      },
+      onHide: () => {
+        if (state.playerLastVulgarity === text) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, SPOKEN_TEXT_LINGER);
+      },
+      onDone: () => {
+        state.isMeatheadSpeaking = false;
+        state.voiceLineCooldown = VOICE_LINE_COOLDOWN_FRAMES;
+      },
+    });
+    if (!said) return;
+    state.isMeatheadSpeaking = canSpeak() && isSpeaking();
     if (category === 'death') {
-      cancelSpeech();
       state.voiceLineCooldown = 0;
       state.hurtVoiceCooldown = 0;
     } else if (category === 'hurt') {
       state.voiceLineCooldown = 0;
       state.hurtVoiceCooldown = 45;
     }
-    state.playerLastVulgarity = text;
-    state.playerVulgarityTimer = VULGARITY_TEXT_DURATION;
-    state.isMeatheadSpeaking = true;
-    speak(text, MEATHEAD_VOICE, {
-      onStart: () => { state.isMeatheadSpeaking = true; },
-      onDone: () => {
-        state.isMeatheadSpeaking = false;
-        state.voiceLineCooldown = VOICE_LINE_COOLDOWN_FRAMES;
-      },
-    });
   };
 
   /** Standard non-boss kill: fling the body, spray gore, maybe drop loot, taunt. */

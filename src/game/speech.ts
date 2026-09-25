@@ -34,13 +34,17 @@ const lastSaidAt = new Map<string, number>();
 
 const isFresh = (line: string, now: number) => now - (lastSaidAt.get(line) ?? -Infinity) >= LINE_REPEAT_COOLDOWN_MS;
 
-/** Picks a random line that hasn't been said recently and marks it as said. Null if none are available. */
-export const takeFreshLine = (lines: readonly string[]): string | null => {
+/** Picks a random line that hasn't been said recently (without claiming it). Null if none are available. */
+export const pickFreshLine = (lines: readonly string[]): string | null => {
   const now = Date.now();
   const fresh = lines.filter(l => isFresh(l, now));
-  if (fresh.length === 0) return null;
-  const line = fresh[Math.floor(Math.random() * fresh.length)];
-  lastSaidAt.set(line, now);
+  return fresh.length ? fresh[Math.floor(Math.random() * fresh.length)] : null;
+};
+
+/** Picks a random line that hasn't been said recently and marks it as said. Null if none are available. */
+export const takeFreshLine = (lines: readonly string[]): string | null => {
+  const line = pickFreshLine(lines);
+  if (line) lastSaidAt.set(line, Date.now());
   return line;
 };
 
@@ -52,10 +56,128 @@ export const claimLine = (line: string): boolean => takeFreshLine([line]) !== nu
 
 export const canSpeak = () => typeof window !== 'undefined' && 'speechSynthesis' in window;
 
-export const isSpeaking = () => canSpeak() && window.speechSynthesis.speaking;
+export const isSpeaking = () => !!current || (canSpeak() && window.speechSynthesis.speaking);
 
+// ---------------------------------------------------------------------------
+// In-game dialogue: one voice at a time, and the text over a character's head
+// only ever shows the line that's actually being spoken.
+// ---------------------------------------------------------------------------
+
+/**
+ * - 'urgent': cuts off whatever's playing (Meathead dying).
+ * - 'queue': waits its turn if someone's talking (boss health callouts, big moments).
+ * - 'casual': dropped if someone's talking (weapon taunts, hurt and kill lines).
+ */
+export type SpeechPriority = 'urgent' | 'queue' | 'casual';
+
+export interface LineHooks {
+  /** The line started. `spoken` is false when there's no speech (show the text for a fixed time). */
+  onShow: (spoken: boolean) => void;
+  /** The line finished or was cut off: take the text down. */
+  onHide: () => void;
+  /** Called once the line is over or cut off (not for queued lines that went stale unsaid). */
+  onDone?: () => void;
+}
+
+interface Line extends LineHooks { text: string; voice: Voice; queuedAt: number; }
+interface Playing extends Line { startedAt: number; started: boolean; }
+
+const MAX_QUEUE = 3;
+const STALE_MS = 6000;       // a queued line this old isn't worth saying any more
+const NO_START_MS = 1500;    // speech that hasn't started by now isn't going to
+const WATCHDOG_MS = 15000;   // a line can't hold the floor longer than this
+
+let current: Playing | null = null;
+let queue: Line[] = [];
+
+const finish = (line: Playing) => {
+  if (current !== line) return;
+  current = null;
+  line.onHide();
+  line.onDone?.();
+  playNext();
+};
+
+const playNext = () => {
+  while (queue.length > 0) {
+    const line = queue.shift()!;
+    if (Date.now() - line.queuedAt > STALE_MS) continue;
+    start(line);
+    return;
+  }
+};
+
+const start = (line: Line) => {
+  lastSaidAt.set(line.text, Date.now());
+  if (!canSpeak()) {
+    // No speech available: just show the text for its usual time
+    line.onShow(false);
+    line.onDone?.();
+    return;
+  }
+  const playing: Playing = { ...line, startedAt: Date.now(), started: false };
+  current = playing;
+  const utterance = new SpeechSynthesisUtterance(line.text);
+  utterance.pitch = line.voice.pitch;
+  utterance.rate = line.voice.rate;
+  utterance.volume = 1.0;
+  utterance.onstart = () => {
+    if (current !== playing) return;
+    playing.started = true;
+    line.onShow(true);
+  };
+  utterance.onend = () => finish(playing);
+  utterance.onerror = () => finish(playing);
+  window.speechSynthesis.speak(utterance);
+  // Speech that never starts (no voices, blocked audio): fall back to timed text and move on
+  setTimeout(() => {
+    if (current !== playing || playing.started) return;
+    current = null;
+    window.speechSynthesis.cancel();
+    line.onShow(false);
+    line.onDone?.();
+    playNext();
+  }, NO_START_MS);
+};
+
+const busy = () => {
+  if (current && Date.now() - current.startedAt > WATCHDOG_MS) finish(current);
+  return !!current || (canSpeak() && window.speechSynthesis.speaking);
+};
+
+/**
+ * Says a line if the rules allow it. Returns false if it was dropped (someone's
+ * talking, or it was said too recently), in which case nothing is shown either.
+ */
+export const say = (text: string, voice: Voice, priority: SpeechPriority, hooks: LineHooks): boolean => {
+  if (!isFresh(text, Date.now())) return false;
+  const line: Line = { text, voice, queuedAt: Date.now(), ...hooks };
+  if (priority === 'urgent') {
+    cancelSpeech();
+    start(line);
+    return true;
+  }
+  if (!busy() && queue.length === 0) {
+    start(line);
+    return true;
+  }
+  if (priority === 'queue' && queue.length < MAX_QUEUE && !queue.some(q => q.text === text)) {
+    queue.push(line);
+    return true;
+  }
+  return false;
+};
+
+/** Stops all dialogue: the current line (its text comes down) and anything queued. */
 export const cancelSpeech = () => {
+  const playing = current;
+  current = null;
+  queue = [];
   if (canSpeak()) window.speechSynthesis.cancel();
+  if (playing) {
+    playing.onHide();
+    playing.onDone?.();
+  }
 };
 
 interface SpeakOptions {
@@ -64,6 +186,7 @@ interface SpeakOptions {
   onDone?: () => void;
 }
 
+/** Plays a line directly, outside the dialogue rules (menus). */
 export const speak = (text: string, voice: Voice, { onStart, onDone }: SpeakOptions = {}) => {
   if (!canSpeak()) return;
   const utterance = new SpeechSynthesisUtterance(text);
