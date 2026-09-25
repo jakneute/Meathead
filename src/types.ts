@@ -116,7 +116,7 @@ export type BossState =
   | 'blackout' | 'blackout_teleport' | 'ground_pound' | 'lightning_storm' | 'exhausted'
   | 'submerged_chase' | 'telegraph_emerge' | 'emerge_shatter' | 'puke_closing_in'
   | 'puke_going_outward' | 'vulnerable_idle' | 'dive_in_sludge' | 'weakness_stunned'
-  | 'aiming' | 'flicking' | 'taser_held' | 'ash_face';
+  | 'aiming' | 'flicking' | 'taser_held' | 'ash_face' | 'high';
 
 export interface Enemy extends Entity {
   enemyType: 'drone' | 'tank' | 'turret' | 'flyer' | 'shield';
@@ -161,6 +161,8 @@ export interface Enemy extends Entity {
   truckActive?: boolean;
   // Blackout Barry
   electrifiedTimer?: number;
+  /** Frames left in which needles just bounce off him (after an overload). */
+  toleranceTimer?: number;
   activeLightningStrikes?: { x: number; duration: number; maxDuration: number; width: number }[];
   // Toxic Tommy
   targetedBoardIndex?: number;

@@ -1,15 +1,19 @@
 // Blackout Barry: kills the lights and teleports around, then either
 // ground-pounds (electrifying the floor, ceiling and walls) or calls a
-// lightning storm. Gets a little faster as he loses health. Needles stick in
-// him and drain him over time.
+// lightning storm. Gets a little faster as he loses health.
+// Weakness, needles: up to three stick in him for a small stacking drain; a
+// fourth overloads him for big damage and gets him high as a kite, and for a
+// while afterwards he's built up a tolerance and needles bounce off.
 
 import { Enemy, Projectile } from '../../types';
 import {
   ARENA_LEFT, ARENA_RIGHT, BOSS_DOOR_X, BARRY_SPEEDUP_AT_ZERO_HP, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y,
 } from '../../constants';
 import type { FrameContext } from '../context';
+import { BARRY_LINES } from '../../dialogue';
 import { stickNeedle, BOSS_NEEDLE } from '../needles';
-import { BossDef, ARENA_MID, CEILING_Y, bossFloorY, hurtPlayer } from './shared';
+import { pickRandom } from '../utils';
+import { BossDef, ARENA_MID, CEILING_Y, bossFloorY, hurtPlayer, speakAsBoss } from './shared';
 
 const TELEPORT_HEIGHT = CEILING_Y;
 const POUND_DROP_SPEED = 60;
@@ -17,17 +21,24 @@ const ELECTRIFIED_FRAMES = 30;
 const POUND_DAMAGE = 11;
 const STRIKE = { width: 70, frames: 35, damage: 15, safeGap: 70 };
 const EXHAUSTED_DROP_SPEED = 14;
-const MAX_NEEDLES = 3;
-const NEEDLE_FRAMES = 600;
-const NEEDLE_DAMAGE_PER_SECOND = 15;
+const BARRY = 'Blackout Barry';
+const MAX_NEEDLES = 3;                // the next one overloads him
+const NEEDLE_FRAMES = 600;            // stuck needles fall out after this long
+const NEEDLE_DAMAGE_PER_SECOND = 1;   // per needle: 1, 2, 3 dps
+const OVERLOAD_DAMAGE = 150;
+const HIGH_FRAMES = 200;              // floating around like a kite
+export const BARRY_TOLERANCE_FRAMES = 330;         // needles bounce off (starts at the overload)
+const HIGH_FLOAT_Y = 150;
 
 const update = (ctx: FrameContext, boss: Enemy) => {
   // Mild speed-up as he loses health: every phase timing shrinks a little
   const missingHpRatio = Math.max(0, Math.min(1, 1 - boss.health / boss.maxHealth));
   const pace = 1 - missingHpRatio * BARRY_SPEEDUP_AT_ZERO_HP;
   const frames = (n: number) => Math.max(1, Math.round(n * pace));
+  if (boss.toleranceTimer && boss.toleranceTimer > 0) boss.toleranceTimer--;
 
   switch (boss.bossState) {
+    case 'high': floatHigh(ctx, boss, frames); break;
     case 'idle':
       if (boss.stateTimer! <= 0) startBlackout(ctx, boss, frames);
       break;
@@ -183,16 +194,74 @@ const lightningStorm = (ctx: FrameContext, boss: Enemy, frames: Frames) => {
   }
 };
 
-/** Weakness: needles stick (up to three) instead of hitting, and drain him over time. */
-const catchNeedle = (_ctx: FrameContext, boss: Enemy, p: Projectile) => {
+/**
+ * Weakness: needles stick in him (up to three) instead of hitting. A fourth
+ * overloads him. While his tolerance is up they just bounce off.
+ */
+const catchNeedle = (ctx: FrameContext, boss: Enemy, p: Projectile) => {
   if (!p.isDart) return false;
-  boss.needleCount = Math.min(MAX_NEEDLES, (boss.needleCount || 0) + 1);
+  p.health = 0;
+  if (boss.toleranceTimer && boss.toleranceTimer > 0) {
+    ctx.fx.spawnExplosion(p.pos, '#9CA3AF', 6, -Math.sign(p.vel.x) * 3, 4);
+    ctx.fx.spawnDamageNumber({ x: boss.pos.x + boss.width / 2, y: boss.pos.y - 20 }, 'TOLERANCE', false, '#C084FC');
+    ctx.fx.playGunSound('ice');
+    speakAsBoss(BARRY, pickRandom(BARRY_LINES.TOLERANCE), ctx.bossHelpers);
+    return true;
+  }
+  if ((boss.needleCount || 0) >= MAX_NEEDLES) { overload(ctx, boss, p); return true; }
+
+  boss.needleCount = (boss.needleCount || 0) + 1;
   boss.needleTimer = NEEDLE_FRAMES;
   if (!boss.needleOffsets) boss.needleOffsets = [];
-  if (boss.needleOffsets.length >= MAX_NEEDLES) boss.needleOffsets.shift();
   stickNeedle(boss, p, BOSS_NEEDLE);
-  p.health = 0;
   return true;
+};
+
+/** The fourth needle: big damage, the needles pop out, and he gets high as a kite. */
+const overload = (ctx: FrameContext, boss: Enemy, p: Projectile) => {
+  const { fx } = ctx;
+  const center = { x: boss.pos.x + boss.width / 2, y: boss.pos.y + boss.height / 2 };
+  boss.needleCount = 0;
+  boss.needleOffsets = [];
+  boss.needleTimer = 0;
+  boss.dotTimer = 0;
+  boss.toleranceTimer = BARRY_TOLERANCE_FRAMES;
+  boss.health -= OVERLOAD_DAMAGE;
+  boss.hitCooldown = 30;
+  fx.spawnDamageNumber(boss.pos, OVERLOAD_DAMAGE, true);
+  for (const color of ['#FF007F', '#39FF14', '#FFD700', '#00F0FF', '#B388FF']) fx.spawnExplosion(center, color, 8, 0, 14);
+  fx.playGunSound('dart');
+  ctx.bossHelpers.setScreenShake(15);
+  ctx.state.damageNumbers.push({
+    id: `callout-${ctx.state.frame}-${Math.random()}`, text: 'HIGH AS A KITE!', pos: { x: center.x, y: boss.pos.y - 40 },
+    vel: { x: 0, y: -3 }, life: 75, maxLife: 75, isCritical: true, isCallout: true, color: '#C084FC',
+  });
+  if (boss.health <= 0) { ctx.bossHelpers.killBoss(boss, p.vel.x > 0 ? 1 : -1, true, 'NEEDLES'); return; }
+
+  // Whatever he was doing, he's done doing it
+  boss.bossState = 'high';
+  boss.stateTimer = HIGH_FRAMES;
+  boss.electrifiedTimer = 0;
+  boss.activeLightningStrikes = [];
+  speakAsBoss(BARRY, pickRandom(BARRY_LINES.HIGH), ctx.bossHelpers);
+};
+
+/** Drifts up toward the ceiling and bobs and sways around like a kite, then comes down dazed. */
+const floatHigh = (ctx: FrameContext, boss: Enemy, frames: Frames) => {
+  const t = HIGH_FRAMES - (boss.stateTimer || 0);
+  const targetY = HIGH_FLOAT_Y + Math.sin(t * 0.08) * 25;
+  boss.pos.y += (targetY - boss.pos.y) * 0.06;
+  boss.pos.x = Math.max(ARENA_LEFT + 10, Math.min(ARENA_RIGHT - boss.width - 10, boss.pos.x + Math.sin(t * 0.05) * 2.2));
+  boss.rotation = Math.sin(t * 0.1) * 0.35;
+  if (ctx.state.frame % 6 === 0) {
+    const colors = ['#FF007F', '#39FF14', '#FFD700', '#00F0FF'];
+    ctx.fx.spawnExplosion({ x: boss.pos.x + boss.width / 2, y: boss.pos.y + boss.height / 2 }, colors[(ctx.state.frame / 6) % 4], 2, 0, 3);
+  }
+  if (boss.stateTimer! <= 0) {
+    boss.rotation = 0;
+    boss.bossState = 'exhausted';
+    boss.stateTimer = frames(90);
+  }
 };
 
 const needleTick = (ctx: FrameContext, boss: Enemy) => {

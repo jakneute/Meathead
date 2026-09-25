@@ -308,6 +308,12 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
  * What each boss might shout when hit by each of Meathead's weapons.
  * Weakness combos sound panicked; everything else is trash talk.
  */
+/** Blackout Barry's lines for his needle weakness. */
+export const BARRY_LINES = {
+  HIGH: ["WHOA... WHO TURNED ON ALL THE LAVA LAMPS?", "I CAN SEE ELECTRICITY, MAN. IT'S PURPLE.", "I'M A KITE! LOOK AT ME, I'M A KITE!"],
+  TOLERANCE: ["NICE TRY. I BUILT UP A TOLERANCE.", "THAT DOESN'T EVEN TICKLE ANYMORE.", "YOU'RE WASTING THE GOOD STUFF, BUDDY."],
+};
+
 /** Oily Oscar's lines for his taser weakness and his cigarette. */
 export const OSCAR_LINES = {
   HELD: ["HEY! HANDS OFF THE MERCHANDISE!", "I'M GROUNDED! LITERALLY GROUNDED!", "THAT TICKLES... THAT BURNS... THAT TICKLES!"],

@@ -6,7 +6,7 @@ import { drawVictor } from './victor';
 import { drawErnie } from './ernie';
 import { drawHector } from './hector';
 import { drawDale, drawDaleDrugs } from './dale';
-import { drawBarry } from './barry';
+import { drawBarry, drawBarryTolerance } from './barry';
 import { drawTommy } from './tommy';
 import { drawOscar } from './oscar';
 import { drawOscarGear } from '../oscarRenderer';
@@ -28,7 +28,7 @@ const BOSS_SPRITES: Record<string, BossSprite> = {
   'Ernie Earthquake': { body: drawErnie },
   'Hector Hurricane': { body: drawHector },
   'Drug Trade Dale': { body: drawDale, overlay: drawDaleDrugs },
-  'Blackout Barry': { body: drawBarry },
+  'Blackout Barry': { body: drawBarry, overlay: drawBarryTolerance },
   'Toxic Tommy': { body: drawTommy },
   'Oily Oscar': { body: drawOscar, gear: drawOscarGear },
 };

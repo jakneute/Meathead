@@ -2,6 +2,8 @@
 // Drawn in the boss's local space (0,0 = his top-left corner).
 
 import { Enemy } from '../../../types';
+import { ARENA_RIGHT } from '../../../constants';
+import { BARRY_TOLERANCE_FRAMES } from '../../bosses/barry';
 
 export const drawBarry = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
   const { width, height } = e;
@@ -13,6 +15,12 @@ export const drawBarry = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
 
   const _α = isTeleporting ? Math.abs(Math.sin(frame * 0.4)) : 1.0;
   ctx.globalAlpha = _α;
+
+  // High as a kite: a kite string trailing below him and a psychedelic colour cycle
+  if (e.bossState === 'high') {
+    drawKiteString(ctx, width, height, frame);
+    ctx.filter = `hue-rotate(${(frame * 12) % 360}deg) saturate(2.5)`;
+  }
 
   if (isExhausted) {
     // Drawing stars floating above head in a halo
@@ -317,4 +325,59 @@ export const drawBarry = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
   }
 
   ctx.globalAlpha = 1.0;
+};
+
+const drawKiteString = (ctx: CanvasRenderingContext2D, width: number, height: number, frame: number) => {
+  ctx.save();
+  ctx.strokeStyle = '#F5F5F5';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(width / 2, height - 4);
+  for (let i = 1; i <= 12; i++) ctx.lineTo(width / 2 + Math.sin(frame * 0.15 + i * 0.7) * (4 + i), height - 4 + i * 11);
+  ctx.stroke();
+  // Little bows along the tail
+  const bows = ['#FF007F', '#FFD700', '#00F0FF'];
+  bows.forEach((color, k) => {
+    const i = 3 + k * 4;
+    const bx = width / 2 + Math.sin(frame * 0.15 + i * 0.7) * (4 + i), by = height - 4 + i * 11;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(bx, by); ctx.lineTo(bx - 7, by - 4); ctx.lineTo(bx - 7, by + 4); ctx.closePath();
+    ctx.moveTo(bx, by); ctx.lineTo(bx + 7, by - 4); ctx.lineTo(bx + 7, by + 4); ctx.closePath();
+    ctx.fill();
+  });
+  ctx.restore();
+};
+
+/** While his tolerance is up: a crossed-out syringe and a draining bar beside him. */
+export const drawBarryTolerance = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
+  const timer = e.toleranceTimer || 0;
+  if (timer <= 0 || e.health <= 0) return;
+  // Beside his head (on whichever side has room), clear of his health bar and speech
+  const x = e.pos.x + e.width + 40 < ARENA_RIGHT ? e.pos.x + e.width + 20 : e.pos.x - 20, y = e.pos.y + 12;
+  ctx.save();
+  ctx.globalAlpha = timer < 60 && frame % 10 < 5 ? 0.4 : 1;
+  // Syringe
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+  ctx.fillRect(x - 10, y - 4, 16, 8);
+  ctx.fillStyle = '#C084FC';
+  ctx.fillRect(x - 9, y - 3, 12, 6);
+  ctx.strokeStyle = '#D1D5DB';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(x + 6, y); ctx.lineTo(x + 14, y); ctx.stroke();
+  ctx.fillStyle = '#9CA3AF';
+  ctx.fillRect(x - 15, y - 1, 5, 2);
+  // Crossed out
+  ctx.strokeStyle = '#EF4444';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(x, y, 13, 0, Math.PI * 2);
+  ctx.moveTo(x - 9, y - 9); ctx.lineTo(x + 9, y + 9);
+  ctx.stroke();
+  // Time left
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(x - 21, y + 16, 42, 5);
+  ctx.fillStyle = '#C084FC';
+  ctx.fillRect(x - 20, y + 17, 40 * Math.min(1, timer / BARRY_TOLERANCE_FRAMES), 3);
+  ctx.restore();
 };
