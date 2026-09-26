@@ -16,12 +16,22 @@ import { FrameInput, hasAmmo } from './player';
  * Holding fire with the taser locks onto a target and zaps it continuously.
  * Regular enemies are frozen, take damage over time and eventually catch fire.
  */
+/** The target's dead: the beam shuts off, and stays off until fire is pressed again. */
+const cutTaser = (player: FrameContext['state']['player']) => {
+  player.isTasing = false;
+  player.taserTargetId = null;
+  player.taserTimer = 0;
+  player.taserSpent = true;
+};
+
 export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
   const { state, fx, stageId, currentWeapon, cheats } = ctx;
   const { player, enemies, projectiles } = state;
 
   const overloaded = (player.taserOverloadTimer || 0) > 0;
-  if (!(currentWeapon === 'TASER' && input.shoot && hasAmmo(ctx, 'TASER')) || overloaded) {
+  // Its target died: the beam stays off until fire is let go and pressed again
+  if (!input.shoot) player.taserSpent = false;
+  if (!(currentWeapon === 'TASER' && input.shoot && hasAmmo(ctx, 'TASER')) || overloaded || player.taserSpent) {
     player.isTasing = false;
     player.taserTargetId = null;
     player.taserTimer = 0;
@@ -48,6 +58,12 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
   if (cigarette) player.taserTargetId = cigarette.id;
 
   const target: Enemy | Projectile | undefined = enemies.find(e => e.id === player.taserTargetId) || projectiles.find(p => p.id === player.taserTargetId);
+  // Whatever it was locked onto is dead (killed by the beam or anything else): cut the beam.
+  // (Oscar's cigarette isn't an enemy: once it's gone the beam just looks for a new target.)
+  if (player.taserTargetId && (!target || target.health <= 0 || (target as Enemy).isBlownAway)) {
+    if (player.taserTargetId.startsWith('oscar-cig-')) player.taserTargetId = null;
+    else { cutTaser(player); return; }
+  }
   if (target && (target.pos.x + target.width < state.camera.x || target.pos.x > state.camera.x + CANVAS_WIDTH)) {
     player.taserTargetId = null;
   }
@@ -87,7 +103,8 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
       if (target.type === 'enemy') {
         fx.killWithAnimation(target as Enemy, 'fried', 'taser_kill', 'fried');
       }
-      player.taserTargetId = null;
+      cutTaser(player);
+      return;
     }
   }
   if (player.taserTimer! >= TASER_FIRE_THRESHOLD && !target.isOnFire) {
