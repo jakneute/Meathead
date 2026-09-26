@@ -170,9 +170,9 @@ export const buildCourse = (): Course => {
   const crev3 = c.x;
   c.pit(340);
   ledges.push({ x: crev3 + 40, y: c.y, w: 80, crumble: true });
-  ledges.push({ x: crev3 + 150, y: c.y - 25, w: 80, crumble: true });
+  ledges.push({ x: crev3 + 150, y: c.y - 25, w: 80, crumble: false }); // (solid: somewhere to wait out a gust)
   ledges.push({ x: crev3 + 255, y: c.y - 5, w: 70, crumble: true });
-  winds.push({ x1: crev3 - 60, x2: crev3 + 360, push: -2.6, gust: { on: 110, off: 90 } });
+  winds.push({ x1: crev3 - 60, x2: crev3 + 360, push: -2.1, gust: { on: 100, off: 100 } });
   c.flat(360);
   // Snowballs, taught on the flat: small and slow, jump them
   chutes.push({ x: c.x - 10, y: c.y, every: 170, size: 34, speed: 3 });
@@ -188,10 +188,10 @@ export const buildCourse = (): Course => {
   const crev4 = c.x;
   c.pit(420);
   ledges.push({ x: crev4 + 45, y: c.y, w: 70, crumble: true });
-  ledges.push({ x: crev4 + 170, y: c.y - 40, w: 70, crumble: true });
+  ledges.push({ x: crev4 + 170, y: c.y - 40, w: 70, crumble: false });
   ledges.push({ x: crev4 + 295, y: c.y - 10, w: 70, crumble: true });
   overhang(crev4 + 20, crev4 + 400, 220, [crev4 + 110, crev4 + 230, crev4 + 340]);
-  winds.push({ x1: crev4 - 40, x2: crev4 + 440, push: -2.4, gust: { on: 80, off: 110 } });
+  winds.push({ x1: crev4 - 40, x2: crev4 + 440, push: -2.1, gust: { on: 80, off: 110 } });
   c.flat(400);
   spawn('eagle', c.x - 330, 230);
   spawn('charger', c.x - 200);

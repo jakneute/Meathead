@@ -17,7 +17,8 @@ export const drawKindEnemy = (ctx: Ctx, e: Enemy, state: GameState) => {
   ctx.save();
   ctx.translate(e.pos.x + e.width / 2, e.pos.y + e.height);
   ctx.scale(facing, 1);
-  const f = state.frame + (e.homeX || 0);
+  // (a per-enemy offset so they don't all animate in step; kept positive, since this stage's x runs negative)
+  const f = state.frame + (Math.abs(Math.round(e.homeX || 0)) % 997);
   switch (e.kind) {
     case 'wolverine': drawWolverine(ctx, e, f); break;
     case 'goat': drawGoat(ctx, e, f); break;
