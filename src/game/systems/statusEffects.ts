@@ -109,6 +109,7 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
   }
   if (player.taserTimer! >= TASER_FIRE_THRESHOLD && !target.isOnFire) {
     target.isOnFire = true;
+    if (target.type === 'enemy') (target as Enemy).ignitedByTaser = true;
     fx.playGunSound('ignite');
   }
 };
@@ -155,6 +156,8 @@ export const updateEnemyStatusEffects = (ctx: FrameContext) => {
         e.fireTimer = 0;
         if (e.health <= 0) {
           if (isBoss) killBoss(ctx, e, 0, false);
+          // A fire the taser started is still an electrocution
+          else if (e.ignitedByTaser) fx.killWithAnimation(e, 'fried', 'taser_kill', 'fried');
           else fx.killWithAnimation(e, 'charred', 'flamethrower_kill', 'charred');
         }
       }

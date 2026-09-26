@@ -166,6 +166,8 @@ export interface Enemy extends Entity {
   overdoseHitIds?: string[];
   /** Frames since it overdosed (it only veers for a while). */
   overdoseAge?: number;
+  /** The taser set it alight: if the burn finishes it, it's still an electrocution. */
+  ignitedByTaser?: boolean;
   // Needle / DOT
   needleCount?: number;
   needleOffsets?: { x: number, y: number, rot: number }[];
