@@ -11,6 +11,8 @@ import { WeaponType } from './types';
 // ==========================================
 export const CANVAS_WIDTH = 800;
 export const CANVAS_HEIGHT = 600;
+/** The game canvas has this many real pixels per game pixel, so text and lines stay crisp when the window is scaled up. */
+export const RENDER_SCALE = 2;
 export const SCREEN_SHAKE_MAX = 15;
 export const VULGARITY_TEXT_DURATION = 120;
 export const BOSS_VULGARITY_DURATION = 150;

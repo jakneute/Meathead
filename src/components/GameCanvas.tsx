@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { GameStatus, WeaponType } from '../types';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, RENDER_SCALE } from '../constants';
 import { GameState, createGameState, resetStageState } from '../game/state';
 import { buildLevel } from '../game/level';
 import { Cheats, GameEvents, createFrameContext } from '../game/context';
@@ -58,6 +58,8 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
       const ctx = canvasRef.current?.getContext('2d');
       if (!ctx) return;
       const p = propsRef.current;
+      // Everything draws in game pixels (800x600); the backing store is RENDER_SCALE times that
+      ctx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
       drawWorld(ctx, state, {
         status: p.status,
         stageId: p.stageId,
@@ -113,7 +115,7 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
     return () => cancelAnimationFrame(frameId);
   }, [status, stageId, cheats.skipToBoss]);
 
-  return <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} className="block bg-black w-[800px] h-[600px]" />;
+  return <canvas ref={canvasRef} width={CANVAS_WIDTH * RENDER_SCALE} height={CANVAS_HEIGHT * RENDER_SCALE} className="block bg-black w-[800px] h-[600px]" />;
 };
 
 export default GameCanvas;

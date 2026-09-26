@@ -54,6 +54,18 @@ const navigatePauseMenu = (index: number, dx: number, dy: number, numWeapons: nu
   return index;
 };
 
+/** The whole 800x600 game (canvas and menus) is scaled up to fill the window, keeping its shape. */
+const useFitToWindow = () => {
+  const fit = () => Math.max(0.5, Math.min(window.innerWidth / 808, window.innerHeight / 608));
+  const [scale, setScale] = useState(fit);
+  useEffect(() => {
+    const onResize = () => setScale(fit());
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  return scale;
+};
+
 /** How long the ENGAGE flourish plays before the stage starts. */
 const ENGAGE_FLOURISH_MS = 1700;
 const ENGAGE_SHOUTS = ["LET'S FUCKING GO!", "FUCK YEAH! LET'S GO!", "IT'S MEAT TIME, BABY!", "OH HELL YEAH!"];
@@ -73,6 +85,7 @@ const App: React.FC = () => {
   /** True between the boss dying and the victory screen; blocks pausing. */
   const [isVictoryPhase, setIsVictoryPhase] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const viewScale = useFitToWindow();
   const [isInputLocked, setIsInputLocked] = useState(true);
   /** Stage select: the boss dossier is showing instead of the map. */
   const [showDossier, setShowDossier] = useState(false);
@@ -463,7 +476,7 @@ const App: React.FC = () => {
 
   return (
     <div className="relative w-screen h-screen flex items-center justify-center bg-black overflow-hidden">
-      <div className="relative shadow-2xl border-4 border-gray-800 bg-[#121212] overflow-hidden" style={{ width: 800, height: 600, boxSizing: 'content-box' }}>
+      <div className="relative shrink-0 shadow-2xl border-4 border-gray-800 bg-[#121212] overflow-hidden" style={{ width: 800, height: 600, boxSizing: 'content-box', transform: `scale(${viewScale})` }}>
         {HUD_SCREENS.includes(status) && (
           <HUD
             health={health}

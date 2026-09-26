@@ -1,6 +1,6 @@
 import { GameStatus, Pickup, Enemy, TommyBoard, DamageNumber } from '../../types';
 import {
-  CANVAS_WIDTH, CANVAS_HEIGHT, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT,
+  CANVAS_WIDTH, CANVAS_HEIGHT, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, RENDER_SCALE,
 } from '../../constants';
 import { STAGE_COLORS } from '../../stages';
 import { GameState } from '../state';
@@ -849,7 +849,7 @@ const drawBarryLighting = (ctx: CanvasRenderingContext2D, state: GameState, stag
 
   if (shouldShowBlackout) {
     ctx.save();
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
     // Subtle darkness so Barry's teleportation is mysterious without hiding the arena
     ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -858,7 +858,7 @@ const drawBarryLighting = (ctx: CanvasRenderingContext2D, state: GameState, stag
     if (activeBarry.bossState === 'ground_pound' && (activeBarry.electrifiedTimer || 0) > 0) {
       // Half-second electrified flash lighting up the room when he lands
       ctx.save();
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
       const pulse = 0.22 + 0.12 * Math.sin(state.frame * 0.8);
       ctx.fillStyle = `rgba(0, 229, 255, ${pulse})`;
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -866,7 +866,7 @@ const drawBarryLighting = (ctx: CanvasRenderingContext2D, state: GameState, stag
     } else if (activeBarry.bossState === 'lightning_storm' && activeBarry.activeLightningStrikes && activeBarry.activeLightningStrikes.length > 0) {
       // Light up the screen as lightning strikes persist
       ctx.save();
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
       ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
       ctx.restore();
