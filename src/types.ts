@@ -324,6 +324,8 @@ export interface Volcano {
   corked?: boolean;
   /** Frames until a corked vent blows its cork. */
   fuse?: number;
+  /** Frames since it burst out (its life can be extended, so this drives how far it's risen). */
+  age?: number;
 }
 
 export interface SteamExplosion {

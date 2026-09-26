@@ -3,8 +3,9 @@
 //   1. outside: the volcano rumbles, then erupts
 //   2. back in the arena: Victor starts "OH NO... WHAT HAVE YOU DONE, YOU-" and
 //      a wall of magma surges up from below, launching both of them skyward
-//   3. outside again: two tiny figures flung out of the crater into the sky,
-//      while the death message spells out what you did
+//   3. outside again: their charred bodies come flying out of the crater at the
+//      screen one at a time, Turtles in Time style, until each fills it; then
+//      the death message spells out what you did
 // Then you respawn outside his door (the boss checkpoint) and refight him.
 
 import type { FrameContext } from './context';
@@ -19,9 +20,11 @@ export const VOLCANO_FINALE = {
   INSIDE: 170,        // cut back to the arena
   WAVE: 265,          // the magma wave cuts Victor off
   OUTSIDE: 330,       // cut outside again: the launch
-  TEXT: 400,          // the death message starts spelling out
+  /** Each charred body flies out of the crater at the screen for this long. */
+  FLY: 75,
+  TEXT: 500,          // the death message starts spelling out (once both have hit the screen)
   TEXT_RATE: 2,
-  END: 820,
+  END: 900,
 };
 
 export const VOLCANO_FINALE_MESSAGE =

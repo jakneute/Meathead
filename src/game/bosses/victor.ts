@@ -115,7 +115,8 @@ export const tryCorkVent = (ctx: FrameContext, p: Projectile): boolean => {
   if (!vent) return false;
   vent.corked = true;
   vent.fuse = CORK_FUSE;
-  vent.life = Math.min(ERUPTION_FRAMES - 12, Math.max(vent.life, 60)); // frozen fully risen and hot
+  vent.life = Math.min(ERUPTION_FRAMES - 12, Math.max(vent.life, 60)); // frozen hot...
+  vent.age = Math.max(vent.age || 0, 12);                             // ...and fully risen
   ctx.fx.spawnRockShatter({ x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 });
   ctx.fx.playGunSound('gun');
   state.screenShakeTimer = Math.max(state.screenShakeTimer, 10);

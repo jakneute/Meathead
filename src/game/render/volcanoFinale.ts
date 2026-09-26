@@ -129,37 +129,68 @@ const drawScene = (ctx: Ctx, t: number, erupting: boolean, e: number) => {
   }
 };
 
-/** Meathead and Victor, flung out of the crater and away into the sky. */
+/**
+ * Their charred bodies come flying out of the crater straight at the screen,
+ * one after the other (Turtles in Time's "thrown at the screen"), spinning and
+ * growing until each one fills it.
+ */
 const drawLaunch = (ctx: Ctx, lt: number) => {
-  const figures = [
-    { dx: -1, skin: '#E0AC69', pants: '#1E3A8A' },  // Meathead
-    { dx: 1, skin: '#B71C1C', pants: '#3E2723' },   // Victor
-  ];
-  figures.forEach((fg, i) => {
-    const s = lt / 90;
-    const x = CX + fg.dx * (30 + s * 70 + i * 10);
-    const y = PEAK_Y - 40 - s * 120 + s * s * 4;
-    if (y < -40) return;
-    const scale = Math.max(0.3, 1 - s * 0.12);
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(lt * 0.25 * fg.dx);
-    ctx.scale(scale, scale);
-    ctx.fillStyle = fg.skin; ctx.fillRect(-6, -14, 12, 14); ctx.fillRect(-5, -24, 10, 9);
-    ctx.fillStyle = fg.pants; ctx.fillRect(-6, 0, 5, 12); ctx.fillRect(1, 0, 5, 12);
-    ctx.fillStyle = fg.skin; ctx.fillRect(-14, -12, 8, 4); ctx.fillRect(6, -12, 8, 4);
-    // On fire
-    ctx.fillStyle = lt % 6 < 3 ? '#FF6D00' : '#FFD600';
-    ctx.fillRect(-4, -30, 8, 6);
-    ctx.restore();
-  });
-  // ...and when they're gone, a little twinkle where they vanished
-  if (lt > 150 && lt < 190) {
-    const tw = (lt - 150) / 40;
-    ctx.fillStyle = `rgba(255, 255, 255, ${1 - tw})`;
-    const r = 4 + tw * 14;
-    ctx.fillRect(CX - 1, 30 - r, 3, r * 2); ctx.fillRect(CX - r, 30 - 1, r * 2, 3);
+  const who = Math.floor(lt / VOLCANO_FINALE.FLY);
+  if (who > 1) return;
+  const k = (lt % VOLCANO_FINALE.FLY) / VOLCANO_FINALE.FLY; // 0 at the crater .. 1 filling the screen
+  const scale = 0.12 * Math.pow(200, k);                    // tiny, then rushing at you
+  const x = CX + (who === 0 ? -1 : 1) * 60 * Math.sin(k * Math.PI) + (who === 0 ? -20 : 20) * k;
+  const y = PEAK_Y - 30 - Math.sin(k * Math.PI * 0.9) * 90 + k * k * 60;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(lt * 0.16 * (who === 0 ? 1 : -1));
+  ctx.scale(scale, scale);
+  // Smoke pouring off the body
+  for (let i = 0; i < 5; i++) {
+    const s = ((lt * 2 + i * 9) % 30) / 30;
+    ctx.fillStyle = `rgba(50, 45, 45, ${0.5 * (1 - s)})`;
+    ctx.beginPath(); ctx.arc(Math.sin(i * 2.1) * 10, -30 - s * 25, 6 + s * 10, 0, Math.PI * 2); ctx.fill();
   }
+  if (who === 0) drawCharredMeathead(ctx, lt); else drawCharredVictor(ctx, lt);
+  ctx.restore();
+};
+
+const CHAR = '#1C1917', CHAR_LIGHT = '#2E2724';
+
+/** Glowing cracks and embers on a burnt silhouette. */
+const embers = (ctx: Ctx, lt: number, spots: [number, number][]) => {
+  ctx.fillStyle = lt % 8 < 4 ? '#FF6D00' : '#FFB020';
+  for (const [x, y] of spots) ctx.fillRect(x, y, 3, 2);
+};
+
+/** Meathead, burnt to a crisp: flat-top, huge shoulders, white cartoon eyes. */
+const drawCharredMeathead = (ctx: Ctx, lt: number) => {
+  ctx.fillStyle = CHAR;
+  ctx.fillRect(-9, 4, 7, 20); ctx.fillRect(2, 4, 7, 20);          // legs
+  ctx.fillRect(-12, -18, 24, 24);                                 // torso
+  ctx.fillRect(-20, -18, 8, 18); ctx.fillRect(12, -18, 8, 18);    // arms flung out
+  ctx.fillStyle = CHAR_LIGHT; ctx.fillRect(-3, 1, 6, 5);          // belt buckle, dulled
+  ctx.fillStyle = CHAR;
+  ctx.fillRect(-7, -31, 14, 13);                                  // head
+  ctx.fillRect(-8, -35, 16, 5);                                   // the flat-top, still standing
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-5, -27, 4, 3); ctx.fillRect(1, -27, 4, 3);
+  ctx.fillStyle = '#000000'; ctx.fillRect(-4, -26, 2, 2); ctx.fillRect(2, -26, 2, 2);
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-3, -22, 6, 1);         // a singed grin
+  embers(ctx, lt, [[-8, -10], [5, -4], [-15, -8], [14, -12], [-6, 12], [4, 16]]);
+};
+
+/** Victor, charred: horned helmet and big pauldrons, stunned eyes. */
+const drawCharredVictor = (ctx: Ctx, lt: number) => {
+  ctx.fillStyle = CHAR;
+  ctx.fillRect(-10, 6, 8, 18); ctx.fillRect(2, 6, 8, 18);
+  ctx.fillRect(-14, -18, 28, 26);
+  ctx.beginPath(); ctx.arc(-16, -16, 8, 0, Math.PI * 2); ctx.arc(16, -16, 8, 0, Math.PI * 2); ctx.fill(); // pauldrons
+  ctx.fillRect(-9, -32, 18, 15);
+  ctx.beginPath(); ctx.moveTo(-9, -30); ctx.lineTo(-16, -42); ctx.lineTo(-5, -32); ctx.fill();          // horns
+  ctx.beginPath(); ctx.moveTo(9, -30); ctx.lineTo(16, -42); ctx.lineTo(5, -32); ctx.fill();
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-6, -27, 4, 4); ctx.fillRect(2, -27, 4, 4);
+  ctx.fillStyle = '#000000'; ctx.fillRect(-5, -26, 1, 1); ctx.fillRect(4, -25, 1, 1);                  // cross-eyed
+  embers(ctx, lt, [[-10, -8], [8, -2], [-18, -18], [16, -14], [-6, 14], [5, 10], [0, -30]]);
 };
 
 /** Inside the arena: the room glows and shakes, then the magma wave surges up from below. */

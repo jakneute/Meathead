@@ -101,6 +101,7 @@ export const updateVolcanoes = (ctx: FrameContext) => {
   state.bossVolcanoes = state.bossVolcanoes.filter(v => {
     if (v.corked) return updateCorkedVent(ctx, v);
     v.life--;
+    v.age = (v.age || 0) + 1;
     if (state.frame % 12 === 0) {
       const velX = v.type === 'wall' ? (v.pos.x < BOSS_DOOR_X + 400 ? 9 : -9) : (Math.random() - 0.5) * 4;
       const velY = v.type === 'ground' ? -9 : (Math.random() - 0.5) * 7;

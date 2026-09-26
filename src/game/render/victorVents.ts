@@ -93,7 +93,7 @@ export const drawVentTelegraph = (ctx: CanvasRenderingContext2D, v: Volcano, fra
 // ---------------------------------------------------------------------------
 
 export const drawVent = (ctx: CanvasRenderingContext2D, v: Volcano, frame: number) => {
-  const age = ERUPTION_FRAMES - v.life;
+  const age = v.age ?? ERUPTION_FRAMES - v.life;
   // Punches up out of the surface, then cools and sputters near the end
   const rise = Math.min(1, age / 10);
   const heat = Math.min(1, v.life / 40);
