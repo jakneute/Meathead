@@ -98,3 +98,30 @@ export const readControls = (kb: KeyboardMouseState): Controls => {
     shoot: kb.mouseDown || padShoot || k('x', 'keyx', 'k', 'keyk'),
   };
 };
+
+const ACTION_BUTTONS = ['jump', 'special', 'shoot'] as const;
+
+/**
+ * Menu and gameplay inputs are independent: a button that was already down when
+ * gameplay (re)starts (B still held from backing out of the pause menu, A from
+ * confirming the boss intro) is ignored until it's let go and pressed again.
+ * Directions aren't gated, so holding a direction through a pause keeps walking.
+ */
+export class HeldButtonGate {
+  private blocked = new Set<typeof ACTION_BUTTONS[number]>();
+
+  /** Starts ignoring every action button that's held right now. */
+  block(c: Controls) {
+    for (const k of ACTION_BUTTONS) if (c[k]) this.blocked.add(k);
+  }
+
+  apply(c: Controls): Controls {
+    if (this.blocked.size === 0) return c;
+    const out = { ...c };
+    for (const k of [...this.blocked]) {
+      if (c[k]) out[k] = false;
+      else this.blocked.delete(k);
+    }
+    return out;
+  }
+}

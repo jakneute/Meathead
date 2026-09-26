@@ -4,7 +4,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, RENDER_SCALE } from '../constants';
 import { GameState, createGameState, resetStageState } from '../game/state';
 import { buildLevel } from '../game/level';
 import { Cheats, GameEvents, createFrameContext } from '../game/context';
-import { KeyboardMouseState, readControls } from '../game/input';
+import { KeyboardMouseState, HeldButtonGate, readControls } from '../game/input';
 import { stepGame } from '../game/update';
 import { drawWorld } from '../game/render/worldRenderer';
 import { closeAudio } from '../game/audio';
@@ -32,6 +32,9 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
   const stateRef = useRef<GameState | null>(null);
   if (!stateRef.current) stateRef.current = createGameState(stageId, initialAmmo);
   const kbRef = useRef(new KeyboardMouseState());
+  const gateRef = useRef(new HeldButtonGate());
+  /** The status the loop last ran in, to spot gameplay starting back up. */
+  const lastStatusRef = useRef<GameStatus | null>(null);
   // The loop reads the latest props through this ref instead of restarting on every change.
   const propsRef = useRef(props);
   propsRef.current = props;
@@ -72,7 +75,12 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
     const tick = () => {
       const p = propsRef.current;
       const frameCtx = createFrameContext(state, p.stageId, p.currentWeapon, p.cheats, p);
-      const ranGameplay = stepGame(frameCtx, p.status, readControls(kbRef.current));
+      const raw = readControls(kbRef.current);
+      // Back into gameplay from a pause or a menu screen: buttons still held from there don't count
+      const last = lastStatusRef.current;
+      if (p.status === GameStatus.PLAYING && last !== null && last !== GameStatus.PLAYING && last !== GameStatus.BOSS_TRANSITION) gateRef.current.block(raw);
+      lastStatusRef.current = p.status;
+      const ranGameplay = stepGame(frameCtx, p.status, gateRef.current.apply(raw));
       if (ranGameplay) {
         const { player } = state;
         const forcedWeapon: WeaponType | undefined = state.shouldSyncWeapon ? 'GUN' : undefined;
