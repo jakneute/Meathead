@@ -139,6 +139,8 @@ export interface Enemy extends Entity {
   sludgeTimer?: number;
   /** How fast sludge is dragging a flyer down right now. */
   sludgeFallSpeed?: number;
+  /** Where the current sludge drag started (fall damage grows with the distance). */
+  sludgeFallFromY?: number;
   /** The frame a sludge puddle last hurt it (puddles don't stack). */
   sludgeTickFrame?: number;
   /** Hector: how long Meathead has been within half a screen of his vortex. */

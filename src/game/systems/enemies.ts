@@ -151,15 +151,23 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
     } else if (!isHeld) {
       if (e.sludgeTimer && e.sludgeTimer > 0) {
         // Sludge drags it down hard: it slams into the floor, or keeps going down a pit
+        if (!e.sludgeFallSpeed) e.sludgeFallFromY = e.pos.y;
         e.sludgeFallSpeed = Math.min(18, (e.sludgeFallSpeed || 3) + 1.2);
         const floorY = 550 - e.height;
         if (!hasFloorBelow(state, e) || e.pos.y + e.sludgeFallSpeed < floorY) {
           e.pos.y += e.sludgeFallSpeed;
+          dragIntoEnemies(ctx, e);
         } else if (e.pos.y < floorY) {
           e.pos.y = floorY;
-          slamIntoFloor(ctx, e, e.sludgeFallSpeed);
-          if (e.health > 0) ctx.fx.spawnExplosion({ x: e.pos.x + e.width / 2, y: 550 }, '#ADFF2F', 8, 0, 8);
+          const damage = sludgeFallDamage(e);
+          ctx.fx.spawnExplosion({ x: e.pos.x + e.width / 2, y: 550 }, '#ADFF2F', 8, 0, 8);
+          shakeScreen(state, 8, Math.min(10, toGml(e.sludgeFallSpeed)) * GML_SCALE * 0.5);
           e.sludgeFallSpeed = 0;
+          if (damage > 0) {
+            e.health -= damage;
+            ctx.fx.spawnDamageNumber(e.pos, damage, damage > 30);
+            if (e.health <= 0) impactKill(ctx, e, 'groundsplat', 0);
+          }
         }
       } else {
         e.sludgeFallSpeed = 0;
@@ -514,6 +522,47 @@ const slamIntoWalls = (ctx: FrameContext, e: Enemy, speed: number): boolean => {
   shakeScreen(state, 8, Math.min(10, toGml(speed)) * GML_SCALE * 0.6);
   if (e.health <= 0) { impactKill(ctx, e, 'wallsplat', -dir); return true; }
   return false;
+};
+
+/** How hard a sludge-dragged flyer hits: from how fast it's going and how far it's been dragged. */
+const sludgeFallDamage = (e: Enemy) => {
+  const dragged = Math.max(0, e.pos.y - (e.sludgeFallFromY ?? e.pos.y));
+  const damage = toGml(e.sludgeFallSpeed || 0) * DAMAGE_FALL_SCALER + dragged * SLUDGE_DRAG_DISTANCE_DAMAGE;
+  return damage > IMPACT_DAMAGE_THRESHOLD ? Math.round(damage) : 0;
+};
+const SLUDGE_DRAG_DISTANCE_DAMAGE = 0.08; // per pixel dragged down
+
+/**
+ * A flyer being dragged down by sludge crashes into whoever's underneath it:
+ * both take the hit, the one below gets knocked aside and the flyer glances
+ * off it and keeps falling (slower).
+ */
+const dragIntoEnemies = (ctx: FrameContext, e: Enemy) => {
+  const { state, fx } = ctx;
+  if (e.enemyCollisionCooldown && e.enemyCollisionCooldown > 0) return;
+  for (const other of state.enemies) {
+    if (other === e || other.type === 'boss' || other.health <= 0 || other.isBlownAway) continue;
+    if (other.enemyCollisionCooldown && other.enemyCollisionCooldown > 0) continue;
+    if (!rectsOverlap(boundsOf(e), boundsOf(other))) continue;
+    const damage = Math.max(IMPACT_DAMAGE_THRESHOLD + 1, sludgeFallDamage(e));
+    const dir = other.pos.x + other.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;
+    other.health -= damage;
+    e.health -= damage;
+    fx.spawnDamageNumber(other.pos, damage, true);
+    fx.spawnDamageNumber(e.pos, damage, true);
+    fx.spawnExplosion({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height }, '#FDE047', 8, 0, 8);
+    shakeScreen(state, 8, Math.min(10, toGml(e.sludgeFallSpeed || 0)) * GML_SCALE * 0.5);
+    other.vel.x = dir * 6;
+    other.pauseTimer = ENEMY_DAZE_FRAMES;
+    other.enemyCollisionCooldown = 20;
+    e.enemyCollisionCooldown = 20;
+    e.pos.x -= dir * 10;
+    e.sludgeFallSpeed = (e.sludgeFallSpeed || 0) * 0.5;
+    e.sludgeFallFromY = e.pos.y;
+    if (other.health <= 0) impactKill(ctx, other, 'crush', dir);
+    if (e.health <= 0) { impactKill(ctx, e, 'crush', -dir); return; }
+    break;
+  }
 };
 
 /** Knocked down onto the floor: fall damage from the landing speed (hugely if frozen). */
