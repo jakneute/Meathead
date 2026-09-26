@@ -384,6 +384,19 @@ const ignite = (state: GameState, cell: OilCell) => {
   }
 };
 
+/** His fireproof suit: the flamethrower does nothing but make him laugh at you. */
+const shrugOffFlames = (ctx: FrameContext, boss: Enemy) => {
+  const { state } = ctx;
+  if (state.frame % 3 === 0) {
+    // Flame splashing off the suit as harmless smoke
+    state.particles.push({ pos: { x: boss.pos.x + Math.random() * boss.width, y: boss.pos.y + Math.random() * boss.height * 0.8 }, vel: { x: (Math.random() - 0.5) * 3, y: -1.5 - Math.random() * 2 }, life: 22, color: Math.random() > 0.5 ? '#9E9E9E' : '#CFD8DC', size: 5 + Math.random() * 5 });
+  }
+  if (state.oscarFireproofTauntAt === undefined || state.frame - state.oscarFireproofTauntAt > 240) {
+    state.oscarFireproofTauntAt = state.frame;
+    speakAsBoss(OSCAR, pickRandom(OSCAR_LINES.FIREPROOF), ctx.bossHelpers);
+  }
+};
+
 /**
  * Meathead's flamethrower touching the oil sets it off, same as the cigarette:
  * he's just lit Oscar's trap for him (and Oscar lets him know it).
@@ -605,4 +618,5 @@ export const oscar: BossDef = {
   arena: { right: OSCAR_ARENA_RIGHT },
   update: updateOscar,
   onTaser: holdOscarWithTaser,
+  onFlamed: shrugOffFlames,
 };

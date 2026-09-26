@@ -14,7 +14,7 @@ import {
 } from '../constants';
 import { GameState } from './state';
 import { FrameContext, killBoss } from './context';
-import { hitBoss } from './boss';
+import { hitBoss, getBossDef } from './boss';
 import { pickRandom, rectsOverlap, boundsOf } from './utils';
 import { findFlyingCigarette, igniteOilWithFlame } from './bosses/oscar';
 import { icicleBounds, meltIcicle } from './bosses/artie';
@@ -334,7 +334,10 @@ const burnEnemy = (ctx: FrameContext, e: Enemy) => {
     if (state.sewerNuke) return;
     // Setting fire to an oil-soaked Toxic Tommy: never a good idea
     if (ctx.stageId === TOXIC_TOMMY && e.isOiled && state.arenaLocked) { detonateSewerNuke(ctx, e); return; }
-    if (!state.arenaLocked || (e.hitCooldown && e.hitCooldown > 0)) return;
+    if (!state.arenaLocked) return;
+    const onFlamed = getBossDef(ctx.stageId)?.onFlamed;
+    if (onFlamed) { onFlamed(ctx, e); return; }
+    if (e.hitCooldown && e.hitCooldown > 0) return;
     hitBoss(ctx, e, 'FLAMETHROWER', { facing: player.facing });
     return;
   }

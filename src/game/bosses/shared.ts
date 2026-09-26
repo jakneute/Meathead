@@ -91,6 +91,8 @@ export interface BossDef {
   onDeath?: (state: GameState) => void;
   /** Replaces the taser's usual effect on him. */
   onTaser?: (ctx: FrameContext, boss: Enemy) => void;
+  /** Replaces the flamethrower's usual effect on him (Oscar's suit is fireproof). */
+  onFlamed?: (ctx: FrameContext, boss: Enemy) => void;
 }
 
 // ---------------------------------------------------------------------------

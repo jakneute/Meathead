@@ -99,6 +99,8 @@ export interface GameState {
   oilCells: OilCell[];
   /** When Meathead last torched Oscar's oil himself (so Oscar's jab doesn't repeat every frame). */
   oscarPlayerIgnitedAt?: number;
+  /** When Oscar last mocked the flamethrower bouncing off his suit. */
+  oscarFireproofTauntAt?: number;
   /** Artie's icicles hanging from (or falling from) the ceiling. */
   icicles: Icicle[];
 
@@ -323,6 +325,7 @@ export const resetStageState = (s: GameState) => {
   s.tommyScrollY = 0;
   s.oilCells = [];
   s.oscarPlayerIgnitedAt = undefined;
+  s.oscarFireproofTauntAt = undefined;
   s.icicles = [];
 
   s.playerStunTimer = 0;
