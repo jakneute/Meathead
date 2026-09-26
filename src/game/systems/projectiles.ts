@@ -527,7 +527,7 @@ const resolveEnemyProjectileHit = (ctx: FrameContext, p: Projectile): boolean =>
 const getProjectileHurtSource = (p: Projectile, stageId: string | null): string => {
   if (p.isMethBarrel) return 'meth_barrel';
   if (p.isDart) return 'needle';
-  if (p.isPoop) return 'wind';
+  if (p.isPoop) return 'poop';
   if (p.isBoulder || p.isShrapnel) return 'boulder';
   if (p.isIce) return 'ice';
   if (p.isSludge) return 'sludge';
