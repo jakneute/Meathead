@@ -96,6 +96,16 @@ const jump = (ctx: FrameContext, boss: Enemy) => {
 // Corking the vents with boulders
 // ---------------------------------------------------------------------------
 
+/** How far a vent's cone stands out of its floor or wall. */
+const CONE_HEIGHT = 50;
+
+/** The crater at the tip of a vent's cone, where its magma comes out (walls vents point out into the room). */
+export const ventTip = (v: Volcano) => {
+  if (v.type === 'ground') return { x: v.pos.x, y: FLOOR_Y - CONE_HEIGHT };
+  const left = v.pos.x < (ARENA_LEFT + ARENA_RIGHT) / 2;
+  return { x: left ? ARENA_LEFT + CONE_HEIGHT : ARENA_RIGHT - CONE_HEIGHT, y: v.pos.y };
+};
+
 /** Where a vent's cone sits (what a boulder has to hit to jam it). */
 const ventBox = (v: Volcano): Rect => {
   if (v.type === 'ground') return { x: v.pos.x - 42, y: FLOOR_Y - 56, w: 84, h: 56 };
@@ -115,6 +125,10 @@ export const tryCorkVent = (ctx: FrameContext, p: Projectile): boolean => {
   if (!vent) return false;
   vent.corked = true;
   vent.fuse = CORK_FUSE;
+  // Sealed: it's harmless until it blows (the blob it was just spitting fizzles in the crater)
+  const tip = ventTip(vent);
+  // (marked spent rather than filtered out: this runs while the projectiles are updating)
+  for (const m of state.projectiles) if (m.id.startsWith('magma-') && Math.hypot(m.pos.x + 7 - tip.x, m.pos.y + 7 - tip.y) < 70) m.life = 0;
   vent.life = Math.min(ERUPTION_FRAMES - 12, Math.max(vent.life, 60)); // frozen hot...
   vent.age = Math.max(vent.age || 0, 12);                             // ...and fully risen
   ctx.fx.spawnRockShatter({ x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 });

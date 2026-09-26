@@ -8,7 +8,7 @@ import {
 } from '../../constants';
 import { FrameContext } from '../context';
 import { hitBoss, isWeakTo } from '../boss';
-import { updateCorkedVent } from '../bosses/victor';
+import { updateCorkedVent, ventTip } from '../bosses/victor';
 import { pickRandom } from '../utils';
 import { killPlayer, landPlayer } from './player';
 
@@ -37,9 +37,11 @@ export const updateTsunami = (ctx: FrameContext) => {
   // Water hitting Victor's volcano vents turns them into steam explosions
   if (stageId === 'Victor Volcano') {
     state.bossVolcanoes = state.bossVolcanoes.filter(v => {
-      if (Math.abs(v.pos.x - state.tsunamiX) >= 60) return true;
-      state.bossSteamExplosions.push({ pos: { ...v.pos }, life: 45, radius: 100 });
-      fx.spawnSteamExplosionParticles(v.pos, 40);
+      // A corked vent is sealed: the water just washes over it
+      if (v.corked || Math.abs(v.pos.x - state.tsunamiX) >= 60) return true;
+      const tip = ventTip(v);
+      state.bossSteamExplosions.push({ pos: tip, life: 45, radius: 100 });
+      fx.spawnSteamExplosionParticles(tip, 40);
       state.screenShakeTimer = 12;
       return false;
     });
@@ -103,9 +105,11 @@ export const updateVolcanoes = (ctx: FrameContext) => {
     v.life--;
     v.age = (v.age || 0) + 1;
     if (state.frame % 12 === 0) {
+      // Out of the crater at the tip of the cone
+      const tip = ventTip(v);
       const velX = v.type === 'wall' ? (v.pos.x < BOSS_DOOR_X + 400 ? 9 : -9) : (Math.random() - 0.5) * 4;
       const velY = v.type === 'ground' ? -9 : (Math.random() - 0.5) * 7;
-      state.projectiles.push({ id: `magma-${Date.now()}`, pos: { x: v.pos.x, y: v.pos.y }, vel: { x: velX, y: velY }, width: 14, height: 14, health: 1, maxHealth: 1, type: 'projectile', damage: 45, owner: 'enemy' });
+      state.projectiles.push({ id: `magma-${Date.now()}-${Math.random()}`, pos: { x: tip.x - 7, y: tip.y - 7 }, vel: { x: velX, y: velY }, width: 14, height: 14, health: 1, maxHealth: 1, type: 'projectile', damage: 45, owner: 'enemy' });
     }
     return v.life > 0;
   });
