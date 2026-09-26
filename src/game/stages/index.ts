@@ -28,6 +28,8 @@ export interface StageLayout {
   update: (ctx: FrameContext, controls: Controls) => Controls;
   /** World space, behind everything that moves (scenery, the tram, the cabin). */
   drawBack?: (ctx: CanvasRenderingContext2D, state: GameState) => void;
+  /** World space, over the terrain but behind everything that moves (hazards, props). */
+  drawMid?: (ctx: CanvasRenderingContext2D, state: GameState) => void;
   /** World space, in front of everything (window frames, the avalanche). */
   drawFront?: (ctx: CanvasRenderingContext2D, state: GameState) => void;
   /** Screen space, over the world (timers, the mid-boss health bar). */

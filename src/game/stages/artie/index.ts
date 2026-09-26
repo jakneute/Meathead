@@ -6,7 +6,7 @@ import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH } from '../../../constants';
 import { groundBlocks } from '../../terrain';
 import { COURSE } from './course';
 import { createArtieRuntime, getArtie, updateArtie } from './runtime';
-import { drawArtieBack, drawArtieFront, drawArtieHud } from './draw';
+import { drawArtieBack, drawArtieMid, drawArtieFront, drawArtieHud } from './draw';
 
 export const artieLayout: StageLayout = {
   left: COURSE.left,
@@ -31,6 +31,7 @@ export const artieLayout: StageLayout = {
   },
   update: (ctx, controls) => updateArtie(ctx, controls),
   drawBack: (ctx, state) => { if (getArtie(state)) drawArtieBack(ctx, state); },
+  drawMid: (ctx, state) => { if (getArtie(state)) drawArtieMid(ctx, state); },
   drawFront: (ctx, state) => { if (getArtie(state)) drawArtieFront(ctx, state); },
   drawHud: (ctx, state) => { if (getArtie(state)) drawArtieHud(ctx, state); },
 };

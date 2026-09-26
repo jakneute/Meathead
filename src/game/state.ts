@@ -99,6 +99,8 @@ export interface GameState {
   ernieVibrationTimer: number;
   /** Horizontal pull applied to the player this frame (Hector's hurricane). */
   totalPullForceX: number;
+  /** Wind shoving the player this frame (a stage hazard); used up by the next move. */
+  windPushX?: number;
 
   // Toxic Tommy arena
   tommyBoards: TommyBoard[];

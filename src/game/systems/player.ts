@@ -432,7 +432,8 @@ const moveHorizontally = (ctx: FrameContext) => {
   // On the ground (isGrounded flickers off for a frame between landings, so check the floor too)
   const onGround = player.isGrounded || standingOnSolid(state);
   // Hector's pull drags us directly instead of feeding our momentum
-  player.pos.x += player.vel.x + state.totalPullForceX;
+  player.pos.x += player.vel.x + state.totalPullForceX + (state.windPushX || 0);
+  state.windPushX = 0;
   checkBossDoor(ctx);
 
   for (const b of state.blocks) {

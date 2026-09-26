@@ -71,6 +71,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   layout?.drawBack?.(ctx, state);
   drawGroundProfile(ctx, state.groundRuns, stageId, state.frame || 0, { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT });
   if (!drawTerrain(ctx, state.blocks, stageId, state.frame || 0, state.doorOpenAmount)) drawBlocks(ctx, state, colors);
+  layout?.drawMid?.(ctx, state);
   // The boss arena is drawn whenever any of it is on screen: from the moment the door
   // opens onto it, through the fight, his death and the victory lap
   const arenaInView = !!stageId && state.camera.x + CANVAS_WIDTH > ARENA_LEFT;
