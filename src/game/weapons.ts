@@ -359,7 +359,8 @@ const burnEnemy = (ctx: FrameContext, e: Enemy) => {
     hitBoss(ctx, e, 'FLAMETHROWER', { facing: player.facing });
     return;
   }
-  if (e.isOiled) {
+  // (the moose shrugs off status effects, oil included: no fireball)
+  if (e.isOiled && e.kind !== 'moose') {
     // Fire meets oil
     e.isOiled = false;
     detonateNuke(ctx, { x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 });
@@ -424,7 +425,7 @@ export const explodeOilRocket = (ctx: FrameContext, pos: Vector2, rocketVelX?: n
       if (e.hitCooldown && e.hitCooldown > 0) return;
       // Bosses don't get oiled up, except Toxic Tommy (it clogs him up, and there's the matter of setting him alight)
       if (ctx.stageId === TOXIC_TOMMY) {
-        e.isOiled = true;
+        e.isOiled = e.kind !== 'moose';
         e.oiledTimer = OIL_ROCKET_OILED_DURATION;
       }
       hitBoss(ctx, e, 'OIL_ROCKET', { facing: 0, p: { isOilRocket: true } });
@@ -432,7 +433,7 @@ export const explodeOilRocket = (ctx: FrameContext, pos: Vector2, rocketVelX?: n
     }
 
     e.health -= OIL_ROCKET_SPLASH_DAMAGE;
-    e.isOiled = true;
+    e.isOiled = e.kind !== 'moose';
     e.oiledTimer = OIL_ROCKET_OILED_DURATION;
     fx.spawnDamageNumber(e.pos, OIL_ROCKET_SPLASH_DAMAGE);
 

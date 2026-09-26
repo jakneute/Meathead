@@ -151,6 +151,27 @@ export const BOSS_DIALOGUE: {
     ]
   },
   SPECIFIC_HAZARD_HURT: {
+    'moose': [
+      "THAT MOOSE HAS A PERSONAL PROBLEM WITH ME!",
+      "I GOT BUCKED BY A FUCKING MOOSE!",
+      "IT KICKED ME IN THE DICK! THE MOOSE KICKED ME IN THE DICK!",
+      "WHO GAVE THE MOOSE STEROIDS? THAT'S MY THING!",
+    ],
+    'icicle': [
+      "RIGHT IN THE SKULL! COLD AND POINTY!",
+      "THE CEILING IS STABBING ME!",
+      "ICICLE TO THE DOME, FUCK!",
+    ],
+    'snowball': [
+      "WHO THE FUCK IS ROLLING THESE?",
+      "A SNOWBALL! A GROWN MAN! A SNOWBALL!",
+      "BOWLED OVER BY WINTER, FUCK!",
+    ],
+    'avalanche': [
+      "THE MOUNTAIN IS EATING ME!",
+      "SNOW IN EVERY HOLE I HAVE!",
+      "I'M A MEATBALL IN A SNOWBALL!",
+    ],
     'fire': [
       "MY LEG HAIR IS ON FIRE, OSCAR!",
       "I'M GETTING CHARBROILED OVER HERE!",

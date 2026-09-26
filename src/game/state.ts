@@ -45,6 +45,8 @@ export interface GameState {
   checkpoint: number;
   /** A stage layout's own running state (set pieces, hazards), rebuilt with the level. */
   stage: unknown;
+  /** Things a stage remembers across deaths this attempt (how the mid-boss died...). Cleared when a stage starts. */
+  stageMemo: Record<string, string>;
   /** A set piece holding the camera (the tram, a mid-boss arena, a cutscene); eases there. */
   cameraOverride: Vector2 | null;
 
@@ -210,6 +212,7 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
   cameraRestY: 0,
   checkpoint: 0,
   stage: null,
+  stageMemo: {},
   cameraOverride: null,
   arenaLocked: false,
   doorOpenAmount: 0,

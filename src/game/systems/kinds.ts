@@ -27,6 +27,7 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   shooter: { w: 40, h: 62, hp: 110, contact: 6 },
   charger: { w: 50, h: 70, hp: 220, contact: 12 },
   shielder: { w: 50, h: 70, hp: 150, contact: 7 },
+  moose: { w: 150, h: 96, hp: 2000, contact: 18 },
 };
 
 let spawnCount = 0;

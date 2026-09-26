@@ -6,6 +6,7 @@
 import type { GameState } from '../state';
 import type { FrameContext } from '../context';
 import type { Controls } from '../input';
+import type { Enemy, Projectile } from '../../types';
 import { artieLayout } from './artie';
 
 export interface StageLayout {
@@ -26,6 +27,15 @@ export interface StageLayout {
    * Meathead moves. May replace the controls (cutscenes, the ski run).
    */
   update: (ctx: FrameContext, controls: Controls) => Controls;
+  /**
+   * A stage's own special enemy (a mid-boss) updates, gets hit and is drawn by
+   * the stage instead of the generic enemy code. Return undefined for anything
+   * that isn't one of yours.
+   */
+  updateSpecialEnemy?: (ctx: FrameContext, e: Enemy) => boolean | undefined;
+  /** A player projectile hit it: return true if you handled it (the projectile's used up). */
+  hitSpecialEnemy?: (ctx: FrameContext, e: Enemy, p: Projectile) => boolean | undefined;
+  drawSpecialEnemy?: (ctx: CanvasRenderingContext2D, e: Enemy, state: GameState) => boolean;
   /** World space, behind everything that moves (scenery, the tram, the cabin). */
   drawBack?: (ctx: CanvasRenderingContext2D, state: GameState) => void;
   /** World space, over the terrain but behind everything that moves (hazards, props). */

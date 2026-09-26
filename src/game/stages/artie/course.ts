@@ -156,6 +156,9 @@ export const buildCourse = (): Course => {
   // The moose's clearing: one screen, walled in while he's alive
   const mooseX1 = c.x;
   c.flat(800);
+  // Two rocks to get up out of its way (it charges underneath; you can't shoot it from up there)
+  ledges.push({ x: mooseX1 + 150, y: c.y - 128, w: 110, crumble: false });
+  ledges.push({ x: mooseX1 + 540, y: c.y - 128, w: 110, crumble: false });
   const moose = { x1: mooseX1, x2: c.x, y: c.y };
   const cp2 = { x: c.x + 60, y: c.y };
   // Wind, taught on the flat: it shoves you back

@@ -5,6 +5,7 @@ import { getArtie } from './runtime';
 import { COURSE } from './course';
 import { windBlowing, Hazards } from './hazards';
 import { drawTramBack, drawTramFront, drawTramHud } from './tramDraw';
+import { drawMooseCorpse, drawMooseHud } from './mooseDraw';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -15,6 +16,7 @@ export const drawArtieBack = (ctx: Ctx, state: GameState) => {
 export const drawArtieMid = (ctx: Ctx, state: GameState) => {
   const rt = getArtie(state)!;
   drawWind(ctx, state);
+  if (rt.moose.corpse) drawMooseCorpse(ctx, rt.moose.corpse, state.frame);
   drawCrumbles(ctx, state, rt.hazards);
   drawIcicles(ctx, state, rt.hazards);
   drawChutes(ctx, state);
@@ -27,6 +29,7 @@ export const drawArtieFront = (ctx: Ctx, state: GameState) => {
 
 export const drawArtieHud = (ctx: Ctx, state: GameState) => {
   drawTramHud(ctx, state, getArtie(state)!.tram);
+  drawMooseHud(ctx, state, getArtie(state)!.moose);
 };
 
 const onScreen = (state: GameState, x: number, pad = 120) => x > state.camera.x - pad && x < state.camera.x + 800 + pad;

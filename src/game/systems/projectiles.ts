@@ -21,6 +21,7 @@ import { updateOscarRocket, updateCigarette } from '../bosses/oscar';
 import { pickRandom, rectsOverlap, boundsOf } from '../utils';
 import { getAttackHitbox } from './player';
 import { shakeScreen, GameState } from '../state';
+import { getStageLayout } from '../stages';
 
 /** Moves one projectile and resolves its collisions. Returns false to remove it. */
 export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
@@ -429,6 +430,9 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
       if (p.isBoulder) shatterBoulder(ctx, p);
       return false;
     }
+
+    // A stage's mid-boss takes hits its own way
+    if (enemy.kind && getStageLayout(ctx.stageId)?.hitSpecialEnemy?.(ctx, enemy, p)) return false;
 
     if (enemy.type === 'boss') {
       const landedFullHit = hitBossWithProjectile(ctx, enemy, p);

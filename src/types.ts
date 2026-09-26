@@ -131,7 +131,7 @@ export type BossState =
   | 'aiming' | 'flicking' | 'taser_held' | 'ash_face' | 'high' | 'running' | 'frozen';
 
 /** Themed enemies: Artie's wildlife and goons. */
-export type EnemyKind = 'wolverine' | 'goat' | 'eagle' | 'shooter' | 'charger' | 'shielder';
+export type EnemyKind = 'wolverine' | 'goat' | 'eagle' | 'shooter' | 'charger' | 'shielder' | 'moose';
 
 export interface Enemy extends Entity {
   enemyType: 'drone' | 'tank' | 'turret' | 'flyer' | 'shield';
@@ -147,6 +147,8 @@ export interface Enemy extends Entity {
   homeX?: number;
   homeY?: number;
   facing?: 1 | -1;
+  /** Frames of the flash from the last hit (mid-bosses show every hit; they have no invincibility). */
+  hitFlash?: number;
   patrolRange: number;
   initialX: number;
   initialY?: number;

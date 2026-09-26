@@ -312,6 +312,8 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
       const curT = (status === GameStatus.BOSS_INTRO && bossTauntText) ? bossTauntText : (state.bossVulgarityTimer > 0 ? state.bossLastVulgarity : null);
       if (curT && state.bossExplosionTimer <= 0) { ctx.save(); ctx.font = 'bold 12px "Press Start 2P"'; ctx.fillStyle = 'white'; ctx.shadowColor = 'black'; ctx.shadowBlur = 6; ctx.textAlign = 'center'; ctx.fillText(curT, e.pos.x + e.width / 2, e.pos.y - 30); ctx.restore(); }
       drawBossOverlay(ctx, e, stageId, state.frame);
+    } else if (e.kind && getStageLayout(stageId)?.drawSpecialEnemy?.(ctx, e, state)) {
+      // (a stage's mid-boss draws itself)
     } else if (e.kind) {
       drawKindEnemy(ctx, e, state);
     } else {
@@ -342,7 +344,7 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
       for(let j=0; j<4; j++){ ctx.beginPath(); const sx = e.width/2, sy = e.height/2; ctx.moveTo(sx, sy); ctx.lineTo(sx + (Math.random()-0.5)*100, sy + (Math.random()-0.5)*100); ctx.stroke(); }
     }
     drawStuckNeedles(ctx, e, state.frame);
-    if (!e.isBlownAway) { ctx.fillStyle = '#00FF00'; ctx.fillRect(e.pos.x, e.pos.y - 10, (e.health / e.maxHealth) * e.width, 5); }
+    if (!e.isBlownAway && e.kind !== 'moose') { ctx.fillStyle = '#00FF00'; ctx.fillRect(e.pos.x, e.pos.y - 10, (e.health / e.maxHealth) * e.width, 5); }
     ctx.restore();
   });
 };

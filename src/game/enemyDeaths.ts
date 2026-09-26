@@ -48,6 +48,7 @@ export const enemyBodyColor = (e: { id: string, enemyType?: string, width: numbe
 };
 
 export const startEnemyDeath = (state: GameState, e: Enemy, kind: EnemyDeathKind, vel?: Vector2) => {
+  if (e.kind === 'moose') return; // (a mid-boss leaves its own corpse)
   state.enemyDeaths.push({
     kind,
     x: e.pos.x, y: e.pos.y, w: e.width, h: e.height,

@@ -7,6 +7,8 @@ import { groundBlocks } from '../../terrain';
 import { COURSE } from './course';
 import { createArtieRuntime, getArtie, updateArtie } from './runtime';
 import { drawArtieBack, drawArtieMid, drawArtieFront, drawArtieHud } from './draw';
+import { updateMoose, hitMoose } from './moose';
+import { drawMoose } from './mooseDraw';
 
 export const artieLayout: StageLayout = {
   left: COURSE.left,
@@ -30,6 +32,19 @@ export const artieLayout: StageLayout = {
     }
   },
   update: (ctx, controls) => updateArtie(ctx, controls),
+  updateSpecialEnemy: (ctx, e) => {
+    const rt = getArtie(ctx.state);
+    return e.kind === 'moose' && rt ? updateMoose(ctx, e, rt.moose) : undefined;
+  },
+  hitSpecialEnemy: (ctx, e, p) => {
+    const rt = getArtie(ctx.state);
+    return e.kind === 'moose' && rt ? hitMoose(ctx, e, p, rt.moose) : undefined;
+  },
+  drawSpecialEnemy: (ctx, e, state) => {
+    if (e.kind !== 'moose') return false;
+    drawMoose(ctx, e, state.frame);
+    return true;
+  },
   drawBack: (ctx, state) => { if (getArtie(state)) drawArtieBack(ctx, state); },
   drawMid: (ctx, state) => { if (getArtie(state)) drawArtieMid(ctx, state); },
   drawFront: (ctx, state) => { if (getArtie(state)) drawArtieFront(ctx, state); },

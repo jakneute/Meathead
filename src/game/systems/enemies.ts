@@ -29,6 +29,9 @@ import { runKindAI, kindContactDamage } from './kinds';
 /** Moves one enemy and resolves its contact with the player. Returns false to remove it. */
 export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolean => {
   const { state } = ctx;
+  // A stage's mid-boss runs itself
+  const special = e.kind ? getStageLayout(ctx.stageId)?.updateSpecialEnemy?.(ctx, e) : undefined;
+  if (special !== undefined) return special;
   if (e.isBlownAway) {
     if (e.overdosed) return flyOverdosedBody(ctx, e, enemies);
     // Dead bodies tumble off-screen
