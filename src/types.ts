@@ -147,6 +147,10 @@ export interface Enemy extends Entity {
   vortexGrip?: number;
   /** Artie: frames left hefting an ice block overhead before he throws it. */
   throwWindup?: number;
+  /** Oscar: frames left of the silver shimmer on his fireproof suit (the flamethrower bouncing off). */
+  fireproofFlash?: number;
+  /** Oscar: when the last "IMMUNE!" popped up over him. */
+  immunePopFrame?: number;
   isBlownAway?: boolean;
   rotation?: number;
   pauseTimer?: number;

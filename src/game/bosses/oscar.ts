@@ -90,6 +90,7 @@ export const isStandingInOil = (state: GameState): boolean => {
 export const updateOscar = (ctx: FrameContext, boss: Enemy) => {
   const { state } = ctx;
   const { player } = state;
+  if (boss.fireproofFlash && boss.fireproofFlash > 0) boss.fireproofFlash--;
 
   // He glides around on his own grease
   boss.pos.x += boss.vel.x;
@@ -384,12 +385,29 @@ const ignite = (state: GameState, cell: OilCell) => {
   }
 };
 
-/** His fireproof suit: the flamethrower does nothing but make him laugh at you. */
+/**
+ * His fireproof suit: the flamethrower does nothing but make him laugh at you.
+ * It's made obvious: the suit shimmers silver where the fire hits, the flames
+ * splash back off it as sparks, and "IMMUNE!" pops up instead of damage.
+ */
 const shrugOffFlames = (ctx: FrameContext, boss: Enemy) => {
-  const { state } = ctx;
-  if (state.frame % 3 === 0) {
-    // Flame splashing off the suit as harmless smoke
-    state.particles.push({ pos: { x: boss.pos.x + Math.random() * boss.width, y: boss.pos.y + Math.random() * boss.height * 0.8 }, vel: { x: (Math.random() - 0.5) * 3, y: -1.5 - Math.random() * 2 }, life: 22, color: Math.random() > 0.5 ? '#9E9E9E' : '#CFD8DC', size: 5 + Math.random() * 5 });
+  const { state, fx } = ctx;
+  const { player } = state;
+  boss.fireproofFlash = 8;
+  const back = midX(player) < midX(boss) ? -1 : 1;
+  const hitX = back < 0 ? boss.pos.x : boss.pos.x + boss.width;
+  if (state.frame % 2 === 0) {
+    // Fire splashing straight back off the suit...
+    for (let i = 0; i < 3; i++) {
+      state.particles.push({ pos: { x: hitX, y: boss.pos.y + 15 + Math.random() * boss.height * 0.6 }, vel: { x: back * (3 + Math.random() * 4), y: (Math.random() - 0.5) * 5 - 1 }, life: 14, color: Math.random() > 0.5 ? '#FFD54F' : '#FF8A65', size: 3 + Math.random() * 3 });
+    }
+    // ...and rolling off it as harmless grey smoke
+    state.particles.push({ pos: { x: boss.pos.x + Math.random() * boss.width, y: boss.pos.y + Math.random() * boss.height * 0.8 }, vel: { x: (Math.random() - 0.5) * 2, y: -1.5 - Math.random() * 2 }, life: 24, color: Math.random() > 0.5 ? '#9E9E9E' : '#CFD8DC', size: 5 + Math.random() * 5 });
+  }
+  // One "IMMUNE!" at a time (every flame segment touching him calls this each frame)
+  if (state.frame - (boss.immunePopFrame ?? -999) >= 50) {
+    boss.immunePopFrame = state.frame;
+    fx.spawnDamageNumber({ x: midX(boss), y: boss.pos.y - 10 }, 'IMMUNE!', true, '#CFD8DC');
   }
   if (state.oscarFireproofTauntAt === undefined || state.frame - state.oscarFireproofTauntAt > 240) {
     state.oscarFireproofTauntAt = state.frame;

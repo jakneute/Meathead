@@ -132,6 +132,32 @@ export const drawOscarGear = (ctx: CanvasRenderingContext2D, e: Enemy, frame: nu
   else drawCigaretteAndArm(ctx, e, frame, facing);
   drawLauncher(ctx, e, frame);
   if (e.taserHold && e.taserHold > 0) drawHoldMeter(ctx, e, frame);
+  if (e.fireproofFlash && e.fireproofFlash > 0) drawFireproofShimmer(ctx, e, frame);
+};
+
+/** The flamethrower bouncing off his suit: a silver heat-shield shimmer rippling over him. */
+const drawFireproofShimmer = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
+  const a = Math.min(1, e.fireproofFlash! / 8);
+  const cx = e.pos.x + e.width / 2, cy = e.pos.y + e.height / 2;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  const g = ctx.createRadialGradient(cx, cy, 10, cx, cy, e.width * 0.85);
+  g.addColorStop(0, 'rgba(176, 190, 197, 0)');
+  g.addColorStop(0.7, `rgba(207, 216, 220, ${0.35 * a})`);
+  g.addColorStop(1, 'rgba(207, 216, 220, 0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(cx - e.width, cy - e.height, e.width * 2, e.height * 2);
+  ctx.restore();
+  // A bright outline with a sheen sweeping across it
+  ctx.save();
+  ctx.strokeStyle = `rgba(236, 239, 241, ${0.8 * a})`;
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.ellipse(cx, cy, e.width * 0.62, e.height * 0.66, 0, 0, Math.PI * 2); ctx.stroke();
+  const sweep = ((frame * 6) % (e.height + 40)) - 20;
+  ctx.strokeStyle = `rgba(255, 255, 255, ${0.9 * a})`;
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(cx - e.width * 0.5, e.pos.y + sweep); ctx.lineTo(cx + e.width * 0.5, e.pos.y + sweep - 12); ctx.stroke();
+  ctx.restore();
 };
 
 const drawLauncher = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
