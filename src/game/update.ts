@@ -272,7 +272,12 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
   const enemies = state.enemies;
   state.enemies = enemies.filter(e => updateEnemy(ctx, e, enemies));
   // Note: projectiles spawned while this filter runs (shrapnel, ice shards) are not kept.
-  state.projectiles = state.projectiles.filter(p => updateProjectile(ctx, p));
+  // Projectiles spawned while these update (ice shards, splashes) are appended to the same
+  // array but skipped by filter(): keep them, so they start moving next frame
+  const current = state.projectiles;
+  const count = current.length;
+  const kept = current.filter(p => updateProjectile(ctx, p));
+  if (state.projectiles === current) state.projectiles = kept.concat(current.slice(count));
   updateSpecialMovesVsBarrels(ctx);
   updatePickups(ctx);
   updateParticlesAndNumbers(ctx);

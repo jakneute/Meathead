@@ -11,6 +11,7 @@ import { BossDef, ARENA_MID, CEILING_Y, FLOOR_Y, dirTo, enemyProjectile, hurtPla
 
 const ICE_BLOCK_SIZE = 60;
 const ICE_BLOCK_SPEED = 11;
+const ICE_BLOCK_LOFT = 5;       // thrown from overhead in a shallow arc, shattering where it lands
 const SHOT_COOLDOWN = 60;
 const STUCK_FRAMES = 175;       // standing still this long forces a new move
 const MUST_MOVE_FRAMES = 120;   // past this he won't pick the ice block
@@ -103,7 +104,7 @@ const windUpThrow = (ctx: FrameContext, boss: Enemy) => {
 const throwIceBlock = (ctx: FrameContext, boss: Enemy, id: string) => {
   const dir = ctx.state.player.pos.x < boss.pos.x + boss.width / 2 ? -1 : 1;
   const x = dir === 1 ? boss.pos.x + boss.width + 5 : boss.pos.x - ICE_BLOCK_SIZE - 5;
-  ctx.bossHelpers.addProjectile(enemyProjectile(`${id}-${Date.now()}`, x, boss.pos.y + 10, dir * ICE_BLOCK_SPEED, 0,
+  ctx.bossHelpers.addProjectile(enemyProjectile(`${id}-${Date.now()}`, x, boss.pos.y - 64, dir * ICE_BLOCK_SPEED, -ICE_BLOCK_LOFT,
     ICE_BLOCK_SIZE, ICE_BLOCK_SIZE, BULLET_DAMAGE, { isIce: true }));
 };
 

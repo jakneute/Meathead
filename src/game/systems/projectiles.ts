@@ -4,7 +4,7 @@ import { Enemy, Projectile } from '../../types';
 import {
   CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, PLAYER_INVINCIBILITY_FRAMES,
   PLAYER_PUSHBACK_DURATION, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y,
-  BOULDER_BOUNCE_DAMPING, BOULDER_SHRAPNEL_COUNT, SHOTGUN_FREEZE_TIME, NEEDLE_OVERDOSE_THRESHOLD,
+  BOULDER_BOUNCE_DAMPING, SHOTGUN_FREEZE_TIME, NEEDLE_OVERDOSE_THRESHOLD,
   SHOTGUN_MAX_BOUNCES, SHOTGUN_BOUNCE_VARIANCE_DEG, BOULDER_GRAVITY, BOULDER_MAX_SPEED, BOULDER_WALK_NUDGE,
   BOULDER_PUNT, BOULDER_BILLIARD_LOSS, BOULDER_DAMAGE_PER_SPEED, GML_SCALE,
   SLUDGE_DOT_DAMAGE, SLUDGE_DOT_TICK, SLUDGE_LINGER_DURATION, OIL_ROCKET_OILED_PUSHBACK_MULT, ERNIE_STOMP_VIBRATION_DURATION,
@@ -140,12 +140,7 @@ const updatePhysicsProjectile = (ctx: FrameContext, p: Projectile): boolean => {
       if (p.isBoulder) { if (p.isHeaved) heavedBoulderRumble(ctx); shatterBoulder(ctx, p); return false; }
       if (p.isCocaine) { fx.spawnPowderExplosion({ x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, 30); return false; }
       if (p.isSludge) { p.isSliding = true; p.vel.x = 0; p.pos.x = (p.pos.x + p.width / 2 < b.x + b.w / 2) ? b.x - p.width : b.x + b.w; continue; }
-      if (p.isIce && p.width > 30) {
-        // Artie's big ice block breaks into shards
-        for (let i = 0; i < 3; i++) state.projectiles.push({ id: `shard-${Date.now()}-${i}`, pos: { x: p.pos.x + 20, y: p.pos.y + 20 }, vel: { x: (Math.random() - 0.5) * 20, y: (Math.random() - 0.5) * 20 }, width: 20, height: 20, health: 1, maxHealth: 1, type: 'projectile', damage: 15, owner: 'enemy', isIce: true, life: 75 });
-        fx.spawnGlassShatter(p.pos);
-        return false;
-      }
+      if (p.isIce && p.width > 30) { shatterIceBlock(ctx, p); return false; }
       if (isSmallIce) {
         p.vel.x *= -1.0;
         p.pos.x += p.vel.x;
@@ -155,6 +150,7 @@ const updatePhysicsProjectile = (ctx: FrameContext, p: Projectile): boolean => {
       if (p.isPoop) { fx.spawnPoopExplosion(p.pos, 25); return false; }
     } else {
       // Hit a floor or ceiling
+      if (p.isIce && p.width > 30) { shatterIceBlock(ctx, p); return false; }
       if (p.isSludge) {
         // Splat into a lingering puddle
         p.isLingering = true;
@@ -194,6 +190,14 @@ const updatePhysicsProjectile = (ctx: FrameContext, p: Projectile): boolean => {
   return true;
 };
 
+/** Artie's big ice block doesn't bounce: it shatters into flying shards on whatever it hits. */
+const shatterIceBlock = (ctx: FrameContext, p: Projectile) => {
+  const { state, fx } = ctx;
+  for (let i = 0; i < 3; i++) state.projectiles.push({ id: `shard-${Date.now()}-${i}`, pos: { x: p.pos.x + 20, y: p.pos.y + 20 }, vel: { x: (Math.random() - 0.5) * 20, y: -Math.random() * 10 }, width: 20, height: 20, health: 1, maxHealth: 1, type: 'projectile', damage: 15, owner: 'enemy', isIce: true, life: 75 });
+  fx.spawnGlassShatter(p.pos);
+  fx.playGunSound('ice');
+};
+
 /** Ernie's lobbed boulder slamming into the floor or a wall shakes the room like his stomps (stunning you if you're on the ground). */
 const HEAVED_RUMBLE_SPEED = 8; // only real slams, not the little bounces after
 const heavedBoulderRumble = (ctx: FrameContext) => {
@@ -204,12 +208,8 @@ const heavedBoulderRumble = (ctx: FrameContext) => {
 
 const shatterBoulder = (ctx: FrameContext, p: Projectile) => {
   ctx.fx.spawnRockShatter(p.pos);
-  if (p.owner === 'player') {
-    // GML boulder: just breaks apart, with a shake based on its speed
-    shakeScreen(ctx.state, 8, Math.min(10, (Math.abs(p.vel.x) + Math.abs(p.vel.y)) / GML_SCALE * 0.5) * GML_SCALE);
-    return;
-  }
-  ctx.fx.spawnBoulderShrapnel(p.pos, BOULDER_SHRAPNEL_COUNT, p.vel.x > 0 ? 1 : -1);
+  // Just breaks apart (Meathead's shakes the screen by how fast it was going)
+  if (p.owner === 'player') shakeScreen(ctx.state, 8, Math.min(10, (Math.abs(p.vel.x) + Math.abs(p.vel.y)) / GML_SCALE * 0.5) * GML_SCALE);
 };
 
 const solidAt = (state: GameState, box: { x: number, y: number, w: number, h: number }) =>
