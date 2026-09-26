@@ -52,9 +52,9 @@ const DossierPanel: React.FC<{ bossId: string; defeated: boolean }> = ({ bossId,
         </div>
 
         <div className="mt-[4px] leading-[10px]"><span className="font-bold text-[#7F1D1D]">OCCUPATION: </span>{d.occupation}</div>
+        {section('BACKGROUND', d.background)}
         {section('WHAT HE THINKS HE\'S DOING', d.mission)}
         {section('WHAT HE\'S ACTUALLY DOING', d.reality)}
-        {section('BACKGROUND', d.background)}
         {section('FIELD INTEL', d.intel)}
         {section('APPROVED DISPOSAL', d.disposal)}
         <div className="mt-[6px] p-[4px] leading-[10px] bg-[#FEF3C7] border border-[#A16207]/50 rotate-[-0.6deg]" style={{ boxShadow: '1px 1px 0 rgba(0,0,0,0.25)' }}>
