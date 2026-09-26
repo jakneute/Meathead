@@ -156,6 +156,12 @@ export interface Enemy extends Entity {
   pauseTimer?: number;
   /** A practice dummy: bumping into it doesn't hurt. */
   harmless?: boolean;
+  /** Died of an overdose: its body flies off, veering toward anything airborne and wrecking what it hits. */
+  overdosed?: boolean;
+  /** Enemies an overdosed body has already plowed through. */
+  overdoseHitIds?: string[];
+  /** Frames since it overdosed (it only veers for a while). */
+  overdoseAge?: number;
   // Needle / DOT
   needleCount?: number;
   needleOffsets?: { x: number, y: number, rot: number }[];

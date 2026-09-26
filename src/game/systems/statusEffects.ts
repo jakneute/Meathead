@@ -159,6 +159,7 @@ export const updateEnemyStatusEffects = (ctx: FrameContext) => {
           if (e.type === 'boss') killBoss(ctx, e, 0, false);
           else {
             fx.blowAwayEnemy(e, { x: (Math.random() - 0.5) * 10, y: -15 }, 'dart_kill');
+            e.overdosed = true;
             fx.spawnKillCallout(e, 'overdose');
           }
         }

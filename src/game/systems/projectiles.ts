@@ -447,6 +447,7 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
       if (enemy.needleCount >= NEEDLE_OVERDOSE_THRESHOLD) {
         enemy.health = 0;
         enemy.isBlownAway = true;
+        enemy.overdosed = true;
         enemy.vel = { x: (Math.random() - 0.5) * 15, y: -25 };
         fx.spawnDeathShower(enemy.pos, 0, 3, false, 80);
         fx.spawnPickup(enemy.pos);
@@ -457,6 +458,7 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
         fx.spawnDamageNumber(enemy.pos, p.damage);
         if (enemy.health <= 0) {
           fx.blowAwayEnemy(enemy, { x: (Math.random() - 0.5) * 10, y: -15 }, 'dart_kill');
+          enemy.overdosed = true;
           fx.spawnKillCallout(enemy, 'overdose');
         }
       }

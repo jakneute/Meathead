@@ -294,7 +294,7 @@ export type KillCallout =
   | 'crush' | 'overdose' | 'nuke' | 'tsunami' | 'fried'
   | 'wallsplat' | 'groundsplat' | 'flattened' | 'squished' | 'truck' | 'blowout' | 'crash'
   | 'moon' | 'cliff' | 'yeet'
-  | 'charred' | 'melted' | 'greased';
+  | 'charred' | 'melted' | 'greased' | 'contact';
 
 /** Callout text (one picked at random) and colour for each special kill. */
 export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string }> = {
@@ -323,6 +323,8 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
   charred:     { lines: ["WELL DONE!", "EXTRA CRISPY!", "CHARRED!", "BURNT TOAST!"], color: '#F97316' },
   melted:      { lines: ["MELTED!", "DISSOLVED!", "LIQUEFIED!", "GOO'D!"], color: '#84CC16' },
   greased:     { lines: ["GREASED!", "OIL CHANGE!", "SLICK!", "LUBED UP!"], color: '#A8A29E' },
+  // Hit by an overdosed body on its way out
+  contact:     { lines: ["CONTACT HIGH!", "SECONDHAND DOSE!", "BAD TRIP!", "COLLATERAL!"], color: '#E879F9' },
 };
 
 /**

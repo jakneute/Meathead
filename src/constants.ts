@@ -36,6 +36,12 @@ export const STAGE_WIDTH = 8000;
 export const GROUND_Y = 550;
 /** The weapon test range after a boss (a one-screen void arena run by its own copy of the engine). */
 export const WEAPON_RANGE_STAGE = 'WEAPON_RANGE';
+// An overdosed body flying off the screen veers toward airborne enemies and wrecks whatever it hits
+export const OVERDOSE_HOMING_ACCEL = 0.95;     // px/frame^2 of pull toward the nearest airborne enemy
+export const OVERDOSE_MAX_SPEED = 26;
+export const OVERDOSE_HIT_DAMAGE = 300;        // to anything it plows into (no regular enemy survives it)
+export const OVERDOSE_HOMING_FRAMES = 75;      // it stops veering after this (then just falls away)
+export const OVERDOSE_HOMING_RANGE = 650;      // only airborne enemies this close pull it
 export const BOSS_DOOR_X = 7200;
 export const DOOR_WIDTH = 40;
 export const ARENA_LEFT = BOSS_DOOR_X + DOOR_WIDTH;
