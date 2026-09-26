@@ -12,6 +12,7 @@ import { Controls } from './input';
 import { respawn, getStartX } from './level';
 import { updateSewerNuke } from './sewerNuke';
 import { updateEnemyDeaths } from './enemyDeaths';
+import { updateVolcanoFinale } from './volcanoFinale';
 import { calmPlayer, DEFAULT_SHAKE } from './state';
 import { updateBarfStream, updateFlameSegments } from './weapons';
 import { say, MEATHEAD_INTRO_VOICE } from './speech';
@@ -41,6 +42,7 @@ export const stepGame = (ctx: FrameContext, status: GameStatus, controls: Contro
   if (state.screenShakeTimer > 0 && --state.screenShakeTimer === 0) state.screenShakeMagnitude = DEFAULT_SHAKE;
 
   if (state.deathTimer > 0) { updateDeathScreen(ctx); return false; }
+  if (state.volcanoFinale) { updateVolcanoFinale(ctx); return false; }
   if (state.bossExplosionTimer > 0) { updateBossExplosion(ctx); return false; }
   switch (status) {
     case GameStatus.PLAYING: return updatePlaying(ctx, controls);

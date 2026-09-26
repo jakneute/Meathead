@@ -332,7 +332,7 @@ const drawMushroomCloud = (ctx: Ctx, e: number) => {
 };
 
 /** The death message, typed out a letter at a time over a dark band at the bottom. */
-const drawSpelledMessage = (ctx: Ctx, message: string, letters: number) => {
+export const drawSpelledMessage = (ctx: Ctx, message: string, letters: number) => {
   ctx.save();
   const size = 17;
   ctx.font = `bold ${size}px "Press Start 2P"`;

@@ -13,6 +13,7 @@ import { BOSS_DIALOGUE } from '../../dialogue';
 import { FrameContext } from '../context';
 import { getBossDef, hitBoss, isWeakTo, maybeReactToWeapon, weaponOf } from '../boss';
 import { explodeOilRocket } from '../weapons';
+import { tryCorkVent } from '../bosses/victor';
 import { pushEnemy } from './knockback';
 import { stickNeedle, ENEMY_NEEDLE } from '../needles';
 import { updateOscarRocket, updateCigarette } from '../bosses/oscar';
@@ -310,6 +311,8 @@ const updatePlayerBoulder = (ctx: FrameContext, p: Projectile): boolean => {
 
   if (p.life <= 0) { shatterBoulder(ctx, p); return false; }
   if (p.pos.y > 1000) return false;
+  // Jammed into one of Victor's vents
+  if (state.bossVolcanoes.length > 0 && tryCorkVent(ctx, p)) return false;
   return resolvePlayerProjectileHits(ctx, p);
 };
 

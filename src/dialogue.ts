@@ -329,6 +329,19 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
  * What each boss might shout when hit by each of Meathead's weapons.
  * Weakness combos sound panicked; everything else is trash talk.
  */
+/** Victor Volcano's lines about Meathead jamming boulders into his vents. */
+export const VICTOR_LINES = {
+  CORKED: [
+    "A ROCK IN MY VENT? CUTE. IT'LL POP RIGHT OUT.",
+    "YOU'RE PLUGGING A VOLCANO WITH A PEBBLE?!",
+    "PRESSURE ALWAYS WINS, MEATHEAD!",
+    "GO AHEAD, CORK IT. SEE WHAT HAPPENS.",
+    "THAT'S NOT HOW GEOLOGY WORKS, YOU MEATBALL!",
+  ],
+  /** All three corked at once: cut off mid-sentence by the eruption. */
+  DOOMED: "OH NO... WHAT HAVE YOU DONE, YOU ",
+};
+
 /** Drug Trade Dale's lines when his truck gets wrecked. */
 export const DALE_LINES = {
   TRUCK_WRECKED: ["MY TRUCK! THAT WAS UNINSURED!", "YOU BARFED ON MY SUPPLY CHAIN!", "DO YOU KNOW WHAT THAT LOAD WAS WORTH?!"],

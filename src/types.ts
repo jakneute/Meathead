@@ -318,6 +318,12 @@ export interface Volcano {
   pos: Vector2;
   life: number;
   type: 'wall' | 'ground';
+  /** Vents that erupted together share this (Victor's corking easter egg needs a whole set corked). */
+  setId?: number;
+  /** A boulder's jammed in it: no more magma, but the pressure builds until it blows. */
+  corked?: boolean;
+  /** Frames until a corked vent blows its cork. */
+  fuse?: number;
 }
 
 export interface SteamExplosion {

@@ -8,6 +8,7 @@ import {
 } from '../../constants';
 import { FrameContext } from '../context';
 import { hitBoss, isWeakTo } from '../boss';
+import { updateCorkedVent } from '../bosses/victor';
 import { pickRandom } from '../utils';
 import { killPlayer, landPlayer } from './player';
 
@@ -98,6 +99,7 @@ export const updateSteamExplosions = (ctx: FrameContext) => {
 export const updateVolcanoes = (ctx: FrameContext) => {
   const { state } = ctx;
   state.bossVolcanoes = state.bossVolcanoes.filter(v => {
+    if (v.corked) return updateCorkedVent(ctx, v);
     v.life--;
     if (state.frame % 12 === 0) {
       const velX = v.type === 'wall' ? (v.pos.x < BOSS_DOOR_X + 400 ? 9 : -9) : (Math.random() - 0.5) * 4;

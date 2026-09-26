@@ -101,6 +101,10 @@ export interface GameState {
   oscarPlayerIgnitedAt?: number;
   /** When Oscar last mocked the flamethrower bouncing off his suit. */
   oscarFireproofTauntAt?: number;
+  /** When Victor last mocked Meathead for corking a vent. */
+  victorCorkTauntAt?: number;
+  /** Easter egg: all three of Victor's vents corked at once; the volcano's going up (see volcanoFinale.ts). */
+  volcanoFinale: { t: number; waveY: number } | null;
   /** Artie's icicles hanging from (or falling from) the ceiling. */
   icicles: Icicle[];
 
@@ -203,6 +207,7 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
   isMeatheadSpeaking: false,
   introTimer: 0,
   deathTimer: 0,
+  volcanoFinale: null,
   bossCheckpoint: false,
   cameraMinX: 0,
   deathString: "",
@@ -326,6 +331,8 @@ export const resetStageState = (s: GameState) => {
   s.oilCells = [];
   s.oscarPlayerIgnitedAt = undefined;
   s.oscarFireproofTauntAt = undefined;
+  s.victorCorkTauntAt = undefined;
+  s.volcanoFinale = null;
   s.icicles = [];
 
   s.playerStunTimer = 0;

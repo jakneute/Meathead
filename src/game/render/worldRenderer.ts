@@ -18,6 +18,7 @@ import { drawBackdrop, drawBackdropFront } from './backdrops';
 import { drawTerrain } from './backdrops/terrain';
 import { drawEnemyDeaths } from './enemyDeaths';
 import { drawSewerNukeInside, drawSewerNukeFlash, drawSewerNukeOutside } from './sewerNuke';
+import { drawVolcanoFinaleInside, drawVolcanoFinaleOutside } from './volcanoFinale';
 import {
   drawOilSlicks, drawOscarFire, drawOscarLaser, drawOscarRocket, drawFlyingCigarette, drawTaserOverload,
 } from './oscarRenderer';
@@ -41,8 +42,9 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     return;
   }
 
-  // The sewer nuke easter egg takes over the whole screen once it cuts outside
+  // The easter egg deaths take over the whole screen for their outside shots
   if (state.sewerNuke && drawSewerNukeOutside(ctx, state)) return;
+  if (state.volcanoFinale && drawVolcanoFinaleOutside(ctx, state)) return;
 
   const colors = STAGE_COLORS[stageId || ""] || { ground: COLORS.GROUND, bg: COLORS.BG_DARK, accent: '#fff' };
   // Layered parallax scenery for the stage (a flat colour where there isn't any)
@@ -96,6 +98,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   drawParticlesAndDamageNumbers(ctx, state);
   drawBarryLighting(ctx, state, stageId);
   if (state.sewerNuke) drawSewerNukeInside(ctx, state);
+  if (state.volcanoFinale) drawVolcanoFinaleInside(ctx, state);
   ctx.restore();
 
   // Screen space: the stage's weather over the level (not inside the boss arenas)
