@@ -384,6 +384,24 @@ const ignite = (state: GameState, cell: OilCell) => {
   }
 };
 
+/**
+ * Meathead's flamethrower touching the oil sets it off, same as the cigarette:
+ * he's just lit Oscar's trap for him (and Oscar lets him know it).
+ */
+export const igniteOilWithFlame = (ctx: FrameContext, flame: Rect) => {
+  const { state, fx } = ctx;
+  const cell = state.oilCells.find(c => c.burn <= 0 && c.igniteIn < 0 && rectsOverlap(flame, c));
+  if (!cell) return;
+  ignite(state, cell);
+  fx.playGunSound('ignite');
+  fx.spawnExplosion({ x: cell.x + cell.w / 2, y: cell.y + cell.h / 2 }, '#FF8C00', 14, 0, 8);
+  const boss = findOscar(state);
+  if (boss && (state.oscarPlayerIgnitedAt === undefined || state.frame - state.oscarPlayerIgnitedAt > 240)) {
+    state.oscarPlayerIgnitedAt = state.frame;
+    speakAsBoss(OSCAR, pickRandom(OSCAR_LINES.PLAYER_IGNITED), ctx.bossHelpers);
+  }
+};
+
 /** Oil dries up, fire spreads strip by strip, burns for a few seconds, then the oil is gone. */
 export const updateOscarHazards = (ctx: FrameContext) => {
   const { state, fx } = ctx;

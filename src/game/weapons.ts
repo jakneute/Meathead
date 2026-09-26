@@ -16,7 +16,7 @@ import { GameState } from './state';
 import { FrameContext, killBoss } from './context';
 import { hitBoss } from './boss';
 import { pickRandom, rectsOverlap, boundsOf } from './utils';
-import { findFlyingCigarette } from './bosses/oscar';
+import { findFlyingCigarette, igniteOilWithFlame } from './bosses/oscar';
 import { icicleBounds, meltIcicle } from './bosses/artie';
 import { pushEnemy } from './systems/knockback';
 import { detonateSewerNuke, TOXIC_TOMMY } from './sewerNuke';
@@ -295,6 +295,9 @@ export const updateFlameSegments = (ctx: FrameContext) => {
     // Melts Artie's icicles (the flame carries on)
     const icicle = state.icicles.findIndex(i => rectsOverlap(box, icicleBounds(i)));
     if (icicle >= 0) meltIcicle(ctx, icicle);
+
+    // Sets Oily Oscar's oil slicks alight (on himself, most likely)
+    if (state.oilCells.length > 0) igniteOilWithFlame(ctx, box);
 
     // Burn the first enemy touched
     const e = state.enemies.find(en => en.health > 0 && !en.isBlownAway && rectsOverlap(box, boundsOf(en)));
