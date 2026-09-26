@@ -145,6 +145,8 @@ export interface Enemy extends Entity {
   sludgeTickFrame?: number;
   /** Hector: how long Meathead has been within half a screen of his vortex. */
   vortexGrip?: number;
+  /** Artie: frames left hefting an ice block overhead before he throws it. */
+  throwWindup?: number;
   isBlownAway?: boolean;
   rotation?: number;
   pauseTimer?: number;

@@ -15,12 +15,15 @@ const SHOT_COOLDOWN = 60;
 const STUCK_FRAMES = 175;       // standing still this long forces a new move
 const MUST_MOVE_FRAMES = 120;   // past this he won't pick the ice block
 const CHARGE_SPEED = 7.5;
+/** Before a throw he hefts the block overhead (it freezes together, then flashes just before it flies). */
+export const THROW_WINDUP = 34;
+const AIR_THROW_WINDUP = 20;
 
-const ICICLES_AT_FULL_HP = 2;   // per jump; ramps up as he loses health...
-const ICICLES_AT_ZERO_HP = 5;   // ...to this many
-const MAX_ICICLES = 8;          // on the ceiling / in the air at once
+const ICICLES_AT_FULL_HP = 1;   // per jump; ramps up as he loses health...
+const ICICLES_AT_ZERO_HP = 4;   // ...to this many
+const MAX_ICICLES = 6;          // on the ceiling / in the air at once
 const ICICLE_WARNING = 45;      // frames the first one hangs before dropping
-const ICICLE_STAGGER = 14;      // then one after another
+const ICICLE_STAGGER = 18;      // then one after another
 const ICICLE_RUSHED = 8;        // burned: they come down almost at once...
 const ICICLE_RUSHED_STAGGER = 5;
 const ICICLE_MIN_GAP = 70;
@@ -35,14 +38,19 @@ const update = (ctx: FrameContext, boss: Enemy) => {
   if (boss.isGroundedBoss && Math.abs(boss.vel.x) < 0.5) boss.sideTimer = (boss.sideTimer || 0) + 1;
   else boss.sideTimer = 0;
 
+  // Winding up a throw: the block forms over his head, then he hurls it
+  if (boss.throwWindup && boss.throwWindup > 0) {
+    windUpThrow(ctx, boss);
+    return;
+  }
+
   if ((boss.stateTimer! <= 0 || (boss.sideTimer || 0) > STUCK_FRAMES) && boss.isGroundedBoss) chooseMove(ctx, boss);
 
-  // Sometimes throws a block at the top of a jump
+  // Sometimes throws a block at the top of a jump (hanging there a moment to heft it)
   if (boss.bossState === 'jumping' && !boss.isGroundedBoss && boss.shootTimer <= 0) {
     if (Math.abs(boss.vel.y) < 2 && boss.stateTimer! > 20 && Math.random() < 0.08) {
-      throwIceBlock(ctx, boss, 'ice-big-air');
+      boss.throwWindup = AIR_THROW_WINDUP;
       boss.shootTimer = SHOT_COOLDOWN;
-      boss.stateTimer = 50;
     }
   }
   if (boss.isGroundedBoss) boss.vel.x *= 0.95;
@@ -61,9 +69,10 @@ const chooseMove = (ctx: FrameContext, boss: Enemy) => {
     boss.sideTimer = 0;
     shakeIciclesLoose(ctx, boss, false);
   } else if (r < 0.70 && boss.shootTimer <= 0 && !mustMove) {
-    throwIceBlock(ctx, boss, 'ice-big');
-    boss.shootTimer = SHOT_COOLDOWN;
-    boss.stateTimer = 80;
+    boss.throwWindup = THROW_WINDUP;
+    boss.vel.x = 0;
+    boss.shootTimer = SHOT_COOLDOWN + THROW_WINDUP;
+    boss.stateTimer = 80 + THROW_WINDUP;
     boss.bossState = 'attacking';
   } else {
     boss.vel.x = dirTo(boss, player) * CHARGE_SPEED;
@@ -71,6 +80,24 @@ const chooseMove = (ctx: FrameContext, boss: Enemy) => {
     boss.bossState = 'attacking';
     boss.sideTimer = 0;
   }
+};
+
+/** Hefting the block: frost swirls in, he hangs in the air if he's mid-jump, then lets it fly. */
+const windUpThrow = (ctx: FrameContext, boss: Enemy) => {
+  const { state } = ctx;
+  boss.throwWindup!--;
+  boss.vel.x *= 0.8;
+  if (!boss.isGroundedBoss) boss.vel.y = Math.min(boss.vel.y, 0) * 0.5; // hangs at the top of his jump
+  if (state.frame % 2 === 0) {
+    // Frost swirling in to form the block
+    const a = Math.random() * Math.PI * 2;
+    const cx = boss.pos.x + boss.width / 2, cy = boss.pos.y - 32;
+    state.particles.push({ pos: { x: cx + Math.cos(a) * 60, y: cy + Math.sin(a) * 40 }, vel: { x: -Math.cos(a) * 4, y: -Math.sin(a) * 3 }, life: 14, color: Math.random() > 0.5 ? '#E0F7FF' : '#7DD3FC', size: 3 + Math.random() * 3 });
+  }
+  if (boss.throwWindup! > 0) return;
+  throwIceBlock(ctx, boss, boss.isGroundedBoss ? 'ice-big' : 'ice-big-air');
+  ctx.fx.playGunSound('ice');
+  if (!boss.isGroundedBoss) boss.stateTimer = 50;
 };
 
 const throwIceBlock = (ctx: FrameContext, boss: Enemy, id: string) => {

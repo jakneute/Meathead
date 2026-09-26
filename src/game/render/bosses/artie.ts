@@ -1,6 +1,7 @@
 // Artie Avalanche's sprite.
 // Drawn in the boss's local space (0,0 = his top-left corner).
 
+import { THROW_WINDUP } from '../../bosses/artie';
 import { Enemy } from '../../../types';
 
 export const drawArtie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
@@ -132,5 +133,32 @@ export const drawArtie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
     ctx.beginPath();
     ctx.arc(width * 0.68 + (frame % 10), height * 0.34, 3, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  // 11. Hefting an ice block overhead before a throw: it freezes together, then flashes as he's about to let go
+  if (e.throwWindup && e.throwWindup > 0) {
+    const k = 1 - e.throwWindup / THROW_WINDUP;
+    const size = 18 + Math.min(1, k * 1.6) * 42;
+    const cx = width / 2, cy = -34;
+    // Arms up under it
+    ctx.fillStyle = '#5DADE2';
+    ctx.fillRect(width * 0.18, -6, width * 0.12, height * 0.36);
+    ctx.fillRect(width * 0.70, -6, width * 0.12, height * 0.36);
+    const flash = e.throwWindup < 10 && frame % 4 < 2;
+    ctx.fillStyle = flash ? '#FFFFFF' : 'rgba(174, 214, 241, 0.92)';
+    ctx.fillRect(cx - size / 2, cy - size / 2, size, size);
+    ctx.strokeStyle = flash ? '#7DD3FC' : '#EBF5FB';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(cx - size / 2, cy - size / 2, size, size);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.fillRect(cx - size / 2 + 5, cy - size / 2 + 5, size * 0.25, size * 0.12);
+    ctx.fillStyle = 'rgba(21, 67, 96, 0.35)';
+    ctx.fillRect(cx - size / 2, cy + size * 0.2, size, size * 0.3);
+    // A cold glint
+    if (!flash && frame % 16 < 8) {
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(cx + size * 0.2, cy - size * 0.3, 3, 9);
+      ctx.fillRect(cx + size * 0.2 - 3, cy - size * 0.3 + 3, 9, 3);
+    }
   }
 };
