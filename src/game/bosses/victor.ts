@@ -157,7 +157,7 @@ export const updateCorkedVent = (ctx: FrameContext, v: Volcano): boolean => {
   state.screenShakeTimer = 20;
   const { player } = state;
   const dx = player.pos.x + player.width / 2 - cx, dy = player.pos.y + player.height / 2 - cy;
-  if (dx * dx + dy * dy < CORK_BLAST_RADIUS * CORK_BLAST_RADIUS && player.invincibilityTimer <= 0 && !ctx.cheats.invincible) {
+  if (dx * dx + dy * dy < CORK_BLAST_RADIUS * CORK_BLAST_RADIUS && player.invincibilityTimer <= 0) {
     hurtPlayer(ctx, CORK_BLAST_DAMAGE, 'fire', { x: (dx < 0 ? -1 : 1) * PLAYER_PUSHBACK_VEL_X, y: PLAYER_PUSHBACK_VEL_Y });
   }
   return false;
