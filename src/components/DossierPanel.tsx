@@ -72,7 +72,7 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
         <div className="mt-[4px] leading-[10px]"><span className="font-bold text-[#7F1D1D]">OCCUPATION: </span>{d.occupation}</div>
         {after ? (
           <>
-            {section('MISSION', d.mission)}
+            {section('REMAINS', corpseWeapon ? after.remains.weakness : after.remains.normal)}
             {section('AFTERMATH', after.aftermath)}
             {section('COLLATERAL DAMAGE', after.collateral)}
             <div className="flex gap-2 items-start">

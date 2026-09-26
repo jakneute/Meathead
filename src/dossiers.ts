@@ -135,55 +135,89 @@ export interface Aftermath {
   finding: string;
   /** The handler's post-op note on the asset. */
   handler: string;
+  /** What became of the body: after a weakness kill (the wrecked corpse he left, pissed on), or a plain one. */
+  remains: { weakness: string; normal: string };
 }
 
 export const AFTERMATHS: Record<string, Aftermath> = {
   'Artie Avalanche': {
-    aftermath: 'Subject was reduced to a puddle and several unrelated chunks. His cryo-vault, left unsupervised, thawed in one afternoon. Anchorage recorded its first flash flood, its first mudslide and, briefly, its first "meat slush." The polar bears ate what was left. They seem happier.',
+    aftermath: 'With the subject gone, his cryo-vault, left unsupervised, thawed in one afternoon. Anchorage recorded its first flash flood, its first mudslide and, briefly, its first "meat slush." The polar bears ate what was left. They seem happier.',
     collateral: 'One (1) daycare, refrozen, then flooded. The Wendy\'s. The bus fleet, last seen floating toward Canada. Regional glacier loss is up 300%.',
     finding: 'GLACIERS ARE NOT A MATTER OF NATIONAL SECURITY. MR. LINDQVIST WAS. SUCCESS.',
     handler: 'Asset came back wearing the moon boots. Asset says they "fell off the guy." We did not ask which part of the guy.',
+    remains: {
+      weakness: 'Thawed where he stood. What was left slumped into a puddle of pink slush with a few organs bobbing in it like ice cubes in a bad drink. The asset urinated in it. Forensics are calling it a cocktail.',
+      normal: 'Burst like a frozen water main. Pieces were recovered from three separate rooms and one ceiling fan. The moon boots were intact. The feet inside them were not.',
+    },
   },
   'Victor Volcano': {
-    aftermath: 'Subject was cracked open like a lobster and left to cool. With nobody left to stir it, the magma chamber under the resort settled into a steady ooze. The resort is still a lava lamp. It is now also a crematorium. Several guests have been upgraded to "permanent features."',
+    aftermath: 'With nobody left to stir it, the magma chamber under the resort settled into a steady ooze. The resort is still a lava lamp. It is now also a crematorium. Several guests have been upgraded to "permanent features."',
     collateral: 'Two (2) hotel wings. One (1) juice bar. The Hilo power grid, which it turns out ran entirely off his drill. The island has no electricity and a brand new beach made of glass.',
     finding: 'ENERGY INDEPENDENCE WAS NEVER THE GOAL. THE ISLAND IS QUIET. THE ISLAND IS COMPLIANT. SUCCESS.',
     handler: 'Asset asked if he is "Victor\'s spiritual equal now." We said yes. He cried. We are unsure what kind of crying it was.',
+    remains: {
+      weakness: 'Flash-cooled by a wall of seawater and set solid, mid-scream, into a steaming lump of volcanic rock. The asset urinated on it. It hissed. Tourists now pay to take photos with it.',
+      normal: 'Ruptured like an overfilled protein shaker. Most of him ended up on the ceiling of his own lair, where it continues to sizzle. The rest was mopped up by a very brave intern.',
+    },
   },
   'Ernie Earthquake': {
     aftermath: 'Subject went down hard and stayed down. With nobody loosening the fault on a schedule, the pressure has nowhere to go. Seismologists now call the next quake "a when, not an if, and the when is soon." Ernie tried to warn everyone about that. Ernie is now in several places at once.',
     collateral: 'The Marina District, again. His invoices have since been paid in full, to his estate, by the city, out of guilt.',
     finding: 'UNSCHEDULED EARTHQUAKES ARE ACTS OF GOD. SCHEDULED EARTHQUAKES ARE TERRORISM. THE DISTINCTION MATTERS TO US. SUCCESS.',
     handler: 'Asset kept one of the rocks. Asset named it "Ernie." Asset talks to it. It is the best listener on the team.',
+    remains: {
+      weakness: 'Frozen stiff mid-stride and shattered into cold chunks that skittered across the floor like dropped dice. The asset urinated on the biggest piece. It refused to melt, out of spite.',
+      normal: 'Came apart at the hips first, then everywhere else. The remains were collected in a single shoebox. He would have mailed the city an invoice for the shoebox.',
+    },
   },
   'Hector Hurricane': {
     aftermath: 'Subject was terminated at hurricane speed. The storm, with no one steering it, wandered inland and parked over a Walmart for three days. Then everything it had been holding came down at once. Over Miami. It was not rain.',
     collateral: 'Every scooter in Dade County. The Channel 7 news van, twice. A forty-block radius, now officially a "brown zone." Residents say the smell has "character."',
     finding: 'THE STORM WAS AN ACCEPTABLE LOSS. MR. DELGADO\'S FORECASTS WERE NOT. CHANNEL 7 HAS ISSUED A CORRECTION. SUCCESS.',
     handler: 'Asset was standing directly under the fallout. Asset "didn\'t notice." We have hosed down the asset four times. The van, nine.',
+    remains: {
+      weakness: 'Flattened by a boulder his own storm dragged into his face. Scraped up with a snow shovel and folded twice to fit the bag. The asset urinated on him. The storm drain took the rest.',
+      normal: 'Torn apart and scattered by his own wind. Parts of him were reported in three counties. Channel 7 ran it as the weather.',
+    },
   },
   'Toxic Tommy': {
-    aftermath: 'Subject was left floating face-down in his own work. With the "filter" gone, Flint\'s water has returned to its natural state. Officials say it now tastes "less like a man." Everyone agrees this is an improvement, except the man.',
+    aftermath: 'With the "filter" gone, Flint\'s water has returned to its natural state. Officials say it now tastes "less like a man." Everyone agrees this is an improvement, except the man.',
     collateral: 'Three (3) miles of sewer main, permanently clogged with Tommy. The water is still not safe. It is, however, no longer being vomited.',
     finding: 'THE WATER WAS NEVER OUR PROBLEM. A CIVILIAN FIXING IT WITHOUT A PERMIT WAS. SUCCESS.',
     handler: 'Asset drank from the sewer "one last time, for Tommy." Asset was hospitalized. Asset says it was worth it. His doctors disagree.',
+    remains: {
+      weakness: 'Clogged with crude, blown open and left floating face-down in the sludge like a greased pool toy. The asset urinated into the pool. Nobody could tell the difference.',
+      normal: 'Burst in the sewer and was absorbed into it. For all practical purposes he is still down there. The water tastes slightly more like Tommy.',
+    },
   },
   'Blackout Barry': {
     aftermath: 'Subject spent his final moments describing the stars to a ceiling fan. The lights came back on across all five boroughs within the hour. Nobody looked up. Nobody has looked up since. The looting has resumed, but now it\'s well lit.',
     collateral: 'Eight million stargazing opportunities. One (1) hard hat. The asset\'s headphones were not recovered, because Barry never had them.',
     finding: 'THE PUBLIC DOES NOT NEED TO SEE THE STARS. THE PUBLIC NEEDS TO SEE THE BILLBOARDS. POWER RESTORED. SUCCESS.',
     handler: 'Asset asked to "try the stuff Barry was on." Request denied. Asset had already tried it. Asset has not blinked in two days.',
+    remains: {
+      weakness: 'Overdosed so hard he glowed, twitching and foaming on the floor long after his heart gave up. The asset urinated on him. He twitched once more. It is unclear who won.',
+      normal: 'Popped like a fuse box. The remains were located in the dark, by touch, by a cleanup crew that has since requested counseling.',
+    },
   },
   'Oily Oscar': {
-    aftermath: 'Subject was left face-down in his own product. His refinery, with nobody greasing it, seized up in a day. Houston is still covered in oil, but instead of sliding on it everyone is now stuck to it. Traffic has never been worse. Several commuters are still attached to the freeway.',
+    aftermath: 'His refinery, with nobody greasing it, seized up in a day. Houston is still covered in oil, but instead of sliding on it everyone is now stuck to it. Traffic has never been worse. Several commuters are still attached to the freeway.',
     collateral: 'One (1) flame-retardant suit, fused to its owner. A refinery. Most of the Gulf, which was like that already. The asset\'s "refund."',
     finding: 'OIL IS A STRATEGIC NATIONAL RESOURCE. GIVING IT AWAY IS NOT. PRICES RESTORED. SUCCESS.',
     handler: 'Asset never got his refund. Asset took it out of Oscar\'s wallet, Oscar\'s watch and, disturbingly, Oscar\'s teeth.',
+    remains: {
+      weakness: 'Fried inside his flame-retardant suit until the two fused into one continuous charred piece, like a grilled cheese left on the stove. The asset urinated on him. He sizzled.',
+      normal: 'Burst open across the refinery floor, where he was indistinguishable from the product. He was accidentally refined. Some of him is in your car.',
+    },
   },
   'Drug Trade Dale': {
     aftermath: 'Subject was signed for, in full, on his own behalf. The truck, finally unsupervised, kept going. It was last seen crossing into Arizona at ninety miles an hour, still delivering. Albuquerque\'s pharmacies have reopened and resumed turning people away at the counter. Order has been restored.',
     collateral: 'Eleven (11) storefronts. The nation\'s supply of generic insulin, which was in the truck. One (1) laminated DALE\'S DRUGS sign, now hanging in the asset\'s bunk.',
     finding: 'AFFORDABLE MEDICINE WAS NEVER AUTHORIZED. UNAUTHORIZED KINDNESS IS STILL A CRIME. SUCCESS.',
     handler: 'Asset has the sign. Asset thinks he "is Dale now." Asset has started parking in a spot. He still does not have a car.',
+    remains: {
+      weakness: 'Dissolved in a puddle of the asset\'s barf until only half a skull and a belt buckle remained. The asset urinated in the puddle. The puddle is now a controlled substance.',
+      normal: 'Scattered along his own delivery route. Some of him was signed for. Some of him is still out for delivery.',
+    },
   },
 };
