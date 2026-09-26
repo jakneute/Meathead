@@ -127,8 +127,11 @@ export const pine = (g: G, x: number, y: number, h: number, color: string, snow?
   g.fillRect(Math.round(x - 1), Math.round(y - h * 0.15), 2, Math.round(h * 0.15));
 };
 
-/** A pixel palm tree, trunk base at (x, y), fronds bent by `lean` (-1..1). */
-export const palm = (g: G, x: number, y: number, h: number, color: string, lean = 0.3) => {
+/**
+ * A pixel palm tree, trunk base at (x, y), bent by `lean` (-1..1). `flutter`
+ * (0..1) and `phase` ruffle each frond separately, for trees swaying in the wind.
+ */
+export const palm = (g: G, x: number, y: number, h: number, color: string, lean = 0.3, flutter = 0, phase = 0) => {
   g.fillStyle = color;
   let tx = x, ty = y;
   for (let i = 0; i < h; i++) {
@@ -138,7 +141,7 @@ export const palm = (g: G, x: number, y: number, h: number, color: string, lean 
     g.fillRect(Math.round(tx), Math.round(ty), k > 0.8 ? 2 : 3, 1);
   }
   for (let f = 0; f < 6; f++) {
-    const a = -Math.PI / 2 + (f - 2.5) * 0.55 + lean * 0.5;
+    const a = -Math.PI / 2 + (f - 2.5) * 0.55 + lean * 0.5 + flutter * Math.sin(phase * 1.7 + f * 1.3) * 0.35;
     const len = h * 0.45;
     for (let s = 0; s < len; s++) {
       const droop = (s / len) * (s / len) * len * 0.5;

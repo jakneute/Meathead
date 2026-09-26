@@ -418,14 +418,31 @@ const hectorSea: LayerSpec = {
 };
 const hectorPalms: LayerSpec = {
   key: 'hector-palms', parallax: 0.4,
-  paint: (g, w, h) => {
-    const r = rng(99);
-    g.fillStyle = '#0B0F1C'; g.fillRect(0, 268, w, h - 268);
-    for (let x = 15; x < w; x += 55 + Math.floor(r() * 50)) {
-      const hh = 50 + r() * 30;
-      wrapDraw(w, x, 50, xx => palm(g, xx, 269, hh, '#0B0F1C', -1.4));
-    }
-  },
+  paint: (g, w, h) => { g.fillStyle = '#0B0F1C'; g.fillRect(0, 268, w, h - 268); },
+};
+/** Where the palms stand along the shore (tile x) and how tall they are. */
+const HECTOR_PALM_TREES = (() => {
+  const r = rng(99);
+  const trees: { x: number; h: number; phase: number }[] = [];
+  for (let x = 15; x < TILE_W; x += 55 + Math.floor(r() * 50)) trees.push({ x, h: 50 + r() * 30, phase: r() * Math.PI * 2 });
+  return trees;
+})();
+/**
+ * The palms, whipping in the hurricane: bent hard away from the wind, rocking
+ * with each gust, fronds thrashing. Every so often a big gust bends them all flat.
+ */
+const swayingPalms = (ctx: G, v: View) => {
+  const gust = Math.max(0, Math.sin(v.frame * 0.013)) ** 6; // an occasional big one
+  ctx.save();
+  ctx.scale(PX, PX);
+  for (const t of HECTOR_PALM_TREES) {
+    pinned(t.x, hectorPalms, v, sx => {
+      const rock = Math.sin(v.frame * 0.09 + t.phase) * 0.22 + Math.sin(v.frame * 0.23 + t.phase * 2) * 0.08;
+      const lean = -1.25 + rock - gust * 0.45;
+      palm(ctx, sx / PX, 269, t.h, '#0B0F1C', lean, 0.6 + gust * 0.4, v.frame * 0.25 + t.phase);
+    });
+  }
+  ctx.restore();
 };
 
 /** Lightning: every few seconds a bolt forks down and the whole sky flashes. */
@@ -455,6 +472,7 @@ const hector: Backdrop = {
     hectorDeco,
     hectorSea,
     hectorPalms,
+    swayingPalms,
   ],
   front: (ctx, v) => {
     ctx.strokeStyle = 'rgba(190, 210, 240, 0.45)';
