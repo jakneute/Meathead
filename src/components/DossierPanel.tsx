@@ -30,7 +30,7 @@ const DossierPanel: React.FC<{ bossId: string; defeated: boolean }> = ({ bossId,
       {/* Coffee ring */}
       <div className="absolute right-[26px] bottom-[34px] w-[64px] h-[64px] rounded-full pointer-events-none" style={{ border: '5px solid rgba(110, 70, 30, 0.18)' }} />
 
-      <div className="h-full overflow-y-auto px-3 pt-2 pb-3">
+      <div className="h-full overflow-y-auto px-3 pt-2 pb-1">
         <div className="flex justify-between items-start text-[7px] tracking-widest text-[#44403C] border-b-2 border-[#1C1917] pb-[3px] mb-[5px]">
           <span>{DOSSIER_HEADER}</span>
           <span className="text-[#B91C1C] font-bold">TOP SECRET</span>
