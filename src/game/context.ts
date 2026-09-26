@@ -12,7 +12,8 @@ export interface Cheats {
 
 /** Callbacks from the simulation back up to React. */
 export interface GameEvents {
-  onBossDefeated: (stageId: string) => void;
+  /** `corpseWeapon` is set when he died to his weakness (and left a wrecked corpse behind). */
+  onBossDefeated: (stageId: string, corpseWeapon?: WeaponType) => void;
   onBossTransition: () => void;
   onBossEncounter: () => void;
   onBossDeath: () => void;

@@ -216,7 +216,7 @@ const updateVictorySequence = (ctx: FrameContext) => {
     : state.postVictoryTimer >= VICTORY_HOLD;
   if (done && !state.victoryReported) {
     state.victoryReported = true;
-    ctx.events.onBossDefeated(ctx.stageId || "");
+    ctx.events.onBossDefeated(ctx.stageId || "", state.bossCorpse?.weapon);
   }
 };
 

@@ -121,3 +121,69 @@ export const DOSSIERS: Record<string, Dossier> = {
     handler: 'Asset has been told Dale "keeps parking in his spot." Asset does not have a car. Or a spot. Asset is very upset about the spot.',
   },
 };
+
+/**
+ * The after-action file on a terminated boss: what happened once he was gone.
+ * The same whether or not he went down to his weakness. Every entry reads as if
+ * the operation made things worse, and every entry is signed off as a success.
+ */
+export interface Aftermath {
+  /** What happened after he died, in crude detail. */
+  aftermath: string;
+  collateral: string;
+  /** The government's verdict: completely, utterly justified. */
+  finding: string;
+  /** The handler's post-op note on the asset. */
+  handler: string;
+}
+
+export const AFTERMATHS: Record<string, Aftermath> = {
+  'Artie Avalanche': {
+    aftermath: 'Subject was reduced to a puddle and several unrelated chunks. His cryo-vault, left unsupervised, thawed in one afternoon. Anchorage recorded its first flash flood, its first mudslide and, briefly, its first "meat slush." The polar bears ate what was left. They seem happier.',
+    collateral: 'One (1) daycare, refrozen, then flooded. The Wendy\'s. The bus fleet, last seen floating toward Canada. Regional glacier loss is up 300%.',
+    finding: 'GLACIERS ARE NOT A MATTER OF NATIONAL SECURITY. MR. LINDQVIST WAS. SUCCESS.',
+    handler: 'Asset came back wearing the moon boots. Asset says they "fell off the guy." We did not ask which part of the guy.',
+  },
+  'Victor Volcano': {
+    aftermath: 'Subject was cracked open like a lobster and left to cool. With nobody left to stir it, the magma chamber under the resort settled into a steady ooze. The resort is still a lava lamp. It is now also a crematorium. Several guests have been upgraded to "permanent features."',
+    collateral: 'Two (2) hotel wings. One (1) juice bar. The Hilo power grid, which it turns out ran entirely off his drill. The island has no electricity and a brand new beach made of glass.',
+    finding: 'ENERGY INDEPENDENCE WAS NEVER THE GOAL. THE ISLAND IS QUIET. THE ISLAND IS COMPLIANT. SUCCESS.',
+    handler: 'Asset asked if he is "Victor\'s spiritual equal now." We said yes. He cried. We are unsure what kind of crying it was.',
+  },
+  'Ernie Earthquake': {
+    aftermath: 'Subject went down hard and stayed down. With nobody loosening the fault on a schedule, the pressure has nowhere to go. Seismologists now call the next quake "a when, not an if, and the when is soon." Ernie tried to warn everyone about that. Ernie is now in several places at once.',
+    collateral: 'The Marina District, again. His invoices have since been paid in full, to his estate, by the city, out of guilt.',
+    finding: 'UNSCHEDULED EARTHQUAKES ARE ACTS OF GOD. SCHEDULED EARTHQUAKES ARE TERRORISM. THE DISTINCTION MATTERS TO US. SUCCESS.',
+    handler: 'Asset kept one of the rocks. Asset named it "Ernie." Asset talks to it. It is the best listener on the team.',
+  },
+  'Hector Hurricane': {
+    aftermath: 'Subject was terminated at hurricane speed. The storm, with no one steering it, wandered inland and parked over a Walmart for three days. Then everything it had been holding came down at once. Over Miami. It was not rain.',
+    collateral: 'Every scooter in Dade County. The Channel 7 news van, twice. A forty-block radius, now officially a "brown zone." Residents say the smell has "character."',
+    finding: 'THE STORM WAS AN ACCEPTABLE LOSS. MR. DELGADO\'S FORECASTS WERE NOT. CHANNEL 7 HAS ISSUED A CORRECTION. SUCCESS.',
+    handler: 'Asset was standing directly under the fallout. Asset "didn\'t notice." We have hosed down the asset four times. The van, nine.',
+  },
+  'Toxic Tommy': {
+    aftermath: 'Subject was left floating face-down in his own work. With the "filter" gone, Flint\'s water has returned to its natural state. Officials say it now tastes "less like a man." Everyone agrees this is an improvement, except the man.',
+    collateral: 'Three (3) miles of sewer main, permanently clogged with Tommy. The water is still not safe. It is, however, no longer being vomited.',
+    finding: 'THE WATER WAS NEVER OUR PROBLEM. A CIVILIAN FIXING IT WITHOUT A PERMIT WAS. SUCCESS.',
+    handler: 'Asset drank from the sewer "one last time, for Tommy." Asset was hospitalized. Asset says it was worth it. His doctors disagree.',
+  },
+  'Blackout Barry': {
+    aftermath: 'Subject spent his final moments describing the stars to a ceiling fan. The lights came back on across all five boroughs within the hour. Nobody looked up. Nobody has looked up since. The looting has resumed, but now it\'s well lit.',
+    collateral: 'Eight million stargazing opportunities. One (1) hard hat. The asset\'s headphones were not recovered, because Barry never had them.',
+    finding: 'THE PUBLIC DOES NOT NEED TO SEE THE STARS. THE PUBLIC NEEDS TO SEE THE BILLBOARDS. POWER RESTORED. SUCCESS.',
+    handler: 'Asset asked to "try the stuff Barry was on." Request denied. Asset had already tried it. Asset has not blinked in two days.',
+  },
+  'Oily Oscar': {
+    aftermath: 'Subject was left face-down in his own product. His refinery, with nobody greasing it, seized up in a day. Houston is still covered in oil, but instead of sliding on it everyone is now stuck to it. Traffic has never been worse. Several commuters are still attached to the freeway.',
+    collateral: 'One (1) flame-retardant suit, fused to its owner. A refinery. Most of the Gulf, which was like that already. The asset\'s "refund."',
+    finding: 'OIL IS A STRATEGIC NATIONAL RESOURCE. GIVING IT AWAY IS NOT. PRICES RESTORED. SUCCESS.',
+    handler: 'Asset never got his refund. Asset took it out of Oscar\'s wallet, Oscar\'s watch and, disturbingly, Oscar\'s teeth.',
+  },
+  'Drug Trade Dale': {
+    aftermath: 'Subject was signed for, in full, on his own behalf. The truck, finally unsupervised, kept going. It was last seen crossing into Arizona at ninety miles an hour, still delivering. Albuquerque\'s pharmacies have reopened and resumed turning people away at the counter. Order has been restored.',
+    collateral: 'Eleven (11) storefronts. The nation\'s supply of generic insulin, which was in the truck. One (1) laminated DALE\'S DRUGS sign, now hanging in the asset\'s bunk.',
+    finding: 'AFFORDABLE MEDICINE WAS NEVER AUTHORIZED. UNAUTHORIZED KINDNESS IS STILL A CRIME. SUCCESS.',
+    handler: 'Asset has the sign. Asset thinks he "is Dale now." Asset has started parking in a spot. He still does not have a car.',
+  },
+};

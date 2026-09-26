@@ -90,6 +90,10 @@ const App: React.FC = () => {
   /** Stage select: the boss dossier is showing instead of the map. */
   const [showDossier, setShowDossier] = useState(false);
   const toggleDossier = () => { if (!engaging) setShowDossier(v => !v); };
+  /** How each boss died this run: the weakness weapon that wrecked his corpse, or null for a plain kill. */
+  const [killRecords, setKillRecords] = useState<Record<string, WeaponType | null>>({});
+  /** Stage select on the second set: browsing the previous set's (dead) targets instead. */
+  const [showArchive, setShowArchive] = useState(false);
   /** Stage select: the boss locked in as the target (null = still browsing). ENGAGE needs a lock first. */
   const [lockedIndex, setLockedIndex] = useState<number | null>(null);
   /** The "LET'S FUCKIN' GO" flourish is playing; all stage select input is ignored. */
@@ -108,9 +112,9 @@ const App: React.FC = () => {
     return () => clearTimeout(timer);
   }, [status]);
 
-  // Every visit to stage select starts unlocked
+  // Every visit to stage select starts unlocked, on the current targets
   useEffect(() => {
-    if (status !== GameStatus.STAGE_SELECT) { setLockedIndex(null); setEngaging(false); }
+    if (status !== GameStatus.STAGE_SELECT) { setLockedIndex(null); setEngaging(false); setShowArchive(false); }
   }, [status]);
 
   useEffect(() => {
@@ -191,7 +195,7 @@ const App: React.FC = () => {
       case GameStatus.VICTORY:
         setDefeatedStages([]);
         if (progressionRank === 0 && defeatedStages.length >= 4) {
-          // Beat the first set: unlock the second
+          // Beat the first set: unlock the second (how the first four died stays on file)
           setProgressionRank(1);
           setAvailableWeapons(getStartingWeapons(1, cheats.allWeapons));
           setCurrentWeapon('GUN');
@@ -199,6 +203,7 @@ const App: React.FC = () => {
         } else {
           setAvailableWeapons(getStartingWeapons(progressionRank, cheats.allWeapons));
           resetLoadout();
+          setKillRecords({});
           setSelectedIndex(0);
           setIsVictoryPhase(false);
           setStatus(GameStatus.START);
@@ -212,6 +217,7 @@ const App: React.FC = () => {
   /** After THE END: back to the title screen. */
   const handleEndingDone = () => {
     setDefeatedStages([]);
+    setKillRecords({});
     setAvailableWeapons(getStartingWeapons(progressionRank, cheats.allWeapons));
     resetLoadout();
     setSelectedStage(null);
@@ -233,6 +239,7 @@ const App: React.FC = () => {
     setSelectedIndex(0);
     setIsVictoryPhase(false);
     setDefeatedStages([]);
+    setKillRecords({});
     setCurrentWeapon('GUN');
     setProgressionRank(0);
     setStatus(GameStatus.START);
@@ -260,11 +267,21 @@ const App: React.FC = () => {
 
   // --- Stage select: lock in a target, then ENGAGE ------------------------------
 
+  /** Old targets (the previous set's files) can be browsed once you're on the second set. */
+  const toggleArchive = () => {
+    if (engaging || progressionRank < 1) return;
+    setShowArchive(v => !v);
+    setSelectedIndex(0);
+    setLockedIndex(null);
+    setShowDossier(true);
+  };
+
   const lockStage = (idx: number) => {
     const stage = getStages(progressionRank)[idx];
     if (!stage || engaging) return;
     setSelectedIndex(idx);
-    if (defeatedStages.includes(stage.id)) { setLockedIndex(null); speakRebuke(); return; }
+    // Old targets are all dead already
+    if (showArchive || defeatedStages.includes(stage.id)) { setLockedIndex(null); speakRebuke(); return; }
     setLockedIndex(idx);
     playLockInSound();
   };
@@ -364,7 +381,8 @@ const App: React.FC = () => {
     setBossTaunt(pool[1] || pool[0]);
   };
 
-  const handleBossDefeated = (stageId: string) => {
+  const handleBossDefeated = (stageId: string, corpseWeapon?: WeaponType) => {
+    setKillRecords(prev => ({ ...prev, [stageId]: corpseWeapon ?? null }));
     const newWeapon = BOSS_WEAPON_MAP[stageId];
     if (newWeapon) setAvailableWeapons(prev => prev.includes(newWeapon) ? prev : sortWeapons([...prev, newWeapon]));
     setDefeatedStages(prev => [...prev, stageId]);
@@ -386,12 +404,12 @@ const App: React.FC = () => {
     else if (toTitle) setStatus(GameStatus.START);
   };
 
-  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack });
-  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack };
+  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleArchive });
+  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleArchive };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      const { status, togglePause, moveSelection, confirmSelection, selectWeaponHotkey, toggleDossier, stageSelectBack } = inputRef.current;
+      const { status, togglePause, moveSelection, confirmSelection, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleArchive } = inputRef.current;
       const key = e.key.toLowerCase();
       if (status === GameStatus.STAGE_SELECT && (key === 'escape' || key === 'backspace')) { stageSelectBack(false); return; }
       if (key === 'escape') togglePause();
@@ -404,6 +422,8 @@ const App: React.FC = () => {
       }
       // Stage select: X flips between the map and the boss dossier
       if (status === GameStatus.STAGE_SELECT && key === 'x') { toggleDossier(); return; }
+      // ...and Tab flips between the current targets and the old ones
+      if (status === GameStatus.STAGE_SELECT && key === 'tab') { e.preventDefault(); toggleArchive(); return; }
       if (key === 'arrowup' || key === 'w') moveSelection(0, -1);
       else if (key === 'arrowdown' || key === 's') moveSelection(0, 1);
       else if (key === 'arrowleft' || key === 'a') moveSelection(-1, 0);
@@ -449,14 +469,14 @@ const App: React.FC = () => {
   useEffect(() => {
     let frameId = 0;
     let lastMoveAt = 0;
-    const prev = { a: false, b: false, x: false, start: false, lb: false, rb: false };
+    const prev = { a: false, b: false, x: false, y: false, start: false, lb: false, rb: false };
 
     const poll = () => {
       const gp = getActiveGamepad();
       if (!gp) {
-        prev.a = prev.b = prev.x = prev.start = prev.lb = prev.rb = false;
+        prev.a = prev.b = prev.x = prev.y = prev.start = prev.lb = prev.rb = false;
       } else {
-        const { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, toggleDossier, stageSelectBack } = inputRef.current;
+        const { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, toggleDossier, stageSelectBack, toggleArchive } = inputRef.current;
         const now = Date.now();
         const move = getGamepadMovement(gp, 0.25);
         if (now - lastMoveAt > PAD_REPEAT_MS) {
@@ -469,6 +489,7 @@ const App: React.FC = () => {
           a: isButtonPressed(gp, GP_BUTTONS.A),
           b: isButtonPressed(gp, GP_BUTTONS.B),
           x: isButtonPressed(gp, GP_BUTTONS.X),
+          y: isButtonPressed(gp, GP_BUTTONS.Y),
           start: isButtonPressed(gp, GP_BUTTONS.START) || isButtonPressed(gp, GP_BUTTONS.SELECT),
           lb: isButtonPressed(gp, GP_BUTTONS.LB),
           rb: isButtonPressed(gp, GP_BUTTONS.RB),
@@ -480,6 +501,7 @@ const App: React.FC = () => {
         if (inGame && justPressed('rb')) cycleWeapon(1);
         if (justPressed('a') || (justPressed('start') && TIMED_SCREENS.includes(status))) confirmSelection();
         if (justPressed('x') && status === GameStatus.STAGE_SELECT) toggleDossier();
+        if (justPressed('y') && status === GameStatus.STAGE_SELECT) toggleArchive();
         if (justPressed('b')) {
           if (status === GameStatus.PAUSED) handleResume();
           else if (status === GameStatus.STAGE_SELECT) stageSelectBack(true);
@@ -529,6 +551,9 @@ const App: React.FC = () => {
           onWeaponIconClick={handleWeaponIconClick}
           showDossier={showDossier}
           onToggleDossier={toggleDossier}
+          showArchive={showArchive}
+          onToggleArchive={toggleArchive}
+          killRecords={killRecords}
           cheats={SHOW_CHEATS ? { flags: cheatFlags, onToggle: handleToggleCheat, onChangeRank: handleChangeRank, onPlayEnding: () => setStatus(GameStatus.ENDING) } : undefined}
         />
         {status === GameStatus.ENDING && <EndingCutscene onDone={handleEndingDone} />}

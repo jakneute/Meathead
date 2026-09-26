@@ -46,6 +46,11 @@ interface OverlayProps {
   /** Stage select: showing the selected boss's dossier instead of the map. */
   showDossier: boolean;
   onToggleDossier: () => void;
+  /** Stage select on the second set: browsing the previous set's targets (all dead) instead. */
+  showArchive: boolean;
+  onToggleArchive: () => void;
+  /** How each boss died: the weakness weapon that wrecked his corpse, or null for a plain kill. */
+  killRecords: Record<string, WeaponType | null>;
   /** Dev cheat panel on the title screen; omitted when cheats are disabled. */
   cheats?: {
     flags: CheatFlags;
@@ -119,27 +124,48 @@ const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onStart, cheats, p
   </>
 );
 
-const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedStages, selectedIndex, onSelectIndex, showDossier, onToggleDossier, lockedIndex, engaging, onStageCardClick, onEngage }) => {
-  const currentStages = getStages(progressionRank);
+const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedStages, selectedIndex, onSelectIndex, showDossier, onToggleDossier, lockedIndex, engaging, onStageCardClick, onEngage, showArchive, onToggleArchive, killRecords }) => {
+  // The archive shows the previous set: every one of them already dead
+  const archive = showArchive && progressionRank >= 1;
+  const setRank = archive ? progressionRank - 1 : progressionRank;
+  const currentStages = getStages(setRank);
+  const deadIds = archive ? currentStages.map(s => s.id) : defeatedStages;
   const locked = lockedIndex !== null;
+  const selectedId = currentStages[selectedIndex]?.id || currentStages[0]?.id;
 
   return (
     <div className={`w-full h-full flex flex-col items-center justify-start pt-2 pb-1 overflow-hidden select-none ${engaging ? 'mh-engage-shake' : 'animate-in slide-in-from-bottom-8 duration-500'}`}>
       <div className="flex flex-col items-center mb-2 shrink-0">
         <h2 className="text-xl md:text-2xl text-red-600 font-black tracking-widest border-b-4 border-red-900 pb-1 uppercase italic drop-shadow-[0_2px_2px_rgba(153,0,0,0.8)] [text-shadow:2px_2px_0_rgb(0,0,0),_0_4px_0_rgba(153,0,0,0.8),_0_8px_0_rgba(153,0,0,0.4),_2px_12px_2px_rgba(255,0,0,0.5)]">
-          {BOSS_SET_TITLES[progressionRank] || "THE FOUR ASSHOLES"}
+          {BOSS_SET_TITLES[setRank] || "THE FOUR ASSHOLES"}
         </h2>
         <div className="text-[8px] font-mono text-cyan-400/90 tracking-widest uppercase mt-0.5">
-          TARGET SELECTION // UNITED STATES RADAR INFILTRATION
+          {archive ? 'ARCHIVE // PREVIOUSLY TERMINATED TARGETS // CASES CLOSED' : 'TARGET SELECTION // UNITED STATES RADAR INFILTRATION'}
         </div>
       </div>
 
       <div className="w-full max-w-[770px] flex flex-row items-center justify-center gap-4 px-2">
         <div className="w-[330px] shrink-0 flex flex-col gap-3">
+        {progressionRank >= 1 && (
+          <div className="flex items-center justify-between -mb-1">
+            <div className="flex">
+              {(['CURRENT TARGETS', 'OLD TARGETS'] as const).map(tab => {
+                const on = (tab === 'OLD TARGETS') === archive;
+                return (
+                  <button key={tab} onClick={() => { if (!on) onToggleArchive(); }}
+                    className={`px-2 py-[3px] text-[7px] font-black tracking-wider border-2 ${on ? 'bg-yellow-400 text-black border-yellow-400' : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:text-white'}`}>
+                    {tab}
+                  </button>
+                );
+              })}
+            </div>
+            <span className="text-[7px] font-mono text-cyan-400/80 tracking-wider">(Y) / TAB</span>
+          </div>
+        )}
         {/* 2x2 boss cards */}
         <div className="w-full grid grid-cols-2 gap-2.5">
           {currentStages.map((stage, idx) => {
-            const isDefeated = defeatedStages.includes(stage.id);
+            const isDefeated = deadIds.includes(stage.id);
             const isSelected = idx === selectedIndex;
             const isLocked = idx === lockedIndex;
             const loc = BOSS_LOCATIONS[stage.id];
@@ -152,7 +178,7 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
                 key={stage.id}
                 onClick={() => onStageCardClick(idx)}
                 onMouseEnter={() => onSelectIndex(idx)}
-                className={`w-full h-[165px] ${isDefeated ? 'opacity-70' : ''} ${locked && !isLocked ? 'opacity-35 grayscale' : ''} border-3 ${frame} bg-[#1E1E1E] transition-all flex flex-col overflow-hidden group shadow-lg rounded-sm text-left`}
+                className={`w-full ${progressionRank >= 1 ? 'h-[158px]' : 'h-[165px]'} ${isDefeated ? 'opacity-70' : ''} ${locked && !isLocked ? 'opacity-35 grayscale' : ''} border-3 ${frame} bg-[#1E1E1E] transition-all flex flex-col overflow-hidden group shadow-lg rounded-sm text-left`}
               >
                 <div className="flex-1 bg-black relative overflow-hidden">
                   <BossPortrait id={stage.id} />
@@ -184,7 +210,14 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
             );
           })}
         </div>
-        <EngageBar locked={locked} engaging={engaging} onEngage={onEngage} />
+        {archive ? (
+          <div className="h-[58px] flex flex-col items-center justify-center gap-1 border-2 border-dashed border-zinc-700 text-zinc-400">
+            <span className="text-[9px] font-black tracking-widest text-red-500">CASES CLOSED</span>
+            <span className="text-[7px] font-mono tracking-wider">NOTHING LEFT TO KILL. READ THE FILES.</span>
+          </div>
+        ) : (
+          <EngageBar locked={locked} engaging={engaging} onEngage={onEngage} />
+        )}
         </div>
 
         {/* USA map (Alaska and Hawaii included), or the selected boss's dossier */}
@@ -204,11 +237,11 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
             <span className="text-[7px] font-mono text-cyan-400/80 tracking-wider">(X) / CLICK: SWITCH</span>
           </div>
           {showDossier ? (
-            <DossierPanel bossId={currentStages[selectedIndex]?.id || currentStages[0]?.id} defeated={defeatedStages.includes(currentStages[selectedIndex]?.id)} />
+            <DossierPanel bossId={selectedId} defeated={deadIds.includes(selectedId)} corpseWeapon={killRecords[selectedId]} />
           ) : (
             <USAMap
-              selectedBossId={currentStages[selectedIndex]?.id || currentStages[0]?.id}
-              defeatedStages={defeatedStages}
+              selectedBossId={selectedId}
+              defeatedStages={deadIds}
               currentStages={currentStages}
               onSelectStage={(id) => {
                 const idx = currentStages.findIndex(s => s.id === id);
