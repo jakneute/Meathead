@@ -1,6 +1,7 @@
 // Hector Hurricane's sprite.
 // Drawn in the boss's local space (0,0 = his top-left corner).
 
+import { vortexSpin, vortexShape, vortexGripLevel } from '../../bosses/hector';
 import { Enemy } from '../../../types';
 
 export const drawHector = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
@@ -168,4 +169,90 @@ export const drawHector = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
      }
      ctx.restore();
   }
+};
+
+/**
+ * The vortex round him during the hurricane (world space): a spinning funnel of
+ * wind bands with debris whipping round it, dust churning at its base and air
+ * rushing in from the sides. It darkens and flashes red as it gets its grip.
+ */
+export const drawHectorVortex = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
+  const spin = vortexSpin(e);
+  if (spin <= 0) return;
+  const { cx, floor, top, radiusAt } = vortexShape(e);
+  const grip = vortexGripLevel(e);
+  const yanking = grip >= 1;
+  const t = frame * 0.18;
+  ctx.save();
+
+  // Air rushing in from both sides
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i < 10; i++) {
+    const side = i % 2 ? 1 : -1;
+    const y = top + ((i * 37) % (floor - top));
+    const prog = ((frame * (yanking ? 14 : 7) + i * 53) % 260) / 260;
+    const x0 = cx + side * (380 - prog * 300);
+    ctx.strokeStyle = `rgba(226, 232, 240, ${0.45 * prog * spin})`;
+    ctx.beginPath();
+    ctx.moveTo(x0, y);
+    ctx.quadraticCurveTo(x0 - side * 30, y + 6, x0 - side * 60, y + 2);
+    ctx.stroke();
+  }
+
+  // Dust churning round the base
+  for (let i = 0; i < 9; i++) {
+    const a = t * 1.3 + i * 0.7;
+    const r = radiusAt(floor - 6) + 14;
+    ctx.fillStyle = `rgba(168, 162, 158, ${0.35 * spin})`;
+    ctx.beginPath();
+    ctx.ellipse(cx + Math.cos(a) * r, floor - 6 + Math.sin(a) * 4, 12 + (i % 3) * 4, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Spinning bands of wind stacked up the funnel
+  const bands = 11;
+  for (let b = 0; b < bands; b++) {
+    const y = floor - (b + 0.5) * (floor - top) / bands;
+    const r = radiusAt(y);
+    const phase = t * (1.6 - b * 0.06) + b * 0.9;
+    const tint = yanking && frame % 6 < 3 ? '248, 113, 113' : grip > 0.5 ? '203, 213, 225' : '226, 232, 240';
+    // Back half, faint
+    ctx.strokeStyle = `rgba(${tint}, ${0.18 * spin})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.ellipse(cx, y, r, r * 0.22, 0, Math.PI + phase % 1, Math.PI * 2 - 0.3); ctx.stroke();
+    // Front half, bold streaks that wrap round
+    ctx.strokeStyle = `rgba(${tint}, ${(0.45 + grip * 0.25) * spin})`;
+    ctx.lineWidth = 2.5 + grip * 1.5;
+    for (let s2 = 0; s2 < 2; s2++) {
+      const a0 = (phase + s2 * Math.PI) % (Math.PI * 2);
+      ctx.beginPath(); ctx.ellipse(cx, y, r, r * 0.22, 0, a0, a0 + 1.4); ctx.stroke();
+    }
+  }
+
+  // Debris whipping round it: leaves, grit and the odd turd
+  for (let i = 0; i < 12; i++) {
+    const y = top + 10 + ((i * 29) % (floor - top - 20));
+    const r = radiusAt(y) * 0.95;
+    const a = t * (2 + (i % 3) * 0.4) + i * 1.7;
+    const depth = Math.sin(a); // behind him when negative
+    const x = cx + Math.cos(a) * r;
+    ctx.globalAlpha = spin * (depth < 0 ? 0.45 : 1);
+    ctx.fillStyle = i % 4 === 0 ? '#5D4037' : i % 4 === 1 ? '#4CAF50' : i % 4 === 2 ? '#8D6E63' : '#9E9E9E';
+    ctx.save();
+    ctx.translate(x, y + depth * r * 0.2);
+    ctx.rotate(a * 2);
+    if (i % 4 === 0) { ctx.beginPath(); ctx.ellipse(0, 0, 6, 3, 0, 0, Math.PI * 2); ctx.fill(); }
+    else ctx.fillRect(-3, -2, 6 + (i % 3), 4);
+    ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+
+  // The rim flares as it gets its grip, and strobes once it's yanking you in
+  if (grip > 0.3) {
+    const r = radiusAt(top);
+    ctx.strokeStyle = yanking ? (frame % 6 < 3 ? 'rgba(239, 68, 68, 0.9)' : 'rgba(255, 255, 255, 0.8)') : `rgba(248, 250, 252, ${grip * 0.6})`;
+    ctx.lineWidth = yanking ? 4 : 2;
+    ctx.beginPath(); ctx.ellipse(cx, top, r, r * 0.22, 0, 0, Math.PI * 2); ctx.stroke();
+  }
+  ctx.restore();
 };

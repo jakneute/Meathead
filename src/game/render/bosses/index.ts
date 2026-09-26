@@ -4,7 +4,7 @@ import { Enemy } from '../../../types';
 import { drawArtie } from './artie';
 import { drawVictor } from './victor';
 import { drawErnie } from './ernie';
-import { drawHector } from './hector';
+import { drawHector, drawHectorVortex } from './hector';
 import { drawDale, drawDaleDrugs } from './dale';
 import { drawBarry, drawBarryTolerance } from './barry';
 import { drawTommy } from './tommy';
@@ -29,7 +29,7 @@ const BOSS_SPRITES: Record<string, BossSprite> = {
   'Artie Avalanche': { body: drawArtie },
   'Victor Volcano': { body: drawVictor },
   'Ernie Earthquake': { body: drawErnie, gear: (ctx, e, f) => { drawErnieHeldBoulder(ctx, e, f); drawIceEncasing(ctx, e, f); } },
-  'Hector Hurricane': { body: drawHector },
+  'Hector Hurricane': { body: drawHector, gear: drawHectorVortex },
   'Drug Trade Dale': { body: drawDale, gear: drawDaleTruck, overlay: drawDaleDrugs },
   'Blackout Barry': { body: drawBarry, overlay: drawBarryTolerance },
   'Toxic Tommy': { body: drawTommy },

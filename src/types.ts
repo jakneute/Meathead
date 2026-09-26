@@ -141,6 +141,8 @@ export interface Enemy extends Entity {
   sludgeFallSpeed?: number;
   /** The frame a sludge puddle last hurt it (puddles don't stack). */
   sludgeTickFrame?: number;
+  /** Hector: how long Meathead has been within half a screen of his vortex. */
+  vortexGrip?: number;
   isBlownAway?: boolean;
   rotation?: number;
   pauseTimer?: number;
