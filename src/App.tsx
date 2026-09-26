@@ -69,6 +69,9 @@ const App: React.FC = () => {
   const [isVictoryPhase, setIsVictoryPhase] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isInputLocked, setIsInputLocked] = useState(true);
+  /** Stage select: the boss dossier is showing instead of the map. */
+  const [showDossier, setShowDossier] = useState(false);
+  const toggleDossier = () => setShowDossier(v => !v);
 
   const cheats = SHOW_CHEATS ? cheatFlags : NO_CHEATS;
   const screenShownAtRef = useRef(Date.now());
@@ -314,12 +317,12 @@ const App: React.FC = () => {
   };
 
   // Input listeners are attached once and always call the latest render's handlers.
-  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey });
-  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey };
+  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier });
+  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      const { status, togglePause, moveSelection, confirmSelection, selectWeaponHotkey } = inputRef.current;
+      const { status, togglePause, moveSelection, confirmSelection, selectWeaponHotkey, toggleDossier } = inputRef.current;
       const key = e.key.toLowerCase();
       if (key === 'escape') togglePause();
 
@@ -329,6 +332,8 @@ const App: React.FC = () => {
         if (slot) selectWeaponHotkey(Number(slot[1]) - 1);
         return;
       }
+      // Stage select: X flips between the map and the boss dossier
+      if (status === GameStatus.STAGE_SELECT && key === 'x') { toggleDossier(); return; }
       if (key === 'arrowup' || key === 'w') moveSelection(0, -1);
       else if (key === 'arrowdown' || key === 's') moveSelection(0, 1);
       else if (key === 'arrowleft' || key === 'a') moveSelection(-1, 0);
@@ -351,14 +356,14 @@ const App: React.FC = () => {
   useEffect(() => {
     let frameId = 0;
     let lastMoveAt = 0;
-    const prev = { a: false, b: false, start: false, lb: false, rb: false };
+    const prev = { a: false, b: false, x: false, start: false, lb: false, rb: false };
 
     const poll = () => {
       const gp = getActiveGamepad();
       if (!gp) {
-        prev.a = prev.b = prev.start = prev.lb = prev.rb = false;
+        prev.a = prev.b = prev.x = prev.start = prev.lb = prev.rb = false;
       } else {
-        const { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume } = inputRef.current;
+        const { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, toggleDossier } = inputRef.current;
         const now = Date.now();
         const move = getGamepadMovement(gp, 0.25);
         if (now - lastMoveAt > PAD_REPEAT_MS) {
@@ -370,6 +375,7 @@ const App: React.FC = () => {
         const pressed = {
           a: isButtonPressed(gp, GP_BUTTONS.A),
           b: isButtonPressed(gp, GP_BUTTONS.B),
+          x: isButtonPressed(gp, GP_BUTTONS.X),
           start: isButtonPressed(gp, GP_BUTTONS.START) || isButtonPressed(gp, GP_BUTTONS.SELECT),
           lb: isButtonPressed(gp, GP_BUTTONS.LB),
           rb: isButtonPressed(gp, GP_BUTTONS.RB),
@@ -380,6 +386,7 @@ const App: React.FC = () => {
         if (inGame && justPressed('lb')) cycleWeapon(-1);
         if (inGame && justPressed('rb')) cycleWeapon(1);
         if (justPressed('a') || (justPressed('start') && TIMED_SCREENS.includes(status))) confirmSelection();
+        if (justPressed('x') && status === GameStatus.STAGE_SELECT) toggleDossier();
         if (justPressed('b')) {
           if (status === GameStatus.PAUSED) handleResume();
           else if (status === GameStatus.STAGE_SELECT) setStatus(GameStatus.START);
@@ -424,6 +431,8 @@ const App: React.FC = () => {
           onSelectStage={handleSelectStage}
           onSelectIndex={setSelectedIndex}
           onWeaponIconClick={handleWeaponIconClick}
+          showDossier={showDossier}
+          onToggleDossier={toggleDossier}
           cheats={SHOW_CHEATS ? { flags: cheatFlags, onToggle: handleToggleCheat, onChangeRank: handleChangeRank, onPlayEnding: () => setStatus(GameStatus.ENDING) } : undefined}
         />
         {status === GameStatus.ENDING && <EndingCutscene onDone={handleEndingDone} />}

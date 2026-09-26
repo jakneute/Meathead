@@ -1,0 +1,123 @@
+// Boss dossiers for the stage select screen: classified files on each target,
+// written by the people pointing Meathead at them. Every one of these assholes
+// means well. Every one of them has to go, as undignified as possible. And the
+// "asset" doing the going has no idea who's holding his leash.
+
+export interface Dossier {
+  realName: string;
+  age: string;
+  occupation: string;
+  threat: string;
+  /** What he genuinely believes he's doing for the world. */
+  mission: string;
+  /** What he's actually doing to it. */
+  reality: string;
+  background: string;
+  /** How the intel people think he goes down (a nudge, not a manual). */
+  intel: string;
+  /** The approved method, as undignified as the budget allows. */
+  disposal: string;
+  /** The handler's note on how the asset was pointed at him this time. */
+  handler: string;
+}
+
+export const DOSSIER_HEADER = 'DEPT. OF DOMESTIC DISPOSAL // PROJECT BLUNT INSTRUMENT';
+
+export const DOSSIERS: Record<string, Dossier> = {
+  'Artie Avalanche': {
+    realName: 'ARTHUR "ARTIE" LINDQVIST',
+    age: '44',
+    occupation: 'Former glaciologist. Current ice-based terrorist. Wears moon boots indoors.',
+    threat: 'SEVERE (FROSTBITE, EMOTIONAL COLDNESS)',
+    mission: 'Save the glaciers. Save the polar bears. Refreeze the planet one hostile snowbank at a time.',
+    reality: 'Froze a daycare, a Wendy\'s and the entire Anchorage municipal bus fleet. The polar bears have filed a complaint.',
+    background: 'Spent twenty years measuring glaciers while they melted in front of him. Nobody listened. Published 400 papers. Nobody read them. One day he stopped writing papers and started building a cryo-vault under the city, and suddenly everybody was listening. He sincerely believes that if he can make Alaska cold enough, the rest of the world will follow his example. It will not. It will just be cold, and angry about it.',
+    intel: 'Thin-skinned in every sense. Subject does not handle heat. Or criticism.',
+    disposal: 'Thaw him like a Costco chicken left in the sink. Then shatter whatever is left.',
+    handler: 'Asset was told Artie "looked at his protein shake funny." That was sufficient. Asset has since asked if he can keep the moon boots.',
+  },
+  'Victor Volcano': {
+    realName: 'VICTOR KALANI-MORGENSTERN',
+    age: '38',
+    occupation: 'Geothermal energy evangelist. Hot yoga instructor. Juices daily. Juices other things daily.',
+    threat: 'CRITICAL (LAVA, ROID RAGE, UNSOLICITED WELLNESS ADVICE)',
+    mission: 'Free, clean, renewable power for every island home, straight from the earth\'s core.',
+    reality: 'Drilled into an active magma chamber under a resort. The resort is now a lava lamp. The guests are now part of the resort.',
+    background: 'Moved to Hilo to "reconnect with the planet\'s heartbeat." Found the heartbeat. Put a hole in it. Believes the island\'s power company has been hoarding the volcano for profit, which is, technically, not how volcanoes work. Has been steroid-cycling for eleven years in pursuit of "geological levels of mass." Considers himself Meathead\'s spiritual equal. This is the single most offensive thing in his file.',
+    intel: 'All pressure, no release valve. Things that are hot really, really hate water.',
+    disposal: 'Steam him like a dumpling. Make sure there are witnesses. Make sure they laugh.',
+    handler: 'Asset was informed that Victor "skips leg day." Asset did not wait for the rest of the briefing. We have since stopped finishing briefings.',
+  },
+  'Ernie Earthquake': {
+    realName: 'ERNEST T. BUCKLEY',
+    age: '71',
+    occupation: 'Retired seismologist. Professional grump. Has opinions about your lawn.',
+    threat: 'HIGH (TECTONIC, CRANKY)',
+    mission: 'Set off "The Big One" early, on a Tuesday, during business hours, so everyone is ready for it. Rip the band-aid off.',
+    reality: 'Ripped off the band-aid, the arm and most of the Marina District.',
+    background: 'Spent fifty years predicting California\'s next great earthquake and got tired of waiting for it. Figured a controlled disaster beats a surprise disaster, and got to work throwing boulders at the fault line to "loosen it up." Honestly thinks he is doing a public service. Mails the city an itemised invoice after every quake. Nobody has paid him. This has made him worse.',
+    intel: 'Old man, old hips, bad balance. Hit him while he\'s moving and watch the magic happen.',
+    disposal: 'Knock him on his ass mid-stride. He\'ll break a hip. Do not help him up.',
+    handler: 'Asset believes he is "helping an old man move rocks." Asset has not asked why the old man keeps dying. Asset does not ask things.',
+  },
+  'Hector Hurricane': {
+    realName: 'HECTOR "THE DOPPLER" DELGADO',
+    age: '52',
+    occupation: 'Disgraced Channel 7 weatherman. Owns forty-one windbreakers.',
+    threat: 'SEVERE (CATEGORY 5, CATEGORY SMUG)',
+    mission: 'Pressure-wash Miami clean. Of crime, of sin, of scooters. Nature\'s way.',
+    reality: 'The storm drains backed up in week one. That is not mud flying around in there.',
+    background: 'Was fired live on air for forecasting "sunny and 75" during a named storm. Decided the only way to never be wrong again was to make the weather himself. Now controls a stationary hurricane from inside a wind tunnel and genuinely believes a good hard rinse is exactly what this city needs. Doesn\'t understand why everyone keeps screaming. Keeps giving the forecast anyway. It is always his hurricane.',
+    intel: 'He pulls everything toward himself. EVERYTHING. Big, heavy things included. Think about it.',
+    disposal: 'Let his own storm drag something enormous into his face. Film it. Send it to Channel 7.',
+    handler: 'Asset was told Hector predicted "a bad forecast for his gains." Asset put on his angry shorts. We don\'t know where he keeps getting the shorts.',
+  },
+  'Toxic Tommy': {
+    realName: 'THOMAS "TOMMY" PRZYBYLSKI',
+    age: '33 (APPROX. SEWAGE HAS AGED HIM)',
+    occupation: 'Former municipal water quality inspector. Now lives in the pipes. Is, in a sense, the pipes.',
+    threat: 'CRITICAL (BIOHAZARD, BAD BREATH)',
+    mission: 'Filter every drop of Flint\'s water through his own body until it runs clean. He is the filtration system now.',
+    reality: 'He is not a filtration system. He is a man vomiting in a sewer. The water is worse.',
+    background: 'Told the city the water was safe, then drank it on live TV to prove it. It was not safe. Something happened to him down there, and now Tommy genuinely believes he can drink the town\'s poison and puke it back out purified. Surfaces under your feet to "check your water pressure." Waves at the kids from the storm grates. The kids do not wave back.',
+    intel: 'Heavy crude clogs his whole system. Like a hairball in a drain. Stuns him right up out of the muck.',
+    disposal: 'Plug him up like a backed-up toilet and flush. DO NOT, UNDER ANY CIRCUMSTANCES, SET AN OILED SUBJECT ON FIRE. WE MEAN IT. THE PAPERWORK ALONE.',
+    handler: 'Asset was told Tommy "called protein powder a scam." Asset has asked twice whether he can drink the sewer water "for the minerals." Request denied. Asset drank it anyway.',
+  },
+  'Blackout Barry': {
+    realName: 'BARRINGTON "BARRY" WEISS',
+    age: '47',
+    occupation: 'Power grid engineer. Amateur astronomer. Professional user.',
+    threat: 'HIGH (ELECTRICAL, CHEMICAL, EXISTENTIAL)',
+    mission: 'Turn off New York\'s lights so eight million people can look up and see the stars again.',
+    reality: 'Eight million people looked up, tripped over things in the dark and started looting. Nobody saw a single star. It\'s New York. There\'s smog.',
+    background: 'Grew up in the Bronx without ever seeing the Milky Way and never got over it. Took a job at the power company specifically to get his hands on the big switch. Rolling blackouts every night now, "for everyone\'s wonder." Handles the stress with an increasingly creative pharmaceutical routine and, at this point, a startling tolerance. Sincerely thinks he\'s giving the city a gift. The city thinks he\'s a lunatic in a hard hat. Both are right.',
+    intel: 'Subject already self-medicates heavily. He has a limit. Subject is very, very close to it. Help him find it.',
+    disposal: 'Push him over the edge. Keep pushing. Stop when he\'s talking to the ceiling.',
+    handler: 'Asset believes Barry "stole his headphones." Barry has never met the asset. Asset remains confident.',
+  },
+  'Oily Oscar': {
+    realName: 'OSCAR "SLICK" BERTRAND III',
+    age: '58',
+    occupation: 'Oil executive, used car salesman, motivational speaker. Nobody knows which came first.',
+    threat: 'SEVERE (FLAMMABLE, PERSUASIVE)',
+    mission: 'A frictionless world. Oil everything, so nobody ever gets stuck again: in traffic, in debt, in life.',
+    reality: 'Everybody in Houston is stuck. On the floor. Slipping. Covered in crude. And now there\'s a guy flicking cigarettes at them.',
+    background: 'Believes friction is the root of all human suffering and that the cure comes by the barrel. Greased the streets, the stairs and the city council. Wears a flame-retardant suit "for insurance purposes" and sells it as a lifestyle. Chain-smokes in a refinery on principle. Will try to sell you something mid-fight. Do not buy it. It\'s oil.',
+    intel: 'Fire does nothing to him, so don\'t waste your time (or your eyebrows). He\'s a walking puddle of conductive grease. Juice him until he pops.',
+    disposal: 'Electrocute him until his fillings sing. Leave him face-down in his own product.',
+    handler: 'Asset was told Oscar "sells counterfeit creatine." This is actually true. Asset has requested a refund. From Oscar. Mid-fight.',
+  },
+  'Drug Trade Dale': {
+    realName: 'DALE P. HENDRICKS, PHARM.D. (LICENSE REVOKED)',
+    age: '49',
+    occupation: 'Former pharmacist. Current delivery driver of "everything, for everyone, free."',
+    threat: 'HIGH (NARCOTIC, VEHICULAR)',
+    mission: 'Affordable medicine for all. No insurance, no prescriptions, no waiting. Just a truck full of love.',
+    reality: 'It is not love. It is meth, speed and whatever fell off the shelf. The truck has no brakes. The truck has never had brakes.',
+    background: 'Watched one too many customers turned away at his counter and snapped. Loaded his pharmacy into a box truck and started "delivering care" across the desert, at speed, through storefronts. Stays in one spot and has the truck come to him. Microdoses his own inventory to "stay relatable." Keeps a laminated sign that reads DALE\'S DRUGS on the side of the truck, and is prouder of that sign than of anything else in his life.',
+    intel: 'Plants himself and never moves. Puddles of anything slick in the truck\'s path early on do very funny things to tires.',
+    disposal: 'Hose him down with something foul and let his own delivery arrive. Sign for it on his behalf.',
+    handler: 'Asset has been told Dale "keeps parking in his spot." Asset does not have a car. Or a spot. Asset is very upset about the spot.',
+  },
+};

@@ -7,6 +7,7 @@ import {
 import USAMap from './USAMap';
 import BossPortrait from './BossPortrait';
 import WeaponIcon, { WeaponArt } from './WeaponIcon';
+import DossierPanel from './DossierPanel';
 import MeatheadCaricature from './MeatheadCaricature';
 import ControlsGuide from './ControlsGuide';
 
@@ -37,6 +38,9 @@ interface OverlayProps {
   onSelectStage: (stageId: string) => void;
   onSelectIndex: (index: number) => void;
   onWeaponIconClick: (index: number) => void;
+  /** Stage select: showing the selected boss's dossier instead of the map. */
+  showDossier: boolean;
+  onToggleDossier: () => void;
   /** Dev cheat panel on the title screen; omitted when cheats are disabled. */
   cheats?: {
     flags: CheatFlags;
@@ -107,7 +111,7 @@ const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onStart, cheats, p
   </>
 );
 
-const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedStages, selectedIndex, onSelectIndex, onSelectStage }) => {
+const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedStages, selectedIndex, onSelectIndex, onSelectStage, showDossier, onToggleDossier }) => {
   const currentStages = getStages(progressionRank);
   const choose = (idx: number) => {
     onSelectIndex(idx);
@@ -169,17 +173,35 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
           })}
         </div>
 
-        {/* USA map (Alaska and Hawaii included) */}
-        <div className="w-[390px] shrink-0 flex flex-col justify-center">
-          <USAMap
-            selectedBossId={currentStages[selectedIndex]?.id || currentStages[0]?.id}
-            defeatedStages={defeatedStages}
-            currentStages={currentStages}
-            onSelectStage={(id) => {
-              const idx = currentStages.findIndex(s => s.id === id);
-              if (idx !== -1) choose(idx);
-            }}
-          />
+        {/* USA map (Alaska and Hawaii included), or the selected boss's dossier */}
+        <div className="w-[390px] shrink-0 flex flex-col justify-center gap-1">
+          <div className="flex items-center justify-between">
+            <div className="flex">
+              {(['MAP', 'DOSSIER'] as const).map(tab => {
+                const on = (tab === 'DOSSIER') === showDossier;
+                return (
+                  <button key={tab} onClick={() => { if (!on) onToggleDossier(); }}
+                    className={`px-3 py-[3px] text-[8px] font-black tracking-widest border-2 ${on ? 'bg-yellow-400 text-black border-yellow-400' : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:text-white'}`}>
+                    {tab}
+                  </button>
+                );
+              })}
+            </div>
+            <span className="text-[7px] font-mono text-cyan-400/80 tracking-wider">(X) / CLICK: SWITCH</span>
+          </div>
+          {showDossier ? (
+            <DossierPanel bossId={currentStages[selectedIndex]?.id || currentStages[0]?.id} defeated={defeatedStages.includes(currentStages[selectedIndex]?.id)} />
+          ) : (
+            <USAMap
+              selectedBossId={currentStages[selectedIndex]?.id || currentStages[0]?.id}
+              defeatedStages={defeatedStages}
+              currentStages={currentStages}
+              onSelectStage={(id) => {
+                const idx = currentStages.findIndex(s => s.id === id);
+                if (idx !== -1) choose(idx);
+              }}
+            />
+          )}
         </div>
       </div>
     </div>
