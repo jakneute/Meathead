@@ -45,6 +45,8 @@ export interface GameState {
   checkpoint: number;
   /** A stage layout's own running state (set pieces, hazards), rebuilt with the level. */
   stage: unknown;
+  /** A set piece holding the camera (the tram, a mid-boss arena, a cutscene); eases there. */
+  cameraOverride: Vector2 | null;
 
   // Boss door & arena
   arenaLocked: boolean;
@@ -208,6 +210,7 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
   cameraRestY: 0,
   checkpoint: 0,
   stage: null,
+  cameraOverride: null,
   arenaLocked: false,
   doorOpenAmount: 0,
   doorState: 'closed',
@@ -309,6 +312,7 @@ export const resetStageState = (s: GameState) => {
   s.groundRuns = [];
   s.cameraRestY = 0;
   s.stage = null;
+  s.cameraOverride = null;
 
   s.arenaLocked = false;
   s.doorState = 'closed';

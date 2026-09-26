@@ -12,6 +12,9 @@
 import { BOSS_DOOR_X, GROUND_Y } from '../../../constants';
 import type { GroundRun } from '../../terrain';
 
+/** Checkpoints through the stage, in order. Dying starts you at the last one you reached. */
+export const CP = { TRAILHEAD: 0, STATION: 1, TOP: 2, AFTER_MOOSE: 3, SKI: 4, DOOR: 5 } as const;
+
 export type WildKind = 'wolverine' | 'goat' | 'eagle' | 'shooter' | 'charger' | 'shielder';
 
 export interface Ledge { x: number; y: number; w: number; crumble: boolean }
@@ -38,7 +41,7 @@ export interface Course {
   skier: { x: number; y: number };
   ski: { x1: number; x2: number; obstacles: SkiObstacle[] };
   cabin: { x: number; y: number; stopX: number };
-  /** Where each checkpoint starts you: 0 trailhead, 1 top of the tram, 2 after the moose, 3 on skis. */
+  /** Where each checkpoint (CP) starts you. */
   checkpoints: { x: number; y: number }[];
   left: number;
   startX: number;
@@ -259,7 +262,10 @@ export const buildCourse = (): Course => {
     skier: { x: sx(skier.x), y: skier.y },
     ski: { x1: sx(ski.x1), x2: sx(ski.x2), obstacles: ski.obstacles.map(o => ({ ...o, x: sx(o.x) })) },
     cabin: { x: sx(cabin.x), y: cabin.y, stopX: sx(cabin.stopX) },
-    checkpoints: [{ x: sx(150), y: GROUND_Y }, { x: sx(cp1.x), y: cp1.y }, { x: sx(cp2.x), y: cp2.y }, { x: sx(cp3.x), y: cp3.y }],
+    checkpoints: [
+      { x: sx(150), y: GROUND_Y }, { x: sx(tramX - 160), y: tramY }, { x: sx(cp1.x), y: cp1.y },
+      { x: sx(cp2.x), y: cp2.y }, { x: sx(cp3.x), y: cp3.y }, { x: BOSS_DOOR_X - 650, y: GROUND_Y },
+    ],
     left: sx(0),
     startX: sx(0),
   };

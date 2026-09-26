@@ -398,6 +398,14 @@ const updateCamera = (ctx: FrameContext) => {
   // Hills and heights: the camera settles on the ground he last stood on, and climbs with big jumps.
   // It doesn't follow falls (so a pit is a pit), and it's back at 0 by the flat ground at the boss door.
   const layout = getStageLayout(stageId);
+  if (state.cameraOverride) {
+    // A set piece has the camera
+    state.camera.x += (state.cameraOverride.x - state.camera.x) * 0.15;
+    state.camera.y += (state.cameraOverride.y - state.camera.y) * 0.15;
+    if (Math.abs(state.cameraOverride.x - state.camera.x) < 0.5) state.camera.x = state.cameraOverride.x;
+    if (Math.abs(state.cameraOverride.y - state.camera.y) < 0.5) state.camera.y = state.cameraOverride.y;
+    return;
+  }
   if (layout?.verticalCamera && !state.arenaLocked && state.victoryString === "" && state.doorState !== 'done') {
     if (player.isGrounded) state.cameraRestY = player.pos.y + player.height - CAMERA_GROUND_ROW;
     const target = Math.min(state.cameraRestY, player.pos.y - CAMERA_TOP_MARGIN);

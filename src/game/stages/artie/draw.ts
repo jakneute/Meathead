@@ -4,10 +4,13 @@ import type { GameState } from '../../state';
 import { getArtie } from './runtime';
 import { COURSE } from './course';
 import { windBlowing, Hazards } from './hazards';
+import { drawTramBack, drawTramFront, drawTramHud } from './tramDraw';
 
 type Ctx = CanvasRenderingContext2D;
 
-export const drawArtieBack = (_ctx: Ctx, _state: GameState) => {};
+export const drawArtieBack = (ctx: Ctx, state: GameState) => {
+  drawTramBack(ctx, state, getArtie(state)!.tram);
+};
 
 export const drawArtieMid = (ctx: Ctx, state: GameState) => {
   const rt = getArtie(state)!;
@@ -18,8 +21,13 @@ export const drawArtieMid = (ctx: Ctx, state: GameState) => {
   drawSnowballs(ctx, rt.hazards);
 };
 
-export const drawArtieFront = (_ctx: Ctx, _state: GameState) => {};
-export const drawArtieHud = (_ctx: Ctx, _state: GameState) => {};
+export const drawArtieFront = (ctx: Ctx, state: GameState) => {
+  drawTramFront(ctx, state, getArtie(state)!.tram);
+};
+
+export const drawArtieHud = (ctx: Ctx, state: GameState) => {
+  drawTramHud(ctx, state, getArtie(state)!.tram);
+};
 
 const onScreen = (state: GameState, x: number, pad = 120) => x > state.camera.x - pad && x < state.camera.x + 800 + pad;
 
