@@ -9,6 +9,7 @@ import { getStages, getStartingWeapons, sortWeapons, BOSS_WEAPON_MAP, WEAPONS_AF
 import { VULGARITIES, BOSS_DIALOGUE } from './dialogue';
 import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS } from './game/gamepad';
 import { speak, say, isSpeaking, getBossVoice, takeFreshLine, MEATHEAD_MENU_VOICE } from './game/speech';
+import { playLockInSound, playEngageSound } from './game/audio';
 
 /** Shows the dev cheat panel on the title screen. */
 const SHOW_CHEATS = true;
@@ -53,6 +54,10 @@ const navigatePauseMenu = (index: number, dx: number, dy: number, numWeapons: nu
   return index;
 };
 
+/** How long the ENGAGE flourish plays before the stage starts. */
+const ENGAGE_FLOURISH_MS = 1700;
+const ENGAGE_SHOUTS = ["LET'S FUCKING GO!", "FUCK YEAH! LET'S GO!", "IT'S MEAT TIME, BABY!", "OH HELL YEAH!"];
+
 const App: React.FC = () => {
   const [status, setStatus] = useState<GameStatus>(GameStatus.START);
   const [health, setHealth] = useState(INITIAL_PLAYER_HEALTH);
@@ -71,7 +76,11 @@ const App: React.FC = () => {
   const [isInputLocked, setIsInputLocked] = useState(true);
   /** Stage select: the boss dossier is showing instead of the map. */
   const [showDossier, setShowDossier] = useState(false);
-  const toggleDossier = () => setShowDossier(v => !v);
+  const toggleDossier = () => { if (!engaging) setShowDossier(v => !v); };
+  /** Stage select: the boss locked in as the target (null = still browsing). ENGAGE needs a lock first. */
+  const [lockedIndex, setLockedIndex] = useState<number | null>(null);
+  /** The "LET'S FUCKIN' GO" flourish is playing; all stage select input is ignored. */
+  const [engaging, setEngaging] = useState(false);
 
   const cheats = SHOW_CHEATS ? cheatFlags : NO_CHEATS;
   const screenShownAtRef = useRef(Date.now());
@@ -84,6 +93,11 @@ const App: React.FC = () => {
     setIsInputLocked(true);
     const timer = setTimeout(() => setIsInputLocked(false), INPUT_LOCK_MS);
     return () => clearTimeout(timer);
+  }, [status]);
+
+  // Every visit to stage select starts unlocked
+  useEffect(() => {
+    if (status !== GameStatus.STAGE_SELECT) { setLockedIndex(null); setEngaging(false); }
   }, [status]);
 
   useEffect(() => {
@@ -231,6 +245,40 @@ const App: React.FC = () => {
     setStatus(GameStatus.LEVEL_INTRO);
   };
 
+  // --- Stage select: lock in a target, then ENGAGE ------------------------------
+
+  const lockStage = (idx: number) => {
+    const stage = getStages(progressionRank)[idx];
+    if (!stage || engaging) return;
+    setSelectedIndex(idx);
+    if (defeatedStages.includes(stage.id)) { setLockedIndex(null); speakRebuke(); return; }
+    setLockedIndex(idx);
+    playLockInSound();
+  };
+
+  const unlockStage = () => {
+    if (engaging) return;
+    setLockedIndex(null);
+  };
+
+  /** Second confirmation: Meathead fires himself up, then the stage starts. */
+  const engageStage = () => {
+    if (lockedIndex === null || engaging) return;
+    const stage = getStages(progressionRank)[lockedIndex];
+    setEngaging(true);
+    playEngageSound();
+    if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
+    speak(ENGAGE_SHOUTS[Math.floor(Math.random() * ENGAGE_SHOUTS.length)], MEATHEAD_MENU_VOICE);
+    setTimeout(() => handleSelectStage(stage.id), ENGAGE_FLOURISH_MS);
+  };
+
+  /** Clicking a portrait (or its map pin): lock it in, or back out if it's already the locked one. */
+  const handleStageCardClick = (idx: number) => {
+    if (engaging) return;
+    if (lockedIndex === idx) unlockStage();
+    else lockStage(idx);
+  };
+
   const activatePauseItem = (index: number) => {
     const numWeapons = availableWeapons.length;
     if (index < numWeapons) selectWeaponByIndex(index);
@@ -245,6 +293,7 @@ const App: React.FC = () => {
   const moveSelection = (dx: number, dy: number): boolean => {
     if (status === GameStatus.STAGE_SELECT) {
       if (dx === 0 && dy === 0) return false;
+      if (lockedIndex !== null || engaging) return false; // locked in: back out first
       setSelectedIndex(i => navigateStageGrid(i, dx, dy));
       return true;
     }
@@ -258,7 +307,7 @@ const App: React.FC = () => {
   };
 
   const confirmSelection = () => {
-    if (status === GameStatus.STAGE_SELECT) handleSelectStage(getStages(progressionRank)[selectedIndex].id);
+    if (status === GameStatus.STAGE_SELECT) { if (lockedIndex === null) lockStage(selectedIndex); else engageStage(); }
     else if (status === GameStatus.PAUSED) activatePauseItem(selectedIndex);
     else if (TIMED_SCREENS.includes(status)) handleStart();
   };
@@ -317,13 +366,21 @@ const App: React.FC = () => {
   };
 
   // Input listeners are attached once and always call the latest render's handlers.
-  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier });
-  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier };
+  /** B / Escape on stage select: back out of a lock, or back to the title when nothing is locked. */
+  const stageSelectBack = (toTitle: boolean) => {
+    if (engaging) return;
+    if (lockedIndex !== null) unlockStage();
+    else if (toTitle) setStatus(GameStatus.START);
+  };
+
+  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack });
+  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      const { status, togglePause, moveSelection, confirmSelection, selectWeaponHotkey, toggleDossier } = inputRef.current;
+      const { status, togglePause, moveSelection, confirmSelection, selectWeaponHotkey, toggleDossier, stageSelectBack } = inputRef.current;
       const key = e.key.toLowerCase();
+      if (status === GameStatus.STAGE_SELECT && (key === 'escape' || key === 'backspace')) { stageSelectBack(false); return; }
       if (key === 'escape') togglePause();
 
       if (status === GameStatus.PLAYING) {
@@ -338,7 +395,11 @@ const App: React.FC = () => {
       else if (key === 'arrowdown' || key === 's') moveSelection(0, 1);
       else if (key === 'arrowleft' || key === 'a') moveSelection(-1, 0);
       else if (key === 'arrowright' || key === 'd') moveSelection(1, 0);
-      else if (key === 'enter' || key === ' ') confirmSelection();
+      else if (key === 'enter' || key === ' ') {
+        // A clicked menu button keeps focus; don't let the browser "click" it again on top of this
+        e.preventDefault();
+        confirmSelection();
+      }
     };
     const onWheel = (e: WheelEvent) => {
       const { status, cycleWeapon } = inputRef.current;
@@ -363,7 +424,7 @@ const App: React.FC = () => {
       if (!gp) {
         prev.a = prev.b = prev.x = prev.start = prev.lb = prev.rb = false;
       } else {
-        const { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, toggleDossier } = inputRef.current;
+        const { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, toggleDossier, stageSelectBack } = inputRef.current;
         const now = Date.now();
         const move = getGamepadMovement(gp, 0.25);
         if (now - lastMoveAt > PAD_REPEAT_MS) {
@@ -389,7 +450,7 @@ const App: React.FC = () => {
         if (justPressed('x') && status === GameStatus.STAGE_SELECT) toggleDossier();
         if (justPressed('b')) {
           if (status === GameStatus.PAUSED) handleResume();
-          else if (status === GameStatus.STAGE_SELECT) setStatus(GameStatus.START);
+          else if (status === GameStatus.STAGE_SELECT) stageSelectBack(true);
         }
         if (justPressed('start') && inGame) togglePause();
         Object.assign(prev, pressed);
@@ -428,8 +489,11 @@ const App: React.FC = () => {
           onResume={handleResume}
           onBossSelect={handleBossSelect}
           onQuitToMenu={handleQuitToMenu}
-          onSelectStage={handleSelectStage}
-          onSelectIndex={setSelectedIndex}
+          onSelectIndex={(i) => { if (lockedIndex === null && !engaging) setSelectedIndex(i); }}
+          lockedIndex={lockedIndex}
+          engaging={engaging}
+          onStageCardClick={handleStageCardClick}
+          onEngage={engageStage}
           onWeaponIconClick={handleWeaponIconClick}
           showDossier={showDossier}
           onToggleDossier={toggleDossier}

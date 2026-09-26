@@ -158,3 +158,67 @@ export const playGlassShatterSound = () => {
     // Audio is best-effort.
   }
 };
+
+/** Stage select lock-in: a heavy mechanical ka-CHUNK, like a shell racking into the chamber. */
+export const playLockInSound = () => {
+  try {
+    const ctx = getAudioContext();
+    const t = ctx.currentTime;
+    [[0, 900, 0.06], [0.07, 110, 0.18]].forEach(([at, freq, gainAmt]) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(freq, t + at);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.4, t + at + 0.09);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.setValueAtTime(gainAmt, t + at);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + at + 0.12);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + at + 0.13);
+    });
+  } catch {
+    // Audio is best-effort.
+  }
+};
+
+/** ENGAGE: a noise slam and a fat rising power chord stab. */
+export const playEngageSound = () => {
+  try {
+    const ctx = getAudioContext();
+    const t = ctx.currentTime;
+    const bufferSize = ctx.sampleRate * 0.4;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    const nGain = ctx.createGain();
+    nGain.gain.setValueAtTime(0.35, t);
+    nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+    noise.connect(nGain);
+    nGain.connect(ctx.destination);
+    noise.start();
+    // E5 power chord (root, fifth, octave), sliding up into place
+    for (const freq of [82.4, 123.5, 164.8]) {
+      for (const detune of [-8, 8]) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.detune.value = detune;
+        osc.frequency.setValueAtTime(freq * 0.75, t);
+        osc.frequency.exponentialRampToValueAtTime(freq, t + 0.08);
+        gain.gain.setValueAtTime(0.05, t);
+        gain.gain.setValueAtTime(0.05, t + 0.7);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 1.3);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(t + 1.3);
+      }
+    }
+  } catch {
+    // Audio is best-effort.
+  }
+};
