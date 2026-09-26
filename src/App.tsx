@@ -418,11 +418,30 @@ const App: React.FC = () => {
       const { status, cycleWeapon } = inputRef.current;
       if (status === GameStatus.PLAYING || status === GameStatus.PAUSED) cycleWeapon(e.deltaY > 0 ? 1 : -1);
     };
+    // Right click is the menu "back" button, same as B on a controller (in-game it's the special)
+    // Unpausing waits for the release, or the still-held button would fire a special on the first frame
+    let rightPressedInPause = false;
+    const onMouseDown = (e: MouseEvent) => {
+      if (e.button !== 2) return;
+      const { status, stageSelectBack } = inputRef.current;
+      rightPressedInPause = status === GameStatus.PAUSED;
+      if (status === GameStatus.STAGE_SELECT) stageSelectBack(true);
+    };
+    const onMouseUp = (e: MouseEvent) => {
+      if (e.button !== 2) return;
+      const { status, handleResume } = inputRef.current;
+      if (rightPressedInPause && status === GameStatus.PAUSED) handleResume();
+      rightPressedInPause = false;
+    };
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('wheel', onWheel);
+    window.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mouseup', onMouseUp);
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mouseup', onMouseUp);
     };
   }, []);
 

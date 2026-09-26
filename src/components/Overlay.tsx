@@ -266,7 +266,7 @@ const EngageBar: React.FC<{ locked: boolean; engaging: boolean; onEngage: () => 
         <span className="[text-shadow:2px_2px_0_#000]">ENGAGE</span>
         <span className="text-[8px] not-italic tracking-normal px-1 py-[1px] bg-black/70 border border-yellow-400 text-yellow-300">(A) / ENTER</span>
       </button>
-      <span className="text-[7px] font-mono tracking-wider text-zinc-400 text-center">(B) / ESC / CLICK PORTRAIT AGAIN: BACK OUT</span>
+      <span className="text-[7px] font-mono tracking-wider text-zinc-400 text-center">(B) / ESC / R-CLICK: BACK OUT</span>
     </div>
   );
 };
@@ -397,7 +397,7 @@ const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, we
         {menuButton('BOSS SELECT', '☰', numWeapons + 1, onBossSelect, 'linear-gradient(180deg, #B91C1C, #7F1D1D)', '#450A0A')}
         {menuButton('QUIT', '✖', numWeapons + 2, onQuitToMenu, 'linear-gradient(180deg, #52525B, #3F3F46)', '#18181B')}
       </div>
-      <div className="mt-3 text-[6px] text-zinc-500 tracking-wider">ESC / START: RESUME &nbsp;&middot;&nbsp; 1-9 / CLICK / D-PAD: EQUIP</div>
+      <div className="mt-3 text-[6px] text-zinc-500 tracking-wider">ESC / START / R-CLICK: RESUME &nbsp;&middot;&nbsp; 1-9 / CLICK / D-PAD: EQUIP</div>
     </div>
   );
 };
