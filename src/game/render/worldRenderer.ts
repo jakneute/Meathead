@@ -16,7 +16,8 @@ import { drawVictoryPee } from './victoryPee';
 import { drawPlayer } from './playerRenderer';
 import { muzzlePoint } from '../muzzle';
 import { drawBackdrop, drawBackdropFront } from './backdrops';
-import { drawTerrain } from './backdrops/terrain';
+import { drawTerrain, drawGroundProfile } from './backdrops/terrain';
+import { getStageLayout } from '../stages';
 import { drawEnemyDeaths } from './enemyDeaths';
 import { drawSewerNukeInside, drawSewerNukeFlash, drawSewerNukeOutside } from './sewerNuke';
 import { drawVolcanoFinaleInside, drawVolcanoFinaleOutside } from './volcanoFinale';
@@ -65,6 +66,9 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   }
   ctx.translate(-state.camera.x, -state.camera.y);
 
+  const layout = getStageLayout(stageId);
+  layout?.drawBack?.(ctx, state);
+  drawGroundProfile(ctx, state.groundRuns, stageId, state.frame || 0, { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT });
   if (!drawTerrain(ctx, state.blocks, stageId, state.frame || 0, state.doorOpenAmount)) drawBlocks(ctx, state, colors);
   // The boss arena is drawn whenever any of it is on screen: from the moment the door
   // opens onto it, through the fight, his death and the victory lap
@@ -103,7 +107,9 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   drawBarryLighting(ctx, state, stageId);
   if (state.sewerNuke) drawSewerNukeInside(ctx, state);
   if (state.volcanoFinale) drawVolcanoFinaleInside(ctx, state);
+  layout?.drawFront?.(ctx, state);
   ctx.restore();
+  layout?.drawHud?.(ctx, state);
 
   // Screen space: the stage's weather over the level (not inside the boss arenas)
   if (state.camera.x < ARENA_LEFT - CANVAS_WIDTH / 2) drawBackdropFront(ctx, stageId, state.camera.x, state.camera.y, state.frame || 0);

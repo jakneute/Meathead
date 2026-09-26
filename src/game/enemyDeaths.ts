@@ -9,6 +9,7 @@
 import { Enemy, Vector2 } from '../types';
 import { COLORS, GRAVITY } from '../constants';
 import type { GameState } from './state';
+import { floorTopAt } from './terrain';
 
 export type EnemyDeathKind = 'charred' | 'fried' | 'melted' | 'greased' | 'pancaked';
 
@@ -49,7 +50,8 @@ export const startEnemyDeath = (state: GameState, e: Enemy, kind: EnemyDeathKind
     t: 0,
     vx: vel?.x ?? 0, vy: vel?.y ?? 0,
     rot: 0,
-    floorY: FLOOR_Y,
+    // The ground under it (hills, ledges), or the usual floor
+    floorY: floorTopAt(state.blocks, e.pos.x + e.width / 2, e.pos.y + e.height) ?? FLOOR_Y,
     landed: false,
     isShield: e.enemyType === 'shield',
   });
@@ -87,7 +89,7 @@ export const updateEnemyDeaths = (state: GameState) => {
             d.y = d.floorY - d.h;
             for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: cx, y: d.floorY - 4 }, vel: { x: (Math.random() - 0.5) * 12, y: -Math.random() * 6 }, life: 25, color: i % 3 ? '#111111' : '#3E2723', size: 3 + Math.random() * 5 });
           }
-          if (d.y > 1000) return false;
+          if (d.y > d.floorY + 1000) return false;
         }
         break;
       case 'pancaked':

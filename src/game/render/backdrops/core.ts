@@ -197,7 +197,8 @@ export const blitLayer = (ctx: G, spec: LayerSpec, camX: number, camY: number, f
   const tile = getTile(spec);
   const scroll = (camX * spec.parallax) / PX + (spec.drift ? frame * spec.drift : 0);
   const off = ((scroll % TILE_W) + TILE_W) % TILE_W;
-  const dy = spec.vertical ? -camY * spec.vertical : 0;
+  // (clamped: high up a mountain the low layers sink out of view, rather than off into nothing)
+  const dy = spec.vertical ? Math.max(-60 * PX, Math.min(LH * PX, -camY * spec.vertical)) : 0;
   ctx.save();
   ctx.imageSmoothingEnabled = false;
   const blitRows = (sy: number, rows: number, shift: number) => {

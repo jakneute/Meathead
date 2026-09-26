@@ -346,7 +346,7 @@ const updatePlayerBoulder = (ctx: FrameContext, p: Projectile): boolean => {
   }
 
   if (p.life <= 0) { shatterBoulder(ctx, p); return false; }
-  if (p.pos.y > 1000) return false;
+  if (p.pos.y > state.camera.y + 1000) return false;
   // Jammed into one of Victor's vents
   if (state.bossVolcanoes.length > 0 && tryCorkVent(ctx, p)) return false;
   return resolvePlayerProjectileHits(ctx, p);

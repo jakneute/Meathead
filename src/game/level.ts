@@ -3,9 +3,11 @@ import { BOSS_DOOR_X, DOOR_WIDTH, GROUND_Y, createFullAmmo } from '../constants'
 import { isKnownStage } from '../stages';
 import { GameState, resetStageState } from './state';
 import { createBoss, getBossDef, getArenaRight, getStageWidth } from './boss';
+import { getStageLayout } from './stages';
 
 /** Where the player starts: the stage start, or just before the boss door when skipping. */
-export const getStartX = (skipToBoss: boolean) => skipToBoss ? BOSS_DOOR_X - 800 : 0;
+export const getStartX = (skipToBoss: boolean, stageId: string | null = null) =>
+  skipToBoss ? BOSS_DOOR_X - 800 : getStageLayout(stageId)?.startX ?? 0;
 
 /** Builds the terrain, enemies and boss for a stage into `state`. */
 export const buildLevel = (state: GameState, stageId: string | null, skipToBoss: boolean) => {
@@ -29,11 +31,14 @@ export const buildLevel = (state: GameState, stageId: string | null, skipToBoss:
   state.icicles = [];
   state.bossCorpse = null;
 
+  const layout = getStageLayout(stageId);
   state.blocks = buildTerrain(state, stageId);
   state.enemies = [
-    ...(skipToBoss ? [] : spawnStageEnemies()),
+    ...(skipToBoss || layout ? [] : spawnStageEnemies()),
     ...(isKnownStage(stageId) ? [createBoss(stageId!)] : []),
   ];
+  // A hand-built stage adds its own ground, enemies and hazards (and says where to start after a checkpoint)
+  return layout?.build(state, skipToBoss) || undefined;
 };
 
 /** Resets the player and stage after death. */
@@ -42,14 +47,20 @@ export const respawn = (state: GameState, stageId: string | null, skipToBoss: bo
   // Died to the boss: start again right outside his door (as with the skip cheat), with no way back
   const atBoss = skipToBoss || state.bossCheckpoint;
   const p = state.player;
-  p.pos = { x: getStartX(atBoss) + 150, y: 100 };
+  p.pos = { x: getStartX(atBoss, stageId) + 150, y: 100 };
   p.vel = { x: 0, y: 0 };
   p.facing = 1;
   p.currentWeapon = 'GUN';
   p.weaponAmmo = createFullAmmo();
   state.shouldSyncWeapon = true;
   state.frame = 1;
-  buildLevel(state, stageId, atBoss);
+  const checkpointStart = buildLevel(state, stageId, atBoss);
+  // A long stage's checkpoint: start there instead, with the camera already on him
+  if (checkpointStart && !atBoss) {
+    p.pos = { x: checkpointStart.x, y: checkpointStart.y - p.height };
+    state.camera.x = Math.max(state.cameraMinX, p.pos.x - 250);
+    state.camera.y = state.cameraRestY;
+  }
   if (state.bossCheckpoint && !skipToBoss) {
     const startX = getStartX(true);
     state.blocks.push({ x: startX - 100, y: -1000, w: 100, h: 2000, type: 'wall' });
@@ -62,6 +73,21 @@ const buildTerrain = (state: GameState, stageId: string | null): Block[] => {
   const isTommy = stageId === 'Toxic Tommy';
   const arena = getBossDef(stageId)?.arena;
   const stageWidth = getStageWidth(stageId);
+  const layout = getStageLayout(stageId);
+  if (layout) {
+    // Just the boss end: the layout builds everything left of the door itself
+    const blocks: Block[] = [
+      { x: layout.left - 100, y: -6000, w: 100, h: 9000, type: 'wall' },
+      { x: stageWidth, y: -1000, w: 100, h: 2000, type: 'wall' },
+      { x: doorX, y: GROUND_Y, w: stageWidth - doorX, h: 50, type: 'ground' },
+      { x: doorX, y: 400, w: DOOR_WIDTH, h: 150, type: 'door' },
+      { x: doorX, y: -1000, w: DOOR_WIDTH, h: 1400, type: 'wall' },
+      { x: getArenaRight(stageId), y: 100, w: 40, h: 500, type: 'wall' },
+    ];
+    if (!arena?.openTop) blocks.push({ x: doorX, y: -200, w: stageWidth - doorX, h: 300, type: 'wall' });
+    arena?.build?.(state, blocks);
+    return blocks;
+  }
 
   const blocks: Block[] = [
     { x: -100, y: -1000, w: 100, h: 2000, type: 'wall' },

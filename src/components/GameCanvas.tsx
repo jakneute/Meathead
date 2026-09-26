@@ -103,6 +103,7 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
     if (state.frame === 0 && status === GameStatus.LEVEL_INTRO) {
       resetStageState(state);
       state.bossCheckpoint = false;
+      state.checkpoint = 0;
       buildLevel(state, stageId, cheats.skipToBoss);
       state.frame = 1;
     }

@@ -5,6 +5,7 @@ import {
 } from '../types';
 import { INITIAL_PLAYER_HEALTH, POWER_CELLS, SCREEN_SHAKE_MAX } from '../constants';
 import { resetLineCooldowns } from './speech';
+import type { GroundRun } from './terrain';
 
 export type DoorState = 'closed' | 'opening' | 'open' | 'closing' | 'done';
 
@@ -36,6 +37,14 @@ export interface GameState {
   damageNumbers: DamageNumber[];
   blocks: Block[];
   camera: Vector2;
+  /** Sloped ground for stages with a layout (drawn as hills; collision is in `blocks`). */
+  groundRuns: GroundRun[];
+  /** The camera's resting height: where the ground Meathead last stood on sits on screen (vertical-camera stages). */
+  cameraRestY: number;
+  /** How far through a long stage this attempt has got (respawns start at the last one). Kept across deaths. */
+  checkpoint: number;
+  /** A stage layout's own running state (set pieces, hazards), rebuilt with the level. */
+  stage: unknown;
 
   // Boss door & arena
   arenaLocked: boolean;
@@ -193,6 +202,10 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
   damageNumbers: [],
   blocks: [],
   camera: { x: 0, y: 0 },
+  groundRuns: [],
+  cameraRestY: 0,
+  checkpoint: 0,
+  stage: null,
   arenaLocked: false,
   doorOpenAmount: 0,
   doorState: 'closed',
@@ -291,6 +304,9 @@ export const resetStageState = (s: GameState) => {
   s.damageNumbers = [];
   s.blocks = [];
   s.camera = { x: 0, y: 0 };
+  s.groundRuns = [];
+  s.cameraRestY = 0;
+  s.stage = null;
 
   s.arenaLocked = false;
   s.doorState = 'closed';

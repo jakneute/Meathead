@@ -54,7 +54,7 @@ const stars = (g: G, w: number, h: number, seed: number, count: number, maxY: nu
 // ===========================================================================
 
 const artieFarPeaks: LayerSpec = {
-  key: 'artie-far', parallax: 0.06,
+  key: 'artie-far', parallax: 0.06, vertical: 0.03,
   paint: (g, w, h) => {
     const ridge = makeRidge(11, w, 175, 95, 0);
     fillRidge(g, w, h, ridge, '#2B4166');
@@ -71,7 +71,7 @@ const artieFarPeaks: LayerSpec = {
   },
 };
 const artieMidPeaks: LayerSpec = {
-  key: 'artie-mid', parallax: 0.16,
+  key: 'artie-mid', parallax: 0.16, vertical: 0.08,
   paint: (g, w, h) => {
     const ridge = makeRidge(23, w, 222, 55, 0.05);
     fillRidge(g, w, h, ridge, '#1B2C47', '#C8DBF5');
@@ -89,7 +89,8 @@ const artieMidPeaks: LayerSpec = {
   },
 };
 const artieForest = (key: string, seed: number, parallax: number, base: number, size: number, color: string, snow: string, ground: string): LayerSpec => ({
-  key, parallax,
+  // Up the mountain, the tree line drops away below
+  key, parallax, vertical: parallax * 0.6,
   paint: (g, w, h) => {
     const r = rng(seed);
     const ridge = makeRidge(seed, w, base, 6, 0);

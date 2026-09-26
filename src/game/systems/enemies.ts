@@ -22,6 +22,8 @@ import { getAttackHitbox, harmlessBounce, recoilOff, getContactHurtSource } from
 import { shakeScreen } from '../state';
 import { startEnemyDeath } from '../enemyDeaths';
 import { getEnemyMass, enemyGrip, massRatio } from './knockback';
+import { floorTopAt } from '../terrain';
+import { getStageLeft } from '../stages';
 
 /** Moves one enemy and resolves its contact with the player. Returns false to remove it. */
 export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolean => {
@@ -33,7 +35,7 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
     e.pos.y += e.vel.y;
     e.vel.y += GRAVITY * 0.5;
     e.rotation = (e.rotation || 0) + 0.3;
-    return e.pos.y < 1000;
+    return e.pos.y < state.camera.y + 1000;
   }
   if (e.health <= 0) return false;
   if (e.hitCooldown && e.hitCooldown > 0) e.hitCooldown--;
@@ -69,11 +71,10 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
 };
 
 
-/** Is there floor under this enemy? (Stages have none missing yet; pits will be gaps in the ground.) */
-const hasFloorBelow = (state: FrameContext['state'], e: Enemy) => {
-  const cx = e.pos.x + e.width / 2;
-  return state.blocks.some(b => b.type === 'ground' && cx >= b.x && cx <= b.x + b.w && b.y <= 551 && b.y + b.h >= 550);
-};
+/** The top of the ground (or ledge) under this enemy, or null over a pit. Steps and slopes up to 26px count. */
+const floorUnder = (state: FrameContext['state'], e: Enemy, reach = 26) =>
+  floorTopAt(state.blocks, e.pos.x + e.width / 2, e.pos.y + e.height, reach);
+const hasFloorBelow = (state: FrameContext['state'], e: Enemy) => floorUnder(state, e) !== null;
 
 /**
  * Knocked clean off the stage: an enemy that ends up entirely outside anywhere
@@ -85,15 +86,16 @@ const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
   const { state, fx, stageId } = ctx;
   // Tommy's open-topped arena: the camera follows jumps up, so there's no top edge there
   const openAbove = !!getBossDef(stageId)?.arena?.openTop && e.pos.x + e.width > BOSS_DOOR_X;
-  const up = !openAbove && e.pos.y + e.height < 0;
-  const down = e.pos.y > CANVAS_HEIGHT;
-  const side = e.pos.x + e.width < 0 || e.pos.x > getStageWidth(stageId);
+  // (On a hilly stage things can sit above or below the view: only launched ones and ones with nothing under them count)
+  const up = !openAbove && e.pos.y + e.height < state.camera.y && (state.camera.y === 0 || e.vel.y < -2);
+  const down = e.pos.y > state.camera.y + CANVAS_HEIGHT && (state.camera.y === 0 || !hasFloorBelow(state, e) || e.pos.y > state.camera.y + 1400);
+  const side = e.pos.x + e.width < getStageLeft(stageId) || e.pos.x > getStageWidth(stageId);
   if (!up && !down && !side) return false;
   e.health = 0;
   const cx = e.pos.x + e.width / 2;
   // The callout goes up at the edge of the screen they left by (the renderer keeps it all on screen)
   const edge = {
-    pos: { x: Math.max(state.camera.x, Math.min(state.camera.x + CANVAS_WIDTH, cx)) - 10, y: up ? 75 : down ? 530 : Math.max(90, Math.min(520, e.pos.y)) },
+    pos: { x: Math.max(state.camera.x, Math.min(state.camera.x + CANVAS_WIDTH, cx)) - 10, y: state.camera.y + (up ? 75 : down ? 530 : Math.max(90, Math.min(520, e.pos.y - state.camera.y))) },
     width: 20,
   };
   fx.spawnKillCallout(edge, up ? 'moon' : down ? 'cliff' : 'yeet');
@@ -101,12 +103,12 @@ const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
     // A twinkle where they vanished into the sky
     for (let i = 0; i < 10; i++) {
       state.particles.push({
-        pos: { x: cx, y: 6 }, vel: { x: (Math.random() - 0.5) * 5, y: Math.random() * 2.5 },
+        pos: { x: cx, y: state.camera.y + 6 }, vel: { x: (Math.random() - 0.5) * 5, y: Math.random() * 2.5 },
         life: 25 + Math.random() * 15, color: i % 2 ? '#FFFFFF' : '#FDE047', size: 2 + Math.random() * 3,
       });
     }
   }
-  fx.spawnPickup({ x: e.pos.x, y: 500 });
+  fx.spawnPickup({ x: e.pos.x, y: state.camera.y + 500 });
   fx.speakVulgarity(up ? 'uppercut_kill' : 'charge_kill');
   state.player.killSatisfactionTimer = 60;
   return true;
@@ -260,14 +262,15 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
         // Sludge drags it down hard: it slams into the floor, or keeps going down a pit
         if (!e.sludgeFallSpeed) e.sludgeFallFromY = e.pos.y;
         e.sludgeFallSpeed = Math.min(18, (e.sludgeFallSpeed || 3) + 1.2);
-        const floorY = 550 - e.height;
-        if (!hasFloorBelow(state, e) || e.pos.y + e.sludgeFallSpeed < floorY) {
+        const top = floorUnder(state, e, 0);
+        const floorY = (top ?? Infinity) - e.height;
+        if (top === null || e.pos.y + e.sludgeFallSpeed < floorY) {
           e.pos.y += e.sludgeFallSpeed;
           dragIntoEnemies(ctx, e);
         } else if (e.pos.y < floorY) {
           e.pos.y = floorY;
           const damage = sludgeFallDamage(e);
-          ctx.fx.spawnExplosion({ x: e.pos.x + e.width / 2, y: 550 }, '#ADFF2F', 8, 0, 8);
+          ctx.fx.spawnExplosion({ x: e.pos.x + e.width / 2, y: floorY + e.height }, '#ADFF2F', 8, 0, 8);
           shakeScreen(state, 8, Math.min(10, toGml(e.sludgeFallSpeed)) * GML_SCALE * 0.5);
           e.sludgeFallSpeed = 0;
           if (damage > 0) {
@@ -300,11 +303,14 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
     return;
   }
 
-  const floorLevel = 550 - e.height;
-  const overFloor = hasFloorBelow(state, e);
+  const top = floorUnder(state, e);
+  const overFloor = top !== null;
+  const floorLevel = (top ?? Infinity) - e.height;
   const grip = enemyGrip(ctx.stageId, e);
-  // Airborne if above the floor, just launched upward (uppercuts, explosions) or shoved over a pit
-  if (e.pos.y < floorLevel - 1 || e.vel.y < 0 || !overFloor) {
+  // Airborne if above the floor (a little downhill step doesn't count), just launched upward
+  // (uppercuts, explosions) or shoved over a pit
+  const onGround = e.vel.y === 0 && e.pos.y >= floorLevel - 16;
+  if ((e.pos.y < floorLevel - 1 && !onGround) || e.vel.y < 0 || !overFloor) {
     // Launched into the air by knockback
     e.pos.x += e.vel.x;
     e.pos.y += e.vel.y;

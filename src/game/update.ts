@@ -26,6 +26,8 @@ import { updateOscarHazards } from './bosses/oscar';
 import { isGoreColor } from './effects';
 import { updateVictoryPee, peeFinished } from './victoryPee';
 import { getBossDef, getArenaRight, getStageWidth } from './boss';
+import { getStageLayout } from './stages';
+import { groundLineAt } from './terrain';
 
 const INTRO_JUMP_START = 80;
 const INTRO_JUMP_FRAMES = 60;
@@ -110,7 +112,7 @@ const updateLevelIntro = (ctx: FrameContext) => {
   const { state, stageId, cheats } = ctx;
   const { player } = state;
   state.introTimer++;
-  const baseStartX = getStartX(cheats.skipToBoss);
+  const baseStartX = getStartX(cheats.skipToBoss, stageId);
   state.camera.x = baseStartX;
   player.facing = 1;
 
@@ -243,6 +245,9 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
   const { player } = state;
   if (player.pos.x >= BOSS_DOOR_X && state.doorState === 'done') state.arenaLocked = true;
   if (state.victoryString) { updateVictorySequence(ctx); return false; }
+  // A hand-built stage runs its hazards and set pieces (and can take over the controls for cutscenes)
+  const layout = getStageLayout(ctx.stageId);
+  if (layout && !state.arenaLocked) controls = layout.update(ctx, controls);
 
   updateBarfStream(state);
   updateTsunami(ctx);
@@ -290,7 +295,8 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
     const form = getSpecialForm(player) || formBeforeHits;
     if (form) interruptSpecialWithHurt(ctx, form);
   }
-  if ((player.health <= 0 || player.pos.y > 1000) && state.deathTimer <= 0) killPlayer(ctx, "YOU DIED");
+  // Fell out of the world (down a pit): relative to the camera, which doesn't follow falls
+  if ((player.health <= 0 || player.pos.y > state.camera.y + 1000) && state.deathTimer <= 0) killPlayer(ctx, "YOU DIED");
   if (player.isTasing && player.currentWeapon === 'TASER' && state.frame % 3 === 0) ctx.fx.playGunSound('taser');
   return true;
 };
@@ -347,9 +353,10 @@ const updateParticles = (ctx: FrameContext) => {
       if (!p.isBossGore && isGoreColor(p.color)) {
         p.vel.y += 0.35;
         p.vel.x *= 0.99;
-        if (bloodSplatsOnFloor && p.pos.y + p.size >= 550) {
+        const floor = groundLineAt(state.groundRuns, p.pos.x);
+        if (bloodSplatsOnFloor && p.pos.y + p.size >= floor && p.pos.y + p.size < floor + 30) {
           p.isSplat = true;
-          p.pos.y = 548 - p.size / 2; // centred on the floor line
+          p.pos.y = floor - 2 - p.size / 2; // centred on the floor line
           p.vel = { x: 0, y: 0 };
           p.life = Math.max(p.life, 150 + Math.random() * 90);
           return true;
@@ -358,7 +365,8 @@ const updateParticles = (ctx: FrameContext) => {
       // Glass and fire fall and bounce on the floor
       if (p.isGlass || (p.color && PARTICLE_PALETTES.FIRE.includes(p.color))) {
         p.vel.y += 0.25;
-        if (p.pos.y > 548) { p.pos.y = 548; p.vel.y = -p.vel.y * 0.3; p.vel.x *= 0.8; }
+        const floor = groundLineAt(state.groundRuns, p.pos.x) - 2;
+        if (p.pos.y > floor && p.pos.y < floor + 30) { p.pos.y = floor; p.vel.y = -p.vel.y * 0.3; p.vel.x *= 0.8; }
       }
       p.life--;
     }
@@ -378,10 +386,24 @@ const updateDamageNumbers = (ctx: FrameContext) => {
   });
 };
 
+/** Where the camera rests vertically: the ground he's standing on sits this far down the screen. */
+const CAMERA_GROUND_ROW = 550;
+/** Past this far up the screen, the camera rises with him. */
+const CAMERA_TOP_MARGIN = 150;
+
 const updateCamera = (ctx: FrameContext) => {
   const { state, stageId } = ctx;
   const { player } = state;
   const followX = player.pos.x - CANVAS_WIDTH / 2 + player.width / 2;
+  // Hills and heights: the camera settles on the ground he last stood on, and climbs with big jumps.
+  // It doesn't follow falls (so a pit is a pit), and it's back at 0 by the flat ground at the boss door.
+  const layout = getStageLayout(stageId);
+  if (layout?.verticalCamera && !state.arenaLocked && state.victoryString === "" && state.doorState !== 'done') {
+    if (player.isGrounded) state.cameraRestY = player.pos.y + player.height - CAMERA_GROUND_ROW;
+    const target = Math.min(state.cameraRestY, player.pos.y - CAMERA_TOP_MARGIN);
+    state.camera.y += (target - state.camera.y) * 0.12;
+    if (Math.abs(target - state.camera.y) < 0.5) state.camera.y = target;
+  }
   if (!state.arenaLocked && state.victoryString === "" && state.bossExplosionTimer <= 0) {
     // Camera follows the player but can't scroll past the closed boss door
     const maxX = state.cameraMaxX ?? (state.doorState === 'closed' ? BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH : getStageWidth(stageId) - CANVAS_WIDTH);
@@ -394,7 +416,7 @@ const updateCamera = (ctx: FrameContext) => {
     // No ceiling (Tommy's arena): follow high jumps
     const targetCamY = player.pos.y < 220 ? player.pos.y - 220 : 0;
     state.camera.y += (targetCamY - state.camera.y) * 0.15;
-  } else {
+  } else if (!layout?.verticalCamera || state.arenaLocked || state.doorState === 'done') {
     state.camera.y = 0;
   }
 };

@@ -20,6 +20,7 @@ import { fireWeapon, updateFlamethrower } from '../weapons';
 import { rectsOverlap, boundsOf } from '../utils';
 import { isStandingInOil } from '../bosses/oscar';
 import { getBossDef, getArenaRight } from '../boss';
+import { getStageLeft } from '../stages';
 
 export interface FrameInput {
   shoot: boolean;
@@ -325,14 +326,17 @@ export const updatePlayerPhysics = (ctx: FrameContext, input: FrameInput) => {
   const { player } = state;
 
   if (player.shootCooldown > 0) player.shootCooldown--;
+  const wasGrounded = player.isGrounded;
   updateVerticalVelocity(ctx, input);
   if (state.playerStunTimer > 0) player.pos.y += (state.frame % 2 === 0 ? -2 : 2);
 
   moveHorizontally(ctx);
   moveVertically(ctx);
+  if (wasGrounded) stickToGround(ctx);
   pushOutOfSolids(state);
 
-  if (player.pos.x < 50) player.pos.x = 50;
+  const left = getStageLeft(ctx.stageId);
+  if (player.pos.x < left + 50) player.pos.x = left + 50;
   // Safety net: nothing can push you out through the walls of a locked boss arena
   if (state.arenaLocked) player.pos.x = Math.max(ARENA_LEFT, Math.min(getArenaRight(ctx.stageId) - player.width, player.pos.x));
   // Footstep dust while running
@@ -473,6 +477,25 @@ const moveVertically = (ctx: FrameContext) => {
     if (Math.abs(impactSpeed) >= LANDING_SHAKE_SPEED) shakeHard(state, impactSpeed);
     player.vel.y = 0;
   }
+};
+
+/** Downhill, the ground drops away a few pixels at a time: stay on it instead of skipping down it in little hops. */
+const GROUND_STICK = 18;
+const stickToGround = (ctx: FrameContext) => {
+  const { state } = ctx;
+  const { player } = state;
+  if (standingOnSolid(state)) return; // (already on something)
+  if (player.vel.y < 0 || player.jumpHoldTimer > 0 || player.isUppercutting || player.isDivekicking) return;
+  const feet = player.pos.y + player.height;
+  let top = Infinity;
+  for (const b of state.blocks) {
+    if (!isSolid(state, b) || b.x >= player.pos.x + player.width || b.x + b.w <= player.pos.x) continue;
+    if (b.y >= feet && b.y - feet <= GROUND_STICK && b.y < top) top = b.y;
+  }
+  if (top === Infinity) return;
+  player.pos.y = top - player.height;
+  player.vel.y = 0;
+  landPlayer(ctx, 0);
 };
 
 /** GML trigger_screen_shake: heavier, faster impacts shake harder (capped). */

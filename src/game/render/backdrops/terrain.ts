@@ -3,6 +3,7 @@
 // in world space so the textures scroll with the level.
 
 import { Block } from '../../../types';
+import type { GroundRun } from '../../terrain';
 import { hash, mix } from './core';
 
 type Ctx = CanvasRenderingContext2D;
@@ -169,7 +170,7 @@ export const drawTerrain = (ctx: Ctx, blocks: Block[], stageId: string | null, f
   const fill = texturePattern(ctx, stageId!, m, false);
   const wallFill = texturePattern(ctx, stageId!, m, true);
   for (const b of blocks) {
-    if (b.type === 'pit') continue;
+    if (b.type === 'pit' || b.hidden) continue;
     if (b.type === 'door') {
       // The boss door: a heavy riveted shutter
       const y = b.y - doorOpenAmount;
@@ -189,4 +190,80 @@ export const drawTerrain = (ctx: Ctx, blocks: Block[], stageId: string | null, f
     if (b.type === 'platform') m.under?.(ctx, b, frame);
   }
   return true;
+};
+
+/**
+ * Sloped ground: each run of the profile drawn as a textured hillside, with the
+ * stage's cap following the surface and a shaded cliff face where it ends at a pit.
+ * Only the runs on screen are drawn.
+ */
+export const drawGroundProfile = (ctx: Ctx, runs: GroundRun[], stageId: string | null, frame: number, view: { x: number; y: number; w: number; h: number }) => {
+  const m = stageId ? MATERIALS[stageId] : undefined;
+  if (!m || !runs.length || typeof document === 'undefined') return;
+  const fill = texturePattern(ctx, stageId!, m, false);
+  const bottom = view.y + view.h + 40;
+  // Pits first: a dark crevasse between the runs either side, fading to black
+  for (let i = 0; i + 1 < runs.length; i++) {
+    const a = runs[i], n = runs[i + 1];
+    if (n.x1 <= a.x2 + 1 || n.x1 < view.x - 20 || a.x2 > view.x + view.w + 20) continue;
+    const top = Math.min(a.y2, n.y1);
+    const g = ctx.createLinearGradient(0, top, 0, top + 260);
+    g.addColorStop(0, '#2B4870'); g.addColorStop(0.35, '#101C33'); g.addColorStop(1, '#02040A');
+    ctx.fillStyle = g;
+    ctx.fillRect(a.x2, top, n.x1 - a.x2, Math.max(bottom, top + 40) - top);
+    // Ice walls catching a little light at the lips
+    ctx.fillStyle = 'rgba(200, 225, 255, 0.35)';
+    ctx.fillRect(a.x2, a.y2, 3, 70);
+    ctx.fillRect(n.x1 - 3, n.y1, 3, 70);
+  }
+  for (let i = 0; i < runs.length; i++) {
+    const r = runs[i];
+    if (r.x2 < view.x - 20 || r.x1 > view.x + view.w + 20) continue;
+    // Body of the hill down past the bottom of the screen
+    ctx.fillStyle = fill;
+    ctx.beginPath();
+    ctx.moveTo(r.x1, r.y1);
+    ctx.lineTo(r.x2, r.y2);
+    ctx.lineTo(r.x2, Math.max(bottom, r.y2 + 40));
+    ctx.lineTo(r.x1, Math.max(bottom, r.y1 + 40));
+    ctx.closePath();
+    ctx.fill();
+    // A little shading just under the surface
+    ctx.fillStyle = 'rgba(40, 60, 100, 0.18)';
+    ctx.beginPath();
+    ctx.moveTo(r.x1, r.y1 + 10); ctx.lineTo(r.x2, r.y2 + 10); ctx.lineTo(r.x2, r.y2 + 26); ctx.lineTo(r.x1, r.y1 + 26);
+    ctx.closePath(); ctx.fill();
+    // Cliff faces where the ground stops (a pit, or a step down/up to the next run)
+    const prev = runs[i - 1], next = runs[i + 1];
+    const faceL = !prev || prev.x2 < r.x1 - 1 || Math.abs(prev.y2 - r.y1) > 2;
+    const faceR = !next || next.x1 > r.x2 + 1 || Math.abs(next.y1 - r.y2) > 2;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+    if (faceL) ctx.fillRect(r.x1, r.y1 + 6, 5, Math.max(bottom, r.y1 + 40) - r.y1);
+    if (faceR) ctx.fillRect(r.x2 - 5, r.y2 + 6, 5, Math.max(bottom, r.y2 + 40) - r.y2);
+    drawSlopeCap(ctx, r, stageId!);
+  }
+};
+
+/** The top of a sloped run: for Artie, a drift of snow following the surface, with lumps. */
+const drawSlopeCap = (ctx: Ctx, r: GroundRun, stageId: string) => {
+  if (stageId !== 'Artie Avalanche') {
+    ctx.strokeStyle = MATERIALS[stageId].light; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(r.x1, r.y1 + 1); ctx.lineTo(r.x2, r.y2 + 1); ctx.stroke();
+    return;
+  }
+  const len = Math.hypot(r.x2 - r.x1, r.y2 - r.y1);
+  const ang = Math.atan2(r.y2 - r.y1, r.x2 - r.x1);
+  ctx.save();
+  ctx.translate(r.x1, r.y1);
+  ctx.rotate(ang);
+  ctx.fillStyle = '#F7FBFF';
+  ctx.fillRect(0, -4, len, 9);
+  for (let d = 0; d < len; d += 10) {
+    ctx.beginPath();
+    ctx.ellipse(d + 5, -3, 7, 4 + hash(Math.round(r.x1 + d)) * 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.fillStyle = '#C8DCF3';
+  ctx.fillRect(0, 5, len, 2);
+  ctx.restore();
 };

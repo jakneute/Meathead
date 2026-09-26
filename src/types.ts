@@ -328,6 +328,10 @@ export type BlockType = 'wall' | 'ground' | 'platform' | 'door' | 'pit';
 
 export interface Block extends Rect {
   type: BlockType;
+  /** Collision only: the stage draws this ground itself (smooth slopes instead of the steps). */
+  hidden?: boolean;
+  /** A stage hazard/feature this block belongs to (crumbling ledges, the tram, rock overhangs...). */
+  tag?: string;
 }
 
 export interface Volcano {
