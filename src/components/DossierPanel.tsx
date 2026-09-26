@@ -65,7 +65,7 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
             {field('REAL NAME', d.realName)}
             {field('AGE', d.age)}
             {loc && field('LAST SEEN', `${loc.city}, ${loc.state}`)}
-            {after ? field('STATUS', 'DECEASED. EXTREMELY.') : field('THREAT', d.threat)}
+            {after ? field('STATUS', corpseWeapon ? 'DECEASED. EXTREMELY.' : 'DECEASED.') : field('THREAT', d.threat)}
           </div>
         </div>
 
