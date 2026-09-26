@@ -56,6 +56,10 @@ export interface GameState {
   // Level flow
   introTimer: number;
   deathTimer: number;
+  /** Reached the boss this attempt: dying now respawns right outside his door (cleared when a stage starts). */
+  bossCheckpoint: boolean;
+  /** The camera can't scroll left of this (no backtracking after a boss checkpoint respawn). */
+  cameraMinX: number;
   deathString: string;
   /** Easter egg: set fire to an oiled-up Toxic Tommy and the sewer goes nuclear (plays out as the death screen). */
   sewerNuke: Vector2 | null;
@@ -195,6 +199,8 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
   isMeatheadSpeaking: false,
   introTimer: 0,
   deathTimer: 0,
+  bossCheckpoint: false,
+  cameraMinX: 0,
   deathString: "",
   sewerNuke: null,
   victoryString: "",
@@ -292,6 +298,7 @@ export const resetStageState = (s: GameState) => {
 
   s.introTimer = 0;
   s.deathTimer = 0;
+  s.cameraMinX = 0;
   s.deathString = "";
   s.sewerNuke = null;
   s.victoryString = "";

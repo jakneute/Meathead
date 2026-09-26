@@ -90,6 +90,7 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
     // In menus: clear the stage and draw a single blank frame
     if (status === GameStatus.START || status === GameStatus.STAGE_SELECT || status === GameStatus.ENDING) {
       resetStageState(state);
+      state.bossCheckpoint = false;
       state.frame = 0;
       draw();
       return;
@@ -98,6 +99,7 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
     // First frame of a new stage
     if (state.frame === 0 && status === GameStatus.LEVEL_INTRO) {
       resetStageState(state);
+      state.bossCheckpoint = false;
       buildLevel(state, stageId, cheats.skipToBoss);
       state.frame = 1;
     }

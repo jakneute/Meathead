@@ -167,6 +167,7 @@ const updateBossTransition = (ctx: FrameContext) => {
       player.isSliding = false;
       player.isUppercutting = false;
       player.isDivekicking = false;
+      state.bossCheckpoint = true;
       ctx.events.onBossEncounter();
     }
   }
@@ -377,7 +378,7 @@ const updateCamera = (ctx: FrameContext) => {
   if (!state.arenaLocked && state.victoryString === "" && state.bossExplosionTimer <= 0) {
     // Camera follows the player but can't scroll past the closed boss door
     const maxX = state.doorState === 'closed' ? BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH : getStageWidth(stageId) - CANVAS_WIDTH;
-    state.camera.x = Math.max(0, Math.min(maxX, followX));
+    state.camera.x = Math.max(state.cameraMinX, Math.min(maxX, followX));
   } else if (state.arenaLocked && getArenaRight(stageId) > ARENA_RIGHT) {
     // A wider-than-usual arena (Oscar's) scrolls with you
     state.camera.x = Math.max(BOSS_DOOR_X, Math.min(getStageWidth(stageId) - CANVAS_WIDTH, followX));

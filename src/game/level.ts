@@ -39,15 +39,22 @@ export const buildLevel = (state: GameState, stageId: string | null, skipToBoss:
 /** Resets the player and stage after death. */
 export const respawn = (state: GameState, stageId: string | null, skipToBoss: boolean) => {
   resetStageState(state);
+  // Died to the boss: start again right outside his door (as with the skip cheat), with no way back
+  const atBoss = skipToBoss || state.bossCheckpoint;
   const p = state.player;
-  p.pos = { x: getStartX(skipToBoss) + 150, y: 100 };
+  p.pos = { x: getStartX(atBoss) + 150, y: 100 };
   p.vel = { x: 0, y: 0 };
   p.facing = 1;
   p.currentWeapon = 'GUN';
   p.weaponAmmo = createFullAmmo();
   state.shouldSyncWeapon = true;
   state.frame = 1;
-  buildLevel(state, stageId, skipToBoss);
+  buildLevel(state, stageId, atBoss);
+  if (state.bossCheckpoint && !skipToBoss) {
+    const startX = getStartX(true);
+    state.blocks.push({ x: startX - 100, y: -1000, w: 100, h: 2000, type: 'wall' });
+    state.cameraMinX = startX;
+  }
 };
 
 const buildTerrain = (state: GameState, stageId: string | null): Block[] => {
