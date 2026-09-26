@@ -195,6 +195,9 @@ export const SHOTGUN_FREEZE_TIME = 60;
 // and turn into projectiles that smash into walls, the floor and other enemies.
 export const FROZEN_DAMAGE_MULTIPLIER = 2;
 export const FROZEN_PUSH_MULTIPLIER = 1.7;
+// A charge (or slide) into an oiled enemy sends it skidding off far harder than a dry one
+export const OILED_CHARGE_PUSH_MULTIPLIER = 2.6;
+export const OILED_CHARGE_MIN_PUSH = 16;       // even the heaviest oiled enemy goes at least this fast
 export const FROZEN_WALL_IMPACT_MULTIPLIER = 6.7;
 export const FROZEN_GROUND_IMPACT_MULTIPLIER = 5.4;
 export const FROZEN_ENEMY_IMPACT_DAMAGE = 20;

@@ -12,7 +12,7 @@ import {
   ENEMY_DOMINO_TRANSFER, ENEMY_DOMINO_LOSS, DOMINO_DAMAGE_SCALER,
   BOSS_UPPERCUT_DAMAGE, ENEMY_UPPERCUT_DAMAGE, BOSS_DIVEKICK_DAMAGE, ENEMY_DIVEKICK_DAMAGE,
   ENEMY_HIT_COOLDOWN, ENEMY_BULLET_DAMAGE, FILTH_SHIELD_CONTACT_DAMAGE, OIL_ROCKET_OILED_DURATION,
-  OILED_COLLISION_DAMAGE, OVERDOSE_HOMING_ACCEL, OVERDOSE_MAX_SPEED, OVERDOSE_HIT_DAMAGE, OVERDOSE_HOMING_FRAMES, OVERDOSE_HOMING_RANGE,
+  OILED_COLLISION_DAMAGE, OILED_CHARGE_PUSH_MULTIPLIER, OILED_CHARGE_MIN_PUSH, OVERDOSE_HOMING_ACCEL, OVERDOSE_MAX_SPEED, OVERDOSE_HIT_DAMAGE, OVERDOSE_HOMING_FRAMES, OVERDOSE_HOMING_RANGE,
 } from '../../constants';
 import { FrameContext, killBoss } from '../context';
 import { getBossDef, getStageWidth } from '../boss';
@@ -507,6 +507,11 @@ const knockBackEnemy = (ctx: FrameContext, e: Enemy, mass: number, wasFrozen: bo
   const massResistance = Math.min(1, Math.max(0.1, 1 - mass / 1000));
   let pushX = ((player.vel.x * PLAYER_MASS / mass) / 2) * massResistance;
   if (wasFrozen) pushX *= FROZEN_PUSH_MULTIPLIER;
+  // Shoulder-charging a greased enemy: nothing to grip, it shoots off like a puck
+  if (player.isCharging && e.isOiled) {
+    pushX *= OILED_CHARGE_PUSH_MULTIPLIER;
+    if (Math.abs(pushX) < OILED_CHARGE_MIN_PUSH) pushX = player.facing * OILED_CHARGE_MIN_PUSH;
+  }
 
   if (player.isUppercutting) {
     const launch = UPPERCUT_LAUNCH_SPEED * Math.min(1, Math.max(0.4, 1 - mass / 1500));
