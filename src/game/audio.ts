@@ -222,3 +222,72 @@ export const playEngageSound = () => {
     // Audio is best-effort.
   }
 };
+
+/** Noise burst helper: `dur` seconds of filtered white noise. */
+const noiseBurst = (ctx: AudioContext, dur: number, gainAmt: number, filterType: BiquadFilterType, from: number, to: number) => {
+  const t = ctx.currentTime;
+  const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  const src = ctx.createBufferSource();
+  src.buffer = buffer;
+  const filter = ctx.createBiquadFilter();
+  filter.type = filterType;
+  filter.frequency.setValueAtTime(from, t);
+  filter.frequency.exponentialRampToValueAtTime(to, t + dur);
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(gainAmt, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  src.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  src.start();
+};
+
+/** A low sine thump that drops in pitch. */
+const thump = (ctx: AudioContext, from: number, to: number, dur: number, gainAmt: number) => {
+  const t = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(from, t);
+  osc.frequency.exponentialRampToValueAtTime(to, t + dur);
+  gain.gain.setValueAtTime(gainAmt, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start();
+  osc.stop(t + dur);
+};
+
+/** A fist cutting the air. */
+export const playWhoosh = () => {
+  try { noiseBurst(getAudioContext(), 0.22, 0.35, 'bandpass', 400, 3000); } catch { /* best-effort */ }
+};
+
+/** A punch landing square on the camera. */
+export const playPunchImpact = () => {
+  try {
+    const ctx = getAudioContext();
+    noiseBurst(ctx, 0.35, 0.6, 'lowpass', 3000, 120);
+    thump(ctx, 150, 35, 0.4, 0.7);
+  } catch { /* best-effort */ }
+};
+
+/** Something heavy (a camera) hitting the floor. */
+export const playThud = () => {
+  try {
+    const ctx = getAudioContext();
+    thump(ctx, 90, 30, 0.3, 0.55);
+    noiseBurst(ctx, 0.15, 0.2, 'lowpass', 800, 100);
+  } catch { /* best-effort */ }
+};
+
+/** One aggressive keystroke: a clack with a little pitch wobble. */
+export const playTypeClack = (heavy = false) => {
+  try {
+    const ctx = getAudioContext();
+    noiseBurst(ctx, heavy ? 0.09 : 0.04, heavy ? 0.4 : 0.22, 'highpass', 2000 + Math.random() * 1500, 900);
+    if (heavy) thump(ctx, 180 + Math.random() * 40, 60, 0.12, 0.35);
+  } catch { /* best-effort */ }
+};

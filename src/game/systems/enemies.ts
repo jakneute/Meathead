@@ -430,7 +430,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   const hurtbox: Rect = player.isDucking
     ? { x: player.pos.x + 2, y: player.pos.y + (player.height - 26), w: player.width - 4, h: 26 }
     : boundsOf(player);
-  if (!isAttacking && player.invincibilityTimer <= 0 && rectsOverlap(hurtbox, boundsOf(e))) {
+  if (!e.harmless && !isAttacking && player.invincibilityTimer <= 0 && rectsOverlap(hurtbox, boundsOf(e))) {
     if (!cheats.invincible) player.health -= stageDef?.contact?.damage ?? 5.5;
     if (player.health > 0) {
       player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;

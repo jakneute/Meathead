@@ -33,7 +33,7 @@ const ensure = (canvas: HTMLCanvasElement | null, r: number) => {
 export const beginSprite = (world: CanvasRenderingContext2D): CanvasRenderingContext2D | null => {
   if (typeof document === 'undefined') return null;
   const m = world.getTransform();
-  res = Math.max(1, Math.min(3, Math.ceil(Math.hypot(m.a, m.b) * 2) / 2));
+  res = Math.max(1, Math.min(5, Math.ceil(Math.hypot(m.a, m.b) * 2) / 2));
   body = ensure(body, res);
   out = ensure(out, res);
   glow = ensure(glow, res);

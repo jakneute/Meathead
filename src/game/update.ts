@@ -384,7 +384,7 @@ const updateCamera = (ctx: FrameContext) => {
   const followX = player.pos.x - CANVAS_WIDTH / 2 + player.width / 2;
   if (!state.arenaLocked && state.victoryString === "" && state.bossExplosionTimer <= 0) {
     // Camera follows the player but can't scroll past the closed boss door
-    const maxX = state.doorState === 'closed' ? BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH : getStageWidth(stageId) - CANVAS_WIDTH;
+    const maxX = state.cameraMaxX ?? (state.doorState === 'closed' ? BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH : getStageWidth(stageId) - CANVAS_WIDTH);
     state.camera.x = Math.max(state.cameraMinX, Math.min(maxX, followX));
   } else if (state.arenaLocked && getArenaRight(stageId) > ARENA_RIGHT) {
     // A wider-than-usual arena (Oscar's) scrolls with you

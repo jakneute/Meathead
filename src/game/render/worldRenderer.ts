@@ -1,6 +1,6 @@
 import { GameStatus, Pickup, Enemy, TommyBoard, DamageNumber } from '../../types';
 import {
-  CANVAS_WIDTH, CANVAS_HEIGHT, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, RENDER_SCALE,
+  CANVAS_WIDTH, CANVAS_HEIGHT, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, RENDER_SCALE, WEAPON_RANGE_STAGE, GROUND_Y,
 } from '../../constants';
 import { STAGE_COLORS } from '../../stages';
 import { GameState } from '../state';
@@ -46,9 +46,12 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   if (state.sewerNuke && drawSewerNukeOutside(ctx, state)) return;
   if (state.volcanoFinale && drawVolcanoFinaleOutside(ctx, state)) return;
 
-  const colors = STAGE_COLORS[stageId || ""] || { ground: COLORS.GROUND, bg: COLORS.BG_DARK, accent: '#fff' };
+  const isRange = stageId === WEAPON_RANGE_STAGE;
+  const colors = isRange ? { ground: '#0A0A0C', bg: '#000', accent: '#7F1D1D' } : STAGE_COLORS[stageId || ""] || { ground: COLORS.GROUND, bg: COLORS.BG_DARK, accent: '#fff' };
   // Layered parallax scenery for the stage (a flat colour where there isn't any)
-  if (!drawBackdrop(ctx, stageId, state.camera.x, state.camera.y, state.frame || 0)) {
+  if (isRange) {
+    drawRangeVoid(ctx, state.frame || 0);
+  } else if (!drawBackdrop(ctx, stageId, state.camera.x, state.camera.y, state.frame || 0)) {
     ctx.fillStyle = colors.bg;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   }
@@ -106,6 +109,37 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   if (state.victoryString && (status === GameStatus.PLAYING || status === GameStatus.VICTORY)) drawVictoryText(ctx, state.victoryString);
   if (state.sewerNuke) drawSewerNukeFlash(ctx, state);
   else if (state.deathTimer > 0 && state.deathString) drawDeathMessage(ctx, state.deathString);
+};
+
+/** The weapon range: a black void with a red glow and a receding grid floor. */
+const drawRangeVoid = (ctx: CanvasRenderingContext2D, frame: number) => {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  const glow = ctx.createRadialGradient(CANVAS_WIDTH / 2, GROUND_Y, 20, CANVAS_WIDTH / 2, GROUND_Y, 520);
+  glow.addColorStop(0, `rgba(127, 29, 29, ${0.42 + Math.sin(frame * 0.03) * 0.05})`);
+  glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  // Grid lines running off to a vanishing point on the horizon
+  ctx.save();
+  ctx.strokeStyle = 'rgba(239, 68, 68, 0.18)';
+  ctx.lineWidth = 1;
+  const horizon = GROUND_Y - 150;
+  for (let i = -10; i <= 10; i++) {
+    ctx.beginPath();
+    ctx.moveTo(CANVAS_WIDTH / 2 + i * 12, horizon);
+    ctx.lineTo(CANVAS_WIDTH / 2 + i * 120, GROUND_Y);
+    ctx.stroke();
+  }
+  for (let k = 0; k < 7; k++) {
+    const y = horizon + 150 * Math.pow(((k + (frame * 0.01) % 1) / 7), 2);
+    ctx.globalAlpha = 0.4 + k * 0.08;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(CANVAS_WIDTH, y);
+    ctx.stroke();
+  }
+  ctx.restore();
 };
 
 const drawBlocks = (ctx: CanvasRenderingContext2D, state: GameState, colors: { ground: string, accent: string }) => {

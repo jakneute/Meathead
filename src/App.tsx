@@ -3,6 +3,7 @@ import HUD from './components/HUD';
 import Overlay, { CheatFlags } from './components/Overlay';
 import GameCanvas from './components/GameCanvas';
 import EndingCutscene from './components/EndingCutscene';
+import WeaponGetScene from './components/WeaponGetScene';
 import { GameStatus, WeaponType } from './types';
 import { INITIAL_PLAYER_HEALTH, MAX_AMMO, POWER_CELLS, createFullAmmo } from './constants';
 import { getStages, getStartingWeapons, sortWeapons, BOSS_WEAPON_MAP, WEAPONS_AFTER_SET_0, ALL_WEAPONS } from './stages';
@@ -24,7 +25,7 @@ const MIN_CONFIRM_DELAY_MS = 250;
 const PAD_REPEAT_MS = 180;
 const REBUKE_COOLDOWN_MS = 1000;
 
-const HUD_SCREENS = [GameStatus.LEVEL_INTRO, GameStatus.PLAYING, GameStatus.BOSS_TRANSITION, GameStatus.PAUSED, GameStatus.BOSS_INTRO, GameStatus.BOSS_VICTORY_SPEECH];
+const HUD_SCREENS = [GameStatus.LEVEL_INTRO, GameStatus.PLAYING, GameStatus.BOSS_TRANSITION, GameStatus.PAUSED, GameStatus.BOSS_INTRO];
 const UNPAUSABLE_SCREENS = [GameStatus.BOSS_TRANSITION, GameStatus.BOSS_INTRO, GameStatus.BOSS_VICTORY_SPEECH, GameStatus.LEVEL_INTRO, GameStatus.VICTORY, GameStatus.ENDING];
 
 /** The ending plays once this set of bosses is beaten (later sets will move it). */
@@ -339,7 +340,8 @@ const App: React.FC = () => {
   const confirmSelection = () => {
     if (status === GameStatus.STAGE_SELECT) { if (lockedIndex === null) lockStage(selectedIndex); else engageStage(); }
     else if (status === GameStatus.PAUSED) activatePauseItem(selectedIndex);
-    else if (TIMED_SCREENS.includes(status)) handleStart();
+    // The weapon screen runs its own firing range: only Start / Esc (handled there) move on
+    else if (TIMED_SCREENS.includes(status) && status !== GameStatus.BOSS_VICTORY_SPEECH) handleStart();
   };
 
   // --- Cheats ----------------------------------------------------------------
@@ -557,6 +559,7 @@ const App: React.FC = () => {
           cheats={SHOW_CHEATS ? { flags: cheatFlags, onToggle: handleToggleCheat, onChangeRank: handleChangeRank, onPlayEnding: () => setStatus(GameStatus.ENDING) } : undefined}
         />
         {status === GameStatus.ENDING && <EndingCutscene onDone={handleEndingDone} />}
+        {status === GameStatus.BOSS_VICTORY_SPEECH && <WeaponGetScene stageId={selectedStage} onDone={handleStart} />}
         <GameCanvas
           status={status}
           stageId={selectedStage}

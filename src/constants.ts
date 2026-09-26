@@ -34,6 +34,8 @@ export const DOOR_OPEN_SPEED = 5;
 // ==========================================
 export const STAGE_WIDTH = 8000;
 export const GROUND_Y = 550;
+/** The weapon test range after a boss (a one-screen void arena run by its own copy of the engine). */
+export const WEAPON_RANGE_STAGE = 'WEAPON_RANGE';
 export const BOSS_DOOR_X = 7200;
 export const DOOR_WIDTH = 40;
 export const ARENA_LEFT = BOSS_DOOR_X + DOOR_WIDTH;

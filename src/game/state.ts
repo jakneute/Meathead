@@ -60,6 +60,8 @@ export interface GameState {
   bossCheckpoint: boolean;
   /** The camera can't scroll left of this (no backtracking after a boss checkpoint respawn). */
   cameraMinX: number;
+  /** Overrides how far right the camera can scroll (the weapon range is one screen wide). */
+  cameraMaxX?: number;
   deathString: string;
   /** Easter egg: set fire to an oiled-up Toxic Tommy and the sewer goes nuclear (plays out as the death screen). */
   sewerNuke: Vector2 | null;

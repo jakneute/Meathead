@@ -2,7 +2,7 @@ import React from 'react';
 import { GameStatus, WeaponType } from '../types';
 import { MAX_AMMO } from '../constants';
 import {
-  getStages, getWeaponDescription, WEAPON_NAMES, WEAPON_DESCRIPTIONS, BOSS_SET_TITLES, BOSS_LOCATIONS, getWeaponInfo,
+  getStages, getWeaponDescription, BOSS_SET_TITLES, BOSS_LOCATIONS, getWeaponInfo,
 } from '../stages';
 import USAMap from './USAMap';
 import BossPortrait from './BossPortrait';
@@ -65,7 +65,8 @@ const MISSION_BRIEFING = "Your mission is to kill everything in sight for no par
 /** Full-screen menus and story screens drawn over the game canvas. */
 const Overlay: React.FC<OverlayProps> = (props) => {
   const { status } = props;
-  if (status === GameStatus.PLAYING || status === GameStatus.LEVEL_INTRO || status === GameStatus.BOSS_TRANSITION) return null;
+  // (The weapon screen after a boss is its own scene: see WeaponGetScene)
+  if (status === GameStatus.PLAYING || status === GameStatus.LEVEL_INTRO || status === GameStatus.BOSS_TRANSITION || status === GameStatus.BOSS_VICTORY_SPEECH) return null;
 
   return (
     <div className={`absolute inset-0 ${status === GameStatus.PAUSED ? 'bg-black/85 backdrop-blur-[2px]' : 'bg-black'} flex flex-col items-center justify-center z-50 p-6 text-center overflow-hidden`}>
@@ -76,7 +77,6 @@ const Overlay: React.FC<OverlayProps> = (props) => {
       )}
       {status === GameStatus.PAUSED && <PauseMenu {...props} />}
       {status === GameStatus.BOSS_INTRO && <BossIntroScreen {...props} />}
-      {status === GameStatus.BOSS_VICTORY_SPEECH && <WeaponGainedScreen {...props} />}
       {status === GameStatus.VICTORY && <FinalVictoryScreen {...props} />}
     </div>
   );
@@ -443,19 +443,6 @@ const BossIntroScreen: React.FC<OverlayProps> = ({ bossTaunt, isInputLocked, onS
     </div>
     <button disabled={isInputLocked} onClick={onStart} className={`px-8 py-4 text-white text-lg font-black border-b-[6px] transition-all uppercase ${isInputLocked ? 'bg-gray-700 border-gray-900 opacity-50' : 'bg-red-600 hover:bg-red-500 border-red-900 active:translate-y-1 active:border-b-0'}`}>
       {isInputLocked ? 'LISTENING...' : 'STFU AND DIE'}
-    </button>
-  </div>
-);
-
-const WeaponGainedScreen: React.FC<OverlayProps> = ({ stageId, isInputLocked, onStart }) => (
-  <div className="bg-blue-900/95 border-8 border-blue-400 p-6 max-w-2xl animate-in fade-in zoom-in duration-500">
-    <h2 className="text-3xl md:text-5xl text-yellow-400 mb-6 font-black uppercase tracking-widest italic underline decoration-4 underline-offset-4">GAINS</h2>
-    <div className="mb-8 text-center bg-black/50 p-8 rounded-lg border-2 border-white/10 flex flex-col gap-4">
-      <p className="text-yellow-400 text-xl md:text-2xl font-black uppercase tracking-tighter leading-none">You have gained {stageId ? WEAPON_NAMES[stageId] : 'NEW MUSCLES'}</p>
-      {stageId && WEAPON_DESCRIPTIONS[stageId] && <p className="text-white text-sm md:text-base font-bold italic tracking-tight leading-relaxed max-w-lg mx-auto">"{WEAPON_DESCRIPTIONS[stageId]}"</p>}
-    </div>
-    <button disabled={isInputLocked} onClick={onStart} className={`px-12 py-6 text-black text-xl font-black border-b-[8px] transition-all uppercase ${isInputLocked ? 'bg-gray-500 border-gray-700 opacity-50' : 'bg-yellow-500 hover:bg-yellow-400 border-yellow-800 active:translate-y-1 active:border-b-0'}`}>
-      {isInputLocked ? 'INFUSING GAINS...' : 'fuck yeah'}
     </button>
   </div>
 );

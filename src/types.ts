@@ -154,6 +154,8 @@ export interface Enemy extends Entity {
   isBlownAway?: boolean;
   rotation?: number;
   pauseTimer?: number;
+  /** A practice dummy: bumping into it doesn't hurt. */
+  harmless?: boolean;
   // Needle / DOT
   needleCount?: number;
   needleOffsets?: { x: number, y: number, rot: number }[];
