@@ -404,8 +404,11 @@ export const explodeOilRocket = (ctx: FrameContext, pos: Vector2, rocketVelX?: n
 
     if (e.type === 'boss') {
       if (e.hitCooldown && e.hitCooldown > 0) return;
-      e.isOiled = true;
-      e.oiledTimer = OIL_ROCKET_OILED_DURATION;
+      // Bosses don't get oiled up, except Toxic Tommy (it clogs him up, and there's the matter of setting him alight)
+      if (ctx.stageId === TOXIC_TOMMY) {
+        e.isOiled = true;
+        e.oiledTimer = OIL_ROCKET_OILED_DURATION;
+      }
       hitBoss(ctx, e, 'OIL_ROCKET', { facing: 0, p: { isOilRocket: true } });
       return;
     }
