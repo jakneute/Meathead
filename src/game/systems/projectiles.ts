@@ -304,7 +304,7 @@ const updatePlayerBoulder = (ctx: FrameContext, p: Projectile): boolean => {
 };
 
 /** How long a sludged enemy stays dragged down (flyers). */
-const SLUDGE_PULL_FRAMES = 60;
+const SLUDGE_PULL_FRAMES = 40;
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 
@@ -325,7 +325,9 @@ const damageEnemiesInSludgePuddle = (ctx: FrameContext, p: Projectile) => {
       if (en.hitCooldown && en.hitCooldown > 0) continue;
       p.life = 0;
       hitBoss(ctx, en, 'SLUDGE', { facing: 0, damage: isWeakTo(stageId, 'SLUDGE') ? 50 : 15 });
-    } else if (isDotTick) {
+    } else if (isDotTick && en.sludgeTickFrame !== state.frame) {
+      // Overlapping puddles don't stack: one tick per enemy
+      en.sludgeTickFrame = state.frame;
       en.health -= SLUDGE_DOT_DAMAGE;
       fx.spawnDamageNumber(en.pos, SLUDGE_DOT_DAMAGE);
       if (en.health <= 0) fx.killWithAnimation(en, 'melted', 'sludge_kill', 'melted');

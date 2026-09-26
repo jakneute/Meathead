@@ -139,6 +139,8 @@ export interface Enemy extends Entity {
   sludgeTimer?: number;
   /** How fast sludge is dragging a flyer down right now. */
   sludgeFallSpeed?: number;
+  /** The frame a sludge puddle last hurt it (puddles don't stack). */
+  sludgeTickFrame?: number;
   isBlownAway?: boolean;
   rotation?: number;
   pauseTimer?: number;

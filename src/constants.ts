@@ -233,10 +233,10 @@ export const TASER_BOSS_DAMAGE_REDUCTION = 0.5;
 export const TASER_OVERLOAD_FRAMES = 300;   // taser is unusable after bursting Oily Oscar
 
 // SLUDGE BARFER (TOMMY)
-export const SLUDGE_DAMAGE = 12; 
-export const SLUDGE_DOT_DAMAGE = 18; 
-export const SLUDGE_DOT_TICK = 6;
-export const SLUDGE_LINGER_DURATION = 90; 
+export const SLUDGE_DAMAGE = 8;
+export const SLUDGE_DOT_DAMAGE = 12;
+export const SLUDGE_DOT_TICK = 8;
+export const SLUDGE_LINGER_DURATION = 60;
 export const SLUDGE_COOLDOWN = 90; 
 export const FILTH_SHIELD_DURATION = 240; 
 export const FILTH_SHIELD_CONTACT_DAMAGE = 250;
