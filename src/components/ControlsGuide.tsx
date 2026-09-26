@@ -6,8 +6,8 @@ import React from 'react';
 const BASICS: [action: string, keys: string, pad: string][] = [
   ['MOVE / CROUCH', 'WASD / ARROWS', 'L-STICK / D-PAD'],
   ['JUMP', 'SPACE', 'A'],
-  ['FIRE', 'L-CLICK / F', 'X / RT'],
-  ['SPECIAL', 'SHIFT', 'B / LT'],
+  ['FIRE', 'L-CLICK', 'X / RT'],
+  ['SPECIAL', 'R-CLICK', 'B / LT'],
   ['SWAP WEAPON', 'WHEEL / 1-9', 'LB / RB'],
   ['PAUSE', 'ESC', 'START'],
 ];

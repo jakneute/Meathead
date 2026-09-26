@@ -13,27 +13,42 @@ export interface Controls {
 
 export const NO_CONTROLS: Controls = { left: false, right: false, up: false, down: false, jump: false, special: false, shoot: false };
 
-/** Tracks held keys (by both `key` and `code`, lower-cased) and the mouse button. */
+/** Tracks held keys (by both `key` and `code`, lower-cased) and the mouse buttons. */
 export class KeyboardMouseState {
   private keys: Record<string, boolean> = {};
+  /** Left button: fire. */
   mouseDown = false;
+  /** Right button: special. */
+  rightMouseDown = false;
 
   isDown = (...names: string[]) => names.some(n => this.keys[n]);
 
   attach(target: Window) {
     const onKeyDown = (e: KeyboardEvent) => { this.keys[e.key.toLowerCase()] = true; this.keys[e.code.toLowerCase()] = true; };
     const onKeyUp = (e: KeyboardEvent) => { this.keys[e.key.toLowerCase()] = false; this.keys[e.code.toLowerCase()] = false; };
-    const onMouseDown = () => { this.mouseDown = true; };
-    const onMouseUp = () => { this.mouseDown = false; };
+    const setButton = (e: MouseEvent, down: boolean) => {
+      if (e.button === 0) this.mouseDown = down;
+      else if (e.button === 2) this.rightMouseDown = down;
+    };
+    const onMouseDown = (e: MouseEvent) => setButton(e, true);
+    const onMouseUp = (e: MouseEvent) => setButton(e, false);
+    // Right click is a game button, not the browser's menu
+    const onContextMenu = (e: MouseEvent) => e.preventDefault();
+    // Buttons released outside the window (or while alt-tabbed) would otherwise stay held
+    const onBlur = () => { this.keys = {}; this.mouseDown = false; this.rightMouseDown = false; };
     target.addEventListener('keydown', onKeyDown);
     target.addEventListener('keyup', onKeyUp);
     target.addEventListener('mousedown', onMouseDown);
     target.addEventListener('mouseup', onMouseUp);
+    target.addEventListener('contextmenu', onContextMenu);
+    target.addEventListener('blur', onBlur);
     return () => {
       target.removeEventListener('keydown', onKeyDown);
       target.removeEventListener('keyup', onKeyUp);
       target.removeEventListener('mousedown', onMouseDown);
       target.removeEventListener('mouseup', onMouseUp);
+      target.removeEventListener('contextmenu', onContextMenu);
+      target.removeEventListener('blur', onBlur);
     };
   }
 }
@@ -62,7 +77,7 @@ export const readControls = (kb: KeyboardMouseState): Controls => {
     down: k('s', 'arrowdown', 'keys') || diveKey || padY > 0.3,
     up: k('w', 'arrowup', 'keyw') || uppercutKey || padY < -0.4,
     jump: k(' ', 'space', 'z', 'keyz', 'j', 'keyj') || padJump,
-    special: k('shift', 'shiftleft', 'shiftright') || uppercutKey || diveKey || padSpecial,
-    shoot: kb.mouseDown || padShoot || k('f', 'keyf', 'x', 'keyx', 'k', 'keyk'),
+    special: kb.rightMouseDown || uppercutKey || diveKey || padSpecial,
+    shoot: kb.mouseDown || padShoot || k('x', 'keyx', 'k', 'keyk'),
   };
 };
