@@ -812,7 +812,7 @@ const drawParticlesAndDamageNumbers = (ctx: CanvasRenderingContext2D, state: Gam
     ctx.restore();
   });
   damageNumbers.forEach(d => {
-    if (d.isCallout) { drawCallout(ctx, d); return; }
+    if (d.isCallout) { drawCallout(ctx, d, state.camera); return; }
     ctx.save();
     ctx.globalAlpha = d.life / d.maxLife;
     const txt = d.text || (d.value !== undefined ? d.value.toString() : "");
@@ -864,16 +864,20 @@ const drawBarryLighting = (ctx: CanvasRenderingContext2D, state: GameState, stag
 };
 
 /** Kill callouts slam in oversized, settle with a slight tilt, then fade. */
-const drawCallout = (ctx: CanvasRenderingContext2D, d: DamageNumber) => {
+const drawCallout = (ctx: CanvasRenderingContext2D, d: DamageNumber, camera: { x: number, y: number }) => {
   const age = d.maxLife - d.life;
   const scale = age < 8 ? 2.2 - (age / 8) * 1.2 : 1;
   const tilt = (d.id.length % 2 === 0 ? 1 : -1) * 0.08;
   ctx.save();
   ctx.globalAlpha = Math.min(1, d.life / 20);
-  ctx.translate(d.pos.x, d.pos.y);
+  ctx.font = `bold 22px ${FONT}`;
+  // Keep the whole callout on screen (it can be spawned right at the edge)
+  const half = (ctx.measureText(d.text || '').width / 2) * scale + 12;
+  const x = Math.max(camera.x + half, Math.min(camera.x + CANVAS_WIDTH - half, d.pos.x));
+  const y = Math.max(camera.y + 30, Math.min(camera.y + CANVAS_HEIGHT - 16, d.pos.y));
+  ctx.translate(x, y);
   ctx.rotate(tilt);
   ctx.scale(scale, scale);
-  ctx.font = `bold 22px ${FONT}`;
   ctx.textAlign = 'center';
   ctx.lineJoin = 'round';
   ctx.lineWidth = 6;

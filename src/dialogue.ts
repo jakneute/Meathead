@@ -285,7 +285,7 @@ export type KillCallout =
   | 'charge' | 'slide' | 'uppercut' | 'divekick' | 'shatter' | 'shield'
   | 'crush' | 'overdose' | 'nuke' | 'tsunami' | 'fried'
   | 'wallsplat' | 'groundsplat' | 'flattened' | 'squished' | 'truck' | 'blowout' | 'crash'
-  | 'moon' | 'cliff';
+  | 'moon' | 'cliff' | 'yeet';
 
 /** Callout text (one picked at random) and colour for each special kill. */
 export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string }> = {
@@ -308,8 +308,9 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
   crash:       { lines: ["HIT AND RUN!", "SELF-DELIVERED!", "RUN OVER!", "SIGNED FOR IT!"], color: '#FF4500' },
   squished:    { lines: ["SQUISHED!", "GRAVITY WINS!", "DROPPED!"], color: '#A16207' },
   // Knocked clean out of the stage: up past the top of the screen, or down a pit
-  moon:        { lines: ["TO THE MOON!", "HOUSTON, WE HAVE A PROBLEM!", "LOW ORBIT!", "ONE SMALL STEP!", "BLASTING OFF AGAIN!"], color: '#E0E7FF' },
+  moon:        { lines: ["TO THE MOON!", "HOUSTON!", "LOW ORBIT!", "ONE SMALL STEP!", "BLASTING OFF AGAIN!"], color: '#E0E7FF' },
   cliff:       { lines: ["OFF THE CLIFF!", "MIND THE GAP!", "SEE YA!", "GRAVITY CHECK!", "LONG WAY DOWN!"], color: '#A78BFA' },
+  yeet:        { lines: ["YEETED!", "OUT OF BOUNDS!", "SEE YA!", "GONE!"], color: '#FDE68A' },
 };
 
 /**

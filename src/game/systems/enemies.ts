@@ -3,7 +3,7 @@
 import { Enemy, Rect, Player } from '../../types';
 import { KillCallout } from '../../dialogue';
 import {
-  CANVAS_WIDTH, GRAVITY, PLAYER_INVINCIBILITY_FRAMES, PLAYER_STUN_INVINCIBILITY,
+  CANVAS_WIDTH, CANVAS_HEIGHT, BOSS_DOOR_X, GRAVITY, PLAYER_INVINCIBILITY_FRAMES, PLAYER_STUN_INVINCIBILITY,
   PLAYER_PUSHBACK_DURATION, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, BOSS_CHARGE_DAMAGE,
   PLAYER_MASS, ENEMY_MASS, ENEMY_DAZE_FRAMES, UPPERCUT_LAUNCH_SPEED, UPPERCUT_LAUNCH_X, BOUNCE_FRAMES,
   COOLDOWN_CHARGE, COOLDOWN_UPPERCUT, GML_SCALE, FROZEN_PUSH_MULTIPLIER, FROZEN_DAMAGE_MULTIPLIER,
@@ -15,7 +15,7 @@ import {
   OILED_COLLISION_DAMAGE,
 } from '../../constants';
 import { FrameContext, killBoss } from '../context';
-import { getBossDef } from '../boss';
+import { getBossDef, getStageWidth } from '../boss';
 import { rectsOverlap, boundsOf } from '../utils';
 import { getAttackHitbox, harmlessBounce, recoilOff, getContactHurtSource } from './player';
 import { shakeScreen } from '../state';
@@ -64,9 +64,6 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
   return resolvePlayerContact(ctx, e);
 };
 
-/** How far past the top of the screen (or below the floor) an enemy has to go to be gone for good. */
-const OUT_OF_BOUNDS_TOP = -30;
-const OUT_OF_BOUNDS_BOTTOM = 720;
 
 /** Is there floor under this enemy? (Stages have none missing yet; pits will be gaps in the ground.) */
 const hasFloorBelow = (state: FrameContext['state'], e: Enemy) => {
@@ -75,20 +72,27 @@ const hasFloorBelow = (state: FrameContext['state'], e: Enemy) => {
 };
 
 /**
- * Knocked clean off the stage: an enemy uppercut up past the top of the screen
- * is gone ("TO THE MOON!"), and so is one shoved off a ledge down a pit.
+ * Knocked clean off the stage: an enemy that ends up entirely outside anywhere
+ * the camera can go is gone. Uppercut up past the top of the screen: "TO THE
+ * MOON!"; shoved off a ledge down a pit: "OFF THE CLIFF!"; sent flying off
+ * either end of the stage: "YEETED!". (Only enemies: Meathead never is.)
  */
 const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
-  const { state, fx } = ctx;
-  const up = e.pos.y + e.height < OUT_OF_BOUNDS_TOP;
-  const down = e.pos.y > OUT_OF_BOUNDS_BOTTOM;
-  if (!up && !down) return false;
+  const { state, fx, stageId } = ctx;
+  // Tommy's open-topped arena: the camera follows jumps up, so there's no top edge there
+  const openAbove = !!getBossDef(stageId)?.arena?.openTop && e.pos.x + e.width > BOSS_DOOR_X;
+  const up = !openAbove && e.pos.y + e.height < 0;
+  const down = e.pos.y > CANVAS_HEIGHT;
+  const side = e.pos.x + e.width < 0 || e.pos.x > getStageWidth(stageId);
+  if (!up && !down && !side) return false;
   e.health = 0;
   const cx = e.pos.x + e.width / 2;
-  // The callout shows on screen, at the edge they left by
-  const calloutX = Math.max(state.camera.x + 90, Math.min(state.camera.x + CANVAS_WIDTH - 90, cx));
-  const edge = { pos: { x: calloutX - 10, y: up ? 75 : 530 }, width: 20 };
-  fx.spawnKillCallout(edge, up ? 'moon' : 'cliff');
+  // The callout goes up at the edge of the screen they left by (the renderer keeps it all on screen)
+  const edge = {
+    pos: { x: Math.max(state.camera.x, Math.min(state.camera.x + CANVAS_WIDTH, cx)) - 10, y: up ? 75 : down ? 530 : Math.max(90, Math.min(520, e.pos.y)) },
+    width: 20,
+  };
+  fx.spawnKillCallout(edge, up ? 'moon' : down ? 'cliff' : 'yeet');
   if (up) {
     // A twinkle where they vanished into the sky
     for (let i = 0; i < 10; i++) {
@@ -469,8 +473,11 @@ const impactKill = (ctx: FrameContext, e: Enemy, callout: KillCallout, splatDir:
 const slamIntoWalls = (ctx: FrameContext, e: Enemy, speed: number): boolean => {
   const { state, fx } = ctx;
   if ((e.pauseTimer || 0) <= 0 && Math.abs(speed) < 1) return false;
+  // Only walls hit side-on: a ceiling it was launched up into isn't one (it would get
+  // teleported to the end of the ceiling block). Where it was before this move tells which.
+  const prevMidX = e.pos.x + e.width / 2 - speed;
   const wall = state.blocks.find(b => (b.type === 'wall' || (b.type === 'door' && state.doorState !== 'opening' && state.doorState !== 'open' && state.doorState !== 'closing'))
-    && rectsOverlap(boundsOf(e), b));
+    && rectsOverlap(boundsOf(e), b) && !(prevMidX > b.x && prevMidX < b.x + b.w));
   if (!wall) return false;
 
   const dir = Math.sign(speed) || (e.pos.x + e.width / 2 < wall.x + wall.w / 2 ? 1 : -1);
