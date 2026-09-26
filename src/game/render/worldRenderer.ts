@@ -14,6 +14,8 @@ import { drawParticle } from './particles';
 import { drawBossCorpse } from './corpses';
 import { drawVictoryPee } from './victoryPee';
 import { drawPlayer } from './playerRenderer';
+import { drawBackdrop, drawBackdropFront } from './backdrops';
+import { drawTerrain } from './backdrops/terrain';
 import { drawEnemyDeaths } from './enemyDeaths';
 import { drawSewerNukeInside, drawSewerNukeFlash, drawSewerNukeOutside } from './sewerNuke';
 import {
@@ -43,8 +45,11 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   if (state.sewerNuke && drawSewerNukeOutside(ctx, state)) return;
 
   const colors = STAGE_COLORS[stageId || ""] || { ground: COLORS.GROUND, bg: COLORS.BG_DARK, accent: '#fff' };
-  ctx.fillStyle = colors.bg;
-  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  // Layered parallax scenery for the stage (a flat colour where there isn't any)
+  if (!drawBackdrop(ctx, stageId, state.camera.x, state.camera.y, state.frame || 0)) {
+    ctx.fillStyle = colors.bg;
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  }
 
   // World space (camera + screen shake)
   ctx.save();
@@ -54,7 +59,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   }
   ctx.translate(-state.camera.x, -state.camera.y);
 
-  drawBlocks(ctx, state, colors);
+  if (!drawTerrain(ctx, state.blocks, stageId, state.frame || 0, state.doorOpenAmount)) drawBlocks(ctx, state, colors);
   // The boss arena is drawn whenever any of it is on screen: from the moment the door
   // opens onto it, through the fight, his death and the victory lap
   const arenaInView = !!stageId && state.camera.x + CANVAS_WIDTH > ARENA_LEFT;
@@ -93,7 +98,8 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   if (state.sewerNuke) drawSewerNukeInside(ctx, state);
   ctx.restore();
 
-  // Screen space
+  // Screen space: the stage's weather over the level (not inside the boss arenas)
+  if (state.camera.x < ARENA_LEFT - CANVAS_WIDTH / 2) drawBackdropFront(ctx, stageId, state.camera.x, state.camera.y, state.frame || 0);
   if (state.victoryString && (status === GameStatus.PLAYING || status === GameStatus.VICTORY)) drawVictoryText(ctx, state.victoryString);
   if (state.sewerNuke) drawSewerNukeFlash(ctx, state);
   else if (state.deathTimer > 0 && state.deathString) drawDeathMessage(ctx, state.deathString);
