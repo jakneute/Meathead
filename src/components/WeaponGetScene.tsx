@@ -62,7 +62,7 @@ const makeDummy = (kind: DummyKind, x: number): Enemy => kind === 'ground'
     patrolRange: 260, initialX: Math.min(x, CANVAS_WIDTH - 330), shootTimer: 0, harmless: true,
   }
   : {
-    id: `dummy-air-${++dummyCount}`, pos: { x, y: 230 }, vel: { x: x > CANVAS_WIDTH / 2 ? -2 : 2, y: 0 },
+    id: `dummy-air-${++dummyCount}`, pos: { x, y: 330 }, vel: { x: x > CANVAS_WIDTH / 2 ? -2 : 2, y: 0 },
     width: 40, height: 30, health: 60, maxHealth: 60, type: 'enemy', enemyType: 'flyer', behavior: 'fly',
     patrolRange: 480, initialX: 160, shootTimer: 0, harmless: true,
   };
