@@ -33,7 +33,12 @@ export const DEATH_FRAMES: Record<EnemyDeathKind, number> = {
 const FLOOR_Y = 550;
 
 /** The colour the enemy was drawn in (matches drawEnemies). */
-export const enemyBodyColor = (e: { id: string, enemyType?: string, width: number }) => {
+const KIND_COLORS: Record<string, string> = {
+  wolverine: '#4A3222', goat: '#E7E2D6', eagle: '#5A3A1E', shooter: '#DCE8F5', charger: '#1E3A8A', shielder: '#C9DBEF',
+};
+
+export const enemyBodyColor = (e: { id: string, enemyType?: string, width: number, kind?: string }) => {
+  if (e.kind && KIND_COLORS[e.kind]) return KIND_COLORS[e.kind];
   if (e.enemyType === 'shield') return '#444444';
   if (e.id.startsWith('rusher')) return '#9B59B6';
   if (e.enemyType === 'flyer' && e.width > 60) return '#34495E';

@@ -134,6 +134,13 @@ export const ENEMY_MASS: Record<string, number> = {
   tank: 300,
   rusher: 250,
   boss: 500,
+  // Artie's wildlife and goons
+  wolverine: 90,
+  goat: 150,
+  eagle: 70,
+  shooter: 220,
+  charger: 300,
+  shielder: 260,
 };
 
 // ==========================================

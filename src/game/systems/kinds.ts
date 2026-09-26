@@ -1,0 +1,201 @@
+// Themed stage enemies: Artie's wildlife and his goons.
+//
+// The goons ride on the existing enemy logic with a new look: the shooter is a
+// stationary gunner, the charger runs you down like the rusher, the shielder
+// hides behind a slab of ice and drops it to throw. The wildlife have their
+// own AI (below), set up as 'custom' behaviour: moveEnemy still does their
+// gravity, footing and knockback, the AI only decides where they want to go.
+//
+//   wolverine: small, low and vicious. Prowls; when you're close it bristles,
+//              then lunges along the ground in hops.
+//   goat:      stands on rocks. When it sees you it charges, leaping any gap
+//              or ledge in the way, and headbutts hard.
+//   eagle:     circles overhead, then folds its wings and dives at where you
+//              are, pulling back up afterwards.
+
+import { Enemy, EnemyKind } from '../../types';
+import { GRAVITY } from '../../constants';
+import type { FrameContext } from '../context';
+import { floorTopAt } from '../terrain';
+
+interface KindStats { w: number; h: number; hp: number; contact: number; air?: boolean }
+
+export const KIND_STATS: Record<EnemyKind, KindStats> = {
+  wolverine: { w: 46, h: 28, hp: 60, contact: 9 },
+  goat: { w: 50, h: 44, hp: 90, contact: 13 },
+  eagle: { w: 46, h: 26, hp: 50, contact: 10, air: true },
+  shooter: { w: 40, h: 62, hp: 110, contact: 6 },
+  charger: { w: 50, h: 70, hp: 220, contact: 12 },
+  shielder: { w: 50, h: 70, hp: 150, contact: 7 },
+};
+
+let spawnCount = 0;
+
+/** A themed enemy standing on the ground at (x, groundY) (or flying `above` it). */
+export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enemy => {
+  const s = KIND_STATS[kind];
+  const pos = { x: x - s.w / 2, y: groundY - s.h };
+  const base: Enemy = {
+    id: `${kind}-${++spawnCount}`, kind, pos, vel: { x: 0, y: 0 }, width: s.w, height: s.h,
+    health: s.hp, maxHealth: s.hp, type: 'enemy', enemyType: 'tank', behavior: 'custom',
+    patrolRange: 0, initialX: pos.x, shootTimer: 0, homeX: pos.x, homeY: pos.y, aiState: 'idle', aiTimer: 0, facing: -1,
+  };
+  switch (kind) {
+    case 'eagle': return { ...base, enemyType: 'flyer', initialY: pos.y };
+    case 'shooter': return { ...base, behavior: 'shoot', shootTimer: Math.floor(Math.random() * 40) };
+    // The charger uses the rusher's run-you-down logic
+    case 'charger': return { ...base, behavior: 'patrol', pauseTimer: 0 };
+    case 'shielder': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
+    default: return base;
+  }
+};
+
+/** Contact damage for a themed enemy (undefined for the old generic ones). */
+export const kindContactDamage = (e: Enemy) => (e.kind ? KIND_STATS[e.kind].contact : undefined);
+
+/** Runs the wildlife AI. Returns true if it took care of movement itself (the eagle flies its own path). */
+export const runKindAI = (ctx: FrameContext, e: Enemy): boolean => {
+  switch (e.kind) {
+    case 'wolverine': wolverine(ctx, e); return false;
+    case 'goat': goat(ctx, e); return false;
+    case 'eagle': eagle(ctx, e); return true;
+    default: return false;
+  }
+};
+
+const mid = (o: { pos: { x: number; y: number }; width: number; height: number }) => ({ x: o.pos.x + o.width / 2, y: o.pos.y + o.height / 2 });
+
+/** Is there ground a step ahead that isn't a drop? (So prowlers don't wander off ledges.) */
+const safeAhead = (ctx: FrameContext, e: Enemy, dir: number) => {
+  const top = floorTopAt(ctx.state.blocks, e.pos.x + e.width / 2 + dir * (e.width / 2 + 8), e.pos.y + e.height);
+  return top !== null && top - (e.pos.y + e.height) < 40;
+};
+
+const seesPlayer = (ctx: FrameContext, e: Enemy, rangeX: number, rangeY: number) => {
+  const p = mid(ctx.state.player), m = mid(e);
+  return Math.abs(p.x - m.x) < rangeX && Math.abs(p.y - m.y) < rangeY && ctx.state.player.health > 0;
+};
+
+// ---------------------------------------------------------------------------
+
+const WOLVERINE_PROWL = 1.1;
+const WOLVERINE_LUNGE = 8.5;
+
+const wolverine = (ctx: FrameContext, e: Enemy) => {
+  const { player } = ctx.state;
+  const dirToPlayer = mid(player).x < mid(e).x ? -1 : 1;
+  e.aiTimer = (e.aiTimer || 0) + 1;
+  switch (e.aiState) {
+    case 'idle':
+    default: {
+      // Prowl back and forth near home
+      const home = e.homeX ?? e.pos.x;
+      if (e.facing === undefined) e.facing = -1;
+      if (Math.abs(e.pos.x - home) > 70 || !safeAhead(ctx, e, e.facing)) e.facing = (e.pos.x > home ? -1 : 1) as 1 | -1;
+      e.vel.x = e.facing * WOLVERINE_PROWL;
+      if (seesPlayer(ctx, e, 360, 110)) { e.aiState = 'bristle'; e.aiTimer = 0; }
+      break;
+    }
+    case 'bristle':
+      // Hackles up, crouched, about to go
+      e.facing = dirToPlayer as 1 | -1;
+      e.vel.x = 0;
+      if (e.aiTimer > 16) { e.aiState = 'lunge'; e.aiTimer = 0; }
+      break;
+    case 'lunge':
+      // Bounding at you in low hops
+      e.vel.x = e.facing! * WOLVERINE_LUNGE;
+      if (e.aiTimer % 14 === 1 && e.vel.y === 0) e.vel.y = -4.5;
+      if (e.aiTimer > 46) { e.aiState = 'recover'; e.aiTimer = 0; }
+      break;
+    case 'recover':
+      e.vel.x *= 0.85;
+      if (e.aiTimer > 34) { e.aiState = seesPlayer(ctx, e, 360, 110) ? 'bristle' : 'idle'; e.aiTimer = 0; e.homeX = e.pos.x; }
+      break;
+  }
+};
+
+const GOAT_CHARGE = 6.8;
+
+const goat = (ctx: FrameContext, e: Enemy) => {
+  const { player } = ctx.state;
+  e.aiTimer = (e.aiTimer || 0) + 1;
+  const grounded = e.vel.y === 0;
+  switch (e.aiState) {
+    case 'idle':
+    default:
+      e.vel.x = 0;
+      e.facing = (mid(player).x < mid(e).x ? -1 : 1) as 1 | -1;
+      if (seesPlayer(ctx, e, 440, 220)) { e.aiState = 'paw'; e.aiTimer = 0; }
+      break;
+    case 'paw':
+      // Scrapes a hoof, head down
+      e.vel.x = 0;
+      if (e.aiTimer > 24) { e.aiState = 'charge'; e.aiTimer = 0; }
+      break;
+    case 'charge':
+      if (grounded) {
+        e.vel.x = e.facing! * GOAT_CHARGE;
+        // A gap, a drop or a step up in the way: leap it
+        const aheadX = e.pos.x + e.width / 2 + e.facing! * (e.width / 2 + 26);
+        const top = floorTopAt(ctx.state.blocks, aheadX, e.pos.y + e.height, 60);
+        const feet = e.pos.y + e.height;
+        if (top === null || top < feet - 20 || top > feet + 50) e.vel.y = -11;
+        // Also springs up at you if you're above it
+        else if (mid(player).y < e.pos.y - 40 && Math.abs(mid(player).x - mid(e).x) < 140) e.vel.y = -12;
+      }
+      if (e.aiTimer > 80 || (grounded && Math.sign(mid(player).x - mid(e).x) !== e.facing && Math.abs(mid(player).x - mid(e).x) > 120)) {
+        e.aiState = 'skid'; e.aiTimer = 0;
+      }
+      break;
+    case 'skid':
+      if (grounded) e.vel.x *= 0.8;
+      if (e.aiTimer > 30) { e.aiState = 'idle'; e.aiTimer = 0; }
+      break;
+  }
+};
+
+const EAGLE_DIVE = 9.5;
+
+const eagle = (ctx: FrameContext, e: Enemy) => {
+  const { player } = ctx.state;
+  e.aiTimer = (e.aiTimer || 0) + 1;
+  const homeX = e.homeX ?? e.pos.x, homeY = e.homeY ?? e.pos.y;
+  const m = mid(e);
+  switch (e.aiState) {
+    case 'idle':
+    default: {
+      // Lazy circles over its patch of sky
+      const t = (ctx.state.frame + homeX) * 0.02;
+      const tx = homeX + Math.cos(t) * 110, ty = homeY + Math.sin(t * 2) * 18;
+      e.vel.x = (tx - e.pos.x) * 0.06;
+      e.vel.y = (ty - e.pos.y) * 0.06;
+      e.facing = (e.vel.x < 0 ? -1 : 1) as 1 | -1;
+      const p = mid(player);
+      if (e.aiTimer > 60 && Math.abs(p.x - m.x) < 420 && p.y > m.y + 40 && player.health > 0) {
+        e.aiState = 'dive'; e.aiTimer = 0; e.aiX = p.x; e.aiY = p.y;
+        const len = Math.hypot(p.x - m.x, p.y - m.y) || 1;
+        e.vel = { x: ((p.x - m.x) / len) * EAGLE_DIVE, y: ((p.y - m.y) / len) * EAGLE_DIVE };
+        e.facing = (e.vel.x < 0 ? -1 : 1) as 1 | -1;
+      }
+      break;
+    }
+    case 'dive':
+      // Straight at where you were, until it gets there (or hits the ground)
+      if (Math.hypot((e.aiX ?? m.x) - m.x, (e.aiY ?? m.y) - m.y) < 14 || e.aiTimer > 70) {
+        e.aiState = 'climb'; e.aiTimer = 0;
+      }
+      break;
+    case 'climb':
+      // Beats its way back up home
+      e.vel.x *= 0.95;
+      e.vel.y = Math.max(-5, e.vel.y - GRAVITY);
+      if (e.pos.y <= homeY) { e.aiState = 'idle'; e.aiTimer = 0; }
+      break;
+  }
+  // Don't fly through the ground
+  const floor = floorTopAt(ctx.state.blocks, m.x, e.pos.y + e.height, 0);
+  e.pos.x += e.vel.x;
+  e.pos.y += e.vel.y;
+  if (floor !== null && e.pos.y + e.height > floor) { e.pos.y = floor - e.height; if (e.aiState === 'dive') { e.aiState = 'climb'; e.aiTimer = 0; } }
+};

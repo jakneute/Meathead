@@ -647,4 +647,4 @@ export const harmlessBounce = (ctx: FrameContext, e: Enemy, velX: number, velY: 
 };
 
 export const getContactHurtSource = (ctx: FrameContext, e: Enemy) =>
-  e.type === 'boss' ? (ctx.stageId || 'boss') : (e.id.startsWith('rusher') ? 'rusher' : e.enemyType);
+  e.type === 'boss' ? (ctx.stageId || 'boss') : (e.id.startsWith('rusher') || e.kind === 'charger' ? 'rusher' : e.enemyType);

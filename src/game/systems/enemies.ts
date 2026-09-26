@@ -23,7 +23,8 @@ import { shakeScreen } from '../state';
 import { startEnemyDeath } from '../enemyDeaths';
 import { getEnemyMass, enemyGrip, massRatio } from './knockback';
 import { floorTopAt } from '../terrain';
-import { getStageLeft } from '../stages';
+import { getStageLeft, getStageLayout } from '../stages';
+import { runKindAI, kindContactDamage } from './kinds';
 
 /** Moves one enemy and resolves its contact with the player. Returns false to remove it. */
 export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolean => {
@@ -87,8 +88,9 @@ const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
   // Tommy's open-topped arena: the camera follows jumps up, so there's no top edge there
   const openAbove = !!getBossDef(stageId)?.arena?.openTop && e.pos.x + e.width > BOSS_DOOR_X;
   // (On a hilly stage things can sit above or below the view: only launched ones and ones with nothing under them count)
-  const up = !openAbove && e.pos.y + e.height < state.camera.y && (state.camera.y === 0 || e.vel.y < -2);
-  const down = e.pos.y > state.camera.y + CANVAS_HEIGHT && (state.camera.y === 0 || !hasFloorBelow(state, e) || e.pos.y > state.camera.y + 1400);
+  const hilly = !!getStageLayout(stageId)?.verticalCamera;
+  const up = !openAbove && e.pos.y + e.height < state.camera.y && (!hilly || e.vel.y < -2);
+  const down = e.pos.y > state.camera.y + CANVAS_HEIGHT && (!hilly || !hasFloorBelow(state, e) || e.pos.y > state.camera.y + 1400);
   const side = e.pos.x + e.width < getStageLeft(stageId) || e.pos.x > getStageWidth(stageId);
   if (!up && !down && !side) return false;
   e.health = 0;
@@ -242,7 +244,8 @@ const fireEnemyBullet = (ctx: FrameContext, x: number, y: number, velX: number) 
 const moveEnemy = (ctx: FrameContext, e: Enemy) => {
   const { state } = ctx;
   const { player } = state;
-  const onScreen = e.pos.x + e.width > state.camera.x && e.pos.x < state.camera.x + CANVAS_WIDTH;
+  const onScreen = e.pos.x + e.width > state.camera.x && e.pos.x < state.camera.x + CANVAS_WIDTH
+    && e.pos.y + e.height > state.camera.y && e.pos.y < state.camera.y + CANVAS_HEIGHT;
   const isStunned = (e.pauseTimer || 0) > 0;
   const isHeld = (e.frozenTimer && e.frozenTimer > 0) || e.isTased;
   const air = isAirEnemy(e);
@@ -250,6 +253,8 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
   // Air enemies bob around their spawn height (sludge drags them down to the floor)
   if (air) {
     if (e.initialY === undefined) e.initialY = e.pos.y;
+    // A themed flyer (the eagle) flies its own path while it's free to
+    if (e.behavior === 'custom' && !isStunned && !isHeld && !(e.sludgeTimer && e.sludgeTimer > 0) && runKindAI(ctx, e)) return;
     if (isStunned) {
       // Knockback still carries frozen enemies
       e.pauseTimer!--;
@@ -337,7 +342,9 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
     return;
   }
 
-  if (e.id.startsWith('rusher')) {
+  if (e.behavior === 'custom') {
+    runKindAI(ctx, e);
+  } else if (e.id.startsWith('rusher') || e.kind === 'charger') {
     const sameLevel = Math.abs((player.pos.y + player.height / 2) - (e.pos.y + e.height / 2)) < 80;
     e.vel.x = (onScreen && player.invincibilityTimer <= 0 && sameLevel) ? (player.pos.x < e.pos.x ? -1 : 1) * 6 : 0;
   } else if (e.behavior === 'patrol') {
@@ -543,7 +550,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     ? { x: player.pos.x + 2, y: player.pos.y + (player.height - 26), w: player.width - 4, h: 26 }
     : boundsOf(player);
   if (!e.harmless && !isAttacking && player.invincibilityTimer <= 0 && rectsOverlap(hurtbox, boundsOf(e))) {
-    if (!cheats.invincible) player.health -= stageDef?.contact?.damage ?? 5.5;
+    if (!cheats.invincible) player.health -= kindContactDamage(e) ?? stageDef?.contact?.damage ?? 5.5;
     if (player.health > 0) {
       player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;
       player.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;
@@ -551,10 +558,12 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
       player.smugTimer = 0;
       fx.speakVulgarity('hurt', getContactHurtSource(ctx, e));
       player.pushbackTimer = stageDef?.contact?.pushbackFrames?.(e) ?? PLAYER_PUSHBACK_DURATION;
-      player.vel = { x: (player.pos.x < e.pos.x ? -1 : 1) * PLAYER_PUSHBACK_VEL_X, y: PLAYER_PUSHBACK_VEL_Y };
+      // (a goat's headbutt sends you a lot further)
+      const butt = e.kind === 'goat' ? 1.8 : 1;
+      player.vel = { x: (player.pos.x < e.pos.x ? -1 : 1) * PLAYER_PUSHBACK_VEL_X * butt, y: PLAYER_PUSHBACK_VEL_Y * butt };
     }
     bossDef?.onTouchPlayer?.(ctx, e);
-    if (e.id.startsWith('rusher')) e.pauseTimer = 60;
+    if (e.id.startsWith('rusher') || e.kind === 'charger') e.pauseTimer = 60;
   }
   return true;
 };

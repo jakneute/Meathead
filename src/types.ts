@@ -130,9 +130,23 @@ export type BossState =
   | 'puke_going_outward' | 'vulnerable_idle' | 'dive_in_sludge' | 'weakness_stunned'
   | 'aiming' | 'flicking' | 'taser_held' | 'ash_face' | 'high' | 'running' | 'frozen';
 
+/** Themed enemies: Artie's wildlife and goons. */
+export type EnemyKind = 'wolverine' | 'goat' | 'eagle' | 'shooter' | 'charger' | 'shielder';
+
 export interface Enemy extends Entity {
   enemyType: 'drone' | 'tank' | 'turret' | 'flyer' | 'shield';
-  behavior: 'patrol' | 'shoot' | 'hover' | 'fly';
+  behavior: 'patrol' | 'shoot' | 'hover' | 'fly' | 'custom';
+  /** A themed stage enemy with its own look and AI (see systems/kinds.ts). */
+  kind?: EnemyKind;
+  /** Its AI's current move, how long it's been at it, and where it's aiming. */
+  aiState?: string;
+  aiTimer?: number;
+  aiX?: number;
+  aiY?: number;
+  /** Where it started (it doesn't stray far until it's seen you). */
+  homeX?: number;
+  homeY?: number;
+  facing?: 1 | -1;
   patrolRange: number;
   initialX: number;
   initialY?: number;
