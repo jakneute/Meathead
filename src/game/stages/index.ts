@@ -36,6 +36,8 @@ export interface StageLayout {
   /** A player projectile hit it: return true if you handled it (the projectile's used up). */
   hitSpecialEnemy?: (ctx: FrameContext, e: Enemy, p: Projectile) => boolean | undefined;
   drawSpecialEnemy?: (ctx: CanvasRenderingContext2D, e: Enemy, state: GameState) => boolean;
+  /** A special death message for how he died here (the avalanche), if any. */
+  deathMessage?: (ctx: FrameContext) => string | undefined;
   /** World space, behind everything that moves (scenery, the tram, the cabin). */
   drawBack?: (ctx: CanvasRenderingContext2D, state: GameState) => void;
   /** World space, over the terrain but behind everything that moves (hazards, props). */

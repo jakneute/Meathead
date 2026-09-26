@@ -246,7 +246,7 @@ export const buildCourse = (): Course => {
   // ============ THE RANGER CABIN, THEN THE DOOR ============
   const cabinX = c.x + 300;
   c.flat(1500);
-  const cabin = { x: cabinX, y: GROUND_Y, stopX: cabinX + 700 };
+  const cabin = { x: cabinX, y: GROUND_Y, stopX: cabinX + 560 };
 
   // Shift everything so the run-out ends at the boss door
   const dx = BOSS_DOOR_X - c.x;

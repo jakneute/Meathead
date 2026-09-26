@@ -9,6 +9,7 @@ import { createArtieRuntime, getArtie, updateArtie } from './runtime';
 import { drawArtieBack, drawArtieMid, drawArtieFront, drawArtieHud } from './draw';
 import { updateMoose, hitMoose } from './moose';
 import { drawMoose } from './mooseDraw';
+import { skiDeathMessage } from './ski';
 
 export const artieLayout: StageLayout = {
   left: COURSE.left,
@@ -32,6 +33,7 @@ export const artieLayout: StageLayout = {
     }
   },
   update: (ctx, controls) => updateArtie(ctx, controls),
+  deathMessage: ctx => { const rt = getArtie(ctx.state); return rt ? skiDeathMessage(ctx.state, rt.ski) : undefined; },
   updateSpecialEnemy: (ctx, e) => {
     const rt = getArtie(ctx.state);
     return e.kind === 'moose' && rt ? updateMoose(ctx, e, rt.moose) : undefined;

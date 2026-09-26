@@ -162,7 +162,7 @@ const isPerformingSpecial = (ctx: FrameContext) => {
 const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
   const { state, cheats, fx } = ctx;
   const { player } = state;
-  if (!input.specialPressed || player.isTasing || state.playerStunTimer > 0) return;
+  if (!input.specialPressed || player.isTasing || state.playerStunTimer > 0 || player.skiing) return;
   const free = cheats.infinitePower;
   const locked = player.lockTimer > 0; // only divekicks are allowed during recoil
 
@@ -293,6 +293,8 @@ const updateHorizontalVelocity = (ctx: FrameContext, movDir: number) => {
   const { state, stageId } = ctx;
   const { player } = state;
   if (isPerformingSpecial(ctx) || player.lockTimer > 0 || player.pushbackTimer > 0) return;
+  // On skis: the slope (and the stage) sets the pace
+  if (player.skiing) { player.vel.x = player.skiSpeed ?? 0; player.facing = 1; return; }
 
   // Oily Oscar's oil: slow, slippery going (a shoulder charge gets you out)
   const inOil = isStandingInOil(state);

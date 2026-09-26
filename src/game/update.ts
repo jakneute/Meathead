@@ -296,7 +296,7 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
     if (form) interruptSpecialWithHurt(ctx, form);
   }
   // Fell out of the world (down a pit): relative to the camera, which doesn't follow falls
-  if ((player.health <= 0 || player.pos.y > state.camera.y + 1000) && state.deathTimer <= 0) killPlayer(ctx, "YOU DIED");
+  if ((player.health <= 0 || player.pos.y > state.camera.y + 1000) && state.deathTimer <= 0) killPlayer(ctx, layout?.deathMessage?.(ctx) ?? "YOU DIED");
   if (player.isTasing && player.currentWeapon === 'TASER' && state.frame % 3 === 0) ctx.fx.playGunSound('taser');
   return true;
 };
@@ -394,7 +394,7 @@ const CAMERA_TOP_MARGIN = 150;
 const updateCamera = (ctx: FrameContext) => {
   const { state, stageId } = ctx;
   const { player } = state;
-  const followX = player.pos.x - CANVAS_WIDTH / 2 + player.width / 2;
+  const followX = player.pos.x - CANVAS_WIDTH / 2 + player.width / 2 + (state.cameraLeadX || 0);
   // Hills and heights: the camera settles on the ground he last stood on, and climbs with big jumps.
   // It doesn't follow falls (so a pit is a pit), and it's back at 0 by the flat ground at the boss door.
   const layout = getStageLayout(stageId);

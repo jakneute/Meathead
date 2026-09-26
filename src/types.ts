@@ -108,6 +108,15 @@ export interface Player extends Entity {
   steer?: number;
   /** The taser's target died: it stays off until fire is released and pressed again. */
   taserSpent?: boolean;
+  /** On skis (a stage set piece): he's carried along at skiSpeed, and can only jump, duck and shoot. */
+  skiing?: boolean;
+  skiSpeed?: number;
+  /** Not drawn (rolled up inside a snowball, say). */
+  hidden?: boolean;
+  /** Frames left of a cutscene kick pose (drawn like the dive kick, standing). */
+  kickPose?: number;
+  /** In a cutscene: can't be hurt, and doesn't flicker for it. */
+  inCutscene?: boolean;
   flameRange?: number;         // current stream length
   flameDrainTimer?: number;
   // Taser

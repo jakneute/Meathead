@@ -6,6 +6,7 @@ import { COURSE } from './course';
 import { windBlowing, Hazards } from './hazards';
 import { drawTramBack, drawTramFront, drawTramHud } from './tramDraw';
 import { drawMooseCorpse, drawMooseHud } from './mooseDraw';
+import { drawSkiMid, drawSkiFront, drawSkiHud } from './skiDraw';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -21,15 +22,18 @@ export const drawArtieMid = (ctx: Ctx, state: GameState) => {
   drawIcicles(ctx, state, rt.hazards);
   drawChutes(ctx, state);
   drawSnowballs(ctx, rt.hazards);
+  drawSkiMid(ctx, state, rt.ski);
 };
 
 export const drawArtieFront = (ctx: Ctx, state: GameState) => {
   drawTramFront(ctx, state, getArtie(state)!.tram);
+  drawSkiFront(ctx, state, getArtie(state)!.ski);
 };
 
 export const drawArtieHud = (ctx: Ctx, state: GameState) => {
   drawTramHud(ctx, state, getArtie(state)!.tram);
   drawMooseHud(ctx, state, getArtie(state)!.moose);
+  drawSkiHud(ctx, state, getArtie(state)!.ski);
 };
 
 const onScreen = (state: GameState, x: number, pad = 120) => x > state.camera.x - pad && x < state.camera.x + 800 + pad;

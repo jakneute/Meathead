@@ -30,7 +30,7 @@ const stubbleColor = 'rgba(60, 30, 10, 0.35)';
 
 /** Draws Meathead: effects auras, then body layers back-to-front, then the held weapon. */
 export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled }: PlayerDrawOptions) => {
-  if (state.deathTimer > 0) return;
+  if (state.deathTimer > 0 || p.hidden) return;
   const animFrame = state.playerAnimFrame;
   setGore(1 - p.health / INITIAL_PLAYER_HEALTH);
   const gore = getGore();
@@ -58,7 +58,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   }
 
   // 2. Invincibility / Hurt Flicker
-  const isFlicker = (p.invincibilityTimer > 0 || invincibilityEnabled) && Math.floor(animFrame / 2) % 2 === 0;
+  const isFlicker = (p.invincibilityTimer > 0 || invincibilityEnabled) && !p.inCutscene && Math.floor(animFrame / 2) % 2 === 0;
   if (isFlicker) {
     ctx.globalAlpha = 0.45;
   }
@@ -78,7 +78,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const isDivekicking = !!p.isDivekicking;
   const isDucking = p.isDucking;
   const isAirborne = !p.isGrounded;
-  const isWalking = p.isGrounded && Math.abs(p.vel.x) > 0.4 && !isCharging && !isDucking && !isDivekicking;
+  // (on skis he glides in a stance rather than running)
+  const isWalking = !p.skiing && p.isGrounded && Math.abs(p.vel.x) > 0.4 && !isCharging && !isDucking && !isDivekicking;
   const isIdle = p.isGrounded && !isWalking && !isCharging && !isDucking && !isUppercutting && !isDivekicking && !isHurt;
   // Victory lap after a weakness kill: weapon put away, and both hands on the job while he pisses
   const isUnarmed = !!state.bossCorpse && !!state.victoryString;
@@ -115,7 +116,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     return;
   }
   // The special moves are full poses of their own (unless he's been knocked out of one)
-  const movePose = hurtT >= 0 ? null : isCharging ? drawShoulderCharge : isUppercutting ? drawUppercut : isDivekicking ? drawDivekick : null;
+  const movePose = hurtT >= 0 ? null : isCharging ? drawShoulderCharge : isUppercutting ? drawUppercut : (isDivekicking || (p.kickPose || 0) > 0) ? drawDivekick : null;
   if (movePose) {
     movePose(ctx, animFrame);
     finishBody();

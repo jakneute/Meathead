@@ -49,6 +49,8 @@ export interface GameState {
   stageMemo: Record<string, string>;
   /** A set piece holding the camera (the tram, a mid-boss arena, a cutscene); eases there. */
   cameraOverride: Vector2 | null;
+  /** Shifts the camera ahead of Meathead (the ski run looks further down the mountain). */
+  cameraLeadX?: number;
 
   // Boss door & arena
   arenaLocked: boolean;
@@ -374,4 +376,9 @@ export const resetStageState = (s: GameState) => {
   p.killSatisfactionTimer = 0;
   p.bossKillSatisfactionTimer = 0;
   p.peeTimer = 0;
+  p.skiing = false;
+  p.skiSpeed = 0;
+  p.hidden = false;
+  p.inCutscene = false;
+  s.cameraLeadX = 0;
 };

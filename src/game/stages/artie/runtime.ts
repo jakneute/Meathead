@@ -10,6 +10,7 @@ import { makeKindEnemy } from '../../systems/kinds';
 import { createHazards, updateHazards, Hazards } from './hazards';
 import { createTram, updateTram, Tram } from './tram';
 import { createMooseFight, updateMooseFight, MooseFight } from './moose';
+import { createSki, updateSki, Ski } from './ski';
 
 export interface ArtieRuntime {
   /** Which checkpoint this attempt started from (0 = the trailhead). */
@@ -17,6 +18,7 @@ export interface ArtieRuntime {
   hazards: Hazards;
   tram: Tram;
   moose: MooseFight;
+  ski: Ski;
 }
 
 export const getArtie = (state: GameState) => state.stage as ArtieRuntime | null;
@@ -31,7 +33,7 @@ export const createArtieRuntime = (state: GameState, skipToBoss: boolean): Artie
   });
   // The trail's wildlife and goons (the ones still ahead)
   for (const s of COURSE.spawns) if (s.x >= fromX) state.enemies.push(makeKindEnemy(s.kind, s.x, s.y));
-  return { startedAt, hazards: createHazards(state), tram: createTram(state, startedAt), moose: createMooseFight(state, startedAt) };
+  return { startedAt, hazards: createHazards(state), tram: createTram(state, startedAt), moose: createMooseFight(state, startedAt), ski: createSki(state, startedAt) };
 };
 
 export const updateArtie = (ctx: FrameContext, controls: Controls): Controls => {
@@ -44,5 +46,5 @@ export const updateArtie = (ctx: FrameContext, controls: Controls): Controls => 
   updateHazards(ctx, rt.hazards);
   updateTram(ctx, rt.tram);
   updateMooseFight(ctx, rt.moose);
-  return controls;
+  return updateSki(ctx, rt.ski, controls);
 };
