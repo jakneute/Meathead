@@ -186,7 +186,7 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
                   {isDefeated && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-20 pointer-events-none">
                       <div className="text-red-600 text-xs font-black rotate-[-15deg] border-2 border-red-900 px-1 py-0.5 uppercase tracking-tighter bg-black/90 shadow-[0_0_10px_rgba(220,38,38,0.8)] [text-shadow:1px_1px_0_black]">
-                        FUCKING DEAD
+                        DEAD AS SHIT
                       </div>
                     </div>
                   )}
