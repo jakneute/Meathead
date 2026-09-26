@@ -161,9 +161,9 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
   const free = cheats.infinitePower;
   const locked = player.lockTimer > 0; // only divekicks are allowed during recoil
 
-  // Shoulder charge, or a slide when crouching
+  // Shoulder charge, or a slide when crouching (or pressing down with it, on the ground)
   if (!locked && !input.moveUp && !player.isCharging && (free || (player.chargeCooldown === 0 && !player.chargeUsed))) {
-    player.isSliding = player.isDucking;
+    player.isSliding = player.isDucking || (input.moveDown && player.isGrounded);
     player.chargeTimer = player.isSliding ? SLIDE_DURATION : CHARGE_DURATION;
     player.isCharging = true;
     player.isUppercutting = false;

@@ -13,6 +13,7 @@ import { BOSS_DIALOGUE } from '../../dialogue';
 import { FrameContext } from '../context';
 import { getBossDef, hitBoss, isWeakTo, maybeReactToWeapon, weaponOf } from '../boss';
 import { explodeOilRocket } from '../weapons';
+import { pushEnemy } from './knockback';
 import { stickNeedle, ENEMY_NEEDLE } from '../needles';
 import { updateOscarRocket, updateCigarette } from '../bosses/oscar';
 import { pickRandom, rectsOverlap, boundsOf } from '../utils';
@@ -415,10 +416,8 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
 
     enemy.health -= p.damage;
     if (enemy.isOiled && !p.isOilRocket) {
-      // Oiled enemies go flying from any hit
-      enemy.vel.x = p.vel.x * OIL_ROCKET_OILED_PUSHBACK_MULT;
-      enemy.vel.y = -8;
-      enemy.pauseTimer = 30;
+      // Oiled enemies go flying from any hit (light ones furthest)
+      pushEnemy(enemy, p.vel.x * OIL_ROCKET_OILED_PUSHBACK_MULT, -8, 30);
     }
     if (p.isIce) enemy.frozenTimer = SHOTGUN_FREEZE_TIME;
     fx.spawnDamageNumber(enemy.pos, p.damage, p.isBoulder);

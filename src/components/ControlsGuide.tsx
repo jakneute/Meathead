@@ -14,9 +14,9 @@ const BASICS: [action: string, keys: string, pad: string][] = [
 
 const SPECIALS: [move: string, how: string][] = [
   ['SHOULDER CHARGE', 'SPECIAL'],
-  ['SLIDE TACKLE', 'CROUCH + SPECIAL'],
-  ['UPPERCUT', 'UP + SPECIAL'],
-  ['DIVE KICK', 'DOWN + SPECIAL IN AIR'],
+  ['SLIDE TACKLE', 'CROUCH + SPECIAL / G'],
+  ['UPPERCUT', 'UP + SPECIAL / R'],
+  ['DIVE KICK', 'DOWN + SPECIAL IN AIR / G'],
   ['HEAVE BOULDER', 'UP + FIRE'],
 ];
 

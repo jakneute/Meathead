@@ -5,7 +5,7 @@ import { KillCallout } from '../../dialogue';
 import {
   CANVAS_WIDTH, CANVAS_HEIGHT, BOSS_DOOR_X, GRAVITY, PLAYER_INVINCIBILITY_FRAMES, PLAYER_STUN_INVINCIBILITY,
   PLAYER_PUSHBACK_DURATION, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, BOSS_CHARGE_DAMAGE,
-  PLAYER_MASS, ENEMY_MASS, ENEMY_DAZE_FRAMES, UPPERCUT_LAUNCH_SPEED, UPPERCUT_LAUNCH_X, BOUNCE_FRAMES,
+  PLAYER_MASS, ENEMY_DAZE_FRAMES, UPPERCUT_LAUNCH_SPEED, UPPERCUT_LAUNCH_X, BOUNCE_FRAMES,
   COOLDOWN_CHARGE, COOLDOWN_UPPERCUT, GML_SCALE, FROZEN_PUSH_MULTIPLIER, FROZEN_DAMAGE_MULTIPLIER,
   FROZEN_WALL_IMPACT_MULTIPLIER, FROZEN_GROUND_IMPACT_MULTIPLIER, FROZEN_ENEMY_IMPACT_DAMAGE,
   DAMAGE_WALL_IMPACT_SCALER, DAMAGE_FALL_SCALER, IMPACT_DAMAGE_THRESHOLD,
@@ -19,6 +19,7 @@ import { getBossDef, getStageWidth } from '../boss';
 import { rectsOverlap, boundsOf } from '../utils';
 import { getAttackHitbox, harmlessBounce, recoilOff, getContactHurtSource } from './player';
 import { shakeScreen } from '../state';
+import { getEnemyMass, enemyGrip, massRatio } from './knockback';
 
 /** Moves one enemy and resolves its contact with the player. Returns false to remove it. */
 export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolean => {
@@ -195,18 +196,19 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
 
   const floorLevel = 550 - e.height;
   const overFloor = hasFloorBelow(state, e);
+  const grip = enemyGrip(ctx.stageId, e);
   // Airborne if above the floor, just launched upward (uppercuts, explosions) or shoved over a pit
   if (e.pos.y < floorLevel - 1 || e.vel.y < 0 || !overFloor) {
     // Launched into the air by knockback
     e.pos.x += e.vel.x;
     e.pos.y += e.vel.y;
     e.vel.y += GRAVITY * 0.75;
-    e.vel.x *= (e.isOiled ? 0.985 : 0.97);
+    e.vel.x *= grip.air;
     if (overFloor && e.pos.y >= floorLevel) {
       slamIntoFloor(ctx, e, e.vel.y);
       e.pos.y = floorLevel;
       e.vel.y = 0;
-      e.vel.x *= (e.isOiled ? 0.95 : 0.7);
+      e.vel.x *= grip.landing;
     }
     if (isStunned) e.pauseTimer!--;
     return;
@@ -215,9 +217,9 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
   e.pos.y = floorLevel;
   e.vel.y = 0;
   if (isStunned) {
-    // Sliding from knockback (oiled enemies slide further)
+    // Sliding from knockback: further on ice, further still when oiled
     e.pauseTimer!--;
-    e.vel.x *= (e.isOiled ? 0.965 : 0.88);
+    e.vel.x *= grip.slide;
     e.pos.x += e.vel.x;
     if (Math.abs(e.vel.x) < 0.1) e.vel.x = 0;
     return;
@@ -280,14 +282,14 @@ const resolveOiledSlideCollision = (ctx: FrameContext, e: Enemy, enemies: Enemy[
     fx.playGunSound();
 
     if (other.type !== 'boss') {
-      other.vel.x = slideDir * Math.max(10, speed * 0.85);
+      other.vel.x = slideDir * Math.max(6, speed * 0.85 * massRatio(e, other));
       other.vel.y = -8;
       other.pauseTimer = 30;
       other.isOiled = true;
       other.oiledTimer = Math.max(other.oiledTimer || 0, OIL_ROCKET_OILED_DURATION);
     }
     if (e.type !== 'boss') {
-      e.vel.x = -slideDir * Math.max(4, speed * 0.4);
+      e.vel.x = -slideDir * Math.max(3, speed * 0.4 * massRatio(other, e));
       e.vel.y = -5;
       e.pauseTimer = 20;
     }
@@ -319,11 +321,6 @@ const getMeleeKillCallout = (player: Player, wasFrozen: boolean): KillCallout =>
 };
 
 /** Mass used for knockback and recoil (GML `mass`). */
-export const getEnemyMass = (e: Enemy) => {
-  if (e.type === 'boss') return ENEMY_MASS.boss;
-  const prefix = Object.keys(ENEMY_MASS).sort((a, b) => b.length - a.length).find(k => e.id.startsWith(k));
-  return prefix ? ENEMY_MASS[prefix] : 200;
-};
 
 /**
  * Special moves (and the filth shield) hurt enemies on contact; otherwise
@@ -595,7 +592,7 @@ const resolveShoveCollision = (ctx: FrameContext, e: Enemy, enemies: Enemy[]) =>
 
     if (isFrozen(e)) {
       other.health -= FROZEN_ENEMY_IMPACT_DAMAGE;
-      other.vel.x = e.vel.x * 0.5;
+      other.vel.x = e.vel.x * 0.5 * massRatio(e, other);
       other.pauseTimer = Math.max(other.pauseTimer || 0, 30);
       fx.spawnDamageNumber(other.pos, FROZEN_ENEMY_IMPACT_DAMAGE, true);
       fx.spawnExplosion({ x: midX, y: midY }, '#B3F0FF', 8, 0, 8);
@@ -608,7 +605,7 @@ const resolveShoveCollision = (ctx: FrameContext, e: Enemy, enemies: Enemy[]) =>
         fx.spawnDamageNumber(other.pos, damage);
         fx.spawnExplosion({ x: midX, y: midY }, '#FDE047', 3, 0, 6);
       }
-      other.vel.x = e.vel.x * ENEMY_DOMINO_TRANSFER;
+      other.vel.x = e.vel.x * ENEMY_DOMINO_TRANSFER * massRatio(e, other);
       other.pauseTimer = Math.max(other.pauseTimer || 0, e.pauseTimer || 0);
       e.vel.x *= ENEMY_DOMINO_LOSS;
     }

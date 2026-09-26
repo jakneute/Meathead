@@ -18,6 +18,7 @@ import { hitBoss } from './boss';
 import { pickRandom, rectsOverlap, boundsOf } from './utils';
 import { findFlyingCigarette } from './bosses/oscar';
 import { icicleBounds, meltIcicle } from './bosses/artie';
+import { pushEnemy } from './systems/knockback';
 import { detonateSewerNuke, TOXIC_TOMMY } from './sewerNuke';
 
 /** The bits of this frame's input that weapons care about. */
@@ -414,15 +415,11 @@ export const explodeOilRocket = (ctx: FrameContext, pos: Vector2, rocketVelX?: n
     if (e.health <= 0) {
       fx.killWithAnimation(e, 'greased', 'oil_kill', 'greased', { x: pushDir * 12, y: -10 });
     } else if (isAirEnemy) {
-      // Air enemies: shoved back
-      e.vel.x = pushDir * 8;
-      e.vel.y = -2;
-      e.pauseTimer = 25;
+      // Air enemies: shoved back (light ones further)
+      pushEnemy(e, pushDir * 8, -2, 25);
     } else {
-      // Grounded enemies: knocked back with a short hop
-      e.vel.x = pushDir * 12;
-      e.vel.y = -7;
-      e.pauseTimer = 35;
+      // Grounded enemies: knocked back with a short hop, by weight; the oil it leaves on them keeps them sliding
+      pushEnemy(e, pushDir * 12, -7, 35);
     }
   });
 
