@@ -264,6 +264,8 @@ export interface Projectile extends Entity {
   isMethBarrel?: boolean;
   isSludge?: boolean;
   isOilRocket?: boolean;
+  /** Fired from a crouch: this rocket ignores steering and flies straight. */
+  noSteer?: boolean;
   isOscarRocket?: boolean;
   isCigarette?: boolean;
   /** Frames the taser has been on this cigarette. */

@@ -159,7 +159,9 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
         pos: fromMuzzle(40, 20),
         vel: { x: facing * 24, y: 0 },
         width: 40, height: 20, health: 1, maxHealth: 1,
-        type: 'projectile', damage: OIL_ROCKET_DAMAGE, owner: 'player', isOilRocket: true
+        type: 'projectile', damage: OIL_ROCKET_DAMAGE, owner: 'player', isOilRocket: true,
+        // Fired from a crouch it always flies straight (down is held, and it'd steer into the floor)
+        noSteer: player.isDucking
       });
       player.shootCooldown = OIL_ROCKET_COOLDOWN;
       fx.playGunSound('oil');
