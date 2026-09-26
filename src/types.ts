@@ -205,7 +205,6 @@ export interface Enemy extends Entity {
   taserHold?: number;         // frames held by the taser
   taserHeldThisFrame?: boolean;
   taserGrace?: number;
-  fireHurtTimer?: number;
 }
 
 export interface TommyBoard {

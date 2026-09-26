@@ -151,7 +151,6 @@ export const updateOscar = (ctx: FrameContext, boss: Enemy) => {
     default:
       updateIdle(ctx, boss);
   }
-  hurtOscarWithFire(ctx, boss);
 };
 
 const idleFrames = (boss: Enemy) =>
@@ -423,18 +422,6 @@ const spawnFlame = (state: GameState, c: OilCell) => {
     vel: { x: out.x * (1 + Math.random() * 2) + (Math.random() - 0.5), y: out.y * (1 + Math.random() * 2) - 0.8 },
     life: 16 + Math.random() * 10, color: Math.random() > 0.5 ? '#616161' : '#424242', size: 4 + Math.random() * 4,
   });
-};
-
-/** Oscar isn't fireproof: standing in his own fire hurts him too. */
-const hurtOscarWithFire = (ctx: FrameContext, boss: Enemy) => {
-  const { state, fx } = ctx;
-  if (boss.fireHurtTimer && boss.fireHurtTimer > 0) { boss.fireHurtTimer--; return; }
-  const box = boundsOf(boss);
-  if (!state.oilCells.some(c => flameStrength(c) > 0.5 && rectsOverlap(flameRect(c), box))) return;
-  boss.fireHurtTimer = 30;
-  boss.health -= 12;
-  fx.spawnDamageNumber(boss.pos, 12);
-  if (boss.health <= 0) ctx.bossHelpers.killBoss(boss, 0, false);
 };
 
 // ---------------------------------------------------------------------------
