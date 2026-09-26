@@ -12,20 +12,22 @@ import {
   ENEMY_DOMINO_TRANSFER, ENEMY_DOMINO_LOSS, DOMINO_DAMAGE_SCALER,
   BOSS_UPPERCUT_DAMAGE, ENEMY_UPPERCUT_DAMAGE, BOSS_DIVEKICK_DAMAGE, ENEMY_DIVEKICK_DAMAGE,
   ENEMY_HIT_COOLDOWN, ENEMY_BULLET_DAMAGE, FILTH_SHIELD_CONTACT_DAMAGE, OIL_ROCKET_OILED_DURATION,
-  OILED_COLLISION_DAMAGE, OILED_CHARGE_PUSH_MULTIPLIER, OILED_CHARGE_MIN_PUSH, OVERDOSE_HOMING_ACCEL, OVERDOSE_MAX_SPEED, OVERDOSE_HIT_DAMAGE, OVERDOSE_HOMING_FRAMES, OVERDOSE_HOMING_RANGE,
+  OILED_COLLISION_DAMAGE, OILED_CHARGE_PUSH_MULTIPLIER, OILED_CHARGE_MIN_PUSH, OVERDOSE_GRAVITY, OVERDOSE_RISE_RANGE, OVERDOSE_RISE_STEER, OVERDOSE_MAX_SIDE_SPEED,
+  OVERDOSE_MAX_RISE_SPEED, OVERDOSE_DIVE_RANGE, OVERDOSE_DIVE_SPEED, OVERDOSE_DROP_GRAVITY, OVERDOSE_HIT_DAMAGE,
 } from '../../constants';
 import { FrameContext, killBoss } from '../context';
 import { getBossDef, getStageWidth } from '../boss';
 import { rectsOverlap, boundsOf } from '../utils';
 import { getAttackHitbox, harmlessBounce, recoilOff, getContactHurtSource } from './player';
 import { shakeScreen } from '../state';
+import { startEnemyDeath } from '../enemyDeaths';
 import { getEnemyMass, enemyGrip, massRatio } from './knockback';
 
 /** Moves one enemy and resolves its contact with the player. Returns false to remove it. */
 export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolean => {
   const { state } = ctx;
   if (e.isBlownAway) {
-    if (e.overdosed) flyOverdosedBody(ctx, e, enemies);
+    if (e.overdosed) return flyOverdosedBody(ctx, e, enemies);
     // Dead bodies tumble off-screen
     e.pos.x += e.vel.x;
     e.pos.y += e.vel.y;
@@ -111,44 +113,83 @@ const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
 };
 
 /**
- * An overdosed body on its way off the screen: it veers toward the nearest
- * airborne enemy (a bias, not a guided missile) and anything it plows into
- * takes a massive hit, usually fatal. So overdosing something on the ground
- * can take down a flyer by accident.
+ * An overdosed body's flight. It goes up in an arc, steering its sideways speed
+ * so the arc passes through an enemy above it (airborne ones first, kicking a
+ * little harder upward if one's just out of reach). From the top of the arc it
+ * dives in a dead straight line at the nearest enemy below, or drops straight
+ * down if there isn't one, and splats on the ground. Anything it plows into on
+ * the way takes a massive hit. Returns false once it's gone.
  */
-const flyOverdosedBody = (ctx: FrameContext, e: Enemy, enemies: Enemy[]) => {
-  const { fx } = ctx;
-  const cx = e.pos.x + e.width / 2, cy = e.pos.y + e.height / 2;
+const flyOverdosedBody = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolean => {
+  const { state, fx } = ctx;
+  const mid = (o: Enemy) => ({ x: o.pos.x + o.width / 2, y: o.pos.y + o.height / 2 });
   const alive = (o: Enemy) => o !== e && o.type !== 'boss' && !o.isBlownAway && o.health > 0;
+  const hitIds = e.overdoseHitIds || (e.overdoseHitIds = []);
+  const c = mid(e);
+  e.overdosePhase = e.overdosePhase || 'rise';
 
-  // Pull toward the nearest airborne enemy (for a little while, and only one that's close)
-  e.overdoseAge = (e.overdoseAge || 0) + 1;
-  let target: Enemy | undefined, best = e.overdoseAge <= OVERDOSE_HOMING_FRAMES ? OVERDOSE_HOMING_RANGE : 0;
-  for (const o of enemies) {
-    if (!alive(o) || !isAirEnemy(o)) continue;
-    const d = Math.hypot(o.pos.x + o.width / 2 - cx, o.pos.y + o.height / 2 - cy);
-    if (d < best) { best = d; target = o; }
+  if (e.overdosePhase === 'rise') {
+    // Something above to arc into (just the one: once it's hit something it rides out the arc).
+    // Flyers first, anything else only if there's no flyer about
+    const above = hitIds.length > 0 ? [] : enemies.filter(o => alive(o) && mid(o).y < c.y - 10 && Math.abs(mid(o).x - c.x) < OVERDOSE_RISE_RANGE);
+    const pool = above.some(isAirEnemy) ? above.filter(isAirEnemy) : above;
+    let target: Enemy | undefined, best = Infinity;
+    for (const o of pool) {
+      const d = Math.hypot(mid(o).x - c.x, mid(o).y - c.y);
+      if (d < best) { best = d; target = o; }
+    }
+    if (target) {
+      const t = mid(target);
+      const rise = c.y - t.y;               // how far up it is
+      let up = -e.vel.y;                    // current upward speed
+      // Not enough speed left to get up there: kick harder (it's that eager)
+      if (up * up < 2 * OVERDOSE_GRAVITY * rise) up = Math.min(OVERDOSE_MAX_RISE_SPEED, Math.sqrt(2 * OVERDOSE_GRAVITY * rise) * 1.08);
+      e.vel.y = -up;
+      // Frames until it's level with the target, and the sideways speed that puts it there
+      const frames = Math.max(1, (up - Math.sqrt(Math.max(0, up * up - 2 * OVERDOSE_GRAVITY * rise))) / OVERDOSE_GRAVITY);
+      const wantX = Math.max(-OVERDOSE_MAX_SIDE_SPEED, Math.min(OVERDOSE_MAX_SIDE_SPEED, (t.x - c.x) / frames));
+      e.vel.x += (wantX - e.vel.x) * OVERDOSE_RISE_STEER;
+    }
+    e.vel.y += OVERDOSE_GRAVITY;
+    if (e.vel.y >= 0) {
+      // Top of the arc: pick something below and go straight at it
+      let dive: Enemy | undefined, bestDive = OVERDOSE_DIVE_RANGE;
+      for (const o of enemies) {
+        if (!alive(o) || hitIds.includes(o.id) || mid(o).y <= c.y) continue;
+        const d = Math.hypot(mid(o).x - c.x, mid(o).y - c.y);
+        if (d < bestDive) { bestDive = d; dive = o; }
+      }
+      if (dive) {
+        // Lead it: aim where it'll be by the time the body gets there
+        const m = mid(dive);
+        const eta = Math.hypot(m.x - c.x, m.y - c.y) / OVERDOSE_DIVE_SPEED;
+        const t = { x: m.x + dive.vel.x * eta, y: m.y + (isAirEnemy(dive) ? dive.vel.y * eta : 0) };
+        const len = Math.hypot(t.x - c.x, t.y - c.y) || 1;
+        e.vel = { x: (t.x - c.x) / len * OVERDOSE_DIVE_SPEED, y: (t.y - c.y) / len * OVERDOSE_DIVE_SPEED };
+        e.overdosePhase = 'dive';
+      } else {
+        e.vel = { x: 0, y: 2 };
+        e.overdosePhase = 'drop';
+      }
+    }
+  } else if (e.overdosePhase === 'drop') {
+    e.vel.y += OVERDOSE_DROP_GRAVITY;
   }
-  if (target) {
-    const dx = target.pos.x + target.width / 2 - cx, dy = target.pos.y + target.height / 2 - cy;
-    const len = Math.hypot(dx, dy) || 1;
-    e.vel.x += (dx / len) * OVERDOSE_HOMING_ACCEL;
-    // Upward pull also cancels the gravity it would otherwise feel this frame
-    e.vel.y += (dy / len) * OVERDOSE_HOMING_ACCEL - (dy < 0 ? GRAVITY * 0.5 : 0);
-    const speed = Math.hypot(e.vel.x, e.vel.y);
-    if (speed > OVERDOSE_MAX_SPEED) { e.vel.x *= OVERDOSE_MAX_SPEED / speed; e.vel.y *= OVERDOSE_MAX_SPEED / speed; }
-  }
+  // (a dive keeps its speed and direction: a straight line, no arc)
+
+  e.pos.x += e.vel.x;
+  e.pos.y += e.vel.y;
+  e.rotation = (e.rotation || 0) + (e.overdosePhase === 'rise' ? 0.3 : 0.12);
 
   // Plowing through anyone in the way
-  const hitIds = e.overdoseHitIds || (e.overdoseHitIds = []);
   const box = boundsOf(e);
   for (const o of enemies) {
     if (!alive(o) || hitIds.includes(o.id) || !rectsOverlap(box, boundsOf(o))) continue;
     hitIds.push(o.id);
     o.health -= OVERDOSE_HIT_DAMAGE;
     fx.spawnDamageNumber(o.pos, OVERDOSE_HIT_DAMAGE, true);
-    fx.spawnExplosion({ x: o.pos.x + o.width / 2, y: o.pos.y + o.height / 2 }, '#E879F9', 14, 0, 10);
-    shakeScreen(ctx.state, 8);
+    fx.spawnExplosion(mid(o), '#E879F9', 14, 0, 10);
+    shakeScreen(state, 8);
     if (o.health <= 0) {
       fx.blowAwayEnemy(o, { x: e.vel.x * 0.7, y: Math.min(-8, e.vel.y * 0.7) }, 'dart_kill', Math.sign(e.vel.x));
       fx.spawnKillCallout(o, 'contact');
@@ -157,6 +198,21 @@ const flyOverdosedBody = (ctx: FrameContext, e: Enemy, enemies: Enemy[]) => {
       o.vel.y += Math.min(0, e.vel.y * 0.5);
     }
   }
+
+  // Coming down onto solid ground: splat
+  if (e.vel.y > 0) {
+    const floor = state.blocks.find(b => b.type !== 'pit' && b.type !== 'wall' && rectsOverlap(boundsOf(e), b) && e.pos.y + e.height - e.vel.y <= b.y + 2);
+    if (floor) {
+      e.pos.y = floor.y - e.height;
+      startEnemyDeath(state, e, 'pancaked');
+      fx.spawnDeathShower(e.pos, Math.sign(e.vel.x), 2);
+      fx.spawnExplosion({ x: c.x, y: floor.y - 4 }, '#8B0000', 16, 0, 12);
+      fx.spawnKillCallout(e, 'groundsplat');
+      shakeScreen(state, 10);
+      return false;
+    }
+  }
+  return e.pos.y < 1000;
 };
 
 const isAirEnemy = (e: Enemy) => e.enemyType === 'flyer' || e.enemyType === 'drone' || e.behavior === 'fly' || e.behavior === 'hover';

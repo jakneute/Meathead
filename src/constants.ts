@@ -36,15 +36,21 @@ export const STAGE_WIDTH = 8000;
 export const GROUND_Y = 550;
 /** The weapon test range after a boss (a one-screen void arena run by its own copy of the engine). */
 export const WEAPON_RANGE_STAGE = 'WEAPON_RANGE';
-// An overdosed body flying off the screen veers toward airborne enemies and wrecks whatever it hits
 // Oil rockets can be nudged up or down in flight (enough to catch a flyer, not to turn corners)
 export const OIL_ROCKET_STEER_ACCEL = 0.6;
 export const OIL_ROCKET_STEER_MAX = 8;          // vertical speed cap (about 18 degrees off level)
-export const OVERDOSE_HOMING_ACCEL = 0.95;     // px/frame^2 of pull toward the nearest airborne enemy
-export const OVERDOSE_MAX_SPEED = 26;
+// An overdosed body: launched upward, it arcs toward an enemy on the way up (strongly preferring
+// airborne ones), then at the top dives in a straight line at an enemy below, and splats on the ground.
+// Anything it plows into on the way takes a massive hit.
+export const OVERDOSE_GRAVITY = 0.65;          // on the way up
+export const OVERDOSE_RISE_RANGE = 650;        // how far it looks for something to arc into
+export const OVERDOSE_RISE_STEER = 0.45;       // how hard it corrects its sideways speed toward the arc (0..1 per frame)
+export const OVERDOSE_MAX_SIDE_SPEED = 20;
+export const OVERDOSE_MAX_RISE_SPEED = 32;     // it can kick harder upward to reach a flyer above the top of its arc
+export const OVERDOSE_DIVE_RANGE = 700;        // how far it looks for something to dive into from the top
+export const OVERDOSE_DIVE_SPEED = 19;
+export const OVERDOSE_DROP_GRAVITY = 0.9;      // nothing to dive at: straight down, fast
 export const OVERDOSE_HIT_DAMAGE = 300;        // to anything it plows into (no regular enemy survives it)
-export const OVERDOSE_HOMING_FRAMES = 75;      // it stops veering after this (then just falls away)
-export const OVERDOSE_HOMING_RANGE = 650;      // only airborne enemies this close pull it
 export const BOSS_DOOR_X = 7200;
 export const DOOR_WIDTH = 40;
 export const ARENA_LEFT = BOSS_DOOR_X + DOOR_WIDTH;
