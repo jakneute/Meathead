@@ -14,21 +14,22 @@ export const WeaponArt: React.FC<{ type: WeaponType; size?: number }> = ({ type,
 );
 
 const ART: Record<WeaponType, React.ReactNode> = {
-  // Pump shotgun: wooden stock and pump, blued steel
+  // Handgun: a chunky semi-auto with a serrated slide and a rubber grip
   GUN: (
     <g>
-      <rect x="3" y="12" width="26" height="6" fill={O} />
-      <rect x="4" y="13" width="24" height="3" fill="#4B5563" />
-      <rect x="4" y="13" width="24" height="1" fill="#9CA3AF" />
-      <rect x="27" y="13" width="3" height="2" fill="#1F2937" />
-      <rect x="12" y="15" width="9" height="4" fill={O} />
-      <rect x="13" y="16" width="7" height="2" fill="#A16207" />
-      <rect x="13" y="16" width="7" height="1" fill="#CA8A04" />
-      <path d="M2 13 L7 13 L8 18 L6 23 L1 22 Z" fill={O} />
-      <path d="M3 14 L6 14 L7 18 L5 21 L2 20 Z" fill="#78350F" />
-      <rect x="3" y="15" width="3" height="1" fill="#A16207" />
-      <rect x="8" y="17" width="3" height="4" fill={O} />
-      <rect x="9" y="18" width="1" height="2" fill="#374151" />
+      <rect x="5" y="9" width="23" height="8" fill={O} />
+      <rect x="6" y="10" width="21" height="5" fill="#4B5563" />
+      <rect x="6" y="10" width="21" height="1" fill="#9CA3AF" />
+      <rect x="8" y="12" width="1" height="3" fill="#1F2937" /><rect x="10" y="12" width="1" height="3" fill="#1F2937" /><rect x="12" y="12" width="1" height="3" fill="#1F2937" />
+      <rect x="25" y="8" width="2" height="2" fill={O} />
+      <rect x="27" y="11" width="3" height="3" fill={O} />
+      <rect x="7" y="16" width="16" height="3" fill={O} />
+      <rect x="8" y="16" width="14" height="2" fill="#374151" />
+      <path d="M7 18 L14 18 L13 28 L5 28 Z" fill={O} />
+      <path d="M8 19 L13 19 L12 27 L6 27 Z" fill="#27272A" />
+      <rect x="8" y="21" width="4" height="1" fill="#3F3F46" /><rect x="7" y="23" width="4" height="1" fill="#3F3F46" /><rect x="7" y="25" width="4" height="1" fill="#3F3F46" />
+      <path d="M14 18 L18 18 L18 22 Q16 23 14 21 Z" fill={O} />
+      <rect x="15" y="19" width="2" height="1" fill="#6B7280" />
     </g>
   ),
   // Big Fuckin' Boulder: a craggy rock, lit from the top left

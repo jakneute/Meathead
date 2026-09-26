@@ -193,7 +193,7 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
 /** What each weapon's called and where it came from. */
 const weaponInfo = (w: WeaponType) => {
   const from = Object.keys(BOSS_WEAPON_MAP).find(id => BOSS_WEAPON_MAP[id] === w);
-  return { name: from ? WEAPON_NAMES[from] : 'Pump Shotgun', from: from ?? 'STANDARD ISSUE' };
+  return { name: from ? WEAPON_NAMES[from] : 'Handgun', from: from ?? 'STANDARD ISSUE' };
 };
 
 const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, weaponAmmo, selectedIndex, onWeaponIconClick, onResume, onBossSelect, onQuitToMenu }) => {

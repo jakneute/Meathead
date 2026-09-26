@@ -175,7 +175,7 @@ export const getStartingWeapons = (rank: number, allWeaponsCheat: boolean): Weap
 };
 
 export const getWeaponDescription = (weapon: WeaponType): string => {
-  if (weapon === 'GUN') return "STANDARD PUMP ACTION";
+  if (weapon === 'GUN') return "Your trusty sidearm. Never runs dry, never jams, never lets you down. Point it at a face and pull the trigger.";
   const bossId = Object.keys(BOSS_WEAPON_MAP).find(id => BOSS_WEAPON_MAP[id] === weapon);
   return (bossId && WEAPON_DESCRIPTIONS[bossId]) || "HEAVY DEVASTATION";
 };

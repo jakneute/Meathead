@@ -953,13 +953,18 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     if (isUnarmed) {
       // Weapon put away for the victory lap
     } else if (currentWeapon === 'GUN') {
-      // Heavy pump-action shotgun
+      // Handgun: slide over the frame, grip in his fist, muzzle out front
       ctx.fillStyle = '#27272A';
-      ctx.fillRect(wpnX, wpnY, 22, 7);
-      ctx.fillStyle = '#71717A';
-      ctx.fillRect(wpnX + 6, wpnY + 4, 8, 4); // Pump
+      ctx.fillRect(wpnX + 4, wpnY, 18, 5);            // slide
+      ctx.fillStyle = '#6B7280';
+      ctx.fillRect(wpnX + 4, wpnY, 18, 1);            // top edge catching the light
+      ctx.fillStyle = '#18181B';
+      ctx.fillRect(wpnX + 6, wpnY + 2, 1, 2); ctx.fillRect(wpnX + 8, wpnY + 2, 1, 2); // serrations
+      ctx.fillRect(wpnX + 20, wpnY - 1, 2, 1);        // front sight
+      ctx.fillStyle = '#3F3F46';
+      ctx.fillRect(wpnX + 5, wpnY + 5, 12, 2);        // frame
       ctx.fillStyle = '#52525B';
-      ctx.fillRect(wpnX + 22, wpnY + 1, 4, 3); // Muzzle
+      ctx.fillRect(wpnX + 22, wpnY + 1, 3, 3);        // muzzle
     } else if (currentWeapon === 'BOULDER') {
       // Craggy heavy rock
       ctx.fillStyle = '#854D0E';
