@@ -4,7 +4,7 @@ import { Enemy, Projectile } from '../../types';
 import {
   CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, PLAYER_INVINCIBILITY_FRAMES,
   PLAYER_PUSHBACK_DURATION, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y,
-  BOULDER_BOUNCE_DAMPING, SHOTGUN_FREEZE_TIME, NEEDLE_OVERDOSE_THRESHOLD,
+  BOULDER_BOUNCE_DAMPING, SHOTGUN_FREEZE_TIME, NEEDLE_OVERDOSE_THRESHOLD, OIL_ROCKET_STEER_ACCEL, OIL_ROCKET_STEER_MAX,
   SHOTGUN_MAX_BOUNCES, SHOTGUN_BOUNCE_VARIANCE_DEG, BOULDER_GRAVITY, BOULDER_MAX_SPEED, BOULDER_WALK_NUDGE,
   BOULDER_PUNT, BOULDER_BILLIARD_LOSS, BOULDER_DAMAGE_PER_SPEED, GML_SCALE,
   SLUDGE_DOT_DAMAGE, SLUDGE_DOT_TICK, SLUDGE_LINGER_DURATION, OIL_ROCKET_OILED_PUSHBACK_MULT, ERNIE_STOMP_VIBRATION_DURATION,
@@ -90,6 +90,10 @@ export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
 
 const updateOilRocket = (ctx: FrameContext, p: Projectile): boolean => {
   const { state } = ctx;
+  // Up / down nudge it in flight; let go and it levels back out
+  const steer = state.player.steer || 0;
+  if (steer) p.vel.y = Math.max(-OIL_ROCKET_STEER_MAX, Math.min(OIL_ROCKET_STEER_MAX, p.vel.y + steer * OIL_ROCKET_STEER_ACCEL));
+  else p.vel.y *= 0.9;
   p.pos.x += p.vel.x;
   p.pos.y += p.vel.y;
 

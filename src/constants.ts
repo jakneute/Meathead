@@ -37,6 +37,9 @@ export const GROUND_Y = 550;
 /** The weapon test range after a boss (a one-screen void arena run by its own copy of the engine). */
 export const WEAPON_RANGE_STAGE = 'WEAPON_RANGE';
 // An overdosed body flying off the screen veers toward airborne enemies and wrecks whatever it hits
+// Oil rockets can be nudged up or down in flight (enough to catch a flyer, not to turn corners)
+export const OIL_ROCKET_STEER_ACCEL = 0.6;
+export const OIL_ROCKET_STEER_MAX = 8;          // vertical speed cap (about 18 degrees off level)
 export const OVERDOSE_HOMING_ACCEL = 0.95;     // px/frame^2 of pull toward the nearest airborne enemy
 export const OVERDOSE_MAX_SPEED = 26;
 export const OVERDOSE_HIT_DAMAGE = 300;        // to anything it plows into (no regular enemy survives it)

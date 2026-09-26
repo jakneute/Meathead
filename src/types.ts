@@ -104,6 +104,8 @@ export interface Player extends Entity {
   // Flamethrower
   isFlaming?: boolean;         // stream active: locks facing
   flameAngle?: number;         // current aim in radians (negative = up)
+  /** Up (-1) or down (+1) held this frame: steers his oil rockets in flight. */
+  steer?: number;
   flameRange?: number;         // current stream length
   flameDrainTimer?: number;
   // Taser

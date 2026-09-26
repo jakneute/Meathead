@@ -809,6 +809,7 @@ const drawProjectiles = (ctx: CanvasRenderingContext2D, state: GameState, layer:
       ctx.save();
       ctx.translate(p.pos.x + p.width / 2, p.pos.y + p.height / 2);
       if (p.vel.x < 0) ctx.scale(-1, 1);
+      ctx.rotate(Math.atan2(p.vel.y, Math.abs(p.vel.x))); // nose follows the steering
 
       // Rocket Body
       ctx.fillStyle = '#212121';

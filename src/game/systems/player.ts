@@ -136,6 +136,7 @@ export const updatePlayerActions = (ctx: FrameContext, input: FrameInput) => {
   const { player } = state;
 
   startSpecialMoves(ctx, input);
+  player.steer = input.moveUp ? -1 : input.moveDown ? 1 : 0;
   const movDir = player.isTasing ? 0 : (input.moveRight ? 1 : 0) - (input.moveLeft ? 1 : 0);
   runSpecialMoves(ctx, input);
 
