@@ -249,6 +249,7 @@ export const OIL_ROCKET_COOLDOWN = 45;
 export const OIL_ROCKET_OILED_DURATION = 300; // 5 seconds
 export const OIL_ROCKET_OILED_PUSHBACK_MULT = 2.5;
 export const OIL_ROCKET_NUKE_DAMAGE = 1500;
+export const OIL_ROCKET_NUKE_RADIUS = 420;          // setting an oiled enemy on fire levels everything this close
 export const OILED_COLLISION_DAMAGE = 25;
 
 // ==========================================

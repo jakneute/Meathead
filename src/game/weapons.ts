@@ -10,7 +10,7 @@ import {
   TASER_RANGE, CANVAS_WIDTH, GUN_COOLDOWN, GUN_VELOCITY,
   NEEDLE_DAMAGE, NEEDLE_COOLDOWN, SLUDGE_COOLDOWN, FILTH_SHIELD_DURATION, SLUDGE_DAMAGE,
   OIL_ROCKET_DAMAGE, OIL_ROCKET_COOLDOWN, OIL_ROCKET_SPLASH_RADIUS, OIL_ROCKET_SPLASH_DAMAGE,
-  OIL_ROCKET_OILED_DURATION, OIL_ROCKET_NUKE_DAMAGE,
+  OIL_ROCKET_OILED_DURATION, OIL_ROCKET_NUKE_DAMAGE, OIL_ROCKET_NUKE_RADIUS,
 } from '../constants';
 import { GameState } from './state';
 import { FrameContext, killBoss } from './context';
@@ -447,7 +447,7 @@ export const detonateNuke = (ctx: FrameContext, pos: Vector2) => {
     if (e.health <= 0 || e.isBlownAway) return;
     const dx = (e.pos.x + e.width / 2) - pos.x;
     const dy = (e.pos.y + e.height / 2) - pos.y;
-    if (dx * dx + dy * dy >= 250 * 250) return;
+    if (dx * dx + dy * dy >= OIL_ROCKET_NUKE_RADIUS * OIL_ROCKET_NUKE_RADIUS) return;
     e.health -= OIL_ROCKET_NUKE_DAMAGE;
     fx.spawnDamageNumber(e.pos, OIL_ROCKET_NUKE_DAMAGE, true, '#FF0000');
     if (e.health > 0) return;
@@ -458,6 +458,19 @@ export const detonateNuke = (ctx: FrameContext, pos: Vector2) => {
     }
   });
 
-  fx.playGunSound('tsunami');
-  state.screenShakeTimer = 24;
+  // A ring of fire racing out to the edge of the blast
+  for (let i = 0; i < 48; i++) {
+    const a = (i / 48) * Math.PI * 2;
+    const speed = OIL_ROCKET_NUKE_RADIUS / 22;
+    state.particles.push({
+      pos: { ...pos },
+      vel: { x: Math.cos(a) * speed, y: Math.sin(a) * speed * 0.6 },
+      life: 22,
+      color: i % 3 === 0 ? '#FFFFFF' : i % 3 === 1 ? '#FFD700' : '#FF6D00',
+      size: 10 + Math.random() * 8,
+    });
+  }
+  fx.playGunSound('nuke');
+  state.screenShakeTimer = 30;
+  state.screenShakeMagnitude = 12;
 };
