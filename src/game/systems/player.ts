@@ -8,8 +8,8 @@ import {
   PLAYER_MOVE_SPEED, PLAYER_ACCEL_BASE, PLAYER_FRICTION_BASE, PLAYER_AIR_FRICTION, CROUCH_SLIDE_FRICTION_MULT,
   ICE_FRICTION_MULTIPLIER, MIN_MOVE_SPEED, PLAYER_GRAVITY, PLAYER_TERMINAL_VELOCITY, PLAYER_JUMP_SPEED,
   JUMP_HOLD_FRAMES, COYOTE_AIR_FRAMES, COYOTE_JUMP_FRAMES, JUMP_BUFFER_FRAMES, LANDING_SHAKE_SPEED,
-  CHARGE_SPEED, CHARGE_DURATION, SLIDE_SPEED, SLIDE_DURATION, COOLDOWN_CHARGE,
-  UPPERCUT_SPEED, UPPERCUT_DURATION, COOLDOWN_UPPERCUT, DIVEKICK_SPEED, DIVEKICK_ANGLE,
+  CHARGE_SPEED, CHARGE_DURATION, SLIDE_SPEED, SLIDE_DURATION, POWER_CELLS, POWER_CELL_RECHARGE,
+  UPPERCUT_SPEED, UPPERCUT_DURATION, DIVEKICK_SPEED, DIVEKICK_ANGLE,
   PLAYER_MASS, RECOIL_FRAMES, PLAYER_STUN_INVINCIBILITY, GML_SCALE, SPECIAL_HURT_FRAMES, ARENA_LEFT,
   OSCAR_OIL_SPEED_MULT, OSCAR_OIL_JUMP_MULT,
 } from '../../constants';
@@ -117,8 +117,10 @@ export const tickPlayerTimers = (ctx: FrameContext, input: FrameInput) => {
   }
   if (player.hurtFormTimer && player.hurtFormTimer > 0 && --player.hurtFormTimer === 0) player.hurtForm = null;
   if (player.squash) player.squash = Math.abs(player.squash) < 0.02 ? 0 : player.squash * 0.8;
-  if (player.chargeCooldown > 0) player.chargeCooldown--;
-  if (player.uppercutCooldown > 0) player.uppercutCooldown--;
+  // Spent power refills cell by cell, but only with his feet on the ground (no infinite air combos)
+  if (player.isGrounded && player.power < POWER_CELLS && !player.isCharging && !player.isUppercutting) {
+    player.power = Math.min(POWER_CELLS, player.power + 1 / POWER_CELL_RECHARGE);
+  }
   if (player.filthShieldTimer && player.filthShieldTimer > 0) player.filthShieldTimer--;
   if (player.taserOverloadTimer && player.taserOverloadTimer > 0) player.taserOverloadTimer--;
 
@@ -162,7 +164,8 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
   const locked = player.lockTimer > 0; // only divekicks are allowed during recoil
 
   // Shoulder charge, or a slide when crouching (or pressing down with it, on the ground)
-  if (!locked && !input.moveUp && !player.isCharging && (free || (player.chargeCooldown === 0 && !player.chargeUsed))) {
+  if (!locked && !input.moveUp && !player.isCharging && (free || player.power >= 1)) {
+    if (!free) player.power -= 1;
     player.isSliding = player.isDucking || (input.moveDown && player.isGrounded);
     player.chargeTimer = player.isSliding ? SLIDE_DURATION : CHARGE_DURATION;
     player.isCharging = true;
@@ -172,7 +175,8 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
   }
 
   // Uppercut
-  if (!locked && input.moveUp && !player.isDucking && !player.isUppercutting && (free || (player.uppercutCooldown === 0 && !player.uppercutUsed))) {
+  if (!locked && input.moveUp && !player.isDucking && !player.isUppercutting && (free || player.power >= 1)) {
+    if (!free) player.power -= 1;
     player.isUppercutting = true;
     player.chargeFace = player.facing;
     player.isCharging = false;
@@ -253,15 +257,11 @@ export const endCharge = (ctx: FrameContext) => {
   const { player } = ctx.state;
   player.isCharging = false;
   player.isSliding = false;
-  player.chargeCooldown = COOLDOWN_CHARGE;
-  player.chargeUsed = true;
 };
 
 export const endUppercut = (ctx: FrameContext) => {
   const { player } = ctx.state;
   player.isUppercutting = false;
-  player.uppercutCooldown = COOLDOWN_UPPERCUT;
-  player.uppercutUsed = true;
 };
 
 const updateCrouch = (ctx: FrameContext, input: FrameInput) => {
@@ -351,8 +351,6 @@ const updateVerticalVelocity = (ctx: FrameContext, input: FrameInput) => {
   }
 
   if (player.isGrounded) {
-    player.chargeUsed = false;
-    player.uppercutUsed = false;
     player.isDivekicking = false;
     player.coyoteJumpTimer = COYOTE_JUMP_FRAMES;
   } else {

@@ -174,6 +174,12 @@ export const getStartingWeapons = (rank: number, allWeaponsCheat: boolean): Weap
   return rank === 1 ? WEAPONS_AFTER_SET_0 : ['GUN'];
 };
 
+/** A weapon's proper name, and the boss it was taken from (if any). */
+export const getWeaponInfo = (weapon: WeaponType) => {
+  const from = Object.keys(BOSS_WEAPON_MAP).find(id => BOSS_WEAPON_MAP[id] === weapon);
+  return { name: from ? WEAPON_NAMES[from] : 'Handgun', from: from ?? 'STANDARD ISSUE' };
+};
+
 export const getWeaponDescription = (weapon: WeaponType): string => {
   if (weapon === 'GUN') return "Your trusty sidearm. Never runs dry, never jams, never lets you down. Point it at a face and pull the trigger.";
   const bossId = Object.keys(BOSS_WEAPON_MAP).find(id => BOSS_WEAPON_MAP[id] === weapon);

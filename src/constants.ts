@@ -85,12 +85,14 @@ export const CHARGE_SPEED = gml(6.5);
 export const CHARGE_DURATION = 30;
 export const SLIDE_SPEED = gml(4.5);
 export const SLIDE_DURATION = 45;
-export const COOLDOWN_CHARGE = 30;
 
 // Uppercut
 export const UPPERCUT_SPEED = gml(6.5);
 export const UPPERCUT_DURATION = 20;
-export const COOLDOWN_UPPERCUT = 30;
+// Power: two cells shared by the shoulder charge / slide and the uppercut (any two in a row).
+// Spent cells refill one after another while he's on the ground.
+export const POWER_CELLS = 2;
+export const POWER_CELL_RECHARGE = 30;          // frames to refill one cell
 export const UPPERCUT_LAUNCH_SPEED = gml(9);    // how hard a surviving enemy gets popped up
 export const UPPERCUT_LAUNCH_X = gml(1.5);
 

@@ -59,11 +59,9 @@ export interface Player extends Entity {
   isDivekicking?: boolean;
   chargeFace: 1 | -1;
   chargeTimer: number;
-  chargeCooldown: number;
-  chargeUsed: boolean;        // one charge per airtime
   uppercutTimer: number;
-  uppercutCooldown: number;
-  uppercutUsed: boolean;      // one uppercut per airtime
+  /** Special-move power, 0..POWER_CELLS: each charge, slide or uppercut spends a whole cell. */
+  power: number;
   diveKickSpeedX: number;
   uppercutHitIds: string[];   // enemies already hit by the current uppercut
   diveKickHitIds: string[];   // enemies already stomped by the current divekick

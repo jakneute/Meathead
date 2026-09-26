@@ -2,7 +2,7 @@ import React from 'react';
 import { GameStatus, WeaponType } from '../types';
 import { MAX_AMMO } from '../constants';
 import {
-  getStages, getWeaponDescription, WEAPON_NAMES, WEAPON_DESCRIPTIONS, BOSS_SET_TITLES, BOSS_LOCATIONS, BOSS_WEAPON_MAP,
+  getStages, getWeaponDescription, WEAPON_NAMES, WEAPON_DESCRIPTIONS, BOSS_SET_TITLES, BOSS_LOCATIONS, getWeaponInfo,
 } from '../stages';
 import USAMap from './USAMap';
 import BossPortrait from './BossPortrait';
@@ -190,16 +190,10 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
  * Pause menu. `selectedIndex` walks the weapon grid first, then the three
  * buttons below it (RESUME, BOSS SELECT, QUIT).
  */
-/** What each weapon's called and where it came from. */
-const weaponInfo = (w: WeaponType) => {
-  const from = Object.keys(BOSS_WEAPON_MAP).find(id => BOSS_WEAPON_MAP[id] === w);
-  return { name: from ? WEAPON_NAMES[from] : 'Handgun', from: from ?? 'STANDARD ISSUE' };
-};
-
 const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, weaponAmmo, selectedIndex, onWeaponIconClick, onResume, onBossSelect, onQuitToMenu }) => {
   const numWeapons = availableWeapons.length;
   const shown = selectedIndex < numWeapons ? availableWeapons[selectedIndex] : currentWeapon;
-  const info = weaponInfo(shown);
+  const info = getWeaponInfo(shown);
   const ammoOf = (w: WeaponType) => (MAX_AMMO[w] === Infinity ? null : (weaponAmmo[w] ?? MAX_AMMO[w]) / MAX_AMMO[w]);
   const ammoText = (w: WeaponType) => (MAX_AMMO[w] === Infinity ? 'INFINITE' : `${Math.floor(weaponAmmo[w] ?? MAX_AMMO[w])} / ${MAX_AMMO[w]}`);
 

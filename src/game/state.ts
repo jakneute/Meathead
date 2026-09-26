@@ -3,7 +3,7 @@ import {
   Player, Enemy, Projectile, Particle, Pickup, DamageNumber, Block, Volcano,
   SteamExplosion, PoopTelegraph, TommyBoard, Vector2, WeaponType, FlameSegment, OilCell, Icicle,
 } from '../types';
-import { INITIAL_PLAYER_HEALTH, SCREEN_SHAKE_MAX } from '../constants';
+import { INITIAL_PLAYER_HEALTH, POWER_CELLS, SCREEN_SHAKE_MAX } from '../constants';
 import { resetLineCooldowns } from './speech';
 
 export type DoorState = 'closed' | 'opening' | 'open' | 'closing' | 'done';
@@ -136,11 +136,8 @@ export const createPlayer = (ammo: Record<WeaponType, number>): Player => ({
   isDivekicking: false,
   chargeFace: 1,
   chargeTimer: 0,
-  chargeCooldown: 0,
-  chargeUsed: false,
   uppercutTimer: 0,
-  uppercutCooldown: 0,
-  uppercutUsed: false,
+  power: POWER_CELLS,
   diveKickSpeedX: 0,
   uppercutHitIds: [],
   diveKickHitIds: [],
@@ -346,10 +343,7 @@ export const resetStageState = (s: GameState) => {
   p.coyoteAirTimer = 0;
   p.coyoteJumpTimer = 0;
   p.jumpHoldTimer = 0;
-  p.chargeCooldown = 0;
-  p.chargeUsed = false;
-  p.uppercutCooldown = 0;
-  p.uppercutUsed = false;
+  p.power = POWER_CELLS;
   p.killSatisfactionTimer = 0;
   p.bossKillSatisfactionTimer = 0;
   p.peeTimer = 0;
