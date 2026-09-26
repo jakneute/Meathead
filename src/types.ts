@@ -137,6 +137,8 @@ export interface Enemy extends Entity {
   hitCooldown?: number;
   frozenTimer?: number;
   sludgeTimer?: number;
+  /** How fast sludge is dragging a flyer down right now. */
+  sludgeFallSpeed?: number;
   isBlownAway?: boolean;
   rotation?: number;
   pauseTimer?: number;
@@ -226,6 +228,8 @@ export interface Projectile extends Entity {
   isBoulder?: boolean;
   /** Ernie's lobbed boulder: its impacts shake the room like his stomps. */
   isHeaved?: boolean;
+  /** Enemies this projectile has already hit (sludge splashes through each one once). */
+  hitIds?: string[];
   isIce?: boolean;
   isTsunami?: boolean;
   isShrapnel?: boolean;

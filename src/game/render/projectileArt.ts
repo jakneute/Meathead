@@ -233,8 +233,15 @@ export const drawCocaine = (ctx: CanvasRenderingContext2D, p: Projectile, frame:
     ctx.arc(x - p.vel.x * k * 1.2, y - p.vel.y * k * 1.2, r * (0.5 + k * 0.15), 0, Math.PI * 2);
     ctx.fill();
   }
+  drawCocaineBag(ctx, x, y, r, frame * 0.12 + seedOf(p.id));
+  ctx.restore();
+};
+
+/** One knotted baggie of powder centred on (x, y). */
+export const drawCocaineBag = (ctx: CanvasRenderingContext2D, x: number, y: number, r: number, angle: number) => {
+  ctx.save();
   ctx.translate(x, y);
-  ctx.rotate(frame * 0.12 + seedOf(p.id));
+  ctx.rotate(angle);
   // Bag
   ctx.fillStyle = 'rgba(245, 248, 255, 0.95)';
   ctx.strokeStyle = '#B0BEC5';
@@ -266,10 +273,15 @@ export const drawCocaine = (ctx: CanvasRenderingContext2D, p: Projectile, frame:
 /** Dale's meth barrel: a banded steel drum with a hazard label, leaking blue crystal. */
 export const drawMethBarrel = (ctx: CanvasRenderingContext2D, p: Projectile, frame: number) => {
   const { x, y } = centerOf(p);
-  const hw = p.width / 2, hh = p.height / 2;
+  drawMethDrum(ctx, x, y, p.width, p.height, p.rotation || 0, frame);
+};
+
+/** One METH drum centred on (x, y). */
+export const drawMethDrum = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, rotation: number, frame: number) => {
+  const hw = width / 2, hh = height / 2;
   ctx.save();
   ctx.translate(x, y);
-  ctx.rotate(p.rotation || 0);
+  ctx.rotate(rotation);
   // Drum with rounded shading
   const drum = ctx.createLinearGradient(-hw, 0, hw, 0);
   drum.addColorStop(0, '#0B0B0B');
@@ -292,14 +304,14 @@ export const drawMethBarrel = (ctx: CanvasRenderingContext2D, p: Projectile, fra
   }
   // Yellow label with the hazard mark
   ctx.fillStyle = '#FFD600';
-  ctx.fillRect(-hw + 4, -hh * 0.3, p.width - 8, hh * 0.6);
+  ctx.fillRect(-hw + 4, -hh * 0.3, width - 8, hh * 0.6);
   ctx.fillStyle = '#111111';
   ctx.font = 'bold 7px "Press Start 2P"';
   ctx.textAlign = 'center';
   ctx.fillText('METH', 0, 3);
   ctx.strokeStyle = '#111111';
   ctx.lineWidth = 1;
-  ctx.strokeRect(-hw + 4, -hh * 0.3, p.width - 8, hh * 0.6);
+  ctx.strokeRect(-hw + 4, -hh * 0.3, width - 8, hh * 0.6);
   // Lid rim and a crack leaking blue crystal
   ctx.fillStyle = '#6B6B6B';
   ctx.beginPath();

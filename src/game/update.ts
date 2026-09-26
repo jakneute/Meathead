@@ -11,6 +11,7 @@ import { FrameContext } from './context';
 import { Controls } from './input';
 import { respawn, getStartX } from './level';
 import { updateSewerNuke } from './sewerNuke';
+import { updateEnemyDeaths } from './enemyDeaths';
 import { calmPlayer, DEFAULT_SHAKE } from './state';
 import { updateBarfStream, updateFlameSegments } from './weapons';
 import { say, MEATHEAD_INTRO_VOICE } from './speech';
@@ -318,6 +319,7 @@ const updatePickups = (ctx: FrameContext) => {
 
 const updateParticlesAndNumbers = (ctx: FrameContext) => {
   updateParticles(ctx);
+  updateEnemyDeaths(ctx.state);
   updateDamageNumbers(ctx);
 };
 

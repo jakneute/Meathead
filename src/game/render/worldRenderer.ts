@@ -14,6 +14,7 @@ import { drawParticle } from './particles';
 import { drawBossCorpse } from './corpses';
 import { drawVictoryPee } from './victoryPee';
 import { drawPlayer } from './playerRenderer';
+import { drawEnemyDeaths } from './enemyDeaths';
 import { drawSewerNukeInside, drawSewerNukeFlash, drawSewerNukeOutside } from './sewerNuke';
 import {
   drawOilSlicks, drawOscarFire, drawOscarLaser, drawOscarRocket, drawFlyingCigarette, drawTaserOverload,
@@ -71,6 +72,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   drawProjectiles(ctx, state, 'puddles');
   state.pickups.forEach(p => drawPickup(ctx, p));
   drawEnemies(ctx, state, view);
+  drawEnemyDeaths(ctx, state);
   if (inTommyArena && state.tommyBoards) drawTommyPool(ctx, state);
   if (status !== GameStatus.LEVEL_INTRO || state.introTimer >= 80) {
     drawPlayer(ctx, state.player, state, {

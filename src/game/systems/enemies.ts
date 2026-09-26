@@ -150,8 +150,19 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
       e.vel.y *= 0.92;
     } else if (!isHeld) {
       if (e.sludgeTimer && e.sludgeTimer > 0) {
-        e.pos.y = Math.min(e.pos.y + 3.5, 550 - e.height);
+        // Sludge drags it down hard: it slams into the floor, or keeps going down a pit
+        e.sludgeFallSpeed = Math.min(18, (e.sludgeFallSpeed || 3) + 1.2);
+        const floorY = 550 - e.height;
+        if (!hasFloorBelow(state, e) || e.pos.y + e.sludgeFallSpeed < floorY) {
+          e.pos.y += e.sludgeFallSpeed;
+        } else if (e.pos.y < floorY) {
+          e.pos.y = floorY;
+          slamIntoFloor(ctx, e, e.sludgeFallSpeed);
+          if (e.health > 0) ctx.fx.spawnExplosion({ x: e.pos.x + e.width / 2, y: 550 }, '#ADFF2F', 8, 0, 8);
+          e.sludgeFallSpeed = 0;
+        }
       } else {
+        e.sludgeFallSpeed = 0;
         e.pos.y += Math.sin((state.frame + (e.initialX || 0)) / 25) * 1.2;
         if (e.pos.y > e.initialY) e.pos.y = Math.max(e.initialY, e.pos.y - 0.8);
       }

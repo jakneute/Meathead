@@ -145,7 +145,8 @@ export const GUN_VELOCITY = 18;
 // breaks on walls, and bounces off other boulders like billiard balls.
 export const BOULDER_COOLDOWN = 45;
 export const BOULDER_ROLL_SPEED = gml(2);
-export const BOULDER_LOB_SPEED = gml(6);           // up+fire: lobbed at 45 degrees
+export const BOULDER_HEAVE_SPEED_X = gml(1.4);     // up+fire: heaved steeply up from over his head...
+export const BOULDER_HEAVE_SPEED_Y = gml(8.5);     // ...so it hits things right above him
 export const BOULDER_GRAVITY = gml(0.5);
 export const BOULDER_MAX_SPEED = gml(10);
 export const BOULDER_LIFETIME = 300;

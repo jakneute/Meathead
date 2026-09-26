@@ -3,6 +3,7 @@
 
 import { Enemy } from '../../../types';
 import { COLORS, ARENA_LEFT, ARENA_RIGHT, DALE_SPEED_WINDUP } from '../../../constants';
+import { drawCocaineBag, drawMethDrum } from '../projectileArt';
 
 export const drawDale = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
   const { width, height } = e;
@@ -146,8 +147,6 @@ export const drawDale = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number)
   ctx.stroke();
   ctx.fillStyle = '#FFD700';
   ctx.fillRect(width * 0.52, height * 0.27, 3, 3);
-  // (A stray bar used to be drawn over his head here every frame; it only belongs to the shipment pop-up)
-  if (e.bossState === 'using_shipment') { ctx.fillStyle = '#fff'; ctx.fillRect(width * 0.1, -20, width * 0.8, 20); }
   if (e.bossState === 'speed_dash') {
     ctx.save(); ctx.translate(width * 0.2, height * 0.3); ctx.rotate(-0.5);
     ctx.fillStyle = COLORS.PROJECTILE_DART; ctx.fillRect(0, -2, 16, 4);
@@ -161,22 +160,20 @@ export const drawDaleDrugs = (ctx: CanvasRenderingContext2D, e: Enemy, frame: nu
     return;
   }
   if (e.bossState === 'using_shipment' && e.shipmentCount! > 0) {
-    const stackX = e.pos.x - 60, groundY = 550;
-    ctx.save();
-    for (let i = 0; i < e.shipmentCount!; i++) {
-      const row = Math.floor(i / 2), col = i % 2;
-      if (e.shipmentType === 'cocaine') {
-        ctx.fillStyle = '#fff'; ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1;
-        const bx = stackX + (col * 20) + (row * 3), by = groundY - (row * 15) - 20;
-        ctx.fillRect(bx, by, 18, 18); ctx.strokeRect(bx, by, 18, 18);
-      } else if (e.shipmentType === 'meth') {
-        ctx.fillStyle = '#111'; ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 2;
-        const bx = stackX + (col * 30) - 10, by = groundY - (row * 35) - 40;
-        ctx.fillRect(bx, by, 30, 40); ctx.strokeRect(bx, by, 30, 40);
-        ctx.fillStyle = '#FFD700'; ctx.font = '8px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText("METH", bx + 15, by + 25);
+    // What's left of the shipment, piled up beside him: the same bags and drums he throws
+    const right = e.pos.x - 6, groundY = 550;
+    const pile = e.shipmentType === 'cocaine' ? { gap: 22, rowH: 18, perRow: [4, 3, 2, 1] } : { gap: 42, rowH: 50, perRow: [3, 2] };
+    let left = e.shipmentCount!;
+    pile.perRow.forEach((n, row) => {
+      for (let c = 0; c < n && left > 0; c++, left--) {
+        const cx = right - pile.gap / 2 - c * pile.gap - row * pile.gap / 2;
+        if (e.shipmentType === 'cocaine') {
+          drawCocaineBag(ctx, cx, groundY - 12 - row * pile.rowH, 12.5, ((c * 7 + row * 3) % 5 - 2) * 0.15);
+        } else if (e.shipmentType === 'meth') {
+          drawMethDrum(ctx, cx, groundY - 25 - row * pile.rowH, 40, 50, 0, frame);
+        }
       }
-    }
-    ctx.restore();
+    });
   }
 };
 

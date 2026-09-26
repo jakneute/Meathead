@@ -303,6 +303,9 @@ const updatePlayerBoulder = (ctx: FrameContext, p: Projectile): boolean => {
   return resolvePlayerProjectileHits(ctx, p);
 };
 
+/** How long a sludged enemy stays dragged down (flyers). */
+const SLUDGE_PULL_FRAMES = 60;
+
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 
 /** Enemies standing in a sludge puddle take damage over time (bosses take one hit, then it's used up). */
@@ -314,7 +317,7 @@ const damageEnemiesInSludgePuddle = (ctx: FrameContext, p: Projectile) => {
     if (en.health <= 0 || en.isBlownAway) continue;
     const inPuddle = en.pos.x < p.pos.x + p.width && en.pos.x + en.width > p.pos.x && en.pos.y < p.pos.y + p.height + 15 && en.pos.y + en.height > p.pos.y;
     if (!inPuddle) continue;
-    if (en.enemyType === 'flyer') en.sludgeTimer = 45; // keeps flyers pinned down
+    if (en.enemyType === 'flyer') en.sludgeTimer = SLUDGE_PULL_FRAMES; // keeps flyers pinned down
 
     if (en.type === 'boss') {
       const onStandInSludge = getBossDef(stageId)?.onStandInSludge;
@@ -325,9 +328,26 @@ const damageEnemiesInSludgePuddle = (ctx: FrameContext, p: Projectile) => {
     } else if (isDotTick) {
       en.health -= SLUDGE_DOT_DAMAGE;
       fx.spawnDamageNumber(en.pos, SLUDGE_DOT_DAMAGE);
-      if (en.health <= 0) fx.blowAwayEnemy(en, { x: 0, y: -5 }, 'sludge_kill');
+      if (en.health <= 0) fx.killWithAnimation(en, 'melted', 'sludge_kill', 'melted');
     }
   }
+};
+
+/**
+ * A glob of sludge splashing through an enemy: it hurts each enemy once and keeps
+ * going (it's only used up by walls and the floor, where it pools). Flyers get
+ * dragged down by it.
+ */
+const sludgeHitsEnemy = (ctx: FrameContext, p: Projectile, enemy: Enemy) => {
+  const { fx } = ctx;
+  if (!p.hitIds) p.hitIds = [];
+  if (p.hitIds.includes(enemy.id)) return;
+  p.hitIds.push(enemy.id);
+  enemy.health -= p.damage;
+  enemy.sludgeTimer = SLUDGE_PULL_FRAMES;
+  fx.spawnDamageNumber(enemy.pos, p.damage);
+  fx.spawnExplosion({ x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, '#ADFF2F', 4, 0, 5);
+  if (enemy.health <= 0) fx.killWithAnimation(enemy, 'melted', 'sludge_kill', 'melted');
 };
 
 /** Player projectile vs. enemies, bosses and meth barrels. Returns false if the projectile is spent. */
@@ -348,6 +368,13 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
     // Shield enemies block shots from the front
     const hitsShieldSide = (p.vel.x > 0 && p.pos.x < enemy.pos.x) || (p.vel.x < 0 && p.pos.x > enemy.pos.x);
     if (enemy.enemyType === 'shield' && enemy.isShieldActive && hitsShieldSide) {
+      if (p.isSludge) {
+        // Splats against the shield and runs down it into a puddle at his feet
+        p.isSliding = true;
+        p.vel.x = 0;
+        p.pos.x = p.pos.x < enemy.pos.x ? enemy.pos.x - p.width : enemy.pos.x + enemy.width;
+        continue;
+      }
       if (p.isBoulder) shatterBoulder(ctx, p);
       return false;
     }
@@ -382,6 +409,7 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
 
     const wasFrozen = !!(enemy.frozenTimer && enemy.frozenTimer > 0);
     if (p.isBoulder) return boulderHitsEnemy(ctx, p, enemy);
+    if (p.isSludge) { sludgeHitsEnemy(ctx, p, enemy); continue; }
 
     enemy.health -= p.damage;
     if (enemy.isOiled && !p.isOilRocket) {
@@ -402,7 +430,6 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
       player.killSatisfactionTimer = 60;
     }
     if (p.isBoulder) shatterBoulder(ctx, p);
-    if (p.isSludge) { enemy.sludgeTimer = 45; p.health = 0; }
     return false;
   }
 
@@ -523,7 +550,7 @@ export const updateSpecialMovesVsBarrels = (ctx: FrameContext) => {
 const boulderHitsEnemy = (ctx: FrameContext, p: Projectile, enemy: Enemy): boolean => {
   const { state, fx } = ctx;
   const absX = Math.abs(p.vel.x) / GML_SCALE;
-  const absY = p.vel.y < 0 ? 1 : Math.abs(p.vel.y) / GML_SCALE;
+  const absY = Math.abs(p.vel.y) / GML_SCALE;
   const speed = Math.max(absX, absY);
   const damage = BOULDER_DAMAGE_PER_SPEED * Math.max(1, speed);
   enemy.health -= damage;
@@ -535,10 +562,13 @@ const boulderHitsEnemy = (ctx: FrameContext, p: Projectile, enemy: Enemy): boole
     return false;
   }
   const flattened = absX >= absY;
-  fx.spawnDeathShower(enemy.pos, flattened ? Math.sign(p.vel.x) : 0, 1.5);
-  fx.spawnKillCallout(enemy, flattened ? 'flattened' : 'squished');
-  fx.spawnPickup(enemy.pos);
-  fx.speakVulgarity('boulder_kill');
+  fx.spawnDeathShower(enemy.pos, flattened ? Math.sign(p.vel.x) : 0, 0.8);
+  // Flyers get knocked out of the air; anything on the ground is left flat as a pancake
+  if (enemy.pos.y + enemy.height >= 540) fx.killWithAnimation(enemy, 'pancaked', 'boulder_kill', flattened ? 'flattened' : 'squished');
+  else {
+    fx.blowAwayEnemy(enemy, { x: Math.sign(p.vel.x) * 8, y: -6 }, 'boulder_kill');
+    fx.spawnKillCallout(enemy, flattened ? 'flattened' : 'squished');
+  }
   state.player.killSatisfactionTimer = 60;
   return true;
 };

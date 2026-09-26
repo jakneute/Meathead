@@ -1,3 +1,4 @@
+import type { EnemyDeath } from './enemyDeaths';
 import {
   Player, Enemy, Projectile, Particle, Pickup, DamageNumber, Block, Volcano,
   SteamExplosion, PoopTelegraph, TommyBoard, Vector2, WeaponType, FlameSegment, OilCell, Icicle,
@@ -30,6 +31,8 @@ export interface GameState {
   flameSegments: FlameSegment[];
   pickups: Pickup[];
   particles: Particle[];
+  /** Special kill animations playing where regular enemies died (charred, fried, melted...). */
+  enemyDeaths: EnemyDeath[];
   damageNumbers: DamageNumber[];
   blocks: Block[];
   camera: Vector2;
@@ -175,6 +178,7 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
   flameSegments: [],
   pickups: [],
   particles: [],
+  enemyDeaths: [],
   damageNumbers: [],
   blocks: [],
   camera: { x: 0, y: 0 },
@@ -269,6 +273,7 @@ export const resetStageState = (s: GameState) => {
   s.flameSegments = [];
   s.pickups = [];
   s.particles = [];
+  s.enemyDeaths = [];
   s.damageNumbers = [];
   s.blocks = [];
   s.camera = { x: 0, y: 0 };

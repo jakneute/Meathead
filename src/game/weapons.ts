@@ -2,7 +2,7 @@ import { Projectile, Enemy, Vector2 } from '../types';
 import {
   BULLET_DAMAGE, SHOTGUN_DAMAGE, SHOTGUN_COOLDOWN, SHOTGUN_PELLET_COUNT, SHOTGUN_SPREAD_DEG, SHOTGUN_JITTER_DEG,
   SHOTGUN_PELLET_SPEED_MIN, SHOTGUN_PELLET_SPEED_MAX, SHOTGUN_PELLET_LIFETIME,
-  BOULDER_COOLDOWN, BOULDER_ROLL_SPEED, BOULDER_LOB_SPEED, BOULDER_LIFETIME,
+  BOULDER_COOLDOWN, BOULDER_ROLL_SPEED, BOULDER_HEAVE_SPEED_X, BOULDER_HEAVE_SPEED_Y, BOULDER_LIFETIME,
   FLAMETHROWER_DAMAGE, FLAMETHROWER_SEGMENTS, FLAMETHROWER_MAX_RANGE, FLAMETHROWER_START_RANGE,
   FLAMETHROWER_GROWTH, FLAMETHROWER_SHRINK, FLAMETHROWER_AIM_LERP, FLAMETHROWER_AIM_DEG, FLAMETHROWER_NOZZLE_GAP,
   FLAMETHROWER_SEGMENT_LIFETIME, FLAMETHROWER_SEGMENT_SIZE, FLAMETHROWER_AMMO_EVERY, GML_SCALE,
@@ -64,15 +64,16 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
       if (!input.shootPressed) break;
       const size = 48;
       const lob = input.moveUp;
-      const cx = shootX + facing * gml(12) + (lob ? -facing * gml(12) : 0);
-      const cy = shootY - (lob ? gml(24) : gml(12));
+      // Heaved straight up from over his head, or rolled out in front
+      const cx = lob ? pos.x + width / 2 + facing * gml(3) : shootX + facing * gml(12);
+      const cy = lob ? pos.y - size / 2 - 2 : shootY - gml(12);
       const spawn = { x: cx - size / 2, y: cy - size / 2, w: size, h: size };
       // Don't fire into a wall
       if (state.blocks.some(b => b.type !== 'pit' && rectsOverlap(spawn, b))) break;
       addProjectile({
         id: `b-${Date.now()}-${Math.random()}`,
         pos: { x: spawn.x, y: spawn.y },
-        vel: lob ? { x: facing * BOULDER_LOB_SPEED, y: -BOULDER_LOB_SPEED } : { x: facing * BOULDER_ROLL_SPEED, y: 0 },
+        vel: lob ? { x: facing * BOULDER_HEAVE_SPEED_X, y: -BOULDER_HEAVE_SPEED_Y } : { x: facing * BOULDER_ROLL_SPEED, y: 0 },
         width: size, height: size, health: 1, maxHealth: 1,
         type: 'projectile', damage: 0, owner: 'player', isBoulder: true, life: BOULDER_LIFETIME, rotation: 0,
       });
@@ -352,7 +353,7 @@ const burnEnemy = (ctx: FrameContext, e: Enemy) => {
     });
   }
   if (e.health <= 0) {
-    fx.blowAwayEnemy(e, { x: player.facing * 4, y: -6 }, 'flamethrower_kill', player.facing);
+    fx.killWithAnimation(e, 'charred', 'flamethrower_kill', 'charred');
     player.killSatisfactionTimer = 60;
   }
 };
@@ -411,7 +412,7 @@ export const explodeOilRocket = (ctx: FrameContext, pos: Vector2, rocketVelX?: n
     const isAirEnemy = e.enemyType === 'flyer' || e.enemyType === 'drone' || e.behavior === 'fly' || e.behavior === 'hover';
 
     if (e.health <= 0) {
-      fx.blowAwayEnemy(e, { x: pushDir * 24 + (Math.random() - 0.5) * 6, y: -18 }, 'oil_kill', pushDir);
+      fx.killWithAnimation(e, 'greased', 'oil_kill', 'greased', { x: pushDir * 12, y: -10 });
     } else if (isAirEnemy) {
       // Air enemies: shoved back
       e.vel.x = pushDir * 8;

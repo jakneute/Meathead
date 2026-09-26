@@ -285,7 +285,8 @@ export type KillCallout =
   | 'charge' | 'slide' | 'uppercut' | 'divekick' | 'shatter' | 'shield'
   | 'crush' | 'overdose' | 'nuke' | 'tsunami' | 'fried'
   | 'wallsplat' | 'groundsplat' | 'flattened' | 'squished' | 'truck' | 'blowout' | 'crash'
-  | 'moon' | 'cliff' | 'yeet';
+  | 'moon' | 'cliff' | 'yeet'
+  | 'charred' | 'melted' | 'greased';
 
 /** Callout text (one picked at random) and colour for each special kill. */
 export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string }> = {
@@ -311,6 +312,9 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
   moon:        { lines: ["TO THE MOON!", "HOUSTON!", "LOW ORBIT!", "ONE SMALL STEP!", "BLASTING OFF AGAIN!"], color: '#E0E7FF' },
   cliff:       { lines: ["OFF THE CLIFF!", "MIND THE GAP!", "SEE YA!", "GRAVITY CHECK!", "LONG WAY DOWN!"], color: '#A78BFA' },
   yeet:        { lines: ["YEETED!", "OUT OF BOUNDS!", "SEE YA!", "GONE!"], color: '#FDE68A' },
+  charred:     { lines: ["WELL DONE!", "EXTRA CRISPY!", "CHARRED!", "BURNT TOAST!"], color: '#F97316' },
+  melted:      { lines: ["MELTED!", "DISSOLVED!", "LIQUEFIED!", "GOO'D!"], color: '#84CC16' },
+  greased:     { lines: ["GREASED!", "OIL CHANGE!", "SLICK!", "LUBED UP!"], color: '#A8A29E' },
 };
 
 /**

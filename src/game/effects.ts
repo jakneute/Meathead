@@ -7,6 +7,7 @@ import { GameState } from './state';
 import { playSound, playGlassShatterSound } from './audio';
 import { say, isSpeaking, canSpeak, pickFreshLine, MEATHEAD_VOICE } from './speech';
 import { pickRandom } from './utils';
+import { startEnemyDeath, EnemyDeathKind } from './enemyDeaths';
 
 const MAX_PARTICLES = 2500;
 
@@ -197,6 +198,16 @@ export const createFx = (state: GameState) => {
     }
   };
 
+  /** A non-boss kill with its own death animation in place of the usual gore burst. */
+  const killWithAnimation = (e: Enemy, kind: EnemyDeathKind, category: VulgarityType, callout?: KillCallout, vel?: Vector2) => {
+    e.health = 0;
+    startEnemyDeath(state, e, kind, vel);
+    spawnPickup(e.pos);
+    speakVulgarity(category);
+    if (callout) spawnKillCallout(e, callout);
+    state.player.killSatisfactionTimer = 60;
+  };
+
   /** Standard non-boss kill: fling the body, spray gore, maybe drop loot, taunt. */
   const blowAwayEnemy = (e: Enemy, vel: Vector2, category: VulgarityType, showerDir: number = 0, showerMult: number = 1) => {
     e.isBlownAway = true;
@@ -222,6 +233,7 @@ export const createFx = (state: GameState) => {
     spawnPickup,
     speakVulgarity,
     blowAwayEnemy,
+    killWithAnimation,
     playGunSound: playSound,
   };
 };
