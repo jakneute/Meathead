@@ -21,10 +21,19 @@ export class KeyboardMouseState {
   /** Right button: special. */
   rightMouseDown = false;
 
+  /** When each key (by code) was last pressed, to tell which of two held keys came last. */
+  private pressedAt: Record<string, number> = {};
+  private pressCount = 0;
+
   isDown = (...names: string[]) => names.some(n => this.keys[n]);
+  lastPressed = (code: string) => this.pressedAt[code] || 0;
 
   attach(target: Window) {
-    const onKeyDown = (e: KeyboardEvent) => { this.keys[e.key.toLowerCase()] = true; this.keys[e.code.toLowerCase()] = true; };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!e.repeat) this.pressedAt[e.code.toLowerCase()] = ++this.pressCount;
+      this.keys[e.key.toLowerCase()] = true;
+      this.keys[e.code.toLowerCase()] = true;
+    };
     const onKeyUp = (e: KeyboardEvent) => { this.keys[e.key.toLowerCase()] = false; this.keys[e.code.toLowerCase()] = false; };
     const setButton = (e: MouseEvent, down: boolean) => {
       if (e.button === 0) this.mouseDown = down;
@@ -68,14 +77,22 @@ export const readControls = (kb: KeyboardMouseState): Controls => {
 
   const k = kb.isDown;
   // One-key specials for keyboard players: E uppercuts (up + special), C is down + special
-  // (a dive kick in the air, a slide tackle on the ground)
-  const uppercutKey = k('e', 'keye');
-  const diveKey = k('c', 'keyc');
+  // (a dive kick in the air, a slide tackle on the ground). They're hotkeys: they override
+  // whatever up/down is held, so W + C still slides and S + E still uppercuts. With both
+  // held, the one pressed last wins.
+  let uppercutKey = k('e', 'keye');
+  let diveKey = k('c', 'keyc');
+  if (uppercutKey && diveKey) {
+    if (kb.lastPressed('keye') > kb.lastPressed('keyc')) diveKey = false;
+    else uppercutKey = false;
+  }
+  const heldDown = k('s', 'arrowdown', 'keys') || padY > 0.3;
+  const heldUp = k('w', 'arrowup', 'keyw') || padY < -0.4;
   return {
     left: k('a', 'arrowleft', 'keya') || padX < -0.3,
     right: k('d', 'arrowright', 'keyd') || padX > 0.3,
-    down: k('s', 'arrowdown', 'keys') || diveKey || padY > 0.3,
-    up: k('w', 'arrowup', 'keyw') || uppercutKey || padY < -0.4,
+    down: diveKey || (heldDown && !uppercutKey),
+    up: uppercutKey || (heldUp && !diveKey),
     jump: k(' ', 'space', 'z', 'keyz', 'j', 'keyj') || padJump,
     special: kb.rightMouseDown || uppercutKey || diveKey || padSpecial,
     shoot: kb.mouseDown || padShoot || k('x', 'keyx', 'k', 'keyk'),

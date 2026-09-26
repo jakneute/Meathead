@@ -179,8 +179,8 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
     player.chargeFace = player.facing;
   }
 
-  // Uppercut
-  if (!locked && input.moveUp && !player.isDucking && !player.isUppercutting && (free || player.power >= 1)) {
+  // Uppercut (springs straight out of a crouch once down is let go, or overridden by the E hotkey)
+  if (!locked && input.moveUp && (!player.isDucking || !input.moveDown) && !player.isUppercutting && (free || player.power >= 1)) {
     if (!free) player.power -= 1;
     player.isUppercutting = true;
     player.chargeFace = player.facing;
