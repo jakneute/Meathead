@@ -9,15 +9,15 @@ import { createFrameContext, GameEvents } from '../game/context';
 import { stepGame } from '../game/update';
 import { KeyboardMouseState, readControls } from '../game/input';
 import { drawWorld } from '../game/render/worldRenderer';
-import { drawPlayer } from '../game/render/playerRenderer';
+import { WeaponArt } from './WeaponIcon';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/gamepad';
 import { playWhoosh, playPunchImpact, playThud, playTypeClack, playGlassShatterSound } from '../game/audio';
 import { speak, cancelSpeech, MEATHEAD_VOICE } from '../game/speech';
 
 // After a boss: fade out of the victory lap into a black void, face to face with
 // Meathead in first person. He decks the camera; it goes down on its side. Then
-// the new weapon's name is hammered out on the screen next to a portrait of him
-// holding it, and you get a firing range to try it out on a dummy that keeps
+// the new weapon's name is hammered out on the screen next to a photo of it
+// and you get a firing range to try it out on a dummy that keeps
 // coming back. Start / Esc moves on (and skips straight to the range before that).
 
 // Timeline (ms)
@@ -108,15 +108,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, onDone }) => {
   onDoneRef.current = onDone;
   const finish = () => { if (!doneRef.current) { doneRef.current = true; onDoneRef.current(); } };
   const rangeCanvas = useRef<HTMLCanvasElement>(null);
-  const portraitCanvas = useRef<HTMLCanvasElement>(null);
   const range = useMemo(() => createRange(weapon), [weapon]);
-  const portrait = useMemo(() => {
-    const s = createGameState(null, createFullAmmo());
-    s.player.currentWeapon = weapon;
-    s.player.isGrounded = true;
-    s.player.facing = 1;
-    return s;
-  }, [weapon]);
 
   useEffect(() => {
     const kb = new KeyboardMouseState();
@@ -162,20 +154,6 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, onDone }) => {
       if (start && !padStartHeld) skipOrContinue();
       padStartHeld = start;
 
-      // The portrait breathes
-      const pc = portraitCanvas.current?.getContext('2d');
-      if (pc && now >= REVEAL) {
-        // Framed on him and the weapon together (the span from his back to the longest muzzle)
-        const W = 170, H = 172, S = 2.2, RES = 3, FOCUS_X = 15;
-        portrait.playerAnimFrame++;
-        portrait.player.smugTimer = 999;
-        pc.setTransform(1, 0, 0, 1, 0, 0);
-        pc.clearRect(0, 0, W * RES, H * RES);
-        pc.setTransform(S * RES, 0, 0, S * RES, (W / 2 - (portrait.player.width / 2 + FOCUS_X) * S) * RES, (H - 8 - portrait.player.height * S) * RES);
-        portrait.player.pos = { x: 0, y: 0 };
-        try { drawPlayer(pc, portrait.player, portrait, { currentWeapon: weapon, showFilthShield: false, invincibilityEnabled: false }); } catch { /* never worth a crash */ }
-      }
-
       // The firing range, at a fixed 60fps
       const rc = rangeCanvas.current?.getContext('2d');
       if (rc && now >= rangeAt) {
@@ -219,7 +197,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, onDone }) => {
       window.removeEventListener('keydown', onKey);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [weapon, name, nameAt, rangeAt, range, portrait]);
+  }, [weapon, name, nameAt, rangeAt, range]);
 
   // --- Derived animation values -------------------------------------------------
   const fade = clamp01(t / FADE_END);
@@ -292,7 +270,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, onDone }) => {
         </>
       )}
 
-      {/* Portrait of the proud owner */}
+      {/* The weapon's photo, on its own */}
       {t >= REVEAL && (
         <div className="absolute pointer-events-none"
           style={{
@@ -303,7 +281,9 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, onDone }) => {
             transition: 'left 500ms, top 500ms, transform 500ms',
           }}>
           <PortraitFrame>
-            <canvas ref={portraitCanvas} width={170 * 3} height={172 * 3} className="w-[170px] h-[172px]" />
+            <div className="w-[170px] h-[172px] flex items-center justify-center drop-shadow-[0_6px_0_rgba(0,0,0,0.6)]">
+              <WeaponArt type={weapon} size={150} />
+            </div>
           </PortraitFrame>
         </div>
       )}
@@ -348,7 +328,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, onDone }) => {
 const Caret: React.FC<{ on: boolean; big?: boolean }> = ({ on, big }) =>
   on ? <span className={`inline-block align-middle bg-current animate-pulse ${big ? 'w-[18px] h-[30px] ml-1' : 'w-[8px] h-[11px] ml-1'}`} /> : null;
 
-/** A gold-framed, ray-burst portrait card. */
+/** A gold-framed, ray-burst photo card. */
 const PortraitFrame: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="relative p-[6px] bg-gradient-to-b from-yellow-300 via-yellow-500 to-yellow-700 border-4 border-black shadow-[6px_6px_0_#000]">
     <div className="relative w-[170px] h-[184px] overflow-hidden border-2 border-black flex items-end justify-center"
