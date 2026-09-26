@@ -117,8 +117,9 @@ export const tickPlayerTimers = (ctx: FrameContext, input: FrameInput) => {
   }
   if (player.hurtFormTimer && player.hurtFormTimer > 0 && --player.hurtFormTimer === 0) player.hurtForm = null;
   if (player.squash) player.squash = Math.abs(player.squash) < 0.02 ? 0 : player.squash * 0.8;
-  // Spent power refills cell by cell, on the ground or in the air (just not mid-move)
-  if (player.power < POWER_CELLS && !player.isCharging && !player.isUppercutting) {
+  // Spent power refills cell by cell, on the ground or through ordinary jumps. Not mid-move, and not
+  // after a power move in the air until he's touched down again.
+  if (player.power < POWER_CELLS && !player.isCharging && !player.isUppercutting && !player.powerLocked) {
     player.power = Math.min(POWER_CELLS, player.power + 1 / POWER_CELL_RECHARGE);
   }
   if (player.filthShieldTimer && player.filthShieldTimer > 0) player.filthShieldTimer--;
@@ -257,11 +258,13 @@ export const endCharge = (ctx: FrameContext) => {
   const { player } = ctx.state;
   player.isCharging = false;
   player.isSliding = false;
+  if (!player.isGrounded) player.powerLocked = true;
 };
 
 export const endUppercut = (ctx: FrameContext) => {
   const { player } = ctx.state;
   player.isUppercutting = false;
+  if (!player.isGrounded) player.powerLocked = true;
 };
 
 const updateCrouch = (ctx: FrameContext, input: FrameInput) => {
@@ -351,6 +354,7 @@ const updateVerticalVelocity = (ctx: FrameContext, input: FrameInput) => {
   }
 
   if (player.isGrounded) {
+    player.powerLocked = false;
     player.isDivekicking = false;
     player.coyoteJumpTimer = COYOTE_JUMP_FRAMES;
   } else {
@@ -436,7 +440,7 @@ const moveHorizontally = (ctx: FrameContext) => {
     if (prevX + player.width <= b.x) player.pos.x = b.x - player.width;
     else if (prevX >= b.x + b.w) player.pos.x = b.x + b.w;
     else continue;
-    if (player.isCharging) { player.isCharging = false; player.isSliding = false; }
+    if (player.isCharging) endCharge(ctx);
     player.vel.x = 0;
   }
 };
@@ -568,6 +572,7 @@ export const getAttackHitbox = (ctx: FrameContext): Rect => {
  */
 export const recoilOff = (ctx: FrameContext, enemyMass: number) => {
   const { player } = ctx.state;
+  if ((player.isCharging || player.isUppercutting) && !player.isGrounded) player.powerLocked = true; // cut short in the air
   const wasSliding = player.isSliding;
   // A charge that didn't finish them off: grim determination
   if (player.isCharging) player.angryTimer = ANGRY_FRAMES;
@@ -597,6 +602,7 @@ const stayCrouchedIfSliding = (player: Player, wasSliding: boolean) => {
 /** Bounce the player off harmlessly (e.g. hitting a boss before the arena locks). */
 export const harmlessBounce = (ctx: FrameContext, e: Enemy, velX: number, velY: number) => {
   const { player } = ctx.state;
+  if ((player.isCharging || player.isUppercutting) && !player.isGrounded) player.powerLocked = true; // cut short in the air
   const pushDir = player.pos.x + player.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;
   const wasSliding = player.isSliding;
   player.vel = { x: pushDir * velX, y: velY };

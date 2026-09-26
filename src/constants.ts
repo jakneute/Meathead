@@ -90,7 +90,8 @@ export const SLIDE_DURATION = 45;
 export const UPPERCUT_SPEED = gml(6.5);
 export const UPPERCUT_DURATION = 20;
 // Power: two cells shared by the shoulder charge / slide and the uppercut (any two in a row).
-// Spent cells refill one after another (in the air too).
+// Spent cells refill one after another, through ordinary jumps too, but a power move that ends
+// in the air stops the refill until he lands. Bouncing a dive kick off an enemy refunds a cell.
 export const POWER_CELLS = 2;
 export const POWER_CELL_RECHARGE = 30;          // frames to refill one cell
 export const UPPERCUT_LAUNCH_SPEED = gml(9);    // how hard a surviving enemy gets popped up

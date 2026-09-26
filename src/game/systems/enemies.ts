@@ -6,7 +6,7 @@ import {
   CANVAS_WIDTH, CANVAS_HEIGHT, BOSS_DOOR_X, GRAVITY, PLAYER_INVINCIBILITY_FRAMES, PLAYER_STUN_INVINCIBILITY,
   PLAYER_PUSHBACK_DURATION, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, BOSS_CHARGE_DAMAGE,
   PLAYER_MASS, ENEMY_DAZE_FRAMES, UPPERCUT_LAUNCH_SPEED, UPPERCUT_LAUNCH_X, BOUNCE_FRAMES,
-  GML_SCALE, FROZEN_PUSH_MULTIPLIER, FROZEN_DAMAGE_MULTIPLIER,
+  GML_SCALE, POWER_CELLS, FROZEN_PUSH_MULTIPLIER, FROZEN_DAMAGE_MULTIPLIER,
   FROZEN_WALL_IMPACT_MULTIPLIER, FROZEN_GROUND_IMPACT_MULTIPLIER, FROZEN_ENEMY_IMPACT_DAMAGE,
   DAMAGE_WALL_IMPACT_SCALER, DAMAGE_FALL_SCALER, IMPACT_DAMAGE_THRESHOLD,
   ENEMY_DOMINO_TRANSFER, ENEMY_DOMINO_LOSS, DOMINO_DAMAGE_SCALER,
@@ -388,7 +388,9 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
         knockBackEnemy(ctx, e, mass, wasFrozen);
       }
       if (player.isDivekicking) {
-        // Stomp: a satisfying bounce, and you can divekick again mid-bounce
+        // Stomp: a satisfying bounce, and you can divekick again mid-bounce. It also
+        // refunds a power cell on the spot (chain them for air combos)
+        player.power = Math.min(POWER_CELLS, player.power + 1);
         player.vel.y *= -0.5;
         player.vel.x *= 0.5;
         player.lockTimer = BOUNCE_FRAMES;

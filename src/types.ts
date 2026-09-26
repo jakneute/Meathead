@@ -62,6 +62,8 @@ export interface Player extends Entity {
   uppercutTimer: number;
   /** Special-move power, 0..POWER_CELLS: each charge, slide or uppercut spends a whole cell. */
   power: number;
+  /** A power move finished in the air: no refilling until he touches down. */
+  powerLocked?: boolean;
   diveKickSpeedX: number;
   uppercutHitIds: string[];   // enemies already hit by the current uppercut
   diveKickHitIds: string[];   // enemies already stomped by the current divekick
