@@ -52,9 +52,9 @@ export const readControls = (kb: KeyboardMouseState): Controls => {
   }
 
   const k = kb.isDown;
-  // One-key specials for keyboard players: R uppercuts (up + special), C is down + special
+  // One-key specials for keyboard players: E uppercuts (up + special), C is down + special
   // (a dive kick in the air, a slide tackle on the ground)
-  const uppercutKey = k('r', 'keyr');
+  const uppercutKey = k('e', 'keye');
   const diveKey = k('c', 'keyc');
   return {
     left: k('a', 'arrowleft', 'keya') || padX < -0.3,
