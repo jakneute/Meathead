@@ -164,10 +164,14 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
   const free = cheats.infinitePower;
   const locked = player.lockTimer > 0; // only divekicks are allowed during recoil
 
-  // Shoulder charge, or a slide when crouching (or pressing down with it, on the ground)
-  if (!locked && !input.moveUp && !player.isCharging && (free || player.power >= 1)) {
+  // What the button does depends on the state he's in when it's pressed: down + special in the
+  // air is always a dive kick (even mid-slide off a ledge), so it never starts a charge up there
+  const airDive = input.moveDown && !player.isGrounded;
+
+  // Shoulder charge, or a slide when crouching (or pressing down with it) on the ground
+  if (!locked && !input.moveUp && !airDive && !player.isCharging && (free || player.power >= 1)) {
     if (!free) player.power -= 1;
-    player.isSliding = player.isDucking || (input.moveDown && player.isGrounded);
+    player.isSliding = player.isGrounded && (player.isDucking || input.moveDown);
     player.chargeTimer = player.isSliding ? SLIDE_DURATION : CHARGE_DURATION;
     player.isCharging = true;
     player.isUppercutting = false;
@@ -188,7 +192,7 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
   }
 
   // Divekick (air only; can be re-triggered mid-bounce to chain stomps)
-  if (input.moveDown && !player.isDucking && !player.isGrounded && (!player.isDivekicking || player.recoiling)) {
+  if (airDive && (!player.isDivekicking || player.recoiling)) {
     player.isDivekicking = true;
     player.chargeFace = player.facing;
     player.diveKickSpeedX = (DIVEKICK_SPEED / Math.tan(DIVEKICK_ANGLE * Math.PI / 180)) * player.chargeFace;
