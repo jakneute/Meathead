@@ -16,8 +16,12 @@ const BUCKLE = '#FACC15';
 const WRISTBAND = '#09090B';
 
 import { glowLayer } from './spriteOutline';
+import { drawHeadBlood, drawTorsoBlood, drawBeatenUp, getGore } from './meatheadGore';
 
 type Ctx = CanvasRenderingContext2D;
+
+/** The animation frame being drawn (for the chin drip and sweat on his head). */
+let frameNow = 0;
 
 // ---------------------------------------------------------------------------
 // Body parts
@@ -38,6 +42,8 @@ const leg = (ctx: Ctx, hip: [number, number], knee: [number, number], foot: [num
   const color = back ? PANTS_SHADOW : PANTS;
   limb(ctx, hip[0], hip[1], knee[0], knee[1], 11, color);
   limb(ctx, knee[0], knee[1], foot[0], foot[1], 10, color);
+  // Blood soaking into the trousers as he takes a beating
+  if (getGore() > 0.5) limb(ctx, hip[0] + (knee[0] - hip[0]) * 0.3, hip[1] + (knee[1] - hip[1]) * 0.3, hip[0] + (knee[0] - hip[0]) * 0.6, hip[1] + (knee[1] - hip[1]) * 0.6, 7, 'rgba(60, 5, 10, 0.55)');
   ctx.save();
   ctx.translate(foot[0], foot[1]);
   ctx.rotate(toeAngle);
@@ -92,6 +98,7 @@ const torso = (ctx: Ctx) => {
   ctx.fillRect(-5, -4, 10, 9);
   ctx.fillStyle = '#451A03';
   ctx.fillRect(-2, -2, 4, 5);
+  drawTorsoBlood(ctx, -26, 23, -26);
 };
 
 /** Meathead's head centred on (hx, hy): flat-top, rage vein, furrowed brows. */
@@ -130,6 +137,8 @@ const head = (ctx: Ctx, hx: number, hy: number, mouth: 'grit' | 'roar') => {
     ctx.fillRect(hx - 2, hy + 3.5, 0.8, 2);
     ctx.fillRect(hx + 1, hy + 3.5, 0.8, 2);
   }
+  drawHeadBlood(ctx, hx, hy, frameNow);
+  drawBeatenUp(ctx, hx, hy, frameNow);
 };
 
 /** Faded, tinted copies of a pose trailing behind it. */
@@ -151,6 +160,7 @@ const ghosts = (ctx: Ctx, count: number, offset: (k: number) => [number, number]
 
 /** Head down, leading shoulder blazing, legs driving: a battering ram of beef. */
 export const drawShoulderCharge = (ctx: Ctx, frame: number) => {
+  frameNow = frame;
   // Speed lines streaming past
   ctx.strokeStyle = 'rgba(253, 224, 71, 0.7)';
   ctx.lineWidth = 2;
@@ -227,6 +237,7 @@ const chargeBody = (ctx: Ctx, frame: number, main: boolean) => {
 
 /** Rocketing up, fist to the sky wreathed in energy, knee driving, roaring. */
 export const drawUppercut = (ctx: Ctx, frame: number) => {
+  frameNow = frame;
   // Rising streaks below
   ctx.strokeStyle = 'rgba(125, 211, 252, 0.7)';
   ctx.lineWidth = 2;
@@ -296,6 +307,7 @@ const uppercutBody = (ctx: Ctx, frame: number, main: boolean) => {
 
 /** Plummeting heel-first at a steep angle, the boot on fire, trailing flame. */
 export const drawDivekick = (ctx: Ctx, frame: number) => {
+  frameNow = frame;
   ctx.save();
   ctx.translate(0, -30);
   ctx.rotate(0.95); // 55-60 degrees down toward the target
