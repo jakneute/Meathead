@@ -190,10 +190,19 @@ const updatePhysicsProjectile = (ctx: FrameContext, p: Projectile): boolean => {
   return true;
 };
 
-/** Artie's big ice block doesn't bounce: it shatters into flying shards on whatever it hits. */
+/**
+ * Artie's big ice block doesn't bounce: it shatters on whatever it hits. The
+ * pieces are just for show, so dodging the block means you've dodged the attack.
+ */
 const shatterIceBlock = (ctx: FrameContext, p: Projectile) => {
   const { state, fx } = ctx;
-  for (let i = 0; i < 3; i++) state.projectiles.push({ id: `shard-${Date.now()}-${i}`, pos: { x: p.pos.x + 20, y: p.pos.y + 20 }, vel: { x: (Math.random() - 0.5) * 20, y: -Math.random() * 10 }, width: 20, height: 20, health: 1, maxHealth: 1, type: 'projectile', damage: 15, owner: 'enemy', isIce: true, life: 75 });
+  for (let i = 0; i < 14; i++) {
+    state.particles.push({
+      pos: { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 },
+      vel: { x: (Math.random() - 0.5) * 14, y: -2 - Math.random() * 8 },
+      life: 30 + Math.random() * 25, color: i % 3 === 0 ? '#FFFFFF' : i % 3 === 1 ? '#AED6F1' : '#7DD3FC', size: 4 + Math.random() * 7,
+    });
+  }
   fx.spawnGlassShatter(p.pos);
   fx.playGunSound('ice');
 };
