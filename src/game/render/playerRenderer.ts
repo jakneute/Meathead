@@ -183,7 +183,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   } else if (isIdle) {
     bodyY = -idleBreath * 0.5;
   } else if (isAirborne) {
-    bodyRot = -0.06 + airFall * 0.12; // leaning back on the way up, forward coming down
+    bodyRot = -0.03 + airFall * 0.06; // leaning back a touch on the way up, forward coming down
   }
 
   // Lean into the run
@@ -269,9 +269,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     drawReachingArm(ctx, -6, -40, -1, -30, 7, -22, skinShadow);
   } else {
     // Idle / Walk pumping arm in opposition
-    // Swung back on the way up, thrown up for balance on the way down
+    // Held a little back while he's in the air
     const armAngle = isWalking ? -walkStride * 0.6
-      : isAirborne ? 1.0 + airFall * 1.1 + Math.sin(animFrame * 0.3) * 0.08
+      : isAirborne ? 0.3 + airFall * 0.3
       : Math.sin(animFrame * 0.08) * 0.1;
     ctx.save();
     ctx.translate(-6, -40);
@@ -400,12 +400,11 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillStyle = '#27272A';
     ctx.beginPath(); ctx.ellipse(17, -9.5, 3, 2.5, 0.3, 0, Math.PI * 2); ctx.fill();
   } else if (isAirborne) {
-    // Jumping: lead knee driven up and the back heel kicked out on the way up,
-    // both legs reaching down for the landing on the way down
+    // Jumping: lead knee comes up a bit on the way up, legs straighten for the landing coming down
     const fall = airFall;
     const lerp = (a: number, b: number) => a + (b - a) * fall;
-    drawJointedLeg(ctx, -4, -22, lerp(0.4, 0.2), lerp(0.7, 0.2), pantsShadow, false);
-    drawJointedLeg(ctx, 5, -22, lerp(-1.25, -0.35), lerp(1.55, 0.3), pantsColor, true);
+    drawJointedLeg(ctx, -4, -22, lerp(0.12, 0.05), lerp(0.2, 0.05), pantsShadow, false);
+    drawJointedLeg(ctx, 5, -22, lerp(-0.45, -0.1), lerp(0.6, 0.1), pantsColor, true);
   } else if (isHurt) {
     // Staggered backwards
     drawPantLeg(ctx, -14, -20, 10, 16, pantsShadow);
