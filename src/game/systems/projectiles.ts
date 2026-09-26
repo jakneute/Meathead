@@ -14,6 +14,7 @@ import { FrameContext } from '../context';
 import { getBossDef, hitBoss, isWeakTo, maybeReactToWeapon, weaponOf } from '../boss';
 import { explodeOilRocket } from '../weapons';
 import { tryCorkVent } from '../bosses/victor';
+import { ICE_BLOCK_ACCEL, ICE_BLOCK_COMMIT_RANGE, ICE_BLOCK_GRACE, ICE_BLOCK_LIFE, ICE_BLOCK_MAX_SPEED, ICE_BLOCK_TURN } from '../bosses/artie';
 import { pushEnemy } from './knockback';
 import { stickNeedle, ENEMY_NEEDLE } from '../needles';
 import { updateOscarRocket, updateCigarette } from '../bosses/oscar';
@@ -66,6 +67,8 @@ export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
     }
     return false;
   }
+
+  if (p.owner === 'enemy' && p.isIce && p.width > 30) return updateIceBlock(ctx, p);
 
   // Player shotgun pellets and boulders use the GameMaker version's physics
   if (p.owner === 'player' && p.isIce) return updatePellet(ctx, p);
@@ -189,6 +192,44 @@ const updatePhysicsProjectile = (ctx: FrameContext, p: Projectile): boolean => {
   }
   if (p.isMethBarrel) p.rotation = (p.rotation || 0) + (p.vel.x * 0.05);
   return true;
+};
+
+/**
+ * Artie's big ice block: a slow-to-mid speed homing shot. It steers toward
+ * Meathead with a limited turn rate, speeding up as it goes, and shatters on
+ * the first wall, floor or ceiling it hits (after clearing his hands), on
+ * Meathead, or when it runs out of steam.
+ */
+const updateIceBlock = (ctx: FrameContext, p: Projectile): boolean => {
+  const { player } = ctx.state;
+  p.life = (p.life ?? ICE_BLOCK_LIFE) - 1;
+  if (p.life <= 0) { shatterIceBlock(ctx, p); return false; }
+
+  const speed = Math.min(ICE_BLOCK_MAX_SPEED, Math.hypot(p.vel.x, p.vel.y) + ICE_BLOCK_ACCEL);
+  const heading = Math.atan2(p.vel.y, p.vel.x);
+  const dx = player.pos.x + player.width / 2 - (p.pos.x + p.width / 2);
+  const dy = player.pos.y + player.height / 2 - (p.pos.y + p.height / 2);
+  // Steers while it's far off; up close it's committed (isSliding marks the lock, so it never re-acquires)
+  if (!p.isSliding && Math.hypot(dx, dy) < ICE_BLOCK_COMMIT_RANGE) p.isSliding = true;
+  let turn = p.isSliding ? 0 : Math.atan2(dy, dx) - heading;
+  while (turn > Math.PI) turn -= Math.PI * 2;
+  while (turn < -Math.PI) turn += Math.PI * 2;
+  const next = heading + Math.max(-ICE_BLOCK_TURN, Math.min(ICE_BLOCK_TURN, turn));
+  p.vel.x = Math.cos(next) * speed;
+  p.vel.y = Math.sin(next) * speed;
+  p.pos.x += p.vel.x;
+  p.pos.y += p.vel.y;
+
+  if (ICE_BLOCK_LIFE - p.life > ICE_BLOCK_GRACE) {
+    const box = boundsOf(p);
+    for (const b of ctx.state.blocks) {
+      if (b.type !== 'pit' && rectsOverlap(box, b)) { shatterIceBlock(ctx, p); return false; }
+    }
+  }
+
+  const alive = resolveEnemyProjectileHit(ctx, p);
+  if (!alive) shatterIceBlock(ctx, p);
+  return alive;
 };
 
 /**

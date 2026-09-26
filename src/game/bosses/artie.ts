@@ -7,14 +7,24 @@
 import { Enemy, Icicle, Rect } from '../../types';
 import { ARENA_LEFT, ARENA_RIGHT, BULLET_DAMAGE, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y } from '../../constants';
 import type { FrameContext } from '../context';
-import { BossDef, ARENA_MID, CEILING_Y, FLOOR_Y, dirTo, enemyProjectile, hurtPlayer } from './shared';
+import { BossDef, ARENA_MID, CEILING_Y, FLOOR_Y, dirTo, enemyProjectile, hurtPlayer, midX } from './shared';
 
 const ICE_BLOCK_SIZE = 60;
-const ICE_BLOCK_SPEED = 11;
-const ICE_BLOCK_LOFT = 5;       // thrown from overhead in a shallow arc, shattering where it lands
+// The block homes in on Meathead: slow off the hand, speeding up to a bit faster than he runs,
+// turning wide enough that a well-timed jump or dash gets you round it
+export const ICE_BLOCK_START_SPEED = 3.5;
+export const ICE_BLOCK_MAX_SPEED = 5.0;
+export const ICE_BLOCK_ACCEL = 0.03;
+export const ICE_BLOCK_TURN = 0.045;     // radians per frame
+export const ICE_BLOCK_LIFE = 270;       // then it shatters on its own
+/** Once it's this close it stops steering and commits to a straight line: jump it or get out of the way. */
+export const ICE_BLOCK_COMMIT_RANGE = 170;
+/** Frames after the throw when it can't hit walls (so a throw right under the ceiling still flies). */
+export const ICE_BLOCK_GRACE = 14;
 const SHOT_COOLDOWN = 60;
 const STUCK_FRAMES = 175;       // standing still this long forces a new move
 const MUST_MOVE_FRAMES = 120;   // past this he won't pick the ice block
+const MIN_THROW_DISTANCE = 230; // any closer and a throw couldn't be dodged: he'd rather jump or charge
 const CHARGE_SPEED = 7.5;
 /** Before a throw he hefts the block overhead (it freezes together, then flashes just before it flies). */
 export const THROW_WINDUP = 34;
@@ -49,7 +59,7 @@ const update = (ctx: FrameContext, boss: Enemy) => {
 
   // Sometimes throws a block at the top of a jump (hanging there a moment to heft it)
   if (boss.bossState === 'jumping' && !boss.isGroundedBoss && boss.shootTimer <= 0) {
-    if (Math.abs(boss.vel.y) < 2 && boss.stateTimer! > 20 && Math.random() < 0.08) {
+    if (Math.abs(boss.vel.y) < 2 && boss.stateTimer! > 20 && Math.random() < 0.08 && Math.abs(midX(ctx.state.player) - midX(boss)) > MIN_THROW_DISTANCE) {
       boss.throwWindup = AIR_THROW_WINDUP;
       boss.shootTimer = SHOT_COOLDOWN;
     }
@@ -69,7 +79,7 @@ const chooseMove = (ctx: FrameContext, boss: Enemy) => {
     boss.bossState = 'jumping';
     boss.sideTimer = 0;
     shakeIciclesLoose(ctx, boss, false);
-  } else if (r < 0.70 && boss.shootTimer <= 0 && !mustMove) {
+  } else if (r < 0.70 && boss.shootTimer <= 0 && !mustMove && Math.abs(midX(player) - midX(boss)) > MIN_THROW_DISTANCE) {
     boss.throwWindup = THROW_WINDUP;
     boss.vel.x = 0;
     boss.shootTimer = SHOT_COOLDOWN + THROW_WINDUP;
@@ -101,11 +111,18 @@ const windUpThrow = (ctx: FrameContext, boss: Enemy) => {
   if (!boss.isGroundedBoss) boss.stateTimer = 50;
 };
 
+/** Lets the block fly from over his head, aimed straight at Meathead (it keeps tracking him after that). */
 const throwIceBlock = (ctx: FrameContext, boss: Enemy, id: string) => {
-  const dir = ctx.state.player.pos.x < boss.pos.x + boss.width / 2 ? -1 : 1;
+  const { player } = ctx.state;
+  const dir = player.pos.x < boss.pos.x + boss.width / 2 ? -1 : 1;
   const x = dir === 1 ? boss.pos.x + boss.width + 5 : boss.pos.x - ICE_BLOCK_SIZE - 5;
-  ctx.bossHelpers.addProjectile(enemyProjectile(`${id}-${Date.now()}`, x, boss.pos.y - 64, dir * ICE_BLOCK_SPEED, -ICE_BLOCK_LOFT,
-    ICE_BLOCK_SIZE, ICE_BLOCK_SIZE, BULLET_DAMAGE, { isIce: true }));
+  // Never starts inside the ceiling, however high he jumped
+  const y = Math.max(CEILING_Y + 2, boss.pos.y - 64);
+  const dx = player.pos.x + player.width / 2 - (x + ICE_BLOCK_SIZE / 2);
+  const dy = player.pos.y + player.height / 2 - (y + ICE_BLOCK_SIZE / 2);
+  const len = Math.hypot(dx, dy) || 1;
+  ctx.bossHelpers.addProjectile(enemyProjectile(`${id}-${Date.now()}`, x, y, (dx / len) * ICE_BLOCK_START_SPEED, (dy / len) * ICE_BLOCK_START_SPEED,
+    ICE_BLOCK_SIZE, ICE_BLOCK_SIZE, BULLET_DAMAGE, { isIce: true, life: ICE_BLOCK_LIFE }));
 };
 
 /**
