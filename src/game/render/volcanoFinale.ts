@@ -23,17 +23,34 @@ export const drawVolcanoFinaleOutside = (ctx: Ctx, state: GameState): boolean =>
   const outside2 = t >= VOLCANO_FINALE.OUTSIDE;
   if (!outside1 && !outside2) return false;
 
+  const lt = t - VOLCANO_FINALE.OUTSIDE;          // into the launch
+  const hits = outside2 ? Math.min(2, Math.floor(lt / VOLCANO_FINALE.FLY)) : 0; // bodies that have hit the screen
+  const sinceHit = outside2 && hits > 0 ? lt - hits * VOLCANO_FINALE.FLY : 999;
+
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, W, H);
   ctx.save();
-  const shake = outside1 ? (t < VOLCANO_FINALE.ERUPT ? 1 + t / 20 : 8) : 6;
+  // Each impact jolts the "camera"; the second knocks it askew for good
+  const shake = outside1 ? (t < VOLCANO_FINALE.ERUPT ? 1 + t / 20 : 8) : 6 + (sinceHit < 12 ? (12 - sinceHit) * 2 : 0);
   ctx.translate((hash(t) - 0.5) * shake * 2, (hash(t + 50) - 0.5) * shake * 2);
+  if (hits >= 2) {
+    const tilt = Math.min(1, sinceHit / 8) * -0.075;
+    ctx.translate(CX, H / 2); ctx.rotate(tilt); ctx.scale(1.12, 1.12); ctx.translate(-CX, -H / 2);
+  }
   const erupting = outside2 || t >= VOLCANO_FINALE.ERUPT;
   const e = outside2 ? t - VOLCANO_FINALE.OUTSIDE + 70 : t - VOLCANO_FINALE.ERUPT; // frames since it blew
   drawScene(ctx, t, erupting, e);
-  if (outside2) drawLaunch(ctx, t - VOLCANO_FINALE.OUTSIDE);
+  if (outside2) drawLaunch(ctx, lt);
   ctx.restore();
 
-  // A white flash as it blows, and on each cut
-  const flash = outside1 ? (t >= VOLCANO_FINALE.ERUPT ? clamp01(1 - (t - VOLCANO_FINALE.ERUPT) / 20) : 0) : clamp01(1 - (t - VOLCANO_FINALE.OUTSIDE) / 15);
+  // The bodies smash into the screen itself: the glass cracks (on the screen, so it doesn't tilt with the camera)
+  if (hits >= 1) drawCracks(ctx, IMPACTS[0].x, IMPACTS[0].y, 11, 260);
+  if (hits >= 2) { drawCracks(ctx, IMPACTS[1].x, IMPACTS[1].y, 29, 380); drawCracks(ctx, IMPACTS[1].x - 90, IMPACTS[1].y + 60, 47, 140); }
+
+  // A white flash as it blows, on each cut, and on each impact
+  const flash = outside1
+    ? (t >= VOLCANO_FINALE.ERUPT ? clamp01(1 - (t - VOLCANO_FINALE.ERUPT) / 20) : 0)
+    : Math.max(clamp01(1 - lt / 15), sinceHit < 8 ? 0.8 * (1 - sinceHit / 8) : 0);
   if (flash > 0) { ctx.fillStyle = `rgba(255, 250, 235, ${flash})`; ctx.fillRect(0, 0, W, H); }
   if (outside2 && t >= VOLCANO_FINALE.TEXT) drawSpelledMessage(ctx, VOLCANO_FINALE_MESSAGE, Math.floor((t - VOLCANO_FINALE.TEXT) / VOLCANO_FINALE.TEXT_RATE));
   return true;
@@ -134,13 +151,20 @@ const drawScene = (ctx: Ctx, t: number, erupting: boolean, e: number) => {
  * one after the other (Turtles in Time's "thrown at the screen"), spinning and
  * growing until each one fills it.
  */
+/** Where each body smashes into the screen (Meathead left, Victor right). */
+const IMPACTS = [{ x: CX - 170, y: 230 }, { x: CX + 150, y: 300 }];
+
 const drawLaunch = (ctx: Ctx, lt: number) => {
   const who = Math.floor(lt / VOLCANO_FINALE.FLY);
   if (who > 1) return;
   const k = (lt % VOLCANO_FINALE.FLY) / VOLCANO_FINALE.FLY; // 0 at the crater .. 1 filling the screen
   const scale = 0.12 * Math.pow(200, k);                    // tiny, then rushing at you
-  const x = CX + (who === 0 ? -1 : 1) * 60 * Math.sin(k * Math.PI) + (who === 0 ? -20 : 20) * k;
-  const y = PEAK_Y - 30 - Math.sin(k * Math.PI * 0.9) * 90 + k * k * 60;
+  // Up out of the crater in an arc, then swerving straight at its impact point on the screen
+  const hit = IMPACTS[who];
+  const arcX = CX + (who === 0 ? -1 : 1) * 60 * Math.sin(k * Math.PI);
+  const arcY = PEAK_Y - 30 - Math.sin(k * Math.PI * 0.9) * 90;
+  const x = arcX + (hit.x - arcX) * k * k;
+  const y = arcY + (hit.y - arcY) * k * k;
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(lt * 0.16 * (who === 0 ? 1 : -1));
@@ -152,6 +176,54 @@ const drawLaunch = (ctx: Ctx, lt: number) => {
     ctx.beginPath(); ctx.arc(Math.sin(i * 2.1) * 10, -30 - s * 25, 6 + s * 10, 0, Math.PI * 2); ctx.fill();
   }
   if (who === 0) drawCharredMeathead(ctx, lt); else drawCharredVictor(ctx, lt);
+  ctx.restore();
+};
+
+/**
+ * Cracked screen glass around an impact point: jagged rays shooting out, rings
+ * of cracks joining them, and a crushed white spot where it hit.
+ */
+const drawCracks = (ctx: Ctx, cx: number, cy: number, seed: number, size: number) => {
+  const rays = 11;
+  const pts: { x: number; y: number }[][] = [];
+  for (let i = 0; i < rays; i++) {
+    const a0 = (i / rays) * Math.PI * 2 + (hash(seed + i) - 0.5) * 0.5;
+    const len = size * (0.45 + hash(seed + i * 3) * 0.55);
+    const ray = [{ x: cx, y: cy }];
+    let a = a0, r = 0;
+    while (r < len) {
+      r += 18 + hash(seed + i * 7 + r) * 30;
+      a += (hash(seed + i + r * 0.1) - 0.5) * 0.35;
+      ray.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r });
+    }
+    pts.push(ray);
+  }
+  const stroke = (draw: () => void) => {
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.55)'; ctx.lineWidth = 3; ctx.save(); ctx.translate(1, 1); draw(); ctx.restore();
+    ctx.strokeStyle = 'rgba(245, 250, 255, 0.9)'; ctx.lineWidth = 1.5; draw();
+  };
+  ctx.save();
+  ctx.lineJoin = 'round';
+  stroke(() => {
+    ctx.beginPath();
+    for (const ray of pts) { ctx.moveTo(ray[0].x, ray[0].y); for (const p of ray) ctx.lineTo(p.x, p.y); }
+    // Rings of cracks between neighbouring rays
+    for (const ring of [2, 4, 6]) {
+      for (let i = 0; i < rays; i++) {
+        const a = pts[i][ring], b = pts[(i + 1) % rays][ring];
+        if (a && b && hash(seed + ring * 13 + i) > 0.25) { ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); }
+      }
+    }
+    ctx.stroke();
+  });
+  // Crushed glass at the point of impact
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+  ctx.beginPath(); ctx.arc(cx, cy, 16, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+  for (let i = 0; i < 14; i++) {
+    const a = hash(seed + i * 5) * Math.PI * 2, r = hash(seed + i * 9) * 18;
+    ctx.fillRect(cx + Math.cos(a) * r - 1, cy + Math.sin(a) * r - 1, 3, 3);
+  }
   ctx.restore();
 };
 

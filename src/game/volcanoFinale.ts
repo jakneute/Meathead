@@ -4,7 +4,8 @@
 //   2. back in the arena: Victor starts "OH NO... WHAT HAVE YOU DONE, YOU-" and
 //      a wall of magma surges up from below, launching both of them skyward
 //   3. outside again: their charred bodies come flying out of the crater at the
-//      screen one at a time, Turtles in Time style, until each fills it; then
+//      screen one at a time, Turtles in Time style, and smash into it: the
+//      screen cracks, cracks some more, and the camera's knocked askew; then
 //      the death message spells out what you did
 // Then you respawn outside his door (the boss checkpoint) and refight him.
 
@@ -14,6 +15,7 @@ import { speakAsBoss } from './bosses/shared';
 import { VICTOR_LINES } from '../dialogue';
 import { respawn } from './level';
 import { CANVAS_HEIGHT } from '../constants';
+import { playGlassShatterSound } from './audio';
 
 export const VOLCANO_FINALE = {
   ERUPT: 100,         // outside: rumbling until here, then it blows
@@ -70,5 +72,10 @@ export const updateVolcanoFinale = (ctx: FrameContext) => {
     }
   }
   if (t === VOLCANO_FINALE.OUTSIDE) fx.playGunSound('nuke');
+  // Each body smashing into the screen: the glass cracks
+  if (t === VOLCANO_FINALE.OUTSIDE + VOLCANO_FINALE.FLY || t === VOLCANO_FINALE.OUTSIDE + 2 * VOLCANO_FINALE.FLY) {
+    playGlassShatterSound();
+    fx.playGunSound('gun');
+  }
   if (t >= VOLCANO_FINALE.END) respawn(state, ctx.stageId, ctx.cheats.skipToBoss);
 };
