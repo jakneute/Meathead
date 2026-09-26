@@ -163,15 +163,15 @@ const updateBossTransition = (ctx: FrameContext) => {
     if (state.doorOpenAmount <= 0) {
       state.doorOpenAmount = 0;
       state.doorState = 'done';
-      player.isCharging = false;
-      player.isSliding = false;
-      player.isUppercutting = false;
-      player.isDivekicking = false;
+      // The door's shut behind him: drop out of whatever pose he came in with, standing on the arena floor
+      calmPlayer(player);
+      player.pos.y = targetPlayerY;
+      player.isGrounded = true;
       state.bossCheckpoint = true;
       ctx.events.onBossEncounter();
     }
   }
-  player.pos.y += (targetPlayerY - player.pos.y) * 0.1;
+  // Like Mega Man: he's frozen mid-pose (mid-jump, crouched, mid-charge...) while the screen scrolls him through
   player.vel = { x: 0, y: 0 };
   player.facing = 1;
   state.projectiles = [];
