@@ -20,8 +20,8 @@ const CLOSE_FRAMES = 60;
 
 /** Back windows (centre x, relative to the cabin). */
 export const BACK_WINDOWS = [110, 280, 450];
-type Entry = 'left' | 'right' | 'back0' | 'back1' | 'back2' | 'roof';
-const WAVES: { t: number; spawns: [EnemyKind, Entry][] }[] = [
+export type Entry = 'left' | 'right' | 'back0' | 'back1' | 'back2' | 'roof';
+export const WAVES: { t: number; spawns: [EnemyKind, Entry][] }[] = [
   { t: 150, spawns: [['wolverine', 'left'], ['wolverine', 'right']] },
   { t: 440, spawns: [['eagle', 'back1'], ['shooter', 'roof']] },
   { t: 780, spawns: [['goat', 'right'], ['charger', 'left']] },
@@ -29,6 +29,18 @@ const WAVES: { t: number; spawns: [EnemyKind, Entry][] }[] = [
   { t: 1460, spawns: [['shielder', 'roof'], ['shooter', 'back1'], ['wolverine', 'left']] },
   { t: 1800, spawns: [['charger', 'right'], ['eagle', 'back1'], ['goat', 'left']] },
 ];
+
+/** How long before a wave you see it coming: shapes at the glass, thumps, the hatch rattling. */
+export const WARN_FRAMES = 80;
+/** Thumps on the cabin before a wave (frames before it). */
+const THUMPS = [64, 40, 16];
+
+/** The wave that's about to come in, and how far off it is (frames), while it's being telegraphed. */
+export const incomingWave = (tram: Tram) => {
+  if (tram.phase !== 'riding' || tram.wave >= WAVES.length) return null;
+  const left = WAVES[tram.wave].t - tram.t;
+  return left <= WARN_FRAMES ? { spawns: WAVES[tram.wave].spawns, left } : null;
+};
 
 export type TramPhase = 'docked' | 'closing' | 'riding' | 'arrived' | 'open' | 'done';
 
@@ -104,6 +116,16 @@ export const updateTram = (ctx: FrameContext, tram: Tram) => {
       moveCabin(state, tram, nx - tram.x, ny - tram.y);
       // Passing a pylon: the cabin jolts
       if (tram.t % 540 === 270) shakeScreen(state, 14, 4);
+      // Something's out there: thumping on the glass before it comes through
+      const incoming = incomingWave(tram);
+      if (incoming && THUMPS.includes(incoming.left)) {
+        shakeScreen(state, 6, 2);
+        playSound('gun');
+        for (const [, entry] of incoming.spawns) {
+          const at = entryPoint(tram, entry);
+          for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: at.x + (Math.random() - 0.5) * 50, y: at.y + (Math.random() - 0.5) * 40 }, vel: { x: (Math.random() - 0.5) * 2, y: Math.random() * 1.5 }, life: 24, color: '#E0F2FE', size: 2 + Math.random() * 3 });
+        }
+      }
       while (tram.wave < WAVES.length && tram.t >= WAVES[tram.wave].t) {
         for (const [kind, entry] of WAVES[tram.wave].spawns) burstIn(ctx, tram, kind, entry);
         tram.wave++;
@@ -165,6 +187,14 @@ const pushOut = (state: GameState, tram: Tram) => {
     if (e.type === 'boss' || !inCabin(tram, e.pos.x + e.width / 2, e.pos.y + e.height / 2)) continue;
     e.pos.x = tram.x - e.width - 30;
   }
+};
+
+/** Where something comes in (world coords, roughly the middle of the opening). */
+export const entryPoint = (tram: Tram, entry: Entry) => {
+  if (entry === 'left') return { x: tram.x + 8, y: tram.y - 130 };
+  if (entry === 'right') return { x: tram.x + CABIN_W - 8, y: tram.y - 130 };
+  if (entry === 'roof') return { x: tram.x + CABIN_W / 2, y: tram.y - CABIN_H + 8 };
+  return { x: tram.x + BACK_WINDOWS[Number(entry.slice(4))], y: tram.y - 120 };
 };
 
 /** Something smashes into the cabin. */

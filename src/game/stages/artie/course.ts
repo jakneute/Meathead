@@ -21,7 +21,8 @@ export interface Ledge { x: number; y: number; w: number; crumble: boolean }
 export interface Overhang { x: number; y: number; w: number; h: number }
 export interface IcicleSpot { x: number; y: number }
 export interface WindZone { x1: number; x2: number; push: number; gust?: { on: number; off: number } }
-export interface SnowballChute { x: number; y: number; every: number; size: number; speed: number }
+/** `from`: it only rolls once you're past here (so nothing bowls you back into the crevasse you just crossed). */
+export interface SnowballChute { x: number; y: number; every: number; size: number; speed: number; from: number }
 export interface Spawn { kind: WildKind; x: number; y: number }
 export interface PickupSpot { x: number; y: number; type: 'small_health' | 'large_health' | 'small_ammo' | 'large_ammo' }
 export type SkiObstacleKind = 'rock' | 'log' | 'pine' | 'branch';
@@ -83,9 +84,9 @@ export const buildCourse = (): Course => {
   };
 
   // ============ TRAILHEAD ============
-  // Safe start: one wolverine on the flat, to meet the wildlife
+  // Safe start: one wolverine at the end of the flat, to meet the wildlife (nothing near where you start)
   c.flat(700);
-  spawn('wolverine', 540);
+  spawn('wolverine', 660);
   // A gentle climb with a goon at the top
   c.slope(400, -60);
   spawn('shooter', 1060);
@@ -106,18 +107,18 @@ export const buildCourse = (): Course => {
   pickups.push({ x: 2430, y: c.groundAt(2390) - 330, type: 'large_ammo' });
   // Climb, with a charger coming down at you
   c.slope(400, -90);
-  spawn('charger', 2850);
+  spawn('charger', 2620); // (met on the climb, well short of the crevasse)
   c.flat(100);
   // Now crumbling ice over a real crevasse
   const crev1 = c.x;
   c.pit(320);
   ledges.push({ x: crev1 + 40, y: c.y, w: 80, crumble: true });
   ledges.push({ x: crev1 + 170, y: c.y - 25, w: 80, crumble: true });
-  c.flat(380);
-  // A goat up on a rock, an eagle overhead
-  ledges.push({ x: c.x - 220, y: c.groundAt(c.x - 220) - 110, w: 110, crumble: false });
-  spawn('goat', c.x - 180, 110);
-  spawn('eagle', c.x - 100, 250);
+  // Land, catch your breath: a goat up on a rock and an eagle overhead are well past the landing
+  c.flat(640);
+  ledges.push({ x: c.x - 200, y: c.groundAt(c.x - 200) - 110, w: 110, crumble: false });
+  spawn('goat', c.x - 160, 110);
+  spawn('eagle', c.x - 40, 250);
   // Icicles over a climb, wolverines coming down it
   const climb = c.x;
   c.slope(400, -100);
@@ -131,9 +132,9 @@ export const buildCourse = (): Course => {
   ledges.push({ x: crev2 + 45, y: c.y, w: 80, crumble: true });
   ledges.push({ x: crev2 + 165, y: c.y - 30, w: 80, crumble: true });
   overhang(crev2 - 20, crev2 + 300, 210, [crev2 + 90, crev2 + 210]);
-  c.flat(420);
-  spawn('eagle', c.x - 250, 220);
-  spawn('shielder', c.x - 150);
+  c.flat(620);
+  spawn('shielder', c.x - 200);
+  spawn('eagle', c.x - 90, 220);
   pickups.push({ x: c.x - 60, y: c.y - 30, type: 'small_health' });
   c.slope(200, -40);
   c.flat(200);
@@ -153,12 +154,12 @@ export const buildCourse = (): Course => {
   // ============ SUMMIT ============
   c.flat(490);
   const cp1 = { x: deckX + 100, y: topY };
+  // Off the tram: patch up and reload before the moose
+  pickups.push({ x: deckX + 230, y: topY - 30, type: 'large_health' });
+  pickups.push({ x: deckX + 320, y: topY - 30, type: 'large_ammo' });
   // The moose's clearing: one screen, walled in while he's alive
   const mooseX1 = c.x;
   c.flat(800);
-  // Two rocks to get up out of its way (it charges underneath; you can't shoot it from up there)
-  ledges.push({ x: mooseX1 + 150, y: c.y - 128, w: 110, crumble: false });
-  ledges.push({ x: mooseX1 + 540, y: c.y - 128, w: 110, crumble: false });
   const moose = { x1: mooseX1, x2: c.x, y: c.y };
   const cp2 = { x: c.x + 60, y: c.y };
   // Wind, taught on the flat: it shoves you back
@@ -173,17 +174,17 @@ export const buildCourse = (): Course => {
   ledges.push({ x: crev3 + 150, y: c.y - 25, w: 80, crumble: false }); // (solid: somewhere to wait out a gust)
   ledges.push({ x: crev3 + 255, y: c.y - 5, w: 70, crumble: true });
   winds.push({ x1: crev3 - 60, x2: crev3 + 360, push: -2.1, gust: { on: 100, off: 100 } });
-  c.flat(360);
+  c.flat(520);
   // Snowballs, taught on the flat: small and slow, jump them
-  chutes.push({ x: c.x - 10, y: c.y, every: 170, size: 34, speed: 3 });
-  ledges.push({ x: c.x - 220, y: c.y - 100, w: 90, crumble: false });
-  spawn('goat', c.x - 190, 100);
+  chutes.push({ x: c.x - 10, y: c.y, every: 170, size: 34, speed: 3, from: crev3 + 400 });
+  ledges.push({ x: c.x - 200, y: c.y - 100, w: 90, crumble: false });
+  spawn('goat', c.x - 170, 100);
   // Then big ones barrelling down a slope at you
   c.slope(500, -150);
-  chutes.push({ x: c.x - 10, y: c.y, every: 140, size: 56, speed: 4 });
+  chutes.push({ x: c.x - 10, y: c.y, every: 140, size: 56, speed: 4, from: c.x - 900 });
   spawn('eagle', c.x - 250, 260);
   c.flat(250);
-  spawn('shooter', c.x - 100);
+  spawn('shooter', c.x - 220); // (back from the edge: he's not there to shoot you into the crevasse while you wait out a gust)
   // The hardest gap: three crumbling ledges, icicles and gusts
   const crev4 = c.x;
   c.pit(420);
@@ -192,11 +193,11 @@ export const buildCourse = (): Course => {
   ledges.push({ x: crev4 + 295, y: c.y - 10, w: 70, crumble: true });
   overhang(crev4 + 20, crev4 + 400, 220, [crev4 + 110, crev4 + 230, crev4 + 340]);
   winds.push({ x1: crev4 - 40, x2: crev4 + 440, push: -2.1, gust: { on: 80, off: 110 } });
-  c.flat(400);
-  spawn('eagle', c.x - 330, 230);
-  spawn('charger', c.x - 200);
+  c.flat(620);
+  pickups.push({ x: c.x - 560, y: c.y - 30, type: 'large_health' });
+  spawn('charger', c.x - 240);
+  spawn('eagle', c.x - 130, 230);
   spawn('shielder', c.x - 60);
-  pickups.push({ x: c.x - 380, y: c.y - 30, type: 'large_health' });
   // The summit ridge, and a skier admiring the view
   c.flat(280);
   const skier = { x: c.x - 60, y: c.y };
@@ -257,7 +258,7 @@ export const buildCourse = (): Course => {
     overhangs: overhangs.map(o => ({ ...o, x: sx(o.x) })),
     icicles: icicles.map(i => ({ ...i, x: sx(i.x) })),
     winds: winds.map(w => ({ ...w, x1: sx(w.x1), x2: sx(w.x2) })),
-    chutes: chutes.map(ch => ({ ...ch, x: sx(ch.x) })),
+    chutes: chutes.map(ch => ({ ...ch, x: sx(ch.x), from: sx(ch.from) })),
     spawns: spawns.map(s => ({ ...s, x: sx(s.x) })),
     pickups: pickups.map(p => ({ ...p, x: sx(p.x) })),
     tram: { x: sx(tramX), y: tramY, toX: sx(topX), toY: topY },

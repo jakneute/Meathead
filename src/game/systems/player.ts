@@ -11,7 +11,7 @@ import {
   CHARGE_SPEED, CHARGE_DURATION, SLIDE_SPEED, SLIDE_DURATION, POWER_CELLS, POWER_CELL_RECHARGE,
   UPPERCUT_SPEED, UPPERCUT_DURATION, DIVEKICK_SPEED, DIVEKICK_ANGLE,
   PLAYER_MASS, RECOIL_FRAMES, PLAYER_STUN_INVINCIBILITY, GML_SCALE, SPECIAL_HURT_FRAMES, ARENA_LEFT,
-  OSCAR_OIL_SPEED_MULT, OSCAR_OIL_JUMP_MULT,
+  OSCAR_OIL_SPEED_MULT, OSCAR_OIL_JUMP_MULT, SKI_JUMP_SPEED_MULT, SKI_JUMP_HOLD_MULT,
 } from '../../constants';
 import { FrameContext } from '../context';
 import { GameState, shakeScreen } from '../state';
@@ -377,6 +377,7 @@ const updateVerticalVelocity = (ctx: FrameContext, input: FrameInput) => {
     player.jumpBufferTimer = 0;
     // Oil underfoot: your feet slip and you barely get off the ground
     player.jumpHoldTimer = isStandingInOil(ctx.state) ? Math.round(JUMP_HOLD_FRAMES * OSCAR_OIL_JUMP_MULT) : JUMP_HOLD_FRAMES;
+    if (player.skiing) player.jumpHoldTimer = Math.round(JUMP_HOLD_FRAMES * SKI_JUMP_HOLD_MULT);
     player.squash = -0.5; // stretch on take-off
     player.isGrounded = false;
     player.coyoteAirTimer = 0;
@@ -385,7 +386,7 @@ const updateVerticalVelocity = (ctx: FrameContext, input: FrameInput) => {
   // Holding jump keeps rising at a constant speed; letting go cuts it short
   if (!input.jump) player.jumpHoldTimer = 0;
   if (player.jumpHoldTimer > 0) {
-    player.vel.y = PLAYER_JUMP_SPEED;
+    player.vel.y = PLAYER_JUMP_SPEED * (player.skiing ? SKI_JUMP_SPEED_MULT : 1);
     player.jumpHoldTimer--;
   }
 

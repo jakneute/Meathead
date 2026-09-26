@@ -34,7 +34,7 @@ export const drawKindEnemy = (ctx: Ctx, e: Enemy, state: GameState) => {
 const kindFacing = (e: Enemy, state: GameState): number => {
   if (e.kind === 'wolverine' || e.kind === 'goat' || e.kind === 'eagle') return e.facing ?? -1;
   if (e.kind === 'charger' && Math.abs(e.vel.x) > 0.5) return Math.sign(e.vel.x);
-  if (e.kind === 'shielder') return -1; // his shield's always on the side you come from
+  if (e.kind === 'shielder') return e.facing === 1 ? 1 : -1; // his shield's on the side he's turned to (he turns round after you)
   return state.player.pos.x + state.player.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;
 };
 

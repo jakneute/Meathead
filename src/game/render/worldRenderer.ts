@@ -59,9 +59,9 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   }
 
-  // World space (camera + screen shake)
+  // World space (camera + screen shake; a paused frame holds still)
   ctx.save();
-  if (state.screenShakeTimer > 0) {
+  if (state.screenShakeTimer > 0 && status !== GameStatus.PAUSED) {
     const m = state.screenShakeMagnitude * 2;
     ctx.translate((Math.random() - 0.5) * m, (Math.random() - 0.5) * m);
   }
@@ -317,7 +317,7 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
     } else if (e.kind) {
       drawKindEnemy(ctx, e, state);
     } else {
-      if (e.enemyType === 'shield') { ctx.fillStyle = '#444'; ctx.fillRect(e.pos.x + 10, e.pos.y, e.width - 10, e.height); if (e.isShieldActive) { ctx.fillStyle = '#2C3E50'; ctx.fillRect(e.pos.x, e.pos.y - 5, 15, e.height + 10); ctx.strokeStyle = '#00FFFF'; ctx.lineWidth = 2; ctx.strokeRect(e.pos.x, e.pos.y - 5, 15, e.height + 10); } else { ctx.fillStyle = '#7F8C8D'; ctx.fillRect(e.pos.x + 5, e.pos.y + 10, 10, e.height - 20); } } else if (e.id.startsWith('rusher')) ctx.fillStyle = '#9B59B6'; else if (e.enemyType === 'flyer' && e.width > 60) ctx.fillStyle = '#34495E'; else ctx.fillStyle = e.enemyType === 'flyer' ? COLORS.ENEMY_FLYER : (e.enemyType === 'drone' ? COLORS.ENEMY_DRONE : COLORS.ENEMY_TANK);
+      if (e.enemyType === 'shield') { ctx.save(); if (e.facing === 1) { ctx.translate(e.pos.x * 2 + e.width, 0); ctx.scale(-1, 1); } ctx.fillStyle = '#444'; ctx.fillRect(e.pos.x + 10, e.pos.y, e.width - 10, e.height); if (e.isShieldActive) { ctx.fillStyle = '#2C3E50'; ctx.fillRect(e.pos.x, e.pos.y - 5, 15, e.height + 10); ctx.strokeStyle = '#00FFFF'; ctx.lineWidth = 2; ctx.strokeRect(e.pos.x, e.pos.y - 5, 15, e.height + 10); } else { ctx.fillStyle = '#7F8C8D'; ctx.fillRect(e.pos.x + 5, e.pos.y + 10, 10, e.height - 20); } ctx.restore(); } else if (e.id.startsWith('rusher')) ctx.fillStyle = '#9B59B6'; else if (e.enemyType === 'flyer' && e.width > 60) ctx.fillStyle = '#34495E'; else ctx.fillStyle = e.enemyType === 'flyer' ? COLORS.ENEMY_FLYER : (e.enemyType === 'drone' ? COLORS.ENEMY_DRONE : COLORS.ENEMY_TANK);
       if (!(e.enemyType === 'shield')) ctx.fillRect(e.pos.x, e.pos.y, e.width, e.height);
       if (e.isOiled) {
          // Greasy shine effect

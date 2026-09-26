@@ -21,6 +21,9 @@ export interface ArtieRuntime {
   ski: Ski;
 }
 
+/** Nothing's placed closer than this ahead of where you start (the trailhead or a checkpoint). */
+const SPAWN_CLEARANCE = 480;
+
 export const getArtie = (state: GameState) => state.stage as ArtieRuntime | null;
 
 export const createArtieRuntime = (state: GameState, skipToBoss: boolean): ArtieRuntime => {
@@ -31,8 +34,9 @@ export const createArtieRuntime = (state: GameState, skipToBoss: boolean): Artie
     if (p.x < fromX) return;
     state.pickups.push({ id: `artie-pickup-${i}`, pos: { x: p.x - 10, y: p.y - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: p.type, life: 1e9 });
   });
-  // The trail's wildlife and goons (the ones still ahead)
-  for (const s of COURSE.spawns) if (s.x >= fromX) state.enemies.push(makeKindEnemy(s.kind, s.x, s.y));
+  // The trail's wildlife and goons (the ones still ahead, and never right on top of where you start)
+  const startX = COURSE.checkpoints[startedAt].x;
+  for (const s of COURSE.spawns) if (s.x >= fromX && s.x - startX >= SPAWN_CLEARANCE) state.enemies.push(makeKindEnemy(s.kind, s.x, s.y));
   return { startedAt, hazards: createHazards(state), tram: createTram(state, startedAt), moose: createMooseFight(state, startedAt), ski: createSki(state, startedAt) };
 };
 

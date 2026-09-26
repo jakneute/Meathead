@@ -94,6 +94,9 @@ export const PLAYER_GRAVITY = gml(0.275);
 export const PLAYER_TERMINAL_VELOCITY = gml(9);
 export const PLAYER_JUMP_SPEED = gml(-3.15);    // held constant while the jump button is down
 export const JUMP_HOLD_FRAMES = 15;
+/** On skis (Artie's avalanche run) he jumps much higher and hangs longer, to clear what's coming at speed. */
+export const SKI_JUMP_SPEED_MULT = 1.3;
+export const SKI_JUMP_HOLD_MULT = 1.5;
 export const COYOTE_AIR_FRAMES = 7;             // hang time before gravity kicks in off a ledge
 export const COYOTE_JUMP_FRAMES = 7;            // grace period to still jump after leaving the ground
 export const JUMP_BUFFER_FRAMES = 5;

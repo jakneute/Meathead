@@ -175,7 +175,7 @@ export const drawSkiFront = (ctx: Ctx, state: GameState, ski: Ski) => {
     ctx.restore();
   }
   if (ski.ball > 0) drawBall(ctx, state, ski);
-  if (ski.phase === 'skiing' || ski.phase === 'runout' || (ski.phase === 'finale' && ski.avX < ski.pileX)) drawAvalanche(ctx, state, ski);
+  if (ski.phase === 'skiing' || ski.phase === 'runout' || (ski.phase === 'finale' && ski.avX < ski.pileX) || (ski.phase === 'cutscene' && ski.surge)) drawAvalanche(ctx, state, ski);
 };
 
 /** Meathead rolled up in a snowball: limbs and a furious face poking out as it tumbles. */

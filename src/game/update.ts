@@ -4,7 +4,7 @@ import { GameStatus, WeaponType } from '../types';
 import {
   CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, ARENA_RIGHT, DOOR_OPEN_SPEED, MAX_AMMO,
   AMMO_PICKUP_PCT, HEALTH_PICKUP_SMALL, HEALTH_PICKUP_LARGE, PLAYER_STUN_DURATION, PARTICLE_PALETTES,
-  SPOKEN_TEXT_HOLD, SPOKEN_TEXT_LINGER,
+  SPOKEN_TEXT_HOLD, SPOKEN_TEXT_LINGER, CANVAS_HEIGHT,
 } from '../constants';
 import { BOSS_DIALOGUE } from '../dialogue';
 import { FrameContext } from './context';
@@ -21,13 +21,14 @@ import { killPlayer, gateControls, tickPlayerTimers, updatePlayerActions, update
 import { updateTsunami, updateSteamExplosions, updateVolcanoes, updateTommyArena } from './systems/hazards';
 import { updateTaser, updateBurningProjectiles, updateEnemyStatusEffects } from './systems/statusEffects';
 import { updateEnemy } from './systems/enemies';
+import { updateGapGrace } from './systems/kinds';
 import { updateProjectile, updateSpecialMovesVsBarrels } from './systems/projectiles';
 import { updateOscarHazards } from './bosses/oscar';
 import { isGoreColor } from './effects';
 import { updateVictoryPee, peeFinished } from './victoryPee';
 import { getBossDef, getArenaRight, getStageWidth } from './boss';
 import { getStageLayout } from './stages';
-import { groundLineAt } from './terrain';
+import { groundLineAt, floorTopAt } from './terrain';
 
 const INTRO_JUMP_START = 80;
 const INTRO_JUMP_FRAMES = 60;
@@ -277,6 +278,7 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
   }
 
   const enemies = state.enemies;
+  updateGapGrace(state);
   state.enemies = enemies.filter(e => updateEnemy(ctx, e, enemies));
   // Note: projectiles spawned while this filter runs (shrapnel, ice shards) are not kept.
   // Projectiles spawned while these update (ice shards, splashes) are appended to the same
@@ -388,8 +390,17 @@ const updateDamageNumbers = (ctx: FrameContext) => {
 
 /** Where the camera rests vertically: the ground he's standing on sits this far down the screen. */
 const CAMERA_GROUND_ROW = 550;
+/** On skis he sits higher up the screen, so you can see down the mountain ahead of him. */
+const CAMERA_SKI_ROW = 420;
+/** On skis the ground (under him and just ahead) is always at least this far up from the bottom of the screen. */
+const CAMERA_SKI_GROUND_MARGIN = 44;
 /** Past this far up the screen, the camera rises with him. */
 const CAMERA_TOP_MARGIN = 150;
+/** He's never let any closer than this to the top of the screen, or (with ground under him) his feet to the bottom. */
+const CAMERA_HARD_TOP = 70;
+const CAMERA_HARD_BOTTOM = 36;
+/** How quickly the camera eases toward where it wants to be. */
+const CAMERA_EASE_Y = 0.2;
 
 const updateCamera = (ctx: FrameContext) => {
   const { state, stageId } = ctx;
@@ -407,10 +418,25 @@ const updateCamera = (ctx: FrameContext) => {
     return;
   }
   if (layout?.verticalCamera && !state.arenaLocked && state.victoryString === "" && state.doorState !== 'done') {
-    if (player.isGrounded) state.cameraRestY = player.pos.y + player.height - CAMERA_GROUND_ROW;
+    const row = player.skiing ? CAMERA_SKI_ROW : CAMERA_GROUND_ROW;
+    const feet = player.pos.y + player.height;
+    // Ground under him (null over a pit, where the camera doesn't follow him down)
+    const below = floorTopAt(state.blocks, player.pos.x + player.width / 2, feet, 0);
+    if (player.isGrounded) state.cameraRestY = feet - row;
+    // Dropping toward lower ground: head down to meet it rather than waiting for him to land
+    else if (player.vel.y > 0 && below !== null) state.cameraRestY = Math.max(state.cameraRestY, below - row);
     const target = Math.min(state.cameraRestY, player.pos.y - CAMERA_TOP_MARGIN);
-    state.camera.y += (target - state.camera.y) * 0.12;
+    state.camera.y += (target - state.camera.y) * CAMERA_EASE_Y;
     if (Math.abs(target - state.camera.y) < 0.5) state.camera.y = target;
+    // The easing never gets to leave him behind: he stays on screen however fast he's going
+    state.camera.y = Math.min(state.camera.y, player.pos.y - CAMERA_HARD_TOP);
+    if (below !== null) state.camera.y = Math.max(state.camera.y, feet - (CANVAS_HEIGHT - CAMERA_HARD_BOTTOM));
+    if (player.skiing) {
+      // On skis the snow never leaves the bottom of the screen, however big the jump (it's what's coming at you)
+      const px = player.pos.x + player.width / 2;
+      const ground = [px, px + 160, px + 320].map(x => groundLineAt(state.groundRuns, x)).filter(y => y !== Infinity);
+      if (ground.length) state.camera.y = Math.max(state.camera.y, Math.max(...ground) - (CANVAS_HEIGHT - CAMERA_SKI_GROUND_MARGIN));
+    }
   }
   if (!state.arenaLocked && state.victoryString === "" && state.bossExplosionTimer <= 0) {
     // Camera follows the player but can't scroll past the closed boss door

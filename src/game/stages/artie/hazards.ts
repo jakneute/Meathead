@@ -16,7 +16,7 @@ import { rectsOverlap, boundsOf } from '../../utils';
 import { hurtPlayer } from '../../bosses/shared';
 import { floorTopAt, groundLineAt } from '../../terrain';
 import { GRAVITY } from '../../../constants';
-import { COURSE, WindZone } from './course';
+import { COURSE, WindZone, SnowballChute } from './course';
 
 export interface StageIcicle { x: number; y: number; state: 'hang' | 'shake' | 'fall' | 'gone'; t: number; fy: number; vy: number }
 export interface Crumble { tag: string; block: Block; state: 'solid' | 'shake' | 'gone'; t: number }
@@ -42,7 +42,8 @@ export const createHazards = (state: GameState): Hazards => ({
     return { tag: b.tag!, block: b, state: 'solid', t: 0 };
   }),
   snowballs: [],
-  chuteTimers: COURSE.chutes.map(() => 0),
+  // (the first one's telegraphed too: nothing rolls the moment you come in range)
+  chuteTimers: COURSE.chutes.map(() => CHUTE_WARN_FRAMES),
 });
 
 export const windBlowing = (w: WindZone, frame: number) => !w.gust || frame % (w.gust.on + w.gust.off) < w.gust.on;
@@ -152,14 +153,28 @@ const updateWind = (ctx: FrameContext) => {
 
 // ---------------------------------------------------------------------------
 
+/** Chutes only roll while you're this close. */
+export const CHUTE_RANGE = 1100;
+/** How long a snowball rattles in the chute mouth before it drops out. */
+export const CHUTE_WARN_FRAMES = 55;
+
+/** Is this chute rolling snowballs at him? (He's near it, and past the last crevasse before it.) */
+export const chuteLive = (ch: SnowballChute, playerX: number) => Math.abs(playerX - ch.x) <= CHUTE_RANGE && playerX >= ch.from;
+
 const updateSnowballs = (ctx: FrameContext, hz: Hazards) => {
   const { state, fx } = ctx;
   const { player } = state;
   const pcx = player.pos.x + player.width / 2;
   // Chutes only roll while you're nearby
   COURSE.chutes.forEach((ch, i) => {
-    if (Math.abs(pcx - ch.x) > 1100) return;
-    if (--hz.chuteTimers[i] > 0) return;
+    if (!chuteLive(ch, pcx)) return;
+    if (--hz.chuteTimers[i] > 0) {
+      // Rattling in the chute mouth before it goes: snow shaken loose
+      if (hz.chuteTimers[i] <= CHUTE_WARN_FRAMES && hz.chuteTimers[i] % 4 === 0) {
+        state.particles.push({ pos: { x: ch.x + Math.random() * 30, y: ch.y - ch.size - 20 }, vel: { x: -Math.random(), y: 0.5 + Math.random() }, life: 20, color: '#F8FAFC', size: 2 + Math.random() * 2 });
+      }
+      return;
+    }
     hz.chuteTimers[i] = ch.every;
     const r = ch.size / 2;
     hz.snowballs.push({ x: ch.x, y: ch.y - r, r, vx: -ch.speed, vy: 0, rot: 0, big: ch.size > 40 });

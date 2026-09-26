@@ -3,7 +3,7 @@
 import type { GameState } from '../../state';
 import { getArtie } from './runtime';
 import { COURSE } from './course';
-import { windBlowing, Hazards } from './hazards';
+import { windBlowing, Hazards, chuteLive, CHUTE_WARN_FRAMES } from './hazards';
 import { drawTramBack, drawTramFront, drawTramHud } from './tramDraw';
 import { drawMooseCorpse, drawMooseHud } from './mooseDraw';
 import { drawSkiMid, drawSkiFront, drawSkiHud } from './skiDraw';
@@ -20,7 +20,7 @@ export const drawArtieMid = (ctx: Ctx, state: GameState) => {
   if (rt.moose.corpse) drawMooseCorpse(ctx, rt.moose.corpse, state.frame);
   drawCrumbles(ctx, state, rt.hazards);
   drawIcicles(ctx, state, rt.hazards);
-  drawChutes(ctx, state);
+  drawChutes(ctx, state, rt.hazards);
   drawSnowballs(ctx, rt.hazards);
   drawSkiMid(ctx, state, rt.ski);
 };
@@ -34,6 +34,33 @@ export const drawArtieHud = (ctx: Ctx, state: GameState) => {
   drawTramHud(ctx, state, getArtie(state)!.tram);
   drawMooseHud(ctx, state, getArtie(state)!.moose);
   drawSkiHud(ctx, state, getArtie(state)!.ski);
+  drawChuteWarnings(ctx, state, getArtie(state)!.hazards);
+};
+
+/** How far along a chute's telegraph is (0..1), or 0 if it isn't about to go. */
+const chuteWindup = (state: GameState, hz: Hazards, i: number) => {
+  const ch = COURSE.chutes[i];
+  if (!chuteLive(ch, state.player.pos.x + state.player.width / 2)) return 0;
+  const t = hz.chuteTimers[i];
+  return t > 0 && t <= CHUTE_WARN_FRAMES ? 1 - t / CHUTE_WARN_FRAMES : 0;
+};
+
+/** A snowball about to come from a chute off the right of the screen: a warning at the edge, at its height. */
+const drawChuteWarnings = (ctx: Ctx, state: GameState, hz: Hazards) => {
+  COURSE.chutes.forEach((ch, i) => {
+    const k = chuteWindup(state, hz, i);
+    if (!k || ch.x < state.camera.x + 800 - 20) return;
+    if (Math.floor(state.frame / 5) % 2) return;
+    const y = Math.max(40, Math.min(560, ch.y - ch.size / 2 - state.camera.y));
+    const x = 800 - 26;
+    ctx.save();
+    ctx.fillStyle = '#DC2626'; ctx.strokeStyle = '#FDE047'; ctx.lineWidth = 2;
+    // An arrow pointing in from the edge, a snowball on it
+    ctx.beginPath(); ctx.moveTo(x - 18, y); ctx.lineTo(x + 6, y - 16); ctx.lineTo(x + 6, y + 16); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#F8FAFC';
+    ctx.beginPath(); ctx.arc(x + 2, y, 4 + (ch.size / 56) * 4, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  });
 };
 
 const onScreen = (state: GameState, x: number, pad = 120) => x > state.camera.x - pad && x < state.camera.x + 800 + pad;
@@ -130,9 +157,24 @@ const drawWind = (ctx: Ctx, state: GameState) => {
   }
 };
 
-const drawChutes = (ctx: Ctx, state: GameState) => {
-  for (const ch of COURSE.chutes) {
-    if (!onScreen(state, ch.x)) continue;
+const drawChutes = (ctx: Ctx, state: GameState, hz: Hazards) => {
+  COURSE.chutes.forEach((ch, i) => {
+    if (!onScreen(state, ch.x)) return;
+    // About to go: the snowball rattles in the chute mouth, shaking snow loose, under a warning
+    const k = chuteWindup(state, hz, i);
+    if (k) {
+      const r = ch.size / 2;
+      const jig = Math.floor(state.frame / 2) % 2 ? 1.5 : -1.5;
+      ctx.fillStyle = '#E2ECF7'; ctx.strokeStyle = '#A7BCD6'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(ch.x + 30 - k * 22 + jig, ch.y - r - 8 - (1 - k) * 10, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      if (Math.floor(state.frame / 6) % 2 === 0) {
+        const wy = ch.y - ch.size - 62;
+        ctx.fillStyle = '#DC2626'; ctx.strokeStyle = '#FDE047';
+        ctx.beginPath(); ctx.moveTo(ch.x + 10, wy - 14); ctx.lineTo(ch.x + 24, wy + 11); ctx.lineTo(ch.x - 4, wy + 11); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 12px "Press Start 2P"'; ctx.textAlign = 'center';
+        ctx.fillText('!', ch.x + 11, wy + 9); ctx.textAlign = 'left';
+      }
+    }
     // A snow-caked wooden chute poking out of the drift at the top
     const y = ch.y;
     ctx.fillStyle = '#5B4636';
@@ -140,7 +182,7 @@ const drawChutes = (ctx: Ctx, state: GameState) => {
     ctx.fillStyle = '#3F2F24'; ctx.fillRect(ch.x - 12, y - ch.size - 20, 5, ch.size + 20);
     ctx.fillStyle = '#F8FAFC';
     ctx.beginPath(); ctx.ellipse(ch.x + 18, y - ch.size - 26, 30, 8, -0.25, 0, Math.PI * 2); ctx.fill();
-  }
+  });
 };
 
 const drawSnowballs = (ctx: Ctx, hz: Hazards) => {

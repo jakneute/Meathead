@@ -107,6 +107,8 @@ export interface GameState {
   totalPullForceX: number;
   /** Wind shoving the player this frame (a stage hazard); used up by the next move. */
   windPushX?: number;
+  /** Frames enemies still hold off attacking: he's crossing a crevasse, or only just landed from one. */
+  gapGrace?: number;
 
   // Toxic Tommy arena
   tommyBoards: TommyBoard[];

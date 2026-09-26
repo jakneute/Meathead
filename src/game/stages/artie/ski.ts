@@ -15,7 +15,7 @@ import { rectsOverlap, boundsOf } from '../../utils';
 import { say, MEATHEAD_VOICE } from '../../speech';
 import { playSound } from '../../audio';
 import { groundLineAt } from '../../terrain';
-import { GROUND_Y } from '../../../constants';
+import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { COURSE, CP, SkiObstacle } from './course';
 
 type SkiPhase = 'waiting' | 'cutscene' | 'skiing' | 'runout' | 'finale' | 'done';
@@ -38,13 +38,21 @@ export interface Ski {
   cabinHitAt: number;
   /** Where the avalanche finally stopped (the snow pile's front). */
   pileX: number;
+  /** In the cutscene, if anything's still alive on screen: the avalanche's first surge, which comes right up behind him and pulverizes it. */
+  surge: boolean;
 }
 
 // Ski speeds (px/frame): cruising, pushing on, and dragging your heels
 const SKI_BASE = 9.2, SKI_FAST = 11, SKI_SLOW = 7, SKI_CRASHED = 2.5;
 const AVALANCHE_SPEED = 8.7, AVALANCHE_CATCHUP = 12.5;
+/** The cutscene surge: how fast it comes in, and how close behind him it stops. */
+const SURGE_SPEED = 18, SURGE_STOP = 90;
+/** After a surge it's right on his tail: it drops back to this speed until he's got his usual head start. */
+const AVALANCHE_AFTER_SURGE = 5, AVALANCHE_HEAD_START = 650;
 const BALL_FRAMES = 90, BALL_DAMAGE = 22;
 const CRASH_FRAMES = 42, CRASH_DAMAGE = 6;
+/** How far ahead of him the camera looks on skis (not so far he ends up under the HUD in the corner). */
+const SKI_CAMERA_LEAD = 190;
 
 export const createSki = (state: GameState, startedAt: number): Ski => {
   const onSkis = startedAt === CP.SKI;
@@ -53,9 +61,9 @@ export const createSki = (state: GameState, startedAt: number): Ski => {
     phase: past ? 'done' : onSkis ? 'skiing' : 'waiting', t: 0,
     skier: { x: COURSE.skier.x, y: COURSE.skier.y, vx: 0, vy: 0, rot: 0, state: onSkis || past ? 'gone' : 'stand', line: '', lineT: 0 },
     skis: null, avX: COURSE.checkpoints[CP.SKI].x - 650, ball: 0, ballX: 0, ballRot: 0, crash: 0,
-    broken: COURSE.ski.obstacles.map(() => false), cabinHitAt: past ? -9999 : 0, pileX: COURSE.cabin.x + 330,
+    broken: COURSE.ski.obstacles.map(() => false), cabinHitAt: past ? -9999 : 0, pileX: COURSE.cabin.x + 330, surge: false,
   };
-  if (onSkis) { state.player.skiing = true; state.player.skiSpeed = SKI_BASE; state.cameraLeadX = 240; }
+  if (onSkis) { state.player.skiing = true; state.player.skiSpeed = SKI_BASE; state.cameraLeadX = SKI_CAMERA_LEAD; }
   if (past) addPile(state, ski);
   return ski;
 };
@@ -130,20 +138,58 @@ const cutscene = (ctx: FrameContext, ski: Ski): Controls => {
     const feet = player.pos.y + player.height;
     if (s.vy > 0 && s.y >= feet - 4) { ski.skis = null; player.skiing = true; player.skiSpeed = 0; meatheadSays(state, 'MINE NOW.'); }
   }
-  if (t === 230) { shakeScreen(state, 90, 6); playSound('nuke'); }
+  if (t === 230) {
+    shakeScreen(state, 90, 6); playSound('nuke');
+    // Anything still alive on screen is about to have a very bad day
+    if (enemiesOnScreen(state).length) { ski.surge = true; ski.avX = state.camera.x - 220; }
+  }
+  if (ski.surge && t > 240) surge(ctx, ski);
   if (t === 280) meatheadSays(state, '...OH SHIT.');
   if (t >= 330) {
     ski.phase = 'skiing'; ski.t = 0;
     state.cameraOverride = null;
     player.inCutscene = false;
-    state.cameraLeadX = 240;
+    state.cameraLeadX = SKI_CAMERA_LEAD;
     player.skiing = true;
     player.skiSpeed = SKI_BASE;
-    ski.avX = player.pos.x - 650;
+    if (!ski.surge) ski.avX = player.pos.x - AVALANCHE_HEAD_START;
     state.checkpoint = Math.max(state.checkpoint, CP.SKI);
     ctx.fx.spawnDamageNumber({ x: player.pos.x - 60, y: player.pos.y - 60 }, 'AVALANCHE!', true, '#F8FAFC');
   }
   return c;
+};
+
+const enemiesOnScreen = (state: GameState) => state.enemies.filter(e =>
+  e.type !== 'boss' && e.health > 0 && !e.isBlownAway
+  && e.pos.x + e.width > state.camera.x && e.pos.x < state.camera.x + CANVAS_WIDTH
+  && e.pos.y + e.height > state.camera.y && e.pos.y < state.camera.y + CANVAS_HEIGHT);
+
+/** The surge rolls in behind him and pulverizes whatever it reaches; its powder blast throws anything past him off the mountain. */
+const surge = (ctx: FrameContext, ski: Ski) => {
+  const { state, fx } = ctx;
+  const { player } = state;
+  const stop = player.pos.x - SURGE_STOP;
+  const arriving = ski.avX < stop;
+  ski.avX = Math.min(stop, ski.avX + SURGE_SPEED);
+  if (state.frame % 3 === 0) shakeScreen(state, 6, 5);
+  for (const e of enemiesOnScreen(state)) {
+    const cx = e.pos.x + e.width / 2;
+    const reached = cx < ski.avX + 30;
+    const blasted = !arriving && cx > player.pos.x;
+    if (!reached && !blasted) continue;
+    e.health = 0;
+    e.isBlownAway = true;
+    e.vel = reached ? { x: 16 + Math.random() * 6, y: -12 - Math.random() * 8 } : { x: 18 + Math.random() * 6, y: -9 - Math.random() * 4 };
+    // A burst of snow, ice and whatever was inside it
+    for (let i = 0; i < 26; i++) {
+      state.particles.push({
+        pos: { x: cx, y: e.pos.y + e.height / 2 }, vel: { x: (Math.random() - 0.2) * 12, y: -Math.random() * 10 },
+        life: 30 + Math.random() * 25, color: i % 3 === 0 ? '#B91C1C' : i % 3 === 1 ? '#7F1D1D' : '#F8FAFC', size: 3 + Math.random() * 5,
+      });
+    }
+    fx.spawnKillCallout(e, 'pulverized');
+    shakeScreen(state, 10, 7);
+  }
 };
 
 /** The skier: stands there, then goes cartwheeling off down the mountain. */
@@ -204,7 +250,9 @@ const skiing = (ctx: FrameContext, ski: Ski, controls: Controls): Controls => {
 
   // The avalanche: steady, but it catches up fast if it's fallen far behind
   const gap = player.pos.x - ski.avX;
-  ski.avX += gap > 850 ? AVALANCHE_CATCHUP : AVALANCHE_SPEED;
+  // (right behind him after the cutscene surge: it hangs back until he's got his usual lead)
+  if (ski.surge && gap >= AVALANCHE_HEAD_START) ski.surge = false;
+  ski.avX += gap > 850 ? AVALANCHE_CATCHUP : ski.surge ? AVALANCHE_AFTER_SURGE : AVALANCHE_SPEED;
   if (state.frame % 3 === 0) shakeScreen(state, 4, Math.max(1, 5 - gap / 200));
   if (ski.avX >= player.pos.x + 16 && state.deathTimer <= 0) {
     // Caught: rolled up in a snowball

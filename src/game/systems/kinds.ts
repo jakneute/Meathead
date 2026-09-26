@@ -8,15 +8,16 @@
 //
 //   wolverine: small, low and vicious. Prowls; when you're close it bristles,
 //              then lunges along the ground in hops.
-//   goat:      stands on rocks. When it sees you it charges, leaping any gap
-//              or ledge in the way, and headbutts hard.
+//   goat:      stands on rocks. When it sees you it charges, leaping up or off
+//              any ledge in the way (but not over a crevasse), and headbutts hard.
 //   eagle:     circles overhead, then folds its wings and dives at where you
 //              are, pulling back up afterwards.
 
 import { Enemy, EnemyKind } from '../../types';
 import { GRAVITY } from '../../constants';
 import type { FrameContext } from '../context';
-import { floorTopAt } from '../terrain';
+import { floorTopAt, profileYAt } from '../terrain';
+import type { GameState } from '../state';
 
 interface KindStats { w: number; h: number; hp: number; contact: number; air?: boolean }
 
@@ -64,6 +65,26 @@ export const runKindAI = (ctx: FrameContext, e: Enemy): boolean => {
   }
 };
 
+/** How long enemies keep holding off after he's landed from a crevasse. */
+const GAP_GRACE = 40;
+
+/**
+ * Fairness: nobody starts an attack on him while he's jumping a crevasse (or
+ * picking his way across its ledges), or for a moment after he lands. No
+ * eagles diving on him mid-jump, no goats leaping the gap at him.
+ */
+export const updateGapGrace = (state: GameState) => {
+  const runs = state.groundRuns;
+  const p = state.player;
+  const overGap = runs.length > 0 && profileYAt(runs, p.pos.x + p.width / 2) === undefined;
+  state.gapGrace = overGap ? GAP_GRACE : Math.max(0, (state.gapGrace || 0) - 1);
+};
+
+/** Which way a shield enemy's shield faces (-1 left, the default, or 1 right). */
+export const shieldFacing = (e: Enemy) => (e.facing === 1 ? 1 : -1);
+
+export const holdingOff = (state: GameState) => (state.gapGrace || 0) > 0;
+
 const mid = (o: { pos: { x: number; y: number }; width: number; height: number }) => ({ x: o.pos.x + o.width / 2, y: o.pos.y + o.height / 2 });
 
 /** Is there ground a step ahead that isn't a drop? (So prowlers don't wander off ledges.) */
@@ -94,7 +115,7 @@ const wolverine = (ctx: FrameContext, e: Enemy) => {
       if (e.facing === undefined) e.facing = -1;
       if (Math.abs(e.pos.x - home) > 70 || !safeAhead(ctx, e, e.facing)) e.facing = (e.pos.x > home ? -1 : 1) as 1 | -1;
       e.vel.x = e.facing * WOLVERINE_PROWL;
-      if (seesPlayer(ctx, e, 360, 110)) { e.aiState = 'bristle'; e.aiTimer = 0; }
+      if (seesPlayer(ctx, e, 360, 110) && !holdingOff(ctx.state)) { e.aiState = 'bristle'; e.aiTimer = 0; }
       break;
     }
     case 'bristle':
@@ -104,14 +125,15 @@ const wolverine = (ctx: FrameContext, e: Enemy) => {
       if (e.aiTimer > 16) { e.aiState = 'lunge'; e.aiTimer = 0; }
       break;
     case 'lunge':
-      // Bounding at you in low hops
+      // Bounding at you in low hops (pulling up short at an edge rather than going over it)
+      if (e.vel.y === 0 && !safeAhead(ctx, e, e.facing!)) { e.vel.x = 0; e.aiState = 'recover'; e.aiTimer = 0; break; }
       e.vel.x = e.facing! * WOLVERINE_LUNGE;
       if (e.aiTimer % 14 === 1 && e.vel.y === 0) e.vel.y = -4.5;
       if (e.aiTimer > 46) { e.aiState = 'recover'; e.aiTimer = 0; }
       break;
     case 'recover':
       e.vel.x *= 0.85;
-      if (e.aiTimer > 34) { e.aiState = seesPlayer(ctx, e, 360, 110) ? 'bristle' : 'idle'; e.aiTimer = 0; e.homeX = e.pos.x; }
+      if (e.aiTimer > 34) { e.aiState = seesPlayer(ctx, e, 360, 110) && !holdingOff(ctx.state) ? 'bristle' : 'idle'; e.aiTimer = 0; e.homeX = e.pos.x; }
       break;
   }
 };
@@ -127,11 +149,13 @@ const goat = (ctx: FrameContext, e: Enemy) => {
     default:
       e.vel.x = 0;
       e.facing = (mid(player).x < mid(e).x ? -1 : 1) as 1 | -1;
-      if (seesPlayer(ctx, e, 440, 220)) { e.aiState = 'paw'; e.aiTimer = 0; }
+      if (seesPlayer(ctx, e, 440, 220) && !holdingOff(ctx.state)) { e.aiState = 'paw'; e.aiTimer = 0; }
       break;
     case 'paw':
       // Scrapes a hoof, head down
       e.vel.x = 0;
+      e.facing = (mid(player).x < mid(e).x ? -1 : 1) as 1 | -1;
+      if (holdingOff(ctx.state)) e.aiTimer = Math.min(e.aiTimer, 12);
       if (e.aiTimer > 24) { e.aiState = 'charge'; e.aiTimer = 0; }
       break;
     case 'charge':
@@ -141,7 +165,11 @@ const goat = (ctx: FrameContext, e: Enemy) => {
         const aheadX = e.pos.x + e.width / 2 + e.facing! * (e.width / 2 + 26);
         const top = floorTopAt(ctx.state.blocks, aheadX, e.pos.y + e.height, 60);
         const feet = e.pos.y + e.height;
-        if (top === null || top < feet - 20 || top > feet + 50) e.vel.y = -11;
+        if (top === null || top < feet - 20 || top > feet + 50) {
+          // Not over a crevasse, though: it digs its hooves in at the edge (and doesn't go and die where you can't see it)
+          if (top === null) { e.vel.x = 0; e.aiState = 'skid'; e.aiTimer = 0; break; }
+          e.vel.y = -11;
+        }
         // Also springs up at you if you're above it
         else if (mid(player).y < e.pos.y - 40 && Math.abs(mid(player).x - mid(e).x) < 140) e.vel.y = -12;
       }
@@ -173,7 +201,7 @@ const eagle = (ctx: FrameContext, e: Enemy) => {
       e.vel.y = (ty - e.pos.y) * 0.06;
       e.facing = (e.vel.x < 0 ? -1 : 1) as 1 | -1;
       const p = mid(player);
-      if (e.aiTimer > 60 && Math.abs(p.x - m.x) < 420 && p.y > m.y + 40 && player.health > 0) {
+      if (e.aiTimer > 60 && !holdingOff(ctx.state) && Math.abs(p.x - m.x) < 420 && p.y > m.y + 40 && player.health > 0) {
         e.aiState = 'dive'; e.aiTimer = 0; e.aiX = p.x; e.aiY = p.y;
         const len = Math.hypot(p.x - m.x, p.y - m.y) || 1;
         e.vel = { x: ((p.x - m.x) / len) * EAGLE_DIVE, y: ((p.y - m.y) / len) * EAGLE_DIVE };
@@ -183,7 +211,8 @@ const eagle = (ctx: FrameContext, e: Enemy) => {
     }
     case 'dive':
       // Straight at where you were, until it gets there (or hits the ground)
-      if (Math.hypot((e.aiX ?? m.x) - m.x, (e.aiY ?? m.y) - m.y) < 14 || e.aiTimer > 70) {
+      // (and never past it: it doesn't overshoot down into a crevasse)
+      if (Math.hypot((e.aiX ?? m.x) - m.x, (e.aiY ?? m.y) - m.y) < 14 || m.y > (e.aiY ?? m.y) + 10 || e.aiTimer > 70) {
         e.aiState = 'climb'; e.aiTimer = 0;
       }
       break;

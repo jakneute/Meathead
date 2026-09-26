@@ -22,6 +22,7 @@ import { pickRandom, rectsOverlap, boundsOf } from '../utils';
 import { getAttackHitbox } from './player';
 import { shakeScreen, GameState } from '../state';
 import { getStageLayout } from '../stages';
+import { shieldFacing } from './kinds';
 
 /** Moves one projectile and resolves its collisions. Returns false to remove it. */
 export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
@@ -417,8 +418,9 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
       continue;
     }
 
-    // Shield enemies block shots from the front
-    const hitsShieldSide = (p.vel.x > 0 && p.pos.x < enemy.pos.x) || (p.vel.x < 0 && p.pos.x > enemy.pos.x);
+    // Shield enemies block shots from the side the shield's facing
+    const shieldLeft = shieldFacing(enemy) < 0;
+    const hitsShieldSide = shieldLeft ? p.vel.x > 0 && p.pos.x < enemy.pos.x + enemy.width / 2 : p.vel.x < 0 && p.pos.x + p.width > enemy.pos.x + enemy.width / 2;
     if (enemy.enemyType === 'shield' && enemy.isShieldActive && hitsShieldSide) {
       if (p.isSludge) {
         // Splats against the shield and runs down it into a puddle at his feet

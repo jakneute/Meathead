@@ -24,7 +24,7 @@ import { startEnemyDeath } from '../enemyDeaths';
 import { getEnemyMass, enemyGrip, massRatio } from './knockback';
 import { floorTopAt } from '../terrain';
 import { getStageLeft, getStageLayout } from '../stages';
-import { runKindAI, kindContactDamage } from './kinds';
+import { runKindAI, kindContactDamage, holdingOff, shieldFacing } from './kinds';
 
 /** Moves one enemy and resolves its contact with the player. Returns false to remove it. */
 export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolean => {
@@ -90,10 +90,12 @@ const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
   const { state, fx, stageId } = ctx;
   // Tommy's open-topped arena: the camera follows jumps up, so there's no top edge there
   const openAbove = !!getBossDef(stageId)?.arena?.openTop && e.pos.x + e.width > BOSS_DOOR_X;
-  // (On a hilly stage things can sit above or below the view: only launched ones and ones with nothing under them count)
   const hilly = !!getStageLayout(stageId)?.verticalCamera;
-  const up = !openAbove && e.pos.y + e.height < state.camera.y && (!hilly || e.vel.y < -2);
-  const down = e.pos.y > state.camera.y + CANVAS_HEIGHT && (!hilly || !hasFloorBelow(state, e) || e.pos.y > state.camera.y + 1400);
+  // (On a hilly stage things sit above and below the view all the time, hopping, leaping and flying about:
+  // only ones launched by a hit count going up, and only ones with nothing under them going down)
+  const launched = (e.pauseTimer || 0) > 0 && e.vel.y < -2;
+  const up = !openAbove && e.pos.y + e.height < state.camera.y && (!hilly || launched);
+  const down = e.pos.y > state.camera.y + CANVAS_HEIGHT && (!hilly || !hasFloorBelow(state, e));
   const side = e.pos.x + e.width < getStageLeft(stageId) || e.pos.x > getStageWidth(stageId);
   if (!up && !down && !side) return false;
   e.health = 0;
@@ -302,7 +304,7 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
     if (isStunned) return;
     if (e.behavior === 'patrol' || e.behavior === 'fly') {
       if (e.pos.x > (e.initialX + e.patrolRange) || e.pos.x < e.initialX) e.vel.x *= -1;
-    } else if (e.behavior === 'shoot' && onScreen && ++e.shootTimer > 60) {
+    } else if (e.behavior === 'shoot' && onScreen && !holdingOff(state) && ++e.shootTimer > 60) {
       fireEnemyBullet(ctx, e.pos.x + e.width / 2, e.pos.y + e.height - 10, player.pos.x < e.pos.x ? -7 : 7);
       e.shootTimer = 0;
     }
@@ -349,16 +351,18 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
     runKindAI(ctx, e);
   } else if (e.id.startsWith('rusher') || e.kind === 'charger') {
     const sameLevel = Math.abs((player.pos.y + player.height / 2) - (e.pos.y + e.height / 2)) < 80;
-    e.vel.x = (onScreen && player.invincibilityTimer <= 0 && sameLevel) ? (player.pos.x < e.pos.x ? -1 : 1) * 6 : 0;
+    e.vel.x = (onScreen && player.invincibilityTimer <= 0 && sameLevel && !holdingOff(state)) ? (player.pos.x < e.pos.x ? -1 : 1) * 6 : 0;
   } else if (e.behavior === 'patrol') {
     if (e.pos.x > (e.initialX + e.patrolRange) || e.pos.x < e.initialX) e.vel.x *= -1;
   } else if (e.behavior === 'shoot' && onScreen) {
-    e.shootTimer++;
+    if (!holdingOff(state)) e.shootTimer++;
     if (e.enemyType === 'shield') {
+      turnShieldToPlayer(e, player);
       // Shield drops briefly to fire
       e.isShieldActive = e.shootTimer < 80;
       if (e.shootTimer > 120) {
-        fireEnemyBullet(ctx, e.pos.x, e.pos.y + 15, -6);
+        const dir = shieldFacing(e);
+        fireEnemyBullet(ctx, dir < 0 ? e.pos.x : e.pos.x + e.width, e.pos.y + 15, dir * 6);
         e.shootTimer = 0;
       }
     } else if (e.shootTimer > 60) {
@@ -368,6 +372,17 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
   }
   if (e.behavior === 'shoot') settleAfterKnockback(e);
   e.pos.x += e.vel.x;
+};
+
+/** Frames a shield enemy takes to swing round when you get behind it (its back's open meanwhile). */
+const SHIELD_TURN_FRAMES = 18;
+
+/** Get round behind a shield enemy and it turns to put the shield back between you, after a beat. */
+const turnShieldToPlayer = (e: Enemy, player: Player) => {
+  const side = player.pos.x + player.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;
+  if (side === shieldFacing(e)) { e.aiTimer = 0; return; }
+  e.aiTimer = (e.aiTimer || 0) + 1;
+  if (e.aiTimer >= SHIELD_TURN_FRAMES) { e.facing = side; e.aiTimer = 0; }
 };
 
 /**

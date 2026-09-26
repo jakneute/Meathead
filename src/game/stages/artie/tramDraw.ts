@@ -3,8 +3,10 @@
 
 import type { GameState } from '../../state';
 import { COURSE } from './course';
-import { Tram, CABIN_W, CABIN_H, BACK_WINDOWS, RIDE, cabinEnemies } from './tram';
+import { Tram, CABIN_W, CABIN_H, BACK_WINDOWS, RIDE, WARN_FRAMES, cabinEnemies, incomingWave, entryPoint } from './tram';
+import type { EnemyKind } from '../../../types';
 import { floorY } from './draw';
+import { CANVAS_WIDTH } from '../../../constants';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -99,9 +101,17 @@ const drawCabinInside = (ctx: Ctx, state: GameState, tram: Tram) => {
   ctx.fillStyle = '#3F1010'; ctx.fillRect(x + 20, y - 34, CABIN_W - 40, 12);
   ctx.fillStyle = '#9CA3AF'; ctx.fillRect(x + 20, top + 20, CABIN_W - 40, 3);
   for (let hx = x + 60; hx < x + CABIN_W - 40; hx += 70) { ctx.fillRect(hx, top + 20, 2, 14); ctx.strokeStyle = '#9CA3AF'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(hx + 1, top + 38, 5, 0, Math.PI * 2); ctx.stroke(); }
-  // Windows: glass with a sheen, or smashed through
+  // Windows: glass with a sheen, or smashed through (with whatever's about to come through it looming outside)
+  const incoming = incomingWave(tram);
   BACK_WINDOWS.forEach((wx, i) => {
     const l = x + wx - winW / 2;
+    const coming = incoming?.spawns.find(([, entry]) => entry === `back${i}`);
+    if (coming) {
+      ctx.save();
+      ctx.beginPath(); ctx.rect(l, winTop, winW, winH); ctx.clip();
+      drawSilhouette(ctx, state, coming[0], x + wx, winTop + winH - 6, 1 - incoming!.left / WARN_FRAMES);
+      ctx.restore();
+    }
     if (tram.broken[i]) {
       ctx.fillStyle = 'rgba(224, 242, 254, 0.7)';
       // Jagged shards left in the frame
@@ -112,6 +122,7 @@ const drawCabinInside = (ctx: Ctx, state: GameState, tram: Tram) => {
       ctx.fillStyle = 'rgba(186, 230, 253, 0.16)'; ctx.fillRect(l, winTop, winW, winH);
       ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
       ctx.beginPath(); ctx.moveTo(l + 14, winTop); ctx.lineTo(l + 40, winTop); ctx.lineTo(l + 12, winTop + winH); ctx.lineTo(l - 2, winTop + winH); ctx.fill();
+      if (coming) drawCracks(ctx, x + wx, winTop + winH / 2, 1 - incoming!.left / WARN_FRAMES, 60);
     }
     ctx.strokeStyle = '#2B0A0A'; ctx.lineWidth = 4; ctx.strokeRect(l, winTop, winW, winH);
   });
@@ -157,6 +168,90 @@ export const drawTramFront = (ctx: Ctx, state: GameState, tram: Tram) => {
   };
   door(x, tram.blocks.left, tram.doorBroken[0]);
   door(x + CABIN_W - 14, tram.blocks.right, tram.doorBroken[1]);
+  drawIncoming(ctx, state, tram);
+};
+
+/** Telegraphs the next wave: shapes at the doors and on the roof, cracking glass, a rattling hatch, and a warning over every way in. */
+const drawIncoming = (ctx: Ctx, state: GameState, tram: Tram) => {
+  const incoming = incomingWave(tram);
+  if (!incoming) return;
+  const k = 1 - incoming.left / WARN_FRAMES;
+  const top = tram.y - CABIN_H;
+  for (const [kind, entry] of incoming.spawns) {
+    const at = entryPoint(tram, entry);
+    if (entry === 'left' || entry === 'right') {
+      // Hanging off the outside of the door, clawing at its window
+      const dir = entry === 'left' ? -1 : 1;
+      drawSilhouette(ctx, state, kind, at.x + dir * 34, tram.y - 40, k);
+      drawCracks(ctx, at.x, top + 85, k, 30);
+    } else if (entry === 'roof') {
+      // Up on the roof: the hatch rattles
+      drawSilhouette(ctx, state, kind, at.x + 60, top - 14, k);
+      const rattle = Math.floor(state.frame / 3) % 2 ? -3 : 0;
+      ctx.fillStyle = RED_DARK; ctx.fillRect(at.x - 30, top + 2 + rattle, 60, 6);
+    }
+    // A blinking warning over the way in
+    if (Math.floor(state.frame / 6) % 2 === 0) drawWarning(ctx, at.x, entry === 'roof' ? top - 60 : entry.startsWith('back') ? top + 18 : top - 22);
+  }
+};
+
+/** A dark shape of what's coming, looming larger as it gets closer (k 0..1). Feet at (x, y). */
+const drawSilhouette = (ctx: Ctx, state: GameState, kind: EnemyKind, x: number, y: number, k: number) => {
+  const s = 0.6 + 0.4 * k;
+  const bob = Math.sin(state.frame * 0.4) * 2 * k;
+  ctx.save();
+  ctx.translate(x, y + bob);
+  ctx.scale(s, s);
+  ctx.fillStyle = `rgba(8, 12, 24, ${0.45 + 0.45 * k})`;
+  ctx.beginPath();
+  if (kind === 'eagle') {
+    // Wings spread, beating at the glass
+    const flap = Math.sin(state.frame * 0.5) * 14;
+    ctx.moveTo(0, -40); ctx.lineTo(-44, -60 + flap); ctx.lineTo(-16, -34); ctx.lineTo(0, -22); ctx.lineTo(16, -34); ctx.lineTo(44, -60 + flap); ctx.closePath();
+  } else if (kind === 'wolverine') {
+    ctx.ellipse(0, -16, 26, 15, 0, 0, Math.PI * 2);
+    ctx.moveTo(24, -24); ctx.arc(22, -24, 9, 0, Math.PI * 2);
+  } else if (kind === 'goat') {
+    ctx.ellipse(0, -30, 26, 18, 0, 0, Math.PI * 2);
+    ctx.moveTo(30, -46); ctx.arc(26, -46, 10, 0, Math.PI * 2);
+    ctx.rect(-20, -16, 6, 16); ctx.rect(14, -16, 6, 16);
+  } else {
+    // A goon, fists raised to pound on it
+    ctx.ellipse(0, -36, 18, 28, 0, 0, Math.PI * 2);
+    ctx.moveTo(12, -74); ctx.arc(0, -74, 12, 0, Math.PI * 2);
+    ctx.rect(-26, -84 + bob * 2, 9, 30); ctx.rect(17, -84 - bob * 2, 9, 30);
+  }
+  ctx.fill();
+  // Rim-lit against the night, eyes glowing
+  ctx.strokeStyle = `rgba(224, 242, 254, ${0.3 + 0.4 * k})`; ctx.lineWidth = 2; ctx.stroke();
+  const eyes = kind === 'eagle' ? [0, -34] : kind === 'wolverine' ? [24, -26] : kind === 'goat' ? [28, -48] : [0, -76];
+  ctx.fillStyle = '#EF4444';
+  ctx.fillRect(eyes[0] - 5, eyes[1] - 1, 3, 3); ctx.fillRect(eyes[0] + 2, eyes[1] - 1, 3, 3);
+  ctx.restore();
+};
+
+/** Cracks spreading out across glass from (x, y) as it takes blows (k 0..1). */
+const drawCracks = (ctx: Ctx, x: number, y: number, k: number, r: number) => {
+  const n = Math.floor(k * 7);
+  if (!n) return;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i = 0; i < n; i++) {
+    const a = i * 2.4, len = r * (0.4 + 0.6 * k);
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + Math.cos(a) * len * 0.5 + 4, y + Math.sin(a) * len * 0.5 - 3);
+    ctx.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len);
+  }
+  ctx.stroke();
+};
+
+/** A red warning triangle with a "!". */
+const drawWarning = (ctx: Ctx, x: number, y: number) => {
+  ctx.fillStyle = '#DC2626'; ctx.strokeStyle = '#FDE047'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(x, y - 14); ctx.lineTo(x + 14, y + 11); ctx.lineTo(x - 14, y + 11); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 12px "Press Start 2P"'; ctx.textAlign = 'center';
+  ctx.fillText('!', x + 1, y + 9);
+  ctx.textAlign = 'left';
 };
 
 /** The ride's HUD: progress up the mountain, and what to do. */
@@ -166,19 +261,22 @@ export const drawTramHud = (ctx: Ctx, state: GameState, tram: Tram) => {
   ctx.textAlign = 'center';
   ctx.font = 'bold 10px "Press Start 2P"';
   const u = tram.phase === 'riding' ? Math.min(1, tram.t / RIDE) : tram.phase === 'arrived' ? 1 : 0;
-  // Progress bar up the mountain
-  ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(250, 14, 300, 26);
-  ctx.fillStyle = '#1E293B'; ctx.fillRect(258, 30, 284, 6);
-  ctx.fillStyle = '#EF4444'; ctx.fillRect(258, 30, 284 * u, 6);
-  ctx.fillStyle = '#F8FAFC'; ctx.fillText('SUMMIT TRAM', 400, 26);
+  // Progress bar up the mountain (top right, clear of the player's HUD in the top left)
+  ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(CANVAS_WIDTH - 250, 14, 236, 26);
+  ctx.fillStyle = '#1E293B'; ctx.fillRect(CANVAS_WIDTH - 242, 30, 220, 6);
+  ctx.fillStyle = '#EF4444'; ctx.fillRect(CANVAS_WIDTH - 242, 30, 220 * u, 6);
+  ctx.fillStyle = '#F8FAFC'; ctx.fillText('SUMMIT TRAM', CANVAS_WIDTH - 132, 26);
   const left = cabinEnemies(state, tram).length;
   let msg = '';
   if (tram.phase === 'closing' || (tram.phase === 'riding' && tram.t < 150)) msg = 'KILL EVERYTHING THAT GETS IN';
   else if (tram.phase === 'arrived' && left > 0) msg = `CLEAR THE CABIN: ${left} LEFT`;
+  // The order, in a band across the screen below the player's HUD
   if (msg && Math.floor(state.frame / 20) % 4 !== 0) {
+    const y = 150;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(0, y - 22, CANVAS_WIDTH, 32);
     ctx.font = 'bold 14px "Press Start 2P"';
-    ctx.fillStyle = '#000'; ctx.fillText(msg, 402, 72);
-    ctx.fillStyle = '#FACC15'; ctx.fillText(msg, 400, 70);
+    ctx.fillStyle = '#000'; ctx.fillText(msg, CANVAS_WIDTH / 2 + 2, y + 2);
+    ctx.fillStyle = '#FACC15'; ctx.fillText(msg, CANVAS_WIDTH / 2, y);
   }
   ctx.restore();
 };
