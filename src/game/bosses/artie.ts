@@ -10,15 +10,12 @@ import type { FrameContext } from '../context';
 import { BossDef, ARENA_MID, CEILING_Y, FLOOR_Y, dirTo, enemyProjectile, hurtPlayer, midX } from './shared';
 
 const ICE_BLOCK_SIZE = 60;
-// The block homes in on Meathead: slow off the hand, speeding up to a bit faster than he runs,
-// turning wide enough that a well-timed jump or dash gets you round it
+// The block is aimed at Meathead when it's thrown and flies straight: slow off the hand,
+// speeding up to a bit faster than he runs
 export const ICE_BLOCK_START_SPEED = 3.5;
 export const ICE_BLOCK_MAX_SPEED = 5.0;
 export const ICE_BLOCK_ACCEL = 0.03;
-export const ICE_BLOCK_TURN = 0.045;     // radians per frame
 export const ICE_BLOCK_LIFE = 270;       // then it shatters on its own
-/** Once it's this close it stops steering and commits to a straight line: jump it or get out of the way. */
-export const ICE_BLOCK_COMMIT_RANGE = 170;
 /** Frames after the throw when it can't hit walls (so a throw right under the ceiling still flies). */
 export const ICE_BLOCK_GRACE = 14;
 const SHOT_COOLDOWN = 60;
@@ -111,7 +108,7 @@ const windUpThrow = (ctx: FrameContext, boss: Enemy) => {
   if (!boss.isGroundedBoss) boss.stateTimer = 50;
 };
 
-/** Lets the block fly from over his head, aimed straight at Meathead (it keeps tracking him after that). */
+/** Lets the block fly from over his head, aimed straight at where Meathead is right now (no tracking after that). */
 const throwIceBlock = (ctx: FrameContext, boss: Enemy, id: string) => {
   const { player } = ctx.state;
   const dir = player.pos.x < boss.pos.x + boss.width / 2 ? -1 : 1;
