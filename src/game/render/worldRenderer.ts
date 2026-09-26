@@ -14,6 +14,7 @@ import { drawParticle } from './particles';
 import { drawBossCorpse } from './corpses';
 import { drawVictoryPee } from './victoryPee';
 import { drawPlayer } from './playerRenderer';
+import { muzzlePoint } from '../muzzle';
 import { drawBackdrop, drawBackdropFront } from './backdrops';
 import { drawTerrain } from './backdrops/terrain';
 import { drawEnemyDeaths } from './enemyDeaths';
@@ -705,8 +706,7 @@ const drawTaserBeam = (ctx: CanvasRenderingContext2D, state: GameState) => {
   ctx.lineWidth = 3;
   ctx.shadowBlur = 10;
   ctx.shadowColor = COLORS.TASER_BOLT;
-  const startX = player.pos.x + (player.facing === 1 ? player.width : 0);
-  const startY = player.pos.y + 25;
+  const { x: startX, y: startY } = muzzlePoint(player, 'TASER');
 
   let endX, endY;
   if (target) {
@@ -852,7 +852,7 @@ const drawParticlesAndDamageNumbers = (ctx: CanvasRenderingContext2D, state: Gam
   const { particles, damageNumbers } = state;
   particles.forEach(p => {
     ctx.save();
-    ctx.globalAlpha = p.isStuck ? 0.85 : (p.life < 100 ? p.life / 100 : 1);
+    ctx.globalAlpha = p.alpha ?? (p.isStuck ? 0.85 : (p.life < 100 ? p.life / 100 : 1));
     drawParticle(ctx, p);
     ctx.restore();
   });

@@ -2,6 +2,7 @@ import { Enemy, Player, Projectile } from '../../types';
 import { OSCAR_FLICK_WINDUP, OSCAR_TASER_HOLD_FRAMES, TASER_OVERLOAD_FRAMES } from '../../constants';
 import { GameState } from '../state';
 import { getOscarLauncher, getOscarMouth, flameStrength } from '../bosses/oscar';
+import { muzzlePoint } from '../muzzle';
 
 /** Oily Oscar's gear, laser sight, rockets, cigarette, oil slicks and fire. */
 
@@ -491,7 +492,7 @@ export const drawTaserOverload = (ctx: CanvasRenderingContext2D, player: Player,
   ctx.fillStyle = '#00E5FF';
   ctx.fillRect(x - 20, y, 40 * (timer / TASER_OVERLOAD_FRAMES), 4);
   if (frame % 4 < 2) {
-    const hx = player.pos.x + (player.facing === 1 ? player.width : 0), hy = player.pos.y + 25;
+    const { x: hx, y: hy } = muzzlePoint(player, 'TASER');
     ctx.strokeStyle = '#80DEEA';
     ctx.lineWidth = 1.5;
     ctx.beginPath();

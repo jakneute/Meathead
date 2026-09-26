@@ -366,6 +366,8 @@ export interface Particle {
   isStuck?: boolean;
   /** Blood that's hit the floor and lies there (fades normally, unlike isStuck). */
   isSplat?: boolean;
+  /** Draw at this opacity instead of fading with life (short, bright bursts). */
+  alpha?: number;
 }
 
 export interface DamageNumber {

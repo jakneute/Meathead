@@ -19,6 +19,7 @@ import { pickRandom, rectsOverlap, boundsOf } from './utils';
 import { findFlyingCigarette, igniteOilWithFlame } from './bosses/oscar';
 import { icicleBounds, meltIcicle } from './bosses/artie';
 import { pushEnemy } from './systems/knockback';
+import { muzzlePoint, flamethrowerNozzle } from './muzzle';
 import { detonateSewerNuke, TOXIC_TOMMY } from './sewerNuke';
 
 /** The bits of this frame's input that weapons care about. */
@@ -41,9 +42,10 @@ const pointInSolid = (state: GameState, x: number, y: number) =>
 export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
   const { state, fx, cheats } = ctx;
   const { player } = state;
-  const { currentWeapon, facing, pos, width, isDucking } = player;
-  const shootX = pos.x + (facing === 1 ? width : -10);
-  const shootY = isDucking ? pos.y + 41 : pos.y + 25; // level with the gun's muzzle
+  const { currentWeapon, facing, pos, width } = player;
+  // Shots leave from the tip of the weapon as it's drawn (a few pixels inside it, so they emerge from it)
+  const muzzle = muzzlePoint(player, currentWeapon);
+  const fromMuzzle = (w: number, h: number) => ({ x: facing === 1 ? muzzle.x - 4 : muzzle.x - w + 4, y: muzzle.y - h / 2 });
   const useAmmo = () => { if (!cheats.infiniteAmmo) player.weaponAmmo[currentWeapon]--; };
   const addProjectile = (p: Projectile) => state.projectiles.push(p);
 
@@ -51,7 +53,7 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
     case 'GUN':
       addProjectile({
         id: `p-${Date.now()}`,
-        pos: { x: shootX, y: shootY },
+        pos: fromMuzzle(16, 6),
         vel: { x: facing * GUN_VELOCITY, y: 0 },
         width: 16, height: 6, health: 1, maxHealth: 1,
         type: 'projectile', damage: BULLET_DAMAGE, owner: 'player'
@@ -65,9 +67,10 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
       if (!input.shootPressed) break;
       const size = 48;
       const lob = input.moveUp;
-      // Heaved straight up from over his head, or rolled out in front
-      const cx = lob ? pos.x + width / 2 + facing * gml(3) : shootX + facing * gml(12);
-      const cy = lob ? pos.y - size / 2 - 2 : shootY - gml(12);
+      // Heaved straight up from over his head, or rolled out from the rock in his hand
+      // (the rolled one sits just in front of the rock in his fist, so it leaves from his hand)
+      const cx = lob ? pos.x + width / 2 + facing * gml(3) : muzzle.x + facing * 12;
+      const cy = lob ? pos.y - size / 2 - 2 : muzzle.y;
       const spawn = { x: cx - size / 2, y: cy - size / 2, w: size, h: size };
       // Don't fire into a wall
       if (state.blocks.some(b => b.type !== 'pit' && rectsOverlap(spawn, b))) break;
@@ -94,7 +97,7 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
         const speedY = SHOTGUN_PELLET_SPEED_MIN + Math.random() * (SHOTGUN_PELLET_SPEED_MAX - SHOTGUN_PELLET_SPEED_MIN);
         addProjectile({
           id: `pellet-${Date.now()}-${i}`,
-          pos: { x: shootX, y: shootY },
+          pos: fromMuzzle(10, 10),
           vel: { x: facing * Math.cos(angle) * speedX, y: -Math.sin(angle) * speedY },
           width: 10, height: 10, health: 1, maxHealth: 1,
           type: 'projectile', damage: SHOTGUN_DAMAGE, owner: 'player', isIce: true,
@@ -109,7 +112,7 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
     case 'NEEDLES':
       addProjectile({
         id: `dart-${Date.now()}`,
-        pos: { x: shootX, y: shootY },
+        pos: fromMuzzle(20, 4),
         vel: { x: facing * 24, y: (Math.random() - 0.5) * 5 },
         width: 20, height: 4, health: 1, maxHealth: 1,
         type: 'projectile', damage: NEEDLE_DAMAGE, owner: 'player', isDart: true
@@ -153,7 +156,7 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
     case 'OIL_ROCKET':
       addProjectile({
         id: `oil-${Date.now()}`,
-        pos: { x: facing === 1 ? pos.x + width + 4 : pos.x - 44, y: shootY - 10 },
+        pos: fromMuzzle(40, 20),
         vel: { x: facing * 24, y: 0 },
         width: 40, height: 20, health: 1, maxHealth: 1,
         type: 'projectile', damage: OIL_ROCKET_DAMAGE, owner: 'player', isOilRocket: true
@@ -171,15 +174,15 @@ export const updateBarfStream = (state: GameState) => {
   if (!player.barfTimer || player.barfTimer <= 0) return;
   player.barfTimer--;
   if (player.barfTimer % 2 !== 0) return;
+  // Each glob starts at the launcher's mouth
+  const muzzle = muzzlePoint(player, 'SLUDGE');
+  const w = 22 + Math.random() * 15, h = 22 + Math.random() * 15;
   state.projectiles.push({
     id: `sludge-part-${Date.now()}-${player.barfTimer}`,
-    pos: {
-      x: player.pos.x + (player.facing === 1 ? player.width : -10),
-      y: player.isDucking ? player.pos.y + 45 : player.pos.y + 25,
-    },
+    pos: { x: player.facing === 1 ? muzzle.x - 8 : muzzle.x - w + 8, y: muzzle.y - h / 2 },
     vel: { x: player.facing * (11 + Math.random() * 8), y: -3 - Math.random() * 9 },
-    width: 22 + Math.random() * 15,
-    height: 22 + Math.random() * 15,
+    width: w,
+    height: h,
     health: 1, maxHealth: 1,
     type: 'projectile', damage: SLUDGE_DAMAGE, owner: 'player', isSludge: true, life: 150
   });
@@ -201,12 +204,14 @@ export const updateFlamethrower = (ctx: FrameContext, input: WeaponInput) => {
     return;
   }
 
-  // Aim sweeps slowly (negative angle = up, in canvas terms)
-  const aimRad = FLAMETHROWER_AIM_DEG * Math.PI / 180;
-  const target = input.moveUp ? -aimRad : input.moveDown ? aimRad : 0;
-  player.flameAngle = (player.flameAngle || 0) + (target - (player.flameAngle || 0)) * FLAMETHROWER_AIM_LERP;
-
   const firing = input.shoot && !player.isDucking && !player.isTasing;
+
+  // Aim sweeps slowly (negative angle = up, in canvas terms), but only while it's firing:
+  // up or down on their own (or ducking) leave the nozzle level
+  const aimRad = FLAMETHROWER_AIM_DEG * Math.PI / 180;
+  const target = !firing ? 0 : input.moveUp ? -aimRad : input.moveDown ? aimRad : 0;
+  player.flameAngle = (player.flameAngle || 0) + (target - (player.flameAngle || 0)) * FLAMETHROWER_AIM_LERP;
+  if (player.isDucking) player.flameAngle = 0; // crouched: the nozzle's level, full stop
   const hasFuel = cheats.infiniteAmmo || player.weaponAmmo.FLAMETHROWER > 0;
   const range = player.flameRange ?? FLAMETHROWER_START_RANGE;
 
@@ -220,17 +225,28 @@ export const updateFlamethrower = (ctx: FrameContext, input: WeaponInput) => {
     player.flameDrainTimer = 0;
   }
 
-  const nozzle = {
-    x: player.pos.x + (player.facing === 1 ? player.width - 5 : 5),
-    y: player.isDucking ? player.pos.y + 45 : player.pos.y + 30,
-  };
+  // The stream comes out of the nozzle, wherever the barrel is pointing
+  const nozzle = flamethrowerNozzle(player);
   const dir = { x: player.facing * Math.cos(player.flameAngle), y: Math.sin(player.flameAngle) };
 
   if (firing && hasFuel) {
     player.isFlaming = true;
+    // A hot, tight jet right at the nozzle (the drifting fire further out takes a moment to bloom)
+    for (let k = 0; k < 4; k++) {
+      const along = Math.random() * 16;
+      const speed = 3 + Math.random() * 3;
+      state.particles.push({
+        pos: { x: nozzle.x + dir.x * along - 3 + player.vel.x, y: nozzle.y + dir.y * along - 3 + (Math.random() - 0.5) * 3 + player.vel.y },
+        vel: { x: dir.x * speed, y: dir.y * speed },
+        life: 4 + Math.random() * 4,
+        alpha: 0.55 + Math.random() * 0.3,
+        color: k === 0 ? '#FFF7D6' : k === 1 ? '#FFD700' : '#FFA500',
+        size: 5 + along * 0.35 + Math.random() * 2,
+      });
+    }
     const gap = range / FLAMETHROWER_SEGMENTS;
     for (let i = 0; i < FLAMETHROWER_SEGMENTS; i++) {
-      const dist = FLAMETHROWER_NOZZLE_GAP + i * gap;
+      const dist = FLAMETHROWER_NOZZLE_GAP * 0.3 + i * gap;
       const x = nozzle.x + dir.x * dist + player.vel.x;
       const y = nozzle.y + dir.y * dist + player.vel.y;
       if (pointInSolid(state, x, y)) break;

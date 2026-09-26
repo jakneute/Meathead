@@ -165,12 +165,13 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, onDone }) => {
       // The portrait breathes
       const pc = portraitCanvas.current?.getContext('2d');
       if (pc && now >= REVEAL) {
-        const W = 150, H = 170, S = 2.2, RES = 3;
+        // Framed on him and the weapon together (the span from his back to the longest muzzle)
+        const W = 170, H = 172, S = 2.2, RES = 3, FOCUS_X = 15;
         portrait.playerAnimFrame++;
         portrait.player.smugTimer = 999;
         pc.setTransform(1, 0, 0, 1, 0, 0);
         pc.clearRect(0, 0, W * RES, H * RES);
-        pc.setTransform(S * RES, 0, 0, S * RES, (W / 2 - (portrait.player.width / 2 + 6) * S) * RES, (H - 8 - portrait.player.height * S) * RES);
+        pc.setTransform(S * RES, 0, 0, S * RES, (W / 2 - (portrait.player.width / 2 + FOCUS_X) * S) * RES, (H - 8 - portrait.player.height * S) * RES);
         portrait.player.pos = { x: 0, y: 0 };
         try { drawPlayer(pc, portrait.player, portrait, { currentWeapon: weapon, showFilthShield: false, invincibilityEnabled: false }); } catch { /* never worth a crash */ }
       }
@@ -302,7 +303,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, onDone }) => {
             transition: 'left 500ms, top 500ms, transform 500ms',
           }}>
           <PortraitFrame>
-            <canvas ref={portraitCanvas} width={150 * 3} height={170 * 3} className="w-[150px] h-[170px]" />
+            <canvas ref={portraitCanvas} width={170 * 3} height={172 * 3} className="w-[170px] h-[172px]" />
           </PortraitFrame>
         </div>
       )}
