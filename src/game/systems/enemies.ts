@@ -169,6 +169,7 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
       fireEnemyBullet(ctx, e.pos.x + e.width / 2, e.pos.y + e.height - 10, player.pos.x < e.pos.x ? -7 : 7);
       e.shootTimer = 0;
     }
+    if (e.behavior === 'shoot') settleAfterKnockback(e);
     e.pos.x += e.vel.x;
     return;
   }
@@ -222,7 +223,17 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
       e.shootTimer = 0;
     }
   }
+  if (e.behavior === 'shoot') settleAfterKnockback(e);
   e.pos.x += e.vel.x;
+};
+
+/**
+ * Stationary shooters don't walk: whatever speed a knockback left them with
+ * bleeds off once they've recovered, instead of carrying them along forever.
+ */
+const settleAfterKnockback = (e: Enemy) => {
+  e.vel.x *= 0.8;
+  if (Math.abs(e.vel.x) < 0.1) e.vel.x = 0;
 };
 
 /** An oiled enemy sliding fast bowls into other enemies, hurting both. */

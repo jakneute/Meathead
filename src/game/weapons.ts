@@ -413,15 +413,15 @@ export const explodeOilRocket = (ctx: FrameContext, pos: Vector2, rocketVelX?: n
     if (e.health <= 0) {
       fx.blowAwayEnemy(e, { x: pushDir * 24 + (Math.random() - 0.5) * 6, y: -18 }, 'oil_kill', pushDir);
     } else if (isAirEnemy) {
-      // Air enemies: forceful pushback
-      e.vel.x = pushDir * 14;
-      e.vel.y = -3;
-      e.pauseTimer = 35;
+      // Air enemies: shoved back
+      e.vel.x = pushDir * 8;
+      e.vel.y = -2;
+      e.pauseTimer = 25;
     } else {
-      // Grounded enemies: sent flying high and backward!
-      e.vel.x = pushDir * 22;
-      e.vel.y = -15;
-      e.pauseTimer = 55;
+      // Grounded enemies: knocked back with a short hop
+      e.vel.x = pushDir * 12;
+      e.vel.y = -7;
+      e.pauseTimer = 35;
     }
   });
 
