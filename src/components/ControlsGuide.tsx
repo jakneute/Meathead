@@ -8,15 +8,15 @@ const BASICS: [action: string, keys: string, pad: string][] = [
   ['JUMP', 'SPACE', 'A'],
   ['FIRE', 'L-CLICK / F', 'X / RT'],
   ['SPECIAL', 'SHIFT', 'B / LT'],
-  ['SWAP WEAPON', 'Q / E / WHEEL / 1-9', 'LB / RB'],
+  ['SWAP WEAPON', 'WHEEL / 1-9', 'LB / RB'],
   ['PAUSE', 'ESC', 'START'],
 ];
 
 const SPECIALS: [move: string, how: string][] = [
   ['SHOULDER CHARGE', 'SPECIAL'],
-  ['SLIDE TACKLE', 'CROUCH + SPECIAL / G'],
+  ['SLIDE TACKLE', 'CROUCH + SPECIAL / C'],
   ['UPPERCUT', 'UP + SPECIAL / R'],
-  ['DIVE KICK', 'DOWN + SPECIAL IN AIR / G'],
+  ['DIVE KICK', 'DOWN + SPECIAL IN AIR / C'],
   ['HEAVE BOULDER', 'UP + FIRE'],
 ];
 

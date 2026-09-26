@@ -322,13 +322,11 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      const { status, togglePause, cycleWeapon, moveSelection, confirmSelection, selectWeaponHotkey } = inputRef.current;
+      const { status, togglePause, moveSelection, confirmSelection, selectWeaponHotkey } = inputRef.current;
       const key = e.key.toLowerCase();
       if (key === 'escape') togglePause();
 
       if (status === GameStatus.PLAYING) {
-        if (key === 'q') cycleWeapon(-1);
-        if (key === 'e') cycleWeapon(1);
         // Number keys pick a weapon straight from the arsenal
         const slot = /^Digit([1-9])$/.exec(e.code);
         if (slot) selectWeaponHotkey(Number(slot[1]) - 1);

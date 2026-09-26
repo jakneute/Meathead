@@ -52,17 +52,17 @@ export const readControls = (kb: KeyboardMouseState): Controls => {
   }
 
   const k = kb.isDown;
-  // One-key specials for keyboard players: R uppercuts (up + special), G is down + special
+  // One-key specials for keyboard players: R uppercuts (up + special), C is down + special
   // (a dive kick in the air, a slide tackle on the ground)
   const uppercutKey = k('r', 'keyr');
-  const diveKey = k('g', 'keyg');
+  const diveKey = k('c', 'keyc');
   return {
     left: k('a', 'arrowleft', 'keya') || padX < -0.3,
     right: k('d', 'arrowright', 'keyd') || padX > 0.3,
     down: k('s', 'arrowdown', 'keys') || diveKey || padY > 0.3,
     up: k('w', 'arrowup', 'keyw') || uppercutKey || padY < -0.4,
     jump: k(' ', 'space', 'z', 'keyz', 'j', 'keyj') || padJump,
-    special: k('shift', 'shiftleft', 'shiftright', 'c', 'keyc') || uppercutKey || diveKey || padSpecial,
+    special: k('shift', 'shiftleft', 'shiftright') || uppercutKey || diveKey || padSpecial,
     shoot: kb.mouseDown || padShoot || k('f', 'keyf', 'x', 'keyx', 'k', 'keyk'),
   };
 };
