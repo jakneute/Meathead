@@ -37,17 +37,17 @@ const navigateStageGrid = (index: number, dx: number, dy: number) => {
   return i;
 };
 
-/** Pause menu: a 3-wide weapon grid (indices 0..n-1) followed by three stacked buttons. */
+/** Pause menu: a 3-wide weapon grid (indices 0..n-1) above a row of three buttons. */
 const navigatePauseMenu = (index: number, dx: number, dy: number, numWeapons: number) => {
-  if (dy < 0) {
-    if (index >= numWeapons) return index - 1;
-    return index >= 3 ? index - 3 : index;
+  if (index >= numWeapons) {
+    // The button row: left/right between buttons, up back into the arsenal
+    if (dx < 0) return Math.max(numWeapons, index - 1);
+    if (dx > 0) return Math.min(numWeapons + 2, index + 1);
+    if (dy < 0) return numWeapons - 1;
+    return index;
   }
-  if (dy > 0) {
-    if (index < numWeapons) return index + 3 < numWeapons ? index + 3 : numWeapons;
-    return index < numWeapons + 2 ? index + 1 : index;
-  }
-  if (index >= numWeapons) return index;
+  if (dy < 0) return index >= 3 ? index - 3 : index;
+  if (dy > 0) return index + 3 < numWeapons ? index + 3 : numWeapons;
   if (dx < 0) return index > 0 ? index - 1 : index;
   if (dx > 0) return index < numWeapons - 1 ? index + 1 : index;
   return index;
@@ -249,7 +249,7 @@ const App: React.FC = () => {
     }
     if (status === GameStatus.PAUSED) {
       const numWeapons = availableWeapons.length;
-      if (dy === 0 && (dx === 0 || selectedIndex >= numWeapons)) return false;
+      if (dx === 0 && dy === 0) return false;
       setSelectedIndex(i => navigatePauseMenu(i, dx, dy, numWeapons));
       return true;
     }
@@ -420,6 +420,7 @@ const App: React.FC = () => {
           bossTaunt={bossTaunt}
           availableWeapons={availableWeapons}
           currentWeapon={currentWeapon}
+          weaponAmmo={weaponAmmo}
           onStart={handleStart}
           onResume={handleResume}
           onBossSelect={handleBossSelect}

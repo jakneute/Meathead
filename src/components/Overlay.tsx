@@ -1,11 +1,12 @@
 import React from 'react';
 import { GameStatus, WeaponType } from '../types';
+import { MAX_AMMO } from '../constants';
 import {
-  getStages, getWeaponDescription, WEAPON_NAMES, WEAPON_DESCRIPTIONS, BOSS_SET_TITLES, BOSS_LOCATIONS,
+  getStages, getWeaponDescription, WEAPON_NAMES, WEAPON_DESCRIPTIONS, BOSS_SET_TITLES, BOSS_LOCATIONS, BOSS_WEAPON_MAP,
 } from '../stages';
 import USAMap from './USAMap';
 import BossPortrait from './BossPortrait';
-import WeaponIcon from './WeaponIcon';
+import WeaponIcon, { WeaponArt } from './WeaponIcon';
 import MeatheadCaricature from './MeatheadCaricature';
 import ControlsGuide from './ControlsGuide';
 
@@ -28,6 +29,7 @@ interface OverlayProps {
   bossTaunt: string;
   availableWeapons: WeaponType[];
   currentWeapon: WeaponType;
+  weaponAmmo: Record<WeaponType, number>;
   onStart: () => void;
   onResume: () => void;
   onBossSelect: () => void;
@@ -188,41 +190,76 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
  * Pause menu. `selectedIndex` walks the weapon grid first, then the three
  * buttons below it (RESUME, BOSS SELECT, QUIT).
  */
-const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, selectedIndex, onWeaponIconClick, onResume, onBossSelect, onQuitToMenu }) => {
+/** What each weapon's called and where it came from. */
+const weaponInfo = (w: WeaponType) => {
+  const from = Object.keys(BOSS_WEAPON_MAP).find(id => BOSS_WEAPON_MAP[id] === w);
+  return { name: from ? WEAPON_NAMES[from] : 'Pump Shotgun', from: from ?? 'STANDARD ISSUE' };
+};
+
+const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, weaponAmmo, selectedIndex, onWeaponIconClick, onResume, onBossSelect, onQuitToMenu }) => {
   const numWeapons = availableWeapons.length;
-  const highlightedWeapon = selectedIndex < numWeapons ? availableWeapons[selectedIndex] : undefined;
-  const menuButton = (label: string, index: number, onClick: () => void, colors: string, selectedColor: string) => (
-    <button onClick={onClick} className={`py-1 ${colors} text-white text-sm font-black border-b-[3px] transition-all uppercase ${selectedIndex === index ? `ring-2 ring-white scale-105 ${selectedColor}` : ''}`}>{label}</button>
-  );
+  const shown = selectedIndex < numWeapons ? availableWeapons[selectedIndex] : currentWeapon;
+  const info = weaponInfo(shown);
+  const ammoOf = (w: WeaponType) => (MAX_AMMO[w] === Infinity ? null : (weaponAmmo[w] ?? MAX_AMMO[w]) / MAX_AMMO[w]);
+  const ammoText = (w: WeaponType) => (MAX_AMMO[w] === Infinity ? 'INFINITE' : `${Math.floor(weaponAmmo[w] ?? MAX_AMMO[w])} / ${MAX_AMMO[w]}`);
+
+  const menuButton = (label: string, glyph: string, index: number, onClick: () => void, face: string, edge: string) => {
+    const on = selectedIndex === index;
+    return (
+      <button
+        onClick={onClick}
+        className={`relative flex items-center gap-3 pl-8 pr-4 py-[7px] text-white text-[11px] font-black uppercase tracking-wider transition-all ${on ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
+        style={{ background: face, borderBottom: `4px solid ${edge}`, boxShadow: on ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: on ? '2px solid #FACC15' : 'none' }}
+      >
+        {on && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
+        <span className="w-4 text-center">{glyph}</span>{label}
+      </button>
+    );
+  };
 
   return (
-    <div className="animate-in fade-in duration-200 flex flex-col items-center w-full max-w-lg px-6 py-4 bg-zinc-950/95 border-2 border-yellow-500/80 shadow-[0_0_40px_rgba(0,0,0,0.9)] rounded-sm">
-      <h2 className="text-xl md:text-2xl text-white mb-2 font-black uppercase tracking-widest italic border-b-2 border-yellow-500 pb-1 shrink-0">RESTING SET</h2>
-      <div className="mb-2 w-full flex flex-col items-center shrink-0">
-        <div className="text-yellow-400 text-[9px] font-black uppercase mb-1 tracking-tighter italic opacity-80">CHOOSE ARMAMENT</div>
-        <div className="grid grid-cols-3 gap-2 mb-2">
-          {availableWeapons.map((w, i) => (
-            <WeaponIcon key={w} type={w} isEquipped={w === currentWeapon} isSelected={selectedIndex === i} onClick={() => onWeaponIconClick(i)} />
-          ))}
+    <div className="animate-in fade-in zoom-in-95 duration-200 relative flex flex-col items-center w-[560px] px-6 pt-4 pb-3"
+      style={{
+        background: 'linear-gradient(180deg, rgba(24,24,27,0.97) 0%, rgba(9,9,11,0.97) 100%)',
+        border: '3px solid #FACC15',
+        boxShadow: '0 0 0 3px #000, 0 0 40px rgba(0,0,0,0.9), inset 0 0 30px rgba(250,204,21,0.06)',
+        backgroundImage: 'repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 3px)',
+      }}>
+      {/* Hazard-striped header */}
+      <div className="absolute left-0 right-0 top-0 h-[6px]" style={{ background: 'repeating-linear-gradient(135deg, #FACC15 0 8px, #111 8px 16px)' }} />
+      <h2 className="mt-1 text-3xl font-black italic tracking-widest text-yellow-400" style={{ textShadow: '3px 3px 0 #7F1D1D, 5px 5px 0 #000' }}>PAUSED</h2>
+      <div className="text-[8px] text-red-500 font-black tracking-[0.3em] mb-3">&mdash; RESTING SET &mdash;</div>
+
+      <div className="flex gap-4 w-full items-start">
+        {/* The arsenal */}
+        <div className="flex flex-col items-center">
+          <div className="text-[8px] text-zinc-400 font-black tracking-widest mb-2">ARSENAL</div>
+          <div className="grid grid-cols-3 gap-[10px] p-2 bg-black/50 border border-zinc-700">
+            {availableWeapons.map((w, i) => (
+              <WeaponIcon key={w} type={w} slot={i + 1} ammo={ammoOf(w)} isEquipped={w === currentWeapon} isSelected={selectedIndex === i} onClick={() => onWeaponIconClick(i)} />
+            ))}
+          </div>
         </div>
-        <div className="min-h-[50px] text-center px-2 flex flex-col items-center justify-start overflow-hidden">
-          {highlightedWeapon && (
-            <>
-              <div className="text-white text-[10px] font-black uppercase italic drop-shadow-md underline decoration-red-600 decoration-1 underline-offset-2 mb-0.5">
-                {highlightedWeapon.replace(/_/g, ' ')}
-              </div>
-              <div className="text-gray-400 text-[8px] font-bold italic uppercase tracking-tight leading-tight max-w-xs">
-                "{getWeaponDescription(highlightedWeapon)}"
-              </div>
-            </>
-          )}
+
+        {/* The highlighted weapon, up close */}
+        <div className="flex-1 flex flex-col items-center text-center pt-5">
+          <div className="w-[104px] h-[104px] flex items-center justify-center mb-2 border-2 border-zinc-700"
+            style={{ background: 'radial-gradient(circle, rgba(250,204,21,0.14) 0%, rgba(0,0,0,0.6) 70%)' }}>
+            <WeaponArt type={shown} size={88} />
+          </div>
+          <div className="text-yellow-300 text-[11px] font-black uppercase leading-tight mb-1">{info.name}</div>
+          <div className="text-[7px] text-red-500 font-black uppercase tracking-wider mb-2">{shown === currentWeapon ? '● EQUIPPED' : `TAKEN FROM ${info.from.toUpperCase()}`}</div>
+          <div className="text-zinc-300 text-[7px] leading-[11px] uppercase font-bold mb-2 min-h-[44px]">&ldquo;{getWeaponDescription(shown)}&rdquo;</div>
+          <div className="text-[7px] font-black tracking-wider text-green-400">AMMO: {ammoText(shown)}</div>
         </div>
       </div>
-      <div className="flex flex-col gap-1.5 w-56 shrink-0">
-        {menuButton('RESUME', numWeapons, onResume, 'bg-yellow-600 border-yellow-800', 'bg-yellow-500')}
-        {menuButton('BOSS SELECT', numWeapons + 1, onBossSelect, 'bg-red-700 border-red-900', 'bg-red-600')}
-        {menuButton('QUIT TO MENU', numWeapons + 2, onQuitToMenu, 'bg-gray-700 border-gray-900', 'bg-gray-600')}
+
+      <div className="flex gap-3 mt-4">
+        {menuButton('RESUME', '▶', numWeapons, onResume, 'linear-gradient(180deg, #CA8A04, #A16207)', '#713F12')}
+        {menuButton('BOSS SELECT', '☰', numWeapons + 1, onBossSelect, 'linear-gradient(180deg, #B91C1C, #7F1D1D)', '#450A0A')}
+        {menuButton('QUIT', '✖', numWeapons + 2, onQuitToMenu, 'linear-gradient(180deg, #52525B, #3F3F46)', '#18181B')}
       </div>
+      <div className="mt-3 text-[6px] text-zinc-500 tracking-wider">ESC / START: RESUME &nbsp;&middot;&nbsp; 1-9 / CLICK / D-PAD: EQUIP</div>
     </div>
   );
 };
