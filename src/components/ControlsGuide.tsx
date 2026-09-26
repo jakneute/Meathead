@@ -8,7 +8,7 @@ const BASICS: [action: string, keys: string, pad: string][] = [
   ['JUMP', 'SPACE', 'A'],
   ['FIRE', 'L-CLICK / F', 'X / RT'],
   ['SPECIAL', 'SHIFT', 'B / LT'],
-  ['SWAP WEAPON', 'Q / E / WHEEL', 'LB / RB'],
+  ['SWAP WEAPON', 'Q / E / WHEEL / 1-9', 'LB / RB'],
   ['PAUSE', 'ESC', 'START'],
 ];
 

@@ -119,6 +119,11 @@ const App: React.FC = () => {
     selectWeaponByIndex(index);
   };
 
+  /** Number-key hotkeys (keyboard): 1 = the first weapon in the arsenal. Empty slots do nothing. */
+  const selectWeaponHotkey = (index: number) => {
+    if (index < availableWeapons.length) handleWeaponIconClick(index);
+  };
+
   // --- Flow ------------------------------------------------------------------
 
   const togglePause = () => {
@@ -312,18 +317,21 @@ const App: React.FC = () => {
   };
 
   // Input listeners are attached once and always call the latest render's handlers.
-  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume });
-  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume };
+  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey });
+  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      const { status, togglePause, cycleWeapon, moveSelection, confirmSelection } = inputRef.current;
+      const { status, togglePause, cycleWeapon, moveSelection, confirmSelection, selectWeaponHotkey } = inputRef.current;
       const key = e.key.toLowerCase();
       if (key === 'escape') togglePause();
 
       if (status === GameStatus.PLAYING) {
         if (key === 'q') cycleWeapon(-1);
         if (key === 'e') cycleWeapon(1);
+        // Number keys pick a weapon straight from the arsenal
+        const slot = /^Digit([1-9])$/.exec(e.code);
+        if (slot) selectWeaponHotkey(Number(slot[1]) - 1);
         return;
       }
       if (key === 'arrowup' || key === 'w') moveSelection(0, -1);
