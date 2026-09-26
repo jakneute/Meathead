@@ -117,8 +117,8 @@ export const tickPlayerTimers = (ctx: FrameContext, input: FrameInput) => {
   }
   if (player.hurtFormTimer && player.hurtFormTimer > 0 && --player.hurtFormTimer === 0) player.hurtForm = null;
   if (player.squash) player.squash = Math.abs(player.squash) < 0.02 ? 0 : player.squash * 0.8;
-  // Spent power refills cell by cell, but only with his feet on the ground (no infinite air combos)
-  if (player.isGrounded && player.power < POWER_CELLS && !player.isCharging && !player.isUppercutting) {
+  // Spent power refills cell by cell, on the ground or in the air (just not mid-move)
+  if (player.power < POWER_CELLS && !player.isCharging && !player.isUppercutting) {
     player.power = Math.min(POWER_CELLS, player.power + 1 / POWER_CELL_RECHARGE);
   }
   if (player.filthShieldTimer && player.filthShieldTimer > 0) player.filthShieldTimer--;

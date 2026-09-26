@@ -16,7 +16,7 @@ interface GameCanvasProps extends GameEvents {
   initialAmmo: Record<WeaponType, number>;
   cheats: Cheats;
   bossTauntText: string;
-  /** Power is 0..POWER_CELLS (special-move cells, refilling on the ground). */
+  /** Power is 0..POWER_CELLS (special-move cells, refilling over time). */
   onPlayerUpdate: (health: number, power: number, ammo?: Record<WeaponType, number>, forcedWeapon?: WeaponType) => void;
 }
 
