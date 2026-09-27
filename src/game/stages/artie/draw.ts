@@ -11,6 +11,7 @@ import { drawSkiMid, drawSkiFront, drawSkiHud } from './skiDraw';
 type Ctx = CanvasRenderingContext2D;
 
 export const drawArtieBack = (ctx: Ctx, state: GameState) => {
+  drawCloudSea(ctx, state);
   drawTramBack(ctx, state, getArtie(state)!.tram);
 };
 
@@ -60,6 +61,47 @@ const drawChuteWarnings = (ctx: Ctx, state: GameState, hz: Hazards) => {
     ctx.fillStyle = '#F8FAFC';
     ctx.beginPath(); ctx.arc(x + 2, y, 4 + (ch.size / 56) * 4, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
+  });
+};
+
+/** How far under the upper station the cloud tops sit (well clear of the tram cabin's path). */
+const CLOUD_TOP = 150;
+
+/** A deterministic 0..1 from a number (so the clouds don't flicker). */
+const hash = (n: number) => { const s = Math.sin(n * 127.1) * 43758.5453; return s - Math.floor(s); };
+
+/**
+ * The gorge under the upper station: a thick sea of cloud, rolling slowly. It's
+ * drawn behind everything (the tram cabin rides in front of it, the mountainside
+ * rises out of it), sloping down on the left to meet the mountain.
+ */
+const drawCloudSea = (ctx: Ctx, state: GameState) => {
+  const gz = COURSE.gorge;
+  const x1 = gz.x1 - 420, x2 = gz.x2 + 40;
+  if (x2 < state.camera.x - 50 || x1 > state.camera.x + 850) return;
+  const bottom = Math.max(state.camera.y + 700, gz.y + CLOUD_TOP + 300);
+  // Where the cloud tops are at x: level over the gorge, dropping away to the left to meet the mountainside
+  const topAt = (x: number) => gz.y + CLOUD_TOP + Math.max(0, gz.x1 - x) * 1.9;
+  const layers = [
+    { dy: 0, color: '#5E6C8C', r: 70, drift: 0.12, step: 80 },
+    { dy: 45, color: '#8290AE', r: 62, drift: -0.2, step: 70 },
+    { dy: 95, color: '#AAB6CE', r: 56, drift: 0.3, step: 60 },
+  ];
+  layers.forEach((l, li) => {
+    ctx.fillStyle = l.color;
+    // The body of the layer
+    ctx.beginPath();
+    ctx.moveTo(x1, topAt(x1) + l.dy + l.r * 0.4);
+    for (let x = x1; x <= x2; x += 40) ctx.lineTo(x, topAt(x) + l.dy + l.r * 0.4);
+    ctx.lineTo(x2, bottom); ctx.lineTo(x1, bottom); ctx.closePath(); ctx.fill();
+    // Billows along its top, drifting
+    const shift = (state.frame * l.drift) % l.step;
+    for (let x = x1 - l.step + shift, i = 0; x < x2 + l.step; x += l.step, i++) {
+      const k = hash(Math.round((x - shift) / l.step) + li * 97);
+      const r = l.r * (0.7 + k * 0.6);
+      const y = topAt(x) + l.dy + (hash(i * 3.7 + li) - 0.5) * 30 + Math.sin(state.frame * 0.01 + i) * 4;
+      ctx.beginPath(); ctx.ellipse(x, y + r * 0.35, r * 1.3, r * 0.75, 0, 0, Math.PI * 2); ctx.fill();
+    }
   });
 };
 

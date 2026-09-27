@@ -38,6 +38,8 @@ export interface Course {
   spawns: Spawn[];
   pickups: PickupSpot[];
   tram: { x: number; y: number; toX: number; toY: number };
+  /** The drop under the upper station, full of cloud. */
+  gorge: { x1: number; x2: number; y: number };
   moose: { x1: number; x2: number; y: number };
   skier: { x: number; y: number };
   ski: { x1: number; x2: number; obstacles: SkiObstacle[] };
@@ -63,7 +65,10 @@ class Cursor {
     return this;
   }
   /** A gap in the ground (the far side at the same height unless told otherwise). */
-  pit(len: number, dy = 0) { this.x += len; this.y += dy; return this; }
+  pit(len: number, dy = 0, style?: 'clouds') {
+    if (style && this.runs.length) this.runs[this.runs.length - 1].pitAfter = style;
+    this.x += len; this.y += dy; return this;
+  }
   /** Ground height at an x already laid (or the cursor height past the end). */
   groundAt(x: number) {
     for (const r of this.runs) if (x >= r.x1 && x <= r.x2) return r.x2 === r.x1 ? r.y1 : r.y1 + ((x - r.x1) / (r.x2 - r.x1)) * (r.y2 - r.y1);
@@ -152,7 +157,8 @@ export const buildCourse = (): Course => {
   // The mountainside, then a sheer gorge under the upper station: once you're up, there's no climbing back down
   const gorgeX = topX - 150;
   c.slope(gorgeX - c.x, topY + 700 - c.y);
-  c.pit(deckX - c.x, topY - c.y);
+  const gorge = { x1: gorgeX, x2: deckX, y: topY };
+  c.pit(deckX - c.x, topY - c.y, 'clouds'); // (clouds fill it: see the stage's drawing)
   // ============ SUMMIT ============
   c.flat(490);
   const cp1 = { x: deckX + 100, y: topY };
@@ -258,7 +264,7 @@ export const buildCourse = (): Course => {
   const dx = BOSS_DOOR_X - c.x;
   const sx = (v: number) => v + dx;
   const course: Course = {
-    runs: c.runs.map(r => ({ x1: sx(r.x1), y1: r.y1, x2: sx(r.x2), y2: r.y2 })),
+    runs: c.runs.map(r => ({ ...r, x1: sx(r.x1), x2: sx(r.x2) })),
     ledges: ledges.map(l => ({ ...l, x: sx(l.x) })),
     overhangs: overhangs.map(o => ({ ...o, x: sx(o.x) })),
     icicles: icicles.map(i => ({ ...i, x: sx(i.x) })),
@@ -267,6 +273,7 @@ export const buildCourse = (): Course => {
     spawns: spawns.map(s => ({ ...s, x: sx(s.x) })),
     pickups: pickups.map(p => ({ ...p, x: sx(p.x) })),
     tram: { x: sx(tramX), y: tramY, toX: sx(topX), toY: topY },
+    gorge: { x1: sx(gorge.x1), x2: sx(gorge.x2), y: gorge.y },
     moose: { x1: sx(moose.x1), x2: sx(moose.x2), y: moose.y },
     skier: { x: sx(skier.x), y: skier.y },
     ski: { x1: sx(ski.x1), x2: sx(ski.x2), obstacles: ski.obstacles.map(o => ({ ...o, x: sx(o.x) })) },

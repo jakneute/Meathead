@@ -205,7 +205,7 @@ export const drawGroundProfile = (ctx: Ctx, runs: GroundRun[], stageId: string |
   // Pits first: a dark crevasse between the runs either side, fading to black
   for (let i = 0; i + 1 < runs.length; i++) {
     const a = runs[i], n = runs[i + 1];
-    if (n.x1 <= a.x2 + 1 || n.x1 < view.x - 20 || a.x2 > view.x + view.w + 20) continue;
+    if (n.x1 <= a.x2 + 1 || n.x1 < view.x - 20 || a.x2 > view.x + view.w + 20 || a.pitAfter) continue;
     const top = Math.min(a.y2, n.y1);
     const g = ctx.createLinearGradient(0, top, 0, top + 260);
     g.addColorStop(0, '#2B4870'); g.addColorStop(0.35, '#101C33'); g.addColorStop(1, '#02040A');
