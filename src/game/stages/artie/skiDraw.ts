@@ -162,6 +162,8 @@ const drawPile = (ctx: Ctx, state: GameState, ski: Ski) => {
 
 /** How much bigger than life-size the buried ranger's drawn (so you can see what happened to him). */
 const RANGER_SCALE = 1.35;
+/** His legs, relative to the rest of him (they were looming a bit). */
+const RANGER_LEG_SCALE = 0.75;
 
 /**
  * The ranger, planted head-first in the snow up to his belt: legs splayed in
@@ -193,6 +195,7 @@ const drawBuriedRanger = (ctx: Ctx, state: GameState, bx: number, by: number) =>
     ctx.save();
     ctx.translate(x + side * 8, y - 12);
     ctx.rotate(side * (0.32 + spasm * 0.35) + shiver);
+    ctx.scale(RANGER_LEG_SCALE, RANGER_LEG_SCALE);
     // Thigh and shin, knee bent a touch, jerking straighter on a spasm
     ctx.fillStyle = '#4D5A2A'; ctx.fillRect(-6, -34, 12, 34);
     ctx.translate(0, -32); ctx.rotate(-side * (0.18 - spasm * 0.3));
