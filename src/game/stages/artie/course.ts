@@ -188,7 +188,7 @@ export const buildCourse = (): Course => {
   chutes.push({ x: c.x - 10, y: c.y, every: 140, size: 56, speed: 4, from: c.x - 900 });
   spawn('eagle', c.x - 250, 260);
   c.flat(250);
-  spawn('shooter', c.x - 220); // (back from the edge: he's not there to shoot you into the crevasse while you wait out a gust)
+  spawn('shooter', c.x - 150); // (back from the edge, so he can't shoot you into the crevasse while you wait out a gust, and clear of the chute's mouth, so its snowballs don't flatten him unless you shove him into them)
   // The hardest gap: three crumbling ledges, icicles and gusts
   const crev4 = c.x;
   c.pit(420);
