@@ -22,6 +22,23 @@ export const drawSkiMid = (ctx: Ctx, state: GameState, ski: Ski) => {
   drawCabin(ctx, state, ski);
 };
 
+/** The part of a big tree that'll take your head off: a thick limb across the run at head height. */
+const drawLimb = (ctx: Ctx, x: number, g: number, frame: number) => {
+  const tx = x + 58, sway = Math.sin(frame * 0.05) * 1.5;
+  // Limb, outlined so it stands out from the faded tree behind it
+  ctx.fillStyle = '#5B3A1E'; ctx.strokeStyle = '#140C06'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(tx + 6, g - 108); ctx.lineTo(x - 50, g - 94 + sway); ctx.lineTo(x - 50, g - 78 + sway); ctx.lineTo(tx + 6, g - 88); ctx.closePath(); ctx.fill(); ctx.stroke();
+  // A knot and a broken-off twig
+  ctx.fillStyle = '#3F2A1D'; ctx.beginPath(); ctx.ellipse(x + 10, g - 92, 5, 3, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#3F2A1D'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x - 20, g - 92 + sway); ctx.lineTo(x - 30, g - 110 + sway); ctx.stroke();
+  // Snow along the top, icicles hanging off it, a few clumps of needles
+  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x - 48, g - 99 + sway, 104, 5);
+  ctx.fillStyle = 'rgba(224, 242, 254, 0.95)';
+  for (let k = 0; k < 6; k++) { const ix = x - 42 + k * 17; ctx.beginPath(); ctx.moveTo(ix - 3, g - 80 + sway); ctx.lineTo(ix + 3, g - 80 + sway); ctx.lineTo(ix, g - 68 - (k % 2) * 4 + sway); ctx.fill(); }
+  ctx.fillStyle = '#166534';
+  for (let k = 0; k < 3; k++) { const nx = x - 36 + k * 34; ctx.beginPath(); ctx.moveTo(nx, g - 84 + sway); ctx.lineTo(nx + 9, g - 64 + sway); ctx.lineTo(nx + 18, g - 84 + sway); ctx.fill(); }
+};
+
 const drawObstacle = (ctx: Ctx, kind: string, x: number, g: number, frame: number) => {
   switch (kind) {
     case 'rock':
@@ -45,15 +62,18 @@ const drawObstacle = (ctx: Ctx, kind: string, x: number, g: number, frame: numbe
       }
       break;
     case 'branch': {
-      // A big tree beside the run with a limb reaching right across it at head height
+      // A big tree back off the run: faded into the haze, so it reads as scenery (its limb, in front, is what hits you)
       const tx = x + 58;
-      ctx.fillStyle = '#2B1D14'; ctx.fillRect(tx - 8, g - 220, 16, 220);
-      ctx.fillStyle = '#3F2A1D';
-      ctx.beginPath(); ctx.moveTo(tx, g - 104); ctx.lineTo(x - 46, g - 90 + Math.sin(frame * 0.05) * 1.5); ctx.lineTo(x - 46, g - 80); ctx.lineTo(tx, g - 90); ctx.fill();
-      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x - 44, g - 94, 96, 4);
-      ctx.fillStyle = '#14532D';
-      for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.moveTo(x - 40 + k * 22, g - 86); ctx.lineTo(x - 30 + k * 22, g - 64); ctx.lineTo(x - 20 + k * 22, g - 86); ctx.fill(); }
-      ctx.fillStyle = '#14532D'; ctx.beginPath(); ctx.moveTo(tx, g - 300); ctx.lineTo(tx - 50, g - 150); ctx.lineTo(tx + 50, g - 150); ctx.fill();
+      ctx.save();
+      ctx.globalAlpha = 0.55;
+      ctx.fillStyle = '#334155'; ctx.fillRect(tx - 7, g - 230, 14, 222);
+      ctx.fillStyle = '#1E3A4A';
+      for (let k = 0; k < 3; k++) { const top = g - 320 + k * 55, half = 34 + k * 14; ctx.beginPath(); ctx.moveTo(tx, top); ctx.lineTo(tx - half, top + 80); ctx.lineTo(tx + half, top + 80); ctx.fill(); }
+      ctx.fillStyle = '#CBD5E1';
+      for (let k = 0; k < 3; k++) { const top = g - 320 + k * 55, half = 34 + k * 14; ctx.beginPath(); ctx.moveTo(tx, top + 3); ctx.lineTo(tx - half * 0.55, top + 40); ctx.lineTo(tx + half * 0.2, top + 34); ctx.fill(); }
+      ctx.restore();
+      // Its roots are set back up the bank, not on the run: a soft shadow where it stands
+      ctx.fillStyle = 'rgba(71, 85, 105, 0.25)'; ctx.beginPath(); ctx.ellipse(tx, g - 8, 22, 4, 0, 0, Math.PI * 2); ctx.fill();
       break;
     }
   }
@@ -313,6 +333,8 @@ export const drawSkiFront = (ctx: Ctx, state: GameState, ski: Ski) => {
     ctx.fillStyle = '#111827'; ctx.fillRect(-10, -5, 8, 3); ctx.fillRect(4, -5, 8, 3);
     ctx.restore();
   }
+  // Low branches reach across the run in front of everything: bold, dark-edged, iced (duck them)
+  COURSE.ski.obstacles.forEach((o, i) => { if (o.kind === 'branch' && !ski.broken[i] && visible(state, o.x - 80, o.x + 80)) drawLimb(ctx, o.x, o.ground, state.frame); });
   if (ski.ball > 0) drawBall(ctx, state, ski);
   if (ski.phase === 'skiing' || ski.phase === 'runout' || (ski.phase === 'finale' && ski.avX < ski.pileX) || (ski.phase === 'cutscene' && ski.surge)) drawAvalanche(ctx, state, ski);
 };
