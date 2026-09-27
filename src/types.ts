@@ -359,6 +359,8 @@ export interface Block extends Rect {
   hidden?: boolean;
   /** A stage hazard/feature this block belongs to (crumbling ledges, the tram, rock overhangs...). */
   tag?: string;
+  /** An indoor floor (the tram cabin's): normal footing even on an icy stage. */
+  indoor?: boolean;
 }
 
 export interface Volcano {

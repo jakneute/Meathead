@@ -326,7 +326,7 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
   const top = floorUnder(state, e);
   const overFloor = top !== null;
   const floorLevel = (top ?? Infinity) - e.height;
-  const grip = enemyGrip(ctx.stageId, e);
+  const grip = enemyGrip(ctx.stageId, e, state.blocks);
   // Airborne if above the floor (a little downhill step doesn't count), just launched upward
   // (uppercuts, explosions) or shoved over a pit
   const onGround = e.vel.y === 0 && e.pos.y >= floorLevel - 16;

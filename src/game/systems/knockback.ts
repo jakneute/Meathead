@@ -2,7 +2,9 @@
 // how heavy they are, and how far they then slide depends on the ground under
 // them (ice is slippery) and on whether they're coated in oil (slicker still).
 
-import { Enemy } from '../../types';
+import { Enemy, Block } from '../../types';
+import { standingIndoors } from '../terrain';
+import { boundsOf } from '../utils';
 import { ENEMY_MASS } from '../../constants';
 import { getBossDef } from '../boss';
 
@@ -35,8 +37,8 @@ export const pushEnemy = (e: Enemy, velX: number, velY: number, dazeFrames: numb
  * How much of its speed a knocked-back enemy keeps each frame: sliding along the
  * ground, on landing, and flying through the air. Ice and oil both keep it going.
  */
-export const enemyGrip = (stageId: string | null, e: Enemy) => {
-  const ice = !!getBossDef(stageId)?.slipperyFloor;
+export const enemyGrip = (stageId: string | null, e: Enemy, blocks: Block[] = []) => {
+  const ice = !!getBossDef(stageId)?.slipperyFloor && !standingIndoors(blocks, boundsOf(e));
   const oiled = !!e.isOiled;
   return {
     slide: oiled ? (ice ? 0.985 : 0.965) : (ice ? 0.95 : 0.88),

@@ -60,7 +60,7 @@ export interface Tram {
 }
 
 const cabinBlocks = (x: number, y: number) => ({
-  floor: { x, y, w: CABIN_W, h: 16, type: 'platform' as const, hidden: true, tag: 'tram' },
+  floor: { x, y, w: CABIN_W, h: 16, type: 'platform' as const, hidden: true, tag: 'tram', indoor: true },
   roof: { x, y: y - CABIN_H, w: CABIN_W, h: WALL, type: 'wall' as const, hidden: true, tag: 'tram' },
   left: { x, y: y - CABIN_H, w: WALL, h: CABIN_H, type: 'wall' as const, hidden: true, tag: 'tram' },
   right: { x: x + CABIN_W - WALL, y: y - CABIN_H, w: WALL, h: CABIN_H, type: 'wall' as const, hidden: true, tag: 'tram' },

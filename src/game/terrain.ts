@@ -21,6 +21,10 @@ export const GROUND_DEPTH = 1400;
 /** Width of the collision steps a slope is cut into. */
 const COLUMN_W = 10;
 
+/** Is this box (feet at its bottom) standing on an indoor floor? (Icy stages are only icy outdoors.) */
+export const standingIndoors = (blocks: Block[], box: { x: number; y: number; w: number; h: number }) =>
+  blocks.some(b => b.indoor && box.x + box.w > b.x && box.x < b.x + b.w && Math.abs(box.y + box.h - b.y) <= 3);
+
 /** Surface height of a run at x. */
 export const runYAt = (r: GroundRun, x: number) => r.x2 === r.x1 ? r.y1 : r.y1 + ((x - r.x1) / (r.x2 - r.x1)) * (r.y2 - r.y1);
 

@@ -18,6 +18,7 @@ import { GameState, shakeScreen } from '../state';
 import { Controls } from '../input';
 import { fireWeapon, updateFlamethrower } from '../weapons';
 import { rectsOverlap, boundsOf } from '../utils';
+import { standingIndoors } from '../terrain';
 import { isStandingInOil } from '../bosses/oscar';
 import { getBossDef, getArenaRight } from '../boss';
 import { getStageLeft } from '../stages';
@@ -303,7 +304,8 @@ const updateHorizontalVelocity = (ctx: FrameContext, movDir: number) => {
   const bossDef = getBossDef(stageId);
   // A floorless arena's platforms (Tommy's floating boards) aren't terrain blocks, so being grounded there counts as a floor too
   const onFloor = standingOnSolid(state) || (!!bossDef?.arena?.floorless && state.arenaLocked && player.isGrounded);
-  const surfaceFriction = bossDef?.slipperyFloor ? ICE_FRICTION_MULTIPLIER : 1.0;
+  // (an icy stage is only icy outdoors: the tram cabin's floor is normal footing)
+  const surfaceFriction = bossDef?.slipperyFloor && !standingIndoors(state.blocks, boundsOf(player)) ? ICE_FRICTION_MULTIPLIER : 1.0;
 
   let friction = onFloor ? PLAYER_FRICTION_BASE * surfaceFriction : PLAYER_AIR_FRICTION;
   if (player.isDucking && player.isGrounded) friction *= CROUCH_SLIDE_FRICTION_MULT;
