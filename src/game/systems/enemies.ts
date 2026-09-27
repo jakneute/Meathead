@@ -13,7 +13,7 @@ import {
   BOSS_UPPERCUT_DAMAGE, ENEMY_UPPERCUT_DAMAGE, BOSS_DIVEKICK_DAMAGE, ENEMY_DIVEKICK_DAMAGE,
   ENEMY_HIT_COOLDOWN, ENEMY_BULLET_DAMAGE, FILTH_SHIELD_CONTACT_DAMAGE, OIL_ROCKET_OILED_DURATION,
   OILED_COLLISION_DAMAGE, OILED_CHARGE_PUSH_MULTIPLIER, OILED_CHARGE_MIN_PUSH, OVERDOSE_GRAVITY, OVERDOSE_RISE_RANGE, OVERDOSE_RISE_STEER, OVERDOSE_MAX_SIDE_SPEED,
-  OVERDOSE_MAX_RISE_SPEED, OVERDOSE_DIVE_RANGE, OVERDOSE_DIVE_SPEED, OVERDOSE_DROP_GRAVITY, OVERDOSE_HIT_DAMAGE,
+  OVERDOSE_MAX_RISE_SPEED, OVERDOSE_DIVE_RANGE, OVERDOSE_DIVE_SPEED, OVERDOSE_DROP_GRAVITY, OVERDOSE_HIT_DAMAGE, OVERDOSE_MAX_FRAMES,
 } from '../../constants';
 import { FrameContext, killBoss } from '../context';
 import { getBossDef, getStageWidth } from '../boss';
@@ -136,6 +136,16 @@ const flyOverdosedBody = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolea
   const hitIds = e.overdoseHitIds || (e.overdoseHitIds = []);
   const c = mid(e);
   e.overdosePhase = e.overdosePhase || 'rise';
+  // Out of time (nothing to hit and nowhere to land): it pops like a balloon full of blood
+  e.overdoseFrames = (e.overdoseFrames || 0) + 1;
+  if (e.overdoseFrames > OVERDOSE_MAX_FRAMES) {
+    fx.spawnDeathShower(e.pos, Math.sign(e.vel.x), 3);
+    fx.spawnExplosion(c, '#E879F9', 14, 0, 10);
+    fx.spawnExplosion(c, '#8B0000', 18, 0, 12);
+    fx.spawnKillCallout(e, 'overdose');
+    shakeScreen(state, 8);
+    return false;
+  }
 
   if (e.overdosePhase === 'rise') {
     // Something above to arc into (just the one: once it's hit something it rides out the arc).
@@ -221,7 +231,7 @@ const flyOverdosedBody = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolea
       return false;
     }
   }
-  return e.pos.y < 1000;
+  return e.pos.y < state.camera.y + 1400;
 };
 
 const isAirEnemy = (e: Enemy) => e.enemyType === 'flyer' || e.enemyType === 'drone' || e.behavior === 'fly' || e.behavior === 'hover';

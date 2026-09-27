@@ -191,6 +191,8 @@ export interface Enemy extends Entity {
   overdoseHitIds?: string[];
   /** Overdosed flight: rising (arcing at something), diving straight at something below, or dropping. */
   overdosePhase?: 'rise' | 'dive' | 'drop';
+  /** Frames an overdosed body has been flying (it bursts in mid-air if it hasn't landed by OVERDOSE_MAX_FRAMES). */
+  overdoseFrames?: number;
   /** The taser set it alight: if the burn finishes it, it's still an electrocution. */
   ignitedByTaser?: boolean;
   // Needle / DOT

@@ -51,6 +51,7 @@ export const OVERDOSE_DIVE_RANGE = 700;        // how far it looks for something
 export const OVERDOSE_DIVE_SPEED = 19;
 export const OVERDOSE_DROP_GRAVITY = 0.9;      // nothing to dive at: straight down, fast
 export const OVERDOSE_HIT_DAMAGE = 300;        // to anything it plows into (no regular enemy survives it)
+export const OVERDOSE_MAX_FRAMES = 150;        // a flight that hasn't landed by now (no ceiling, a bottomless drop) bursts in mid-air
 export const BOSS_DOOR_X = 7200;
 export const DOOR_WIDTH = 40;
 export const ARENA_LEFT = BOSS_DOOR_X + DOOR_WIDTH;
