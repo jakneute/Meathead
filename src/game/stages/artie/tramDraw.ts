@@ -22,8 +22,8 @@ const cableAt = (x: number) => {
 
 const visible = (state: GameState, x1: number, x2: number) => x2 > state.camera.x - 100 && x1 < state.camera.x + 900;
 
-/** Behind everything: cable, pylons, stations, and the inside of the cabin. */
-export const drawTramBack = (ctx: Ctx, state: GameState, tram: Tram) => {
+/** Furthest back: the pylons and the cable (the clouds go in front of their feet). */
+export const drawTramRigging = (ctx: Ctx, state: GameState) => {
   const cx0 = COURSE.tram.x - 120, cx1 = COURSE.tram.toX + CABIN_W + 120;
   if (!visible(state, cx0, cx1)) return;
   // Pylons: lattice towers up from the mountainside to the cable
@@ -49,6 +49,11 @@ export const drawTramBack = (ctx: Ctx, state: GameState, tram: Tram) => {
   ctx.beginPath(); ctx.moveTo(cx0, cableAt(cx0)); ctx.lineTo(cx1, cableAt(cx1)); ctx.stroke();
   ctx.strokeStyle = '#475569'; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(cx0, cableAt(cx0) + 8); ctx.lineTo(cx1, cableAt(cx1) + 8); ctx.stroke();
+};
+
+/** Behind the action: the stations, and the inside of the cabin. */
+export const drawTramBack = (ctx: Ctx, state: GameState, tram: Tram) => {
+  if (!visible(state, COURSE.tram.x - 120, COURSE.tram.toX + CABIN_W + 120)) return;
   drawStation(ctx, state, COURSE.tram.x, COURSE.tram.y, -1);
   drawStation(ctx, state, COURSE.tram.toX, COURSE.tram.toY, 1);
   drawCabinInside(ctx, state, tram);

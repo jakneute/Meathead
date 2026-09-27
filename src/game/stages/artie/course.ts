@@ -38,7 +38,7 @@ export interface Course {
   spawns: Spawn[];
   pickups: PickupSpot[];
   tram: { x: number; y: number; toX: number; toY: number };
-  /** The drop under the upper station, full of cloud. */
+  /** The drop under the whole tram ride, full of cloud. */
   gorge: { x1: number; x2: number; y: number };
   moose: { x1: number; x2: number; y: number };
   skier: { x: number; y: number };
@@ -148,17 +148,13 @@ export const buildCourse = (): Course => {
   c.flat(560);
 
   // ============ UNDER THE TRAM ============
-  // The cabin climbs 1500 over 2800 along the cable; the mountainside stays well below it
+  // The cabin climbs 1500 over 2800 along the cable
   const TRAM_DX = 2800, TRAM_DY = -1500, CABIN_W = 560;
   const topX = tramX + TRAM_DX, topY = tramY + TRAM_DY;
-  c.pit(0, 440);                      // drop off the end of the deck into the valley
-  c.slope(540, -60);
   const deckX = topX + CABIN_W;
-  // The mountainside, then a sheer gorge under the upper station: once you're up, there's no climbing back down
-  const gorgeX = topX - 150;
-  c.slope(gorgeX - c.x, topY + 700 - c.y);
-  const gorge = { x1: gorgeX, x2: deckX, y: topY };
-  c.pit(deckX - c.x, topY - c.y, 'clouds'); // (clouds fill it: see the stage's drawing)
+  // Nothing under the cable but cloud, all the way up: once you're on the tram there's no walking anywhere
+  const gorge = { x1: c.x, x2: deckX, y: topY };
+  c.pit(deckX - c.x, topY - c.y, 'clouds'); // (the stage draws the clouds)
   // ============ SUMMIT ============
   c.flat(490);
   const cp1 = { x: deckX + 100, y: topY };

@@ -8,7 +8,7 @@ import type { Controls } from '../../input';
 import { COURSE, CP } from './course';
 import { makeKindEnemy } from '../../systems/kinds';
 import { createHazards, updateHazards, Hazards } from './hazards';
-import { createTram, updateTram, Tram } from './tram';
+import { createTram, updateTram, checkFellOffTram, Tram } from './tram';
 import { createMooseFight, updateMooseFight, MooseFight } from './moose';
 import { createSki, updateSki, Ski } from './ski';
 
@@ -49,6 +49,7 @@ export const updateArtie = (ctx: FrameContext, controls: Controls): Controls => 
   if (state.checkpoint < CP.STATION && player.isGrounded && player.pos.x >= COURSE.checkpoints[CP.STATION].x) state.checkpoint = CP.STATION;
   updateHazards(ctx, rt.hazards);
   updateTram(ctx, rt.tram);
+  checkFellOffTram(ctx);
   updateMooseFight(ctx, rt.moose);
   return updateSki(ctx, rt.ski, controls);
 };

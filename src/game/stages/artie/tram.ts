@@ -11,6 +11,7 @@ import { makeKindEnemy } from '../../systems/kinds';
 import { shakeScreen } from '../../state';
 import { playSound } from '../../audio';
 import { COURSE, CP } from './course';
+import { killPlayer } from '../../systems/player';
 
 export const CABIN_W = 560, CABIN_H = 220;
 const WALL = 14;
@@ -80,6 +81,28 @@ const inCabin = (tram: Tram, x: number, y: number, pad = 0) =>
 
 const addBlock = (state: GameState, b: Block) => { if (!state.blocks.includes(b)) state.blocks.push(b); };
 const removeBlock = (state: GameState, b: Block) => { state.blocks = state.blocks.filter(x => x !== b); };
+
+/** The lowest the cabin's floor ever is over x on its way up (fall below this and you've fallen off the tram). */
+export const tramFloorLineAt = (x: number) => {
+  const { x: x0, y: y0, toX, toY } = COURSE.tram;
+  const left = Math.max(x0, Math.min(toX, x - CABIN_W));
+  return y0 + ((left - x0) / (toX - x0)) * (toY - y0);
+};
+
+/** How far below the tram line counts as gone for good (measured from mid-cabin, so it's clear of anyone riding at either end). */
+const FALL_KILL_MARGIN = 170;
+const FELL_OFF_LINES = ['TOOK THE EXPRESS DOWN', 'LOST IN THE CLOUDS', "SHOULD'VE STAYED ON THE TRAM", 'GRAVITY: 1, MEATHEAD: 0'];
+
+/** Off the tram and into the clouds: no walking it off, no fall to wait through. */
+export const checkFellOffTram = (ctx: FrameContext) => {
+  const { state } = ctx;
+  const p = state.player;
+  const px = p.pos.x + p.width / 2;
+  if (state.deathTimer > 0 || px < COURSE.gorge.x1 || px > COURSE.gorge.x2) return;
+  if (p.pos.y + p.height > tramFloorLineAt(px + CABIN_W / 2) + FALL_KILL_MARGIN) {
+    killPlayer(ctx, FELL_OFF_LINES[Math.floor(Math.random() * FELL_OFF_LINES.length)]);
+  }
+};
 
 /** Enemies inside the cabin that are still alive. */
 export const cabinEnemies = (state: GameState, tram: Tram) =>

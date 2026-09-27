@@ -4,13 +4,16 @@ import type { GameState } from '../../state';
 import { getArtie } from './runtime';
 import { COURSE } from './course';
 import { windBlowing, Hazards, chuteLive, CHUTE_WARN_FRAMES } from './hazards';
-import { drawTramBack, drawTramFront, drawTramHud } from './tramDraw';
+import { drawTramRigging, drawTramBack, drawTramFront, drawTramHud } from './tramDraw';
+import { tramFloorLineAt, CABIN_W } from './tram';
 import { drawMooseCorpse, drawMooseHud } from './mooseDraw';
 import { drawSkiMid, drawSkiFront, drawSkiHud } from './skiDraw';
 
 type Ctx = CanvasRenderingContext2D;
 
 export const drawArtieBack = (ctx: Ctx, state: GameState) => {
+  // Pylons rise out of the clouds; the stations and the cabin are in front of them
+  drawTramRigging(ctx, state);
   drawCloudSea(ctx, state);
   drawTramBack(ctx, state, getArtie(state)!.tram);
 };
@@ -64,8 +67,8 @@ const drawChuteWarnings = (ctx: Ctx, state: GameState, hz: Hazards) => {
   });
 };
 
-/** How far under the upper station the cloud tops sit (well clear of the tram cabin's path). */
-const CLOUD_TOP = 150;
+/** How far under the tram cabin's path the cloud tops sit. */
+const CLOUD_TOP = 190;
 
 /** A deterministic 0..1 from a number (so the clouds don't flicker). */
 const hash = (n: number) => { const s = Math.sin(n * 127.1) * 43758.5453; return s - Math.floor(s); };
@@ -77,11 +80,11 @@ const hash = (n: number) => { const s = Math.sin(n * 127.1) * 43758.5453; return
  */
 const drawCloudSea = (ctx: Ctx, state: GameState) => {
   const gz = COURSE.gorge;
-  const x1 = gz.x1 - 420, x2 = gz.x2 + 40;
+  const x1 = gz.x1 - 40, x2 = gz.x2 + 40;
   if (x2 < state.camera.x - 50 || x1 > state.camera.x + 850) return;
-  const bottom = Math.max(state.camera.y + 700, gz.y + CLOUD_TOP + 300);
-  // Where the cloud tops are at x: level over the gorge, dropping away to the left to meet the mountainside
-  const topAt = (x: number) => gz.y + CLOUD_TOP + Math.max(0, gz.x1 - x) * 1.9;
+  // Where the cloud tops are at x: a steady distance under the cable line (under the cabin's middle as it passes)
+  const topAt = (x: number) => tramFloorLineAt(x + CABIN_W / 2) + CLOUD_TOP;
+  const bottom = Math.max(state.camera.y + 700, topAt(Math.max(x1, state.camera.x)) + 300);
   const layers = [
     { dy: 0, color: '#5E6C8C', r: 70, drift: 0.12, step: 80 },
     { dy: 45, color: '#8290AE', r: 62, drift: -0.2, step: 70 },
