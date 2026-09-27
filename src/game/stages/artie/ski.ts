@@ -38,6 +38,8 @@ export interface Ski {
   cabinHitAt: number;
   /** Where the avalanche finally stopped (the snow pile's front). */
   pileX: number;
+  /** In the cutscene: he's walked up to the skier and it's started. */
+  arrived: boolean;
   /** In the cutscene, if anything's still alive on screen: the avalanche's first surge, which comes right up behind him and pulverizes it. */
   surge: boolean;
 }
@@ -51,6 +53,14 @@ const SURGE_SPEED = 18, SURGE_STOP = 90;
 const AVALANCHE_AFTER_SURGE = 5, AVALANCHE_HEAD_START = 650;
 const BALL_FRAMES = 90, BALL_DAMAGE = 22;
 const CRASH_FRAMES = 42, CRASH_DAMAGE = 6;
+/** What goes up over his head when he skis into each kind of thing. */
+const CRASH_CALLOUTS: Record<SkiObstacle['kind'], { lines: string[]; color: string }> = {
+  rock: { lines: ['ROCKED!', 'SHIN CHECK!', 'STONE COLD!'], color: '#A8A29E' },
+  log: { lines: ['LOGJAMMED!', 'TIMBER!', 'SPLINTERED!'], color: '#D97706' },
+  pine: { lines: ['TREE HUGGER!', 'PINED!', 'BARKED!'], color: '#4ADE80' },
+  branch: { lines: ['CLOTHESLINED!', 'SHOULDA DUCKED!', 'BRANCHED!'], color: '#FDE047' },
+};
+
 /** How far ahead of him the camera looks on skis (not so far he ends up under the HUD in the corner). */
 const SKI_CAMERA_LEAD = 190;
 
@@ -61,17 +71,21 @@ export const createSki = (state: GameState, startedAt: number): Ski => {
     phase: past ? 'done' : onSkis ? 'skiing' : 'waiting', t: 0,
     skier: { x: COURSE.skier.x, y: COURSE.skier.y, vx: 0, vy: 0, rot: 0, state: onSkis || past ? 'gone' : 'stand', line: '', lineT: 0 },
     skis: null, avX: COURSE.checkpoints[CP.SKI].x - 650, ball: 0, ballX: 0, ballRot: 0, crash: 0,
-    broken: COURSE.ski.obstacles.map(() => false), cabinHitAt: past ? -9999 : 0, pileX: COURSE.cabin.x + 330, surge: false,
+    broken: COURSE.ski.obstacles.map(() => false), cabinHitAt: past ? -9999 : 0, pileX: COURSE.cabin.x + 330, surge: false, arrived: false,
   };
   if (onSkis) { state.player.skiing = true; state.player.skiSpeed = SKI_BASE; state.cameraLeadX = SKI_CAMERA_LEAD; }
   if (past) addPile(state, ski);
   return ski;
 };
 
+/** The pile's invisible wall goes up this far: no jumping back over it. */
+const PILE_WALL_HEIGHT = 3000;
+
 /** The snow pile the avalanche leaves at the bottom: a wall you can't climb back over. */
 const addPile = (state: GameState, ski: Ski) => {
-  state.blocks.push({ x: ski.pileX - 70, y: GROUND_Y - 260, w: 70, h: 260, type: 'wall', hidden: true, tag: 'snowpile' });
-  state.cameraMinX = Math.max(state.cameraMinX, ski.pileX - 40);
+  state.blocks.push({ x: ski.pileX - 70, y: GROUND_Y - PILE_WALL_HEIGHT, w: 70, h: PILE_WALL_HEIGHT, type: 'wall', hidden: true, tag: 'snowpile' });
+  // (far enough left that you can still see what's left of the cabin)
+  state.cameraMinX = Math.max(state.cameraMinX, COURSE.cabin.x - 80);
 };
 
 const meatheadSays = (state: GameState, text: string) => {
@@ -108,15 +122,25 @@ export const updateSki = (ctx: FrameContext, ski: Ski, controls: Controls): Cont
 const cutscene = (ctx: FrameContext, ski: Ski): Controls => {
   const { state } = ctx;
   const { player } = state;
-  const t = ski.t;
   const standAt = ski.skier.x - 70;
   state.cameraOverride = { x: COURSE.skier.x - 420, y: COURSE.skier.y - 500 };
-  // Nothing gets to hurt him while it plays out
+  // Nothing gets to hurt him while it plays out: everything else holds off, and their shots in the air fizzle
   player.invincibilityTimer = Math.max(player.invincibilityTimer, 2);
   player.inCutscene = true;
+  state.gapGrace = Math.max(state.gapGrace || 0, 2);
+  if (ski.t === 1) state.projectiles = state.projectiles.filter(p => p.owner !== 'enemy');
   let c: Controls = { ...NO_CONTROLS };
-  // Walks up behind him
-  if (player.pos.x + player.width / 2 < standAt - 4 && t < 60) c = { ...c, right: true };
+  // Walks right up behind him first (the scene waits for him to get there)
+  const px = player.pos.x + player.width / 2;
+  if (!ski.arrived) {
+    if (px < standAt - 6) c = { ...c, right: true };
+    else if (px > standAt + 6) c = { ...c, left: true };
+    // (planted on the spot: no sliding past him on the ice)
+    else if (player.isGrounded) { ski.arrived = true; ski.t = 0; player.vel.x = 0; player.pos.x = standAt - player.width / 2; }
+    if (!ski.arrived) { ski.t = 0; return c; }
+  }
+  const t = ski.t;
+  player.facing = 1;
   if (t === 20) skierSays(ski, 'BRO. THE POWDER UP HERE IS SICK.');
   if (t === 75) meatheadSays(state, 'NICE SKIS.');
   if (t === 120) skierSays(ski, "THANKS, THEY'RE CARBON FIB-");
@@ -243,8 +267,9 @@ const skiing = (ctx: FrameContext, ski: Ski, controls: Controls): Controls => {
       player.isGrounded = false;
       shakeScreen(state, 12, 5);
       if (o.kind !== 'rock') splinters(state, o);
-      fx.spawnDamageNumber({ x: player.pos.x - 20, y: player.pos.y - 30 }, 'WIPEOUT!', true, '#F87171');
-      fx.speakVulgarity('hurt', 'snowball');
+      const callout = CRASH_CALLOUTS[o.kind];
+      fx.spawnDamageNumber({ x: player.pos.x - 20, y: player.pos.y - 30 }, callout.lines[Math.floor(Math.random() * callout.lines.length)], true, callout.color);
+      fx.speakVulgarity('hurt', `ski_${o.kind}`);
     }
   });
 

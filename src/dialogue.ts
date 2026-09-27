@@ -167,6 +167,26 @@ export const BOSS_DIALOGUE: {
       "A SNOWBALL! A GROWN MAN! A SNOWBALL!",
       "BOWLED OVER BY WINTER, FUCK!",
     ],
+    'ski_rock': [
+      "ROCK! ROCK! WHY IS THERE ALWAYS A ROCK!",
+      "MY SHINS! MY BEAUTIFUL SHINS!",
+      "WHO PUT A BOULDER IN THE MIDDLE OF THE SLOPE?",
+    ],
+    'ski_log': [
+      "TIMBER! WRONG WAY ROUND!",
+      "A LOG! I GOT CHECKED BY A LOG!",
+      "SPLINTERS IN MY TAINT!",
+    ],
+    'ski_pine': [
+      "HUGGED A TREE. DIDN'T LOVE IT.",
+      "THE TREE WON. THE TREE ALWAYS WINS.",
+      "FACE FULL OF PINE NEEDLES, FUCK!",
+    ],
+    'ski_branch': [
+      "CLOTHESLINED BY A FUCKING BRANCH!",
+      "DUCK. I SHOULD'VE DUCKED.",
+      "BRANCH TO THE THROAT, OW!",
+    ],
     'avalanche': [
       "THE MOUNTAIN IS EATING ME!",
       "SNOW IN EVERY HOLE I HAVE!",

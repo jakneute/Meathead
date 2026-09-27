@@ -165,7 +165,7 @@ export const createFx = (state: GameState) => {
    */
   const speakVulgarity = (category: VulgarityType, hurtSource?: string) => {
     if (category !== 'death') {
-      if (state.isMeatheadSpeaking || isSpeaking()) return;
+      if (isSpeaking() || state.isMeatheadSpeaking) return; // (asking first lets a line whose end got lost time out)
       if (category === 'hurt' ? state.hurtVoiceCooldown > 0 : state.voiceLineCooldown > 0) return;
     }
     // Skip entirely if every line in the pool was said recently

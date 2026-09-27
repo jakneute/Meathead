@@ -76,7 +76,8 @@ const GAP_GRACE = 40;
 export const updateGapGrace = (state: GameState) => {
   const runs = state.groundRuns;
   const p = state.player;
-  const overGap = runs.length > 0 && profileYAt(runs, p.pos.x + p.width / 2) === undefined;
+  // (not in a set piece that has the camera: the tram cabin, for one, rides out over the gorge)
+  const overGap = runs.length > 0 && !state.cameraOverride && profileYAt(runs, p.pos.x + p.width / 2) === undefined;
   state.gapGrace = overGap ? GAP_GRACE : Math.max(0, (state.gapGrace || 0) - 1);
 };
 

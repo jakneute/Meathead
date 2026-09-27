@@ -35,6 +35,8 @@ export interface MooseFight {
   corpse: MooseCorpse | null;
   /** The last reaction worth a word ("HEAVED!"), for the HUD flash. */
   hpFlash: number;
+  /** It just got you: once it's pulled up, it backs off to the far side before coming again (no chaining hits on you). */
+  retreatNext: boolean;
 }
 
 const arena = () => COURSE.moose;
@@ -43,7 +45,7 @@ export const createMooseFight = (state: GameState, startedAt: number): MooseFigh
   const a = arena();
   const dead = startedAt >= CP.AFTER_MOOSE;
   return {
-    phase: dead ? 'dead' : 'waiting', t: 0, moose: null, hpFlash: 0,
+    phase: dead ? 'dead' : 'waiting', t: 0, moose: null, hpFlash: 0, retreatNext: false,
     walls: [
       { x: a.x1 - 40, y: a.y - 900, w: 40, h: 900, type: 'wall', hidden: true, tag: 'moose-wall' },
       { x: a.x2, y: a.y - 900, w: 40, h: 900, type: 'wall', hidden: true, tag: 'moose-wall' },
@@ -89,6 +91,10 @@ const makeMoose = (x: number, floorY: number): Enemy => ({
 const PAW_FRAMES = 44, PAW_FRAMES_ANGRY = 26;
 const CHARGE_SPEED = 9.5, CHARGE_SPEED_ANGRY = 12;
 const REACT_FRAMES = 40;
+/** Backing off after it's hurt you: how fast, and how close to the far wall it goes before turning to face you. */
+const RETREAT_SPEED = 6.5, RETREAT_WALL_GAP = 40;
+/** Already this far from you: no need to back off, it just turns round. */
+const RETREAT_FAR_ENOUGH = 380;
 
 export const updateMoose = (ctx: FrameContext, m: Enemy, fight: MooseFight): boolean => {
   const { state } = ctx;
@@ -135,23 +141,44 @@ export const updateMoose = (ctx: FrameContext, m: Enemy, fight: MooseFight): boo
       if (m.aiTimer % 2 === 0) dust(state, m, 2);
       if (Math.abs(m.vel.x) < 0.4) {
         m.vel.x = 0;
+        if (fight.retreatNext) { startRetreat(ctx, m, fight); break; }
         m.facing = (m.facing === 1 ? -1 : 1) as 1 | -1;
         // Angry: sometimes it comes straight back without the wind-up
         m.aiState = angry && Math.random() < 0.4 ? 'charge' : 'paw'; m.aiTimer = 0;
       }
       break;
+    case 'retreat': {
+      // Trotting off to the far side, then turning round to line you up again
+      m.vel.x = m.facing! * RETREAT_SPEED;
+      const front = m.facing === 1 ? m.pos.x + W : m.pos.x;
+      const wall = m.facing === 1 ? a.x2 : a.x1;
+      if (Math.abs(wall - front) < RETREAT_WALL_GAP + RETREAT_SPEED * 3) { m.vel.x = 0; m.facing = toward; m.aiState = 'paw'; m.aiTimer = 0; }
+      if (m.aiTimer % 6 === 0) dust(state, m, 1);
+      break;
+    }
     default:
-      // A reaction pose (heave, kick, buck, stomp): it plants itself for a moment
+      // A reaction pose (heave, kick, buck, stomp): it plants itself for a moment, then backs off
       m.vel.x *= 0.7;
-      if (m.aiTimer > REACT_FRAMES) { m.aiState = 'paw'; m.aiTimer = 0; }
+      if (m.aiTimer > REACT_FRAMES) startRetreat(ctx, m, fight);
       break;
   }
   m.pos.x += m.vel.x;
   m.pos.x = Math.max(a.x1 + 2, Math.min(a.x2 - W - 2, m.pos.x));
   // The bucking bronco hops
   m.pos.y = a.y - H - (m.aiState === 'buck' ? Math.abs(Math.sin(m.aiTimer * 0.35)) * 26 : 0);
-  touchPlayer(ctx, m);
+  touchPlayer(ctx, m, fight);
   return true;
+};
+
+/** It's hurt you: head for the far side from you (unless it's already well clear), then come again. */
+const startRetreat = (ctx: FrameContext, m: Enemy, fight: MooseFight) => {
+  const p = ctx.state.player;
+  fight.retreatNext = false;
+  m.aiTimer = 0;
+  const away = (p.pos.x + p.width / 2 < m.pos.x + W / 2 ? 1 : -1) as 1 | -1;
+  if (Math.abs(p.pos.x + p.width / 2 - (m.pos.x + W / 2)) > RETREAT_FAR_ENOUGH) { m.facing = (-away) as 1 | -1; m.aiState = 'paw'; return; }
+  m.facing = away;
+  m.aiState = 'retreat';
 };
 
 const dust = (state: GameState, m: Enemy, n: number) => {
@@ -164,7 +191,7 @@ const dust = (state: GameState, m: Enemy, n: number) => {
 };
 
 /** What happens when you touch it: every way of attacking it with your body goes badly. */
-const touchPlayer = (ctx: FrameContext, m: Enemy) => {
+const touchPlayer = (ctx: FrameContext, m: Enemy, fight: MooseFight) => {
   const { state, fx } = ctx;
   const p = state.player;
   // (its back, not its antlers: jumping over it is fair)
@@ -172,6 +199,8 @@ const touchPlayer = (ctx: FrameContext, m: Enemy) => {
   if (!rectsOverlap(body, boundsOf(p))) return;
   const special = p.isSliding ? 'slide' : p.isDivekicking ? 'dive' : (p.isCharging || p.isUppercutting) ? 'hit' : null;
   if (!special && (p.invincibilityTimer > 0 || state.deathTimer > 0)) return;
+  // Backing off: it's not interested in you right now (brushing past it is harmless)
+  if (!special && m.aiState === 'retreat') return;
   const px = p.pos.x + p.width / 2, mx = m.pos.x + W / 2;
   const inFront = Math.sign(px - mx) === m.facing;
   const shout = (text: string, color: string) => fx.spawnDamageNumber({ x: px - 30, y: p.pos.y - 30 }, text, true, color);
@@ -207,13 +236,18 @@ const touchPlayer = (ctx: FrameContext, m: Enemy) => {
     }
     shakeScreen(state, 14, 6);
   } else if (m.aiState === 'charge' || m.aiState === 'skid' || m.aiState === 'enter') {
-    // In its way: run clean over
+    // In its way: run clean over (then it pulls up and backs off, rather than pinning you to the wall)
     hurtPlayer(ctx, 18, 'moose', { x: m.facing! * 13, y: -9 }, 40);
+    if (m.aiState !== 'enter') {
+      if (m.aiState === 'charge') { m.aiState = 'skid'; m.aiTimer = 0; }
+      fight.retreatNext = true;
+    }
     shakeScreen(state, 12, 6);
     shout('RUN OVER!', '#F87171');
   } else {
-    // Just bumping into it: a shove
+    // Just bumping into it: a shove, and it backs off
     hurtPlayer(ctx, 6, 'moose', { x: (px < mx ? -1 : 1) * 7, y: -4 });
+    if (m.aiState === 'paw') startRetreat(ctx, m, fight);
   }
 };
 

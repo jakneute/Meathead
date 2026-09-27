@@ -149,8 +149,10 @@ export const buildCourse = (): Course => {
   c.pit(0, 440);                      // drop off the end of the deck into the valley
   c.slope(540, -60);
   const deckX = topX + CABIN_W;
-  c.slope(deckX - 20 - c.x, topY + 72 - c.y); // the mountainside
-  c.slope(20, topY - c.y);                     // up onto the upper station deck
+  // The mountainside, then a sheer gorge under the upper station: once you're up, there's no climbing back down
+  const gorgeX = topX - 150;
+  c.slope(gorgeX - c.x, topY + 700 - c.y);
+  c.pit(deckX - c.x, topY - c.y);
   // ============ SUMMIT ============
   c.flat(490);
   const cp1 = { x: deckX + 100, y: topY };
@@ -248,6 +250,9 @@ export const buildCourse = (): Course => {
   const cabinX = c.x + 300;
   c.flat(1500);
   const cabin = { x: cabinX, y: GROUND_Y, stopX: cabinX + 560 };
+  // Patch up and reload before Artie
+  pickups.push({ x: c.x - 420, y: GROUND_Y - 30, type: 'large_health' });
+  pickups.push({ x: c.x - 340, y: GROUND_Y - 30, type: 'large_ammo' });
 
   // Shift everything so the run-out ends at the boss door
   const dx = BOSS_DOOR_X - c.x;

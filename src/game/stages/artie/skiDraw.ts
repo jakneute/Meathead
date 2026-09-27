@@ -131,16 +131,18 @@ const drawCabin = (ctx: Ctx, state: GameState, ski: Ski) => {
     ctx.fillStyle = '#14532D'; ctx.fillRect(x - 100, g - 90, 90, 30);
     ctx.fillStyle = '#FDE68A'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.textAlign = 'center';
     ctx.fillText('RANGER', x - 55, g - 78); ctx.fillText('STATION', x - 55, g - 67); ctx.textAlign = 'left';
-  } else {
-    // Flattened: planks sticking out of the pile, and the ranger's hat on top
-    ctx.fillStyle = '#7C4A24';
-    for (let i = 0; i < 6; i++) { ctx.save(); ctx.translate(c.x + 40 + i * 50, g - 60 - (i % 3) * 30); ctx.rotate(-0.6 + i * 0.3); ctx.fillRect(-30, -4, 60, 8); ctx.restore(); }
   }
-  // The pile, once it's come to rest
-  if (ski.avX >= ski.pileX || ski.cabinHitAt < 0) drawPile(ctx, state, ski);
-  if (ski.cabinHitAt !== 0) {
-    ctx.fillStyle = '#A16207'; ctx.beginPath(); ctx.ellipse(ski.pileX - 120, g - 200, 20, 5, 0.2, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(ski.pileX - 130, g - 212, 18, 12);
-  }
+  // The pile, once it's come to rest, with what's left of the cabin sticking out of it
+  const settled = ski.avX >= ski.pileX || ski.cabinHitAt < 0;
+  if (settled) drawPile(ctx, state, ski);
+  if (ski.cabinHitAt !== 0 && settled) drawWreck(ctx, state, ski);
+};
+
+/** The top of the snow pile at x (it's a fixed shape: a ramp up from its front, then a long flat top). */
+const pileTopAt = (ski: Ski, x: number) => {
+  const g = GROUND_Y, x2 = ski.pileX;
+  if (x >= x2 - 120) return g - 240 + ((x - (x2 - 120)) / 120) * 240 * Math.min(1, (x - (x2 - 120)) / 120);
+  return g - 240 - 60 * Math.min(1, (x2 - 120 - x) / 480);
 };
 
 const drawPile = (ctx: Ctx, state: GameState, ski: Ski) => {
@@ -149,12 +151,78 @@ const drawPile = (ctx: Ctx, state: GameState, ski: Ski) => {
   ctx.beginPath();
   ctx.moveTo(x2, g);
   ctx.quadraticCurveTo(x2 + 10, g - 200, x2 - 120, g - 240);
-  ctx.lineTo(state.camera.x - 100, g - 300);
-  ctx.lineTo(state.camera.x - 100, g + 60);
+  ctx.lineTo(x2 - 600, g - 300);
+  ctx.lineTo(Math.min(x2 - 600, state.camera.x - 100), g - 300);
+  ctx.lineTo(Math.min(x2 - 600, state.camera.x - 100), g + 60);
   ctx.lineTo(x2, g + 60);
   ctx.fill();
   ctx.fillStyle = '#CFE0F3';
   for (let i = 0; i < 8; i++) { ctx.beginPath(); ctx.ellipse(x2 - 40 - i * 60, g - 200 - (i % 3) * 20, 40, 14, 0, 0, Math.PI * 2); ctx.fill(); }
+};
+
+/** What's left of the ranger station: roof, logs, chimney, sign and the ranger himself, all sticking out of the snow. */
+const drawWreck = (ctx: Ctx, state: GameState, ski: Ski) => {
+  const c = COURSE.cabin;
+  const top = (x: number) => pileTopAt(ski, x);
+  const slab = (x: number, y: number, rot: number, draw: () => void) => { ctx.save(); ctx.translate(x, y); ctx.rotate(rot); draw(); ctx.restore(); };
+  // Logs from the walls, speared into the pile every which way (ends showing their rings)
+  const logs: [number, number, number][] = [[c.x - 50, 10, -0.5], [c.x + 20, 14, 0.35], [c.x + 95, 12, -0.15], [c.x + 250, 6, 0.6], [c.x + 290, 20, -0.9], [c.x + 320, 60, 0.3], [ski.pileX - 30, 150, -0.4]];
+  for (const [x, sink, rot] of logs) {
+    slab(x, top(x) + sink, rot, () => {
+      ctx.fillStyle = '#7C4A24'; ctx.fillRect(-46, -8, 92, 16);
+      ctx.fillStyle = '#5B3A1E'; ctx.fillRect(-46, -2, 92, 3);
+      ctx.fillStyle = '#C08A4E'; ctx.beginPath(); ctx.ellipse(46, 0, 5, 8, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#7C4A24'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(46, 0, 2.5, 4, 0, 0, Math.PI * 2); ctx.stroke();
+    });
+  }
+  // The roof, torn off in one piece and stuck in the snow at an angle, still snowed on
+  slab(c.x + 150, top(c.x + 150) + 20, -0.42, () => {
+    ctx.fillStyle = '#7F1D1D';
+    ctx.beginPath(); ctx.moveTo(-120, 0); ctx.lineTo(10, -70); ctx.lineTo(130, 0); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#5F1414'; ctx.fillRect(-120, -4, 250, 8);
+    ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.moveTo(-110, -6); ctx.lineTo(10, -72); ctx.lineTo(120, -6); ctx.lineTo(10, -58); ctx.fill();
+    // Snapped rafters poking out of the underside
+    ctx.fillStyle = '#A16207';
+    for (const rx of [-80, -30, 30, 80]) ctx.fillRect(rx, 0, 7, 22 + (rx % 3) * 4);
+  });
+  // The window frame, glass gone, a curtain still hanging in it
+  slab(c.x + 40, top(c.x + 40) - 12, 0.25, () => {
+    ctx.strokeStyle = '#3F2A1D'; ctx.lineWidth = 5; ctx.strokeRect(-35, -25, 70, 50);
+    ctx.fillStyle = '#B91C1C'; ctx.beginPath(); ctx.moveTo(-32, -22); ctx.lineTo(-8, -22); ctx.quadraticCurveTo(-18, 0, -30, 20); ctx.fill();
+    ctx.fillStyle = 'rgba(224, 242, 254, 0.8)'; ctx.beginPath(); ctx.moveTo(32, -22); ctx.lineTo(20, -22); ctx.lineTo(30, -2); ctx.fill();
+  });
+  // The chimney, snapped off and lying on its side, still smoking
+  const chx = c.x + 250, chy = top(c.x + 250) - 8;
+  slab(chx, chy, 1.35, () => {
+    ctx.fillStyle = '#57534E'; ctx.fillRect(-12, -40, 24, 44);
+    ctx.fillStyle = '#44403C'; for (let y = -36; y < 4; y += 10) ctx.fillRect(-12, y, 24, 2);
+  });
+  for (let i = 0; i < 4; i++) {
+    const k = ((state.frame * 0.4 + i * 25) % 100) / 100;
+    ctx.fillStyle = `rgba(160, 160, 170, ${0.5 - k * 0.45})`;
+    ctx.beginPath(); ctx.arc(chx - 44 - k * 10, chy - 10 - k * 60, 5 + k * 9, 0, Math.PI * 2); ctx.fill();
+  }
+  // RANGER STATION, bent over
+  slab(c.x - 95, top(c.x - 95) + 6, -0.35, () => {
+    ctx.fillStyle = '#3F2A1D'; ctx.fillRect(-3, -48, 6, 50);
+    ctx.fillStyle = '#14532D'; ctx.fillRect(-45, -70, 90, 30);
+    ctx.fillStyle = '#FDE68A'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.textAlign = 'center';
+    ctx.fillText('RANGER', 0, -58); ctx.fillText('STATION', 0, -47); ctx.textAlign = 'left';
+  });
+  // The ranger: upside down, boots in the air, legs still twitching
+  const rx = c.x - 5, ry = top(c.x - 5) + 4;
+  const twitch = Math.floor(state.frame / 7) % 5 === 0 ? 0.25 : 0;
+  for (const [dx, a] of [[-7, -0.12 - twitch], [7, 0.1 + twitch * 0.5]] as [number, number][]) {
+    slab(rx + dx, ry, a, () => {
+      ctx.fillStyle = '#4D5A2A'; ctx.fillRect(-5, -44, 10, 44);   // ranger-green trousers
+      ctx.fillStyle = '#3F2A1D'; ctx.fillRect(-6, -54, 13, 11);   // boot
+      ctx.fillStyle = '#1C1917'; ctx.fillRect(-6, -56, 13, 3);    // sole
+    });
+  }
+  // His hat, blown clean off and landed on top
+  const hx = ski.pileX - 150, hy = top(ski.pileX - 150) - 4;
+  ctx.fillStyle = '#A16207'; ctx.beginPath(); ctx.ellipse(hx, hy, 20, 5, 0.15, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(hx - 10, hy - 12, 18, 12);
+  ctx.fillStyle = '#78350F'; ctx.fillRect(hx - 10, hy - 5, 18, 3);
 };
 
 // ---------------------------------------------------------------------------

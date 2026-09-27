@@ -56,7 +56,8 @@ export const claimLine = (line: string): boolean => takeFreshLine([line]) !== nu
 
 export const canSpeak = () => typeof window !== 'undefined' && 'speechSynthesis' in window;
 
-export const isSpeaking = () => !!current || (canSpeak() && window.speechSynthesis.speaking);
+/** Is anyone talking? (Also clears out a line whose end the browser never reported, so nobody's muted for good.) */
+export const isSpeaking = () => busy();
 
 // ---------------------------------------------------------------------------
 // In-game dialogue: one voice at a time, and the text over a character's head
@@ -80,12 +81,24 @@ export interface LineHooks {
 }
 
 interface Line extends LineHooks { text: string; voice: Voice; queuedAt: number; }
-interface Playing extends Line { startedAt: number; started: boolean; }
+interface Playing extends Line {
+  startedAt: number;
+  started: boolean;
+  /** Held on to: Chrome can garbage-collect an utterance mid-line and never report its end. */
+  utterance?: SpeechSynthesisUtterance;
+  /** When to give up waiting for the browser to say it's finished. */
+  deadline: number;
+}
 
 const MAX_QUEUE = 3;
 const STALE_MS = 6000;       // a queued line this old isn't worth saying any more
 const NO_START_MS = 1500;    // speech that hasn't started by now isn't going to
 const WATCHDOG_MS = 15000;   // a line can't hold the floor longer than this
+/** Roughly how long a line takes to say, plus slack: past this, its end event was lost. */
+const expectedMs = (line: Line) => Math.min(WATCHDOG_MS, 4000 + (line.text.length * 110) / Math.max(0.3, line.voice.rate));
+/** The browser's speech engine claiming to be busy with nothing of ours playing: stuck, after this long. */
+const ENGINE_STUCK_MS = 12000;
+let engineBusySince = 0;
 
 let current: Playing | null = null;
 let queue: Line[] = [];
@@ -115,9 +128,9 @@ const start = (line: Line) => {
     line.onDone?.();
     return;
   }
-  const playing: Playing = { ...line, startedAt: Date.now(), started: false };
-  current = playing;
   const utterance = new SpeechSynthesisUtterance(line.text);
+  const playing: Playing = { ...line, startedAt: Date.now(), started: false, utterance, deadline: Date.now() + expectedMs(line) };
+  current = playing;
   utterance.pitch = line.voice.pitch;
   utterance.rate = line.voice.rate;
   utterance.volume = 1.0;
@@ -141,8 +154,19 @@ const start = (line: Line) => {
 };
 
 const busy = () => {
-  if (current && Date.now() - current.startedAt > WATCHDOG_MS) finish(current);
-  return !!current || (canSpeak() && window.speechSynthesis.speaking);
+  const now = Date.now();
+  if (current && now > current.deadline) {
+    // Its end never came (a lost event): call it done, and make sure the engine's really quiet
+    const stale = current;
+    if (canSpeak()) window.speechSynthesis.cancel();
+    finish(stale);
+  }
+  if (current) { engineBusySince = 0; return true; }
+  if (!canSpeak() || !window.speechSynthesis.speaking) { engineBusySince = 0; return false; }
+  // The engine says it's talking but nothing of ours is: a menu line, or it's wedged
+  if (!engineBusySince) engineBusySince = now;
+  if (now - engineBusySince > ENGINE_STUCK_MS) { window.speechSynthesis.cancel(); engineBusySince = 0; return false; }
+  return true;
 };
 
 /**

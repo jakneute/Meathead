@@ -37,6 +37,7 @@ const livePose = (m: Enemy, frame: number): Pose => {
     case 'charge': return { ...base, head: 0.42, eye: '#DC2626', mouth: 0.2 };
     case 'paw': return { ...base, head: 0.3 + Math.sin(frame * 0.15) * 0.05, eye: '#DC2626' };
     case 'skid': return { ...base, tilt: -0.08, pivotX: -45, head: 0.2, legSwing: 0 };
+    case 'retreat': return { ...base, head: -0.15, mouth: 0.3 }; // trotting off, head high, snorting
     case 'bellow': {
       const up = Math.min(1, t / 18) * (t < 60 ? 1 : Math.max(0, 1 - (t - 60) / 10));
       return { ...base, tilt: -0.45 * up, pivotX: -45, head: -0.3 * up, rear: up > 0.3, mouth: up, eye: '#DC2626' };
@@ -421,21 +422,26 @@ const blownInHalf = (ctx: Ctx, frame: number) => {
 // ---------------------------------------------------------------------------
 
 /** Health bar across the top while the fight's on. */
+/** The health bar's span across the top of the screen. */
+const HUD_LEFT = 330, HUD_RIGHT = 780;
+
 export const drawMooseHud = (ctx: Ctx, state: GameState, fight: MooseFight) => {
   if (fight.phase !== 'intro' && fight.phase !== 'fight') return;
   const m = fight.moose;
   if (!m) return;
   const fill = fight.phase === 'intro' ? Math.min(1, fight.t / 70) : Math.max(0, m.health / MOOSE_HP);
   ctx.save();
-  ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(200, 12, 400, 40);
-  ctx.strokeStyle = '#78350F'; ctx.lineWidth = 2; ctx.strokeRect(200, 12, 400, 40);
+  // (top right, clear of the player's panel in the top left)
+  const L = HUD_LEFT, R = HUD_RIGHT;
+  ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(L - 10, 12, R - L + 20, 40);
+  ctx.strokeStyle = '#78350F'; ctx.lineWidth = 2; ctx.strokeRect(L - 10, 12, R - L + 20, 40);
   ctx.font = 'bold 10px "Press Start 2P"'; ctx.fillStyle = '#FDE68A'; ctx.textAlign = 'left';
-  ctx.fillText('THE MOOSE', 210, 28);
+  ctx.fillText('THE MOOSE', L, 28);
   ctx.font = '7px "Press Start 2P"'; ctx.fillStyle = '#FCA5A5'; ctx.textAlign = 'right';
-  ctx.fillText('EXTREMELY TERRITORIAL', 590, 28);
-  ctx.fillStyle = '#1C1917'; ctx.fillRect(210, 34, 380, 10);
+  ctx.fillText('EXTREMELY TERRITORIAL', R, 28);
+  ctx.fillStyle = '#1C1917'; ctx.fillRect(L, 34, R - L, 10);
   ctx.fillStyle = fight.hpFlash > 0 ? '#FEF3C7' : (m.health < MOOSE_HP * 0.5 ? '#DC2626' : '#B45309');
-  ctx.fillRect(210, 34, 380 * fill, 10);
-  ctx.fillStyle = 'rgba(0,0,0,0.35)'; for (let x = 210; x < 590; x += 19) ctx.fillRect(x, 34, 1, 10);
+  ctx.fillRect(L, 34, (R - L) * fill, 10);
+  ctx.fillStyle = 'rgba(0,0,0,0.35)'; for (let x = L; x < R; x += 19) ctx.fillRect(x, 34, 1, 10);
   ctx.restore();
 };
