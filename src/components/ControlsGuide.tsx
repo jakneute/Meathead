@@ -17,7 +17,6 @@ const SPECIALS: [move: string, how: string][] = [
   ['SLIDE TACKLE', 'CROUCH + SPECIAL / C'],
   ['UPPERCUT', 'UP + SPECIAL / E'],
   ['DIVE KICK', 'DOWN + SPECIAL IN AIR / C'],
-  ['HEAVE BOULDER', 'UP + FIRE'],
 ];
 
 const ControlsGuide: React.FC = () => (
