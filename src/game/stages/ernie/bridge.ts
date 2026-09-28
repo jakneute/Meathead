@@ -51,7 +51,20 @@ export const SPAN_WARN = 50;
 export const DROP_TO_WATER = 2300;
 /** Where the far lane is (cars drive on it behind you) and the steel under the deck they blow up on. */
 export const FAR_LANE = -26, UNDER_STEEL = 150;
-const MERCY = ['PUT OUT OF HIS MISERY!', 'MERCY!', "YOU'RE WELCOME!", 'EXTINGUISHED!'];
+/** The tops of the towers. */
+export const TOWER_TOP = GROUND_Y - 900;
+
+/** The main cable's height at x: from the anchorages up to the tower tops and sagging down between them (the suspender cables hang from it). */
+export const mainCableY = (x: number) => {
+  const B = COURSE.bridge, [t1, t2] = B.towers, Y = GROUND_Y;
+  const top = TOWER_TOP + 30;
+  if (x < t1) { const k = Math.max(0, (x - (B.x1 - 300)) / (t1 - (B.x1 - 300))); return Y - 40 - (Y - 40 - top) * k * k; }
+  if (x > t2) { const k = Math.max(0, ((B.x2 + 300) - x) / ((B.x2 + 300) - t2)); return Y - 40 - (Y - 40 - top) * k * k; }
+  const k = (x - t1) / (t2 - t1);
+  return top + (Y - 70 - top) * 4 * k * (1 - k);
+};
+
+const MERCY =['PUT OUT OF HIS MISERY!', 'MERCY!', "YOU'RE WELCOME!", 'EXTINGUISHED!'];
 
 export const createBridge = (state: GameState): Bridge => {
   const spans = COURSE.spans.map((s, i) => {

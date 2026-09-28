@@ -15,7 +15,7 @@ import type { LayerSpec } from '../../render/backdrops/core';
 import { COURSE } from './course';
 import { getErnie, regionOf, downFade, AWAY_FRAMES } from './runtime';
 import { Quakes, quakeAmount, faultAmount, DEBRIS_HOLD, BRIDGE_HOLD, Debris, inQuakeCountry, PIECE_BOTTOM } from './quake';
-import { Bridge, SPAN_WARN, DROP_TO_WATER, FAR_LANE, UNDER_STEEL, BgCar, screamOf, onBridge } from './bridge';
+import { Bridge, mainCableY, TOWER_TOP, SPAN_WARN, DROP_TO_WATER, FAR_LANE, UNDER_STEEL, BgCar, screamOf, onBridge } from './bridge';
 import { drawFault } from './faultDraw';
 import { drawDistricts } from './streetsDraw';
 import { Car, CAR_W, CAR_H, CAR_WARN, carsComing } from './traffic';
@@ -239,17 +239,7 @@ const drawPlaza = (ctx: Ctx, state: GameState) => {
 // ---------------------------------------------------------------------------
 
 const RED = '#C0392B', RED_DARK = '#8E2A20', RED_LIGHT = '#E0503F';
-const TOWER_TOP = Y - 900;
-
-/** The main cable's height at x: from the anchorages up to the tower tops and sagging down between them. */
-const cableY = (x: number) => {
-  const B = COURSE.bridge, [t1, t2] = B.towers;
-  const top = TOWER_TOP + 30;
-  if (x < t1) { const k = Math.max(0, (x - (B.x1 - 300)) / (t1 - (B.x1 - 300))); return Y - 40 - (Y - 40 - top) * k * k; }
-  if (x > t2) { const k = Math.max(0, ((B.x2 + 300) - x) / ((B.x2 + 300) - t2)); return Y - 40 - (Y - 40 - top) * k * k; }
-  const k = (x - t1) / (t2 - t1);
-  return top + (Y - 70 - top) * 4 * k * (1 - k);
-};
+const cableY = mainCableY;
 
 const drawBridge = (ctx: Ctx, state: GameState, br: Bridge) => {
   const B = COURSE.bridge;
@@ -496,7 +486,9 @@ const drawDebris = (ctx: Ctx, d: Debris, f: number) => {
   const swing = steel && d.hold > 0 ? Math.sin(f * 0.25) * 0.25 : 0;
   if (steel && d.hold > 0) {
     ctx.strokeStyle = '#8E2A20'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(d.x - Math.sin(swing) * 600, d.y - 600); ctx.lineTo(d.x, d.y - 8); ctx.stroke();
+    // (the stretch of snapped cable it's swinging on, from where it's still fixed above)
+    const len = Math.max(20, d.y - mainCableY(d.x));
+    ctx.beginPath(); ctx.moveTo(d.x - Math.sin(swing) * len, d.y - len); ctx.lineTo(d.x, d.y - 8); ctx.stroke();
   }
   ctx.save();
   // Wobbling on the sill (or swinging on its cable) first
@@ -516,9 +508,9 @@ const drawLoose = (ctx: Ctx, state: GameState, qk: Quakes) => {
     if (l.gone || l.x < state.camera.x - 60 || l.x > state.camera.x + CANVAS_WIDTH + 60) continue;
     const steel = l.look === 'rivet' || l.look === 'beam';
     if (steel) {
-      // Hanging off a suspender cable by a twist of wire
-      ctx.strokeStyle = '#57534E'; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.moveTo(l.x, l.y - 30); ctx.lineTo(l.x, l.y - 8); ctx.stroke();
+      // Clamped to its suspender cable (the cable runs right through it): a collar and a couple of bolts
+      ctx.fillStyle = '#6E1F17'; ctx.fillRect(l.x - 5, l.y - 16, 10, 5);
+      ctx.fillStyle = '#A8A29E'; ctx.fillRect(l.x - 4, l.y - 15, 2, 2); ctx.fillRect(l.x + 2, l.y - 15, 2, 2);
     } else if (l.look === 'ac') {
       // Its brackets under it
       ctx.strokeStyle = '#52525B'; ctx.lineWidth = 2;

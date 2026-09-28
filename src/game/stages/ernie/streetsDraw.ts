@@ -18,6 +18,26 @@ const PAINT = ['#F4A6B5', '#9FD8CB', '#F7D08A', '#B6A4E0', '#F2B880', '#A8D5F2',
 const TRIM = '#FFFBEB', SHADE = 'rgba(0,0,0,0.18)';
 const lit = (n: number) => (hash(n) > 0.55 ? '#FDE68A' : '#2A2F3A');
 
+/** How tall a lot's building is (not counting a gable); nothing on a park or a cross street. */
+const lotHeight = (kind: Lot['kind'], i: number) => {
+  switch (kind) {
+    case 'victorian': return 330 + Math.floor(hash(i + 1) * 70);
+    case 'shop': return 250 + Math.floor(hash(i + 4) * 30);
+    case 'taqueria': return 240;
+    case 'glass': return 520 + Math.floor(hash(i + 6) * 80);
+    case 'chinatown': return 300 + Math.floor(hash(i + 8) * 50);
+    default: return 0;
+  }
+};
+
+/** The top of the building on the lot next door (for a cross street's walls to meet), or a middling height if there isn't one. */
+const neighborTop = (state: GameState, x: number, fallback: number) => {
+  const n = lotAt(x);
+  if (!n) return fallback - 280;
+  const h = lotHeight(n.kind, n.i);
+  return lotBase(state.groundRuns, n) - (h || 280);
+};
+
 /** Everything along the streets in view (it shakes in a quake: `shake` is how hard). */
 export const drawDistricts = (ctx: Ctx, state: GameState, shake: number) => {
   const S = COURSE.streets;
@@ -61,7 +81,7 @@ export const drawDistricts = (ctx: Ctx, state: GameState, shake: number) => {
 /** A painted lady: garage and stoop, a bay window up two floors, sills with pots, a cornice (and a gable on some). */
 const drawVictorian = (ctx: Ctx, x: number, w: number, base: number, i: number) => {
   const c = PAINT[Math.floor(hash(i) * PAINT.length)];
-  const h = 330 + Math.floor(hash(i + 1) * 70);
+  const h = lotHeight('victorian', i);
   const top = base - h;
   ctx.fillStyle = c; ctx.fillRect(x, top, w, h);
   ctx.fillStyle = SHADE; ctx.fillRect(x + w - 8, top, 8, h);
@@ -101,7 +121,7 @@ const drawVictorian = (ctx: Ctx, x: number, w: number, base: number, i: number) 
 /** Two floors: a shopfront (big window, a striped awning, the sign) and a flat upstairs over it. */
 const drawShop = (ctx: Ctx, x: number, w: number, base: number, lot: Lot) => {
   const c = ['#7C3AED', '#0F766E', '#B45309', '#BE185D', '#1D4ED8', '#4D7C0F'][Math.floor(hash(lot.i + 3) * 6)];
-  const h = 250 + Math.floor(hash(lot.i + 4) * 30), top = base - h;
+  const h = lotHeight(lot.kind, lot.i), top = base - h;
   ctx.fillStyle = c; ctx.fillRect(x, top, w, h);
   ctx.fillStyle = SHADE; ctx.fillRect(x + w - 8, top, 8, h);
   // Parapet
@@ -129,7 +149,7 @@ const drawShop = (ctx: Ctx, x: number, w: number, base: number, lot: Lot) => {
 
 /** A taqueria: bright paint, papel picado strung across the front, a mural down the side. */
 const drawTaqueria = (ctx: Ctx, x: number, w: number, base: number, lot: Lot, f: number) => {
-  const h = 240, top = base - h;
+  const h = lotHeight(lot.kind, lot.i), top = base - h;
   ctx.fillStyle = hash(lot.i) > 0.5 ? '#F59E0B' : '#10B981'; ctx.fillRect(x, top, w, h);
   ctx.fillStyle = SHADE; ctx.fillRect(x + w - 8, top, 8, h);
   // A mural: a big sun and hills and a face
@@ -155,7 +175,7 @@ const drawTaqueria = (ctx: Ctx, x: number, w: number, base: number, lot: Lot, f:
 
 /** A startup's glass box: tall, blue-green curtain wall, the logo up top, a scooter parked out front. */
 const drawGlass = (ctx: Ctx, x: number, w: number, base: number, lot: Lot, f: number) => {
-  const h = 520 + Math.floor(hash(lot.i + 6) * 80), top = base - h;
+  const h = lotHeight(lot.kind, lot.i), top = base - h;
   const g = ctx.createLinearGradient(x, top, x + w, base);
   g.addColorStop(0, '#5EEAD4'); g.addColorStop(0.5, '#0E7490'); g.addColorStop(1, '#164E63');
   ctx.fillStyle = g; ctx.fillRect(x, top, w, h);
@@ -179,7 +199,7 @@ const drawGlass = (ctx: Ctx, x: number, w: number, base: number, lot: Lot, f: nu
 
 /** Chinatown: cream and red, green-tiled eaves, balconies with railings, a vertical sign. */
 const drawChinatown = (ctx: Ctx, x: number, w: number, base: number, lot: Lot) => {
-  const h = 300 + Math.floor(hash(lot.i + 8) * 50), top = base - h;
+  const h = lotHeight(lot.kind, lot.i), top = base - h;
   ctx.fillStyle = hash(lot.i) > 0.5 ? '#FDE68A' : '#FECACA'; ctx.fillRect(x, top, w, h);
   ctx.fillStyle = SHADE; ctx.fillRect(x + w - 8, top, 8, h);
   // Green tiled eaves, turned up at the ends
@@ -228,16 +248,67 @@ const drawPark = (ctx: Ctx, x: number, w: number, state: GameState, lot: Lot) =>
   ctx.fillStyle = '#1C1917'; ctx.fillRect(x + w - 58, g2 - 18, 3, 16); ctx.fillRect(x + w - 25, g2 - 18, 3, 16);
 };
 
-/** A cross street: a gap in the buildings, the street sign, a traffic light going haywire in the quake. */
+type Pt = [number, number];
+const lerpPt = (a: Pt, b: Pt, t: number): Pt => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+const quad = (ctx: Ctx, a: Pt, b: Pt, c: Pt, d: Pt) => { ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c[0], c[1]); ctx.lineTo(d[0], d[1]); ctx.closePath(); ctx.fill(); };
+
+/** How far down the cross street we see (as a share of the way to the vanishing point). */
+const CROSS_DEPTH = 0.62;
+
+/**
+ * A cross street, seen straight down in one-point perspective: the buildings along it either side receding to the
+ * vanishing point up the hill (their windows too), its road and sidewalks running away between them, and the
+ * buildings across its far end. On the near corners, the street sign and a traffic light going haywire in the quake.
+ */
 const drawCross = (ctx: Ctx, x: number, w: number, state: GameState, lot: Lot, f: number) => {
-  const g = groundUnder(state, x + w / 2);
-  // The street going away up the hill behind
-  ctx.fillStyle = '#57534E';
-  ctx.beginPath(); ctx.moveTo(x + 20, g + 2); ctx.lineTo(x + w * 0.4, g - 120); ctx.lineTo(x + w * 0.6, g - 120); ctx.lineTo(x + w - 20, g + 2); ctx.fill();
-  ctx.fillStyle = '#FDE047'; for (let k = 0; k < 5; k++) { const t = k / 5; ctx.fillRect(x + w / 2 - 1, g - 6 - t * 110, 2, 8 - t * 5); }
-  // Houses on up the cross street, small and hazy
-  ctx.fillStyle = 'rgba(75, 61, 90, 0.6)';
-  for (let k = 0; k < 4; k++) ctx.fillRect(x + (k < 2 ? -6 + k * 22 : w - 46 + (k - 2) * 22), g - 170 + k * 8, 20, 60);
+  const gL = groundUnder(state, x + 2), gR = groundUnder(state, x + w - 2);
+  const g = Math.min(gL, gR);
+  // (up the hill, above the rooftops at the far end: San Francisco's cross streets climb)
+  const vp: Pt = [x + w / 2, g - 190];
+  const far = (p: Pt) => lerpPt(p, vp, CROSS_DEPTH);
+  const hue = PAINT[Math.floor(hash(lot.i + 31) * PAINT.length)], hue2 = PAINT[Math.floor(hash(lot.i + 37) * PAINT.length)];
+  // The buildings across the far end (hazy)
+  // (the walls down either side are the side walls of the buildings on the corners: the same height as them)
+  const lb: Pt = [x + 1, gL], lt: Pt = [x + 1, neighborTop(state, x - 2, gL)], rb: Pt = [x + w - 1, gR], rt: Pt = [x + w - 1, neighborTop(state, x + w + 2, gR)];
+  const flb = far(lb), flt = far(lt), frb = far(rb), frt = far(rt);
+  ctx.fillStyle = '#6B5A7A';
+  for (let k = 0; k < 3; k++) {
+    const x0 = flb[0] + (frb[0] - flb[0]) * (k / 3), x1 = flb[0] + (frb[0] - flb[0]) * ((k + 1) / 3);
+    const top = flt[1] + (hash(lot.i * 3 + k) - 0.3) * 30;
+    ctx.fillRect(x0, top, x1 - x0 + 0.5, flb[1] - top);
+    ctx.fillStyle = 'rgba(253, 230, 138, 0.55)';
+    for (let wy = top + 8; wy < flb[1] - 10; wy += 14) for (let wx = x0 + 3; wx < x1 - 4; wx += 8) if (hash(wx * 3 + wy) > 0.55) ctx.fillRect(wx, wy, 3, 5);
+    ctx.fillStyle = k % 2 ? '#5E4E6E' : '#6B5A7A';
+  }
+  // The road running away up the hill, its center line, the sidewalks either side
+  const inset = 16;
+  const rl: Pt = [x + inset, gL], rr: Pt = [x + w - inset, gR];
+  ctx.fillStyle = '#4A494F'; quad(ctx, rl, rr, far(rr), far(rl));
+  ctx.fillStyle = '#A8A29E'; quad(ctx, lb, rl, far(rl), flb); quad(ctx, rr, rb, frb, far(rr));
+  ctx.fillStyle = '#FDE047';
+  const cn: Pt = [x + w / 2, (gL + gR) / 2];
+  for (let k = 0; k < 6; k++) {
+    const t0 = (k + 0.2) / 6 * CROSS_DEPTH, t1 = (k + 0.6) / 6 * CROSS_DEPTH;
+    const a = lerpPt(cn, vp, t0), b = lerpPt(cn, vp, t1);
+    const hw = 1.5 * (1 - t0);
+    quad(ctx, [a[0] - hw, a[1]], [a[0] + hw, a[1]], [b[0] + hw * 0.8, b[1]], [b[0] - hw * 0.8, b[1]]);
+  }
+  // The buildings down either side: walls receding to the far end, windows and all, in shade
+  for (const [base, top, fb, ft, col, side] of [[lb, lt, flb, flt, hue, -1], [rb, rt, frb, frt, hue2, 1]] as [Pt, Pt, Pt, Pt, string, number][]) {
+    ctx.fillStyle = col; quad(ctx, base, top, ft, fb);
+    ctx.fillStyle = side < 0 ? 'rgba(0, 0, 0, 0.32)' : 'rgba(0, 0, 0, 0.45)'; quad(ctx, base, top, ft, fb);
+    // Windows: a grid laid out along the wall (u: how far along it, v: how far up)
+    const at = (u: number, v: number) => lerpPt(lerpPt(base, top, v), lerpPt(fb, ft, v), u);
+    for (let u = 0.08; u < 0.9; u += 0.2) {
+      for (let v = 0.3; v < 0.9; v += 0.22) {
+        ctx.fillStyle = hash(lot.i * 17 + u * 50 + v * 90 + side) > 0.5 ? 'rgba(253, 230, 138, 0.75)' : 'rgba(30, 27, 38, 0.8)';
+        quad(ctx, at(u, v), at(u, v + 0.12), at(u + 0.1, v + 0.12), at(u + 0.1, v));
+      }
+    }
+    // The roofline, and the corner edge nearest us, catching the light
+    ctx.strokeStyle = 'rgba(255, 251, 235, 0.5)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(top[0], top[1]); ctx.lineTo(ft[0], ft[1]); ctx.moveTo(base[0], base[1]); ctx.lineTo(top[0], top[1]); ctx.stroke();
+  }
   // The street sign on its pole
   const px = x + 26;
   ctx.fillStyle = '#6B7280'; ctx.fillRect(px, g - 160, 4, 160);

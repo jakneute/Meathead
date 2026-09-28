@@ -24,6 +24,7 @@ import { profileYAt } from '../../core/terrain';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { COURSE, Fault } from './course';
 import { looseOnStreets } from './streets';
+import { mainCableY } from './bridge';
 
 export type DebrisLook = 'pot' | 'brick' | 'ac' | 'rivet' | 'beam';
 export interface Debris {
@@ -196,7 +197,10 @@ const looseOnBridge = () => {
   for (let x = B.x1 + 250; x < B.exit - 250; x += 200 + Math.floor(((x * 7) % 5)) * 50) {
     const cx = Math.round(x / 50) * 50;
     if (COURSE.spans.some(s => cx > s.x - 60 && cx < s.x + s.w + 60) || B.towers.some(t => Math.abs(cx - t) < 80)) continue;
-    out.push({ x: cx, y: GROUND_Y - 250 - ((cx / 50) % 3) * 30, look: (cx / 50) % 2 ? 'rivet' : 'beam', gone: false });
+    // (clamped to a suspender cable: only where the cable comes down from the main one above it, not out in the open air mid-span)
+    const y = GROUND_Y - 250 - ((cx / 50) % 3) * 30;
+    if (mainCableY(cx) > y - 60) continue;
+    out.push({ x: cx, y, look: (cx / 50) % 2 ? 'rivet' : 'beam', gone: false });
   }
   return out;
 };
