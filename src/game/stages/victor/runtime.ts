@@ -85,6 +85,8 @@ export const updateVictor = (ctx: FrameContext, controls: Controls): Controls =>
       const at = COURSE.checkpoints[CP.RIVER];
       player.pos = { x: at.x, y: at.y - player.height };
       player.vel = { x: 0, y: 0 };
+      // (let go of the club's fixed shot: we're inside now)
+      state.cameraOverride = null;
       state.camera.x = at.x - 250; state.camera.y = at.y - 550;
       state.cameraRestY = at.y - 550;
       applyRegionCamera(state, 'inside');
