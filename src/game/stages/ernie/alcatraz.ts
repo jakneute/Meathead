@@ -82,7 +82,7 @@ const talkOver = (tour: Tour, clock: number, pause: number) => {
  * after the guide's punchline: the tour has a good laugh at the idea before anyone hears him coming.
  */
 export const LAUGH_BEAT = 239;
-const HOLDS = new Map([[124, 14], [189, 14], [LAUGH_BEAT, 80], [DROP_AT - 9, 0], [TOUR_END - 1, 20]]);
+const HOLDS = new Map([[124, 14], [189, 14], [LAUGH_BEAT, 180], [DROP_AT - 9, 0], [TOUR_END - 1, 20]]);
 
 /** The tour's laughing at the guide's joke (the beat before he's heard). */
 export const tourLaughing = (tour: Tour) => tour.phase === 'tour' && tour.t === LAUGH_BEAT && !!tour.talk?.over;

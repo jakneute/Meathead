@@ -15,7 +15,7 @@ import { rectsOverlap, boundsOf } from '../../core/utils';
 import { say, MEATHEAD_VOICE } from '../../platform/speech';
 import { playSound } from '../../platform/audio';
 import { groundLineAt } from '../../core/terrain';
-import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
+import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES } from '../../../constants';
 import { COURSE, CP, SkiObstacle } from './course';
 
 type SkiPhase = 'waiting' | 'cutscene' | 'skiing' | 'runout' | 'finale' | 'done';
@@ -147,7 +147,7 @@ const cutscene = (ctx: FrameContext, ski: Ski): Controls => {
   if (t === 138) {
     // The kick
     player.facing = 1;
-    player.kickPose = 16;
+    player.kickPose = KICK_POSE_FRAMES;
     ski.skier.state = 'flying'; ski.skier.vx = 11; ski.skier.vy = -9;
     ski.skis = { x: ski.skier.x, y: ski.skier.y - 10, vx: -2.2, vy: -11, rot: 0 };
     skierSays(ski, 'AAAAAAAAAAHHHHH');

@@ -25,7 +25,7 @@ import { makeKindEnemy } from '../../enemies/kinds';
 import { JETSKI_CRUISE } from '../../enemies/kinds/ernie';
 import { hurtPlayer } from '../../bosses/shared';
 import { rectsOverlap, boundsOf } from '../../core/utils';
-import { GROUND_Y, CANVAS_WIDTH } from '../../../constants';
+import { GROUND_Y, CANVAS_WIDTH, KICK_POSE_FRAMES } from '../../../constants';
 import { COURSE, CP } from './course';
 
 export type SkiPhase = 'waiting' | 'theft' | 'riding' | 'launch' | 'gone';
@@ -67,13 +67,13 @@ const WRECK_DAMAGE = 8;
 const HIPSTER_VOICE: Voice = { pitch: 1.4, rate: 1.1 };
 
 /** What comes at you, when (frames into the run), and from where. */
-type Wave = { at: number; kind: EnemyKind; from: 'behind' | 'ahead' | 'air'; variant?: number; hint?: string };
+type Wave = { at: number; kind: EnemyKind; from: 'behind' | 'ahead' | 'air'; variant?: number };
 const TIMELINE: Wave[] = [
   { at: 150, kind: 'seagull', from: 'air' },
-  { at: 260, kind: 'jetskier', from: 'behind', variant: 0, hint: 'HOLD LEFT: TURN AND SHOOT BEHIND' },
-  { at: 700, kind: 'jetskier', from: 'ahead', variant: 1, hint: 'SPECIAL: WHEELIE! RAM HIM' },
-  { at: 1150, kind: 'drone', from: 'air', hint: 'UP + SPECIAL: LEAP OUT OF THE WATER' },
-  { at: 1600, kind: 'jetskier', from: 'behind', variant: 0, hint: 'JUMP, THEN DOWN + SPECIAL: CRUSH HIM' },
+  { at: 260, kind: 'jetskier', from: 'behind', variant: 0 },
+  { at: 700, kind: 'jetskier', from: 'ahead', variant: 1 },
+  { at: 1150, kind: 'drone', from: 'air' },
+  { at: 1600, kind: 'jetskier', from: 'behind', variant: 0 },
   { at: 1950, kind: 'seagull', from: 'air' },
   { at: 2150, kind: 'jetskier', from: 'ahead', variant: 1 },
   { at: 2450, kind: 'drone', from: 'air' },
@@ -179,7 +179,7 @@ const theft = (ctx: FrameContext, js: JetSki): Controls => {
     case 2: if (talkOver(js) && since > 30) { talk(js, 'meathead', "I'VE HEARD OF IT NOW."); next(); } break;
     case 3:
       if (talkOver(js) && since > 25) {
-        p.kickPose = 16;
+        p.kickPose = KICK_POSE_FRAMES;
         const h = js.hipster;
         h.state = 'flying'; h.vx = 10; h.vy = -13;
         talk(js, 'hipster', 'MY KOMBUCHAAAAAAA');
@@ -242,6 +242,7 @@ const riding = (ctx: FrameContext, js: JetSki, controls: Controls): Controls => 
   // ...and anything left far behind is gone (it gave up)
   state.enemies = state.enemies.filter(e => e.type === 'boss' || (e.pos.x > state.camera.x - 500 && e.pos.x < state.camera.x + 1700));
   spawnWaves(state, js);
+  teach(state, js);
   updateWrecks(ctx, js);
   // Splashing along
   if (p.isGrounded && state.frame % 2 === 0) state.particles.push({ pos: { x: p.pos.x + 2, y: GROUND_Y - 4 }, vel: { x: -2 - Math.random() * 3, y: -Math.random() * 3 }, life: 18, color: Math.random() < 0.5 ? '#E0F2FE' : '#BAE6FD', size: 3 + Math.random() * 4 });
@@ -263,6 +264,24 @@ const riding = (ctx: FrameContext, js: JetSki, controls: Controls): Controls => 
 
 const hint = (js: JetSki, text: string) => { if (js.hinted.has(text)) return; js.hinted.add(text); js.hint = text; js.hintT = 1; };
 
+/**
+ * Each control's hint comes up the first time it's the thing to do, one at a time: turning to shoot back when
+ * a jet ski's sat behind you in view, the wheelie when one ahead brake-checks you, the leap when a drone's hanging
+ * right over you, the dive when a chaser pulls alongside to ram.
+ */
+const teach = (state: GameState, js: JetSki) => {
+  if (js.hintT > 0) return;
+  const p = state.player;
+  const px = p.pos.x + p.width / 2;
+  const cam = state.camera;
+  const live = state.enemies.filter(e => e.health > 0 && !e.isBlownAway && e.pos.x + e.width > cam.x + 20 && e.pos.x < cam.x + CANVAS_WIDTH - 20);
+  const mx = (e: Enemy) => e.pos.x + e.width / 2;
+  if (live.some(e => e.kind === 'jetskier' && e.variant !== 1 && e.aiState === 'hold' && mx(e) < px - 120 && mx(e) > cam.x + 60)) hint(js, 'HOLD LEFT: TURN AND SHOOT BEHIND');
+  else if (live.some(e => e.kind === 'jetskier' && e.variant === 1 && (e.aiState === 'brake' || (mx(e) > px && mx(e) < cam.x + CANVAS_WIDTH - 60)))) hint(js, 'SPECIAL: WHEELIE! RAM HIM');
+  else if (live.some(e => e.kind === 'drone' && Math.abs(mx(e) - px) < 100 && e.pos.y < p.pos.y)) hint(js, 'UP + SPECIAL: LEAP OUT OF THE WATER');
+  else if (live.some(e => e.kind === 'jetskier' && e.aiState === 'ram' && Math.abs(mx(e) - px) < 110)) hint(js, 'JUMP, THEN DOWN + SPECIAL: CRUSH HIM');
+};
+
 const spawnWaves = (state: GameState, js: JetSki) => {
   const p = state.player;
   while (js.spawned < TIMELINE.length && TIMELINE[js.spawned].at <= js.t) {
@@ -280,7 +299,6 @@ const spawnWaves = (state: GameState, js: JetSki) => {
       e.shootTimer = 40;
     }
     state.enemies.push(e);
-    if (w.hint) hint(js, w.hint);
   }
 };
 

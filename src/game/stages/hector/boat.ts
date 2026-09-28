@@ -12,6 +12,7 @@ import { shakeScreen } from '../../core/state';
 import { playSound } from '../../platform/audio';
 import { say, MEATHEAD_VOICE } from '../../platform/speech';
 import { COURSE, CP } from './course';
+import { KICK_POSE_FRAMES } from '../../../constants';
 
 type BoatPhase = 'waiting' | 'cutscene' | 'riding' | 'spout' | 'gone';
 
@@ -98,7 +99,7 @@ const cutscene = (ctx: FrameContext, b: Boat): Controls => {
   if (t === 230) {
     // Up and over, into the drink
     player.facing = 1;
-    player.kickPose = 16;
+    player.kickPose = KICK_POSE_FRAMES;
     b.oldMan.state = 'flying'; b.oldMan.vx = 5; b.oldMan.vy = -11;
     oldManSays(b, 'WHOOAAA!');
     ctx.fx.playGunSound('tsunami');

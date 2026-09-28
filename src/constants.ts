@@ -104,6 +104,8 @@ export const SWIM_SPEED_MULT = 0.6;
 /** On skis (Artie's avalanche run) he jumps much higher and hangs longer, to clear what's coming at speed. */
 export const SKI_JUMP_SPEED_MULT = 1.3;
 export const SKI_JUMP_HOLD_MULT = 1.5;
+/** How long his standing kick lasts (booting the skier, the fisherman, the hipster off what he's taking). */
+export const KICK_POSE_FRAMES = 24;
 export const COYOTE_AIR_FRAMES = 7;             // hang time before gravity kicks in off a ledge
 export const COYOTE_JUMP_FRAMES = 7;            // grace period to still jump after leaving the ground
 export const JUMP_BUFFER_FRAMES = 5;

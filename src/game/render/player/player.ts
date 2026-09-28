@@ -2,7 +2,8 @@ import { Player, WeaponType } from '../../../types';
 import { BOULDER_THROW_FRAMES, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
 import { SLIDE_HOLD } from '../../combat/muzzle';
-import { drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive } from './moves';
+import { drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive, drawStandingKick } from './moves';
+import { KICK_POSE_FRAMES } from '../../../constants';
 import { GameState } from '../../core/state';
 import { beginSprite, endSprite } from './spriteOutline';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawTorsoBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
@@ -127,7 +128,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const movePose = hurtT >= 0 ? null
     // (on the jet ski they're the ski's moves: a wheelie, a leap out of the water, a nose-first dive)
     : p.jetski ? (isCharging ? drawJetskiWheelie : isUppercutting ? drawJetskiLeap : isDivekicking ? drawJetskiDive : null)
-    : isCharging ? (p.swimming ? drawSwimCharge : drawShoulderCharge) : isUppercutting ? drawUppercut : (isDivekicking || (p.kickPose || 0) > 0) ? drawDivekick : null;
+    // (booting somebody off his skis, boat or jet ski: a big standing front kick)
+    : (p.kickPose || 0) > 0 && !isDivekicking ? (c: CanvasRenderingContext2D, fr: number) => drawStandingKick(c, fr, 1 - (p.kickPose || 0) / KICK_POSE_FRAMES)
+    : isCharging ? (p.swimming ? drawSwimCharge : drawShoulderCharge) : isUppercutting ? drawUppercut : isDivekicking ? drawDivekick : null;
   if (movePose) {
     movePose(ctx, animFrame);
     finishBody();

@@ -236,6 +236,44 @@ export const drawJetskiDive = (ctx: Ctx, frame: number) => {
 };
 
 // ---------------------------------------------------------------------------
+// The standing kick (booting somebody off whatever he's about to steal)
+// ---------------------------------------------------------------------------
+
+/**
+ * A big front kick from a standing start: the knee comes up, then the leg shoots out straight, boot sole first,
+ * leaning way back on the planted leg, one arm flung back for balance. `k` runs 0..1 through it.
+ */
+export const drawStandingKick = (ctx: Ctx, frame: number, k: number) => {
+  frameNow = frame;
+  const out = Math.min(1, Math.max(0, (k - 0.2) / 0.2));
+  const lean = -0.1 - out * 0.3;
+  // Planted leg, knee soft
+  leg(ctx, [-4, -26], [-7, -13], [-8, 0], 0, true);
+  // Kicking leg: chambered, then driven straight out
+  const knee: [number, number] = [16 + out * 6, -36 + out * 6];
+  const foot: [number, number] = [14 + out * 26, -20 - out * 12];
+  leg(ctx, [5, -26], knee, foot, -0.4 - out * 1.1, false);
+  // Impact lines off the sole as it lands
+  if (out > 0.6 && k < 0.8) {
+    ctx.strokeStyle = 'rgba(253, 224, 71, 0.9)'; ctx.lineWidth = 2;
+    for (let s = 0; s < 5; s++) {
+      const a = -0.9 + s * 0.45, r0 = 10, r1 = 20 + (s % 2) * 6;
+      ctx.beginPath(); ctx.moveTo(foot[0] + 12 + Math.cos(a) * r0, foot[1] + Math.sin(a) * r0); ctx.lineTo(foot[0] + 12 + Math.cos(a) * r1, foot[1] + Math.sin(a) * r1); ctx.stroke();
+    }
+  }
+  ctx.save();
+  ctx.translate(-4, -26);
+  ctx.rotate(lean);
+  // Back arm flung out behind for balance
+  arm(ctx, [-9, -22], [-20, -30 + out * 4], [-30, -24 + out * 6], true);
+  torso(ctx);
+  ctx.save(); ctx.translate(2, -37); ctx.rotate(-0.1); head(ctx, 0, 0, out > 0.3 ? 'roar' : 'grit'); ctx.restore();
+  // Front arm: fist cocked tight at the chest
+  arm(ctx, [11, -22], [18, -12], [8, -14], false);
+  ctx.restore();
+};
+
+// ---------------------------------------------------------------------------
 // Shoulder charge
 // ---------------------------------------------------------------------------
 
