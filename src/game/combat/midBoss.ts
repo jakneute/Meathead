@@ -24,8 +24,15 @@ export const MIDBOSS_DAMAGE: Record<WeaponType, number> = {
 export const MIDBOSS_SPLASH_DAMAGE = 80;
 /** What a nearby oiled goon going up takes out of a mid-boss (it's a big blast, but no instant kill). */
 export const MIDBOSS_NUKE_DAMAGE = 250;
-/** The doorman: he takes this share of everything (bullet resistant, fire resistant, the lot). */
+/** The doorman: he takes this share of everything (fire resistant, blast resistant, the lot)... */
 export const DOORMAN_RESIST = 0.12;
+/** ...and next to nothing from bullets (the gun, shotgun pellets, darts): they just bounce off him. */
+export const DOORMAN_BULLET_RESIST = 0.04;
+/** The share of a shot the doorman takes. */
+export const doormanShare = (p: Projectile) => {
+  const w = weaponOf(p);
+  return w === 'GUN' || w === 'SHOTGUN' || w === 'NEEDLES' ? DOORMAN_BULLET_RESIST : DOORMAN_RESIST;
+};
 
 /** Which weapon a projectile came out of. */
 export const weaponOf = (p: Projectile): WeaponType =>

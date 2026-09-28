@@ -33,7 +33,20 @@ export const ZOOM_OUT = 80, BLAST_AT = 125, SCREAM_AT = 150, ZOOM_IN_AT = 280, W
 /** Back in the lounge afterwards: up out of the black. */
 export const FADE_IN = 40;
 
-export const createLounge = (startedAt: number): Lounge => ({ phase: startedAt >= CP.LOUNGE ? 'wrecked' : 'party', t: FADE_IN, line: '', lineT: 0 });
+/** How long after it's faded back up (and he's back in control) before he says it. */
+const AFTERMATH_LINE_DELAY = 35;
+/** What he's got to say about the VIP lounge once the smoke clears. */
+const AFTERMATH_LINES = [
+  "NOW THAT'S WHAT I CALL AN AFTER-PARTY.",
+  "GUEST LIST'S A LOT SHORTER NOW.",
+  "BOTTLE SERVICE? ANYONE? ...ANYONE?",
+  "SORRY. I THOUGHT IT WAS A MOSH PIT.",
+  "THEY SAID THIS PLACE WAS TO DIE FOR.",
+  "FIVE STARS. VERY EXCLUSIVE NOW.",
+];
+
+// (coming back to it after a death it's already been said: no fade, no line)
+export const createLounge = (startedAt: number): Lounge => ({ phase: startedAt >= CP.LOUNGE ? 'wrecked' : 'party', t: FADE_IN + AFTERMATH_LINE_DELAY, line: '', lineT: 0 });
 
 /** He's at the window: in he goes. */
 export const startCrash = (state: GameState, lg: Lounge) => {
@@ -68,7 +81,21 @@ export const updateLounge = (ctx: FrameContext, lg: Lounge, controls: Controls):
   const p = state.player;
   if (lg.lineT > 0) lg.lineT--;
   if (lg.phase === 'party') return controls;
-  if (lg.phase === 'wrecked') { if (lg.t < FADE_IN) lg.t++; return controls; }
+  if (lg.phase === 'wrecked') {
+    if (lg.t < FADE_IN + AFTERMATH_LINE_DELAY) {
+      lg.t++;
+      // Up out of the black onto what's left of the VIP lounge, back in control, a beat to take it in: his review
+      if (lg.t === FADE_IN + AFTERMATH_LINE_DELAY) {
+        const text = AFTERMATH_LINES[Math.floor(Math.random() * AFTERMATH_LINES.length)];
+        const shown = say(text, MEATHEAD_VOICE, 'urgent', {
+          onShow: spoken => { state.playerLastVulgarity = text; state.playerVulgarityTimer = spoken ? 9999 : 170; },
+          onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 30); },
+        });
+        if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 170; }
+      }
+    }
+    return controls;
+  }
   lg.t++;
   p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
   const L = COURSE.lounge;

@@ -26,7 +26,7 @@ import { rectsOverlap, boundsOf } from '../../core/utils';
 import { hurtPlayer } from '../../bosses/shared';
 import { playSound } from '../../platform/audio';
 import { say, isSpeaking, Voice, MEATHEAD_VOICE } from '../../platform/speech';
-import { midBossProjectileDamage, DOORMAN_RESIST } from '../../combat/midBoss';
+import { midBossProjectileDamage, doormanShare } from '../../combat/midBoss';
 import { KIND_STATS } from '../../enemies/kinds';
 import { COURSE, CP } from './course';
 
@@ -222,7 +222,7 @@ const CLASH_WIN = 170, SCRATCH = 12;
 const HIT_CHARGE = 16, HIT_SLIDE = 14, HIT_UPPERCUT = 20, CLASH_LOSE = 24, SHOVE = 5;
 /** On top, for meeting one of his moves with the wrong one of yours. */
 const WRECK_EXTRA = 8;
-/** Once he's down he's more open (the usual share's DOORMAN_RESIST: see combat/midBoss.ts). */
+/** Once he's down he's more open (the usual share: doormanShare in combat/midBoss.ts). */
 const BULLET_SCALE_DOWN = 0.4;
 
 export const isAttacking = (m: Enemy) => m.aiState === 'charge' || m.aiState === 'slide' || m.aiState === 'uppercut';
@@ -396,7 +396,8 @@ const HEATED: Record<HintKind, string[]> = {
 const FOURTH_WALL: string[][] = [
   ["HEY. YOU. YEAH, YOU, WITH THE PLASTIC DOOHICKEY.", "HE CHARGES? I CHARGE. HE SLIDES? I SLIDE. SAME MOVE!", "THEN WE LOCK UP AND YOU MASH WHATEVER THAT THING HAS ON IT!"],
   ["OKAY, PLAYER. I'M DONE BEING SUBTLE.", "WHATEVER YOU'RE CLICKING, TAPPING OR SMACKING OVER THERE...", "MAKE ME DO WHAT HE DOES, WHEN HE DOES IT! NOT A JUMP!"],
-  ["I CAN SEE YOU THROUGH THE SCREEN, CHAMP.", "SHOULDER FOR SHOULDER! LEGS FOR LEGS! THEN MASH EVERYTHING!", "IF THAT'S A TOASTER YOU'RE HOLDING, GET A REAL CONTROLLER!"],
+  // (the last of them: it's dawned on him)
+  ["I CAN SEE YOU THROUGH THE SCREEN, CHAMP.", "SHOULDER FOR SHOULDER! LEGS FOR LEGS! THEN MASH EVERYTHING!", "...WAIT. YOU'RE DOING THIS ON PURPOSE. JUST TO WATCH ME SUFFER."],
 ];
 /** How many smacks (or dodges) before the first hint, and between the ones after; the wait after a hit (the ow comes first). */
 const SMACKS_FIRST = 2, SMACKS_EVERY = 2, DODGES_FIRST = 2, DODGES_EVERY = 2, HINT_DELAY = 70;
@@ -762,7 +763,7 @@ const endClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, won: boolean
 export const hitDoorman = (ctx: FrameContext, m: Enemy, p: Projectile, fight: DoormanFight): boolean => {
   if (fight.phase !== 'fight' || fight.clash || m.aiState === 'launched' || m.aiState === 'spun') return true;
   // (he's built like a vault: a small slice of whatever it is)
-  const dmg = midBossProjectileDamage(p) * (m.aiState === 'tripped' ? BULLET_SCALE_DOWN : DOORMAN_RESIST);
+  const dmg = midBossProjectileDamage(p) * (m.aiState === 'tripped' ? BULLET_SCALE_DOWN : doormanShare(p));
   if (dmg <= 0) return true;
   m.health -= dmg;
   m.hitFlash = 4;
