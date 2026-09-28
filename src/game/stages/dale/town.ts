@@ -6,7 +6,8 @@
 // The third hitman's up the chapel's bell tower with a rifle: a crosshair drifts
 // after Meathead all the way up the street, and every so often it stops, goes
 // red, and fires where it stopped. Standing there (or anywhere along the laser
-// between it and the tower, out in the open), it's a big hit. Under a porch
+// between it and the tower, out in the open), it's a big hit, unless there's a
+// goon in the way: the first thing along the laser takes the round, and only that. Under a porch
 // roof, he can't see you (the round goes into the roof). The porch roofs are
 // springy, too: land on one and it throws you up onto the rooftops.
 //
@@ -276,35 +277,30 @@ const updateSniper = (ctx: FrameContext, town: Town, talk: Talk) => {
     if (s.state === 'track' && s.t > TRACK && !p.inCutscene && state.deathTimer <= 0) { s.state = 'lock'; s.t = 0; playSound('taser'); }
   } else if (s.state === 'lock') {
     if (s.t >= LOCK) {
-      // Fire, where it stopped
+      // Fire: the first thing along the laser takes it (him, or a goon in the way), and only that
       s.state = 'cool'; s.t = 0; s.shots++;
-      const box = { x: p.pos.x, y: p.pos.y, w: p.width, h: p.height };
-      const covered = underCover(box);
-      // (in the crosshair, or anywhere along the laser between it and the tower)
-      const hit = !covered && (Math.hypot(px - s.x, py - s.y) < SIGHT_R + p.width / 2 || onTheLine(s, box));
-      s.lastShot = { x: s.x, y: s.y, t: state.frame, covered: covered && Math.abs(px - s.x) < 80 };
+      const hit = firstHit(state, s);
+      s.lastShot = { x: hit.x, y: hit.y, t: state.frame, covered: hit.kind === 'roof' };
       playSniperShot(); shakeScreen(state, 18, 12);
       // The muzzle blast up the tower
       const m = muzzle();
       for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: m.x, y: m.y }, vel: { x: -Math.random() * 7, y: (Math.random() - 0.5) * 4 }, life: 30 + Math.random() * 20, color: i % 3 ? '#57534E' : '#FDE68A', size: 5 + Math.random() * 7 });
-      if (s.lastShot.covered) {
+      if (hit.kind === 'roof') {
         // Into the porch roof
-        const a = COURSE.awnings.find(w => px > w.x && px < w.x + w.w);
-        if (a) { s.lastShot.y = a.y; for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: s.x, y: a.y }, vel: { x: (Math.random() - 0.5) * 6, y: -Math.random() * 4 }, life: 26, color: i % 2 ? '#92400E' : '#D6B98C', size: 2 + Math.random() * 3 }); }
-      } else {
+        for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: hit.x, y: hit.y }, vel: { x: (Math.random() - 0.5) * 6, y: -Math.random() * 4 }, life: 26, color: i % 2 ? '#92400E' : '#D6B98C', size: 2 + Math.random() * 3 });
+      } else if (hit.kind === 'ground') {
         // Where it went in: a geyser of dirt and splinters off whatever's there
-        for (let i = 0; i < 26; i++) state.particles.push({ pos: { x: s.x, y: s.y }, vel: { x: (Math.random() - 0.5) * 12, y: -Math.random() * 11 }, life: 26 + Math.random() * 16, color: i % 4 ? '#D6B98C' : '#FDE68A', size: 3 + Math.random() * 6 });
-      }
-      if (hit && p.invincibilityTimer <= 0) {
-        hurtPlayer(ctx, SNIPE_DAMAGE, 'sniper', { x: (px < s.x ? -1 : 1) * 9, y: -10 }, 30);
-        fx.spawnDeathShower({ x: px, y: py }, px < muzzle().x ? -1 : 1, 1.4);
-        shakeScreen(state, 26, 16);
-      }
-      // Anything else standing there takes it too (a goon, a tourist)
-      for (const e of state.enemies) {
-        if (e.health <= 0 || e.isBlownAway || e.type === 'boss') continue;
-        if (Math.hypot(e.pos.x + e.width / 2 - s.x, e.pos.y + e.height / 2 - s.y) > SIGHT_R + e.width / 2) continue;
-        e.health = 0; fx.blowAwayEnemy(e, { x: 0, y: -8 }, 'gun_kill', 0, 1);
+        for (let i = 0; i < 26; i++) state.particles.push({ pos: { x: hit.x, y: hit.y }, vel: { x: (Math.random() - 0.5) * 12, y: -Math.random() * 11 }, life: 26 + Math.random() * 16, color: i % 4 ? '#D6B98C' : '#FDE68A', size: 3 + Math.random() * 6 });
+      } else if (hit.kind === 'player') {
+        if (p.invincibilityTimer <= 0) {
+          hurtPlayer(ctx, SNIPE_DAMAGE, 'sniper', { x: (px < m.x ? -1 : 1) * 9, y: -10 }, 30);
+          fx.spawnDeathShower({ x: px, y: py }, px < m.x ? -1 : 1, 1.4);
+          shakeScreen(state, 26, 16);
+        }
+      } else if (hit.enemy) {
+        // A goon in the way: him instead
+        const e = hit.enemy;
+        e.health = 0; fx.blowAwayEnemy(e, { x: (e.pos.x < m.x ? -1 : 1) * 6, y: -8 }, 'gun_kill', 0, 1.4);
         fx.spawnDamageNumber({ x: e.pos.x - 20, y: e.pos.y - 30 }, 'FRIENDLY FIRE!', true, '#FACC15');
       }
       scatterTourists(town, s.x);
@@ -319,15 +315,35 @@ export const muzzle = () => ({ x: ninjaSpot().x - 50, y: ninjaSpot().y - 22 });
 /** Where the laser (and the round) stops: the crosshair. It goes no further than that. */
 export const laserEnd = (s: { x: number; y: number }) => ({ x: s.x, y: s.y });
 
-/** Is any of him along the laser (the round's path, from the tower to the crosshair)? */
-const onTheLine = (s: { x: number; y: number }, box: { x: number; y: number; w: number; h: number }) => {
-  const m = muzzle(), end = laserEnd(s);
-  const n = Math.ceil(Math.hypot(end.x - m.x, end.y - m.y) / 6);
-  for (let i = 0; i <= n; i++) {
-    const x = m.x + ((end.x - m.x) * i) / n, y = m.y + ((end.y - m.y) * i) / n;
-    if (x > box.x + 4 && x < box.x + box.w - 4 && y > box.y + 4 && y < box.y + box.h) return true;
+/**
+ * What the round hits: the first thing along the laser from the tower (him, or a goon in the way), or,
+ * if it gets all the way to the crosshair, whatever's in the crosshair (him first), or the ground there. (Under a porch
+ * roof, he's out of it: the round goes into the roof over him.)
+ */
+const firstHit = (state: GameState, s: { x: number; y: number }): { kind: 'roof' | 'player' | 'enemy' | 'ground'; x: number; y: number; enemy?: Enemy } => {
+  const p = state.player;
+  const m = muzzle();
+  const covered = underCover({ x: p.pos.x, y: p.pos.y, w: p.width });
+  const me = { x: p.pos.x + 4, y: p.pos.y + 4, w: p.width - 8, h: p.height - 4 };
+  const goons = state.enemies.filter(e => e.health > 0 && !e.isBlownAway && e.type !== 'boss');
+  const inside = (x: number, y: number, b: { x: number; y: number; w: number; h: number }) => x > b.x && x < b.x + b.w && y > b.y && y < b.y + b.h;
+  const n = Math.max(1, Math.ceil(Math.hypot(s.x - m.x, s.y - m.y) / 5));
+  for (let i = 1; i <= n; i++) {
+    const x = m.x + ((s.x - m.x) * i) / n, y = m.y + ((s.y - m.y) * i) / n;
+    if (!covered && inside(x, y, me)) return { kind: 'player', x, y };
+    const e = goons.find(g => inside(x, y, boundsOf(g)));
+    if (e) return { kind: 'enemy', x, y, enemy: e };
   }
-  return false;
+  // All the way to the crosshair: whatever's in it
+  const px = p.pos.x + p.width / 2, py = p.pos.y + p.height / 2;
+  if (Math.hypot(px - s.x, py - s.y) < SIGHT_R + p.width / 2) {
+    if (!covered) return { kind: 'player', x: s.x, y: s.y };
+    const a = COURSE.awnings.find(w => px > w.x && px < w.x + w.w);
+    if (a) return { kind: 'roof', x: s.x, y: a.y };
+  }
+  const e = goons.find(g => Math.hypot(g.pos.x + g.width / 2 - s.x, g.pos.y + g.height / 2 - s.y) < SIGHT_R + g.width / 2);
+  if (e) return { kind: 'enemy', x: s.x, y: s.y, enemy: e };
+  return { kind: 'ground', x: s.x, y: s.y };
 };
 
 /** Shots near the tourists: they run for it (away from it). */
