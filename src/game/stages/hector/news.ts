@@ -72,7 +72,7 @@ export const updateNews = (ctx: FrameContext, n: News, controls: Controls, onOve
   if (skip) cancelSpeech();
   if (n.line + 1 < LINES.length) { sayLine(n, n.line + 1); return; }
   n.done = true;
-  n.staticT = 18;
+  n.staticT = 12;
   onOver();
 };
 
@@ -83,7 +83,7 @@ export const updateNews = (ctx: FrameContext, n: News, controls: Controls, onOve
 const hash = (i: number) => { const s = Math.sin(i * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 
 export const drawNews = (ctx: Ctx, state: GameState, n: News) => {
-  if (n.staticT > 0) drawStatic(ctx, state.frame, n.staticT / 18);
+  if (n.staticT > 0) drawStatic(ctx, state.frame, n.staticT / 12);
   if (!newsOn(n)) return;
   const W = CANVAS_WIDTH, H = CANVAS_HEIGHT, f = n.t;
   ctx.save();
