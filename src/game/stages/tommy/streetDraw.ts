@@ -452,7 +452,7 @@ export const drawTumble = (ctx: Ctx, state: GameState, rt: TommyRuntime, drawBod
 };
 
 /**
- * Over every car up ahead (the wrecks in the road, the lowriders out in front): a big green RAMP sign with an arrow
+ * Over every parked car up ahead (the wrecks in the road; the lowriders can't be ramped): a big green RAMP sign with an arrow
  * bouncing on it, like the ramps' own sign: boost into one, or come down on one off a ramp, and it sends him up again.
  * It jumps about harder while he's up in the air off a ramp (somewhere to land).
  */
@@ -465,10 +465,6 @@ export const drawCarRampSigns = (ctx: Ctx, state: GameState, b: BikeRun) => {
     if (j.look !== 'car' || b.done.has(i) || j.x < px - 20 || j.x > state.camera.x + CANVAS_WIDTH + 60) return;
     spots.push({ x: j.x, y: junkBox(state, j).y });
   });
-  for (const e of state.enemies) {
-    if (e.kind !== 'lowrider' || e.health <= 0 || e.aiState === 'lost' || e.aiState === 'overtake' || e.pos.x + e.width < px - 20) continue;
-    spots.push({ x: e.pos.x + e.width / 2, y: e.pos.y });
-  }
   const eager = b.rampAir && !p.isGrounded;
   for (const s of spots) {
     const bob = Math.abs(Math.sin(state.frame * (eager ? 0.3 : 0.15) + s.x * 0.01)) * (eager ? 14 : 7);

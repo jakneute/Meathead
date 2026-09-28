@@ -231,8 +231,6 @@ const riding = (ctx: FrameContext, b: BikeRun, talk: Talk, controls: Controls): 
   if (p.isCharging) b.boostAt = state.frame;
   spawnWaves(state, b);
   if (p.isGrounded) b.rampAir = false;
-  launchOverCars(ctx, b);
-  landOnCars(ctx, b);
   junk(ctx, b);
   teach(state, b);
   banter(state, b, talk);
@@ -344,16 +342,6 @@ const launch = (ctx: FrameContext, b: BikeRun, vy: number, callout: string) => {
   shakeScreen(state, 10, 4); playSound('horn');
 };
 
-/** Boosting into the back of a lowrider out in front: up and over it, no harm done either way. */
-const launchOverCars = (ctx: FrameContext, b: BikeRun) => {
-  const { state } = ctx;
-  const p = state.player;
-  if (!boosting(state, b) || !(p.isGrounded || p.vel.y >= 0)) return;
-  const front = p.pos.x + p.width;
-  const car = state.enemies.find(e => e.kind === 'lowrider' && e.health > 0 && e.aiState !== 'overtake' && e.aiState !== 'lost' && e.pos.x - front < 24 && e.pos.x + e.width > p.pos.x && p.pos.y + p.height > e.pos.y);
-  if (car) launch(ctx, b, -17, 'OVER IT!');
-};
-
 /** Off a ramp: up and away, faster than the cars out in front shooting at him (they're left behind, out of it). */
 const rampAway = (ctx: FrameContext, b: BikeRun) => {
   const { state, fx } = ctx;
@@ -363,19 +351,6 @@ const rampAway = (ctx: FrameContext, b: BikeRun) => {
     e.aiState = 'lost'; e.aiTimer = 0;
     fx.spawnDamageNumber({ x: e.pos.x + 20, y: e.pos.y - 30 }, 'LEFT BEHIND!', true, '#FDE047');
   }
-};
-
-/** Coming down on a car (a lowrider, not the wrecks: the junk sees to those) off a ramp: off its roof and up again. */
-const landOnCars = (ctx: FrameContext, b: BikeRun) => {
-  const { state } = ctx;
-  const p = state.player;
-  if (!b.rampAir || p.isGrounded || p.vel.y <= 0) return;
-  const feet = p.pos.y + p.height;
-  const car = state.enemies.find(e => e.kind === 'lowrider' && e.health > 0 && p.pos.x + p.width > e.pos.x && p.pos.x < e.pos.x + e.width && feet > e.pos.y - 6 && feet < e.pos.y + 30);
-  if (!car) return;
-  launch(ctx, b, -17.5, 'AGAIN!');
-  for (let k = 0; k < 10; k++) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: car.pos.y }, vel: { x: (Math.random() - 0.5) * 6, y: -Math.random() * 4 }, life: 22, color: k % 2 ? '#FDE047' : '#93C5FD', size: 3 + Math.random() * 3 });
-  rampAway(ctx, b);
 };
 
 const smash = (state: GameState, j: RoadJunk, box: { x: number; y: number; w: number; h: number }) => {
@@ -408,10 +383,10 @@ const teach = (state: GameState, b: BikeRun) => {
   const ahead = COURSE.junk.find((j, i) => !b.done.has(i) && j.x > px && j.x < px + 420);
   if (state.enemies.some(e => e.kind === 'lowrider' && e.aiState === 'overtake' && e.pos.x + e.width > px - 500 && e.pos.x < px)) hint(b, 'CAR COMING UP BEHIND YOU: JUMP IT!');
   else if (live.some(e => e.kind === 'pitbull' && e.pos.x + e.width < px - 60)) hint(b, 'DOGS! EASE OFF TO TURN AROUND AND SHOOT BEHIND YOU');
-  else if (b.rampAir && !p.isGrounded && (ahead?.look === 'car' || live.some(e => e.kind === 'lowrider' && e.aiState !== 'lost' && e.pos.x > px))) hint(b, 'COME DOWN ON A CAR TO RAMP OFF IT AGAIN');
+  else if (b.rampAir && !p.isGrounded && ahead?.look === 'car') hint(b, 'COME DOWN ON A PARKED CAR TO RAMP OFF IT AGAIN');
   else if (ahead?.look === 'ramp') hint(b, 'WHEELIE INTO THE RAMP FOR A SICK JUMP');
   else if (ahead?.look === 'trash' || ahead?.look === 'barrier') hint(b, 'WHEELIE THROUGH IT, OR JUMP IT');
-  else if (ahead?.look === 'car') hint(b, 'A CAR: WHEELIE INTO IT TO RAMP OFF IT, OR JUMP IT');
+  else if (ahead?.look === 'car') hint(b, 'A PARKED CAR: WHEELIE INTO IT TO RAMP OFF IT, OR JUMP IT');
 };
 
 // ---------------------------------------------------------------------------
