@@ -106,7 +106,12 @@ export const updateGenerator = (ctx: FrameContext, e: Enemy, pw: PowerRoom): boo
     return true;
   }
   if (e.health < GEN_HP) { g.hitAt = state.frame; e.health = GEN_HP; }
-  if (state.frame - g.hitAt < UNDER_FIRE) {
+  // Only one at a time takes it (something that hits them all at once, a wave, a blast, only drains the one
+  // nearest him)
+  const px = state.player.pos.x + state.player.width / 2;
+  const underFire = pw.gens.map((q, i) => ({ q, x: COURSE.generators[i] })).filter(({ q }) => q.charge > 0 && state.frame - q.hitAt < UNDER_FIRE);
+  const nearest = underFire.sort((a, b) => Math.abs(a.x - px) - Math.abs(b.x - px))[0];
+  if (nearest && nearest.q === g) {
     g.charge -= DRAIN_PER_FRAME;
     if (state.frame % 5 === 0) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + Math.random() * e.height * 0.6 }, vel: { x: (Math.random() - 0.5) * 4, y: -Math.random() * 4 }, life: 14, color: Math.random() < 0.5 ? '#7DD3FC' : '#FDE047', size: 2 + Math.random() * 2 });
     if (g.charge <= 0) {
