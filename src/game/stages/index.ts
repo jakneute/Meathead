@@ -7,6 +7,7 @@ import type { GameState } from '../core/state';
 import type { FrameContext } from '../core/context';
 import type { Controls } from '../platform/input';
 import type { Enemy, Projectile } from '../../types';
+import type { SceneLight } from '../render/lighting';
 import { artieLayout } from './artie';
 import { hectorLayout } from './hector';
 import { victorLayout } from './victor';
@@ -63,6 +64,8 @@ export interface StageLayout {
    */
   drawOverCylinder?: (ctx: CanvasRenderingContext2D, state: GameState, radius: number, around: (worldX: number) => number) => void;
   /** Push the camera in: by `scale`, about the world point (x, y) (which stays put on screen). Null for no zoom. */
+  /** How it's lit where the camera is: how dark, what color the dark is, its lights (render/lighting.ts). Null: as drawn. */
+  lighting?: (state: GameState) => SceneLight | null;
   zoom?: (state: GameState) => { scale: number; x: number; y: number; shiftX?: number; shiftY?: number } | null;
   /** Where you start when you go straight to the boss (or die to him), if not the usual spot just outside his door. */
   bossStartX?: number;

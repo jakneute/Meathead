@@ -500,7 +500,8 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
     const shieldLeft = shieldFacing(enemy) < 0;
     const hitsShieldSide = shieldLeft ? p.vel.x > 0 && p.pos.x < enemy.pos.x + enemy.width / 2 : p.vel.x < 0 && p.pos.x + p.width > enemy.pos.x + enemy.width / 2;
     // (except from overhead: a lobbed boulder, anything coming down on top of him, goes over the shield)
-    const overhead = p.vel.y > 1.5 && p.pos.y + p.height / 2 < enemy.pos.y + enemy.height * 0.45;
+    // (coming down on him from above, or plunging steeply in: a boulder spiked down, say)
+    const overhead = p.vel.y > 1.5 && (p.pos.y + p.height / 2 < enemy.pos.y + enemy.height * 0.45 || p.vel.y > Math.abs(p.vel.x) * 1.5);
     if (enemy.enemyType === 'shield' && enemy.isShieldActive && hitsShieldSide && !overhead) {
       if (p.isSludge) {
         // Splats against the shield and runs down it into a puddle at his feet

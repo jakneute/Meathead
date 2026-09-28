@@ -4,15 +4,15 @@
 // the street lamps' cones (the bad ones flickering, cutting out for a while and
 // stuttering back), neon signs, bulbs and fluorescent tubes indoors, the beacons
 // on the roofs, the fires at the end. Meathead lights up when he's under one (a
-// warm glow over him); out of the light he's in the dark with everything else,
-// though never pitch black: he always carries a little light of his own.
+// warm glow over him, as over anyone else under one); out of the light he's in
+// the dark with everything else. (The drawing's render/lighting.ts's.)
 
 import type { GameState } from '../../core/state';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
+import { CANVAS_WIDTH, ARENA_LEFT } from '../../../constants';
+import type { Light, SceneLight } from '../../render/lighting';
 import { COURSE, Lamp, placeOf, Place, roomOf } from './course';
 import type { BarryRuntime } from './runtime';
 
-type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 
 /** How dark each place is (0 lit, 1 black). */
@@ -61,10 +61,8 @@ export const lampLevel = (lamp: Lamp, frame: number, x = lamp.x) => {
   return 1;
 };
 
-interface Light { x: number; y: number; r: number; a: number; cone?: number; color?: string }
-
-/** Everything giving off light in view. */
-const lightsInView = (state: GameState, rt: BarryRuntime): Light[] => {
+/** Everything giving off light in view (shots, fires and the like the engine adds itself). */
+const lightsInView = (state: GameState): Light[] => {
   const f = state.frame;
   const out: Light[] = [];
   const view = (x: number) => x > state.camera.x - 300 && x < state.camera.x + CANVAS_WIDTH + 300;
@@ -80,108 +78,13 @@ const lightsInView = (state: GameState, rt: BarryRuntime): Light[] => {
   }
   // Fires at the end, flickering
   if (placeOf(state.camera.x + 400) === 'landing') for (const p of COURSE.props) if (p.look === 'burningcar' && view(p.x)) out.push({ x: p.x + 70, y: p.y - 60, r: 260 + Math.sin(f * 0.3) * 20, a: 0.9, color: 'rgba(249, 115, 22, 0.16)' });
-  // Muzzle flashes and shots in flight light up what's round them
-  for (const pr of state.projectiles) if (view(pr.pos.x) && !pr.thrown) out.push({ x: pr.pos.x, y: pr.pos.y, r: pr.owner === 'player' ? 50 : 40, a: 0.8 });
   // The power room's generators glow while they run
   for (const e of state.enemies) if (e.kind === 'generator' && view(e.pos.x)) out.push({ x: e.pos.x + e.width / 2, y: e.pos.y + 40, r: 170, a: 0.9, color: 'rgba(56, 189, 248, 0.12)' });
-  // What little light he has of his own
-  const p = state.player;
-  if (!p.hidden) out.push({ x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2, r: 95, a: 0.55 });
-  void rt;
   return out;
 };
 
-/** How lit he is (0..1): under a lamp's cone, near a sign or a bulb. */
-export const playerLit = (state: GameState) => {
-  const p = state.player;
-  const px = p.pos.x + p.width / 2, py = p.pos.y + p.height / 2;
-  let lit = 0;
-  for (const l of COURSE.lamps) {
-    if (Math.abs(l.x - px) > 320) continue;
-    const a = lampLevel(l, state.frame);
-    if (!a) continue;
-    const dx = px - l.x, dy = py - l.y;
-    if (l.look === 'street') {
-      // Inside the cone: under the lamp, widening down to the ground
-      if (dy < 0 || dy > 300) continue;
-      const half = 20 + dy * 0.5;
-      if (Math.abs(dx) > half) continue;
-      lit = Math.max(lit, a * (1 - Math.abs(dx) / half * 0.5) * (1 - dy / 600));
-    } else {
-      const r = l.look === 'beacon' ? 70 : l.look === 'sign' ? 110 : 200;
-      const d = Math.hypot(dx, dy);
-      if (d < r) lit = Math.max(lit, a * (1 - d / r) * (l.look === 'bulb' || l.look === 'tube' ? 0.5 : 0.8));
-    }
-  }
-  return Math.min(1, lit);
-};
-
-let shade: HTMLCanvasElement | null = null;
-const SHADE_SCALE = 0.5;
-
-/** The dark over everything, with the lights cut out of it; then their color, and his glow. Screen space. */
-export const drawLighting = (ctx: Ctx, state: GameState, rt: BarryRuntime) => {
-  const d = darkness(state, rt);
-  if (d <= 0.02) return;
-  if (!shade) { if (typeof document === 'undefined') return; shade = document.createElement('canvas'); shade.width = CANVAS_WIDTH * SHADE_SCALE; shade.height = CANVAS_HEIGHT * SHADE_SCALE; }
-  const g = shade.getContext('2d')!;
-  const cx = state.camera.x, cy = state.camera.y;
-  g.setTransform(1, 0, 0, 1, 0, 0);
-  g.globalCompositeOperation = 'source-over';
-  g.clearRect(0, 0, shade.width, shade.height);
-  g.fillStyle = `rgba(4, 6, 18, ${d})`;
-  g.fillRect(0, 0, shade.width, shade.height);
-  g.setTransform(SHADE_SCALE, 0, 0, SHADE_SCALE, 0, 0);
-  g.globalCompositeOperation = 'destination-out';
-  // (world to screen, the room's zoom and all)
-  const z = roomZoom(state);
-  const zs = z ? z.scale : 1;
-  const sx = (x: number) => (z ? (x - z.x) * z.scale + z.x : x) - cx;
-  const sy = (y: number) => (z ? (y - z.y) * z.scale + z.y : y) - cy;
-  const lights = lightsInView(state, rt).map(l => ({ ...l, x: sx(l.x) + cx, y: sy(l.y) + cy, r: l.r * zs, cone: l.cone ? l.cone * zs : undefined }));
-  for (const l of lights) {
-    const x = l.x - cx, y = l.y - cy;
-    if (l.cone) {
-      // A cone down to the ground from the lamp's head
-      const grad = g.createLinearGradient(0, y, 0, y + l.r);
-      grad.addColorStop(0, `rgba(0,0,0,${0.95 * l.a})`); grad.addColorStop(0.75, `rgba(0,0,0,${0.75 * l.a})`); grad.addColorStop(1, 'rgba(0,0,0,0)');
-      g.fillStyle = grad;
-      g.beginPath(); g.moveTo(x - 14, y); g.lineTo(x + 14, y); g.lineTo(x + l.cone, y + l.r); g.lineTo(x - l.cone, y + l.r); g.closePath(); g.fill();
-    } else {
-      const grad = g.createRadialGradient(x, y, 0, x, y, l.r);
-      grad.addColorStop(0, `rgba(0,0,0,${l.a})`); grad.addColorStop(1, 'rgba(0,0,0,0)');
-      g.fillStyle = grad;
-      g.beginPath(); g.arc(x, y, l.r, 0, Math.PI * 2); g.fill();
-    }
-  }
-  ctx.drawImage(shade, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  // The lights' own color, warm over what they light
-  ctx.save();
-  ctx.globalCompositeOperation = 'lighter';
-  for (const l of lights) {
-    if (!l.color) continue;
-    const x = l.x - cx, y = l.y - cy;
-    if (l.cone) {
-      const grad = ctx.createLinearGradient(0, y, 0, y + l.r);
-      grad.addColorStop(0, l.color); grad.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = grad; ctx.globalAlpha = l.a;
-      ctx.beginPath(); ctx.moveTo(x - 14, y); ctx.lineTo(x + 14, y); ctx.lineTo(x + l.cone, y + l.r); ctx.lineTo(x - l.cone, y + l.r); ctx.closePath(); ctx.fill();
-    } else {
-      const grad = ctx.createRadialGradient(x, y, 0, x, y, l.r);
-      grad.addColorStop(0, l.color); grad.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = grad; ctx.globalAlpha = l.a;
-      ctx.beginPath(); ctx.arc(x, y, l.r, 0, Math.PI * 2); ctx.fill();
-    }
-  }
-  // Him, lit up under it
-  const p = state.player;
-  const lit = p.hidden ? 0 : playerLit(state);
-  if (lit > 0.05) {
-    const x = sx(p.pos.x + p.width / 2), y = sy(p.pos.y + p.height / 2);
-    const grad = ctx.createRadialGradient(x, y - 10, 4, x, y, 60);
-    grad.addColorStop(0, `rgba(255, 220, 160, ${0.32 * lit})`); grad.addColorStop(1, 'rgba(255, 200, 120, 0)');
-    ctx.globalAlpha = 1; ctx.fillStyle = grad;
-    ctx.beginPath(); ctx.arc(x, y, 60, 0, Math.PI * 2); ctx.fill();
-  }
-  ctx.restore();
+/** The stage's lighting (none in Barry's own room, which has its own, nor over the city on the ride down). */
+export const barryScene = (state: GameState, rt: BarryRuntime): SceneLight | null => {
+  if (state.camera.x + CANVAS_WIDTH / 2 > ARENA_LEFT - 200 || rt.surf?.phase === 'air') return null;
+  return { dark: darkness(state, rt), lights: lightsInView(state) };
 };

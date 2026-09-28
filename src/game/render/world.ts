@@ -24,6 +24,7 @@ import { getStageLayout } from '../stages';
 import { drawEnemyDeaths } from './enemies/deaths';
 import { drawSewerNukeInside, drawSewerNukeFlash, drawSewerNukeOutside } from './scenes/sewerNuke';
 import { drawVolcanoFinaleInside, drawVolcanoFinaleOutside } from './scenes/volcanoFinale';
+import { drawSceneLighting } from './lighting';
 import {
   drawOilSlicks, drawOscarFire, drawOscarLaser, drawOscarRocket, drawFlyingCigarette, drawTaserOverload,
 } from './bosses/oscarGear';
@@ -130,6 +131,9 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     });
   }
   else worldPass(ctx, 0);
+  // The stage's lighting over the lot (the same for everything in it: him, them, the pickups)
+  const scene = layout?.lighting?.(state);
+  if (scene) drawSceneLighting(ctx, state, cylinder ? { ...scene, flat: true } : scene, { camX: state.camera.x, camY: state.camera.y, zoom: layout?.zoom?.(state) });
   layout?.drawHud?.(ctx, state);
 
   // Screen space: the stage's weather over the level (not inside the boss arenas)

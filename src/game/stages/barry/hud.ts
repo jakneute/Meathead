@@ -1,4 +1,4 @@
-// Barry's stage in screen space: the lighting over the world, the power room's
+// Barry's stage in screen space: the power room's
 // readout, and the cuts between places: the fades, the elevator ride (the doors
 // shut on the floor you're on, the ride with its floor counter and its muzak, the
 // ding, the doors open on whatever floor it felt like stopping at), the white-out
@@ -10,7 +10,6 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { drawPlayer } from '../../render/player/player';
 import { drawBarryKind } from '../../render/enemies/barry';
 import { BarryRuntime, fadeAmount, elevatorFloor, DOORS, RIDE, OPEN, SURF_AIR } from './runtime';
-import { drawLighting } from './lighting';
 import { placeOf } from './course';
 import { drawBubble } from './script';
 import { drawCityBurning, drawFlames } from './draw';
@@ -21,7 +20,6 @@ const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453
 
 /** Over the world: the dark and the lights, then the power room's readout. */
 export const drawBarryScreenHud = (ctx: Ctx, state: GameState, rt: BarryRuntime) => {
-  if (!rt.surf || rt.surf.phase !== 'air') drawLighting(ctx, state, rt);
   const pw = rt.power;
   if (placeOf(state.player.pos.x) === 'power' && pw.phase === 'fight') {
     ctx.save();

@@ -3,7 +3,7 @@ import {
   GROUND_Y,
   BULLET_DAMAGE, SHOTGUN_DAMAGE, SHOTGUN_COOLDOWN, SHOTGUN_PELLET_COUNT, SHOTGUN_SPREAD_DEG, SHOTGUN_JITTER_DEG,
   SHOTGUN_PELLET_SPEED_MIN, SHOTGUN_PELLET_SPEED_MAX, SHOTGUN_PELLET_LIFETIME,
-  BOULDER_COOLDOWN, BOULDER_THROW_FRAMES, BOULDER_ROLL_SPEED, BOULDER_HEAVE_SPEED_X, BOULDER_HEAVE_SPEED_Y, BOULDER_LIFETIME,
+  BOULDER_COOLDOWN, BOULDER_THROW_FRAMES, BOULDER_ROLL_SPEED, BOULDER_HEAVE_SPEED_X, BOULDER_HEAVE_SPEED_Y, BOULDER_SPIKE_SPEED_X, BOULDER_SPIKE_SPEED_Y, BOULDER_LIFETIME,
   FLAMETHROWER_DAMAGE, FLAMETHROWER_SEGMENTS, FLAMETHROWER_MAX_RANGE, FLAMETHROWER_START_RANGE,
   FLAMETHROWER_GROWTH, FLAMETHROWER_SHRINK, FLAMETHROWER_AIM_LERP, FLAMETHROWER_AIM_DEG, FLAMETHROWER_NOZZLE_GAP,
   FLAMETHROWER_SEGMENT_LIFETIME, FLAMETHROWER_SEGMENT_SIZE, FLAMETHROWER_AMMO_EVERY, GML_SCALE,
@@ -70,17 +70,20 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
       if (!input.shootPressed) break;
       const size = 48;
       const lob = input.moveUp;
+      // Down+fire in the air: spiked down in front of him, steep and hard
+      const spike = !lob && input.moveDown && !player.isGrounded;
       // Heaved straight up from over his head, or rolled out from the rock in his hand
-      // (the rolled one sits just in front of the rock in his fist, so it leaves from his hand)
-      const cx = lob ? pos.x + width / 2 + facing * gml(3) : muzzle.x + facing * 12;
-      const cy = lob ? pos.y - size / 2 - 2 : muzzle.y;
+      // (the rolled one sits just in front of the rock in his fist, so it leaves from his hand; the spiked one
+      // leaves from down by his feet, clear of him)
+      const cx = lob ? pos.x + width / 2 + facing * gml(3) : spike ? pos.x + width / 2 + facing * (width / 2 + size / 2 + 10) : muzzle.x + facing * 12;
+      const cy = lob ? pos.y - size / 2 - 2 : spike ? pos.y + player.height - size / 2 : muzzle.y;
       const spawn = { x: cx - size / 2, y: cy - size / 2, w: size, h: size };
       // Don't fire into a wall (a lob goes up through a jump-through ledge overhead, as he would)
       if (state.blocks.some(b => b.type !== 'pit' && !(lob && b.oneWay) && rectsOverlap(spawn, b))) break;
       addProjectile({
         id: `b-${Date.now()}-${Math.random()}`,
         pos: { x: spawn.x, y: spawn.y },
-        vel: lob ? { x: facing * BOULDER_HEAVE_SPEED_X, y: -BOULDER_HEAVE_SPEED_Y } : { x: facing * BOULDER_ROLL_SPEED, y: 0 },
+        vel: lob ? { x: facing * BOULDER_HEAVE_SPEED_X, y: -BOULDER_HEAVE_SPEED_Y } : spike ? { x: facing * BOULDER_SPIKE_SPEED_X, y: BOULDER_SPIKE_SPEED_Y } : { x: facing * BOULDER_ROLL_SPEED, y: 0 },
         width: size, height: size, health: 1, maxHealth: 1,
         type: 'projectile', damage: 0, owner: 'player', isBoulder: true, life: BOULDER_LIFETIME, rotation: 0,
       });

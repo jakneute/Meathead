@@ -15,7 +15,7 @@ import { updateGenerator, updateMinion } from './power';
 import { drawBarryBackdrop, drawBarryBack, drawBarryMid, drawBarryFront, drawBarryHud, drawBarryWeather } from './draw';
 import { drawGenerator } from './rooms';
 import { drawTenantDeath } from '../../render/enemies/barry';
-import { roomZoom } from './lighting';
+import { roomZoom, barryScene } from './lighting';
 import { drawSurgeMinion } from './surgeDraw';
 
 export const barryLayout: StageLayout = {
@@ -85,4 +85,5 @@ export const barryLayout: StageLayout = {
     return roomOf(place) ? 470 : place === 'roofs' ? 450 : 500;
   },
   zoom: state => roomZoom(state),
+  lighting: state => { const rt = getBarry(state); return rt ? barryScene(state, rt) : null; },
 };
