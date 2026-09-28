@@ -5,17 +5,14 @@
 // He walks you down (forward and back, always facing you) and does your moves
 // back at you: the shoulder charge, the slide tackle, the uppercut (he never
 // jumps, so no dive kick). Bullets barely bother him. The way to hurt him is to
-// counter:
-//   his shoulder charge: slide into it or dive kick onto it and he goes down
-//   your shoulder charge into his: a clash, locked shoulder to shoulder (mash
-//     the special button: B on a pad, right click on a mouse)
-//   his slide: dive kick onto it and he's stomped flat
-//   your shoulder charge into his slide: he takes your legs out (you're hurt)
-//   your slide into his slide: a different clash, feet to feet (press the
-//     special button when the marker's in the zone, three times)
-//   jumping over him: he uppercuts you out of the air
+// meet him head on, the same move as his:
+//   your shoulder charge into his: a clash, locked shoulder to shoulder (mash it)
+//   your slide into his slide: a clash, feet to feet (time your presses)
+//   anything else into one of his (the wrong move, a dive kick, an uppercut):
+//     he goes straight through you, and you're wrecked
+//   jumping over him: he uppercuts you out of the air (unless he's mid charge or slide)
 //   charging into him when he isn't attacking: barely a scratch, and he shoves you off
-// Winning a clash hurts him more than either trip. Like every mid-boss: no
+// Winning a clash is how he goes down. Like every mid-boss: no
 // invincibility between hits, lots of health, no status effects; how he dies
 // decides what's left of him.
 
@@ -188,10 +185,12 @@ const makeDoorman = (x: number, floorY: number): Enemy => ({
 
 const WALK = 1.6, CHARGE = 10.5, SLIDE = 11.5;
 const WINDUP_CHARGE = 34, WINDUP_SLIDE = 28, CHARGE_FRAMES = 60, SLIDE_FRAMES = 34, UPPERCUT_FRAMES = 36, RECOVER = 34, TRIPPED = 100;
-/** Damage to him: winning a clash, the trips, and bumping into him when he's not attacking. */
-const CLASH_WIN = 170, DIVE_TRIP = 95, SLIDE_TRIP = 85, SCRATCH = 12;
+/** Damage to him: winning a clash, and bumping into him when he's not attacking. */
+const CLASH_WIN = 170, SCRATCH = 12;
 /** Damage to you: his charge, his slide, his uppercut, losing a clash, tripping on his slide, a shove. */
-const HIT_CHARGE = 16, HIT_SLIDE = 14, HIT_UPPERCUT = 20, CLASH_LOSE = 24, TRIP_YOU = 20, SHOVE = 5;
+const HIT_CHARGE = 16, HIT_SLIDE = 14, HIT_UPPERCUT = 20, CLASH_LOSE = 24, SHOVE = 5;
+/** On top, for meeting one of his moves with the wrong one of yours. */
+const WRECK_EXTRA = 8;
 /** Bullets barely scratch him (a bit more once he's down). */
 const BULLET_SCALE = 0.12, BULLET_SCALE_DOWN = 0.4;
 
@@ -331,33 +330,26 @@ const touch = (ctx: FrameContext, m: Enemy, fight: DoormanFight) => {
     shakeScreen(state, 12, 6);
     call(text, '#F87171');
   };
+  // The wrong move into one of his: he goes right through you, and you're down a moment
+  const wrecked = (dmg: number, kb: { x: number; y: number }, source: string) => {
+    if (p.invincibilityTimer > 0) return;
+    youHit(dmg, kb, source, 'WRECKED!');
+    state.playerStunTimer = 40;
+    shakeScreen(state, 20, 9);
+  };
   fight.touchCd = 18;
   switch (m.aiState) {
     case 'charge':
+      // Only a charge meets a charge (a clash); anything else and he goes straight through you
       if (pCharge) { startClash(ctx, fight, m, 'shoulder'); return; }
-      if (pSlide || pDive) {
-        // Took his legs out from under him / stomped him mid-charge
-        endMoves();
-        if (pDive) { p.vel.y = -9; p.vel.x = -m.facing! * 4; }
-        trip(ctx, m, fight, pDive ? DIVE_TRIP : SLIDE_TRIP, pDive ? 'STOMPED!' : 'TRIPPED!');
-        return;
-      }
+      if (pSlide || pDive || pUp) { wrecked(HIT_CHARGE + WRECK_EXTRA, { x: m.facing! * 15, y: -10 }, 'doorman_charge'); return; }
       youHit(HIT_CHARGE, { x: m.facing! * 13, y: -8 }, 'doorman_charge', 'BOUNCED!');
       start(m, 'recover');
       return;
     case 'slide':
+      // Only a slide meets a slide (a clash); anything else and he takes your legs clean out
       if (pSlide) { startClash(ctx, fight, m, 'slide'); return; }
-      if (pDive) {
-        endMoves(); p.vel.y = -10;
-        trip(ctx, m, fight, DIVE_TRIP, 'STOMPED!');
-        return;
-      }
-      if (pCharge) {
-        // He takes your legs out
-        youHit(TRIP_YOU, { x: m.facing! * 4, y: -11 }, 'doorman_slide', 'SWEPT!');
-        state.playerStunTimer = 40;
-        return;
-      }
+      if (pCharge || pDive || pUp) { wrecked(HIT_SLIDE + WRECK_EXTRA, { x: m.facing! * 5, y: -13 }, 'doorman_slide'); return; }
       youHit(HIT_SLIDE, { x: m.facing! * 5, y: -12 }, 'doorman_slide', 'SWEPT!');
       return;
     case 'uppercut':
@@ -394,15 +386,6 @@ const damage = (ctx: FrameContext, m: Enemy, fight: DoormanFight, dmg: number) =
   for (let i = 0; i < Math.min(12, dmg / 8); i++) ctx.state.particles.push({ pos: { x: m.pos.x + W / 2, y: m.pos.y + 30 }, vel: { x: (Math.random() - 0.5) * 8, y: -Math.random() * 6 }, life: 40, color: '#8B0000', size: 3 + Math.random() * 3 });
 };
 
-const trip = (ctx: FrameContext, m: Enemy, fight: DoormanFight, dmg: number, text: string) => {
-  damage(ctx, m, fight, dmg);
-  start(m, 'tripped');
-  m.vel.x = m.facing! * 4;
-  shakeScreen(ctx.state, 18, 8);
-  playSound('nuke');
-  fight.lastCall = text;
-  ctx.fx.spawnDamageNumber({ x: m.pos.x + W / 2 - 40, y: m.pos.y - 40 }, text, true, '#FACC15');
-};
 
 // ---------------------------------------------------------------------------
 // The clashes
