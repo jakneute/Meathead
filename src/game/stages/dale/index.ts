@@ -19,7 +19,8 @@ export const daleLayout: StageLayout = {
   left: COURSE.left,
   startX: COURSE.startX,
   verticalCamera: true,
-  bossStartX: COURSE.town.pharmacy - 200,
+  // (back after dying to Dale: in the rubble of the jail, the camera held short of his door till you go through it)
+  bossStartX: COURSE.town.jail.x1 - 60,
   build: (state, skipToBoss) => {
     const C = COURSE;
     state.groundRuns = [...C.runs, { x1: BOSS_DOOR_X, y1: GROUND_Y, x2: STAGE_WIDTH, y2: GROUND_Y }];

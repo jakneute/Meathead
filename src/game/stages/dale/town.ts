@@ -213,7 +213,7 @@ export const updateTown = (ctx: FrameContext, town: Town, talk: Talk, controls: 
   if (town.wakeT < 999) town.wakeT++;
   if (town.arrive) return arrival(ctx, town);
   if (town.wakeT === 40 && !state.stageMemo.wokeUp) { state.stageMemo.wokeUp = 'yes'; queueLines(state, talk, [{ who: 'meathead', text: 'NOTE TO SELF: SHOOT THE DRIVER AFTER THE TRUCK STOPS.' }]); }
-  if (p.pos.x > t.arch - 100 && once(state, town, 'welcome')) { queueLines(state, talk, [{ who: 'meathead', text: 'AN AUTHENTIC OLD WEST TOWN. EST. NINETEEN NINETY FOUR. SURE.' }]); }
+  if (p.pos.x > t.arch - 100 && p.pos.x < t.arch + 800 && once(state, town, 'welcome')) { queueLines(state, talk, [{ who: 'meathead', text: 'AN AUTHENTIC OLD WEST TOWN. EST. NINETEEN NINETY FOUR. SURE.' }]); }
   checkpoints(state);
   bounceAwnings(state);
   updateProps(ctx, town);
