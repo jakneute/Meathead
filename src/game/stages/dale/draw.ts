@@ -295,39 +295,61 @@ export const drawDaleMid = (ctx: Ctx, state: GameState) => {
   for (const c of COURSE.cacti) if (visible(state, c.x - 40, c.x + 40)) drawCactus(ctx, c, state.frame);
 };
 
-/** A saguaro (arms up), or a clump of prickly pear with its pink fruit. */
+/**
+ * A saguaro (arms up), or a clump of prickly pear with its pink fruit. They hurt, so they don't look like the
+ * scenery: a hard black outline, bright green, long spines bristling out all round (a glint running along them),
+ * and a warning-red tint at their bases.
+ */
 const drawCactus = (ctx: Ctx, c: Cactus, f: number) => {
-  const g = '#3F7D2C', light = '#5FA044', dark = '#2B5A1E';
+  const g = '#43B02A', light = '#9BE15D', dark = '#23701A', line = '#08200A';
+  const spines: { x: number; y: number; a: number }[] = [];
+  // A dusty red halo on the ground under it
+  const halo = ctx.createRadialGradient(c.x, c.y, 4, c.x, c.y, c.look === 'saguaro' ? 44 : 36);
+  halo.addColorStop(0, 'rgba(220, 38, 38, 0.45)'); halo.addColorStop(1, 'rgba(220, 38, 38, 0)');
+  ctx.fillStyle = halo; ctx.beginPath(); ctx.ellipse(c.x, c.y, 46, 9, 0, 0, Math.PI * 2); ctx.fill();
   if (c.look === 'saguaro') {
-    const trunk = (x: number, y: number, w: number, h: number) => {
+    const trunk = (x: number, y: number, w: number, h: number, pass: 'line' | 'fill') => {
+      if (pass === 'line') { ctx.fillStyle = line; ctx.beginPath(); ctx.roundRect(x - w / 2 - 3, y - h - 3, w + 6, h + 3, [w / 2 + 3, w / 2 + 3, 0, 0]); ctx.fill(); return; }
       ctx.fillStyle = g; ctx.beginPath(); ctx.roundRect(x - w / 2, y - h, w, h, [w / 2, w / 2, 0, 0]); ctx.fill();
-      ctx.fillStyle = light; ctx.fillRect(x - w / 2 + 3, y - h + 6, 2, h - 8);
-      ctx.fillStyle = dark; ctx.fillRect(x + w / 2 - 5, y - h + 6, 2, h - 8); ctx.fillRect(x - 1, y - h + 8, 2, h - 10);
+      ctx.fillStyle = light; ctx.fillRect(x - w / 2 + 3, y - h + 6, 3, h - 8);
+      ctx.fillStyle = dark; ctx.fillRect(x + w / 2 - 6, y - h + 6, 3, h - 8); ctx.fillRect(x - 1, y - h + 8, 2, h - 10);
+      for (let yy = y - h + 7; yy < y - 4; yy += 9) { spines.push({ x: x - w / 2, y: yy, a: Math.PI + 0.35 }, { x: x + w / 2, y: yy + 4, a: -0.35 }); }
+      spines.push({ x, y: y - h, a: -Math.PI / 2 }, { x: x - w / 3, y: y - h + 3, a: -Math.PI * 0.75 }, { x: x + w / 3, y: y - h + 3, a: -Math.PI * 0.25 });
     };
-    trunk(c.x, c.y, 22, c.h);
-    // Arms
-    ctx.fillStyle = g;
-    ctx.fillRect(c.x - 26, c.y - c.h * 0.55, 18, 10); trunk(c.x - 22, c.y - c.h * 0.55 + 6, 14, c.h * 0.32);
-    ctx.fillStyle = g; ctx.fillRect(c.x + 8, c.y - c.h * 0.4, 18, 10); trunk(c.x + 22, c.y - c.h * 0.4 + 6, 14, c.h * 0.26);
-    // Spines
-    ctx.fillStyle = '#FEF9C3';
-    for (let y = c.y - c.h + 8; y < c.y - 4; y += 9) { ctx.fillRect(c.x - 12, y, 3, 1); ctx.fillRect(c.x + 10, y + 4, 3, 1); }
-    if (f % 200 < 100) { ctx.fillStyle = '#F9A8D4'; ctx.beginPath(); ctx.arc(c.x, c.y - c.h - 2, 3, 0, Math.PI * 2); ctx.fill(); }
-    return;
+    const armL = { x: c.x - 22, y: c.y - c.h * 0.55 + 6, h: c.h * 0.32 }, armR = { x: c.x + 22, y: c.y - c.h * 0.4 + 6, h: c.h * 0.26 };
+    for (const pass of ['line', 'fill'] as const) {
+      if (pass === 'line') { ctx.fillStyle = line; ctx.fillRect(c.x - 29, c.y - c.h * 0.55 - 3, 24, 16); ctx.fillRect(c.x + 5, c.y - c.h * 0.4 - 3, 24, 16); }
+      else { ctx.fillStyle = g; ctx.fillRect(c.x - 26, c.y - c.h * 0.55, 18, 10); ctx.fillRect(c.x + 8, c.y - c.h * 0.4, 18, 10); }
+      trunk(c.x, c.y, 22, c.h, pass); trunk(armL.x, armL.y, 14, armL.h, pass); trunk(armR.x, armR.y, 14, armR.h, pass);
+    }
+    ctx.fillStyle = '#F472B6'; ctx.beginPath(); ctx.arc(c.x, c.y - c.h - 3, 4, 0, Math.PI * 2); ctx.fill();
+  } else {
+    // Prickly pear: stacked paddles
+    const pads: [number, number, number, number, number][] = [
+      [c.x, c.y - c.h * 0.3, 14, c.h * 0.32, 0.1], [c.x - 12, c.y - c.h * 0.62, 10, c.h * 0.24, -0.4], [c.x + 11, c.y - c.h * 0.7, 10, c.h * 0.24, 0.35],
+    ];
+    for (const pass of ['line', 'fill'] as const) for (const [x, y, rx, ry, a] of pads) {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(a);
+      if (pass === 'line') { ctx.fillStyle = line; ctx.beginPath(); ctx.ellipse(0, 0, rx + 3, ry + 3, 0, 0, Math.PI * 2); ctx.fill(); }
+      else {
+        ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = light; ctx.beginPath(); ctx.ellipse(-rx * 0.3, -ry * 0.3, rx * 0.35, ry * 0.45, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#FEF9C3'; for (let i = -2; i <= 2; i++) ctx.fillRect(i * rx * 0.35, (i % 2) * ry * 0.3, 2, 2);
+      }
+      ctx.restore();
+      if (pass === 'fill') for (let k = 0; k < 9; k++) { const t = (k / 9) * Math.PI * 2; const ex = Math.cos(t) * rx, ey = Math.sin(t) * ry; spines.push({ x: x + ex * Math.cos(a) - ey * Math.sin(a), y: y + ex * Math.sin(a) + ey * Math.cos(a), a: t + a }); }
+    }
+    ctx.fillStyle = '#DB2777'; ctx.beginPath(); ctx.arc(c.x - 14, c.y - c.h * 0.86, 3.5, 0, Math.PI * 2); ctx.arc(c.x + 14, c.y - c.h * 0.92, 3.5, 0, Math.PI * 2); ctx.fill();
   }
-  // Prickly pear: stacked paddles
-  const pad = (x: number, y: number, rx: number, ry: number, a: number) => {
-    ctx.save(); ctx.translate(x, y); ctx.rotate(a);
-    ctx.fillStyle = '#5B8C3A'; ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#FEF9C3'; for (let i = -2; i <= 2; i++) ctx.fillRect(i * rx * 0.35, (i % 2) * ry * 0.3, 1, 1);
-    ctx.restore();
-  };
-  pad(c.x, c.y - c.h * 0.3, 14, c.h * 0.32, 0.1);
-  pad(c.x - 12, c.y - c.h * 0.62, 10, c.h * 0.24, -0.4);
-  pad(c.x + 11, c.y - c.h * 0.7, 10, c.h * 0.24, 0.35);
-  ctx.fillStyle = '#DB2777'; ctx.beginPath(); ctx.arc(c.x - 14, c.y - c.h * 0.86, 3, 0, Math.PI * 2); ctx.arc(c.x + 14, c.y - c.h * 0.92, 3, 0, Math.PI * 2); ctx.fill();
+  // The spines: long, pale, sharp-tipped, bristling out all round; a glint running round them
+  const glint = Math.floor(f / 3) % Math.max(1, spines.length + 20);
+  spines.forEach((s, i) => {
+    const len = 7, ex = s.x + Math.cos(s.a) * len, ey = s.y + Math.sin(s.a) * len;
+    ctx.strokeStyle = i === glint ? '#FFFFFF' : '#FEF08A'; ctx.lineWidth = i === glint ? 2.5 : 1.5;
+    ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.fillStyle = line; ctx.fillRect(ex - 1, ey - 1, 2, 2);
+  });
 };
-
 // ---------------------------------------------------------------------------
 // World: in front of everything
 // ---------------------------------------------------------------------------
