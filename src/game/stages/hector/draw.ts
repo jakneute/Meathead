@@ -5,7 +5,7 @@
 import type { GameState } from '../../state';
 import { BOSS_DOOR_X, CANVAS_HEIGHT, CANVAS_WIDTH } from '../../../constants';
 import { drawBackdrop, drawBackdropFront } from '../../render/backdrops';
-import { COURSE, Plat, Prop } from './course';
+import { COURSE, Plat, Prop, palmTip } from './course';
 import { getHector, regionOf, HectorRuntime } from './runtime';
 import { STRIKE_WARN, shockPhase, AWNING_BOUNCE, SEA_DEPTH } from './hazards';
 import { copsLeft } from './beach';
@@ -333,10 +333,9 @@ const drawProp = (ctx: Ctx, state: GameState, p: Prop, rt: HectorRuntime) => {
       ctx.fillStyle = '#F8FAFC'; ctx.fillRect(p.x - 4, p.y - 100, 8, 4);
       return;
     case 'palm': {
-      const lean = -0.1 - storm * (0.9 + Math.sin(f * 0.1 + p.x) * 0.25);
+      const { x: tx, y: ty, lean } = palmTip(p.x, f, storm);
       ctx.save(); ctx.translate(p.x, p.y);
       ctx.strokeStyle = '#7C5A3A'; ctx.lineWidth = 9; ctx.lineCap = 'round';
-      const tx = Math.sin(lean) * 150, ty = -Math.cos(lean) * 150;
       ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(tx * 0.3, ty * 0.6, tx, ty); ctx.stroke();
       ctx.fillStyle = '#15803D';
       for (let i = 0; i < 6; i++) {
@@ -467,15 +466,24 @@ const drawPlat = (ctx: Ctx, state: GameState, p: Plat, i: number, rt: HectorRunt
       const idx = rt.hazards.awningBlocks.findIndex(b => b.tag === `awning-${i}`);
       const wob = idx >= 0 ? rt.hazards.awningWobble[idx] : 0;
       const sag = wob > 0 ? Math.sin(wob * 0.6) * (wob / 24) * 8 : 0;
-      ctx.fillStyle = '#374151'; ctx.fillRect(p.x, p.y, 3, 550 - p.y); ctx.fillRect(p.x + p.w - 3, p.y, 3, 550 - p.y);
+      // Poles, with springs where the canopy sits on them
+      ctx.fillStyle = '#374151'; ctx.fillRect(p.x, p.y + 10, 4, 550 - p.y - 10); ctx.fillRect(p.x + p.w - 4, p.y + 10, 4, 550 - p.y - 10);
+      ctx.strokeStyle = '#D1D5DB'; ctx.lineWidth = 2;
+      for (const sx of [p.x + 2, p.x + p.w - 2]) { ctx.beginPath(); for (let k = 0; k < 5; k++) { ctx.moveTo(sx - 5, p.y + 12 + k * 4 + sag * 0.5); ctx.lineTo(sx + 5, p.y + 14 + k * 4 + sag * 0.5); } ctx.stroke(); }
+      // The canopy: bold stripes, a dark outline, a shine along the top
       for (let k = 0; k < 6; k++) {
         ctx.fillStyle = k % 2 ? '#F8FAFC' : (p.color ?? '#F472B6');
         const sx = p.x + (k * p.w) / 6;
-        ctx.beginPath(); ctx.moveTo(sx, p.y + sag); ctx.lineTo(sx + p.w / 6, p.y + sag); ctx.lineTo(sx + p.w / 6, p.y + 14 + sag); ctx.quadraticCurveTo(sx + p.w / 12, p.y + 22 + sag, sx, p.y + 14 + sag); ctx.closePath(); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(sx, p.y + sag); ctx.lineTo(sx + p.w / 6, p.y + sag); ctx.lineTo(sx + p.w / 6, p.y + 16 + sag); ctx.quadraticCurveTo(sx + p.w / 12, p.y + 26 + sag, sx, p.y + 16 + sag); ctx.closePath(); ctx.fill();
       }
-      // (a little up arrow on the first one, so you know it's for bouncing)
-      if (i === COURSE.plats.findIndex(q => q.look === 'awning') && Math.floor(state.frame / 20) % 2 === 0) {
-        ctx.fillStyle = '#FDE047'; ctx.beginPath(); ctx.moveTo(p.x + p.w / 2, p.y - 40); ctx.lineTo(p.x + p.w / 2 - 10, p.y - 26); ctx.lineTo(p.x + p.w / 2 + 10, p.y - 26); ctx.fill();
+      ctx.strokeStyle = '#111827'; ctx.lineWidth = 2; ctx.strokeRect(p.x, p.y + sag, p.w, 16);
+      ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillRect(p.x + 3, p.y + 2 + sag, p.w - 6, 2);
+      // Bouncing arrows over every one: it's for jumping on
+      const hop = Math.abs(Math.sin(state.frame * 0.12 + i)) * 8;
+      ctx.fillStyle = '#FDE047'; ctx.strokeStyle = '#78350F'; ctx.lineWidth = 1.5;
+      for (const k of [0, 1]) {
+        const ay = p.y - 22 - hop - k * 12;
+        ctx.beginPath(); ctx.moveTo(p.x + p.w / 2, ay - 10); ctx.lineTo(p.x + p.w / 2 - 12, ay + 2); ctx.lineTo(p.x + p.w / 2 - 6, ay + 2); ctx.lineTo(p.x + p.w / 2, ay - 4); ctx.lineTo(p.x + p.w / 2 + 6, ay + 2); ctx.lineTo(p.x + p.w / 2 + 12, ay + 2); ctx.closePath(); ctx.fill(); ctx.stroke();
       }
       void AWNING_BOUNCE;
       return;

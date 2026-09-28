@@ -7,7 +7,8 @@ import type { FrameContext } from '../../context';
 import type { Controls } from '../../input';
 import { makeKindEnemy } from '../../systems/kinds';
 import { playSound } from '../../audio';
-import { COURSE, CP } from './course';
+import { COURSE, CP, palmTip } from './course';
+import { GROUND_Y } from '../../../constants';
 import { Beach, createBeach, updateBeach } from './beach';
 import { Hazards, createHazards, updateHazards } from './hazards';
 import { Boat, createBoat, updateBoat } from './boat';
@@ -49,6 +50,8 @@ export const createHectorRuntime = (state: GameState, skipToBoss: boolean): Hect
       if (s.x < fromX || s.x - start.x < SPAWN_CLEARANCE) continue;
       const e = makeKindEnemy(s.kind, s.x, s.y);
       if (s.variant !== undefined) e.variant = s.variant;
+      // An iguana belongs to the palm it's up
+      if (s.kind === 'iguana') e.aiX = COURSE.props.filter(p => p.look === 'palm').reduce((best, p) => Math.abs(p.x - s.x) < Math.abs(best - s.x) ? p.x : best, s.x);
       state.enemies.push(e);
     }
   }
@@ -84,6 +87,13 @@ export const updateHector = (ctx: FrameContext, controls: Controls): Controls =>
 
   if (region === 'main') {
     updateBeach(ctx, rt.beach);
+    // Iguanas ride the palm crowns as they whip about in the wind
+    for (const e of state.enemies) {
+      if (e.kind !== 'iguana' || e.aiX === undefined || (e.aiState && e.aiState !== 'idle') || (e.pauseTimer || 0) > 0) continue;
+      const tip = palmTip(e.aiX, state.frame, rt.beach.storm);
+      e.pos.x = e.aiX + tip.x - e.width / 2;
+      e.pos.y = GROUND_Y + tip.y - e.height + 6;
+    }
     // Checkpoints along the strip
     for (const cp of [CP.MOTEL, CP.MARINA]) {
       if (state.checkpoint < cp && player.isGrounded && player.pos.x >= COURSE.checkpoints[cp].x) state.checkpoint = cp;

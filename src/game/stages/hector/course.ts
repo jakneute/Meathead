@@ -129,8 +129,7 @@ const buildMain = () => {
   pickups.push({ x: 5200, y: Y - 100, type: 'small_ammo' });
   ground(5410, 6200, 'sand');
   props.push({ look: 'palm', x: 5550, y: Y }, { look: 'palm', x: 5820, y: Y });
-  // Iguanas up the palms
-  plats.push({ x: 5520, y: Y - 150, w: 60, look: 'palm' }, { x: 5790, y: Y - 150, w: 60, look: 'palm' });
+  // Iguanas clinging to the tops of the palms, whipping about in the wind (it rips them loose at you)
   spawn('iguana', 5550, Y - 150); spawn('iguana', 5820, Y - 150);
   spawn('bouncer', 5960);
   spawn('surfer', 6120);
@@ -159,7 +158,6 @@ const buildMain = () => {
   spawn('pelican', 7950, Y - 360);
   spawn('tourist', 8220, Y - 230);
   props.push({ look: 'palm', x: 8420, y: Y });
-  plats.push({ x: 8390, y: Y - 150, w: 60, look: 'palm' });
   spawn('iguana', 8420, Y - 150);
   // Neon row: awnings chained over a longer stretch of live water
   shocks.push({ x1: 8560, x2: 9260, y: Y, on: 120, off: 80, phase: 60 });
@@ -268,3 +266,9 @@ export const buildCourse = (): Course => {
 };
 
 export const COURSE = buildCourse();
+
+/** Where the top of a palm is (it bends over in the storm and whips about): offset from its base. */
+export const palmTip = (x: number, frame: number, storm: number) => {
+  const lean = -0.1 - storm * (0.55 + Math.sin(frame * 0.1 + x) * 0.2);
+  return { x: Math.sin(lean) * 150, y: -Math.cos(lean) * 150, lean };
+};

@@ -117,6 +117,7 @@ const updateAwnings = (ctx: FrameContext, hz: Hazards) => {
     player.squash = -0.6;
     hz.awningWobble[i] = 24;
     ctx.fx.playGunSound('oil');
+    ctx.fx.spawnDamageNumber({ x: player.pos.x - 10, y: b.y - 20 }, 'BOING!', false, '#FDE047');
   });
 };
 

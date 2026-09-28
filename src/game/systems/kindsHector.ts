@@ -161,14 +161,21 @@ const iguana = (ctx: FrameContext, e: Enemy): boolean => {
   e.aiTimer = (e.aiTimer || 0) + 1;
   switch (e.aiState) {
     case 'idle':
-    default:
-      // Up the palm: waits for you to walk under it
+    default: {
+      // Clinging to the palm's crown as it whips about (the stage moves it with the tree); once you're close,
+      // a gust rips it loose and flings it at you
       e.facing = dirTo(e, mid(player).x);
-      if (Math.abs(mid(player).x - mid(e).x) < 70 && player.pos.y > e.pos.y && !holdingOff(ctx.state)) { e.aiState = 'drop'; e.aiTimer = 0; e.vel = { x: 0, y: 0 }; }
+      const dx = mid(player).x - mid(e).x;
+      if (Math.abs(dx) < 260 && !holdingOff(ctx.state)) {
+        e.aiState = 'drop'; e.aiTimer = 0;
+        e.vel = { x: Math.sign(dx) * Math.min(8, Math.abs(dx) / 22 + 2), y: -6 };
+      }
       return true;
+    }
     case 'drop': {
-      // Falling out of the tree, spinning
-      e.vel.y = Math.min(16, e.vel.y + GRAVITY);
+      // Flung out of the tree, spinning, legs out
+      e.vel.y = Math.min(16, e.vel.y + GRAVITY * 0.8);
+      e.pos.x += e.vel.x;
       e.pos.y += e.vel.y;
       const floor = floorTopAt(ctx.state.blocks, mid(e).x, e.pos.y + e.height - e.vel.y, 0);
       if (floor !== null && e.pos.y + e.height >= floor) { e.pos.y = floor - e.height; e.vel.y = 0; e.aiState = 'scurry'; e.aiTimer = 0; }
