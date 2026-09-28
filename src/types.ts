@@ -365,6 +365,8 @@ export interface Projectile extends Entity {
   isHeaved?: boolean;
   /** Enemies this projectile has already hit (sludge splashes through each one once). */
   hitIds?: string[];
+  /** How many more it can go through (the machine gun's rounds punch on through a few of them). */
+  pierce?: number;
   isIce?: boolean;
   isTsunami?: boolean;
   isShrapnel?: boolean;

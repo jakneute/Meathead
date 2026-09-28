@@ -12,7 +12,7 @@ import { COURSE, placeOf } from './course';
 import { getOscar, fadeAmount, OscarRuntime } from './runtime';
 import { drawDirt, drawOil, drawOilFire, drawPits, drawLedges, drawProps } from './fieldDraw';
 import { drawBunkerBack, drawBunkerMid, drawBunkerFront } from './bunkerDraw';
-import { drawChaseBack, drawChaseThrown, drawRiddenMoto, drawChaseHud } from './chaseDraw';
+import { drawChaseBack, drawChaseThrown, drawRiddenMoto, drawChaseHud, drawFarField, drawChaseWarnings } from './chaseDraw';
 import { drawEndBack, drawEndMid, drawEndFront } from './endDraw';
 import { saying, drawBubble, Speaker } from './script';
 
@@ -25,15 +25,18 @@ const devastation = (state: GameState, rt: OscarRuntime) => {
   const place = view(state);
   if (place === 'end') return 1;
   if (place !== 'chase') return 0;
-  return rt.chase.derricks.filter(d => d.state !== 'standing').length / rt.chase.derricks.length;
+  return rt.chase.far.filter(f => f.state === 'blowing' || f.state === 'burning').length / rt.chase.far.length;
 };
 
 export const drawOscarBackdrop = (ctx: Ctx, state: GameState) => {
   if (state.camera.x + CANVAS_WIDTH / 2 > ARENA_LEFT - 100) return false;
   const rt = getOscar(state)!;
   const k = devastation(state, rt);
-  if (k <= 0) return false;
+  const chasing = view(state) === 'chase';
+  if (k <= 0 && !chasing) return false;
   drawBackdrop(ctx, 'Oily Oscar', state.camera.x, state.camera.y, state.frame || 0);
+  // (on the chase: what's out across the field in the distance, and the wrecks careering into it)
+  if (chasing) drawFarField(ctx, state, rt.chase);
   // The smoke: a pall coming down over the sky, fires along the horizon under it
   const g = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
   g.addColorStop(0, `rgba(20, 14, 12, ${0.75 * k})`); g.addColorStop(0.6, `rgba(60, 30, 18, ${0.5 * k})`); g.addColorStop(1, `rgba(120, 50, 20, ${0.3 * k})`);
@@ -102,6 +105,7 @@ const drawSpeech = (ctx: Ctx, state: GameState, rt: OscarRuntime) => {
 export const drawOscarHud = (ctx: Ctx, state: GameState) => {
   const rt = getOscar(state)!;
   drawChaseHud(ctx, rt.chase);
+  drawChaseWarnings(ctx, state, rt.chase);
 };
 
 /** The fades between the parts. */

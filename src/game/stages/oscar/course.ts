@@ -21,7 +21,7 @@ import type { EnemyKind } from '../../../types';
 import type { GroundRun } from '../../core/terrain';
 import { GROUND_Y, BOSS_DOOR_X } from '../../../constants';
 
-export const CP = { FIELD: 0, FIELD_MID: 1, BUNKER: 2, CHASE: 3, END: 4 } as const;
+export const CP = { FIELD: 0, FIELD_MID: 1, FIELD_MID2: 2, BUNKER: 3, CHASE: 4, END: 5 } as const;
 
 export interface Spawn { kind: EnemyKind; x: number; y: number; variant?: number }
 export interface PickupSpot { x: number; y: number; type: 'small_health' | 'large_health' | 'small_ammo' | 'large_ammo' }
@@ -96,8 +96,8 @@ const build = () => {
   f.ground(1700, 2500); f.tar(1850, 2150); f.slick(2330, 2490);
   f.prop('pumpjack', 2000);
   f.pickup(1560, Y - 90, 'small_health');
-  f.pit(2500, 2690);
-  f.ground(2690, 3400);
+  f.pit(2500, 2660);
+  f.ground(2660, 3400);
   // A pipeline to get up on, a ranger on it; a biker coming; a longhorn
   f.ledge(2860, Y - 110, 220, 'pipe');
   f.spawn('ranger', 2980, Y - 110);
@@ -114,15 +114,34 @@ const build = () => {
   f.prop('pumpjack', 3860, Y + 60); f.prop('flare', 4200, Y + 60);
   f.pickup(3500, Y + 10, 'large_health');
   f.ground(4400, 4600, Y + 60, Y);
-  // A pipeline across the last pit
-  f.ground(4600, 4760); f.pit(4760, 4930); f.ledge(4745, Y - 36, 200, 'pipe'); f.ground(4930, 7000);
-  f.spawn('grackle', 4700, Y - 280);
-  f.spawn('armadillo', 5000);
-  f.spawn('ranger', 5100);
+  // A derrick's deck to get up on, a ranger up on it; then a wide pit of crude with one pipe across the middle of it
+  // to hop via
+  f.ground(4600, 4900);
+  f.prop('derrick', 4760); f.ledge(4690, Y - 120, 150, 'deck');
+  f.spawn('ranger', 4770, Y - 120);
   f.pickup(4640, Y - 30, 'small_ammo');
-  f.prop('derrick', 4560, Y); f.prop('sign', 5140, Y, 'BREAK ROOM');
+  f.pit(4900, 5260); f.ledge(5030, Y - 50, 110, 'pipe');
+  f.spawn('grackle', 5080, Y - 300);
+  // A slick down the run-in to a rise, bikers and a longhorn up on top of it
+  f.ground(5260, 5500); f.slick(5290, 5490);
+  f.ground(5500, 5700, Y, Y - 80); f.ground(5700, 6100, Y - 80); f.ground(6100, 6300, Y - 80, Y);
+  f.spawn('biker', 5820, Y - 80); f.spawn('longhorn', 6020, Y - 80);
+  f.prop('pumpjack', 5900, Y - 80); f.prop('tank', 6240, Y);
+  f.pickup(5760, Y - 110, 'small_health');
+  // Tar with the deputy stood the far side of it, a rattlesnake in the scrub; a flare stack burning
+  f.ground(6300, 7000); f.tar(6350, 6560);
+  f.spawn('deputy', 6660); f.spawn('rattlesnake', 6800); f.spawn('armadillo', 6920);
+  f.prop('flare', 6450); f.pickup(6600, Y - 30, 'small_ammo');
+  // A pipeline across the last pit
+  const S = 2400;
+  f.ground(4600 + S, 4760 + S); f.pit(4760 + S, 4930 + S); f.ledge(4745 + S, Y - 36, 200, 'pipe'); f.ground(4930 + S, 7000 + S);
+  f.spawn('grackle', 4700 + S, Y - 280);
+  f.spawn('armadillo', 5000 + S);
+  f.spawn('ranger', 5100 + S);
+  f.pickup(4640 + S, Y - 30, 'small_health');
+  f.prop('derrick', 4560 + S, Y); f.prop('sign', 5140 + S, Y, 'BREAK ROOM');
   // The break room (the fuel for the job's in there)
-  f.pickup(5270, Y - 30, 'large_ammo');
+  f.pickup(5270 + S, Y - 30, 'large_ammo');
 
   // ============ THE CHASE ============
   const c = part(CHASE_X0);
@@ -157,12 +176,12 @@ const buildCourse = (): Course => {
     oil: all.flatMap(p => p.oil),
     pits: all.flatMap(p => p.pits),
     props: all.flatMap(p => p.props),
-    field: { x1: FIELD_X0, x2: FIELD_X0 + 7000 },
-    bunker: { x1: FIELD_X0 + 5200, x2: FIELD_X0 + 5900, roof: Y - 240, vein: { x: FIELD_X0 + 5445, y: Y - 44 }, bikers: [FIELD_X0 + 6080, FIELD_X0 + 5995, FIELD_X0 + 6165, FIELD_X0 + 6260] },
+    field: { x1: FIELD_X0, x2: FIELD_X0 + 9400 },
+    bunker: { x1: FIELD_X0 + 7600, x2: FIELD_X0 + 8300, roof: Y - 240, vein: { x: FIELD_X0 + 7845, y: Y - 44 }, bikers: [FIELD_X0 + 8480, FIELD_X0 + 8395, FIELD_X0 + 8565, FIELD_X0 + 8660] },
     chase: { x1: CHASE_X0, x2: CHASE_X0 + LAP * (LAPS + 1), lap: LAP, laps: LAPS },
     end: { x1: END_X0 - 800, x2: BOSS_DOOR_X, smokers: END_X0 + 1060, wall: END_X0 + 1110 },
     checkpoints: [
-      { x: FIELD_X0 + 150, y: Y }, { x: FIELD_X0 + 2780, y: Y }, { x: FIELD_X0 + 5050, y: Y },
+      { x: FIELD_X0 + 150, y: Y }, { x: FIELD_X0 + 2780, y: Y }, { x: FIELD_X0 + 4640, y: Y }, { x: FIELD_X0 + 7450, y: Y },
       { x: CHASE_X0 + 300, y: Y }, { x: END_X0 + 1500, y: Y },
     ],
     left: FIELD_X0 - 2000,

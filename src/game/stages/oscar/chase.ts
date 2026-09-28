@@ -25,7 +25,8 @@ import type { GameState } from '../../core/state';
 import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
 import { shakeScreen } from '../../core/state';
-import { groundLineAt } from '../../core/terrain';
+import { groundLineAt, groundBlocks } from '../../core/terrain';
+import type { GroundRun } from '../../core/terrain';
 import { playSound, playGlassShatterSound } from '../../platform/audio';
 import { makeKindEnemy, mid } from '../../enemies/kinds';
 import { hurtPlayer } from '../../bosses/shared';
@@ -37,8 +38,15 @@ import { Talk, queueLines } from './script';
 
 export type ChasePhase = 'waiting' | 'riding' | 'won' | 'done';
 
-/** A car or truck that's been done for: driver slumped on the horn, off the road into the field and into a derrick. */
-export interface Wreck { kind: EnemyKind; paint: number; x: number; y: number; x0: number; y0: number; tx: number; ty: number; t: number; dur: number; derrick: number; hit: boolean }
+/** A car or truck that's been done for: on fire, the driver slumped on the horn, careering off the screen (the way it was going). */
+export interface Wreck { kind: EnemyKind; paint: number; x: number; y: number; dir: 1 | -1; rel: number; t: number }
+/**
+ * ...and then away out across the field in the distance, still burning, horn still going, into something out there
+ * that goes up. Where it is and where it's headed are along the distant layer (it moves slower than the road: FAR_PAR).
+ */
+export interface FarWreck { kind: EnemyKind; paint: number; l0: number; l1: number; target: number; t: number; dur: number }
+/** What's out across the field in the distance: derricks, storage tanks, a refinery column, flare stacks. Standing, going up (a fuse first if it's caught from the one next to it), or burning. */
+export interface FarThing { look: 'derrick' | 'tank' | 'column' | 'flare'; state: 'standing' | 'fuse' | 'blowing' | 'burning'; t: number }
 /** A biker who's been rammed off: him flying one way, the chopper cartwheeling down the road. */
 export interface Thrown { x: number; y: number; vx: number; vy: number; rot: number; vr: number; what: 'rider' | 'bike'; life: number; paint: number }
 /** A derrick out in the field beside the road (one per slot along a lap): standing, going up, or a burning wreck. */
@@ -50,6 +58,10 @@ export interface Chase {
   t: number;
   kills: number;
   wrecks: Wreck[];
+  farWrecks: FarWreck[];
+  far: FarThing[];
+  /** How far he's come, all told (the laps unwrapped): the distance moves past slower than the road. */
+  odo: number;
   thrown: Thrown[];
   derricks: Derrick[];
   slicks: RoadSlick[];
@@ -67,10 +79,19 @@ export interface Chase {
   laps: number;
   /** How far the view's pulled back (1: not at all), easing toward where it should be for how far through it is. */
   zoom: number;
+  /** The jumps: where the road's out (a trench cut across it), and the ground it had there, to put back once he's past. */
+  gaps: RoadGap[];
+  /** Which of the jumps (by how many he'd wrecked) have come up. */
+  gapsDone: number;
+  /** Something to keep him going, every so often, out on the road ahead. */
+  healthTimer: number;
 }
 
+/** Where the road's out: a trench across it to jump (it comes up at so many wrecks, called out well before it's there). */
+export interface RoadGap { x1: number; x2: number; runs: GroundRun[]; pieces: GroundRun[]; passed: boolean }
+
 /** How many to wreck to win it. */
-export const KILLS_NEEDED = 45;
+export const KILLS_NEEDED = 38;
 /** The derricks out in the field: how many to a lap, how far apart, how far back off the road they stand. */
 export const DERRICKS_PER_LAP = 8, DERRICK_GAP = LAP / DERRICKS_PER_LAP, DERRICK_BACK = 10;
 /** A big hit's worth (a ram, or a dive onto it): a car or truck takes two of these. */
@@ -78,15 +99,29 @@ const BIG_HIT = 130;
 /** What comes after him, in turn (round and round). */
 const ORDER: EnemyKind[] = ['chopper', 'pickup', 'chopper', 'cruiser', 'pickup', 'chopper', 'cruiser', 'chopper', 'pickup', 'cruiser'];
 /** How many can be on him at once (more and more as it goes on: far more than a handgun could ever deal with). */
-const MAX_ON = (kills: number) => Math.min(13, 5 + Math.floor(kills / 5));
+const MAX_ON = (kills: number) => Math.min(8, 3 + Math.floor(kills / 6));
 /** How far the view pulls back by the end (it's all of them coming at him). */
-const ZOOM_MIN = 0.6;
+const ZOOM_MIN = 0.72;
 const SPIN_FRAMES = 46;
+/** The jumps: at how many wrecked each one comes up, how wide it is, how far ahead of him it's cut (it's called out from then on). */
+export const GAP_AT = [7, 16, 25, 33], GAP_W = 170, GAP_AHEAD = 1900;
+/** How often something to keep him going turns up on the road. */
+const HEALTH_EVERY = 520;
+/** How far ahead of the view a slick's put down (it's called out from then on). */
+export const SLICK_AHEAD = 700;
+/** The distance: how much slower than the road it goes by, how far apart the things out there stand, how many before it repeats. */
+export const FAR_PAR = 0.3, FAR_GAP = 250, FAR_N = 13, FAR_SPAN = FAR_GAP * FAR_N;
+const FAR_LOOKS: FarThing['look'][] = ['derrick', 'tank', 'derrick', 'column', 'tank', 'flare', 'derrick', 'tank', 'column', 'derrick', 'tank', 'flare', 'tank'];
+/** Where something out in the distance is across the screen right now (it wraps round). */
+export const farScreenX = (ch: Chase, i: number) => ((((i * FAR_GAP + 140 - ch.odo * FAR_PAR) % FAR_SPAN) + FAR_SPAN) % FAR_SPAN) - 200;
+/** Where a wreck out in the distance is across the screen right now. */
+export const farWreckX = (ch: Chase, w: FarWreck) => { const k = Math.min(1, w.t / w.dur); const e = k * k * (3 - 2 * k); return w.l0 + (w.l1 - w.l0) * e - ch.odo * FAR_PAR; };
 
 export const createChase = (startedAt: number): Chase => ({
-  phase: startedAt > CP.CHASE ? 'done' : 'waiting', t: 0, kills: 0, wrecks: [], thrown: [],
+  phase: startedAt > CP.CHASE ? 'done' : 'waiting', t: 0, kills: 0, wrecks: [], farWrecks: [], far: FAR_LOOKS.map(look => ({ look, state: 'standing' as const, t: 0 })), odo: 0, thrown: [],
   derricks: Array.from({ length: DERRICKS_PER_LAP }, () => ({ state: 'standing' as const, t: 0 })),
   slicks: [], slickTimer: 360, spin: 0, spawnTimer: 60, spawned: 0, camX: NaN, hint: '', hintT: 0, hinted: new Set(), laps: 0, zoom: 1,
+  gaps: [], gapsDone: 0, healthTimer: 480,
 });
 
 /** The view, pulled back: about where he rides (so he stays put on the screen and it opens out round him). Null at no zoom. */
@@ -140,6 +175,8 @@ export const updateChase = (ctx: FrameContext, ch: Chase, talk: Talk, controls: 
   if (ch.phase === 'riding') {
     spawn(state, ch);
     slicks(ctx, ch);
+    jumps(ctx, ch);
+    health(state, ch);
     teach(state, ch);
   }
   // Anything left far behind is gone (it gave up)
@@ -167,17 +204,112 @@ const loop = (state: GameState, ch: Chase) => {
   if (p.pos.x < COURSE.chase.x1 + 2 * LAP) return;
   const d = -LAP;
   ch.laps++;
+  // (the road's put back where a jump was, and cut again a lap back)
+  for (const g of ch.gaps) restoreGap(state, g);
   p.pos.x += d;
   state.camera.x += d;
   if (state.cameraOverride) state.cameraOverride.x += d;
   ch.camX += d;
-  for (const e of state.enemies) { e.pos.x += d; if (e.homeX !== undefined) e.homeX += d; }
+  for (const e of state.enemies) { e.pos.x += d; if (e.homeX !== undefined && !isChaseVehicle(e.kind)) e.homeX += d; }
   for (const q of state.projectiles) q.pos.x += d;
+  for (const q of state.pickups) q.pos.x += d;
   for (const q of state.particles) q.pos.x += d;
   for (const s of state.flameSegments) s.x += d;
-  for (const w of ch.wrecks) { w.x += d; w.x0 += d; w.tx += d; }
+  for (const w of ch.wrecks) w.x += d;
   for (const t of ch.thrown) t.x += d;
   for (const s of ch.slicks) s.x += d;
+  for (const g of ch.gaps) { g.x1 += d; g.x2 += d; cutGap(state, g); }
+};
+
+// ---------------------------------------------------------------------------
+
+/**
+ * The jumps. At so many wrecked, the road's out a way ahead (a trench cut across it, full of crude): called out from
+ * the moment it's there, well before it's on the screen. Once he's past it the road's put back.
+ */
+const jumps = (ctx: FrameContext, ch: Chase) => {
+  const { state, fx } = ctx;
+  const p = state.player;
+  if (ch.gapsDone < GAP_AT.length && ch.kills >= GAP_AT[ch.gapsDone] && !ch.gaps.length) {
+    ch.gapsDone++;
+    // (on the flat or a gentle bit of road, not the steep of a hill)
+    let x1 = p.pos.x + GAP_AHEAD;
+    for (let k = 0; k < 20; k++) {
+      const a = groundLineAt(state.groundRuns, x1 - 60), b = groundLineAt(state.groundRuns, x1 + GAP_W + 60);
+      if (a !== Infinity && b !== Infinity && Math.abs(a - b) < 40) break;
+      x1 += 80;
+    }
+    const g: RoadGap = { x1, x2: x1 + GAP_W, runs: [], pieces: [], passed: false };
+    cutGap(state, g);
+    ch.gaps.push(g);
+    playSound('siren');
+    fx.spawnDamageNumber({ x: p.pos.x - 40, y: p.pos.y - 90 }, 'ROAD OUT AHEAD!', true, '#F97316');
+  }
+  for (const g of ch.gaps) {
+    // Over it and down on the other side: the road's put back, and something to keep him going
+    if (!g.passed && p.pos.x > g.x2 + 40 && p.isGrounded) {
+      g.passed = true;
+      state.pickups.push({ id: `jump-health-${state.frame}`, pos: { x: p.pos.x + 260, y: groundLineAt(state.groundRuns, p.pos.x + 260) - 60 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 900 });
+      fx.spawnDamageNumber({ x: p.pos.x - 30, y: p.pos.y - 70 }, 'CLEARED IT!', true, '#4ADE80');
+    }
+  }
+  const v = chaseView(state, ch);
+  for (const g of ch.gaps) if (g.passed && g.x2 < v.x1 - 300) restoreGap(state, g);
+  ch.gaps = ch.gaps.filter(g => !(g.passed && g.x2 < v.x1 - 300));
+};
+
+/** Takes the road out from x1 to x2: the ground either side of it stops there. */
+const cutGap = (state: GameState, g: RoadGap) => {
+  g.runs = state.groundRuns.filter(r => r.x1 < g.x2 && r.x2 > g.x1 && r.x1 >= COURSE.chase.x1 - 10 && r.x2 <= COURSE.chase.x2 + 10);
+  if (!g.runs.length) return;
+  const yAt = (r: GroundRun, x: number) => r.y1 + (r.y2 - r.y1) * ((x - r.x1) / (r.x2 - r.x1));
+  g.pieces = [];
+  for (const r of g.runs) {
+    if (r.x1 < g.x1) g.pieces.push({ ...r, x2: g.x1, y2: yAt(r, g.x1) });
+    if (r.x2 > g.x2) g.pieces.push({ ...r, x1: g.x2, y1: yAt(r, g.x2) });
+  }
+  swapGround(state, g.runs, g.pieces);
+};
+
+/** Puts the road back. */
+const restoreGap = (state: GameState, g: RoadGap) => {
+  if (!g.runs.length) return;
+  swapGround(state, g.pieces, g.runs);
+  g.runs = []; g.pieces = [];
+};
+
+/** Swaps some of the ground for other ground: its profile, and the blocks you stand on. */
+const swapGround = (state: GameState, out: GroundRun[], into: GroundRun[]) => {
+  const x1 = Math.min(...out.map(r => r.x1)), x2 = Math.max(...out.map(r => r.x2));
+  state.groundRuns = [...state.groundRuns.filter(r => !out.includes(r)), ...into].sort((a, b) => a.x1 - b.x1);
+  state.blocks = [...state.blocks.filter(b => !(b.type === 'ground' && !b.tag && b.x >= x1 - 1 && b.x + b.w <= x2 + 1)), ...groundBlocks(into)];
+};
+
+/** The jump coming up, if there is one (for calling it out): how far off it is, and whether it's on the screen yet. */
+export const gapAhead = (state: GameState, ch: Chase) => {
+  const g = ch.gaps.find(q => !q.passed);
+  if (!g) return null;
+  const v = chaseView(state, ch);
+  return { dist: g.x1 - (state.player.pos.x + state.player.width), onScreen: g.x1 < v.x2 - 40, g };
+};
+
+/** The next slick coming up that isn't on the screen yet (for calling it out). */
+export const slickAhead = (state: GameState, ch: Chase) => {
+  const v = chaseView(state, ch);
+  const s = ch.slicks.filter(q => q.x - q.w / 2 > state.player.pos.x).sort((a, b) => a.x - b.x)[0];
+  if (!s) return null;
+  return { dist: s.x - s.w / 2 - (state.player.pos.x + state.player.width), onScreen: s.x - s.w / 2 < v.x2 - 40 };
+};
+
+/** Something to keep him going: a health pickup every so often, out on the road ahead. */
+const health = (state: GameState, ch: Chase) => {
+  if (--ch.healthTimer > 0) return;
+  ch.healthTimer = HEALTH_EVERY;
+  const v = chaseView(state, ch);
+  const x = v.x2 + 120;
+  const g = groundLineAt(state.groundRuns, x);
+  if (g === Infinity) return;
+  state.pickups.push({ id: `road-health-${state.frame}`, pos: { x, y: g - 60 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'small_health', life: 1200 });
 };
 
 // ---------------------------------------------------------------------------
@@ -185,7 +317,7 @@ const loop = (state: GameState, ch: Chase) => {
 const spawn = (state: GameState, ch: Chase) => {
   const on = state.enemies.filter(e => isChaseVehicle(e.kind) && e.health > 0).length;
   if (--ch.spawnTimer > 0 || on >= MAX_ON(ch.kills)) return;
-  ch.spawnTimer = Math.max(22, 70 - ch.kills) + Math.floor(Math.random() * 30);
+  ch.spawnTimer = Math.max(50, 110 - ch.kills * 1.5) + Math.floor(Math.random() * 40);
   const kind = ORDER[ch.spawned++ % ORDER.length];
   const behind = Math.random() < 0.55;
   const v = chaseView(state, ch);
@@ -295,48 +427,64 @@ const finish = (ctx: FrameContext, e: Enemy, ch: Chase | null) => {
   // (sometimes something to keep him going, flung out of it)
   if (Math.random() < 0.35) fx.spawnPickup({ x: mid(e).x + 120, y: e.pos.y - 20 });
   for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: mid(e).x, y: mid(e).y }, vel: { x: e.vel.x * 0.6 + (Math.random() - 0.5) * 8, y: -2 - Math.random() * 6 }, life: 24 + Math.random() * 16, color: ['#FFFFFF', '#FDE047', '#F97316', '#DC2626', '#292524'][i % 5], size: 6 + Math.random() * 12 });
-  // A car or a truck: the driver slumps on the horn, and off it goes into a derrick
-  const slot = nextDerrick(ch, mid(e).x + 260);
-  const tx = slot.x, ty = groundLineAt(state.groundRuns, tx) - DERRICK_BACK;
-  ch.wrecks.push({ kind: e.kind!, paint: e.homeX || 0, x: mid(e).x, y: e.pos.y + e.height, x0: mid(e).x, y0: e.pos.y + e.height, tx, ty, t: 0, dur: Math.max(50, Math.min(110, Math.abs(tx - mid(e).x) / 7)), derrick: slot.i, hit: false });
+  // A car or a truck: on fire, the driver slumped on the horn, off it goes the way it was headed and out of sight
+  const dir: 1 | -1 = mid(e).x >= mid(state.player).x ? 1 : -1;
+  ch.wrecks.push({ kind: e.kind!, paint: e.homeX || 0, x: mid(e).x, y: e.pos.y + e.height, dir, rel: 0, t: 0 });
   fx.spawnKillCallout(e, 'truck');
-};
-
-/** The next derrick out ahead of x (one still standing if there is one near, or the nearest ruin). */
-const nextDerrick = (ch: Chase, x: number) => {
-  const g0 = Math.floor((x - COURSE.chase.x1) / DERRICK_GAP);
-  for (let k = 0; k < DERRICKS_PER_LAP * 2; k++) {
-    const g = g0 + k, i = ((g % DERRICKS_PER_LAP) + DERRICKS_PER_LAP) % DERRICKS_PER_LAP;
-    const dx = COURSE.chase.x1 + (g + 0.5) * DERRICK_GAP;
-    if (dx < x) continue;
-    if (ch.derricks[i].state === 'standing' || k >= DERRICKS_PER_LAP) return { x: dx, i };
-  }
-  return { x: COURSE.chase.x1 + (g0 + 1.5) * DERRICK_GAP, i: (g0 + 1) % DERRICKS_PER_LAP };
 };
 
 const updateWrecks = (ctx: FrameContext, ch: Chase) => {
   const { state } = ctx;
+  const p = state.player;
+  const pace = Math.max(4, p.vel.x);
+  const v = chaseView(state, ch);
+  ch.odo = state.camera.x - COURSE.chase.x1 + ch.laps * LAP;
+  // Careering off, burning, faster and faster (away ahead of him, or dropping back behind)
   for (const w of ch.wrecks) {
     w.t++;
-    const k = Math.min(1, w.t / w.dur);
-    const ease = k * k * (3 - 2 * k);
-    w.x = w.x0 + (w.tx - w.x0) * ease + w.t * 1.5;
-    w.x = Math.min(w.x, w.tx);
-    w.y = w.y0 + (w.ty - w.y0) * ease;
-    // The horn, stuck on
-    if (w.t % 16 === 0 && !w.hit) playSound('horn');
-    if (!w.hit && k >= 1) {
-      // Into the derrick: it goes up
-      w.hit = true;
-      const d = ch.derricks[w.derrick];
-      d.state = 'blowing'; d.t = 0;
-      shakeScreen(state, 40, 12);
-      playSound('nuke');
-      for (let i = 0; i < 50; i++) state.particles.push({ pos: { x: w.tx, y: w.ty - 60 - Math.random() * 80 }, vel: { x: (Math.random() - 0.5) * 12, y: -3 - Math.random() * 9 }, life: 40 + Math.random() * 30, color: ['#FFFFFF', '#FDE047', '#F97316', '#DC2626', '#1C1917', '#292524'][i % 6], size: 8 + Math.random() * 18 });
+    w.rel += 0.3;
+    w.x += pace + w.dir * w.rel;
+    const g = groundLineAt(state.groundRuns, w.x);
+    if (g !== Infinity) w.y = g;
+    if (w.t % 16 === 0) playSound('horn');
+    if (state.frame % 2 === 0) state.particles.push({ pos: { x: w.x - w.dir * 30, y: w.y - 40 }, vel: { x: pace * 0.8 - w.dir * 2, y: -1.5 - Math.random() }, life: 40, color: Math.random() < 0.5 ? 'rgba(41, 37, 36, 0.6)' : 'rgba(249, 115, 22, 0.8)', size: 8 + Math.random() * 10 });
+    // Out of sight: now it's out in the distance, heading for something to hit
+    if (w.x > v.x2 + 160 || w.x < v.x1 - 160) {
+      w.t = -1;
+      const from = w.dir > 0 ? CANVAS_WIDTH + 30 : -30;
+      const seen = ch.far.map((_, k) => k).filter(k => { const sx = farScreenX(ch, k); return sx > 70 && sx < CANVAS_WIDTH - 70; });
+      const standing = seen.filter(k => ch.far[k].state === 'standing');
+      const pool = standing.length ? standing : seen;
+      if (!pool.length) continue;
+      const target = pool[Math.floor(Math.random() * pool.length)];
+      const base = ch.odo * FAR_PAR;
+      const l0 = from + base, l1 = farScreenX(ch, target) + base;
+      ch.farWrecks.push({ kind: w.kind, paint: w.paint, l0, l1, target, t: 0, dur: Math.max(90, Math.abs(l1 - l0) / 2.4) });
     }
   }
-  for (const d of ch.derricks) if (d.state === 'blowing' && d.t > 50) { d.state = 'burning'; d.t = 0; }
-  ch.wrecks = ch.wrecks.filter(w => !w.hit || w.t < w.dur + 400);
+  ch.wrecks = ch.wrecks.filter(w => w.t >= 0);
+  // Out in the distance: across the field and into it
+  for (const w of ch.farWrecks) {
+    w.t++;
+    if (w.t % 22 === 0) playSound('horn');
+    if (w.t === Math.ceil(w.dur)) {
+      const f = ch.far[w.target];
+      f.state = 'blowing'; f.t = 0;
+      shakeScreen(state, 45, 14);
+      playSound('nuke'); playSound('ignite');
+      // (and the things either side of it catch, now and then: a tank farm going up one after another)
+      for (const n of [w.target - 1, w.target + 1]) {
+        const k = (n + FAR_N) % FAR_N;
+        if (ch.far[k].state === 'standing' && (ch.far[k].look === 'tank' || Math.random() < 0.4)) { ch.far[k].state = 'fuse'; ch.far[k].t = -(30 + Math.floor(Math.random() * 40)); }
+      }
+    }
+  }
+  ch.farWrecks = ch.farWrecks.filter(w => w.t <= w.dur);
+  for (const f of ch.far) {
+    f.t++;
+    if (f.state === 'fuse' && f.t >= 0) { f.state = 'blowing'; f.t = 0; shakeScreen(state, 30, 10); playSound('nuke'); }
+    if (f.state === 'blowing' && f.t > 60) { f.state = 'burning'; f.t = 0; }
+  }
 };
 
 const updateThrown = (ch: Chase) => {
@@ -350,7 +498,7 @@ const updateThrown = (ch: Chase) => {
 // ---------------------------------------------------------------------------
 
 /** How long between throws from a truck, and the wind-up. */
-const THROW_EVERY = 85, THROW_WINDUP = 20;
+const THROW_EVERY = 115, THROW_WINDUP = 22;
 
 const truckThrow = (state: GameState, e: Enemy) => {
   const p = state.player;
@@ -370,13 +518,13 @@ const truckThrow = (state: GameState, e: Enemy) => {
 };
 
 /** How long a cruiser rests between shots, and how fast they go. */
-const SHOOT_EVERY = 80, SHOT_SPEED = 9;
+const SHOOT_EVERY = 110, SHOT_SPEED = 9;
 
 const cruiserShoot = (state: GameState, e: Enemy) => {
   const p = state.player;
   const dx = mid(p).x - mid(e).x;
   if (e.aiState !== 'hold' || Math.abs(dx) > 800) return;
-  if (e.shootTimer === SHOOT_EVERY || e.shootTimer === SHOOT_EVERY + 10 || e.shootTimer === SHOOT_EVERY + 20) {
+  if (e.shootTimer === SHOOT_EVERY || e.shootTimer === SHOOT_EVERY + 12) {
     const dir = dx < 0 ? -1 : 1;
     const x = mid(e).x + dir * 36, y = e.pos.y + 10;
     state.projectiles.push({ id: `cr-${state.frame}-${Math.random()}`, pos: { x: x - 5, y: y - 5 }, vel: { x: dir * SHOT_SPEED, y: 0 }, width: 10, height: 10, health: 1, maxHealth: 1, type: 'projectile', damage: 6, owner: 'enemy', shooterKind: 'cruiser', shot: 'slug' });
@@ -393,7 +541,8 @@ const slicks = (ctx: FrameContext, ch: Chase) => {
   const p = state.player;
   if (--ch.slickTimer <= 0) {
     ch.slickTimer = 300 + Math.floor(Math.random() * 180);
-    ch.slicks.push({ x: state.camera.x + CANVAS_WIDTH + 140, w: 110 });
+    const x = chaseView(state, ch).x2 + SLICK_AHEAD;
+    if (!ch.gaps.some(g => x > g.x1 - 400 && x < g.x2 + 400)) ch.slicks.push({ x, w: 110 });
   }
   const box = boundsOf(p);
   for (const s of ch.slicks) {
@@ -423,6 +572,7 @@ const teach = (state: GameState, ch: Chase) => {
 export const chaseProgress = (ch: Chase) => Math.min(1, ch.kills / KILLS_NEEDED);
 export const chaseDeathMessage = (ch: Chase): string | undefined => {
   if (ch.phase !== 'riding') return undefined;
+  if (ch.gaps.some(g => !g.passed)) return ['MISSED THE JUMP', 'EVEL KNIEVEL HE IS NOT', 'INTO THE TRENCH'][Math.floor(Math.random() * 3)];
   const l = ['ROADKILL', 'RUN OFF THE ROAD', 'LAID DOWN THE BIKE', 'TEXAS JUSTICE'];
   return l[Math.floor(Math.random() * l.length)];
 };

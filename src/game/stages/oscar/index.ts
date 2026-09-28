@@ -48,6 +48,14 @@ export const oscarLayout: StageLayout = {
   hitSpecialEnemy: (ctx, e, p) => {
     if (!isChaseVehicle(e.kind)) return undefined;
     if (p.owner !== 'player' || e.health <= 0) return 'miss';
+    // (the machine gun's rounds punch on through: each one hits a few of them, once each)
+    if (p.pierce !== undefined) {
+      if (p.hitIds?.includes(e.id)) return 'miss';
+      hitChaseVehicle(e, p.damage);
+      (p.hitIds ??= []).push(e.id);
+      p.pierce--;
+      return p.pierce > 0 ? 'miss' : true;
+    }
     hitChaseVehicle(e, p.damage);
     void ctx;
     return true;

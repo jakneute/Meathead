@@ -114,6 +114,7 @@ export const updateOscar = (ctx: FrameContext, controls: Controls): Controls => 
   const place = placeOf(p.pos.x);
   if (place === 'field' || place === 'bunker' || place === 'outside') {
     if (state.checkpoint < CP.FIELD_MID && p.isGrounded && p.pos.x > COURSE.checkpoints[CP.FIELD_MID].x) state.checkpoint = CP.FIELD_MID;
+    if (state.checkpoint < CP.FIELD_MID2 && p.isGrounded && p.pos.x > COURSE.checkpoints[CP.FIELD_MID2].x) state.checkpoint = CP.FIELD_MID2;
     updateField(ctx, rt.field);
     // In the break room the camera holds on the room (it fits the screen)
     const B = COURSE.bunker, px = p.pos.x + p.width / 2;
