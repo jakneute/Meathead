@@ -695,6 +695,48 @@ export const interrupt = (e: Enemy) => {
 // ---------------------------------------------------------------------------
 
 const isBeingShoved = (e: Enemy) => (e.pauseTimer || 0) > 0 && Math.abs(e.vel.x) > 0.5;
+
+/** How much two enemies on foot can overlap before they're eased apart (a little, so a crowd still looks like a crowd). */
+const CROWD_OVERLAP = 6;
+
+/** On its feet and walking about under its own steam (not flying, swimming, a boss, dead, being shoved, or a mid-boss). */
+const onFoot = (e: Enemy) =>
+  e.type !== 'boss' && e.health > 0 && !e.isBlownAway && !isAirEnemy(e) && !selfPropelled(e) && !submerged(e)
+  && e.kind !== 'doorman' && e.kind !== 'moose' && e.kind !== 'eye' && !isBeingShoved(e) && !e.innocent;
+
+/**
+ * Enemies on foot don't stand in the same spot: two that overlap on the same footing are eased apart, half each
+ * (a bit at a time, so they sidestep rather than snap). Neither gets pushed off an edge doing it: if one can't
+ * give way, the other takes all of it.
+ */
+export const separateEnemies = (state: GameState) => {
+  const crowd = state.enemies.filter(onFoot);
+  for (let i = 0; i < crowd.length; i++) {
+    for (let j = i + 1; j < crowd.length; j++) {
+      const a = crowd[i], b = crowd[j];
+      // (the same footing: their feet level within a step, and their boxes overlapping)
+      if (Math.abs(a.pos.y + a.height - (b.pos.y + b.height)) > 20) continue;
+      const overlap = Math.min(a.pos.x + a.width, b.pos.x + b.width) - Math.max(a.pos.x, b.pos.x);
+      if (overlap <= CROWD_OVERLAP) continue;
+      const push = Math.min(4, (overlap - CROWD_OVERLAP) / 2 + 0.5);
+      // Whichever's further left goes left (dead level: the earlier one)
+      const aLeft = a.pos.x + a.width / 2 <= b.pos.x + b.width / 2;
+      const [l, r] = aLeft ? [a, b] : [b, a];
+      const canL = hasFloorAt(state, l, -push), canR = hasFloorAt(state, r, push);
+      if (canL && canR) { l.pos.x -= push; r.pos.x += push; }
+      else if (canL) l.pos.x -= push * 2;
+      else if (canR) r.pos.x += push * 2;
+    }
+  }
+};
+
+/** Would it still have ground under its feet moved dx over? */
+const hasFloorAt = (state: GameState, e: Enemy, dx: number) => {
+  const feet = e.pos.y + e.height;
+  const top = floorTopAt(state.blocks, e.pos.x + e.width / 2 + dx + Math.sign(dx) * (e.width / 2 - 4), feet, 26);
+  return top !== null && top > feet - 26 && top - feet < 30
+    && !state.blocks.some(bk => bk.type === 'wall' && e.pos.x + dx < bk.x + bk.w && e.pos.x + dx + e.width > bk.x && e.pos.y < bk.y + bk.h && feet > bk.y);
+};
 const isFrozen = (e: Enemy) => !!(e.frozenTimer && e.frozenTimer > 0);
 const toGml = (v: number) => Math.abs(v) / GML_SCALE;
 

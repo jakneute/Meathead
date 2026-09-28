@@ -22,7 +22,7 @@ import { pickRandom, rectsOverlap, boundsOf } from './utils';
 import { killPlayer, gateControls, tickPlayerTimers, updatePlayerActions, updatePlayerPhysics, getSpecialForm, interruptSpecialWithHurt } from '../player/player';
 import { updateTsunami, updateSteamExplosions, updateVolcanoes, updateTommyArena } from '../bosses/hazards';
 import { updateTaser, updateBurningProjectiles, updateEnemyStatusEffects } from '../combat/statusEffects';
-import { updateEnemy } from '../enemies/enemies';
+import { updateEnemy, separateEnemies } from '../enemies/enemies';
 import { updateGapGrace } from '../enemies/kinds';
 import { updateProjectile, updateSpecialMovesVsBarrels } from '../combat/projectiles';
 import { updateOscarHazards } from '../bosses/oscar';
@@ -338,6 +338,7 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
   const enemies = state.enemies;
   updateGapGrace(state);
   state.enemies = enemies.filter(e => updateEnemy(ctx, e, enemies));
+  separateEnemies(state);
   // Note: projectiles spawned while this filter runs (shrapnel, ice shards) are not kept.
   // Projectiles spawned while these update (ice shards, splashes) are appended to the same
   // array but skipped by filter(): keep them, so they start moving next frame
