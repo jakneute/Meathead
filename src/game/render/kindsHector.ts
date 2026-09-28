@@ -263,7 +263,7 @@ const GATOR = '#3F5B2A', GATOR_DARK = '#2A3D1C', GATOR_BELLY = '#B8B07A';
 /** A gator: long and low, armored back, pale belly; jaws gape to hiss and lunge, the tail thrashes at rest. */
 const drawGator = (ctx: Ctx, e: Enemy, f: number) => {
   const st = e.aiState;
-  if (e.variant === 1 && st !== 'breach' && st !== 'hunt') {
+  if (e.variant === 1 && (!st || st === 'idle')) {
     // In the water: just the eyes and nostrils breaking the surface
     ctx.fillStyle = GATOR;
     ctx.beginPath(); ctx.ellipse(-4, -6, 10, 5, 0, Math.PI, 0); ctx.fill();
@@ -272,8 +272,8 @@ const drawGator = (ctx: Ctx, e: Enemy, f: number) => {
     ctx.fillStyle = '#111827'; ctx.fillRect(-7, -9, 1, 3); ctx.fillRect(1, -9, 1, 3);
     return;
   }
-  const open = st === 'hiss' ? 0.5 : st === 'lunge' ? 0.35 + Math.abs(Math.sin(f * 0.5)) * 0.2 : st === 'breach' ? 0.55 : st === 'hunt' ? 0.2 + Math.abs(Math.sin(f * 0.25)) * 0.4 : 0;
-  const run = st === 'lunge' ? Math.sin(f * 0.8) * 4 : 0;
+  const open = st === 'hiss' || st === 'ashore-hiss' ? 0.5 : st === 'lunge' || st === 'ashore-lunge' ? 0.35 + Math.abs(Math.sin(f * 0.5)) * 0.2 : st === 'breach' ? 0.55 : st === 'hunt' ? 0.2 + Math.abs(Math.sin(f * 0.25)) * 0.4 : 0;
+  const run = st === 'lunge' || st === 'ashore-lunge' ? Math.sin(f * 0.8) * 4 : st === 'ashore' ? Math.sin(f * 0.35) * 3 : 0;
   const tail = st === 'rest' || st === 'hunt' ? Math.sin(f * 0.35) * 8 : Math.sin(f * 0.05) * 2;
   // Tail
   ctx.fillStyle = GATOR;

@@ -109,13 +109,52 @@ const waterGator = (ctx: FrameContext, e: Enemy): boolean => {
       }
       break;
     }
-    case 'breach':
-      // Up out of the water, jaws open, then back down
+    case 'breach': {
+      // Up out of the water, jaws open, then back down (onto a dock or the shore, if that's where it comes down)
+      const feet = e.pos.y + e.height;
       e.vel.y += GRAVITY * 0.8;
       e.pos.x += e.vel.x;
       e.pos.y += e.vel.y;
+      const land = e.vel.y > 0 ? landUnder(ctx, e, feet, waterline) : null;
+      if (land !== null && e.pos.y + e.height >= land) { e.pos.y = land - e.height; e.aiState = 'ashore'; e.aiTimer = 0; e.vel = { x: 0, y: 0 }; break; }
       if (e.vel.y > 0 && e.pos.y + e.height > waterline + 6) { e.aiState = 'idle'; e.aiTimer = 0; e.vel = { x: 0, y: 0 }; }
       break;
+    }
+    case 'ashore':
+    case 'ashore-hiss':
+    case 'ashore-lunge': {
+      // Landed out of the water: it's a land gator now. It goes for him if he's close (hiss, then a lunge),
+      // otherwise it waddles back to the edge and slides in
+      const home = e.homeX ?? e.pos.x;
+      const pdx = mid(player).x - mid(e).x;
+      const near = Math.abs(pdx) < GATOR_REACH && Math.abs(mid(player).y - mid(e).y) < 60 && !player.swimming && player.health > 0;
+      let dir = Math.sign(home - e.pos.x) || 1, speed = GATOR_WADDLE;
+      if (e.aiState === 'ashore' && near && e.aiTimer > 30) { e.aiState = 'ashore-hiss'; e.aiTimer = 0; }
+      if (e.aiState === 'ashore-hiss') {
+        dir = Math.sign(pdx) || 1; speed = 0;
+        if (e.aiTimer > 24) { e.aiState = 'ashore-lunge'; e.aiTimer = 0; e.aiX = dir; }
+      } else if (e.aiState === 'ashore-lunge') {
+        dir = e.aiX || 1; speed = GATOR_LUNGE;
+        if (e.aiTimer > GATOR_LUNGE_FRAMES) { e.aiState = 'ashore'; e.aiTimer = 0; }
+      }
+      e.facing = dir as 1 | -1;
+      const nx = e.pos.x + dir * speed;
+      const land = landUnder(ctx, { ...e, pos: { x: nx, y: e.pos.y } }, e.pos.y + e.height, waterline);
+      e.pos.x = nx;
+      // Off the edge: back in the water it goes
+      if (land === null) { e.aiState = 'slide'; e.aiTimer = 0; break; }
+      e.pos.y = land - e.height;
+      break;
+    }
+    case 'slide': {
+      // Off the edge and back into the water, then home under the surface
+      const home = e.homeX ?? e.pos.x;
+      const back = home - e.pos.x, down = waterline + 6 - e.height - e.pos.y;
+      e.pos.x += Math.sign(back) * Math.min(Math.abs(back), 2.5);
+      e.pos.y += Math.sign(down) * Math.min(Math.abs(down), 4);
+      if (Math.abs(back) < 3 && Math.abs(down) < 3) { e.aiState = 'idle'; e.aiTimer = 0; }
+      break;
+    }
     case 'hunt': {
       // He's in the water with it: it goes under and comes straight for him, faster than he can swim
       const home = e.homeX ?? e.pos.x;
@@ -142,6 +181,13 @@ const waterGator = (ctx: FrameContext, e: Enemy): boolean => {
   return true;
 };
 
+/** Something to stand on under it that's above the water (a dock, the shore), or null over the water. */
+const landUnder = (ctx: FrameContext, e: Enemy, feetY: number, waterline: number) => {
+  const top = floorTopAt(ctx.state.blocks, mid(e).x, feetY, 4);
+  return top !== null && top < waterline - 4 ? top : null;
+};
+/** How fast a water gator waddles back to the water when it's ended up on land. */
+const GATOR_WADDLE = 1.8;
 /** How close you have to jump for a water gator to go for you, and how long it stays under after a go. */
 const GATOR_BREACH_REACH = 190, GATOR_BREACH_REST = 100;
 /** How far a water gator will leave its spot chasing you. */
