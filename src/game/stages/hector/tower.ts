@@ -100,6 +100,8 @@ export const updateTower = (ctx: FrameContext, tr: TowerRun, onTop: () => void) 
     tr.copies[i].forEach((b, k) => { b.x = T.x0 + tr.u[i] + (k - 1) * T.circumference; });
     if (onIt || onAny) player.pos.x += dx;
   });
+  // Nothing gets swallowed by the storm but him: the sharks keep above it
+  for (const e of state.enemies) if (e.kind === 'shark' && !e.isBlownAway && e.pos.y + e.height > tr.riseY - 30) { e.pos.y = tr.riseY - 30 - e.height; if (e.vel.y > 0) e.vel.y = 0; }
   // Swirling spray whipping round
   if (state.frame % 3 === 0) state.particles.push({ pos: { x: state.camera.x + Math.random() * 800, y: state.camera.y + Math.random() * 600 }, vel: { x: -6 - Math.random() * 4, y: 1 + Math.random() }, life: 30, color: 'rgba(200, 220, 240, 0.6)', size: 2 });
   // The storm rising up the tower under him once he's started climbing (quicker if it's fallen far behind)

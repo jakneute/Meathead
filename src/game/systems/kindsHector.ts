@@ -370,8 +370,8 @@ const shark = (ctx: FrameContext, e: Enemy) => {
       e.vel.x = (tx - e.pos.x) * 0.05; e.vel.y = (ty - e.pos.y) * 0.05;
       e.facing = (e.vel.x < 0 ? -1 : 1);
       const p = mid(player), m = mid(e);
-      // Seen you: it's after you now
-      if (Math.hypot(p.x - m.x, p.y - m.y) < 450 && player.health > 0) { e.aiState = 'hunt'; e.aiTimer = 0; }
+      // You've climbed up to its level (wherever round the storm you are): it's after you now
+      if (Math.abs(p.y - m.y) < 280 && player.health > 0) { e.aiState = 'hunt'; e.aiTimer = 0; }
       break;
     }
     case 'hunt': {

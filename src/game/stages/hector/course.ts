@@ -221,7 +221,7 @@ const buildTower = (): Tower => {
     y -= bounce ? 160 : 72 + ((i * 29) % 22);
   }
   const topY = y;
-  const sharks = [{ u: 700, y: floorY - 520 }, { u: 1700, y: floorY - 1100 }, { u: 300, y: floorY - 1650 }, { u: 1200, y: floorY - 2150 }];
+  const sharks = [{ u: 700, y: floorY - 760 }, { u: 1700, y: floorY - 1100 }, { u: 300, y: floorY - 1650 }, { u: 1200, y: floorY - 2150 }];
   const pickups = [{ u: plats[8].u + 30, y: plats[8].y - 30, type: 'small_health' as const }, { u: plats[17].u + 30, y: plats[17].y - 30, type: 'large_ammo' as const },
     { u: plats[26].u + 30, y: plats[26].y - 30, type: 'large_health' as const }];
   return { x0: TOWER_X0, radius, circumference, floorY, topY, plats, sharks, pickups };
