@@ -1,8 +1,7 @@
 // The sunny beach: the beachgoers, what happens if you start shooting them (a
 // panic, a body count, then the cops), and the storm rolling in.
 //
-// Shoot one and the rest scatter; an INNOCENTS KILLED count shows until they're
-// all gone one way or the other. Then sirens: a cruiser pulls up, and you
+// Shoot one and the rest scatter. Then sirens: a cruiser pulls up, and you
 // can't get past the tiki bar until the cops are dead. Either way, walk on far enough (with no cops
 // on you) and the hurricane arrives: the sky goes black, and anyone still on the
 // beach runs for cover.
@@ -17,9 +16,8 @@ import { say, MEATHEAD_VOICE } from '../../speech';
 import { COURSE, CP } from './course';
 
 export interface Beach {
-  /** Beachgoers killed, and how long the count stays up. */
+  /** Beachgoers killed. */
   killed: number;
-  counterT: number;
   counted: Set<string>;
   known: Map<string, Enemy>;
   panic: boolean;
@@ -51,7 +49,7 @@ export const createBeach = (state: GameState, startedAt: number): Beach => {
       state.enemies.push(e);
     });
   }
-  return { killed: 0, counterT: 0, counted: new Set(), known: new Map(), panic: false, police: 'none', policeT: 0, cruiserX: 0, cruiserStop: 0, copIds: [], lock: null, storm: stormy ? 1 : 0, stormAt: stormy ? -1 : 0 };
+  return { killed: 0, counted: new Set(), known: new Map(), panic: false, police: 'none', policeT: 0, cruiserX: 0, cruiserStop: 0, copIds: [], lock: null, storm: stormy ? 1 : 0, stormAt: stormy ? -1 : 0 };
 };
 
 export const stormLevel = (b: Beach) => b.storm;
@@ -71,7 +69,6 @@ export const updateBeach = (ctx: FrameContext, b: Beach) => {
     // (the storm's lightning doesn't count against you)
     if (b.storm > 0) continue;
     b.killed++;
-    b.counterT = 150;
     if (!b.panic) {
       b.panic = true;
       for (const c of civilians) if (c.health > 0) { c.aiState = 'flee'; c.aiTimer = 0; }
@@ -79,8 +76,6 @@ export const updateBeach = (ctx: FrameContext, b: Beach) => {
       playSound('siren');
     }
   }
-  const stillRunning = civilians.some(c => c.health > 0 && (c.aiState === 'flee' || c.aiState === 'shelter'));
-  if (b.counterT > 0 && !stillRunning) b.counterT--;
 
   updatePolice(ctx, b);
 

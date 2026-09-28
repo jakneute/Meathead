@@ -171,14 +171,6 @@ export const drawHectorHud = (ctx: Ctx, state: GameState) => {
   const b = rt.beach;
   ctx.save();
   ctx.textAlign = 'center';
-  // INNOCENTS KILLED
-  if (b.killed > 0 && b.counterT > 0 && Math.floor(state.frame / 10) % 6 !== 0) {
-    const y = 150;
-    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0, y - 24, CANVAS_WIDTH, 34);
-    ctx.font = 'bold 16px "Press Start 2P"';
-    ctx.fillStyle = '#000'; ctx.fillText(`INNOCENTS KILLED: ${b.killed}`, CANVAS_WIDTH / 2 + 2, y + 2);
-    ctx.fillStyle = '#EF4444'; ctx.fillText(`INNOCENTS KILLED: ${b.killed}`, CANVAS_WIDTH / 2, y);
-  }
   // The cops have you boxed in
   // (once the rain's started, the sirens' red and blue flashing's gone; you've still got the cops to kill)
   const raining = b.storm > 0;
