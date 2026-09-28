@@ -183,7 +183,7 @@ export type EnemyKind =
   | 'techbro' | 'courier' | 'protester' | 'raccoon' | 'seagull' | 'drone' | 'jetskier' | 'burning'
   // Dale's stage: the cartel's sicarios, enforcers and car-door men, the desert's wildlife, his distributor
   // (the tweaker upstairs in the warehouse office), and the tourists in the old west town
-  | 'sicario' | 'enforcer' | 'cardoor' | 'rattlesnake' | 'scorpion' | 'coyote' | 'junkie' | 'visitor'
+  | 'sicario' | 'enforcer' | 'cardoor' | 'rattlesnake' | 'scorpion' | 'coyote' | 'junkie' | 'visitor' | 'hawk'
   // Barry's stage: New York. The street (pimps, hookers, muggers, bums, rats), the skyscraper floor by floor (the
   // lobby, the office, maintenance, the lab), the tenants in their windows, his man in the power room and its generators
   | 'pimp' | 'hooker' | 'mugger' | 'bum' | 'rat' | 'guard' | 'commuter' | 'reader' | 'exec' | 'intern' | 'hr'
@@ -194,9 +194,11 @@ export type EnemyKind =
   | 'banger' | 'bruiser' | 'pitbull' | 'lowrider' | 'hazmat' | 'bloater' | 'manhole' | 'sludgeling' | 'mutantfish' | 'amalgam'
   // Oscar's stage: the oil field's security (Texas rangers with revolvers, Hell's Angels who come at you, a deputy behind
   // his riot shield), its wildlife (armadillos, longhorns), and the chase: union pickups, ranger cruisers, the bikers' choppers
-  | 'ranger' | 'biker' | 'deputy' | 'armadillo' | 'longhorn' | 'pickup' | 'cruiser' | 'chopper';
+  | 'ranger' | 'biker' | 'deputy' | 'armadillo' | 'longhorn' | 'grackle' | 'pickup' | 'cruiser' | 'chopper';
 
 export interface Enemy extends Entity {
+  /** Its speed along a slick of oil (it doesn't stop, or get going, in a hurry on one). */
+  oilSlide?: number;
   /** The water it lives in (a fish): it keeps inside it, and only goes after him when he's in it too. */
   swimBox?: { x1: number; x2: number; y1: number; y2: number };
   /** Which of Meathead's moves last hit it (see Player.moveId). */

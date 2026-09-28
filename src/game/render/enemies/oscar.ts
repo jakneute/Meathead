@@ -20,6 +20,7 @@ export const drawOscarKind = (ctx: Ctx, e: Enemy, f: number, state: GameState) =
     case 'deputy': drawDeputy(ctx, e, f); break;
     case 'armadillo': drawArmadillo(ctx, e, f); break;
     case 'longhorn': drawLonghorn(ctx, e, f); break;
+    case 'grackle': drawGrackle(ctx, e, f); break;
     case 'pickup': drawPickup(ctx, e, f); break;
     case 'cruiser': drawCruiser(ctx, e, f); break;
     case 'chopper': drawChopperRider(ctx, e, f); break;
@@ -375,4 +376,24 @@ export const drawLmgProp = (ctx: Ctx, x: number, y: number, rot: number) => {
   ctx.strokeStyle = '#52525B'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(20, 2); ctx.lineTo(16, 12); ctx.moveTo(20, 2); ctx.lineTo(25, 12); ctx.stroke(); // bipod
   ctx.fillStyle = '#6B7280'; ctx.fillRect(-22, -4, 26, 1);
   ctx.restore();
+};
+
+/** A great-tailed grackle: glossy blue-black, a long keeled tail, a mean yellow eye; swooping in low, beak first. */
+const drawGrackle = (ctx: Ctx, e: Enemy, f: number) => {
+  const swooping = e.aiState === 'swoop' || e.aiState === 'skim';
+  ctx.translate(0, -e.height / 2);
+  const flap = Math.sin(f * (swooping ? 0.5 : 0.35)) * 10;
+  ctx.fillStyle = '#1E1B4B';
+  // Far wing
+  ctx.beginPath(); ctx.moveTo(2, -2); ctx.lineTo(-10, -12 - flap); ctx.lineTo(-18, -8 - flap); ctx.lineTo(-4, 2); ctx.fill();
+  // The long keeled tail, the body
+  ctx.fillStyle = '#0F0B1E'; ctx.beginPath(); ctx.moveTo(-8, -1); ctx.lineTo(-26, -5); ctx.lineTo(-26, 5); ctx.lineTo(-8, 3); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.ellipse(0, 0, 11, 6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(99, 102, 241, 0.5)'; ctx.beginPath(); ctx.ellipse(1, -2, 8, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+  // Head, beak, that eye
+  ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.arc(11, -3, 4.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#1F2937'; ctx.beginPath(); ctx.moveTo(14, -4); ctx.lineTo(22, -2); ctx.lineTo(14, 0); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#FDE047'; ctx.fillRect(12, -5, 2, 2);
+  // Near wing
+  ctx.fillStyle = '#312E81'; ctx.beginPath(); ctx.moveTo(4, -2); ctx.lineTo(-6, -14 + flap); ctx.lineTo(-16, -12 + flap); ctx.lineTo(-2, 3); ctx.fill();
 };

@@ -4,7 +4,7 @@
 //        kinds (a slick you slide about on, tar that holds your feet), pits of
 //        crude to fall in, pipelines to get up on. The field's security (Texas
 //        rangers, Hell's Angels, a deputy behind a riot shield) and its
-//        wildlife (armadillos, longhorns, vultures, rattlesnakes).
+//        wildlife (armadillos, longhorns, grackles, rattlesnakes).
 //   II.  The break room: a little prefab bunker, the union on its break inside.
 //        Nobody in there can be touched, and the far door's locked till break's
 //        over. A gas line along the wall that could be popped. And then lit.
@@ -91,7 +91,7 @@ const build = () => {
   f.ground(900, 1100, Y, Y - 60); f.ground(1100, 1500, Y - 60); f.ground(1500, 1700, Y - 60, Y);
   f.prop('derrick', 1260, Y - 60);
   f.spawn('ranger', 1400, Y - 60);
-  f.spawn('vulture', 1650, Y - 260);
+  f.spawn('grackle', 1650, Y - 260);
   // Tar to learn on (it holds you: a shoulder charge gets you out), then a slick right up to the lip of a pit of crude
   f.ground(1700, 2500); f.tar(1850, 2150); f.slick(2330, 2490);
   f.prop('pumpjack', 2000);
@@ -116,7 +116,7 @@ const build = () => {
   f.ground(4400, 4600, Y + 60, Y);
   // A pipeline across the last pit
   f.ground(4600, 4760); f.pit(4760, 4930); f.ledge(4745, Y - 36, 200, 'pipe'); f.ground(4930, 7000);
-  f.spawn('vulture', 4700, Y - 280);
+  f.spawn('grackle', 4700, Y - 280);
   f.spawn('armadillo', 5000);
   f.spawn('ranger', 5100);
   f.pickup(4640, Y - 30, 'small_ammo');

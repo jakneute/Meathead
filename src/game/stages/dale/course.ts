@@ -3,7 +3,7 @@
 //   I.   The desert. Meathead comes down out of the sky on Dale and his crew
 //        loading a truck at a dirt turnout in the middle of nowhere; Dale takes
 //        one look ("OH NO, THE FEDS!") and floors it. Out across the desert after
-//        him (rattlesnakes, scorpions, coyotes, vultures, the cartel, cacti), to
+//        him (rattlesnakes, scorpions, coyotes, hawks, the cartel, cacti), to
 //        the cartel's warehouse: conveyor belts and pallet racks, then the stairs
 //        up to the office, where Dale's distributor is waiting, out of his mind on
 //        his own product. The first of three hitmen.
@@ -107,7 +107,7 @@ const build = () => {
   d.pickup(1905, Y - 270, 'small_ammo');
   d.cactus(2090, Y - 100, 64, 'pear');
   d.spawn('sicario', 2320, Y - 100);
-  d.spawn('vulture', 2150, Y - 420);
+  d.spawn('hawk', 2150, Y - 420);
   // An arroyo: over it
   d.ground(2600, 3250, Y - 40);
   d.spawn('scorpion', 2760, Y - 40);
@@ -117,7 +117,7 @@ const build = () => {
   d.ground(3400, 3500, Y - 70);
   d.ground(3620, 3710, Y - 140);
   d.ground(3830, 3910, Y - 80);
-  d.spawn('vulture', 3660, Y - 460);
+  d.spawn('hawk', 3660, Y - 460);
   d.ground(4010, 4720, Y - 20);
   d.cactus(4130, Y - 20, 84, 'saguaro');
   d.pickup(4250, Y - 50, 'small_health');
@@ -133,7 +133,7 @@ const build = () => {
   d.ground(5670, 6480);
   d.spawn('enforcer', 5960);
   d.spawn('rattlesnake', 6080);
-  d.spawn('vulture', 6050, Y - 400);
+  d.spawn('hawk', 6050, Y - 400);
   d.spawn('sicario', 6360);
   d.pickup(5800, Y - 30, 'small_ammo');
 

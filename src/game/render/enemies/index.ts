@@ -57,7 +57,7 @@ export const KIND_HEAD: Record<EnemyKind, { x: number; y: number; r: number }> =
   minion: { x: 2, y: -60, r: 9 }, generator: { x: 0, y: -80, r: 30 },
   banger: { x: 2, y: -63, r: 8 }, bruiser: { x: 3, y: -74, r: 9 }, pitbull: { x: 22, y: -22, r: 8 }, lowrider: { x: 0, y: -30, r: 16 },
   hazmat: { x: 1, y: -66, r: 10 }, bloater: { x: 6, y: -74, r: 9 }, manhole: { x: 2, y: -63, r: 8 }, sludgeling: { x: 6, y: -10, r: 6 },
-  mutantfish: { x: 12, y: -18, r: 6 },
+  mutantfish: { x: 12, y: -18, r: 6 }, hawk: { x: 18, y: -18, r: 5 }, grackle: { x: 13, y: -13, r: 4 },
   amalgam: { x: 0, y: -300, r: 40 },
   ranger: { x: 2, y: -65, r: 8 }, biker: { x: 4, y: -74, r: 9 }, deputy: { x: 2, y: -65, r: 8 }, armadillo: { x: 16, y: -10, r: 4 },
   longhorn: { x: 42, y: -40, r: 8 }, pickup: { x: 26, y: -52, r: 7 }, cruiser: { x: 10, y: -63, r: 7 }, chopper: { x: -3, y: -70, r: 8 },
@@ -78,7 +78,7 @@ export const isHumanoidKind = (kind?: EnemyKind) =>
 
 /** What an x-ray shows inside it. (A rattlesnake's all spine, like a fish; a scorpion's legs and claws, like a crab.) */
 export const skeletonOf = (kind: EnemyKind): 'person' | 'four-legs' | 'bird' | 'fish' | 'crab' | 'machine' =>
-  kind === 'drone' || kind === 'generator' || kind === 'lowrider' || kind === 'pickup' || kind === 'cruiser' || kind === 'chopper' ? 'machine' : isHumanoidKind(kind) ? 'person' : kind === 'eagle' || kind === 'pelican' || kind === 'vulture' || kind === 'seagull' ? 'bird'
+  kind === 'drone' || kind === 'generator' || kind === 'lowrider' || kind === 'pickup' || kind === 'cruiser' || kind === 'chopper' ? 'machine' : isHumanoidKind(kind) ? 'person' : kind === 'eagle' || kind === 'pelican' || kind === 'vulture' || kind === 'seagull' || kind === 'hawk' || kind === 'grackle' ? 'bird'
   : kind === 'shark' || kind === 'magmafish' || kind === 'rattlesnake' || kind === 'mutantfish' ? 'fish' : kind === 'crab' || kind === 'scorpion' ? 'crab' : 'four-legs';
 
 const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: GameState) => {
@@ -94,13 +94,13 @@ const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: Game
     case 'shielder': drawShielder(ctx, e, f); break;
     case 'heatsuit': case 'smokejumper': case 'blastshield': case 'salamander': case 'vulture': case 'magmafish': drawVictorKind(ctx, e, f, state); break;
     case 'techbro': case 'courier': case 'protester': case 'raccoon': case 'seagull': case 'drone': case 'jetskier': case 'burning': drawErnieKind(ctx, e, f, state); break;
-    case 'sicario': case 'enforcer': case 'cardoor': case 'rattlesnake': case 'scorpion': case 'coyote': case 'visitor': case 'junkie': drawDaleKind(ctx, e, f, state); break;
+    case 'sicario': case 'enforcer': case 'cardoor': case 'rattlesnake': case 'scorpion': case 'coyote': case 'visitor': case 'junkie': case 'hawk': drawDaleKind(ctx, e, f, state); break;
     case 'pimp': case 'hooker': case 'mugger': case 'bum': case 'rat': case 'guard': case 'commuter': case 'reader': case 'exec': case 'intern': case 'hr':
     case 'exterminator': case 'janitor': case 'custodian': case 'labtech': case 'subject': case 'scientist': case 'tenant': case 'minion': case 'generator':
       drawBarryKind(ctx, e, f, state); break;
     case 'banger': case 'bruiser': case 'pitbull': case 'lowrider': case 'hazmat': case 'bloater': case 'manhole': case 'sludgeling': case 'mutantfish': case 'amalgam':
       drawTommyKind(ctx, e, f, state); break;
-    case 'ranger': case 'biker': case 'deputy': case 'armadillo': case 'longhorn': case 'pickup': case 'cruiser': case 'chopper':
+    case 'ranger': case 'biker': case 'deputy': case 'armadillo': case 'longhorn': case 'grackle': case 'pickup': case 'cruiser': case 'chopper':
       drawOscarKind(ctx, e, f, state); break;
     default: drawHectorKind(ctx, e, f, state); break;
   }

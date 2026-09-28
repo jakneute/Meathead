@@ -21,6 +21,7 @@ export const drawDaleKind = (ctx: Ctx, e: Enemy, f: number, state: GameState) =>
     case 'coyote': drawCoyote(ctx, e, f); break;
     case 'visitor': drawVisitor(ctx, e, f); break;
     case 'junkie': drawJunkieStandIn(ctx, f); break;
+    case 'hawk': drawHawk(ctx, e, f); break;
   }
   void state;
 };
@@ -294,4 +295,32 @@ const drawJunkieStandIn = (ctx: Ctx, f: number) => {
   ctx.fillStyle = '#1F2937'; ctx.fillRect(-12, -30, 24, 30);
   ctx.fillStyle = SKIN; ctx.beginPath(); ctx.arc(2, -80, 10, 0, Math.PI * 2); ctx.fill();
   void f;
+};
+
+/** A red-tailed hawk: brown back, a pale streaked belly, the brick-red tail fanned out, a hooked beak; talons out on the stoop. */
+const drawHawk = (ctx: Ctx, e: Enemy, f: number) => {
+  const diving = e.aiState === 'dive';
+  ctx.translate(0, -e.height / 2);
+  if (diving) ctx.rotate(Math.atan2(e.vel.y, Math.abs(e.vel.x)) * 0.8);
+  const flap = diving ? 0 : Math.sin(f * 0.25);
+  const wing = (color: string, lift: number) => {
+    ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(6, -3);
+    if (diving) { ctx.lineTo(-24, -6); ctx.lineTo(-26, 0); ctx.lineTo(-4, 3); }
+    else { const up = lift * 22; ctx.lineTo(-6, -3 - up * 0.8); ctx.lineTo(-22, -5 - up); ctx.lineTo(-30, -2 - up * 0.9); ctx.lineTo(-20, 2 - up * 0.4); ctx.lineTo(-8, 3); }
+    ctx.closePath(); ctx.fill();
+  };
+  wing('#5B3A1E', flap * 0.8 + 0.2);
+  // The fanned red tail
+  ctx.fillStyle = '#B45309'; ctx.beginPath(); ctx.moveTo(-12, -2); ctx.lineTo(-26, -8); ctx.lineTo(-27, 6); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#92400E'; ctx.fillRect(-26, -2, 12, 1.5);
+  // Body: brown above, pale streaked below
+  ctx.fillStyle = '#6B4423'; ctx.beginPath(); ctx.ellipse(0, -1, 14, 7, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#F5E6D3'; ctx.beginPath(); ctx.ellipse(2, 2, 10, 4, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#8B5E34'; for (let k = -4; k <= 8; k += 4) ctx.fillRect(k, 1, 2, 3);
+  wing('#7C4A24', flap);
+  // Head, hooked beak, a fierce eye
+  ctx.fillStyle = '#6B4423'; ctx.beginPath(); ctx.ellipse(14, -3, 6, 5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#1C1917'; ctx.beginPath(); ctx.moveTo(18, -4); ctx.lineTo(24, -2); ctx.quadraticCurveTo(23, 2, 20, 1); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#FACC15'; ctx.fillRect(15, -5, 2, 2);
+  if (diving) { ctx.fillStyle = '#FACC15'; ctx.fillRect(6, 5, 3, 7); ctx.fillRect(10, 5, 3, 7); ctx.fillStyle = '#111827'; ctx.fillRect(5, 11, 9, 2); }
 };

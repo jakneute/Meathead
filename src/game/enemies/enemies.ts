@@ -26,7 +26,7 @@ import { shakeScreen } from '../core/state';
 import type { GameState } from '../core/state';
 import { startEnemyDeath } from './deaths';
 import { getEnemyMass, enemyGrip, massRatio } from '../combat/knockback';
-import { floorTopAt } from '../core/terrain';
+import { floorTopAt, groundLineAt } from '../core/terrain';
 import { getStageLeft, getStageLayout } from '../stages';
 import { runKindAI, kindContactDamage, holdingOff, shieldFacing, isChargerKind, safeAhead, isSmallCritter } from './kinds';
 import { selfPropelled } from './kinds/hector';
@@ -404,9 +404,10 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
   e.pos.y = floorLevel;
   e.vel.y = 0;
   if (isStunned) {
-    // Sliding from knockback: further on ice, further still when oiled
+    // Sliding from knockback: further on ice, further still when oiled (and on a slick of oil on the ground; tar stops it)
     e.pauseTimer!--;
-    e.vel.x *= grip.slide;
+    const oilHere = groundOilUnder(state, e);
+    e.vel.x *= oilHere === 'slick' ? 0.985 : oilHere === 'tar' ? 0.55 : grip.slide;
     e.pos.x += e.vel.x;
     if (Math.abs(e.vel.x) < 0.1) e.vel.x = 0;
     return;
@@ -447,7 +448,21 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
   if (e.behavior === 'shoot') settleAfterKnockback(e);
   // (the cops don't stand and shoot: they come at you and club you)
   if (isMeleeCop(e)) copMelee(ctx, e, onScreen);
-  e.pos.x += e.vel.x;
+  // Oil on the ground: tar holds its feet (a crawl), a slick has it sliding about (slow to get going, slow to stop)
+  const oil = groundOilUnder(state, e);
+  if (oil === 'tar') { e.pos.x += e.vel.x * 0.35; e.oilSlide = e.vel.x * 0.35; }
+  else if (oil === 'slick') { e.oilSlide = (e.oilSlide ?? 0) + (e.vel.x - (e.oilSlide ?? 0)) * 0.04; e.pos.x += e.oilSlide; }
+  else { e.oilSlide = e.vel.x; e.pos.x += e.vel.x; }
+};
+
+/** Which of a stage's ground oil (Oscar's field) an enemy's stood in, if any. */
+const groundOilUnder = (state: GameState, e: Enemy): 'slick' | 'tar' | null => {
+  const zones = state.groundOil;
+  if (!zones || !zones.length) return null;
+  const cx = e.pos.x + e.width / 2;
+  const z = zones.find(o => cx > o.x1 && cx < o.x2);
+  if (!z) return null;
+  return Math.abs(e.pos.y + e.height - groundLineAt(state.groundRuns, cx)) <= 6 ? z.kind : null;
 };
 
 /** How fast a charger runs you down, and how far past its front it checks there's still ground (a few strides at that speed). */

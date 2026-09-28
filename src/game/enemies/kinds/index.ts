@@ -74,6 +74,7 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   coyote: { w: 54, h: 34, hp: 70, contact: 10 },
   junkie: { w: 56, h: 92, hp: 1300, contact: 6 },
   visitor: { w: 34, h: 62, hp: 1, contact: 0 },
+  hawk: { w: 52, h: 28, hp: 55, contact: 10, air: true },
   // Barry's stage
   pimp: { w: 40, h: 66, hp: 120, contact: 6 },
   hooker: { w: 36, h: 66, hp: 130, contact: 11 },
@@ -117,6 +118,7 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   deputy: { w: 52, h: 70, hp: 170, contact: 7 },
   armadillo: { w: 40, h: 20, hp: 40, contact: 8 },
   longhorn: { w: 96, h: 58, hp: 150, contact: 15 },
+  grackle: { w: 40, h: 22, hp: 35, contact: 8, air: true },
   // (the chase's: the stage runs them; each car or truck takes two big hits, a chopper one)
   pickup: { w: 150, h: 66, hp: 260, contact: 12 },
   cruiser: { w: 150, h: 56, hp: 260, contact: 12 },
@@ -162,7 +164,7 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     case 'heatsuit': return { ...base, behavior: 'shoot', shootTimer: Math.floor(Math.random() * 40) };
     case 'smokejumper': return { ...base, behavior: 'patrol', pauseTimer: 0 };
     case 'blastshield': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
-    case 'vulture': return { ...base, enemyType: 'flyer', initialY: pos.y };
+    case 'vulture': case 'hawk': case 'grackle': return { ...base, enemyType: 'flyer', initialY: pos.y };
     // Ernie's: a tech bro with a pistol, a bike courier who runs you down, a protester behind his sign
     case 'techbro': return { ...base, behavior: 'shoot', shootTimer: Math.floor(Math.random() * 40) };
     case 'courier': return { ...base, behavior: 'patrol', pauseTimer: 0 };
@@ -216,6 +218,9 @@ export const runKindAI = (ctx: FrameContext, e: Enemy): boolean => {
     // Victor's wildlife: the salamander prowls and lunges like a wolverine, the vulture circles and dives like the eagle
     case 'salamander': wolverine(ctx, e); return false;
     case 'vulture': eagle(ctx, e); return true;
+    // Dale's hawk circles and stoops like the eagle; Oscar's grackles swoop in low like the pelican
+    case 'hawk': eagle(ctx, e); return true;
+    case 'grackle': return runHectorKindAI(ctx, e);
     case 'magmafish': return runVictorKindAI(ctx, e);
     // Ernie's wildlife and machines: the raccoon lunges like the wolverine, the seagull swoops like the pelican
     case 'raccoon': wolverine(ctx, e); return false;

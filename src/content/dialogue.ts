@@ -348,6 +348,16 @@ export const BOSS_DIALOGUE: {
       "A FIRE LIZARD! IT BIT MY ANKLE!",
       "GET THAT SPOTTED LITTLE SHIT OFF ME!",
     ],
+    'hawk': [
+      "THE HAWK'S GOT MY SCALP! GET OFF!",
+      "TALONS! IN MY TRAPS!",
+      "SCREECH ALL YOU WANT, YOU FEATHERED SHIV!",
+    ],
+    'grackle': [
+      "A GRACKLE! IT PECKED MY EAR!",
+      "THE PARKING LOT BIRD WANTS MY BLOOD!",
+      "GO BACK TO THE GAS STATION, YOU LOUDMOUTH!",
+    ],
     'vulture': [
       "THE VULTURE THINKS I'M DEAD! I'M NOT DEAD!",
       "GET YOUR BALD HEAD OUT OF MY FACE, BIRD!",

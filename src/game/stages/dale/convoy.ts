@@ -2,7 +2,7 @@
 // had every one of them rigged to blow ("IF HE GETS ON ONE, BLOW IT!").
 //
 // On each of the first three a timer's running from the moment Meathead lands on
-// it: goons come up onto the roof off SUVs pulling alongside, vultures come down
+// it: goons come up onto the roof off SUVs pulling alongside, hawks come down
 // out of the sky, and junk comes flying down the road at him (tires and
 // tumbleweeds to jump, signs and boxes at head height to duck). Clear the roof
 // before the time runs out and the next truck pulls up close enough to jump to
@@ -274,7 +274,7 @@ const updateTrucks = (ctx: FrameContext, cv: Convoy, talk: Talk) => {
       // Vultures out of the sky
       if (tr.birds < plan.birds && tr.t > 300 + tr.birds * 700) {
         tr.birds++;
-        const v = makeKindEnemy('vulture', state.camera.x + CANVAS_WIDTH + 60, TRAILER_TOP - 230);
+        const v = makeKindEnemy('hawk', state.camera.x + CANVAS_WIDTH + 60, TRAILER_TOP - 230);
         v.homeX = truckX(cv, i) + 150 + Math.random() * 250; v.homeY = TRAILER_TOP - 250;
         state.enemies.push(v);
       }
