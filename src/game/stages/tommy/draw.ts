@@ -16,6 +16,7 @@ import { drawThingBar, drawThing } from './thingDraw';
 import { thingSpot, THING_SURFACE } from './thing';
 import { inCutScene, dropFade } from './escape';
 import { saying, drawBubble, Speaker } from './script';
+import { nextRamp, RAMP_CALL } from './bike';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -24,7 +25,8 @@ const view = (state: GameState) => placeOf(state.camera.x + CANVAS_WIDTH / 2);
 export const drawTommyBackdrop = (ctx: Ctx, state: GameState) => {
   // Way down underground (outside Tommy's door, going in, his room): packed earth and rock, never a sky (his room draws
   // its own shaft over this)
-  if (state.camera.x + CANVAS_WIDTH / 2 > ARENA_LEFT - 100 || state.camera.y > RUINS_Y + 1400) { drawUnderground(ctx, state); return true; }
+  const downAtTheDoor = state.camera.x + CANVAS_WIDTH > COURSE.ruins.x1 && state.camera.y > RUINS_Y + 1400;
+  if (state.camera.x + CANVAS_WIDTH / 2 > ARENA_LEFT - 100 || downAtTheDoor) { drawUnderground(ctx, state); return true; }
   const place = view(state);
   if (place === 'hood' || place === 'road') drawStreetSky(ctx, state);
   else if (place === 'ruins') drawStreetSky(ctx, state, 1, false);
@@ -124,6 +126,37 @@ const drawSpeech = (ctx: Ctx, state: GameState, rt: TommyRuntime) => {
   }
 };
 
+/**
+ * A ramp coming up that's not on the screen yet: a big green sign at the right edge, chevrons racing toward it, how
+ * close it is filling up under it, so he's ready to wheelie into it rather than jump it.
+ */
+const drawRampComing = (ctx: Ctx, state: GameState, rt: TommyRuntime) => {
+  const r = nextRamp(state, rt.bike);
+  if (!r || !r.offscreen) return;
+  const k = 1 - r.dist / RAMP_CALL;
+  const x = CANVAS_WIDTH - 150, y = 250, w = 138, h = 64;
+  const flash = state.frame % 24 < 12;
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(x - 4, y - 4, w + 8, h + 8);
+  ctx.fillStyle = flash ? '#16A34A' : '#15803D'; ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 2; ctx.strokeRect(x + 4, y + 4, w - 8, h - 8);
+  ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 10px "Press Start 2P"'; ctx.textAlign = 'center';
+  ctx.fillText('RAMP AHEAD', x + w / 2, y + 22);
+  ctx.font = 'bold 7px "Press Start 2P"'; ctx.fillStyle = '#BBF7D0'; ctx.fillText('WHEELIE INTO IT!', x + w / 2, y + 38);
+  // How close: filling up
+  ctx.fillStyle = '#052E16'; ctx.fillRect(x + 12, y + 46, w - 24, 8);
+  ctx.fillStyle = '#FDE047'; ctx.fillRect(x + 12, y + 46, (w - 24) * k, 8);
+  // Chevrons racing off the edge toward it
+  ctx.fillStyle = '#4ADE80'; ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+  for (let c = 0; c < 3; c++) {
+    const cx = x - 40 + ((state.frame * 2 + c * 14) % 42), a = 1 - ((state.frame * 2 + c * 14) % 42) / 42;
+    ctx.globalAlpha = 0.3 + a * 0.7;
+    ctx.beginPath(); ctx.moveTo(cx, y + 18); ctx.lineTo(cx + 12, y + 32); ctx.lineTo(cx, y + 46); ctx.lineTo(cx - 6, y + 46); ctx.lineTo(cx + 6, y + 32); ctx.lineTo(cx - 6, y + 18); ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+  ctx.restore();
+  ctx.textAlign = 'left';
+};
+
 export const drawTommyHud = (ctx: Ctx, state: GameState) => {
   const rt = getTommy(state)!;
   // The suit's gauge
@@ -143,6 +176,7 @@ export const drawTommyHud = (ctx: Ctx, state: GameState) => {
     ctx.fillStyle = '#FDE68A'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText(b.hint, 400, 127); ctx.textAlign = 'left';
     ctx.restore();
   }
+  if (b.phase === 'riding' && state.player.bike) drawRampComing(ctx, state, rt);
   drawThingBar(ctx, rt.thing, state.frame);
   if (inCutScene(rt.escape)) drawCutScene(ctx, state, rt);
 };

@@ -69,6 +69,8 @@ export interface BikeRun {
   boostAt: number;
   /** In the air off a ramp: coming down on a car, he just goes up again. */
   rampAir: boolean;
+  /** The ramps that have been called out coming up (a ding, once each). */
+  rampCalled: Set<number>;
 }
 
 /** Speeds: easing off, cruising, pedaling hard. */
@@ -84,7 +86,7 @@ export const createBikeRun = (state: GameState, startedAt: number): BikeRun => {
   const b: BikeRun = {
     phase: past ? 'gone' : onBike ? 'riding' : 'waiting', t: 0, step: 0, stepAt: 0,
     rider: { x: COURSE.hood.bike, y: GROUND_Y, vx: 0, vy: 0, rot: 0, state: onBike || past ? 'down' : 'sitting' },
-    crew: !onBike && !past, v: onBike ? BIKE_BASE : 0, done: new Set(), spawned: 0, hint: '', hintT: 0, hinted: new Set(),
+    crew: !onBike && !past, v: onBike ? BIKE_BASE : 0, done: new Set(), spawned: 0, hint: '', hintT: 0, hinted: new Set(), rampCalled: new Set(),
     bottle: { x: COURSE.road.hazmat, y: GROUND_Y - 60, vx: 0, vy: 0, state: 'held' },
     fly: { x: 0, y: 0, vx: 0, vy: 0, rot: 0 }, bikeWreck: { x: 0, y: 0, vx: 0, vy: 0, rot: 0 }, zoom: 0, said: 0, boostAt: -999, rampAir: false,
   };
@@ -231,6 +233,9 @@ const riding = (ctx: FrameContext, b: BikeRun, talk: Talk, controls: Controls): 
   if (p.isCharging) b.boostAt = state.frame;
   spawnWaves(state, b);
   if (p.isGrounded) b.rampAir = false;
+  // A ramp coming up, still off the screen: a ding as the call-out goes up (the stage draws it)
+  const next = nextRamp(state, b);
+  if (next && next.offscreen && !b.rampCalled.has(next.i)) { b.rampCalled.add(next.i); playSound('tinkle'); }
   junk(ctx, b);
   teach(state, b);
   banter(state, b, talk);
@@ -324,6 +329,20 @@ const junk = (ctx: FrameContext, b: BikeRun) => {
     smash(state, j, box);
     fx.spawnDamageNumber({ x: p.pos.x - 30, y: p.pos.y - 40 }, { trash: 'GARBAGE DAY!', pothole: 'POTHOLE!', glass: 'FLAT TIRE!', car: 'FENDER BENDER!', barrier: 'ROAD CLOSED!', hydrant: 'HOSED!', cones: '', ramp: '' }[j.look], true, '#F97316');
   });
+};
+
+/** How far ahead a ramp's called out (well before it's on the screen: about three seconds at a cruise). */
+export const RAMP_CALL = 1700;
+/** The next ramp he hasn't gone over, if it's close enough to call out: which, how far, whether it's still off the screen. */
+export const nextRamp = (state: GameState, b: BikeRun) => {
+  const p = state.player;
+  const px = p.pos.x + p.width;
+  const i = COURSE.junk.findIndex((j, k) => j.look === 'ramp' && !b.done.has(k) && j.x - 70 > px);
+  if (i < 0) return null;
+  const j = COURSE.junk[i];
+  const dist = j.x - 70 - px;
+  if (dist > RAMP_CALL) return null;
+  return { i, dist, offscreen: j.x - 70 > state.camera.x + CANVAS_WIDTH };
 };
 
 /** Boosting: a wheelie going now, or one in the last half second (a tap's enough). */
