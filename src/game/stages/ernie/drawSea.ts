@@ -240,7 +240,8 @@ export const drawSeaHud = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
   if (js.phase !== 'riding') return;
   // How far to the island, and the time left
   const k = rideProgress(js);
-  const bx = W / 2 - 170, by = 58, bw = 340;
+  // (over on the right, clear of the health and power in the top left)
+  const bw = 300, bx = W - bw - 20, by = 40;
   ctx.save();
   ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(bx - 8, by - 20, bw + 16, 36);
   ctx.fillStyle = '#1E3A8A'; ctx.fillRect(bx, by, bw, 8);
@@ -251,7 +252,7 @@ export const drawSeaHud = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
   ctx.textAlign = 'right'; ctx.fillText('ALCATRAZ', bx + bw, by - 7);
   const left = Math.max(0, Math.ceil((RIDE_FRAMES - js.t) / 60));
   ctx.textAlign = 'center'; ctx.fillStyle = left <= 10 ? '#FDE047' : '#F8FAFC';
-  ctx.fillText(`0:${String(left).padStart(2, '0')}`, W / 2, by - 7);
+  ctx.fillText(`0:${String(left).padStart(2, '0')}`, bx + bw / 2, by - 7);
   // A hint for what's just turned up
   if (js.hintT > 0 && js.hint) {
     ctx.globalAlpha = Math.min(1, js.hintT / 10, (200 - js.hintT) / 20);
