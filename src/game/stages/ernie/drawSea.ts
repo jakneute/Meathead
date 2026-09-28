@@ -87,10 +87,12 @@ const drawPier = (ctx: Ctx, state: GameState) => {
   ctx.fillStyle = '#5E4630'; for (let x = B.x1; x < B.pier; x += 16) ctx.fillRect(x, top, 2, 12);
   // A sign, a bollard with a rope, lifebuoy
   ctx.fillStyle = '#F8FAFC'; ctx.fillRect(B.x1 + 120, top - 90, 6, 90);
-  ctx.fillStyle = '#1E3A8A'; ctx.fillRect(B.x1 + 70, top - 120, 110, 36);
+  ctx.fillStyle = '#1E3A8A'; ctx.fillRect(B.x1 + 70, top - 124, 110, 50);
   ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'center';
-  ctx.fillText('SAUSALITO', B.x1 + 125, top - 104); ctx.fillText('JET SKI RENTAL', B.x1 + 125, top - 92);
-  ctx.fillStyle = '#DC2626'; ctx.fillText('CLOSED', B.x1 + 125, top - 80);
+  ctx.fillText('SAUSALITO', B.x1 + 125, top - 110); ctx.fillText('JET SKI RENTAL', B.x1 + 125, top - 98);
+  // (a red placard hung across the bottom of the sign)
+  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(B.x1 + 94, top - 94, 62, 14);
+  ctx.fillStyle = '#DC2626'; ctx.fillText('CLOSED', B.x1 + 125, top - 83);
   ctx.textAlign = 'left';
   ctx.fillStyle = '#27272A'; ctx.fillRect(B.pier - 30, top - 16, 12, 16);
   ctx.strokeStyle = '#F97316'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(B.x1 + 300, top - 40, 14, 0, Math.PI * 2); ctx.stroke();
