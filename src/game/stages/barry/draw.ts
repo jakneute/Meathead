@@ -55,7 +55,7 @@ export const drawBarryBackdrop = (ctx: Ctx, state: GameState): boolean => {
   }
   ctx.restore();
   // The end: the city on fire (an orange glow up the sky, smoke across it)
-  if (place === 'landing') drawCityBurning(ctx, state.frame, 1.5);
+  if (place === 'landing') { drawDistantChaos(ctx, state); drawCityBurning(ctx, state.frame, 1.2); }
   return true;
 };
 
@@ -81,6 +81,34 @@ const drawSkylineBlackout = (ctx: Ctx, state: GameState) => {
   for (const l of BARRY_SKYLINES_DARK) blitLayer(ctx, l, state.camera.x, state.camera.y, f);
   ctx.fillStyle = 'rgba(0, 0, 8, 0.35)'; ctx.fillRect(0, -200, CANVAS_WIDTH, CANVAS_HEIGHT + 400);
   ctx.restore();
+};
+
+/**
+ * Out past the street at the end: the city burning. Towers on fire along their tops, one of them leaning, black smoke
+ * going up in columns, blasts going off, a helicopter's searchlight sweeping. (Screen space, a slow parallax.)
+ */
+const drawDistantChaos = (ctx: Ctx, state: GameState) => {
+  const f = state.frame;
+  const shift = -(state.camera.x * 0.12) % 140;
+  for (let b = -2; b < 9; b++) {
+    const bx = shift + b * 140, bh = 170 + hash(b * 13 + 7) * 190, top = 470 - bh, lean = b === 3 ? 0.12 : 0;
+    ctx.save(); ctx.translate(bx + 45, 470); ctx.rotate(lean); ctx.translate(-(bx + 45), -470);
+    ctx.fillStyle = '#140C0C'; ctx.fillRect(bx, top, 90, bh + 200);
+    for (let wy = top + 10; wy < 470; wy += 16) for (let wx = bx + 8; wx < bx + 84; wx += 14) { const h = hash(wx * 3 + wy + b); if (h < 0.3) { ctx.fillStyle = h < 0.12 ? '#FDE047' : '#F97316'; ctx.fillRect(wx, wy, 6, 8); } }
+    drawFlames(ctx, bx + 5, top + 4, 80, f + b * 21);
+    ctx.restore();
+    // Smoke going up off it
+    for (let i = 0; i < 4; i++) { const t = ((f * 0.6 + i * 45 + b * 30) % 180) / 180; ctx.fillStyle = `rgba(20, 16, 14, ${0.55 * (1 - t)})`; ctx.beginPath(); ctx.arc(bx + 45 + Math.sin(t * 4 + b) * 20, top - t * 260, 20 + t * 50, 0, Math.PI * 2); ctx.fill(); }
+  }
+  // A blast going up somewhere out there now and then
+  const bt = f % 150;
+  if (bt < 20) { const ex = 100 + hash(Math.floor(f / 150)) * 600; ctx.fillStyle = `rgba(254, 215, 170, ${1 - bt / 20})`; ctx.beginPath(); ctx.arc(ex, 330, 20 + bt * 5, 0, Math.PI * 2); ctx.fill(); }
+  // A helicopter, its searchlight sweeping the smoke
+  const hx = ((f * 1.1) % (CANVAS_WIDTH + 300)) - 150, hy = 110 + Math.sin(f * 0.02) * 10;
+  const sweep = Math.sin(f * 0.03) * 0.5;
+  ctx.fillStyle = 'rgba(254, 249, 195, 0.12)'; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx - 60 + sweep * 300, 470); ctx.lineTo(hx + 60 + sweep * 300, 470); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#0A0A0A'; ctx.beginPath(); ctx.ellipse(hx, hy, 18, 7, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(hx - 40, hy - 2, 26, 3); ctx.fillRect(hx - 30, hy - 12, 60 * Math.abs(Math.sin(f * 1.3)), 2);
+  if (f % 30 < 15) { ctx.fillStyle = '#EF4444'; ctx.fillRect(hx - 40, hy - 3, 3, 3); }
 };
 
 /** Fire in the sky over the city: a glow from below, smoke rolling across, embers. (k: how much.) */
@@ -110,7 +138,6 @@ export const drawBarryBack = (ctx: Ctx, state: GameState) => {
   for (const pr of COURSE.props) if (visible(state, pr.x - 100, pr.x + (pr.w ?? 200) + 100)) drawProp(ctx, state, pr);
   for (const r of state.groundRuns) if (r.surface === 'roof' && visible(state, r.x1, r.x2)) drawRoof(ctx, state, r.x1, r.x2, r.y1);
   if (place === 'roofs') drawWalkUp(ctx, state);
-  if (place === 'landing') drawBoard(ctx, state, rt);
 };
 
 /** Brownstones and storefronts along the street: stoops, cornices, fire escapes, windows lit (some flickering). */
@@ -118,10 +145,18 @@ const drawStreetFronts = (ctx: Ctx, state: GameState, burning: boolean) => {
   const f = state.frame;
   const x0 = Math.floor((state.camera.x - 200) / 260), x1 = Math.ceil((state.camera.x + CANVAS_WIDTH + 200) / 260);
   for (let k = x0; k <= x1; k++) {
-    const x = k * 260, h = 330 + hash(k) * 220, top = Y - h;
+    const x = k * 260, h = (burning ? 200 + hash(k) * 200 : 330 + hash(k) * 220), top = Y - h;
+    // At the end: every other lot's come down, a heap of rubble and a wall stub where it stood (the city burning past it)
+    if (burning && hash(k * 7 + 2) < 0.5) { drawCollapsedLot(ctx, x, f, k); continue; }
     const tones = ['#5B2A1E', '#4A2C24', '#3F3A3A', '#5A3B2B', '#30343F'];
     ctx.fillStyle = tones[Math.floor(hash(k + 3) * tones.length)];
-    ctx.fillRect(x, top, 262, h);
+    if (burning) {
+      // Its top bitten off, jagged
+      ctx.beginPath(); ctx.moveTo(x, Y); ctx.lineTo(x, top + hash(k + 5) * 40);
+      for (let j = 1; j <= 8; j++) ctx.lineTo(x + j * 32.5, top + (j % 2 ? 30 + hash(k * 3 + j) * 70 : hash(k * 5 + j) * 30));
+      ctx.lineTo(x + 262, Y); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = 'rgba(0,0,0,0.35)'; for (let j = 0; j < 3; j++) { ctx.beginPath(); ctx.ellipse(x + 40 + j * 80, top + 90 + hash(k + j) * 120, 26, 40, 0, 0, Math.PI * 2); ctx.fill(); } // scorch
+    } else ctx.fillRect(x, top, 262, h);
     // Brick courses, a cornice
     ctx.fillStyle = 'rgba(0,0,0,0.18)'; for (let y = top + 8; y < Y; y += 10) ctx.fillRect(x, y, 262, 1);
     ctx.fillStyle = '#1C1917'; ctx.fillRect(x - 4, top, 270, 10); ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fillRect(x - 4, top + 8, 270, 3);
@@ -154,8 +189,19 @@ const drawStreetFronts = (ctx: Ctx, state: GameState, burning: boolean) => {
       for (let i = 0; i < 4; i++) { const t = ((f * 0.8 + i * 40 + k * 11) % 160) / 160; ctx.beginPath(); ctx.arc(x + 130 + Math.sin(t * 5 + k) * 30, top - 40 - t * 260, 24 + t * 50, 0, Math.PI * 2); ctx.fill(); }
     }
     // Graffiti on the lower wall
-    if (hash(k + 17) < 0.5) { ctx.fillStyle = ['#F472B6', '#22D3EE', '#A3E635'][k % 3]; ctx.font = 'bold 10px "Press Start 2P"'; ctx.fillText(['BARRY SUX', 'NO LIGHT', '4EVA', 'CON ED = DEAD'][k % 4], x + 30, Y - 12); }
+    if (hash(k + 17) < 0.5) { ctx.fillStyle = ['#F472B6', '#22D3EE', '#A3E635'][((k % 3) + 3) % 3]; ctx.font = 'bold 10px "Press Start 2P"'; ctx.fillText(['BARRY SUX', 'NO LIGHT', '4EVA', 'CON ED = DEAD'][((k % 4) + 4) % 4], x + 30, Y - 12); }
   }
+};
+
+/** A lot where a building's come down: a heap of rubble and rebar, a jagged stub of wall, fire in the heap, smoke. */
+const drawCollapsedLot = (ctx: Ctx, x: number, f: number, k: number) => {
+  ctx.fillStyle = '#3F3A3A';
+  ctx.beginPath(); ctx.moveTo(x + 10, Y); ctx.lineTo(x + 20, Y - 140 - hash(k) * 80); ctx.lineTo(x + 40, Y - 110); ctx.lineTo(x + 52, Y - 170 - hash(k + 1) * 60); ctx.lineTo(x + 70, Y - 90); ctx.lineTo(x + 70, Y); ctx.closePath(); ctx.fill(); // the wall stub
+  ctx.fillStyle = '#111827'; ctx.fillRect(x + 26, Y - 120, 16, 20); // a window hole in it
+  ctx.fillStyle = '#57534E'; ctx.beginPath(); ctx.moveTo(x, Y); ctx.quadraticCurveTo(x + 130, Y - 110, x + 262, Y); ctx.fill(); // the heap
+  ctx.fillStyle = '#78716C'; for (let j = 0; j < 12; j++) ctx.fillRect(x + 30 + hash(k * 9 + j) * 200, Y - 10 - hash(k * 11 + j) * 70, 12 + hash(j) * 14, 8);
+  ctx.strokeStyle = '#7C2D12'; ctx.lineWidth = 2; for (let j = 0; j < 5; j++) { const rx = x + 60 + j * 35; ctx.beginPath(); ctx.moveTo(rx, Y - 50); ctx.lineTo(rx + 10 - j * 4, Y - 90 - j * 6); ctx.stroke(); } // rebar
+  drawFlames(ctx, x + 70, Y - 40, 120, f + k * 13);
 };
 
 /** The roofs' buildings: each roof's building down to the bottom of the screen, windows lit or out with the blackout. */
@@ -240,6 +286,16 @@ const drawBoard = (ctx: Ctx, state: GameState, rt: BarryRuntime) => {
   const x = rt.surf ? rt.surf.x : Number(state.stageMemo.boardX || NaN);
   if (!(x > 0 || x < 0)) return;
   if (rt.surf?.phase === 'air') return;
+  // What he left on the street skidding along it (it stays)
+  const x0 = COURSE.landing.x1 + 40;
+  for (let sx = x0; sx < x - 10; sx += 6) {
+    const k = (sx - x0) / Math.max(1, x - x0), w = 6 + hash(sx) * 5;
+    ctx.fillStyle = hash(sx * 3) < 0.5 ? 'rgba(127, 29, 29, 0.9)' : 'rgba(153, 27, 27, 0.85)';
+    ctx.fillRect(sx, Y + 1, 7, 2 + (1 - k) * 2 + (hash(sx * 7) < 0.15 ? w : 0) * 0.4);
+    if (hash(sx * 11) < 0.08) { ctx.beginPath(); ctx.ellipse(sx, Y + 3, w * 1.6, 2.5, 0, 0, Math.PI * 2); ctx.fill(); }
+  }
+  // (and a pool where he stopped)
+  if (!rt.surf) { ctx.fillStyle = 'rgba(127, 29, 29, 0.9)'; ctx.beginPath(); ctx.ellipse(x, Y + 3, 46, 5, 0, 0, Math.PI * 2); ctx.fill(); }
   drawMinionFlat(ctx, x, Y, state.frame);
   // Still riding it down the street, crouched low, arms out
   if (rt.surf?.phase === 'slide') {
@@ -364,7 +420,8 @@ export const drawBarryMid = (ctx: Ctx, state: GameState) => {
   for (const l of COURSE.ledges) if (visible(state, l.x, l.x + l.w)) drawLedge(ctx, state, l);
   for (const l of COURSE.lamps) if (visible(state, l.x - 40, l.x + 40)) drawLamp(ctx, state, l.x, l.y, l.look, lampLevel(l, state.frame));
   for (const v of COURSE.vents) if (visible(state, v.x, v.x + v.w)) drawVent(ctx, state, v.x, v.w, ventState(v, state.frame));
-  void place;
+  // (Barry's man and what he left on the street: over the street, so it's on it)
+  if (place === 'landing') drawBoard(ctx, state, getBarry(state)!);
 };
 
 const drawLedge = (ctx: Ctx, state: GameState, l: Ledge) => {

@@ -570,6 +570,14 @@ const jailScene = (ctx: FrameContext, town: Town, talk: Talk, controls: Controls
   return { ...NO_CONTROLS };
 };
 
+/** Blood on the street where Riggs got a tourist (kept in the stage's memory, so it's still there after a death). */
+const addStain = (state: GameState, x: number) => {
+  const list = townStains(state);
+  list.push(Math.round(x));
+  state.stageMemo.townStains = JSON.stringify(list.slice(-60));
+};
+export const townStains = (state: GameState): number[] => { try { return JSON.parse(state.stageMemo.townStains || '[]'); } catch { return []; } };
+
 /** When to go up: the boost jump has to be on its way up (it's tall) before the cab gets there. */
 const JUMP_FROM = 300, JUMP_TO = 100;
 /** How far off the cab is, as a share of the run-up (1 = on him), for the meter; whether it's time to jump, and when that is on the meter. */
@@ -603,6 +611,8 @@ const plow = (ctx: FrameContext, town: Town) => {
     // (and what's left of them, all over the street)
     for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: Y - 30 }, vel: { x: 4 + Math.random() * 14, y: -Math.random() * 12 }, life: 40 + Math.random() * 30, color: i % 3 ? '#991B1B' : '#DC2626', size: 3 + Math.random() * 6 });
     town.gore = Math.min(1, town.gore + 0.1);
+    // (and where it happened stays painted: it doesn't wash off)
+    addStain(state, e.pos.x + e.width / 2);
     shakeScreen(state, 10, 6);
     if (state.frame - town.screamAt > 35) { town.screamAt = state.frame; playSound('screams'); }
     return false;

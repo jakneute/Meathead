@@ -11,7 +11,7 @@ import type { GroundRun } from '../../core/terrain';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, BOSS_DOOR_X } from '../../../constants';
 import { COURSE, Building, Awning } from './course';
 import type { DaleRuntime } from './runtime';
-import { Town, TownProp, CAB, ninjaSpot, incoming, jailWrecked, muzzle, laserEnd, NINJA_CUT, NINJA_DONE, JAIL_SKIP_AFTER } from './town';
+import { Town, TownProp, CAB, ninjaSpot, incoming, jailWrecked, townStains, muzzle, laserEnd, NINJA_CUT, NINJA_DONE, JAIL_SKIP_AFTER } from './town';
 import { drawDaleKind } from '../../render/enemies/dale';
 import { drawPlayer } from '../../render/player/player';
 import { saying, drawBubble } from './script';
@@ -28,6 +28,13 @@ const Y = GROUND_Y;
 export const drawTownBack = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   const t = COURSE.town;
   for (const r of state.groundRuns) if (r.surface === 'street' && visible(state, r.x1, r.x2)) drawStreet(ctx, state, r);
+  // Where Riggs ran the tourists down: blood across the street, drag marks after it, the way he was going
+  for (const sx of townStains(state)) {
+    if (!visible(state, sx - 80, sx + 120)) continue;
+    ctx.fillStyle = 'rgba(127, 29, 29, 0.9)'; ctx.beginPath(); ctx.ellipse(sx, Y + 3, 30 + hash(sx) * 16, 4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(153, 27, 27, 0.8)'; for (let k = 0; k < 6; k++) ctx.fillRect(sx + 10 + k * 14, Y + 1 + (k % 2), 10 - k, 2);
+    for (let k = 0; k < 5; k++) { const bx = sx - 20 + hash(sx + k) * 70; ctx.beginPath(); ctx.arc(bx, Y + 2 - hash(sx * k) * 3, 2 + hash(sx + k * 3) * 3, 0, Math.PI * 2); ctx.fill(); }
+  }
   if (visible(state, t.x1 - 100, t.x1 + 400)) drawCurioShop(ctx, t.x1, rt.town.shopHit);
   if (visible(state, t.arch - 200, t.arch + 200)) drawArch(ctx, t.arch);
   for (const b of COURSE.buildings) if (visible(state, b.x1 - 60, b.x2 + 60)) drawBuilding(ctx, state, b);
