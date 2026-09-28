@@ -52,6 +52,8 @@ export const createTommyRuntime = (state: GameState, skipToBoss: boolean): Tommy
     if (!ahead(s.x, SPAWN_CLEARANCE)) continue;
     const e = makeKindEnemy(s.kind, s.x, s.y);
     if (s.variant !== undefined) e.variant = s.variant;
+    // (a fish keeps to the water it's in)
+    if (s.kind === 'mutantfish') { const c = COURSE.channels.find(ch => s.x > ch.x1 && s.x < ch.x2); if (c) e.swimBox = { x1: c.x1, x2: c.x2, y1: c.surface, y2: c.floor }; }
     state.enemies.push(e);
   }
   const rt: TommyRuntime = {

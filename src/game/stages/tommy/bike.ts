@@ -65,6 +65,8 @@ export interface BikeRun {
   zoom: number;
   /** How much of the ride's banter's been said. */
   said: number;
+  /** The last frame he was boosting (a wheelie): hitting a ramp or a car soon after still counts. */
+  boostAt: number;
 }
 
 /** Speeds: easing off, cruising, pedaling hard. */
@@ -82,7 +84,7 @@ export const createBikeRun = (state: GameState, startedAt: number): BikeRun => {
     rider: { x: COURSE.hood.bike, y: GROUND_Y, vx: 0, vy: 0, rot: 0, state: onBike || past ? 'down' : 'sitting' },
     crew: !onBike && !past, v: onBike ? BIKE_BASE : 0, done: new Set(), spawned: 0, hint: '', hintT: 0, hinted: new Set(),
     bottle: { x: COURSE.road.hazmat, y: GROUND_Y - 60, vx: 0, vy: 0, state: 'held' },
-    fly: { x: 0, y: 0, vx: 0, vy: 0, rot: 0 }, bikeWreck: { x: 0, y: 0, vx: 0, vy: 0, rot: 0 }, zoom: 0, said: 0,
+    fly: { x: 0, y: 0, vx: 0, vy: 0, rot: 0 }, bikeWreck: { x: 0, y: 0, vx: 0, vy: 0, rot: 0 }, zoom: 0, said: 0, boostAt: -999,
   };
   if (onBike) {
     mount(state);
@@ -224,7 +226,9 @@ const riding = (ctx: FrameContext, b: BikeRun, talk: Talk, controls: Controls): 
   // Everything behind that's been left far behind gave up (and a car that's driven off is gone)
   state.enemies = state.enemies.filter(e => e.type === 'boss' || e.kind === 'amalgam' || e.pos.x > R.x2
     || (e.pos.x > state.camera.x - 700 && e.pos.x < state.camera.x + (e.kind === 'lowrider' && e.aiState === 'leave' ? CANVAS_WIDTH + 160 : 1800)));
+  if (p.isCharging) b.boostAt = state.frame;
   spawnWaves(state, b);
+  launchOverCars(ctx, b);
   junk(ctx, b);
   teach(state, b);
   banter(state, b, talk);
@@ -286,15 +290,17 @@ const junk = (ctx: FrameContext, b: BikeRun) => {
     }
     if (!rectsOverlap(pb, box)) return;
     if (j.look === 'ramp') {
-      // Wheelie into it and it's a big one: off the top and high into the air, faster. Otherwise he just rolls over it
-      if (p.isCharging && (p.isGrounded || p.vel.y >= 0)) {
-        p.vel.y = -21; p.isGrounded = false; b.v = Math.min(BIKE_FAST + 3, b.v + 3); b.done.add(i);
-        fx.spawnDamageNumber({ x: p.pos.x - 30, y: p.pos.y - 60 }, 'SICK JUMP!', true, '#4ADE80');
-        shakeScreen(state, 10, 4); playSound('horn');
+      // Boosting into it (a wheelie, or one just now) and it's a big one: off the top and high into the air, faster.
+      // Otherwise he just rolls over it
+      if (boosting(state, b) && (p.isGrounded || p.vel.y >= 0)) {
+        launch(ctx, b, -17.5, 'SICK JUMP!');
+        b.v = Math.min(BIKE_FAST + 3, b.v + 3); b.done.add(i);
         for (let k = 0; k < 14; k++) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: box.y }, vel: { x: -2 - Math.random() * 4, y: -Math.random() * 4 }, life: 26, color: k % 2 ? '#FDE047' : '#F8FAFC', size: 3 + Math.random() * 4 });
       }
       return;
     }
+    // Boosting into a wrecked car: up and over it, no harm done
+    if (j.look === 'car' && boosting(state, b) && (p.isGrounded || p.vel.y >= 0)) { launch(ctx, b, -15, 'OVER IT!'); b.done.add(i); return; }
     // Cones go flying whatever; the rest break if he wheelies through them (not a parked car: that he has to clear)
     const breaks = j.look === 'cones' || ((p.isCharging || p.isDivekicking) && j.look !== 'car' && j.look !== 'pothole');
     if (breaks) {
@@ -313,6 +319,32 @@ const junk = (ctx: FrameContext, b: BikeRun) => {
     smash(state, j, box);
     fx.spawnDamageNumber({ x: p.pos.x - 30, y: p.pos.y - 40 }, { trash: 'GARBAGE DAY!', pothole: 'POTHOLE!', glass: 'FLAT TIRE!', car: 'FENDER BENDER!', barrier: 'ROAD CLOSED!', hydrant: 'HOSED!', cones: '', ramp: '' }[j.look], true, '#F97316');
   });
+};
+
+/** Boosting: a wheelie going now, or one in the last half second (a tap's enough). */
+const BOOST_GRACE = 30;
+const boosting = (state: GameState, b: BikeRun) => state.player.isCharging || state.frame - b.boostAt < BOOST_GRACE;
+
+/** Up into the air off something he boosted into (the wheelie's over: he's flying). */
+const launch = (ctx: FrameContext, b: BikeRun, vy: number, callout: string) => {
+  const { state, fx } = ctx;
+  const p = state.player;
+  p.isCharging = false; p.isSliding = false;
+  p.vel.y = vy; p.isGrounded = false;
+  p.invincibilityTimer = Math.max(p.invincibilityTimer, 30);
+  b.boostAt = -999;
+  fx.spawnDamageNumber({ x: p.pos.x - 30, y: p.pos.y - 60 }, callout, true, '#4ADE80');
+  shakeScreen(state, 10, 4); playSound('horn');
+};
+
+/** Boosting into the back of a lowrider out in front: up and over it, no harm done either way. */
+const launchOverCars = (ctx: FrameContext, b: BikeRun) => {
+  const { state } = ctx;
+  const p = state.player;
+  if (!boosting(state, b) || !(p.isGrounded || p.vel.y >= 0)) return;
+  const front = p.pos.x + p.width;
+  const car = state.enemies.find(e => e.kind === 'lowrider' && e.health > 0 && e.aiState !== 'overtake' && e.pos.x - front < 24 && e.pos.x + e.width > p.pos.x && p.pos.y + p.height > e.pos.y);
+  if (car) launch(ctx, b, -17, 'OVER IT!');
 };
 
 const smash = (state: GameState, j: RoadJunk, box: { x: number; y: number; w: number; h: number }) => {

@@ -164,7 +164,7 @@ export type BossState =
 /** What the shield goons throw. */
 export type ThrownKind = 'tequila' | 'water' | 'coconut' | 'ice' | 'rock' | 'teargas' | 'forty' | 'coffee' | 'stapler' | 'cleaner' | 'flask' | 'household' | 'wrench';
 /** What the gun goons fire. */
-export type ShotLook = 'slug' | 'cryo' | 'flare' | 'spray' | 'zap';
+export type ShotLook = 'slug' | 'cryo' | 'flare' | 'spray' | 'zap' | 'tracer';
 
 export type EnemyKind =
   // Artie's stage
@@ -188,6 +188,8 @@ export type EnemyKind =
   | 'banger' | 'bruiser' | 'pitbull' | 'lowrider' | 'hazmat' | 'bloater' | 'manhole' | 'sludgeling' | 'mutantfish' | 'amalgam';
 
 export interface Enemy extends Entity {
+  /** The water it lives in (a fish): it keeps inside it, and only goes after him when he's in it too. */
+  swimBox?: { x1: number; x2: number; y1: number; y2: number };
   /** Which of Meathead's moves last hit it (see Player.moveId). */
   hitByMove?: number;
   /** A gator's meal: the goon it's gone after in the water (by id). */

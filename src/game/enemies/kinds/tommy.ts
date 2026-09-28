@@ -35,13 +35,14 @@ export const runTommyKindAI = (ctx: FrameContext, e: Enemy): boolean => {
   }
 };
 
-/** A slug fired from (x, y) at (tx, ty); `carry` is how fast the shooter's going along the road. */
-const shootFrom = (state: GameState, e: Enemy, x: number, y: number, tx: number, ty: number, speed: number, damage: number, carry = 0) => {
-  const dx = tx - x, dy = ty - y, len = Math.hypot(dx, dy) || 1;
+/** A round fired from (x, y) toward tx, flat along the road (it can be jumped); `carry` is how fast the shooter's going. */
+const shootFrom = (state: GameState, e: Enemy, x: number, y: number, tx: number, speed: number, damage: number, carry = 0) => {
+  const dir = tx < x ? -1 : 1;
   state.projectiles.push({
-    id: `ep-${e.kind}-${state.frame}-${Math.random()}`, pos: { x: x - 5, y: y - 5 }, vel: { x: (dx / len) * speed + carry, y: (dy / len) * speed },
-    width: 10, height: 10, health: 1, maxHealth: 1, type: 'projectile', damage, owner: 'enemy', shooterKind: e.kind, shot: 'slug',
+    id: `ep-${e.kind}-${state.frame}-${Math.random()}`, pos: { x: x - 5, y: y - 5 }, vel: { x: dir * speed + carry, y: 0 },
+    width: 10, height: 10, health: 1, maxHealth: 1, type: 'projectile', damage, owner: 'enemy', shooterKind: e.kind, shot: 'tracer',
   });
+  for (let i = 0; i < 5; i++) state.particles.push({ pos: { x, y }, vel: { x: dir * (1 + Math.random() * 3) + carry, y: (Math.random() - 0.5) * 2 }, life: 7, color: i % 2 ? '#FEF08A' : '#FB923C', size: 3 + Math.random() * 3 });
 };
 
 // ---------------------------------------------------------------------------
@@ -149,7 +150,7 @@ const lowrider = (ctx: FrameContext, e: Enemy) => {
     const k = e.shootTimer - CAR_REST;
     if (k % CAR_BURST_GAP === 0) {
       const w = LOWRIDER_WINDOWS[Math.floor(k / CAR_BURST_GAP) % 2];
-      shootFrom(state, e, mid(e).x + w.x + (e.aiX ?? 1) * 20, e.pos.y + e.height + w.y - 8, pm.x, pm.y, CAR_SHOT_SPEED, CAR_SHOT_DAMAGE, e.vel.x * 0.8);
+      shootFrom(state, e, mid(e).x + w.x + (e.aiX ?? 1) * 20, e.pos.y + e.height + w.y - 8, pm.x, CAR_SHOT_SPEED, CAR_SHOT_DAMAGE, e.vel.x * 0.8);
     }
     // (three rounds a burst between the two of them)
     if (k >= CAR_BURST * CAR_BURST_GAP - 1) e.shootTimer = 0;
@@ -203,7 +204,10 @@ const mutantfish = (ctx: FrameContext, e: Enemy) => {
   const m = mid(e), pm = mid(p);
   const homeY = e.initialY ?? e.homeY ?? e.pos.y;
   const dx = pm.x - m.x, dy = pm.y - m.y, d = Math.hypot(dx, dy) || 1;
-  if (Math.abs(dx) < FISH_SEES && p.health > 0 && !holdingOff(state)) {
+  const box = e.swimBox;
+  // (it only goes for him when he's in its water)
+  const inWater = !box || (pm.x > box.x1 && pm.x < box.x2 && pm.y > box.y1 - 20 && pm.y < box.y2);
+  if (inWater && Math.abs(dx) < FISH_SEES && p.health > 0 && !holdingOff(state)) {
     // After him: a slow drift his way, and a lunge every so often
     const sp = e.aiTimer % FISH_LUNGE_EVERY < 22 ? FISH_LUNGE : FISH_DRIFT;
     e.vel.x += ((dx / d) * sp - e.vel.x) * 0.1;
@@ -214,8 +218,13 @@ const mutantfish = (ctx: FrameContext, e: Enemy) => {
     e.vel.y = (homeY + Math.sin((state.frame + (e.homeX || 0)) * 0.05) * 8 - e.pos.y) * 0.05;
   }
   e.facing = e.vel.x < 0 ? -1 : 1;
-  e.pos.x += e.vel.x;
-  e.pos.y += e.vel.y;
-  // (it stays down in the muck: never up out of it, never down through the floor)
-  e.pos.y = Math.max(homeY - 90, Math.min(homeY + 40, e.pos.y));
+  // It swims round things, not through them: a move that'd put it in a pipe, a grate or a wall doesn't happen
+  const solidAt = (x: number, y: number) => state.blocks.some(b => b.type !== 'pit' && !b.oneWay && x < b.x + b.w && x + e.width > b.x && y < b.y + b.h && y + e.height > b.y);
+  if (!solidAt(e.pos.x + e.vel.x, e.pos.y)) e.pos.x += e.vel.x; else e.vel.x = 0;
+  if (!solidAt(e.pos.x, e.pos.y + e.vel.y)) e.pos.y += e.vel.y; else e.vel.y = 0;
+  // ...and it never leaves its water
+  if (box) {
+    e.pos.x = Math.max(box.x1, Math.min(box.x2 - e.width, e.pos.x));
+    e.pos.y = Math.max(box.y1 + 8, Math.min(box.y2 - e.height, e.pos.y));
+  } else e.pos.y = Math.max(homeY - 90, Math.min(homeY + 40, e.pos.y));
 };

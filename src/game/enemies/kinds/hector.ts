@@ -41,7 +41,9 @@ export const runHectorKindAI = (ctx: FrameContext, e: Enemy): boolean => {
 
 /** Ground kinds that hold their own position rather than stand on the floor (until a hit knocks them loose). */
 export const selfPropelled = (e: Enemy) =>
-  e.kind === 'magmafish' || e.kind === 'jetskier' || e.kind === 'lowrider' || (e.kind === 'gator' && e.variant === 1) || (e.kind === 'iguana' && (e.aiState === 'idle' || e.aiState === 'drop' || !e.aiState));
+  e.kind === 'magmafish' || e.kind === 'jetskier' || e.kind === 'lowrider' ||
+  // (a sludgeling floating in the muck, waiting: it keeps itself there till it goes for him)
+  (e.kind === 'sludgeling' && (!e.aiState || e.aiState === 'idle')) || (e.kind === 'gator' && e.variant === 1) || (e.kind === 'iguana' && (e.aiState === 'idle' || e.aiState === 'drop' || !e.aiState));
 
 const dirTo = (e: Enemy, x: number) => (x < mid(e).x ? -1 : 1) as 1 | -1;
 

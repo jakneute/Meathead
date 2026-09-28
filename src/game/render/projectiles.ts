@@ -173,7 +173,16 @@ const drawGunShot = (ctx: CanvasRenderingContext2D, p: Projectile, frame: number
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(angleOf(p));
-  if (p.shot === 'slug') {
+  if (p.shot === 'tracer') {
+    // A gangbanger's round: a long hot streak with a glow round it, a bright core outlined dark (easy to see on anything)
+    ctx.fillStyle = 'rgba(248, 113, 113, 0.28)'; ctx.beginPath(); ctx.ellipse(-12, 0, 26, 7, 0, 0, Math.PI * 2); ctx.fill();
+    const trail = ctx.createLinearGradient(-44, 0, 0, 0);
+    trail.addColorStop(0, 'rgba(249, 115, 22, 0)'); trail.addColorStop(1, 'rgba(253, 186, 116, 1)');
+    ctx.fillStyle = trail; ctx.beginPath(); ctx.moveTo(-44, 0); ctx.lineTo(0, -3.5); ctx.lineTo(0, 3.5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.ellipse(1, 0, 7, 4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FDE047'; ctx.beginPath(); ctx.ellipse(1, 0, 5.5, 2.8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.ellipse(2.5, 0, 2.5, 1.3, 0, 0, Math.PI * 2); ctx.fill();
+  } else if (p.shot === 'slug') {
     // A hot round: an orange-white streak behind a brass point
     const trail = ctx.createLinearGradient(-26, 0, 0, 0);
     trail.addColorStop(0, 'rgba(251, 146, 60, 0)'); trail.addColorStop(1, 'rgba(254, 215, 170, 0.85)');
