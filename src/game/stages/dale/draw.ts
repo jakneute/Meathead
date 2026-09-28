@@ -75,24 +75,105 @@ export const drawDaleBack = (ctx: Ctx, state: GameState) => {
 
 /** The arroyos: dry washes cut down through the red rock (the gaps in the ground). */
 const drawArroyos = (ctx: Ctx, state: GameState) => {
+  for (const gp of gulches(state)) drawGulch(ctx, state, gp.x1, gp.x2, gp.yl, gp.yr);
+};
+
+/** The gaps between the desert's ground on screen: where they are, and the ground's height either side. */
+const gulches = (state: GameState) => {
   const runs = state.groundRuns;
-  const bottom = state.camera.y + CANVAS_HEIGHT + 60;
+  const out: { x1: number; x2: number; yl: number; yr: number }[] = [];
   for (let i = 0; i + 1 < runs.length; i++) {
     const a = runs[i], n = runs[i + 1];
     if (n.x1 <= a.x2 + 1 || regionOf(a.x2) !== 'desert' || !visible(state, a.x2, n.x1)) continue;
-    const top = Math.min(a.y2, n.y1);
-    const g = ctx.createLinearGradient(0, top, 0, top + 320);
-    g.addColorStop(0, '#6B3420'); g.addColorStop(0.4, '#3A1A10'); g.addColorStop(1, '#0E0503');
-    ctx.fillStyle = g;
-    ctx.fillRect(a.x2, top, n.x1 - a.x2, Math.max(bottom, top + 40) - top);
-    // Banded rock down the walls
-    for (let s = 0; s < 6; s++) {
-      ctx.fillStyle = s % 2 ? 'rgba(160, 82, 45, 0.35)' : 'rgba(90, 40, 20, 0.35)';
-      ctx.fillRect(a.x2, a.y2 + 10 + s * 22, 14, 10); ctx.fillRect(n.x1 - 14, n.y1 + 16 + s * 22, 14, 10);
+    out.push({ x1: a.x2, x2: n.x1, yl: a.y2, yr: n.y1 });
+  }
+  return out;
+};
+
+/**
+ * Looking down into a gulch: banded red rock stepping down and in on both sides to a slot of shadow, the far wall
+ * across it in layers, a boulder jammed in partway down, dead brush clinging on, and darkness at the bottom.
+ */
+const drawGulch = (ctx: Ctx, state: GameState, x1: number, x2: number, yl: number, yr: number) => {
+  const bottom = state.camera.y + CANVAS_HEIGHT + 60;
+  const w = x2 - x1, top = Math.min(yl, yr), depth = Math.max(bottom, top + 60) - top;
+  const seed = Math.round(x1);
+  // The far wall, in bands of red rock, darkening with depth
+  const bands = ['#B5602F', '#9A4A26', '#C0703A', '#83391E', '#A5532A', '#6E2F18', '#8C4222', '#5A2512'];
+  for (let k = 0, y = top; y < top + depth; k++) {
+    const h = 14 + hash(seed + k) * 16;
+    ctx.fillStyle = bands[k % bands.length];
+    ctx.fillRect(x1, y, w, h + 1);
+    // (a wavy seam between the layers)
+    ctx.fillStyle = 'rgba(40, 15, 5, 0.35)';
+    for (let x = x1; x < x2; x += 8) ctx.fillRect(x, y + h - 1 + Math.sin((x + seed) * 0.08 + k) * 1.5, 8, 2);
+    y += h;
+  }
+  const shade = ctx.createLinearGradient(0, top, 0, top + 300);
+  shade.addColorStop(0, 'rgba(20, 6, 2, 0.05)'); shade.addColorStop(0.45, 'rgba(20, 6, 2, 0.55)'); shade.addColorStop(1, 'rgba(8, 2, 0, 0.97)');
+  ctx.fillStyle = shade; ctx.fillRect(x1, top, w, depth);
+  // The side walls, stepping down and in (lit on the left wall, in shadow on the right)
+  const side = (from: number, dir: 1 | -1, lip: number) => {
+    let x = from, y = lip;
+    ctx.fillStyle = dir > 0 ? '#A9582C' : '#4A1F0E';
+    ctx.beginPath(); ctx.moveTo(from, lip);
+    for (let k = 0; k < 9; k++) {
+      const stepIn = (6 + hash(seed + k * 3 + (dir > 0 ? 0 : 50)) * 10) * Math.min(1, w / 160);
+      const stepDown = 22 + hash(seed + k * 5 + (dir > 0 ? 7 : 57)) * 26;
+      x += dir * stepIn; ctx.lineTo(x, y);
+      y += stepDown; ctx.lineTo(x, y);
+      if (Math.abs(x - from) > w * 0.42) break;
+    }
+    ctx.lineTo(from, y); ctx.closePath(); ctx.fill();
+    // Strata across it
+    ctx.fillStyle = dir > 0 ? 'rgba(255, 190, 130, 0.18)' : 'rgba(0, 0, 0, 0.25)';
+    for (let yy = lip + 12; yy < y; yy += 17) ctx.fillRect(Math.min(from, from + dir * 40), yy, 40, 3);
+  };
+  side(x1, 1, yl);
+  side(x2, -1, yr);
+  // A boulder wedged across partway down, and some dead brush hanging on
+  if (w > 110) {
+    const bx = x1 + w * (0.35 + hash(seed + 2) * 0.3), by = top + 110 + hash(seed + 3) * 60;
+    ctx.fillStyle = '#6B3A22'; ctx.beginPath(); ctx.ellipse(bx, by, 22, 15, 0.2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#8A4C2C'; ctx.beginPath(); ctx.ellipse(bx - 6, by - 6, 10, 6, 0.2, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.strokeStyle = '#6B5A3A'; ctx.lineWidth = 1.5;
+  for (const [x, y, d] of [[x1 + 10, yl + 36, 1], [x2 - 10, yr + 58, -1]] as const) {
+    ctx.beginPath(); for (let k = 0; k < 4; k++) { ctx.moveTo(x, y); ctx.lineTo(x + d * (8 + k * 3), y - 4 + k * 4); } ctx.stroke();
+  }
+  // Blackness at the bottom, a haze of dust over it
+  ctx.fillStyle = 'rgba(214, 167, 122, 0.08)'; ctx.fillRect(x1, top + 150, w, 60);
+};
+
+/**
+ * The rims either side of a gulch, over the ground's own cliff face: a jagged lip of rock with its layers showing
+ * down the face, a few loose stones on the edge (so the drop reads as a drop, not a step).
+ */
+const drawGulchRims = (ctx: Ctx, state: GameState) => {
+  const bottom = state.camera.y + CANVAS_HEIGHT + 60;
+  for (const gp of gulches(state)) {
+    for (const [edge, lip, dir] of [[gp.x1, gp.yl, -1], [gp.x2, gp.yr, 1]] as const) {
+      // dir: which way the ground goes from the edge (-1: the ground's to the left of the gap)
+      const seed = Math.round(edge);
+      const face = 26;
+      const x0 = dir < 0 ? edge - face : edge;
+      for (let y = lip + 4, k = 0; y < bottom; k++) {
+        const h = 12 + hash(seed + k) * 12;
+        ctx.fillStyle = ['#C0703A', '#9A4A26', '#B5602F', '#83391E'][k % 4];
+        ctx.fillRect(x0, y, face, h + 1);
+        y += h;
+      }
+      // The jagged edge of it, into the gap
+      ctx.fillStyle = dir < 0 ? '#A9582C' : '#6E2F18';
+      ctx.beginPath(); ctx.moveTo(edge, lip);
+      for (let y = lip; y < Math.min(bottom, lip + 400); y += 14) ctx.lineTo(edge - dir * (3 + hash(seed + y) * 7), y + 7);
+      ctx.lineTo(edge, Math.min(bottom, lip + 400)); ctx.closePath(); ctx.fill();
+      // An overhanging lip and a couple of loose stones on it
+      ctx.fillStyle = '#D48A4C'; ctx.beginPath(); ctx.moveTo(edge + dir * 30, lip); ctx.lineTo(edge - dir * 6, lip); ctx.lineTo(edge - dir * 2, lip + 8); ctx.lineTo(edge + dir * 30, lip + 6); ctx.fill();
+      ctx.fillStyle = '#8A5A3A'; ctx.beginPath(); ctx.arc(edge + dir * 12, lip - 2, 3, 0, Math.PI * 2); ctx.arc(edge + dir * 20, lip - 1.5, 2, 0, Math.PI * 2); ctx.fill();
     }
   }
 };
-
 /** Bits of desert: rocks, yucca, a cow skull, fence posts along the dirt road at the landing. */
 const drawScenery = (ctx: Ctx, state: GameState) => {
   const x0 = Math.floor((state.camera.x - 100) / 90), x1 = Math.ceil((state.camera.x + CANVAS_WIDTH + 100) / 90);
@@ -292,6 +373,7 @@ export const drawDaleMid = (ctx: Ctx, state: GameState) => {
   const region = regionOf(state.camera.x + 400);
   if (region === 'town') { drawTownMid(ctx, state, rt); return; }
   if (region !== 'desert') return;
+  drawGulchRims(ctx, state);
   for (const c of COURSE.cacti) if (visible(state, c.x - 40, c.x + 40)) drawCactus(ctx, c, state.frame);
 };
 

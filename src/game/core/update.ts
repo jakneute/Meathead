@@ -478,6 +478,26 @@ const CAMERA_HARD_TOP = 70;
 const CAMERA_HARD_BOTTOM = 36;
 /** How quickly the camera eases toward where it wants to be. */
 const CAMERA_EASE_Y = 0.2;
+/** Looking ahead for somewhere to land: how far along, how far down it'll go looking, and how far up off the bottom of the screen it's kept. */
+const CAMERA_LOOK_AHEAD = 380, CAMERA_LOOK_DOWN = 320, CAMERA_LANDING_MARGIN = 70;
+
+/**
+ * The lowest thing to stand on along the way he's going (or facing), within reach below him: the ground after a step
+ * down, the far side of a gap, the next ledge down. Null if there's nothing lower than where he is.
+ */
+const nextLanding = (blocks: FrameContext['state']['blocks'], player: FrameContext['state']['player']): number | null => {
+  const dir = Math.abs(player.vel.x) > 0.5 ? Math.sign(player.vel.x) : player.facing;
+  const feet = player.pos.y + player.height;
+  const cx = player.pos.x + player.width / 2;
+  let lowest: number | null = null;
+  for (let d = 20; d <= CAMERA_LOOK_AHEAD; d += 20) {
+    // (the topmost surface at that x that isn't way up over his head)
+    const top = floorTopAt(blocks, cx + dir * d, feet - 60, 0);
+    if (top === null || top > feet + CAMERA_LOOK_DOWN || top <= feet + 4) continue;
+    if (lowest === null || top > lowest) lowest = top;
+  }
+  return lowest;
+};
 
 const updateCamera = (ctx: FrameContext) => {
   const { state, stageId } = ctx;
@@ -506,7 +526,11 @@ const updateCamera = (ctx: FrameContext) => {
     else if (player.isGrounded) state.cameraRestY = feet - row;
     // Dropping toward lower ground: head down to meet it rather than waiting for him to land
     else if (player.vel.y > 0 && below !== null) state.cameraRestY = Math.max(state.cameraRestY, below - row);
-    const target = Math.min(state.cameraRestY, player.pos.y - CAMERA_TOP_MARGIN);
+    // And never so high that the next thing to stand on is out of sight below: the ground (or ledge) along the way
+    // he's headed, stepping down or across a gap, is kept up off the bottom of the screen
+    const landing = player.skiing || player.jetski || player.swimming ? null : nextLanding(floors, player);
+    const rest = landing === null ? state.cameraRestY : Math.max(state.cameraRestY, landing - (CANVAS_HEIGHT - CAMERA_LANDING_MARGIN));
+    const target = Math.min(rest, player.pos.y - CAMERA_TOP_MARGIN);
     state.camera.y += (target - state.camera.y) * (layout.cameraEaseY?.(state) ?? CAMERA_EASE_Y);
     if (Math.abs(target - state.camera.y) < 0.5) state.camera.y = target;
     // The easing never gets to leave him behind: he stays on screen however fast he's going
