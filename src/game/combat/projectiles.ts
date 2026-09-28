@@ -3,7 +3,7 @@
 import { submerged } from '../enemies/kinds/victor';
 import { Enemy, Projectile } from '../../types';
 import { BOTTLE_GRAVITY } from '../../constants';
-import { playGlassShatterSound } from '../platform/audio';
+import { playGlassShatterSound, playSound } from '../platform/audio';
 import {
   CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, PLAYER_INVINCIBILITY_FRAMES,
   PLAYER_PUSHBACK_DURATION, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y,
@@ -80,7 +80,7 @@ export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
   if (p.owner === 'player' && p.isIce) return updatePellet(ctx, p);
   if (p.owner === 'player' && p.isBoulder) return updatePlayerBoulder(ctx, p);
 
-  if (p.isBottle) return updateBottle(ctx, p);
+  if (p.thrown) return updateThrown(ctx, p);
 
   const hasPhysics = p.isBoulder || (p.isIce && (p.width > 30 || p.width <= 20 || p.owner === 'player')) || p.isShrapnel || p.isCocaine || p.isMethBarrel || p.isSludge || p.isPoop;
   if (hasPhysics) {
@@ -96,30 +96,49 @@ export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
   return p.owner === 'player' ? resolvePlayerProjectileHits(ctx, p) : resolveEnemyProjectileHit(ctx, p);
 };
 
-/** A thrown bottle: up and over, end over end, and it smashes on the ground, a wall, or him. */
-const updateBottle = (ctx: FrameContext, p: Projectile): boolean => {
+/** Something thrown: up and over, end over end, and it smashes (or splats, or bursts) on the ground, a wall, or him. */
+const updateThrown = (ctx: FrameContext, p: Projectile): boolean => {
   const { state } = ctx;
   p.vel.y += BOTTLE_GRAVITY;
   p.pos.x += p.vel.x;
   p.pos.y += p.vel.y;
-  p.rotation = (p.rotation || 0) + 0.32 * Math.sign(p.vel.x || 1);
+  p.rotation = (p.rotation || 0) + (p.thrown === 'teargas' ? 0.2 : 0.32) * Math.sign(p.vel.x || 1);
+  // (a trail: smoke off the tear gas, embers off the hot rock, frost off the ice)
+  if (state.frame % 2 === 0) {
+    const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
+    if (p.thrown === 'teargas') state.particles.push({ pos: { x: cx, y: cy }, vel: { x: -p.vel.x * 0.2, y: -0.5 }, life: 26, color: 'rgba(203, 213, 180, 0.6)', size: 5 + Math.random() * 5 });
+    if (p.thrown === 'rock') state.particles.push({ pos: { x: cx, y: cy }, vel: { x: -p.vel.x * 0.2, y: -0.3 }, life: 14, color: Math.random() < 0.5 ? '#F97316' : '#FDE047', size: 2 + Math.random() * 2 });
+    if (p.thrown === 'ice') state.particles.push({ pos: { x: cx, y: cy }, vel: { x: -p.vel.x * 0.1, y: 0.2 }, life: 12, color: '#E0F2FE', size: 2 });
+  }
   const box = boundsOf(p);
   const solid = state.blocks.some(b => !b.hidden && b.type !== 'platform' && rectsOverlap(box, b)) || state.blocks.some(b => (b.type === 'ground' || (b.type === 'platform' && p.vel.y > 0 && p.pos.y + p.height - p.vel.y <= b.y)) && rectsOverlap(box, b));
-  if (solid || p.pos.y > state.camera.y + 900) { smashBottle(ctx, p); return false; }
+  if (solid || p.pos.y > state.camera.y + 900) { smashThrown(ctx, p); return false; }
   if (p.pos.x < state.camera.x - 400 || p.pos.x > state.camera.x + CANVAS_WIDTH + 400) return false;
   const stillFlying = resolveEnemyProjectileHit(ctx, p);
-  if (!stillFlying) smashBottle(ctx, p);
+  if (!stillFlying) smashThrown(ctx, p);
   return stillFlying;
 };
 
-const smashBottle = (ctx: FrameContext, p: Projectile) => {
+/** What each thrown thing breaks into (and the sound of it). */
+const SMASH: Record<NonNullable<Projectile['thrown']>, { bits: string[]; spill?: string; count: number }> = {
+  tequila: { bits: ['#A16207', '#CA8A04', '#FDE68A', '#F8FAFC', '#92400E'], spill: 'rgba(253, 230, 138, 0.7)', count: 14 },
+  water: { bits: ['#7DD3FC', '#E0F2FE', '#0EA5E9', '#F8FAFC'], spill: 'rgba(125, 211, 252, 0.8)', count: 10 },
+  coconut: { bits: ['#78350F', '#92400E', '#5B3413', '#F8FAFC'], spill: 'rgba(248, 250, 252, 0.8)', count: 12 },
+  ice: { bits: ['#E0F2FE', '#BAE6FD', '#FFFFFF', '#7DD3FC'], count: 14 },
+  rock: { bits: ['#44403C', '#F97316', '#FDE047', '#57534E', '#EA580C'], count: 16 },
+  teargas: { bits: ['#374151', '#65A30D'], count: 4 },
+};
+
+const smashThrown = (ctx: FrameContext, p: Projectile) => {
   const { state } = ctx;
   const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
-  const glass = ['#A16207', '#CA8A04', '#FDE68A', '#F8FAFC', '#92400E'];
-  for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: cx, y: cy }, vel: { x: (Math.random() - 0.5) * 7, y: -Math.random() * 5 }, life: 22 + Math.random() * 14, color: glass[i % glass.length], size: 2 + Math.random() * 3 });
-  // (and what was in it)
-  for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: cx, y: cy }, vel: { x: (Math.random() - 0.5) * 3, y: -Math.random() * 2 }, life: 18, color: 'rgba(253, 230, 138, 0.7)', size: 3 + Math.random() * 3 });
-  playGlassShatterSound();
+  const s = SMASH[p.thrown!];
+  for (let i = 0; i < s.count; i++) state.particles.push({ pos: { x: cx, y: cy }, vel: { x: (Math.random() - 0.5) * 7, y: -Math.random() * 5 }, life: 22 + Math.random() * 14, color: s.bits[i % s.bits.length], size: 2 + Math.random() * 3 });
+  if (s.spill) for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: cx, y: cy }, vel: { x: (Math.random() - 0.5) * 3, y: -Math.random() * 2 }, life: 18, color: s.spill, size: 3 + Math.random() * 3 });
+  // (the tear gas: a cloud of it, hanging there a moment)
+  if (p.thrown === 'teargas') for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * 30, y: cy - Math.random() * 20 }, vel: { x: (Math.random() - 0.5) * 1.6, y: -0.3 - Math.random() * 0.6 }, life: 60 + Math.random() * 40, color: i % 2 ? 'rgba(203, 213, 180, 0.55)' : 'rgba(226, 232, 216, 0.5)', size: 10 + Math.random() * 12 });
+  if (p.thrown === 'tequila') playGlassShatterSound();
+  else playSound(p.thrown === 'rock' ? 'ignite' : p.thrown === 'teargas' ? 'oil' : p.thrown === 'water' ? 'barf' : 'ice');
 };
 
 const updateOilRocket = (ctx: FrameContext, p: Projectile): boolean => {

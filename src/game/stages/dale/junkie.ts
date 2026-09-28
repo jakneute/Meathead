@@ -348,7 +348,7 @@ const fireGold = (ctx: FrameContext, m: Enemy) => {
   const len = Math.hypot(tx - sx, ty - sy) || 1;
   state.projectiles.push({
     id: `ep-junkie-${state.frame}`, pos: { x: sx - 5, y: sy - 4 }, vel: { x: ((tx - sx) / len) * 9, y: ((ty - sy) / len) * 9 },
-    width: 10, height: 8, health: 1, maxHealth: 1, type: 'projectile', damage: BULLET, owner: 'enemy', shooterKind: 'junkie',
+    width: 10, height: 8, health: 1, maxHealth: 1, type: 'projectile', damage: BULLET, owner: 'enemy', shooterKind: 'junkie', shot: 'slug',
   });
   ctx.fx.playGunSound('gun');
   for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: sx, y: sy }, vel: { x: m.facing! * (2 + Math.random() * 3), y: (Math.random() - 0.5) * 3 }, life: 8, color: i % 2 ? '#FDE047' : '#FFFFFF', size: 3 + Math.random() * 3 });

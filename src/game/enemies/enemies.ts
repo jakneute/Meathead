@@ -17,6 +17,8 @@ import {
   BOTTLE_GRAVITY,
 } from '../../constants';
 import { FrameContext, killBoss } from '../core/context';
+import type { ThrownKind } from '../../types';
+import { THROWN, shotLook, shotSpeed } from './shots';
 import { getBossDef, getStageWidth } from '../bosses/registry';
 import { rectsOverlap, boundsOf } from '../core/utils';
 import { getAttackHitbox, harmlessBounce, recoilOff, getContactHurtSource } from '../player/player';
@@ -265,21 +267,39 @@ const updateOiledDrips = (ctx: FrameContext, e: Enemy) => {
   }
 };
 
-/** The quickest and slowest a thrown bottle takes to get to him. */
-const BOTTLE_MIN_T = 24, BOTTLE_MAX_T = 48;
+/** The quickest and slowest something thrown takes to get to him. */
+const THROW_MIN_T = 24, THROW_MAX_T = 48;
+/** The size of each thing thrown. */
+const THROWN_SIZE: Record<ThrownKind, { w: number; h: number }> = {
+  tequila: { w: 10, h: 18 }, water: { w: 10, h: 18 }, coconut: { w: 16, h: 16 }, ice: { w: 16, h: 14 }, rock: { w: 16, h: 14 }, teargas: { w: 10, h: 16 },
+};
 
-/** A bottle lobbed at him: up and over in an arc that comes down where he's standing. */
-const throwBottle = (ctx: FrameContext, x: number, y: number, e: Enemy) => {
+/** Lobbed at him (from his throwing hand): up and over in an arc that comes down where he's standing. */
+const throwAt = (ctx: FrameContext, e: Enemy, what: ThrownKind) => {
   const p = ctx.state.player;
+  const x = e.pos.x + e.width / 2, y = e.pos.y + e.height - 58;
   const tx = p.pos.x + p.width / 2, ty = p.pos.y + p.height / 2;
-  const t = Math.max(BOTTLE_MIN_T, Math.min(BOTTLE_MAX_T, Math.abs(tx - x) / 7));
+  const t = Math.max(THROW_MIN_T, Math.min(THROW_MAX_T, Math.abs(tx - x) / 7));
   const vx = (tx - x) / t, vy = (ty - y - 0.5 * BOTTLE_GRAVITY * t * t) / t;
-  ctx.state.projectiles.push({ id: `eb-${Date.now()}-${Math.random()}`, pos: { x: x - 5, y: y - 9 }, vel: { x: vx, y: vy }, width: 10, height: 18, health: 1, maxHealth: 1, type: 'projectile', damage: ENEMY_BULLET_DAMAGE, owner: 'enemy', shooterKind: e.kind ?? 'enemy', isBottle: true, rotation: 0 });
+  const { w, h } = THROWN_SIZE[what];
+  ctx.state.projectiles.push({ id: `et-${Date.now()}-${Math.random()}`, pos: { x: x - w / 2, y: y - h / 2 }, vel: { x: vx, y: vy }, width: w, height: h, health: 1, maxHealth: 1, type: 'projectile', damage: ENEMY_BULLET_DAMAGE, owner: 'enemy', shooterKind: e.kind ?? 'enemy', thrown: what, rotation: 0 });
 };
 
-const fireEnemyBullet = (ctx: FrameContext, x: number, y: number, velX: number, e: Enemy) => {
-  ctx.state.projectiles.push({ id: `ep-${Date.now()}`, pos: { x, y }, vel: { x: velX, y: 0 }, width: 14, height: 14, health: 1, maxHealth: 1, type: 'projectile', damage: ENEMY_BULLET_DAMAGE, owner: 'enemy', shooterKind: e.kind ?? 'enemy' });
+/**
+ * A shot from his gun, out of its muzzle (chest high, out in front of him, the side he's facing): it looks like what
+ * he's holding fires. (Chest high, so ducking still gets under it.)
+ */
+const fireEnemyBullet = (ctx: FrameContext, e: Enemy, dir: number, from?: { x: number; y: number }) => {
+  const look = shotLook(e.kind);
+  const size = look ? (look === 'slug' ? 8 : 10) : 14;
+  const x = from ? from.x : look ? e.pos.x + e.width / 2 + dir * (e.width / 2 + 6) - size / 2 : e.pos.x + e.width / 2;
+  const y = from ? from.y : look ? e.pos.y + e.height - 48 : e.pos.y + 10;
+  ctx.state.projectiles.push({ id: `ep-${Date.now()}-${Math.random()}`, pos: { x, y }, vel: { x: dir * (look ? shotSpeed(look, e.kind) : 7), y: 0 }, width: size, height: size, health: 1, maxHealth: 1, type: 'projectile', damage: ENEMY_BULLET_DAMAGE, owner: 'enemy', shooterKind: e.kind ?? 'enemy', shot: look });
+  // (the flash out the end of it)
+  if (look) for (let i = 0; i < 4; i++) ctx.state.particles.push({ pos: { x: x + size / 2, y: y + size / 2 }, vel: { x: dir * (1 + Math.random() * 2), y: (Math.random() - 0.5) * 1.5 }, life: 6, color: look === 'cryo' ? '#E0F2FE' : look === 'flare' ? '#FDBA74' : '#FEF08A', size: 2 + Math.random() * 3 });
 };
+/** A rifleman fires in bursts: this many rounds, this many frames apart. */
+const BURST = 3, BURST_GAP = 6;
 
 /** Patrol / shoot / hover behaviour for regular enemies, plus knockback physics. */
 const moveEnemy = (ctx: FrameContext, e: Enemy) => {
@@ -341,7 +361,7 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
     if (e.behavior === 'patrol' || e.behavior === 'fly') {
       if (e.pos.x > (e.initialX + e.patrolRange) || e.pos.x < e.initialX) e.vel.x *= -1;
     } else if (e.behavior === 'shoot' && onScreen && !holdingOff(state) && ++e.shootTimer > 60) {
-      fireEnemyBullet(ctx, e.pos.x + e.width / 2, e.pos.y + e.height - 10, player.pos.x < e.pos.x ? -7 : 7, e);
+      fireEnemyBullet(ctx, e, player.pos.x < e.pos.x ? -1 : 1, { x: e.pos.x + e.width / 2, y: e.pos.y + e.height - 10 });
       e.shootTimer = 0;
     }
     if (e.behavior === 'shoot') settleAfterKnockback(e);
@@ -405,13 +425,18 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
       e.isShieldActive = e.shootTimer < 80;
       if (e.shootTimer > 120) {
         const dir = shieldFacing(e);
-        // (Dale's car-door men throw bottles, over the top; the rest fire)
-        if (e.kind === 'cardoor') throwBottle(ctx, e.pos.x + e.width / 2 + dir * 10, e.pos.y + 4, e);
-        else fireEnemyBullet(ctx, dir < 0 ? e.pos.x : e.pos.x + e.width, e.pos.y + 15, dir * 6, e);
+        // (with the shield down he throws whatever he's got: a bottle, a coconut, a chunk of ice...)
+        const what = e.kind && THROWN[e.kind];
+        if (what) throwAt(ctx, e, what);
+        else fireEnemyBullet(ctx, e, dir);
         e.shootTimer = 0;
       }
+    } else if ((e.burstLeft || 0) > 0) {
+      // The rest of a rifleman's burst
+      if (e.shootTimer >= BURST_GAP) { fireEnemyBullet(ctx, e, player.pos.x < e.pos.x ? -1 : 1); e.burstLeft!--; e.shootTimer = 0; }
     } else if (e.shootTimer > 60) {
-      fireEnemyBullet(ctx, e.pos.x + e.width / 2, e.pos.y + 10, player.pos.x < e.pos.x ? -7 : 7, e);
+      fireEnemyBullet(ctx, e, player.pos.x < e.pos.x ? -1 : 1);
+      if (e.kind === 'sicario') e.burstLeft = BURST - 1;
       e.shootTimer = 0;
     }
   }

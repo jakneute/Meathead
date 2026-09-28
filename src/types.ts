@@ -154,6 +154,11 @@ export type BossState =
   | 'aiming' | 'flicking' | 'taser_held' | 'ash_face' | 'high' | 'running' | 'frozen';
 
 /** Themed enemies: Artie's wildlife and goons. */
+/** What the shield goons throw. */
+export type ThrownKind = 'tequila' | 'water' | 'coconut' | 'ice' | 'rock' | 'teargas';
+/** What the gun goons fire. */
+export type ShotLook = 'slug' | 'cryo' | 'flare';
+
 export type EnemyKind =
   // Artie's stage
   | 'wolverine' | 'goat' | 'eagle' | 'shooter' | 'charger' | 'shielder' | 'moose'
@@ -199,6 +204,8 @@ export interface Enemy extends Entity {
   initialX: number;
   initialY?: number;
   shootTimer: number;
+  /** A rifleman's burst: rounds still to come, and frames till the next. */
+  burstLeft?: number;
   isShieldActive?: boolean;
   hitCooldown?: number;
   frozenTimer?: number;
@@ -334,8 +341,10 @@ export interface Projectile extends Entity {
   isTsunami?: boolean;
   isShrapnel?: boolean;
   isPoop?: boolean;
-  /** A bottle lobbed by one of Dale's car-door goons: it arcs, and smashes on whatever it hits. */
-  isBottle?: boolean;
+  /** Something a shield goon's lobbed (a bottle, a coconut, a chunk of ice...): it arcs, and smashes on whatever it hits. */
+  thrown?: ThrownKind;
+  /** What a gun goon's shot looks like (a slug, a frost bolt, a flare). */
+  shot?: ShotLook;
   isDart?: boolean;
   isCocaine?: boolean;
   isMethBarrel?: boolean;

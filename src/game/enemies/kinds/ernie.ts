@@ -30,7 +30,7 @@ const shoot = (state: GameState, e: Enemy, tx: number, ty: number, speed: number
   const dx = tx - m.x, dy = ty - m.y, len = Math.hypot(dx, dy) || 1;
   state.projectiles.push({
     id: `ep-${e.kind}-${state.frame}-${Math.random()}`, pos: { x: m.x - 5, y: m.y - 5 }, vel: { x: (dx / len) * speed + carry, y: (dy / len) * speed },
-    width: 10, height: 10, health: 1, maxHealth: 1, type: 'projectile', damage, owner: 'enemy', shooterKind: e.kind,
+    width: 10, height: 10, health: 1, maxHealth: 1, type: 'projectile', damage, owner: 'enemy', shooterKind: e.kind, shot: 'slug',
   });
 };
 

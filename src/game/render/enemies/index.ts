@@ -371,10 +371,12 @@ const drawShielder = (ctx: Ctx, e: Enemy, f: number) => {
       ctx.beginPath(); ctx.moveTo(11, y0); ctx.lineTo(17, y0 + 4); ctx.lineTo(14, y0 + 8); ctx.lineTo(25, y0 + 11); ctx.stroke();
     }
   } else {
-    // Slab down at his side, arm back to throw a snowball
+    // Slab down at his side, arm back to throw a chunk broken off it
     ctx.fillStyle = 'rgba(165, 214, 245, 0.7)'; ctx.fillRect(-26, -34, 12, 34);
     const wind = Math.min(1, (e.shootTimer - 80) / 40);
     ctx.fillStyle = PARKA_DARK; ctx.fillRect(-4 - wind * 10, -52, 7, 12);
-    ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(-2 - wind * 12, -54, 5, 0, Math.PI * 2); ctx.fill();
+    const hx = -2 - wind * 12;
+    ctx.fillStyle = '#BAE6FD'; ctx.beginPath(); ctx.moveTo(hx - 6, -55); ctx.lineTo(hx - 2, -60); ctx.lineTo(hx + 5, -58); ctx.lineTo(hx + 6, -52); ctx.lineTo(hx - 3, -49); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.fillRect(hx - 3, -57, 3, 3);
   }
 };

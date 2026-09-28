@@ -37,23 +37,62 @@ export const drawBullet = (ctx: CanvasRenderingContext2D, p: Projectile) => {
   ctx.restore();
 };
 
-/** Enemy shots: a crackling red plasma ball with a tail. */
-/** A tequila bottle, end over end: brown glass, a label, the cap. */
-export const drawBottle = (ctx: CanvasRenderingContext2D, p: Projectile) => {
+/** What a shield goon's thrown, end over end: a tequila bottle, a water bottle, a coconut, a chunk of ice, a hot rock, tear gas. */
+export const drawThrown = (ctx: CanvasRenderingContext2D, p: Projectile, frame: number) => {
   const { x, y } = centerOf(p);
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(p.rotation || 0);
-  ctx.fillStyle = '#92400E'; ctx.beginPath(); ctx.roundRect(-5, -3, 10, 12, 2); ctx.fill();
-  ctx.fillRect(-2, -9, 4, 7);
-  ctx.fillStyle = '#FDE68A'; ctx.fillRect(-5, 1, 10, 5);
-  ctx.fillStyle = '#B91C1C'; ctx.fillRect(-2, 2, 4, 3);
-  ctx.fillStyle = '#E5E7EB'; ctx.fillRect(-2, -11, 4, 2);
-  ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.fillRect(-4, -2, 2, 9);
+  switch (p.thrown) {
+    case 'tequila':
+      ctx.fillStyle = '#92400E'; ctx.beginPath(); ctx.roundRect(-5, -3, 10, 12, 2); ctx.fill();
+      ctx.fillRect(-2, -9, 4, 7);
+      ctx.fillStyle = '#FDE68A'; ctx.fillRect(-5, 1, 10, 5);
+      ctx.fillStyle = '#B91C1C'; ctx.fillRect(-2, 2, 4, 3);
+      ctx.fillStyle = '#E5E7EB'; ctx.fillRect(-2, -11, 4, 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.fillRect(-4, -2, 2, 9);
+      break;
+    case 'water':
+      // A reusable one: steel, a carry loop, a sticker
+      ctx.fillStyle = '#0EA5E9'; ctx.beginPath(); ctx.roundRect(-5, -6, 10, 15, 3); ctx.fill();
+      ctx.fillStyle = '#E5E7EB'; ctx.fillRect(-4, -9, 8, 4);
+      ctx.strokeStyle = '#E5E7EB'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, -11, 3, Math.PI, 0); ctx.stroke();
+      ctx.fillStyle = '#A3E635'; ctx.beginPath(); ctx.arc(0, 2, 2.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(-4, -4, 2, 11);
+      break;
+    case 'coconut':
+      ctx.fillStyle = '#5B3413'; ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#78350F'; ctx.lineWidth = 1; for (let k = 0; k < 5; k++) { ctx.beginPath(); ctx.moveTo(-7, -5 + k * 2.5); ctx.lineTo(7, -6 + k * 3); ctx.stroke(); } // the husk's fibers
+      ctx.fillStyle = '#1C1917'; for (const [a, b] of [[-2, -3], [2, -3], [0, 1]]) { ctx.beginPath(); ctx.arc(a, b, 1.3, 0, Math.PI * 2); ctx.fill(); } // its face
+      break;
+    case 'ice':
+      ctx.fillStyle = '#BAE6FD'; ctx.beginPath(); ctx.moveTo(-8, -2); ctx.lineTo(-3, -7); ctx.lineTo(6, -6); ctx.lineTo(8, 2); ctx.lineTo(2, 7); ctx.lineTo(-6, 5); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.beginPath(); ctx.moveTo(-5, -2); ctx.lineTo(-2, -5); ctx.lineTo(1, -4); ctx.lineTo(-3, 0); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#0EA5E9'; ctx.lineWidth = 1; ctx.stroke();
+      break;
+    case 'rock': {
+      ctx.fillStyle = '#292524'; ctx.beginPath(); ctx.moveTo(-8, 0); ctx.lineTo(-4, -6); ctx.lineTo(5, -6); ctx.lineTo(8, 1); ctx.lineTo(3, 6); ctx.lineTo(-5, 5); ctx.closePath(); ctx.fill();
+      const glow = 0.6 + Math.sin(frame * 0.5) * 0.3;
+      ctx.strokeStyle = `rgba(249, 115, 22, ${glow})`; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-5, -1); ctx.lineTo(0, 1); ctx.lineTo(4, -3); ctx.moveTo(0, 1); ctx.lineTo(1, 5); ctx.stroke();
+      ctx.fillStyle = `rgba(253, 224, 71, ${glow * 0.8})`; ctx.beginPath(); ctx.arc(0, 1, 1.5, 0, Math.PI * 2); ctx.fill();
+      break;
+    }
+    case 'teargas':
+      ctx.fillStyle = '#374151'; ctx.fillRect(-4, -7, 8, 14);
+      ctx.fillStyle = '#65A30D'; ctx.fillRect(-4, -2, 8, 4);
+      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(-3, -9, 6, 2);
+      ctx.fillStyle = 'rgba(226, 232, 216, 0.8)'; ctx.beginPath(); ctx.arc(0, -11, 3 + (frame % 6) * 0.4, 0, Math.PI * 2); ctx.fill(); // hissing out the top
+      break;
+  }
   ctx.restore();
 };
 
+/**
+ * Enemy shots, by what fired them: a pistol or rifle slug (a hot round with a streak behind it), a cryo rifle's frost
+ * bolt, a flare-gun flare; anything else, a crackling red plasma ball with a tail.
+ */
 export const drawEnemyBullet = (ctx: CanvasRenderingContext2D, p: Projectile, frame: number) => {
+  if (p.shot) { drawGunShot(ctx, p, frame); return; }
   const { x, y } = centerOf(p);
   const r = p.width / 2;
   ctx.save();
@@ -80,6 +119,36 @@ export const drawEnemyBullet = (ctx: CanvasRenderingContext2D, p: Projectile, fr
 };
 
 /** Meathead's shotgun pellets: little spinning ice crystals with a frosty wake. */
+const drawGunShot = (ctx: CanvasRenderingContext2D, p: Projectile, frame: number) => {
+  const { x, y } = centerOf(p);
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angleOf(p));
+  if (p.shot === 'slug') {
+    // A hot round: an orange-white streak behind a brass point
+    const trail = ctx.createLinearGradient(-26, 0, 0, 0);
+    trail.addColorStop(0, 'rgba(251, 146, 60, 0)'); trail.addColorStop(1, 'rgba(254, 215, 170, 0.85)');
+    ctx.fillStyle = trail; ctx.beginPath(); ctx.moveTo(-26, 0); ctx.lineTo(0, -2); ctx.lineTo(0, 2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#FDE68A'; ctx.beginPath(); ctx.ellipse(1, 0, 5, 2.4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.ellipse(2, 0, 2.5, 1.2, 0, 0, Math.PI * 2); ctx.fill();
+  } else if (p.shot === 'cryo') {
+    // A frost bolt: a pale blue core in a haze of cold, flakes coming off it
+    ctx.fillStyle = 'rgba(125, 211, 252, 0.3)'; ctx.beginPath(); ctx.ellipse(-6, 0, 14, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#7DD3FC'; ctx.beginPath(); ctx.ellipse(0, 0, 7, 4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#F0F9FF'; ctx.beginPath(); ctx.ellipse(1, 0, 3.5, 2, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FFFFFF'; for (let k = 0; k < 3; k++) { const t = ((frame + k * 5) % 15) / 15; ctx.fillRect(-4 - t * 16, (k - 1) * 4 + Math.sin(frame * 0.3 + k) * 2, 2, 2); }
+  } else {
+    // A flare: a blinding red-orange ball throwing sparks and a trail of smoke
+    const flick = 0.8 + Math.sin(frame * 0.9) * 0.2;
+    ctx.fillStyle = 'rgba(120, 113, 108, 0.35)'; for (let k = 1; k <= 3; k++) { ctx.beginPath(); ctx.arc(-k * 7, (k % 2 ? -1 : 1) * 1.5, 3 + k, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = `rgba(239, 68, 68, ${0.35 * flick})`; ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#F97316'; ctx.beginPath(); ctx.arc(0, 0, 5 * flick, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FEF9C3'; ctx.beginPath(); ctx.arc(0.5, 0, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FDE047'; for (let k = 0; k < 3; k++) { const a = frame * 0.7 + k * 2.1; ctx.fillRect(Math.cos(a) * 8 - 4, Math.sin(a) * 6, 1.5, 1.5); }
+  }
+  ctx.restore();
+};
+
 export const drawIcePellet = (ctx: CanvasRenderingContext2D, p: Projectile, frame: number) => {
   const { x, y } = centerOf(p);
   const r = Math.max(4, p.width / 2);
