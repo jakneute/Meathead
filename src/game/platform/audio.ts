@@ -430,3 +430,61 @@ export const playTypeClack = (heavy = false) => {
     if (heavy) thump(ctx, 180 + Math.random() * 40, 60, 0.12, 0.35);
   } catch { /* best-effort */ }
 };
+
+/**
+ * A radio channel left open: a hiss under everything, and while the far end's talking, the modulator's buzz and
+ * warble over it (a low sawtooth throbbing, the hiss up). Returns controls to key the talking on and off and to close it.
+ */
+export const openRadio = () => {
+  let ctx: AudioContext;
+  try { ctx = getAudioContext(); } catch { return { talking: (_on: boolean) => {}, close: () => {} }; }
+  const t = ctx.currentTime;
+  // The hiss
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  const noise = ctx.createBufferSource(); noise.buffer = buf; noise.loop = true;
+  const band = ctx.createBiquadFilter(); band.type = 'bandpass'; band.frequency.value = 2200; band.Q.value = 0.7;
+  const hiss = ctx.createGain(); hiss.gain.setValueAtTime(0.012, t);
+  noise.connect(band); band.connect(hiss); hiss.connect(ctx.destination);
+  // The modulator: a throbbing low buzz
+  const buzz = ctx.createOscillator(); buzz.type = 'sawtooth'; buzz.frequency.value = 62;
+  const lfo = ctx.createOscillator(); lfo.type = 'square'; lfo.frequency.value = 23;
+  const lfoDepth = ctx.createGain(); lfoDepth.gain.value = 0.012;
+  const buzzGain = ctx.createGain(); buzzGain.gain.setValueAtTime(0, t);
+  lfo.connect(lfoDepth); lfoDepth.connect(buzzGain.gain);
+  buzz.connect(buzzGain); buzzGain.connect(ctx.destination);
+  noise.start(); buzz.start(); lfo.start();
+  let open = true;
+  return {
+    talking: (on: boolean) => {
+      if (!open) return;
+      const now = ctx.currentTime;
+      buzzGain.gain.setTargetAtTime(on ? 0.014 : 0, now, 0.03);
+      hiss.gain.setTargetAtTime(on ? 0.03 : 0.012, now, 0.03);
+    },
+    close: () => {
+      if (!open) return;
+      open = false;
+      const now = ctx.currentTime;
+      hiss.gain.setTargetAtTime(0, now, 0.05); buzzGain.gain.setTargetAtTime(0, now, 0.05);
+      for (const s of [noise, buzz, lfo]) s.stop(now + 0.3);
+    },
+  };
+};
+
+/** The squelch as a radio's keyed or let go: a short burst of static, cut off. */
+export const playSquelch = () => {
+  try {
+    const ctx = getAudioContext();
+    const t = ctx.currentTime, len = 0.14;
+    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * len), ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+    const src = ctx.createBufferSource(); src.buffer = buf;
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1200;
+    const g = ctx.createGain(); g.gain.value = 0.08;
+    src.connect(hp); hp.connect(g); g.connect(ctx.destination);
+    src.start(t);
+  } catch { /* no audio */ }
+};

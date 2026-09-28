@@ -57,7 +57,10 @@ interface OverlayProps {
     onToggle: (flag: keyof CheatFlags) => void;
     onChangeRank: (delta: number) => void;
     onPlayEnding: () => void;
+    onPlayCall: () => void;
   };
+  /** The set's victory is the mid-game call (its own cutscene), not the victory screen. */
+  showCall?: boolean;
 }
 
 const MISSION_BRIEFING = "Your mission is to kill everything in sight for no particular reason.";
@@ -77,7 +80,7 @@ const Overlay: React.FC<OverlayProps> = (props) => {
       )}
       {status === GameStatus.PAUSED && <PauseMenu {...props} />}
       {status === GameStatus.BOSS_INTRO && <BossIntroScreen {...props} />}
-      {status === GameStatus.VICTORY && <FinalVictoryScreen {...props} />}
+      {status === GameStatus.VICTORY && !props.showCall && <FinalVictoryScreen {...props} />}
     </div>
   );
 };
@@ -91,7 +94,7 @@ const CheatToggle: React.FC<{ label: string, on: boolean, onColor: string, onCli
   </button>
 );
 
-const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['cheats']> }> = ({ rank, cheats: { flags, onToggle, onChangeRank, onPlayEnding } }) => (
+const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['cheats']> }> = ({ rank, cheats: { flags, onToggle, onChangeRank, onPlayEnding, onPlayCall } }) => (
   <div className="absolute top-2 right-2 z-[60] flex flex-col gap-1 items-end max-w-[150px]">
     <div className="flex w-full border-2 border-gray-600 bg-gray-900 shadow-[2px_2px_0px_white] items-center overflow-hidden">
       <button onClick={() => onChangeRank(-1)} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-white font-black text-[10px]">-</button>
@@ -105,6 +108,7 @@ const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['che
     <CheatToggle label="INF AMMO" on={flags.infiniteAmmo} onColor="bg-blue-500" onClick={() => onToggle('infiniteAmmo')} />
     <CheatToggle label="INF POWER" on={flags.infinitePower} onColor="bg-purple-500" onClick={() => onToggle('infinitePower')} />
     <div className="h-2 w-full" />
+    <button onClick={onPlayCall} className="w-full px-2 py-1 border-2 border-gray-600 bg-gray-800 text-yellow-300 font-black text-[7px] uppercase shadow-[2px_2px_0px_white] hover:bg-gray-700">VIEW MID-GAME CALL (DEBUG)</button>
     <button onClick={onPlayEnding} className="w-full px-2 py-1 border-2 border-gray-600 bg-gray-800 text-yellow-300 font-black text-[7px] uppercase shadow-[2px_2px_0px_white] hover:bg-gray-700">VIEW ENDING (DEBUG)</button>
   </div>
 );

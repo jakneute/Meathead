@@ -9,7 +9,7 @@ export const ART_H = 144;
 type Ctx = CanvasRenderingContext2D;
 
 // NES-ish palette
-const C = {
+export const C = {
   black: '#000000', white: '#fcfcfc', lightGray: '#bcbcbc', gray: '#7c7c7c', darkGray: '#3c3c3c', ink: '#1c1c1c',
   night: '#0c0c3c', night2: '#1c1c6c', moon: '#fcf8d8', lit: '#fce0a8',
   grass: '#00a800', darkGrass: '#005800',
@@ -26,13 +26,13 @@ const C = {
 // Pixel helpers
 // ---------------------------------------------------------------------------
 
-const R = (ctx: Ctx, x: number, y: number, w: number, h: number, c: string) => {
+export const R = (ctx: Ctx, x: number, y: number, w: number, h: number, c: string) => {
   ctx.fillStyle = c;
   ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
 };
 
 /** A filled ellipse built from pixel rows (keeps the hard NES edges). */
-const ell = (ctx: Ctx, cx: number, cy: number, rx: number, ry: number, c: string) => {
+export const ell = (ctx: Ctx, cx: number, cy: number, rx: number, ry: number, c: string) => {
   ctx.fillStyle = c;
   for (let y = -ry; y <= ry; y++) {
     const w = Math.round(rx * Math.sqrt(Math.max(0, 1 - (y * y) / (ry * ry))));
@@ -40,7 +40,7 @@ const ell = (ctx: Ctx, cx: number, cy: number, rx: number, ry: number, c: string
   }
 };
 
-const hash = (n: number) => {
+export const hash = (n: number) => {
   const x = Math.sin(n * 91.7 + 17.3) * 43758.5453;
   return x - Math.floor(x);
 };
@@ -493,18 +493,24 @@ export const drawBelly = (ctx: Ctx, t: number) => {
 };
 
 /** Meathead's face, filling the frame (medal round his neck). */
-export const drawMeatheadCloseUp = (ctx: Ctx, t: number, talking: boolean, mood: 'dumb' | 'disgust') => {
-  curtain(ctx, ART_H);
+/**
+ * Meathead up close. Moods: dumb, disgust; think (eyes rolled up and off to the side, mouth screwed up), stoked (eyes
+ * wide, sparkling, a huge grin). Where he is (the press room's curtain by default) and whether he's got the medal on.
+ */
+export const drawMeatheadCloseUp = (ctx: Ctx, t: number, talking: boolean, mood: 'dumb' | 'disgust' | 'think' | 'stoked', where: { bg?: (ctx: Ctx) => void; medal?: boolean } = {}) => {
+  if (where.bg) where.bg(ctx); else curtain(ctx, ART_H);
   // Traps and shoulders
   ell(ctx, 128, 150, 130, 34, C.mSkin);
   ell(ctx, 60, 140, 40, 22, C.mSkinShade);
   R(ctx, 96, 96, 64, 30, C.mSkin);
   // Medal ribbon and medal
-  R(ctx, 96, 112, 8, 24, C.blue);
-  R(ctx, 152, 112, 8, 24, C.blue);
-  R(ctx, 100, 132, 56, 5, C.blue);
-  ell(ctx, 128, 141, 8, 8, C.gold);
-  R(ctx, 126, 136, 4, 8, C.goldLight);
+  if (where.medal !== false) {
+    R(ctx, 96, 112, 8, 24, C.blue);
+    R(ctx, 152, 112, 8, 24, C.blue);
+    R(ctx, 100, 132, 56, 5, C.blue);
+    ell(ctx, 128, 141, 8, 8, C.gold);
+    R(ctx, 126, 136, 4, 8, C.goldLight);
+  }
   // Square head
   R(ctx, 90, 22, 76, 84, C.mSkin);
   R(ctx, 152, 22, 14, 84, C.mSkinShade);
@@ -523,14 +529,39 @@ export const drawMeatheadCloseUp = (ctx: Ctx, t: number, talking: boolean, mood:
   // Brows and eyes
   if (mood === 'disgust') {
     for (let i = 0; i < 26; i++) { R(ctx, 98 + i, 42 + Math.floor(i / 4), 1, 6, C.mHair); R(ctx, 132 + i, 48 - Math.floor(i / 4), 1, 6, C.mHair); }
+  } else if (mood === 'stoked') {
+    // Brows way up
+    R(ctx, 98, 36, 26, 6, C.mHair);
+    R(ctx, 132, 36, 26, 6, C.mHair);
+  } else if (mood === 'think') {
+    // One up, one down
+    R(ctx, 98, 40, 26, 6, C.mHair);
+    R(ctx, 132, 46, 26, 5, C.mHair);
   } else {
     R(ctx, 98, 44, 26, 6, C.mHair);
     R(ctx, 132, 44, 26, 6, C.mHair);
   }
-  R(ctx, 102, 54, 18, mood === 'disgust' ? 4 : 7, C.white);
-  R(ctx, 136, 54, 18, mood === 'disgust' ? 4 : 7, C.white);
-  R(ctx, 110, 54, 6, mood === 'disgust' ? 4 : 7, C.ink);
-  R(ctx, 144, 54, 6, mood === 'disgust' ? 4 : 7, C.ink);
+  if (mood === 'stoked') {
+    // Eyes wide, sparkling
+    R(ctx, 100, 48, 22, 12, C.white);
+    R(ctx, 134, 48, 22, 12, C.white);
+    R(ctx, 107, 50, 8, 8, C.ink);
+    R(ctx, 141, 50, 8, 8, C.ink);
+    R(ctx, 108, 51, 3, 3, C.white);
+    R(ctx, 142, 51, 3, 3, C.white);
+    if (t % 30 < 15) { R(ctx, 96, 40, 2, 6, C.goldLight); R(ctx, 94, 42, 6, 2, C.goldLight); R(ctx, 160, 40, 2, 6, C.goldLight); R(ctx, 158, 42, 6, 2, C.goldLight); }
+  } else if (mood === 'think') {
+    // Eyes rolled up and off to the side
+    R(ctx, 102, 52, 18, 7, C.white);
+    R(ctx, 136, 52, 18, 7, C.white);
+    R(ctx, 113, 52, 6, 4, C.ink);
+    R(ctx, 147, 52, 6, 4, C.ink);
+  } else {
+    R(ctx, 102, 54, 18, mood === 'disgust' ? 4 : 7, C.white);
+    R(ctx, 136, 54, 18, mood === 'disgust' ? 4 : 7, C.white);
+    R(ctx, 110, 54, 6, mood === 'disgust' ? 4 : 7, C.ink);
+    R(ctx, 144, 54, 6, mood === 'disgust' ? 4 : 7, C.ink);
+  }
   // Nose
   R(ctx, 126, 58, 4, 16, C.mSkinShade);
   R(ctx, 120, 72, 16, 3, C.mSkinShade);
@@ -542,6 +573,15 @@ export const drawMeatheadCloseUp = (ctx: Ctx, t: number, talking: boolean, mood:
     R(ctx, 138, 80, 8, 5, C.darkRed);
     R(ctx, 118, 87, 12, 8, '#e05060');
     R(ctx, 123, 87, 1, 6, '#a02030');
+  } else if (mood === 'stoked') {
+    // A huge grin, open when he's talking
+    R(ctx, 106, 80, 44, open ? 14 : 9, '#500000');
+    R(ctx, 108, 80, 40, 4, C.white);
+    R(ctx, 102, 78, 4, 4, C.darkRed); R(ctx, 150, 78, 4, 4, C.darkRed);
+  } else if (mood === 'think') {
+    // Mouth screwed up to one side
+    R(ctx, 124, 86, 20, 3, C.darkRed);
+    R(ctx, 142, 83, 4, 3, C.darkRed);
   } else if (open) {
     R(ctx, 114, 82, 28, 10, '#500000');
     R(ctx, 116, 82, 24, 3, C.white);

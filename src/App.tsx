@@ -3,6 +3,7 @@ import HUD from './components/HUD';
 import Overlay, { CheatFlags } from './components/Overlay';
 import GameCanvas from './components/GameCanvas';
 import EndingCutscene from './components/EndingCutscene';
+import RadioCutscene from './components/RadioCutscene';
 import DeployTransition from './components/DeployTransition';
 import WeaponGetScene from './components/WeaponGetScene';
 import { GameStatus, WeaponType } from './types';
@@ -84,6 +85,8 @@ const App: React.FC = () => {
   const [weaponAmmo, setWeaponAmmo] = useState<Record<WeaponType, number>>(createFullAmmo);
   const [cheatFlags, setCheatFlags] = useState<CheatFlags>(NO_CHEATS);
   const [progressionRank, setProgressionRank] = useState(0);
+  /** The mid-game call, played from the cheat panel. */
+  const [callPreview, setCallPreview] = useState(false);
   /** True between the boss dying and the victory screen; blocks pausing. */
   const [isVictoryPhase, setIsVictoryPhase] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -197,22 +200,28 @@ const App: React.FC = () => {
         }
         break;
       case GameStatus.VICTORY:
-        setDefeatedStages([]);
-        if (progressionRank === 0 && defeatedStages.length >= 4) {
-          // Beat the first set: unlock the second (how the first four died stays on file)
-          setProgressionRank(1);
-          setAvailableWeapons(getStartingWeapons(1, cheats.allWeapons));
-          setCurrentWeapon('GUN');
-          setStatus(GameStatus.STAGE_SELECT);
-        } else {
-          setAvailableWeapons(getStartingWeapons(progressionRank, cheats.allWeapons));
-          resetLoadout();
-          setKillRecords({});
-          setSelectedIndex(0);
-          setIsVictoryPhase(false);
-          setStatus(GameStatus.START);
-        }
+        finishVictory();
         break;
+    }
+  };
+
+  /** Past the set's victory (the call, at the midpoint): on to the next set, or back to the title. */
+  const finishVictory = () => {
+    setCallPreview(false);
+    setDefeatedStages([]);
+    if (progressionRank === 0 && defeatedStages.length >= 4) {
+      // Beat the first set: unlock the second (how the first four died stays on file)
+      setProgressionRank(1);
+      setAvailableWeapons(getStartingWeapons(1, cheats.allWeapons));
+      setCurrentWeapon('GUN');
+      setStatus(GameStatus.STAGE_SELECT);
+    } else {
+      setAvailableWeapons(getStartingWeapons(progressionRank, cheats.allWeapons));
+      resetLoadout();
+      setKillRecords({});
+      setSelectedIndex(0);
+      setIsVictoryPhase(false);
+      setStatus(GameStatus.START);
     }
   };
 
@@ -345,6 +354,8 @@ const App: React.FC = () => {
     if (status === GameStatus.STAGE_SELECT) { if (lockedIndex === null) lockStage(selectedIndex); else engageStage(); }
     else if (status === GameStatus.PAUSED) activatePauseItem(selectedIndex);
     // The weapon screen runs its own firing range: only Start / Esc (handled there) move on
+    // (the mid-game call runs its own confirm)
+    else if (status === GameStatus.VICTORY && (progressionRank === 0 || callPreview)) return;
     else if (TIMED_SCREENS.includes(status) && status !== GameStatus.BOSS_VICTORY_SPEECH) handleStart();
   };
 
@@ -560,9 +571,11 @@ const App: React.FC = () => {
           showArchive={showArchive}
           onToggleArchive={toggleArchive}
           killRecords={killRecords}
-          cheats={SHOW_CHEATS ? { flags: cheatFlags, onToggle: handleToggleCheat, onChangeRank: handleChangeRank, onPlayEnding: () => setStatus(GameStatus.ENDING) } : undefined}
+          cheats={SHOW_CHEATS ? { flags: cheatFlags, onToggle: handleToggleCheat, onChangeRank: handleChangeRank, onPlayEnding: () => setStatus(GameStatus.ENDING), onPlayCall: () => { setCallPreview(true); setStatus(GameStatus.VICTORY); } } : undefined}
+          showCall={progressionRank === 0 || callPreview}
         />
         {status === GameStatus.ENDING && <EndingCutscene onDone={handleEndingDone} />}
+        {status === GameStatus.VICTORY && (progressionRank === 0 || callPreview) && <RadioCutscene onDone={finishVictory} />}
         {deployingTo && status === GameStatus.STAGE_SELECT && (
           <DeployTransition
             stageId={deployingTo}
