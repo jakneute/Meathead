@@ -29,16 +29,24 @@ export interface News {
 
 const REPORTER_VOICE: Voice = { pitch: 1.35, rate: 1.05 };
 const LINES = [
-  "THIS IS KAREN DELGADO, LIVE ON MIAMI BEACH, WITH BREAKING NEWS.",
-  "IN WHAT METEOROLOGISTS ARE CALLING A VERY PECULIAR DEVELOPMENT, THE HURRICANE HAS SIMPLY... STOPPED.",
-  "EVERY DROP OF WATER THAT STORM WAS HOLDING IS NOW COMING DOWN ALL AT ONCE, IN ONE MASSIVE TORRENT.",
-  "AND WE'RE BEING TOLD IT'S HEADING... DIRECTLY FOR A DAYCARE.",
+  "BREAKING NEWS: IN A VERY PECULIAR TWIST, THE HURRICANE HAS JUST... STOPPED.",
+  "AND ALL OF ITS WATER IS COMING DOWN AT ONCE... DIRECTLY ONTO A DAYCARE.",
   "...BACK TO YOU, CHIP.",
 ];
-const HEADLINES = ['HURRICANE WEAKENING?', 'HURRICANE JUST... STOPS', 'ENTIRE STORM FALLING AT ONCE', 'FLOOD HEADED FOR DAYCARE', 'FLOOD HEADED FOR DAYCARE'];
+const HEADLINES = ['HURRICANE JUST... STOPS', 'FLOOD HEADED FOR DAYCARE', 'FLOOD HEADED FOR DAYCARE'];
 const TICKER = 'EXPERTS BAFFLED  •  "THAT\'S NOT HOW WEATHER WORKS," SAYS WEATHERMAN  •  MAN SEEN RIDING WATERSPOUT  •  GIANT EYEBALL SPOTTED IN STORM, SOURCES SAY  •  MOJITOS STILL 2-4-1  •  ';
 /** A line stays up at least this long, and gives up waiting for the speech after this. */
 const MIN_LINE = 80, MAX_LINE = 60 * 9;
+
+/** Roughly how long a line's up (what it takes to say, near enough). */
+const lineFrames = (i: number) => MIN_LINE + LINES[i].length * 2;
+
+/** How far through the broadcast we are (0..1), line by line: it only reaches the end as the last line does. */
+const progress = (n: News) => {
+  if (n.line < 0) return 0;
+  const within = n.said ? 1 : Math.min(0.95, (n.t - n.lineAt) / lineFrames(n.line));
+  return Math.min(1, (n.line + within) / LINES.length);
+};
 
 export const createNews = (): News => ({ t: 0, line: 0, lineAt: 0, said: false, showing: '', staticT: 0, done: false });
 
@@ -67,7 +75,7 @@ export const updateNews = (ctx: FrameContext, n: News, controls: Controls, onOve
   const on = n.t - n.lineAt;
   const skip = on > 20 && (controls.jump || controls.shoot);
   const timed = !ctx.state || !(typeof window !== 'undefined' && 'speechSynthesis' in window);
-  const over = on > MAX_LINE || skip || (on > MIN_LINE && (n.said || (timed && on > MIN_LINE + LINES[n.line].length * 2)));
+  const over = on > MAX_LINE || skip || (on > MIN_LINE && (n.said || (timed && on > lineFrames(n.line))));
   if (!over) return;
   if (skip) cancelSpeech();
   if (n.line + 1 < LINES.length) { sayLine(n, n.line + 1); return; }
@@ -109,8 +117,9 @@ export const drawNews = (ctx: Ctx, state: GameState, n: News) => {
     const x = colX - colW / 2 + hash(i) * colW, y = ((f * 9 + hash(i + 40) * 400) % (groundY + 60)) - 60;
     ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 40); ctx.stroke();
   }
-  // A tiny Meathead falling out of the sky with it (if you look closely)
-  drawTinyMeathead(ctx, state, colX + colW / 2 + 26, 60 + ((f * 1.4) % 260), f);
+  // A tiny Meathead, way off, falling out of the sky with it (if you look closely); he gets down to the daycare just as it cuts away
+  const fall = progress(n);
+  drawTinyMeathead(ctx, state, colX + colW / 2 + 14, 30 + fall * (groundY - 70 - 30), f);
   // The far shore: the town, and the little daycare right under the column
   ctx.fillStyle = '#1E3A8A'; ctx.fillRect(0, groundY - 8, W, 30);
   for (let i = 0; i < 12; i++) { const h = 20 + hash(i + 7) * 40; ctx.fillStyle = ['#FDE68A', '#F9A8D4', '#99F6E4', '#FDBA74'][i % 4]; ctx.fillRect(i * 70 + 4, groundY - 8 - h, 50, h); }
@@ -207,13 +216,13 @@ const drawTinyMeathead = (ctx: Ctx, state: GameState, x: number, y: number, f: n
   const p = state.player;
   // (a stand-in far off in the world, so nothing of the real one's surroundings gets drawn round him)
   const tiny = {
-    ...p, pos: { x: -1e6, y: -1e6 }, vel: { x: 0, y: 14 }, isGrounded: false, hidden: false, facing: (Math.floor(f / 30) % 2 ? 1 : -1) as 1 | -1,
+    ...p, pos: { x: -1e6, y: -1e6 }, vel: { x: 0, y: 14 }, isGrounded: false, hidden: false, facing: (Math.floor(f / 90) % 2 ? 1 : -1) as 1 | -1,
     invincibilityTimer: 0, hurtTimer: 0, pushbackTimer: 0, isCharging: false, isSliding: false, isUppercutting: false, isDivekicking: false, isDucking: false, inCutscene: true,
   };
   ctx.save();
   ctx.translate(x, y);
-  ctx.rotate(Math.sin(f * 0.15) * 0.4);
-  ctx.scale(0.22, 0.22);
+  ctx.rotate(Math.sin(f * 0.05) * 0.3);
+  ctx.scale(0.13, 0.13);
   ctx.translate(-(tiny.pos.x + tiny.width / 2), -(tiny.pos.y + tiny.height / 2));
   drawPlayer(ctx, tiny, state, { currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false });
   ctx.restore();
