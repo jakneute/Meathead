@@ -59,10 +59,31 @@ export const drawDaleBackdrop = (ctx: Ctx, state: GameState): boolean => {
 // World: behind everything that moves
 // ---------------------------------------------------------------------------
 
+/**
+ * A tumbleweed out on the far flats, behind everything: small (it's a way off), rolling along just over the lip
+ * of the ground you're on at a distant pace, bouncing now and then.
+ */
+const drawTumbleweed = (ctx: Ctx, state: GameState) => {
+  const f = state.frame, span = CANVAS_WIDTH + 200;
+  const sx = ((f * 0.9 - state.camera.x * 0.36) % span + span) % span - 100;
+  const wx = state.camera.x + sx;
+  let ground: number | null = null;
+  for (const r of state.groundRuns) if (wx >= r.x1 && wx <= r.x2) { const y = r.y1 + (wx - r.x1) / Math.max(1, r.x2 - r.x1) * (r.y2 - r.y1); if (ground === null || y < ground) ground = y; }
+  if (ground === null) return;
+  const y = ground - 12 - Math.abs(Math.sin(f * 0.07)) * 8;
+  ctx.save();
+  ctx.strokeStyle = '#6E5230'; ctx.lineWidth = 1.5;
+  ctx.translate(wx, y); ctx.rotate(f * 0.06);
+  ctx.beginPath(); for (let i = 0; i < 5; i++) { ctx.moveTo(-6, (i - 2) * 2.5); ctx.lineTo(6, (2 - i) * 2.5); } ctx.stroke();
+  ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI * 2); ctx.stroke();
+  ctx.restore();
+};
+
 export const drawDaleBack = (ctx: Ctx, state: GameState) => {
   const rt = getDale(state)!;
   const region = regionOf(state.camera.x + 400);
   if (region === 'highway') { drawConvoyBack(ctx, state, rt); return; }
+  if (region === 'town' || state.camera.x < COURSE.warehouse.x1 - 200) drawTumbleweed(ctx, state);
   if (region === 'town') { drawTownBack(ctx, state, rt); return; }
   drawArroyos(ctx, state);
   drawScenery(ctx, state);
@@ -554,7 +575,7 @@ export const drawDaleHud = (ctx: Ctx, state: GameState) => {
 /** Whether the stage's weather gets drawn over the level (it isn't in the boss arena). */
 const hasWeather = (state: GameState) => state.camera.x < ARENA_LEFT - CANVAS_WIDTH / 2;
 
-/** The weather (the odd tumbleweed, out in the open), then the fades over the top of it. */
+/** The weather out in the open, then the fades over the top of it. */
 export const drawDaleWeather = (ctx: Ctx, state: GameState) => {
   const rt = getDale(state)!;
   const region = regionOf(state.camera.x + 400);

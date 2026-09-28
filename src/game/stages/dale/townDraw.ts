@@ -588,7 +588,7 @@ export const drawTownFront = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
 export const drawTownHud = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   // The jail scene can be skipped
   const tw = rt.town;
-  if (tw.phase === 'jail' && tw.crashedAt < 0 && tw.t > JAIL_SKIP_AFTER) { ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.font = '8px "Press Start 2P"'; ctx.textAlign = 'right'; ctx.fillText('JUMP OR SHOOT: SKIP', CANVAS_WIDTH - 24, 80); ctx.textAlign = 'left'; }
+  if (tw.phase === 'jail' && tw.crashedAt < 0 && tw.t > JAIL_SKIP_AFTER) { ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.font = '8px "Press Start 2P"'; ctx.textAlign = 'right'; ctx.fillText('SKIP >>', CANVAS_WIDTH - 24, 80); ctx.textAlign = 'left'; }
   const inc = incoming(state, rt.town);
   if (!inc) return;
   const f = state.frame;

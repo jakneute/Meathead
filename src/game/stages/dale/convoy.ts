@@ -79,6 +79,8 @@ export interface Suv { x: number; toX: number; t: number; kind: EnemyKind; dropp
 /** Off a truck onto the road, or blown up, or melted through the roof, or Riggs pressed the button: how Meathead's going. */
 export interface Fall {
   t: number; kind: 'runover' | 'flop' | 'boom' | 'melt' | 'button'; x: number; y: number; truck: number;
+  /** In the trailer: the frame it froze on when he died (the death screen holds there). */
+  still?: number;
   /**
    * On the road (runover, flop): his body in road coordinates (g: how far along the road; the world x is g - road),
    * how fast it's still going along the road, its height off it and how fast that's changing, its spin; how far the
@@ -347,6 +349,8 @@ const updateFall = (ctx: FrameContext, cv: Convoy, talk: Talk): Controls => {
   const { state, fx } = ctx;
   const p = state.player;
   const f = cv.fall!;
+  // (in the trailer, the death screen holds on the moment: him on his feet, still taking it)
+  if (f.kind === 'melt' && f.still !== undefined) return { ...NO_CONTROLS };
   f.t++;
   p.inCutscene = true;
   p.vel = { x: 0, y: 0 };
@@ -379,9 +383,9 @@ const updateFall = (ctx: FrameContext, cv: Convoy, talk: Talk): Controls => {
  * Through the roof: the screen goes black on the sizzling hole, and then it's the inside of the trailer, a place of
  * its own. He drops in through the hole in its roof (always the same spot, near the back), lands, and looks round
  * at the dark. Nothing. A beat. Then the goons riding in the front of it come up from behind the crates and empty
- * their rifles into him. Frames from the start of the fall.
+ * their rifles into him. It freezes there, him still on his feet taking it, under the death screen. Frames from the start of the fall.
  */
-export const MELT = { FADE: 36, DROP: 58, LAND: 78, POP: 228, FIRE: 258, STOP: 340, KILL: 390 };
+export const MELT = { FADE: 36, DROP: 58, LAND: 78, POP: 228, FIRE: 258, KILL: 300, STOP: 340 };
 /** What he says, when (and the goon's shout). */
 export const MELT_SAYS: { at: number; until: number; who: 'meathead' | 'goon'; text: string }[] = [
   { at: MELT.LAND + 24, until: MELT.LAND + 84, who: 'meathead', text: '...HUH?' },
@@ -399,6 +403,8 @@ const inTheTrailer = (ctx: FrameContext, f: Fall): Controls => {
   if (u === MELT.POP) playSound('taser');
   if (u >= MELT.FIRE && u < MELT.STOP) { if (u % 3 === 0) playSound('gun'); if (u % 12 === 0) shakeScreen(state, 8, 4); }
   if (u === MELT.KILL && state.deathTimer <= 0) {
+    // Dead on his feet, mid-volley: it freezes right there
+    f.still = state.frame;
     const lines = FALL_LINES.melt;
     killPlayer(ctx, lines[Math.floor(Math.random() * lines.length)], false);
   }

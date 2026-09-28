@@ -445,7 +445,8 @@ const drawMeltScene = (ctx: Ctx, state: GameState, cv: Convoy) => {
   const u = fall.t;
   // Going black on the outside first
   if (u < MELT.FADE) { ctx.fillStyle = `rgba(0, 0, 0, ${u / MELT.FADE})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); return; }
-  const f = state.frame;
+  // (frozen on the moment he died: everything holds still under the death screen)
+  const f = fall.still ?? state.frame;
   const p = state.player;
   const firing = u >= MELT.FIRE && u < MELT.STOP;
   ctx.save();
@@ -519,7 +520,9 @@ const drawMeltScene = (ctx: Ctx, state: GameState, cv: Convoy) => {
     // (look this way, that way, back again; towards them once they're up)
     const lookT = u - MELT.LAND;
     const facing = u >= MELT.POP ? 1 : !landed || lookT < 40 ? 1 : lookT < 80 ? -1 : lookT < 120 ? 1 : -1;
-    const body = { ...p, pos: { x: -1e6, y: -1e6 }, hidden: false, isGrounded: landed, vel: { x: 0, y: landed ? 0 : 8 }, facing: facing as 1 | -1, isCharging: false, isSliding: false, isUppercutting: false, isDivekicking: false, isDucking: landed && u < MELT.LAND + 6, invincibilityTimer: 0, hurtTimer: firing ? 30 : 0, pushbackTimer: firing ? 30 : 0 };
+    const body = { ...p, pos: { x: -1e6, y: -1e6 }, hidden: false, isGrounded: landed, vel: { x: 0, y: landed ? 0 : 8 }, facing: facing as 1 | -1, isCharging: false, isSliding: false, isUppercutting: false, isDivekicking: false, isDucking: landed && u < MELT.LAND + 6, invincibilityTimer: 0, hurtTimer: firing ? 30 : 0, pushbackTimer: firing ? 30 : 0,
+      // (cut up worse and worse as they empty their rifles into him)
+      health: u >= MELT.FIRE ? (p.maxHealth ?? 100) * Math.max(0.04, 1 - (u - MELT.FIRE) / (MELT.KILL - MELT.FIRE)) : p.health };
     const feet = landed ? IN_FLOOR : IN_ROOF - 40 + (IN_FLOOR - IN_ROOF + 40) * dropK * dropK;
     // (he goes down backwards once it stops)
     if (down > 0) { ctx.fillStyle = 'rgba(127, 29, 29, 0.9)'; ctx.beginPath(); ctx.ellipse(IN_HOLE - 20, IN_FLOOR - 1, 20 + (u - MELT.STOP) * 0.6, 4, 0, 0, Math.PI * 2); ctx.fill(); }
@@ -529,6 +532,17 @@ const drawMeltScene = (ctx: Ctx, state: GameState, cv: Convoy) => {
     ctx.rotate(-down * Math.PI / 2 + (firing ? (hash(u * 5) - 0.5) * 0.25 : 0));
     ctx.translate(-(body.pos.x + body.width / 2), -(body.pos.y + body.height / 2));
     drawPlayer(ctx, body, { ...state, deathTimer: 0 }, { currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false });
+    // The holes in him, more with every burst, each bleeding down him
+    if (u >= MELT.FIRE) {
+      const shot = u - MELT.FIRE, n = Math.min(26, Math.floor(shot * 0.6));
+      for (let k = 0; k < n; k++) {
+        const hx = body.pos.x + body.width * (0.22 + hash(k * 7 + 3) * 0.56), hy = body.pos.y + body.height * (0.18 + hash(k * 7 + 4) * 0.62);
+        const age = shot - k / 0.6, drip = Math.min(4 + hash(k * 7 + 5) * 12, age * 0.4);
+        ctx.fillStyle = '#B91C1C'; ctx.fillRect(hx - 0.8, hy, 1.6, drip);
+        ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.arc(hx, hy, 2.4, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#1C0A0A'; ctx.beginPath(); ctx.arc(hx, hy, 1.1, 0, Math.PI * 2); ctx.fill();
+      }
+    }
     ctx.restore();
     // Blood out the back of him while they're at it
     if (firing) for (let k = 0; k < 6; k++) { const a = hash(u * 11 + k), b = hash(u * 13 + k); ctx.fillStyle = k % 2 ? '#DC2626' : '#7F1D1D'; ctx.fillRect(IN_HOLE - 10 - a * 50, IN_FLOOR - 70 + b * 50, 3 + a * 3, 3); }

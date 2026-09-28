@@ -919,16 +919,6 @@ const balloons = (ctx: G, v: View) => {
     if ((v.frame + i * 40) % 160 < 12) { ctx.fillStyle = '#FDE047'; ctx.fillRect(Math.round(x - 2), Math.round(y + r * 1.1), 4, 5); } // burner
   }
 };
-const tumbleweed = (ctx: G, v: View) => {
-  const t = (v.frame % 900) / 900;
-  const x = -60 + t * (W + 120), y = 520 - Math.abs(Math.sin(t * 40)) * 24;
-  ctx.strokeStyle = '#8A6A3A'; ctx.lineWidth = 2;
-  ctx.save(); ctx.translate(x, y); ctx.rotate(t * 60);
-  ctx.beginPath(); for (let i = 0; i < 6; i++) { ctx.moveTo(-10, (i - 3) * 3); ctx.lineTo(10, (3 - i) * 3); } ctx.stroke();
-  ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI * 2); ctx.stroke();
-  ctx.restore();
-};
-
 const dale: Backdrop = {
   layers: [
     sky('dale-sky', ['#140C2E', '#2E1A55', '#5C2A6E', '#A8406E', '#E0666A', '#F4A261', '#F9D28B'], 18),
@@ -937,7 +927,6 @@ const dale: Backdrop = {
     daleMesas,
     daleDesert,
   ],
-  front: tumbleweed,
 };
 
 export const STAGE_BACKDROPS: Record<string, Backdrop> = {

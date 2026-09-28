@@ -168,7 +168,7 @@ export const drawNews = (ctx: Ctx, state: GameState, n: News) => {
   const tx = -((f * 2) % tw);
   ctx.fillText(TICKER + TICKER + TICKER, tx, H - 8);
   // All or nothing
-  if (n.t > SKIP_AFTER) { ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.font = '8px "Press Start 2P"'; ctx.textAlign = 'right'; ctx.fillText('JUMP OR SHOOT: SKIP', W - 24, 80); ctx.textAlign = 'left'; }
+  if (n.t > SKIP_AFTER) { ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.font = '8px "Press Start 2P"'; ctx.textAlign = 'right'; ctx.fillText('SKIP >>', W - 24, 80); ctx.textAlign = 'left'; }
   // Captions: what she's saying
   if (n.showing && n.line >= 0) drawCaption(ctx, n.showing, ly - 16);
   // TV scanlines
