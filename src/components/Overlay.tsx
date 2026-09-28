@@ -398,8 +398,7 @@ const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, we
       }}>
       {/* Hazard-striped header */}
       <div className="absolute left-0 right-0 top-0 h-[6px]" style={{ background: 'repeating-linear-gradient(135deg, #FACC15 0 8px, #111 8px 16px)' }} />
-      <h2 className="mt-1 text-3xl font-black italic tracking-widest text-yellow-400" style={{ textShadow: '3px 3px 0 #7F1D1D, 5px 5px 0 #000' }}>PAUSED</h2>
-      <div className="text-[8px] text-red-500 font-black tracking-[0.3em] mb-3">&mdash; RESTING SET &mdash;</div>
+      <h2 className="mt-1 mb-3 text-3xl font-black italic tracking-widest text-yellow-400" style={{ textShadow: '3px 3px 0 #7F1D1D, 5px 5px 0 #000' }}>PAUSED</h2>
 
       <div className="flex gap-4 w-full items-start">
         {/* The arsenal */}

@@ -523,14 +523,14 @@ export const BOSS_DIALOGUE: {
     'Drug Trade Dale': { 75: "BUSINESS IS BOOMING, LITERALLY.", 50: "I'M LOSING INVENTORY! MORE SHIPMENTS!", 25: "THIS IS RECREATIONAL UNTIL I KILL YOU!", 0: "MY EMPIRE... FOR A CLEAN SYRINGE..." }
   },
   INTRO_QUOTES: {
-    'Victor Volcano': ["Hell hath no fury like roid rage.", "What a nice meat specimen you are. Well done. That is how you will be cooked."],
-    'Artie Avalanche': ["What killed the dinosaurs? The ice age!", "The cold will burn your face."],
-    'Hector Hurricane': ["Katrina's got nothing on my wrath.", "You better watch out for the soggy logs of shit, Meatface."],
-    'Ernie Earthquake': ["I'D BE QUAKING IN MY boots IF I WERE YOU.", "Are you ready to rumble, motherfucker?"],
-    'Toxic Tommy': ["I hope you like the taste of septic tank.", "My puke melts steel beams, bitch."],
-    'Blackout Barry': ["The lights go out, then you die.", "I'm the reason your bill is so high."],
-    'Oily Oscar': ["Slip and slide into your coffin.", "You're looking a little dry, let me grease you up."],
-    'Drug Trade Dale': ["I will ransack your steroid supply.", "Another junkie? How'd you get past my guards?"],
+    'Victor Volcano': ["FINALLY. A SAUNA HOT ENOUGH FOR MY PUMP.", "What a nice meat specimen you are. Well done. That is how you will be cooked."],
+    'Artie Avalanche': ["COLD? I'M RUNNING ON FOUR SCOOPS OF PRE-WORKOUT. I'M A DAMN FURNACE.", "The cold will burn your face."],
+    'Hector Hurricane': ["CATEGORY FIVE? I WARM UP WITH CATEGORY FIVES.", "You better watch out for the soggy logs of shit, Meatface."],
+    'Ernie Earthquake': ["THE GROUND'S SHAKING? NAH, THAT'S JUST ME WALKING.", "Are you ready to rumble, motherfucker?"],
+    'Toxic Tommy': ["SMELLS LIKE A GYM BAG DOWN HERE. I'M RIGHT AT HOME.", "My puke melts steel beams, bitch."],
+    'Blackout Barry': ["LIGHTS OUT? GOOD. MY ABS GLOW IN THE DARK.", "I'm the reason your bill is so high."],
+    'Oily Oscar': ["BABY OIL'S FOR POSING. CRUDE OIL'S FOR YOUR FUNERAL.", "You're looking a little dry, let me grease you up."],
+    'Drug Trade Dale': ["DALE'S GOT THE GOOD STUFF? TIME TO CUT OUT THE MIDDLEMAN.", "Another junkie? How'd you get past my guards?"],
     'default': ["I'll break you in half!", "YOU'RE TOAST."]
   }
 };
