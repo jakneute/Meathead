@@ -46,6 +46,8 @@ export interface Bunker {
   /** The cutscene's beats. */
   step: number;
   stepAt: number;
+  /** When he last said something about trying the flamethrower too early. */
+  earlyAt: number;
 }
 
 /** Enough gas in the room to go up, and how long it takes to fill (frames). */
@@ -65,7 +67,7 @@ export const createBunker = (state: GameState, startedAt: number): Bunker => {
     ],
     hinted: new Set(), ambientAt: 0, ambient: 0, debris: [],
     bikers: B.bikers.map((x, i) => ({ x, y: GROUND_Y, vx: 0, vy: 0, rot: 0, state: i === 0 || i === 3 ? 'sitting' as const : 'standing' as const })),
-    step: 0, stepAt: 0,
+    step: 0, stepAt: 0, earlyAt: -999,
   };
   if (!done) {
     // The roof, and the far door (locked till break's over: and no going over the top of it)
@@ -129,8 +131,10 @@ export const updateBunker = (ctx: FrameContext, b: Bunker, talk: Talk, controls:
 const onBreak = (ctx: FrameContext, b: Bunker, talk: Talk, controls: Controls, inside: boolean): Controls => {
   const { state, fx } = ctx;
   const B = COURSE.bunker;
-  // Shooting the gas line out
-  if (!b.popped) {
+  // Shooting the gas line out (only from in here, with it on the screen)
+  const px = state.player.pos.x + state.player.width / 2;
+  const canSee = px > B.x1 && px < B.x2 && B.vein.x > state.camera.x && B.vein.x < state.camera.x + CANVAS_WIDTH;
+  if (!b.popped && canSee) {
     const vb = veinBox();
     const hit = state.projectiles.find(q => q.owner === 'player' && rectsOverlap(boundsOf(q), vb));
     if (hit) {
@@ -148,12 +152,18 @@ const onBreak = (ctx: FrameContext, b: Bunker, talk: Talk, controls: Controls, i
   // Enough gas, and a flame in the room: it goes up
   const flameInRoom = state.flameSegments.some(s => s.x > B.x1 && s.x < B.x2 && s.y > B.roof && s.y < GROUND_Y);
   if (b.popped && b.gas >= GAS_ENOUGH && flameInRoom) { blowUp(ctx, b, talk); return { ...NO_CONTROLS }; }
+  // Too soon: he says what's still needed
+  if (flameInRoom && state.frame - b.earlyAt > 300) {
+    b.earlyAt = state.frame;
+    hush(state, talk);
+    queueLines(state, talk, [{ who: 'meathead', text: b.popped ? 'GIVE IT A SECOND. LET THE GAS BUILD UP.' : 'NOTHING TO LIGHT YET. THAT GAS LINE ON THE WALL THOUGH...' }]);
+  }
   // What they say to themselves, the smell nobody notices, and a nudge now and then (never naming a button)
   if (inside && quiet(talk)) {
     const since = state.frame - b.ambientAt;
     if (b.popped && b.gas > 0.25 && !b.hinted.has('smell')) { b.hinted.add('smell'); b.ambientAt = state.frame; queueLines(state, talk, [{ who: 'worker', text: 'SOMEBODY MICROWAVED EGGS AGAIN.' }, { who: 'foreman', text: 'SMELLS LIKE OVERTIME TO ME.' }]); }
-    else if (!b.popped && b.t > 600 && !b.hinted.has('vein')) { b.hinted.add('vein'); b.ambientAt = state.frame; queueLines(state, talk, [{ who: 'meathead', text: 'THAT OLD GAS LINE ON THE WALL LOOKS REAL THIN...' }]); }
-    else if (b.popped && b.gas >= 0.6 && state.frame - b.poppedAt > 700 && !b.hinted.has('fire')) { b.hinted.add('fire'); b.ambientAt = state.frame; queueLines(state, talk, [{ who: 'meathead', text: 'ALL THIS ROOM NEEDS NOW IS A LITTLE FIRE.' }]); }
+    else if (!b.popped && b.t > 600 && !b.hinted.has(`vein-${Math.floor(b.t / 900)}`)) { b.hinted.add(`vein-${Math.floor(b.t / 900)}`); b.ambientAt = state.frame; queueLines(state, talk, [{ who: 'meathead', text: 'THAT OLD GAS LINE ON THE WALL LOOKS REAL THIN...' }]); }
+    else if (b.popped && b.gas >= 0.6 && state.frame - b.poppedAt > 700 && !b.hinted.has(`fire-${Math.floor((state.frame - b.poppedAt) / 700)}`)) { b.hinted.add(`fire-${Math.floor((state.frame - b.poppedAt) / 700)}`); b.ambientAt = state.frame; queueLines(state, talk, [{ who: 'meathead', text: 'ALL THIS ROOM NEEDS NOW IS A LITTLE FIRE.' }]); }
     else if (since > 520) { b.ambientAt = state.frame; queueLines(state, talk, [AMBIENT[b.ambient++ % AMBIENT.length]]); }
   }
   return controls;

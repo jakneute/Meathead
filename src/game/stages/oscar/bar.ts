@@ -44,6 +44,8 @@ export interface Bar {
   gunHintAt: number;
   gore: Gore[];
   flying: Flying[];
+  /** When he last said something about trying the flamethrower too early. */
+  earlyAt: number;
 }
 
 /** Gas in the room enough to go up (all three have to be open to get there), and how quick each open line fills it. */
@@ -61,7 +63,7 @@ export const createBar = (state: GameState, startedAt: number): Bar => {
       { x: B.x1 + 520, look: 'counter' }, { x: B.x1 + 590, look: 'counter2' }, { x: B.x1 + 700, look: 'bartender' },
       { x: B.x1 + 830, look: 'pool' }, { x: B.x1 + 960, look: 'pool2' }, { x: B.x1 + 1100, look: 'booth' },
     ],
-    hinted: new Set(), ambientAt: 0, ambient: 0, progressAt: 0, gunHintAt: -999, gore: [], flying: [],
+    hinted: new Set(), ambientAt: 0, ambient: 0, progressAt: 0, gunHintAt: -999, gore: [], flying: [], earlyAt: -999,
   };
   if (done) spill(b);
   else {
@@ -110,9 +112,10 @@ const drinks = (ctx: FrameContext, b: Bar, talk: Talk, controls: Controls): Cont
   const { state, fx } = ctx;
   const p = state.player;
   const B = COURSE.bar;
-  // Shots at the gas lines: a pistol round punctures one; anything bigger just dents it
+  // Shots at the gas lines: a pistol round punctures one; anything bigger just dents it (only one he can see, from in here)
+  const inRoom = p.pos.x + p.width / 2 > B.x1 && p.pos.x + p.width / 2 < B.x2;
   for (let i = 0; i < 3; i++) {
-    if (b.open[i]) continue;
+    if (b.open[i] || !inRoom || B.veins[i].x < state.camera.x || B.veins[i].x > state.camera.x + CANVAS_WIDTH) continue;
     const box = barVeinBox(i);
     const hit = state.projectiles.find(q => q.owner === 'player' && rectsOverlap(boundsOf(q), box));
     if (!hit) continue;
@@ -138,6 +141,16 @@ const drinks = (ctx: FrameContext, b: Bar, talk: Talk, controls: Controls): Cont
   // Full of it, and a flame: last call
   const flameInRoom = state.flameSegments.some(s => s.x > B.x1 && s.x < B.x2 && s.y > B.ceil && s.y < GROUND_Y);
   if (b.gas >= GAS_ENOUGH && flameInRoom) { lastCall(ctx, b, talk); return { ...NO_CONTROLS }; }
+  // Too soon: he says what's still needed
+  if (flameInRoom && state.frame - b.earlyAt > 300) {
+    b.earlyAt = state.frame;
+    const left = 3 - open;
+    const text = open === 0 ? "NOTHING TO LIGHT YET. OPEN UP THE GAS LINES FIRST. A PISTOL'LL DO IT."
+      : left > 0 ? `NOT ENOUGH GAS YET. ${left === 1 ? 'ONE MORE LINE' : 'TWO MORE LINES'} TO OPEN.`
+      : 'GIVE IT A SECOND. LET IT FILL UP.';
+    hush(state, talk);
+    queueLines(state, talk, [{ who: 'meathead', text }]);
+  }
   // Short of fuel: a can of it the other side of the room, off the screen (again, if he needs it again)
   const fuelLow = (p.weaponAmmo.FLAMETHROWER ?? 0) < Math.min(FUEL_LOW, MAX_AMMO.FLAMETHROWER);
   if (fuelLow && !state.pickups.some(q => q.id.startsWith('bar-fuel'))) {
@@ -155,8 +168,8 @@ const drinks = (ctx: FrameContext, b: Bar, talk: Talk, controls: Controls): Cont
       const where = ['SOMETHING HISSING DOWN LOW, BEHIND THE JUKEBOX.', "THERE'S A GAS LINE UP OVER THE BAND.", 'I SMELL GAS COMING FROM THE CAN.'][next];
       queueLines(state, talk, [{ who: 'meathead', text: open === 0 && !b.hinted.has('three') ? 'THREE GAS LINES IN HERE, BY THE SMELL. PISTOL SHOULD DO IT.' : where }]);
       b.hinted.add('three');
-    } else if (open === 3 && b.gas >= GAS_ENOUGH && since > 400 && !b.hinted.has('fire')) {
-      b.hinted.add('fire'); b.ambientAt = state.frame;
+    } else if (open === 3 && b.gas >= GAS_ENOUGH && since > 400 && !b.hinted.has(`fire-${Math.floor(since / 700)}`)) {
+      b.hinted.add(`fire-${Math.floor(since / 700)}`); b.ambientAt = state.frame;
       queueLines(state, talk, [{ who: 'meathead', text: 'NOW JUST A LITTLE FIRE.' }]);
     } else if (state.frame - b.ambientAt > 480) {
       b.ambientAt = state.frame;

@@ -135,7 +135,8 @@ export const updateOscar = (ctx: FrameContext, controls: Controls): Controls => 
     controls = updateChase(ctx, rt.chase, rt.talk, controls, () => startFade(rt, () => {
       // The road comes out behind the field office
       rt.chase.phase = 'done';
-      state.enemies = state.enemies.filter(e => e.type === 'boss');
+      // (the chase's lot are gone; everything waiting out back of the field office stays)
+      state.enemies = state.enemies.filter(e => e.type === 'boss' || placeOf(e.pos.x) === 'end');
       arrive(state, COURSE.end.smokers - 900, GROUND_Y);
       mountMoto(state, 0);
       startEnding(state, rt.ending, rt.talk);

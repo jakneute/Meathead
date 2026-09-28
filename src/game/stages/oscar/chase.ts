@@ -32,7 +32,7 @@ import { makeKindEnemy, mid } from '../../enemies/kinds';
 import { hurtPlayer } from '../../bosses/shared';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 import { CANVAS_WIDTH, GROUND_Y } from '../../../constants';
-import { COURSE, CP, LAP } from './course';
+import { COURSE, CP, LAP, placeOf } from './course';
 import { MOTO_BASE, MOTO_FAST, MOTO_SLOW, mountMoto } from './moto';
 import { Talk, queueLines } from './script';
 
@@ -184,7 +184,8 @@ export const updateChase = (ctx: FrameContext, ch: Chase, talk: Talk, controls: 
   }
   // Anything left far behind is gone (it gave up)
   const v = chaseView(state, ch);
-  state.enemies = state.enemies.filter(e => e.type === 'boss' || (e.pos.x > v.x1 - 600 && e.pos.x < v.x2 + 1000));
+  // (only the chase's own: everything waiting further on, out back of the field office, stays)
+  state.enemies = state.enemies.filter(e => !isChaseVehicle(e.kind) || (e.pos.x > v.x1 - 600 && e.pos.x < v.x2 + 1000));
   loop(state, ch);
   // Won: the last of them drop away, a moment, and it's over
   if (ch.phase === 'riding' && ch.kills >= KILLS_NEEDED) {
@@ -214,7 +215,7 @@ const loop = (state: GameState, ch: Chase) => {
   if (state.cameraOverride) state.cameraOverride.x += d;
   ch.camX += d;
   // (not Oscar, sat waiting in his room: he stays put)
-  for (const e of state.enemies) { if (e.type === 'boss') continue; e.pos.x += d; if (e.homeX !== undefined && !isChaseVehicle(e.kind)) e.homeX += d; }
+  for (const e of state.enemies) { if (e.type === 'boss' || placeOf(e.pos.x) !== 'chase') continue; e.pos.x += d; if (e.homeX !== undefined && !isChaseVehicle(e.kind)) e.homeX += d; }
   for (const q of state.projectiles) q.pos.x += d;
   for (const q of state.pickups) q.pos.x += d;
   for (const q of state.particles) q.pos.x += d;

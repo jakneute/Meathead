@@ -71,9 +71,9 @@ const FIELD_X0 = -70000;
 const CHASE_X0 = -40000;
 /** One lap of the chase's road (it's the same all the way round), and how many are laid down end to end. */
 export const LAP = 6400, LAPS = 3;
-const END_X0 = BOSS_DOOR_X - 6600;
+const END_X0 = BOSS_DOOR_X - 7600;
 /** The bikers' bar, the last room before Oscar's (local to the office end): its walls, the band's stage, the bathroom in the back. */
-const BAR_X1 = 5150, BAR_X2 = 6350;
+const BAR_X1 = 6150, BAR_X2 = 7350;
 
 /** How the chase's road rises and falls across a lap: a height every 320 px (up and down all the way: everything's always above or below him). */
 const LAP_HEIGHTS = [0, -40, -90, -120, -90, -30, 20, 60, 90, 60, 10, -50, -110, -140, -100, -40, 10, 40, 30, 0];
@@ -174,8 +174,8 @@ const build = () => {
   // (what's left of the mob that came after him, bloodied and furious; gas lines ruptured everywhere, spitting fire,
   // and the oil pooling back as fast as it burns off)
   // A broken line licking fire along the ground onto a slick, again and again: watch it go up, burn off, pool back
-  e.slick(1860, 2160, true); e.jet(1820, Y, 'right', 110, 330, 0, 70);
-  e.spawn('ranger', 2260, Y, 7);
+  e.slick(1860, 2160, true); e.jet(1820, Y, 'right', 110, 330, 0, 70); e.jet(2200, Y, 'left', 110, 330, 165, 70);
+  e.spawn('ranger', 2260, Y, 7); e.spawn('biker', 2150, Y, 7);
   e.pickup(1760, Y - 30, 'small_ammo');
   // A pit of crude, a pipeline across it, a jet of fire straight up through the middle of it
   e.pit(2300, 2560); e.ledge(2285, Y - 40, 290, 'pipe'); e.jet(2430, Y + 40, 'up', 200, 150, 40, 55);
@@ -192,16 +192,24 @@ const build = () => {
   e.slick(3740, 4360, true); e.jet(3980, Y + 80, 'up', 160, 240, 0, 60); e.jet(4220, Y + 80, 'up', 160, 240, 120, 60);
   e.spawn('biker', 4120, Y + 80, 7); e.spawn('biker', 4320, Y + 80, 7); e.spawn('ranger', 4500, Y, 7);
   e.pickup(3760, Y - 30, 'small_health');
+  // A trench of tar with a jet at each end taking turns setting it going, pipe stands over it, a jet up between them
+  e.ground(4550, 5550);
+  e.tar(4700, 5260, true); e.jet(4690, Y, 'right', 170, 300, 0, 90); e.jet(5270, Y, 'left', 170, 300, 150, 90);
+  e.ledge(4760, Y - 90, 100, 'pipe'); e.ledge(4930, Y - 150, 100, 'pipe'); e.ledge(5100, Y - 90, 100, 'pipe');
+  e.jet(5040, Y, 'up', 120, 180, 90, 50);
+  e.spawn('biker', 4620, Y, 7); e.spawn('ranger', 4980, Y - 150, 7); e.spawn('biker', 5400, Y, 7);
+  e.pickup(5480, Y - 30, 'small_health');
   // Up over the last pit on pipe stands, a jet up through the middle one
-  e.ground(4550, 4600); e.pit(4600, 5000);
-  e.ledge(4640, Y - 70, 100, 'pipe'); e.ledge(4770, Y - 130, 100, 'pipe'); e.ledge(4900, Y - 70, 100, 'pipe');
-  e.jet(4820, Y + 40, 'up', 280, 200, 60, 60);
-  e.ground(5000, 6600);
-  e.spawn('deputy', 5060, Y, 7);
+  const D = 1000;
+  e.ground(4550 + D, 4600 + D); e.pit(4600 + D, 5000 + D);
+  e.ledge(4640 + D, Y - 70, 100, 'pipe'); e.ledge(4770 + D, Y - 130, 100, 'pipe'); e.ledge(4900 + D, Y - 70, 100, 'pipe');
+  e.jet(4820 + D, Y + 40, 'up', 280, 200, 60, 60);
+  e.ground(5000 + D, 7600);
+  e.spawn('deputy', 5060 + D, Y, 7);
   // The bikers' bar (see bar.ts): the band's stage to get up on
   e.ledge(BAR_X1 + 70, Y - 100, 210, 'stage');
   // The refill before the door
-  e.pickup(6450, Y - 30, 'large_health'); e.pickup(6520, Y - 30, 'large_ammo');
+  e.pickup(7450, Y - 30, 'large_health'); e.pickup(7520, Y - 30, 'large_ammo');
   return { f, c, e };
 };
 

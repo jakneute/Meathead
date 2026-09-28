@@ -57,6 +57,8 @@ export const drawBarBack = (ctx: Ctx, state: GameState, b: Bar) => {
     ctx.fillStyle = 'rgba(148, 163, 184, 0.25)'; ctx.fillRect(B.x1 + 490, top + 90, 250, 90);
     for (let s = 0; s < 2; s++) { ctx.fillStyle = '#57534E'; ctx.fillRect(B.x1 + 490, top + 124 + s * 40, 250, 4); for (let k = 0; k < 16; k++) { ctx.fillStyle = ['#15803D', '#A16207', '#7F1D1D', '#F8FAFC'][(k + s) % 4]; ctx.fillRect(B.x1 + 496 + k * 15, top + 104 + s * 40, 6, 20); } }
   } else {
+    // Blood up the walls and everywhere (on the walls: behind him)
+    for (const g of b.gore) if (g.kind === 'splat') { ctx.fillStyle = g.r > 20 ? 'rgba(127, 29, 29, 0.85)' : 'rgba(185, 28, 28, 0.8)'; ctx.beginPath(); ctx.ellipse(g.x, g.y, g.r, g.r * 0.6, g.rot, 0, Math.PI * 2); ctx.fill(); }
     // Fire still going here and there along the floor
     for (let k = 0; k < 9; k++) { const x = B.x1 + 70 + k * 130, h = 30 + Math.sin(f * 0.3 + k) * 12; ctx.fillStyle = 'rgba(234, 88, 12, 0.85)'; ctx.beginPath(); ctx.moveTo(x - 12, Y); ctx.quadraticCurveTo(x, Y - h, x + 12, Y); ctx.fill(); ctx.fillStyle = 'rgba(253, 224, 71, 0.9)'; ctx.beginPath(); ctx.moveTo(x - 6, Y); ctx.quadraticCurveTo(x, Y - h * 0.6, x + 6, Y); ctx.fill(); }
   }
@@ -177,8 +179,6 @@ export const drawBarFront = (ctx: Ctx, state: GameState, b: Bar) => {
     ctx.fillStyle = '#1C1917';
     ctx.beginPath(); ctx.moveTo(B.x1, Y); ctx.lineTo(B.x1, top + 50); ctx.lineTo(B.x1 + 40, top + 100); ctx.lineTo(B.x1 + 70, top + 70); ctx.lineTo(B.x1 + 110, Y); ctx.closePath(); ctx.fill();
     ctx.beginPath(); ctx.moveTo(B.x2, Y); ctx.lineTo(B.x2, top + 90); ctx.lineTo(B.x2 - 50, top + 140); ctx.lineTo(B.x2 - 80, Y); ctx.closePath(); ctx.fill();
-    // Blood up the walls and everywhere
-    for (const g of b.gore) if (g.kind === 'splat') { ctx.fillStyle = g.r > 20 ? 'rgba(127, 29, 29, 0.85)' : 'rgba(185, 28, 28, 0.8)'; ctx.beginPath(); ctx.ellipse(g.x, g.y, g.r, g.r * 0.6, g.rot, 0, Math.PI * 2); ctx.fill(); }
     for (let k = 0; k < 5; k++) { const q = ((f + k * 30) % 150) / 150; ctx.fillStyle = `rgba(28, 25, 23, ${0.5 * (1 - q)})`; ctx.beginPath(); ctx.arc(B.x1 + 150 + k * 230 + q * 20, top + 100 - q * 260, 24 + q * 50, 0, Math.PI * 2); ctx.fill(); }
   }
   for (const d of b.flying) { ctx.save(); ctx.translate(d.x, d.y); ctx.rotate(d.rot); ctx.fillStyle = d.color; ctx.fillRect(-d.w / 2, -d.h / 2, d.w, d.h); ctx.restore(); }

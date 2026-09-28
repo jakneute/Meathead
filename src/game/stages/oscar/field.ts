@@ -28,7 +28,7 @@ const BURN_FRAMES = 330, BURN_EVERY = 28, BURN_DAMAGE = 7, BURN_ENEMY = 24;
 /** Tar burns longer. Oil that pools back takes this long to. */
 const TAR_BURN_FRAMES = 480, POOL_BACK = 300;
 /** A jet of fire: how long it hisses and sparks before it goes, how much it hurts. */
-const JET_WARN = 36, JET_DAMAGE = 12;
+const JET_WARN = 36, JET_DAMAGE = 16;
 
 /** Is a jet going right now (and is it about to)? */
 export const jetOn = (j: Jet, frame: number) => (frame + j.phase) % j.period < j.on;
