@@ -115,7 +115,7 @@ const drawHipster = (ctx: Ctx, state: GameState, js: JetSki) => {
   const B = COURSE.bay;
   // His ski, bobbing at the end of the pier till Meathead's on it
   if (!state.player.jetski && js.phase !== 'gone' && visible(state, B.ski - 60, B.ski + 60)) {
-    ctx.save(); ctx.translate(B.ski, Y + Math.sin(state.frame * 0.1) * 2); drawSki(ctx, 0, '#14B8A6'); ctx.restore();
+    ctx.save(); ctx.translate(B.ski, Y + Math.sin(state.frame * 0.1) * 2); drawSki(ctx, 0); ctx.restore();
   }
   if (!visible(state, h.x - 60, h.x + 60)) return;
   ctx.save();
@@ -149,7 +149,10 @@ const drawHipster = (ctx: Ctx, state: GameState, js: JetSki) => {
 };
 
 /** A jet ski, facing right, its keel at (0, 0). */
-const drawSki = (ctx: Ctx, f: number, color = '#DC2626') => {
+/** The hipster's ski (the one Meathead takes off him, so it's the same one all the way to Alcatraz). */
+const HIPSTER_SKI = '#14B8A6';
+
+const drawSki = (ctx: Ctx, f: number, color = HIPSTER_SKI) => {
   ctx.fillStyle = color;
   ctx.beginPath(); ctx.moveTo(-38, -4); ctx.lineTo(30, -4); ctx.quadraticCurveTo(44, -8, 42, -18); ctx.lineTo(10, -20); ctx.lineTo(-34, -16); ctx.closePath(); ctx.fill();
   ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-34, -12, 64, 3);
