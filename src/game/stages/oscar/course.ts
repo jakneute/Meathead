@@ -21,7 +21,7 @@ import type { EnemyKind } from '../../../types';
 import type { GroundRun } from '../../core/terrain';
 import { GROUND_Y, BOSS_DOOR_X } from '../../../constants';
 
-export const CP = { FIELD: 0, FIELD_MID: 1, FIELD_MID2: 2, BUNKER: 3, CHASE: 4, END: 5, END_MID: 6, BAR: 7 } as const;
+export const CP = { FIELD: 0, FIELD_MID: 1, FIELD_MID2: 2, BUNKER: 3, CHASE: 4, END: 5, END_MID: 6, BAR: 7, BOSS: 8 } as const;
 
 export interface Spawn { kind: EnemyKind; x: number; y: number; variant?: number }
 export interface PickupSpot { x: number; y: number; type: 'small_health' | 'large_health' | 'small_ammo' | 'large_ammo' }
@@ -242,6 +242,8 @@ const buildCourse = (): Course => {
     checkpoints: [
       { x: FIELD_X0 + 150, y: Y }, { x: FIELD_X0 + 2780, y: Y }, { x: FIELD_X0 + 4640, y: Y }, { x: FIELD_X0 + 7450, y: Y },
       { x: CHASE_X0 + 300, y: Y }, { x: END_X0 + 1300, y: Y }, { x: END_X0 + 2900, y: Y }, { x: END_X0 + BAR_X1 - 80, y: Y },
+      // (back for Oscar: in the middle of what's left of the bar)
+      { x: END_X0 + (BAR_X1 + BAR_X2) / 2, y: Y },
     ],
     left: FIELD_X0 - 2000,
     startX: FIELD_X0,

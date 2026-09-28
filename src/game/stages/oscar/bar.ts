@@ -227,7 +227,11 @@ const aftermath = (ctx: FrameContext, b: Bar, talk: Talk): Controls => {
   p.inCutscene = true;
   p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
   if (b.phase === 'boom' && b.t === 80) { b.phase = 'after'; b.t = 0; queueLines(state, talk, [{ who: 'meathead', text: 'LAST CALL.' }]); }
-  if (b.phase === 'after' && b.t > 40 && quiet(talk)) { b.phase = 'done'; p.inCutscene = false; }
+  if (b.phase === 'after' && b.t > 40 && quiet(talk)) {
+    b.phase = 'done'; p.inCutscene = false;
+    // (the bar stays blown up: dying from here on, he's back in what's left of it)
+    state.checkpoint = Math.max(state.checkpoint, CP.BOSS);
+  }
   return { ...NO_CONTROLS };
 };
 

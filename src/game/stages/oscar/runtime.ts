@@ -40,7 +40,7 @@ export const getOscar = (state: GameState) => state.stage as OscarRuntime | null
 const ORDER: Record<Place, number> = { field: 0, bunker: 1, outside: 2, chase: 3, end: 4 };
 
 export const createOscarRuntime = (state: GameState, skipToBoss: boolean): OscarRuntime => {
-  const startedAt = skipToBoss ? CP.END : state.checkpoint;
+  const startedAt = skipToBoss ? CP.BOSS : state.checkpoint;
   const start = COURSE.checkpoints[startedAt];
   const order = (x: number) => ORDER[placeOf(x)];
   const ahead = (x: number, clearance: number) => order(x) > order(start.x) || (order(x) === order(start.x) && x - start.x >= clearance);

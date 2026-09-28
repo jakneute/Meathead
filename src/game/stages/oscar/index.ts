@@ -17,6 +17,8 @@ export const oscarLayout: StageLayout = {
   startX: COURSE.startX,
   verticalCamera: true,
   lighting: state => oscarScene(state),
+  // (dying to Oscar: back in the middle of what's left of the bar)
+  bossStartX: COURSE.checkpoints[CP.BOSS].x - 150,
   build: (state, skipToBoss) => {
     const C = COURSE;
     state.groundRuns = [...C.runs, { x1: BOSS_DOOR_X, y1: GROUND_Y, x2: STAGE_WIDTH, y2: GROUND_Y }];
