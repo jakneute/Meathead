@@ -316,6 +316,8 @@ const SLIDE_SPEED = 17, SLIDE_DRAG = 0.2, GET_UP = 50;
 
 const startSurf = (state: GameState, rt: BarryRuntime) => {
   rt.surf = { t: 0, phase: 'air', x: 0, v: 0 };
+  // (the power room's white-out's done with: the ride fades up out of it)
+  rt.power.white = 0;
   hush(state, rt.talk);
   state.enemies = state.enemies.filter(e => e.type === 'boss');
   state.projectiles = [];
@@ -327,7 +329,8 @@ const updateSurf = (ctx: FrameContext, rt: BarryRuntime): Controls => {
   const s = rt.surf!;
   const p = state.player;
   s.t++;
-  p.inCutscene = true; p.hidden = true; p.vel = { x: 0, y: 0 };
+  // (hidden till he's up off the board: the stage draws him on it)
+  p.inCutscene = true; p.hidden = s.phase !== 'up'; p.vel = { x: 0, y: 0 };
   if (s.phase === 'air') {
     if (s.t === 50) { state.playerLastVulgarity = "SURF'S UP, DUDES!"; state.playerVulgarityTimer = 110; say("SURF'S UP, DUDES!", MEATHEAD_VOICE, 'urgent', { onShow: () => {}, onHide: () => {} }); }
     if (s.t >= SURF_AIR) {

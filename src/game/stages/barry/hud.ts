@@ -157,7 +157,7 @@ const drawSurf = (ctx: Ctx, state: GameState, rt: BarryRuntime) => {
   const p = state.player;
   const body = { ...p, pos: { x: -1e6, y: -1e6 }, hidden: false, isGrounded: true, vel: { x: 2, y: 0 }, facing: 1 as const, isCharging: false, isSliding: false, isUppercutting: false, isDivekicking: false, invincibilityTimer: 0, hurtTimer: 0 };
   ctx.translate(0, -12 - p.height / 2); ctx.translate(-(body.pos.x + body.width / 2), -(body.pos.y + body.height / 2));
-  drawPlayer(ctx, body, { ...state, deathTimer: 0 }, { currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false });
+  drawPlayer(ctx, body, { ...state, deathTimer: 0 }, { currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false, surf: true });
   ctx.restore();
   if (s.t > 50 && s.t < 170) drawBubble(ctx, x, y - p.height - 40, "SURF'S UP, DUDES!", '#F8FAFC');
   // Out of the white

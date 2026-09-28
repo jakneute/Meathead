@@ -15,6 +15,7 @@ import type { Live } from '../../render/backdrops';
 import type { LayerSpec } from '../../render/backdrops/core';
 import { drawBackdropFront } from '../../render/backdrops';
 import { drawBarryKind } from '../../render/enemies/barry';
+import { drawPlayer } from '../../render/player/player';
 import { COURSE, Ledge, Prop, placeOf, roomOf } from './course';
 import { getBarry, BarryRuntime, ventState, barkOf } from './runtime';
 import { saying, drawBubble } from './script';
@@ -240,6 +241,14 @@ const drawBoard = (ctx: Ctx, state: GameState, rt: BarryRuntime) => {
   if (!(x > 0 || x < 0)) return;
   if (rt.surf?.phase === 'air') return;
   drawMinionFlat(ctx, x, Y, state.frame);
+  // Still riding it down the street, crouched low, arms out
+  if (rt.surf?.phase === 'slide') {
+    const p = state.player;
+    const body = { ...p, pos: { x: -1e6, y: -1e6 }, hidden: false, isGrounded: true, vel: { x: 0, y: 0 }, facing: 1 as const, isCharging: false, isSliding: false, isUppercutting: false, isDivekicking: false, invincibilityTimer: 0, hurtTimer: 0, pushbackTimer: 0 };
+    ctx.save(); ctx.translate(x + 4, Y - 14 - p.height / 2); ctx.rotate(Math.sin(state.frame * 0.5) * 0.04); ctx.translate(-(body.pos.x + body.width / 2), -(body.pos.y + body.height / 2));
+    drawPlayer(ctx, body, { ...state, deathTimer: 0 }, { currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false, surf: true });
+    ctx.restore();
+  }
 };
 
 /** Barry's man lying flat (the surfboard): feet first, face up, a scorched jumpsuit. */

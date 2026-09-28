@@ -15,6 +15,8 @@ export interface PlayerDrawOptions {
   invincibilityEnabled: boolean;
   /** Standing about, bored: the front foot's toe tapping (0 down, 1 up). */
   footTap?: number;
+  /** Surfing (on Barry's man, down out of the sky): knees bent low, arms out wide for balance, throwing a shaka, no gun. */
+  surf?: boolean;
 }
 
 // Palette
@@ -33,7 +35,7 @@ const backArmShade = '#A87038';   // shadow side of the far arm
 const stubbleColor = 'rgba(60, 30, 10, 0.35)';
 
 /** Draws Meathead: effects auras, then body layers back-to-front, then the held weapon. */
-export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled, footTap = 0 }: PlayerDrawOptions) => {
+export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled, footTap = 0, surf = false }: PlayerDrawOptions) => {
   if (state.deathTimer > 0 || p.hidden) return;
   const animFrame = state.playerAnimFrame;
   setGore(1 - p.health / INITIAL_PLAYER_HEALTH);
@@ -80,7 +82,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const isCharging = p.isCharging && !p.isSliding;
   const isUppercutting = p.isUppercutting;
   const isDivekicking = !!p.isDivekicking;
-  const isDucking = p.isDucking;
+  const isDucking = p.isDucking || surf;
   const isAirborne = !p.isGrounded;
   // In the water (off the bottom): arms stroking, legs kicking; freestyle when he's going somewhere, treading water when he isn't
   const isSwimming = !!p.swimming && !p.isGrounded && hurtT < 0;
@@ -223,7 +225,15 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // LAYER 1: BACK ARM (Off-Hand)
   // ==========================================
   ctx.save();
-  if (isDivekicking) {
+  if (surf) {
+    // Surfing: back arm out behind him, low, for balance
+    ctx.fillStyle = skinShadow;
+    ctx.beginPath(); ctx.arc(-10, -40, 7.5, 0, Math.PI * 2); ctx.fill();
+    ctx.save(); ctx.translate(-10, -40); ctx.rotate(Math.PI * 0.9);
+    ctx.fillRect(0, -4, 26, 8); ctx.fillStyle = wristbandColor; ctx.fillRect(20, -4.5, 4, 9);
+    ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(28, 0, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  } else if (isDivekicking) {
     // Tucked back defensively for aerodynamic dive
     ctx.fillStyle = skinShadow;
     ctx.beginPath();
@@ -852,7 +862,16 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // LAYER 6: LEAD ARM (Main Arm & Weapon)
   // ==========================================
   ctx.save();
-  if (isDivekicking) {
+  if (surf) {
+    // Surfing: lead arm out in front, up a bit, throwing a shaka (thumb and little finger out)
+    ctx.fillStyle = skinTone;
+    ctx.beginPath(); ctx.arc(6, -44, 8.5, 0, Math.PI * 2); ctx.fill();
+    ctx.save(); ctx.translate(6, -44); ctx.rotate(-0.35);
+    ctx.fillRect(0, -4.5, 28, 9); ctx.fillStyle = wristbandColor; ctx.fillRect(22, -5, 4, 10);
+    ctx.fillStyle = skinTone; ctx.beginPath(); ctx.arc(31, 0, 5.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(30, -11, 3, 7); ctx.fillRect(34, 3, 6, 3); // thumb up, little finger out
+    ctx.restore();
+  } else if (isDivekicking) {
     // Lead arm tucked tight across chest for aerodynamic dive
     ctx.fillStyle = skinTone;
     ctx.beginPath(); ctx.arc(4, -40, 8, 0, Math.PI * 2); ctx.fill();
