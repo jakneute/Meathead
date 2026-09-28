@@ -15,6 +15,9 @@ import { Hazards, createHazards, updateHazards } from './hazards';
 import { DoormanFight, createDoormanFight, updateDoormanFight } from './doorman';
 import { Lounge, createLounge, startCrash, updateLounge } from './lounge';
 
+/** How fast the view slides over to the shaft's left wall when he starts up it (and back when he's down again), a frame. */
+const SHAFT_CAMERA_SLIDE = 24;
+
 export interface VictorRuntime {
   startedAt: number;
   hazards: Hazards;
@@ -99,7 +102,15 @@ export const updateVictor = (ctx: FrameContext, controls: Controls): Controls =>
   // (and out on the trail it stops at the club: nothing past the front of it)
   state.cameraMaxX = inShaft ? COURSE.shaft.x2 + 60 - CANVAS_WIDTH : region === 'main' ? COURSE.club.x2 - 10 - CANVAS_WIDTH + 20 : undefined;
   // ...and once you're on your way up, at its left-hand wall too (down on the floor you can still see back out to the river)
-  if (region === 'inside') state.cameraMinX = inShaft && player.pos.y + player.height < COURSE.shaft.floor - 150 ? COURSE.shaft.x1 - 60 : COURSE.inside.x1 - 40;
+  // (only once he's really in there, past the wall: jumping at it from the river side doesn't count; and the
+  // view slides over to the wall and back rather than jumping)
+  if (region === 'inside') {
+    const free = COURSE.inside.x1 - 40, wall = COURSE.shaft.x1 - 60;
+    const climbing = player.pos.x > COURSE.shaft.x1 - 60 && player.pos.y + player.height < COURSE.shaft.floor - 150;
+    state.cameraMinX = !inShaft ? free
+      : climbing ? Math.min(wall, state.camera.x + SHAFT_CAMERA_SLIDE)
+      : Math.max(free, Math.min(wall, state.camera.x - SHAFT_CAMERA_SLIDE));
+  }
   if (region === 'inside') {
     if (state.checkpoint < CP.SHAFT && player.isGrounded && player.pos.x >= COURSE.checkpoints[CP.SHAFT].x) state.checkpoint = CP.SHAFT;
     // Up at the window
