@@ -499,7 +499,9 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
     // Shield enemies block shots from the side the shield's facing
     const shieldLeft = shieldFacing(enemy) < 0;
     const hitsShieldSide = shieldLeft ? p.vel.x > 0 && p.pos.x < enemy.pos.x + enemy.width / 2 : p.vel.x < 0 && p.pos.x + p.width > enemy.pos.x + enemy.width / 2;
-    if (enemy.enemyType === 'shield' && enemy.isShieldActive && hitsShieldSide) {
+    // (except from overhead: a lobbed boulder, anything coming down on top of him, goes over the shield)
+    const overhead = p.vel.y > 1.5 && p.pos.y + p.height / 2 < enemy.pos.y + enemy.height * 0.45;
+    if (enemy.enemyType === 'shield' && enemy.isShieldActive && hitsShieldSide && !overhead) {
       if (p.isSludge) {
         // Splats against the shield and runs down it into a puddle at his feet
         p.isSliding = true;
