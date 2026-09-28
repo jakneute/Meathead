@@ -14,6 +14,7 @@ import { updateTenant, hitTenant } from './climb';
 import { updateGenerator, updateMinion } from './power';
 import { drawBarryBackdrop, drawBarryBack, drawBarryMid, drawBarryFront, drawBarryHud, drawBarryWeather } from './draw';
 import { drawGenerator } from './rooms';
+import { drawTenantDeath } from '../../render/enemies/barry';
 import { roomZoom } from './lighting';
 
 export const barryLayout: StageLayout = {
@@ -54,13 +55,14 @@ export const barryLayout: StageLayout = {
     return undefined;
   },
   hitSpecialEnemy: (ctx, e, p) => {
-    if (e.kind === 'tenant') return hitTenant(e, p);
+    if (e.kind === 'tenant') return hitTenant(ctx, e, p);
     // (Barry's man isn't for shooting: he's for later)
     if (e.kind === 'minion') return 'miss';
     void ctx;
     return undefined;
   },
   drawSpecialEnemy: (ctx, e, state) => {
+    if (e.kind === 'tenant' && (e.aiState === 'fall' || e.aiState === 'splat')) { drawTenantDeath(ctx, e, state.frame); return true; }
     if (e.kind !== 'generator') return false;
     const rt = getBarry(state);
     const g = rt?.power.gens.find(q => q.id === e.id);

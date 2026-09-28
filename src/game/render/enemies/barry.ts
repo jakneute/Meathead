@@ -458,6 +458,54 @@ const drawTenant = (ctx: Ctx, e: Enemy, f: number) => {
 };
 
 /**
+ * A tenant, dead: out of his window and falling, all of him (undershirt and boxers, a housecoat and curlers, a
+ * bathrobe and slippers), arms and legs going, eyes like saucers, mouth wide open; or face down on the street
+ * where he landed, flat, in a pool of it. (e.pos is his box, e.rotation his spin on the way down.)
+ */
+export const drawTenantDeath = (ctx: Ctx, e: Enemy, f: number) => {
+  const skin = skinOf(e);
+  const v = (e.variant ?? 0) % 3;
+  const top = v === 0 ? '#F8FAFC' : v === 1 ? '#F9A8D4' : '#92400E';
+  const bottom = v === 0 ? '#60A5FA' : v === 1 ? '#F9A8D4' : '#92400E';
+  const cx = e.pos.x + e.width / 2, cy = e.pos.y + e.height / 2;
+  ctx.save();
+  if (e.aiState === 'splat') {
+    // Flat on the street: the pool spreading out under him, him squashed flat in it, a slipper off to one side
+    const t = Math.min(1, (e.aiTimer || 0) / 60);
+    const gy = e.pos.y + e.height;
+    ctx.fillStyle = 'rgba(127, 29, 29, 0.9)'; ctx.beginPath(); ctx.ellipse(cx, gy - 2, 26 + t * 30, 5 + t * 3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#B91C1C'; for (let k = 0; k < 6; k++) ctx.fillRect(cx - 40 + k * 15, gy - 3 - (k % 2) * 2, 5, 3);
+    ctx.translate(cx, gy - 5); ctx.scale(1.25, 0.55);
+    ctx.fillStyle = bottom; ctx.fillRect(-26, -4, 16, 8); ctx.fillRect(-26, 2, 16, 6); // legs, splayed
+    ctx.fillStyle = top; ctx.fillRect(-12, -7, 24, 14);
+    ctx.fillStyle = skin; ctx.fillRect(12, -16, 12, 5); ctx.fillRect(10, 10, 14, 5); // arms, flung out
+    ctx.beginPath(); ctx.arc(18, 0, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#111827'; ctx.fillRect(15, -3, 5, 1.5); ctx.fillRect(15, 2, 5, 1.5); // x'd out
+    ctx.restore();
+    ctx.fillStyle = '#7C2D12'; ctx.fillRect(cx + 34, e.pos.y + e.height - 5, 9, 4); // the slipper
+    return;
+  }
+  // Falling: spinning, flailing, terrified
+  ctx.translate(cx, cy); ctx.rotate(e.rotation || 0);
+  const flail = Math.sin(f * 0.8) * 0.6, kick = Math.sin(f * 0.6 + 1) * 0.5;
+  // Legs kicking
+  for (const [x, a] of [[-5, kick], [5, -kick]] as const) { ctx.save(); ctx.translate(x, 8); ctx.rotate(a); ctx.fillStyle = bottom; ctx.fillRect(-3, 0, 6, 14); ctx.fillStyle = skin; ctx.fillRect(-3, 14, 6, 6); ctx.restore(); }
+  ctx.fillStyle = top; ctx.fillRect(-11, -14, 22, 24);
+  if (v === 1) { ctx.fillStyle = '#FBCFE8'; ctx.fillRect(-2, -14, 4, 24); }
+  // Arms up over his head, waving
+  for (const [x, a] of [[-10, -2.4 + flail], [10, 2.4 - flail]] as const) { ctx.save(); ctx.translate(x, -10); ctx.rotate(a); ctx.fillStyle = skin; ctx.fillRect(-2.5, 0, 5, 18); ctx.fillRect(-3.5, 16, 7, 5); ctx.restore(); }
+  // The head: eyes like saucers, mouth wide open screaming
+  ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(0, -24, 10, 0, Math.PI * 2); ctx.fill();
+  if (v === 1) { ctx.fillStyle = '#F472B6'; for (const [x, y] of [[-7, -32], [0, -35], [7, -32]]) { ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill(); } }
+  else { ctx.fillStyle = v === 0 ? '#44403C' : '#9CA3AF'; ctx.beginPath(); ctx.arc(0, -28, 10, Math.PI * 1.1, Math.PI * 1.9); ctx.fill(); }
+  ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(-4, -26, 3.5, 0, Math.PI * 2); ctx.arc(4, -26, 3.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#111827'; ctx.fillRect(-4.5, -26.5, 1.5, 1.5); ctx.fillRect(3.5, -26.5, 1.5, 1.5);
+  ctx.fillStyle = '#450A0A'; ctx.beginPath(); ctx.ellipse(0, -18, 3.5, 4.5 + Math.sin(f * 0.9), 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(147, 197, 253, 0.9)'; ctx.fillRect(9, -30 + (f % 8), 2, 3); // sweat, flying off
+  ctx.restore();
+};
+
+/**
  * Barry's man on the grid: a jumpsuit with BARRY on the back, a headset, a clipboard, big anxious eyes; strutting
  * and taunting, or running round in a panic with his hands on his head.
  */

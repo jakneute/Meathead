@@ -9,7 +9,9 @@ import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
 import type { Projectile } from '../../../types';
 import { makeKindEnemy } from '../../enemies/kinds';
-import { BOTTLE_GRAVITY, ENEMY_BULLET_DAMAGE } from '../../../constants';
+import { BOTTLE_GRAVITY, ENEMY_BULLET_DAMAGE, GROUND_Y } from '../../../constants';
+import { shakeScreen } from '../../core/state';
+import { playSound } from '../../platform/audio';
 import { COURSE } from './course';
 
 /** Where a tenant's box sits when he's out of his window (it's tucked well out of the way when he isn't). */
@@ -35,13 +37,9 @@ export const makeTenants = (): Enemy[] =>
 
 /** A tenant's turn: in, out, throw, in. Returns true (the stage runs him, not the generic enemy code). */
 export const updateTenant = (ctx: FrameContext, e: Enemy): boolean => {
-  const { state, fx } = ctx;
+  const { state } = ctx;
   const p = state.player;
-  if (e.isBlownAway) {
-    // Out of the window and all the way down
-    e.pos.x += e.vel.x; e.pos.y += e.vel.y; e.vel.y += 0.55; e.rotation = (e.rotation || 0) + 0.2;
-    return e.pos.y < 1400;
-  }
+  if (e.aiState === 'fall' || e.aiState === 'splat') return fallTenant(ctx, e);
   e.aiTimer = (e.aiTimer || 0) + 1;
   const hx = e.homeX!, hy = e.homeY!;
   const near = Math.abs(p.pos.y - hy) < RANGE_Y && Math.abs(p.pos.x - hx) < RANGE_X && state.deathTimer <= 0;
@@ -62,22 +60,57 @@ export const updateTenant = (ctx: FrameContext, e: Enemy): boolean => {
       if (e.aiTimer >= WIND + BACK) { e.aiState = 'hidden'; e.aiTimer = 0; e.pos = { x: hx, y: AWAY_Y }; }
       break;
   }
-  if (e.health <= 0 && !e.isBlownAway) {
-    // Out of the window he goes
-    e.isBlownAway = true; e.health = 0;
-    e.pos = { x: hx, y: hy };
-    e.vel = { x: (e.facing ?? 1) * 1.5, y: -3 };
-    fx.spawnDamageNumber({ x: hx - 20, y: hy - 30 }, 'AAAAAH!', true, '#F8FAFC');
-    fx.spawnDeathShower({ x: hx + 20, y: hy + 10 }, 0, 0.8);
-    state.player.killSatisfactionTimer = 60;
+  // (killed some other way than a shot: out he goes all the same)
+  if (e.health <= 0) startFall(ctx, e);
+  return true;
+};
+
+/**
+ * Killed: out of the window he goes, all of him, arms and legs going, eyes like saucers, screaming all the way
+ * down past the fire escape to the street. SPLAT. He stays there, flat, in what came out of him.
+ */
+const startFall = (ctx: FrameContext, e: Enemy) => {
+  const { state, fx } = ctx;
+  const hx = e.homeX!, hy = e.homeY!;
+  e.aiState = 'fall'; e.aiTimer = 0;
+  e.health = 1; e.isBlownAway = false; e.harmless = true;
+  e.pos = { x: hx, y: hy - 20 };
+  e.vel = { x: (e.facing ?? 1) * -1.2, y: -4 };
+  e.rotation = 0;
+  fx.spawnDamageNumber({ x: hx - 30, y: hy - 40 }, 'AAAAAAAH!', true, '#F8FAFC');
+  fx.spawnDeathShower({ x: hx + 20, y: hy + 10 }, 0, 0.6);
+  fx.speakVulgarity('gun_kill');
+  state.player.killSatisfactionTimer = 60;
+};
+
+const fallTenant = (ctx: FrameContext, e: Enemy): boolean => {
+  const { state, fx } = ctx;
+  e.aiTimer = (e.aiTimer || 0) + 1;
+  if (e.aiState === 'splat') return true;
+  e.pos.x += e.vel.x; e.pos.y += e.vel.y; e.vel.y = Math.min(18, e.vel.y + 0.5);
+  e.rotation = (e.rotation || 0) + 0.12 * Math.sign(e.vel.x || 1);
+  // (the scream trailing after him)
+  if (e.aiTimer % 14 === 0) state.particles.push({ pos: { x: e.pos.x + 20, y: e.pos.y - 10 }, vel: { x: 0, y: -1 }, life: 20, color: 'rgba(248, 250, 252, 0.7)', size: 3 });
+  if (e.pos.y + e.height >= GROUND_Y) {
+    // SPLAT
+    e.aiState = 'splat'; e.aiTimer = 0; e.vel = { x: 0, y: 0 };
+    e.pos.y = GROUND_Y - e.height;
+    fx.spawnDeathShower({ x: e.pos.x + 20, y: GROUND_Y - 6 }, 0, 2.2);
+    fx.spawnDamageNumber({ x: e.pos.x - 10, y: GROUND_Y - 90 }, 'SPLAT!', true, '#DC2626');
+    for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: e.pos.x + 20, y: GROUND_Y - 4 }, vel: { x: (Math.random() - 0.5) * 12, y: -Math.random() * 7 }, life: 30 + Math.random() * 30, color: i % 3 ? '#991B1B' : '#DC2626', size: 2 + Math.random() * 5 });
+    shakeScreen(state, 14, 8);
+    playSound('nuke');
   }
   return true;
 };
 
-/** Hidden inside: a shot at the window goes past him. */
-export const hitTenant = (e: Enemy, p: Projectile): boolean | 'miss' | undefined => {
+/** Hidden inside (or on his way down): a shot at the window goes past him. Out of it: one hit and he's gone. */
+export const hitTenant = (ctx: FrameContext, e: Enemy, p: Projectile): boolean | 'miss' | undefined => {
   void p;
-  return e.aiState === 'hidden' || e.isBlownAway ? 'miss' : undefined;
+  if (e.aiState === 'hidden' || e.aiState === 'fall' || e.aiState === 'splat') return 'miss';
+  // (one hit: out of the window)
+  startFall(ctx, e);
+  return true;
 };
 
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
