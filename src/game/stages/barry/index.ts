@@ -58,6 +58,8 @@ export const barryLayout: StageLayout = {
     if (e.kind === 'tenant') return hitTenant(ctx, e, p);
     // (Barry's man isn't for shooting: he's for later)
     if (e.kind === 'minion') return 'miss';
+    // (a blown generator's just a wreck: shots go on past it to the next one)
+    if (e.kind === 'generator') { const g = getBarry(ctx.state)?.power.gens.find(q => q.id === e.id); if (g && g.charge <= 0) return 'miss'; }
     void ctx;
     return undefined;
   },
