@@ -53,6 +53,8 @@ export interface GameState {
   cameraLeadX?: number;
   /** A set piece only lets him use this weapon (the jet ski: the gun). */
   lockWeapon?: WeaponType;
+  /** The weapons he's got right now (from the game's progress). */
+  availableWeapons?: WeaponType[];
 
   // Boss door & arena
   arenaLocked: boolean;

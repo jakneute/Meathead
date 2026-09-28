@@ -576,6 +576,7 @@ const App: React.FC = () => {
           status={status}
           stageId={selectedStage}
           currentWeapon={currentWeapon}
+          availableWeapons={availableWeapons}
           initialAmmo={weaponAmmo}
           cheats={{ invincible: cheats.invincible, infiniteAmmo: cheats.infiniteAmmo, infinitePower: cheats.infinitePower, skipToBoss: cheats.skipToBoss }}
           bossTauntText={bossTaunt}

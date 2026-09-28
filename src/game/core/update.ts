@@ -366,6 +366,25 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
 // Pickups, particles, camera
 // ---------------------------------------------------------------------------
 
+/**
+ * Where an ammo pickup goes: the weapon in his hands if it's a special weapon that isn't full; otherwise (the gun
+ * never runs out, or the one he's holding is topped off) whichever of the special weapons he's got is lowest, as a
+ * share of its full load. Nothing, if they're all full.
+ */
+const ammoTarget = (state: FrameContext['state']): WeaponType | null => {
+  const { player } = state;
+  const ammo = player.weaponAmmo;
+  const held = player.currentWeapon;
+  if (held !== 'GUN' && (ammo[held] ?? 0) < MAX_AMMO[held]) return held;
+  const owned = (state.availableWeapons ?? (Object.keys(MAX_AMMO) as WeaponType[])).filter(w => w !== 'GUN' && MAX_AMMO[w] > 0);
+  let best: WeaponType | null = null, lowest = 1;
+  for (const w of owned) {
+    const share = (ammo[w] ?? 0) / MAX_AMMO[w];
+    if (share < lowest) { lowest = share; best = w; }
+  }
+  return best;
+};
+
 const updatePickups = (ctx: FrameContext) => {
   const { state } = ctx;
   const { player } = state;
@@ -383,10 +402,9 @@ const updatePickups = (ctx: FrameContext) => {
     if (p.type.includes('health')) {
       player.health = Math.min(player.maxHealth, player.health + (p.type === 'large_health' ? HEALTH_PICKUP_LARGE : HEALTH_PICKUP_SMALL));
     } else {
-      // Ammo goes to the equipped weapon (the gun has infinite ammo, so it tops up the boulder)
-      const target: WeaponType = player.currentWeapon === 'GUN' ? 'BOULDER' : player.currentWeapon;
+      const target = ammoTarget(state);
       const pct = p.type === 'large_ammo' ? AMMO_PICKUP_PCT.LARGE : AMMO_PICKUP_PCT.SMALL;
-      player.weaponAmmo[target] = Math.min(MAX_AMMO[target], player.weaponAmmo[target] + MAX_AMMO[target] * pct);
+      if (target) player.weaponAmmo[target] = Math.min(MAX_AMMO[target], player.weaponAmmo[target] + MAX_AMMO[target] * pct);
     }
     return false;
   });

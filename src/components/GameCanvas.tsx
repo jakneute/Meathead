@@ -13,6 +13,8 @@ interface GameCanvasProps extends GameEvents {
   status: GameStatus;
   stageId: string | null;
   currentWeapon: WeaponType;
+  /** The weapons he's got (an ammo pickup tops up whichever of them is lowest). */
+  availableWeapons: WeaponType[];
   initialAmmo: Record<WeaponType, number>;
   cheats: Cheats;
   bossTauntText: string;
@@ -48,6 +50,7 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
   }, []);
 
   useEffect(() => { stateRef.current!.player.currentWeapon = currentWeapon; }, [currentWeapon]);
+  useEffect(() => { stateRef.current!.availableWeapons = props.availableWeapons; }, [props.availableWeapons]);
   useEffect(() => { stateRef.current!.stageId = stageId; }, [stageId]);
   useEffect(() => {
     const state = stateRef.current!;
