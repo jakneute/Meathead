@@ -105,7 +105,7 @@ const PAINTS = ['#B91C1C', '#1D4ED8', '#F5F5F4', '#166534'];
  * everything that's been hit burning, the smoke going up off it.
  */
 export const drawFarField = (ctx: Ctx, state: GameState, ch: Chase) => {
-  const base = 400 - state.camera.y * 0.15;
+  const base = ch.farBase;
   for (let i = 0; i < FAR_N; i++) {
     const x = farScreenX(ch, i);
     if (x < -150 || x > CANVAS_WIDTH + 150) continue;
@@ -117,7 +117,7 @@ export const drawFarField = (ctx: Ctx, state: GameState, ch: Chase) => {
   }
   for (const w of ch.farWrecks) {
     const x = farWreckX(ch, w);
-    ctx.save(); ctx.translate(x, base + 2); ctx.scale(0.32, 0.32);
+    ctx.save(); ctx.translate(x, base + 2); ctx.scale(0.42, 0.42);
     ctx.rotate(Math.sin(w.t * 0.6) * 0.1);
     const dir = (w.l1 > w.l0 ? 1 : -1);
     ctx.scale(dir, 1);

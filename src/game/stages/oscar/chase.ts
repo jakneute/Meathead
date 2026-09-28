@@ -62,6 +62,8 @@ export interface Chase {
   far: FarThing[];
   /** How far he's come, all told (the laps unwrapped): the distance moves past slower than the road. */
   odo: number;
+  /** Where the distance's horizon sits on the screen: always just above the highest bit of road in view, so the road never hides it. */
+  farBase: number;
   thrown: Thrown[];
   derricks: Derrick[];
   slicks: RoadSlick[];
@@ -118,7 +120,7 @@ export const farScreenX = (ch: Chase, i: number) => ((((i * FAR_GAP + 140 - ch.o
 export const farWreckX = (ch: Chase, w: FarWreck) => { const k = Math.min(1, w.t / w.dur); const e = k * k * (3 - 2 * k); return w.l0 + (w.l1 - w.l0) * e - ch.odo * FAR_PAR; };
 
 export const createChase = (startedAt: number): Chase => ({
-  phase: startedAt > CP.CHASE ? 'done' : 'waiting', t: 0, kills: 0, wrecks: [], farWrecks: [], far: FAR_LOOKS.map(look => ({ look, state: 'standing' as const, t: 0 })), odo: 0, thrown: [],
+  phase: startedAt > CP.CHASE ? 'done' : 'waiting', t: 0, kills: 0, wrecks: [], farWrecks: [], far: FAR_LOOKS.map(look => ({ look, state: 'standing' as const, t: 0 })), odo: 0, farBase: 400, thrown: [],
   derricks: Array.from({ length: DERRICKS_PER_LAP }, () => ({ state: 'standing' as const, t: 0 })),
   slicks: [], slickTimer: 360, spin: 0, spawnTimer: 60, spawned: 0, camX: NaN, hint: '', hintT: 0, hinted: new Set(), laps: 0, zoom: 1,
   gaps: [], gapsDone: 0, healthTimer: 480,
@@ -439,6 +441,13 @@ const updateWrecks = (ctx: FrameContext, ch: Chase) => {
   const pace = Math.max(4, p.vel.x);
   const v = chaseView(state, ch);
   ch.odo = state.camera.x - COURSE.chase.x1 + ch.laps * LAP;
+  // (the horizon out there sits just above the highest road on the screen, wherever the hills have it)
+  const s = ch.phase === 'riding' || ch.phase === 'won' ? ch.zoom : 1;
+  let top = Infinity;
+  for (let x = v.x1; x <= v.x2; x += 40) { const g = groundLineAt(state.groundRuns, x); if (g !== Infinity) top = Math.min(top, g); }
+  const topSy = top === Infinity ? 470 : s * (top - state.camera.y - 550) + 550;
+  const want = Math.min(470, topSy - 12);
+  ch.farBase += (want - ch.farBase) * 0.12;
   // Careering off, burning, faster and faster (away ahead of him, or dropping back behind)
   for (const w of ch.wrecks) {
     w.t++;
