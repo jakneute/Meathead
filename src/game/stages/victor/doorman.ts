@@ -462,10 +462,11 @@ const endClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, won: boolean
   const a = arena();
   const px = p.pos.x + p.width / 2, mx = m.pos.x + W / 2;
   if (won) {
-    // You throw him: up and over you, clean across to the other side, and down on his back
+    // You throw him: as far from you as the club goes (over your head, if that's the far end), down on his back
     damage(ctx, m, fight, CLASH_WIN);
-    const over = Math.sign(px - mx) || 1;
-    const land = over > 0 ? a.x2 - W - 50 : a.x1 + 50;
+    const leftEnd = a.x1 + 40, rightEnd = a.x2 - W - 40;
+    const land = Math.abs(px - (leftEnd + W / 2)) > Math.abs(px - (rightEnd + W / 2)) ? leftEnd : rightEnd;
+    const over = Math.sign(land - m.pos.x) || 1;
     start(m, 'thrown');
     m.vel = { x: (land - m.pos.x) / THROW_FRAMES, y: -THROW_LIFT };
     p.vel = { x: 0, y: -3 };
