@@ -694,6 +694,11 @@ const skyline = (key: string, parallax: number, seed: number, base: number, minH
 });
 const barryFar = skyline('barry-far', 0.06, 150, 240, 40, 110, '#0C1224', '#46557A', true);
 const barryMid = skyline('barry-mid', 0.18, 151, 255, 50, 140, '#060A16', '#FCD978');
+/** The same skylines with every light out (Barry's stage draws these over the lit ones where the blackout's rolled through). */
+export const BARRY_SKYLINES_DARK: LayerSpec[] = [
+  skyline('barry-far-dark', 0.06, 150, 240, 40, 110, '#0C1224', '#0C1224', true),
+  skyline('barry-mid-dark', 0.18, 151, 255, 50, 140, '#060A16', '#060A16'),
+];
 
 /** The rolling blackout: a wave of darkness sweeps across the skyline, windows sputtering at its edges. */
 const blackoutWave = (ctx: G, v: View) => {

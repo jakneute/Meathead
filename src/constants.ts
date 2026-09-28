@@ -230,6 +230,8 @@ export const OILED_CHARGE_MIN_PUSH = 16;       // even the heaviest oiled enemy 
 export const FROZEN_WALL_IMPACT_MULTIPLIER = 6.7;
 export const FROZEN_GROUND_IMPACT_MULTIPLIER = 5.4;
 export const FROZEN_ENEMY_IMPACT_DAMAGE = 20;
+/** A frozen enemy shoved into a wall or another enemy thaws out on the spot: the ice bursts, and so does he a bit (a big hit on top of the impact; enough to kill him and he shatters). */
+export const THAW_BURST_DAMAGE = 70;
 
 // SHOVED ENEMY PHYSICS - ported from the GML oEnemyParent.
 export const DAMAGE_WALL_IMPACT_SCALER = 2.0;      // x speed (GML units) when slammed into a wall

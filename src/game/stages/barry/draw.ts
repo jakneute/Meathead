@@ -9,7 +9,7 @@
 import type { GameState } from '../../core/state';
 import type { Enemy } from '../../../types';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
-import { STAGE_BACKDROPS } from '../../render/backdrops/stages';
+import { STAGE_BACKDROPS, BARRY_SKYLINES_DARK } from '../../render/backdrops/stages';
 import { blitLayer } from '../../render/backdrops/core';
 import type { Live } from '../../render/backdrops';
 import type { LayerSpec } from '../../render/backdrops/core';
@@ -46,11 +46,40 @@ export const drawBarryBackdrop = (ctx: Ctx, state: GameState): boolean => {
   ctx.fillStyle = '#010208'; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   ctx.save();
   ctx.translate(0, Math.max(-60, Math.min(60, -(state.camera.y - (Y - 550)) * 0.12)));
-  for (let i = 0; i < LAYERS.length; i++) layer(ctx, state.camera.x, state.camera.y, state.frame, i);
+  for (let i = 0; i < LAYERS.length; i++) {
+    // (up on the roofs the blackout's the real one, below: not the backdrop's own wave)
+    if (place === 'roofs' && i === BLACKOUT_WAVE) continue;
+    layer(ctx, state.camera.x, state.camera.y, state.frame, i);
+    if (place === 'roofs' && i === LAST_SKYLINE) drawSkylineBlackout(ctx, state);
+  }
   ctx.restore();
   // The end: the city on fire (an orange glow up the sky, smoke across it)
   if (place === 'landing') drawCityBurning(ctx, state.frame, 1.5);
   return true;
+};
+
+/** Which of the backdrop's layers are the skylines, and its own blackout wave. */
+const LAST_SKYLINE = 2, BLACKOUT_WAVE = 3;
+
+/**
+ * The rolling blackout across the skyline: where it's rolled through, the buildings go dark (every light in them
+ * out, not just dimmed), and the sky over them darker; windows sputter at its edges as it goes.
+ */
+const drawSkylineBlackout = (ctx: Ctx, state: GameState) => {
+  const f = state.frame;
+  const strip = 16;
+  const dark: [number, number][] = [];
+  for (let sx = 0; sx < CANVAS_WIDTH; sx += strip) {
+    // (the wave on the skyline keeps pace with the one over the roofs you're on)
+    const b = blackout(f, state.camera.x + sx);
+    if (b > 0.5 || (b > 0.25 && hash(sx + Math.floor(f / 3)) < b)) dark.push([sx, strip]);
+  }
+  if (!dark.length) return;
+  ctx.save();
+  ctx.beginPath(); for (const [x, w] of dark) ctx.rect(x, -200, w, CANVAS_HEIGHT + 400); ctx.clip();
+  for (const l of BARRY_SKYLINES_DARK) blitLayer(ctx, l, state.camera.x, state.camera.y, f);
+  ctx.fillStyle = 'rgba(0, 0, 8, 0.35)'; ctx.fillRect(0, -200, CANVAS_WIDTH, CANVAS_HEIGHT + 400);
+  ctx.restore();
 };
 
 /** Fire in the sky over the city: a glow from below, smoke rolling across, embers. (k: how much.) */

@@ -14,7 +14,7 @@ import {
   ENEMY_HIT_COOLDOWN, ENEMY_BULLET_DAMAGE, FILTH_SHIELD_CONTACT_DAMAGE, OIL_ROCKET_OILED_DURATION,
   OILED_COLLISION_DAMAGE, OILED_CHARGE_PUSH_MULTIPLIER, OILED_CHARGE_MIN_PUSH, OVERDOSE_GRAVITY, OVERDOSE_RISE_RANGE, OVERDOSE_RISE_STEER, OVERDOSE_MAX_SIDE_SPEED,
   OVERDOSE_MAX_RISE_SPEED, OVERDOSE_DIVE_RANGE, OVERDOSE_DIVE_SPEED, OVERDOSE_DROP_GRAVITY, OVERDOSE_HIT_DAMAGE, OVERDOSE_MAX_FRAMES,
-  BOTTLE_GRAVITY,
+  BOTTLE_GRAVITY, THAW_BURST_DAMAGE,
 } from '../../constants';
 import { FrameContext, killBoss } from '../core/context';
 import type { ThrownKind } from '../../types';
@@ -854,6 +854,26 @@ const SHIELD_SHOVE_CHIP = 5;
 /** How long a held charge can keep driving a shield goon back (most of a second more), and how long he's reeling after. */
 const SHIELD_SHOVE_FRAMES = 50, SHIELD_SHOVE_RECOVER = 55;
 
+/**
+ * A frozen enemy thawed out by hitting something (a wall, another enemy): the ice bursts off him, and the burst hurts
+ * (THAW_BURST_DAMAGE, on top of whatever the impact did). Enough to kill him and he shatters where he is.
+ * Returns true if it did.
+ */
+const thawBurst = (ctx: FrameContext, e: Enemy, dir: number, at: { x: number; y: number }, impact: number, callout: KillCallout): boolean => {
+  const { state, fx } = ctx;
+  e.health -= THAW_BURST_DAMAGE;
+  fx.spawnDamageNumber(e.pos, Math.round(impact + THAW_BURST_DAMAGE), true, '#7DD3FC');
+  fx.spawnExplosion(at, '#E0F2FE', 16, dir * 5, 14, true);
+  for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + Math.random() * e.height }, vel: { x: (Math.random() - 0.5) * 9, y: -Math.random() * 7 }, life: 24 + Math.random() * 16, color: i % 2 ? '#BAE6FD' : '#FFFFFF', size: 2 + Math.random() * 4 });
+  shakeScreen(state, 12, 8);
+  fx.playGunSound('ice');
+  // (still frozen for the kill: he shatters)
+  if (e.health <= 0) { impactKill(ctx, e, callout, dir); return true; }
+  e.frozenTimer = 0;
+  fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 24 }, 'THAWED!', false, '#BAE6FD');
+  return false;
+};
+
 /** Knocked into a wall: damage scales with speed (hugely if frozen). Returns true if it died. */
 const slamIntoWalls = (ctx: FrameContext, e: Enemy, speed: number): boolean => {
   const { state, fx } = ctx;
@@ -872,6 +892,11 @@ const slamIntoWalls = (ctx: FrameContext, e: Enemy, speed: number): boolean => {
   if ((e.pauseTimer || 0) <= 0) return false;
 
   const damage = toGml(speed) * DAMAGE_WALL_IMPACT_SCALER * (isFrozen(e) ? FROZEN_WALL_IMPACT_MULTIPLIER : 1);
+  // (frozen, it thaws on the wall with a burst, however hard it hit)
+  if (isFrozen(e)) {
+    e.health -= damage;
+    return thawBurst(ctx, e, -dir, { x: dir > 0 ? wall.x : wall.x + wall.w, y: e.pos.y + e.height / 2 }, damage, 'wallsplat');
+  }
   if (damage <= IMPACT_DAMAGE_THRESHOLD) return false;
   e.health -= damage;
   fx.spawnDamageNumber(e.pos, damage, isFrozen(e));
@@ -958,6 +983,13 @@ const resolveShoveCollision = (ctx: FrameContext, e: Enemy, enemies: Enemy[]) =>
       other.pauseTimer = Math.max(other.pauseTimer || 0, 30);
       fx.spawnDamageNumber(other.pos, FROZEN_ENEMY_IMPACT_DAMAGE, true);
       fx.spawnExplosion({ x: midX, y: midY }, '#B3F0FF', 8, 0, 8);
+      // (and it thaws out against him, with a burst)
+      const dir = -Math.sign(e.vel.x) || 1;
+      e.vel.x *= 0.4;
+      if (other.health <= 0) { fx.blowAwayEnemy(other, { x: -dir * 10, y: -10 }, 'charge_kill', -dir); fx.spawnKillCallout(other, isFrozen(other) ? 'shatter' : 'crush'); }
+      thawBurst(ctx, e, dir, { x: midX, y: midY }, 0, 'crush');
+      fx.playGunSound();
+      break;
     } else {
       const massResistance = Math.min(1, Math.max(0.1, 1 - getEnemyMass(e) / 1000));
       const damage = (toGml(e.vel.x) + toGml(e.vel.y)) * DOMINO_DAMAGE_SCALER * massResistance;
