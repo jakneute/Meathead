@@ -109,6 +109,8 @@ const pitbull = (ctx: FrameContext, e: Enemy): boolean => {
 const CAR_AHEAD = 280, CAR_REST = 170, CAR_BURST = 3, CAR_BURST_GAP = 8;
 /** How much faster than him it comes through from behind; how gently it keeps its spot out in front; how hard it floors it leaving. */
 const CAR_OVERTAKE = 9, CAR_KEEP = 1.6, CAR_LEAVE = 0.35;
+/** Left behind (he ramped away from it): how much slower than him it drops back, out of it. */
+const CAR_LOST = 6;
 /** The shots: a pistol round, and how hard it hits. */
 const CAR_SHOT_SPEED = 8, CAR_SHOT_DAMAGE = 8;
 
@@ -126,6 +128,10 @@ const lowrider = (ctx: FrameContext, e: Enemy) => {
   if (e.aiState === 'leave') {
     // Floored it: off up the road and gone
     e.vel.x += CAR_LEAVE;
+  } else if (e.aiState === 'lost') {
+    // He's flown off ahead of it: it drops back, horn going, and that's the last of it
+    e.vel.x += (pace - CAR_LOST - e.vel.x) * 0.08;
+    if (e.aiTimer % 50 === 1) playSound('horn');
   } else if (e.aiState === 'overtake') {
     // Coming through from behind, flat out, right through where he is (he jumps it)
     e.vel.x = pace + CAR_OVERTAKE;

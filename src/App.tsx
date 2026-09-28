@@ -92,6 +92,11 @@ const App: React.FC = () => {
   /** True between the boss dying and the victory screen; blocks pausing. */
   const [isVictoryPhase, setIsVictoryPhase] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  /** A set piece (a ride) that only allows the one weapon: the others show locked in the pause menu. */
+  const [lockedWeapon, setLockedWeapon] = useState<WeaponType | undefined>(undefined);
+  /** The pause menu's "are you sure" before leaving for the boss select, and which answer's highlighted. */
+  const [confirmLeave, setConfirmLeave] = useState(false);
+  const [confirmYes, setConfirmYes] = useState(false);
   const viewScale = useFitToWindow();
   const [isInputLocked, setIsInputLocked] = useState(true);
   /** Stage select: the boss dossier is showing instead of the map. */
@@ -142,7 +147,7 @@ const App: React.FC = () => {
 
   const cycleWeapon = (dir: number) => {
     const count = availableWeapons.length;
-    if (count <= 1) return;
+    if (count <= 1 || lockedWeapon) return;
     // Functional update so several wheel ticks between renders all register
     setCurrentWeapon(current => {
       const idx = availableWeapons.indexOf(current);
@@ -153,7 +158,7 @@ const App: React.FC = () => {
   };
 
   const selectWeaponByIndex = (index: number) => {
-    if (index >= 0 && index < availableWeapons.length) setCurrentWeapon(availableWeapons[index]);
+    if (index >= 0 && index < availableWeapons.length && (!lockedWeapon || availableWeapons[index] === lockedWeapon)) setCurrentWeapon(availableWeapons[index]);
   };
 
   const handleWeaponIconClick = (index: number) => {
@@ -172,8 +177,11 @@ const App: React.FC = () => {
     if (isVictoryPhase || UNPAUSABLE_SCREENS.includes(status)) return;
     if (status === GameStatus.PLAYING) {
       setSelectedIndex(availableWeapons.indexOf(currentWeapon));
+      setConfirmLeave(false);
       setStatus(GameStatus.PAUSED);
     } else if (status === GameStatus.PAUSED) {
+      // (backing out of the "are you sure" first)
+      if (confirmLeave) { setConfirmLeave(false); return; }
       setStatus(GameStatus.PLAYING);
     }
   };
@@ -228,7 +236,18 @@ const App: React.FC = () => {
     }
   };
 
-  const handleResume = () => setStatus(GameStatus.PLAYING);
+  const handleResume = () => {
+    // (the back button with the "are you sure" up just says no)
+    if (confirmLeave) { setConfirmLeave(false); return; }
+    setStatus(GameStatus.PLAYING);
+  };
+
+  /** BOSS SELECT in the pause menu: asks first (NO highlighted). */
+  const askBossSelect = () => { setConfirmYes(false); setConfirmLeave(true); };
+  const answerBossSelect = (yes: boolean) => {
+    setConfirmLeave(false);
+    if (yes) handleBossSelect();
+  };
 
   /** After THE END: back to the title screen. */
   const handleEndingDone = () => {
@@ -330,7 +349,7 @@ const App: React.FC = () => {
     const numWeapons = availableWeapons.length;
     if (index < numWeapons) selectWeaponByIndex(index);
     else if (index === numWeapons) handleResume();
-    else if (index === numWeapons + 1) handleBossSelect();
+    else if (index === numWeapons + 1) askBossSelect();
     else if (index === numWeapons + 2) handleQuitToMenu();
   };
 
@@ -347,6 +366,8 @@ const App: React.FC = () => {
     if (status === GameStatus.PAUSED) {
       const numWeapons = availableWeapons.length;
       if (dx === 0 && dy === 0) return false;
+      // (the "are you sure": YES on the left, NO on the right)
+      if (confirmLeave) { if (dx) setConfirmYes(dx < 0); return true; }
       setSelectedIndex(i => navigatePauseMenu(i, dx, dy, numWeapons));
       return true;
     }
@@ -357,7 +378,7 @@ const App: React.FC = () => {
     // (nothing while the call's still fading off the stage select)
     if (callOutro) return;
     if (status === GameStatus.STAGE_SELECT) { if (lockedIndex === null) lockStage(selectedIndex); else engageStage(); }
-    else if (status === GameStatus.PAUSED) activatePauseItem(selectedIndex);
+    else if (status === GameStatus.PAUSED) { if (confirmLeave) answerBossSelect(confirmYes); else activatePauseItem(selectedIndex); }
     // The weapon screen runs its own firing range: only Start / Esc (handled there) move on
     // (the mid-game call runs its own confirm)
     else if (status === GameStatus.VICTORY && (progressionRank === 0 || callPreview)) return;
@@ -411,11 +432,12 @@ const App: React.FC = () => {
     setStatus(GameStatus.BOSS_VICTORY_SPEECH);
   };
 
-  const handlePlayerUpdate = (h: number, p: number, ammo?: Record<WeaponType, number>, forcedWeapon?: WeaponType) => {
+  const handlePlayerUpdate = (h: number, p: number, ammo?: Record<WeaponType, number>, forcedWeapon?: WeaponType, lockedTo?: WeaponType) => {
     setHealth(h);
     setPower(p);
     if (ammo) setWeaponAmmo(ammo);
     if (forcedWeapon) setCurrentWeapon(forcedWeapon);
+    setLockedWeapon(lockedTo);
   };
 
   // Input listeners are attached once and always call the latest render's handlers.
@@ -563,7 +585,11 @@ const App: React.FC = () => {
           weaponAmmo={weaponAmmo}
           onStart={handleStart}
           onResume={handleResume}
-          onBossSelect={handleBossSelect}
+          onBossSelect={askBossSelect}
+          confirmLeave={confirmLeave}
+          confirmYes={confirmYes}
+          onAnswerLeave={answerBossSelect}
+          lockedWeapon={lockedWeapon}
           onQuitToMenu={handleQuitToMenu}
           onSelectIndex={(i) => { if (lockedIndex === null && !engaging) setSelectedIndex(i); }}
           lockedIndex={lockedIndex}

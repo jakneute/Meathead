@@ -35,6 +35,12 @@ interface OverlayProps {
   onResume: () => void;
   onBossSelect: () => void;
   onQuitToMenu: () => void;
+  /** Pause menu: the "are you sure" before leaving for the boss select (and which answer's highlighted), and the answer. */
+  confirmLeave?: boolean;
+  confirmYes?: boolean;
+  onAnswerLeave?: (yes: boolean) => void;
+  /** Pause menu: on a ride that only allows the one weapon, the rest show locked. */
+  lockedWeapon?: WeaponType;
   onSelectIndex: (index: number) => void;
   /** Stage select: the locked-in target (null while browsing), and the ENGAGE flourish in progress. */
   lockedIndex: number | null;
@@ -378,7 +384,8 @@ const EngageFlash: React.FC<{ bossId: string }> = ({ bossId }) => {
  * Pause menu. `selectedIndex` walks the weapon grid first, then the three
  * buttons below it (RESUME, BOSS SELECT, QUIT).
  */
-const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, weaponAmmo, selectedIndex, onWeaponIconClick, onResume, onBossSelect, onQuitToMenu }) => {
+const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, weaponAmmo, selectedIndex, onWeaponIconClick, onResume, onBossSelect, onQuitToMenu, confirmLeave, confirmYes, onAnswerLeave, lockedWeapon }) => {
+  const isLocked = (w: WeaponType) => !!lockedWeapon && w !== lockedWeapon;
   const numWeapons = availableWeapons.length;
   const shown = selectedIndex < numWeapons ? availableWeapons[selectedIndex] : currentWeapon;
   const info = getWeaponInfo(shown);
@@ -417,7 +424,7 @@ const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, we
           <div className="text-[8px] text-zinc-400 font-black tracking-widest mb-2">ARSENAL</div>
           <div className="grid grid-cols-3 gap-[10px] p-2 bg-black/50 border border-zinc-700">
             {availableWeapons.map((w, i) => (
-              <WeaponIcon key={w} type={w} slot={i + 1} ammo={ammoOf(w)} isEquipped={w === currentWeapon} isSelected={selectedIndex === i} onClick={() => onWeaponIconClick(i)} />
+              <WeaponIcon key={w} type={w} slot={i + 1} ammo={ammoOf(w)} isEquipped={w === currentWeapon} isSelected={selectedIndex === i} locked={isLocked(w)} onClick={() => { if (!isLocked(w)) onWeaponIconClick(i); }} />
             ))}
           </div>
         </div>
@@ -429,7 +436,7 @@ const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, we
             <WeaponArt type={shown} size={88} />
           </div>
           <div className="text-yellow-300 text-[11px] font-black uppercase leading-tight mb-1">{info.name}</div>
-          <div className="text-[7px] text-red-500 font-black uppercase tracking-wider mb-2">{shown === currentWeapon ? '[ EQUIPPED ]' :`TAKEN FROM ${info.from.toUpperCase()}`}</div>
+          <div className="text-[7px] text-red-500 font-black uppercase tracking-wider mb-2">{isLocked(shown) ? '[ LOCKED: HANDS FULL ]' : shown === currentWeapon ? '[ EQUIPPED ]' :`TAKEN FROM ${info.from.toUpperCase()}`}</div>
           <div className="text-zinc-300 text-[7px] leading-[11px] uppercase font-bold mb-2 min-h-[44px]">&ldquo;{getWeaponDescription(shown)}&rdquo;</div>
           <div className="text-[7px] font-black tracking-wider text-green-400">AMMO: {ammoText(shown)}</div>
         </div>
@@ -441,6 +448,28 @@ const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, we
         {menuButton('QUIT', '✖', numWeapons + 2, onQuitToMenu, 'linear-gradient(180deg, #52525B, #3F3F46)', '#18181B')}
       </div>
       <div className="mt-3 text-[6px] text-zinc-500 tracking-wider">ESC / START / R-CLICK: RESUME &nbsp;&middot;&nbsp; 1-9 / CLICK / D-PAD: EQUIP</div>
+
+      {/* Leaving for the boss select: are you sure? */}
+      {confirmLeave && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-20 animate-in fade-in duration-150">
+          <div className="flex flex-col items-center px-8 py-5" style={{ background: 'linear-gradient(180deg, #27272A, #09090B)', border: '3px solid #EF4444', boxShadow: '0 0 0 3px #000, 0 0 30px rgba(239,68,68,0.35)' }}>
+            <div className="text-yellow-400 text-[15px] font-black italic tracking-widest mb-2" style={{ textShadow: '2px 2px 0 #7F1D1D' }}>ARE YOU SURE?</div>
+            <div className="text-zinc-300 text-[8px] font-black uppercase tracking-wider mb-4">YOU'LL LOSE YOUR PROGRESS ON THIS STAGE</div>
+            <div className="flex gap-4">
+              {([['YES', true, 'linear-gradient(180deg, #B91C1C, #7F1D1D)', '#450A0A'], ['NO', false, 'linear-gradient(180deg, #52525B, #3F3F46)', '#18181B']] as const).map(([label, yes, face, edge]) => {
+                const on = !!confirmYes === yes;
+                return (
+                  <button key={label} onClick={() => onAnswerLeave?.(yes)}
+                    className={`relative pl-8 pr-5 py-[7px] text-white text-[11px] font-black tracking-wider transition-all ${on ? 'translate-y-[-1px]' : 'opacity-80 hover:opacity-100'}`}
+                    style={{ background: face, borderBottom: `4px solid ${edge}`, boxShadow: on ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: on ? '2px solid #FACC15' : 'none' }}>
+                    {on && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}{label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

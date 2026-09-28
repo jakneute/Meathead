@@ -281,3 +281,84 @@ export const drawSuitMelt = (ctx: Ctx, state: GameState, rt: TommyRuntime) => {
   ctx.fillStyle = 'rgba(214, 211, 209, 0.5)'; for (let i = 0; i < 3; i++) { const t = ((state.frame + i * 20) % 60) / 60; ctx.beginPath(); ctx.arc(p.pos.x + 10 + i * 12, p.pos.y - t * 40, 6 + t * 8, 0, Math.PI * 2); ctx.fill(); }
   ctx.restore();
 };
+
+// ---------------------------------------------------------------------------
+// The blast out of the cistern
+// ---------------------------------------------------------------------------
+
+/**
+ * The floor going under him just before (bubbling, cracking, a glow coming up through it), then the column of sewage
+ * that fires him up and out: thick, churning, a hot bright core, streaks racing up it, junk in it, a crown of spray where
+ * it bursts out of the floor, and droplets flying off its sides.
+ */
+export const drawBlast = (ctx: Ctx, state: GameState, rt: TommyRuntime) => {
+  const es = rt.escape;
+  const x = COURSE.sewer.cistern.rack, floor = GROUND_Y;
+  const f = state.frame;
+  if (es.phase === 'suit' && es.t > 50) {
+    // The tell: something coming up under him
+    const k = clamp01((es.t - 50) / 50);
+    const g = ctx.createRadialGradient(x, floor, 4, x, floor, 30 + k * 60);
+    g.addColorStop(0, `rgba(217, 249, 157, ${0.8 * k})`); g.addColorStop(1, 'rgba(101, 163, 13, 0)');
+    ctx.fillStyle = g; ctx.fillRect(x - 100, floor - 90, 200, 110);
+    ctx.strokeStyle = `rgba(190, 242, 100, ${0.5 + k * 0.5})`; ctx.lineWidth = 2;
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI - Math.PI, len = 10 + k * 40 * (0.6 + hash(i) * 0.6);
+      ctx.beginPath(); ctx.moveTo(x, floor + 2); ctx.lineTo(x + Math.cos(a) * len * 0.5, floor + 2 - 3); ctx.lineTo(x + Math.cos(a) * len, floor + 2); ctx.stroke();
+    }
+    for (let i = 0; i < 6; i++) {
+      const q = ((f * (1 + k) + i * 13) % 30) / 30;
+      ctx.fillStyle = `rgba(190, 242, 100, ${0.9 * (1 - q)})`;
+      ctx.beginPath(); ctx.arc(x - 30 + hash(i + 3) * 60, floor - q * 22 * k, 2 + q * 4, 0, Math.PI * 2); ctx.fill();
+    }
+    return;
+  }
+  if (es.phase !== 'blast') return;
+  const t = es.t;
+  const top = state.camera.y - 40;
+  const w = Math.min(1, t / 5) * 64 + Math.sin(f * 0.9) * 4;
+  // A glow round it
+  const glow = ctx.createLinearGradient(x - w * 2.2, 0, x + w * 2.2, 0);
+  glow.addColorStop(0, 'rgba(163, 230, 53, 0)'); glow.addColorStop(0.5, 'rgba(163, 230, 53, 0.35)'); glow.addColorStop(1, 'rgba(163, 230, 53, 0)');
+  ctx.fillStyle = glow; ctx.fillRect(x - w * 2.2, top, w * 4.4, floor - top);
+  // The column: wobbling edges, dark outside, bright inside
+  const column = (half: number, color: string, phase: number) => {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    for (let y = floor; y >= top; y -= 16) ctx.lineTo(x - half - Math.sin(y * 0.05 + f * 0.8 + phase) * half * 0.18, y);
+    for (let y = top; y <= floor; y += 16) ctx.lineTo(x + half + Math.sin(y * 0.045 - f * 0.7 + phase) * half * 0.18, y);
+    ctx.closePath(); ctx.fill();
+  };
+  column(w, '#3F6212', 0);
+  column(w * 0.72, '#65A30D', 1.3);
+  column(w * 0.4, '#BEF264', 2.1);
+  column(w * 0.16, '#F7FEE7', 3);
+  // Streaks racing up it
+  ctx.strokeStyle = 'rgba(247, 254, 231, 0.7)'; ctx.lineWidth = 3;
+  for (let i = 0; i < 8; i++) {
+    const sx = x + (hash(i) - 0.5) * w * 1.3, sy = floor - ((f * 34 + i * 97) % (floor - top + 200));
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx, sy - 40 - hash(i + 9) * 50); ctx.stroke();
+  }
+  // Junk going up in it: bones, a can, a tire
+  for (let i = 0; i < 5; i++) {
+    const jy = floor - ((f * 26 + i * 173) % (floor - top + 100)), jx = x + (hash(i + 20) - 0.5) * w;
+    ctx.save(); ctx.translate(jx, jy); ctx.rotate(f * 0.3 + i);
+    ctx.fillStyle = i % 3 === 0 ? '#E7E5D6' : i % 3 === 1 ? '#78716C' : '#1C1917';
+    if (i % 3 === 2) { ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI * 2); ctx.fill(); } else ctx.fillRect(-8, -3, 16, 6);
+    ctx.restore();
+  }
+  // Where it bursts out of the floor: a crown of spray
+  for (let i = 0; i < 14; i++) {
+    const a = -Math.PI / 2 + (i / 13 - 0.5) * 2.6, q = ((f * 2 + i * 7) % 24) / 24;
+    const r = w * 0.8 + q * 90;
+    ctx.fillStyle = `rgba(${i % 2 ? '190, 242, 100' : '101, 163, 13'}, ${0.9 * (1 - q)})`;
+    ctx.beginPath(); ctx.arc(x + Math.cos(a) * r, floor + Math.sin(a) * r * 0.6, 5 + (1 - q) * 6, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.fillStyle = '#65A30D'; ctx.beginPath(); ctx.ellipse(x, floor, w * 1.6, 14, 0, Math.PI, 0); ctx.fill();
+  // Droplets flung off its sides all the way up
+  for (let i = 0; i < 16; i++) {
+    const dy = floor - hash(i + 40) * (floor - top), side = i % 2 ? 1 : -1, q = ((f * 3 + i * 11) % 30) / 30;
+    ctx.fillStyle = `rgba(190, 242, 100, ${0.85 * (1 - q)})`;
+    ctx.beginPath(); ctx.arc(x + side * (w + q * 60), dy - q * 30, 3 + (1 - q) * 3, 0, Math.PI * 2); ctx.fill();
+  }
+};

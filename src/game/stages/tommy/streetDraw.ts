@@ -450,3 +450,45 @@ export const drawTumble = (ctx: Ctx, state: GameState, rt: TommyRuntime, drawBod
   drawBody(f.x, f.y, f.rot);
   ctx.restore();
 };
+
+/**
+ * Over every car up ahead (the wrecks in the road, the lowriders out in front): a big green RAMP sign with an arrow
+ * bouncing on it, like the ramps' own sign: boost into one, or come down on one off a ramp, and it sends him up again.
+ * It jumps about harder while he's up in the air off a ramp (somewhere to land).
+ */
+export const drawCarRampSigns = (ctx: Ctx, state: GameState, b: BikeRun) => {
+  const p = state.player;
+  if (!p.bike) return;
+  const px = p.pos.x + p.width;
+  const spots: { x: number; y: number }[] = [];
+  COURSE.junk.forEach((j, i) => {
+    if (j.look !== 'car' || b.done.has(i) || j.x < px - 20 || j.x > state.camera.x + CANVAS_WIDTH + 60) return;
+    spots.push({ x: j.x, y: junkBox(state, j).y });
+  });
+  for (const e of state.enemies) {
+    if (e.kind !== 'lowrider' || e.health <= 0 || e.aiState === 'lost' || e.aiState === 'overtake' || e.pos.x + e.width < px - 20) continue;
+    spots.push({ x: e.pos.x + e.width / 2, y: e.pos.y });
+  }
+  const eager = b.rampAir && !p.isGrounded;
+  for (const s of spots) {
+    const bob = Math.abs(Math.sin(state.frame * (eager ? 0.3 : 0.15) + s.x * 0.01)) * (eager ? 14 : 7);
+    const y = s.y - 46 - bob, scale = eager ? 1.15 : 1;
+    ctx.save();
+    ctx.translate(s.x, y); ctx.scale(scale, scale);
+    // The sign
+    ctx.fillStyle = '#000'; ctx.fillRect(-35, -17, 70, 26);
+    ctx.fillStyle = '#16A34A'; ctx.fillRect(-33, -15, 66, 22);
+    ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 2; ctx.strokeRect(-30, -12, 60, 16);
+    ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 11px "Press Start 2P", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('RAMP', 0, -3);
+    // The arrow, up off it
+    ctx.fillStyle = '#4ADE80'; ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, -38); ctx.lineTo(13, -22); ctx.lineTo(5, -22); ctx.lineTo(5, -18); ctx.lineTo(-5, -18); ctx.lineTo(-5, -22); ctx.lineTo(-13, -22); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    // A little arrow down at the car under it
+    ctx.fillStyle = '#FDE047';
+    ctx.beginPath(); ctx.moveTo(-6, 11); ctx.lineTo(6, 11); ctx.lineTo(0, 19); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  ctx.textBaseline = 'alphabetic';
+};

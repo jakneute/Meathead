@@ -580,6 +580,8 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   if (onScreen && knifeFirst(ctx, e)) return true;
   // (boosting the bike into the back of a lowrider: no ram, no hurt, the stage launches him up over it)
   if (e.kind === 'lowrider' && player.bike && player.isCharging) return true;
+  // (and one he's left behind off a ramp, dropping back under him: out of it)
+  if (e.kind === 'lowrider' && e.aiState === 'lost') return true;
   const stageDef = getBossDef(stageId);
   const bossDef = e.type === 'boss' ? stageDef : undefined;
   const hasShield = !!(player.filthShieldTimer && player.filthShieldTimer > 0);

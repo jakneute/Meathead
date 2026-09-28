@@ -9,9 +9,9 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, ARENA_LEFT } from '../../../cons
 import { drawPlayer } from '../../render/player/player';
 import { COURSE, placeOf } from './course';
 import { getTommy, fadeAmount, TommyRuntime } from './runtime';
-import { drawStreetSky, drawStreetGround, drawStreetFronts, drawJunk, drawCorner, drawRoadEnd, drawRiddenBike, drawTumble } from './streetDraw';
+import { drawStreetSky, drawStreetGround, drawStreetFronts, drawJunk, drawCorner, drawRoadEnd, drawRiddenBike, drawTumble, drawCarRampSigns } from './streetDraw';
 import { drawSewerBack, drawSewerGround, drawDrips, drawMuckFront, drawChunks } from './sewerDraw';
-import { drawCutScene, drawRuinsGround, drawRuinsHouse, drawSuitMelt } from './escapeDraw';
+import { drawCutScene, drawRuinsGround, drawRuinsHouse, drawSuitMelt, drawBlast } from './escapeDraw';
 import { drawThingBar, drawThing } from './thingDraw';
 import { thingSpot, THING_SURFACE } from './thing';
 import { inCutScene, dropFade } from './escape';
@@ -47,9 +47,11 @@ export const drawTommyMid = (ctx: Ctx, state: GameState) => {
     drawCorner(ctx, state, rt);
     drawRoadEnd(ctx, state, rt);
     drawRiddenBike(ctx, state);
+    drawCarRampSigns(ctx, state, rt.bike);
   } else if (place !== 'ruins') {
     drawDrips(ctx, state, rt);
     drawChunks(ctx, rt);
+    drawBlast(ctx, state, rt);
     if (rt.thing.e && rt.thing.phase !== 'dormant') drawThing(ctx, rt.thing.e, rt.thing, state);
   }
 };

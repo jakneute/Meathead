@@ -164,17 +164,19 @@ interface WeaponIconProps {
   slot?: number;
   /** 0..1 of a full load, or null for unlimited. */
   ammo?: number | null;
+  /** Not usable right now (a ride that only allows the one weapon): greyed out, chained up. */
+  locked?: boolean;
   onClick?: () => void;
 }
 
 /** An arsenal card: the weapon's art on a steel plate, with its hotkey, ammo gauge and equipped/selected states. */
-const WeaponIcon: React.FC<WeaponIconProps> = ({ type, isEquipped, isSelected, slot, ammo, onClick }) => {
+const WeaponIcon: React.FC<WeaponIconProps> = ({ type, isEquipped, isSelected, slot, ammo, locked, onClick }) => {
   const empty = ammo !== null && ammo !== undefined && ammo <= 0;
   return (
     <div
       onClick={onClick}
       title={type.replace(/_/g, ' ')}
-      className={`relative w-[72px] h-[72px] flex items-center justify-center cursor-pointer pointer-events-auto transition-all duration-150
+      className={`relative w-[72px] h-[72px] flex items-center justify-center ${locked ? 'cursor-not-allowed' : 'cursor-pointer'} pointer-events-auto transition-all duration-150
         ${isSelected ? 'scale-110 z-10' : 'hover:scale-105'}`}
       style={{
         background: isEquipped
@@ -190,7 +192,18 @@ const WeaponIcon: React.FC<WeaponIconProps> = ({ type, isEquipped, isSelected, s
       {[[3, 3], [63, 3], [3, 63], [63, 63]].map(([x, y]) => (
         <span key={`${x}-${y}`} className="absolute w-[3px] h-[3px] rounded-full" style={{ left: x, top: y, background: '#A1A1AA', boxShadow: '0 1px 0 #000' }} />
       ))}
-      <div className={empty ? 'opacity-35 grayscale' : ''}><WeaponArt type={type} size={46} /></div>
+      <div className={empty || locked ? 'opacity-35 grayscale' : ''}><WeaponArt type={type} size={46} /></div>
+      {locked && (
+        <>
+          {/* Chained up, a padlock on it */}
+          <div className="absolute inset-[6px]" style={{ background: 'repeating-linear-gradient(45deg, transparent 0 9px, rgba(161,161,170,0.55) 9px 12px), repeating-linear-gradient(-45deg, transparent 0 9px, rgba(161,161,170,0.55) 9px 12px)' }} />
+          <svg className="absolute" width="26" height="30" viewBox="0 0 26 30" style={{ filter: 'drop-shadow(1px 2px 0 #000)' }}>
+            <path d="M7 13 V9 a6 6 0 0 1 12 0 V13" fill="none" stroke="#D4D4D8" strokeWidth="3.5" />
+            <rect x="3" y="13" width="20" height="15" rx="2" fill="#FACC15" stroke="#000" strokeWidth="1.5" />
+            <rect x="11.5" y="17" width="3" height="6" fill="#000" />
+          </svg>
+        </>
+      )}
       {slot !== undefined && (
         <span className="absolute -top-[2px] -left-[2px] px-[3px] text-[7px] leading-[11px] font-black text-black" style={{ background: isSelected ? '#FACC15' : '#D4D4D8' }}>{slot}</span>
       )}
