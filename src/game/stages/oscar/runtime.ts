@@ -15,7 +15,7 @@ import { Talk, createTalk, updateTalk, hush } from './script';
 import { Field, createField, updateField, inCrude } from './field';
 import { Bunker, createBunker, updateBunker } from './bunker';
 import { Chase, createChase, updateChase, startChase, chaseDeathMessage } from './chase';
-import { Ending, createEnding, updateEnding, startEnding } from './ending';
+import { Ending, createEnding, updateEnding, startEnding, fenceEnd } from './ending';
 import { mountMoto } from './moto';
 
 export interface OscarRuntime {
@@ -67,6 +67,7 @@ export const createOscarRuntime = (state: GameState, skipToBoss: boolean): Oscar
   };
   applyPlaceCamera(state, placeOf(start.x));
   if (startedAt === CP.CHASE) startChase(state, rt.chase);
+  if (startedAt >= CP.END) fenceEnd(state);
   return rt;
 };
 

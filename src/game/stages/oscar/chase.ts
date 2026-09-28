@@ -85,8 +85,6 @@ export interface Chase {
   gaps: RoadGap[];
   /** Which of the jumps (by how many he'd wrecked) have come up. */
   gapsDone: number;
-  /** Something to keep him going, every so often, out on the road ahead. */
-  healthTimer: number;
 }
 
 /** Where the road's out: a trench across it to jump (it comes up at so many wrecks, called out well before it's there). */
@@ -101,14 +99,14 @@ const BIG_HIT = 130;
 /** What comes after him, in turn (round and round). */
 const ORDER: EnemyKind[] = ['chopper', 'pickup', 'chopper', 'cruiser', 'pickup', 'chopper', 'cruiser', 'chopper', 'pickup', 'cruiser'];
 /** How many can be on him at once (more and more as it goes on: far more than a handgun could ever deal with). */
-const MAX_ON = (kills: number) => Math.min(8, 3 + Math.floor(kills / 6));
+const MAX_ON = (kills: number) => Math.min(10, 4 + Math.floor(kills / 5));
 /** How far the view pulls back by the end (it's all of them coming at him). */
 const ZOOM_MIN = 0.72;
 const SPIN_FRAMES = 46;
 /** The jumps: at how many wrecked each one comes up, how wide it is, how far ahead of him it's cut (it's called out from then on). */
 export const GAP_AT = [7, 16, 25, 33], GAP_W = 170, GAP_AHEAD = 1900;
-/** How often something to keep him going turns up on the road. */
-const HEALTH_EVERY = 520;
+/** What anything they do takes off him: only a chip each time, but there's nothing to get it back with till it's over. */
+const CHIP = 4;
 /** How far ahead of the view a slick's put down (it's called out from then on). */
 export const SLICK_AHEAD = 700;
 /** The distance: how much slower than the road it goes by, how far apart the things out there stand, how many before it repeats. */
@@ -123,7 +121,7 @@ export const createChase = (startedAt: number): Chase => ({
   phase: startedAt > CP.CHASE ? 'done' : 'waiting', t: 0, kills: 0, wrecks: [], farWrecks: [], far: FAR_LOOKS.map(look => ({ look, state: 'standing' as const, t: 0 })), odo: 0, farBase: 400, thrown: [],
   derricks: Array.from({ length: DERRICKS_PER_LAP }, () => ({ state: 'standing' as const, t: 0 })),
   slicks: [], slickTimer: 360, spin: 0, spawnTimer: 60, spawned: 0, camX: NaN, hint: '', hintT: 0, hinted: new Set(), laps: 0, zoom: 1,
-  gaps: [], gapsDone: 0, healthTimer: 480,
+  gaps: [], gapsDone: 0,
 });
 
 /** The view, pulled back: about where he rides (so he stays put on the screen and it opens out round him). Null at no zoom. */
@@ -140,6 +138,8 @@ export const chaseView = (state: GameState, ch: Chase) => {
 /** Onto the road on the bike (straight in from the break room, or back at the start of it after dying). */
 export const startChase = (state: GameState, ch: Chase) => {
   ch.phase = 'riding'; ch.t = 0;
+  // (topped right up at the start of it: that's all he's getting)
+  state.player.health = state.player.maxHealth;
   mountMoto(state);
   state.checkpoint = Math.max(state.checkpoint, CP.CHASE);
 };
@@ -178,7 +178,6 @@ export const updateChase = (ctx: FrameContext, ch: Chase, talk: Talk, controls: 
     spawn(state, ch);
     slicks(ctx, ch);
     jumps(ctx, ch);
-    health(state, ch);
     teach(state, ch);
   }
   // Anything left far behind is gone (it gave up)
@@ -212,7 +211,8 @@ const loop = (state: GameState, ch: Chase) => {
   state.camera.x += d;
   if (state.cameraOverride) state.cameraOverride.x += d;
   ch.camX += d;
-  for (const e of state.enemies) { e.pos.x += d; if (e.homeX !== undefined && !isChaseVehicle(e.kind)) e.homeX += d; }
+  // (not Oscar, sat waiting in his room: he stays put)
+  for (const e of state.enemies) { if (e.type === 'boss') continue; e.pos.x += d; if (e.homeX !== undefined && !isChaseVehicle(e.kind)) e.homeX += d; }
   for (const q of state.projectiles) q.pos.x += d;
   for (const q of state.pickups) q.pos.x += d;
   for (const q of state.particles) q.pos.x += d;
@@ -251,7 +251,6 @@ const jumps = (ctx: FrameContext, ch: Chase) => {
     // Over it and down on the other side: the road's put back, and something to keep him going
     if (!g.passed && p.pos.x > g.x2 + 40 && p.isGrounded) {
       g.passed = true;
-      state.pickups.push({ id: `jump-health-${state.frame}`, pos: { x: p.pos.x + 260, y: groundLineAt(state.groundRuns, p.pos.x + 260) - 60 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 900 });
       fx.spawnDamageNumber({ x: p.pos.x - 30, y: p.pos.y - 70 }, 'CLEARED IT!', true, '#4ADE80');
     }
   }
@@ -303,23 +302,13 @@ export const slickAhead = (state: GameState, ch: Chase) => {
   return { dist: s.x - s.w / 2 - (state.player.pos.x + state.player.width), onScreen: s.x - s.w / 2 < v.x2 - 40 };
 };
 
-/** Something to keep him going: a health pickup every so often, out on the road ahead. */
-const health = (state: GameState, ch: Chase) => {
-  if (--ch.healthTimer > 0) return;
-  ch.healthTimer = HEALTH_EVERY;
-  const v = chaseView(state, ch);
-  const x = v.x2 + 120;
-  const g = groundLineAt(state.groundRuns, x);
-  if (g === Infinity) return;
-  state.pickups.push({ id: `road-health-${state.frame}`, pos: { x, y: g - 60 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'small_health', life: 1200 });
-};
 
 // ---------------------------------------------------------------------------
 
 const spawn = (state: GameState, ch: Chase) => {
   const on = state.enemies.filter(e => isChaseVehicle(e.kind) && e.health > 0).length;
   if (--ch.spawnTimer > 0 || on >= MAX_ON(ch.kills)) return;
-  ch.spawnTimer = Math.max(50, 110 - ch.kills * 1.5) + Math.floor(Math.random() * 40);
+  ch.spawnTimer = Math.max(40, 95 - ch.kills * 1.5) + Math.floor(Math.random() * 35);
   const kind = ORDER[ch.spawned++ % ORDER.length];
   const behind = Math.random() < 0.55;
   const v = chaseView(state, ch);
@@ -376,7 +365,7 @@ export const updateChaseVehicle = (ctx: FrameContext, e: Enemy, ch: Chase | null
     if (e.kind === 'cruiser') cruiserShoot(state, e);
     if (e.kind === 'chopper' && e.aiState === 'swing') {
       if (e.aiTimer === 14 && Math.abs(mid(e).x - pm.x) < 80 && Math.abs(mid(e).y - pm.y) < 70 && p.invincibilityTimer <= 0 && !p.inCutscene) {
-        hurtPlayer(ctx, 11, 'chopper', { x: -3, y: -6 });
+        hurtPlayer(ctx, CHIP, 'chopper', { x: -3, y: -6 });
       }
       if (e.aiTimer > 26) { e.aiState = 'back'; e.aiTimer = 0; }
     }
@@ -426,8 +415,6 @@ const finish = (ctx: FrameContext, e: Enemy, ch: Chase | null) => {
     fx.spawnDeathShower(e.pos, 1, 1);
     return;
   }
-  // (sometimes something to keep him going, flung out of it)
-  if (Math.random() < 0.35) fx.spawnPickup({ x: mid(e).x + 120, y: e.pos.y - 20 });
   for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: mid(e).x, y: mid(e).y }, vel: { x: e.vel.x * 0.6 + (Math.random() - 0.5) * 8, y: -2 - Math.random() * 6 }, life: 24 + Math.random() * 16, color: ['#FFFFFF', '#FDE047', '#F97316', '#DC2626', '#292524'][i % 5], size: 6 + Math.random() * 12 });
   // A car or a truck: on fire, the driver slumped on the horn, off it goes the way it was headed and out of sight
   const dir: 1 | -1 = mid(e).x >= mid(state.player).x ? 1 : -1;
@@ -507,7 +494,7 @@ const updateThrown = (ch: Chase) => {
 // ---------------------------------------------------------------------------
 
 /** How long between throws from a truck, and the wind-up. */
-const THROW_EVERY = 115, THROW_WINDUP = 22;
+const THROW_EVERY = 95, THROW_WINDUP = 22;
 
 const truckThrow = (state: GameState, e: Enemy) => {
   const p = state.player;
@@ -519,7 +506,7 @@ const truckThrow = (state: GameState, e: Enemy) => {
       const t = 36;
       const tx = p.pos.x + p.width / 2 + p.vel.x * t, ty = p.pos.y + p.height / 2;
       const vx = (tx - x) / t, vy = (ty - y - 0.5 * 0.35 * t * t) / t;
-      state.projectiles.push({ id: `lp-${state.frame}-${Math.random()}`, pos: { x: x - 9, y: y - 8 }, vel: { x: vx, y: vy }, width: 18, height: 16, health: 1, maxHealth: 1, type: 'projectile', damage: 7, owner: 'enemy', shooterKind: 'pickup', thrown: 'lunchpail', item: Math.floor(Math.random() * 5), rotation: 0 });
+      state.projectiles.push({ id: `lp-${state.frame}-${Math.random()}`, pos: { x: x - 9, y: y - 8 }, vel: { x: vx, y: vy }, width: 18, height: 16, health: 1, maxHealth: 1, type: 'projectile', damage: CHIP, owner: 'enemy', shooterKind: 'pickup', thrown: 'lunchpail', item: Math.floor(Math.random() * 5), rotation: 0 });
     }
     return;
   }
@@ -527,7 +514,7 @@ const truckThrow = (state: GameState, e: Enemy) => {
 };
 
 /** How long a cruiser rests between shots, and how fast they go. */
-const SHOOT_EVERY = 110, SHOT_SPEED = 9;
+const SHOOT_EVERY = 90, SHOT_SPEED = 9;
 
 const cruiserShoot = (state: GameState, e: Enemy) => {
   const p = state.player;
@@ -536,7 +523,7 @@ const cruiserShoot = (state: GameState, e: Enemy) => {
   if (e.shootTimer === SHOOT_EVERY || e.shootTimer === SHOOT_EVERY + 12) {
     const dir = dx < 0 ? -1 : 1;
     const x = mid(e).x + dir * 36, y = e.pos.y + 10;
-    state.projectiles.push({ id: `cr-${state.frame}-${Math.random()}`, pos: { x: x - 5, y: y - 5 }, vel: { x: dir * SHOT_SPEED, y: 0 }, width: 10, height: 10, health: 1, maxHealth: 1, type: 'projectile', damage: 6, owner: 'enemy', shooterKind: 'cruiser', shot: 'slug' });
+    state.projectiles.push({ id: `cr-${state.frame}-${Math.random()}`, pos: { x: x - 5, y: y - 5 }, vel: { x: dir * SHOT_SPEED, y: 0 }, width: 10, height: 10, health: 1, maxHealth: 1, type: 'projectile', damage: CHIP, owner: 'enemy', shooterKind: 'cruiser', shot: 'slug' });
     for (let i = 0; i < 6; i++) state.particles.push({ pos: { x, y }, vel: { x: dir * (1 + Math.random() * 3), y: (Math.random() - 0.5) * 2 }, life: 8, color: i % 2 ? '#FEF08A' : '#FB923C', size: 3 + Math.random() * 3 });
   }
   if (e.shootTimer > SHOOT_EVERY + 24) e.shootTimer = 0;

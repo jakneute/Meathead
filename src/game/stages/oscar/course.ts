@@ -60,7 +60,7 @@ const FIELD_X0 = -70000;
 const CHASE_X0 = -40000;
 /** One lap of the chase's road (it's the same all the way round), and how many are laid down end to end. */
 export const LAP = 6400, LAPS = 3;
-const END_X0 = BOSS_DOOR_X - 2600;
+const END_X0 = BOSS_DOOR_X - 1800;
 
 /** How the chase's road rises and falls across a lap: a height every 320 px (up and down all the way: everything's always above or below him). */
 const LAP_HEIGHTS = [0, -40, -90, -120, -90, -30, 20, 60, 90, 60, 10, -50, -110, -140, -100, -40, 10, 40, 30, 0];
@@ -155,9 +155,9 @@ const build = () => {
 
   // ============ OUT BACK OF THE FIELD OFFICE ============
   const e = part(END_X0);
-  e.ground(-800, 2600);
+  e.ground(-800, 1800);
   // The refill before the door
-  e.pickup(2380, Y - 30, 'large_health'); e.pickup(2450, Y - 30, 'large_ammo');
+  e.pickup(1580, Y - 30, 'large_health'); e.pickup(1650, Y - 30, 'large_ammo');
   return { f, c, e };
 };
 
@@ -182,7 +182,7 @@ const buildCourse = (): Course => {
     end: { x1: END_X0 - 800, x2: BOSS_DOOR_X, smokers: END_X0 + 1060, wall: END_X0 + 1110 },
     checkpoints: [
       { x: FIELD_X0 + 150, y: Y }, { x: FIELD_X0 + 2780, y: Y }, { x: FIELD_X0 + 4640, y: Y }, { x: FIELD_X0 + 7450, y: Y },
-      { x: CHASE_X0 + 300, y: Y }, { x: END_X0 + 1500, y: Y },
+      { x: CHASE_X0 + 300, y: Y }, { x: END_X0 + 1300, y: Y },
     ],
     left: FIELD_X0 - 2000,
     startX: FIELD_X0,

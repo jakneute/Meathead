@@ -46,6 +46,13 @@ export const createEnding = (startedAt: number): Ending => ({
 /** Where the camera sits for it: the two of them and their wall on the right, the road in from the left. */
 export const endCamX = () => COURSE.end.smokers + 420 - CANVAS_WIDTH;
 
+/** Once it's over: no going back down the road (a wall at the left of where the camera sat for it, and the camera no further). */
+export const fenceEnd = (state: GameState) => {
+  const x = endCamX();
+  state.cameraMinX = x;
+  if (!state.blocks.some(b => b.tag === 'end-left')) state.blocks.push({ x: x - 60, y: GROUND_Y - 3000, w: 60, h: 3000, type: 'wall', hidden: true, tag: 'end-left' });
+};
+
 /** Straight in from the chase: him waiting just off the screen, on the bike, while they talk. */
 export const startEnding = (state: GameState, en: Ending, talk: Talk) => {
   const p = state.player;
@@ -123,6 +130,7 @@ export const updateEnding = (ctx: FrameContext, en: Ending, talk: Talk, controls
         en.phase = 'done'; en.t = 0;
         p.inCutscene = false;
         state.cameraOverride = null;
+        fenceEnd(state);
         state.checkpoint = Math.max(state.checkpoint, CP.END);
       }
       break;
