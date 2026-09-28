@@ -12,7 +12,7 @@
 import type { Block } from '../../../types';
 import type { FrameContext } from '../../context';
 import type { GameState } from '../../state';
-import { rectsOverlap, boundsOf } from '../../utils';
+import { rectsOverlap, boundsOf, isOnScreen } from '../../utils';
 import { hurtPlayer } from '../../bosses/shared';
 import { floorTopAt, groundLineAt } from '../../terrain';
 import { GRAVITY } from '../../../constants';
@@ -81,7 +81,7 @@ const updateIcicles = (ctx: FrameContext, hz: Hazards) => {
       }
       // It spears enemies too
       for (const e of state.enemies) {
-        if (e.type === 'boss' || e.health <= 0 || e.isBlownAway || !rectsOverlap(box, boundsOf(e))) continue;
+        if (e.type === 'boss' || e.health <= 0 || e.isBlownAway || !isOnScreen(state.camera, e) || !rectsOverlap(box, boundsOf(e))) continue;
         e.health -= 60;
         fx.spawnDamageNumber(e.pos, 60, true);
         if (e.health <= 0) { fx.blowAwayEnemy(e, { x: 0, y: -8 }, 'charge_kill'); fx.spawnKillCallout(e, 'shatter'); }
@@ -213,7 +213,7 @@ const updateSnowballs = (ctx: FrameContext, hz: Hazards) => {
     }
     // Bowls over enemies in its path (and keeps rolling if it's a big one)
     for (const e of state.enemies) {
-      if (e.type === 'boss' || e.health <= 0 || e.isBlownAway || e.kind === 'eagle' || !rectsOverlap(box, boundsOf(e))) continue;
+      if (e.type === 'boss' || e.health <= 0 || e.isBlownAway || e.kind === 'eagle' || !isOnScreen(state.camera, e) || !rectsOverlap(box, boundsOf(e))) continue;
       e.health -= s.big ? 60 : 30;
       fx.spawnDamageNumber(e.pos, s.big ? 60 : 30);
       if (e.health <= 0) { fx.blowAwayEnemy(e, { x: s.vx * 1.5, y: -9 }, 'charge_kill'); fx.spawnKillCallout(e, 'crush'); }

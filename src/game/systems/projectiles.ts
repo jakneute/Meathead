@@ -18,7 +18,7 @@ import { ICE_BLOCK_ACCEL, ICE_BLOCK_GRACE, ICE_BLOCK_LIFE, ICE_BLOCK_MAX_SPEED }
 import { pushEnemy } from './knockback';
 import { stickNeedle, ENEMY_NEEDLE } from '../needles';
 import { updateOscarRocket, updateCigarette } from '../bosses/oscar';
-import { pickRandom, rectsOverlap, boundsOf } from '../utils';
+import { pickRandom, rectsOverlap, boundsOf, isOnScreen } from '../utils';
 import { getAttackHitbox } from './player';
 import { shakeScreen, GameState } from '../state';
 import { getStageLayout } from '../stages';
@@ -410,6 +410,8 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
 
   for (const enemy of state.enemies) {
     if (enemy.health <= 0 || enemy.isBlownAway || !rectsOverlap(boundsOf(p), boundsOf(enemy))) continue;
+    // (a stray shot that's flown off screen doesn't kill what it finds out there)
+    if (!isOnScreen(state.camera, enemy)) continue;
     if (p.isSludge && p.isLingering) continue;
 
     // Bosses are untouchable until the arena locks (boulders bounce off)

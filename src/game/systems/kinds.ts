@@ -71,7 +71,7 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     case 'surfer': case 'riotcop': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
     case 'pelican': case 'shark': return { ...base, enemyType: 'flyer', initialY: pos.y };
     // Beachgoers: not out to hurt anyone
-    case 'civilian': return { ...base, harmless: true };
+    case 'civilian': return { ...base, harmless: true, innocent: true };
     default: return base;
   }
 };

@@ -23,7 +23,7 @@ import { shakeScreen } from '../../state';
 import { hurtPlayer } from '../../bosses/shared';
 import { playSound } from '../../audio';
 import { floorTopAt } from '../../terrain';
-import { rectsOverlap, boundsOf } from '../../utils';
+import { rectsOverlap, boundsOf, isOnScreen } from '../../utils';
 import { killPlayer } from '../../systems/player';
 import { COURSE } from './course';
 
@@ -146,7 +146,7 @@ const updateLightning = (ctx: FrameContext, hz: Hazards) => {
       const col = { x: s.x - STRIKE_HALF_WIDTH, y: s.ground - 900, w: STRIKE_HALF_WIDTH * 2, h: 900 };
       if (rectsOverlap(col, boundsOf(player))) hurt(ctx, hz, STRIKE_DAMAGE, 'lightning', { x: (player.pos.x + player.width / 2 < s.x ? -1 : 1) * 6, y: -8 });
       for (const e of state.enemies) {
-        if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || e.kind === 'eye' || !rectsOverlap(col, boundsOf(e))) continue;
+        if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || e.kind === 'eye' || e.innocent || !isOnScreen(state.camera, e) || !rectsOverlap(col, boundsOf(e))) continue;
         e.health -= STRIKE_ENEMY_DAMAGE;
         fx.spawnDamageNumber(e.pos, STRIKE_ENEMY_DAMAGE, true);
         if (e.health <= 0) fx.killWithAnimation(e, 'fried', 'taser_kill', 'fried');
@@ -190,7 +190,7 @@ const updateDebris = (ctx: FrameContext, hz: Hazards) => {
     }
     // It bowls over whoever's in its way
     for (const e of state.enemies) {
-      if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || e.kind === 'eye' || !rectsOverlap(box, boundsOf(e))) continue;
+      if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || e.kind === 'eye' || e.innocent || !isOnScreen(state.camera, e) || !rectsOverlap(box, boundsOf(e))) continue;
       e.health -= 45; fx.spawnDamageNumber(e.pos, 45);
       if (e.health <= 0) { fx.blowAwayEnemy(e, { x: -12, y: -8 }, 'charge_kill'); fx.spawnKillCallout(e, 'crush'); }
       else { e.vel.x = -8; e.pauseTimer = 25; }
@@ -218,7 +218,7 @@ const updateShocks = (ctx: FrameContext, hz: Hazards) => {
     const cx = player.pos.x + player.width / 2;
     if (player.isGrounded && cx > z.x1 && cx < z.x2 && Math.abs(feet - z.y) < 4) hurt(ctx, hz, SHOCK_DAMAGE, 'shock', { x: 0, y: -9 });
     for (const e of state.enemies) {
-      if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || e.kind === 'eye' || e.enemyType === 'flyer') continue;
+      if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || e.kind === 'eye' || e.innocent || e.enemyType === 'flyer' || !isOnScreen(state.camera, e)) continue;
       const ex = e.pos.x + e.width / 2;
       if (ex < z.x1 || ex > z.x2 || Math.abs(e.pos.y + e.height - z.y) > 4) continue;
       e.health -= 2;

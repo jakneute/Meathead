@@ -92,6 +92,8 @@ const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
   // Tommy's open-topped arena: the camera follows jumps up, so there's no top edge there
   const openAbove = !!getBossDef(stageId)?.arena?.openTop && e.pos.x + e.width > BOSS_DOOR_X;
   const hilly = !!getStageLayout(stageId)?.verticalCamera;
+  // A bystander only goes out of bounds if he knocked it there
+  if (e.innocent && !((e.pauseTimer || 0) > 0)) return false;
   // (On a hilly stage things sit above and below the view all the time, hopping, leaping and flying about:
   // only ones launched by a hit count going up, and only ones with nothing under them going down)
   const launched = (e.pauseTimer || 0) > 0 && e.vel.y < -2;
@@ -723,6 +725,8 @@ const slamIntoFloor = (ctx: FrameContext, e: Enemy, speed: number) => {
   const { fx, state } = ctx;
   const damage = toGml(speed) * DAMAGE_FALL_SCALER * (isFrozen(e) ? FROZEN_GROUND_IMPACT_MULTIPLIER : 1);
   if (speed <= 0 || damage <= IMPACT_DAMAGE_THRESHOLD) return;
+  // (a bystander coming down from its own hop is fine; only one he sent flying gets hurt landing)
+  if (e.innocent && !((e.pauseTimer || 0) > 0)) return;
   e.health -= damage;
   fx.spawnDamageNumber(e.pos, damage, isFrozen(e));
   if (toGml(speed) > 6) shakeScreen(state, 8, Math.min(10, toGml(speed)) * GML_SCALE * 0.5);

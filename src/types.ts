@@ -192,6 +192,8 @@ export interface Enemy extends Entity {
   pauseTimer?: number;
   /** A practice dummy: bumping into it doesn't hurt. */
   harmless?: boolean;
+  /** A bystander: only Meathead can hurt it (his shots and moves, or something he knocked into it); nothing else does. */
+  innocent?: boolean;
   /** A mid-boss already took a hit from this tsunami wave (it's washed over once, not every frame). */
   tsunamiWave?: number;
   /** Which look a themed enemy has (a beachgoer's outfit and pastime, a gator in the water or on land). */
