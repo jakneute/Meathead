@@ -65,6 +65,13 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   burning: { w: 34, h: 62, hp: 1, contact: 0 },
 };
 
+/**
+ * The small ground critters, too low to shoot even ducking: a slide tackle's what takes them out, in one go
+ * (and a slide's only a little damage to anything else).
+ */
+export const isSmallCritter = (kind?: EnemyKind) =>
+  kind === 'wolverine' || kind === 'salamander' || kind === 'raccoon' || kind === 'crab' || kind === 'iguana' || kind === 'magmafish';
+
 /** The ones that run you down like the rusher. */
 export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind === 'bouncer' || kind === 'smokejumper' || kind === 'courier';
 

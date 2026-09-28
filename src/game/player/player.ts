@@ -197,6 +197,7 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
     player.isUppercutting = false;
     player.isDivekicking = false;
     player.chargeFace = player.facing;
+    player.moveId = (player.moveId || 0) + 1;
   }
 
   // Uppercut (springs straight out of a crouch once down is let go, or overridden by the E hotkey)
@@ -209,6 +210,7 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
     player.isDivekicking = false;
     player.uppercutTimer = UPPERCUT_DURATION;
     player.uppercutHitIds = [];
+    player.moveId = (player.moveId || 0) + 1;
   }
 
   // Divekick (air only; can be re-triggered mid-bounce to chain stomps)
@@ -220,6 +222,7 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
     player.isSliding = false;
     player.isUppercutting = false;
     player.diveKickHitIds = [];
+    player.moveId = (player.moveId || 0) + 1;
     fx.playGunSound();
   }
 };

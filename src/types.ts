@@ -127,6 +127,8 @@ export interface Player extends Entity {
   hidden?: boolean;
   /** Frames left of a cutscene kick pose (drawn like the dive kick, standing). */
   kickPose?: number;
+  /** Counts up each time he starts a charge, uppercut or dive kick (an enemy's only hit once per move, but again by the next one). */
+  moveId?: number;
   /** In a cutscene: can't be hurt, and doesn't flicker for it. */
   inCutscene?: boolean;
   flameRange?: number;         // current stream length
@@ -163,6 +165,8 @@ export type EnemyKind =
   | 'techbro' | 'courier' | 'protester' | 'raccoon' | 'seagull' | 'drone' | 'jetskier' | 'burning';
 
 export interface Enemy extends Entity {
+  /** Which of Meathead's moves last hit it (see Player.moveId). */
+  hitByMove?: number;
   /** A close-range swing in progress (the cops' club and shield bash): what part of it, how long in, and whether it's landed. */
   melee?: { state: 'windup' | 'strike' | 'recover'; t: number; hit: boolean };
   /** The last frame Meathead was driving him backward on his own shield with a shoulder charge. */

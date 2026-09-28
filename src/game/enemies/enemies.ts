@@ -4,7 +4,7 @@ import { Enemy, Rect, Player } from '../../types';
 import { KillCallout } from '../../content/dialogue';
 import {
   CANVAS_WIDTH, CANVAS_HEIGHT, BOSS_DOOR_X, GRAVITY, PLAYER_INVINCIBILITY_FRAMES, PLAYER_STUN_INVINCIBILITY,
-  PLAYER_PUSHBACK_DURATION, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, BOSS_CHARGE_DAMAGE,
+  PLAYER_PUSHBACK_DURATION, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, BOSS_CHARGE_DAMAGE, ENEMY_CHARGE_DAMAGE, ENEMY_SLIDE_DAMAGE,
   PLAYER_MASS, ENEMY_DAZE_FRAMES, UPPERCUT_LAUNCH_SPEED, UPPERCUT_LAUNCH_X, BOUNCE_FRAMES,
   GML_SCALE, POWER_CELLS, FROZEN_PUSH_MULTIPLIER, FROZEN_DAMAGE_MULTIPLIER,
   FROZEN_WALL_IMPACT_MULTIPLIER, FROZEN_GROUND_IMPACT_MULTIPLIER, FROZEN_ENEMY_IMPACT_DAMAGE,
@@ -25,7 +25,7 @@ import { startEnemyDeath } from './deaths';
 import { getEnemyMass, enemyGrip, massRatio } from '../combat/knockback';
 import { floorTopAt } from '../core/terrain';
 import { getStageLeft, getStageLayout } from '../stages';
-import { runKindAI, kindContactDamage, holdingOff, shieldFacing, isChargerKind, safeAhead } from './kinds';
+import { runKindAI, kindContactDamage, holdingOff, shieldFacing, isChargerKind, safeAhead, isSmallCritter } from './kinds';
 import { selfPropelled } from './kinds/hector';
 import { copMelee, isMeleeCop } from './copMelee';
 import { submerged } from './kinds/victor';
@@ -531,7 +531,10 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   const isAttacking = player.isCharging || player.isUppercutting || !!player.isDivekicking || hasShield;
   const attackHit = isAttacking && rectsOverlap(getAttackHitbox(ctx), boundsOf(e));
 
-  if (attackHit && onScreen && (!e.hitCooldown || e.hitCooldown <= 0)) {
+  // (a regular enemy can only be hit once per move, but a fresh charge right after lands again: you can keep shoving him;
+  // a boss keeps his breather between hits)
+  const fresh = e.type !== 'boss' && e.hitByMove !== player.moveId;
+  if (attackHit && onScreen && (!e.hitCooldown || e.hitCooldown <= 0 || fresh)) {
     // Each uppercut / divekick only hits a given enemy once
     if (player.isUppercutting && player.uppercutHitIds.includes(e.id)) return true;
     if (player.isDivekicking && player.diveKickHitIds.includes(e.id)) return true;
@@ -550,7 +553,12 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     bossDef?.onMeleeHit?.(ctx, e);
 
     let damage = 0;
-    if (player.isCharging) damage = BOSS_CHARGE_DAMAGE;
+    if (player.isCharging) {
+      // (a boss takes the full hit; so does anything the jet ski's wheelie rams)
+      if (e.type === 'boss' || player.jetski) damage = BOSS_CHARGE_DAMAGE;
+      else if (player.isSliding) damage = isSmallCritter(e.kind) ? e.health : ENEMY_SLIDE_DAMAGE;
+      else damage = ENEMY_CHARGE_DAMAGE;
+    }
     else if (player.isUppercutting) damage = (e.type === 'boss' ? BOSS_UPPERCUT_DAMAGE : ENEMY_UPPERCUT_DAMAGE);
     else if (player.isDivekicking) damage = (e.type === 'boss' ? BOSS_DIVEKICK_DAMAGE : ENEMY_DIVEKICK_DAMAGE);
 
@@ -566,6 +574,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
 
     e.health -= damage;
     e.hitCooldown = ENEMY_HIT_COOLDOWN;
+    e.hitByMove = player.moveId;
     fx.spawnDamageNumber(e.pos, damage, player.isUppercutting || !!player.isDivekicking || wasFrozen || hasShield);
 
     if (player.isUppercutting) {

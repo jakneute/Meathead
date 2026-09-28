@@ -304,6 +304,12 @@ export const OILED_COLLISION_DAMAGE = 25;
 // 5. BOSS & ENEMY TUNING
 // ==========================================
 export const BOSS_CHARGE_DAMAGE = 50;
+/**
+ * Against regular enemies the shoulder charge is for making space (a shove, a little damage) and the slide tackle is
+ * for taking out small ground critters in one go (wolverines, raccoons...: see isSmallCritter), a little damage to
+ * anything bigger. The big hits are the dive kick (on the ground) and the uppercut (in the air).
+ */
+export const ENEMY_CHARGE_DAMAGE = 20, ENEMY_SLIDE_DAMAGE = 20;
 export const BOSS_UPPERCUT_DAMAGE = 50;
 export const ENEMY_UPPERCUT_DAMAGE = 150;
 export const BOSS_DIVEKICK_DAMAGE = 50;
