@@ -5,7 +5,7 @@
 // the thing's health, the cut scenes, the fades).
 
 import type { GameState } from '../../core/state';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, ARENA_LEFT } from '../../../constants';
 import { drawPlayer } from '../../render/player/player';
 import { COURSE, placeOf } from './course';
 import { getTommy, fadeAmount, TommyRuntime } from './runtime';
@@ -22,6 +22,8 @@ type Ctx = CanvasRenderingContext2D;
 const view = (state: GameState) => placeOf(state.camera.x + CANVAS_WIDTH / 2);
 
 export const drawTommyBackdrop = (ctx: Ctx, state: GameState) => {
+  // (Tommy's own room has its own)
+  if (state.camera.x + CANVAS_WIDTH / 2 > ARENA_LEFT - 100) return false;
   const place = view(state);
   if (place === 'hood' || place === 'road') drawStreetSky(ctx, state);
   else if (place === 'ruins') drawStreetSky(ctx, state, 1, false);

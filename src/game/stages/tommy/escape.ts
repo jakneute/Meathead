@@ -34,6 +34,8 @@ export interface Escape {
   /** The drop: frames into the fall (and the fade), and when he landed. */
   dropT: number;
   landedT: number;
+  /** How far in the camera's pushed in, in the little cavern outside Tommy's door (0 not at all .. 1 all the way). */
+  zoomK: number;
 }
 
 /** How long each of the cut scenes runs. */
@@ -43,7 +45,7 @@ export const DROP_FADE = 45, DROP_FADE_IN = 40;
 
 export const createEscape = (state: GameState, startedAt: number): Escape => {
   void state;
-  return { phase: startedAt >= CP.RUINS ? 'ruins' : 'waiting', t: 0, chunks: [], dropT: 0, landedT: 0 };
+  return { phase: startedAt >= CP.RUINS ? 'ruins' : 'waiting', t: 0, chunks: [], dropT: 0, landedT: 0, zoomK: 0 };
 };
 
 /** The thing's dead: the sewer starts to come apart. */
@@ -54,6 +56,10 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
   const p = state.player;
   es.t++;
   const C = COURSE.sewer.cistern;
+  // Down outside the door it's a tight little space: the camera pushed in on it, easing back out as the door opens
+  const cramped = p.pos.x > COURSE.ruins.pit - 300 && p.pos.y > GROUND_Y - 400 && state.doorState === 'closed' && es.phase !== 'drop';
+  es.zoomK += ((cramped ? 1 : 0) - es.zoomK) * (cramped ? 0.06 : 0.08);
+  if (es.zoomK < 0.005) es.zoomK = 0;
   switch (es.phase) {
     case 'waiting': case 'done': return controls;
     case 'rumble':
@@ -135,8 +141,11 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
       es.dropT++;
       p.inCutscene = true;
       p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
-      state.cameraOverride = { x: Math.min(state.camera.x, BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH), y: p.pos.y - 300 };
-      state.camera.y = Math.min(p.pos.y - 300, GROUND_Y - 550);
+      // (the camera goes down with him, till he's down: then it's let go of)
+      if (!es.landedT) {
+        state.cameraOverride = { x: Math.min(state.camera.x, BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH), y: p.pos.y - 300 };
+        state.camera.y = Math.min(p.pos.y - 300, GROUND_Y - 550);
+      }
       if (p.isGrounded && p.pos.y + p.height >= GROUND_Y - 2) {
         if (!es.landedT) {
           es.landedT = es.dropT;
@@ -150,7 +159,7 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
           state.camera.x = Math.max(state.cameraMinX, Math.min(BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH, p.pos.x - 250));
         }
         if (es.dropT === es.landedT) hush(state, talk);
-        if (es.dropT - es.landedT > DROP_FADE_IN + 20) { es.phase = 'done'; p.inCutscene = false; queueLines(state, talk, [{ who: 'meathead', text: "...OW. OKAY. THAT'S TOMMY'S DOOR." }]); }
+        if (es.dropT - es.landedT > DROP_FADE_IN + 20) { es.phase = 'done'; p.inCutscene = false; state.cameraOverride = null; queueLines(state, talk, [{ who: 'meathead', text: "...OW. OKAY. THAT'S TOMMY'S DOOR." }]); }
       }
       return { ...NO_CONTROLS };
     }
@@ -176,3 +185,7 @@ export const dropFade = (es: Escape) => {
 };
 
 export const escapeDeathMessage = (es: Escape): string | undefined => (es.phase === 'drop' ? 'A LONG WAY DOWN' : undefined);
+
+/** The push in outside Tommy's door: about the door's edge and the floor (so they stay put on the screen, and it closes in on him). */
+export const doorZoom = (state: GameState, es: Escape) =>
+  es.zoomK > 0 ? { scale: 1 + es.zoomK * 0.4, x: state.camera.x + CANVAS_WIDTH, y: GROUND_Y } : null;
