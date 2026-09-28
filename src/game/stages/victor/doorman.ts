@@ -209,18 +209,18 @@ export const updateDoorman = (ctx: FrameContext, m: Enemy, fight: DoormanFight):
       const want = 230 + Math.sin(m.aiTimer * 0.04) * 90;
       m.vel.x = d > want + 20 ? toward * WALK : d < want - 20 ? -toward * WALK : 0;
       if (fight.phase === 'fight') talk(fight, LINES.idle);
-      if (antiAir(m, p, px, mx)) break;
+      if ((!fight.thrown && antiAir(m, p, px, mx))) break;
       if (m.aiTimer > (angry ? 70 : 110) && fight.phase === 'fight') { start(m, Math.random() < 0.55 ? 'windup-charge' : 'windup-slide'); playSound('taser'); }
       break;
     }
     case 'windup-charge':
       // Shoulder down, pawing the ground (the tell). (Only once he's actually charging or sliding can you get over him)
-      if (antiAir(m, p, px, mx)) break;
+      if ((!fight.thrown && antiAir(m, p, px, mx))) break;
       m.vel.x = 0; m.facing = toward;
       if (m.aiTimer > WINDUP_CHARGE) { start(m, 'charge'); m.vel.x = m.facing * CHARGE; talk(fight, ["MOVE!"], false); }
       break;
     case 'windup-slide':
-      if (antiAir(m, p, px, mx)) break;
+      if ((!fight.thrown && antiAir(m, p, px, mx))) break;
       m.vel.x = 0; m.facing = toward;
       if (m.aiTimer > WINDUP_SLIDE) { start(m, 'slide'); m.vel.x = m.facing * SLIDE; }
       break;
@@ -260,7 +260,7 @@ export const updateDoorman = (ctx: FrameContext, m: Enemy, fight: DoormanFight):
     default:
       m.vel.x *= 0.8;
       m.facing = toward;
-      if (m.aiTimer > 8 && antiAir(m, p, px, mx)) break;
+      if (m.aiTimer > 8 && (!fight.thrown && antiAir(m, p, px, mx))) break;
       if (m.aiTimer > RECOVER) start(m, 'stalk');
       break;
   }
@@ -476,11 +476,11 @@ const endClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, won: boolean
     shakeScreen(state, 26, 10);
     ctx.fx.speakVulgarity('charge_kill');
   } else {
-    // He throws you: up and over him, clean across to the other side
+    // He throws you: as far from him as the club goes (over his head, if that's the far end)
     start(m, 'recover');
     p.invincibilityTimer = 0;
-    const over = Math.sign(mx - px) || 1;
-    const land = over > 0 ? a.x2 - 80 : a.x1 + 40;
+    const leftEnd = a.x1 + 40, rightEnd = a.x2 - p.width - 40;
+    const land = Math.abs(mx - (leftEnd + p.width / 2)) > Math.abs(mx - (rightEnd + p.width / 2)) ? leftEnd : rightEnd;
     const vx = (land - p.pos.x) / 40;
     hurtPlayer(ctx, CLASH_LOSE, 'doorman_clash', { x: vx, y: -16 }, 44);
     fight.thrown = { vx, t: 44 };
