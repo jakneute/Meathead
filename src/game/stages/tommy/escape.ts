@@ -161,7 +161,7 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
           state.camera.x = Math.max(state.cameraMinX, Math.min(BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH, p.pos.x - 250));
         }
         if (es.dropT === es.landedT) hush(state, talk);
-        if (es.dropT - es.landedT > DROP_FADE_IN + 20) { es.phase = 'done'; p.inCutscene = false; state.cameraOverride = null; queueLines(state, talk, [{ who: 'meathead', text: "...OW. OKAY. THAT'S TOMMY'S DOOR." }]); }
+        if (es.dropT - es.landedT > DROP_FADE_IN + 20) { es.phase = 'done'; p.inCutscene = false; state.cameraOverride = null; }
       }
       return { ...NO_CONTROLS };
     }

@@ -303,9 +303,9 @@ const junk = (ctx: FrameContext, b: BikeRun) => {
       return;
     }
     // Coming down on a wrecked car off a ramp: off the roof and up again
-    if (j.look === 'car' && b.rampAir && !p.isGrounded && p.vel.y > 0) { launch(ctx, b, -17.5, 'AGAIN!'); b.done.add(i); rampAway(ctx, b); return; }
+    if (j.look === 'car' && b.rampAir && !p.isGrounded && p.vel.y > 0) { launch(ctx, b, -17.5, 'AGAIN!'); b.v = Math.min(BIKE_FAST + 3, b.v + 3); b.done.add(i); rampAway(ctx, b); return; }
     // Boosting into a wrecked car: up and over it, no harm done
-    if (j.look === 'car' && boosting(state, b) && (p.isGrounded || p.vel.y >= 0)) { launch(ctx, b, -15, 'OVER IT!'); b.done.add(i); return; }
+    if (j.look === 'car' && boosting(state, b) && (p.isGrounded || p.vel.y >= 0)) { launch(ctx, b, -15, 'OVER IT!'); b.v = Math.min(BIKE_FAST + 3, b.v + 3); b.done.add(i); rampAway(ctx, b); return; }
     // Cones go flying whatever; the rest break if he wheelies through them (not a parked car: that he has to clear)
     const breaks = j.look === 'cones' || ((p.isCharging || p.isDivekicking) && j.look !== 'car' && j.look !== 'pothole');
     if (breaks) {
@@ -349,6 +349,9 @@ const rampAway = (ctx: FrameContext, b: BikeRun) => {
   for (const e of state.enemies) {
     if (e.kind !== 'lowrider' || e.health <= 0 || e.aiState !== 'hold') continue;
     e.aiState = 'lost'; e.aiTimer = 0;
+    // (it stands on the brakes: behind him before he's come down)
+    e.vel.x = Math.min(e.vel.x, state.player.vel.x - 11);
+    for (let k = 0; k < 12; k++) state.particles.push({ pos: { x: e.pos.x + (k % 2 ? 20 : e.width - 20), y: e.pos.y + e.height - 4 }, vel: { x: 2 + Math.random() * 4, y: -Math.random() * 2 }, life: 30, color: 'rgba(214, 211, 209, 0.8)', size: 5 + Math.random() * 5 });
     fx.spawnDamageNumber({ x: e.pos.x + 20, y: e.pos.y - 30 }, 'LEFT BEHIND!', true, '#FDE047');
   }
 };

@@ -197,16 +197,20 @@ const drawEmptyLot = (ctx: Ctx, x: number, base: number, k: number) => {
   ctx.fillStyle = '#4D5A2E'; for (let gx = x; gx < x + 280; gx += 6) ctx.fillRect(gx, base - 6 - hash(gx) * 10, 2, 6 + hash(gx) * 10);
   // Tires, a mattress, a shopping cart
   ctx.fillStyle = '#1C1917'; ctx.beginPath(); ctx.arc(x + 60, base - 10, 10, 0, Math.PI * 2); ctx.arc(x + 78, base - 10, 10, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#D6D3D1'; ctx.save(); ctx.translate(x + 170, base - 12); ctx.rotate(-0.15); ctx.fillRect(-40, -8, 80, 14); ctx.fillStyle = 'rgba(120, 53, 15, 0.4)'; ctx.fillRect(-10, -6, 20, 10); ctx.restore();
+  // (the mattress lying flat and saggy, springs poking out: nothing like a ramp)
+  ctx.fillStyle = '#D6D3D1'; ctx.beginPath(); ctx.moveTo(x + 130, base - 4); ctx.quadraticCurveTo(x + 130, base - 16, x + 140, base - 15); ctx.quadraticCurveTo(x + 170, base - 10, x + 200, base - 15); ctx.quadraticCurveTo(x + 210, base - 16, x + 210, base - 4); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(120, 53, 15, 0.4)'; ctx.beginPath(); ctx.ellipse(x + 160, base - 9, 12, 4, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#78716C'; ctx.lineWidth = 1.2; for (const sx of [146, 182]) { ctx.beginPath(); ctx.arc(x + sx, base - 18, 3, 0, Math.PI * 2); ctx.stroke(); }
   if (hash(k * 19) < 0.5) { ctx.strokeStyle = '#9CA3AF'; ctx.lineWidth = 1.5; ctx.strokeRect(x + 220, base - 30, 30, 20); ctx.beginPath(); ctx.arc(x + 224, base - 6, 3, 0, Math.PI * 2); ctx.arc(x + 246, base - 6, 3, 0, Math.PI * 2); ctx.stroke(); }
 };
 
-const BILLBOARDS = [['FLINT', 'VEHICLE CITY'], ['BOTTLED WATER', 'DISTRIBUTION ->'], ["DON'T DRINK", 'THE WATER'], ['TOMMY WASTE', 'MANAGEMENT LLC']];
+const BILLBOARDS = [['FLINT', 'VEHICLE CITY'], ['BOTTLED WATER', 'DISTRIBUTION'], ["DON'T DRINK", 'THE WATER'], ['TOMMY WASTE', 'MANAGEMENT LLC']];
 const drawBillboard = (ctx: Ctx, x: number, base: number, k: number) => {
   const [a, b] = BILLBOARDS[Math.abs(k) % BILLBOARDS.length];
   ctx.fillStyle = '#44403C'; ctx.fillRect(x + 80, base - 160, 6, 160); ctx.fillRect(x + 190, base - 160, 6, 160);
   ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x + 40, base - 250, 200, 96);
-  ctx.fillStyle = a === 'TOMMY WASTE' ? '#15803D' : '#1E3A8A'; ctx.fillRect(x + 44, base - 246, 192, 88);
+  // (never the ramps' green)
+  ctx.fillStyle = a === 'TOMMY WASTE' ? '#6B21A8' : '#1E3A8A'; ctx.fillRect(x + 44, base - 246, 192, 88);
   ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 12px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText(a, x + 140, base - 210); ctx.font = 'bold 8px "Press Start 2P"'; ctx.fillText(b, x + 140, base - 186); ctx.textAlign = 'left';
 };
 
