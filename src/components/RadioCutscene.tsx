@@ -5,6 +5,7 @@ import { drawGarage, drawRadioCloseUp, drawShadowFigure, drawNextFour, garageBg 
 import { Voice, MEATHEAD_VOICE } from '../game/platform/speech';
 import { playSquelch } from '../game/platform/audio';
 import { BOSS_SET_TITLES } from '../content/roster';
+import { setTitleClass } from './Overlay';
 
 // The mid-game call: the first four are dead and Meathead's off to the gym, when the radio in his garage goes. The
 // voice on the other end is scrambled; the man it belongs to is a silhouette behind a very big desk. He has more
@@ -54,8 +55,18 @@ const PANELS: Panel[] = [
 /** When the title comes up over the four of them. */
 const TITLE_AT = 100;
 
-const RadioCutscene: React.FC<{ onDone: () => void }> = ({ onDone }) => (
-  <Cutscene panels={PANELS} endAt={TITLE_AT} endCard={BOSS_SET_TITLES[1]} radio onDone={onDone} />
+/** How long the title holds over the four of them before it goes up onto the stage select. */
+const HOLD_TITLE = 110;
+
+/**
+ * `onHandoff`: bring the stage select up underneath (the title rises onto its heading and the cutscene fades away round
+ * it, straight into picking the next target); `onDone`: the cutscene's gone.
+ */
+const RadioCutscene: React.FC<{ onHandoff: () => void; onDone: () => void }> = ({ onHandoff, onDone }) => (
+  <Cutscene
+    panels={PANELS} endAt={TITLE_AT} endCard={BOSS_SET_TITLES[1]} radio onDone={onDone}
+    handoff={{ className: setTitleClass(BOSS_SET_TITLES[1]), selector: '[data-set-title]', after: HOLD_TITLE, onHandoff }}
+  />
 );
 
 export default RadioCutscene;

@@ -128,6 +128,13 @@ const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onStart, cheats, p
   </>
 );
 
+/**
+ * The set's title over the stage select (the mid-game call's last card lands on it, so it's shared). Kept on one
+ * line: a long one goes down a size.
+ */
+export const setTitleClass = (title: string) =>
+  `${title.length > 20 ? 'text-[17px]' : 'text-xl md:text-2xl'} whitespace-nowrap text-red-600 font-black tracking-widest border-b-4 border-red-900 pb-1 uppercase italic drop-shadow-[0_2px_2px_rgba(153,0,0,0.8)] [text-shadow:2px_2px_0_rgb(0,0,0),_0_4px_0_rgba(153,0,0,0.8),_0_8px_0_rgba(153,0,0,0.4),_2px_12px_2px_rgba(255,0,0,0.5)]`;
+
 const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedStages, selectedIndex, onSelectIndex, showDossier, onToggleDossier, lockedIndex, engaging, onStageCardClick, onEngage, showArchive, onToggleArchive, killRecords }) => {
   // The archive shows the previous set: every one of them already dead
   const archive = showArchive && progressionRank >= 1;
@@ -140,7 +147,7 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
   return (
     <div className={`w-full h-full flex flex-col items-center justify-start pt-2 pb-1 overflow-hidden select-none ${engaging ? 'mh-engage-shake' : 'animate-in slide-in-from-bottom-8 duration-500'}`}>
       <div className="flex flex-col items-center mb-2 shrink-0">
-        <h2 className="text-xl md:text-2xl text-red-600 font-black tracking-widest border-b-4 border-red-900 pb-1 uppercase italic drop-shadow-[0_2px_2px_rgba(153,0,0,0.8)] [text-shadow:2px_2px_0_rgb(0,0,0),_0_4px_0_rgba(153,0,0,0.8),_0_8px_0_rgba(153,0,0,0.4),_2px_12px_2px_rgba(255,0,0,0.5)]">
+        <h2 data-set-title className={setTitleClass(BOSS_SET_TITLES[setRank] || "THE FOUR ASSHOLES")}>
           {BOSS_SET_TITLES[setRank] || "THE FOUR ASSHOLES"}
         </h2>
         <div className="text-[8px] font-mono text-cyan-400/90 tracking-widest uppercase mt-0.5">

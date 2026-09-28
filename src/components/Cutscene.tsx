@@ -30,7 +30,17 @@ const FRAME_MS = 1000 / 60;
  * `endAt` frames in; confirm after that and it's done. `radio`: a radio channel's open under the lot, and panels
  * marked `radio` are said through it (the voice scrambled, the modulator buzzing while it talks).
  */
-const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radio?: boolean; onDone: () => void }> = ({ panels: PANELS, endAt, endCard, radio, onDone }) => {
+/**
+ * Handing straight on to what comes next instead of just ending: `after` frames into the end card (or on confirm), the
+ * card (styled `className`) rises to land exactly on the element `selector` finds (the stage select's title, which
+ * `onHandoff` brings up underneath), and then the cutscene fades away round it.
+ */
+export interface Handoff { className: string; selector: string; after: number; onHandoff: () => void }
+
+/** The handoff's beats (ms): the screen underneath settling, the card rising onto its title, the cutscene fading off it. */
+const SETTLE_MS = 550, RISE_MS = 900, FADE_MS = 900;
+
+const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radio?: boolean; handoff?: Handoff; onDone: () => void }> = ({ panels: PANELS, endAt, endCard, radio, handoff, onDone }) => {
   const LAST = PANELS.length - 1;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [panelIndex, setPanelIndex] = useState(0);
@@ -41,6 +51,12 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
   const run = useRef({ panel: 0, t: 0, total: 0, typedAt: -1, speaking: false, spoke: false, finished: false });
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
+  const [outro, setOutro] = useState<'none' | 'settle' | 'rise' | 'fade'>('none');
+  const [lift, setLift] = useState({ x: 0, y: 0 });
+  const rootRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const handoffRef = useRef(handoff);
+  handoffRef.current = handoff;
   const channel = useRef<ReturnType<typeof openRadio> | null>(null);
   const hangUp = useRef<(() => void) | null>(null);
 
@@ -76,11 +92,35 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
     }
   };
 
+  /** The card rising onto the next screen's title, then the cutscene fading away round it. */
+  const startHandoff = () => {
+    const r = run.current, h = handoffRef.current;
+    if (!h || r.finished) return;
+    r.finished = true;
+    hangUp.current?.(); cancelSpeech(); channel.current?.close();
+    h.onHandoff();
+    setOutro('settle');
+    setTimeout(() => {
+      const root = rootRef.current, mine = titleRef.current;
+      if (root && mine) {
+        const k = root.getBoundingClientRect().width / (root.offsetWidth || 1);
+        const m = mine.getBoundingClientRect(), target = document.querySelector(h.selector)?.getBoundingClientRect();
+        const rootTop = root.getBoundingClientRect().top;
+        setLift(target
+          ? { x: (target.left + target.width / 2 - (m.left + m.width / 2)) / k, y: (target.top - m.top) / k }
+          : { x: 0, y: (rootTop + 12 * k - m.top) / k });
+      }
+      setOutro('rise');
+      setTimeout(() => { setOutro('fade'); setTimeout(() => onDoneRef.current(), FADE_MS); }, RISE_MS);
+    }, SETTLE_MS);
+  };
+
   const confirm = () => {
     const r = run.current;
     if (r.total < INPUT_LOCK_FRAMES) return;
     const p = PANELS[r.panel];
     if (r.panel === LAST) {
+      if (handoffRef.current) { if (r.t >= endAt + 30) startHandoff(); return; }
       if (r.t >= endAt + 60 && !r.finished) { r.finished = true; hangUp.current?.(); cancelSpeech(); onDoneRef.current(); }
       return;
     }
@@ -105,6 +145,7 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
       p.draw(ctx, r.t, talking);
       if (r.panel === LAST) {
         if (r.t === endAt) setTheEnd(true);
+        if (handoffRef.current && r.t === endAt + handoffRef.current.after) startHandoff();
         return;
       }
       // Auto-advance once the text is out and the line has been said
@@ -119,7 +160,7 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
       frameId = requestAnimationFrame(loop);
     };
     frameId = requestAnimationFrame(loop);
-    return () => { cancelAnimationFrame(frameId); hangUp.current?.(); cancelSpeech(); channel.current?.close(); };
+    return () => { cancelAnimationFrame(frameId); if (!run.current.finished || !handoffRef.current) { hangUp.current?.(); cancelSpeech(); } channel.current?.close(); };
   }, []);
 
   // Keyboard, mouse and gamepad confirm
@@ -142,15 +183,24 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
   const panel = PANELS[panelIndex];
   const text = panel.text.slice(0, shownChars);
   return (
-    <div className="absolute inset-0 z-[80] bg-black select-none" onMouseDown={confirm}>
-      <canvas
-        ref={canvasRef}
-        width={ART_W}
-        height={ART_H}
-        style={{ position: 'absolute', left: 16, top: 20, width: ART_W * 3, height: ART_H * 3, imageRendering: 'pixelated' }}
-      />
+    <div ref={rootRef} className="absolute inset-0 z-[80] select-none" onMouseDown={confirm}>
+      {/* (the picture and its black fade off the next screen at the end of a handoff; the card stays, on its title) */}
+      <div className="absolute inset-0" style={{ opacity: outro === 'fade' ? 0 : 1, transition: `opacity ${FADE_MS}ms ease-in-out` }}>
+        <div className="absolute inset-0 bg-black" />
+        <canvas
+          ref={canvasRef}
+          width={ART_W}
+          height={ART_H}
+          style={{ position: 'absolute', left: 16, top: 20, width: ART_W * 3, height: ART_H * 3, imageRendering: 'pixelated' }}
+        />
+      </div>
+      {theEnd && handoff && (
+        <div className="absolute left-0 right-0 flex justify-center" style={{ top: 510, transform: `translate(${lift.x}px, ${lift.y}px)`, transition: outro === 'rise' || outro === 'fade' ? `transform ${RISE_MS}ms cubic-bezier(0.65, 0, 0.35, 1)` : undefined }}>
+          <h2 ref={titleRef} className={handoff.className}>{endCard}</h2>
+        </div>
+      )}
       <div style={{ position: 'absolute', left: 40, right: 40, top: 474, bottom: 12 }} className="text-left">
-        {theEnd ? (
+        {theEnd && handoff ? null : theEnd ? (
           <div className={`h-full flex items-center justify-center text-center text-white ${endCard.length > 12 ? 'text-2xl tracking-wider leading-relaxed' : 'text-5xl tracking-widest'}`} style={{ textShadow: '4px 4px 0 #d82800' }}>
             {endCard}
           </div>

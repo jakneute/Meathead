@@ -87,6 +87,8 @@ const App: React.FC = () => {
   const [progressionRank, setProgressionRank] = useState(0);
   /** The mid-game call, played from the cheat panel. */
   const [callPreview, setCallPreview] = useState(false);
+  /** The call handing off to the stage select (its title rising onto the heading, the call fading off it). */
+  const [callOutro, setCallOutro] = useState(false);
   /** True between the boss dying and the victory screen; blocks pausing. */
   const [isVictoryPhase, setIsVictoryPhase] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -209,7 +211,8 @@ const App: React.FC = () => {
   const finishVictory = () => {
     setCallPreview(false);
     setDefeatedStages([]);
-    if (progressionRank === 0 && defeatedStages.length >= 4) {
+    // (the call watched from the cheat panel goes on into the second set too, the way it does for real)
+    if ((progressionRank === 0 && defeatedStages.length >= 4) || callPreview) {
       // Beat the first set: unlock the second (how the first four died stays on file)
       setProgressionRank(1);
       setAvailableWeapons(getStartingWeapons(1, cheats.allWeapons));
@@ -351,6 +354,8 @@ const App: React.FC = () => {
   };
 
   const confirmSelection = () => {
+    // (nothing while the call's still fading off the stage select)
+    if (callOutro) return;
     if (status === GameStatus.STAGE_SELECT) { if (lockedIndex === null) lockStage(selectedIndex); else engageStage(); }
     else if (status === GameStatus.PAUSED) activatePauseItem(selectedIndex);
     // The weapon screen runs its own firing range: only Start / Esc (handled there) move on
@@ -575,7 +580,9 @@ const App: React.FC = () => {
           showCall={progressionRank === 0 || callPreview}
         />
         {status === GameStatus.ENDING && <EndingCutscene onDone={handleEndingDone} />}
-        {status === GameStatus.VICTORY && (progressionRank === 0 || callPreview) && <RadioCutscene onDone={finishVictory} />}
+        {((status === GameStatus.VICTORY && (progressionRank === 0 || callPreview)) || callOutro) && (
+          <RadioCutscene onHandoff={() => { setCallOutro(true); finishVictory(); }} onDone={() => setCallOutro(false)} />
+        )}
         {deployingTo && status === GameStatus.STAGE_SELECT && (
           <DeployTransition
             stageId={deployingTo}
