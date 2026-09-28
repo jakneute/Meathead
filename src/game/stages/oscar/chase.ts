@@ -72,7 +72,7 @@ export interface Chase {
 /** How many to wreck to win it. */
 export const KILLS_NEEDED = 45;
 /** The derricks out in the field: how many to a lap, how far apart, how far back off the road they stand. */
-export const DERRICKS_PER_LAP = 8, DERRICK_GAP = LAP / DERRICKS_PER_LAP, DERRICK_BACK = 96;
+export const DERRICKS_PER_LAP = 8, DERRICK_GAP = LAP / DERRICKS_PER_LAP, DERRICK_BACK = 10;
 /** A big hit's worth (a ram, or a dive onto it): a car or truck takes two of these. */
 const BIG_HIT = 130;
 /** What comes after him, in turn (round and round). */

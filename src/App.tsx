@@ -438,12 +438,13 @@ const App: React.FC = () => {
     if (ammo) setWeaponAmmo(ammo);
     if (forcedWeapon) setCurrentWeapon(forcedWeapon);
     setLockedWeapon(lockedTo);
-    // A weapon that's only his for a set piece (Dirty Dan's machine gun): in the arsenal while it lasts, gone after
-    if (lockedTo === 'LMG') setAvailableWeapons(ws => (ws.includes('LMG') ? ws : [...ws, 'LMG']));
+    // Dirty Dan's machine gun takes the handgun's place in the arsenal while it's his (the same slot), and the handgun
+    // goes back in it after
+    if (lockedTo === 'LMG') setAvailableWeapons(ws => (ws.includes('LMG') ? ws : ws.map(w => (w === 'GUN' ? 'LMG' : w))));
     else setAvailableWeapons(ws => {
       if (!ws.includes('LMG')) return ws;
       setCurrentWeapon(c => (c === 'LMG' ? 'GUN' : c));
-      return ws.filter(w => w !== 'LMG');
+      return ws.map(w => (w === 'LMG' ? 'GUN' : w));
     });
   };
 

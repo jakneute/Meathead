@@ -190,7 +190,7 @@ export const LMG_DAMAGE = 22;
 export const LMG_COOLDOWN = 3;
 export const LMG_VELOCITY = 21;
 /** How far off straight a round can go, each way (degrees). */
-export const LMG_SPREAD_DEG = 17;
+export const LMG_SPREAD_DEG = 32;
 export const GUN_VELOCITY = 18;
 
 // BOULDER (EARTHQUAKE) - ported from the GML oBoulderBlunderbuss / oBoulderBullet.

@@ -28,14 +28,12 @@ export const drawChaseBack = (ctx: Ctx, state: GameState, ch: Chase) => {
       if (x < v.x1 - 200 || x > v.x2 + 200) continue;
       const y = groundLineAt(state.groundRuns, x) - DERRICK_BACK;
       const d = ch.derricks[i];
-      // Its patch of ground, back in the field
-      ctx.fillStyle = 'rgba(92, 66, 40, 0.8)'; ctx.fillRect(x - 70, y, 140, DERRICK_BACK + 4);
       ctx.save(); ctx.translate(x, y);
       if (d.state === 'standing') drawDerrick(ctx, 1, 0.6);
       else drawDerrickRuin(ctx, state.frame + i * 13, d.state === 'blowing' ? d.t : 999);
       ctx.restore();
       const px = x + COURSE.chase.lap / DERRICKS_PER_LAP / 2;
-      if (px > v.x1 - 150 && px < v.x2 + 150) { ctx.save(); ctx.translate(px, groundLineAt(state.groundRuns, px) - DERRICK_BACK + 20); drawPumpjack(ctx, state.frame + i * 40, 0.55); ctx.restore(); }
+      if (px > v.x1 - 150 && px < v.x2 + 150) { ctx.save(); ctx.translate(px, groundLineAt(state.groundRuns, px)); drawPumpjack(ctx, state.frame + i * 40, 0.55); ctx.restore(); }
     }
   }
   // The road: rutted dirt, up and down
