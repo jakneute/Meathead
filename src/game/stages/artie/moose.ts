@@ -18,7 +18,7 @@ import type { GameState } from '../../core/state';
 import { shakeScreen } from '../../core/state';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 import { hurtPlayer } from '../../bosses/shared';
-import { BOULDER_DAMAGE_PER_SPEED, GML_SCALE } from '../../../constants';
+import { midBossProjectileDamage } from '../../combat/midBoss';
 import { KIND_STATS } from '../../enemies/kinds';
 import { COURSE, CP } from './course';
 
@@ -254,9 +254,7 @@ const touchPlayer = (ctx: FrameContext, m: Enemy, fight: MooseFight) => {
 /** A player projectile hit it: damage only (no knockback, no status effects, no invincibility). */
 export const hitMoose = (ctx: FrameContext, m: Enemy, p: Projectile, fight: MooseFight): boolean => {
   const { fx } = ctx;
-  let dmg = p.damage;
-  if (p.isBoulder) dmg = BOULDER_DAMAGE_PER_SPEED * Math.max(1, Math.hypot(p.vel.x, p.vel.y) / GML_SCALE) * 0.6;
-  if (p.isSludge) dmg = p.isLingering ? 0 : 20;
+  const dmg = midBossProjectileDamage(p);
   if (dmg <= 0) return true;
   m.health -= dmg;
   m.hitFlash = 5;

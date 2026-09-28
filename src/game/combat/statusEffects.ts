@@ -9,6 +9,7 @@ import {
 import { FrameContext, killBoss } from '../core/context';
 import { updateBossAI, getBossDef, hitBoss } from '../bosses/registry';
 import { fireWeapon, findTaserTarget } from './weapons';
+import { isMidBoss, midBossDamage, MIDBOSS_DAMAGE } from './midBoss';
 import { zapCigarette, findFlyingCigarette } from '../bosses/oscar';
 import { FrameInput, hasAmmo, armsBusy } from '../player/player';
 
@@ -97,6 +98,16 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
     return;
   }
 
+  // A mid-boss isn't held or set alight by it: the beam just hurts, tick by tick (its own fight sees to its death)
+  if (target.type === 'enemy' && isMidBoss(target as Enemy)) {
+    if (state.frame % TASER_TICK_RATE === 0) {
+      const dmg = midBossDamage(target as Enemy, MIDBOSS_DAMAGE.TASER);
+      target.health -= dmg;
+      (target as Enemy).hitFlash = 3;
+      fx.spawnDamageNumber(target.pos, Math.max(1, Math.round(dmg)));
+    }
+    return;
+  }
   target.isTased = true;
   if (state.frame % TASER_TICK_RATE === 0) {
     target.health -= TASER_DOT_DAMAGE;

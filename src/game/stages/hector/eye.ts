@@ -15,7 +15,8 @@
 import type { Block, Enemy, Projectile, WeaponType } from '../../../types';
 import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
-import { BOSS_CHARGE_DAMAGE, BOULDER_DAMAGE_PER_SPEED, GML_SCALE } from '../../../constants';
+import { BOSS_CHARGE_DAMAGE } from '../../../constants';
+import { midBossProjectileDamage } from '../../combat/midBoss';
 import { hurtPlayer } from '../../bosses/shared';
 import { shakeScreen } from '../../core/state';
 import { playSound } from '../../platform/audio';
@@ -290,9 +291,7 @@ export const hitEye = (ctx: FrameContext, e: Enemy, p: Projectile, f: EyeFight):
     if (state.frame % 6 === 0) fx.spawnDamageNumber({ x: cx - 20, y: cy - 20 }, 'BLINK!', false, '#FCA5A5');
     return true;
   }
-  let dmg = p.damage;
-  if (p.isBoulder) dmg = BOULDER_DAMAGE_PER_SPEED * Math.max(1, Math.hypot(p.vel.x, p.vel.y) / GML_SCALE) * 0.6;
-  if (p.isSludge) dmg = p.isLingering ? 0 : 20;
+  const dmg = midBossProjectileDamage(p);
   if (dmg <= 0) return true;
   e.health -= dmg;
   e.hitFlash = 5;

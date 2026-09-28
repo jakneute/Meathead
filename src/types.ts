@@ -169,6 +169,8 @@ export interface Enemy extends Entity {
   hitByMove?: number;
   /** A gator's meal: the goon it's gone after in the water (by id). */
   prey?: string;
+  /** The frame the flamethrower last hurt it (a mid-boss is hurt once a frame, however many flames are on it). */
+  burntAt?: number;
   /** A close-range swing in progress (the cops' club and shield bash): what part of it, how long in, and whether it's landed. */
   melee?: { state: 'windup' | 'strike' | 'recover'; t: number; hit: boolean };
   /** The last frame Meathead was driving him backward on his own shield with a shoulder charge. */

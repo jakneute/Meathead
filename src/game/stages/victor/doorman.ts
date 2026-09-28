@@ -20,13 +20,13 @@ import type { Block, Enemy, Projectile, WeaponType } from '../../../types';
 import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
 import type { Controls } from '../../platform/input';
-import { NO_CONTROLS } from '../../platform/input';
+import { NO_CONTROLS, getLastInputDevice } from '../../platform/input';
 import { shakeScreen } from '../../core/state';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 import { hurtPlayer } from '../../bosses/shared';
 import { playSound } from '../../platform/audio';
-import { say, Voice } from '../../platform/speech';
-import { BOULDER_DAMAGE_PER_SPEED, GML_SCALE } from '../../../constants';
+import { say, Voice, MEATHEAD_VOICE } from '../../platform/speech';
+import { midBossProjectileDamage, DOORMAN_RESIST } from '../../combat/midBoss';
 import { KIND_STATS } from '../../enemies/kinds';
 import { COURSE, CP } from './course';
 
@@ -47,6 +47,21 @@ export interface Clash {
 /** (finisher: killed by winning a clash, which leaves him its own way) */
 export interface DoormanCorpse { x: number; y: number; facing: 1 | -1; weapon: WeaponType; t0: number; finisher?: ClashKind }
 export interface DoormanFight {
+  /**
+   * Times he's smacked Meathead around; the hint Meathead's about to shout (line by line) and when the next line's
+   * due; the last line said and when; how many hints so far (they get angrier); which spelled-out one's next.
+   */
+  smacks?: number;
+  hintQueue?: string[];
+  hintAt?: number;
+  lastHint?: string;
+  hintSaidAt?: number;
+  hintsGiven?: number;
+  fourthWall?: number;
+  /** His runs Meathead's got out of the way of; whether the current run's found him; his state last frame. */
+  dodges?: number;
+  dashTouched?: boolean;
+  prevAi?: string;
   phase: 'waiting' | 'intro' | 'fight' | 'dead';
   t: number;
   man: Enemy | null;
@@ -119,6 +134,7 @@ export const updateDoormanFight = (ctx: FrameContext, fight: DoormanFight, contr
   const { player } = state;
   const a = arena();
   fight.t++;
+  if (fight.phase === 'fight') { watchDodges(state, fight); sayHint(state, fight); }
   if (fight.hpFlash > 0) fight.hpFlash--;
   if (fight.lineT > 0) fight.lineT--;
   if (fight.talkCd > 0) fight.talkCd--;
@@ -197,8 +213,8 @@ const CLASH_WIN = 170, SCRATCH = 12;
 const HIT_CHARGE = 16, HIT_SLIDE = 14, HIT_UPPERCUT = 20, CLASH_LOSE = 24, SHOVE = 5;
 /** On top, for meeting one of his moves with the wrong one of yours. */
 const WRECK_EXTRA = 8;
-/** Bullets barely scratch him (a bit more once he's down). */
-const BULLET_SCALE = 0.12, BULLET_SCALE_DOWN = 0.4;
+/** Once he's down he's more open (the usual share's DOORMAN_RESIST: see combat/midBoss.ts). */
+const BULLET_SCALE_DOWN = 0.4;
 
 export const isAttacking = (m: Enemy) => m.aiState === 'charge' || m.aiState === 'slide' || m.aiState === 'uppercut';
 
@@ -328,11 +344,153 @@ const bodyBox = (m: Enemy) =>
   : m.aiState === 'uppercut' ? { x: m.pos.x - 12, y: m.pos.y - 44, w: W + 24, h: H + 44 }
   : { x: m.pos.x + 6, y: m.pos.y + 4, w: W - 12, h: H - 4 };
 
+// ---------------------------------------------------------------------------
+// Meathead working it out the hard way. After the doorman's smacked him around a couple of times (or he's spent
+// a couple of the doorman's runs just getting out of the way), a hint, the way he'd put it: at himself, furious.
+// Picked by what just happened, never the same line twice running, and angrier each time. By the fourth he's
+// given up on subtle and turns round to spell it out to whoever's holding the controls, buttons and all.
+// ---------------------------------------------------------------------------
+
+type HintKind = 'hit' | 'wrong' | 'clash' | 'dodge';
+/** First go: blunt. */
+const CALM: Record<HintKind, string[]> = {
+  hit: [
+    "HE CHARGES, I CHARGE! SHOULDER TO SHOULDER, YOU IDIOT!",
+    "HE SLIDES, I SLIDE! SAME MOVE, SAME TIME! THROUGH THE SLAB!",
+    "BULLETS DO NOTHING TO THIS WALK-IN FRIDGE! MEET HIM HEAD ON!",
+  ],
+  wrong: [
+    "WRONG MOVE AND HE FOLDS ME LIKE A LAWN CHAIR! MATCH HIM, DUMMY!",
+    "CHARGE MEETS CHARGE! SLIDE MEETS SLIDE! IT'S NOT ROCKET SCIENCE!",
+  ],
+  clash: [
+    "WHEN WE LOCK UP, MASH! MASH LIKE MY PROTEIN DEPENDS ON IT!",
+    "HE OUT-MUSCLED ME?! MASH HARDER! HARDER THAN LEG DAY!",
+  ],
+  dodge: [
+    "QUIT DANCING AROUND THE BIG IDIOT! HE CHARGES? CHARGE RIGHT BACK!",
+    "DODGING WON'T GET ME IN THE CLUB! MEET HIS SLIDE WITH A SLIDE!",
+    "I DIDN'T COME HERE TO PLAY TAG! SAME MOVE AS HIM, IN HIS FACE!",
+  ],
+};
+/** Third go: losing it. */
+const HEATED: Record<HintKind, string[]> = {
+  hit: ["ARE YOU KIDDING ME?! SAME! MOVE! AS! HIM! HOW MANY TIMES?!"],
+  wrong: ["I SAID MATCH HIM! CHARGE FOR CHARGE! SLIDE FOR SLIDE! UGH!"],
+  clash: ["MASH! MASH! MASH! ARE THESE ARMS MADE OF NOODLES?!"],
+  dodge: ["STOP HOPPING OVER HIM LIKE A SCARED GAZELLE! HIT HIM BACK!"],
+};
+/** Fourth go and on: talking straight to the player, the actual buttons spelled out. */
+const FOURTH_WALL: string[][] = [
+  ["HEY. YOU. YEAH, YOU, HOLDING THE {DEV}.", "HE CHARGES? YOU HIT {SPECIAL}. HE SLIDES? DOWN + {SPECIAL}.", "WE LOCK UP? MASH {MASH}. THAT'S THE WHOLE FIGHT!"],
+  ["OKAY, PLAYER. I'M DONE BEING SUBTLE.", "SAME MOVE AS HIM, SAME TIME. NOT A JUMP. {SPECIAL}!", "DO IT, OR I'M UNPLUGGING THE GAME MYSELF!"],
+  ["I CAN SEE YOU THROUGH THE SCREEN, CHAMP.", "HE CHARGES: {SPECIAL}. HE SLIDES: DOWN + {SPECIAL}. THEN MASH!", "WRITE IT ON YOUR HAND IF YOU HAVE TO!"],
+];
+/** How many smacks (or dodges) before the first hint, and between the ones after; the wait after a hit (the ow comes first). */
+const SMACKS_FIRST = 2, SMACKS_EVERY = 2, DODGES_FIRST = 2, DODGES_EVERY = 2, HINT_DELAY = 70;
+/** Never two hints closer together than this, and a line of a spelled-out hint waits this long after the one before. */
+const HINT_GAP = 360, LINE_GAP = 150;
+
+/** The buttons, the way whoever's playing has been pressing them. */
+const buttons = () => getLastInputDevice() === 'gamepad'
+  ? { DEV: 'CONTROLLER', SPECIAL: 'B', MASH: 'A, B, X AND Y' }
+  : { DEV: 'MOUSE', SPECIAL: 'RIGHT CLICK', MASH: 'BOTH MOUSE BUTTONS' };
+
+const queueHint = (state: GameState, fight: DoormanFight, kind: HintKind, delay: number) => {
+  if (fight.hintQueue?.length || state.frame - (fight.hintSaidAt ?? -1e9) < HINT_GAP) return;
+  const n = fight.hintsGiven || 0;
+  // (once he's spelled it out every way he knows how, he gives up talking and just suffers)
+  if (n >= 3 + FOURTH_WALL.length) return;
+  let lines: string[];
+  if (n >= 3) {
+    // Spelled out, straight down the camera
+    const b = buttons();
+    const pick = FOURTH_WALL[(fight.fourthWall || 0) % FOURTH_WALL.length];
+    fight.fourthWall = (fight.fourthWall || 0) + 1;
+    lines = pick.map(l => l.replace(/\{(\w+)\}/g, (_, k) => b[k as keyof typeof b]));
+  } else {
+    const pool = n === 2 ? HEATED[kind] : CALM[kind];
+    const fresh = pool.filter(l => l !== fight.lastHint);
+    lines = [fresh[Math.floor(Math.random() * fresh.length)] ?? pool[0]];
+  }
+  fight.hintsGiven = n + 1;
+  fight.hintQueue = lines;
+  fight.hintAt = state.frame + delay;
+};
+
+/**
+ * The wrong move into one of his (a slide into his shoulder charge, a charge into his slide, a dive kick or an
+ * uppercut into either): Meathead calls out exactly what he did wrong, there and then (it doesn't wait its turn
+ * like the hints do, but it doesn't say the same thing twice running either).
+ */
+type MyMove = 'charge' | 'slide' | 'dive' | 'uppercut';
+const WRONG_MOVE: Record<'charge' | 'slide', Record<MyMove, string[]>> = {
+  charge: {
+    charge: [],
+    slide: ["I SLID INTO A SHOULDER CHARGE?! SHOULDER MEETS SHOULDER, GENIUS!", "LEG SWEEP ON A CHARGING FRIDGE! GREAT PLAN!"],
+    dive: ["A DIVE KICK?! ON A CHARGING BULL?! SHOULDER HIM!"],
+    uppercut: ["UPPERCUT A FREIGHT TRAIN? NO! SHOULDER! TO! SHOULDER!"],
+  },
+  slide: {
+    slide: [],
+    charge: ["HE WENT LOW AND I WENT HIGH! SLIDE FOR SLIDE, DUMMY!", "CHARGED STRAIGHT OVER HIS LEGS INTO THE FLOOR! SLIDE, IDIOT!"],
+    dive: ["DIVE KICKED A GUY SLIDING ON THE FLOOR! BRILLIANT! SLIDE!"],
+    uppercut: ["UPPERCUT THE GUY ON THE FLOOR?! GET DOWN THERE AND SLIDE!"],
+  },
+};
+const WRONG_MOVE_GAP = 90;
+
+const wrongMoveLine = (state: GameState, fight: DoormanFight, his: 'charge' | 'slide', mine: MyMove) => {
+  const pool = WRONG_MOVE[his][mine];
+  // (not over the top of a spelled-out hint he's partway through)
+  if (!pool.length || fight.hintQueue?.length || state.frame - (fight.hintSaidAt ?? -1e9) < WRONG_MOVE_GAP) return;
+  const fresh = pool.filter(l => l !== fight.lastHint);
+  fight.hintQueue = [fresh[Math.floor(Math.random() * fresh.length)] ?? pool[0]];
+  fight.hintAt = state.frame + 12;
+};
+
+const smacked = (state: GameState, fight: DoormanFight, kind: Exclude<HintKind, 'dodge'>) => {
+  fight.smacks = (fight.smacks || 0) + 1;
+  const n = fight.smacks;
+  if (n >= SMACKS_FIRST && (n - SMACKS_FIRST) % SMACKS_EVERY === 0) queueHint(state, fight, kind, HINT_DELAY);
+};
+
+const isRun = (s?: string) => s === 'charge' || s === 'slide';
+
+/** Watches his charges and slides: one that ends without finding Meathead (no hit, no clash) was a dodge. */
+const watchDodges = (state: GameState, fight: DoormanFight) => {
+  const ai = fight.man?.aiState;
+  if (isRun(ai) && !isRun(fight.prevAi)) fight.dashTouched = false;
+  if (isRun(fight.prevAi) && !isRun(ai) && !ai?.startsWith('clash') && !fight.dashTouched) {
+    fight.dodges = (fight.dodges || 0) + 1;
+    const n = fight.dodges;
+    if (n >= DODGES_FIRST && (n - DODGES_FIRST) % DODGES_EVERY === 0) queueHint(state, fight, 'dodge', 20);
+  }
+  fight.prevAi = ai;
+};
+
+/** Says the next line of the hint that's due (over whatever ow he's still saying). */
+const sayHint = (state: GameState, fight: DoormanFight) => {
+  if (!fight.hintQueue?.length || fight.hintAt === undefined || state.frame < fight.hintAt || state.deathTimer > 0) return;
+  const text = fight.hintQueue.shift()!;
+  fight.lastHint = text;
+  fight.hintSaidAt = state.frame;
+  fight.hintAt = state.frame + LINE_GAP;
+  const hold = fight.hintQueue.length ? LINE_GAP : 170;
+  const shown = say(text, MEATHEAD_VOICE, 'urgent', {
+    onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = hold; },
+    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 30); },
+  });
+  if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = hold; }
+};
+
 /** Bumping into him: what you're doing against what he's doing. */
 const touch = (ctx: FrameContext, m: Enemy, fight: DoormanFight) => {
   const { state, fx } = ctx;
   const p = state.player;
   if (fight.touchCd > 0 || state.deathTimer > 0 || m.aiState === 'thrown' || !rectsOverlap(bodyBox(m), boundsOf(p))) return;
+  // (this run of his didn't miss: it found him)
+  fight.dashTouched = true;
   const pCharge = p.isCharging && !p.isSliding, pSlide = !!p.isSliding, pDive = !!p.isDivekicking, pUp = !!p.isUppercutting;
   const px = p.pos.x + p.width / 2, mx = m.pos.x + W / 2;
   const away = (px < mx ? -1 : 1);
@@ -344,11 +502,16 @@ const touch = (ctx: FrameContext, m: Enemy, fight: DoormanFight) => {
     hurtPlayer(ctx, dmg, source, kb, 40);
     shakeScreen(state, 12, 6);
     call(text, '#F87171');
+    if (text !== 'WRECKED!') smacked(state, fight, 'hit');
   };
   // The wrong move into one of his: he goes right through you, and you're down a moment
   const wrecked = (dmg: number, kb: { x: number; y: number }, source: string) => {
     if (p.invincibilityTimer > 0) return;
+    const mine: MyMove = pSlide ? 'slide' : pCharge ? 'charge' : pDive ? 'dive' : 'uppercut';
     youHit(dmg, kb, source, 'WRECKED!');
+    // (straight away, what he did wrong, in so many words)
+    wrongMoveLine(state, fight, source === 'doorman_slide' ? 'slide' : 'charge', mine);
+    smacked(state, fight, 'wrong');
     state.playerStunTimer = 40;
     shakeScreen(state, 20, 9);
   };
@@ -515,6 +678,7 @@ const endClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, won: boolean
     const land = Math.abs(mx - (leftEnd + p.width / 2)) > Math.abs(mx - (rightEnd + p.width / 2)) ? leftEnd : rightEnd;
     const vx = (land - p.pos.x) / 40;
     hurtPlayer(ctx, CLASH_LOSE, 'doorman_clash', { x: vx, y: -16 }, 44);
+    smacked(state, fight, 'clash');
     fight.thrown = { vx, t: 44 };
     state.playerStunTimer = 30;
     fight.lastCall = 'LOST THE CLASH!';
@@ -529,10 +693,8 @@ const endClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, won: boolean
 /** A player projectile hit him: it barely registers (a bit more with him on the floor). No status effects, no invincibility. */
 export const hitDoorman = (ctx: FrameContext, m: Enemy, p: Projectile, fight: DoormanFight): boolean => {
   if (fight.phase !== 'fight' || fight.clash || m.aiState === 'launched' || m.aiState === 'spun') return true;
-  let dmg = p.damage;
-  if (p.isBoulder) dmg = BOULDER_DAMAGE_PER_SPEED * Math.max(1, Math.hypot(p.vel.x, p.vel.y) / GML_SCALE) * 0.8;
-  if (p.isSludge) dmg = p.isLingering ? 0 : 20;
-  dmg *= m.aiState === 'tripped' ? BULLET_SCALE_DOWN : BULLET_SCALE;
+  // (he's built like a vault: a small slice of whatever it is)
+  const dmg = midBossProjectileDamage(p) * (m.aiState === 'tripped' ? BULLET_SCALE_DOWN : DOORMAN_RESIST);
   if (dmg <= 0) return true;
   m.health -= dmg;
   m.hitFlash = 4;

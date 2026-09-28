@@ -20,6 +20,7 @@ import { pickRandom, rectsOverlap, boundsOf } from '../core/utils';
 import { findFlyingCigarette, igniteOilWithFlame } from '../bosses/oscar';
 import { icicleBounds, meltIcicle } from '../bosses/artie';
 import { pushEnemy } from './knockback';
+import { isMidBoss, midBossDamage, MIDBOSS_DAMAGE, MIDBOSS_SPLASH_DAMAGE, MIDBOSS_NUKE_DAMAGE } from './midBoss';
 import { muzzlePoint, flamethrowerNozzle } from './muzzle';
 import { floorTopAt } from '../core/terrain';
 import { detonateSewerNuke, TOXIC_TOMMY } from '../scenes/sewerNuke';
@@ -366,6 +367,16 @@ const burnEnemy = (ctx: FrameContext, e: Enemy) => {
     hitBoss(ctx, e, 'FLAMETHROWER', { facing: player.facing });
     return;
   }
+  // A mid-boss doesn't catch fire: the flames just hurt, the same however much of it's in them (once a frame)
+  if (isMidBoss(e)) {
+    if (e.burntAt === state.frame) return;
+    e.burntAt = state.frame;
+    e.health -= midBossDamage(e, MIDBOSS_DAMAGE.FLAMETHROWER);
+    e.hitFlash = Math.max(e.hitFlash || 0, 2);
+    if (state.frame % 3 === 0) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + Math.random() * e.height * 0.6 }, vel: { x: (Math.random() - 0.5) * 2, y: -1 - Math.random() * 2 }, life: 18, color: Math.random() > 0.6 ? '#4B5563' : '#F97316', size: 3 + Math.random() * 3 });
+    if (state.frame % 20 === 0) fx.spawnDamageNumber(e.pos, Math.round(midBossDamage(e, MIDBOSS_DAMAGE.FLAMETHROWER) * 20));
+    return;
+  }
   // (the moose shrugs off status effects, oil included: no fireball)
   if (e.isOiled && e.kind !== 'moose') {
     // Fire meets oil
@@ -439,6 +450,14 @@ export const explodeOilRocket = (ctx: FrameContext, pos: Vector2, rocketVelX?: n
       return;
     }
 
+    // A mid-boss takes the rocket and its splash as one solid hit (the oil doesn't stick to it)
+    if (isMidBoss(e)) {
+      const dmg = midBossDamage(e, MIDBOSS_DAMAGE.OIL_ROCKET + MIDBOSS_SPLASH_DAMAGE);
+      e.health -= dmg;
+      e.hitFlash = 6;
+      fx.spawnDamageNumber(e.pos, Math.round(dmg));
+      return;
+    }
     e.health -= OIL_ROCKET_SPLASH_DAMAGE;
     e.isOiled = e.kind !== 'moose';
     e.oiledTimer = OIL_ROCKET_OILED_DURATION;
@@ -480,6 +499,14 @@ export const detonateNuke = (ctx: FrameContext, pos: Vector2) => {
     const dx = (e.pos.x + e.width / 2) - pos.x;
     const dy = (e.pos.y + e.height / 2) - pos.y;
     if (dx * dx + dy * dy >= OIL_ROCKET_NUKE_RADIUS * OIL_ROCKET_NUKE_RADIUS) return;
+    // (a mid-boss caught in the blast takes a big hit, not the end of it)
+    if (isMidBoss(e)) {
+      const dmg = midBossDamage(e, MIDBOSS_NUKE_DAMAGE);
+      e.health -= dmg;
+      e.hitFlash = 8;
+      fx.spawnDamageNumber(e.pos, Math.round(dmg), true, '#FF0000');
+      return;
+    }
     e.health -= OIL_ROCKET_NUKE_DAMAGE;
     fx.spawnDamageNumber(e.pos, OIL_ROCKET_NUKE_DAMAGE, true, '#FF0000');
     if (e.health > 0) return;

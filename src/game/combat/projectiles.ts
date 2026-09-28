@@ -24,6 +24,7 @@ import { getAttackHitbox } from '../player/player';
 import { shakeScreen, GameState } from '../core/state';
 import { getStageLayout } from '../stages';
 import { shieldFacing } from '../enemies/kinds';
+import { isMidBoss } from './midBoss';
 
 /** Moves one projectile and resolves its collisions. Returns false to remove it. */
 export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
@@ -388,6 +389,9 @@ const damageEnemiesInSludgePuddle = (ctx: FrameContext, p: Projectile) => {
       if (en.hitCooldown && en.hitCooldown > 0) continue;
       p.life = 0;
       hitBoss(ctx, en, 'SLUDGE', { facing: 0, damage: isWeakTo(stageId, 'SLUDGE') ? 50 : 15 });
+    } else if (isMidBoss(en)) {
+      // (a mid-boss wades through it: no melting, the blob that made it already did its damage)
+      continue;
     } else if (isDotTick && en.sludgeTickFrame !== state.frame) {
       // Overlapping puddles don't stack: one tick per enemy
       en.sludgeTickFrame = state.frame;
