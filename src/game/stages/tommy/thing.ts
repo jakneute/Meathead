@@ -162,11 +162,18 @@ export const updateThingRoom = (ctx: FrameContext, th: Thing, talk: Talk, contro
 };
 
 const ask = (state: GameState, th: Thing, talk: Talk, first = false) => {
-  // Any of them, at random (only what he's got on him, and never the same thing twice running)
+  // Everything he's got on him, in a shuffled order, each once before any comes round again (and never the same thing
+  // twice running). The order carries on across his tries at it: dying doesn't start it over on the same few
   const have = (w: WeaponType) => (state.availableWeapons ?? state.player.availableWeapons ?? []).includes(w);
   const owned = MENU.filter(have);
-  const pool = (owned.length ? owned : MENU).filter(w => w !== th.want || first);
-  th.want = pool[Math.floor(Math.random() * pool.length)] ?? MENU[0];
+  const menu = owned.length ? owned : MENU;
+  let bag = (state.stageMemo.thingBag ?? '').split(',').filter(w => menu.includes(w as WeaponType)) as WeaponType[];
+  if (!bag.length) {
+    bag = [...menu].sort(() => Math.random() - 0.5);
+    if (bag.length > 1 && bag[0] === th.want && !first) bag.push(bag.shift()!);
+  }
+  th.want = bag.shift() ?? MENU[0];
+  state.stageMemo.thingBag = bag.join(',');
   th.asks++;
   th.fed = 0; th.asked = 0; th.full = 0; th.askedAt = state.frame;
   th.askLine = pick(ASK_LINES[th.want]!, th.asks);
