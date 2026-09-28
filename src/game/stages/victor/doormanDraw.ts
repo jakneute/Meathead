@@ -301,7 +301,7 @@ export const drawDoormanHud = (ctx: Ctx, state: GameState, fight: DoormanFight) 
 };
 
 /** The clash buttons, for the last thing the player used: a pad's A B X Y diamond, or the W A S D keys. They flash when pressed. */
-const drawSpecialButton = (ctx: Ctx, x: number, y: number, pressed: boolean) => {
+const drawSpecialButton = (ctx: Ctx, x: number, y: number, pressed: boolean, f: number) => {
   ctx.save();
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   const bump = pressed ? 2 : 0;
@@ -313,11 +313,13 @@ const drawSpecialButton = (ctx: Ctx, x: number, y: number, pressed: boolean) => 
     };
     btn(x, y - 18, 'Y', '#CA8A04'); btn(x - 18, y, 'X', '#2563EB'); btn(x + 18, y, 'B', '#DC2626'); btn(x, y + 18, 'A', '#16A34A');
   } else {
-    // A mouse, both buttons lit
+    // A mouse, its two buttons blinking in turn (either one will do)
     ctx.fillStyle = '#E5E7EB'; ctx.strokeStyle = '#111827'; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.roundRect(x - 16, y - 24 + bump, 32, 46, 14); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = pressed ? '#991B1B' : '#DC2626';
+    const leftLit = Math.floor(f / 8) % 2 === 0;
+    ctx.fillStyle = pressed ? '#991B1B' : leftLit ? '#E5E7EB' : '#DC2626';
     ctx.beginPath(); ctx.moveTo(x, y - 22 + bump); ctx.lineTo(x, y - 4 + bump); ctx.lineTo(x + 14, y - 4 + bump); ctx.quadraticCurveTo(x + 14, y - 22 + bump, x, y - 22 + bump); ctx.fill();
+    ctx.fillStyle = pressed ? '#991B1B' : leftLit ? '#DC2626' : '#E5E7EB';
     ctx.beginPath(); ctx.moveTo(x, y - 22 + bump); ctx.lineTo(x, y - 4 + bump); ctx.lineTo(x - 14, y - 4 + bump); ctx.quadraticCurveTo(x - 14, y - 22 + bump, x, y - 22 + bump); ctx.fill();
     ctx.strokeStyle = '#111827'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y - 22 + bump); ctx.lineTo(x, y - 4 + bump); ctx.moveTo(x - 14, y - 4 + bump); ctx.lineTo(x + 14, y - 4 + bump); ctx.stroke();
     ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.fillText('LEFT OR RIGHT CLICK', x, y + 34);
@@ -378,7 +380,7 @@ const drawClash = (ctx: Ctx, state: GameState, fight: DoormanFight) => {
     ctx.textAlign = 'right'; ctx.fillStyle = '#86EFAC'; ctx.fillText('WIN', barL + barW, barY + 34);
     ctx.textAlign = 'center'; ctx.fillStyle = Math.floor(f / 6) % 2 ? '#FFFFFF' : '#FACC15'; ctx.font = 'bold 12px "Press Start 2P"';
     ctx.fillText('MASH IT!', cx - 50, barY + 66);
-    drawSpecialButton(ctx, cx + 70, barY + 60, c.flash > 0);
+    drawSpecialButton(ctx, cx + 70, barY + 60, c.flash > 0, f);
   } else {
     // A marker sweeping the bar: hit it in the zone
     ctx.fillStyle = '#374151'; ctx.fillRect(barL, barY, barW, 18);
@@ -397,7 +399,7 @@ const drawClash = (ctx: Ctx, state: GameState, fight: DoormanFight) => {
       ctx.fillStyle = left > 0 ? '#FACC15' : '#22C55E'; ctx.fillText(text, 0, 0);
       ctx.restore();
     }
-    drawSpecialButton(ctx, cx + 110, barY + 62, c.flash > 0 && !c.missed);
+    drawSpecialButton(ctx, cx + 110, barY + 62, c.flash > 0 && !c.missed, f);
   }
   ctx.restore();
 };
