@@ -21,12 +21,12 @@ import type { EnemyKind } from '../../../types';
 import type { GroundRun } from '../../core/terrain';
 import { GROUND_Y, BOSS_DOOR_X } from '../../../constants';
 
-export const CP = { FIELD: 0, FIELD_MID: 1, FIELD_MID2: 2, BUNKER: 3, CHASE: 4, END: 5, END_MID: 6 } as const;
+export const CP = { FIELD: 0, FIELD_MID: 1, FIELD_MID2: 2, BUNKER: 3, CHASE: 4, END: 5, END_MID: 6, BAR: 7 } as const;
 
 export interface Spawn { kind: EnemyKind; x: number; y: number; variant?: number }
 export interface PickupSpot { x: number; y: number; type: 'small_health' | 'large_health' | 'small_ammo' | 'large_ammo' }
 /** Something you jump up through and stand on: a pipeline, a derrick's platform. */
-export interface Ledge { x: number; y: number; w: number; look: 'pipe' | 'deck' }
+export interface Ledge { x: number; y: number; w: number; look: 'pipe' | 'deck' | 'stage' }
 /** Oil on the ground: a slick (slide about on it), or tar (it holds your feet). */
 export interface OilPatch { x1: number; x2: number; kind: 'slick' | 'tar'; /** It keeps leaking back after it's burned off. */ refills?: boolean }
 /**
@@ -56,6 +56,11 @@ export interface Course {
   chase: { x1: number; x2: number; lap: number; laps: number };
   /** Out back of the field office: where he rides in from, where the two are smoking, the wall they end up on. */
   end: { x1: number; x2: number; smokers: number; wall: number };
+  /**
+   * The bikers' bar: its walls and ceiling, the band's stage, the bathroom at the back (you go in to see it), and the three
+   * gas lines (one low behind the jukebox, one high over the stage, one in the bathroom).
+   */
+  bar: { x1: number; x2: number; ceil: number; stage: { x: number; y: number; w: number }; bathroom: { x1: number; x2: number }; veins: { x: number; y: number }[] };
   checkpoints: { x: number; y: number }[];
   left: number;
   startX: number;
@@ -66,7 +71,9 @@ const FIELD_X0 = -70000;
 const CHASE_X0 = -40000;
 /** One lap of the chase's road (it's the same all the way round), and how many are laid down end to end. */
 export const LAP = 6400, LAPS = 3;
-const END_X0 = BOSS_DOOR_X - 5200;
+const END_X0 = BOSS_DOOR_X - 6600;
+/** The bikers' bar, the last room before Oscar's (local to the office end): its walls, the band's stage, the bathroom in the back. */
+const BAR_X1 = 5150, BAR_X2 = 6350;
 
 /** How the chase's road rises and falls across a lap: a height every 320 px (up and down all the way: everything's always above or below him). */
 const LAP_HEIGHTS = [0, -40, -90, -120, -90, -30, 20, 60, 90, 60, 10, -50, -110, -140, -100, -40, 10, 40, 30, 0];
@@ -189,10 +196,12 @@ const build = () => {
   e.ground(4550, 4600); e.pit(4600, 5000);
   e.ledge(4640, Y - 70, 100, 'pipe'); e.ledge(4770, Y - 130, 100, 'pipe'); e.ledge(4900, Y - 70, 100, 'pipe');
   e.jet(4820, Y + 40, 'up', 280, 200, 60, 60);
-  e.ground(5000, 5200);
-  e.spawn('deputy', 5120, Y, 7);
+  e.ground(5000, 6600);
+  e.spawn('deputy', 5060, Y, 7);
+  // The bikers' bar (see bar.ts): the band's stage to get up on
+  e.ledge(BAR_X1 + 70, Y - 100, 210, 'stage');
   // The refill before the door
-  e.pickup(5060, Y - 30, 'large_health'); e.pickup(5130, Y - 30, 'large_ammo');
+  e.pickup(6450, Y - 30, 'large_health'); e.pickup(6520, Y - 30, 'large_ammo');
   return { f, c, e };
 };
 
@@ -216,9 +225,15 @@ const buildCourse = (): Course => {
     bunker: { x1: FIELD_X0 + 7600, x2: FIELD_X0 + 8300, roof: Y - 240, vein: { x: FIELD_X0 + 7845, y: Y - 44 }, bikers: [FIELD_X0 + 8480, FIELD_X0 + 8395, FIELD_X0 + 8565, FIELD_X0 + 8660] },
     chase: { x1: CHASE_X0, x2: CHASE_X0 + LAP * (LAPS + 1), lap: LAP, laps: LAPS },
     end: { x1: END_X0 - 800, x2: BOSS_DOOR_X, smokers: END_X0 + 1060, wall: END_X0 + 1110 },
+    bar: {
+      x1: END_X0 + BAR_X1, x2: END_X0 + BAR_X2, ceil: Y - 270,
+      stage: { x: END_X0 + BAR_X1 + 70, y: Y - 100, w: 210 },
+      bathroom: { x1: END_X0 + BAR_X2 - 150, x2: END_X0 + BAR_X2 },
+      veins: [{ x: END_X0 + BAR_X1 + 395, y: Y - 20 }, { x: END_X0 + BAR_X1 + 330, y: Y - 137 }, { x: END_X0 + BAR_X2 - 60, y: Y - 37 }],
+    },
     checkpoints: [
       { x: FIELD_X0 + 150, y: Y }, { x: FIELD_X0 + 2780, y: Y }, { x: FIELD_X0 + 4640, y: Y }, { x: FIELD_X0 + 7450, y: Y },
-      { x: CHASE_X0 + 300, y: Y }, { x: END_X0 + 1300, y: Y }, { x: END_X0 + 2900, y: Y },
+      { x: CHASE_X0 + 300, y: Y }, { x: END_X0 + 1300, y: Y }, { x: END_X0 + 2900, y: Y }, { x: END_X0 + BAR_X1 - 80, y: Y },
     ],
     left: FIELD_X0 - 2000,
     startX: FIELD_X0,

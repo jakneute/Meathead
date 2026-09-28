@@ -17,6 +17,7 @@ import { Bunker, createBunker, updateBunker } from './bunker';
 import { Chase, createChase, updateChase, startChase, chaseDeathMessage } from './chase';
 import { Ending, createEnding, updateEnding, startEnding, fenceEnd } from './ending';
 import { mountMoto } from './moto';
+import { Bar, createBar, updateBar } from './bar';
 
 export interface OscarRuntime {
   startedAt: number;
@@ -25,6 +26,7 @@ export interface OscarRuntime {
   bunker: Bunker;
   chase: Chase;
   ending: Ending;
+  bar: Bar;
   /** A cut to black and back: frames in, and what happens at the black. */
   fade: { t: number; at: (() => void) | null };
 }
@@ -63,6 +65,7 @@ export const createOscarRuntime = (state: GameState, skipToBoss: boolean): Oscar
     bunker: createBunker(state, startedAt),
     chase: createChase(startedAt),
     ending: createEnding(startedAt),
+    bar: createBar(state, startedAt),
     fade: { t: 0, at: null },
   };
   applyPlaceCamera(state, placeOf(start.x));
@@ -141,6 +144,7 @@ export const updateOscar = (ctx: FrameContext, controls: Controls): Controls => 
   if (place === 'end') {
     controls = updateEnding(ctx, rt.ending, rt.talk, controls);
     updateField(ctx, rt.field);
+    controls = updateBar(ctx, rt.bar, rt.talk, controls);
     if (state.checkpoint < CP.END_MID && rt.ending.phase === 'done' && p.isGrounded && p.pos.x > COURSE.checkpoints[CP.END_MID].x) state.checkpoint = CP.END_MID;
   }
   return controls;

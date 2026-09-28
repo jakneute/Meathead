@@ -132,7 +132,7 @@ export const drawPits = (ctx: Ctx, state: GameState) => {
 /** Pipelines (and a derrick's deck): a fat steel pipe on stands, a flange every so far. */
 export const drawLedges = (ctx: Ctx, state: GameState) => {
   for (const l of COURSE.ledges) {
-    if (!inView(state, l.x, l.x + l.w)) continue;
+    if (l.look === 'stage' || !inView(state, l.x, l.x + l.w)) continue;
     const ground = groundLineAt(state.groundRuns, l.x + l.w / 2);
     // Stands down to the ground (or into the pit)
     ctx.fillStyle = '#44403C';

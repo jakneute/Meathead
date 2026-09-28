@@ -14,6 +14,7 @@ import { drawDirt, drawOil, drawOilFire, drawPits, drawLedges, drawProps, drawJe
 import { drawBunkerBack, drawBunkerMid, drawBunkerFront } from './bunkerDraw';
 import { drawChaseBack, drawChaseThrown, drawRiddenMoto, drawChaseHud, drawFarField, drawChaseWarnings } from './chaseDraw';
 import { drawEndBack, drawEndMid, drawEndFront } from './endDraw';
+import { drawBarBack, drawBarMid, drawBarFront } from './barDraw';
 import { saying, drawBubble, Speaker } from './script';
 
 type Ctx = CanvasRenderingContext2D;
@@ -59,7 +60,7 @@ export const drawOscarBack = (ctx: Ctx, state: GameState) => {
   const rt = getOscar(state)!;
   const place = view(state);
   if (place === 'chase') { drawChaseBack(ctx, state, rt.chase); return; }
-  if (place === 'end') { drawPits(ctx, state); drawProps(ctx, state); drawDirt(ctx, state); drawOil(ctx, state, rt.field); drawJetPipes(ctx, state); drawEndBack(ctx, state, rt.ending); return; }
+  if (place === 'end') { drawPits(ctx, state); drawProps(ctx, state); drawDirt(ctx, state); drawOil(ctx, state, rt.field); drawJetPipes(ctx, state); drawEndBack(ctx, state, rt.ending); drawBarBack(ctx, state, rt.bar); return; }
   drawPits(ctx, state);
   drawProps(ctx, state);
   drawDirt(ctx, state);
@@ -71,7 +72,7 @@ export const drawOscarMid = (ctx: Ctx, state: GameState) => {
   const rt = getOscar(state)!;
   const place = view(state);
   if (place === 'chase') drawChaseThrown(ctx, state, rt.chase);
-  else if (place === 'end') { drawLedges(ctx, state); drawEndMid(ctx, state, rt.ending); }
+  else if (place === 'end') { drawLedges(ctx, state); drawEndMid(ctx, state, rt.ending); drawBarMid(ctx, state, rt.bar); }
   else { drawLedges(ctx, state); drawBunkerMid(ctx, state, rt.bunker); }
   drawRiddenMoto(ctx, state, place === 'chase' ? rt.chase : null);
 };
@@ -80,7 +81,7 @@ export const drawOscarFront = (ctx: Ctx, state: GameState) => {
   const rt = getOscar(state)!;
   const place = view(state);
   if (place !== 'chase' && place !== 'end') { drawOilFire(ctx, state, rt.field); drawBunkerFront(ctx, state, rt.bunker); }
-  if (place === 'end') { drawOilFire(ctx, state, rt.field); drawEndFront(ctx, state, rt.ending); }
+  if (place === 'end') { drawOilFire(ctx, state, rt.field); drawEndFront(ctx, state, rt.ending); drawBarFront(ctx, state, rt.bar); }
   if (place !== 'chase') drawJetFire(ctx, state);
   drawSpeech(ctx, state, rt);
 };
@@ -92,8 +93,8 @@ const drawSpeech = (ctx: Ctx, state: GameState, rt: OscarRuntime) => {
   const at: Partial<Record<Speaker, { x: number; y: number }>> = {
     worker: workerAt(1),
     foreman: workerAt(3),
-    biker: { x: b.bikers[1].x, y: GROUND_Y - 96 },
-    dan: { x: b.bikers[0].x, y: GROUND_Y - 100 },
+    biker: rt.bar.phase === 'drinks' || rt.bar.phase === 'waiting' && view(state) === 'end' ? { x: rt.bar.bikers[2].x, y: GROUND_Y - 100 } : { x: b.bikers[1].x, y: GROUND_Y - 96 },
+    dan: rt.bar.phase === 'drinks' || rt.bar.phase === 'waiting' && view(state) === 'end' ? { x: rt.bar.bikers[5].x, y: GROUND_Y - 100 } : { x: b.bikers[0].x, y: GROUND_Y - 100 },
     smokerA: { x: COURSE.end.smokers - 34, y: GROUND_Y - 88 },
     smokerB: { x: COURSE.end.smokers + 12, y: GROUND_Y - 88 },
   };
