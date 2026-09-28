@@ -14,7 +14,7 @@ import type { Live } from '../../render/backdrops';
 import { drawPlayer } from '../../render/player/player';
 import { COURSE } from './course';
 import { rideProgress, RIDE_FRAMES, wreckBox, FloatingWreck, JetSki } from './jetski';
-import { TOURISTS, FADE_IN, DROP_AT, IMPACT_AT, skiDrop, tourWrecked } from './alcatraz';
+import { TOURISTS, FADE_IN, DROP_AT, IMPACT_AT, skiDrop, tourWrecked, tourLaughing } from './alcatraz';
 import { drawAlcatraz, bubble } from './draw';
 
 type Ctx = CanvasRenderingContext2D;
@@ -453,8 +453,20 @@ const drawAftermath = (ctx: Ctx, state: GameState) => {
 
 export const drawCellFront = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
   const tour = rt.tour;
-  if (tour.lineT <= 0 || !tour.line) return;
   const C = COURSE.cellblock;
+  // The whole tour chuckling at the guide's joke
+  if (tourLaughing(tour)) {
+    ctx.save();
+    ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'center';
+    TOURISTS.forEach((tr, i) => {
+      if (i % 2 === 1 && tr.look !== 'guide') return;
+      const bob = Math.abs(Math.sin(state.frame * 0.3 + i)) * 4;
+      ctx.fillStyle = '#000'; ctx.fillText(tr.look === 'guide' ? 'HO HO!' : 'HA HA!', C.crashX + tr.dx + 1, Y - 92 - bob + 1);
+      ctx.fillStyle = '#FDE68A'; ctx.fillText(tr.look === 'guide' ? 'HO HO!' : 'HA HA!', C.crashX + tr.dx, Y - 92 - bob);
+    });
+    ctx.restore();
+  }
+  if (tour.lineT <= 0 || !tour.line) return;
   if (tour.who === 'meathead') {
     if (tour.phase === 'tour' && tour.t < IMPACT_AT) {
       // Off the top of the screen, coming closer

@@ -16,7 +16,9 @@ const ATTACK_INTERVAL_RAMP = 70; // ...this many fewer at 0 HP
 const ROLL_SPEED_RAMP = 2;       // extra rolling boulder speed at 0 HP
 const HEAVE_WINDUP = 26;         // holding the boulder overhead
 const HEAVE_FLIGHT = 48;         // frames the heaved boulder takes to come down
-const HEAVE_MAX_SPEED_X = 9;
+const HEAVE_MAX_SPEED_X = 16;
+/** How far out of the far corner the heaved boulder comes down (just clear of the wall). */
+const HEAVE_CORNER_INSET = 12;
 const RUN_SPEED = 4.5;
 const RUN_SPEED_RAMP = 2.5;      // extra run speed at 0 HP
 const RUN_REST = 60;             // rest after a run (shrinks with the ramp)
@@ -88,13 +90,19 @@ const rollBoulder = (ctx: FrameContext, boss: Enemy, dir: number, id: string) =>
     dir * speed, 0, ERNIE_BOULDER_SIZE, ERNIE_BOULDER_SIZE, ROLLED_BOULDER_DAMAGE, { isBoulder: true }));
 };
 
-/** Lobs it high so it comes down on Meathead (then bounces and rolls on), and runs for the far side. */
+/**
+ * Lobs it high across the room to come down in the far bottom corner (wherever Meathead is: it doesn't track
+ * him, so you read the arc and get out from under it), then it bounces and rolls on. And he runs for the far side.
+ */
 const heaveBoulder = (ctx: FrameContext, boss: Enemy) => {
-  const { player } = ctx.state;
   const size = ERNIE_BOULDER_SIZE;
   const x = insideArena(midX(boss) - size / 2), y = boss.pos.y - size + 10;
-  const vx = Math.max(-HEAVE_MAX_SPEED_X, Math.min(HEAVE_MAX_SPEED_X, (midX(player) - midX(boss)) / HEAVE_FLIGHT));
+  const corner = midX(boss) < ARENA_MID ? ARENA_RIGHT - size / 2 - HEAVE_CORNER_INSET : ARENA_LEFT + size / 2 + HEAVE_CORNER_INSET;
   const vy = -0.5 * GRAVITY * HEAVE_FLIGHT;
+  // (timed to when it actually reaches the floor, which is a little below where it leaves his hands)
+  const drop = FLOOR_Y - (y + size);
+  const land = (-vy + Math.sqrt(vy * vy + 2 * GRAVITY * drop)) / GRAVITY;
+  const vx = Math.max(-HEAVE_MAX_SPEED_X, Math.min(HEAVE_MAX_SPEED_X, (corner - (x + size / 2)) / land));
   ctx.bossHelpers.addProjectile(enemyProjectile(`b-ernie-heave-${Date.now()}`, x, y, vx, vy, size, size, HEAVED_BOULDER_DAMAGE, { isBoulder: true, isHeaved: true }));
   ctx.bossHelpers.playGunSound('gun');
   boss.bossState = 'running';

@@ -70,15 +70,22 @@ const speak = (tour: Tour, who: string, text: string, voice: Voice) => {
   talk.spoken = say(text, voice, 'urgent', { onShow: () => {}, onHide: () => {}, onDone: () => { talk.done = true; } }) && canSpeak();
 };
 /** The line being said is finished (spoken to the end; with no voice, up long enough to read; and never forever), plus a beat. */
-const talkOver = (tour: Tour, clock: number) => {
+const talkOver = (tour: Tour, clock: number, pause: number) => {
   const k = tour.talk;
   if (!k) return true;
   const age = clock - k.at;
   if (!k.over && age > 20 && (k.done || (!k.spoken && age > 45 + k.len * 3) || age > 60 + k.len * 5)) { k.over = clock; if (tour.lineT > 20) tour.lineT = 20; }
-  return k.over > 0 && clock - k.over > 14;
+  return k.over > 0 && clock - k.over > pause;
 };
-/** Where the scene waits for whoever's talking to finish before it goes on. */
-const HOLDS = new Set([124, 189, 239, DROP_AT - 9, TOUR_END - 1]);
+/**
+ * Where the scene waits for whoever's talking to finish before it goes on, and how long a pause after. The long one's
+ * after the guide's punchline: the tour has a good laugh at the idea before anyone hears him coming.
+ */
+export const LAUGH_BEAT = 239;
+const HOLDS = new Map([[124, 14], [189, 14], [LAUGH_BEAT, 80], [DROP_AT - 9, 0], [TOUR_END - 1, 20]]);
+
+/** The tour's laughing at the guide's joke (the beat before he's heard). */
+export const tourLaughing = (tour: Tour) => tour.phase === 'tour' && tour.t === LAUGH_BEAT && !!tour.talk?.over;
 
 export const updateTour = (ctx: FrameContext, tour: Tour, controls: Controls): Controls => {
   const { state, fx } = ctx;
@@ -88,7 +95,8 @@ export const updateTour = (ctx: FrameContext, tour: Tour, controls: Controls): C
   const C = COURSE.cellblock;
   tour.clock++;
   // (it holds at each beat till the line before it's been said)
-  if (!(HOLDS.has(tour.t) && !talkOver(tour, tour.clock))) tour.t++;
+  const hold = HOLDS.get(tour.t);
+  if (!(hold !== undefined && !talkOver(tour, tour.clock, hold))) tour.t++;
   else return { ...NO_CONTROLS };
   const t = tour.t;
   p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
