@@ -42,6 +42,8 @@ export type VulgarityType = 'gun_kill' | 'boulder_kill' | 'shotgun_kill' | 'flam
 export type SoundType = 'gun' | 'ice' | 'flame' | 'tsunami' | 'dart' | 'horn' | 'ignite' | 'barf' | 'oil' | 'taser' | 'tinkle' | 'nuke' | 'siren' | 'thunder' | 'screams';
 
 export interface Player extends Entity {
+  /** Frames a shoulder charge can keep going while it's driving a shield goon back (held down, it lasts a good while longer). */
+  shoveT?: number;
   facing: 1 | -1;
   isGrounded: boolean;
   isDucking: boolean;

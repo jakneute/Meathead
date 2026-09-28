@@ -695,11 +695,16 @@ const shieldShove = (ctx: FrameContext, e: Enemy): boolean => {
   if (!rectsOverlap(reach, boundsOf(e))) return false;
   const first = e.shovedAt === undefined || state.frame - e.shovedAt > 8;
   e.shovedAt = state.frame;
-  // Driven back ahead of him, feet dragging
+  // Held down, the charge keeps driving him a good long way (not forever)
+  if (first) p.shoveT = SHIELD_SHOVE_FRAMES;
+  if ((p.shoveT || 0) > 0) { p.shoveT!--; p.chargeTimer = Math.max(p.chargeTimer, 2); }
+  // Driven back ahead of him, feet dragging; and he's a while getting his feet back under him afterward
+  // (no sucker punch the moment you let up)
   e.pos.x = side > 0 ? p.pos.x + p.width + 2 : p.pos.x - e.width - 2;
   e.vel.x = p.vel.x * 0.9;
-  e.pauseTimer = Math.max(e.pauseTimer || 0, 24);
+  e.pauseTimer = Math.max(e.pauseTimer || 0, SHIELD_SHOVE_RECOVER);
   e.melee = undefined;
+  e.shootTimer = 0;
   const cx = side > 0 ? e.pos.x : e.pos.x + e.width, cy = e.pos.y + e.height * 0.45;
   if (first) {
     // CLANG
@@ -716,6 +721,8 @@ const shieldShove = (ctx: FrameContext, e: Enemy): boolean => {
   return true;
 };
 const SHIELD_SHOVE_CHIP = 5;
+/** How long a held charge can keep driving a shield goon back (most of a second more), and how long he's reeling after. */
+const SHIELD_SHOVE_FRAMES = 50, SHIELD_SHOVE_RECOVER = 55;
 
 /** Knocked into a wall: damage scales with speed (hugely if frozen). Returns true if it died. */
 const slamIntoWalls = (ctx: FrameContext, e: Enemy, speed: number): boolean => {
