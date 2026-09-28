@@ -87,7 +87,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
       drawTommyShaft(wctx, state);
     } else if (arenaInView) {
       const hurricane = state.enemies.find(e => e.type === 'boss' && e.bossState === 'hurricane' && e.health > 0);
-      drawCustomBossArena(wctx, stageId!, state.frame || 0, hurricane ? hurricane.pos.x + hurricane.width / 2 : null);
+      drawCustomBossArena(wctx, stageId!, state.frame || 0, hurricane ? hurricane.pos.x + hurricane.width / 2 : null, state);
     }
     drawBossHazards(wctx, state);
     if (state.bossCorpse) drawBossCorpse(wctx, state.bossCorpse, state.frame);

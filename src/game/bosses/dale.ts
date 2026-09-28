@@ -9,7 +9,7 @@
 
 import { Enemy, Projectile } from '../../types';
 import {
-  ARENA_RIGHT, BOSS_DOOR_X, STAGE_WIDTH, DALE_TRUCK_SPEED, DALE_SPEED_WINDUP, DALE_TRUCK_DAMAGE, DALE_PUSHBACK_VEL,
+  ARENA_LEFT, ARENA_RIGHT, BOSS_DOOR_X, STAGE_WIDTH, DALE_TRUCK_SPEED, DALE_SPEED_WINDUP, DALE_TRUCK_DAMAGE, DALE_PUSHBACK_VEL,
   METH_BARREL_DAMAGE, PLAYER_PUSHBACK_VEL_Y, PARTICLE_PALETTES,
 } from '../../constants';
 import { DALE_LINES } from '../../content/dialogue';
@@ -63,6 +63,9 @@ const driveTruck = (ctx: FrameContext, boss: Enemy) => {
   const { player } = state;
   boss.truckX! += DALE_TRUCK_SPEED;
   const truck = { x: boss.truckX!, y: TRUCK.y, w: TRUCK.w, h: TRUCK.h };
+  // The first time through, it takes the pharmacy's front doors out on the way in, and the back wall on the way out
+  if (boss.leftWallDownAt === undefined && truck.x + truck.w >= ARENA_LEFT - 30) smashWall(ctx, boss, 'left');
+  if (boss.rightWallDownAt === undefined && !boss.truckCrashing && truck.x + truck.w >= ARENA_RIGHT + 10) smashWall(ctx, boss, 'right');
   const hits = (e: { pos: { x: number, y: number }, width: number, height: number }) =>
     e.pos.x < truck.x + truck.w && e.pos.x + e.width > truck.x && e.pos.y < truck.y + truck.h && e.pos.y + e.height > truck.y;
 
@@ -107,6 +110,29 @@ const driveTruck = (ctx: FrameContext, boss: Enemy) => {
     // Speed gets a long, readable wind-up: he visibly shoots up before dashing
     boss.stateTimer = boss.shipmentType === 'speed' ? DALE_SPEED_WINDUP : 30;
   }
+};
+
+/**
+ * The truck through a wall of the pharmacy, the first time: the glass front doors (left) burst into shards and the
+ * frame folds; the back wall (right) blows out in bricks and plaster. (The drawing plays out the rest: see the arena.)
+ */
+const smashWall = (ctx: FrameContext, boss: Enemy, side: 'left' | 'right') => {
+  const { state, fx } = ctx;
+  const x = side === 'left' ? ARENA_LEFT - 20 : ARENA_RIGHT + 20;
+  if (side === 'left') {
+    boss.leftWallDownAt = state.frame;
+    fx.spawnGlassShatter({ x, y: TRUCK.y + 40 });
+    fx.spawnGlassShatter({ x, y: TRUCK.y + 110 });
+    fx.spawnDamageNumber({ x: x + 30, y: TRUCK.y - 60 }, "WE'RE OPEN!", true, '#4ADE80');
+  } else {
+    boss.rightWallDownAt = state.frame;
+    fx.spawnExplosion({ x, y: TRUCK.y + 60 }, '#B91C1C', 24, 10, 20);
+    fx.spawnExplosion({ x, y: TRUCK.y + 90 }, '#E7E5E4', 30, 8, 24);
+    fx.spawnDamageNumber({ x: x - 200, y: TRUCK.y - 60 }, 'EMPLOYEES ONLY!', true, '#FACC15');
+    fx.playGunSound('nuke');
+  }
+  fx.spawnExplosion({ x, y: FLOOR_Y - 30 }, '#A8A29E', 30, 0, 18);
+  shakeScreen(state, 26, 12);
 };
 
 /** Meathead's filth shield took the hit: the truck blows up, the shipment's lost, the shield's used up. */

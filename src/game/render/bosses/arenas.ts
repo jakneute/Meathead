@@ -1,5 +1,7 @@
 import { ARENA_LEFT, GROUND_Y } from '../../../constants';
 import { getArenaRight } from '../../bosses/registry';
+import type { Enemy } from '../../../types';
+import type { GameState } from '../../core/state';
 
 /** Decorative backdrops for each boss arena (drawn in world coordinates). */
 export const drawCustomBossArena = (
@@ -7,7 +9,9 @@ export const drawCustomBossArena = (
   stageId: string,
   frame: number,
   /** Where the wind is being sucked toward (Hector's hurricane), if anywhere. */
-  windTargetX: number | null = null
+  windTargetX: number | null = null,
+  /** The game (for arenas that change as the fight goes: Dale's pharmacy walls). */
+  state?: GameState,
 ) => {
   const arenaLeft = ARENA_LEFT;
   const arenaRight = getArenaRight(stageId);
@@ -32,6 +36,7 @@ export const drawCustomBossArena = (
       break;
     case 'Drug Trade Dale':
       drawDaleArena(ctx, arenaLeft, arenaRight, arenaW, ceilingY, groundY, frame);
+      if (state) drawDaleWalls(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, state.enemies.find(e => e.type === 'boss'), state.doorState === 'done');
       break;
     case 'Blackout Barry':
       drawBarryArena(ctx, arenaLeft, arenaRight, arenaW, ceilingY, groundY, frame);
@@ -695,11 +700,16 @@ const drawHectorArena = (
   ctx.restore();
 };
 
+
 /* =========================================================================
- * 5. DRUG TRADE DALE: ALBUQUERQUE, NEW MEXICO AT DUSK
- * Sandia Mountains glowing pink, mesas, Balloon Fiesta balloons, an adobe
- * with chile ristras, a suspicious RV, and Route 66.
+ * 5. DRUG TRADE DALE: DALE'S PHARMACY, ALBUQUERQUE
+ * The inside of his pharmacy: mint tile, strip lights, aisles of pills, the
+ * Rx counter at the back under a neon sign. The glass front doors (left) and
+ * the back wall (right) are in his delivery truck's way: the first time it
+ * comes through, each of them comes down (and stays down).
  * ========================================================================= */
+const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+
 const drawDaleArena = (
   ctx: CanvasRenderingContext2D,
   left: number,
@@ -709,296 +719,212 @@ const drawDaleArena = (
   bottom: number,
   frame: number
 ) => {
-  // 1. High-desert dusk sky
-  const sky = ctx.createLinearGradient(left, top, left, bottom);
-  sky.addColorStop(0, '#1b1f4b');
-  sky.addColorStop(0.35, '#5a3a7a');
-  sky.addColorStop(0.62, '#e0735a');
-  sky.addColorStop(0.8, '#f7b267');
-  sky.addColorStop(1, '#f4d58d');
-  ctx.fillStyle = sky;
-  ctx.fillRect(left, top, w, bottom - top);
+  // 0. Above the ceiling: the roof's dark underside, ducts and joists
+  ctx.fillStyle = '#292524'; ctx.fillRect(left - 40, top - 200, w + 80, 200);
+  ctx.fillStyle = '#44403C'; for (let x = left - 40; x < right + 40; x += 48) ctx.fillRect(x, top - 200, 10, 200);
+  ctx.fillStyle = '#78716C'; ctx.fillRect(left - 40, top - 60, w + 80, 22);
+  ctx.fillStyle = '#57534E'; for (let x = left; x < right; x += 90) ctx.fillRect(x, top - 64, 6, 30);
+  // 1. The back wall: cream up top, mint tile below
+  ctx.fillStyle = '#EEF0E2'; ctx.fillRect(left, top, w, bottom - top);
+  const tileTop = bottom - 190;
+  ctx.fillStyle = '#9ED3C0'; ctx.fillRect(left, tileTop, w, bottom - tileTop);
+  ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 1;
+  for (let y = tileTop; y < bottom; y += 18) { ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(right, y); ctx.stroke(); }
+  for (let x = left; x < right; x += 18) { ctx.beginPath(); ctx.moveTo(x, tileTop); ctx.lineTo(x, bottom); ctx.stroke(); }
+  ctx.fillStyle = '#2F7D6A'; ctx.fillRect(left, tileTop - 6, w, 6);
 
-  // First stars
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-  for (let i = 0; i < 18; i++) {
-    const sx = left + ((i * 97) % w);
-    const sy = top + 8 + ((i * 53) % 90);
-    if ((frame + i * 13) % 90 < 80) ctx.fillRect(sx, sy, 2, 2);
-  }
-
-  // Setting sun with heat-haze bands
-  const sunX = left + w * 0.68;
-  const sunY = bottom - 150;
-  const sunGlow = ctx.createRadialGradient(sunX, sunY, 10, sunX, sunY, 120);
-  sunGlow.addColorStop(0, 'rgba(255, 230, 150, 0.9)');
-  sunGlow.addColorStop(1, 'rgba(255, 160, 90, 0)');
-  ctx.fillStyle = sunGlow;
-  ctx.fillRect(sunX - 120, sunY - 120, 240, 240);
-  ctx.fillStyle = '#ffd27a';
-  ctx.beginPath(); ctx.arc(sunX, sunY, 34, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = 'rgba(240, 130, 90, 0.9)';
-  for (let b = 0; b < 4; b++) ctx.fillRect(sunX - 40, sunY + 6 + b * 8, 80, 2 + b);
-
-  // 2. Sandia Mountains: long ridge lit watermelon-pink
-  const ridge = (baseY: number, amp: number, seed: number, color: string) => {
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(left, bottom);
-    for (let x = 0; x <= w; x += 12) {
-      const y = baseY - amp * (0.55 + 0.45 * Math.sin((x + seed) * 0.011)) - (Math.sin((x + seed) * 0.07) * 6) - ((x * 7 + seed) % 11);
-      ctx.lineTo(left + x, y);
+  // 2. The ceiling: drop tiles and strip lights (one on the blink)
+  ctx.fillStyle = '#D6D3D1'; ctx.fillRect(left, top, w, 34);
+  ctx.strokeStyle = '#A8A29E'; for (let x = left; x < right; x += 60) { ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, top + 34); ctx.stroke(); }
+  for (let i = 0; i < 4; i++) {
+    const lx = left + 70 + i * 170;
+    const on = !(i === 2 && Math.floor(frame / 9) % 11 < 2);
+    ctx.fillStyle = on ? '#FEFCE8' : '#A8A29E'; ctx.fillRect(lx, top + 34, 110, 8);
+    if (on) {
+      const g = ctx.createLinearGradient(0, top + 42, 0, top + 260);
+      g.addColorStop(0, 'rgba(254, 252, 232, 0.35)'); g.addColorStop(1, 'rgba(254, 252, 232, 0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(lx, top + 42); ctx.lineTo(lx + 110, top + 42); ctx.lineTo(lx + 150, top + 260); ctx.lineTo(lx - 40, top + 260); ctx.fill();
     }
-    ctx.lineTo(right, bottom);
-    ctx.closePath();
-    ctx.fill();
-  };
-  ridge(bottom - 150, 90, 40, '#9c5b8f');
-  ridge(bottom - 120, 70, 300, '#c96f8a');
-  // Pink alpenglow along the crest
-  ctx.strokeStyle = 'rgba(255, 170, 190, 0.55)';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  for (let x = 0; x <= w; x += 12) {
-    const y = bottom - 120 - 70 * (0.55 + 0.45 * Math.sin((x + 300) * 0.011)) - (Math.sin((x + 300) * 0.07) * 6) - ((x * 7 + 300) % 11);
-    if (x === 0) ctx.moveTo(left, y); else ctx.lineTo(left + x, y);
   }
-  ctx.stroke();
 
-  // 3. Mesas in the middle distance
-  const mesa = (mx: number, mw: number, mh: number) => {
-    ctx.fillStyle = '#8a4b3a';
-    ctx.beginPath();
-    ctx.moveTo(mx, bottom - 60);
-    ctx.lineTo(mx + 14, bottom - 60 - mh);
-    ctx.lineTo(mx + mw - 14, bottom - 60 - mh);
-    ctx.lineTo(mx + mw, bottom - 60);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = '#a65d45';
-    ctx.fillRect(mx + 14, bottom - 60 - mh, mw - 28, 6);
-    ctx.fillStyle = 'rgba(60, 25, 20, 0.35)';
-    for (let st = 1; st < 4; st++) ctx.fillRect(mx + 6 + st * 3, bottom - 60 - mh + st * (mh / 4), mw - 12 - st * 6, 2);
+  // 3. Hanging signs down the aisles
+  const hangSign = (x: number, text: string, color: string) => {
+    ctx.strokeStyle = '#57534E'; ctx.beginPath(); ctx.moveTo(x - 30, top + 34); ctx.lineTo(x - 30, top + 60); ctx.moveTo(x + 30, top + 34); ctx.lineTo(x + 30, top + 60); ctx.stroke();
+    ctx.fillStyle = color; ctx.fillRect(x - 50, top + 60, 100, 22);
+    ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 6px "Press Start 2P", sans-serif'; ctx.textAlign = 'center'; ctx.fillText(text, x, top + 74);
   };
-  mesa(left + 150, 150, 55);
-  mesa(left + 470, 110, 40);
-  ctx.fillStyle = '#b87050';
-  ctx.fillRect(left, bottom - 60, w, 60);
+  hangSign(left + 150, 'PAIN RELIEF', '#2563EB');
+  hangSign(left + 340, 'SLEEP AIDS', '#7C3AED');
 
-  // 4. Balloon Fiesta: hot-air balloons drifting and bobbing
-  const balloons: [number, number, string, string][] = [
-    [0.18, 150, '#e63946', '#ffd166'],
-    [0.5, 95, '#118ab2', '#f1faee'],
-    [0.82, 175, '#06d6a0', '#ef476f'],
-  ];
-  balloons.forEach(([fx, by, c1, c2], i) => {
-    const bx = left + ((fx * w + frame * (0.15 + i * 0.05)) % (w + 80)) - 40;
-    const bob = Math.sin(frame * 0.03 + i * 2) * 5;
-    const cy = top + by + bob;
-    ctx.save();
-    ctx.beginPath(); ctx.ellipse(bx, cy, 20, 24, 0, 0, Math.PI * 2); ctx.clip();
-    for (let st = -3; st <= 3; st++) {
-      ctx.fillStyle = st % 2 === 0 ? c1 : c2;
-      ctx.fillRect(bx + st * 7 - 3.5, cy - 26, 7, 52);
+  // 4. The aisles: shelves of boxes and bottles
+  const gondola = (x: number, gw: number) => {
+    ctx.fillStyle = '#E7E5E4'; ctx.fillRect(x, bottom - 210, gw, 210);
+    ctx.fillStyle = '#A8A29E'; ctx.fillRect(x, bottom - 214, gw, 6);
+    for (let s = 0; s < 4; s++) {
+      const sy = bottom - 200 + s * 50;
+      ctx.fillStyle = '#78716C'; ctx.fillRect(x + 4, sy + 40, gw - 8, 4);
+      for (let k = 0; k < Math.floor((gw - 12) / 16); k++) {
+        const hsh = hash(x + s * 31 + k * 7);
+        const bx = x + 8 + k * 16, bh = 18 + hsh * 18;
+        ctx.fillStyle = ['#EF4444', '#F97316', '#FACC15', '#22C55E', '#3B82F6', '#A855F7', '#F8FAFC', '#EC4899'][Math.floor(hsh * 8)];
+        if (hsh > 0.5) ctx.fillRect(bx, sy + 40 - bh, 12, bh);
+        else { ctx.beginPath(); ctx.roundRect(bx + 1, sy + 40 - bh, 10, bh, 3); ctx.fill(); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(bx + 2, sy + 40 - bh - 3, 8, 3); }
+      }
+    }
+    ctx.fillStyle = '#DC2626'; ctx.fillRect(x + gw / 2 - 20, bottom - 232, 40, 16);
+    ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 5px "Press Start 2P", sans-serif'; ctx.textAlign = 'center'; ctx.fillText('SALE!', x + gw / 2, bottom - 221);
+  };
+  gondola(left + 60, 180);
+  gondola(left + 270, 150);
+
+  // 5. The pharmacy counter at the back: pill shelves, Rx, a neon sign, Dale's face
+  const cx = right - 290, cw = 250;
+  ctx.fillStyle = '#F5F5F4'; ctx.fillRect(cx, bottom - 290, cw, 200);
+  for (let s = 0; s < 4; s++) {
+    ctx.fillStyle = '#A8A29E'; ctx.fillRect(cx + 10, bottom - 250 + s * 40, cw - 20, 3);
+    for (let k = 0; k < 14; k++) { ctx.fillStyle = hash(k + s * 20) > 0.3 ? '#F59E0B' : '#F8FAFC'; ctx.fillRect(cx + 14 + k * 16, bottom - 266 + s * 40, 10, 16); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(cx + 14 + k * 16, bottom - 270 + s * 40, 10, 4); }
+  }
+  ctx.save();
+  ctx.shadowColor = '#22C55E'; ctx.shadowBlur = 14;
+  const neon = Math.floor(frame / 50) % 9 !== 0;
+  ctx.fillStyle = neon ? '#4ADE80' : '#14532D';
+  ctx.font = 'bold 18px "Press Start 2P", sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('PHARMACY', cx + cw / 2, bottom - 306);
+  ctx.fillRect(cx - 34, bottom - 330, 10, 30); ctx.fillRect(cx - 44, bottom - 320, 30, 10);
+  ctx.restore();
+  ctx.fillStyle = '#1D4ED8'; ctx.fillRect(cx + 20, bottom - 90 - 30, 70, 20); ctx.fillStyle = '#B91C1C'; ctx.fillRect(cx + 150, bottom - 90 - 30, 70, 20);
+  ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 6px "Press Start 2P", sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('DROP OFF', cx + 55, bottom - 106); ctx.fillText('PICK UP', cx + 185, bottom - 106);
+  // The counter itself
+  ctx.fillStyle = '#E7E5E4'; ctx.fillRect(cx - 10, bottom - 90, cw + 20, 90);
+  ctx.fillStyle = '#6D28D9'; ctx.fillRect(cx - 10, bottom - 90, cw + 20, 10);
+  ctx.fillStyle = '#A8A29E'; ctx.fillRect(cx - 10, bottom - 6, cw + 20, 6);
+  ctx.fillStyle = '#4C1D95'; ctx.font = 'bold 26px serif'; ctx.fillText('Rx', cx + cw / 2, bottom - 36);
+  // Dale's framed portrait
+  const px = left + 345;
+  ctx.fillStyle = '#CA8A04'; ctx.fillRect(px - 30, bottom - 330, 60, 72);
+  ctx.fillStyle = '#6D28D9'; ctx.fillRect(px - 24, bottom - 324, 48, 60);
+  ctx.fillStyle = '#F5CBA7'; ctx.beginPath(); ctx.arc(px, bottom - 300, 11, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#111'; ctx.fillRect(px - 11, bottom - 316, 22, 7); ctx.fillStyle = '#FF007F'; ctx.fillRect(px - 9, bottom - 304, 18, 4);
+  ctx.fillStyle = '#FDE047'; ctx.font = '4px "Press Start 2P", sans-serif'; ctx.fillText('PHARMACIST', px, bottom - 268); ctx.fillText('OF EVERY MONTH', px, bottom - 262);
+
+  // 6. Odds and ends: a blood pressure machine, a security mirror, a wet floor sign
+  const bpx = left + 450;
+  ctx.fillStyle = '#1E40AF'; ctx.fillRect(bpx, bottom - 120, 50, 120); ctx.fillStyle = '#93C5FD'; ctx.fillRect(bpx + 8, bottom - 110, 34, 20);
+  ctx.fillStyle = '#DC2626'; ctx.fillRect(bpx + 12, bottom - 60, 26, 26); ctx.fillStyle = '#FFFFFF'; ctx.font = '4px "Press Start 2P", sans-serif'; ctx.fillText('FREE', bpx + 25, bottom - 45);
+  ctx.fillStyle = '#E5E7EB'; ctx.beginPath(); ctx.arc(right - 30, top + 70, 22, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(148, 163, 184, 0.6)'; ctx.beginPath(); ctx.arc(right - 30, top + 70, 18, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.moveTo(left + 250, bottom); ctx.lineTo(left + 262, bottom - 40); ctx.lineTo(left + 274, bottom); ctx.fill();
+  ctx.fillStyle = '#111'; ctx.font = '4px "Press Start 2P", sans-serif'; ctx.fillText('WET', left + 262, bottom - 14);
+
+  // 7. The floor: checkerboard linoleum, the slab under it
+  ctx.fillStyle = '#57534E'; ctx.fillRect(left - 40, bottom, w + 80, 70);
+  ctx.fillStyle = '#78716C'; ctx.fillRect(left - 40, bottom, w + 80, 4);
+  ctx.fillStyle = '#F5F5F4'; ctx.fillRect(left, bottom - 14, w, 14);
+  ctx.fillStyle = '#6B7280';
+  for (let x = left, k = 0; x < right; x += 16, k++) ctx.fillRect(x, bottom - 14 + (k % 2) * 7, 16, 7);
+  ctx.textAlign = 'left';
+};
+
+/**
+ * The pharmacy's front doors (left) and back wall (right), over the arena's own walls: standing, cracking as the
+ * truck's about to hit, blowing apart (glass and aluminum, or brick and plaster, flying, a cloud of dust), then a
+ * ragged hole with the night outside and rubble along the bottom. (Only once the door's shut behind Meathead: till
+ * then the way in is the way in.)
+ */
+const drawDaleWalls = (ctx: CanvasRenderingContext2D, left: number, right: number, top: number, bottom: number, frame: number, boss: Enemy | undefined, doorShut: boolean) => {
+  if (!boss) return;
+  const lx = left - 40, rx = right;
+  const outside = (x: number, w: number, y1: number) => {
+    const g = ctx.createLinearGradient(0, y1, 0, bottom);
+    g.addColorStop(0, '#2E1A55'); g.addColorStop(0.6, '#A8406E'); g.addColorStop(1, '#F4A261');
+    ctx.fillStyle = g; ctx.fillRect(x, y1, w, bottom - y1);
+  };
+  // --- The front doors
+  if (doorShut) {
+    const down = boss.leftWallDownAt;
+    ctx.fillStyle = '#E7E5E4'; ctx.fillRect(lx, top, 40, bottom - top);
+    ctx.fillStyle = '#A8A29E'; ctx.fillRect(lx + 34, top, 6, bottom - top);
+    const dy = bottom - 180;
+    if (down === undefined) {
+      // Sliding glass doors, ENTER and all
+      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(lx, dy, 40, 180);
+      ctx.fillStyle = 'rgba(147, 197, 253, 0.55)'; ctx.fillRect(lx + 4, dy + 6, 32, 174);
+      ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(lx + 8, dy + 12, 4, 60);
+      ctx.fillStyle = '#16A34A'; ctx.fillRect(lx + 6, dy + 80, 28, 10); ctx.fillStyle = '#FFFFFF'; ctx.font = '4px "Press Start 2P", sans-serif'; ctx.textAlign = 'center'; ctx.fillText('ENTER', lx + 20, dy + 87); ctx.textAlign = 'left';
+    } else {
+      // Gone: the frame bent in, a few teeth of glass left, the street outside
+      outside(lx, 40, dy);
+      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(lx, dy - 6, 40, 8);
+      ctx.save(); ctx.translate(lx + 36, dy); ctx.rotate(0.35); ctx.fillRect(0, 0, 5, 90); ctx.restore();
+      ctx.fillStyle = 'rgba(191, 219, 254, 0.8)';
+      for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.moveTo(lx + k * 10, dy + 2); ctx.lineTo(lx + k * 10 + 8, dy + 2); ctx.lineTo(lx + k * 10 + 3, dy + 14 + hash(k) * 24); ctx.fill(); }
+      ctx.fillStyle = '#78716C'; for (let k = 0; k < 6; k++) ctx.fillRect(lx - 4 + k * 9, bottom - 6 - (k % 2) * 3, 7, 6);
+      burst(ctx, frame - down, lx + 20, dy + 90, 1, bottom, 'glass');
+    }
+  }
+  // --- The back wall (the truck coming at it: it bulges and cracks just before)
+  const down = boss.rightWallDownAt;
+  const hy = bottom - 190;
+  if (down === undefined) {
+    const front = boss.truckActive && boss.truckX !== undefined ? boss.truckX + 350 : -1e9;
+    const k = Math.max(0, Math.min(1, (front - (rx - 110)) / 110));
+    ctx.save(); if (k > 0) ctx.translate((Math.random() - 0.5) * k * 4, 0);
+    ctx.fillStyle = '#E7E5E4'; ctx.fillRect(rx, top, 40, bottom - top);
+    ctx.fillStyle = '#A8A29E'; ctx.fillRect(rx, top, 6, bottom - top);
+    // The staff door
+    ctx.fillStyle = '#78716C'; ctx.fillRect(rx + 4, bottom - 150, 32, 150);
+    ctx.fillStyle = '#FACC15'; ctx.fillRect(rx + 6, bottom - 130, 28, 14);
+    ctx.fillStyle = '#111827'; ctx.font = '3px "Press Start 2P", sans-serif'; ctx.textAlign = 'center'; ctx.fillText('EMPLOYEES', rx + 20, bottom - 124); ctx.fillText('ONLY', rx + 20, bottom - 119); ctx.textAlign = 'left';
+    if (k > 0) {
+      ctx.strokeStyle = '#44403C'; ctx.lineWidth = 1.5;
+      for (let c = 0; c < Math.ceil(k * 6); c++) { ctx.beginPath(); ctx.moveTo(rx + 4, bottom - 80); ctx.lineTo(rx + 4 + hash(c) * 30, bottom - 80 + (hash(c + 5) - 0.5) * 160); ctx.stroke(); }
     }
     ctx.restore();
-    ctx.strokeStyle = '#3d2b1f';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(bx - 10, cy + 20); ctx.lineTo(bx - 5, cy + 34);
-    ctx.moveTo(bx + 10, cy + 20); ctx.lineTo(bx + 5, cy + 34);
-    ctx.stroke();
-    ctx.fillStyle = '#7a4e2d';
-    ctx.fillRect(bx - 6, cy + 34, 12, 8);
-  });
-
-  // 5. Motel-style neon roadside sign
-  const signX = left + w / 2;
-  const signY = top + 36;
-  ctx.save();
-  ctx.fillStyle = '#123a3a';
-  ctx.fillRect(signX - 150, signY - 22, 300, 52);
-  ctx.strokeStyle = '#40e0d0';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(signX - 150, signY - 22, 300, 52);
-  // Chasing bulbs around the edge
-  for (let i = 0; i < 30; i++) {
-    const onTop = i < 15;
-    const bx = signX - 145 + (i % 15) * 20.7;
-    const by = onTop ? signY - 22 : signY + 30;
-    ctx.fillStyle = (i + Math.floor(frame / 6)) % 3 === 0 ? '#fff4b0' : '#7a6a2a';
-    ctx.beginPath(); ctx.arc(bx, by, 2.5, 0, Math.PI * 2); ctx.fill();
+  } else {
+    // A ragged hole right through it, the night outside, bricks showing in the edges, a pile of it along the bottom
+    ctx.fillStyle = '#E7E5E4'; ctx.fillRect(rx, top, 40, hy - top + 10);
+    ctx.fillStyle = '#A8A29E'; ctx.fillRect(rx, top, 6, hy - top + 10);
+    outside(rx, 40, hy);
+    ctx.fillStyle = '#B91C1C';
+    for (let k = 0; k < 7; k++) ctx.fillRect(rx + (k % 3) * 12, hy - 4 + (k % 2) * 6 + Math.floor(k / 3) * 3, 11, 5);
+    ctx.fillStyle = '#E7E5E4';
+    ctx.beginPath(); ctx.moveTo(rx, hy); for (let k = 0; k <= 8; k++) ctx.lineTo(rx + k * 5, hy + 6 + hash(k + 40) * 16); ctx.lineTo(rx + 40, hy); ctx.fill();
+    ctx.fillStyle = '#78716C'; for (let k = 0; k < 9; k++) ctx.fillRect(rx - 26 + k * 9, bottom - 8 - (k % 3) * 4, 10, 8);
+    ctx.fillStyle = '#B91C1C'; for (let k = 0; k < 5; k++) ctx.fillRect(rx - 20 + k * 13, bottom - 16 - (k % 2) * 5, 9, 5);
+    burst(ctx, frame - down, rx + 20, hy + 90, 1, bottom, 'brick');
   }
-  ctx.textAlign = 'center';
-  ctx.font = 'bold 18px "Press Start 2P", sans-serif';
-  ctx.shadowColor = '#ff4f9a';
-  ctx.shadowBlur = 12;
-  ctx.fillStyle = Math.floor(frame / 45) % 8 === 0 ? '#7a2a4a' : '#ff6fb0'; // occasional flicker
-  ctx.fillText("DALE'S", signX, signY + 2);
-  ctx.shadowColor = '#40e0d0';
-  ctx.shadowBlur = 8;
-  ctx.fillStyle = '#7ff5ea';
-  ctx.font = 'bold 9px monospace';
-  ctx.fillText("PHARMACY * NO QUESTIONS * ALBUQUERQUE NM", signX, signY + 20);
-  ctx.restore();
+};
 
-  // 6. Adobe building with vigas, ristras and turquoise trim (left)
-  const adX = left + 30, adW = 150, adH = 95, adY = bottom - adH;
-  ctx.fillStyle = '#c98b5b';
-  ctx.beginPath();
-  ctx.moveTo(adX, bottom); ctx.lineTo(adX, adY + 8);
-  ctx.quadraticCurveTo(adX + 4, adY, adX + 14, adY);
-  ctx.lineTo(adX + adW - 14, adY);
-  ctx.quadraticCurveTo(adX + adW - 4, adY, adX + adW, adY + 8);
-  ctx.lineTo(adX + adW, bottom);
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillStyle = 'rgba(120, 70, 40, 0.3)';
-  ctx.fillRect(adX, bottom - 16, adW, 16);
-  // Vigas (roof beams poking out)
-  ctx.fillStyle = '#5b3a24';
-  for (let v = 0; v < 6; v++) ctx.fillRect(adX + 10 + v * 25, adY + 12, 10, 6);
-  // Turquoise door and window
-  ctx.fillStyle = '#2bb3a6';
-  ctx.fillRect(adX + 26, bottom - 50, 26, 50);
-  ctx.fillRect(adX + 88, adY + 32, 34, 24);
-  ctx.fillStyle = '#ffcf70';
-  ctx.fillRect(adX + 92, adY + 36, 26, 16);
-  // Red chile ristras hanging by the door
-  const ristra = (rx: number) => {
-    for (let k = 0; k < 7; k++) {
-      ctx.fillStyle = k % 2 ? '#c1121f' : '#9d0208';
-      ctx.beginPath(); ctx.ellipse(rx + (k % 2 ? 3 : -3), adY + 24 + k * 6, 4, 5, 0, 0, Math.PI * 2); ctx.fill();
+/**
+ * The wall coming apart, t frames after the hit: bits flying the way the truck's going and landing on the floor, a
+ * cloud of dust rolling out and settling. (Worked out from t, so it plays the same however it's drawn.)
+ */
+const burst = (ctx: CanvasRenderingContext2D, t: number, x: number, y: number, dir: number, floor: number, kind: 'glass' | 'brick') => {
+  if (t < 0 || t > 120) return;
+  // The flash of the hit
+  if (t < 5) { ctx.fillStyle = `rgba(255, 255, 255, ${0.8 - t * 0.15})`; ctx.beginPath(); ctx.arc(x, y, 90, 0, Math.PI * 2); ctx.fill(); }
+  // Bits flying
+  for (let i = 0; i < 22; i++) {
+    const vx = dir * (2 + hash(i) * 9) - 1.5, vy = -(3 + hash(i + 50) * 9);
+    const px = x + vx * t, py = Math.min(floor - 4, y - 60 + hash(i + 9) * 120 + vy * t + 0.3 * t * t);
+    ctx.save(); ctx.translate(px, py);
+    if (py < floor - 4) ctx.rotate(t * (0.2 + hash(i + 3) * 0.3));
+    if (kind === 'glass') {
+      ctx.fillStyle = i % 3 === 0 ? '#9CA3AF' : 'rgba(191, 219, 254, 0.9)';
+      ctx.beginPath(); ctx.moveTo(-5, -4); ctx.lineTo(6, -2); ctx.lineTo(-1, 6); ctx.fill();
+    } else {
+      ctx.fillStyle = i % 3 === 0 ? '#E7E5E4' : i % 3 === 1 ? '#B91C1C' : '#991B1B';
+      ctx.fillRect(-6, -3, 12, 6);
     }
-  };
-  ristra(adX + 16);
-  ristra(adX + 62);
-
-  // 7. Beat-up RV with suspicious smoke (right)
-  const rvX = right - 210, rvY = bottom - 74;
-  ctx.fillStyle = '#e8dcc0';
-  ctx.fillRect(rvX, rvY, 170, 60);
-  ctx.fillStyle = '#8a5a2b';
-  ctx.fillRect(rvX, rvY + 30, 170, 8);
-  ctx.fillStyle = '#6b4a2a';
-  ctx.fillRect(rvX, rvY + 40, 170, 4);
-  ctx.fillStyle = '#e8dcc0';
-  ctx.beginPath(); ctx.moveTo(rvX + 170, rvY); ctx.lineTo(rvX + 190, rvY + 22); ctx.lineTo(rvX + 190, rvY + 60); ctx.lineTo(rvX + 170, rvY + 60); ctx.fill();
-  ctx.fillStyle = '#3c4f5c';
-  ctx.fillRect(rvX + 20, rvY + 10, 26, 16);
-  ctx.fillRect(rvX + 110, rvY + 10, 26, 16);
-  ctx.beginPath(); ctx.moveTo(rvX + 172, rvY + 6); ctx.lineTo(rvX + 186, rvY + 22); ctx.lineTo(rvX + 172, rvY + 22); ctx.fill();
-  ctx.fillStyle = '#1a1a1a';
-  ctx.beginPath(); ctx.arc(rvX + 35, bottom - 10, 11, 0, Math.PI * 2); ctx.arc(rvX + 150, bottom - 10, 11, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#777';
-  ctx.beginPath(); ctx.arc(rvX + 35, bottom - 10, 4, 0, Math.PI * 2); ctx.arc(rvX + 150, bottom - 10, 4, 0, Math.PI * 2); ctx.fill();
-  // Rust spots
-  ctx.fillStyle = 'rgba(140, 70, 30, 0.6)';
-  ctx.fillRect(rvX + 60, rvY + 48, 9, 5);
-  ctx.fillRect(rvX + 95, rvY + 4, 6, 4);
-  // Chemistry smoke puffing from the roof vent
-  ctx.fillStyle = '#555';
-  ctx.fillRect(rvX + 70, rvY - 8, 12, 8);
-  for (let k = 0; k < 5; k++) {
-    const age = (frame * 0.6 + k * 20) % 100;
-    ctx.fillStyle = `rgba(230, 230, 240, ${0.5 - age / 220})`;
-    ctx.beginPath();
-    ctx.arc(rvX + 76 + age * 0.35 + Math.sin(age * 0.1) * 4, rvY - 10 - age * 0.9, 5 + age * 0.12, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.restore();
   }
-
-  // 8. Route 66 shield on a post
-  const r66X = left + w / 2 + 10;
-  ctx.fillStyle = '#5b4a3a';
-  ctx.fillRect(r66X - 2, bottom - 70, 4, 70);
-  ctx.fillStyle = '#f5f0e1';
-  ctx.beginPath();
-  ctx.moveTo(r66X - 18, bottom - 96); ctx.lineTo(r66X + 18, bottom - 96);
-  ctx.lineTo(r66X + 16, bottom - 78); ctx.quadraticCurveTo(r66X, bottom - 62, r66X - 16, bottom - 78);
-  ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = '#1a1a1a';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-  ctx.fillStyle = '#1a1a1a';
-  ctx.textAlign = 'center';
-  ctx.font = 'bold 12px sans-serif';
-  ctx.fillText('66', r66X, bottom - 76);
-  ctx.font = 'bold 5px sans-serif';
-  ctx.fillText('US ROUTE', r66X, bottom - 89);
-
-  // 9. Desert plants: yucca and agave
-  const yucca = (yx: number, s: number) => {
-    ctx.strokeStyle = '#4f6f3a';
-    ctx.lineWidth = 2;
-    for (let k = -4; k <= 4; k++) {
-      ctx.beginPath();
-      ctx.moveTo(yx, bottom);
-      ctx.lineTo(yx + k * 4 * s, bottom - (22 - Math.abs(k) * 2) * s);
-      ctx.stroke();
-    }
-    ctx.strokeStyle = '#6b5a3a';
-    ctx.beginPath(); ctx.moveTo(yx, bottom - 18 * s); ctx.lineTo(yx + 2, bottom - 48 * s); ctx.stroke();
-    ctx.fillStyle = '#f2ecd0';
-    for (let k = 0; k < 5; k++) ctx.fillRect(yx - 1 + (k % 2) * 3, bottom - (46 - k * 5) * s, 3, 3);
-  };
-  yucca(left + 220, 1);
-  yucca(right - 240, 0.8);
-  const agave = (ax: number) => {
-    ctx.fillStyle = '#6f9a7a';
-    for (let k = -3; k <= 3; k++) {
-      ctx.beginPath();
-      ctx.moveTo(ax - 3, bottom); ctx.lineTo(ax + k * 7, bottom - 16 + Math.abs(k) * 2); ctx.lineTo(ax + 3, bottom);
-      ctx.fill();
-    }
-  };
-  agave(left + 330);
-  agave(right - 30);
-
-  // 10. Tumbleweed rolling through
-  const twX = left + ((frame * 2.2) % (w + 120)) - 60;
-  const twY = bottom - 16 - Math.abs(Math.sin(frame * 0.12)) * 10;
-  ctx.save();
-  ctx.translate(twX, twY);
-  ctx.rotate(frame * 0.15);
-  ctx.strokeStyle = '#a07a4a';
-  ctx.lineWidth = 1.5;
-  for (let k = 0; k < 7; k++) {
-    ctx.beginPath();
-    ctx.arc(0, 0, 8 + (k % 3) * 2, k, k + 2.5);
-    ctx.stroke();
-  }
-  ctx.restore();
-
-  // 11. Adobe columns at the arena edges
-  const column = (px: number) => {
-    ctx.fillStyle = '#b8794d';
-    ctx.fillRect(px, top, 24, bottom - top);
-    ctx.fillStyle = 'rgba(90, 50, 25, 0.25)';
-    ctx.fillRect(px + 16, top, 8, bottom - top);
-    ctx.fillStyle = '#5b3a24';
-    for (let vy = top + 30; vy < bottom - 20; vy += 90) ctx.fillRect(px - 4, vy, 32, 6);
-    ctx.fillStyle = '#2bb3a6';
-    ctx.fillRect(px + 4, top + 8, 16, 4);
-  };
-  column(left);
-  column(right - 24);
-
-  // 12. Sun-baked caliche ground with cracks
-  const groundGrad = ctx.createLinearGradient(left, bottom - 14, left, bottom);
-  groundGrad.addColorStop(0, '#d9a066');
-  groundGrad.addColorStop(1, '#b5703d');
-  ctx.fillStyle = groundGrad;
-  ctx.fillRect(left, bottom - 14, w, 14);
-  ctx.strokeStyle = 'rgba(90, 45, 20, 0.55)';
-  ctx.lineWidth = 1;
-  for (let cx = left + 10; cx < right; cx += 46) {
-    ctx.beginPath();
-    ctx.moveTo(cx, bottom - 13);
-    ctx.lineTo(cx + 8, bottom - 8);
-    ctx.lineTo(cx + 4, bottom - 3);
-    ctx.moveTo(cx + 8, bottom - 8);
-    ctx.lineTo(cx + 18, bottom - 10);
-    ctx.stroke();
+  // The dust
+  for (let i = 0; i < 7; i++) {
+    const r = 20 + t * (0.8 + hash(i + 20) * 0.8);
+    const a = Math.max(0, 0.45 - t / 260);
+    ctx.fillStyle = `rgba(214, 211, 209, ${a})`;
+    ctx.beginPath(); ctx.arc(x + dir * (i * 14 + t * 0.6) - 20, floor - 20 - hash(i) * 80 - t * 0.2, r, 0, Math.PI * 2); ctx.fill();
   }
 };
 
