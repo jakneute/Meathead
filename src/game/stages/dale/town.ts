@@ -67,7 +67,7 @@ export interface Town {
   arrive: { t: number; x: number; h: number; vx: number; vh: number; rot: number; spin: number; landedAt: number } | null;
   /** The hole in the curio shop (not till the cab's gone into it). */
   shopHit: boolean;
-  ninja: { state: 'perch' | 'speech' | 'kneel' | 'dead'; t: number };
+  ninja: { state: 'perch' | 'speech' | 'kneel' | 'dead'; t: number; /** Which way he turned to face Meathead (and stays that way). */ face: 1 | -1 };
   cab: { x: number; speed: number; facing: 1 | -1; spin: number; state: 'arrive' | 'parked' | 'reverse' | 'spin' | 'go' | 'wrecked'; t: number };
   props: TownProp[];
   sheriff: { x: number; running: boolean };
@@ -91,7 +91,7 @@ export const createTown = (state: GameState, startedAt: number): Town => {
   return {
     phase: wrecked ? 'crashed' : 'street', t: 0,
     sniper: { on: false, x: t.x1 + 1400, y: Y - 200, state: 'track', t: 0, shots: 0, lastShot: null },
-    ninja: { state: ninjaDead ? 'dead' : 'perch', t: 999 },
+    ninja: { state: ninjaDead ? 'dead' : 'perch', t: 999, face: -1 },
     cab: wrecked ? { x: t.jail.x1 + 30 - CAB.w, speed: 0, facing: 1, spin: 0, state: 'wrecked', t: 0 } : { x: t.crash - 20, speed: 0, facing: -1, spin: 0, state: 'parked', t: 0 },
     props, sheriff: { x: wrecked ? t.x2 + 400 : t.jail.x1 - 70, running: wrecked }, prisoner: { alive: !wrecked, said: 0 },
     said: new Set(), wakeT: 999,
@@ -379,6 +379,7 @@ const updateNinja = (ctx: FrameContext, town: Town, talk: Talk): Controls | null
     // Up close: that's it for him
     if (Math.abs(p.pos.x + p.width / 2 - spot.x) < 240 && p.pos.y + p.height < Y - 250 && p.isGrounded) {
       n.state = 'speech'; n.t = 0;
+      n.face = p.pos.x + p.width / 2 < spot.x ? -1 : 1;
       town.sniper.on = false;
       replaceLines(state, talk, NINJA_LINES.map(l => ({ ...l })));
     }

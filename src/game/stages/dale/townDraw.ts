@@ -443,9 +443,8 @@ const drawNinja = (ctx: Ctx, state: GameState, town: Town) => {
   const s = ninjaSpot();
   if (!visible(state, s.x - 60, s.x + 60)) return;
   const f = state.frame;
-  const p = state.player;
-  const face = p.pos.x + p.width / 2 < s.x ? -1 : 1;
-  ctx.save(); ctx.translate(s.x, s.y); ctx.scale(n.state === 'perch' ? -1 : face, 1);
+  // (turned to Meathead when he got up there, and that's the way he stays, speech to seppuku to face down)
+  ctx.save(); ctx.translate(s.x, s.y); ctx.scale(n.state === 'perch' ? -1 : n.face, 1);
   const black = '#111827', dark = '#1F2937';
   if (n.state === 'perch') {
     // Prone-ish, kneeling behind the rifle, sighting down the street
