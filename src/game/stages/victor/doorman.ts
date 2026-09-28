@@ -430,20 +430,25 @@ const runClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, pressed: boo
     if (c.meter >= 1) return endClash(ctx, fight, m, true);
     if (c.meter <= 0 || c.t > SHOULDER_FRAMES) return endClash(ctx, fight, m, false);
   } else {
-    // A marker sweeping back and forth: press it in the zone, three times
+    // A marker sweeping back and forth: press it in the zone, three times. (A count of three first, so anyone
+    // still mashing from the slide doesn't blow it before it's started)
+    if (c.t <= SLIDE_COUNTDOWN) { c.meter = 0; return; }
     const period = angry ? 46 : 56;
-    const k = (c.t % (period * 2)) / period;
+    const tt = c.t - SLIDE_COUNTDOWN;
+    const k = (tt % (period * 2)) / period;
     c.meter = k < 1 ? k : 2 - k;
     if (pressed) {
       if (Math.abs(c.meter - 0.5) < SLIDE_ZONE / 2) { c.hits++; c.flash = 12; c.missed = false; playSound('taser'); if (c.hits >= 3) return endClash(ctx, fight, m, true); }
       else { c.missed = true; c.flash = 12; return endClash(ctx, fight, m, false); }
     }
-    if (c.t > SLIDE_FRAMES_CLASH) return endClash(ctx, fight, m, false);
+    if (tt > SLIDE_FRAMES_CLASH) return endClash(ctx, fight, m, false);
   }
 };
 
 /** How wide the slide clash's zone is (as a share of the bar). */
 export const SLIDE_ZONE = 0.2;
+/** The slide clash's count of three before it takes your presses. */
+export const SLIDE_COUNTDOWN = 90;
 
 const endClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, won: boolean) => {
   const { state } = ctx;

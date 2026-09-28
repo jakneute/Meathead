@@ -9,7 +9,7 @@ import type { GameState } from '../../state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { getLastInputDevice } from '../../input';
 import { drawPlayer } from '../../render/playerRenderer';
-import { DoormanFight, DoormanCorpse, DOORMAN_HP, SLIDE_ZONE } from './doorman';
+import { DoormanFight, DoormanCorpse, DOORMAN_HP, SLIDE_ZONE, SLIDE_COUNTDOWN } from './doorman';
 import { KIND_STATS } from '../../systems/kinds';
 
 type Ctx = CanvasRenderingContext2D;
@@ -382,6 +382,16 @@ const drawClash = (ctx: Ctx, state: GameState, fight: DoormanFight) => {
     for (let i = 0; i < 3; i++) { ctx.fillStyle = i < c.hits ? '#22C55E' : '#4B5563'; ctx.beginPath(); ctx.arc(cx - 30 + i * 30, barY + 36, 8, 0, Math.PI * 2); ctx.fill(); }
     ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 10px "Press Start 2P"';
     ctx.fillText('HIT IT IN THE ZONE', cx - 60, barY + 70);
+    // The count of three
+    if (c.t <= SLIDE_COUNTDOWN + 20) {
+      const left = Math.ceil((SLIDE_COUNTDOWN - c.t) / 30);
+      const text = left > 0 ? String(left) : 'GO!';
+      const k = ((c.t % 30) / 30);
+      ctx.save(); ctx.translate(cx, CANVAS_HEIGHT / 2 - 40); ctx.scale(1.6 - k * 0.5, 1.6 - k * 0.5);
+      ctx.font = 'bold 40px "Press Start 2P"'; ctx.fillStyle = '#000'; ctx.fillText(text, 3, 3);
+      ctx.fillStyle = left > 0 ? '#FACC15' : '#22C55E'; ctx.fillText(text, 0, 0);
+      ctx.restore();
+    }
     drawSpecialButton(ctx, cx + 110, barY + 62, c.flash > 0 && !c.missed);
   }
   ctx.restore();
