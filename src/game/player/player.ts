@@ -42,6 +42,8 @@ export interface FrameInput {
 }
 
 export const DEATH_SCREEN_FRAMES = 180;
+/** The lunge through the water: how fast, and for how long at most (held). */
+const SWIM_DASH_SPEED = 9, SWIM_DASH_FRAMES = 22;
 const ANGRY_FRAMES = 50;
 const STEP_UP_HEIGHT = 6;      // any lip this small is stepped over, even in the air
 const STAIR_HEIGHT = 26;       // walking on the ground, he climbs steps up to this tall
@@ -179,6 +181,19 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
   if (!input.specialPressed || player.isTasing || state.playerStunTimer > 0 || (player.skiing && !player.jetski)) return;
   // (on the jet ski every move goes forward, whichever way he's turned to shoot)
   if (player.jetski) player.facing = 1;
+  // In the water it's a lunge: forward, up, or down (down + special's the same whether he's floating or stood on the
+  // bottom: no slide, no dive kick)
+  if (player.swimming && !player.skiing) {
+    if (player.isCharging || !(cheats.infinitePower || player.power >= 1)) return;
+    if (!cheats.infinitePower) player.power -= 1;
+    player.swimDash = input.moveUp ? { x: 0, y: -1 } : input.moveDown ? { x: 0, y: 1 } : { x: player.facing, y: 0 };
+    player.isCharging = true; player.isSliding = false; player.isUppercutting = false; player.isDivekicking = false; player.isDucking = false;
+    player.chargeTimer = SWIM_DASH_FRAMES;
+    player.chargeFace = player.facing;
+    player.moveId = (player.moveId || 0) + 1;
+    fx.playGunSound();
+    return;
+  }
   const free = cheats.infinitePower;
   const locked = player.lockTimer > 0; // only divekicks are allowed during recoil
 
@@ -232,7 +247,18 @@ const runSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
   const { state } = ctx;
   const { player } = state;
 
-  if (player.isCharging) {
+  if (!player.isCharging && player.swimDash) player.swimDash = undefined;
+  // A lunge through the water: fast, straight, the way he went (out of the water and it carries him on up and out)
+  if (player.isCharging && player.swimDash) {
+    player.facing = player.chargeFace;
+    if (player.swimming) {
+      player.vel.x = player.swimDash.x * SWIM_DASH_SPEED;
+      player.vel.y = player.swimDash.y * SWIM_DASH_SPEED;
+      if (state.frame % 2 === 0) state.particles.push({ pos: { x: player.pos.x + player.width / 2 - player.swimDash.x * 16, y: player.pos.y + player.height / 2 - player.swimDash.y * 20 }, vel: { x: -player.swimDash.x * 2, y: -player.swimDash.y * 2 - 0.5 }, life: 20, color: 'rgba(224, 242, 254, 0.8)', size: 3 + Math.random() * 3 });
+    }
+    player.chargeTimer--;
+    if (player.chargeTimer <= 0 || !input.special || !player.swimming) endCharge(ctx);
+  } else if (player.isCharging) {
     player.facing = player.chargeFace;
     player.vel.x = player.chargeFace * (player.isSliding ? SLIDE_SPEED : CHARGE_SPEED);
     player.chargeTimer--;
@@ -284,6 +310,7 @@ const runSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
 export const endCharge = (ctx: FrameContext) => {
   const { player } = ctx.state;
   player.isCharging = false;
+  player.swimDash = undefined;
   player.isSliding = false;
   if (!player.isGrounded) player.powerLocked = true;
 };
@@ -393,6 +420,8 @@ const swim = (player: Player) => {
 
 const updateVerticalVelocity = (ctx: FrameContext, input: FrameInput) => {
   const { player } = ctx.state;
+  // (a lunge through the water sets its own pace: no sinking while it lasts)
+  if (player.swimming && player.isCharging && player.swimDash) return;
   if (player.swimming) { swim(player); return; }
 
   // Coyote hang time: right after leaving the ground, gravity waits a few frames

@@ -37,6 +37,8 @@ export interface Thing {
   full: number;
   /** Times running it's been ignored (two and the fist comes down), and when it last counted one. */
   strikes: number;
+  /** When it last asked for something new (a moment's grace after, for shots already on their way). */
+  askedAt: number;
   struckAt: number;
   /** The fist: frames into it (0 none). */
   fist: number;
@@ -79,6 +81,11 @@ const WANT_MULT = 2.2;
 export const NEED: Partial<Record<WeaponType, number>> = { SHOTGUN: 1300, FLAMETHROWER: 1300, BOULDER: 1300, TSUNAMI: 1150 };
 /** How long it'll wait for what it asked for before that counts against him; how long between counting wrong hits. */
 const ASK_PATIENCE = 9 * 60, WRONG_EVERY = 90;
+/** It gets less patient, and quicker about it, the further the fight goes: at the end it waits this much less (and
+ * moves on quicker when it's sated, and counts wrong hits sooner). */
+const HURRY = 0.45;
+/** How far into the fight (0 fresh, 1 dead), and what that makes a wait of `n` frames. */
+const hurried = (th: Thing, n: number) => { const e = th.e; const k = e ? Math.max(0, Math.min(1, 1 - e.health / e.maxHealth)) : 0; return Math.round(n * (1 - HURRY * k)); };
 /** The fist: the wind-up (up and over, slowly), when it lands, and what it does. */
 export const FIST_UP = 110, FIST_LAND = 150, FIST_DONE = 200;
 const FIST_DAMAGE = 26;
@@ -88,7 +95,7 @@ const SPIT_BELOW = 0.34, SPIT_EVERY = 6 * 60;
 export const createThing = (state: GameState, startedAt: number): Thing => {
   void state;
   return {
-    phase: startedAt > CP.CISTERN ? 'dead' : 'dormant', t: 0, e: null, want: MENU[0], fed: 0, asked: 0, full: 0, strikes: 0, struckAt: -999,
+    phase: startedAt > CP.CISTERN ? 'dead' : 'dormant', t: 0, e: null, want: MENU[0], fed: 0, asked: 0, full: 0, strikes: 0, struckAt: -999, askedAt: -999,
     fist: 0, lastWeapon: 'GUN', prevHealth: 0, spatAt: -999, asks: 0, death: startedAt > CP.CISTERN ? 'TSUNAMI' : null, deathT: 999, flash: 0,
     askLine: '', shown: null, shownAt: 0,
   };
@@ -161,10 +168,16 @@ const ask = (state: GameState, th: Thing, talk: Talk, first = false) => {
   const pool = (owned.length ? owned : MENU).filter(w => w !== th.want || first);
   th.want = pool[Math.floor(Math.random() * pool.length)] ?? MENU[0];
   th.asks++;
-  th.fed = 0; th.asked = 0; th.full = 0;
+  th.fed = 0; th.asked = 0; th.full = 0; th.askedAt = state.frame;
   th.askLine = pick(ASK_LINES[th.want]!, th.asks);
   say(state, talk, th.askLine, !first);
 };
+
+/** The first few seconds of the fight: shooting it straight away (before it's said what it wants) doesn't count against him. */
+export const GRACE_FRAMES = 240;
+/** Just sated, on to the next thing: a second before the old weapon counts as the wrong one. */
+const SATED_GRACE = 60;
+export const inGrace = (th: Thing) => th.phase === 'fight' && th.t < GRACE_FRAMES;
 
 /** A mark against him: twice running and the fist comes down. */
 const strike = (state: GameState, th: Thing, talk: Talk, line: string) => {
@@ -188,9 +201,9 @@ const fight = (ctx: FrameContext, th: Thing, talk: Talk, controls: Controls): Co
     if (w) feed(ctx, th, talk, w, took);
   }
   // Satisfied: a moment of bliss, then the next thing
-  if (th.full > 0 && ++th.full > 70) ask(state, th, talk);
+  if (th.full > 0 && ++th.full > hurried(th, 70)) ask(state, th, talk);
   // Kept waiting
-  else if (!th.full && th.asked > ASK_PATIENCE) strike(state, th, talk, pick(WAITING, th.asks));
+  else if (!th.full && !inGrace(th) && th.asked > hurried(th, ASK_PATIENCE)) strike(state, th, talk, pick(WAITING, th.asks));
   // The fist
   if (th.fist) {
     th.fist++;
@@ -238,7 +251,7 @@ const feed = (ctx: FrameContext, th: Thing, talk: Talk, w: WeaponType | 'MELEE',
     th.asked = 0; th.strikes = 0;
     if (state.frame % 8 === 0) fx.spawnDamageNumber({ x: e.pos.x + 60 + Math.random() * 80, y: e.pos.y + 120 }, Math.round(dmg * WANT_MULT), true, '#A3E635');
     if (th.fed >= (NEED[w] ?? 1300)) { th.full = 1; say(state, talk, pick(THANKS, th.asks), true); playSound('tinkle'); }
-  } else if (!th.full && state.frame - th.struckAt > WRONG_EVERY) {
+  } else if (!th.full && !inGrace(th) && state.frame - th.askedAt > SATED_GRACE && state.frame - th.struckAt > hurried(th, WRONG_EVERY)) {
     strike(state, th, talk, pick(WRONG, th.asks + state.frame));
   }
 };

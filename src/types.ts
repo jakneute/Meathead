@@ -124,6 +124,8 @@ export interface Player extends Entity {
   bike?: boolean;
   /** In a hazmat suit (drawn yellow, hooded). */
   suit?: boolean;
+  /** A lunge through the water (the special, swimming): which way (forward, up or down). */
+  swimDash?: { x: number; y: number };
   /** In the water (a stage says so each frame): he swims instead of walking and jumping. And where the surface is. */
   swimming?: boolean;
   swimSurfaceY?: number;

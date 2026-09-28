@@ -142,7 +142,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     : p.jetski ? (isCharging ? drawJetskiWheelie : isUppercutting ? drawJetskiLeap : isDivekicking ? drawJetskiDive : null)
     // (booting somebody off his skis, boat or jet ski: a big standing front kick)
     : (p.kickPose || 0) > 0 && !isDivekicking ? (c: CanvasRenderingContext2D, fr: number) => drawStandingKick(c, fr, 1 - (p.kickPose || 0) / KICK_POSE_FRAMES)
-    : isCharging ? (p.swimming ? drawSwimCharge : drawShoulderCharge) : isUppercutting ? drawUppercut : isDivekicking ? drawDivekick : null;
+    : isCharging ? (p.swimming || p.swimDash ? (c: CanvasRenderingContext2D, fr: number) => { const d = p.swimDash; if (d && d.y) { c.translate(0, -p.height / 2); c.rotate(d.y * Math.PI / 2); c.translate(0, p.height / 2); } drawSwimCharge(c, fr); } : drawShoulderCharge) : isUppercutting ? drawUppercut : isDivekicking ? drawDivekick : null;
   if (movePose) {
     movePose(ctx, animFrame);
     finishBody();

@@ -12,7 +12,7 @@ import type { Enemy } from '../../../types';
 import type { GameState } from '../../core/state';
 import { GROUND_Y } from '../../../constants';
 import { COURSE, WALK_Y } from './course';
-import { Thing, FIST_UP, FIST_LAND, FIST_DONE, WANT_NAME, THING_SURFACE, NEED } from './thing';
+import { Thing, FIST_UP, FIST_LAND, FIST_DONE, WANT_NAME, THING_SURFACE, NEED, inGrace, GRACE_FRAMES } from './thing';
 import { getTommy } from './runtime';
 import { saying } from './script';
 
@@ -206,11 +206,22 @@ export const drawThingBar = (ctx: Ctx, th: Thing, frame: number) => {
   ctx.fillStyle = '#65A30D'; ctx.fillRect(426, 26, 356 * k, 9);
   ctx.fillStyle = '#D9F99D'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.fillText('THE EAST SIDE', 428, 22);
   drawWantPanel(ctx, th, frame);
+  // The start of the fight: hold off till it's said what it wants
+  if (inGrace(th)) {
+    const a = Math.min(1, (GRACE_FRAMES - th.t) / 30);
+    ctx.save();
+    ctx.globalAlpha = a * (Math.floor(frame / 16) % 2 ? 1 : 0.55);
+    ctx.textAlign = 'center'; ctx.font = 'bold 22px "Press Start 2P"';
+    ctx.lineWidth = 6; ctx.strokeStyle = '#1C1917'; ctx.strokeText('HOLD YOUR FIRE', 400, 190);
+    ctx.fillStyle = '#FDE047'; ctx.fillText('HOLD YOUR FIRE', 400, 190);
+    ctx.restore();
+  }
 };
 
 /** What it wants, big, on the screen where nothing's in the way of it: an icon, the word, how close it is to its fill, how much patience it's got left. It changes when it says so. */
 const drawWantPanel = (ctx: Ctx, th: Thing, frame: number) => {
-  const x = 270, y = 50, w = 260, h = 70;
+  // (right-aligned under its health bar, well clear of his own gauges top left)
+  const x = 528, y = 48, w = 260, h = 70;
   const angry = th.fist > 0, full = th.full > 0;
   const want = th.shown;
   const fresh = frame - th.shownAt < 50;
