@@ -1,6 +1,7 @@
 import { Player, WeaponType } from '../../types';
 import { COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../constants';
 import { peeProgress } from '../victoryPee';
+import { SLIDE_HOLD } from '../muzzle';
 import { drawShoulderCharge, drawUppercut, drawDivekick } from './playerMoves';
 import { GameState } from '../state';
 import { beginSprite, endSprite } from './spriteOutline';
@@ -110,7 +111,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   ctx.scale(1 + squash * 0.25 - airStretch * 0.5, 1 - squash * 0.25 + airStretch);
 
   if (p.isSliding) {
-    drawSlideTackle(ctx, animFrame);
+    drawSlideTackle(ctx, animFrame, currentWeapon, isUnarmed);
     finishBody();
     ctx.restore();
     return;
@@ -950,86 +951,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     const wpnX = armBaseX + 10 + armPump * 0.3;
     const wpnY = armBaseY + 2;
 
-    ctx.save();
-    if (isUnarmed) {
-      // Weapon put away for the victory lap
-    } else if (currentWeapon === 'GUN') {
-      // Handgun: slide over the frame, grip in his fist, muzzle out front
-      ctx.fillStyle = '#27272A';
-      ctx.fillRect(wpnX + 4, wpnY, 18, 5);            // slide
-      ctx.fillStyle = '#6B7280';
-      ctx.fillRect(wpnX + 4, wpnY, 18, 1);            // top edge catching the light
-      ctx.fillStyle = '#18181B';
-      ctx.fillRect(wpnX + 6, wpnY + 2, 1, 2); ctx.fillRect(wpnX + 8, wpnY + 2, 1, 2); // serrations
-      ctx.fillRect(wpnX + 20, wpnY - 1, 2, 1);        // front sight
-      ctx.fillStyle = '#3F3F46';
-      ctx.fillRect(wpnX + 5, wpnY + 5, 12, 2);        // frame
-      ctx.fillStyle = '#52525B';
-      ctx.fillRect(wpnX + 22, wpnY + 1, 3, 3);        // muzzle
-    } else if (currentWeapon === 'BOULDER') {
-      // Craggy heavy rock
-      ctx.fillStyle = '#854D0E';
-      ctx.beginPath();
-      ctx.arc(wpnX + 12, wpnY - 4, 12, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#451A03';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    } else if (currentWeapon === 'SHOTGUN') {
-      // Cryo shotgun
-      ctx.fillStyle = '#0284C7';
-      ctx.fillRect(wpnX, wpnY, 20, 8);
-      ctx.fillStyle = '#38BDF8';
-      ctx.fillRect(wpnX + 12, wpnY - 2, 4, 4);
-      ctx.fillStyle = '#E0F2FE';
-      ctx.fillRect(wpnX + 18, wpnY + 2, 4, 3);
-    } else if (currentWeapon === 'NEEDLES') {
-      // Syringe dart launcher
-      ctx.fillStyle = COLORS.PROJECTILE_DART;
-      ctx.fillRect(wpnX, wpnY, 20, 7);
-      ctx.fillStyle = '#EF4444';
-      ctx.fillRect(wpnX + 18, wpnY + 1, 6, 5);
-    } else if (currentWeapon === 'FLAMETHROWER') {
-      // Industrial flamethrower
-      ctx.save();
-      ctx.translate(wpnX + 4, wpnY + 4);
-      ctx.rotate(p.flameAngle || 0);
-      ctx.fillStyle = '#3F3F46';
-      ctx.fillRect(0, -4, 24, 9);
-      ctx.fillStyle = '#EA580C';
-      ctx.fillRect(22, -2, 5, 5); // Pilot nozzle
-      ctx.restore();
-    } else if (currentWeapon === 'SLUDGE') {
-      // Toxic sludge launcher
-      ctx.fillStyle = '#14532D';
-      ctx.fillRect(wpnX, wpnY, 22, 10);
-      ctx.fillStyle = '#4ADE80';
-      ctx.fillRect(wpnX + 16, wpnY + 2, 6, 6);
-    } else if (currentWeapon === 'TSUNAMI') {
-      // Hydro cannon
-      ctx.fillStyle = '#1D4ED8';
-      ctx.fillRect(wpnX, wpnY, 24, 10);
-      ctx.fillStyle = '#93C5FD';
-      ctx.fillRect(wpnX + 18, wpnY + 2, 5, 6);
-    } else if (currentWeapon === 'TASER') {
-      // High voltage stun gun
-      ctx.fillStyle = '#18181B';
-      ctx.fillRect(wpnX, wpnY, 22, 8);
-      ctx.fillStyle = COLORS.TASER_BOLT;
-      ctx.fillRect(wpnX + 18, wpnY + 1, 6, 6);
-    } else if (currentWeapon === 'OIL_ROCKET') {
-      // Heavy military rocket launcher
-      ctx.fillStyle = '#18181B';
-      ctx.fillRect(wpnX - 4, wpnY - 2, 28, 10);
-      ctx.fillStyle = '#DC2626';
-      ctx.beginPath();
-      ctx.moveTo(wpnX + 24, wpnY - 2);
-      ctx.lineTo(wpnX + 32, wpnY + 3);
-      ctx.lineTo(wpnX + 24, wpnY + 8);
-      ctx.closePath();
-      ctx.fill();
-    }
-    ctx.restore();
+    if (!isUnarmed) drawHeldWeapon(ctx, currentWeapon, wpnX, wpnY, p.flameAngle || 0);
   }
   ctx.restore();
 
@@ -1071,11 +993,96 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
 };
 
 /**
+ * The equipped weapon in his lead hand, drawn at (wpnX, wpnY) in his local frame
+ * (the grip; the barrel points along +x). game/muzzle.ts mirrors where each tip ends up.
+ */
+const drawHeldWeapon = (ctx: CanvasRenderingContext2D, weapon: WeaponType, wpnX: number, wpnY: number, flameAngle: number) => {
+  ctx.save();
+if (weapon === 'GUN') {
+    // Handgun: slide over the frame, grip in his fist, muzzle out front
+    ctx.fillStyle = '#27272A';
+    ctx.fillRect(wpnX + 4, wpnY, 18, 5);            // slide
+    ctx.fillStyle = '#6B7280';
+    ctx.fillRect(wpnX + 4, wpnY, 18, 1);            // top edge catching the light
+    ctx.fillStyle = '#18181B';
+    ctx.fillRect(wpnX + 6, wpnY + 2, 1, 2); ctx.fillRect(wpnX + 8, wpnY + 2, 1, 2); // serrations
+    ctx.fillRect(wpnX + 20, wpnY - 1, 2, 1);        // front sight
+    ctx.fillStyle = '#3F3F46';
+    ctx.fillRect(wpnX + 5, wpnY + 5, 12, 2);        // frame
+    ctx.fillStyle = '#52525B';
+    ctx.fillRect(wpnX + 22, wpnY + 1, 3, 3);        // muzzle
+  } else if (weapon === 'BOULDER') {
+    // Craggy heavy rock
+    ctx.fillStyle = '#854D0E';
+    ctx.beginPath();
+    ctx.arc(wpnX + 12, wpnY - 4, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#451A03';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  } else if (weapon === 'SHOTGUN') {
+    // Cryo shotgun
+    ctx.fillStyle = '#0284C7';
+    ctx.fillRect(wpnX, wpnY, 20, 8);
+    ctx.fillStyle = '#38BDF8';
+    ctx.fillRect(wpnX + 12, wpnY - 2, 4, 4);
+    ctx.fillStyle = '#E0F2FE';
+    ctx.fillRect(wpnX + 18, wpnY + 2, 4, 3);
+  } else if (weapon === 'NEEDLES') {
+    // Syringe dart launcher
+    ctx.fillStyle = COLORS.PROJECTILE_DART;
+    ctx.fillRect(wpnX, wpnY, 20, 7);
+    ctx.fillStyle = '#EF4444';
+    ctx.fillRect(wpnX + 18, wpnY + 1, 6, 5);
+  } else if (weapon === 'FLAMETHROWER') {
+    // Industrial flamethrower
+    ctx.save();
+    ctx.translate(wpnX + 4, wpnY + 4);
+    ctx.rotate(flameAngle);
+    ctx.fillStyle = '#3F3F46';
+    ctx.fillRect(0, -4, 24, 9);
+    ctx.fillStyle = '#EA580C';
+    ctx.fillRect(22, -2, 5, 5); // Pilot nozzle
+    ctx.restore();
+  } else if (weapon === 'SLUDGE') {
+    // Toxic sludge launcher
+    ctx.fillStyle = '#14532D';
+    ctx.fillRect(wpnX, wpnY, 22, 10);
+    ctx.fillStyle = '#4ADE80';
+    ctx.fillRect(wpnX + 16, wpnY + 2, 6, 6);
+  } else if (weapon === 'TSUNAMI') {
+    // Hydro cannon
+    ctx.fillStyle = '#1D4ED8';
+    ctx.fillRect(wpnX, wpnY, 24, 10);
+    ctx.fillStyle = '#93C5FD';
+    ctx.fillRect(wpnX + 18, wpnY + 2, 5, 6);
+  } else if (weapon === 'TASER') {
+    // High voltage stun gun
+    ctx.fillStyle = '#18181B';
+    ctx.fillRect(wpnX, wpnY, 22, 8);
+    ctx.fillStyle = COLORS.TASER_BOLT;
+    ctx.fillRect(wpnX + 18, wpnY + 1, 6, 6);
+  } else if (weapon === 'OIL_ROCKET') {
+    // Heavy military rocket launcher
+    ctx.fillStyle = '#18181B';
+    ctx.fillRect(wpnX - 4, wpnY - 2, 28, 10);
+    ctx.fillStyle = '#DC2626';
+    ctx.beginPath();
+    ctx.moveTo(wpnX + 24, wpnY - 2);
+    ctx.lineTo(wpnX + 32, wpnY + 3);
+    ctx.lineTo(wpnX + 24, wpnY + 8);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+};
+
+/**
  * Slide tackle (crouch + charge): leaning way back, lead boot skimming the
  * floor steel-toe first, back leg tucked under, one palm planted behind.
  * Drawn in the player's local frame: (0,0) is between the feet, +x is forward.
  */
-const drawSlideTackle = (ctx: CanvasRenderingContext2D, frame: number) => {
+const drawSlideTackle = (ctx: CanvasRenderingContext2D, frame: number, weapon: WeaponType, unarmed: boolean) => {
   const rattle = frame % 4 < 2 ? 0 : 1; // floor vibration
   ctx.save();
   ctx.translate(0, rattle);
@@ -1198,9 +1205,8 @@ const drawSlideTackle = (ctx: CanvasRenderingContext2D, frame: number) => {
   ctx.fillRect(-2, -39, 5, 10);
   ctx.fillStyle = skinTone;
   ctx.beginPath(); ctx.arc(6, -34, 5.5, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#374151';
-  ctx.fillRect(8, -39, 15, 6);
-  ctx.fillRect(9, -35, 5, 7);
+  // (his actual weapon, where game/muzzle.ts says shots come out mid-slide)
+  if (!unarmed) drawHeldWeapon(ctx, weapon, SLIDE_HOLD.x, SLIDE_HOLD.y, 0);
 
   ctx.restore();
 };

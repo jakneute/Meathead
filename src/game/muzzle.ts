@@ -8,6 +8,8 @@ import { Player, WeaponType } from '../types';
 
 const HOLD = { x: 18, y: -40 };
 const DUCK_SHIFT = { x: 2, y: 16 };
+/** Mid slide tackle he's leaning way back, gun thrust out low in front (render/playerRenderer.ts drawSlideTackle). */
+export const SLIDE_HOLD = { x: 1, y: -38 };
 
 /** Each weapon's tip, relative to the hand holding it. */
 const TIP: Record<WeaponType, { x: number; y: number }> = {
@@ -28,8 +30,9 @@ export const FLAMETHROWER_BARREL = 27;
 /** World position of the equipped weapon's tip. */
 export const muzzlePoint = (player: Player, weapon: WeaponType) => {
   const tip = TIP[weapon];
-  const lx = HOLD.x + tip.x + (player.isDucking ? DUCK_SHIFT.x : 0);
-  const ly = HOLD.y + tip.y + (player.isDucking ? DUCK_SHIFT.y : 0);
+  const hold = player.isSliding ? SLIDE_HOLD : player.isDucking ? { x: HOLD.x + DUCK_SHIFT.x, y: HOLD.y + DUCK_SHIFT.y } : HOLD;
+  const lx = hold.x + tip.x;
+  const ly = hold.y + tip.y;
   return { x: player.pos.x + player.width / 2 + player.facing * lx, y: player.pos.y + player.height + ly };
 };
 
