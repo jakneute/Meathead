@@ -24,6 +24,8 @@ export const hectorLayout: StageLayout = {
     const C = COURSE;
     state.groundRuns = [...C.runs, { x1: BOSS_DOOR_X, y1: GROUND_Y, x2: STAGE_WIDTH, y2: GROUND_Y }];
     state.blocks.push(...groundBlocks(C.runs));
+    // (a wall at the start of the beach: nothing gets shoved off the end of it into the void)
+    state.blocks.push({ x: C.startX - 60, y: -3000, w: 60, h: 4000, type: 'wall', hidden: true, tag: 'beach-end' });
     // Everything you can stand on that isn't the ground (awnings bounce you)
     C.plats.forEach((p, i) => state.blocks.push({ x: p.x, y: p.y, w: p.w, h: isBouncy(p) ? 12 : 16, type: 'platform', hidden: true, oneWay: p.look !== 'car', tag: isBouncy(p) ? `awning-${i}` : `hplat-${i}` }));
     // The sea bed under the open water (you can swim down to it)

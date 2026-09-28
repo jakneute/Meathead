@@ -14,6 +14,7 @@ import { playSound } from '../../audio';
 import { shakeScreen } from '../../state';
 import { say, MEATHEAD_VOICE } from '../../speech';
 import { COURSE, CP } from './course';
+import { CANVAS_WIDTH } from '../../../constants';
 
 export interface Beach {
   /** Beachgoers killed. */
@@ -79,8 +80,9 @@ export const updateBeach = (ctx: FrameContext, b: Beach) => {
 
   updatePolice(ctx, b);
 
-  // The storm rolls in once you've made it a little way up the beach (cops or no cops)
-  if (!b.stormAt && player.pos.x >= COURSE.stormAt) {
+  // The storm rolls in once you've made it to the tiki bar, and not while there are cops after you
+  const copsActive = b.police === 'coming' || b.police === 'fight';
+  if (!b.stormAt && !copsActive && player.pos.x >= COURSE.stormAt) {
     b.stormAt = state.frame;
     playSound('thunder');
     shakeScreen(state, 40, 6);
@@ -143,8 +145,10 @@ const updatePolice = (ctx: FrameContext, b: Beach) => {
   if (holdUp && !b.lock && state.player.pos.x + state.player.width < TIKI_WALL_X) {
     b.lock = { x: TIKI_WALL_X, y: -3000, w: 40, h: 4000, type: 'wall', hidden: true, tag: 'tiki-lock' };
     state.blocks.push(b.lock);
+    // (and the view stops there too)
+    state.cameraMaxX = TIKI_WALL_X + 40 - CANVAS_WIDTH;
   }
-  if (!holdUp && b.lock) { const lock = b.lock; state.blocks = state.blocks.filter(x => x !== lock); b.lock = null; }
+  if (!holdUp && b.lock) { const lock = b.lock; state.blocks = state.blocks.filter(x => x !== lock); b.lock = null; state.cameraMaxX = undefined; }
 };
 
 /** Where you're held up while the cops are after you: just past the tiki bar. */

@@ -100,7 +100,9 @@ const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
   const launched = (e.pauseTimer || 0) > 0 && e.vel.y < -2;
   const up = !openAbove && e.pos.y + e.height < state.camera.y && (!hilly || launched);
   const down = e.pos.y > state.camera.y + CANVAS_HEIGHT && (!hilly || !hasFloorBelow(state, e));
-  const side = e.pos.x + e.width < getStageLeft(stageId) || e.pos.x > getStageWidth(stageId);
+  // (going out of bounds is about falling off the bottom or being launched off the top; off the ends only counts
+  // on the old flat stages, where being knocked clean off either end is the joke)
+  const side = !getStageLayout(stageId) && (e.pos.x + e.width < getStageLeft(stageId) || e.pos.x > getStageWidth(stageId));
   if (!up && !down && !side) return false;
   e.health = 0;
   const cx = e.pos.x + e.width / 2;

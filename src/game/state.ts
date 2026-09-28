@@ -322,6 +322,7 @@ export const resetStageState = (s: GameState) => {
   s.camera = { x: 0, y: 0 };
   s.groundRuns = [];
   s.cameraRestY = 0;
+  s.cameraMaxX = undefined;
   s.stage = null;
   s.cameraOverride = null;
 

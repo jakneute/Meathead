@@ -109,7 +109,8 @@ const buildMain = () => {
   plats.push({ x: 1700, y: Y - 118, w: 96, look: 'lifeguard' });
   civ(0, 300); civ(0, 380); civ(1, 560); civ(0, 690); civ(2, 860); civ(2, 960); civ(3, 1180);
   civ(0, 1380); civ(0, 1450); civ(1, 1650); civ(4, 1900); civ(0, 2150); civ(0, 2230);
-  const stormAt = 1800;
+  // (at the tiki bar, and only once there are no cops after you: see beach.ts)
+  const stormAt = 2450;
   const shelters = [2450, 60];
 
   // ============ THE STORM HITS: THE BEACH, THEN THE PIER ============
