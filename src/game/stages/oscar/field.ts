@@ -8,6 +8,7 @@
 import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
 import { groundLineAt } from '../../core/terrain';
+import { CANVAS_WIDTH } from '../../../constants';
 import { hurtPlayer } from '../../bosses/shared';
 import { playSound } from '../../platform/audio';
 import { COURSE, OilPatch, Jet, pitAt } from './course';
@@ -67,6 +68,8 @@ export const updateField = (ctx: FrameContext, f: Field) => {
   // A flame on oil lights it: his flamethrower (anywhere near the ground over it), or a jet reaching it
   for (const o of f.oil) {
     if (o.gone || o.burn > 0) continue;
+    // (only once it's on the screen: nothing goes up where he can't see it go up)
+    if (o.x2 < state.camera.x || o.x1 > state.camera.x + CANVAS_WIDTH) continue;
     const byHim = state.flameSegments.some(s => s.x > o.x1 - 10 && s.x < o.x2 + 10 && s.y > groundLineAt(state.groundRuns, s.x) - 90);
     const byJet = jetsOn.some(j => { const b = jetBox(j); return b.x < o.x2 && b.x + b.w > o.x1 && b.y + b.h > groundLineAt(state.groundRuns, Math.max(o.x1, Math.min(o.x2, b.x + b.w / 2))) - 20; });
     if (byHim || byJet) {
