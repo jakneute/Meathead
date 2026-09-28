@@ -108,7 +108,6 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
       });
       drawTaserOverload(wctx, state.player, state.frame);
       drawVictoryPee(wctx, state);
-      drawPlayerSpeech(wctx, state);
     }
     drawOscarFire(wctx, state);
     drawOscarLaser(wctx, state);
@@ -119,6 +118,8 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     if (state.sewerNuke) drawSewerNukeInside(wctx, state);
     if (state.volcanoFinale) drawVolcanoFinaleInside(wctx, state);
     layout?.drawFront?.(wctx, state);
+    // (what he says goes over everything, the stage's buildings and scenery in front included)
+    if (status !== GameStatus.LEVEL_INTRO || LEVEL_INTRO_STYLE === 'skyfall' || state.introTimer >= 80) drawPlayerSpeech(wctx, state);
     wctx.restore();
   };
   const layout = getStageLayout(stageId);

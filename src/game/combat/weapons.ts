@@ -35,8 +35,9 @@ export interface WeaponInput {
 
 const gml = (v: number) => v * GML_SCALE;
 
-const pointInSolid = (state: GameState, x: number, y: number) =>
-  state.blocks.some(b => b.type !== 'pit' && b.type !== 'door' && x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h);
+/** Is (x, y) inside something solid? (A jump-through ledge only counts for something heading down onto it: `down`.) */
+const pointInSolid = (state: GameState, x: number, y: number, down = true) =>
+  state.blocks.some(b => b.type !== 'pit' && b.type !== 'door' && !(b.oneWay && !down) && x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h);
 
 /**
  * Fires the player's current weapon (called when fire is held and off cooldown).
@@ -281,7 +282,8 @@ export const updateFlamethrower = (ctx: FrameContext, input: WeaponInput) => {
       const dist = FLAMETHROWER_NOZZLE_GAP * 0.3 + i * gap;
       const x = nozzle.x + dir.x * dist + player.vel.x;
       const y = nozzle.y + dir.y * dist + player.vel.y;
-      if (pointInSolid(state, x, y)) break;
+      // (the stream goes up through a jump-through ledge, or across it; only aimed down does one stop it)
+      if (pointInSolid(state, x, y, dir.y > 0.2)) break;
       const size = FLAMETHROWER_SEGMENT_SIZE * (1 + (dist / GML_SCALE) * 0.01);
       state.flameSegments.push({
         x, y, size, gap, dirX: dir.x, dirY: dir.y,

@@ -46,7 +46,7 @@ export const drawBunkerBack = (ctx: Ctx, state: GameState, b: Bunker) => {
     }
   }
   // The board
-  const bx = B.x1 + 230, by = top + 30;
+  const bx = B.x1 + 400, by = top + 30;
   ctx.fillStyle = intact ? '#F8FAFC' : '#57534E'; ctx.fillRect(bx, by, 150, 44);
   ctx.strokeStyle = '#1F2937'; ctx.lineWidth = 2; ctx.strokeRect(bx, by, 150, 44);
   ctx.fillStyle = '#111827'; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center';
@@ -59,9 +59,10 @@ export const drawBunkerBack = (ctx: Ctx, state: GameState, b: Bunker) => {
   ctx.fillText('KNOW', B.x1 + 100, top + 64); ctx.fillText('YOUR', B.x1 + 100, top + 76); ctx.fillText('RIGHTS', B.x1 + 100, top + 88);
   ctx.fillText('LOCAL 69', B.x1 + 100, top + 108); ctx.textAlign = 'left';
   // A clock (break's over when it says)
-  ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.arc(B.x1 + 460, top + 50, 16, 0, Math.PI * 2); ctx.fill();
+  const cx = B.x1 + 620;
+  ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.arc(cx, top + 50, 16, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = '#111827'; ctx.lineWidth = 2; ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(B.x1 + 460, top + 50); ctx.lineTo(B.x1 + 460, top + 38); ctx.moveTo(B.x1 + 460, top + 50); ctx.lineTo(B.x1 + 468, top + 54); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, top + 50); ctx.lineTo(cx, top + 38); ctx.moveTo(cx, top + 50); ctx.lineTo(cx + 8, top + 54); ctx.stroke();
   // The vending machine, the fridge, the counter (coffee maker, microwave)
   ctx.fillStyle = intact ? '#B91C1C' : '#3F3A36'; ctx.fillRect(B.x1 + 150, Y - 130, 60, 130);
   ctx.fillStyle = intact ? '#1F2937' : '#111'; ctx.fillRect(B.x1 + 158, Y - 118, 36, 70);
@@ -86,9 +87,12 @@ export const drawBunkerBack = (ctx: Ctx, state: GameState, b: Bunker) => {
     ctx.fillStyle = '#6B7280'; ctx.fillRect(B.vein.x - 58, Y - 30, 30, 30);
     ctx.fillStyle = '#F97316'; for (let k = 0; k < 2; k++) ctx.fillRect(B.vein.x - 54, Y - 24 + k * 10, 22, 3);
     // A note taped over the joint (it's been like that a while)
-    ctx.fillStyle = '#FEF9C3'; ctx.fillRect(B.vein.x - 26, vy - 44, 52, 26);
-    ctx.fillStyle = '#B91C1C'; ctx.font = 'bold 6px monospace'; ctx.textAlign = 'center';
-    ctx.fillText('LEAKY JOINT', B.vein.x, vy - 34); ctx.fillStyle = '#44403C'; ctx.fillText('FIX REQUESTED 1997', B.vein.x, vy - 25); ctx.textAlign = 'left';
+    // (sized to what's written on it, with a margin all round, the text centered in it)
+    ctx.font = 'bold 6px monospace'; ctx.textAlign = 'center';
+    const noteW = Math.ceil(Math.max(ctx.measureText('LEAKY JOINT').width, ctx.measureText('FIX REQUESTED 1997').width)) + 10;
+    ctx.fillStyle = '#FEF9C3'; ctx.fillRect(B.vein.x - noteW / 2, vy - 44, noteW, 25);
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.7)'; ctx.fillRect(B.vein.x - 6, vy - 47, 12, 5); // the tape
+    ctx.fillStyle = '#B91C1C'; ctx.fillText('LEAKY JOINT', B.vein.x, vy - 33); ctx.fillStyle = '#44403C'; ctx.fillText('FIX REQUESTED 1997', B.vein.x, vy - 24); ctx.textAlign = 'left';
     // The joint
     ctx.fillStyle = b.popped ? '#1C1917' : '#92400E'; ctx.fillRect(vb.x + 6, vb.y + 4, vb.w - 12, vb.h - 8);
     ctx.fillStyle = b.popped ? '#57534E' : '#B45309'; ctx.fillRect(vb.x + 4, vb.y + 2, 4, vb.h - 4); ctx.fillRect(vb.x + vb.w - 8, vb.y + 2, 4, vb.h - 4);

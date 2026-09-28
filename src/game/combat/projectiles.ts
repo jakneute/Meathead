@@ -174,6 +174,8 @@ const updateOilRocket = (ctx: FrameContext, p: Projectile): boolean => {
   for (const b of state.blocks) {
     // Rockets fired inside the arena pass through the (closed) door wall behind them
     if (state.arenaLocked && b.x <= BOSS_DOOR_X + DOOR_WIDTH && p.vel.x > 0) continue;
+    // (up through a jump-through ledge, or past it side-on: it only stops a rocket coming down on it)
+    if (b.oneWay && !(p.vel.y > 0 && p.pos.y + p.height - p.vel.y <= b.y + 1)) continue;
     if (b.type !== 'pit' && rectsOverlap(box, b)) return explode();
   }
   for (const e of state.enemies) {
@@ -200,8 +202,8 @@ const updatePhysicsProjectile = (ctx: FrameContext, p: Projectile): boolean => {
 
   for (const b of state.blocks) {
     if (b.type === 'pit' || !rectsOverlap(boundsOf(p), b)) continue;
-    // A boulder goes up through a jump-through ledge and only lands on one from above (like him)
-    if (b.oneWay && p.isBoulder && (p.vel.y <= 0 || p.pos.y + p.height - p.vel.y > b.y + 1)) continue;
+    // A boulder (and anything of his) goes up through a jump-through ledge and only lands on one from above (like him)
+    if (b.oneWay && (p.isBoulder || p.owner === 'player') && (p.vel.y <= 0 || p.pos.y + p.height - p.vel.y > b.y + 1)) continue;
     // Poop logs fly through walls near where they spawned
     if (p.isPoop && p.spawnX !== undefined && Math.abs(p.pos.x - p.spawnX) < 200) continue;
 
@@ -324,11 +326,8 @@ const shatterBoulder = (ctx: FrameContext, p: Projectile) => {
   if (p.owner === 'player') shakeScreen(ctx.state, 8, Math.min(10, (Math.abs(p.vel.x) + Math.abs(p.vel.y)) / GML_SCALE * 0.5) * GML_SCALE);
 };
 
-const solidAt = (state: GameState, box: { x: number, y: number, w: number, h: number }) =>
-  state.blocks.find(b => b.type !== 'pit' && rectsOverlap(box, b));
-
 /**
- * The same, for a boulder, which treats a jump-through ledge the way he does: it flies up through it from below
+ * What stops a boulder (or a shotgun pellet): a jump-through ledge it treats the way he does: it flies up through it from below
  * (and passes it side-on), and only lands on it coming down from above. `bottom` is where its bottom was before
  * this move, `vy` which way it's going.
  */
@@ -346,8 +345,9 @@ const updatePellet = (ctx: FrameContext, p: Projectile): boolean => {
   const speed = Math.hypot(p.vel.x, p.vel.y);
   const redirect = (angle: number) => { p.vel.x = Math.cos(angle) * speed; p.vel.y = Math.sin(angle) * speed; p.bounces = (p.bounces || 0) + 1; };
 
-  if (solidAt(state, { ...boundsOf(p), x: p.pos.x + p.vel.x })) redirect(Math.PI - Math.atan2(p.vel.y, p.vel.x) + variance());
-  if (solidAt(state, { ...boundsOf(p), y: p.pos.y + p.vel.y })) redirect(-Math.atan2(p.vel.y, p.vel.x) + variance());
+  // (a jump-through ledge doesn't stop it going up or across, only coming down onto it)
+  if (solidForBoulder(state, { ...boundsOf(p), x: p.pos.x + p.vel.x }, p.vel.y, p.pos.y + p.height)) redirect(Math.PI - Math.atan2(p.vel.y, p.vel.x) + variance());
+  if (solidForBoulder(state, { ...boundsOf(p), y: p.pos.y + p.vel.y }, p.vel.y, p.pos.y + p.height)) redirect(-Math.atan2(p.vel.y, p.vel.x) + variance());
   p.pos.x += p.vel.x;
   p.pos.y += p.vel.y;
 
