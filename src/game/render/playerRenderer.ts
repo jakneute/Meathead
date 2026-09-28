@@ -1,5 +1,5 @@
 import { Player, WeaponType } from '../../types';
-import { COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../constants';
+import { BOULDER_THROW_FRAMES, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../constants';
 import { peeProgress } from '../victoryPee';
 import { SLIDE_HOLD } from '../muzzle';
 import { drawShoulderCharge, drawUppercut, drawDivekick } from './playerMoves';
@@ -900,6 +900,14 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     const armPump = isWalking ? walkStride * 8 : 0;
     const armBaseX = isDucking ? 10 : 8;
     const armBaseY = isDucking ? -26 : -42;
+    // Just threw a boulder: the arm follows through from the shoulder (up and over for a lob, a low bowl otherwise)
+    const throwing = (p.throwTimer || 0) > 0;
+    if (throwing) {
+      const t = 1 - p.throwTimer! / BOULDER_THROW_FRAMES;
+      const ease = 1 - Math.pow(1 - t, 3);
+      const [from, to] = p.throwLob ? [-2.3, -0.8] : [1.0, -0.35];
+      ctx.translate(armBaseX, armBaseY); ctx.rotate(from + (to - from) * ease); ctx.translate(-armBaseX, -armBaseY);
+    }
 
     // Shoulder Delt
     ctx.fillStyle = skinTone;
@@ -951,7 +959,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     const wpnX = armBaseX + 10 + armPump * 0.3;
     const wpnY = armBaseY + 2;
 
-    if (!isUnarmed) drawHeldWeapon(ctx, currentWeapon, wpnX, wpnY, p.flameAngle || 0);
+    // (his hand's empty for a moment after a throw)
+    if (!isUnarmed && !throwing) drawHeldWeapon(ctx, currentWeapon, wpnX, wpnY, p.flameAngle || 0, animFrame);
   }
   ctx.restore();
 
@@ -994,85 +1003,161 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
 
 /**
  * The equipped weapon in his lead hand, drawn at (wpnX, wpnY) in his local frame
- * (the grip; the barrel points along +x). game/muzzle.ts mirrors where each tip ends up.
+ * (the grip; the barrel points along +x). Each one has a little life to it: a
+ * glint, sloshing liquid, a pilot light, sparks. game/muzzle.ts mirrors where
+ * each tip ends up, so the tips stay where they are.
  */
-const drawHeldWeapon = (ctx: CanvasRenderingContext2D, weapon: WeaponType, wpnX: number, wpnY: number, flameAngle: number) => {
+const drawHeldWeapon = (ctx: CanvasRenderingContext2D, weapon: WeaponType, wpnX: number, wpnY: number, flameAngle: number, frame: number) => {
   ctx.save();
-if (weapon === 'GUN') {
-    // Handgun: slide over the frame, grip in his fist, muzzle out front
-    ctx.fillStyle = '#27272A';
-    ctx.fillRect(wpnX + 4, wpnY, 18, 5);            // slide
-    ctx.fillStyle = '#6B7280';
-    ctx.fillRect(wpnX + 4, wpnY, 18, 1);            // top edge catching the light
-    ctx.fillStyle = '#18181B';
-    ctx.fillRect(wpnX + 6, wpnY + 2, 1, 2); ctx.fillRect(wpnX + 8, wpnY + 2, 1, 2); // serrations
-    ctx.fillRect(wpnX + 20, wpnY - 1, 2, 1);        // front sight
-    ctx.fillStyle = '#3F3F46';
-    ctx.fillRect(wpnX + 5, wpnY + 5, 12, 2);        // frame
-    ctx.fillStyle = '#52525B';
-    ctx.fillRect(wpnX + 22, wpnY + 1, 3, 3);        // muzzle
-  } else if (weapon === 'BOULDER') {
-    // Craggy heavy rock
-    ctx.fillStyle = '#854D0E';
-    ctx.beginPath();
-    ctx.arc(wpnX + 12, wpnY - 4, 12, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#451A03';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-  } else if (weapon === 'SHOTGUN') {
-    // Cryo shotgun
-    ctx.fillStyle = '#0284C7';
-    ctx.fillRect(wpnX, wpnY, 20, 8);
-    ctx.fillStyle = '#38BDF8';
-    ctx.fillRect(wpnX + 12, wpnY - 2, 4, 4);
-    ctx.fillStyle = '#E0F2FE';
-    ctx.fillRect(wpnX + 18, wpnY + 2, 4, 3);
-  } else if (weapon === 'NEEDLES') {
-    // Syringe dart launcher
-    ctx.fillStyle = COLORS.PROJECTILE_DART;
-    ctx.fillRect(wpnX, wpnY, 20, 7);
-    ctx.fillStyle = '#EF4444';
-    ctx.fillRect(wpnX + 18, wpnY + 1, 6, 5);
-  } else if (weapon === 'FLAMETHROWER') {
-    // Industrial flamethrower
-    ctx.save();
-    ctx.translate(wpnX + 4, wpnY + 4);
-    ctx.rotate(flameAngle);
-    ctx.fillStyle = '#3F3F46';
-    ctx.fillRect(0, -4, 24, 9);
-    ctx.fillStyle = '#EA580C';
-    ctx.fillRect(22, -2, 5, 5); // Pilot nozzle
-    ctx.restore();
-  } else if (weapon === 'SLUDGE') {
-    // Toxic sludge launcher
-    ctx.fillStyle = '#14532D';
-    ctx.fillRect(wpnX, wpnY, 22, 10);
-    ctx.fillStyle = '#4ADE80';
-    ctx.fillRect(wpnX + 16, wpnY + 2, 6, 6);
-  } else if (weapon === 'TSUNAMI') {
-    // Hydro cannon
-    ctx.fillStyle = '#1D4ED8';
-    ctx.fillRect(wpnX, wpnY, 24, 10);
-    ctx.fillStyle = '#93C5FD';
-    ctx.fillRect(wpnX + 18, wpnY + 2, 5, 6);
-  } else if (weapon === 'TASER') {
-    // High voltage stun gun
-    ctx.fillStyle = '#18181B';
-    ctx.fillRect(wpnX, wpnY, 22, 8);
-    ctx.fillStyle = COLORS.TASER_BOLT;
-    ctx.fillRect(wpnX + 18, wpnY + 1, 6, 6);
-  } else if (weapon === 'OIL_ROCKET') {
-    // Heavy military rocket launcher
-    ctx.fillStyle = '#18181B';
-    ctx.fillRect(wpnX - 4, wpnY - 2, 28, 10);
-    ctx.fillStyle = '#DC2626';
-    ctx.beginPath();
-    ctx.moveTo(wpnX + 24, wpnY - 2);
-    ctx.lineTo(wpnX + 32, wpnY + 3);
-    ctx.lineTo(wpnX + 24, wpnY + 8);
-    ctx.closePath();
-    ctx.fill();
+  ctx.translate(wpnX, wpnY);
+  const glint = (x0: number, len: number, y: number, h: number, period = 150) => {
+    // A glint of light sweeping along the metal every couple of seconds
+    const t = frame % period;
+    if (t > 14) return;
+    ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    ctx.fillRect(x0 + (t / 14) * len, y, 2, h);
+  };
+  switch (weapon) {
+    case 'GUN': {
+      // Handgun: slide over the frame, grip in his fist, muzzle out front
+      ctx.fillStyle = '#27272A'; ctx.fillRect(4, 0, 18, 5);            // slide
+      ctx.fillStyle = '#6B7280'; ctx.fillRect(4, 0, 18, 1);            // top edge catching the light
+      ctx.fillStyle = '#18181B';
+      for (const sx of [6, 8, 10]) ctx.fillRect(sx, 2, 1, 2);          // serrations
+      ctx.fillRect(20, -1, 2, 1); ctx.fillRect(5, -1, 2, 1);           // front and rear sights
+      ctx.fillStyle = '#3F3F46'; ctx.fillRect(5, 5, 12, 2);            // frame
+      ctx.fillStyle = '#18181B'; ctx.fillRect(9, 7, 4, 2);             // trigger guard
+      ctx.fillStyle = '#52525B'; ctx.fillRect(22, 1, 3, 3);            // muzzle
+      ctx.fillStyle = '#B45309'; ctx.fillRect(4, 5, 3, 3);             // wood grip panel peeking out of his fist
+      glint(4, 16, 1, 3);
+      break;
+    }
+    case 'BOULDER': {
+      // A craggy chunk of rock, cracked and mossy, bobbing a touch in his grip
+      const bob = Math.sin(frame * 0.08) * 0.8;
+      ctx.translate(12, -4 + bob);
+      ctx.fillStyle = '#854D0E';
+      ctx.beginPath();
+      ctx.moveTo(-12, -2); ctx.lineTo(-8, -10); ctx.lineTo(1, -13); ctx.lineTo(9, -9); ctx.lineTo(13, -1);
+      ctx.lineTo(10, 8); ctx.lineTo(2, 12); ctx.lineTo(-7, 10); ctx.lineTo(-12, 5); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#A16207';                                       // lit face
+      ctx.beginPath(); ctx.moveTo(-8, -9); ctx.lineTo(1, -12); ctx.lineTo(8, -8); ctx.lineTo(2, -4); ctx.lineTo(-6, -4); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#65A30D';                                       // moss
+      ctx.beginPath(); ctx.ellipse(-4, -10, 4, 2, -0.3, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#451A03'; ctx.lineWidth = 1.5;                // cracks
+      ctx.beginPath(); ctx.moveTo(-3, -3); ctx.lineTo(1, 2); ctx.lineTo(-1, 7); ctx.moveTo(1, 2); ctx.lineTo(7, 3); ctx.stroke();
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-12, -2); ctx.lineTo(-8, -10); ctx.lineTo(1, -13); ctx.lineTo(9, -9); ctx.lineTo(13, -1);
+      ctx.lineTo(10, 8); ctx.lineTo(2, 12); ctx.lineTo(-7, 10); ctx.lineTo(-12, 5); ctx.closePath(); ctx.stroke();
+      break;
+    }
+    case 'SHOTGUN': {
+      // Cryo shotgun: blue receiver with glowing coolant bands, a steel barrel breathing frost
+      ctx.fillStyle = '#0C4A6E'; ctx.fillRect(-6, 2, 7, 6);            // stock
+      ctx.fillStyle = '#0284C7'; ctx.fillRect(0, 0, 14, 8);            // receiver
+      ctx.fillStyle = '#94A3B8'; ctx.fillRect(12, 1, 10, 5);           // barrel
+      ctx.fillStyle = '#CBD5E1'; ctx.fillRect(12, 1, 10, 1);
+      ctx.fillStyle = '#075985'; ctx.fillRect(5, 8, 9, 3);             // pump
+      const pulse = 0.55 + 0.45 * Math.sin(frame * 0.15);
+      ctx.fillStyle = `rgba(125, 211, 252, ${pulse})`;
+      for (const bx of [3, 7, 11]) ctx.fillRect(bx, 1, 2, 6);          // coolant bands
+      ctx.fillStyle = '#E0F2FE'; ctx.fillRect(21, 2, 2, 3);            // frosted muzzle
+      // Frost wisps curling off the muzzle
+      for (let i = 0; i < 2; i++) {
+        const t = ((frame + i * 20) % 40) / 40;
+        ctx.fillStyle = `rgba(224, 242, 254, ${0.6 * (1 - t)})`;
+        ctx.beginPath(); ctx.arc(23 + t * 6, 2 - t * 8, 1.5 + t * 2.5, 0, Math.PI * 2); ctx.fill();
+      }
+      break;
+    }
+    case 'NEEDLES': {
+      // Syringe launcher: a clear barrel of sloshing pink dope, plunger at the back, needle out front
+      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(-6, 2, 6, 3); ctx.fillRect(-8, 0, 2, 7);  // plunger and thumb plate
+      ctx.fillStyle = 'rgba(226, 232, 240, 0.9)'; ctx.fillRect(0, 0, 20, 7);             // barrel
+      const slosh = Math.sin(frame * 0.12) * 1.5;
+      ctx.fillStyle = COLORS.PROJECTILE_DART;
+      ctx.beginPath(); ctx.moveTo(1, 3 + slosh * 0.5); ctx.lineTo(19, 3 - slosh * 0.5); ctx.lineTo(19, 6); ctx.lineTo(1, 6); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#64748B'; for (const mx of [5, 9, 13]) ctx.fillRect(mx, 0, 1, 2); // measure marks
+      ctx.fillStyle = '#EF4444'; ctx.fillRect(18, 1, 4, 5);                               // hub
+      ctx.fillStyle = '#E5E7EB'; ctx.fillRect(22, 3, 4, 1);                               // needle
+      if (frame % 50 < 6) { ctx.fillStyle = '#F0ABFC'; ctx.beginPath(); ctx.arc(26, 4 + (frame % 50) * 0.6, 1.2, 0, Math.PI * 2); ctx.fill(); } // a bead of it dripping
+      break;
+    }
+    case 'FLAMETHROWER': {
+      // Industrial flamethrower on a swivel: fuel canister, gauge, and a pilot light that never goes out
+      ctx.save();
+      ctx.translate(4, 4);
+      ctx.rotate(flameAngle);
+      ctx.fillStyle = '#B91C1C'; ctx.beginPath(); ctx.arc(-2, 7, 5, 0, Math.PI * 2); ctx.fill();   // fuel canister
+      ctx.fillStyle = '#FDE68A'; ctx.beginPath(); ctx.arc(-2, 7, 2, 0, Math.PI * 2); ctx.fill();   // gauge
+      ctx.fillStyle = '#3F3F46'; ctx.fillRect(0, -4, 24, 9);
+      ctx.fillStyle = '#52525B'; ctx.fillRect(0, -4, 24, 2);
+      ctx.fillStyle = '#27272A'; for (const hx of [6, 10, 14]) ctx.fillRect(hx, -4, 2, 9);          // heat fins
+      ctx.fillStyle = '#EA580C'; ctx.fillRect(22, -2, 5, 5);                                         // nozzle
+      // Pilot light: a little blue-and-orange flame licking at the nozzle
+      const flick = 2 + Math.abs(Math.sin(frame * 0.6)) * 3;
+      ctx.fillStyle = '#60A5FA'; ctx.beginPath(); ctx.ellipse(28, 0.5, 1.5, 1.5, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#FB923C'; ctx.beginPath(); ctx.moveTo(27.5, -0.5); ctx.lineTo(29 + flick, -1 - flick * 0.4); ctx.lineTo(28.5, 1.5); ctx.closePath(); ctx.fill();
+      ctx.restore();
+      break;
+    }
+    case 'SLUDGE': {
+      // Toxic sludge launcher: a glass canister of bubbling green on top, a dripping nozzle
+      ctx.fillStyle = '#14532D'; ctx.fillRect(0, 0, 22, 10);
+      ctx.fillStyle = '#166534'; ctx.fillRect(0, 0, 22, 2);
+      ctx.fillStyle = 'rgba(187, 247, 208, 0.5)'; ctx.fillRect(3, -6, 11, 7);                       // canister glass
+      ctx.fillStyle = '#22C55E'; ctx.fillRect(4, -3 + Math.sin(frame * 0.1), 9, 4);                  // sludge
+      for (let i = 0; i < 2; i++) { const t = ((frame + i * 17) % 34) / 34; ctx.fillStyle = '#BBF7D0'; ctx.beginPath(); ctx.arc(6 + i * 4, 0 - t * 4, 1 + t * 0.6, 0, Math.PI * 2); ctx.fill(); }
+      ctx.strokeStyle = '#052E16'; ctx.lineWidth = 1; ctx.strokeRect(3, -6, 11, 7);
+      ctx.fillStyle = '#4ADE80'; ctx.fillRect(16, 2, 6, 6);                                          // nozzle
+      const drip = (frame % 70) / 70;
+      if (drip < 0.5) { ctx.fillStyle = '#86EFAC'; ctx.beginPath(); ctx.arc(20, 9 + drip * 12, 1.5, 0, Math.PI * 2); ctx.fill(); }
+      break;
+    }
+    case 'TSUNAMI': {
+      // Hydro cannon: a gauge window with water sloshing in it, a chrome nozzle ring, drips
+      ctx.fillStyle = '#1D4ED8'; ctx.fillRect(0, 0, 24, 10);
+      ctx.fillStyle = '#1E40AF'; ctx.fillRect(0, 8, 24, 2);
+      ctx.fillStyle = '#0F172A'; ctx.fillRect(3, 2, 11, 5);                                          // gauge window
+      ctx.fillStyle = '#38BDF8';
+      ctx.beginPath(); ctx.moveTo(3, 7);
+      for (let x = 0; x <= 11; x++) ctx.lineTo(3 + x, 4 + Math.sin(frame * 0.2 + x * 0.8) * 1);
+      ctx.lineTo(14, 7); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#E2E8F0'; ctx.fillRect(18, 1, 3, 8);                                          // nozzle ring
+      ctx.fillStyle = '#93C5FD'; ctx.fillRect(21, 2, 3, 6);
+      const drip = (frame % 60) / 60;
+      if (drip < 0.4) { ctx.fillStyle = '#BFDBFE'; ctx.beginPath(); ctx.arc(23, 10 + drip * 14, 1.3, 0, Math.PI * 2); ctx.fill(); }
+      glint(0, 16, 1, 2, 170);
+      break;
+    }
+    case 'TASER': {
+      // High voltage stun gun: hazard-striped body, two prongs with a spark jumping between them
+      ctx.fillStyle = '#18181B'; ctx.fillRect(0, 0, 20, 8);
+      ctx.fillStyle = '#FACC15';
+      for (let sx = 2; sx < 14; sx += 5) { ctx.beginPath(); ctx.moveTo(sx, 8); ctx.lineTo(sx + 3, 8); ctx.lineTo(sx + 5, 5); ctx.lineTo(sx + 2, 5); ctx.closePath(); ctx.fill(); }
+      ctx.fillStyle = COLORS.TASER_BOLT; ctx.fillRect(18, 1, 3, 6);                                  // emitter
+      ctx.fillStyle = '#D1D5DB'; ctx.fillRect(21, 1, 4, 1.5); ctx.fillRect(21, 5.5, 4, 1.5);          // prongs
+      if (frame % 9 < 5) {
+        ctx.strokeStyle = '#E0FFFF'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(24, 2); ctx.lineTo(25 + (frame % 2), 3.5); ctx.lineTo(23.5, 4.5); ctx.lineTo(24.5, 6); ctx.stroke();
+      }
+      ctx.fillStyle = frame % 30 < 15 ? '#22C55E' : '#14532D'; ctx.fillRect(4, 2, 2, 2);              // charge light
+      break;
+    }
+    case 'OIL_ROCKET': {
+      // Military launcher: striped tube, a sight on top, the red warhead loaded and ready
+      ctx.fillStyle = '#3F3F2E'; ctx.fillRect(-4, -2, 28, 10);
+      ctx.fillStyle = '#18181B'; ctx.fillRect(-4, -2, 28, 2); ctx.fillRect(-6, -3, 3, 12);           // top edge, rear flare
+      ctx.fillStyle = '#FACC15'; ctx.fillRect(2, -2, 3, 10); ctx.fillRect(14, -2, 3, 10);            // hazard bands
+      ctx.fillStyle = '#27272A'; ctx.fillRect(8, -7, 6, 4); ctx.fillStyle = '#F87171'; ctx.fillRect(12, -6, 2, 2); // sight, red dot
+      ctx.fillStyle = '#18181B'; ctx.fillRect(6, 8, 4, 4);                                            // grip
+      ctx.fillStyle = '#DC2626';
+      ctx.beginPath(); ctx.moveTo(24, -2); ctx.lineTo(32, 3); ctx.lineTo(24, 8); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#FCA5A5'; ctx.beginPath(); ctx.moveTo(24, -1); ctx.lineTo(29, 2); ctx.lineTo(24, 2); ctx.closePath(); ctx.fill();
+      glint(-4, 26, -1, 2, 190);
+      break;
+    }
   }
   ctx.restore();
 };
@@ -1206,7 +1291,7 @@ const drawSlideTackle = (ctx: CanvasRenderingContext2D, frame: number, weapon: W
   ctx.fillStyle = skinTone;
   ctx.beginPath(); ctx.arc(6, -34, 5.5, 0, Math.PI * 2); ctx.fill();
   // (his actual weapon, where game/muzzle.ts says shots come out mid-slide)
-  if (!unarmed) drawHeldWeapon(ctx, weapon, SLIDE_HOLD.x, SLIDE_HOLD.y, 0);
+  if (!unarmed) drawHeldWeapon(ctx, weapon, SLIDE_HOLD.x, SLIDE_HOLD.y, 0, frame);
 
   ctx.restore();
 };

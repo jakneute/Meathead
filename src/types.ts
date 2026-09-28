@@ -84,6 +84,9 @@ export interface Player extends Entity {
   shootHeldLastFrame: boolean;
 
   shootCooldown: number;
+  /** Just threw a boulder: frames left of the throwing arm's follow-through, and whether it was the overhead lob. */
+  throwTimer?: number;
+  throwLob?: boolean;
   invincibilityTimer: number;
   /** Knockback from taking damage; input is ignored while it runs. */
   pushbackTimer: number;

@@ -100,6 +100,7 @@ export const tickPlayerTimers = (ctx: FrameContext, input: FrameInput) => {
   if (state.bossReactionCooldown > 0) state.bossReactionCooldown--;
   if (state.hurtVoiceCooldown > 0) state.hurtVoiceCooldown--;
   if (player.invincibilityTimer > 0) player.invincibilityTimer--;
+  if (player.throwTimer && player.throwTimer > 0) player.throwTimer--;
   if (player.hurtTimer && player.hurtTimer > 0) player.hurtTimer--;
   if (player.smugTimer && player.smugTimer > 0) player.smugTimer--;
   if (player.angryTimer && player.angryTimer > 0) player.angryTimer--;
@@ -148,11 +149,16 @@ export const updatePlayerActions = (ctx: FrameContext, input: FrameInput) => {
   updateHorizontalVelocity(ctx, movDir);
 
   player.currentWeapon = currentWeapon;
+  // Mid shoulder charge, uppercut or divekick his hands are busy: no shooting (a slide tackle's fine, gun out front)
+  if (armsBusy(player)) input = { ...input, shoot: false, shootPressed: false };
   updateFlamethrower(ctx, input);
   if (input.shoot && player.shootCooldown <= 0 && hasAmmo(ctx, currentWeapon) && currentWeapon !== 'TASER' && currentWeapon !== 'FLAMETHROWER') {
     fireWeapon(ctx, input);
   }
 };
+
+/** Mid shoulder charge, uppercut or divekick: he can't fire (a slide tackle's the exception). */
+export const armsBusy = (player: Player) => (player.isCharging && !player.isSliding) || player.isUppercutting || !!player.isDivekicking;
 
 const isPerformingSpecial = (ctx: FrameContext) => {
   const { player } = ctx.state;

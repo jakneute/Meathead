@@ -10,7 +10,7 @@ import { FrameContext, killBoss } from '../context';
 import { updateBossAI, getBossDef, hitBoss } from '../boss';
 import { fireWeapon, findTaserTarget } from '../weapons';
 import { zapCigarette, findFlyingCigarette } from '../bosses/oscar';
-import { FrameInput, hasAmmo } from './player';
+import { FrameInput, hasAmmo, armsBusy } from './player';
 
 /**
  * Holding fire with the taser locks onto a target and zaps it continuously.
@@ -29,6 +29,8 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
   const { player, enemies, projectiles } = state;
 
   const overloaded = (player.taserOverloadTimer || 0) > 0;
+  // (no tasing mid charge, uppercut or divekick; a slide's fine)
+  if (armsBusy(player)) input = { ...input, shoot: false };
   // Its target died: the beam stays off until fire is let go and pressed again
   if (!input.shoot) player.taserSpent = false;
   if (!(currentWeapon === 'TASER' && input.shoot && hasAmmo(ctx, 'TASER')) || overloaded || player.taserSpent) {
@@ -43,7 +45,7 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
 
   player.taserTimer = (player.taserTimer || 0) + 1;
   if (!cheats.infiniteAmmo && state.frame % TASER_AMMO_CONSUMPTION_RATE === 0) player.weaponAmmo['TASER'] -= 1;
-  player.vel.x = 0;
+  if (!player.isSliding) player.vel.x = 0; // (tasing from a slide doesn't stop the slide)
   if (player.weaponAmmo['TASER'] <= 0) {
     player.isTasing = false;
     player.taserTargetId = null;
