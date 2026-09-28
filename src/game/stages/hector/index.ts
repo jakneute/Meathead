@@ -23,7 +23,9 @@ export const hectorLayout: StageLayout = {
   build: (state, skipToBoss) => {
     const C = COURSE;
     state.groundRuns = [...C.runs, { x1: BOSS_DOOR_X, y1: GROUND_Y, x2: STAGE_WIDTH, y2: GROUND_Y }];
-    state.blocks.push(...groundBlocks(C.runs));
+    // (the docks are just their boards: you can swim under them, and come up through them onto the top)
+    const docks = C.runs.filter(r => r.surface === 'dock');
+    state.blocks.push(...groundBlocks(C.runs).map(b => docks.some(r => b.x >= r.x1 && b.x < r.x2 && b.y === r.y1) ? { ...b, h: 16, oneWay: true } : b));
     // (a wall at the start of the beach: nothing gets shoved off the end of it into the void)
     state.blocks.push({ x: C.startX - 60, y: -3000, w: 60, h: 4000, type: 'wall', hidden: true, tag: 'beach-end' });
     // Everything you can stand on that isn't the ground (awnings bounce you)

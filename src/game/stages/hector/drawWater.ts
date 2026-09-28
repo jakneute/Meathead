@@ -4,7 +4,7 @@
 
 import type { GameState } from '../../state';
 import { drawPlayer } from '../../render/playerRenderer';
-import { Hazards, DROWN_FRAMES, STRIKE_WARN, headUnder } from './hazards';
+import { Hazards, DROWN_FRAMES, STRIKE_WARN, headUnder, bodyExtent } from './hazards';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -24,15 +24,16 @@ const crackle = (ctx: Ctx, x1: number, x2: number, y: number, depth: number, see
 };
 
 export const drawWaterHazards = (ctx: Ctx, state: GameState, hz: Hazards) => {
-  // A bolt about to come down in the water: the whole stretch of it crackles (get out!)
+  // A bolt about to come down in the water: the whole body of water crackles (get out!)
   for (const s of hz.strikes) {
-    const z = hz.water.find(w => s.x > w.x1 && s.x < w.x2);
-    if (!z || s.t >= STRIKE_WARN || Math.abs(Math.floor(s.t / 4) % 2)) continue;
+    const hit = hz.water.find(w => !w.underDock && s.x > w.x1 && s.x < w.x2);
+    if (!hit || s.t >= STRIKE_WARN || Math.abs(Math.floor(s.t / 4) % 2)) continue;
+    const z = bodyExtent(hz, hit.body);
     crackle(ctx, z.x1, z.x2, z.surface, 60, s.t + Math.floor(s.x), 0.35 + Math.max(0, s.t / STRIKE_WARN) * 0.5);
   }
   // It hit: the water lights up top to bottom
   if (hz.zap) {
-    const z = hz.zap.zone, k = 1 - hz.zap.t / 30;
+    const z = hz.zap, k = 1 - hz.zap.t / 30;
     ctx.fillStyle = `rgba(254, 240, 138, ${0.45 * k})`;
     ctx.fillRect(z.x1, z.surface, z.x2 - z.x1, z.bottom - z.surface);
     crackle(ctx, z.x1, z.x2, z.surface, z.bottom - z.surface, state.frame, k);

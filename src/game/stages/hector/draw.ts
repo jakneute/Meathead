@@ -250,13 +250,20 @@ export const drawHectorHud = (ctx: Ctx, state: GameState) => {
 // ---------------------------------------------------------------------------
 
 /** The sea, under every stretch of open water (and out past the end of the marina). */
-const drawSea = (ctx: Ctx, state: GameState) => {
-  const bottom = state.camera.y + CANVAS_HEIGHT + 60;
+/** Every stretch of sea: the open water between the docks and the water under them. */
+const seaStretches = (state: GameState) => {
+  const out: { x1: number; x2: number }[] = [];
   const runs = state.groundRuns;
   runs.forEach((r, i) => {
-    if (r.pitAfter !== 'water') return;
-    const next = runs[i + 1];
-    const x1 = r.x2, x2 = next && next.x1 > r.x2 ? next.x1 : COURSE.sea.x2;
+    if (r.pitAfter === 'water') { const next = runs[i + 1]; out.push({ x1: r.x2, x2: next && next.x1 > r.x2 ? next.x1 : COURSE.sea.x2 }); }
+    if (r.surface === 'dock') out.push({ x1: r.x1, x2: r.x2 });
+  });
+  return out;
+};
+
+const drawSea = (ctx: Ctx, state: GameState) => {
+  const bottom = state.camera.y + CANVAS_HEIGHT + 60;
+  seaStretches(state).forEach(({ x1, x2 }) => {
     if (!visible(state, x1, x2)) return;
     const y = COURSE.sea.y;
     const g = ctx.createLinearGradient(0, y, 0, y + SEA_DEPTH);
@@ -274,12 +281,8 @@ const drawSea = (ctx: Ctx, state: GameState) => {
 
 /** A rolling surface line over the open water, in front of anything sinking into it. */
 const drawWaterFront = (ctx: Ctx, state: GameState) => {
-  const runs = state.groundRuns;
   const f = state.frame;
-  runs.forEach((r, i) => {
-    if (r.pitAfter !== 'water') return;
-    const next = runs[i + 1];
-    const x1 = r.x2, x2 = next && next.x1 > r.x2 ? next.x1 : COURSE.sea.x2;
+  seaStretches(state).forEach(({ x1, x2 }) => {
     if (!visible(state, x1, x2)) return;
     const y = COURSE.sea.y;
     // The water over whatever's in it (him, swimming), a murky tint deepening toward the bottom
@@ -312,9 +315,10 @@ const drawGround = (ctx: Ctx, state: GameState) => {
     const x1 = Math.max(r.x1, state.camera.x - 260), x2 = Math.min(r.x2, state.camera.x + CANVAS_WIDTH + 260);
     const yAt = (x: number) => (r.x2 === r.x1 ? r.y1 : r.y1 + ((x - r.x1) / (r.x2 - r.x1)) * (r.y2 - r.y1));
     if (r.surface === 'dock') {
-      // Boardwalk on pilings down into the water
+      // Boardwalk on pilings down into the water, driven into the sea bed
       ctx.fillStyle = look.dark;
-      for (let x = Math.ceil(x1 / 70) * 70; x < x2; x += 70) ctx.fillRect(x, yAt(x), 10, bottom - yAt(x));
+      const bed = COURSE.sea.y + SEA_DEPTH + 6;
+      for (let x = Math.ceil(x1 / 70) * 70; x < x2; x += 70) ctx.fillRect(x, yAt(x), 10, bed - yAt(x));
       ctx.fillStyle = look.body; ctx.fillRect(x1, yAt(x1), x2 - x1, 14);
       ctx.fillStyle = look.top;
       for (let x = Math.floor(x1 / 26) * 26; x < x2; x += 26) ctx.fillRect(Math.max(x1, x), yAt(x), Math.min(24, x2 - x), 4);

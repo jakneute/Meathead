@@ -63,7 +63,7 @@ export const createHectorRuntime = (state: GameState, skipToBoss: boolean): Hect
   // Refills down on the sea bed, to make it worth diving for
   if (startedAt <= CP.MARINA) {
     const fromX = startedAt > 0 ? start.x : -Infinity;
-    waterZones(state).filter(z => z.bottom > COURSE.sea.y + 100 && z.x2 - z.x1 > 100 && z.x1 > fromX && z.x1 < COURSE.sea.x1).forEach((z, i) => {
+    waterZones(state).filter(z => !z.underDock && z.bottom > COURSE.sea.y + 100 && z.x2 - z.x1 > 100 && z.x1 > fromX && z.x1 < COURSE.sea.x1).forEach((z, i) => {
       const type = (['large_health', 'large_ammo', 'small_health', 'small_ammo'] as const)[i % 4];
       state.pickups.push({ id: `hector-seabed-${i}`, pos: { x: (z.x1 + z.x2) / 2 - 10, y: z.bottom - 22 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
     });

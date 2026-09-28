@@ -53,8 +53,10 @@ export interface Hazards {
   /** Where he went under for the last time. */
   drownAt: { x: number; y: number; surface: number } | null;
   /** Lightning's just hit the water: which stretch of it, and frames since. */
-  zap: { zone: WaterZone; t: number } | null;
+  zap: { x1: number; x2: number; surface: number; bottom: number; t: number } | null;
   splashAt: number;
+  /** Frames he's been in the water in the storm (enough and the lightning finds him). */
+  wetT: number;
 }
 
 export const STRIKE_WARN = 55, STRIKE_FLASH = 10;
@@ -79,7 +81,7 @@ export const createHazards = (state: GameState): Hazards => {
     floatBlocks, awningBlocks, awningWobble: awningBlocks.map(() => 0),
     lastCause: '', lastCauseAt: -999,
     water: waterZones(state),
-    o2: 1, drownT: 0, drownAt: null, zap: null, splashAt: -999,
+    o2: 1, drownT: 0, drownAt: null, zap: null, splashAt: -999, wetT: 0,
   };
 };
 
@@ -131,8 +133,10 @@ const updateAwnings = (ctx: FrameContext, hz: Hazards) => {
   hz.awningBlocks.forEach((b, i) => {
     if (hz.awningWobble[i] > 0) hz.awningWobble[i]--;
     const on = player.vel.y >= 0 && player.pos.x + player.width > b.x && player.pos.x < b.x + b.w && Math.abs(player.pos.y + player.height - b.y) < 4;
-    if (!on) return;
-    // Boing
+    // (one boing per landing: a shoulder charge holds him level, so without this it'd boing every frame he's over it)
+    if (!on || hz.awningWobble[i] > 12) return;
+    // Boing (and that's the end of any charge or slide: he's going up)
+    player.isCharging = false; player.isSliding = false;
     player.vel.y = -AWNING_BOUNCE;
     player.isGrounded = false;
     player.squash = -0.6;
@@ -160,10 +164,23 @@ const updateLightning = (ctx: FrameContext, hz: Hazards) => {
     if (swimming) hz.strikeTimers[i] += z.every;
     const x = swimming ? px + (Math.random() < 0.5 ? -1 : 1) * (120 + Math.random() * 260)
       : z.aimed ? px + player.vel.x * 22 + (Math.random() - 0.5) * 60 : px + 260 + Math.random() * 140;
-    // (over the water it comes down on the surface)
+    // (over the water it comes down on the surface; and it only goes for the water when he's in it)
     const wet = waterAt(hz, x);
+    if (wet && !player.swimming) return;
     hz.strikes.push({ x, ground: wet ? wet.surface : groundAt(state, x), t: wet ? -WATER_EXTRA_WARN : 0 });
   });
+  // In the water too long: one comes down on it (on the open water nearest him, if he's under a dock)
+  const inWater = swimmingIn(hz, player);
+  hz.wetT = inWater && hz.drownT <= 0 ? hz.wetT + 1 : 0;
+  if (inWater && hz.wetT >= WET_LIMIT) {
+    hz.wetT = 0;
+    const open = hz.water.filter(z => z.body === inWater.body && !z.underDock);
+    const near = open.sort((a, b) => Math.abs((a.x1 + a.x2) / 2 - px) - Math.abs((b.x1 + b.x2) / 2 - px))[0];
+    if (near) {
+      const x = Math.max(near.x1 + 30, Math.min(near.x2 - 30, px));
+      hz.strikes.push({ x, ground: near.surface, t: -WATER_EXTRA_WARN });
+    }
+  }
   hz.strikes = hz.strikes.filter(s => {
     s.t++;
     if (s.t === STRIKE_WARN) {
@@ -174,19 +191,20 @@ const updateLightning = (ctx: FrameContext, hz: Hazards) => {
       for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: s.x, y: s.ground - 4 }, vel: { x: (Math.random() - 0.5) * 10, y: -Math.random() * 8 }, life: 20 + Math.random() * 15, color: i % 2 ? '#FDE047' : '#F8FAFC', size: 2 + Math.random() * 4 });
       const col = { x: s.x - STRIKE_HALF_WIDTH, y: s.ground - 900, w: STRIKE_HALF_WIDTH * 2, h: 900 };
       if (rectsOverlap(col, boundsOf(player))) hurt(ctx, hz, STRIKE_DAMAGE, 'lightning', { x: (player.pos.x + player.width / 2 < s.x ? -1 : 1) * 6, y: -8 });
-      // Into the water: the whole stretch of it lights up, and anything swimming in it is cooked
+      // Into the water: the whole body of water lights up (under the docks too), and anything swimming in it is cooked
       const wet = waterAt(hz, s.x);
       if (wet) {
-        hz.zap = { zone: wet, t: 0 };
-        const pcx = player.pos.x + player.width / 2;
-        if (player.swimming && pcx > wet.x1 && pcx < wet.x2 && state.deathTimer <= 0 && hz.drownT <= 0) {
+        const all = bodyExtent(hz, wet.body);
+        hz.zap = { ...all, t: 0 };
+        if (swimmingIn(hz, player)?.body === wet.body && state.deathTimer <= 0 && hz.drownT <= 0) {
           hz.lastCause = 'zapped'; hz.lastCauseAt = state.frame;
           const lines = ['ELECTROCUTED IN THE WATER', 'NEVER SWIM IN A LIGHTNING STORM', 'SEAFOOD BOIL', 'SHOCKINGLY STUPID'];
           killPlayer(ctx, lines[Math.floor(Math.random() * lines.length)]);
         }
-        for (const e of state.enemies) {
+        // (the gators only get cooked along with him)
+        if (swimmingIn(hz, player)?.body === wet.body) for (const e of state.enemies) {
           const ex = e.pos.x + e.width / 2;
-          if (e.health <= 0 || e.isBlownAway || e.innocent || ex < wet.x1 || ex > wet.x2 || e.pos.y + e.height < wet.surface) continue;
+          if (e.health <= 0 || e.isBlownAway || e.innocent || ex < all.x1 || ex > all.x2 || e.pos.y + e.height < all.surface + 4) continue;
           e.health = 0;
           fx.killWithAnimation(e, 'fried', 'taser_kill', 'fried');
         }
@@ -278,7 +296,13 @@ const updateShocks = (ctx: FrameContext, hz: Hazards) => {
 };
 
 /** Where the water is: the sea under the piers and docks and out past the marina, and the motel pool. */
-export interface WaterZone { x1: number; x2: number; surface: number; bottom: number; leap: number }
+export interface WaterZone {
+  x1: number; x2: number; surface: number; bottom: number; leap: number;
+  /** Stretches that run into each other (the gaps and the water under the docks between them) are one body of water. */
+  body: number;
+  /** Under a dock (you can swim there, but lightning comes down on the open water, not through the boards). */
+  underDock?: boolean;
+}
 /** How deep the sea is under the docks. */
 export const SEA_DEPTH = 230;
 
@@ -287,13 +311,20 @@ export const waterZones = (state: GameState): WaterZone[] => {
   state.groundRuns.forEach((r, i) => {
     if (r.pitAfter === 'water') {
       const next = state.groundRuns[i + 1];
-      zones.push({ x1: r.x2, x2: next && next.x1 > r.x2 ? next.x1 : COURSE.sea.x2, surface: COURSE.sea.y, bottom: COURSE.sea.y + SEA_DEPTH, leap: SWIM_LEAP });
+      zones.push({ x1: r.x2, x2: next && next.x1 > r.x2 ? next.x1 : COURSE.sea.x2, surface: COURSE.sea.y, bottom: COURSE.sea.y + SEA_DEPTH, leap: SWIM_LEAP, body: 0 });
+    }
+    if (r.surface === 'dock') {
+      // The docks stand on pilings in the sea: the water carries on under them
+      zones.push({ x1: r.x1, x2: r.x2, surface: COURSE.sea.y, bottom: COURSE.sea.y + SEA_DEPTH, leap: SWIM_LEAP, body: 0, underDock: true });
     } else if (r.surface === 'pool') {
       // (a shallow pool: just enough of a hop to get back up over the edge onto the lot)
       const rise = r.y1 - GROUND_Y + 30;
-      zones.push({ x1: r.x1, x2: r.x2, surface: COURSE.sea.y, bottom: r.y1, leap: -Math.sqrt(2 * PLAYER_GRAVITY * rise) * 0.6 });
+      zones.push({ x1: r.x1, x2: r.x2, surface: COURSE.sea.y, bottom: r.y1, leap: -Math.sqrt(2 * PLAYER_GRAVITY * rise) * 0.6, body: 0 });
     }
   });
+  // Which ones run into each other
+  zones.sort((a, b) => a.x1 - b.x1);
+  zones.forEach((z, i) => { const prev = zones[i - 1]; z.body = prev && z.x1 <= prev.x2 + 1 && prev.surface === z.surface ? prev.body : i; });
   return zones;
 };
 
@@ -353,8 +384,24 @@ const updateDrowning = (ctx: FrameContext, hz: Hazards) => {
   }
 };
 
-/** Where a bolt coming down at x hits the water (if it does). */
-const waterAt = (hz: Hazards, x: number) => hz.water.find(z => x > z.x1 && x < z.x2);
+/** Where a bolt coming down at x hits the water (if it does: not through a dock). */
+const waterAt = (hz: Hazards, x: number) => hz.water.find(z => !z.underDock && x > z.x1 && x < z.x2);
+
+/** The whole body of water a stretch belongs to: its extent, top to bottom. */
+export const bodyExtent = (hz: Hazards, body: number) => {
+  const zs = hz.water.filter(z => z.body === body);
+  return { x1: Math.min(...zs.map(z => z.x1)), x2: Math.max(...zs.map(z => z.x2)), surface: zs[0].surface, bottom: Math.max(...zs.map(z => z.bottom)) };
+};
+
+/** The stretch of water he's swimming in (if he is). */
+const swimmingIn = (hz: Hazards, p: GameState['player']) => {
+  if (!p.swimming) return undefined;
+  const cx = p.pos.x + p.width / 2;
+  return hz.water.find(z => cx > z.x1 && cx < z.x2);
+};
+
+/** Stay in the water in the storm this long and a bolt comes down on it (warned, as ever). */
+const WET_LIMIT = 360;
 
 /** A death message for how he just died here, if a hazard did it. */
 export const hazardDeathMessage = (state: GameState, hz: Hazards): string | undefined => {

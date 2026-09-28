@@ -100,9 +100,12 @@ const waterGator = (ctx: FrameContext, e: Enemy): boolean => {
       e.facing = dirTo(e, mid(player).x);
       const dx = Math.abs(mid(player).x - mid(e).x);
       if (gatorCanHunt(e, player)) { e.aiState = 'hunt'; e.aiTimer = 0; break; }
-      if (dx < 130 && e.aiTimer > 70 && !holdingOff(ctx.state)) {
+      // Jump over it without dealing with it and it comes up out of the water at you. Bait it (a hop at the
+      // edge), and while it's gone back under to recover you can clear it
+      if (!player.isGrounded && !player.swimming && dx < GATOR_BREACH_REACH && e.aiTimer > GATOR_BREACH_REST) {
+        // (not held off while he's over the gap: going for him over the gap is the whole point of it)
         e.aiState = 'breach'; e.aiTimer = 0;
-        e.vel = { x: Math.sign(mid(player).x - mid(e).x) * 3, y: -15 };
+        e.vel = { x: Math.max(-7, Math.min(7, (mid(player).x - mid(e).x) / 22)), y: -15.5 };
       }
       break;
     }
@@ -139,6 +142,8 @@ const waterGator = (ctx: FrameContext, e: Enemy): boolean => {
   return true;
 };
 
+/** How close you have to jump for a water gator to go for you, and how long it stays under after a go. */
+const GATOR_BREACH_REACH = 190, GATOR_BREACH_REST = 100;
 /** How far a water gator will leave its spot chasing you. */
 const GATOR_RANGE = 380;
 const gatorCanHunt = (e: Enemy, player: FrameContext['state']['player']) =>
