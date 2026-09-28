@@ -7,13 +7,14 @@
 import type { GameState } from '../../core/state';
 import type { GroundRun } from '../../core/terrain';
 import { runYAt } from '../../core/terrain';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, ARENA_LEFT } from '../../../constants';
 import { STAGE_BACKDROPS } from '../../render/backdrops/stages';
+import { drawBackdropFront } from '../../render/backdrops';
 import { blitLayer } from '../../render/backdrops/core';
 import type { Live } from '../../render/backdrops';
 import type { LayerSpec } from '../../render/backdrops/core';
 import { COURSE } from './course';
-import { getErnie, regionOf, downFade, AWAY_FRAMES } from './runtime';
+import { getErnie, regionOf, downFade, AWAY_FRAMES, ErnieRuntime } from './runtime';
 import { Quakes, quakeAmount, faultAmount, DEBRIS_HOLD, BRIDGE_HOLD, Debris, inQuakeCountry, PIECE_BOTTOM } from './quake';
 import { Bridge, mainCableY, TOWER_TOP, SPAN_WARN, DROP_TO_WATER, FAR_LANE, UNDER_STEEL, BgCar, screamOf, onBridge } from './bridge';
 import { drawFault } from './faultDraw';
@@ -606,12 +607,28 @@ export const drawErnieHud = (ctx: Ctx, state: GameState) => {
   if (region === 'cell') drawCellHud(ctx, state, rt);
   // Letterbox over the drop
   if (rt.bridge.plunge && state.deathTimer <= 0) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, CANVAS_WIDTH, 36); ctx.fillRect(0, CANVAS_HEIGHT - 36, CANVAS_WIDTH, 36); }
+  // (the fades go over the weather, where there is any: see drawErnieWeather)
+  if (!hasWeather(state)) drawFades(ctx, rt);
+  void onBridge;
+};
+
+/** Whether the stage's weather gets drawn over the level (it isn't in the boss arena). */
+const hasWeather = (state: GameState) => state.camera.x < ARENA_LEFT - CANVAS_WIDTH / 2;
+
+/** The weather, then the fades to black over the top of it (not the sky's stars drifting over a black screen). */
+export const drawErnieWeather = (ctx: Ctx, state: GameState) => {
+  const rt = getErnie(state)!;
+  drawBackdropFront(ctx, 'Ernie Earthquake', state.camera.x, state.camera.y, state.frame || 0);
+  drawFades(ctx, rt);
+  return true;
+};
+
+const drawFades = (ctx: Ctx, rt: ErnieRuntime) => {
   // Down off the bridge
   const d = downFade(rt);
   if (d > 0) { ctx.fillStyle = `rgba(0,0,0,${d})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
   // Up the ramp and away
   if (rt.awayT > 0) { ctx.fillStyle = `rgba(0,0,0,${Math.min(1, rt.awayT / (AWAY_FRAMES * 0.7))})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
-  void onBridge;
 };
 
 /** EARTHQUAKE! and the magnitude, with a seismograph scribbling away under it. */

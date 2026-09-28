@@ -30,7 +30,7 @@ export const regionOf = (x: number): Region => (x >= COURSE.cellblock.x1 - 200 ?
 
 /** Nothing's placed closer than this ahead of where you start. */
 const SPAWN_CLEARANCE = 480;
-export const DOWN_FRAMES = 50;
+export const DOWN_FRAMES = 50, DOWN_HOLD = 8;
 export const AWAY_FRAMES = 40;
 
 export const getErnie = (state: GameState) => state.stage as ErnieRuntime | null;
@@ -100,7 +100,7 @@ export const updateErnie = (ctx: FrameContext, controls: Controls): Controls => 
       state.enemies = state.enemies.filter(e => e.type === 'boss');
       state.projectiles = [];
     }
-    if (rt.downT > DOWN_FRAMES + 30) rt.downT = 0;
+    if (rt.downT > DOWN_FRAMES + DOWN_HOLD + 30) rt.downT = 0;
   }
   if (region === 'bay') {
     controls = updateJetSki(ctx, rt.ski, controls, () => { rt.awayT = 1; });
@@ -114,4 +114,5 @@ export const updateErnie = (ctx: FrameContext, controls: Controls): Controls => 
 };
 
 /** The fade off the end of the bridge (0..1). */
-export const downFade = (rt: ErnieRuntime) => (rt.downT <= 0 ? 0 : rt.downT < DOWN_FRAMES ? rt.downT / DOWN_FRAMES : Math.max(0, 1 - (rt.downT - DOWN_FRAMES) / 30));
+// (held on black a beat either side of the cut, so nothing of the move down there shows)
+export const downFade = (rt: ErnieRuntime) => (rt.downT <= 0 ? 0 : rt.downT < DOWN_FRAMES ? Math.min(1, rt.downT / (DOWN_FRAMES - DOWN_HOLD)) : Math.max(0, Math.min(1, 1 - (rt.downT - DOWN_FRAMES - DOWN_HOLD) / 30)));

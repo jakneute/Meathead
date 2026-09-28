@@ -10,7 +10,7 @@ import { createErnieRuntime, getErnie, updateErnie, regionOf } from './runtime';
 import { quakeDeathMessage } from './quake';
 import { onBridge } from './bridge';
 import { skiDeathMessage, isRiding } from './jetski';
-import { drawErnieBackdrop, drawErnieBack, drawErnieMid, drawErnieFront, drawErnieHud } from './draw';
+import { drawErnieBackdrop, drawErnieBack, drawErnieMid, drawErnieFront, drawErnieHud, drawErnieWeather } from './draw';
 
 export const ernieLayout: StageLayout = {
   left: COURSE.left,
@@ -50,6 +50,7 @@ export const ernieLayout: StageLayout = {
   drawFront: (ctx, state) => { if (getErnie(state)) drawErnieFront(ctx, state); },
   drawHud: (ctx, state) => { if (getErnie(state)) drawErnieHud(ctx, state); },
   drawBackdrop: (ctx, state) => !!getErnie(state) && drawErnieBackdrop(ctx, state),
+  drawBackdropFront: (ctx, state) => !!getErnie(state) && drawErnieWeather(ctx, state),
   // (on the bridge the view sits higher, so you can see down through the gaps and the steel underneath)
   cameraRow: state => {
     const rt = getErnie(state);

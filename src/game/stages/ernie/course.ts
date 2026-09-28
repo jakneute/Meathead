@@ -132,7 +132,10 @@ const build = () => {
   gap(12200, 190, 165);
   let at = 8000;
   for (const [x1, x2] of deck) { m.ground(at, x1); at = x2; }
-  m.ground(at, 13000);
+  // (and at the far end, the stairs down off the deck: he walks down them into the fade)
+  m.ground(at, 12900);
+  m.ground(12900, 12984, Y, Y + 72);
+  m.ground(12984, 13000, Y + 72);
   m.wreck(8850, 1); m.wreck(9750, 2); m.wreck(10420, 1); m.wreck(11480, 1); m.wreck(12500, 1);
   m.spawn('techbro', 9150); m.spawn('drone', 9900, Y - 290); m.spawn('courier', 10300);
   m.spawn('protester', 10900); m.spawn('techbro', 11980);

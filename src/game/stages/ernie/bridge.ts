@@ -90,7 +90,8 @@ export const updateBridge = (ctx: FrameContext, br: Bridge, controls: Controls):
   updateCars(state, br);
   updateWrecks(ctx, br);
   // Through a gap in the deck: over the side he goes
-  if (onBridge(px) && !p.isGrounded && p.pos.y > GROUND_Y + 30 && state.deathTimer <= 0) {
+  // (not down the stairs off the end of it)
+  if (onBridge(px) && px < COURSE.bridge.exit && !p.isGrounded && p.pos.y > GROUND_Y + 30 && state.deathTimer <= 0) {
     br.plunge = { t: 0, x: px, line: '', lineT: 0, splashAt: 0 };
     return updatePlunge(ctx, br.plunge);
   }
