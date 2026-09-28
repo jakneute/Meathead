@@ -63,6 +63,8 @@ export interface DoormanFight {
   hintLen?: number;
   /** With no voice: till when the line's up to be read (his other chatter holds off). */
   hintQuietUntil?: number;
+  /** How many hints in he last grudgingly commended you (so it's once per bout of yelling). */
+  commendedAt?: number;
   /** His runs Meathead's got out of the way of; whether the current run's found him; his state last frame. */
   dodges?: number;
   dashTouched?: boolean;
@@ -443,6 +445,29 @@ const WRONG_MOVE: Record<'charge' | 'slide', Record<MyMove, string[]>> = {
 };
 const WRONG_MOVE_GAP = 90;
 
+/**
+ * He's been yelling hints and it's finally sunk in (a clash: the same move as the doorman, at last). A commendation,
+ * passive-aggressively; the more worked up he got first, the more of it there is. Once per bout of yelling.
+ */
+const COMMEND: string[][] = [
+  // After a hint or two
+  ["OH LOOK. IT LISTENS.", "WOW. THE SAME MOVE. WHAT A CONCEPT.", "SEE? NOBODY HAD TO GET HURT. WELL. I DID."],
+  // After he lost it
+  ["SEE? WAS THAT SO HARD? WAS IT? WAS IT REALLY?", "GOLD STAR. REALLY. SO PROUD. TOOK LONG ENOUGH.", "AMAZING. TRULY. I'LL TELL MY GRANDKIDS."],
+  // After he had to turn round and spell it out
+  ["OH, NOW WE FIGURE OUT THE DOOHICKEY. SLOW CLAP.", "CONGRATULATIONS, PLAYER. YOU DID THE ONE THING. I'M WEEPING.", "LOOK WHO READ THE MANUAL. ALL FOUR WORDS OF IT."],
+];
+
+const finallyListened = (state: GameState, fight: DoormanFight) => {
+  const n = fight.hintsGiven || 0;
+  if (n === 0 || (fight.commendedAt ?? -1) >= n) return;
+  fight.commendedAt = n;
+  const tier = COMMEND[(fight.fourthWall || 0) > 0 ? 2 : n >= 3 ? 1 : 0];
+  // (the rest of any lecture he was partway through goes unsaid: he lets the line he's on finish, then this)
+  fight.hintQueue = [tier[Math.floor(Math.random() * tier.length)]];
+  if (fight.hintAt === undefined || fight.hintAt < state.frame) fight.hintAt = state.frame + 10;
+};
+
 const wrongMoveLine = (state: GameState, fight: DoormanFight, his: 'charge' | 'slide', mine: MyMove) => {
   const pool = WRONG_MOVE[his][mine];
   // (not over the top of a spelled-out hint he's partway through)
@@ -621,6 +646,8 @@ const FINISH_GRAVITY = 0.2;
 
 const startClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, kind: ClashKind) => {
   const p = ctx.state.player;
+  // Finally doing what he's been yelling about: he lets you know how he feels about that
+  finallyListened(ctx.state, fight);
   fight.clash = { kind, t: 0, meter: kind === 'shoulder' ? 0.5 : 0, hits: 0, flash: 0, missed: false };
   // Locked together, face to face
   const side = p.pos.x + p.width / 2 < m.pos.x + W / 2 ? -1 : 1;
