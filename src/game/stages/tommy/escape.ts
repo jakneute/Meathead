@@ -132,6 +132,8 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
       if (es.t > MELT_FRAMES) { es.phase = 'ruins'; es.t = 0; p.inCutscene = false; }
       return { ...NO_CONTROLS };
     case 'ruins':
+      // (up top the camera stops where the ground does: nothing past the end of it on show)
+      state.cameraMaxX = p.pos.y < GROUND_Y - 1000 ? COURSE.ruins.x2 - CANVAS_WIDTH : undefined;
       // Walking on over the rubble, to the edge of the pit and over it
       // (only from up there: not a respawn down at the door dropping in from above it)
       if (p.pos.x + p.width / 2 > COURSE.ruins.pit && p.pos.y > RUINS_Y - 20 && p.pos.y < RUINS_Y + 200 && !p.isGrounded) { es.phase = 'drop'; es.t = 0; es.dropT = 0; es.landedT = 0; hush(state, talk); queueLines(state, talk, [{ who: 'meathead', text: 'AAAAAAAAAAAAAAAAAAAAAAAA' }]); }
@@ -152,7 +154,7 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
           shakeScreen(state, 30, 12); playSound('nuke');
           p.squash = 1;
           for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: p.pos.x + 22, y: GROUND_Y - 4 }, vel: { x: (Math.random() - 0.5) * 12, y: -Math.random() * 7 }, life: 30, color: i % 2 ? '#57534E' : '#A8A29E', size: 4 + Math.random() * 6 });
-          state.cameraOverride = null;
+          state.cameraOverride = null; state.cameraMaxX = undefined;
           state.cameraRestY = GROUND_Y - 550; state.camera.y = GROUND_Y - 550;
           // (up against the closed door: the room past it stays out of sight till it opens)
           state.cameraMinX = Math.min(COURSE.ruins.pit - 100, BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH);
