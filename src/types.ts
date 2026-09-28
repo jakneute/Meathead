@@ -159,6 +159,8 @@ export type EnemyKind =
 export interface Enemy extends Entity {
   /** A close-range swing in progress (the cops' club and shield bash): what part of it, how long in, and whether it's landed. */
   melee?: { state: 'windup' | 'strike' | 'recover'; t: number; hit: boolean };
+  /** The last frame Meathead was driving him backward on his own shield with a shoulder charge. */
+  shovedAt?: number;
   enemyType: 'drone' | 'tank' | 'turret' | 'flyer' | 'shield';
   behavior: 'patrol' | 'shoot' | 'hover' | 'fly' | 'custom';
   /** A themed stage enemy with its own look and AI (see systems/kinds.ts). */

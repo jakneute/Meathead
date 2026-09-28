@@ -495,6 +495,8 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   // (a fish down under the lava: nothing to touch)
   if (submerged(e)) return true;
   const onScreen = e.pos.x + e.width > state.camera.x && e.pos.x < state.camera.x + CANVAS_WIDTH;
+  // Shoulder first into a raised shield: he doesn't go through it, he drives the man behind it back
+  if (onScreen && shieldShove(ctx, e)) return true;
   const stageDef = getBossDef(stageId);
   const bossDef = e.type === 'boss' ? stageDef : undefined;
   const hasShield = !!(player.filthShieldTimer && player.filthShieldTimer > 0);
@@ -637,6 +639,16 @@ const knockBackEnemy = (ctx: FrameContext, e: Enemy, mass: number, wasFrozen: bo
     if (!player.isDivekicking) e.vel.y = 0;
   }
   e.pauseTimer = ENEMY_DAZE_FRAMES;
+  interrupt(e);
+};
+
+/** What an enemy was winding up to (a lunge, a swing, a shot) is knocked out of it: it has to start over. */
+const INTERRUPTIBLE = new Set(['bristle', 'lunge', 'paw', 'charge', 'hiss', 'dive', 'swoop', 'bite', 'ashore-hiss', 'ashore-lunge']);
+export const interrupt = (e: Enemy) => {
+  e.melee = undefined;
+  e.shootTimer = Math.min(e.shootTimer, 10);
+  if (e.enemyType === 'shield') e.isShieldActive = true;
+  if (e.kind && e.aiState && INTERRUPTIBLE.has(e.aiState)) { e.aiState = 'idle'; e.aiTimer = 0; }
 };
 
 // ---------------------------------------------------------------------------
@@ -663,6 +675,46 @@ const impactKill = (ctx: FrameContext, e: Enemy, callout: KillCallout, splatDir:
   fx.speakVulgarity('charge_kill');
   state.player.killSatisfactionTimer = 60;
 };
+
+/**
+ * A shoulder charge into a shield enemy's raised shield (any number of times: there's no cooldown on it).
+ * The first hit's a CLANG (sparks, a jolt, a little chip damage); from then on, for as long as the charge
+ * lasts, he's bulldozed backward along the ground on his heels, sparks streaming off the shield, into
+ * whatever's behind him (a wall, a drop, the lava...). When the charge runs out he skids on and stumbles.
+ */
+const shieldShove = (ctx: FrameContext, e: Enemy): boolean => {
+  const { state, fx } = ctx;
+  const p = state.player;
+  if (!p.isCharging || p.isSliding || e.enemyType !== 'shield' || !e.isShieldActive || e.type === 'boss' || e.isBlownAway || e.health <= 0) return false;
+  const side = (e.pos.x + e.width / 2 > p.pos.x + p.width / 2 ? 1 : -1);
+  if (shieldFacing(e) !== -side || side !== p.chargeFace) return false;
+  // (where he'll be this frame, and a little reach in front of that: the shield's out in front of the man)
+  const hb = getAttackHitbox(ctx);
+  const reach = { x: hb.x - (side < 0 ? 12 : 0), y: hb.y, w: hb.w + 12, h: hb.h };
+  if (!rectsOverlap(reach, boundsOf(e))) return false;
+  const first = e.shovedAt === undefined || state.frame - e.shovedAt > 8;
+  e.shovedAt = state.frame;
+  // Driven back ahead of him, feet dragging
+  e.pos.x = side > 0 ? p.pos.x + p.width + 2 : p.pos.x - e.width - 2;
+  e.vel.x = p.vel.x * 0.9;
+  e.pauseTimer = Math.max(e.pauseTimer || 0, 24);
+  e.melee = undefined;
+  const cx = side > 0 ? e.pos.x : e.pos.x + e.width, cy = e.pos.y + e.height * 0.45;
+  if (first) {
+    // CLANG
+    e.health = Math.max(1, e.health - SHIELD_SHOVE_CHIP);
+    fx.spawnDamageNumber({ x: cx - 20, y: e.pos.y - 16 }, 'CLANG!', true, '#E5E7EB');
+    fx.spawnExplosion({ x: cx, y: cy }, '#FDE047', 14, -side * 6, 10);
+    fx.playGunSound('ice');
+    shakeScreen(state, 10, 5);
+  }
+  // Sparks streaming off the shield, and the dust off his heels
+  if (state.frame % 2 === 0) for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: cx, y: cy + (Math.random() - 0.5) * e.height * 0.7 }, vel: { x: -side * (2 + Math.random() * 5), y: -1 - Math.random() * 4 }, life: 14, color: i % 2 ? '#FDE047' : '#FFFFFF', size: 2 + Math.random() * 2 });
+  if (state.frame % 3 === 0) state.particles.push({ pos: { x: side > 0 ? e.pos.x + e.width - 6 : e.pos.x + 6, y: e.pos.y + e.height - 3 }, vel: { x: -side * Math.random() * 2, y: -Math.random() * 2 }, life: 20, color: '#78716C', size: 3 + Math.random() * 4 });
+  if (state.frame % 4 === 0) shakeScreen(state, 4, 2);
+  return true;
+};
+const SHIELD_SHOVE_CHIP = 5;
 
 /** Knocked into a wall: damage scales with speed (hugely if frozen). Returns true if it died. */
 const slamIntoWalls = (ctx: FrameContext, e: Enemy, speed: number): boolean => {
