@@ -6,7 +6,7 @@
 // The third hitman's up the chapel's bell tower with a rifle: a crosshair drifts
 // after Meathead all the way up the street, and every so often it stops, goes
 // red, and fires where it stopped. Standing there (or anywhere along the laser
-// down from the tower, out in the open), it's a big hit. Under a porch
+// between it and the tower, out in the open), it's a big hit. Under a porch
 // roof, he can't see you (the round goes into the roof). The porch roofs are
 // springy, too: land on one and it throws you up onto the rooftops.
 //
@@ -219,7 +219,7 @@ export const updateTown = (ctx: FrameContext, town: Town, talk: Talk, controls: 
   // The sniper, from the arch till you get up to him
   if (town.ninja.state === 'perch' && !town.sniper.on && p.pos.x > t.arch + 80) {
     town.sniper.on = true; town.sniper.x = p.pos.x + 200; town.sniper.y = p.pos.y - 100; town.sniper.t = 0;
-    if (once(state, town, 'sniper')) replaceLines(state, talk, [{ who: 'meathead', text: 'A LITTLE RED DOT ON MY PECS... SNIPER! GET UNDER SOMETHING!' }]);
+    if (once(state, town, 'sniper')) replaceLines(state, talk, [{ who: 'meathead', text: "A LITTLE RED DOT ON MY PECS... SNIPER! THE PORCH ROOFS! HE CAN'T SEE ME UNDER THOSE!" }]);
   }
   if (town.sniper.on) updateSniper(ctx, town, talk);
   const ninjaControls = updateNinja(ctx, town, talk);
@@ -278,7 +278,7 @@ const updateSniper = (ctx: FrameContext, town: Town, talk: Talk) => {
       s.state = 'cool'; s.t = 0; s.shots++;
       const box = { x: p.pos.x, y: p.pos.y, w: p.width, h: p.height };
       const covered = underCover(box);
-      // (in the crosshair, or anywhere along the laser's line down to the ground)
+      // (in the crosshair, or anywhere along the laser between it and the tower)
       const hit = !covered && (Math.hypot(px - s.x, py - s.y) < SIGHT_R + p.width / 2 || onTheLine(s, box));
       s.lastShot = { x: s.x, y: s.y, t: state.frame, covered: covered && Math.abs(px - s.x) < 80 };
       playSniperShot(); shakeScreen(state, 18, 12);
@@ -306,7 +306,7 @@ const updateSniper = (ctx: FrameContext, town: Town, talk: Talk) => {
         fx.spawnDamageNumber({ x: e.pos.x - 20, y: e.pos.y - 30 }, 'FRIENDLY FIRE!', true, '#FACC15');
       }
       scatterTourists(town, s.x);
-      if (s.shots === 1 && once(state, town, 'cover')) { queueLines(state, talk, [{ who: 'meathead', text: "UNDER THE PORCH ROOFS! HE CAN'T SEE ME UNDER THERE!" }], 40); }
+      if (s.shots === 1 && once(state, town, 'cover')) { queueLines(state, talk, [{ who: 'meathead', text: "UNDER A PORCH ROOF! THAT'S THE ONLY PLACE HE CAN'T HIT ME!" }], 40); }
     }
   }
 };
@@ -314,15 +314,10 @@ const updateSniper = (ctx: FrameContext, town: Town, talk: Talk) => {
 /** Where the rifle's muzzle is, up the tower. */
 export const muzzle = () => ({ x: ninjaSpot().x - 50, y: ninjaSpot().y - 22 });
 
-/** Where the laser comes down to: from the muzzle, through the crosshair, on down to the ground. */
-export const laserEnd = (s: { x: number; y: number }) => {
-  const m = muzzle();
-  const dy = Math.max(1, s.y - m.y);
-  const k = (Y - m.y) / dy;
-  return { x: m.x + (s.x - m.x) * k, y: Y };
-};
+/** Where the laser (and the round) stops: the crosshair. It goes no further than that. */
+export const laserEnd = (s: { x: number; y: number }) => ({ x: s.x, y: s.y });
 
-/** Is any of him along the laser (the round's path, and on past the crosshair to the ground)? */
+/** Is any of him along the laser (the round's path, from the tower to the crosshair)? */
 const onTheLine = (s: { x: number; y: number }, box: { x: number; y: number; w: number; h: number }) => {
   const m = muzzle(), end = laserEnd(s);
   const n = Math.ceil(Math.hypot(end.x - m.x, end.y - m.y) / 6);

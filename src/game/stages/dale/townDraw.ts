@@ -508,7 +508,7 @@ export const drawTownFront = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   if (sn.on) {
     const lock = sn.state === 'lock';
     const k = lock ? sn.t / 46 : 0;
-    // The laser from up the tower, through the crosshair and on down to the ground (all of it's the line of fire),
+    // The laser from up the tower to the crosshair (all of it's the line of fire; the crosshair's where it stops),
     // blinking: slowly while it's looking for him, fast once it's locked
     const m = muzzle(), end = laserEnd(sn);
     const on = lock ? Math.floor(f / 3) % 2 === 0 : Math.floor(f / 12) % 3 !== 0;
@@ -517,8 +517,6 @@ export const drawTownFront = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
     ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(end.x, end.y); ctx.stroke();
     ctx.strokeStyle = on ? (lock ? '#FECACA' : '#F87171') : 'rgba(248, 113, 113, 0.35)'; ctx.lineWidth = lock ? 3 : 2;
     ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(end.x, end.y); ctx.stroke();
-    // (where it hits the dirt)
-    if (on) { ctx.fillStyle = 'rgba(239, 68, 68, 0.7)'; ctx.beginPath(); ctx.ellipse(end.x, end.y - 1, lock ? 14 : 9, 3, 0, 0, Math.PI * 2); ctx.fill(); }
     ctx.lineCap = 'butt';
     // The crosshair
     const r = lock ? 34 + (1 - k) * 20 : 34;
