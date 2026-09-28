@@ -36,8 +36,6 @@ export interface Sewer {
 export const SUIT_FRAMES = 18 * 60;
 /** What the muck does to him without it: this much, this often. */
 const MUCK_DAMAGE = 2, MUCK_EVERY = 15;
-/** What it does to anybody else who ends up in it. */
-const MUCK_ENEMY_DAMAGE = 3;
 /** A drip: how long it swells before it lets go, and what it does when it lands on you. */
 const DRIP_SWELL = 40, DRIP_DAMAGE = 8;
 /** How hard he kicks up out of the muck onto a walkway (it's thick). */
@@ -83,15 +81,15 @@ export const updateSewer = (ctx: FrameContext, sw: Sewer) => {
       if (p.health <= 0 && state.deathTimer <= 0) killPlayer(ctx, pickLine(['DISSOLVED', 'PART OF THE WATER SUPPLY NOW', 'FLINT TAP WATER: 1, MEATHEAD: 0', 'SHOULD HAVE BOILED IT FIRST']), false);
     }
   }
-  // Whoever else is in it gets eaten too (the sludgelings live in it)
+  // Anybody else who ends up in it (knocked in, say) dissolves, the way the barfer's sludge does them (the
+  // sludgelings live in it)
   for (const e of state.enemies) {
     if (e.health <= 0 || e.isBlownAway || e.kind === 'sludgeling' || e.kind === 'amalgam') continue;
-    if (!muckAt(e.pos.x + e.width / 2, e.pos.y + e.height / 2)) continue;
-    if (state.frame % 6 === 0) {
-      e.health -= MUCK_ENEMY_DAMAGE * 2;
-      e.hitFlash = 3;
-      state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y }, vel: { x: 0, y: -1.5 }, life: 18, color: '#A3E635', size: 4 });
-    }
+    if (!muckAt(e.pos.x + e.width / 2, e.pos.y + e.height * 0.7)) continue;
+    e.health = 0;
+    fx.killWithAnimation(e, 'melted', 'sludge_kill', 'melted');
+    for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + e.height * 0.6 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#A3E635' : '#65A30D', size: 3 + Math.random() * 4 });
+    playSound('barf');
   }
   updateDrips(ctx, sw);
   // The locker: he gets in the suit

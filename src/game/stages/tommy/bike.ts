@@ -4,7 +4,7 @@
 // along like the jet ski (gun only; ease off and he turns round to shoot back;
 // the wheelie's his charge, up + special a bunny hop, down + special in the air
 // slams the bike down on something), but the road rolls up and down, and the
-// hills set the pace: slow grinding up them, flying down them. The crew come
+// pace is his (pedaling hard, cruising, easing off). The crew come
 // after him in their lowriders, the dogs come off their chains, and the road's
 // full of junk: jump it, or wheelie through what'll break.
 //
@@ -27,6 +27,16 @@ import { COURSE, CP, RoadJunk } from './course';
 import { Talk, queueLines, quiet } from './script';
 
 export type BikePhase = 'waiting' | 'theft' | 'riding' | 'bottle' | 'wipeout' | 'gone';
+/** Things said on the ride, how far down the road (0..1) each comes (queued after whatever's being said). */
+const BANTER: { at: number; lines: { who: 'crew' | 'meathead'; text: string }[] }[] = [
+  { at: 0.06, lines: [{ who: 'crew', text: 'PULL UP ON HIM! PULL UP!' }] },
+  { at: 0.16, lines: [{ who: 'meathead', text: 'MY KNEES ARE HITTING MY CHIN.' }] },
+  { at: 0.3, lines: [{ who: 'crew', text: "YOU'RE DEAD, MUSCLES! YOU HEAR ME? DEAD!" }, { who: 'meathead', text: "CAN'T HEAR YOU OVER MY CALVES." }] },
+  { at: 0.5, lines: [{ who: 'crew', text: 'HOW IS HE STILL GOING?!' }, { who: 'meathead', text: 'LEG DAY, BABY!' }] },
+  { at: 0.72, lines: [{ who: 'meathead', text: "THIS WHOLE TOWN SMELLS LIKE PENNIES." }] },
+  { at: 0.88, lines: [{ who: 'crew', text: 'TAYVON GONNA BE SO MAD.' }] },
+];
+
 export interface BikeRun {
   phase: BikePhase;
   t: number;
@@ -37,7 +47,7 @@ export interface BikeRun {
   rider: { x: number; y: number; vx: number; vy: number; rot: number; state: 'sitting' | 'flying' | 'down' };
   /** The crew on the corner (gone once they've piled into the car after him). */
   crew: boolean;
-  /** His speed along the road (the hills and his pedaling change it). */
+  /** His speed along the road (easing up to what he's pedaling for). */
   v: number;
   /** Junk that's been dealt with (smashed, or it smashed him). */
   done: Set<number>;
@@ -53,10 +63,12 @@ export interface BikeRun {
   bikeWreck: { x: number; y: number; vx: number; vy: number; rot: number };
   /** The zoom in on the bottle (0 none .. 1 all the way). */
   zoom: number;
+  /** How much of the ride's banter's been said. */
+  said: number;
 }
 
-/** Speeds: easing off, cruising, pedaling hard; the most the hills can add; how hard they pull. */
-const BIKE_SLOW = 4.5, BIKE_BASE = 7, BIKE_FAST = 10, BIKE_MAX = 15, BIKE_MIN = 3, HILL_PULL = 0.42;
+/** Speeds: easing off, cruising, pedaling hard. */
+const BIKE_SLOW = 4.5, BIKE_BASE = 7, BIKE_FAST = 10, BIKE_MIN = 3;
 /** How far ahead of him the camera looks. */
 const BIKE_LEAD = 90;
 /** What each bit of junk does to him if he rides into it. */
@@ -70,7 +82,7 @@ export const createBikeRun = (state: GameState, startedAt: number): BikeRun => {
     rider: { x: COURSE.hood.bike, y: GROUND_Y, vx: 0, vy: 0, rot: 0, state: onBike || past ? 'down' : 'sitting' },
     crew: !onBike && !past, v: onBike ? BIKE_BASE : 0, done: new Set(), spawned: 0, hint: '', hintT: 0, hinted: new Set(),
     bottle: { x: COURSE.road.hazmat, y: GROUND_Y - 60, vx: 0, vy: 0, state: 'held' },
-    fly: { x: 0, y: 0, vx: 0, vy: 0, rot: 0 }, bikeWreck: { x: 0, y: 0, vx: 0, vy: 0, rot: 0 }, zoom: 0,
+    fly: { x: 0, y: 0, vx: 0, vy: 0, rot: 0 }, bikeWreck: { x: 0, y: 0, vx: 0, vy: 0, rot: 0 }, zoom: 0, said: 0,
   };
   if (onBike) {
     mount(state);
@@ -79,6 +91,8 @@ export const createBikeRun = (state: GameState, startedAt: number): BikeRun => {
     b.spawned = COURSE.waves.findIndex(w => w.at > from + 200);
     if (b.spawned < 0) b.spawned = COURSE.waves.length;
     COURSE.junk.forEach((j, i) => { if (j.x < from + 300) b.done.add(i); });
+    const k = (from - COURSE.road.x1) / (COURSE.road.hazmat - COURSE.road.x1);
+    b.said = BANTER.filter(x => x.at <= k).length;
   }
   if (!onBike && !past) {
     // (no going up the road on foot)
@@ -114,7 +128,7 @@ export const updateBikeRun = (ctx: FrameContext, b: BikeRun, talk: Talk, control
       if (p.isGrounded && p.pos.x + p.width / 2 > COURSE.hood.stop - 60) { b.phase = 'theft'; b.t = 0; b.step = 0; b.stepAt = 0; }
       return controls;
     case 'theft': return theft(ctx, b, talk);
-    case 'riding': return riding(ctx, b, controls);
+    case 'riding': return riding(ctx, b, talk, controls);
     case 'bottle': return bottle(ctx, b, talk);
     case 'wipeout': return wipeout(ctx, b, onSewer);
     default: return controls;
@@ -139,16 +153,19 @@ const theft = (ctx: FrameContext, b: BikeRun, talk: Talk): Controls => {
   switch (b.step) {
     case 0:
       // Walking up on them, talking as he goes
+      // (they're mid-conversation; it carries on over the jacking and the ride, whatever he's doing)
       queueLines(state, talk, [
-        { who: 'rider', text: "YO. WHO'S THIS BIG DUDE?" },
+        { who: 'crew', text: 'NAH, THE WATER ALWAYS BEEN THAT COLOR.' },
+        { who: 'rider', text: 'MY GRANDMA SAYS IT GOT FLAVOR NOW.' },
+        { who: 'crew', text: "YO. WHO'S THIS BIG DUDE?" },
         { who: 'meathead', text: "NICE BIKE. I'M TAKING IT." },
       ], 0);
       next();
       break;
     case 1:
-      // Up to the bike, and the boot (as soon as he's said his piece)
+      // Up to the bike, and the boot (he doesn't wait on the conversation)
       if (p.pos.x + p.width / 2 < H.bike - 46) { c = { ...c, right: true }; break; }
-      if (!p.kickPose && (quiet(talk) || talk.current?.who === 'meathead')) {
+      if (!p.kickPose) {
         p.kickPose = KICK_POSE_FRAMES;
         const r = b.rider;
         r.state = 'flying'; r.vx = 9; r.vy = -12;
@@ -161,7 +178,7 @@ const theft = (ctx: FrameContext, b: BikeRun, talk: Talk): Controls => {
       // On it, and gone (the crew yelling after him as he goes)
       if (since === 14) { mount(state); b.v = 0; p.pos.x = H.bike - p.width / 2; }
       if (since === 22) {
-        queueLines(state, talk, [{ who: 'crew', text: "HE TOOK TAYVON'S BIKE! GET THE CAR!" }, { who: 'meathead', text: 'RING RING, BITCHES.' }]);
+        queueLines(state, talk, [{ who: 'rider', text: 'AYYY! THAT WAS MY BIRTHDAY BIKE!' }, { who: 'crew', text: "HE TOOK TAYVON'S BIKE! GET THE CAR!" }, { who: 'meathead', text: 'RING RING, BITCHES.' }]);
         b.crew = false;
         b.phase = 'riding'; b.t = 0;
         state.cameraOverride = null;
@@ -189,10 +206,7 @@ const updateRider = (state: GameState, b: BikeRun) => {
 // The road
 // ---------------------------------------------------------------------------
 
-/** The slope under x (positive going downhill to the right). */
-const slopeAt = (state: GameState, x: number) => (groundLineAt(state.groundRuns, x + 24) - groundLineAt(state.groundRuns, x - 24)) / 48;
-
-const riding = (ctx: FrameContext, b: BikeRun, controls: Controls): Controls => {
+const riding = (ctx: FrameContext, b: BikeRun, talk: Talk, controls: Controls): Controls => {
   const { state } = ctx;
   const p = state.player;
   if (!p.bike) mount(state);
@@ -204,19 +218,16 @@ const riding = (ctx: FrameContext, b: BikeRun, controls: Controls): Controls => 
     b.phase = 'bottle'; b.t = 0; b.step = 0; b.stepAt = 0;
     return { ...NO_CONTROLS };
   }
-  // The pace: pedaling hard, easing off (and turned to shoot back), or cruising; the hills on top of that
+  // The pace: pedaling hard, easing off (and turned to shoot back), or cruising
   const want = controls.right ? BIKE_FAST : controls.left ? BIKE_SLOW : BIKE_BASE;
-  if (p.isGrounded) {
-    const slope = slopeAt(state, px);
-    b.v += (want - b.v) * 0.035 + slope * HILL_PULL;
-    b.v = Math.max(BIKE_MIN, Math.min(BIKE_MAX, b.v));
-  }
+  if (p.isGrounded) b.v = Math.max(BIKE_MIN, b.v + (want - b.v) * 0.035);
   p.skiSpeed = b.v;
   // Everything behind that's been left far behind gave up
   state.enemies = state.enemies.filter(e => e.type === 'boss' || e.kind === 'amalgam' || (e.pos.x > state.camera.x - 700 && e.pos.x < state.camera.x + 1800) || e.pos.x > R.x2);
   spawnWaves(state, b);
   junk(ctx, b);
   teach(state, b);
+  banter(state, b, talk);
   // Dust off the back tire
   if (p.isGrounded && state.frame % 3 === 0) state.particles.push({ pos: { x: p.pos.x + 2, y: p.pos.y + p.height - 3 }, vel: { x: -1 - Math.random() * 2, y: -Math.random() * 1.5 }, life: 16, color: 'rgba(168, 162, 158, 0.7)', size: 3 + Math.random() * 3 });
   return controls;
@@ -226,6 +237,8 @@ const spawnWaves = (state: GameState, b: BikeRun) => {
   const p = state.player;
   while (b.spawned < COURSE.waves.length && COURSE.waves[b.spawned].at <= p.pos.x) {
     const w = COURSE.waves[b.spawned++];
+    // (two dogs on him at once is plenty)
+    if (w.kind === 'pitbull' && state.enemies.filter(e => e.kind === 'pitbull' && e.health > 0).length >= 2) continue;
     const x = w.from === 'behind' ? state.camera.x - (w.kind === 'lowrider' ? 110 : 50) : state.camera.x + CANVAS_WIDTH + 110;
     const e: Enemy = makeKindEnemy(w.kind, x, groundLineAt(state.groundRuns, x));
     e.variant = w.variant ?? 0;
@@ -300,6 +313,18 @@ const smash = (state: GameState, j: RoadJunk, box: { x: number; y: number; w: nu
   if (j.look === 'glass' || j.look === 'car') playGlassShatterSound(); else playSound('ice');
 };
 
+/** The ride's banter, as he gets down the road (the crew's lines only while they're after him in a car). */
+const banter = (state: GameState, b: BikeRun, talk: Talk) => {
+  const R = COURSE.road;
+  const k = (state.player.pos.x - R.x1) / (R.hazmat - R.x1);
+  while (b.said < BANTER.length && k >= BANTER[b.said].at) {
+    const beat = BANTER[b.said++];
+    const car = state.enemies.some(e => e.kind === 'lowrider' && e.health > 0);
+    const lines = beat.lines.filter(l => l.who !== 'crew' || car);
+    if (lines.length && talk.queue.length < 3) queueLines(state, talk, lines.map(l => ({ ...l })));
+  }
+};
+
 const hint = (b: BikeRun, text: string) => { if (b.hinted.has(text)) return; b.hinted.add(text); b.hint = text; b.hintT = 1; };
 
 /** What to do, the first time it's the thing to do (never naming a button). */
@@ -313,7 +338,6 @@ const teach = (state: GameState, b: BikeRun) => {
   if (live.some(e => (e.kind === 'lowrider' || e.kind === 'pitbull') && e.pos.x + e.width < px - 60)) hint(b, 'EASE OFF TO TURN AROUND AND SHOOT BEHIND YOU');
   else if (ahead?.look === 'trash' || ahead?.look === 'barrier') hint(b, 'WHEELIE THROUGH IT, OR JUMP IT');
   else if (ahead?.look === 'car') hint(b, "A CAR: JUMP IT. IT WON'T BREAK");
-  else if (slopeAt(state, px) < -0.12) hint(b, 'PEDAL HARD UPHILL');
 };
 
 // ---------------------------------------------------------------------------

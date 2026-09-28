@@ -3,7 +3,7 @@
 // steeple, the old plant's smokestacks), and the water tower standing over it
 // all with FLINT on the tank. Up close: the East Side (tired little houses,
 // half of them boarded up, chain-link, a liquor store, BOIL WATER signs), the
-// road over the hills, the junk in it, the bike, the crew on the corner, the
+// road, the junk in it, the bike, the crew on the corner, the
 // man in the hazmat suit with his bottle.
 
 import type { GameState } from '../../core/state';
@@ -87,7 +87,7 @@ export const drawWaterTower = (ctx: Ctx, x: number, y: number, s: number, dusk: 
 // The street: the ground, and the East Side along it
 // ---------------------------------------------------------------------------
 
-/** The street under him: asphalt over the hills, a curb and a strip of sidewalk, the center line worn away in patches. */
+/** The street under him: asphalt, a curb and a strip of sidewalk, the center line worn away in patches. */
 export const drawStreetGround = (ctx: Ctx, state: GameState) => {
   const x0 = state.camera.x - 60, x1 = state.camera.x + CANVAS_WIDTH + 60;
   const bottom = state.camera.y + CANVAS_HEIGHT + 60;
@@ -336,8 +336,7 @@ export const drawRiddenBike = (ctx: Ctx, state: GameState) => {
   const p = state.player;
   if (!p.bike || p.hidden || state.deathTimer > 0) return;
   const x = p.pos.x + p.width / 2, y = p.pos.y + p.height;
-  const slope = p.isGrounded ? Math.atan((groundLineAt(state.groundRuns, x + 20) - groundLineAt(state.groundRuns, x - 20)) / 40) : 0;
-  const tilt = p.isCharging ? -0.42 : p.isDivekicking ? 0.5 : p.isUppercutting ? -0.3 : slope * 0.8;
+  const tilt = p.isCharging ? -0.42 : p.isDivekicking ? 0.5 : p.isUppercutting ? -0.3 : 0;
   drawBike(ctx, x, y, tilt, p.pos.x / 14, p.pos.x / 11);
 };
 
@@ -418,8 +417,12 @@ export const drawBottle = (ctx: Ctx, x: number, y: number, rot: number, s = 1) =
   ctx.fillStyle = 'rgba(190, 200, 140, 0.85)'; ctx.beginPath(); ctx.roundRect(-5, -12, 10, 22, 2); ctx.fill();
   ctx.fillStyle = 'rgba(120, 130, 60, 0.9)'; ctx.fillRect(-5, 0, 10, 10); // (settled at the bottom)
   ctx.fillStyle = '#1D4ED8'; ctx.fillRect(-3, -17, 6, 5);
-  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-5, -6, 10, 7);
-  ctx.fillStyle = '#1D4ED8'; ctx.font = 'bold 1.6px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('FLINT WATER', 0, -3.4); ctx.fillText('SUPPLY', 0, -1); ctx.textAlign = 'left';
+  // The label: three lines, each held inside it
+  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-5, -8, 10, 10);
+  ctx.fillStyle = '#1D4ED8'; ctx.fillRect(-5, -8, 10, 1); ctx.fillRect(-5, 1, 10, 1);
+  ctx.font = 'bold 1.5px "Press Start 2P"'; ctx.textAlign = 'center';
+  ctx.fillText('FLINT', 0, -4.8, 9); ctx.fillText('WATER', 0, -2.4, 9); ctx.fillText('SUPPLY', 0, 0, 9);
+  ctx.textAlign = 'left';
   ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.fillRect(-4, -11, 2, 18);
   ctx.restore();
 };

@@ -3,8 +3,8 @@
 //   I.   The hood, late afternoon, the water tower up on its legs over the
 //        rooftops. A little way up the street, a few of the local crew are
 //        hanging out on the corner, one of them sat on his bike. Not for long.
-//   II.  The bike run: down the long road across town, over the rolling hills
-//        (up them slow, down them fast), the crew after you in their lowriders,
+//   II.  The bike run: down the long, flat road across town, the crew after
+//        you in their lowriders,
 //        pit bulls off their chains, and the street full of junk. At the end of
 //        it, a man in a hazmat suit and a bottle of the town's water.
 //   III. The sewer: walkways over channels of the muck (it eats you, slowly),
@@ -78,13 +78,6 @@ export const WALK_Y = Y, MUCK_Y = Y + 40, CHANNEL_FLOOR = Y + 170;
 /** The flooded tunnel: its roof (so low there's no standing up in it), the muck (right up near it), its floor. */
 export const TUNNEL_ROOF = Y - 70, TUNNEL_SURFACE = Y + 10, TUNNEL_FLOOR = Y + 200;
 
-/** The road's hills: where the road is at (local) x along it, smooth rolls that build up after a flat start. */
-export const roadHeight = (lx: number) => {
-  const build = Math.min(1, Math.max(0, (lx - 1200) / 2600));
-  const ease = Math.min(1, Math.max(0, (ROAD_LEN - lx) / 900));
-  const h = 70 * Math.sin((lx / 1700) * Math.PI * 2 - 1.2) + 26 * Math.sin((lx / 930) * Math.PI * 2 + 0.7) + 96;
-  return Y - Math.max(0, h) * build * ease;
-};
 
 const part = (x0: number) => {
   const runs: GroundRun[] = [], ledges: Ledge[] = [], spawns: Spawn[] = [], pickups: PickupSpot[] = [], props: Prop[] = [];
@@ -115,10 +108,10 @@ const build = () => {
   h.pickup(520, Y - 30, 'small_ammo');
 
   // ============ THE ROAD ============
-  // (built in 100 px steps along the hills, flat at the start and flat at the end where he's waiting)
+  // (flat, all the way across town)
   const r = part(HOOD_X0 + ROAD_START);
   const END = ROAD_LEN + 1300;
-  for (let lx = 0; lx < END; lx += 100) r.ground(lx, lx + 100, lx >= ROAD_LEN ? Y : roadHeight(lx), lx + 100 >= ROAD_LEN ? Y : roadHeight(lx + 100));
+  r.ground(0, END);
   const junk: RoadJunk[] = [];
   const j = (lx: number, look: RoadJunk['look']) => junk.push({ x: HOOD_X0 + ROAD_START + lx, look });
   // One thing at a time to learn early (cones are just for smashing), mixing up through the middle, busy at the end
@@ -137,9 +130,9 @@ const build = () => {
   w(17000, 'pitbull', 'behind'); w(17800, 'lowrider', 'ahead', 1); w(19000, 'lowrider', 'behind', 0); w(20100, 'pitbull', 'behind');
   w(21000, 'lowrider', 'ahead', 1); w(22000, 'lowrider', 'behind', 0); w(23000, 'pitbull', 'behind');
   // Something to pick up along the way (ride through it)
-  for (const lx of [6600, 13300, 19800]) r.pickup(lx, roadHeight(lx) - 30, 'small_health');
-  r.pickup(10000, roadHeight(10000) - 30, 'small_ammo');
-  r.prop('boilsign', 1200, roadHeight(1200)); r.prop('tower', 6000, Y); r.prop('boilsign', 13000, roadHeight(13000));
+  for (const lx of [6600, 13300, 19800]) r.pickup(lx, Y - 30, 'small_health');
+  r.pickup(10000, Y - 30, 'small_ammo');
+  r.prop('boilsign', 1200, Y); r.prop('tower', 6000, Y); r.prop('boilsign', 13000, Y);
 
   // ============ THE SEWER ============
   const s = part(SEWER_X0);
@@ -203,7 +196,7 @@ const buildCourse = (): Course => {
     },
     ruins: { x1: RUINS_X0, x2: BOSS_DOOR_X, y: RUINS_Y, house: RUINS_X0 + 1100, pit: RUINS_X0 + 2550 },
     checkpoints: [
-      { x: HOOD_X0 + 150, y: Y }, { x: RX + 60, y: Y }, { x: RX + 12000, y: roadHeight(12000) },
+      { x: HOOD_X0 + 150, y: Y }, { x: RX + 60, y: Y }, { x: RX + 12000, y: Y },
       { x: SEWER_X0 + 200, y: Y }, { x: SEWER_X0 + 4450, y: Y }, { x: SEWER_X0 + 7300, y: Y }, { x: RUINS_X0 + 300, y: RUINS_Y },
     ],
     left: HOOD_X0 - 2000,

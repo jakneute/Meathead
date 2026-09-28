@@ -71,8 +71,10 @@ export const drawTommyFront = (ctx: Ctx, state: GameState) => {
 /** Everybody else's lines, over them (his go up in his own bubble). */
 const drawSpeech = (ctx: Ctx, state: GameState, rt: TommyRuntime) => {
   const H = COURSE.hood;
+  // (once they're after him, the crew's lines come out of their car)
+  const car = rt.bike.crew ? null : state.enemies.filter(e => e.kind === 'lowrider' && e.health > 0).sort((a, b) => Math.abs(a.pos.x - state.player.pos.x) - Math.abs(b.pos.x - state.player.pos.x))[0];
   const at: Partial<Record<Speaker, { x: number; y: number }>> = {
-    crew: { x: H.corner, y: GROUND_Y - 84 },
+    crew: car ? { x: car.pos.x + car.width / 2, y: car.pos.y - 34 } : { x: H.corner, y: GROUND_Y - 84 },
     rider: { x: rt.bike.rider.x, y: rt.bike.rider.y - 84 },
     hazmat: { x: COURSE.road.hazmat, y: GROUND_Y - 92 },
     thing: { x: thingSpot().x - 60, y: THING_SURFACE - 400 },
