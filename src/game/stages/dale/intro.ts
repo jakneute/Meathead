@@ -32,7 +32,7 @@ export const createIntro = (startedAt: number): Intro => ({
 });
 
 /** When he spots him, when he's in the cab, when the truck goes. */
-const SPOT_AT = 16, CAB_AT = 150, GO_AT = 175, GONE_AFTER = 260;
+const SPOT_AT = 10, CAB_AT = 95, GO_AT = 110, GONE_AFTER = 260;
 
 export const updateIntro = (ctx: FrameContext, it: Intro, talk: Talk, controls: Controls): Controls => {
   const { state } = ctx;
@@ -42,15 +42,15 @@ export const updateIntro = (ctx: FrameContext, it: Intro, talk: Talk, controls: 
   // Nobody's starting anything till the truck's going
   if (it.phase !== 'driving') state.gapGrace = Math.max(state.gapGrace || 0, 2);
   // (he lets Meathead finish his line from the landing first)
-  if (it.phase === 'loading' && it.t >= SPOT_AT && (!isSpeaking() || it.t > 300)) {
+  if (it.phase === 'loading' && it.t >= SPOT_AT && (!isSpeaking() || it.t > 150)) {
     it.phase = 'spotted'; it.spotT = it.t;
     queueLines(state, talk, [{ who: 'dale', text: 'OH NO! THE FEDS!' }, { who: 'dale', text: "DROP EVERYTHING! I'M OUTTA HERE!" }]);
     it.crate = { x: it.daleX + 8, y: 550 - 60, vy: -3, broke: false };
   }
-  if (it.phase === 'spotted' && it.t >= it.spotT + 60) it.phase = 'running';
+  if (it.phase === 'spotted' && it.t >= it.spotT + 30) it.phase = 'running';
   if (it.phase === 'running') {
     // Legging it for the cab
-    it.daleX = Math.min(cabX, it.daleX + 4.2);
+    it.daleX = Math.min(cabX, it.daleX + 6);
     if (it.t >= it.spotT + CAB_AT - SPOT_AT) { it.phase = 'driving'; it.goT = it.t; playSound('horn'); shakeScreen(state, 6, 3); }
   }
   if (it.phase === 'driving') {
@@ -66,8 +66,8 @@ export const updateIntro = (ctx: FrameContext, it: Intro, talk: Talk, controls: 
     cr.vy += 0.6; cr.y += cr.vy;
     if (cr.y >= 550 - 26) { cr.y = 550 - 26; cr.broke = true; ctx.fx.spawnPowderExplosion({ x: cr.x + 13, y: cr.y + 13 }, 20); }
   }
-  // Hands off the controls while he gets going
-  return it.phase === 'driving' && it.t >= it.goT + GO_AT - CAB_AT ? controls : { ...NO_CONTROLS };
+  // Hands off the controls till he's in the cab
+  return it.phase === 'driving' ? controls : { ...NO_CONTROLS };
 };
 
 /** Dale in view (not in the cab yet). */
