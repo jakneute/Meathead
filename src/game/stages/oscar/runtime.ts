@@ -138,7 +138,11 @@ export const updateOscar = (ctx: FrameContext, controls: Controls): Controls => 
       startEnding(state, rt.ending, rt.talk);
     }));
   }
-  if (place === 'end') controls = updateEnding(ctx, rt.ending, rt.talk, controls);
+  if (place === 'end') {
+    controls = updateEnding(ctx, rt.ending, rt.talk, controls);
+    updateField(ctx, rt.field);
+    if (state.checkpoint < CP.END_MID && rt.ending.phase === 'done' && p.isGrounded && p.pos.x > COURSE.checkpoints[CP.END_MID].x) state.checkpoint = CP.END_MID;
+  }
   return controls;
 };
 

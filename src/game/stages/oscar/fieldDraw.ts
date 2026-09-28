@@ -9,7 +9,7 @@ import { groundLineAt } from '../../core/terrain';
 import { CANVAS_WIDTH } from '../../../constants';
 import { COURSE, Prop } from './course';
 import type { Field } from './field';
-import { burnLevel } from './field';
+import { burnLevel, jetOn, jetWarning } from './field';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -222,4 +222,39 @@ export const drawDerrick = (ctx: Ctx, intact: number, scale = 1) => {
   if (intact >= 1) { ctx.fillStyle = '#44403C'; ctx.fillRect(-14, -H - 10, 28, 12); }
   ctx.fillStyle = '#44403C'; ctx.fillRect(-50, -14, 100, 14); // the drill floor
   ctx.restore();
+};
+
+/** The ruptured gas lines: a broken stub of pipe (a pipe end in the pit for the ones coming up out of one). */
+export const drawJetPipes = (ctx: Ctx, state: GameState) => {
+  for (const j of COURSE.jets) {
+    if (!inView(state, j.x - 60, j.x + 60)) continue;
+    ctx.save(); ctx.translate(j.x, j.y);
+    if (j.dir === 'up') { ctx.fillStyle = '#44403C'; ctx.fillRect(-10, -10, 20, 14); ctx.fillStyle = '#CA8A04'; ctx.fillRect(-12, -14, 24, 5); }
+    else { ctx.scale(j.dir === 'left' ? -1 : 1, 1); ctx.fillStyle = '#CA8A04'; ctx.fillRect(-26, -16, 28, 10); ctx.fillStyle = '#44403C'; ctx.fillRect(0, -18, 5, 14); ctx.fillStyle = '#1C1917'; ctx.fillRect(2, -14, 3, 6); }
+    ctx.restore();
+  }
+};
+
+/** The fire out of them (in front): a roaring tongue while they're on, sparks and a shimmer as they're about to go. */
+export const drawJetFire = (ctx: Ctx, state: GameState) => {
+  const f = state.frame;
+  for (const j of COURSE.jets) {
+    if (!inView(state, j.x - j.len - 40, j.x + j.len + 40)) continue;
+    const on = jetOn(j, f), warn = jetWarning(j, f);
+    if (!on && !warn) continue;
+    ctx.save(); ctx.translate(j.x, j.y - (j.dir === 'up' ? 10 : 11));
+    if (j.dir === 'up') ctx.rotate(-Math.PI / 2); else if (j.dir === 'left') ctx.scale(-1, 1);
+    if (on) {
+      const len = j.len * (0.85 + Math.sin(f * 0.8) * 0.08);
+      const g = ctx.createLinearGradient(0, 0, len, 0);
+      g.addColorStop(0, 'rgba(255, 255, 255, 0.95)'); g.addColorStop(0.15, 'rgba(147, 197, 253, 0.9)'); g.addColorStop(0.35, 'rgba(253, 224, 71, 0.95)'); g.addColorStop(0.75, 'rgba(234, 88, 12, 0.85)'); g.addColorStop(1, 'rgba(220, 38, 38, 0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.moveTo(0, -6); ctx.quadraticCurveTo(len * 0.5, -20 - Math.sin(f * 0.7) * 5, len, 0); ctx.quadraticCurveTo(len * 0.5, 20 + Math.sin(f * 0.9) * 5, 0, 6); ctx.closePath(); ctx.fill();
+    } else {
+      // About to go: sparks spitting, a heat shimmer, a little blue flame at the break
+      ctx.fillStyle = 'rgba(147, 197, 253, 0.8)'; ctx.beginPath(); ctx.ellipse(6, 0, 8 + Math.sin(f) * 2, 4, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)'; ctx.fillRect(0, -10, j.len * 0.6, 20);
+    }
+    ctx.restore();
+  }
 };

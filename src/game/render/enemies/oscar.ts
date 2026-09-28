@@ -14,6 +14,7 @@ type Ctx = CanvasRenderingContext2D;
 export const drawOscarKind = (ctx: Ctx, e: Enemy, f: number, state: GameState) => {
   // (the chase's vehicles tip with the ground under them)
   if ((e.kind === 'pickup' || e.kind === 'cruiser' || e.kind === 'chopper') && !e.isBlownAway) ctx.rotate(e.rotation || 0);
+  const bloodied = e.variant === 7 && (e.kind === 'ranger' || e.kind === 'biker' || e.kind === 'deputy');
   switch (e.kind) {
     case 'ranger': drawRanger(ctx, e, f); break;
     case 'biker': drawBiker(ctx, e, f); break;
@@ -25,6 +26,7 @@ export const drawOscarKind = (ctx: Ctx, e: Enemy, f: number, state: GameState) =
     case 'cruiser': drawCruiser(ctx, e, f); break;
     case 'chopper': drawChopperRider(ctx, e, f); break;
   }
+  if (bloodied) drawBloodied(ctx, e, f);
   void state;
 };
 
@@ -396,4 +398,23 @@ const drawGrackle = (ctx: Ctx, e: Enemy, f: number) => {
   ctx.fillStyle = '#FDE047'; ctx.fillRect(12, -5, 2, 2);
   // Near wing
   ctx.fillStyle = '#312E81'; ctx.beginPath(); ctx.moveTo(4, -2); ctx.lineTo(-6, -14 + flap); ctx.lineTo(-16, -12 + flap); ctx.lineTo(-2, 3); ctx.fill();
+};
+
+/** What's left of the mob that came after him: bloodied, singed, a bandage round the head, eyes red, steaming mad. */
+const drawBloodied = (ctx: Ctx, e: Enemy, f: number) => {
+  const top = -e.height;
+  const hx = e.kind === 'biker' ? 4 : 2, hy = e.kind === 'biker' ? -74 : -65;
+  // Blood down the front, splashes on the arms, soot
+  ctx.fillStyle = 'rgba(127, 29, 29, 0.85)';
+  ctx.fillRect(-6, top + 22, 8, 20); ctx.fillRect(-4, top + 42, 4, 10);
+  ctx.beginPath(); ctx.arc(8, top + 30, 5, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(-10, top + 36, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(28, 25, 23, 0.45)'; ctx.fillRect(-12, top + 16, 10, 14); ctx.fillRect(4, top + 40, 10, 10);
+  // A bloody bandage round the head, blood down the face, red eyes
+  ctx.fillStyle = '#F5F5F4'; ctx.fillRect(hx - 9, hy - 6, 18, 4);
+  ctx.fillStyle = '#B91C1C'; ctx.fillRect(hx + 2, hy - 6, 5, 4); ctx.fillRect(hx - 5, hy - 2, 2, 8);
+  ctx.fillStyle = '#EF4444'; ctx.fillRect(hx + 3, hy - 2, 3, 2);
+  // Steaming mad
+  const q = (f % 36) / 36;
+  ctx.fillStyle = `rgba(214, 211, 209, ${0.7 * (1 - q)})`; ctx.beginPath(); ctx.arc(hx - 6 - q * 6, hy - 14 - q * 16, 3 + q * 5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(hx + 8 + q * 6, hy - 14 - q * 16, 3 + q * 5, 0, Math.PI * 2); ctx.fill();
 };

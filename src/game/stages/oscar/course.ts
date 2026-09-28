@@ -21,14 +21,19 @@ import type { EnemyKind } from '../../../types';
 import type { GroundRun } from '../../core/terrain';
 import { GROUND_Y, BOSS_DOOR_X } from '../../../constants';
 
-export const CP = { FIELD: 0, FIELD_MID: 1, FIELD_MID2: 2, BUNKER: 3, CHASE: 4, END: 5 } as const;
+export const CP = { FIELD: 0, FIELD_MID: 1, FIELD_MID2: 2, BUNKER: 3, CHASE: 4, END: 5, END_MID: 6 } as const;
 
 export interface Spawn { kind: EnemyKind; x: number; y: number; variant?: number }
 export interface PickupSpot { x: number; y: number; type: 'small_health' | 'large_health' | 'small_ammo' | 'large_ammo' }
 /** Something you jump up through and stand on: a pipeline, a derrick's platform. */
 export interface Ledge { x: number; y: number; w: number; look: 'pipe' | 'deck' }
 /** Oil on the ground: a slick (slide about on it), or tar (it holds your feet). */
-export interface OilPatch { x1: number; x2: number; kind: 'slick' | 'tar' }
+export interface OilPatch { x1: number; x2: number; kind: 'slick' | 'tar'; /** It keeps leaking back after it's burned off. */ refills?: boolean }
+/**
+ * A ruptured gas line spitting fire: on and off in a rhythm (it hisses and sparks just before), pointing up out of the
+ * ground (or a pit), or along it. Its flame hurts, burns anything in it, and lights any oil it touches.
+ */
+export interface Jet { x: number; y: number; dir: 'up' | 'left' | 'right'; len: number; period: number; phase: number; on: number }
 /** A pit full of crude: fall in and that's it. */
 export interface CrudePit { x1: number; x2: number; surface: number }
 /** Scenery: a pumpjack nodding away, a derrick, a tank, a flare stack, a sign. */
@@ -40,6 +45,7 @@ export interface Course {
   spawns: Spawn[];
   pickups: PickupSpot[];
   oil: OilPatch[];
+  jets: Jet[];
   pits: CrudePit[];
   props: Prop[];
   /** The field (from where you land to the bunker and out past it). */
@@ -60,21 +66,22 @@ const FIELD_X0 = -70000;
 const CHASE_X0 = -40000;
 /** One lap of the chase's road (it's the same all the way round), and how many are laid down end to end. */
 export const LAP = 6400, LAPS = 3;
-const END_X0 = BOSS_DOOR_X - 1800;
+const END_X0 = BOSS_DOOR_X - 5200;
 
 /** How the chase's road rises and falls across a lap: a height every 320 px (up and down all the way: everything's always above or below him). */
 const LAP_HEIGHTS = [0, -40, -90, -120, -90, -30, 20, 60, 90, 60, 10, -50, -110, -140, -100, -40, 10, 40, 30, 0];
 
 const part = (x0: number) => {
-  const runs: GroundRun[] = [], ledges: Ledge[] = [], spawns: Spawn[] = [], pickups: PickupSpot[] = [], oil: OilPatch[] = [], pits: CrudePit[] = [], props: Prop[] = [];
+  const runs: GroundRun[] = [], ledges: Ledge[] = [], spawns: Spawn[] = [], pickups: PickupSpot[] = [], oil: OilPatch[] = [], pits: CrudePit[] = [], props: Prop[] = [], jets: Jet[] = [];
   return {
-    runs, ledges, spawns, pickups, oil, pits, props,
+    runs, ledges, spawns, pickups, oil, pits, props, jets,
+    jet: (x: number, y: number, dir: Jet['dir'], len: number, period: number, phase: number, on = 60) => { jets.push({ x: x0 + x, y, dir, len, period, phase, on }); },
     ground: (x1: number, x2: number, y1 = Y, y2 = y1) => { runs.push({ x1: x0 + x1, y1, x2: x0 + x2, y2 }); },
     ledge: (x: number, y: number, w: number, look: Ledge['look'] = 'pipe') => { ledges.push({ x: x0 + x, y, w, look }); },
     spawn: (kind: EnemyKind, x: number, y = Y, variant?: number) => { spawns.push({ kind, x: x0 + x, y, variant }); },
     pickup: (x: number, y: number, type: PickupSpot['type']) => { pickups.push({ x: x0 + x, y, type }); },
-    slick: (x1: number, x2: number) => { oil.push({ x1: x0 + x1, x2: x0 + x2, kind: 'slick' }); },
-    tar: (x1: number, x2: number) => { oil.push({ x1: x0 + x1, x2: x0 + x2, kind: 'tar' }); },
+    slick: (x1: number, x2: number, refills = false) => { oil.push({ x1: x0 + x1, x2: x0 + x2, kind: 'slick', refills }); },
+    tar: (x1: number, x2: number, refills = false) => { oil.push({ x1: x0 + x1, x2: x0 + x2, kind: 'tar', refills }); },
     pit: (x1: number, x2: number, surface = Y + 40) => { pits.push({ x1: x0 + x1, x2: x0 + x2, surface }); },
     prop: (look: Prop['look'], x: number, y = Y, text?: string) => { props.push({ look, x: x0 + x, y, text }); },
   };
@@ -155,9 +162,37 @@ const build = () => {
 
   // ============ OUT BACK OF THE FIELD OFFICE ============
   const e = part(END_X0);
-  e.ground(-800, 1800);
+  e.ground(-800, 2300);
+  // ============ AND THE LAST OF IT, BURNING, UP TO OSCAR'S DOOR ============
+  // (what's left of the mob that came after him, bloodied and furious; gas lines ruptured everywhere, spitting fire,
+  // and the oil pooling back as fast as it burns off)
+  // A broken line licking fire along the ground onto a slick, again and again: watch it go up, burn off, pool back
+  e.slick(1860, 2160, true); e.jet(1820, Y, 'right', 110, 330, 0, 70);
+  e.spawn('ranger', 2260, Y, 7);
+  e.pickup(1760, Y - 30, 'small_ammo');
+  // A pit of crude, a pipeline across it, a jet of fire straight up through the middle of it
+  e.pit(2300, 2560); e.ledge(2285, Y - 40, 290, 'pipe'); e.jet(2430, Y + 40, 'up', 200, 150, 40, 55);
+  e.ground(2560, 2960);
+  e.spawn('biker', 2800, Y, 7);
+  e.pickup(2900, Y - 30, 'small_health');
+  // Tar with a line spitting fire along it (it burns a long time): up on the derrick decks over it
+  e.ground(2960, 3700); e.tar(3000, 3440, true); e.jet(2975, Y, 'right', 120, 520, 100, 80);
+  e.ledge(3050, Y - 110, 120, 'deck'); e.ledge(3230, Y - 160, 120, 'deck'); e.ledge(3410, Y - 110, 120, 'deck');
+  e.prop('derrick', 3290, Y);
+  e.spawn('ranger', 3290, Y - 160, 7); e.spawn('deputy', 3620, Y, 7);
+  // Down a slick into the low ground, two jets in it going off in turn, bikers coming up it at him
+  e.ground(3700, 3900, Y, Y + 80); e.ground(3900, 4400, Y + 80); e.ground(4400, 4550, Y + 80, Y);
+  e.slick(3740, 4360, true); e.jet(3980, Y + 80, 'up', 160, 240, 0, 60); e.jet(4220, Y + 80, 'up', 160, 240, 120, 60);
+  e.spawn('biker', 4120, Y + 80, 7); e.spawn('biker', 4320, Y + 80, 7); e.spawn('ranger', 4500, Y, 7);
+  e.pickup(3760, Y - 30, 'small_health');
+  // Up over the last pit on pipe stands, a jet up through the middle one
+  e.ground(4550, 4600); e.pit(4600, 5000);
+  e.ledge(4640, Y - 70, 100, 'pipe'); e.ledge(4770, Y - 130, 100, 'pipe'); e.ledge(4900, Y - 70, 100, 'pipe');
+  e.jet(4820, Y + 40, 'up', 280, 200, 60, 60);
+  e.ground(5000, 5200);
+  e.spawn('deputy', 5120, Y, 7);
   // The refill before the door
-  e.pickup(1580, Y - 30, 'large_health'); e.pickup(1650, Y - 30, 'large_ammo');
+  e.pickup(5060, Y - 30, 'large_health'); e.pickup(5130, Y - 30, 'large_ammo');
   return { f, c, e };
 };
 
@@ -174,6 +209,7 @@ const buildCourse = (): Course => {
     spawns: all.flatMap(p => p.spawns),
     pickups: all.flatMap(p => p.pickups),
     oil: all.flatMap(p => p.oil),
+    jets: all.flatMap(p => p.jets),
     pits: all.flatMap(p => p.pits),
     props: all.flatMap(p => p.props),
     field: { x1: FIELD_X0, x2: FIELD_X0 + 9400 },
@@ -182,7 +218,7 @@ const buildCourse = (): Course => {
     end: { x1: END_X0 - 800, x2: BOSS_DOOR_X, smokers: END_X0 + 1060, wall: END_X0 + 1110 },
     checkpoints: [
       { x: FIELD_X0 + 150, y: Y }, { x: FIELD_X0 + 2780, y: Y }, { x: FIELD_X0 + 4640, y: Y }, { x: FIELD_X0 + 7450, y: Y },
-      { x: CHASE_X0 + 300, y: Y }, { x: END_X0 + 1300, y: Y },
+      { x: CHASE_X0 + 300, y: Y }, { x: END_X0 + 1300, y: Y }, { x: END_X0 + 2900, y: Y },
     ],
     left: FIELD_X0 - 2000,
     startX: FIELD_X0,

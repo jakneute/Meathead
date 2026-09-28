@@ -10,7 +10,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, ARENA_LEFT } from '../../../cons
 import { drawBackdrop } from '../../render/backdrops';
 import { COURSE, placeOf } from './course';
 import { getOscar, fadeAmount, OscarRuntime } from './runtime';
-import { drawDirt, drawOil, drawOilFire, drawPits, drawLedges, drawProps } from './fieldDraw';
+import { drawDirt, drawOil, drawOilFire, drawPits, drawLedges, drawProps, drawJetPipes, drawJetFire } from './fieldDraw';
 import { drawBunkerBack, drawBunkerMid, drawBunkerFront } from './bunkerDraw';
 import { drawChaseBack, drawChaseThrown, drawRiddenMoto, drawChaseHud, drawFarField, drawChaseWarnings } from './chaseDraw';
 import { drawEndBack, drawEndMid, drawEndFront } from './endDraw';
@@ -59,7 +59,7 @@ export const drawOscarBack = (ctx: Ctx, state: GameState) => {
   const rt = getOscar(state)!;
   const place = view(state);
   if (place === 'chase') { drawChaseBack(ctx, state, rt.chase); return; }
-  if (place === 'end') { drawDirt(ctx, state); drawEndBack(ctx, state, rt.ending); return; }
+  if (place === 'end') { drawPits(ctx, state); drawProps(ctx, state); drawDirt(ctx, state); drawOil(ctx, state, rt.field); drawJetPipes(ctx, state); drawEndBack(ctx, state, rt.ending); return; }
   drawPits(ctx, state);
   drawProps(ctx, state);
   drawDirt(ctx, state);
@@ -71,7 +71,7 @@ export const drawOscarMid = (ctx: Ctx, state: GameState) => {
   const rt = getOscar(state)!;
   const place = view(state);
   if (place === 'chase') drawChaseThrown(ctx, state, rt.chase);
-  else if (place === 'end') drawEndMid(ctx, state, rt.ending);
+  else if (place === 'end') { drawLedges(ctx, state); drawEndMid(ctx, state, rt.ending); }
   else { drawLedges(ctx, state); drawBunkerMid(ctx, state, rt.bunker); }
   drawRiddenMoto(ctx, state, place === 'chase' ? rt.chase : null);
 };
@@ -80,7 +80,8 @@ export const drawOscarFront = (ctx: Ctx, state: GameState) => {
   const rt = getOscar(state)!;
   const place = view(state);
   if (place !== 'chase' && place !== 'end') { drawOilFire(ctx, state, rt.field); drawBunkerFront(ctx, state, rt.bunker); }
-  if (place === 'end') drawEndFront(ctx, state, rt.ending);
+  if (place === 'end') { drawOilFire(ctx, state, rt.field); drawEndFront(ctx, state, rt.ending); }
+  if (place !== 'chase') drawJetFire(ctx, state);
   drawSpeech(ctx, state, rt);
 };
 

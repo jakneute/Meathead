@@ -11,7 +11,7 @@ import { COURSE, placeOf } from './course';
 import { getOscar } from './runtime';
 import { nearView, inArena } from '../lightKit';
 import { roomIntact } from './bunker';
-import { burnLevel } from './field';
+import { burnLevel, jetOn } from './field';
 
 export const oscarScene = (state: GameState): SceneLight | null => {
   if (inArena(state)) return null;
@@ -30,6 +30,9 @@ export const oscarScene = (state: GameState): SceneLight | null => {
     const burning = rt.chase.far.filter(f => f.state === 'blowing' || f.state === 'burning').length;
     return { dark: 0.1 + burning * 0.025, shade: [60, 22, 14], lights };
   }
-  // Out back of the field office: the whole field's going up behind it
-  return { dark: 0.3, shade: [60, 20, 12], lights: [{ x: COURSE.end.wall - 40, y: GROUND_Y - 40, r: 200, a: rt.ending.bike.state === 'crashed' ? 0.8 : 0, color: 'rgba(249, 115, 22, 0.16)' }] };
+  // Out back of the field office and on to the door: the whole field's going up behind it; the jets and the burning oil light it
+  lights.push({ x: COURSE.end.wall - 40, y: GROUND_Y - 40, r: 200, a: rt.ending.bike.state === 'crashed' ? 0.8 : 0, color: 'rgba(249, 115, 22, 0.16)' });
+  for (const o of rt.field.oil) { const k = burnLevel(o); if (k > 0 && nearView(state, (o.x1 + o.x2) / 2, 400)) lights.push({ x: (o.x1 + o.x2) / 2, y: groundLineAt(state.groundRuns, o.x1) - 30, r: 180 + (o.x2 - o.x1) / 2, a: k, color: 'rgba(249, 115, 22, 0.18)' }); }
+  for (const j of COURSE.jets) if (jetOn(j, state.frame) && nearView(state, j.x)) lights.push({ x: j.x, y: j.y - 60, r: 220, a: 0.9, color: 'rgba(253, 186, 116, 0.18)' });
+  return { dark: 0.3, shade: [60, 20, 12], lights };
 };
