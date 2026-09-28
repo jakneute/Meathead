@@ -39,7 +39,8 @@ export const drawHectorBackdrop = (ctx: Ctx, state: GameState): boolean => {
   const region = regionOf(state.camera.x + 400);
   if (region === 'tower' || region === 'eye') { drawInsideStorm(ctx, state); return true; }
   const storm = stormAt(state, rt);
-  if (storm < 1) drawBackdrop(ctx, 'Hector Sunny', state.camera.x, state.camera.y, state.frame);
+  // (after the Eye: the sky of a storm that's just ended)
+  if (storm < 1) drawBackdrop(ctx, region === 'daycare' ? 'Hector After' : 'Hector Sunny', state.camera.x, state.camera.y, state.frame);
   if (storm > 0) {
     ctx.save(); ctx.globalAlpha = storm;
     drawBackdrop(ctx, 'Hector Hurricane', state.camera.x, state.camera.y, state.frame);

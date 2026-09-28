@@ -369,12 +369,12 @@ const ernie: Backdrop = {
 // 4. HECTOR HURRICANE: Miami. Art deco hotels, a raging sea and palms bent flat.
 // ===========================================================================
 
-const hectorClouds = (key: string, parallax: number, drift: number, base: number, color: string, seed: number): LayerSpec => ({
+const hectorClouds = (key: string, parallax: number, drift: number, base: number, color: string, seed: number, count = 26, size = 1): LayerSpec => ({
   key, parallax, drift,
   paint: (g, w) => {
     const r = rng(seed);
-    for (let i = 0; i < 26; i++) {
-      const x = r() * w, y = base + r() * 40, rw = 50 + r() * 90, rh = 12 + r() * 16;
+    for (let i = 0; i < count; i++) {
+      const x = r() * w, y = base + r() * 40, rw = (50 + r() * 90) * size, rh = (12 + r() * 16) * size;
       wrapDraw(w, x, rw, xx => {
         g.fillStyle = color; g.beginPath(); g.ellipse(xx + rw / 2, y, rw / 2, rh, 0, 0, Math.PI * 2); g.fill();
         g.fillStyle = mix(color, '#000000', 0.25); g.beginPath(); g.ellipse(xx + rw / 2, y + rh * 0.5, rw / 2.2, rh * 0.5, 0, 0, Math.PI * 2); g.fill();
@@ -539,11 +539,29 @@ const sun = (ctx: G, v: View) => {
   ctx.fillStyle = g; ctx.fillRect(x - 120, y - 120, 240, 240);
   ctx.fillStyle = '#FFF7D1'; ctx.beginPath(); ctx.arc(x, y, 34, 0, Math.PI * 2); ctx.fill();
 };
+// The beach at the start: not a cloud in the sky, near enough (a few little wisps)
 const hectorSunny: Backdrop = {
   layers: [
     sky('hector-sunny-sky', ['#1D8FE0', '#3BA3EA', '#5FB8F0', '#86CBF4', '#B2DEF7'], 12),
     sun,
-    hectorClouds('hector-sunny-clouds', 0.05, 0.2, 60, '#F8FAFC', 211),
+    hectorClouds('hector-sunny-clouds', 0.05, 0.2, 50, '#F8FAFC', 211, 4, 0.55),
+    sunnyDeco,
+    sunnySea,
+    sunnyPalms,
+  ],
+};
+// The storm's just passed: a paler, washed-out blue, the sun back out through a haze, broken grey-white cloud,
+// and the tail of the storm's dark clouds drifting off
+const hazySun = (ctx: G, v: View) => {
+  sun(ctx, v);
+  ctx.fillStyle = 'rgba(226, 232, 240, 0.25)'; ctx.fillRect(0, 0, W, 200);
+};
+const hectorAfter: Backdrop = {
+  layers: [
+    sky('hector-after-sky', ['#4F86B8', '#6B9CC6', '#8DB3D2', '#AFC8DC', '#CBD8E3'], 12),
+    hazySun,
+    hectorClouds('hector-after-clouds-far', 0.03, 0.15, 24, '#8A9BB0', 311, 5, 1.05),
+    hectorClouds('hector-after-clouds', 0.06, 0.3, 80, '#EEF2F7', 312, 11, 0.9),
     sunnyDeco,
     sunnySea,
     sunnyPalms,
@@ -924,6 +942,7 @@ export const STAGE_BACKDROPS: Record<string, Backdrop> = {
   'Hector Hurricane': hector,
   // (not a stage: the sunny beach Hector's stage starts on, before his storm rolls in)
   'Hector Sunny': hectorSunny,
+  'Hector After': hectorAfter,
   'Toxic Tommy': tommy,
   'Blackout Barry': barry,
   'Oily Oscar': oscar,
