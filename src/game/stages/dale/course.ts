@@ -78,6 +78,14 @@ export const TRAILER_W = 520, CAB_W = 170, TRUCK_W = TRAILER_W + 10 + CAB_W, TRU
 export const TRAILER_TOP = Y - 170, CAB_TOP = Y - 150, HOOD_TOP = Y - 96;
 /** Where the sleeper cab ends and the hood starts (from the cab's back). */
 export const SLEEPER_W = 92;
+/** The last truck (Riggs's) is a size up on the rest, all over (so there's a good view of him through the windshield). */
+export const LAST_TRUCK_SCALE = 1.3;
+export const truckScale = (i: number) => (i === 3 ? LAST_TRUCK_SCALE : 1);
+/** Truck i's measurements: the ones above, scaled up from the road under its back end. */
+export const truckDims = (i: number) => {
+  const s = truckScale(i), up = (top: number) => Y - (Y - top) * s;
+  return { s, w: TRUCK_W * s, trailerW: TRAILER_W * s, sleeperW: SLEEPER_W * s, trailerTop: up(TRAILER_TOP), cabTop: up(CAB_TOP), hoodTop: up(HOOD_TOP), bed: Y - 40 * s };
+};
 
 const build = () => {
   const d = part(DESERT_X0), h = part(HIGHWAY_X0), t = part(TOWN_X0);
@@ -161,11 +169,11 @@ const build = () => {
   t.awning(760, 360); t.awning(1280, 300); t.awning(1740, 190); t.awning(2090, 350); t.awning(2640, 440); t.awning(3240, 280); t.awning(3680, 280); t.awning(4140, 320);
   // The hotel's balcony, the chapel's bell tower (the sniper's up there)
   t.ledge(2700, Y - 200, 320, 'balcony');
-  t.ledge(4240, Y - 390, 120, 'tower');
-  t.spawn('sicario', 1000); t.spawn('visitor', 1200, Y, 0); t.spawn('visitor', 1640, Y, 1);
-  t.spawn('enforcer', 1880); t.spawn('sicario', 2300, Y - 280); t.spawn('visitor', 2520, Y, 4);
-  t.spawn('cardoor', 2860); t.spawn('sicario', 2900, Y - 200); t.spawn('visitor', 3150, Y, 3);
-  t.spawn('coyote', 3400); t.spawn('sicario', 3860, Y - 290); t.spawn('enforcer', 4020); t.spawn('visitor', 3580, Y, 2);
+  t.ledge(4190, Y - 390, 220, 'tower');
+  t.spawn('sicario', 1000);
+  t.spawn('enforcer', 1880); t.spawn('sicario', 2300, Y - 280);
+  t.spawn('cardoor', 2860); t.spawn('sicario', 2900, Y - 200);
+  t.spawn('coyote', 3400); t.spawn('sicario', 3860, Y - 290); t.spawn('enforcer', 4020);
   t.pickup(1680, Y - 30, 'small_ammo'); t.pickup(2560, Y - 30, 'small_health'); t.pickup(3600, Y - 30, 'small_ammo');
   t.pickup(3000, Y - 370, 'small_health');
   t.pickup(6060, Y - 30, 'large_health'); t.pickup(6140, Y - 30, 'large_ammo');
@@ -213,7 +221,7 @@ const buildCourse = (): Course => {
     desert: { x1: DESERT_X0, x2: DESERT_X0 + 6480 },
     warehouse: { x1: DESERT_X0 + 6480, x2: DESERT_X0 + 8360, ceiling: Y - 470, stairs: DESERT_X0 + 8060 },
     office,
-    highway: { x1: HIGHWAY_X0 - 400, x2: trucks[3].x + TRUCK_W + 400, trucks },
+    highway: { x1: HIGHWAY_X0 - 400, x2: trucks[3].x + truckDims(3).w + 400, trucks },
     town: {
       x1: TOWN_X0, x2: BOSS_DOOR_X, crash: TOWN_X0 + 140, arch: TOWN_X0 + 600,
       tower: { x: TOWN_X0 + 4300, top: Y - 390 }, jail: { x1: TOWN_X0 + 5300, x2: TOWN_X0 + 5640 }, pharmacy: TOWN_X0 + 5860,
@@ -221,7 +229,7 @@ const buildCourse = (): Course => {
     checkpoints: [
       { x: DESERT_X0 + 150, y: Y }, { x: DESERT_X0 + 5100, y: Y }, { x: DESERT_X0 + 6540, y: Y }, { x: DESERT_X0 + 7960, y: Y },
       // (on each truck, at the back of its trailer)
-      ...trucks.map(tr => ({ x: tr.x + 160, y: TRAILER_TOP })),
+      ...trucks.map((tr, i) => ({ x: tr.x + 160, y: truckDims(i).trailerTop })),
       { x: TOWN_X0 + 380, y: Y }, { x: TOWN_X0 + 2600, y: Y }, { x: TOWN_X0 + 4560, y: Y },
     ],
     left: DESERT_X0 - 2000,

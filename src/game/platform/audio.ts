@@ -74,6 +74,39 @@ const playHorn = (ctx: AudioContext) => {
   }
 };
 
+/**
+ * A truck's air horn with somebody slumped on it: one long flat blare that doesn't let up, sagging off at the end
+ * (for the given number of seconds).
+ */
+export const playHornDrone = (seconds: number) => {
+  try {
+    const ctx = getAudioContext();
+    const t = ctx.currentTime;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1600, t);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.exponentialRampToValueAtTime(0.09, t + 0.05);
+    gain.gain.setValueAtTime(0.09, t + seconds - 0.6);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + seconds);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    for (const freq of [220, 277, 222]) {
+      const osc = ctx.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, t);
+      osc.frequency.setValueAtTime(freq, t + seconds - 0.6);
+      osc.frequency.linearRampToValueAtTime(freq * 0.9, t + seconds);
+      osc.connect(filter);
+      osc.start(t);
+      osc.stop(t + seconds);
+    }
+  } catch {
+    // Audio is best-effort.
+  }
+};
+
 /** A police siren: a wailing tone sweeping up and down for a few seconds. */
 const playSiren = (ctx: AudioContext) => {
   const t = ctx.currentTime, dur = 3.2;
@@ -198,6 +231,48 @@ export const playSound = (type: SoundType = 'gun') => {
     else playTone(ctx, TONES[type]!);
   } catch {
     // Audio is best-effort; never let it break the game loop.
+  }
+};
+
+/**
+ * A big-bore rifle from a long way off: the round's supersonic crack, a heavy low thump under it, and the report
+ * coming back off the hills a beat later.
+ */
+export const playSniperShot = () => {
+  try {
+    const ctx = getAudioContext();
+    const t = ctx.currentTime;
+    const burst = (at: number, len: number, level: number, from: number, to: number) => {
+      const size = Math.floor(ctx.sampleRate * len);
+      const buffer = ctx.createBuffer(1, size, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < size; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / size, 3);
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(from, t + at);
+      filter.frequency.exponentialRampToValueAtTime(to, t + at + len);
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(level, t + at);
+      noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+      noise.start(t + at);
+    };
+    // The crack, the report, the echo
+    burst(0, 0.09, 0.9, 9000, 2000);
+    burst(0.02, 0.7, 0.55, 1800, 80);
+    burst(0.32, 0.9, 0.18, 900, 60);
+    const sub = ctx.createOscillator();
+    const subGain = ctx.createGain();
+    sub.type = 'sine';
+    sub.frequency.setValueAtTime(140, t);
+    sub.frequency.exponentialRampToValueAtTime(30, t + 0.6);
+    subGain.gain.setValueAtTime(0.6, t);
+    subGain.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
+    sub.connect(subGain); subGain.connect(ctx.destination);
+    sub.start(); sub.stop(t + 0.7);
+  } catch {
+    // Audio is best-effort.
   }
 };
 

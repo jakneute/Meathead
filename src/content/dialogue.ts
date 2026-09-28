@@ -679,7 +679,7 @@ export const BOSS_DIALOGUE: {
     'Toxic Tommy': ["SMELLS LIKE A GYM BAG DOWN HERE. I'M RIGHT AT HOME.", "My puke melts steel beams, bitch."],
     'Blackout Barry': ["LIGHTS OUT? GOOD. MY ABS GLOW IN THE DARK.", "I'm the reason your bill is so high."],
     'Oily Oscar': ["BABY OIL'S FOR POSING. CRUDE OIL'S FOR YOUR FUNERAL.", "You're looking a little dry, let me grease you up."],
-    'Drug Trade Dale': ["DALE'S GOT THE GOOD STUFF? TIME TO CUT OUT THE MIDDLEMAN.", "Another junkie? How'd you get past my guards?"],
+    'Drug Trade Dale': ["FOUR TRUCKS, A TWEAKER, A NINJA AND A TRUCKER, DALE. YOU'RE OUT OF MIDDLEMEN.", "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!"],
     'default': ["I'll break you in half!", "YOU'RE TOAST."]
   }
 };

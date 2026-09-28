@@ -424,8 +424,11 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
   const { state, fx } = ctx;
   const { player } = state;
 
+  // (its first check reaches back to where it came from: point blank, the muzzle's already past what's up against him)
+  const reach = boundsOf(p);
+  if (p.fromX !== undefined) { const x1 = Math.min(reach.x, p.fromX), x2 = Math.max(reach.x + reach.w, p.fromX); reach.x = x1; reach.w = x2 - x1; p.fromX = undefined; }
   for (const enemy of state.enemies) {
-    if (enemy.health <= 0 || enemy.isBlownAway || !rectsOverlap(boundsOf(p), boundsOf(enemy))) continue;
+    if (enemy.health <= 0 || enemy.isBlownAway || !rectsOverlap(reach, boundsOf(enemy))) continue;
     // (a stray shot that's flown off screen doesn't kill what it finds out there)
     if (!isOnScreen(state.camera, enemy) || submerged(enemy)) continue;
     if (p.isSludge && p.isLingering) continue;

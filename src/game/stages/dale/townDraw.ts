@@ -11,9 +11,12 @@ import type { GroundRun } from '../../core/terrain';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, BOSS_DOOR_X } from '../../../constants';
 import { COURSE, Building, Awning } from './course';
 import type { DaleRuntime } from './runtime';
-import { Town, TownProp, CAB, ninjaSpot, incoming, jailWrecked } from './town';
+import { Town, TownProp, CAB, ninjaSpot, incoming, jailWrecked, muzzle, laserEnd, NINJA_CUT, NINJA_DONE } from './town';
+import { drawDaleKind } from '../../render/enemies/dale';
+import { drawPlayer } from '../../render/player/player';
 import { saying, drawBubble } from './script';
 import { visible, hash } from './draw';
+import { wheelTurn } from '../../render/bosses/daleTruck';
 
 type Ctx = CanvasRenderingContext2D;
 const Y = GROUND_Y;
@@ -25,7 +28,7 @@ const Y = GROUND_Y;
 export const drawTownBack = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   const t = COURSE.town;
   for (const r of state.groundRuns) if (r.surface === 'street' && visible(state, r.x1, r.x2)) drawStreet(ctx, state, r);
-  if (visible(state, t.x1 - 100, t.x1 + 400)) drawCurioShop(ctx, t.x1);
+  if (visible(state, t.x1 - 100, t.x1 + 400)) drawCurioShop(ctx, t.x1, rt.town.shopHit);
   if (visible(state, t.arch - 200, t.arch + 200)) drawArch(ctx, t.arch);
   for (const b of COURSE.buildings) if (visible(state, b.x1 - 60, b.x2 + 60)) drawBuilding(ctx, state, b);
   for (const a of COURSE.awnings) if (visible(state, a.x, a.x + a.w)) drawAwning(ctx, state, a);
@@ -98,12 +101,16 @@ const drawBuilding = (ctx: Ctx, state: GameState, b: Building) => {
 /** The chapel: white clapboard, a steeple with a bell in it (and the ninja up there, drawn with the rest that moves). */
 const drawChapel = (ctx: Ctx, state: GameState, b: Building) => {
   const t = COURSE.town.tower;
-  const tx = t.x - 60, tw = 120;
+  const tx = t.x - 110, tw = 220;
   // The belfry up off the roof
   ctx.fillStyle = '#F5F5F4'; ctx.fillRect(tx, t.top - 80, tw, b.top - (t.top - 80));
   ctx.fillStyle = '#1C1917'; ctx.fillRect(tx + 16, t.top - 70, tw - 32, 64);
   ctx.fillStyle = '#A16207'; ctx.beginPath(); ctx.arc(t.x, t.top - 48, 14, Math.PI, 0); ctx.fill(); ctx.fillRect(t.x - 16, t.top - 48, 32, 8);
   ctx.fillStyle = '#A8A29E'; ctx.fillRect(tx - 6, t.top - 4, tw + 12, 8);
+  // His nest: sandbags along the rail, a spotting scope, a ghillie net hung up out of the sun
+  for (let k = 0; k < 7; k++) { ctx.fillStyle = k % 2 ? '#A8916B' : '#BFA77F'; ctx.beginPath(); ctx.ellipse(tx + 14 + k * 16, t.top - 10, 10, 6, 0, 0, Math.PI * 2); ctx.fill(); }
+  ctx.fillStyle = '#3F6212'; ctx.beginPath(); ctx.moveTo(tx + 16, t.top - 70); ctx.lineTo(tx + tw - 16, t.top - 70); ctx.lineTo(tx + tw - 30, t.top - 52); ctx.lineTo(tx + 30, t.top - 56); ctx.fill();
+  ctx.fillStyle = '#27272A'; ctx.fillRect(tx + tw - 40, t.top - 22, 18, 6); ctx.fillRect(tx + tw - 34, t.top - 16, 3, 12);
   // The steeple, a cross
   ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.moveTo(tx - 8, t.top - 80); ctx.lineTo(t.x, t.top - 170); ctx.lineTo(tx + tw + 8, t.top - 80); ctx.fill();
   ctx.fillStyle = '#FACC15'; ctx.fillRect(t.x - 2, t.top - 200, 4, 32); ctx.fillRect(t.x - 10, t.top - 190, 20, 4);
@@ -148,11 +155,18 @@ const drawArch = (ctx: Ctx, x: number) => {
 };
 
 /** The curio shop the truck ended up in (the hole's in the side of it). */
-const drawCurioShop = (ctx: Ctx, x: number) => {
+const drawCurioShop = (ctx: Ctx, x: number, hit: boolean) => {
   ctx.fillStyle = '#D2B48C'; ctx.fillRect(x, Y - 260, 280, 260);
   ctx.fillStyle = '#8B6B3D'; ctx.fillRect(x - 6, Y - 264, 292, 12);
   ctx.fillStyle = '#FEF3C7'; ctx.fillRect(x + 20, Y - 240, 240, 40); ctx.strokeStyle = '#7F1D1D'; ctx.lineWidth = 3; ctx.strokeRect(x + 20, Y - 240, 240, 40);
   ctx.fillStyle = '#7F1D1D'; ctx.font = 'bold 9px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('TUMBLEWEED CURIOS', x + 140, Y - 222); ctx.font = '6px "Press Start 2P"'; ctx.fillText('& GIFTS - T-SHIRTS - FUDGE', x + 140, Y - 208); ctx.textAlign = 'left';
+  if (!hit) {
+    // (before the cab comes through it: the shop window, the door, a rack of postcards out front)
+    ctx.fillStyle = '#93C5FD'; ctx.fillRect(x + 30, Y - 170, 130, 90); ctx.strokeStyle = '#6B4423'; ctx.lineWidth = 4; ctx.strokeRect(x + 30, Y - 170, 130, 90);
+    ctx.fillStyle = '#78350F'; ctx.fillRect(x + 190, Y - 130, 56, 130);
+    ctx.fillStyle = '#F472B6'; ctx.fillRect(x + 50, Y - 110, 16, 20); ctx.fillStyle = '#22D3EE'; ctx.fillRect(x + 90, Y - 116, 20, 26);
+    return;
+  }
   // The hole in it, and the wreckage in the hole
   ctx.fillStyle = '#1C1917'; ctx.beginPath(); ctx.moveTo(x + 60, Y); ctx.lineTo(x + 50, Y - 160); ctx.lineTo(x + 120, Y - 190); ctx.lineTo(x + 250, Y - 170); ctx.lineTo(x + 280, Y); ctx.fill();
   ctx.fillStyle = '#A0703F'; for (let i = 0; i < 8; i++) ctx.fillRect(x + 50 + i * 30, Y - 12 - (i % 3) * 8, 22, 10);
@@ -182,7 +196,7 @@ const drawJail = (ctx: Ctx, state: GameState, town: Town) => {
   const cx = j.x1 + 110, cy = Y - 130;
   ctx.fillStyle = '#0C0A09'; ctx.fillRect(cx, cy, 120, 70);
   if (town.prisoner.alive) {
-    const shake = Math.sin(f * 0.6) * 2;
+    const shake = Math.sin(f * (town.phase === 'jail' ? 1.3 : 0.6)) * (town.phase === 'jail' ? 5 : 2);
     ctx.fillStyle = '#F2C9A0'; ctx.beginPath(); ctx.arc(cx + 60 + shake, cy + 34, 12, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#111827'; ctx.fillRect(cx + 54 + shake, cy + 30, 3, 3); ctx.fillRect(cx + 63 + shake, cy + 30, 3, 3);
     ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.ellipse(cx + 60 + shake, cy + 42, 3, 3, 0, 0, Math.PI * 2); ctx.fill();
@@ -211,7 +225,56 @@ const drawPharmacy = (ctx: Ctx, state: GameState, x: number) => {
   const cx = x + 60, cy = Y - 160;
   ctx.fillStyle = on ? '#22C55E' : '#14532D'; ctx.fillRect(cx - 8, cy - 24, 16, 48); ctx.fillRect(cx - 24, cy - 8, 48, 16);
   if (on) { ctx.fillStyle = 'rgba(74, 222, 128, 0.25)'; ctx.beginPath(); ctx.arc(cx, cy, 44, 0, Math.PI * 2); ctx.fill(); }
-  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x + 140, Y - 150, 170, 80); ctx.fillStyle = '#FDE047'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.fillText('SALE: EVERYTHING', x + 150, Y - 130); ctx.fillStyle = '#DC2626'; ctx.fillText('OPEN 24/7', x + 150, Y - 110);
+  drawOpenSign(ctx, x + 132, Y - 160, f);
+};
+
+/** The OPEN 24/7 marquee: a Vegas-style board, chasing bulbs round the edge, a neon pill, a starburst, the fine print. */
+const drawOpenSign = (ctx: Ctx, x: number, y: number, f: number) => {
+  const w = 190, h = 96;
+  // The board, gold-framed
+  const board = ctx.createLinearGradient(0, y, 0, y + h);
+  board.addColorStop(0, '#4C1D95'); board.addColorStop(1, '#1E1B4B');
+  ctx.fillStyle = '#B45309'; ctx.fillRect(x - 6, y - 6, w + 12, h + 12);
+  ctx.fillStyle = '#FACC15'; ctx.fillRect(x - 3, y - 3, w + 6, h + 6);
+  ctx.fillStyle = board; ctx.fillRect(x, y, w, h);
+  // Bulbs chasing round it
+  const bulbs: [number, number][] = [];
+  for (let bx = x + 6; bx < x + w; bx += 12) { bulbs.push([bx, y - 1]); }
+  for (let by = y + 11; by < y + h; by += 12) bulbs.push([x + w + 1, by]);
+  for (let bx = x + w - 6; bx > x; bx -= 12) bulbs.push([bx, y + h + 1]);
+  for (let by = y + h - 11; by > y; by -= 12) bulbs.push([x - 1, by]);
+  bulbs.forEach(([bx, by], i) => {
+    const lit = (i + Math.floor(f / 5)) % 3 === 0;
+    ctx.fillStyle = lit ? '#FEF9C3' : '#92400E'; ctx.beginPath(); ctx.arc(bx, by, 2.6, 0, Math.PI * 2); ctx.fill();
+    if (lit) { ctx.fillStyle = 'rgba(254, 240, 138, 0.35)'; ctx.beginPath(); ctx.arc(bx, by, 5, 0, Math.PI * 2); ctx.fill(); }
+  });
+  // The neon: OPEN (flickering, the N going now and then), 24/7 big underneath
+  const buzz = Math.floor(f / 7) % 23 === 0;
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 15px "Press Start 2P"';
+  ctx.fillStyle = 'rgba(244, 114, 182, 0.35)'; ctx.fillText('OPEN', x + 70, y + 30);
+  ctx.fillStyle = '#F9A8D4'; ctx.fillText(buzz ? 'OPE ' : 'OPEN', x + 69, y + 29);
+  ctx.font = 'bold 22px "Press Start 2P"';
+  ctx.fillStyle = 'rgba(34, 211, 238, 0.35)'; ctx.fillText('24/7', x + 72, y + 61);
+  ctx.fillStyle = '#A5F3FC'; ctx.fillText('24/7', x + 70, y + 59);
+  // A neon pill, tipped up, and a sparkle off it
+  ctx.save(); ctx.translate(x + 158, y + 34); ctx.rotate(-0.5);
+  ctx.fillStyle = '#F472B6'; ctx.beginPath(); ctx.roundRect(-16, -8, 16, 16, [8, 0, 0, 8]); ctx.fill();
+  ctx.fillStyle = '#FDE047'; ctx.beginPath(); ctx.roundRect(0, -8, 16, 16, [0, 8, 8, 0]); ctx.fill();
+  ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.roundRect(-16, -8, 32, 16, 8); ctx.stroke();
+  ctx.restore();
+  const tw = (Math.sin(f * 0.15) + 1) / 2;
+  ctx.fillStyle = `rgba(255, 255, 255, ${0.4 + tw * 0.6})`;
+  ctx.beginPath(); ctx.moveTo(x + 172, y + 8 - tw * 4); ctx.lineTo(x + 174, y + 14); ctx.lineTo(x + 180 + tw * 4, y + 16); ctx.lineTo(x + 174, y + 18); ctx.lineTo(x + 172, y + 24 + tw * 4); ctx.lineTo(x + 170, y + 18); ctx.lineTo(x + 164 - tw * 4, y + 16); ctx.lineTo(x + 170, y + 14); ctx.fill();
+  // The starburst, and the fine print
+  ctx.save(); ctx.translate(x + 158, y + 70); ctx.rotate(Math.sin(f * 0.05) * 0.1);
+  ctx.fillStyle = '#EF4444'; ctx.beginPath();
+  for (let k = 0; k < 20; k++) { const r = k % 2 ? 13 : 21, a = (k * Math.PI) / 10; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
+  ctx.fill();
+  ctx.fillStyle = '#FEF08A'; ctx.font = 'bold 6px "Press Start 2P"'; ctx.fillText('NO', 0, -1); ctx.fillText('ID!', 0, 7);
+  ctx.restore();
+  ctx.fillStyle = '#C4B5FD'; ctx.font = '5px "Press Start 2P"'; ctx.fillText('*EXCEPT DURING RAIDS', x + 70, y + 82);
+  ctx.textAlign = 'left';
 };
 
 // ---------------------------------------------------------------------------
@@ -228,17 +291,49 @@ export const drawTownMid = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
     const parked = cab.state === 'parked';
     ctx.save();
     if (cab.state === 'spin') { ctx.translate(cab.x + CAB.w / 2, 0); ctx.scale(Math.cos(cab.spin * Math.PI), 1); ctx.translate(-(cab.x + CAB.w / 2), 0); }
-    drawCab(ctx, cab.x, cab.facing, f, false, parked ? 0.1 : 0);
+    // (Riggs slumped over the wheel from the highway till his second wind)
+    const slumped = cab.state === 'arrive' || (parked && town.phase === 'street');
+    drawCab(ctx, cab.x, cab.facing, f, false, parked ? 0.1 : 0, wheelTurn(cab.x * cab.facing, cabSpeed(cab) * cab.facing, 26, f), slumped, town.gore);
+    ctx.restore();
+    ctx.save();
     ctx.restore();
     if (parked && f % 5 === 0) state.particles.push({ pos: { x: cab.x + 20, y: Y - CAB.h + 40 }, vel: { x: 0.3, y: -1 }, life: 40, color: '#57534E', size: 8 });
   }
+  // The tourists
+  for (const e of town.tourists) {
+    if (!visible(state, e.pos.x - 30, e.pos.x + 60)) continue;
+    ctx.save(); ctx.translate(e.pos.x + e.width / 2, Y); ctx.scale(e.facing ?? 1, 1); drawDaleKind(ctx, e, f + (e.homeX ?? 0), state); ctx.restore();
+  }
+  if (town.arrive) drawArrival(ctx, state, town);
   // The "sheriff", till he's off
   const s = town.sheriff;
   if (visible(state, s.x - 40, s.x + 40) && s.x < COURSE.town.x2 - 200) drawSheriff(ctx, s.x, f, s.running);
 };
 
+/** Meathead coming in on top of the cab (hanging on for dear life), flung off it, face down on the street. */
+const drawArrival = (ctx: Ctx, state: GameState, town: Town) => {
+  const a = town.arrive!;
+  const p = state.player;
+  const riding = town.cab.state === 'arrive';
+  const down = a.landedAt >= 0 && a.h <= 0 && a.vh === 0;
+  const body = { ...p, pos: { x: -1e6, y: -1e6 }, hidden: false, isGrounded: riding, vel: { x: riding ? -2 : 3, y: riding ? 0 : 4 }, facing: -1 as const, isCharging: false, isSliding: false, isUppercutting: false, isDivekicking: false, isDucking: riding, invincibilityTimer: 0, hurtTimer: riding ? 0 : 30, pushbackTimer: riding ? 0 : 30 };
+  ctx.save();
+  const rot = down ? Math.PI / 2 : a.rot;
+  ctx.translate(a.x + (riding ? Math.sin(state.frame * 0.9) * 2 : 0), Y - a.h - (down ? 14 : p.height / 2));
+  ctx.rotate(rot);
+  ctx.translate(-(body.pos.x + body.width / 2), -(body.pos.y + body.height / 2));
+  drawPlayer(ctx, body, { ...state, deathTimer: 0 }, { currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false });
+  ctx.restore();
+  // (seeing stars, lying there)
+  if (down) for (let k = 0; k < 3; k++) { const ang = state.frame * 0.12 + (k * Math.PI * 2) / 3; ctx.fillStyle = '#FDE047'; ctx.font = 'bold 10px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('*', a.x + 20 + Math.cos(ang) * 18, Y - 30 + Math.sin(ang) * 6); ctx.textAlign = 'left'; }
+};
+
 /** A bobtail tractor (Riggs's), facing `facing`, its back end at x; wrecked, or tilted a touch. */
-export const drawCab = (ctx: Ctx, x: number, facing: 1 | -1, f: number, wrecked: boolean, tilt: number) => {
+/** How fast the cab's going, px a frame (+ right): backing out of the wall, creeping round, then flat out. */
+const cabSpeed = (cab: Town['cab']) =>
+  cab.state === 'reverse' ? 3.5 : cab.state === 'spin' || (cab.state === 'go' && cab.speed === 0) ? 1 : cab.state === 'parked' || cab.state === 'wrecked' ? 0 : cab.speed;
+
+export const drawCab = (ctx: Ctx, x: number, facing: 1 | -1, f: number, wrecked: boolean, tilt: number, roll = 0, slumped = false, gore = 0) => {
   ctx.save();
   ctx.translate(x + CAB.w / 2, Y);
   ctx.scale(facing, 1);
@@ -254,7 +349,13 @@ export const drawCab = (ctx: Ctx, x: number, facing: 1 | -1, f: number, wrecked:
   ctx.fillStyle = '#FDE047'; ctx.fillRect(4, -h + 90, 122, 4);
   // Windshield (the driver: Riggs, bandaged and bloody and grinning)
   ctx.fillStyle = '#1E3A5F'; ctx.fillRect(84, -h + 16, 40, 44);
-  if (!wrecked) {
+  if (!wrecked && slumped) {
+    // Face down on the wheel, the hole in his head
+    ctx.fillStyle = '#E0AC69'; ctx.beginPath(); ctx.arc(110, -h + 52, 10, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#1E3A8A'; ctx.fillRect(100, -h + 44, 20, 5); ctx.fillStyle = '#B91C1C'; ctx.fillRect(104, -h + 46, 6, 6);
+    ctx.fillStyle = '#44403C'; ctx.fillRect(98, -h + 56, 24, 3); // the wheel
+    ctx.fillStyle = 'rgba(185, 28, 28, 0.7)'; ctx.fillRect(86, -h + 20, 5, 18); ctx.fillRect(96, -h + 26, 3, 12); // on the glass
+  } else if (!wrecked) {
     ctx.fillStyle = '#E0AC69'; ctx.beginPath(); ctx.arc(104, -h + 40, 10, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#F8FAFC'; ctx.fillRect(94, -h + 30, 20, 5); ctx.fillStyle = '#B91C1C'; ctx.fillRect(98, -h + 30, 6, 5); // the bandage, the blood
     ctx.fillStyle = '#1E3A8A'; ctx.fillRect(94, -h + 26, 20, 5);
@@ -270,11 +371,26 @@ export const drawCab = (ctx: Ctx, x: number, facing: 1 | -1, f: number, wrecked:
   ctx.fillStyle = '#E5E7EB'; ctx.fillRect(CAB.w - 12, -h + 78, 12, 60);
   ctx.fillStyle = '#D1D5DB'; ctx.fillRect(CAB.w - 20, -46, 26, 12);
   if (!wrecked) { ctx.fillStyle = '#FEF08A'; ctx.fillRect(CAB.w - 6, -h + 74, 8, 10); const beam = ctx.createLinearGradient(CAB.w, 0, CAB.w + 160, 0); beam.addColorStop(0, 'rgba(255,244,180,0.5)'); beam.addColorStop(1, 'rgba(255,244,180,0)'); ctx.fillStyle = beam; ctx.beginPath(); ctx.moveTo(CAB.w, -h + 74); ctx.lineTo(CAB.w + 160, -h + 50); ctx.lineTo(CAB.w + 160, -h + 120); ctx.lineTo(CAB.w, -h + 84); ctx.fill(); }
-  // Wheels
-  for (const wx of [40, 100, CAB.w - 40]) {
+  // No trailer on it: the frame rails out the back, the fifth wheel (the coupling plate) bare on top of them, mud flaps
+  ctx.fillStyle = '#27272A'; ctx.fillRect(-78, -58, 80, 12);
+  ctx.fillStyle = '#52525B'; ctx.fillRect(-66, -68, 58, 10);
+  ctx.fillStyle = '#71717A'; ctx.beginPath(); ctx.moveTo(-66, -68); ctx.lineTo(-8, -68); ctx.lineTo(-14, -74); ctx.lineTo(-60, -74); ctx.fill();
+  ctx.fillStyle = '#18181B'; ctx.fillRect(-72, -71, 18, 5); // the slot the kingpin goes in
+  ctx.fillStyle = '#FACC15'; ctx.fillRect(-20, -66, 6, 4);
+  ctx.fillStyle = '#18181B'; ctx.fillRect(-82, -50, 8, 36);
+  // What's left of the tourists, on the front of it
+  if (gore > 0) {
+    ctx.fillStyle = `rgba(153, 27, 27, ${0.5 + gore * 0.4})`;
+    for (let k = 0; k < Math.ceil(gore * 12); k++) ctx.fillRect(CAB.w - 30 + ((k * 7) % 24), -h + 60 + ((k * 23) % 110), 5 + (k % 3) * 3, 6 + (k % 4) * 6);
+    ctx.fillRect(CAB.w - 24, -40, 24, 8 * gore);
+    if (gore > 0.3) { ctx.fillStyle = '#F8FAFC'; ctx.fillRect(CAB.w - 18, -h + 120, 10, 4); } // a sandal, stuck in the grille
+    if (gore > 0.6) { ctx.fillStyle = '#D6B98C'; ctx.beginPath(); ctx.ellipse(CAB.w - 10, -h + 76, 12, 3, 0.3, 0, Math.PI * 2); ctx.fill(); } // a hat
+  }
+  // Wheels (the two drive axles under the fifth wheel, the steer axle up front)
+  for (const wx of [-50, 6, CAB.w - 40]) {
     ctx.fillStyle = '#111111'; ctx.beginPath(); ctx.arc(wx, -26, 26, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#9CA3AF'; ctx.beginPath(); ctx.arc(wx, -26, 12, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#4B5563'; ctx.lineWidth = 3; for (let k = 0; k < 5; k++) { const a = f * 0.6 + k * 1.26; ctx.beginPath(); ctx.moveTo(wx, -26); ctx.lineTo(wx + Math.cos(a) * 11, -26 + Math.sin(a) * 11); ctx.stroke(); }
+    ctx.strokeStyle = '#4B5563'; ctx.lineWidth = 3; for (let k = 0; k < 5; k++) { const a = roll + k * 1.26; ctx.beginPath(); ctx.moveTo(wx, -26); ctx.lineTo(wx + Math.cos(a) * 11, -26 + Math.sin(a) * 11); ctx.stroke(); }
   }
   ctx.restore();
 };
@@ -341,7 +457,7 @@ const drawNinja = (ctx: Ctx, state: GameState, town: Town) => {
     ctx.fillStyle = 'rgba(239, 68, 68, 0.8)'; ctx.fillRect(58, -23, 2, 2);
   } else {
     const kneel = n.state !== 'speech';
-    const slump = n.state === 'dead' ? 1 : n.state === 'kneel' ? Math.max(0, (n.t - 70) / 50) : 0;
+    const slump = n.state === 'dead' ? 1 : n.state === 'kneel' ? Math.min(1, Math.max(0, (n.t - NINJA_CUT - 10) / (NINJA_DONE - NINJA_CUT - 10))) : 0;
     ctx.rotate(slump * 1.2);
     if (!kneel) { ctx.fillStyle = dark; ctx.fillRect(-8, -30, 7, 30); ctx.fillRect(2, -30, 7, 30); }
     else { ctx.fillStyle = dark; ctx.fillRect(-12, -14, 26, 14); }
@@ -353,7 +469,7 @@ const drawNinja = (ctx: Ctx, state: GameState, town: Town) => {
     if (n.state === 'kneel' || n.state === 'dead') {
       // The short blade, and what it's done
       ctx.fillStyle = '#E5E7EB'; ctx.fillRect(4, top + 18, 14, 2); ctx.fillStyle = '#7F1D1D'; ctx.fillRect(2, top + 16, 5, 6);
-      if (n.t > 50 || n.state === 'dead') { ctx.fillStyle = '#991B1B'; ctx.beginPath(); ctx.ellipse(6, 0, 18 + Math.min(20, n.t * 0.2), 3, 0, 0, Math.PI * 2); ctx.fill(); }
+      if (n.t > NINJA_CUT || n.state === 'dead') { ctx.fillStyle = '#991B1B'; ctx.beginPath(); ctx.ellipse(6, 0, 18 + Math.min(20, n.t * 0.2), 3, 0, 0, Math.PI * 2); ctx.fill(); }
     } else {
       // Bowing, hands together
       ctx.fillStyle = '#E0AC69'; ctx.fillRect(8, top + 10, 6, 6);
@@ -392,9 +508,18 @@ export const drawTownFront = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   if (sn.on) {
     const lock = sn.state === 'lock';
     const k = lock ? sn.t / 46 : 0;
-    // The laser, faint, from up the tower
-    ctx.strokeStyle = lock ? `rgba(239, 68, 68, ${0.3 + k * 0.5})` : 'rgba(239, 68, 68, 0.15)'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(spot.x - 50, spot.y - 22); ctx.lineTo(sn.x, sn.y); ctx.stroke();
+    // The laser from up the tower, through the crosshair and on down to the ground (all of it's the line of fire),
+    // blinking: slowly while it's looking for him, fast once it's locked
+    const m = muzzle(), end = laserEnd(sn);
+    const on = lock ? Math.floor(f / 3) % 2 === 0 : Math.floor(f / 12) % 3 !== 0;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = `rgba(239, 68, 68, ${on ? (lock ? 0.35 + k * 0.3 : 0.28) : 0.08})`; ctx.lineWidth = lock ? 10 : 7;
+    ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(end.x, end.y); ctx.stroke();
+    ctx.strokeStyle = on ? (lock ? '#FECACA' : '#F87171') : 'rgba(248, 113, 113, 0.35)'; ctx.lineWidth = lock ? 3 : 2;
+    ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(end.x, end.y); ctx.stroke();
+    // (where it hits the dirt)
+    if (on) { ctx.fillStyle = 'rgba(239, 68, 68, 0.7)'; ctx.beginPath(); ctx.ellipse(end.x, end.y - 1, lock ? 14 : 9, 3, 0, 0, Math.PI * 2); ctx.fill(); }
+    ctx.lineCap = 'butt';
     // The crosshair
     const r = lock ? 34 + (1 - k) * 20 : 34;
     ctx.save(); ctx.translate(sn.x, sn.y);
@@ -406,12 +531,39 @@ export const drawTownFront = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
     ctx.restore();
     if (lock && Math.floor(f / 5) % 2 === 0) { ctx.fillStyle = '#EF4444'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('LOCKED', sn.x, sn.y - r - 16); ctx.textAlign = 'left'; }
   }
-  // The shot: a tracer from the tower, a flash up there
+  // The shot: a white flash across the screen, a fat tracer down from the tower with the air ripping open around it
+  // in rings, a muzzle blast up there, a shock ring where it went in
   const ls = sn.lastShot;
-  if (ls && f - ls.t < 8) {
-    ctx.strokeStyle = `rgba(253, 224, 71, ${1 - (f - ls.t) / 8})`; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(spot.x - 58, spot.y - 22); ctx.lineTo(ls.x, ls.y); ctx.stroke();
-    ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(spot.x - 58, spot.y - 22, 8, 0, Math.PI * 2); ctx.fill();
+  const since = ls ? f - ls.t : 999;
+  if (ls && since < 22) {
+    const m = muzzle();
+    const fade = 1 - since / 22;
+    if (since < 3) { ctx.fillStyle = `rgba(255, 255, 255, ${0.55 - since * 0.15})`; ctx.fillRect(state.camera.x, state.camera.y, CANVAS_WIDTH, CANVAS_HEIGHT); }
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = `rgba(253, 186, 116, ${0.45 * fade})`; ctx.lineWidth = 18 * fade + 2;
+    ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(ls.x, ls.y); ctx.stroke();
+    ctx.strokeStyle = `rgba(254, 240, 138, ${fade})`; ctx.lineWidth = 6 * fade + 1;
+    ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(ls.x, ls.y); ctx.stroke();
+    ctx.strokeStyle = `rgba(255, 255, 255, ${fade})`; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(ls.x, ls.y); ctx.stroke();
+    ctx.lineCap = 'butt';
+    // The shock rings along its path
+    const ang = Math.atan2(ls.y - m.y, ls.x - m.x);
+    for (let i = 1; i <= 6; i++) {
+      const u = i / 7, rx = m.x + (ls.x - m.x) * u, ry = m.y + (ls.y - m.y) * u;
+      ctx.save(); ctx.translate(rx, ry); ctx.rotate(ang);
+      ctx.strokeStyle = `rgba(255, 255, 255, ${0.5 * fade})`; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.ellipse(0, 0, 4 + since * 0.6, 8 + since * 2.4, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+    }
+    // The muzzle blast
+    if (since < 8) { ctx.fillStyle = `rgba(255, 247, 200, ${1 - since / 8})`; ctx.beginPath(); ctx.arc(m.x - 10, m.y, 26 - since * 2, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.moveTo(m.x, m.y - 6); ctx.lineTo(m.x - 70 + since * 6, m.y); ctx.lineTo(m.x, m.y + 6); ctx.fill(); }
+    // Where it went in
+    if (!ls.covered) {
+      ctx.strokeStyle = `rgba(254, 215, 170, ${fade})`; ctx.lineWidth = 4 * fade + 1;
+      ctx.beginPath(); ctx.arc(ls.x, ls.y, 10 + since * 5, 0, Math.PI * 2); ctx.stroke();
+      if (since < 5) { ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(ls.x, ls.y, 16 - since * 2, 0, Math.PI * 2); ctx.fill(); }
+    }
   }
   // Bubbles
   const nt = saying(rt.talk, 'ninja'); if (nt) drawBubble(ctx, spot.x, spot.y - 80, nt, '#F1F5F9');

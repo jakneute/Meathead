@@ -5,7 +5,8 @@
 //
 // The third hitman's up the chapel's bell tower with a rifle: a crosshair drifts
 // after Meathead all the way up the street, and every so often it stops, goes
-// red, and fires where it stopped. Standing there, it's a big hit. Under a porch
+// red, and fires where it stopped. Standing there (or anywhere along the laser
+// down from the tower, out in the open), it's a big hit. Under a porch
 // roof, he can't see you (the round goes into the roof). The porch roofs are
 // springy, too: land on one and it throws you up onto the rooftops.
 //
@@ -14,12 +15,15 @@
 //
 // Back down on the street: a cut back down to the curio shop, and the second
 // hitman isn't dead after all. Riggs backs the cab out, spins it round and comes
-// up the street flat out, through the tourists and the photo cutouts. Warning
-// signs, a meter: when he's close, boost-jump (an uppercut) clean over him. He
-// goes on into the fake jail (the guy the "sheriff" locked in for a photo is
-// still in there; the sheriff's long gone), and that's the end of Riggs. Dale's
-// pharmacy is past the wreck.
+// up the street flat out, through the tourists (every last one) and the photo
+// cutouts. Warning signs, a meter: when he's close, boost-jump (an uppercut) clean
+// over him. Then a cut to the fake jail: the guy the "sheriff" locked in it for a
+// photo sees what's coming, the sheriff runs off with the keys, and the cab comes
+// through the wall, him and Riggs and all. Dale's pharmacy is past the wreck.
+//
+// The tourists are the town's, not enemies: Meathead can't hurt them.
 
+import type { Enemy } from '../../../types';
 import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
 import type { Controls } from '../../platform/input';
@@ -29,7 +33,8 @@ import { shakeScreen } from '../../core/state';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 import { hurtPlayer } from '../../bosses/shared';
 import { killPlayer } from '../../player/player';
-import { playSound } from '../../platform/audio';
+import { playSound, playSniperShot, playHornDrone } from '../../platform/audio';
+import { makeKindEnemy } from '../../enemies/kinds';
 import { COURSE, CP } from './course';
 import { Talk, queueLines, replaceLines, hush } from './script';
 
@@ -43,14 +48,27 @@ export const AWNING_BOUNCE = 17.5;
 /** The cab: its size; how fast it comes up the street (chasing, then at you); how far off it is when you get control back. */
 export const CAB = { w: 250, h: 196 };
 const CHASE_SPEED = 17, RUSH_SPEED = 8, HANDOVER = 1300;
+/** Coming in off the highway: how fast the cab comes down the street into the curio shop. */
+const ARRIVE_SPEED = 21;
 
 export interface TownProp { x: number; look: 'barrel' | 'cutout' | 'wagon' | 'hay' | 'wanted' | 'trough'; flying: boolean; vx: number; vy: number; y: number; rot: number }
 export interface Town {
-  phase: 'street' | 'pan' | 'revive' | 'chase' | 'incoming' | 'crashed';
+  phase: 'street' | 'pan' | 'revive' | 'chase' | 'incoming' | 'jail' | 'crashed';
+  /** The jail scene: when the cab went into it (-1 till then). */
+  crashedAt: number;
   t: number;
   sniper: { on: boolean; x: number; y: number; state: 'track' | 'lock' | 'cool'; t: number; shots: number; lastShot: { x: number; y: number; t: number; covered: boolean } | null };
+  /** The tourists: the town's, not enemies (Meathead can't hurt them; Riggs gets every last one). */
+  tourists: Enemy[];
+  /** How much of them is on the front of the cab (0..1); when the last scream went up. */
+  gore: number;
+  screamAt: number;
+  /** Coming in off the highway: the cab down the street into the curio shop, Meathead flung off the top of it. */
+  arrive: { t: number; x: number; h: number; vx: number; vh: number; rot: number; spin: number; landedAt: number } | null;
+  /** The hole in the curio shop (not till the cab's gone into it). */
+  shopHit: boolean;
   ninja: { state: 'perch' | 'speech' | 'kneel' | 'dead'; t: number };
-  cab: { x: number; speed: number; facing: 1 | -1; spin: number; state: 'parked' | 'reverse' | 'spin' | 'go' | 'wrecked'; t: number };
+  cab: { x: number; speed: number; facing: 1 | -1; spin: number; state: 'arrive' | 'parked' | 'reverse' | 'spin' | 'go' | 'wrecked'; t: number };
   props: TownProp[];
   sheriff: { x: number; running: boolean };
   prisoner: { alive: boolean; said: number };
@@ -77,7 +95,109 @@ export const createTown = (state: GameState, startedAt: number): Town => {
     cab: wrecked ? { x: t.jail.x1 + 30 - CAB.w, speed: 0, facing: 1, spin: 0, state: 'wrecked', t: 0 } : { x: t.crash - 20, speed: 0, facing: -1, spin: 0, state: 'parked', t: 0 },
     props, sheriff: { x: wrecked ? t.x2 + 400 : t.jail.x1 - 70, running: wrecked }, prisoner: { alive: !wrecked, said: 0 },
     said: new Set(), wakeT: 999,
+    tourists: wrecked ? [] : makeTourists(), gore: 0, screamAt: -999, crashedAt: -1, arrive: null, shopHit: true,
   };
+};
+
+/** The tourists, all up the street to the jail: milling about, taking pictures. */
+const makeTourists = (): Enemy[] => {
+  const t = T();
+  const out: Enemy[] = [];
+  for (let k = 0; ; k++) {
+    const x = t.x1 + 700 + k * 165 + ((k * 53) % 70);
+    if (x > t.jail.x1 - 160) break;
+    const e = makeKindEnemy('visitor', x, Y);
+    e.variant = k % 5; e.homeX = x; e.facing = k % 2 ? 1 : -1; e.aiState = 'idle'; e.aiTimer = k * 37;
+    out.push(e);
+  }
+  return out;
+};
+
+/** Things Meathead only says the first time through (not again after a checkpoint). */
+const once = (state: GameState, town: Town, key: string) => {
+  if (town.said.has(key) || state.stageMemo[`said-${key}`]) return false;
+  town.said.add(key); state.stageMemo[`said-${key}`] = 'yes';
+  return true;
+};
+
+// ---------------------------------------------------------------------------
+// Coming in off the highway
+// ---------------------------------------------------------------------------
+
+/**
+ * The last truck's tractor (the trailer long gone somewhere back up the interstate) comes down the street flat out,
+ * horn blaring, Meathead hanging on up top, and goes nose first into the curio shop. He goes up off the top of it,
+ * comes down on the street, bounces, and lies there a moment.
+ */
+export const startArrival = (state: GameState, town: Town) => {
+  const t = T();
+  town.shopHit = false;
+  town.cab = { x: t.x1 + 900, speed: -ARRIVE_SPEED, facing: -1, spin: 0, state: 'arrive', t: 0 };
+  town.arrive = { t: 0, x: 0, h: CAB.h, vx: 0, vh: 0, rot: 0, spin: 0, landedAt: -1 };
+  const p = state.player;
+  p.hidden = true; p.inCutscene = true; p.vel = { x: 0, y: 0 };
+  state.cameraOverride = { x: t.x1, y: 0 };
+  state.camera.x = t.x1; state.camera.y = 0;
+  // (Riggs still face down on the horn)
+  playHornDrone(1.9);
+};
+
+/** How long he lies there before he's up. */
+const LIE_FOR = 70;
+
+const arrival = (ctx: FrameContext, town: Town): Controls => {
+  const { state, fx } = ctx;
+  const p = state.player;
+  const t = T();
+  const a = town.arrive!;
+  const cab = town.cab;
+  a.t++;
+  state.cameraOverride = { x: t.x1, y: 0 };
+  p.hidden = true; p.inCutscene = true; p.vel = { x: 0, y: 0 };
+  const yell = (text: string) => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 60; };
+  if (cab.state === 'arrive') {
+    cab.x -= ARRIVE_SPEED;
+    a.x = cab.x + CAB.w * 0.55;
+    if (a.t === 8) yell('WHO HAS THE WHEEL?! NOBODY HAS THE WHEEL!');
+    if (cab.x <= t.crash - 20) {
+      // In through the front of the shop
+      cab.x = t.crash - 20; cab.state = 'parked'; cab.speed = 0; cab.t = 0;
+      town.shopHit = true;
+      shakeScreen(state, 44, 16);
+      playSound('nuke');
+      fx.spawnGlassShatter({ x: t.x1 + 150, y: Y - 150 });
+      for (let k = 0; k < 8; k++) fx.spawnExplosion({ x: t.x1 + 60 + k * 30, y: Y - 30 - ((k * 37) % 170) }, k % 2 ? '#A0703F' : '#D2B48C', 18, 0, 22);
+      const junk = ['#A0703F', '#F472B6', '#22D3EE', '#FEF3C7', '#8B6B3D', '#FACC15'];
+      for (let i = 0; i < 46; i++) state.particles.push({ pos: { x: t.x1 + 80 + Math.random() * 180, y: Y - 40 - Math.random() * 180 }, vel: { x: (Math.random() - 0.3) * 14, y: -4 - Math.random() * 12 }, life: 50 + Math.random() * 40, color: junk[i % junk.length], size: 3 + Math.random() * 7 });
+      fx.spawnDamageNumber({ x: t.x1 + 90, y: Y - 300 }, 'CRUNCH!', true, '#FACC15');
+      // and up he goes
+      a.vx = 3.6; a.vh = 19; a.spin = 0.3;
+      yell('WHOAAAAAA!');
+    }
+  } else if (a.landedAt < 0 || a.vh !== 0 || a.h > 0) {
+    // Up, over, down
+    a.x += a.vx; a.vh -= 0.65; a.h += a.vh; a.rot += a.spin;
+    if (a.h <= 0) {
+      a.h = 0;
+      if (a.landedAt < 0) {
+        a.landedAt = a.t; a.vh = 6; a.vx *= 0.4; a.spin *= 0.5;
+        shakeScreen(state, 16, 8); playSound('gun');
+        fx.spawnExplosion({ x: a.x, y: Y - 6 }, '#C08A55', 10, 0, 12);
+        yell('OOF!');
+      } else { a.vh = 0; a.vx = 0; a.spin = 0; }
+    }
+  }
+  // Keep the real him where the body is (his words go up over it)
+  p.pos = { x: a.x - p.width / 2, y: Y - a.h - p.height };
+  // Lain there long enough: up he gets
+  if (a.landedAt >= 0 && a.h <= 0 && a.t >= a.landedAt + LIE_FOR) {
+    p.pos = { x: a.x - p.width / 2, y: Y - p.height };
+    p.hidden = false; p.inCutscene = false; p.facing = 1;
+    town.arrive = null;
+    state.cameraOverride = null;
+    town.wakeT = 0;
+  }
+  return { ...NO_CONTROLS };
 };
 
 /** The jail's front wall (the street's blocked till the cab goes through it). */
@@ -89,15 +209,17 @@ export const updateTown = (ctx: FrameContext, town: Town, talk: Talk, controls: 
   const t = T();
   town.t++;
   if (town.wakeT < 999) town.wakeT++;
+  if (town.arrive) return arrival(ctx, town);
   if (town.wakeT === 40 && !state.stageMemo.wokeUp) { state.stageMemo.wokeUp = 'yes'; queueLines(state, talk, [{ who: 'meathead', text: 'NOTE TO SELF: SHOOT THE DRIVER AFTER THE TRUCK STOPS.' }]); }
-  if (!town.said.has('welcome') && p.pos.x > t.arch - 100) { town.said.add('welcome'); queueLines(state, talk, [{ who: 'meathead', text: 'AN AUTHENTIC OLD WEST TOWN. EST. NINETEEN NINETY FOUR. SURE.' }]); }
+  if (p.pos.x > t.arch - 100 && once(state, town, 'welcome')) { queueLines(state, talk, [{ who: 'meathead', text: 'AN AUTHENTIC OLD WEST TOWN. EST. NINETEEN NINETY FOUR. SURE.' }]); }
   checkpoints(state);
   bounceAwnings(state);
   updateProps(ctx, town);
+  updateTourists(town);
   // The sniper, from the arch till you get up to him
   if (town.ninja.state === 'perch' && !town.sniper.on && p.pos.x > t.arch + 80) {
     town.sniper.on = true; town.sniper.x = p.pos.x + 200; town.sniper.y = p.pos.y - 100; town.sniper.t = 0;
-    replaceLines(state, talk, [{ who: 'meathead', text: 'A LITTLE RED DOT ON MY PECS... SNIPER! GET UNDER SOMETHING!' }]);
+    if (once(state, town, 'sniper')) replaceLines(state, talk, [{ who: 'meathead', text: 'A LITTLE RED DOT ON MY PECS... SNIPER! GET UNDER SOMETHING!' }]);
   }
   if (town.sniper.on) updateSniper(ctx, town, talk);
   const ninjaControls = updateNinja(ctx, town, talk);
@@ -156,17 +278,25 @@ const updateSniper = (ctx: FrameContext, town: Town, talk: Talk) => {
       s.state = 'cool'; s.t = 0; s.shots++;
       const box = { x: p.pos.x, y: p.pos.y, w: p.width, h: p.height };
       const covered = underCover(box);
-      const hit = !covered && Math.hypot(px - s.x, py - s.y) < SIGHT_R + p.width / 2;
+      // (in the crosshair, or anywhere along the laser's line down to the ground)
+      const hit = !covered && (Math.hypot(px - s.x, py - s.y) < SIGHT_R + p.width / 2 || onTheLine(s, box));
       s.lastShot = { x: s.x, y: s.y, t: state.frame, covered: covered && Math.abs(px - s.x) < 80 };
-      playSound('gun'); shakeScreen(state, 8, 4);
+      playSniperShot(); shakeScreen(state, 18, 12);
+      // The muzzle blast up the tower
+      const m = muzzle();
+      for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: m.x, y: m.y }, vel: { x: -Math.random() * 7, y: (Math.random() - 0.5) * 4 }, life: 30 + Math.random() * 20, color: i % 3 ? '#57534E' : '#FDE68A', size: 5 + Math.random() * 7 });
       if (s.lastShot.covered) {
         // Into the porch roof
         const a = COURSE.awnings.find(w => px > w.x && px < w.x + w.w);
         if (a) { s.lastShot.y = a.y; for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: s.x, y: a.y }, vel: { x: (Math.random() - 0.5) * 6, y: -Math.random() * 4 }, life: 26, color: i % 2 ? '#92400E' : '#D6B98C', size: 2 + Math.random() * 3 }); }
-      } else for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: s.x, y: s.y }, vel: { x: (Math.random() - 0.5) * 6, y: -Math.random() * 5 }, life: 22, color: '#D6B98C', size: 3 + Math.random() * 3 });
+      } else {
+        // Where it went in: a geyser of dirt and splinters off whatever's there
+        for (let i = 0; i < 26; i++) state.particles.push({ pos: { x: s.x, y: s.y }, vel: { x: (Math.random() - 0.5) * 12, y: -Math.random() * 11 }, life: 26 + Math.random() * 16, color: i % 4 ? '#D6B98C' : '#FDE68A', size: 3 + Math.random() * 6 });
+      }
       if (hit && p.invincibilityTimer <= 0) {
-        hurtPlayer(ctx, SNIPE_DAMAGE, 'sniper', { x: (px < s.x ? -1 : 1) * 6, y: -8 }, 30);
-        fx.spawnDeathShower({ x: px, y: py }, 0, 0.5);
+        hurtPlayer(ctx, SNIPE_DAMAGE, 'sniper', { x: (px < s.x ? -1 : 1) * 9, y: -10 }, 30);
+        fx.spawnDeathShower({ x: px, y: py }, px < muzzle().x ? -1 : 1, 1.4);
+        shakeScreen(state, 26, 16);
       }
       // Anything else standing there takes it too (a goon, a tourist)
       for (const e of state.enemies) {
@@ -175,15 +305,58 @@ const updateSniper = (ctx: FrameContext, town: Town, talk: Talk) => {
         e.health = 0; fx.blowAwayEnemy(e, { x: 0, y: -8 }, 'gun_kill', 0, 1);
         fx.spawnDamageNumber({ x: e.pos.x - 20, y: e.pos.y - 30 }, 'FRIENDLY FIRE!', true, '#FACC15');
       }
-      scatterTourists(state, s.x);
-      if (s.shots === 1 && !town.said.has('cover')) { town.said.add('cover'); queueLines(state, talk, [{ who: 'meathead', text: "UNDER THE PORCH ROOFS! HE CAN'T SEE ME UNDER THERE!" }], 40); }
+      scatterTourists(town, s.x);
+      if (s.shots === 1 && once(state, town, 'cover')) { queueLines(state, talk, [{ who: 'meathead', text: "UNDER THE PORCH ROOFS! HE CAN'T SEE ME UNDER THERE!" }], 40); }
     }
   }
 };
 
-/** Shots near the tourists: they run for it. */
-export const scatterTourists = (state: GameState, x: number) => {
-  for (const e of state.enemies) if (e.kind === 'visitor' && e.health > 0 && Math.abs(e.pos.x - x) < 420 && e.aiState !== 'flee') { e.aiState = 'flee'; e.aiTimer = 0; }
+/** Where the rifle's muzzle is, up the tower. */
+export const muzzle = () => ({ x: ninjaSpot().x - 50, y: ninjaSpot().y - 22 });
+
+/** Where the laser comes down to: from the muzzle, through the crosshair, on down to the ground. */
+export const laserEnd = (s: { x: number; y: number }) => {
+  const m = muzzle();
+  const dy = Math.max(1, s.y - m.y);
+  const k = (Y - m.y) / dy;
+  return { x: m.x + (s.x - m.x) * k, y: Y };
+};
+
+/** Is any of him along the laser (the round's path, and on past the crosshair to the ground)? */
+const onTheLine = (s: { x: number; y: number }, box: { x: number; y: number; w: number; h: number }) => {
+  const m = muzzle(), end = laserEnd(s);
+  const n = Math.ceil(Math.hypot(end.x - m.x, end.y - m.y) / 6);
+  for (let i = 0; i <= n; i++) {
+    const x = m.x + ((end.x - m.x) * i) / n, y = m.y + ((end.y - m.y) * i) / n;
+    if (x > box.x + 4 && x < box.x + box.w - 4 && y > box.y + 4 && y < box.y + box.h) return true;
+  }
+  return false;
+};
+
+/** Shots near the tourists: they run for it (away from it). */
+const scatterTourists = (town: Town, x: number) => {
+  for (const e of town.tourists) if (Math.abs(e.pos.x - x) < 420 && e.aiState !== 'flee') { e.aiState = 'flee'; e.aiTimer = 0; e.facing = e.pos.x < x ? -1 : 1; }
+};
+
+/** The tourists: milling about their spot and stopping for pictures; running when there's shooting, then cowering. */
+const updateTourists = (town: Town) => {
+  const t = T();
+  for (const e of town.tourists) {
+    e.aiTimer = (e.aiTimer || 0) + 1;
+    if (e.aiState === 'flee') {
+      e.vel.x = e.aiTimer < 0 ? 0 : (e.facing ?? 1) * 5.5;
+      if (e.aiTimer > 60 && town.phase === 'street') { e.aiState = 'shelter'; e.aiTimer = 0; }
+    } else if (e.aiState === 'shelter') {
+      e.vel.x = 0;
+      if (e.aiTimer > 240 && town.phase === 'street') { e.aiState = 'idle'; e.aiTimer = 0; }
+    } else {
+      const home = e.homeX ?? e.pos.x;
+      if (e.aiTimer % 240 < 100) e.vel.x = 0;
+      else { if (Math.abs(e.pos.x - home) > 50) e.facing = e.pos.x > home ? -1 : 1; e.vel.x = (e.facing ?? 1) * 0.8; }
+    }
+    e.pos.x = Math.max(t.x1 + 420, Math.min(t.jail.x1 - 110, e.pos.x + e.vel.x));
+    e.pos.y = Y - e.height;
+  }
 };
 
 // ---------------------------------------------------------------------------
@@ -191,10 +364,12 @@ export const scatterTourists = (state: GameState, x: number) => {
 // ---------------------------------------------------------------------------
 
 const NINJA_LINES = [
-  { who: 'ninja', text: 'YOU CROSSED THE WHOLE TOWN UNDER MY SIGHTS, AND STILL YOU STAND.' },
-  { who: 'ninja', text: 'I HAVE FAILED MY MASTER. I AM A DISHONORABLE FAILURE.' },
+  { who: 'ninja', text: 'YOU CROSSED THE WHOLE TOWN UNDER MY SIGHTS, AND STILL YOU STAND. I HAVE FAILED MY MASTER.' },
   { who: 'ninja', text: 'THERE IS ONLY ONE WAY TO RESTORE MY HONOR.' },
 ] as const;
+
+/** The seppuku: when the blade goes in, when he's down (and you've got control back). */
+export const NINJA_CUT = 30, NINJA_DONE = 70;
 
 /** Where the ninja is (his feet, middle). */
 export const ninjaSpot = () => ({ x: T().tower.x, y: T().tower.top });
@@ -216,14 +391,13 @@ const updateNinja = (ctx: FrameContext, town: Town, talk: Talk): Controls | null
   }
   if (n.state === 'speech') {
     p.vel.x = 0;
-    if (!talk.current && !talk.queue.length && n.t > 60) { n.state = 'kneel'; n.t = 0; playSound('tinkle'); }
+    if (!talk.current && !talk.queue.length && n.t > 20) { n.state = 'kneel'; n.t = 0; playSound('tinkle'); }
     return { ...NO_CONTROLS };
   }
   if (n.state === 'kneel') {
-    if (n.t === 50) { fx.spawnDeathShower({ x: spot.x + 6, y: spot.y - 20 }, 0, 1.2); shakeScreen(state, 6, 3); }
-    if (n.t === 90) { fx.spawnDamageNumber({ x: spot.x - 50, y: spot.y - 90 }, 'SEPPUKU!', true, '#F87171'); }
-    if (n.t === 110) queueLines(state, talk, [{ who: 'meathead', text: '...OKAY. SAVES ME A BULLET.' }]);
-    if (n.t > 130) { n.state = 'dead'; n.t = 0; state.stageMemo.ninjaDead = 'yes'; }
+    if (n.t === NINJA_CUT) { fx.spawnDeathShower({ x: spot.x + 6, y: spot.y - 20 }, 0, 1.2); shakeScreen(state, 6, 3); fx.spawnDamageNumber({ x: spot.x - 50, y: spot.y - 90 }, 'SEPPUKU!', true, '#F87171'); }
+    if (n.t === NINJA_CUT + 20) queueLines(state, talk, [{ who: 'meathead', text: '...OKAY. SAVES ME A BULLET.' }]);
+    if (n.t > NINJA_DONE) { n.state = 'dead'; n.t = 0; state.stageMemo.ninjaDead = 'yes'; }
     return { ...NO_CONTROLS };
   }
   return null;
@@ -260,39 +434,34 @@ const updateWarpath = (ctx: FrameContext, town: Town, talk: Talk, controls: Cont
   }
   if (town.phase === 'pan') {
     // The camera races back down the street to the curio shop
-    state.cameraOverride = { x: t.crash - 300, y: 0 };
-    if (town.t > 40) {
+    state.cameraOverride = { x: t.x1, y: 0 };
+    if (town.t > 20) {
       town.phase = 'revive'; town.t = 0; cab.state = 'parked'; cab.t = 0;
       playSound('horn');
-      queueLines(state, talk, [
-        { who: 'riggs', text: 'YOU THOUGHT ONE BULLET WAS GONNA STOP ME?!' },
-        { who: 'riggs', text: 'IT WENT IN ONE EAR AND OUT THE OTHER, BABY! NOTHING IN THERE TO HIT!' },
-      ]);
+      queueLines(state, talk, [{ who: 'riggs', text: 'ONE BULLET?! IN ONE EAR AND OUT THE OTHER, BABY! NOTHING IN THERE TO HIT!' }]);
     }
     return { ...NO_CONTROLS };
   }
   if (town.phase === 'revive') {
-    state.cameraOverride = { x: t.crash - 300, y: 0 };
-    // Revving, backing out of the wall, spinning round
-    if (cab.state === 'parked' && town.t > 30) { cab.state = 'reverse'; cab.t = 0; }
-    if (cab.state === 'reverse') { cab.x += 2.2; if (town.t % 4 === 0) fx.spawnExplosion({ x: t.crash - 40, y: Y - 80 }, '#A8A29E', 3, 0, 8); if (cab.t > 50) { cab.state = 'spin'; cab.t = 0; playSound('horn'); } }
-    if (cab.state === 'spin') { cab.spin = Math.min(1, cab.t / 24); cab.x += 1; if (cab.t >= 24) { cab.facing = 1; cab.spin = 0; cab.state = 'go'; cab.t = 0; } }
-    if (cab.state === 'go' && !talk.current && !talk.queue.length) {
-      town.phase = 'chase'; town.t = 0; town.sheriff.running = true;
-      if (town.prisoner.alive) queueLines(state, talk, [
-        { who: 'sheriff', text: "I'M JUST AN ACTOR, MAN! THEY DON'T PAY ME ENOUGH FOR THIS!" },
-        { who: 'prisoner', text: 'SHERIFF?! THE KEYS! SHERIFF DAN! COME BACK WITH THE KEYS!' },
-      ]);
+    state.cameraOverride = { x: t.x1, y: 0 };
+    // Revving, backing out of the wall, spinning round (and off, him still talking)
+    if (cab.state === 'parked' && town.t > 15) { cab.state = 'reverse'; cab.t = 0; }
+    if (cab.state === 'reverse') { cab.x += 3.5; if (town.t % 4 === 0) fx.spawnExplosion({ x: t.crash - 40, y: Y - 80 }, '#A8A29E', 3, 0, 8); if (cab.t > 30) { cab.state = 'spin'; cab.t = 0; playSound('horn'); } }
+    if (cab.state === 'spin') { cab.spin = Math.min(1, cab.t / 16); cab.x += 1; if (cab.t >= 16) { cab.facing = 1; cab.spin = 0; cab.state = 'go'; cab.t = 0; } }
+    if (cab.state === 'go' && cab.t > 20) {
+      town.phase = 'chase'; town.t = 0;
+      // Everyone up the street sees it coming
+      for (const e of town.tourists) { e.aiState = 'flee'; e.aiTimer = -Math.floor(Math.random() * 30); e.facing = 1; }
     }
     if (cab.state === 'go') cab.x += 1;
     return { ...NO_CONTROLS };
   }
+  if (town.phase === 'jail') return jailScene(ctx, town, talk, controls);
   if (town.phase === 'chase' || town.phase === 'incoming') {
     const speed = town.phase === 'chase' ? CHASE_SPEED : RUSH_SPEED;
     cab.speed += (speed - cab.speed) * 0.1;
     cab.x += cab.speed;
     plow(ctx, town);
-    if (town.sheriff.running) town.sheriff.x += 5;
     if (town.phase === 'chase') {
       // Following it up the street till it's close enough, then back to him
       state.cameraOverride = { x: cab.x + CAB.w - 520, y: 0 };
@@ -314,11 +483,62 @@ const updateWarpath = (ctx: FrameContext, town: Town, talk: Talk, controls: Cont
       killPlayer(ctx, lines[Math.floor(Math.random() * lines.length)], false);
       return { ...NO_CONTROLS };
     }
-    // Into the jail
-    if (cab.x + CAB.w >= t.jail.x1 + 30) crashIntoJail(ctx, town, talk);
+    // Cleared it: over to the jail
+    if (cab.x > p.pos.x + p.width + 60 && state.deathTimer <= 0) { town.phase = 'jail'; town.t = 0; hush(state, talk); }
     return controls;
   }
   return controls;
+};
+
+/**
+ * Over him and away up the street, and a cut to the fake jail: the guy locked in it for a photo sees what's coming,
+ * the "sheriff" who's got the keys takes one look and runs for it, and the guy begs through the bars (it's not a
+ * bit, it's not funny, he has a timeshare) while the horn gets closer. Then the cab comes through the front of the
+ * jail from off the edge of the screen, him and Riggs and all. A moment on the wreck, and back to Meathead.
+ */
+const JAIL_BEGGING = [
+  { who: 'prisoner', text: 'IS THAT A TRUCK?! SHERIFF DAN?!' },
+  { who: 'sheriff', text: 'NOPE! NOT FOR TEN BUCKS AN HOUR!' },
+  { who: 'prisoner', text: 'DAN! THE KEYS! STOP PLAYING! LET ME OUT!' },
+  { who: 'prisoner', text: 'I HAVE A TIMESHARE!' },
+] as const;
+/** The latest the cab comes (if the begging's still going), and how long on the wreck after. */
+const JAIL_CAB_BY = 720, JAIL_AFTER = 120;
+
+const jailScene = (ctx: FrameContext, town: Town, talk: Talk, controls: Controls): Controls => {
+  const { state } = ctx;
+  const p = state.player;
+  const t = T();
+  const cab = town.cab;
+  const camX = t.jail.x1 - 430;
+  if (town.t === 1) {
+    // (the cab's off up the street, out of sight, till it's time)
+    cab.x = camX - CAB.w - 700; cab.speed = 0;
+    state.cameraOverride = { x: camX, y: 0 };
+    state.camera.x = camX;
+    queueLines(state, talk, JAIL_BEGGING.map(l => ({ ...l })), 20);
+  }
+  if (town.crashedAt < 0) state.cameraOverride = { x: camX, y: 0 };
+  p.vel.x = 0;
+  // Dan's off once he's said his piece
+  if (!town.sheriff.running && town.t > 30 && !talk.queue.some(l => l.who === 'sheriff') && talk.current?.who !== 'sheriff') town.sheriff.running = true;
+  if (town.sheriff.running) town.sheriff.x += 5;
+  // The horn, closer and closer
+  if (town.crashedAt < 0 && town.t > 40 && town.t % Math.max(10, 50 - Math.floor(town.t / 16)) === 0) playSound('horn');
+  // Here it comes (he's begged enough)
+  const begged = !talk.current && !talk.queue.length && town.t > 60;
+  if (cab.speed === 0 && town.crashedAt < 0 && (begged || town.t >= JAIL_CAB_BY)) cab.speed = 26;
+  if (town.crashedAt < 0 && cab.speed > 0) {
+    cab.x += cab.speed;
+    plow(ctx, town);
+    if (cab.x + CAB.w >= t.jail.x1 + 30) { const now = town.t; hush(state, talk); crashIntoJail(ctx, town, talk); town.phase = 'jail'; town.t = now; town.crashedAt = now; }
+  }
+  if (town.crashedAt >= 0 && town.t >= town.crashedAt + JAIL_AFTER) {
+    town.phase = 'crashed'; town.t = 0;
+    state.cameraOverride = null;
+    return controls;
+  }
+  return { ...NO_CONTROLS };
 };
 
 /** When to go up: the boost jump has to be on its way up (it's tall) before the cab gets there. */
@@ -342,6 +562,22 @@ const plow = (ctx: FrameContext, town: Town) => {
     fx.blowAwayEnemy(e, { x: 14 + Math.random() * 8, y: -14 - Math.random() * 6 }, 'charge_kill', 1, 1.5);
     fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 30 }, e.kind === 'visitor' ? 'ROADKILL!' : 'HIT AND RUN!', true, '#F87171');
   }
+  // The tourists: every last one
+  const SPLATS = ['ROADKILL!', 'SPLAT!', 'NO REFUNDS!', 'TOURIST TRAP!', 'WRONG WAY!', 'SPLORCH!', 'HIT AND RUN!'];
+  town.tourists = town.tourists.filter(e => {
+    if (e.pos.x + e.width < cab.x || e.pos.x > front + 10) return true;
+    e.health = 0;
+    state.enemies.push(e);
+    fx.blowAwayEnemy(e, { x: 18 + Math.random() * 12, y: -14 - Math.random() * 12 }, 'charge_kill', 1, 2.6);
+    fx.spawnDeathShower({ x: e.pos.x + e.width / 2, y: Y - 40 }, 1, 2);
+    fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 40 - Math.random() * 30 }, SPLATS[Math.floor(Math.random() * SPLATS.length)], true, '#F87171');
+    // (and what's left of them, all over the street)
+    for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: Y - 30 }, vel: { x: 4 + Math.random() * 14, y: -Math.random() * 12 }, life: 40 + Math.random() * 30, color: i % 3 ? '#991B1B' : '#DC2626', size: 3 + Math.random() * 6 });
+    town.gore = Math.min(1, town.gore + 0.1);
+    shakeScreen(state, 10, 6);
+    if (state.frame - town.screamAt > 35) { town.screamAt = state.frame; playSound('screams'); }
+    return false;
+  });
   for (const pr of town.props) {
     if (pr.flying || pr.x < cab.x || pr.x > front) continue;
     pr.flying = true; pr.vx = 10 + Math.random() * 8; pr.vy = -12 - Math.random() * 8;
@@ -370,6 +606,10 @@ const crashIntoJail = (ctx: FrameContext, town: Town, talk: Talk) => {
   fx.spawnDeathShower({ x: t.jail.x1 + 120, y: Y - 60 }, 1, 2);
   shakeScreen(state, 44, 15);
   playSound('nuke');
+  // The guy in the cell (and what's left of Riggs), everywhere
+  fx.spawnDeathShower({ x: t.jail.x1 + 170, y: Y - 100 }, 1, 3);
+  for (let i = 0; i < 40; i++) state.particles.push({ pos: { x: t.jail.x1 + 120 + Math.random() * 120, y: Y - 60 - Math.random() * 80 }, vel: { x: (Math.random() - 0.2) * 16, y: -Math.random() * 14 }, life: 50 + Math.random() * 30, color: i % 3 ? '#991B1B' : '#78716C', size: 3 + Math.random() * 7 });
+  fx.spawnDamageNumber({ x: t.jail.x1 + 90, y: Y - 280 }, 'CASE CLOSED!', true, '#F87171');
   state.stageMemo.jailWrecked = 'yes';
   queueLines(state, talk, [{ who: 'meathead', text: "RIGGS, BUDDY... YOUR LIZARD'S GONNA HAVE TO FEND FOR HIMSELF." }], 50);
 };
@@ -378,4 +618,4 @@ const crashIntoJail = (ctx: FrameContext, town: Town, talk: Talk) => {
 export const jailWrecked = (state: GameState, town: Town) => town.phase === 'crashed' || !!state.stageMemo.jailWrecked;
 
 /** The camera over the street (it doesn't need to go up and down much). */
-export const TOWN_VIEW = { minX: () => T().x1 - 40, maxX: () => T().x2 + 60 - CANVAS_WIDTH };
+export const TOWN_VIEW = { minX: () => T().x1, maxX: () => T().x2 + 60 - CANVAS_WIDTH };

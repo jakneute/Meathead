@@ -8,11 +8,12 @@
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { drawPlayer } from '../../render/player/player';
-import { COURSE, TRAILER_W, TRUCK_W, TRAILER_TOP, CAB_TOP, HOOD_TOP, SLEEPER_W } from './course';
+import { COURSE, TRAILER_W, TRUCK_W, TRAILER_TOP, CAB_TOP, HOOD_TOP, SLEEPER_W, truckDims } from './course';
 import type { DaleRuntime } from './runtime';
-import { Convoy, TruckState, truckX, debrisComing, windshield, hood, crashProgress, HIGHWAY_CAM_Y, Debris } from './convoy';
+import { Convoy, TruckState, truckX, ROAD_SPEED, debrisComing, windshield, hood, HIGHWAY_CAM_Y, Debris } from './convoy';
 import { saying, drawBubble } from './script';
 import { layer, hash } from './draw';
+import { wheelTurn } from '../../render/bosses/daleTruck';
 
 type Ctx = CanvasRenderingContext2D;
 const Y = GROUND_Y;
@@ -74,8 +75,6 @@ export const drawHighwayBackdrop = (ctx: Ctx, state: GameState, rt: DaleRuntime)
   ctx.fillStyle = 'rgba(255,255,255,0.06)';
   for (let k = 0; k < 12; k++) { const x = ((hash(k + 20) * 1000 - s * 1.1) % 1000 + 1000) % 1000 - 100; ctx.fillRect(x, ROAD + 16 + hash(k + 21) * 70, 80, 2); }
   // (swerving off the road at the end: the whole view lurches)
-  const c = crashProgress(cv);
-  if (c > 0) { ctx.fillStyle = `rgba(255, 245, 230, ${Math.max(0, c - 0.8) * 5})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
 };
 
 // ---------------------------------------------------------------------------
@@ -88,16 +87,24 @@ export const drawConvoyBack = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   const swerve = cv.cab.swerve;
   cv.trucks.forEach((tr, i) => {
     const x = truckX(cv, i);
-    if (tr.phase === 'gone') { drawWreck(ctx, x - tr.back, f, tr.boomT); return; }
-    if (x > state.camera.x + CANVAS_WIDTH + 200 || x + TRUCK_W < state.camera.x - 200) return;
+    if (tr.phase === 'gone') { ctx.save(); sized(ctx, x - tr.back, i); drawWreck(ctx, x - tr.back, f, tr.boomT); ctx.restore(); return; }
+    const w = truckDims(i).w;
+    if (x > state.camera.x + CANVAS_WIDTH + 200 || x + w < state.camera.x - 200) return;
     ctx.save();
-    if (i === 3 && swerve) { ctx.translate(x + TRUCK_W / 2, Y); ctx.rotate(swerve * 0.04); ctx.translate(-(x + TRUCK_W / 2), -Y); }
+    if (i === 3 && swerve) { ctx.translate(x + w / 2, Y); ctx.rotate(swerve * 0.04); ctx.translate(-(x + w / 2), -Y); }
+    sized(ctx, x, i);
     drawSemi(ctx, x, f, tr, i, cv);
     ctx.restore();
   });
 };
 
 const WHEEL_R = 20;
+
+/** Scales what's drawn next to truck i's size, from the road under its back end at x (the trucks are drawn at the base size). */
+const sized = (ctx: Ctx, x: number, i: number) => {
+  const s = truckDims(i).s;
+  if (s !== 1) { ctx.translate(x, Y); ctx.scale(s, s); ctx.translate(-x, -Y); }
+};
 
 /** A semi: a DALE'S DRUGS trailer, the tractor (sleeper, cab, hood), all eighteen wheels going round. */
 const drawSemi = (ctx: Ctx, x: number, f: number, tr: TruckState, i: number, cv: Convoy) => {
@@ -142,7 +149,7 @@ const drawSemi = (ctx: Ctx, x: number, f: number, tr: TruckState, i: number, cv:
   drawTractor(ctx, cx, f, i === 3 ? cv : null);
   ctx.restore();
   // Wheels: two axles at the back, the tractor's drive axles and steer axle
-  const spin = f * 1.2;
+  const spin = wheelTurn(0, ROAD_SPEED, WHEEL_R, f); // (driving right, flat out)
   for (const wx of [x + 60, x + 110, cx + 20, cx + 64, cx + TRUCK_W - TRAILER_W - 34]) drawWheel(ctx, wx, Y - WHEEL_R, spin);
 };
 
@@ -185,8 +192,14 @@ const drawTractor = (ctx: Ctx, cx: number, f: number, last: Convoy | null) => {
 /** Riggs: a trucker cap, aviators, a big mustache, flannel; on the radio, thumb over the red button (then slumped on the horn). */
 const drawRiggs = (ctx: Ctx, x: number, y: number, f: number, cv: Convoy) => {
   const dead = cv.cab.phase === 'shot' || cv.cab.phase === 'crash';
-  ctx.save(); ctx.translate(x, y);
-  if (dead) ctx.rotate(0.9);
+  // Shot: his head snaps back, then he goes forward, face down on the wheel (and the horn), and stays there
+  const k = cv.cab.phase === 'crash' ? 1 : dead ? Math.min(1, cv.cab.t / 24) : 0;
+  const snap = dead && cv.cab.t < 5 && cv.cab.phase === 'shot' ? -0.35 : 0;
+  const ease = 1 - Math.pow(1 - Math.max(0, (k - 0.2) / 0.8), 3);
+  // The wheel, in front of him
+  ctx.fillStyle = '#27272A'; ctx.beginPath(); ctx.ellipse(x + 13, y + 8, 3, 10, 0.3, 0, Math.PI * 2); ctx.fill();
+  ctx.save(); ctx.translate(x + ease * 7, y + ease * 9);
+  ctx.rotate(snap + ease * 1.25);
   ctx.fillStyle = '#B91C1C'; ctx.fillRect(-9, 4, 18, 12); // flannel
   ctx.fillStyle = '#E0AC69'; ctx.beginPath(); ctx.arc(0, -4, 7, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#1E3A8A'; ctx.fillRect(-8, -13, 16, 5); ctx.fillRect(-2, -10, 12, 2); // cap
@@ -228,25 +241,84 @@ const drawWreck = (ctx: Ctx, x: number, f: number, t: number) => {
 export const drawConvoyFront = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   const cv = rt.convoy;
   const f = state.frame;
+  cv.trucks.forEach((tr, i) => { if (tr.phase === 'gone' && tr.boomT < 130) { ctx.save(); sized(ctx, truckX(cv, i) - tr.back, i); drawTruckBlast(ctx, truckX(cv, i) - tr.back, tr.boomT); ctx.restore(); } });
   for (const s of cv.suvs) drawSuv(ctx, s.x, f, !s.dropped);
   for (const d of cv.debris) drawDebris(ctx, d);
   // Riggs, on the radio (his bubble up at the cab)
-  const rx = truckX(cv, 3) + TRAILER_W + 10 + SLEEPER_W - 20;
+  const big = truckDims(3);
+  const rx = windshield(cv).x + 10;
   const rtext = saying(rt.talk, 'riggs');
-  if (rtext) drawBubble(ctx, rx, CAB_TOP - 60, rtext, '#FEF3C7');
+  if (rtext) drawBubble(ctx, rx, big.cabTop - 60, rtext, '#FEF3C7');
+  // (him on the horn)
+  if (cv.cab.phase === 'shot' || cv.cab.phase === 'crash') {
+    const ws = windshield(cv);
+    const wob = Math.sin(f * 0.5) * 3;
+    ctx.save(); ctx.translate(ws.x + ws.w / 2 + 40, big.cabTop - 30 + wob); ctx.rotate(-0.12 + Math.sin(f * 0.3) * 0.05);
+    ctx.font = 'bold 16px "Press Start 2P"'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#000'; ctx.fillText('HOOOOONK', 2, 2); ctx.fillStyle = f % 8 < 4 ? '#FDE047' : '#FEF9C3'; ctx.fillText('HOOOOONK', 0, 0);
+    ctx.textAlign = 'left'; ctx.restore();
+  }
   // The KILL arrow on him (once he's arguing)
   if ((cv.cab.phase === 'bicker' || cv.cab.phase === 'standoff') && Math.floor(f / 10) % 2 === 0) {
     const ws = windshield(cv);
-    const ax = ws.x + ws.w / 2 - 10, ay = CAB_TOP - 24 + Math.sin(f * 0.2) * 4;
+    const ax = ws.x + ws.w / 2 - 10, ay = big.cabTop - 24 + Math.sin(f * 0.2) * 4;
     ctx.fillStyle = '#DC2626'; ctx.beginPath(); ctx.moveTo(ax, ay + 16); ctx.lineTo(ax - 12, ay); ctx.lineTo(ax + 12, ay); ctx.fill();
     ctx.font = 'bold 14px "Press Start 2P"'; ctx.textAlign = 'center';
     ctx.fillStyle = '#000'; ctx.fillText('KILL', ax + 2, ay - 6); ctx.fillStyle = '#F87171'; ctx.fillText('KILL', ax, ay - 8); ctx.textAlign = 'left';
     // (and the hood he wants to be on)
     const h = hood(cv);
     ctx.strokeStyle = `rgba(250, 204, 21, ${0.4 + 0.3 * Math.sin(f * 0.2)})`; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
-    ctx.strokeRect(h.x + 2, HOOD_TOP - 70, h.x2 - h.x - 4, 70); ctx.setLineDash([]);
+    ctx.strokeRect(h.x + 2, h.top - 70, h.x2 - h.x - 4, 70); ctx.setLineDash([]);
   }
   drawFall(ctx, state, cv);
+};
+
+/**
+ * A truck going up, t frames in: a white flash, a chain of fireballs down its length (the tank under the cab, then
+ * the trailer's load), a shockwave ring, the roof panels, the wheels and the cargo flying, a column of black smoke
+ * rolling up. Worked out from t, so it looks the same however it's drawn.
+ */
+const drawTruckBlast = (ctx: Ctx, x: number, t: number) => {
+  const cy = TRAILER_TOP + 60;
+  ctx.save();
+  // The flash
+  if (t < 8) { ctx.fillStyle = `rgba(255, 250, 220, ${0.85 - t * 0.1})`; ctx.beginPath(); ctx.arc(x + TRUCK_W * 0.6, cy, 420, 0, Math.PI * 2); ctx.fill(); }
+  // The shockwave
+  if (t < 34) { ctx.strokeStyle = `rgba(255, 237, 213, ${0.8 - t / 42})`; ctx.lineWidth = 8 - t * 0.2; ctx.beginPath(); ctx.ellipse(x + TRUCK_W * 0.6, cy + 40, 30 + t * 22, 12 + t * 8, 0, 0, Math.PI * 2); ctx.stroke(); }
+  // The fireballs, one after another down its length (cab first)
+  for (let k = 0; k < 6; k++) {
+    const t0 = k * 4, tt = t - t0;
+    if (tt < 0 || tt > 70) continue;
+    const bx = x + TRUCK_W - 60 - k * 115 + Math.sin(k * 2.3) * 20, by = cy - tt * 1.4 - k * 6;
+    const r = Math.min(110, 30 + tt * 5) * (1 - Math.max(0, tt - 40) / 60);
+    const fade = Math.max(0, 1 - Math.max(0, tt - 30) / 40);
+    const g = ctx.createRadialGradient(bx, by, 4, bx, by, r);
+    g.addColorStop(0, `rgba(255, 255, 230, ${fade})`); g.addColorStop(0.3, `rgba(253, 224, 71, ${fade})`); g.addColorStop(0.6, `rgba(249, 115, 22, ${fade * 0.95})`); g.addColorStop(1, 'rgba(127, 29, 29, 0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2); ctx.fill();
+  }
+  // The smoke, rolling up out of it
+  for (let k = 0; k < 10; k++) {
+    const tt = t - 10 - k * 3;
+    if (tt < 0) continue;
+    const sx = x + 80 + (k * 71) % (TRUCK_W - 120) + Math.sin(tt * 0.05 + k) * 12, sy = cy - 40 - tt * (1.6 + (k % 3) * 0.4);
+    const r = 24 + tt * 0.7;
+    ctx.fillStyle = `rgba(28, 25, 23, ${Math.max(0, 0.75 - tt / 160)})`; ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2); ctx.fill();
+  }
+  // What's flying: roof panels (the livery on them), wheels, crates of product
+  for (let k = 0; k < 16; k++) {
+    const vx = (hash(k + 3) - 0.35) * 16, vy = -(8 + hash(k + 9) * 16);
+    const px = x + 60 + hash(k) * (TRUCK_W - 80) + vx * t, py = cy - 30 + vy * t + 0.45 * t * t;
+    if (py > Y + 200) continue;
+    ctx.save(); ctx.translate(px, py); ctx.rotate(t * (0.15 + hash(k + 5) * 0.3) * (k % 2 ? 1 : -1));
+    if (k % 4 === 0) { ctx.fillStyle = '#111111'; ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#9CA3AF'; ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill(); }
+    else if (k % 4 === 1) { ctx.fillStyle = '#E5E7EB'; ctx.fillRect(-22, -6, 44, 12); ctx.fillStyle = '#7C3AED'; ctx.fillRect(-22, -2, 44, 5); }
+    else if (k % 4 === 2) { ctx.fillStyle = '#A16207'; ctx.fillRect(-9, -9, 18, 18); ctx.strokeStyle = '#713F12'; ctx.lineWidth = 2; ctx.strokeRect(-9, -9, 18, 18); }
+    else { ctx.fillStyle = '#DC2626'; ctx.beginPath(); ctx.moveTo(-12, -6); ctx.lineTo(14, -2); ctx.lineTo(-4, 8); ctx.fill(); }
+    // (burning as it goes)
+    if (t < 60) { ctx.fillStyle = 'rgba(249, 115, 22, 0.7)'; ctx.beginPath(); ctx.arc(-4, -4, 6, 0, Math.PI * 2); ctx.fill(); }
+    ctx.restore();
+  }
+  ctx.restore();
 };
 
 /** A black SUV, a goon up through the sunroof (till he goes). */
@@ -294,24 +366,52 @@ const drawDebris = (ctx: Ctx, d: Debris) => {
 
 /** Off the side of a truck, blown up, melted through, or blown up by Riggs. */
 const drawFall = (ctx: Ctx, state: GameState, cv: Convoy) => {
-  const fall = cv.fall;
+  let fall = cv.fall;
   if (!fall) return;
   const p = state.player;
   const f = state.frame;
-  if (fall.kind === 'flop') {
-    // Tumbling away down the road, limbs everywhere
-    const body = { ...p, pos: { x: -1e6, y: -1e6 }, hidden: false, isGrounded: false, vel: { x: -3, y: 4 }, isDivekicking: false, invincibilityTimer: 0, hurtTimer: 10, pushbackTimer: 10 };
-    ctx.save(); ctx.translate(fall.x, Y - 26 - Math.abs(Math.sin(fall.t * 0.25)) * 30); ctx.rotate(-fall.t * 0.4);
-    ctx.translate(-(body.pos.x + body.width / 2), -(body.pos.y + body.height / 2));
-    drawPlayer(ctx, body, { ...state, deathTimer: 0 }, { currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false });
-    ctx.restore();
-  } else if (fall.kind === 'runover') {
-    // A long red smear down the road, going away
-    ctx.fillStyle = '#7F1D1D'; ctx.fillRect(fall.x - fall.t * 8, Y - 6, fall.t * 8 + 30, 6);
-    ctx.fillStyle = '#B91C1C'; ctx.fillRect(fall.x - fall.t * 8, Y - 4, fall.t * 8, 2);
+  if ((fall.kind === 'flop' || fall.kind === 'runover') && fall.road) {
+    const r = fall.road;
+    // What he's left on the road so far (the road's still going by under it)
+    for (const s of r.smears) {
+      const sx = s.g - r.passed;
+      ctx.fillStyle = 'rgba(127, 29, 29, 0.85)'; ctx.fillRect(sx - s.w, Y - 5, s.w, 5);
+      ctx.fillStyle = 'rgba(185, 28, 28, 0.9)'; ctx.fillRect(sx - s.w * 0.7, Y - 3, s.w * 0.6, 2);
+    }
+    const stopped = r.stoppedAt >= 0;
+    const still = stopped ? fall.t - r.stoppedAt : 0;
+    // Once he's stopped: a pool of it spreading out under him, and a twitch now and then
+    if (stopped) { ctx.fillStyle = 'rgba(127, 29, 29, 0.9)'; ctx.beginPath(); ctx.ellipse(fall.x, Y - 2, Math.min(70, 20 + still * 0.6), 5, 0, 0, Math.PI * 2); ctx.fill(); }
+    const twitch = stopped && (still % 47 < 5 || still % 83 < 3) ? (Math.random() - 0.5) * 0.25 : 0;
+    const body = { ...p, pos: { x: -1e6, y: -1e6 }, hidden: false, isGrounded: false, vel: { x: -3, y: 4 }, isCharging: false, isSliding: false, isUppercutting: false, isDivekicking: false, invincibilityTimer: 0, hurtTimer: 30, pushbackTimer: 30 };
+    ctx.save();
+    if (r.flat > 0) {
+      // Flattened: spread out along the road, tire tracks across him
+      const squash = Math.max(0.22, 1 - r.crunched.length * 0.2) + twitch * 0.2;
+      ctx.translate(fall.x, Y - 6);
+      ctx.rotate(-Math.PI / 2 + twitch);
+      ctx.scale(squash, 1.25);
+      ctx.translate(-(body.pos.x + body.width / 2), -(body.pos.y + body.height / 2));
+      drawPlayer(ctx, body, { ...state, deathTimer: 0 }, { currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false });
+      ctx.restore();
+      ctx.fillStyle = 'rgba(17, 17, 17, 0.75)';
+      for (let k = 0; k < r.crunched.length; k++) for (let s = 0; s < 6; s++) ctx.fillRect(fall.x - 40 + s * 14 + k * 3, Y - 14 + (k % 2) * 3, 7, 5);
+      if (stopped && still % 47 < 5) { ctx.fillStyle = '#E0AC69'; ctx.fillRect(fall.x + 38, Y - 10 - (still % 5), 10, 3); } // a hand, flapping
+    } else {
+      // Cartwheeling down the road, and then face down on it
+      const lying = stopped ? Math.PI / 2 * (r.rot >= 0 ? 1 : -1) : r.rot;
+      ctx.translate(fall.x + (stopped ? Math.sin(still * 3) * (twitch ? 1.5 : 0) : 0), Y - r.h - (stopped ? 12 : 30));
+      ctx.rotate(lying + twitch);
+      ctx.translate(-(body.pos.x + body.width / 2), -(body.pos.y + body.height / 2));
+      drawPlayer(ctx, body, { ...state, deathTimer: 0 }, { currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false });
+      ctx.restore();
+    }
   } else if (fall.kind === 'melt') {
     // A hole in the roof, and a cutaway of the trailer: the goons riding in the back, all firing
     const tx = truckX(cv, fall.truck);
+    ctx.save(); sized(ctx, tx, fall.truck);
+    const s = truckDims(fall.truck).s;
+    fall = { ...fall, x: tx + (fall.x - tx) / s };
     ctx.fillStyle = '#0A0A0A'; ctx.beginPath(); ctx.ellipse(fall.x, TRAILER_TOP + 2, 34, 6, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#65A30D'; for (let i = 0; i < 5; i++) ctx.fillRect(fall.x - 30 + i * 14, TRAILER_TOP - 2 + (i % 2) * 3, 5, 4);
     if (fall.t > 20) {
@@ -330,6 +430,7 @@ const drawFall = (ctx: Ctx, state: GameState, cv: Convoy) => {
       if (Math.floor(f / 3) % 2) drawPlayer(ctx, body, { ...state, deathTimer: 0 }, { currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false });
       ctx.restore();
     }
+    ctx.restore();
   }
 };
 
@@ -344,18 +445,41 @@ export const drawConvoyHud = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   const W = CANVAS_WIDTH;
   const tr = cv.trucks[cv.current];
   ctx.save();
-  // Truck n of 4, and its countdown
-  if (tr && (tr.phase === 'active' || tr.phase === 'cleared')) {
+  // Truck n of 4, and its countdown (hidden while he's going under the wheels or down the road)
+  if (tr && (tr.phase === 'active' || tr.phase === 'cleared') && !cv.fall) {
     const secs = Math.max(0, Math.ceil(tr.timeLeft / 60));
-    const urgent = secs <= 10;
-    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(W - 240, 14, 226, 58);
-    ctx.strokeStyle = urgent && f % 20 < 10 ? '#EF4444' : '#F97316'; ctx.lineWidth = 2; ctx.strokeRect(W - 240, 14, 226, 58);
-    ctx.textAlign = 'center'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.fillStyle = '#FDBA74';
-    ctx.fillText(tr.phase === 'cleared' ? 'GET OFF THE TRUCK!' : `TRUCK ${cv.current + 1} OF 4 - RIGGED TO BLOW`, W - 127, 30);
-    ctx.font = 'bold 22px "Press Start 2P"'; ctx.fillStyle = urgent ? (f % 20 < 10 ? '#EF4444' : '#FEE2E2') : '#F8FAFC';
-    ctx.fillText(`0:${String(secs).padStart(2, '0')}`, W - 127, 62);
-  }
-  // The big word across the middle
+    const low = tr.phase === 'cleared' ? 5 : 10;
+    const urgent = secs <= low;
+    // (the beat of each second: it swells and flashes on it)
+    const beat = 1 - (tr.timeLeft % 60) / 60;
+    const pulse = urgent ? Math.pow(Math.max(0, beat - 0.55) / 0.45, 2) : 0;
+    const flash = urgent && beat > 0.7;
+    const bw = 236, bh = 64, bx = W - bw - 14, by = 14;
+    ctx.save();
+    ctx.translate(bx + bw / 2, by + bh / 2);
+    ctx.scale(1 + pulse * 0.14, 1 + pulse * 0.14);
+    ctx.translate(-(bx + bw / 2), -(by + bh / 2));
+    ctx.fillStyle = flash ? 'rgba(185, 28, 28, 0.9)' : 'rgba(0,0,0,0.7)'; ctx.fillRect(bx, by, bw, bh);
+    ctx.strokeStyle = urgent ? (flash ? '#FFFFFF' : '#EF4444') : '#F97316'; ctx.lineWidth = urgent ? 4 : 2; ctx.strokeRect(bx, by, bw, bh);
+    ctx.textAlign = 'center';
+    const label = tr.phase === 'cleared' ? 'GET OFF THE TRUCK!' : `TRUCK ${cv.current + 1} OF 4: RIGGED`;
+    ctx.font = 'bold 8px "Press Start 2P"'; ctx.fillStyle = flash ? '#FFFFFF' : '#FDBA74';
+    ctx.fillText(label, bx + bw / 2, by + 18, bw - 16);
+    ctx.font = 'bold 24px "Press Start 2P"'; ctx.fillStyle = urgent ? (flash ? '#FFFFFF' : '#F87171') : '#F8FAFC';
+    ctx.fillText(`0:${String(secs).padStart(2, '0')}`, bx + bw / 2, by + 52, bw - 16);
+    ctx.restore();
+    if (urgent) {
+      // Red at the edges of the screen, throbbing with the seconds, and a warning under the clock
+      const v = ctx.createRadialGradient(W / 2, CANVAS_HEIGHT / 2, 240, W / 2, CANVAS_HEIGHT / 2, 560);
+      v.addColorStop(0, 'rgba(220, 38, 38, 0)'); v.addColorStop(1, `rgba(220, 38, 38, ${0.15 + pulse * 0.35})`);
+      ctx.fillStyle = v; ctx.fillRect(0, 0, W, CANVAS_HEIGHT);
+      if (Math.floor(f / 8) % 2 === 0) {
+        ctx.textAlign = 'center'; ctx.font = 'bold 10px "Press Start 2P"';
+        ctx.fillStyle = '#000'; ctx.fillText(tr.phase === 'cleared' ? '!! JUMP !!' : '!! ABOUT TO BLOW !!', bx + bw / 2 + 2, by + bh + 22);
+        ctx.fillStyle = '#FDE047'; ctx.fillText(tr.phase === 'cleared' ? '!! JUMP !!' : '!! ABOUT TO BLOW !!', bx + bw / 2, by + bh + 20);
+      }
+    }
+  }  // The big word across the middle
   const b = cv.banner;
   if (b && b.t < 110) {
     const k = Math.min(1, b.t / 8), out = b.t > 80 ? (b.t - 80) / 30 : 0;

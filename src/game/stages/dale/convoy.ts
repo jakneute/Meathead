@@ -29,9 +29,10 @@ import { shakeScreen } from '../../core/state';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 import { hurtPlayer } from '../../bosses/shared';
 import { killPlayer } from '../../player/player';
-import { playSound } from '../../platform/audio';
+import { playSound, playHornDrone } from '../../platform/audio';
+import { say, MEATHEAD_VOICE } from '../../platform/speech';
 import { makeKindEnemy } from '../../enemies/kinds';
-import { COURSE, CP, TRAILER_W, TRUCK_W, TRAILER_TOP, CAB_TOP, HOOD_TOP, SLEEPER_W } from './course';
+import { COURSE, CP, TRAILER_W, TRUCK_W, TRAILER_TOP, truckDims } from './course';
 import { Talk, queueLines, replaceLines, hush, quiet } from './script';
 
 const Y = GROUND_Y;
@@ -76,7 +77,16 @@ export interface TruckState {
 export interface Debris { x: number; y: number; w: number; h: number; vx: number; vy: number; rot: number; look: 'tire' | 'tumbleweed' | 'sign' | 'box'; low: boolean; hit: boolean }
 export interface Suv { x: number; toX: number; t: number; kind: EnemyKind; dropped: boolean; leaving: boolean }
 /** Off a truck onto the road, or blown up, or melted through the roof, or Riggs pressed the button: how Meathead's going. */
-export interface Fall { t: number; kind: 'runover' | 'flop' | 'boom' | 'melt' | 'button'; x: number; y: number; truck: number }
+export interface Fall {
+  t: number; kind: 'runover' | 'flop' | 'boom' | 'melt' | 'button'; x: number; y: number; truck: number;
+  /**
+   * On the road (runover, flop): his body in road coordinates (g: how far along the road; the world x is g - road),
+   * how fast it's still going along the road, its height off it and how fast that's changing, its spin; how far the
+   * road's gone by since; the wheels that have gone over him; frames he's been flat; when he came to a stop; the
+   * smears he's left.
+   */
+  road?: { g: number; v: number; h: number; vh: number; rot: number; spin: number; passed: number; crunched: number[]; flat: number; stoppedAt: number; said: number; smears: { g: number; w: number }[] };
+}
 export interface Cab {
   phase: 'none' | 'bicker' | 'standoff' | 'shot' | 'crash' | 'done';
   t: number;
@@ -106,19 +116,22 @@ export interface Convoy {
 
 export const truckX = (cv: Convoy, i: number) => COURSE.highway.trucks[i].x + cv.trucks[i].offset;
 
-const makeBlocks = (x: number): Block[] => [
-  { x, y: TRAILER_TOP, w: TRAILER_W, h: Y - 40 - TRAILER_TOP, type: 'ground', hidden: true, tag: 'truck' },
-  { x: x + TRAILER_W, y: Y - 70, w: 10, h: 30, type: 'ground', hidden: true, tag: 'truck' },
-  { x: x + TRAILER_W + 10, y: CAB_TOP, w: SLEEPER_W, h: Y - 40 - CAB_TOP, type: 'ground', hidden: true, tag: 'truck' },
-  { x: x + TRAILER_W + 10 + SLEEPER_W, y: HOOD_TOP, w: TRUCK_W - TRAILER_W - 10 - SLEEPER_W, h: Y - 40 - HOOD_TOP, type: 'ground', hidden: true, tag: 'truck' },
-];
+const makeBlocks = (x: number, i: number): Block[] => {
+  const d = truckDims(i), s = d.s;
+  return [
+    { x, y: d.trailerTop, w: d.trailerW, h: d.bed - d.trailerTop, type: 'ground', hidden: true, tag: 'truck' },
+    { x: x + d.trailerW, y: Y - 70 * s, w: 10 * s, h: 30 * s, type: 'ground', hidden: true, tag: 'truck' },
+    { x: x + d.trailerW + 10 * s, y: d.cabTop, w: d.sleeperW, h: d.bed - d.cabTop, type: 'ground', hidden: true, tag: 'truck' },
+    { x: x + d.trailerW + 10 * s + d.sleeperW, y: d.hoodTop, w: d.w - d.trailerW - 10 * s - d.sleeperW, h: d.bed - d.hoodTop, type: 'ground', hidden: true, tag: 'truck' },
+  ];
+};
 
 export const createConvoy = (state: GameState, startedAt: number): Convoy => {
   const onTruck = startedAt >= CP.HIGHWAY && startedAt <= CP.TRUCK4 ? startedAt - CP.HIGHWAY : -1;
   const trucks: TruckState[] = COURSE.highway.trucks.map((tr, i) => {
     const phase: TruckPhase = onTruck < 0 ? (i === 0 ? 'waiting' : 'far') : i < onTruck ? 'gone' : i === onTruck ? (i === 3 ? 'last' : 'waiting') : 'far';
     const offset = phase === 'far' ? FAR_BACK : 0;
-    const blocks = phase === 'gone' ? [] : makeBlocks(tr.x + offset);
+    const blocks = phase === 'gone' ? [] : makeBlocks(tr.x + offset, i);
     state.blocks.push(...blocks);
     return { phase, offset, timeLeft: (PLANS[i]?.seconds ?? 0) * 60, t: 0, wave: 0, nextWaveAt: FIRST_WAVE, goons: [], birds: 0, debrisAt: 200, barfs: 0, blocks, boomT: 999, back: 0 };
   });
@@ -145,22 +158,24 @@ export const updateConvoy = (ctx: FrameContext, cv: Convoy, talk: Talk, controls
   const { state } = ctx;
   if (!cv.active || cv.finished) return controls;
   const p = state.player;
-  cv.scroll += ROAD_SPEED;
+  cv.scroll += roadSpeedNow(cv);
   if (cv.banner) cv.banner.t++;
   if (cv.radioT > 0) cv.radioT--;
   // Keep the trucks' collision where the trucks are
   cv.trucks.forEach((tr, i) => {
     if (tr.phase === 'coming') { tr.offset = Math.max(0, tr.offset - 5); if (tr.offset === 0) tr.phase = 'waiting'; }
     const x = truckX(cv, i);
-    const base = makeBlocks(x);
+    const base = makeBlocks(x, i);
     tr.blocks.forEach((b, k) => { b.x = base[k].x; });
   });
+  // Burning wrecks, falling away behind (the blast plays out whatever else is going on)
+  for (const tr of cv.trucks) if (tr.phase === 'gone') { tr.boomT++; tr.back += Math.min(16, tr.boomT * 0.2); }
   // The fall (or the blast, or the melt, or the button): it plays out, then that's it
   if (cv.fall) return updateFall(ctx, cv);
   const cur = cv.trucks[cv.current];
   const cx = truckX(cv, cv.current);
   // The camera: along the truck he's on (and on to the next once it's pulled up)
-  const reachRight = cur.phase === 'cleared' || cur.phase === 'doomed' ? truckX(cv, Math.min(3, cv.current + 1)) + TRUCK_W : cx + TRUCK_W + 380;
+  const reachRight = cur.phase === 'cleared' || cur.phase === 'doomed' ? truckX(cv, Math.min(3, cv.current + 1)) + truckDims(Math.min(3, cv.current + 1)).w : cx + truckDims(cv.current).w + 380;
   const want = p.pos.x + p.width / 2 - CANVAS_WIDTH / 2;
   const camX = Math.max(cx - 60, Math.min(reachRight - CANVAS_WIDTH, want));
   state.cameraOverride = { x: camX, y: HIGHWAY_CAM_Y };
@@ -178,7 +193,7 @@ export const updateConvoy = (ctx: FrameContext, cv: Convoy, talk: Talk, controls
     const on = truckUnder(cv, p.pos.x + p.width / 2, p.pos.y + p.height + 40);
     if (on >= 0) {
       const ox = truckX(cv, on);
-      if ((p.vel.x < 0 && p.pos.x < ox + 50) || (p.vel.x > 0 && p.pos.x + p.width > ox + TRUCK_W - 50)) p.vel.x = 0;
+      if ((p.vel.x < 0 && p.pos.x < ox + 50) || (p.vel.x > 0 && p.pos.x + p.width > ox + truckDims(on).w - 50)) p.vel.x = 0;
     }
   }
   // Off the side
@@ -202,7 +217,7 @@ const truckUnder = (cv: Convoy, x: number, feet: number) => {
   for (let i = 0; i < cv.trucks.length; i++) {
     if (cv.trucks[i].phase === 'gone' || cv.trucks[i].phase === 'far') continue;
     const tx = truckX(cv, i);
-    if (x >= tx - 4 && x <= tx + TRUCK_W + 4 && feet <= Y - 60) return i;
+    if (x >= tx - 4 && x <= tx + truckDims(i).w + 4 && feet <= Y - 60) return i;
   }
   return -1;
 };
@@ -240,6 +255,8 @@ const updateTrucks = (ctx: FrameContext, cv: Convoy, talk: Talk) => {
     if (tr.phase === 'active') {
       const plan = PLANS[i];
       tr.timeLeft--;
+      // (the last ten seconds, a beep a second)
+      if (tr.timeLeft > 0 && tr.timeLeft <= 600 && tr.timeLeft % 60 === 0) playSound('tinkle');
       // The next wave: once this lot's down (a moment after), or after a while regardless
       const alive = tr.goons.filter(id => state.enemies.some(e => e.id === id && e.health > 0 && !e.isBlownAway));
       tr.goons = alive;
@@ -259,7 +276,10 @@ const updateTrucks = (ctx: FrameContext, cv: Convoy, talk: Talk) => {
       // Junk down the road
       if (tr.t >= tr.debrisAt) { tr.debrisAt = tr.t + plan.debris[0] + Math.floor(Math.random() * (plan.debris[1] - plan.debris[0])); spawnDebris(state, cv); }
       // All down: clear. The next truck pulls up
-      if (tr.wave >= plan.waves.length && !alive.length && !pending) {
+      // (every goon on it, however he got there: not just the ones it's been counting)
+      const txi = truckX(cv, i);
+      const onBoard = state.enemies.some(e => e.health > 0 && !e.isBlownAway && e.type !== 'boss' && !e.innocent && e.enemyType !== 'flyer' && e.pos.x + e.width > txi - 60 && e.pos.x < txi + TRUCK_W + 60 && e.pos.y + e.height < Y);
+      if (tr.wave >= plan.waves.length && !alive.length && !pending && !onBoard) {
         tr.phase = 'cleared'; tr.t = 0; tr.timeLeft = AFTER_CLEAR;
         const next = cv.trucks[i + 1];
         if (next && next.phase === 'far') next.phase = 'coming';
@@ -270,13 +290,10 @@ const updateTrucks = (ctx: FrameContext, cv: Convoy, talk: Talk) => {
       if (tr.timeLeft <= 0) blowUp(ctx, cv, i, talk);
     } else if (tr.phase === 'cleared') {
       tr.timeLeft--;
+      if (tr.timeLeft > 0 && tr.timeLeft <= 300 && tr.timeLeft % 60 === 0) playSound('tinkle');
       if (tr.timeLeft <= 0) blowUp(ctx, cv, i, talk);
     } else if (tr.phase === 'doomed') {
       if (tr.t > 50) blowUp(ctx, cv, i, talk);
-    } else if (tr.phase === 'gone') {
-      // A burning wreck, falling away behind
-      tr.boomT++;
-      tr.back += Math.min(16, tr.boomT * 0.2);
     }
   });
 };
@@ -309,8 +326,9 @@ const startFall = (ctx: FrameContext, cv: Convoy, talk: Talk) => {
   const p = state.player;
   const x = p.pos.x + p.width / 2;
   let behind = -1;
-  cv.trucks.forEach((tr, i) => { if (tr.phase !== 'gone' && tr.phase !== 'far' && truckX(cv, i) + TRUCK_W < x) behind = i; });
-  cv.fall = { t: 0, kind: behind >= 0 ? 'runover' : 'flop', x, y: Y, truck: behind };
+  cv.trucks.forEach((tr, i) => { if (tr.phase !== 'gone' && tr.phase !== 'far' && truckX(cv, i) + truckDims(i).w < x) behind = i; });
+  cv.fall = { t: 0, kind: behind >= 0 ? 'runover' : 'flop', x, y: Y, truck: behind,
+    road: { g: x, v: ROAD_SPEED, h: Math.max(0, Y - (p.pos.y + p.height)), vh: -6, rot: 0, spin: behind >= 0 ? 0.1 : -0.35, passed: 0, crunched: [], flat: 0, stoppedAt: -1, said: 0, smears: [] } };
   hush(state, talk);
 };
 
@@ -330,19 +348,15 @@ const updateFall = (ctx: FrameContext, cv: Convoy): Controls => {
   p.inCutscene = true;
   p.vel = { x: 0, y: 0 };
   if (f.kind === 'runover' || f.kind === 'flop') {
-    // On the road: gone from under him at eighty miles an hour
     p.hidden = true;
-    f.x -= f.kind === 'flop' ? 6 + f.t * 0.3 : 3;
-    if (f.t === 1) { shakeScreen(state, 18, 8); playSound('nuke'); }
-    if (f.kind === 'runover' && f.t === 12) { fx.spawnDeathShower({ x: f.x, y: Y - 20 }, -1, 3); shakeScreen(state, 26, 10); }
-    if (f.kind === 'flop' && f.t % 8 === 0) fx.spawnDeathShower({ x: f.x, y: Y - 10 }, -1, 0.4);
+    return onTheRoad(ctx, cv, f);
   } else if (f.kind === 'boom') {
     p.hidden = true;
     if (f.t === 1) fx.spawnDeathShower({ x: p.pos.x + p.width / 2, y: p.pos.y }, 0, 4);
   } else if (f.kind === 'melt') {
     // Down through the hole into the dark, and the muzzle flashes
     p.hidden = true;
-    if (f.t > 40 && f.t % 3 === 0) { playSound('gun'); fx.spawnDeathShower({ x: f.x, y: TRAILER_TOP + 60 }, (Math.random() - 0.5) * 2, 0.3); }
+    if (f.t > 40 && f.t % 3 === 0) { playSound('gun'); fx.spawnDeathShower({ x: f.x, y: truckDims(f.truck).trailerTop + 60 }, (Math.random() - 0.5) * 2, 0.3); }
     if (f.t === 40) shakeScreen(state, 50, 6);
   } else if (f.kind === 'button') {
     // (Riggs saying goodbye to his lizard first)
@@ -358,6 +372,89 @@ const updateFall = (ctx: FrameContext, cv: Convoy): Controls => {
   return { ...NO_CONTROLS };
 };
 
+/** How long he lies there twitching before that's it. */
+const TWITCH_FOR = 170;
+const FLOP_SAYS = ['AAAAAAH!', 'OW!', 'OW! OW!', 'MY EVERYTHING!', "I'M OKAY!", '...NOPE.'];
+const RUNOVER_SAYS = ['WAIT WAIT WAIT', 'OOF!', 'MY SPLEEN!', 'NOT THE FACE!', 'HOW MANY WHEELS DOES THIS THING HAVE?!', '...EIGHTEEN.'];
+
+/**
+ * Off the side of a truck at eighty miles an hour. The camera goes with him: off the back, he hits the road and
+ * cartwheels away down the interstate, bouncing and yelling, the trucks pulling away, till he slides to a stop and
+ * lies there. Off the front, the truck behind him catches up and every set of wheels goes over him in turn (crunch,
+ * a spray of it, flatter each time), and what's left tumbles out the back and skids to a stop. Either way it ends
+ * with him face down on the asphalt, twitching.
+ */
+const onTheRoad = (ctx: FrameContext, cv: Convoy, f: Fall): Controls => {
+  const { state, fx } = ctx;
+  const r = f.road!;
+  r.passed += ROAD_SPEED;
+  const bodyX = () => r.g - r.passed;
+  const shout = (i: number) => {
+    const lines = f.kind === 'flop' ? FLOP_SAYS : RUNOVER_SAYS;
+    if (i < r.said || i >= lines.length) return;
+    r.said = i + 1;
+    state.playerLastVulgarity = lines[i]; state.playerVulgarityTimer = 50;
+    say(lines[i], MEATHEAD_VOICE, 'urgent', { onShow: () => {}, onHide: () => {} });
+  };
+  if (f.t === 1) { shakeScreen(state, 18, 8); playSound('nuke'); shout(0); }
+  // Slowing down along the road (much faster while he's scraping along it)
+  const scraping = r.h <= 0.5;
+  r.v = Math.max(0, r.v - (scraping ? (r.flat > 0 ? 0.28 : 0.22) : 0.08));
+  r.g += r.v;
+  // Up and down: bouncing, less each time
+  if (r.flat === 0 || f.kind === 'flop') {
+    r.vh += 0.75; r.h -= r.vh;
+    if (r.h <= 0) {
+      r.h = 0;
+      if (r.vh > 3 && r.v > 2) {
+        r.vh = -r.vh * 0.55; r.spin = (Math.random() < 0.5 ? -1 : 1) * (0.2 + r.v * 0.02);
+        shakeScreen(state, 8, 4); playSound('gun');
+        fx.spawnDeathShower({ x: bodyX(), y: Y - 10 }, -1, 0.35);
+        r.smears.push({ g: r.g, w: 20 + r.v * 3 });
+        if (f.kind === 'flop') shout(Math.min(4, r.said));
+      } else r.vh = 0;
+    }
+  }
+  r.rot += r.v > 0.5 ? r.spin * (r.h > 0 ? 1 : 0.5) : 0;
+  // A smear along the asphalt while he scrapes
+  if (scraping && r.v > 0.5 && f.t % 3 === 0) r.smears.push({ g: r.g, w: 8 + r.v });
+  // The truck coming up behind him: every set of wheels in turn
+  if (f.kind === 'runover' && f.truck >= 0 && cv.trucks[f.truck].phase !== 'gone') {
+    const tx = truckX(cv, f.truck);
+    const s = truckDims(f.truck).s;
+    const wheels = [TRUCK_W - 34, TRAILER_W + 74, TRAILER_W + 30, 110, 60].map(o => tx + o * s);
+    wheels.forEach((wx, k) => {
+      if (r.crunched.includes(k) || Math.abs(bodyX() - wx) > 16) return;
+      r.crunched.push(k);
+      r.flat = Math.max(1, r.flat); r.h = 0; r.vh = 0;
+      shakeScreen(state, 20 + k * 2, 10);
+      playSound('nuke');
+      fx.spawnDeathShower({ x: wx, y: Y - 16 }, -1, 1.2);
+      fx.spawnDamageNumber({ x: wx - 30, y: Y - 110 }, ['CRUNCH!', 'SPLORT!', 'CRUNCH!', 'SQUELCH!', 'SPLAT!'][k], true, '#F87171');
+      shout(k + 1);
+      r.smears.push({ g: r.g, w: 60 });
+    });
+  }
+  if (r.flat > 0) r.flat++;
+  // The camera stays on him, the road going by under it as fast as he's still going
+  const x = bodyX();
+  state.cameraOverride = { x: x - CANVAS_WIDTH * 0.55, y: HIGHWAY_CAM_Y };
+  state.camera.x = state.cameraOverride.x; state.camera.y = HIGHWAY_CAM_Y;
+  f.x = x;
+  // (his words go up over where he is: the real him is hidden, but his speech bubble goes by his position)
+  state.player.pos = { x: x - state.player.width / 2, y: Y - r.h - state.player.height };
+  // Stopped: he lies there. A twitch now and then. Then that's that
+  if (r.v <= 0 && r.h <= 0 && r.stoppedAt < 0) { r.stoppedAt = f.t; if (f.kind === 'flop') shout(5); else shout(5); }
+  if (r.stoppedAt >= 0 && f.t === r.stoppedAt + TWITCH_FOR && state.deathTimer <= 0) {
+    const lines = FALL_LINES[f.kind];
+    killPlayer(ctx, lines[Math.floor(Math.random() * lines.length)], false);
+  }
+  return { ...NO_CONTROLS };
+};
+
+/** How fast the road's going by under the camera right now (it slows as the camera slows with him). */
+export const roadSpeedNow = (cv: Convoy) => (cv.fall?.road ? cv.fall.road.v : ROAD_SPEED);
+
 /** The last truck, Riggs and all. */
 const blowUpLast = (ctx: FrameContext, cv: Convoy) => {
   const { state, fx } = ctx;
@@ -366,7 +463,7 @@ const blowUpLast = (ctx: FrameContext, cv: Convoy) => {
   tr.phase = 'gone'; tr.boomT = 0; tr.back = 0;
   state.blocks = state.blocks.filter(b => !tr.blocks.includes(b));
   tr.blocks = [];
-  for (let k = 0; k < 5; k++) fx.spawnExplosion({ x: x + 60 + k * 140, y: TRAILER_TOP + 40 }, k % 2 ? '#F97316' : '#FDE047', 26, 0, 30);
+  for (let k = 0; k < 5; k++) fx.spawnExplosion({ x: x + 60 + k * 180, y: truckDims(3).trailerTop + 40 }, k % 2 ? '#F97316' : '#FDE047', 26, 0, 30);
   shakeScreen(state, 40, 14);
   playSound('nuke');
 };
@@ -419,7 +516,7 @@ const spawnDebris = (state: GameState, cv: Convoy) => {
   const size = look === 'tire' ? { w: 38, h: 38 } : look === 'tumbleweed' ? { w: 44, h: 40 } : look === 'sign' ? { w: 60, h: 26 } : { w: 34, h: 28 };
   const vx = -(11 + Math.random() * 4);
   // (a head-height one comes in over the roof just above a crouch; a low one along the roof)
-  const roof = cv.current === 3 ? TRAILER_TOP : TRAILER_TOP;
+  const roof = truckDims(cv.current).trailerTop;
   const y = low ? roof - size.h - 30 : roof - 62 - size.h / 2 + 8;
   cv.debris.push({ x: state.camera.x + CANVAS_WIDTH + 30 - vx * DEBRIS_WARN, y, ...size, vx, vy: 0, rot: 0, look, low, hit: false });
 };
@@ -433,8 +530,9 @@ const updateDebris = (ctx: FrameContext, cv: Convoy) => {
     if (d.low) {
       // Bouncing along the roof
       d.vy += 0.7; d.y += d.vy;
-      const floor = TRAILER_TOP - d.h;
-      if (d.y > floor && truckUnder(cv, d.x + d.w / 2, TRAILER_TOP) >= 0) { d.y = floor; d.vy = -7 - Math.random() * 3; }
+      const under = truckUnder(cv, d.x + d.w / 2, TRAILER_TOP);
+      const floor = (under >= 0 ? truckDims(under).trailerTop : TRAILER_TOP) - d.h;
+      if (d.y > floor && under >= 0) { d.y = floor; d.vy = -7 - Math.random() * 3; }
     } else d.y += Math.sin((d.x + state.frame) * 0.05) * 0.6;
     if (d.hit) { d.vy += 0.6; d.y += d.vy; return d.y < Y + 200; }
     const box = { x: d.x, y: d.y, w: d.w, h: d.h };
@@ -468,7 +566,7 @@ const watchBarf = (ctx: FrameContext, cv: Convoy, talk: Talk) => {
   cv.lastBarf = barf;
   if (!started || !p.isGrounded) return;
   const i = truckUnder(cv, p.pos.x + p.width / 2, p.pos.y + p.height);
-  if (i < 0 || p.pos.y + p.height > TRAILER_TOP + 4) return;
+  if (i < 0 || p.pos.y + p.height > truckDims(i).trailerTop + 4) return;
   const tr = cv.trucks[i];
   tr.barfs++;
   if (tr.barfs <= 2) { replaceLines(state, talk, [{ who: 'meathead', text: BARF_LINES[tr.barfs - 1] }]); return; }
@@ -484,24 +582,43 @@ const watchBarf = (ctx: FrameContext, cv: Convoy, talk: Talk) => {
 
 /** The cab: the windshield (where the driver's sat behind it), and the hood in front of it. */
 export const windshield = (cv: Convoy) => {
-  const x = truckX(cv, 3) + TRAILER_W + 10 + SLEEPER_W;
-  return { x: x - 30, y: CAB_TOP + 2, w: 30, h: HOOD_TOP - CAB_TOP - 2 };
+  const d = truckDims(3);
+  const x = truckX(cv, 3) + d.trailerW + 10 * d.s + d.sleeperW;
+  return { x: x - 30 * d.s, y: d.cabTop + 2, w: 30 * d.s, h: d.hoodTop - d.cabTop - 2 };
 };
 export const hood = (cv: Convoy) => {
-  const x = truckX(cv, 3) + TRAILER_W + 10 + SLEEPER_W;
-  return { x, x2: truckX(cv, 3) + TRUCK_W };
+  const d = truckDims(3);
+  const x = truckX(cv, 3) + d.trailerW + 10 * d.s + d.sleeperW;
+  return { x, x2: truckX(cv, 3) + d.w, top: d.hoodTop };
 };
 
+/** Dale and Riggs over the radio: about a minute of it before Riggs gives in (the time you've got). */
 const BICKER = [
   { who: 'dale', text: "RIGGS! HE'S ON YOUR TRUCK! BLOW IT! BLOW IT NOW!" },
   { who: 'riggs', text: "BLOW IT? I'M DRIVING IT, DALE!" },
+  { who: 'meathead', text: "HE'S RIGHT BEHIND THAT WINDSHIELD. ONE CLEAN SHOT FROM THE HOOD." },
   { who: 'dale', text: "YOU KNEW THE RISKS WHEN YOU SIGNED UP!" },
   { who: 'riggs', text: "I SIGNED UP TO DRIVE! THE AD SAID DRIVING! NOTHING ABOUT EXPLODING!" },
-  { who: 'dale', text: "PRESS THE RED BUTTON, RIGGS! THAT'S AN ORDER!" },
+  { who: 'dale', text: "IT WAS IN THE FINE PRINT, RIGGS! PAGE FORTY!" },
+  { who: 'riggs', text: "THE CONTRACT WAS ONE PAGE, DALE! IT WAS A NAPKIN!" },
+  { who: 'dale', text: "A BINDING NAPKIN! PRESS THE RED BUTTON! THAT'S AN ORDER!" },
   { who: 'riggs', text: "I'VE GOT A LIZARD AT HOME, DALE! WHO'S GONNA FEED MY LIZARD?!" },
+  { who: 'dale', text: "I'LL FEED YOUR LIZARD! I'LL FEED HIM PERSONALLY!" },
+  { who: 'riggs', text: "YOU DON'T EVEN KNOW HIS NAME!" },
+  { who: 'dale', text: "...GARY?" },
+  { who: 'riggs', text: "IT'S SIR REGINALD, DALE! TWELVE YEARS AND YOU NEVER ASKED!" },
+  { who: 'dale', text: "RIGGS. BUDDY. PAL. THINK OF THE BONUS. THINK OF THE DENTAL." },
+  { who: 'riggs', text: "WE DON'T GET DENTAL!" },
+  { who: 'dale', text: "THE WIDOW'S DENTAL, RIGGS! IT'S VERY GOOD!" },
+  { who: 'riggs', text: "I'M NOT MARRIED! SIR REGINALD'S ALL I'VE GOT!" },
+  { who: 'dale', text: "THEN SIR REGINALD GETS THE DENTAL! PRESS IT! PRESS IT! PRESS IT!" },
+  { who: 'riggs', text: "...YOU PROMISE YOU'LL FEED HIM?" },
+  { who: 'dale', text: "CRICKETS, TWICE A DAY. YOU HAVE MY WORD." },
 ] as const;
-/** After the argument: how long Riggs sits there with his thumb over the button. */
-const STANDOFF = 60 * 60;
+/** However the talking's going, Riggs gives in by this long after it starts. */
+const BICKER_MAX = 70 * 60;
+/** Riggs slumped on the horn: how long it blares (the swerve off the road and all). */
+const HORN_SECONDS = 6;
 
 const updateCab = (ctx: FrameContext, cv: Convoy, talk: Talk, controls: Controls): Controls => {
   const { state, fx } = ctx;
@@ -513,15 +630,16 @@ const updateCab = (ctx: FrameContext, cv: Convoy, talk: Talk, controls: Controls
     cab.phase = 'bicker'; cab.t = 0; cv.radioT = 99999;
     queueLines(state, talk, BICKER.map(l => ({ ...l })));
   }
-  if (cab.phase === 'bicker' && quiet(talk)) {
+  if (cab.phase === 'bicker' && (quiet(talk) || cab.t >= BICKER_MAX)) {
+    // He gives in
     cab.phase = 'standoff'; cab.t = 0;
-    queueLines(state, talk, [{ who: 'meathead', text: "HE'S RIGHT BEHIND THAT WINDSHIELD. ONE CLEAN SHOT FROM THE HOOD." }], 30);
+    replaceLines(state, talk, [{ who: 'riggs', text: '...SORRY, SIR REGINALD.' }]);
   }
   if (cab.phase === 'bicker' || cab.phase === 'standoff') {
     // Something hitting the cab: only a handgun round from out on the hood does it
     const ws = windshield(cv);
     const h = hood(cv);
-    const onHood = p.pos.x + p.width / 2 > h.x && p.pos.y + p.height <= HOOD_TOP + 3 && p.pos.y + p.height >= HOOD_TOP - 60;
+    const onHood = p.pos.x + p.width / 2 > h.x && p.pos.y + p.height <= h.top + 3 && p.pos.y + p.height >= h.top - 60;
     const glass = { x: ws.x - 40, y: ws.y, w: ws.w + 40, h: ws.h };
     for (const pj of state.projectiles) {
       if (pj.owner !== 'player' || pj.health <= 0 || !rectsOverlap(glass, boundsOf(pj))) continue;
@@ -532,11 +650,10 @@ const updateCab = (ctx: FrameContext, cv: Convoy, talk: Talk, controls: Controls
       fx.spawnExplosion({ x: pj.pos.x, y: pj.pos.y }, '#CBD5E1', 6, 0, 6);
     }
   }
-  if (cab.phase === 'standoff' && cab.t >= STANDOFF) {
-    // Riggs gives in
+  if (cab.phase === 'standoff' && cab.t > 30 && quiet(talk)) {
+    // Thumb down on the button
     cab.phase = 'done';
-    replaceLines(state, talk, [{ who: 'riggs', text: "...SORRY, LIZARD." }]);
-    cv.fall = { t: -50, kind: 'button', x: p.pos.x, y: p.pos.y, truck: 3 };
+    cv.fall = { t: -20, kind: 'button', x: p.pos.x, y: p.pos.y, truck: 3 };
     return { ...NO_CONTROLS };
   }
   if (cab.phase === 'shot' || cab.phase === 'crash') return crash(ctx, cv, talk);
@@ -552,7 +669,8 @@ const shootRiggs = (ctx: FrameContext, cv: Convoy, talk: Talk) => {
   fx.spawnDeathShower({ x: ws.x, y: ws.y + 16 }, -1, 1.4);
   fx.spawnDamageNumber({ x: ws.x - 60, y: ws.y - 50 }, 'HEADSHOT!', true, '#F87171');
   shakeScreen(state, 12, 5);
-  playSound('horn');
+  // Face down on the wheel, on the horn
+  playHornDrone(HORN_SECONDS);
   cv.radioT = 0;
   replaceLines(state, talk, [
     { who: 'dale', text: "RIGGS? RIGGS?! ...THAT'S COMING OUT OF YOUR PAYCHECK!" },
@@ -562,7 +680,7 @@ const shootRiggs = (ctx: FrameContext, cv: Convoy, talk: Talk) => {
 };
 
 /** Riggs slumped on the wheel, the horn going: the truck swerves off the interstate into the next town. */
-const CRASH_FRAMES = 330;
+const CRASH_FRAMES = 200;
 
 const crash = (ctx: FrameContext, cv: Convoy, talk: Talk): Controls => {
   const { state } = ctx;

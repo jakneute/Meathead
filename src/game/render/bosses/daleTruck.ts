@@ -1,13 +1,22 @@
 // Drug Trade Dale's delivery truck and its incoming-truck warning (world space).
 
 import { Enemy } from '../../../types';
-import { BOSS_DOOR_X } from '../../../constants';
+import { BOSS_DOOR_X, DALE_TRUCK_SPEED } from '../../../constants';
 
 const TRUCK_Y = 400;
 const TRUCK_W = 350;
 const TRUCK_H = 150;
 const TRAILER_W = 252;
 const WHEEL_R = 22;
+
+/**
+ * How far round a wheel of radius r is, having rolled dist at speed (px a frame; + is to the right, which is clockwise
+ * on screen). Five spokes: turned more than half a spoke a frame, the eye reads them going backwards (the wagon-wheel
+ * thing), so a fast wheel is shown turning the right way at a steady WHEEL_MAX_TURN a frame instead.
+ */
+const WHEEL_MAX_TURN = 0.4;
+export const wheelTurn = (dist: number, speed: number, r: number, frame: number) =>
+  Math.abs(speed) / r <= WHEEL_MAX_TURN ? dist / r : frame * WHEEL_MAX_TURN * Math.sign(speed);
 
 export const drawDaleTruck = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
   if (!e.truckActive || e.truckX === undefined) return;
@@ -17,7 +26,7 @@ export const drawDaleTruck = (ctx: CanvasRenderingContext2D, e: Enemy, frame: nu
   ctx.filter = 'none';
   ctx.shadowBlur = 0;
   if (e.truckX < BOSS_DOOR_X) drawIncomingWarning(ctx, frame);
-  drawDeliveryTruck(ctx, e.truckX, TRUCK_Y, frame, !!e.truckCrashing, true);
+  drawDeliveryTruck(ctx, e.truckX, TRUCK_Y, frame, !!e.truckCrashing, true, DALE_TRUCK_SPEED);
   ctx.restore();
 };
 
@@ -25,7 +34,7 @@ export const drawDaleTruck = (ctx: CanvasRenderingContext2D, e: Enemy, frame: nu
  * The truck itself, its top-left at (x, y) (it's TRUCK_W long, TRUCK_H tall, facing right), moving (speed lines
  * behind it) or parked. (Dale drives it through his arena, and loads it out in the desert.)
  */
-export const drawDeliveryTruck = (ctx: CanvasRenderingContext2D, x: number, y: number, frame: number, crashing = false, moving = false) => {
+export const drawDeliveryTruck = (ctx: CanvasRenderingContext2D, x: number, y: number, frame: number, crashing = false, moving = false, speed = 0) => {
   // Rattling over the floor; out of control it bucks and fishtails on its rims
   const bounce = crashing ? Math.sin(frame * 1.7) * 3 + 4 : moving ? Math.sin(frame * 0.9) * 1.2 : 0;
   const lean = crashing ? Math.sin(frame * 0.6) * 0.05 - 0.02 : 0;
@@ -39,7 +48,7 @@ export const drawDeliveryTruck = (ctx: CanvasRenderingContext2D, x: number, y: n
   drawCab(ctx, x + TRAILER_W + 6, y, frame);
   ctx.restore();
   // Wheels roll with the truck (flat once the tires are blown)
-  const spin = x / WHEEL_R;
+  const spin = wheelTurn(x, speed, WHEEL_R, frame);
   [x + 46, x + 96, x + 196, x + TRAILER_W + 62].forEach(wx => drawWheel(ctx, wx, y + TRUCK_H - WHEEL_R + 2, spin, crashing));
 };
 

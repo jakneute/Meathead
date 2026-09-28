@@ -59,7 +59,7 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
         pos: fromMuzzle(16, 6),
         vel: { x: facing * GUN_VELOCITY, y: 0 },
         width: 16, height: 6, health: 1, maxHealth: 1,
-        type: 'projectile', damage: BULLET_DAMAGE, owner: 'player'
+        type: 'projectile', damage: BULLET_DAMAGE, owner: 'player', fromX: pos.x + width / 2
       });
       player.shootCooldown = GUN_COOLDOWN;
       fx.playGunSound('gun');
@@ -106,7 +106,7 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
           vel: { x: facing * Math.cos(angle) * speedX, y: -Math.sin(angle) * speedY },
           width: 10, height: 10, health: 1, maxHealth: 1,
           type: 'projectile', damage: SHOTGUN_DAMAGE, owner: 'player', isIce: true,
-          life: SHOTGUN_PELLET_LIFETIME, bounces: 0,
+          life: SHOTGUN_PELLET_LIFETIME, bounces: 0, fromX: pos.x + width / 2,
         });
       }
       player.shootCooldown = SHOTGUN_COOLDOWN;
@@ -120,7 +120,7 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
         pos: fromMuzzle(20, 4),
         vel: { x: facing * 24, y: (Math.random() - 0.5) * 5 },
         width: 20, height: 4, health: 1, maxHealth: 1,
-        type: 'projectile', damage: NEEDLE_DAMAGE, owner: 'player', isDart: true
+        type: 'projectile', damage: NEEDLE_DAMAGE, owner: 'player', isDart: true, fromX: pos.x + width / 2
       });
       player.shootCooldown = NEEDLE_COOLDOWN;
       fx.playGunSound('dart');

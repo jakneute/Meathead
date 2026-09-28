@@ -351,6 +351,8 @@ export interface Projectile extends Entity {
   life?: number;
   bounceDecay?: number;
   spawnX?: number;
+  /** A player's shot, till its first hit check: the x it came from (his middle), so a point-blank shot still hits what's right up against him. */
+  fromX?: number;
   bounces?: number;
   rotation?: number;
   // Dynamic reaction fields

@@ -17,7 +17,7 @@ import { Intro, createIntro, updateIntro } from './intro';
 import { Hazards, createHazards, updateHazards, cactusBox } from './hazards';
 import { JunkieFight, createJunkieFight, updateJunkieFight, outTheWindow } from './junkie';
 import { Convoy, createConvoy, updateConvoy, boardConvoy, HIGHWAY_CAM_Y } from './convoy';
-import { Town, createTown, updateTown } from './town';
+import { Town, createTown, updateTown, startArrival } from './town';
 
 export interface DaleRuntime {
   startedAt: number;
@@ -78,7 +78,7 @@ export const createDaleRuntime = (state: GameState, skipToBoss: boolean): DaleRu
 const applyRegionCamera = (state: GameState, region: Region) => {
   if (region === 'desert') { state.cameraMinX = COURSE.desert.x1; state.cameraMaxX = COURSE.office.x2 + 60 - CANVAS_WIDTH; }
   else if (region === 'highway') { state.cameraMinX = COURSE.highway.x1; state.cameraMaxX = COURSE.highway.x2 - CANVAS_WIDTH; }
-  else { state.cameraMinX = COURSE.town.x1 - 40; state.cameraMaxX = undefined; }
+  else { state.cameraMinX = COURSE.town.x1; state.cameraMaxX = undefined; }
 };
 
 export const updateDale = (ctx: FrameContext, controls: Controls): Controls => {
@@ -104,7 +104,8 @@ export const updateDale = (ctx: FrameContext, controls: Controls): Controls => {
     if (outTheWindow(rt.junkie) && !rt.fade) rt.fade = { t: 0, to: 'highway' };
   } else if (region === 'highway') {
     controls = updateConvoy(ctx, rt.convoy, rt.talk, controls);
-    if (rt.convoy.finished && !rt.fade) rt.fade = { t: 0, to: 'town' };
+    // (straight into town: the cab coming down the street into the curio shop)
+    if (rt.convoy.finished) { enterTown(ctx, rt); startArrival(state, rt.town); }
   } else {
     controls = updateTown(ctx, rt.town, rt.talk, controls);
   }
@@ -114,7 +115,6 @@ export const updateDale = (ctx: FrameContext, controls: Controls): Controls => {
 const updateFade = (ctx: FrameContext, rt: DaleRuntime): Controls => {
   const { state } = ctx;
   const f = rt.fade!;
-  const p = state.player;
   f.t++;
   if (f.t === FADE_OUT + FADE_HOLD / 2) {
     hush(state, rt.talk);
@@ -124,25 +124,32 @@ const updateFade = (ctx: FrameContext, rt: DaleRuntime): Controls => {
       rt.junkie.phase = 'done';
       applyRegionCamera(state, 'highway');
       boardConvoy(state, rt.convoy);
-    } else {
-      rt.convoy.active = false;
-      const at = COURSE.checkpoints[CP.TOWN];
-      p.pos = { x: at.x, y: at.y - p.height };
-      p.vel = { x: 0, y: 0 };
-      p.hidden = false; p.inCutscene = false;
-      state.cameraOverride = null;
-      state.camera.x = at.x - 250; state.camera.y = 0; state.cameraRestY = 0;
-      applyRegionCamera(state, 'town');
-      state.checkpoint = Math.max(state.checkpoint, CP.TOWN);
-      state.stageMemo.fromCrash = 'yes';
-      rt.town.wakeT = 0;
-      // The town's goons and tourists (they weren't there to put in before)
-      for (const s of COURSE.spawns) if (regionOf(s.x) === 'town' && s.x > at.x + 300) { const e = makeKindEnemy(s.kind, s.x, s.y); if (s.variant !== undefined) e.variant = s.variant; state.enemies.push(e); }
-      COURSE.pickups.forEach((pk, i) => { if (regionOf(pk.x) === 'town' && !state.pickups.some(q => q.id === `dale-pickup-${i}`)) state.pickups.push({ id: `dale-pickup-${i}`, pos: { x: pk.x - 10, y: pk.y - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: pk.type, life: 1e9 }); });
     }
   }
   if (f.t >= FADE_OUT + FADE_HOLD + FADE_IN) rt.fade = null;
   return { ...NO_CONTROLS };
+};
+
+/** Off the highway into town (straight cut: the crash plays out there). */
+const enterTown = (ctx: FrameContext, rt: DaleRuntime) => {
+  const { state } = ctx;
+  const p = state.player;
+  hush(state, rt.talk);
+  state.projectiles = [];
+  state.enemies = state.enemies.filter(e => e.type === 'boss');
+  rt.convoy.active = false;
+  rt.convoy.finished = false;
+  const at = COURSE.checkpoints[CP.TOWN];
+  p.pos = { x: at.x, y: at.y - p.height };
+  p.vel = { x: 0, y: 0 };
+  state.cameraOverride = null;
+  state.camera.x = COURSE.town.x1; state.camera.y = 0; state.cameraRestY = 0;
+  applyRegionCamera(state, 'town');
+  state.checkpoint = Math.max(state.checkpoint, CP.TOWN);
+  state.stageMemo.fromCrash = 'yes';
+  // The town's goons (they weren't there to put in before)
+  for (const s of COURSE.spawns) if (regionOf(s.x) === 'town' && s.x > at.x + 300) { const e = makeKindEnemy(s.kind, s.x, s.y); if (s.variant !== undefined) e.variant = s.variant; state.enemies.push(e); }
+  COURSE.pickups.forEach((pk, i) => { if (regionOf(pk.x) === 'town' && !state.pickups.some(q => q.id === `dale-pickup-${i}`)) state.pickups.push({ id: `dale-pickup-${i}`, pos: { x: pk.x - 10, y: pk.y - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: pk.type, life: 1e9 }); });
 };
 
 /** How black the screen is (0..1). */
