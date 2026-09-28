@@ -77,8 +77,14 @@ const drone = (ctx: FrameContext, e: Enemy) => {
   e.pos.y += e.vel.y;
 };
 
-/** How fast a jet ski closes on the spot it wants (on top of keeping up with him), how often it shoots, and its moves. */
-const JETSKI_CLOSE = 3.5, JETSKI_REST = 110;
+/** The pace everybody's doing across the bay (his jet ski cruises at it too; he can gun it or ease off). */
+export const JETSKI_CRUISE = 7.5;
+/**
+ * How fast a jet ski works its way back to the spot it wants: slowly while it's sitting there (so when he eases off,
+ * the ones ahead pull away and the ones behind catch up, and when he guns it, the other way round), quicker when
+ * it's making a move (a ram, a brake check). And how often it shoots.
+ */
+const JETSKI_DRIFT = 0.9, JETSKI_CLOSE = 3.5, JETSKI_REST = 110;
 /** A chaser (variant 0) sits behind him taking shots, and every so often guns it to come alongside and ram him. */
 const CHASE_BACK = 210, RAM_EVERY = 250, RAM_FRAMES = 100;
 /** A blocker (1) sits out in front shooting back at him, and every so often brake-checks him. */
@@ -101,9 +107,11 @@ const jetskier = (ctx: FrameContext, e: Enemy) => {
     else { off = -CHASE_BACK; if (e.aiTimer > RAM_EVERY && p.health > 0) { e.aiState = 'ram'; e.aiTimer = 0; } }
   }
   const dx = pm.x + off - mid(e).x;
-  // Keeping up with him (at his cruising pace: when he guns it or pulls a wheelie, it's caught out), plus closing on its spot
-  const carry = p.skiing ? p.skiSpeed ?? p.vel.x : 0;
-  const close = Math.max(-JETSKI_CLOSE, Math.min(JETSKI_CLOSE, dx * 0.06));
+  // Going at the cruising pace (whatever he's doing), plus working its way toward its spot
+  const carry = p.skiing ? JETSKI_CRUISE : 0;
+  const moving = e.aiState === 'ram' || e.aiState === 'brake';
+  const lim = moving ? JETSKI_CLOSE : JETSKI_DRIFT;
+  const close = Math.max(-lim, Math.min(lim, dx * 0.06));
   e.vel.x += (carry + close - e.vel.x) * 0.12;
   e.pos.x += e.vel.x;
   e.pos.y = waterline - e.height + Math.sin(state.frame * 0.12 + (e.homeX || 0)) * 2;

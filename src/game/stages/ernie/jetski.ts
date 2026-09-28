@@ -22,6 +22,7 @@ import { shakeScreen } from '../../core/state';
 import { playSound, playGlassShatterSound } from '../../platform/audio';
 import { say, canSpeak, MEATHEAD_VOICE, Voice } from '../../platform/speech';
 import { makeKindEnemy } from '../../enemies/kinds';
+import { JETSKI_CRUISE } from '../../enemies/kinds/ernie';
 import { hurtPlayer } from '../../bosses/shared';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 import { GROUND_Y, CANVAS_WIDTH } from '../../../constants';
@@ -59,7 +60,7 @@ export interface JetSki {
 /** How long the run lasts. */
 export const RIDE_FRAMES = 65 * 60;
 /** Speeds on the water: cruising, gunning it, easing off. */
-const SKI_BASE = 7.5, SKI_FAST = 9.5, SKI_SLOW = 5.5;
+const SKI_BASE = JETSKI_CRUISE, SKI_FAST = 9.5, SKI_SLOW = 5.5;
 /** How far ahead of him the camera looks (not far: there's plenty coming from behind too). */
 const SKI_LEAD = 70;
 const WRECK_DAMAGE = 8;

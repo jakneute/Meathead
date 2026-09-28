@@ -299,7 +299,8 @@ const updateCrouch = (ctx: FrameContext, input: FrameInput) => {
   // Bouncing back off an enemy mid-slide keeps him down, until down is let go
   if (!input.moveDown) player.slideRecoil = false;
   const lockAllowsCrouch = player.lockTimer <= 0 || !!player.slideRecoil;
-  player.isDucking = input.moveDown && lockAllowsCrouch && !player.isUppercutting && !player.isDivekicking && !player.isTasing
+  // (sat on a jet ski there's no ducking: down's only for the dive)
+  player.isDucking = input.moveDown && !player.jetski && lockAllowsCrouch && !player.isUppercutting && !player.isDivekicking && !player.isTasing
     && !isFlamethrowing && (!player.isCharging || player.isSliding);
 };
 
