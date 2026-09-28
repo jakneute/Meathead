@@ -8,7 +8,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { COURSE, isLava } from './course';
 import { getVictor, regionOf, enterFade } from './runtime';
 import { ventPhase, VENT_WARN, VENT_HEIGHT, VENT_HALF_WIDTH, BOMB_WARN, BOMB_RADIUS, jetPhase, JET_WARN, barBalls } from './hazards';
-import { drawDoormanCorpse, drawDoormanHud } from './doormanDraw';
+import { drawDoormanCorpse, drawDoormanHud, drawClashingMeathead } from './doormanDraw';
 import { drawLoungeBack, drawLoungeFront, drawWideShot, drawLoungeHud } from './loungeDraw';
 
 type Ctx = CanvasRenderingContext2D;
@@ -403,6 +403,7 @@ const drawBombs = (ctx: Ctx, state: GameState) => {
 
 export const drawVictorFront = (ctx: Ctx, state: GameState) => {
   const rt = getVictor(state)!;
+  drawClashingMeathead(ctx, state, rt.doorman);
   if (rt.lounge.phase === 'crash' || regionOf(state.camera.x + 400) === 'lounge') drawLoungeFront(ctx, state, rt.lounge);
 };
 

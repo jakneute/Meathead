@@ -183,7 +183,8 @@ const drawMagmafish = (ctx: Ctx, e: Enemy, f: number) => {
   const rise = e.vel.y < 0;
   ctx.save();
   ctx.translate(0, -13);
-  ctx.rotate(rise ? -0.5 : 0.6);
+  // (flopping about on the rocks, or arcing through the air)
+  ctx.rotate(e.aiState === 'flop' ? Math.sin(f * 0.6) * 0.4 : rise ? -0.5 : 0.6);
   // Tail
   ctx.fillStyle = '#292524'; ctx.beginPath(); ctx.moveTo(-18, 0); ctx.lineTo(-30, -9); ctx.lineTo(-28, 9); ctx.fill();
   // Body: rock crust, glowing cracks

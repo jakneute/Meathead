@@ -6,14 +6,29 @@
 
 import type { Enemy, WeaponType } from '../../../types';
 import type { GameState } from '../../state';
-import { CANVAS_WIDTH } from '../../../constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { getLastInputDevice } from '../../input';
+import { drawPlayer } from '../../render/playerRenderer';
 import { DoormanFight, DoormanCorpse, DOORMAN_HP, SLIDE_ZONE } from './doorman';
 import { KIND_STATS } from '../../systems/kinds';
 
 type Ctx = CanvasRenderingContext2D;
 const W = KIND_STATS.doorman.w, H = KIND_STATS.doorman.h;
 const SKIN = '#B98158', SKIN_DARK = '#8C5A36', SHIRT = '#111827', PANTS = '#1F2937', BOOT = '#0A0A0A', GOLD = '#FACC15';
+
+/** Meathead mid-clash (the real one's hidden and held still): locked in his shoulder charge or his slide, straining. */
+export const drawClashingMeathead = (ctx: Ctx, state: GameState, fight: DoormanFight) => {
+  const c = fight.clash;
+  if (!c) return;
+  const p = state.player;
+  const strain = Math.sin(state.frame * 1.3) * 1.5;
+  const body = { ...p, pos: { x: -1e6, y: -1e6 }, hidden: false, isGrounded: true, vel: { x: 0, y: 0 }, isCharging: true, isSliding: c.kind === 'slide', chargeTimer: 20, invincibilityTimer: 0, hurtTimer: 0, pushbackTimer: 0 };
+  ctx.save();
+  ctx.translate(p.pos.x + p.width / 2 + strain, p.pos.y + p.height / 2);
+  ctx.translate(-(body.pos.x + body.width / 2), -(body.pos.y + body.height / 2));
+  drawPlayer(ctx, body, { ...state, deathTimer: 0 }, { currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false });
+  ctx.restore();
+};
 
 export const drawDoorman = (ctx: Ctx, e: Enemy, fight: DoormanFight, f: number) => {
   ctx.save();
@@ -24,6 +39,7 @@ export const drawDoorman = (ctx: Ctx, e: Enemy, fight: DoormanFight, f: number) 
   switch (st) {
     case 'slide': case 'clash-slide': poseSlide(ctx, f); break;
     case 'tripped': poseTripped(ctx, f); break;
+    case 'thrown': ctx.translate(0, -H / 2); ctx.rotate(-t * 0.16); ctx.translate(0, H / 2); poseTripped(ctx, f); break;
     case 'uppercut': poseUppercut(ctx, f); break;
     case 'charge': case 'clash-shoulder': poseCharge(ctx, f, st === 'clash-shoulder'); break;
     case 'windup-charge': poseStand(ctx, f, 'dip', t); break;
@@ -33,6 +49,27 @@ export const drawDoorman = (ctx: Ctx, e: Enemy, fight: DoormanFight, f: number) 
     default: poseStand(ctx, f, Math.abs(e.vel.x) > 0.3 ? 'walk' : 'guard', t);
   }
   ctx.restore();
+  // The tells, loud and clear: a red flash and a big "!!" with an arrow for the charge, a blue one down low for the slide, yellow for the uppercut
+  const tell = st === 'windup-charge' ? { color: '#EF4444', text: '!!', low: false } : st === 'windup-slide' ? { color: '#38BDF8', text: '!!', low: true } : st === 'uppercut' && t < 10 ? { color: '#FACC15', text: '!', low: false } : null;
+  if (tell) {
+    const cx = e.pos.x + W / 2, top = e.pos.y - 26;
+    const blink = Math.floor(f / 4) % 2 === 0;
+    ctx.save();
+    // A glow round him
+    const g = ctx.createRadialGradient(cx, e.pos.y + (tell.low ? H - 20 : H / 2), 10, cx, e.pos.y + (tell.low ? H - 20 : H / 2), 90);
+    g.addColorStop(0, tell.color + (blink ? 'AA' : '66')); g.addColorStop(1, tell.color + '00');
+    ctx.fillStyle = g; ctx.fillRect(cx - 100, e.pos.y - 40, 200, H + 60);
+    ctx.textAlign = 'center'; ctx.font = 'bold 36px "Press Start 2P"';
+    ctx.fillStyle = '#000'; ctx.fillText(tell.text, cx + 3, top + 3);
+    ctx.fillStyle = blink ? '#FFFFFF' : tell.color; ctx.fillText(tell.text, cx, top);
+    // Which way it's coming
+    if (st !== 'uppercut') {
+      const dir = e.facing === 1 ? 1 : -1, ay = tell.low ? e.pos.y + H - 16 : e.pos.y + H / 2;
+      ctx.fillStyle = tell.color;
+      for (let k = 0; k < 3; k++) { const ax = cx + dir * (60 + k * 22 + ((f * 2) % 22)); ctx.beginPath(); ctx.moveTo(ax + dir * 14, ay); ctx.lineTo(ax, ay - 10); ctx.lineTo(ax, ay + 10); ctx.fill(); }
+    }
+    ctx.restore();
+  }
   void fight;
 };
 
@@ -54,7 +91,11 @@ const torso = (ctx: Ctx, y: number, lean: number, f: number) => {
   ctx.fillStyle = SHIRT;
   ctx.beginPath(); ctx.moveTo(-26, 0); ctx.lineTo(-32, -44); ctx.quadraticCurveTo(0, -58, 32, -44); ctx.lineTo(26, 0); ctx.closePath(); ctx.fill();
   ctx.fillStyle = '#1F2937'; ctx.fillRect(-26, -2, 52, 4);
-  ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('SECURITY', 0, -24); ctx.textAlign = 'left';
+  // (the lettering reads right way round whichever way he's facing)
+  const t = ctx.getTransform();
+  ctx.save(); if (t.a * t.d - t.b * t.c < 0) ctx.scale(-1, 1);
+  ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('SECURITY', 0, -24);
+  ctx.restore();
   // Neck, gold chain
   ctx.fillStyle = SKIN_DARK; ctx.fillRect(-9, -58, 18, 10);
   ctx.strokeStyle = GOLD; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, -52, 11, 0.2, Math.PI - 0.2); ctx.stroke();
@@ -242,6 +283,7 @@ export const drawDoormanHud = (ctx: Ctx, state: GameState, fight: DoormanFight) 
     }
   }
   if (!e || (fight.phase !== 'intro' && fight.phase !== 'fight')) return;
+  if (fight.zoom > 0.01) drawClashCinema(ctx, state, fight);
   // His health bar
   const fill = fight.phase === 'intro' ? Math.min(1, fight.t / 60) : Math.max(0, e.health / DOORMAN_HP);
   const L = 330, R = 780;
@@ -278,16 +320,49 @@ const drawSpecialButton = (ctx: Ctx, x: number, y: number, pressed: boolean) => 
   ctx.restore();
 };
 
+/** The clash, dressed up: bars closing in top and bottom, speed lines rushing in on the two of them, a red edge to everything, CLASH! slammed across the screen. */
+const drawClashCinema = (ctx: Ctx, state: GameState, fight: DoormanFight) => {
+  const z = fight.zoom, f = state.frame, W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
+  ctx.save();
+  // Red vignette
+  const v = ctx.createRadialGradient(W / 2, H / 2 + 30, 140, W / 2, H / 2 + 30, 520);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, `rgba(90, 0, 0, ${0.7 * z})`);
+  ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+  // Speed lines rushing in toward them
+  ctx.strokeStyle = `rgba(255, 255, 255, ${0.35 * z})`;
+  for (let i = 0; i < 28; i++) {
+    const a = (i / 28) * Math.PI * 2 + Math.sin(i * 7.3) * 0.1;
+    const r0 = 220 + ((f * 18 + i * 53) % 260), r1 = r0 + 60 + (i % 3) * 30;
+    ctx.lineWidth = 2 + (i % 3);
+    ctx.beginPath(); ctx.moveTo(W / 2 + Math.cos(a) * r0, H / 2 + 30 + Math.sin(a) * r0 * 0.7); ctx.lineTo(W / 2 + Math.cos(a) * r1, H / 2 + 30 + Math.sin(a) * r1 * 0.7); ctx.stroke();
+  }
+  // Letterbox bars
+  const bar = 64 * z;
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, bar); ctx.fillRect(0, H - bar, W, bar);
+  // CLASH! slammed in
+  if (fight.clash && fight.clashT < 50) {
+    const k = Math.min(1, fight.clashT / 8), out = fight.clashT > 36 ? (fight.clashT - 36) / 14 : 0;
+    ctx.globalAlpha = 1 - out;
+    ctx.translate(W / 2, H / 2 - 120);
+    ctx.scale(2.6 - k * 1.6, 2.6 - k * 1.6);
+    ctx.rotate(-0.08);
+    ctx.textAlign = 'center'; ctx.font = 'bold 34px "Press Start 2P"';
+    ctx.fillStyle = '#000'; ctx.fillText('CLASH!', 4, 4);
+    ctx.fillStyle = f % 6 < 3 ? '#FACC15' : '#F97316'; ctx.fillText('CLASH!', 0, 0);
+  }
+  ctx.restore();
+};
+
 const drawClash = (ctx: Ctx, state: GameState, fight: DoormanFight) => {
   const c = fight.clash!;
   const f = state.frame;
-  const cx = CANVAS_WIDTH / 2, y = 150;
+  const cx = CANVAS_WIDTH / 2, y = 470;
   ctx.save();
-  ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(cx - 250, y - 60, 500, 150);
-  ctx.strokeStyle = '#FACC15'; ctx.lineWidth = 3; ctx.strokeRect(cx - 250, y - 60, 500, 150);
+  ctx.fillStyle = 'rgba(0,0,0,0.75)'; ctx.fillRect(cx - 250, y - 44, 500, 150);
+  ctx.strokeStyle = '#FACC15'; ctx.lineWidth = 3; ctx.strokeRect(cx - 250, y - 44, 500, 150);
   ctx.textAlign = 'center';
   ctx.fillStyle = '#FACC15'; ctx.font = 'bold 16px "Press Start 2P"';
-  ctx.fillText(c.kind === 'shoulder' ? 'SHOULDER CLASH!' : 'SLIDE CLASH!', cx, y - 32);
+  ctx.fillText(c.kind === 'shoulder' ? 'SHOULDER CLASH!' : 'SLIDE CLASH!', cx, y - 20);
   const barL = cx - 200, barW = 400, barY = y;
   if (c.kind === 'shoulder') {
     // Tug of war: his end red, yours green, the marker where it stands

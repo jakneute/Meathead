@@ -70,6 +70,9 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
       wctx.translate((Math.random() - 0.5) * m, (Math.random() - 0.5) * m);
     }
     wctx.translate(-(state.camera.x - shiftX), -state.camera.y);
+    // A stage can push the camera in on something (a clash), keeping that spot where it is on screen
+    const zoom = getStageLayout(stageId)?.zoom?.(state);
+    if (zoom && zoom.scale !== 1) { wctx.translate(zoom.shiftX ?? 0, zoom.shiftY ?? 0); wctx.translate(zoom.x, zoom.y); wctx.scale(zoom.scale, zoom.scale); wctx.translate(-zoom.x, -zoom.y); }
 
     layout?.drawBack?.(wctx, state);
     drawGroundProfile(wctx, state.groundRuns, stageId, state.frame || 0, { x: state.camera.x - shiftX, y: state.camera.y, w: CANVAS_WIDTH + shiftX * 2, h: CANVAS_HEIGHT });

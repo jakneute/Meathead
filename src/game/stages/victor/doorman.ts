@@ -66,6 +66,12 @@ export interface DoormanFight {
   talkCd: number;
   /** The last thing that happened, for the callout. */
   lastCall: string;
+  /** How far the camera's pushed in for a clash (0..1, eased), where on, and frames since the clash began. */
+  zoom: number;
+  zoomAt: { x: number; y: number };
+  clashT: number;
+  /** He's thrown you: the speed you're sailing across at, and for how long. */
+  thrown: { vx: number; t: number } | null;
 }
 
 const arena = () => COURSE.club;
@@ -76,7 +82,7 @@ export const createDoormanFight = (state: GameState, startedAt: number): Doorman
   const dead = startedAt > CP.CLUB;
   return {
     phase: dead ? 'dead' : 'waiting', t: 0, man: null, hpFlash: 0, clash: null, specialWas: false, touchCd: 0,
-    line: '', lineT: 0, talkCd: 60, lastCall: '',
+    line: '', lineT: 0, talkCd: 60, lastCall: '', zoom: 0, zoomAt: { x: 0, y: 0 }, clashT: 0, thrown: null,
     walls: [
       { x: a.x1 - 40, y: a.y - 900, w: 40, h: 900, type: 'wall', hidden: true, tag: 'club-wall' },
       { x: a.x2, y: a.y - 900, w: 40, h: 900, type: 'wall', hidden: true, tag: 'club-wall' },
@@ -132,7 +138,23 @@ export const updateDoormanFight = (ctx: FrameContext, fight: DoormanFight, contr
   const special = controls.special;
   const pressed = special && !fight.specialWas;
   fight.specialWas = special;
-  if (fight.clash && fight.man) { runClash(ctx, fight, fight.man, pressed); return { ...NO_CONTROLS }; }
+  // Thrown clean across the club
+  if (fight.thrown) {
+    player.vel.x = fight.thrown.vx;
+    if (--fight.thrown.t <= 0 || (player.isGrounded && fight.thrown.t < 36)) fight.thrown = null;
+  }
+  // The camera pushes in on a clash, and eases back out after
+  fight.zoom += ((fight.clash ? 1 : 0) - fight.zoom) * (fight.clash ? 0.18 : 0.1);
+  if (fight.clash && fight.man) {
+    fight.clashT++;
+    const m = fight.man;
+    fight.zoomAt = { x: (player.pos.x + player.width / 2 + m.pos.x + m.width / 2) / 2, y: m.pos.y + m.height - (fight.clash.kind === 'slide' ? 30 : 60) };
+    // Sparks where they meet
+    if (state.frame % 2 === 0) for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: fight.zoomAt.x, y: fight.zoomAt.y + (Math.random() - 0.5) * 30 }, vel: { x: (Math.random() - 0.5) * 9, y: -2 - Math.random() * 5 }, life: 16, color: i % 2 ? '#FDE047' : '#FFFFFF', size: 2 + Math.random() * 2 });
+    runClash(ctx, fight, m, pressed);
+    return { ...NO_CONTROLS };
+  }
+  fight.clashT = 0;
   return controls;
 };
 
@@ -185,17 +207,18 @@ export const updateDoorman = (ctx: FrameContext, m: Enemy, fight: DoormanFight):
       const want = 230 + Math.sin(m.aiTimer * 0.04) * 90;
       m.vel.x = d > want + 20 ? toward * WALK : d < want - 20 ? -toward * WALK : 0;
       if (fight.phase === 'fight') talk(fight, LINES.idle);
-      // You're coming over the top: he's waiting for it
-      if (!p.isGrounded && Math.abs(px - mx) < 150 && p.pos.y + p.height < m.pos.y + 40 && p.vel.y > -20) { start(m, 'uppercut'); m.vel.y = -9; break; }
-      if (m.aiTimer > (angry ? 70 : 110) && fight.phase === 'fight') start(m, Math.random() < 0.55 ? 'windup-charge' : 'windup-slide');
+      if (antiAir(m, p, px, mx)) break;
+      if (m.aiTimer > (angry ? 70 : 110) && fight.phase === 'fight') { start(m, Math.random() < 0.55 ? 'windup-charge' : 'windup-slide'); playSound('taser'); }
       break;
     }
     case 'windup-charge':
-      // Shoulder down, pawing the ground (the tell)
+      // Shoulder down, pawing the ground (the tell). (Only once he's actually charging or sliding can you get over him)
+      if (antiAir(m, p, px, mx)) break;
       m.vel.x = 0; m.facing = toward;
       if (m.aiTimer > WINDUP_CHARGE) { start(m, 'charge'); m.vel.x = m.facing * CHARGE; talk(fight, ["MOVE!"], false); }
       break;
     case 'windup-slide':
+      if (antiAir(m, p, px, mx)) break;
       m.vel.x = 0; m.facing = toward;
       if (m.aiTimer > WINDUP_SLIDE) { start(m, 'slide'); m.vel.x = m.facing * SLIDE; }
       break;
@@ -213,8 +236,8 @@ export const updateDoorman = (ctx: FrameContext, m: Enemy, fight: DoormanFight):
       if (m.aiTimer % 3 === 0) dust(state, m);
       break;
     case 'uppercut':
-      // Straight up off the ground, fist first, and back down
-      m.vel.x = 0;
+      // Up off the ground to meet you (however high you went), fist first, and back down
+      m.vel.x = m.aiTimer < 16 ? toward * 5 : 0;
       m.vel.y += 0.65;
       if (m.aiTimer > UPPERCUT_FRAMES && m.pos.y >= floor) start(m, 'recover');
       break;
@@ -222,6 +245,10 @@ export const updateDoorman = (ctx: FrameContext, m: Enemy, fight: DoormanFight):
       // Flat on his back: your chance
       m.vel.x *= 0.9;
       if (m.aiTimer > TRIPPED) { start(m, 'recover'); talk(fight, LINES.hurt, true); }
+      break;
+    case 'thrown':
+      // Sailing over you; down on his back when he lands
+      if (m.aiTimer > 4 && m.pos.y >= floor) { start(m, 'tripped'); m.vel.x = 0; shakeScreen(state, 22, 9); playSound('nuke'); dust(state, m); dust(state, m); }
       break;
     case 'shove':
       m.vel.x *= 0.7;
@@ -231,18 +258,32 @@ export const updateDoorman = (ctx: FrameContext, m: Enemy, fight: DoormanFight):
     default:
       m.vel.x *= 0.8;
       m.facing = toward;
+      if (m.aiTimer > 8 && antiAir(m, p, px, mx)) break;
       if (m.aiTimer > RECOVER) start(m, 'stalk');
       break;
   }
   m.pos.x += m.vel.x;
   m.pos.x = Math.max(a.x1 + 2, Math.min(a.x2 - W - 2, m.pos.x));
-  if (m.aiState === 'uppercut' || m.pos.y < floor) { m.pos.y += m.vel.y; if (m.pos.y >= floor) { m.pos.y = floor; m.vel.y = 0; } }
+  if (m.aiState === 'uppercut' || m.aiState === 'thrown' || m.pos.y < floor) { m.vel.y += m.aiState === 'thrown' ? 0.65 : 0; m.pos.y += m.vel.y; if (m.pos.y >= floor) { m.pos.y = floor; m.vel.y = 0; } }
   else m.pos.y = floor;
   if (fight.phase === 'fight') touch(ctx, m, fight);
   return true;
 };
 
 const start = (m: Enemy, state: string) => { m.aiState = state; m.aiTimer = 0; };
+
+/**
+ * You're coming over the top (a jump, an uppercut, a dash, however high): he goes up to meet you.
+ * He never jumps, except for this: an uppercut timed to get to where you're going.
+ */
+const antiAir = (m: Enemy, p: GameState['player'], px: number, mx: number) => {
+  if (p.isGrounded || Math.abs(px - mx) > 170 || p.pos.y + p.height > m.pos.y + 40) return false;
+  start(m, 'uppercut');
+  // (to where you're going to be, not where you are)
+  const rise = Math.max(40, m.pos.y - p.pos.y + 20 + Math.max(0, -p.vel.y) * 7);
+  m.vel.y = -Math.min(28, Math.sqrt(2 * 0.65 * rise));
+  return true;
+};
 
 const dust = (state: GameState, m: Enemy) => {
   state.particles.push({ pos: { x: m.pos.x + W / 2 - m.facing! * 30, y: m.pos.y + H - 4 }, vel: { x: -m.facing! * (1 + Math.random() * 3), y: -Math.random() * 2 }, life: 20, color: Math.random() > 0.5 ? '#78716C' : '#44403C', size: 4 + Math.random() * 4 });
@@ -252,13 +293,14 @@ const dust = (state: GameState, m: Enemy) => {
 const bodyBox = (m: Enemy) =>
   m.aiState === 'slide' ? { x: m.pos.x - 10, y: m.pos.y + H - 40, w: W + 20, h: 40 }
   : m.aiState === 'tripped' ? { x: m.pos.x - 20, y: m.pos.y + H - 30, w: W + 40, h: 30 }
+  : m.aiState === 'uppercut' ? { x: m.pos.x - 12, y: m.pos.y - 44, w: W + 24, h: H + 44 }
   : { x: m.pos.x + 6, y: m.pos.y + 4, w: W - 12, h: H - 4 };
 
 /** Bumping into him: what you're doing against what he's doing. */
 const touch = (ctx: FrameContext, m: Enemy, fight: DoormanFight) => {
   const { state, fx } = ctx;
   const p = state.player;
-  if (fight.touchCd > 0 || state.deathTimer > 0 || !rectsOverlap(bodyBox(m), boundsOf(p))) return;
+  if (fight.touchCd > 0 || state.deathTimer > 0 || m.aiState === 'thrown' || !rectsOverlap(bodyBox(m), boundsOf(p))) return;
   const pCharge = p.isCharging && !p.isSliding, pSlide = !!p.isSliding, pDive = !!p.isDivekicking, pUp = !!p.isUppercutting;
   const px = p.pos.x + p.width / 2, mx = m.pos.x + W / 2;
   const away = (px < mx ? -1 : 1);
@@ -349,6 +391,8 @@ const trip = (ctx: FrameContext, m: Enemy, fight: DoormanFight, dmg: number, tex
 // ---------------------------------------------------------------------------
 
 const SHOULDER_FRAMES = 170, SLIDE_FRAMES_CLASH = 300;
+/** Thrown after losing a clash: how long he's in the air, and how hard he goes up. */
+const THROW_FRAMES = 44, THROW_LIFT = 14.3;
 
 const startClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, kind: ClashKind) => {
   const p = ctx.state.player;
@@ -357,8 +401,11 @@ const startClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, kind: Clas
   const side = p.pos.x + p.width / 2 < m.pos.x + W / 2 ? -1 : 1;
   p.facing = (-side) as 1 | -1;
   m.facing = side as 1 | -1;
-  p.pos.x = side < 0 ? m.pos.x - p.width + (kind === 'slide' ? -20 : 12) : m.pos.x + W - (kind === 'slide' ? -20 : 12);
+  p.pos.x = side < 0 ? m.pos.x - p.width + (kind === 'slide' ? -30 : 2) : m.pos.x + W - (kind === 'slide' ? -30 : 2);
   p.vel = { x: 0, y: 0 };
+  // (he's held there in his charge or slide, drawn by the stage, while it's on)
+  p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false;
+  p.hidden = true;
   m.vel = { x: 0, y: 0 };
   start(m, kind === 'shoulder' ? 'clash-shoulder' : 'clash-slide');
   shakeScreen(ctx.state, 16, 8);
@@ -377,8 +424,8 @@ const runClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, pressed: boo
   const angry = m.health < m.maxHealth * 0.5;
   if (c.kind === 'shoulder') {
     // Tug of war: mash it
-    if (pressed) { c.meter += 0.075; c.flash = 4; }
-    c.meter -= angry ? 0.0075 : 0.0062;
+    if (pressed) { c.meter += 0.14; c.flash = 4; }
+    c.meter -= angry ? 0.0038 : 0.003;
     if (state.frame % 5 === 0) shakeScreen(state, 4, 3);
     if (c.meter >= 1) return endClash(ctx, fight, m, true);
     if (c.meter <= 0 || c.t > SHOULDER_FRAMES) return endClash(ctx, fight, m, false);
@@ -404,20 +451,31 @@ const endClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, won: boolean
   const kind = fight.clash!.kind;
   fight.clash = null;
   fight.touchCd = 30;
-  const dir = m.facing === 1 ? -1 : 1; // (which way's away from him, for you)
+  p.hidden = false;
+  const a = arena();
+  const px = p.pos.x + p.width / 2, mx = m.pos.x + W / 2;
   if (won) {
+    // You throw him: up and over you, clean across to the other side, and down on his back
     damage(ctx, m, fight, CLASH_WIN);
-    start(m, 'tripped');
-    m.vel.x = -dir * 9;
-    p.vel = { x: -dir * 2, y: -4 };
+    const over = Math.sign(px - mx) || 1;
+    const land = over > 0 ? a.x2 - W - 50 : a.x1 + 50;
+    start(m, 'thrown');
+    m.vel = { x: (land - m.pos.x) / THROW_FRAMES, y: -THROW_LIFT };
+    p.vel = { x: 0, y: -3 };
+    p.facing = (over > 0 ? 1 : -1) as 1 | -1;
     fight.lastCall = kind === 'shoulder' ? 'OVERPOWERED!' : 'SWEPT HIM!';
     ctx.fx.spawnDamageNumber({ x: m.pos.x + W / 2 - 50, y: m.pos.y - 50 }, fight.lastCall, true, '#22C55E');
     shakeScreen(state, 26, 10);
     ctx.fx.speakVulgarity('charge_kill');
   } else {
+    // He throws you: up and over him, clean across to the other side
     start(m, 'recover');
     p.invincibilityTimer = 0;
-    hurtPlayer(ctx, CLASH_LOSE, 'doorman_clash', { x: dir * 14, y: -10 }, 40);
+    const over = Math.sign(mx - px) || 1;
+    const land = over > 0 ? a.x2 - 80 : a.x1 + 40;
+    const vx = (land - p.pos.x) / 40;
+    hurtPlayer(ctx, CLASH_LOSE, 'doorman_clash', { x: vx, y: -16 }, 44);
+    fight.thrown = { vx, t: 44 };
     state.playerStunTimer = 30;
     fight.lastCall = 'LOST THE CLASH!';
     ctx.fx.spawnDamageNumber({ x: p.pos.x - 40, y: p.pos.y - 40 }, fight.lastCall, true, '#F87171');

@@ -90,7 +90,7 @@ const build = () => {
   m.ground(2640, 3320, Y - 40);
   m.bombZone(2700, 3320, 110, false);
   m.vent(3180, Y - 40, 150, 60);
-  m.lava(3320, 3520, Y - 12);
+  m.lava(3320, 3520, Y - 30);
   m.ground(3520, 4120, Y - 60);
   m.bombZone(3520, 6800, 150, true);
   m.ledge(3700, Y - 230, 170);
@@ -104,22 +104,24 @@ const build = () => {
   m.spawn('salamander', 4420, Y - 160);
 
   // ============ THE LAVA FLOW ============
-  // Basalt columns standing in a flow of lava; fish in the lava
-  m.lava(4900, 5060, Y - 30); m.fish(4980, Y - 30);
-  m.ground(5060, 5180, Y - 60);
-  m.lava(5180, 5340, Y - 30); m.fish(5260, Y - 30);
-  m.ground(5340, 5460, Y - 110);
-  m.lava(5460, 5630, Y - 30); m.fish(5545, Y - 30);
-  m.ground(5630, 5750, Y - 60);
-  m.lava(5750, 5900, Y - 30);
-  m.pickup(5400, Y - 140, 'small_ammo');
+  // Basalt columns standing in a flow of lava; fish in the lava (kept up high enough that you can see them coming)
+  m.lava(4900, 5060, Y - 130); m.fish(4980, Y - 130);
+  m.ground(5060, 5180, Y - 175);
+  m.lava(5180, 5340, Y - 130); m.fish(5260, Y - 130);
+  m.ground(5340, 5460, Y - 215);
+  m.lava(5460, 5630, Y - 130); m.fish(5545, Y - 130);
+  m.ground(5630, 5750, Y - 175);
+  m.lava(5750, 5900, Y - 130);
+  m.pickup(5400, Y - 245, 'small_ammo');
 
   // ============ UP TO THE CLUB ============
-  m.ground(5900, 6800, Y - 40);
-  m.vent(6180, Y - 40, 140, 30);
-  m.vent(6520, Y - 40, 140, 100);
-  m.spawn('salamander', 6000, Y - 40); m.spawn('heatsuit', 6360, Y - 40); m.spawn('smokejumper', 6700, Y - 40);
-  m.spawn('vulture', 6300, Y - 380);
+  m.ground(5900, 6150, Y - 150);
+  m.ground(6150, 6350, Y - 150, Y - 40);
+  m.ground(6350, 6800, Y - 40);
+  m.vent(6450, Y - 40, 140, 30);
+  m.vent(6650, Y - 40, 140, 100);
+  m.spawn('salamander', 6020, Y - 150); m.spawn('heatsuit', 6550, Y - 40); m.spawn('smokejumper', 6760, Y - 40);
+  m.spawn('vulture', 6300, Y - 420);
   m.ground(6800, 7100, Y - 40, Y);
   m.pickup(6950, Y - 50, 'large_health');
   // The club: a plaza at the volcano's foot, the doorman on the door

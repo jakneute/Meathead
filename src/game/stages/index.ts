@@ -59,6 +59,8 @@ export interface StageLayout {
    * `around(x)` gives a world x's angle round the cylinder from the middle of the view (0 dead ahead, ±PI/2 the edges, beyond that round the back).
    */
   drawOverCylinder?: (ctx: CanvasRenderingContext2D, state: GameState, radius: number, around: (worldX: number) => number) => void;
+  /** Push the camera in: by `scale`, about the world point (x, y) (which stays put on screen). Null for no zoom. */
+  zoom?: (state: GameState) => { scale: number; x: number; y: number; shiftX?: number; shiftY?: number } | null;
   /** Where you start when you go straight to the boss (or die to him), if not the usual spot just outside his door. */
   bossStartX?: number;
   /** How quickly the vertical camera settles (default 0.2 a frame): lower is gentler, for a climb of lots of little ledges. */

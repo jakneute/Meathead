@@ -120,7 +120,7 @@ const updateLava = (ctx: FrameContext, hz: Hazards) => {
   }
   // Anything else that ends up in it cooks (a fish is at home in it)
   for (const e of state.enemies) {
-    if (e.kind === 'magmafish' || e.health <= 0 || e.isBlownAway || e.enemyType === 'flyer' || e.kind === 'doorman') continue;
+    if (e.kind === 'magmafish' || e.health <= 0 || e.isBlownAway || e.kind === 'doorman') continue;
     const s = lavaAt(state, e.pos.x + e.width / 2);
     if (s !== null && e.pos.y + e.height >= s - 2) {
       e.health = 0;

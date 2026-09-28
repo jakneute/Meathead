@@ -63,6 +63,13 @@ export const victorLayout: StageLayout = {
   drawMid: (ctx, state) => { if (getVictor(state)) drawVictorMid(ctx, state); },
   drawFront: (ctx, state) => { if (getVictor(state)) drawVictorFront(ctx, state); },
   drawHud: (ctx, state) => { if (getVictor(state)) drawVictorHud(ctx, state); },
+  // A clash: the camera pushes in on the two of you
+  // A clash: the camera pushes in on the two of you (and brings you to the middle of the shot)
+  zoom: state => {
+    const d = getVictor(state)?.doorman;
+    if (!d || d.zoom <= 0.01) return null;
+    return { scale: 1 + d.zoom * 0.75, x: d.zoomAt.x, y: d.zoomAt.y, shiftX: (state.camera.x + 400 - d.zoomAt.x) * d.zoom, shiftY: (state.camera.y + 260 - d.zoomAt.y) * d.zoom };
+  },
   drawBackdrop: (ctx, state) => !!getVictor(state) && drawVictorBackdrop(ctx, state),
   // (up the shaft the camera drifts after you rather than jerking to every catwalk)
   cameraEaseY: state => (regionOf(state.player.pos.x) === 'inside' && state.player.pos.x > COURSE.shaft.x1 - 100 ? 0.08 : undefined),
