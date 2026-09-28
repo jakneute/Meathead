@@ -42,7 +42,8 @@ const shootFrom = (state: GameState, e: Enemy, x: number, y: number, tx: number,
     id: `ep-${e.kind}-${state.frame}-${Math.random()}`, pos: { x: x - 5, y: y - 5 }, vel: { x: dir * speed + carry, y: 0 },
     width: 10, height: 10, health: 1, maxHealth: 1, type: 'projectile', damage, owner: 'enemy', shooterKind: e.kind, shot: 'tracer',
   });
-  for (let i = 0; i < 5; i++) state.particles.push({ pos: { x, y }, vel: { x: dir * (1 + Math.random() * 3) + carry, y: (Math.random() - 0.5) * 2 }, life: 7, color: i % 2 ? '#FEF08A' : '#FB923C', size: 3 + Math.random() * 3 });
+  // (a big red-white flash at the muzzle: you see where it's coming from)
+  for (let i = 0; i < 9; i++) state.particles.push({ pos: { x, y }, vel: { x: dir * (1 + Math.random() * 4) + carry, y: (Math.random() - 0.5) * 3 }, life: 10, color: i % 3 === 0 ? '#FFFFFF' : i % 3 === 1 ? '#FF2D2D' : '#FB7185', size: 4 + Math.random() * 4 });
 };
 
 // ---------------------------------------------------------------------------
@@ -106,7 +107,7 @@ const pitbull = (ctx: FrameContext, e: Enemy): boolean => {
 // ---------------------------------------------------------------------------
 
 /** Where a lowrider sits: a chaser this far behind him, a blocker this far ahead; how long it rests between bursts. */
-const CAR_AHEAD = 280, CAR_REST = 170, CAR_BURST = 3, CAR_BURST_GAP = 8;
+const CAR_AHEAD = 280, CAR_REST = 210, CAR_BURST = 3, CAR_BURST_GAP = 8;
 /** How much faster than him it comes through from behind; how gently it keeps its spot out in front; how hard it floors it leaving. */
 const CAR_OVERTAKE = 9, CAR_KEEP = 1.6, CAR_LEAVE = 0.35;
 /** Left behind (he ramped away from it): how much slower than him it drops back, out of it. */

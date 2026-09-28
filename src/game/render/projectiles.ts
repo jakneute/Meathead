@@ -174,14 +174,20 @@ const drawGunShot = (ctx: CanvasRenderingContext2D, p: Projectile, frame: number
   ctx.translate(x, y);
   ctx.rotate(angleOf(p));
   if (p.shot === 'tracer') {
-    // A gangbanger's round: a long hot streak with a glow round it, a bright core outlined dark (easy to see on anything)
-    ctx.fillStyle = 'rgba(248, 113, 113, 0.28)'; ctx.beginPath(); ctx.ellipse(-12, 0, 26, 7, 0, 0, Math.PI * 2); ctx.fill();
-    const trail = ctx.createLinearGradient(-44, 0, 0, 0);
-    trail.addColorStop(0, 'rgba(249, 115, 22, 0)'); trail.addColorStop(1, 'rgba(253, 186, 116, 1)');
-    ctx.fillStyle = trail; ctx.beginPath(); ctx.moveTo(-44, 0); ctx.lineTo(0, -3.5); ctx.lineTo(0, 3.5); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.ellipse(1, 0, 7, 4, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#FDE047'; ctx.beginPath(); ctx.ellipse(1, 0, 5.5, 2.8, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.ellipse(2.5, 0, 2.5, 1.3, 0, 0, Math.PI * 2); ctx.fill();
+    // A gangbanger's round: hot red, nothing like his own yellow ones or the dusk behind it: a big pulsing glow, a long
+    // red streak, a thick dark outline round a core flashing red to white, a ring throbbing off it
+    const pulse = (Math.sin(frame * 0.6 + x * 0.05) + 1) / 2;
+    const glow = ctx.createRadialGradient(0, 0, 2, 0, 0, 22);
+    glow.addColorStop(0, `rgba(255, 60, 60, ${0.55 + pulse * 0.25})`); glow.addColorStop(1, 'rgba(255, 30, 60, 0)');
+    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI * 2); ctx.fill();
+    const trail = ctx.createLinearGradient(-60, 0, 0, 0);
+    trail.addColorStop(0, 'rgba(220, 38, 38, 0)'); trail.addColorStop(0.6, 'rgba(244, 63, 94, 0.8)'); trail.addColorStop(1, 'rgba(255, 228, 230, 1)');
+    ctx.fillStyle = trail; ctx.beginPath(); ctx.moveTo(-60, 0); ctx.lineTo(0, -5); ctx.lineTo(0, 5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#000000'; ctx.beginPath(); ctx.ellipse(1, 0, 10, 6.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = pulse > 0.5 ? '#FF2D2D' : '#FF6B6B'; ctx.beginPath(); ctx.ellipse(1, 0, 8, 4.8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.ellipse(2.5, 0, 3.5 + pulse * 1.5, 2 + pulse, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = `rgba(255, 255, 255, ${0.8 * (1 - pulse)})`; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(1, 0, 10 + pulse * 8, 0, Math.PI * 2); ctx.stroke();
   } else if (p.shot === 'slug') {
     // A hot round: an orange-white streak behind a brass point
     const trail = ctx.createLinearGradient(-26, 0, 0, 0);

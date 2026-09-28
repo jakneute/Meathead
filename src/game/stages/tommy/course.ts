@@ -130,20 +130,20 @@ const build = () => {
   const junk: RoadJunk[] = [];
   const j = (lx: number, look: RoadJunk['look']) => junk.push({ x: HOOD_X0 + ROAD_START + lx, look });
   // One thing at a time to learn early (cones are just for smashing), mixing up through the middle, busy at the end
-  j(900, 'cones'); j(1700, 'trash'); j(2700, 'pothole'); j(3500, 'ramp'); j(4300, 'trash'); j(5100, 'car');
-  j(6000, 'hydrant'); j(6800, 'cones'); j(7300, 'barrier'); j(8200, 'glass'); j(9000, 'pothole'); j(9500, 'trash');
-  j(10400, 'ramp'); j(11200, 'car'); j(12100, 'hydrant'); j(12800, 'barrier'); j(13600, 'glass'); j(14200, 'trash');
-  j(15000, 'car'); j(15700, 'pothole'); j(16300, 'cones'); j(16900, 'hydrant'); j(17600, 'ramp'); j(18300, 'car');
-  j(19000, 'barrier'); j(19600, 'trash'); j(20300, 'glass'); j(20900, 'hydrant'); j(21500, 'car'); j(22200, 'pothole');
-  j(22800, 'barrier'); j(23500, 'trash'); j(24200, 'car'); j(24900, 'cones');
+  j(900, 'cones'); j(1700, 'trash'); j(2700, 'pothole'); j(3500, 'ramp'); j(5100, 'car');
+  j(6000, 'hydrant'); j(6800, 'cones'); j(7300, 'barrier'); j(8200, 'glass'); j(9000, 'pothole');
+  j(10400, 'ramp'); j(11200, 'car'); j(12100, 'hydrant'); j(12800, 'barrier'); j(13600, 'glass');
+  j(15000, 'car'); j(15700, 'pothole'); j(16900, 'hydrant'); j(17600, 'ramp'); j(18300, 'car');
+  j(19000, 'barrier'); j(19600, 'trash'); j(20900, 'hydrant'); j(21500, 'car'); j(22200, 'pothole');
+  j(22800, 'barrier'); j(24200, 'car'); j(24900, 'cones');
   const waves: RoadWave[] = [];
   const w = (lx: number, kind: EnemyKind, from: RoadWave['from'], variant = 0) => waves.push({ at: HOOD_X0 + ROAD_START + lx, kind, from, variant });
   // The rest of the crew, straight after him in the car; the dogs off their chains; more cars joining in
   w(300, 'lowrider', 'behind', 0); w(2300, 'pitbull', 'behind'); w(4000, 'lowrider', 'ahead', 1); w(5800, 'pitbull', 'behind');
-  w(7000, 'lowrider', 'behind', 0); w(8600, 'pitbull', 'behind'); w(9600, 'lowrider', 'ahead', 1); w(11000, 'pitbull', 'behind');
-  w(12300, 'lowrider', 'behind', 0); w(13500, 'lowrider', 'ahead', 1); w(14700, 'pitbull', 'behind'); w(15800, 'lowrider', 'behind', 0);
-  w(17000, 'pitbull', 'behind'); w(17800, 'lowrider', 'ahead', 1); w(19000, 'lowrider', 'behind', 0); w(20100, 'pitbull', 'behind');
-  w(21000, 'lowrider', 'ahead', 1); w(22000, 'lowrider', 'behind', 0); w(23000, 'pitbull', 'behind');
+  w(7000, 'lowrider', 'behind', 0); w(8600, 'pitbull', 'behind'); w(11000, 'pitbull', 'behind');
+  w(12300, 'lowrider', 'behind', 0); w(13500, 'lowrider', 'ahead', 1); w(15800, 'lowrider', 'behind', 0);
+  w(17000, 'pitbull', 'behind'); w(17800, 'lowrider', 'ahead', 1); w(20100, 'pitbull', 'behind');
+  w(21000, 'lowrider', 'ahead', 1); w(23000, 'pitbull', 'behind');
   // Something to pick up along the way (ride through it)
   for (const lx of [6600, 13300, 19800]) r.pickup(lx, Y - 30, 'small_health');
   r.pickup(10000, Y - 30, 'small_ammo');
