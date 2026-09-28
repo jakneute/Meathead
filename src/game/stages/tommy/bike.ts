@@ -439,7 +439,8 @@ const bottle = (ctx: FrameContext, b: BikeRun, talk: Talk): Controls => {
   const next = () => { b.step++; b.stepAt = b.t; };
   const px = p.pos.x + p.width / 2;
   const stopAt = R.hazmat - 330;
-  state.cameraOverride = { x: R.hazmat - 560, y: GROUND_Y - 550 };
+  // (the whole of the open manhole on the screen, its cover and all: that's where he's going)
+  state.cameraOverride = { x: bottleCamX(), y: GROUND_Y - 550 };
   const bt = b.bottle;
   switch (b.step) {
     case bottleSteps.STOP:
@@ -517,7 +518,9 @@ const wipeout = (ctx: FrameContext, b: BikeRun, onSewer: () => void): Controls =
 };
 
 /** The zoom on the bottle (for the stage's zoom hook). */
-export const bottleZoom = (b: BikeRun) => (b.phase === 'bottle' && b.zoom > 0 ? { scale: 1 + b.zoom * 2.2, x: COURSE.road.hazmat - 16, y: GROUND_Y - 84, shiftX: 400 - (COURSE.road.hazmat - 16 - (COURSE.road.hazmat - 560)), shiftY: 0 } : null);
+/** Where the camera sits for the man with the bottle and what follows (the manhole's right there on the screen). */
+const bottleCamX = () => COURSE.road.manhole + 110 - CANVAS_WIDTH;
+export const bottleZoom = (b: BikeRun) => (b.phase === 'bottle' && b.zoom > 0 ? { scale: 1 + b.zoom * 2.2, x: COURSE.road.hazmat - 16, y: GROUND_Y - 84, shiftX: 400 - (COURSE.road.hazmat - 16 - bottleCamX()), shiftY: 0 } : null);
 
 export const isRidingBike = (b: BikeRun) => b.phase === 'riding';
 
