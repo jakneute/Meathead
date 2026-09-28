@@ -96,8 +96,29 @@ const gulches = (state: GameState) => {
  */
 const drawGulch = (ctx: Ctx, state: GameState, x1: number, x2: number, yl: number, yr: number) => {
   const bottom = state.camera.y + CANVAS_HEIGHT + 60;
-  const w = x2 - x1, top = Math.min(yl, yr), depth = Math.max(bottom, top + 60) - top;
+  const w = x2 - x1, top = Math.max(yl, yr), depth = Math.max(bottom, top + 60) - top;
   const seed = Math.round(x1);
+  // Only ever inside the crack itself: from the lower of the two lips down (never out over the sky), its walls
+  // jagged and narrowing down to a slot (not a box)
+  ctx.save();
+  ctx.beginPath();
+  const wallPts = (from: number, dir: 1 | -1) => {
+    const pts: [number, number][] = [[from, top]];
+    let x = from, y = top;
+    for (let k = 0; y < top + 280; k++) {
+      y += 18 + hash(seed + k * 7 + (dir > 0 ? 0 : 90)) * 22;
+      x += dir * (w * 0.05 + hash(seed + k * 11 + (dir > 0 ? 3 : 93)) * w * 0.06);
+      if (Math.abs(x - from) > w * 0.36) x = from + dir * w * 0.36;
+      pts.push([x + dir * (hash(seed + k * 13) - 0.5) * 6, y]);
+    }
+    pts.push([x, top + depth + 20]);
+    return pts;
+  };
+  const left = wallPts(x1, 1), right = wallPts(x2, -1);
+  left.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+  for (let i = right.length - 1; i >= 0; i--) ctx.lineTo(right[i][0], right[i][1]);
+  ctx.closePath();
+  ctx.clip();
   // The far wall, in bands of red rock, darkening with depth
   const bands = ['#B5602F', '#9A4A26', '#C0703A', '#83391E', '#A5532A', '#6E2F18', '#8C4222', '#5A2512'];
   for (let k = 0, y = top; y < top + depth; k++) {
@@ -129,8 +150,8 @@ const drawGulch = (ctx: Ctx, state: GameState, x1: number, x2: number, yl: numbe
     ctx.fillStyle = dir > 0 ? 'rgba(255, 190, 130, 0.18)' : 'rgba(0, 0, 0, 0.25)';
     for (let yy = lip + 12; yy < y; yy += 17) ctx.fillRect(Math.min(from, from + dir * 40), yy, 40, 3);
   };
-  side(x1, 1, yl);
-  side(x2, -1, yr);
+  side(x1, 1, top);
+  side(x2, -1, top);
   // A boulder wedged across partway down, and some dead brush hanging on
   if (w > 110) {
     const bx = x1 + w * (0.35 + hash(seed + 2) * 0.3), by = top + 110 + hash(seed + 3) * 60;
@@ -138,11 +159,15 @@ const drawGulch = (ctx: Ctx, state: GameState, x1: number, x2: number, yl: numbe
     ctx.fillStyle = '#8A4C2C'; ctx.beginPath(); ctx.ellipse(bx - 6, by - 6, 10, 6, 0.2, 0, Math.PI * 2); ctx.fill();
   }
   ctx.strokeStyle = '#6B5A3A'; ctx.lineWidth = 1.5;
-  for (const [x, y, d] of [[x1 + 10, yl + 36, 1], [x2 - 10, yr + 58, -1]] as const) {
+  for (const [x, y, d] of [[x1 + w * 0.12, top + 36, 1], [x2 - w * 0.16, top + 58, -1]] as const) {
     ctx.beginPath(); for (let k = 0; k < 4; k++) { ctx.moveTo(x, y); ctx.lineTo(x + d * (8 + k * 3), y - 4 + k * 4); } ctx.stroke();
   }
   // Blackness at the bottom, a haze of dust over it
   ctx.fillStyle = 'rgba(214, 167, 122, 0.08)'; ctx.fillRect(x1, top + 150, w, 60);
+  ctx.restore();
+  // The edges of the crack: a dark line down each jagged wall
+  ctx.strokeStyle = 'rgba(40, 14, 4, 0.8)'; ctx.lineWidth = 3;
+  for (const pts of [left, right]) { ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke(); }
 };
 
 /**

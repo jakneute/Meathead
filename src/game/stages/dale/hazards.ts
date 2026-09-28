@@ -1,7 +1,7 @@
 // The desert's and the warehouse's hazards.
 //
 //   cacti:    touch one and it hurts, and throws you off it (a goon you shove
-//             into one gets the same, and worse).
+//             into one is done for).
 //   belts:    the warehouse conveyors carry whatever's on them along (the way
 //             you came), and crates of product ride them at you, dropping off
 //             the end and bursting. A crate hurts if it catches you; shoot it or
@@ -24,7 +24,7 @@ export interface Hazards {
 }
 
 export const CRATE = 30;
-const CACTUS_DAMAGE = 12, CACTUS_ENEMY_DAMAGE = 60, CRATE_DAMAGE = 10;
+const CACTUS_DAMAGE = 12, CRATE_DAMAGE = 10;
 
 export const createHazards = (): Hazards => ({
   crates: [],
@@ -111,17 +111,13 @@ const spines = (state: GameState, x: number, y: number) => {
 
 const pricked = (ctx: FrameContext, e: Enemy, c: Cactus) => {
   const { state, fx } = ctx;
-  e.health -= CACTUS_ENEMY_DAMAGE;
-  fx.spawnDamageNumber(e.pos, CACTUS_ENEMY_DAMAGE, true);
+  // Shoved into one, that's it for him
+  e.health = 0;
   spines(state, e.pos.x + e.width / 2, e.pos.y + e.height / 2);
   const away = e.pos.x + e.width / 2 < c.x ? -1 : 1;
-  if (e.health <= 0) {
-    fx.blowAwayEnemy(e, { x: away * 9, y: -12 }, 'charge_kill', away);
-    fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 30 }, 'PINCUSHIONED!', true, '#A3E635');
-    state.player.killSatisfactionTimer = 60;
-  } else {
-    e.vel.x = away * 6; e.vel.y = -7; e.pauseTimer = 20;
-  }
+  fx.blowAwayEnemy(e, { x: away * 9, y: -12 }, 'charge_kill', away);
+  fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 30 }, 'PINCUSHIONED!', true, '#A3E635');
+  state.player.killSatisfactionTimer = 60;
 };
 
 const burst = (ctx: FrameContext, cr: Crate) => {
