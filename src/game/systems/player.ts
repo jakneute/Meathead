@@ -44,11 +44,11 @@ const ANGRY_FRAMES = 50;
 const STEP_UP_HEIGHT = 6;      // any lip this small is stepped over, even in the air
 const STAIR_HEIGHT = 26;       // walking on the ground, he climbs steps up to this tall
 
-export const killPlayer = (ctx: FrameContext, message: string) => {
+export const killPlayer = (ctx: FrameContext, message: string, gore = true) => {
   const { state, fx } = ctx;
   state.deathTimer = DEATH_SCREEN_FRAMES;
   state.deathString = message;
-  fx.spawnDeathShower(state.player.pos, state.player.facing, 3);
+  if (gore) fx.spawnDeathShower(state.player.pos, state.player.facing, 3);
   fx.speakVulgarity('death');
 };
 
@@ -373,7 +373,7 @@ const swim = (player: Player) => {
   if (player.jumpBufferTimer > 0) {
     player.jumpBufferTimer = 0;
     const atSurface = player.pos.y < (player.swimSurfaceY ?? 0) + 24;
-    player.vel.y = atSurface ? SWIM_LEAP : Math.min(player.vel.y, SWIM_STROKE);
+    player.vel.y = atSurface ? player.swimLeap ?? SWIM_LEAP : Math.min(player.vel.y, SWIM_STROKE);
     player.isGrounded = false;
     player.squash = -0.3;
   }

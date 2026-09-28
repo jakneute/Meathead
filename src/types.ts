@@ -116,6 +116,8 @@ export interface Player extends Entity {
   /** In the water (a stage says so each frame): he swims instead of walking and jumping. And where the surface is. */
   swimming?: boolean;
   swimSurfaceY?: number;
+  /** How hard a jump at the surface leaps him out (set by the stage: less out of a shallow pool). */
+  swimLeap?: number;
   skiSpeed?: number;
   /** Not drawn (rolled up inside a snowball, say). */
   hidden?: boolean;

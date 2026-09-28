@@ -118,7 +118,13 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   };
   const layout = getStageLayout(stageId);
   const cylinder = layout?.cylinder?.(state);
-  if (cylinder) drawCylinderWorld(ctx, cylinder.radius, worldPass);
+  if (cylinder) {
+    drawCylinderWorld(ctx, cylinder.radius, worldPass);
+    layout?.drawOverCylinder?.(ctx, state, cylinder.radius, x => {
+      const a = (x - state.camera.x - CANVAS_WIDTH / 2) / cylinder.radius;
+      return a - Math.round(a / (Math.PI * 2)) * Math.PI * 2;
+    });
+  }
   else worldPass(ctx, 0);
   layout?.drawHud?.(ctx, state);
 

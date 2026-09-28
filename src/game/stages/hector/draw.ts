@@ -8,9 +8,10 @@ import { drawBackdrop, drawBackdropFront } from '../../render/backdrops';
 import { COURSE, Plat, Prop, palmTip } from './course';
 import { getHector, regionOf, HectorRuntime } from './runtime';
 import { drawNews } from './news';
+import { drawWaterHazards, drawAirMeter } from './drawWater';
 import { STRIKE_WARN, shockPhase, AWNING_BOUNCE, SEA_DEPTH } from './hazards';
 import { copsLeft } from './beach';
-import { towerFlash, TOWER } from './tower';
+import { towerFlash, TOWER, RISE_WARNING } from './tower';
 import { drawBoatScene, drawBoatFront, drawTowerJunk, drawEyeArena, drawDaycare, drawDaycareFront, drawPoolWater } from './drawSet';
 import { drawEyeHud } from './eyeDraw';
 
@@ -149,6 +150,8 @@ export const drawHectorFront = (ctx: Ctx, state: GameState) => {
     drawWaterFront(ctx, state);
     drawPoolWater(ctx, state);
     drawBoatFront(ctx, state, rt.boat);
+    drawWaterHazards(ctx, state, rt.hazards);
+    drawAirMeter(ctx, state, rt.hazards);
   }
   // Lightning bolts
   for (const s of rt.hazards.strikes) {
@@ -163,7 +166,40 @@ export const drawHectorFront = (ctx: Ctx, state: GameState) => {
     ctx.stroke();
     ctx.restore();
   }
+  if (region === 'tower') drawRisingStorm(ctx, state, rt.tower.riseY);
   if (region === 'daycare') drawDaycareFront(ctx, state, rt.daycare);
+};
+
+/** The storm rising up the tower: a churning wall of cloud, spray and junk swallowing everything below it. */
+const drawRisingStorm = (ctx: Ctx, state: GameState, top: number) => {
+  const bottom = state.camera.y + CANVAS_HEIGHT + 40;
+  if (top > bottom) return;
+  const x0 = state.camera.x - 600, x1 = state.camera.x + CANVAS_WIDTH + 600, f = state.frame;
+  const g = ctx.createLinearGradient(0, top - 30, 0, top + 260);
+  g.addColorStop(0, 'rgba(71, 85, 105, 0.95)'); g.addColorStop(1, '#0F172A');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.moveTo(x0, bottom);
+  for (let x = x0; x <= x1; x += 24) ctx.lineTo(x, top - 18 - Math.abs(Math.sin(x * 0.03 + f * 0.12)) * 26 - Math.sin(x * 0.011 - f * 0.05) * 10);
+  ctx.lineTo(x1, bottom); ctx.closePath(); ctx.fill();
+  // (a line of foam along the crest, so you can see it coming)
+  ctx.strokeStyle = 'rgba(226, 232, 240, 0.85)'; ctx.lineWidth = 3;
+  ctx.beginPath();
+  for (let x = x0; x <= x1; x += 24) { const y = top - 18 - Math.abs(Math.sin(x * 0.03 + f * 0.12)) * 26 - Math.sin(x * 0.011 - f * 0.05) * 10; if (x === x0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+  ctx.stroke();
+  // Spray whipping off the top of it, and junk tumbling in it
+  ctx.fillStyle = 'rgba(226, 232, 240, 0.7)';
+  for (let i = 0; i < 30; i++) {
+    const x = x0 + ((i * 97 + f * (6 + (i % 4))) % (x1 - x0)), y = top - 30 - ((i * 37 + f * 2) % 50);
+    ctx.fillRect(x, y, 10, 2);
+  }
+  ctx.fillStyle = '#78350F';
+  for (let i = 0; i < 8; i++) {
+    const x = x0 + ((i * 211 + f * 4) % (x1 - x0)), y = top + 40 + ((i * 53) % 120);
+    ctx.save(); ctx.translate(x, y); ctx.rotate(f * 0.1 + i); ctx.fillRect(-12, -4, 24, 8); ctx.restore();
+  }
+  // Lightning flickering inside it
+  if (hash(Math.floor(f / 6)) > 0.8) { ctx.fillStyle = 'rgba(224, 231, 255, 0.25)'; ctx.fillRect(x0, top, x1 - x0, bottom - top); }
 };
 
 export const drawHectorHud = (ctx: Ctx, state: GameState) => {
@@ -195,6 +231,13 @@ export const drawHectorHud = (ctx: Ctx, state: GameState) => {
   }
   ctx.restore();
   drawEyeHud(ctx, state, rt.eye);
+  // Up the storm: it's rising under you
+  if (regionOf(state.player.pos.x) === 'tower' && rt.tower.inT > 30 && rt.tower.inT < RISE_WARNING && Math.floor(state.frame / 10) % 3 !== 0) {
+    ctx.save(); ctx.textAlign = 'center'; ctx.font = 'bold 16px "Press Start 2P"';
+    ctx.fillStyle = '#000'; ctx.fillText("THE STORM'S RISING! CLIMB!", CANVAS_WIDTH / 2 + 2, 152);
+    ctx.fillStyle = '#FDE047'; ctx.fillText("THE STORM'S RISING! CLIMB!", CANVAS_WIDTH / 2, 150);
+    ctx.restore();
+  }
   drawNews(ctx, state, rt.news);
   // Whiteouts: the jump up to the Eye, and the storm dying
   const flash = Math.max(towerFlash(rt.tower), rt.clearT > 0 ? (rt.clearT < 40 ? rt.clearT / 40 : Math.max(0, 1 - (rt.clearT - 40) / 50)) : 0);

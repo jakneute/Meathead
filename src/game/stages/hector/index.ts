@@ -11,6 +11,7 @@ import { updateEye, hitEye } from './eye';
 import { hazardDeathMessage, waterZones } from './hazards';
 import { drawHectorBack, drawHectorMid, drawHectorFront, drawHectorHud, drawHectorBackdrop, drawHectorWeather } from './draw';
 import { drawEye } from './eyeDraw';
+import { drawSharksRound } from './drawSet';
 import { TOWER } from './tower';
 
 export const hectorLayout: StageLayout = {
@@ -48,6 +49,8 @@ export const hectorLayout: StageLayout = {
     return e.kind === 'eye' && rt ? hitEye(ctx, e, p, rt.eye) : undefined;
   },
   drawSpecialEnemy: (ctx, e, state) => {
+    // (up the storm the sharks are out in the air round it, not painted on it: they're drawn over it, flat)
+    if (e.kind === 'shark' && regionOf(state.player.pos.x) === 'tower') return true;
     if (e.kind !== 'eye') return false;
     const rt = getHector(state);
     if (rt) drawEye(ctx, state, rt.eye, e);
@@ -60,6 +63,7 @@ export const hectorLayout: StageLayout = {
   drawBackdrop: (ctx, state) => !!getHector(state) && drawHectorBackdrop(ctx, state),
   drawBackdropFront: (ctx, state) => !!getHector(state) && drawHectorWeather(ctx, state),
   // Climbing the storm: the world's wrapped round the eye wall
+  drawOverCylinder: (ctx, state, radius, around) => drawSharksRound(ctx, state, radius, around),
   cylinder: state => (regionOf(state.player.pos.x) === 'tower' ? { radius: TOWER.radius } : null),
   // (up the storm, every ledge is a different height: the camera drifts after him rather than jerking to each one)
   cameraEaseY: state => (regionOf(state.player.pos.x) === 'tower' ? 0.06 : undefined),

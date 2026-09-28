@@ -2,7 +2,7 @@ import { Player, WeaponType } from '../../types';
 import { BOULDER_THROW_FRAMES, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../constants';
 import { peeProgress } from '../victoryPee';
 import { SLIDE_HOLD } from '../muzzle';
-import { drawShoulderCharge, drawUppercut, drawDivekick } from './playerMoves';
+import { drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick } from './playerMoves';
 import { GameState } from '../state';
 import { beginSprite, endSprite } from './spriteOutline';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawTorsoBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './meatheadGore';
@@ -79,6 +79,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const isDivekicking = !!p.isDivekicking;
   const isDucking = p.isDucking;
   const isAirborne = !p.isGrounded;
+  // In the water (off the bottom): arms stroking, legs kicking; freestyle when he's going somewhere, treading water when he isn't
+  const isSwimming = !!p.swimming && !p.isGrounded && hurtT < 0;
+  const swimMoving = isSwimming && Math.abs(p.vel.x) > 0.8;
   // (on skis he glides in a stance rather than running)
   const isWalking = !p.skiing && p.isGrounded && Math.abs(p.vel.x) > 0.4 && !isCharging && !isDucking && !isDivekicking;
   const isIdle = p.isGrounded && !isWalking && !isCharging && !isDucking && !isUppercutting && !isDivekicking && !isHurt;
@@ -106,7 +109,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
 
   // Squash on landing, stretch on take-off and when moving fast vertically
   const isSpecial = p.isCharging || p.isUppercutting || !!p.isDivekicking;
-  const airStretch = !p.isGrounded && !isSpecial ? Math.min(1, Math.abs(p.vel.y) / PLAYER_TERMINAL_VELOCITY) * 0.1 : 0;
+  const airStretch = !p.isGrounded && !isSpecial && !p.swimming ? Math.min(1, Math.abs(p.vel.y) / PLAYER_TERMINAL_VELOCITY) * 0.1 : 0;
   const squash = p.squash || 0;
   ctx.scale(1 + squash * 0.25 - airStretch * 0.5, 1 - squash * 0.25 + airStretch);
 
@@ -117,7 +120,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     return;
   }
   // The special moves are full poses of their own (unless he's been knocked out of one)
-  const movePose = hurtT >= 0 ? null : isCharging ? drawShoulderCharge : isUppercutting ? drawUppercut : (isDivekicking || (p.kickPose || 0) > 0) ? drawDivekick : null;
+  const movePose = hurtT >= 0 ? null : isCharging ? (p.swimming ? drawSwimCharge : drawShoulderCharge) : isUppercutting ? drawUppercut : (isDivekicking || (p.kickPose || 0) > 0) ? drawDivekick : null;
   if (movePose) {
     movePose(ctx, animFrame);
     finishBody();
@@ -181,6 +184,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     bodyY = -walkBob;
   } else if (isIdle) {
     bodyY = -idleBreath * 0.5;
+  } else if (isSwimming) {
+    bodyRot = swimMoving ? 0.3 : 0.02;
+    bodyY = Math.sin(animFrame * 0.12) * 2;
   } else if (isAirborne) {
     bodyRot = -0.03 + airFall * 0.06; // leaning back a touch on the way up, forward coming down
   }
@@ -269,7 +275,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   } else {
     // Idle / Walk pumping arm in opposition
     // Held a little back while he's in the air
-    const armAngle = isWalking ? -walkStride * 0.6
+    const armAngle = isSwimming ? (swimMoving ? (animFrame * 0.2) % (Math.PI * 2) : 0.9 + Math.sin(animFrame * 0.15) * 0.9)
+      : isWalking ? -walkStride * 0.6
       : isAirborne ? 0.3 + airFall * 0.3
       : Math.sin(animFrame * 0.08) * 0.1;
     ctx.save();
@@ -398,6 +405,12 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // Knee pad on the front thigh
     ctx.fillStyle = '#27272A';
     ctx.beginPath(); ctx.ellipse(17, -9.5, 3, 2.5, 0.3, 0, Math.PI * 2); ctx.fill();
+  } else if (isSwimming) {
+    // Kicking: a fast flutter kick when he's swimming somewhere, a slow scissor treading water
+    const k = Math.sin(animFrame * (swimMoving ? 0.45 : 0.18));
+    const reach = swimMoving ? 0.35 : 0.25;
+    drawJointedLeg(ctx, -4, -22, 0.1 + k * reach, 0.3 + Math.max(0, k) * 0.3, pantsShadow, false);
+    drawJointedLeg(ctx, 5, -22, 0.1 - k * reach, 0.3 + Math.max(0, -k) * 0.3, pantsColor, true);
   } else if (isAirborne) {
     // Jumping: lead knee comes up a bit on the way up, legs straighten for the landing coming down
     const fall = airFall;

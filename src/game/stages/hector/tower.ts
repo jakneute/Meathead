@@ -22,13 +22,19 @@ export interface TowerRun {
   u: number[];
   /** Transition up to the Eye: frames of the flash (0 = not started). */
   exitT: number;
-  /** The highest he's stood (feet y), and frames of him being ripped away by the storm (0 = not). */
-  bestY: number;
+  /** The churning storm rising up the tower under him (its top, world y), and frames he's been in the tower. */
+  riseY: number;
+  inT: number;
+  /** Frames of him being ripped away by the storm (0 = not). */
   suckT: number;
 }
 
-/** Fall this far below the highest you've stood (about a screen) and the storm has you. */
-const FALL_LIMIT = 560;
+/** The storm rising under you: its speed, how much faster it comes if it's far behind, and how far behind that is. */
+const RISE_SPEED = 0.6, RISE_CATCHUP = 0.01, RISE_SLACK = 520;
+/** It starts just under the floor you land on, its crest showing at the bottom of the screen, and gives you a second to see it. */
+const RISE_START = 60, RISE_GRACE = 60;
+/** It's rising: CLIMB! (how long that's up for) */
+export const RISE_WARNING = 200;
 const SUCK_FRAMES = 36;
 
 const T = COURSE.tower;
@@ -47,7 +53,7 @@ export const createTowerRun = (state: GameState, startedAt: number): TowerRun =>
     for (const s of T.sharks) state.enemies.push(makeKindEnemy('shark', T.x0 + s.u, s.y));
     T.pickups.forEach((p, i) => state.pickups.push({ id: `tower-pickup-${i}`, pos: { x: T.x0 + p.u - 10, y: p.y - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: p.type, life: 1e9 }));
   }
-  return { copies, u: T.plats.map(p => p.u), exitT: 0, bestY: T.floorY, suckT: 0 };
+  return { copies, u: T.plats.map(p => p.u), exitT: 0, riseY: T.floorY + RISE_START, inT: 0, suckT: 0 };
 };
 
 /** Shift everything in the tower a lap sideways (walking off one side of the lap onto the other). */
@@ -96,10 +102,13 @@ export const updateTower = (ctx: FrameContext, tr: TowerRun, onTop: () => void) 
   });
   // Swirling spray whipping round
   if (state.frame % 3 === 0) state.particles.push({ pos: { x: state.camera.x + Math.random() * 800, y: state.camera.y + Math.random() * 600 }, vel: { x: -6 - Math.random() * 4, y: 1 + Math.random() }, life: 30, color: 'rgba(200, 220, 240, 0.6)', size: 2 });
-  // Fallen too far: the wind tears him off the junk and up into the storm
+  // The storm rising up the tower under him once he's started climbing (quicker if it's fallen far behind)
   const feet = player.pos.y + player.height;
-  if (player.isGrounded) tr.bestY = Math.min(tr.bestY, feet);
-  if (tr.suckT === 0 && tr.exitT === 0 && state.deathTimer <= 0 && !player.isGrounded && feet > tr.bestY + FALL_LIMIT) {
+  tr.inT++;
+  if (tr.inT === RISE_GRACE) { playSound('thunder'); shakeScreen(state, 30, 4); }
+  if (tr.inT > RISE_GRACE && tr.exitT === 0 && tr.suckT === 0) tr.riseY -= RISE_SPEED + Math.max(0, tr.riseY - feet - RISE_SLACK) * RISE_CATCHUP;
+  // It's caught him: the wind tears him off the junk and up into the storm
+  if (tr.suckT === 0 && tr.exitT === 0 && state.deathTimer <= 0 && player.pos.y + player.height / 2 > tr.riseY) {
     tr.suckT = 1;
     playSound('thunder');
     shakeScreen(state, 20, 6);

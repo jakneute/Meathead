@@ -11,7 +11,7 @@ import { playSound } from '../../audio';
 import { COURSE, CP, palmTip } from './course';
 import { GROUND_Y } from '../../../constants';
 import { Beach, createBeach, updateBeach } from './beach';
-import { Hazards, createHazards, updateHazards } from './hazards';
+import { Hazards, createHazards, updateHazards, waterZones } from './hazards';
 import { Boat, createBoat, updateBoat } from './boat';
 import { TowerRun, createTowerRun, updateTower, inTower, TOWER } from './tower';
 import { EyeFight, createEyeFight, updateEyeFight, inEyeArena } from './eye';
@@ -60,6 +60,14 @@ export const createHectorRuntime = (state: GameState, skipToBoss: boolean): Hect
     }
   }
   // (the tower's platforms go in first: its trampolines are bouncy like the awnings)
+  // Refills down on the sea bed, to make it worth diving for
+  if (startedAt <= CP.MARINA) {
+    const fromX = startedAt > 0 ? start.x : -Infinity;
+    waterZones(state).filter(z => z.bottom > COURSE.sea.y + 100 && z.x2 - z.x1 > 100 && z.x1 > fromX && z.x1 < COURSE.sea.x1).forEach((z, i) => {
+      const type = (['large_health', 'large_ammo', 'small_health', 'small_ammo'] as const)[i % 4];
+      state.pickups.push({ id: `hector-seabed-${i}`, pos: { x: (z.x1 + z.x2) / 2 - 10, y: z.bottom - 22 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
+    });
+  }
   const tower = createTowerRun(state, startedAt);
   const rt: HectorRuntime = {
     startedAt,
@@ -111,7 +119,7 @@ export const updateHector = (ctx: FrameContext, controls: Controls): Controls =>
   // (skipping a line of the news goes by the real buttons)
   updateNews(ctx, rt.news, controls, () => startDaycare(state, rt.daycare, true));
   // The Eye's dead: hands off while it dies and the storm clears
-  if ((region === 'eye' && (rt.eye.phase === 'dead' || rt.eye.phase === 'done')) || newsOn(rt.news)) {
+  if ((region === 'eye' && (rt.eye.phase === 'dead' || rt.eye.phase === 'done')) || newsOn(rt.news) || rt.hazards.drownT > 0) {
     controls = { ...NO_CONTROLS };
     player.isCharging = false; player.isSliding = false; player.isUppercutting = false; player.isDivekicking = false;
   }

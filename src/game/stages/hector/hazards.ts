@@ -11,7 +11,9 @@
 //   awnings:   land on one and it bounces you way up (so does a trampoline in
 //              the storm tower).
 //   floats:    docks bobbing on the swell; they carry you up and down.
-//   the sea:   fall in the water and it's over.
+//   the water: you swim in it; stay under too long and you drown (you've a
+//              generous lungful), and lightning striking the water you're in
+//              kills you outright.
 //
 // Hazards hurt the enemies too (lightning fries them, debris bowls them over,
 // the live water cooks them).
@@ -21,10 +23,12 @@ import type { FrameContext } from '../../context';
 import type { GameState } from '../../state';
 import { shakeScreen } from '../../state';
 import { hurtPlayer } from '../../bosses/shared';
+import { SWIM_LEAP, PLAYER_GRAVITY, GROUND_Y } from '../../../constants';
 import { playSound } from '../../audio';
 import { floorTopAt } from '../../terrain';
 import { rectsOverlap, boundsOf, isOnScreen } from '../../utils';
 import { COURSE } from './course';
+import { killPlayer } from '../../systems/player';
 
 export interface Strike { x: number; ground: number; t: number }
 export interface Debris { x: number; y: number; vx: number; rot: number; look: 'chair' | 'umbrella' | 'trashcan' | 'cooler'; size: number; warn: number }
@@ -43,6 +47,14 @@ export interface Hazards {
   lastCause: string;
   lastCauseAt: number;
   water: WaterZone[];
+  /** Air left (1 full, 0 drowning), and frames since he started drowning (0 = not). */
+  o2: number;
+  drownT: number;
+  /** Where he went under for the last time. */
+  drownAt: { x: number; y: number; surface: number } | null;
+  /** Lightning's just hit the water: which stretch of it, and frames since. */
+  zap: { zone: WaterZone; t: number } | null;
+  splashAt: number;
 }
 
 export const STRIKE_WARN = 55, STRIKE_FLASH = 10;
@@ -50,6 +62,10 @@ const STRIKE_DAMAGE = 16, STRIKE_ENEMY_DAMAGE = 90, STRIKE_HALF_WIDTH = 26;
 const DEBRIS_WARN = 45, DEBRIS_DAMAGE = 10;
 const SHOCK_DAMAGE = 8, SHOCK_WARN = 40;
 export const AWNING_BOUNCE = 17.5;
+/** Frames of air: a good 20 seconds under before he runs out; it comes back four times as fast. */
+const O2_FRAMES = 1200, O2_REFILL = 4;
+/** How long the drowning plays before it's over (he keeps floating there after). */
+export const DROWN_FRAMES = 170;
 
 export const createHazards = (state: GameState): Hazards => {
   const floatBlocks = COURSE.floats.map((f, i): Block => ({ x: f.x, y: f.y, w: f.w, h: 16, type: 'platform', hidden: true, oneWay: true, tag: `float-${i}` }));
@@ -61,6 +77,7 @@ export const createHazards = (state: GameState): Hazards => {
     floatBlocks, awningBlocks, awningWobble: awningBlocks.map(() => 0),
     lastCause: '', lastCauseAt: -999,
     water: waterZones(state),
+    o2: 1, drownT: 0, drownAt: null, zap: null, splashAt: -999,
   };
 };
 
@@ -78,6 +95,8 @@ export const shockPhase = (z: { on: number; off: number; phase: number }, frame:
 
 export const updateHazards = (ctx: FrameContext, hz: Hazards, stormy: boolean) => {
   const { state } = ctx;
+  updateDrowning(ctx, hz);
+  if (hz.zap && ++hz.zap.t > 30) hz.zap = null;
   updateFloats(state, hz);
   updateAwnings(ctx, hz);
   if (stormy) {
@@ -133,9 +152,15 @@ const updateLightning = (ctx: FrameContext, hz: Hazards) => {
     if (px < z.x1 - 200 || px > z.x2) return;
     if (--hz.strikeTimers[i] > 0) return;
     hz.strikeTimers[i] = z.every + Math.floor(Math.random() * 40);
-    // Aimed: where he's headed; the lesson ones land out ahead of him on open ground
-    const x = z.aimed ? px + player.vel.x * 22 + (Math.random() - 0.5) * 60 : px + 260 + Math.random() * 140;
-    hz.strikes.push({ x, ground: groundAt(state, x), t: 0 });
+    // Aimed: where he's headed; the lesson ones land out ahead of him on open ground.
+    // (While he's swimming they're not aimed at him: every so often one just hits the water somewhere near, and the water crackles first)
+    const swimming = player.swimming && z.aimed;
+    if (swimming) hz.strikeTimers[i] += z.every;
+    const x = swimming ? px + (Math.random() < 0.5 ? -1 : 1) * (120 + Math.random() * 260)
+      : z.aimed ? px + player.vel.x * 22 + (Math.random() - 0.5) * 60 : px + 260 + Math.random() * 140;
+    // (over the water it comes down on the surface)
+    const wet = waterAt(hz, x);
+    hz.strikes.push({ x, ground: wet ? wet.surface : groundAt(state, x), t: 0 });
   });
   hz.strikes = hz.strikes.filter(s => {
     s.t++;
@@ -147,6 +172,23 @@ const updateLightning = (ctx: FrameContext, hz: Hazards) => {
       for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: s.x, y: s.ground - 4 }, vel: { x: (Math.random() - 0.5) * 10, y: -Math.random() * 8 }, life: 20 + Math.random() * 15, color: i % 2 ? '#FDE047' : '#F8FAFC', size: 2 + Math.random() * 4 });
       const col = { x: s.x - STRIKE_HALF_WIDTH, y: s.ground - 900, w: STRIKE_HALF_WIDTH * 2, h: 900 };
       if (rectsOverlap(col, boundsOf(player))) hurt(ctx, hz, STRIKE_DAMAGE, 'lightning', { x: (player.pos.x + player.width / 2 < s.x ? -1 : 1) * 6, y: -8 });
+      // Into the water: the whole stretch of it lights up, and anything swimming in it is cooked
+      const wet = waterAt(hz, s.x);
+      if (wet) {
+        hz.zap = { zone: wet, t: 0 };
+        const pcx = player.pos.x + player.width / 2;
+        if (player.swimming && pcx > wet.x1 && pcx < wet.x2 && state.deathTimer <= 0 && hz.drownT <= 0) {
+          hz.lastCause = 'zapped'; hz.lastCauseAt = state.frame;
+          const lines = ['ELECTROCUTED IN THE WATER', 'NEVER SWIM IN A LIGHTNING STORM', 'SEAFOOD BOIL', 'SHOCKINGLY STUPID'];
+          killPlayer(ctx, lines[Math.floor(Math.random() * lines.length)]);
+        }
+        for (const e of state.enemies) {
+          const ex = e.pos.x + e.width / 2;
+          if (e.health <= 0 || e.isBlownAway || e.innocent || ex < wet.x1 || ex > wet.x2 || e.pos.y + e.height < wet.surface) continue;
+          e.health = 0;
+          fx.killWithAnimation(e, 'fried', 'taser_kill', 'fried');
+        }
+      }
       for (const e of state.enemies) {
         if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || e.kind === 'eye' || e.innocent || !isOnScreen(state.camera, e) || !rectsOverlap(col, boundsOf(e))) continue;
         e.health -= STRIKE_ENEMY_DAMAGE;
@@ -223,14 +265,18 @@ const updateShocks = (ctx: FrameContext, hz: Hazards) => {
       if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || e.kind === 'eye' || e.innocent || e.enemyType === 'flyer' || !isOnScreen(state.camera, e)) continue;
       const ex = e.pos.x + e.width / 2;
       if (ex < z.x1 || ex > z.x2 || Math.abs(e.pos.y + e.height - z.y) > 4) continue;
+      // Fried where they stand: sparks crawling over them, a jolt, the damage ticking up
       e.health -= 2;
+      e.hitFlash = 2;
+      if (state.frame % 3 === 0) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + Math.random() * e.height }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 10, color: Math.random() > 0.5 ? '#FDE047' : '#E0FFFF', size: 2 + Math.random() * 3 });
+      if (state.frame % 12 === 0) { fx.spawnDamageNumber({ x: e.pos.x + e.width / 2, y: e.pos.y - 10 }, 24, false, '#FDE047'); e.pos.x += (Math.random() - 0.5) * 4; }
       if (e.health <= 0) fx.killWithAnimation(e, 'fried', 'taser_kill', 'fried');
     }
   });
 };
 
 /** Where the water is: the sea under the piers and docks and out past the marina, and the motel pool. */
-export interface WaterZone { x1: number; x2: number; surface: number; bottom: number }
+export interface WaterZone { x1: number; x2: number; surface: number; bottom: number; leap: number }
 /** How deep the sea is under the docks. */
 export const SEA_DEPTH = 230;
 
@@ -239,8 +285,12 @@ export const waterZones = (state: GameState): WaterZone[] => {
   state.groundRuns.forEach((r, i) => {
     if (r.pitAfter === 'water') {
       const next = state.groundRuns[i + 1];
-      zones.push({ x1: r.x2, x2: next && next.x1 > r.x2 ? next.x1 : COURSE.sea.x2, surface: COURSE.sea.y, bottom: COURSE.sea.y + SEA_DEPTH });
-    } else if (r.surface === 'pool') zones.push({ x1: r.x1, x2: r.x2, surface: COURSE.sea.y, bottom: r.y1 });
+      zones.push({ x1: r.x2, x2: next && next.x1 > r.x2 ? next.x1 : COURSE.sea.x2, surface: COURSE.sea.y, bottom: COURSE.sea.y + SEA_DEPTH, leap: SWIM_LEAP });
+    } else if (r.surface === 'pool') {
+      // (a shallow pool: just enough of a hop to get back up over the edge onto the lot)
+      const rise = r.y1 - GROUND_Y + 30;
+      zones.push({ x1: r.x1, x2: r.x2, surface: COURSE.sea.y, bottom: r.y1, leap: -Math.sqrt(2 * PLAYER_GRAVITY * rise) * 0.6 });
+    }
   });
   return zones;
 };
@@ -254,13 +304,55 @@ const updateSwimming = (ctx: FrameContext, hz: Hazards) => {
   const was = p.swimming;
   p.swimming = !!zone && !p.skiing && !p.inCutscene;
   p.swimSurfaceY = zone?.surface;
-  if (p.swimming && !was) {
-    // Splash
+  p.swimLeap = zone?.leap;
+  // (just in: no bolt comes down on the water for a couple of seconds at least)
+  if (p.swimming && !was) hz.strikeTimers = hz.strikeTimers.map(t => Math.max(t, 150));
+  if (p.swimming && !was && p.vel.y > 3 && state.frame - hz.splashAt > 40) {
+    // Splash (a real one: falling in, not bobbing at the surface)
+    hz.splashAt = state.frame;
     for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: cx, y: zone!.surface }, vel: { x: (Math.random() - 0.5) * 7, y: -2 - Math.random() * 5 }, life: 26, color: i % 2 ? '#E0F2FE' : '#7DD3FC', size: 3 + Math.random() * 4 });
     ctx.fx.playGunSound('tsunami');
   }
   if (p.swimming && state.frame % 14 === 0) state.particles.push({ pos: { x: p.pos.x + p.width / 2 + p.facing * 8, y: p.pos.y + 10 }, vel: { x: 0, y: -1.2 }, life: 40, color: 'rgba(224, 242, 254, 0.8)', size: 3 });
+  // Holding his breath while his head's under
+  if (hz.drownT > 0 || state.deathTimer > 0) return;
+  if (headUnder(p)) {
+    hz.o2 = Math.max(0, hz.o2 - 1 / O2_FRAMES);
+    if (hz.o2 < 0.25 && state.frame % 20 === 0) playSound('tinkle');
+    if (hz.o2 <= 0) {
+      // Out of air
+      hz.drownT = 1;
+      hz.drownAt = { x: p.pos.x, y: p.pos.y, surface: zone?.surface ?? COURSE.sea.y };
+      p.hidden = true;
+      p.vel = { x: 0, y: 0 };
+      p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false;
+    }
+  } else hz.o2 = Math.min(1, hz.o2 + O2_REFILL / O2_FRAMES);
 };
+
+/** His head's under the water. */
+export const headUnder = (p: GameState['player']) => !!p.swimming && p.pos.y + 6 > (p.swimSurfaceY ?? Infinity);
+
+/** Drowning: he flails, blows out the last of his air, goes limp and floats up belly first. Then it's over. */
+const updateDrowning = (ctx: FrameContext, hz: Hazards) => {
+  const { state } = ctx;
+  const p = state.player;
+  if (hz.drownT <= 0) return;
+  hz.drownT++;
+  p.hidden = true;
+  p.vel = { x: 0, y: 0 };
+  p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
+  if (hz.drownAt) p.pos = { x: hz.drownAt.x, y: hz.drownAt.y };
+  if (hz.drownT === 40) playSound('barf');
+  if (hz.drownT === DROWN_FRAMES && state.deathTimer <= 0) {
+    const lines = ['SLEEPING WITH THE FISHES', 'SHOULD HAVE TAKEN SWIM LESSONS', 'FORGOT TO BREATHE', 'GLUB GLUB GLUB'];
+    hz.lastCause = 'drowned'; hz.lastCauseAt = state.frame;
+    killPlayer(ctx, lines[Math.floor(Math.random() * lines.length)], false);
+  }
+};
+
+/** Where a bolt coming down at x hits the water (if it does). */
+const waterAt = (hz: Hazards, x: number) => hz.water.find(z => x > z.x1 && x < z.x2);
 
 /** A death message for how he just died here, if a hazard did it. */
 export const hazardDeathMessage = (state: GameState, hz: Hazards): string | undefined => {

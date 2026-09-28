@@ -232,6 +232,54 @@ const chargeBody = (ctx: Ctx, frame: number, main: boolean) => {
 };
 
 // ---------------------------------------------------------------------------
+// Shoulder charge underwater: a torpedo
+// ---------------------------------------------------------------------------
+
+/** Laid out flat, fists out in front, legs together dolphin-kicking, a trail of bubbles. */
+export const drawSwimCharge = (ctx: Ctx, frame: number) => {
+  frameNow = frame;
+  // Bubbles streaming off behind him
+  for (let i = 0; i < 7; i++) {
+    const d = (frame * 5 + i * 13) % 70;
+    ctx.strokeStyle = `rgba(224, 242, 254, ${0.9 - d / 90})`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(-34 - d, -32 + Math.sin(i * 2.1 + frame * 0.3) * 8, 2 + (i % 3), 0, Math.PI * 2); ctx.stroke();
+  }
+  ghosts(ctx, 2, k => [-k * 16, 0], 'saturate(0.4) brightness(1.3) hue-rotate(170deg)', k => torpedoBody(ctx, frame - k * 3, false));
+  torpedoBody(ctx, frame, true);
+};
+
+const torpedoBody = (ctx: Ctx, frame: number, main: boolean) => {
+  ctx.save();
+  // Flat out, head first (turned about his middle)
+  ctx.translate(0, -30);
+  ctx.rotate(1.35);
+  ctx.translate(0, 30);
+  // Legs together behind him, dolphin kicking
+  const k = Math.sin(frame * 0.5) * 5;
+  leg(ctx, [-3, -24], [-3 + k * 0.5, -12], [-2 + k, -1], 0.2, true);
+  leg(ctx, [3, -24], [3 + k * 0.5, -12], [4 + k, -1], -0.1, false);
+  ctx.translate(0, -24);
+  // Both arms stretched out ahead, fists together: he's a missile
+  arm(ctx, [-6, -22], [-5, -36], [-2, -50], true);
+  torso(ctx);
+  ctx.save();
+  ctx.translate(2, -32);
+  head(ctx, 0, 0, 'grit');
+  ctx.restore();
+  arm(ctx, [6, -22], [5, -37], [2, -51], false, 6.5);
+  ctx.restore();
+  if (!main) return;
+  // The water parting round his fists: a bow wave out in front
+  for (let j = 0; j < 3; j++) {
+    const t = ((frame * 2 + j * 7) % 21) / 21;
+    ctx.strokeStyle = `rgba(224, 242, 254, ${0.8 * (1 - t)})`;
+    ctx.lineWidth = 2.5 - t;
+    ctx.beginPath(); ctx.arc(40 + t * 18, -34, 8 + t * 12, -1.2, 1.2); ctx.stroke();
+  }
+};
+
+// ---------------------------------------------------------------------------
 // Uppercut
 // ---------------------------------------------------------------------------
 

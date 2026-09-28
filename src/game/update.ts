@@ -478,9 +478,13 @@ const updateCamera = (ctx: FrameContext) => {
   if (layout?.verticalCamera && !state.arenaLocked && state.victoryString === "" && state.doorState !== 'done') {
     const row = player.skiing ? CAMERA_SKI_ROW : CAMERA_GROUND_ROW;
     const feet = player.pos.y + player.height;
+    // (the bottom of the sea only counts once he's under: bobbing at the surface, or falling in, it stays up top)
+    const underwater = !!player.swimming && player.pos.y > (player.swimSurfaceY ?? Infinity);
+    const floors = underwater ? state.blocks : state.blocks.filter(b => b.tag !== 'seabed');
     // Ground under him (null over a pit, where the camera doesn't follow him down)
-    const below = floorTopAt(state.blocks, player.pos.x + player.width / 2, feet, 0);
-    if (player.isGrounded) state.cameraRestY = feet - row;
+    const below = floorTopAt(floors, player.pos.x + player.width / 2, feet, 0);
+    if (player.swimming && !underwater) state.cameraRestY = (player.swimSurfaceY ?? feet) + 10 - row;
+    else if (player.isGrounded) state.cameraRestY = feet - row;
     // Dropping toward lower ground: head down to meet it rather than waiting for him to land
     else if (player.vel.y > 0 && below !== null) state.cameraRestY = Math.max(state.cameraRestY, below - row);
     const target = Math.min(state.cameraRestY, player.pos.y - CAMERA_TOP_MARGIN);

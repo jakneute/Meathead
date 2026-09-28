@@ -53,6 +53,11 @@ export interface StageLayout {
   drawBackdropFront?: (ctx: CanvasRenderingContext2D, state: GameState) => boolean;
   /** The world's wrapped round a rotating cylinder of this radius right now (the storm climb), or null. */
   cylinder?: (state: GameState) => { radius: number } | null;
+  /**
+   * Drawn over the wrapped cylinder, flat (things out in the air round it, not on its surface).
+   * `around(x)` gives a world x's angle round the cylinder from the middle of the view (0 dead ahead, ±PI/2 the edges, beyond that round the back).
+   */
+  drawOverCylinder?: (ctx: CanvasRenderingContext2D, state: GameState, radius: number, around: (worldX: number) => number) => void;
   /** Where you start when you go straight to the boss (or die to him), if not the usual spot just outside his door. */
   bossStartX?: number;
   /** How quickly the vertical camera settles (default 0.2 a frame): lower is gentler, for a climb of lots of little ledges. */

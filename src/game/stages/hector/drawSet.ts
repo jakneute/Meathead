@@ -12,6 +12,7 @@ import { TOWER } from './tower';
 import type { EyeFight } from './eye';
 import type { Daycare } from './daycare';
 import { drawEyeCorpse } from './eyeDraw';
+import { drawKindEnemy } from '../../render/kinds';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -197,6 +198,31 @@ export const drawJunk = (ctx: Ctx, x: number, y: number, w: number, look: string
       ctx.fillStyle = '#A16207'; ctx.fillRect(x, y, w, 12);
       ctx.fillStyle = '#854D0E'; ctx.fillRect(x, y + 8, w, 4);
       ctx.fillStyle = '#44403C'; ctx.fillRect(x + 6, y + 4, 3, 3); ctx.fillRect(x + w - 10, y + 4, 3, 3);
+  }
+};
+
+/**
+ * The sharks circling in the storm, drawn flat over the wrapped tower. Where one is
+ * round the cylinder says how it's drawn: dead ahead it's full size, toward the
+ * edges it shrinks and fades as it swims away round the side, and round the back
+ * of the storm it's out of sight altogether.
+ */
+export const drawSharksRound = (ctx: Ctx, state: GameState, radius: number, around: (x: number) => number) => {
+  for (const e of state.enemies) {
+    if (e.kind !== 'shark' || (e.health <= 0 && !e.isBlownAway)) continue;
+    const a = around(e.pos.x + e.width / 2);
+    const facing = Math.cos(a);
+    if (facing <= 0.05) continue;
+    const sx = CANVAS_WIDTH / 2 + Math.sin(a) * radius, sy = e.pos.y + e.height / 2 - state.camera.y;
+    const k = 0.7 + 0.3 * facing;
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, facing * 3);
+    ctx.translate(sx, sy);
+    if (e.isBlownAway) ctx.rotate(e.rotation || 0);
+    ctx.scale(k, k);
+    ctx.translate(-(e.pos.x + e.width / 2), -(e.pos.y + e.height / 2));
+    drawKindEnemy(ctx, e, state);
+    ctx.restore();
   }
 };
 

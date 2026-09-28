@@ -5,7 +5,8 @@
 //   gator:    on land it lies still, jaws shut, until you're close; then it
 //             hisses, lunges in a short fast burst and snaps. In the water
 //             (variant 1) it waits under the surface and breaches up at you
-//             as you jump over.
+//             as you jump over; get in the water with it and it comes for you,
+//             fast, and doesn't let up till you're out.
 //   pelican:  cruises high, then swoops down to head height and skims along
 //             the ground at you in a long shallow U, and climbs away.
 //   iguana:   clings to the top of a palm until you walk underneath, drops
@@ -15,7 +16,8 @@
 //             Low enough that a standing shot goes over it: duck, slide or stomp.
 //   civilian: a beachgoer doing their thing. When somebody gets shot (or the
 //             storm hits) they all run for it.
-//   shark:    in the hurricane, circling; it comes round in a biting lunge.
+//   shark:    in the hurricane, circling; once it's seen you it follows you up
+//             the storm, circling you, and every so often comes in in a biting lunge.
 //
 // Returns true when it moved itself (flyers, gators in the water, iguanas in trees).
 
@@ -97,6 +99,7 @@ const waterGator = (ctx: FrameContext, e: Enemy): boolean => {
       e.pos.x = (e.homeX ?? e.pos.x) + Math.sin((ctx.state.frame + (e.homeX || 0)) * 0.02) * 20;
       e.facing = dirTo(e, mid(player).x);
       const dx = Math.abs(mid(player).x - mid(e).x);
+      if (gatorCanHunt(e, player)) { e.aiState = 'hunt'; e.aiTimer = 0; break; }
       if (dx < 130 && e.aiTimer > 70 && !holdingOff(ctx.state)) {
         e.aiState = 'breach'; e.aiTimer = 0;
         e.vel = { x: Math.sign(mid(player).x - mid(e).x) * 3, y: -15 };
@@ -110,9 +113,36 @@ const waterGator = (ctx: FrameContext, e: Enemy): boolean => {
       e.pos.y += e.vel.y;
       if (e.vel.y > 0 && e.pos.y + e.height > waterline + 6) { e.aiState = 'idle'; e.aiTimer = 0; e.vel = { x: 0, y: 0 }; }
       break;
+    case 'hunt': {
+      // He's in the water with it: it goes under and comes straight for him, faster than he can swim
+      const home = e.homeX ?? e.pos.x;
+      if (!gatorCanHunt(e, player)) {
+        // Back to its spot, eyes above the water again
+        const back = home - e.pos.x, up = waterline + 6 - e.height - e.pos.y;
+        e.pos.x += Math.sign(back) * Math.min(Math.abs(back), 2.5);
+        e.pos.y += Math.sign(up) * Math.min(Math.abs(up), 2.5);
+        if (Math.abs(back) < 3 && Math.abs(up) < 3) { e.aiState = 'idle'; e.aiTimer = 0; }
+        break;
+      }
+      const t = mid(player), m = mid(e);
+      const dx = t.x - m.x, dy = t.y - m.y, len = Math.hypot(dx, dy) || 1;
+      // (a burst every so often: a snap)
+      const speed = e.aiTimer % 90 < 20 ? 6.5 : 3.8;
+      e.vel.x += ((dx / len) * speed - e.vel.x) * 0.15;
+      e.vel.y += ((dy / len) * speed - e.vel.y) * 0.15;
+      e.pos.x = Math.max(home - GATOR_RANGE, Math.min(home + GATOR_RANGE, e.pos.x + e.vel.x));
+      e.pos.y = Math.max(waterline - e.height + 6, Math.min(waterline + 190, e.pos.y + e.vel.y));
+      e.facing = dx < 0 ? -1 : 1;
+      break;
+    }
   }
   return true;
 };
+
+/** How far a water gator will leave its spot chasing you. */
+const GATOR_RANGE = 380;
+const gatorCanHunt = (e: Enemy, player: FrameContext['state']['player']) =>
+  !!player.swimming && Math.abs(mid(player).x - (e.homeX ?? e.pos.x)) < GATOR_RANGE + 60;
 
 // ---------------------------------------------------------------------------
 
@@ -289,7 +319,21 @@ const shark = (ctx: FrameContext, e: Enemy) => {
       e.vel.x = (tx - e.pos.x) * 0.05; e.vel.y = (ty - e.pos.y) * 0.05;
       e.facing = (e.vel.x < 0 ? -1 : 1);
       const p = mid(player), m = mid(e);
-      if (e.aiTimer > 90 && Math.hypot(p.x - m.x, p.y - m.y) < 320 && !holdingOff(ctx.state) && player.health > 0) {
+      // Seen you: it's after you now
+      if (Math.hypot(p.x - m.x, p.y - m.y) < 450 && player.health > 0) { e.aiState = 'hunt'; e.aiTimer = 0; }
+      break;
+    }
+    case 'hunt': {
+      // Circling round you wherever you go, closing in, then a lunge
+      const p = mid(player), m = mid(e);
+      const a = ctx.state.frame * 0.03 + homeX * 0.01;
+      const tx = p.x + Math.cos(a) * 190 - e.width / 2, ty = p.y + Math.sin(a) * 80 - e.height / 2;
+      e.vel.x += ((tx - e.pos.x) * 0.05 - e.vel.x) * 0.12;
+      e.vel.y += ((ty - e.pos.y) * 0.05 - e.vel.y) * 0.12;
+      const sp = Math.hypot(e.vel.x, e.vel.y);
+      if (sp > 7.5) { e.vel.x *= 7.5 / sp; e.vel.y *= 7.5 / sp; }
+      e.facing = (e.vel.x < 0 ? -1 : 1);
+      if (e.aiTimer > 110 && Math.hypot(p.x - m.x, p.y - m.y) < 320 && !holdingOff(ctx.state) && player.health > 0) {
         e.aiState = 'bite'; e.aiTimer = 0; e.aiX = p.x; e.aiY = p.y;
         const len = Math.hypot(p.x - m.x, p.y - m.y) || 1;
         e.vel = { x: ((p.x - m.x) / len) * 9, y: ((p.y - m.y) / len) * 9 };
@@ -298,8 +342,8 @@ const shark = (ctx: FrameContext, e: Enemy) => {
       break;
     }
     case 'bite':
-      // A straight lunge through where you were, jaws snapping, then back to its laps
-      if (e.aiTimer > 40) { e.aiState = 'return'; e.aiTimer = 0; }
+      // A straight lunge through where you were, jaws snapping, then it comes round again
+      if (e.aiTimer > 40) { e.aiState = 'hunt'; e.aiTimer = 0; }
       break;
     case 'return':
       e.vel.x = (homeX - e.pos.x) * 0.04; e.vel.y = (homeY - e.pos.y) * 0.04;
