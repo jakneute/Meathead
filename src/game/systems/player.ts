@@ -176,7 +176,9 @@ const isPerformingSpecial = (ctx: FrameContext) => {
 const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
   const { state, cheats, fx } = ctx;
   const { player } = state;
-  if (!input.specialPressed || player.isTasing || state.playerStunTimer > 0 || player.skiing) return;
+  if (!input.specialPressed || player.isTasing || state.playerStunTimer > 0 || (player.skiing && !player.jetski)) return;
+  // (on the jet ski every move goes forward, whichever way he's turned to shoot)
+  if (player.jetski) player.facing = 1;
   const free = cheats.infinitePower;
   const locked = player.lockTimer > 0; // only divekicks are allowed during recoil
 
@@ -189,7 +191,7 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
   // Shoulder charge, or a slide when crouching (or pressing down with it) on the ground
   if (!locked && (!input.moveUp || only) && !airDive && !player.isCharging && (free || player.power >= 1)) {
     if (!free) player.power -= 1;
-    player.isSliding = !only && player.isGrounded && (player.isDucking || input.moveDown);
+    player.isSliding = !only && player.isGrounded && (player.isDucking || input.moveDown) && !player.jetski;
     player.chargeTimer = player.isSliding ? SLIDE_DURATION : CHARGE_DURATION;
     player.isCharging = true;
     player.isUppercutting = false;
@@ -310,7 +312,7 @@ const updateHorizontalVelocity = (ctx: FrameContext, movDir: number) => {
   const { player } = state;
   if (isPerformingSpecial(ctx) || player.lockTimer > 0 || player.pushbackTimer > 0) return;
   // On skis: the slope (and the stage) sets the pace
-  if (player.skiing) { player.vel.x = player.skiSpeed ?? 0; player.facing = 1; return; }
+  if (player.skiing) { player.vel.x = player.skiSpeed ?? 0; player.facing = player.jetski && movDir < 0 ? -1 : 1; return; }
 
   // Oily Oscar's oil: slow, slippery going (a shoulder charge gets you out)
   const inOil = isStandingInOil(state);

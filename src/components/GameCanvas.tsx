@@ -83,7 +83,8 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
       const ranGameplay = stepGame(frameCtx, p.status, gateRef.current.apply(raw));
       if (ranGameplay) {
         const { player } = state;
-        const forcedWeapon: WeaponType | undefined = state.shouldSyncWeapon ? 'GUN' : undefined;
+        // (a set piece that only allows one weapon keeps putting it back in his hands)
+        const forcedWeapon: WeaponType | undefined = state.lockWeapon && p.currentWeapon !== state.lockWeapon ? state.lockWeapon : state.shouldSyncWeapon ? 'GUN' : undefined;
         state.shouldSyncWeapon = false;
         p.onPlayerUpdate(player.health, player.power, player.weaponAmmo, forcedWeapon);
       }

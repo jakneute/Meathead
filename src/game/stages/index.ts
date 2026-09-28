@@ -10,6 +10,7 @@ import type { Enemy, Projectile } from '../../types';
 import { artieLayout } from './artie';
 import { hectorLayout } from './hector';
 import { victorLayout } from './victor';
+import { ernieLayout } from './ernie';
 
 export interface StageLayout {
   /** Left edge of the stage's world. */
@@ -73,6 +74,7 @@ const LAYOUTS: Record<string, StageLayout> = {
   'Artie Avalanche': artieLayout,
   'Hector Hurricane': hectorLayout,
   'Victor Volcano': victorLayout,
+  'Ernie Earthquake': ernieLayout,
 };
 
 export const getStageLayout = (stageId: string | null): StageLayout | undefined => (stageId ? LAYOUTS[stageId] : undefined);

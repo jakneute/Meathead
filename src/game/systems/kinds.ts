@@ -20,6 +20,7 @@ import { floorTopAt, profileYAt } from '../terrain';
 import type { GameState } from '../state';
 import { runHectorKindAI } from './kindsHector';
 import { runVictorKindAI } from './kindsVictor';
+import { runErnieKindAI } from './kindsErnie';
 
 interface KindStats { w: number; h: number; hp: number; contact: number; air?: boolean }
 
@@ -52,10 +53,19 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   vulture: { w: 56, h: 30, hp: 55, contact: 10, air: true },
   magmafish: { w: 50, h: 26, hp: 40, contact: 14 },
   doorman: { w: 72, h: 100, hp: 950, contact: 8 },
+  // Ernie's stage
+  techbro: { w: 40, h: 62, hp: 110, contact: 6 },
+  courier: { w: 46, h: 66, hp: 200, contact: 12 },
+  protester: { w: 48, h: 66, hp: 160, contact: 7 },
+  raccoon: { w: 42, h: 24, hp: 50, contact: 8 },
+  seagull: { w: 44, h: 22, hp: 35, contact: 8, air: true },
+  drone: { w: 44, h: 22, hp: 40, contact: 8, air: true },
+  jetskier: { w: 74, h: 54, hp: 50, contact: 12 },
+  burning: { w: 34, h: 62, hp: 1, contact: 0 },
 };
 
 /** The ones that run you down like the rusher. */
-export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind === 'bouncer' || kind === 'smokejumper';
+export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind === 'bouncer' || kind === 'smokejumper' || kind === 'courier';
 
 let spawnCount = 0;
 
@@ -84,6 +94,14 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     case 'smokejumper': return { ...base, behavior: 'patrol', pauseTimer: 0 };
     case 'blastshield': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
     case 'vulture': return { ...base, enemyType: 'flyer', initialY: pos.y };
+    // Ernie's: a tech bro with a pistol, a bike courier who runs you down, a protester behind his sign
+    case 'techbro': return { ...base, behavior: 'shoot', shootTimer: Math.floor(Math.random() * 40) };
+    case 'courier': return { ...base, behavior: 'patrol', pauseTimer: 0 };
+    case 'protester': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
+    case 'seagull': return { ...base, enemyType: 'flyer', initialY: pos.y };
+    case 'drone': return { ...base, enemyType: 'flyer', initialY: pos.y };
+    // On fire and screaming: nobody's enemy, and only you can end it
+    case 'burning': return { ...base, harmless: true, innocent: true };
     // Beachgoers: not out to hurt anyone
     case 'civilian': return { ...base, harmless: true, innocent: true };
     default: return base;
@@ -104,6 +122,10 @@ export const runKindAI = (ctx: FrameContext, e: Enemy): boolean => {
     case 'salamander': wolverine(ctx, e); return false;
     case 'vulture': eagle(ctx, e); return true;
     case 'magmafish': return runVictorKindAI(ctx, e);
+    // Ernie's wildlife and machines: the raccoon lunges like the wolverine, the seagull swoops like the pelican
+    case 'raccoon': wolverine(ctx, e); return false;
+    case 'seagull': return runHectorKindAI(ctx, e);
+    case 'drone': case 'jetskier': case 'burning': return runErnieKindAI(ctx, e);
     default: return false;
   }
 };

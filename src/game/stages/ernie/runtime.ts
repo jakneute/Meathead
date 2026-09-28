@@ -1,0 +1,117 @@
+// Ernie's stage while it's being played: which part you're in, the quakes, the
+// bridge, the jet ski and the tour. Rebuilt with the level on every (re)spawn;
+// the checkpoint says what's behind you.
+
+import type { GameState } from '../../state';
+import type { FrameContext } from '../../context';
+import type { Controls } from '../../input';
+import { NO_CONTROLS } from '../../input';
+import { makeKindEnemy } from '../../systems/kinds';
+import { COURSE, CP } from './course';
+import { Quakes, createQuakes, updateQuakes } from './quake';
+import { Bridge, createBridge, updateBridge } from './bridge';
+import { JetSki, createJetSki, updateJetSki } from './jetski';
+import { Tour, createTour, startTour, updateTour } from './alcatraz';
+
+export interface ErnieRuntime {
+  startedAt: number;
+  quakes: Quakes;
+  bridge: Bridge;
+  ski: JetSki;
+  tour: Tour;
+  /** Off the end of the bridge and down to the water: frames of the fade (0 = not). */
+  downT: number;
+  /** Off the ramp and on to the island: frames of the fade to black (0 = not). */
+  awayT: number;
+}
+
+export type Region = 'main' | 'bay' | 'cell';
+export const regionOf = (x: number): Region => (x >= COURSE.cellblock.x1 - 200 ? 'cell' : x < COURSE.bay.x2 + 2000 ? 'bay' : 'main');
+
+/** Nothing's placed closer than this ahead of where you start. */
+const SPAWN_CLEARANCE = 480;
+export const DOWN_FRAMES = 50;
+export const AWAY_FRAMES = 40;
+
+export const getErnie = (state: GameState) => state.stage as ErnieRuntime | null;
+
+export const createErnieRuntime = (state: GameState, skipToBoss: boolean): ErnieRuntime => {
+  const startedAt = skipToBoss ? CP.ALCATRAZ : state.checkpoint;
+  const start = COURSE.checkpoints[startedAt];
+  const order = (x: number) => ({ main: 0, bay: 1, cell: 2 })[regionOf(x)];
+  const ahead = (x: number, clearance: number) => order(x) > order(start.x) || (order(x) === order(start.x) && x - start.x >= clearance);
+  COURSE.pickups.forEach((p, i) => {
+    if (!ahead(p.x, 0)) return;
+    state.pickups.push({ id: `ernie-pickup-${i}`, pos: { x: p.x - 10, y: p.y - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: p.type, life: 1e9 });
+  });
+  for (const s of COURSE.spawns) {
+    if (!ahead(s.x, SPAWN_CLEARANCE)) continue;
+    const e = makeKindEnemy(s.kind, s.x, s.y);
+    state.enemies.push(e);
+  }
+  const rt: ErnieRuntime = {
+    startedAt,
+    quakes: createQuakes(state, startedAt),
+    bridge: createBridge(state),
+    ski: createJetSki(state, startedAt),
+    tour: createTour(startedAt),
+    downT: 0,
+    awayT: 0,
+  };
+  applyRegionCamera(state, regionOf(start.x));
+  return rt;
+};
+
+/** Where the camera's allowed in each part of the world. */
+const applyRegionCamera = (state: GameState, region: Region) => {
+  if (region === 'main') { state.cameraMinX = COURSE.streets.x1; state.cameraMaxX = COURSE.bridge.x2 - 800; }
+  else if (region === 'bay') { state.cameraMinX = COURSE.bay.x1; state.cameraMaxX = undefined; }
+  else { state.cameraMinX = COURSE.cellblock.x1; state.cameraMaxX = undefined; }
+};
+
+export const updateErnie = (ctx: FrameContext, controls: Controls): Controls => {
+  const rt = getErnie(ctx.state);
+  if (!rt) return controls;
+  const { state } = ctx;
+  const { player } = state;
+  const region = regionOf(player.pos.x);
+
+  updateQuakes(ctx, rt.quakes, region === 'main' && !rt.bridge.plunge);
+  if (region === 'main') {
+    if (state.checkpoint < CP.QUAKES && player.isGrounded && player.pos.x >= COURSE.checkpoints[CP.QUAKES].x) state.checkpoint = CP.QUAKES;
+    if (state.checkpoint < CP.BRIDGE && player.isGrounded && player.pos.x >= COURSE.checkpoints[CP.BRIDGE].x) state.checkpoint = CP.BRIDGE;
+    controls = updateBridge(ctx, rt.bridge, controls);
+    // Off the far end of the bridge: down to the water
+    if (rt.downT === 0 && player.isGrounded && player.pos.x + player.width > COURSE.bridge.exit) rt.downT = 1;
+  }
+  if (rt.downT > 0) {
+    rt.downT++;
+    controls = { ...NO_CONTROLS, right: rt.downT < DOWN_FRAMES / 2 };
+    if (rt.downT === DOWN_FRAMES) {
+      const at = COURSE.checkpoints[CP.DOCK];
+      player.pos = { x: at.x, y: at.y - player.height };
+      player.vel = { x: 0, y: 0 };
+      state.cameraOverride = null;
+      state.camera.x = at.x - 250; state.camera.y = at.y - 550;
+      state.cameraRestY = at.y - 550;
+      applyRegionCamera(state, 'bay');
+      state.checkpoint = Math.max(state.checkpoint, CP.DOCK);
+      // (nothing from up there follows you down)
+      state.enemies = [];
+      state.projectiles = [];
+    }
+    if (rt.downT > DOWN_FRAMES + 30) rt.downT = 0;
+  }
+  if (region === 'bay') {
+    controls = updateJetSki(ctx, rt.ski, controls, () => { rt.awayT = 1; });
+  }
+  if (rt.awayT > 0) {
+    rt.awayT++;
+    if (rt.awayT === AWAY_FRAMES) { startTour(state, rt.tour); rt.awayT = 0; }
+    controls = { ...NO_CONTROLS };
+  }
+  return updateTour(ctx, rt.tour, controls);
+};
+
+/** The fade off the end of the bridge (0..1). */
+export const downFade = (rt: ErnieRuntime) => (rt.downT <= 0 ? 0 : rt.downT < DOWN_FRAMES ? rt.downT / DOWN_FRAMES : Math.max(0, 1 - (rt.downT - DOWN_FRAMES) / 30));

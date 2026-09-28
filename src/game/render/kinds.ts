@@ -6,6 +6,7 @@
 
 import { Enemy, EnemyKind } from '../../types';
 import { drawVictorKind } from './kindsVictor';
+import { drawErnieKind } from './kindsErnie';
 import { drawHectorKind } from './kindsHector';
 import { isChargerKind } from '../systems/kinds';
 import type { GameState } from '../state';
@@ -41,17 +42,20 @@ export const KIND_HEAD: Record<EnemyKind, { x: number; y: number; r: number }> =
   crab: { x: 0, y: -10, r: 5 }, shark: { x: 26, y: -18, r: 8 }, eye: { x: 0, y: -100, r: 60 },
   heatsuit: { x: 1, y: -62, r: 9 }, smokejumper: { x: 6, y: -70, r: 9 }, blastshield: { x: 2, y: -64, r: 9 },
   salamander: { x: 20, y: -9, r: 5 }, vulture: { x: 19, y: -21, r: 5 }, magmafish: { x: 12, y: -13, r: 7 }, doorman: { x: 4, y: -88, r: 12 },
+  techbro: { x: 2, y: -64, r: 8 }, courier: { x: 4, y: -66, r: 8 }, protester: { x: 2, y: -62, r: 8 }, raccoon: { x: 19, y: -16, r: 5 },
+  seagull: { x: 13, y: -14, r: 4 }, drone: { x: 0, y: -12, r: 5 }, jetskier: { x: -2, y: -52, r: 7 }, burning: { x: 1, y: -64, r: 8 },
 };
 
 /** People (their skeletons are human, and they keel over flat when they die). */
 export const isHumanoidKind = (kind?: EnemyKind) =>
   kind === 'shooter' || kind === 'charger' || kind === 'shielder' || kind === 'tourist' || kind === 'bouncer'
   || kind === 'surfer' || kind === 'cop' || kind === 'riotcop' || kind === 'civilian'
-  || kind === 'heatsuit' || kind === 'smokejumper' || kind === 'blastshield' || kind === 'doorman';
+  || kind === 'heatsuit' || kind === 'smokejumper' || kind === 'blastshield' || kind === 'doorman'
+  || kind === 'techbro' || kind === 'courier' || kind === 'protester' || kind === 'jetskier' || kind === 'burning';
 
 /** What an x-ray shows inside it. */
-export const skeletonOf = (kind: EnemyKind): 'person' | 'four-legs' | 'bird' | 'fish' | 'crab' =>
-  isHumanoidKind(kind) ? 'person' : kind === 'eagle' || kind === 'pelican' || kind === 'vulture' ? 'bird' : kind === 'shark' || kind === 'magmafish' ? 'fish' : kind === 'crab' ? 'crab' : 'four-legs';
+export const skeletonOf = (kind: EnemyKind): 'person' | 'four-legs' | 'bird' | 'fish' | 'crab' | 'machine' =>
+  kind === 'drone' ? 'machine' : isHumanoidKind(kind) ? 'person' : kind === 'eagle' || kind === 'pelican' || kind === 'vulture' || kind === 'seagull' ? 'bird' : kind === 'shark' || kind === 'magmafish' ? 'fish' : kind === 'crab' ? 'crab' : 'four-legs';
 
 const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: GameState) => {
   ctx.save();
@@ -65,6 +69,7 @@ const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: Game
     case 'charger': drawCharger(ctx, e, f); break;
     case 'shielder': drawShielder(ctx, e, f); break;
     case 'heatsuit': case 'smokejumper': case 'blastshield': case 'salamander': case 'vulture': case 'magmafish': drawVictorKind(ctx, e, f, state); break;
+    case 'techbro': case 'courier': case 'protester': case 'raccoon': case 'seagull': case 'drone': case 'jetskier': case 'burning': drawErnieKind(ctx, e, f, state); break;
     default: drawHectorKind(ctx, e, f, state); break;
   }
   ctx.restore();

@@ -115,6 +115,8 @@ export interface Player extends Entity {
   taserSpent?: boolean;
   /** On skis (a stage set piece): he's carried along at skiSpeed, and can only jump, duck and shoot. */
   skiing?: boolean;
+  /** ...on a jet ski: carried along the same, but his specials still work (always forward), and holding left turns him round to shoot behind. */
+  jetski?: boolean;
   /** In the water (a stage says so each frame): he swims instead of walking and jumping. And where the surface is. */
   swimming?: boolean;
   swimSurfaceY?: number;
@@ -156,7 +158,9 @@ export type EnemyKind =
   // Hector's stage: vacation goons, the cops, Florida wildlife, the beachgoers, and the storm's own
   | 'tourist' | 'bouncer' | 'surfer' | 'cop' | 'riotcop' | 'gator' | 'pelican' | 'iguana' | 'crab' | 'civilian' | 'shark' | 'eye'
   // Victor's stage: goons in heat gear, volcano wildlife, and the club's doorman
-  | 'heatsuit' | 'smokejumper' | 'blastshield' | 'salamander' | 'vulture' | 'magmafish' | 'doorman';
+  | 'heatsuit' | 'smokejumper' | 'blastshield' | 'salamander' | 'vulture' | 'magmafish' | 'doorman'
+  // Ernie's stage: San Francisco's finest, its wildlife, drones, the jet ski goons, and the poor souls on fire on the bridge
+  | 'techbro' | 'courier' | 'protester' | 'raccoon' | 'seagull' | 'drone' | 'jetskier' | 'burning';
 
 export interface Enemy extends Entity {
   /** A close-range swing in progress (the cops' club and shield bash): what part of it, how long in, and whether it's landed. */

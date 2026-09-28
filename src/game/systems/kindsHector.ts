@@ -30,7 +30,7 @@ import { mid, safeAhead, seesPlayer, holdingOff } from './kinds';
 export const runHectorKindAI = (ctx: FrameContext, e: Enemy): boolean => {
   switch (e.kind) {
     case 'gator': return e.variant === 1 ? waterGator(ctx, e) : (landGator(ctx, e), false);
-    case 'pelican': pelican(ctx, e); return true;
+    case 'pelican': case 'seagull': pelican(ctx, e); return true;
     case 'iguana': return iguana(ctx, e);
     case 'crab': crab(ctx, e); return false;
     case 'civilian': civilian(ctx, e); return false;
@@ -41,7 +41,7 @@ export const runHectorKindAI = (ctx: FrameContext, e: Enemy): boolean => {
 
 /** Ground kinds that hold their own position rather than stand on the floor (until a hit knocks them loose). */
 export const selfPropelled = (e: Enemy) =>
-  e.kind === 'magmafish' || (e.kind === 'gator' && e.variant === 1) || (e.kind === 'iguana' && (e.aiState === 'idle' || e.aiState === 'drop' || !e.aiState));
+  e.kind === 'magmafish' || e.kind === 'jetskier' || (e.kind === 'gator' && e.variant === 1) || (e.kind === 'iguana' && (e.aiState === 'idle' || e.aiState === 'drop' || !e.aiState));
 
 const dirTo = (e: Enemy, x: number) => (x < mid(e).x ? -1 : 1) as 1 | -1;
 

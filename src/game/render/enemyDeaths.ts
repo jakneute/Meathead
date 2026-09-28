@@ -191,14 +191,23 @@ const drawKindSkeleton = (ctx: Ctx, d: EnemyDeath) => {
   ctx.scale(s.facing, 1);
   ctx.strokeStyle = '#FFFFFF'; ctx.fillStyle = '#FFFFFF'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
   const w = d.w, h = d.h;
-  // Skull, with dark sockets
-  ctx.beginPath(); ctx.arc(head.x, head.y, head.r, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#0E7490';
-  ctx.fillRect(head.x + head.r * 0.1, head.y - head.r * 0.35, head.r * 0.45, head.r * 0.45);
-  ctx.fillRect(head.x - head.r * 0.6, head.y - head.r * 0.35, head.r * 0.45, head.r * 0.45);
-  ctx.beginPath();
   const bones = skeletonOf(s.kind);
-  if (bones === 'four-legs') {
+  // Skull, with dark sockets (a machine's got no skull: its circuit board lights up instead)
+  if (bones !== 'machine') {
+    ctx.beginPath(); ctx.arc(head.x, head.y, head.r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#0E7490';
+    ctx.fillRect(head.x + head.r * 0.1, head.y - head.r * 0.35, head.r * 0.45, head.r * 0.45);
+    ctx.fillRect(head.x - head.r * 0.6, head.y - head.r * 0.35, head.r * 0.45, head.r * 0.45);
+  }
+  ctx.beginPath();
+  if (bones === 'machine') {
+    // The board, its traces and chips, wires out to the motors
+    const cy = -h * 0.55;
+    ctx.rect(-w * 0.22, cy - h * 0.2, w * 0.44, h * 0.4);
+    for (let i = 0; i < 3; i++) { ctx.moveTo(-w * 0.18, cy - h * 0.1 + i * h * 0.1); ctx.lineTo(w * 0.18, cy - h * 0.1 + i * h * 0.1); }
+    for (const sx of [-1, 1]) { ctx.moveTo(sx * w * 0.22, cy); ctx.lineTo(sx * w * 0.42, cy - h * 0.25); ctx.moveTo(sx * w * 0.42 + 5, cy - h * 0.25); ctx.arc(sx * w * 0.42, cy - h * 0.25, 5, 0, Math.PI * 2); }
+    ctx.fillRect(-4, cy - 3, 8, 6);
+  } else if (bones === 'four-legs') {
     // Four legs, a spine along the back, ribs hanging off it, a tail
     const back = -h * 0.62, hipX = -w * 0.38, shoulderX = w * 0.25;
     ctx.moveTo(hipX - 8, back + 2); ctx.lineTo(shoulderX, back); ctx.lineTo(head.x - head.r * 0.8, head.y + 2);

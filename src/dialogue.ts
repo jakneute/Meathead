@@ -383,6 +383,59 @@ export const BOSS_DIALOGUE: {
       "SPINNING FIREBALLS! WHAT IS THIS, A CASTLE?",
       "OW! THE HOT STICK GOT ME!",
     ],
+    // Ernie's San Francisco: the locals, the wildlife, the drones, the quake
+    'techbro': [
+      "GET YOUR FLEECE VEST OFF ME!",
+      "DID YOU JUST DISRUPT ME?!",
+    ],
+    'techbro_shot': [
+      "HE SHOT ME! BETWEEN STANDUPS!",
+      "A TECH BRO WITH A GUN! MOVE FAST AND SHOOT THINGS!",
+      "YOU CAN'T SHOOT ME, I'M NOT YOUR MVP!",
+    ],
+    'courier': [
+      "HE HIT ME WITH A BIKE LOCK!",
+      "GET OFF THE SIDEWALK, SPANDEX!",
+      "SIGN FOR THIS, HUH? SIGN FOR THIS?!",
+    ],
+    'protester': [
+      "HE HIT ME WITH HIS SIGN! IT SAYS NO!",
+      "PEACEFUL PROTEST MY ASS!",
+    ],
+    'protester_shot': [
+      "A REUSABLE WATER BOTTLE! TO THE FACE!",
+      "HE THREW HIS HYDRATION AT ME!",
+    ],
+    'raccoon': [
+      "A TRASH PANDA! IT BIT MY ANKLE!",
+      "GET BACK IN YOUR DUMPSTER!",
+    ],
+    'seagull': [
+      "THE SEAGULL WANTS MY FRIES! I DON'T HAVE FRIES!",
+      "FLYING RAT! GET OFF MY HEAD!",
+    ],
+    'drone_shot': [
+      "THE DRONE SHOT ME! SKYNET IS REAL!",
+      "SHOT BY A DELIVERY DRONE! I DIDN'T ORDER THIS!",
+      "RED DOT, THEN PAIN! I GET IT NOW!",
+    ],
+    'jetskier': [
+      "HE RAMMED ME! LEARN TO DRIVE!",
+      "WATCH YOUR WAKE, BUDDY!",
+    ],
+    'jetskier_shot': [
+      "DRIVE-BY ON A JET SKI! THAT'S A NEW ONE!",
+      "HE'S SHOOTING AND STEERING! SHOW OFF!",
+    ],
+    'falling_debris': [
+      "A FLOWERPOT! ON MY HEAD!",
+      "SAN FRANCISCO IS THROWING STUFF AT ME!",
+      "WHO KEEPS BRICKS ON A WINDOWSILL?!",
+    ],
+    'floating_wreck': [
+      "I HIT A CAR! IN THE OCEAN!",
+      "WHO PARKED IN THE BAY?!",
+    ],
     // The doorman of Club Caldera
     'doorman': [
       "HANDS OFF, BOUNCER!",
@@ -501,6 +554,7 @@ export const BOSS_DIALOGUE: {
     ],
     'drone': [
       "GET THAT BUZZING DRONE AWAY FROM MY LATS!",
+      "A DRONE HIT ME! AM I ON CAMERA?!",
       "CHEAP PLASTIC DRONE SCRATCHED MY PUMP!"
     ],
     'flyer': [

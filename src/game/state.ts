@@ -51,6 +51,8 @@ export interface GameState {
   cameraOverride: Vector2 | null;
   /** Shifts the camera ahead of Meathead (the ski run looks further down the mountain). */
   cameraLeadX?: number;
+  /** A set piece only lets him use this weapon (the jet ski: the gun). */
+  lockWeapon?: WeaponType;
 
   // Boss door & arena
   arenaLocked: boolean;
@@ -384,8 +386,10 @@ export const resetStageState = (s: GameState) => {
   p.bossKillSatisfactionTimer = 0;
   p.peeTimer = 0;
   p.skiing = false;
+  p.jetski = false;
   p.skiSpeed = 0;
   p.hidden = false;
   p.inCutscene = false;
   s.cameraLeadX = 0;
+  s.lockWeapon = undefined;
 };
