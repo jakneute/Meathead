@@ -112,7 +112,7 @@ const CAR_COLORS = ['#2563EB', '#DC2626', '#F8FAFC', '#16A34A', '#FACC15', '#181
 /** The far lane: a car comes along, the lane goes under it, it tips over the side, falls and blows up on the steel underneath. */
 const updateCars = (state: GameState, br: Bridge) => {
   if (--br.carTimer <= 0) {
-    br.carTimer = 110 + Math.floor(Math.random() * 90);
+    br.carTimer = 200 + Math.floor(Math.random() * 120);
     const x = state.camera.x + 120 + Math.random() * (CANVAS_WIDTH - 240);
     if (x > COURSE.bridge.x1 && x < COURSE.bridge.x2 - 100) br.cars.push({ x: x - 160, y: GROUND_Y + FAR_LANE, vy: 0, rot: 0, color: CAR_COLORS[Math.floor(Math.random() * CAR_COLORS.length)], t: 0, state: 'driving', boomAt: 0 });
   }

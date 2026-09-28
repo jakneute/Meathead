@@ -14,7 +14,7 @@ import type { Live } from '../../render/backdrops';
 import type { LayerSpec } from '../../render/backdrops/core';
 import { COURSE } from './course';
 import { getErnie, regionOf, downFade, AWAY_FRAMES } from './runtime';
-import { Quakes, quakeAmount, faultAmount, DEBRIS_HOLD, BRIDGE_HOLD, Debris, inQuakeCountry } from './quake';
+import { Quakes, quakeAmount, faultAmount, DEBRIS_HOLD, BRIDGE_HOLD, Debris, inQuakeCountry, PIECE_BOTTOM } from './quake';
 import { Bridge, SPAN_WARN, DROP_TO_WATER, FAR_LANE, UNDER_STEEL, BgCar, screamOf, onBridge } from './bridge';
 import { drawFault } from './faultDraw';
 import { drawDistricts } from './streetsDraw';
@@ -61,7 +61,8 @@ export const drawErnieBackdrop = (ctx: Ctx, state: GameState): boolean => {
   layer(ctx, state, 0);
   // Over the toll plaza the city behind fades into the view from the bridge (the bay far below, Marin ahead)
   const toBridge = Math.max(0, Math.min(1, (state.camera.x + 400 - (COURSE.bridge.x1 - 900)) / 700));
-  if (toBridge < 1) { layer(ctx, state, 1); layer(ctx, state, 2); layer(ctx, state, 3); layer(ctx, state, 4); }
+  // (the bay out beyond the city, with the far headlands, but not the bridge: you're headed for that, it's never scenery)
+  if (toBridge < 1) { drawFarBay(ctx, state); layer(ctx, state, 2); layer(ctx, state, 3); layer(ctx, state, 4); }
   if (toBridge > 0) { ctx.globalAlpha = toBridge; drawBridgeView(ctx, state); ctx.globalAlpha = 1; }
   ctx.restore();
   // Dust in the air in a quake
@@ -69,6 +70,19 @@ export const drawErnieBackdrop = (ctx: Ctx, state: GameState): boolean => {
   if (a > 0) { ctx.fillStyle = `rgba(120, 100, 80, ${a * 0.18})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
   void k;
   return true;
+};
+
+/** Behind the city: the far headlands and the bay under the sunset (no bridge). */
+const drawFarBay = (ctx: Ctx, state: GameState) => {
+  const W = CANVAS_WIDTH, horizon = 410;
+  const drift = state.camera.x * 0.1;
+  ctx.fillStyle = '#4B3D5A';
+  ctx.beginPath(); ctx.moveTo(0, horizon);
+  for (let x = 0; x <= W + 20; x += 16) ctx.lineTo(x, horizon - 12 - 22 * Math.sin((x + drift) * 0.005) - 8 * Math.sin((x + drift) * 0.019));
+  ctx.lineTo(W + 20, horizon); ctx.fill();
+  ctx.fillStyle = '#2E4A6B'; ctx.fillRect(0, horizon, W, CANVAS_HEIGHT + 80 - horizon);
+  ctx.fillStyle = '#3B5B80';
+  for (let y = horizon + 4; y < CANVAS_HEIGHT + 60; y += 6) for (let x = ((y * 7 - drift * 0.5) % 22 + 22) % 22; x < W; x += 22) ctx.fillRect(x, y, 8, 2);
 };
 
 /** Out on the bridge: the bay far below, the city behind you, the Marin headlands ahead, the island out in the water. */
@@ -396,6 +410,7 @@ export const drawErnieMid = (ctx: Ctx, state: GameState) => {
   const region = regionOf(state.camera.x + 400);
   if (region === 'bay') { drawSeaMid(ctx, state, rt); return; }
   if (region === 'cell') { drawCellMid(ctx, state, rt); return; }
+  drawLoose(ctx, state, rt.quakes);
   for (const d of rt.quakes.debris) drawDebris(ctx, d, state.frame);
   for (const c of rt.bridge.traffic.cars) if (c.state !== 'coming') drawTrafficCar(ctx, c, state.frame);
 };
@@ -488,7 +503,39 @@ const drawDebris = (ctx: Ctx, d: Debris, f: number) => {
   const wob = d.hold > 0 ? (steel ? swing : Math.sin(f * 1.2) * 0.2) : 0;
   ctx.translate(d.x, d.y);
   ctx.rotate(d.rot + wob);
-  switch (d.look) {
+  drawPiece(ctx, d.look);
+  ctx.restore();
+  // The sill it's sat on
+  if (d.hold > 0 && d.sill) { ctx.fillStyle = '#FFFBEB'; ctx.fillRect(d.x - 16, d.y + PIECE_BOTTOM[d.look], 32, 4); }
+};
+
+/** Everything that's loose, sat where it's been all along (a pot on a sill, an AC unit in a window, a fitting hanging off a cable), rattling in a quake. */
+const drawLoose = (ctx: Ctx, state: GameState, qk: Quakes) => {
+  const a = quakeAmount(qk), f = state.frame;
+  for (const l of qk.loose) {
+    if (l.gone || l.x < state.camera.x - 60 || l.x > state.camera.x + CANVAS_WIDTH + 60) continue;
+    const steel = l.look === 'rivet' || l.look === 'beam';
+    if (steel) {
+      // Hanging off a suspender cable by a twist of wire
+      ctx.strokeStyle = '#57534E'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(l.x, l.y - 30); ctx.lineTo(l.x, l.y - 8); ctx.stroke();
+    } else if (l.look === 'ac') {
+      // Its brackets under it
+      ctx.strokeStyle = '#52525B'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(l.x - 12, l.y); ctx.lineTo(l.x - 4, l.y + 10); ctx.moveTo(l.x + 12, l.y); ctx.lineTo(l.x + 4, l.y + 10); ctx.stroke();
+    }
+    ctx.save();
+    ctx.translate(l.x + (a > 0 ? Math.sin(f * 1.3 + l.x) * a * 1.5 : 0), l.y - PIECE_BOTTOM[l.look]);
+    if (a > 0) ctx.rotate(Math.sin(f * 0.9 + l.x * 0.1) * a * 0.12);
+    else if (steel) ctx.rotate(Math.sin(f * 0.04 + l.x) * 0.05);
+    drawPiece(ctx, l.look);
+    ctx.restore();
+  }
+};
+
+/** One of the things that come down, centered on (0, 0). */
+const drawPiece = (ctx: Ctx, look: Debris['look']) => {
+  switch (look) {
     case 'pot':
       ctx.fillStyle = '#C2410C'; ctx.beginPath(); ctx.moveTo(-8, -8); ctx.lineTo(8, -8); ctx.lineTo(6, 8); ctx.lineTo(-6, 8); ctx.fill();
       ctx.fillStyle = '#9A3412'; ctx.fillRect(-9, -10, 18, 4);
@@ -514,9 +561,6 @@ const drawDebris = (ctx: Ctx, d: Debris, f: number) => {
       ctx.fillStyle = RED_DARK; ctx.fillRect(-18, -5, 36, 3); ctx.fillRect(-18, 2, 36, 3);
       break;
   }
-  ctx.restore();
-  // The sill it's sat on
-  if (d.hold > 0 && d.sill) { ctx.fillStyle = '#FFFBEB'; ctx.fillRect(d.x - 16, d.y + 9, 32, 4); }
 };
 
 // ---------------------------------------------------------------------------

@@ -5,6 +5,9 @@
 // again out toward the Presidio. Cross streets between the districts, each with
 // its sign. (The quakes need to know it too: things only come down off buildings.)
 
+import type { GroundRun } from '../../core/terrain';
+import { runYAt } from '../../core/terrain';
+import { GROUND_Y } from '../../../constants';
 import { COURSE, HOUSES_END } from './course';
 
 export type LotKind = 'victorian' | 'shop' | 'taqueria' | 'glass' | 'chinatown' | 'park' | 'cross';
@@ -41,3 +44,49 @@ export const sillsOf = (kind: LotKind): number[] => {
 
 /** There's a building here for stuff to come off (not a park, not a cross street). */
 export const buildingAt = (x: number) => { const l = lotAt(x); return !!l && l.kind !== 'park' && l.kind !== 'cross'; };
+
+/** Street height at x, going by the runs either side over a gap (the buildings sit on the lowest point under them). */
+export const groundUnder = (runs: GroundRun[], x: number) => {
+  let best: number | null = null, dist = Infinity;
+  for (const r of runs) {
+    if (r.surface !== 'street') continue;
+    if (x >= r.x1 && x <= r.x2) return runYAt(r, x);
+    const d = Math.min(Math.abs(x - r.x1), Math.abs(x - r.x2));
+    if (d < dist) { dist = d; best = x < r.x1 ? r.y1 : r.y2; }
+  }
+  return best ?? GROUND_Y;
+};
+/** The ground a lot's building stands on. */
+export const lotBase = (runs: GroundRun[], lot: Lot) => Math.max(groundUnder(runs, lot.x + 4), groundUnder(runs, lot.x + LOT_W - 4)) + 4;
+
+const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+
+/**
+ * Everything that's going to come down in the quakes, sitting where you can see it from the start: pots on the
+ * windowsills and balconies, AC units stuck out of upstairs windows, loose bricks along the shops' parapets.
+ * (x, y: where it sits, its bottom on the ledge.)
+ */
+export const looseOnStreets = (runs: GroundRun[]) => {
+  const out: { x: number; y: number; look: 'pot' | 'ac' | 'brick' }[] = [];
+  for (let i = 0; ; i++) {
+    const lot = lotAt(COURSE.streets.x1 + i * LOT_W + 1);
+    if (!lot) { if (COURSE.streets.x1 + i * LOT_W > HOUSES_END) break; continue; }
+    const base = lotBase(runs, lot), w = LOT_W - 4, x = lot.x;
+    switch (lot.kind) {
+      case 'victorian':
+        for (const s of [190, 310]) if (hash(i * 7 + s) > 0.35) out.push({ x: x + 24, y: base - s, look: 'pot' });
+        break;
+      case 'shop':
+        if (hash(i + 21) > 0.3) out.push({ x: x + w / 2, y: base - 170, look: 'ac' });
+        if (hash(i + 23) > 0.4) out.push({ x: x + 20 + hash(i + 24) * (w - 40), y: base - 250 - Math.floor(hash(i + 4) * 30) - 8, look: 'brick' });
+        break;
+      case 'taqueria':
+        out.push({ x: x + w * 0.25, y: base - 150, look: 'pot' });
+        break;
+      case 'chinatown':
+        for (const s of [170, 280]) if (hash(i * 5 + s) > 0.3) out.push({ x: x + 30 + hash(i + s) * (w - 70), y: base - s - 18, look: 'pot' });
+        break;
+    }
+  }
+  return out;
+};

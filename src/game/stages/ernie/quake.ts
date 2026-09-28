@@ -21,9 +21,9 @@ import { hurtPlayer } from '../../bosses/shared';
 import { playSound } from '../../platform/audio';
 import { rectsOverlap, boundsOf, isOnScreen } from '../../core/utils';
 import { profileYAt } from '../../core/terrain';
-import { CANVAS_WIDTH } from '../../../constants';
-import { COURSE, Fault, HOUSES_END } from './course';
-import { lotAt, buildingAt, sillsOf } from './streets';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
+import { COURSE, Fault } from './course';
+import { looseOnStreets } from './streets';
 
 export type DebrisLook = 'pot' | 'brick' | 'ac' | 'rivet' | 'beam';
 export interface Debris {
@@ -35,6 +35,8 @@ export interface Debris {
   sill: boolean;
   done: boolean;
 }
+/** Something sat where you can see it (a pot on a sill, a fitting on a cable) till a quake shakes it off. */
+export interface Loose { x: number; y: number; look: DebrisLook; gone: boolean }
 export interface FaultState {
   /** 0 paved; warning frames counting up; then open. */
   t: number;
@@ -54,6 +56,8 @@ export interface Quakes {
   /** The first one's scripted (it teaches the falling stuff). */
   first: boolean;
   debris: Debris[];
+  /** Everything that can come down, where it's sat. */
+  loose: Loose[];
   dropTimer: number;
   faults: FaultState[];
   /** Which way he's being jostled, and till when. */
@@ -89,6 +93,7 @@ export const createQuakes = (state: GameState, startedAt: number): Quakes => {
   });
   return {
     t: 0, dur: 1, mag: 0, next: 400, first: startedAt === 0, debris: [], dropTimer: 0, faults,
+    loose: [...looseOnStreets(state.groundRuns).map(l => ({ ...l, gone: false })), ...looseOnBridge()],
     sway: 1, swayT: 0, banner: 0, lastCause: '', lastCauseAt: -999, nearFault: -1,
   };
 };
@@ -129,7 +134,8 @@ export const updateQuakes = (ctx: FrameContext, qk: Quakes, active: boolean) => 
     else if (!qk.first && qk.t <= 0 && --qk.next <= 0) {
       startQuake(state, qk);
       const k = progress(px);
-      qk.next = Math.round(560 - k * 280 + Math.random() * 200);
+      // (closer together the further in; but out on the bridge, with everything else going on, they give you a breather)
+      qk.next = Math.round((px > COURSE.bridge.x1 - 200 ? 560 : 560 - k * 280) + Math.random() * 200);
     }
   }
   if (qk.t > 0) {
@@ -143,47 +149,56 @@ export const updateQuakes = (ctx: FrameContext, qk: Quakes, active: boolean) => 
     if (active && --qk.dropTimer <= 0) {
       dropSomething(state, qk);
       const k = progress(px);
-      qk.dropTimer = Math.round(46 - k * 22 + Math.random() * 20);
+      qk.dropTimer = px > COURSE.bridge.x1 - 200 ? Math.round(70 + Math.random() * 30) : Math.round(46 - k * 22 + Math.random() * 20);
     }
   }
   updateFaults(ctx, qk);
   updateDebris(ctx, qk);
 };
 
+/** How far below its middle each thing's bottom is (it sits on its ledge by it). */
+export const PIECE_BOTTOM: Record<DebrisLook, number> = { pot: 8, ac: 12, brick: 6, rivet: 0, beam: 0 };
+
+/** How close to the edges of the view a loose thing can be and still be picked to come down (it's all in view, the whole way). */
+const VIEW_MARGIN = 26;
+
 /**
- * Something coming down near him (mostly ahead), not on top of one of Ernie's lot, and only where there's
- * something overhead for it to come off: flowerpots, bricks and AC units off the houses' windowsills and roofs
- * on the streets; rivets and bits of girder off the snapped suspender cables on the bridge. Nothing out of a
- * clear sky (the toll plaza, the way off the end). Every one hangs there a moment first, in view, with a
- * target on the ground under it.
+ * Shakes something loose, near him (mostly ahead), not on top of one of Ernie's lot. Only things that have
+ * been sat there in plain sight all along (see streets.ts; and on the bridge, broken fittings hanging off the
+ * suspender cables), and only one that's wholly on screen right now: nothing out of a clear sky, nothing from
+ * off the top of the view. It wobbles a moment first, with a target on the ground under it.
  */
 const dropSomething = (state: GameState, qk: Quakes) => {
   const p = state.player;
   const px = p.pos.x + p.width / 2;
+  const aim = px + p.vel.x * 22;
   const clear = (x: number) => !state.enemies.some(e => e.health > 0 && !e.isBlownAway && Math.abs(e.pos.x + e.width / 2 - x) < e.width / 2 + 50);
-  const B = COURSE.bridge;
-  for (let tries = 0; tries < 5; tries++) {
-    const x = px + p.vel.x * 22 + (Math.random() - 0.35) * 360;
-    const lot = lotAt(x);
-    const street = !!lot && buildingAt(x) && x > COURSE.streets.x1 + 20 && x < HOUSES_END - 30;
-    const bridge = x > B.x1 + 150 && x < B.exit - 250;
-    if (!street && !bridge) continue;
-    const ground = profileYAt(state.groundRuns, x);
-    if (ground === undefined || !clear(x) || qk.faults.some(f => f.open && x > f.block.x - 20 && x < f.block.x + f.block.w + 20)) continue;
-    if (bridge) {
-      const look: DebrisLook = Math.random() < 0.6 ? 'rivet' : 'beam';
-      qk.debris.push({ x, y: Math.max(state.camera.y + 50, ground - 420), vy: 0, rot: 0, spin: (Math.random() - 0.5) * 0.3, ground, hold: BRIDGE_HOLD, look, sill: false, done: false });
-      break;
-    }
-    // Most of it off the windowsills over the sidewalk; the rest off the roofs (it teeters in the gutter, in view)
-    const sills = sillsOf(lot!.kind);
-    const sill = sills.length > 0 && Math.random() < 0.75;
-    const looks: DebrisLook[] = sill ? ['pot', 'pot', 'brick', 'ac'] : lot!.kind === 'glass' ? ['ac', 'brick'] : ['brick', 'brick', 'pot'];
-    const look = looks[Math.floor(Math.random() * looks.length)];
-    const top = sill ? ground - sills[Math.floor(Math.random() * sills.length)] : Math.max(state.camera.y + 40, ground - 420);
-    qk.debris.push({ x, y: top, vy: 0, rot: 0, spin: (Math.random() - 0.5) * 0.3, ground, hold: DEBRIS_HOLD, look, sill, done: false });
-    break;
+  const cam = state.camera;
+  let best: Loose | undefined, bestD = Infinity;
+  for (const l of qk.loose) {
+    if (l.gone) continue;
+    if (l.x - 22 < cam.x + VIEW_MARGIN || l.x + 22 > cam.x + CANVAS_WIDTH - VIEW_MARGIN || l.y - 34 < cam.y + VIEW_MARGIN || l.y > cam.y + CANVAS_HEIGHT - 60) continue;
+    if (l.x < px - 200 || l.x > px + 420) continue;
+    const ground = profileYAt(state.groundRuns, l.x);
+    if (ground === undefined || ground <= l.y || !clear(l.x) || qk.faults.some(f => f.open && l.x > f.block.x - 20 && l.x < f.block.x + f.block.w + 20)) continue;
+    const d = Math.abs(l.x - aim) + Math.random() * 160;
+    if (d < bestD) { bestD = d; best = l; }
   }
+  if (!best) return;
+  best.gone = true;
+  const steel = best.look === 'rivet' || best.look === 'beam';
+  qk.debris.push({ x: best.x, y: best.y - PIECE_BOTTOM[best.look], vy: 0, rot: 0, spin: (Math.random() - 0.5) * 0.3, ground: profileYAt(state.groundRuns, best.x)!, hold: steel ? BRIDGE_HOLD : DEBRIS_HOLD, look: best.look, sill: !steel, done: false });
+};
+
+/** Broken fittings hanging off the bridge's suspender cables, in view from the deck, waiting for a quake to shake them off. */
+const looseOnBridge = () => {
+  const B = COURSE.bridge, out: Loose[] = [];
+  for (let x = B.x1 + 250; x < B.exit - 250; x += 200 + Math.floor(((x * 7) % 5)) * 50) {
+    const cx = Math.round(x / 50) * 50;
+    if (COURSE.spans.some(s => cx > s.x - 60 && cx < s.x + s.w + 60) || B.towers.some(t => Math.abs(cx - t) < 80)) continue;
+    out.push({ x: cx, y: GROUND_Y - 250 - ((cx / 50) % 3) * 30, look: (cx / 50) % 2 ? 'rivet' : 'beam', gone: false });
+  }
+  return out;
 };
 
 const updateDebris = (ctx: FrameContext, qk: Quakes) => {

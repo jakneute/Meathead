@@ -5,25 +5,14 @@
 // sits on the lowest point of the ground under it (they step up the hills).
 
 import type { GameState } from '../../core/state';
-import { runYAt } from '../../core/terrain';
-import { CANVAS_WIDTH, GROUND_Y } from '../../../constants';
+import { CANVAS_WIDTH } from '../../../constants';
 import { COURSE } from './course';
-import { lotAt, LOT_W, Lot } from './streets';
+import { lotAt, LOT_W, Lot, groundUnder as groundAt, lotBase } from './streets';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 
-/** Ground height at x, going by the runs either side over a gap. */
-export const groundUnder = (state: GameState, x: number) => {
-  let best: number | null = null, dist = Infinity;
-  for (const r of state.groundRuns) {
-    if (r.surface !== 'street') continue;
-    if (x >= r.x1 && x <= r.x2) return runYAt(r, x);
-    const d = Math.min(Math.abs(x - r.x1), Math.abs(x - r.x2));
-    if (d < dist) { dist = d; best = x < r.x1 ? r.y1 : r.y2; }
-  }
-  return best ?? GROUND_Y;
-};
+const groundUnder = (state: GameState, x: number) => groundAt(state.groundRuns, x);
 
 const PAINT = ['#F4A6B5', '#9FD8CB', '#F7D08A', '#B6A4E0', '#F2B880', '#A8D5F2', '#E8E1C8', '#C9E4A8', '#F9C6A8'];
 const TRIM = '#FFFBEB', SHADE = 'rgba(0,0,0,0.18)';
@@ -37,8 +26,7 @@ export const drawDistricts = (ctx: Ctx, state: GameState, shake: number) => {
   for (let i = Math.max(0, i0); i <= i1; i++) {
     const lot = lotAt(S.x1 + i * LOT_W + 1);
     if (!lot) continue;
-    const base = Math.max(groundUnder(state, lot.x + 4), groundUnder(state, lot.x + LOT_W - 4)) + 4;
-    lots.push({ lot, base });
+    lots.push({ lot, base: lotBase(state.groundRuns, lot) });
   }
   for (const { lot, base } of lots) {
     const wob = shake > 0 ? Math.sin(state.frame * 0.9 + lot.i * 2) * shake * 2 : 0;
@@ -98,11 +86,8 @@ const drawVictorian = (ctx: Ctx, x: number, w: number, base: number, i: number) 
   for (const sill of [base - 190, base - 310]) {
     ctx.fillStyle = TRIM; ctx.fillRect(x + 10, sill - 66, 40, 66);
     ctx.fillStyle = lit(i * 5 + sill); ctx.fillRect(x + 14, sill - 62, 32, 58);
+    // (the pots on the sills are the quake's: see streets.ts, drawn with everything else that's loose)
     ctx.fillStyle = TRIM; ctx.fillRect(x + 12, sill - 34, 36, 3); ctx.fillRect(x + 6, sill, 48, 5);
-    if (hash(i * 7 + sill) > 0.4) {
-      ctx.fillStyle = '#C2410C'; ctx.fillRect(x + 16, sill - 10, 12, 10);
-      ctx.fillStyle = '#166534'; ctx.beginPath(); ctx.arc(x + 22, sill - 13, 7, 0, Math.PI * 2); ctx.fill();
-    }
   }
   ctx.fillStyle = TRIM; ctx.fillRect(x - 4, top - 10, w + 8, 12);
   for (let bxx = x + 4; bxx < x + w; bxx += 16) ctx.fillRect(bxx, top + 2, 5, 8);

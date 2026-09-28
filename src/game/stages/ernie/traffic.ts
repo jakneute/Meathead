@@ -36,7 +36,7 @@ export const CAR_WARN = 75;
 const CAR_DAMAGE = 14, CAR_FLING_X = 11, CAR_FLING_Y = -9;
 const COLORS = ['#2563EB', '#DC2626', '#F8FAFC', '#16A34A', '#FACC15', '#9333EA', '#F97316', '#0EA5E9'];
 
-export const createTraffic = (): Traffic => ({ cars: [], timer: 200 });
+export const createTraffic = (): Traffic => ({ cars: [], timer: 360 });
 
 /** Where the cars run: the bridge from a little way out to a little way short of the far end. */
 const inTraffic = (x: number) => x > COURSE.bridge.x1 + 150 && x < COURSE.bridge.exit - 250;
@@ -45,12 +45,12 @@ export const updateTraffic = (ctx: FrameContext, tr: Traffic) => {
   const { state } = ctx;
   const p = state.player;
   const px = p.pos.x + p.width / 2;
-  if (inTraffic(px) && tr.cars.length < 2 && --tr.timer <= 0) {
-    tr.timer = 330 + Math.floor(Math.random() * 220);
+  if (inTraffic(px) && tr.cars.length === 0 && --tr.timer <= 0) {
+    tr.timer = 480 + Math.floor(Math.random() * 240);
     const dir: 1 | -1 = Math.random() < 0.72 ? 1 : -1;
     const x = dir > 0 ? state.camera.x - CAR_W - 30 : state.camera.x + CANVAS_WIDTH + 30;
     const roof: Block = { x, y: GROUND_Y - CAR_H, w: CAR_W, h: 10, type: 'platform', hidden: true, oneWay: true, tag: 'car-roof' };
-    tr.cars.push({ x, y: GROUND_Y, dir, speed: 8 + Math.random() * 1.5, vy: 0, rot: 0, color: COLORS[Math.floor(Math.random() * COLORS.length)], state: 'coming', t: 0, roof });
+    tr.cars.push({ x, y: GROUND_Y, dir, speed: 7 + Math.random(), vy: 0, rot: 0, color: COLORS[Math.floor(Math.random() * COLORS.length)], state: 'coming', t: 0, roof });
     playSound('horn');
   }
   for (const c of tr.cars) {

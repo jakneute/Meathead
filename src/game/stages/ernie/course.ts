@@ -133,10 +133,9 @@ const build = () => {
   let at = 8000;
   for (const [x1, x2] of deck) { m.ground(at, x1); at = x2; }
   m.ground(at, 13000);
-  m.wreck(8850, 1); m.wreck(9750, 2); m.wreck(10420, 1); m.wreck(11480, 2); m.wreck(12500, 1);
+  m.wreck(8850, 1); m.wreck(9750, 2); m.wreck(10420, 1); m.wreck(11480, 1); m.wreck(12500, 1);
   m.spawn('techbro', 9150); m.spawn('drone', 9900, Y - 290); m.spawn('courier', 10300);
-  m.spawn('protester', 10900); m.spawn('drone', 11500, Y - 310); m.spawn('techbro', 11980);
-  m.spawn('seagull', 12400, Y - 330);
+  m.spawn('protester', 10900); m.spawn('techbro', 11980);
   m.pickup(10420, Y - 30, 'small_health');
   m.pickup(11990, Y - 30, 'small_ammo');
 
