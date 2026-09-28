@@ -274,7 +274,7 @@ const App: React.FC = () => {
     setShowArchive(v => !v);
     setSelectedIndex(0);
     setLockedIndex(null);
-    setShowDossier(true);
+    // (whichever of MAP or DOSSIER you were looking at stays up)
   };
 
   const lockStage = (idx: number) => {
