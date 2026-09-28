@@ -25,7 +25,7 @@ import { shakeScreen } from '../../core/state';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 import { hurtPlayer } from '../../bosses/shared';
 import { playSound } from '../../platform/audio';
-import { say, Voice, MEATHEAD_VOICE } from '../../platform/speech';
+import { say, isSpeaking, Voice, MEATHEAD_VOICE } from '../../platform/speech';
 import { midBossProjectileDamage, DOORMAN_RESIST } from '../../combat/midBoss';
 import { KIND_STATS } from '../../enemies/kinds';
 import { COURSE, CP } from './course';
@@ -58,6 +58,11 @@ export interface DoormanFight {
   hintSaidAt?: number;
   hintsGiven?: number;
   fourthWall?: number;
+  /** When the hint line he's saying started (unset once it's finished), and how long it is. */
+  hintSpeakingSince?: number;
+  hintLen?: number;
+  /** With no voice: till when the line's up to be read (his other chatter holds off). */
+  hintQuietUntil?: number;
   /** His runs Meathead's got out of the way of; whether the current run's found him; his state last frame. */
   dodges?: number;
   dashTouched?: boolean;
@@ -121,7 +126,9 @@ const talk = (fight: DoormanFight, pool: string[], force = false) => {
   if (!force && (fight.talkCd > 0 || fight.lineT > 0)) return;
   const text = pool[Math.floor(Math.random() * pool.length)];
   fight.talkCd = 260;
-  const shown = say(text, DOORMAN_VOICE, force ? 'urgent' : 'casual', {
+  // (never over the top of Meathead in the middle of one of his hints: it waits its turn)
+  const priority = force ? (fight.hintSpeakingSince !== undefined || fight.hintQueue?.length ? 'queue' : 'urgent') : 'casual';
+  const shown = say(text, DOORMAN_VOICE, priority, {
     onShow: () => { fight.line = text; fight.lineT = 150; },
     onHide: () => { if (fight.line === text) fight.lineT = Math.min(fight.lineT, 20); },
   });
@@ -392,10 +399,10 @@ const FOURTH_WALL: string[][] = [
 /** How many smacks (or dodges) before the first hint, and between the ones after; the wait after a hit (the ow comes first). */
 const SMACKS_FIRST = 2, SMACKS_EVERY = 2, DODGES_FIRST = 2, DODGES_EVERY = 2, HINT_DELAY = 70;
 /** Never two hints closer together than this, and a line of a spelled-out hint waits this long after the one before. */
-const HINT_GAP = 360, LINE_GAP = 150;
+const HINT_GAP = 360;
 
 const queueHint = (state: GameState, fight: DoormanFight, kind: HintKind, delay: number) => {
-  if (fight.hintQueue?.length || state.frame - (fight.hintSaidAt ?? -1e9) < HINT_GAP) return;
+  if (fight.hintQueue?.length || hintTalking(state, fight) || state.frame - (fight.hintSaidAt ?? -1e9) < HINT_GAP) return;
   const n = fight.hintsGiven || 0;
   // (once he's spelled it out every way he knows how, he gives up talking and just suffers)
   if (n >= 3 + FOURTH_WALL.length) return;
@@ -439,7 +446,7 @@ const WRONG_MOVE_GAP = 90;
 const wrongMoveLine = (state: GameState, fight: DoormanFight, his: 'charge' | 'slide', mine: MyMove) => {
   const pool = WRONG_MOVE[his][mine];
   // (not over the top of a spelled-out hint he's partway through)
-  if (!pool.length || fight.hintQueue?.length || state.frame - (fight.hintSaidAt ?? -1e9) < WRONG_MOVE_GAP) return;
+  if (!pool.length || fight.hintQueue?.length || hintTalking(state, fight) || state.frame - (fight.hintSaidAt ?? -1e9) < WRONG_MOVE_GAP) return;
   const fresh = pool.filter(l => l !== fight.lastHint);
   fight.hintQueue = [fresh[Math.floor(Math.random() * fresh.length)] ?? pool[0]];
   fight.hintAt = state.frame + 12;
@@ -467,18 +474,56 @@ const watchDodges = (state: GameState, fight: DoormanFight) => {
 
 /** Says the next line of the hint that's due (over whatever ow he's still saying). */
 const sayHint = (state: GameState, fight: DoormanFight) => {
+  // (with no voice, the words on screen are the line: his ows and taunts hold off till it's been read)
+  if (fight.hintQuietUntil !== undefined && state.frame >= fight.hintQuietUntil) { state.isMeatheadSpeaking = false; fight.hintQuietUntil = undefined; }
+  // Every line's heard to the end: nothing of his cuts in till the one he's on is finished (and a breath after)
+  if (hintTalking(state, fight)) return;
   if (!fight.hintQueue?.length || fight.hintAt === undefined || state.frame < fight.hintAt || state.deathTimer > 0) return;
+  // (and if he's still mid-"ow" from the hit, or the doorman's mid-sentence, it lets them finish first: a couple of
+  // seconds at most, then it cuts in)
+  if (isSpeaking() && state.frame < fight.hintAt + HINT_WAIT_FOR_OTHERS) return;
   const text = fight.hintQueue.shift()!;
   fight.lastHint = text;
   fight.hintSaidAt = state.frame;
-  fight.hintAt = state.frame + LINE_GAP;
-  const hold = fight.hintQueue.length ? LINE_GAP : 170;
+  fight.hintSpeakingSince = state.frame;
+  fight.hintLen = text.length;
+  // (with no voice to wait on, the words stay up long enough to read them)
+  const readFor = HINT_READ_BASE + text.length * HINT_READ_PER_CHAR;
+  fight.hintAt = state.frame + readFor + HINT_BREATH;
+  let voiced = false;
   const shown = say(text, MEATHEAD_VOICE, 'urgent', {
-    onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = hold; },
+    onShow: spoken => {
+      voiced = spoken;
+      state.playerLastVulgarity = text;
+      state.playerVulgarityTimer = spoken ? 9999 : readFor;
+      state.isMeatheadSpeaking = true;
+      if (!spoken) { fight.hintSpeakingSince = undefined; fight.hintQuietUntil = state.frame + readFor; }
+    },
     onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 30); },
+    onDone: () => {
+      // (with no voice there's nothing to wait on: the reading time set above stands)
+      if (!voiced) return;
+      state.isMeatheadSpeaking = false;
+      if (fight.lastHint !== text) return;
+      fight.hintSpeakingSince = undefined;
+      // (the next line a breath after this one's finished)
+      if (fight.hintQueue?.length) fight.hintAt = state.frame + HINT_BREATH;
+    },
   });
-  if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = hold; }
+  if (!shown) {
+    state.playerLastVulgarity = text; state.playerVulgarityTimer = readFor; fight.hintSpeakingSince = undefined;
+    state.isMeatheadSpeaking = true; fight.hintQuietUntil = state.frame + readFor;
+  }
 };
+
+/** Still saying a hint line (spoken lines are waited on till they finish; never forever, in case the voice drops it). */
+const hintTalking = (state: GameState, fight: DoormanFight) => {
+  if (fight.hintSpeakingSince === undefined) return false;
+  if (state.frame - fight.hintSpeakingSince > HINT_READ_BASE + (fight.hintLen || 0) * HINT_SPEAK_MAX_PER_CHAR) { fight.hintSpeakingSince = undefined; return false; }
+  return true;
+};
+/** Reading time for a line with no voice (frames), a pause between lines, and the longest a spoken line is waited on. */
+const HINT_READ_BASE = 50, HINT_READ_PER_CHAR = 3.5, HINT_BREATH = 20, HINT_SPEAK_MAX_PER_CHAR = 9, HINT_WAIT_FOR_OTHERS = 150;
 
 /** Bumping into him: what you're doing against what he's doing. */
 const touch = (ctx: FrameContext, m: Enemy, fight: DoormanFight) => {
