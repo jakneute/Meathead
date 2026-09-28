@@ -91,8 +91,8 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   labtech: { w: 40, h: 64, hp: 130, contact: 6 },
   subject: { w: 56, h: 78, hp: 260, contact: 14 },
   scientist: { w: 56, h: 68, hp: 180, contact: 7 },
-  // (a tenant's only ever his top half, out of his window; the minion's harmless; a generator's a big box)
-  tenant: { w: 40, h: 44, hp: 60, contact: 0 },
+  // (a tenant's only ever his top half, out of his window, and one hit does him; the minion's harmless; a generator's a big box)
+  tenant: { w: 40, h: 44, hp: 1, contact: 0 },
   minion: { w: 36, h: 62, hp: 1, contact: 0 },
   generator: { w: 120, h: 150, hp: 100, contact: 0 },
 };
