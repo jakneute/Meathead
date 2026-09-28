@@ -145,6 +145,17 @@ const drawCop = (ctx: Ctx, e: Enemy, f: number) => {
   shades(ctx, -65, '#B45309');
   ctx.fillStyle = '#1E3A8A'; ctx.fillRect(-9, -76, 20, 6); ctx.fillRect(-4, -71, 18, 3);
   ctx.fillStyle = '#FACC15'; ctx.fillRect(1, -74, 3, 3);
+  if (e.melee) {
+    // The nightstick: raised back over his head (the tell), brought down hard, then hanging
+    const m = e.melee;
+    const a = m.state === 'windup' ? -0.6 - Math.min(1, m.t / 10) * 1.7 : m.state === 'strike' ? -2.3 + Math.min(1, m.t / 3) * 3.1 : 0.9;
+    ctx.save(); ctx.translate(4, -50); ctx.rotate(a);
+    ctx.fillStyle = SKIN[1]; ctx.fillRect(0, -3, 12, 6);
+    ctx.fillStyle = '#111827'; ctx.fillRect(10, -2.5, 26, 5); ctx.fillRect(14, -2.5, 3, 9);
+    ctx.restore();
+    if (m.state === 'strike' && m.t < 5) { ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(4, -50, 36, -1.9, 0.6); ctx.stroke(); }
+    return;
+  }
   const charge = Math.max(0, (e.shootTimer - 40) / 20);
   ctx.fillStyle = SKIN[1]; ctx.fillRect(4, -47, 12, 5);
   ctx.fillStyle = '#111827'; ctx.fillRect(14, -50, 12, 5); ctx.fillRect(14, -46, 4, 5);
@@ -162,6 +173,10 @@ const drawRiotCop = (ctx: Ctx, e: Enemy, f: number) => {
   ctx.fillStyle = 'rgba(148, 163, 184, 0.6)'; ctx.fillRect(1, -66, 13, 8);
   if (e.isShieldActive) {
     const damage = 1 - e.health / e.maxHealth;
+    // (drawn back for a bash, then rammed forward)
+    const m = e.melee;
+    const push = !m ? 0 : m.state === 'windup' ? -Math.min(1, m.t / 10) * 8 : m.state === 'strike' ? 12 : 3;
+    ctx.save(); ctx.translate(push, 0);
     ctx.fillStyle = 'rgba(203, 213, 225, 0.55)'; ctx.fillRect(10, -76, 16, 74);
     ctx.strokeStyle = '#475569'; ctx.lineWidth = 2; ctx.strokeRect(10, -76, 16, 74);
     ctx.save(); ctx.translate(20, -36); ctx.rotate(-Math.PI / 2);
@@ -169,6 +184,8 @@ const drawRiotCop = (ctx: Ctx, e: Enemy, f: number) => {
     ctx.restore();
     ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 1;
     for (let i = 0; i < Math.floor(damage * 5); i++) { const y0 = -70 + i * 13; ctx.beginPath(); ctx.moveTo(11, y0); ctx.lineTo(18, y0 + 5); ctx.lineTo(25, y0 + 2); ctx.stroke(); }
+    if (m?.state === 'strike' && m.t < 6) { ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 2; for (const y of [-60, -38, -16]) { ctx.beginPath(); ctx.moveTo(30, y); ctx.lineTo(44, y); ctx.stroke(); } }
+    ctx.restore();
   } else {
     // Shield lowered: a tear gas canister wound back to lob
     ctx.fillStyle = 'rgba(203, 213, 225, 0.5)'; ctx.fillRect(-26, -40, 12, 40);

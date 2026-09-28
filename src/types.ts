@@ -155,6 +155,8 @@ export type EnemyKind =
   | 'tourist' | 'bouncer' | 'surfer' | 'cop' | 'riotcop' | 'gator' | 'pelican' | 'iguana' | 'crab' | 'civilian' | 'shark' | 'eye';
 
 export interface Enemy extends Entity {
+  /** A close-range swing in progress (the cops' club and shield bash): what part of it, how long in, and whether it's landed. */
+  melee?: { state: 'windup' | 'strike' | 'recover'; t: number; hit: boolean };
   enemyType: 'drone' | 'tank' | 'turret' | 'flyer' | 'shield';
   behavior: 'patrol' | 'shoot' | 'hover' | 'fly' | 'custom';
   /** A themed stage enemy with its own look and AI (see systems/kinds.ts). */

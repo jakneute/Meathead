@@ -26,6 +26,7 @@ import { floorTopAt } from '../terrain';
 import { getStageLeft, getStageLayout } from '../stages';
 import { runKindAI, kindContactDamage, holdingOff, shieldFacing, isChargerKind } from './kinds';
 import { selfPropelled } from './kindsHector';
+import { copMelee, isMeleeCop } from './copMelee';
 
 /** Moves one enemy and resolves its contact with the player. Returns false to remove it. */
 export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolean => {
@@ -387,6 +388,8 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
     }
   }
   if (e.behavior === 'shoot') settleAfterKnockback(e);
+  // (the cops don't stand and shoot: they come at you and club you)
+  if (onScreen && isMeleeCop(e)) copMelee(ctx, e);
   e.pos.x += e.vel.x;
 };
 
