@@ -10,6 +10,7 @@ import { NO_CONTROLS } from '../../input';
 import { makeKindEnemy } from '../../systems/kinds';
 import { playSound } from '../../audio';
 import { COURSE, CP } from './course';
+import { CANVAS_WIDTH } from '../../../constants';
 import { Hazards, createHazards, updateHazards } from './hazards';
 import { DoormanFight, createDoormanFight, updateDoormanFight } from './doorman';
 import { Lounge, createLounge, startCrash, updateLounge } from './lounge';
@@ -91,6 +92,9 @@ export const updateVictor = (ctx: FrameContext, controls: Controls): Controls =>
     }
     if (rt.enterT > ENTER_FRAMES + 30) rt.enterT = 0;
   }
+  // Up the shaft the view stops at its right-hand wall (and lets go again anywhere else)
+  const inShaft = region === 'inside' && player.pos.x > COURSE.shaft.x1 - 200;
+  state.cameraMaxX = inShaft ? COURSE.shaft.x2 + 60 - CANVAS_WIDTH : region === 'main' ? state.cameraMaxX : undefined;
   if (region === 'inside') {
     if (state.checkpoint < CP.SHAFT && player.isGrounded && player.pos.x >= COURSE.checkpoints[CP.SHAFT].x) state.checkpoint = CP.SHAFT;
     // Up at the window
