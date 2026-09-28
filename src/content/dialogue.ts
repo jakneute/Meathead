@@ -453,6 +453,84 @@ export const BOSS_DIALOGUE: {
       "I HIT A BUOY! THE BUOY WON!",
       "THAT BUOY CAME OUT OF NOWHERE!",
     ],
+    // Dale's stage: the cartel, the desert, the warehouse, the trucks and the old west town
+    'sicario': [
+      "GET YOUR BANDANA OUT OF MY FACE!",
+      "HANDS OFF, BANDIT!",
+    ],
+    'sicario_shot': [
+      "AN AK?! I'M A GYM MEMBER, NOT A RIVAL CARTEL!",
+      "HE SPRAYED ME! LIKE A LAWN! LIKE A LAWN, MAN!",
+      "FULL AUTO ON MY PECS! THAT'S JUST RUDE!",
+    ],
+    'enforcer': [
+      "HE TRIED TO FILLET ME! I'M NOT A FAJITA!",
+      "MACHETE TO THE MIDSECTION! MY ABS! MY PRECIOUS ABS!",
+      "PUT THE MACHETE DOWN AND FIGHT LIKE A MAN!",
+    ],
+    'cardoor': [
+      "HE HIT ME WITH A CAR DOOR! WHO DOES THAT?!",
+      "DOOR TO THE FACE! AT LEAST LET ME IN FIRST!",
+    ],
+    'cardoor_shot': [
+      "A TEQUILA BOTTLE TO THE HEAD! AT LEAST LET ME DRINK IT FIRST!",
+      "HE THREW A BOTTLE! THERE WAS STILL A WORM IN IT!",
+    ],
+    'rattlesnake': [
+      "SNAKE BITE! SUCK IT OUT! NOT YOU! ME! NOBODY SUCK IT!",
+      "IT RATTLED! I SHOULD HAVE LISTENED TO THE RATTLE!",
+    ],
+    'scorpion': [
+      "A SCORPION STUNG MY ANKLE! MY BEAUTIFUL ANKLE!",
+      "TINY LOBSTER FROM HELL! GET OFF ME!",
+    ],
+    'coyote': [
+      "A COYOTE! BEEP BEEP, ASSHOLE!",
+      "IT BIT MY CALF! THESE CALVES TOOK YEARS!",
+    ],
+    'cactus': [
+      "CACTUS! IN MY GLUTES! THERE'S A CACTUS IN MY GLUTES!",
+      "NEEDLES! A HUNDRED LITTLE NEEDLES! DALE, IS THIS YOU?!",
+      "I HUGGED A CACTUS! I'M NOT PROUD OF IT!",
+    ],
+    'conveyor_crate': [
+      "A CRATE TO THE SHINS! WHAT'S IN THESE, BRICKS?!",
+      "THE CONVEYOR BELT IS THROWING PRODUCT AT ME!",
+    ],
+    'junkie': [
+      "HANDS OFF, TWEAKER!",
+      "HE TOUCHED ME! I'M GONNA NEED A SHOWER AND A TETANUS SHOT!",
+    ],
+    'junkie_punch': [
+      "HE'S PUNCHING ME! WITH HIS SKINNY LITTLE ARMS!",
+      "OW! OW! STOP! WHERE DOES A TWEAKER GET THAT KIND OF POWER?!",
+    ],
+    'junkie_throw': [
+      "HE THREW ME! A CRACKHEAD THREW ME!",
+      "THROWN ACROSS THE ROOM BY A GUY WHO WEIGHS NINETY POUNDS!",
+    ],
+    'junkie_shot': [
+      "HE SHOT ME WITH HIS GOLD PLATED PISTOL! TACKY!",
+      "A GOLD GUN! HOW MUCH PRODUCT DID THAT COST?!",
+    ],
+    'junkie_rush': [
+      "HE'S ON A RAMPAGE! GET THIS HIGHLY CAFFEINATED IDIOT OFF ME!",
+      "HE RAN ME OVER ON HIS WAY TO HEADBUTT A WALL!",
+    ],
+    'road_debris': [
+      "A TIRE! ON THE HIGHWAY! TO MY HEAD!",
+      "THE HIGHWAY IS THROWING GARBAGE AT ME!",
+      "GOT HIT BY A ROAD SIGN! THE SIGN SAID OUCH!",
+    ],
+    'tumbleweed': [
+      "A TUMBLEWEED! THAT'S THE MOST HUMILIATING THING THAT'S EVER HIT ME!",
+      "WHO LET A TUMBLEWEED ON THE INTERSTATE?!",
+    ],
+    'sniper': [
+      "SNIPER! RIGHT IN THE TRAPS!",
+      "SHOT FROM A MILE AWAY! COWARD! COME DOWN HERE!",
+      "RED DOT! THEN PAIN! EVERY TIME!",
+    ],
     // The doorman of Club Caldera
     'doorman': [
       "HANDS OFF, BOUNCER!",

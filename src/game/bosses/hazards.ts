@@ -11,6 +11,7 @@ import { hitBoss, isWeakTo } from './registry';
 import { updateCorkedVent, ventTip } from './victor';
 import { pickRandom } from '../core/utils';
 import { killPlayer, landPlayer } from '../player/player';
+import { isMidBoss, midBossDamage } from '../combat/midBoss';
 
 /** The player's tsunami sweeps across the screen, killing regular enemies outright. */
 export const updateTsunami = (ctx: FrameContext) => {
@@ -66,12 +67,12 @@ export const updateTsunami = (ctx: FrameContext) => {
     if (e.type === 'boss') {
       if (!state.arenaLocked || (e.hitCooldown && e.hitCooldown > 0)) return;
       hitBoss(ctx, e, 'TSUNAMI', { facing: dir, damage: isWeakTo(stageId, 'TSUNAMI') ? TSUNAMI_DAMAGE_WEAKNESS : TSUNAMI_DAMAGE_BOSS });
-    } else if (e.kind === 'moose' || e.kind === 'eye' || e.kind === 'doorman') {
+    } else if (isMidBoss(e)) {
       // A mid-boss takes it like a boss would, once per wave (it isn't washed away): a heavy hit, except to the
       // doorman, who just stands there in it (and it never finishes him off: his fight ends its own way)
       if (e.tsunamiWave === state.tsunamiStartX) return;
       e.tsunamiWave = state.tsunamiStartX;
-      const dmg = e.kind === 'doorman' ? TSUNAMI_DAMAGE_DOORMAN : TSUNAMI_DAMAGE_MIDBOSS;
+      const dmg = e.kind === 'doorman' ? TSUNAMI_DAMAGE_DOORMAN : midBossDamage(e, TSUNAMI_DAMAGE_MIDBOSS);
       e.health = e.kind === 'doorman' ? Math.max(1, e.health - dmg) : e.health - dmg;
       e.hitFlash = 8;
       fx.spawnDamageNumber(e.pos, dmg, e.kind !== 'doorman');

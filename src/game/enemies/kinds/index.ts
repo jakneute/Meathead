@@ -21,6 +21,7 @@ import type { GameState } from '../../core/state';
 import { runHectorKindAI } from './hector';
 import { runVictorKindAI } from './victor';
 import { runErnieKindAI } from './ernie';
+import { runDaleKindAI } from './dale';
 
 interface KindStats { w: number; h: number; hp: number; contact: number; air?: boolean }
 
@@ -63,6 +64,15 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   drone: { w: 58, h: 30, hp: 40, contact: 0, air: true },
   jetskier: { w: 74, h: 54, hp: 50, contact: 12 },
   burning: { w: 34, h: 62, hp: 1, contact: 0 },
+  // Dale's stage
+  sicario: { w: 40, h: 64, hp: 120, contact: 6 },
+  enforcer: { w: 52, h: 72, hp: 230, contact: 12 },
+  cardoor: { w: 52, h: 68, hp: 170, contact: 7 },
+  rattlesnake: { w: 44, h: 16, hp: 40, contact: 9 },
+  scorpion: { w: 32, h: 16, hp: 30, contact: 7 },
+  coyote: { w: 54, h: 34, hp: 70, contact: 10 },
+  junkie: { w: 56, h: 92, hp: 1300, contact: 6 },
+  visitor: { w: 34, h: 62, hp: 1, contact: 0 },
 };
 
 /**
@@ -70,10 +80,11 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
  * (and a slide's only a little damage to anything else).
  */
 export const isSmallCritter = (kind?: EnemyKind) =>
-  kind === 'wolverine' || kind === 'salamander' || kind === 'raccoon' || kind === 'crab' || kind === 'iguana' || kind === 'magmafish';
+  kind === 'wolverine' || kind === 'salamander' || kind === 'raccoon' || kind === 'crab' || kind === 'iguana' || kind === 'magmafish'
+  || kind === 'rattlesnake' || kind === 'scorpion';
 
 /** The ones that run you down like the rusher. */
-export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind === 'bouncer' || kind === 'smokejumper' || kind === 'courier';
+export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind === 'bouncer' || kind === 'smokejumper' || kind === 'courier' || kind === 'enforcer';
 
 let spawnCount = 0;
 
@@ -112,6 +123,12 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     case 'burning': return { ...base, harmless: true, innocent: true };
     // Beachgoers: not out to hurt anyone
     case 'civilian': return { ...base, harmless: true, innocent: true };
+    // Dale's cartel: a sicario with a rifle, an enforcer who runs you down with a machete, a man behind a car door
+    case 'sicario': return { ...base, behavior: 'shoot', shootTimer: Math.floor(Math.random() * 40) };
+    case 'enforcer': return { ...base, behavior: 'patrol', pauseTimer: 0 };
+    case 'cardoor': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
+    // Tourists in the old west town: the same as the beachgoers
+    case 'visitor': return { ...base, harmless: true, innocent: true };
     default: return base;
   }
 };
@@ -134,6 +151,11 @@ export const runKindAI = (ctx: FrameContext, e: Enemy): boolean => {
     case 'raccoon': wolverine(ctx, e); return false;
     case 'seagull': return runHectorKindAI(ctx, e);
     case 'drone': case 'jetskier': case 'burning': return runErnieKindAI(ctx, e);
+    // Dale's desert: the coyote lunges in bounding hops like the wolverine, the scorpion scuttles and pinches like the
+    // crab; the rattlesnake coils up and strikes; the tourists in town carry on like the beachgoers
+    case 'coyote': wolverine(ctx, e); return false;
+    case 'scorpion': case 'visitor': return runHectorKindAI(ctx, e);
+    case 'rattlesnake': return runDaleKindAI(ctx, e);
     default: return false;
   }
 };

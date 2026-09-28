@@ -10,6 +10,7 @@ import { Enemy, EnemyKind, Vector2 } from '../../types';
 import { COLORS, GRAVITY } from '../../constants';
 import type { GameState } from '../core/state';
 import { floorTopAt } from '../core/terrain';
+import { isMidBoss } from '../combat/midBoss';
 
 export type EnemyDeathKind = 'charred' | 'fried' | 'melted' | 'greased' | 'pancaked';
 
@@ -39,6 +40,7 @@ const KIND_COLORS: Record<string, string> = {
   wolverine: '#4A3222', goat: '#E7E2D6', eagle: '#5A3A1E', shooter: '#DCE8F5', charger: '#1E3A8A', shielder: '#C9DBEF',
   tourist: '#F97316', bouncer: '#F8FAFC', surfer: '#0F766E', cop: '#1E3A8A', riotcop: '#1F2937', civilian: '#F472B6',
   gator: '#3F5B2A', pelican: '#6B5B45', iguana: '#65A30D', crab: '#DC2626', shark: '#64748B',
+  sicario: '#991B1B', enforcer: '#F5F5F4', cardoor: '#60A5FA', rattlesnake: '#C2A26B', scorpion: '#D4A95C', coyote: '#B48A5A', visitor: '#F97316',
 };
 
 export const enemyBodyColor = (e: { id: string, enemyType?: string, width: number, kind?: string }) => {
@@ -54,13 +56,14 @@ export const enemyBodyColor = (e: { id: string, enemyType?: string, width: numbe
 /** Which way a themed enemy was facing as it died (wildlife the way it was going, goons toward him). */
 const deathFacing = (state: GameState, e: Enemy): 1 | -1 => {
   // (wildlife, beachgoers and shield-holders face their own way; the rest face him)
-  const ownWay = ['wolverine', 'goat', 'eagle', 'shielder', 'surfer', 'riotcop', 'gator', 'pelican', 'iguana', 'crab', 'civilian', 'shark'];
+  const ownWay = ['wolverine', 'goat', 'eagle', 'shielder', 'surfer', 'riotcop', 'gator', 'pelican', 'iguana', 'crab', 'civilian', 'shark',
+    'cardoor', 'rattlesnake', 'scorpion', 'coyote', 'visitor'];
   if (e.kind && ownWay.includes(e.kind)) return e.facing === 1 ? 1 : -1;
   return state.player.pos.x + state.player.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;
 };
 
 export const startEnemyDeath = (state: GameState, e: Enemy, kind: EnemyDeathKind, vel?: Vector2) => {
-  if (e.kind === 'moose' || e.kind === 'eye' || e.kind === 'doorman') return; // (a mid-boss leaves its own corpse)
+  if (isMidBoss(e)) return; // (a mid-boss leaves its own corpse)
   state.enemyDeaths.push({
     kind,
     x: e.pos.x, y: e.pos.y, w: e.width, h: e.height,

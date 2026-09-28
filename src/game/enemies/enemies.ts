@@ -29,6 +29,7 @@ import { runKindAI, kindContactDamage, holdingOff, shieldFacing, isChargerKind, 
 import { selfPropelled } from './kinds/hector';
 import { copMelee, isMeleeCop } from './copMelee';
 import { submerged } from './kinds/victor';
+import { isMidBoss } from '../combat/midBoss';
 
 /** Moves one enemy and resolves its contact with the player. Returns false to remove it. */
 export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolean => {
@@ -709,7 +710,7 @@ const CROWD_OVERLAP = 6;
 /** On its feet and walking about under its own steam (not flying, swimming, a boss, dead, being shoved, or a mid-boss). */
 const onFoot = (e: Enemy) =>
   e.type !== 'boss' && e.health > 0 && !e.isBlownAway && !isAirEnemy(e) && !selfPropelled(e) && !submerged(e)
-  && e.kind !== 'doorman' && e.kind !== 'moose' && e.kind !== 'eye' && !isBeingShoved(e) && !e.innocent;
+  && !isMidBoss(e) && !isBeingShoved(e) && !e.innocent;
 
 /**
  * Enemies on foot don't stand in the same spot: two that overlap on the same footing are eased apart, half each

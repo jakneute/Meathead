@@ -162,7 +162,10 @@ export type EnemyKind =
   // Victor's stage: goons in heat gear, volcano wildlife, and the club's doorman
   | 'heatsuit' | 'smokejumper' | 'blastshield' | 'salamander' | 'vulture' | 'magmafish' | 'doorman'
   // Ernie's stage: San Francisco's finest, its wildlife, drones, the jet ski goons, and the poor souls on fire on the bridge
-  | 'techbro' | 'courier' | 'protester' | 'raccoon' | 'seagull' | 'drone' | 'jetskier' | 'burning';
+  | 'techbro' | 'courier' | 'protester' | 'raccoon' | 'seagull' | 'drone' | 'jetskier' | 'burning'
+  // Dale's stage: the cartel's sicarios, enforcers and car-door men, the desert's wildlife, his distributor
+  // (the tweaker upstairs in the warehouse office), and the tourists in the old west town
+  | 'sicario' | 'enforcer' | 'cardoor' | 'rattlesnake' | 'scorpion' | 'coyote' | 'junkie' | 'visitor';
 
 export interface Enemy extends Entity {
   /** Which of Meathead's moves last hit it (see Player.moveId). */
@@ -171,6 +174,8 @@ export interface Enemy extends Entity {
   prey?: string;
   /** The frame the flamethrower last hurt it (a mid-boss is hurt once a frame, however many flames are on it). */
   burntAt?: number;
+  /** The frame a stage hazard (a cactus, a truck, road debris) last hurt it (so one bump isn't a hit every frame). */
+  hazardHitAt?: number;
   /** A close-range swing in progress (the cops' club and shield bash): what part of it, how long in, and whether it's landed. */
   melee?: { state: 'windup' | 'strike' | 'recover'; t: number; hit: boolean };
   /** The last frame Meathead was driving him backward on his own shield with a shoulder charge. */

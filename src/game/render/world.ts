@@ -17,6 +17,7 @@ import { drawVictoryPee } from './scenes/victoryPee';
 import { drawPlayer } from './player/player';
 import { drawKindEnemy } from './enemies';
 import { muzzlePoint } from '../combat/muzzle';
+import { isMidBoss } from '../combat/midBoss';
 import { drawBackdrop, drawBackdropFront } from './backdrops';
 import { drawTerrain, drawGroundProfile } from './backdrops/terrain';
 import { getStageLayout } from '../stages';
@@ -422,7 +423,7 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
       for(let j=0; j<4; j++){ ctx.beginPath(); const sx = e.width/2, sy = e.height/2; ctx.moveTo(sx, sy); ctx.lineTo(sx + (Math.random()-0.5)*100, sy + (Math.random()-0.5)*100); ctx.stroke(); }
     }
     drawStuckNeedles(ctx, e, state.frame);
-    if (!e.isBlownAway && e.kind !== 'moose' && e.kind !== 'eye' && e.kind !== 'doorman' && e.kind !== 'civilian' && !(e.kind === 'magmafish' && (!e.aiState || e.aiState === 'idle'))) { ctx.fillStyle = '#00FF00'; ctx.fillRect(e.pos.x, e.pos.y - 10, (e.health / e.maxHealth) * e.width, 5); }
+    if (!e.isBlownAway && !isMidBoss(e) && e.kind !== 'civilian' && e.kind !== 'visitor' && !(e.kind === 'magmafish' && (!e.aiState || e.aiState === 'idle'))) { ctx.fillStyle = '#00FF00'; ctx.fillRect(e.pos.x, e.pos.y - 10, (e.health / e.maxHealth) * e.width, 5); }
     ctx.restore();
   });
 };

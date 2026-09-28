@@ -42,7 +42,7 @@ src/
     player/              Meathead: input gating, movement, special moves, collision
     combat/              Weapons, projectiles, muzzles, darts, knockback, status effects
     enemies/             Regular enemy AI and contact, special kill animations
-      kinds/             Themed enemies per stage (index: Artie's + shared helpers; hector, victor, ernie)
+      kinds/             Themed enemies per stage (index: Artie's + shared helpers; hector, victor, ernie, dale)
     bosses/              Boss registry and rules, each boss's AI, arena hazards
     scenes/              Victory lap and easter eggs (the sewer nuke, the corked volcano)
     stages/              Hand-built stage layouts, one folder per stage (course, runtime, set pieces, drawing)

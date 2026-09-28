@@ -7,6 +7,7 @@
 import { Enemy, EnemyKind } from '../../../types';
 import { drawVictorKind } from './victor';
 import { drawErnieKind } from './ernie';
+import { drawDaleKind } from './dale';
 import { drawHectorKind } from './hector';
 import { isChargerKind } from '../../enemies/kinds';
 import type { GameState } from '../../core/state';
@@ -44,6 +45,8 @@ export const KIND_HEAD: Record<EnemyKind, { x: number; y: number; r: number }> =
   salamander: { x: 20, y: -9, r: 5 }, vulture: { x: 19, y: -21, r: 5 }, magmafish: { x: 12, y: -13, r: 7 }, doorman: { x: 4, y: -88, r: 12 },
   techbro: { x: 2, y: -64, r: 8 }, courier: { x: 4, y: -66, r: 8 }, protester: { x: 2, y: -62, r: 8 }, raccoon: { x: 19, y: -16, r: 5 },
   seagull: { x: 13, y: -14, r: 4 }, drone: { x: 0, y: -15, r: 7 }, jetskier: { x: -2, y: -52, r: 7 }, burning: { x: 1, y: -64, r: 8 },
+  sicario: { x: 2, y: -64, r: 8 }, enforcer: { x: 5, y: -74, r: 9 }, cardoor: { x: 2, y: -62, r: 8 }, rattlesnake: { x: 12, y: -26, r: 5 },
+  scorpion: { x: 10, y: -8, r: 3 }, coyote: { x: 24, y: -28, r: 6 }, junkie: { x: 3, y: -82, r: 10 }, visitor: { x: 2, y: -62, r: 8 },
 };
 
 /** People (their skeletons are human, and they keel over flat when they die). */
@@ -51,11 +54,13 @@ export const isHumanoidKind = (kind?: EnemyKind) =>
   kind === 'shooter' || kind === 'charger' || kind === 'shielder' || kind === 'tourist' || kind === 'bouncer'
   || kind === 'surfer' || kind === 'cop' || kind === 'riotcop' || kind === 'civilian'
   || kind === 'heatsuit' || kind === 'smokejumper' || kind === 'blastshield' || kind === 'doorman'
-  || kind === 'techbro' || kind === 'courier' || kind === 'protester' || kind === 'jetskier' || kind === 'burning';
+  || kind === 'techbro' || kind === 'courier' || kind === 'protester' || kind === 'jetskier' || kind === 'burning'
+  || kind === 'sicario' || kind === 'enforcer' || kind === 'cardoor' || kind === 'junkie' || kind === 'visitor';
 
-/** What an x-ray shows inside it. */
+/** What an x-ray shows inside it. (A rattlesnake's all spine, like a fish; a scorpion's legs and claws, like a crab.) */
 export const skeletonOf = (kind: EnemyKind): 'person' | 'four-legs' | 'bird' | 'fish' | 'crab' | 'machine' =>
-  kind === 'drone' ? 'machine' : isHumanoidKind(kind) ? 'person' : kind === 'eagle' || kind === 'pelican' || kind === 'vulture' || kind === 'seagull' ? 'bird' : kind === 'shark' || kind === 'magmafish' ? 'fish' : kind === 'crab' ? 'crab' : 'four-legs';
+  kind === 'drone' ? 'machine' : isHumanoidKind(kind) ? 'person' : kind === 'eagle' || kind === 'pelican' || kind === 'vulture' || kind === 'seagull' ? 'bird'
+  : kind === 'shark' || kind === 'magmafish' || kind === 'rattlesnake' ? 'fish' : kind === 'crab' || kind === 'scorpion' ? 'crab' : 'four-legs';
 
 const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: GameState) => {
   ctx.save();
@@ -70,6 +75,7 @@ const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: Game
     case 'shielder': drawShielder(ctx, e, f); break;
     case 'heatsuit': case 'smokejumper': case 'blastshield': case 'salamander': case 'vulture': case 'magmafish': drawVictorKind(ctx, e, f, state); break;
     case 'techbro': case 'courier': case 'protester': case 'raccoon': case 'seagull': case 'drone': case 'jetskier': case 'burning': drawErnieKind(ctx, e, f, state); break;
+    case 'sicario': case 'enforcer': case 'cardoor': case 'rattlesnake': case 'scorpion': case 'coyote': case 'visitor': case 'junkie': drawDaleKind(ctx, e, f, state); break;
     default: drawHectorKind(ctx, e, f, state); break;
   }
   ctx.restore();
@@ -77,7 +83,7 @@ const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: Game
 
 /** Wildlife face where they're headed; goons face you. */
 const kindFacing = (e: Enemy, state: GameState): number => {
-  if (!isHumanoidKind(e.kind) || e.kind === 'civilian') return e.facing ?? -1;
+  if (!isHumanoidKind(e.kind) || e.kind === 'civilian' || e.kind === 'visitor') return e.facing ?? -1;
   if (isChargerKind(e.kind) && Math.abs(e.vel.x) > 0.5) return Math.sign(e.vel.x);
   if (e.enemyType === 'shield') return e.facing === 1 ? 1 : -1; // his shield's on the side he's turned to (he turns round after you)
   return state.player.pos.x + state.player.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;

@@ -17,13 +17,20 @@ export const drawDaleTruck = (ctx: CanvasRenderingContext2D, e: Enemy, frame: nu
   ctx.filter = 'none';
   ctx.shadowBlur = 0;
   if (e.truckX < BOSS_DOOR_X) drawIncomingWarning(ctx, frame);
+  drawDeliveryTruck(ctx, e.truckX, TRUCK_Y, frame, !!e.truckCrashing, true);
+  ctx.restore();
+};
 
-  const x = e.truckX, y = TRUCK_Y;
-  const crashing = !!e.truckCrashing;
+/**
+ * The truck itself, its top-left at (x, y) (it's TRUCK_W long, TRUCK_H tall, facing right), moving (speed lines
+ * behind it) or parked. (Dale drives it through his arena, and loads it out in the desert.)
+ */
+export const drawDeliveryTruck = (ctx: CanvasRenderingContext2D, x: number, y: number, frame: number, crashing = false, moving = false) => {
   // Rattling over the floor; out of control it bucks and fishtails on its rims
-  const bounce = crashing ? Math.sin(frame * 1.7) * 3 + 4 : Math.sin(frame * 0.9) * 1.2;
+  const bounce = crashing ? Math.sin(frame * 1.7) * 3 + 4 : moving ? Math.sin(frame * 0.9) * 1.2 : 0;
   const lean = crashing ? Math.sin(frame * 0.6) * 0.05 - 0.02 : 0;
-  drawShadowAndSpeedLines(ctx, x, y, frame);
+  if (moving) drawShadowAndSpeedLines(ctx, x, y, frame);
+  else { ctx.fillStyle = 'rgba(0, 0, 0, 0.35)'; ctx.beginPath(); ctx.ellipse(x + TRUCK_W / 2, y + TRUCK_H - 2, TRUCK_W / 2 + 10, 8, 0, 0, Math.PI * 2); ctx.fill(); }
   ctx.save();
   ctx.translate(x + TRUCK_W / 2, y + TRUCK_H);
   ctx.rotate(lean);
@@ -34,8 +41,9 @@ export const drawDaleTruck = (ctx: CanvasRenderingContext2D, e: Enemy, frame: nu
   // Wheels roll with the truck (flat once the tires are blown)
   const spin = x / WHEEL_R;
   [x + 46, x + 96, x + 196, x + TRAILER_W + 62].forEach(wx => drawWheel(ctx, wx, y + TRUCK_H - WHEEL_R + 2, spin, crashing));
-  ctx.restore();
 };
+
+export const DELIVERY_TRUCK = { w: TRUCK_W, h: TRUCK_H };
 
 /** Flashing "!" at the door so you know it's coming. */
 const drawIncomingWarning = (ctx: CanvasRenderingContext2D, frame: number) => {

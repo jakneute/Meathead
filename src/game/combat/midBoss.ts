@@ -1,14 +1,16 @@
-// How every weapon hurts the mid-bosses (the moose, the Eye, the doorman). No
-// status effects on them (they shrug off fire, oil, needles, the taser's hold):
-// just a solid number per hit, so no weapon's a waste of time on them. Each is
-// pitched at roughly the same damage per second as the gun or better (the slow,
-// deliberate ones hit harder per shot). The doorman's built like a vault: he
-// takes a small slice of all of it (you beat him in the clashes).
+// How every weapon hurts the mid-bosses (the moose, the Eye, the doorman, Dale's
+// distributor). No status effects on them (they shrug off fire, oil, needles,
+// the taser's hold): just a solid number per hit, so no weapon's a waste of time
+// on them. Each is pitched at roughly the same damage per second as the gun or
+// better (the slow, deliberate ones hit harder per shot). The doorman's built
+// like a vault: he takes a small slice of all of it (you beat him in the
+// clashes). The distributor's out of his mind on his own product: bullets
+// barely register (you beat him with his own stash), the rest only a little.
 
 import type { Enemy, Projectile, WeaponType } from '../../types';
 import { BOULDER_DAMAGE_PER_SPEED, GML_SCALE } from '../../constants';
 
-export const isMidBoss = (e: Enemy) => e.kind === 'moose' || e.kind === 'eye' || e.kind === 'doorman';
+export const isMidBoss = (e: Enemy) => e.kind === 'moose' || e.kind === 'eye' || e.kind === 'doorman' || e.kind === 'junkie';
 
 /**
  * Per hit on a mid-boss (per pellet for the shotgun, per tick for the flamethrower and the taser):
@@ -28,11 +30,18 @@ export const MIDBOSS_NUKE_DAMAGE = 250;
 export const DOORMAN_RESIST = 0.12;
 /** ...and next to nothing from bullets (the gun, shotgun pellets, darts): they just bounce off him. */
 export const DOORMAN_BULLET_RESIST = 0.04;
+/** Dale's distributor, high as a kite: a fair share of anything that isn't a bullet... */
+export const JUNKIE_RESIST = 0.15;
+/** ...and hardly anything from bullets (he doesn't even notice he's been shot). */
+export const JUNKIE_BULLET_RESIST = 0.1;
+
+const isBullet = (w: WeaponType) => w === 'GUN' || w === 'SHOTGUN' || w === 'NEEDLES';
+
 /** The share of a shot the doorman takes. */
-export const doormanShare = (p: Projectile) => {
-  const w = weaponOf(p);
-  return w === 'GUN' || w === 'SHOTGUN' || w === 'NEEDLES' ? DOORMAN_BULLET_RESIST : DOORMAN_RESIST;
-};
+export const doormanShare = (p: Projectile) => (isBullet(weaponOf(p)) ? DOORMAN_BULLET_RESIST : DOORMAN_RESIST);
+
+/** The share of a shot Dale's distributor takes. */
+export const junkieShare = (p: Projectile) => (isBullet(weaponOf(p)) ? JUNKIE_BULLET_RESIST : JUNKIE_RESIST);
 
 /** Which weapon a projectile came out of. */
 export const weaponOf = (p: Projectile): WeaponType =>
@@ -47,5 +56,5 @@ export const midBossProjectileDamage = (p: Projectile) => {
   return MIDBOSS_DAMAGE[w];
 };
 
-/** Damage from something that isn't a shot (the flames, the beam, a splash), with the doorman's resistance. */
-export const midBossDamage = (e: Enemy, amount: number) => amount * (e.kind === 'doorman' ? DOORMAN_RESIST : 1);
+/** Damage from something that isn't a shot (the flames, the beam, a splash, a wave), with the doorman's or the distributor's resistance. */
+export const midBossDamage = (e: Enemy, amount: number) => amount * (e.kind === 'doorman' ? DOORMAN_RESIST : e.kind === 'junkie' ? JUNKIE_RESIST : 1);

@@ -32,8 +32,8 @@ export const runHectorKindAI = (ctx: FrameContext, e: Enemy): boolean => {
     case 'gator': return e.variant === 1 ? waterGator(ctx, e) : (landGator(ctx, e), false);
     case 'pelican': case 'seagull': pelican(ctx, e); return true;
     case 'iguana': return iguana(ctx, e);
-    case 'crab': crab(ctx, e); return false;
-    case 'civilian': civilian(ctx, e); return false;
+    case 'crab': case 'scorpion': crab(ctx, e); return false;
+    case 'civilian': case 'visitor': civilian(ctx, e); return false;
     case 'shark': shark(ctx, e); return true;
     default: return false;
   }
