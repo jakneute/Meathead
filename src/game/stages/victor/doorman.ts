@@ -65,6 +65,8 @@ export interface DoormanFight {
   hintQuietUntil?: number;
   /** How many hints in he last grudgingly commended you (so it's once per bout of yelling). */
   commendedAt?: number;
+  /** A clash has happened: he's got it, and the hints (and the yelling) are over for good. */
+  learned?: boolean;
   /** His runs Meathead's got out of the way of; whether the current run's found him; his state last frame. */
   dodges?: number;
   dashTouched?: boolean;
@@ -405,7 +407,7 @@ const SMACKS_FIRST = 2, SMACKS_EVERY = 2, DODGES_FIRST = 2, DODGES_EVERY = 2, HI
 const HINT_GAP = 360;
 
 const queueHint = (state: GameState, fight: DoormanFight, kind: HintKind, delay: number) => {
-  if (fight.hintQueue?.length || hintTalking(state, fight) || state.frame - (fight.hintSaidAt ?? -1e9) < HINT_GAP) return;
+  if (fight.learned || fight.hintQueue?.length || hintTalking(state, fight) || state.frame - (fight.hintSaidAt ?? -1e9) < HINT_GAP) return;
   const n = fight.hintsGiven || 0;
   // (once he's spelled it out every way he knows how, he gives up talking and just suffers)
   if (n >= 3 + FOURTH_WALL.length) return;
@@ -460,6 +462,11 @@ const COMMEND: string[][] = [
 ];
 
 const finallyListened = (state: GameState, fight: DoormanFight) => {
+  // Got it: no more hints or yelling about the wrong move from here on, whatever happens in the clash
+  const first = !fight.learned;
+  fight.learned = true;
+  if (!first) return;
+  fight.hintQueue = [];
   const n = fight.hintsGiven || 0;
   if (n === 0 || (fight.commendedAt ?? -1) >= n) return;
   fight.commendedAt = n;
@@ -472,7 +479,7 @@ const finallyListened = (state: GameState, fight: DoormanFight) => {
 const wrongMoveLine = (state: GameState, fight: DoormanFight, his: 'charge' | 'slide', mine: MyMove) => {
   const pool = WRONG_MOVE[his][mine];
   // (not over the top of a spelled-out hint he's partway through)
-  if (!pool.length || fight.hintQueue?.length || hintTalking(state, fight) || state.frame - (fight.hintSaidAt ?? -1e9) < WRONG_MOVE_GAP) return;
+  if (fight.learned || !pool.length || fight.hintQueue?.length || hintTalking(state, fight) || state.frame - (fight.hintSaidAt ?? -1e9) < WRONG_MOVE_GAP) return;
   const fresh = pool.filter(l => l !== fight.lastHint);
   fight.hintQueue = [fresh[Math.floor(Math.random() * fresh.length)] ?? pool[0]];
   fight.hintAt = state.frame + 12;
