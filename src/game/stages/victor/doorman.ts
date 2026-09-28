@@ -20,7 +20,7 @@ import type { Block, Enemy, Projectile, WeaponType } from '../../../types';
 import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
 import type { Controls } from '../../platform/input';
-import { NO_CONTROLS, getLastInputDevice } from '../../platform/input';
+import { NO_CONTROLS } from '../../platform/input';
 import { shakeScreen } from '../../core/state';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 import { hurtPlayer } from '../../bosses/shared';
@@ -380,21 +380,19 @@ const HEATED: Record<HintKind, string[]> = {
   clash: ["MASH! MASH! MASH! ARE THESE ARMS MADE OF NOODLES?!"],
   dodge: ["STOP HOPPING OVER HIM LIKE A SCARED GAZELLE! HIT HIM BACK!"],
 };
-/** Fourth go and on: talking straight to the player, the actual buttons spelled out. */
+/**
+ * Fourth go and on: turned round to talk straight to the player. The moves spelled right out, but not the buttons:
+ * he's got no idea what they're holding over there, and it shows.
+ */
 const FOURTH_WALL: string[][] = [
-  ["HEY. YOU. YEAH, YOU, HOLDING THE {DEV}.", "HE CHARGES? YOU HIT {SPECIAL}. HE SLIDES? DOWN + {SPECIAL}.", "WE LOCK UP? MASH {MASH}. THAT'S THE WHOLE FIGHT!"],
-  ["OKAY, PLAYER. I'M DONE BEING SUBTLE.", "SAME MOVE AS HIM, SAME TIME. NOT A JUMP. {SPECIAL}!", "DO IT, OR I'M UNPLUGGING THE GAME MYSELF!"],
-  ["I CAN SEE YOU THROUGH THE SCREEN, CHAMP.", "HE CHARGES: {SPECIAL}. HE SLIDES: DOWN + {SPECIAL}. THEN MASH!", "WRITE IT ON YOUR HAND IF YOU HAVE TO!"],
+  ["HEY. YOU. YEAH, YOU, WITH THE PLASTIC DOOHICKEY.", "HE CHARGES? I CHARGE. HE SLIDES? I SLIDE. SAME MOVE!", "THEN WE LOCK UP AND YOU MASH WHATEVER THAT THING HAS ON IT!"],
+  ["OKAY, PLAYER. I'M DONE BEING SUBTLE.", "WHATEVER YOU'RE CLICKING, TAPPING OR SMACKING OVER THERE...", "MAKE ME DO WHAT HE DOES, WHEN HE DOES IT! NOT A JUMP!"],
+  ["I CAN SEE YOU THROUGH THE SCREEN, CHAMP.", "SHOULDER FOR SHOULDER! LEGS FOR LEGS! THEN MASH EVERYTHING!", "IF THAT'S A TOASTER YOU'RE HOLDING, GET A REAL CONTROLLER!"],
 ];
 /** How many smacks (or dodges) before the first hint, and between the ones after; the wait after a hit (the ow comes first). */
 const SMACKS_FIRST = 2, SMACKS_EVERY = 2, DODGES_FIRST = 2, DODGES_EVERY = 2, HINT_DELAY = 70;
 /** Never two hints closer together than this, and a line of a spelled-out hint waits this long after the one before. */
 const HINT_GAP = 360, LINE_GAP = 150;
-
-/** The buttons, the way whoever's playing has been pressing them. */
-const buttons = () => getLastInputDevice() === 'gamepad'
-  ? { DEV: 'CONTROLLER', SPECIAL: 'B', MASH: 'A, B, X AND Y' }
-  : { DEV: 'MOUSE', SPECIAL: 'RIGHT CLICK', MASH: 'BOTH MOUSE BUTTONS' };
 
 const queueHint = (state: GameState, fight: DoormanFight, kind: HintKind, delay: number) => {
   if (fight.hintQueue?.length || state.frame - (fight.hintSaidAt ?? -1e9) < HINT_GAP) return;
@@ -404,10 +402,8 @@ const queueHint = (state: GameState, fight: DoormanFight, kind: HintKind, delay:
   let lines: string[];
   if (n >= 3) {
     // Spelled out, straight down the camera
-    const b = buttons();
-    const pick = FOURTH_WALL[(fight.fourthWall || 0) % FOURTH_WALL.length];
+    lines = [...FOURTH_WALL[(fight.fourthWall || 0) % FOURTH_WALL.length]];
     fight.fourthWall = (fight.fourthWall || 0) + 1;
-    lines = pick.map(l => l.replace(/\{(\w+)\}/g, (_, k) => b[k as keyof typeof b]));
   } else {
     const pool = n === 2 ? HEATED[kind] : CALM[kind];
     const fresh = pool.filter(l => l !== fight.lastHint);
