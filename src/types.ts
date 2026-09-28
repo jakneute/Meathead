@@ -297,6 +297,8 @@ export interface TommyBoard {
 export interface Projectile extends Entity {
   damage: number;
   owner: 'player' | 'enemy';
+  /** Which kind of ordinary enemy fired it ('enemy' for the plain ones), for what he shouts when it hits him. */
+  shooterKind?: string;
   isBoulder?: boolean;
   /** Ernie's lobbed boulder: its impacts shake the room like his stomps. */
   isHeaved?: boolean;

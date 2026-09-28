@@ -223,13 +223,108 @@ export const BOSS_DIALOGUE: {
       "THE PUDDLE'S LIVE! THE PUDDLE'S LIVE!",
       "ELECTRIC WATER! MY BOOTS ARE SMOKING!",
     ],
-    'eye': [
-      "THE EYEBALL IS LOOKING AT ME. IT'S DOING DAMAGE.",
-      "STOP STARING AT ME, YOU GIANT CREEP!",
-      "EYE LASERS? REALLY?",
+    'junk': [
+      "WHO THREW A COW?! SOMEBODY THREW A COW!",
+      "A SHOPPING CART! TO THE FACE! IN THE SKY!",
+      "THE STORM IS CHUCKING LAWN FURNITURE AT ME!",
+      "I GOT HIT BY A FLAMINGO. A PLASTIC ONE. STILL COUNTS.",
+    ],
+    // Hector's goons and the cops
+    'tourist': [
+      "GET YOUR SANDALS OFF MY SHINS, SOCKS!",
+      "A TOURIST! IN A FANNY PACK! TOUCHED MY PUMP!",
+    ],
+    'tourist_shot': [
+      "SHOT BY A GUY IN SOCKS AND SANDALS! HUMILIATING!",
+      "THAT FANNY PACK WAS PACKING HEAT!",
+      "GO BACK TO OHIO AND TAKE YOUR PISTOL WITH YOU!",
+    ],
+    'bouncer': [
+      "YOU'RE NOT GETTING ME OUT OF THIS CLUB, CHAINS!",
+      "I'M ON THE LIST, YOU BALD FUCK!",
+      "BOUNCED BY A BOUNCER! HE'S NOT EVEN THAT BIG!",
+    ],
+    'surfer': [
+      "WIPE OUT, DUDE! ON ME!",
+      "GET YOUR SURFBOARD OUT OF MY TEETH!",
+    ],
+    'surfer_shot': [
+      "A COCONUT TO THE DOME! GNARLY, FUCK!",
+      "WHO THROWS COCONUTS?! SURFERS THROW COCONUTS!",
+      "MY SKULL IS HARDER THAN YOUR COCONUT, BRAH!",
     ],
     'cop': [
       "I'M NOT RESISTING! I'M WINNING!",
+      "GET YOUR HANDS OFF ME, OFFICER!",
+      "POLICE BRUTALITY! ON MY GAINS!",
+    ],
+    'cop_club': [
+      "NIGHTSTICK TO THE NECK! I'M NOT EVEN RESISTING!",
+      "STOP CLUBBING THE MERCHANDISE, PIG!",
+      "HE BEAT ME WITH A STICK! A STICK!",
+      "YOU CALL THAT A BATON? I'VE GOT BIGGER VEINS!",
+    ],
+    'cop_shot': [
+      "THE COPS ARE SHOOTING AT ME! I ONLY KILLED A FEW PEOPLE!",
+      "SHOT BY MIAMI'S FINEST! FINEST MY ASS!",
+      "YOU MISSED THE HEART, OFFICER! IT'S BEHIND THE PECS!",
+    ],
+    'riotcop': [
+      "GET THAT RIOT SHIELD OUT OF MY FACE!",
+      "HE'S HIDING BEHIND A DOOR! COME OUT AND FIGHT!",
+    ],
+    'riotcop_bash': [
+      "SHIELD BASHED! BY A MALL COP WITH A LUNCH TRAY!",
+      "RIGHT IN THE TEETH WITH THE POLICE SHIELD!",
+      "I GOT RAMMED BY THE FUCKING RIOT SQUAD!",
+    ],
+    'riotcop_shot': [
+      "TEAR GAS! MY EYES! MY BEAUTIFUL EYES!",
+      "I'M NOT CRYING! IT'S THE GAS!",
+      "COUGH! THAT'S NOT PRE-WORKOUT!",
+    ],
+    // Artie's goons and wildlife
+    'wolverine': [
+      "A WOLVERINE! IT'S GOING FOR MY ANKLES!",
+      "GET OFF MY CALVES, YOU LITTLE SHIT WEASEL!",
+      "IT BIT ME! IT'S ALL TEETH AND ATTITUDE!",
+    ],
+    'goat': [
+      "HEADBUTTED BY A GOAT! IN MY OWN TERRITORY!",
+      "THAT GOAT HAS A HARDER HEAD THAN ME!",
+      "RAMMED BY A FUCKING GOAT, THE SHAME!",
+    ],
+    'eagle': [
+      "THE EAGLE'S GOING FOR MY EYES! FREEDOM HURTS!",
+      "GET YOUR TALONS OUT OF MY SCALP, BIRD!",
+      "SKEWERED BY THE NATIONAL BIRD!",
+    ],
+    'shooter': [
+      "HANDS OFF, PARKA BOY!",
+      "SHOVED BY A GOON IN A PUFFY COAT!",
+    ],
+    'shooter_shot': [
+      "HE FROSTED MY NIPPLES WITH THAT RAY GUN!",
+      "CRYO RIFLE! MY PECS ARE FREEZER BURNED!",
+      "ICE BULLETS? YOU'RE A LOSER, PARKA BOY!",
+    ],
+    'charger': [
+      "CHECKED BY A HOCKEY GOON! PENALTY! PENALTY!",
+      "HE HIT ME LIKE A ZAMBONI!",
+      "BODY CHECKED! WHO'S THE REFEREE HERE?",
+    ],
+    'shielder': [
+      "HIDING BEHIND AN ICE CUBE, COWARD?",
+      "SMACKED WITH A SLAB OF ICE!",
+    ],
+    'shielder_shot': [
+      "HE THREW A CHUNK OF ICE AT MY HEAD!",
+      "ICE CUBE TO THE FACE! I'M NOT A MARGARITA!",
+    ],
+    // The plain enemies on the older stages
+    'shield': [
+      "QUIT HIDING BEHIND THAT SHIELD AND FIGHT ME!",
+      "SHIELD TO THE SHINS, YOU COWARD!",
     ],
     'avalanche': [
       "THE MOUNTAIN IS EATING ME!",

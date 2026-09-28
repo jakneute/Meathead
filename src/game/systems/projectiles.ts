@@ -583,6 +583,8 @@ const getProjectileHurtSource = (p: Projectile, stageId: string | null): string 
   if (p.isIce) return 'ice';
   if (p.isSludge) return 'sludge';
   if (p.isTased) return 'electric';
+  // An ordinary enemy's shot: what that kind shoots (a cop's bullet, a coconut...), never the boss's lines
+  if (p.shooterKind) return BOSS_DIALOGUE.SPECIFIC_HAZARD_HURT[`${p.shooterKind}_shot`] ? `${p.shooterKind}_shot` : 'bullet';
   if (stageId && BOSS_DIALOGUE.HURT[stageId]) return stageId;
   return 'bullet';
 };

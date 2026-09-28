@@ -184,7 +184,7 @@ const updateJunk = (ctx: FrameContext, f: EyeFight) => {
     const box = { x: j.x - 22, y: j.y - 18, w: 44, h: 36 };
     if (player.invincibilityTimer <= 0 && rectsOverlap(box, boundsOf(player))) {
       // (barely a shove: a real one would knock him off the junk into the storm)
-      hurtPlayer(ctx, JUNK_DAMAGE, 'eye', { x: Math.sign(j.vx) * 2, y: -4 });
+      hurtPlayer(ctx, JUNK_DAMAGE, 'junk', { x: Math.sign(j.vx) * 2, y: -4 });
       ctx.fx.spawnExplosion({ x: j.x, y: j.y }, '#A8A29E', 10, 0, 6);
       return false;
     }

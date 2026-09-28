@@ -56,7 +56,7 @@ export const copMelee = (ctx: FrameContext, e: Enemy) => {
       const box = { x: dir > 0 ? e.pos.x + e.width - 12 : e.pos.x - 52, y: e.pos.y + 6, w: 64, h: e.height - 6 };
       if (!mel.hit && player.invincibilityTimer <= 0 && rectsOverlap(box, boundsOf(player))) {
         mel.hit = true;
-        hurtPlayer(ctx, st.damage, e.kind!, { x: dir * st.shove, y: -6 });
+        hurtPlayer(ctx, st.damage, riot ? 'riotcop_bash' : 'cop_club', { x: dir * st.shove, y: -6 });
         ctx.fx.spawnDamageNumber({ x: p.x, y: player.pos.y - 16 }, riot ? 'BASH!' : 'WHACK!', true, '#FDE047');
       }
       e.vel.x *= 0.8;

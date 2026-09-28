@@ -257,8 +257,8 @@ const updateOiledDrips = (ctx: FrameContext, e: Enemy) => {
   }
 };
 
-const fireEnemyBullet = (ctx: FrameContext, x: number, y: number, velX: number) => {
-  ctx.state.projectiles.push({ id: `ep-${Date.now()}`, pos: { x, y }, vel: { x: velX, y: 0 }, width: 14, height: 14, health: 1, maxHealth: 1, type: 'projectile', damage: ENEMY_BULLET_DAMAGE, owner: 'enemy' });
+const fireEnemyBullet = (ctx: FrameContext, x: number, y: number, velX: number, e: Enemy) => {
+  ctx.state.projectiles.push({ id: `ep-${Date.now()}`, pos: { x, y }, vel: { x: velX, y: 0 }, width: 14, height: 14, health: 1, maxHealth: 1, type: 'projectile', damage: ENEMY_BULLET_DAMAGE, owner: 'enemy', shooterKind: e.kind ?? 'enemy' });
 };
 
 /** Patrol / shoot / hover behaviour for regular enemies, plus knockback physics. */
@@ -321,7 +321,7 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
     if (e.behavior === 'patrol' || e.behavior === 'fly') {
       if (e.pos.x > (e.initialX + e.patrolRange) || e.pos.x < e.initialX) e.vel.x *= -1;
     } else if (e.behavior === 'shoot' && onScreen && !holdingOff(state) && ++e.shootTimer > 60) {
-      fireEnemyBullet(ctx, e.pos.x + e.width / 2, e.pos.y + e.height - 10, player.pos.x < e.pos.x ? -7 : 7);
+      fireEnemyBullet(ctx, e.pos.x + e.width / 2, e.pos.y + e.height - 10, player.pos.x < e.pos.x ? -7 : 7, e);
       e.shootTimer = 0;
     }
     if (e.behavior === 'shoot') settleAfterKnockback(e);
@@ -381,11 +381,11 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
       e.isShieldActive = e.shootTimer < 80;
       if (e.shootTimer > 120) {
         const dir = shieldFacing(e);
-        fireEnemyBullet(ctx, dir < 0 ? e.pos.x : e.pos.x + e.width, e.pos.y + 15, dir * 6);
+        fireEnemyBullet(ctx, dir < 0 ? e.pos.x : e.pos.x + e.width, e.pos.y + 15, dir * 6, e);
         e.shootTimer = 0;
       }
     } else if (e.shootTimer > 60) {
-      fireEnemyBullet(ctx, e.pos.x + e.width / 2, e.pos.y + 10, player.pos.x < e.pos.x ? -7 : 7);
+      fireEnemyBullet(ctx, e.pos.x + e.width / 2, e.pos.y + 10, player.pos.x < e.pos.x ? -7 : 7, e);
       e.shootTimer = 0;
     }
   }
