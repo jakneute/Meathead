@@ -26,7 +26,8 @@ const FUNNEL_BASE_R = 62;
 const FUNNEL_TOP_R = 105;
 const FUNNEL_ABOVE = 70; // how far the funnel rises over his head
 const BOULDER_PULL = 1.5;
-const POOP_INTERVAL = 90;
+/** Frames between poop logs in a hurricane at full health, and at none (it's twice as many a cycle by the end). */
+const POOP_INTERVAL = 90, POOP_INTERVAL_MIN = 45;
 const POOP_TELEGRAPH_FRAMES = 60;
 const POOP_SPEED = 12;
 /** A log of it to the face at speed. */
@@ -68,7 +69,11 @@ const updateHurricane = (ctx: FrameContext, boss: Enemy) => {
       { isPoop: true, spawnX: t.spawnX }));
     return false;
   });
-  if (state.frame % POOP_INTERVAL === 0) {
+  // More of them each hurricane the more he's hurt
+  const hurt = Math.max(0, Math.min(1, 1 - boss.health / boss.maxHealth));
+  const interval = Math.round(POOP_INTERVAL - (POOP_INTERVAL - POOP_INTERVAL_MIN) * hurt);
+  const since = HURRICANE_FRAMES - (boss.stateTimer || 0);
+  if (since > 0 && since % interval === 0) {
     // From the wall behind Meathead, so they fly at his back
     const spawnX = pullDir > 0 ? BOSS_DOOR_X + 60 : ARENA_RIGHT - 20;
     const r = Math.random();
