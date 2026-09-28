@@ -418,9 +418,14 @@ const GROUND_SIDE_STEP = 16;
 const stopAgainstGround = (state: GameState, e: Enemy) => {
   const box = boundsOf(e);
   const feet = e.pos.y + e.height;
+  const wasX = e.pos.x - e.vel.x;
   for (const b of state.blocks) {
     if (b.type === 'pit' || b.type === 'door' || b.type === 'wall' || b.oneWay) continue;
     if (feet <= b.y + GROUND_SIDE_STEP || !rectsOverlap(box, b)) continue;
+    // (only the face it's just crossed: ground it's dropping away from the edge of, still under half of it, is
+    // behind it, and stopping "against" that would throw it to the far end of the ground)
+    const crossed = e.vel.x > 0 ? wasX + e.width <= b.x + 1 : wasX >= b.x + b.w - 1;
+    if (!crossed) continue;
     e.pos.x = e.vel.x > 0 ? b.x - e.width : b.x + b.w;
     e.vel.x = 0;
     return;
