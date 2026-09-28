@@ -226,20 +226,14 @@ export const speak = (text: string, voice: Voice, { onStart, onDone }: SpeakOpti
 };
 
 /**
- * A line said through a voice modulator: broken into little runs of words (two to four), each at a slightly different pitch and
- * speed, so it wobbles and steps like a scrambled radio voice. Calls onDone when it's all out (or fails). Returns a
- * cancel.
+ * A line said through a voice modulator: each sentence at a slightly different pitch and speed, so it steps and
+ * wobbles like a scrambled radio voice (sentences run whole, so it never stops mid-sentence; the only breaks are
+ * where a sentence would end anyway). Calls onDone when it's all out (or fails). Returns a cancel.
  */
 export const sayModulated = (text: string, voice: Voice, onDone: () => void): (() => void) => {
   if (!canSpeak()) { onDone(); return () => {}; }
   cancelSpeech();
-  const words = text.split(/\s+/).filter(Boolean);
-  const chunks: string[] = [];
-  for (let i = 0; i < words.length;) {
-    const n = 2 + ((i * 7 + words.length) % 3);
-    chunks.push(words.slice(i, i + n).join(' '));
-    i += n;
-  }
+  const chunks = text.split(/(?<=[.!?])\s+/).filter(Boolean);
   const WOBBLE = [0, -0.18, 0.12, -0.08, 0.2, -0.14];
   let cancelled = false, left = chunks.length;
   chunks.forEach((c, k) => speak(c, { pitch: Math.max(0.05, voice.pitch + WOBBLE[k % WOBBLE.length]), rate: voice.rate * (1 + ((k % 3) - 1) * 0.08) }, {
