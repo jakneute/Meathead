@@ -596,7 +596,8 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     ? { x: player.pos.x + 2, y: player.pos.y + (player.height - 26), w: player.width - 4, h: 26 }
     : boundsOf(player);
   if (!e.harmless && !isAttacking && player.invincibilityTimer <= 0 && rectsOverlap(hurtbox, boundsOf(e))) {
-    if (!cheats.invincible) player.health -= kindContactDamage(e) ?? stageDef?.contact?.damage ?? 5.5;
+    // (a boss's own weight behind it; anything else just a bump)
+    if (!cheats.invincible) player.health -= kindContactDamage(e) ?? (e.type === 'boss' ? stageDef?.contact?.damage : undefined) ?? 5.5;
     if (player.health > 0) {
       player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;
       player.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;

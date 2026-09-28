@@ -92,7 +92,7 @@ export const updateSteamExplosions = (ctx: FrameContext) => {
     const dx = player.pos.x + player.width / 2 - exp.pos.x;
     const dy = player.pos.y + player.height / 2 - exp.pos.y;
     if (dx * dx + dy * dy < exp.radius * exp.radius && player.invincibilityTimer <= 0 && !ctx.cheats.invincible) {
-      player.health -= 8;
+      player.health -= 12;
       if (player.health > 0) {
         player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;
         player.pushbackTimer = PLAYER_PUSHBACK_DURATION;
@@ -118,7 +118,7 @@ export const updateVolcanoes = (ctx: FrameContext) => {
       const tip = ventTip(v);
       const velX = v.type === 'wall' ? (v.pos.x < BOSS_DOOR_X + 400 ? 9 : -9) : (Math.random() - 0.5) * 4;
       const velY = v.type === 'ground' ? -9 : (Math.random() - 0.5) * 7;
-      state.projectiles.push({ id: `magma-${Date.now()}-${Math.random()}`, pos: { x: tip.x - 7, y: tip.y - 7 }, vel: { x: velX, y: velY }, width: 14, height: 14, health: 1, maxHealth: 1, type: 'projectile', damage: 45, owner: 'enemy' });
+      state.projectiles.push({ id: `magma-${Date.now()}-${Math.random()}`, pos: { x: tip.x - 7, y: tip.y - 7 }, vel: { x: velX, y: velY }, width: 14, height: 14, health: 1, maxHealth: 1, type: 'projectile', damage: 22, owner: 'enemy' });
     }
     return v.life > 0;
   });

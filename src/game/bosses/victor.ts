@@ -13,7 +13,7 @@ const VICTOR = 'Victor Volcano';
 /** A corked vent holds for this long, then blows (long enough to cork the other two of a set). */
 export const CORK_FUSE = 330;
 const CORK_BLAST_RADIUS = 180;
-const CORK_BLAST_DAMAGE = 40;   // corking is a trap, not a strategy: standing near one when it blows really hurts
+const CORK_BLAST_DAMAGE = 35;   // corking is a trap, not a strategy: standing near one when it blows really hurts
 
 const TELEGRAPH_FRAMES = 60;
 const ERUPTION_FRAMES = 180;
@@ -179,6 +179,8 @@ export const updateCorkedVent = (ctx: FrameContext, v: Volcano): boolean => {
 
 export const victor: BossDef = {
   id: 'Victor Volcano',
+  // (bumping into him)
+  contact: { damage: 8 },
   weakness: 'TSUNAMI',
   weaknessDamage: 150,
   spawn: { x: 7700 },

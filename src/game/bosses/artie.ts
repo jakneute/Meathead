@@ -5,7 +5,7 @@
 // flamethrower can melt them too.
 
 import { Enemy, Icicle, Rect } from '../../types';
-import { ARENA_LEFT, ARENA_RIGHT, BULLET_DAMAGE, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y } from '../../constants';
+import { ARENA_LEFT, ARENA_RIGHT, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y } from '../../constants';
 import type { FrameContext } from '../context';
 import { BossDef, ARENA_MID, CEILING_Y, FLOOR_Y, enemyProjectile, hurtPlayer, midX } from './shared';
 
@@ -38,6 +38,8 @@ const ICICLE_WIDTH = 24;
 const ICICLE_GRAVITY = 0.55;
 const ICICLE_MAX_SPEED = 14;
 const ICICLE_DAMAGE = 10;
+/** A block of ice to the face: big and telegraphed, but he's the first boss. */
+const ICE_BLOCK_DAMAGE = 20;
 
 const update = (ctx: FrameContext, boss: Enemy) => {
   updateIcicles(ctx);
@@ -119,7 +121,7 @@ const throwIceBlock = (ctx: FrameContext, boss: Enemy, id: string) => {
   const dy = player.pos.y + player.height / 2 - (y + ICE_BLOCK_SIZE / 2);
   const len = Math.hypot(dx, dy) || 1;
   ctx.bossHelpers.addProjectile(enemyProjectile(`${id}-${Date.now()}`, x, y, (dx / len) * ICE_BLOCK_START_SPEED, (dy / len) * ICE_BLOCK_START_SPEED,
-    ICE_BLOCK_SIZE, ICE_BLOCK_SIZE, BULLET_DAMAGE, { isIce: true, life: ICE_BLOCK_LIFE }));
+    ICE_BLOCK_SIZE, ICE_BLOCK_SIZE, ICE_BLOCK_DAMAGE, { isIce: true, life: ICE_BLOCK_LIFE }));
 };
 
 /**
@@ -211,6 +213,8 @@ export const meltIcicle = (ctx: FrameContext, index: number) => {
 
 export const artie: BossDef = {
   id: 'Artie Avalanche',
+  // (bumping into him)
+  contact: { damage: 8 },
   weakness: 'FLAMETHROWER',
   spawn: { x: 7700 },
   slipperyFloor: true,

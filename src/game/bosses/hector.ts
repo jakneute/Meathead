@@ -29,6 +29,8 @@ const BOULDER_PULL = 1.5;
 const POOP_INTERVAL = 90;
 const POOP_TELEGRAPH_FRAMES = 60;
 const POOP_SPEED = 12;
+/** A log of it to the face at speed. */
+const POOP_DAMAGE = 18;
 const POOP_HEIGHTS = [510, 498, 440];
 
 const update = (ctx: FrameContext, boss: Enemy) => {
@@ -62,7 +64,7 @@ const updateHurricane = (ctx: FrameContext, boss: Enemy) => {
   state.bossPoopTelegraphs = state.bossPoopTelegraphs.filter(t => {
     if (--t.life > 0) return true;
     const fromLeft = t.spawnX < ARENA_MID;
-    helpers.addProjectile(enemyProjectile(`poop-${Date.now()}`, t.spawnX, t.pos.y, fromLeft ? POOP_SPEED : -POOP_SPEED, 0, 45, 20, 12,
+    helpers.addProjectile(enemyProjectile(`poop-${Date.now()}`, t.spawnX, t.pos.y, fromLeft ? POOP_SPEED : -POOP_SPEED, 0, 45, 20, POOP_DAMAGE,
       { isPoop: true, spawnX: t.spawnX }));
     return false;
   });
@@ -147,6 +149,8 @@ const leapToOtherSide = (boss: Enemy, helpers: BossHelpers) => {
 
 export const hector: BossDef = {
   id: 'Hector Hurricane',
+  // (bumping into him)
+  contact: { damage: 8 },
   weakness: 'BOULDER',
   spawn: { x: 7700 },
   update,

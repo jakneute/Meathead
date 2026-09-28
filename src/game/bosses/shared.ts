@@ -65,7 +65,7 @@ export interface BossDef {
   };
   /** The whole stage has an icy floor. */
   slipperyFloor?: boolean;
-  /** Bumping into anything on his stage, him included (default 5.5 damage and a normal knockback). */
+  /** Bumping into him (default 5.5 damage), and the knockback from bumping into anything on his stage. */
   contact?: { damage: number; pushbackFrames?: (boss: Enemy) => number | undefined };
 
   /** His behaviour, every frame while the arena is locked. */

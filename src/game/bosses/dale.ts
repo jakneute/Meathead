@@ -239,7 +239,7 @@ const throwCocaine = (ctx: FrameContext, boss: Enemy) => {
     vx = -20 - Math.random() * 8;
     vy = -8 - Math.random() * 4;
   }
-  ctx.bossHelpers.addProjectile(enemyProjectile(`coke-${Date.now()}`, boss.pos.x, boss.pos.y + 20, vx, vy, 25, 25, 30, { isCocaine: true }));
+  ctx.bossHelpers.addProjectile(enemyProjectile(`coke-${Date.now()}`, boss.pos.x, boss.pos.y + 20, vx, vy, 25, 25, 22, { isCocaine: true }));
 };
 
 /** Bounces wall to wall, then goes home. */
@@ -293,7 +293,7 @@ export const dale: BossDef = {
   weaknessDamage: SLUDGE_HIT_DAMAGE,
   spawn: { x: HOME_X },
   // Everything on his stage hits harder; bumping into him mid-attack knocks you back further
-  contact: { damage: 7.5, pushbackFrames: boss => (boss.bossState !== 'idle' ? 24 : undefined) },
+  contact: { damage: 9, pushbackFrames: boss => (boss.bossState !== 'idle' ? 24 : undefined) },
   update,
   onWeaknessHit: (_ctx, boss, p) => { if (p?.isSludge) boss.puddlePending = true; },
   onStandInSludge: soakInSludge,

@@ -18,8 +18,8 @@ import { BossDef, ARENA_MID, CEILING_Y, bossFloorY, hurtPlayer, speakAsBoss } fr
 const TELEPORT_HEIGHT = CEILING_Y;
 const POUND_DROP_SPEED = 60;
 const ELECTRIFIED_FRAMES = 30;
-const POUND_DAMAGE = 11;
-const STRIKE = { width: 70, frames: 35, damage: 15, safeGap: 70 };
+const POUND_DAMAGE = 16;
+const STRIKE = { width: 70, frames: 35, damage: 20, safeGap: 70 };
 const EXHAUSTED_DROP_SPEED = 14;
 const BARRY = 'Blackout Barry';
 const MAX_NEEDLES = 3;                // the next one overloads him
@@ -280,6 +280,8 @@ const needleTick = (ctx: FrameContext, boss: Enemy) => {
 
 export const barry: BossDef = {
   id: 'Blackout Barry',
+  // (bumping into him)
+  contact: { damage: 10 },
   weakness: 'NEEDLES',
   weaknessDamage: 0, // needles work through catchNeedle/needleTick instead
   spawn: { x: ARENA_RIGHT - 120 },

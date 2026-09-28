@@ -630,6 +630,8 @@ const spawnCallout = (state: GameState, pos: { x: number, y: number }, text: str
 
 export const oscar: BossDef = {
   id: OSCAR,
+  // (bumping into him)
+  contact: { damage: 8 },
   weakness: 'TASER',
   // Starts where he's visible from the door, like the other bosses
   spawn: { x: ARENA_LEFT + 600, fields: { hasCigarette: true } },

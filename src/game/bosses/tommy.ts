@@ -20,17 +20,17 @@ const SWIM_MAX_X = ARENA_RIGHT - 25;
 const BOARD_Y = 480;
 export const TOMMY_BOARD_Y = BOARD_Y;
 const DEFAULT_EMERGE_Y = 405;
-const EMERGE_DAMAGE = 15;
+const EMERGE_DAMAGE = 20;
 const PUKE_FRAMES = 230;
-const PUKE_DAMAGE = 9;
+const PUKE_DAMAGE = 12;
 const VULNERABLE_FRAMES = 110;
 const OIL_STUN_FRAMES = 75;
 const OILED_SLUDGE_FRAMES = 240;
 
 /** His two vomit sweeps: in toward himself, or out away from him. */
 const PUKES = {
-  puke_closing_in: { from: 420, to: 115, projectileDamage: 24 },
-  puke_going_outward: { from: 80, to: 440, projectileDamage: 18 },
+  puke_closing_in: { from: 420, to: 115, projectileDamage: 20 },
+  puke_going_outward: { from: 80, to: 440, projectileDamage: 16 },
 } as const;
 
 /** Tommy can't be hurt while he's under (or at) the sludge surface. */
@@ -297,6 +297,8 @@ const buildArena = (state: GameState, blocks: Block[]) => {
 
 export const tommy: BossDef = {
   id: TOMMY,
+  // (bumping into him)
+  contact: { damage: 10 },
   weakness: 'OIL_ROCKET',
   spawn: { x: ARENA_RIGHT - 120, y: SLUDGE_Y + SUBMERGED_DEPTH, state: 'submerged_chase', timer: 120 },
   arena: { openTop: true, floorless: true, entry: { x: 45, y: BOARD_Y - 64 }, build: buildArena },

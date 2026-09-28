@@ -7,7 +7,7 @@
 // where he was headed (untouchable while he does) and carries on.
 
 import { Enemy, Projectile } from '../../types';
-import { BULLET_DAMAGE, BOULDER_SPEED, ERNIE_STOMP_VIBRATION_DURATION, GRAVITY, ARENA_LEFT, ARENA_RIGHT } from '../../constants';
+import { BOULDER_SPEED, ERNIE_STOMP_VIBRATION_DURATION, GRAVITY, ARENA_LEFT, ARENA_RIGHT } from '../../constants';
 import type { FrameContext } from '../context';
 import { BossDef, ARENA_MID, FLOOR_Y, dirTo, midX, enemyProjectile } from './shared';
 
@@ -24,6 +24,8 @@ const KNOCKDOWN_FRAMES = 90;
 const ICE_HIT_DAMAGE = 30;       // a plain shotgun hit (the shatter is where the damage is)
 const FREEZE_FRAMES = 24;        // frozen solid before he topples
 const SHATTER_DAMAGE = 120;
+/** A boulder rolled along the floor at you (jump it), and one heaved up to come down on you. */
+const ROLLED_BOULDER_DAMAGE = 20, HEAVED_BOULDER_DAMAGE = 26;
 const SCRAMBLE_SPEED_MULT = 1.7;
 const RESUME_FRAMES = 25;        // after scrambling, this long before his next attack
 const LANDING_SHAKE = 30;
@@ -83,7 +85,7 @@ const jumpAndRoll = (ctx: FrameContext, boss: Enemy) => {
 const rollBoulder = (ctx: FrameContext, boss: Enemy, dir: number, id: string) => {
   const speed = BOULDER_SPEED + 1 + pace(boss) * ROLL_SPEED_RAMP;
   ctx.bossHelpers.addProjectile(enemyProjectile(`${id}-${Date.now()}`, insideArena(midX(boss) - ERNIE_BOULDER_SIZE / 2), FLOOR_Y - ERNIE_BOULDER_SIZE,
-    dir * speed, 0, ERNIE_BOULDER_SIZE, ERNIE_BOULDER_SIZE, BULLET_DAMAGE, { isBoulder: true }));
+    dir * speed, 0, ERNIE_BOULDER_SIZE, ERNIE_BOULDER_SIZE, ROLLED_BOULDER_DAMAGE, { isBoulder: true }));
 };
 
 /** Lobs it high so it comes down on Meathead (then bounces and rolls on), and runs for the far side. */
@@ -93,7 +95,7 @@ const heaveBoulder = (ctx: FrameContext, boss: Enemy) => {
   const x = insideArena(midX(boss) - size / 2), y = boss.pos.y - size + 10;
   const vx = Math.max(-HEAVE_MAX_SPEED_X, Math.min(HEAVE_MAX_SPEED_X, (midX(player) - midX(boss)) / HEAVE_FLIGHT));
   const vy = -0.5 * GRAVITY * HEAVE_FLIGHT;
-  ctx.bossHelpers.addProjectile(enemyProjectile(`b-ernie-heave-${Date.now()}`, x, y, vx, vy, size, size, BULLET_DAMAGE, { isBoulder: true, isHeaved: true }));
+  ctx.bossHelpers.addProjectile(enemyProjectile(`b-ernie-heave-${Date.now()}`, x, y, vx, vy, size, size, HEAVED_BOULDER_DAMAGE, { isBoulder: true, isHeaved: true }));
   ctx.bossHelpers.playGunSound('gun');
   boss.bossState = 'running';
   boss.slideTargetX = midX(boss) < ARENA_MID ? ARENA_RIGHT - boss.width - 30 : ARENA_LEFT + 30;
@@ -169,6 +171,8 @@ const shatter = (ctx: FrameContext, boss: Enemy) => {
 
 export const ernie: BossDef = {
   id: 'Ernie Earthquake',
+  // (bumping into him)
+  contact: { damage: 10 },
   weakness: 'SHOTGUN',
   weaknessDamage: ICE_HIT_DAMAGE,
   spawn: { x: 7700 },
