@@ -60,7 +60,7 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   raccoon: { w: 42, h: 24, hp: 50, contact: 8 },
   seagull: { w: 44, h: 22, hp: 35, contact: 8, air: true },
   // (a drone's danger is its gun: bumping into it, or body-checking it, never hurts you)
-  drone: { w: 44, h: 22, hp: 40, contact: 0, air: true },
+  drone: { w: 58, h: 30, hp: 40, contact: 0, air: true },
   jetskier: { w: 74, h: 54, hp: 50, contact: 12 },
   burning: { w: 34, h: 62, hp: 1, contact: 0 },
 };

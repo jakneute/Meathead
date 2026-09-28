@@ -139,18 +139,25 @@ const drawSeagull = (ctx: Ctx, e: Enemy, f: number) => {
 /** A quadcopter: four rotors blurring, a camera pod, a blinking light; a red laser dot on you before it fires. */
 const drawDrone = (ctx: Ctx, e: Enemy, f: number, state: GameState) => {
   const tilt = Math.max(-0.35, Math.min(0.35, e.vel.x * 0.06)) * (e.facing === -1 ? -1 : 1);
-  ctx.save(); ctx.translate(0, -12); ctx.rotate(tilt);
-  ctx.fillStyle = '#374151'; ctx.fillRect(-18, -2, 36, 4); // arms
-  ctx.fillStyle = '#E5E7EB'; ctx.beginPath(); ctx.roundRect(-9, -6, 18, 10, 3); ctx.fill();
-  ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.arc(4, 6, 4, 0, Math.PI * 2); ctx.fill(); // camera
-  ctx.fillStyle = '#60A5FA'; ctx.fillRect(4, 5, 2, 2);
-  ctx.fillStyle = Math.floor(f / 8) % 2 ? '#EF4444' : '#7F1D1D'; ctx.fillRect(-2, -8, 3, 2);
-  // Rotors, spinning
-  for (const rx of [-18, 18]) {
-    ctx.fillStyle = '#1F2937'; ctx.fillRect(rx - 2, -6, 4, 4);
-    ctx.strokeStyle = 'rgba(203, 213, 225, 0.8)'; ctx.lineWidth = 2;
-    const w = 11 * Math.abs(Math.cos(f * 1.3 + rx));
-    ctx.beginPath(); ctx.moveTo(rx - w, -7); ctx.lineTo(rx + w, -7); ctx.stroke();
+  ctx.save(); ctx.translate(0, -15); ctx.rotate(tilt);
+  // (a good size, dark-outlined and in safety orange, with lights blinking: easy to pick out against the sky)
+  ctx.scale(1.35, 1.35);
+  ctx.strokeStyle = '#0B0F19'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.roundRect(-10, -7, 20, 12, 3); ctx.stroke();
+  ctx.fillStyle = '#374151'; ctx.fillRect(-19, -2, 38, 4); // arms
+  ctx.fillStyle = '#F97316'; ctx.beginPath(); ctx.roundRect(-10, -7, 20, 12, 3); ctx.fill();
+  ctx.fillStyle = '#FDBA74'; ctx.fillRect(-8, -6, 16, 2);
+  ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.arc(4, 7, 4.5, 0, Math.PI * 2); ctx.fill(); // camera
+  ctx.fillStyle = '#60A5FA'; ctx.fillRect(4, 6, 2, 2);
+  const blink = Math.floor(f / 8) % 2;
+  ctx.fillStyle = blink ? '#EF4444' : '#7F1D1D'; ctx.fillRect(-2, -9, 4, 3);
+  // Rotors, spinning, with a blinking light on each arm
+  for (const rx of [-19, 19]) {
+    ctx.fillStyle = '#1F2937'; ctx.fillRect(rx - 2.5, -7, 5, 5);
+    ctx.fillStyle = blink ? (rx < 0 ? '#22C55E' : '#EF4444') : '#1F2937'; ctx.fillRect(rx - 1, -1, 2, 2);
+    ctx.strokeStyle = 'rgba(226, 232, 240, 0.9)'; ctx.lineWidth = 2;
+    const w = 12 * Math.abs(Math.cos(f * 1.3 + rx));
+    ctx.beginPath(); ctx.moveTo(rx - w, -8); ctx.lineTo(rx + w, -8); ctx.stroke();
   }
   ctx.restore();
   // Aiming: a red line down to a dot on him

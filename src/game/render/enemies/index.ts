@@ -43,7 +43,7 @@ export const KIND_HEAD: Record<EnemyKind, { x: number; y: number; r: number }> =
   heatsuit: { x: 1, y: -62, r: 9 }, smokejumper: { x: 6, y: -70, r: 9 }, blastshield: { x: 2, y: -64, r: 9 },
   salamander: { x: 20, y: -9, r: 5 }, vulture: { x: 19, y: -21, r: 5 }, magmafish: { x: 12, y: -13, r: 7 }, doorman: { x: 4, y: -88, r: 12 },
   techbro: { x: 2, y: -64, r: 8 }, courier: { x: 4, y: -66, r: 8 }, protester: { x: 2, y: -62, r: 8 }, raccoon: { x: 19, y: -16, r: 5 },
-  seagull: { x: 13, y: -14, r: 4 }, drone: { x: 0, y: -12, r: 5 }, jetskier: { x: -2, y: -52, r: 7 }, burning: { x: 1, y: -64, r: 8 },
+  seagull: { x: 13, y: -14, r: 4 }, drone: { x: 0, y: -15, r: 7 }, jetskier: { x: -2, y: -52, r: 7 }, burning: { x: 1, y: -64, r: 8 },
 };
 
 /** People (their skeletons are human, and they keel over flat when they die). */

@@ -482,6 +482,15 @@ const drawDebris = (ctx: Ctx, d: Debris, f: number) => {
     ctx.beginPath(); ctx.ellipse(d.x, d.ground - 2, 22, 6, 0, 0, Math.PI * 2); ctx.stroke();
     ctx.fillStyle = 'rgba(239, 68, 68, 0.95)'; ctx.fillRect(d.x - 1, d.ground - 22, 3, 11); ctx.fillRect(d.x - 1, d.ground - 9, 3, 3);
   }
+  // A big flashing arrow pointing down under it while it's about to go
+  if (d.hold > 0 && Math.floor(f / 5) % 2 === 0) {
+    const ay = d.y + 22 + Math.sin(f * 0.4) * 3;
+    ctx.fillStyle = '#FDE047'; ctx.strokeStyle = '#111827'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(d.x - 5, ay); ctx.lineTo(d.x + 5, ay); ctx.lineTo(d.x + 5, ay + 12); ctx.lineTo(d.x + 12, ay + 12);
+    ctx.lineTo(d.x, ay + 26); ctx.lineTo(d.x - 12, ay + 12); ctx.lineTo(d.x - 5, ay + 12); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+  }
   // On the bridge it swings from a snapped suspender cable first (up out of the top of the view)
   const swing = steel && d.hold > 0 ? Math.sin(f * 0.25) * 0.25 : 0;
   if (steel && d.hold > 0) {
