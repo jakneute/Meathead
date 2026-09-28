@@ -465,7 +465,16 @@ const drawLedge = (ctx: Ctx, state: GameState, l: Ledge) => {
 /** The indoor ones: a counter, a desk, a cubicle wall, a shelf, a bench, a catwalk. */
 const drawRoomLedge = (ctx: Ctx, l: Ledge) => {
   const { x, y, w } = l;
-  if (l.look === 'catwalk') { ctx.fillStyle = '#3F3F46'; ctx.fillRect(x, y, w, 6); ctx.strokeStyle = '#52525B'; ctx.lineWidth = 2; ctx.strokeRect(x, y - 26, w, 26); return; }
+  if (l.look === 'catwalk') {
+    // A grated steel catwalk on brackets off the wall, a railing along it
+    ctx.fillStyle = '#27272A'; ctx.fillRect(x, y, w, 6);
+    ctx.fillStyle = '#52525B'; for (let px = x + 3; px < x + w; px += 6) ctx.fillRect(px, y + 1, 3, 3);
+    ctx.strokeStyle = '#3F3F46'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(x + 8, y + 6); ctx.lineTo(x + 30, y + 40); ctx.moveTo(x + w - 8, y + 6); ctx.lineTo(x + w - 30, y + 40); ctx.stroke();
+    ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y - 24); ctx.lineTo(x + w, y - 24); ctx.moveTo(x, y - 12); ctx.lineTo(x + w, y - 12); ctx.stroke();
+    for (let px = x; px <= x + w; px += 30) { ctx.beginPath(); ctx.moveTo(px, y); ctx.lineTo(px, y - 24); ctx.stroke(); }
+    return;
+  }
   if (l.look === 'bench') { ctx.fillStyle = '#78350F'; ctx.fillRect(x, y, w, 8); ctx.fillStyle = '#1C1917'; ctx.fillRect(x + 8, y + 8, 6, Y - y - 8); ctx.fillRect(x + w - 14, y + 8, 6, Y - y - 8); return; }
   // (the rest are drawn with their props: here just their top edge)
   ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.fillRect(x, y, w, 2);

@@ -147,20 +147,39 @@ const drawLabWalls = (ctx: Ctx, state: GameState, room: Room) => {
 };
 
 const drawPowerWalls = (ctx: Ctx, state: GameState, room: Room, rt: BarryRuntime) => {
-  // Cables in bundles, breaker panels, warning stripes, a map of the city grid (going red, borough by borough)
-  ctx.fillStyle = '#111827'; for (let k = 0; k < 6; k++) ctx.fillRect(room.x1, room.ceiling + 20 + k * 7, room.x2 - room.x1, 3);
-  for (let x = room.x1; x < room.x2; x += 30) { ctx.fillStyle = (x / 30) % 2 ? '#FACC15' : '#111827'; ctx.fillRect(x, Y - 30, 30, 14); }
-  const mx = room.x1 + 400;
-  ctx.fillStyle = '#0B1220'; ctx.fillRect(mx, room.ceiling + 70, 300, 120);
-  ctx.strokeStyle = '#38BDF8'; ctx.lineWidth = 2; ctx.strokeRect(mx, room.ceiling + 70, 300, 120);
-  const boroughs = [[40, 30, 50, 60], [100, 40, 30, 90], [150, 60, 70, 50], [60, 100, 60, 40], [230, 30, 50, 70]];
-  boroughs.forEach(([bx, by, bw, bh], i) => {
-    const down = i < rt.power.gone * 2 || (rt.power.phase === 'meltdown');
-    ctx.fillStyle = down ? (Math.floor(state.frame / 10) % 2 ? '#DC2626' : '#7F1D1D') : '#22C55E';
-    ctx.fillRect(mx + bx, room.ceiling + 70 + by, bw, bh);
+  const f = state.frame;
+  const x1 = room.x1, x2 = room.x2, top = room.ceiling;
+  // Cable bundles along the top, riveted wall panels, a hazard stripe along the bottom
+  ctx.fillStyle = '#111827'; for (let k = 0; k < 4; k++) ctx.fillRect(x1, top + 12 + k * 6, x2 - x1, 3);
+  ctx.fillStyle = 'rgba(255,255,255,0.05)'; for (let x = x1; x < x2; x += 110) ctx.fillRect(x, top + 40, 2, Y - top - 70);
+  ctx.fillStyle = 'rgba(0,0,0,0.25)'; for (let x = x1 + 6; x < x2; x += 110) for (let y = top + 48; y < Y - 40; y += 40) ctx.fillRect(x, y, 3, 3);
+  for (let x = x1; x < x2; x += 30) { ctx.fillStyle = Math.floor((x - x1) / 30) % 2 ? '#FACC15' : '#111827'; ctx.fillRect(x, Y - 30, 30, 14); }
+  // The grid board, right across the top of the wall: NYC GRID CONTROL, and what each of the generators runs,
+  // going from green to flashing red as they go
+  const bx = x1 + 150, bw = x2 - x1 - 300, by = top + 44, bh = 84;
+  ctx.fillStyle = '#0B1220'; ctx.fillRect(bx, by, bw, bh);
+  ctx.strokeStyle = '#38BDF8'; ctx.lineWidth = 3; ctx.strokeRect(bx, by, bw, bh);
+  ctx.fillStyle = '#0E7490'; ctx.fillRect(bx, by, bw, 16);
+  ctx.fillStyle = '#E0F2FE'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'center';
+  ctx.fillText('NYC GRID CONTROL', bx + bw / 2, by + 12, bw - 20);
+  const systems = ['SUBWAY', 'TRAFFIC', 'EVERYTHING'];
+  const cw = (bw - 40) / systems.length;
+  systems.forEach((name, i) => {
+    const cx = bx + 20 + i * cw, down = i < rt.power.gone;
+    const col = down ? (Math.floor(f / 10) % 2 ? '#DC2626' : '#7F1D1D') : '#16A34A';
+    ctx.fillStyle = col; ctx.fillRect(cx + 6, by + 26, cw - 12, 28);
+    ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 7px "Press Start 2P"';
+    ctx.fillText(name, cx + cw / 2, by + 44, cw - 18);
+    ctx.fillStyle = down ? '#FCA5A5' : '#86EFAC'; ctx.font = '6px "Press Start 2P"';
+    ctx.fillText(down ? 'OFFLINE' : 'ONLINE', cx + cw / 2, by + 70, cw - 18);
   });
-  ctx.fillStyle = '#E0F2FE'; ctx.font = '6px "Press Start 2P"'; ctx.fillText('NYC GRID - BLACKOUT CONTROL', mx + 40, room.ceiling + 184);
-  ctx.fillStyle = '#374151'; for (let x = room.x1 + 80; x < room.x2; x += 300) { if (x > mx - 40 && x < mx + 320) continue; ctx.fillRect(x, room.ceiling + 80, 70, 100); ctx.fillStyle = '#22C55E'; for (let k = 0; k < 6; k++) ctx.fillRect(x + 8 + (k % 3) * 20, room.ceiling + 90 + Math.floor(k / 3) * 20, 6, 6); ctx.fillStyle = '#374151'; }
+  ctx.textAlign = 'left';
+  // A breaker panel at either end, its lights blinking
+  for (const px of [x1 + 30, x2 - 110]) {
+    ctx.fillStyle = '#374151'; ctx.fillRect(px, top + 60, 80, 110);
+    ctx.strokeStyle = '#1F2937'; ctx.lineWidth = 2; ctx.strokeRect(px, top + 60, 80, 110);
+    for (let k = 0; k < 8; k++) { ctx.fillStyle = '#111827'; ctx.fillRect(px + 10 + (k % 2) * 34, top + 72 + Math.floor(k / 2) * 22, 26, 14); ctx.fillStyle = (f + k * 13) % 40 < 30 ? '#22C55E' : '#14532D'; ctx.fillRect(px + 14 + (k % 2) * 34, top + 76 + Math.floor(k / 2) * 22, 5, 5); }
+  }
 };
 
 const drawRoomProp = (ctx: Ctx, state: GameState, pr: Prop, room: Room) => {
