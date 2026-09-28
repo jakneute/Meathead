@@ -334,6 +334,8 @@ export interface Projectile extends Entity {
   isTsunami?: boolean;
   isShrapnel?: boolean;
   isPoop?: boolean;
+  /** A bottle lobbed by one of Dale's car-door goons: it arcs, and smashes on whatever it hits. */
+  isBottle?: boolean;
   isDart?: boolean;
   isCocaine?: boolean;
   isMethBarrel?: boolean;

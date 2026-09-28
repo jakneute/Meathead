@@ -14,6 +14,7 @@ import {
   ENEMY_HIT_COOLDOWN, ENEMY_BULLET_DAMAGE, FILTH_SHIELD_CONTACT_DAMAGE, OIL_ROCKET_OILED_DURATION,
   OILED_COLLISION_DAMAGE, OILED_CHARGE_PUSH_MULTIPLIER, OILED_CHARGE_MIN_PUSH, OVERDOSE_GRAVITY, OVERDOSE_RISE_RANGE, OVERDOSE_RISE_STEER, OVERDOSE_MAX_SIDE_SPEED,
   OVERDOSE_MAX_RISE_SPEED, OVERDOSE_DIVE_RANGE, OVERDOSE_DIVE_SPEED, OVERDOSE_DROP_GRAVITY, OVERDOSE_HIT_DAMAGE, OVERDOSE_MAX_FRAMES,
+  BOTTLE_GRAVITY,
 } from '../../constants';
 import { FrameContext, killBoss } from '../core/context';
 import { getBossDef, getStageWidth } from '../bosses/registry';
@@ -264,6 +265,18 @@ const updateOiledDrips = (ctx: FrameContext, e: Enemy) => {
   }
 };
 
+/** The quickest and slowest a thrown bottle takes to get to him. */
+const BOTTLE_MIN_T = 24, BOTTLE_MAX_T = 48;
+
+/** A bottle lobbed at him: up and over in an arc that comes down where he's standing. */
+const throwBottle = (ctx: FrameContext, x: number, y: number, e: Enemy) => {
+  const p = ctx.state.player;
+  const tx = p.pos.x + p.width / 2, ty = p.pos.y + p.height / 2;
+  const t = Math.max(BOTTLE_MIN_T, Math.min(BOTTLE_MAX_T, Math.abs(tx - x) / 7));
+  const vx = (tx - x) / t, vy = (ty - y - 0.5 * BOTTLE_GRAVITY * t * t) / t;
+  ctx.state.projectiles.push({ id: `eb-${Date.now()}-${Math.random()}`, pos: { x: x - 5, y: y - 9 }, vel: { x: vx, y: vy }, width: 10, height: 18, health: 1, maxHealth: 1, type: 'projectile', damage: ENEMY_BULLET_DAMAGE, owner: 'enemy', shooterKind: e.kind ?? 'enemy', isBottle: true, rotation: 0 });
+};
+
 const fireEnemyBullet = (ctx: FrameContext, x: number, y: number, velX: number, e: Enemy) => {
   ctx.state.projectiles.push({ id: `ep-${Date.now()}`, pos: { x, y }, vel: { x: velX, y: 0 }, width: 14, height: 14, health: 1, maxHealth: 1, type: 'projectile', damage: ENEMY_BULLET_DAMAGE, owner: 'enemy', shooterKind: e.kind ?? 'enemy' });
 };
@@ -392,7 +405,9 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
       e.isShieldActive = e.shootTimer < 80;
       if (e.shootTimer > 120) {
         const dir = shieldFacing(e);
-        fireEnemyBullet(ctx, dir < 0 ? e.pos.x : e.pos.x + e.width, e.pos.y + 15, dir * 6, e);
+        // (Dale's car-door men throw bottles, over the top; the rest fire)
+        if (e.kind === 'cardoor') throwBottle(ctx, e.pos.x + e.width / 2 + dir * 10, e.pos.y + 4, e);
+        else fireEnemyBullet(ctx, dir < 0 ? e.pos.x : e.pos.x + e.width, e.pos.y + 15, dir * 6, e);
         e.shootTimer = 0;
       }
     } else if (e.shootTimer > 60) {

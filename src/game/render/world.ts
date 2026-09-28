@@ -10,7 +10,7 @@ import { drawBoss, drawBossOverlay } from './bosses';
 import { drawVentTelegraph, drawVent, drawMagma, isMagma } from './bosses/victorVents';
 import { drawIcicles, drawIceBlock, drawIceShard } from './bosses/artieIce';
 import { drawBoulder, drawRockChip } from './bosses/boulders';
-import { drawBullet, drawEnemyBullet, drawIcePellet, drawDart, drawPoopLog, drawCocaine, drawMethBarrel, drawSludgeBlob } from './projectiles';
+import { drawBullet, drawBottle, drawEnemyBullet, drawIcePellet, drawDart, drawPoopLog, drawCocaine, drawMethBarrel, drawSludgeBlob } from './projectiles';
 import { drawParticle } from './particles';
 import { drawBossCorpse } from './bosses/corpses';
 import { drawVictoryPee } from './scenes/victoryPee';
@@ -937,6 +937,7 @@ const drawProjectiles = (ctx: CanvasRenderingContext2D, state: GameState, layer:
       ctx.restore();
     }
     else if (p.isIce) drawIcePellet(ctx, p, state.frame);
+    else if (p.isBottle) drawBottle(ctx, p);
     else if (p.owner === 'player') drawBullet(ctx, p);
     else drawEnemyBullet(ctx, p, state.frame);
     ctx.restore();

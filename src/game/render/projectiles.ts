@@ -38,6 +38,21 @@ export const drawBullet = (ctx: CanvasRenderingContext2D, p: Projectile) => {
 };
 
 /** Enemy shots: a crackling red plasma ball with a tail. */
+/** A tequila bottle, end over end: brown glass, a label, the cap. */
+export const drawBottle = (ctx: CanvasRenderingContext2D, p: Projectile) => {
+  const { x, y } = centerOf(p);
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(p.rotation || 0);
+  ctx.fillStyle = '#92400E'; ctx.beginPath(); ctx.roundRect(-5, -3, 10, 12, 2); ctx.fill();
+  ctx.fillRect(-2, -9, 4, 7);
+  ctx.fillStyle = '#FDE68A'; ctx.fillRect(-5, 1, 10, 5);
+  ctx.fillStyle = '#B91C1C'; ctx.fillRect(-2, 2, 4, 3);
+  ctx.fillStyle = '#E5E7EB'; ctx.fillRect(-2, -11, 4, 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.fillRect(-4, -2, 2, 9);
+  ctx.restore();
+};
+
 export const drawEnemyBullet = (ctx: CanvasRenderingContext2D, p: Projectile, frame: number) => {
   const { x, y } = centerOf(p);
   const r = p.width / 2;

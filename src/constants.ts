@@ -379,6 +379,8 @@ export const OSCAR_ASH_FACE_FRAMES = 130;
 
 // DRUG TRADE DALE
 export const DALE_TRUCK_SPEED = 11;
+/** How hard a car-door goon's thrown bottle falls (it's lobbed to come down on you). */
+export const BOTTLE_GRAVITY = 0.4;
 export const DALE_SPEED_WINDUP = 55;     // frames Dale spends injecting before his speed dash
 export const DALE_TRUCK_DAMAGE = 28;
 export const DALE_PUSHBACK_VEL = { x: 30, y: -15 };
