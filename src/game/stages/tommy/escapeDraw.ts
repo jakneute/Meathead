@@ -43,40 +43,82 @@ export const drawCutScene = (ctx: Ctx, state: GameState, rt: TommyRuntime) => {
   else if (es.phase === 'crush') drawFamilyScene(ctx, state, rt, FAMILY_FRAMES, es.t);
 };
 
-/** The tower: the cover through it, the water out of it, him onto it, and over it goes. */
+/** The tower: the cover through it, the water out of it, him onto it, and over it goes (a push in the whole time, a punch at every impact). */
 const drawTowerScene = (ctx: Ctx, state: GameState, t: number) => {
-  drawStreetSky(ctx, { ...state, camera: { x: COURSE.road.x2, y: GROUND_Y - 550 } } as GameState, 0.85);
   const tx = 420, ty = 540, s = 1.55;
   const hitAt = 100, landAt = 150;
-  const tilt = t > landAt ? Math.min(0.32, ((t - landAt) / (TOWER_FRAMES - landAt)) ** 2 * 0.32) : 0;
-  const shake = (t > hitAt && t < hitAt + 12) || (t > landAt && t < landAt + 14) ? (Math.random() - 0.5) * 10 : 0;
-  ctx.save(); ctx.translate(shake, 0);
+  // Over it goes: a creak and a shudder first, then faster and faster
+  const lean = clamp01((t - landAt - 25) / (TOWER_FRAMES - landAt - 25));
+  const tilt = t > landAt ? lean * lean * lean * 0.42 + (t > landAt && t < landAt + 40 ? Math.sin(t * 0.9) * 0.012 : 0) : 0;
+  // The camera: pushing in all the way through, punching in and shaking at the hit and the landing
+  const punch = (at: number) => (t >= at && t < at + 22 ? Math.sin(((t - at) / 22) * Math.PI) : 0);
+  const zoom = 1 + (t / TOWER_FRAMES) * 0.14 + punch(hitAt) * 0.1 + punch(landAt) * 0.07;
+  const shakeK = Math.max(punch(hitAt) * 16, punch(landAt) * 12, t > landAt + 40 ? lean * 5 : 0);
+  const sx = (Math.random() - 0.5) * shakeK, sy = (Math.random() - 0.5) * shakeK;
+  ctx.save();
+  ctx.translate(W / 2 + sx, H * 0.55 + sy); ctx.scale(zoom, zoom); ctx.translate(-W / 2, -H * 0.55);
+  drawStreetSky(ctx, { ...state, camera: { x: COURSE.road.x2 + t * 6, y: GROUND_Y - 550 } } as GameState, 0.85, false);
+  // Dust off its feet as it goes
+  if (t > landAt + 30) for (let i = 0; i < 6; i++) { const q = ((t * 1.3 + i * 20) % 90) / 90; ctx.fillStyle = `rgba(120, 100, 90, ${0.5 * (1 - q)})`; ctx.beginPath(); ctx.arc(tx - 60 + i * 24 + q * 30 * (i % 2 ? 1 : -1), ty - q * 40, 10 + q * 20, 0, Math.PI * 2); ctx.fill(); }
   drawWaterTower(ctx, tx, ty, s, 0.85, tilt, t >= hitAt);
-  // The hole, and the water out of it: an arc of it, brown-green, pouring off
+  const hx = tx + (-20 * Math.cos(tilt) + 196 * Math.sin(tilt)) * s, hy = ty + (-196 * Math.cos(tilt) - 20 * Math.sin(tilt)) * s;
+  // The water out of the hole: a thick jet of it, blasting, arcing off and down, spraying
   if (t >= hitAt) {
-    const hx = tx + (-20 * Math.cos(tilt) + 196 * Math.sin(tilt)) * s, hy = ty + (-196 * Math.cos(tilt) - 20 * Math.sin(tilt)) * s;
-    const k = clamp01((t - hitAt) / 30);
-    ctx.strokeStyle = 'rgba(120, 140, 60, 0.85)'; ctx.lineWidth = 14 * k;
-    ctx.beginPath(); ctx.moveTo(hx, hy); ctx.quadraticCurveTo(hx - 90, hy - 10, hx - 150, H); ctx.stroke();
-    ctx.fillStyle = 'rgba(190, 200, 120, 0.6)'; for (let i = 0; i < 8; i++) { const q = ((t * 3 + i * 17) % 100) / 100; ctx.fillRect(hx - q * 150 - 6, hy + q * q * (H - hy) - 4, 5, 10); }
+    const k = clamp01((t - hitAt) / 12);
+    ctx.strokeStyle = 'rgba(120, 140, 60, 0.9)'; ctx.lineWidth = 22 * k; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(hx, hy); ctx.quadraticCurveTo(hx - 140, hy - 30, hx - 210, H + 40); ctx.stroke();
+    ctx.strokeStyle = 'rgba(217, 249, 157, 0.5)'; ctx.lineWidth = 6 * k;
+    ctx.beginPath(); ctx.moveTo(hx, hy - 4); ctx.quadraticCurveTo(hx - 140, hy - 36, hx - 206, H + 40); ctx.stroke();
+    ctx.fillStyle = 'rgba(190, 200, 120, 0.8)';
+    for (let i = 0; i < 18; i++) { const q = ((t * 4 + i * 23) % 100) / 100; ctx.fillRect(hx - q * 210 - 10 + Math.sin(i * 3) * 18 * q, hy + q * q * (H - hy) - 10 + Math.cos(i) * 12 * q, 5, 5); }
   }
-  // The manhole cover, spinning up out of the bottom of the screen at the tank
+  // The hit: a flash, a ring, shards of the tank flying
+  if (t >= hitAt && t < hitAt + 45) {
+    const k = (t - hitAt) / 45;
+    ctx.strokeStyle = `rgba(255, 255, 255, ${1 - k})`; ctx.lineWidth = 6 * (1 - k);
+    ctx.beginPath(); ctx.arc(hx, hy, 20 + k * 180, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#8E9AAB';
+    for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2 + 0.3; const d = k * (120 + (i % 3) * 60); ctx.save(); ctx.translate(hx + Math.cos(a) * d, hy + Math.sin(a) * d + k * k * 160); ctx.rotate(t * 0.4 + i); ctx.fillRect(-6, -3, 12, 6); ctx.restore(); }
+  }
+  // The manhole cover: spinning up out of the bottom of the screen at the tank, a trail behind it, speed lines
   if (t < hitAt) {
-    const k = t / hitAt;
-    const x = 160 + (tx - 20 * s - 160) * k, y = H + 40 - (H + 40 - (ty - 196 * s)) * (1 - (1 - k) * (1 - k));
-    ctx.save(); ctx.translate(x, y); ctx.rotate(t * 0.5);
-    ctx.fillStyle = '#44403C'; ctx.beginPath(); ctx.ellipse(0, 0, 18, 6 + Math.abs(Math.sin(t * 0.5)) * 12, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
+    const pos = (u: number) => { const k = clamp01(u / hitAt); return { x: 150 + (tx - 20 * s - 150) * k, y: H + 60 - (H + 60 - (ty - 196 * s)) * (1 - (1 - k) * (1 - k)) }; };
+    for (let g = 4; g >= 0; g--) {
+      const c = pos(t - g * 2.5);
+      ctx.save(); ctx.globalAlpha = g === 0 ? 1 : 0.18; ctx.translate(c.x, c.y); ctx.rotate((t - g * 2.5) * 0.7);
+      ctx.fillStyle = '#44403C'; ctx.beginPath(); ctx.ellipse(0, 0, 20, 7 + Math.abs(Math.sin((t - g * 2.5) * 0.7)) * 13, 0, 0, Math.PI * 2); ctx.fill();
+      if (g === 0) { ctx.strokeStyle = '#292524'; ctx.lineWidth = 1.5; ctx.stroke(); }
+      ctx.restore();
+    }
+    const c = pos(t), p0 = pos(t - 6), a = Math.atan2(c.y - p0.y, c.x - p0.x);
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 2;
+    for (let i = 0; i < 6; i++) { const o = (i - 2.5) * 9; ctx.beginPath(); ctx.moveTo(c.x - Math.cos(a) * 30 - Math.sin(a) * o, c.y - Math.sin(a) * 30 + Math.cos(a) * o); ctx.lineTo(c.x - Math.cos(a) * (80 + (i % 3) * 30) - Math.sin(a) * o, c.y - Math.sin(a) * (80 + (i % 3) * 30) + Math.cos(a) * o); ctx.stroke(); }
   }
-  // Him: up after it, over the top, and down onto the tank's roof
+  // Him: blasted up after it, tumbling, over the top, and down onto the tank's roof with a CLANG
   if (t > 40) {
-    const k = clamp01((t - 40) / (landAt - 40));
     const topX = tx + 270 * Math.sin(tilt) * s, topY = ty - 270 * Math.cos(tilt) * s;
-    const x = 120 + (topX - 120) * k, y = H + 60 - (H + 60 - topY) * k - Math.sin(k * Math.PI) * 120;
-    suitedMan(ctx, x, y, 1.1, t < landAt ? t * 0.3 : tilt);
+    const pos = (u: number) => { const k = clamp01((u - 40) / (landAt - 40)); return { x: 110 + (topX - 110) * k, y: H + 80 - (H + 80 - topY) * k - Math.sin(k * Math.PI) * 170 }; };
+    if (t < landAt) {
+      const c = pos(t), p0 = pos(t - 5), a = Math.atan2(c.y - p0.y, c.x - p0.x);
+      ctx.strokeStyle = 'rgba(250, 204, 21, 0.5)'; ctx.lineWidth = 3;
+      for (let i = 0; i < 5; i++) { const o = (i - 2) * 12; ctx.beginPath(); ctx.moveTo(c.x - Math.cos(a) * 30 - Math.sin(a) * o, c.y - 30 - Math.sin(a) * 30 + Math.cos(a) * o); ctx.lineTo(c.x - Math.cos(a) * 110 - Math.sin(a) * o, c.y - 30 - Math.sin(a) * 110 + Math.cos(a) * o); ctx.stroke(); }
+      suitedMan(ctx, c.x, c.y, 1.2, t * 0.35);
+    } else {
+      // (landed: a crouch that springs up, then clinging on as it goes)
+      const squash = t < landAt + 12 ? 1 - Math.sin(((t - landAt) / 12) * Math.PI) * 0.3 : 1;
+      ctx.save(); ctx.translate(topX, topY); ctx.rotate(tilt); ctx.scale(1, squash); suitedMan(ctx, 0, 0, 1.2, 0); ctx.restore();
+    }
+    if (t >= landAt && t < landAt + 30) {
+      const k = (t - landAt) / 30;
+      ctx.fillStyle = `rgba(160, 150, 140, ${0.7 * (1 - k)})`; for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc(topX + (i - 2.5) * (14 + k * 30), topY + 2 - k * 10, 8 + k * 14, 0, Math.PI * 2); ctx.fill(); }
+      ctx.save(); ctx.translate(topX + 70, topY - 70); ctx.rotate(-0.2); ctx.scale(1 + k * 0.4, 1 + k * 0.4);
+      ctx.fillStyle = `rgba(253, 224, 71, ${1 - k})`; ctx.beginPath(); for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2, r = i % 2 ? 22 : 44; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill();
+      ctx.fillStyle = `rgba(28, 25, 23, ${1 - k})`; ctx.font = 'bold 13px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('CLANG', 0, 6); ctx.textAlign = 'left';
+      ctx.restore();
+    }
   }
   ctx.restore();
-  if (t > hitAt && t < hitAt + 8) { ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.fillRect(0, 0, W, H); }
+  if (t > hitAt && t < hitAt + 6) { ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillRect(0, 0, W, H); }
   bubble(ctx, state, 'meathead', tx, ty - 330 * s + 30);
 };
 
