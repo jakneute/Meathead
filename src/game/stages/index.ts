@@ -8,6 +8,7 @@ import type { FrameContext } from '../context';
 import type { Controls } from '../input';
 import type { Enemy, Projectile } from '../../types';
 import { artieLayout } from './artie';
+import { hectorLayout } from './hector';
 
 export interface StageLayout {
   /** Left edge of the stage's world. */
@@ -34,7 +35,7 @@ export interface StageLayout {
    */
   updateSpecialEnemy?: (ctx: FrameContext, e: Enemy) => boolean | undefined;
   /** A player projectile hit it: return true if you handled it (the projectile's used up). */
-  hitSpecialEnemy?: (ctx: FrameContext, e: Enemy, p: Projectile) => boolean | undefined;
+  hitSpecialEnemy?: (ctx: FrameContext, e: Enemy, p: Projectile) => boolean | 'miss' | undefined;
   drawSpecialEnemy?: (ctx: CanvasRenderingContext2D, e: Enemy, state: GameState) => boolean;
   /** A special death message for how he died here (the avalanche), if any. */
   deathMessage?: (ctx: FrameContext) => string | undefined;
@@ -46,10 +47,17 @@ export interface StageLayout {
   drawFront?: (ctx: CanvasRenderingContext2D, state: GameState) => void;
   /** Screen space, over the world (timers, the mid-boss health bar). */
   drawHud?: (ctx: CanvasRenderingContext2D, state: GameState) => void;
+  /** Screen space: the stage draws its own sky and scenery (weather that changes as you go). Return false for the usual backdrop. */
+  drawBackdrop?: (ctx: CanvasRenderingContext2D, state: GameState) => boolean;
+  /** Screen space: the stage's own weather over the world. Return false for the usual. */
+  drawBackdropFront?: (ctx: CanvasRenderingContext2D, state: GameState) => boolean;
+  /** The world's wrapped round a rotating cylinder of this radius right now (the storm climb), or null. */
+  cylinder?: (state: GameState) => { radius: number } | null;
 }
 
 const LAYOUTS: Record<string, StageLayout> = {
   'Artie Avalanche': artieLayout,
+  'Hector Hurricane': hectorLayout,
 };
 
 export const getStageLayout = (stageId: string | null): StageLayout | undefined => (stageId ? LAYOUTS[stageId] : undefined);

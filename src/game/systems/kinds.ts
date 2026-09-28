@@ -18,6 +18,7 @@ import { GRAVITY } from '../../constants';
 import type { FrameContext } from '../context';
 import { floorTopAt, profileYAt } from '../terrain';
 import type { GameState } from '../state';
+import { runHectorKindAI } from './kindsHector';
 
 interface KindStats { w: number; h: number; hp: number; contact: number; air?: boolean }
 
@@ -29,7 +30,23 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   charger: { w: 50, h: 70, hp: 220, contact: 12 },
   shielder: { w: 50, h: 70, hp: 150, contact: 7 },
   moose: { w: 150, h: 96, hp: 2000, contact: 18 },
+  // Hector's stage
+  tourist: { w: 40, h: 62, hp: 110, contact: 6 },
+  bouncer: { w: 52, h: 72, hp: 230, contact: 12 },
+  surfer: { w: 50, h: 70, hp: 150, contact: 7 },
+  cop: { w: 40, h: 64, hp: 110, contact: 6 },
+  riotcop: { w: 50, h: 70, hp: 170, contact: 8 },
+  gator: { w: 92, h: 26, hp: 150, contact: 15 },
+  pelican: { w: 50, h: 28, hp: 45, contact: 9, air: true },
+  iguana: { w: 40, h: 16, hp: 35, contact: 7 },
+  crab: { w: 30, h: 18, hp: 30, contact: 6 },
+  civilian: { w: 34, h: 62, hp: 1, contact: 0 },
+  shark: { w: 84, h: 34, hp: 90, contact: 14, air: true },
+  eye: { w: 200, h: 200, hp: 1200, contact: 16 },
 };
+
+/** The ones that run you down like the rusher. */
+export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind === 'bouncer';
 
 let spawnCount = 0;
 
@@ -48,6 +65,13 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     // The charger uses the rusher's run-you-down logic
     case 'charger': return { ...base, behavior: 'patrol', pauseTimer: 0 };
     case 'shielder': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
+    // Hector's goons and cops ride on the same logic, dressed for the beach (or the job)
+    case 'tourist': case 'cop': return { ...base, behavior: 'shoot', shootTimer: Math.floor(Math.random() * 40) };
+    case 'bouncer': return { ...base, behavior: 'patrol', pauseTimer: 0 };
+    case 'surfer': case 'riotcop': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
+    case 'pelican': case 'shark': return { ...base, enemyType: 'flyer', initialY: pos.y };
+    // Beachgoers: not out to hurt anyone
+    case 'civilian': return { ...base, harmless: true };
     default: return base;
   }
 };
@@ -61,6 +85,7 @@ export const runKindAI = (ctx: FrameContext, e: Enemy): boolean => {
     case 'wolverine': wolverine(ctx, e); return false;
     case 'goat': goat(ctx, e); return false;
     case 'eagle': eagle(ctx, e); return true;
+    case 'gator': case 'pelican': case 'iguana': case 'crab': case 'civilian': case 'shark': return runHectorKindAI(ctx, e);
     default: return false;
   }
 };
@@ -86,15 +111,15 @@ export const shieldFacing = (e: Enemy) => (e.facing === 1 ? 1 : -1);
 
 export const holdingOff = (state: GameState) => (state.gapGrace || 0) > 0;
 
-const mid = (o: { pos: { x: number; y: number }; width: number; height: number }) => ({ x: o.pos.x + o.width / 2, y: o.pos.y + o.height / 2 });
+export const mid = (o: { pos: { x: number; y: number }; width: number; height: number }) => ({ x: o.pos.x + o.width / 2, y: o.pos.y + o.height / 2 });
 
 /** Is there ground a step ahead that isn't a drop? (So prowlers don't wander off ledges.) */
-const safeAhead = (ctx: FrameContext, e: Enemy, dir: number) => {
+export const safeAhead = (ctx: FrameContext, e: Enemy, dir: number) => {
   const top = floorTopAt(ctx.state.blocks, e.pos.x + e.width / 2 + dir * (e.width / 2 + 8), e.pos.y + e.height);
   return top !== null && top - (e.pos.y + e.height) < 40;
 };
 
-const seesPlayer = (ctx: FrameContext, e: Enemy, rangeX: number, rangeY: number) => {
+export const seesPlayer = (ctx: FrameContext, e: Enemy, rangeX: number, rangeY: number) => {
   const p = mid(ctx.state.player), m = mid(e);
   return Math.abs(p.x - m.x) < rangeX && Math.abs(p.y - m.y) < rangeY && ctx.state.player.health > 0;
 };

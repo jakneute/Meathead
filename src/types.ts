@@ -39,7 +39,7 @@ export type WeaponType = 'GUN' | 'BOULDER' | 'SHOTGUN' | 'FLAMETHROWER' | 'TSUNA
 
 export type VulgarityType = 'gun_kill' | 'boulder_kill' | 'shotgun_kill' | 'flamethrower_kill' | 'tsunami_kill' | 'hurt' | 'death' | 'charge_kill' | 'uppercut_kill' | 'dart_kill' | 'taser_kill' | 'sludge_kill' | 'oil_kill' | 'truck_wreck';
 
-export type SoundType = 'gun' | 'ice' | 'flame' | 'tsunami' | 'dart' | 'horn' | 'ignite' | 'barf' | 'oil' | 'taser' | 'tinkle' | 'nuke';
+export type SoundType = 'gun' | 'ice' | 'flame' | 'tsunami' | 'dart' | 'horn' | 'ignite' | 'barf' | 'oil' | 'taser' | 'tinkle' | 'nuke' | 'siren' | 'thunder';
 
 export interface Player extends Entity {
   facing: 1 | -1;
@@ -143,7 +143,11 @@ export type BossState =
   | 'aiming' | 'flicking' | 'taser_held' | 'ash_face' | 'high' | 'running' | 'frozen';
 
 /** Themed enemies: Artie's wildlife and goons. */
-export type EnemyKind = 'wolverine' | 'goat' | 'eagle' | 'shooter' | 'charger' | 'shielder' | 'moose';
+export type EnemyKind =
+  // Artie's stage
+  | 'wolverine' | 'goat' | 'eagle' | 'shooter' | 'charger' | 'shielder' | 'moose'
+  // Hector's stage: vacation goons, the cops, Florida wildlife, the beachgoers, and the storm's own
+  | 'tourist' | 'bouncer' | 'surfer' | 'cop' | 'riotcop' | 'gator' | 'pelican' | 'iguana' | 'crab' | 'civilian' | 'shark' | 'eye';
 
 export interface Enemy extends Entity {
   enemyType: 'drone' | 'tank' | 'turret' | 'flyer' | 'shield';
@@ -188,6 +192,10 @@ export interface Enemy extends Entity {
   pauseTimer?: number;
   /** A practice dummy: bumping into it doesn't hurt. */
   harmless?: boolean;
+  /** A mid-boss already took a hit from this tsunami wave (it's washed over once, not every frame). */
+  tsunamiWave?: number;
+  /** Which look a themed enemy has (a beachgoer's outfit and pastime, a gator in the water or on land). */
+  variant?: number;
   /** Died of an overdose: its body flies off, veering toward anything airborne and wrecking what it hits. */
   overdosed?: boolean;
   /** Enemies an overdosed body has already plowed through. */

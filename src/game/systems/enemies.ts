@@ -24,7 +24,8 @@ import { startEnemyDeath } from '../enemyDeaths';
 import { getEnemyMass, enemyGrip, massRatio } from './knockback';
 import { floorTopAt } from '../terrain';
 import { getStageLeft, getStageLayout } from '../stages';
-import { runKindAI, kindContactDamage, holdingOff, shieldFacing } from './kinds';
+import { runKindAI, kindContactDamage, holdingOff, shieldFacing, isChargerKind } from './kinds';
+import { selfPropelled } from './kindsHector';
 
 /** Moves one enemy and resolves its contact with the player. Returns false to remove it. */
 export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolean => {
@@ -323,6 +324,9 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
     return;
   }
 
+  // (a gator waiting in the water, an iguana up a palm: they hold their own position until something knocks them loose)
+  if (e.behavior === 'custom' && !isStunned && selfPropelled(e)) { runKindAI(ctx, e); return; }
+
   const top = floorUnder(state, e);
   const overFloor = top !== null;
   const floorLevel = (top ?? Infinity) - e.height;
@@ -359,7 +363,7 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
 
   if (e.behavior === 'custom') {
     runKindAI(ctx, e);
-  } else if (e.id.startsWith('rusher') || e.kind === 'charger') {
+  } else if (e.id.startsWith('rusher') || isChargerKind(e.kind)) {
     const sameLevel = Math.abs((player.pos.y + player.height / 2) - (e.pos.y + e.height / 2)) < 80;
     e.vel.x = (onScreen && player.invincibilityTimer <= 0 && sameLevel && !holdingOff(state)) ? (player.pos.x < e.pos.x ? -1 : 1) * 6 : 0;
   } else if (e.behavior === 'patrol') {
@@ -591,7 +595,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
       player.vel = { x: (player.pos.x < e.pos.x ? -1 : 1) * PLAYER_PUSHBACK_VEL_X * butt, y: PLAYER_PUSHBACK_VEL_Y * butt };
     }
     bossDef?.onTouchPlayer?.(ctx, e);
-    if (e.id.startsWith('rusher') || e.kind === 'charger') e.pauseTimer = 60;
+    if (e.id.startsWith('rusher') || isChargerKind(e.kind)) e.pauseTimer = 60;
   }
   return true;
 };

@@ -218,7 +218,7 @@ export const drawGroundProfile = (ctx: Ctx, runs: GroundRun[], stageId: string |
   }
   for (let i = 0; i < runs.length; i++) {
     const r = runs[i];
-    if (r.x2 < view.x - 20 || r.x1 > view.x + view.w + 20) continue;
+    if (r.x2 < view.x - 20 || r.x1 > view.x + view.w + 20 || r.surface) continue;
     // Body of the hill down past the bottom of the screen
     ctx.fillStyle = fill;
     ctx.beginPath();

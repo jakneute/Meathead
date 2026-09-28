@@ -74,6 +74,37 @@ const playHorn = (ctx: AudioContext) => {
   }
 };
 
+/** A police siren: a wailing tone sweeping up and down for a few seconds. */
+const playSiren = (ctx: AudioContext) => {
+  const t = ctx.currentTime, dur = 3.2;
+  const osc = ctx.createOscillator();
+  osc.type = 'square';
+  for (let i = 0; i < 4; i++) {
+    osc.frequency.linearRampToValueAtTime(620, t + i * 0.8);
+    osc.frequency.linearRampToValueAtTime(980, t + i * 0.8 + 0.4);
+  }
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.linearRampToValueAtTime(0.035, t + 0.3);
+  gain.gain.linearRampToValueAtTime(0.0001, t + dur);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start(); osc.stop(t + dur);
+};
+
+/** Thunder: a crack of noise and a long low rumble. */
+const playThunder = (ctx: AudioContext) => {
+  const t = ctx.currentTime, dur = 2.2;
+  const buffer = ctx.createBuffer(1, ctx.sampleRate * dur, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 1.5);
+  const noise = ctx.createBufferSource(); noise.buffer = buffer;
+  const filter = ctx.createBiquadFilter(); filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(1800, t); filter.frequency.exponentialRampToValueAtTime(90, t + 1.2);
+  const gain = ctx.createGain(); gain.gain.setValueAtTime(0.35, t); gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+  noise.start();
+};
+
 /** Half a second of low-passed white noise. */
 const playWaveCrash = (ctx: AudioContext) => {
   const t = ctx.currentTime;
@@ -129,6 +160,8 @@ export const playSound = (type: SoundType = 'gun') => {
   try {
     const ctx = getAudioContext();
     if (type === 'horn') playHorn(ctx);
+    else if (type === 'siren') playSiren(ctx);
+    else if (type === 'thunder') playThunder(ctx);
     else if (type === 'nuke') playNuke(ctx);
     else if (type === 'tsunami') playWaveCrash(ctx);
     else playTone(ctx, TONES[type]!);

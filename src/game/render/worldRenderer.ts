@@ -55,68 +55,75 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   // Layered parallax scenery for the stage (a flat colour where there isn't any)
   if (isRange) {
     drawRangeVoid(ctx, state.frame || 0);
+  } else if (getStageLayout(stageId)?.drawBackdrop?.(ctx, state)) {
+    // (a stage that changes its own sky: Hector's beach going from sunny to hurricane, the inside of the storm)
   } else if (!drawBackdrop(ctx, stageId, state.camera.x, state.camera.y, state.frame || 0)) {
     ctx.fillStyle = colors.bg;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   }
 
-  // World space (camera + screen shake; a paused frame holds still)
-  ctx.save();
-  if (state.screenShakeTimer > 0 && status !== GameStatus.PAUSED) {
-    const m = state.screenShakeMagnitude * 2;
-    ctx.translate((Math.random() - 0.5) * m, (Math.random() - 0.5) * m);
-  }
-  ctx.translate(-state.camera.x, -state.camera.y);
+  // World space (camera + screen shake; a paused frame holds still). shiftX widens the view to the left (the cylinder pass draws a wider strip)
+  const worldPass = (wctx: CanvasRenderingContext2D, shiftX: number) => {
+    wctx.save();
+    if (state.screenShakeTimer > 0 && status !== GameStatus.PAUSED) {
+      const m = state.screenShakeMagnitude * 2;
+      wctx.translate((Math.random() - 0.5) * m, (Math.random() - 0.5) * m);
+    }
+    wctx.translate(-(state.camera.x - shiftX), -state.camera.y);
 
+    layout?.drawBack?.(wctx, state);
+    drawGroundProfile(wctx, state.groundRuns, stageId, state.frame || 0, { x: state.camera.x - shiftX, y: state.camera.y, w: CANVAS_WIDTH + shiftX * 2, h: CANVAS_HEIGHT });
+    if (!drawTerrain(wctx, state.blocks, stageId, state.frame || 0, state.doorOpenAmount)) drawBlocks(wctx, state, colors);
+    layout?.drawMid?.(wctx, state);
+    // The boss arena is drawn whenever any of it is on screen: from the moment the door
+    // opens onto it, through the fight, his death and the victory lap
+    const arenaInView = !!stageId && state.camera.x + CANVAS_WIDTH > ARENA_LEFT;
+    const inTommyArena = arenaInView && stageId === 'Toxic Tommy';
+    if (inTommyArena) {
+      drawTommyShaft(wctx, state);
+    } else if (arenaInView) {
+      const hurricane = state.enemies.find(e => e.type === 'boss' && e.bossState === 'hurricane' && e.health > 0);
+      drawCustomBossArena(wctx, stageId!, state.frame || 0, hurricane ? hurricane.pos.x + hurricane.width / 2 : null);
+    }
+    drawBossHazards(wctx, state);
+    if (state.bossCorpse) drawBossCorpse(wctx, state.bossCorpse, state.frame);
+    drawIcicles(wctx, state);
+    drawOilSlicks(wctx, state);
+    drawProjectiles(wctx, state, 'puddles');
+    state.pickups.forEach(p => drawPickup(wctx, p));
+    drawEnemies(wctx, state, view);
+    drawEnemyDeaths(wctx, state);
+    if (inTommyArena && state.tommyBoards) drawTommyPool(wctx, state);
+    // (the window-crash intro keeps him out of sight until he jumps through the glass; in the skyfall one he's falling into view)
+    if (status !== GameStatus.LEVEL_INTRO || LEVEL_INTRO_STYLE === 'skyfall' || state.introTimer >= 80) {
+      drawPlayer(wctx, state.player, state, {
+        currentWeapon: view.currentWeapon,
+        showFilthShield: status === GameStatus.PLAYING,
+        invincibilityEnabled: view.invincibilityEnabled,
+      });
+      drawTaserOverload(wctx, state.player, state.frame);
+      drawVictoryPee(wctx, state);
+      drawPlayerSpeech(wctx, state);
+    }
+    drawOscarFire(wctx, state);
+    drawOscarLaser(wctx, state);
+    if (state.player.isTasing && state.player.currentWeapon === 'TASER') drawTaserBeam(wctx, state);
+    drawProjectiles(wctx, state, 'flying');
+    drawParticlesAndDamageNumbers(wctx, state);
+    drawBarryLighting(wctx, state, stageId);
+    if (state.sewerNuke) drawSewerNukeInside(wctx, state);
+    if (state.volcanoFinale) drawVolcanoFinaleInside(wctx, state);
+    layout?.drawFront?.(wctx, state);
+    wctx.restore();
+  };
   const layout = getStageLayout(stageId);
-  layout?.drawBack?.(ctx, state);
-  drawGroundProfile(ctx, state.groundRuns, stageId, state.frame || 0, { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT });
-  if (!drawTerrain(ctx, state.blocks, stageId, state.frame || 0, state.doorOpenAmount)) drawBlocks(ctx, state, colors);
-  layout?.drawMid?.(ctx, state);
-  // The boss arena is drawn whenever any of it is on screen: from the moment the door
-  // opens onto it, through the fight, his death and the victory lap
-  const arenaInView = !!stageId && state.camera.x + CANVAS_WIDTH > ARENA_LEFT;
-  const inTommyArena = arenaInView && stageId === 'Toxic Tommy';
-  if (inTommyArena) {
-    drawTommyShaft(ctx, state);
-  } else if (arenaInView) {
-    const hurricane = state.enemies.find(e => e.type === 'boss' && e.bossState === 'hurricane' && e.health > 0);
-    drawCustomBossArena(ctx, stageId!, state.frame || 0, hurricane ? hurricane.pos.x + hurricane.width / 2 : null);
-  }
-  drawBossHazards(ctx, state);
-  if (state.bossCorpse) drawBossCorpse(ctx, state.bossCorpse, state.frame);
-  drawIcicles(ctx, state);
-  drawOilSlicks(ctx, state);
-  drawProjectiles(ctx, state, 'puddles');
-  state.pickups.forEach(p => drawPickup(ctx, p));
-  drawEnemies(ctx, state, view);
-  drawEnemyDeaths(ctx, state);
-  if (inTommyArena && state.tommyBoards) drawTommyPool(ctx, state);
-  // (the window-crash intro keeps him out of sight until he jumps through the glass; in the skyfall one he's falling into view)
-  if (status !== GameStatus.LEVEL_INTRO || LEVEL_INTRO_STYLE === 'skyfall' || state.introTimer >= 80) {
-    drawPlayer(ctx, state.player, state, {
-      currentWeapon: view.currentWeapon,
-      showFilthShield: status === GameStatus.PLAYING,
-      invincibilityEnabled: view.invincibilityEnabled,
-    });
-    drawTaserOverload(ctx, state.player, state.frame);
-    drawVictoryPee(ctx, state);
-    drawPlayerSpeech(ctx, state);
-  }
-  drawOscarFire(ctx, state);
-  drawOscarLaser(ctx, state);
-  if (state.player.isTasing && state.player.currentWeapon === 'TASER') drawTaserBeam(ctx, state);
-  drawProjectiles(ctx, state, 'flying');
-  drawParticlesAndDamageNumbers(ctx, state);
-  drawBarryLighting(ctx, state, stageId);
-  if (state.sewerNuke) drawSewerNukeInside(ctx, state);
-  if (state.volcanoFinale) drawVolcanoFinaleInside(ctx, state);
-  layout?.drawFront?.(ctx, state);
-  ctx.restore();
+  const cylinder = layout?.cylinder?.(state);
+  if (cylinder) drawCylinderWorld(ctx, cylinder.radius, worldPass);
+  else worldPass(ctx, 0);
   layout?.drawHud?.(ctx, state);
 
   // Screen space: the stage's weather over the level (not inside the boss arenas)
-  if (state.camera.x < ARENA_LEFT - CANVAS_WIDTH / 2) drawBackdropFront(ctx, stageId, state.camera.x, state.camera.y, state.frame || 0);
+  if (state.camera.x < ARENA_LEFT - CANVAS_WIDTH / 2 && !layout?.drawBackdropFront?.(ctx, state)) drawBackdropFront(ctx, stageId, state.camera.x, state.camera.y, state.frame || 0);
   if (state.victoryString && (status === GameStatus.PLAYING || status === GameStatus.VICTORY)) drawVictoryText(ctx, state.victoryString);
   if (state.sewerNuke) drawSewerNukeFlash(ctx, state);
   else if (state.deathTimer > 0 && state.deathString) drawDeathMessage(ctx, state.deathString);
@@ -125,6 +132,54 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     const k = state.introTimer / SKYFALL_CLOUD_FRAMES;
     drawSkyClouds(ctx, CANVAS_WIDTH, CANVAS_HEIGHT, 1 - k * k, DEPLOY_CLOUD_SCROLL_END + state.introTimer * SKYFALL_CLOUD_SPEED);
   }
+};
+
+/** The offscreen strip the cylinder pass draws the world into (reused). */
+let cylinderStrip: HTMLCanvasElement | null = null;
+
+/**
+ * The rotating-tower trick (Castlevania Bloodlines, Mickey Mania): the world's
+ * drawn flat into a strip wider than the screen, then laid back onto the screen
+ * column by column as if wrapped round a cylinder of this radius, so things
+ * bunch up and darken as they turn away round the sides. Outside the cylinder,
+ * the backdrop shows. Screen-space things (HUD, messages) are drawn afterwards,
+ * unwrapped.
+ */
+const drawCylinderWorld = (ctx: CanvasRenderingContext2D, radius: number, worldPass: (w: CanvasRenderingContext2D, shiftX: number) => void) => {
+  if (typeof document === 'undefined') return;
+  const half = CANVAS_WIDTH / 2;
+  const reach = Math.ceil(radius * Math.PI / 2);          // how far round the visible half of the cylinder goes
+  const pad = Math.max(0, reach - half) + 20;
+  const w = CANVAS_WIDTH + pad * 2;
+  if (!cylinderStrip) cylinderStrip = document.createElement('canvas');
+  if (cylinderStrip.width !== w * RENDER_SCALE || cylinderStrip.height !== CANVAS_HEIGHT * RENDER_SCALE) {
+    cylinderStrip.width = w * RENDER_SCALE; cylinderStrip.height = CANVAS_HEIGHT * RENDER_SCALE;
+  }
+  const s = cylinderStrip.getContext('2d')!;
+  s.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
+  s.clearRect(0, 0, w, CANVAS_HEIGHT);
+  worldPass(s, pad);
+  // Wrap it round: each 2px screen column takes the strip column at the matching angle
+  const STEP = 2;
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  for (let sx = 0; sx < CANVAS_WIDTH; sx += STEP) {
+    const d = sx + STEP / 2 - half;
+    if (Math.abs(d) >= radius) continue;
+    const a = Math.asin(d / radius);
+    const src = pad + half + radius * a;
+    const srcW = Math.min(14, STEP / Math.max(0.12, Math.cos(a)));
+    ctx.drawImage(cylinderStrip, (src - srcW / 2) * RENDER_SCALE, 0, srcW * RENDER_SCALE, CANVAS_HEIGHT * RENDER_SCALE, sx, 0, STEP, CANVAS_HEIGHT);
+  }
+  // Shading round the sides as it turns away from you
+  for (const side of [-1, 1]) {
+    const x0 = half + side * radius * 0.35, x1 = half + side * radius;
+    const g = ctx.createLinearGradient(x0, 0, x1, 0);
+    g.addColorStop(0, 'rgba(4, 8, 20, 0)'); g.addColorStop(1, 'rgba(4, 8, 20, 0.72)');
+    ctx.fillStyle = g;
+    ctx.fillRect(Math.min(x0, x1), 0, Math.abs(x1 - x0), CANVAS_HEIGHT);
+  }
+  ctx.restore();
 };
 
 /** The weapon range: a black void with a red glow and a receding grid floor. */
@@ -351,7 +406,7 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
       for(let j=0; j<4; j++){ ctx.beginPath(); const sx = e.width/2, sy = e.height/2; ctx.moveTo(sx, sy); ctx.lineTo(sx + (Math.random()-0.5)*100, sy + (Math.random()-0.5)*100); ctx.stroke(); }
     }
     drawStuckNeedles(ctx, e, state.frame);
-    if (!e.isBlownAway && e.kind !== 'moose') { ctx.fillStyle = '#00FF00'; ctx.fillRect(e.pos.x, e.pos.y - 10, (e.health / e.maxHealth) * e.width, 5); }
+    if (!e.isBlownAway && e.kind !== 'moose' && e.kind !== 'eye' && e.kind !== 'civilian') { ctx.fillStyle = '#00FF00'; ctx.fillRect(e.pos.x, e.pos.y - 10, (e.health / e.maxHealth) * e.width, 5); }
     ctx.restore();
   });
 };

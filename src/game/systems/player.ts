@@ -19,6 +19,8 @@ import { Controls } from '../input';
 import { fireWeapon, updateFlamethrower } from '../weapons';
 import { rectsOverlap, boundsOf } from '../utils';
 import { standingIndoors } from '../terrain';
+import { isChargerKind } from './kinds';
+import { BOSS_DIALOGUE } from '../../dialogue';
 import { isStandingInOil } from '../bosses/oscar';
 import { getBossDef, getArenaRight } from '../boss';
 import { getStageLeft } from '../stages';
@@ -659,4 +661,7 @@ export const harmlessBounce = (ctx: FrameContext, e: Enemy, velX: number, velY: 
 };
 
 export const getContactHurtSource = (ctx: FrameContext, e: Enemy) =>
-  e.type === 'boss' ? (ctx.stageId || 'boss') : (e.id.startsWith('rusher') || e.kind === 'charger' ? 'rusher' : e.enemyType);
+  e.type === 'boss' ? (ctx.stageId || 'boss')
+    // (a themed enemy with its own lines: bitten by a gator, clobbered by a pelican...)
+    : e.kind && BOSS_DIALOGUE.SPECIFIC_HAZARD_HURT[e.kind] ? e.kind
+    : (e.id.startsWith('rusher') || isChargerKind(e.kind) ? 'rusher' : e.enemyType);

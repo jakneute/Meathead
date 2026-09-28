@@ -1,0 +1,305 @@
+// Hector's stage: Florida wildlife, the beachgoers, and the sharks in the storm.
+// (His goons and the cops ride on the generic shooter/charger/shield logic, like
+// Artie's; see makeKindEnemy.)
+//
+//   gator:    on land it lies still, jaws shut, until you're close; then it
+//             hisses, lunges in a short fast burst and snaps. In the water
+//             (variant 1) it waits under the surface and breaches up at you
+//             as you jump over.
+//   pelican:  cruises high, then swoops down to head height and skims along
+//             the ground at you in a long shallow U, and climbs away.
+//   iguana:   clings to the top of a palm until you walk underneath, drops
+//             (they fall out of the trees when it's cold and wet), then
+//             scurries at you and whips its tail.
+//   crab:     tiny, sidesteps back and forth and scuttles at you pincers up.
+//             Low enough that a standing shot goes over it: duck, slide or stomp.
+//   civilian: a beachgoer doing their thing. When somebody gets shot (or the
+//             storm hits) they all run for it.
+//   shark:    in the hurricane, circling; it comes round in a biting lunge.
+//
+// Returns true when it moved itself (flyers, gators in the water, iguanas in trees).
+
+import { Enemy } from '../../types';
+import { GRAVITY } from '../../constants';
+import type { FrameContext } from '../context';
+import { floorTopAt } from '../terrain';
+import { mid, safeAhead, seesPlayer, holdingOff } from './kinds';
+
+export const runHectorKindAI = (ctx: FrameContext, e: Enemy): boolean => {
+  switch (e.kind) {
+    case 'gator': return e.variant === 1 ? waterGator(ctx, e) : (landGator(ctx, e), false);
+    case 'pelican': pelican(ctx, e); return true;
+    case 'iguana': return iguana(ctx, e);
+    case 'crab': crab(ctx, e); return false;
+    case 'civilian': civilian(ctx, e); return false;
+    case 'shark': shark(ctx, e); return true;
+    default: return false;
+  }
+};
+
+/** Ground kinds that hold their own position rather than stand on the floor (until a hit knocks them loose). */
+export const selfPropelled = (e: Enemy) =>
+  (e.kind === 'gator' && e.variant === 1) || (e.kind === 'iguana' && (e.aiState === 'idle' || e.aiState === 'drop' || !e.aiState));
+
+const dirTo = (e: Enemy, x: number) => (x < mid(e).x ? -1 : 1) as 1 | -1;
+
+// ---------------------------------------------------------------------------
+
+const GATOR_LUNGE = 10.5, GATOR_LUNGE_FRAMES = 16, GATOR_REACH = 180;
+
+const landGator = (ctx: FrameContext, e: Enemy) => {
+  const { player } = ctx.state;
+  e.aiTimer = (e.aiTimer || 0) + 1;
+  switch (e.aiState) {
+    case 'idle':
+    default: {
+      // Basking, dead still, facing you; ambles back to its spot if it's been moved
+      e.facing = dirTo(e, mid(player).x);
+      const home = e.homeX ?? e.pos.x;
+      e.vel.x = Math.abs(e.pos.x - home) > 40 && safeAhead(ctx, e, Math.sign(home - e.pos.x)) ? Math.sign(home - e.pos.x) * 0.8 : 0;
+      if (seesPlayer(ctx, e, GATOR_REACH, 70) && !holdingOff(ctx.state) && e.aiTimer > 30) { e.aiState = 'hiss'; e.aiTimer = 0; }
+      break;
+    }
+    case 'hiss':
+      // Jaws wide, a low hiss: you've got a beat to get out of the way (or jump it)
+      e.vel.x = 0;
+      e.facing = dirTo(e, mid(player).x);
+      if (e.aiTimer > 22) { e.aiState = 'lunge'; e.aiTimer = 0; }
+      break;
+    case 'lunge':
+      if (!safeAhead(ctx, e, e.facing!)) { e.vel.x = 0; e.aiState = 'snap'; e.aiTimer = 0; break; }
+      e.vel.x = e.facing! * GATOR_LUNGE;
+      if (e.aiTimer > GATOR_LUNGE_FRAMES) { e.aiState = 'snap'; e.aiTimer = 0; }
+      break;
+    case 'snap':
+      e.vel.x *= 0.7;
+      if (e.aiTimer > 12) { e.aiState = 'rest'; e.aiTimer = 0; }
+      break;
+    case 'rest':
+      // Tail thrashing, catching its breath
+      e.vel.x = 0;
+      if (e.aiTimer > 55) { e.aiState = 'idle'; e.aiTimer = 0; }
+      break;
+  }
+};
+
+/** Waits under the water (its home is the surface); breaches up at you as you come over, then flops back in. */
+const waterGator = (ctx: FrameContext, e: Enemy): boolean => {
+  const { player } = ctx.state;
+  // (it was placed with its feet at the waterline)
+  const waterline = (e.homeY ?? e.pos.y) + e.height;
+  e.aiTimer = (e.aiTimer || 0) + 1;
+  switch (e.aiState) {
+    case 'idle':
+    default: {
+      // Just the eyes above the water, drifting a little
+      e.pos.y = waterline + 6 - e.height;
+      e.pos.x = (e.homeX ?? e.pos.x) + Math.sin((ctx.state.frame + (e.homeX || 0)) * 0.02) * 20;
+      e.facing = dirTo(e, mid(player).x);
+      const dx = Math.abs(mid(player).x - mid(e).x);
+      if (dx < 130 && e.aiTimer > 70 && !holdingOff(ctx.state)) {
+        e.aiState = 'breach'; e.aiTimer = 0;
+        e.vel = { x: Math.sign(mid(player).x - mid(e).x) * 3, y: -15 };
+      }
+      break;
+    }
+    case 'breach':
+      // Up out of the water, jaws open, then back down
+      e.vel.y += GRAVITY * 0.8;
+      e.pos.x += e.vel.x;
+      e.pos.y += e.vel.y;
+      if (e.vel.y > 0 && e.pos.y + e.height > waterline + 6) { e.aiState = 'idle'; e.aiTimer = 0; e.vel = { x: 0, y: 0 }; }
+      break;
+  }
+  return true;
+};
+
+// ---------------------------------------------------------------------------
+
+const PELICAN_SWOOP = 7.5;
+
+const pelican = (ctx: FrameContext, e: Enemy) => {
+  const { player } = ctx.state;
+  e.aiTimer = (e.aiTimer || 0) + 1;
+  const homeY = e.homeY ?? e.pos.y;
+  switch (e.aiState) {
+    case 'idle':
+    default: {
+      // Gliding back and forth up high
+      const homeX = e.homeX ?? e.pos.x;
+      if (e.facing === undefined) e.facing = -1;
+      if (Math.abs(e.pos.x - homeX) > 140) e.facing = (e.pos.x > homeX ? -1 : 1);
+      e.vel.x = e.facing * 2;
+      e.vel.y = (homeY + Math.sin(ctx.state.frame * 0.05 + homeX) * 8 - e.pos.y) * 0.1;
+      const dx = mid(player).x - mid(e).x;
+      if (e.aiTimer > 70 && Math.abs(dx) < 460 && Math.abs(dx) > 120 && !holdingOff(ctx.state) && player.health > 0) {
+        e.aiState = 'swoop'; e.aiTimer = 0; e.facing = dx < 0 ? -1 : 1;
+        e.aiY = player.pos.y + 14; // skims along at his head height
+      }
+      break;
+    }
+    case 'swoop': {
+      // Down to his head height, a long flat skim, then up and away
+      e.vel.x = e.facing! * PELICAN_SWOOP;
+      const target = e.aiTimer < 70 ? e.aiY! : homeY;
+      e.vel.y = (target - e.pos.y) * (e.aiTimer < 70 ? 0.09 : 0.05);
+      if (e.aiTimer > 120) { e.aiState = 'idle'; e.aiTimer = 0; e.homeX = e.pos.x; }
+      break;
+    }
+  }
+  e.pos.x += e.vel.x;
+  e.pos.y += e.vel.y;
+  // Never through the ground
+  const floor = floorTopAt(ctx.state.blocks, mid(e).x, e.pos.y + e.height, 0);
+  if (floor !== null && e.pos.y + e.height > floor - 4) e.pos.y = floor - 4 - e.height;
+};
+
+// ---------------------------------------------------------------------------
+
+const iguana = (ctx: FrameContext, e: Enemy): boolean => {
+  const { player } = ctx.state;
+  e.aiTimer = (e.aiTimer || 0) + 1;
+  switch (e.aiState) {
+    case 'idle':
+    default:
+      // Up the palm: waits for you to walk under it
+      e.facing = dirTo(e, mid(player).x);
+      if (Math.abs(mid(player).x - mid(e).x) < 70 && player.pos.y > e.pos.y && !holdingOff(ctx.state)) { e.aiState = 'drop'; e.aiTimer = 0; e.vel = { x: 0, y: 0 }; }
+      return true;
+    case 'drop': {
+      // Falling out of the tree, spinning
+      e.vel.y = Math.min(16, e.vel.y + GRAVITY);
+      e.pos.y += e.vel.y;
+      const floor = floorTopAt(ctx.state.blocks, mid(e).x, e.pos.y + e.height - e.vel.y, 0);
+      if (floor !== null && e.pos.y + e.height >= floor) { e.pos.y = floor - e.height; e.vel.y = 0; e.aiState = 'scurry'; e.aiTimer = 0; }
+      return true;
+    }
+    case 'scurry':
+      e.facing = dirTo(e, mid(player).x);
+      e.vel.x = safeAhead(ctx, e, e.facing) ? e.facing * 6.5 : 0;
+      if (Math.abs(mid(player).x - mid(e).x) < 40 || e.aiTimer > 70) { e.aiState = 'whip'; e.aiTimer = 0; }
+      return false;
+    case 'whip':
+      e.vel.x *= 0.8;
+      if (e.aiTimer > 24) { e.aiState = 'scurry'; e.aiTimer = 0; }
+      return false;
+  }
+};
+
+// ---------------------------------------------------------------------------
+
+const crab = (ctx: FrameContext, e: Enemy) => {
+  const { player } = ctx.state;
+  e.aiTimer = (e.aiTimer || 0) + 1;
+  const home = e.homeX ?? e.pos.x;
+  switch (e.aiState) {
+    case 'idle':
+    default:
+      if (e.facing === undefined) e.facing = 1;
+      if (Math.abs(e.pos.x - home) > 60 || !safeAhead(ctx, e, e.facing)) e.facing = (e.pos.x > home ? -1 : 1);
+      e.vel.x = e.facing * 1.6;
+      if (seesPlayer(ctx, e, 220, 60) && !holdingOff(ctx.state)) { e.aiState = 'scuttle'; e.aiTimer = 0; }
+      break;
+    case 'scuttle': {
+      const dir = dirTo(e, mid(player).x);
+      e.vel.x = safeAhead(ctx, e, dir) ? dir * 4.5 : 0;
+      if (Math.abs(mid(player).x - mid(e).x) < 30) { e.aiState = 'pinch'; e.aiTimer = 0; }
+      if (!seesPlayer(ctx, e, 320, 90)) { e.aiState = 'idle'; e.homeX = e.pos.x; }
+      break;
+    }
+    case 'pinch':
+      e.vel.x = 0;
+      if (e.aiTimer > 18) { e.aiState = 'scuttle'; e.aiTimer = 0; }
+      break;
+  }
+};
+
+// ---------------------------------------------------------------------------
+
+/**
+ * Beachgoers. What they're doing is their variant (0 sunbathing, 1 jogging,
+ * 2 volleyball, 3 metal-detecting, 4 ice cream man). The stage switches them all
+ * to 'flee' (a shooting) or 'shelter' (the storm); either way they run for it
+ * and are gone once they're well off the screen.
+ */
+const civilian = (ctx: FrameContext, e: Enemy) => {
+  const { state } = ctx;
+  e.aiTimer = (e.aiTimer || 0) + 1;
+  const home = e.homeX ?? e.pos.x;
+  switch (e.aiState) {
+    case 'idle':
+    default:
+      if (e.variant === 1) {
+        // Jogging up and down the beach
+        if (e.facing === undefined) e.facing = 1;
+        if (Math.abs(e.pos.x - home) > 170 || !safeAhead(ctx, e, e.facing)) e.facing = (e.pos.x > home ? -1 : 1);
+        e.vel.x = e.facing * 2.4;
+      } else if (e.variant === 3) {
+        // Sweeping a metal detector, a step at a time
+        if (e.facing === undefined) e.facing = 1;
+        if (Math.abs(e.pos.x - home) > 90) e.facing = (e.pos.x > home ? -1 : 1);
+        e.vel.x = e.aiTimer % 60 < 30 ? e.facing * 0.6 : 0;
+      } else if (e.variant === 2) {
+        // Volleyball: a jump for the ball now and then
+        e.vel.x = 0;
+        if (e.aiTimer % 70 === 0 && e.vel.y === 0) e.vel.y = -7;
+      } else {
+        e.vel.x = 0;
+      }
+      break;
+    case 'flee':
+    case 'shelter': {
+      // Scrambling up (sunbathers take a moment), then running flat out, arms up; flee from him, shelter to the nearest edge
+      if (e.aiTimer < (e.variant === 0 ? 14 : 4)) { e.vel.x = 0; break; }
+      // A sunbather gets up off the towel (their box goes from lying down to standing)
+      if (e.height < 40) { const feet = e.pos.y + e.height, cx = mid(e).x; e.width = 34; e.height = 62; e.pos = { x: cx - 17, y: feet - 62 }; }
+      if (e.aiState === 'flee' || e.facing === undefined || e.aiTimer === (e.variant === 0 ? 14 : 4)) {
+        e.facing = e.aiState === 'flee' ? -dirTo(e, mid(state.player).x) as 1 | -1 : (e.aiX !== undefined ? dirTo(e, e.aiX) : e.facing ?? 1);
+      }
+      e.vel.x = safeAhead(ctx, e, e.facing!) ? e.facing! * 6.2 : 0;
+      if (!e.vel.x && e.vel.y === 0) e.vel.y = -9; // hop whatever's in the way
+      // Well off the screen (or through the door they were running for): gone
+      const offscreen = e.pos.x + e.width < state.camera.x - 140 || e.pos.x > state.camera.x + 800 + 140;
+      const inside = e.aiX !== undefined && Math.abs(mid(e).x - e.aiX) < 12;
+      if (offscreen || inside) { e.aiState = 'gone'; e.health = 0; }
+      break;
+    }
+  }
+};
+
+// ---------------------------------------------------------------------------
+
+const shark = (ctx: FrameContext, e: Enemy) => {
+  const { player } = ctx.state;
+  e.aiTimer = (e.aiTimer || 0) + 1;
+  const homeX = e.homeX ?? e.pos.x, homeY = e.homeY ?? e.pos.y;
+  switch (e.aiState) {
+    case 'idle':
+    default: {
+      // Swimming laps through the air around its spot
+      const t = (ctx.state.frame + homeX) * 0.025;
+      const tx = homeX + Math.cos(t) * 150, ty = homeY + Math.sin(t * 2) * 30;
+      e.vel.x = (tx - e.pos.x) * 0.05; e.vel.y = (ty - e.pos.y) * 0.05;
+      e.facing = (e.vel.x < 0 ? -1 : 1);
+      const p = mid(player), m = mid(e);
+      if (e.aiTimer > 90 && Math.hypot(p.x - m.x, p.y - m.y) < 320 && !holdingOff(ctx.state) && player.health > 0) {
+        e.aiState = 'bite'; e.aiTimer = 0; e.aiX = p.x; e.aiY = p.y;
+        const len = Math.hypot(p.x - m.x, p.y - m.y) || 1;
+        e.vel = { x: ((p.x - m.x) / len) * 9, y: ((p.y - m.y) / len) * 9 };
+        e.facing = (e.vel.x < 0 ? -1 : 1);
+      }
+      break;
+    }
+    case 'bite':
+      // A straight lunge through where you were, jaws snapping, then back to its laps
+      if (e.aiTimer > 40) { e.aiState = 'return'; e.aiTimer = 0; }
+      break;
+    case 'return':
+      e.vel.x = (homeX - e.pos.x) * 0.04; e.vel.y = (homeY - e.pos.y) * 0.04;
+      e.facing = (e.vel.x < 0 ? -1 : 1);
+      if (Math.hypot(homeX - e.pos.x, homeY - e.pos.y) < 30) { e.aiState = 'idle'; e.aiTimer = 0; }
+      break;
+  }
+  e.pos.x += e.vel.x;
+  e.pos.y += e.vel.y;
+};

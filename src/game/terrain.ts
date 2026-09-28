@@ -8,8 +8,10 @@ import { Block } from '../types';
 
 /** One straight run of ground surface, from (x1, y1) to (x2, y2). Gaps between runs are pits. */
 export interface GroundRun {
-  /** The gap after this run is drawn by the stage itself (a sea of cloud), not as a dark crevasse. */
-  pitAfter?: 'clouds';
+  /** The gap after this run is drawn by the stage itself (a sea of cloud, open water), not as a dark crevasse. */
+  pitAfter?: 'clouds' | 'water';
+  /** The stage draws this ground itself (sand, road, boardwalk...) rather than the stage's usual material. */
+  surface?: string;
   x1: number;
   y1: number;
   x2: number;

@@ -66,6 +66,13 @@ export const updateTsunami = (ctx: FrameContext) => {
     if (e.type === 'boss') {
       if (!state.arenaLocked || (e.hitCooldown && e.hitCooldown > 0)) return;
       hitBoss(ctx, e, 'TSUNAMI', { facing: dir, damage: isWeakTo(stageId, 'TSUNAMI') ? TSUNAMI_DAMAGE_WEAKNESS : TSUNAMI_DAMAGE_BOSS });
+    } else if (e.kind === 'moose' || e.kind === 'eye') {
+      // A mid-boss takes it like a boss would, once per wave (it isn't washed away)
+      if (e.tsunamiWave === state.tsunamiStartX) return;
+      e.tsunamiWave = state.tsunamiStartX;
+      e.health -= TSUNAMI_DAMAGE_BOSS * 3;
+      e.hitFlash = 8;
+      fx.spawnDamageNumber(e.pos, TSUNAMI_DAMAGE_BOSS * 3, true);
     } else {
       e.health = 0;
       fx.blowAwayEnemy(e, { x: dir * 20, y: -10 }, 'tsunami_kill', dir);

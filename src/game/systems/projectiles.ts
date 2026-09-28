@@ -433,8 +433,10 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
       return false;
     }
 
-    // A stage's mid-boss takes hits its own way
-    if (enemy.kind && getStageLayout(ctx.stageId)?.hitSpecialEnemy?.(ctx, enemy, p)) return false;
+    // A stage's mid-boss takes hits its own way (or the shot just went past it: a round thing in a square box)
+    const special = enemy.kind ? getStageLayout(ctx.stageId)?.hitSpecialEnemy?.(ctx, enemy, p) : undefined;
+    if (special === 'miss') continue;
+    if (special) return false;
 
     if (enemy.type === 'boss') {
       const landedFullHit = hitBossWithProjectile(ctx, enemy, p);

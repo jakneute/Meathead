@@ -145,6 +145,9 @@ export const ENEMY_MASS: Record<string, number> = {
   shooter: 220,
   charger: 300,
   shielder: 260,
+  // Hector's
+  tourist: 220, bouncer: 320, surfer: 260, cop: 220, riotcop: 280,
+  gator: 260, pelican: 70, iguana: 60, crab: 50, civilian: 150, shark: 200,
 };
 
 // ==========================================

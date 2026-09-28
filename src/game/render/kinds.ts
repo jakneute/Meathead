@@ -5,6 +5,8 @@
 // goggles and a snowflake patch on the arm.
 
 import { Enemy, EnemyKind } from '../../types';
+import { drawHectorKind } from './kindsHector';
+import { isChargerKind } from '../systems/kinds';
 import type { GameState } from '../state';
 
 type Ctx = CanvasRenderingContext2D;
@@ -33,7 +35,19 @@ export const drawKindCorpse = (ctx: Ctx, kind: EnemyKind, x: number, y: number, 
 export const KIND_HEAD: Record<EnemyKind, { x: number; y: number; r: number }> = {
   wolverine: { x: 20, y: -18, r: 7 }, goat: { x: 24, y: -38, r: 8 }, eagle: { x: 18, y: -16, r: 6 },
   shooter: { x: 0, y: -54, r: 8 }, charger: { x: 0, y: -60, r: 9 }, shielder: { x: 0, y: -60, r: 8 }, moose: { x: 60, y: -80, r: 14 },
+  tourist: { x: 2, y: -60, r: 8 }, bouncer: { x: 4, y: -72, r: 9 }, surfer: { x: 2, y: -62, r: 8 }, cop: { x: 2, y: -64, r: 8 }, riotcop: { x: 2, y: -64, r: 9 },
+  civilian: { x: 2, y: -60, r: 8 }, gator: { x: 34, y: -14, r: 7 }, pelican: { x: 14, y: -18, r: 6 }, iguana: { x: 15, y: -10, r: 4 },
+  crab: { x: 0, y: -10, r: 5 }, shark: { x: 26, y: -18, r: 8 }, eye: { x: 0, y: -100, r: 60 },
 };
+
+/** People (their skeletons are human, and they keel over flat when they die). */
+export const isHumanoidKind = (kind?: EnemyKind) =>
+  kind === 'shooter' || kind === 'charger' || kind === 'shielder' || kind === 'tourist' || kind === 'bouncer'
+  || kind === 'surfer' || kind === 'cop' || kind === 'riotcop' || kind === 'civilian';
+
+/** What an x-ray shows inside it. */
+export const skeletonOf = (kind: EnemyKind): 'person' | 'four-legs' | 'bird' | 'fish' | 'crab' =>
+  isHumanoidKind(kind) ? 'person' : kind === 'eagle' || kind === 'pelican' ? 'bird' : kind === 'shark' ? 'fish' : kind === 'crab' ? 'crab' : 'four-legs';
 
 const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: GameState) => {
   ctx.save();
@@ -46,15 +60,16 @@ const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: Game
     case 'shooter': drawShooter(ctx, e, f, state); break;
     case 'charger': drawCharger(ctx, e, f); break;
     case 'shielder': drawShielder(ctx, e, f); break;
+    default: drawHectorKind(ctx, e, f, state); break;
   }
   ctx.restore();
 };
 
 /** Wildlife face where they're headed; goons face you. */
 const kindFacing = (e: Enemy, state: GameState): number => {
-  if (e.kind === 'wolverine' || e.kind === 'goat' || e.kind === 'eagle') return e.facing ?? -1;
-  if (e.kind === 'charger' && Math.abs(e.vel.x) > 0.5) return Math.sign(e.vel.x);
-  if (e.kind === 'shielder') return e.facing === 1 ? 1 : -1; // his shield's on the side he's turned to (he turns round after you)
+  if (!isHumanoidKind(e.kind) || e.kind === 'civilian') return e.facing ?? -1;
+  if (isChargerKind(e.kind) && Math.abs(e.vel.x) > 0.5) return Math.sign(e.vel.x);
+  if (e.enemyType === 'shield') return e.facing === 1 ? 1 : -1; // his shield's on the side he's turned to (he turns round after you)
   return state.player.pos.x + state.player.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;
 };
 

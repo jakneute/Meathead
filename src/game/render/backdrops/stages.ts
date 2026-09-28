@@ -488,6 +488,68 @@ const hector: Backdrop = {
   },
 };
 
+/**
+ * Hector's stage before the storm hits (and after it's gone): a clear blue
+ * Miami sky, a hot sun, pastel deco hotels and a sparkling calm sea, palms
+ * standing straight. The stage fades the hurricane backdrop in over this.
+ */
+const sunnyDeco: LayerSpec = {
+  key: 'hector-sunny-deco', parallax: 0.16,
+  paint: (g, w, h) => {
+    const r = rng(90);
+    const neon = ['#FF4FD8', '#2EE6D6', '#FFD166'];
+    let x = 0;
+    while (x < w) {
+      const bw = 26 + Math.floor(r() * 30), bh = 50 + Math.floor(r() * 70);
+      const top = 232 - bh;
+      const body = ['#F5D0E6', '#BDEFE8', '#FCE7C8', '#D6DDF7'][Math.floor(r() * 4)];
+      g.fillStyle = body; g.fillRect(x, top, bw, h - top);
+      g.fillRect(x + 3, top - 5, bw - 6, 5); g.fillRect(x + 7, top - 9, bw - 14, 4);
+      g.fillStyle = mix(body, '#FFFFFF', 0.5); g.fillRect(x, top, 3, h - top);
+      const n = neon[Math.floor(r() * 3)];
+      g.fillStyle = n; g.fillRect(x, top + 6, bw, 1);
+      for (let wy = top + 12; wy < 232; wy += 7) for (let wx = x + 3; wx < x + bw - 3; wx += 5) {
+        g.fillStyle = hash(wx * 3 + wy) > 0.7 ? '#7DD3FC' : mix(body, '#1E3A5F', 0.35);
+        g.fillRect(wx, wy, 2, 3);
+      }
+      x += bw + 2;
+    }
+  },
+};
+const sunnySea: LayerSpec = {
+  key: 'hector-sunny-sea', parallax: 0.26,
+  paint: (g, w, h) => {
+    for (let y = 232; y < h; y++) { g.fillStyle = mix('#38BDF8', '#0E7490', (y - 232) / 40); g.fillRect(0, y, w, 1); }
+    const r = rng(96);
+    for (let i = 0; i < 180; i++) { g.fillStyle = r() > 0.4 ? '#F0F9FF' : '#BAE6FD'; g.fillRect(Math.floor(r() * w), 234 + Math.floor(r() * 40), 2 + Math.floor(r() * 4), 1); }
+  },
+  raster: { from: 232, wobble: (row, f) => Math.sin(row * 0.5 + f * 0.08) * 1 },
+};
+const sunnyPalms: LayerSpec = {
+  key: 'hector-sunny-palms', parallax: 0.4,
+  paint: (g, w, h) => {
+    g.fillStyle = '#E9D5A1'; g.fillRect(0, 268, w, h - 268);
+    for (const t of HECTOR_PALM_TREES) wrapDraw(w, t.x, 40, xx => palm(g, xx, 269, t.h, '#3F6212', -0.15, 0.1, t.phase));
+  },
+};
+const sun = (ctx: G, v: View) => {
+  const x = W * 0.78 - v.camX * 0.01 % 40, y = 90 - Math.max(-60, Math.min(60, v.camY * 0.02));
+  const g = ctx.createRadialGradient(x, y, 10, x, y, 120);
+  g.addColorStop(0, 'rgba(255, 244, 196, 0.9)'); g.addColorStop(1, 'rgba(255, 244, 196, 0)');
+  ctx.fillStyle = g; ctx.fillRect(x - 120, y - 120, 240, 240);
+  ctx.fillStyle = '#FFF7D1'; ctx.beginPath(); ctx.arc(x, y, 34, 0, Math.PI * 2); ctx.fill();
+};
+const hectorSunny: Backdrop = {
+  layers: [
+    sky('hector-sunny-sky', ['#1D8FE0', '#3BA3EA', '#5FB8F0', '#86CBF4', '#B2DEF7'], 12),
+    sun,
+    hectorClouds('hector-sunny-clouds', 0.05, 0.2, 60, '#F8FAFC', 211),
+    sunnyDeco,
+    sunnySea,
+    sunnyPalms,
+  ],
+};
+
 // ===========================================================================
 // 5. TOXIC TOMMY: Flint, Michigan. Rust, smokestacks and a glowing toxic river.
 // ===========================================================================
@@ -860,6 +922,8 @@ export const STAGE_BACKDROPS: Record<string, Backdrop> = {
   'Victor Volcano': victor,
   'Ernie Earthquake': ernie,
   'Hector Hurricane': hector,
+  // (not a stage: the sunny beach Hector's stage starts on, before his storm rolls in)
+  'Hector Sunny': hectorSunny,
   'Toxic Tommy': tommy,
   'Blackout Barry': barry,
   'Oily Oscar': oscar,

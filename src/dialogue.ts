@@ -187,6 +187,50 @@ export const BOSS_DIALOGUE: {
       "DUCK. I SHOULD'VE DUCKED.",
       "BRANCH TO THE THROAT, OW!",
     ],
+    // Hector's stage
+    'gator': [
+      "A GATOR! OF COURSE THERE'S A GATOR!",
+      "IT BIT MY ASS! FLORIDA BIT MY ASS!",
+      "THAT THING HAS MORE TEETH THAN SENSE!",
+    ],
+    'pelican': [
+      "A PELICAN JUST CLOTHESLINED ME!",
+      "GET YOUR BIG STUPID BEAK OUTTA MY FACE!",
+    ],
+    'iguana': [
+      "IT'S RAINING LIZARDS! WHAT THE FUCK, FLORIDA?",
+      "GET THIS DINOSAUR OFF MY LEG!",
+    ],
+    'crab': [
+      "MY TOE! THE CRAB GOT MY TOE!",
+      "PINCHED BY A FUCKING CRAB!",
+    ],
+    'shark': [
+      "A FLYING SHARK! I'VE SEEN THIS MOVIE!",
+      "SHARK BITE! IN THE SKY! WHY!",
+    ],
+    'lightning': [
+      "STRUCK BY LIGHTNING! I CAN TASTE COLORS!",
+      "THAT WENT RIGHT THROUGH MY FILLINGS!",
+      "ZAPPED! MY HAIR'S STANDING UP! ALL OF IT!",
+    ],
+    'debris': [
+      "A FLYING BEACH CHAIR! TO THE FACE!",
+      "WHO'S THROWING PATIO FURNITURE?",
+      "THE WIND HIT ME WITH AN UMBRELLA!",
+    ],
+    'shock': [
+      "THE PUDDLE'S LIVE! THE PUDDLE'S LIVE!",
+      "ELECTRIC WATER! MY BOOTS ARE SMOKING!",
+    ],
+    'eye': [
+      "THE EYEBALL IS LOOKING AT ME. IT'S DOING DAMAGE.",
+      "STOP STARING AT ME, YOU GIANT CREEP!",
+      "EYE LASERS? REALLY?",
+    ],
+    'cop': [
+      "I'M NOT RESISTING! I'M WINNING!",
+    ],
     'avalanche': [
       "THE MOUNTAIN IS EATING ME!",
       "SNOW IN EVERY HOLE I HAVE!",

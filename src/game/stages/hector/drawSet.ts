@@ -1,0 +1,317 @@
+// Drawing for Hector's set pieces: the old fisherman and the boat, the
+// waterspout, the junk whirling up the storm tower, the Eye's arena, and the
+// daycare (before and after the flood).
+
+import type { GameState } from '../../state';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
+import { COURSE } from './course';
+import type { Boat } from './boat';
+import { BOAT_WIDTH } from './boat';
+import type { TowerRun } from './tower';
+import { TOWER } from './tower';
+import type { EyeFight } from './eye';
+import type { Daycare } from './daycare';
+import { drawEyeCorpse } from './eyeDraw';
+
+type Ctx = CanvasRenderingContext2D;
+
+const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+const visible = (state: GameState, x1: number, x2: number) => x2 > state.camera.x - 250 && x1 < state.camera.x + CANVAS_WIDTH + 250;
+
+const bubble = (ctx: Ctx, x: number, y: number, text: string) => {
+  ctx.font = 'bold 8px "Press Start 2P"';
+  const w = ctx.measureText(text).width + 14;
+  ctx.fillStyle = '#F8FAFC'; ctx.strokeStyle = '#111827'; ctx.lineWidth = 2;
+  ctx.fillRect(x - w / 2, y - 22, w, 20); ctx.strokeRect(x - w / 2, y - 22, w, 20);
+  ctx.beginPath(); ctx.moveTo(x - 5, y - 2); ctx.lineTo(x + 5, y - 2); ctx.lineTo(x, y + 6); ctx.fillStyle = '#F8FAFC'; ctx.fill();
+  ctx.fillStyle = '#111827'; ctx.textAlign = 'center'; ctx.fillText(text, x, y - 8); ctx.textAlign = 'left';
+};
+
+// ---------------------------------------------------------------------------
+// The fisherman, the boat, the spout
+// ---------------------------------------------------------------------------
+
+export const drawBoatScene = (ctx: Ctx, state: GameState, b: Boat) => {
+  if (b.phase === 'gone' && !visible(state, COURSE.sea.spoutX - 300, COURSE.sea.spoutX + 300)) return;
+  // The old man
+  const m = b.oldMan;
+  if (visible(state, m.x - 60, m.x + 60)) {
+    ctx.save();
+    ctx.translate(m.x, m.y);
+    if (m.state === 'flying') ctx.rotate(m.rot);
+    if (m.state === 'fishing') {
+      // Sat on a bucket, rod out over the water, bucket hat, pipe
+      ctx.fillStyle = '#6B7280'; ctx.fillRect(-10, -16, 20, 16);
+      ctx.fillStyle = '#4D7C0F'; ctx.fillRect(-9, -26, 18, 10);
+      ctx.fillStyle = '#1E3A8A'; ctx.fillRect(-12, -50, 22, 26);
+      ctx.fillStyle = '#FDE68A'; ctx.fillRect(-12, -50, 22, 4);
+      ctx.fillStyle = '#F2C9A0'; ctx.beginPath(); ctx.arc(0, -58, 8, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#E5E7EB'; ctx.fillRect(-6, -52, 12, 4);                                  // white beard
+      ctx.fillStyle = '#A16207'; ctx.fillRect(-11, -68, 22, 5); ctx.fillRect(-7, -72, 14, 5);  // bucket hat
+      ctx.strokeStyle = '#78350F'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(6, -40); ctx.lineTo(70, -90); ctx.stroke();
+      ctx.strokeStyle = 'rgba(229, 231, 235, 0.8)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(70, -90); ctx.lineTo(90, COURSE.sea.y - m.y); ctx.stroke();
+    } else {
+      // In the water: head, hat and rod bobbing (or cartwheeling through the air)
+      ctx.fillStyle = '#1E3A8A'; ctx.fillRect(-10, -20, 20, 22);
+      ctx.fillStyle = '#F2C9A0'; ctx.beginPath(); ctx.arc(0, -28, 8, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#A16207'; ctx.fillRect(-11, -38, 22, 5);
+      ctx.strokeStyle = '#78350F'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(6, -18); ctx.lineTo(34, -50); ctx.stroke();
+    }
+    ctx.restore();
+    if (m.lineT > 0) bubble(ctx, m.x, m.y - (m.state === 'fishing' ? 84 : 52), m.line);
+  }
+  // The waterspout: a twisting grey column from the sea up into the clouds
+  const sx = COURSE.sea.spoutX;
+  if (visible(state, sx - 200, sx + 200) && b.phase !== 'waiting' && b.phase !== 'cutscene') {
+    const f = state.frame;
+    const top = state.camera.y - 50, bottom = COURSE.sea.y;
+    for (let y = bottom; y > top; y -= 12) {
+      const k = (bottom - y) / (bottom - top);
+      const w = 40 + k * 160;
+      const off = Math.sin(y * 0.02 + f * 0.1) * (10 + k * 30);
+      ctx.fillStyle = `rgba(${120 + k * 40}, ${135 + k * 40}, ${160 + k * 30}, ${0.55 - k * 0.2})`;
+      ctx.fillRect(sx - w / 2 + off, y - 12, w, 13);
+      ctx.fillStyle = 'rgba(226, 232, 240, 0.35)';
+      ctx.fillRect(sx - w / 2 + off + ((f * 4 + y) % w), y - 12, 6, 13);
+    }
+    ctx.fillStyle = 'rgba(224, 242, 254, 0.6)';
+    for (let i = 0; i < 12; i++) { const a = f * 0.2 + i; ctx.beginPath(); ctx.arc(sx + Math.cos(a) * 70, bottom - 6 + Math.sin(a) * 6, 6, 0, Math.PI * 2); ctx.fill(); }
+  }
+  // The boat's deck and outboard (the hull's in front of him)
+  if (b.phase !== 'gone' && visible(state, b.x - 20, b.x + BOAT_WIDTH + 20)) {
+    ctx.save();
+    ctx.translate(b.x, b.y);
+    if (b.phase === 'spout') ctx.rotate(Math.sin(b.spin) * 0.3);
+    ctx.fillStyle = '#9CA3AF'; ctx.fillRect(4, -20, BOAT_WIDTH - 8, 6);
+    ctx.fillStyle = '#374151'; ctx.fillRect(-14, -30, 16, 26);                 // outboard motor
+    ctx.fillStyle = '#6B7280'; ctx.fillRect(-10, -4, 6, 18);
+    if (b.phase === 'riding' && state.frame % 2 === 0) ctx.fillRect(-18, 12, 4, 4);
+    ctx.restore();
+  }
+};
+
+/** The boat's hull, in front of him (so he's sitting in it). */
+export const drawBoatFront = (ctx: Ctx, state: GameState, b: Boat) => {
+  if (b.phase === 'gone' || !visible(state, b.x - 20, b.x + BOAT_WIDTH + 20)) return;
+  ctx.save();
+  ctx.translate(b.x, b.y);
+  if (b.phase === 'spout') ctx.rotate(Math.sin(b.spin) * 0.3);
+  ctx.fillStyle = '#F8FAFC';
+  ctx.beginPath(); ctx.moveTo(0, -22); ctx.lineTo(BOAT_WIDTH + 18, -26); ctx.lineTo(BOAT_WIDTH - 10, 8); ctx.lineTo(10, 8); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#DC2626'; ctx.fillRect(4, -8, BOAT_WIDTH, 4);
+  ctx.fillStyle = '#111827'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.fillText('LIL BASS', 30, -12);
+  ctx.restore();
+};
+
+/** The pool's water, over the sunken bit of the Pink Flamingo's lot. */
+export const drawPoolWater = (ctx: Ctx, state: GameState) => {
+  for (const r of state.groundRuns) {
+    if (r.surface !== 'pool' || !visible(state, r.x1, r.x2)) continue;
+    const top = 560;
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.55)'; ctx.fillRect(r.x1, top, r.x2 - r.x1, r.y1 - top);
+    ctx.strokeStyle = 'rgba(240, 249, 255, 0.9)'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let x = r.x1; x <= r.x2; x += 8) { const y = top + Math.sin(x * 0.08 + state.frame * 0.12) * 2; if (x === r.x1) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+    ctx.stroke();
+  }
+};
+
+// ---------------------------------------------------------------------------
+// The storm tower
+// ---------------------------------------------------------------------------
+
+/** What's whirling up the storm: each piece of junk, all three copies of it near the view. */
+export const drawTowerJunk = (ctx: Ctx, state: GameState, tr: TowerRun) => {
+  TOWER.plats.forEach((p, i) => {
+    for (const b of tr.copies[i]) {
+      if (b.x + b.w < state.camera.x - 700 || b.x > state.camera.x + CANVAS_WIDTH + 700) continue;
+      if (b.y < state.camera.y - 100 || b.y > state.camera.y + CANVAS_HEIGHT + 100) continue;
+      const bob = Math.sin(state.frame * 0.05 + i) * 1.5;
+      drawJunk(ctx, b.x, b.y + bob, b.w, p.look, state.frame);
+    }
+  });
+};
+
+export const drawJunk = (ctx: Ctx, x: number, y: number, w: number, look: string, f: number) => {
+  switch (look) {
+    case 'door':
+      ctx.fillStyle = '#92400E'; ctx.fillRect(x, y, w, 16);
+      ctx.fillStyle = '#FACC15'; ctx.fillRect(x + w - 16, y + 5, 5, 5);
+      break;
+    case 'carroof':
+      ctx.fillStyle = '#2563EB'; ctx.beginPath(); ctx.moveTo(x, y + 16); ctx.lineTo(x + 12, y); ctx.lineTo(x + w - 12, y); ctx.lineTo(x + w, y + 16); ctx.fill();
+      ctx.fillStyle = '#93C5FD'; ctx.fillRect(x + 16, y + 4, w - 32, 8);
+      break;
+    case 'shed':
+      ctx.fillStyle = '#65A30D'; ctx.beginPath(); ctx.moveTo(x, y + 18); ctx.lineTo(x + w / 2, y - 6); ctx.lineTo(x + w, y + 18); ctx.fill();
+      ctx.fillStyle = '#4D7C0F'; ctx.fillRect(x, y + 14, w, 6);
+      break;
+    case 'billboard':
+      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x, y, w, 20);
+      ctx.fillStyle = '#DC2626'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.fillText('INJURED? CALL', x + 6, y + 13);
+      break;
+    case 'sofa':
+      ctx.fillStyle = '#9D174D'; ctx.fillRect(x, y, w, 14); ctx.fillRect(x, y - 12, 12, 14); ctx.fillRect(x + w - 12, y - 12, 12, 14);
+      ctx.fillStyle = '#BE185D'; ctx.fillRect(x + 12, y - 4, w - 24, 6);
+      break;
+    case 'fridge':
+      ctx.fillStyle = '#E5E7EB'; ctx.fillRect(x, y, w, 20);
+      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(x + w * 0.6, y + 2, 2, 16);
+      break;
+    case 'hull':
+      ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w - 14, y + 18); ctx.lineTo(x + 10, y + 18); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#DC2626'; ctx.fillRect(x + 6, y + 6, w - 12, 3);
+      break;
+    case 'trampoline': {
+      // Springy: it's for bouncing
+      ctx.fillStyle = '#111827'; ctx.fillRect(x, y + 2, w, 6);
+      ctx.fillStyle = '#3B82F6'; ctx.fillRect(x - 4, y, 8, 12); ctx.fillRect(x + w - 4, y, 8, 12);
+      ctx.strokeStyle = '#94A3B8'; ctx.lineWidth = 2;
+      for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.moveTo(x + 10 + k * (w - 20) / 3, y + 8); ctx.lineTo(x + 10 + k * (w - 20) / 3, y + 20); ctx.stroke(); }
+      if (Math.floor(f / 20) % 2 === 0) { ctx.fillStyle = '#FDE047'; ctx.beginPath(); ctx.moveTo(x + w / 2, y - 30); ctx.lineTo(x + w / 2 - 9, y - 18); ctx.lineTo(x + w / 2 + 9, y - 18); ctx.fill(); }
+      break;
+    }
+    default: // a plank
+      ctx.fillStyle = '#A16207'; ctx.fillRect(x, y, w, 12);
+      ctx.fillStyle = '#854D0E'; ctx.fillRect(x, y + 8, w, 4);
+      ctx.fillStyle = '#44403C'; ctx.fillRect(x + 6, y + 4, 3, 3); ctx.fillRect(x + w - 10, y + 4, 3, 3);
+  }
+};
+
+// ---------------------------------------------------------------------------
+// The Eye's arena: the junk you stand on (shaking, falling, drifting back in)
+// ---------------------------------------------------------------------------
+
+const EYE_JUNK = ['plank', 'door', 'carroof', 'hull', 'billboard'];
+
+export const drawEyeArena = (ctx: Ctx, state: GameState, f: EyeFight) => {
+  f.plats.forEach((p, i) => {
+    if (p.state === 'gone') return;
+    const b = p.block;
+    drawJunk(ctx, b.x, b.y, b.w, EYE_JUNK[i % EYE_JUNK.length], state.frame);
+    if (p.state === 'shake') {
+      // Cracking, bits falling off
+      ctx.strokeStyle = '#111827'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(b.x + b.w * 0.4, b.y); ctx.lineTo(b.x + b.w * 0.5, b.y + 8); ctx.lineTo(b.x + b.w * 0.45, b.y + 14); ctx.stroke();
+      if (state.frame % 4 === 0) { ctx.fillStyle = '#78350F'; ctx.fillRect(b.x + hash(state.frame) * b.w, b.y + 16 + (state.frame % 12), 4, 4); }
+    }
+  });
+  if (f.corpse) drawEyeCorpse(ctx, state, f.corpse.weapon, f.corpse.t0);
+  // The tears it wept
+  for (const t of f.tears) {
+    ctx.fillStyle = '#7DD3FC';
+    ctx.beginPath(); ctx.moveTo(t.x, t.y - 8); ctx.quadraticCurveTo(t.x + 6, t.y + 2, t.x, t.y + 6); ctx.quadraticCurveTo(t.x - 6, t.y + 2, t.x, t.y - 8); ctx.fill();
+    ctx.fillStyle = '#F0F9FF'; ctx.fillRect(t.x - 2, t.y - 2, 2, 3);
+  }
+};
+
+// ---------------------------------------------------------------------------
+// The daycare
+// ---------------------------------------------------------------------------
+
+const KID_COLORS = ['#F43F5E', '#22D3EE', '#FACC15', '#A3E635', '#C084FC', '#FB923C'];
+
+/** Small kid at (x, feet y): shirt colour, arms (up for cheering / swinging), pigtails for some. */
+const kid = (ctx: Ctx, x: number, y: number, c: string, armsUp: boolean, f: number, seed: number) => {
+  const bounce = armsUp ? Math.abs(Math.sin(f * 0.2 + seed)) * 4 : 0;
+  ctx.fillStyle = '#1E3A8A'; ctx.fillRect(x - 5, y - 12 - bounce, 4, 12); ctx.fillRect(x + 1, y - 12 - bounce, 4, 12);
+  ctx.fillStyle = c; ctx.fillRect(x - 7, y - 26 - bounce, 14, 15);
+  ctx.fillStyle = ['#F2C9A0', '#C68642', '#8D5524'][seed % 3];
+  ctx.beginPath(); ctx.arc(x, y - 33 - bounce, 6.5, 0, Math.PI * 2); ctx.fill();
+  if (armsUp) { ctx.fillRect(x - 10, y - 38 - bounce, 3, 12); ctx.fillRect(x + 7, y - 38 - bounce, 3, 12); }
+  else { ctx.fillRect(x - 10, y - 25 - bounce, 3, 10); ctx.fillRect(x + 7, y - 25 - bounce, 3, 10); }
+  ctx.fillStyle = ['#1F2937', '#78350F', '#FDE68A'][seed % 3];
+  ctx.fillRect(x - 6, y - 40 - bounce, 12, 4);
+  if (seed % 2) { ctx.fillRect(x - 9, y - 37 - bounce, 3, 5); ctx.fillRect(x + 6, y - 37 - bounce, 3, 5); }
+};
+
+export const drawDaycare = (ctx: Ctx, state: GameState, dc: Daycare) => {
+  const D = COURSE.daycare, bx = D.building, g = D.y, f = state.frame;
+  const wrecked = dc.hitAt !== 0 && state.frame >= dc.hitAt;
+  if (!visible(state, bx - 400, bx + 600)) return;
+  if (!wrecked) {
+    // A cheerful little building: pastel walls, a big sun mural, a sign, a picket fence and a playground
+    ctx.fillStyle = '#FDE68A'; ctx.fillRect(bx - 160, g - 170, 320, 170);
+    ctx.fillStyle = '#F472B6'; ctx.beginPath(); ctx.moveTo(bx - 180, g - 170); ctx.lineTo(bx, g - 250); ctx.lineTo(bx + 180, g - 170); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#FB923C'; ctx.beginPath(); ctx.arc(bx - 90, g - 110, 26, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#FB923C'; ctx.lineWidth = 3;
+    for (let a = 0; a < Math.PI * 2; a += Math.PI / 6) { ctx.beginPath(); ctx.moveTo(bx - 90 + Math.cos(a) * 32, g - 110 + Math.sin(a) * 32); ctx.lineTo(bx - 90 + Math.cos(a) * 42, g - 110 + Math.sin(a) * 42); ctx.stroke(); }
+    ctx.fillStyle = '#38BDF8'; ctx.fillRect(bx + 10, g - 90, 50, 90);
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(bx + 80, g - 130, 50, 40); ctx.fillStyle = '#7DD3FC'; ctx.fillRect(bx + 84, g - 126, 42, 32);
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(bx - 140, g - 210, 280, 30);
+    ctx.fillStyle = '#DB2777'; ctx.font = 'bold 11px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('LITTLE SUNSHINE DAYCARE', bx, g - 190); ctx.textAlign = 'left';
+    // Playground: swings, a slide, a sandbox
+    const px = bx + 260;
+    ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(px, g); ctx.lineTo(px + 30, g - 110); ctx.lineTo(px + 60, g); ctx.moveTo(px + 30, g - 110); ctx.lineTo(px + 150, g - 110); ctx.moveTo(px + 120, g); ctx.lineTo(px + 150, g - 110); ctx.lineTo(px + 180, g); ctx.stroke();
+    ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.moveTo(px - 160, g - 90); ctx.lineTo(px - 100, g); ctx.lineTo(px - 88, g); ctx.lineTo(px - 148, g - 90); ctx.fill();
+    ctx.fillStyle = '#EF4444'; ctx.fillRect(px - 170, g - 90, 8, 90);
+    ctx.fillStyle = '#FDE68A'; ctx.fillRect(bx - 300, g - 10, 90, 10);
+    // Kids: on the swings, down the slide, in the sandbox
+    for (let s = 0; s < 2; s++) {
+      const a = Math.sin(f * 0.07 + s * 2) * 0.6;
+      const sx = px + 65 + s * 50 + Math.sin(a) * 70, sy = g - 110 + Math.cos(a) * 80;
+      ctx.strokeStyle = '#6B7280'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(px + 65 + s * 50, g - 110); ctx.lineTo(sx, sy); ctx.stroke();
+      kid(ctx, sx, sy + 12, KID_COLORS[s], true, f, s);
+    }
+    const slideT = (f % 120) / 120;
+    kid(ctx, px - 150 + slideT * 55, g - 90 + slideT * 88, KID_COLORS[2], true, f, 2);
+    kid(ctx, bx - 280, g, KID_COLORS[3], false, f, 3); kid(ctx, bx - 240, g, KID_COLORS[4], false, f, 4);
+    // Picket fence
+    ctx.fillStyle = '#F8FAFC'; for (let x = bx - 380; x < bx + 480; x += 14) { ctx.fillRect(x, g - 34, 8, 34); ctx.beginPath(); ctx.moveTo(x, g - 34); ctx.lineTo(x + 4, g - 40); ctx.lineTo(x + 8, g - 34); ctx.fill(); }
+    ctx.fillRect(bx - 380, g - 26, 860, 4);
+    return;
+  }
+  // After: flattened, soaked, junk everywhere (a car on the roof, a boat in the sandbox) and the kids on top, loving it
+  ctx.fillStyle = '#FDE68A';
+  ctx.beginPath(); ctx.moveTo(bx - 190, g); ctx.lineTo(bx - 170, g - 50); ctx.lineTo(bx - 60, g - 70); ctx.lineTo(bx + 40, g - 40); ctx.lineTo(bx + 150, g - 60); ctx.lineTo(bx + 200, g); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#F472B6';
+  ctx.save(); ctx.translate(bx - 20, g - 70); ctx.rotate(-0.25);
+  ctx.beginPath(); ctx.moveTo(-160, 0); ctx.lineTo(0, -60); ctx.lineTo(150, 10); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  ctx.fillStyle = '#FFFFFF'; ctx.save(); ctx.translate(bx + 90, g - 30); ctx.rotate(0.5); ctx.fillRect(-80, -12, 160, 24);
+  ctx.fillStyle = '#DB2777'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('LITTLE SUNSH', 0, 4); ctx.restore(); ctx.textAlign = 'left';
+  // The junk the storm dropped
+  ctx.fillStyle = '#2563EB'; ctx.save(); ctx.translate(bx - 60, g - 118); ctx.rotate(0.15); ctx.fillRect(-60, -18, 120, 30); ctx.fillStyle = '#93C5FD'; ctx.fillRect(-40, -14, 80, 10); ctx.restore();
+  ctx.fillStyle = '#F8FAFC'; ctx.save(); ctx.translate(bx - 260, g - 10); ctx.rotate(-0.2); ctx.beginPath(); ctx.moveTo(-50, -20); ctx.lineTo(60, -20); ctx.lineTo(45, 6); ctx.lineTo(-40, 6); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#DC2626'; ctx.fillRect(-44, -10, 96, 3); ctx.restore();
+  // The swing set, bent in half; a shark on the slide
+  const px = bx + 260;
+  ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.moveTo(px, g); ctx.lineTo(px + 40, g - 60); ctx.lineTo(px + 110, g - 30); ctx.lineTo(px + 160, g); ctx.stroke();
+  ctx.fillStyle = '#64748B'; ctx.beginPath(); ctx.ellipse(px - 120, g - 40, 40, 12, 0.7, 0, Math.PI * 2); ctx.fill();
+  // Puddles
+  ctx.fillStyle = 'rgba(56, 189, 248, 0.5)';
+  for (let x = bx - 420; x < bx + 500; x += 90) { ctx.beginPath(); ctx.ellipse(x + hash(x) * 40, g - 1, 36, 4, 0, 0, Math.PI * 2); ctx.fill(); }
+  // The kids, sat on top of the wreck in their floaties, cheering
+  for (let k = 0; k < 5; k++) {
+    const kx = bx - 120 + k * 60, ky = g - 64 - (k === 2 ? 60 : 0) + (k % 2) * 8;
+    kid(ctx, kx, ky, KID_COLORS[k], true, f, k);
+    ctx.strokeStyle = '#F97316'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(kx, ky - 20, 11, 4, 0, 0, Math.PI * 2); ctx.stroke();
+  }
+  if (dc.kidLineT > 0) bubble(ctx, bx - 60, g - 140, dc.kidLine);
+};
+
+/** The flood: the whole storm coming down on the daycare at once. */
+export const drawDaycareFront = (ctx: Ctx, state: GameState, dc: Daycare) => {
+  if (dc.phase !== 'cutscene') return;
+  const D = COURSE.daycare, bx = D.building, g = D.y;
+  const t = dc.t, f = state.frame;
+  if (t >= 100 && t < 190) {
+    // A column of water (and a car, and a cow) falling out of the sky
+    const k = Math.min(1, (t - 100) / 40);
+    const bottom = state.camera.y + (g - state.camera.y + 20) * k;
+    const w = 260 + (t > 140 ? (t - 140) * 14 : 0);
+    ctx.fillStyle = 'rgba(37, 99, 235, 0.85)';
+    ctx.fillRect(bx - w / 2, state.camera.y - 20, w, bottom - state.camera.y + 20);
+    ctx.fillStyle = 'rgba(224, 242, 254, 0.7)';
+    for (let i = 0; i < 12; i++) ctx.fillRect(bx - w / 2 + ((i * 37 + f * 9) % w), state.camera.y + ((i * 53 + f * 21) % Math.max(1, bottom - state.camera.y)), 6, 40);
+    if (t > 140) {
+      // The wave spreading out across the lawn
+      const spread = (t - 140) * 18;
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.75)';
+      ctx.beginPath(); ctx.moveTo(bx - spread, g); ctx.quadraticCurveTo(bx - spread * 0.6, g - 90 + (t - 140), bx, g - 120 + (t - 140)); ctx.quadraticCurveTo(bx + spread * 0.6, g - 90 + (t - 140), bx + spread, g); ctx.closePath(); ctx.fill();
+    }
+  }
+  // Flash of the impact
+  if (t >= 140 && t < 150) { ctx.fillStyle = `rgba(255,255,255,${(150 - t) / 12})`; ctx.fillRect(state.camera.x, state.camera.y, CANVAS_WIDTH, CANVAS_HEIGHT); }
+};

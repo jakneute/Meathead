@@ -2,7 +2,7 @@
 
 import { GameState } from '../state';
 import { EnemyDeath, DEATH_FRAMES } from '../enemyDeaths';
-import { drawKindCorpse, KIND_HEAD } from './kinds';
+import { drawKindCorpse, KIND_HEAD, isHumanoidKind, skeletonOf } from './kinds';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -157,7 +157,7 @@ const drawFried = (ctx: Ctx, d: EnemyDeath, frame: number, state: GameState) => 
   if (d.sprite) {
     ctx.globalAlpha = fadeOut(d, 15);
     const k = clamp01((t - 40) / 6);
-    const humanoid = d.sprite.kind === 'shooter' || d.sprite.kind === 'charger' || d.sprite.kind === 'shielder';
+    const humanoid = isHumanoidKind(d.sprite.kind);
     const fx = x + w / 2, fy = y + h;
     ctx.save();
     if (humanoid) {
@@ -197,7 +197,8 @@ const drawKindSkeleton = (ctx: Ctx, d: EnemyDeath) => {
   ctx.fillRect(head.x + head.r * 0.1, head.y - head.r * 0.35, head.r * 0.45, head.r * 0.45);
   ctx.fillRect(head.x - head.r * 0.6, head.y - head.r * 0.35, head.r * 0.45, head.r * 0.45);
   ctx.beginPath();
-  if (s.kind === 'wolverine' || s.kind === 'goat') {
+  const bones = skeletonOf(s.kind);
+  if (bones === 'four-legs') {
     // Four legs, a spine along the back, ribs hanging off it, a tail
     const back = -h * 0.62, hipX = -w * 0.38, shoulderX = w * 0.25;
     ctx.moveTo(hipX - 8, back + 2); ctx.lineTo(shoulderX, back); ctx.lineTo(head.x - head.r * 0.8, head.y + 2);
@@ -205,7 +206,17 @@ const drawKindSkeleton = (ctx: Ctx, d: EnemyDeath) => {
     for (const lx of [hipX, hipX + 8, shoulderX - 6, shoulderX]) { ctx.moveTo(lx, back); ctx.lineTo(lx + 2, -h * 0.25); ctx.lineTo(lx - 1, -1); }
     ctx.moveTo(hipX - 8, back + 2); ctx.lineTo(hipX - 20, back - (s.kind === 'goat' ? 6 : -4));
     if (s.kind === 'goat') { ctx.moveTo(head.x - 2, head.y - head.r); ctx.quadraticCurveTo(head.x - 12, head.y - head.r - 12, head.x - 16, head.y - 2); }
-  } else if (s.kind === 'eagle') {
+  } else if (bones === 'fish') {
+    // A long spine, rib bones fanning off it, a forked tail
+    const cy = -h * 0.5;
+    ctx.moveTo(head.x - head.r, head.y + 2); ctx.lineTo(-w * 0.45, cy);
+    for (let i = 0; i < 6; i++) { const rx = -w * 0.35 + i * w * 0.1; ctx.moveTo(rx, cy); ctx.lineTo(rx + 3, cy - h * 0.3); ctx.moveTo(rx, cy); ctx.lineTo(rx + 3, cy + h * 0.3); }
+    ctx.moveTo(-w * 0.45, cy); ctx.lineTo(-w * 0.62, cy - h * 0.4); ctx.moveTo(-w * 0.45, cy); ctx.lineTo(-w * 0.62, cy + h * 0.4);
+  } else if (bones === 'crab') {
+    // A crab's all shell: glow the shell's outline, legs and claws instead
+    ctx.ellipse(0, -h * 0.5, w * 0.35, h * 0.3, 0, 0, Math.PI * 2);
+    for (const sx of [-1, 1]) { for (let i = 0; i < 3; i++) { ctx.moveTo(sx * w * 0.2, -h * 0.45); ctx.lineTo(sx * (w * 0.4 + i * 2), -1); } ctx.moveTo(sx * w * 0.3, -h * 0.6); ctx.lineTo(sx * w * 0.35, -h); }
+  } else if (bones === 'bird') {
     // Wings spread wide, a short spine, a fan of tail bones, hooked beak
     const cy = -h * 0.5;
     ctx.moveTo(head.x - head.r, head.y + 2); ctx.lineTo(-w * 0.35, cy);
