@@ -27,8 +27,8 @@ export const drawWaterHazards = (ctx: Ctx, state: GameState, hz: Hazards) => {
   // A bolt about to come down in the water: the whole stretch of it crackles (get out!)
   for (const s of hz.strikes) {
     const z = hz.water.find(w => s.x > w.x1 && s.x < w.x2);
-    if (!z || s.t >= STRIKE_WARN || Math.floor(s.t / 4) % 2) continue;
-    crackle(ctx, z.x1, z.x2, z.surface, 60, s.t + Math.floor(s.x), 0.35 + (s.t / STRIKE_WARN) * 0.5);
+    if (!z || s.t >= STRIKE_WARN || Math.abs(Math.floor(s.t / 4) % 2)) continue;
+    crackle(ctx, z.x1, z.x2, z.surface, 60, s.t + Math.floor(s.x), 0.35 + Math.max(0, s.t / STRIKE_WARN) * 0.5);
   }
   // It hit: the water lights up top to bottom
   if (hz.zap) {

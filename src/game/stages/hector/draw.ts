@@ -129,9 +129,9 @@ export const drawHectorMid = (ctx: Ctx, state: GameState) => {
   // Lightning about to land: a flickering ring, sparks crawling up
   for (const s of rt.hazards.strikes) {
     if (s.t >= STRIKE_WARN) continue;
-    const k = s.t / STRIKE_WARN;
+    const k = Math.max(0, s.t / STRIKE_WARN);
     ctx.save();
-    ctx.globalAlpha = 0.4 + 0.6 * (Math.floor(s.t / 4) % 2);
+    ctx.globalAlpha = 0.4 + 0.6 * (Math.abs(Math.floor(s.t / 4) % 2));
     ctx.strokeStyle = '#FDE047'; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.ellipse(s.x, s.ground - 2, 30 - k * 8, 7 - k * 2, 0, 0, Math.PI * 2); ctx.stroke();
     ctx.fillStyle = `rgba(253, 224, 71, ${0.15 + k * 0.3})`; ctx.fillRect(s.x - 24, s.ground - 300 * k, 48, 300 * k);

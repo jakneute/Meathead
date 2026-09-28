@@ -58,6 +58,8 @@ export interface Hazards {
 }
 
 export const STRIKE_WARN = 55, STRIKE_FLASH = 10;
+/** A bolt coming down on the water gives you this much longer to get out (it starts counting from below zero). */
+const WATER_EXTRA_WARN = 50;
 const STRIKE_DAMAGE = 16, STRIKE_ENEMY_DAMAGE = 90, STRIKE_HALF_WIDTH = 26;
 const DEBRIS_WARN = 45, DEBRIS_DAMAGE = 10;
 const SHOCK_DAMAGE = 8, SHOCK_WARN = 40;
@@ -160,7 +162,7 @@ const updateLightning = (ctx: FrameContext, hz: Hazards) => {
       : z.aimed ? px + player.vel.x * 22 + (Math.random() - 0.5) * 60 : px + 260 + Math.random() * 140;
     // (over the water it comes down on the surface)
     const wet = waterAt(hz, x);
-    hz.strikes.push({ x, ground: wet ? wet.surface : groundAt(state, x), t: 0 });
+    hz.strikes.push({ x, ground: wet ? wet.surface : groundAt(state, x), t: wet ? -WATER_EXTRA_WARN : 0 });
   });
   hz.strikes = hz.strikes.filter(s => {
     s.t++;
