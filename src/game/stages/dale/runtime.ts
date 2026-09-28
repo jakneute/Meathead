@@ -32,7 +32,8 @@ export interface DaleRuntime {
 }
 
 export type Region = 'desert' | 'highway' | 'town';
-export const regionOf = (x: number): Region => (x >= COURSE.town.x1 - 600 ? 'town' : x >= COURSE.highway.x1 - 2000 ? 'highway' : 'desert');
+// (the highway runs a long way back: off the back of a truck, he goes a long way down the road before he stops)
+export const regionOf = (x: number): Region => (x >= COURSE.town.x1 - 600 ? 'town' : x >= COURSE.highway.x1 - 20000 ? 'highway' : 'desert');
 
 /** Nothing's placed closer than this ahead of where you start. */
 const SPAWN_CLEARANCE = 480;

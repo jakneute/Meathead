@@ -468,6 +468,7 @@ const onTheRoad = (ctx: FrameContext, cv: Convoy, f: Fall): Controls => {
   if (r.flat > 0) r.flat++;
   // The camera stays on him, the road going by under it as fast as he's still going
   const x = bodyX();
+  state.cameraMinX = Math.min(state.cameraMinX, x - CANVAS_WIDTH);
   state.cameraOverride = { x: x - CANVAS_WIDTH * 0.55, y: HIGHWAY_CAM_Y };
   state.camera.x = state.cameraOverride.x; state.camera.y = HIGHWAY_CAM_Y;
   f.x = x;
