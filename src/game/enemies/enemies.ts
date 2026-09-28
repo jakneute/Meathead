@@ -574,6 +574,8 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   const onScreen = e.pos.x + e.width > state.camera.x && e.pos.x < state.camera.x + CANVAS_WIDTH;
   // Shoulder first into a raised shield: he doesn't go through it, he drives the man behind it back
   if (onScreen && shieldShove(ctx, e)) return true;
+  // Straight into a mugger's switchblade: he sticks you
+  if (onScreen && knifeFirst(ctx, e)) return true;
   const stageDef = getBossDef(stageId);
   const bossDef = e.type === 'boss' ? stageDef : undefined;
   const hasShield = !!(player.filthShieldTimer && player.filthShieldTimer > 0);
@@ -803,6 +805,38 @@ const impactKill = (ctx: FrameContext, e: Enemy, callout: KillCallout, splatDir:
   fx.spawnPickup(e.pos);
   fx.speakVulgarity('charge_kill');
   state.player.killSatisfactionTimer = 60;
+};
+
+/** What a mugger's knife does to you if you charge straight onto it. */
+const KNIFE_DAMAGE = 16;
+
+/**
+ * A shoulder charge (not a slide) into a mugger from the front, the way he's facing: his switchblade's out in front
+ * of him, and you run onto it. You're stuck and thrown back (the charge ends there); he doesn't get so much as a bruise.
+ * From behind, or any other move, and he goes down like anyone else.
+ */
+const knifeFirst = (ctx: FrameContext, e: Enemy): boolean => {
+  const { state, fx, cheats } = ctx;
+  const p = state.player;
+  if (e.kind !== 'mugger' || !p.isCharging || p.isSliding || e.health <= 0 || e.isBlownAway || isFrozen(e) || (e.pauseTimer || 0) > 0) return false;
+  if (e.hitByMove === p.moveId || !rectsOverlap(getAttackHitbox(ctx), boundsOf(e))) return false;
+  const pc = p.pos.x + p.width / 2, ec = e.pos.x + e.width / 2;
+  const side = pc < ec ? -1 : 1;
+  const facing = Math.abs(e.vel.x) > 0.5 ? Math.sign(e.vel.x) : side;
+  if (facing !== side) return false;
+  e.hitByMove = p.moveId;
+  harmlessBounce(ctx, e, PLAYER_PUSHBACK_VEL_X * 1.4, PLAYER_PUSHBACK_VEL_Y);
+  if (p.invincibilityTimer <= 0) {
+    if (!cheats.invincible) p.health -= KNIFE_DAMAGE;
+    p.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES; p.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;
+    p.isHarmlessPushback = false; p.smugTimer = 0;
+    fx.speakVulgarity('hurt', 'mugger_knife');
+    fx.spawnDeathShower({ x: pc, y: p.pos.y + p.height / 2 }, side, 0.8);
+    fx.spawnDamageNumber({ x: p.pos.x - 10, y: p.pos.y - 20 }, 'STABBED!', true, '#F87171');
+    shakeScreen(state, 10, 6);
+  }
+  e.vel.x = 0;
+  return true;
 };
 
 /**
