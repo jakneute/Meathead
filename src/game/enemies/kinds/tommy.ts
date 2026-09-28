@@ -113,7 +113,7 @@ const CAR_OVERTAKE = 9, CAR_KEEP = 1.6, CAR_LEAVE = 0.35;
 /** Left behind (he ramped away from it): how much slower than him it drops back, out of it. */
 const CAR_LOST = 9;
 /** The shots: a pistol round, and how hard it hits. */
-const CAR_SHOT_SPEED = 8, CAR_SHOT_DAMAGE = 8;
+const CAR_SHOT_SPEED = 9, CAR_SHOT_DAMAGE = 8;
 
 /** Where the car's gunmen lean out (from its middle), front window and back, facing right. */
 export const LOWRIDER_WINDOWS = [{ x: 18, y: -40 }, { x: -26, y: -40 }];
@@ -157,7 +157,7 @@ const lowrider = (ctx: FrameContext, e: Enemy) => {
     const k = e.shootTimer - CAR_REST;
     if (k % CAR_BURST_GAP === 0) {
       const w = LOWRIDER_WINDOWS[Math.floor(k / CAR_BURST_GAP) % 2];
-      shootFrom(state, e, mid(e).x + w.x + (e.aiX ?? 1) * 20, e.pos.y + e.height + w.y - 8, pm.x, CAR_SHOT_SPEED, CAR_SHOT_DAMAGE, e.vel.x * 0.8);
+      shootFrom(state, e, mid(e).x + w.x + (e.aiX ?? 1) * 20, e.pos.y + e.height + w.y - 8, pm.x, CAR_SHOT_SPEED, CAR_SHOT_DAMAGE);
     }
     // (three rounds a burst between the two of them)
     if (k >= CAR_BURST * CAR_BURST_GAP - 1) e.shootTimer = 0;

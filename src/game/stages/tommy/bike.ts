@@ -65,6 +65,8 @@ export interface BikeRun {
   zoom: number;
   /** How much of the ride's banter's been said. */
   said: number;
+  /** Where the camera was last frame (the crew's rounds go along with the screen: see riding). */
+  camX: number;
   /** The last frame he was boosting (a wheelie): hitting a ramp or a car soon after still counts. */
   boostAt: number;
   /** In the air off a ramp: coming down on a car, he just goes up again. */
@@ -88,7 +90,7 @@ export const createBikeRun = (state: GameState, startedAt: number): BikeRun => {
     rider: { x: COURSE.hood.bike, y: GROUND_Y, vx: 0, vy: 0, rot: 0, state: onBike || past ? 'down' : 'sitting' },
     crew: !onBike && !past, v: onBike ? BIKE_BASE : 0, done: new Set(), spawned: 0, hint: '', hintT: 0, hinted: new Set(), rampCalled: new Set(),
     bottle: { x: COURSE.road.hazmat, y: GROUND_Y - 60, vx: 0, vy: 0, state: 'held' },
-    fly: { x: 0, y: 0, vx: 0, vy: 0, rot: 0 }, bikeWreck: { x: 0, y: 0, vx: 0, vy: 0, rot: 0 }, zoom: 0, said: 0, boostAt: -999, rampAir: false,
+    fly: { x: 0, y: 0, vx: 0, vy: 0, rot: 0 }, bikeWreck: { x: 0, y: 0, vx: 0, vy: 0, rot: 0 }, zoom: 0, said: 0, camX: NaN, boostAt: -999, rampAir: false,
   };
   if (onBike) {
     mount(state);
@@ -233,6 +235,11 @@ const riding = (ctx: FrameContext, b: BikeRun, talk: Talk, controls: Controls): 
   if (p.isCharging) b.boostAt = state.frame;
   spawnWaves(state, b);
   if (p.isGrounded) b.rampAir = false;
+  // The crew's rounds fly the way they were fired at the same speed across the screen, whatever anyone's doing (they're
+  // carried along with the road going by: none of them hang in the air, or crawl, or drift backward)
+  const camDx = Number.isNaN(b.camX) ? 0 : state.camera.x - b.camX;
+  b.camX = state.camera.x;
+  if (camDx) for (const q of state.projectiles) if (q.owner === 'enemy' && q.shot === 'tracer') q.pos.x += camDx;
   // A ramp coming up, still off the screen: a ding as the call-out goes up (the stage draws it)
   const next = nextRamp(state, b);
   if (next && next.offscreen && !b.rampCalled.has(next.i)) { b.rampCalled.add(next.i); playSound('tinkle'); }
