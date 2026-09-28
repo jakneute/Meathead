@@ -10,6 +10,7 @@ import { drawErnieKind } from './ernie';
 import { drawDaleKind } from './dale';
 import { drawBarryKind } from './barry';
 import { drawHectorKind } from './hector';
+import { drawTommyKind } from './tommy';
 import { isChargerKind } from '../../enemies/kinds';
 import type { GameState } from '../../core/state';
 
@@ -53,6 +54,9 @@ export const KIND_HEAD: Record<EnemyKind, { x: number; y: number; r: number }> =
   hr: { x: 2, y: -64, r: 8 }, exterminator: { x: 2, y: -64, r: 8 }, janitor: { x: 2, y: -68, r: 8 }, custodian: { x: 2, y: -64, r: 8 },
   labtech: { x: 2, y: -64, r: 8 }, subject: { x: 3, y: -78, r: 12 }, scientist: { x: 2, y: -64, r: 8 }, tenant: { x: 2, y: -38, r: 9 },
   minion: { x: 2, y: -60, r: 9 }, generator: { x: 0, y: -80, r: 30 },
+  banger: { x: 2, y: -63, r: 8 }, bruiser: { x: 3, y: -74, r: 9 }, pitbull: { x: 22, y: -22, r: 8 }, lowrider: { x: 0, y: -30, r: 16 },
+  hazmat: { x: 1, y: -66, r: 10 }, bloater: { x: 6, y: -74, r: 9 }, manhole: { x: 2, y: -63, r: 8 }, sludgeling: { x: 6, y: -10, r: 6 },
+  amalgam: { x: 0, y: -300, r: 40 },
 };
 
 /** People (their skeletons are human, and they keel over flat when they die). */
@@ -64,11 +68,12 @@ export const isHumanoidKind = (kind?: EnemyKind) =>
   || kind === 'sicario' || kind === 'enforcer' || kind === 'cardoor' || kind === 'junkie' || kind === 'visitor'
   || kind === 'pimp' || kind === 'hooker' || kind === 'mugger' || kind === 'bum' || kind === 'guard' || kind === 'commuter' || kind === 'reader'
   || kind === 'exec' || kind === 'intern' || kind === 'hr' || kind === 'exterminator' || kind === 'janitor' || kind === 'custodian'
-  || kind === 'labtech' || kind === 'subject' || kind === 'scientist' || kind === 'tenant' || kind === 'minion';
+  || kind === 'labtech' || kind === 'subject' || kind === 'scientist' || kind === 'tenant' || kind === 'minion'
+  || kind === 'banger' || kind === 'bruiser' || kind === 'hazmat' || kind === 'bloater' || kind === 'manhole';
 
 /** What an x-ray shows inside it. (A rattlesnake's all spine, like a fish; a scorpion's legs and claws, like a crab.) */
 export const skeletonOf = (kind: EnemyKind): 'person' | 'four-legs' | 'bird' | 'fish' | 'crab' | 'machine' =>
-  kind === 'drone' || kind === 'generator' ? 'machine' : isHumanoidKind(kind) ? 'person' : kind === 'eagle' || kind === 'pelican' || kind === 'vulture' || kind === 'seagull' ? 'bird'
+  kind === 'drone' || kind === 'generator' || kind === 'lowrider' ? 'machine' : isHumanoidKind(kind) ? 'person' : kind === 'eagle' || kind === 'pelican' || kind === 'vulture' || kind === 'seagull' ? 'bird'
   : kind === 'shark' || kind === 'magmafish' || kind === 'rattlesnake' ? 'fish' : kind === 'crab' || kind === 'scorpion' ? 'crab' : 'four-legs';
 
 const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: GameState) => {
@@ -88,6 +93,8 @@ const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: Game
     case 'pimp': case 'hooker': case 'mugger': case 'bum': case 'rat': case 'guard': case 'commuter': case 'reader': case 'exec': case 'intern': case 'hr':
     case 'exterminator': case 'janitor': case 'custodian': case 'labtech': case 'subject': case 'scientist': case 'tenant': case 'minion': case 'generator':
       drawBarryKind(ctx, e, f, state); break;
+    case 'banger': case 'bruiser': case 'pitbull': case 'lowrider': case 'hazmat': case 'bloater': case 'manhole': case 'sludgeling': case 'amalgam':
+      drawTommyKind(ctx, e, f, state); break;
     default: drawHectorKind(ctx, e, f, state); break;
   }
   ctx.restore();

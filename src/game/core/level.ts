@@ -79,7 +79,8 @@ const buildTerrain = (state: GameState, stageId: string | null): Block[] => {
     const blocks: Block[] = [
       { x: layout.left - 100, y: -6000, w: 100, h: 9000, type: 'wall' },
       { x: stageWidth, y: -1000, w: 100, h: 2000, type: 'wall' },
-      { x: doorX, y: GROUND_Y, w: stageWidth - doorX, h: 50, type: 'ground' },
+      // (a floorless arena, Tommy's sludge pool, has ground only under the door)
+      { x: doorX, y: GROUND_Y, w: arena?.floorless ? DOOR_WIDTH : stageWidth - doorX, h: 50, type: 'ground' },
       { x: doorX, y: 400, w: DOOR_WIDTH, h: 150, type: 'door' },
       { x: doorX, y: -1000, w: DOOR_WIDTH, h: 1400, type: 'wall' },
       { x: getArenaRight(stageId), y: 100, w: 40, h: 500, type: 'wall' },

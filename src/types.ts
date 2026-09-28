@@ -120,6 +120,10 @@ export interface Player extends Entity {
   skiing?: boolean;
   /** ...on a jet ski: carried along the same, but his specials still work (always forward), and holding left turns him round to shoot behind. */
   jetski?: boolean;
+  /** ...on a bike (Tommy's stage): the jet ski's rules, pedaling, and the hills speed him up and slow him down. */
+  bike?: boolean;
+  /** In a hazmat suit (drawn yellow, hooded). */
+  suit?: boolean;
   /** In the water (a stage says so each frame): he swims instead of walking and jumping. And where the surface is. */
   swimming?: boolean;
   swimSurfaceY?: number;
@@ -158,7 +162,7 @@ export type BossState =
 
 /** Themed enemies: Artie's wildlife and goons. */
 /** What the shield goons throw. */
-export type ThrownKind = 'tequila' | 'water' | 'coconut' | 'ice' | 'rock' | 'teargas' | 'forty' | 'coffee' | 'stapler' | 'cleaner' | 'flask' | 'household';
+export type ThrownKind = 'tequila' | 'water' | 'coconut' | 'ice' | 'rock' | 'teargas' | 'forty' | 'coffee' | 'stapler' | 'cleaner' | 'flask' | 'household' | 'wrench';
 /** What the gun goons fire. */
 export type ShotLook = 'slug' | 'cryo' | 'flare' | 'spray' | 'zap';
 
@@ -177,7 +181,11 @@ export type EnemyKind =
   // Barry's stage: New York. The street (pimps, hookers, muggers, bums, rats), the skyscraper floor by floor (the
   // lobby, the office, maintenance, the lab), the tenants in their windows, his man in the power room and its generators
   | 'pimp' | 'hooker' | 'mugger' | 'bum' | 'rat' | 'guard' | 'commuter' | 'reader' | 'exec' | 'intern' | 'hr'
-  | 'exterminator' | 'janitor' | 'custodian' | 'labtech' | 'subject' | 'scientist' | 'tenant' | 'minion' | 'generator';
+  | 'exterminator' | 'janitor' | 'custodian' | 'labtech' | 'subject' | 'scientist' | 'tenant' | 'minion' | 'generator'
+  // Tommy's stage: Flint. The hood (gangbangers with pistols, bruisers with bats, pit bulls, the drive-by lowriders),
+  // then the sewer (Tommy's hazmat crew with their sprayers, bloated mutant sewer workers, a crew man behind a manhole
+  // cover, the little sludge things that hop out of the muck), and what's left of everyone the water killed
+  | 'banger' | 'bruiser' | 'pitbull' | 'lowrider' | 'hazmat' | 'bloater' | 'manhole' | 'sludgeling' | 'amalgam';
 
 export interface Enemy extends Entity {
   /** Which of Meathead's moves last hit it (see Player.moveId). */

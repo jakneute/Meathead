@@ -133,6 +133,7 @@ const SMASH: Record<NonNullable<Projectile['thrown']>, { bits: string[]; spill?:
   cleaner: { bits: ['#2563EB', '#F8FAFC', '#FACC15'], spill: 'rgba(96, 165, 250, 0.8)', count: 8 },
   flask: { bits: ['#E0F2FE', '#F8FAFC', '#BEF264'], spill: 'rgba(132, 204, 22, 0.85)', count: 12 },
   household: { bits: ['#9CA3AF', '#78716C', '#E5E7EB', '#7C2D12'], count: 10 },
+  wrench: { bits: ['#9CA3AF', '#6B7280', '#E5E7EB'], count: 6 },
 };
 
 const smashThrown = (ctx: FrameContext, p: Projectile) => {

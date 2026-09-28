@@ -10,7 +10,7 @@
 import type { Enemy, Projectile, WeaponType } from '../../types';
 import { BOULDER_DAMAGE_PER_SPEED, GML_SCALE } from '../../constants';
 
-export const isMidBoss = (e: Enemy) => e.kind === 'moose' || e.kind === 'eye' || e.kind === 'doorman' || e.kind === 'junkie';
+export const isMidBoss = (e: Enemy) => e.kind === 'moose' || e.kind === 'eye' || e.kind === 'doorman' || e.kind === 'junkie' || e.kind === 'amalgam';
 
 /**
  * Per hit on a mid-boss (per pellet for the shotgun, per tick for the flamethrower and the taser):

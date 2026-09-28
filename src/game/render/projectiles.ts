@@ -116,6 +116,12 @@ export const drawThrown = (ctx: CanvasRenderingContext2D, p: Projectile, frame: 
       ctx.fillStyle = '#ECFCCB'; for (let k = 0; k < 2; k++) { ctx.beginPath(); ctx.arc(-2 + k * 3, 3 - ((frame + k * 4) % 8) * 0.5, 1, 0, Math.PI * 2); ctx.fill(); }
       break;
     }
+    case 'wrench':
+      // A big pipe wrench, spinning
+      ctx.fillStyle = '#6B7280'; ctx.fillRect(-10, -1.5, 16, 3);
+      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(4, -5, 6, 4); ctx.fillRect(4, 1, 6, 3);
+      ctx.fillStyle = '#B91C1C'; ctx.fillRect(-10, -2, 6, 4);
+      break;
     case 'household':
       // Whatever was to hand: a pot, a toaster, a shoe, a potted plant, a phone
       switch ((p.item ?? 0) % 5) {

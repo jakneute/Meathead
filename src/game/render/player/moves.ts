@@ -531,3 +531,25 @@ const diveBody = (ctx: Ctx, frame: number, main: boolean) => {
     ctx.fill();
   }
 };
+
+// ---------------------------------------------------------------------------
+// On the bike: pedaling (the stage draws the bike under him)
+// ---------------------------------------------------------------------------
+
+/** Where the bike's cranks turn (from his feet), how long they are, and his thigh and shin. */
+export const CRANK = { x: 3, y: -10, r: 6.5 }, THIGH = 12, SHIN = 12;
+
+/** His legs going round on the pedals, `turn` radians into a revolution (the far leg half a turn behind). */
+export const drawPedalLegs = (ctx: Ctx, turn: number) => {
+  const hip: [number, number] = [-3, -22];
+  for (const [k, back] of [[Math.PI, true], [0, false]] as const) {
+    const a = turn + k;
+    const foot: [number, number] = [CRANK.x + Math.cos(a) * CRANK.r, CRANK.y + Math.sin(a) * CRANK.r];
+    // The knee: where thigh and shin meet, up and forward of the line from hip to foot
+    const dx = foot[0] - hip[0], dy = foot[1] - hip[1], d = Math.min(THIGH + SHIN - 0.5, Math.hypot(dx, dy));
+    const along = (THIGH * THIGH - SHIN * SHIN + d * d) / (2 * d), up = Math.sqrt(Math.max(0, THIGH * THIGH - along * along));
+    const ux = dx / (Math.hypot(dx, dy) || 1), uy = dy / (Math.hypot(dx, dy) || 1);
+    const knee: [number, number] = [hip[0] + ux * along + uy * up, hip[1] + uy * along - ux * up];
+    leg(ctx, hip, knee, foot, 0.1, back);
+  }
+};

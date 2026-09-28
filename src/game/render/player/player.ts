@@ -2,7 +2,7 @@ import { Player, WeaponType } from '../../../types';
 import { BOULDER_THROW_FRAMES, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
 import { SLIDE_HOLD } from '../../combat/muzzle';
-import { drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive, drawStandingKick } from './moves';
+import { drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive, drawStandingKick, drawPedalLegs } from './moves';
 import { KICK_POSE_FRAMES } from '../../../constants';
 import { GameState } from '../../core/state';
 import { beginSprite, endSprite } from './spriteOutline';
@@ -33,6 +33,8 @@ const beltBuckle = '#FACC15'; // Gold buckle
 const wristbandColor = '#09090B'; // Spiked wristband
 const backArmShade = '#A87038';   // shadow side of the far arm
 const stubbleColor = 'rgba(60, 30, 10, 0.35)';
+/** In a hazmat suit (Tommy's sewer): yellow over all of him, a hood's dark visor over his face. */
+const SUIT_TINT = 'rgba(250, 204, 21, 0.78)';
 
 /** Draws Meathead: effects auras, then body layers back-to-front, then the held weapon. */
 export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled, footTap = 0, surf = false }: PlayerDrawOptions) => {
@@ -113,7 +115,13 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const finishBody = () => {
     ctx.restore();
     ctx = world;
-    if (sprite) endSprite(world, anchorX, anchorY);
+    if (sprite) endSprite(world, anchorX, anchorY, p.suit ? SUIT_TINT : undefined);
+    if (p.suit) {
+      // The hood's visor, where his face is (lower when he's ducked down)
+      const faceY = anchorY - (p.isDucking ? 42 : 58), dir = p.facing;
+      world.fillStyle = 'rgba(31, 41, 55, 0.9)'; world.fillRect(anchorX + (dir > 0 ? -1 : -13), faceY - 3, 14, 7);
+      world.fillStyle = 'rgba(163, 230, 53, 0.35)'; world.fillRect(anchorX + (dir > 0 ? 1 : -11), faceY - 2, 10, 2);
+    }
   };
 
   // Squash on landing, stretch on take-off and when moving fast vertically
@@ -405,6 +413,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillRect(4 + cLeg * 0.5, -6, 14, 6);
     ctx.fillStyle = bootToe;
     ctx.fillRect(12 + cLeg * 0.5, -5, 6, 5);
+  } else if (isSeated && p.bike) {
+    // On the bike: feet on the pedals, going round (how far round's how far he's gone)
+    drawPedalLegs(ctx, p.pos.x / 14);
   } else if (isSeated) {
     // Astride the seat: thighs out forward, shins down into the footwell
     drawJointedLeg(ctx, -4, -22, -1.3, 1.2, pantsShadow, false);

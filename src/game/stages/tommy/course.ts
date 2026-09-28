@@ -1,0 +1,222 @@
+// Toxic Tommy's stage, laid out as data. Flint, Michigan.
+//
+//   I.   The hood, late afternoon, the water tower up on its legs over the
+//        rooftops. A little way up the street, a few of the local crew are
+//        hanging out on the corner, one of them sat on his bike. Not for long.
+//   II.  The bike run: down the long road across town, over the rolling hills
+//        (up them slow, down them fast), the crew after you in their lowriders,
+//        pit bulls off their chains, and the street full of junk. At the end of
+//        it, a man in a hazmat suit and a bottle of the town's water.
+//   III. The sewer: walkways over channels of the muck (it eats you, slowly),
+//        Tommy's crew, the things that live down here. A hazmat suit in a
+//        locker, and the tunnel past it flooded to the roof: swim it before the
+//        suit's eaten through. Then the cistern, and what's in it.
+//   IV.  Blown up out of the sewer (onto the water tower, and the tower onto a
+//        house), what's left of the house, and the pit past it, all the way
+//        down to Tommy's door.
+//
+// Each part is built in its own coordinates and shifted into place.
+
+import type { EnemyKind } from '../../../types';
+import type { GroundRun } from '../../core/terrain';
+import { GROUND_Y, BOSS_DOOR_X } from '../../../constants';
+
+export const CP = { HOOD: 0, ROAD: 1, ROAD_MID: 2, SEWER: 3, SUIT: 4, CISTERN: 5, RUINS: 6 } as const;
+
+export interface Spawn { kind: EnemyKind; x: number; y: number; variant?: number }
+export interface PickupSpot { x: number; y: number; type: 'small_health' | 'large_health' | 'small_ammo' | 'large_ammo' }
+/** Something you jump up through and stand on: a porch, a grate over the muck, a pipe run. */
+export interface Ledge { x: number; y: number; w: number; look: 'porch' | 'grate' | 'pipe' }
+export interface Prop { look: string; x: number; y: number; w?: number; text?: string }
+/** Junk in the road on the bike run (world x): what it is, and how you get past it. */
+export interface RoadJunk { x: number; look: 'cones' | 'trash' | 'pothole' | 'glass' | 'car' | 'hydrant' | 'ramp' | 'barrier' }
+/** Something coming after you on the bike run, once you're this far down the road (world x). */
+export interface RoadWave { at: number; kind: EnemyKind; from: 'behind' | 'ahead'; variant?: number }
+/** A pipe dripping the muck (onto the walkway, or a grate): it builds, drips, and a drip hurts. */
+export interface Drip { x: number; y: number; period: number; phase: number }
+/** A channel of the muck: its surface, and the floor under it. */
+export interface Channel { x1: number; x2: number; surface: number; floor: number }
+/** Something in the flooded tunnel to get round: a pipe down from the roof (under it), a grate up off the floor (over it). */
+export interface TunnelBar { x: number; w: number; y1: number; y2: number }
+
+export interface Course {
+  runs: GroundRun[];
+  ledges: Ledge[];
+  spawns: Spawn[];
+  pickups: PickupSpot[];
+  props: Prop[];
+  junk: RoadJunk[];
+  waves: RoadWave[];
+  drips: Drip[];
+  channels: Channel[];
+  bars: TunnelBar[];
+  /** The corner: the crew, the bike (and where he's stopped to watch). */
+  hood: { x1: number; x2: number; corner: number; bike: number; stop: number };
+  /** The road: where the ride starts and where it ends (the hazmat man and the open manhole). */
+  road: { x1: number; x2: number; hazmat: number; manhole: number };
+  /** The sewer: where you drop in, the suit locker, the flooded tunnel, the cistern (and the pool the thing's in). */
+  sewer: { x1: number; x2: number; drop: number; locker: number; tunnel: { x1: number; x2: number; roof: number; surface: number; floor: number; roof1: number; roof2: number }; cistern: { x1: number; x2: number; pool: number; rack: number } };
+  /** What's left of the house (up high), and the pit down to Tommy's door. */
+  ruins: { x1: number; x2: number; y: number; house: number; pit: number };
+  checkpoints: { x: number; y: number }[];
+  left: number;
+  startX: number;
+}
+
+const Y = GROUND_Y;
+const HOOD_X0 = -120000;
+const ROAD_START = 1400;
+/** How long the road is, and how far past it the hazmat man's waiting. */
+export const ROAD_LEN = 26000;
+const SEWER_X0 = -80000;
+const RUINS_X0 = BOSS_DOOR_X - 3000;
+/** How high up the ruins are over the ground at Tommy's door. */
+export const RUINS_Y = Y - 2200;
+
+/** The sewer's levels: the walkways, the muck's surface in a channel, the channel's floor. */
+export const WALK_Y = Y, MUCK_Y = Y + 40, CHANNEL_FLOOR = Y + 170;
+/** The flooded tunnel: its roof (so low there's no standing up in it), the muck (right up near it), its floor. */
+export const TUNNEL_ROOF = Y - 70, TUNNEL_SURFACE = Y + 10, TUNNEL_FLOOR = Y + 200;
+
+/** The road's hills: where the road is at (local) x along it, smooth rolls that build up after a flat start. */
+export const roadHeight = (lx: number) => {
+  const build = Math.min(1, Math.max(0, (lx - 1200) / 2600));
+  const ease = Math.min(1, Math.max(0, (ROAD_LEN - lx) / 900));
+  const h = 70 * Math.sin((lx / 1700) * Math.PI * 2 - 1.2) + 26 * Math.sin((lx / 930) * Math.PI * 2 + 0.7) + 96;
+  return Y - Math.max(0, h) * build * ease;
+};
+
+const part = (x0: number) => {
+  const runs: GroundRun[] = [], ledges: Ledge[] = [], spawns: Spawn[] = [], pickups: PickupSpot[] = [], props: Prop[] = [];
+  const drips: Drip[] = [], channels: Channel[] = [], bars: TunnelBar[] = [];
+  return {
+    runs, ledges, spawns, pickups, props, drips, channels, bars,
+    ground: (x1: number, x2: number, y1 = Y, y2 = y1, surface?: string) => { runs.push({ x1: x0 + x1, y1, x2: x0 + x2, y2, surface }); },
+    ledge: (x: number, y: number, w: number, look: Ledge['look']) => { ledges.push({ x: x0 + x, y, w, look }); },
+    spawn: (kind: EnemyKind, x: number, y = Y, variant?: number) => { spawns.push({ kind, x: x0 + x, y, variant }); },
+    pickup: (x: number, y: number, type: PickupSpot['type']) => { pickups.push({ x: x0 + x, y, type }); },
+    prop: (look: string, x: number, y = Y, w?: number, text?: string) => { props.push({ look, x: x0 + x, y, w, text }); },
+    drip: (x: number, y: number, period: number, phase: number) => { drips.push({ x: x0 + x, y, period, phase }); },
+    /** A channel of the muck from x1 to x2 (its floor's a ground run of its own, down under the surface). */
+    channel: (x1: number, x2: number, surface = MUCK_Y, floor = CHANNEL_FLOOR) => {
+      channels.push({ x1: x0 + x1, x2: x0 + x2, surface, floor });
+      runs.push({ x1: x0 + x1, y1: floor, x2: x0 + x2, y2: floor, surface: 'muck' });
+    },
+    bar: (x: number, w: number, y1: number, y2: number) => { bars.push({ x: x0 + x, w, y1, y2 }); },
+  };
+};
+
+const build = () => {
+  // ============ THE HOOD ============
+  const h = part(HOOD_X0);
+  h.ground(0, ROAD_START);
+  h.prop('house', 60, Y, 260); h.prop('liquor', 380, Y, 240, 'LIQUOR'); h.prop('house', 700, Y, 240); h.prop('fence', 960, Y, 300);
+  h.prop('boilsign', 300, Y); h.prop('pallets', 560, Y); h.prop('burnedcar', 1160, Y);
+  h.pickup(520, Y - 30, 'small_ammo');
+
+  // ============ THE ROAD ============
+  // (built in 100 px steps along the hills, flat at the start and flat at the end where he's waiting)
+  const r = part(HOOD_X0 + ROAD_START);
+  const END = ROAD_LEN + 1300;
+  for (let lx = 0; lx < END; lx += 100) r.ground(lx, lx + 100, lx >= ROAD_LEN ? Y : roadHeight(lx), lx + 100 >= ROAD_LEN ? Y : roadHeight(lx + 100));
+  const junk: RoadJunk[] = [];
+  const j = (lx: number, look: RoadJunk['look']) => junk.push({ x: HOOD_X0 + ROAD_START + lx, look });
+  // One thing at a time to learn early (cones are just for smashing), mixing up through the middle, busy at the end
+  j(900, 'cones'); j(1700, 'trash'); j(2700, 'pothole'); j(3500, 'ramp'); j(4300, 'trash'); j(5100, 'car');
+  j(6000, 'hydrant'); j(6800, 'cones'); j(7300, 'barrier'); j(8200, 'glass'); j(9000, 'pothole'); j(9500, 'trash');
+  j(10400, 'ramp'); j(11200, 'car'); j(12100, 'hydrant'); j(12800, 'barrier'); j(13600, 'glass'); j(14200, 'trash');
+  j(15000, 'car'); j(15700, 'pothole'); j(16300, 'cones'); j(16900, 'hydrant'); j(17600, 'ramp'); j(18300, 'car');
+  j(19000, 'barrier'); j(19600, 'trash'); j(20300, 'glass'); j(20900, 'hydrant'); j(21500, 'car'); j(22200, 'pothole');
+  j(22800, 'barrier'); j(23500, 'trash'); j(24200, 'car'); j(24900, 'cones');
+  const waves: RoadWave[] = [];
+  const w = (lx: number, kind: EnemyKind, from: RoadWave['from'], variant = 0) => waves.push({ at: HOOD_X0 + ROAD_START + lx, kind, from, variant });
+  // The rest of the crew, straight after him in the car; the dogs off their chains; more cars joining in
+  w(300, 'lowrider', 'behind', 0); w(2300, 'pitbull', 'behind'); w(4000, 'lowrider', 'ahead', 1); w(5800, 'pitbull', 'behind');
+  w(7000, 'lowrider', 'behind', 0); w(8600, 'pitbull', 'behind'); w(9600, 'lowrider', 'ahead', 1); w(11000, 'pitbull', 'behind');
+  w(12300, 'lowrider', 'behind', 0); w(13500, 'lowrider', 'ahead', 1); w(14700, 'pitbull', 'behind'); w(15800, 'lowrider', 'behind', 0);
+  w(17000, 'pitbull', 'behind'); w(17800, 'lowrider', 'ahead', 1); w(19000, 'lowrider', 'behind', 0); w(20100, 'pitbull', 'behind');
+  w(21000, 'lowrider', 'ahead', 1); w(22000, 'lowrider', 'behind', 0); w(23000, 'pitbull', 'behind');
+  // Something to pick up along the way (ride through it)
+  for (const lx of [6600, 13300, 19800]) r.pickup(lx, roadHeight(lx) - 30, 'small_health');
+  r.pickup(10000, roadHeight(10000) - 30, 'small_ammo');
+  r.prop('boilsign', 1200, roadHeight(1200)); r.prop('tower', 6000, Y); r.prop('boilsign', 13000, roadHeight(13000));
+
+  // ============ THE SEWER ============
+  const s = part(SEWER_X0);
+  // Walkways over the channels (the channel floors are their own ground, down under the muck)
+  s.ground(0, 700); s.channel(700, 860);
+  s.ground(860, 1600); s.channel(1600, 1900); s.ledge(1720, Y - 6, 60, 'grate');
+  s.ground(1900, 2700); s.channel(2700, 3200); s.ledge(2800, Y - 6, 70, 'grate'); s.ledge(3010, Y - 6, 70, 'grate');
+  s.ground(3200, 4000); s.ledge(3680, Y - 130, 220, 'pipe');
+  s.channel(4000, 4150);
+  s.ground(4150, 4760);
+  // The flooded tunnel: the muck right up near its roof, pipes down from the roof to go under, grates up off the floor to go over
+  s.channel(4760, 7200, TUNNEL_SURFACE, TUNNEL_FLOOR);
+  s.bar(5150, 60, TUNNEL_ROOF, Y + 60); s.bar(5520, 50, Y + 95, TUNNEL_FLOOR); s.bar(5900, 60, TUNNEL_ROOF, Y + 70);
+  s.bar(6280, 50, Y + 90, TUNNEL_FLOOR); s.bar(6620, 60, TUNNEL_ROOF, Y + 75); s.bar(6950, 50, Y + 95, TUNNEL_FLOOR);
+  // Up out of it, and on into the cistern (a walkway, and the pool at the far end where it lives)
+  s.ground(7200, 8150); s.channel(8150, 8600, Y + 20, Y + 220);
+  // What's down here
+  s.spawn('rat', 1150); s.spawn('hazmat', 1480); s.spawn('sludgeling', 1660, CHANNEL_FLOOR); s.spawn('sludgeling', 1860, CHANNEL_FLOOR);
+  s.spawn('rat', 2250); s.spawn('bloater', 2480); s.spawn('sludgeling', 2760, CHANNEL_FLOOR); s.spawn('sludgeling', 2960, CHANNEL_FLOOR); s.spawn('sludgeling', 3140, CHANNEL_FLOOR);
+  s.spawn('manhole', 3480); s.spawn('hazmat', 3790, Y - 130); s.spawn('rat', 3900); s.spawn('bloater', 4450);
+  s.drip(2080, Y - 250, 110, 0); s.drip(2300, Y - 250, 130, 50); s.drip(2840, Y - 250, 120, 30); s.drip(3040, Y - 250, 120, 90); s.drip(3560, Y - 250, 100, 20);
+  s.pickup(1300, Y - 30, 'small_health'); s.pickup(2600, Y - 30, 'small_ammo'); s.pickup(3780, Y - 160, 'small_health');
+  s.pickup(4300, Y - 30, 'large_health'); s.pickup(4360, Y - 30, 'small_ammo');
+  s.prop('locker', 4600); s.prop('pipes', 0, Y, 8600); s.prop('ladder', 7240);
+
+  // ============ THE RUINS ============
+  const u = part(RUINS_X0);
+  u.ground(0, 2550, RUINS_Y); u.ground(2550, 3000, Y);
+  u.pickup(2700, Y - 30, 'large_health'); u.pickup(2780, Y - 30, 'large_ammo');
+  return { h, r, s, u, junk, waves, END };
+};
+
+const buildCourse = (): Course => {
+  const { h, r, s, u, junk, waves, END } = build();
+  const all = [h, r, s, u];
+  const runs = all.flatMap(p => p.runs);
+  runs.sort((a, b) => a.x1 - b.x1 || a.y1 - b.y1);
+  // (the stage draws all of its own ground, and the gaps between the parts)
+  for (const r of runs) {
+    r.surface ??= r.x1 >= RUINS_X0 ? (r.y1 === Y ? 'floor' : 'rubble') : r.x1 >= SEWER_X0 ? 'walk' : 'street';
+    r.pitAfter = 'clouds';
+  }
+  const RX = HOOD_X0 + ROAD_START;
+  return {
+    runs,
+    ledges: all.flatMap(p => p.ledges),
+    spawns: all.flatMap(p => p.spawns),
+    pickups: all.flatMap(p => p.pickups),
+    props: all.flatMap(p => p.props),
+    junk, waves,
+    drips: s.drips,
+    channels: s.channels,
+    bars: s.bars,
+    hood: { x1: HOOD_X0, x2: RX, corner: HOOD_X0 + 900, bike: HOOD_X0 + 1000, stop: HOOD_X0 + 620 },
+    road: { x1: RX, x2: RX + END, hazmat: RX + ROAD_LEN + 520, manhole: RX + ROAD_LEN + 760 },
+    sewer: {
+      x1: SEWER_X0, x2: SEWER_X0 + 8600, drop: SEWER_X0 + 200, locker: SEWER_X0 + 4600,
+      // (the roof comes down a little way in from each end: room to drop in, and to climb out)
+      tunnel: { x1: SEWER_X0 + 4760, x2: SEWER_X0 + 7200, roof: TUNNEL_ROOF, surface: TUNNEL_SURFACE, floor: TUNNEL_FLOOR, roof1: SEWER_X0 + 4900, roof2: SEWER_X0 + 7060 },
+      cistern: { x1: SEWER_X0 + 7800, x2: SEWER_X0 + 8600, pool: SEWER_X0 + 8150, rack: SEWER_X0 + 7880 },
+    },
+    ruins: { x1: RUINS_X0, x2: BOSS_DOOR_X, y: RUINS_Y, house: RUINS_X0 + 1100, pit: RUINS_X0 + 2550 },
+    checkpoints: [
+      { x: HOOD_X0 + 150, y: Y }, { x: RX + 60, y: Y }, { x: RX + 12000, y: roadHeight(12000) },
+      { x: SEWER_X0 + 200, y: Y }, { x: SEWER_X0 + 4450, y: Y }, { x: SEWER_X0 + 7300, y: Y }, { x: RUINS_X0 + 300, y: RUINS_Y },
+    ],
+    left: HOOD_X0 - 2000,
+    startX: HOOD_X0,
+  };
+};
+
+export const COURSE = buildCourse();
+
+export type Place = 'hood' | 'road' | 'sewer' | 'tunnel' | 'cistern' | 'ruins';
+export const placeOf = (x: number): Place => {
+  const C = COURSE;
+  if (x >= C.ruins.x1 - 200) return 'ruins';
+  if (x >= C.sewer.x1 - 2000 && x < C.sewer.x2 + 2000) return x >= C.sewer.cistern.x1 - 400 ? 'cistern' : x >= C.sewer.tunnel.x1 - 100 && x < C.sewer.tunnel.x2 ? 'tunnel' : 'sewer';
+  return x >= C.road.x1 ? 'road' : 'hood';
+};

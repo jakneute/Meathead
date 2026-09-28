@@ -65,7 +65,8 @@ export const glowLayer = (ctx: CanvasRenderingContext2D): CanvasRenderingContext
 };
 
 /** Outlines what was drawn since beginSprite and draws it into the world with its feet at (x, y). */
-export const endSprite = (world: CanvasRenderingContext2D, x: number, y: number) => {
+/** `tint`: a colour laid over the body (not the outline), keeping its shading under it (a hazmat suit, say). */
+export const endSprite = (world: CanvasRenderingContext2D, x: number, y: number, tint?: string) => {
   if (!body || !out) return;
   const o = out.getContext('2d')!;
   o.setTransform(1, 0, 0, 1, 0, 0);
@@ -85,6 +86,11 @@ export const endSprite = (world: CanvasRenderingContext2D, x: number, y: number)
     o.drawImage(glow, 0, 0);
   }
   o.globalCompositeOperation = 'source-over';
+  if (tint) {
+    // (the body tinted on its own canvas, then over the outline)
+    const b = body.getContext('2d')!;
+    b.save(); b.setTransform(1, 0, 0, 1, 0, 0); b.globalCompositeOperation = 'source-atop'; b.fillStyle = tint; b.fillRect(0, 0, body.width, body.height); b.restore();
+  }
   o.drawImage(body, 0, 0);
   world.drawImage(out, x - ORIGIN_X, y - ORIGIN_Y, W, H);
 };

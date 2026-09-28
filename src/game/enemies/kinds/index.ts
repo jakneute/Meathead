@@ -22,6 +22,7 @@ import { runHectorKindAI } from './hector';
 import { runVictorKindAI } from './victor';
 import { runErnieKindAI } from './ernie';
 import { runDaleKindAI } from './dale';
+import { runTommyKindAI } from './tommy';
 
 interface KindStats { w: number; h: number; hp: number; contact: number; air?: boolean }
 
@@ -95,6 +96,19 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   tenant: { w: 40, h: 44, hp: 1, contact: 0 },
   minion: { w: 36, h: 62, hp: 1, contact: 0 },
   generator: { w: 120, h: 150, hp: 100, contact: 0 },
+  // Tommy's stage
+  banger: { w: 40, h: 64, hp: 120, contact: 6 },
+  bruiser: { w: 54, h: 72, hp: 240, contact: 13 },
+  pitbull: { w: 52, h: 30, hp: 70, contact: 8 },
+  // (a lowrider's danger is the guns in its windows: it doesn't run him down)
+  lowrider: { w: 150, h: 52, hp: 170, contact: 0 },
+  hazmat: { w: 42, h: 66, hp: 130, contact: 6 },
+  bloater: { w: 60, h: 74, hp: 260, contact: 14 },
+  manhole: { w: 52, h: 68, hp: 180, contact: 7 },
+  sludgeling: { w: 30, h: 18, hp: 30, contact: 7 },
+  // (what's left of the people the water killed: the stage runs it)
+  // (it goes all the way down to the bottom of its pool)
+  amalgam: { w: 300, h: 580, hp: 11000, contact: 0 },
 };
 
 /**
@@ -103,11 +117,12 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
  */
 export const isSmallCritter = (kind?: EnemyKind) =>
   kind === 'wolverine' || kind === 'salamander' || kind === 'raccoon' || kind === 'crab' || kind === 'iguana' || kind === 'magmafish'
-  || kind === 'rattlesnake' || kind === 'scorpion' || kind === 'rat';
+  || kind === 'rattlesnake' || kind === 'scorpion' || kind === 'rat' || kind === 'sludgeling';
 
 /** The ones that run you down like the rusher. */
 export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind === 'bouncer' || kind === 'smokejumper' || kind === 'courier' || kind === 'enforcer'
-  || kind === 'hooker' || kind === 'mugger' || kind === 'commuter' || kind === 'intern' || kind === 'janitor' || kind === 'subject';
+  || kind === 'hooker' || kind === 'mugger' || kind === 'commuter' || kind === 'intern' || kind === 'janitor' || kind === 'subject'
+  || kind === 'bruiser' || kind === 'bloater';
 
 let spawnCount = 0;
 
@@ -159,6 +174,12 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     // (the stage runs these itself)
     case 'minion': return { ...base, harmless: true };
     case 'tenant': case 'generator': return { ...base, harmless: true };
+    // Tommy's: a gangbanger with a pistol, a bruiser with a bat, a manhole man behind his cover; down below, his hazmat
+    // crew with their sprayers and the bloated sewer workers
+    case 'banger': case 'hazmat': return { ...base, behavior: 'shoot', shootTimer: Math.floor(Math.random() * 40) };
+    case 'bruiser': case 'bloater': return { ...base, behavior: 'patrol', pauseTimer: 0 };
+    case 'manhole': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
+    case 'amalgam': return { ...base, harmless: true };
     default: return base;
   }
 };
@@ -188,6 +209,7 @@ export const runKindAI = (ctx: FrameContext, e: Enemy): boolean => {
     case 'rattlesnake': return runDaleKindAI(ctx, e);
     // Barry's rats scurry and lunge like the wolverine
     case 'rat': wolverine(ctx, e); return false;
+    case 'pitbull': case 'lowrider': case 'sludgeling': return runTommyKindAI(ctx, e);
     default: return false;
   }
 };

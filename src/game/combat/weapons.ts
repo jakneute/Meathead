@@ -146,6 +146,7 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
     case 'TSUNAMI':
       if (state.tsunamiActive) break;
       state.tsunamiActive = true;
+      state.tsunamiSerial = (state.tsunamiSerial ?? 0) + 1;
       state.tsunamiDir = facing;
       state.tsunamiStartX = facing === 1 ? state.camera.x : state.camera.x + CANVAS_WIDTH;
       state.tsunamiX = state.tsunamiStartX;

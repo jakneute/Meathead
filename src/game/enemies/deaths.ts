@@ -44,6 +44,8 @@ const KIND_COLORS: Record<string, string> = {
   pimp: '#7C3AED', hooker: '#EC4899', mugger: '#18181B', bum: '#78716C', rat: '#57534E', guard: '#1E3A8A', commuter: '#4B5563', reader: '#A16207',
   exec: '#F8FAFC', intern: '#93C5FD', hr: '#BE185D', exterminator: '#65A30D', janitor: '#6B7280', custodian: '#2563EB', labtech: '#F8FAFC',
   subject: '#BAE6FD', scientist: '#F8FAFC', tenant: '#F8FAFC', minion: '#FACC15', generator: '#374151',
+  banger: '#DC2626', bruiser: '#F8FAFC', pitbull: '#78716C', lowrider: '#9D174D', hazmat: '#FACC15', bloater: '#84A98C', manhole: '#F97316',
+  sludgeling: '#4D7C0F', amalgam: '#3F6212',
 };
 
 export const enemyBodyColor = (e: { id: string, enemyType?: string, width: number, kind?: string }) => {
@@ -60,7 +62,8 @@ export const enemyBodyColor = (e: { id: string, enemyType?: string, width: numbe
 const deathFacing = (state: GameState, e: Enemy): 1 | -1 => {
   // (wildlife, beachgoers and shield-holders face their own way; the rest face him)
   const ownWay = ['wolverine', 'goat', 'eagle', 'shielder', 'surfer', 'riotcop', 'gator', 'pelican', 'iguana', 'crab', 'civilian', 'shark',
-    'cardoor', 'rattlesnake', 'scorpion', 'coyote', 'visitor', 'bum', 'reader', 'hr', 'custodian', 'scientist', 'rat', 'tenant', 'minion'];
+    'cardoor', 'rattlesnake', 'scorpion', 'coyote', 'visitor', 'bum', 'reader', 'hr', 'custodian', 'scientist', 'rat', 'tenant', 'minion',
+    'pitbull', 'lowrider', 'manhole', 'sludgeling'];
   if (e.kind && ownWay.includes(e.kind)) return e.facing === 1 ? 1 : -1;
   return state.player.pos.x + state.player.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;
 };

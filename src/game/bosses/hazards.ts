@@ -70,8 +70,9 @@ export const updateTsunami = (ctx: FrameContext) => {
     } else if (isMidBoss(e)) {
       // A mid-boss takes it like a boss would, once per wave (it isn't washed away): a heavy hit, except to the
       // doorman, who just stands there in it (and it never finishes him off: his fight ends its own way)
-      if (e.tsunamiWave === state.tsunamiStartX) return;
-      e.tsunamiWave = state.tsunamiStartX;
+      // (each wave once: by its number, not where it started, since with the camera locked they all start in the one place)
+      if (e.tsunamiWave === state.tsunamiSerial) return;
+      e.tsunamiWave = state.tsunamiSerial;
       const dmg = e.kind === 'doorman' ? TSUNAMI_DAMAGE_DOORMAN : midBossDamage(e, TSUNAMI_DAMAGE_MIDBOSS);
       e.health = e.kind === 'doorman' ? Math.max(1, e.health - dmg) : e.health - dmg;
       e.hitFlash = 8;
