@@ -37,6 +37,8 @@ export interface FrameInput {
   jumpPressed: boolean;
   special: boolean;
   specialPressed: boolean;
+  /** It was Shift: a plain shoulder charge, whatever direction's held. */
+  chargeOnly: boolean;
 }
 
 export const DEATH_SCREEN_FRAMES = 180;
@@ -61,10 +63,11 @@ export const gateControls = (ctx: FrameContext, c: Controls): FrameInput => {
   const { state } = ctx;
   const { player } = state;
   const jumpPressed = c.jump && !player.jumpHeldLastFrame;
-  const specialPressed = c.special && !player.specialHeldLastFrame;
+  const specialHeld = c.special || !!c.charge;
+  const specialPressed = specialHeld && !player.specialHeldLastFrame;
   const shootPressed = c.shoot && !player.shootHeldLastFrame;
   player.jumpHeldLastFrame = c.jump;
-  player.specialHeldLastFrame = c.special;
+  player.specialHeldLastFrame = specialHeld;
   player.shootHeldLastFrame = c.shoot;
 
   const canAct = state.playerStunTimer <= 0 && player.pushbackTimer <= 0;
@@ -81,9 +84,10 @@ export const gateControls = (ctx: FrameContext, c: Controls): FrameInput => {
     moveDown: canAct && c.down,
     jump: act && c.jump,
     jumpPressed: act && jumpPressed,
-    special: canAct && c.special,
+    special: canAct && specialHeld,
     // During the lock only down+special (divekick) gets through
-    specialPressed: canAct && specialPressed && (!locked || c.down),
+    specialPressed: canAct && specialPressed && (!locked || (c.down && !c.charge)),
+    chargeOnly: !!c.charge && !c.special,
   };
 };
 
@@ -178,12 +182,14 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
 
   // What the button does depends on the state he's in when it's pressed: down + special in the
   // air is always a dive kick (even mid-slide off a ledge), so it never starts a charge up there
-  const airDive = input.moveDown && !player.isGrounded;
+  // (Shift is only ever the shoulder charge)
+  const only = input.chargeOnly;
+  const airDive = input.moveDown && !player.isGrounded && !only;
 
   // Shoulder charge, or a slide when crouching (or pressing down with it) on the ground
-  if (!locked && !input.moveUp && !airDive && !player.isCharging && (free || player.power >= 1)) {
+  if (!locked && (!input.moveUp || only) && !airDive && !player.isCharging && (free || player.power >= 1)) {
     if (!free) player.power -= 1;
-    player.isSliding = player.isGrounded && (player.isDucking || input.moveDown);
+    player.isSliding = !only && player.isGrounded && (player.isDucking || input.moveDown);
     player.chargeTimer = player.isSliding ? SLIDE_DURATION : CHARGE_DURATION;
     player.isCharging = true;
     player.isUppercutting = false;
@@ -192,7 +198,7 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
   }
 
   // Uppercut (springs straight out of a crouch once down is let go, or overridden by the E hotkey)
-  if (!locked && input.moveUp && (!player.isDucking || !input.moveDown) && !player.isUppercutting && (free || player.power >= 1)) {
+  if (!only && !locked && input.moveUp && (!player.isDucking || !input.moveDown) && !player.isUppercutting && (free || player.power >= 1)) {
     if (!free) player.power -= 1;
     player.isUppercutting = true;
     player.chargeFace = player.facing;

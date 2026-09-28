@@ -9,6 +9,8 @@ export interface Controls {
   jump: boolean;
   special: boolean;
   shoot: boolean;
+  /** Shift on the keyboard: the shoulder charge and nothing else (no slide, uppercut or dive kick, whatever direction's held). */
+  charge?: boolean;
 }
 
 /** What the player last touched: for button prompts (a gamepad's B, or the mouse's right button). */
@@ -101,8 +103,8 @@ export const readControls = (kb: KeyboardMouseState): Controls => {
     down: diveKey || (heldDown && !uppercutKey),
     up: uppercutKey || (heldUp && !diveKey),
     jump: k(' ', 'space', 'z', 'keyz', 'j', 'keyj') || padJump,
-    // (Shift does the same as right click)
-    special: kb.rightMouseDown || k('shift', 'shiftleft', 'shiftright') || uppercutKey || diveKey || padSpecial,
+    special: kb.rightMouseDown || uppercutKey || diveKey || padSpecial,
+    charge: k('shift', 'shiftleft', 'shiftright'),
     shoot: kb.mouseDown || padShoot || k('x', 'keyx', 'k', 'keyk'),
   };
 };
