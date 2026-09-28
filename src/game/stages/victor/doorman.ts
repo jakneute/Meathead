@@ -72,6 +72,9 @@ export interface DoormanFight {
   clashT: number;
   /** He's thrown you: the speed you're sailing across at, and for how long. */
   thrown: { vx: number; t: number } | null;
+  /** Just out of a clash: frames your controls stay locked, then the buttons you were still mashing are ignored till you let go. */
+  lockT: number;
+  ignoring: Set<keyof Controls>;
 }
 
 const arena = () => COURSE.club;
@@ -82,7 +85,7 @@ export const createDoormanFight = (state: GameState, startedAt: number): Doorman
   const dead = startedAt > CP.CLUB;
   return {
     phase: dead ? 'dead' : 'waiting', t: 0, man: null, hpFlash: 0, clash: null, buttonsWas: {}, touchCd: 0,
-    line: '', lineT: 0, talkCd: 60, lastCall: '', zoom: 0, zoomAt: { x: 0, y: 0 }, clashT: 0, thrown: null,
+    line: '', lineT: 0, talkCd: 60, lastCall: '', zoom: 0, zoomAt: { x: 0, y: 0 }, clashT: 0, thrown: null, lockT: 0, ignoring: new Set(),
     walls: [
       { x: a.x1 - 40, y: a.y - 900, w: 40, h: 900, type: 'wall', hidden: true, tag: 'club-wall' },
       { x: a.x2, y: a.y - 900, w: 40, h: 900, type: 'wall', hidden: true, tag: 'club-wall' },
@@ -159,6 +162,17 @@ export const updateDoormanFight = (ctx: FrameContext, fight: DoormanFight, contr
     return { ...NO_CONTROLS };
   }
   fight.clashT = 0;
+  // Just out of a clash: hands off for a moment, then nothing you're still mashing counts till you let go of it
+  if (fight.lockT > 0) {
+    fight.lockT--;
+    if (fight.lockT === 0) for (const k of ACTION_KEYS) if (controls[k]) fight.ignoring.add(k);
+    return { ...NO_CONTROLS };
+  }
+  if (fight.ignoring.size) {
+    const out = { ...controls };
+    for (const k of [...fight.ignoring]) { if (controls[k]) out[k] = false as never; else fight.ignoring.delete(k); }
+    return out;
+  }
   return controls;
 };
 
@@ -395,6 +409,9 @@ const trip = (ctx: FrameContext, m: Enemy, fight: DoormanFight, dmg: number, tex
 // ---------------------------------------------------------------------------
 
 const SHOULDER_FRAMES = 170, SLIDE_FRAMES_CLASH = 300;
+/** How long your controls stay locked after a clash. */
+const CLASH_LOCK = 36;
+const ACTION_KEYS: (keyof Controls)[] = ['jump', 'special', 'shoot', 'charge'];
 /** Thrown after losing a clash: how long he's in the air, and how hard he goes up. */
 const THROW_FRAMES = 44, THROW_LIFT = 14.3;
 
@@ -459,6 +476,7 @@ const endClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, won: boolean
   const p = state.player;
   const kind = fight.clash!.kind;
   fight.clash = null;
+  fight.lockT = CLASH_LOCK;
   fight.touchCd = 30;
   p.hidden = false;
   const a = arena();
