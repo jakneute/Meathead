@@ -184,7 +184,7 @@ const theft = (ctx: FrameContext, b: BikeRun, talk: Talk): Controls => {
       // On it, and gone (the crew yelling after him as he goes)
       if (since === 14) { mount(state); b.v = 0; p.pos.x = H.bike - p.width / 2; }
       if (since === 22) {
-        queueLines(state, talk, [{ who: 'rider', text: 'AYYY! THAT WAS MY BIRTHDAY BIKE!' }, { who: 'crew', text: "HE TOOK TAYVON'S BIKE! GET THE CAR!" }, { who: 'meathead', text: 'RING RING, BITCHES.' }]);
+        queueLines(state, talk, [{ who: 'rider', text: 'NIGGA STOLE MY BIKE!' }, { who: 'rider', text: 'AYYY! THAT WAS MY BIRTHDAY BIKE!' }, { who: 'crew', text: "HE TOOK TAYVON'S BIKE! GET THE CAR!" }, { who: 'meathead', text: 'RING RING, BITCHES.' }]);
         b.crew = false;
         b.phase = 'riding'; b.t = 0;
         state.cameraOverride = null;
