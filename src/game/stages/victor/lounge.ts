@@ -36,14 +36,7 @@ export const FADE_IN = 40;
 /** How long after it's faded back up (and he's back in control) before he says it. */
 const AFTERMATH_LINE_DELAY = 35;
 /** What he's got to say about the VIP lounge once the smoke clears. */
-const AFTERMATH_LINES = [
-  "NOW THAT'S WHAT I CALL AN AFTER-PARTY.",
-  "GUEST LIST'S A LOT SHORTER NOW.",
-  "BOTTLE SERVICE? ANYONE? ...ANYONE?",
-  "SORRY. I THOUGHT IT WAS A MOSH PIT.",
-  "THEY SAID THIS PLACE WAS TO DIE FOR.",
-  "FIVE STARS. VERY EXCLUSIVE NOW.",
-];
+const AFTERMATH_LINES = ["GUEST LIST'S A LOT SHORTER NOW."];
 
 // (coming back to it after a death it's already been said: no fade, no line)
 export const createLounge = (startedAt: number): Lounge => ({ phase: startedAt >= CP.LOUNGE ? 'wrecked' : 'party', t: FADE_IN + AFTERMATH_LINE_DELAY, line: '', lineT: 0 });
