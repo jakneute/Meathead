@@ -22,8 +22,8 @@ export interface Field {
   splashAt: number;
 }
 
-/** How long a lit slick burns, how often it hurts him (and how much), how hard it burns what's in it. */
-const BURN_FRAMES = 330, BURN_EVERY = 28, BURN_DAMAGE = 7, BURN_ENEMY = 5;
+/** How long a lit slick burns, how often it hurts him (and how much), how hard it burns what's in it (every 6 frames: 240 a second). */
+const BURN_FRAMES = 330, BURN_EVERY = 28, BURN_DAMAGE = 7, BURN_ENEMY = 24;
 /** Tar burns longer. Oil that pools back takes this long to. */
 const TAR_BURN_FRAMES = 480, POOL_BACK = 300;
 /** A jet of fire: how long it hisses and sparks before it goes, how much it hurts. */
@@ -84,13 +84,15 @@ export const updateField = (ctx: FrameContext, f: Field) => {
     const g = groundLineAt(state.groundRuns, cx);
     // In the fire: it hurts
     if (cx > o.x1 && cx < o.x2 && p.pos.y + p.height > g - 30 && state.frame % BURN_EVERY === 0 && p.invincibilityTimer <= 0) hurtPlayer(ctx, BURN_DAMAGE, 'oil_fire', { x: 0, y: -7 });
-    // ...and anything in it burns (it was him that lit it)
+    // ...and anything stood in it burns, fast: it goes up with it (a flyer over it's fine)
     for (const e of state.enemies) {
-      if (e.health <= 0 || e.isBlownAway || e.type === 'boss') continue;
+      if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || e.enemyType === 'flyer') continue;
       const ex = e.pos.x + e.width / 2;
       if (ex < o.x1 || ex > o.x2 || e.pos.y + e.height < groundLineAt(state.groundRuns, ex) - 30) continue;
-      if (state.frame % 8 === 0) {
+      if (state.frame % 3 === 0) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + e.height - Math.random() * e.height }, vel: { x: (Math.random() - 0.5) * 2, y: -2 - Math.random() * 2 }, life: 18, color: Math.random() < 0.5 ? '#F97316' : '#FDE047', size: 4 + Math.random() * 5 });
+      if (state.frame % 6 === 0) {
         e.health -= BURN_ENEMY;
+        if (state.frame % 18 === 0) fx.spawnDamageNumber({ x: e.pos.x + 10, y: e.pos.y - 10 }, BURN_ENEMY * 3, false, '#F97316');
         if (e.health <= 0) fx.killWithAnimation(e, 'charred', 'flamethrower_kill', 'charred');
       }
     }
