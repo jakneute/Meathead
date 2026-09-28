@@ -45,12 +45,17 @@ const SKIP_AFTER = 30;
 /** Roughly how long a line's up (what it takes to say, near enough). */
 const lineFrames = (i: number) => MIN_LINE + LINES[i].length * 2;
 
-/** How far through the broadcast we are (0..1), line by line: it only reaches the end as the last line does. */
-const progress = (n: News) => {
-  if (n.line < 0) return 0;
-  const within = n.said ? 1 : Math.min(0.95, (n.t - n.lineAt) / lineFrames(n.line));
-  return Math.min(1, (n.line + within) / LINES.length);
+/**
+ * About how long the whole broadcast runs, in frames: spoken (about 14 letters a second, never quicker
+ * than a line's minimum), or captions only. The tiny Meathead falls at one steady speed to land as it ends.
+ */
+const expectedFrames = () => {
+  const spoken = typeof window !== 'undefined' && 'speechSynthesis' in window;
+  return 30 + LINES.reduce((sum, line, i) => sum + (spoken ? Math.max(MIN_LINE, line.length * 4.3) : lineFrames(i)), 0);
 };
+
+/** How far down he's fallen (0..1): steady the whole way, whatever the lines are doing (past 1 he's into the torrent). */
+const fallen = (n: News) => n.t / expectedFrames();
 
 export const createNews = (): News => ({ t: 0, line: 0, lineAt: 0, said: false, showing: '', staticT: 0, done: false, armed: false });
 
@@ -125,8 +130,8 @@ export const drawNews = (ctx: Ctx, state: GameState, n: News) => {
     ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 40); ctx.stroke();
   }
   // A tiny Meathead, way off, falling out of the sky with it (if you look closely); he gets down to the daycare just as it cuts away
-  const fall = progress(n);
-  drawTinyMeathead(ctx, state, colX + colW / 2 + 14, 30 + fall * (groundY - 70 - 30), f);
+  const fall = fallen(n);
+  if (fall < 1) drawTinyMeathead(ctx, state, colX + colW / 2 + 14, 30 + fall * (groundY - 70 - 30), f);
   // The far shore: the town, and the little daycare right under the column
   ctx.fillStyle = '#1E3A8A'; ctx.fillRect(0, groundY - 8, W, 30);
   for (let i = 0; i < 12; i++) { const h = 20 + hash(i + 7) * 40; ctx.fillStyle = ['#FDE68A', '#F9A8D4', '#99F6E4', '#FDBA74'][i % 4]; ctx.fillRect(i * 70 + 4, groundY - 8 - h, 50, h); }
