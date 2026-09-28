@@ -180,12 +180,19 @@ export const drawHectorHud = (ctx: Ctx, state: GameState) => {
     ctx.fillStyle = '#EF4444'; ctx.fillText(`INNOCENTS KILLED: ${b.killed}`, CANVAS_WIDTH / 2, y);
   }
   // The cops have you boxed in
-  if (b.police === 'fight' || (b.police === 'coming' && b.policeT > 30)) {
+  // (once the rain's started, the sirens' red and blue flashing's gone; you've still got the cops to kill)
+  const raining = b.storm > 0;
+  if (b.police === 'fight' || (b.police === 'coming' && b.policeT > 30 && !raining)) {
     const y = 190;
     const text = b.police === 'fight' ? `THE COPS ARE HERE: ${copsLeft(state, b)} LEFT` : 'SIRENS...';
     ctx.font = 'bold 12px "Press Start 2P"';
-    ctx.fillStyle = Math.floor(state.frame / 12) % 2 ? '#3B82F6' : '#EF4444';
+    ctx.fillStyle = raining ? '#F8FAFC' : Math.floor(state.frame / 12) % 2 ? '#3B82F6' : '#EF4444';
     ctx.fillText(text, CANVAS_WIDTH / 2, y);
+  }
+  // Held up at the tiki bar
+  if (b.lock && state.player.pos.x > b.lock.x - 260) {
+    ctx.font = 'bold 10px "Press Start 2P"'; ctx.fillStyle = '#FDE047';
+    ctx.fillText('KILL THE COPS TO MOVE ON', CANVAS_WIDTH / 2, 214);
   }
   // Junk about to blow in from the right: an arrow at its height
   for (const d of rt.hazards.debris) {
@@ -566,9 +573,11 @@ const drawPoliceCruiser = (ctx: Ctx, state: GameState, rt: HectorRuntime) => {
   ctx.beginPath(); ctx.moveTo(x - 40, y - 40); ctx.lineTo(x - 26, y - 62); ctx.lineTo(x + 40, y - 62); ctx.lineTo(x + 56, y - 40); ctx.fillStyle = '#F8FAFC'; ctx.fill();
   ctx.fillStyle = '#93C5FD'; ctx.fillRect(x - 22, y - 58, 28, 16); ctx.fillRect(x + 10, y - 58, 26, 16);
   ctx.fillStyle = '#1E3A8A'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.fillText('POLICE', x - 36, y - 18);
-  const blink = Math.floor(state.frame / 6) % 2;
-  ctx.fillStyle = blink ? '#EF4444' : '#3B82F6'; ctx.fillRect(x - 6, y - 70, 10, 8);
-  ctx.fillStyle = blink ? '#3B82F6' : '#EF4444'; ctx.fillRect(x + 6, y - 70, 10, 8);
+  // (the light bar goes dark once it's raining, or once the cops are all dead)
+  const lit = b.storm <= 0 && b.police !== 'done';
+  const blink = lit && Math.floor(state.frame / 6) % 2;
+  ctx.fillStyle = !lit ? '#7F1D1D' : blink ? '#EF4444' : '#3B82F6'; ctx.fillRect(x - 6, y - 70, 10, 8);
+  ctx.fillStyle = !lit ? '#1E3A8A' : blink ? '#3B82F6' : '#EF4444'; ctx.fillRect(x + 6, y - 70, 10, 8);
   ctx.fillStyle = '#111827'; for (const wx of [x - 44, x + 50]) { ctx.beginPath(); ctx.arc(wx, y - 10, 11, 0, Math.PI * 2); ctx.fill(); }
   if (blink) { ctx.fillStyle = 'rgba(239, 68, 68, 0.15)'; ctx.fillRect(state.camera.x, state.camera.y, CANVAS_WIDTH, CANVAS_HEIGHT); }
 };

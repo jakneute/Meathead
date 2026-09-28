@@ -2,12 +2,12 @@
 // panic, a body count, then the cops), and the storm rolling in.
 //
 // Shoot one and the rest scatter; an INNOCENTS KILLED count shows until they're
-// all gone one way or the other. Then sirens: a cruiser pulls up and you're
-// boxed in until the cops are dead. Either way, walk on far enough (with no cops
+// all gone one way or the other. Then sirens: a cruiser pulls up, and you
+// can't get past the tiki bar until the cops are dead. Either way, walk on far enough (with no cops
 // on you) and the hurricane arrives: the sky goes black, and anyone still on the
 // beach runs for cover.
 
-import type { Enemy } from '../../../types';
+import type { Block, Enemy } from '../../../types';
 import type { FrameContext } from '../../context';
 import type { GameState } from '../../state';
 import { makeKindEnemy } from '../../systems/kinds';
@@ -29,6 +29,8 @@ export interface Beach {
   cruiserX: number;
   cruiserStop: number;
   copIds: string[];
+  /** The wall at the tiki bar while the cops are after you (null when you're not held up). */
+  lock: Block | null;
   /** 0..1: how far the storm's rolled in; and when it started (0 if not). */
   storm: number;
   stormAt: number;
@@ -49,7 +51,7 @@ export const createBeach = (state: GameState, startedAt: number): Beach => {
       state.enemies.push(e);
     });
   }
-  return { killed: 0, counterT: 0, counted: new Set(), known: new Map(), panic: false, police: 'none', policeT: 0, cruiserX: 0, cruiserStop: 0, copIds: [], storm: stormy ? 1 : 0, stormAt: stormy ? -1 : 0 };
+  return { killed: 0, counterT: 0, counted: new Set(), known: new Map(), panic: false, police: 'none', policeT: 0, cruiserX: 0, cruiserStop: 0, copIds: [], lock: null, storm: stormy ? 1 : 0, stormAt: stormy ? -1 : 0 };
 };
 
 export const stormLevel = (b: Beach) => b.storm;
@@ -125,8 +127,8 @@ const updatePolice = (ctx: FrameContext, b: Beach) => {
             ['riotcop', cam + 520], ['cop', cam + 600], ['cop', cam + 680], ['riotcop', cam + 745], ['cop', cam + 60],
           ];
           for (const [kind, rawX] of squad) {
-            // (every one of them fully on screen)
-            const x = Math.max(cam + 40, Math.min(cam + 760, rawX));
+            // (every one of them fully on screen, and on your side of the tiki bar)
+            const x = Math.min(Math.max(cam + 40, Math.min(cam + 760, rawX)), b.lock ? b.lock.x - 60 : Infinity);
             const cop = makeKindEnemy(kind, x, y);
             cop.facing = x < state.player.pos.x ? 1 : -1;
             state.enemies.push(cop);
@@ -137,22 +139,21 @@ const updatePolice = (ctx: FrameContext, b: Beach) => {
         }
       }
       break;
-    case 'fight': {
-      const cops = state.enemies.filter(e => b.copIds.includes(e.id) && e.health > 0 && !e.isBlownAway);
-      if (cops.length === 0) { b.police = 'done'; break; }
-      // Unlike anything else out here, they don't give up: run off and they come after you, wherever you go
-      const px = state.player.pos.x + state.player.width / 2;
-      for (const c of cops) {
-        if ((c.pauseTimer || 0) > 0 || (c.frozenTimer || 0) > 0 || c.isTased) continue;
-        const dx = px - (c.pos.x + c.width / 2);
-        const keep = c.kind === 'riotcop' ? 110 : 240;
-        if (Math.abs(dx) > keep) c.vel.x = Math.sign(dx) * (Math.abs(dx) > 800 ? 8.5 : 6);
-        c.facing = dx < 0 ? -1 : 1;
-      }
+    case 'fight':
+      if (copsLeft(state, b) === 0) b.police = 'done';
       break;
-    }
   }
+  // Held up at the tiki bar till they're all dead (if you hadn't already got past it when they were called)
+  const holdUp = b.police === 'coming' || b.police === 'fight';
+  if (holdUp && !b.lock && state.player.pos.x + state.player.width < TIKI_WALL_X) {
+    b.lock = { x: TIKI_WALL_X, y: -3000, w: 40, h: 4000, type: 'wall', hidden: true, tag: 'tiki-lock' };
+    state.blocks.push(b.lock);
+  }
+  if (!holdUp && b.lock) { const lock = b.lock; state.blocks = state.blocks.filter(x => x !== lock); b.lock = null; }
 };
+
+/** Where you're held up while the cops are after you: just past the tiki bar. */
+const TIKI_WALL_X = (COURSE.props.find(p => p.look === 'tiki')?.x ?? 0) + 90;
 
 /** Cops still standing (for the HUD). */
 export const copsLeft = (state: GameState, b: Beach) => state.enemies.filter(e => b.copIds.includes(e.id) && e.health > 0 && !e.isBlownAway).length;
