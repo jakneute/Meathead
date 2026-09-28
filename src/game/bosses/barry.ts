@@ -285,7 +285,6 @@ export const barry: BossDef = {
   weakness: 'NEEDLES',
   weaknessDamage: 0, // needles work through catchNeedle/needleTick instead
   spawn: { x: ARENA_RIGHT - 120 },
-  slipperyFloor: true,
   update,
   catchProjectile: catchNeedle,
   needleTick,
