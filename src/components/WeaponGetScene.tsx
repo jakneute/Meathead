@@ -226,13 +226,14 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, onDone }) => {
         <div className="absolute inset-0" style={{ transform: `translate(${shake}px, ${shake * 0.6}px)` }}>
           <div className="absolute inset-0"
             style={{
-              // The camera tips over onto its side: the world swings round and settles, bouncing
+              // The camera tips over onto its side: the world swings round and settles, bouncing. Lying on the
+              // floor it takes all of him in, boots and all
               transformOrigin: '50% 50%',
-              transform: `translate(${-easeOutBounce(fall) * 60}px, ${easeOutBounce(fall) * 70}px) rotate(${easeOutBounce(fall) * 82}deg) scale(${1 - fall * 0.12})`,
+              transform: `translate(${easeOutBounce(fall) * 190}px, ${-easeOutBounce(fall) * 20}px) rotate(${easeOutBounce(fall) * 82}deg) scale(${1 - fall * 0.4})`,
             }}>
             <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 58%, rgba(127,29,29,0.55) 0%, rgba(20,0,0,0.6) 35%, #000 70%)' }} />
             <div className="absolute left-1/2 -translate-x-1/2 bottom-[40px] w-[560px] h-[60px] rounded-[50%]" style={{ background: 'radial-gradient(ellipse, rgba(239,68,68,0.25), transparent 70%)' }} />
-            <div className="absolute left-1/2 top-[40px]" style={{ width: 520, height: 620, marginLeft: -260, opacity: faceIn, filter: 'drop-shadow(0 0 22px rgba(239,68,68,0.45))', transform: `scale(${0.88 + faceIn * 0.12}) rotate(${-windup * 5 + punch * 7}deg)`, transformOrigin: '50% 80%' }}>
+            <div className="absolute left-1/2 top-[40px]" style={{ width: 520, height: 1144, marginLeft: -260, opacity: faceIn, filter: 'drop-shadow(0 0 22px rgba(239,68,68,0.45))', transform: `scale(${0.88 + faceIn * 0.12}) rotate(${-windup * 5 + punch * 7}deg)`, transformOrigin: '50% 43%' }}>
               <FaceOffMeathead t={t} windup={windup} punching={punching || (t >= IMPACT && t < IMPACT + 180)} />
             </div>
           </div>
@@ -402,11 +403,11 @@ const GiantFist: React.FC = () => (
  * build as the title-screen portrait. His right fist draws back on the wind-up
  * and is gone (it's coming at you) during the punch.
  */
-const FaceOffMeathead: React.FC<{ t: number; windup: number; punching: boolean }> = ({ t, windup, punching }) => {
+export const FaceOffMeathead: React.FC<{ t: number; windup: number; punching: boolean }> = ({ t, windup, punching }) => {
   const breathe = 1 + Math.sin(t / 420) * 0.012;
   const glint = Math.floor(t / 90) % 30 === 0;
   return (
-    <svg viewBox="0 0 200 240" className="w-full h-full overflow-visible">
+    <svg viewBox="0 0 200 440" className="w-full h-full overflow-visible">
       <defs>
         <linearGradient id="wg-skin" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stopColor="#F5D0A9" />
@@ -433,6 +434,17 @@ const FaceOffMeathead: React.FC<{ t: number; windup: number; punching: boolean }
       </defs>
 
       <g transform={`translate(100 200) scale(${breathe}) translate(-100 -200)`}>
+        {/* Legs: navy tactical pants in a wide boxer's stance, combat boots with steel toes
+            (off the bottom of the frame until the camera goes over on its side) */}
+        <path d="M58 244 L46 404 L94 404 L100 290 Z" fill="#1E3A8A" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
+        <path d="M142 244 L154 404 L106 404 L100 290 Z" fill="#1E3A8A" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
+        <path d="M100 262 L100 292 M70 300 L64 380 M130 300 L136 380" stroke="#172554" strokeWidth="4" strokeLinecap="round" />
+        <path d="M60 330 L90 330 M140 330 L110 330" stroke="#172554" strokeWidth="3" />
+        <rect x="56" y="340" width="30" height="18" rx="6" fill="#27272A" stroke="#000" strokeWidth="3" />
+        <rect x="114" y="340" width="30" height="18" rx="6" fill="#27272A" stroke="#000" strokeWidth="3" />
+        <path d="M40 402 L98 402 L100 432 L36 432 Z" fill="#18181B" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
+        <path d="M160 402 L102 402 L100 432 L164 432 Z" fill="#18181B" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
+        <path d="M36 420 L54 420 L54 432 L36 432 Z M164 420 L146 420 L146 432 L164 432 Z" fill="#94A3B8" stroke="#000" strokeWidth="2" />
         {/* Lats and traps */}
         <path d="M44 104 L22 170 L64 200 Z M156 104 L178 170 L136 200 Z" fill="#9C6530" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
         <path d="M46 102 L76 58 L124 58 L154 102 Z" fill="url(#wg-trap)" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
@@ -447,6 +459,11 @@ const FaceOffMeathead: React.FC<{ t: number; windup: number; punching: boolean }
         <path d="M60 110 Q80 106 92 114 M140 110 Q120 106 108 114" stroke="#F59E0B" strokeWidth="2" fill="none" opacity="0.5" />
         <circle cx="70" cy="110" r="2" fill="#fff" opacity="0.7" />
         <circle cx="116" cy="160" r="1.5" fill="#fff" opacity="0.6" />
+        {/* The lifting belt and its gold buckle */}
+        <path d="M57 222 L143 222 L144 250 L56 250 Z" fill="#78350F" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
+        <path d="M60 229 H140 M60 243 H140" stroke="#5B2A0C" strokeWidth="1.5" />
+        <rect x="88" y="224" width="24" height="24" rx="3" fill="#FACC15" stroke="#000" strokeWidth="3" />
+        <rect x="95" y="231" width="10" height="10" fill="#78350F" />
 
         {/* Neck */}
         <path d="M78 64 L76 86 L124 86 L122 64 Z" fill="#C68B45" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
