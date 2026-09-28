@@ -93,9 +93,14 @@ export const drawBubble = (ctx: CanvasRenderingContext2D, x: number, y: number, 
   ctx.save();
   ctx.font = 'bold 8px "Press Start 2P"';
   const w = Math.min(460, ctx.measureText(text).width + 16);
+  // (kept on the screen: the box slides in off the edge, the tail stays pointing at whoever's talking)
+  const m = ctx.getTransform();
+  const toWorld = (sx: number) => (sx - m.e) / (m.a || 1);
+  const bx = Math.max(toWorld(8) + w / 2, Math.min(toWorld(ctx.canvas.width - 8) - w / 2, x));
+  const tx = Math.max(bx - w / 2 + 8, Math.min(bx + w / 2 - 8, x));
   ctx.fillStyle = fill; ctx.strokeStyle = ink; ctx.lineWidth = 2;
-  ctx.fillRect(x - w / 2, y - 24, w, 20); ctx.strokeRect(x - w / 2, y - 24, w, 20);
-  ctx.beginPath(); ctx.moveTo(x - 5, y - 4); ctx.lineTo(x + 5, y - 4); ctx.lineTo(x, y + 5); ctx.fillStyle = fill; ctx.fill();
-  ctx.fillStyle = ink; ctx.textAlign = 'center'; ctx.fillText(text, x, y - 10, w - 10);
+  ctx.fillRect(bx - w / 2, y - 24, w, 20); ctx.strokeRect(bx - w / 2, y - 24, w, 20);
+  ctx.beginPath(); ctx.moveTo(tx - 5, y - 4); ctx.lineTo(tx + 5, y - 4); ctx.lineTo(tx, y + 5); ctx.fillStyle = fill; ctx.fill();
+  ctx.fillStyle = ink; ctx.textAlign = 'center'; ctx.fillText(text, bx, y - 10, w - 10);
   ctx.restore();
 };

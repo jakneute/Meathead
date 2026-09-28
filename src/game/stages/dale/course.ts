@@ -227,7 +227,7 @@ const buildCourse = (): Course => {
       tower: { x: TOWN_X0 + 4300, top: Y - 390 }, jail: { x1: TOWN_X0 + 5300, x2: TOWN_X0 + 5640 }, pharmacy: TOWN_X0 + 5860,
     },
     checkpoints: [
-      { x: DESERT_X0 + 150, y: Y }, { x: DESERT_X0 + 5100, y: Y }, { x: DESERT_X0 + 6540, y: Y }, { x: DESERT_X0 + 7960, y: Y },
+      { x: DESERT_X0 + 150, y: Y }, { x: DESERT_X0 + 5100, y: Y }, { x: DESERT_X0 + 6540, y: Y }, { x: DESERT_X0 + 8300, y: Y - 192 }, // (up the stairs, just outside Chuco's door)
       // (on each truck, at the back of its trailer)
       ...trucks.map((tr, i) => ({ x: tr.x + 160, y: truckDims(i).trailerTop })),
       { x: TOWN_X0 + 380, y: Y }, { x: TOWN_X0 + 2600, y: Y }, { x: TOWN_X0 + 4560, y: Y },

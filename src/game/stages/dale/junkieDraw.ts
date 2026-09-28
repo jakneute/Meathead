@@ -9,7 +9,7 @@
 
 import type { Enemy, WeaponType } from '../../../types';
 import type { GameState } from '../../core/state';
-import { CANVAS_WIDTH } from '../../../constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { KIND_STATS } from '../../enemies/kinds';
 import { COURSE } from './course';
 import { JunkieFight, JunkieCorpse, JUNKIE_HP, PROPS, PropName, propBox, BUTT_QUICK, BUTT_BIG } from './junkie';
@@ -269,6 +269,16 @@ export const drawOffice = (ctx: Ctx, state: GameState, fight: JunkieFight) => {
   ctx.fillStyle = '#3B2612'; ctx.fillRect(o.x1 - 40, floor - 170, 40, 170);
   if (!doorShut) { ctx.fillStyle = '#1C1917'; ctx.fillRect(o.x1 - 30, floor - 160, 30, 160); }
   else { ctx.fillStyle = '#78350F'; ctx.fillRect(o.x1 - 34, floor - 164, 34, 164); ctx.fillStyle = GOLD; ctx.fillRect(o.x1 - 8, floor - 90, 5, 5); }
+  // The right-hand wall, end on: the office's outside wall, studs and siding in section, down past the floor to the
+  // warehouse wall under it (so the room ends there, and the view doesn't run off into nothing)
+  const rw = o.x2, bottom = state.camera.y + CANVAS_HEIGHT + 40;
+  ctx.fillStyle = '#44403C'; ctx.fillRect(rw, ceil - 30, 80, bottom - (ceil - 30));
+  ctx.fillStyle = '#57534E'; for (let y = floor + 20; y < bottom; y += 26) ctx.fillRect(rw + 4, y, 72, 3); // block courses under the floor
+  ctx.fillStyle = '#3B2612'; ctx.fillRect(rw, ceil - 30, 14, floor - ceil + 44); // the end of the paneling, trim
+  ctx.fillStyle = '#78350F'; ctx.fillRect(rw + 2, ceil - 30, 4, floor - ceil + 44);
+  ctx.fillStyle = '#292524'; ctx.fillRect(rw + 14, ceil - 30, 66, floor - ceil + 44);
+  ctx.fillStyle = '#1C1917'; for (let x = rw + 22; x < rw + 80; x += 18) ctx.fillRect(x, ceil - 30, 6, floor - ceil + 44); // studs
+  ctx.fillStyle = '#D6D3D1'; ctx.fillRect(rw, ceil - 34, 80, 6); ctx.fillRect(rw, floor + 8, 80, 6); // top and bottom plates
   // Cracks where he's put his head into the walls
   for (const c of fight.cracks) {
     const x = c.side > 0 ? o.x2 : o.x1;
