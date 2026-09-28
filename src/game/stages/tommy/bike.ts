@@ -138,40 +138,30 @@ const theft = (ctx: FrameContext, b: BikeRun, talk: Talk): Controls => {
   const next = () => { b.step++; b.stepAt = b.t; };
   switch (b.step) {
     case 0:
-      // He stops to take them in; they're mid-conversation
-      if (p.pos.x + p.width / 2 < H.stop - 4) { c = { ...c, right: true }; break; }
+      // Walking up on them, talking as he goes
       queueLines(state, talk, [
-        { who: 'crew', text: 'THE WATER ALWAYS BEEN THAT COLOR.' },
-        { who: 'rider', text: "YO. WHO'S THIS BIG DUDE STARIN' AT US?" },
-        { who: 'meathead', text: "NICE BIKE. I'M GONNA NEED THAT." },
-      ], 10);
+        { who: 'rider', text: "YO. WHO'S THIS BIG DUDE?" },
+        { who: 'meathead', text: "NICE BIKE. I'M TAKING IT." },
+      ], 0);
       next();
       break;
     case 1:
-      if (quiet(talk) && since > 40) next();
-      break;
-    case 2:
-      // Over to the bike, and the boot
+      // Up to the bike, and the boot (as soon as he's said his piece)
       if (p.pos.x + p.width / 2 < H.bike - 46) { c = { ...c, right: true }; break; }
-      if (since > 8 && !p.kickPose) {
+      if (!p.kickPose && (quiet(talk) || talk.current?.who === 'meathead')) {
         p.kickPose = KICK_POSE_FRAMES;
         const r = b.rider;
         r.state = 'flying'; r.vx = 9; r.vy = -12;
         shakeScreen(state, 10, 5);
         fx.playGunSound('gun');
-        queueLines(state, talk, [{ who: 'rider', text: 'AYYY!' }]);
         next();
       }
       break;
-    case 3:
-      if (since === 30) { mount(state); b.v = 0; p.pos.x = H.bike - p.width / 2; }
-      if (since > 34 && quiet(talk)) {
-        queueLines(state, talk, [{ who: 'crew', text: 'HE TOOK TAYVON\'S BIKE! GET IN THE CAR!' }, { who: 'meathead', text: 'RING RING, BITCHES.' }]);
-        next();
-      }
-      break;
-    case 4:
-      if (quiet(talk) && since > 20) {
+    case 2:
+      // On it, and gone (the crew yelling after him as he goes)
+      if (since === 14) { mount(state); b.v = 0; p.pos.x = H.bike - p.width / 2; }
+      if (since === 22) {
+        queueLines(state, talk, [{ who: 'crew', text: "HE TOOK TAYVON'S BIKE! GET THE CAR!" }, { who: 'meathead', text: 'RING RING, BITCHES.' }]);
         b.crew = false;
         b.phase = 'riding'; b.t = 0;
         state.cameraOverride = null;

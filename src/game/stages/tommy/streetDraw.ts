@@ -119,10 +119,13 @@ export const drawStreetFronts = (ctx: Ctx, state: GameState) => {
   for (let k = k0; k <= k1; k++) {
     const x = k * LOT + 20;
     if (x < COURSE.hood.x1 - 100 || x > COURSE.road.x2) continue;
-    const g = groundLineAt(state.groundRuns, x + 130);
-    if (g === Infinity) continue;
-    // (set back from the road, a little above it)
-    const base = g - 6;
+    // (sat level on the higher side of the lot, a foundation down to the road under the rest of it)
+    const gL = groundLineAt(state.groundRuns, x - 20), gR = groundLineAt(state.groundRuns, x + 300);
+    if (gL === Infinity || gR === Infinity) continue;
+    const base = Math.min(gL, gR) - 6;
+    ctx.fillStyle = '#6B635C'; ctx.beginPath(); ctx.moveTo(x - 20, base); ctx.lineTo(x + 300, base); ctx.lineTo(x + 300, gR + 2); ctx.lineTo(x - 20, gL + 2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.18)'; for (let yy = base + 8; yy < Math.max(gL, gR); yy += 10) ctx.fillRect(x - 20, yy, 320, 1);
+    ctx.fillStyle = '#57534E'; ctx.fillRect(x - 20, base - 2, 320, 4);
     const h = hash(k * 7.3);
     if (h < 0.1) drawLiquor(ctx, x, base, dusk);
     else if (h < 0.16) drawChurch(ctx, x, base, dusk);
@@ -217,8 +220,24 @@ export const drawJunk = (ctx: Ctx, state: GameState, b: BikeRun) => {
     // (the ones that broke are gone: bits of them scattered)
     const smashed = b.done.has(i) && j.look !== 'ramp' && j.look !== 'hydrant' && j.look !== 'pothole' && j.look !== 'car';
     const box = junkBox(state, j);
-    if (smashed) { ctx.fillStyle = 'rgba(68, 64, 60, 0.6)'; ctx.fillRect(box.x + 10, box.y + box.h - 3, box.w - 20, 3); return; }
+    if (smashed || b.done.has(i)) { if (smashed) { ctx.fillStyle = 'rgba(68, 64, 60, 0.6)'; ctx.fillRect(box.x + 10, box.y + box.h - 3, box.w - 20, 3); return; } }
+    const live = !b.done.has(i);
+    const ahead = j.x - (state.player.pos.x + state.player.width / 2);
+    // A warning glow on the road under it
+    if (live && j.look !== 'cones' && j.look !== 'ramp') {
+      const gg = ctx.createRadialGradient(j.x, box.y + box.h, 4, j.x, box.y + box.h, box.w * 0.9 + 20);
+      gg.addColorStop(0, 'rgba(250, 204, 21, 0.45)'); gg.addColorStop(1, 'rgba(250, 204, 21, 0)');
+      ctx.fillStyle = gg; ctx.beginPath(); ctx.ellipse(j.x, box.y + box.h, box.w * 0.9 + 20, 14, 0, 0, Math.PI * 2); ctx.fill();
+    }
     drawOneJunk(ctx, state, j, box);
+    // The hazard sign over it, bobbing, while it's coming up ahead of him
+    if (live && ahead > 0 && ahead < 700 && j.look !== 'cones') {
+      const sy = box.y - 40 + Math.sin(state.frame * 0.2) * 5;
+      const good = j.look === 'ramp';
+      ctx.fillStyle = good ? '#22C55E' : '#FACC15'; ctx.strokeStyle = '#111827'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(j.x, sy - 32); ctx.lineTo(j.x + 20, sy); ctx.lineTo(j.x - 20, sy); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#111827'; ctx.font = 'bold 16px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText(good ? '^' : '!', j.x + 1, sy - 4); ctx.textAlign = 'left';
+    }
   });
 };
 
@@ -230,25 +249,29 @@ const drawOneJunk = (ctx: Ctx, state: GameState, j: RoadJunk, box: { x: number; 
       for (let c = 0; c < 3; c++) { const cx = box.x + 12 + c * 28; ctx.fillStyle = '#F97316'; ctx.beginPath(); ctx.moveTo(cx - 9, g); ctx.lineTo(cx, g - 26); ctx.lineTo(cx + 9, g); ctx.fill(); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(cx - 5, g - 14, 10, 3); }
       break;
     case 'trash':
-      for (const c of [0, 1]) { const cx = box.x + 4 + c * 26; ctx.fillStyle = '#374151'; ctx.fillRect(cx, g - 38, 22, 38); ctx.fillStyle = '#4B5563'; ctx.fillRect(cx - 2, g - 41, 26, 4); ctx.fillStyle = 'rgba(0,0,0,0.3)'; for (let r = 0; r < 3; r++) ctx.fillRect(cx + 4 + r * 6, g - 34, 2, 30); }
+      for (const c of [0, 1]) { const cx = box.x + 4 + c * 26; ctx.fillStyle = '#111827'; ctx.fillRect(cx - 2, g - 42, 26, 42); ctx.fillStyle = '#16A34A'; ctx.fillRect(cx, g - 38, 22, 38); ctx.fillStyle = '#22C55E'; ctx.fillRect(cx - 2, g - 43, 26, 5); ctx.fillStyle = 'rgba(0,0,0,0.3)'; for (let r = 0; r < 3; r++) ctx.fillRect(cx + 4 + r * 6, g - 34, 2, 30); }
       ctx.fillStyle = '#65A30D'; ctx.fillRect(box.x + 8, g - 44, 10, 4);
       break;
     case 'pothole':
-      ctx.fillStyle = '#18181B'; ctx.beginPath(); ctx.ellipse(j.x, g - 3, 34, 7, 0, 0, Math.PI * 2); ctx.fill();
+      // (ringed in orange spray paint: somebody tried)
+      ctx.strokeStyle = '#F97316'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(j.x, g - 3, 42, 10, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = '#0A0A0A'; ctx.beginPath(); ctx.ellipse(j.x, g - 3, 34, 7, 0, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = 'rgba(120, 113, 108, 0.7)'; ctx.fillRect(j.x - 30, g - 8, 6, 3); ctx.fillRect(j.x + 20, g - 9, 8, 3);
       ctx.fillStyle = 'rgba(101, 163, 13, 0.6)'; ctx.beginPath(); ctx.ellipse(j.x, g - 2, 20, 3, 0, 0, Math.PI * 2); ctx.fill(); // (full of the water)
       break;
     case 'glass':
-      for (let s = 0; s < 14; s++) { ctx.fillStyle = s % 3 ? 'rgba(186, 230, 253, 0.9)' : 'rgba(74, 222, 128, 0.9)'; ctx.fillRect(box.x + hash(j.x + s) * box.w, g - 3 - hash(s * 7) * 4, 4, 3); }
-      if (f % 40 < 20) { ctx.fillStyle = '#F8FAFC'; ctx.fillRect(box.x + 30, g - 6, 2, 2); }
+      for (let s = 0; s < 20; s++) { ctx.fillStyle = s % 3 ? '#BAE6FD' : '#4ADE80'; ctx.beginPath(); const gx = box.x + hash(j.x + s) * box.w, gy = g - 2 - hash(s * 7) * 5; ctx.moveTo(gx, gy); ctx.lineTo(gx + 4, gy - 5); ctx.lineTo(gx + 7, gy); ctx.fill(); }
+      for (let s = 0; s < 3; s++) if ((f + s * 13) % 30 < 12) { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(box.x + 12 + s * 26, g - 9, 2, 6); ctx.fillRect(box.x + 10 + s * 26, g - 7, 6, 2); }
       break;
     case 'car': {
-      // A burned-out car, left on its rims
-      ctx.fillStyle = '#44403C'; ctx.beginPath(); ctx.moveTo(box.x, g - 10); ctx.lineTo(box.x + 4, g - 30); ctx.lineTo(box.x + 34, g - 32); ctx.lineTo(box.x + 48, g - 50); ctx.lineTo(box.x + 104, g - 50); ctx.lineTo(box.x + 118, g - 32); ctx.lineTo(box.x + 138, g - 30); ctx.lineTo(box.x + 140, g - 10); ctx.closePath(); ctx.fill();
+      // A burned-out car, left on its rims (drawn to its box: squat and wide)
+      ctx.save(); ctx.translate(box.x, g); ctx.scale(box.w / 140, box.h / 50); ctx.translate(-box.x, -g);
+      ctx.fillStyle = '#9A3412'; ctx.beginPath(); ctx.moveTo(box.x, g - 10); ctx.lineTo(box.x + 4, g - 30); ctx.lineTo(box.x + 34, g - 32); ctx.lineTo(box.x + 48, g - 50); ctx.lineTo(box.x + 104, g - 50); ctx.lineTo(box.x + 118, g - 32); ctx.lineTo(box.x + 138, g - 30); ctx.lineTo(box.x + 140, g - 10); ctx.closePath(); ctx.fill();
       ctx.fillStyle = '#292524'; ctx.fillRect(box.x + 52, g - 46, 22, 14); ctx.fillRect(box.x + 78, g - 46, 22, 14);
       ctx.fillStyle = '#7C2D12'; ctx.fillRect(box.x + 10, g - 26, 20, 8); ctx.fillRect(box.x + 110, g - 24, 18, 6); // rust
       ctx.fillStyle = '#1C1917'; for (const wx of [26, 114]) { ctx.beginPath(); ctx.arc(box.x + wx, g - 8, 8, 0, Math.PI * 2); ctx.fill(); }
       ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 5px "Press Start 2P"'; ctx.fillText('NO PARTS', box.x + 40, g - 18);
+      ctx.restore();
       break;
     }
     case 'hydrant': {
