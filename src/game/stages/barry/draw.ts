@@ -19,6 +19,7 @@ import { drawPlayer } from '../../render/player/player';
 import { COURSE, Ledge, Prop, placeOf, roomOf } from './course';
 import { getBarry, BarryRuntime, ventState, barkOf } from './runtime';
 import { saying, drawBubble } from './script';
+import { drawSurge, drawSurgeFlash } from './surgeDraw';
 import { lampLevel, blackout } from './lighting';
 import { drawRooms, drawRoomFront } from './rooms';
 import { drawBarryOverlays, drawBarryScreenHud } from './hud';
@@ -89,16 +90,26 @@ const drawSkylineBlackout = (ctx: Ctx, state: GameState) => {
  */
 const drawDistantChaos = (ctx: Ctx, state: GameState) => {
   const f = state.frame;
-  const shift = -(state.camera.x * 0.12) % 140;
+  const off = state.camera.x * 0.12;
+  const shift = -(off % 140), first = Math.trunc(off / 140);
   for (let b = -2; b < 9; b++) {
-    const bx = shift + b * 140, bh = 170 + hash(b * 13 + 7) * 190, top = 470 - bh, lean = b === 3 ? 0.12 : 0;
+    // (each tower is its own, wherever it's scrolled to: its height, its windows, which one leans)
+    const id = b + first;
+    const bx = shift + b * 140, bh = 170 + hash(id * 13 + 7) * 190, top = 470 - bh, lean = hash(id * 5 + 3) < 0.12 ? 0.12 : 0;
     ctx.save(); ctx.translate(bx + 45, 470); ctx.rotate(lean); ctx.translate(-(bx + 45), -470);
     ctx.fillStyle = '#140C0C'; ctx.fillRect(bx, top, 90, bh + 200);
-    for (let wy = top + 10; wy < 470; wy += 16) for (let wx = bx + 8; wx < bx + 84; wx += 14) { const h = hash(wx * 3 + wy + b); if (h < 0.3) { ctx.fillStyle = h < 0.12 ? '#FDE047' : '#F97316'; ctx.fillRect(wx, wy, 6, 8); } }
-    drawFlames(ctx, bx + 5, top + 4, 80, f + b * 21);
+    for (let row = 0; top + 10 + row * 16 < 470; row++) for (let col = 0; col < 6; col++) {
+      const w = id * 97 + row * 11 + col;
+      let h = hash(w * 3.7);
+      // Now and then one goes out, or catches, for a second or so (each on its own slow clock)
+      const period = 70 + hash(w + 0.5) * 150, slot = Math.floor((f + hash(w + 0.25) * period) / period);
+      if (hash(w * 1.3 + slot * 7.1) < 0.12) h = h < 0.3 ? 0.9 : 0.2;
+      if (h < 0.3) { ctx.fillStyle = h < 0.12 ? '#FDE047' : '#F97316'; ctx.fillRect(bx + 8 + col * 14, top + 10 + row * 16, 6, 8); }
+    }
+    drawFlames(ctx, bx + 5, top + 4, 80, f + Math.abs(id) * 21);
     ctx.restore();
     // Smoke going up off it
-    for (let i = 0; i < 4; i++) { const t = ((f * 0.6 + i * 45 + b * 30) % 180) / 180; ctx.fillStyle = `rgba(20, 16, 14, ${0.55 * (1 - t)})`; ctx.beginPath(); ctx.arc(bx + 45 + Math.sin(t * 4 + b) * 20, top - t * 260, 20 + t * 50, 0, Math.PI * 2); ctx.fill(); }
+    for (let i = 0; i < 4; i++) { const t = ((f * 0.6 + i * 45 + id * 30) % 180 + 180) % 180 / 180; ctx.fillStyle = `rgba(20, 16, 14, ${0.55 * (1 - t)})`; ctx.beginPath(); ctx.arc(bx + 45 + Math.sin(t * 4 + id) * 20, top - t * 260, 20 + t * 50, 0, Math.PI * 2); ctx.fill(); }
   }
   // A blast going up somewhere out there now and then
   const bt = f % 150;
@@ -529,6 +540,7 @@ export const drawBarryFront = (ctx: Ctx, state: GameState) => {
   const rt = getBarry(state)!;
   const place = placeOf(state.camera.x + CANVAS_WIDTH / 2);
   if (roomOf(place)) drawRoomFront(ctx, state, rt, place);
+  if (place === 'power') drawSurge(ctx, state, rt.power);
   for (const e of state.enemies) {
     const b = barkOf(rt, e);
     if (b) drawBubble(ctx, e.pos.x + e.width / 2, e.pos.y - 14, b.text, '#F8FAFC');
@@ -545,6 +557,7 @@ export const drawBarryFront = (ctx: Ctx, state: GameState) => {
 export const drawBarryHud = (ctx: Ctx, state: GameState) => {
   const rt = getBarry(state)!;
   drawBarryScreenHud(ctx, state, rt);
+  drawSurgeFlash(ctx, state, rt.power, CANVAS_WIDTH, CANVAS_HEIGHT);
 };
 
 /** Over the lot: the weather outside, then the fades, the elevator, the white-out, the ride down. */

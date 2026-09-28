@@ -16,6 +16,7 @@ import { drawBarryBackdrop, drawBarryBack, drawBarryMid, drawBarryFront, drawBar
 import { drawGenerator } from './rooms';
 import { drawTenantDeath } from '../../render/enemies/barry';
 import { roomZoom } from './lighting';
+import { drawSurgeMinion } from './surgeDraw';
 
 export const barryLayout: StageLayout = {
   left: COURSE.left,
@@ -65,8 +66,9 @@ export const barryLayout: StageLayout = {
   },
   drawSpecialEnemy: (ctx, e, state) => {
     if (e.kind === 'tenant' && (e.aiState === 'fall' || e.aiState === 'splat')) { drawTenantDeath(ctx, e, state.frame); return true; }
-    if (e.kind !== 'generator') return false;
     const rt = getBarry(state);
+    if (e.kind === 'minion' && rt?.power.phase === 'surge') { drawSurgeMinion(ctx, e, state, rt.power); return true; }
+    if (e.kind !== 'generator') return false;
     const g = rt?.power.gens.find(q => q.id === e.id);
     drawGenerator(ctx, e, state, g ? g.charge : 100);
     return true;

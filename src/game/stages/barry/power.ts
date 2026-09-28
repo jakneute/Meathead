@@ -14,10 +14,11 @@ import { makeKindEnemy } from '../../enemies/kinds';
 import { shakeScreen } from '../../core/state';
 import { playSound } from '../../platform/audio';
 import { COURSE } from './course';
+import { killPlayer } from '../../player/player';
 import { Talk, queueLines, replaceLines, quiet, hush } from './script';
 
 export interface PowerRoom {
-  phase: 'waiting' | 'fight' | 'meltdown' | 'done';
+  phase: 'waiting' | 'fight' | 'meltdown' | 'done' | 'surge';
   t: number;
   /** How many generators he's put out. */
   gone: number;
@@ -32,6 +33,12 @@ export interface PowerRoom {
   /** When he last had a dig at you; how many of them he's told you about. */
   tauntAt: number;
   told: number;
+  /** The wave he set off in here: where it's got to in SURGE, and how long it's been there. */
+  beat: number;
+  beatT: number;
+  /** Where the water came in from (his side), and when. */
+  floodX: number;
+  surgeT: number;
 }
 
 /** The generators soak up about 10 a second of whatever you throw at them (100 each): ~10 seconds apiece. */
@@ -71,7 +78,7 @@ const FALLOUT = [
   ],
 ] as const;
 
-export const createPower = (): PowerRoom => ({ phase: 'waiting', t: 0, gone: 0, gens: [], minion: null, meltT: 0, white: 0, whiteAt: -1, tauntAt: 0, told: 0 });
+export const createPower = (): PowerRoom => ({ phase: 'waiting', t: 0, gone: 0, gens: [], minion: null, meltT: 0, white: 0, whiteAt: -1, tauntAt: 0, told: 0, beat: 0, beatT: 0, floodX: 0, surgeT: 0 });
 
 /** Into the room: the generators and him. */
 export const enterPower = (ctx: FrameContext, pw: PowerRoom, talk: Talk) => {
@@ -134,6 +141,19 @@ export const updateMinion = (ctx: FrameContext, m: Enemy, pw: PowerRoom): boolea
   const p = state.player;
   m.health = GEN_HP; m.isBlownAway = false; m.frozenTimer = 0; m.pauseTimer = 0; m.isOnFire = false; m.isOiled = false;
   m.aiTimer = (m.aiTimer || 0) + 1;
+  if (pw.phase === 'surge') {
+    // Straight over to tell him off while the water spreads (then stuck there, with it going through him, hands
+    // to his head while it does)
+    const px = p.pos.x + p.width / 2, mx = m.pos.x + m.width / 2;
+    const side = mx >= px ? 1 : -1;
+    const want = Math.max(r.x1 + 40, Math.min(r.x2 - 40, px + side * 90));
+    m.vel.x = pw.beat === 0 && Math.abs(want - mx) > 6 ? Math.sign(want - mx) * 5 : 0;
+    m.pos.x += m.vel.x;
+    m.facing = side === 1 ? -1 : 1;
+    m.pos.y = r.floor - m.height;
+    m.aiState = surgeZap(pw) > 0 ? 'panic' : 'stiff';
+    return true;
+  }
   if (pw.phase === 'meltdown' || m.aiState === 'panic') {
     // Running up and down, hands on his head
     m.aiState = 'panic';
@@ -157,6 +177,8 @@ export const updatePower = (ctx: FrameContext, pw: PowerRoom, talk: Talk, contro
   const { state, fx } = ctx;
   const r = COURSE.power;
   pw.t++;
+  if (pw.phase === 'fight' && state.tsunamiActive) startSurge(ctx, pw, talk);
+  if (pw.phase === 'surge') return updateSurge(ctx, pw, talk);
   if (pw.phase === 'fight') {
     // Each one down: his panic, what it did
     if (pw.told < pw.gone) {
@@ -191,4 +213,86 @@ export const updatePower = (ctx: FrameContext, pw: PowerRoom, talk: Talk, contro
     return pw.meltT > 90 ? { ...NO_CONTROLS } : controls;
   }
   return controls;
+};
+
+// ---------------------------------------------------------------------------
+// A wave in the power room: the floor's under water, the water's live, and it
+// goes through the both of them. Twice. Then that's the both of them done.
+// ---------------------------------------------------------------------------
+
+/**
+ * The beats: how long each lasts at least (it waits for what's being said), how hard it's going through them
+ * (0 not, 1, 2 worse), and what's said as it starts. `fall` is who keels over at the end of it.
+ */
+export const SURGE: { min: number; zap: number; lines: { who: 'minion' | 'meathead'; text: string }[]; fall?: 'minion' | 'meathead' }[] = [
+  { min: 50, zap: 0, lines: [{ who: 'minion', text: 'DID YOU JUST... THROW WATER. IN THE POWER ROOM.' }] },
+  { min: 110, zap: 1, lines: [{ who: 'minion', text: 'AAAAAAAAAAAAAAAAH!' }, { who: 'meathead', text: 'AAAAAAAAAAAAH!' }] },
+  { min: 80, zap: 0, lines: [{ who: 'minion', text: '...IS IT OVER?' }, { who: 'meathead', text: "I THINK IT'S OVER." }] },
+  { min: 130, zap: 2, lines: [{ who: 'minion', text: "IT'S NOT OVER! IT'S NOT OVER!" }, { who: 'meathead', text: 'I CAN TASTE COLORS!' }, { who: 'minion', text: 'I CAN SEE MY GRANDMA! SHE SAYS I SHOULD HAVE BEEN A DENTIST!' }] },
+  { min: 70, zap: 0, lines: [{ who: 'minion', text: 'TELL BARRY... I QUIT.' }], fall: 'minion' },
+  { min: 70, zap: 0, lines: [{ who: 'meathead', text: 'WORTH IT.' }], fall: 'meathead' },
+  { min: 70, zap: 0, lines: [] },
+];
+/** How long a beat can wait on its lines at most (a voice that never finishes doesn't hang it). */
+const SURGE_WAIT = 420;
+/** How long the water takes to cover the floor. */
+export const FLOOD_FRAMES = 40;
+
+/** How hard it's going through them right now (0 none). */
+export const surgeZap = (pw: PowerRoom) => (pw.phase === 'surge' ? SURGE[Math.min(pw.beat, SURGE.length - 1)].zap : 0);
+/** How far through keeling over each of them is (0 up, 1 flat). */
+export const surgeFall = (pw: PowerRoom, who: 'minion' | 'meathead') => {
+  if (pw.phase !== 'surge') return 0;
+  const i = SURGE.findIndex(b => b.fall === who);
+  if (pw.beat < i) return 0;
+  if (pw.beat > i) return 1;
+  // (over once the line's said: a stiff plank going over, a bounce)
+  const k = Math.max(0, (pw.beatT - (SURGE[i].min - 24)) / 24);
+  return Math.min(1, k * k);
+};
+/** Cooked: after the second one's been through them. */
+export const surgeCooked = (pw: PowerRoom) => pw.phase === 'surge' && pw.beat >= 4 ? 1 : pw.phase === 'surge' && pw.beat >= 2 ? 0.5 : 0;
+
+const startSurge = (ctx: FrameContext, pw: PowerRoom, talk: Talk) => {
+  const { state } = ctx;
+  const p = state.player;
+  // (the wave's his: it's the water on the floor now, and nothing else)
+  state.tsunamiActive = false;
+  pw.phase = 'surge'; pw.beat = 0; pw.beatT = 0; pw.surgeT = 0;
+  pw.floodX = p.pos.x + p.width / 2;
+  hush(state, talk);
+  replaceLines(state, talk, SURGE[0].lines.map(l => ({ ...l })), 20);
+  p.vel = { x: 0, y: 0 };
+  playSound('tsunami');
+};
+
+const updateSurge = (ctx: FrameContext, pw: PowerRoom, talk: Talk): Controls => {
+  const { state, fx } = ctx;
+  const p = state.player;
+  const r = COURSE.power;
+  pw.surgeT++; pw.beatT++;
+  p.vel.x = 0;
+  const b = SURGE[pw.beat];
+  if (b && pw.beatT >= b.min && ((!talk.current && !talk.queue.length) || pw.beatT > b.min + SURGE_WAIT)) {
+    pw.beat++; pw.beatT = 0;
+    const next = SURGE[pw.beat];
+    if (next) replaceLines(state, talk, next.lines.map(l => ({ ...l })), 6);
+    else { hush(state, talk); p.health = 0; killPlayer(ctx, 'ELECTROCUTED! WATER AND A POWER PLANT: NOT A COMBO', false); }
+  }
+  const zap = surgeZap(pw);
+  if (zap > 0) {
+    // Crackling, the room flickering, sparks off the generators and off the both of them
+    if (pw.surgeT % (zap > 1 ? 6 : 10) === 0) playSound('taser');
+    if (pw.beatT === 1) { playSound('screams'); shakeScreen(state, 20, zap * 5); }
+    if (pw.surgeT % 3 === 0) {
+      const who = [p.pos.x + p.width / 2, pw.minion ? pw.minion.pos.x + pw.minion.width / 2 : p.pos.x, ...COURSE.generators];
+      const x = who[Math.floor(Math.random() * who.length)];
+      state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 30, y: r.floor - 10 - Math.random() * 70 }, vel: { x: (Math.random() - 0.5) * 7, y: -Math.random() * 6 }, life: 14, color: Math.random() < 0.5 ? '#E0FFFF' : '#FDE047', size: 2 + Math.random() * 2 });
+    }
+    if (zap > 1 && pw.surgeT % 25 === 0) for (const gx of COURSE.generators) fx.spawnExplosion({ x: gx, y: r.floor - 60 }, '#7DD3FC', 10, 0, 14);
+  } else if (surgeCooked(pw) > 0 && pw.surgeT % 7 === 0) {
+    // Smoking gently
+    for (const x of [p.pos.x + p.width / 2, pw.minion ? pw.minion.pos.x + pw.minion.width / 2 : p.pos.x]) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 16, y: r.floor - 70 }, vel: { x: (Math.random() - 0.5) * 0.6, y: -1.2 }, life: 50, color: '#57534E', size: 5 + Math.random() * 5 });
+  }
+  return { ...NO_CONTROLS };
 };

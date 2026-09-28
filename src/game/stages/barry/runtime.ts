@@ -128,6 +128,8 @@ export const updateBarry = (ctx: FrameContext, controls: Controls): Controls => 
     case 'power': {
       if (rt.power.phase === 'waiting') enterPower(ctx, rt.power, rt.talk);
       controls = updatePower(ctx, rt.power, rt.talk, controls);
+      // (in the water with it going through him, the stage draws him)
+      p.hidden = rt.power.phase === 'surge';
       if (rt.power.phase === 'done') startSurf(state, rt);
       break;
     }
