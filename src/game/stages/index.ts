@@ -12,6 +12,7 @@ import { hectorLayout } from './hector';
 import { victorLayout } from './victor';
 import { ernieLayout } from './ernie';
 import { daleLayout } from './dale';
+import { barryLayout } from './barry';
 
 export interface StageLayout {
   /** Left edge of the stage's world. */
@@ -77,6 +78,7 @@ const LAYOUTS: Record<string, StageLayout> = {
   'Victor Volcano': victorLayout,
   'Ernie Earthquake': ernieLayout,
   'Drug Trade Dale': daleLayout,
+  'Blackout Barry': barryLayout,
 };
 
 export const getStageLayout = (stageId: string | null): StageLayout | undefined => (stageId ? LAYOUTS[stageId] : undefined);

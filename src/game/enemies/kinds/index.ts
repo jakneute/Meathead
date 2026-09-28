@@ -73,6 +73,28 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   coyote: { w: 54, h: 34, hp: 70, contact: 10 },
   junkie: { w: 56, h: 92, hp: 1300, contact: 6 },
   visitor: { w: 34, h: 62, hp: 1, contact: 0 },
+  // Barry's stage
+  pimp: { w: 40, h: 66, hp: 120, contact: 6 },
+  hooker: { w: 36, h: 66, hp: 130, contact: 11 },
+  mugger: { w: 40, h: 64, hp: 140, contact: 12 },
+  bum: { w: 58, h: 64, hp: 170, contact: 7 },
+  rat: { w: 30, h: 14, hp: 30, contact: 6 },
+  guard: { w: 42, h: 66, hp: 130, contact: 6 },
+  commuter: { w: 44, h: 66, hp: 210, contact: 12 },
+  reader: { w: 50, h: 66, hp: 160, contact: 7 },
+  exec: { w: 40, h: 66, hp: 120, contact: 6 },
+  intern: { w: 38, h: 62, hp: 180, contact: 11 },
+  hr: { w: 56, h: 68, hp: 170, contact: 7 },
+  exterminator: { w: 42, h: 66, hp: 130, contact: 6 },
+  janitor: { w: 44, h: 68, hp: 220, contact: 12 },
+  custodian: { w: 54, h: 66, hp: 170, contact: 7 },
+  labtech: { w: 40, h: 64, hp: 130, contact: 6 },
+  subject: { w: 56, h: 78, hp: 260, contact: 14 },
+  scientist: { w: 56, h: 68, hp: 180, contact: 7 },
+  // (a tenant's only ever his top half, out of his window; the minion's harmless; a generator's a big box)
+  tenant: { w: 40, h: 44, hp: 60, contact: 0 },
+  minion: { w: 36, h: 62, hp: 1, contact: 0 },
+  generator: { w: 120, h: 150, hp: 100, contact: 0 },
 };
 
 /**
@@ -81,10 +103,11 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
  */
 export const isSmallCritter = (kind?: EnemyKind) =>
   kind === 'wolverine' || kind === 'salamander' || kind === 'raccoon' || kind === 'crab' || kind === 'iguana' || kind === 'magmafish'
-  || kind === 'rattlesnake' || kind === 'scorpion';
+  || kind === 'rattlesnake' || kind === 'scorpion' || kind === 'rat';
 
 /** The ones that run you down like the rusher. */
-export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind === 'bouncer' || kind === 'smokejumper' || kind === 'courier' || kind === 'enforcer';
+export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind === 'bouncer' || kind === 'smokejumper' || kind === 'courier' || kind === 'enforcer'
+  || kind === 'hooker' || kind === 'mugger' || kind === 'commuter' || kind === 'intern' || kind === 'janitor' || kind === 'subject';
 
 let spawnCount = 0;
 
@@ -129,6 +152,13 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     case 'cardoor': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
     // Tourists in the old west town: the same as the beachgoers
     case 'visitor': return { ...base, harmless: true, innocent: true };
+    // Barry's New Yorkers: somebody with a gun, somebody who comes at you, somebody behind something throwing things
+    case 'pimp': case 'guard': case 'exec': case 'exterminator': case 'labtech': return { ...base, behavior: 'shoot', shootTimer: Math.floor(Math.random() * 40) };
+    case 'hooker': case 'mugger': case 'commuter': case 'intern': case 'janitor': case 'subject': return { ...base, behavior: 'patrol', pauseTimer: 0 };
+    case 'bum': case 'reader': case 'hr': case 'custodian': case 'scientist': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
+    // (the stage runs these itself)
+    case 'minion': return { ...base, harmless: true };
+    case 'tenant': case 'generator': return { ...base, harmless: true };
     default: return base;
   }
 };
@@ -156,6 +186,8 @@ export const runKindAI = (ctx: FrameContext, e: Enemy): boolean => {
     case 'coyote': wolverine(ctx, e); return false;
     case 'scorpion': case 'visitor': return runHectorKindAI(ctx, e);
     case 'rattlesnake': return runDaleKindAI(ctx, e);
+    // Barry's rats scurry and lunge like the wolverine
+    case 'rat': wolverine(ctx, e); return false;
     default: return false;
   }
 };

@@ -127,6 +127,12 @@ const SMASH: Record<NonNullable<Projectile['thrown']>, { bits: string[]; spill?:
   ice: { bits: ['#E0F2FE', '#BAE6FD', '#FFFFFF', '#7DD3FC'], count: 14 },
   rock: { bits: ['#44403C', '#F97316', '#FDE047', '#57534E', '#EA580C'], count: 16 },
   teargas: { bits: ['#374151', '#65A30D'], count: 4 },
+  forty: { bits: ['#78350F', '#A16207', '#C8A26B', '#D6B98C', '#F8FAFC'], spill: 'rgba(250, 204, 21, 0.6)', count: 14 },
+  coffee: { bits: ['#F8FAFC', '#E5E7EB', '#15803D'], spill: 'rgba(107, 63, 29, 0.85)', count: 8 },
+  stapler: { bits: ['#111827', '#DC2626', '#9CA3AF'], count: 6 },
+  cleaner: { bits: ['#2563EB', '#F8FAFC', '#FACC15'], spill: 'rgba(96, 165, 250, 0.8)', count: 8 },
+  flask: { bits: ['#E0F2FE', '#F8FAFC', '#BEF264'], spill: 'rgba(132, 204, 22, 0.85)', count: 12 },
+  household: { bits: ['#9CA3AF', '#78716C', '#E5E7EB', '#7C2D12'], count: 10 },
 };
 
 const smashThrown = (ctx: FrameContext, p: Projectile) => {
@@ -137,8 +143,10 @@ const smashThrown = (ctx: FrameContext, p: Projectile) => {
   if (s.spill) for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: cx, y: cy }, vel: { x: (Math.random() - 0.5) * 3, y: -Math.random() * 2 }, life: 18, color: s.spill, size: 3 + Math.random() * 3 });
   // (the tear gas: a cloud of it, hanging there a moment)
   if (p.thrown === 'teargas') for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * 30, y: cy - Math.random() * 20 }, vel: { x: (Math.random() - 0.5) * 1.6, y: -0.3 - Math.random() * 0.6 }, life: 60 + Math.random() * 40, color: i % 2 ? 'rgba(203, 213, 180, 0.55)' : 'rgba(226, 232, 216, 0.5)', size: 10 + Math.random() * 12 });
-  if (p.thrown === 'tequila') playGlassShatterSound();
-  else playSound(p.thrown === 'rock' ? 'ignite' : p.thrown === 'teargas' ? 'oil' : p.thrown === 'water' ? 'barf' : 'ice');
+  // (the flask: a puff of whatever was in it)
+  if (p.thrown === 'flask') for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * 20, y: cy - Math.random() * 10 }, vel: { x: (Math.random() - 0.5) * 1.2, y: -0.4 - Math.random() * 0.5 }, life: 40 + Math.random() * 30, color: 'rgba(163, 230, 53, 0.45)', size: 8 + Math.random() * 8 });
+  if (p.thrown === 'tequila' || p.thrown === 'forty' || p.thrown === 'flask') playGlassShatterSound();
+  else playSound(p.thrown === 'rock' ? 'ignite' : p.thrown === 'teargas' ? 'oil' : p.thrown === 'water' || p.thrown === 'coffee' || p.thrown === 'cleaner' ? 'barf' : p.thrown === 'stapler' ? 'dart' : 'ice');
 };
 
 const updateOilRocket = (ctx: FrameContext, p: Projectile): boolean => {

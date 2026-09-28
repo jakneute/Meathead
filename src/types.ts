@@ -155,9 +155,9 @@ export type BossState =
 
 /** Themed enemies: Artie's wildlife and goons. */
 /** What the shield goons throw. */
-export type ThrownKind = 'tequila' | 'water' | 'coconut' | 'ice' | 'rock' | 'teargas';
+export type ThrownKind = 'tequila' | 'water' | 'coconut' | 'ice' | 'rock' | 'teargas' | 'forty' | 'coffee' | 'stapler' | 'cleaner' | 'flask' | 'household';
 /** What the gun goons fire. */
-export type ShotLook = 'slug' | 'cryo' | 'flare';
+export type ShotLook = 'slug' | 'cryo' | 'flare' | 'spray' | 'zap';
 
 export type EnemyKind =
   // Artie's stage
@@ -170,7 +170,11 @@ export type EnemyKind =
   | 'techbro' | 'courier' | 'protester' | 'raccoon' | 'seagull' | 'drone' | 'jetskier' | 'burning'
   // Dale's stage: the cartel's sicarios, enforcers and car-door men, the desert's wildlife, his distributor
   // (the tweaker upstairs in the warehouse office), and the tourists in the old west town
-  | 'sicario' | 'enforcer' | 'cardoor' | 'rattlesnake' | 'scorpion' | 'coyote' | 'junkie' | 'visitor';
+  | 'sicario' | 'enforcer' | 'cardoor' | 'rattlesnake' | 'scorpion' | 'coyote' | 'junkie' | 'visitor'
+  // Barry's stage: New York. The street (pimps, hookers, muggers, bums, rats), the skyscraper floor by floor (the
+  // lobby, the office, maintenance, the lab), the tenants in their windows, his man in the power room and its generators
+  | 'pimp' | 'hooker' | 'mugger' | 'bum' | 'rat' | 'guard' | 'commuter' | 'reader' | 'exec' | 'intern' | 'hr'
+  | 'exterminator' | 'janitor' | 'custodian' | 'labtech' | 'subject' | 'scientist' | 'tenant' | 'minion' | 'generator';
 
 export interface Enemy extends Entity {
   /** Which of Meathead's moves last hit it (see Player.moveId). */
@@ -343,6 +347,8 @@ export interface Projectile extends Entity {
   isPoop?: boolean;
   /** Something a shield goon's lobbed (a bottle, a coconut, a chunk of ice...): it arcs, and smashes on whatever it hits. */
   thrown?: ThrownKind;
+  /** Which household item it is (a tenant's throw: a pot, a toaster, a shoe, a potted plant, a phone). */
+  item?: number;
   /** What a gun goon's shot looks like (a slug, a frost bolt, a flare). */
   shot?: ShotLook;
   isDart?: boolean;

@@ -83,6 +83,49 @@ export const drawThrown = (ctx: CanvasRenderingContext2D, p: Projectile, frame: 
       ctx.fillStyle = '#9CA3AF'; ctx.fillRect(-3, -9, 6, 2);
       ctx.fillStyle = 'rgba(226, 232, 216, 0.8)'; ctx.beginPath(); ctx.arc(0, -11, 3 + (frame % 6) * 0.4, 0, Math.PI * 2); ctx.fill(); // hissing out the top
       break;
+    case 'forty':
+      // A forty in a paper bag, the neck sticking out of it
+      ctx.fillStyle = '#78350F'; ctx.fillRect(-2, -12, 4, 6);
+      ctx.fillStyle = '#FACC15'; ctx.fillRect(-2, -13, 4, 2);
+      ctx.fillStyle = '#C8A26B'; ctx.beginPath(); ctx.moveTo(-6, -6); ctx.lineTo(6, -6); ctx.lineTo(5, 10); ctx.lineTo(-5, 10); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#A07F4F'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-6, -6); ctx.lineTo(-3, -3); ctx.lineTo(0, -6); ctx.lineTo(3, -3); ctx.lineTo(6, -6); ctx.stroke();
+      break;
+    case 'coffee':
+      // A paper cup of it, lid on, steaming, the green logo (not that one)
+      ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.moveTo(-5, -5); ctx.lineTo(5, -5); ctx.lineTo(4, 7); ctx.lineTo(-4, 7); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-6, -7, 12, 3);
+      ctx.fillStyle = '#15803D'; ctx.beginPath(); ctx.arc(0, 1, 2.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#A16207'; ctx.fillRect(-4, 3, 8, 2); // the sleeve
+      break;
+    case 'stapler':
+      ctx.fillStyle = '#111827'; ctx.fillRect(-8, -1, 16, 4);
+      ctx.fillStyle = '#DC2626'; ctx.beginPath(); ctx.moveTo(-8, -1); ctx.lineTo(7, -4); ctx.lineTo(8, -1); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(-8, 2, 16, 1);
+      break;
+    case 'cleaner':
+      // A spray bottle: blue, the trigger, the nozzle
+      ctx.fillStyle = '#2563EB'; ctx.beginPath(); ctx.roundRect(-5, -2, 10, 12, 2); ctx.fill();
+      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-3, -8, 6, 6); ctx.fillRect(3, -8, 4, 2);
+      ctx.fillStyle = '#FACC15'; ctx.fillRect(-4, 2, 8, 4);
+      break;
+    case 'flask': {
+      // A round-bottomed flask, something green and bubbling in it
+      ctx.fillStyle = 'rgba(224, 242, 254, 0.7)'; ctx.fillRect(-2, -9, 4, 6);
+      ctx.beginPath(); ctx.arc(0, 3, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#84CC16'; ctx.beginPath(); ctx.arc(0, 4, 5, 0, Math.PI); ctx.fill(); ctx.fillRect(-5, 2, 10, 3);
+      ctx.fillStyle = '#ECFCCB'; for (let k = 0; k < 2; k++) { ctx.beginPath(); ctx.arc(-2 + k * 3, 3 - ((frame + k * 4) % 8) * 0.5, 1, 0, Math.PI * 2); ctx.fill(); }
+      break;
+    }
+    case 'household':
+      // Whatever was to hand: a pot, a toaster, a shoe, a potted plant, a phone
+      switch ((p.item ?? 0) % 5) {
+        case 0: ctx.fillStyle = '#6B7280'; ctx.fillRect(-7, -4, 12, 9); ctx.fillRect(5, -3, 6, 2); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(-7, -5, 12, 2); break;
+        case 1: ctx.fillStyle = '#D1D5DB'; ctx.beginPath(); ctx.roundRect(-8, -5, 16, 11, 3); ctx.fill(); ctx.fillStyle = '#374151'; ctx.fillRect(-5, -6, 3, 3); ctx.fillRect(1, -6, 3, 3); ctx.fillStyle = '#111827'; ctx.fillRect(8, -1, 2, 3); break;
+        case 2: ctx.fillStyle = '#7C2D12'; ctx.beginPath(); ctx.moveTo(-8, 3); ctx.lineTo(-8, -5); ctx.lineTo(-3, -5); ctx.lineTo(-2, 0); ctx.lineTo(8, 1); ctx.lineTo(8, 4); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#1C1917'; ctx.fillRect(-8, 4, 16, 2); break;
+        case 3: ctx.fillStyle = '#C2410C'; ctx.beginPath(); ctx.moveTo(-6, 0); ctx.lineTo(6, 0); ctx.lineTo(4, 8); ctx.lineTo(-4, 8); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#15803D'; for (const a of [-1, 0, 1]) { ctx.beginPath(); ctx.ellipse(a * 4, -4, 2.5, 5, a * 0.5, 0, Math.PI * 2); ctx.fill(); } break;
+        default: ctx.fillStyle = '#F5F5F4'; ctx.fillRect(-7, -4, 14, 9); ctx.fillStyle = '#1C1917'; ctx.fillRect(-8, -7, 16, 3); ctx.fillStyle = '#9CA3AF'; for (let k = 0; k < 3; k++) ctx.fillRect(-4 + k * 3, -1, 2, 2); break;
+      }
+      break;
   }
   ctx.restore();
 };
@@ -137,6 +180,18 @@ const drawGunShot = (ctx: CanvasRenderingContext2D, p: Projectile, frame: number
     ctx.fillStyle = '#7DD3FC'; ctx.beginPath(); ctx.ellipse(0, 0, 7, 4, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#F0F9FF'; ctx.beginPath(); ctx.ellipse(1, 0, 3.5, 2, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#FFFFFF'; for (let k = 0; k < 3; k++) { const t = ((frame + k * 5) % 15) / 15; ctx.fillRect(-4 - t * 16, (k - 1) * 4 + Math.sin(frame * 0.3 + k) * 2, 2, 2); }
+  } else if (p.shot === 'spray') {
+    // A cloud of bug spray: a puff of yellow-green mist, spreading as it goes
+    const age = Math.min(1, ((frame * 7 + seedOf(p.id)) % 60) / 60);
+    for (let k = 0; k < 4; k++) { ctx.fillStyle = `rgba(190, 242, 100, ${0.35 - k * 0.06})`; ctx.beginPath(); ctx.arc(-k * 5, Math.sin(frame * 0.4 + k) * 2, 5 + k * 2 + age * 2, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = 'rgba(236, 252, 203, 0.6)'; ctx.beginPath(); ctx.arc(1, 0, 3, 0, Math.PI * 2); ctx.fill();
+  } else if (p.shot === 'zap') {
+    // A ray gun's zap: a crackling green bolt
+    ctx.strokeStyle = 'rgba(163, 230, 53, 0.5)'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(-18, 0); ctx.lineTo(4, 0); ctx.stroke();
+    ctx.strokeStyle = '#D9F99D'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-18, 0);
+    for (let k = 1; k <= 5; k++) ctx.lineTo(-18 + k * 4.4, (((frame + k * 3) % 5) - 2) * 1.6);
+    ctx.stroke();
+    ctx.fillStyle = '#F7FEE7'; ctx.beginPath(); ctx.arc(4, 0, 3, 0, Math.PI * 2); ctx.fill();
   } else {
     // A flare: a blinding red-orange ball throwing sparks and a trail of smoke
     const flick = 0.8 + Math.sin(frame * 0.9) * 0.2;
