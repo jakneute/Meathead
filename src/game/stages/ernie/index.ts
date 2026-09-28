@@ -11,11 +11,13 @@ import { quakeDeathMessage } from './quake';
 import { onBridge } from './bridge';
 import { skiDeathMessage, isRiding } from './jetski';
 import { drawErnieBackdrop, drawErnieBack, drawErnieMid, drawErnieFront, drawErnieHud, drawErnieWeather } from './draw';
+import { ernieScene } from './lighting';
 
 export const ernieLayout: StageLayout = {
   left: COURSE.left,
   startX: COURSE.startX,
   verticalCamera: true,
+  lighting: state => ernieScene(state),
   // (back far enough that what's left of the tour is in view when you come back from dying to Ernie)
   bossStartX: COURSE.cellblock.x1 + 150,
   build: (state, skipToBoss) => {

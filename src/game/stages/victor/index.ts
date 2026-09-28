@@ -11,11 +11,13 @@ import { updateDoorman, hitDoorman } from './doorman';
 import { drawDoorman } from './doormanDraw';
 import { hazardDeathMessage } from './hazards';
 import { drawVictorBackdrop, drawVictorBack, drawVictorMid, drawVictorFront, drawVictorHud } from './draw';
+import { victorScene } from './lighting';
 
 export const victorLayout: StageLayout = {
   left: COURSE.left,
   startX: COURSE.startX,
   verticalCamera: true,
+  lighting: state => victorScene(state),
   // (back far enough that the wrecked lounge is in view when you come back from dying to Victor)
   bossStartX: COURSE.lounge.x1 + 150,
   build: (state, skipToBoss) => {

@@ -10,11 +10,13 @@ import { drawArtieBack, drawArtieMid, drawArtieFront, drawArtieHud } from './dra
 import { updateMoose, hitMoose } from './moose';
 import { drawMoose } from './mooseDraw';
 import { skiDeathMessage } from './ski';
+import { artieScene } from './lighting';
 
 export const artieLayout: StageLayout = {
   left: COURSE.left,
   startX: COURSE.startX,
   verticalCamera: true,
+  lighting: state => artieScene(state),
   build: (state, skipToBoss) => {
     const C = COURSE;
     // The ground line (for blood and sparks) runs on through the boss arena; its collision is already there

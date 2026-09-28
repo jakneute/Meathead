@@ -13,6 +13,7 @@ import { drawHectorBack, drawHectorMid, drawHectorFront, drawHectorHud, drawHect
 import { drawEye } from './eyeDraw';
 import { drawSharksRound } from './drawSet';
 import { TOWER } from './tower';
+import { hectorScene } from './lighting';
 
 export const hectorLayout: StageLayout = {
   left: COURSE.left,
@@ -20,6 +21,7 @@ export const hectorLayout: StageLayout = {
   // (back far enough that the wrecked daycare's in view when you come back from dying to Hector)
   bossStartX: COURSE.daycare.building - 250,
   verticalCamera: true,
+  lighting: state => hectorScene(state),
   build: (state, skipToBoss) => {
     const C = COURSE;
     state.groundRuns = [...C.runs, { x1: BOSS_DOOR_X, y1: GROUND_Y, x2: STAGE_WIDTH, y2: GROUND_Y }];

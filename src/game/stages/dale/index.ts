@@ -14,11 +14,13 @@ import { jailWall } from './town';
 import { HIGHWAY_CAM_Y } from './convoy';
 import { drawDaleBackdrop, drawDaleBack, drawDaleMid, drawDaleFront, drawDaleHud, drawDaleWeather } from './draw';
 import { drawJunkie } from './junkieDraw';
+import { daleScene } from './lighting';
 
 export const daleLayout: StageLayout = {
   left: COURSE.left,
   startX: COURSE.startX,
   verticalCamera: true,
+  lighting: state => daleScene(state),
   // (back after dying to Dale: in the rubble of the jail, the camera held short of his door till you go through it)
   bossStartX: COURSE.town.jail.x1 - 60,
   build: (state, skipToBoss) => {

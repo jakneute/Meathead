@@ -84,7 +84,7 @@ export const dynamicLights = (state: GameState): Light[] => {
   let n = 0;
   const cells = new Set<string>();
   for (const q of state.particles) {
-    if (n >= 28 || q.size < 4 || q.isSplat || q.isStuck) continue;
+    if (n >= 28 || q.size < 4 || q.isSplat || q.isStuck || q.isWater || q.isGlass || q.isBossGore) continue;
     const c = glowOf(q.color);
     if (!c || !view(q.pos.x, q.pos.y)) continue;
     const cell = `${Math.floor(q.pos.x / 60)},${Math.floor(q.pos.y / 60)}`;
