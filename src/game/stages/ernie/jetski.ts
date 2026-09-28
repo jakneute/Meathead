@@ -233,6 +233,14 @@ const riding = (ctx: FrameContext, js: JetSki, controls: Controls): Controls => 
   if (!p.skiing) mount(state);
   p.currentWeapon = 'GUN';
   // The pace: gun it, ease off (and turn round to shoot back), or cruise
+  // Once the ramp's in sight it's out of his hands: straight at it, cruising, nothing he can do to boost or hop past it
+  if (js.rampX) {
+    controls = { ...NO_CONTROLS };
+    p.isCharging = false; p.isUppercutting = false; p.isDivekicking = false;
+    p.facing = 1;
+    // (and nothing gets to pick him off while he's helpless)
+    p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
+  }
   p.skiSpeed = controls.right ? SKI_FAST : controls.left ? SKI_SLOW : SKI_BASE;
   // Everything in the air goes along with him (they're chasing him; the AI works out where to be from where he is)
   for (const e of state.enemies) {
