@@ -435,6 +435,18 @@ const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, we
   );
 };
 
+/** What the face-off's fight button says: Meathead's answer to each boss's taunt. */
+const FIGHT_BUTTON: Record<string, string> = {
+  'Artie Avalanche': 'MELT, YOU FROSTY FUCK',
+  'Victor Volcano': 'ERUPT THIS, ASSHOLE',
+  'Ernie Earthquake': 'SHAKE THIS, SHITHEAD',
+  'Hector Hurricane': 'BLOW ME, WINDBAG',
+  'Toxic Tommy': 'EAT SHIT, SLUDGE BOY',
+  'Blackout Barry': 'LIGHTS OUT, FUCKFACE',
+  'Oily Oscar': 'GET DRILLED, GREASEBALL',
+  'Drug Trade Dale': 'JUST SAY FUCK YOU',
+};
+
 /**
  * The face-off as you walk into a boss's arena: a hazard-striped warning bar,
  * the boss's live portrait, his name and hometown, and his taunt in a speech
@@ -494,7 +506,7 @@ const BossIntroScreen: React.FC<OverlayProps> = ({ bossTaunt, isInputLocked, onS
       {/* Fight */}
       <div className="flex justify-center mt-3">
         <button disabled={isInputLocked} onClick={onStart} className={`px-10 py-3 text-lg font-black uppercase italic tracking-wider -skew-x-6 border-4 transition-all ${isInputLocked ? 'bg-zinc-800 border-zinc-700 text-zinc-500' : 'bg-red-600 hover:bg-red-500 border-black text-white shadow-[5px_5px_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none mh-engage-btn'}`}>
-          {isInputLocked ? 'LISTENING...' : 'STFU AND DIE'}
+          {isInputLocked ? 'LISTENING...' : (stageId && FIGHT_BUTTON[stageId]) || 'STFU AND DIE'}
         </button>
       </div>
     </div>
