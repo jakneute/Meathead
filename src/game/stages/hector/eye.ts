@@ -200,7 +200,14 @@ const updateJunk = (ctx: FrameContext, f: EyeFight) => {
     const shot = state.projectiles.find(p => p.owner === 'player' && p.health > 0 && rectsOverlap(box, { x: p.pos.x, y: p.pos.y, w: p.width, h: p.height }));
     if (shot) {
       if (!shot.isTsunami && !shot.isBoulder) shot.health = 0;
-      ctx.fx.spawnExplosion({ x: j.x, y: j.y }, '#A8A29E', 10, 0, 6);
+      if (j.look === 'cow') {
+        // Shoot the flying cow and it goes off like a bomb full of beef
+        ctx.fx.spawnDeathShower({ x: j.x, y: j.y }, Math.sign(j.vx), 3.5, true, 120);
+        for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: j.x, y: j.y }, vel: { x: (Math.random() - 0.5) * 16, y: -3 - Math.random() * 9 }, life: 50 + Math.random() * 30, color: i % 3 ? '#F8FAFC' : '#111827', size: 6 + Math.random() * 7 });
+        ctx.fx.spawnDamageNumber({ x: j.x - 50, y: j.y - 60 }, 'MOO-SPLOSION!', true, '#EF4444');
+        shakeScreen(state, 14, 7);
+        playSound('barf');
+      } else ctx.fx.spawnExplosion({ x: j.x, y: j.y }, '#A8A29E', 10, 0, 6);
       return false;
     }
     return j.x > a.x - 150 && j.x < a.x + 950;
