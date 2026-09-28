@@ -411,3 +411,13 @@ export const PARTICLE_PALETTES = {
   SLUDGE: ['#1B5E20', '#2E7D32', '#43A047', '#66BB6A', '#004D40'],
   OIL: ['#212121', '#3E2723', '#000000', '#4E342E', '#37474F']
 };
+
+/**
+ * How each stage opens. 'skyfall': he drops out of the sky (through the clouds the
+ * deploy transition from target select ends in) and lands like a meteor.
+ * 'window': the original, he crashes in through a pane of glass (kept for
+ * reference; not used right now).
+ */
+export const LEVEL_INTRO_STYLE = 'skyfall' as 'skyfall' | 'window';
+/** Skyfall: how many frames the clouds take to part at the start of a stage. */
+export const SKYFALL_CLOUD_FRAMES = 30;

@@ -1,7 +1,8 @@
 import { GameStatus, Pickup, Enemy, TommyBoard, DamageNumber } from '../../types';
 import {
-  CANVAS_WIDTH, CANVAS_HEIGHT, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, RENDER_SCALE, WEAPON_RANGE_STAGE, GROUND_Y,
+  CANVAS_WIDTH, CANVAS_HEIGHT, LEVEL_INTRO_STYLE, SKYFALL_CLOUD_FRAMES, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, RENDER_SCALE, WEAPON_RANGE_STAGE, GROUND_Y,
 } from '../../constants';
+import { drawSkyClouds, DEPLOY_CLOUD_SCROLL_END, SKYFALL_CLOUD_SPEED } from './skyClouds';
 import { STAGE_COLORS } from '../../stages';
 import { GameState } from '../state';
 import { drawCustomBossArena } from './arenaRenderers';
@@ -91,7 +92,8 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   drawEnemies(ctx, state, view);
   drawEnemyDeaths(ctx, state);
   if (inTommyArena && state.tommyBoards) drawTommyPool(ctx, state);
-  if (status !== GameStatus.LEVEL_INTRO || state.introTimer >= 80) {
+  // (the window-crash intro keeps him out of sight until he jumps through the glass; in the skyfall one he's falling into view)
+  if (status !== GameStatus.LEVEL_INTRO || LEVEL_INTRO_STYLE === 'skyfall' || state.introTimer >= 80) {
     drawPlayer(ctx, state.player, state, {
       currentWeapon: view.currentWeapon,
       showFilthShield: status === GameStatus.PLAYING,
@@ -118,6 +120,11 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   if (state.victoryString && (status === GameStatus.PLAYING || status === GameStatus.VICTORY)) drawVictoryText(ctx, state.victoryString);
   if (state.sewerNuke) drawSewerNukeFlash(ctx, state);
   else if (state.deathTimer > 0 && state.deathString) drawDeathMessage(ctx, state.deathString);
+  // Skyfall intro: coming down out of the clouds the deploy transition dove into
+  if (status === GameStatus.LEVEL_INTRO && LEVEL_INTRO_STYLE === 'skyfall' && state.introTimer < SKYFALL_CLOUD_FRAMES) {
+    const k = state.introTimer / SKYFALL_CLOUD_FRAMES;
+    drawSkyClouds(ctx, CANVAS_WIDTH, CANVAS_HEIGHT, 1 - k * k, DEPLOY_CLOUD_SCROLL_END + state.introTimer * SKYFALL_CLOUD_SPEED);
+  }
 };
 
 /** The weapon range: a black void with a red glow and a receding grid floor. */
@@ -705,7 +712,10 @@ const drawPlayerSpeech = (ctx: CanvasRenderingContext2D, state: GameState) => {
   ctx.shadowColor = 'black';
   ctx.shadowBlur = 4;
   ctx.textAlign = 'center';
-  ctx.fillText(state.playerLastVulgarity, player.pos.x + player.width / 2, player.pos.y - 20);
+  // (kept on screen: a long line near the edge would otherwise run off it)
+  const half = ctx.measureText(state.playerLastVulgarity).width / 2 + 8;
+  const x = Math.max(state.camera.x + half, Math.min(state.camera.x + CANVAS_WIDTH - half, player.pos.x + player.width / 2));
+  ctx.fillText(state.playerLastVulgarity, x, player.pos.y - 20);
   ctx.restore();
 };
 

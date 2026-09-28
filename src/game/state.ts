@@ -70,6 +70,8 @@ export interface GameState {
 
   // Level flow
   introTimer: number;
+  /** Skyfall intro: the intro frame he hit the ground on (0 while he's still falling). */
+  introLandedAt?: number;
   deathTimer: number;
   /** Reached the boss this attempt: dying now respawns right outside his door (cleared when a stage starts). */
   bossCheckpoint: boolean;

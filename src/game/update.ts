@@ -13,7 +13,9 @@ import { respawn, getStartX } from './level';
 import { updateSewerNuke } from './sewerNuke';
 import { updateEnemyDeaths } from './enemyDeaths';
 import { updateVolcanoFinale } from './volcanoFinale';
-import { calmPlayer, DEFAULT_SHAKE } from './state';
+import { calmPlayer, DEFAULT_SHAKE, shakeScreen } from './state';
+import { playSound } from './audio';
+import { LEVEL_INTRO_STYLE } from '../constants';
 import { updateBarfStream, updateFlameSegments } from './weapons';
 import { say, MEATHEAD_INTRO_VOICE } from './speech';
 import { pickRandom, rectsOverlap, boundsOf } from './utils';
@@ -32,6 +34,11 @@ import { groundLineAt, floorTopAt } from './terrain';
 
 const INTRO_JUMP_START = 80;
 const INTRO_JUMP_FRAMES = 60;
+
+/** Skyfall: where he starts above the top of the screen, how fast he's already going, and how he falls. */
+const SKYFALL_START_ABOVE = 700, SKYFALL_START_SPEED = 12, SKYFALL_GRAVITY = 0.9, SKYFALL_MAX_SPEED = 30;
+/** Skyfall: frames crouched in the landing, when he says his line, and when you get control. */
+const SKYFALL_CROUCH = 24, SKYFALL_LINE_AT = 14, SKYFALL_DONE_AT = 72;
 
 /**
  * Advances the simulation by one fixed 60fps tick.
@@ -118,7 +125,8 @@ const updateLevelIntro = (ctx: FrameContext) => {
   player.facing = 1;
 
   const quotes = stageId ? BOSS_DIALOGUE.INTRO_QUOTES[stageId] : undefined;
-  if (state.introTimer === 30 && !cheats.skipToBoss && quotes) {
+  const sayLineNow = LEVEL_INTRO_STYLE === 'window' ? state.introTimer === 30 : !!state.introLandedAt && state.introTimer === state.introLandedAt + SKYFALL_LINE_AT;
+  if (sayLineNow && !cheats.skipToBoss && quotes) {
     const quote = quotes[0];
     const said = say(quote, MEATHEAD_INTRO_VOICE, 'queue', {
       onShow: spoken => { state.playerLastVulgarity = quote; state.playerVulgarityTimer = spoken ? SPOKEN_TEXT_HOLD : 180; },
@@ -128,7 +136,9 @@ const updateLevelIntro = (ctx: FrameContext) => {
     if (said) state.isMeatheadSpeaking = true;
   }
 
-  if (state.introTimer < INTRO_JUMP_START) {
+  if (LEVEL_INTRO_STYLE === 'skyfall') {
+    skyfall(ctx, baseStartX + 150);
+  } else if (state.introTimer < INTRO_JUMP_START) {
     player.pos.x = baseStartX - 150;
   } else {
     if (state.introTimer === INTRO_JUMP_START) ctx.fx.spawnGlassShatter({ x: baseStartX, y: 450 });
@@ -144,6 +154,54 @@ const updateLevelIntro = (ctx: FrameContext) => {
     }
   }
   moveLooseParticles(ctx);
+};
+
+/** He plummets out of the sky onto the start of the stage, craters the snow (or dirt), and gets up swinging. */
+const skyfall = (ctx: FrameContext, x: number) => {
+  const { state } = ctx;
+  const { player } = state;
+  player.pos.x = x;
+  // The first ground on screen under him (not the ceiling some stages have above the top of the screen)
+  const ground = floorTopAt(state.blocks, x + player.width / 2, state.camera.y, 0) ?? 550;
+  if (state.introTimer === 1) {
+    player.pos.y = state.camera.y - SKYFALL_START_ABOVE;
+    player.vel = { x: 0, y: SKYFALL_START_SPEED };
+    state.introLandedAt = 0;
+  }
+  if (!state.introLandedAt) {
+    // Falling: faster and faster, wind streaking past him
+    player.vel.y = Math.min(SKYFALL_MAX_SPEED, player.vel.y + SKYFALL_GRAVITY);
+    player.pos.y += player.vel.y;
+    player.isGrounded = false;
+    if (state.frame % 2 === 0) state.particles.push({ pos: { x: x + Math.random() * player.width, y: player.pos.y - 10 }, vel: { x: 0, y: -player.vel.y * 0.35 }, life: 10, color: 'rgba(255,255,255,0.7)', size: 2 + Math.random() * 2 });
+    if (player.pos.y + player.height >= ground) {
+      // Impact
+      player.pos.y = ground - player.height;
+      player.vel = { x: 0, y: 0 };
+      player.isGrounded = true;
+      player.squash = 1;
+      state.introLandedAt = state.introTimer;
+      shakeScreen(state, 24, 10);
+      playSound('nuke');
+      const cx = x + player.width / 2;
+      // (snow on the icy stages, dirt and rock everywhere else)
+      const debris = getBossDef(ctx.stageId)?.slipperyFloor ? PARTICLE_PALETTES.POWDER : PARTICLE_PALETTES.ROCK;
+      for (let i = 0; i < 36; i++) {
+        const dir = i % 2 ? 1 : -1;
+        state.particles.push({ pos: { x: cx + dir * Math.random() * 20, y: ground - 4 }, vel: { x: dir * (2 + Math.random() * 9), y: -Math.random() * 7 }, life: 30 + Math.random() * 25, color: debris[i % debris.length], size: 4 + Math.random() * 8 });
+      }
+      for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * 60, y: ground - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -8 - Math.random() * 6 }, life: 40, color: '#78716C', size: 3 + Math.random() * 3 });
+    }
+  } else {
+    // Superhero landing: crouched in the crater, then up
+    const since = state.introTimer - state.introLandedAt;
+    player.isDucking = since < SKYFALL_CROUCH;
+    if (since >= SKYFALL_DONE_AT) {
+      player.isDucking = false;
+      state.introLandedAt = undefined;
+      ctx.events.onIntroComplete();
+    }
+  }
 };
 
 /** The boss door opens, the camera and player glide into the arena, and the door shuts behind them. */

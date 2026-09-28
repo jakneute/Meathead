@@ -3,6 +3,7 @@ import HUD from './components/HUD';
 import Overlay, { CheatFlags } from './components/Overlay';
 import GameCanvas from './components/GameCanvas';
 import EndingCutscene from './components/EndingCutscene';
+import DeployTransition from './components/DeployTransition';
 import WeaponGetScene from './components/WeaponGetScene';
 import { GameStatus, WeaponType } from './types';
 import { INITIAL_PLAYER_HEALTH, MAX_AMMO, POWER_CELLS, createFullAmmo } from './constants';
@@ -99,6 +100,8 @@ const App: React.FC = () => {
   const [lockedIndex, setLockedIndex] = useState<number | null>(null);
   /** The "LET'S FUCKIN' GO" flourish is playing; all stage select input is ignored. */
   const [engaging, setEngaging] = useState(false);
+  /** The target being flown to after ENGAGE (the Mode 7 swoop), or null. */
+  const [deployingTo, setDeployingTo] = useState<string | null>(null);
 
   const cheats = SHOW_CHEATS ? cheatFlags : NO_CHEATS;
   const screenShownAtRef = useRef(Date.now());
@@ -300,7 +303,8 @@ const App: React.FC = () => {
     playEngageSound();
     if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
     speak(ENGAGE_SHOUTS[Math.floor(Math.random() * ENGAGE_SHOUTS.length)], MEATHEAD_MENU_VOICE);
-    setTimeout(() => handleSelectStage(stage.id), ENGAGE_FLOURISH_MS);
+    // Then the swoop down onto his hometown (DeployTransition), which drops you into the stage
+    setTimeout(() => setDeployingTo(stage.id), ENGAGE_FLOURISH_MS);
   };
 
   /** Clicking a portrait (or its map pin): lock it in, or back out if it's already the locked one. */
@@ -559,6 +563,14 @@ const App: React.FC = () => {
           cheats={SHOW_CHEATS ? { flags: cheatFlags, onToggle: handleToggleCheat, onChangeRank: handleChangeRank, onPlayEnding: () => setStatus(GameStatus.ENDING) } : undefined}
         />
         {status === GameStatus.ENDING && <EndingCutscene onDone={handleEndingDone} />}
+        {deployingTo && status === GameStatus.STAGE_SELECT && (
+          <DeployTransition
+            stageId={deployingTo}
+            currentStages={getStages(progressionRank)}
+            defeatedStages={defeatedStages}
+            onDone={() => { const id = deployingTo; setDeployingTo(null); handleSelectStage(id); }}
+          />
+        )}
         {status === GameStatus.BOSS_VICTORY_SPEECH && <WeaponGetScene stageId={selectedStage} onDone={handleStart} />}
         <GameCanvas
           status={status}
