@@ -231,14 +231,13 @@ const runOut = (ctx: FrameContext, b: Bunker, talk: Talk): Controls => {
       if (px < target.x - 70) return { ...NO_CONTROLS, right: true };
       p.vel.x = 0; p.facing = 1;
       queueLines(state, talk, [
-        { who: 'biker', text: 'LOOK AT HER. BELT FED. TWELVE HUNDRED ROUNDS A MINUTE.' },
         { who: 'dan', text: 'NOBODY TOUCHES HER BUT DIRTY DAN.' },
         { who: 'meathead', text: "I'LL TAKE THE BIKE. AND THE GUN." },
       ]);
       next();
       break;
     case 1:
-      if (quiet(talk) && since > 20) {
+      if (quiet(talk) && since > 6) {
         // The boot, and he's off his hog
         p.kickPose = KICK_POSE_FRAMES;
         target.state = 'flying'; target.vx = 9; target.vy = -12;
@@ -247,9 +246,9 @@ const runOut = (ctx: FrameContext, b: Bunker, talk: Talk): Controls => {
       }
       break;
     case 2:
-      if (since === 22) { p.pos.x = target.x - p.width / 2; p.pos.y = GROUND_Y - p.height; mountMoto(state, 0); }
-      if (since === 30) queueLines(state, talk, [{ who: 'biker', text: "HE'S GOT DAN'S HOG! AND DAN'S GUN! GET HIM!" }]);
-      if (since > 60) { b.phase = 'ride'; b.t = 0; playSound('horn'); }
+      if (since === 12) { p.pos.x = target.x - p.width / 2; p.pos.y = GROUND_Y - p.height; mountMoto(state, 0); }
+      if (since === 14) queueLines(state, talk, [{ who: 'biker', text: "HE'S GOT DAN'S HOG! AND THE GUN!" }]);
+      if (since > 26) { b.phase = 'ride'; b.t = 0; playSound('horn'); }
       break;
   }
   return { ...NO_CONTROLS };
