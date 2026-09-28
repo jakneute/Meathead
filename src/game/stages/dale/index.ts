@@ -69,5 +69,10 @@ export const daleLayout: StageLayout = {
   drawHud: (ctx, state) => { if (getDale(state)) drawDaleHud(ctx, state); },
   drawBackdrop: (ctx, state) => !!getDale(state) && drawDaleBackdrop(ctx, state),
   drawBackdropFront: (ctx, state) => !!getDale(state) && drawDaleWeather(ctx, state),
-  cameraRow: state => (regionOf(state.player.pos.x) === 'desert' && state.player.pos.x > COURSE.warehouse.x1 ? 520 : undefined),
+  // (out in the desert the view sits higher, so the arroyos and the far sides of them are in sight before you're at the edge)
+  cameraRow: state => {
+    const x = state.player.pos.x;
+    if (regionOf(x) !== 'desert') return undefined;
+    return x > COURSE.warehouse.x1 ? 520 : 420;
+  },
 };
