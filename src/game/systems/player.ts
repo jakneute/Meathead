@@ -12,6 +12,7 @@ import {
   UPPERCUT_SPEED, UPPERCUT_DURATION, DIVEKICK_SPEED, DIVEKICK_ANGLE,
   PLAYER_MASS, RECOIL_FRAMES, PLAYER_STUN_INVINCIBILITY, GML_SCALE, SPECIAL_HURT_FRAMES, ARENA_LEFT,
   OSCAR_OIL_SPEED_MULT, OSCAR_OIL_JUMP_MULT, SKI_JUMP_SPEED_MULT, SKI_JUMP_HOLD_MULT,
+  SWIM_GRAVITY_MULT, SWIM_MAX_SINK, SWIM_STROKE, SWIM_LEAP, SWIM_SPEED_MULT,
 } from '../../constants';
 import { FrameContext } from '../context';
 import { GameState, shakeScreen } from '../state';
@@ -316,6 +317,8 @@ const updateHorizontalVelocity = (ctx: FrameContext, movDir: number) => {
   const surfaceFriction = bossDef?.slipperyFloor && !standingIndoors(state.blocks, boundsOf(player)) ? ICE_FRICTION_MULTIPLIER : 1.0;
 
   let friction = onFloor ? PLAYER_FRICTION_BASE * surfaceFriction : PLAYER_AIR_FRICTION;
+  // (in the water: slower going)
+  if (player.swimming) { player.vel.x = player.vel.x * 0.9 + targetVel * SWIM_SPEED_MULT * 0.1; return; }
   if (player.isDucking && player.isGrounded) friction *= CROUCH_SLIDE_FRICTION_MULT;
   // Sticky surfaces (multiplier > 1) also slow acceleration, like the GML version
   let accel = Math.min(0.5, Math.max(0.005, PLAYER_ACCEL_BASE / (surfaceFriction > 1 ? surfaceFriction * surfaceFriction : 1)));
@@ -358,8 +361,27 @@ export const updatePlayerPhysics = (ctx: FrameContext, input: FrameInput) => {
   if (state.arenaLocked && !getBossDef(ctx.stageId)?.arena?.openTop && player.pos.y < 100) { player.pos.y = 100; player.vel.y = 0; }
 };
 
+/**
+ * In the water: he sinks slowly, jump is a stroke upward (at the surface it's a
+ * leap clean out, enough to get back up onto a dock).
+ */
+const swim = (player: Player) => {
+  player.isGrounded = false; // (landing on the bottom sets it again)
+  player.vel.y = Math.min(SWIM_MAX_SINK, player.vel.y + PLAYER_GRAVITY * SWIM_GRAVITY_MULT);
+  player.jumpHoldTimer = 0;
+  player.coyoteJumpTimer = 0;
+  if (player.jumpBufferTimer > 0) {
+    player.jumpBufferTimer = 0;
+    const atSurface = player.pos.y < (player.swimSurfaceY ?? 0) + 24;
+    player.vel.y = atSurface ? SWIM_LEAP : Math.min(player.vel.y, SWIM_STROKE);
+    player.isGrounded = false;
+    player.squash = -0.3;
+  }
+};
+
 const updateVerticalVelocity = (ctx: FrameContext, input: FrameInput) => {
   const { player } = ctx.state;
+  if (player.swimming) { swim(player); return; }
 
   // Coyote hang time: right after leaving the ground, gravity waits a few frames
   if (player.coyoteAirTimer > 0) {

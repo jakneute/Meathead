@@ -113,6 +113,9 @@ export interface Player extends Entity {
   taserSpent?: boolean;
   /** On skis (a stage set piece): he's carried along at skiSpeed, and can only jump, duck and shoot. */
   skiing?: boolean;
+  /** In the water (a stage says so each frame): he swims instead of walking and jumping. And where the surface is. */
+  swimming?: boolean;
+  swimSurfaceY?: number;
   skiSpeed?: number;
   /** Not drawn (rolled up inside a snowball, say). */
   hidden?: boolean;

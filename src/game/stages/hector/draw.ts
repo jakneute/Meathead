@@ -7,7 +7,7 @@ import { BOSS_DOOR_X, CANVAS_HEIGHT, CANVAS_WIDTH } from '../../../constants';
 import { drawBackdrop, drawBackdropFront } from '../../render/backdrops';
 import { COURSE, Plat, Prop } from './course';
 import { getHector, regionOf, HectorRuntime } from './runtime';
-import { STRIKE_WARN, shockPhase, AWNING_BOUNCE } from './hazards';
+import { STRIKE_WARN, shockPhase, AWNING_BOUNCE, SEA_DEPTH } from './hazards';
 import { copsLeft } from './beach';
 import { towerFlash, TOWER } from './tower';
 import { drawBoatScene, drawBoatFront, drawTowerJunk, drawEyeArena, drawDaycare, drawDaycareFront, drawPoolWater } from './drawSet';
@@ -213,9 +213,16 @@ const drawSea = (ctx: Ctx, state: GameState) => {
     const x1 = r.x2, x2 = next && next.x1 > r.x2 ? next.x1 : COURSE.sea.x2;
     if (!visible(state, x1, x2)) return;
     const y = COURSE.sea.y;
-    const g = ctx.createLinearGradient(0, y, 0, y + 200);
-    g.addColorStop(0, '#1E4E6E'); g.addColorStop(1, '#081A2B');
+    const g = ctx.createLinearGradient(0, y, 0, y + SEA_DEPTH);
+    g.addColorStop(0, '#1E4E6E'); g.addColorStop(1, '#0B2A40');
     ctx.fillStyle = g; ctx.fillRect(x1, y, x2 - x1, bottom - y);
+    // The bottom: sand, weed, a tyre, somebody's shopping cart
+    const floor = y + SEA_DEPTH;
+    ctx.fillStyle = '#B79E6B'; ctx.fillRect(x1, floor, x2 - x1, Math.max(0, bottom - floor));
+    ctx.fillStyle = '#8C7650'; for (let x = Math.ceil(x1 / 17) * 17; x < x2; x += 17) ctx.fillRect(x, floor + 6 + hash(x) * 20, 3, 2);
+    ctx.strokeStyle = '#166534'; ctx.lineWidth = 3;
+    for (let x = Math.ceil(x1 / 90) * 90; x < x2; x += 90) { const sway = Math.sin(state.frame * 0.05 + x) * 6; ctx.beginPath(); ctx.moveTo(x, floor); ctx.quadraticCurveTo(x + sway, floor - 25, x - sway, floor - 50 - hash(x) * 30); ctx.stroke(); }
+    for (let x = Math.ceil(x1 / 610) * 610; x < x2; x += 610) { ctx.strokeStyle = '#111827'; ctx.lineWidth = 6; ctx.beginPath(); ctx.ellipse(x + 200, floor - 8, 16, 8, 0, 0, Math.PI * 2); ctx.stroke(); }
   });
 };
 
@@ -229,10 +236,13 @@ const drawWaterFront = (ctx: Ctx, state: GameState) => {
     const x1 = r.x2, x2 = next && next.x1 > r.x2 ? next.x1 : COURSE.sea.x2;
     if (!visible(state, x1, x2)) return;
     const y = COURSE.sea.y;
-    ctx.fillStyle = 'rgba(30, 78, 110, 0.75)';
-    ctx.beginPath(); ctx.moveTo(x1, y + 30);
+    // The water over whatever's in it (him, swimming), a murky tint deepening toward the bottom
+    const g = ctx.createLinearGradient(0, y, 0, y + SEA_DEPTH);
+    g.addColorStop(0, 'rgba(30, 78, 110, 0.55)'); g.addColorStop(1, 'rgba(8, 30, 50, 0.35)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.moveTo(x1, y + SEA_DEPTH);
     for (let x = x1; x <= x2; x += 10) ctx.lineTo(x, y + Math.sin(x * 0.04 + f * 0.1) * 4);
-    ctx.lineTo(x2, y + 30); ctx.closePath(); ctx.fill();
+    ctx.lineTo(x2, y + SEA_DEPTH); ctx.closePath(); ctx.fill();
     ctx.strokeStyle = 'rgba(224, 242, 254, 0.8)'; ctx.lineWidth = 2;
     ctx.beginPath();
     for (let x = x1; x <= x2; x += 10) { const yy = y + Math.sin(x * 0.04 + f * 0.1) * 4; if (x === x1) ctx.moveTo(x, yy); else ctx.lineTo(x, yy); }
@@ -302,9 +312,12 @@ const drawProp = (ctx: Ctx, state: GameState, p: Prop, rt: HectorRuntime) => {
   const sway = storm * Math.sin(f * 0.15 + p.x) * 0.25 - storm * 0.5;
   switch (p.look) {
     case 'umbrella': {
-      // Blown flat (and gone) once the storm's up
-      if (storm > 0.7) return;
-      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(sway * 0.6);
+      // (it's a trampoline: bounce on it and it gives; in the storm it shakes and strains, but it holds)
+      const idx = COURSE.plats.findIndex(q => q.look === 'umbrella' && Math.abs(q.x + 45 - p.x) < 2);
+      const bi = rt.hazards.awningBlocks.findIndex(b => b.tag === `awning-${idx}`);
+      const wob = bi >= 0 ? rt.hazards.awningWobble[bi] : 0;
+      const give = wob > 0 ? Math.sin(wob * 0.6) * (wob / 24) * 8 : 0;
+      ctx.save(); ctx.translate(p.x, p.y + give); ctx.rotate(sway * 0.25 + (storm > 0 ? Math.sin(f * 0.4 + p.x) * 0.05 * storm : 0));
       ctx.fillStyle = '#E5E7EB'; ctx.fillRect(-1.5, -90, 3, 90);
       ctx.fillStyle = p.color ?? '#F43F5E';
       ctx.beginPath(); ctx.moveTo(-55, -80); ctx.quadraticCurveTo(0, -120, 55, -80); ctx.closePath(); ctx.fill();
@@ -446,6 +459,9 @@ const drawPlat = (ctx: Ctx, state: GameState, p: Plat, i: number, rt: HectorRunt
     }
     case 'palm':
       // (the frond top the iguanas sit in: the trunk's drawn with the scenery)
+      return;
+    case 'umbrella':
+      // (drawn with the scenery)
       return;
     case 'awning': {
       const idx = rt.hazards.awningBlocks.findIndex(b => b.tag === `awning-${i}`);

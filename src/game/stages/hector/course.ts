@@ -18,7 +18,10 @@ export const CP = { BEACH: 0, STORM: 1, MOTEL: 2, MARINA: 3, TOWER: 4, EYE: 5, D
 export type Surface = 'sand' | 'road' | 'dock' | 'grass' | 'pool';
 
 /** A standable thing that isn't the ground: its look, and whether it's a bouncy awning. */
-export interface Plat { x: number; y: number; w: number; look: 'lifeguard' | 'pier' | 'balcony' | 'car' | 'dock' | 'boat' | 'palm' | 'awning' | 'tiki'; color?: string }
+export interface Plat { x: number; y: number; w: number; look: 'lifeguard' | 'pier' | 'balcony' | 'car' | 'dock' | 'boat' | 'palm' | 'awning' | 'umbrella' | 'tiki'; color?: string }
+
+/** Awnings and beach umbrellas bounce you. */
+export const isBouncy = (p: Plat) => p.look === 'awning' || p.look === 'umbrella';
 /** A floating dock bobbing on the swell. */
 export interface FloatDock { x: number; y: number; w: number; amp: number; period: number; phase: number }
 /** Flooded ground a downed power line keeps electrifying (on, then off). */
@@ -192,6 +195,8 @@ const buildMain = () => {
   const boat = { x: 13230, y: Y + 4 };
   const sea = { x1: 13200, x2: MAIN_LEN + 300, y: Y + 10, spoutX: 15900 };
 
+  // Every beach umbrella's canopy is a trampoline
+  for (const p of props) if (p.look === 'umbrella') plats.push({ x: p.x - 45, y: p.y - 108, w: 90, look: 'umbrella' });
   return { runs, plats, floats, shocks, strikes, debris, spawns, civilians, pickups, props, stormAt, shelters, fisherman, boat, sea };
 };
 

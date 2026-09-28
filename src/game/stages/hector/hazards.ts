@@ -24,7 +24,6 @@ import { hurtPlayer } from '../../bosses/shared';
 import { playSound } from '../../audio';
 import { floorTopAt } from '../../terrain';
 import { rectsOverlap, boundsOf, isOnScreen } from '../../utils';
-import { killPlayer } from '../../systems/player';
 import { COURSE } from './course';
 
 export interface Strike { x: number; ground: number; t: number }
@@ -43,6 +42,7 @@ export interface Hazards {
   /** What last hurt him here (for the death message), and when. */
   lastCause: string;
   lastCauseAt: number;
+  water: WaterZone[];
 }
 
 export const STRIKE_WARN = 55, STRIKE_FLASH = 10;
@@ -60,6 +60,7 @@ export const createHazards = (state: GameState): Hazards => {
     debris: [], debrisTimers: COURSE.debris.map(() => 40),
     floatBlocks, awningBlocks, awningWobble: awningBlocks.map(() => 0),
     lastCause: '', lastCauseAt: -999,
+    water: waterZones(state),
   };
 };
 
@@ -84,7 +85,7 @@ export const updateHazards = (ctx: FrameContext, hz: Hazards, stormy: boolean) =
     updateDebris(ctx, hz);
   }
   updateShocks(ctx, hz);
-  checkTheSea(ctx, hz);
+  updateSwimming(ctx, hz);
   hz.scorches = hz.scorches.filter(s => ++s.t < 400);
 };
 
@@ -227,23 +228,37 @@ const updateShocks = (ctx: FrameContext, hz: Hazards) => {
   });
 };
 
-/** In the water (off the pier, between the docks, off the end of the boat): gone. */
-const WATER_LINES = ['SLEEPING WITH THE FISHES', 'SWEPT OUT TO SEA', 'SHARK FOOD', 'FLORIDA MAN DROWNS'];
-const checkTheSea = (ctx: FrameContext, hz: Hazards) => {
+/** Where the water is: the sea under the piers and docks and out past the marina, and the motel pool. */
+export interface WaterZone { x1: number; x2: number; surface: number; bottom: number }
+/** How deep the sea is under the docks. */
+export const SEA_DEPTH = 230;
+
+export const waterZones = (state: GameState): WaterZone[] => {
+  const zones: WaterZone[] = [];
+  state.groundRuns.forEach((r, i) => {
+    if (r.pitAfter === 'water') {
+      const next = state.groundRuns[i + 1];
+      zones.push({ x1: r.x2, x2: next && next.x1 > r.x2 ? next.x1 : COURSE.sea.x2, surface: COURSE.sea.y, bottom: COURSE.sea.y + SEA_DEPTH });
+    } else if (r.surface === 'pool') zones.push({ x1: r.x1, x2: r.x2, surface: COURSE.sea.y, bottom: r.y1 });
+  });
+  return zones;
+};
+
+/** In the water: he swims (and bubbles). */
+const updateSwimming = (ctx: FrameContext, hz: Hazards) => {
   const { state } = ctx;
   const p = state.player;
-  if (state.deathTimer > 0 || p.inCutscene) return;
-  const cx = p.pos.x + p.width / 2;
-  const inWaterStretch = state.groundRuns.some((r, i) => {
-    const next = state.groundRuns[i + 1];
-    return r.pitAfter === 'water' && cx > r.x2 && (!next || cx < next.x1);
-  });
-  if (!inWaterStretch) return;
-  if (p.pos.y + p.height > COURSE.sea.y + 30) {
-    hz.lastCause = 'water'; hz.lastCauseAt = state.frame;
-    for (let i = 0; i < 20; i++) state.particles.push({ pos: { x: cx, y: COURSE.sea.y }, vel: { x: (Math.random() - 0.5) * 8, y: -3 - Math.random() * 7 }, life: 30, color: i % 2 ? '#E0F2FE' : '#7DD3FC', size: 3 + Math.random() * 5 });
-    killPlayer(ctx, WATER_LINES[Math.floor(Math.random() * WATER_LINES.length)]);
+  const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
+  const zone = hz.water.find(z => cx > z.x1 && cx < z.x2 && cy > z.surface);
+  const was = p.swimming;
+  p.swimming = !!zone && !p.skiing && !p.inCutscene;
+  p.swimSurfaceY = zone?.surface;
+  if (p.swimming && !was) {
+    // Splash
+    for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: cx, y: zone!.surface }, vel: { x: (Math.random() - 0.5) * 7, y: -2 - Math.random() * 5 }, life: 26, color: i % 2 ? '#E0F2FE' : '#7DD3FC', size: 3 + Math.random() * 4 });
+    ctx.fx.playGunSound('tsunami');
   }
+  if (p.swimming && state.frame % 14 === 0) state.particles.push({ pos: { x: p.pos.x + p.width / 2 + p.facing * 8, y: p.pos.y + 10 }, vel: { x: 0, y: -1.2 }, life: 40, color: 'rgba(224, 242, 254, 0.8)', size: 3 });
 };
 
 /** A death message for how he just died here, if a hazard did it. */

@@ -7,7 +7,7 @@
 // on you) and the hurricane arrives: the sky goes black, and anyone still on the
 // beach runs for cover.
 
-import type { Block } from '../../../types';
+import type { Enemy } from '../../../types';
 import type { FrameContext } from '../../context';
 import type { GameState } from '../../state';
 import { makeKindEnemy } from '../../systems/kinds';
@@ -21,16 +21,14 @@ export interface Beach {
   killed: number;
   counterT: number;
   counted: Set<string>;
+  known: Map<string, Enemy>;
   panic: boolean;
   police: 'none' | 'coming' | 'fight' | 'done';
   policeT: number;
   /** The cruiser pulling up: where it is, and where it stops. */
   cruiserX: number;
   cruiserStop: number;
-  walls: Block[];
   copIds: string[];
-  /** The camera's usual limits, while the cops have you boxed in. */
-  savedMinX: number;
   /** 0..1: how far the storm's rolled in; and when it started (0 if not). */
   storm: number;
   stormAt: number;
@@ -51,7 +49,7 @@ export const createBeach = (state: GameState, startedAt: number): Beach => {
       state.enemies.push(e);
     });
   }
-  return { killed: 0, counterT: 0, counted: new Set(), panic: false, police: 'none', policeT: 0, cruiserX: 0, cruiserStop: 0, walls: [], copIds: [], savedMinX: 0, storm: stormy ? 1 : 0, stormAt: stormy ? -1 : 0 };
+  return { killed: 0, counterT: 0, counted: new Set(), known: new Map(), panic: false, police: 'none', policeT: 0, cruiserX: 0, cruiserStop: 0, copIds: [], storm: stormy ? 1 : 0, stormAt: stormy ? -1 : 0 };
 };
 
 export const stormLevel = (b: Beach) => b.storm;
@@ -60,10 +58,13 @@ export const updateBeach = (ctx: FrameContext, b: Beach) => {
   const { state } = ctx;
   const { player } = state;
   const civilians = state.enemies.filter(e => e.kind === 'civilian');
+  // (every beachgoer we've seen, so one knocked clean off the list by a body check still counts)
+  for (const e of civilians) b.known.set(e.id, e);
 
   // Somebody's dead: count them (the ones who got away don't count)
-  for (const e of civilians) {
-    if ((e.health > 0 && !e.isBlownAway) || e.aiState === 'gone' || b.counted.has(e.id)) continue;
+  for (const e of b.known.values()) {
+    const gone = !state.enemies.includes(e);
+    if ((e.health > 0 && !e.isBlownAway && !gone) || e.aiState === 'gone' || b.counted.has(e.id)) continue;
     b.counted.add(e.id);
     // (the storm's lightning doesn't count against you)
     if (b.storm > 0) continue;
@@ -81,8 +82,8 @@ export const updateBeach = (ctx: FrameContext, b: Beach) => {
 
   updatePolice(ctx, b);
 
-  // The storm rolls in once you've made it a little way up the beach (not while the cops have you boxed in)
-  if (!b.stormAt && player.pos.x >= COURSE.stormAt && b.police !== 'coming' && b.police !== 'fight') {
+  // The storm rolls in once you've made it a little way up the beach (cops or no cops)
+  if (!b.stormAt && player.pos.x >= COURSE.stormAt) {
     b.stormAt = state.frame;
     playSound('thunder');
     shakeScreen(state, 40, 6);
@@ -109,17 +110,9 @@ const updatePolice = (ctx: FrameContext, b: Beach) => {
     case 'coming':
       b.policeT++;
       if (b.policeT === POLICE_DELAY) {
-        // The cruiser comes screaming in from the right and you're boxed in where you stand
+        // The cruiser comes screaming in from the right
         b.cruiserX = state.camera.x + 900;
         b.cruiserStop = state.camera.x + 610;
-        b.savedMinX = state.cameraMinX;
-        state.cameraMinX = state.camera.x;
-        state.cameraMaxX = state.camera.x;
-        b.walls = [
-          { x: state.camera.x - 40, y: -2000, w: 40, h: 3000, type: 'wall', hidden: true, tag: 'police' },
-          { x: state.camera.x + 800, y: -2000, w: 40, h: 3000, type: 'wall', hidden: true, tag: 'police' },
-        ];
-        state.blocks.push(...b.walls);
         playSound('siren');
       }
       if (b.policeT > POLICE_DELAY) {
@@ -127,10 +120,13 @@ const updatePolice = (ctx: FrameContext, b: Beach) => {
         if (b.cruiserX === b.cruiserStop) {
           // Doors fly open: three cops and two in riot gear, one more running in from the left
           const y = 550;
+          const cam = state.camera.x;
           const squad: [Parameters<typeof makeKindEnemy>[0], number][] = [
-            ['cop', b.cruiserX + 30], ['cop', b.cruiserX + 150], ['riotcop', b.cruiserX - 40], ['riotcop', b.cruiserX + 200], ['cop', state.camera.x + 40],
+            ['riotcop', cam + 520], ['cop', cam + 600], ['cop', cam + 680], ['riotcop', cam + 745], ['cop', cam + 60],
           ];
-          for (const [kind, x] of squad) {
+          for (const [kind, rawX] of squad) {
+            // (every one of them fully on screen)
+            const x = Math.max(cam + 40, Math.min(cam + 760, rawX));
             const cop = makeKindEnemy(kind, x, y);
             cop.facing = x < state.player.pos.x ? 1 : -1;
             state.enemies.push(cop);
@@ -142,14 +138,16 @@ const updatePolice = (ctx: FrameContext, b: Beach) => {
       }
       break;
     case 'fight': {
-      const left = state.enemies.filter(e => b.copIds.includes(e.id) && e.health > 0 && !e.isBlownAway).length;
-      if (left === 0) {
-        // Let you go on
-        state.blocks = state.blocks.filter(bl => !b.walls.includes(bl));
-        b.walls = [];
-        state.cameraMinX = b.savedMinX;
-        state.cameraMaxX = undefined;
-        b.police = 'done';
+      const cops = state.enemies.filter(e => b.copIds.includes(e.id) && e.health > 0 && !e.isBlownAway);
+      if (cops.length === 0) { b.police = 'done'; break; }
+      // Unlike anything else out here, they don't give up: run off and they come after you, wherever you go
+      const px = state.player.pos.x + state.player.width / 2;
+      for (const c of cops) {
+        if ((c.pauseTimer || 0) > 0 || (c.frozenTimer || 0) > 0 || c.isTased) continue;
+        const dx = px - (c.pos.x + c.width / 2);
+        const keep = c.kind === 'riotcop' ? 110 : 240;
+        if (Math.abs(dx) > keep) c.vel.x = Math.sign(dx) * (Math.abs(dx) > 800 ? 8.5 : 6);
+        c.facing = dx < 0 ? -1 : 1;
       }
       break;
     }

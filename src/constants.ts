@@ -95,6 +95,12 @@ export const PLAYER_GRAVITY = gml(0.275);
 export const PLAYER_TERMINAL_VELOCITY = gml(9);
 export const PLAYER_JUMP_SPEED = gml(-3.15);    // held constant while the jump button is down
 export const JUMP_HOLD_FRAMES = 15;
+/** Swimming: how much of gravity he feels, how fast he sinks at most, a stroke up (jump), the leap out when he's at the surface, and his pace. */
+export const SWIM_GRAVITY_MULT = 0.28;
+export const SWIM_MAX_SINK = 3.2;
+export const SWIM_STROKE = -5.8;
+export const SWIM_LEAP = -12.5;
+export const SWIM_SPEED_MULT = 0.6;
 /** On skis (Artie's avalanche run) he jumps much higher and hangs longer, to clear what's coming at speed. */
 export const SKI_JUMP_SPEED_MULT = 1.3;
 export const SKI_JUMP_HOLD_MULT = 1.5;

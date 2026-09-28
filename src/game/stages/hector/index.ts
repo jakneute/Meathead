@@ -5,10 +5,10 @@
 import type { StageLayout } from '../index';
 import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH } from '../../../constants';
 import { groundBlocks } from '../../terrain';
-import { COURSE, CP } from './course';
+import { COURSE, CP, isBouncy } from './course';
 import { createHectorRuntime, getHector, updateHector, regionOf } from './runtime';
 import { updateEye, hitEye } from './eye';
-import { hazardDeathMessage } from './hazards';
+import { hazardDeathMessage, waterZones } from './hazards';
 import { drawHectorBack, drawHectorMid, drawHectorFront, drawHectorHud, drawHectorBackdrop, drawHectorWeather } from './draw';
 import { drawEye } from './eyeDraw';
 import { TOWER } from './tower';
@@ -22,7 +22,9 @@ export const hectorLayout: StageLayout = {
     state.groundRuns = [...C.runs, { x1: BOSS_DOOR_X, y1: GROUND_Y, x2: STAGE_WIDTH, y2: GROUND_Y }];
     state.blocks.push(...groundBlocks(C.runs));
     // Everything you can stand on that isn't the ground (awnings bounce you)
-    C.plats.forEach((p, i) => state.blocks.push({ x: p.x, y: p.y, w: p.w, h: p.look === 'awning' ? 12 : 16, type: 'platform', hidden: true, tag: p.look === 'awning' ? `awning-${i}` : `hplat-${i}` }));
+    C.plats.forEach((p, i) => state.blocks.push({ x: p.x, y: p.y, w: p.w, h: isBouncy(p) ? 12 : 16, type: 'platform', hidden: true, tag: isBouncy(p) ? `awning-${i}` : `hplat-${i}` }));
+    // The sea bed under the open water (you can swim down to it)
+    for (const z of waterZones(state)) if (z.bottom > COURSE.sea.y + 100) state.blocks.push({ x: z.x1, y: z.bottom, w: z.x2 - z.x1, h: 400, type: 'ground', hidden: true, tag: 'seabed' });
     state.cameraMinX = C.startX;
     state.stage = createHectorRuntime(state, skipToBoss);
     const cp = skipToBoss ? 0 : state.checkpoint;
