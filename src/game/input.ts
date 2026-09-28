@@ -101,7 +101,8 @@ export const readControls = (kb: KeyboardMouseState): Controls => {
     down: diveKey || (heldDown && !uppercutKey),
     up: uppercutKey || (heldUp && !diveKey),
     jump: k(' ', 'space', 'z', 'keyz', 'j', 'keyj') || padJump,
-    special: kb.rightMouseDown || uppercutKey || diveKey || padSpecial,
+    // (Shift does the same as right click)
+    special: kb.rightMouseDown || k('shift', 'shiftleft', 'shiftright') || uppercutKey || diveKey || padSpecial,
     shoot: kb.mouseDown || padShoot || k('x', 'keyx', 'k', 'keyk'),
   };
 };
