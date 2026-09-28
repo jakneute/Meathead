@@ -95,6 +95,8 @@ const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
   const hilly = !!getStageLayout(stageId)?.verticalCamera;
   // A bystander only goes out of bounds if he knocked it there
   if (e.innocent && !((e.pauseTimer || 0) > 0)) return false;
+  // (the sharks up the storm tower are out in the air, above and below the view all the time: never out of bounds)
+  if (e.kind === 'shark') return false;
   // (On a hilly stage things sit above and below the view all the time, hopping, leaping and flying about:
   // only ones launched by a hit count going up, and only ones with nothing under them going down)
   const launched = (e.pauseTimer || 0) > 0 && e.vel.y < -2;
