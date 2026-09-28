@@ -505,7 +505,8 @@ const killJunkie = (ctx: FrameContext, m: Enemy, fight: JunkieFight, talk: Talk)
   fx.spawnDamageNumber({ x: m.pos.x + W / 2 - 70, y: m.pos.y - 40 }, headbutt ? 'OFF HIS HEAD!' : 'DISTRIBUTION CUT!', true, '#FACC15');
   if (!headbutt) fx.speakVulgarity(weapon === 'FLAMETHROWER' ? 'flamethrower_kill' : weapon === 'SHOTGUN' ? 'shotgun_kill' : weapon === 'BOULDER' ? 'boulder_kill' : weapon === 'TSUNAMI' ? 'tsunami_kill' : weapon === 'TASER' ? 'taser_kill' : weapon === 'NEEDLES' ? 'dart_kill' : weapon === 'SLUDGE' ? 'sludge_kill' : weapon === 'OIL_ROCKET' ? 'oil_kill' : 'gun_kill');
   state.player.killSatisfactionTimer = 90;
-  replaceLines(state, talk, headbutt ? [{ who: 'meathead', text: 'HE HEADBUTTED HIMSELF TO DEATH. CAN I PUT THAT ON MY RESUME?' }] : [], 30);
+  // (the walk out's scripted: see leave)
+  void talk;
 };
 
 // ---------------------------------------------------------------------------
@@ -642,37 +643,40 @@ const hints = (state: GameState, fight: JunkieFight, talk: Talk) => {
 // Out the window
 // ---------------------------------------------------------------------------
 
-/** After he's down: Dale out in the yard, yelling; Meathead goes out of the window after the trucks. */
-const LEAVE_LINES_AT = 70, RUN_AT = 60;
+/**
+ * After he's down (ten seconds at most): Dale out in the yard yelling to load the rest of the cargo, Meathead's
+ * answer, and meanwhile he walks himself over to the window; the moment they're done (or the time's up) he's
+ * through it.
+ */
+const LEAVE_LINES_AT = 30, WALK_AT = 45, LEAVE_BY = 540;
 
 const leave = (ctx: FrameContext, fight: JunkieFight, talk: Talk, controls: Controls): Controls => {
   const { state } = ctx;
   const p = state.player;
   const o = office();
-  if (fight.phase === 'dead') {
-    if (fight.t === LEAVE_LINES_AT) queueLines(state, talk, [
-      { who: 'dale', text: "LOAD THE REST OF THE CARGO! MOVE IT, MOVE IT! HE'S COMING!" },
-      { who: 'meathead', text: "THE CARGO'S LEAVING? NOT WITHOUT ME IT ISN'T." },
-    ]);
-    if (fight.t > LEAVE_LINES_AT + 30 && !talk.current && !talk.queue.length) { fight.phase = 'leaving'; fight.leaveT = 0; }
-    return controls;
-  }
-  // Running at the window, and through it
+  if (fight.phase === 'dead') { fight.phase = 'leaving'; fight.leaveT = 0; }
   fight.leaveT++;
-  if (fight.leaveT < RUN_AT) return { ...NO_CONTROLS };
+  if (fight.leaveT === LEAVE_LINES_AT) replaceLines(state, talk, [
+    { who: 'dale', text: "LOAD THE REST OF THE CARGO! MOVE IT! HE'S COMING!" },
+    { who: 'meathead', text: "THE CARGO'S LEAVING? NOT WITHOUT ME." },
+  ]);
+  if (fight.leaveT >= 10000) { p.vel.x = 0; return { ...NO_CONTROLS }; }
+  if (fight.leaveT < WALK_AT) return { ...NO_CONTROLS };
+  // Walking over to it, and waiting there for them to finish
   p.facing = 1;
-  const nearWindow = p.pos.x + p.width > o.x2 - 70;
-  if (nearWindow && fight.leaveT < 10000) {
+  const atWindow = p.pos.x + p.width > o.x2 - 90;
+  const talkedOut = fight.leaveT > LEAVE_LINES_AT + 20 && !talk.current && !talk.queue.length;
+  if (atWindow && (talkedOut || fight.leaveT >= LEAVE_BY)) {
+    // Through it
     fight.leaveT = 10000;
     playGlassShatterSound();
     ctx.fx.spawnGlassShatter({ x: o.x2, y: o.floor - 60 });
     p.vel = { x: 7, y: -9 };
     p.hidden = true;
+    return { ...NO_CONTROLS };
   }
-  if (fight.leaveT >= 10000) { p.vel.x = 0; return { ...NO_CONTROLS }; }
-  return { ...NO_CONTROLS, right: true };
+  return { ...NO_CONTROLS, right: !atWindow };
 };
-
 /** Out through the window (the stage fades to the highway). */
 export const outTheWindow = (fight: JunkieFight) => fight.leaveT >= 10000;
 
