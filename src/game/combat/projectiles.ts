@@ -139,6 +139,8 @@ const updatePhysicsProjectile = (ctx: FrameContext, p: Projectile): boolean => {
 
   for (const b of state.blocks) {
     if (b.type === 'pit' || !rectsOverlap(boundsOf(p), b)) continue;
+    // A boulder goes up through a jump-through ledge and only lands on one from above (like him)
+    if (b.oneWay && p.isBoulder && (p.vel.y <= 0 || p.pos.y + p.height - p.vel.y > b.y + 1)) continue;
     // Poop logs fly through walls near where they spawned
     if (p.isPoop && p.spawnX !== undefined && Math.abs(p.pos.x - p.spawnX) < 200) continue;
 
@@ -265,6 +267,14 @@ const solidAt = (state: GameState, box: { x: number, y: number, w: number, h: nu
   state.blocks.find(b => b.type !== 'pit' && rectsOverlap(box, b));
 
 /**
+ * The same, for a boulder, which treats a jump-through ledge the way he does: it flies up through it from below
+ * (and passes it side-on), and only lands on it coming down from above. `bottom` is where its bottom was before
+ * this move, `vy` which way it's going.
+ */
+const solidForBoulder = (state: GameState, box: { x: number, y: number, w: number, h: number }, vy: number, bottom: number) =>
+  state.blocks.find(b => b.type !== 'pit' && rectsOverlap(box, b) && (!b.oneWay || (vy > 0 && bottom <= b.y + 1)));
+
+/**
  * GML oShotgunBullet: flies straight, ricochets off terrain at a random angle,
  * and melts away after a couple of bounces or when its lifetime runs out.
  */
@@ -319,7 +329,7 @@ const updatePlayerBoulder = (ctx: FrameContext, p: Projectile): boolean => {
   }
 
   // Floor / ceiling: stop dead (no bounce)
-  const floor = solidAt(state, { ...boundsOf(p), y: p.pos.y + p.vel.y });
+  const floor = solidForBoulder(state, { ...boundsOf(p), y: p.pos.y + p.vel.y }, p.vel.y, p.pos.y + p.height);
   if (floor) {
     if (Math.abs(p.vel.y) / GML_SCALE > 4) shakeScreen(state, 6, Math.min(10, Math.abs(p.vel.y) / GML_SCALE) * GML_SCALE * 0.5);
     p.pos.y = p.vel.y > 0 ? floor.y - p.height : floor.y + floor.h;
@@ -329,7 +339,8 @@ const updatePlayerBoulder = (ctx: FrameContext, p: Projectile): boolean => {
   }
 
   // Walls break it
-  if (solidAt(state, { x: p.pos.x + p.vel.x, y: p.pos.y - GML_SCALE * 8, w: p.width, h: p.height - GML_SCALE * 8 })) {
+  // (a jump-through ledge is never a wall: it rolls past the end of one, and through one it's rising into)
+  if (solidForBoulder(state, { x: p.pos.x + p.vel.x, y: p.pos.y - GML_SCALE * 8, w: p.width, h: p.height - GML_SCALE * 8 }, -1, Infinity)) {
     shatterBoulder(ctx, p);
     return false;
   }
