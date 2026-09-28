@@ -83,7 +83,7 @@ const drawTowerScene = (ctx: Ctx, state: GameState, t: number) => {
 /** The family: the couch, the TV, a nice night in; the room going dark as the tower comes over; then the roof coming in. */
 const drawFamilyScene = (ctx: Ctx, state: GameState, rt: TommyRuntime, t: number, crushT: number) => {
   const f = state.frame;
-  const dark = clamp01((t - 80) / (FAMILY_FRAMES - 80));
+  const dark = clamp01((t - 30) / (FAMILY_FRAMES - 30));
   // The room: wallpaper, a window, a lamp, the rug
   ctx.fillStyle = '#C9B99A'; ctx.fillRect(0, 0, W, H);
   ctx.fillStyle = 'rgba(160, 120, 80, 0.25)'; for (let x = 0; x < W; x += 40) ctx.fillRect(x, 0, 16, 470);

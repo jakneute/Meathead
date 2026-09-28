@@ -21,6 +21,7 @@ export const drawTommyKind = (ctx: Ctx, e: Enemy, f: number, state: GameState) =
     case 'bloater': drawBloater(ctx, e, f); break;
     case 'manhole': drawManhole(ctx, e, f); break;
     case 'sludgeling': drawSludgeling(ctx, e, f); break;
+    case 'mutantfish': drawMutantFish(ctx, e, f); break;
     case 'amalgam': ctx.fillStyle = '#3F6212'; ctx.beginPath(); ctx.ellipse(0, -e.height / 2, e.width / 2, e.height / 2, 0, 0, Math.PI * 2); ctx.fill(); break;
   }
   void state;
@@ -244,4 +245,27 @@ const drawSludgeling = (ctx: Ctx, e: Enemy, f: number) => {
   ctx.fillStyle = '#FEF08A'; ctx.fillRect(3, -15 * squash, 4, 4); ctx.fillRect(9, -14 * squash, 4, 4);
   ctx.fillStyle = '#111827'; ctx.fillRect(5, -14 * squash, 2, 2); ctx.fillRect(11, -13 * squash, 2, 2);
   ctx.fillStyle = '#1A2E05'; ctx.fillRect(6, -8, 8, 2);
+};
+
+/** A mutant sewer fish: bloated, patchy green and orange, three eyes, a sick glow to it, the bones showing at its tail. */
+const drawMutantFish = (ctx: Ctx, e: Enemy, f: number) => {
+  const lunge = Math.hypot(e.vel.x, e.vel.y) > 2.5;
+  const wag = Math.sin(f * (lunge ? 0.6 : 0.25)) * (lunge ? 6 : 3);
+  ctx.save(); ctx.translate(0, -13);
+  ctx.fillStyle = 'rgba(163, 230, 53, 0.18)'; ctx.beginPath(); ctx.ellipse(0, 0, 32, 20, 0, 0, Math.PI * 2); ctx.fill();
+  // The tail: the flesh gone off it, bones and a ragged fin
+  ctx.strokeStyle = '#E7E5D6'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-14, 0); ctx.lineTo(-26, wag * 0.5); ctx.stroke();
+  for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.moveTo(-17 - k * 3, wag * 0.2); ctx.lineTo(-18 - k * 3, -5); ctx.moveTo(-17 - k * 3, wag * 0.2); ctx.lineTo(-18 - k * 3, 5); ctx.stroke(); }
+  ctx.fillStyle = 'rgba(132, 204, 22, 0.8)'; ctx.beginPath(); ctx.moveTo(-26, wag * 0.5); ctx.lineTo(-34, wag - 8); ctx.lineTo(-31, wag * 0.5); ctx.lineTo(-34, wag + 8); ctx.fill();
+  // The body: bloated, patchy
+  ctx.fillStyle = '#6B8E23'; ctx.beginPath(); ctx.ellipse(2, 0, 20, 12, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#EA580C'; ctx.beginPath(); ctx.ellipse(-4, -4, 7, 4, 0.3, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.ellipse(8, 5, 5, 3, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#D9F99D'; ctx.beginPath(); ctx.ellipse(4, 6, 12, 4, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#4D7C0F'; ctx.beginPath(); ctx.moveTo(-6, -10); ctx.lineTo(2, -18); ctx.lineTo(8, -10); ctx.fill();
+  // Three eyes
+  for (const [ex, ey] of [[12, -5], [17, -1], [8, -8]]) { ctx.fillStyle = '#FEF08A'; ctx.beginPath(); ctx.arc(ex, ey, 3, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#111827'; ctx.fillRect(ex, ey - 1, 2, 2); }
+  // The mouth, jagged, open when it lunges
+  ctx.fillStyle = '#1A2E05'; ctx.beginPath(); ctx.moveTo(22, 1); ctx.lineTo(14, lunge ? 7 : 4); ctx.lineTo(22, lunge ? 9 : 5); ctx.fill();
+  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(16, 4, 1.5, 2); ctx.fillRect(19, 4, 1.5, 2);
+  ctx.restore();
 };

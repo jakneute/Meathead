@@ -147,6 +147,8 @@ const build = () => {
   s.channel(4760, 7200, TUNNEL_SURFACE, TUNNEL_FLOOR);
   s.bar(5150, 60, TUNNEL_ROOF, Y + 60); s.bar(5520, 50, Y + 95, TUNNEL_FLOOR); s.bar(5900, 60, TUNNEL_ROOF, Y + 70);
   s.bar(6280, 50, Y + 90, TUNNEL_FLOOR); s.bar(6620, 60, TUNNEL_ROOF, Y + 75); s.bar(6950, 50, Y + 95, TUNNEL_FLOOR);
+  // Mutant fish in it, to shoot as he swims (hanging about in the open water between the pipes and grates)
+  for (const fx of [5330, 5720, 6100, 6460, 6800]) s.spawn('mutantfish', fx, Y + 150);
   // Up out of it, and on into the cistern (a walkway, and the pool at the far end where it lives)
   s.ground(7200, 8150); s.channel(8150, 8600, Y + 20, Y + 220);
   // What's down here

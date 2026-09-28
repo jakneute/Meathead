@@ -12,7 +12,7 @@ import type { Enemy } from '../../../types';
 import type { GameState } from '../../core/state';
 import { GROUND_Y } from '../../../constants';
 import { COURSE, WALK_Y } from './course';
-import { Thing, FIST_UP, FIST_LAND, FIST_DONE, WANT_NAME, THING_SURFACE } from './thing';
+import { Thing, FIST_UP, FIST_LAND, FIST_DONE, WANT_NAME, THING_SURFACE, NEED } from './thing';
 import { getTommy } from './runtime';
 import { saying } from './script';
 
@@ -120,8 +120,6 @@ export const drawThing = (ctx: Ctx, e: Enemy, th: Thing, state: GameState) => {
   if (boil > 0) { ctx.fillStyle = 'rgba(214, 211, 209, 0.4)'; for (let k = 0; k < 6; k++) { const t = ((f * 1.5 + k * 25) % 120) / 120; ctx.beginPath(); ctx.arc(-120 + k * 50, -h * (1 - sag) - t * 120, 10 + t * 20, 0, Math.PI * 2); ctx.fill(); } }
   if (freeze > 0) { ctx.strokeStyle = `rgba(255,255,255,${freeze * 0.7})`; ctx.lineWidth = 2; for (let k = 0; k < 10; k++) { const a = hash(k) * Math.PI; ctx.beginPath(); ctx.moveTo(Math.cos(a) * 100, -Math.sin(a) * 250); ctx.lineTo(Math.cos(a) * 140, -Math.sin(a) * 300); ctx.stroke(); } }
   ctx.restore();
-  // What it wants, over it
-  if (th.phase === 'fight' && !th.full && !th.fist) drawWant(ctx, th, cx, base - h - 40, f);
 };
 
 /** The two arms, made of arms: the far one resting on the pool's lip, the near one the fist (up, over, and down). */
@@ -150,19 +148,6 @@ const drawArms = (ctx: Ctx, th: Thing, f: number, w: number, h: number) => {
   ctx.fillStyle = 'rgba(163, 170, 110, 0.7)'; for (let k = 0; k < 4; k++) ctx.fillRect(fx - 30 + k * 16, fy - 38, 12, 10);
   // Its shadow on the walkway, growing, while it's up there
   if (th.fist && th.fist < FIST_LAND) { const k = th.fist / FIST_LAND; ctx.fillStyle = `rgba(0,0,0,${0.15 + k * 0.4})`; ctx.beginPath(); ctx.ellipse(fx, reach + 4, 60 + k * 120, 8 + k * 6, 0, 0, Math.PI * 2); ctx.fill(); }
-};
-
-/** Over its head: what it wants (an icon and the word), bobbing. */
-const drawWant = (ctx: Ctx, th: Thing, x: number, y: number, f: number) => {
-  const name = WANT_NAME[th.want] ?? '';
-  ctx.save(); ctx.translate(x, y + Math.sin(f * 0.1) * 4);
-  ctx.fillStyle = 'rgba(28, 25, 23, 0.85)'; ctx.strokeStyle = '#A3E635'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.roundRect(-70, -22, 140, 34, 6); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#A3E635'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText(`WE WANT ${name}`, 0, -2); ctx.textAlign = 'left';
-  // How much of it it's had
-  const need = 1300;
-  ctx.fillStyle = '#44403C'; ctx.fillRect(-60, 4, 120, 4); ctx.fillStyle = '#A3E635'; ctx.fillRect(-60, 4, 120 * clamp01(th.fed / need), 4);
-  ctx.restore();
 };
 
 /** What's left of it: however it went. */
@@ -212,12 +197,70 @@ const drawCorpse = (ctx: Ctx, i: number) => {
   ctx.fillStyle = 'rgba(231, 229, 214, 0.9)'; ctx.fillRect(-10, -18, 3, 10); // (bone showing)
 };
 
-/** Its health, across the top of the screen while it's up (it's the size of a boss, it gets a boss's bar). */
-export const drawThingBar = (ctx: Ctx, th: Thing) => {
+/** Its health: top right, clear of his own gauges top left (it's the size of a boss, it gets a boss's bar). */
+export const drawThingBar = (ctx: Ctx, th: Thing, frame: number) => {
   if (th.phase !== 'fight' || !th.e) return;
   const k = clamp01(th.e.health / th.e.maxHealth);
-  ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(200, 22, 400, 22);
-  ctx.fillStyle = '#44403C'; ctx.fillRect(204, 32, 392, 8);
-  ctx.fillStyle = '#65A30D'; ctx.fillRect(204, 32, 392 * k, 8);
-  ctx.fillStyle = '#D9F99D'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.fillText('THE EAST SIDE', 206, 29);
+  ctx.fillStyle = 'rgba(0,0,0,0.75)'; ctx.fillRect(420, 10, 368, 30);
+  ctx.fillStyle = '#44403C'; ctx.fillRect(426, 26, 356, 9);
+  ctx.fillStyle = '#65A30D'; ctx.fillRect(426, 26, 356 * k, 9);
+  ctx.fillStyle = '#D9F99D'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.fillText('THE EAST SIDE', 428, 22);
+  drawWantPanel(ctx, th, frame);
+};
+
+/** What it wants, big, on the screen where nothing's in the way of it: an icon, the word, how close it is to its fill, how much patience it's got left. It changes when it says so. */
+const drawWantPanel = (ctx: Ctx, th: Thing, frame: number) => {
+  const x = 270, y = 50, w = 260, h = 70;
+  const angry = th.fist > 0, full = th.full > 0;
+  const want = th.shown;
+  const fresh = frame - th.shownAt < 50;
+  ctx.save();
+  ctx.fillStyle = angry ? 'rgba(69, 10, 10, 0.9)' : full ? 'rgba(20, 46, 5, 0.9)' : 'rgba(12, 10, 9, 0.88)';
+  ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = angry ? (frame % 10 < 5 ? '#EF4444' : '#7F1D1D') : fresh && frame % 8 < 4 ? '#FFFFFF' : '#A3E635';
+  ctx.lineWidth = fresh || angry ? 4 : 2.5; ctx.strokeRect(x, y, w, h);
+  if (angry) {
+    ctx.fillStyle = '#FCA5A5'; ctx.font = 'bold 12px "Press Start 2P"'; ctx.textAlign = 'center';
+    ctx.fillText("IT'S ANGRY", x + w / 2, y + 30); ctx.font = 'bold 7px "Press Start 2P"'; ctx.fillText('BRACE YOURSELF', x + w / 2, y + 52);
+  } else if (full) {
+    ctx.fillStyle = '#D9F99D'; ctx.font = 'bold 12px "Press Start 2P"'; ctx.textAlign = 'center';
+    ctx.fillText('SATISFIED...', x + w / 2, y + 40);
+  } else if (!want || th.shown !== th.want) {
+    // (it's about to tell him)
+    ctx.fillStyle = '#A3E635'; ctx.font = 'bold 12px "Press Start 2P"'; ctx.textAlign = 'center';
+    ctx.fillText('LISTEN' + '...'.slice(0, 1 + Math.floor(frame / 15) % 3), x + w / 2, y + 42);
+  } else if (want) {
+    drawWantIcon(ctx, want, x + 36, y + 35, frame);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#A3E635'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.fillText('IT WANTS:', x + 72, y + 20);
+    ctx.fillStyle = '#FFFFFF'; ctx.font = `bold ${fresh ? 16 : 14}px "Press Start 2P"`; ctx.fillText(WANT_NAME[want]! + '!', x + 72, y + 42);
+    // How close it is to its fill
+    ctx.fillStyle = '#44403C'; ctx.fillRect(x + 72, y + 52, 170, 6);
+    ctx.fillStyle = '#A3E635'; ctx.fillRect(x + 72, y + 52, 170 * clamp01(th.fed / (NEED[want] ?? 1300)), 6);
+    // Its patience: two marks, one gone per time he ignores it
+    for (let k = 0; k < 2; k++) { ctx.fillStyle = k < 2 - th.strikes ? '#FACC15' : '#44403C'; ctx.fillRect(x + w - 30 + k * 12, y + 10, 8, 8); }
+  }
+  ctx.textAlign = 'left';
+  ctx.restore();
+};
+
+/** The icon for what it wants: an ice crystal, a flame, a rock, a wave. */
+const drawWantIcon = (ctx: Ctx, w: string, x: number, y: number, f: number) => {
+  ctx.save(); ctx.translate(x, y);
+  const pulse = 1 + Math.sin(f * 0.2) * 0.06; ctx.scale(pulse, pulse);
+  if (w === 'SHOTGUN') {
+    ctx.strokeStyle = '#7DD3FC'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+    for (let k = 0; k < 3; k++) { const a = k * Math.PI / 3; ctx.beginPath(); ctx.moveTo(-Math.cos(a) * 22, -Math.sin(a) * 22); ctx.lineTo(Math.cos(a) * 22, Math.sin(a) * 22); ctx.stroke(); }
+    ctx.fillStyle = '#E0F2FE'; ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+  } else if (w === 'FLAMETHROWER') {
+    ctx.fillStyle = '#F97316'; ctx.beginPath(); ctx.moveTo(0, -26); ctx.quadraticCurveTo(22, -2, 12, 18); ctx.quadraticCurveTo(0, 26, -12, 18); ctx.quadraticCurveTo(-22, -2, 0, -26); ctx.fill();
+    ctx.fillStyle = '#FDE047'; ctx.beginPath(); ctx.moveTo(0, -8); ctx.quadraticCurveTo(10, 6, 6, 14); ctx.quadraticCurveTo(0, 18, -6, 14); ctx.quadraticCurveTo(-10, 6, 0, -8); ctx.fill();
+  } else if (w === 'BOULDER') {
+    ctx.fillStyle = '#78716C'; ctx.beginPath(); ctx.moveTo(-20, 8); ctx.lineTo(-16, -12); ctx.lineTo(0, -20); ctx.lineTo(18, -12); ctx.lineTo(22, 6); ctx.lineTo(8, 20); ctx.lineTo(-12, 18); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#A8A29E'; ctx.beginPath(); ctx.moveTo(-10, -8); ctx.lineTo(0, -14); ctx.lineTo(8, -8); ctx.lineTo(0, -4); ctx.fill();
+  } else {
+    ctx.fillStyle = '#38BDF8'; ctx.beginPath(); ctx.moveTo(-24, 20); ctx.quadraticCurveTo(-20, -24, 14, -14); ctx.quadraticCurveTo(-4, -8, 4, 6); ctx.quadraticCurveTo(14, 16, 24, 20); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#E0F2FE'; ctx.beginPath(); ctx.arc(10, -14, 5, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
 };

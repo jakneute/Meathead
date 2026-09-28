@@ -84,12 +84,18 @@ export const updateSewer = (ctx: FrameContext, sw: Sewer) => {
   // Anybody else who ends up in it (knocked in, say) dissolves, the way the barfer's sludge does them (the
   // sludgelings live in it)
   for (const e of state.enemies) {
-    if (e.health <= 0 || e.isBlownAway || e.kind === 'sludgeling' || e.kind === 'amalgam') continue;
+    if (e.health <= 0 || e.isBlownAway || e.kind === 'sludgeling' || e.kind === 'mutantfish' || e.kind === 'amalgam') continue;
     if (!muckAt(e.pos.x + e.width / 2, e.pos.y + e.height * 0.7)) continue;
     e.health = 0;
     fx.killWithAnimation(e, 'melted', 'sludge_kill', 'melted');
     for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + e.height * 0.6 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#A3E635' : '#65A30D', size: 3 + Math.random() * 4 });
     playSound('barf');
+  }
+  // The sludgelings lying in wait float with just their eyes up out of it
+  for (const e of state.enemies) {
+    if (e.kind !== 'sludgeling' || (e.aiState && e.aiState !== 'idle') || e.health <= 0) continue;
+    const c = COURSE.channels.find(ch => e.pos.x + e.width / 2 > ch.x1 && e.pos.x + e.width / 2 < ch.x2);
+    if (c) { e.pos.y = c.surface + 14 - e.height; e.vel.y = 0; }
   }
   updateDrips(ctx, sw);
   // The locker: he gets in the suit
@@ -126,7 +132,7 @@ const updateDrips = (ctx: FrameContext, sw: Sewer) => {
       return false;
     }
     for (const e of state.enemies) {
-      if (e.health <= 0 || e.isBlownAway || e.kind === 'sludgeling' || e.kind === 'amalgam' || !rectsOverlap(boundsOf(e), box)) continue;
+      if (e.health <= 0 || e.isBlownAway || e.kind === 'sludgeling' || e.kind === 'mutantfish' || e.kind === 'amalgam' || !rectsOverlap(boundsOf(e), box)) continue;
       e.health -= DRIP_DAMAGE; e.hitFlash = 6;
       splat(state, dr.x, dr.y);
       return false;

@@ -185,7 +185,7 @@ export type EnemyKind =
   // Tommy's stage: Flint. The hood (gangbangers with pistols, bruisers with bats, pit bulls, the drive-by lowriders),
   // then the sewer (Tommy's hazmat crew with their sprayers, bloated mutant sewer workers, a crew man behind a manhole
   // cover, the little sludge things that hop out of the muck), and what's left of everyone the water killed
-  | 'banger' | 'bruiser' | 'pitbull' | 'lowrider' | 'hazmat' | 'bloater' | 'manhole' | 'sludgeling' | 'amalgam';
+  | 'banger' | 'bruiser' | 'pitbull' | 'lowrider' | 'hazmat' | 'bloater' | 'manhole' | 'sludgeling' | 'mutantfish' | 'amalgam';
 
 export interface Enemy extends Entity {
   /** Which of Meathead's moves last hit it (see Player.moveId). */

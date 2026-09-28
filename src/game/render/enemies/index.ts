@@ -56,6 +56,7 @@ export const KIND_HEAD: Record<EnemyKind, { x: number; y: number; r: number }> =
   minion: { x: 2, y: -60, r: 9 }, generator: { x: 0, y: -80, r: 30 },
   banger: { x: 2, y: -63, r: 8 }, bruiser: { x: 3, y: -74, r: 9 }, pitbull: { x: 22, y: -22, r: 8 }, lowrider: { x: 0, y: -30, r: 16 },
   hazmat: { x: 1, y: -66, r: 10 }, bloater: { x: 6, y: -74, r: 9 }, manhole: { x: 2, y: -63, r: 8 }, sludgeling: { x: 6, y: -10, r: 6 },
+  mutantfish: { x: 12, y: -18, r: 6 },
   amalgam: { x: 0, y: -300, r: 40 },
 };
 
@@ -74,7 +75,7 @@ export const isHumanoidKind = (kind?: EnemyKind) =>
 /** What an x-ray shows inside it. (A rattlesnake's all spine, like a fish; a scorpion's legs and claws, like a crab.) */
 export const skeletonOf = (kind: EnemyKind): 'person' | 'four-legs' | 'bird' | 'fish' | 'crab' | 'machine' =>
   kind === 'drone' || kind === 'generator' || kind === 'lowrider' ? 'machine' : isHumanoidKind(kind) ? 'person' : kind === 'eagle' || kind === 'pelican' || kind === 'vulture' || kind === 'seagull' ? 'bird'
-  : kind === 'shark' || kind === 'magmafish' || kind === 'rattlesnake' ? 'fish' : kind === 'crab' || kind === 'scorpion' ? 'crab' : 'four-legs';
+  : kind === 'shark' || kind === 'magmafish' || kind === 'rattlesnake' || kind === 'mutantfish' ? 'fish' : kind === 'crab' || kind === 'scorpion' ? 'crab' : 'four-legs';
 
 const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: GameState) => {
   ctx.save();
@@ -93,7 +94,7 @@ const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: Game
     case 'pimp': case 'hooker': case 'mugger': case 'bum': case 'rat': case 'guard': case 'commuter': case 'reader': case 'exec': case 'intern': case 'hr':
     case 'exterminator': case 'janitor': case 'custodian': case 'labtech': case 'subject': case 'scientist': case 'tenant': case 'minion': case 'generator':
       drawBarryKind(ctx, e, f, state); break;
-    case 'banger': case 'bruiser': case 'pitbull': case 'lowrider': case 'hazmat': case 'bloater': case 'manhole': case 'sludgeling': case 'amalgam':
+    case 'banger': case 'bruiser': case 'pitbull': case 'lowrider': case 'hazmat': case 'bloater': case 'manhole': case 'sludgeling': case 'mutantfish': case 'amalgam':
       drawTommyKind(ctx, e, f, state); break;
     default: drawHectorKind(ctx, e, f, state); break;
   }

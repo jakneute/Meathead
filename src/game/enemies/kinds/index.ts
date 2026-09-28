@@ -106,6 +106,7 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   bloater: { w: 60, h: 74, hp: 260, contact: 14 },
   manhole: { w: 52, h: 68, hp: 180, contact: 7 },
   sludgeling: { w: 30, h: 18, hp: 30, contact: 7 },
+  mutantfish: { w: 50, h: 26, hp: 45, contact: 8, air: true },
   // (what's left of the people the water killed: the stage runs it)
   // (it goes all the way down to the bottom of its pool)
   amalgam: { w: 300, h: 580, hp: 11000, contact: 0 },
@@ -180,6 +181,7 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     case 'bruiser': case 'bloater': return { ...base, behavior: 'patrol', pauseTimer: 0 };
     case 'manhole': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
     case 'amalgam': return { ...base, harmless: true };
+    case 'mutantfish': return { ...base, enemyType: 'flyer', initialY: pos.y };
     default: return base;
   }
 };
@@ -209,7 +211,7 @@ export const runKindAI = (ctx: FrameContext, e: Enemy): boolean => {
     case 'rattlesnake': return runDaleKindAI(ctx, e);
     // Barry's rats scurry and lunge like the wolverine
     case 'rat': wolverine(ctx, e); return false;
-    case 'pitbull': case 'lowrider': case 'sludgeling': return runTommyKindAI(ctx, e);
+    case 'pitbull': case 'lowrider': case 'sludgeling': case 'mutantfish': return runTommyKindAI(ctx, e);
     default: return false;
   }
 };

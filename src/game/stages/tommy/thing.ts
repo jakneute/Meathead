@@ -23,7 +23,7 @@ import { hurtPlayer } from '../../bosses/shared';
 import { weaponOf, midBossProjectileDamage } from '../../combat/midBoss';
 import { MAX_AMMO, CANVAS_WIDTH, GROUND_Y } from '../../../constants';
 import { COURSE, CP } from './course';
-import { Talk, queueLines, replaceLines, quiet, hush } from './script';
+import { Talk, queueLines, replaceLines, hush } from './script';
 
 export type ThingPhase = 'dormant' | 'rise' | 'fight' | 'dying' | 'dead';
 export interface Thing {
@@ -46,16 +46,20 @@ export interface Thing {
   prevHealth: number;
   /** The last time it brought ammo up for him. */
   spatAt: number;
-  /** Which request it's on (they go round). */
+  /** How many requests it's made. */
   asks: number;
   /** How it died, and the frames since. */
   death: WeaponType | 'MELEE' | null;
   deathT: number;
   /** Everything it takes a hit from flashes it (per weapon). */
   flash: number;
+  /** What it's asking for right now in its words, and what's up on the screen (that changes when it says it). */
+  askLine: string;
+  shown: WeaponType | null;
+  shownAt: number;
 }
 
-/** What it asks for, in order, round and round. */
+/** What it can ask for (one of them at random each time). */
 const MENU: WeaponType[] = ['SHOTGUN', 'FLAMETHROWER', 'BOULDER', 'TSUNAMI'];
 /** What it calls them. */
 export const WANT_NAME: Partial<Record<WeaponType, string>> = { SHOTGUN: 'THE ICE', FLAMETHROWER: 'FIRE', BOULDER: 'ROCKS', TSUNAMI: 'A WAVE' };
@@ -72,7 +76,7 @@ const FIST_LINES = ['WE ASKED NICELY.', 'LISTEN. TO. US.', 'WE WERE A NEIGHBORHO
 
 /** What it takes from what it wants, on top (x this much), and how much of it satisfies it (per request). */
 const WANT_MULT = 2.2;
-const NEED: Partial<Record<WeaponType, number>> = { SHOTGUN: 1300, FLAMETHROWER: 1300, BOULDER: 1300, TSUNAMI: 1150 };
+export const NEED: Partial<Record<WeaponType, number>> = { SHOTGUN: 1300, FLAMETHROWER: 1300, BOULDER: 1300, TSUNAMI: 1150 };
 /** How long it'll wait for what it asked for before that counts against him; how long between counting wrong hits. */
 const ASK_PATIENCE = 9 * 60, WRONG_EVERY = 90;
 /** The fist: the wind-up (up and over, slowly), when it lands, and what it does. */
@@ -86,6 +90,7 @@ export const createThing = (state: GameState, startedAt: number): Thing => {
   return {
     phase: startedAt > CP.CISTERN ? 'dead' : 'dormant', t: 0, e: null, want: MENU[0], fed: 0, asked: 0, full: 0, strikes: 0, struckAt: -999,
     fist: 0, lastWeapon: 'GUN', prevHealth: 0, spatAt: -999, asks: 0, death: startedAt > CP.CISTERN ? 'TSUNAMI' : null, deathT: 999, flash: 0,
+    askLine: '', shown: null, shownAt: 0,
   };
 };
 
@@ -128,17 +133,16 @@ export const updateThingRoom = (ctx: FrameContext, th: Thing, talk: Talk, contro
         playSound('tsunami'); shakeScreen(state, 60, 4);
         hush(state, talk);
         queueLines(state, talk, [
-          { who: 'meathead', text: 'OH GOD. IT HAS FACES.' },
-          { who: 'thing', text: 'WE WERE THE EAST SIDE. WE DRANK THE WATER.' },
-          { who: 'thing', text: "WE CAN'T DIE. WE'VE TRIED. PLEASE. KILL US." },
-          { who: 'meathead', text: 'YEAH, OKAY. I CAN DO THAT.' },
-        ], 50);
+          { who: 'thing', text: 'WE DRANK THE WATER. PLEASE. KILL US.' },
+          { who: 'meathead', text: 'YEAH, OKAY.' },
+        ], 20);
       }
       return controls;
     case 'rise':
       // Up out of the pool, and its piece said
       p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
-      if (th.t > 90 && quiet(talk)) { th.phase = 'fight'; th.t = 0; ask(state, th, talk); }
+      // (the fight's on as soon as it's up: its first ask comes after what's being said)
+      if (th.t > 90) { th.phase = 'fight'; th.t = 0; ask(state, th, talk, true); }
       return th.t < 90 ? { ...NO_CONTROLS } : controls;
     case 'fight': return fight(ctx, th, talk, controls);
     case 'dying':
@@ -150,15 +154,16 @@ export const updateThingRoom = (ctx: FrameContext, th: Thing, talk: Talk, contro
   }
 };
 
-const ask = (state: GameState, th: Thing, talk: Talk) => {
-  // (only for what he's got on him)
+const ask = (state: GameState, th: Thing, talk: Talk, first = false) => {
+  // Any of them, at random (only what he's got on him, and never the same thing twice running)
   const have = (w: WeaponType) => (state.availableWeapons ?? state.player.availableWeapons ?? []).includes(w);
-  for (let k = 0; k < MENU.length; k++) {
-    const w = MENU[(th.asks + k) % MENU.length];
-    if (have(w) || k === MENU.length - 1) { th.want = w; th.asks += k + 1; break; }
-  }
+  const owned = MENU.filter(have);
+  const pool = (owned.length ? owned : MENU).filter(w => w !== th.want || first);
+  th.want = pool[Math.floor(Math.random() * pool.length)] ?? MENU[0];
+  th.asks++;
   th.fed = 0; th.asked = 0; th.full = 0;
-  say(state, talk, pick(ASK_LINES[th.want]!, th.asks), true);
+  th.askLine = pick(ASK_LINES[th.want]!, th.asks);
+  say(state, talk, th.askLine, !first);
 };
 
 /** A mark against him: twice running and the fist comes down. */
@@ -174,6 +179,8 @@ const fight = (ctx: FrameContext, th: Thing, talk: Talk, controls: Controls): Co
   const p = state.player;
   const e = th.e!;
   th.asked++;
+  // What's up on the screen changes when it says what it wants (or, with no voice, as the line goes up)
+  if (th.shown !== th.want && (talk.current?.text === th.askLine || (th.asked > 240))) { th.shown = th.want; th.shownAt = state.frame; }
   // What the flames and the wave took off it since last frame (the shots it counts as they land)
   const took = th.prevHealth - e.health;
   if (took > 0) {

@@ -37,7 +37,7 @@ export interface Escape {
 }
 
 /** How long each of the cut scenes runs. */
-export const TOWER_FRAMES = 330, FAMILY_FRAMES = 420, CRUSH_FRAMES = 300, MELT_FRAMES = 110;
+export const TOWER_FRAMES = 330, FAMILY_FRAMES = 250, CRUSH_FRAMES = 300, MELT_FRAMES = 110;
 /** The fall: how long to black, and how long it takes to come back up once he's landed. */
 export const DROP_FADE = 45, DROP_FADE_IN = 40;
 
@@ -101,13 +101,11 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
       return { ...NO_CONTROLS };
     case 'family':
       p.inCutscene = true; p.hidden = true;
-      if (es.t === 30) queueLines(state, talk, [
-        { who: 'dad', text: "HA! THIS GUY'S A RIOT. PASS THE CHIPS, HON." },
-        { who: 'kid', text: "DAD, WHY'S IT GETTING DARK IN HERE?" },
-        { who: 'mom', text: "IT'S JUST A CLOUD, SWEETIE. DRINK YOUR JUICE." },
+      if (es.t === 15) queueLines(state, talk, [
+        { who: 'dad', text: 'HA! PASS THE CHIPS.' },
+        { who: 'kid', text: "WHY'S IT GETTING DARK?" },
       ]);
-      if (es.t > FAMILY_FRAMES - 60 && quiet(talk)) { es.phase = 'crush'; es.t = 0; playSound('nuke'); shakeScreen(state, 60, 18); }
-      if (es.t > FAMILY_FRAMES + 400) { es.phase = 'crush'; es.t = 0; }
+      if ((es.t > FAMILY_FRAMES - 40 && quiet(talk)) || es.t > FAMILY_FRAMES + 200) { es.phase = 'crush'; es.t = 0; playSound('nuke'); shakeScreen(state, 60, 18); }
       return { ...NO_CONTROLS };
     case 'crush':
       p.inCutscene = true; p.hidden = true;

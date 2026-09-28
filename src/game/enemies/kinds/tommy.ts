@@ -12,6 +12,9 @@
 //   sludgeling: a little thing made of sewer muck, sat under the surface of the
 //               sewage (just its eyes showing) till you come by; then it hops
 //               out at you and keeps coming in low hops. Slide it.
+//   mutantfish: a three-eyed sewer fish, bloated and glowing, down in the
+//               flooded tunnel: it hangs about in the muck till he swims by,
+//               then comes at him in slow lunges. Shoot it.
 
 import { Enemy } from '../../../types';
 import type { FrameContext } from '../../core/context';
@@ -24,6 +27,7 @@ export const runTommyKindAI = (ctx: FrameContext, e: Enemy): boolean => {
     case 'pitbull': return pitbull(ctx, e);
     case 'lowrider': lowrider(ctx, e); return true;
     case 'sludgeling': sludgeling(ctx, e); return false;
+    case 'mutantfish': mutantfish(ctx, e); return true;
     default: return false;
   }
 };
@@ -176,4 +180,33 @@ const sludgeling = (ctx: FrameContext, e: Enemy) => {
         for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: mid(e).x, y: e.pos.y }, vel: { x: (Math.random() - 0.5) * 5, y: -2 - Math.random() * 4 }, life: 22, color: i % 2 ? '#65A30D' : '#3F6212', size: 3 + Math.random() * 3 });
       }
   }
+};
+
+// ---------------------------------------------------------------------------
+
+/** How far it notices him from, how fast it drifts, how hard it lunges, and how often. */
+const FISH_SEES = 460, FISH_DRIFT = 1.2, FISH_LUNGE = 4.2, FISH_LUNGE_EVERY = 90;
+
+const mutantfish = (ctx: FrameContext, e: Enemy) => {
+  const { state } = ctx;
+  const p = state.player;
+  e.aiTimer = (e.aiTimer || 0) + 1;
+  const m = mid(e), pm = mid(p);
+  const homeY = e.initialY ?? e.homeY ?? e.pos.y;
+  const dx = pm.x - m.x, dy = pm.y - m.y, d = Math.hypot(dx, dy) || 1;
+  if (Math.abs(dx) < FISH_SEES && p.health > 0 && !holdingOff(state)) {
+    // After him: a slow drift his way, and a lunge every so often
+    const sp = e.aiTimer % FISH_LUNGE_EVERY < 22 ? FISH_LUNGE : FISH_DRIFT;
+    e.vel.x += ((dx / d) * sp - e.vel.x) * 0.1;
+    e.vel.y += ((dy / d) * sp - e.vel.y) * 0.1;
+  } else {
+    // Hanging about where it was put, finning gently
+    e.vel.x *= 0.9;
+    e.vel.y = (homeY + Math.sin((state.frame + (e.homeX || 0)) * 0.05) * 8 - e.pos.y) * 0.05;
+  }
+  e.facing = e.vel.x < 0 ? -1 : 1;
+  e.pos.x += e.vel.x;
+  e.pos.y += e.vel.y;
+  // (it stays down in the muck: never up out of it, never down through the floor)
+  e.pos.y = Math.max(homeY - 90, Math.min(homeY + 40, e.pos.y));
 };

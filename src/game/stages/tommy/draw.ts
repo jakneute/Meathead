@@ -77,7 +77,7 @@ const drawSpeech = (ctx: Ctx, state: GameState, rt: TommyRuntime) => {
     crew: car ? { x: car.pos.x + car.width / 2, y: car.pos.y - 34 } : { x: H.corner, y: GROUND_Y - 84 },
     rider: { x: rt.bike.rider.x, y: rt.bike.rider.y - 84 },
     hazmat: { x: COURSE.road.hazmat, y: GROUND_Y - 92 },
-    thing: { x: thingSpot().x - 60, y: THING_SURFACE - 400 },
+    thing: { x: thingSpot().x - 90, y: THING_SURFACE - 250 },
   };
   for (const who of Object.keys(at) as Speaker[]) {
     const text = saying(rt.talk, who);
@@ -104,7 +104,7 @@ export const drawTommyHud = (ctx: Ctx, state: GameState) => {
     ctx.fillStyle = '#FDE68A'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText(b.hint, 400, 127); ctx.textAlign = 'left';
     ctx.restore();
   }
-  drawThingBar(ctx, rt.thing);
+  drawThingBar(ctx, rt.thing, state.frame);
   if (inCutScene(rt.escape)) drawCutScene(ctx, state, rt);
 };
 

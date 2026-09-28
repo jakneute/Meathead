@@ -103,6 +103,8 @@ const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
   if (e.innocent && !((e.pauseTimer || 0) > 0)) return false;
   // (the sharks up the storm tower are out in the air, above and below the view all the time: never out of bounds)
   if (e.kind === 'shark' || e.kind === 'magmafish') return false;
+  // (nor anything that lives down in Tommy's muck, under the bottom of the view)
+  if (e.kind === 'sludgeling' || e.kind === 'mutantfish') return false;
   // (nor a gator down in the water: it goes deep after its dinner, or after him)
   if (e.kind === 'gator' && e.variant === 1) return false;
   // (On a hilly stage things sit above and below the view all the time, hopping, leaping and flying about:
@@ -986,8 +988,10 @@ const slamIntoFloor = (ctx: FrameContext, e: Enemy, speed: number) => {
   const { fx, state } = ctx;
   const damage = toGml(speed) * DAMAGE_FALL_SCALER * (isFrozen(e) ? FROZEN_GROUND_IMPACT_MULTIPLIER : 1);
   if (speed <= 0 || damage <= IMPACT_DAMAGE_THRESHOLD) return;
-  // (a bystander coming down from its own hop is fine; only one he sent flying gets hurt landing)
-  if (e.innocent && !((e.pauseTimer || 0) > 0)) return;
+  // (a bystander coming down from its own hop is fine; only one he sent flying gets hurt landing. And a sludgeling
+  // coming down its own hops, or into the muck it lives in, is fine too)
+  if ((e.innocent || e.kind === 'sludgeling') && !((e.pauseTimer || 0) > 0)) return;
+  if (e.kind === 'sludgeling' && state.groundRuns.some(r => r.surface === 'muck' && e.pos.x + e.width / 2 > r.x1 && e.pos.x + e.width / 2 < r.x2)) return;
   e.health -= damage;
   fx.spawnDamageNumber(e.pos, damage, isFrozen(e));
   if (toGml(speed) > 6) shakeScreen(state, 8, Math.min(10, toGml(speed)) * GML_SCALE * 0.5);
