@@ -1,5 +1,29 @@
-import React from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
+
 import { BOSS_LOCATIONS, BossLocationData, StageInfo } from '../content/roster';
+
+/**
+ * One line of text at one size for every city: the size the longest of them needs to fit on the one line (so switching
+ * between cities never jumps between one line and two, or between sizes).
+ */
+const FitLine: React.FC<{ text: string; fitTo: string; max: number; min?: number; className?: string }> = ({ text, fitTo, max, min = 7, className }) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [size, setSize] = useState(max);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const shown = el.textContent;
+    el.textContent = fitTo;
+    let s = max;
+    el.style.fontSize = `${s}px`;
+    while (s > min && el.scrollWidth > el.clientWidth) { s -= 0.5; el.style.fontSize = `${s}px`; }
+    el.textContent = shown;
+    setSize(s);
+  }, [fitTo, max, min]);
+  return <span ref={ref} className={`block whitespace-nowrap overflow-hidden ${className ?? ''}`} style={{ fontSize: size }}>{text}</span>;
+};
+/** The longest place name on the map (what the location line's sized for). */
+const LONGEST_PLACE = Object.values(BOSS_LOCATIONS).map(l => `${l.city}, ${l.state}`).sort((a, b) => b.length - a.length)[0] ?? '';
 
 interface USAMapProps {
   selectedBossId: string;
@@ -437,17 +461,18 @@ const USAMap: React.FC<USAMapProps> = ({
       {/* DIRECTLY UNDERNEATH: CITY AND STATE (User requirement)    */}
       {/* ========================================================= */}
       <div className="w-full mt-2 bg-black/90 border-t-2 border-yellow-400/80 pt-2 px-1 flex flex-col gap-1">
-        {/* City and State */}
-        <div className="flex items-baseline justify-between border-b border-gray-800 pb-1">
-          <div className="flex items-center gap-1.5">
-            <span className="text-red-500 font-mono text-[9px] font-black uppercase tracking-wider">
-              LOCATION:
-            </span>
-            <span className="text-yellow-400 font-black text-[12px] md:text-[13px] tracking-wide uppercase [text-shadow:1px_1px_0_black]">
-              {activeLocation.city}, {activeLocation.state}
-            </span>
-          </div>
-          <span className="text-cyan-400 font-mono text-[8px] font-bold tracking-tight">
+        {/* City and State: always the one line, the same size and height for every city */}
+        <div className="flex items-center gap-2 h-[24px] border-b border-gray-800 pb-1">
+          <span className="shrink-0 text-red-500 font-mono text-[9px] font-black uppercase tracking-wider">
+            LOCATION:
+          </span>
+          <FitLine
+            text={`${activeLocation.city}, ${activeLocation.state}`}
+            fitTo={LONGEST_PLACE}
+            max={13}
+            className="flex-1 min-w-0 text-yellow-400 font-black tracking-wide uppercase leading-none [text-shadow:1px_1px_0_black]"
+          />
+          <span className="shrink-0 text-cyan-400 font-mono text-[8px] font-bold tracking-tight">
             [{activeLocation.coordinatesText}]
           </span>
         </div>
