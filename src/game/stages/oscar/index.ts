@@ -17,8 +17,8 @@ export const oscarLayout: StageLayout = {
   startX: COURSE.startX,
   verticalCamera: true,
   lighting: state => oscarScene(state),
-  // (dying to Oscar: back in the middle of what's left of the bar)
-  bossStartX: COURSE.checkpoints[CP.BOSS].x - 150,
+  // (dying to Oscar: no going back past the bar's front wall; he's put in the middle of what's left of it: see build)
+  bossStartX: COURSE.bar.x1,
   build: (state, skipToBoss) => {
     const C = COURSE;
     state.groundRuns = [...C.runs, { x1: BOSS_DOOR_X, y1: GROUND_Y, x2: STAGE_WIDTH, y2: GROUND_Y }];
@@ -33,6 +33,13 @@ export const oscarLayout: StageLayout = {
     state.cameraMinX = C.startX;
     state.player.hidden = false;
     state.stage = createOscarRuntime(state, skipToBoss);
+    // Back for Oscar: on the floor in the middle of what's left of the bar
+    if (skipToBoss) {
+      const at = C.checkpoints[CP.BOSS];
+      state.player.pos = { x: at.x - state.player.width / 2, y: at.y - state.player.height };
+      state.cameraRestY = at.y - 550; state.camera.y = state.cameraRestY;
+      state.camera.x = Math.max(C.bar.x1, at.x - 250);
+    }
     const cp = skipToBoss ? 0 : state.checkpoint;
     if (cp > 0) {
       const at = C.checkpoints[cp];
@@ -73,4 +80,3 @@ export const oscarLayout: StageLayout = {
   cameraRow: state => (placeOf(state.player.pos.x) === 'bunker' ? 520 : undefined),
 };
 
-void CP;
