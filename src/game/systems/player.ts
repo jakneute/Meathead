@@ -431,11 +431,16 @@ const doorIsMoving = (state: GameState) =>
 const isSolid = (state: GameState, b: Block) =>
   b.type !== 'pit' && !(b.type === 'door' && (doorIsMoving(state) || state.doorState === 'closed'));
 
+/** (jump-through ledges don't count: only their tops are solid, and only from above) */
 const collidesWithSolid = (state: GameState, box: Rect) =>
-  state.blocks.some(b => isSolid(state, b) && rectsOverlap(box, b));
+  state.blocks.some(b => isSolid(state, b) && !b.oneWay && rectsOverlap(box, b));
 
-const standingOnSolid = (state: GameState) =>
-  collidesWithSolid(state, { ...boundsOf(state.player), y: state.player.pos.y + 1 });
+const standingOnSolid = (state: GameState) => {
+  const p = state.player;
+  if (collidesWithSolid(state, { ...boundsOf(p), y: p.pos.y + 1 })) return true;
+  const feet = p.pos.y + p.height;
+  return state.blocks.some(b => b.oneWay && isSolid(state, b) && p.pos.x + p.width > b.x && p.pos.x < b.x + b.w && Math.abs(feet - b.y) <= 1);
+};
 
 /** Touching the closed boss door starts the boss transition. */
 const checkBossDoor = (ctx: FrameContext) => {
@@ -472,7 +477,7 @@ const moveHorizontally = (ctx: FrameContext) => {
   checkBossDoor(ctx);
 
   for (const b of state.blocks) {
-    if (!isSolid(state, b) || !rectsOverlap(boundsOf(player), b)) continue;
+    if (!isSolid(state, b) || b.oneWay || !rectsOverlap(boundsOf(player), b)) continue;
     // A step or lip just above our feet: walk up onto it (stairs on the ground, tiny lips in the air)
     const feet = player.pos.y + player.height;
     if (feet - b.y <= (onGround ? STAIR_HEIGHT : STEP_UP_HEIGHT) && player.vel.y >= 0) {
@@ -495,10 +500,13 @@ const moveVertically = (ctx: FrameContext) => {
   const { state } = ctx;
   const { player } = state;
   const impactSpeed = player.vel.y;
+  const prevFeet = player.pos.y + player.height;
   player.pos.y += player.vel.y;
 
   for (const b of state.blocks) {
     if (!isSolid(state, b) || !rectsOverlap(boundsOf(player), b)) continue;
+    // A jump-through ledge only catches you coming down onto its top
+    if (b.oneWay && (impactSpeed < 0 || prevFeet > b.y + 8)) continue;
 
     if (impactSpeed >= 0) {
       player.pos.y = b.y - player.height;
@@ -604,7 +612,7 @@ export const landPlayer = (ctx: FrameContext, impactSpeed: number = 0) => {
 const pushOutOfSolids = (state: GameState) => {
   const { player } = state;
   for (const b of state.blocks) {
-    if (!isSolid(state, b) || !rectsOverlap(boundsOf(player), b)) continue;
+    if (!isSolid(state, b) || b.oneWay || !rectsOverlap(boundsOf(player), b)) continue;
     const pushUp = player.pos.y + player.height - b.y;
     const pushDown = b.y + b.h - player.pos.y;
     const pushLeft = player.pos.x + player.width - b.x;

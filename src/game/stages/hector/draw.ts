@@ -3,7 +3,7 @@
 // (umbrellas, motels, signs, boats), the platforms, the hazards and the HUD.
 
 import type { GameState } from '../../state';
-import { BOSS_DOOR_X, CANVAS_HEIGHT, CANVAS_WIDTH } from '../../../constants';
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../../../constants';
 import { drawBackdrop, drawBackdropFront } from '../../render/backdrops';
 import { COURSE, Plat, Prop, palmTip } from './course';
 import { getHector, regionOf, HectorRuntime } from './runtime';
@@ -23,7 +23,8 @@ const visible = (state: GameState, x1: number, x2: number) => x2 > state.camera.
 export const stormAt = (state: GameState, rt: HectorRuntime) => {
   const region = regionOf(state.camera.x + 400);
   if (region === 'main') return rt.beach.storm;
-  if (region === 'daycare') return clamp01((state.camera.x - (BOSS_DOOR_X - 900)) / 500);
+  // (after the Eye it's sunshine all the way to the boss door)
+  if (region === 'daycare') return 0;
   return 1;
 };
 

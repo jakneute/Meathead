@@ -5,6 +5,7 @@
 import type { GameState } from '../../state';
 import type { FrameContext } from '../../context';
 import type { Controls } from '../../input';
+import { NO_CONTROLS } from '../../input';
 import { makeKindEnemy } from '../../systems/kinds';
 import { playSound } from '../../audio';
 import { COURSE, CP, palmTip } from './course';
@@ -103,6 +104,11 @@ export const updateHector = (ctx: FrameContext, controls: Controls): Controls =>
   controls = updateBoat(ctx, rt.boat, controls, () => enterTower(state));
   updateTower(ctx, rt.tower, () => enterEye(state));
   updateEyeFight(ctx, rt.eye, () => { rt.clearT = 1; });
+  // The Eye's dead: hands off while it dies and the storm clears
+  if (region === 'eye' && (rt.eye.phase === 'dead' || rt.eye.phase === 'done')) {
+    controls = { ...NO_CONTROLS };
+    player.isCharging = false; player.isSliding = false; player.isUppercutting = false; player.isDivekicking = false;
+  }
   // The storm dies: a whiteout, then the daycare
   if (rt.clearT > 0) {
     rt.clearT++;

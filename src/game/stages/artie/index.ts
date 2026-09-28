@@ -22,7 +22,7 @@ export const artieLayout: StageLayout = {
     state.blocks.push(...groundBlocks(C.runs));
     // Rock overhangs (icicles hang off them) and ledges (some are crumbling ice)
     C.overhangs.forEach((o, i) => state.blocks.push({ x: o.x, y: o.y, w: o.w, h: o.h, type: 'platform', tag: `overhang-${i}` }));
-    C.ledges.forEach((l, i) => state.blocks.push({ x: l.x, y: l.y, w: l.w, h: l.crumble ? 18 : 26, type: 'platform', tag: l.crumble ? `crumble-${i}` : `rock-${i}` }));
+    C.ledges.forEach((l, i) => state.blocks.push({ x: l.x, y: l.y, w: l.w, h: l.crumble ? 18 : 26, type: 'platform', oneWay: true, tag: l.crumble ? `crumble-${i}` : `rock-${i}` }));
     state.cameraMinX = C.left;
     state.stage = createArtieRuntime(state, skipToBoss);
     const cp = skipToBoss ? 0 : state.checkpoint;

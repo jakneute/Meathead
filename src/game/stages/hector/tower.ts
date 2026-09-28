@@ -13,6 +13,7 @@ import type { GameState } from '../../state';
 import { makeKindEnemy } from '../../systems/kinds';
 import { playSound } from '../../audio';
 import { shakeScreen } from '../../state';
+import { killPlayer } from '../../systems/player';
 import { COURSE, CP } from './course';
 
 export interface TowerRun {
@@ -21,7 +22,14 @@ export interface TowerRun {
   u: number[];
   /** Transition up to the Eye: frames of the flash (0 = not started). */
   exitT: number;
+  /** The highest he's stood (feet y), and frames of him being ripped away by the storm (0 = not). */
+  bestY: number;
+  suckT: number;
 }
+
+/** Fall this far below the highest you've stood (about a screen) and the storm has you. */
+const FALL_LIMIT = 560;
+const SUCK_FRAMES = 36;
 
 const T = COURSE.tower;
 
@@ -31,7 +39,7 @@ export const createTowerRun = (state: GameState, startedAt: number): TowerRun =>
   // The floor of the storm (a ring of wreckage you start on), three laps wide
   state.blocks.push({ x: T.x0 - T.circumference, y: T.floorY, w: T.circumference * 3, h: 60, type: 'ground', hidden: true, tag: 'tower-floor' });
   const copies = T.plats.map((p, i) => [-1, 0, 1].map((k): Block => ({
-    x: T.x0 + p.u + k * T.circumference, y: p.y, w: p.w, h: 14, type: 'platform', hidden: true, tag: p.bounce ? `awning-t${i}` : `tower-${i}`,
+    x: T.x0 + p.u + k * T.circumference, y: p.y, w: p.w, h: 14, type: 'platform', hidden: true, oneWay: true, tag: p.bounce ? `awning-t${i}` : `tower-${i}`,
   })));
   copies.forEach(c => state.blocks.push(...c));
   if (startedAt <= CP.TOWER) {
@@ -39,7 +47,7 @@ export const createTowerRun = (state: GameState, startedAt: number): TowerRun =>
     for (const s of T.sharks) state.enemies.push(makeKindEnemy('shark', T.x0 + s.u, s.y));
     T.pickups.forEach((p, i) => state.pickups.push({ id: `tower-pickup-${i}`, pos: { x: T.x0 + p.u - 10, y: p.y - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: p.type, life: 1e9 }));
   }
-  return { copies, u: T.plats.map(p => p.u), exitT: 0 };
+  return { copies, u: T.plats.map(p => p.u), exitT: 0, bestY: T.floorY, suckT: 0 };
 };
 
 /** Shift everything in the tower a lap sideways (walking off one side of the lap onto the other). */
@@ -88,6 +96,27 @@ export const updateTower = (ctx: FrameContext, tr: TowerRun, onTop: () => void) 
   });
   // Swirling spray whipping round
   if (state.frame % 3 === 0) state.particles.push({ pos: { x: state.camera.x + Math.random() * 800, y: state.camera.y + Math.random() * 600 }, vel: { x: -6 - Math.random() * 4, y: 1 + Math.random() }, life: 30, color: 'rgba(200, 220, 240, 0.6)', size: 2 });
+  // Fallen too far: the wind tears him off the junk and up into the storm
+  const feet = player.pos.y + player.height;
+  if (player.isGrounded) tr.bestY = Math.min(tr.bestY, feet);
+  if (tr.suckT === 0 && tr.exitT === 0 && state.deathTimer <= 0 && !player.isGrounded && feet > tr.bestY + FALL_LIMIT) {
+    tr.suckT = 1;
+    playSound('thunder');
+    shakeScreen(state, 20, 6);
+  }
+  if (tr.suckT > 0 && state.deathTimer <= 0) {
+    tr.suckT++;
+    // Whipped round and up, faster and faster
+    player.vel.x = -10 - tr.suckT * 0.3;
+    player.vel.y = -4 - tr.suckT * 0.5;
+    player.facing = Math.floor(tr.suckT / 4) % 2 ? 1 : -1;
+    player.invincibilityTimer = 0;
+    for (let k = 0; k < 3; k++) state.particles.push({ pos: { x: player.pos.x + Math.random() * player.width, y: player.pos.y + Math.random() * player.height }, vel: { x: -8 - Math.random() * 6, y: -3 - Math.random() * 4 }, life: 22, color: 'rgba(226, 232, 240, 0.8)', size: 3 });
+    if (tr.suckT >= SUCK_FRAMES) {
+      const lines = ['SUCKED UP INTO THE STORM', 'GONE WITH THE WIND', 'CATEGORY 5 DEATH', "THERE'S NO PLACE LIKE HOME"];
+      killPlayer(ctx, lines[Math.floor(Math.random() * lines.length)]);
+    }
+  }
   // Made it to the top: lightning, and you're up at the Eye
   if (tr.exitT === 0 && player.isGrounded && player.pos.y + player.height <= T.topY + 110) {
     tr.exitT = 1;

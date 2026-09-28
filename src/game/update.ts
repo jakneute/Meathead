@@ -484,7 +484,7 @@ const updateCamera = (ctx: FrameContext) => {
     // Dropping toward lower ground: head down to meet it rather than waiting for him to land
     else if (player.vel.y > 0 && below !== null) state.cameraRestY = Math.max(state.cameraRestY, below - row);
     const target = Math.min(state.cameraRestY, player.pos.y - CAMERA_TOP_MARGIN);
-    state.camera.y += (target - state.camera.y) * CAMERA_EASE_Y;
+    state.camera.y += (target - state.camera.y) * (layout.cameraEaseY?.(state) ?? CAMERA_EASE_Y);
     if (Math.abs(target - state.camera.y) < 0.5) state.camera.y = target;
     // The easing never gets to leave him behind: he stays on screen however fast he's going
     state.camera.y = Math.min(state.camera.y, player.pos.y - CAMERA_HARD_TOP);

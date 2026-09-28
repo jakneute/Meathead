@@ -12,6 +12,7 @@ import { shakeScreen } from '../../state';
 import { playSound } from '../../audio';
 import { say, MEATHEAD_VOICE } from '../../speech';
 import { floorTopAt } from '../../terrain';
+import { BOSS_DOOR_X } from '../../../constants';
 import { COURSE, CP } from './course';
 
 export interface Daycare {
@@ -34,6 +35,10 @@ export const createDaycare = (state: GameState, startedAt: number): Daycare => {
   const done = startedAt >= CP.DOOR;
   // A wall behind the daycare (the ocean's on the other side of it)
   state.blocks.push({ x: D().x1 - 60, y: -3000, w: 60, h: 4000, type: 'wall', hidden: true, tag: 'daycare-wall' });
+  // A big health and ammo refill before the boss door
+  (['large_health', 'large_ammo'] as const).forEach((type, i) => state.pickups.push({
+    id: `hector-door-refill-${i}`, pos: { x: BOSS_DOOR_X - 300 + i * 80 - 10, y: D().y - 50 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9,
+  }));
   return { phase: done ? 'done' : 'waiting', t: 0, hitAt: done ? -9999 : 0, kidLine: '', kidLineT: 0, landedAt: 0 };
 };
 

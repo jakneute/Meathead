@@ -53,6 +53,10 @@ export interface StageLayout {
   drawBackdropFront?: (ctx: CanvasRenderingContext2D, state: GameState) => boolean;
   /** The world's wrapped round a rotating cylinder of this radius right now (the storm climb), or null. */
   cylinder?: (state: GameState) => { radius: number } | null;
+  /** Where you start when you go straight to the boss (or die to him), if not the usual spot just outside his door. */
+  bossStartX?: number;
+  /** How quickly the vertical camera settles (default 0.2 a frame): lower is gentler, for a climb of lots of little ledges. */
+  cameraEaseY?: (state: GameState) => number | undefined;
 }
 
 const LAYOUTS: Record<string, StageLayout> = {

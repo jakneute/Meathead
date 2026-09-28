@@ -7,7 +7,7 @@ import { getStageLayout } from './stages';
 
 /** Where the player starts: the stage start, or just before the boss door when skipping. */
 export const getStartX = (skipToBoss: boolean, stageId: string | null = null) =>
-  skipToBoss ? BOSS_DOOR_X - 800 : getStageLayout(stageId)?.startX ?? 0;
+  skipToBoss ? getStageLayout(stageId)?.bossStartX ?? BOSS_DOOR_X - 800 : getStageLayout(stageId)?.startX ?? 0;
 
 /** Builds the terrain, enemies and boss for a stage into `state`. */
 export const buildLevel = (state: GameState, stageId: string | null, skipToBoss: boolean) => {
@@ -62,7 +62,7 @@ export const respawn = (state: GameState, stageId: string | null, skipToBoss: bo
     state.camera.y = state.cameraRestY;
   }
   if (state.bossCheckpoint && !skipToBoss) {
-    const startX = getStartX(true);
+    const startX = getStartX(true, stageId);
     state.blocks.push({ x: startX - 100, y: -1000, w: 100, h: 2000, type: 'wall' });
     state.cameraMinX = startX;
   }

@@ -377,6 +377,8 @@ export interface Block extends Rect {
   tag?: string;
   /** An indoor floor (the tram cabin's): normal footing even on an icy stage. */
   indoor?: boolean;
+  /** A jump-through ledge: you can jump up through it from below (no bonked head) and land on top; only its top is solid. */
+  oneWay?: boolean;
 }
 
 export interface Volcano {

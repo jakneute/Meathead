@@ -127,12 +127,20 @@ export const drawTowerJunk = (ctx: Ctx, state: GameState, tr: TowerRun) => {
       if (b.x + b.w < state.camera.x - 700 || b.x > state.camera.x + CANVAS_WIDTH + 700) continue;
       if (b.y < state.camera.y - 100 || b.y > state.camera.y + CANVAS_HEIGHT + 100) continue;
       const bob = Math.sin(state.frame * 0.05 + i) * 1.5;
-      drawJunk(ctx, b.x, b.y + bob, b.w, p.look, state.frame);
+      drawJunk(ctx, b.x, b.y + bob, b.w, p.look, state.frame, i);
     }
   });
 };
 
-export const drawJunk = (ctx: Ctx, x: number, y: number, w: number, look: string, f: number) => {
+/** The billboards the storm tore down: every one a different slice of Miami. [text, board, lettering] */
+const BILLBOARDS: [string, string, string][] = [
+  ['2-4-1 MOJITOS', '#F472B6', '#FEF08A'], ['BAIL BONDS 24/7', '#FACC15', '#111827'], ['CONDOS FROM $9M', '#22D3EE', '#831843'],
+  ['GATOR TOURS!', '#65A30D', '#FEF9C3'], ['BOTOX WALK-INS', '#F9A8D4', '#1E3A8A'], ['CUBAN COFFEE', '#7C2D12', '#FDE68A'],
+  ['TAN IN 15 MIN', '#FB923C', '#FFFFFF'], ['LADIES NITE', '#A855F7', '#5EEAD4'], ['PAWN & GOLD', '#111827', '#FACC15'],
+  ['JET SKI RENTAL', '#0EA5E9', '#FFFFFF'], ['SEX PANTHER', '#DB2777', '#FFFFFF'], ['HURRICANE SALE', '#DC2626', '#FEF08A'],
+];
+
+export const drawJunk = (ctx: Ctx, x: number, y: number, w: number, look: string, f: number, variant = 0) => {
   switch (look) {
     case 'door':
       ctx.fillStyle = '#92400E'; ctx.fillRect(x, y, w, 16);
@@ -147,9 +155,23 @@ export const drawJunk = (ctx: Ctx, x: number, y: number, w: number, look: string
       ctx.fillStyle = '#4D7C0F'; ctx.fillRect(x, y + 14, w, 6);
       break;
     case 'billboard':
-      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x, y, w, 20);
-      ctx.fillStyle = '#DC2626'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.fillText('INJURED? CALL', x + 6, y + 13);
+    {
+      const [text, board, ink] = BILLBOARDS[variant % BILLBOARDS.length];
+      ctx.fillStyle = board; ctx.fillRect(x, y, w, 20);
+      // Chasing bulbs round the edge (the tackier the better)
+      for (let bx = x + 4; bx < x + w - 2; bx += 8) {
+        ctx.fillStyle = Math.floor((bx - x) / 8 + f / 6) % 2 ? '#FEF9C3' : '#78350F';
+        ctx.fillRect(bx, y + 1, 3, 2); ctx.fillRect(bx, y + 17, 3, 2);
+      }
+      ctx.save();
+      ctx.font = 'bold 7px "Press Start 2P"';
+      const tw = ctx.measureText(text).width, room = w - 8;
+      ctx.translate(x + w / 2, y + 13);
+      if (tw > room) ctx.scale(room / tw, 1);
+      ctx.fillStyle = ink; ctx.textAlign = 'center'; ctx.fillText(text, 0, 0);
+      ctx.restore();
       break;
+    }
     case 'sofa':
       ctx.fillStyle = '#9D174D'; ctx.fillRect(x, y, w, 14); ctx.fillRect(x, y - 12, 12, 14); ctx.fillRect(x + w - 12, y - 12, 12, 14);
       ctx.fillStyle = '#BE185D'; ctx.fillRect(x + 12, y - 4, w - 24, 6);
@@ -188,7 +210,7 @@ export const drawEyeArena = (ctx: Ctx, state: GameState, f: EyeFight) => {
   f.plats.forEach((p, i) => {
     if (p.state === 'gone') return;
     const b = p.block;
-    drawJunk(ctx, b.x, b.y, b.w, EYE_JUNK[i % EYE_JUNK.length], state.frame);
+    drawJunk(ctx, b.x, b.y, b.w, EYE_JUNK[i % EYE_JUNK.length], state.frame, i + 3);
     if (p.state === 'shake') {
       // Cracking, bits falling off
       ctx.strokeStyle = '#111827'; ctx.lineWidth = 2;
@@ -197,11 +219,66 @@ export const drawEyeArena = (ctx: Ctx, state: GameState, f: EyeFight) => {
     }
   });
   if (f.corpse) drawEyeCorpse(ctx, state, f.corpse.weapon, f.corpse.t0);
-  // The tears it wept
-  for (const t of f.tears) {
-    ctx.fillStyle = '#7DD3FC';
-    ctx.beginPath(); ctx.moveTo(t.x, t.y - 8); ctx.quadraticCurveTo(t.x + 6, t.y + 2, t.x, t.y + 6); ctx.quadraticCurveTo(t.x - 6, t.y + 2, t.x, t.y - 8); ctx.fill();
-    ctx.fillStyle = '#F0F9FF'; ctx.fillRect(t.x - 2, t.y - 2, 2, 3);
+  // What the storm's flinging at him: a flashing warning at the screen edge, then the thing itself
+  for (const j of f.junk) {
+    if (j.warn > 0) {
+      if (Math.floor(j.warn / 5) % 2) continue;
+      const ex = j.side < 0 ? state.camera.x + 26 : state.camera.x + CANVAS_WIDTH - 26;
+      ctx.save();
+      ctx.fillStyle = '#DC2626'; ctx.strokeStyle = '#FEF08A'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(ex, j.y, 18, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#FEF08A'; ctx.font = 'bold 18px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('!', ex + 1, j.y + 2);
+      // (and an arrow the way it'll come)
+      ctx.beginPath(); ctx.moveTo(ex - j.side * 26, j.y); ctx.lineTo(ex - j.side * 36, j.y - 8); ctx.lineTo(ex - j.side * 36, j.y + 8); ctx.fill();
+      ctx.restore();
+      continue;
+    }
+    ctx.save(); ctx.translate(j.x, j.y); ctx.rotate(j.rot);
+    drawFlyingJunk(ctx, j.look);
+    ctx.restore();
+  }
+};
+
+/** One piece of flying junk, centred on the origin (about 44x36). */
+const drawFlyingJunk = (ctx: Ctx, look: string) => {
+  switch (look) {
+    case 'chair': // a folding lawn chair
+      ctx.fillStyle = '#E5E7EB'; ctx.fillRect(-18, -2, 36, 4); ctx.fillRect(-18, -18, 4, 20); ctx.fillRect(14, -2, 4, 18);
+      ctx.fillStyle = '#10B981'; for (let k = 0; k < 4; k++) ctx.fillRect(-14, -16 + k * 5, 28, 3);
+      break;
+    case 'flamingo': // a plastic lawn flamingo
+      ctx.fillStyle = '#F472B6'; ctx.beginPath(); ctx.ellipse(0, 0, 14, 9, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillRect(10, -20, 4, 18); ctx.beginPath(); ctx.arc(14, -20, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#111827'; ctx.fillRect(18, -20, 5, 3);
+      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(-2, 8, 2, 12);
+      break;
+    case 'cart': // a shopping cart
+      ctx.strokeStyle = '#94A3B8'; ctx.lineWidth = 2;
+      ctx.strokeRect(-18, -14, 34, 20); for (let k = -12; k < 16; k += 6) { ctx.beginPath(); ctx.moveTo(k, -14); ctx.lineTo(k, 6); ctx.stroke(); }
+      ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.arc(-12, 12, 4, 0, Math.PI * 2); ctx.arc(10, 12, 4, 0, Math.PI * 2); ctx.fill();
+      break;
+    case 'sign': // a stop sign on a bit of pole
+      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(-2, 6, 4, 14);
+      ctx.fillStyle = '#DC2626'; ctx.beginPath(); for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2 + Math.PI / 8; ctx.lineTo(Math.cos(a) * 15, Math.sin(a) * 15 - 4); } ctx.fill();
+      ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 6px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('STOP', 0, -2);
+      break;
+    case 'tire':
+      ctx.fillStyle = '#1F2937'; ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#6B7280'; ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI * 2); ctx.fill();
+      break;
+    case 'cow': // a cow (it's a hurricane)
+      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-18, -10, 30, 16); ctx.fillRect(10, -14, 10, 10);
+      ctx.fillStyle = '#111827'; ctx.fillRect(-12, -10, 8, 6); ctx.fillRect(0, -2, 7, 6); ctx.fillRect(-16, 6, 4, 8); ctx.fillRect(6, 6, 4, 8);
+      ctx.fillStyle = '#F9A8D4'; ctx.fillRect(16, -8, 5, 4);
+      break;
+    case 'jetski':
+      ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.moveTo(-22, 4); ctx.lineTo(22, 4); ctx.lineTo(14, -8); ctx.lineTo(-16, -6); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#111827'; ctx.fillRect(-4, -12, 12, 5); ctx.fillRect(10, -16, 3, 8);
+      break;
+    default: // a kettle grill
+      ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.arc(0, -2, 14, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#6B7280'; ctx.fillRect(-10, 10, 2, 10); ctx.fillRect(8, 10, 2, 10); ctx.fillRect(-2, -18, 4, 3);
   }
 };
 

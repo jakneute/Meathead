@@ -52,7 +52,7 @@ const SHOCK_DAMAGE = 8, SHOCK_WARN = 40;
 export const AWNING_BOUNCE = 17.5;
 
 export const createHazards = (state: GameState): Hazards => {
-  const floatBlocks = COURSE.floats.map((f, i): Block => ({ x: f.x, y: f.y, w: f.w, h: 16, type: 'platform', hidden: true, tag: `float-${i}` }));
+  const floatBlocks = COURSE.floats.map((f, i): Block => ({ x: f.x, y: f.y, w: f.w, h: 16, type: 'platform', hidden: true, oneWay: true, tag: `float-${i}` }));
   const awningBlocks = state.blocks.filter(b => b.tag?.startsWith('awning-'));
   state.blocks.push(...floatBlocks);
   return {

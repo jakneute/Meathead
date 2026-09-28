@@ -32,7 +32,7 @@ export interface Boat {
 const BOAT_W = 150, RIDE_SPEED = 9;
 
 export const createBoat = (state: GameState, startedAt: number): Boat => {
-  const block: Block = { x: COURSE.boat.x, y: COURSE.boat.y - 18, w: BOAT_W, h: 14, type: 'platform', hidden: true, tag: 'boat' };
+  const block: Block = { x: COURSE.boat.x, y: COURSE.boat.y - 18, w: BOAT_W, h: 14, type: 'platform', hidden: true, oneWay: true, tag: 'boat' };
   const past = startedAt >= CP.TOWER;
   if (!past) state.blocks.push(block);
   return {
@@ -113,17 +113,20 @@ const cutscene = (ctx: FrameContext, b: Boat): Controls => {
   if (t === 340) { meatheadSays(state, 'CATCH YOU LATER.'); playSound('horn'); }
   if (t >= 380) {
     b.phase = 'riding'; b.t = 0;
-    player.inCutscene = false;
     state.cameraOverride = null;
     state.cameraLeadX = 200;
   }
   return c;
 };
 
-/** Flat out across the open water (he can still shoot, duck and hop about in it). */
-const ride = (ctx: FrameContext, b: Boat, controls: Controls): Controls => {
+/** Flat out across the open water: a little cutscene of its own, him at the wheel. */
+const ride = (ctx: FrameContext, b: Boat, _controls: Controls): Controls => {
   const { state } = ctx;
   const { player } = state;
+  player.inCutscene = true;
+  player.invincibilityTimer = Math.max(player.invincibilityTimer, 2);
+  player.facing = 1;
+  player.vel.x = 0;
   b.speed = Math.min(RIDE_SPEED, b.speed + 0.2);
   moveBoat(state, b, b.speed, Math.sin(b.t * 0.12) * 0.8);
   // Spray off the bow
@@ -133,12 +136,7 @@ const ride = (ctx: FrameContext, b: Boat, controls: Controls): Controls => {
     meatheadSays(state, 'OH, COME ON.');
     playSound('nuke');
   }
-  // He stays on board: no walking off either end, no specials launching him overboard
-  return {
-    ...controls, special: false,
-    left: controls.left && player.pos.x > b.x + 8,
-    right: controls.right && player.pos.x + player.width < b.x + BOAT_W - 8,
-  };
+  return { ...NO_CONTROLS };
 };
 
 const moveBoat = (state: GameState, b: Boat, dx: number, dy: number) => {

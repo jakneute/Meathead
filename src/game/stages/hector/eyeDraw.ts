@@ -1,6 +1,5 @@
 // The Eye of the Storm: a giant bloodshot human eyeball in the middle of the
-// hurricane. Its pupil follows you; it glares (a red sight line, then a beam),
-// weeps, squeezes shut. Hurt, it gets more bloodshot. And a different horrible
+// hurricane. Its pupil follows you; it squeezes shut, and bawls when charged. Hurt, it gets more bloodshot. And a different horrible
 // death for each weapon.
 
 import type { Enemy, WeaponType } from '../../../types';
@@ -11,6 +10,12 @@ import { EyeFight, EYE_CX, EYE_CY, EYE_R, EYE_HP, eyePupil } from './eye';
 
 type Ctx = CanvasRenderingContext2D;
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+
+/** Blend two #RRGGBB colors (k = 0 all a, 1 all b). */
+const mix = (a: string, b: string, k: number) => {
+  const c = (s: string, i: number) => parseInt(s.slice(1 + i * 2, 3 + i * 2), 16);
+  return `rgb(${[0, 1, 2].map(i => Math.round(c(a, i) + (c(b, i) - c(a, i)) * k)).join(', ')})`;
+};
 
 const centre = () => ({ x: COURSE.eye.x + EYE_CX, y: COURSE.eye.y + EYE_CY });
 
@@ -70,32 +75,22 @@ export const drawEye = (ctx: Ctx, state: GameState, f: EyeFight, e: Enemy) => {
   for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.arc(cx, cy, EYE_R + 22 + k * 14, t * 0.03 + k, t * 0.03 + k + 2.2); ctx.stroke(); }
   ctx.restore();
   const bob = Math.sin(t * 0.05) * 3;
-  eyeball(ctx, cx, cy + bob, EYE_R, hurt, t, (e.hitFlash || 0) > 0 ? '#FECACA' : '#F1F5F9');
+  // (charged in the eye: red raw, fading back over a few seconds)
+  const sore = clamp01(f.sore / 120);
+  eyeball(ctx, cx, cy + bob, EYE_R, Math.max(hurt, sore), t, (e.hitFlash || 0) > 0 ? '#FECACA' : sore > 0 ? mix('#F1F5F9', '#F87171', sore) : '#F1F5F9');
   const pp = eyePupil(f);
-  const glaring = f.attack === 'glare' || f.attack === 'beam';
-  iris(ctx, pp.x, pp.y + bob, EYE_R, glaring ? -0.4 : 0.2, t, glaring ? '#7F1D1D' : '#3B5B80');
-  // Welling up before it weeps
-  if (f.attack === 'tears' && f.attackT < 30) { ctx.fillStyle = 'rgba(125, 211, 252, 0.6)'; ctx.beginPath(); ctx.ellipse(cx, cy + EYE_R * 0.8 + bob, EYE_R * 0.7, 8, 0, 0, Math.PI * 2); ctx.fill(); }
+  iris(ctx, pp.x, pp.y + bob, EYE_R, 0.2, t, sore > 0.5 ? '#7F1D1D' : '#3B5B80');
+  // Bawling: brimming along the lower lid and streaming down
+  if (f.sore > 0) {
+    ctx.fillStyle = `rgba(125, 211, 252, ${0.35 + sore * 0.4})`;
+    ctx.beginPath(); ctx.ellipse(cx, cy + EYE_R * 0.82 + bob, EYE_R * 0.75, 6, 0, 0, Math.PI * 2); ctx.fill();
+    for (const side of [-1, 1]) {
+      const sx = cx + side * EYE_R * 0.55, len = 30 + ((t * 3) % 40);
+      ctx.fillRect(sx - 3, cy + EYE_R * 0.8 + bob, 6, len);
+    }
+  }
   const shut = f.attack === 'blink' ? Math.min(1, f.attackT / 6, (75 - f.attackT) / 6) : f.phase === 'intro' ? clamp01(1 - f.t / 40) : 0;
   lids(ctx, cx, cy + bob, EYE_R, shut);
-  // The glare: a red sight line tracking you, then the beam
-  if (f.attack === 'glare') {
-    const locked = f.attackT >= 58;
-    ctx.save();
-    ctx.strokeStyle = locked ? (Math.floor(t / 2) % 2 ? '#FFFFFF' : '#EF4444') : 'rgba(239, 68, 68, 0.7)';
-    ctx.lineWidth = locked ? 3 : 2; ctx.setLineDash([10, 8]);
-    ctx.beginPath(); ctx.moveTo(pp.x, pp.y); ctx.lineTo(pp.x + (f.aim.x - pp.x) * 5, pp.y + (f.aim.y - pp.y) * 5); ctx.stroke();
-    ctx.restore();
-  } else if (f.attack === 'beam') {
-    const dx = f.aim.x - pp.x, dy = f.aim.y - pp.y, len = Math.hypot(dx, dy) || 1;
-    const ex = pp.x + (dx / len) * 1400, ey = pp.y + (dy / len) * 1400;
-    ctx.save();
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = 'rgba(239, 68, 68, 0.5)'; ctx.lineWidth = 34; ctx.beginPath(); ctx.moveTo(pp.x, pp.y); ctx.lineTo(ex, ey); ctx.stroke();
-    ctx.strokeStyle = '#FECACA'; ctx.lineWidth = 12; ctx.beginPath(); ctx.moveTo(pp.x, pp.y); ctx.lineTo(ex, ey); ctx.stroke();
-    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(pp.x, pp.y); ctx.lineTo(ex, ey); ctx.stroke();
-    ctx.restore();
-  }
 };
 
 // ---------------------------------------------------------------------------
@@ -194,9 +189,7 @@ export const drawEyeHud = (ctx: Ctx, state: GameState, f: EyeFight) => {
   ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(L - 10, 12, R - L + 20, 40);
   ctx.strokeStyle = '#7F1D1D'; ctx.lineWidth = 2; ctx.strokeRect(L - 10, 12, R - L + 20, 40);
   ctx.font = 'bold 10px "Press Start 2P"'; ctx.fillStyle = '#FECACA'; ctx.textAlign = 'left';
-  ctx.fillText('THE EYE', L, 28);
-  ctx.font = '7px "Press Start 2P"'; ctx.fillStyle = '#93C5FD'; ctx.textAlign = 'right';
-  ctx.fillText('OF THE STORM', R, 28);
+  ctx.fillText('EYE OF THE STORM', L, 28);
   ctx.fillStyle = '#1C1917'; ctx.fillRect(L, 34, R - L, 10);
   ctx.fillStyle = f.hpFlash > 0 ? '#FEF3C7' : (e.health < EYE_HP * 0.5 ? '#DC2626' : '#B91C1C');
   ctx.fillRect(L, 34, (R - L) * fill, 10);
