@@ -54,11 +54,9 @@ export const startEnding = (state: GameState, en: Ending, talk: Talk) => {
   p.pos.x = COURSE.end.smokers + RIDE_FROM - 400;
   p.skiSpeed = 0;
   queueLines(state, talk, [
-    { who: 'smokerA', text: 'THEY MOVED THE MICROWAVE AGAIN.' },
-    { who: 'smokerB', text: 'SIX INCHES TO THE LEFT. NOBODY ASKED ME. NOBODY EVER ASKS ME.' },
-    { who: 'smokerA', text: 'AND NOW THE COFFEE COMES IN LITTLE PODS.' },
+    { who: 'smokerA', text: 'NOW THE COFFEE COMES IN LITTLE PODS.' },
     { who: 'smokerB', text: "PODS, CARL. LIKE WE'RE ASTRONAUTS." },
-  ], 30);
+  ], 10);
 };
 
 export const updateEnding = (ctx: FrameContext, en: Ending, talk: Talk, controls: Controls): Controls => {
@@ -76,7 +74,7 @@ export const updateEnding = (ctx: FrameContext, en: Ending, talk: Talk, controls
   switch (en.phase) {
     case 'talk':
       p.skiSpeed = 0;
-      if (en.t > 40 && quiet(talk)) { en.phase = 'ridein'; en.t = 0; p.hidden = false; p.pos.x = S + RIDE_FROM - 300; p.skiSpeed = 12; playSound('horn'); }
+      if (en.t > 20 && quiet(talk)) { en.phase = 'ridein'; en.t = 0; p.hidden = false; p.pos.x = S + RIDE_FROM - 300; p.skiSpeed = 12; playSound('horn'); }
       break;
     case 'ridein':
       p.skiSpeed = 12;
@@ -105,13 +103,13 @@ export const updateEnding = (ctx: FrameContext, en: Ending, talk: Talk, controls
       break;
     }
     case 'landed':
-      if (en.t === 30) queueLines(state, talk, [{ who: 'meathead', text: 'SMOKING KILLS.' }]);
-      if (en.t > 50 && quiet(talk)) { en.phase = 'toss'; en.t = 0; }
+      if (en.t === 10) queueLines(state, talk, [{ who: 'meathead', text: 'SMOKING KILLS.' }]);
+      if (en.t > 20 && quiet(talk)) { en.phase = 'toss'; en.t = 0; }
       break;
     case 'toss':
       // The trigger: nothing. Empty. On the pile with the rest of it
-      if (en.t === 10 || en.t === 26) { ctx.fx.spawnDamageNumber({ x: p.pos.x + 30, y: p.pos.y - 20 - en.t }, 'CLICK', false, '#E5E7EB'); playSound('dart'); }
-      if (en.t === 50) {
+      if (en.t === 4 || en.t === 14) { ctx.fx.spawnDamageNumber({ x: p.pos.x + 30, y: p.pos.y - 20 - en.t }, 'CLICK', false, '#E5E7EB'); playSound('dart'); }
+      if (en.t === 26) {
         en.gun = { x: p.pos.x + p.width / 2 + 20, y: p.pos.y + 30, vx: (COURSE.end.wall - 44 - (p.pos.x + p.width / 2 + 20)) / 34, vy: -9, rot: 0, state: 'flying' };
         state.lockWeapon = undefined; p.currentWeapon = 'GUN';
         p.kickPose = 0;
@@ -121,7 +119,7 @@ export const updateEnding = (ctx: FrameContext, en: Ending, talk: Talk, controls
         g.vy += 0.5; g.x += g.vx; g.y += g.vy; g.rot += 0.35;
         if (g.vy > 0 && g.y >= GROUND_Y - 34) { g.state = 'dumped'; g.y = GROUND_Y - 34; g.rot = 0.3; playGlassShatterSound(); }
       }
-      if (en.t > 100) {
+      if (en.t > 64) {
         en.phase = 'done'; en.t = 0;
         p.inCutscene = false;
         state.cameraOverride = null;
