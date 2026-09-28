@@ -328,6 +328,54 @@ const kid = (ctx: Ctx, x: number, y: number, c: string, armsUp: boolean, f: numb
   if (seed % 2) { ctx.fillRect(x - 9, y - 37 - bounce, 3, 5); ctx.fillRect(x + 6, y - 37 - bounce, 3, 5); }
 };
 
+/**
+ * One of the grown-ups on duty: Denise (scrubs, a clipboard, a whistle) or Gary (polo, khakis, a mug of coffee).
+ * Calm, or panicking (hands on the head, mouth open) once they see what's coming.
+ */
+const adult = (ctx: Ctx, x: number, y: number, who: 0 | 1, panic: boolean, f: number) => {
+  const hop = panic ? Math.abs(Math.sin(f * 0.35 + who)) * 3 : 0;
+  const Y = y - hop;
+  ctx.fillStyle = who === 0 ? '#0F766E' : '#A8A29E'; ctx.fillRect(x - 7, Y - 26, 6, 26); ctx.fillRect(x + 1, Y - 26, 6, 26); // legs
+  ctx.fillStyle = '#1C1917'; ctx.fillRect(x - 8, Y - 3, 7, 3); ctx.fillRect(x + 1, Y - 3, 7, 3);
+  ctx.fillStyle = who === 0 ? '#14B8A6' : '#1D4ED8'; ctx.fillRect(x - 10, Y - 50, 20, 26); // top
+  const skin = who === 0 ? '#C68642' : '#F2C9A0';
+  ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(x, Y - 57, 8, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = who === 0 ? '#1F2937' : '#78716C'; ctx.fillRect(x - 8, Y - 66, 16, 5); // hair
+  if (who === 0) { ctx.beginPath(); ctx.arc(x + 7, Y - 62, 4, 0, Math.PI * 2); ctx.fill(); } // (a bun)
+  ctx.fillStyle = skin;
+  if (panic) {
+    // Hands on the head, mouth wide
+    ctx.fillRect(x - 14, Y - 66, 4, 18); ctx.fillRect(x + 10, Y - 66, 4, 18);
+    ctx.fillStyle = '#450A0A'; ctx.beginPath(); ctx.ellipse(x + 2, Y - 53, 2.5, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+  } else {
+    ctx.fillRect(x - 13, Y - 48, 4, 18); ctx.fillRect(x + 9, Y - 48, 4, 16);
+    if (who === 0) { ctx.fillStyle = '#A16207'; ctx.fillRect(x + 10, Y - 40, 10, 13); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x + 11, Y - 38, 8, 10); ctx.fillStyle = '#FACC15'; ctx.fillRect(x - 2, Y - 46, 4, 3); } // clipboard, whistle
+    else { ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x + 10, Y - 36, 7, 8); ctx.fillStyle = 'rgba(203, 213, 225, 0.6)'; ctx.fillRect(x + 12, Y - 42 - (f % 20) / 5, 1, 4); } // coffee
+    ctx.fillStyle = '#1F2937'; ctx.fillRect(x - 2, Y - 54, 5, 1);
+  }
+};
+
+/** What's left of a grown-up after the wave: flattened into the lawn, a lot of red round them. */
+const splatAdult = (ctx: Ctx, x: number, y: number, who: 0 | 1) => {
+  // A fan of it sprayed up whatever's behind them, then the pool
+  ctx.fillStyle = 'rgba(153, 27, 27, 0.85)';
+  for (let k = 0; k < 9; k++) { const a = -Math.PI * (0.15 + 0.7 * k / 8), r = 30 + hash(x + k * 5) * 40; ctx.beginPath(); ctx.moveTo(x - 4, y - 4); ctx.lineTo(x + Math.cos(a) * r - 3, y + Math.sin(a) * r); ctx.lineTo(x + Math.cos(a) * r + 3, y + Math.sin(a) * r); ctx.closePath(); ctx.fill(); ctx.beginPath(); ctx.arc(x + Math.cos(a) * r, y + Math.sin(a) * r, 3, 0, Math.PI * 2); ctx.fill(); }
+  ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.ellipse(x, y - 2, 52, 9, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#B91C1C'; ctx.beginPath(); ctx.ellipse(x - 6, y - 3, 34, 6, 0, 0, Math.PI * 2); ctx.fill();
+  for (let k = 0; k < 6; k++) { ctx.fillStyle = k % 2 ? '#991B1B' : '#DC2626'; ctx.beginPath(); ctx.arc(x - 50 + k * 20 + hash(x + k) * 8, y - 2 - hash(x * 3 + k) * 4, 2 + hash(k + x) * 3, 0, Math.PI * 2); ctx.fill(); }
+  // (pancaked: the body a smear the colors of their clothes, an arm and a shoe out of it)
+  ctx.fillStyle = who === 0 ? '#14B8A6' : '#1D4ED8'; ctx.fillRect(x - 18, y - 8, 30, 7);
+  ctx.fillStyle = who === 0 ? '#0F766E' : '#A8A29E'; ctx.fillRect(x + 12, y - 6, 20, 5);
+  ctx.fillStyle = who === 0 ? '#C68642' : '#F2C9A0'; ctx.fillRect(x - 30, y - 4, 12, 3); ctx.fillRect(x - 34, y - 9, 3, 7);
+  ctx.fillStyle = '#1C1917'; ctx.fillRect(x + 32, y - 6, 7, 4);
+  // What they had on them
+  if (who === 0) { ctx.fillStyle = '#A16207'; ctx.save(); ctx.translate(x + 50, y - 3); ctx.rotate(0.3); ctx.fillRect(-5, -3, 10, 6); ctx.restore(); ctx.fillStyle = '#FACC15'; ctx.fillRect(x - 44, y - 3, 3, 2); }
+  else { ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x - 52, y - 7, 6, 6); ctx.fillStyle = 'rgba(120, 53, 15, 0.7)'; ctx.fillRect(x - 58, y - 2, 12, 2); }
+};
+
+/** Where the grown-ups are: Denise by the swings, Gary by the sandbox; where they run to when it comes; where they end up. */
+const ADULT_AT = [310, -210], ADULT_PANIC = [-150, 150], ADULT_SPLAT = [-290, 420];
+
 export const drawDaycare = (ctx: Ctx, state: GameState, dc: Daycare) => {
   const D = COURSE.daycare, bx = D.building, g = D.y, f = state.frame;
   const wrecked = dc.hitAt !== 0 && state.frame >= dc.hitAt;
@@ -367,6 +415,7 @@ export const drawDaycare = (ctx: Ctx, state: GameState, dc: Daycare) => {
     if (!lookUp) {
       kid(ctx, px - 150 + slideT * 55, g - 90 + slideT * 88, KID_COLORS[2], true, f, 2);
       kid(ctx, bx - 280, g, KID_COLORS[3], false, f, 3); kid(ctx, bx - 240, g, KID_COLORS[4], false, f, 4);
+      adult(ctx, bx + ADULT_AT[0], g, 0, false, f); adult(ctx, bx + ADULT_AT[1], g, 1, false, f);
     }
     // Picket fence
     ctx.fillStyle = '#F8FAFC'; for (let x = bx - 380; x < bx + 480; x += 14) { ctx.fillRect(x, g - 34, 8, 34); ctx.beginPath(); ctx.moveTo(x, g - 34); ctx.lineTo(x + 4, g - 40); ctx.lineTo(x + 8, g - 34); ctx.fill(); }
@@ -375,8 +424,12 @@ export const drawDaycare = (ctx: Ctx, state: GameState, dc: Daycare) => {
     if (lookUp) {
       // They've seen it coming: out on the lawn, jumping up and down, cheering it in
       CHEER_SPOTS.forEach((dx, k) => kid(ctx, bx + dx, g - Math.abs(Math.sin(f * 0.3 + k)) * 10, KID_COLORS[k], true, f, k));
+      // ...while the grown-ups, who know what that is, lose it
+      ADULT_PANIC.forEach((dx, k) => adult(ctx, bx + dx, g, k as 0 | 1, true, f));
       if (t >= LOOK_UP + 10) bubble(ctx, bx + CHEER_SPOTS[1], g - 60, 'WHOA!!');
       if (t >= LOOK_UP + 20) bubble(ctx, bx + CHEER_SPOTS[3], g - 60, 'YAAAY!');
+      if (t >= LOOK_UP + 6) bubble(ctx, bx + ADULT_PANIC[0], g - 86, 'OH NO. OH NO NO NO.');
+      if (t >= LOOK_UP + 16) bubble(ctx, bx + ADULT_PANIC[1], g - 86, "I'M NOT PAID ENOUGH FOR THIS");
     }
     return;
   }
@@ -397,6 +450,8 @@ export const drawDaycare = (ctx: Ctx, state: GameState, dc: Daycare) => {
   ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 5;
   ctx.beginPath(); ctx.moveTo(px, g); ctx.lineTo(px + 40, g - 60); ctx.lineTo(px + 110, g - 30); ctx.lineTo(px + 160, g); ctx.stroke();
   ctx.fillStyle = '#64748B'; ctx.beginPath(); ctx.ellipse(px - 120, g - 40, 40, 12, 0.7, 0, Math.PI * 2); ctx.fill();
+  // The grown-ups, once the wave's done with them
+  if (t < 0 || t >= RIDE_END) ADULT_SPLAT.forEach((dx, k) => splatAdult(ctx, bx + dx, g, k as 0 | 1));
   // Puddles
   ctx.fillStyle = 'rgba(56, 189, 248, 0.5)';
   for (let x = bx - 420; x < bx + 500; x += 90) { ctx.beginPath(); ctx.ellipse(x + hash(x) * 40, g - 1, 36, 4, 0, 0, Math.PI * 2); ctx.fill(); }
@@ -450,6 +505,14 @@ export const drawDaycareFront = (ctx: Ctx, state: GameState, dc: Daycare) => {
       floatieKid(ctx, x, y, k, f);
     });
     if (t > HIT + 12) bubble(ctx, bx, g - 250, 'WHEEEEEE!');
+    // The grown-ups, not riding it: rolled over and over in it, out to where they end up, red in the water round them
+    ADULT_PANIC.forEach((dx, k) => {
+      const x = bx + dx + (ADULT_SPLAT[k] - dx) * k01, y = g - 30 + Math.sin(k01 * Math.PI * 3) * 14;
+      ctx.fillStyle = `rgba(185, 28, 28, ${0.5 * (1 - k01 * 0.5)})`; ctx.beginPath(); ctx.ellipse(x - Math.sign(ADULT_SPLAT[k]) * 30, y + 10, 40, 10, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.save(); ctx.translate(x, y); ctx.rotate(k01 * 14 * (k ? 1 : -1)); ctx.translate(-x, -(y + 30));
+      adult(ctx, x, y + 30, k as 0 | 1, true, f);
+      ctx.restore();
+    });
   }
   // Flash of the impact
   if (t >= 140 && t < 150) { ctx.fillStyle = `rgba(255,255,255,${(150 - t) / 12})`; ctx.fillRect(state.camera.x, state.camera.y, CANVAS_WIDTH, CANVAS_HEIGHT); }

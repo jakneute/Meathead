@@ -2,7 +2,8 @@
 // kids out playing... and then everything the hurricane had sucked up comes
 // down on it at once. The flood flattens the place; Meathead drops out of the
 // sky with it and lands in the wreckage without a scratch. The kids are fine
-// (soaked, and they want to go again). The boss door's just up ahead.
+// (soaked, and they want to go again); the two grown-ups on duty, who knew what
+// was coming and tried to run, are not. The boss door's just up ahead.
 
 import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
@@ -79,8 +80,13 @@ export const updateDaycare = (ctx: FrameContext, dc: Daycare, controls: Controls
     dc.hitAt = state.frame;
     shakeScreen(state, 70, 14);
     playSound('tsunami');
-    // Everything the storm took, coming down
+    // Everything the storm took, coming down (and the grown-ups going under it)
     const bx = D().building;
+    for (const dx of [-150, 150]) for (let i = 0; i < 26; i++) state.particles.push({
+      pos: { x: bx + dx + (Math.random() - 0.5) * 20, y: D().y - 30 - Math.random() * 30 },
+      vel: { x: (Math.random() - 0.5) * 14 + Math.sign(dx) * 4, y: -3 - Math.random() * 9 }, life: 50 + Math.random() * 40,
+      color: i % 3 ? '#B91C1C' : '#7F1D1D', size: 3 + Math.random() * 6,
+    });
     for (let i = 0; i < 80; i++) {
       state.particles.push({
         pos: { x: bx + (Math.random() - 0.5) * 260, y: D().y - 40 - Math.random() * 120 },
