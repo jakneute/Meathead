@@ -36,6 +36,7 @@ export const tommyLayout: StageLayout = {
     const S = C.sewer;
     state.blocks.push(wall(S.x1, GROUND_Y - 940, S.drop - 80 - S.x1, 600, 'sewer-roof'), wall(S.drop + 80, GROUND_Y - 940, S.tunnel.x1 - S.drop - 80, 600, 'sewer-roof'));
     state.blocks.push(wall(S.tunnel.roof1, TUNNEL_ROOF - 600, S.tunnel.roof2 - S.tunnel.roof1, 600, 'tunnel-roof'));
+    state.blocks.push(wall(S.pit.roof1, TUNNEL_ROOF - 600, S.pit.roof2 - S.pit.roof1, 600, 'pit-roof'));
     // (the cistern's a dome: high enough to lob a rock at the thing in it)
     state.blocks.push(wall(S.tunnel.x2, GROUND_Y - 940, S.cistern.x1 - S.tunnel.x2, 600, 'sewer-roof'), wall(S.cistern.x1, GROUND_Y - 1160, S.x2 - S.cistern.x1, 600, 'cistern-roof'));
     // The pipes and grates in the tunnel

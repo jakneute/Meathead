@@ -38,7 +38,7 @@ export const tommyScene = (state: GameState): SceneLight | null => {
   const S = COURSE.sewer;
   const lights: Light[] = [];
   for (let ax = Math.floor((state.camera.x - 400) / 420) * 420; ax < state.camera.x + CANVAS_WIDTH + 400; ax += 420) {
-    if (ax < S.x1 || ax > S.x2 || (ax > S.tunnel.x1 - 100 && ax < S.tunnel.x2)) continue;
+    if (ax < S.x1 || ax > S.x2 || (ax > S.tunnel.x1 - 100 && ax < S.tunnel.x2) || (ax > S.pit.x1 - 100 && ax < S.pit.x2)) continue;
     // (a caged bulb in each arch, the odd one on the blink)
     const blink = (ax / 420) % 5 === 0 && state.frame % 90 < 8 ? 0.3 : 1;
     lights.push({ x: ax + 210, y: WALK_Y - 230, r: 260, a: 0.8 * blink, color: 'rgba(253, 230, 138, 0.08)' });

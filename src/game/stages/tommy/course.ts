@@ -10,7 +10,9 @@
 //   III. The sewer: walkways over channels of the muck (it eats you, slowly),
 //        Tommy's crew, the things that live down here. A hazmat suit in a
 //        locker, and the tunnel past it flooded to the roof: swim it before the
-//        suit's eaten through. Then the cistern, and what's in it.
+//        suit's eaten through. Another locker, and a flooded pit past it, deep:
+//        down it past the baffles, under the wall at the bottom and back up the
+//        far side. Then the cistern, and what's in it.
 //   IV.  Blown up out of the sewer (onto the water tower, and the tower onto a
 //        house), what's left of the house, and the pit past it, all the way
 //        down to Tommy's door.
@@ -21,7 +23,7 @@ import type { EnemyKind } from '../../../types';
 import type { GroundRun } from '../../core/terrain';
 import { GROUND_Y, BOSS_DOOR_X } from '../../../constants';
 
-export const CP = { HOOD: 0, ROAD: 1, ROAD_MID: 2, SEWER: 3, SUIT: 4, CISTERN: 5, RUINS: 6 } as const;
+export const CP = { HOOD: 0, ROAD: 1, ROAD_MID: 2, SEWER: 3, SUIT: 4, SUIT2: 5, CISTERN: 6, RUINS: 7 } as const;
 
 export interface Spawn { kind: EnemyKind; x: number; y: number; variant?: number }
 export interface PickupSpot { x: number; y: number; type: 'small_health' | 'large_health' | 'small_ammo' | 'large_ammo' }
@@ -54,8 +56,16 @@ export interface Course {
   hood: { x1: number; x2: number; corner: number; bike: number; stop: number };
   /** The road: where the ride starts and where it ends (the hazmat man and the open manhole). */
   road: { x1: number; x2: number; hazmat: number; manhole: number };
-  /** The sewer: where you drop in, the suit locker, the flooded tunnel, the cistern (and the pool the thing's in). */
-  sewer: { x1: number; x2: number; drop: number; locker: number; tunnel: { x1: number; x2: number; roof: number; surface: number; floor: number; roof1: number; roof2: number }; cistern: { x1: number; x2: number; pool: number; rack: number } };
+  /**
+   * The sewer: where you drop in, the suit lockers (one before each flooded stretch), the flooded tunnel, the flooded
+   * pit, the cistern (and the pool the thing's in).
+   */
+  sewer: {
+    x1: number; x2: number; drop: number; lockers: number[];
+    tunnel: { x1: number; x2: number; roof: number; surface: number; floor: number; roof1: number; roof2: number };
+    pit: { x1: number; x2: number; floor: number; roof1: number; roof2: number };
+    cistern: { x1: number; x2: number; pool: number; rack: number };
+  };
   /** What's left of the house (up high), and the pit down to Tommy's door. */
   /** What's left of the house (up high), and the hole down past it (narrow: a manhole's worth) to Tommy's door. */
   ruins: { x1: number; x2: number; y: number; house: number; pit: number; pitW: number };
@@ -78,6 +88,8 @@ export const RUINS_Y = Y - 2200;
 
 /** The sewer's levels: the walkways, the muck's surface in a channel, the channel's floor. */
 export const WALK_Y = Y, MUCK_Y = Y + 40, CHANNEL_FLOOR = Y + 170;
+/** The flooded pit: how deep it goes. */
+export const PIT_FLOOR = Y + 820;
 /** The flooded tunnel: its roof (so low there's no standing up in it), the muck (right up near it), its floor. */
 export const TUNNEL_ROOF = Y - 70, TUNNEL_SURFACE = Y + 10, TUNNEL_FLOOR = Y + 200;
 
@@ -152,8 +164,16 @@ const build = () => {
   s.bar(6280, 50, Y + 90, TUNNEL_FLOOR); s.bar(6620, 60, TUNNEL_ROOF, Y + 75); s.bar(6950, 50, Y + 95, TUNNEL_FLOOR);
   // Mutant fish in it, to shoot as he swims (hanging about in the open water between the pipes and grates)
   for (const fx of [5330, 5720, 6100, 6460, 6800]) s.spawn('mutantfish', fx, Y + 150);
-  // Up out of it, and on into the cistern (a walkway, and the pool at the far end where it lives)
-  s.ground(7200, 8150); s.channel(8150, 8600, Y + 20, Y + 220);
+  // Up out of it: a walkway, the second locker
+  s.ground(7200, 7700);
+  // The flooded pit: in at the top left, down past the baffles, under the wall at the bottom, back up the far side
+  s.channel(7700, 8600, TUNNEL_SURFACE, PIT_FLOOR);
+  s.bar(8130, 40, TUNNEL_ROOF, Y + 660);
+  s.bar(7700, 300, Y + 180, Y + 212); s.bar(7830, 300, Y + 360, Y + 392); s.bar(7700, 300, Y + 540, Y + 572);
+  s.bar(8300, 300, Y + 540, Y + 572); s.bar(8170, 300, Y + 360, Y + 392); s.bar(8300, 300, Y + 180, Y + 212);
+  for (const [fx, fy] of [[7860, Y + 110], [7760, Y + 290], [8000, Y + 460], [7800, Y + 660], [8280, Y + 740], [8480, Y + 460], [8240, Y + 290], [8420, Y + 110]]) s.spawn('mutantfish', fx, fy);
+  // On into the cistern (a walkway, and the pool at the far end where it lives)
+  s.ground(8600, 9550); s.channel(9550, 10000, Y + 20, Y + 220);
   // What's down here
   s.spawn('rat', 1150); s.spawn('hazmat', 1480); s.spawn('sludgeling', 1660, CHANNEL_FLOOR); s.spawn('sludgeling', 1860, CHANNEL_FLOOR);
   s.spawn('rat', 2250); s.spawn('bloater', 2480); s.spawn('sludgeling', 2760, CHANNEL_FLOOR); s.spawn('sludgeling', 2960, CHANNEL_FLOOR); s.spawn('sludgeling', 3140, CHANNEL_FLOOR);
@@ -161,7 +181,7 @@ const build = () => {
   s.drip(2080, Y - 250, 110, 0); s.drip(2300, Y - 250, 130, 50); s.drip(2840, Y - 250, 120, 30); s.drip(3040, Y - 250, 120, 90); s.drip(3560, Y - 250, 100, 20);
   s.pickup(1300, Y - 30, 'small_health'); s.pickup(2600, Y - 30, 'small_ammo'); s.pickup(3780, Y - 160, 'small_health');
   s.pickup(4300, Y - 30, 'large_health'); s.pickup(4360, Y - 30, 'small_ammo');
-  s.prop('locker', 4600); s.prop('pipes', 0, Y, 8600); s.prop('ladder', 7240);
+  s.pickup(7450, Y - 30, 'small_health');
 
   // ============ THE RUINS ============
   const u = part(RUINS_X0);
@@ -195,15 +215,17 @@ const buildCourse = (): Course => {
     hood: { x1: HOOD_X0, x2: RX, corner: HOOD_X0 + 900, bike: HOOD_X0 + 1000, stop: HOOD_X0 + 620 },
     road: { x1: RX, x2: RX + END, hazmat: RX + ROAD_LEN + 520, manhole: RX + ROAD_LEN + 760 },
     sewer: {
-      x1: SEWER_X0, x2: SEWER_X0 + 8600, drop: SEWER_X0 + 200, locker: SEWER_X0 + 4600,
+      x1: SEWER_X0, x2: SEWER_X0 + 10000, drop: SEWER_X0 + 200, lockers: [SEWER_X0 + 4600, SEWER_X0 + 7580],
       // (the roof comes down a little way in from each end: room to drop in, and to climb out)
       tunnel: { x1: SEWER_X0 + 4760, x2: SEWER_X0 + 7200, roof: TUNNEL_ROOF, surface: TUNNEL_SURFACE, floor: TUNNEL_FLOOR, roof1: SEWER_X0 + 4900, roof2: SEWER_X0 + 7060 },
-      cistern: { x1: SEWER_X0 + 7800, x2: SEWER_X0 + 8600, pool: SEWER_X0 + 8150, rack: SEWER_X0 + 7880 },
+      // (the roof over the pit leaves it open at each end: in at the top left, out at the top right)
+      pit: { x1: SEWER_X0 + 7700, x2: SEWER_X0 + 8600, floor: PIT_FLOOR, roof1: SEWER_X0 + 7770, roof2: SEWER_X0 + 8530 },
+      cistern: { x1: SEWER_X0 + 9200, x2: SEWER_X0 + 10000, pool: SEWER_X0 + 9550, rack: SEWER_X0 + 9280 },
     },
     ruins: { x1: RUINS_X0 + 1500, x2: BOSS_DOOR_X, y: RUINS_Y, house: RUINS_X0 + 2130, pit: RUINS_X0 + PIT, pitW: PIT_W },
     checkpoints: [
       { x: HOOD_X0 + 150, y: Y }, { x: RX + 60, y: Y }, { x: RX + 12000, y: Y },
-      { x: SEWER_X0 + 200, y: Y }, { x: SEWER_X0 + 4450, y: Y }, { x: SEWER_X0 + 7300, y: Y }, { x: RUINS_X0 + 1640, y: RUINS_Y },
+      { x: SEWER_X0 + 200, y: Y }, { x: SEWER_X0 + 4450, y: Y }, { x: SEWER_X0 + 7400, y: Y }, { x: SEWER_X0 + 8700, y: Y }, { x: RUINS_X0 + 1640, y: RUINS_Y },
     ],
     left: HOOD_X0 - 2000,
     startX: HOOD_X0,
@@ -216,6 +238,7 @@ export type Place = 'hood' | 'road' | 'sewer' | 'tunnel' | 'cistern' | 'ruins';
 export const placeOf = (x: number): Place => {
   const C = COURSE;
   if (x >= C.ruins.x1 - 200) return 'ruins';
-  if (x >= C.sewer.x1 - 2000 && x < C.sewer.x2 + 2000) return x >= C.sewer.cistern.x1 - 400 ? 'cistern' : x >= C.sewer.tunnel.x1 - 100 && x < C.sewer.tunnel.x2 ? 'tunnel' : 'sewer';
+  if (x >= C.sewer.x1 - 2000 && x < C.sewer.x2 + 2000) return x >= C.sewer.cistern.x1 - 400 ? 'cistern'
+    : (x >= C.sewer.tunnel.x1 - 100 && x < C.sewer.tunnel.x2) || (x >= C.sewer.pit.x1 - 60 && x < C.sewer.pit.x2) ? 'tunnel' : 'sewer';
   return x >= C.road.x1 ? 'road' : 'hood';
 };

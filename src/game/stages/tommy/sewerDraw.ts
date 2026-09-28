@@ -57,15 +57,16 @@ export const drawSewerBack = (ctx: Ctx, state: GameState, rt: TommyRuntime) => {
     if (rt.escape.phase === 'waiting' || rt.escape.phase === 'rumble' || rt.escape.phase === 'run') drawSuitOnHook(ctx, rx, WALK_Y - 110);
     ctx.fillStyle = '#DC2626'; ctx.fillRect(rx - 30, WALK_Y - 134, 60, 14); ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 5px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('EMERGENCY', rx, WALK_Y - 124); ctx.textAlign = 'left';
   }
-  // The locker with the first suit in it
-  if (visible(state, S.locker - 40, S.locker + 40)) {
-    const lx = S.locker;
+  // The lockers with the suits in them
+  S.lockers.forEach((lx, i) => {
+    if (!visible(state, lx - 40, lx + 40)) return;
     ctx.fillStyle = '#57534E'; ctx.fillRect(lx - 26, WALK_Y - 110, 52, 110);
     ctx.fillStyle = '#44403C'; for (let y = WALK_Y - 100; y < WALK_Y - 70; y += 5) ctx.fillRect(lx - 18, y, 36, 2);
-    if (!rt.sewer.lockerOpen) drawSuitOnHook(ctx, lx, WALK_Y - 64, 0.6);
+    if (!rt.sewer.opened[i]) drawSuitOnHook(ctx, lx, WALK_Y - 64, 0.6);
     else { ctx.fillStyle = '#0C0A09'; ctx.fillRect(lx - 22, WALK_Y - 66, 44, 62); ctx.fillStyle = '#57534E'; ctx.save(); ctx.translate(lx + 26, WALK_Y - 66); ctx.rotate(-0.5); ctx.fillRect(0, 0, 44, 62); ctx.restore(); }
     ctx.fillStyle = '#FACC15'; ctx.fillRect(lx - 26, WALK_Y - 124, 52, 12); ctx.fillStyle = '#111827'; ctx.font = 'bold 4px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('HAZMAT SUIT', lx, WALK_Y - 116); ctx.textAlign = 'left';
-  }
+  });
+
 };
 
 /** A yellow hazmat suit hung up (hood, arms, the boots). */
@@ -147,12 +148,15 @@ export const drawMuckFront = (ctx: Ctx, state: GameState) => {
     }
     if (f % 20 < 10) { ctx.fillStyle = 'rgba(217, 249, 157, 0.6)'; ctx.beginPath(); ctx.arc(c.x1 + hash(Math.floor(f / 20) + c.x1) * (c.x2 - c.x1), c.surface - 2, 3, 0, Math.PI * 2); ctx.fill(); }
   }
-  // The tunnel: its roof, right down on the muck, and the pipes and grates across it
-  const T = COURSE.sewer.tunnel;
-  if (visible(state, T.x1, T.x2)) {
-    ctx.fillStyle = '#231E1A'; ctx.fillRect(T.roof1, T.roof - 400, T.roof2 - T.roof1, 400);
-    ctx.fillStyle = '#342D28'; for (let x = T.roof1; x < T.roof2; x += 34) ctx.fillRect(x, T.roof - 12, 31, 10);
-    ctx.fillStyle = 'rgba(77, 124, 15, 0.5)'; for (let x = T.roof1; x < T.roof2; x += 60) ctx.fillRect(x + hash(x) * 30, T.roof, 5, 8 + hash(x * 7) * 18);
+  // The tunnel and the pit: their roofs, right down on the muck, and the pipes, grates and baffles in them
+  const T = COURSE.sewer.tunnel, PT = COURSE.sewer.pit;
+  for (const [r1, r2] of [[T.roof1, T.roof2], [PT.roof1, PT.roof2]]) {
+    if (!visible(state, r1, r2)) continue;
+    ctx.fillStyle = '#231E1A'; ctx.fillRect(r1, T.roof - 400, r2 - r1, 400);
+    ctx.fillStyle = '#342D28'; for (let x = r1; x < r2; x += 34) ctx.fillRect(x, T.roof - 12, 31, 10);
+    ctx.fillStyle = 'rgba(77, 124, 15, 0.5)'; for (let x = r1; x < r2; x += 60) ctx.fillRect(x + hash(x) * 30, T.roof, 5, 8 + hash(x * 7) * 18);
+  }
+  if (visible(state, T.x1, PT.x2)) {
     for (const b of COURSE.bars) {
       if (!visible(state, b.x, b.x + b.w)) continue;
       if (b.y1 <= T.roof) { ctx.fillStyle = '#5B4A3B'; ctx.fillRect(b.x, b.y1, b.w, b.y2 - b.y1); ctx.fillStyle = '#6B584A'; ctx.fillRect(b.x + 4, b.y1, 8, b.y2 - b.y1); ctx.fillStyle = '#3F3228'; ctx.fillRect(b.x - 4, b.y2 - 12, b.w + 8, 12); }

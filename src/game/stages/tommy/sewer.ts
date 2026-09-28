@@ -6,7 +6,8 @@
 //
 // Past the last channel, a locker with an emergency hazmat suit in it. The
 // tunnel after that's flooded near to its roof: in the suit the muck doesn't
-// touch him, but it's eating the suit instead, and it won't last forever.
+// touch him, but it's eating the suit instead, and it won't last forever. Then
+// another locker, and a deep flooded pit (a longer swim, a newer suit).
 
 import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
@@ -20,9 +21,10 @@ export interface Sewer {
   /** The suit: whether he's in one, and how much of it's left (1 new .. 0 eaten through). */
   suitOn: boolean;
   suit: number;
-  /** Frames since he put it on (for the suiting up), and whether the locker's been opened. */
+  /** Frames since he put it on (for the suiting up), which lockers have been opened, and how long this suit lasts. */
   suitT: number;
-  lockerOpen: boolean;
+  opened: boolean[];
+  suitFrames: number;
   /** Drops of the muck falling from the pipes. */
   drops: { x: number; y: number; vy: number }[];
   /** Frames he's spent in it (for the sizzle), and the frame he last splashed in. */
@@ -32,8 +34,8 @@ export interface Sewer {
   warned: boolean;
 }
 
-/** How long the suit holds out in the muck (frames under it). */
-export const SUIT_FRAMES = 18 * 60;
+/** How long each locker's suit holds out in the muck (frames in it): the tunnel's, the pit's (a longer swim). */
+export const SUIT_FRAMES = [18 * 60, 34 * 60];
 /** What the muck does to him without it: this much, this often. */
 const MUCK_DAMAGE = 2, MUCK_EVERY = 15;
 /** A drip: how long it swells before it lets go, and what it does when it lands on you. */
@@ -42,7 +44,8 @@ const DRIP_SWELL = 40, DRIP_DAMAGE = 8;
 const MUCK_LEAP = -11.5;
 
 export const createSewer = (startedAt: number): Sewer => ({
-  suitOn: startedAt === CP.SUIT, suit: startedAt === CP.SUIT ? 1 : 0, suitT: 999, lockerOpen: startedAt >= CP.SUIT,
+  suitOn: startedAt === CP.SUIT || startedAt === CP.SUIT2, suit: startedAt === CP.SUIT || startedAt === CP.SUIT2 ? 1 : 0, suitT: 999,
+  opened: [startedAt >= CP.SUIT, startedAt >= CP.SUIT2], suitFrames: SUIT_FRAMES[startedAt >= CP.SUIT2 ? 1 : 0],
   drops: [], inMuck: 0, splashAt: 0, warned: false,
 });
 
@@ -71,7 +74,7 @@ export const updateSewer = (ctx: FrameContext, sw: Sewer) => {
   // It eats at him (or his suit)
   if (p.swimming && state.deathTimer <= 0) {
     if (sw.suitOn && sw.suit > 0) {
-      sw.suit = Math.max(0, sw.suit - 1 / SUIT_FRAMES);
+      sw.suit = Math.max(0, sw.suit - 1 / sw.suitFrames);
       if (state.frame % 6 === 0) state.particles.push({ pos: { x: p.pos.x + Math.random() * p.width, y: p.pos.y + Math.random() * p.height }, vel: { x: 0, y: -1 }, life: 20, color: 'rgba(250, 204, 21, 0.7)', size: 3 });
       if (sw.suit <= 0.25 && !sw.warned) { sw.warned = true; fx.spawnDamageNumber({ x: p.pos.x - 40, y: p.pos.y - 50 }, 'SUIT FAILING!', true, '#FACC15'); playSound('siren'); }
       if (sw.suit <= 0) { sw.suitOn = false; fx.spawnDamageNumber({ x: p.pos.x - 40, y: p.pos.y - 50 }, 'SUIT GONE!', true, '#EF4444'); }
@@ -98,16 +101,18 @@ export const updateSewer = (ctx: FrameContext, sw: Sewer) => {
     if (c) { e.pos.y = c.surface + 14 - e.height; e.vel.y = 0; }
   }
   updateDrips(ctx, sw);
-  // The locker: he gets in the suit
-  if (!sw.lockerOpen && Math.abs(cx - COURSE.sewer.locker) < 40 && p.isGrounded) {
-    sw.lockerOpen = true; sw.suitOn = true; sw.suit = 1; sw.suitT = 0; sw.warned = false;
-    state.checkpoint = Math.max(state.checkpoint, CP.SUIT);
+  // A locker: he gets in the suit (a fresh one)
+  COURSE.sewer.lockers.forEach((lx, i) => {
+    if (sw.opened[i] || Math.abs(cx - lx) >= 40 || !p.isGrounded) return;
+    sw.opened[i] = true; sw.suitOn = true; sw.suit = 1; sw.suitT = 0; sw.warned = false; sw.suitFrames = SUIT_FRAMES[i];
+    state.checkpoint = Math.max(state.checkpoint, i === 0 ? CP.SUIT : CP.SUIT2);
     playSound('tinkle');
     fx.spawnDamageNumber({ x: p.pos.x - 60, y: p.pos.y - 70 }, 'HAZMAT SUIT!', true, '#FACC15');
-  }
+  });
+
   if (sw.suitT < 999) sw.suitT++;
-  // Out of the tunnel and into the cistern: the suit's done its job (what's left of it comes off)
-  if (sw.suitOn && cx > COURSE.sewer.tunnel.x2 + 40 && p.isGrounded) sw.suitOn = false;
+  // Into the cistern: the suit's done its job (what's left of it comes off)
+  if (sw.suitOn && cx > COURSE.sewer.cistern.x1 - 300 && p.isGrounded) sw.suitOn = false;
 };
 
 const pickLine = (l: string[]) => l[Math.floor(Math.random() * l.length)];
