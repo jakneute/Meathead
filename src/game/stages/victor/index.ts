@@ -71,6 +71,8 @@ export const victorLayout: StageLayout = {
     return { scale: 1 + d.zoom * 0.75, x: d.zoomAt.x, y: d.zoomAt.y, shiftX: (state.camera.x + 400 - d.zoomAt.x) * d.zoom, shiftY: (state.camera.y + 260 - d.zoomAt.y) * d.zoom };
   },
   drawBackdrop: (ctx, state) => !!getVictor(state) && drawVictorBackdrop(ctx, state),
+  // (crossing the lava river the view sits lower, so you can see the fish coming under the surface)
+  cameraRow: state => (regionOf(state.player.pos.x) === 'inside' && state.player.pos.x < COURSE.shaft.x1 - 60 ? 420 : undefined),
   // (up the shaft the camera drifts after you rather than jerking to every catwalk)
   cameraEaseY: state => (regionOf(state.player.pos.x) === 'inside' && state.player.pos.x > COURSE.shaft.x1 - 100 ? 0.08 : undefined),
 };
