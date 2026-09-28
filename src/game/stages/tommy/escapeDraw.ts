@@ -316,7 +316,8 @@ export const drawBlast = (ctx: Ctx, state: GameState, rt: TommyRuntime) => {
   if (es.phase !== 'blast') return;
   const t = es.t;
   const top = state.camera.y - 40;
-  const w = Math.min(1, t / 5) * 64 + Math.sin(f * 0.9) * 4;
+  // (never below nothing: a negative size to draw an ellipse at throws, and that stops the whole game drawing)
+  const w = Math.max(2, Math.min(1, t / 5) * 64 + Math.sin(f * 0.9) * 4);
   // A glow round it
   const glow = ctx.createLinearGradient(x - w * 2.2, 0, x + w * 2.2, 0);
   glow.addColorStop(0, 'rgba(163, 230, 53, 0)'); glow.addColorStop(0.5, 'rgba(163, 230, 53, 0.35)'); glow.addColorStop(1, 'rgba(163, 230, 53, 0)');

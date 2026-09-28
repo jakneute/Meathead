@@ -120,7 +120,12 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
       if (lastTime === 0) lastTime = now;
       const elapsed = now - lastTime;
       if (elapsed >= FRAME_MS - 2) {
-        tick();
+        // (one bad frame must never stop the game: say what went wrong, clear the canvas state it left behind, carry on)
+        try { tick(); } catch (err) {
+          console.error('frame failed', err);
+          const c = canvasRef.current?.getContext('2d') as (CanvasRenderingContext2D & { reset?: () => void }) | null | undefined;
+          c?.reset?.();
+        }
         lastTime = now - Math.min(elapsed % FRAME_MS, FRAME_MS);
       }
       frameId = requestAnimationFrame(loop);
