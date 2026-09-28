@@ -84,7 +84,7 @@ const gulches = (state: GameState) => {
   const out: { x1: number; x2: number; yl: number; yr: number }[] = [];
   for (let i = 0; i + 1 < runs.length; i++) {
     const a = runs[i], n = runs[i + 1];
-    if (n.x1 <= a.x2 + 1 || regionOf(a.x2) !== 'desert' || !visible(state, a.x2, n.x1)) continue;
+    if (n.x1 <= a.x2 + 1 || regionOf(a.x2) !== 'desert' || a.surface || n.surface || !visible(state, a.x2, n.x1)) continue;
     out.push({ x1: a.x2, x2: n.x1, yl: a.y2, yr: n.y1 });
   }
   return out;

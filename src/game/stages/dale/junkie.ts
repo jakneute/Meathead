@@ -174,7 +174,8 @@ export const updateJunkieFight = (ctx: FrameContext, fight: JunkieFight, talk: T
   if (fight.phase === 'done') return controls;
   if (fight.phase === 'waiting') {
     if (!fight.man) {
-      fight.man = makeJunkie(o.desk + 30, o.floor);
+      // (across the room from the door: at his side table by the window, nose in a pile of it)
+      fight.man = makeJunkie(o.x2 - 110, o.floor);
       state.enemies.push(fight.man);
     }
     // Up the stairs and through the door: he looks up from his desk
@@ -237,7 +238,7 @@ export const updateJunkie = (ctx: FrameContext, m: Enemy, fight: JunkieFight, ta
   switch (m.aiState) {
     case 'snorting':
       // Bent over the desk, nose in a pile of it
-      m.vel.x = 0; m.facing = 1;
+      m.vel.x = 0; m.facing = -1;
       break;
     case 'grab':
       // (holding him: see holdPlayer)
@@ -552,7 +553,10 @@ const wrongWeapon = (ctx: FrameContext, fight: JunkieFight, talk: Talk, n: PropN
   if (fight.phase !== 'fight') return;
   const pj = state.projectiles.find(q => q.owner === 'player' && q.health > 0 && !q.isBoulder && !(q.isSludge && q.isLingering) && !(n === 'closet' && q.isIce) && rectsOverlap(box, boundsOf(q)));
   if (!pj) return;
-  if (n !== 'fan') pj.health = 0;
+  // (the shot carries on through: it's only what's in it that it can't get at. And if Chuco's right there,
+  // it was him being shot at, not the thing)
+  const m = fight.man;
+  if (m && Math.abs(m.pos.x + W / 2 - (box.x + box.w / 2)) < 140) return;
   const key = `${n}`;
   if (fight.wrongSaid.has(key)) return;
   fight.wrongSaid.add(key);

@@ -252,6 +252,11 @@ export const drawOffice = (ctx: Ctx, state: GameState, fight: JunkieFight) => {
     ctx.stroke();
     ctx.fillStyle = 'rgba(127, 29, 29, 0.7)'; ctx.beginPath(); ctx.arc(x - c.side * 4, c.y, 7, 0, Math.PI * 2); ctx.fill();
   }
+  // His side table by the window (where he's at when you come in), a pile of it on the glass
+  const tx = o.x2 - 60;
+  ctx.fillStyle = '#CA8A04'; ctx.fillRect(tx - 26, floor - 36, 4, 36); ctx.fillRect(tx + 22, floor - 36, 4, 36);
+  ctx.fillStyle = 'rgba(186, 230, 253, 0.8)'; ctx.fillRect(tx - 30, floor - 40, 60, 5);
+  if (fight.phase === 'waiting' || fight.phase === 'intro') { ctx.fillStyle = '#7DD3FC'; ctx.beginPath(); ctx.moveTo(tx - 12, floor - 40); ctx.lineTo(tx - 2, floor - 47); ctx.lineTo(tx + 8, floor - 40); ctx.fill(); }
   // His things
   for (const n of PROPS) drawProp(ctx, state, fight, n);
   // The stash, out in the open
