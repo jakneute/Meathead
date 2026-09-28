@@ -97,7 +97,7 @@ export const updateErnie = (ctx: FrameContext, controls: Controls): Controls => 
       applyRegionCamera(state, 'bay');
       state.checkpoint = Math.max(state.checkpoint, CP.DOCK);
       // (nothing from up there follows you down)
-      state.enemies = [];
+      state.enemies = state.enemies.filter(e => e.type === 'boss');
       state.projectiles = [];
     }
     if (rt.downT > DOWN_FRAMES + 30) rt.downT = 0;

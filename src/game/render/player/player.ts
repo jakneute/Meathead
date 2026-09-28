@@ -2,7 +2,7 @@ import { Player, WeaponType } from '../../../types';
 import { BOULDER_THROW_FRAMES, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
 import { SLIDE_HOLD } from '../../combat/muzzle';
-import { drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick } from './moves';
+import { drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive } from './moves';
 import { GameState } from '../../core/state';
 import { beginSprite, endSprite } from './spriteOutline';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawTorsoBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
@@ -90,6 +90,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const isRelieving = isUnarmed && peeProgress(p.peeTimer).out;
   // Grim determination after a charge that didn't kill (like the Doom guy's rampage face)
   const isAngry = !!p.angryTimer && p.angryTimer > 0 && !isHurt && !isRelieving;
+  // Sat astride the jet ski: knees forward, off-hand on the handlebars (the gun hand's free)
+  const isSeated = !!p.jetski && hurtT < 0;
 
   // Set local coordinate frame: (0, 0) is at player feet center
   const anchorX = p.pos.x + p.width / 2;
@@ -100,7 +102,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   if (sprite) ctx = sprite;
   ctx.save();
   if (!sprite) ctx.translate(anchorX, anchorY);
-  ctx.scale(p.facing, 1);
+  // (on the jet ski, shooting back: he stays sat facing forward, and just his head and gun arm turn round, below)
+  const seatedBack = !!p.jetski && p.facing === -1 && !p.isCharging && !p.isUppercutting && !p.isDivekicking;
+  ctx.scale(seatedBack ? 1 : p.facing, 1);
   const finishBody = () => {
     ctx.restore();
     ctx = world;
@@ -120,7 +124,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     return;
   }
   // The special moves are full poses of their own (unless he's been knocked out of one)
-  const movePose = hurtT >= 0 ? null : isCharging ? (p.swimming ? drawSwimCharge : drawShoulderCharge) : isUppercutting ? drawUppercut : (isDivekicking || (p.kickPose || 0) > 0) ? drawDivekick : null;
+  const movePose = hurtT >= 0 ? null
+    // (on the jet ski they're the ski's moves: a wheelie, a leap out of the water, a nose-first dive)
+    : p.jetski ? (isCharging ? drawJetskiWheelie : isUppercutting ? drawJetskiLeap : isDivekicking ? drawJetskiDive : null)
+    : isCharging ? (p.swimming ? drawSwimCharge : drawShoulderCharge) : isUppercutting ? drawUppercut : (isDivekicking || (p.kickPose || 0) > 0) ? drawDivekick : null;
   if (movePose) {
     movePose(ctx, animFrame);
     finishBody();
@@ -174,6 +181,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   } else if (isUppercutting) {
     bodyRot = -0.15; // Dynamic backward launch arch
     bodyY = -6;
+  } else if (isSeated) {
+    // Sat up straight, riding the chop (leaning back into the landings)
+    bodyRot = isAirborne ? -0.12 : -0.04;
+    bodyY = Math.sin(animFrame * 0.18) * 1.2;
   } else if (isHurt) {
     bodyRot = -0.3; // Reeling back in pain/shock
     bodyY = 2;
@@ -246,6 +257,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.beginPath();
     ctx.arc(-30, -34, 5, 0, Math.PI * 2); // Fist
     ctx.fill();
+  } else if (isSeated) {
+    // Reaching forward to the handlebars
+    drawReachingArm(ctx, -6, -40, 6, -35, 21, -40, skinShadow);
+    ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(20, -40, 4.5, 0, Math.PI * 2); ctx.fill();
   } else if (isHurt) {
     // Flailing back in shock
     ctx.fillStyle = skinShadow;
@@ -375,6 +390,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillRect(4 + cLeg * 0.5, -6, 14, 6);
     ctx.fillStyle = bootToe;
     ctx.fillRect(12 + cLeg * 0.5, -5, 6, 5);
+  } else if (isSeated) {
+    // Astride the seat: thighs out forward, shins down into the footwell
+    drawJointedLeg(ctx, -4, -22, -1.3, 1.2, pantsShadow, false);
+    drawJointedLeg(ctx, 5, -22, -1.4, 1.25, pantsColor, true);
   } else if (isDucking) {
     // Deep martial-arts power squat: boots flat on floor level (y = -6 to 0), thighs flared outward
     // Back thigh
@@ -573,6 +592,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   ctx.fill();
   drawTorsoBlood(ctx, torsoTop, torsoHeight, pecY);
   ctx.restore();
+
+  // Twisted round in the seat to shoot behind: the head and the gun arm face back, the rest stays facing forward
+  if (seatedBack) ctx.scale(-1, 1);
 
   // ==========================================
   // LAYER 5: HEAD, GLOWING FACE & SCULPTED JAW

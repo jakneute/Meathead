@@ -20,6 +20,7 @@ import { getBossDef, getStageWidth } from '../bosses/registry';
 import { rectsOverlap, boundsOf } from '../core/utils';
 import { getAttackHitbox, harmlessBounce, recoilOff, getContactHurtSource } from '../player/player';
 import { shakeScreen } from '../core/state';
+import type { GameState } from '../core/state';
 import { startEnemyDeath } from './deaths';
 import { getEnemyMass, enemyGrip, massRatio } from '../combat/knockback';
 import { floorTopAt } from '../core/terrain';
@@ -345,6 +346,8 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
   if ((e.pos.y < floorLevel - 1 && !onGround) || e.vel.y < 0 || !overFloor) {
     // Launched into the air by knockback
     e.pos.x += e.vel.x;
+    // (shoved off into a pit, it stops dead against the far side of it: it doesn't go on into the ground)
+    if (e.vel.x !== 0) stopAgainstGround(state, e);
     e.pos.y += e.vel.y;
     e.vel.y += GRAVITY * 0.75;
     e.vel.x *= grip.air;
@@ -396,6 +399,25 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
   // (the cops don't stand and shoot: they come at you and club you)
   if (isMeleeCop(e)) copMelee(ctx, e, onScreen);
   e.pos.x += e.vel.x;
+};
+
+/** Anything that high above an airborne enemy's feet is a wall it's run into, not ground it's landing on. */
+const GROUND_SIDE_STEP = 16;
+
+/**
+ * An airborne enemy that's moved sideways into the face of the ground (the wall of a pit, a step up):
+ * back out to the side it came from, and no more sideways speed. (The walls proper are slamIntoWalls'.)
+ */
+const stopAgainstGround = (state: GameState, e: Enemy) => {
+  const box = boundsOf(e);
+  const feet = e.pos.y + e.height;
+  for (const b of state.blocks) {
+    if (b.type === 'pit' || b.type === 'door' || b.type === 'wall' || b.oneWay) continue;
+    if (feet <= b.y + GROUND_SIDE_STEP || !rectsOverlap(box, b)) continue;
+    e.pos.x = e.vel.x > 0 ? b.x - e.width : b.x + b.w;
+    e.vel.x = 0;
+    return;
+  }
 };
 
 /** Frames a shield enemy takes to swing round when you get behind it (its back's open meanwhile). */
@@ -476,6 +498,7 @@ const resolveOiledSlideCollision = (ctx: FrameContext, e: Enemy, enemies: Enemy[
 /** Which callout a melee kill earns. Shattering a frozen enemy beats everything. */
 const getMeleeKillCallout = (player: Player, wasFrozen: boolean): KillCallout => {
   if (wasFrozen) return 'shatter';
+  if (player.jetski) return player.isUppercutting ? 'skileap' : 'wheelie';
   if (player.isUppercutting) return 'uppercut';
   if (player.isCharging) return player.isSliding ? 'slide' : 'charge';
   return 'shield';
@@ -576,7 +599,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
         e.vel = { x: player.facing * 8, y: 18 };
         fx.spawnDeathShower(e.pos, player.facing, 2.5);
         fx.spawnExplosion(e.pos, '#8B0000', 16, 0, 12);
-        fx.spawnKillCallout(e, wasFrozen ? 'shatter' : 'divekick');
+        fx.spawnKillCallout(e, wasFrozen ? 'shatter' : player.jetski ? 'skidive' : 'divekick');
         fx.speakVulgarity('charge_kill');
       } else {
         e.vel = { x: player.isUppercutting ? 0 : player.facing * 30, y: player.isUppercutting ? -30 : -5 };
@@ -693,6 +716,8 @@ const shieldShove = (ctx: FrameContext, e: Enemy): boolean => {
   const hb = getAttackHitbox(ctx);
   const reach = { x: hb.x - (side < 0 ? 12 : 0), y: hb.y, w: hb.w + 12, h: hb.h };
   if (!rectsOverlap(reach, boundsOf(e))) return false;
+  // Driven off the edge of a drop: that's where the shove ends. He goes over, and down (he isn't carried across on the shield)
+  if (!hasFloorBelow(state, e)) return false;
   const first = e.shovedAt === undefined || state.frame - e.shovedAt > 8;
   e.shovedAt = state.frame;
   // Held down, the charge keeps driving him a good long way (not forever)

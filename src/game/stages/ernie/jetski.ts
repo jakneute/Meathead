@@ -20,7 +20,7 @@ import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
 import { shakeScreen } from '../../core/state';
 import { playSound, playGlassShatterSound } from '../../platform/audio';
-import { say, MEATHEAD_VOICE, Voice } from '../../platform/speech';
+import { say, canSpeak, MEATHEAD_VOICE, Voice } from '../../platform/speech';
 import { makeKindEnemy } from '../../enemies/kinds';
 import { hurtPlayer } from '../../bosses/shared';
 import { rectsOverlap, boundsOf } from '../../core/utils';
@@ -39,6 +39,10 @@ export interface JetSki {
   lineT: number;
   /** He's walked to the end of the pier. */
   arrived: boolean;
+  /** The cutscene's beats: each line waits for the one before it to be finished. Which beat, when it started, and the line being said. */
+  step: number;
+  stepAt: number;
+  talk: { at: number; len: number; spoken: boolean; done: boolean } | null;
   wrecks: FloatingWreck[];
   wreckTimer: number;
   /** Which of the timeline's spawns have gone out. */
@@ -68,20 +72,14 @@ const TIMELINE: Wave[] = [
   { at: 260, kind: 'jetskier', from: 'behind', variant: 0, hint: 'HOLD LEFT: TURN AND SHOOT BEHIND' },
   { at: 700, kind: 'jetskier', from: 'ahead', variant: 1, hint: 'SPECIAL: WHEELIE! RAM HIM' },
   { at: 1150, kind: 'drone', from: 'air', hint: 'UP + SPECIAL: LEAP OUT OF THE WATER' },
-  { at: 1400, kind: 'seagull', from: 'air' },
-  { at: 1550, kind: 'jetskier', from: 'behind', variant: 0, hint: 'JUMP, THEN DOWN + SPECIAL: CRUSH HIM' },
-  { at: 1800, kind: 'drone', from: 'air' },
-  { at: 2000, kind: 'jetskier', from: 'ahead', variant: 1 },
-  { at: 2250, kind: 'jetskier', from: 'behind', variant: 0 },
-  { at: 2350, kind: 'seagull', from: 'air' },
-  { at: 2500, kind: 'drone', from: 'air' },
-  { at: 2700, kind: 'jetskier', from: 'ahead', variant: 1 },
-  { at: 2800, kind: 'jetskier', from: 'behind', variant: 0 },
-  { at: 3000, kind: 'drone', from: 'air' },
-  { at: 3100, kind: 'seagull', from: 'air' },
-  { at: 3250, kind: 'jetskier', from: 'behind', variant: 0 },
-  { at: 3300, kind: 'jetskier', from: 'ahead', variant: 1 },
-  { at: 3450, kind: 'drone', from: 'air' },
+  { at: 1600, kind: 'jetskier', from: 'behind', variant: 0, hint: 'JUMP, THEN DOWN + SPECIAL: CRUSH HIM' },
+  { at: 1950, kind: 'seagull', from: 'air' },
+  { at: 2150, kind: 'jetskier', from: 'ahead', variant: 1 },
+  { at: 2450, kind: 'drone', from: 'air' },
+  { at: 2750, kind: 'jetskier', from: 'behind', variant: 0 },
+  { at: 3050, kind: 'drone', from: 'air' },
+  { at: 3150, kind: 'seagull', from: 'air' },
+  { at: 3350, kind: 'jetskier', from: 'ahead', variant: 1 },
 ];
 
 export const createJetSki = (state: GameState, startedAt: number): JetSki => {
@@ -91,7 +89,7 @@ export const createJetSki = (state: GameState, startedAt: number): JetSki => {
   const js: JetSki = {
     phase: past ? 'gone' : onSki ? 'riding' : 'waiting', t: 0,
     hipster: { x: B.ski, y: B.water, vx: 0, vy: 0, rot: 0, state: onSki || past ? 'swimming' : 'sitting', line: '', lineT: 0 },
-    line: '', lineT: 0, arrived: false, wrecks: [], wreckTimer: 500, spawned: 0, hint: '', hintT: 0, hinted: new Set(),
+    line: '', lineT: 0, arrived: false, step: 0, stepAt: 0, talk: null, wrecks: [], wreckTimer: 500, spawned: 0, hint: '', hintT: 0, hinted: new Set(),
     rampX: 0, launchT: 0,
   };
   if (!past && !onSki) {
@@ -111,11 +109,27 @@ const mount = (state: GameState) => {
   state.cameraLeadX = SKI_LEAD;
 };
 
+/** A line in the cutscene, said by one of them; its bubble stays up till it's been said (and a beat after). */
+const talk = (js: JetSki, who: 'meathead' | 'hipster', text: string) => {
+  const t = { at: js.t, len: text.length, spoken: false, done: false };
+  js.talk = t;
+  const bubble = who === 'meathead' ? js : js.hipster;
+  bubble.line = text; bubble.lineT = 9999;
+  t.spoken = say(text, who === 'meathead' ? MEATHEAD_VOICE : HIPSTER_VOICE, 'urgent', { onShow: () => {}, onHide: () => {}, onDone: () => { t.done = true; } }) && canSpeak();
+};
+/** The line being said is over: spoken to the end (or, with no voice, up long enough to read; and never forever). */
+const talkOver = (js: JetSki) => {
+  const t = js.talk;
+  if (!t) return true;
+  const age = js.t - t.at;
+  const over = age > 20 && (t.done || (!t.spoken && age > 45 + t.len * 3) || age > 60 + t.len * 5);
+  if (over) { js.talk = null; if (js.lineT > 20) js.lineT = 20; if (js.hipster.lineT > 20) js.hipster.lineT = 20; }
+  return over;
+};
 const meatheadSays = (js: JetSki, text: string) => {
   const shown = say(text, MEATHEAD_VOICE, 'urgent', { onShow: () => { js.line = text; js.lineT = 110; }, onHide: () => { if (js.line === text) js.lineT = Math.min(js.lineT, 30); } });
   if (!shown) { js.line = text; js.lineT = 100; }
 };
-const hipsterSays = (js: JetSki, text: string) => { js.hipster.line = text; js.hipster.lineT = 90; say(text, HIPSTER_VOICE, 'urgent', { onShow: () => {}, onHide: () => {} }); };
 
 export const updateJetSki = (ctx: FrameContext, js: JetSki, controls: Controls, onLanded: () => void): Controls => {
   const { state } = ctx;
@@ -154,30 +168,39 @@ const theft = (ctx: FrameContext, js: JetSki): Controls => {
     else if (p.isGrounded) { js.arrived = true; js.t = 0; p.vel.x = 0; }
     if (!js.arrived) { js.t = 0; return c; }
   }
-  const t = js.t;
   p.facing = 1;
-  if (t === 20) hipsterSays(js, "SICK RIDE, RIGHT? IT'S VINTAGE.");
-  if (t === 100) hipsterSays(js, "YOU'VE PROBABLY NEVER HEARD OF IT.");
-  if (t === 175) meatheadSays(js, "I'VE HEARD OF IT NOW.");
-  if (t === 230) {
-    p.kickPose = 16;
-    const h = js.hipster;
-    h.state = 'flying'; h.vx = 10; h.vy = -13;
-    hipsterSays(js, 'MY KOMBUCHAAAAAAA');
-    shakeScreen(state, 10, 5);
-    ctx.fx.playGunSound('gun');
+  // One beat after another: each line waits till the one before it's been said
+  const since = js.t - js.stepAt;
+  const next = () => { js.step++; js.stepAt = js.t; };
+  switch (js.step) {
+    case 0: if (since >= 20) { talk(js, 'hipster', "SICK RIDE, RIGHT? IT'S VINTAGE."); next(); } break;
+    case 1: if (talkOver(js) && since > 30) { talk(js, 'hipster', "YOU'VE PROBABLY NEVER HEARD OF IT."); next(); } break;
+    case 2: if (talkOver(js) && since > 30) { talk(js, 'meathead', "I'VE HEARD OF IT NOW."); next(); } break;
+    case 3:
+      if (talkOver(js) && since > 25) {
+        p.kickPose = 16;
+        const h = js.hipster;
+        h.state = 'flying'; h.vx = 10; h.vy = -13;
+        talk(js, 'hipster', 'MY KOMBUCHAAAAAAA');
+        shakeScreen(state, 10, 5);
+        ctx.fx.playGunSound('gun');
+        next();
+      }
+      break;
+    case 4:
+      // Down off the end of the pier onto it
+      if (since === 32) {
+        state.blocks = state.blocks.filter(b => b.tag !== 'pier-end');
+        p.vel = { x: 3.2, y: -8 };
+        p.isGrounded = false;
+      }
+      if (since > 32 && since < 70) c = { ...c, right: p.pos.x + p.width / 2 < B.ski - 4 };
+      if (since > 40 && p.isGrounded && !p.skiing) { mount(state); p.skiSpeed = 0; }
+      if (since > 70 && p.skiing && talkOver(js)) { talk(js, 'meathead', 'SMELLS LIKE BEARD OIL.'); next(); }
+      break;
   }
   if ((p.kickPose || 0) > 0) p.kickPose!--;
-  // Down off the end of the pier onto it
-  if (t === 262) {
-    state.blocks = state.blocks.filter(b => b.tag !== 'pier-end');
-    p.vel = { x: 3.2, y: -8 };
-    p.isGrounded = false;
-  }
-  if (t > 262 && t < 300) c = { ...c, right: p.pos.x + p.width / 2 < B.ski - 4 };
-  if (t === 300) meatheadSays(js, 'SMELLS LIKE BEARD OIL.');
-  if (t > 270 && p.isGrounded && !p.skiing) { mount(state); p.skiSpeed = 0; }
-  if (t >= 380) {
+  if (js.step === 5 && talkOver(js) && js.t - js.stepAt > 30) {
     js.phase = 'riding'; js.t = 0;
     state.cameraOverride = null;
     p.inCutscene = false;
@@ -231,7 +254,7 @@ const riding = (ctx: FrameContext, js: JetSki, controls: Controls): Controls => 
     p.vel = { x: 13, y: -26 };
     p.isGrounded = false;
     p.isCharging = false; p.isUppercutting = false; p.isDivekicking = false;
-    meatheadSays(js, 'YEEEEEEHAAAAAW!');
+    meatheadSays(js, 'COWABUNGAAAAA!');
     playSound('horn');
   }
   return controls;
@@ -285,8 +308,8 @@ const updateWrecks = (ctx: FrameContext, js: JetSki) => {
     if (p.invincibilityTimer <= 0 && rectsOverlap(boundsOf(p), box)) {
       w.hit = true;
       splinter(state, w);
-      hurtPlayer(ctx, WRECK_DAMAGE, 'floating_wreck', { x: -2, y: -8 });
-      fx.spawnDamageNumber({ x: p.pos.x - 30, y: p.pos.y - 40 }, w.look === 'car' ? 'FENDER BENDER!' : 'THUNK!', true, '#F97316');
+      hurtPlayer(ctx, WRECK_DAMAGE, `floating_${w.look}`, { x: -2, y: -8 });
+      fx.spawnDamageNumber({ x: p.pos.x - 30, y: p.pos.y - 40 }, { car: 'FENDER BENDER!', crate: 'SPLINTERED!', buoy: 'BUOY OH BUOY!' }[w.look], true, '#F97316');
       continue;
     }
     // A jet ski knocked into one (dazed, not steering) wraps itself round it
@@ -295,7 +318,7 @@ const updateWrecks = (ctx: FrameContext, js: JetSki) => {
       w.hit = true;
       splinter(state, w);
       e.health = 0; e.isBlownAway = true; e.vel = { x: 6, y: -14 };
-      fx.spawnDeathShower(e.pos, 1, 1.5); fx.spawnKillCallout(e, 'crash'); fx.spawnPickup(e.pos);
+      fx.spawnDeathShower(e.pos, 1, 1.5); fx.spawnKillCallout(e, 'shipwreck'); fx.spawnPickup(e.pos);
       break;
     }
   }

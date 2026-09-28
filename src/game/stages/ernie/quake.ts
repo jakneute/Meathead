@@ -22,7 +22,8 @@ import { playSound } from '../../platform/audio';
 import { rectsOverlap, boundsOf, isOnScreen } from '../../core/utils';
 import { profileYAt } from '../../core/terrain';
 import { CANVAS_WIDTH } from '../../../constants';
-import { COURSE, Fault } from './course';
+import { COURSE, Fault, HOUSES_END } from './course';
+import { lotAt, buildingAt, sillsOf } from './streets';
 
 export type DebrisLook = 'pot' | 'brick' | 'ac' | 'rivet' | 'beam';
 export interface Debris {
@@ -38,6 +39,8 @@ export interface FaultState {
   /** 0 paved; warning frames counting up; then open. */
   t: number;
   open: boolean;
+  /** When it split open (for the opening animation). */
+  openedAt?: number;
   block: Block;
 }
 
@@ -60,6 +63,8 @@ export interface Quakes {
   banner: number;
   lastCause: string;
   lastCauseAt: number;
+  /** What it was that hit him last (for the death message). */
+  lastLook?: DebrisLook;
   /** The fault he was last standing near (for a death down it). */
   nearFault: number;
 }
@@ -68,6 +73,8 @@ export interface Quakes {
 export const FAULT_WARN = 55;
 /** Debris: how long it wobbles before it falls, how hard it hits. */
 export const DEBRIS_HOLD = 34;
+/** On the bridge a piece swings on its snapped cable a good while before it drops (it's a longer way down to you). */
+export const BRIDGE_HOLD = 50;
 const DEBRIS_DAMAGE = 8, DEBRIS_ENEMY_DAMAGE = 40, DEBRIS_GRAVITY = 0.55;
 /** The first quake comes when he's this far into the streets. */
 const FIRST_QUAKE_AT = 780;
@@ -92,7 +99,6 @@ const progress = (x: number) => {
   if (x < s.x2) return Math.max(0, (x - s.x1) / (s.x2 - s.x1)) * 0.7;
   return 0.7 + Math.min(1, Math.max(0, (x - b.x1) / (b.x2 - b.x1))) * 0.3;
 };
-const onBridge = (x: number) => x >= COURSE.bridge.x1 - 100 && x <= COURSE.bridge.x2;
 
 export const startQuake = (state: GameState, qk: Quakes, frames?: number) => {
   const px = state.player.pos.x;
@@ -144,22 +150,38 @@ export const updateQuakes = (ctx: FrameContext, qk: Quakes, active: boolean) => 
   updateDebris(ctx, qk);
 };
 
-/** Something off a sill or out of the sky, landing near him (mostly ahead), not on top of one of Ernie's lot. */
+/**
+ * Something coming down near him (mostly ahead), not on top of one of Ernie's lot, and only where there's
+ * something overhead for it to come off: flowerpots, bricks and AC units off the houses' windowsills and roofs
+ * on the streets; rivets and bits of girder off the snapped suspender cables on the bridge. Nothing out of a
+ * clear sky (the toll plaza, the way off the end). Every one hangs there a moment first, in view, with a
+ * target on the ground under it.
+ */
 const dropSomething = (state: GameState, qk: Quakes) => {
   const p = state.player;
   const px = p.pos.x + p.width / 2;
-  const bridge = onBridge(px);
   const clear = (x: number) => !state.enemies.some(e => e.health > 0 && !e.isBlownAway && Math.abs(e.pos.x + e.width / 2 - x) < e.width / 2 + 50);
+  const B = COURSE.bridge;
   for (let tries = 0; tries < 5; tries++) {
     const x = px + p.vel.x * 22 + (Math.random() - 0.35) * 360;
+    const lot = lotAt(x);
+    const street = !!lot && buildingAt(x) && x > COURSE.streets.x1 + 20 && x < HOUSES_END - 30;
+    const bridge = x > B.x1 + 150 && x < B.exit - 250;
+    if (!street && !bridge) continue;
     const ground = profileYAt(state.groundRuns, x);
     if (ground === undefined || !clear(x) || qk.faults.some(f => f.open && x > f.block.x - 20 && x < f.block.x + f.block.w + 20)) continue;
-    // On the streets most of it comes off the windowsills over the sidewalk; on the bridge, off the cables and towers
-    const sill = !bridge && Math.random() < 0.75;
-    const looks: DebrisLook[] = bridge ? ['rivet', 'beam', 'rivet'] : sill ? ['pot', 'pot', 'brick', 'ac'] : ['brick', 'brick', 'pot'];
+    if (bridge) {
+      const look: DebrisLook = Math.random() < 0.6 ? 'rivet' : 'beam';
+      qk.debris.push({ x, y: Math.max(state.camera.y + 50, ground - 420), vy: 0, rot: 0, spin: (Math.random() - 0.5) * 0.3, ground, hold: BRIDGE_HOLD, look, sill: false, done: false });
+      break;
+    }
+    // Most of it off the windowsills over the sidewalk; the rest off the roofs (it teeters in the gutter, in view)
+    const sills = sillsOf(lot!.kind);
+    const sill = sills.length > 0 && Math.random() < 0.75;
+    const looks: DebrisLook[] = sill ? ['pot', 'pot', 'brick', 'ac'] : lot!.kind === 'glass' ? ['ac', 'brick'] : ['brick', 'brick', 'pot'];
     const look = looks[Math.floor(Math.random() * looks.length)];
-    const top = sill ? ground - 190 - Math.floor(Math.random() * 2) * 120 : state.camera.y - 40;
-    qk.debris.push({ x, y: top, vy: 0, rot: 0, spin: (Math.random() - 0.5) * 0.3, ground, hold: sill ? DEBRIS_HOLD : 0, look, sill, done: false });
+    const top = sill ? ground - sills[Math.floor(Math.random() * sills.length)] : Math.max(state.camera.y + 40, ground - 420);
+    qk.debris.push({ x, y: top, vy: 0, rot: 0, spin: (Math.random() - 0.5) * 0.3, ground, hold: DEBRIS_HOLD, look, sill, done: false });
     break;
   }
 };
@@ -175,9 +197,9 @@ const updateDebris = (ctx: FrameContext, qk: Quakes) => {
     const box = { x: d.x - 14, y: d.y - 14, w: 28, h: 28 };
     if (!d.done && rectsOverlap(box, boundsOf(p)) && p.invincibilityTimer <= 0) {
       d.done = true;
-      qk.lastCause = 'falling_debris'; qk.lastCauseAt = state.frame;
-      hurtPlayer(ctx, DEBRIS_DAMAGE, 'falling_debris', { x: (p.pos.x + p.width / 2 < d.x ? -1 : 1) * 3, y: -5 });
-      fx.spawnDamageNumber({ x: p.pos.x - 20, y: p.pos.y - 30 }, d.look === 'pot' ? 'POTTED!' : d.look === 'ac' ? 'AIR CONDITIONED!' : 'BONK!', true, '#FDE047');
+      qk.lastCause = 'falling_debris'; qk.lastCauseAt = state.frame; qk.lastLook = d.look;
+      hurtPlayer(ctx, DEBRIS_DAMAGE, d.look === 'rivet' || d.look === 'beam' ? 'falling_steel' : 'falling_debris', { x: (p.pos.x + p.width / 2 < d.x ? -1 : 1) * 3, y: -5 });
+      fx.spawnDamageNumber({ x: p.pos.x - 20, y: p.pos.y - 30 }, { pot: 'POTTED!', ac: 'AIR CONDITIONED!', brick: 'BONK!', rivet: 'RIVETED!', beam: 'GIRDERED!' }[d.look], true, '#FDE047');
       smash(state, d);
     }
     for (const e of state.enemies) {
@@ -236,6 +258,7 @@ const updateFaults = (ctx: FrameContext, qk: Quakes) => {
     if (fs.t >= FAULT_WARN) {
       // Open: the street drops away
       fs.open = true;
+      fs.openedAt = state.frame;
       state.blocks = state.blocks.filter(b => b !== fs.block);
       shakeScreen(state, 20, 8);
       playSound('nuke');
@@ -252,7 +275,14 @@ export const faultAmount = (qk: Quakes, i: number) => (qk.faults[i].open ? 1 : q
 export const quakeDeathMessage = (state: GameState, qk: Quakes): string | undefined => {
   const pick = (l: string[]) => l[Math.floor(Math.random() * l.length)];
   if (state.player.health > 0 && qk.nearFault >= 0) return pick(['SWALLOWED BY THE EARTH', 'MIND THE GAP', 'FAULT LINE: YOURS', 'THE GROUND ATE YOU']);
-  if (state.frame - qk.lastCauseAt < 20 && qk.lastCause === 'falling_debris') return pick(['KILLED BY A FLOWERPOT', 'DEATH FROM ABOVE', 'HOUSEPLANT HOMICIDE']);
+  if (state.frame - qk.lastCauseAt < 20 && qk.lastCause === 'falling_debris') {
+    switch (qk.lastLook) {
+      case 'pot': return pick(['KILLED BY A FLOWERPOT', 'HOUSEPLANT HOMICIDE', 'DEATH BY PETUNIA']);
+      case 'ac': return pick(['AIR CONDITIONED', 'CHILLED TO DEATH']);
+      case 'brick': return pick(['DEATH FROM ABOVE', 'ONE BRICK SHORT OF A HOUSE']);
+      default: return pick(['RIVETED', 'THE BRIDGE FELL ON YOU', 'STRUCTURAL FAILURE']);
+    }
+  }
   return undefined;
 };
 

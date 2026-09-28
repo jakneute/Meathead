@@ -14,8 +14,11 @@ import type { Live } from '../../render/backdrops';
 import type { LayerSpec } from '../../render/backdrops/core';
 import { COURSE } from './course';
 import { getErnie, regionOf, downFade, AWAY_FRAMES } from './runtime';
-import { Quakes, quakeAmount, faultAmount, DEBRIS_HOLD, Debris, inQuakeCountry } from './quake';
+import { Quakes, quakeAmount, faultAmount, DEBRIS_HOLD, BRIDGE_HOLD, Debris, inQuakeCountry } from './quake';
 import { Bridge, SPAN_WARN, DROP_TO_WATER, FAR_LANE, UNDER_STEEL, BgCar, screamOf, onBridge } from './bridge';
+import { drawFault } from './faultDraw';
+import { drawDistricts } from './streetsDraw';
+import { Car, CAR_W, CAR_H, CAR_WARN, carsComing } from './traffic';
 import { drawBayBackdrop, drawSeaBack, drawSeaMid, drawSeaFront, drawSeaHud, drawCellBack, drawCellMid, drawCellFront, drawCellHud } from './drawSea';
 
 type Ctx = CanvasRenderingContext2D;
@@ -56,11 +59,10 @@ export const drawErnieBackdrop = (ctx: Ctx, state: GameState): boolean => {
   // (the city sinks away as you climb, and rises as you drop)
   ctx.translate(0, Math.max(-40, Math.min(40, -(state.camera.y - (Y - 550)) * 0.15)));
   layer(ctx, state, 0);
-  if (state.camera.x + 400 < COURSE.bridge.x1 - 300) {
-    layer(ctx, state, 1); layer(ctx, state, 2); layer(ctx, state, 3); layer(ctx, state, 4);
-  } else {
-    drawBridgeView(ctx, state);
-  }
+  // Over the toll plaza the city behind fades into the view from the bridge (the bay far below, Marin ahead)
+  const toBridge = Math.max(0, Math.min(1, (state.camera.x + 400 - (COURSE.bridge.x1 - 900)) / 700));
+  if (toBridge < 1) { layer(ctx, state, 1); layer(ctx, state, 2); layer(ctx, state, 3); layer(ctx, state, 4); }
+  if (toBridge > 0) { ctx.globalAlpha = toBridge; drawBridgeView(ctx, state); ctx.globalAlpha = 1; }
   ctx.restore();
   // Dust in the air in a quake
   const a = quakeAmount(rt.quakes);
@@ -73,7 +75,8 @@ export const drawErnieBackdrop = (ctx: Ctx, state: GameState): boolean => {
 const drawBridgeView = (ctx: Ctx, state: GameState) => {
   const W = CANVAS_WIDTH, f = state.frame;
   const horizon = 330;
-  const cx = state.camera.x * 0.03;
+  // (a slow drift as you go, from where the bridge starts)
+  const cx = (state.camera.x - (COURSE.bridge.x1 - 1200)) * 0.03;
   // The bay
   const g = ctx.createLinearGradient(0, horizon, 0, CANVAS_HEIGHT + 60);
   g.addColorStop(0, '#6C5B7B'); g.addColorStop(0.2, '#35567A'); g.addColorStop(1, '#1B2F4A');
@@ -138,91 +141,12 @@ export const drawErnieBack = (ctx: Ctx, state: GameState) => {
   if (region === 'bay') { drawSeaBack(ctx, state, rt); return; }
   if (region === 'cell') { drawCellBack(ctx, state, rt); return; }
   const cam = state.camera.x;
-  if (cam < COURSE.bridge.x1 + 200) drawHouses(ctx, state, rt.quakes);
+  if (cam < COURSE.bridge.x1 + 200) drawDistricts(ctx, state, quakeAmount(rt.quakes));
   if (cam + CANVAS_WIDTH > COURSE.bridge.x1 - 700) drawBridge(ctx, state, rt.bridge);
   for (const r of state.groundRuns) if (r.surface === 'street' && visible(state, r.x1, r.x2)) drawStreet(ctx, state, r);
   drawFaults(ctx, state, rt.quakes);
   drawPlaza(ctx, state);
   for (const l of COURSE.ledges) if (visible(state, l.x, l.x + l.w)) drawFireEscape(ctx, l.x, l.y, l.w);
-};
-
-/** Ground height at x, going by the runs either side over a gap (for the houses). */
-const groundUnder = (state: GameState, x: number) => {
-  let best: number | null = null, dist = Infinity;
-  for (const r of state.groundRuns) {
-    if (r.surface !== 'street') continue;
-    if (x >= r.x1 && x <= r.x2) return runYAt(r, x);
-    const d = Math.min(Math.abs(x - r.x1), Math.abs(x - r.x2));
-    if (d < dist) { dist = d; best = x < r.x1 ? r.y1 : r.y2; }
-  }
-  return best ?? Y;
-};
-
-const HOUSE_W = 170;
-const PAINT = ['#F4A6B5', '#9FD8CB', '#F7D08A', '#B6A4E0', '#F2B880', '#A8D5F2', '#E8E1C8', '#C9E4A8', '#F9C6A8'];
-
-/** The painted ladies, stepping up and down the hills behind the sidewalk. */
-const drawHouses = (ctx: Ctx, state: GameState, qk: Quakes) => {
-  const S = COURSE.streets;
-  const i0 = Math.floor((state.camera.x - 200 - S.x1) / HOUSE_W), i1 = Math.floor((state.camera.x + CANVAS_WIDTH + 200 - S.x1) / HOUSE_W);
-  const a = quakeAmount(qk);
-  for (let i = Math.max(0, i0); i <= i1; i++) {
-    const x = S.x1 + i * HOUSE_W;
-    if (x > COURSE.bridge.x1 - 700) break;
-    const base = Math.max(groundUnder(state, x + 4), groundUnder(state, x + HOUSE_W - 4)) + 4;
-    const wob = a > 0 ? Math.sin(state.frame * 0.9 + i * 2) * a * 2 : 0;
-    drawHouse(ctx, x + wob, HOUSE_W - 4, base, i, state.frame);
-  }
-};
-
-const drawHouse = (ctx: Ctx, x: number, w: number, base: number, i: number, f: number) => {
-  const c = PAINT[Math.floor(hash(i) * PAINT.length)];
-  const h = 330 + Math.floor(hash(i + 1) * 70);
-  const top = base - h;
-  const trim = '#FFFBEB', shade = 'rgba(0,0,0,0.18)';
-  ctx.fillStyle = c; ctx.fillRect(x, top, w, h);
-  ctx.fillStyle = shade; ctx.fillRect(x + w - 8, top, 8, h);
-  // Clapboard lines
-  ctx.fillStyle = 'rgba(0,0,0,0.06)'; for (let y = top + 8; y < base; y += 8) ctx.fillRect(x, y, w, 1);
-  // The garage at street level, the stoop up to the door
-  ctx.fillStyle = '#F5F5F4'; ctx.fillRect(x + w * 0.52, base - 74, w * 0.4, 74);
-  ctx.fillStyle = '#D6D3D1'; for (let y = base - 66; y < base; y += 12) ctx.fillRect(x + w * 0.52 + 4, y, w * 0.4 - 8, 2);
-  ctx.fillStyle = '#A8A29E';
-  for (let s = 0; s < 6; s++) ctx.fillRect(x + 10 + s * 5, base - 12 * (s + 1), 44 - s * 5, 12);
-  ctx.fillStyle = '#7C2D12'; ctx.fillRect(x + 26, base - 128, 26, 56);
-  ctx.fillStyle = '#FDE68A'; ctx.fillRect(x + 30, base - 124, 18, 10);
-  // The bay window, up two floors
-  const bx = x + w * 0.48, bw = w * 0.46;
-  ctx.fillStyle = shade; ctx.fillRect(bx + 4, base - 330, bw, 232);
-  ctx.fillStyle = c; ctx.fillRect(bx, base - 334, bw, 232);
-  ctx.fillStyle = trim; ctx.fillRect(bx - 3, base - 340, bw + 6, 8); ctx.fillRect(bx - 3, base - 104, bw + 6, 6); ctx.fillRect(bx - 3, base - 222, bw + 6, 5);
-  for (const fy of [base - 206, base - 320]) {
-    for (let k = 0; k < 3; k++) {
-      const wx = bx + 6 + k * (bw - 12) / 3;
-      ctx.fillStyle = trim; ctx.fillRect(wx - 2, fy - 2, (bw - 12) / 3 - 2, 88);
-      ctx.fillStyle = hash(i * 3 + k + fy) > 0.55 ? '#FDE68A' : '#2A2F3A'; ctx.fillRect(wx + 2, fy + 2, (bw - 12) / 3 - 10, 80);
-    }
-  }
-  // Windows on the flat side, sills (and the odd pot on them)
-  for (const sill of [base - 190, base - 310]) {
-    ctx.fillStyle = trim; ctx.fillRect(x + 10, sill - 66, 40, 66);
-    ctx.fillStyle = hash(i * 5 + sill) > 0.5 ? '#FDE68A' : '#2A2F3A'; ctx.fillRect(x + 14, sill - 62, 32, 58);
-    ctx.fillStyle = trim; ctx.fillRect(x + 12, sill - 34, 36, 3);
-    ctx.fillStyle = trim; ctx.fillRect(x + 6, sill, 48, 5);
-    if (hash(i * 7 + sill) > 0.4) {
-      ctx.fillStyle = '#C2410C'; ctx.fillRect(x + 16, sill - 10, 12, 10);
-      ctx.fillStyle = '#166534'; ctx.beginPath(); ctx.arc(x + 22, sill - 13, 7, 0, Math.PI * 2); ctx.fill();
-    }
-  }
-  // Cornice and brackets, and a gable on some
-  ctx.fillStyle = trim; ctx.fillRect(x - 4, top - 10, w + 8, 12);
-  for (let bxx = x + 4; bxx < x + w; bxx += 16) ctx.fillRect(bxx, top + 2, 5, 8);
-  if (hash(i + 9) > 0.5) {
-    ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(x - 4, top - 10); ctx.lineTo(x + w / 2, top - 70); ctx.lineTo(x + w + 4, top - 10); ctx.fill();
-    ctx.strokeStyle = trim; ctx.lineWidth = 4; ctx.stroke();
-    ctx.fillStyle = trim; ctx.beginPath(); ctx.arc(x + w / 2, top - 34, 10, 0, Math.PI * 2); ctx.fill();
-  }
-  void f;
 };
 
 /** A street: the sidewalk he walks on, the curb, the road with the cable car slot, the ground under it. */
@@ -248,46 +172,9 @@ const drawStreet = (ctx: Ctx, state: GameState, r: GroundRun) => {
 /** The faults: paved over, then cracking (dust, the crack spreading), then open: a chasm, rubble in the lips. */
 const drawFaults = (ctx: Ctx, state: GameState, qk: Quakes) => {
   COURSE.faults.forEach((f, i) => {
-    if (!visible(state, f.x, f.x + f.w)) return;
-    const k = faultAmount(qk, i);
-    const r: GroundRun = { x1: f.x, y1: f.y, x2: f.x + f.w, y2: f.y };
-    if (k < 1) {
-      // Still paved: the street across it (shaking and cracking as it goes)
-      ctx.save();
-      if (k > 0) ctx.translate(Math.sin(state.frame * 1.3) * 2 * k, k * 4);
-      drawStreet(ctx, state, r);
-      if (k > 0) {
-        ctx.strokeStyle = `rgba(20, 16, 14, ${0.5 + k * 0.5})`; ctx.lineWidth = 2 + k * 2;
-        ctx.beginPath();
-        const mid = f.x + f.w / 2;
-        ctx.moveTo(mid, f.y);
-        for (let s = 1; s <= 6; s++) ctx.lineTo(mid + (hash(i * 13 + s) - 0.5) * f.w * k, f.y + s * 10 * k);
-        ctx.moveTo(mid, f.y);
-        ctx.lineTo(mid - f.w * 0.45 * k, f.y + 2); ctx.moveTo(mid, f.y); ctx.lineTo(mid + f.w * 0.45 * k, f.y + 3);
-        ctx.stroke();
-      }
-      ctx.restore();
-      return;
-    }
-    // Open
-    const g = ctx.createLinearGradient(0, f.y, 0, f.y + 420);
-    g.addColorStop(0, '#2A1E16'); g.addColorStop(0.5, '#0F0A07'); g.addColorStop(1, '#000000');
-    ctx.fillStyle = g; ctx.fillRect(f.x, f.y, f.w, state.camera.y + CANVAS_HEIGHT + 60 - f.y);
-    // Jagged rock walls, torn asphalt at the lips, a broken pipe dripping
-    ctx.fillStyle = '#3B2A1E';
-    for (const side of [0, 1]) {
-      const x0 = side ? f.x + f.w : f.x;
-      ctx.beginPath(); ctx.moveTo(x0, f.y);
-      for (let d = 0; d < 380; d += 20) ctx.lineTo(x0 + (side ? -1 : 1) * (4 + hash(i * 17 + d + side) * 16), f.y + d);
-      ctx.lineTo(x0, f.y + 380); ctx.fill();
-    }
-    ctx.fillStyle = '#3B3A3E';
-    ctx.beginPath(); ctx.moveTo(f.x - 2, f.y); ctx.lineTo(f.x + 14, f.y + 4); ctx.lineTo(f.x + 6, f.y + 20); ctx.lineTo(f.x - 2, f.y + 16); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(f.x + f.w + 2, f.y); ctx.lineTo(f.x + f.w - 16, f.y + 5); ctx.lineTo(f.x + f.w - 4, f.y + 22); ctx.fill();
-    ctx.fillStyle = '#57534E'; ctx.fillRect(f.x, f.y + 60, 22, 7);
-    ctx.fillStyle = 'rgba(147, 197, 253, 0.7)'; ctx.fillRect(f.x + 18, f.y + 67 + ((state.frame * 3) % 60), 2, 5);
-    // A faint glow way down there
-    ctx.fillStyle = `rgba(249, 115, 22, ${0.12 + 0.06 * Math.sin(state.frame * 0.05 + i)})`; ctx.fillRect(f.x + 10, f.y + 300, f.w - 20, 80);
+    if (!visible(state, f.x - 80, f.x + f.w + 80)) return;
+    const since = state.frame - (qk.faults[i].openedAt ?? -999);
+    drawFault(ctx, state, f, i, faultAmount(qk, i), since, r => drawStreet(ctx, state, r));
   });
 };
 
@@ -510,16 +397,95 @@ export const drawErnieMid = (ctx: Ctx, state: GameState) => {
   if (region === 'bay') { drawSeaMid(ctx, state, rt); return; }
   if (region === 'cell') { drawCellMid(ctx, state, rt); return; }
   for (const d of rt.quakes.debris) drawDebris(ctx, d, state.frame);
+  for (const c of rt.bridge.traffic.cars) if (c.state !== 'coming') drawTrafficCar(ctx, c, state.frame);
+};
+
+/** A minivan in your lane, doing sixty: headlights on, somebody panicking at the wheel, a roof you could stand on. */
+const drawTrafficCar = (ctx: Ctx, c: Car, f: number) => {
+  ctx.save();
+  ctx.translate(c.x + CAR_W / 2, c.y);
+  ctx.rotate(c.rot);
+  ctx.scale(c.dir, 1);
+  const w = CAR_W, h = CAR_H;
+  // Body, with a sloped nose
+  ctx.fillStyle = c.color;
+  ctx.beginPath(); ctx.moveTo(-w / 2, -8); ctx.lineTo(-w / 2, -h + 4); ctx.lineTo(w / 2 - 26, -h); ctx.lineTo(w / 2 - 8, -h + 22); ctx.lineTo(w / 2, -h + 24); ctx.lineTo(w / 2, -8); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.18)'; ctx.fillRect(-w / 2, -16, w, 8);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.25)'; ctx.fillRect(-w / 2, -h + 4, w - 26, 2);
+  // Windows, and whoever's driving: hands up off the wheel, screaming
+  ctx.fillStyle = '#1E293B';
+  ctx.fillRect(-w / 2 + 6, -h + 9, 22, 13); ctx.fillRect(-w / 2 + 32, -h + 9, 22, 13);
+  ctx.beginPath(); ctx.moveTo(w / 2 - 42, -h + 9); ctx.lineTo(w / 2 - 26, -h + 9); ctx.lineTo(w / 2 - 14, -h + 21); ctx.lineTo(w / 2 - 42, -h + 21); ctx.fill();
+  ctx.fillStyle = '#E0AC69'; ctx.beginPath(); ctx.arc(w / 2 - 32, -h + 15, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#450A0A'; ctx.fillRect(w / 2 - 30, -h + 16, 2, 3);
+  ctx.fillStyle = '#E0AC69'; ctx.fillRect(w / 2 - 38, -h + 7 + Math.sin(f * 0.8) * 2, 3, 6); ctx.fillRect(w / 2 - 26, -h + 7 - Math.sin(f * 0.8) * 2, 3, 6);
+  // Door line, handle, bumpers
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.35)'; ctx.fillRect(-4, -h + 8, 1, h - 16); ctx.fillRect(4, -24, 6, 2);
+  ctx.fillStyle = '#9CA3AF'; ctx.fillRect(w / 2 - 4, -14, 6, 5); ctx.fillRect(-w / 2 - 2, -14, 5, 5);
+  // Headlight (and its beam out ahead) and tail light
+  ctx.fillStyle = '#FEF9C3'; ctx.fillRect(w / 2 - 5, -h + 26, 5, 5);
+  ctx.fillStyle = 'rgba(254, 249, 195, 0.18)';
+  ctx.beginPath(); ctx.moveTo(w / 2, -h + 26); ctx.lineTo(w / 2 + 120, -h + 10); ctx.lineTo(w / 2 + 120, -h + 50); ctx.lineTo(w / 2, -h + 31); ctx.fill();
+  ctx.fillStyle = '#DC2626'; ctx.fillRect(-w / 2, -h + 24, 3, 7);
+  // Wheels, spinning
+  for (const wx of [-w / 2 + 20, w / 2 - 20]) {
+    ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.arc(wx, -7, 9, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#6B7280'; ctx.lineWidth = 2;
+    const a = f * 0.9 * (c.state === 'driving' ? 1 : 0.3);
+    ctx.beginPath(); ctx.moveTo(wx + Math.cos(a) * 5, -7 + Math.sin(a) * 5); ctx.lineTo(wx - Math.cos(a) * 5, -7 - Math.sin(a) * 5); ctx.stroke();
+  }
+  ctx.restore();
+  // Smoke off the tires
+  if (c.state === 'driving' && f % 2 === 0) {
+    ctx.fillStyle = 'rgba(214, 211, 209, 0.5)';
+    ctx.beginPath(); ctx.arc(c.dir > 0 ? c.x - 4 : c.x + CAR_W + 4, c.y - 6, 5 + (f % 6), 0, Math.PI * 2); ctx.fill();
+  }
+};
+
+/** A car on its way that isn't in view yet: headlights and a honking horn at that edge of the screen. */
+const drawCarWarning = (ctx: Ctx, state: GameState, c: Car) => {
+  const k = c.t / CAR_WARN;
+  const y = GROUND_Y - state.camera.y - 26;
+  const left = c.dir > 0;
+  const x = left ? 0 : CANVAS_WIDTH;
+  // The headlights' glow creeping in
+  const g = ctx.createRadialGradient(x, y, 4, x, y, 80 + k * 120);
+  g.addColorStop(0, `rgba(254, 249, 195, ${0.35 + k * 0.45})`); g.addColorStop(1, 'rgba(254, 249, 195, 0)');
+  ctx.fillStyle = g; ctx.fillRect(left ? 0 : CANVAS_WIDTH - 220, y - 200, 220, 400);
+  if (Math.floor(state.frame / 6) % 2) return;
+  ctx.save();
+  ctx.fillStyle = '#EF4444';
+  const ax = left ? 18 : CANVAS_WIDTH - 18, d = left ? 1 : -1;
+  ctx.beginPath(); ctx.moveTo(ax + d * 16, y); ctx.lineTo(ax, y - 12); ctx.lineTo(ax, y + 12); ctx.fill();
+  ctx.font = 'bold 10px "Press Start 2P"'; ctx.textAlign = left ? 'left' : 'right';
+  ctx.fillStyle = '#000'; ctx.fillText('HONK!', ax + d * 22 + 2, y - 16 + 2);
+  ctx.fillStyle = '#FDE047'; ctx.fillText('HONK!', ax + d * 22, y - 16);
+  ctx.restore();
 };
 
 const drawDebris = (ctx: Ctx, d: Debris, f: number) => {
+  const steel = d.look === 'rivet' || d.look === 'beam';
+  const hold0 = steel ? BRIDGE_HOLD : DEBRIS_HOLD;
   // The shadow where it's going to land, darker the closer it gets
-  const k = d.hold > 0 ? 0.2 + 0.3 * (1 - d.hold / DEBRIS_HOLD) : Math.min(1, 0.5 + d.vy / 20);
+  const k = d.hold > 0 ? 0.2 + 0.3 * (1 - d.hold / hold0) : Math.min(1, 0.5 + d.vy / 20);
   ctx.fillStyle = `rgba(0, 0, 0, ${0.25 + k * 0.35})`;
   ctx.beginPath(); ctx.ellipse(d.x, d.ground - 1, 8 + k * 10, 3, 0, 0, Math.PI * 2); ctx.fill();
+  // ...and a target on the ground under it, flashing faster as it comes
+  const rate = d.hold > 0 ? 6 : 3;
+  if (Math.floor(f / rate) % 2 === 0) {
+    ctx.strokeStyle = 'rgba(239, 68, 68, 0.95)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(d.x, d.ground - 2, 22, 6, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.95)'; ctx.fillRect(d.x - 1, d.ground - 22, 3, 11); ctx.fillRect(d.x - 1, d.ground - 9, 3, 3);
+  }
+  // On the bridge it swings from a snapped suspender cable first (up out of the top of the view)
+  const swing = steel && d.hold > 0 ? Math.sin(f * 0.25) * 0.25 : 0;
+  if (steel && d.hold > 0) {
+    ctx.strokeStyle = '#8E2A20'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(d.x - Math.sin(swing) * 600, d.y - 600); ctx.lineTo(d.x, d.y - 8); ctx.stroke();
+  }
   ctx.save();
-  // Wobbling on the sill first
-  const wob = d.hold > 0 ? Math.sin(f * 1.2) * 0.2 : 0;
+  // Wobbling on the sill (or swinging on its cable) first
+  const wob = d.hold > 0 ? (steel ? swing : Math.sin(f * 1.2) * 0.2) : 0;
   ctx.translate(d.x, d.y);
   ctx.rotate(d.rot + wob);
   switch (d.look) {
@@ -590,6 +556,7 @@ export const drawErnieHud = (ctx: Ctx, state: GameState) => {
   const rt = getErnie(state)!;
   const region = regionOf(state.camera.x + 400);
   if (region === 'main' && inQuakeCountry(state)) drawQuakeBanner(ctx, state, rt.quakes);
+  if (region === 'main') for (const c of carsComing(rt.bridge.traffic)) drawCarWarning(ctx, state, c);
   if (region === 'bay') drawSeaHud(ctx, state, rt);
   if (region === 'cell') drawCellHud(ctx, state, rt);
   // Letterbox over the drop

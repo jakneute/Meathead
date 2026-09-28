@@ -37,6 +37,8 @@ const shoot = (state: GameState, e: Enemy, tx: number, ty: number, speed: number
 /** How long a drone hangs about between shots, and how long its red dot sits on you before it fires. */
 export const DRONE_REST = 110, DRONE_AIM = 26;
 const DRONE_SPEED = 5;
+/** Closer than this and it won't fire (the shot would be in him the moment it left the barrel). */
+const DRONE_MIN_RANGE = 90;
 
 const drone = (ctx: FrameContext, e: Enemy) => {
   const { state } = ctx;
@@ -63,7 +65,8 @@ const drone = (ctx: FrameContext, e: Enemy) => {
     if (e.aiState === 'aim') {
       e.vel.x *= 0.8; e.vel.y *= 0.8;
       if (e.aiTimer === DRONE_AIM) {
-        shoot(state, e, pm.x, pm.y, 8, 10, p.skiing ? p.vel.x : 0);
+        // (not point blank: with him right on top of it, it doesn't get the shot off, it just darts away)
+        if (Math.hypot(pm.x - m.x, pm.y - m.y) > DRONE_MIN_RANGE) shoot(state, e, pm.x, pm.y, 8, 10, p.skiing ? p.vel.x : 0);
         // ...and off to the other side of you
         e.aiState = 'hunt'; e.aiTimer = 0; e.aiX = -side;
       }

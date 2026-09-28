@@ -25,6 +25,7 @@ import { killPlayer } from '../../player/player';
 import { GROUND_Y, CANVAS_WIDTH } from '../../../constants';
 import { COURSE } from './course';
 import { BURNING_SCREAMS } from '../../enemies/kinds/ernie';
+import { Traffic, createTraffic, updateTraffic } from './traffic';
 
 export interface SpanState { t: number; open: boolean; block: Block | null; drop: number }
 export interface BgCar { x: number; y: number; vy: number; rot: number; color: string; t: number; state: 'driving' | 'tipping' | 'falling' | 'boom'; boomAt: number }
@@ -40,6 +41,8 @@ export interface Bridge {
   /** What each burning soul is screaming right now. */
   screams: Map<string, { text: string; t: number }>;
   plunge: Plunge | null;
+  /** The cars in your lane. */
+  traffic: Traffic;
 }
 
 /** A span's warning (sagging, cracking, groaning) before it goes. */
@@ -57,7 +60,7 @@ export const createBridge = (state: GameState): Bridge => {
     state.blocks.push(block);
     return { t: 0, open: false, block, drop: 0 };
   });
-  return { spans, cars: [], carTimer: 60, emptied: COURSE.wrecks.map(() => false), mourned: new Set(), screams: new Map(), plunge: null };
+  return { spans, cars: [], carTimer: 60, emptied: COURSE.wrecks.map(() => false), mourned: new Set(), screams: new Map(), plunge: null, traffic: createTraffic() };
 };
 
 export const onBridge = (x: number) => x >= COURSE.bridge.x1 - 200 && x <= COURSE.bridge.x2 + 100;
@@ -67,6 +70,8 @@ export const updateBridge = (ctx: FrameContext, br: Bridge, controls: Controls):
   const p = state.player;
   const px = p.pos.x + p.width / 2;
   if (br.plunge) return updatePlunge(ctx, br.plunge);
+  // (the cars keep going wherever you are, till they're out of sight)
+  updateTraffic(ctx, br.traffic);
   if (!onBridge(px) && !onBridge(state.camera.x + CANVAS_WIDTH / 2)) return controls;
   updateSpans(ctx, br);
   updateCars(state, br);

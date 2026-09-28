@@ -155,6 +155,87 @@ const ghosts = (ctx: Ctx, count: number, offset: (k: number) => [number, number]
 };
 
 // ---------------------------------------------------------------------------
+// On the jet ski: his specials are the ski's, and so are the poses (the ski's
+// drawn under him by the stage, tipped the same way)
+// ---------------------------------------------------------------------------
+
+/** The wheelie: nose up, leaning way back on the seat, one hand hauling on the bars, the other fist pumping at the sky. */
+export const drawJetskiWheelie = (ctx: Ctx, frame: number) => {
+  frameNow = frame;
+  ctx.save();
+  ctx.rotate(-0.42);
+  // Braced in the footwell
+  leg(ctx, [-4, -24], [12, -29], [17, -10], 0.2, true);
+  leg(ctx, [4, -24], [19, -27], [23, -8], 0.2, false);
+  ctx.save();
+  ctx.translate(-2, -24);
+  ctx.rotate(-0.35);
+  arm(ctx, [-9, -22], [8, -19], [26, -10], true);
+  torso(ctx);
+  ctx.save(); ctx.translate(-2, -37); ctx.rotate(-0.2); head(ctx, 0, 0, 'roar'); ctx.restore();
+  const pump = Math.sin(frame * 0.6) * 4;
+  arm(ctx, [11, -22], [20, -38 + pump * 0.5], [15, -55 + pump], false, 6.5);
+  ctx.restore();
+  ctx.restore();
+};
+
+/** Up out of the water: stood up on the seat, one arm out for balance, the other fist driving straight up. */
+export const drawJetskiLeap = (ctx: Ctx, frame: number) => {
+  frameNow = frame;
+  // Spray streaming off below
+  ctx.strokeStyle = 'rgba(224, 242, 254, 0.75)';
+  ctx.lineWidth = 2;
+  for (let s = 0; s < 6; s++) {
+    const x = -18 + s * 7, y = 6 + ((frame * 9 + s * 11) % 34);
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 2, y + 14 + (s % 2) * 8); ctx.stroke();
+  }
+  ctx.save();
+  ctx.rotate(-0.3);
+  leg(ctx, [-3, -30], [-4, -16], [-2, -2], 0.1, true);
+  leg(ctx, [5, -30], [11, -17], [9, -3], 0.1, false);
+  ctx.save();
+  ctx.translate(0, -30);
+  ctx.rotate(-0.08);
+  // Off arm flung out behind for balance, like he's surfing it
+  arm(ctx, [-9, -22], [-22, -26], [-33, -20], true);
+  torso(ctx);
+  ctx.save(); ctx.translate(-3, -37); ctx.rotate(-0.35); head(ctx, 0, 0, 'roar'); ctx.restore();
+  const fist: [number, number] = [14, -66];
+  const g = glowLayer(ctx);
+  const glow = g.createRadialGradient(fist[0], fist[1], 2, fist[0], fist[1], 28);
+  glow.addColorStop(0, 'rgba(255, 255, 255, 0.95)'); glow.addColorStop(0.3, 'rgba(56, 189, 248, 0.6)'); glow.addColorStop(1, 'rgba(56, 189, 248, 0)');
+  g.fillStyle = glow; g.beginPath(); g.arc(fist[0], fist[1], 28, 0, Math.PI * 2); g.fill();
+  arm(ctx, [11, -22], [16, -44], fist, false, 7.5);
+  ctx.restore();
+  ctx.restore();
+};
+
+/** Driving it down nose first: tucked low over the bars, both hands on, knees on the seat, teeth gritted. */
+export const drawJetskiDive = (ctx: Ctx, frame: number) => {
+  frameNow = frame;
+  // Air tearing past above him
+  ctx.strokeStyle = 'rgba(241, 245, 249, 0.6)';
+  ctx.lineWidth = 2;
+  for (let s = 0; s < 5; s++) {
+    const x = -30 + s * 9, y = -80 - ((frame * 10 + s * 13) % 40);
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 6, y - 16); ctx.stroke();
+  }
+  ctx.save();
+  ctx.rotate(0.5);
+  leg(ctx, [-6, -20], [8, -20], [-2, -8], -0.3, true);
+  leg(ctx, [2, -20], [16, -19], [6, -7], -0.3, false);
+  ctx.save();
+  ctx.translate(-4, -20);
+  ctx.rotate(0.7);
+  arm(ctx, [-9, -22], [3, -30], [16, -32], true);
+  torso(ctx);
+  ctx.save(); ctx.translate(4, -34); ctx.rotate(0.3); head(ctx, 0, 0, 'grit'); ctx.restore();
+  arm(ctx, [11, -22], [19, -30], [21, -34], false);
+  ctx.restore();
+  ctx.restore();
+};
+
+// ---------------------------------------------------------------------------
 // Shoulder charge
 // ---------------------------------------------------------------------------
 

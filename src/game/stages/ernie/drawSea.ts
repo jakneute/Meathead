@@ -36,12 +36,22 @@ const layer = (ctx: Ctx, state: GameState, i: number) => {
 /** Across the water: the sunset, the bridge back behind you, the city, and the island out ahead getting bigger. */
 export const drawBayBackdrop = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
   layer(ctx, state, 0);
-  layer(ctx, state, 1);
+  // (no bridge back here: out on the water it's just the far shore, the bay, and the island ahead)
+  const W = CANVAS_WIDTH, horizon = 412, f = state.frame;
+  const drift = state.camera.x * 0.02;
+  ctx.fillStyle = '#4B3D5A';
+  ctx.beginPath(); ctx.moveTo(0, horizon);
+  for (let x = 0; x <= W + 20; x += 16) ctx.lineTo(x, horizon - 18 - 22 * Math.sin((x + drift) * 0.006) - 10 * Math.sin((x + drift) * 0.021) - hash(Math.floor((x + drift) / 16)) * 4);
+  ctx.lineTo(W + 20, horizon); ctx.fill();
+  const g = ctx.createLinearGradient(0, horizon, 0, CANVAS_HEIGHT);
+  g.addColorStop(0, '#6C5B7B'); g.addColorStop(0.15, '#3B5B80'); g.addColorStop(1, '#294461');
+  ctx.fillStyle = g; ctx.fillRect(0, horizon, W, CANVAS_HEIGHT - horizon);
+  ctx.fillStyle = 'rgba(246, 194, 122, 0.4)';
+  for (let i = 0; i < 26; i++) { const x = ((hash(i) * W - state.camera.x * 0.1 + f * 0.1) % W + W) % W, y = horizon + 4 + hash(i + 3) * 60; ctx.fillRect(x, y, 8 + hash(i + 5) * 26, 1); }
   layer(ctx, state, 2);
   const k = rideProgress(rt.ski);
   // The rock: a speck off to the right at first, then filling the view ahead
   const s = 0.45 + k * k * 1.9;
-  const horizon = 412;
   drawAlcatraz(ctx, CANVAS_WIDTH * (0.82 - k * 0.2), horizon, s, state.frame);
   layer(ctx, state, 3);
 };
@@ -117,7 +127,6 @@ const drawHipster = (ctx: Ctx, state: GameState, js: JetSki) => {
     ctx.strokeStyle = '#111827'; ctx.lineWidth = 2; ctx.strokeRect(-6, -7, 5, 4); ctx.strokeRect(1, -7, 5, 4);
     ctx.fillStyle = '#E0AC69'; ctx.save(); ctx.translate(8, -2); ctx.rotate(-1.2 + Math.sin(state.frame * 0.3) * 0.6); ctx.fillRect(0, -2, 16, 4); ctx.restore();
     ctx.restore();
-    if (h.lineT > 0 && h.line) bubble(ctx, h.x, h.y - 30, h.line);
     return;
   }
   // Sat on it (or flying off it): skinny jeans, flannel, beard, big glasses, man bun, a kombucha
@@ -135,7 +144,6 @@ const drawHipster = (ctx: Ctx, state: GameState, js: JetSki) => {
   ctx.fillStyle = '#E0AC69'; ctx.fillRect(8, -30, 10, 4);
   ctx.fillStyle = '#D97706'; ctx.fillRect(16, -38, 6, 14);
   ctx.restore();
-  if (h.lineT > 0 && h.line) bubble(ctx, h.x, h.y - (sit ? 90 : 70), h.line);
 };
 
 /** A jet ski, facing right, its keel at (0, 0). */
@@ -219,6 +227,9 @@ const drawRamp = (ctx: Ctx, x: number, f: number) => {
 export const drawSeaFront = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
   const js = rt.ski;
   const p = state.player;
+  // The hipster's lines (in front of everybody)
+  const h = js.hipster;
+  if (h.lineT > 0 && h.line) bubble(ctx, h.x, h.y - (h.state === 'sitting' ? 90 : h.state === 'swimming' ? 30 : 70), h.line);
   if (js.lineT > 0 && js.line && !p.hidden && state.deathTimer <= 0) bubble(ctx, p.pos.x + p.width / 2, Math.max(state.camera.y + 40, p.pos.y - 16), js.line);
 };
 

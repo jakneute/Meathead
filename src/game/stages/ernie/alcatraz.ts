@@ -11,7 +11,7 @@ import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
 import { shakeScreen } from '../../core/state';
 import { playSound, playGlassShatterSound } from '../../platform/audio';
-import { say, MEATHEAD_VOICE, Voice } from '../../platform/speech';
+import { say, canSpeak, MEATHEAD_VOICE, Voice } from '../../platform/speech';
 import { GROUND_Y } from '../../../constants';
 import { COURSE, CP } from './course';
 
@@ -23,6 +23,9 @@ export interface Tour {
   line: string;
   who: string;
   lineT: number;
+  /** Frames since it started, counting the holds (t stands still while it waits on a line). */
+  clock: number;
+  talk: { at: number; len: number; spoken: boolean; done: boolean; over: number } | null;
 }
 
 /** The fade up from black, the lines, the ski coming down, the blast, him climbing out, and control back. */
@@ -36,12 +39,12 @@ export const TOURISTS = [
   { dx: 40, look: 'grandpa' }, { dx: 85, look: 'backpacker' }, { dx: 140, look: 'guide' },
 ] as const;
 
-export const createTour = (startedAt: number): Tour => ({ phase: startedAt >= CP.ALCATRAZ ? 'wrecked' : 'waiting', t: 0, line: '', who: '', lineT: 0 });
+export const createTour = (startedAt: number): Tour => ({ phase: startedAt >= CP.ALCATRAZ ? 'wrecked' : 'waiting', t: 0, line: '', who: '', lineT: 0, clock: 0, talk: null });
 
 /** He's gone up the ramp: cut to the cell house (he's somewhere way up over the roof). */
 export const startTour = (state: GameState, tour: Tour) => {
   const C = COURSE.cellblock;
-  tour.phase = 'tour'; tour.t = 0;
+  tour.phase = 'tour'; tour.t = 0; tour.clock = 0; tour.talk = null;
   const p = state.player;
   p.hidden = true;
   p.inCutscene = true;
@@ -54,14 +57,28 @@ export const startTour = (state: GameState, tour: Tour) => {
   state.camera.x = C.x1; state.camera.y = C.y - 550;
   state.cameraRestY = C.y - 550;
   state.cameraMinX = C.x1;
-  state.enemies = [];
+  // (everything from the bay's gone; Ernie's still waiting behind his door)
+  state.enemies = state.enemies.filter(e => e.type === 'boss');
   state.projectiles = [];
 };
 
+/** A line: its bubble stays up till it's been said, and the scene waits for it at the next beat (see HOLDS). */
 const speak = (tour: Tour, who: string, text: string, voice: Voice) => {
-  tour.who = who; tour.line = text; tour.lineT = 90;
-  say(text, voice, 'urgent', { onShow: () => {}, onHide: () => {} });
+  tour.who = who; tour.line = text; tour.lineT = 9999;
+  const talk = { at: tour.t, len: text.length, spoken: false, done: false, over: 0 };
+  tour.talk = talk;
+  talk.spoken = say(text, voice, 'urgent', { onShow: () => {}, onHide: () => {}, onDone: () => { talk.done = true; } }) && canSpeak();
 };
+/** The line being said is finished (spoken to the end; with no voice, up long enough to read; and never forever), plus a beat. */
+const talkOver = (tour: Tour, clock: number) => {
+  const k = tour.talk;
+  if (!k) return true;
+  const age = clock - k.at;
+  if (!k.over && age > 20 && (k.done || (!k.spoken && age > 45 + k.len * 3) || age > 60 + k.len * 5)) { k.over = clock; if (tour.lineT > 20) tour.lineT = 20; }
+  return k.over > 0 && clock - k.over > 14;
+};
+/** Where the scene waits for whoever's talking to finish before it goes on. */
+const HOLDS = new Set([124, 189, 239, DROP_AT - 9, TOUR_END - 1]);
 
 export const updateTour = (ctx: FrameContext, tour: Tour, controls: Controls): Controls => {
   const { state, fx } = ctx;
@@ -69,14 +86,17 @@ export const updateTour = (ctx: FrameContext, tour: Tour, controls: Controls): C
   if (tour.phase !== 'tour') { if (tour.phase === 'wrecked' && tour.t < 999) tour.t++; return controls; }
   const p = state.player;
   const C = COURSE.cellblock;
-  tour.t++;
+  tour.clock++;
+  // (it holds at each beat till the line before it's been said)
+  if (!(HOLDS.has(tour.t) && !talkOver(tour, tour.clock))) tour.t++;
+  else return { ...NO_CONTROLS };
   const t = tour.t;
   p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
   p.vel = { x: 0, y: 0 };
   if (t === 40) speak(tour, 'guide', '...AND NOBODY EVER ESCAPED FROM THE ROCK.', GUIDE_VOICE);
   if (t === 125) speak(tour, '3', 'HAS ANYBODY EVER BROKEN IN?', TOURIST_VOICE);
   if (t === 190) speak(tour, 'guide', "HA! NOBODY'S THAT STUPID.", GUIDE_VOICE);
-  if (t === 240) { speak(tour, 'meathead', 'FIRST TIME FOR EVERYTHIIIIING!!!', MEATHEAD_VOICE); tour.lineT = 60; }
+  if (t === 240) speak(tour, 'meathead', 'FIRST TIME FOR EVERYTHIIIIING!!!', MEATHEAD_VOICE);
   if (t === DROP_AT) playGlassShatterSound();
   if (t === IMPACT_AT) {
     // Down on the lot of them

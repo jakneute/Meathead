@@ -203,5 +203,8 @@ const buildCourse = (): Course => {
 
 export const COURSE = buildCourse();
 
+/** Where the houses along the streets stop (the toll plaza's open ground after that). */
+export const HOUSES_END = COURSE.bridge.x1 - 700;
+
 /** Where a fault or a span is under x, if anywhere. */
 export const faultAt = (x: number) => COURSE.faults.findIndex(f => x > f.x && x < f.x + f.w);

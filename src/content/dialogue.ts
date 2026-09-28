@@ -432,9 +432,26 @@ export const BOSS_DIALOGUE: {
       "SAN FRANCISCO IS THROWING STUFF AT ME!",
       "WHO KEEPS BRICKS ON A WINDOWSILL?!",
     ],
-    'floating_wreck': [
+    'falling_steel': [
+      "THE BRIDGE IS FALLING ON ME!",
+      "A RIVET! TO THE SKULL!",
+    ],
+    'traffic': [
+      "HE RAN ME OVER! ON THE BRIDGE!",
+      "LEARN TO DRIVE, YOU MANIAC!",
+      "HIT BY A CAR! IN AN EARTHQUAKE! TODAY SUCKS!",
+    ],
+    'floating_car': [
       "I HIT A CAR! IN THE OCEAN!",
       "WHO PARKED IN THE BAY?!",
+    ],
+    'floating_crate': [
+      "A CRATE! IN THE MIDDLE OF THE BAY!",
+      "WHO'S DUMPING THEIR PACKAGES IN THE WATER?!",
+    ],
+    'floating_buoy': [
+      "I HIT A BUOY! THE BUOY WON!",
+      "THAT BUOY CAME OUT OF NOWHERE!",
     ],
     // The doorman of Club Caldera
     'doorman': [
@@ -612,7 +629,9 @@ export type KillCallout =
   | 'crush' | 'overdose' | 'nuke' | 'tsunami' | 'fried'
   | 'wallsplat' | 'groundsplat' | 'flattened' | 'squished' | 'truck' | 'blowout' | 'crash'
   | 'moon' | 'cliff' | 'yeet'
-  | 'charred' | 'melted' | 'greased' | 'contact' | 'pulverized' | 'cooked';
+  | 'charred' | 'melted' | 'greased' | 'contact' | 'pulverized' | 'cooked'
+  // On the jet ski
+  | 'wheelie' | 'skileap' | 'skidive' | 'shipwreck';
 
 /** Callout text (one picked at random) and colour for each special kill. */
 export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string }> = {
@@ -628,6 +647,10 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
   tsunami:  { lines: ["WASHED OUT!", "DROWNED!", "WIPEOUT!"], color: '#1E90FF' },
   fried:    { lines: ["FRIED!", "ZAPPED!", "SHORT CIRCUIT!"], color: '#FFFF00' },
   cooked:   { lines: ["DEEP FRIED!", "WELL DONE!", "COOKED!", "EXTRA CRISPY!", "BURNT TO A CRISP!"], color: '#F97316' },
+  wheelie:   { lines: ["WHEELIED!", "RAMMED!", "HULL CHECK!", "WAKE UP CALL!", "RIGHT OF WAY!"], color: '#38BDF8' },
+  skileap:   { lines: ["CLIPPED!","SHOT DOWN!", "GROUNDED FOREVER!", "BIRDIE!", "MAN OVERBOARD!"], color: '#7DD3FC' },
+  skidive:   { lines: ["SUNK!", "CAPSIZED!", "SEA-DOO'D!", "TORPEDOED!", "DAVY JONES!"], color: '#0EA5E9' },
+  shipwreck: { lines: ["SHIPWRECKED!", "WRECKED!", "ICEBERG'D!", "RUN AGROUND!"], color: '#F97316' },
   wallsplat:   { lines: ["WALL SPLAT!", "SPLATTERED!", "REDECORATED!"], color: '#DC2626' },
   groundsplat: { lines: ["FACEPLANT!", "GROUNDED!", "KISSED CONCRETE!"], color: '#F97316' },
   flattened:   { lines: ["ROLLED!", "ROADKILL!", "PAVED!"], color: '#A16207' },
