@@ -59,7 +59,7 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
   // Down outside the door it's a tight little space: the camera pushed in on it, easing back out as the door opens
   const cramped = p.pos.x > COURSE.ruins.pit - 300 && p.pos.y > GROUND_Y - 400 && state.doorState === 'closed' && es.phase !== 'drop';
   es.zoomK += ((cramped ? 1 : 0) - es.zoomK) * (cramped ? 0.06 : 0.08);
-  if (es.zoomK < 0.005) es.zoomK = 0;
+  if (es.zoomK < 0.005 || (state.doorState !== 'closed' && state.doorState !== 'opening')) es.zoomK = 0;
   switch (es.phase) {
     case 'waiting': case 'done': return controls;
     case 'rumble':
@@ -187,5 +187,10 @@ export const dropFade = (es: Escape) => {
 export const escapeDeathMessage = (es: Escape): string | undefined => (es.phase === 'drop' ? 'A LONG WAY DOWN' : undefined);
 
 /** The push in outside Tommy's door: about the door's edge and the floor (so they stay put on the screen, and it closes in on him). */
-export const doorZoom = (state: GameState, es: Escape) =>
-  es.zoomK > 0 ? { scale: 1 + es.zoomK * 0.4, x: state.camera.x + CANVAS_WIDTH, y: GROUND_Y } : null;
+/** How far it's pushed in outside the door. */
+export const DOOR_ZOOM = 1.4;
+/** (it comes back out as the door opens, whatever else is running then: all the way out by the time it's open) */
+export const doorZoom = (state: GameState, es: Escape) => {
+  const k = state.doorState === 'closed' ? es.zoomK : state.doorState === 'opening' ? es.zoomK * Math.max(0, 1 - state.doorOpenAmount / 150) : 0;
+  return k > 0 ? { scale: 1 + k * (DOOR_ZOOM - 1), x: state.camera.x + CANVAS_WIDTH, y: GROUND_Y } : null;
+};

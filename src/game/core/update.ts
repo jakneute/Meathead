@@ -219,6 +219,8 @@ const updateBossTransition = (ctx: FrameContext) => {
     if (state.doorOpenAmount >= 150) { state.doorOpenAmount = 150; state.doorState = 'open'; }
   } else if (state.doorState === 'open') {
     if (state.camera.x < targetCameraX) state.camera.x = Math.min(targetCameraX, state.camera.x + glideSpeed);
+    // (and level with the arena, if it was following him up or down)
+    state.camera.y += (0 - state.camera.y) * 0.1;
     if (player.pos.x < targetPlayerX) player.pos.x = Math.min(targetPlayerX, player.pos.x + glideSpeed);
     if (state.camera.x >= targetCameraX && player.pos.x >= targetPlayerX) state.doorState = 'closing';
   } else if (state.doorState === 'closing') {
@@ -544,8 +546,9 @@ const updateCamera = (ctx: FrameContext) => {
     }
   }
   if (!state.arenaLocked && state.victoryString === "" && state.bossExplosionTimer <= 0) {
-    // Camera follows the player but can't scroll past the closed boss door
-    const maxX = state.cameraMaxX ?? (state.doorState === 'closed' ? BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH : getStageWidth(stageId) - CANVAS_WIDTH);
+    // Camera follows the player but can't scroll past the closed boss door (nor on the frame it starts opening: the
+    // glide in takes it from there)
+    const maxX = state.cameraMaxX ?? (state.doorState === 'closed' || state.doorState === 'opening' ? BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH : getStageWidth(stageId) - CANVAS_WIDTH);
     state.camera.x = Math.max(state.cameraMinX, Math.min(maxX, followX));
   } else if (state.arenaLocked && getArenaRight(stageId) > ARENA_RIGHT) {
     // A wider-than-usual arena (Oscar's) scrolls with you

@@ -4,13 +4,13 @@
 
 import type { StageLayout } from '../index';
 import type { Block } from '../../../types';
-import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH } from '../../../constants';
+import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH, DOOR_WIDTH, CANVAS_WIDTH } from '../../../constants';
 import { groundBlocks } from '../../core/terrain';
 import { COURSE, CP, placeOf, TUNNEL_ROOF } from './course';
 import { createTommyRuntime, getTommy, updateTommy, tommyDeathMessage } from './runtime';
 import { hitThing } from './thing';
 import { bottleZoom, isRidingBike } from './bike';
-import { doorZoom } from './escape';
+import { doorZoom, DOOR_ZOOM } from './escape';
 import { drawTommyBackdrop, drawTommyBack, drawTommyMid, drawTommyFront, drawTommyHud, drawTommyOverlays } from './draw';
 import { tommyScene } from './lighting';
 
@@ -32,6 +32,12 @@ export const tommyLayout: StageLayout = {
     state.blocks.push(wall(C.hood.x1 - 60, -3000, 60, 4400, 'hood-start'), wall(C.road.x2, -3000, 60, 4400, 'road-end'));
     state.blocks.push(wall(C.sewer.x1 - 60, -3000, 60, 4400, 'sewer-start'), wall(C.sewer.x2, -3000, 60, 4400, 'sewer-end'));
     state.blocks.push(wall(C.ruins.x1 - 60, -6000, 60, 8000, 'ruins-start'));
+    // (and the far end of the ruins up top: no walking off it; the floor outside the door, way down below, is open)
+    state.blocks.push(wall(C.ruins.x2 - 40, -6000, 60, C.ruins.y + 300 + 6000, 'ruins-end'));
+    // Down outside Tommy's door, the left edge of what the camera shows there (pushed in on it, up against the door): no
+    // wandering off out of sight
+    const outside = BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH / DOOR_ZOOM;
+    state.blocks.push(wall(outside - 60, GROUND_Y - 1200, 60, 1200, 'door-left'));
     // The sewer's roof (a hole in it where he comes down through the manhole), and the flooded tunnel's, low over the muck
     const S = C.sewer;
     state.blocks.push(wall(S.x1, GROUND_Y - 940, S.drop - 80 - S.x1, 600, 'sewer-roof'), wall(S.drop + 80, GROUND_Y - 940, S.tunnel.x1 - S.drop - 80, 600, 'sewer-roof'));
