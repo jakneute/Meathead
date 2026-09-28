@@ -202,7 +202,10 @@ export const updateConvoy = (ctx: FrameContext, cv: Convoy, talk: Talk, controls
   for (const e of state.enemies) {
     if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || e.enemyType === 'flyer') continue;
     if (e.pos.x < COURSE.highway.x1 || e.pos.x > COURSE.highway.x2) continue;
-    if (e.pos.y + e.height > Y - 30) roadkill(ctx, cv, e);
+    if (e.pos.y + e.height > Y - 30) { roadkill(ctx, cv, e); continue; }
+    // (knocked clear across onto a truck that isn't in play: he'd be out of reach, so he goes off the side of it)
+    const cur = truckX(cv, cv.current);
+    if (e.vel.y === 0 && (e.pos.x + e.width < cur - 200 || e.pos.x > cur + truckDims(cv.current).w + 200)) roadkill(ctx, cv, e);
   }
   updateTrucks(ctx, cv, talk);
   updateSuvs(ctx, cv);
@@ -277,9 +280,9 @@ const updateTrucks = (ctx: FrameContext, cv: Convoy, talk: Talk) => {
       if (tr.t >= tr.debrisAt) { tr.debrisAt = tr.t + plan.debris[0] + Math.floor(Math.random() * (plan.debris[1] - plan.debris[0])); spawnDebris(state, cv); }
       // All down: clear. The next truck pulls up
       // (every goon on it, however he got there: not just the ones it's been counting)
-      const txi = truckX(cv, i);
-      const onBoard = state.enemies.some(e => e.health > 0 && !e.isBlownAway && e.type !== 'boss' && !e.innocent && e.enemyType !== 'flyer' && e.pos.x + e.width > txi - 60 && e.pos.x < txi + TRUCK_W + 60 && e.pos.y + e.height < Y);
-      if (tr.wave >= plan.waves.length && !alive.length && !pending && !onBoard) {
+      // (every goon out here, wherever he's got to: not only the ones on this roof. Vultures don't count)
+      const anyLeft = state.enemies.some(e => e.health > 0 && !e.isBlownAway && e.type !== 'boss' && !e.innocent && e.enemyType !== 'flyer' && e.pos.x > COURSE.highway.x1 - 400 && e.pos.x < COURSE.highway.x2);
+      if (tr.wave >= plan.waves.length && !alive.length && !pending && !anyLeft) {
         tr.phase = 'cleared'; tr.t = 0; tr.timeLeft = AFTER_CLEAR;
         const next = cv.trucks[i + 1];
         if (next && next.phase === 'far') next.phase = 'coming';
