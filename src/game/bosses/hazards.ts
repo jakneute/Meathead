@@ -4,7 +4,7 @@ import { TommyBoard } from '../../types';
 import {
   CANVAS_WIDTH, BOSS_DOOR_X, PLAYER_INVINCIBILITY_FRAMES, PLAYER_PUSHBACK_DURATION,
   PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, PARTICLE_PALETTES,
-  TSUNAMI_WAVE_SPEED, TSUNAMI_DAMAGE_BOSS, TSUNAMI_DAMAGE_WEAKNESS,
+  TSUNAMI_WAVE_SPEED, TSUNAMI_DAMAGE_BOSS, TSUNAMI_DAMAGE_WEAKNESS, TSUNAMI_DAMAGE_MIDBOSS, TSUNAMI_DAMAGE_DOORMAN,
 } from '../../constants';
 import { FrameContext } from '../core/context';
 import { hitBoss, isWeakTo } from './registry';
@@ -66,13 +66,15 @@ export const updateTsunami = (ctx: FrameContext) => {
     if (e.type === 'boss') {
       if (!state.arenaLocked || (e.hitCooldown && e.hitCooldown > 0)) return;
       hitBoss(ctx, e, 'TSUNAMI', { facing: dir, damage: isWeakTo(stageId, 'TSUNAMI') ? TSUNAMI_DAMAGE_WEAKNESS : TSUNAMI_DAMAGE_BOSS });
-    } else if (e.kind === 'moose' || e.kind === 'eye') {
-      // A mid-boss takes it like a boss would, once per wave (it isn't washed away)
+    } else if (e.kind === 'moose' || e.kind === 'eye' || e.kind === 'doorman') {
+      // A mid-boss takes it like a boss would, once per wave (it isn't washed away): a heavy hit, except to the
+      // doorman, who just stands there in it (and it never finishes him off: his fight ends its own way)
       if (e.tsunamiWave === state.tsunamiStartX) return;
       e.tsunamiWave = state.tsunamiStartX;
-      e.health -= TSUNAMI_DAMAGE_BOSS * 3;
+      const dmg = e.kind === 'doorman' ? TSUNAMI_DAMAGE_DOORMAN : TSUNAMI_DAMAGE_MIDBOSS;
+      e.health = e.kind === 'doorman' ? Math.max(1, e.health - dmg) : e.health - dmg;
       e.hitFlash = 8;
-      fx.spawnDamageNumber(e.pos, TSUNAMI_DAMAGE_BOSS * 3, true);
+      fx.spawnDamageNumber(e.pos, dmg, e.kind !== 'doorman');
     } else {
       e.health = 0;
       fx.blowAwayEnemy(e, { x: dir * 20, y: -10 }, 'tsunami_kill', dir);

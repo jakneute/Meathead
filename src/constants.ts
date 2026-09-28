@@ -263,6 +263,10 @@ export const TSUNAMI_COOLDOWN = 120;
 export const TSUNAMI_WAVE_SPEED = 15;
 export const TSUNAMI_DAMAGE_BOSS = 50;
 export const TSUNAMI_DAMAGE_WEAKNESS = 150;
+/** A mid-boss isn't washed away by it, but it's a heavy hit (the moose, the Eye)... */
+export const TSUNAMI_DAMAGE_MIDBOSS = 300;
+/** ...except the doorman: a wall of water barely moves a man that size. */
+export const TSUNAMI_DAMAGE_DOORMAN = 12;
 
 // NEEDLE CANNON (DALE)
 export const NEEDLE_DAMAGE = 10;
