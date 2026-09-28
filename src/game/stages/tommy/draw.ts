@@ -7,7 +7,7 @@
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, ARENA_LEFT } from '../../../constants';
 import { drawPlayer } from '../../render/player/player';
-import { COURSE, placeOf } from './course';
+import { COURSE, placeOf, RUINS_Y } from './course';
 import { getTommy, fadeAmount, TommyRuntime } from './runtime';
 import { drawStreetSky, drawStreetGround, drawStreetFronts, drawJunk, drawCorner, drawRoadEnd, drawRiddenBike, drawTumble, drawCarRampSigns } from './streetDraw';
 import { drawSewerBack, drawSewerGround, drawDrips, drawMuckFront, drawChunks } from './sewerDraw';
@@ -22,13 +22,29 @@ type Ctx = CanvasRenderingContext2D;
 const view = (state: GameState) => placeOf(state.camera.x + CANVAS_WIDTH / 2);
 
 export const drawTommyBackdrop = (ctx: Ctx, state: GameState) => {
-  // (Tommy's own room has its own)
-  if (state.camera.x + CANVAS_WIDTH / 2 > ARENA_LEFT - 100) return false;
+  // Way down underground (outside Tommy's door, going in, his room): packed earth and rock, never a sky (his room draws
+  // its own shaft over this)
+  if (state.camera.x + CANVAS_WIDTH / 2 > ARENA_LEFT - 100 || state.camera.y > RUINS_Y + 1400) { drawUnderground(ctx, state); return true; }
   const place = view(state);
   if (place === 'hood' || place === 'road') drawStreetSky(ctx, state);
   else if (place === 'ruins') drawStreetSky(ctx, state, 1, false);
   else { ctx.fillStyle = '#0C0A09'; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
   return true;
+};
+
+/** Solid ground all round: dark earth, rock in it (drifting slowly with the camera). */
+const drawUnderground = (ctx: Ctx, state: GameState) => {
+  const g = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+  g.addColorStop(0, '#0C0A09'); g.addColorStop(1, '#1C1917');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  const ox = state.camera.x * 0.3, oy = state.camera.y * 0.3;
+  for (let i = 0; i < 40; i++) {
+    const h1 = Math.sin(i * 127.1) * 43758.5453, h2 = Math.sin(i * 311.7) * 12345.678;
+    const x = ((((h1 - Math.floor(h1)) * 1200 - ox) % 1200) + 1200) % 1200 - 200;
+    const y = ((((h2 - Math.floor(h2)) * 900 - oy) % 900) + 900) % 900 - 150;
+    ctx.fillStyle = i % 3 ? 'rgba(68, 64, 60, 0.35)' : 'rgba(87, 83, 78, 0.3)';
+    ctx.beginPath(); ctx.ellipse(x, y, 10 + (i % 5) * 7, 6 + (i % 4) * 4, (i % 7) * 0.4, 0, Math.PI * 2); ctx.fill();
+  }
 };
 
 export const drawTommyBack = (ctx: Ctx, state: GameState) => {
