@@ -45,8 +45,9 @@ export const createDaycare = (state: GameState, startedAt: number): Daycare => {
 export const inDaycare = (x: number) => x >= D().x1 - 100;
 
 /** Start the scene (the Eye's just died). */
-export const startDaycare = (state: GameState, dc: Daycare) => {
-  dc.phase = 'cutscene'; dc.t = 0;
+export const startDaycare = (state: GameState, dc: Daycare, afterNews = false) => {
+  // (after the news, which showed it all coming down, cut straight to it landing)
+  dc.phase = 'cutscene'; dc.t = afterNews ? FALL_AT - 1 : 0;
   const p = state.player;
   p.hidden = true;
   p.inCutscene = true;

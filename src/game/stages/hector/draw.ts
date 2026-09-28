@@ -7,6 +7,7 @@ import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../../../constants';
 import { drawBackdrop, drawBackdropFront } from '../../render/backdrops';
 import { COURSE, Plat, Prop, palmTip } from './course';
 import { getHector, regionOf, HectorRuntime } from './runtime';
+import { drawNews } from './news';
 import { STRIKE_WARN, shockPhase, AWNING_BOUNCE, SEA_DEPTH } from './hazards';
 import { copsLeft } from './beach';
 import { towerFlash, TOWER } from './tower';
@@ -195,6 +196,7 @@ export const drawHectorHud = (ctx: Ctx, state: GameState) => {
   }
   ctx.restore();
   drawEyeHud(ctx, state, rt.eye);
+  drawNews(ctx, state, rt.news);
   // Whiteouts: the jump up to the Eye, and the storm dying
   const flash = Math.max(towerFlash(rt.tower), rt.clearT > 0 ? (rt.clearT < 40 ? rt.clearT / 40 : Math.max(0, 1 - (rt.clearT - 40) / 50)) : 0);
   if (flash > 0) { ctx.fillStyle = `rgba(240, 245, 255, ${flash})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }

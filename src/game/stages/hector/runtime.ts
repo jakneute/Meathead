@@ -15,6 +15,7 @@ import { Hazards, createHazards, updateHazards } from './hazards';
 import { Boat, createBoat, updateBoat } from './boat';
 import { TowerRun, createTowerRun, updateTower, inTower, TOWER } from './tower';
 import { EyeFight, createEyeFight, updateEyeFight, inEyeArena } from './eye';
+import { News, createNews, startNews, updateNews, newsOn } from './news';
 import { Daycare, createDaycare, updateDaycare, startDaycare, inDaycare } from './daycare';
 
 export interface HectorRuntime {
@@ -25,6 +26,8 @@ export interface HectorRuntime {
   tower: TowerRun;
   eye: EyeFight;
   daycare: Daycare;
+  /** The news bulletin between the Eye dying and the flood landing. */
+  news: News;
   /** The storm dying (after the Eye): frames of the whiteout into sunshine. */
   clearT: number;
 }
@@ -67,6 +70,7 @@ export const createHectorRuntime = (state: GameState, skipToBoss: boolean): Hect
     eye: createEyeFight(state, startedAt),
     daycare: createDaycare(state, startedAt),
     clearT: 0,
+    news: createNews(),
   };
   applyRegionCamera(state, regionOf(start.x));
   return rt;
@@ -104,15 +108,17 @@ export const updateHector = (ctx: FrameContext, controls: Controls): Controls =>
   controls = updateBoat(ctx, rt.boat, controls, () => enterTower(state));
   updateTower(ctx, rt.tower, () => enterEye(state));
   updateEyeFight(ctx, rt.eye, () => { rt.clearT = 1; });
+  // (skipping a line of the news goes by the real buttons)
+  updateNews(ctx, rt.news, controls, () => startDaycare(state, rt.daycare, true));
   // The Eye's dead: hands off while it dies and the storm clears
-  if (region === 'eye' && (rt.eye.phase === 'dead' || rt.eye.phase === 'done')) {
+  if ((region === 'eye' && (rt.eye.phase === 'dead' || rt.eye.phase === 'done')) || newsOn(rt.news)) {
     controls = { ...NO_CONTROLS };
     player.isCharging = false; player.isSliding = false; player.isUppercutting = false; player.isDivekicking = false;
   }
-  // The storm dies: a whiteout, then the daycare
+  // The storm dies: a whiteout, the news, then the daycare
   if (rt.clearT > 0) {
     rt.clearT++;
-    if (rt.clearT === 40) startDaycare(state, rt.daycare);
+    if (rt.clearT === 40) startNews(rt.news);
     if (rt.clearT > 90) rt.clearT = 0;
   }
   return updateDaycare(ctx, rt.daycare, controls);
