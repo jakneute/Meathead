@@ -435,17 +435,71 @@ const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, we
   );
 };
 
-const BossIntroScreen: React.FC<OverlayProps> = ({ bossTaunt, isInputLocked, onStart }) => (
-  <div className="bg-red-950/90 border-4 border-red-600 p-6 max-w-lg animate-in fade-in slide-in-from-top-4 duration-500 shadow-[0_0_40px_rgba(255,0,0,0.4)]">
-    <h2 className="text-xl md:text-2xl text-red-500 mb-4 font-black tracking-tighter italic uppercase underline decoration-2">ENEMY LOG:</h2>
-    <div className="max-h-32 overflow-y-auto mb-6 px-4 text-left border-l-4 border-red-500 bg-black/40 py-4">
-      <p className="text-white italic text-sm md:text-base leading-snug uppercase tracking-tight">"{bossTaunt}"</p>
+/**
+ * The face-off as you walk into a boss's arena: a hazard-striped warning bar,
+ * the boss's live portrait, his name and hometown, and his taunt in a speech
+ * bubble, over a slow red scanline pulse.
+ */
+const BossIntroScreen: React.FC<OverlayProps> = ({ bossTaunt, isInputLocked, onStart, stageId }) => {
+  const loc = stageId ? BOSS_LOCATIONS[stageId] : undefined;
+  return (
+    <div className="relative w-[min(92vw,620px)] select-none mh-intro-in">
+      <style>{`
+        @keyframes mh-intro-in { 0% { transform: scale(1.25) skewX(-6deg); opacity: 0; } 60% { transform: scale(0.97) skewX(0); opacity: 1; } 100% { transform: scale(1); } }
+        .mh-intro-in { animation: mh-intro-in 0.35s ease-out; }
+        @keyframes mh-hazard { from { background-position: 0 0; } to { background-position: 40px 0; } }
+        .mh-hazard { background: repeating-linear-gradient(-45deg, #FACC15 0 12px, #111 12px 24px); background-size: 40px 100%; animation: mh-hazard 0.6s linear infinite; }
+        @keyframes mh-warn-blink { 0%, 60% { opacity: 1; } 61%, 100% { opacity: 0.25; } }
+        .mh-warn { animation: mh-warn-blink 0.9s steps(1) infinite; }
+        @keyframes mh-scan { from { background-position: 0 0; } to { background-position: 0 8px; } }
+        .mh-scan { background: repeating-linear-gradient(0deg, rgba(0,0,0,0.28) 0 2px, transparent 2px 4px); animation: mh-scan 0.5s linear infinite; }
+        @keyframes mh-glow { 0%, 100% { box-shadow: 0 0 28px rgba(239,68,68,0.45), inset 0 0 40px rgba(127,29,29,0.6); } 50% { box-shadow: 0 0 48px rgba(239,68,68,0.8), inset 0 0 60px rgba(127,29,29,0.9); } }
+        .mh-card-glow { animation: mh-glow 1.6s ease-in-out infinite; }
+        @keyframes mh-name-in { 0% { transform: translateX(40px); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
+        .mh-name-in { animation: mh-name-in 0.4s 0.15s ease-out both; }
+        @keyframes mh-bubble-in { 0% { transform: scale(0.6); opacity: 0; } 70% { transform: scale(1.04); opacity: 1; } 100% { transform: scale(1); } }
+        .mh-bubble-in { animation: mh-bubble-in 0.3s 0.35s ease-out both; transform-origin: 0 50%; }
+        @keyframes mh-engage-pulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.35); } }
+        .mh-engage-btn { animation: mh-engage-pulse 0.7s ease-in-out infinite; }
+      `}</style>
+      {/* Warning bar */}
+      <div className="mh-hazard h-3 border-x-4 border-t-4 border-red-700" />
+      <div className="bg-black border-x-4 border-red-700 flex items-center justify-center gap-3 py-1">
+        <span className="mh-warn text-red-500 text-[11px] font-black tracking-[0.3em]">WARNING</span>
+        <span className="text-white text-[11px] font-black tracking-[0.25em]">TARGET ENGAGED</span>
+        <span className="mh-warn text-red-500 text-[11px] font-black tracking-[0.3em]">WARNING</span>
+      </div>
+      {/* The card */}
+      <div className="relative mh-card-glow bg-gradient-to-br from-red-950 via-[#1a0505] to-black border-4 border-red-700 p-4 flex gap-4 items-stretch overflow-hidden">
+        <div className="mh-scan absolute inset-0 pointer-events-none" />
+        <div className="relative shrink-0 w-[148px] h-[148px] border-[3px] border-red-500 bg-black overflow-hidden shadow-[0_0_18px_rgba(239,68,68,0.6)]">
+          {stageId && <BossPortrait id={stageId} />}
+          <div className="absolute top-1 left-1 bg-red-600 text-white text-[8px] font-black px-1 tracking-widest">TARGET</div>
+        </div>
+        <div className="relative flex-1 min-w-0 flex flex-col">
+          <div className="mh-name-in pt-1">
+            <div className="text-[9px] text-red-400 font-black tracking-[0.3em]">DESIGNATED THREAT</div>
+            <h2 className="text-xl md:text-2xl font-black italic uppercase leading-tight text-white [text-shadow:3px_3px_0_#7F1D1D,0_0_12px_rgba(239,68,68,0.6)] -skew-x-6 break-words">{stageId}</h2>
+            {loc && <div className="mt-1 text-[9px] font-mono font-bold text-cyan-300 uppercase">{loc.city}, {loc.stateCode}</div>}
+          </div>
+          {/* His taunt */}
+          <div className="mh-bubble-in relative mt-auto mb-auto bg-white text-black border-[3px] border-black px-3 py-2 shadow-[4px_4px_0_#7F1D1D] max-h-28 overflow-y-auto">
+            <div className="absolute -left-[12px] top-4 w-0 h-0 border-y-[8px] border-y-transparent border-r-[12px] border-r-black" />
+            <div className="absolute -left-[7px] top-[18px] w-0 h-0 border-y-[6px] border-y-transparent border-r-[9px] border-r-white" />
+            <p className="text-[11px] md:text-xs font-black uppercase italic leading-snug">&ldquo;{bossTaunt}&rdquo;</p>
+          </div>
+        </div>
+      </div>
+      <div className="mh-hazard h-3 border-x-4 border-b-4 border-red-700" />
+      {/* Fight */}
+      <div className="flex justify-center mt-3">
+        <button disabled={isInputLocked} onClick={onStart} className={`px-10 py-3 text-lg font-black uppercase italic tracking-wider -skew-x-6 border-4 transition-all ${isInputLocked ? 'bg-zinc-800 border-zinc-700 text-zinc-500' : 'bg-red-600 hover:bg-red-500 border-black text-white shadow-[5px_5px_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none mh-engage-btn'}`}>
+          {isInputLocked ? 'LISTENING...' : 'STFU AND DIE'}
+        </button>
+      </div>
     </div>
-    <button disabled={isInputLocked} onClick={onStart} className={`px-8 py-4 text-white text-lg font-black border-b-[6px] transition-all uppercase ${isInputLocked ? 'bg-gray-700 border-gray-900 opacity-50' : 'bg-red-600 hover:bg-red-500 border-red-900 active:translate-y-1 active:border-b-0'}`}>
-      {isInputLocked ? 'LISTENING...' : 'STFU AND DIE'}
-    </button>
-  </div>
-);
+  );
+};
 
 const ENDINGS = [
   'Good job, Meathead. Your quest to just fucking kill everyone in sight paid off. Local counter terrorism units identified the men you killed as "The Four Assholes." You saved the world! Or did you?',
