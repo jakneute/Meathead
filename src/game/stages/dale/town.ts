@@ -34,6 +34,7 @@ import { rectsOverlap, boundsOf } from '../../core/utils';
 import { hurtPlayer } from '../../bosses/shared';
 import { killPlayer } from '../../player/player';
 import { playSound, playSniperShot, playHornDrone } from '../../platform/audio';
+import { cancelSpeech } from '../../platform/speech';
 import { makeKindEnemy } from '../../enemies/kinds';
 import { COURSE, CP } from './course';
 import { Talk, queueLines, replaceLines, hush } from './script';
@@ -54,8 +55,9 @@ const ARRIVE_SPEED = 21;
 export interface TownProp { x: number; look: 'barrel' | 'cutout' | 'wagon' | 'hay' | 'wanted' | 'trough'; flying: boolean; vx: number; vy: number; y: number; rot: number }
 export interface Town {
   phase: 'street' | 'pan' | 'revive' | 'chase' | 'incoming' | 'jail' | 'crashed';
-  /** The jail scene: when the cab went into it (-1 till then). */
+  /** The jail scene: when the cab went into it (-1 till then); the skip button's been let go since it started. */
   crashedAt: number;
+  jailArmed: boolean;
   t: number;
   sniper: { on: boolean; x: number; y: number; state: 'track' | 'lock' | 'cool'; t: number; shots: number; lastShot: { x: number; y: number; t: number; covered: boolean } | null };
   /** The tourists: the town's, not enemies (Meathead can't hurt them; Riggs gets every last one). */
@@ -95,7 +97,7 @@ export const createTown = (state: GameState, startedAt: number): Town => {
     cab: wrecked ? { x: t.jail.x1 + 30 - CAB.w, speed: 0, facing: 1, spin: 0, state: 'wrecked', t: 0 } : { x: t.crash - 20, speed: 0, facing: -1, spin: 0, state: 'parked', t: 0 },
     props, sheriff: { x: wrecked ? t.x2 + 400 : t.jail.x1 - 70, running: wrecked }, prisoner: { alive: !wrecked, said: 0 },
     said: new Set(), wakeT: 999,
-    tourists: wrecked ? [] : makeTourists(), gore: 0, screamAt: -999, crashedAt: -1, arrive: null, shopHit: true,
+    tourists: wrecked ? [] : makeTourists(), gore: 0, screamAt: -999, crashedAt: -1, jailArmed: false, arrive: null, shopHit: true,
   };
 };
 
@@ -500,6 +502,8 @@ const JAIL_BEGGING = [
 ] as const;
 /** The latest the cab comes (if the begging's still going), and how long on the wreck after. */
 const JAIL_CAB_BY = 720, JAIL_AFTER = 120;
+/** The skip works (and says so) after this long. */
+export const JAIL_SKIP_AFTER = 20;
 
 const jailScene = (ctx: FrameContext, town: Town, talk: Talk, controls: Controls): Controls => {
   const { state } = ctx;
@@ -513,6 +517,19 @@ const jailScene = (ctx: FrameContext, town: Town, talk: Talk, controls: Controls
     state.cameraOverride = { x: camX, y: 0 };
     state.camera.x = camX;
     queueLines(state, talk, JAIL_BEGGING.map(l => ({ ...l })), 20);
+    // Whoever's left up the street, he got on the way (off screen): just the sheriff and the guy in the cell, here
+    town.tourists = [];
+    town.gore = 1;
+    // (and nobody else in the shot: no goons, no bodies still coming down)
+    state.enemies = state.enemies.filter(e => e.type === 'boss' || e.pos.x + e.width < camX - 100 || e.pos.x > camX + CANVAS_WIDTH + 100);
+  }
+  // Jump or shoot: skip to it coming through the wall (once the button's been let go since the cut)
+  const pressing = controls.jump || controls.shoot;
+  if (!pressing) town.jailArmed = true;
+  if (town.jailArmed && pressing && town.t > JAIL_SKIP_AFTER && town.crashedAt < 0) {
+    hush(state, talk); cancelSpeech();
+    town.sheriff.running = true; town.sheriff.x = Math.max(town.sheriff.x, camX + CANVAS_WIDTH + 60);
+    cab.speed = 26; cab.x = t.jail.x1 + 30 - CAB.w;
   }
   if (town.crashedAt < 0) state.cameraOverride = { x: camX, y: 0 };
   p.vel.x = 0;
@@ -523,7 +540,7 @@ const jailScene = (ctx: FrameContext, town: Town, talk: Talk, controls: Controls
   if (town.crashedAt < 0 && town.t > 40 && town.t % Math.max(10, 50 - Math.floor(town.t / 16)) === 0) playSound('horn');
   // Here it comes (he's begged enough)
   const begged = !talk.current && !talk.queue.length && town.t > 60;
-  if (cab.speed === 0 && town.crashedAt < 0 && (begged || town.t >= JAIL_CAB_BY)) cab.speed = 26;
+  if (cab.speed === 0 && town.crashedAt < 0 && (begged || town.t >= JAIL_CAB_BY)) { cab.speed = 26; town.sheriff.running = true; }
   if (town.crashedAt < 0 && cab.speed > 0) {
     cab.x += cab.speed;
     plow(ctx, town);
@@ -602,10 +619,14 @@ const crashIntoJail = (ctx: FrameContext, town: Town, talk: Talk) => {
   fx.spawnDeathShower({ x: t.jail.x1 + 120, y: Y - 60 }, 1, 2);
   shakeScreen(state, 44, 15);
   playSound('nuke');
-  // The guy in the cell (and what's left of Riggs), everywhere
-  fx.spawnDeathShower({ x: t.jail.x1 + 170, y: Y - 100 }, 1, 3);
-  for (let i = 0; i < 40; i++) state.particles.push({ pos: { x: t.jail.x1 + 120 + Math.random() * 120, y: Y - 60 - Math.random() * 80 }, vel: { x: (Math.random() - 0.2) * 16, y: -Math.random() * 14 }, life: 50 + Math.random() * 30, color: i % 3 ? '#991B1B' : '#78716C', size: 3 + Math.random() * 7 });
-  fx.spawnDamageNumber({ x: t.jail.x1 + 90, y: Y - 280 }, 'CASE CLOSED!', true, '#F87171');
+  // The guy in the cell (and what's left of Riggs), everywhere: geysers of it, bits of them, his souvenir hat
+  for (let k = 0; k < 4; k++) fx.spawnDeathShower({ x: t.jail.x1 + 110 + k * 40, y: Y - 60 - k * 25 }, k % 2 ? 1 : -1, 3.5);
+  const reds = ['#991B1B', '#DC2626', '#7F1D1D', '#B91C1C'];
+  for (let i = 0; i < 120; i++) state.particles.push({ pos: { x: t.jail.x1 + 100 + Math.random() * 160, y: Y - 40 - Math.random() * 120 }, vel: { x: (Math.random() - 0.35) * 22, y: -4 - Math.random() * 18 }, life: 60 + Math.random() * 50, color: i % 5 === 0 ? '#78716C' : reds[i % reds.length], size: 3 + Math.random() * 8 });
+  // (chunks: an arm, a leg, a boot, a trucker cap)
+  for (const [c, sz] of [['#F2C9A0', 12], ['#F2C9A0', 14], ['#44403C', 11], ['#1E3A8A', 10], ['#1C1917', 13], ['#E0AC69', 12]] as const) state.particles.push({ pos: { x: t.jail.x1 + 170, y: Y - 110 }, vel: { x: (Math.random() - 0.3) * 18, y: -12 - Math.random() * 10 }, life: 90, color: c, size: sz });
+  fx.spawnDamageNumber({ x: t.jail.x1 + 160, y: Y - 230 }, 'TIMESHARE: VACANT', true, '#FACC15');
+  fx.spawnDamageNumber({ x: t.jail.x1 + 40, y: Y - 330 }, 'CASE CLOSED!', true, '#F87171');
   state.stageMemo.jailWrecked = 'yes';
   queueLines(state, talk, [{ who: 'meathead', text: "RIGGS, BUDDY... YOUR LIZARD'S GONNA HAVE TO FEND FOR HIMSELF." }], 50);
 };

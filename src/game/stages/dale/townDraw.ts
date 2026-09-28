@@ -11,7 +11,7 @@ import type { GroundRun } from '../../core/terrain';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, BOSS_DOOR_X } from '../../../constants';
 import { COURSE, Building, Awning } from './course';
 import type { DaleRuntime } from './runtime';
-import { Town, TownProp, CAB, ninjaSpot, incoming, jailWrecked, muzzle, laserEnd, NINJA_CUT, NINJA_DONE } from './town';
+import { Town, TownProp, CAB, ninjaSpot, incoming, jailWrecked, muzzle, laserEnd, NINJA_CUT, NINJA_DONE, JAIL_SKIP_AFTER } from './town';
 import { drawDaleKind } from '../../render/enemies/dale';
 import { drawPlayer } from '../../render/player/player';
 import { saying, drawBubble } from './script';
@@ -183,6 +183,11 @@ const drawJail = (ctx: Ctx, state: GameState, town: Town) => {
     ctx.fillStyle = '#57534E'; ctx.fillRect(j.x1, Y - 90, 40, 90); ctx.fillRect(j.x2 - 50, Y - 130, 50, 130);
     ctx.fillStyle = '#78716C'; for (let i = 0; i < 14; i++) ctx.fillRect(j.x1 + 20 + i * 22, Y - 16 - (i % 4) * 12, 26, 14);
     drawCab(ctx, j.x1 + 30 - CAB.w + 120, 1, f, true, 0.18);
+    // What's left of the two of them, up the rubble and across the street
+    ctx.fillStyle = 'rgba(127, 29, 29, 0.9)';
+    ctx.beginPath(); ctx.ellipse(j.x1 + 170, Y - 2, 150, 7, 0, 0, Math.PI * 2); ctx.fill();
+    for (let k = 0; k < 22; k++) { const sx = j.x1 + 20 + hash(k + 400) * 300, sy = Y - 20 - hash(k + 401) * 120, r = 3 + hash(k + 402) * 9; ctx.fillStyle = k % 3 ? 'rgba(153, 27, 27, 0.85)' : 'rgba(220, 38, 38, 0.8)'; ctx.beginPath(); ctx.ellipse(sx, sy, r, r * 0.7, hash(k) * 3, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(sx - 1, sy, 2, r * 2.5); }
+    ctx.fillStyle = '#1C1917'; ctx.beginPath(); ctx.ellipse(j.x1 + 250, Y - 6, 12, 3, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(j.x1 + 244, Y - 13, 12, 7); // the souvenir hat
     for (let k = 0; k < 6; k++) { const fx = j.x1 + 30 + k * 50, h = 40 + Math.sin(f * 0.4 + k) * 16; ctx.fillStyle = k % 2 ? 'rgba(249,115,22,0.85)' : 'rgba(253,224,71,0.8)'; ctx.beginPath(); ctx.moveTo(fx - 16, Y - 20); ctx.quadraticCurveTo(fx, Y - 20 - h, fx + 16, Y - 20); ctx.fill(); }
     if (f % 4 === 0) state.particles.push({ pos: { x: j.x1 + 60 + Math.random() * 200, y: Y - 80 }, vel: { x: (Math.random() - 0.5), y: -1.5 }, life: 40, color: '#44403C', size: 8 + Math.random() * 8 });
     return;
@@ -574,6 +579,9 @@ export const drawTownFront = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
 // ---------------------------------------------------------------------------
 
 export const drawTownHud = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
+  // The jail scene can be skipped
+  const tw = rt.town;
+  if (tw.phase === 'jail' && tw.crashedAt < 0 && tw.t > JAIL_SKIP_AFTER) { ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.font = '8px "Press Start 2P"'; ctx.textAlign = 'right'; ctx.fillText('JUMP OR SHOOT: SKIP', CANVAS_WIDTH - 24, 80); ctx.textAlign = 'left'; }
   const inc = incoming(state, rt.town);
   if (!inc) return;
   const f = state.frame;
