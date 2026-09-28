@@ -14,8 +14,11 @@ import { BossDef, ARENA_MID, FLOOR_Y, dirTo, midX, enemyProjectile } from './sha
 const ATTACK_INTERVAL = 180;     // frames between attacks at full health...
 const ATTACK_INTERVAL_RAMP = 70; // ...this many fewer at 0 HP
 const ROLL_SPEED_RAMP = 2;       // extra rolling boulder speed at 0 HP
-const HEAVE_WINDUP = 26;         // holding the boulder overhead
-const HEAVE_FLIGHT = 48;         // frames the heaved boulder takes to come down
+const HEAVE_WINDUP = 26;         // holding the boulder overhead...
+const HEAVE_WINDUP_RAMP = 8;     // ...this many frames less at 0 HP
+const HEAVE_FLIGHT = 48;         // frames the heaved boulder takes to come down...
+const HEAVE_FLIGHT_RAMP = 8;     // ...this many fewer at 0 HP (a flatter, quicker lob)
+const JUMP_REACH_RAMP = 0.3;     // his jump at you carries this much further at 0 HP
 const HEAVE_MAX_SPEED_X = 16;
 /** How far out of the far corner the heaved boulder comes down (just clear of the wall). */
 const HEAVE_CORNER_INSET = 12;
@@ -72,14 +75,14 @@ const update = (ctx: FrameContext, boss: Enemy) => {
     default:
       if (boss.stateTimer! > 0 || !boss.isGroundedBoss) break;
       if (Math.random() < 0.5) jumpAndRoll(ctx, boss);
-      else { boss.bossState = 'attacking'; boss.stateTimer = HEAVE_WINDUP; }
+      else { boss.bossState = 'attacking'; boss.stateTimer = Math.round(HEAVE_WINDUP - pace(boss) * HEAVE_WINDUP_RAMP); }
   }
 };
 
 /** The original attack: a big jump toward Meathead that sends a boulder rolling at him. */
 const jumpAndRoll = (ctx: FrameContext, boss: Enemy) => {
   boss.vel.y = -12;
-  boss.vel.x = (ctx.state.player.pos.x - boss.pos.x) * 0.03;
+  boss.vel.x = (ctx.state.player.pos.x - boss.pos.x) * 0.03 * (1 + pace(boss) * JUMP_REACH_RAMP);
   boss.stateTimer = Math.round(ATTACK_INTERVAL - pace(boss) * ATTACK_INTERVAL_RAMP);
   rollBoulder(ctx, boss, dirTo(boss, ctx.state.player), 'b-ernie-jump');
 };
@@ -98,7 +101,7 @@ const heaveBoulder = (ctx: FrameContext, boss: Enemy) => {
   const size = ERNIE_BOULDER_SIZE;
   const x = insideArena(midX(boss) - size / 2), y = boss.pos.y - size + 10;
   const corner = midX(boss) < ARENA_MID ? ARENA_RIGHT - size / 2 - HEAVE_CORNER_INSET : ARENA_LEFT + size / 2 + HEAVE_CORNER_INSET;
-  const vy = -0.5 * GRAVITY * HEAVE_FLIGHT;
+  const vy = -0.5 * GRAVITY * (HEAVE_FLIGHT - pace(boss) * HEAVE_FLIGHT_RAMP);
   // (timed to when it actually reaches the floor, which is a little below where it leaves his hands)
   const drop = FLOOR_Y - (y + size);
   const land = (-vy + Math.sqrt(vy * vy + 2 * GRAVITY * drop)) / GRAVITY;
