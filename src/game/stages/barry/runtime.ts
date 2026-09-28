@@ -19,6 +19,7 @@ import { COURSE, CP, Place, placeOf, placeIndex, roomOf, Room } from './course';
 import { Talk, createTalk, updateTalk, hush, queueLines, replaceLines } from './script';
 import { makeTenants } from './climb';
 import { PowerRoom, createPower, enterPower, updatePower } from './power';
+import { ROOM_ZOOM } from './lighting';
 
 const Y = GROUND_Y;
 
@@ -85,7 +86,12 @@ export const createBarryRuntime = (state: GameState, skipToBoss: boolean): Barry
 /** Where the camera's allowed in each place. */
 export const applyPlaceCamera = (state: GameState, place: Place) => {
   const room = roomOf(place);
-  if (room) { state.cameraMinX = room.x1 - 60; state.cameraMaxX = room.x2 + 60 - CANVAS_WIDTH; return; }
+  if (room) {
+    // (the view's pushed in indoors, so the camera has to go further to keep the end walls on screen)
+    const half = CANVAS_WIDTH / 2, seen = half / ROOM_ZOOM;
+    state.cameraMinX = room.x1 - 30 - half + seen; state.cameraMaxX = room.x2 + 30 - half - seen;
+    return;
+  }
   if (place === 'streets') { state.cameraMinX = COURSE.streets.x1; state.cameraMaxX = COURSE.streets.x2 - CANVAS_WIDTH; }
   else if (place === 'roofs') { state.cameraMinX = COURSE.roofs.x1; state.cameraMaxX = COURSE.climb.x2 + 80 - CANVAS_WIDTH; }
   else { state.cameraMinX = COURSE.landing.x1; state.cameraMaxX = undefined; }

@@ -51,7 +51,10 @@ export const drawRooms = (ctx: Ctx, state: GameState, rt: BarryRuntime, place: P
   ctx.fillRect(room.x1, room.ceiling - 30, room.x2 - room.x1, 30);
   ctx.fillStyle = 'rgba(0,0,0,0.18)'; for (let x = room.x1; x < room.x2; x += 60) ctx.fillRect(x, room.ceiling - 30, 2, 30);
   // The end walls
-  ctx.fillStyle = c.slab; ctx.fillRect(room.x1 - 60, room.ceiling - 60, 60, Y - room.ceiling + 60); ctx.fillRect(room.x2, room.ceiling - 60, 60, Y - room.ceiling + 60);
+  // (solid: the building's outer walls, their inside faces catching the light)
+  ctx.fillStyle = c.trim; ctx.fillRect(room.x1 - 60, room.ceiling - 30, 60, Y - room.ceiling + 46); ctx.fillRect(room.x2, room.ceiling - 30, 60, Y - room.ceiling + 46);
+  ctx.fillStyle = 'rgba(255,255,255,0.18)'; ctx.fillRect(room.x1 - 6, room.ceiling - 30, 6, Y - room.ceiling + 46);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(room.x2, room.ceiling - 30, 6, Y - room.ceiling + 46);
   // What's in it
   for (const pr of COURSE.props) if (pr.x >= room.x1 - 10 && pr.x <= room.x2 + 10 && visible(state, pr.x - 60, pr.x + 260)) drawRoomProp(ctx, state, pr, room);
   // The elevators: where you came in (not the lobby's), where you go on
