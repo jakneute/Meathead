@@ -222,7 +222,11 @@ const fight = (ctx: FrameContext, th: Thing, talk: Talk, controls: Controls): Co
   if (MAX_AMMO[w] > 0 && (p.weaponAmmo[w] ?? 0) < MAX_AMMO[w] * SPIT_BELOW && state.frame - th.spatAt > SPIT_EVERY && !th.fist) {
     th.spatAt = state.frame;
     const m = { x: e.pos.x + 40, y: e.pos.y + 150 };
-    state.pickups.push({ id: `thing-ammo-${state.frame}`, pos: { x: m.x, y: m.y }, vel: { x: -7, y: -6 }, width: 20, height: 20, type: 'large_ammo', life: 900 });
+    // (lobbed to land on the walkway, near him, never out in the pool: a pickup's sideways speed dies off by a tenth a
+    // frame, so it goes about nine times what it's thrown at)
+    const C = COURSE.sewer.cistern;
+    const land = Math.max(C.x1 + 50, Math.min(C.pool - 70, p.pos.x + p.width / 2 + 40));
+    state.pickups.push({ id: `thing-ammo-${state.frame}`, pos: { x: m.x, y: m.y }, vel: { x: (land - 10 - m.x) / 9.5, y: -6 }, width: 20, height: 20, type: 'large_ammo', life: 900 });
     for (let i = 0; i < 14; i++) state.particles.push({ pos: { ...m }, vel: { x: -3 - Math.random() * 5, y: (Math.random() - 0.7) * 6 }, life: 30, color: i % 2 ? '#65A30D' : '#D9F99D', size: 3 + Math.random() * 4 });
     playSound('barf');
     say(state, talk, 'HERE. WE BROUGHT THIS UP FOR YOU.');

@@ -612,6 +612,8 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
       // (a boss takes the full hit; so does anything the jet ski's wheelie rams)
       if (e.type === 'boss' || player.jetski) damage = BOSS_CHARGE_DAMAGE;
       else if (player.isSliding) damage = isSmallCritter(e.kind) ? e.health : ENEMY_SLIDE_DAMAGE;
+      // (a lunge through the water into a fish: that's the fish done)
+      else if (player.swimming && e.kind === 'mutantfish') damage = e.health;
       else damage = ENEMY_CHARGE_DAMAGE;
     }
     else if (player.isUppercutting) damage = (e.type === 'boss' ? BOSS_UPPERCUT_DAMAGE : ENEMY_UPPERCUT_DAMAGE);

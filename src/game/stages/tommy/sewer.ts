@@ -41,7 +41,7 @@ export interface Sewer {
 }
 
 /** How long each locker's suit holds out in the muck (frames in it): the tunnel's, the pit's (a longer swim). */
-export const SUIT_FRAMES = [21 * 60, 38 * 60];
+export const SUIT_FRAMES = [21 * 60, 42 * 60];
 /** What the muck does to him without it: this much, this often. */
 const MUCK_DAMAGE = 2, MUCK_EVERY = 15;
 /** A drip: how long it swells before it lets go, and what it does when it lands on you. */

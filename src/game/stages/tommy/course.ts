@@ -89,7 +89,7 @@ export const RUINS_Y = Y - 2200;
 /** The sewer's levels: the walkways, the muck's surface in a channel, the channel's floor. */
 export const WALK_Y = Y, MUCK_Y = Y + 40, CHANNEL_FLOOR = Y + 170;
 /** The flooded pit: how deep it goes. */
-export const PIT_FLOOR = Y + 820;
+export const PIT_FLOOR = Y + 1010;
 /** The flooded tunnel: its roof (so low there's no standing up in it), the muck (right up near it), its floor. */
 export const TUNNEL_ROOF = Y - 70, TUNNEL_SURFACE = Y + 10, TUNNEL_FLOOR = Y + 200;
 
@@ -168,10 +168,23 @@ const build = () => {
   s.ground(7200, 7700);
   // The flooded pit: in at the top left, down past the baffles, under the wall at the bottom, back up the far side
   s.channel(7700, 8600, TUNNEL_SURFACE, PIT_FLOOR);
-  s.bar(8130, 40, TUNNEL_ROOF, Y + 660);
-  s.bar(7700, 300, Y + 180, Y + 212); s.bar(7830, 300, Y + 360, Y + 392); s.bar(7700, 300, Y + 540, Y + 572);
-  s.bar(8300, 300, Y + 540, Y + 572); s.bar(8170, 300, Y + 360, Y + 392); s.bar(8300, 300, Y + 180, Y + 212);
-  for (const [fx, fy] of [[7860, Y + 110], [7760, Y + 290], [8000, Y + 460], [7800, Y + 660], [8280, Y + 740], [8480, Y + 460], [8240, Y + 290], [8420, Y + 110]]) s.spawn('mutantfish', fx, fy);
+  s.bar(8130, 40, TUNNEL_ROOF, Y + 850);
+  // Down the left: a shelf to go round, then one the other way, then a slot in the middle of one, a post under that to
+  // weave past, and a last shelf with a narrow way round it at the far wall
+  s.bar(7700, 300, Y + 180, Y + 212); s.bar(7830, 300, Y + 360, Y + 392);
+  s.bar(7700, 170, Y + 520, Y + 552); s.bar(7950, 180, Y + 520, Y + 552);
+  s.bar(7900, 40, Y + 640, Y + 740);
+  s.bar(7790, 340, Y + 830, Y + 862);
+  // Under the wall at the bottom (a hump on the floor past it to get over), then up the right: round the end of a shelf,
+  // through a gap in the middle of the next, round the near end of one, the far end of the next, and the near end of the last
+  s.bar(8300, 60, Y + 930, PIT_FLOOR);
+  s.bar(8170, 310, Y + 760, Y + 792);
+  s.bar(8170, 110, Y + 620, Y + 652); s.bar(8420, 180, Y + 620, Y + 652);
+  s.bar(8260, 340, Y + 480, Y + 512);
+  s.bar(8170, 280, Y + 330, Y + 362);
+  s.bar(8300, 300, Y + 180, Y + 212);
+  for (const [fx, fy] of [[7860, Y + 100], [7760, Y + 280], [8040, Y + 440], [7780, Y + 640], [8050, Y + 680], [7980, Y + 920], [8420, Y + 880],
+    [8350, Y + 700], [8520, Y + 560], [8420, Y + 410], [8300, Y + 260], [8460, Y + 100]]) s.spawn('mutantfish', fx, fy);
   // On into the cistern (a walkway, and the pool at the far end where it lives)
   s.ground(8600, 9550); s.channel(9550, 10000, Y + 20, Y + 220);
   // What's down here
