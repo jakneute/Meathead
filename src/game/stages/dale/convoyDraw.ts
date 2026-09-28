@@ -10,7 +10,9 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { drawPlayer } from '../../render/player/player';
 import { COURSE, TRAILER_W, TRUCK_W, TRAILER_TOP, CAB_TOP, HOOD_TOP, SLEEPER_W, truckDims } from './course';
 import type { DaleRuntime } from './runtime';
-import { Convoy, TruckState, truckX, ROAD_SPEED, debrisComing, windshield, hood, HIGHWAY_CAM_Y, Debris } from './convoy';
+import { Convoy, TruckState, truckX, ROAD_SPEED, debrisComing, windshield, hood, HIGHWAY_CAM_Y, Debris, MELT, MELT_SAYS } from './convoy';
+import { makeKindEnemy } from '../../enemies/kinds';
+import { drawDaleKind } from '../../render/enemies/dale';
 import { saying, drawBubble } from './script';
 import { layer, hash } from './draw';
 import { wheelTurn } from '../../render/bosses/daleTruck';
@@ -412,24 +414,12 @@ const drawFall = (ctx: Ctx, state: GameState, cv: Convoy) => {
     ctx.save(); sized(ctx, tx, fall.truck);
     const s = truckDims(fall.truck).s;
     fall = { ...fall, x: tx + (fall.x - tx) / s };
-    ctx.fillStyle = '#0A0A0A'; ctx.beginPath(); ctx.ellipse(fall.x, TRAILER_TOP + 2, 34, 6, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#65A30D'; for (let i = 0; i < 5; i++) ctx.fillRect(fall.x - 30 + i * 14, TRAILER_TOP - 2 + (i % 2) * 3, 5, 4);
-    if (fall.t > 20) {
-      ctx.save();
-      ctx.beginPath(); ctx.rect(tx + 30, TRAILER_TOP + 6, TRAILER_W - 40, Y - 50 - TRAILER_TOP); ctx.clip();
-      ctx.fillStyle = 'rgba(12, 10, 9, 0.94)'; ctx.fillRect(tx + 30, TRAILER_TOP + 6, TRAILER_W - 40, Y - 50 - TRAILER_TOP);
-      for (let k = 0; k < 5; k++) {
-        const gx = tx + 60 + k * 90, gy = Y - 48;
-        ctx.fillStyle = '#1F2937'; ctx.fillRect(gx - 8, gy - 50, 16, 50); ctx.fillStyle = '#B07A4F'; ctx.beginPath(); ctx.arc(gx, gy - 58, 8, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#111827'; ctx.fillRect(gx - 2, gy - 44, 22, 5);
-        if ((f + k * 3) % 6 < 3 && fall.t > 40) { ctx.fillStyle = '#FDE047'; ctx.beginPath(); ctx.arc(gx + 24, gy - 42, 6, 0, Math.PI * 2); ctx.fill(); }
-      }
-      // Meathead in the middle of it
-      const body = { ...p, pos: { x: -1e6, y: -1e6 }, hidden: false, isGrounded: false, vel: { x: 0, y: 3 }, invincibilityTimer: 0, hurtTimer: 10, pushbackTimer: 10 };
-      ctx.translate(fall.x, Y - 90 + Math.min(0, (fall.t - 40) * -0)); ctx.translate(-(body.pos.x + body.width / 2), -(body.pos.y + body.height / 2));
-      if (Math.floor(f / 3) % 2) drawPlayer(ctx, body, { ...state, deathTimer: 0 }, { currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false });
-      ctx.restore();
-    }
+    // The hole it's eaten in the roof, still sizzling (he's gone down it)
+    const grow = Math.min(1, fall.t / 16);
+    ctx.fillStyle = '#0A0A0A'; ctx.beginPath(); ctx.ellipse(fall.x, TRAILER_TOP + 2, 16 + 20 * grow, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#65A30D'; for (let i = 0; i < 6; i++) ctx.fillRect(fall.x - 34 + i * 13, TRAILER_TOP - 2 + (i % 2) * 3, 5, 4);
+    for (let i = 0; i < 4; i++) { const k = ((f + i * 9) % 30) / 30; ctx.fillStyle = `rgba(190, 242, 100, ${0.7 * (1 - k)})`; ctx.beginPath(); ctx.arc(fall.x - 24 + i * 16, TRAILER_TOP - 4 - k * 26, 3 + k * 5, 0, Math.PI * 2); ctx.fill(); }
+    void p;
     ctx.restore();
   }
 };
@@ -438,9 +428,131 @@ const drawFall = (ctx: Ctx, state: GameState, cv: Convoy) => {
 // Screen space
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Through the roof: the inside of the trailer (a place of its own, closer up than the outside)
+// ---------------------------------------------------------------------------
+
+/** How much closer up it is than the outside, and its size in its own units. */
+const IN_SCALE = 1.45, IN_W = CANVAS_WIDTH / IN_SCALE;
+/** The floor, the underside of the roof, where the hole is (and where he lands), the crates at the front end. */
+const IN_FLOOR = 372, IN_ROOF = 34, IN_HOLE = 150, IN_CRATES = { x1: 372, x2: 552, h: 30 };
+const IN_GOONS = [398, 442, 486, 528];
+let insideGoons: ReturnType<typeof makeKindEnemy>[] | null = null;
+
+const drawMeltScene = (ctx: Ctx, state: GameState, cv: Convoy) => {
+  const fall = cv.fall;
+  if (!fall || fall.kind !== 'melt') return;
+  const u = fall.t;
+  // Going black on the outside first
+  if (u < MELT.FADE) { ctx.fillStyle = `rgba(0, 0, 0, ${u / MELT.FADE})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); return; }
+  const f = state.frame;
+  const p = state.player;
+  const firing = u >= MELT.FIRE && u < MELT.STOP;
+  ctx.save();
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  if (firing) ctx.translate((hash(u) - 0.5) * 8, (hash(u + 1) - 0.5) * 8);
+  ctx.scale(IN_SCALE, IN_SCALE);
+  // The walls: ribbed aluminum, in the dark
+  const wall = ctx.createLinearGradient(0, IN_ROOF, 0, IN_FLOOR);
+  wall.addColorStop(0, '#27272A'); wall.addColorStop(1, '#18181B');
+  ctx.fillStyle = wall; ctx.fillRect(0, IN_ROOF, IN_W, IN_FLOOR - IN_ROOF);
+  ctx.fillStyle = 'rgba(255,255,255,0.05)'; for (let x = 8; x < IN_W; x += 22) ctx.fillRect(x, IN_ROOF, 4, IN_FLOOR - IN_ROOF);
+  ctx.fillStyle = '#3F3F46'; ctx.fillRect(0, 150, IN_W, 5); ctx.fillRect(0, 260, IN_W, 5); // tie-down rails
+  // The back doors (left) and the front wall (right)
+  ctx.fillStyle = '#3F3F46'; ctx.fillRect(0, IN_ROOF, 24, IN_FLOOR - IN_ROOF); ctx.fillStyle = '#71717A'; ctx.fillRect(14, 180, 4, 60);
+  ctx.fillStyle = '#27272A'; ctx.fillRect(IN_W - 14, IN_ROOF, 14, IN_FLOOR - IN_ROOF);
+  // Bullet holes in the wall behind him, more all the time once they start, the daylight through them
+  if (u >= MELT.FIRE) {
+    const n = Math.min(60, Math.floor((u - MELT.FIRE) * 0.8));
+    for (let k = 0; k < n; k++) { const bx = IN_HOLE - 70 + hash(k * 3) * 150, by = 200 + hash(k * 3 + 1) * 150; ctx.fillStyle = '#FEF3C7'; ctx.fillRect(bx, by, 2.5, 2.5); ctx.fillStyle = 'rgba(254, 243, 199, 0.12)'; ctx.fillRect(bx - 2, by - 2, 6.5, 6.5); }
+  }
+  // The load: pallets of bricks, shrink-wrapped
+  for (let k = 0; k < 3; k++) { const bx = 40 + k * 64; if (Math.abs(bx + 24 - IN_HOLE) < 50) continue; ctx.fillStyle = '#78350F'; ctx.fillRect(bx, IN_FLOOR - 8, 52, 8); for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) { ctx.fillStyle = (r + c) % 2 ? '#F5F5F4' : '#E7E5E4'; ctx.fillRect(bx + 2 + c * 16, IN_FLOOR - 22 - r * 14, 15, 13); } }
+  // The roof, and the hole he came through: melted, dripping, the sky through it
+  ctx.fillStyle = '#52525B'; ctx.fillRect(0, 0, IN_W, IN_ROOF);
+  ctx.fillStyle = '#3F3F46'; for (let x = 0; x < IN_W; x += 22) ctx.fillRect(x, IN_ROOF - 6, 12, 6);
+  const hole = (r: number) => { ctx.beginPath(); for (let k = 0; k <= 16; k++) { const a = (k / 16) * Math.PI * 2; const j = 1 + (hash(k + 50) - 0.5) * 0.35; ctx.lineTo(IN_HOLE + Math.cos(a) * r * 1.6 * j, IN_ROOF / 2 + Math.sin(a) * r * 0.55 * j); } ctx.closePath(); };
+  ctx.fillStyle = '#65A30D'; hole(30); ctx.fill();
+  ctx.fillStyle = '#FDBA74'; hole(24); ctx.fill(); // (the evening sky)
+  // Sludge running off the edges of it
+  for (let k = 0; k < 7; k++) {
+    const dx = IN_HOLE - 42 + k * 14, len = 6 + hash(k + 70) * 18 + Math.sin(f * 0.1 + k) * 3;
+    ctx.fillStyle = '#84CC16'; ctx.fillRect(dx, IN_ROOF - 2, 4, len); ctx.beginPath(); ctx.arc(dx + 2, IN_ROOF - 2 + len, 3, 0, Math.PI * 2); ctx.fill();
+    const drop = ((f * 3 + k * 37) % 300); if (drop < IN_FLOOR - IN_ROOF - len) { ctx.fillStyle = 'rgba(163, 230, 53, 0.9)'; ctx.fillRect(dx + 1, IN_ROOF + len + drop, 2, 5); }
+  }
+  // A puddle of it under the hole, smoking
+  ctx.fillStyle = 'rgba(101, 163, 13, 0.8)'; ctx.beginPath(); ctx.ellipse(IN_HOLE, IN_FLOOR - 1, 46, 5, 0, 0, Math.PI * 2); ctx.fill();
+  // The light down through it
+  const beam = ctx.createLinearGradient(0, IN_ROOF, 0, IN_FLOOR);
+  beam.addColorStop(0, 'rgba(253, 186, 116, 0.45)'); beam.addColorStop(1, 'rgba(253, 186, 116, 0.08)');
+  ctx.fillStyle = beam; ctx.beginPath(); ctx.moveTo(IN_HOLE - 36, IN_ROOF); ctx.lineTo(IN_HOLE + 36, IN_ROOF); ctx.lineTo(IN_HOLE + 70, IN_FLOOR); ctx.lineTo(IN_HOLE - 70, IN_FLOOR); ctx.fill();
+  // The goons, down behind the crates till they come up
+  if (!insideGoons) insideGoons = IN_GOONS.map(x => makeKindEnemy('sicario', x, IN_FLOOR));
+  const up = u < MELT.POP ? 0 : Math.min(1, (u - MELT.POP) / 8);
+  insideGoons.forEach((g, i) => {
+    const rise = (1 - up) * 70 + (up < 1 ? 0 : Math.sin(f * 0.3 + i) * 0.5);
+    g.shootTimer = firing ? 60 : u >= MELT.POP ? 45 : 0;
+    ctx.save(); ctx.translate(IN_GOONS[i], IN_FLOOR + rise); ctx.scale(-1, 1);
+    drawDaleKind(ctx, g, f, state);
+    if (firing && (u + i * 2) % 4 < 2) {
+      ctx.fillStyle = '#FEF08A'; ctx.beginPath(); ctx.moveTo(32, -48); ctx.lineTo(52, -44); ctx.lineTo(32, -40); ctx.fill();
+      ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(34, -44, 5, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  });
+  // The floor (they're down behind the crates, below it from here, till they come up)
+  ctx.fillStyle = '#1C1917'; ctx.fillRect(0, IN_FLOOR, IN_W, 200);
+  ctx.fillStyle = '#44403C'; ctx.fillRect(0, IN_FLOOR, IN_W, 3);
+  ctx.fillStyle = 'rgba(101, 163, 13, 0.8)'; ctx.beginPath(); ctx.ellipse(IN_HOLE, IN_FLOOR + 1, 46, 4, 0, 0, Math.PI * 2); ctx.fill();
+  // The crates they were behind
+  for (let x = IN_CRATES.x1; x < IN_CRATES.x2; x += 36) { ctx.fillStyle = '#A16207'; ctx.fillRect(x, IN_FLOOR - IN_CRATES.h, 34, IN_CRATES.h); ctx.strokeStyle = '#713F12'; ctx.lineWidth = 2; ctx.strokeRect(x, IN_FLOOR - IN_CRATES.h, 34, IN_CRATES.h); ctx.beginPath(); ctx.moveTo(x, IN_FLOOR - IN_CRATES.h); ctx.lineTo(x + 34, IN_FLOOR); ctx.stroke(); }
+  // The tracers
+  if (firing) {
+    ctx.strokeStyle = 'rgba(254, 240, 138, 0.85)'; ctx.lineWidth = 1.5;
+    IN_GOONS.forEach((gx, i) => { if ((u + i * 2) % 4 < 2) { ctx.beginPath(); ctx.moveTo(gx - 34, IN_FLOOR - 44); ctx.lineTo(IN_HOLE + 10 + hash(u + i) * 10, IN_FLOOR - 20 - hash(u * 7 + i) * 50); ctx.stroke(); } });
+  }
+  // Him: dropping in, looking round, full of holes, down
+  const dropK = Math.max(0, Math.min(1, (u - MELT.DROP) / (MELT.LAND - MELT.DROP)));
+  const landed = u >= MELT.LAND;
+  const down = u >= MELT.STOP ? Math.min(1, (u - MELT.STOP) / 16) : 0;
+  if (u >= MELT.DROP) {
+    // (look this way, that way, back again; towards them once they're up)
+    const lookT = u - MELT.LAND;
+    const facing = u >= MELT.POP ? 1 : !landed || lookT < 40 ? 1 : lookT < 80 ? -1 : lookT < 120 ? 1 : -1;
+    const body = { ...p, pos: { x: -1e6, y: -1e6 }, hidden: false, isGrounded: landed, vel: { x: 0, y: landed ? 0 : 8 }, facing: facing as 1 | -1, isCharging: false, isSliding: false, isUppercutting: false, isDivekicking: false, isDucking: landed && u < MELT.LAND + 6, invincibilityTimer: 0, hurtTimer: firing ? 30 : 0, pushbackTimer: firing ? 30 : 0 };
+    const feet = landed ? IN_FLOOR : IN_ROOF - 40 + (IN_FLOOR - IN_ROOF + 40) * dropK * dropK;
+    // (he goes down backwards once it stops)
+    if (down > 0) { ctx.fillStyle = 'rgba(127, 29, 29, 0.9)'; ctx.beginPath(); ctx.ellipse(IN_HOLE - 20, IN_FLOOR - 1, 20 + (u - MELT.STOP) * 0.6, 4, 0, 0, Math.PI * 2); ctx.fill(); }
+    ctx.save();
+    const jerk = firing ? (hash(u * 3) - 0.5) * 6 : 0;
+    ctx.translate(IN_HOLE + jerk - down * 18, feet - p.height / 2 + down * (p.height / 2 - 12));
+    ctx.rotate(-down * Math.PI / 2 + (firing ? (hash(u * 5) - 0.5) * 0.25 : 0));
+    ctx.translate(-(body.pos.x + body.width / 2), -(body.pos.y + body.height / 2));
+    drawPlayer(ctx, body, { ...state, deathTimer: 0 }, { currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false });
+    ctx.restore();
+    // Blood out the back of him while they're at it
+    if (firing) for (let k = 0; k < 6; k++) { const a = hash(u * 11 + k), b = hash(u * 13 + k); ctx.fillStyle = k % 2 ? '#DC2626' : '#7F1D1D'; ctx.fillRect(IN_HOLE - 10 - a * 50, IN_FLOOR - 70 + b * 50, 3 + a * 3, 3); }
+    // Confused (a "?" over him), then not
+    if (landed && u < MELT.POP) { ctx.fillStyle = '#FDE047'; ctx.font = 'bold 14px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('?', IN_HOLE + 6, IN_FLOOR - p.height - 14 + Math.sin(f * 0.15) * 3); ctx.textAlign = 'left'; }
+    if (u >= MELT.POP && u < MELT.FIRE) { ctx.fillStyle = '#EF4444'; ctx.font = 'bold 14px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('!', IN_HOLE + 6, IN_FLOOR - p.height - 14); ctx.textAlign = 'left'; }
+  }
+  // What's said
+  for (const l of MELT_SAYS) if (u >= l.at && u < l.until) {
+    if (l.who === 'meathead') drawBubble(ctx, IN_HOLE, IN_FLOOR - p.height - 34, l.text, '#F8FAFC');
+    else drawBubble(ctx, IN_GOONS[1], IN_FLOOR - 110, l.text, '#FECACA');
+  }
+  ctx.restore();
+  // In from black
+  const v = u - MELT.FADE;
+  if (v < 18) { ctx.fillStyle = `rgba(0, 0, 0, ${1 - v / 18})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
+};
+
 export const drawConvoyHud = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   const cv = rt.convoy;
   if (!cv.active) return;
+  drawMeltScene(ctx, state, cv);
+  // (nothing from outside over the inside of the trailer)
+  if (cv.fall?.kind === 'melt' && cv.fall.t >= MELT.FADE) return;
   const f = state.frame;
   const W = CANVAS_WIDTH;
   const tr = cv.trucks[cv.current];

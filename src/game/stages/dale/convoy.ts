@@ -171,7 +171,7 @@ export const updateConvoy = (ctx: FrameContext, cv: Convoy, talk: Talk, controls
   // Burning wrecks, falling away behind (the blast plays out whatever else is going on)
   for (const tr of cv.trucks) if (tr.phase === 'gone') { tr.boomT++; tr.back += Math.min(16, tr.boomT * 0.2); }
   // The fall (or the blast, or the melt, or the button): it plays out, then that's it
-  if (cv.fall) return updateFall(ctx, cv);
+  if (cv.fall) return updateFall(ctx, cv, talk);
   const cur = cv.trucks[cv.current];
   const cx = truckX(cv, cv.current);
   // The camera: along the truck he's on (and on to the next once it's pulled up)
@@ -340,7 +340,7 @@ const FALL_LINES: Record<Fall['kind'], string[]> = {
   button: ['RIGGS FINALLY PRESSED THE BUTTON', 'HE HAD A LIZARD TO THINK OF', 'TOOK YOUR SWEET TIME'],
 };
 
-const updateFall = (ctx: FrameContext, cv: Convoy): Controls => {
+const updateFall = (ctx: FrameContext, cv: Convoy, talk: Talk): Controls => {
   const { state, fx } = ctx;
   const p = state.player;
   const f = cv.fall!;
@@ -354,19 +354,49 @@ const updateFall = (ctx: FrameContext, cv: Convoy): Controls => {
     p.hidden = true;
     if (f.t === 1) fx.spawnDeathShower({ x: p.pos.x + p.width / 2, y: p.pos.y }, 0, 4);
   } else if (f.kind === 'melt') {
-    // Down through the hole into the dark, and the muzzle flashes
     p.hidden = true;
-    if (f.t > 40 && f.t % 3 === 0) { playSound('gun'); fx.spawnDeathShower({ x: f.x, y: truckDims(f.truck).trailerTop + 60 }, (Math.random() - 0.5) * 2, 0.3); }
-    if (f.t === 40) shakeScreen(state, 50, 6);
+    // (whatever was being said out there, it's not in here)
+    if (f.t === MELT.FADE) hush(state, talk);
+    return inTheTrailer(ctx, f);
   } else if (f.kind === 'button') {
     // (Riggs saying goodbye to his lizard first)
     if (f.t === 0) blowUpLast(ctx, cv);
     if (f.t >= 0) p.hidden = true;
     if (f.t === 1) fx.spawnDeathShower({ x: p.pos.x + p.width / 2, y: p.pos.y }, 0, 4);
   }
-  const at = f.kind === 'melt' ? 110 : f.kind === 'boom' || f.kind === 'button' ? 40 : 46;
+  const at = f.kind === 'boom' || f.kind === 'button' ? 40 : 46;
   if (f.t === at && state.deathTimer <= 0) {
     const lines = FALL_LINES[f.kind];
+    killPlayer(ctx, lines[Math.floor(Math.random() * lines.length)], false);
+  }
+  return { ...NO_CONTROLS };
+};
+
+/**
+ * Through the roof: the screen goes black on the sizzling hole, and then it's the inside of the trailer, a place of
+ * its own. He drops in through the hole in its roof (always the same spot, near the back), lands, and looks round
+ * at the dark. Nothing. A beat. Then the goons riding in the front of it come up from behind the crates and empty
+ * their rifles into him. Frames from the start of the fall.
+ */
+export const MELT = { FADE: 36, DROP: 58, LAND: 78, POP: 228, FIRE: 258, STOP: 340, KILL: 390 };
+/** What he says, when (and the goon's shout). */
+export const MELT_SAYS: { at: number; until: number; who: 'meathead' | 'goon'; text: string }[] = [
+  { at: MELT.LAND + 24, until: MELT.LAND + 84, who: 'meathead', text: '...HUH?' },
+  { at: MELT.LAND + 96, until: MELT.POP - 6, who: 'meathead', text: 'HELLO? ANYBODY BACK HERE?' },
+  { at: MELT.POP + 4, until: MELT.FIRE, who: 'goon', text: 'SURPRISE!' },
+  { at: MELT.POP + 12, until: MELT.FIRE + 10, who: 'meathead', text: 'OH NO.' },
+];
+
+const inTheTrailer = (ctx: FrameContext, f: Fall): Controls => {
+  const { state } = ctx;
+  const u = f.t;
+  const line = MELT_SAYS.find(l => l.at === u);
+  if (line && line.who === 'meathead') say(line.text, MEATHEAD_VOICE, 'urgent', { onShow: () => {}, onHide: () => {} });
+  if (u === MELT.LAND) { shakeScreen(state, 10, 6); playSound('ice'); }
+  if (u === MELT.POP) playSound('taser');
+  if (u >= MELT.FIRE && u < MELT.STOP) { if (u % 3 === 0) playSound('gun'); if (u % 12 === 0) shakeScreen(state, 8, 4); }
+  if (u === MELT.KILL && state.deathTimer <= 0) {
+    const lines = FALL_LINES.melt;
     killPlayer(ctx, lines[Math.floor(Math.random() * lines.length)], false);
   }
   return { ...NO_CONTROLS };
