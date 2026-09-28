@@ -47,7 +47,7 @@ export const copMelee = (ctx: FrameContext, e: Enemy, onScreen: boolean) => {
     }
     // Close in on him (not off a ledge), shield up if he's got one; two at a time, the rest hang back and shoot
     const rushing = ctx.state.enemies.filter(o => o !== e && isMeleeCop(o) && o.health > 0 && (o.melee || Math.abs(mid(o).x - p.x) < 160)).length;
-    if (rushing < MAX_RUSHING && Math.abs(p.y - m.y) < 160 && Math.abs(dx) > 40) e.vel.x = safeAhead(ctx, e, side) ? side * st.speed : 0;
+    if (rushing < MAX_RUSHING && Math.abs(p.y - m.y) < 160 && Math.abs(dx) > 40) e.vel.x = safeAhead(ctx, e, side, 18) ? side * st.speed : 0;
     if (!riot) e.facing = side;
     return;
   }

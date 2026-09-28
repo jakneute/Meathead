@@ -155,8 +155,9 @@ export const holdingOff = (state: GameState) => (state.gapGrace || 0) > 0;
 export const mid = (o: { pos: { x: number; y: number }; width: number; height: number }) => ({ x: o.pos.x + o.width / 2, y: o.pos.y + o.height / 2 });
 
 /** Is there ground a step ahead that isn't a drop? (So prowlers don't wander off ledges.) */
-export const safeAhead = (ctx: FrameContext, e: Enemy, dir: number) => {
-  const top = floorTopAt(ctx.state.blocks, e.pos.x + e.width / 2 + dir * (e.width / 2 + 8), e.pos.y + e.height);
+/** Ground to step onto `look` px past its leading edge (look further ahead the faster it's going, to stop in time). */
+export const safeAhead = (ctx: FrameContext, e: Enemy, dir: number, look = 8) => {
+  const top = floorTopAt(ctx.state.blocks, e.pos.x + e.width / 2 + dir * (e.width / 2 + look), e.pos.y + e.height);
   return top !== null && top - (e.pos.y + e.height) < 40;
 };
 
@@ -169,6 +170,14 @@ export const seesPlayer = (ctx: FrameContext, e: Enemy, rangeX: number, rangeY: 
 
 const WOLVERINE_PROWL = 1.1;
 const WOLVERINE_LUNGE = 8.5;
+/** How far one of its bounding hops carries it (it checks there's ground all that way before it leaves the floor). */
+const WOLVERINE_HOP_REACH = 170;
+
+/** Solid ground (no drop) every stride of the way from its leading edge to `dist` px on. */
+const groundAllAlong = (ctx: FrameContext, e: Enemy, dir: number, dist: number) => {
+  for (let d = 8; d <= dist; d += 20) if (!safeAhead(ctx, e, dir, d)) return false;
+  return true;
+};
 
 const wolverine = (ctx: FrameContext, e: Enemy) => {
   const { player } = ctx.state;
@@ -193,9 +202,10 @@ const wolverine = (ctx: FrameContext, e: Enemy) => {
       break;
     case 'lunge':
       // Bounding at you in low hops (pulling up short at an edge rather than going over it)
-      if (e.vel.y === 0 && !safeAhead(ctx, e, e.facing!)) { e.vel.x = 0; e.aiState = 'recover'; e.aiTimer = 0; break; }
+      if (e.vel.y === 0 && !safeAhead(ctx, e, e.facing!, 24)) { e.vel.x = 0; e.aiState = 'recover'; e.aiTimer = 0; break; }
       e.vel.x = e.facing! * WOLVERINE_LUNGE;
-      if (e.aiTimer % 14 === 1 && e.vel.y === 0) e.vel.y = -4.5;
+      // (only hops when there's ground all the way to where it'd come down: no bounding out over a gap)
+      if (e.aiTimer % 14 === 1 && e.vel.y === 0 && groundAllAlong(ctx, e, e.facing!, WOLVERINE_HOP_REACH)) e.vel.y = -4.5;
       if (e.aiTimer > 46) { e.aiState = 'recover'; e.aiTimer = 0; }
       break;
     case 'recover':

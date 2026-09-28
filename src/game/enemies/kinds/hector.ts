@@ -264,7 +264,7 @@ const iguana = (ctx: FrameContext, e: Enemy): boolean => {
     }
     case 'scurry':
       e.facing = dirTo(e, mid(player).x);
-      e.vel.x = safeAhead(ctx, e, e.facing) ? e.facing * 6.5 : 0;
+      e.vel.x = safeAhead(ctx, e, e.facing, 20) ? e.facing * 6.5 : 0;
       if (Math.abs(mid(player).x - mid(e).x) < 40 || e.aiTimer > 70) { e.aiState = 'whip'; e.aiTimer = 0; }
       return false;
     case 'whip':
@@ -344,7 +344,7 @@ const civilian = (ctx: FrameContext, e: Enemy) => {
       if (e.aiState === 'flee' || e.facing === undefined || e.aiTimer === (e.variant === 0 ? 14 : 4)) {
         e.facing = e.aiState === 'flee' ? -dirTo(e, mid(state.player).x) as 1 | -1 : (e.aiX !== undefined ? dirTo(e, e.aiX) : e.facing ?? 1);
       }
-      e.vel.x = safeAhead(ctx, e, e.facing!) ? e.facing! * 6.2 : 0;
+      e.vel.x = safeAhead(ctx, e, e.facing!, 20) ? e.facing! * 6.2 : 0;
       if (!e.vel.x && e.vel.y === 0) e.vel.y = -9; // hop whatever's in the way
       // Well off the screen (or through the door they were running for): gone
       const offscreen = e.pos.x + e.width < state.camera.x - 140 || e.pos.x > state.camera.x + 800 + 140;

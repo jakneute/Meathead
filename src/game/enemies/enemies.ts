@@ -25,7 +25,7 @@ import { startEnemyDeath } from './deaths';
 import { getEnemyMass, enemyGrip, massRatio } from '../combat/knockback';
 import { floorTopAt } from '../core/terrain';
 import { getStageLeft, getStageLayout } from '../stages';
-import { runKindAI, kindContactDamage, holdingOff, shieldFacing, isChargerKind } from './kinds';
+import { runKindAI, kindContactDamage, holdingOff, shieldFacing, isChargerKind, safeAhead } from './kinds';
 import { selfPropelled } from './kinds/hector';
 import { copMelee, isMeleeCop } from './copMelee';
 import { submerged } from './kinds/victor';
@@ -376,7 +376,9 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
     runKindAI(ctx, e);
   } else if (e.id.startsWith('rusher') || isChargerKind(e.kind)) {
     const sameLevel = Math.abs((player.pos.y + player.height / 2) - (e.pos.y + e.height / 2)) < 80;
-    e.vel.x = (onScreen && player.invincibilityTimer <= 0 && sameLevel && !holdingOff(state)) ? (player.pos.x < e.pos.x ? -1 : 1) * 6 : 0;
+    const dir = player.pos.x < e.pos.x ? -1 : 1;
+    // (it pulls up short at the edge of a drop rather than running straight off it: it looks a few strides ahead at that speed)
+    e.vel.x = (onScreen && player.invincibilityTimer <= 0 && sameLevel && !holdingOff(state) && safeAhead(ctx, e, dir, CHARGER_LOOK)) ? dir * CHARGER_SPEED : 0;
   } else if (e.behavior === 'patrol') {
     if (e.pos.x > (e.initialX + e.patrolRange) || e.pos.x < e.initialX) e.vel.x *= -1;
   } else if (e.behavior === 'shoot' && onScreen) {
@@ -400,6 +402,9 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
   if (isMeleeCop(e)) copMelee(ctx, e, onScreen);
   e.pos.x += e.vel.x;
 };
+
+/** How fast a charger runs you down, and how far past its front it checks there's still ground (a few strides at that speed). */
+const CHARGER_SPEED = 6, CHARGER_LOOK = 20;
 
 /** Anything that high above an airborne enemy's feet is a wall it's run into, not ground it's landing on. */
 const GROUND_SIDE_STEP = 16;
