@@ -96,7 +96,8 @@ export const drawBarMid = (ctx: Ctx, state: GameState, b: Bar) => {
   if (intact) for (const k of b.bikers) drawBarBiker(ctx, state, k);
   else for (const g of b.gore) if (g.kind !== 'splat') drawRemains(ctx, g);
   // Choppers lined up out front (the ones that aren't going anywhere again)
-  for (let k = 0; k < 3; k++) drawChopperBike(ctx, B.x1 - 260 + k * 80, Y, 0, 0, intact ? ['#111827', '#7F1D1D', '#1E3A8A'][k] : '#1C1917');
+  // (on the bit of ground between the last pit and the door, not out over the pit)
+  for (let k = 0; k < 2; k++) drawChopperBike(ctx, B.x1 - 110 + k * 64, Y, 0, 0, intact ? ['#111827', '#7F1D1D'][k] : '#1C1917');
 };
 
 /** One of them on his break. */
