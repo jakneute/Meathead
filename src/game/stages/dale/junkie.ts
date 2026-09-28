@@ -115,7 +115,9 @@ export const officeBlocks = (): Block[] => {
 // ---------------------------------------------------------------------------
 
 /** His walk; his lunge for your collar; his rush at the stash; flat out at the wall. */
-const WALK = 1.15, LUNGE = 5.5, TO_STASH = 6.5, RAMPAGE = 11.5;
+const WALK = 1.15, LUNGE = 5.5, TO_STASH = 4.2, RAMPAGE = 5;
+/** How long he stands staring at a stash before he goes for it. */
+const NOTICE = 70;
 /** Reaching for you: the tell, then the lunge; how close he has to be to try. */
 const REACH_TELL = 20, LUNGE_FRAMES = 12, REACH_RANGE = 90;
 /** Holding you: a punch every so often, then the throw. */
@@ -125,7 +127,9 @@ const GUN_AFTER = 170, GUN_AIM = 36, GUN_SHOTS = 3, GUN_EVERY = 18;
 /** The stash: snorting it, the high, the wall; how long he's seeing stars after. */
 const SNORT = 64, HIGH = 36, DAZED = 130;
 /** Damage to him: his headbutt, kicking him while he's seeing stars; to you: a punch, the throw, his rampage, a bullet. */
-const HEADBUTT = 440, KICK_DAZED = 45;
+const HEADBUTT_QUICK = 45, HEADBUTT_BIG = 350, KICK_DAZED = 45;
+/** The headbutts: two quick ones this far apart, then the wind-up for the big one. */
+export const BUTT_QUICK = 18, BUTT_BIG = 60;
 const PUNCH = 7, THROW = 8, RAMPAGE_HIT = 16, BULLET = 8;
 /** A taunt about one of his things every so often; the first a few seconds in. */
 const FIRST_HINT = 380, HINT_EVERY = 780;
@@ -232,7 +236,7 @@ export const updateJunkie = (ctx: FrameContext, m: Enemy, fight: JunkieFight, ta
   const stash = fight.stashes.find(s => s.landed && !s.taken);
   // The moment there's a stash out, it's all he can think about (unless he's got his hands full)
   if (fighting && stash && !fight.grab && (m.aiState === 'stalk' || m.aiState === 'reach' || m.aiState === 'lunge' || m.aiState === 'aim' || m.aiState === 'shoot' || m.aiState === 'recover' || m.aiState === 'dazed')) {
-    start(m, 'to-stash');
+    start(m, 'notice');
     junkieSays(state, talk, LINES.stash, true);
   }
   switch (m.aiState) {
@@ -273,6 +277,12 @@ export const updateJunkie = (ctx: FrameContext, m: Enemy, fight: JunkieFight, ta
       if (m.aiTimer % GUN_EVERY === 1) fireGold(ctx, m);
       if (m.aiTimer > GUN_SHOTS * GUN_EVERY) start(m, 'recover');
       break;
+    case 'notice':
+      // He's seen it: stops dead, stares, and a beat later he's off after it
+      m.vel.x = 0;
+      if (stash) m.facing = (stash.x < mx ? -1 : 1) as 1 | -1;
+      if (m.aiTimer > NOTICE) start(m, stash ? 'to-stash' : 'recover');
+      break;
     case 'to-stash': {
       if (!stash) { start(m, 'recover'); break; }
       const dir = (stash.x < mx ? -1 : 1) as 1 | -1;
@@ -295,15 +305,22 @@ export const updateJunkie = (ctx: FrameContext, m: Enemy, fight: JunkieFight, ta
       }
       break;
     case 'rampage': {
-      // Flat out, head down, straight at it (and anyone in the way)
+      // A quick march over to it, head down, muttering (anyone in the way gets swatted aside)
       m.vel.x = m.facing! * RAMPAGE;
-      if (m.aiTimer % 3 === 0) state.particles.push({ pos: { x: mx - m.facing! * 20, y: o.floor - 4 }, vel: { x: -m.facing! * 2, y: -Math.random() * 2 }, life: 18, color: '#78716C', size: 4 + Math.random() * 4 });
+      if (m.aiTimer % 5 === 0) state.particles.push({ pos: { x: mx - m.facing! * 20, y: o.floor - 4 }, vel: { x: -m.facing! * 1.5, y: -Math.random() * 1.5 }, life: 16, color: '#78716C', size: 3 + Math.random() * 3 });
       const front = m.facing === 1 ? m.pos.x + W : m.pos.x;
       const wallX = m.facing === 1 ? o.x2 : o.x1;
-      if (Math.abs(wallX - front) < 14) headbutt(ctx, m, fight, talk);
+      if (Math.abs(wallX - front) < 10) { start(m, 'butt'); m.vel.x = 0; }
       break;
     }
-    case 'dazed':
+    case 'butt': {
+      // Up against it: bonk, bonk, and then the big one (rearing right back, and all of it)
+      m.vel.x = 0;
+      const t = m.aiTimer;
+      if (t === BUTT_QUICK || t === BUTT_QUICK * 2) headbutt(ctx, m, fight, talk, HEADBUTT_QUICK, false);
+      if (t === BUTT_QUICK * 2 + BUTT_BIG) headbutt(ctx, m, fight, talk, HEADBUTT_BIG, true);
+      break;
+    }    case 'dazed':
       m.vel.x *= 0.8;
       if (m.aiTimer === 40) junkieSays(state, talk, LINES.dazed);
       if (m.aiTimer > DAZED) start(m, 'stalk');
@@ -337,19 +354,21 @@ const fireGold = (ctx: FrameContext, m: Enemy) => {
   for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: sx, y: sy }, vel: { x: m.facing! * (2 + Math.random() * 3), y: (Math.random() - 0.5) * 3 }, life: 8, color: i % 2 ? '#FDE047' : '#FFFFFF', size: 3 + Math.random() * 3 });
 };
 
-const headbutt = (ctx: FrameContext, m: Enemy, fight: JunkieFight, talk: Talk) => {
+const headbutt = (ctx: FrameContext, m: Enemy, fight: JunkieFight, talk: Talk, dmg: number, big: boolean) => {
   const { state, fx } = ctx;
   const side = m.facing === 1 ? 1 : -1;
-  m.health -= HEADBUTT;
-  m.hitFlash = 12;
-  fight.hpFlash = 16;
-  fight.cracks.push({ side, y: m.pos.y + 14 + Math.random() * 10 });
-  fx.spawnDamageNumber({ x: m.pos.x + W / 2, y: m.pos.y - 20 }, HEADBUTT, true, '#FF0000');
-  fx.spawnDamageNumber({ x: m.pos.x + W / 2 - 60, y: m.pos.y - 60 }, 'HEADBUTT!', true, '#FACC15');
-  fx.spawnDeathShower({ x: m.pos.x + W / 2 + side * W / 2, y: m.pos.y + 16 }, -side, 0.6);
-  for (let i = 0; i < 20; i++) state.particles.push({ pos: { x: m.pos.x + W / 2 + side * W / 2, y: m.pos.y + 16 }, vel: { x: -side * Math.random() * 6, y: (Math.random() - 0.5) * 8 }, life: 30, color: i % 2 ? '#D6D3D1' : '#A8A29E', size: 3 + Math.random() * 4 });
-  shakeScreen(state, 26, 11);
-  playSound('nuke');
+  m.health -= dmg;
+  m.hitFlash = big ? 14 : 6;
+  fight.hpFlash = big ? 16 : 8;
+  const wx = m.pos.x + W / 2 + side * W / 2, hy = m.pos.y + 16;
+  if (big) fight.cracks.push({ side, y: hy - 2 + Math.random() * 10 });
+  fx.spawnDamageNumber({ x: m.pos.x + W / 2, y: m.pos.y - 20 }, dmg, big, '#FF0000');
+  fx.spawnDamageNumber({ x: m.pos.x + W / 2 - 50, y: m.pos.y - (big ? 70 : 44) }, big ? 'HEADBUTT!!!' : 'BONK!', true, big ? '#FACC15' : '#FDE68A');
+  fx.spawnDeathShower({ x: wx, y: hy }, -side, big ? 0.8 : 0.2);
+  for (let i = 0; i < (big ? 26 : 8); i++) state.particles.push({ pos: { x: wx, y: hy }, vel: { x: -side * Math.random() * (big ? 7 : 4), y: (Math.random() - 0.5) * (big ? 9 : 5) }, life: 30, color: i % 2 ? '#D6D3D1' : '#A8A29E', size: 3 + Math.random() * 4 });
+  shakeScreen(state, big ? 30 : 10, big ? 12 : 5);
+  playSound(big ? 'nuke' : 'gun');
+  if (!big) return;
   m.vel.x = -side * 4;
   if (m.health <= 0) { m.health = 0; fight.corpse = { x: 0, y: 0, facing: side, weapon: 'GUN', t0: 0, headbutt: side }; return; }
   start(m, 'dazed');
@@ -358,7 +377,6 @@ const headbutt = (ctx: FrameContext, m: Enemy, fight: JunkieFight, talk: Talk) =
   if (done === 1) meatheadSays(state, talk, "HE HEADBUTTED THE WALL?! OKAY! KEEP HIM HIGH! FIND HIM MORE STASH!", true);
   fight.hintAt = Math.max(fight.hintAt, fight.t + 240);
 };
-
 /** Bumping into him, or him into you. */
 const touch = (ctx: FrameContext, m: Enemy, fight: JunkieFight, talk: Talk) => {
   const { state, fx } = ctx;
@@ -369,11 +387,11 @@ const touch = (ctx: FrameContext, m: Enemy, fight: JunkieFight, talk: Talk) => {
   const special = p.isCharging || p.isSliding || p.isUppercutting || p.isDivekicking;
   const endMoves = () => { p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false; p.recoiling = false; p.lockTimer = 0; };
   switch (m.aiState) {
-    case 'rampage':
-      // Run over on his way to the wall
+    case 'rampage': case 'butt':
+      // In his way to the wall (walking into him, charging him, whatever): swatted out of it
       if (p.invincibilityTimer > 0) return;
       endMoves();
-      hurtPlayer(ctx, RAMPAGE_HIT, 'junkie_rush', { x: m.facing! * 12, y: -9 }, 30);
+      hurtPlayer(ctx, RAMPAGE_HIT, 'junkie_rush', { x: away * 11, y: -9 }, 30);
       shakeScreen(state, 12, 6);
       return;
     case 'dazed':
@@ -385,7 +403,7 @@ const touch = (ctx: FrameContext, m: Enemy, fight: JunkieFight, talk: Talk) => {
         fx.spawnDamageNumber({ x: px - 40, y: p.pos.y - 34 }, 'KICKED WHILE HE\'S DOWN!', true, '#FACC15');
       }
       return;
-    case 'snort': case 'high': case 'to-stash':
+    case 'snort': case 'high': case 'to-stash': case 'notice':
       // Too busy to care; the specials bounce off him
       if (special) { endMoves(); p.vel.x = away * 8; p.vel.y = -5; }
       return;
@@ -602,7 +620,7 @@ const updateStashes = (fight: JunkieFight) => {
 const hints = (state: GameState, fight: JunkieFight, talk: Talk) => {
   if (fight.t < fight.hintAt || talk.current || talk.queue.length || fight.grab) return;
   const m = fight.man;
-  if (!m || m.aiState === 'to-stash' || m.aiState === 'snort' || m.aiState === 'high' || m.aiState === 'rampage') return;
+  if (!m || m.aiState === 'notice' || m.aiState === 'to-stash' || m.aiState === 'snort' || m.aiState === 'high' || m.aiState === 'rampage' || m.aiState === 'butt') return;
   const owned = (w: WeaponType) => (state.availableWeapons ?? state.player.availableWeapons ?? []).includes(w);
   const open = PROPS.filter(n => fight.props[n].state === 'intact' && owned(PROP_WEAPON[n]));
   if (!open.length) return;

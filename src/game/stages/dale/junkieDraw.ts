@@ -12,7 +12,7 @@ import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH } from '../../../constants';
 import { KIND_STATS } from '../../enemies/kinds';
 import { COURSE } from './course';
-import { JunkieFight, JunkieCorpse, JUNKIE_HP, PROPS, PropName, propBox } from './junkie';
+import { JunkieFight, JunkieCorpse, JUNKIE_HP, PROPS, PropName, propBox, BUTT_QUICK, BUTT_BIG } from './junkie';
 import type { DaleRuntime } from './runtime';
 import { saying, drawBubble } from './script';
 
@@ -29,24 +29,33 @@ export const drawJunkie = (ctx: Ctx, e: Enemy, fight: JunkieFight, state: GameSt
   const st = e.aiState || 'stalk', t = e.aiTimer || 0;
   ctx.save();
   // (twitching all over, always; much worse out of his mind)
-  const jit = st === 'high' ? 4 : st === 'rampage' ? 1 : 0.8;
+  const jit = st === 'high' ? 4 : st === 'rampage' || st === 'butt' ? 1 : 0.8;
   ctx.translate(e.pos.x + W / 2 + (Math.random() - 0.5) * jit, e.pos.y + H + (Math.random() - 0.5) * jit * 0.5);
   ctx.scale(e.facing === 1 ? 1 : -1, 1);
   if ((e.hitFlash || 0) > 0) ctx.filter = 'brightness(1.8)';
-  if (st === 'high' || st === 'rampage') ctx.filter = `hue-rotate(${(f * 12) % 360}deg) saturate(1.6)`;
+  if (st === 'high' || st === 'rampage' || st === 'butt') ctx.filter = `hue-rotate(${(f * 12) % 360}deg) saturate(1.6)`;
   switch (st) {
     case 'snorting': poseBent(ctx, f, 0.7); break;
     case 'snort': poseBent(ctx, f, 1.2); break;
     case 'rampage': poseRampage(ctx, f); break;
+    case 'butt': poseButt(ctx, f, t); break;
     case 'reach': case 'lunge': poseReach(ctx, f, st === 'lunge'); break;
     case 'grab': poseGrab(ctx, f, fight.grab ? fight.grab.t : 0); break;
     case 'aim': case 'shoot': poseGun(ctx, f, st === 'shoot' && t % 18 < 4); break;
     case 'high': poseHigh(ctx, f); break;
     case 'dazed': poseDazed(ctx, f); break;
     case 'to-stash': poseStand(ctx, f, 'run'); break;
+    case 'notice': poseStand(ctx, f, 'twitch'); break;
     default: poseStand(ctx, f, Math.abs(e.vel.x) > 0.3 ? 'walk' : 'twitch');
   }
   ctx.restore();
+  // Seeing the stash: a big !? over his head
+  if (st === 'notice') {
+    ctx.save(); ctx.font = 'bold 26px "Press Start 2P"'; ctx.textAlign = 'center';
+    const bob = Math.sin(f * 0.4) * 3;
+    ctx.fillStyle = '#000'; ctx.fillText('!?', e.pos.x + W / 2 + 2, e.pos.y - 24 + bob); ctx.fillStyle = '#38BDF8'; ctx.fillText('!?', e.pos.x + W / 2, e.pos.y - 26 + bob);
+    ctx.restore();
+  }
   // The tell: reaching for you
   if (st === 'reach' && Math.floor(f / 4) % 2 === 0) {
     ctx.save(); ctx.font = 'bold 30px "Press Start 2P"'; ctx.textAlign = 'center';
@@ -190,6 +199,23 @@ const poseRampage = (ctx: Ctx, f: number) => {
   torso(ctx, -36, 0.95, f, 'roar');
   ctx.save(); ctx.translate(0, -36); ctx.rotate(0.95); arm(ctx, 10, -30, 1.6 + Math.sin(f * 0.8) * 0.6, 22); ctx.restore();
   ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 2; for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.moveTo(-30 - i * 8, -70 + i * 14); ctx.lineTo(-60 - i * 8, -70 + i * 14); ctx.stroke(); }
+};
+
+/** Up against the wall: rearing back and slamming his head into it, twice quick, then once more after a long rear back. */
+const poseButt = (ctx: Ctx, f: number, t: number) => {
+  let lean: number;
+  if (t < BUTT_QUICK * 2) {
+    const k = (t % BUTT_QUICK) / BUTT_QUICK;
+    lean = k < 0.65 ? 0.6 - k * 1.3 : -0.25 + (k - 0.65) / 0.35 * 1.25;
+  } else {
+    const k = Math.min(1, (t - BUTT_QUICK * 2) / BUTT_BIG);
+    lean = k < 0.85 ? 0.3 - k * 1.1 : -0.64 + (k - 0.85) / 0.15 * 1.7;
+  }
+  legs(ctx, f, 0, 4);
+  arm(ctx, -8, -78, Math.PI * 0.4 - lean, 24, true);
+  torso(ctx, -40, lean, f, 'roar');
+  ctx.save(); ctx.translate(0, -40); ctx.rotate(lean); arm(ctx, 10, -34, 0.6, 24); ctx.restore();
+  if (t < BUTT_QUICK * 2 && t % BUTT_QUICK < 3) { ctx.fillStyle = '#FDE047'; ctx.font = 'bold 12px "Press Start 2P"'; ctx.fillText('*', 34, -96); }
 };
 
 const poseDazed = (ctx: Ctx, f: number) => {
