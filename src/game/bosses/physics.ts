@@ -3,7 +3,7 @@
 
 import { Enemy } from '../../types';
 import { GRAVITY, BOSS_DOOR_X, STAGE_WIDTH } from '../../constants';
-import type { FrameContext } from '../context';
+import type { FrameContext } from '../core/context';
 import { BossPhysics, CEILING_Y, bossFloorY, dirTo } from './shared';
 
 const KNOCKDOWN_GRAVITY = 1.5;

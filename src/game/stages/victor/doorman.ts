@@ -17,17 +17,17 @@
 // decides what's left of him.
 
 import type { Block, Enemy, Projectile, WeaponType } from '../../../types';
-import type { FrameContext } from '../../context';
-import type { GameState } from '../../state';
-import type { Controls } from '../../input';
-import { NO_CONTROLS } from '../../input';
-import { shakeScreen } from '../../state';
-import { rectsOverlap, boundsOf } from '../../utils';
+import type { FrameContext } from '../../core/context';
+import type { GameState } from '../../core/state';
+import type { Controls } from '../../platform/input';
+import { NO_CONTROLS } from '../../platform/input';
+import { shakeScreen } from '../../core/state';
+import { rectsOverlap, boundsOf } from '../../core/utils';
 import { hurtPlayer } from '../../bosses/shared';
-import { playSound } from '../../audio';
-import { say, Voice } from '../../speech';
+import { playSound } from '../../platform/audio';
+import { say, Voice } from '../../platform/speech';
 import { BOULDER_DAMAGE_PER_SPEED, GML_SCALE } from '../../../constants';
-import { KIND_STATS } from '../../systems/kinds';
+import { KIND_STATS } from '../../enemies/kinds';
 import { COURSE, CP } from './course';
 
 export const DOORMAN_HP = KIND_STATS.doorman.hp;

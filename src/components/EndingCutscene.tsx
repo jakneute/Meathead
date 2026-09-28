@@ -2,10 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   ART_W, ART_H, drawWhiteHouse, drawPressRoom, drawTrumpCloseUp, drawMedal, drawMeatheadEyes, drawBelly,
   drawMeatheadCloseUp, drawPunch, drawFinale,
-} from '../game/render/endingArt';
-import { say, cancelSpeech, canSpeak, Voice, MEATHEAD_VOICE } from '../game/speech';
-import { playSound } from '../game/audio';
-import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/gamepad';
+} from '../game/render/scenes/ending';
+import { say, cancelSpeech, canSpeak, Voice, MEATHEAD_VOICE } from '../game/platform/speech';
+import { playSound } from '../game/platform/audio';
+import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/platform/gamepad';
 
 // NES-style ending: a run of still images with text typed out underneath.
 // Press confirm to finish the text or move on; panels also advance on their own.

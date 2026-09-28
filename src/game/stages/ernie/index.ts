@@ -4,7 +4,7 @@
 
 import type { StageLayout } from '../index';
 import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH } from '../../../constants';
-import { groundBlocks } from '../../terrain';
+import { groundBlocks } from '../../core/terrain';
 import { COURSE, CP } from './course';
 import { createErnieRuntime, getErnie, updateErnie, regionOf } from './runtime';
 import { quakeDeathMessage } from './quake';

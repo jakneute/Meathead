@@ -9,10 +9,10 @@ import { drawDale, drawDaleDrugs } from './dale';
 import { drawBarry, drawBarryTolerance } from './barry';
 import { drawTommy } from './tommy';
 import { drawOscar } from './oscar';
-import { drawOscarGear } from '../oscarRenderer';
-import { drawDaleTruck } from '../daleTruck';
-import { drawErnieHeldBoulder } from '../boulders';
-import { drawIceEncasing } from '../artieIce';
+import { drawOscarGear } from './oscarGear';
+import { drawDaleTruck } from './daleTruck';
+import { drawErnieHeldBoulder } from './boulders';
+import { drawIceEncasing } from './artieIce';
 
 type Draw = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => void;
 

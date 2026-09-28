@@ -4,7 +4,7 @@
 
 import type { StageLayout } from '../index';
 import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH } from '../../../constants';
-import { groundBlocks } from '../../terrain';
+import { groundBlocks } from '../../core/terrain';
 import { COURSE, CP, isBouncy } from './course';
 import { createHectorRuntime, getHector, updateHector, regionOf } from './runtime';
 import { updateEye, hitEye } from './eye';

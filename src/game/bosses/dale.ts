@@ -12,10 +12,10 @@ import {
   ARENA_RIGHT, BOSS_DOOR_X, STAGE_WIDTH, DALE_TRUCK_SPEED, DALE_SPEED_WINDUP, DALE_TRUCK_DAMAGE, DALE_PUSHBACK_VEL,
   METH_BARREL_DAMAGE, PLAYER_PUSHBACK_VEL_Y, PARTICLE_PALETTES,
 } from '../../constants';
-import { DALE_LINES } from '../../dialogue';
-import type { FrameContext } from '../context';
-import { shakeScreen } from '../state';
-import { pickRandom } from '../utils';
+import { DALE_LINES } from '../../content/dialogue';
+import type { FrameContext } from '../core/context';
+import { shakeScreen } from '../core/state';
+import { pickRandom } from '../core/utils';
 import { BossDef, FLOOR_Y, hurtPlayer, enemyProjectile, speakAsBoss } from './shared';
 
 const HOME_X = ARENA_RIGHT - 120;

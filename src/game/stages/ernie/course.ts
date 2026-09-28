@@ -15,7 +15,7 @@
 //   - the cell block on Alcatraz, right before the boss door
 
 import { BOSS_DOOR_X, GROUND_Y } from '../../../constants';
-import type { GroundRun } from '../../terrain';
+import type { GroundRun } from '../../core/terrain';
 import type { EnemyKind } from '../../../types';
 
 export const CP = { STREETS: 0, QUAKES: 1, BRIDGE: 2, DOCK: 3, SKI: 4, ALCATRAZ: 5 } as const;

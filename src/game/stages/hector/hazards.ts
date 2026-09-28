@@ -19,16 +19,16 @@
 // the live water cooks them).
 
 import type { Block, Enemy } from '../../../types';
-import type { FrameContext } from '../../context';
-import type { GameState } from '../../state';
-import { shakeScreen } from '../../state';
+import type { FrameContext } from '../../core/context';
+import type { GameState } from '../../core/state';
+import { shakeScreen } from '../../core/state';
 import { hurtPlayer } from '../../bosses/shared';
 import { SWIM_LEAP, PLAYER_GRAVITY, GROUND_Y } from '../../../constants';
-import { playSound } from '../../audio';
-import { floorTopAt } from '../../terrain';
-import { rectsOverlap, boundsOf, isOnScreen } from '../../utils';
+import { playSound } from '../../platform/audio';
+import { floorTopAt } from '../../core/terrain';
+import { rectsOverlap, boundsOf, isOnScreen } from '../../core/utils';
 import { COURSE } from './course';
-import { killPlayer } from '../../systems/player';
+import { killPlayer } from '../../player/player';
 
 export interface Strike { x: number; ground: number; t: number }
 export interface Debris { x: number; y: number; vx: number; rot: number; look: 'chair' | 'umbrella' | 'trashcan' | 'cooler'; size: number; warn: number }

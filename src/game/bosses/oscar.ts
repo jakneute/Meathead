@@ -12,10 +12,10 @@ import {
   OSCAR_TASER_RELEASE_GRACE, OSCAR_BURST_DAMAGE, OSCAR_CIGARETTE_ZAP_FRAMES, OSCAR_CIGARETTE_COMBO_DAMAGE,
   OSCAR_ASH_FACE_FRAMES, OSCAR_FIRE_WARNING,
 } from '../../constants';
-import { OSCAR_LINES } from '../../dialogue';
-import type { FrameContext } from '../context';
-import { GameState, shakeScreen } from '../state';
-import { pickRandom, rectsOverlap, boundsOf } from '../utils';
+import { OSCAR_LINES } from '../../content/dialogue';
+import type { FrameContext } from '../core/context';
+import { GameState, shakeScreen } from '../core/state';
+import { pickRandom, rectsOverlap, boundsOf } from '../core/utils';
 import { BossDef, FLOOR_Y, CEILING_Y, speakAsBoss, hurtPlayer as hurtMeathead, midX } from './shared';
 
 const OSCAR = 'Oily Oscar';

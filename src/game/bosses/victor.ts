@@ -1,13 +1,13 @@
 // Victor Volcano: jumps, lands, then opens magma vents on a wall and the floor.
-// His weakness, the tsunami, turns the vents into steam (see systems/hazards.ts).
+// His weakness, the tsunami, turns the vents into steam (see bosses/hazards.ts).
 
 import { Enemy, Projectile, Rect, Volcano } from '../../types';
 import { ARENA_LEFT, ARENA_RIGHT, BOSS_DOOR_X, STAGE_WIDTH, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y } from '../../constants';
-import { VICTOR_LINES } from '../../dialogue';
-import type { FrameContext } from '../context';
-import { pickRandom, rectsOverlap, boundsOf } from '../utils';
+import { VICTOR_LINES } from '../../content/dialogue';
+import type { FrameContext } from '../core/context';
+import { pickRandom, rectsOverlap, boundsOf } from '../core/utils';
 import { BossDef, FLOOR_Y, midX, hurtPlayer, speakAsBoss } from './shared';
-import { startVolcanoFinale } from '../volcanoFinale';
+import { startVolcanoFinale } from '../scenes/volcanoFinale';
 
 const VICTOR = 'Victor Volcano';
 /** A corked vent holds for this long, then blows (long enough to cork the other two of a set). */

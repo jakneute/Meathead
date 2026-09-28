@@ -9,10 +9,10 @@ import { Enemy, Projectile } from '../../types';
 import {
   ARENA_LEFT, ARENA_RIGHT, BOSS_DOOR_X, BARRY_SPEEDUP_AT_ZERO_HP, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y,
 } from '../../constants';
-import type { FrameContext } from '../context';
-import { BARRY_LINES } from '../../dialogue';
-import { stickNeedle, BOSS_NEEDLE } from '../needles';
-import { pickRandom } from '../utils';
+import type { FrameContext } from '../core/context';
+import { BARRY_LINES } from '../../content/dialogue';
+import { stickNeedle, BOSS_NEEDLE } from '../combat/needles';
+import { pickRandom } from '../core/utils';
 import { BossDef, ARENA_MID, CEILING_Y, bossFloorY, hurtPlayer, speakAsBoss } from './shared';
 
 const TELEPORT_HEIGHT = CEILING_Y;

@@ -5,13 +5,13 @@
 // top of the lot of them, and goes up. When the smoke clears there's one man
 // standing. Ernie's door is just down the corridor.
 
-import type { FrameContext } from '../../context';
-import type { GameState } from '../../state';
-import type { Controls } from '../../input';
-import { NO_CONTROLS } from '../../input';
-import { shakeScreen } from '../../state';
-import { playSound, playGlassShatterSound } from '../../audio';
-import { say, MEATHEAD_VOICE, Voice } from '../../speech';
+import type { FrameContext } from '../../core/context';
+import type { GameState } from '../../core/state';
+import type { Controls } from '../../platform/input';
+import { NO_CONTROLS } from '../../platform/input';
+import { shakeScreen } from '../../core/state';
+import { playSound, playGlassShatterSound } from '../../platform/audio';
+import { say, MEATHEAD_VOICE, Voice } from '../../platform/speech';
 import { GROUND_Y } from '../../../constants';
 import { COURSE, CP } from './course';
 

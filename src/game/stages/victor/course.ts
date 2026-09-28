@@ -11,7 +11,7 @@
 //   - the VIP lounge, right before the boss door
 
 import { BOSS_DOOR_X, GROUND_Y } from '../../../constants';
-import type { GroundRun } from '../../terrain';
+import type { GroundRun } from '../../core/terrain';
 import type { EnemyKind } from '../../../types';
 
 export const CP = { TRAIL: 0, BOMBS: 1, CLUB: 2, RIVER: 3, SHAFT: 4, LOUNGE: 5 } as const;

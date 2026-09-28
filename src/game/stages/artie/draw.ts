@@ -1,6 +1,6 @@
 // Drawing for Artie's stage: hazards, set pieces and their HUD.
 
-import type { GameState } from '../../state';
+import type { GameState } from '../../core/state';
 import { getArtie } from './runtime';
 import { COURSE } from './course';
 import { windBlowing, Hazards, chuteLive, CHUTE_WARN_FRAMES } from './hazards';

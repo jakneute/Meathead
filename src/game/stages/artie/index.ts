@@ -3,7 +3,7 @@
 
 import type { StageLayout } from '../index';
 import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH } from '../../../constants';
-import { groundBlocks } from '../../terrain';
+import { groundBlocks } from '../../core/terrain';
 import { COURSE } from './course';
 import { createArtieRuntime, getArtie, updateArtie } from './runtime';
 import { drawArtieBack, drawArtieMid, drawArtieFront, drawArtieHud } from './draw';

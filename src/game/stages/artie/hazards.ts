@@ -10,11 +10,11 @@
 //              or smash them with a special move. They bowl over enemies too.
 
 import type { Block } from '../../../types';
-import type { FrameContext } from '../../context';
-import type { GameState } from '../../state';
-import { rectsOverlap, boundsOf, isOnScreen } from '../../utils';
+import type { FrameContext } from '../../core/context';
+import type { GameState } from '../../core/state';
+import { rectsOverlap, boundsOf, isOnScreen } from '../../core/utils';
 import { hurtPlayer } from '../../bosses/shared';
-import { floorTopAt, groundLineAt } from '../../terrain';
+import { floorTopAt, groundLineAt } from '../../core/terrain';
 import { GRAVITY } from '../../../constants';
 import { COURSE, WindZone, SnowballChute } from './course';
 

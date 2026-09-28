@@ -16,12 +16,12 @@
 // Hazards hurt the enemies too (a skilled player can shove them into them).
 
 import type { Block, Enemy } from '../../../types';
-import type { FrameContext } from '../../context';
-import type { GameState } from '../../state';
-import { shakeScreen } from '../../state';
+import type { FrameContext } from '../../core/context';
+import type { GameState } from '../../core/state';
+import { shakeScreen } from '../../core/state';
 import { hurtPlayer } from '../../bosses/shared';
-import { playSound } from '../../audio';
-import { rectsOverlap, boundsOf, isOnScreen } from '../../utils';
+import { playSound } from '../../platform/audio';
+import { rectsOverlap, boundsOf, isOnScreen } from '../../core/utils';
 import { COURSE, isLava } from './course';
 
 export interface Bomb { x: number; ground: number; t: number }

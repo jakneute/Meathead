@@ -3,7 +3,7 @@ import { WeaponType } from './types';
 /**
  * MEATHEAD MASTER TWEAKING SHEET
  * Gameplay, balance, and feel variables. Stage/boss metadata lives in
- * stages.ts and all voice lines live in dialogue.ts.
+ * content/roster.ts and all voice lines live in content/dialogue.ts.
  */
 
 // ==========================================

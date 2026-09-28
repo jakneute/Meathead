@@ -3,7 +3,7 @@
 // in world space so the textures scroll with the level.
 
 import { Block } from '../../../types';
-import type { GroundRun } from '../../terrain';
+import type { GroundRun } from '../../core/terrain';
 import { hash, mix } from './core';
 
 type Ctx = CanvasRenderingContext2D;

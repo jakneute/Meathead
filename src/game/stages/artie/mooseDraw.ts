@@ -3,7 +3,7 @@
 // Plus what's left of it, depending on what killed it, and its health bar.
 
 import type { Enemy } from '../../../types';
-import type { GameState } from '../../state';
+import type { GameState } from '../../core/state';
 import type { MooseCorpse, MooseFight } from './moose';
 import { MOOSE_HP } from './moose';
 

@@ -2,7 +2,7 @@
 // storm), the ground (sand, road, boardwalk, lawn) and the sea, the scenery
 // (umbrellas, motels, signs, boats), the platforms, the hazards and the HUD.
 
-import type { GameState } from '../../state';
+import type { GameState } from '../../core/state';
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../../../constants';
 import { drawBackdrop, drawBackdropFront } from '../../render/backdrops';
 import { COURSE, Plat, Prop, palmTip } from './course';

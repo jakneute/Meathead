@@ -1,5 +1,5 @@
 import React from 'react';
-import { BOSS_LOCATIONS, BossLocationData, StageInfo } from '../stages';
+import { BOSS_LOCATIONS, BossLocationData, StageInfo } from '../content/roster';
 
 interface USAMapProps {
   selectedBossId: string;

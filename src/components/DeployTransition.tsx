@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import USAMap from './USAMap';
-import { BOSS_LOCATIONS, StageInfo } from '../stages';
+import { BOSS_LOCATIONS, StageInfo } from '../content/roster';
 import { drawSkyClouds, DEPLOY_CLOUD_SCROLL_END } from '../game/render/skyClouds';
 
 /**

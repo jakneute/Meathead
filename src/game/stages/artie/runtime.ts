@@ -2,11 +2,11 @@
 // the hazards' moving parts. Rebuilt with the level on every (re)spawn; the
 // checkpoint number says what's already behind you.
 
-import type { GameState } from '../../state';
-import type { FrameContext } from '../../context';
-import type { Controls } from '../../input';
+import type { GameState } from '../../core/state';
+import type { FrameContext } from '../../core/context';
+import type { Controls } from '../../platform/input';
 import { COURSE, CP } from './course';
-import { makeKindEnemy } from '../../systems/kinds';
+import { makeKindEnemy } from '../../enemies/kinds';
 import { createHazards, updateHazards, Hazards } from './hazards';
 import { createTram, updateTram, checkFellOffTram, Tram } from './tram';
 import { createMooseFight, updateMooseFight, MooseFight } from './moose';

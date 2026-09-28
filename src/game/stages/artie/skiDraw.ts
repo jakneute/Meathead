@@ -1,8 +1,8 @@
 // The ski run's pieces: the skier, his skis, the obstacles, the avalanche,
 // Meathead rolled up in a snowball, the ranger cabin and the snow pile.
 
-import type { GameState } from '../../state';
-import { groundLineAt } from '../../terrain';
+import type { GameState } from '../../core/state';
+import { groundLineAt } from '../../core/terrain';
 import { GROUND_Y } from '../../../constants';
 import { COURSE } from './course';
 import type { Ski } from './ski';

@@ -6,15 +6,15 @@
 // spat out ahead of it. At the bottom it flattens the park ranger's cabin
 // behind you, and you step off your skis at Artie's door without a scratch.
 
-import type { FrameContext } from '../../context';
-import type { GameState } from '../../state';
-import type { Controls } from '../../input';
-import { NO_CONTROLS } from '../../input';
-import { shakeScreen } from '../../state';
-import { rectsOverlap, boundsOf } from '../../utils';
-import { say, MEATHEAD_VOICE } from '../../speech';
-import { playSound } from '../../audio';
-import { groundLineAt } from '../../terrain';
+import type { FrameContext } from '../../core/context';
+import type { GameState } from '../../core/state';
+import type { Controls } from '../../platform/input';
+import { NO_CONTROLS } from '../../platform/input';
+import { shakeScreen } from '../../core/state';
+import { rectsOverlap, boundsOf } from '../../core/utils';
+import { say, MEATHEAD_VOICE } from '../../platform/speech';
+import { playSound } from '../../platform/audio';
+import { groundLineAt } from '../../core/terrain';
 import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { COURSE, CP, SkiObstacle } from './course';
 

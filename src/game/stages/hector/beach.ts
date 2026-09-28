@@ -7,12 +7,12 @@
 // beach runs for cover.
 
 import type { Block, Enemy } from '../../../types';
-import type { FrameContext } from '../../context';
-import type { GameState } from '../../state';
-import { makeKindEnemy } from '../../systems/kinds';
-import { playSound } from '../../audio';
-import { shakeScreen } from '../../state';
-import { say, MEATHEAD_VOICE } from '../../speech';
+import type { FrameContext } from '../../core/context';
+import type { GameState } from '../../core/state';
+import { makeKindEnemy } from '../../enemies/kinds';
+import { playSound } from '../../platform/audio';
+import { shakeScreen } from '../../core/state';
+import { say, MEATHEAD_VOICE } from '../../platform/speech';
 import { COURSE, CP } from './course';
 import { CANVAS_WIDTH } from '../../../constants';
 

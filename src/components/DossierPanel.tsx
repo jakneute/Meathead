@@ -1,7 +1,7 @@
 import React from 'react';
 import { WeaponType } from '../types';
-import { DOSSIERS, DOSSIER_HEADER, AFTERMATHS } from '../dossiers';
-import { BOSS_LOCATIONS } from '../stages';
+import { DOSSIERS, DOSSIER_HEADER, AFTERMATHS } from '../content/dossiers';
+import { BOSS_LOCATIONS } from '../content/roster';
 import BossPortrait from './BossPortrait';
 import CorpsePhoto from './CorpsePhoto';
 

@@ -4,14 +4,14 @@
 // sky with it and lands in the wreckage without a scratch. The kids are fine
 // (soaked, and they want to go again). The boss door's just up ahead.
 
-import type { FrameContext } from '../../context';
-import type { GameState } from '../../state';
-import type { Controls } from '../../input';
-import { NO_CONTROLS } from '../../input';
-import { shakeScreen } from '../../state';
-import { playSound } from '../../audio';
-import { say, MEATHEAD_VOICE } from '../../speech';
-import { floorTopAt } from '../../terrain';
+import type { FrameContext } from '../../core/context';
+import type { GameState } from '../../core/state';
+import type { Controls } from '../../platform/input';
+import { NO_CONTROLS } from '../../platform/input';
+import { shakeScreen } from '../../core/state';
+import { playSound } from '../../platform/audio';
+import { say, MEATHEAD_VOICE } from '../../platform/speech';
+import { floorTopAt } from '../../core/terrain';
 import { BOSS_DOOR_X } from '../../../constants';
 import { COURSE, CP } from './course';
 

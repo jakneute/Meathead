@@ -10,7 +10,7 @@
 // Each is built in its own coordinates and shifted into place.
 
 import { BOSS_DOOR_X, GROUND_Y } from '../../../constants';
-import type { GroundRun } from '../../terrain';
+import type { GroundRun } from '../../core/terrain';
 import type { EnemyKind } from '../../../types';
 
 export const CP = { BEACH: 0, STORM: 1, MOTEL: 2, MARINA: 3, TOWER: 4, EYE: 5, DOOR: 6 } as const;

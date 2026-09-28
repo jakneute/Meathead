@@ -7,11 +7,11 @@ import DeployTransition from './components/DeployTransition';
 import WeaponGetScene from './components/WeaponGetScene';
 import { GameStatus, WeaponType } from './types';
 import { INITIAL_PLAYER_HEALTH, MAX_AMMO, POWER_CELLS, createFullAmmo } from './constants';
-import { getStages, getStartingWeapons, sortWeapons, BOSS_WEAPON_MAP, WEAPONS_AFTER_SET_0, ALL_WEAPONS } from './stages';
-import { VULGARITIES, BOSS_DIALOGUE } from './dialogue';
-import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS } from './game/gamepad';
-import { speak, say, isSpeaking, getBossVoice, takeFreshLine, MEATHEAD_MENU_VOICE } from './game/speech';
-import { playLockInSound, playEngageSound } from './game/audio';
+import { getStages, getStartingWeapons, sortWeapons, BOSS_WEAPON_MAP, WEAPONS_AFTER_SET_0, ALL_WEAPONS } from './content/roster';
+import { VULGARITIES, BOSS_DIALOGUE } from './content/dialogue';
+import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS } from './game/platform/gamepad';
+import { speak, say, isSpeaking, getBossVoice, takeFreshLine, MEATHEAD_MENU_VOICE } from './game/platform/speech';
+import { playLockInSound, playEngageSound } from './game/platform/audio';
 
 /** Shows the dev cheat panel on the title screen. */
 const SHOW_CHEATS = true;

@@ -1,11 +1,11 @@
 // Hand-built stage layouts. A stage with a layout owns its level (terrain,
 // enemies, hazards, set pieces, checkpoints) instead of getting the generic
-// repeating one from level.ts. The boss door and arena stay where they are for
+// repeating one from core/level.ts. The boss door and arena stay where they are for
 // every stage (BOSS_DOOR_X), so a long layout extends to the left of x = 0.
 
-import type { GameState } from '../state';
-import type { FrameContext } from '../context';
-import type { Controls } from '../input';
+import type { GameState } from '../core/state';
+import type { FrameContext } from '../core/context';
+import type { Controls } from '../platform/input';
 import type { Enemy, Projectile } from '../../types';
 import { artieLayout } from './artie';
 import { hectorLayout } from './hector';

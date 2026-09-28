@@ -1,7 +1,7 @@
 import React from 'react';
 import { WeaponType } from '../types';
 import { POWER_CELLS } from '../constants';
-import { getWeaponInfo } from '../stages';
+import { getWeaponInfo } from '../content/roster';
 import { WeaponArt } from './WeaponIcon';
 
 interface HUDProps {

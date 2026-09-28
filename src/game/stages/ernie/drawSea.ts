@@ -4,14 +4,14 @@
 // then the cell house, the tour, the ski coming down through the skylight, and
 // what's left afterwards.
 
-import type { GameState } from '../../state';
+import type { GameState } from '../../core/state';
 import type { ErnieRuntime } from './runtime';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { STAGE_BACKDROPS } from '../../render/backdrops/stages';
 import { blitLayer } from '../../render/backdrops/core';
 import type { LayerSpec } from '../../render/backdrops/core';
 import type { Live } from '../../render/backdrops';
-import { drawPlayer } from '../../render/playerRenderer';
+import { drawPlayer } from '../../render/player/player';
 import { COURSE } from './course';
 import { rideProgress, RIDE_FRAMES, wreckBox, FloatingWreck, JetSki } from './jetski';
 import { TOURISTS, FADE_IN, DROP_AT, IMPACT_AT, skiDrop, tourWrecked } from './alcatraz';

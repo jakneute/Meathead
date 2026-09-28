@@ -1,13 +1,13 @@
 import React, { useRef, useEffect } from 'react';
 import { GameStatus, WeaponType } from '../types';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, RENDER_SCALE } from '../constants';
-import { GameState, createGameState, resetStageState } from '../game/state';
-import { buildLevel } from '../game/level';
-import { Cheats, GameEvents, createFrameContext } from '../game/context';
-import { KeyboardMouseState, HeldButtonGate, readControls } from '../game/input';
-import { stepGame } from '../game/update';
-import { drawWorld } from '../game/render/worldRenderer';
-import { closeAudio } from '../game/audio';
+import { GameState, createGameState, resetStageState } from '../game/core/state';
+import { buildLevel } from '../game/core/level';
+import { Cheats, GameEvents, createFrameContext } from '../game/core/context';
+import { KeyboardMouseState, HeldButtonGate, readControls } from '../game/platform/input';
+import { stepGame } from '../game/core/update';
+import { drawWorld } from '../game/render/world';
+import { closeAudio } from '../game/platform/audio';
 
 interface GameCanvasProps extends GameEvents {
   status: GameStatus;

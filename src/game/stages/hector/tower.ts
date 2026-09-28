@@ -8,12 +8,12 @@
 // At the top, a flash of lightning, and you're up at the Eye.
 
 import type { Block } from '../../../types';
-import type { FrameContext } from '../../context';
-import type { GameState } from '../../state';
-import { makeKindEnemy } from '../../systems/kinds';
-import { playSound } from '../../audio';
-import { shakeScreen } from '../../state';
-import { killPlayer } from '../../systems/player';
+import type { FrameContext } from '../../core/context';
+import type { GameState } from '../../core/state';
+import { makeKindEnemy } from '../../enemies/kinds';
+import { playSound } from '../../platform/audio';
+import { shakeScreen } from '../../core/state';
+import { killPlayer } from '../../player/player';
 import { COURSE, CP } from './course';
 
 export interface TowerRun {

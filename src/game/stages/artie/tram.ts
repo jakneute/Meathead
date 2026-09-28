@@ -5,13 +5,13 @@
 // only opens once the cabin's clear.
 
 import type { Block, Enemy, EnemyKind } from '../../../types';
-import type { FrameContext } from '../../context';
-import type { GameState } from '../../state';
-import { makeKindEnemy } from '../../systems/kinds';
-import { shakeScreen } from '../../state';
-import { playSound } from '../../audio';
+import type { FrameContext } from '../../core/context';
+import type { GameState } from '../../core/state';
+import { makeKindEnemy } from '../../enemies/kinds';
+import { shakeScreen } from '../../core/state';
+import { playSound } from '../../platform/audio';
 import { COURSE, CP } from './course';
-import { killPlayer } from '../../systems/player';
+import { killPlayer } from '../../player/player';
 
 export const CABIN_W = 560, CABIN_H = 220;
 const WALL = 14;

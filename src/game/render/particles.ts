@@ -2,7 +2,7 @@
 // and splats, glass as shards, water as drops, everything else as soft blobs.
 
 import { Particle } from '../../types';
-import { isGoreColor } from '../effects';
+import { isGoreColor } from '../core/effects';
 
 const GLOSS = 'rgba(255, 255, 255, 0.35)';
 

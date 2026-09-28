@@ -2,9 +2,9 @@
 // DJ, men in suits and sunglasses), Meathead coming in through the window, the
 // wide shot of the volcano going off near the top, and the lounge afterwards.
 
-import type { GameState } from '../../state';
+import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
-import { drawPlayer } from '../../render/playerRenderer';
+import { drawPlayer } from '../../render/player/player';
 import { COURSE } from './course';
 import { Lounge, crashPose, PARTY_FRAMES, FLIGHT_FRAMES, WIDE_FRAMES, BLAST_AT, SCREAM_AT, ZOOM_OUT, ZOOM_IN_AT, FADE_IN, blastAmount } from './lounge';
 import { drawVolcano } from './draw';

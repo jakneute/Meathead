@@ -2,8 +2,8 @@
 // lighting up the water, and the drowning (flailing, the last of his air blown
 // out, then limp and floating up belly first, bobbing there).
 
-import type { GameState } from '../../state';
-import { drawPlayer } from '../../render/playerRenderer';
+import type { GameState } from '../../core/state';
+import { drawPlayer } from '../../render/player/player';
 import { Hazards, DROWN_FRAMES, STRIKE_WARN, headUnder, bodyExtent } from './hazards';
 
 type Ctx = CanvasRenderingContext2D;

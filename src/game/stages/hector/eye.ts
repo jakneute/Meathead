@@ -13,15 +13,15 @@
 // the storm dies with it.
 
 import type { Block, Enemy, Projectile, WeaponType } from '../../../types';
-import type { FrameContext } from '../../context';
-import type { GameState } from '../../state';
+import type { FrameContext } from '../../core/context';
+import type { GameState } from '../../core/state';
 import { BOSS_CHARGE_DAMAGE, BOULDER_DAMAGE_PER_SPEED, GML_SCALE } from '../../../constants';
 import { hurtPlayer } from '../../bosses/shared';
-import { shakeScreen } from '../../state';
-import { playSound } from '../../audio';
-import { rectsOverlap, boundsOf } from '../../utils';
-import { killPlayer } from '../../systems/player';
-import { KIND_STATS } from '../../systems/kinds';
+import { shakeScreen } from '../../core/state';
+import { playSound } from '../../platform/audio';
+import { rectsOverlap, boundsOf } from '../../core/utils';
+import { killPlayer } from '../../player/player';
+import { KIND_STATS } from '../../enemies/kinds';
 import { COURSE, CP } from './course';
 
 export const EYE_HP = KIND_STATS.eye.hp;

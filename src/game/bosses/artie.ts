@@ -6,7 +6,7 @@
 
 import { Enemy, Icicle, Rect } from '../../types';
 import { ARENA_LEFT, ARENA_RIGHT, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y } from '../../constants';
-import type { FrameContext } from '../context';
+import type { FrameContext } from '../core/context';
 import { BossDef, ARENA_MID, CEILING_Y, FLOOR_Y, enemyProjectile, hurtPlayer, midX } from './shared';
 
 const ICE_BLOCK_SIZE = 60;

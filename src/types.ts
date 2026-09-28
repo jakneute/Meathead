@@ -169,7 +169,7 @@ export interface Enemy extends Entity {
   shovedAt?: number;
   enemyType: 'drone' | 'tank' | 'turret' | 'flyer' | 'shield';
   behavior: 'patrol' | 'shoot' | 'hover' | 'fly' | 'custom';
-  /** A themed stage enemy with its own look and AI (see systems/kinds.ts). */
+  /** A themed stage enemy with its own look and AI (see enemies/kinds/index.ts). */
   kind?: EnemyKind;
   /** Its AI's current move, how long it's been at it, and where it's aiming. */
   aiState?: string;

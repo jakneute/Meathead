@@ -13,18 +13,18 @@
 //             the bottom might as well be concrete.
 
 import type { Block, Enemy } from '../../../types';
-import type { FrameContext } from '../../context';
-import type { GameState } from '../../state';
-import type { Controls } from '../../input';
-import { NO_CONTROLS } from '../../input';
-import { shakeScreen } from '../../state';
-import { playSound } from '../../audio';
-import { say, MEATHEAD_VOICE } from '../../speech';
-import { makeKindEnemy } from '../../systems/kinds';
-import { killPlayer } from '../../systems/player';
+import type { FrameContext } from '../../core/context';
+import type { GameState } from '../../core/state';
+import type { Controls } from '../../platform/input';
+import { NO_CONTROLS } from '../../platform/input';
+import { shakeScreen } from '../../core/state';
+import { playSound } from '../../platform/audio';
+import { say, MEATHEAD_VOICE } from '../../platform/speech';
+import { makeKindEnemy } from '../../enemies/kinds';
+import { killPlayer } from '../../player/player';
 import { GROUND_Y, CANVAS_WIDTH } from '../../../constants';
 import { COURSE } from './course';
-import { BURNING_SCREAMS } from '../../systems/kindsErnie';
+import { BURNING_SCREAMS } from '../../enemies/kinds/ernie';
 
 export interface SpanState { t: number; open: boolean; block: Block | null; drop: number }
 export interface BgCar { x: number; y: number; vy: number; rot: number; color: string; t: number; state: 'driving' | 'tipping' | 'falling' | 'boom'; boomAt: number }

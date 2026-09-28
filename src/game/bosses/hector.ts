@@ -7,7 +7,7 @@ import {
   ARENA_LEFT, ARENA_RIGHT, BOSS_DOOR_X, HECTOR_PULL_STRENGTH, HECTOR_PULL_MAX, HECTOR_PULL_RANGE,
   HECTOR_PULL_EDGE, HECTOR_PULL_FAR, HECTOR_PULL_NEAR, HECTOR_PULL_FARTHEST,
 } from '../../constants';
-import type { FrameContext } from '../context';
+import type { FrameContext } from '../core/context';
 import type { BossHelpers } from './shared';
 import { BossDef, ARENA_MID, midX, hurtPlayer, enemyProjectile } from './shared';
 

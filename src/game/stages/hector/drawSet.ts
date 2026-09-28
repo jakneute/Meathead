@@ -2,7 +2,7 @@
 // waterspout, the junk whirling up the storm tower, the Eye's arena, and the
 // daycare (before and after the flood).
 
-import type { GameState } from '../../state';
+import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { COURSE } from './course';
 import type { Boat } from './boat';
@@ -12,7 +12,7 @@ import { TOWER } from './tower';
 import type { EyeFight } from './eye';
 import type { Daycare } from './daycare';
 import { drawEyeCorpse } from './eyeDraw';
-import { drawKindEnemy } from '../../render/kinds';
+import { drawKindEnemy } from '../../render/enemies';
 
 type Ctx = CanvasRenderingContext2D;
 

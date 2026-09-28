@@ -10,7 +10,7 @@
 //   -> skier -> avalanche ski run -> ranger cabin -> boss door
 
 import { BOSS_DOOR_X, GROUND_Y } from '../../../constants';
-import type { GroundRun } from '../../terrain';
+import type { GroundRun } from '../../core/terrain';
 
 /** Checkpoints through the stage, in order. Dying starts you at the last one you reached. */
 export const CP = { TRAILHEAD: 0, STATION: 1, TOP: 2, AFTER_MOOSE: 3, SKI: 4, DOOR: 5 } as const;

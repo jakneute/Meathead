@@ -14,13 +14,13 @@
 // Falling stuff hurts the enemies too (but tries not to come down on them).
 
 import type { Block } from '../../../types';
-import type { FrameContext } from '../../context';
-import type { GameState } from '../../state';
-import { shakeScreen } from '../../state';
+import type { FrameContext } from '../../core/context';
+import type { GameState } from '../../core/state';
+import { shakeScreen } from '../../core/state';
 import { hurtPlayer } from '../../bosses/shared';
-import { playSound } from '../../audio';
-import { rectsOverlap, boundsOf, isOnScreen } from '../../utils';
-import { profileYAt } from '../../terrain';
+import { playSound } from '../../platform/audio';
+import { rectsOverlap, boundsOf, isOnScreen } from '../../core/utils';
+import { profileYAt } from '../../core/terrain';
 import { CANVAS_WIDTH } from '../../../constants';
 import { COURSE, Fault } from './course';
 

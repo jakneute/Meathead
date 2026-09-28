@@ -3,7 +3,7 @@
 // death for each weapon.
 
 import type { Enemy, WeaponType } from '../../../types';
-import type { GameState } from '../../state';
+import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH } from '../../../constants';
 import { COURSE } from './course';
 import { EyeFight, EYE_CX, EYE_CY, EYE_R, EYE_HP, eyePupil } from './eye';

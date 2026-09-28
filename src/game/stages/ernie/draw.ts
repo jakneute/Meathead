@@ -4,9 +4,9 @@
 // far lane, the steel underneath, the burning wrecks), and the HUD (the quake
 // banner, the fades). The bay, the jet ski and the cell house are in drawSea.ts.
 
-import type { GameState } from '../../state';
-import type { GroundRun } from '../../terrain';
-import { runYAt } from '../../terrain';
+import type { GameState } from '../../core/state';
+import type { GroundRun } from '../../core/terrain';
+import { runYAt } from '../../core/terrain';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { STAGE_BACKDROPS } from '../../render/backdrops/stages';
 import { blitLayer } from '../../render/backdrops/core';

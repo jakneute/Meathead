@@ -3,7 +3,7 @@ import { GameStatus, WeaponType } from '../types';
 import { MAX_AMMO } from '../constants';
 import {
   getStages, getWeaponDescription, BOSS_SET_TITLES, BOSS_LOCATIONS, getWeaponInfo,
-} from '../stages';
+} from '../content/roster';
 import USAMap from './USAMap';
 import BossPortrait from './BossPortrait';
 import WeaponIcon, { WeaponArt } from './WeaponIcon';

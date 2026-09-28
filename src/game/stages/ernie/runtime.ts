@@ -2,11 +2,11 @@
 // bridge, the jet ski and the tour. Rebuilt with the level on every (re)spawn;
 // the checkpoint says what's behind you.
 
-import type { GameState } from '../../state';
-import type { FrameContext } from '../../context';
-import type { Controls } from '../../input';
-import { NO_CONTROLS } from '../../input';
-import { makeKindEnemy } from '../../systems/kinds';
+import type { GameState } from '../../core/state';
+import type { FrameContext } from '../../core/context';
+import type { Controls } from '../../platform/input';
+import { NO_CONTROLS } from '../../platform/input';
+import { makeKindEnemy } from '../../enemies/kinds';
 import { COURSE, CP } from './course';
 import { Quakes, createQuakes, updateQuakes } from './quake';
 import { Bridge, createBridge, updateBridge } from './bridge';

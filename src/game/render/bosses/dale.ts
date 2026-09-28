@@ -3,7 +3,7 @@
 
 import { Enemy } from '../../../types';
 import { COLORS, ARENA_LEFT, ARENA_RIGHT, DALE_SPEED_WINDUP } from '../../../constants';
-import { drawCocaineBag, drawMethDrum } from '../projectileArt';
+import { drawCocaineBag, drawMethDrum } from '../projectiles';
 
 export const drawDale = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
   const { width, height } = e;

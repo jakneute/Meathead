@@ -3,16 +3,16 @@ import { GameStatus, Enemy, WeaponType } from '../types';
 import {
   CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, RENDER_SCALE, WEAPON_RANGE_STAGE, createFullAmmo,
 } from '../constants';
-import { BOSS_WEAPON_MAP, WEAPON_DESCRIPTIONS, getWeaponInfo } from '../stages';
-import { createGameState, GameState } from '../game/state';
-import { createFrameContext, GameEvents } from '../game/context';
-import { stepGame } from '../game/update';
-import { KeyboardMouseState, readControls } from '../game/input';
-import { drawWorld } from '../game/render/worldRenderer';
+import { BOSS_WEAPON_MAP, WEAPON_DESCRIPTIONS, getWeaponInfo } from '../content/roster';
+import { createGameState, GameState } from '../game/core/state';
+import { createFrameContext, GameEvents } from '../game/core/context';
+import { stepGame } from '../game/core/update';
+import { KeyboardMouseState, readControls } from '../game/platform/input';
+import { drawWorld } from '../game/render/world';
 import { WeaponArt } from './WeaponIcon';
-import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/gamepad';
-import { playWhoosh, playPunchImpact, playThud, playTypeClack, playGlassShatterSound } from '../game/audio';
-import { speak, cancelSpeech, MEATHEAD_VOICE } from '../game/speech';
+import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/platform/gamepad';
+import { playWhoosh, playPunchImpact, playThud, playTypeClack, playGlassShatterSound } from '../game/platform/audio';
+import { speak, cancelSpeech, MEATHEAD_VOICE } from '../game/platform/speech';
 
 // After a boss: fade out of the victory lap into a black void, face to face with
 // Meathead in first person. He decks the camera; it goes down on its side. Then

@@ -5,12 +5,12 @@
 // used last), his health bar, what he's saying, and what's left of him.
 
 import type { Enemy, WeaponType } from '../../../types';
-import type { GameState } from '../../state';
+import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
-import { getLastInputDevice } from '../../input';
-import { drawPlayer } from '../../render/playerRenderer';
+import { getLastInputDevice } from '../../platform/input';
+import { drawPlayer } from '../../render/player/player';
 import { DoormanFight, DoormanCorpse, DOORMAN_HP, SLIDE_ZONE, SLIDE_COUNTDOWN } from './doorman';
-import { KIND_STATS } from '../../systems/kinds';
+import { KIND_STATS } from '../../enemies/kinds';
 
 type Ctx = CanvasRenderingContext2D;
 const W = KIND_STATS.doorman.w, H = KIND_STATS.doorman.h;

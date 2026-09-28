@@ -1,15 +1,15 @@
 // Toxic Tommy: stalks under the sludge pool, bursts up through a floating
 // board, then sweeps a stream of vomit across the boards before diving back
 // down. Crude oil (the oil rocket) clogs him up and stuns him.
-// The boards themselves are updated in systems/hazards.ts (updateTommyArena).
+// The boards themselves are updated in bosses/hazards.ts (updateTommyArena).
 
 import { Block, Enemy, TommyBoard } from '../../types';
 import {
   ARENA_LEFT, ARENA_RIGHT, BOSS_DOOR_X, GRAVITY, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, TOMMY_PUKE_PUSHBACK_DURATION,
   TOMMY_SWIM_SPEED, TOMMY_SWIM_SPEED_RAMP, TOMMY_CHASE_FRAMES, TOMMY_CHASE_RAMP, TOMMY_TELEGRAPH_FRAMES, TOMMY_TELEGRAPH_RAMP,
 } from '../../constants';
-import type { FrameContext } from '../context';
-import type { GameState } from '../state';
+import type { FrameContext } from '../core/context';
+import type { GameState } from '../core/state';
 import { BossDef, ARENA_MID, FLOOR_Y, midX, hurtPlayer, speakAsBoss, enemyProjectile } from './shared';
 
 const TOMMY = 'Toxic Tommy';

@@ -7,13 +7,13 @@
 // and up on what's left of the lounge, and of everybody in it. The boss door's
 // just ahead.
 
-import type { FrameContext } from '../../context';
-import type { GameState } from '../../state';
-import type { Controls } from '../../input';
-import { NO_CONTROLS } from '../../input';
-import { shakeScreen } from '../../state';
-import { playSound, playGlassShatterSound } from '../../audio';
-import { say, MEATHEAD_VOICE } from '../../speech';
+import type { FrameContext } from '../../core/context';
+import type { GameState } from '../../core/state';
+import type { Controls } from '../../platform/input';
+import { NO_CONTROLS } from '../../platform/input';
+import { shakeScreen } from '../../core/state';
+import { playSound, playGlassShatterSound } from '../../platform/audio';
+import { say, MEATHEAD_VOICE } from '../../platform/speech';
 import { COURSE, CP } from './course';
 
 export type LoungePhase = 'party' | 'crash' | 'wide' | 'wrecked';

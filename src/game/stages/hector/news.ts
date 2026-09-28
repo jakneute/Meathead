@@ -4,12 +4,12 @@
 // once, a little daycare at the bottom of it, and (if you look closely) a tiny
 // Meathead falling out of the sky with it.
 
-import type { FrameContext } from '../../context';
-import type { GameState } from '../../state';
-import type { Controls } from '../../input';
+import type { FrameContext } from '../../core/context';
+import type { GameState } from '../../core/state';
+import type { Controls } from '../../platform/input';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
-import { say, cancelSpeech, Voice } from '../../speech';
-import { drawPlayer } from '../../render/playerRenderer';
+import { say, cancelSpeech, Voice } from '../../platform/speech';
+import { drawPlayer } from '../../render/player/player';
 
 type Ctx = CanvasRenderingContext2D;
 

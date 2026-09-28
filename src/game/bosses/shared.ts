@@ -6,10 +6,10 @@ import {
   ARENA_LEFT, ARENA_RIGHT, GROUND_Y, BOSS_VULGARITY_DURATION, PLAYER_INVINCIBILITY_FRAMES, PLAYER_PUSHBACK_DURATION,
   SPOKEN_TEXT_HOLD,
 } from '../../constants';
-import type { FrameContext } from '../context';
-import type { GameState } from '../state';
-import type { Fx } from '../effects';
-import { say, getBossVoice, SpeechPriority } from '../speech';
+import type { FrameContext } from '../core/context';
+import type { GameState } from '../core/state';
+import type { Fx } from '../core/effects';
+import { say, getBossVoice, SpeechPriority } from '../platform/speech';
 
 // ---------------------------------------------------------------------------
 // Arena geometry (the standard boss room)

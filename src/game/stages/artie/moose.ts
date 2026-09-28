@@ -13,13 +13,13 @@
 // dies decides what's left of it.
 
 import type { Block, Enemy, Projectile, WeaponType } from '../../../types';
-import type { FrameContext } from '../../context';
-import type { GameState } from '../../state';
-import { shakeScreen } from '../../state';
-import { rectsOverlap, boundsOf } from '../../utils';
+import type { FrameContext } from '../../core/context';
+import type { GameState } from '../../core/state';
+import { shakeScreen } from '../../core/state';
+import { rectsOverlap, boundsOf } from '../../core/utils';
 import { hurtPlayer } from '../../bosses/shared';
 import { BOULDER_DAMAGE_PER_SPEED, GML_SCALE } from '../../../constants';
-import { KIND_STATS } from '../../systems/kinds';
+import { KIND_STATS } from '../../enemies/kinds';
 import { COURSE, CP } from './course';
 
 export const MOOSE_HP = KIND_STATS.moose.hp;

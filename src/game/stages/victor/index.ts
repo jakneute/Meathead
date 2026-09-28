@@ -4,7 +4,7 @@
 
 import type { StageLayout } from '../index';
 import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH } from '../../../constants';
-import { groundBlocks } from '../../terrain';
+import { groundBlocks } from '../../core/terrain';
 import { COURSE, CP } from './course';
 import { createVictorRuntime, getVictor, updateVictor, regionOf } from './runtime';
 import { updateDoorman, hitDoorman } from './doorman';

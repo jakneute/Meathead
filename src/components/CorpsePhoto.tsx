@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { WeaponType } from '../types';
-import { drawBossCorpse } from '../game/render/corpses';
+import { drawBossCorpse } from '../game/render/bosses/corpses';
 
 // The scene is drawn in game pixels, then scaled down to fit the photo
 const SCENE_W = 190, SCENE_H = 100, FLOOR = 86;

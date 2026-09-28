@@ -8,7 +8,7 @@
 
 import { Enemy, Projectile } from '../../types';
 import { BOULDER_SPEED, ERNIE_STOMP_VIBRATION_DURATION, GRAVITY, ARENA_LEFT, ARENA_RIGHT } from '../../constants';
-import type { FrameContext } from '../context';
+import type { FrameContext } from '../core/context';
 import { BossDef, ARENA_MID, FLOOR_Y, dirTo, midX, enemyProjectile } from './shared';
 
 const ATTACK_INTERVAL = 180;     // frames between attacks at full health...

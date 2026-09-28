@@ -1,7 +1,7 @@
 // The tram: cable, pylons, the two stations and the cabin itself (a red and
 // cream alpine gondola, seen in cutaway so you can fight inside it).
 
-import type { GameState } from '../../state';
+import type { GameState } from '../../core/state';
 import { COURSE } from './course';
 import { Tram, CABIN_W, CABIN_H, BACK_WINDOWS, RIDE, WARN_FRAMES, cabinEnemies, incomingWave, entryPoint } from './tram';
 import type { EnemyKind } from '../../../types';
