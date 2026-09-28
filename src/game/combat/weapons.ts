@@ -75,8 +75,8 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
       const cx = lob ? pos.x + width / 2 + facing * gml(3) : muzzle.x + facing * 12;
       const cy = lob ? pos.y - size / 2 - 2 : muzzle.y;
       const spawn = { x: cx - size / 2, y: cy - size / 2, w: size, h: size };
-      // Don't fire into a wall
-      if (state.blocks.some(b => b.type !== 'pit' && rectsOverlap(spawn, b))) break;
+      // Don't fire into a wall (a lob goes up through a jump-through ledge overhead, as he would)
+      if (state.blocks.some(b => b.type !== 'pit' && !(lob && b.oneWay) && rectsOverlap(spawn, b))) break;
       addProjectile({
         id: `b-${Date.now()}-${Math.random()}`,
         pos: { x: spawn.x, y: spawn.y },

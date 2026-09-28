@@ -111,7 +111,7 @@ export const updateBarry = (ctx: FrameContext, controls: Controls): Controls => 
   updateVents(ctx);
   switch (place) {
     case 'streets':
-      if (p.pos.x + p.width / 2 >= COURSE.streets.doors && p.isGrounded) startFade(rt, CP.LOBBY);
+      if (p.pos.x + p.width / 2 >= COURSE.streets.doors && p.isGrounded) startFade(state, rt, CP.LOBBY);
       break;
     case 'lobby': case 'office': case 'maintenance': {
       const el = COURSE.elevators.find(v => roomOf(place) && v.x > roomOf(place)!.x1 && v.x < roomOf(place)!.x2)!;
@@ -119,11 +119,11 @@ export const updateBarry = (ctx: FrameContext, controls: Controls): Controls => 
       break;
     }
     case 'lab':
-      if (p.pos.x + p.width / 2 >= COURSE.roofAccess && p.isGrounded) startFade(rt, CP.ROOFS);
+      if (p.pos.x + p.width / 2 >= COURSE.roofAccess && p.isGrounded) startFade(state, rt, CP.ROOFS);
       break;
     case 'roofs':
       // The door up at the top of the fire escape
-      if (p.pos.y + p.height <= COURSE.climb.top + 4 && p.isGrounded && Math.abs(p.pos.x + p.width / 2 - COURSE.climb.door) < 40) startFade(rt, CP.POWER);
+      if (p.pos.y + p.height <= COURSE.climb.top + 4 && p.isGrounded && Math.abs(p.pos.x + p.width / 2 - COURSE.climb.door) < 40) startFade(state, rt, CP.POWER);
       break;
     case 'power': {
       if (rt.power.phase === 'waiting') enterPower(ctx, rt.power, rt.talk);
@@ -231,7 +231,17 @@ export const FADE = 30;
 /** The elevator: doors shutting, the ride, the ding, the doors opening. */
 export const DOORS = 48, RIDE = 200, OPEN = 48;
 
-const startFade = (rt: BarryRuntime, to: number) => { rt.transit = { kind: 'fade', t: 0, to }; };
+const startFade = (state: GameState, rt: BarryRuntime, to: number) => { leaveBehind(state); rt.transit = { kind: 'fade', t: 0, to }; };
+
+/**
+ * Whoever's still in the place he's leaving (anyone he's shoved into the elevator with him, too) stays there:
+ * gone, with everything in the air, so nothing can hurt him while he rides or fades out.
+ */
+const leaveBehind = (state: GameState) => {
+  const here = placeOf(state.player.pos.x);
+  state.enemies = state.enemies.filter(e => e.type === 'boss' || placeOf(e.pos.x) !== here);
+  state.projectiles = [];
+};
 
 const QUIPS: Record<string, string> = {
   '23': 'TWENTY THREE?! I PRESSED THE TOP ONE!',
@@ -242,6 +252,7 @@ const QUIPS: Record<string, string> = {
 const startElevator = (state: GameState, rt: BarryRuntime, place: Place, to: Room) => {
   const from = roomOf(place)!.label;
   const cp = to === COURSE.office ? CP.OFFICE : to === COURSE.maintenance ? CP.MAINTENANCE : CP.LAB;
+  leaveBehind(state);
   rt.transit = { kind: 'elevator', t: 0, to: cp, from, floor: to.label, quip: QUIPS[to.label] };
   hush(state, rt.talk);
 };
