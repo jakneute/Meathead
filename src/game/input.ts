@@ -11,6 +11,11 @@ export interface Controls {
   shoot: boolean;
 }
 
+/** What the player last touched: for button prompts (a gamepad's B, or the mouse's right button). */
+export type InputDevice = 'keyboard' | 'mouse' | 'gamepad';
+let lastDevice: InputDevice = 'keyboard';
+export const getLastInputDevice = () => lastDevice;
+
 export const NO_CONTROLS: Controls = { left: false, right: false, up: false, down: false, jump: false, special: false, shoot: false };
 
 /** Tracks held keys (by both `key` and `code`, lower-cased) and the mouse buttons. */
@@ -30,6 +35,7 @@ export class KeyboardMouseState {
 
   attach(target: Window) {
     const onKeyDown = (e: KeyboardEvent) => {
+      lastDevice = 'keyboard';
       if (!e.repeat) this.pressedAt[e.code.toLowerCase()] = ++this.pressCount;
       this.keys[e.key.toLowerCase()] = true;
       this.keys[e.code.toLowerCase()] = true;
@@ -39,7 +45,7 @@ export class KeyboardMouseState {
       if (e.button === 0) this.mouseDown = down;
       else if (e.button === 2) this.rightMouseDown = down;
     };
-    const onMouseDown = (e: MouseEvent) => setButton(e, true);
+    const onMouseDown = (e: MouseEvent) => { lastDevice = 'mouse'; setButton(e, true); };
     const onMouseUp = (e: MouseEvent) => setButton(e, false);
     // Right click is a game button, not the browser's menu
     const onContextMenu = (e: MouseEvent) => e.preventDefault();
@@ -73,6 +79,7 @@ export const readControls = (kb: KeyboardMouseState): Controls => {
     padJump = isButtonPressed(gp, GP_BUTTONS.A);
     padShoot = isButtonPressed(gp, GP_BUTTONS.X) || isButtonPressed(gp, GP_BUTTONS.Y) || isButtonPressed(gp, GP_BUTTONS.RT);
     padSpecial = isButtonPressed(gp, GP_BUTTONS.B) || isButtonPressed(gp, GP_BUTTONS.LT);
+    if (padJump || padShoot || padSpecial || Math.abs(padX) > 0.5 || Math.abs(padY) > 0.5) lastDevice = 'gamepad';
   }
 
   const k = kb.isDown;

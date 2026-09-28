@@ -5,6 +5,7 @@
 // goggles and a snowflake patch on the arm.
 
 import { Enemy, EnemyKind } from '../../types';
+import { drawVictorKind } from './kindsVictor';
 import { drawHectorKind } from './kindsHector';
 import { isChargerKind } from '../systems/kinds';
 import type { GameState } from '../state';
@@ -38,16 +39,19 @@ export const KIND_HEAD: Record<EnemyKind, { x: number; y: number; r: number }> =
   tourist: { x: 2, y: -60, r: 8 }, bouncer: { x: 4, y: -72, r: 9 }, surfer: { x: 2, y: -62, r: 8 }, cop: { x: 2, y: -64, r: 8 }, riotcop: { x: 2, y: -64, r: 9 },
   civilian: { x: 2, y: -60, r: 8 }, gator: { x: 34, y: -14, r: 7 }, pelican: { x: 14, y: -18, r: 6 }, iguana: { x: 15, y: -10, r: 4 },
   crab: { x: 0, y: -10, r: 5 }, shark: { x: 26, y: -18, r: 8 }, eye: { x: 0, y: -100, r: 60 },
+  heatsuit: { x: 1, y: -62, r: 9 }, smokejumper: { x: 6, y: -70, r: 9 }, blastshield: { x: 2, y: -64, r: 9 },
+  salamander: { x: 20, y: -9, r: 5 }, vulture: { x: 19, y: -21, r: 5 }, magmafish: { x: 12, y: -13, r: 7 }, doorman: { x: 4, y: -88, r: 12 },
 };
 
 /** People (their skeletons are human, and they keel over flat when they die). */
 export const isHumanoidKind = (kind?: EnemyKind) =>
   kind === 'shooter' || kind === 'charger' || kind === 'shielder' || kind === 'tourist' || kind === 'bouncer'
-  || kind === 'surfer' || kind === 'cop' || kind === 'riotcop' || kind === 'civilian';
+  || kind === 'surfer' || kind === 'cop' || kind === 'riotcop' || kind === 'civilian'
+  || kind === 'heatsuit' || kind === 'smokejumper' || kind === 'blastshield' || kind === 'doorman';
 
 /** What an x-ray shows inside it. */
 export const skeletonOf = (kind: EnemyKind): 'person' | 'four-legs' | 'bird' | 'fish' | 'crab' =>
-  isHumanoidKind(kind) ? 'person' : kind === 'eagle' || kind === 'pelican' ? 'bird' : kind === 'shark' ? 'fish' : kind === 'crab' ? 'crab' : 'four-legs';
+  isHumanoidKind(kind) ? 'person' : kind === 'eagle' || kind === 'pelican' || kind === 'vulture' ? 'bird' : kind === 'shark' || kind === 'magmafish' ? 'fish' : kind === 'crab' ? 'crab' : 'four-legs';
 
 const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: GameState) => {
   ctx.save();
@@ -60,6 +64,7 @@ const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: Game
     case 'shooter': drawShooter(ctx, e, f, state); break;
     case 'charger': drawCharger(ctx, e, f); break;
     case 'shielder': drawShielder(ctx, e, f); break;
+    case 'heatsuit': case 'smokejumper': case 'blastshield': case 'salamander': case 'vulture': case 'magmafish': drawVictorKind(ctx, e, f, state); break;
     default: drawHectorKind(ctx, e, f, state); break;
   }
   ctx.restore();

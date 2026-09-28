@@ -321,6 +321,90 @@ export const BOSS_DIALOGUE: {
       "HE THREW A CHUNK OF ICE AT MY HEAD!",
       "ICE CUBE TO THE FACE! I'M NOT A MARGARITA!",
     ],
+    // Victor's goons in heat gear, the volcano's wildlife, and its hazards
+    'heatsuit': [
+      "GET YOUR TINFOIL SUIT OFF ME!",
+      "YOU LOOK LIKE A BAKED POTATO, PAL!",
+    ],
+    'heatsuit_shot': [
+      "A FLARE! RIGHT IN THE NIPPLE!",
+      "YOU SHOT ME WITH A DISTRESS SIGNAL?",
+      "I'M THE ONE IN DISTRESS NOW, TINFOIL!",
+    ],
+    'smokejumper': [
+      "A FIREMAN! WHOSE SIDE ARE YOU ON?",
+      "HIT BY A GUY WITH AN AXE AND AN AIR TANK!",
+      "GO PUT OUT A FIRE, HOSE BOY!",
+    ],
+    'blastshield': [
+      "SHIELD BASH FROM THE BOMB SQUAD!",
+      "GET OUT FROM BEHIND THAT DOOR AND FIGHT!",
+    ],
+    'blastshield_shot': [
+      "HE THREW A HOT ROCK AT ME! A HOT ONE!",
+      "MOLTEN ROCK TO THE FACE! MY PORES!",
+    ],
+    'salamander': [
+      "A FIRE LIZARD! IT BIT MY ANKLE!",
+      "GET THAT SPOTTED LITTLE SHIT OFF ME!",
+    ],
+    'vulture': [
+      "THE VULTURE THINKS I'M DEAD! I'M NOT DEAD!",
+      "GET YOUR BALD HEAD OUT OF MY FACE, BIRD!",
+      "NOT DINNER! NOT YET!",
+    ],
+    'magmafish': [
+      "A FISH! MADE OF LAVA! BIT ME!",
+      "WHAT KIND OF FISH LIVES IN LAVA?!",
+      "HOT FISH TO THE FACE! HOT FISH!",
+    ],
+    'lava': [
+      "HOT FOOT! HOT FOOT! HOT FOOT!",
+      "MY TOES ARE MELTING!",
+      "I STEPPED IN THE VOLCANO!",
+    ],
+    'lava_bomb': [
+      "THE VOLCANO IS THROWING ROCKS AT ME!",
+      "A FLAMING BOULDER! OUT OF NOWHERE!",
+    ],
+    'vent': [
+      "THE GROUND IS ON FIRE!",
+      "BURNT MY ASS ON A CRACK!",
+    ],
+    'lava_spout': [
+      "THE LAVA SPIT AT ME!",
+      "A GEYSER OF LAVA! OF COURSE!",
+    ],
+    'flamejet': [
+      "FLAME BROILED! I'M FLAME BROILED!",
+      "WHO PUT A FLAMETHROWER IN THE WALL?",
+    ],
+    'firebar': [
+      "SPINNING FIREBALLS! WHAT IS THIS, A CASTLE?",
+      "OW! THE HOT STICK GOT ME!",
+    ],
+    // The doorman of Club Caldera
+    'doorman': [
+      "HANDS OFF, BOUNCER!",
+      "YOU PUSHED ME? ME?!",
+    ],
+    'doorman_charge': [
+      "HE RAN ME OVER! THE BOUNCER RAN ME OVER!",
+      "THAT'S MY MOVE, YOU THIEVING SLAB OF BEEF!",
+      "SHOULDER TO THE CHEST! THAT'S MY SHOULDER!",
+    ],
+    'doorman_slide': [
+      "HE SLID INTO MY ANKLES!",
+      "SWEPT BY THE BOUNCER! SWEPT!",
+    ],
+    'doorman_uppercut': [
+      "UPPERCUT! THAT'S MY UPPERCUT!",
+      "HE KNOCKED ME OUT OF THE AIR! RUDE!",
+    ],
+    'doorman_clash': [
+      "HE OUT-MUSCLED ME?! IMPOSSIBLE!",
+      "MY GAINS! HE'S GOT MORE GAINS!",
+    ],
     // The plain enemies on the older stages
     'shield': [
       "QUIT HIDING BEHIND THAT SHIELD AND FIGHT ME!",

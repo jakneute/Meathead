@@ -1,5 +1,6 @@
 // Projectile movement, bouncing/lingering physics and all projectile hit resolution.
 
+import { submerged } from './kindsVictor';
 import { Enemy, Projectile } from '../../types';
 import {
   CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, PLAYER_INVINCIBILITY_FRAMES,
@@ -411,7 +412,7 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
   for (const enemy of state.enemies) {
     if (enemy.health <= 0 || enemy.isBlownAway || !rectsOverlap(boundsOf(p), boundsOf(enemy))) continue;
     // (a stray shot that's flown off screen doesn't kill what it finds out there)
-    if (!isOnScreen(state.camera, enemy)) continue;
+    if (!isOnScreen(state.camera, enemy) || submerged(enemy)) continue;
     if (p.isSludge && p.isLingering) continue;
 
     // Bosses are untouchable until the arena locks (boulders bounce off)

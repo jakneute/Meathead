@@ -27,6 +27,7 @@ import { getStageLeft, getStageLayout } from '../stages';
 import { runKindAI, kindContactDamage, holdingOff, shieldFacing, isChargerKind } from './kinds';
 import { selfPropelled } from './kindsHector';
 import { copMelee, isMeleeCop } from './copMelee';
+import { submerged } from './kindsVictor';
 
 /** Moves one enemy and resolves its contact with the player. Returns false to remove it. */
 export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolean => {
@@ -96,7 +97,7 @@ const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
   // A bystander only goes out of bounds if he knocked it there
   if (e.innocent && !((e.pauseTimer || 0) > 0)) return false;
   // (the sharks up the storm tower are out in the air, above and below the view all the time: never out of bounds)
-  if (e.kind === 'shark') return false;
+  if (e.kind === 'shark' || e.kind === 'magmafish') return false;
   // (On a hilly stage things sit above and below the view all the time, hopping, leaping and flying about:
   // only ones launched by a hit count going up, and only ones with nothing under them going down)
   const launched = (e.pauseTimer || 0) > 0 && e.vel.y < -2;
@@ -491,6 +492,8 @@ const getMeleeKillCallout = (player: Player, wasFrozen: boolean): KillCallout =>
 const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   const { state, fx, stageId, cheats } = ctx;
   const { player } = state;
+  // (a fish down under the lava: nothing to touch)
+  if (submerged(e)) return true;
   const onScreen = e.pos.x + e.width > state.camera.x && e.pos.x < state.camera.x + CANVAS_WIDTH;
   const stageDef = getBossDef(stageId);
   const bossDef = e.type === 'boss' ? stageDef : undefined;

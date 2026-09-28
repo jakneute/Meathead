@@ -152,7 +152,9 @@ export type EnemyKind =
   // Artie's stage
   | 'wolverine' | 'goat' | 'eagle' | 'shooter' | 'charger' | 'shielder' | 'moose'
   // Hector's stage: vacation goons, the cops, Florida wildlife, the beachgoers, and the storm's own
-  | 'tourist' | 'bouncer' | 'surfer' | 'cop' | 'riotcop' | 'gator' | 'pelican' | 'iguana' | 'crab' | 'civilian' | 'shark' | 'eye';
+  | 'tourist' | 'bouncer' | 'surfer' | 'cop' | 'riotcop' | 'gator' | 'pelican' | 'iguana' | 'crab' | 'civilian' | 'shark' | 'eye'
+  // Victor's stage: goons in heat gear, volcano wildlife, and the club's doorman
+  | 'heatsuit' | 'smokejumper' | 'blastshield' | 'salamander' | 'vulture' | 'magmafish' | 'doorman';
 
 export interface Enemy extends Entity {
   /** A close-range swing in progress (the cops' club and shield bash): what part of it, how long in, and whether it's landed. */

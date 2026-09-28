@@ -60,7 +60,7 @@ const deathFacing = (state: GameState, e: Enemy): 1 | -1 => {
 };
 
 export const startEnemyDeath = (state: GameState, e: Enemy, kind: EnemyDeathKind, vel?: Vector2) => {
-  if (e.kind === 'moose' || e.kind === 'eye') return; // (a mid-boss leaves its own corpse)
+  if (e.kind === 'moose' || e.kind === 'eye' || e.kind === 'doorman') return; // (a mid-boss leaves its own corpse)
   state.enemyDeaths.push({
     kind,
     x: e.pos.x, y: e.pos.y, w: e.width, h: e.height,

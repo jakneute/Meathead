@@ -19,6 +19,7 @@ import type { FrameContext } from '../context';
 import { floorTopAt, profileYAt } from '../terrain';
 import type { GameState } from '../state';
 import { runHectorKindAI } from './kindsHector';
+import { runVictorKindAI } from './kindsVictor';
 
 interface KindStats { w: number; h: number; hp: number; contact: number; air?: boolean }
 
@@ -43,10 +44,18 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   civilian: { w: 34, h: 62, hp: 1, contact: 0 },
   shark: { w: 84, h: 34, hp: 90, contact: 14, air: true },
   eye: { w: 200, h: 200, hp: 1200, contact: 16 },
+  // Victor's stage
+  heatsuit: { w: 40, h: 64, hp: 120, contact: 6 },
+  smokejumper: { w: 52, h: 72, hp: 230, contact: 12 },
+  blastshield: { w: 52, h: 70, hp: 170, contact: 8 },
+  salamander: { w: 46, h: 18, hp: 45, contact: 8 },
+  vulture: { w: 56, h: 30, hp: 55, contact: 10, air: true },
+  magmafish: { w: 50, h: 26, hp: 40, contact: 14 },
+  doorman: { w: 72, h: 100, hp: 950, contact: 8 },
 };
 
 /** The ones that run you down like the rusher. */
-export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind === 'bouncer';
+export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind === 'bouncer' || kind === 'smokejumper';
 
 let spawnCount = 0;
 
@@ -70,6 +79,11 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     case 'bouncer': return { ...base, behavior: 'patrol', pauseTimer: 0 };
     case 'surfer': case 'riotcop': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
     case 'pelican': case 'shark': return { ...base, enemyType: 'flyer', initialY: pos.y };
+    // Victor's goons, in heat gear: the same three jobs
+    case 'heatsuit': return { ...base, behavior: 'shoot', shootTimer: Math.floor(Math.random() * 40) };
+    case 'smokejumper': return { ...base, behavior: 'patrol', pauseTimer: 0 };
+    case 'blastshield': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
+    case 'vulture': return { ...base, enemyType: 'flyer', initialY: pos.y };
     // Beachgoers: not out to hurt anyone
     case 'civilian': return { ...base, harmless: true, innocent: true };
     default: return base;
@@ -86,6 +100,10 @@ export const runKindAI = (ctx: FrameContext, e: Enemy): boolean => {
     case 'goat': goat(ctx, e); return false;
     case 'eagle': eagle(ctx, e); return true;
     case 'gator': case 'pelican': case 'iguana': case 'crab': case 'civilian': case 'shark': return runHectorKindAI(ctx, e);
+    // Victor's wildlife: the salamander prowls and lunges like a wolverine, the vulture circles and dives like the eagle
+    case 'salamander': wolverine(ctx, e); return false;
+    case 'vulture': eagle(ctx, e); return true;
+    case 'magmafish': return runVictorKindAI(ctx, e);
     default: return false;
   }
 };
