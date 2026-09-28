@@ -16,6 +16,7 @@ import { hurtPlayer } from '../../bosses/shared';
 import { killPlayer } from '../../player/player';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 import { COURSE, CP, Channel, WALK_Y } from './course';
+import { Talk, queueLines, quiet } from './script';
 
 export interface Sewer {
   /** The suit: whether he's in one, and how much of it's left (1 new .. 0 eaten through). */
@@ -32,6 +33,11 @@ export interface Sewer {
   splashAt: number;
   /** A line to warn him about the suit, once. */
   warned: boolean;
+  /** When he last yelled about being in it, and how many times. */
+  yelledAt: number;
+  yells: number;
+  /** Where it ate him, and when (drawn going). */
+  dissolve: { x: number; y: number; surface: number; at: number } | null;
 }
 
 /** How long each locker's suit holds out in the muck (frames in it): the tunnel's, the pit's (a longer swim). */
@@ -46,7 +52,7 @@ const MUCK_LEAP = -11.5;
 export const createSewer = (startedAt: number): Sewer => ({
   suitOn: startedAt === CP.SUIT || startedAt === CP.SUIT2, suit: startedAt === CP.SUIT || startedAt === CP.SUIT2 ? 1 : 0, suitT: 999,
   opened: [startedAt >= CP.SUIT, startedAt >= CP.SUIT2], suitFrames: SUIT_FRAMES[startedAt >= CP.SUIT2 ? 1 : 0],
-  drops: [], inMuck: 0, splashAt: 0, warned: false,
+  drops: [], inMuck: 0, splashAt: 0, warned: false, yelledAt: -999, yells: 0, dissolve: null,
 });
 
 /** The channel he's in (his middle under its surface), if any. */
@@ -55,7 +61,10 @@ export const muckAt = (x: number, y: number): Channel | undefined => COURSE.chan
 /** How far a drip's gone: 0 just starting to swell, 1 about to fall (and when it falls). */
 export const dripPhase = (d: { period: number; phase: number }, frame: number) => ((frame + d.phase) % d.period) / d.period;
 
-export const updateSewer = (ctx: FrameContext, sw: Sewer) => {
+/** What he yells while it's eating him. */
+const MUCK_YELLS = ['GET THE FUCK OUT OF THE SLUDGE!', 'IT BURNS! GET THE FUCK OUT!', 'OUT! OUT! OUT! OUT!', 'MY SKIN! MY BEAUTIFUL SKIN!', 'GET OUT GET OUT GET OUT!'];
+
+export const updateSewer = (ctx: FrameContext, sw: Sewer, talk: Talk) => {
   const { state, fx } = ctx;
   const p = state.player;
   const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
@@ -80,8 +89,14 @@ export const updateSewer = (ctx: FrameContext, sw: Sewer) => {
       if (sw.suit <= 0) { sw.suitOn = false; fx.spawnDamageNumber({ x: p.pos.x - 40, y: p.pos.y - 50 }, 'SUIT GONE!', true, '#EF4444'); }
     } else if (sw.inMuck % MUCK_EVERY === 1) {
       if (!ctx.cheats.invincible) p.health -= MUCK_DAMAGE;
+      // (yelling at himself to get out: straight away, and again every so often while he's still in it)
+      if ((sw.inMuck === 1 || state.frame - sw.yelledAt > 150) && quiet(talk)) { sw.yelledAt = state.frame; queueLines(state, talk, [{ who: 'meathead', text: MUCK_YELLS[sw.yells++ % MUCK_YELLS.length] }]); }
       for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: p.pos.x + Math.random() * p.width, y: p.pos.y + Math.random() * p.height * 0.6 }, vel: { x: (Math.random() - 0.5) * 2, y: -1.5 - Math.random() * 2 }, life: 20, color: Math.random() < 0.5 ? '#A3E635' : '#D9F99D', size: 3 + Math.random() * 3 });
-      if (p.health <= 0 && state.deathTimer <= 0) killPlayer(ctx, pickLine(['DISSOLVED', 'PART OF THE WATER SUPPLY NOW', 'FLINT TAP WATER: 1, MEATHEAD: 0', 'SHOULD HAVE BOILED IT FIRST']), false);
+      if (p.health <= 0 && state.deathTimer <= 0) {
+        // Dissolved where he was (the stage draws him going)
+        sw.dissolve = { x: p.pos.x, y: p.pos.y, surface: ch!.surface, at: state.frame };
+        killPlayer(ctx, pickLine(['DISSOLVED', 'PART OF THE WATER SUPPLY NOW', 'FLINT TAP WATER: 1, MEATHEAD: 0', 'SHOULD HAVE BOILED IT FIRST']), false);
+      }
     }
   }
   // Anybody else who ends up in it (knocked in, say) dissolves, the way the barfer's sludge does them (the

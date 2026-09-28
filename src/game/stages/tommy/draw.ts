@@ -65,6 +65,25 @@ export const drawTommyFront = (ctx: Ctx, state: GameState) => {
     drawPlayer(ctx, body, { ...state, deathTimer: 0 }, { currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false });
     ctx.restore();
   });
+  // Eaten by the muck: going down into it, see-through and green, bubbles, then just his skull bobbing up
+  const dv = rt.sewer.dissolve;
+  if (dv && state.deathTimer > 0) {
+    const k = Math.min(1, (state.frame - dv.at) / 90);
+    const body = { ...p, hidden: false, pos: { x: dv.x, y: dv.y + k * 50 }, vel: { x: 0, y: 1 }, isGrounded: false };
+    ctx.save();
+    ctx.globalAlpha = 1 - k;
+    ctx.filter = `sepia(1) hue-rotate(40deg) saturate(${2 + k * 3}) brightness(${1 - k * 0.5})`;
+    drawPlayer(ctx, body, { ...state, deathTimer: 0 }, { currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false });
+    ctx.restore();
+    const cx = dv.x + p.width / 2;
+    for (let i = 0; i < 6; i++) { const q = ((state.frame * 1.5 + i * 17) % 60) / 60; ctx.fillStyle = `rgba(217, 249, 157, ${0.8 * (1 - q)})`; ctx.beginPath(); ctx.arc(cx - 20 + i * 8, dv.surface - q * 30, 2 + q * 3, 0, Math.PI * 2); ctx.fill(); }
+    if (k >= 1) {
+      // The skull, up at the surface
+      const bob = Math.sin(state.frame * 0.1) * 2;
+      ctx.fillStyle = '#E7E5D6'; ctx.beginPath(); ctx.arc(cx, dv.surface - 4 + bob, 9, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(cx - 5, dv.surface + 2 + bob, 10, 5);
+      ctx.fillStyle = '#1C1917'; ctx.fillRect(cx - 5, dv.surface - 7 + bob, 4, 4); ctx.fillRect(cx + 1, dv.surface - 7 + bob, 4, 4);
+    }
+  }
   if (place !== 'hood' && place !== 'road' && place !== 'ruins') drawMuckFront(ctx, state);
   drawSuitMelt(ctx, state, rt);
   drawSpeech(ctx, state, rt);

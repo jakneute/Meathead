@@ -101,8 +101,8 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   bruiser: { w: 54, h: 72, hp: 240, contact: 13 },
   // (up to its ears: a rider's gun, or a pistol held level, hits it)
   pitbull: { w: 52, h: 40, hp: 70, contact: 8 },
-  // (a lowrider's danger is the guns in its windows: it doesn't run him down)
-  lowrider: { w: 150, h: 52, hp: 170, contact: 0 },
+  // (it runs him down coming through if he doesn't jump it; out in front, it's the guns in its windows)
+  lowrider: { w: 150, h: 52, hp: 170, contact: 12 },
   hazmat: { w: 42, h: 66, hp: 130, contact: 6 },
   bloater: { w: 60, h: 74, hp: 260, contact: 14 },
   manhole: { w: 52, h: 68, hp: 180, contact: 7 },

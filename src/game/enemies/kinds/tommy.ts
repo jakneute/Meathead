@@ -6,9 +6,11 @@
 //               it comes after the bike from behind at a flat sprint, and leaps
 //               at him when it's close enough.
 //   lowrider:   a car on the bike run, hopping on its hydraulics, two of the
-//               crew leaning out of the windows with pistols. A chaser sits
-//               behind him and pulls up alongside to empty on him; a blocker
-//               sits out in front shooting back. Shoot them.
+//               crew leaning out of the windows with pistols. It comes up fast
+//               from behind, horn going (jump it, or it runs him down), gets out
+//               in front of him and stays there shooting back at him till the
+//               next one turns up; then it floors it and it's gone. Shoot it
+//               (the dogs are the ones behind).
 //   sludgeling: a little thing made of sewer muck, sat under the surface of the
 //               sewage (just its eyes showing) till you come by; then it hops
 //               out at you and keeps coming in low hops. Slide it.
@@ -20,6 +22,7 @@ import { Enemy } from '../../../types';
 import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
 import { groundLineAt } from '../../core/terrain';
+import { playSound } from '../../platform/audio';
 import { mid, seesPlayer, holdingOff } from './index';
 
 export const runTommyKindAI = (ctx: FrameContext, e: Enemy): boolean => {
@@ -102,9 +105,9 @@ const pitbull = (ctx: FrameContext, e: Enemy): boolean => {
 // ---------------------------------------------------------------------------
 
 /** Where a lowrider sits: a chaser this far behind him, a blocker this far ahead; how long it rests between bursts. */
-const CAR_BACK = 230, CAR_AHEAD = 260, CAR_REST = 170, CAR_BURST = 3, CAR_BURST_GAP = 8;
-/** A chaser pulls up alongside every so often (and sits there emptying on him a while). */
-const PULL_UP_EVERY = 300, PULL_UP_FRAMES = 120, ALONGSIDE = 70;
+const CAR_AHEAD = 280, CAR_REST = 170, CAR_BURST = 3, CAR_BURST_GAP = 8;
+/** How much faster than him it comes through from behind; how gently it keeps its spot out in front; how hard it floors it leaving. */
+const CAR_OVERTAKE = 9, CAR_KEEP = 1.6, CAR_LEAVE = 0.35;
 /** The shots: a pistol round, and how hard it hits. */
 const CAR_SHOT_SPEED = 8, CAR_SHOT_DAMAGE = 8;
 
@@ -117,16 +120,22 @@ const lowrider = (ctx: FrameContext, e: Enemy) => {
   e.aiTimer = (e.aiTimer || 0) + 1;
   e.shootTimer = (e.shootTimer || 0) + 1;
   const pm = mid(p);
-  let off: number;
-  if (e.variant === 1) off = CAR_AHEAD;
-  else if (e.aiState === 'alongside') { off = ALONGSIDE * (mid(e).x < pm.x ? -1 : 1); if (e.aiTimer > PULL_UP_FRAMES) { e.aiState = 'hold'; e.aiTimer = 0; } }
-  else { off = -CAR_BACK; if (e.aiTimer > PULL_UP_EVERY && p.health > 0) { e.aiState = 'alongside'; e.aiTimer = 0; } }
-  const dx = pm.x + off - mid(e).x;
-  // Going his pace (whatever that is on the hills), plus working toward its spot
+  const dx = pm.x + CAR_AHEAD - mid(e).x;
   const pace = p.bike ? Math.max(4, p.vel.x) : 0;
-  const lim = e.aiState === 'alongside' ? 3 : 1.4;
-  e.vel.x += (pace + Math.max(-lim, Math.min(lim, dx * 0.05)) - e.vel.x) * 0.12;
+  if (e.aiState === 'leave') {
+    // Floored it: off up the road and gone
+    e.vel.x += CAR_LEAVE;
+  } else if (e.aiState === 'overtake') {
+    // Coming through from behind, flat out, right through where he is (he jumps it)
+    e.vel.x = pace + CAR_OVERTAKE;
+    if (dx < 40) { e.aiState = 'hold'; e.aiTimer = 0; }
+  } else {
+    // Out in front of him, whatever he does (speeding up, easing off)
+    e.vel.x += (pace + Math.max(-CAR_KEEP, Math.min(CAR_KEEP, dx * 0.05)) - e.vel.x) * 0.12;
+  }
   e.pos.x += e.vel.x;
+  // The horn, coming up behind him
+  if (e.aiState === 'overtake' && state.frame % 40 === 0) playSound('horn');
   // On the road, bouncing on its hydraulics
   const road = groundLineAt(state.groundRuns, mid(e).x);
   const bounce = Math.abs(Math.sin(state.frame * 0.16 + (e.homeX || 0))) * 6;
@@ -135,7 +144,7 @@ const lowrider = (ctx: FrameContext, e: Enemy) => {
   e.facing = 1;
   e.aiX = pm.x < mid(e).x ? -1 : 1;
   // Bursts out of the windows, one gunman then the other
-  const settled = Math.abs(dx) < 160;
+  const settled = e.aiState === 'hold' && Math.abs(dx) < 160;
   if (settled && e.shootTimer > CAR_REST && p.health > 0 && !holdingOff(state)) {
     const k = e.shootTimer - CAR_REST;
     if (k % CAR_BURST_GAP === 0) {

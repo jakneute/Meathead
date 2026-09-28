@@ -9,7 +9,9 @@ import { NO_CONTROLS } from '../../platform/input';
 import { makeKindEnemy } from '../../enemies/kinds';
 import { CANVAS_WIDTH } from '../../../constants';
 import { COURSE, CP, Place, placeOf, RUINS_Y } from './course';
-import { Talk, createTalk, updateTalk, hush } from './script';
+import { Talk, createTalk, updateTalk, hush, queueLines } from './script';
+import { shakeScreen } from '../../core/state';
+import { playSound } from '../../platform/audio';
 import { BikeRun, createBikeRun, updateBikeRun, bikeDeathMessage } from './bike';
 import { Sewer, createSewer, updateSewer } from './sewer';
 import { Thing, createThing, updateThingRoom, thingDeathMessage } from './thing';
@@ -22,6 +24,8 @@ export interface TommyRuntime {
   sewer: Sewer;
   thing: Thing;
   escape: Escape;
+  /** Down the manhole into the sewer: still falling, or flat out seeing stars. */
+  sewerFall: 'falling' | 'dazed' | null;
   /** A cut to black and back (into the sewer): frames in, and what happens at the black. */
   fade: { t: number; at: (() => void) | null };
 }
@@ -58,6 +62,7 @@ export const createTommyRuntime = (state: GameState, skipToBoss: boolean): Tommy
     thing: createThing(state, startedAt),
     escape: createEscape(state, startedAt),
     fade: { t: 0, at: null },
+    sewerFall: null,
   };
   applyPlaceCamera(state, placeOf(start.x));
   return rt;
@@ -79,6 +84,7 @@ export const arrive = (state: GameState, x: number, y: number) => {
   p.facing = 1;
   p.hidden = false;
   p.inCutscene = false;
+  p.kickPose = 0;
   state.projectiles = [];
   state.cameraOverride = null;
   const place = placeOf(x);
@@ -96,6 +102,7 @@ export const updateTommy = (ctx: FrameContext, controls: Controls): Controls => 
   const { state } = ctx;
   const p = state.player;
   updateTalk(state, rt.talk);
+  if ((p.kickPose || 0) > 0) p.kickPose!--;
   if (rt.fade.t > 0) {
     rt.fade.t++;
     if (rt.fade.t === FADE_OUT) { hush(state, rt.talk); rt.fade.at?.(); rt.fade.at = null; }
@@ -110,10 +117,28 @@ export const updateTommy = (ctx: FrameContext, controls: Controls): Controls => 
       state.checkpoint = Math.max(state.checkpoint, CP.SEWER);
       arrive(state, COURSE.sewer.drop, COURSE.checkpoints[CP.SEWER].y - 380);
       p.vel.y = 6;
+      rt.sewerFall = 'falling';
     }));
   }
+  if (rt.sewerFall === 'falling') {
+    // Flailing all the way down, then flat on the walkway seeing stars
+    p.hurtTimer = Math.max(p.hurtTimer || 0, 10);
+    if (p.isGrounded) {
+      rt.sewerFall = 'dazed';
+      p.hurtTimer = 0;
+      state.playerStunTimer = 100;
+      p.squash = 1;
+      shakeScreen(state, 16, 8); playSound('nuke');
+      for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + p.height - 3 }, vel: { x: (Math.random() - 0.5) * 9, y: -Math.random() * 5 }, life: 26, color: i % 2 ? '#65A30D' : '#57534E', size: 3 + Math.random() * 5 });
+      queueLines(state, rt.talk, [{ who: 'meathead', text: 'UGH... MY EVERYTHING.' }], 20);
+    }
+    controls = { ...NO_CONTROLS };
+  } else if (rt.sewerFall === 'dazed') {
+    if (state.playerStunTimer <= 0) rt.sewerFall = null;
+    controls = { ...NO_CONTROLS };
+  }
   if (place === 'sewer' || place === 'tunnel' || place === 'cistern') {
-    updateSewer(ctx, rt.sewer);
+    updateSewer(ctx, rt.sewer, rt.talk);
     if (state.checkpoint < CP.CISTERN && p.isGrounded && p.pos.x > COURSE.checkpoints[CP.CISTERN].x) state.checkpoint = CP.CISTERN;
   }
   if (place === 'cistern') controls = updateThingRoom(ctx, rt.thing, rt.talk, controls, () => startEscape(rt.escape));

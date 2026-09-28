@@ -190,7 +190,6 @@ const theft = (ctx: FrameContext, b: BikeRun, talk: Talk): Controls => {
       }
       break;
   }
-  if ((p.kickPose || 0) > 0) p.kickPose!--;
   return c;
 };
 
@@ -222,8 +221,9 @@ const riding = (ctx: FrameContext, b: BikeRun, talk: Talk, controls: Controls): 
   const want = controls.right ? BIKE_FAST : controls.left ? BIKE_SLOW : BIKE_BASE;
   if (p.isGrounded) b.v = Math.max(BIKE_MIN, b.v + (want - b.v) * 0.035);
   p.skiSpeed = b.v;
-  // Everything behind that's been left far behind gave up
-  state.enemies = state.enemies.filter(e => e.type === 'boss' || e.kind === 'amalgam' || (e.pos.x > state.camera.x - 700 && e.pos.x < state.camera.x + 1800) || e.pos.x > R.x2);
+  // Everything behind that's been left far behind gave up (and a car that's driven off is gone)
+  state.enemies = state.enemies.filter(e => e.type === 'boss' || e.kind === 'amalgam' || e.pos.x > R.x2
+    || (e.pos.x > state.camera.x - 700 && e.pos.x < state.camera.x + (e.kind === 'lowrider' && e.aiState === 'leave' ? CANVAS_WIDTH + 160 : 1800)));
   spawnWaves(state, b);
   junk(ctx, b);
   teach(state, b);
@@ -239,10 +239,13 @@ const spawnWaves = (state: GameState, b: BikeRun) => {
     const w = COURSE.waves[b.spawned++];
     // (two dogs on him at once is plenty)
     if (w.kind === 'pitbull' && state.enemies.filter(e => e.kind === 'pitbull' && e.health > 0).length >= 2) continue;
-    const x = w.from === 'behind' ? state.camera.x - (w.kind === 'lowrider' ? 110 : 50) : state.camera.x + CANVAS_WIDTH + 110;
+    // (a car always comes up from behind; the one that was out in front drives off to make way for it)
+    const behind = w.from === 'behind' || w.kind === 'lowrider';
+    if (w.kind === 'lowrider') for (const o of state.enemies) if (o.kind === 'lowrider' && o.health > 0 && o.aiState !== 'overtake') o.aiState = 'leave';
+    const x = behind ? state.camera.x - (w.kind === 'lowrider' ? 110 : 50) : state.camera.x + CANVAS_WIDTH + 110;
     const e: Enemy = makeKindEnemy(w.kind, x, groundLineAt(state.groundRuns, x));
     e.variant = w.variant ?? 0;
-    e.aiState = w.kind === 'lowrider' ? 'hold' : 'chase';
+    e.aiState = w.kind === 'lowrider' ? 'overtake' : 'chase';
     e.vel.x = p.vel.x + (w.from === 'behind' ? 2 : -1);
     e.shootTimer = 40;
     state.enemies.push(e);
@@ -259,7 +262,7 @@ export const junkBox = (state: GameState, j: RoadJunk) => {
     case 'glass': return { x: j.x - 40, y: g - 6, w: 80, h: 8 };
     case 'car': return { x: j.x - 62, y: g - 40, w: 124, h: 40 };
     case 'hydrant': return { x: j.x - 12, y: g - 34, w: 24, h: 34 };
-    case 'ramp': return { x: j.x - 50, y: g - 30, w: 100, h: 30 };
+    case 'ramp': return { x: j.x - 70, y: g - 40, w: 140, h: 40 };
     case 'barrier': return { x: j.x - 30, y: g - 44, w: 60, h: 44 };
   }
 };
@@ -283,8 +286,13 @@ const junk = (ctx: FrameContext, b: BikeRun) => {
     }
     if (!rectsOverlap(pb, box)) return;
     if (j.look === 'ramp') {
-      // Up off the ramp and into the air
-      if (p.isGrounded || p.vel.y >= 0) { p.vel.y = -17; p.isGrounded = false; b.done.add(i); fx.spawnDamageNumber({ x: p.pos.x - 20, y: p.pos.y - 50 }, 'SEND IT!', true, '#FDE68A'); playSound('horn'); }
+      // Wheelie into it and it's a big one: off the top and high into the air, faster. Otherwise he just rolls over it
+      if (p.isCharging && (p.isGrounded || p.vel.y >= 0)) {
+        p.vel.y = -21; p.isGrounded = false; b.v = Math.min(BIKE_FAST + 3, b.v + 3); b.done.add(i);
+        fx.spawnDamageNumber({ x: p.pos.x - 30, y: p.pos.y - 60 }, 'SICK JUMP!', true, '#4ADE80');
+        shakeScreen(state, 10, 4); playSound('horn');
+        for (let k = 0; k < 14; k++) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: box.y }, vel: { x: -2 - Math.random() * 4, y: -Math.random() * 4 }, life: 26, color: k % 2 ? '#FDE047' : '#F8FAFC', size: 3 + Math.random() * 4 });
+      }
       return;
     }
     // Cones go flying whatever; the rest break if he wheelies through them (not a parked car: that he has to clear)
@@ -335,7 +343,9 @@ const teach = (state: GameState, b: BikeRun) => {
   const cam = state.camera;
   const live = state.enemies.filter(e => e.health > 0 && !e.isBlownAway && e.pos.x + e.width > cam.x + 20 && e.pos.x < cam.x + CANVAS_WIDTH - 20);
   const ahead = COURSE.junk.find((j, i) => !b.done.has(i) && j.x > px && j.x < px + 420);
-  if (live.some(e => (e.kind === 'lowrider' || e.kind === 'pitbull') && e.pos.x + e.width < px - 60)) hint(b, 'EASE OFF TO TURN AROUND AND SHOOT BEHIND YOU');
+  if (state.enemies.some(e => e.kind === 'lowrider' && e.aiState === 'overtake' && e.pos.x + e.width > px - 500 && e.pos.x < px)) hint(b, 'CAR COMING UP BEHIND YOU: JUMP IT!');
+  else if (live.some(e => e.kind === 'pitbull' && e.pos.x + e.width < px - 60)) hint(b, 'DOGS! EASE OFF TO TURN AROUND AND SHOOT BEHIND YOU');
+  else if (ahead?.look === 'ramp') hint(b, 'WHEELIE INTO THE RAMP FOR A SICK JUMP');
   else if (ahead?.look === 'trash' || ahead?.look === 'barrier') hint(b, 'WHEELIE THROUGH IT, OR JUMP IT');
   else if (ahead?.look === 'car') hint(b, "A CAR: JUMP IT. IT WON'T BREAK");
 };

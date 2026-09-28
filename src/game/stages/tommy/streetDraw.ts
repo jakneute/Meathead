@@ -288,10 +288,21 @@ const drawOneJunk = (ctx: Ctx, state: GameState, j: RoadJunk, box: { x: number; 
       }
       break;
     }
-    case 'ramp':
-      ctx.fillStyle = '#78716C'; ctx.fillRect(box.x + box.w - 30, g - 26, 26, 26); // cinder blocks
-      ctx.fillStyle = '#A16207'; ctx.beginPath(); ctx.moveTo(box.x, g); ctx.lineTo(box.x + box.w, g - 30); ctx.lineTo(box.x + box.w, g - 25); ctx.lineTo(box.x + 6, g); ctx.fill();
+    case 'ramp': {
+      // A plywood kicker on cinder blocks, painted in yellow and black, a big arrow on a board saying what it's for
+      ctx.fillStyle = '#78716C'; ctx.fillRect(box.x + box.w - 36, g - 36, 32, 36); ctx.fillStyle = '#57534E'; ctx.fillRect(box.x + box.w - 36, g - 20, 32, 2);
+      ctx.save(); ctx.beginPath(); ctx.moveTo(box.x, g); ctx.lineTo(box.x + box.w, g - 40); ctx.lineTo(box.x + box.w, g - 32); ctx.lineTo(box.x + 8, g); ctx.closePath(); ctx.clip();
+      ctx.fillStyle = '#FACC15'; ctx.fillRect(box.x, g - 42, box.w, 42);
+      ctx.fillStyle = '#111827'; for (let s = -40; s < box.w; s += 20) { ctx.beginPath(); ctx.moveTo(box.x + s, g); ctx.lineTo(box.x + s + 10, g); ctx.lineTo(box.x + s + 50, g - 42); ctx.lineTo(box.x + s + 40, g - 42); ctx.fill(); }
+      ctx.restore();
+      ctx.strokeStyle = '#111827'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(box.x, g); ctx.lineTo(box.x + box.w, g - 40); ctx.stroke();
+      // (the sign, on a post just before it)
+      const sx = box.x - 40;
+      ctx.fillStyle = '#44403C'; ctx.fillRect(sx - 2, g - 70, 4, 70);
+      ctx.fillStyle = f % 20 < 10 ? '#22C55E' : '#4ADE80'; ctx.fillRect(sx - 30, g - 96, 60, 28); ctx.strokeStyle = '#111827'; ctx.strokeRect(sx - 30, g - 96, 60, 28);
+      ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.moveTo(sx - 20, g - 76); ctx.lineTo(sx + 12, g - 90); ctx.lineTo(sx + 8, g - 94); ctx.lineTo(sx + 22, g - 92); ctx.lineTo(sx + 16, g - 80); ctx.lineTo(sx + 14, g - 86); ctx.lineTo(sx - 18, g - 72); ctx.fill();
       break;
+    }
     case 'barrier':
       ctx.fillStyle = '#78350F'; ctx.fillRect(box.x + 6, g - 30, 4, 30); ctx.fillRect(box.x + box.w - 10, g - 30, 4, 30);
       ctx.fillStyle = '#F8FAFC'; ctx.fillRect(box.x, g - 44, box.w, 14);
