@@ -97,6 +97,8 @@ export interface GameState {
   tsunamiX: number;
   tsunamiStartX: number;
   tsunamiDir: number;
+  /** How far the wave's raised or lowered from a flat stage's floor: set from where he's standing when he fires it (hilly stages). */
+  tsunamiOffsetY?: number;
 
   // Boss hazards
   bossVolcanoes: Volcano[];

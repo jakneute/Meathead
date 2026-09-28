@@ -1,5 +1,6 @@
 import { Projectile, Enemy, Vector2 } from '../types';
 import {
+  GROUND_Y,
   BULLET_DAMAGE, SHOTGUN_DAMAGE, SHOTGUN_COOLDOWN, SHOTGUN_PELLET_COUNT, SHOTGUN_SPREAD_DEG, SHOTGUN_JITTER_DEG,
   SHOTGUN_PELLET_SPEED_MIN, SHOTGUN_PELLET_SPEED_MAX, SHOTGUN_PELLET_LIFETIME,
   BOULDER_COOLDOWN, BOULDER_ROLL_SPEED, BOULDER_HEAVE_SPEED_X, BOULDER_HEAVE_SPEED_Y, BOULDER_LIFETIME,
@@ -20,6 +21,7 @@ import { findFlyingCigarette, igniteOilWithFlame } from './bosses/oscar';
 import { icicleBounds, meltIcicle } from './bosses/artie';
 import { pushEnemy } from './systems/knockback';
 import { muzzlePoint, flamethrowerNozzle } from './muzzle';
+import { floorTopAt } from './terrain';
 import { detonateSewerNuke, TOXIC_TOMMY } from './sewerNuke';
 
 /** The bits of this frame's input that weapons care about. */
@@ -141,6 +143,9 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
       state.tsunamiDir = facing;
       state.tsunamiStartX = facing === 1 ? state.camera.x : state.camera.x + CANVAS_WIDTH;
       state.tsunamiX = state.tsunamiStartX;
+      // The wave's built for a flat floor at GROUND_Y: lift (or drop) it to the ground he's standing on (or over)
+      const feet = player.pos.y + player.height;
+      state.tsunamiOffsetY = (floorTopAt(state.blocks, player.pos.x + player.width / 2, feet, 0) ?? feet) - GROUND_Y;
       player.shootCooldown = TSUNAMI_COOLDOWN;
       fx.playGunSound('tsunami');
       useAmmo();

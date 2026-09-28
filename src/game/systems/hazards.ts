@@ -20,8 +20,10 @@ export const updateTsunami = (ctx: FrameContext) => {
   state.tsunamiX += TSUNAMI_WAVE_SPEED * dir;
   const dist = Math.abs(state.tsunamiX - state.tsunamiStartX);
   const progress = dist / (CANVAS_WIDTH * 1.5);
-  const tsunamiTopY = Math.pow(Math.min(1.0, dist / (CANVAS_WIDTH * 1.25)), 0.6) * 560;
-  const waveHeight = 600 - tsunamiTopY;
+  // (built for a flat floor, then lifted to the height he fired it from)
+  const offsetY = state.tsunamiOffsetY || 0;
+  const tsunamiTopY = Math.pow(Math.min(1.0, dist / (CANVAS_WIDTH * 1.25)), 0.6) * 560 + offsetY;
+  const waveHeight = 600 + offsetY - tsunamiTopY;
 
   // Wave face particles, curved so the middle leads
   const density = 35, bendMult = 120;
@@ -59,7 +61,7 @@ export const updateTsunami = (ctx: FrameContext) => {
 
   state.enemies.forEach(e => {
     if (e.health <= 0 || e.isBlownAway) return;
-    const inWave = Math.abs(e.pos.x + e.width / 2 - state.tsunamiX) < 120 && e.pos.y + e.height > tsunamiTopY;
+    const inWave = Math.abs(e.pos.x + e.width / 2 - state.tsunamiX) < 120 && e.pos.y + e.height > tsunamiTopY && e.pos.y < 600 + offsetY + 60;
     if (!inWave) return;
     if (e.type === 'boss') {
       if (!state.arenaLocked || (e.hitCooldown && e.hitCooldown > 0)) return;
