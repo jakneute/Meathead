@@ -7,7 +7,7 @@
 import { Enemy, Icicle, Rect } from '../../types';
 import { ARENA_LEFT, ARENA_RIGHT, BULLET_DAMAGE, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y } from '../../constants';
 import type { FrameContext } from '../context';
-import { BossDef, ARENA_MID, CEILING_Y, FLOOR_Y, dirTo, enemyProjectile, hurtPlayer, midX } from './shared';
+import { BossDef, ARENA_MID, CEILING_Y, FLOOR_Y, enemyProjectile, hurtPlayer, midX } from './shared';
 
 const ICE_BLOCK_SIZE = 60;
 // The block is aimed at Meathead when it's thrown and flies straight: slow off the hand,
@@ -22,7 +22,6 @@ const SHOT_COOLDOWN = 60;
 const STUCK_FRAMES = 175;       // standing still this long forces a new move
 const MUST_MOVE_FRAMES = 120;   // past this he won't pick the ice block
 const MIN_THROW_DISTANCE = 230; // any closer and a throw couldn't be dodged: he'd rather jump or charge
-const CHARGE_SPEED = 7.5;
 /** Before a throw he hefts the block overhead (it freezes together, then flashes just before it flies). */
 export const THROW_WINDUP = 34;
 const AIR_THROW_WINDUP = 20;
@@ -83,7 +82,8 @@ const chooseMove = (ctx: FrameContext, boss: Enemy) => {
     boss.stateTimer = 80 + THROW_WINDUP;
     boss.bossState = 'attacking';
   } else {
-    boss.vel.x = dirTo(boss, player) * CHARGE_SPEED;
+    // Squares up to you. (This used to set a charge speed, but the shared boss physics stops a grounded boss
+    // every frame, so all it ever did was twitch him a few pixels sideways; he just holds his ground instead.)
     boss.stateTimer = 65;
     boss.bossState = 'attacking';
     boss.sideTimer = 0;
