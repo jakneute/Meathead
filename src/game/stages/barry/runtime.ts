@@ -229,7 +229,7 @@ const updateBarks = (state: GameState, rt: BarryRuntime) => {
 /** The fade: frames to black, and back. */
 export const FADE = 30;
 /** The elevator: doors shutting, the ride, the ding, the doors opening. */
-export const DOORS = 26, RIDE = 150, OPEN = 26;
+export const DOORS = 48, RIDE = 200, OPEN = 48;
 
 const startFade = (rt: BarryRuntime, to: number) => { rt.transit = { kind: 'fade', t: 0, to }; };
 
@@ -253,6 +253,9 @@ export const elevatorFloor = (tr: Transit) => {
   return Math.round(a + (b - a) * k);
 };
 
+/** Coming out onto a new floor (or the roof, or into the power room): how long nobody starts on you. */
+const ARRIVE_GRACE = 90;
+
 /** Put him at a checkpoint (the next place), the camera with him. */
 const arrive = (state: GameState, rt: BarryRuntime, cp: number) => {
   const p = state.player;
@@ -261,6 +264,8 @@ const arrive = (state: GameState, rt: BarryRuntime, cp: number) => {
   p.vel = { x: 0, y: 0 };
   p.facing = 1;
   state.projectiles = [];
+  // (a moment to get your bearings: nobody starts anything)
+  state.gapGrace = Math.max(state.gapGrace || 0, ARRIVE_GRACE);
   state.checkpoint = Math.max(state.checkpoint, cp);
   applyPlaceCamera(state, placeOf(a.x));
   state.camera.x = Math.max(state.cameraMinX, Math.min(state.cameraMaxX ?? 1e9, a.x - 250));

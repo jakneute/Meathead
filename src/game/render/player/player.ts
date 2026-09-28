@@ -13,6 +13,8 @@ export interface PlayerDrawOptions {
   /** The filth shield aura is only shown during active play. */
   showFilthShield: boolean;
   invincibilityEnabled: boolean;
+  /** Standing about, bored: the front foot's toe tapping (0 down, 1 up). */
+  footTap?: number;
 }
 
 // Palette
@@ -31,7 +33,7 @@ const backArmShade = '#A87038';   // shadow side of the far arm
 const stubbleColor = 'rgba(60, 30, 10, 0.35)';
 
 /** Draws Meathead: effects auras, then body layers back-to-front, then the held weapon. */
-export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled }: PlayerDrawOptions) => {
+export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled, footTap = 0 }: PlayerDrawOptions) => {
   if (state.deathTimer > 0 || p.hidden) return;
   const animFrame = state.playerAnimFrame;
   setGore(1 - p.health / INITIAL_PLAYER_HEALTH);
@@ -469,10 +471,13 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     drawPantLeg(ctx, -10, -22, 10, 16, pantsShadow);
     drawBoot(ctx, -11, -6, 12, 7, false);
     drawPantLeg(ctx, 2, -22, 10, 16, pantsColor, true);
+    // (the front boot tipping up on its heel when he's tapping his foot)
+    ctx.save(); ctx.translate(2, 0); ctx.rotate(-footTap * 0.4); ctx.translate(-2, 0);
     drawBoot(ctx, 2, -6, 14, 7, true);
     // Tread grips
     ctx.fillStyle = '#09090B';
     ctx.fillRect(2, 0, 14, 2);
+    ctx.restore();
   }
   ctx.restore();
 

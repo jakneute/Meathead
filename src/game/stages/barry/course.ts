@@ -176,11 +176,12 @@ const buildLobby = (s: Part) => {
   s.wall(-60, LOBBY_CEILING - 400, 60, 800); s.wall(1700, LOBBY_CEILING - 400, 60, 800);
   s.wall(0, LOBBY_CEILING - 30, 1700, 30);
   // The security desk, turnstiles, benches, planters; everyday New Yorkers, in a hurry
-  s.ledge(260, Y - 70, 180, 'counter'); s.prop('desk', 260, Y, 180, 70);
-  s.prop('turnstiles', 560, Y);
-  s.ledge(760, Y - 40, 130, 'bench'); s.ledge(1150, Y - 40, 130, 'bench');
-  s.prop('planter', 980, Y); s.prop('planter', 1330, Y);
-  s.spawn('guard', 340, Y - 70); s.spawn('commuter', 700); s.spawn('reader', 920); s.spawn('commuter', 1080); s.spawn('guard', 1250);
+  // (nobody close to the doors you come in by)
+  s.ledge(560, Y - 70, 180, 'counter'); s.prop('desk', 560, Y, 180, 70);
+  s.prop('turnstiles', 820, Y);
+  s.ledge(1000, Y - 40, 130, 'bench'); s.ledge(1330, Y - 40, 110, 'bench');
+  s.prop('planter', 1200, Y); s.prop('planter', 1480, Y);
+  s.spawn('guard', 640, Y - 70); s.spawn('commuter', 900); s.spawn('reader', 1120); s.spawn('commuter', 1260); s.spawn('guard', 1420);
   s.lamp(300, LOBBY_CEILING, 0, 'bulb'); s.lamp(800, LOBBY_CEILING, 0, 'bulb'); s.lamp(1300, LOBBY_CEILING, 0.2, 'bulb');
   s.pickup(1560, Y - 30, 'small_health');
 };
@@ -194,7 +195,7 @@ const buildOffice = (s: Part) => {
   s.ledge(1150, Y - 60, 160, 'desk'); s.prop('bigdesk', 1150, Y, 160, 60);
   s.prop('copier', 1000, Y); s.prop('cooler', 1420, Y);
   s.ledge(1500, Y - 70, 160, 'cubicle'); s.prop('cubicle', 1500, Y, 160, 70);
-  s.spawn('exec', 380, Y - 70); s.spawn('intern', 700); s.spawn('hr', 960); s.spawn('exec', 1230, Y - 60); s.spawn('intern', 1350); s.spawn('hr', 1700);
+  s.spawn('exec', 640, Y - 70); s.spawn('intern', 760); s.spawn('hr', 960); s.spawn('exec', 1230, Y - 60); s.spawn('intern', 1350); s.spawn('hr', 1700);
   for (let x = 150; x < 1900; x += 300) s.lamp(x, LOW_CEILING, x === 1050 ? 0.85 : 0.05, 'tube');
   s.pickup(1210, Y - 90, 'small_ammo');
 };
@@ -210,7 +211,7 @@ const buildMaintenance = (s: Part) => {
   s.ledge(880, Y - 100, 150, 'shelf'); s.prop('shelves', 880, Y, 150, 100);
   s.prop('boiler', 1060, Y);
   s.ledge(1600, Y - 100, 150, 'shelf'); s.prop('shelves', 1600, Y, 150, 100);
-  s.spawn('janitor', 420); s.spawn('custodian', 800); s.spawn('exterminator', 960, Y - 100); s.spawn('janitor', 1150); s.spawn('custodian', 1500); s.spawn('exterminator', 1680, Y - 100);
+  s.spawn('janitor', 620); s.spawn('custodian', 800); s.spawn('exterminator', 960, Y - 100); s.spawn('janitor', 1150); s.spawn('custodian', 1500); s.spawn('exterminator', 1680, Y - 100);
   for (let x = 120; x < 1900; x += 320) s.lamp(x, LOW_CEILING, x > 1000 && x < 1400 ? 0.9 : 0.3, 'bulb');
   s.pickup(950, Y - 130, 'small_health');
 };
@@ -228,7 +229,7 @@ const buildLab = (s: Part) => {
   s.prop('tank', 1300, Y, 0, 0, 1);
   s.ledge(1420, Y - 64, 180, 'counter'); s.prop('bench', 1420, Y, 180, 64);
   s.prop('tank', 1680, Y, 0, 0, 2);
-  s.spawn('labtech', 300, Y - 64); s.spawn('scientist', 580); s.spawn('subject', 900); s.spawn('labtech', 1180); s.spawn('scientist', 1360); s.spawn('subject', 1560);
+  s.spawn('labtech', 700, Y - 64); s.spawn('scientist', 1000); s.spawn('subject', 1200); s.spawn('labtech', 1500, Y - 64); s.spawn('scientist', 1660); s.spawn('subject', 1780);
   for (let x = 150; x < 1840; x += 280) s.lamp(x, LOW_CEILING, x > 1100 ? 0.4 : 0.05, 'tube');
   s.pickup(700, Y - 90, 'small_ammo');
   // ROOF ACCESS: up the stairs at the end
@@ -242,7 +243,7 @@ const buildRoofs = (s: Part) => {
   s.ground(0, 900, R, R, 'roof');
   s.ledge(300, R - 130, 120, 'tank'); s.prop('watertower', 300, R, 120, 130);
   s.ledge(620, R - 50, 110, 'ac'); s.prop('ac', 620, R, 110, 50);
-  s.spawn('mugger', 520, R); s.spawn('pimp', 780, R);
+  s.spawn('mugger', 700, R); s.spawn('pimp', 850, R);
   s.lamp(420, R - 150, 0.2, 'beacon');
   s.ground(1000, 2000, R - 80, R - 80, 'roof');
   s.ledge(1300, R - 80 - 50, 110, 'ac'); s.prop('ac', 1300, R - 80, 110, 50);

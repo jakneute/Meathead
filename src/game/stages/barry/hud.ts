@@ -56,45 +56,66 @@ const doors = (ctx: Ctx, shut: number) => {
     g.addColorStop(0, '#9CA3AF'); g.addColorStop(0.5, '#D1D5DB'); g.addColorStop(1, '#6B7280');
     ctx.fillStyle = g; ctx.fillRect(x, 0, w, H);
   }
-  ctx.fillStyle = '#374151'; ctx.fillRect(W / 2 - 1, 0, 2, H * shut);
+  if (shut > 0.97) { ctx.fillStyle = '#374151'; ctx.fillRect(W / 2 - 1, 0, 2, H); }
 };
 
 const drawElevatorRide = (ctx: Ctx, state: GameState, rt: BarryRuntime) => {
   const tr = rt.transit!;
   const t = tr.t;
-  if (t < DOORS) { doors(ctx, t / DOORS); return; }
-  if (t >= DOORS + RIDE) { doors(ctx, 1 - (t - DOORS - RIDE) / OPEN); return; }
-  // Inside: wood panelling, a brass handrail, the floor counter, the buttons, him, the muzak
+  if (t < DOORS) { doors(ctx, easeInOut(t / DOORS)); return; }
+  if (t >= DOORS + RIDE) { doors(ctx, 1 - easeInOut((t - DOORS - RIDE) / OPEN)); return; }
   const f = state.frame;
-  ctx.fillStyle = '#5B3A1E'; ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = '#6B4423'; for (let x = 0; x < W; x += 100) ctx.fillRect(x + 4, 60, 92, 420);
-  ctx.fillStyle = '#CA8A04'; ctx.fillRect(0, 330, W, 8);
-  ctx.fillStyle = '#292524'; ctx.fillRect(0, 480, W, 120);
-  ctx.fillStyle = '#44403C'; for (let x = 0; x < W; x += 40) ctx.fillRect(x, 480, 20, 120);
-  // The counter
-  ctx.fillStyle = '#111827'; ctx.fillRect(W / 2 - 70, 14, 140, 40);
-  ctx.strokeStyle = '#CA8A04'; ctx.lineWidth = 3; ctx.strokeRect(W / 2 - 70, 14, 140, 40);
+  const k = t - DOORS;
+  // The shaft: dark concrete, the guide rails, the cables, the floors going by (painted numbers on the wall)
+  ctx.fillStyle = '#0B0C10'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#1C1D22'; ctx.fillRect(250, 0, 300, H);
+  ctx.fillStyle = '#2A2B31'; ctx.fillRect(250, 0, 8, H); ctx.fillRect(542, 0, 8, H);
+  ctx.fillStyle = '#3F3F46'; ctx.fillRect(266, 0, 5, H); ctx.fillRect(529, 0, 5, H); // the guide rails
+  const scroll = (k * 9) % 160;
+  for (let y = scroll - 160; y < H; y += 160) {
+    ctx.fillStyle = '#26272D'; ctx.fillRect(250, y, 300, 12); // each floor's slab going by
+    ctx.fillStyle = '#6B7280'; ctx.font = 'bold 10px "Press Start 2P"'; ctx.textAlign = 'left';
+    ctx.fillText(String(elevatorFloor(tr) + Math.round((scroll - y) / 160)), 276, y + 40);
+  }
+  // The car: a small box on its cables, rattling a little on the way up
+  const jig = Math.sin(f * 0.9) * 0.8;
+  const cw = 170, ch = 210, cx = W / 2 - cw / 2, cy = 190 + jig;
+  ctx.strokeStyle = '#71717A'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(W / 2 - 12, 0); ctx.lineTo(W / 2 - 12, cy); ctx.moveTo(W / 2 + 12, 0); ctx.lineTo(W / 2 + 12, cy); ctx.stroke();
+  // (the counterweight going the other way, once)
+  const cwY = -200 + k * 6;
+  if (cwY < H) { ctx.fillStyle = '#44403C'; ctx.fillRect(470, cwY, 50, 120); ctx.strokeStyle = '#71717A'; ctx.beginPath(); ctx.moveTo(495, 0); ctx.lineTo(495, cwY); ctx.stroke(); }
+  ctx.fillStyle = '#52525B'; ctx.fillRect(cx - 6, cy - 12, cw + 12, 12); ctx.fillRect(cx - 6, cy + ch, cw + 12, 10);
+  ctx.fillStyle = '#5B3A1E'; ctx.fillRect(cx, cy, cw, ch);
+  ctx.fillStyle = '#6B4423'; for (let x = cx + 4; x < cx + cw - 10; x += 42) ctx.fillRect(x, cy + 30, 38, ch - 60);
+  ctx.fillStyle = '#CA8A04'; ctx.fillRect(cx, cy + 118, cw, 4); // the handrail
+  ctx.fillStyle = '#292524'; ctx.fillRect(cx, cy + ch - 16, cw, 16);
+  // The indicator over the door, the buttons (the top one lit: it didn't help)
+  ctx.fillStyle = '#111827'; ctx.fillRect(W / 2 - 26, cy + 6, 52, 18);
   const fl = elevatorFloor(tr);
-  ctx.fillStyle = '#F97316'; ctx.font = 'bold 20px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText(fl === 1 ? 'L' : String(fl), W / 2, 45);
-  ctx.fillStyle = '#FDE047'; ctx.beginPath(); ctx.moveTo(W / 2 + 48, 40); ctx.lineTo(W / 2 + 58, 26); ctx.lineTo(W / 2 + 68, 40); ctx.fill();
-  // The buttons (the top one lit: it didn't help)
-  ctx.fillStyle = '#9CA3AF'; ctx.fillRect(W - 120, 160, 70, 180);
-  for (let k = 0; k < 10; k++) { ctx.fillStyle = k === 0 ? '#FDE047' : '#E5E7EB'; ctx.beginPath(); ctx.arc(W - 100 + (k % 2) * 30, 180 + Math.floor(k / 2) * 30, 8, 0, Math.PI * 2); ctx.fill(); }
-  // Him, standing there, the muzak going
+  ctx.fillStyle = '#F97316'; ctx.font = 'bold 10px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText(fl === 1 ? 'L' : String(fl), W / 2, cy + 20);
+  ctx.fillStyle = '#9CA3AF'; ctx.fillRect(cx + cw - 26, cy + 60, 16, 44);
+  for (let b = 0; b < 5; b++) { ctx.fillStyle = b === 0 ? '#FDE047' : '#E5E7EB'; ctx.beginPath(); ctx.arc(cx + cw - 18, cy + 66 + b * 8, 2.5, 0, Math.PI * 2); ctx.fill(); }
+  // Him: stood there, bored stiff, tapping his foot
   const p = state.player;
-  const body = { ...p, pos: { x: -1e6, y: -1e6 }, hidden: false, isGrounded: true, vel: { x: 0, y: 0 }, facing: 1 as const, isCharging: false, isSliding: false, isUppercutting: false, isDivekicking: false, invincibilityTimer: 0, hurtTimer: 0 };
-  ctx.save(); ctx.translate(W / 2, 480 - p.height / 2); ctx.translate(-(body.pos.x + body.width / 2), -(body.pos.y + body.height / 2));
-  drawPlayer(ctx, body, { ...state, deathTimer: 0 }, { currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false });
+  const body = { ...p, pos: { x: -1e6, y: -1e6 }, hidden: false, isGrounded: true, vel: { x: 0, y: 0 }, facing: 1 as const, isCharging: false, isSliding: false, isUppercutting: false, isDivekicking: false, isDucking: false, invincibilityTimer: 0, hurtTimer: 0, pushbackTimer: 0 };
+  const floorY = cy + ch - 16;
+  const tap = f % 18 < 5 ? 1 : 0;
+  ctx.save(); ctx.translate(W / 2 - 14, floorY - p.height / 2); ctx.translate(-(body.pos.x + body.width / 2), -(body.pos.y + body.height / 2));
+  drawPlayer(ctx, body, { ...state, deathTimer: 0 }, { currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false, footTap: tap });
   ctx.restore();
-  ctx.fillStyle = '#FDE68A'; ctx.font = 'bold 16px "Press Start 2P"';
-  for (let k = 0; k < 3; k++) { const ft = ((f + k * 30) % 90) / 90; ctx.globalAlpha = 1 - ft; ctx.fillText(k % 2 ? '♫' : '♪', 120 + k * 60, 300 - ft * 120); }
+  if (tap) { ctx.fillStyle = 'rgba(248, 250, 252, 0.7)'; ctx.font = '5px "Press Start 2P"'; ctx.textAlign = 'left'; ctx.fillText('TAP', W / 2 + 6, floorY - 6); }
+  // The muzak
+  ctx.fillStyle = '#FDE68A'; ctx.font = 'bold 12px "Press Start 2P"'; ctx.textAlign = 'left';
+  for (let n = 0; n < 3; n++) { const ft = ((f + n * 30) % 90) / 90; ctx.globalAlpha = 1 - ft; ctx.fillText(n % 2 ? '♫' : '♪', cx + 20 + n * 26, cy + 90 - ft * 60); }
   ctx.globalAlpha = 1;
-  // (a little after it gets going: the look on his face says it all)
-  if (t - DOORS > 40 && t - DOORS < RIDE - 20) drawBubble(ctx, W / 2, 480 - p.height - 20, t - DOORS < 90 ? '...' : 'COME ON. COME ON.', '#F8FAFC');
+  // What he thinks of it
+  const say = k < 40 ? '' : k < 95 ? '...' : k < 150 ? '*SIGH*' : 'COME ON. COME ON.';
+  if (say && k < RIDE - 10) drawBubble(ctx, W / 2 - 10, floorY - p.height - 18, say, '#F8FAFC');
   ctx.textAlign = 'left';
-  // The doors, shut, framing it
-  ctx.fillStyle = '#1C1917'; ctx.fillRect(0, 0, 18, H); ctx.fillRect(W - 18, 0, 18, H);
 };
+
+/** Smooth in and out (for the doors). */
+const easeInOut = (x: number) => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
 
 // ---------------------------------------------------------------------------
 // The ride down
