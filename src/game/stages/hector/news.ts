@@ -25,6 +25,8 @@ export interface News {
   /** Frames of static as we cut away from it. */
   staticT: number;
   done: boolean;
+  /** The skip button's been let go since it started (so a held jump doesn't skip it by accident). */
+  armed: boolean;
 }
 
 const REPORTER_VOICE: Voice = { pitch: 1.35, rate: 1.05 };
@@ -37,6 +39,8 @@ const HEADLINES = ['HURRICANE JUST... STOPS', 'FLOOD HEADED FOR DAYCARE', 'FLOOD
 const TICKER = 'EXPERTS BAFFLED  •  "THAT\'S NOT HOW WEATHER WORKS," SAYS WEATHERMAN  •  MAN SEEN RIDING WATERSPOUT  •  GIANT EYEBALL SPOTTED IN STORM, SOURCES SAY  •  MOJITOS STILL 2-4-1  •  ';
 /** A line stays up at least this long, and gives up waiting for the speech after this. */
 const MIN_LINE = 80, MAX_LINE = 60 * 9;
+/** The skip prompt comes up (and works) after this long. */
+const SKIP_AFTER = 30;
 
 /** Roughly how long a line's up (what it takes to say, near enough). */
 const lineFrames = (i: number) => MIN_LINE + LINES[i].length * 2;
@@ -48,9 +52,9 @@ const progress = (n: News) => {
   return Math.min(1, (n.line + within) / LINES.length);
 };
 
-export const createNews = (): News => ({ t: 0, line: 0, lineAt: 0, said: false, showing: '', staticT: 0, done: false });
+export const createNews = (): News => ({ t: 0, line: 0, lineAt: 0, said: false, showing: '', staticT: 0, done: false, armed: false });
 
-export const startNews = (n: News) => { n.t = 1; n.line = -1; n.done = false; };
+export const startNews = (n: News) => { n.t = 1; n.line = -1; n.done = false; n.armed = false; };
 
 export const newsOn = (n: News) => n.t > 0 && !n.done;
 
@@ -66,19 +70,22 @@ const sayLine = (n: News, i: number) => {
   if (!shown) n.said = true;
 };
 
-/** Runs the broadcast (hands off while it's on; jump or shoot skips a line). Calls onOver when it's done. */
+/** Runs the broadcast (hands off while it's on). It's all or nothing: jump or shoot skips the whole thing. Calls onOver when it's done. */
 export const updateNews = (ctx: FrameContext, n: News, controls: Controls, onOver: () => void) => {
   if (n.staticT > 0) n.staticT--;
   if (!newsOn(n)) return;
   n.t++;
-  if (n.line < 0) { if (n.t > 30) sayLine(n, 0); return; }
-  const on = n.t - n.lineAt;
-  const skip = on > 20 && (controls.jump || controls.shoot);
-  const timed = !ctx.state || !(typeof window !== 'undefined' && 'speechSynthesis' in window);
-  const over = on > MAX_LINE || skip || (on > MIN_LINE && (n.said || (timed && on > lineFrames(n.line))));
-  if (!over) return;
-  if (skip) cancelSpeech();
-  if (n.line + 1 < LINES.length) { sayLine(n, n.line + 1); return; }
+  const pressing = controls.jump || controls.shoot;
+  if (!pressing) n.armed = true;
+  const skip = n.armed && pressing && n.t > SKIP_AFTER;
+  if (!skip) {
+    if (n.line < 0) { if (n.t > 30) sayLine(n, 0); return; }
+    const on = n.t - n.lineAt;
+    const timed = !ctx.state || !(typeof window !== 'undefined' && 'speechSynthesis' in window);
+    const over = on > MAX_LINE || (on > MIN_LINE && (n.said || (timed && on > lineFrames(n.line))));
+    if (!over) return;
+    if (n.line + 1 < LINES.length) { sayLine(n, n.line + 1); return; }
+  } else cancelSpeech();
   n.done = true;
   n.staticT = 12;
   onOver();
@@ -155,6 +162,8 @@ export const drawNews = (ctx: Ctx, state: GameState, n: News) => {
   const tw = ctx.measureText(TICKER).width;
   const tx = -((f * 2) % tw);
   ctx.fillText(TICKER + TICKER + TICKER, tx, H - 8);
+  // All or nothing
+  if (n.t > SKIP_AFTER) { ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.font = '8px "Press Start 2P"'; ctx.textAlign = 'right'; ctx.fillText('JUMP OR SHOOT: SKIP', W - 24, 80); ctx.textAlign = 'left'; }
   // Captions: what she's saying
   if (n.showing && n.line >= 0) drawCaption(ctx, n.showing, ly - 16);
   // TV scanlines
