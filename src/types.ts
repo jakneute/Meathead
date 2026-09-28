@@ -53,6 +53,9 @@ export interface Player extends Entity {
   coyoteJumpTimer: number;
   jumpBufferTimer: number;
   jumpHoldTimer: number;
+  /** Down + jump on a jump-through ledge: dropping through it (frames left, and the height of the ledge he's dropping through). */
+  dropThroughT?: number;
+  dropThroughY?: number;
 
   // Special moves
   isCharging: boolean;

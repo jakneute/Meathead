@@ -416,6 +416,18 @@ const updateVerticalVelocity = (ctx: FrameContext, input: FrameInput) => {
     player.coyoteJumpTimer--;
   }
 
+  // Down + jump on a jump-through ledge (and nothing solid under him): drop down through it
+  if ((player.dropThroughT || 0) > 0) player.dropThroughT!--;
+  if (player.jumpBufferTimer > 0 && player.isGrounded && (player.isDucking || input.moveDown) && !player.isTasing && onJumpThroughOnly(ctx.state)) {
+    player.jumpBufferTimer = 0;
+    player.dropThroughT = DROP_THROUGH_FRAMES;
+    player.dropThroughY = player.pos.y + player.height;
+    player.pos.y += 2;
+    player.vel.y = Math.max(player.vel.y, 2);
+    player.isGrounded = false;
+    player.coyoteJumpTimer = 0;
+    player.coyoteAirTimer = 0;
+  }
   // Start a jump (buffered press + coyote time)
   if (player.jumpBufferTimer > 0 && player.coyoteJumpTimer > 0 && !player.isDucking && !player.isTasing) {
     player.jumpBufferTimer = 0;
@@ -450,6 +462,18 @@ const collidesWithSolid = (state: GameState, box: Rect) =>
 const standingOnSolid = (state: GameState) => {
   const p = state.player;
   if (collidesWithSolid(state, { ...boundsOf(p), y: p.pos.y + 1 })) return true;
+  const feet = p.pos.y + p.height;
+  return state.blocks.some(b => b.oneWay && isSolid(state, b) && !droppingThrough(p, b) && p.pos.x + p.width > b.x && p.pos.x < b.x + b.w && Math.abs(feet - b.y) <= 1);
+};
+
+/** How long a drop through a jump-through ledge lets him pass through it. */
+const DROP_THROUGH_FRAMES = 14;
+/** Dropping down through this ledge right now (the one he was stood on). */
+const droppingThrough = (p: Player, b: Block) => (p.dropThroughT || 0) > 0 && b.oneWay === true && Math.abs(b.y - (p.dropThroughY ?? -1e9)) <= 2;
+/** Stood on a jump-through ledge, with nothing solid under him (so there's somewhere to drop to). */
+const onJumpThroughOnly = (state: GameState) => {
+  const p = state.player;
+  if (collidesWithSolid(state, { ...boundsOf(p), y: p.pos.y + 1 })) return false;
   const feet = p.pos.y + p.height;
   return state.blocks.some(b => b.oneWay && isSolid(state, b) && p.pos.x + p.width > b.x && p.pos.x < b.x + b.w && Math.abs(feet - b.y) <= 1);
 };
@@ -517,8 +541,8 @@ const moveVertically = (ctx: FrameContext) => {
 
   for (const b of state.blocks) {
     if (!isSolid(state, b) || !rectsOverlap(boundsOf(player), b)) continue;
-    // A jump-through ledge only catches you coming down onto its top
-    if (b.oneWay && (impactSpeed < 0 || prevFeet > b.y + 8)) continue;
+    // A jump-through ledge only catches you coming down onto its top (and not the one you're dropping through)
+    if (b.oneWay && (impactSpeed < 0 || prevFeet > b.y + 8 || droppingThrough(player, b))) continue;
 
     if (impactSpeed >= 0) {
       player.pos.y = b.y - player.height;
