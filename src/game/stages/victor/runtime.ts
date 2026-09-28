@@ -94,7 +94,8 @@ export const updateVictor = (ctx: FrameContext, controls: Controls): Controls =>
   }
   // Up the shaft the view stops at its right-hand wall (and lets go again anywhere else)
   const inShaft = region === 'inside' && player.pos.x > COURSE.shaft.x1 - 200;
-  state.cameraMaxX = inShaft ? COURSE.shaft.x2 + 60 - CANVAS_WIDTH : region === 'main' ? state.cameraMaxX : undefined;
+  // (and out on the trail it stops at the club: nothing past the front of it)
+  state.cameraMaxX = inShaft ? COURSE.shaft.x2 + 60 - CANVAS_WIDTH : region === 'main' ? COURSE.club.x2 - 10 - CANVAS_WIDTH + 20 : undefined;
   // ...and once you're on your way up, at its left-hand wall too (down on the floor you can still see back out to the river)
   if (region === 'inside') state.cameraMinX = inShaft && player.pos.y + player.height < COURSE.shaft.floor - 150 ? COURSE.shaft.x1 - 60 : COURSE.inside.x1 - 40;
   if (region === 'inside') {

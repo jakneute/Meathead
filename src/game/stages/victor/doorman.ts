@@ -133,6 +133,9 @@ export const updateDoormanFight = (ctx: FrameContext, fight: DoormanFight, contr
     }
   }
   if (fight.phase === 'intro' || fight.phase === 'fight') state.cameraOverride = { x: a.x1 - 10, y: a.y - 550 };
+  // He's down: the shot stays put on the club while you're in front of it (no swinging back to you and panning off again)
+  else if (fight.phase === 'dead' && player.pos.x > COURSE.checkpoints[CP.CLUB].x - 100 && player.pos.x < a.x2 + 200) state.cameraOverride = { x: a.x1 - 10, y: a.y - 550 };
+  else if (fight.phase === 'dead' && state.cameraOverride?.x === a.x1 - 10) state.cameraOverride = null;
   if (fight.phase === 'intro' && fight.t > 80) { fight.phase = 'fight'; if (fight.man) { fight.man.aiState = 'stalk'; fight.man.aiTimer = 0; } }
   // A clash: it takes the special button
   // A clash takes either mouse button, or any of A B X Y on a pad (each counts on its own, so mashing two in turn works)
