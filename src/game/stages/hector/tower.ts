@@ -100,6 +100,17 @@ export const updateTower = (ctx: FrameContext, tr: TowerRun, onTop: () => void) 
     tr.copies[i].forEach((b, k) => { b.x = T.x0 + tr.u[i] + (k - 1) * T.circumference; });
     if (onIt || onAny) player.pos.x += dx;
   });
+  // The sharks are always on the lap nearest him: where one's seen round the storm is where it really is (so your shots
+  // find it, and it doesn't have a whole lap to swim to get at you)
+  for (const e of state.enemies) {
+    if (e.kind !== 'shark' || e.health <= 0 || e.isBlownAway) continue;
+    const laps = Math.round((e.pos.x + e.width / 2 - (player.pos.x + player.width / 2)) / T.circumference);
+    if (!laps) continue;
+    const dx = -laps * T.circumference;
+    e.pos.x += dx; e.initialX += dx;
+    if (e.homeX !== undefined) e.homeX += dx;
+    if (e.aiX !== undefined) e.aiX += dx;
+  }
   // A shark the storm catches up with is swallowed by it and whirled away (that, or you shoot it: nothing else kills them up here)
   for (const e of state.enemies) {
     if (e.kind !== 'shark' || e.isBlownAway || e.health <= 0 || e.pos.y + e.height / 2 < tr.riseY) continue;

@@ -91,7 +91,16 @@ const waterGator = (ctx: FrameContext, e: Enemy): boolean => {
   // (it was placed with its feet at the waterline)
   const waterline = (e.homeY ?? e.pos.y) + e.height;
   e.aiTimer = (e.aiTimer || 0) + 1;
+  // A goon in the water: that's dinner, and Meathead's forgotten
+  if (e.aiState !== 'feed' && e.aiState !== 'chomp' && e.aiState !== 'breach' && e.aiState !== 'slide' && !e.aiState?.startsWith('ashore')) {
+    const prey = findPrey(ctx, e, waterline);
+    if (prey) { e.prey = prey.id; e.aiState = 'feed'; e.aiTimer = 0; }
+  }
   switch (e.aiState) {
+    case 'feed':
+    case 'chomp':
+      feed(ctx, e, waterline);
+      break;
     case 'idle':
     default: {
       // Just the eyes above the water, drifting a little
@@ -179,6 +188,79 @@ const waterGator = (ctx: FrameContext, e: Enemy): boolean => {
     }
   }
   return true;
+};
+
+// ---------------------------------------------------------------------------
+// Feeding time: knock one of Hector's goons into the water with a gator in it and the gator loses all interest
+// in Meathead, goes for him, and (with a second gator taking the other side, if there is one) drags him under in a
+// death roll. The water goes red (the stage sees to that).
+// ---------------------------------------------------------------------------
+
+const GATOR_FEED_SPEED = 7.5;
+/** How long it takes them to finish him. */
+export const GATOR_CHOMP_FRAMES = 80;
+/** The goons (people) a gator will go for: not the bystanders, not other wildlife. */
+const edible = (o: Enemy) => o.kind === 'tourist' || o.kind === 'bouncer' || o.kind === 'surfer' || o.kind === 'cop' || o.kind === 'riotcop';
+/** Up to this many gators on one goon (one each side). */
+const MAX_DINERS = 2;
+
+const findPrey = (ctx: FrameContext, e: Enemy, waterline: number) => {
+  const home = e.homeX ?? e.pos.x;
+  let best: Enemy | undefined, bestD = Infinity;
+  for (const o of ctx.state.enemies) {
+    if (!edible(o) || o.health <= 0 || o.isBlownAway || mid(o).y < waterline + 4) continue;
+    if (Math.abs(mid(o).x - home) > GATOR_RANGE + 60) continue;
+    if (ctx.state.enemies.filter(g => g !== e && g.kind === 'gator' && g.prey === o.id && g.health > 0).length >= MAX_DINERS) continue;
+    const d = Math.abs(mid(o).x - mid(e).x);
+    if (d < bestD) { bestD = d; best = o; }
+  }
+  return best;
+};
+
+const feed = (ctx: FrameContext, e: Enemy, waterline: number) => {
+  const { state, fx } = ctx;
+  const prey = state.enemies.find(o => o.id === e.prey && o.health > 0 && !o.isBlownAway);
+  if (!prey) { e.prey = undefined; e.aiState = 'hunt'; e.aiTimer = 0; return; }
+  // Its side of him: whichever it's coming from, unless the other gator's already got that side
+  const pm = mid(prey);
+  let side = mid(e).x < pm.x ? -1 : 1;
+  const other = state.enemies.find(g => g !== e && g.kind === 'gator' && g.prey === prey.id && g.health > 0);
+  if (other) {
+    const otherSide = other.aiState === 'chomp' || other.id < e.id ? (mid(other).x < pm.x ? -1 : 1) : 0;
+    if (otherSide === side) side = -side;
+  }
+  const tx = pm.x + side * (prey.width / 2 + e.width / 2 - 14) - e.width / 2;
+  const ty = Math.max(waterline - e.height + 6, pm.y - e.height / 2);
+  e.facing = (-side) as 1 | -1;
+  // He's not going anywhere (or doing anything) with gators on him
+  prey.pauseTimer = Math.max(prey.pauseTimer || 0, 12);
+  prey.melee = undefined;
+  prey.shootTimer = 0;
+  if (e.aiState === 'feed') {
+    const dx = tx - e.pos.x, dy = ty - e.pos.y, len = Math.hypot(dx, dy) || 1;
+    const step = Math.min(len, GATOR_FEED_SPEED);
+    e.pos.x += (dx / len) * step; e.pos.y += (dy / len) * step;
+    if (len < 14) { e.aiState = 'chomp'; e.aiTimer = 0; }
+    return;
+  }
+  // The death roll: clamped on, thrashing, him jerked about between them, blood in the water
+  e.pos.x = tx + Math.sin(e.aiTimer * 0.9) * 3;
+  e.pos.y = ty + Math.cos(e.aiTimer * 0.7) * 3;
+  prey.vel.x = 0;
+  prey.pos.x += Math.sin(e.aiTimer * 1.3) * 1.5;
+  if (state.frame % 2 === 0) {
+    for (let k = 0; k < 2; k++) state.particles.push({ pos: { x: pm.x + (Math.random() - 0.5) * 30, y: pm.y + (Math.random() - 0.5) * 30 }, vel: { x: (Math.random() - 0.5) * 2, y: -0.5 - Math.random() }, life: 40 + Math.random() * 30, color: Math.random() < 0.5 ? '#B91C1C' : '#7F1D1D', size: 5 + Math.random() * 8 });
+  }
+  if (e.aiTimer === 20) fx.spawnDamageNumber({ x: pm.x - 40, y: waterline - 60 }, other ? 'DOUBLE CHOMP!' : 'CHOMP!', true, '#DC2626');
+  if (e.aiTimer >= GATOR_CHOMP_FRAMES) {
+    // Gone. Nothing left but what's floating up
+    prey.health = 0;
+    for (let k = 0; k < 30; k++) state.particles.push({ pos: { x: pm.x, y: pm.y }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 3 }, life: 60 + Math.random() * 40, color: k % 3 ? '#991B1B' : '#450A0A', size: 5 + Math.random() * 9 });
+    fx.spawnDamageNumber({ x: pm.x - 50, y: waterline - 80 }, ['GATOR BAIT!', 'DEATH ROLL!', 'SWAMP SNACK!'][Math.floor(Math.random() * 3)], true, '#DC2626');
+    fx.spawnPickup({ x: pm.x, y: waterline - 30 });
+    state.player.killSatisfactionTimer = 60;
+    for (const g of state.enemies) if (g.kind === 'gator' && g.prey === prey.id) { g.prey = undefined; g.aiState = 'hunt'; g.aiTimer = 0; }
+  }
 };
 
 /** Something to stand on under it that's above the water (a dock, the shore), or null over the water. */
@@ -370,8 +452,10 @@ const shark = (ctx: FrameContext, e: Enemy) => {
       e.vel.x = (tx - e.pos.x) * 0.05; e.vel.y = (ty - e.pos.y) * 0.05;
       e.facing = (e.vel.x < 0 ? -1 : 1);
       const p = mid(player), m = mid(e);
-      // You've climbed up to its level (wherever round the storm you are): it's after you now
-      if (Math.abs(p.y - m.y) < 280 && player.health > 0) { e.aiState = 'hunt'; e.aiTimer = 0; }
+      // You've climbed up to its level (wherever round the storm you are): it's after you now. One at a time,
+      // though: the rest keep circling till the one that's after you is dealt with
+      const busy = ctx.state.enemies.some(o => o !== e && o.kind === 'shark' && o.health > 0 && !o.isBlownAway && (o.aiState === 'hunt' || o.aiState === 'bite'));
+      if (Math.abs(p.y - m.y) < 280 && player.health > 0 && !busy) { e.aiState = 'hunt'; e.aiTimer = 0; }
       break;
     }
     case 'hunt': {

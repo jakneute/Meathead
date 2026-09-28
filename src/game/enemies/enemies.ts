@@ -99,6 +99,8 @@ const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
   if (e.innocent && !((e.pauseTimer || 0) > 0)) return false;
   // (the sharks up the storm tower are out in the air, above and below the view all the time: never out of bounds)
   if (e.kind === 'shark' || e.kind === 'magmafish') return false;
+  // (nor a gator down in the water: it goes deep after its dinner, or after him)
+  if (e.kind === 'gator' && e.variant === 1) return false;
   // (On a hilly stage things sit above and below the view all the time, hopping, leaping and flying about:
   // only ones launched by a hit count going up, and only ones with nothing under them going down)
   const launched = (e.pauseTimer || 0) > 0 && e.vel.y < -2;
@@ -819,6 +821,8 @@ const slamIntoWalls = (ctx: FrameContext, e: Enemy, speed: number): boolean => {
   const dir = Math.sign(speed) || (e.pos.x + e.width / 2 < wall.x + wall.w / 2 ? 1 : -1);
   e.pos.x = dir > 0 ? wall.x - e.width : wall.x + wall.w;
   e.vel.x = 0;
+  // Only a shove (or a blast) slams it into the wall; walking into one under its own steam it just stops there
+  if ((e.pauseTimer || 0) <= 0) return false;
 
   const damage = toGml(speed) * DAMAGE_WALL_IMPACT_SCALER * (isFrozen(e) ? FROZEN_WALL_IMPACT_MULTIPLIER : 1);
   if (damage <= IMPACT_DAMAGE_THRESHOLD) return false;

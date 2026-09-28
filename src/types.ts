@@ -167,6 +167,8 @@ export type EnemyKind =
 export interface Enemy extends Entity {
   /** Which of Meathead's moves last hit it (see Player.moveId). */
   hitByMove?: number;
+  /** A gator's meal: the goon it's gone after in the water (by id). */
+  prey?: string;
   /** A close-range swing in progress (the cops' club and shield bash): what part of it, how long in, and whether it's landed. */
   melee?: { state: 'windup' | 'strike' | 'recover'; t: number; hit: boolean };
   /** The last frame Meathead was driving him backward on his own shield with a shoulder charge. */

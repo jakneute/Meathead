@@ -272,9 +272,12 @@ const drawGator = (ctx: Ctx, e: Enemy, f: number) => {
     ctx.fillStyle = '#111827'; ctx.fillRect(-7, -9, 1, 3); ctx.fillRect(1, -9, 1, 3);
     return;
   }
-  const open = st === 'hiss' || st === 'ashore-hiss' ? 0.5 : st === 'lunge' || st === 'ashore-lunge' ? 0.35 + Math.abs(Math.sin(f * 0.5)) * 0.2 : st === 'breach' ? 0.55 : st === 'hunt' ? 0.2 + Math.abs(Math.sin(f * 0.25)) * 0.4 : 0;
+  // (feeding: going for a goon in the water, jaws wide; then clamped on and rolling him under, jaws working)
+  if (st === 'chomp') { ctx.translate(0, -14); ctx.rotate(Math.sin(f * 0.35) * 0.7); ctx.translate(0, 14); }
+  const open = st === 'hiss' || st === 'ashore-hiss' ? 0.5 : st === 'lunge' || st === 'ashore-lunge' ? 0.35 + Math.abs(Math.sin(f * 0.5)) * 0.2 : st === 'breach' ? 0.55
+    : st === 'hunt' ? 0.2 + Math.abs(Math.sin(f * 0.25)) * 0.4 : st === 'feed' ? 0.55 : st === 'chomp' ? Math.abs(Math.sin(f * 0.6)) * 0.3 : 0;
   const run = st === 'lunge' || st === 'ashore-lunge' ? Math.sin(f * 0.8) * 4 : st === 'ashore' ? Math.sin(f * 0.35) * 3 : 0;
-  const tail = st === 'rest' || st === 'hunt' ? Math.sin(f * 0.35) * 8 : Math.sin(f * 0.05) * 2;
+  const tail = st === 'rest' || st === 'hunt' || st === 'feed' ? Math.sin(f * 0.35) * 8 : st === 'chomp' ? Math.sin(f * 0.7) * 12 : Math.sin(f * 0.05) * 2;
   // Tail
   ctx.fillStyle = GATOR;
   ctx.beginPath(); ctx.moveTo(-20, -18); ctx.quadraticCurveTo(-40, -14 + tail * 0.4, -52, -6 + tail); ctx.lineTo(-20, -6); ctx.fill();

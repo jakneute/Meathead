@@ -57,6 +57,8 @@ export interface Hazards {
   splashAt: number;
   /** Frames he's been in the water in the storm (enough and the lightning finds him). */
   wetT: number;
+  /** How red each body of water is (0 clear .. 1), from what the gators have been eating. */
+  blood: Record<number, number>;
 }
 
 export const STRIKE_WARN = 55, STRIKE_FLASH = 10;
@@ -81,7 +83,7 @@ export const createHazards = (state: GameState): Hazards => {
     floatBlocks, awningBlocks, awningWobble: awningBlocks.map(() => 0),
     lastCause: '', lastCauseAt: -999,
     water: waterZones(state),
-    o2: 1, drownT: 0, drownAt: null, zap: null, splashAt: -999, wetT: 0,
+    o2: 1, drownT: 0, drownAt: null, zap: null, splashAt: -999, wetT: 0, blood: {},
   };
 };
 
@@ -110,6 +112,20 @@ export const updateHazards = (ctx: FrameContext, hz: Hazards, stormy: boolean) =
   updateShocks(ctx, hz);
   updateSwimming(ctx, hz);
   hz.scorches = hz.scorches.filter(s => ++s.t < 400);
+  updateBloodyWater(state, hz);
+};
+
+/** How fast the water reddens round a gator's meal, and how slowly it clears (a good long while). */
+const BLOOD_RISE = 0.015, BLOOD_CLEAR = 0.0006;
+
+/** Wherever a gator's rolling somebody under, that whole body of water goes red, and takes its time clearing. */
+const updateBloodyWater = (state: GameState, hz: Hazards) => {
+  for (const k of Object.keys(hz.blood)) hz.blood[+k] = Math.max(0, hz.blood[+k] - BLOOD_CLEAR);
+  for (const g of state.enemies) {
+    if (g.kind !== 'gator' || g.aiState !== 'chomp') continue;
+    const z = hz.water.find(w => g.pos.x + g.width / 2 > w.x1 && g.pos.x + g.width / 2 < w.x2);
+    if (z) hz.blood[z.body] = Math.min(1, (hz.blood[z.body] || 0) + BLOOD_RISE);
+  }
 };
 
 // ---------------------------------------------------------------------------

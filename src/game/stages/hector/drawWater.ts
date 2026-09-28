@@ -23,7 +23,26 @@ const crackle = (ctx: Ctx, x1: number, x2: number, y: number, depth: number, see
   ctx.restore();
 };
 
+/** Water a gator's been feeding in: stained red through and through, darker clouds of it swirling, clearing slowly. */
+const drawBloodyWater = (ctx: Ctx, state: GameState, hz: Hazards) => {
+  for (const zone of hz.water) {
+    const k = hz.blood[zone.body] || 0;
+    if (k <= 0.01 || zone.x2 < state.camera.x - 50 || zone.x1 > state.camera.x + 850) continue;
+    ctx.fillStyle = `rgba(153, 27, 27, ${k * 0.5})`;
+    ctx.fillRect(zone.x1, zone.surface + 2, zone.x2 - zone.x1, zone.bottom - zone.surface - 2);
+    ctx.fillStyle = `rgba(69, 10, 10, ${k * 0.35})`;
+    for (let i = 0; i < Math.max(2, Math.floor((zone.x2 - zone.x1) / 70)); i++) {
+      const x = zone.x1 + ((hash(i + zone.x1) * (zone.x2 - zone.x1) + Math.sin(state.frame * 0.01 + i) * 30) % (zone.x2 - zone.x1));
+      const y = zone.surface + 20 + hash(i * 3 + zone.x1) * (zone.bottom - zone.surface - 40);
+      ctx.beginPath(); ctx.ellipse(x, y, 30 + hash(i) * 30, 12 + hash(i + 1) * 10, Math.sin(state.frame * 0.005 + i), 0, Math.PI * 2); ctx.fill();
+    }
+    // (a pink foam along the top)
+    ctx.fillStyle = `rgba(252, 165, 165, ${k * 0.6})`; ctx.fillRect(zone.x1, zone.surface, zone.x2 - zone.x1, 3);
+  }
+};
+
 export const drawWaterHazards = (ctx: Ctx, state: GameState, hz: Hazards) => {
+  drawBloodyWater(ctx, state, hz);
   // A bolt about to come down in the water: the whole body of water crackles (get out!)
   for (const s of hz.strikes) {
     const hit = hz.water.find(w => !w.underDock && s.x > w.x1 && s.x < w.x2);
