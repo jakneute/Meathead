@@ -98,7 +98,10 @@ export const drawBubble = (ctx: CanvasRenderingContext2D, x: number, y: number, 
   // (kept on the screen: the box slides in off the edge, the tail stays pointing at whoever's talking)
   const m = ctx.getTransform();
   const toWorld = (sx: number) => (sx - m.e) / (m.a || 1);
+  const toWorldY = (sy: number) => (sy - m.f) / (m.d || 1);
   const bx = Math.max(toWorld(8) + w / 2, Math.min(toWorld(ctx.canvas.width - 8) - w / 2, x));
+  // (and up and down: zoomed in, whoever's talking can be below the bottom of the screen)
+  y = Math.max(toWorldY(32), Math.min(toWorldY(ctx.canvas.height - 10), y));
   const tx = Math.max(bx - w / 2 + 8, Math.min(bx + w / 2 - 8, x));
   ctx.fillStyle = fill; ctx.strokeStyle = ink; ctx.lineWidth = 2;
   ctx.fillRect(bx - w / 2, y - 24, w, 20); ctx.strokeRect(bx - w / 2, y - 24, w, 20);
