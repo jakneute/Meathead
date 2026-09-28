@@ -44,7 +44,8 @@ export interface Clash {
   flash: number;
   missed: boolean;
 }
-export interface DoormanCorpse { x: number; y: number; facing: 1 | -1; weapon: WeaponType; t0: number }
+/** (finisher: killed by winning a clash, which leaves him its own way) */
+export interface DoormanCorpse { x: number; y: number; facing: 1 | -1; weapon: WeaponType; t0: number; finisher?: ClashKind }
 export interface DoormanFight {
   phase: 'waiting' | 'intro' | 'fight' | 'dead';
   t: number;
@@ -75,6 +76,8 @@ export interface DoormanFight {
 }
 
 const arena = () => COURSE.club;
+/** How he was left last time (a weapon, or a clash). */
+const memoCorpse = (m?: string): { weapon: WeaponType; finisher?: ClashKind } => m === 'clash-shoulder' ? { weapon: 'GUN', finisher: 'shoulder' } : m === 'clash-slide' ? { weapon: 'GUN', finisher: 'slide' } : { weapon: (m as WeaponType) || 'GUN' };
 const DOORMAN_VOICE: Voice = { pitch: 0.35, rate: 0.9 };
 
 export const createDoormanFight = (state: GameState, startedAt: number): DoormanFight => {
@@ -87,7 +90,7 @@ export const createDoormanFight = (state: GameState, startedAt: number): Doorman
       { x: a.x1 - 40, y: a.y - 900, w: 40, h: 900, type: 'wall', hidden: true, tag: 'club-wall' },
       { x: a.x2, y: a.y - 900, w: 40, h: 900, type: 'wall', hidden: true, tag: 'club-wall' },
     ],
-    corpse: dead ? { x: a.x2 - 300, y: a.y, facing: -1, weapon: (state.stageMemo.doormanWeapon as WeaponType) || 'GUN', t0: -600 } : null,
+    corpse: dead ? { x: a.x2 - 300, y: a.y, facing: -1, t0: -600, ...memoCorpse(state.stageMemo.doormanWeapon as string | undefined) } : null,
   };
 };
 
@@ -204,6 +207,15 @@ export const updateDoorman = (ctx: FrameContext, m: Enemy, fight: DoormanFight):
   m.frozenTimer = 0; m.pauseTimer = 0; m.isOnFire = false; m.fireTimer = 0; m.isOiled = false; m.oiledTimer = 0;
   m.sludgeTimer = 0; m.needleCount = 0; m.needleOffsets = []; m.dotTimer = 0; m.isTased = false;
   if (m.hitFlash && m.hitFlash > 0) m.hitFlash--;
+  // Finished off in a clash: he flies first, and it's the landing that does it
+  if (m.aiState === 'launched' || m.aiState === 'spun') {
+    m.aiTimer = (m.aiTimer || 0) + 1;
+    m.vel.y += 0.7;
+    m.pos.x = Math.max(a.x1 + 2, Math.min(a.x2 - W - 2, m.pos.x + m.vel.x));
+    m.pos.y += m.vel.y;
+    if (m.aiTimer > 6 && m.pos.y >= a.y - H) { m.pos.y = a.y - H; killDoorman(ctx, m, fight, m.aiState === 'launched' ? 'shoulder' : 'slide'); return false; }
+    return true;
+  }
   if (m.health <= 0 || m.isBlownAway) { killDoorman(ctx, m, fight); return false; }
   m.aiTimer = (m.aiTimer || 0) + 1;
   const px = p.pos.x + p.width / 2, mx = m.pos.x + W / 2;
@@ -470,8 +482,15 @@ const endClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, won: boolean
     const leftEnd = a.x1 + 40, rightEnd = a.x2 - W - 40;
     const land = Math.abs(px - (leftEnd + W / 2)) > Math.abs(px - (rightEnd + W / 2)) ? leftEnd : rightEnd;
     const over = Math.sign(land - m.pos.x) || 1;
-    start(m, 'thrown');
-    m.vel = { x: (land - m.pos.x) / THROW_FRAMES, y: -THROW_LIFT };
+    if (m.health <= 0) {
+      // That's him done: the shoulder sends him sky high (he comes down head first), the sweep sends him spinning
+      start(m, kind === 'shoulder' ? 'launched' : 'spun');
+      const air = kind === 'shoulder' ? 70 : 46;
+      m.vel = { x: (land - m.pos.x) / air, y: kind === 'shoulder' ? -24 : -15 };
+    } else {
+      start(m, 'thrown');
+      m.vel = { x: (land - m.pos.x) / THROW_FRAMES, y: -THROW_LIFT };
+    }
     p.vel = { x: 0, y: -3 };
     p.facing = (over > 0 ? 1 : -1) as 1 | -1;
     fight.lastCall = kind === 'shoulder' ? 'OVERPOWERED!' : 'SWEPT HIM!';
@@ -515,14 +534,18 @@ export const hitDoorman = (ctx: FrameContext, m: Enemy, p: Projectile, fight: Do
   return true;
 };
 
-const killDoorman = (ctx: FrameContext, m: Enemy, fight: DoormanFight) => {
+const killDoorman = (ctx: FrameContext, m: Enemy, fight: DoormanFight, finisher?: ClashKind) => {
   const { state, fx } = ctx;
   const weapon: WeaponType = state.player.currentWeapon;
   fight.phase = 'dead';
   fight.clash = null;
-  fight.corpse = { x: m.pos.x + W / 2, y: arena().y, facing: m.facing || -1, weapon, t0: state.frame };
+  fight.corpse = { x: m.pos.x + W / 2, y: arena().y, facing: m.facing || -1, weapon, t0: state.frame, finisher };
+  if (finisher) {
+    fx.spawnDamageNumber({ x: m.pos.x + W / 2 - 60, y: m.pos.y - 70 }, finisher === 'shoulder' ? 'HEAD FIRST!' : 'SWEPT OFF HIS FEET!', true, '#22C55E');
+    for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: m.pos.x + W / 2, y: arena().y - 4 }, vel: { x: (Math.random() - 0.5) * 10, y: -Math.random() * 7 }, life: 30, color: i % 2 ? '#78716C' : '#A8A29E', size: 4 + Math.random() * 5 });
+  }
   fight.man = null;
-  state.stageMemo.doormanWeapon = weapon;
+  state.stageMemo.doormanWeapon = finisher ? `clash-${finisher}` : weapon;
   fx.spawnDeathShower({ x: m.pos.x + W / 2, y: m.pos.y + H / 2 }, 0, 3, true, 120);
   shakeScreen(state, 30, 9);
   fx.spawnDamageNumber({ x: m.pos.x + W / 2 - 70, y: m.pos.y - 40 }, 'YOU\'RE ON THE LIST NOW!', true, '#FACC15');

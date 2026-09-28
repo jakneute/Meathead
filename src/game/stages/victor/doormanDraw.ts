@@ -40,6 +40,9 @@ export const drawDoorman = (ctx: Ctx, e: Enemy, fight: DoormanFight, f: number) 
     case 'slide': case 'clash-slide': poseSlide(ctx, f); break;
     case 'tripped': poseTripped(ctx, f); break;
     case 'thrown': ctx.translate(0, -H / 2); ctx.rotate(-t * 0.16); ctx.translate(0, H / 2); poseTripped(ctx, f); break;
+    // Finished off in a clash: cartwheeling sky high (the shoulder), or spinning like a top (the sweep)
+    case 'launched': ctx.translate(0, -H / 2); ctx.rotate(-t * 0.3); ctx.translate(0, H / 2); poseTripped(ctx, f); break;
+    case 'spun': ctx.translate(0, -H / 2); ctx.scale(Math.cos(t * 0.6), 1); ctx.rotate(-0.4); ctx.translate(0, H / 2); poseTripped(ctx, f); break;
     case 'uppercut': poseUppercut(ctx, f); break;
     case 'charge': case 'clash-shoulder': poseCharge(ctx, f, st === 'clash-shoulder'); break;
     case 'windup-charge': poseStand(ctx, f, 'dip', t); break;
@@ -198,6 +201,36 @@ export const drawDoormanCorpse = (ctx: Ctx, c: DoormanCorpse, f: number) => {
     ctx.fillStyle = PANTS; ctx.fillRect(-20, -20, 56, 16); ctx.fillStyle = BOOT; ctx.fillRect(32, -30, 12, 16);
     ctx.restore();
   };
+  if (c.finisher === 'shoulder') {
+    // Came down head first: buried to the shoulders, legs sticking straight up, twitching
+    ctx.fillStyle = '#44403C'; ctx.beginPath(); ctx.ellipse(0, -2, 46, 8, 0, 0, Math.PI * 2); ctx.fill();
+    for (let i = 0; i < 6; i++) { ctx.fillStyle = '#57534E'; ctx.fillRect(-40 + i * 14, -8 - (i % 2) * 4, 8, 6); }
+    const tw = Math.floor(f / 30) % 5 === 0 ? Math.sin(f * 1.2) * 0.12 : 0;
+    ctx.save(); ctx.rotate(tw);
+    ctx.fillStyle = SHIRT; ctx.fillRect(-26, -30, 52, 30);
+    ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 6px "Press Start 2P"'; ctx.textAlign = 'center';
+    { const t2 = ctx.getTransform(); ctx.save(); ctx.translate(0, -16); ctx.rotate(Math.PI); if (t2.a * t2.d - t2.b * t2.c < 0) ctx.scale(-1, 1); ctx.fillText('SECURITY', 0, 3); ctx.restore(); } // (upside down)
+    ctx.fillStyle = PANTS; ctx.fillRect(-18, -84, 15, 56); ctx.fillRect(3, -84, 15, 56);
+    ctx.fillStyle = BOOT; ctx.fillRect(-20, -96, 19, 14); ctx.fillRect(1, -96, 19, 14);
+    ctx.restore();
+    for (let i = 0; i < 3; i++) { const a = f * 0.15 + (i * Math.PI * 2) / 3; ctx.fillStyle = '#FDE047'; ctx.font = 'bold 12px "Press Start 2P"'; ctx.fillText('*', Math.cos(a) * 20, -104 + Math.sin(a) * 5); }
+    ctx.restore();
+    return;
+  }
+  if (c.finisher === 'slide') {
+    // Came down spinning and skidded along on his face: a long skid mark behind, his rear in the air
+    ctx.fillStyle = 'rgba(40, 14, 8, 0.85)'; ctx.fillRect(10, -5, Math.min(260, 40 + t * 6), 6);
+    ctx.fillStyle = '#6B0000'; ctx.fillRect(10, -3, Math.min(240, 30 + t * 5), 2);
+    ctx.save(); ctx.translate(-20, -12); ctx.rotate(0.35);
+    ctx.fillStyle = SHIRT; ctx.fillRect(-10, -18, 50, 24);
+    ctx.fillStyle = PANTS; ctx.fillRect(34, -34, 22, 26);
+    ctx.fillStyle = BOOT; ctx.fillRect(52, -46, 14, 14); ctx.fillRect(60, -40, 14, 12);
+    ctx.fillStyle = SKIN; ctx.beginPath(); ctx.arc(-18, 2, 12, 0, Math.PI * 2); ctx.fill(); // face in the dirt
+    ctx.restore();
+    for (let i = 0; i < 3; i++) { const k = ((f * 0.5 + i * 20) % 60) / 60; ctx.fillStyle = `rgba(120,113,108,${0.5 * (1 - k)})`; ctx.beginPath(); ctx.arc(-30 - k * 20, -10 - k * 20, 6 + k * 10, 0, Math.PI * 2); ctx.fill(); }
+    ctx.restore();
+    return;
+  }
   const w: WeaponType = c.weapon;
   switch (w) {
     case 'SHOTGUN':
