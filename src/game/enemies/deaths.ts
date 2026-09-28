@@ -67,6 +67,7 @@ const deathFacing = (state: GameState, e: Enemy): 1 | -1 => {
 
 export const startEnemyDeath = (state: GameState, e: Enemy, kind: EnemyDeathKind, vel?: Vector2) => {
   if (isMidBoss(e)) return; // (a mid-boss leaves its own corpse)
+  if (e.kind === 'tenant') return; // (a tenant always goes out of his window: the stage sees to it)
   state.enemyDeaths.push({
     kind,
     x: e.pos.x, y: e.pos.y, w: e.width, h: e.height,

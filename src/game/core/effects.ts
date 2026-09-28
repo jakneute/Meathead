@@ -210,8 +210,9 @@ export const createFx = (state: GameState) => {
 
   /** Standard non-boss kill: fling the body, spray gore, maybe drop loot, taunt. */
   const blowAwayEnemy = (e: Enemy, vel: Vector2, category: VulgarityType, showerDir: number = 0, showerMult: number = 1) => {
-    e.isBlownAway = true;
-    e.vel = vel;
+    // (a tenant always goes out of his window, however he's killed: the stage sees to it)
+    if (e.kind !== 'tenant') { e.isBlownAway = true; e.vel = vel; }
+    else e.health = Math.min(e.health, 0);
     spawnDeathShower(e.pos, showerDir, showerMult);
     spawnPickup(e.pos);
     speakVulgarity(category);

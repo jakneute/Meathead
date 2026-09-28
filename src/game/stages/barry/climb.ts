@@ -11,6 +11,7 @@ import type { Projectile } from '../../../types';
 import { makeKindEnemy } from '../../enemies/kinds';
 import { BOTTLE_GRAVITY, ENEMY_BULLET_DAMAGE, GROUND_Y } from '../../../constants';
 import { shakeScreen } from '../../core/state';
+import { rectsOverlap, boundsOf } from '../../core/utils';
 import { playSound } from '../../platform/audio';
 import { COURSE } from './course';
 
@@ -60,6 +61,9 @@ export const updateTenant = (ctx: FrameContext, e: Enemy): boolean => {
       if (e.aiTimer >= WIND + BACK) { e.aiState = 'hidden'; e.aiTimer = 0; e.pos = { x: hx, y: AWAY_Y }; }
       break;
   }
+  // Hit with a special move (a charge, an uppercut, a dive kick, a slide) while he's out of the window: out he goes
+  const hitting = p.isCharging || p.isUppercutting || p.isDivekicking || p.isSliding;
+  if (e.aiState !== 'hidden' && hitting && rectsOverlap(boundsOf(e), boundsOf(p))) e.health = 0;
   // (killed some other way than a shot: out he goes all the same)
   if (e.health <= 0) startFall(ctx, e);
   return true;
