@@ -313,12 +313,14 @@ const drawSpecialButton = (ctx: Ctx, x: number, y: number, pressed: boolean) => 
     };
     btn(x, y - 18, 'Y', '#CA8A04'); btn(x - 18, y, 'X', '#2563EB'); btn(x + 18, y, 'B', '#DC2626'); btn(x, y + 18, 'A', '#16A34A');
   } else {
-    const key = (kx: number, ky: number, label: string) => {
-      ctx.fillStyle = pressed ? '#9CA3AF' : '#E5E7EB'; ctx.strokeStyle = '#111827'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.roundRect(kx - 11, ky - 11 + bump, 22, 22, 4); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#111827'; ctx.font = 'bold 10px "Press Start 2P"'; ctx.fillText(label, kx + 1, ky + 1 + bump);
-    };
-    key(x, y - 12, 'W'); key(x - 24, y + 12, 'A'); key(x, y + 12, 'S'); key(x + 24, y + 12, 'D');
+    // A mouse, both buttons lit
+    ctx.fillStyle = '#E5E7EB'; ctx.strokeStyle = '#111827'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.roundRect(x - 16, y - 24 + bump, 32, 46, 14); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = pressed ? '#991B1B' : '#DC2626';
+    ctx.beginPath(); ctx.moveTo(x, y - 22 + bump); ctx.lineTo(x, y - 4 + bump); ctx.lineTo(x + 14, y - 4 + bump); ctx.quadraticCurveTo(x + 14, y - 22 + bump, x, y - 22 + bump); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x, y - 22 + bump); ctx.lineTo(x, y - 4 + bump); ctx.lineTo(x - 14, y - 4 + bump); ctx.quadraticCurveTo(x - 14, y - 22 + bump, x, y - 22 + bump); ctx.fill();
+    ctx.strokeStyle = '#111827'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y - 22 + bump); ctx.lineTo(x, y - 4 + bump); ctx.moveTo(x - 14, y - 4 + bump); ctx.lineTo(x + 14, y - 4 + bump); ctx.stroke();
+    ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.fillText('LEFT OR RIGHT CLICK', x, y + 34);
   }
   ctx.restore();
 };

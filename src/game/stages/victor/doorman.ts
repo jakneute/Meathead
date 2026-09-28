@@ -135,9 +135,8 @@ export const updateDoormanFight = (ctx: FrameContext, fight: DoormanFight, contr
   if (fight.phase === 'intro' || fight.phase === 'fight') state.cameraOverride = { x: a.x1 - 10, y: a.y - 550 };
   if (fight.phase === 'intro' && fight.t > 80) { fight.phase = 'fight'; if (fight.man) { fight.man.aiState = 'stalk'; fight.man.aiTimer = 0; } }
   // A clash: it takes the special button
-  // A clash takes any of them: W A S D, or A B X Y on a pad (right click too), whatever you're holding.
-  // (Each counts on its own, so mashing two in turn works.)
-  const keys: (keyof Controls)[] = ['up', 'left', 'down', 'right', 'jump', 'special', 'shoot'];
+  // A clash takes either mouse button, or any of A B X Y on a pad (each counts on its own, so mashing two in turn works)
+  const keys: (keyof Controls)[] = ['jump', 'special', 'shoot'];
   const pressed = keys.some(k => controls[k] && !fight.buttonsWas[k]);
   for (const k of ['up', 'left', 'down', 'right', 'special', 'jump', 'shoot'] as (keyof Controls)[]) fight.buttonsWas[k] = controls[k];
   // Thrown clean across the club
