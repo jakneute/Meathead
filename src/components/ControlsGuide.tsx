@@ -13,7 +13,7 @@ const BASICS: [action: string, keys: string, pad: string][] = [
 ];
 
 const SPECIALS: [move: string, how: string][] = [
-  ['SHOULDER CHARGE', 'SPECIAL'],
+  ['SHOULDER CHARGE', 'SPECIAL / SHIFT'],
   ['SLIDE TACKLE', 'CROUCH + SPECIAL / C'],
   ['UPPERCUT', 'UP + SPECIAL / E'],
   ['DIVE KICK', 'DOWN + SPECIAL IN AIR / C'],
