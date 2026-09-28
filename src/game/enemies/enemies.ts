@@ -555,6 +555,8 @@ const resolveOiledSlideCollision = (ctx: FrameContext, e: Enemy, enemies: Enemy[
 const getMeleeKillCallout = (player: Player, wasFrozen: boolean): KillCallout => {
   if (wasFrozen) return 'shatter';
   if (player.jetski) return player.isUppercutting ? 'skileap' : 'wheelie';
+  if (player.swimming && player.isCharging) return 'swim';
+  if (player.bike && player.isCharging) return 'bike';
   if (player.isUppercutting) return 'uppercut';
   if (player.isCharging) return player.isSliding ? 'slide' : 'charge';
   return 'shield';

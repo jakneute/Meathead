@@ -758,7 +758,9 @@ export type KillCallout =
   | 'moon' | 'cliff' | 'yeet'
   | 'charred' | 'melted' | 'greased' | 'contact' | 'pulverized' | 'cooked'
   // On the jet ski
-  | 'wheelie' | 'skileap' | 'skidive' | 'shipwreck';
+  | 'wheelie' | 'skileap' | 'skidive' | 'shipwreck'
+  // Swimming (a lunge through the water), and on the bike (a wheelie)
+  | 'swim' | 'bike';
 
 /** Callout text (one picked at random) and colour for each special kill. */
 export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string }> = {
@@ -778,6 +780,8 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
   skileap:   { lines: ["CLIPPED!","SHOT DOWN!", "GROUNDED FOREVER!", "BIRDIE!", "MAN OVERBOARD!"], color: '#7DD3FC' },
   skidive:   { lines: ["SUNK!", "CAPSIZED!", "SEA-DOO'D!", "TORPEDOED!", "DAVY JONES!"], color: '#0EA5E9' },
   shipwreck: { lines: ["SHIPWRECKED!", "WRECKED!", "ICEBERG'D!", "RUN AGROUND!"], color: '#F97316' },
+  swim:      { lines: ["FILLETED!", "SUSHI!", "FISH STICKS!", "CATCH OF THE DAY!", "SLEEPS WITH THE FISHES!", "BELLY UP!"], color: '#22D3EE' },
+  bike:      { lines: ["RUN DOWN!", "TIRE TRACKS!", "BIKE LANE!", "PEDAL TO THE METAL!", "HANDLEBARRED!"], color: '#F87171' },
   wallsplat:   { lines: ["WALL SPLAT!", "SPLATTERED!", "REDECORATED!"], color: '#DC2626' },
   groundsplat: { lines: ["FACEPLANT!", "GROUNDED!", "KISSED CONCRETE!"], color: '#F97316' },
   flattened:   { lines: ["ROLLED!", "ROADKILL!", "PAVED!"], color: '#A16207' },
