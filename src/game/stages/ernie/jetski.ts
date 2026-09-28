@@ -68,19 +68,27 @@ const HIPSTER_VOICE: Voice = { pitch: 1.4, rate: 1.1 };
 
 /** What comes at you, when (frames into the run), and from where. */
 type Wave = { at: number; kind: EnemyKind; from: 'behind' | 'ahead' | 'air'; variant?: number };
+// (one thing at a time to learn on early, picking up through the middle, a steady stream at the end: something new every 2 to 3 seconds for the last 20)
 const TIMELINE: Wave[] = [
   { at: 150, kind: 'seagull', from: 'air' },
   { at: 260, kind: 'jetskier', from: 'behind', variant: 0 },
   { at: 700, kind: 'jetskier', from: 'ahead', variant: 1 },
   { at: 1150, kind: 'drone', from: 'air' },
+  { at: 1450, kind: 'seagull', from: 'air' },
   { at: 1600, kind: 'jetskier', from: 'behind', variant: 0 },
   { at: 1950, kind: 'seagull', from: 'air' },
-  { at: 2150, kind: 'jetskier', from: 'ahead', variant: 1 },
-  { at: 2450, kind: 'drone', from: 'air' },
-  { at: 2750, kind: 'jetskier', from: 'behind', variant: 0 },
-  { at: 3050, kind: 'drone', from: 'air' },
-  { at: 3150, kind: 'seagull', from: 'air' },
-  { at: 3350, kind: 'jetskier', from: 'ahead', variant: 1 },
+  { at: 2100, kind: 'jetskier', from: 'ahead', variant: 1 },
+  { at: 2350, kind: 'drone', from: 'air' },
+  { at: 2550, kind: 'jetskier', from: 'behind', variant: 0 },
+  { at: 2750, kind: 'seagull', from: 'air' },
+  { at: 2850, kind: 'jetskier', from: 'ahead', variant: 1 },
+  { at: 3000, kind: 'drone', from: 'air' },
+  { at: 3150, kind: 'jetskier', from: 'behind', variant: 0 },
+  { at: 3300, kind: 'seagull', from: 'air' },
+  { at: 3400, kind: 'jetskier', from: 'ahead', variant: 1 },
+  { at: 3500, kind: 'drone', from: 'air' },
+  { at: 3600, kind: 'jetskier', from: 'behind', variant: 0 },
+  { at: 3700, kind: 'seagull', from: 'air' },
 ];
 
 export const createJetSki = (state: GameState, startedAt: number): JetSki => {
