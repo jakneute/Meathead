@@ -4,7 +4,7 @@
 // The goons are Artie's cryo-cult: white parkas with fur hoods, mirrored ice-blue
 // goggles and a snowflake patch on the arm.
 
-import { Enemy } from '../../types';
+import { Enemy, EnemyKind } from '../../types';
 import type { GameState } from '../state';
 
 type Ctx = CanvasRenderingContext2D;
@@ -13,12 +13,32 @@ const PARKA = '#E4EDF7', PARKA_SHADE = '#B8C9DD', PARKA_DARK = '#8FA3BC', FUR = 
 const GOGGLE = '#38BDF8', GOGGLE_GLINT = '#E0F2FE', BALACLAVA = '#1F2937', PANTS = '#334155', BOOT = '#111827';
 
 export const drawKindEnemy = (ctx: Ctx, e: Enemy, state: GameState) => {
-  const facing = kindFacing(e, state);
+  // (a per-enemy offset so they don't all animate in step; kept positive, since this stage's x runs negative)
+  drawKindPose(ctx, e, kindFacing(e, state), state.frame + (Math.abs(Math.round(e.homeX || 0)) % 997), state);
+};
+
+/**
+ * A themed enemy's body standing still, for its death animation (the caller
+ * squashes, tints, clips or spins it). (x, y, w, h) is the box it died in.
+ */
+export const drawKindCorpse = (ctx: Ctx, kind: EnemyKind, x: number, y: number, w: number, h: number, facing: 1 | -1, phase: number, state: GameState) => {
+  const still = {
+    kind, pos: { x, y }, width: w, height: h, vel: { x: 0, y: 0 }, facing, homeX: phase,
+    aiState: 'recover', aiTimer: 0, shootTimer: 0, isShieldActive: false, health: 1, maxHealth: 1,
+  } as unknown as Enemy;
+  drawKindPose(ctx, still, facing, phase, state);
+};
+
+/** Where a themed enemy's head is, from its feet, facing right (for the eyes and skull in death animations). */
+export const KIND_HEAD: Record<EnemyKind, { x: number; y: number; r: number }> = {
+  wolverine: { x: 20, y: -18, r: 7 }, goat: { x: 24, y: -38, r: 8 }, eagle: { x: 18, y: -16, r: 6 },
+  shooter: { x: 0, y: -54, r: 8 }, charger: { x: 0, y: -60, r: 9 }, shielder: { x: 0, y: -60, r: 8 }, moose: { x: 60, y: -80, r: 14 },
+};
+
+const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: GameState) => {
   ctx.save();
   ctx.translate(e.pos.x + e.width / 2, e.pos.y + e.height);
   ctx.scale(facing, 1);
-  // (a per-enemy offset so they don't all animate in step; kept positive, since this stage's x runs negative)
-  const f = state.frame + (Math.abs(Math.round(e.homeX || 0)) % 997);
   switch (e.kind) {
     case 'wolverine': drawWolverine(ctx, e, f); break;
     case 'goat': drawGoat(ctx, e, f); break;

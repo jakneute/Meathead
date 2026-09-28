@@ -2,6 +2,7 @@
 
 import { GameState } from '../state';
 import { EnemyDeath, DEATH_FRAMES } from '../enemyDeaths';
+import { drawKindCorpse, KIND_HEAD } from './kinds';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -21,24 +22,49 @@ export const drawEnemyDeaths = (ctx: Ctx, state: GameState) => {
   for (const d of state.enemyDeaths) {
     ctx.save();
     switch (d.kind) {
-      case 'charred': drawCharred(ctx, d, state.frame); break;
-      case 'fried': drawFried(ctx, d, state.frame); break;
-      case 'melted': drawMelted(ctx, d, state.frame); break;
-      case 'greased': drawGreased(ctx, d, state.frame); break;
-      case 'pancaked': drawPancaked(ctx, d); break;
+      case 'charred': drawCharred(ctx, d, state.frame, state); break;
+      case 'fried': drawFried(ctx, d, state.frame, state); break;
+      case 'melted': drawMelted(ctx, d, state.frame, state); break;
+      case 'greased': drawGreased(ctx, d, state.frame, state); break;
+      case 'pancaked': drawPancaked(ctx, d, state); break;
     }
     ctx.restore();
   }
 };
 
+/**
+ * What died, drawn as itself: a themed enemy's own sprite (squashed, tinted or
+ * clipped as the animation wants), anything else as its coloured block.
+ * Scaling is about the middle of its feet.
+ */
+const drawBody = (ctx: Ctx, d: EnemyDeath, state: GameState, o: { filter?: string; sx?: number; sy?: number; clipFromY?: number } = {}) => {
+  const { x, y, w, h } = d;
+  ctx.save();
+  if (o.clipFromY !== undefined) { ctx.beginPath(); ctx.rect(x - w, o.clipFromY, w * 3, y + h - o.clipFromY + 4); ctx.clip(); }
+  const fx = x + w / 2, fy = y + h;
+  ctx.translate(fx, fy); ctx.scale(o.sx ?? 1, o.sy ?? 1); ctx.translate(-fx, -fy);
+  if (o.filter) ctx.filter = o.filter;
+  if (d.sprite) drawKindCorpse(ctx, d.sprite.kind, x, y, w, h, d.sprite.facing, d.sprite.phase, state);
+  else { ctx.fillStyle = d.color; ctx.fillRect(x, y, w, h); }
+  ctx.restore();
+};
+
+/** Where its eyes are (world coords): on a themed enemy's head, else near the top of the block. */
+const eyesAt = (d: EnemyDeath, dy = 0) => {
+  if (!d.sprite) return { x1: d.x + d.w * 0.3 - 3, x2: d.x + d.w * 0.62 - 2, y: d.y + Math.min(d.h * 0.3, 18) + dy };
+  const head = KIND_HEAD[d.sprite.kind], cx = d.x + d.w / 2 + head.x * d.sprite.facing;
+  return { x1: cx - 6, x2: cx + 2, y: d.y + d.h + head.y - 2 + dy };
+};
+
 /** Burns black in the flames, blinks its eyes once (classic cartoon), then crumbles to ash. */
-const drawCharred = (ctx: Ctx, d: EnemyDeath, frame: number) => {
+const drawCharred = (ctx: Ctx, d: EnemyDeath, frame: number, state: GameState) => {
   const { x, y, w, h, t } = d;
   const crumble = clamp01((t - 55) / 25);
   const standingH = h * (1 - crumble);
   if (standingH > 1) {
-    ctx.fillStyle = mix(d.color, '#1C1917', t / 18);
-    ctx.fillRect(x, y + h - standingH, w, standingH);
+    const burnt = clamp01(t / 18);
+    if (d.sprite) drawBody(ctx, d, state, { filter: `brightness(${1 - burnt * 0.88}) saturate(${1 - burnt})`, clipFromY: y + h - standingH });
+    else { ctx.fillStyle = mix(d.color, '#1C1917', burnt); ctx.fillRect(x, y + h - standingH, w, standingH); }
     // Glowing cracks
     if (t > 12) {
       ctx.strokeStyle = `rgba(249, 115, 22, ${0.5 + 0.4 * Math.sin(frame * 0.4)})`;
@@ -52,13 +78,13 @@ const drawCharred = (ctx: Ctx, d: EnemyDeath, frame: number) => {
     }
     // Two white eyes blinking in the soot
     if (t > 22 && t < 55 && !(t > 36 && t < 40)) {
+      const e = eyesAt(d);
       ctx.fillStyle = '#FFFFFF';
-      const ey = y + Math.min(h * 0.3, 18);
-      ctx.fillRect(x + w * 0.3 - 3, ey, 5, 5);
-      ctx.fillRect(x + w * 0.62 - 2, ey, 5, 5);
+      ctx.fillRect(e.x1, e.y, 5, 5);
+      ctx.fillRect(e.x2, e.y, 5, 5);
       ctx.fillStyle = '#000000';
-      ctx.fillRect(x + w * 0.3 - 1, ey + 2, 2, 2);
-      ctx.fillRect(x + w * 0.62, ey + 2, 2, 2);
+      ctx.fillRect(e.x1 + 2, e.y + 2, 2, 2);
+      ctx.fillRect(e.x2 + 2, e.y + 2, 2, 2);
     }
   }
   // Flames licking up while it burns
@@ -81,14 +107,19 @@ const drawCharred = (ctx: Ctx, d: EnemyDeath, frame: number) => {
 };
 
 /** Electrocuted: flashing between its body and an X-ray skeleton, then a smoking heap. */
-const drawFried = (ctx: Ctx, d: EnemyDeath, frame: number) => {
+const drawFried = (ctx: Ctx, d: EnemyDeath, frame: number, state: GameState) => {
   const { x, y, w, h, t } = d;
   if (t < 40) {
     ctx.translate((frame % 2 ? 2 : -2), (frame % 3 ? 1 : -1));
     const xray = frame % 6 < 3;
-    ctx.fillStyle = xray ? '#0891B2' : d.color;
-    ctx.fillRect(x, y, w, h);
-    if (xray) {
+    if (d.sprite) {
+      drawBody(ctx, d, state, xray ? { filter: 'brightness(0.45) sepia(1) hue-rotate(150deg) saturate(5)' } : {});
+      if (xray) drawKindSkeleton(ctx, d);
+    } else {
+      ctx.fillStyle = xray ? '#0891B2' : d.color;
+      ctx.fillRect(x, y, w, h);
+    }
+    if (xray && !d.sprite) {
       ctx.strokeStyle = '#FFFFFF';
       ctx.fillStyle = '#FFFFFF';
       ctx.lineWidth = 2.5;
@@ -122,6 +153,24 @@ const drawFried = (ctx: Ctx, d: EnemyDeath, frame: number) => {
     ctx.stroke();
     return;
   }
+  // Keeled over, cooked black and smoking: a person flat on their back, an animal legs-up
+  if (d.sprite) {
+    ctx.globalAlpha = fadeOut(d, 15);
+    const k = clamp01((t - 40) / 6);
+    const humanoid = d.sprite.kind === 'shooter' || d.sprite.kind === 'charger' || d.sprite.kind === 'shielder';
+    const fx = x + w / 2, fy = y + h;
+    ctx.save();
+    if (humanoid) {
+      // Toppled backwards about the heels
+      ctx.translate(fx, fy - 2); ctx.rotate(-d.sprite.facing * (Math.PI / 2) * k); ctx.translate(-fx, -(fy - 2));
+    } else {
+      // Rolled over: flipped upside down, lying on its back
+      ctx.translate(fx, fy - h / 2); ctx.scale(1, 1 - 2 * k); ctx.translate(-fx, -(fy - h / 2));
+    }
+    drawBody(ctx, d, state, { filter: 'brightness(0.18) saturate(0)' });
+    ctx.restore();
+    return;
+  }
   // Collapsed into a smoking black heap
   const k = clamp01((t - 40) / 8);
   const heapH = h * (1 - k) + 12 * k;
@@ -133,8 +182,54 @@ const drawFried = (ctx: Ctx, d: EnemyDeath, frame: number) => {
   ctx.fillRect(x + w * 0.55, y + h - heapH + 3, 3, 3);
 };
 
+/** A themed enemy's skeleton, glowing white through the x-ray flash: four-legged, bird or human. */
+const drawKindSkeleton = (ctx: Ctx, d: EnemyDeath) => {
+  const s = d.sprite!;
+  const head = KIND_HEAD[s.kind];
+  ctx.save();
+  ctx.translate(d.x + d.w / 2, d.y + d.h);
+  ctx.scale(s.facing, 1);
+  ctx.strokeStyle = '#FFFFFF'; ctx.fillStyle = '#FFFFFF'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+  const w = d.w, h = d.h;
+  // Skull, with dark sockets
+  ctx.beginPath(); ctx.arc(head.x, head.y, head.r, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#0E7490';
+  ctx.fillRect(head.x + head.r * 0.1, head.y - head.r * 0.35, head.r * 0.45, head.r * 0.45);
+  ctx.fillRect(head.x - head.r * 0.6, head.y - head.r * 0.35, head.r * 0.45, head.r * 0.45);
+  ctx.beginPath();
+  if (s.kind === 'wolverine' || s.kind === 'goat') {
+    // Four legs, a spine along the back, ribs hanging off it, a tail
+    const back = -h * 0.62, hipX = -w * 0.38, shoulderX = w * 0.25;
+    ctx.moveTo(hipX - 8, back + 2); ctx.lineTo(shoulderX, back); ctx.lineTo(head.x - head.r * 0.8, head.y + 2);
+    for (let i = 0; i < 4; i++) { const rx = hipX + 10 + i * (shoulderX - hipX - 10) / 4; ctx.moveTo(rx, back); ctx.lineTo(rx + 1, back + h * 0.28); }
+    for (const lx of [hipX, hipX + 8, shoulderX - 6, shoulderX]) { ctx.moveTo(lx, back); ctx.lineTo(lx + 2, -h * 0.25); ctx.lineTo(lx - 1, -1); }
+    ctx.moveTo(hipX - 8, back + 2); ctx.lineTo(hipX - 20, back - (s.kind === 'goat' ? 6 : -4));
+    if (s.kind === 'goat') { ctx.moveTo(head.x - 2, head.y - head.r); ctx.quadraticCurveTo(head.x - 12, head.y - head.r - 12, head.x - 16, head.y - 2); }
+  } else if (s.kind === 'eagle') {
+    // Wings spread wide, a short spine, a fan of tail bones, hooked beak
+    const cy = -h * 0.5;
+    ctx.moveTo(head.x - head.r, head.y + 2); ctx.lineTo(-w * 0.35, cy);
+    ctx.moveTo(0, cy); ctx.lineTo(-w * 0.2, cy - h * 0.9); ctx.lineTo(-w * 0.55, cy - h * 1.1);
+    ctx.moveTo(0, cy); ctx.lineTo(-w * 0.15, cy + h * 0.5);
+    for (const a of [-0.3, 0, 0.3]) { ctx.moveTo(-w * 0.35, cy); ctx.lineTo(-w * 0.35 - Math.cos(a) * 12, cy + Math.sin(a) * 12); }
+    ctx.moveTo(head.x + head.r, head.y); ctx.lineTo(head.x + head.r + 6, head.y + 4);
+  } else {
+    // A person: spine, ribs, pelvis, arms, legs
+    const neck = head.y + head.r, hip = -h * 0.32;
+    ctx.moveTo(0, neck); ctx.lineTo(0, hip);
+    for (let i = 0; i < 3; i++) { const ry = neck + 5 + i * (hip - neck - 6) / 3; ctx.moveTo(-w * 0.28, ry); ctx.lineTo(w * 0.28, ry); }
+    ctx.moveTo(-w * 0.2, hip); ctx.lineTo(w * 0.2, hip);
+    ctx.moveTo(-w * 0.15, hip); ctx.lineTo(-w * 0.2, -2);
+    ctx.moveTo(w * 0.15, hip); ctx.lineTo(w * 0.2, -2);
+    ctx.moveTo(-w * 0.28, neck + 4); ctx.lineTo(-w * 0.45, neck + 22);
+    ctx.moveTo(w * 0.28, neck + 4); ctx.lineTo(w * 0.5, neck + 18);
+  }
+  ctx.stroke();
+  ctx.restore();
+};
+
 /** Slumps down into a bubbling green puddle, its eyes the last thing to sink. */
-const drawMelted = (ctx: Ctx, d: EnemyDeath, frame: number) => {
+const drawMelted = (ctx: Ctx, d: EnemyDeath, frame: number, state: GameState) => {
   const { x, y, w, h, t } = d;
   const p = clamp01(t / 60);
   const bodyH = Math.max(6, h * (1 - p));
@@ -145,8 +240,11 @@ const drawMelted = (ctx: Ctx, d: EnemyDeath, frame: number) => {
   ctx.fillStyle = '#4D7C0F';
   ctx.beginPath(); ctx.ellipse(x + w / 2, y + h - 2, bodyW * 0.7 + 6, 5 + p * 4, 0, 0, Math.PI * 2); ctx.fill();
   // The slumping body, going green
-  ctx.fillStyle = mix(d.color, '#65A30D', p * 1.3);
-  ctx.beginPath(); ctx.roundRect(bx, by, bodyW, bodyH, [Math.min(12, bodyH / 2) * p + 2, Math.min(12, bodyH / 2) * p + 2, 2, 2]); ctx.fill();
+  if (d.sprite) drawBody(ctx, d, state, { sx: bodyW / w, sy: bodyH / h, filter: `grayscale(${Math.min(1, p * 2)}) sepia(${Math.min(1, p * 2)}) hue-rotate(${50 * p}deg) saturate(${1 + p * 4})` });
+  else {
+    ctx.fillStyle = mix(d.color, '#65A30D', p * 1.3);
+    ctx.beginPath(); ctx.roundRect(bx, by, bodyW, bodyH, [Math.min(12, bodyH / 2) * p + 2, Math.min(12, bodyH / 2) * p + 2, 2, 2]); ctx.fill();
+  }
   // Drips running down it
   ctx.fillStyle = '#84CC16';
   for (let i = 0; i < 4; i++) {
@@ -164,7 +262,7 @@ const drawMelted = (ctx: Ctx, d: EnemyDeath, frame: number) => {
   }
   // Eyes sinking into the goo
   if (t < 85) {
-    const ey = by + Math.min(bodyH * 0.35, 12);
+    const ey = d.sprite ? Math.max(by + 2, eyesAt(d).y * (1 - p) + (y + h - 6) * p) : by + Math.min(bodyH * 0.35, 12);
     ctx.fillStyle = '#FFFFFF';
     ctx.beginPath(); ctx.arc(x + w / 2 - 6, ey, 3.5, 0, Math.PI * 2); ctx.arc(x + w / 2 + 6, ey + 1, 3.5, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#000000';
@@ -174,15 +272,16 @@ const drawMelted = (ctx: Ctx, d: EnemyDeath, frame: number) => {
 };
 
 /** Flung off black and glistening, then splatted flat in its own oil slick. */
-const drawGreased = (ctx: Ctx, d: EnemyDeath, frame: number) => {
+const drawGreased = (ctx: Ctx, d: EnemyDeath, frame: number, state: GameState) => {
   const { x, y, w, h } = d;
   if (!d.landed) {
     ctx.translate(x + w / 2, y + h / 2);
     ctx.rotate(d.rot);
-    ctx.fillStyle = '#0A0A0A';
-    ctx.fillRect(-w / 2, -h / 2, w, h);
+    ctx.translate(-(x + w / 2), -(y + h / 2));
+    if (d.sprite) drawBody(ctx, d, state, { filter: 'brightness(0.14) contrast(1.4)' });
+    else { ctx.fillStyle = '#0A0A0A'; ctx.fillRect(x, y, w, h); }
     ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-    ctx.fillRect(-w / 2 + 4, -h / 2 + 3, 4, h - 6);
+    ctx.fillRect(x + 4, y + 3, 4, h - 6);
     return;
   }
   ctx.globalAlpha = fadeOut(d, 40);
@@ -202,7 +301,7 @@ const drawGreased = (ctx: Ctx, d: EnemyDeath, frame: number) => {
 };
 
 /** Flattened like a pancake on the floor, gore squeezed out the sides. */
-const drawPancaked = (ctx: Ctx, d: EnemyDeath) => {
+const drawPancaked = (ctx: Ctx, d: EnemyDeath, state: GameState) => {
   const { x, y, w, h } = d;
   ctx.globalAlpha = fadeOut(d, 30);
   const cx = x + w / 2, fy = y + h;
@@ -210,8 +309,11 @@ const drawPancaked = (ctx: Ctx, d: EnemyDeath) => {
   ctx.beginPath(); ctx.ellipse(cx, fy - 2, w * 1.05, 6, 0, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#B91C1C';
   ctx.beginPath(); ctx.ellipse(cx - w * 0.7, fy - 2, 6, 3, 0, 0, Math.PI * 2); ctx.ellipse(cx + w * 0.75, fy - 2, 5, 2.5, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = d.color;
-  ctx.fillRect(cx - w * 0.75, fy - 7, w * 1.5, 6);
+  if (d.sprite) drawBody(ctx, d, state, { sx: 1.5, sy: 7 / h });
+  else {
+    ctx.fillStyle = d.color;
+    ctx.fillRect(cx - w * 0.75, fy - 7, w * 1.5, 6);
+  }
   ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
   ctx.fillRect(cx - w * 0.75, fy - 3, w * 1.5, 2);
   // X'd-out eyes

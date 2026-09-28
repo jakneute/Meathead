@@ -6,7 +6,7 @@
 //   pancaked  (boulder): flattened on the floor
 // The enemy itself is removed; one of these plays in its place.
 
-import { Enemy, Vector2 } from '../types';
+import { Enemy, EnemyKind, Vector2 } from '../types';
 import { COLORS, GRAVITY } from '../constants';
 import type { GameState } from './state';
 import { floorTopAt } from './terrain';
@@ -24,6 +24,8 @@ export interface EnemyDeath {
   floorY: number;
   landed: boolean;
   isShield: boolean;
+  /** A themed enemy (Artie's wildlife and goons) dies as itself, not as a coloured block. */
+  sprite?: { kind: EnemyKind; facing: 1 | -1; phase: number };
 }
 
 export const DEATH_FRAMES: Record<EnemyDeathKind, number> = {
@@ -47,6 +49,12 @@ export const enemyBodyColor = (e: { id: string, enemyType?: string, width: numbe
   return COLORS.ENEMY_TANK;
 };
 
+/** Which way a themed enemy was facing as it died (wildlife the way it was going, goons toward him). */
+const deathFacing = (state: GameState, e: Enemy): 1 | -1 => {
+  if (e.kind === 'wolverine' || e.kind === 'goat' || e.kind === 'eagle' || e.kind === 'shielder') return e.facing === 1 ? 1 : -1;
+  return state.player.pos.x + state.player.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;
+};
+
 export const startEnemyDeath = (state: GameState, e: Enemy, kind: EnemyDeathKind, vel?: Vector2) => {
   if (e.kind === 'moose') return; // (a mid-boss leaves its own corpse)
   state.enemyDeaths.push({
@@ -60,12 +68,19 @@ export const startEnemyDeath = (state: GameState, e: Enemy, kind: EnemyDeathKind
     floorY: floorTopAt(state.blocks, e.pos.x + e.width / 2, e.pos.y + e.height) ?? FLOOR_Y,
     landed: false,
     isShield: e.enemyType === 'shield',
+    sprite: e.kind ? { kind: e.kind, facing: deathFacing(state, e), phase: Math.abs(Math.round(e.homeX || 0)) % 997 } : undefined,
   });
 };
 
 /** Advances every death animation, with the smoke, sparks and bubbles that go with them. */
 export const updateEnemyDeaths = (state: GameState) => {
   state.enemyDeaths = state.enemyDeaths.filter(d => {
+    // Killed in mid-air (an eagle burnt, fried or melted on the wing): it drops to the ground first, then plays out
+    if (d.kind !== 'greased' && !d.landed && d.y + d.h < d.floorY - 1) {
+      d.vy = Math.min(14, Math.max(0, d.vy) + GRAVITY * 0.8);
+      d.y = Math.min(d.floorY - d.h, d.y + d.vy);
+      return d.y < d.floorY + 1000;
+    }
     d.t++;
     const cx = d.x + d.w / 2;
     switch (d.kind) {
