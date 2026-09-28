@@ -72,7 +72,7 @@ const hurt = (ctx: FrameContext, hz: Hazards, dmg: number, cause: string, kb: { 
 const burnEnemy = (ctx: FrameContext, e: Enemy, dmg: number) => {
   e.health -= dmg;
   ctx.fx.spawnDamageNumber(e.pos, dmg, dmg >= 50);
-  if (e.health <= 0) ctx.fx.killWithAnimation(e, 'charred', 'flamethrower_kill', 'fried');
+  if (e.health <= 0) ctx.fx.killWithAnimation(e, 'charred', 'flamethrower_kill', 'cooked');
 };
 
 /** Enemies that can be caught (not the doorman, not a fish under the lava, only on screen). */
@@ -106,10 +106,9 @@ const updateLava = (ctx: FrameContext, hz: Hazards) => {
     p.vel.y = -LAVA_LAUNCH;
     p.isGrounded = false;
     p.isCharging = false; p.isSliding = false;
-    // (every dip burns, even straight after the last one: no hopping across the lava on the back of one hit)
-    if (state.frame - hz.lavaAt > 24) {
+    // (still flashing from a hit: it bounces you all the same, but it doesn't burn)
+    if (p.invincibilityTimer <= 0) {
       hz.lavaAt = state.frame;
-      p.invincibilityTimer = 0;
       hz.lastCause = 'lava'; hz.lastCauseAt = state.frame;
       hurtPlayer(ctx, LAVA_DAMAGE, 'lava', { x: p.vel.x * 0.5, y: -LAVA_LAUNCH });
       ctx.fx.spawnDamageNumber({ x: cx - 30, y: p.pos.y - 20 }, 'HOT FOOT!', true, '#F97316');
@@ -124,7 +123,7 @@ const updateLava = (ctx: FrameContext, hz: Hazards) => {
     const s = lavaAt(state, e.pos.x + e.width / 2);
     if (s !== null && e.pos.y + e.height >= s - 2) {
       e.health = 0;
-      ctx.fx.killWithAnimation(e, 'charred', 'flamethrower_kill', 'fried');
+      ctx.fx.killWithAnimation(e, 'charred', 'flamethrower_kill', 'cooked');
     }
   }
 };
@@ -156,11 +155,17 @@ const updateBombs = (ctx: FrameContext, hz: Hazards) => {
     if (px < z.x1 - 200 || px > z.x2) return;
     if (--hz.bombTimers[i] > 0) return;
     hz.bombTimers[i] = z.every + Math.floor(Math.random() * 50);
-    // Aimed: where he's headed; the lesson ones land well out ahead of him
-    const x = z.aimed ? px + p.vel.x * 25 + (Math.random() - 0.5) * 80 : px + 240 + Math.random() * 160;
-    const ground = groundAt(state, x);
-    if (ground === null || lavaAt(state, x) !== null) return;
-    hz.bombs.push({ x, ground, t: 0 });
+    // Aimed: where he's headed; the lesson ones land well out ahead of him. Either way, not on top of
+    // one of Victor's own lot (a few tries at a clear spot, or it holds off)
+    const clear = (x: number) => !state.enemies.some(e => e.health > 0 && !e.isBlownAway && e.kind !== 'magmafish' && Math.abs(e.pos.x + e.width / 2 - x) < BOMB_RADIUS + e.width / 2 + 30);
+    for (let tries = 0; tries < 5; tries++) {
+      const spread = tries * 70 * (tries % 2 ? 1 : -1);
+      const x = (z.aimed ? px + p.vel.x * 25 + (Math.random() - 0.5) * 80 : px + 240 + Math.random() * 160) + spread;
+      const ground = groundAt(state, x);
+      if (ground === null || lavaAt(state, x) !== null || !clear(x)) continue;
+      hz.bombs.push({ x, ground, t: 0 });
+      break;
+    }
   });
   hz.bombs = hz.bombs.filter(b => {
     b.t++;

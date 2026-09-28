@@ -23,7 +23,7 @@ import type { Block, Enemy, Projectile, WeaponType } from '../../../types';
 import type { FrameContext } from '../../context';
 import type { GameState } from '../../state';
 import type { Controls } from '../../input';
-import { NO_CONTROLS } from '../../input';
+import { NO_CONTROLS, getLastInputDevice } from '../../input';
 import { shakeScreen } from '../../state';
 import { rectsOverlap, boundsOf } from '../../utils';
 import { hurtPlayer } from '../../bosses/shared';
@@ -56,8 +56,8 @@ export interface DoormanFight {
   corpse: DoormanCorpse | null;
   hpFlash: number;
   clash: Clash | null;
-  /** The special button last frame (to catch presses). */
-  specialWas: boolean;
+  /** The clash buttons as they were last frame (to catch presses). */
+  buttonsWas: Record<string, boolean>;
   /** A breather after any collision with him, so one bump isn't counted twice. */
   touchCd: number;
   /** What he's saying (only while it's being said), and a pause before the next line. */
@@ -81,7 +81,7 @@ export const createDoormanFight = (state: GameState, startedAt: number): Doorman
   const a = arena();
   const dead = startedAt > CP.CLUB;
   return {
-    phase: dead ? 'dead' : 'waiting', t: 0, man: null, hpFlash: 0, clash: null, specialWas: false, touchCd: 0,
+    phase: dead ? 'dead' : 'waiting', t: 0, man: null, hpFlash: 0, clash: null, buttonsWas: {}, touchCd: 0,
     line: '', lineT: 0, talkCd: 60, lastCall: '', zoom: 0, zoomAt: { x: 0, y: 0 }, clashT: 0, thrown: null,
     walls: [
       { x: a.x1 - 40, y: a.y - 900, w: 40, h: 900, type: 'wall', hidden: true, tag: 'club-wall' },
@@ -135,9 +135,11 @@ export const updateDoormanFight = (ctx: FrameContext, fight: DoormanFight, contr
   if (fight.phase === 'intro' || fight.phase === 'fight') state.cameraOverride = { x: a.x1 - 10, y: a.y - 550 };
   if (fight.phase === 'intro' && fight.t > 80) { fight.phase = 'fight'; if (fight.man) { fight.man.aiState = 'stalk'; fight.man.aiTimer = 0; } }
   // A clash: it takes the special button
-  const special = controls.special;
-  const pressed = special && !fight.specialWas;
-  fight.specialWas = special;
+  // A clash takes any of the buttons: W A S D (and right click) on a keyboard and mouse, A B X Y on a pad.
+  // (Each counts on its own, so mashing two in turn works.)
+  const keys: (keyof Controls)[] = getLastInputDevice() === 'gamepad' ? ['jump', 'special', 'shoot'] : ['up', 'left', 'down', 'right', 'special'];
+  const pressed = keys.some(k => controls[k] && !fight.buttonsWas[k]);
+  for (const k of ['up', 'left', 'down', 'right', 'special', 'jump', 'shoot'] as (keyof Controls)[]) fight.buttonsWas[k] = controls[k];
   // Thrown clean across the club
   if (fight.thrown) {
     player.vel.x = fight.thrown.vx;

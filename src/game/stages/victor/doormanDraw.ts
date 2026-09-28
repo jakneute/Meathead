@@ -300,22 +300,25 @@ export const drawDoormanHud = (ctx: Ctx, state: GameState, fight: DoormanFight) 
   if (fight.clash) drawClash(ctx, state, fight);
 };
 
-/** The special button, for the last thing the player used: a pad's B, or a mouse's right button. */
+/** The clash buttons, for the last thing the player used: a pad's A B X Y diamond, or the W A S D keys. They flash when pressed. */
 const drawSpecialButton = (ctx: Ctx, x: number, y: number, pressed: boolean) => {
   ctx.save();
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const bump = pressed ? 2 : 0;
   if (getLastInputDevice() === 'gamepad') {
-    ctx.fillStyle = pressed ? '#991B1B' : '#DC2626'; ctx.strokeStyle = '#FEE2E2'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(x, y + (pressed ? 2 : 0), 20, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 18px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('B', x + 1, y + 2 + (pressed ? 2 : 0));
+    const btn = (bx: number, by: number, label: string, color: string) => {
+      ctx.fillStyle = color; ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(bx, by + bump, 11, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 10px "Press Start 2P"'; ctx.fillText(label, bx + 1, by + 1 + bump);
+    };
+    btn(x, y - 18, 'Y', '#CA8A04'); btn(x - 18, y, 'X', '#2563EB'); btn(x + 18, y, 'B', '#DC2626'); btn(x, y + 18, 'A', '#16A34A');
   } else {
-    // A mouse, its right button lit
-    ctx.fillStyle = '#E5E7EB'; ctx.strokeStyle = '#111827'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.roundRect(x - 16, y - 22, 32, 46, 14); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = pressed ? '#991B1B' : '#DC2626';
-    ctx.beginPath(); ctx.moveTo(x, y - 20); ctx.lineTo(x, y - 2); ctx.lineTo(x + 14, y - 2); ctx.quadraticCurveTo(x + 14, y - 20, x, y - 20); ctx.fill();
-    ctx.strokeStyle = '#111827'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y - 20); ctx.lineTo(x, y - 2); ctx.moveTo(x - 14, y - 2); ctx.lineTo(x + 14, y - 2); ctx.stroke();
-    ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('RIGHT CLICK', x, y + 38);
+    const key = (kx: number, ky: number, label: string) => {
+      ctx.fillStyle = pressed ? '#9CA3AF' : '#E5E7EB'; ctx.strokeStyle = '#111827'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.roundRect(kx - 11, ky - 11 + bump, 22, 22, 4); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#111827'; ctx.font = 'bold 10px "Press Start 2P"'; ctx.fillText(label, kx + 1, ky + 1 + bump);
+    };
+    key(x, y - 12, 'W'); key(x - 24, y + 12, 'A'); key(x, y + 12, 'S'); key(x + 24, y + 12, 'D');
   }
   ctx.restore();
 };
@@ -369,8 +372,8 @@ const drawClash = (ctx: Ctx, state: GameState, fight: DoormanFight) => {
     ctx.fillStyle = '#7F1D1D'; ctx.fillRect(barL, barY, barW, 18);
     ctx.fillStyle = '#15803D'; ctx.fillRect(barL, barY, barW * c.meter, 18);
     ctx.fillStyle = '#FFFFFF'; ctx.fillRect(barL + barW * c.meter - 3, barY - 6, 6, 30);
-    ctx.font = 'bold 8px "Press Start 2P"'; ctx.fillStyle = '#FCA5A5'; ctx.textAlign = 'left'; ctx.fillText('HIM', barL, barY + 34);
-    ctx.textAlign = 'right'; ctx.fillStyle = '#86EFAC'; ctx.fillText('YOU', barL + barW, barY + 34);
+    ctx.font = 'bold 8px "Press Start 2P"'; ctx.fillStyle = '#FCA5A5'; ctx.textAlign = 'left'; ctx.fillText('LOSE', barL, barY + 34);
+    ctx.textAlign = 'right'; ctx.fillStyle = '#86EFAC'; ctx.fillText('WIN', barL + barW, barY + 34);
     ctx.textAlign = 'center'; ctx.fillStyle = Math.floor(f / 6) % 2 ? '#FFFFFF' : '#FACC15'; ctx.font = 'bold 12px "Press Start 2P"';
     ctx.fillText('MASH IT!', cx - 50, barY + 66);
     drawSpecialButton(ctx, cx + 70, barY + 60, c.flash > 0);

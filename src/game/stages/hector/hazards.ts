@@ -167,6 +167,8 @@ const updateLightning = (ctx: FrameContext, hz: Hazards) => {
     // (over the water it comes down on the surface; and it only goes for the water when he's in it)
     const wet = waterAt(hz, x);
     if (wet && !player.swimming) return;
+    // (and it tries not to come down on anybody else)
+    if (state.enemies.some(e => e.health > 0 && !e.isBlownAway && !e.innocent && Math.abs(e.pos.x + e.width / 2 - x) < STRIKE_HALF_WIDTH + e.width / 2 + 30)) return;
     hz.strikes.push({ x, ground: wet ? wet.surface : groundAt(state, x), t: wet ? -WATER_EXTRA_WARN : 0 });
   });
   // In the water too long: one comes down on it (on the open water nearest him, if he's under a dock)

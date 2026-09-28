@@ -558,7 +558,7 @@ export type KillCallout =
   | 'crush' | 'overdose' | 'nuke' | 'tsunami' | 'fried'
   | 'wallsplat' | 'groundsplat' | 'flattened' | 'squished' | 'truck' | 'blowout' | 'crash'
   | 'moon' | 'cliff' | 'yeet'
-  | 'charred' | 'melted' | 'greased' | 'contact' | 'pulverized';
+  | 'charred' | 'melted' | 'greased' | 'contact' | 'pulverized' | 'cooked';
 
 /** Callout text (one picked at random) and colour for each special kill. */
 export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string }> = {
@@ -573,6 +573,7 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
   nuke:     { lines: ["NUKED!", "VAPORIZED!", "KABOOM!"], color: '#FFFFFF' },
   tsunami:  { lines: ["WASHED OUT!", "DROWNED!", "WIPEOUT!"], color: '#1E90FF' },
   fried:    { lines: ["FRIED!", "ZAPPED!", "SHORT CIRCUIT!"], color: '#FFFF00' },
+  cooked:   { lines: ["DEEP FRIED!", "WELL DONE!", "COOKED!", "EXTRA CRISPY!", "BURNT TO A CRISP!"], color: '#F97316' },
   wallsplat:   { lines: ["WALL SPLAT!", "SPLATTERED!", "REDECORATED!"], color: '#DC2626' },
   groundsplat: { lines: ["FACEPLANT!", "GROUNDED!", "KISSED CONCRETE!"], color: '#F97316' },
   flattened:   { lines: ["ROLLED!", "ROADKILL!", "PAVED!"], color: '#A16207' },
