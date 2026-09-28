@@ -56,6 +56,8 @@ export interface Player extends Entity {
   /** Down + jump on a jump-through ledge: dropping through it (frames left, and the height of the ledge he's dropping through). */
   dropThroughT?: number;
   dropThroughY?: number;
+  /** Dropped down off a ledge that way: frames of the drop's pose left (arms up, legs together, going down). */
+  ledgeDrop?: number;
 
   // Special moves
   isCharging: boolean;

@@ -61,6 +61,9 @@ export const muckAt = (x: number, y: number): Channel | undefined => COURSE.chan
 /** How far a drip's gone: 0 just starting to swell, 1 about to fall (and when it falls). */
 export const dripPhase = (d: { period: number; phase: number }, frame: number) => ((frame + d.phase) % d.period) / d.period;
 
+/** How far away he has to be from a locker he's used (off the screen) for a new suit to turn up in it. */
+const RESTOCK_AWAY = 900;
+
 /** What he yells while it's eating him. */
 const MUCK_YELLS = ['GET THE FUCK OUT OF THE SLUDGE!', 'IT BURNS! GET THE FUCK OUT!', 'OUT! OUT! OUT! OUT!', 'MY SKIN! MY BEAUTIFUL SKIN!', 'GET OUT GET OUT GET OUT!'];
 
@@ -118,7 +121,9 @@ export const updateSewer = (ctx: FrameContext, sw: Sewer, talk: Talk) => {
   updateDrips(ctx, sw);
   // A locker: he gets in the suit (a fresh one)
   COURSE.sewer.lockers.forEach((lx, i) => {
-    if (sw.opened[i] || Math.abs(cx - lx) >= 40 || !p.isGrounded) return;
+    // (one he's used gets a new suit in it while he's well away from it, if he's lost his: back for another go)
+    if (sw.opened[i] && !sw.suitOn && Math.abs(cx - lx) > RESTOCK_AWAY) sw.opened[i] = false;
+    if (sw.opened[i] ||Math.abs(cx - lx) >= 40 || !p.isGrounded) return;
     sw.opened[i] = true; sw.suitOn = true; sw.suit = 1; sw.suitT = 0; sw.warned = false; sw.suitFrames = SUIT_FRAMES[i];
     state.checkpoint = Math.max(state.checkpoint, i === 0 ? CP.SUIT : CP.SUIT2);
     playSound('tinkle');

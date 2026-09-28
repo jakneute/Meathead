@@ -12,7 +12,7 @@ import {
   UPPERCUT_SPEED, UPPERCUT_DURATION, DIVEKICK_SPEED, DIVEKICK_ANGLE,
   PLAYER_MASS, RECOIL_FRAMES, PLAYER_STUN_INVINCIBILITY, GML_SCALE, SPECIAL_HURT_FRAMES, ARENA_LEFT,
   OSCAR_OIL_SPEED_MULT, OSCAR_OIL_JUMP_MULT, SKI_JUMP_SPEED_MULT, SKI_JUMP_HOLD_MULT,
-  SWIM_GRAVITY_MULT, SWIM_MAX_SINK, SWIM_STROKE, SWIM_LEAP, SWIM_SPEED_MULT,
+  SWIM_GRAVITY_MULT, SWIM_MAX_SINK, SWIM_STROKE, SWIM_LEAP, SWIM_SPEED_MULT, LEDGE_DROP_FRAMES,
 } from '../../constants';
 import { FrameContext } from '../core/context';
 import { GameState, shakeScreen } from '../core/state';
@@ -131,6 +131,8 @@ export const tickPlayerTimers = (ctx: FrameContext, input: FrameInput) => {
   if (player.squash) player.squash = Math.abs(player.squash) < 0.02 ? 0 : player.squash * 0.8;
   // Spent power refills cell by cell, on the ground or through ordinary jumps. Not mid-move, and not
   // after a power move in the air until he's touched down again.
+  // (in the water counts as touching down: it comes back swimming)
+  if (player.swimming) player.powerLocked = false;
   if (player.power < POWER_CELLS && !player.isCharging && !player.isUppercutting && !player.powerLocked) {
     player.power = Math.min(POWER_CELLS, player.power + 1 / POWER_CELL_RECHARGE);
   }
@@ -456,6 +458,13 @@ const updateVerticalVelocity = (ctx: FrameContext, input: FrameInput) => {
     player.isGrounded = false;
     player.coyoteJumpTimer = 0;
     player.coyoteAirTimer = 0;
+    player.ledgeDrop = LEDGE_DROP_FRAMES;
+    // (a puff off the ledge he went through)
+    for (let i = 0; i < 8; i++) ctx.state.particles.push({ pos: { x: player.pos.x + player.width / 2 + (Math.random() - 0.5) * 30, y: player.dropThroughY! }, vel: { x: (Math.random() - 0.5) * 4, y: -Math.random() * 1.5 }, life: 18, color: i % 2 ? '#D6D3D1' : '#A8A29E', size: 3 + Math.random() * 3 });
+  } else if ((player.ledgeDrop || 0) > 0) {
+    // The drop's pose ends when he lands, shoots, gets hit or goes into a move
+    player.ledgeDrop!--;
+    if (player.isGrounded || player.swimming || input.shoot || player.isCharging || player.isUppercutting || player.isDivekicking || player.hurtFormTimer) player.ledgeDrop = 0;
   }
   // Start a jump (buffered press + coyote time)
   if (player.jumpBufferTimer > 0 && player.coyoteJumpTimer > 0 && !player.isDucking && !player.isTasing) {

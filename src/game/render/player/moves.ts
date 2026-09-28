@@ -274,6 +274,41 @@ export const drawStandingKick = (ctx: Ctx, frame: number, k: number) => {
 };
 
 // ---------------------------------------------------------------------------
+// Dropping down through a ledge
+// ---------------------------------------------------------------------------
+
+/**
+ * Down through the floor like it's a trapdoor: a quick scrunch, then arms straight up over his head, legs together and
+ * toes pointed, eyes wide, air rushing up past him. `k` runs 0..1 through it.
+ */
+export const drawLedgeDrop = (ctx: Ctx, frame: number, k: number) => {
+  frameNow = frame;
+  // (the first moment: knees bent, arms coming up; then stretched out long)
+  const tuck = Math.max(0, 1 - k / 0.15);
+  // Air rushing up past him
+  ctx.strokeStyle = 'rgba(241, 245, 249, 0.6)';
+  ctx.lineWidth = 2;
+  for (let s = 0; s < 4; s++) {
+    const x = -20 + s * 13, y = -70 - ((frame * 8 + s * 15) % 36);
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - 12 - (s % 2) * 6); ctx.stroke();
+  }
+  const wob = Math.sin(frame * 0.7) * 1.5;
+  // Legs together, toes pointed down (knees bent at first)
+  leg(ctx, [-4, -26], [-3 + tuck * 8, -13 - tuck * 4], [-3, 0 - tuck * 6], 1.2, true);
+  leg(ctx, [4, -26], [5 + tuck * 8, -13 - tuck * 4], [4, 1 - tuck * 6], 1.3, false);
+  ctx.save();
+  ctx.translate(0, -26);
+  // Back arm straight up, flailing a little
+  const up = 1 - tuck;
+  arm(ctx, [-9, -22], [-12 - wob, -36 - up * 6], [-11 - wob * 2, -48 - up * 10], true);
+  torso(ctx);
+  ctx.save(); ctx.translate(1, -37); ctx.rotate(0.05); head(ctx, 0, 0, 'roar'); ctx.restore();
+  // Front arm straight up too (the gun hand, empty for the drop)
+  arm(ctx, [11, -22], [13 + wob, -37 - up * 6], [12 + wob * 2, -49 - up * 10], false);
+  ctx.restore();
+};
+
+// ---------------------------------------------------------------------------
 // Shoulder charge
 // ---------------------------------------------------------------------------
 

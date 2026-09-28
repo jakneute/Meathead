@@ -106,6 +106,8 @@ export const SKI_JUMP_SPEED_MULT = 1.3;
 export const SKI_JUMP_HOLD_MULT = 1.5;
 /** How long his standing kick lasts (booting the skier, the fisherman, the hipster off what he's taking). */
 export const KICK_POSE_FRAMES = 24;
+/** How long the pose for dropping down through a ledge lasts at most (it ends when he lands, shoots or does a move). */
+export const LEDGE_DROP_FRAMES = 36;
 export const COYOTE_AIR_FRAMES = 7;             // hang time before gravity kicks in off a ledge
 export const COYOTE_JUMP_FRAMES = 7;            // grace period to still jump after leaving the ground
 export const JUMP_BUFFER_FRAMES = 5;

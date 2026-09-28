@@ -2,8 +2,8 @@ import { Player, WeaponType } from '../../../types';
 import { BOULDER_THROW_FRAMES, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
 import { SLIDE_HOLD } from '../../combat/muzzle';
-import { drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive, drawStandingKick, drawPedalLegs } from './moves';
-import { KICK_POSE_FRAMES } from '../../../constants';
+import { drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive, drawStandingKick, drawPedalLegs, drawLedgeDrop } from './moves';
+import { KICK_POSE_FRAMES, LEDGE_DROP_FRAMES } from '../../../constants';
 import { GameState } from '../../core/state';
 import { beginSprite, endSprite } from './spriteOutline';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawTorsoBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
@@ -141,6 +141,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // (on the jet ski they're the ski's moves: a wheelie, a leap out of the water, a nose-first dive)
     : p.jetski ? (isCharging ? drawJetskiWheelie : isUppercutting ? drawJetskiLeap : isDivekicking ? drawJetskiDive : null)
     // (booting somebody off his skis, boat or jet ski: a big standing front kick)
+    // (dropped down through a ledge: arms up, legs together, straight down)
+    : (p.ledgeDrop || 0) > 0 && !p.isGrounded && !p.swimming && !isCharging && !isUppercutting && !isDivekicking ? (c: CanvasRenderingContext2D, fr: number) => drawLedgeDrop(c, fr, 1 - (p.ledgeDrop || 0) / LEDGE_DROP_FRAMES)
     : (p.kickPose || 0) > 0 && !isDivekicking ? (c: CanvasRenderingContext2D, fr: number) => drawStandingKick(c, fr, 1 - (p.kickPose || 0) / KICK_POSE_FRAMES)
     : isCharging ? (p.swimming || p.swimDash ? (c: CanvasRenderingContext2D, fr: number) => { const d = p.swimDash; if (d && d.y) { c.translate(0, -p.height / 2); c.rotate(d.y * Math.PI / 2); c.translate(0, p.height / 2); } drawSwimCharge(c, fr); } : drawShoulderCharge) : isUppercutting ? drawUppercut : isDivekicking ? drawDivekick : null;
   if (movePose) {
