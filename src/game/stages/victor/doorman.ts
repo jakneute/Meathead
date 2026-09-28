@@ -151,7 +151,10 @@ export const updateDoormanFight = (ctx: FrameContext, fight: DoormanFight, contr
     if (--fight.thrown.t <= 0 || (player.isGrounded && fight.thrown.t < 36)) fight.thrown = null;
   }
   // The camera pushes in on a clash, and eases back out after
-  fight.zoom += ((fight.clash ? 1 : 0) - fight.zoom) * (fight.clash ? 0.18 : 0.1);
+  // (and stays pushed in, following him, while he flies to his death after a clash)
+  const flying = fight.man && (fight.man.aiState === 'launched' || fight.man.aiState === 'spun');
+  fight.zoom += ((fight.clash ? 1 : flying ? 0.45 : 0) - fight.zoom) * (fight.clash ? 0.18 : 0.1);
+  if (flying) { const fm = fight.man!; fight.zoomAt = { x: fm.pos.x + fm.width / 2, y: Math.min(a.y - 120, fm.pos.y + fm.height / 2) }; }
   if (fight.clash && fight.man) {
     fight.clashT++;
     const m = fight.man;
@@ -210,7 +213,7 @@ export const updateDoorman = (ctx: FrameContext, m: Enemy, fight: DoormanFight):
   // Finished off in a clash: he flies first, and it's the landing that does it
   if (m.aiState === 'launched' || m.aiState === 'spun') {
     m.aiTimer = (m.aiTimer || 0) + 1;
-    m.vel.y += 0.7;
+    m.vel.y += FINISH_GRAVITY;
     m.pos.x = Math.max(a.x1 + 2, Math.min(a.x2 - W - 2, m.pos.x + m.vel.x));
     m.pos.y += m.vel.y;
     if (m.aiTimer > 6 && m.pos.y >= a.y - H) { m.pos.y = a.y - H; killDoorman(ctx, m, fight, m.aiState === 'launched' ? 'shoulder' : 'slide'); return false; }
@@ -409,6 +412,8 @@ const CLASH_LOCK = 36;
 const ACTION_KEYS: (keyof Controls)[] = ['jump', 'special', 'shoot', 'charge'];
 /** Thrown after losing a clash: how long he's in the air, and how hard he goes up. */
 const THROW_FRAMES = 44, THROW_LIFT = 14.3;
+/** His last flight, after a clash that finishes him: floatier than a throw, so it plays out where you can see it. */
+const FINISH_GRAVITY = 0.2;
 
 const startClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, kind: ClashKind) => {
   const p = ctx.state.player;
@@ -483,10 +488,15 @@ const endClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, won: boolean
     const land = Math.abs(px - (leftEnd + W / 2)) > Math.abs(px - (rightEnd + W / 2)) ? leftEnd : rightEnd;
     const over = Math.sign(land - m.pos.x) || 1;
     if (m.health <= 0) {
-      // That's him done: the shoulder sends him sky high (he comes down head first), the sweep sends him spinning
+      // That's him done: the shoulder sends him sky high (he comes down head first), the sweep sends him spinning.
+      // (He hangs on to a sliver of health till he lands, so he's still there to watch on the way.)
+      m.health = 1;
       start(m, kind === 'shoulder' ? 'launched' : 'spun');
-      const air = kind === 'shoulder' ? 70 : 46;
-      m.vel = { x: (land - m.pos.x) / air, y: kind === 'shoulder' ? -24 : -15 };
+      // (slow and floaty, so you get to watch it: a couple of seconds in the air)
+      const lift = kind === 'shoulder' ? 13 : 9;
+      const air = (2 * lift) / FINISH_GRAVITY;
+      m.vel = { x: (land - m.pos.x) / air, y: -lift };
+      talk(fight, ["NOOOOOOO!", "I'M GONNA NEED A MINUTE!"], true);
     } else {
       start(m, 'thrown');
       m.vel = { x: (land - m.pos.x) / THROW_FRAMES, y: -THROW_LIFT };
@@ -518,7 +528,7 @@ const endClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, won: boolean
 
 /** A player projectile hit him: it barely registers (a bit more with him on the floor). No status effects, no invincibility. */
 export const hitDoorman = (ctx: FrameContext, m: Enemy, p: Projectile, fight: DoormanFight): boolean => {
-  if (fight.phase !== 'fight' || fight.clash) return true;
+  if (fight.phase !== 'fight' || fight.clash || m.aiState === 'launched' || m.aiState === 'spun') return true;
   let dmg = p.damage;
   if (p.isBoulder) dmg = BOULDER_DAMAGE_PER_SPEED * Math.max(1, Math.hypot(p.vel.x, p.vel.y) / GML_SCALE) * 0.8;
   if (p.isSludge) dmg = p.isLingering ? 0 : 20;
