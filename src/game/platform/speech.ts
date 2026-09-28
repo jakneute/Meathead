@@ -226,7 +226,7 @@ export const speak = (text: string, voice: Voice, { onStart, onDone }: SpeakOpti
 };
 
 /**
- * A line said through a voice modulator: broken into little runs of words, each at a slightly different pitch and
+ * A line said through a voice modulator: broken into little runs of words (two to four), each at a slightly different pitch and
  * speed, so it wobbles and steps like a scrambled radio voice. Calls onDone when it's all out (or fails). Returns a
  * cancel.
  */
@@ -236,7 +236,7 @@ export const sayModulated = (text: string, voice: Voice, onDone: () => void): ((
   const words = text.split(/\s+/).filter(Boolean);
   const chunks: string[] = [];
   for (let i = 0; i < words.length;) {
-    const n = 1 + ((i * 7 + words.length) % 3);
+    const n = 2 + ((i * 7 + words.length) % 3);
     chunks.push(words.slice(i, i + n).join(' '));
     i += n;
   }
