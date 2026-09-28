@@ -38,6 +38,7 @@ export const daleLayout: StageLayout = {
     const wall = (x: number, tag: string): Block => ({ x, y: -3000, w: 60, h: 4400, type: 'wall', hidden: true, tag });
     state.blocks.push(wall(C.desert.x1 - 60, 'desert-end'), wall(C.town.x1 - 60, 'town-end'));
     state.cameraMinX = C.startX;
+    state.player.hidden = false;
     state.stage = createDaleRuntime(state, skipToBoss);
     if (!state.stageMemo.jailWrecked && !skipToBoss) state.blocks.push(jailWall() as Block);
     const cp = skipToBoss ? 0 : state.checkpoint;

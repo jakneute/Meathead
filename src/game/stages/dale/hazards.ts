@@ -63,7 +63,9 @@ export const updateHazards = (ctx: FrameContext, hz: Hazards) => {
       pricked(ctx, e, c);
     }
   }
-  // Belts
+  // Belts (stopped, and quiet, while he's upstairs in the office)
+  const upstairs = p.pos.x > COURSE.office.x1 - 60 && p.pos.y + p.height < COURSE.office.floor + 10;
+  if (upstairs) { hz.crates = []; return; }
   COURSE.belts.forEach((b, i) => {
     hz.beltShift[i] = (hz.beltShift[i] + b.speed) % 1000;
     if (!near(state, b.x)) return;

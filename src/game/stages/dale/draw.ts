@@ -78,6 +78,46 @@ const drawArroyos = (ctx: Ctx, state: GameState) => {
   for (const gp of gulches(state)) drawGulch(ctx, state, gp.x1, gp.x2, gp.yl, gp.yr);
 };
 
+/**
+ * Dale's EMPLOYEE OF THE MONTH plaque, hung from the rafters: a gold frame, an empty photo spot with a question mark
+ * in it, the name plate (NOBODY, AGAIN), a couple of gold stars. Every line of it sized to fit.
+ */
+const drawEmployeeSign = (ctx: Ctx, x: number, y: number, f: number) => {
+  const w = 300, h = 84;
+  // The chains up to the rafters
+  ctx.strokeStyle = '#71717A'; ctx.lineWidth = 2;
+  for (const cx of [x + 30, x + w - 30]) { ctx.beginPath(); ctx.moveTo(cx, y - 40); ctx.lineTo(cx, y); ctx.stroke(); }
+  // The frame and the board
+  ctx.fillStyle = '#92400E'; ctx.fillRect(x - 4, y - 4, w + 8, h + 8);
+  ctx.fillStyle = '#EAB308'; ctx.fillRect(x - 1, y - 1, w + 2, h + 2);
+  const board = ctx.createLinearGradient(0, y, 0, y + h);
+  board.addColorStop(0, '#5B21B6'); board.addColorStop(1, '#3B0764');
+  ctx.fillStyle = board; ctx.fillRect(x + 3, y + 3, w - 6, h - 6);
+  // The photo: nobody in it
+  const px = x + 12, py = y + 12, pw = 50, ph = 60;
+  ctx.fillStyle = '#FACC15'; ctx.fillRect(px - 3, py - 3, pw + 6, ph + 6);
+  ctx.fillStyle = '#E5E7EB'; ctx.fillRect(px, py, pw, ph);
+  ctx.fillStyle = '#9CA3AF'; ctx.beginPath(); ctx.arc(px + pw / 2, py + 22, 11, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(px + 9, py + 36, pw - 18, 24);
+  ctx.fillStyle = '#6B7280'; ctx.font = 'bold 14px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('?', px + pw / 2, py + 29);
+  // The words, each fitted to the space right of the photo
+  const tx = px + pw + 12, tw = x + w - 12 - tx, mid = tx + tw / 2;
+  const fit = (text: string, size: number, font: string) => { let s = size; do { ctx.font = `${font} ${s}px "Press Start 2P"`; s--; } while (ctx.measureText(text).width > tw && s > 4); };
+  ctx.fillStyle = '#F9A8D4'; fit("DALE'S DRUGS", 7, 'bold'); ctx.fillText("DALE'S DRUGS", mid, y + 20);
+  ctx.fillStyle = '#FDE047'; fit('EMPLOYEE', 14, 'bold'); ctx.fillText('EMPLOYEE', mid, y + 39);
+  fit('OF THE MONTH', 10, 'bold'); ctx.fillText('OF THE MONTH', mid, y + 54);
+  // The name plate
+  ctx.fillStyle = '#D6D3D1'; ctx.fillRect(tx + 8, y + 60, tw - 16, 14);
+  ctx.fillStyle = '#1C1917'; fit('NOBODY, AGAIN', 7, 'bold'); ctx.fillText('NOBODY, AGAIN', mid, y + 70);
+  ctx.textAlign = 'left';
+  // Gold stars either side of the title, twinkling
+  for (const [sx, sy, k] of [[tx + 2, y + 34, 0], [x + w - 12, y + 34, 1]] as const) {
+    const r = 5 + Math.sin(f * 0.1 + k * 2) * 1;
+    ctx.fillStyle = '#FDE047'; ctx.beginPath();
+    for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 5, rr = i % 2 ? r * 0.45 : r; ctx.lineTo(sx + Math.cos(a) * rr, sy + Math.sin(a) * rr); }
+    ctx.fill();
+  }
+};
+
 /** The gaps between the desert's ground on screen: where they are, and the ground's height either side. */
 const gulches = (state: GameState) => {
   const runs = state.groundRuns;
@@ -91,82 +131,79 @@ const gulches = (state: GameState) => {
 };
 
 /**
- * Looking down into a gulch: banded red rock stepping down and in on both sides to a slot of shadow, the far wall
- * across it in layers, a boulder jammed in partway down, dead brush clinging on, and darkness at the bottom.
+ * Looking down into a crevasse: a crack in the rock, its two walls zigzagging down and in to a slot of black (never
+ * out over the sky beside it). The near-left wall catches the light, faceted and split with fractures; the right one's
+ * in shadow. A rock jammed in where it narrows, dead brush hanging off the lip, and it all goes black with depth.
  */
 const drawGulch = (ctx: Ctx, state: GameState, x1: number, x2: number, yl: number, yr: number) => {
   const bottom = state.camera.y + CANVAS_HEIGHT + 60;
   const w = x2 - x1, top = Math.max(yl, yr), depth = Math.max(bottom, top + 60) - top;
   const seed = Math.round(x1);
-  // Only ever inside the crack itself: from the lower of the two lips down (never out over the sky), its walls
-  // jagged and narrowing down to a slot (not a box)
-  ctx.save();
-  ctx.beginPath();
-  const wallPts = (from: number, dir: 1 | -1) => {
+  const mid = (x1 + x2) / 2;
+  // Its walls, zigzagging down and in: a point every step down, pulled in (and jutting back out now and then)
+  const wall = (from: number, dir: 1 | -1) => {
     const pts: [number, number][] = [[from, top]];
-    let x = from, y = top;
-    for (let k = 0; y < top + 280; k++) {
-      y += 18 + hash(seed + k * 7 + (dir > 0 ? 0 : 90)) * 22;
-      x += dir * (w * 0.05 + hash(seed + k * 11 + (dir > 0 ? 3 : 93)) * w * 0.06);
-      if (Math.abs(x - from) > w * 0.36) x = from + dir * w * 0.36;
-      pts.push([x + dir * (hash(seed + k * 13) - 0.5) * 6, y]);
+    let y = top;
+    for (let k = 0; y < top + depth; k++) {
+      y += 14 + hash(seed + k * 7 + (dir > 0 ? 0 : 90)) * 20;
+      const narrow = Math.min(1, (y - top) / 300);
+      const inset = w * (0.08 + narrow * 0.36);
+      const jag = (hash(seed + k * 11 + (dir > 0 ? 3 : 93)) - 0.4) * Math.min(22, w * 0.12);
+      pts.push([from + dir * Math.max(0, inset + jag), y]);
     }
-    pts.push([x, top + depth + 20]);
     return pts;
   };
-  const left = wallPts(x1, 1), right = wallPts(x2, -1);
-  left.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
-  for (let i = right.length - 1; i >= 0; i--) ctx.lineTo(right[i][0], right[i][1]);
-  ctx.closePath();
-  ctx.clip();
-  // The far wall, in bands of red rock, darkening with depth
-  const bands = ['#B5602F', '#9A4A26', '#C0703A', '#83391E', '#A5532A', '#6E2F18', '#8C4222', '#5A2512'];
+  const left = wall(x1, 1), right = wall(x2, -1);
+  // The rock the crack's in, below the lip (layered, like the faces of the rims either side of it)
   for (let k = 0, y = top; y < top + depth; k++) {
-    const h = 14 + hash(seed + k) * 16;
-    ctx.fillStyle = bands[k % bands.length];
+    const h = 12 + hash(seed + k * 3 + 200) * 12;
+    ctx.fillStyle = ['#B5602F', '#9A4A26', '#C0703A', '#83391E'][k % 4];
     ctx.fillRect(x1, y, w, h + 1);
-    // (a wavy seam between the layers)
-    ctx.fillStyle = 'rgba(40, 15, 5, 0.35)';
-    for (let x = x1; x < x2; x += 8) ctx.fillRect(x, y + h - 1 + Math.sin((x + seed) * 0.08 + k) * 1.5, 8, 2);
     y += h;
   }
-  const shade = ctx.createLinearGradient(0, top, 0, top + 300);
-  shade.addColorStop(0, 'rgba(20, 6, 2, 0.05)'); shade.addColorStop(0.45, 'rgba(20, 6, 2, 0.55)'); shade.addColorStop(1, 'rgba(8, 2, 0, 0.97)');
-  ctx.fillStyle = shade; ctx.fillRect(x1, top, w, depth);
-  // The side walls, stepping down and in (lit on the left wall, in shadow on the right)
-  const side = (from: number, dir: 1 | -1, lip: number) => {
-    let x = from, y = lip;
-    ctx.fillStyle = dir > 0 ? '#A9582C' : '#4A1F0E';
-    ctx.beginPath(); ctx.moveTo(from, lip);
-    for (let k = 0; k < 9; k++) {
-      const stepIn = (6 + hash(seed + k * 3 + (dir > 0 ? 0 : 50)) * 10) * Math.min(1, w / 160);
-      const stepDown = 22 + hash(seed + k * 5 + (dir > 0 ? 7 : 57)) * 26;
-      x += dir * stepIn; ctx.lineTo(x, y);
-      y += stepDown; ctx.lineTo(x, y);
-      if (Math.abs(x - from) > w * 0.42) break;
+  const path = () => { ctx.beginPath(); left.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); for (let i = right.length - 1; i >= 0; i--) ctx.lineTo(right[i][0], right[i][1]); ctx.closePath(); };
+  ctx.save();
+  path(); ctx.clip();
+  // The depths: dim rock at the top of it going to black
+  const deep = ctx.createLinearGradient(0, top, 0, top + 320);
+  deep.addColorStop(0, '#6B3219'); deep.addColorStop(0.4, '#2E1208'); deep.addColorStop(1, '#050201');
+  ctx.fillStyle = deep; ctx.fillRect(x1 - 10, top, w + 20, depth);
+  // The two walls, faceted: each zig of the edge is a slab of rock, shaded a bit differently from the next
+  const faces = (pts: [number, number][], dir: 1 | -1, shades: string[]) => {
+    for (let k = 0; k + 1 < pts.length; k++) {
+      const [ax, ay] = pts[k], [bx, by] = pts[k + 1];
+      const thick = Math.max(6, w * 0.1 * (1 - Math.min(0.7, (ay - top) / 400)));
+      ctx.fillStyle = shades[Math.floor(hash(seed + k * 17 + dir) * shades.length)];
+      ctx.beginPath(); ctx.moveTo(ax - dir * 40, ay); ctx.lineTo(ax + dir * thick, ay); ctx.lineTo(bx + dir * thick * 0.7, by); ctx.lineTo(bx - dir * 40, by); ctx.closePath(); ctx.fill();
+      // (a fracture down it now and then, and the lit edge of the slab)
+      if (hash(seed + k * 23 + dir) < 0.45) { ctx.strokeStyle = 'rgba(20, 6, 2, 0.6)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(ax + dir * thick * 0.4, ay); ctx.lineTo(ax + dir * thick * 0.2 + (bx - ax) * 0.5, (ay + by) / 2); ctx.lineTo(bx + dir * thick * 0.3, by); ctx.stroke(); }
+      ctx.fillStyle = dir > 0 ? 'rgba(255, 196, 140, 0.35)' : 'rgba(0, 0, 0, 0.35)';
+      ctx.fillRect(Math.min(ax, ax + dir * thick), ay, Math.abs(thick), 2);
     }
-    ctx.lineTo(from, y); ctx.closePath(); ctx.fill();
-    // Strata across it
-    ctx.fillStyle = dir > 0 ? 'rgba(255, 190, 130, 0.18)' : 'rgba(0, 0, 0, 0.25)';
-    for (let yy = lip + 12; yy < y; yy += 17) ctx.fillRect(Math.min(from, from + dir * 40), yy, 40, 3);
   };
-  side(x1, 1, top);
-  side(x2, -1, top);
-  // A boulder wedged across partway down, and some dead brush hanging on
-  if (w > 110) {
-    const bx = x1 + w * (0.35 + hash(seed + 2) * 0.3), by = top + 110 + hash(seed + 3) * 60;
-    ctx.fillStyle = '#6B3A22'; ctx.beginPath(); ctx.ellipse(bx, by, 22, 15, 0.2, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#8A4C2C'; ctx.beginPath(); ctx.ellipse(bx - 6, by - 6, 10, 6, 0.2, 0, Math.PI * 2); ctx.fill();
+  faces(left, 1, ['#B4673A', '#A05A31', '#C0764A', '#94502B']);
+  faces(right, -1, ['#57260F', '#4A1F0C', '#663019', '#3E1A0A']);
+  // A rock jammed across where it narrows, and a smaller one under it
+  if (w > 90) {
+    const cy = top + 150 + hash(seed + 3) * 50;
+    ctx.fillStyle = '#5A2E18'; ctx.beginPath(); ctx.ellipse(mid + (hash(seed + 2) - 0.5) * 20, cy, Math.min(34, w * 0.2), 13, 0.15, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#8A4C2C'; ctx.beginPath(); ctx.ellipse(mid - 8, cy - 5, 12, 5, 0.15, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#3F1D0E'; ctx.beginPath(); ctx.ellipse(mid + 10, cy + 40, 10, 7, 0, 0, Math.PI * 2); ctx.fill();
   }
-  ctx.strokeStyle = '#6B5A3A'; ctx.lineWidth = 1.5;
-  for (const [x, y, d] of [[x1 + w * 0.12, top + 36, 1], [x2 - w * 0.16, top + 58, -1]] as const) {
-    ctx.beginPath(); for (let k = 0; k < 4; k++) { ctx.moveTo(x, y); ctx.lineTo(x + d * (8 + k * 3), y - 4 + k * 4); } ctx.stroke();
-  }
-  // Blackness at the bottom, a haze of dust over it
-  ctx.fillStyle = 'rgba(214, 167, 122, 0.08)'; ctx.fillRect(x1, top + 150, w, 60);
+  // Going black with depth, over the lot
+  const dark = ctx.createLinearGradient(0, top + 40, 0, top + 300);
+  dark.addColorStop(0, 'rgba(5, 2, 1, 0)'); dark.addColorStop(1, 'rgba(5, 2, 1, 0.95)');
+  ctx.fillStyle = dark; ctx.fillRect(x1 - 10, top, w + 20, depth);
+  // A little dust hanging in it
+  ctx.fillStyle = 'rgba(214, 167, 122, 0.07)'; ctx.fillRect(x1, top + 60, w, 50);
   ctx.restore();
-  // The edges of the crack: a dark line down each jagged wall
-  ctx.strokeStyle = 'rgba(40, 14, 4, 0.8)'; ctx.lineWidth = 3;
+  // Dead brush hanging off the lips
+  ctx.strokeStyle = '#6B5A3A'; ctx.lineWidth = 1.5;
+  for (const [x, y, d] of [[x1 + 4, yl + 6, 1], [x2 - 4, yr + 10, -1]] as const) {
+    ctx.beginPath(); for (let k = 0; k < 4; k++) { ctx.moveTo(x, y); ctx.lineTo(x + d * (6 + k * 3), y + 6 + k * 5); } ctx.stroke();
+  }
+  // The edges of the crack
+  ctx.strokeStyle = 'rgba(30, 10, 3, 0.85)'; ctx.lineWidth = 2.5;
   for (const pts of [left, right]) { ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke(); }
 };
 
@@ -312,11 +349,7 @@ const drawWarehouse = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   }
   // A banner Dale's had made
   const bx = W.x1 + 900;
-  if (visible(state, bx, bx + 300)) {
-    ctx.fillStyle = '#6D28D9'; ctx.fillRect(bx, ceil + 50, 300, 34);
-    ctx.fillStyle = '#FDE047'; ctx.font = 'bold 9px "Press Start 2P"'; ctx.textAlign = 'center';
-    ctx.fillText("DALE'S DRUGS: EMPLOYEE OF THE MONTH", bx + 150, ceil + 66); ctx.font = '6px "Press Start 2P"'; ctx.fillText('(NOBODY, AGAIN)', bx + 150, ceil + 78); ctx.textAlign = 'left';
-  }
+  if (visible(state, bx, bx + 300)) drawEmployeeSign(ctx, bx, ceil + 40, state.frame);
   // The loading dock door (you come in through it): the outside wall, the rolled-up door
   const dx = W.x1;
   if (visible(state, dx - 60, dx + 60)) {

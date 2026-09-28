@@ -97,6 +97,12 @@ export const updateDale = (ctx: FrameContext, controls: Controls): Controls => {
   }
   if (region === 'desert') {
     controls = updateIntro(ctx, rt.intro, rt.talk, controls);
+    // Down a crevasse past saving: gone into the dark (not drawn over its walls on the way down)
+    if (!player.isGrounded && !player.hidden) {
+      const px = player.pos.x + player.width / 2;
+      const i = state.groundRuns.findIndex((r, k) => state.groundRuns[k + 1] && px > r.x2 && px < state.groundRuns[k + 1].x1);
+      if (i >= 0 && player.pos.y > Math.max(state.groundRuns[i].y2, state.groundRuns[i + 1].y1) + 120) player.hidden = true;
+    }
     updateHazards(ctx, rt.hazards);
     if (player.isGrounded) {
       for (const cp of [CP.DUNES, CP.WAREHOUSE, CP.OFFICE] as const) if (state.checkpoint < cp && player.pos.x >= COURSE.checkpoints[cp].x) state.checkpoint = cp;
