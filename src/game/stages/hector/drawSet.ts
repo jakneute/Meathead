@@ -260,7 +260,7 @@ export const drawEyeArena = (ctx: Ctx, state: GameState, f: EyeFight) => {
       ctx.restore();
       continue;
     }
-    ctx.save(); ctx.translate(j.x, j.y); ctx.rotate(j.rot);
+    ctx.save(); ctx.translate(j.x, j.y); ctx.rotate(j.rot); ctx.scale(j.size, j.size);
     drawFlyingJunk(ctx, j.look);
     ctx.restore();
   }

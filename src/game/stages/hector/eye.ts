@@ -33,7 +33,7 @@ type PlatState = 'solid' | 'shake' | 'fall' | 'gone';
 export interface EyePlat { block: Block; home: { x: number; y: number; w: number }; state: PlatState; t: number; high: boolean; wear: number }
 export type EyeAttack = 'idle' | 'blink';
 /** Something the storm's flinging at you: a warning at the screen edge (warn > 0), then it flies across. */
-export interface FlyingJunk { look: string; side: 1 | -1; x: number; y: number; vx: number; vy: number; rot: number; warn: number }
+export interface FlyingJunk { look: string; side: 1 | -1; x: number; y: number; vx: number; vy: number; rot: number; warn: number; size: number }
 
 export interface EyeFight {
   phase: 'waiting' | 'intro' | 'fight' | 'dead' | 'done';
@@ -65,6 +65,8 @@ const PLATS = [
 const WEAR_WOBBLE = 110, WEAR_FALL = 200;
 const JUNK_DAMAGE = 12, JUNK_WARN = 45;
 const JUNK_LOOKS = ['chair', 'flamingo', 'cart', 'sign', 'tire', 'cow', 'jetski', 'grill'];
+/** How big each is (drawn about 44x36 at 1): life size next to him, near enough. A whole cow's a big thing to have coming at you. */
+const JUNK_SIZE: Record<string, number> = { chair: 1.2, flamingo: 1, cart: 1.5, sign: 1.4, tire: 1.1, cow: 2.8, jetski: 2.1, grill: 1.3 };
 const BLINK_AT = 170, BLINK_FRAMES = 75;
 
 const A = () => COURSE.eye;
@@ -169,19 +171,25 @@ const updateJunk = (ctx: FrameContext, f: EyeFight) => {
   const { player } = state;
   const a = A();
   if (f.phase === 'fight') {
-    const angry = !!f.eye && f.eye.health < EYE_HP * 0.5;
+    // The more it's hurt, the worse the storm gets: more often, faster, and two or three at a time by the end
+    const hurt = f.eye ? 1 - f.eye.health / EYE_HP : 0;
     if (--f.junkT <= 0) {
-      f.junkT = (angry ? 70 : 105) + Math.floor(Math.random() * 30);
-      const side: 1 | -1 = Math.random() < 0.5 ? -1 : 1;
-      const py = player.pos.y + player.height / 2 + (Math.random() - 0.5) * 60;
-      const y = Math.max(a.y + 60, Math.min(a.y + 560, py));
-      f.junk.push({ look: JUNK_LOOKS[Math.floor(Math.random() * JUNK_LOOKS.length)], side, x: side < 0 ? a.x - 70 : a.x + 870, y, vx: -side * (7 + Math.random() * 2.5), vy: 0, rot: 0, warn: JUNK_WARN });
+      f.junkT = Math.round(100 - hurt * 62 + Math.random() * 25);
+      const count = 1 + (hurt > 0.35 ? 1 : 0) + (hurt > 0.7 ? 1 : 0);
+      for (let k = 0; k < count; k++) {
+        const side: 1 | -1 = Math.random() < 0.5 ? -1 : 1;
+        // (the first at him, the rest above and below, so there's a gap to find)
+        const py = player.pos.y + player.height / 2 + (k === 0 ? (Math.random() - 0.5) * 60 : (k === 1 ? -1 : 1) * (90 + Math.random() * 60));
+        const y = Math.max(a.y + 60, Math.min(a.y + 560, py));
+        const look = JUNK_LOOKS[Math.floor(Math.random() * JUNK_LOOKS.length)], size = JUNK_SIZE[look] ?? 1;
+        f.junk.push({ look, side, x: side < 0 ? a.x - 40 - 30 * size : a.x + 840 + 30 * size, y, vx: -side * (7 + hurt * 4 + Math.random() * 2.5), vy: 0, rot: 0, warn: JUNK_WARN + k * 12, size });
+      }
     }
   } else f.junk = [];
   f.junk = f.junk.filter(j => {
     if (j.warn > 0) { j.warn--; return true; }
-    j.x += j.vx; j.vy += 0.015; j.y += j.vy; j.rot += 0.2 * Math.sign(j.vx);
-    const box = { x: j.x - 22, y: j.y - 18, w: 44, h: 36 };
+    j.x += j.vx; j.vy += 0.015; j.y += j.vy; j.rot += (0.2 / j.size) * Math.sign(j.vx);
+    const box = { x: j.x - 20 * j.size, y: j.y - 16 * j.size, w: 40 * j.size, h: 32 * j.size };
     if (player.invincibilityTimer <= 0 && rectsOverlap(box, boundsOf(player))) {
       // (barely a shove: a real one would knock him off the junk into the storm)
       hurtPlayer(ctx, JUNK_DAMAGE, 'junk', { x: Math.sign(j.vx) * 2, y: -4 });

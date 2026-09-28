@@ -391,7 +391,7 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
   }
   if (e.behavior === 'shoot') settleAfterKnockback(e);
   // (the cops don't stand and shoot: they come at you and club you)
-  if (onScreen && isMeleeCop(e)) copMelee(ctx, e);
+  if (isMeleeCop(e)) copMelee(ctx, e, onScreen);
   e.pos.x += e.vel.x;
 };
 

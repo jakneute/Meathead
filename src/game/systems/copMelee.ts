@@ -17,8 +17,11 @@ const CLUB: Style = { reach: 72, speed: 4.2, windup: 18, strike: 8, recover: 32,
 const MAX_RUSHING = 2;
 const BASH: Style = { reach: 90, speed: 3, windup: 22, strike: 12, recover: 40, damage: 16, shove: 12, lunge: 9 };
 
-/** Runs after the usual shooter logic, on the ground: closing in, then the swing. Sets vel.x. */
-export const copMelee = (ctx: FrameContext, e: Enemy) => {
+/** Off screen they don't give up: they come after you, fast. */
+const HUNT_SPEED = 8;
+
+/** Runs after the usual shooter logic, on the ground: closing in, then the swing (or, off screen, hunting him down). Sets vel.x. */
+export const copMelee = (ctx: FrameContext, e: Enemy, onScreen: boolean) => {
   const { player } = ctx.state;
   const riot = e.kind === 'riotcop';
   const st = riot ? BASH : CLUB;
@@ -27,6 +30,12 @@ export const copMelee = (ctx: FrameContext, e: Enemy) => {
   const sameLevel = Math.abs(p.y - m.y) < 70;
   const facingHim = riot ? shieldFacing(e) === side : true;
   const mel = e.melee;
+  if (!onScreen) {
+    e.melee = undefined;
+    if (player.health > 0 && Math.abs(dx) > 40) e.vel.x = safeAhead(ctx, e, side) ? side * HUNT_SPEED : 0;
+    if (!riot) e.facing = side;
+    return;
+  }
   if (!mel) {
     if (holdingOff(ctx.state) || player.health <= 0) return;
     if (Math.abs(dx) - player.width / 2 < st.reach && sameLevel && facingHim) {
