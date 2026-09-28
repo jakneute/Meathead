@@ -20,7 +20,7 @@ import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
 import { shakeScreen } from '../../core/state';
 import { playSound } from '../../platform/audio';
-import { GROUND_Y } from '../../../constants';
+import { GROUND_Y, BOSS_DOOR_X, DOOR_WIDTH, CANVAS_WIDTH } from '../../../constants';
 import { COURSE, CP, RUINS_Y } from './course';
 import { Talk, queueLines, quiet, hush } from './script';
 import { arrive } from './runtime';
@@ -127,14 +127,15 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
       return { ...NO_CONTROLS };
     case 'ruins':
       // Walking on over the rubble, to the edge of the pit and over it
-      if (p.pos.x > COURSE.ruins.pit && p.pos.y > RUINS_Y - 20 && !p.isGrounded) { es.phase = 'drop'; es.t = 0; es.dropT = 0; es.landedT = 0; hush(state, talk); queueLines(state, talk, [{ who: 'meathead', text: 'AAAAAAAAAAAAAAAAAAAAAAAA' }]); }
+      // (only from up there: not a respawn down at the door dropping in from above it)
+      if (p.pos.x + p.width / 2 > COURSE.ruins.pit && p.pos.y > RUINS_Y - 20 && p.pos.y < RUINS_Y + 200 && !p.isGrounded) { es.phase = 'drop'; es.t = 0; es.dropT = 0; es.landedT = 0; hush(state, talk); queueLines(state, talk, [{ who: 'meathead', text: 'AAAAAAAAAAAAAAAAAAAAAAAA' }]); }
       return controls;
     case 'drop': {
       // A long way down: black before the bottom, and back as he hits it
       es.dropT++;
       p.inCutscene = true;
       p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
-      state.cameraOverride = { x: state.camera.x, y: p.pos.y - 300 };
+      state.cameraOverride = { x: Math.min(state.camera.x, BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH), y: p.pos.y - 300 };
       state.camera.y = Math.min(p.pos.y - 300, GROUND_Y - 550);
       if (p.isGrounded && p.pos.y + p.height >= GROUND_Y - 2) {
         if (!es.landedT) {
@@ -144,7 +145,9 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
           for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: p.pos.x + 22, y: GROUND_Y - 4 }, vel: { x: (Math.random() - 0.5) * 12, y: -Math.random() * 7 }, life: 30, color: i % 2 ? '#57534E' : '#A8A29E', size: 4 + Math.random() * 6 });
           state.cameraOverride = null;
           state.cameraRestY = GROUND_Y - 550; state.camera.y = GROUND_Y - 550;
-          state.cameraMinX = COURSE.ruins.pit - 100;
+          // (up against the closed door: the room past it stays out of sight till it opens)
+          state.cameraMinX = Math.min(COURSE.ruins.pit - 100, BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH);
+          state.camera.x = Math.max(state.cameraMinX, Math.min(BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH, p.pos.x - 250));
         }
         if (es.dropT === es.landedT) hush(state, talk);
         if (es.dropT - es.landedT > DROP_FADE_IN + 20) { es.phase = 'done'; p.inCutscene = false; queueLines(state, talk, [{ who: 'meathead', text: "...OW. OKAY. THAT'S TOMMY'S DOOR." }]); }

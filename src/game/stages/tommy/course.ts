@@ -57,7 +57,8 @@ export interface Course {
   /** The sewer: where you drop in, the suit locker, the flooded tunnel, the cistern (and the pool the thing's in). */
   sewer: { x1: number; x2: number; drop: number; locker: number; tunnel: { x1: number; x2: number; roof: number; surface: number; floor: number; roof1: number; roof2: number }; cistern: { x1: number; x2: number; pool: number; rack: number } };
   /** What's left of the house (up high), and the pit down to Tommy's door. */
-  ruins: { x1: number; x2: number; y: number; house: number; pit: number };
+  /** What's left of the house (up high), and the hole down past it (narrow: a manhole's worth) to Tommy's door. */
+  ruins: { x1: number; x2: number; y: number; house: number; pit: number; pitW: number };
   checkpoints: { x: number; y: number }[];
   left: number;
   startX: number;
@@ -70,6 +71,8 @@ const ROAD_START = 1400;
 export const ROAD_LEN = 26000;
 const SEWER_X0 = -80000;
 const RUINS_X0 = BOSS_DOOR_X - 3000;
+/** The hole down (local to the ruins), and how wide it is. */
+const PIT = 2560, PIT_W = 110;
 /** How high up the ruins are over the ground at Tommy's door. */
 export const RUINS_Y = Y - 2200;
 
@@ -162,7 +165,8 @@ const build = () => {
 
   // ============ THE RUINS ============
   const u = part(RUINS_X0);
-  u.ground(0, 2550, RUINS_Y); u.ground(2550, 3000, Y);
+  // Up top: the ruins, right up to a narrow hole, and the ground on past it; down below, the floor outside the door
+  u.ground(1500, PIT, RUINS_Y); u.ground(PIT + PIT_W, 3000, RUINS_Y); u.ground(2200, 3000, Y);
   u.pickup(2700, Y - 30, 'large_health'); u.pickup(2780, Y - 30, 'large_ammo');
   return { h, r, s, u, junk, waves, END };
 };
@@ -196,10 +200,10 @@ const buildCourse = (): Course => {
       tunnel: { x1: SEWER_X0 + 4760, x2: SEWER_X0 + 7200, roof: TUNNEL_ROOF, surface: TUNNEL_SURFACE, floor: TUNNEL_FLOOR, roof1: SEWER_X0 + 4900, roof2: SEWER_X0 + 7060 },
       cistern: { x1: SEWER_X0 + 7800, x2: SEWER_X0 + 8600, pool: SEWER_X0 + 8150, rack: SEWER_X0 + 7880 },
     },
-    ruins: { x1: RUINS_X0, x2: BOSS_DOOR_X, y: RUINS_Y, house: RUINS_X0 + 1100, pit: RUINS_X0 + 2550 },
+    ruins: { x1: RUINS_X0 + 1500, x2: BOSS_DOOR_X, y: RUINS_Y, house: RUINS_X0 + 2130, pit: RUINS_X0 + PIT, pitW: PIT_W },
     checkpoints: [
       { x: HOOD_X0 + 150, y: Y }, { x: RX + 60, y: Y }, { x: RX + 12000, y: Y },
-      { x: SEWER_X0 + 200, y: Y }, { x: SEWER_X0 + 4450, y: Y }, { x: SEWER_X0 + 7300, y: Y }, { x: RUINS_X0 + 300, y: RUINS_Y },
+      { x: SEWER_X0 + 200, y: Y }, { x: SEWER_X0 + 4450, y: Y }, { x: SEWER_X0 + 7300, y: Y }, { x: RUINS_X0 + 1640, y: RUINS_Y },
     ],
     left: HOOD_X0 - 2000,
     startX: HOOD_X0,

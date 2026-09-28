@@ -176,21 +176,25 @@ export const drawRuinsGround = (ctx: Ctx, state: GameState) => {
       ctx.fillStyle = '#4A3F35'; ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, 1400);
       ctx.fillStyle = '#5D6B3A'; ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, 6);
       ctx.fillStyle = '#6B635C'; for (let x = r.x1; x < r.x2; x += 23) ctx.fillRect(x + hash(x) * 10, r.y1 - 4 - hash(x * 3) * 6, 8 + hash(x * 7) * 12, 6);
-      // The pit's lip: the ground broken off into the sewer, a pipe sticking out of it
-      ctx.fillStyle = '#2A221B'; ctx.fillRect(r.x2 - 30, r.y1, 30, 1400);
-      ctx.fillStyle = '#5B4A3B'; ctx.fillRect(r.x2 - 10, r.y1 + 160, 40, 18);
-      ctx.fillStyle = 'rgba(101, 163, 13, 0.7)'; ctx.fillRect(r.x2 + 20, r.y1 + 178, 6, 60 + (state.frame % 30));
+      // The hole's lips: the ground broken off round it
+      if (r.x2 === COURSE.ruins.pit) { ctx.fillStyle = '#2A221B'; ctx.fillRect(r.x2 - 16, r.y1, 16, 60); ctx.fillStyle = '#6B635C'; ctx.fillRect(r.x2 - 26, r.y1 - 6, 18, 8); }
+      if (r.x1 === COURSE.ruins.pit + COURSE.ruins.pitW) { ctx.fillStyle = '#2A221B'; ctx.fillRect(r.x1, r.y1, 16, 60); ctx.fillStyle = '#6B635C'; ctx.fillRect(r.x1 + 8, r.y1 - 6, 18, 8); }
     } else if (r.surface === 'floor') {
       ctx.fillStyle = '#3F3A36'; ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, bottom - r.y1);
       ctx.fillStyle = '#57534E'; ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, 5);
     }
   }
-  // The shaft down: the pit's walls, all the way from up there to down here
-  const P = COURSE.ruins.pit;
-  if (P + 500 > state.camera.x && P - 100 < state.camera.x + W) {
-    ctx.fillStyle = '#1C1714'; ctx.fillRect(P - 500, RUINS_Y + 6, 1000, GROUND_Y - RUINS_Y - 6);
-    ctx.fillStyle = '#2A2521'; for (let y = RUINS_Y + 20; y < GROUND_Y; y += 40) { ctx.fillRect(P - 60, y, 40, 30); ctx.fillRect(P + 460, y + 20, 40, 30); }
-    ctx.fillStyle = 'rgba(101, 163, 13, 0.25)'; for (let y = RUINS_Y + 60; y < GROUND_Y; y += 170) ctx.fillRect(P - 20, y, 8, 80);
+  // The hole down: a narrow shaft from the ruins to the cavern outside Tommy's door
+  const P = COURSE.ruins.pit, PW = COURSE.ruins.pitW;
+  if (P + 800 > state.camera.x && P - 400 < state.camera.x + W) {
+    ctx.fillStyle = '#16110E'; ctx.fillRect(P, RUINS_Y, PW, GROUND_Y - 330 - RUINS_Y);
+    ctx.fillStyle = '#2A2521'; for (let y = RUINS_Y + 10; y < GROUND_Y - 330; y += 36) { ctx.fillRect(P, y, 10, 26); ctx.fillRect(P + PW - 10, y + 18, 10, 26); }
+    ctx.fillStyle = 'rgba(101, 163, 13, 0.3)'; for (let y = RUINS_Y + 80; y < GROUND_Y - 330; y += 220) ctx.fillRect(P + 14, y, 6, 70);
+    // The cavern at the bottom: brick, a pipe or two, the door's at the far end of it
+    ctx.fillStyle = '#1C1714'; ctx.fillRect(P - 420, GROUND_Y - 330, 900, 330);
+    ctx.fillStyle = '#2A2521'; for (let y = GROUND_Y - 320; y < GROUND_Y; y += 16) for (let x = P - 420 + ((y / 16) % 2) * 18; x < P + 480; x += 36) ctx.fillRect(x, y, 32, 12);
+    ctx.fillStyle = '#5B4A3B'; ctx.fillRect(P - 420, GROUND_Y - 250, 900, 12);
+    ctx.fillStyle = '#0C0A09'; ctx.fillRect(P, GROUND_Y - 330, PW, 20);
   }
 };
 
