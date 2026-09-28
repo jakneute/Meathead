@@ -14,6 +14,21 @@ export const WeaponArt: React.FC<{ type: WeaponType; size?: number }> = ({ type,
 );
 
 const ART: Record<WeaponType, React.ReactNode> = {
+  // Dirty Dan's light machine gun: long, black, a belt of brass hanging off it
+  LMG: (
+    <g>
+      <rect x="1" y="11" width="22" height="7" fill={O} />
+      <rect x="2" y="12" width="20" height="5" fill="#27272A" />
+      <rect x="22" y="12" width="9" height="4" fill={O} />
+      <rect x="22" y="13" width="8" height="2" fill="#3F3F46" />
+      <rect x="24" y="13" width="1" height="2" fill="#18181B" /><rect x="27" y="13" width="1" height="2" fill="#18181B" />
+      <rect x="10" y="17" width="7" height="7" fill={O} />
+      <rect x="11" y="18" width="5" height="5" fill="#3F3F2E" />
+      <rect x="17" y="17" width="2" height="2" fill="#CA8A04" /><rect x="18" y="19" width="2" height="2" fill="#CA8A04" /><rect x="19" y="21" width="2" height="2" fill="#CA8A04" /><rect x="20" y="23" width="2" height="2" fill="#CA8A04" />
+      <rect x="5" y="17" width="3" height="6" fill="#18181B" />
+      <rect x="2" y="12" width="20" height="1" fill="#6B7280" />
+    </g>
+  ),
   // Handgun: a chunky semi-auto with a serrated slide and a rubber grip
   GUN: (
     <g>

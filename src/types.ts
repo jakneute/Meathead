@@ -35,7 +35,7 @@ export interface Entity {
   type: 'player' | 'enemy' | 'projectile' | 'boss';
 }
 
-export type WeaponType = 'GUN' | 'BOULDER' | 'SHOTGUN' | 'FLAMETHROWER' | 'TSUNAMI' | 'NEEDLES' | 'TASER' | 'SLUDGE' | 'OIL_ROCKET';
+export type WeaponType = 'GUN' | 'BOULDER' | 'SHOTGUN' | 'FLAMETHROWER' | 'TSUNAMI' | 'NEEDLES' | 'TASER' | 'SLUDGE' | 'OIL_ROCKET' | 'LMG';
 
 export type VulgarityType = 'gun_kill' | 'boulder_kill' | 'shotgun_kill' | 'flamethrower_kill' | 'tsunami_kill' | 'hurt' | 'death' | 'charge_kill' | 'uppercut_kill' | 'dart_kill' | 'taser_kill' | 'sludge_kill' | 'oil_kill' | 'truck_wreck';
 
@@ -126,6 +126,8 @@ export interface Player extends Entity {
   bike?: boolean;
   /** In a hazmat suit (drawn yellow, hooded). */
   suit?: boolean;
+  /** ...on a motorcycle (Oscar's stage): the jet ski's rules, sat astride it (the stage draws the bike). */
+  moto?: boolean;
   /** A lunge through the water (the special, swimming): which way (forward, up or down). */
   swimDash?: { x: number; y: number };
   /** In the water (a stage says so each frame): he swims instead of walking and jumping. And where the surface is. */
@@ -166,7 +168,7 @@ export type BossState =
 
 /** Themed enemies: Artie's wildlife and goons. */
 /** What the shield goons throw. */
-export type ThrownKind = 'tequila' | 'water' | 'coconut' | 'ice' | 'rock' | 'teargas' | 'forty' | 'coffee' | 'stapler' | 'cleaner' | 'flask' | 'household' | 'wrench';
+export type ThrownKind = 'tequila' | 'water' | 'coconut' | 'ice' | 'rock' | 'teargas' | 'forty' | 'coffee' | 'stapler' | 'cleaner' | 'flask' | 'household' | 'wrench' | 'horseshoe' | 'lunchpail';
 /** What the gun goons fire. */
 export type ShotLook = 'slug' | 'cryo' | 'flare' | 'spray' | 'zap' | 'tracer';
 
@@ -189,7 +191,10 @@ export type EnemyKind =
   // Tommy's stage: Flint. The hood (gangbangers with pistols, bruisers with bats, pit bulls, the drive-by lowriders),
   // then the sewer (Tommy's hazmat crew with their sprayers, bloated mutant sewer workers, a crew man behind a manhole
   // cover, the little sludge things that hop out of the muck), and what's left of everyone the water killed
-  | 'banger' | 'bruiser' | 'pitbull' | 'lowrider' | 'hazmat' | 'bloater' | 'manhole' | 'sludgeling' | 'mutantfish' | 'amalgam';
+  | 'banger' | 'bruiser' | 'pitbull' | 'lowrider' | 'hazmat' | 'bloater' | 'manhole' | 'sludgeling' | 'mutantfish' | 'amalgam'
+  // Oscar's stage: the oil field's security (Texas rangers with revolvers, Hell's Angels who come at you, a deputy behind
+  // his riot shield), its wildlife (armadillos, longhorns), and the chase: union pickups, ranger cruisers, the bikers' choppers
+  | 'ranger' | 'biker' | 'deputy' | 'armadillo' | 'longhorn' | 'pickup' | 'cruiser' | 'chopper';
 
 export interface Enemy extends Entity {
   /** The water it lives in (a fish): it keeps inside it, and only goes after him when he's in it too. */

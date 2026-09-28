@@ -53,6 +53,8 @@ export interface GameState {
   cameraLeadX?: number;
   /** A set piece only lets him use this weapon (the jet ski: the gun). */
   lockWeapon?: WeaponType;
+  /** Oil on the ground (Oscar's stage): a slick you slide about on, or tar that holds your feet. From x1 to x2 along the ground line. */
+  groundOil?: { x1: number; x2: number; kind: 'slick' | 'tar' }[];
   /** The weapons he's got right now (from the game's progress). */
   availableWeapons?: WeaponType[];
 
@@ -391,9 +393,11 @@ export const resetStageState = (s: GameState) => {
   p.peeTimer = 0;
   p.skiing = false;
   p.jetski = false;
+  p.moto = false;
   p.skiSpeed = 0;
   p.hidden = false;
   p.inCutscene = false;
   s.cameraLeadX = 0;
   s.lockWeapon = undefined;
+  s.groundOil = undefined;
 };

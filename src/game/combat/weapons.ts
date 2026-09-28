@@ -1,7 +1,7 @@
 import { Projectile, Enemy, Vector2 } from '../../types';
 import {
   GROUND_Y,
-  BULLET_DAMAGE, SHOTGUN_DAMAGE, SHOTGUN_COOLDOWN, SHOTGUN_PELLET_COUNT, SHOTGUN_SPREAD_DEG, SHOTGUN_JITTER_DEG,
+  BULLET_DAMAGE, LMG_DAMAGE, LMG_COOLDOWN, LMG_VELOCITY, LMG_SPREAD_DEG, SHOTGUN_DAMAGE, SHOTGUN_COOLDOWN, SHOTGUN_PELLET_COUNT, SHOTGUN_SPREAD_DEG, SHOTGUN_JITTER_DEG,
   SHOTGUN_PELLET_SPEED_MIN, SHOTGUN_PELLET_SPEED_MAX, SHOTGUN_PELLET_LIFETIME,
   BOULDER_COOLDOWN, BOULDER_THROW_FRAMES, BOULDER_ROLL_SPEED, BOULDER_HEAVE_SPEED_X, BOULDER_HEAVE_SPEED_Y, BOULDER_SPIKE_SPEED_X, BOULDER_SPIKE_SPEED_Y, BOULDER_LIFETIME,
   FLAMETHROWER_DAMAGE, FLAMETHROWER_SEGMENTS, FLAMETHROWER_MAX_RANGE, FLAMETHROWER_START_RANGE,
@@ -64,6 +64,24 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
       player.shootCooldown = GUN_COOLDOWN;
       fx.playGunSound('gun');
       break;
+
+    case 'LMG': {
+      // A hose of lead: a round every few frames, each one anywhere in a wide cone (carried along with him: he's on a bike)
+      const a = (Math.random() * 2 - 1) * LMG_SPREAD_DEG * Math.PI / 180;
+      addProjectile({
+        id: `lmg-${Date.now()}-${Math.random()}`,
+        pos: fromMuzzle(16, 6),
+        vel: { x: facing * Math.cos(a) * LMG_VELOCITY + player.vel.x, y: Math.sin(a) * LMG_VELOCITY },
+        width: 16, height: 6, health: 1, maxHealth: 1,
+        type: 'projectile', damage: LMG_DAMAGE, owner: 'player', fromX: pos.x + width / 2,
+      });
+      player.shootCooldown = LMG_COOLDOWN;
+      // (the muzzle flash, big, and brass going everywhere)
+      for (let k = 0; k < 3; k++) state.particles.push({ pos: { x: muzzle.x + facing * 4, y: muzzle.y }, vel: { x: facing * (2 + Math.random() * 4) + player.vel.x, y: (Math.random() - 0.5) * 3 }, life: 5, color: k === 0 ? '#FFFFFF' : '#FDE047', size: 6 + Math.random() * 6 });
+      state.particles.push({ pos: { x: muzzle.x - facing * 20, y: muzzle.y }, vel: { x: -facing * (1 + Math.random() * 2) + player.vel.x, y: -2 - Math.random() * 3 }, life: 24, color: '#CA8A04', size: 2 });
+      if (state.frame % 2 === 0) fx.playGunSound('gun');
+      break;
+    }
 
     case 'BOULDER': {
       // GML oBoulderBlunderbuss: one boulder per press; up+fire lobs it

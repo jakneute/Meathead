@@ -275,6 +275,7 @@ const THROW_MIN_T = 24, THROW_MAX_T = 48;
 const THROWN_SIZE: Record<ThrownKind, { w: number; h: number }> = {
   tequila: { w: 10, h: 18 }, water: { w: 10, h: 18 }, coconut: { w: 16, h: 16 }, ice: { w: 16, h: 14 }, rock: { w: 16, h: 14 }, teargas: { w: 10, h: 16 },
   forty: { w: 12, h: 20 }, coffee: { w: 10, h: 14 }, stapler: { w: 16, h: 8 }, cleaner: { w: 10, h: 18 }, flask: { w: 12, h: 16 }, household: { w: 18, h: 18 }, wrench: { w: 20, h: 8 },
+  horseshoe: { w: 16, h: 14 }, lunchpail: { w: 18, h: 16 },
 };
 
 /** Lobbed at him (from his throwing hand): up and over in an arc that comes down where he's standing. */

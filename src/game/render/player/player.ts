@@ -1220,6 +1220,19 @@ const drawHeldWeapon = (ctx: CanvasRenderingContext2D, weapon: WeaponType, wpnX:
       ctx.fillStyle = frame % 30 < 15 ? '#22C55E' : '#14532D'; ctx.fillRect(4, 2, 2, 2);              // charge light
       break;
     }
+    case 'LMG': {
+      // A light machine gun: a long ventilated barrel, a bipod folded under it, a box of belted rounds hanging off it
+      ctx.fillStyle = '#27272A'; ctx.fillRect(-2, -1, 24, 7);                                         // receiver
+      ctx.fillStyle = '#3F3F46'; ctx.fillRect(22, 0, 14, 4);                                          // barrel shroud
+      ctx.fillStyle = '#18181B'; for (const vx of [24, 28, 32]) ctx.fillRect(vx, 1, 2, 2);             // vents
+      ctx.fillStyle = '#52525B'; ctx.fillRect(36, 1, 3, 2);                                           // muzzle
+      ctx.fillStyle = '#18181B'; ctx.fillRect(-8, 0, 7, 5); ctx.fillRect(4, 6, 4, 5);                  // stock, grip
+      ctx.fillStyle = '#3F3F2E'; ctx.fillRect(8, 6, 10, 9);                                           // the ammo box
+      ctx.fillStyle = '#CA8A04'; for (let k = 0; k < 4; k++) ctx.fillRect(17 + k * 2, 5 + k, 2, 3);    // the belt
+      ctx.fillStyle = '#6B7280'; ctx.fillRect(-2, -1, 24, 1);
+      glint(-2, 36, 0, 2, 120);
+      break;
+    }
     case 'OIL_ROCKET': {
       // Military launcher: striped tube, a sight on top, the red warhead loaded and ready
       ctx.fillStyle = '#3F3F2E'; ctx.fillRect(-4, -2, 28, 10);

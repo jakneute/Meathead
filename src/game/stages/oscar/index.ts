@@ -1,0 +1,66 @@
+// Oily Oscar's stage: see course.ts for the layout. This file builds it into
+// the game state and hooks the oil field, the break room, the chase, the field
+// office and the drawing into the engine.
+
+import type { StageLayout } from '../index';
+import type { Block } from '../../../types';
+import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH } from '../../../constants';
+import { groundBlocks } from '../../core/terrain';
+import { COURSE, CP, placeOf } from './course';
+import { createOscarRuntime, getOscar, updateOscar, oscarDeathMessage } from './runtime';
+import { isChaseVehicle, updateChaseVehicle, hitChaseVehicle, chaseZoom } from './chase';
+import { drawOscarBackdrop, drawOscarBack, drawOscarMid, drawOscarFront, drawOscarHud, drawOscarOverlays } from './draw';
+import { oscarScene } from './lighting';
+
+export const oscarLayout: StageLayout = {
+  left: COURSE.left,
+  startX: COURSE.startX,
+  verticalCamera: true,
+  lighting: state => oscarScene(state),
+  build: (state, skipToBoss) => {
+    const C = COURSE;
+    state.groundRuns = [...C.runs, { x1: BOSS_DOOR_X, y1: GROUND_Y, x2: STAGE_WIDTH, y2: GROUND_Y }];
+    state.blocks.push(...groundBlocks(C.runs));
+    // Pipelines and derrick decks: things you jump up through and stand on
+    C.ledges.forEach((l, i) => state.blocks.push({ x: l.x, y: l.y, w: l.w, h: 14, type: 'platform', hidden: true, oneWay: true, tag: `oledge-${i}` }));
+    const wall = (x: number, y: number, w: number, h: number, tag: string): Block => ({ x, y, w, h, type: 'wall', hidden: true, tag });
+    // The ends of each part
+    state.blocks.push(wall(C.field.x1 - 60, -4000, 60, 6000, 'field-start'), wall(C.field.x2, -4000, 60, 6000, 'field-end'));
+    state.blocks.push(wall(C.chase.x1 - 60, -4000, 60, 6000, 'chase-start'));
+    state.blocks.push(wall(C.end.x1 - 60, -4000, 60, 6000, 'end-start'));
+    state.cameraMinX = C.startX;
+    state.player.hidden = false;
+    state.stage = createOscarRuntime(state, skipToBoss);
+    const cp = skipToBoss ? 0 : state.checkpoint;
+    if (cp > 0) {
+      const at = C.checkpoints[cp];
+      state.cameraRestY = at.y - 550;
+      return at;
+    }
+  },
+  update: (ctx, controls) => updateOscar(ctx, controls),
+  deathMessage: ctx => oscarDeathMessage(ctx),
+  // (the chase's cars, trucks and choppers are run by the stage)
+  updateSpecialEnemy: (ctx, e) => {
+    if (!isChaseVehicle(e.kind)) return undefined;
+    return updateChaseVehicle(ctx, e, getOscar(ctx.state)?.chase ?? null);
+  },
+  hitSpecialEnemy: (ctx, e, p) => {
+    if (!isChaseVehicle(e.kind)) return undefined;
+    if (p.owner !== 'player' || e.health <= 0) return 'miss';
+    hitChaseVehicle(e, p.damage);
+    void ctx;
+    return true;
+  },
+  drawBack: (ctx, state) => { if (getOscar(state)) drawOscarBack(ctx, state); },
+  drawMid: (ctx, state) => { if (getOscar(state)) drawOscarMid(ctx, state); },
+  drawFront: (ctx, state) => { if (getOscar(state)) drawOscarFront(ctx, state); },
+  drawHud: (ctx, state) => { if (getOscar(state)) drawOscarHud(ctx, state); },
+  drawBackdrop: (ctx, state) => !!getOscar(state) && drawOscarBackdrop(ctx, state),
+  drawBackdropFront: (ctx, state) => !!getOscar(state) && drawOscarOverlays(ctx, state),
+  // (on the chase the view pulls back as the mob grows)
+  zoom: state => { const rt = getOscar(state); return rt ? chaseZoom(state, rt.chase) : null; },
+  cameraRow: state => (placeOf(state.player.pos.x) === 'bunker' ? 520 : undefined),
+};
+
+void CP;

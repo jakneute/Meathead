@@ -176,11 +176,13 @@ export const getStartingWeapons = (rank: number, allWeaponsCheat: boolean): Weap
 
 /** A weapon's proper name, and the boss it was taken from (if any). */
 export const getWeaponInfo = (weapon: WeaponType) => {
+  if (weapon === 'LMG') return { name: 'Light Machine Gun', from: "DIRTY DAN'S GANG" };
   const from = Object.keys(BOSS_WEAPON_MAP).find(id => BOSS_WEAPON_MAP[id] === weapon);
   return { name: from ? WEAPON_NAMES[from] : 'Handgun', from: from ?? 'STANDARD ISSUE' };
 };
 
 export const getWeaponDescription = (weapon: WeaponType): string => {
+  if (weapon === 'LMG') return "Dirty Dan's pride and joy. Belt-fed, bipod, zero accuracy. Hold the trigger down and let God sort out the rest.";
   if (weapon === 'GUN') return "Your trusty sidearm. Never runs dry, never jams, never lets you down. Point it at a face and pull the trigger.";
   const bossId = Object.keys(BOSS_WEAPON_MAP).find(id => BOSS_WEAPON_MAP[id] === weapon);
   return (bossId && WEAPON_DESCRIPTIONS[bossId]) || "HEAVY DEVASTATION";

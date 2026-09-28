@@ -20,7 +20,7 @@ export const isMidBoss = (e: Enemy) => e.kind === 'moose' || e.kind === 'eye' ||
  *   sludge 160 a blob, every 90 (~105/s, and it's a big slow blob) · oil rocket 90 + 80 splash, every 45 (~225/s)
  */
 export const MIDBOSS_DAMAGE: Record<WeaponType, number> = {
-  GUN: 25, SHOTGUN: 14, BOULDER: 150, FLAMETHROWER: 2.5, TSUNAMI: 300, NEEDLES: 16, TASER: 16, SLUDGE: 160, OIL_ROCKET: 90,
+  GUN: 25, SHOTGUN: 14, BOULDER: 150, FLAMETHROWER: 2.5, TSUNAMI: 300, NEEDLES: 16, TASER: 16, SLUDGE: 160, OIL_ROCKET: 90, LMG: 22,
 };
 /** The oil rocket's splash on a mid-boss (no oil sticks to it). */
 export const MIDBOSS_SPLASH_DAMAGE = 80;

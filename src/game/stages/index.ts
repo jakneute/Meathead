@@ -15,6 +15,7 @@ import { ernieLayout } from './ernie';
 import { daleLayout } from './dale';
 import { barryLayout } from './barry';
 import { tommyLayout } from './tommy';
+import { oscarLayout } from './oscar';
 
 export interface StageLayout {
   /** Left edge of the stage's world. */
@@ -84,6 +85,7 @@ const LAYOUTS: Record<string, StageLayout> = {
   'Drug Trade Dale': daleLayout,
   'Blackout Barry': barryLayout,
   'Toxic Tommy': tommyLayout,
+  'Oily Oscar': oscarLayout,
 };
 
 export const getStageLayout = (stageId: string | null): StageLayout | undefined => (stageId ? LAYOUTS[stageId] : undefined);

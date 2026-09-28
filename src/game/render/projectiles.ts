@@ -116,6 +116,21 @@ export const drawThrown = (ctx: CanvasRenderingContext2D, p: Projectile, frame: 
       ctx.fillStyle = '#ECFCCB'; for (let k = 0; k < 2; k++) { ctx.beginPath(); ctx.arc(-2 + k * 3, 3 - ((frame + k * 4) % 8) * 0.5, 1, 0, Math.PI * 2); ctx.fill(); }
       break;
     }
+    case 'horseshoe':
+      // A horseshoe, end over end
+      ctx.strokeStyle = '#78716C'; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(0, 0, 6, Math.PI * 0.15, Math.PI * 1.85, true); ctx.stroke();
+      ctx.fillStyle = '#E7E5E4'; for (const a of [0.6, 1.2, 1.8, 2.4]) ctx.fillRect(Math.cos(a + Math.PI) * 6 - 1, Math.sin(a + Math.PI) * 6 - 1, 2, 2);
+      break;
+    case 'lunchpail':
+      // What the union throws: a lunch pail, a thermos, a hard hat, a donut box, a pipe wrench
+      switch ((p.item ?? 0) % 5) {
+        case 0: ctx.fillStyle = '#B91C1C'; ctx.fillRect(-9, -5, 18, 11); ctx.fillStyle = '#7F1D1D'; ctx.fillRect(-9, -5, 18, 3); ctx.strokeStyle = '#9CA3AF'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, -6, 5, Math.PI, 0); ctx.stroke(); break;
+        case 1: ctx.fillStyle = '#15803D'; ctx.fillRect(-4, -9, 8, 18); ctx.fillStyle = '#D1D5DB'; ctx.fillRect(-4, -10, 8, 4); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-3, -2, 6, 2); break;
+        case 2: ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.arc(0, 2, 9, Math.PI, 0); ctx.fill(); ctx.fillRect(-11, 1, 22, 3); ctx.fillStyle = '#CA8A04'; ctx.fillRect(-1, -7, 2, 8); break;
+        case 3: ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-10, -4, 20, 9); ctx.fillStyle = '#EC4899'; ctx.fillRect(-10, -4, 20, 2); ctx.fillStyle = '#A16207'; ctx.beginPath(); ctx.arc(-4, 1, 3, 0, Math.PI * 2); ctx.arc(4, 1, 3, 0, Math.PI * 2); ctx.fill(); break;
+        default: ctx.fillStyle = '#6B7280'; ctx.fillRect(-10, -1.5, 16, 3); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(4, -5, 6, 4); ctx.fillRect(4, 1, 6, 3); break;
+      }
+      break;
     case 'wrench':
       // A big pipe wrench, spinning
       ctx.fillStyle = '#6B7280'; ctx.fillRect(-10, -1.5, 16, 3);

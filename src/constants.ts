@@ -174,7 +174,9 @@ export const MAX_AMMO: Record<WeaponType, number> = {
   'NEEDLES': 120,
   'TASER': 400,
   'SLUDGE': 24,
-  'OIL_ROCKET': 15
+  'OIL_ROCKET': 15,
+  // (Dirty Dan's machine gun: it's only his for the chase, and it never runs dry till it's over)
+  'LMG': Infinity,
 };
 
 /** A fresh ammo loadout with every weapon topped up. */
@@ -183,6 +185,12 @@ export const createFullAmmo = (): Record<WeaponType, number> => ({ ...MAX_AMMO }
 // BASIC GUN
 export const BULLET_DAMAGE = 25;
 export const GUN_COOLDOWN = 12;
+// DIRTY DAN'S LIGHT MACHINE GUN (the chase on Oscar's stage): a hose of lead, going everywhere
+export const LMG_DAMAGE = 22;
+export const LMG_COOLDOWN = 3;
+export const LMG_VELOCITY = 21;
+/** How far off straight a round can go, each way (degrees). */
+export const LMG_SPREAD_DEG = 17;
 export const GUN_VELOCITY = 18;
 
 // BOULDER (EARTHQUAKE) - ported from the GML oBoulderBlunderbuss / oBoulderBullet.

@@ -438,6 +438,13 @@ const App: React.FC = () => {
     if (ammo) setWeaponAmmo(ammo);
     if (forcedWeapon) setCurrentWeapon(forcedWeapon);
     setLockedWeapon(lockedTo);
+    // A weapon that's only his for a set piece (Dirty Dan's machine gun): in the arsenal while it lasts, gone after
+    if (lockedTo === 'LMG') setAvailableWeapons(ws => (ws.includes('LMG') ? ws : [...ws, 'LMG']));
+    else setAvailableWeapons(ws => {
+      if (!ws.includes('LMG')) return ws;
+      setCurrentWeapon(c => (c === 'LMG' ? 'GUN' : c));
+      return ws.filter(w => w !== 'LMG');
+    });
   };
 
   // Input listeners are attached once and always call the latest render's handlers.

@@ -19,7 +19,7 @@ import { GameState, shakeScreen } from '../core/state';
 import { Controls } from '../platform/input';
 import { fireWeapon, updateFlamethrower } from '../combat/weapons';
 import { rectsOverlap, boundsOf } from '../core/utils';
-import { standingIndoors } from '../core/terrain';
+import { standingIndoors, groundLineAt } from '../core/terrain';
 import { isChargerKind } from '../enemies/kinds';
 import { BOSS_DIALOGUE } from '../../content/dialogue';
 import { isStandingInOil } from '../bosses/oscar';
@@ -174,6 +174,18 @@ export const armsBusy = (player: Player) => (player.isCharging && !player.isSlid
 const isPerformingSpecial = (ctx: FrameContext) => {
   const { player } = ctx.state;
   return player.isCharging || player.isUppercutting || !!player.isDivekicking;
+};
+
+/** Which of a stage's ground oil he's stood in, if any (on the ground itself: not a ledge over it). */
+export const oilUnderfoot = (state: GameState): 'slick' | 'tar' | null => {
+  const zones = state.groundOil;
+  const p = state.player;
+  if (!zones || !zones.length || !p.isGrounded) return null;
+  const cx = p.pos.x + p.width / 2;
+  const z = zones.find(o => cx > o.x1 && cx < o.x2);
+  if (!z) return null;
+  const g = groundLineAt(state.groundRuns, cx);
+  return Math.abs(p.pos.y + p.height - g) <= 6 ? z.kind : null;
 };
 
 /** Special move inputs (GML handleSpecialInputs). Charge, uppercut and divekick share one button. */
@@ -349,7 +361,9 @@ const updateHorizontalVelocity = (ctx: FrameContext, movDir: number) => {
 
   // Oily Oscar's oil: slow, slippery going (a shoulder charge gets you out)
   const inOil = isStandingInOil(state);
-  const targetVel = movDir * PLAYER_MOVE_SPEED * (inOil ? OSCAR_OIL_SPEED_MULT : 1);
+  // (and out in his oil field: a slick you slide about on, tar that holds your feet)
+  const fieldOil = oilUnderfoot(state);
+  const targetVel = movDir * PLAYER_MOVE_SPEED * (inOil || fieldOil === 'tar' ? OSCAR_OIL_SPEED_MULT : 1);
   const effectiveDir = player.isDucking ? 0 : movDir;
   const bossDef = getBossDef(stageId);
   // A floorless arena's platforms (Tommy's floating boards) aren't terrain blocks, so being grounded there counts as a floor too
@@ -364,6 +378,9 @@ const updateHorizontalVelocity = (ctx: FrameContext, movDir: number) => {
   // Sticky surfaces (multiplier > 1) also slow acceleration, like the GML version
   let accel = Math.min(0.5, Math.max(0.005, PLAYER_ACCEL_BASE / (surfaceFriction > 1 ? surfaceFriction * surfaceFriction : 1)));
   if (inOil) { friction = 0.03; accel = 0.04; }
+  // (on a slick there's no stopping, or starting, in a hurry; tar stops you dead and lets you go at a crawl)
+  if (fieldOil === 'slick') { friction = 0.008; accel = 0.025; }
+  else if (fieldOil === 'tar') { friction = 0.3; accel = 0.05; }
 
   const lerpTo = (target: number, t: number) => { player.vel.x += (target - player.vel.x) * t; };
   if (effectiveDir !== 0) {
@@ -470,7 +487,7 @@ const updateVerticalVelocity = (ctx: FrameContext, input: FrameInput) => {
   if (player.jumpBufferTimer > 0 && player.coyoteJumpTimer > 0 && !player.isDucking && !player.isTasing) {
     player.jumpBufferTimer = 0;
     // Oil underfoot: your feet slip and you barely get off the ground
-    player.jumpHoldTimer = isStandingInOil(ctx.state) ? Math.round(JUMP_HOLD_FRAMES * OSCAR_OIL_JUMP_MULT) : JUMP_HOLD_FRAMES;
+    player.jumpHoldTimer = isStandingInOil(ctx.state) || oilUnderfoot(ctx.state) === 'tar' ? Math.round(JUMP_HOLD_FRAMES * OSCAR_OIL_JUMP_MULT) : JUMP_HOLD_FRAMES;
     if (player.skiing) player.jumpHoldTimer = Math.round(JUMP_HOLD_FRAMES * SKI_JUMP_HOLD_MULT);
     player.squash = -0.5; // stretch on take-off
     player.isGrounded = false;

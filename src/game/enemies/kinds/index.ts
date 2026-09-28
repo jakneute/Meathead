@@ -111,6 +111,16 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   // (what's left of the people the water killed: the stage runs it)
   // (it goes all the way down to the bottom of its pool)
   amalgam: { w: 300, h: 580, hp: 11000, contact: 0 },
+  // Oscar's stage
+  ranger: { w: 42, h: 68, hp: 130, contact: 6 },
+  biker: { w: 54, h: 72, hp: 240, contact: 13 },
+  deputy: { w: 52, h: 70, hp: 170, contact: 7 },
+  armadillo: { w: 40, h: 20, hp: 40, contact: 8 },
+  longhorn: { w: 96, h: 58, hp: 150, contact: 15 },
+  // (the chase's: the stage runs them; each car or truck takes two big hits, a chopper one)
+  pickup: { w: 150, h: 66, hp: 260, contact: 12 },
+  cruiser: { w: 150, h: 56, hp: 260, contact: 12 },
+  chopper: { w: 76, h: 66, hp: 60, contact: 12 },
 };
 
 /**
@@ -119,12 +129,12 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
  */
 export const isSmallCritter = (kind?: EnemyKind) =>
   kind === 'wolverine' || kind === 'salamander' || kind === 'raccoon' || kind === 'crab' || kind === 'iguana' || kind === 'magmafish'
-  || kind === 'rattlesnake' || kind === 'scorpion' || kind === 'rat' || kind === 'sludgeling';
+  || kind === 'rattlesnake' || kind === 'scorpion' || kind === 'rat' || kind === 'sludgeling' || kind === 'armadillo';
 
 /** The ones that run you down like the rusher. */
 export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind === 'bouncer' || kind === 'smokejumper' || kind === 'courier' || kind === 'enforcer'
   || kind === 'hooker' || kind === 'mugger' || kind === 'commuter' || kind === 'intern' || kind === 'janitor' || kind === 'subject'
-  || kind === 'bruiser' || kind === 'bloater';
+  || kind === 'bruiser' || kind === 'bloater' || kind === 'biker';
 
 let spawnCount = 0;
 
@@ -183,6 +193,12 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     case 'manhole': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
     case 'amalgam': return { ...base, harmless: true };
     case 'mutantfish': return { ...base, enemyType: 'flyer', initialY: pos.y };
+    // Oscar's: a Texas ranger with his revolver, a Hell's Angel who comes at you with his chain, a deputy behind a riot
+    // shield (he drops it to pitch a horseshoe); the chase's vehicles are run by the stage
+    case 'ranger': return { ...base, behavior: 'shoot', shootTimer: Math.floor(Math.random() * 40) };
+    case 'biker': return { ...base, behavior: 'patrol', pauseTimer: 0 };
+    case 'deputy': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
+    case 'pickup': case 'cruiser': case 'chopper': return { ...base, facing: 1 };
     default: return base;
   }
 };
@@ -213,6 +229,9 @@ export const runKindAI = (ctx: FrameContext, e: Enemy): boolean => {
     // Barry's rats scurry and lunge like the wolverine
     case 'rat': wolverine(ctx, e); return false;
     case 'pitbull': case 'lowrider': case 'sludgeling': case 'mutantfish': return runTommyKindAI(ctx, e);
+    // Oscar's wildlife: the armadillo scurries and rolls at you like the wolverine lunges; the longhorn charges like the goat
+    case 'armadillo': wolverine(ctx, e); return false;
+    case 'longhorn': goat(ctx, e); return false;
     default: return false;
   }
 };
