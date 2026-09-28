@@ -91,6 +91,36 @@ const playSiren = (ctx: AudioContext) => {
   osc.start(); osc.stop(t + dur);
 };
 
+/**
+ * Screaming a long way off, through a mountain: a handful of wailing voices
+ * (rising, wavering, dying away), low-passed to a muffle and quiet.
+ */
+const playScreams = (ctx: AudioContext) => {
+  const t0 = ctx.currentTime;
+  const muffle = ctx.createBiquadFilter(); muffle.type = 'lowpass'; muffle.frequency.value = 650; muffle.Q.value = 0.7;
+  const master = ctx.createGain(); master.gain.value = 0.9;
+  muffle.connect(master); master.connect(ctx.destination);
+  for (let i = 0; i < 7; i++) {
+    const t = t0 + i * 0.22 + Math.random() * 0.2, dur = 0.9 + Math.random() * 0.8;
+    const base = 420 + Math.random() * 420;
+    const osc = ctx.createOscillator(); osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(base * 0.8, t);
+    osc.frequency.linearRampToValueAtTime(base * 1.35, t + dur * 0.3);
+    osc.frequency.linearRampToValueAtTime(base * 0.7, t + dur);
+    // The waver in a scream
+    const lfo = ctx.createOscillator(); lfo.frequency.value = 6 + Math.random() * 3;
+    const depth = ctx.createGain(); depth.gain.value = base * 0.05;
+    lfo.connect(depth); depth.connect(osc.frequency);
+    const voice = ctx.createBiquadFilter(); voice.type = 'bandpass'; voice.frequency.value = 900 + Math.random() * 400; voice.Q.value = 1.5;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.linearRampToValueAtTime(0.05, t + 0.12);
+    gain.gain.linearRampToValueAtTime(0.0001, t + dur);
+    osc.connect(voice); voice.connect(gain); gain.connect(muffle);
+    osc.start(t); osc.stop(t + dur); lfo.start(t); lfo.stop(t + dur);
+  }
+};
+
 /** Thunder: a crack of noise and a long low rumble. */
 const playThunder = (ctx: AudioContext) => {
   const t = ctx.currentTime, dur = 2.2;
@@ -162,6 +192,7 @@ export const playSound = (type: SoundType = 'gun') => {
     if (type === 'horn') playHorn(ctx);
     else if (type === 'siren') playSiren(ctx);
     else if (type === 'thunder') playThunder(ctx);
+    else if (type === 'screams') playScreams(ctx);
     else if (type === 'nuke') playNuke(ctx);
     else if (type === 'tsunami') playWaveCrash(ctx);
     else playTone(ctx, TONES[type]!);

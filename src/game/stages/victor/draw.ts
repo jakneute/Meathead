@@ -9,7 +9,7 @@ import { COURSE, isLava } from './course';
 import { getVictor, regionOf, enterFade } from './runtime';
 import { ventPhase, VENT_WARN, VENT_HEIGHT, VENT_HALF_WIDTH, BOMB_WARN, BOMB_RADIUS, jetPhase, JET_WARN, barBalls } from './hazards';
 import { drawDoormanCorpse, drawDoormanHud, drawClashingMeathead } from './doormanDraw';
-import { drawLoungeBack, drawLoungeFront, drawWideShot, drawLoungeHud } from './loungeDraw';
+import { drawLoungeBack, drawLoungeFront, drawWideShot, drawLoungeHud, drawAftermathFade } from './loungeDraw';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -419,4 +419,5 @@ export const drawVictorHud = (ctx: Ctx, state: GameState) => {
   const fade = enterFade(rt);
   if (fade > 0) { ctx.fillStyle = `rgba(0, 0, 0, ${fade})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
   drawWideShot(ctx, state, rt.lounge);
+  drawAftermathFade(ctx, rt.lounge);
 };

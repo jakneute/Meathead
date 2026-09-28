@@ -6,7 +6,7 @@ import type { GameState } from '../../state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { drawPlayer } from '../../render/playerRenderer';
 import { COURSE } from './course';
-import { Lounge, crashPose, PARTY_FRAMES, WIDE_FRAMES, BLAST_AT, blastAmount } from './lounge';
+import { Lounge, crashPose, PARTY_FRAMES, FLIGHT_FRAMES, WIDE_FRAMES, BLAST_AT, SCREAM_AT, ZOOM_OUT, ZOOM_IN_AT, FADE_IN, blastAmount } from './lounge';
 import { drawVolcano } from './draw';
 
 type Ctx = CanvasRenderingContext2D;
@@ -74,6 +74,7 @@ export const drawLoungeBack = (ctx: Ctx, state: GameState, lg: Lounge) => {
   GUESTS.forEach((g, i) => {
     const gx = L.x1 + g.dx;
     if (wrecked) corpse(ctx, gx, y, g.suit, g.skin, i, f);
+    else if (lg.phase === 'crash' && lg.t > PARTY_FRAMES + FLIGHT_FRAMES - 6) panicking(ctx, gx, y, g.suit, g.skin, i, lg.t - (PARTY_FRAMES + FLIGHT_FRAMES), f, L.x2);
     else guest(ctx, gx, y, g.suit, g.skin, g.pose, f + i * 17, lg.phase === 'crash' && lg.t > PARTY_FRAMES);
   });
   if (wrecked) wreckage(ctx, state);
@@ -108,6 +109,46 @@ const guest = (ctx: Ctx, x: number, y: number, suit: string, skin: string, pose:
   else { ctx.fillRect(10, -58 + sit, 12, 5); ctx.fillStyle = '#FDE68A'; ctx.fillRect(20, -64 + sit, 5, 8); } // a glass
   if (startled) { ctx.fillStyle = '#FACC15'; ctx.font = 'bold 14px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('!', 0, -100 + sit); }
   ctx.restore();
+};
+
+/** A guest once he's landed: screaming, arms up, running for it (bumping into the far wall and doubling back, falling over each other). */
+const SCREAMS = ['AAAAH!', 'WHO IS THAT?!', 'SECURITY!', 'HE HAS NO SHIRT!', 'RUN!', 'MY DRINK!', 'NOT THE FACE!', 'CALL VICTOR!', 'OH GOD!'];
+const panicking = (ctx: Ctx, x0: number, y: number, suit: string, skin: string, i: number, t: number, f: number, right: number) => {
+  // Away from him (he's in by the window on the left), bouncing off the far end
+  const speed = 2.5 + hash(i) * 3;
+  const run = Math.max(0, t) * speed;
+  const span = right - 80 - x0;
+  const leg = Math.floor(run / Math.max(40, span));
+  const along = run % Math.max(40, span);
+  const x = leg % 2 === 0 ? x0 + along : right - 80 - along;
+  const dir = leg % 2 === 0 ? 1 : -1;
+  const down = i % 4 === 3 && t > 40; // (tripped over, crawling)
+  ctx.save(); ctx.translate(x, y);
+  if (down) {
+    ctx.fillStyle = suit; ctx.fillRect(-20, -14, 30, 12); ctx.fillStyle = '#111827'; ctx.fillRect(-36, -10, 18, 7);
+    ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(16, -10, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = suit; ctx.fillRect(10, -4 + Math.sin(f * 0.5) * 3, 10, 4);
+  } else {
+    ctx.scale(dir, 1);
+    const stride = Math.sin(f * 0.6 + i) * 8, bob = Math.abs(Math.sin(f * 0.6 + i)) * 3;
+    ctx.translate(0, -bob);
+    ctx.fillStyle = '#111827'; ctx.save(); ctx.translate(-4, -30); ctx.rotate(stride * 0.05); ctx.fillRect(-3, 0, 7, 30); ctx.restore();
+    ctx.save(); ctx.translate(4, -30); ctx.rotate(-stride * 0.05); ctx.fillRect(-3, 0, 7, 30); ctx.restore();
+    ctx.fillStyle = suit; ctx.save(); ctx.translate(0, -30); ctx.rotate(0.2); ctx.fillRect(-12, -32, 24, 34); ctx.restore();
+    // Arms flailing over his head
+    ctx.fillRect(-16, -92 + Math.sin(f * 0.9 + i) * 5, 6, 26); ctx.fillRect(10, -92 - Math.sin(f * 0.9 + i) * 5, 6, 26);
+    ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(6, -70, 9, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#0A0A0A'; ctx.fillRect(-2, -80, 18, 4); // (the shades knocked askew)
+    ctx.fillStyle = '#450A0A'; ctx.beginPath(); ctx.ellipse(10, -64, 3, 4, 0, 0, Math.PI * 2); ctx.fill(); // mouth open, screaming
+  }
+  ctx.restore();
+  // What they're screaming (a few at a time)
+  if (Math.floor((t + i * 23) / 45) % 3 === 0 && t > 4) {
+    ctx.save(); ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'center';
+    const text = SCREAMS[(i + Math.floor((t + i * 23) / 45)) % SCREAMS.length];
+    ctx.fillStyle = '#000'; ctx.fillText(text, x + 1, y - 110 + 1); ctx.fillStyle = '#FDE047'; ctx.fillText(text, x, y - 110);
+    ctx.restore();
+  }
 };
 
 /** A guest, afterwards. Every one of them different, none of them good. */
@@ -191,9 +232,10 @@ export const drawLoungeFront = (ctx: Ctx, state: GameState, lg: Lounge) => {
     ctx.fillStyle = 'rgba(191, 219, 254, 0.85)';
     ctx.beginPath(); ctx.moveTo(x, yy); ctx.lineTo(x + 6, yy + 3); ctx.lineTo(x + 2, yy + 8); ctx.fill();
   }
-  // Him: a flying kick, feet first
+  // Him: a flying kick, feet first; then landed, square to the room, taking it in
   const p = state.player;
-  const body = { ...p, pos: { x: -1e6, y: -1e6 }, hidden: false, isGrounded: false, vel: { x: 12, y: 6 }, facing: 1 as const, isDivekicking: pose.k < 1, invincibilityTimer: 0, hurtTimer: 0, pushbackTimer: 0, isCharging: false, isSliding: false, isUppercutting: false };
+  const landed = pose.k >= 1;
+  const body = { ...p, pos: { x: -1e6, y: -1e6 }, hidden: false, isGrounded: landed, vel: { x: landed ? 0 : 12, y: landed ? 0 : 6 }, facing: 1 as const, isDivekicking: !landed, invincibilityTimer: 0, hurtTimer: 0, pushbackTimer: 0, isCharging: false, isSliding: false, isUppercutting: false, squash: landed && t < FLIGHT_FRAMES + 8 ? 1 - (t - FLIGHT_FRAMES) / 8 : 0 };
   ctx.save();
   ctx.translate(pose.x + p.width / 2, pose.y + p.height / 2);
   ctx.translate(-(body.pos.x + body.width / 2), -(body.pos.y + body.height / 2));
@@ -205,7 +247,7 @@ export const drawLoungeFront = (ctx: Ctx, state: GameState, lg: Lounge) => {
 export const drawLoungeHud = (ctx: Ctx, state: GameState, lg: Lounge) => {
   if (lg.phase !== 'crash' || lg.lineT <= 0 || !lg.line) return;
   const pose = crashPose(Math.max(0, lg.t - PARTY_FRAMES));
-  const x = Math.max(120, pose.x + 22 - state.camera.x), y = pose.y - 30 - state.camera.y;
+  const x = Math.max(140, pose.x + 22 - state.camera.x), y = pose.y - 30 - state.camera.y;
   ctx.save();
   ctx.font = 'bold 16px "Press Start 2P"'; ctx.textAlign = 'center';
   ctx.fillStyle = '#000'; ctx.fillText(lg.line, x + 2, y + 2);
@@ -218,8 +260,18 @@ export const drawWideShot = (ctx: Ctx, state: GameState, lg: Lounge) => {
   if (lg.phase !== 'wide') return;
   const W = CANVAS_WIDTH, H = CANVAS_HEIGHT, t = lg.t, f = state.frame;
   const shake = t > BLAST_AT && t < BLAST_AT + 40 ? (hash(t) - 0.5) * 14 : 0;
+  // Pulling out from the lounge's window to the whole volcano; later, pushing back in on it
+  const cx0 = W / 2, base0 = H - 70;
+  const wx0 = cx0 + 40, wy0 = base0 - 280 * 1.05 + 60;
+  const ease = (k: number) => k * k * (3 - 2 * k);
+  const zoomOut = t < ZOOM_OUT ? 1 - ease(t / ZOOM_OUT) : 0;
+  const zoomIn = t > ZOOM_IN_AT ? ease(Math.min(1, (t - ZOOM_IN_AT) / (WIDE_FRAMES - ZOOM_IN_AT - 20))) : 0;
+  const zoom = 1 + Math.max(zoomOut, zoomIn) * 11;
   ctx.save();
+  // (it fades up over the lounge as the pull-out starts)
+  ctx.globalAlpha = Math.min(1, t / 14);
   ctx.translate(shake, shake * 0.5);
+  ctx.translate(W / 2, H / 2); ctx.scale(zoom, zoom); ctx.translate(-(W / 2 + (wx0 - W / 2) * Math.min(1, (zoom - 1) / 11)), -(H / 2 + (wy0 - H / 2) * Math.min(1, (zoom - 1) / 11)));
   const g = ctx.createLinearGradient(0, 0, 0, H);
   g.addColorStop(0, '#1E1B4B'); g.addColorStop(0.55, '#7C2D12'); g.addColorStop(1, '#EA580C');
   ctx.fillStyle = g; ctx.fillRect(-20, -20, W + 40, H + 40);
@@ -230,7 +282,16 @@ export const drawWideShot = (ctx: Ctx, state: GameState, lg: Lounge) => {
   // The lounge's lit window, near the top
   const wx = cx + 40, wy = base - 280 * s + 60;
   const blast = blastAmount(lg);
-  if (blast < 0.3) { ctx.fillStyle = Math.floor(f / 10) % 2 ? '#F0ABFC' : '#EC4899'; ctx.fillRect(wx - 4, wy - 3, 8, 6); }
+  if (blast < 0.3) {
+    // The lounge's window: gold frame, pink light, the party going on behind the glass (this is what the shot pulls out from)
+    ctx.fillStyle = '#CA8A04'; ctx.fillRect(wx - 6, wy - 5, 12, 10);
+    const gl = ctx.createLinearGradient(0, wy - 4, 0, wy + 4);
+    gl.addColorStop(0, '#A855F7'); gl.addColorStop(1, Math.floor(f / 10) % 2 ? '#F0ABFC' : '#EC4899');
+    ctx.fillStyle = gl; ctx.fillRect(wx - 5, wy - 4, 10, 8);
+    ctx.fillStyle = 'rgba(10, 5, 15, 0.75)';
+    for (let k = 0; k < 3; k++) { const sx = wx - 4 + ((f * 0.05 + k * 3.3) % 8); ctx.fillRect(sx, wy - 1, 1.2, 5); ctx.beginPath(); ctx.arc(sx + 0.6, wy - 1.8, 0.8, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = '#FDE047'; ctx.fillRect(wx - 0.3, wy - 4, 0.6, 8);
+  }
   // Foreground: the plain the volcano stands on
   ctx.fillStyle = '#0C0505'; ctx.beginPath(); ctx.moveTo(-20, H + 20); ctx.lineTo(-20, H - 50); ctx.quadraticCurveTo(W / 2, H - 80, W + 20, H - 40); ctx.lineTo(W + 20, H + 20); ctx.fill();
   if (t >= BLAST_AT) {
@@ -248,6 +309,16 @@ export const drawWideShot = (ctx: Ctx, state: GameState, lg: Lounge) => {
       ctx.fillStyle = `rgba(60, 50, 50, ${0.6 * (1 - sk * 0.5)})`;
       ctx.beginPath(); ctx.arc(wx + Math.sin(i * 2) * 20 * sk, wy - sk * 120 - i * 10, 10 + sk * 26, 0, Math.PI * 2); ctx.fill();
     }
+    // Where the window was: a blackened, smoking hole with a glowing edge (the push back in ends on it)
+    if (t > BLAST_AT + 8) {
+      ctx.fillStyle = '#0C0A09'; ctx.beginPath(); ctx.ellipse(wx, wy, 8, 6, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = `rgba(249, 115, 22, ${0.6 + 0.3 * Math.sin(f * 0.3)})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(wx, wy, 8, 6, 0, 0, Math.PI * 2); ctx.stroke();
+      for (let i = 0; i < 5; i++) {
+        const sk = ((f * 0.4 + i * 14) % 70) / 70;
+        ctx.fillStyle = `rgba(70, 60, 60, ${0.55 * (1 - sk)})`;
+        ctx.beginPath(); ctx.arc(wx + Math.sin(i * 1.7 + f * 0.02) * 4 * sk, wy - 4 - sk * 30, 3 + sk * 8, 0, Math.PI * 2); ctx.fill();
+      }
+    }
     // Bits of the lounge flying out
     for (let i = 0; i < 16; i++) {
       const vx = (hash(i) - 0.5) * 6, vy = -2 - hash(i + 4) * 4, tt = (t - BLAST_AT) * 0.8;
@@ -256,7 +327,23 @@ export const drawWideShot = (ctx: Ctx, state: GameState, lg: Lounge) => {
       ctx.fillStyle = i % 3 ? '#1C1917' : '#FB923C'; ctx.fillRect(x, y, 3, 3);
     }
   }
-  // Letterbox bars: it's a cutscene
-  ctx.fillStyle = '#000'; ctx.fillRect(-20, -20, W + 40, 60); ctx.fillRect(-20, H - 40, W + 40, 60);
   ctx.restore();
+  // Letterbox bars: it's a cutscene
+  ctx.save();
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, 40); ctx.fillRect(0, H - 40, W, 40);
+  // A long way off, through a mountain: the screaming
+  if (t >= SCREAM_AT && t < ZOOM_IN_AT) {
+    ctx.globalAlpha = Math.min(1, (t - SCREAM_AT) / 20, (ZOOM_IN_AT - t) / 20);
+    ctx.fillStyle = '#D6D3D1'; ctx.font = 'italic 10px "Press Start 2P"'; ctx.textAlign = 'center';
+    ctx.fillText('( DISTANT, MUFFLED SCREAMING )', W / 2, H - 16);
+  }
+  // Down to black at the end, before it comes up on what's left
+  if (t > WIDE_FRAMES - 30) { ctx.globalAlpha = 1; ctx.fillStyle = `rgba(0,0,0,${Math.min(1, (t - (WIDE_FRAMES - 30)) / 25)})`; ctx.fillRect(0, 0, W, H); }
+  ctx.restore();
+};
+
+/** Afterwards: up out of the black onto the lounge. */
+export const drawAftermathFade = (ctx: Ctx, lg: Lounge) => {
+  if (lg.phase !== 'wrecked' || lg.t >= FADE_IN) return;
+  ctx.fillStyle = `rgba(0,0,0,${1 - lg.t / FADE_IN})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 };
