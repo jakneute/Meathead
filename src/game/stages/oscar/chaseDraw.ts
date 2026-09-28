@@ -12,7 +12,7 @@ import { drawPickupBody, drawCruiserBody, drawChopperBike } from '../../render/e
 import { drawKindCorpse } from '../../render/enemies';
 import { COURSE } from './course';
 import type { Chase } from './chase';
-import { derrickX, DERRICKS_PER_LAP, DERRICK_BACK, KILLS_NEEDED, chaseView, farScreenX, farWreckX, FAR_N, gapAhead, slickAhead, GAP_AHEAD } from './chase';
+import { derrickX, DERRICKS_PER_LAP, DERRICK_BACK, KILLS_NEEDED, chaseView, farScreenX, farWreckX, FAR_N, FAR_PAR, gapAhead, slickAhead, GAP_AHEAD } from './chase';
 import type { FarThing } from './chase';
 import { SLICK_AHEAD } from './chase';
 
@@ -106,6 +106,16 @@ const PAINTS = ['#B91C1C', '#1D4ED8', '#F5F5F4', '#166534'];
  */
 export const drawFarField = (ctx: Ctx, state: GameState, ch: Chase) => {
   const base = ch.farBase;
+  // The field out there: flat, dusty, going off to the horizon (everything out there stands on it, the wrecks drive on it)
+  const g = ctx.createLinearGradient(0, base - 6, 0, base + 160);
+  g.addColorStop(0, '#6B5236'); g.addColorStop(0.3, '#7A5C3C'); g.addColorStop(1, '#5B4128');
+  ctx.fillStyle = g; ctx.fillRect(0, base - 4, CANVAS_WIDTH, 600 - base + 4);
+  ctx.fillStyle = 'rgba(210, 180, 140, 0.35)'; ctx.fillRect(0, base - 4, CANVAS_WIDTH, 2);
+  // (a lease road across it, a fence, the odd scrub)
+  const off = ((ch.odo * FAR_PAR * 1.2) % 60 + 60) % 60;
+  ctx.fillStyle = 'rgba(160, 130, 95, 0.5)'; ctx.fillRect(0, base + 10, CANVAS_WIDTH, 5);
+  ctx.fillStyle = 'rgba(40, 30, 20, 0.6)'; for (let x = -off; x < CANVAS_WIDTH; x += 60) ctx.fillRect(x, base - 12, 2, 10);
+  ctx.fillRect(0, base - 9, CANVAS_WIDTH, 1);
   for (let i = 0; i < FAR_N; i++) {
     const x = farScreenX(ch, i);
     if (x < -150 || x > CANVAS_WIDTH + 150) continue;

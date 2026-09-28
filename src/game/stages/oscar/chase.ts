@@ -99,7 +99,9 @@ const BIG_HIT = 130;
 /** What comes after him, in turn (round and round). */
 const ORDER: EnemyKind[] = ['chopper', 'pickup', 'chopper', 'cruiser', 'pickup', 'chopper', 'cruiser', 'chopper', 'pickup', 'cruiser'];
 /** How many can be on him at once (more and more as it goes on: far more than a handgun could ever deal with). */
-const MAX_ON = (kills: number) => Math.min(10, 4 + Math.floor(kills / 5));
+const MAX_ON = (kills: number) => Math.min(6, 4 + Math.floor(kills / 12));
+/** ...and of those, how many cars and trucks at most (the rest are bikers). */
+const MAX_CARS = 3;
 /** How far the view pulls back by the end (it's all of them coming at him). */
 const ZOOM_MIN = 0.72;
 const SPIN_FRAMES = 46;
@@ -309,7 +311,9 @@ const spawn = (state: GameState, ch: Chase) => {
   const on = state.enemies.filter(e => isChaseVehicle(e.kind) && e.health > 0).length;
   if (--ch.spawnTimer > 0 || on >= MAX_ON(ch.kills)) return;
   ch.spawnTimer = Math.max(40, 95 - ch.kills * 1.5) + Math.floor(Math.random() * 35);
-  const kind = ORDER[ch.spawned++ % ORDER.length];
+  let kind = ORDER[ch.spawned++ % ORDER.length];
+  // (never more than a few cars and trucks at once: a biker instead)
+  if (kind !== 'chopper' && state.enemies.filter(e => (e.kind === 'pickup' || e.kind === 'cruiser') && e.health > 0).length >= MAX_CARS) kind = 'chopper';
   const behind = Math.random() < 0.55;
   const v = chaseView(state, ch);
   const x = behind ? v.x1 - 170 : v.x2 + 170;
