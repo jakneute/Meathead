@@ -91,6 +91,8 @@ export interface GameState {
   lastHurt?: { source: string; at: number };
   /** When a round last pinged off something hard (the ping isn't repeated every frame of a burst). */
   lastSparkSound?: number;
+  /** Where the stage's opening drop lands him, when it's started at a checkpoint (the skip cheat): else the start. */
+  introAt?: { x: number; y: number };
   deathFrames: number;
   /** Reached the boss this attempt: dying now respawns right outside his door (cleared when a stage starts). */
   bossCheckpoint: boolean;

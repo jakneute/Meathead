@@ -131,7 +131,9 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
       state.bossCheckpoint = false;
       state.checkpoint = propsRef.current.startCheckpoint ?? 0;
       state.stageMemo = {};
-      buildLevel(state, stageId, cheats.skipToBoss);
+      const at = buildLevel(state, stageId, cheats.skipToBoss);
+      // (started at a checkpoint: he drops in there, not at the start of the stage)
+      state.introAt = state.checkpoint > 0 && at && !cheats.skipToBoss ? at : undefined;
       state.frame = 1;
     }
 

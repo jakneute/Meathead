@@ -131,13 +131,17 @@ const updateLevelIntro = (ctx: FrameContext) => {
   const { state, stageId, cheats } = ctx;
   const { player } = state;
   state.introTimer++;
-  const baseStartX = getStartX(cheats.skipToBoss, stageId);
-  state.camera.x = baseStartX;
+  // (started at a checkpoint: the drop's there, and the camera with it)
+  const at = state.introAt;
+  const baseStartX = at ? at.x - 150 : getStartX(cheats.skipToBoss, stageId);
+  state.camera.x = at ? Math.max(state.cameraMinX, at.x - 250) : baseStartX;
+  if (at) state.camera.y = state.cameraRestY;
   player.facing = 1;
+  // (started at a checkpoint: he drops out of the sky there, same as at the start)
 
   const quotes = stageId ? BOSS_DIALOGUE.INTRO_QUOTES[stageId] : undefined;
   const sayLineNow = LEVEL_INTRO_STYLE === 'window' ? state.introTimer === 30 : !!state.introLandedAt && state.introTimer === state.introLandedAt + SKYFALL_LINE_AT;
-  if (sayLineNow && !cheats.skipToBoss && quotes) {
+  if (sayLineNow && !cheats.skipToBoss && !at && quotes) {
     const quote = quotes[0];
     const said = say(quote, MEATHEAD_INTRO_VOICE, 'queue', {
       onShow: spoken => { state.playerLastVulgarity = quote; state.playerVulgarityTimer = spoken ? SPOKEN_TEXT_HOLD : 180; },
@@ -148,7 +152,7 @@ const updateLevelIntro = (ctx: FrameContext) => {
   }
 
   if (LEVEL_INTRO_STYLE === 'skyfall') {
-    skyfall(ctx, baseStartX + 150);
+    skyfall(ctx, baseStartX + 150, at?.y);
   } else if (state.introTimer < INTRO_JUMP_START) {
     player.pos.x = baseStartX - 150;
   } else {
@@ -168,12 +172,13 @@ const updateLevelIntro = (ctx: FrameContext) => {
 };
 
 /** He plummets out of the sky onto the start of the stage, craters the snow (or dirt), and gets up swinging. */
-const skyfall = (ctx: FrameContext, x: number) => {
+const skyfall = (ctx: FrameContext, x: number, floor?: number) => {
   const { state } = ctx;
   const { player } = state;
   player.pos.x = x;
-  // The first ground on screen under him (not the ceiling some stages have above the top of the screen)
-  const ground = floorTopAt(state.blocks, x + player.width / 2, state.camera.y, 0) ?? 550;
+  // The first ground on screen under him (not the ceiling some stages have above the top of the screen); at a
+  // checkpoint, the floor the checkpoint's on (indoors, he comes down through whatever's over it)
+  const ground = floor ?? floorTopAt(state.blocks, x + player.width / 2, state.camera.y, 0) ?? 550;
   if (state.introTimer === 1) {
     player.pos.y = state.camera.y - SKYFALL_START_ABOVE;
     player.vel = { x: 0, y: SKYFALL_START_SPEED };
