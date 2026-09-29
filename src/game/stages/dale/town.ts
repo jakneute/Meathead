@@ -697,6 +697,9 @@ const jailScene = (ctx: FrameContext, town: Town, talk: Talk, controls: Controls
   return { ...NO_CONTROLS };
 };
 
+/** How far up the street Riggs's cab has come through town (the wreckage behind it), or 0 if it hasn't. */
+export const cabReach = (state: GameState) => Number(state.stageMemo.cabReach || (state.stageMemo.jailWrecked ? T().jail.x2 : 0)) || 0;
+
 /** Blood on the street where Riggs got a tourist (kept in the stage's memory, so it's still there after a death). */
 const addStain = (state: GameState, x: number) => {
   const list = townStains(state);
@@ -719,6 +722,8 @@ const plow = (ctx: FrameContext, town: Town) => {
   const { state, fx } = ctx;
   const cab = town.cab;
   const front = cab.x + CAB.w;
+  // (how far up the street it's been: everything behind that's taken a beating, and stays that way)
+  if (front > cabReach(state)) state.stageMemo.cabReach = String(Math.round(front));
   for (const e of state.enemies) {
     if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || e.enemyType === 'flyer') continue;
     if (e.pos.x + e.width < cab.x || e.pos.x > front || e.pos.y + e.height < Y - CAB.h) continue;

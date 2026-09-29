@@ -12,7 +12,7 @@ import type { GroundRun } from '../../core/terrain';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, BOSS_DOOR_X } from '../../../constants';
 import { COURSE, Building, Awning } from './course';
 import type { DaleRuntime } from './runtime';
-import { Town, TownProp, CAB, ninjaSpot, incoming, jailWrecked, townStains, muzzle, laserEnd, NINJA_CUT, NINJA_DONE, JAIL_SKIP_AFTER, DUCK_FOR } from './town';
+import { Town, TownProp, CAB, ninjaSpot, incoming, jailWrecked, townStains, muzzle, laserEnd, NINJA_CUT, NINJA_DONE, JAIL_SKIP_AFTER, DUCK_FOR, cabReach } from './town';
 import { drawDaleKind } from '../../render/enemies/dale';
 import { drawPlayer } from '../../render/player/player';
 import { saying, drawBubble } from './script';
@@ -36,10 +36,13 @@ export const drawTownBack = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
     ctx.fillStyle = 'rgba(153, 27, 27, 0.8)'; for (let k = 0; k < 6; k++) ctx.fillRect(sx + 10 + k * 14, Y + 1 + (k % 2), 10 - k, 2);
     for (let k = 0; k < 5; k++) { const bx = sx - 20 + hash(sx + k) * 70; ctx.beginPath(); ctx.arc(bx, Y + 2 - hash(sx * k) * 3, 2 + hash(sx + k * 3) * 3, 0, Math.PI * 2); ctx.fill(); }
   }
+  // Where the cab's been: its tracks up the street, gouged into the dirt
+  const reach = cabReach(state);
+  if (reach > 0) drawTracks(ctx, state, t.crash, reach);
   if (visible(state, t.x1 - 100, t.x1 + 400)) drawCurioShop(ctx, t.x1, rt.town.shopHit);
   if (visible(state, t.arch - 200, t.arch + 200)) drawArch(ctx, t.arch);
-  for (const b of COURSE.buildings) if (visible(state, b.x1 - 60, b.x2 + 60)) drawBuilding(ctx, state, b);
-  for (const a of COURSE.awnings) if (visible(state, a.x, a.x + a.w)) drawAwning(ctx, state, a);
+  for (const b of COURSE.buildings) if (visible(state, b.x1 - 60, b.x2 + 60)) { drawBuilding(ctx, state, b, b.x1 < reach); if (b.x1 < reach) drawBattered(ctx, b); }
+  for (const a of COURSE.awnings) if (visible(state, a.x, a.x + a.w)) drawAwning(ctx, state, a, a.x < reach);
   // The hotel's balcony
   const bal = COURSE.ledges.find(l => l.look === 'balcony');
   if (bal && visible(state, bal.x, bal.x + bal.w)) {
@@ -74,7 +77,7 @@ const PAINT: Record<Building['look'], { wall: string; trim: string; sign: string
   church: { wall: '#F5F5F4', trim: '#A8A29E', sign: '#F5F5F4', ink: '#1C1917' },
 };
 
-const drawBuilding = (ctx: Ctx, state: GameState, b: Building) => {
+const drawBuilding = (ctx: Ctx, state: GameState, b: Building, wrecked = false) => {
   const c = PAINT[b.look];
   const w = b.x2 - b.x1;
   // The wall, clapboard
@@ -84,17 +87,25 @@ const drawBuilding = (ctx: Ctx, state: GameState, b: Building) => {
   ctx.fillStyle = c.trim; ctx.fillRect(b.x1 - 6, b.top - 4, w + 12, 12); ctx.fillRect(b.x1, b.top, 8, Y - b.top); ctx.fillRect(b.x2 - 8, b.top, 8, Y - b.top);
   for (let x = b.x1; x < b.x2; x += 20) ctx.fillRect(x, b.top + 8, 6, 5);
   if (b.look === 'church') { drawChapel(ctx, state, b); return; }
-  // The sign
+  // The sign (knocked askew once Riggs has been through: hanging off the one nail that held)
   const sy = b.top + 20;
+  ctx.save();
+  if (wrecked) {
+    const left = hash(b.x1 + 3) < 0.5, tip = (0.04 + hash(b.x1 + 5) * 0.07) * (left ? 1 : -1);
+    const px = left ? b.x1 + 24 : b.x2 - 24;
+    ctx.translate(px, sy + 4); ctx.rotate(tip); ctx.translate(-px, -(sy + 4));
+  }
   ctx.fillStyle = c.sign; ctx.fillRect(b.x1 + 20, sy, w - 40, 34);
   ctx.strokeStyle = c.trim; ctx.lineWidth = 3; ctx.strokeRect(b.x1 + 20, sy, w - 40, 34);
   ctx.fillStyle = c.ink; ctx.font = `bold ${w > 330 ? 13 : 10}px "Press Start 2P"`; ctx.textAlign = 'center';
   ctx.fillText(b.name, (b.x1 + b.x2) / 2, sy + 23, w - 50); ctx.textAlign = 'left';
+  ctx.restore();
   // Upstairs windows
   const wy = sy + 50;
   if (Y - 130 - wy > 40) for (let x = b.x1 + 40; x < b.x2 - 60; x += 90) {
     ctx.fillStyle = '#1E293B'; ctx.fillRect(x, wy, 34, 44);
-    ctx.fillStyle = 'rgba(253, 230, 138, 0.35)'; ctx.fillRect(x + 2, wy + 2, 30, 40);
+    if (wrecked && hash(x * 3) < 0.6) brokenPane(ctx, x + 2, wy + 2, 30, 40, x);
+    else { ctx.fillStyle = 'rgba(253, 230, 138, 0.35)'; ctx.fillRect(x + 2, wy + 2, 30, 40); }
     ctx.fillStyle = c.trim; ctx.fillRect(x - 3, wy - 3, 40, 4); ctx.fillRect(x + 15, wy, 3, 44); ctx.fillRect(x, wy + 20, 34, 3);
   }
   // Downstairs: the door (saloon doors, for the saloon), a window, a bench
@@ -103,7 +114,71 @@ const drawBuilding = (ctx: Ctx, state: GameState, b: Building) => {
   if (b.look === 'saloon') { ctx.fillStyle = '#A0522D'; const sw = Math.sin(state.frame * 0.05) * 3; ctx.fillRect(dx + 2, Y - 80 + sw, 17, 44); ctx.fillRect(dx + 21, Y - 80 - sw, 17, 44); }
   if (b.look === 'barber') { ctx.fillStyle = '#F8FAFC'; ctx.fillRect(dx - 30, Y - 90, 12, 60); ctx.fillStyle = '#DC2626'; for (let k = 0; k < 5; k++) ctx.fillRect(dx - 30, Y - 90 + ((k * 14 + state.frame) % 60), 12, 5); }
   if (b.look === 'bank') { ctx.fillStyle = '#FACC15'; ctx.font = 'bold 18px "Press Start 2P"'; ctx.fillText('$', dx + 12, Y - 110); }
-  if (w > 220) { ctx.fillStyle = '#334155'; ctx.fillRect(b.x1 + 26, Y - 90, 60, 50); ctx.fillStyle = 'rgba(253,230,138,0.3)'; ctx.fillRect(b.x1 + 28, Y - 88, 56, 46); }
+  if (w > 220) {
+    ctx.fillStyle = '#334155'; ctx.fillRect(b.x1 + 26, Y - 90, 60, 50);
+    if (wrecked) brokenPane(ctx, b.x1 + 28, Y - 88, 56, 46, b.x1);
+    else { ctx.fillStyle = 'rgba(253,230,138,0.3)'; ctx.fillRect(b.x1 + 28, Y - 88, 56, 46); }
+  }
+};
+
+/** A window with the glass gone: dark behind, the jagged bits still in the frame. */
+const brokenPane = (ctx: Ctx, x: number, y: number, w: number, h: number, seed: number) => {
+  ctx.fillStyle = '#0F172A'; ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = 'rgba(203, 213, 225, 0.55)';
+  // (shards along the edges of the frame, pointing in)
+  ctx.beginPath();
+  ctx.moveTo(x, y); ctx.lineTo(x + w * (0.3 + hash(seed) * 0.3), y); ctx.lineTo(x + w * 0.12, y + h * (0.25 + hash(seed + 1) * 0.3)); ctx.closePath();
+  ctx.moveTo(x + w, y + h); ctx.lineTo(x + w - w * (0.25 + hash(seed + 2) * 0.35), y + h); ctx.lineTo(x + w, y + h - h * (0.3 + hash(seed + 3) * 0.3)); ctx.closePath();
+  ctx.moveTo(x + w, y); ctx.lineTo(x + w - w * 0.2, y); ctx.lineTo(x + w, y + h * 0.18); ctx.closePath();
+  ctx.fill();
+};
+
+/**
+ * After Riggs has been through: the front of the place has taken the cab (a gouge along it at bumper height, the
+ * boards stove in and splintered), and what it sent flying (blood sprayed up it, run down it, a smear dragged along
+ * it), and what's come off it lies in a heap at the foot of it.
+ */
+const drawBattered = (ctx: Ctx, b: Building) => {
+  const w = b.x2 - b.x1, s = b.x1;
+  // The gouge: stove-in boards at bumper height, along a stretch of the frontage
+  const g1 = b.x1 + 12 + hash(s + 7) * w * 0.3, g2 = Math.min(b.x2 - 12, g1 + w * (0.35 + hash(s + 8) * 0.3));
+  ctx.fillStyle = '#1C1917';
+  ctx.beginPath(); ctx.moveTo(g1, Y - 58);
+  for (let x = g1; x <= g2; x += 10) ctx.lineTo(x, Y - 62 - hash(x) * 14);
+  for (let x = g2; x >= g1; x -= 10) ctx.lineTo(x, Y - 28 + hash(x + 1) * 10);
+  ctx.closePath(); ctx.fill();
+  // (splinters sticking out of it, bare wood)
+  ctx.strokeStyle = '#D6B98C'; ctx.lineWidth = 2; ctx.beginPath();
+  for (let x = g1 + 6; x < g2; x += 16 + hash(x) * 10) { const up = hash(x + 2) < 0.5, y0 = up ? Y - 60 : Y - 30; ctx.moveTo(x, y0); ctx.lineTo(x + 6 + hash(x + 3) * 8, y0 + (up ? -8 : 8) * hash(x + 4)); }
+  ctx.stroke();
+  // (a board hanging off by one end)
+  ctx.save(); ctx.translate(g2 - 4, Y - 66); ctx.rotate(0.9 + hash(s + 9) * 0.4);
+  ctx.fillStyle = '#8B5A2B'; ctx.fillRect(0, -3, 44, 7); ctx.restore();
+  // Blood: sprayed up the front where they hit it, run down it, a long smear dragged along it
+  ctx.fillStyle = 'rgba(127, 29, 29, 0.85)';
+  const sprays = 2 + Math.floor(hash(s + 11) * 3);
+  for (let k = 0; k < sprays; k++) {
+    const cx = b.x1 + 20 + hash(s + 20 + k) * (w - 40), cy = Y - 70 - hash(s + 30 + k) * 70;
+    ctx.beginPath(); ctx.ellipse(cx, cy, 9 + hash(s + k) * 8, 6 + hash(s + k + 1) * 5, hash(k + s) * 3, 0, Math.PI * 2); ctx.fill();
+    for (let d = 0; d < 9; d++) { const a = hash(s + k * 9 + d) * Math.PI * 2, r = 12 + hash(s + d * 3 + k) * 26; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r * 0.7, 1.5 + hash(d + k) * 2.5, 0, Math.PI * 2); ctx.fill(); }
+    for (let d = 0; d < 3; d++) ctx.fillRect(cx - 6 + d * 6, cy + 4, 2, 12 + hash(s + k + d * 5) * 34);
+  }
+  ctx.fillStyle = 'rgba(153, 27, 27, 0.6)'; ctx.fillRect(b.x1 + hash(s + 40) * w * 0.4, Y - 44 - hash(s + 41) * 20, w * 0.35, 5);
+  // What came off it, in a heap at the foot of it: planks, glass
+  for (let k = 0; k < 5; k++) {
+    ctx.save(); ctx.translate(b.x1 + 10 + hash(s + 50 + k) * (w - 20), Y - 4); ctx.rotate((hash(s + 60 + k) - 0.5) * 0.8);
+    ctx.fillStyle = k % 2 ? '#8B5A2B' : '#6B4423'; ctx.fillRect(-16, -3, 32, 5); ctx.restore();
+  }
+  ctx.fillStyle = 'rgba(203, 213, 225, 0.6)'; for (let k = 0; k < 6; k++) ctx.fillRect(b.x1 + hash(s + 70 + k) * w, Y - 2, 3, 2);
+};
+
+/** Riggs's tracks up the street: two dark bands of tread, gouged in, from the curio shop as far as he's got. */
+const drawTracks = (ctx: Ctx, state: GameState, from: number, to: number) => {
+  const x0 = Math.max(from, state.camera.x - 40), x1 = Math.min(to, state.camera.x + CANVAS_WIDTH + 40);
+  if (x1 <= x0) return;
+  ctx.fillStyle = 'rgba(68, 40, 20, 0.55)'; ctx.fillRect(x0, Y + 12, x1 - x0, 7); ctx.fillRect(x0, Y + 30, x1 - x0, 7);
+  ctx.fillStyle = 'rgba(40, 24, 12, 0.5)';
+  for (let x = Math.floor(x0 / 12) * 12; x < x1; x += 12) { ctx.fillRect(x, Y + 13, 5, 5); ctx.fillRect(x + 6, Y + 31, 5, 5); }
 };
 
 /** The chapel: white clapboard, a steeple with a bell in it (and the ninja up there, drawn with the rest that moves). */
@@ -130,7 +205,8 @@ const drawChapel = (ctx: Ctx, state: GameState, b: Building) => {
 };
 
 /** A porch roof on posts, out over the boardwalk: striped canvas, springy. */
-const drawAwning = (ctx: Ctx, state: GameState, a: Awning) => {
+const drawAwning = (ctx: Ctx, state: GameState, a: Awning, wrecked = false) => {
+  if (wrecked) { drawWreckedAwning(ctx, a); return; }
   // The boardwalk under it
   ctx.fillStyle = '#8B5A2B'; ctx.fillRect(a.x, Y - 8, a.w, 8);
   ctx.fillStyle = '#6B4423'; for (let x = a.x; x < a.x + a.w; x += 14) ctx.fillRect(x, Y - 8, 2, 8);
@@ -145,6 +221,39 @@ const drawAwning = (ctx: Ctx, state: GameState, a: Awning) => {
   ctx.fillStyle = '#7C2D12'; for (let x = a.x; x < a.x + a.w; x += 12) { ctx.beginPath(); ctx.arc(x + 6, a.y + 20 + sag, 6, 0, Math.PI); ctx.fill(); }
   // Its shade
   ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.fillRect(a.x, a.y + 26, a.w, Y - a.y - 34);
+};
+
+/**
+ * A porch roof after Riggs: the post nearest the street clipped and leaning, the canvas torn (whole stripes gone,
+ * flaps hanging down), blood up it, the boardwalk under it stove in. (It still throws you up: it's only the look of it.)
+ */
+const drawWreckedAwning = (ctx: Ctx, a: Awning) => {
+  const s = a.x;
+  // The boardwalk, planks up
+  ctx.fillStyle = '#8B5A2B'; ctx.fillRect(a.x, Y - 8, a.w, 8);
+  ctx.fillStyle = '#6B4423'; for (let x = a.x; x < a.x + a.w; x += 14) ctx.fillRect(x, Y - 8, 2, 8);
+  for (let k = 0; k < 3; k++) { ctx.save(); ctx.translate(a.x + 20 + hash(s + k) * (a.w - 40), Y - 6); ctx.rotate(-0.3 - hash(s + k + 4) * 0.4); ctx.fillStyle = '#A0703F'; ctx.fillRect(0, -3, 26, 5); ctx.restore(); }
+  // Posts: the far one stands; the near one's been clipped and leans in under the roof
+  ctx.fillStyle = '#5A3A1A'; ctx.fillRect(a.x + a.w - 12, a.y, 8, Y - a.y);
+  ctx.save(); ctx.translate(a.x + 8, Y - 2); ctx.rotate(hash(s + 9) < 0.5 ? 0.35 : -0.25); ctx.fillRect(-4, -(Y - a.y) * 0.8, 8, (Y - a.y) * 0.8); ctx.restore();
+  ctx.fillStyle = '#D6B98C'; ctx.fillRect(a.x + 4, Y - 14, 8, 6);
+  // The roof, sagging down at the end that lost its post
+  const sagL = 14;
+  ctx.fillStyle = '#7C2D12';
+  ctx.beginPath(); ctx.moveTo(a.x - 4, a.y - 2 + sagL); ctx.lineTo(a.x + a.w + 4, a.y - 2); ctx.lineTo(a.x + a.w + 4, a.y + 4); ctx.lineTo(a.x - 4, a.y + 4 + sagL); ctx.fill();
+  for (let x = a.x; x < a.x + a.w; x += 24) {
+    const k = (x - a.x) / 24, sag = sagL * (1 - (x - a.x) / a.w);
+    if (hash(s + k * 7) < 0.3) continue; // (torn clean away)
+    ctx.fillStyle = k % 2 ? '#F8FAFC' : '#DC2626';
+    const torn = hash(s + k * 5) < 0.35;
+    ctx.fillRect(x, a.y + 4 + sag, 24, torn ? 8 : 16);
+    if (torn) { ctx.beginPath(); ctx.moveTo(x + 4, a.y + 12 + sag); ctx.lineTo(x + 12, a.y + 34 + sag + hash(s + k) * 12); ctx.lineTo(x + 20, a.y + 12 + sag); ctx.fill(); }
+  }
+  // (blood up it)
+  ctx.fillStyle = 'rgba(127, 29, 29, 0.8)';
+  for (let k = 0; k < 6; k++) { ctx.beginPath(); ctx.arc(a.x + hash(s + 80 + k) * a.w, a.y + 8 + hash(s + 90 + k) * 12, 2 + hash(s + k) * 3, 0, Math.PI * 2); ctx.fill(); }
+  // Its shade, what's left of it
+  ctx.fillStyle = 'rgba(0,0,0,0.12)'; ctx.fillRect(a.x, a.y + 26, a.w, Y - a.y - 34);
 };
 
 /** The welcome arch over the street. */
