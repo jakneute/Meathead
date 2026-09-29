@@ -609,17 +609,23 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   // (a regular enemy can only be hit once per move, but a fresh charge right after lands again: you can keep shoving him;
   // a boss keeps his breather between hits)
   const fresh = e.type !== 'boss' && e.hitByMove !== player.moveId;
-  // A dive kick onto a boss still in his breather: nothing goes in, but he doesn't go through him either: he bounces
-  // off his head, same as a stomp (no power back for it)
-  if (attackHit && onScreen && e.type === 'boss' && state.arenaLocked && player.isDivekicking && e.hitCooldown && e.hitCooldown > 0
-    && !player.diveKickHitIds.includes(e.id)) {
-    player.diveKickHitIds.push(e.id);
+  // A dive kick, shoulder charge or slide into a boss still in his breather: nothing goes in, but he doesn't go through
+  // him either: a dive kick bounces off his head same as a stomp (no power back for it), a charge or slide rebounds
+  // off him same as off anyone who's still standing
+  if (attackHit && onScreen && e.type === 'boss' && state.arenaLocked && (player.isDivekicking || player.isCharging) && e.hitCooldown && e.hitCooldown > 0
+    && !(player.isDivekicking && player.diveKickHitIds.includes(e.id))) {
     fx.spawnDamageNumber(e.pos, 0);
-    fx.playGunSound('stomp');
-    player.vel.y = -Math.abs(player.vel.y) * 0.5;
-    player.vel.x *= 0.5;
-    player.lockTimer = BOUNCE_FRAMES;
-    player.recoiling = true;
+    if (player.isDivekicking) {
+      player.diveKickHitIds.push(e.id);
+      fx.playGunSound('stomp');
+      player.vel.y = -Math.abs(player.vel.y) * 0.5;
+      player.vel.x *= 0.5;
+      player.lockTimer = BOUNCE_FRAMES;
+      player.recoiling = true;
+    } else {
+      fx.playGunSound('punch');
+      recoilOff(ctx, getEnemyMass(e));
+    }
     return true;
   }
   if (attackHit && onScreen && (!e.hitCooldown || e.hitCooldown <= 0 || fresh)) {
