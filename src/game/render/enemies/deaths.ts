@@ -27,6 +27,7 @@ export const drawEnemyDeaths = (ctx: Ctx, state: GameState) => {
       case 'melted': drawMelted(ctx, d, state.frame, state); break;
       case 'greased': drawGreased(ctx, d, state.frame, state); break;
       case 'pancaked': drawPancaked(ctx, d, state); break;
+      case 'headshot': drawHeadshot(ctx, d, state); break;
     }
     ctx.restore();
   }
@@ -342,4 +343,38 @@ const drawPancaked = (ctx: Ctx, d: EnemyDeath, state: GameState) => {
   ctx.beginPath();
   for (const ex of [cx - 6, cx + 4]) { ctx.moveTo(ex - 2, fy - 6); ctx.lineTo(ex + 2, fy - 3); ctx.moveTo(ex + 2, fy - 6); ctx.lineTo(ex - 2, fy - 3); }
   ctx.stroke();
+};
+
+/**
+ * The sniper's round: the head comes off whole and goes spinning away, bouncing; the body stays stood there a moment,
+ * the neck going like a fountain, then goes over (a person back on its heels, an animal flat on its side).
+ */
+const drawHeadshot = (ctx: Ctx, d: EnemyDeath, state: GameState) => {
+  const hd = d.head;
+  if (!hd) return;
+  const { x, y, w, h, t } = d;
+  ctx.globalAlpha = fadeOut(d, 20);
+  const neckY = y + hd.oy + hd.r * 0.7;
+  // The body, from the neck down: stood there, then over
+  const k = clamp01((t - 46) / 10);
+  const facing = d.sprite?.facing ?? 1;
+  const fx = x + w / 2, fy = y + h;
+  ctx.save();
+  if (!d.sprite || isHumanoidKind(d.sprite.kind)) { ctx.translate(fx, fy - 2); ctx.rotate(-facing * (Math.PI / 2) * k); ctx.translate(-fx, -(fy - 2)); }
+  else { ctx.translate(fx, fy); ctx.scale(1, 1 - 0.45 * k); ctx.translate(-fx, -fy); }
+  drawBody(ctx, d, state, { clipFromY: neckY });
+  // The stump
+  ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.ellipse(x + hd.ox, neckY + 1, Math.max(3, hd.r * 0.7), 3, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#DC2626'; ctx.beginPath(); ctx.ellipse(x + hd.ox, neckY, Math.max(2, hd.r * 0.45), 2, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  // The head, wherever it's got to: the body's own drawing, cut round the head and carried off
+  const cx = x + hd.ox, cy = y + hd.oy;
+  ctx.save();
+  ctx.translate(hd.x, hd.y); ctx.rotate(hd.rot); ctx.translate(-cx, -cy);
+  ctx.beginPath(); ctx.rect(cx - hd.r * 1.6, cy - hd.r * 1.8, hd.r * 3.2, hd.r * 1.8 + hd.r * 0.7); ctx.clip();
+  if (d.sprite) drawBody(ctx, d, state);
+  else { ctx.fillStyle = d.color; ctx.fillRect(cx - hd.r, cy - hd.r, hd.r * 2, hd.r * 1.7); }
+  // (and what's showing where it came off)
+  ctx.fillStyle = '#991B1B'; ctx.fillRect(cx - hd.r * 0.6, cy + hd.r * 0.45, hd.r * 1.2, hd.r * 0.25);
+  ctx.restore();
 };

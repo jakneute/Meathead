@@ -32,7 +32,7 @@ import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
 import { GROUND_Y, CANVAS_WIDTH } from '../../../constants';
 import { shakeScreen } from '../../core/state';
-import { rectsOverlap, boundsOf } from '../../core/utils';
+import { rectsOverlap, boundsOf, isOnScreen } from '../../core/utils';
 import { hurtPlayer } from '../../bosses/shared';
 import { killPlayer } from '../../player/player';
 import { playSound, playSniperShot, playHornDrone } from '../../platform/audio';
@@ -46,6 +46,8 @@ const T = () => COURSE.town;
 
 /** The sniper: tracking time between shots, the lock (it stops and goes red), the hit, and the crosshair's size. */
 const TRACK = 190, LOCK = 46, SIGHT_R = 34;
+/** How much bigger a goon is to the round than he's drawn (baiting it into them should work). */
+const GOON_PAD = 12;
 /** The porch roofs throw you this hard. */
 export const AWNING_BOUNCE = 17.5;
 /** The cab: its size; how fast it comes up the street (chasing, then at you); how far off it is when you get control back. */
@@ -296,7 +298,7 @@ const updateSniper = (ctx: FrameContext, town: Town, talk: Talk) => {
   if (s.x > sx + 40) n.aim = 1; else if (s.x < sx - 40) n.aim = -1;
   if (s.state === 'track' || s.state === 'cool') {
     // Drifting after him, a little behind, a little shaky
-    const k = s.state === 'cool' ? 0.02 : 0.045;
+    const k = s.state === 'cool' ? 0.025 : 0.058;
     s.x += (px - s.x) * k + Math.sin(state.frame * 0.13) * 1.2;
     s.y += (py - s.y) * k + Math.cos(state.frame * 0.11) * 1.0;
     if (s.state === 'cool' && s.t > 40) { s.state = 'track'; s.t = 0; }
@@ -327,9 +329,12 @@ const updateSniper = (ctx: FrameContext, town: Town, talk: Talk) => {
           shakeScreen(state, 26, 16);
         }
       } else if (hit.enemy) {
-        // A goon in the way: him instead
+        // A goon in the way: his head comes off, same as it would have been Meathead's
         const e = hit.enemy;
-        e.health = 0; fx.blowAwayEnemy(e, { x: (e.pos.x < m.x ? -1 : 1) * 6, y: -8 }, 'gun_kill', 0, 1.4);
+        const dir = e.pos.x + e.width / 2 < m.x ? -1 : 1;
+        fx.killWithAnimation(e, 'headshot', 'gun_kill', undefined, { x: dir * (3 + Math.random() * 2), y: -7 - Math.random() * 3 });
+        fx.spawnDeathShower({ x: e.pos.x + e.width / 2, y: e.pos.y + 6 }, dir, 1.2);
+        playSound('splat'); playSound('crunch');
         fx.spawnDamageNumber({ x: e.pos.x - 20, y: e.pos.y - 30 }, 'FRIENDLY FIRE!', true, '#FACC15');
       }
       scatterTourists(town, s.x);
@@ -371,13 +376,17 @@ const firstHit = (state: GameState, s: { x: number; y: number }, aim: 1 | -1 = -
   const m = muzzle(aim);
   const covered = underCover({ x: p.pos.x, y: p.pos.y, w: p.width });
   const me = { x: p.pos.x + 4, y: p.pos.y + 4, w: p.width - 8, h: p.height - 4 };
-  const goons = state.enemies.filter(e => e.health > 0 && !e.isBlownAway && e.type !== 'boss');
+  // (only ones in view: it's him the sniper's after, and whoever he's got in the way; not the lads off up the street)
+  const goons = state.enemies.filter(e => e.health > 0 && !e.isBlownAway && e.type !== 'boss' && isOnScreen(state.camera, e, 0));
   const inside = (x: number, y: number, b: { x: number; y: number; w: number; h: number }) => x > b.x && x < b.x + b.w && y > b.y && y < b.y + b.h;
-  const n = Math.max(1, Math.ceil(Math.hypot(s.x - m.x, s.y - m.y) / 5));
+  // (a goon's a bit bigger than he looks to the round: baiting the sniper into them is meant to work)
+  const padded = (g: Enemy) => { const b = boundsOf(g); return { x: b.x - GOON_PAD, y: b.y - GOON_PAD, w: b.w + GOON_PAD * 2, h: b.h + GOON_PAD * 2 }; };
+  const len = Math.hypot(s.x - m.x, s.y - m.y) || 1;
+  const n = Math.max(1, Math.ceil(len / 5));
   for (let i = 1; i <= n; i++) {
     const x = m.x + ((s.x - m.x) * i) / n, y = m.y + ((s.y - m.y) * i) / n;
     if (!covered && inside(x, y, me)) return { kind: 'player', x, y };
-    const e = goons.find(g => inside(x, y, boundsOf(g)));
+    const e = goons.find(g => inside(x, y, padded(g)));
     if (e) return { kind: 'enemy', x, y, enemy: e };
   }
   // All the way to the crosshair: whatever's in it
@@ -389,6 +398,15 @@ const firstHit = (state: GameState, s: { x: number; y: number }, aim: 1 | -1 = -
   }
   const e = goons.find(g => Math.hypot(g.pos.x + g.width / 2 - s.x, g.pos.y + g.height / 2 - s.y) < SIGHT_R + g.width / 2);
   if (e) return { kind: 'enemy', x: s.x, y: s.y, enemy: e };
+  // Nothing in the crosshair: the round keeps going the way it was, into whoever's behind it, till it's in the street
+  // or a rooftop
+  const ux = (s.x - m.x) / len, uy = (s.y - m.y) / len;
+  for (let d = 5; d < 900; d += 5) {
+    const x = s.x + ux * d, y = s.y + uy * d;
+    const g = goons.find(q => inside(x, y, padded(q)));
+    if (g) return { kind: 'enemy', x, y, enemy: g };
+    if (y >= Y || COURSE.buildings.some(b => x > b.x1 && x < b.x2 && y > b.top) || COURSE.awnings.some(a => x > a.x && x < a.x + a.w && y > a.y && y < a.y + 12)) return { kind: y >= Y ? 'ground' : 'roof', x, y: Math.min(y, Y) };
+  }
   return { kind: 'ground', x: s.x, y: s.y };
 };
 

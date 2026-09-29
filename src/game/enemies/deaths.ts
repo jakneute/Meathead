@@ -4,6 +4,7 @@
 //   melted    (sludge barfer): slumps into a bubbling green puddle
 //   greased   (oil rocket): flung off slick and black, splats into an oil slick
 //   pancaked  (boulder): flattened on the floor
+//   headshot  (the sniper up the bell tower): head off in one piece, the body stood there a moment, then over
 // The enemy itself is removed; one of these plays in its place.
 
 import { Enemy, EnemyKind, Vector2 } from '../../types';
@@ -11,8 +12,9 @@ import { COLORS, GRAVITY } from '../../constants';
 import type { GameState } from '../core/state';
 import { floorTopAt } from '../core/terrain';
 import { isMidBoss } from '../combat/midBoss';
+import { KIND_HEAD } from '../render/enemies/index';
 
-export type EnemyDeathKind = 'charred' | 'fried' | 'melted' | 'greased' | 'pancaked';
+export type EnemyDeathKind = 'charred' | 'fried' | 'melted' | 'greased' | 'pancaked' | 'headshot';
 
 export interface EnemyDeath {
   kind: EnemyDeathKind;
@@ -27,10 +29,13 @@ export interface EnemyDeath {
   isShield: boolean;
   /** A themed enemy (Artie's wildlife and goons) dies as itself, not as a coloured block. */
   sprite?: { kind: EnemyKind; facing: 1 | -1; phase: number };
+  /** (headshot) The head, off: where it sat on the body (its middle, from the body's top left) and how big; where it's
+   * got to (world), how it's going, its spin. */
+  head?: { ox: number; oy: number; r: number; x: number; y: number; vx: number; vy: number; rot: number; landed: boolean };
 }
 
 export const DEATH_FRAMES: Record<EnemyDeathKind, number> = {
-  charred: 95, fried: 85, melted: 110, greased: 160, pancaked: 130,
+  charred: 95, fried: 85, melted: 110, greased: 160, pancaked: 130, headshot: 170,
 };
 
 const FLOOR_Y = 550;
@@ -84,13 +89,22 @@ export const startEnemyDeath = (state: GameState, e: Enemy, kind: EnemyDeathKind
     isShield: e.enemyType === 'shield',
     sprite: e.kind ? { kind: e.kind, facing: deathFacing(state, e), phase: Math.abs(Math.round(e.homeX || 0)) % 997 } : undefined,
   });
+  const d = state.enemyDeaths[state.enemyDeaths.length - 1];
+  if (kind === 'headshot') {
+    // (the head goes the way the round was going: vel)
+    const hd = d.sprite ? KIND_HEAD[d.sprite.kind] : null;
+    const ox = hd ? d.w / 2 + hd.x * d.sprite!.facing : d.w / 2;
+    const oy = hd ? d.h + hd.y : Math.min(d.h * 0.2, 12);
+    d.head = { ox, oy, r: hd ? hd.r : Math.min(d.w, d.h) * 0.22, x: d.x + ox, y: d.y + oy, vx: vel?.x ?? 0, vy: vel?.y ?? -6, rot: 0, landed: false };
+    d.vx = 0; d.vy = 0;
+  }
 };
 
 /** Advances every death animation, with the smoke, sparks and bubbles that go with them. */
 export const updateEnemyDeaths = (state: GameState) => {
   state.enemyDeaths = state.enemyDeaths.filter(d => {
     // Killed in mid-air (an eagle burnt, fried or melted on the wing): it drops to the ground first, then plays out
-    if (d.kind !== 'greased' && !d.landed && d.y + d.h < d.floorY - 1) {
+    if (d.kind !== 'greased' && d.kind !== 'headshot' && !d.landed && d.y + d.h < d.floorY - 1) {
       d.vy = Math.min(14, Math.max(0, d.vy) + GRAVITY * 0.8);
       d.y = Math.min(d.floorY - d.h, d.y + d.vy);
       return d.y < d.floorY + 1000;
@@ -129,6 +143,27 @@ export const updateEnemyDeaths = (state: GameState) => {
         break;
       case 'pancaked':
         break;
+      case 'headshot': {
+        // The body: shot on the wing, it drops; on its feet, it stays stood there
+        if (d.y + d.h < d.floorY - 1) { d.vy = Math.min(14, d.vy + GRAVITY * 0.8); d.y = Math.min(d.floorY - d.h, d.y + d.vy); }
+        const hd = d.head!;
+        const neck = { x: d.x + hd.ox, y: d.y + hd.oy + hd.r * 0.7 };
+        // A fountain out of the neck while it's stood there
+        if (d.t < 44) for (let i = 0; i < 2; i++) state.particles.push({ pos: { x: neck.x, y: neck.y }, vel: { x: (Math.random() - 0.5) * 2.5, y: -3 - Math.random() * 5 * (1 - d.t / 60) }, life: 26 + Math.random() * 14, color: i ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 3 });
+        // The head: off and away, bouncing, rolling to a stop
+        if (!hd.landed) {
+          hd.vy += GRAVITY * 0.7; hd.x += hd.vx; hd.y += hd.vy; hd.rot += hd.vx * 0.09;
+          if (d.t % 2 === 0) state.particles.push({ pos: { x: hd.x, y: hd.y }, vel: { x: 0, y: 0.5 }, life: 18, color: '#991B1B', size: 2 + Math.random() * 2 });
+          const floor = floorTopAt(state.blocks, hd.x, hd.y + hd.r) ?? d.floorY;
+          if (hd.y + hd.r >= floor && hd.vy > 0) {
+            hd.y = floor - hd.r;
+            if (hd.vy > 3) { hd.vy = -hd.vy * 0.35; hd.vx *= 0.6; state.particles.push({ pos: { x: hd.x, y: floor - 2 }, vel: { x: 0, y: -1 }, life: 20, color: '#B91C1C', size: 5 }); }
+            else { hd.vy = 0; hd.vx *= 0.8; if (Math.abs(hd.vx) < 0.2) hd.landed = true; }
+          }
+          if (hd.y > d.floorY + 1500) hd.landed = true;
+        }
+        break;
+      }
     }
     return d.t < DEATH_FRAMES[d.kind];
   });
