@@ -1,6 +1,6 @@
 // Meathead's garage: where he goes between jobs, wherever that is (nobody's been able to pin it down). Every boss he
-// kills, he takes something home: one of three things from each of them, at random, a new one each time he kills
-// that boss again till he's got all three. The more he's killed, the fuller the garage.
+// clears, he takes something home: one of three things from each of them, one per difficulty he's cleared that boss
+// on (normal, hard, very hard: see garageStore.ts). The more he's done, the fuller the garage.
 
 /** The stage select's name for it (it sits alongside the targets). */
 export const GARAGE_ID = "MEATHEAD'S GARAGE";

@@ -1,29 +1,51 @@
-// What's in the garage: kept in the browser (it's his, it stays: across runs, across sessions). Every kill of a boss
-// brings home one of that boss's souvenirs he hasn't got yet, at random.
+// What's in the garage: kept in the browser (it's his, it stays: across runs, across sessions). A boss's souvenirs
+// come one per difficulty cleared: the first clear of him (on any difficulty) takes one of his three home at random,
+// and clearing him on each difficulty not cleared before takes one of the ones that are left. Clearing him again on a
+// difficulty already done brings nothing new.
 
 import { SOUVENIRS, Souvenir } from '../content/garage';
 
+/** The difficulties a stage can be cleared on (hard and very hard are coming: normal's all there is so far). */
+export type Difficulty = 'normal' | 'hard' | 'veryhard';
+
 const KEY = 'meathead-garage';
+const CLEARS_KEY = 'meathead-clears';
+
+const read = <T,>(key: string, fallback: T): T => {
+  try {
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null;
+    return raw ? JSON.parse(raw) as T : fallback;
+  } catch { return fallback; }
+};
+const write = (key: string, value: unknown) => {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* (no storage: it's just this session's) */ }
+};
 
 /** The souvenirs he's got (their ids). */
 export const ownedSouvenirs = (): string[] => {
-  try {
-    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(KEY) : null;
-    const ids = raw ? JSON.parse(raw) : [];
-    return Array.isArray(ids) ? ids.filter((id): id is string => typeof id === 'string' && SOUVENIRS.some(s => s.id === id)) : [];
-  } catch { return []; }
+  const ids = read<unknown>(KEY, []);
+  return Array.isArray(ids) ? ids.filter((id): id is string => typeof id === 'string' && SOUVENIRS.some(s => s.id === id)) : [];
 };
 
-const save = (ids: string[]) => {
-  try { localStorage.setItem(KEY, JSON.stringify(ids)); } catch { /* (no storage: it's just this session's) */ }
+/** Which difficulties each boss has been cleared on. */
+const clears = (): Record<string, Difficulty[]> => {
+  const c = read<unknown>(CLEARS_KEY, {});
+  return c && typeof c === 'object' ? c as Record<string, Difficulty[]> : {};
 };
 
-/** A boss down: one of his souvenirs he hasn't got yet, taken home (null if he's got all of that boss's already). */
-export const takeSouvenir = (boss: string): Souvenir | null => {
+/**
+ * A boss down on a difficulty: if it's the first time he's been cleared on that one, one of his souvenirs he hasn't got
+ * yet goes home (null if it's a difficulty he's already been cleared on, or there's none of his left).
+ */
+export const takeSouvenir = (boss: string, difficulty: Difficulty = 'normal'): Souvenir | null => {
+  const all = clears();
+  const done = Array.isArray(all[boss]) ? all[boss] : [];
+  if (done.includes(difficulty)) return null;
+  write(CLEARS_KEY, { ...all, [boss]: [...done, difficulty] });
   const owned = ownedSouvenirs();
   const left = SOUVENIRS.filter(s => s.boss === boss && !owned.includes(s.id));
   if (!left.length) return null;
   const got = left[Math.floor(Math.random() * left.length)];
-  save([...owned, got.id]);
+  write(KEY, [...owned, got.id]);
   return got;
 };
