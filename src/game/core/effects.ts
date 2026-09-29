@@ -4,7 +4,7 @@ import {
 import { VULGARITIES, BOSS_DIALOGUE, KILL_LINES, KILL_CALLOUTS, KillCallout } from '../../content/dialogue';
 import { GameState } from './state';
 import { playSound, playGlassShatterSound } from '../platform/audio';
-import { say, isSpeaking, isTalking, canSpeak, pickFreshLine, announce, MEATHEAD_VOICE, announcerJustSpoke, cutMeatheadQuip } from '../platform/speech';
+import { say, isSpeaking, isTalking, canSpeak, pickFreshLine, announce, MEATHEAD_VOICE, announcerJustSpoke, silenceAll } from '../platform/speech';
 import { pickRandom } from './utils';
 import { startEnemyDeath, EnemyDeathKind } from '../enemies/deaths';
 
@@ -20,8 +20,6 @@ export const isGoreColor = (color: string) => GORE_COLORS.has(color);
 
 /** How often Meathead leaves a kill to the announcer, and how often the announcer takes one he's said nothing over. */
 const ANNOUNCER_TAKES = 0.15, ANNOUNCER_WHEN_QUIET = 0.6;
-/** How long a big one waits for quiet before it's let go (frames). */
-const ANNOUNCE_WAIT = 240;
 
 export const createFx = (state: GameState) => {
   const spawnDamageNumber = (pos: Vector2, value: number | string, isCritical: boolean = false, color?: string) => {
@@ -225,12 +223,9 @@ export const createFx = (state: GameState) => {
   const settleKillVoice = () => {
     const kv = state.killVoice;
     if (!kv) return;
-    // A mid-boss down, a set piece: the announcer always calls it (once whoever's talking has finished; Meathead's
-    // quips give way to it)
+    // A mid-boss down, a set piece: the announcer always calls it, and cuts off whoever was talking to do it
     if (kv.forced) {
-      if (state.frame - kv.forced.at > ANNOUNCE_WAIT) { kv.forced = undefined; return; }
-      cutMeatheadQuip();
-      if (isTalking()) return;
+      silenceAll();
       announce(kv.forced.text, 1, true);
       kv.forced = undefined; kv.callout = undefined; kv.quip = undefined;
       return;

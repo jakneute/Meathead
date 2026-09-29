@@ -182,10 +182,14 @@ let current: Playing | null = null;
 /** When Meathead and the announcer last finished a line: each gives the other a moment's space after (KILL_VOICE_GAP_MS). */
 let meatheadDoneAt = -Infinity, announcerDoneAt = -Infinity;
 const KILL_VOICE_GAP_MS = 1200;
-/** A quip of Meathead's going (or waiting): it's cut, for the announcer's big moment. */
-export const cutMeatheadQuip = () => {
-  queue = queue.filter(l => !(l.casual && l.voice.id === 'meathead'));
-  if (current && current.casual && current.voice.id === 'meathead') cancelSpeech();
+/** Recorded lines playing outside the queue (so they can be cut). */
+const outsideClips = new Set<ClipHandle>();
+/** Everybody quiet, now: the line on, anything waiting, anything playing outside the queue (not the death announcer). */
+export const silenceAll = () => {
+  cancelSpeech();
+  for (const c of [...outsideClips]) c.stop();
+  outsideClips.clear();
+  if (synthOK()) window.speechSynthesis.cancel();
 };
 /** Has the announcer only just stopped (so Meathead holds off a moment)? */
 export const announcerJustSpoke = () => Date.now() - announcerDoneAt < KILL_VOICE_GAP_MS;
@@ -331,7 +335,8 @@ export const speak = (text: string, voice: Voice, { onStart, onDone }: SpeakOpti
   let out = false;
   const done = () => { if (!out) { out = true; outside--; afterOutside(); } };
   noteStart(voice, text, false);
-  if (playClip(voice.id, text, { onStart: () => { noteStart(voice, text, true); onStart?.(); }, onEnd: () => { done(); onDone?.(); } })) return;
+  const clip = playClip(voice.id, text, { onStart: () => { noteStart(voice, text, true); onStart?.(); }, onEnd: () => { outsideClips.delete(clip!); done(); onDone?.(); } });
+  if (clip) { outsideClips.add(clip); return; }
   done();
   noteMiss(voice, text);
   if (!synthOK()) return;
