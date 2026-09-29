@@ -7,7 +7,7 @@ import { SKIP_AFTER } from '../game/platform/skip';
 import SkipPrompt from './SkipPrompt';
 
 // NES-style cutscenes (the ending, the mid-game call): a run of still images with text typed out underneath.
-// Press confirm to finish the text or move on; panels also advance on their own.
+// It plays out on its own, line by line: watch it all, or skip the lot (SKIP >>). Confirm only closes the end card.
 
 export interface Panel {
   draw: (ctx: CanvasRenderingContext2D, t: number, talking: boolean) => void;
@@ -48,7 +48,6 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [panelIndex, setPanelIndex] = useState(0);
   const [shownChars, setShownChars] = useState(0);
-  const [ready, setReady] = useState(false);
   const [theEnd, setTheEnd] = useState(false);
   const [skipUp, setSkipUp] = useState(false);
   // Mutable state the loop works on
@@ -72,7 +71,6 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
     r.panel = i; r.t = 0; r.typedAt = -1; r.speaking = false; r.spoke = false;
     setPanelIndex(i);
     setShownChars(0);
-    setReady(false);
     const p = PANELS[i];
     p.onEnter?.();
     if (p.voice && p.radio && canSpeak()) {
@@ -122,15 +120,12 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
   const confirm = () => {
     const r = run.current;
     if (r.total < INPUT_LOCK_FRAMES) return;
-    const p = PANELS[r.panel];
     if (r.panel === LAST) {
       if (handoffRef.current) { if (r.t >= endAt + 30) startHandoff(); return; }
       if (r.t >= endAt + 60 && !r.finished) { r.finished = true; hangUp.current?.(); cancelSpeech(); onDoneRef.current(); }
       return;
     }
-    // First press finishes the text, the next moves on
-    if (r.typedAt < 0 && p.text) { r.typedAt = r.t; r.t = Math.max(r.t, p.text.length * TYPE_FRAMES_PER_CHAR); setShownChars(p.text.length); return; }
-    enterPanel(r.panel + 1);
+    // (no hurrying a line along, or skipping one: it's the whole thing or none of it)
   };
 
   /** Straight to the last panel, with its end card up. */
@@ -165,7 +160,6 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
       }
       // Auto-advance once the text is out and the line has been said
       if (r.typedAt >= 0 && !r.speaking) {
-        setReady(true);
         if (r.t - r.typedAt >= (p.hold ?? DEFAULT_HOLD)) enterPanel(r.panel + 1);
       }
     };
@@ -230,7 +224,6 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
           <>
             {panel.speaker && <div className="text-yellow-400 text-[12px] mb-2">{panel.speaker}:</div>}
             <div className="text-white text-[12px] leading-[1.9] whitespace-pre-line">{text}</div>
-            {ready && <div className="absolute right-0 bottom-0 text-white text-[12px] animate-pulse">&#9660;</div>}
           </>
         )}
       </div>

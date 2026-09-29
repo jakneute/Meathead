@@ -157,6 +157,9 @@ const SfxTest: React.FC = () => {
   );
 };
 
+/** The music, sound and voice tests (hidden: flip this to have them back on the title screen's panel). */
+const SHOW_SOUND_TESTS = false;
+
 const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['cheats']>, musicOn: boolean }> = ({ rank, musicOn, cheats: { flags, onToggle, onChangeRank, onPlayEnding, onPlayCall } }) => (
   <div className="absolute top-2 right-2 z-[60] flex flex-col gap-1 items-end max-w-[150px]">
     <div className="flex w-full border-2 border-gray-600 bg-gray-900 shadow-[2px_2px_0px_white] items-center overflow-hidden">
@@ -173,10 +176,12 @@ const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['che
     <div className="h-2 w-full" />
     <button onClick={onPlayCall} className="w-full px-2 py-1 border-2 border-gray-600 bg-gray-800 text-yellow-300 font-black text-[7px] uppercase shadow-[2px_2px_0px_white] hover:bg-gray-700">VIEW MID-GAME CALL</button>
     <button onClick={onPlayEnding} className="w-full px-2 py-1 border-2 border-gray-600 bg-gray-800 text-yellow-300 font-black text-[7px] uppercase shadow-[2px_2px_0px_white] hover:bg-gray-700">VIEW ENDING</button>
-    <div className="h-2 w-full" />
-    <SoundTest enabled={musicOn} />
-    <SfxTest />
-    <VoiceTest />
+    {SHOW_SOUND_TESTS && <>
+      <div className="h-2 w-full" />
+      <SoundTest enabled={musicOn} />
+      <SfxTest />
+      <VoiceTest />
+    </>}
   </div>
 );
 

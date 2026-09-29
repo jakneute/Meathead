@@ -116,7 +116,7 @@ export const updateHector = (ctx: FrameContext, controls: Controls): Controls =>
   controls = updateBoat(ctx, rt.boat, controls, () => enterTower(state));
   updateTower(ctx, rt.tower, () => enterEye(state));
   updateEyeFight(ctx, rt.eye, () => { rt.clearT = 1; });
-  // (skipping a line of the news goes by the real buttons)
+  // (the news: watch it all, or skip the lot)
   updateNews(ctx, rt.news, controls, () => startDaycare(state, rt.daycare, true));
   // The Eye's dead: hands off while it dies and the storm clears
   if ((region === 'eye' && (rt.eye.phase === 'dead' || rt.eye.phase === 'done')) || newsOn(rt.news) || rt.hazards.drownT > 0) {
