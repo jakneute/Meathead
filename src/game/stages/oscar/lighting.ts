@@ -34,7 +34,7 @@ export const oscarScene = (state: GameState): SceneLight | null => {
   // Out back of the field office and on to the door: the whole field's going up behind it; the jets and the burning oil light it
   lights.push({ x: COURSE.end.wall - 40, y: GROUND_Y - 40, r: 200, a: rt.ending.bike.state === 'crashed' ? 0.8 : 0, color: 'rgba(249, 115, 22, 0.16)' });
   for (const o of rt.field.oil) { const k = burnLevel(o); if (k > 0 && nearView(state, (o.x1 + o.x2) / 2, 400)) lights.push({ x: (o.x1 + o.x2) / 2, y: groundLineAt(state.groundRuns, o.x1) - 30, r: 180 + (o.x2 - o.x1) / 2, a: k, color: 'rgba(249, 115, 22, 0.18)' }); }
-  for (const j of COURSE.jets) if (jetOn(j, state.frame) && nearView(state, j.x)) lights.push({ x: j.x, y: j.y - 60, r: 220, a: 0.9, color: 'rgba(253, 186, 116, 0.18)' });
+  for (const j of rt.field.jets) if (jetOn(j, state.frame) && nearView(state, j.x)) lights.push({ x: j.x, y: j.y - 60, r: 220, a: 0.9, color: 'rgba(253, 186, 116, 0.18)' });
   const B = COURSE.bar;
   if (nearView(state, B.x1, 300) || nearView(state, B.x2, 300)) {
     if (barIntact(rt.bar)) {

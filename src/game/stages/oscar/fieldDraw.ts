@@ -236,9 +236,9 @@ export const drawJetPipes = (ctx: Ctx, state: GameState) => {
 };
 
 /** The fire out of them (in front): a roaring tongue while they're on, sparks and a shimmer as they're about to go. */
-export const drawJetFire = (ctx: Ctx, state: GameState) => {
+export const drawJetFire = (ctx: Ctx, state: GameState, fld: Field) => {
   const f = state.frame;
-  for (const j of COURSE.jets) {
+  for (const j of fld.jets) {
     if (!inView(state, j.x - j.len - 40, j.x + j.len + 40)) continue;
     const on = jetOn(j, f), warn = jetWarning(j, f);
     if (!on && !warn) continue;

@@ -453,14 +453,18 @@ const updateWrecks = (ctx: FrameContext, ch: Chase) => {
     if (w.x > v.x2 + 160 || w.x < v.x1 - 160) {
       w.t = -1;
       const from = w.dir > 0 ? CANVAS_WIDTH + 30 : -30;
-      const seen = ch.far.map((_, k) => k).filter(k => { const sx = farScreenX(ch, k); return sx > 70 && sx < CANVAS_WIDTH - 70; });
+      // (something that'll still be well on the screen when it gets there: the distance keeps going by as it drives)
+      const drift = Math.max(4, p.vel.x) * FAR_PAR;
+      const DUR = 80;
+      const at = (k: number) => farScreenX(ch, k) - drift * DUR;
+      const seen = ch.far.map((_, k) => k).filter(k => { const sx = at(k); return sx > 120 && sx < CANVAS_WIDTH - 120 && farScreenX(ch, k) < CANVAS_WIDTH + 100; });
       const standing = seen.filter(k => ch.far[k].state === 'standing');
       const pool = standing.length ? standing : seen;
-      if (!pool.length) continue;
-      const target = pool[Math.floor(Math.random() * pool.length)];
       const base = ch.odo * FAR_PAR;
+      const target = pool.length ? pool[Math.floor(Math.random() * pool.length)]
+        : ch.far.map((_, k) => k).sort((a, b2) => Math.abs(at(a) - CANVAS_WIDTH / 2) - Math.abs(at(b2) - CANVAS_WIDTH / 2))[0];
       const l0 = from + base, l1 = farScreenX(ch, target) + base;
-      ch.farWrecks.push({ kind: w.kind, paint: w.paint, l0, l1, target, t: 0, dur: Math.max(90, Math.abs(l1 - l0) / 2.4) });
+      ch.farWrecks.push({ kind: w.kind, paint: w.paint, l0, l1, target, t: 0, dur: DUR });
     }
   }
   ch.wrecks = ch.wrecks.filter(w => w.t >= 0);
@@ -476,7 +480,8 @@ const updateWrecks = (ctx: FrameContext, ch: Chase) => {
       // (and the things either side of it catch, now and then: a tank farm going up one after another)
       for (const n of [w.target - 1, w.target + 1]) {
         const k = (n + FAR_N) % FAR_N;
-        if (ch.far[k].state === 'standing' && (ch.far[k].look === 'tank' || Math.random() < 0.4)) { ch.far[k].state = 'fuse'; ch.far[k].t = -(30 + Math.floor(Math.random() * 40)); }
+        const sx = farScreenX(ch, k);
+        if (sx > 40 && sx < CANVAS_WIDTH - 40 && ch.far[k].state === 'standing' && (ch.far[k].look === 'tank' || Math.random() < 0.4)) { ch.far[k].state = 'fuse'; ch.far[k].t = -(30 + Math.floor(Math.random() * 40)); }
       }
     }
   }

@@ -82,7 +82,7 @@ export const drawOscarFront = (ctx: Ctx, state: GameState) => {
   const place = view(state);
   if (place !== 'chase' && place !== 'end') { drawOilFire(ctx, state, rt.field); drawBunkerFront(ctx, state, rt.bunker); }
   if (place === 'end') { drawOilFire(ctx, state, rt.field); drawEndFront(ctx, state, rt.ending); drawBarFront(ctx, state, rt.bar); }
-  if (place !== 'chase') drawJetFire(ctx, state);
+  if (place !== 'chase') drawJetFire(ctx, state, rt.field);
   drawSpeech(ctx, state, rt);
 };
 

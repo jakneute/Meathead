@@ -17,8 +17,12 @@ import { rectsOverlap, boundsOf } from '../../core/utils';
 /** A patch of oil: burning (frames left of it), whether it's burned off, and (if it pools back) how long till it has. */
 export interface Slick extends OilPatch { burn: number; gone: boolean; back: number }
 
+/** A jet, and when it came on the screen (it only starts going then, and stops once it's well off it again). */
+export interface LiveJet extends Jet { seen: number }
+
 export interface Field {
   oil: Slick[];
+  jets: LiveJet[];
   /** Splashes where something went into the crude. */
   splashAt: number;
 }
@@ -31,13 +35,15 @@ const TAR_BURN_FRAMES = 480, POOL_BACK = 300;
 const JET_WARN = 36, JET_DAMAGE = 16;
 
 /** Is a jet going right now (and is it about to)? */
-export const jetOn = (j: Jet, frame: number) => (frame + j.phase) % j.period < j.on;
-export const jetWarning = (j: Jet, frame: number) => { const t = (frame + j.phase) % j.period; return t >= j.period - JET_WARN; };
+/** Where a jet is in its cycle: it starts (on coming on the screen) partway through the quiet part, so there's a moment to see it first. */
+const jetCycle = (j: LiveJet, frame: number) => (frame - j.seen + j.on + (j.phase % Math.max(1, j.period - j.on - JET_WARN))) % j.period;
+export const jetOn = (j: LiveJet, frame: number) => j.seen >= 0 && jetCycle(j, frame) < j.on;
+export const jetWarning = (j: LiveJet, frame: number) => j.seen >= 0 && jetCycle(j, frame) >= j.period - JET_WARN;
 /** The box its flame fills. */
 export const jetBox = (j: Jet) => (j.dir === 'up' ? { x: j.x - 16, y: j.y - j.len, w: 32, h: j.len } : j.dir === 'right' ? { x: j.x, y: j.y - 34, w: j.len, h: 34 } : { x: j.x - j.len, y: j.y - 34, w: j.len, h: 34 });
 
 export const createField = (state: GameState): Field => {
-  const f: Field = { oil: COURSE.oil.map(o => ({ ...o, burn: 0, gone: false, back: 0 })), splashAt: -999 };
+  const f: Field = { oil: COURSE.oil.map(o => ({ ...o, burn: 0, gone: false, back: 0 })), jets: COURSE.jets.map(j => ({ ...j, seen: -1 })), splashAt: -999 };
   syncOil(state, f);
   return f;
 };
@@ -52,8 +58,13 @@ export const updateField = (ctx: FrameContext, f: Field) => {
   const p = state.player;
   // The jets: hissing and sparking, then fire; it hurts him, it burns anything in it, and it lights the oil it touches
   const jetsOn: Jet[] = [];
-  for (const j of COURSE.jets) {
-    if (Math.abs(j.x - p.pos.x) > 1400) continue;
+  for (const j of f.jets) {
+    // (nothing till it's on the screen; it rests again once it's well off it)
+    const box0 = jetBox(j);
+    const onScreen = box0.x + box0.w > state.camera.x && box0.x < state.camera.x + CANVAS_WIDTH;
+    if (onScreen && j.seen < 0) j.seen = state.frame;
+    if (!onScreen && (box0.x + box0.w < state.camera.x - 600 || box0.x > state.camera.x + CANVAS_WIDTH + 600)) j.seen = -1;
+    if (j.seen < 0) continue;
     if (jetWarning(j, state.frame) && state.frame % 3 === 0) state.particles.push({ pos: { x: j.x, y: j.y - 4 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 12, color: Math.random() < 0.5 ? '#FDE047' : '#F8FAFC', size: 2 + Math.random() * 2 });
     if (!jetOn(j, state.frame)) continue;
     jetsOn.push(j);
