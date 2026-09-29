@@ -1,0 +1,7717 @@
+[
+ {
+  "voice": "agent",
+  "text": "...Unlimited resources.",
+  "from": "components/IntroCutscene.tsx:22"
+ },
+ {
+  "voice": "agent",
+  "text": "Artie Avalanche. Alaska. He looked at your protein shake funny.",
+  "from": "components/IntroCutscene.tsx:24"
+ },
+ {
+  "voice": "agent",
+  "text": "Do you like hurting weaklings?",
+  "from": "components/IntroCutscene.tsx:22"
+ },
+ {
+  "voice": "agent",
+  "text": "Ernie Earthquake. San Francisco. An old man with some very heavy rocks. He needs help moving them. Permanently.",
+  "from": "components/IntroCutscene.tsx:24"
+ },
+ {
+  "voice": "agent",
+  "text": "Hector Hurricane. Miami. He went on the news and predicted a bad forecast for your gains.",
+  "from": "components/IntroCutscene.tsx:24"
+ },
+ {
+  "voice": "agent",
+  "text": "Meathead. We represent a department of the government that does not exist.",
+  "from": "components/IntroCutscene.tsx:22"
+ },
+ {
+  "voice": "agent",
+  "text": "These are the four assholes. Very dangerous. Very weak. Extremely hurtable.",
+  "from": "components/IntroCutscene.tsx:24"
+ },
+ {
+  "voice": "agent",
+  "text": "Victor Volcano. Hawaii. He's telling everybody you skip leg day.",
+  "from": "components/IntroCutscene.tsx:24"
+ },
+ {
+  "voice": "agent",
+  "text": "We don't do that kind of thing. You do. Planes, choppers, cargo drops: unlimited resources to put you wherever you need to be.",
+  "from": "components/IntroCutscene.tsx:24"
+ },
+ {
+  "voice": "agent",
+  "text": "We'll be brief. We have an offer you cannot refuse.",
+  "from": "components/IntroCutscene.tsx:22"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "...IS IT OVER?",
+  "from": "game/stages/barry/power.ts:230"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "AAAAAAAAAAAAAAAAH!",
+  "from": "game/stages/barry/power.ts:229"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "BARRY IS GOING TO HEAR ABOUT THIS. HE HEARS ABOUT EVERYTHING.",
+  "from": "game/stages/barry/power.ts:195"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "CAREFUL! THOSE ARE LEASED!",
+  "from": "game/stages/barry/power.ts:195"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "DID YOU JUST... THROW WATER. IN THE POWER ROOM.",
+  "from": "game/stages/barry/power.ts:228"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "EVERY ROLLING BLACKOUT IN THE CITY RUNS THROUGH THESE THREE BEAUTIES. NOT THAT YOU'D UNDERSTAND LOAD BALANCING.",
+  "from": "game/stages/barry/power.ts:56"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "I CAN SEE MY GRANDMA! SHE SAYS I SHOULD HAVE BEEN A DENTIST!",
+  "from": "game/stages/barry/power.ts:231"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "IS THAT ALL YOU'VE GOT? THEY'RE RATED FOR HURRICANES.",
+  "from": "game/stages/barry/power.ts:195"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "IT'S NOT OVER! IT'S NOT OVER!",
+  "from": "game/stages/barry/power.ts:231"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "NO NO NO NO! THAT ONE RAN THE SUBWAY SIGNALS! EVERY TRAIN ON THE A LINE IS JUST... GOING. FOREVER. TO FAR ROCKAWAY.",
+  "from": "game/stages/barry/power.ts:70"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "OH, LOOK WHO FINALLY MADE IT UP ALL THOSE STAIRS. YOU'RE SWEATY. IT'S GROSS.",
+  "from": "game/stages/barry/power.ts:54"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "TELL BARRY... I QUIT.",
+  "from": "game/stages/barry/power.ts:232"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "THAT WAS TRAFFIC CONTROL! EVERY LIGHT IN MANHATTAN JUST WENT GREEN! ALL OF THEM! AT ONCE! THE CABS! OH GOD, THE CABS!",
+  "from": "game/stages/barry/power.ts:74"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "THE HOSPITALS! THE STOCK EXCHANGE! THE HOT DOG CARTS! AND THE FAILSAFE THAT KEEPS THIS ROOM FROM EXPLO",
+  "from": "game/stages/barry/power.ts:77"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "THIS IS THE HEART OF THE NEW YORK POWER GRID. TOUCH NOTHING. I MEAN IT. NOTHING.",
+  "from": "game/stages/barry/power.ts:55"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "YOU KNOW YOU'RE ON CAMERA, RIGHT? I'M PUTTING THIS ON THE COMPANY NEWSLETTER.",
+  "from": "game/stages/barry/power.ts:195"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "A LITTLE TINGLE. HOW ADORABLE.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "A PEASHOOTER? HOW QUAINT.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "A ROCK? HOW PREHISTORIC.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "BULLETS CHIP ICE, NOT MY EGO.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "DISGUSTING. NOW I'M A SEWER POPSICLE.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "DO YOU KNOW WHAT THAT MOOSE MEANT TO ME?!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "I PREFER MY INJECTIONS CHILLED.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "I'LL SKATE ON YOUR GRAVE.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "I'M MELTING, YOU OVERGROWN SPACE HEATER!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "I'M... SWEATING. I HAVE NEVER SWEATED.",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "ICE DOESN'T CONDUCT, GENIUS.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "IS THAT ALL YOUR TINY GUN CAN DO?",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "MY VEINS ARE FROZEN SOLID, JUNKIE.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "NO! NOT THE FIRE! I'M DRIPPING!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "OH NO, NOT A GENTLE SNOW FLURRY.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "OIL ON ICE? THAT'S JUST SLIPPERY.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "STOP POKING ME, YOU DIRTY PINCUSHION.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "TELL THE GLACIERS... I TRIED...",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "THANKS FOR THE REFILL, MEATFACE.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "THAT'S GOING IN MY ROCK GARDEN.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "THAT'S GOING TO FREEZE INTO SOMETHING HORRIBLE.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "TURN IT OFF! MY FACE IS SLUSH!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "WATER? I'LL JUST FREEZE IT.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "WONDERFUL, NOW I'M AN ICE RINK.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "YOU BARFED ON MY FINEST FROST!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "YOU GREASED MY GLACIER!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I'M the terrorist?",
+  "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "YOU MADE ME A SLUSHIE, YOU BARBARIAN.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "YOU THROW LIKE A GLACIER MOVES.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "YOU TRACKED SLUSH INTO MY VAULT!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "YOU'RE FIRING ICE AT ME? I AM ICE, IDIOT.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "ZAP ME AGAIN. I DARE YOU.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "B-B-BULLETS? I'M WIRED FOR THIS!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "BRR-ZZT! THAT'S A SHORT!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "BZZZZT! EVERYONE'S GETTING ZAPPED!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "CURRENT'S STILL FLOWING, PAL!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "EASY, MAN. I'M WAY TOO MELLOW FOR THIS.",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "ELECTRICAL FIRE! DON'T USE WATER!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "EW! CONDUCTIVE PUKE!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "FLOODING THE BASEMENT?! THE GENERATORS!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "FROZEN TRANSFORMER! NOT COOL!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "I CAN SEE ELECTRICITY, MAN. IT'S PURPLE.",
+  "from": "BARRY_LINES"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "I'M A KITE! LOOK AT ME, I'M A KITE!",
+  "from": "BARRY_LINES"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "I'M SEEING STARS! NOT THE GOOD KIND!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "ICE ON THE LINES! OUTAGE! OUTAGE!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "MORE VOLTS! I'M FULLY CHARGED!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "NEEDLES?! IT'S GROUNDING ME OUT!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "NICE TRY. I BUILT UP A TOLERANCE.",
+  "from": "BARRY_LINES"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "OIL-FILLED TRANSFORMER! BOOM TIME!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "OW! MY VOLTAGE IS DRAINING!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "OW! THAT'S MY SUBSTATION!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "PULL THEM OUT! I'M LOSING POWER!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "ROLLING BLACKOUT, GET IT?",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "SLIME IN THE CIRCUITS! SPARKS!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "SLIPPERY SPARKS! UH OH!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "SMELL THAT? THAT'S MY INSULATION!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "THANKS FOR THE ENERGY, SUCKER!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "THAT DOESN'T EVEN TICKLE ANYMORE.",
+  "from": "BARRY_LINES"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "THERE THEY ARE... THE STARS...",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "WATER AND ELECTRICITY?! YOU'RE INSANE!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "WHOA... WHO TURNED ON ALL THE LAVA LAMPS?",
+  "from": "BARRY_LINES"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "You blew my whole power room, man. With my guy in it. Whole city's dark now... look up. See any stars? ...Me neither.",
+  "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "YOU CORRODED MY CONTACTS!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "YOU GREASED MY WIRES!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "YOU KNOCKED OUT A POWER POLE!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "YOU KNOW WHO R&D TESTS THAT STUFF ON? ME, MAN.",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "YOU MISSED THE BREAKER, DUMMY!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "YOU'RE OVERHEATING MY GRID!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "YOU'RE TAZING THE POWER COMPANY?!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "YOU'RE WASTING THE GOOD STUFF, BUDDY.",
+  "from": "BARRY_LINES"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "BARF IN MY SUPPLY?! IT'S TAINTED!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "BIG ROCK, BRO. WHAT'S IT CUT WITH?",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "BULLETS? I'M TOO HIGH TO FEEL IT!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "BUZZ BUZZ! THAT'S MY HEART RATE!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "CLOSED... FOR INVENTORY...",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "DO YOU KNOW WHAT THAT LOAD WAS WORTH?!",
+  "from": "DALE_LINES"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "DON'T BURN THE STASH!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "FLUSH IT! FLUSH IT ALL!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "FREE SAMPLES? DON'T MIND IF I DO!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "GROSS! YOU RUINED THE PRODUCT!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "HEY! THOSE ARE MY NEEDLES!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "I'M GONNA HURL! THE BUYERS WILL KILL ME!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "I'M TWITCHING MORE THAN USUAL!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "ICE? I DEAL ICE, BRO!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "MOBILE LAB FIRE! RUN!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "MY OWN TRUCK?! I'M SUING!",
+  "from": "DALE_LINES"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "MY TRUCK! THAT WAS UNINSURED!",
+  "from": "DALE_LINES"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "OIL? I'M NOT IN THAT BUSINESS, MAN!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "OKAY, OKAY! I'M DIPPING INTO THE INVENTORY!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "OOH, WHAT'S IN THIS BATCH?",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "OW, MY SPINE! I DON'T HAVE INSURANCE!",
+  "from": "DALE_LINES"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "ROCKS? I SELL ROCKS, DUDE!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "SHARING IS CARING, MAN.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "SLICK MOVE. I RESPECT THE HUSTLE.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "THAT'S NOT THE KIND OF ICE I SELL!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "THE STASH IS SOAKED! NO!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "THREE HITMEN! I PAID FOR THREE HITMEN!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "WHO TAUGHT YOU TO DRIVE?!",
+  "from": "DALE_LINES"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "WHOA! COPS?! OH, IT'S JUST YOU!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "YOU BARFED ON MY SUPPLY CHAIN!",
+  "from": "DALE_LINES"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!",
+  "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "YOU GREASED THE TRUCK!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "YOU WASHED AWAY MY PRODUCT!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "YOU'RE BAD FOR BUSINESS, MAN!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "YOU'RE COOKING MY INVENTORY, MAN!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "YOU'RE CRUSHING MY PROFITS!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "YOU'RE NOT EVEN A FED! WHO ARE YOU?!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "ZAP! I'M WIDE AWAKE NOW!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "A TINY... PRICK... LIKE YOU.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "BULLETS... BOUNCE OFF... BEDROCK.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "BUZZING... IN MY... BONES.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "COLD... CRACKING... MY FAULT LINES!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "FRACKING... ME... NOW?",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "FROST... SHATTERS... STONE!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "GROUND ME? HA... I AM... THE GROUND.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "I AM... THE ROCK... YOU FOOL.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "I HAVE NO... VEINS... ONLY ORE.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "I WAS FORGED... IN FIRE... BOY.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "ICE... IN MY... CREVICES!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "MY HIP! MY HIP'S GOING BEFORE THE FAULT DOES!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "NEEDLES... BREAK... ON GRANITE.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "OIL... COMES FROM ME... BOY.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "PUKE... IN MY... STRATA.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "ROCKS... DON'T... CONDUCT.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "ROCKS... RETURN... TO ME.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "SEDIMENT... NOW... DISGUSTING.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "SLOW DOWN... WITH YOUR... TINY GUN.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "STAND BY... FOR AFTERSHOCKS...",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "THAT BRIDGE WAS COMING DOWN ANYWAY. IT WAS IN THE CALENDAR.",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "THAT... TICKLES... BOY.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "THAT'S... A MILLION YEARS... OF DAMAGE.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "WARM... LIKE THE EARTH'S... CORE.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "WATER... ERODES... SLOWLY... BOY.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "YOU DRILL... TOO SHALLOW.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "You dropped a jet ski on the tour group, sonny. I schedule my quakes AROUND the tour group!",
+  "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "YOU KIDS AND YOUR JET SKIS!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "YOU THROW... MY OWN... CHILDREN?",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "YOU'LL NEED... MORE... OCEAN.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "YOU'RE... TOASTING... A MOUNTAIN.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "YOU'VE... CONTAMINATED... THE WATER TABLE.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "...BACK TO YOU IN THE STUDIO...",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "AND NOW, THE FIVE-DAY FORECAST: YOU, DEAD!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "BARF IN THE WIND? BAD IDEA, BUDDY!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "BRRR! I'LL SPIN IT INTO A BLIZZARD!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "BULLETS IN A WINDSTORM? GOOD LUCK!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "CATEGORY SIX! CATEGORY SIX!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "FIRE TORNADO! THANKS PAL!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "GROSS! I'M A SEWAGE TWISTER NOW!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "HAIL? I INVENTED HAIL, BUDDY!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "HOT AIR RISES AND SO DO I!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "HOW DO I BLOW AWAY A ROCK?!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "I SPIN FASTER ON STIMULANTS, DUDE!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "I'LL BLOW THAT LEAD RIGHT BACK AT YA!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "I'LL FAN THOSE FLAMES RIGHT BACK!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "ICE CUBES IN MY EYE OF THE STORM!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "IT'S BLOWING BACK IN YOUR FACE!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "LIGHTNING'S MY DEPARTMENT, BUD!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "MISSED ME MISSED ME, NOW YOU GOTTA... OW!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "OIL SPILL HURRICANE! COMING RIGHT UP!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "OOF! PINNED DOWN! NO WIND!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "SLICK! I'M SPINNING TOO FAST!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "STORM SURGE? THAT'S MY MOVE!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "THIS WASN'T IN THE FORECAST!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "TOO HEAVY! I CAN'T LIFT IT!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "WATER AND WIND, BABY! WE'RE A TEAM!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "WHEEE! WHAT WAS IN THAT?!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "WINDS ARE PICKING UP! AGAINST YOU!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "YOU GREASED MY EYE WALL!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.",
+  "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "YOU'RE CHARGING MY STORM CLOUDS!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "YOU'RE JUST MAKING ME A BIGGER STORM!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "ZAP! ZAP! I LOVE IT!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "*COUGH* ...THAT WAS MY LAST SMOKE.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "CAN'T CATCH ME, PAL! I'M TOO SLICK!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "CAN'T WASH THIS GREASE OFF.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "COLD CALLS DON'T WORK ON ME, BUDDY.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "CONTAMINATED BATCH! WORTHLESS!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "EASY, FRIEND. BULLETS SLIDE RIGHT OFF.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "ELECTRICITY AND PETROLEUM? BAD DEAL!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "EVERYBODY. BACK. TO WORK. ...ANYBODY?",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "EW. THAT'S NOT PREMIUM.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "FLAME RETARDANT SUIT, PAL! NOMEX, BABY!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "FLAME RETARDANT SUIT, PAL. TOP OF THE LINE.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "FLAMETHROWER, MEET PETROLEUM. GENIUS, PAL. REAL GENIUS.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "FREEZE MY ASSETS? NICE TRY.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "HEY! HANDS OFF THE MERCHANDISE!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "HEY! THAT'S STOLEN MERCHANDISE!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "I JUST FLOAT ON TOP, BABY.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "I WORK AT A REFINERY, GENIUS. I DRESS FOR THIS.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "I'LL SELL THAT LEAD BACK TO YOU.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "I'M ALREADY SLICK, DON'T NEED THE JUICE.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "I'M GROUNDED! LITERALLY GROUNDED!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "ICE ON A SLICK MAN? I'M SKATING!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "IS THAT SUPPOSED TO TICKLE?",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "LIGHT 'EM UP!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "LUBRICATED NEEDLE? SMOOTH.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "MY EYEBROWS! I JUST HAD 'EM WAXED!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "MY FILLINGS! MY BEAUTIFUL GOLD FILLINGS!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "NOTHING BEATS AN AFTER-DINNER FIRE!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "OIL AND WATER DON'T MIX, CHAMP!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "OUCH. THAT'S GONNA COST YOU EXTRA.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "ROCKS JUST SLIDE OFF THE GREASE.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "SHOOTING A SALESMAN? RUDE.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "SHORTED OUT... ON COMPANY TIME...",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "SMOKING SECTION'S OPEN, FRIEND!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "THANKS FOR THE FREE REFILL, FRIEND.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "THAT ALL YOU GOT? I'VE HAD HOTTER SMOKE BREAKS.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "THAT BREAK ROOM WAS UNION-BUILT, YOU ANIMAL!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "THAT ONE WENT RIGHT THROUGH THE GREASE!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "THAT TICKLES... THAT BURNS... THAT TICKLES!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "THAT'S A SLIPPERY SLOPE, PAL.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "THE SURGEON GENERAL WARNED ME ABOUT THIS.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "The union. The rangers. The Angels. My bar. My field's on fire, pal! ...It's insured. You're not.",
+  "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "WARM. REAL WARM. KEEP GOING, I'M COLD.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "WELL LOOK AT THAT, MY OWN PERSONAL ARSONIST!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "YOU CAN'T PIN A SLICK MAN DOWN.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "YOU FRIED MY GAUGES, PAL!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "YOU KNOW THAT STUFF'S FLAMMABLE, RIGHT? ...RIGHT?",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "YOU LIT MY TRAP FOR ME?! HA! SAVED ME A SMOKE!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "YOU RUINED MY FINE CRUDE!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "YOU'RE GONNA IGNITE THE PRODUCT!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "YOU'RE GONNA NEED A BIGGER LIGHTER.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "YOU'RE SHOOTING ME WITH MY OWN PRODUCT?",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "ZAP ME AND WE BOTH GO BOOM.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "AMATEUR VOMIT. WATCH A PROFESSIONAL.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "BLAARGH! CRUDE OIL?! I CAN'T CHUNDER!",
+  "from": "game/bosses/tommy.ts:280"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "BULLETS SINK IN MY SLUDGE... BLURGH.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "BURNT BILE SMELLS AMAZING.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "CRUDE OIL! MY ONLY WEAKNESS! BLARGH!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "ELECTRIFIED SEWAGE! BZZT! HURK!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "FLUSH ME... DOWN WITH THE NEIGHBORS...",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "FROZEN PUKE CHUNKS! DELICIOUS!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "GLUG GLUG... I'M SPREADING!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "HOLD STILL, I'M CHECKING YOUR WATER PRESSURE!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "HURK... ANOTHER HOLE TO LEAK FROM.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "I CAN'T HURL! I'M BACKED UP!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "I DRANK IT ALL FOR THEM! ALL OF IT!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "I'LL DIGEST THAT PEBBLE.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "I'M A FLAMING DUMPSTER NOW!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "I'M BACKING UP! I'M BACKING UP!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "I'VE BEEN STUCK WITH DIRTIER NEEDLES.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "ICE IN MY BILE... REFRESHING... BLEGH.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "IT'S COVERED IN SLIME NOW. KEEP IT.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "MORE WATER?! YOU'RE FLUSHING ME!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "MY BLOOD IS SEPTIC, KEEP IT.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "MY BOWELS ARE SPARKING!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "OIL?! IT'S CLOGGING MY PIPES!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "SEWER GAS! EVERYTHING'S ON FIRE!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "SPLOOSH! YOUR ROCK SANK.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "THANKS FOR THE SNACK.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "THAT'S A BAD MIX, MEATHEAD!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "YOU BARF ON ME? I AM BARF!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "YOU JUST GAVE THE NEEDLE HEPATITIS.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "YOU MADE A TOXIC SLUSHIE.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "You put the neighbors down. And you dropped my water tower on a house. Do you know how long it took me to fill that thing?",
+  "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "YOU SHOT A SEWER. CONGRATULATIONS.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "YOU'RE DILUTING MY TOXINS!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "A MOLTEN MAN NEEDS NO MEDICINE!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "A PEBBLE FROM MY OWN SLOPES!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "A ROCK IN MY VENT? CUTE. IT'LL POP RIGHT OUT.",
+  "from": "VICTOR_LINES"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "BULLETS MELT BEFORE THEY REACH ME!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "ELECTRIC? I'M ALREADY RED HOT!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "FIRE?! YOU'RE FEEDING ME, MORON!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "GO AHEAD, CORK IT. SEE WHAT HAPPENS.",
+  "from": "VICTOR_LINES"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "HOW REFRESHING. DO IT AGAIN.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "I VOMIT BOULDERS BIGGER THAN THAT!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "I'LL BOIL YOUR BILE AWAY!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "I'LL MELT YOUR ROCK INTO SOUP!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "I'M COOLING... NOT BEFORE MY SET!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "ICE? I'LL HAVE IT STEAMING IN SECONDS!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "INJECT ME AGAIN AND WATCH IT BOIL!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "LAST CALL... AT CLUB CALDERA...",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "LIGHTNING ONLY STOKES THE FURNACE!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "MORE! GIVE ME MORE HEAT!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "MY BLOOD IS LAVA, THE NEEDLE MELTED!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "NOW I'M A GREASE FIRE, IDIOT!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "OH NO... WHAT HAVE YOU DONE, YOU",
+  "from": "VICTOR_LINES"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "OIL? YOU JUST FUELED MY FIRE!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "PATHETIC. I ERUPT HARDER THAN THAT.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "PRESSURE ALWAYS WINS, MEATHEAD!",
+  "from": "VICTOR_LINES"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "PRESSURE'S BUILDING! FEEL THAT HEAT!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "SMELLS LIKE BURNT GARBAGE NOW!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "STOP! I'M GOING DORMANT!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "THANK YOU FOR THE ACCELERANT!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "THAT'S NOT HOW GEOLOGY WORKS, YOU MEATBALL!",
+  "from": "VICTOR_LINES"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "THE DOORMAN HAD ONE JOB, BRO!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "VOLCANIC LIGHTNING IS MY SPECIALTY!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "WATER! NO! MY MAGMA IS COOLING!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "YOU CAN'T BURN A VOLCANO, MEATHEAD!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "You crashed my VIP lounge, bro. Those were investors. Now they're a geothermal feature.",
+  "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "YOU'RE PLUGGING A VOLCANO WITH A PEBBLE?!",
+  "from": "VICTOR_LINES"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "YOU'RE TURNING ME INTO PUMICE!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "YOUR LEAD IS MY LAVA NOW!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "YOUR PUKE IS SIZZLING ON MY SKIN!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "YOUR SNOWBALLS ARE STEAM, FOOL!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "dale.dad",
+  "text": "IT WAS A VERY FIT SPEED BUMP.",
+  "from": "game/stages/dale/convoy.ts:363"
+ },
+ {
+  "voice": "dale.dad",
+  "text": "THAT? THAT WAS A... SPEED BUMP, PUMPKIN.",
+  "from": "game/stages/dale/convoy.ts:361"
+ },
+ {
+  "voice": "dale.dad",
+  "text": "WHO WANTS NUGGETS?!",
+  "from": "game/stages/dale/convoy.ts:365"
+ },
+ {
+  "voice": "dale.dale",
+  "text": "...GARY?",
+  "from": "game/stages/dale/convoy.ts:728"
+ },
+ {
+  "voice": "dale.dale",
+  "text": "A BINDING NAPKIN! PRESS THE RED BUTTON! THAT'S AN ORDER!",
+  "from": "game/stages/dale/convoy.ts:724"
+ },
+ {
+  "voice": "dale.dale",
+  "text": "CRICKETS, TWICE A DAY. YOU HAVE MY WORD.",
+  "from": "game/stages/dale/convoy.ts:736"
+ },
+ {
+  "voice": "dale.dale",
+  "text": "DROP EVERYTHING! I'M OUTTA HERE!",
+  "from": "game/stages/dale/intro.ts:47"
+ },
+ {
+  "voice": "dale.dale",
+  "text": "HE'S ON THE TRUCK! HE'S ON THE TRUCK! BLOW IT IF HE GETS CLOSE!",
+  "from": "game/stages/dale/convoy.ts:254"
+ },
+ {
+  "voice": "dale.dale",
+  "text": "I'LL FEED YOUR LIZARD! I'LL FEED HIM PERSONALLY!",
+  "from": "game/stages/dale/convoy.ts:726"
+ },
+ {
+  "voice": "dale.dale",
+  "text": "IT WAS IN THE FINE PRINT, RIGGS! PAGE FORTY!",
+  "from": "game/stages/dale/convoy.ts:722"
+ },
+ {
+  "voice": "dale.dale",
+  "text": "LOAD THE REST OF THE CARGO! MOVE IT! HE'S COMING!",
+  "from": "game/stages/dale/junkie.ts:660"
+ },
+ {
+  "voice": "dale.dale",
+  "text": "OH NO! THE FEDS!",
+  "from": "game/stages/dale/intro.ts:47"
+ },
+ {
+  "voice": "dale.dale",
+  "text": "RIGGS! HE'S ON YOUR TRUCK! BLOW IT! BLOW IT NOW!",
+  "from": "game/stages/dale/convoy.ts:717"
+ },
+ {
+  "voice": "dale.dale",
+  "text": "RIGGS? RIGGS?! ...THAT'S COMING OUT OF YOUR PAYCHECK!",
+  "from": "game/stages/dale/convoy.ts:796"
+ },
+ {
+  "voice": "dale.dale",
+  "text": "RIGGS. BUDDY. PAL. THINK OF THE BONUS. THINK OF THE DENTAL.",
+  "from": "game/stages/dale/convoy.ts:730"
+ },
+ {
+  "voice": "dale.dale",
+  "text": "THE WIDOW'S DENTAL, RIGGS! IT'S VERY GOOD!",
+  "from": "game/stages/dale/convoy.ts:732"
+ },
+ {
+  "voice": "dale.dale",
+  "text": "THEN SIR REGINALD GETS THE DENTAL! PRESS IT! PRESS IT! PRESS IT!",
+  "from": "game/stages/dale/convoy.ts:734"
+ },
+ {
+  "voice": "dale.dale",
+  "text": "YOU KNEW THE RISKS WHEN YOU SIGNED UP!",
+  "from": "game/stages/dale/convoy.ts:720"
+ },
+ {
+  "voice": "dale.goon",
+  "text": "...HUH?",
+  "from": "game/stages/dale/convoy.ts:478"
+ },
+ {
+  "voice": "dale.goon",
+  "text": "goon",
+  "from": "game/stages/dale/convoy.ts:478"
+ },
+ {
+  "voice": "dale.goon",
+  "text": "HELLO? ANYBODY BACK HERE?",
+  "from": "game/stages/dale/convoy.ts:478"
+ },
+ {
+  "voice": "dale.goon",
+  "text": "meathead",
+  "from": "game/stages/dale/convoy.ts:478"
+ },
+ {
+  "voice": "dale.goon",
+  "text": "OH NO.",
+  "from": "game/stages/dale/convoy.ts:478"
+ },
+ {
+  "voice": "dale.goon",
+  "text": "SURPRISE!",
+  "from": "game/stages/dale/convoy.ts:478"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "...THE WALL STARTED IT.",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "AND STAY OUT!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "COME HERE, MUSCLES!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "DALE SAYS YOU'RE A FED! ARE YOU A FED?!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "GET OUTTA MY OFFICE!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "GOTCHA! HUH?! HUH?!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "HUH?! HUH?! HUH?!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "I'M A FREIGHT TRAIN, BABY!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "I'M GONNA RIP YOUR HEART OUT AND SELL IT!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "I'M OKAY! I'M OKAY!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "IS THAT... BLUE?!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "LOOK AT MY EYES! LOOK AT 'EM!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "MINE! MINE MINE MINE!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "MY BLUE! MY BEAUTIFUL BLUE!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "OHHHH YEAHHHH! I CAN SEE THROUGH TIME!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "SAY HELLO TO MY GOLDEN FRIEND!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "THAT TICKLES, FED!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "TIGHT! TIGHT! TIGHT!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "WHO LET YOU IN HERE?! THIS IS A PLACE OF BUSINESS!",
+  "from": "game/stages/dale/junkie.ts:150"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "WHO PUT THAT THERE?",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "WHO'S THE FED NOW?!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "YOU CALL THAT A BULLET?!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "YOU LIKE MY GUN?! IT'S GOLD!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "YOU THINK YOU'RE BIG?! I'M BIGGER! IN HERE!",
+  "from": "game/stages/dale/junkie.ts:163"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "YOU WANT SOME?! HUH?! YOU WANT SOME OF THIS?!",
+  "from": "game/stages/dale/junkie.ts:150"
+ },
+ {
+  "voice": "dale.kid",
+  "text": "DADDY, WHAT WAS THAT?",
+  "from": "game/stages/dale/convoy.ts:360"
+ },
+ {
+  "voice": "dale.kid",
+  "text": "IT HAD ABS.",
+  "from": "game/stages/dale/convoy.ts:362"
+ },
+ {
+  "voice": "dale.mom",
+  "text": "GARY, THERE'S A SHOE IN THE GRILLE.",
+  "from": "game/stages/dale/convoy.ts:364"
+ },
+ {
+  "voice": "dale.ninja",
+  "text": "THERE IS ONLY ONE WAY TO RESTORE MY HONOR.",
+  "from": "game/stages/dale/town.ts:381"
+ },
+ {
+  "voice": "dale.ninja",
+  "text": "YOU CROSSED THE WHOLE TOWN UNDER MY SIGHTS, AND STILL YOU STAND. I HAVE FAILED MY MASTER.",
+  "from": "game/stages/dale/town.ts:380"
+ },
+ {
+  "voice": "dale.prisoner",
+  "text": "DAN! THE KEYS! STOP PLAYING! LET ME OUT!",
+  "from": "game/stages/dale/town.ts:516"
+ },
+ {
+  "voice": "dale.prisoner",
+  "text": "HEY! HEY, YOU! THE SHERIFF LOCKED ME IN HERE FOR A PHOTO AN HOUR AGO!",
+  "from": "game/stages/dale/town.ts:430"
+ },
+ {
+  "voice": "dale.prisoner",
+  "text": "I HAVE A TIMESHARE!",
+  "from": "game/stages/dale/town.ts:517"
+ },
+ {
+  "voice": "dale.prisoner",
+  "text": "IS THAT A TRUCK?! SHERIFF DAN?!",
+  "from": "game/stages/dale/town.ts:514"
+ },
+ {
+  "voice": "dale.riggs",
+  "text": "...SORRY, SIR REGINALD.",
+  "from": "game/stages/dale/convoy.ts:756"
+ },
+ {
+  "voice": "dale.riggs",
+  "text": "...YOU PROMISE YOU'LL FEED HIM?",
+  "from": "game/stages/dale/convoy.ts:735"
+ },
+ {
+  "voice": "dale.riggs",
+  "text": "BLOW IT? I'M DRIVING IT, DALE!",
+  "from": "game/stages/dale/convoy.ts:718"
+ },
+ {
+  "voice": "dale.riggs",
+  "text": "I SIGNED UP TO DRIVE! THE AD SAID DRIVING! NOTHING ABOUT EXPLODING!",
+  "from": "game/stages/dale/convoy.ts:721"
+ },
+ {
+  "voice": "dale.riggs",
+  "text": "I'M NOT MARRIED! SIR REGINALD'S ALL I'VE GOT!",
+  "from": "game/stages/dale/convoy.ts:733"
+ },
+ {
+  "voice": "dale.riggs",
+  "text": "I'VE GOT A LIZARD AT HOME, DALE! WHO'S GONNA FEED MY LIZARD?!",
+  "from": "game/stages/dale/convoy.ts:725"
+ },
+ {
+  "voice": "dale.riggs",
+  "text": "IT'S SIR REGINALD, DALE! TWELVE YEARS AND YOU NEVER ASKED!",
+  "from": "game/stages/dale/convoy.ts:729"
+ },
+ {
+  "voice": "dale.riggs",
+  "text": "ONE BULLET?! IN ONE EAR AND OUT THE OTHER, BABY! NOTHING IN THERE TO HIT!",
+  "from": "game/stages/dale/town.ts:455"
+ },
+ {
+  "voice": "dale.riggs",
+  "text": "THE CONTRACT WAS ONE PAGE, DALE! IT WAS A NAPKIN!",
+  "from": "game/stages/dale/convoy.ts:723"
+ },
+ {
+  "voice": "dale.riggs",
+  "text": "WE DON'T GET DENTAL!",
+  "from": "game/stages/dale/convoy.ts:731"
+ },
+ {
+  "voice": "dale.riggs",
+  "text": "YOU DON'T EVEN KNOW HIS NAME!",
+  "from": "game/stages/dale/convoy.ts:727"
+ },
+ {
+  "voice": "dale.sheriff",
+  "text": "NOPE! NOT FOR TEN BUCKS AN HOUR!",
+  "from": "game/stages/dale/town.ts:515"
+ },
+ {
+  "voice": "doorman",
+  "text": "AND STAY OUT.",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "DON'T TOUCH ME.",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "HANDS OFF.",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "I DON'T CARE WHO YOU KNOW.",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "I'M GONNA NEED A MINUTE!",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "I'M GONNA NEED TO SEE SOME PROOF OF MEMBERSHIP.",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "ID, PLEASE.",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "MEMBERS ONLY, MEATBALL.",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "MOVE!",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "NEXT!",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "NICE TRY.",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "NICE TRY. LET'S SEE THAT ID.",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "NO SHIRT, NO ENTRY. HOUSE RULES.",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "NOOOOOOO!",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "NOT TONIGHT, PAL!",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "OKAY. THAT'S STRIKE ONE.",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "SHOW ME A MEMBERSHIP CARD OR WALK.",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "THAT TICKLES.",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "THAT'S GOING IN THE INCIDENT REPORT.",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "THIS IS A PRIVATE EVENT.",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "YOU DONE?",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "YOU JUST GOT YOURSELF BANNED.",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "YOU'RE NOT GETTING IN!",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "doorman",
+  "text": "YOU'RE NOT ON THE LIST.",
+  "from": "game/stages/victor/doorman.ts:135"
+ },
+ {
+  "voice": "guide",
+  "text": "...AND NOBODY EVER ESCAPED FROM THE ROCK.",
+  "from": "game/stages/ernie/alcatraz.ts:104"
+ },
+ {
+  "voice": "guide",
+  "text": "HA! NOBODY'S THAT STUPID.",
+  "from": "game/stages/ernie/alcatraz.ts:106"
+ },
+ {
+  "voice": "hipster",
+  "text": "I'VE HEARD OF IT NOW.",
+  "from": "game/stages/ernie/jetski.ts:127"
+ },
+ {
+  "voice": "hipster",
+  "text": "MY KOMBUCHAAAAAAA",
+  "from": "game/stages/ernie/jetski.ts:127"
+ },
+ {
+  "voice": "hipster",
+  "text": "SICK RIDE, RIGHT? IT'S VINTAGE.",
+  "from": "game/stages/ernie/jetski.ts:127"
+ },
+ {
+  "voice": "hipster",
+  "text": "SMELLS LIKE BEARD OIL.",
+  "from": "game/stages/ernie/jetski.ts:127"
+ },
+ {
+  "voice": "hipster",
+  "text": "YOU'VE PROBABLY NEVER HEARD OF IT.",
+  "from": "game/stages/ernie/jetski.ts:127"
+ },
+ {
+  "voice": "meathead",
+  "text": "...EIGHTEEN.",
+  "from": "game/stages/dale/convoy.ts:378"
+ },
+ {
+  "voice": "meathead",
+  "text": "...HUH?",
+  "from": "game/stages/dale/convoy.ts:478"
+ },
+ {
+  "voice": "meathead",
+  "text": "...NOPE.",
+  "from": "game/stages/dale/convoy.ts:378"
+ },
+ {
+  "voice": "meathead",
+  "text": "...OH SHIT.",
+  "from": "game/stages/artie/ski.ts:92"
+ },
+ {
+  "voice": "meathead",
+  "text": "...OKAY. SAVES ME A BULLET.",
+  "from": "game/stages/dale/town.ts:413"
+ },
+ {
+  "voice": "meathead",
+  "text": "...UH OH.",
+  "from": "game/stages/dale/convoy.ts:694"
+ },
+ {
+  "voice": "meathead",
+  "text": "...WAIT. YOU'RE DOING THIS ON PURPOSE. JUST TO WATCH ME SUFFER.",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "100,000 VOLTS RIGHT UP MY ASSHOLE, BARRY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A BOULDER TO THE DOME?! MY TRAPS ARE SOLID ROCK, ERNIE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A BULLET WON'T PENETRATE THESE PECTORALS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A COCONUT TO THE DOME! GNARLY, FUCK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A COYOTE! BEEP BEEP, ASSHOLE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A CRATE TO THE SHINS! WHAT'S IN THESE, BRICKS?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A CRATE! IN THE MIDDLE OF THE BAY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A DESK DRAWER REVOLVER! WHAT KIND OF OFFICE IS THIS?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A DIVE KICK?! ON A CHARGING BULL?! SHOULDER HIM!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "A DRONE HIT ME! AM I ON CAMERA?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A FIRE LIZARD! IT BIT MY ANKLE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A FIREMAN! WHOSE SIDE ARE YOU ON?",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A FISH! MADE OF LAVA! BIT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A FIST MADE OF FISTS! RIGHT ON MY HEAD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A FLAMING BOULDER! OUT OF NOWHERE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A FLARE! RIGHT IN THE NIPPLE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A FLOWERPOT! ON MY HEAD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A FLYING BEACH CHAIR! TO THE FACE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A FLYING SHARK! I'VE SEEN THIS MOVIE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A FORTY TO THE FACE! AND IT WAS WARM!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A FUCKING SEMI TRUCK JUST COMPACTED MY GLUTES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A GAS LINE JUST FLAMED MY CALVES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A GATOR! OF COURSE THERE'S A GATOR!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A GEYSER OF LAVA! OF COURSE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A GOLD GUN! HOW MUCH PRODUCT DID THAT COST?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A GOLD PLATED PISTOL! EVERYBODY HAS ONE OF THESE NOW?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A GRACKLE! IT PECKED MY EAR!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A GREASE FIRE ON MY GLUTES?! YOU'RE DEAD, OSCAR!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A HARD HAT! TO THE FACE! THE IRONY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A HORSESHOE! FOR LUCK?! OW!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A HURRICANE TURD TO THE FACE?! THAT'S A NEW LOW, HECTOR!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A LITTLE RED DOT ON MY PECS... SNIPER! THE PORCH ROOFS! HE CAN'T SEE ME UNDER THOSE!",
+  "from": "game/stages/dale/town.ts:225"
+ },
+ {
+  "voice": "meathead",
+  "text": "A LOBBY. EVERYBODY IN IT LOOKS LIKE THEY HATE ME ALREADY.",
+  "from": "game/stages/barry/runtime.ts:298"
+ },
+ {
+  "voice": "meathead",
+  "text": "A LOG! I GOT CHECKED BY A LOG!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A NIGHTCLUB IN A VOLCANO? FINALLY, A SAUNA HOT ENOUGH FOR MY PUMP.",
+  "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "meathead",
+  "text": "A PELICAN JUST CLOTHESLINED ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A PIPE WRENCH! TO THE DOME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A POTTED PLANT! FROM THE FOURTH FLOOR!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A RAT BIT ME! IT HAD PIZZA BREATH!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A RAY GUN! THEY'VE GOT RAY GUNS UP HERE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A REUSABLE WATER BOTTLE! TO THE FACE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A RIVET! TO THE SKULL!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A SCORPION STUNG MY ANKLE! MY BEAUTIFUL ANKLE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A SHOPPING CART! TO THE FACE! IN THE SKY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A SNOWBALL! A GROWN MAN! A SNOWBALL!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A STAPLER TO THE HEAD! I'M FILING A COMPLAINT! WITH WHO?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A TANK WON'T CRUSH THESE QUADS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A TECH BRO WITH A GUN! MOVE FAST AND SHOOT THINGS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A TEQUILA BOTTLE TO THE HEAD! AT LEAST LET ME DRINK IT FIRST!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A THREE-EYED FISH BIT MY CALF! THREE EYES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A TIRE! ON THE HIGHWAY! TO MY HEAD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A TOURIST! IN A FANNY PACK! TOUCHED MY PUMP!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A TRASH PANDA! IT BIT MY ANKLE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A TUMBLEWEED! THAT'S THE MOST HUMILIATING THING THAT'S EVER HIT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A WOLVERINE! IT'S GOING FOR MY ANKLES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "AAAAAAAAAAAAAAAAAAAAAAAA",
+  "from": "game/stages/tommy/escape.ts:139"
+ },
+ {
+  "voice": "meathead",
+  "text": "AAAAAAAAAAAAAAHHHHHHH",
+  "from": "game/stages/ernie/bridge.ts:203"
+ },
+ {
+  "voice": "meathead",
+  "text": "AAAAAAAAAAAAH!",
+  "from": "game/stages/barry/power.ts:229"
+ },
+ {
+  "voice": "meathead",
+  "text": "AAAAAAH!",
+  "from": "game/stages/dale/convoy.ts:378"
+ },
+ {
+  "voice": "meathead",
+  "text": "ABSOLUTE ZERO REPS",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ABSOLUTELY ATROPHIED",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "AC/DC CAN SUCK MY SWEATY PECS!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "AC/DC MOTHERFUCKER",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ACID SLUDGE BURNING THROUGH MY HAMSTRINGS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "ADDICTED TO DEATH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "AIRBORNE TRASH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ALL THIS ROOM NEEDS NOW IS A LITTLE FIRE.",
+  "from": "game/stages/oscar/bunker.ts:190"
+ },
+ {
+  "voice": "meathead",
+  "text": "ALUMINUM BAT TO THE RIBS! HOME RUN!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "AMAZING. TRULY. I'LL TELL MY GRANDKIDS.",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "AN AK?! I'M A GYM MEMBER, NOT A RIVAL CARTEL!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "AN ARMADILLO! IT'S ARMORED AND IT'S ANGRY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "AN AUTHENTIC OLD WEST TOWN. EST. NINETEEN NINETY FOUR. SURE.",
+  "from": "game/stages/dale/town.ts:217"
+ },
+ {
+  "voice": "meathead",
+  "text": "ANNOYING MOSQUITO TOUCHED MY SHOULDERS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "AQUA-CRUSHED",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ARE YOU KIDDING ME?! SAME! MOVE! AS! HIM! HOW MANY TIMES?!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "ARE YOU TRYING TO SHRINK ME?",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ARE YOU TRYING TO SPIKE MY PRE-WORKOUT?!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "ASCEND TO HELL",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ASH TO ASH TRASH TO TRASH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BABY OIL'S FOR POSING. CRUDE OIL'S FOR YOUR FUNERAL.",
+  "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BARF BEATS BUMPER, BITCH!",
+  "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BARFED ON",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BLOATED SEWER MAN HUGGED ME! GROSS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "BODY BY BEEF",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BODY CHECKED! WHO'S THE REFEREE HERE?",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "BODY COMPACTED",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BOUNCED BY A BOUNCER! HE'S NOT EVEN THAT BIG!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "BOWLED OVER BY WINTER, FUCK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "BRAIN FREEZE AND BALL FREEZE, FUCK YOU ARTIE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "BRANCH TO THE THROAT, OW!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "BREAK'S OVER, BOYS.",
+  "from": "game/stages/oscar/bunker.ts:258"
+ },
+ {
+  "voice": "meathead",
+  "text": "BRO DO YOU EVEN SURVIVE?",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BROKEN GLASS! MY TIRES! MY CALVES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "BRRRR-EAK IN HALF",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BUG SPRAY! I'M NOT A BUG! COUGH! COUGH!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "BULK SMASH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BULL RUSHED BITCH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BULL RUSHED INTO THE DIRT",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BULLETS DO NOTHING TO THIS WALK-IN FRIDGE! MEET HIM HEAD ON!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "BULLETS WON'T GET INTO THAT CABINET. IT NEEDS A WHOLE LOT OF WATER.",
+  "from": "game/stages/dale/junkie.ts:588"
+ },
+ {
+  "voice": "meathead",
+  "text": "BURNING CALORIES... AND YOU",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BURNING FAT FOREVER",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BURNT MY ASS ON A CRACK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "BURNT TO A CRISP",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BURY ME IN THE SQUAT RACK",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CACTUS! IN MY GLUTES! THERE'S A CACTUS IN MY GLUTES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "CAN'T HEAR YOU OVER MY CALVES.",
+  "from": "game/stages/tommy/bike.ts:34"
+ },
+ {
+  "voice": "meathead",
+  "text": "CARDIO HEAT BITCH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CARDIO-LOOKING MOTHERFUCKER",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CATABOLIC BITCH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CATCH YOU LATER.",
+  "from": "game/stages/hector/boat.ts:47"
+ },
+ {
+  "voice": "meathead",
+  "text": "CATEGORY 5 FUCK YOU COMING UP!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "CATEGORY FIVE? I WARM UP WITH CATEGORY FIVES.",
+  "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CAUTION, MY ASS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHAINED BY A BIKER AT SIXTY MILES AN HOUR!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHARGE MEETS CHARGE! SLIDE MEETS SLIDE! IT'S NOT ROCKET SCIENCE!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHARGED STRAIGHT OVER HIS LEGS INTO THE FLOOR! SLIDE, IDIOT!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHARRED BEYOND REPAIR",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHEAP PLASTIC DRONE SCRATCHED MY PUMP!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHECK YOUR CHIN BITCH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHECK YOUR MIRRORS, MOTHERFUCKER!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHECKED BY A HOCKEY GOON! PENALTY! PENALTY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHEMICAL EXPLOSION ON MY QUADS, FUCK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHEST DAY DELIVERY",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHEST DAY IS EVERY DAY",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHEST PRESS TO HELL",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHICKEN LEGGED TRASH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHILL OUT FOREVER",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CLEANSED BY THE PUMP",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CLOTHESLINED BY A FUCKING BRANCH!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "COFFEE ALL OVER MY PECS! TWO SUGARS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "COLD SHOULDERED BITCH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "COLD? I'M RUNNING ON FOUR SCOOPS OF PRE-WORKOUT. I'M A DAMN FURNACE.",
+  "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CONGRATULATIONS, PLAYER. YOU DID THE ONE THING. I'M WEEPING.",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "Cool. I'm gonna go hit the gym. It's chest day.",
+  "from": "components/RadioCutscene.tsx:31"
+ },
+ {
+  "voice": "meathead",
+  "text": "COOLING OFF YOUR ROID RAGE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CORROSIVE COWARD",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CORROSIVE SLIME IS CATABOLIC AS FUCK!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "COUGH! THAT'S NOT PRE-WORKOUT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "COWABUNGAAAAA!",
+  "from": "game/stages/ernie/jetski.ts:139"
+ },
+ {
+  "voice": "meathead",
+  "text": "CRACKED YOUR JAW LIKE AN EGG",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CREATINE CRASH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CREATINE WITHDRAWAL",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CRISPY! MY CALVES ARE CRISPY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "CRUDE OIL IS NOT SQUAT CHALK, FUCKER!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "CRUSHED BY 45s",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CRUSHED BY GAINS",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CRUSHED BY MY GAINS",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CRYO RIFLE! MY PECS ARE FREEZER BURNED!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "CRYO-CRUSHED",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAMN IT ALL",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAYCARE'S CLOSED.",
+  "from": "game/stages/hector/daycare.ts:63"
+ },
+ {
+  "voice": "meathead",
+  "text": "DEEP SEA DANGER",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DEFIBRILLATE THIS, YOU ELECTRIC BASTARD!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "DELTS OF DOOM",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DID YOU JUST DISRUPT ME?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "DIE ASSHOLE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DIE PIG",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DIRTY NEEDLE BITCH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DIRTY NEEDLE! KEEP YOUR TAINTED JUNK OFF ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "DISSOLVE BITCH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DIVE KICKED A GUY SLIDING ON THE FLOOR! BRILLIANT! SLIDE!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "DO I LIKE HURTING WEAKLINGS?! THAT'S MY FAVORITE THING! AFTER CHEST DAY! WHERE ARE THEY?!",
+  "from": "components/IntroCutscene.tsx:26"
+ },
+ {
+  "voice": "meathead",
+  "text": "Do you even lift, bro?",
+  "from": "components/EndingCutscene.tsx:32"
+ },
+ {
+  "voice": "meathead",
+  "text": "DO YOU EVEN LIFT?",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DODGING WON'T GET ME IN THE CLUB! MEET HIS SLIDE WITH A SLIDE!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "DON'T COAT MY DELTS IN BIOHAZARD SLOP!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "DON'T KILL MY VIBE BRO",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DON'T MESS WITH TEXAS, I GET IT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "DON'T OIL UP THE MERCHANDISE, MOTHERFUCKER!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "DON'T TOUCH MY NATURAL TESTOSTERONE, BITCH!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "DOOR TO THE FACE! AT LEAST LET ME IN FIRST!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "DRIVE-BY ON A JET SKI! THAT'S A NEW ONE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "DRIVE-BY! THIS IS A BIKE LANE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "DROPPED THE BAR ON MY NECK",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DROWN IN MY WAKE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DROWNING IN GAINS",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DUCK. I SHOULD'VE DUCKED.",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "EAT MY DELTS",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "EAT SHIT",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "EAT SLOP",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "EAT THE CEILING",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "EAT THE ROCK",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "EAT THIS CHIN CHECK",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ELECTRIC HEARTBREAK",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ELECTRIC WATER! MY BOOTS ARE SMOKING!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "ELEVATOR TO HELL",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ENJOY THE TRIP",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "EVERYBODY'S ON BREAK TODAY.",
+  "from": "game/stages/oscar/bar.ts:100"
+ },
+ {
+  "voice": "meathead",
+  "text": "EVERYTHING'S BIGGER IN TEXAS! ESPECIALLY THE PAIN!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "EXCUSE ME. SORRY. WRONG HOUSE.",
+  "from": "game/stages/tommy/escape.ts:131"
+ },
+ {
+  "voice": "meathead",
+  "text": "EXPLODING METH BARREL?! ARE YOU SHITTING ME?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "EXTRA CRISPY TRASH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FACE FULL OF PINE NEEDLES, FUCK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "FEDS? I WISH, DALE. I'M WAY WORSE.",
+  "from": "game/stages/dale/intro.ts:58"
+ },
+ {
+  "voice": "meathead",
+  "text": "FEEL THE BURN",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FENDER TO THE FACE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "FIFTY EIGHT. FINE. THERE BETTER BE STAIRS.",
+  "from": "game/stages/barry/runtime.ts:309"
+ },
+ {
+  "voice": "meathead",
+  "text": "FIRE FROM THE GROUND! WHO BUILT THIS PLACE?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "FIRE HYDRANT! IT'S BROWN! WHY IS IT BROWN?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "FIRE UP THE GRILL",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FIRST TIME FOR EVERYTHIIIIING!!!",
+  "from": "game/stages/ernie/alcatraz.ts:107"
+ },
+ {
+  "voice": "meathead",
+  "text": "FLAME BROILED! I'M FLAME BROILED!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "FLAME ON FUCKER",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FLAMETHROWER ON THE DESK. WHATEVER'S IN THOSE DRAWERS, SMOKE IT OUT.",
+  "from": "game/stages/dale/junkie.ts:639"
+ },
+ {
+  "voice": "meathead",
+  "text": "FLAMMABLE FAILURE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FLAMMABLE PETROLEUM ON MY CHEST HAIR!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "FLATTENED LIKE A PANCAKE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FLINT WATER? PASS ME A GLASS. MORE MINERALS FOR THE GAINS.",
+  "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FLOPPY ARM BITCH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FLUSHED DOWN THE TOILET",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FLYING RAT! GET OFF MY HEAD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "FORTY ONE. THE ELEVATOR HATES ME. EVERYTHING IN THIS CITY HATES ME.",
+  "from": "game/stages/barry/runtime.ts:309"
+ },
+ {
+  "voice": "meathead",
+  "text": "FREEZE BITCH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FREEZING SLUSH ON MY SIX-PACK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "FRIED LIKE CHICKEN",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FRONT DELT DOMINANCE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FROSTBITE ON MY GLUTES?! YOU'RE DEAD, ARTIE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "FROSTBITTEN FAILURE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FROZEN TRASH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FRY LIKE A PIG",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FUCK THE WEIGHTS... I'M OUT",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FUCK THIS WORLD",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FUCK YEAH! LET'S GO!",
+  "from": "App.tsx:369"
+ },
+ {
+  "voice": "meathead",
+  "text": "FUCK YOU",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FUCK YOUR FENTANYL, I'M ALL NATURAL ORGANIC BEEF!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "FULL AUTO ON MY PECS! THAT'S JUST RUDE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GAINS ACHIEVED. WEAKNESS DELETED.",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GAINS RESET TO ZERO",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GANGSTER GRIP! ON MY GLUTES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GARBAGE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GARBAGE CANS! I'M COVERED IN GARBAGE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GEOLOGY SAYS FUCK YOU",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GEOLOGY SAYS YOU'RE A BITCH!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET BACK IN YOUR APARTMENT, LADY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET BACK IN YOUR DUMPSTER!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET COMPACTED",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET CRUNCHED",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET CRYSTALLIZED",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET DISSOLVED",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET DOWN HERE AND FIGHT LIKE A MAN, FLYER!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET OFF ME, YOU RADIOACTIVE SARDINE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET OFF MY CALVES, YOU LITTLE SHIT WEASEL!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET OFF THE SIDEWALK, SPANDEX!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET OUT FROM BEHIND THAT DOOR AND FIGHT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET OUT GET OUT GET OUT!",
+  "from": "game/stages/tommy/sewer.ts:96"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET PLOWED",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET REKT",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET STEAMROLLED",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET SWEPT AWAY",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET THAT BUZZING DRONE AWAY FROM MY LATS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "Get that camera outta my face.",
+  "from": "components/WeaponGetScene.tsx:145"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET THAT RIOT SHIELD OUT OF MY FACE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET THAT SPOTTED LITTLE SHIT OFF ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET THE FUCK OUT OF THE SLUDGE!",
+  "from": "game/stages/tommy/sewer.ts:96"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET THIS DINOSAUR OFF MY LEG!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET THIS SNOT GOBLIN OFF MY SHIN!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR BALD HEAD OUT OF MY FACE, BIRD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR BANDANA OUT OF MY FACE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR BIG STUPID BEAK OUTTA MY FACE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR CANS OFF MY SHINS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR CHOPPER OFF MY CALF!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR FLEECE VEST OFF ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR FUR COAT OFF ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR HANDS OFF ME, OFFICER!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR LAB COAT OFF ME, NERD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR ROLEX OFF MY FACE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR SANDALS OFF MY SHINS, SOCKS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR SURFBOARD OUT OF MY TEETH!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR TALONS OUT OF MY SCALP, BIRD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR TANK OFF ME, BUG MAN!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET YOUR TINFOIL SUIT OFF ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GIVE IT A SECOND. LET IT FILL UP.",
+  "from": "game/stages/oscar/bar.ts:154"
+ },
+ {
+  "voice": "meathead",
+  "text": "GIVE IT A SECOND. LET THE GAS BUILD UP.",
+  "from": "game/stages/oscar/bunker.ts:183"
+ },
+ {
+  "voice": "meathead",
+  "text": "GLACIER GAINS",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GO BACK TO OHIO AND TAKE YOUR PISTOL WITH YOU!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GO BACK TO THE GAS STATION, YOU LOUDMOUTH!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GO BACK TO THE TREADMILL",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GO PUT OUT A FIRE, HOSE BOY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GOD DAMNIT",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GOING UP? TO HELL",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GOLD STAR. REALLY. SO PROUD. TOOK LONG ENOUGH.",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "goon",
+  "from": "game/stages/dale/convoy.ts:478"
+ },
+ {
+  "voice": "meathead",
+  "text": "GORED BY A LONGHORN! RIGHT IN THE GLUTES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GOT HIT BY A ROAD SIGN! THE SIGN SAID OUCH!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GRAVITY WINS ASSHOLE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GREASY BASTARD, GET YOUR SLICK SHIT OFF MY LATS!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GREASY GONE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GREAT. NOW IT'S RAINING.",
+  "from": "game/stages/hector/beach.ts:95"
+ },
+ {
+  "voice": "meathead",
+  "text": "GROSS! BIOHAZARD BILE ALL OVER MY CHEST, TOMMY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GUEST LIST'S A LOT SHORTER NOW.",
+  "from": "game/stages/victor/lounge.ts:83"
+ },
+ {
+  "voice": "meathead",
+  "text": "GYM CLOSED... FOREVER",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HANDS OFF, BANDIT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HANDS OFF, BOUNCER!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HANDS OFF, PARKA BOY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HANDS OFF, TWEAKER!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HAVE A GOOD SLEEP",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE BEAT ME WITH A STICK! A STICK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE BODIED ME WITH HIS SHIELD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE BODY CHECKED ME WITH A BRIEFCASE! ON HIS WAY TO WORK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE CHARGES, I CHARGE! SHOULDER TO SHOULDER, YOU IDIOT!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE CHARGES? I CHARGE. HE SLIDES? I SLIDE. SAME MOVE!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE FROSTED MY NIPPLES WITH THAT RAY GUN!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE GASSED ME! MY LUNGS ARE ON FIRE! AND MY NIPPLES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE HEADBUTTED THE WALL?! OKAY! KEEP HIM HIGH! FIND HIM MORE STASH!",
+  "from": "game/stages/dale/junkie.ts:168"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE HIT ME LIKE A ZAMBONI!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE HIT ME WITH A BIKE LOCK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE HIT ME WITH A BLAST SHIELD! FOR SCIENCE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE HIT ME WITH A CAR DOOR! WHO DOES THAT?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE HIT ME WITH A CHAIN! A BIKE CHAIN!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE HIT ME WITH HIS SIGN! IT SAYS NO!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE HOSED ME WITH TOMMY'S JUICE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE KNOCKED ME OUT OF THE AIR! RUDE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE MOPPED ME! RIGHT IN THE FACE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE OUT-MUSCLED ME?! IMPOSSIBLE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE OUT-MUSCLED ME?! MASH HARDER! HARDER THAN LEG DAY!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE PITCHED A HORSESHOE AT MY HEAD! RINGER!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE RAMMED ME WITH HIS CART! WATCH THE WHEELS, MAN!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE RAMMED ME! LEARN TO DRIVE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE RAN ME OVER ON HIS WAY TO HEADBUTT A WALL!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE RAN ME OVER! ON THE BRIDGE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE RAN ME OVER! THE BOUNCER RAN ME OVER!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SHOT ME WITH HIS GOLD PLATED PISTOL! TACKY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SHOT ME! BETWEEN STANDUPS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SIDESWIPED ME, THE FRINGE-JACKET FUCK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SLID INTO MY ANKLES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SLIDES, I SLIDE! SAME MOVE, SAME TIME! THROUGH THE SLAB!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SPRAYED ME! LIKE A LAWN! LIKE A LAWN, MAN!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE STABBED ME! I DON'T EVEN HAVE A WALLET! I HAVE POCKETS FOR PROTEIN!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SWATTED ME WITH THE SPORTS SECTION!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SWINGS LIKE HE'S IN THE MAJORS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE THREW A BOTTLE! THERE WAS STILL A WORM IN IT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE THREW A CHUNK OF ICE AT MY HEAD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE THREW A HOT ROCK AT ME! A HOT ONE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE THREW A TOASTER OUT THE WINDOW! AT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE THREW HIS BOTTLE! THAT WAS HIS DINNER!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE THREW HIS EXPERIMENT AT ME! AM I MUTATING? AM I GETTING BIGGER?",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE THREW HIS HYDRATION AT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE THREW HIS LATTE! OAT MILK! MY PORES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE THREW HIS LUNCH AT ME! IT WAS MEATLOAF!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE THREW HIS TOOLS AT ME! UNION RULES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE THREW ME! A CRACKHEAD THREW ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE TOUCHED ME! I'M GONNA NEED A SHOWER AND A TETANUS SHOT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE TRIED TO FILLET ME! I'M NOT A FAJITA!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE WENT LOW AND I WENT HIGH! SLIDE FOR SLIDE, DUMMY!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S ALREADY DEAD. HE JUST NEEDS TO BE A LOT COLDER.",
+  "from": "game/stages/dale/junkie.ts:588"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S DEAD AS SHIT. QUIT WASTING MY GAINS.",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S HIDING BEHIND A DOOR! COME OUT AND FIGHT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S JACKED AND HE'S GLOWING! I'M JEALOUS AND I'M HURT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S ON A RAMPAGE! GET THIS HIGHLY CAFFEINATED IDIOT OFF ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S PROBING ME! STOP PROBING ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S PUNCHING ME! WITH HIS SKINNY LITTLE ARMS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S RIGHT BEHIND THAT WINDSHIELD. ONE CLEAN SHOT FROM THE HOOD.",
+  "from": "game/stages/dale/convoy.ts:719"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S SHOOTING AND DRIVING! SAFETY FIRST!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S SHOOTING AND STEERING! SHOW OFF!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S SQUISHY! AND HE HITS HARD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S TRYING TO DOWNSIZE ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HEAD IN THE CLOUDS ASSHOLE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HEADBUTTED BY A GOAT! IN MY OWN TERRITORY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HEART EXPLODED... WORTH IT",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HEAVE A BOULDER STRAIGHT UP AT THAT FAN. BRING IT DOWN.",
+  "from": "game/stages/dale/junkie.ts:639"
+ },
+ {
+  "voice": "meathead",
+  "text": "HEAVY ARMOR? MY BICEPS ARE HEAVIER!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HEAVY METAL HEARTBREAK",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HEAVY WEIGHT LIGHT WORK",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HELL'S ANGEL? MORE LIKE HELL'S ASSHOLE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HELLO? ANYBODY BACK HERE?",
+  "from": "game/stages/dale/convoy.ts:478"
+ },
+ {
+  "voice": "meathead",
+  "text": "HEY. YOU. YEAH, YOU, WITH THE PLASTIC DOOHICKEY.",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIDING BEHIND AN ICE CUBE, COWARD?",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIGH TIDE FOR HELL",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIGH VOLTAGE BITCH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIGH VOLTAGE WON'T STOP THE GAINS, ASSHOLE!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIT BY A CAR! IN AN EARTHQUAKE! TODAY SUCKS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIT BY A GUY WITH AN AXE AND AN AIR TANK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIT BY A LOWRIDER! NICE HYDRAULICS, ASSHOLE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIT ME FROM A MOVING CAR! CHEAP SHOT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOLD ON. WHO'S DRIVING NOW?",
+  "from": "game/stages/dale/convoy.ts:797"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOLDING IT SIDEWAYS DOESN'T MAKE IT HURT LESS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOSED DOWN WITH FLINT WATER! I'M GONNA GROW A THIRD EYE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOT COFFEE! THAT'S A LAWSUIT! THAT'S A LAWSUIT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOT FISH TO THE FACE! HOT FISH!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOT FOOT! HOT FOOT! HOT FOOT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOT FOOT! HOT FOOT! HOT FUCKING FOOT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOT MESS",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOT STEAM IN MY FACE! STOP SCALDING THE MERCHANDISE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOW MANY WHEELS DOES THIS THING HAVE?!",
+  "from": "game/stages/dale/convoy.ts:378"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOW'S THAT FOR DENSITY?",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HR PUSHED ME! THAT'S A VIOLATION! OF SOMETHING!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HUGGED A TREE. DIDN'T LOVE IT.",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HUMAN TORCH BITCH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I ALREADY KILLED HIM, YOU DUMB FUCK.",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I ALREADY OBLITERATED THAT TRASH.",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I BENCH HEAVIER ROCKS THAN THAT FOR WARM-UP!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I CAN FEEL IT SOAKING INTO MY PUMP!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I CAN SEE YOU THROUGH THE SCREEN, CHAMP.",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "I CAN TASTE COLORS!",
+  "from": "game/stages/barry/power.ts:231"
+ },
+ {
+  "voice": "meathead",
+  "text": "I CAN'T GET TRACTION FOR MY SQUATS, ASSHOLE!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I CAN'T HEAR MY GYM MUSIC OVER THIS FUCKING GALE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DIDN'T COME HERE TO PLAY TAG! SAME MOVE AS HIM, IN HIS FACE!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DON'T HAVE A CAR.",
+  "from": "components/RadioCutscene.tsx:25"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DON'T NEED YOUR NARCOTICS, I GET HIGH ON THE PUMP!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DON'T WANT WHAT YOU'RE SELLING!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I GOT BUCKED BY A FUCKING MOOSE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I GOT HIT BY A FLAMINGO. A PLASTIC ONE. STILL COUNTS.",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I GOT HIT BY A FLYING LOG OF CRAP AND I'M STILL PRETTIER THAN YOU!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I GOT RAMMED BY THE FUCKING RIOT SQUAD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I HAVE NEVER SKIPPED LEG DAY IN MY LIFE.",
+  "from": "components/IntroCutscene.tsx:26"
+ },
+ {
+  "voice": "meathead",
+  "text": "I HIT A BUOY! THE BUOY WON!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I HIT A CAR! IN THE OCEAN!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I HUGGED A CACTUS! I'M NOT PROUD OF IT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I JUST NEED TO GET THROUGH.",
+  "from": "game/stages/oscar/bunker.ts:119"
+ },
+ {
+  "voice": "meathead",
+  "text": "I KNEW IT.",
+  "from": "components/RadioCutscene.tsx:25"
+ },
+ {
+  "voice": "meathead",
+  "text": "I LIT THE GROUND! WHY DID I LIGHT THE GROUND?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I NEED A GALLON OF BLEACH AND YOUR HEAD ON A STAKE!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I NEED A SAUNA AND YOUR HEAD ON A PLATE!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I NEED FIFTY PAPER TOWELS AND YOUR HEAD ON A PLATE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I RAN RIGHT ONTO HIS KNIFE! WHO DOES THAT?! ME! I DO THAT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I REGRET NOTHIIIIIIING",
+  "from": "game/stages/ernie/bridge.ts:203"
+ },
+ {
+  "voice": "meathead",
+  "text": "I RODE INTO A CAR! A PARKED CAR!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SAID MATCH HIM! CHARGE FOR CHARGE! SLIDE FOR SLIDE! UGH!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SIGNED IN! I SIGNED IN!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SLID INTO A SHOULDER CHARGE?! SHOULDER MEETS SHOULDER, GENIUS!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SMELL BURNT DELTS, GOD DAMN IT!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SMELL GAS COMING FROM THE CAN.",
+  "from": "game/stages/oscar/bar.ts:171"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SMELL LIKE CRUDE OIL AND BURNT CALORIES!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I STEPPED IN THE VOLCANO!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I THINK IT'S OVER.",
+  "from": "game/stages/barry/power.ts:230"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL BENCH PRESS THAT FREIGHTLINER RIGHT BACK AT YOU!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'll break you in half!",
+  "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL BREAK YOU LIKE a cheap ice cube!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL BURY YOU UNDER YOUR OWN SHIT!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL COOL YOU DOWN WITH MY FISTS!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL CRACK YOU LIKE a cheap pebble!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL CRAM THAT SLUDGE RIGHT BACK DOWN YOUR GULLET!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL EXTINGUISH YOUR ENTIRE BLOODLINE!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL GROUND YOU PERMANENTLY!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL GROUND YOUR ASS PERMANENTLY!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL IGNITE YOUR OILY ASS INTO OBLIVION!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL PUNCH THE AIR OUT OF YOUR LUNGS!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL SEE YOU IN HELL",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL SHOVE THAT ICICLE UP YOUR ASS!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL SHOVE THAT MAGMA WHERE THE SIGN DON'T SHINE!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL TAKE THE BIKE. AND THE GUN.",
+  "from": "game/stages/oscar/bunker.ts:289"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL TIE YOUR WIND IN A KNOT!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL TURN YOU INTO GRAVEL!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL WEAVE YOUR SPINE INTO A ROPE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M A MEATBALL IN A SNOWBALL!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M BEING STEAMED LIKE A FUCKING DUMPLING, VICTOR!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M COVERED IN RANCID PUKE, FUCK!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M GETTING CHARBROILED OVER HERE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M GOING TO MELT YOUR SMUG FACE!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M GOOD. I'M GOOD.",
+  "from": "game/stages/dale/convoy.ts:378"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M LOSING MY BALANCE, GOD DAMNIT!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M MID-SET, BRO.",
+  "from": "components/IntroCutscene.tsx:26"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT A CUSTOMER! I'M NOT A CUSTOMER!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT A ROACH! I'M A MUSCLE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT A TRESPASSER! I'M A VISITOR! A VIOLENT VISITOR!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT CRYING! IT'S THE GAS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT RESISTING! I'M WINNING!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M OKAY!",
+  "from": "game/stages/dale/convoy.ts:378"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M ON THE LIST, YOU BALD FUCK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M ROTISSERIE MEATHEAD NOW!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M SKIDDING LIKE A BALD TIRE, SON OF A BITCH!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M SLIPPING ALL OVER THE FUCKING PLACE!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M SLIPPING ON CRUDE OIL, OSCAR YOU GREASY BASTARD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M SWEATING OUT MY CREATINE, ASSHOLE!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M THE ONE IN DISTRESS NOW, TINFOIL!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M TRIPPING BALLS AND MY LATS HURT!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M WALKING HERE! I'M WALKING HERE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M WELL DONE, NOW YOU'RE DEAD!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'VE BEEN ZAPPED! MY HAIR'S STANDING UP! ALL OF IT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'VE HAD TOUGHER WORKOUTS IN THE SAUNA.",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'VE HEARD OF IT NOW.",
+  "from": "game/stages/ernie/jetski.ts:127"
+ },
+ {
+  "voice": "meathead",
+  "text": "ICE BUCKET CHALLENGE... YOU LOST",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ICE BULLETS? YOU'RE A LOSER, PARKA BOY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "ICE COLD COWARD",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ICE CUBE TO THE FACE! I'M NOT A MARGARITA!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "ICE IS FOR DRINKS, NOT MY NUTS!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "ICE SCRAPER REQUIRED",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ICE THE STIFF IN THE CLOSET WITH THE SHOTGUN. SHATTER HIM.",
+  "from": "game/stages/dale/junkie.ts:639"
+ },
+ {
+  "voice": "meathead",
+  "text": "ICE TO MEET YOU FUCKER",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ICICLE TO THE DOME, FUCK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "ILL SMASH YOUR ATMOSPHERE!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "ILL SMASH YOUR SEDIMENTARY ASS!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "IMAGINE BEING ORGANIC AND THIS WEAK.",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "IMPACT PLATE SPECIAL",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "INCINERATED SCUM",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "INTERNAL COMBUSTION FAILURE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "INVOLUNTARY MUSCLE CONTRACTIONS! FUCK YOU BARRY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "IS THAT A PEASHOOTER, YOU WEAK LITTLE SHIT?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT BIT ME! IT'S ALL TEETH AND ATTITUDE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT BIT MY ASS! FLORIDA BIT MY ASS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT BIT MY CALF! THESE CALVES TOOK YEARS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT BURNS! GET THE FUCK OUT!",
+  "from": "game/stages/tommy/sewer.ts:96"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT KICKED ME IN THE DICK! THE MOOSE KICKED ME IN THE DICK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT NEEDS SOMETHING A LOT HEAVIER THAN THAT TO BRING THAT FAN DOWN.",
+  "from": "game/stages/dale/junkie.ts:588"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT RATTLED! I SHOULD HAVE LISTENED TO THE RATTLE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S CHEWING ON MY CALVES! THOSE ARE EXPENSIVE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S EATING THROUGH THE METAL! ONE MORE AND I'M GOING IN THERE!",
+  "from": "game/stages/dale/convoy.ts:692"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S IN MY MOUTH! WHY IS IT IN MY MOUTH?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S MEAT TIME, BABY!",
+  "from": "App.tsx:369"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S PARTY TIME.",
+  "from": "game/stages/victor/lounge.ts:68"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S RAINING LIZARDS! WHAT THE FUCK, FLORIDA?",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "JUICED UP AND DEAD",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "JUNKIE TRASH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "KEEP AWAY FROM HIS HANDS! MAKE HIM COME TO THE STASH INSTEAD!",
+  "from": "game/stages/dale/junkie.ts:434"
+ },
+ {
+  "voice": "meathead",
+  "text": "KEEP YOUR RUSTY SYRINGES OFF MY DELTS!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "KNEEL",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "LACKING SYMMETRY",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "LAST CALL.",
+  "from": "game/stages/oscar/bar.ts:231"
+ },
+ {
+  "voice": "meathead",
+  "text": "LAUNCHED INTO OBSCURITY",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "LEARN TO DRIVE, YOU MANIAC!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "LEG DAY, BABY!",
+  "from": "game/stages/tommy/bike.ts:35"
+ },
+ {
+  "voice": "meathead",
+  "text": "LEG SWEEP ON A CHARGING FRIDGE! GREAT PLAN!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "LET'S FUCKING GO!",
+  "from": "App.tsx:369"
+ },
+ {
+  "voice": "meathead",
+  "text": "LET'S GO HURT SOME WEAKLINGS!",
+  "from": "components/IntroCutscene.tsx:26"
+ },
+ {
+  "voice": "meathead",
+  "text": "LIGHTS OUT? GOOD. MY ABS GLOW IN THE DARK.",
+  "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "meathead",
+  "text": "LIQUIFIED LOSER",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "LIVING SLUDGE! IN MY SOCK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "LOOK WHO READ THE MANUAL. ALL FOUR WORDS OF IT.",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "MACHETE TO THE MIDSECTION! MY ABS! MY PRECIOUS ABS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MAKE ME DO WHAT HE DOES, WHEN HE DOES IT! NOT A JUMP!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "MANDIBLES SMASHED",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MANDIBLES TO THE MOON",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MASH! MASH! MASH! ARE THESE ARMS MADE OF NOODLES?!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "MAX REP KILL",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MAX TONNAGE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "meathead",
+  "from": "game/stages/dale/convoy.ts:478"
+ },
+ {
+  "voice": "meathead",
+  "text": "MELTED LATS",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MELTED TRASH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MINE NOW.",
+  "from": "game/stages/artie/ski.ts:92"
+ },
+ {
+  "voice": "meathead",
+  "text": "MOIST MOTHERFUCKER",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MOLTEN ROCK TO THE FACE! MY PORES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "More people to kill? SICK! Chest day can wait!",
+  "from": "components/RadioCutscene.tsx:25"
+ },
+ {
+  "voice": "meathead",
+  "text": "More... assholes?",
+  "from": "components/RadioCutscene.tsx:25"
+ },
+ {
+  "voice": "meathead",
+  "text": "MOSQUITO BITE! I EAT LEAD FOR BREAKFAST!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MOTHERFUCKER",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MOVE OR DIE FUCKFACE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY BLOOD IS LITERALLY FREEZING, FUCK YOU!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY DELTS ARE NUMB, GOD DAMNIT!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY EVERYTHING!",
+  "from": "game/stages/dale/convoy.ts:378"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY FILLINGS ARE RATTLING! STOP TAZING ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY FOOTHOLD IS RUINED, GOD DAMN IT!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY FRESHLY OILED PECS! DEFILED BY STORM DOOKIE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY GAINS! HE'S GOT MORE GAINS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY HEART IS POUNDING AT 300 BPM, GOD DAMN IT!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY HEART JUST SKIPPED THREE BEATS, MOTHERFUCKER!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY HEART RHYTHM JUST TURNED INTO DUBSTEP!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY KNEES ARE HITTING MY CHIN.",
+  "from": "game/stages/tommy/bike.ts:33"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY KNEES AREN'T MEANT FOR THIS VIBRATION!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY KOMBUCHAAAAAAA",
+  "from": "game/stages/ernie/jetski.ts:127"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY LATS ARE CRYING",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY LATS ARE DISSOLVING, GOD DAMNIT!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY LATS ARE SMELLING LIKE BACON, FUCK!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY LEG HAIR IS ON FIRE, OSCAR!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY LUNGS ARE BURNING FROM YOUR ACID BILE, BITCH!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY MUSCLES ARE SPASMING, FUCK!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY PUMP IS FADING!",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY PUPILS ARE DILATING, YOU PHARMACEUTICAL PRICK!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY SHAKE?!",
+  "from": "components/IntroCutscene.tsx:26"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY SHINS! MY BEAUTIFUL SHINS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY SKIN IS MELTING OFF MY ABS, ASSHOLE!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY SKIN IS PEELING FROM THAT STEAM VENT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY SKIN IS PEELING, SON OF A BITCH!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY SKIN! MY BEAUTIFUL SKIN!",
+  "from": "game/stages/tommy/sewer.ts:96"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY SKULL IS HARDER THAN YOUR COCONUT, BRAH!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY SPLEEN!",
+  "from": "game/stages/dale/convoy.ts:378"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY SQUAT FORM IS TWITCHING, STOP ZAPPING ME!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY TIIIIIIRES!",
+  "from": "game/stages/tommy/bike.ts:490"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY TOE! THE CRAB GOT MY TOE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY TOES ARE MELTING!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY TRAPS ARE ANGRY",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY VEINS ARE FOR BULKING, NOT YOUR SKETCHY SHIT!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "NATURE'S DUMBBELL",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEED YOUR BOAT, GRAMPS.",
+  "from": "game/stages/hector/boat.ts:47"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEEDLE IN A GAYSTACK",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEEDLES! A HUNDRED LITTLE NEEDLES! DALE, IS THIS YOU?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE BIKE. I'M TAKING IT.",
+  "from": "game/stages/tommy/bike.ts:169"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE DESK, CHUCO! REAL WOOD? BE A SHAME IF IT CAUGHT FIRE!",
+  "from": "game/stages/dale/junkie.ts:633"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE SKIS.",
+  "from": "game/stages/artie/ski.ts:92"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE VIEW UP THERE BITCH?",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NIGHTSTICK TO THE NECK! I'M NOT EVEN RESISTING!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO DEPTH ON THAT SQUAT",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO REPS LEFT",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO ROOM IN MY LANE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY TALKS ABOUT MY MOM.",
+  "from": "components/RadioCutscene.tsx:25"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY. NOBODY IS DRIVING NOW.",
+  "from": "game/stages/dale/convoy.ts:812"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT DINNER! NOT YET!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT THE FACE!",
+  "from": "game/stages/dale/convoy.ts:378"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT WITH THAT! THIS NEEDS A SURGEON'S TOUCH. THE HANDGUN. FROM THE HOOD.",
+  "from": "game/stages/dale/convoy.ts:769"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOTE TO SELF: DON'T RUN AT THE CRACKHEAD.",
+  "from": "game/stages/dale/junkie.ts:433"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOTE TO SELF: SHOOT THE DRIVER AFTER THE TRUCK STOPS.",
+  "from": "game/stages/dale/town.ts:216"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOTHING TO LIGHT YET. OPEN UP THE GAS LINES FIRST. A PISTOL'LL DO IT.",
+  "from": "game/stages/oscar/bar.ts:154"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOTHING TO LIGHT YET. THAT GAS LINE ON THE WALL THOUGH...",
+  "from": "game/stages/oscar/bunker.ts:183"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOW JUST A LITTLE FIRE.",
+  "from": "game/stages/oscar/bar.ts:175"
+ },
+ {
+  "voice": "meathead",
+  "text": "NUKE FROM ORBIT",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "OCEANIC ANGER",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "OD'D ON MY GAINS",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH HELL YEAH!",
+  "from": "App.tsx:369"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH LOOK. IT LISTENS.",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH NO.",
+  "from": "game/stages/dale/convoy.ts:478"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH SHI-",
+  "from": "game/scenes/sewerNuke.ts:43"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH, COME ON.",
+  "from": "game/stages/hector/boat.ts:47"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH, GREAT. WEATHER.",
+  "from": "game/stages/hector/beach.ts:95"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH, NOW WE FIGURE OUT THE DOOHICKEY. SLOW CLAP.",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "OIL IN MY EYES! I CAN'T SEE THE SQUAT RACK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "OILED UP OBLITERATION",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "OILY OBITUARY",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "OKAY, OKAY! I'LL LISTEN NEXT TIME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "OKAY, PLAYER. I'M DONE BEING SUBTLE.",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "OKAY. SUIT. NOW WHAT?",
+  "from": "game/stages/tommy/escape.ts:84"
+ },
+ {
+  "voice": "meathead",
+  "text": "ONE TIDAL WAVE AND THAT FILING CABINET'S GOING FOR A SWIM.",
+  "from": "game/stages/dale/junkie.ts:639"
+ },
+ {
+  "voice": "meathead",
+  "text": "ONE.",
+  "from": "game/stages/oscar/bar.ts:130"
+ },
+ {
+  "voice": "meathead",
+  "text": "OOF!",
+  "from": "game/stages/dale/convoy.ts:378"
+ },
+ {
+  "voice": "meathead",
+  "text": "ORBITAL STRIKE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "OUT OF MY WAY, NOODLE-ARM!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "OUT THE WAY SMALL FRY",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "OUT! OUT! OUT! OUT!",
+  "from": "game/stages/tommy/sewer.ts:96"
+ },
+ {
+  "voice": "meathead",
+  "text": "OVEN-BAKED FAILURE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "OVERLOADED SCUM",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "OVERTRAINED",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW FUCK",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW!",
+  "from": "game/stages/dale/convoy.ts:378"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! A DIRTY SYRINGE STRAIGHT INTO MY GLUTES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! A PAPER CUT! ON MY EVERYTHING!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! IS THAT A DIRTY NEEDLE, YOU SICK FUCK?!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! OW!",
+  "from": "game/stages/dale/convoy.ts:378"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! OW! STOP! WHERE DOES A TWEAKER GET THAT KIND OF POWER?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! THAT MOP'S BEEN IN THE TOILETS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! THE HEELS! THE HEELS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! THE HOT STICK GOT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "PATHETIC",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PEACEFUL PROTEST MY ASS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "PEBBLE-HEADED TRASH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PECS OF STEEL",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PEER REVIEW THIS, EGGHEAD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "PFFT. IT'S A PUDDLE.",
+  "from": "game/stages/tommy/bike.ts:475"
+ },
+ {
+  "voice": "meathead",
+  "text": "PHARMACEUTICAL FAILURE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PIECE OF TRASH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PINCHED BY A FUCKING CRAB!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "PISS OFF",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PLATES TO THE FACE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "POLICE BRUTALITY! ON MY GAINS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "POTHOLE! MY TAILBONE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "PROTEIN POWDER IS NOT A SCAM!",
+  "from": "components/RadioCutscene.tsx:25"
+ },
+ {
+  "voice": "meathead",
+  "text": "PUKING ON ME WON'T SAVE YOUR LIFE, YOU FILTHY PIG!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "PUMP COVER DESTOWNED",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PURE BEEF BEATS METAL EVERY TIME.",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PURE GEOLOGIC FORCE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PURE LIQUID DOMINANCE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PURE ORGANIC BEEF",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PURE THERMIC POWER",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PUT THE MACHETE DOWN AND FIGHT LIKE A MAN!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "QUIT DANCING AROUND THE BIG IDIOT! HE CHARGES? CHARGE RIGHT BACK!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "QUIT HIDING BEHIND THAT SHIELD AND FIGHT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "RAMMED BY A FUCKING GOAT, THE SHAME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "RAMMED BY THE RANGERS! THAT'S POLICE BRUTALITY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "RAMMING SPEED FUCKHEAD",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RATS! NEW YORK RATS! THEY'RE BIGGER THAN MY CALVES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "RED DOT, THEN PAIN! I GET IT NOW!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "RED DOT! THEN PAIN! EVERY TIME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "RETURN TO SENDER, DALE!",
+  "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RICE AND CHICKEN ONLY FROM NOW ON",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RIDE THE LIGHTNING",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RIGGS, BUDDY... YOUR LIZARD'S GONNA HAVE TO FEND FOR HIMSELF.",
+  "from": "game/stages/dale/town.ts:657"
+ },
+ {
+  "voice": "meathead",
+  "text": "RIGHT IN THE SKULL! COLD AND POINTY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "RIGHT IN THE TEETH WITH THE POLICE SHIELD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "RIGHTY TIGHTY, MY SKULL!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "RING RING, BITCHES.",
+  "from": "game/stages/tommy/bike.ts:189"
+ },
+ {
+  "voice": "meathead",
+  "text": "RIOT SHIELD TO THE FACE! I'M NOT RIOTING!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROAD CLOSED, THEY SAID. I DIDN'T LISTEN.",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROCK! ROCK! WHY IS THERE ALWAYS A ROCK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROCKED YOUR WORLD",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROIDS ARE KICKING IN",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROLLING RODENT! RIGHT IN THE SHINS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROOF ACCESS. AND THERE GO THE LIGHTS. THE WHOLE CITY. IN WAVES.",
+  "from": "game/stages/barry/runtime.ts:299"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROOF'S CLEAR! NEXT TRUCK! GO GO GO!",
+  "from": "game/stages/dale/convoy.ts:297"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROT IN FILTH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RUN DOWN BY A UNION TRUCK! ON THE CLOCK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "RUSTED OUT COWARD",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RUSTY AND REKT",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RUSTY NEEDLE NAPTIME",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAN FRANCISCO IS THROWING STUFF AT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAUNA'S TOO HOT FOR YOU",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAWHORSE TO THE SHINS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAY HI TO THE SQUAT RACK IN THE SKY",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SCREECH ALL YOU WANT, YOU FEATHERED SHIV!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SECURITY! THAT'S NOT HOW YOU CHECK A BADGE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SEE? NOBODY HAD TO GET HURT. WELL. I DID.",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "SEE? WAS THAT SO HARD? WAS IT? WAS IT REALLY?",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "SEPTIC SHOCK WON'T STOP MY SETS, TOMMY!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SEWER DRIP! RIGHT IN MY HAIR!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHARK BITE! IN THE SKY! WHY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHATTER INTO NOTHING",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHATTERED LATS",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE HIT ME WITH HER PURSE! WHAT'S IN THERE, A BRICK?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE HIT ME WITH THE WET FLOOR SIGN! AND I SLIPPED!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE HIT ME WITH THE WHITEBOARD! THE ONE WITH THE SYNERGY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE STAPLED MY FOREHEAD! THIS IS A HOSTILE WORKPLACE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE THREW THE SPRAY BOTTLE! MY FACE IS SPARKLING CLEAN AND IN PAIN!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHIELD BASH FROM THE BOMB SQUAD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHIELD BASHED! BY A MALL COP WITH A LUNCH TRAY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHIELD TO THE SHINS, YOU COWARD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHIT",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHITTY RECOVERY... GOODBYE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHIVER AND DIE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOCKING PERFORMANCE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOOTING THE DESK? IT'S A DESK. IT NEEDS SOMETHING HOTTER.",
+  "from": "game/stages/dale/junkie.ts:588"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOT BY A COWBOY! A REAL ONE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOT BY A DELIVERY DRONE! I DIDN'T ORDER THIS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOT BY A GUY IN SOCKS AND SANDALS! HUMILIATING!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOT BY A MAN IN A FEATHERED HAT! MY DIGNITY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOT BY MIAMI'S FINEST! FINEST MY ASS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOT BY MIDDLE MANAGEMENT! THE SHAME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOT FROM A MILE AWAY! COWARD! COME DOWN HERE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOT FROM A SQUAD CAR! AT SPEED!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOULD'VE BUILT FURTHER UP.",
+  "from": "game/stages/artie/ski.ts:92"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOULDER FIRST INTO A SWITCHBLADE! GENIUS MOVE, MEATHEAD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOULDER FOR SHOULDER! LEGS FOR LEGS! THEN MASH EVERYTHING!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOULDER PRESS TO THE JAW",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOULDER TO THE CHEST! THAT'S MY SHOULDER!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOVED BY A GOON IN A PUFFY COAT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SICK RIDE, RIGHT? IT'S VINTAGE.",
+  "from": "game/stages/ernie/jetski.ts:127"
+ },
+ {
+  "voice": "meathead",
+  "text": "SIGN FOR THIS, HUH? SIGN FOR THIS?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SINK LIKE A STONE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SIT DOWN AND DIE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SKEWERED BY THE NATIONAL BIRD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SKIPPING LEG DAY IS A SIN",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SKY HIGH TRASH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SLICK AND DEAD",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SLID INTO HELL",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SMACKED WITH A SLAB OF ICE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SMASHED",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SMELL THE DEFEAT",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SMELLS LIKE BEARD OIL.",
+  "from": "game/stages/ernie/jetski.ts:127"
+ },
+ {
+  "voice": "meathead",
+  "text": "SMOKE 'EM IF YOU GOT 'EM",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SMOKED ASSHOLE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SMOKING KILLS.",
+  "from": "game/stages/oscar/ending.ts:113"
+ },
+ {
+  "voice": "meathead",
+  "text": "SNAKE BITE! SUCK IT OUT! NOT YOU! ME! NOBODY SUCK IT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SNIPER! RIGHT IN THE TRAPS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SNOW IN EVERY HOLE I HAVE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SNOWBALL'S CHANCE IN HELL",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOAKED AND SMASHED",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOGGY PROTEIN TRASH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOLID AS A ROCK... YOU'RE SHIT",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOLIDIFIED SHIT",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOMETHING DRIPPED ON ME! IT'S WARM!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOMETHING HISSING DOWN LOW, BEHIND THE JUKEBOX.",
+  "from": "game/stages/oscar/bar.ts:171"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOMETHING POPPED ON ME! THAT WAS A BOIL!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SON OF A BITCH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SPICY DEATH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SPINNING FIREBALLS! WHAT IS THIS, A CASTLE?",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SPLINTERS IN MY TAINT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SQUASHED LIKE A BUG",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STABBED! BY A GUY IN A SKI MASK! IN JULY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STATIC CLING TO HELL",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STAY FLAT BITCH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STAY FROSTY ASSHOLE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STAY HIGH FOREVER",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STAY SMALL",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STEAMING HOT MAGMA BURNS, SON OF A BITCH!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STERILE BITCH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STONE COLD STUPID",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP BARFING ON MY FRESH PUMP COVER!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP BLOWING MY GAINS AWAY!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP BREAKING THE FLOOR, I'M TRAINING HERE!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP BUFFETING MY LATS, HECTOR!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP BURNING MY PUMP COVER!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP CLUBBING THE MERCHANDISE, PIG!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP COOKING THE MERCHANDISE!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP DOSING MY GAINS, DALE!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP GREASING THE SQUAT RACK, YOU OILY PIG!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP HOPPING OVER HIM LIKE A SCARED GAZELLE! HIT HIM BACK!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP INJECTING SKETCHY CONTRABAND INTO MY BULK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP NIPPING AT MY GAINS, ELSA!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP PITTING MY GAINS AGAINST GRAVITY!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP PROJECTILE VOMITING ON MY QUADRICEPS!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP SHAKING THE SQUAT RACK, FUCKER!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP SHORT-CIRCUITING MY PUMP!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP SLIDING INTO MY PERSONAL SPACE, OSCAR!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP SNAPPING MY GAINS",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP TAZING MY TRAPS, YOU SHOCK-JOCK BITCH!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP THE BLOWJOB, YOU WINDY PRICK!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP THE CHILL, YOU FROZEN PRICK!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP THE GRILLING, YOU OVERCOOKED PRICK!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP THE ROCKING, YOU DUSTY OLD PRICK!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP THROWING SEDIMENTARY SHIT AT MY GAINS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP TOUCHING THE MERCHANDISE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP TWISTING MY LATS, YOU BLOWHARD!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STRUCK BY LIGHTNING! I CAN TASTE COLORS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SUB-ZERO IQ",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SURF'S UP ASSHOLE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SURF'S UP, DUDES!",
+  "from": "game/stages/barry/runtime.ts:348"
+ },
+ {
+  "voice": "meathead",
+  "text": "SURPRISE!",
+  "from": "game/stages/dale/convoy.ts:478"
+ },
+ {
+  "voice": "meathead",
+  "text": "SWEPT BY THE BOUNCER! SWEPT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SWITCHBLADE TO THE LATS! THAT'S A NEW YORK HELLO!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SYRINGE SURPRISE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SYSTEM FAILURE... NEED PROTEIN",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TAINTED PRODUCT ASSHOLE, I'LL BREAK YOUR VAULT!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "TAKE A FLIGHT ON PURE ROID POWER",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TALONS! IN MY TRAPS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "TEAR GAS! MY EYES! MY BEAUTIFUL EYES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "TELL MY SPOTTER... I LOVE HIM",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THANKS FOR THE RIDE, BUDDY.",
+  "from": "game/stages/barry/runtime.ts:372"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT BEARD HAD CRUMBS IN IT! ON MY FACE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT BOULDER DENTED MY DELTS, YOU CRUSTY OLD BASTARD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT BUOY CAME OUT OF NOWHERE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT DRUG BLAST SINGED MY LEG HAIR, DALE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT FAN'S HANGING BY A THREAD, ESE! ONE BIG ROCK AND DOWN IT COMES!",
+  "from": "game/stages/dale/junkie.ts:633"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT FANNY PACK WAS PACKING HEAT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT FISH HAS MORE MUTATIONS THAN I HAVE SUPPLEMENTS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT GOAT HAS A HARDER HEAD THAN ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT HURTS MOTHERFUCKER",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT ICICLE CHIPPED MY QUADRICEPS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT MOOSE HAS A PERSONAL PROBLEM WITH ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT MUSTACHE CAN SHOOT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT NEEDLE BETTER NOT HAVE HEPATITIS, DALE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT OLD GAS LINE ON THE WALL LOOKS REAL THIN...",
+  "from": "game/stages/oscar/bunker.ts:189"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT ROCKET SPLATTERED PETROLEUM ON MY PECS!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT SEPTIC SLIME RUINED MY FRESH LIFTING SNEAKERS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT SHIT-STAIN IS ALREADY GONE.",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT SLUDGE SMELLS WORSE THAN A CRACKHOUSE TOILET!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT THING HAS MORE TEETH THAN SENSE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT TRUCK ALMOST COMPACTED MY GLUTES!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT TURD WAS TRAVELING AT HIGHWAY SPEED!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT WAS CATABOLIC AS FUCK",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT WAS JUST A WARM-UP SET.",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT WASN'T ON THE PROGRAM",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT WENT RIGHT THROUGH MY FILLINGS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S 100,000 VOLTS STRAIGHT TO MY NUTS!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S A LOW BLOW, EARTH-WORM!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S A LUCKY HORSESHOE, ALL RIGHT! FOR HIM!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S MY MOVE, YOU THIEVING SLAB OF BEEF!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S NOT GOOD. THAT'S A LOT OF RUMBLING.",
+  "from": "game/stages/tommy/escape.ts:68"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S THE WHOLE MOTOR POOL. WHERE'S THE BOSS?",
+  "from": "game/stages/oscar/chase.ts:195"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE BRIDGE IS FALLING ON ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE CARGO'S LEAVING? NOT WITHOUT ME.",
+  "from": "game/stages/dale/junkie.ts:661"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE CEILING IS LEAKING ON MY TRAPS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE CEILING IS STABBING ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE CONVEYOR BELT IS THROWING PRODUCT AT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE COP CAR HIT ME! WHO DO I CALL?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE COPS ARE SHOOTING AT ME! I ONLY KILLED A FEW PEOPLE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE DOG'S GOT MY ANKLE! BAD DOG!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE DRONE SHOT ME! SKYNET IS REAL!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE EAGLE'S GOING FOR MY EYES! FREEDOM HURTS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE F-250 GOT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE GROUND IS ON FIRE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE GROUND'S SHAKING? NAH, THAT'S JUST ME WALKING.",
+  "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE HAWK'S GOT MY SCALP! GET OFF!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE HIGHWAY IS THROWING GARBAGE AT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE INTERN RAN ME OVER! HE'S NOT EVEN GETTING PAID!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE LAVA SPIT AT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE LITTLE TANK BIT MY ANKLE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE MOUNTAIN IS EATING ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE OIL'S ON FIRE! I'M ON FIRE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE PARKING LOT BIRD WANTS MY BLOOD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE PUDDLE'S LIVE! THE PUDDLE'S LIVE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE RANGERS ARE AIMING FOR MY TIRES! AND MY ASS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE RENT-A-COP SHOT ME! HE CAN'T EVEN DO THAT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE SEAGULL WANTS MY FRIES! I DON'T HAVE FRIES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE SEWER LITTER BIT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE STORM IS CHUCKING LAWN FURNITURE AT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE TEST SUBJECT HUGGED ME TOO HARD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE TREE WON. THE TREE ALWAYS WINS.",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "The union. The rangers. The Angels. My bar. My field's on fire, pal! ...It's insured. You're not.",
+  "from": "game/core/update.ts:131"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE VOLCANO IS THROWING ROCKS AT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE VULTURE THINKS I'M DEAD! I'M NOT DEAD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE WHOLE EAST SIDE JUST PUNCHED ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE WIND HIT ME WITH AN UMBRELLA!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEN WE LOCK UP AND YOU MASH WHATEVER THAT THING HAS ON IT!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "THERE'S A GAS LINE UP OVER THE BAND.",
+  "from": "game/stages/oscar/bar.ts:171"
+ },
+ {
+  "voice": "meathead",
+  "text": "THERE'S SHIT IN MY PROTEIN SHAKER NOW! THANKS, HECTOR!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY RAN ME OVER WITH A CANDY PAINT JOB!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY'RE RIGGED?! GREAT. CLEAR THE ROOF, THEN JUMP. EASY.",
+  "from": "game/stages/dale/convoy.ts:255"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY'RE SHOOTING OUT THE WINDOW! RUDE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY'RE THROWING THE BREAK ROOM AT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THIS CITY'S ROADS ARE AS BAD AS ITS WATER!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THIS HURRICANE IS BLOWING MY SWEATPANTS OFF!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THIS WHOLE TOWN SMELLS LIKE PENNIES.",
+  "from": "game/stages/tommy/bike.ts:36"
+ },
+ {
+  "voice": "meathead",
+  "text": "THOSE HORNS ARE WIDER THAN MY LATS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THREE BIG HUMMING BOXES. GOT IT.",
+  "from": "game/stages/barry/power.ts:57"
+ },
+ {
+  "voice": "meathead",
+  "text": "THREE GAS LINES IN HERE, BY THE SMELL. PISTOL SHOULD DO IT.",
+  "from": "game/stages/oscar/bar.ts:171"
+ },
+ {
+  "voice": "meathead",
+  "text": "THREE. NOW WE WAIT FOR IT.",
+  "from": "game/stages/oscar/bar.ts:131"
+ },
+ {
+  "voice": "meathead",
+  "text": "THROWN ACROSS THE ROOM BY A GUY WHO WEIGHS NINETY POUNDS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "TIDAL WAVE OF FUCK YOU",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TIMBER! WRONG WAY ROUND!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "TIME TO CUT OUT THE MIDDLEMAN.",
+  "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TINY LOBSTER FROM HELL! GET OFF ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "TO THE MOON ASSHOLE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOASTED GAINS",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOO MUCH GUN. A PISTOL ROUND'LL PUNCTURE IT.",
+  "from": "game/stages/oscar/bar.ts:136"
+ },
+ {
+  "voice": "meathead",
+  "text": "TORNADO STRAIGHT TO THE CHEST?! YOU WINDY PRICK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOTAL COMPRESSION",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOTAL MUSCLE FAILURE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOTAL OVERDOSE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOTALED BY A PROTEIN SHAKE!",
+  "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOXIC SPRAY IN MY PORES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOXIC VOMIT IN MY MOUTH! I'M GONNA PUKE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOXIC WASTE OF SPACE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TRACK MARK TERROR",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TRAIN TO FAILURE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TRASH DAY WAS YESTERDAY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "TSUNAMI OF PAIN",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TWENTY THREE?! I PRESSED THE TOP ONE!",
+  "from": "game/stages/barry/runtime.ts:309"
+ },
+ {
+  "voice": "meathead",
+  "text": "TWO.",
+  "from": "game/stages/oscar/bar.ts:130"
+ },
+ {
+  "voice": "meathead",
+  "text": "UGH... MY EVERYTHING.",
+  "from": "game/stages/tommy/runtime.ts:135"
+ },
+ {
+  "voice": "meathead",
+  "text": "UH OH.",
+  "from": "game/stages/tommy/escape.ts:105"
+ },
+ {
+  "voice": "meathead",
+  "text": "UNDER A PORCH ROOF! THAT'S THE ONLY PLACE HE CAN'T HIT ME!",
+  "from": "game/stages/dale/town.ts:307"
+ },
+ {
+  "voice": "meathead",
+  "text": "UNION RULES.",
+  "from": "game/stages/oscar/bunker.ts:214"
+ },
+ {
+  "voice": "meathead",
+  "text": "UNLIMITED... PROTEIN?",
+  "from": "components/IntroCutscene.tsx:26"
+ },
+ {
+  "voice": "meathead",
+  "text": "UPPERCUT A FREIGHT TRAIN? NO! SHOULDER! TO! SHOULDER!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "UPPERCUT ENEMA",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "UPPERCUT THE GUY ON THE FLOOR?! GET DOWN THERE AND SLIDE!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "UPPERCUT! THAT'S MY UPPERCUT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "UPWARDS TRAJECTORY TO FAILURE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "VEHICULAR ASSAULT WON'T STOP THIS SET, DALE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "VEIN VEIN GO AWAY",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "VERTICAL LIMIT ACHIEVED",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WAIT WAIT WAIT",
+  "from": "game/stages/dale/convoy.ts:378"
+ },
+ {
+  "voice": "meathead",
+  "text": "WASH MY SHORTS",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WASHED AWAY BITCH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WASHED UP HAS-BEEN",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WASTE OF MEAT",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WATCH IT, TEAMSTER!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WATCH THE LATS",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WATCH WHERE YOU'RE CHARGING, CHICKEN LEGS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WATCH YOUR WAKE, BUDDY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WATER PRESSURE KILL",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WATERLOGGED LOSER",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WEAKLING",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WELL DONE MOTHERFUCKER",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WET AND WEAK",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHAT ARE THEY FEEDING THIS GUY?! I WANT SOME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHAT KIND OF FISH LIVES IN LAVA?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHAT WAS IN THAT FLASK?! WHY IS MY ARM TINGLING?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHAT'S IN THE FILING CABINET, TWEAKY? BET IT'D WASH RIGHT OUT!",
+  "from": "game/stages/dale/junkie.ts:633"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHATEVER YOU'RE CLICKING, TAPPING OR SMACKING OVER THERE...",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHEN WE LOCK UP, MASH! MASH LIKE MY PROTEIN DEPENDS ON IT!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHICH WAY TO THE GIFT SHOP?",
+  "from": "game/stages/ernie/alcatraz.ts:129"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO GAVE THE MOOSE STEROIDS? THAT'S MY THING!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO KEEPS BRICKS ON A WINDOWSILL?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO LET A TUMBLEWEED ON THE INTERSTATE?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO LET THE PIT BULLS OUT?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO PARKED IN THE BAY?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO PUT A BOULDER IN THE MIDDLE OF THE SLOPE?",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO PUT A FLAMETHROWER IN THE WALL?",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO SHOT ME IN THE BACK?! COWARDLY INSECT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO SMASHES BOTTLES IN THE STREET?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO TAUGHT YOU TO SHOOT? MUSIC VIDEOS?",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO THE FUCK IS ROLLING THESE?",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO THREW A COW?! SOMEBODY THREW A COW!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO THROWS A SHOE?! HONESTLY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO THROWS COCONUTS?! SURFERS THROW COCONUTS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO'S DUMPING THEIR PACKAGES IN THE WATER?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO'S GONNA SPOT ME NOW?",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO'S THE ASTRONAUT?",
+  "from": "game/stages/tommy/bike.ts:449"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO'S THROWING PATIO FURNITURE?",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHOA. THE ROOF'S SIZZLING. MAYBE DON'T BARF ON THE THING I'M STANDING ON.",
+  "from": "game/stages/dale/convoy.ts:692"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHY DON'T YOU GUYS DO IT? YOU'VE GOT SUITS.",
+  "from": "components/IntroCutscene.tsx:26"
+ },
+ {
+  "voice": "meathead",
+  "text": "WIND DEOESN'T BUILD MUSCLE, ASSHOLE!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WINDEX IN THE EYES! STREAK FREE! BUT IT BURNS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WINTER IS COMING... FOR YOU",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WINTER IS OVER ONCE I KILL YOU!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WIPE OUT, DUDE! ON ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WORTH IT.",
+  "from": "game/stages/barry/power.ts:233"
+ },
+ {
+  "voice": "meathead",
+  "text": "WORTHLESS SCUM",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WOW. THE SAME MOVE. WHAT A CONCEPT.",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "WRONG MOVE AND HE FOLDS ME LIKE A LAWN CHAIR! MATCH HIM, DUMMY!",
+  "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "YEAH, OKAY.",
+  "from": "game/stages/tommy/thing.ts:144"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU AIR-HEADED PIECE OF SHIT!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU BATTED MY DELTS, YOU BASEBALL BITCH!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "You blew my whole power room, man. With my guy in it. Whole city's dark now... look up. See any stars? ...Me neither.",
+  "from": "game/core/update.ts:131"
+ },
+ {
+  "voice": "meathead",
+  "text": "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!",
+  "from": "game/core/update.ts:131"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU BOUNCED RIGHT OFF MY ABS, DUMBASS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU CALL THAT A BATON? I'VE GOT BIGGER VEINS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU CALL THIS HEAT? I'VE HAD HOTTER SHOWERS!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU CAN'T RECOVER FROM THAT",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU CAN'T SHOOT ME, I'M NOT YOUR MVP!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU COLD-HEARTED BITCH!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "You crashed my VIP lounge, bro. Those were investors. Now they're a geothermal feature.",
+  "from": "game/core/update.ts:131"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU CRUSTY MOTHERFUCKER!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "You dropped a jet ski on the tour group, sonny. I schedule my quakes AROUND the tour group!",
+  "from": "game/core/update.ts:131"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU DROVE AN 18-WHEELER INTO MY DELTS, BASTARD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.",
+  "from": "game/core/update.ts:131"
+ },
+ {
+  "voice": "meathead",
+  "text": "You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I'M the terrorist?",
+  "from": "game/core/update.ts:131"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU LOOK LIKE A BAKED POTATO, PAL!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU MISSED THE HEART, OFFICER! IT'S BEHIND THE PECS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU OVERGROWN FAN BITCH!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU PIECE OF SHIT",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU PUSHED ME? ME?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "You put the neighbors down. And you dropped my water tower on a house. Do you know how long it took me to fill that thing?",
+  "from": "game/core/update.ts:131"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU RUINED MY RECOVERY",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU RUINED MY STEROID CYCLE, YOU BASTARD!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU SAID TOUCH NOTHING. I HEARD SMASH EVERYTHING.",
+  "from": "game/stages/barry/power.ts:71"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU SHOT ME WITH A DISTRESS SIGNAL?",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU SLIPPERY LITTLE SHIT!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU SPICY PIECE OF TRASH!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU TRYING TO RUIN MY PUMP?",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'RE BLOWING OUT MY CNS, PRICK!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'RE COSTING ME CALORIES",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'RE DRAINING MY BATTERY, LIGHTBULB HEAD!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'RE FRYING MY NERVOUS SYSTEM, ASSHOLE!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'RE LACKING SUBSTANCE",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'RE NOT GETTING ME OUT OF THIS CLUB, CHAINS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'RE OUT TO SEA BITCH",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'RE POISONING MY GAINS, YOU ROTTEN SCUMBAG!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'RE SLICKER THAN A GREASED-UP WEASEL, BITCH!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'RE TOAST.",
+  "from": "game/core/update.ts:131"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'VE PROBABLY NEVER HEARD OF IT.",
+  "from": "game/stages/ernie/jetski.ts:127"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR BIOLOGY WAS INFERIOR. THE PUMP PREVAILS.",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR BUDDY IN THE CLOSET LOOKS HOT! WANT ME TO PUT HIM ON ICE?",
+  "from": "game/stages/dale/junkie.ts:633"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR DELIVERY GOT DENIED!",
+  "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR GREASE IS AN AFFRONT TO MY GAINS!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "ZAPPED",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ZAPPED! MY HAIR'S STANDING UP! ALL OF IT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "ZERO REPS",
+  "from": "VULGARITIES"
+ },
+ {
+  "voice": "oldman",
+  "text": "...STILL BITIN'.",
+  "from": "game/stages/hector/boat.ts:54"
+ },
+ {
+  "voice": "oldman",
+  "text": "BITIN' LIKE CRAZY TODAY.",
+  "from": "game/stages/hector/boat.ts:54"
+ },
+ {
+  "voice": "oldman",
+  "text": "IN THIS WEATHER? YOU'LL GET KILLED OUT THERE!",
+  "from": "game/stages/hector/boat.ts:54"
+ },
+ {
+  "voice": "oldman",
+  "text": "WHOOAAA!",
+  "from": "game/stages/hector/boat.ts:54"
+ },
+ {
+  "voice": "oscar.biker",
+  "text": "ANOTHER ROUND, DARLENE.",
+  "from": "game/stages/oscar/bar.ts:178"
+ },
+ {
+  "voice": "oscar.biker",
+  "text": "BACK DOOR'S LOCKED TILL LAST CALL, HOSS.",
+  "from": "game/stages/oscar/bar.ts:101"
+ },
+ {
+  "voice": "oscar.biker",
+  "text": "EIGHT BALL, CORNER POCKET.",
+  "from": "game/stages/oscar/bar.ts:178"
+ },
+ {
+  "voice": "oscar.biker",
+  "text": "HE'S GOT DAN'S HOG! AND THE GUN!",
+  "from": "game/stages/oscar/bunker.ts:304"
+ },
+ {
+  "voice": "oscar.biker",
+  "text": "I'M NOT DRUNK, I'M ON BREAK.",
+  "from": "game/stages/oscar/bar.ts:178"
+ },
+ {
+  "voice": "oscar.biker",
+  "text": "RACK EM UP, TINY.",
+  "from": "game/stages/oscar/bar.ts:178"
+ },
+ {
+  "voice": "oscar.biker",
+  "text": "THIS SONG IS ABOUT MY BIKE.",
+  "from": "game/stages/oscar/bar.ts:178"
+ },
+ {
+  "voice": "oscar.biker",
+  "text": "WELL, LOOK WHAT THE CAT DRAGGED IN.",
+  "from": "game/stages/oscar/bar.ts:98"
+ },
+ {
+  "voice": "oscar.biker",
+  "text": "WHO TOOK MY STOOL? THAT IS MY STOOL.",
+  "from": "game/stages/oscar/bar.ts:178"
+ },
+ {
+  "voice": "oscar.dan",
+  "text": "ANOTHER ROUND, DARLENE.",
+  "from": "game/stages/oscar/bar.ts:178"
+ },
+ {
+  "voice": "oscar.dan",
+  "text": "EASY. WE'RE ON BREAK. NOBODY TOUCHES NOBODY.",
+  "from": "game/stages/oscar/bar.ts:99"
+ },
+ {
+  "voice": "oscar.dan",
+  "text": "EIGHT BALL, CORNER POCKET.",
+  "from": "game/stages/oscar/bar.ts:178"
+ },
+ {
+  "voice": "oscar.dan",
+  "text": "I'M NOT DRUNK, I'M ON BREAK.",
+  "from": "game/stages/oscar/bar.ts:178"
+ },
+ {
+  "voice": "oscar.dan",
+  "text": "NOBODY TOUCHES HER BUT DIRTY DAN.",
+  "from": "game/stages/oscar/bunker.ts:288"
+ },
+ {
+  "voice": "oscar.dan",
+  "text": "RACK EM UP, TINY.",
+  "from": "game/stages/oscar/bar.ts:178"
+ },
+ {
+  "voice": "oscar.dan",
+  "text": "THIS SONG IS ABOUT MY BIKE.",
+  "from": "game/stages/oscar/bar.ts:178"
+ },
+ {
+  "voice": "oscar.dan",
+  "text": "WHO TOOK MY STOOL? THAT IS MY STOOL.",
+  "from": "game/stages/oscar/bar.ts:178"
+ },
+ {
+  "voice": "oscar.foreman",
+  "text": "...EVERYBODY. BACK. TO WORK.",
+  "from": "game/stages/oscar/bunker.ts:257"
+ },
+ {
+  "voice": "oscar.foreman",
+  "text": "AND THAT'S BREAK. BACK TO IT, FELLAS.",
+  "from": "game/stages/oscar/bunker.ts:210"
+ },
+ {
+  "voice": "oscar.foreman",
+  "text": "DON'T LOOK AT THE CLOCK. THE CLOCK CAN'T HURT YOU.",
+  "from": "game/stages/oscar/bunker.ts:98"
+ },
+ {
+  "voice": "oscar.foreman",
+  "text": "DOOR'S LOCKED TILL BREAK'S OVER. UNION RULES.",
+  "from": "game/stages/oscar/bunker.ts:120"
+ },
+ {
+  "voice": "oscar.foreman",
+  "text": "DOOR'S OPEN, PAL. YOU WAITED OUT THE WHOLE BREAK? RESPECT.",
+  "from": "game/stages/oscar/bunker.ts:213"
+ },
+ {
+  "voice": "oscar.foreman",
+  "text": "MINUTES LEFT",
+  "from": "game/stages/oscar/bunker.ts:94"
+ },
+ {
+  "voice": "oscar.foreman",
+  "text": "ONE MINUTE, FELLAS. FINISH YOUR SANDWICHES.",
+  "from": "game/stages/oscar/bunker.ts:192"
+ },
+ {
+  "voice": "oscar.foreman",
+  "text": "SMELLS LIKE OVERTIME TO ME.",
+  "from": "game/stages/oscar/bunker.ts:188"
+ },
+ {
+  "voice": "oscar.foreman",
+  "text": "THIS COFFEE TASTES LIKE THE WELL WATER.",
+  "from": "game/stages/oscar/bunker.ts:96"
+ },
+ {
+  "voice": "oscar.foreman",
+  "text": "UP.",
+  "from": "game/stages/oscar/bunker.ts:212"
+ },
+ {
+  "voice": "oscar.foreman",
+  "text": "WHOA, WHOA. THIS IS A UNION BREAK, PAL.",
+  "from": "game/stages/oscar/bunker.ts:117"
+ },
+ {
+  "voice": "oscar.smokerA",
+  "text": "NOW THE COFFEE COMES IN LITTLE PODS.",
+  "from": "game/stages/oscar/ending.ts:64"
+ },
+ {
+  "voice": "oscar.smokerB",
+  "text": "PODS, CARL. LIKE WE'RE ASTRONAUTS.",
+  "from": "game/stages/oscar/ending.ts:65"
+ },
+ {
+  "voice": "oscar.worker",
+  "text": "FIFTEEN MINUTES. IT'S IN THE CONTRACT.",
+  "from": "game/stages/oscar/bunker.ts:118"
+ },
+ {
+  "voice": "oscar.worker",
+  "text": "FIVE MORE MINUTES...",
+  "from": "game/stages/oscar/bunker.ts:211"
+ },
+ {
+  "voice": "oscar.worker",
+  "text": "GIN.",
+  "from": "game/stages/oscar/bunker.ts:93"
+ },
+ {
+  "voice": "oscar.worker",
+  "text": "GO FISH.",
+  "from": "game/stages/oscar/bunker.ts:97"
+ },
+ {
+  "voice": "oscar.worker",
+  "text": "MY BREAK!",
+  "from": "game/stages/oscar/bunker.ts:256"
+ },
+ {
+  "voice": "oscar.worker",
+  "text": "SOMEBODY MICROWAVED EGGS AGAIN.",
+  "from": "game/stages/oscar/bunker.ts:188"
+ },
+ {
+  "voice": "oscar.worker",
+  "text": "WHO TOOK MY YOGURT? IT HAD MY NAME ON IT.",
+  "from": "game/stages/oscar/bunker.ts:95"
+ },
+ {
+  "voice": "president",
+  "text": "Blackout Barry. New York, my city. Turns off all the lights. And he stole your headphones. Right off your head.",
+  "from": "components/RadioCutscene.tsx:23"
+ },
+ {
+  "voice": "president",
+  "text": "Chest day. Beautiful. I have a tremendous chest, doctors can't believe it. But listen. There are more of them.",
+  "from": "components/RadioCutscene.tsx:22"
+ },
+ {
+  "voice": "president",
+  "text": "Drug Trade Dale. New Mexico. The worst drugs. And he parks in your spot. Every day.",
+  "from": "components/RadioCutscene.tsx:23"
+ },
+ {
+  "voice": "president",
+  "text": "Excuse me?",
+  "from": "components/EndingCutscene.tsx:36"
+ },
+ {
+  "voice": "president",
+  "text": "Four more. Worse than the first four. A total disaster. And they're laughing at your gains. I made slides. Beautiful slides.",
+  "from": "components/RadioCutscene.tsx:23"
+ },
+ {
+  "voice": "president",
+  "text": "Go get 'em, big guy. And Meathead? This call never happened. Believe me.",
+  "from": "components/RadioCutscene.tsx:22"
+ },
+ {
+  "voice": "president",
+  "text": "He parks in it anyway. That's how bad he is. Planes, choppers, whatever you need. Unlimited.",
+  "from": "components/RadioCutscene.tsx:22"
+ },
+ {
+  "voice": "president",
+  "text": "It's my great honor to give him the Presidential Medal of Freedom. Beautiful medal. Very expensive. Frankly, I should get one too.",
+  "from": "components/EndingCutscene.tsx:26"
+ },
+ {
+  "voice": "president",
+  "text": "Meathead. Big guy. Tremendous guy. Four assholes, all dead. Nobody's ever killed assholes like you. People are saying it.",
+  "from": "components/RadioCutscene.tsx:22"
+ },
+ {
+  "voice": "president",
+  "text": "Nobody's ever seen anything like it. Tremendous job. The best job. People are saying he's the greatest hero in the history of heroes. Maybe ever.",
+  "from": "components/EndingCutscene.tsx:22"
+ },
+ {
+  "voice": "president",
+  "text": "Oily Oscar. Texas. Great for oil, honestly. But he sells fake creatine. And his bikers said something about your mother.",
+  "from": "components/RadioCutscene.tsx:23"
+ },
+ {
+  "voice": "president",
+  "text": "Thank you. Thank you. What a crowd. This man, Meathead, took out the most dangerous, most evil terrorists. Believe me.",
+  "from": "components/EndingCutscene.tsx:18"
+ },
+ {
+  "voice": "president",
+  "text": "Toxic Tommy. Flint. Lives in a sewer, drinks the sewer. And he says protein powder is a scam. I heard him say it.",
+  "from": "components/RadioCutscene.tsx:23"
+ },
+ {
+  "voice": "reporter",
+  "text": "...BACK TO YOU, CHIP.",
+  "from": "game/stages/hector/news.ts:67"
+ },
+ {
+  "voice": "reporter",
+  "text": "AND ALL OF ITS WATER IS COMING DOWN AT ONCE... DIRECTLY ONTO A DAYCARE.",
+  "from": "game/stages/hector/news.ts:67"
+ },
+ {
+  "voice": "reporter",
+  "text": "BREAKING NEWS: IN A VERY PECULIAR TWIST, THE HURRICANE HAS JUST... STOPPED.",
+  "from": "game/stages/hector/news.ts:67"
+ },
+ {
+  "voice": "skier",
+  "text": "AAAAAAAAAAHHHHH",
+  "from": "game/stages/artie/ski.ts:100"
+ },
+ {
+  "voice": "skier",
+  "text": "BRO. THE POWDER UP HERE IS SICK.",
+  "from": "game/stages/artie/ski.ts:100"
+ },
+ {
+  "voice": "skier",
+  "text": "THANKS, THEY'RE CARBON FIB-",
+  "from": "game/stages/artie/ski.ts:100"
+ },
+ {
+  "voice": "tommy.crew",
+  "text": "HE TOOK TAYVON'S BIKE! GET THE CAR!",
+  "from": "game/stages/tommy/bike.ts:189"
+ },
+ {
+  "voice": "tommy.crew",
+  "text": "HOW IS HE STILL GOING?!",
+  "from": "game/stages/tommy/bike.ts:35"
+ },
+ {
+  "voice": "tommy.crew",
+  "text": "NAH, THE WATER ALWAYS BEEN THAT COLOR.",
+  "from": "game/stages/tommy/bike.ts:166"
+ },
+ {
+  "voice": "tommy.crew",
+  "text": "PULL UP ON HIM! PULL UP!",
+  "from": "game/stages/tommy/bike.ts:32"
+ },
+ {
+  "voice": "tommy.crew",
+  "text": "TAYVON GONNA BE SO MAD.",
+  "from": "game/stages/tommy/bike.ts:37"
+ },
+ {
+  "voice": "tommy.crew",
+  "text": "YO. WHO'S THIS BIG DUDE?",
+  "from": "game/stages/tommy/bike.ts:168"
+ },
+ {
+  "voice": "tommy.crew",
+  "text": "YOU'RE DEAD, MUSCLES! YOU HEAR ME? DEAD!",
+  "from": "game/stages/tommy/bike.ts:34"
+ },
+ {
+  "voice": "tommy.dad",
+  "text": "HA! PASS THE CHIPS.",
+  "from": "game/stages/tommy/escape.ts:111"
+ },
+ {
+  "voice": "tommy.hazmat",
+  "text": "COMPLIMENTS OF THE CITY OF FLINT.",
+  "from": "game/stages/tommy/bike.ts:454"
+ },
+ {
+  "voice": "tommy.hazmat",
+  "text": "DRINK UP.",
+  "from": "game/stages/tommy/bike.ts:459"
+ },
+ {
+  "voice": "tommy.kid",
+  "text": "WHY'S IT GETTING DARK?",
+  "from": "game/stages/tommy/escape.ts:112"
+ },
+ {
+  "voice": "tommy.rider",
+  "text": "AYYY! THAT WAS MY BIRTHDAY BIKE!",
+  "from": "game/stages/tommy/bike.ts:189"
+ },
+ {
+  "voice": "tommy.rider",
+  "text": "MY GRANDMA SAYS IT GOT FLAVOR NOW.",
+  "from": "game/stages/tommy/bike.ts:167"
+ },
+ {
+  "voice": "tommy.rider",
+  "text": "NIGGA STOLE MY BIKE!",
+  "from": "game/stages/tommy/bike.ts:189"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "A WAVE OF CLEAN WATER! DROWN US IN IT!",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "ARE YOU LISTENING TO US?",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "BURN US. BOIL US AWAY. THE FIRE.",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "FIRE! LIKE THE REFINERY! PLEASE!",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "HERE. WE BROUGHT THIS UP FOR YOU.",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "ICE! WE WANT TO FEEL SOMETHING THAT ISN'T WARM!",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "LISTEN. TO. US.",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "MEATHEAD. WE ASKED YOU FOR SOMETHING.",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "MORE... THANK YOU...",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "NOT THAT.",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "OH, THAT'S THE GOOD STUFF.",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "ROCKS. THROW ROCKS AT US. BREAK US.",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "THANK... YOU...",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "THAT'S NOT WHAT WE ASKED FOR.",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "THE COLD. FREEZE US. PLEASE. THE ICE.",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "THE ROCKS! SMASH THE BONES LOOSE!",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "WATER. CLEAN WATER. WE HAVEN'T SEEN CLEAN WATER IN YEARS.",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "WE ASKED NICELY.",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "WE DRANK THE WATER. PLEASE. KILL US.",
+  "from": "game/stages/tommy/thing.ts:143"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "WE FELT THAT. ALL OF US.",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "WE WERE A NEIGHBORHOOD ONCE. WE HAD MANNERS.",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "WE'RE WAITING...",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tommy.thing",
+  "text": "YES... YES...",
+  "from": "game/stages/tommy/thing.ts:109"
+ },
+ {
+  "voice": "tourist",
+  "text": "HAS ANYBODY EVER BROKEN IN?",
+  "from": "game/stages/ernie/alcatraz.ts:105"
+ }
+]

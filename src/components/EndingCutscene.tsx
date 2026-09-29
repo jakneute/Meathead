@@ -9,7 +9,7 @@ import { playSound } from '../game/platform/audio';
 
 // NES-style ending: a run of still images with text typed out underneath (see Cutscene).
 
-const TRUMP_VOICE: Voice = { pitch: 0.75, rate: 0.9 };
+const TRUMP_VOICE: Voice = { id: 'president', pitch: 0.75, rate: 0.9 };
 
 const FINALE_FREEZE = 48;
 

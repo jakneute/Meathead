@@ -28,7 +28,7 @@ export interface News {
   done: boolean;
 }
 
-const REPORTER_VOICE: Voice = { pitch: 1.35, rate: 1.05 };
+const REPORTER_VOICE: Voice = { id: 'reporter', pitch: 1.35, rate: 1.05 };
 const LINES = [
   "BREAKING NEWS: IN A VERY PECULIAR TWIST, THE HURRICANE HAS JUST... STOPPED.",
   "AND ALL OF ITS WATER IS COMING DOWN AT ONCE... DIRECTLY ONTO A DAYCARE.",

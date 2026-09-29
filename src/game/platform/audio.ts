@@ -247,7 +247,7 @@ export const openRadio = () => {
     talking: (on: boolean) => {
       if (!open) return;
       const now = ctx.currentTime;
-      buzzGain.gain.setTargetAtTime(on ? 0.014 : 0, now, 0.03);
+      buzzGain.gain.setTargetAtTime(on ? 0.005 : 0, now, 0.03);
       hiss.gain.setTargetAtTime(on ? 0.03 : 0.012, now, 0.03);
     },
     close: () => {

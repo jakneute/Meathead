@@ -102,7 +102,7 @@ export interface DoormanFight {
 const arena = () => COURSE.club;
 /** How he was left last time (a weapon, or a clash). */
 const memoCorpse = (m?: string): { weapon: WeaponType; finisher?: ClashKind } => m === 'clash-shoulder' ? { weapon: 'GUN', finisher: 'shoulder' } : m === 'clash-slide' ? { weapon: 'GUN', finisher: 'slide' } : { weapon: (m as WeaponType) || 'GUN' };
-const DOORMAN_VOICE: Voice = { pitch: 0.35, rate: 0.9 };
+const DOORMAN_VOICE: Voice = { id: 'doorman', pitch: 0.35, rate: 0.9 };
 
 export const createDoormanFight = (state: GameState, startedAt: number): DoormanFight => {
   const a = arena();

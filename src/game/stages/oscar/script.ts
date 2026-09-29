@@ -11,12 +11,12 @@ export type Speaker = 'meathead' | 'worker' | 'foreman' | 'biker' | 'dan' | 'smo
 
 export const VOICES: Record<Speaker, Voice> = {
   meathead: MEATHEAD_VOICE,
-  worker: { pitch: 0.8, rate: 1.05 },
-  foreman: { pitch: 0.5, rate: 0.95 },
-  biker: { pitch: 0.45, rate: 1.1 },
-  dan: { pitch: 0.3, rate: 0.95 },
-  smokerA: { pitch: 0.75, rate: 1.0 },
-  smokerB: { pitch: 1.05, rate: 1.1 },
+  worker: { id: 'oscar.worker', pitch: 0.8, rate: 1.05 },
+  foreman: { id: 'oscar.foreman', pitch: 0.5, rate: 0.95 },
+  biker: { id: 'oscar.biker', pitch: 0.45, rate: 1.1 },
+  dan: { id: 'oscar.dan', pitch: 0.3, rate: 0.95 },
+  smokerA: { id: 'oscar.smokerA', pitch: 0.75, rate: 1.0 },
+  smokerB: { id: 'oscar.smokerB', pitch: 1.05, rate: 1.1 },
 };
 
 export interface ScriptLine { who: Speaker; text: string }

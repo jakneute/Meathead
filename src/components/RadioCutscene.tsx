@@ -14,7 +14,7 @@ import { setTitleClass } from './Overlay';
 // bar one). Meathead can't say no to that.
 
 /** The voice on the radio: low, and said through the modulator (see Cutscene). */
-const SHADOW_VOICE: Voice = { pitch: 0.35, rate: 1.3 };
+const SHADOW_VOICE: Voice = { id: 'president', pitch: 0.35, rate: 1.3 };
 const SHADOW = '???';
 
 const garage = (ctx: CanvasRenderingContext2D) => garageBg(ctx);

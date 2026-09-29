@@ -10,7 +10,7 @@ import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
 import { shakeScreen } from '../../core/state';
 import { playSound } from '../../platform/audio';
-import { say, MEATHEAD_VOICE } from '../../platform/speech';
+import { say, MEATHEAD_VOICE, Voice } from '../../platform/speech';
 import { COURSE, CP } from './course';
 import { KICK_POSE_FRAMES } from '../../../constants';
 
@@ -50,7 +50,8 @@ const meatheadSays = (state: GameState, text: string) => {
   });
   if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 120; }
 };
-const oldManSays = (b: Boat, text: string) => { b.oldMan.line = text; b.oldMan.lineT = 120; };
+const OLDMAN_VOICE: Voice = { id: 'oldman', pitch: 0.8, rate: 0.9 };
+const oldManSays = (b: Boat, text: string) => { b.oldMan.line = text; b.oldMan.lineT = 120; say(text, OLDMAN_VOICE, 'urgent', { onShow: () => {}, onHide: () => {} }); };
 
 /** Returns the controls to use (it takes them over from the cutscene on). Calls onSucked when the spout's got him. */
 export const updateBoat = (ctx: FrameContext, b: Boat, controls: Controls, onSucked: () => void): Controls => {

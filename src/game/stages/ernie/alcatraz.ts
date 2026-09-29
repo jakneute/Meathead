@@ -30,8 +30,8 @@ export interface Tour {
 
 /** The fade up from black, the lines, the ski coming down, the blast, him climbing out, and control back. */
 export const FADE_IN = 30, DROP_AT = 272, IMPACT_AT = 292, CLIMB_AT = 380, TOUR_END = 500;
-const GUIDE_VOICE: Voice = { pitch: 1.1, rate: 0.95 };
-const TOURIST_VOICE: Voice = { pitch: 1.6, rate: 1.1 };
+const GUIDE_VOICE: Voice = { id: 'guide', pitch: 1.1, rate: 0.95 };
+const TOURIST_VOICE: Voice = { id: 'tourist', pitch: 1.6, rate: 1.1 };
 
 /** Where the tour's standing (world x from the crash spot) and who they are. */
 export const TOURISTS = [

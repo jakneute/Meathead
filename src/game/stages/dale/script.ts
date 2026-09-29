@@ -11,15 +11,15 @@ export type Speaker = 'meathead' | 'dale' | 'junkie' | 'riggs' | 'ninja' | 'pris
 
 export const VOICES: Record<Speaker, Voice> = {
   meathead: MEATHEAD_VOICE,
-  dale: { pitch: 1.8, rate: 1.1 },
-  junkie: { pitch: 1.3, rate: 1.35 },
-  riggs: { pitch: 0.6, rate: 1.0 },
-  ninja: { pitch: 0.8, rate: 0.85 },
-  prisoner: { pitch: 1.5, rate: 1.3 },
-  sheriff: { pitch: 1.2, rate: 1.4 },
-  kid: { pitch: 2, rate: 1.15 },
-  dad: { pitch: 0.9, rate: 1.35 },
-  mom: { pitch: 1.4, rate: 1.05 },
+  dale: { id: 'dale.dale', pitch: 1.8, rate: 1.1 },
+  junkie: { id: 'dale.junkie', pitch: 1.3, rate: 1.35 },
+  riggs: { id: 'dale.riggs', pitch: 0.6, rate: 1.0 },
+  ninja: { id: 'dale.ninja', pitch: 0.8, rate: 0.85 },
+  prisoner: { id: 'dale.prisoner', pitch: 1.5, rate: 1.3 },
+  sheriff: { id: 'dale.sheriff', pitch: 1.2, rate: 1.4 },
+  kid: { id: 'dale.kid', pitch: 2, rate: 1.15 },
+  dad: { id: 'dale.dad', pitch: 0.9, rate: 1.35 },
+  mom: { id: 'dale.mom', pitch: 1.4, rate: 1.05 },
 };
 
 export interface ScriptLine { who: Speaker; text: string }

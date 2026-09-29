@@ -1,0 +1,3 @@
+game/stages/oscar/bunker.ts:197 template: `${NUMBERS[left] ?? left} MINUTE${left === 1 ? '' : 'S'} LEFT, FELLAS. SAVOR IT.`
+game/stages/oscar/bar.ts:151 template: `NOT ENOUGH GAS YET. ${left === 1 ? 'ONE MORE LINE' : 'TWO MORE LINES'} TO OPEN.`
+game/core/update.ts:127 name: undefined

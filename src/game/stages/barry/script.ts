@@ -11,8 +11,8 @@ export type Speaker = 'meathead' | 'minion' | 'barry';
 
 export const VOICES: Record<Speaker, Voice> = {
   meathead: MEATHEAD_VOICE,
-  minion: { pitch: 1.6, rate: 1.45 },
-  barry: { pitch: 0.9, rate: 1.4 },
+  minion: { id: 'barry.minion', pitch: 1.6, rate: 1.45 },
+  barry: { id: 'barry.barry', pitch: 0.9, rate: 1.4 },
 };
 
 export interface ScriptLine { who: Speaker; text: string }

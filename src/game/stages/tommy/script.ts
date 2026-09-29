@@ -11,14 +11,14 @@ export type Speaker = 'meathead' | 'crew' | 'rider' | 'hazmat' | 'thing' | 'dad'
 
 export const VOICES: Record<Speaker, Voice> = {
   meathead: MEATHEAD_VOICE,
-  crew: { pitch: 0.8, rate: 1.25 },
-  rider: { pitch: 1.3, rate: 1.35 },
-  hazmat: { pitch: 0.6, rate: 1.0 },
+  crew: { id: 'tommy.crew', pitch: 0.8, rate: 1.25 },
+  rider: { id: 'tommy.rider', pitch: 1.3, rate: 1.35 },
+  hazmat: { id: 'tommy.hazmat', pitch: 0.6, rate: 1.0 },
   // (a lot of voices at once, from very deep down)
-  thing: { pitch: 0.05, rate: 0.8 },
-  dad: { pitch: 0.7, rate: 1.1 },
-  mom: { pitch: 1.3, rate: 1.1 },
-  kid: { pitch: 1.9, rate: 1.3 },
+  thing: { id: 'tommy.thing', pitch: 0.05, rate: 0.8 },
+  dad: { id: 'tommy.dad', pitch: 0.7, rate: 1.1 },
+  mom: { id: 'tommy.mom', pitch: 1.3, rate: 1.1 },
+  kid: { id: 'tommy.kid', pitch: 1.9, rate: 1.3 },
 };
 
 export interface ScriptLine { who: Speaker; text: string }

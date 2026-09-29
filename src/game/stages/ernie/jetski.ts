@@ -64,7 +64,7 @@ const SKI_BASE = JETSKI_CRUISE, SKI_FAST = 9.5, SKI_SLOW = 5.5;
 /** How far ahead of him the camera looks (not far: there's plenty coming from behind too). */
 const SKI_LEAD = 70;
 const WRECK_DAMAGE = 8;
-const HIPSTER_VOICE: Voice = { pitch: 1.4, rate: 1.1 };
+const HIPSTER_VOICE: Voice = { id: 'hipster', pitch: 1.4, rate: 1.1 };
 
 /** What comes at you, when (frames into the run), and from where. */
 type Wave = { at: number; kind: EnemyKind; from: 'behind' | 'ahead' | 'air'; variant?: number };

@@ -30,7 +30,7 @@ import { rectsOverlap, boundsOf } from '../../core/utils';
 import { hurtPlayer } from '../../bosses/shared';
 import { killPlayer } from '../../player/player';
 import { playSound, playHornDrone } from '../../platform/audio';
-import { say, MEATHEAD_VOICE } from '../../platform/speech';
+import { say, MEATHEAD_VOICE, Voice } from '../../platform/speech';
 import { makeKindEnemy } from '../../enemies/kinds';
 import { COURSE, CP, TRAILER_W, TRUCK_W, TRAILER_TOP, truckDims } from './course';
 import { Talk, queueLines, replaceLines, hush, quiet } from './script';
@@ -470,11 +470,12 @@ export const MELT_SAYS: { at: number; until: number; who: 'meathead' | 'goon'; t
   { at: MELT.POP + 12, until: MELT.FIRE + 10, who: 'meathead', text: 'OH NO.' },
 ];
 
+const GOON_VOICE: Voice = { id: 'dale.goon', pitch: 0.7, rate: 1.1 };
 const inTheTrailer = (ctx: FrameContext, f: Fall): Controls => {
   const { state } = ctx;
   const u = f.t;
   const line = MELT_SAYS.find(l => l.at === u);
-  if (line && line.who === 'meathead') say(line.text, MEATHEAD_VOICE, 'urgent', { onShow: () => {}, onHide: () => {} });
+  if (line) say(line.text, line.who === 'meathead' ? MEATHEAD_VOICE : GOON_VOICE, 'urgent', { onShow: () => {}, onHide: () => {} });
   if (u === MELT.LAND) { shakeScreen(state, 10, 6); playSound('thud'); }
   if (u === MELT.POP) playSound('reload');
   if (u >= MELT.FIRE && u < MELT.STOP) { if (u % 3 === 0) playSound('lmg'); if (u % 12 === 0) shakeScreen(state, 8, 4); }

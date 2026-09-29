@@ -12,7 +12,7 @@ import { setTitleClass } from './Overlay';
 // them in the dark, and the title goes up onto the stage select, the way the mid-game call ends.
 
 /** The agent who does the talking: flat, quick, bored. */
-const AGENT_VOICE: Voice = { pitch: 0.6, rate: 1.05 };
+const AGENT_VOICE: Voice = { id: 'agent', pitch: 0.6, rate: 1.05 };
 const AGENT = 'AGENT';
 
 const gym = (ctx: CanvasRenderingContext2D) => { gymBg(ctx); ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(0, 0, 256, 144); };

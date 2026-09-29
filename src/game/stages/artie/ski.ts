@@ -12,7 +12,7 @@ import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
 import { shakeScreen } from '../../core/state';
 import { rectsOverlap, boundsOf } from '../../core/utils';
-import { say, MEATHEAD_VOICE } from '../../platform/speech';
+import { say, MEATHEAD_VOICE, Voice } from '../../platform/speech';
 import { playSound } from '../../platform/audio';
 import { groundLineAt } from '../../core/terrain';
 import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES } from '../../../constants';
@@ -96,7 +96,8 @@ const meatheadSays = (state: GameState, text: string) => {
   if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 120; }
 };
 
-const skierSays = (ski: Ski, text: string) => { ski.skier.line = text; ski.skier.lineT = 110; };
+const SKIER_VOICE: Voice = { id: 'skier', pitch: 1.2, rate: 1.1 };
+const skierSays = (ski: Ski, text: string) => { ski.skier.line = text; ski.skier.lineT = 110; say(text, SKIER_VOICE, 'urgent', { onShow: () => {}, onHide: () => {} }); };
 
 /** Runs the whole thing; returns the controls to use (cutscenes take them over). */
 export const updateSki = (ctx: FrameContext, ski: Ski, controls: Controls): Controls => {

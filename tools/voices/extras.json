@@ -1,0 +1,37 @@
+[
+ {
+  "voice": "oscar.foreman",
+  "text": "FIVE MINUTES LEFT, FELLAS. SAVOR IT.",
+  "from": "bunker minutes"
+ },
+ {
+  "voice": "oscar.foreman",
+  "text": "FOUR MINUTES LEFT, FELLAS. SAVOR IT.",
+  "from": "bunker minutes"
+ },
+ {
+  "voice": "oscar.foreman",
+  "text": "THREE MINUTES LEFT, FELLAS. SAVOR IT.",
+  "from": "bunker minutes"
+ },
+ {
+  "voice": "oscar.foreman",
+  "text": "TWO MINUTES LEFT, FELLAS. SAVOR IT.",
+  "from": "bunker minutes"
+ },
+ {
+  "voice": "oscar.foreman",
+  "text": "ONE MINUTE LEFT, FELLAS. SAVOR IT.",
+  "from": "bunker minutes"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT ENOUGH GAS YET. ONE MORE LINE TO OPEN.",
+  "from": "bar gas"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT ENOUGH GAS YET. TWO MORE LINES TO OPEN.",
+  "from": "bar gas"
+ }
+]

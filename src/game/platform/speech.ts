@@ -1,29 +1,34 @@
-// Thin wrapper around the browser's speech synthesis, plus the voice for each character.
+import { hasClip, playClip, voicesLoaded, ClipHandle } from './voiceclips';
+// Who's talking, and when: every line goes through here. A line that's been recorded (voiceclips.ts: every character
+// has their own voice) plays that; anything that hasn't falls back to the browser's own speech.
 
 export interface Voice {
+  /** Who it is (the recorded lines are filed under this: see voiceclips.ts). */
+  id: string;
+  /** For the browser's own speech, when a line hasn't been recorded. */
   pitch: number;
   rate: number;
 }
 
-export const DEFAULT_VOICE: Voice = { pitch: 1.0, rate: 1.0 };
+export const DEFAULT_VOICE: Voice = { id: 'default', pitch: 1.0, rate: 1.0 };
 
 export const BOSS_VOICES: Record<string, Voice> = {
-  'Artie Avalanche': { pitch: 1.6, rate: 0.85 },
-  'Victor Volcano': { pitch: 0.7, rate: 0.85 },
-  'Ernie Earthquake': { pitch: 0.1, rate: 0.55 },
-  'Hector Hurricane': { pitch: 1.2, rate: 1.5 },
-  'Drug Trade Dale': { pitch: 1.8, rate: 1.1 },
-  'Toxic Tommy': { pitch: 0.4, rate: 0.8 },
-  'Blackout Barry': { pitch: 0.9, rate: 1.4 },
-  'Oily Oscar': { pitch: 1.3, rate: 0.9 },
+  'Artie Avalanche': { id: 'boss.artie', pitch: 1.6, rate: 0.85 },
+  'Victor Volcano': { id: 'boss.victor', pitch: 0.7, rate: 0.85 },
+  'Ernie Earthquake': { id: 'boss.ernie', pitch: 0.1, rate: 0.55 },
+  'Hector Hurricane': { id: 'boss.hector', pitch: 1.2, rate: 1.5 },
+  'Drug Trade Dale': { id: 'boss.dale', pitch: 1.8, rate: 1.1 },
+  'Toxic Tommy': { id: 'boss.tommy', pitch: 0.4, rate: 0.8 },
+  'Blackout Barry': { id: 'boss.barry', pitch: 0.9, rate: 1.4 },
+  'Oily Oscar': { id: 'boss.oscar', pitch: 1.3, rate: 0.9 },
 };
 
 export const getBossVoice = (bossId: string | null): Voice =>
   (bossId && BOSS_VOICES[bossId]) || DEFAULT_VOICE;
 
-export const MEATHEAD_VOICE: Voice = { pitch: 0.1, rate: 1.2 };
-export const MEATHEAD_INTRO_VOICE: Voice = { pitch: 0.1, rate: 1.0 };
-export const MEATHEAD_MENU_VOICE: Voice = { pitch: 0.1, rate: 1.1 };
+export const MEATHEAD_VOICE: Voice = { id: 'meathead', pitch: 0.1, rate: 1.2 };
+export const MEATHEAD_INTRO_VOICE: Voice = { id: 'meathead', pitch: 0.1, rate: 1.0 };
+export const MEATHEAD_MENU_VOICE: Voice = { id: 'meathead', pitch: 0.1, rate: 1.1 };
 
 /**
  * Every spoken line goes on its own cooldown so the same line can't repeat in
@@ -54,13 +59,28 @@ export const resetLineCooldowns = () => lastSaidAt.clear();
 /** Claims one specific line. False if it was said too recently. */
 export const claimLine = (line: string): boolean => takeFreshLine([line]) !== null;
 
-export const canSpeak = () => typeof window !== 'undefined' && 'speechSynthesis' in window;
+/** The browser's own speech is there (the fallback). */
+const synthOK = () => typeof window !== 'undefined' && 'speechSynthesis' in window;
+/** Anything can be said out loud: the recordings, or the browser's speech. */
+export const canSpeak = () => voicesLoaded() || synthOK();
+
+/** Lines asked for that haven't been recorded (for finding gaps: `window.__voiceMisses`). */
+const misses = new Set<string>();
+const noteMiss = (voice: Voice, text: string) => {
+  const k = `${voice.id}|${text.trim()}`;
+  if (misses.has(k)) return;
+  misses.add(k);
+  if (typeof window !== 'undefined') (window as unknown as { __voiceMisses?: string[] }).__voiceMisses = [...misses];
+};
+export const voiceMisses = () => [...misses];
 
 /** Is anyone talking? (Also clears out a line whose end the browser never reported, so nobody's muted for good.) */
 export const isSpeaking = () => busy();
 
+/** Recorded lines playing outside the dialogue queue (the menus, the cutscenes' radio). */
+let outside = 0;
 /** Is anyone talking, or waiting their turn to? */
-export const isTalking = () => busy() || queue.length > 0;
+export const isTalking = () => busy() || queue.length > 0 || outside > 0;
 
 // ---------------------------------------------------------------------------
 // In-game dialogue: one voice at a time, and the text over a character's head
@@ -89,6 +109,8 @@ interface Playing extends Line {
   started: boolean;
   /** Held on to: Chrome can garbage-collect an utterance mid-line and never report its end. */
   utterance?: SpeechSynthesisUtterance;
+  /** A recorded line playing. */
+  clip?: ClipHandle | null;
   /** When to give up waiting for the browser to say it's finished. */
   deadline: number;
 }
@@ -125,7 +147,28 @@ const playNext = () => {
 
 const start = (line: Line) => {
   lastSaidAt.set(line.text, Date.now());
-  if (!canSpeak()) {
+  // Recorded: play that
+  if (hasClip(line.voice.id, line.text)) {
+    const playing: Playing = { ...line, startedAt: Date.now(), started: false, deadline: Date.now() + WATCHDOG_MS };
+    current = playing;
+    playing.clip = playClip(line.voice.id, line.text, {
+      onStart: ms => {
+        if (current !== playing) return;
+        playing.started = true;
+        playing.deadline = Date.now() + ms + 1500;
+        line.onShow(true);
+      },
+      onEnd: () => {
+        if (current !== playing) return;
+        // (never got going: the words go up for their usual time instead)
+        if (!playing.started) { current = null; line.onShow(false); line.onDone?.(); playNext(); return; }
+        finish(playing);
+      },
+    });
+    return;
+  }
+  noteMiss(line.voice, line.text);
+  if (!synthOK()) {
     // No speech available: just show the text for its usual time
     line.onShow(false);
     line.onDone?.();
@@ -161,11 +204,12 @@ const busy = () => {
   if (current && now > current.deadline) {
     // Its end never came (a lost event): call it done, and make sure the engine's really quiet
     const stale = current;
-    if (canSpeak()) window.speechSynthesis.cancel();
+    stale.clip?.stop();
+    if (synthOK()) window.speechSynthesis.cancel();
     finish(stale);
   }
   if (current) { engineBusySince = 0; return true; }
-  if (!canSpeak() || !window.speechSynthesis.speaking) { engineBusySince = 0; return false; }
+  if (!synthOK() || !window.speechSynthesis.speaking) { engineBusySince = 0; return false; }
   // The engine says it's talking but nothing of ours is: a menu line, or it's wedged
   if (!engineBusySince) engineBusySince = now;
   if (now - engineBusySince > ENGINE_STUCK_MS) { window.speechSynthesis.cancel(); engineBusySince = 0; return false; }
@@ -200,7 +244,8 @@ export const cancelSpeech = () => {
   const playing = current;
   current = null;
   queue = [];
-  if (canSpeak()) window.speechSynthesis.cancel();
+  playing?.clip?.stop();
+  if (synthOK()) window.speechSynthesis.cancel();
   if (playing) {
     playing.onHide();
     playing.onDone?.();
@@ -215,7 +260,13 @@ interface SpeakOptions {
 
 /** Plays a line directly, outside the dialogue rules (menus). */
 export const speak = (text: string, voice: Voice, { onStart, onDone }: SpeakOptions = {}) => {
-  if (!canSpeak()) return;
+  outside++;
+  let out = false;
+  const done = () => { if (!out) { out = true; outside--; } };
+  if (playClip(voice.id, text, { onStart: () => onStart?.(), onEnd: () => { done(); onDone?.(); } })) return;
+  done();
+  noteMiss(voice, text);
+  if (!synthOK()) return;
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.pitch = voice.pitch;
   utterance.rate = voice.rate;
@@ -234,13 +285,22 @@ export const speak = (text: string, voice: Voice, { onStart, onDone }: SpeakOpti
  * where a sentence would end anyway). Calls onDone when it's all out (or fails). Returns a cancel.
  */
 export const sayModulated = (text: string, voice: Voice, onDone: () => void): (() => void) => {
-  if (!canSpeak()) { onDone(); return () => {}; }
   cancelSpeech();
+  // Recorded: through the radio
+  let finished = false;
+  outside++;
+  let out = false;
+  const done = () => { if (!out) { out = true; outside--; } };
+  const clip = playClip(voice.id, text, { radio: true, onEnd: () => { done(); if (!finished) { finished = true; onDone(); } } });
+  if (clip) return () => { finished = true; clip.stop(); done(); };
+  done();
+  noteMiss(voice, text);
+  if (!synthOK()) { onDone(); return () => {}; }
   const chunks = text.split(/(?<=[.!?])\s+/).filter(Boolean);
   const WOBBLE = [0, -0.18, 0.12, -0.08, 0.2, -0.14];
   let cancelled = false, left = chunks.length;
-  chunks.forEach((c, k) => speak(c, { pitch: Math.max(0.05, voice.pitch + WOBBLE[k % WOBBLE.length]), rate: voice.rate * (1 + ((k % 3) - 1) * 0.08) }, {
+  chunks.forEach((c, k) => speak(c, { id: voice.id, pitch: Math.max(0.05, voice.pitch + WOBBLE[k % WOBBLE.length]), rate: voice.rate * (1 + ((k % 3) - 1) * 0.08) }, {
     onDone: () => { left--; if (left === 0 && !cancelled) onDone(); },
   }));
-  return () => { cancelled = true; if (canSpeak()) window.speechSynthesis.cancel(); };
+  return () => { cancelled = true; if (synthOK()) window.speechSynthesis.cancel(); };
 };

@@ -5,6 +5,11 @@ import GameCanvas from './components/GameCanvas';
 import EndingCutscene from './components/EndingCutscene';
 import RadioCutscene from './components/RadioCutscene';
 import IntroCutscene from './components/IntroCutscene';
+import voicePackUrl from './generated/voices.bin?url';
+import { loadVoicePack } from './game/platform/voiceclips';
+
+// Everybody's recorded voice, loaded once (it comes inside the page: see tools/voices)
+loadVoicePack(voicePackUrl);
 import { canSkip, requestSkip } from './game/platform/skip';
 import { setScreenMusic, setMusicPaused, musicEnabled, setMusicEnabled } from './game/music';
 import DeployTransition from './components/DeployTransition';
