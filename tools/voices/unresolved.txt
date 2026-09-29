@@ -11,11 +11,11 @@ game/stages/barry/runtime.ts:391 name: undefined
 game/stages/barry/runtime.ts:400 name: undefined
 game/stages/tommy/runtime.ts:164 name: undefined
 game/stages/tommy/escape.ts:189 name: undefined
-game/stages/tommy/thing.ts:339 name: undefined
+game/stages/tommy/thing.ts:341 name: undefined
 game/stages/tommy/bike.ts:529 name: undefined
 game/stages/oscar/bunker.ts:249 template: `${NUMBERS[left] ?? left} MINUTE${left === 1 ? '' : 'S'} LEFT, FELLAS. SAVOR IT.`
 game/stages/oscar/runtime.ts:167 name: undefined
 game/stages/oscar/chase.ts:583 name: undefined
 game/stages/oscar/bar.ts:152 template: `NOT ENOUGH GAS YET. ${left === 1 ? 'ONE MORE LINE' : 'TWO MORE LINES'} TO OPEN.`
-game/core/update.ts:138 name: undefined
-game/core/update.ts:381 name: undefined
+game/core/update.ts:142 name: undefined
+game/core/update.ts:386 name: undefined

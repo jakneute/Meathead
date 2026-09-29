@@ -33,6 +33,7 @@ import { hurtPlayer } from '../../bosses/shared';
 import { playSound, playGlassShatterSound } from '../../platform/audio';
 import { midBossProjectileDamage, junkieShare } from '../../combat/midBoss';
 import { KIND_STATS } from '../../enemies/kinds';
+import { MAX_AMMO } from '../../../constants';
 import { COURSE, CP } from './course';
 import { Talk, queueLines, replaceLines, ScriptLine } from './script';
 
@@ -42,9 +43,10 @@ const W = KIND_STATS.junkie.w, H = KIND_STATS.junkie.h;
 export type PropName = 'desk' | 'cabinet' | 'fan' | 'closet';
 export const PROPS: PropName[] = ['desk', 'cabinet', 'fan', 'closet'];
 /** How much of each of his things a hit from the right weapon takes: the flames a frame's worth, a wave a frame's
- * worth of it passing over, a boulder, a shard of ice. (Burn the desk for a couple of seconds, a wave and a bit on the
- * cabinet, three boulders for the fan, a few blasts of ice on the snitch.) */
-export const PROP_TAKES: Record<PropName, number> = { desk: 1 / 110, cabinet: 1 / 32, fan: 0.34, closet: 0.07 };
+ * worth of it passing over, a boulder, a shard of ice. (Burn the desk for five seconds, three waves or so on the
+ * cabinet, eight boulders for the fan, eight or nine blasts of ice on the snitch: more than he's likely carrying, so
+ * Chuco's pockets make up the rest: see pocketAmmo.) */
+export const PROP_TAKES: Record<PropName, number> = { desk: 1 / 300, cabinet: 1 / 80, fan: 0.125, closet: 0.025 };
 /** The weapon that gets at each stash. */
 export const PROP_WEAPON: Record<PropName, WeaponType> = { desk: 'FLAMETHROWER', cabinet: 'TSUNAMI', fan: 'BOULDER', closet: 'SHOTGUN' };
 
@@ -93,6 +95,10 @@ export interface JunkieFight {
   wrongSaid: Set<string>;
   /** The walk to the window: frames since it started. */
   leaveT: number;
+  /** Ammo out of his pockets: when some last fell out, his health then, and how many times it's happened. */
+  pocketAt: number;
+  pocketHp: number;
+  pockets: number;
 }
 
 const office = () => COURSE.office;
@@ -107,7 +113,7 @@ export const createJunkieFight = (state: GameState, startedAt: number): JunkieFi
     walls: [{ x: o.x1 - 40, y: o.ceiling - 200, w: 40, h: o.floor - o.ceiling + 200, type: 'wall', hidden: true, tag: 'office-door' }],
     props: { desk: prop(o.desk, o.floor), cabinet: prop(o.cabinet, o.floor), fan: prop(o.fan, o.ceiling + 64), closet: prop(o.closet, o.floor) },
     stashes: [], corpse: done && memo ? memo : null,
-    hintAt: 0, taunted: new Set(), spelled: new Set(), grabs: 0, cracks: [], wrongSaid: new Set(), leaveT: 0,
+    hintAt: 0, taunted: new Set(), spelled: new Set(), grabs: 0, cracks: [], wrongSaid: new Set(), leaveT: 0, pocketAt: 0, pocketHp: JUNKIE_HP, pockets: 0,
   };
 };
 
@@ -217,7 +223,7 @@ export const updateJunkieFight = (ctx: FrameContext, fight: JunkieFight, talk: T
     shakeScreen(state, 14, 8); playSound('thud');
     for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: p.pos.x + Math.random() * p.width, y: o.ceiling + 2 }, vel: { x: (Math.random() - 0.5) * 5, y: Math.random() * 3 }, life: 30 + Math.random() * 20, color: i % 3 ? '#D6D3D1' : '#A8A29E', size: 2 + Math.random() * 4 });
   }
-  if (fight.phase === 'fight') hints(state, fight, talk);
+  if (fight.phase === 'fight') { hints(state, fight, talk); pocketAmmo(state, fight, talk); }
   // Thrown across the room
   if (fight.thrown) {
     p.vel.x = fight.thrown.vx;
@@ -653,6 +659,41 @@ const updateStashes = (fight: JunkieFight) => {
     s.vy += 0.5; s.y += s.vy;
     if (s.y >= o.floor - 8) { s.y = o.floor - 8; s.landed = true; }
   }
+};
+
+/**
+ * Chuco keeps ammo loose in his pockets: all kinds, whatever he's picked up, none of it for anything he owns. When
+ * Meathead's running low on what one of the things still standing needs, a hit on Chuco (or just him flailing about,
+ * given long enough) shakes some out: a good handful for that weapon. One at a time, and not too often.
+ */
+const POCKET_LOW = 0.3, POCKET_EVERY = 300, POCKET_ANYWAY = 600;
+const POCKET_LINES = ["HEY! THAT'S MY AMMO!", "WHO KEEPS TAKING MY AMMO?!", "I GOT HOLES IN ALL MY POCKETS, MAN!", "THAT'S NOT EVEN FOR MY GUN! WHERE'D THAT COME FROM?!"];
+const pocketAmmo = (state: GameState, fight: JunkieFight, talk: Talk) => {
+  const m = fight.man;
+  if (!m || m.health <= 0) return;
+  const hit = m.health < fight.pocketHp - 0.5;
+  fight.pocketHp = m.health;
+  if (fight.t - fight.pocketAt < POCKET_EVERY) return;
+  if (!hit && fight.t - fight.pocketAt < POCKET_ANYWAY) return;
+  if (state.pickups.some(pk => pk.id.startsWith('chuco-pocket'))) return;
+  const owned = (w: WeaponType) => (state.availableWeapons ?? state.player.availableWeapons ?? []).includes(w);
+  const ammo = state.player.weaponAmmo;
+  const low = PROPS.filter(n => fight.props[n].state === 'intact' && owned(PROP_WEAPON[n])).map(n => PROP_WEAPON[n])
+    .filter(w => (ammo[w] ?? 0) < MAX_AMMO[w] * POCKET_LOW);
+  if (!low.length) return;
+  const w = low.reduce((a, b) => ((ammo[a] ?? 0) / MAX_AMMO[a] <= (ammo[b] ?? 0) / MAX_AMMO[b] ? a : b));
+  fight.pocketAt = fight.t;
+  fight.pockets++;
+  // (out of his pocket and bouncing off across the floor, away from him)
+  const o = office();
+  const x = Math.max(o.x1 + 40, Math.min(o.x2 - 60, m.pos.x + W / 2 - 10));
+  const away = m.pos.x + W / 2 < (o.x1 + o.x2) / 2 ? 1 : -1;
+  state.pickups.push({ id: `chuco-pocket-${state.frame}`, pos: { x, y: m.pos.y + H * 0.45 }, vel: { x: away * (3 + Math.random() * 2), y: -7 }, width: 20, height: 20, type: 'large_ammo', life: 1e9, weapon: w });
+  playSound('reload', 0.5);
+  if (talk.current || talk.queue.length) return;
+  // The first time, Meathead has something to say about it; after that, now and then, Chuco does
+  if (fight.pockets === 1) queueLines(state, talk, [{ who: 'junkie', text: POCKET_LINES[0] }, { who: 'meathead', text: "LOOSE AMMO IN HIS POCKETS. CARELESS. THANKS, CHUCO." }]);
+  else if (Math.random() < 0.5) junkieSays(state, talk, POCKET_LINES.slice(1));
 };
 
 /** Taunts about his things as it goes on (one he's not been taunted about yet, whose weapon Meathead's got); then, spelled out. */

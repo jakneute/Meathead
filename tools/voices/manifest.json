@@ -202,7 +202,7 @@
  {
   "voice": "announcer",
   "text": "DISTRIBUTION CUT!",
-  "from": "game/stages/dale/junkie.ts:530"
+  "from": "game/stages/dale/junkie.ts:544"
  },
  {
   "voice": "announcer",
@@ -347,7 +347,7 @@
  {
   "voice": "announcer",
   "text": "LAID TO REST!",
-  "from": "game/stages/tommy/thing.ts:259"
+  "from": "game/stages/tommy/thing.ts:261"
  },
  {
   "voice": "announcer",
@@ -427,7 +427,7 @@
  {
   "voice": "announcer",
   "text": "OFF HIS HEAD!",
-  "from": "game/stages/dale/junkie.ts:530"
+  "from": "game/stages/dale/junkie.ts:544"
  },
  {
   "voice": "announcer",
@@ -2417,7 +2417,7 @@
  {
   "voice": "dale.dale",
   "text": "LOAD THE REST OF THE CARGO! MOVE IT! HE'S COMING!",
-  "from": "game/stages/dale/junkie.ts:684"
+  "from": "game/stages/dale/junkie.ts:739"
  },
  {
   "voice": "dale.dale",
@@ -2477,142 +2477,162 @@
  {
   "voice": "dale.junkie",
   "text": "...THE WALL STARTED IT.",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "AND STAY OUT!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "COME HERE, MUSCLES!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "DALE SAYS YOU'RE A FED! ARE YOU A FED?!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "GET OUTTA MY OFFICE!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "GOTCHA! HUH?! HUH?!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "HEY! THAT'S MY AMMO!",
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "HUH?! HUH?! HUH?!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "I GOT HOLES IN ALL MY POCKETS, MAN!",
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "I'M A FREIGHT TRAIN, BABY!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "I'M GONNA RIP YOUR HEART OUT AND SELL IT!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "I'M OKAY! I'M OKAY!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "IS THAT... BLUE?!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "LOOK AT MY EYES! LOOK AT 'EM!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "MINE! MINE MINE MINE!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "MOVE, MEATHEAD!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "MY BLUE! MY BEAUTIFUL BLUE!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "NOBODY STANDS BETWEEN ME AND MY BLUE!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "OHHHH YEAHHHH! I CAN SEE THROUGH TIME!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "OUTTA MY WAY!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "SAY HELLO TO MY GOLDEN FRIEND!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "THAT TICKLES, FED!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "THAT'S NOT EVEN FOR MY GUN! WHERE'D THAT COME FROM?!",
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "TIGHT! TIGHT! TIGHT!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "WHO KEEPS TAKING MY AMMO?!",
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "WHO LET YOU IN HERE?! THIS IS A PLACE OF BUSINESS!",
-  "from": "game/stages/dale/junkie.ts:154"
+  "from": "game/stages/dale/junkie.ts:168"
  },
  {
   "voice": "dale.junkie",
   "text": "WHO PUT THAT THERE?",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "WHO'S THE FED NOW?!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "YOU CALL THAT A BULLET?!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "YOU LIKE MY GUN?! IT'S GOLD!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "YOU THINK YOU'RE BIG?! I'M BIGGER! IN HERE!",
-  "from": "game/stages/dale/junkie.ts:168"
+  "from": "game/stages/dale/junkie.ts:182"
  },
  {
   "voice": "dale.junkie",
   "text": "YOU WANT SOME?! HUH?! YOU WANT SOME OF THIS?!",
-  "from": "game/stages/dale/junkie.ts:154"
+  "from": "game/stages/dale/junkie.ts:168"
  },
  {
   "voice": "dale.kid",
@@ -4382,7 +4402,7 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE LISTENED",
-  "from": "game/stages/tommy/thing.ts:338"
+  "from": "game/stages/tommy/thing.ts:340"
  },
  {
   "voice": "death",
@@ -6012,7 +6032,7 @@
  {
   "voice": "meathead",
   "text": "BULLETS WON'T GET INTO THAT CABINET. IT NEEDS A WHOLE LOT OF WATER.",
-  "from": "game/stages/dale/junkie.ts:612"
+  "from": "game/stages/dale/junkie.ts:632"
  },
  {
   "voice": "meathead",
@@ -6537,7 +6557,7 @@
  {
   "voice": "meathead",
   "text": "FLAMETHROWER ON THE DESK. WHATEVER'S IN THOSE DRAWERS, SMOKE IT OUT.",
-  "from": "game/stages/dale/junkie.ts:663"
+  "from": "game/stages/dale/junkie.ts:718"
  },
  {
   "voice": "meathead",
@@ -6632,7 +6652,7 @@
  {
   "voice": "meathead",
   "text": "FUCK YEAH! LET'S GO!",
-  "from": "App.tsx:369"
+  "from": "App.tsx:391"
  },
  {
   "voice": "meathead",
@@ -6772,7 +6792,7 @@
  {
   "voice": "meathead",
   "text": "Get that camera outta my face.",
-  "from": "components/WeaponGetScene.tsx:147"
+  "from": "components/WeaponGetScene.tsx:150"
  },
  {
   "voice": "meathead",
@@ -7032,7 +7052,7 @@
  {
   "voice": "meathead",
   "text": "HE HEADBUTTED THE WALL?! OKAY! KEEP HIM HIGH! FIND HIM MORE STASH!",
-  "from": "game/stages/dale/junkie.ts:173"
+  "from": "game/stages/dale/junkie.ts:187"
  },
  {
   "voice": "meathead",
@@ -7242,7 +7262,7 @@
  {
   "voice": "meathead",
   "text": "HE'S ALREADY DEAD. HE JUST NEEDS TO BE A LOT COLDER.",
-  "from": "game/stages/dale/junkie.ts:612"
+  "from": "game/stages/dale/junkie.ts:632"
  },
  {
   "voice": "meathead",
@@ -7322,7 +7342,7 @@
  {
   "voice": "meathead",
   "text": "HEAVE A BOULDER STRAIGHT UP AT THAT FAN. BRING IT DOWN.",
-  "from": "game/stages/dale/junkie.ts:663"
+  "from": "game/stages/dale/junkie.ts:718"
  },
  {
   "voice": "meathead",
@@ -7942,7 +7962,7 @@
  {
   "voice": "meathead",
   "text": "ICE THE STIFF IN THE CLOSET WITH THE SHOTGUN. SHATTER HIM.",
-  "from": "game/stages/dale/junkie.ts:663"
+  "from": "game/stages/dale/junkie.ts:718"
  },
  {
   "voice": "meathead",
@@ -8012,7 +8032,7 @@
  {
   "voice": "meathead",
   "text": "IT NEEDS SOMETHING A LOT HEAVIER THAN THAT TO BRING THAT FAN DOWN.",
-  "from": "game/stages/dale/junkie.ts:612"
+  "from": "game/stages/dale/junkie.ts:632"
  },
  {
   "voice": "meathead",
@@ -8037,7 +8057,7 @@
  {
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
-  "from": "App.tsx:369"
+  "from": "App.tsx:391"
  },
  {
   "voice": "meathead",
@@ -8072,7 +8092,7 @@
  {
   "voice": "meathead",
   "text": "KEEP AWAY FROM HIS HANDS! MAKE HIM COME TO THE STASH INSTEAD!",
-  "from": "game/stages/dale/junkie.ts:458"
+  "from": "game/stages/dale/junkie.ts:472"
  },
  {
   "voice": "meathead",
@@ -8122,7 +8142,7 @@
  {
   "voice": "meathead",
   "text": "LET'S FUCKING GO!",
-  "from": "App.tsx:369"
+  "from": "App.tsx:391"
  },
  {
   "voice": "meathead",
@@ -8148,6 +8168,11 @@
   "voice": "meathead",
   "text": "LOOK WHO READ THE MANUAL. ALL FOUR WORDS OF IT.",
   "from": "game/stages/victor/doorman.ts:531"
+ },
+ {
+  "voice": "meathead",
+  "text": "LOOSE AMMO IN HIS POCKETS. CARELESS. THANKS, CHUCO.",
+  "from": "game/stages/dale/junkie.ts:695"
  },
  {
   "voice": "meathead",
@@ -8437,7 +8462,7 @@
  {
   "voice": "meathead",
   "text": "NICE DESK, CHUCO! REAL WOOD? BE A SHAME IF IT CAUGHT FIRE!",
-  "from": "game/stages/dale/junkie.ts:657"
+  "from": "game/stages/dale/junkie.ts:712"
  },
  {
   "voice": "meathead",
@@ -8507,7 +8532,7 @@
  {
   "voice": "meathead",
   "text": "NOTE TO SELF: DON'T RUN AT THE CRACKHEAD.",
-  "from": "game/stages/dale/junkie.ts:457"
+  "from": "game/stages/dale/junkie.ts:471"
  },
  {
   "voice": "meathead",
@@ -8547,7 +8572,7 @@
  {
   "voice": "meathead",
   "text": "OH HELL YEAH!",
-  "from": "App.tsx:369"
+  "from": "App.tsx:391"
  },
  {
   "voice": "meathead",
@@ -8617,7 +8642,7 @@
  {
   "voice": "meathead",
   "text": "ONE TIDAL WAVE AND THAT FILING CABINET'S GOING FOR A SWIM.",
-  "from": "game/stages/dale/junkie.ts:663"
+  "from": "game/stages/dale/junkie.ts:718"
  },
  {
   "voice": "meathead",
@@ -9107,7 +9132,7 @@
  {
   "voice": "meathead",
   "text": "SHOOTING THE DESK? IT'S A DESK. IT NEEDS SOMETHING HOTTER.",
-  "from": "game/stages/dale/junkie.ts:612"
+  "from": "game/stages/dale/junkie.ts:632"
  },
  {
   "voice": "meathead",
@@ -9627,7 +9652,7 @@
  {
   "voice": "meathead",
   "text": "THAT FAN'S HANGING BY A THREAD, ESE! ONE BIG ROCK AND DOWN IT COMES!",
-  "from": "game/stages/dale/junkie.ts:657"
+  "from": "game/stages/dale/junkie.ts:712"
  },
  {
   "voice": "meathead",
@@ -9777,7 +9802,7 @@
  {
   "voice": "meathead",
   "text": "THE CARGO'S LEAVING? NOT WITHOUT ME.",
-  "from": "game/stages/dale/junkie.ts:685"
+  "from": "game/stages/dale/junkie.ts:740"
  },
  {
   "voice": "meathead",
@@ -9927,7 +9952,7 @@
  {
   "voice": "meathead",
   "text": "The union. The rangers. The Angels. My bar. My field's on fire, pal! ...It's insured. You're not.",
-  "from": "game/core/update.ts:142"
+  "from": "game/core/update.ts:146"
  },
  {
   "voice": "meathead",
@@ -10287,7 +10312,7 @@
  {
   "voice": "meathead",
   "text": "WHAT'S IN THE FILING CABINET, TWEAKY? BET IT'D WASH RIGHT OUT!",
-  "from": "game/stages/dale/junkie.ts:657"
+  "from": "game/stages/dale/junkie.ts:712"
  },
  {
   "voice": "meathead",
@@ -10457,7 +10482,7 @@
  {
   "voice": "meathead",
   "text": "YEAH, OKAY.",
-  "from": "game/stages/tommy/thing.ts:155"
+  "from": "game/stages/tommy/thing.ts:157"
  },
  {
   "voice": "meathead",
@@ -10472,12 +10497,12 @@
  {
   "voice": "meathead",
   "text": "You blew my whole power room, man. With my guy in it. Whole city's dark now... look up. See any stars? ...Me neither.",
-  "from": "game/core/update.ts:142"
+  "from": "game/core/update.ts:146"
  },
  {
   "voice": "meathead",
   "text": "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!",
-  "from": "game/core/update.ts:142"
+  "from": "game/core/update.ts:146"
  },
  {
   "voice": "meathead",
@@ -10512,7 +10537,7 @@
  {
   "voice": "meathead",
   "text": "You crashed my VIP lounge, bro. Those were investors. Now they're a geothermal feature.",
-  "from": "game/core/update.ts:142"
+  "from": "game/core/update.ts:146"
  },
  {
   "voice": "meathead",
@@ -10522,7 +10547,7 @@
  {
   "voice": "meathead",
   "text": "You dropped a jet ski on the tour group, sonny. I schedule my quakes AROUND the tour group!",
-  "from": "game/core/update.ts:142"
+  "from": "game/core/update.ts:146"
  },
  {
   "voice": "meathead",
@@ -10532,12 +10557,12 @@
  {
   "voice": "meathead",
   "text": "You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.",
-  "from": "game/core/update.ts:142"
+  "from": "game/core/update.ts:146"
  },
  {
   "voice": "meathead",
   "text": "You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I'M the terrorist?",
-  "from": "game/core/update.ts:142"
+  "from": "game/core/update.ts:146"
  },
  {
   "voice": "meathead",
@@ -10567,7 +10592,7 @@
  {
   "voice": "meathead",
   "text": "You put the neighbors down. And you dropped my water tower on a house. Do you know how long it took me to fill that thing?",
-  "from": "game/core/update.ts:142"
+  "from": "game/core/update.ts:146"
  },
  {
   "voice": "meathead",
@@ -10652,7 +10677,7 @@
  {
   "voice": "meathead",
   "text": "YOU'RE TOAST.",
-  "from": "game/core/update.ts:142"
+  "from": "game/core/update.ts:146"
  },
  {
   "voice": "meathead",
@@ -10667,7 +10692,7 @@
  {
   "voice": "meathead",
   "text": "YOUR BUDDY IN THE CLOSET LOOKS HOT! WANT ME TO PUT HIM ON ICE?",
-  "from": "game/stages/dale/junkie.ts:657"
+  "from": "game/stages/dale/junkie.ts:712"
  },
  {
   "voice": "meathead",
@@ -11067,117 +11092,117 @@
  {
   "voice": "tommy.thing",
   "text": "A WAVE OF CLEAN WATER! DROWN US IN IT!",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "ARE YOU LISTENING TO US?",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "BURN US. BOIL US AWAY. THE FIRE.",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "FIRE! LIKE THE REFINERY! PLEASE!",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "HERE. WE BROUGHT THIS UP FOR YOU.",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "ICE! WE WANT TO FEEL SOMETHING THAT ISN'T WARM!",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "LISTEN. TO. US.",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "MEATHEAD. WE ASKED YOU FOR SOMETHING.",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "MORE... THANK YOU...",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "NOT THAT.",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "OH, THAT'S THE GOOD STUFF.",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "ROCKS. THROW ROCKS AT US. BREAK US.",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "THANK... YOU...",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "THAT'S NOT WHAT WE ASKED FOR.",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "THE COLD. FREEZE US. PLEASE. THE ICE.",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "THE ROCKS! SMASH THE BONES LOOSE!",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "WATER. CLEAN WATER. WE HAVEN'T SEEN CLEAN WATER IN YEARS.",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "WE ASKED NICELY.",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "WE DRANK THE WATER. PLEASE. KILL US.",
-  "from": "game/stages/tommy/thing.ts:154"
+  "from": "game/stages/tommy/thing.ts:156"
  },
  {
   "voice": "tommy.thing",
   "text": "WE FELT THAT. ALL OF US.",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "WE WERE A NEIGHBORHOOD ONCE. WE HAD MANNERS.",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "WE'RE WAITING...",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tommy.thing",
   "text": "YES... YES...",
-  "from": "game/stages/tommy/thing.ts:120"
+  "from": "game/stages/tommy/thing.ts:122"
  },
  {
   "voice": "tourist",

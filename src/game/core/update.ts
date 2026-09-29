@@ -430,7 +430,7 @@ const updatePickups = (ctx: FrameContext) => {
     if (p.type.includes('health')) {
       player.health = Math.min(player.maxHealth, player.health + (p.type === 'large_health' ? HEALTH_PICKUP_LARGE : HEALTH_PICKUP_SMALL));
     } else {
-      const target = ammoTarget(state);
+      const target = p.weapon && MAX_AMMO[p.weapon] > 0 ? p.weapon : ammoTarget(state);
       const pct = p.type === 'large_ammo' ? AMMO_PICKUP_PCT.LARGE : AMMO_PICKUP_PCT.SMALL;
       if (target) player.weaponAmmo[target] = Math.min(MAX_AMMO[target], player.weaponAmmo[target] + MAX_AMMO[target] * pct);
     }

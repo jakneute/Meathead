@@ -516,6 +516,8 @@ export interface Pickup {
   height: number;
   type: PickupType;
   life: number;
+  /** Ammo for this weapon in particular (not whichever he's lowest on). */
+  weapon?: WeaponType;
 }
 
 export interface Particle {
