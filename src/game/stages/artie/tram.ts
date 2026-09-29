@@ -26,9 +26,9 @@ export const WAVES: { t: number; spawns: [EnemyKind, Entry][] }[] = [
   { t: 150, spawns: [['wolverine', 'left'], ['wolverine', 'right']] },
   { t: 440, spawns: [['eagle', 'back1'], ['shooter', 'roof']] },
   { t: 780, spawns: [['goat', 'right'], ['charger', 'left']] },
-  { t: 1120, spawns: [['eagle', 'back0'], ['eagle', 'back2'], ['wolverine', 'right']] },
-  { t: 1460, spawns: [['shielder', 'roof'], ['shooter', 'back1'], ['wolverine', 'left']] },
-  { t: 1800, spawns: [['charger', 'right'], ['eagle', 'back1'], ['goat', 'left']] },
+  { t: 1120, spawns: [['eagle', 'back0'], ['wolverine', 'right']] },
+  { t: 1460, spawns: [['shielder', 'roof'], ['shooter', 'back1']] },
+  { t: 1800, spawns: [['charger', 'right'], ['eagle', 'back1']] },
 ];
 
 /** How long before a wave you see it coming: shapes at the glass, thumps, the hatch rattling. */

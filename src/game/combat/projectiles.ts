@@ -2,7 +2,7 @@
 
 import { submerged } from '../enemies/kinds/victor';
 import { Enemy, Projectile } from '../../types';
-import { BOTTLE_GRAVITY } from '../../constants';
+import { BOTTLE_GRAVITY, PARTICLE_PALETTES } from '../../constants';
 import { playGlassShatterSound, playSound } from '../platform/audio';
 import {
   CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, PLAYER_INVINCIBILITY_FRAMES,
@@ -479,6 +479,28 @@ const sludgeHitsEnemy = (ctx: FrameContext, p: Projectile, enemy: Enemy) => {
   if (enemy.health <= 0) fx.killWithAnimation(enemy, 'melted', 'sludge_kill', 'melted');
 };
 
+/** What doesn't bleed: machines, vehicles, and things made of muck or magma. */
+const BLOODLESS = new Set<string>(['drone', 'generator', 'lowrider', 'pickup', 'cruiser', 'chopper', 'sludgeling', 'amalgam', 'magmafish']);
+/** The bosses who aren't made of blood (Artie's ice, Tommy's muck). */
+const BLOODLESS_BOSSES = new Set<string>(['Artie Avalanche', 'Toxic Tommy']);
+
+/** A handgun or machine gun round. */
+const isBullet = (p: Projectile) => p.id.startsWith('p-') || p.id.startsWith('lmg-');
+
+/** A bullet that didn't kill: a little spray of blood out of the far side of him, in the direction it was going. */
+const bulletBlood = (ctx: FrameContext, p: Projectile, enemy: Enemy) => {
+  const { state } = ctx;
+  const dir = Math.sign(p.vel.x) || 1;
+  const x = Math.max(enemy.pos.x, Math.min(enemy.pos.x + enemy.width, p.pos.x + p.width / 2));
+  const y = Math.max(enemy.pos.y + 4, Math.min(enemy.pos.y + enemy.height - 4, p.pos.y + p.height / 2));
+  for (let i = 0; i < 5; i++) {
+    state.particles.push({
+      pos: { x, y }, vel: { x: dir * (1.5 + Math.random() * 3), y: -1.5 - Math.random() * 2.5 },
+      life: 14 + Math.random() * 14, color: PARTICLE_PALETTES.GORE[i % PARTICLE_PALETTES.GORE.length], size: 1.5 + Math.random() * 2.5,
+    });
+  }
+};
+
 /** Player projectile vs. enemies, bosses and meth barrels. Returns false if the projectile is spent. */
 const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean => {
   const { state, fx } = ctx;
@@ -523,7 +545,9 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
     if (special) return false;
 
     if (enemy.type === 'boss') {
+      const hpBefore = enemy.health;
       const landedFullHit = hitBossWithProjectile(ctx, enemy, p);
+      if (isBullet(p) && enemy.health > 0 && enemy.health < hpBefore && !BLOODLESS_BOSSES.has(ctx.stageId || '')) bulletBlood(ctx, p, enemy);
       if (landedFullHit && p.isBoulder) shatterBoulder(ctx, p);
       return false;
     }
@@ -564,6 +588,7 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
     if (p.isIce) enemy.frozenTimer = SHOTGUN_FREEZE_TIME;
     fx.spawnDamageNumber(enemy.pos, p.damage, p.isBoulder);
     if (p.isIce) spawnIceMist(state, p, 8);
+    if (isBullet(p) && enemy.health > 0 && !wasFrozen && !BLOODLESS.has(enemy.kind || '')) bulletBlood(ctx, p, enemy);
     if (enemy.health <= 0) {
       // Killing an enemy that was already frozen shatters it
       if (wasFrozen) { fx.spawnGlassShatter(enemy.pos); fx.spawnKillCallout(enemy, 'shatter'); }
