@@ -201,6 +201,11 @@
  },
  {
   "voice": "announcer",
+  "text": "DISTRIBUTION CUT!",
+  "from": "game/stages/dale/junkie.ts:530"
+ },
+ {
+  "voice": "announcer",
   "text": "DROPPED!",
   "from": "KILL_CALLOUTS"
  },
@@ -336,6 +341,11 @@
  },
  {
   "voice": "announcer",
+  "text": "LAID TO REST!",
+  "from": "game/stages/tommy/thing.ts:259"
+ },
+ {
+  "voice": "announcer",
   "text": "LAUNCHED!",
   "from": "KILL_CALLOUTS"
  },
@@ -386,6 +396,16 @@
  },
  {
   "voice": "announcer",
+  "text": "MOO-SPLOSION!",
+  "from": "game/stages/hector/eye.ts:208"
+ },
+ {
+  "voice": "announcer",
+  "text": "MOOSE DOWN!",
+  "from": "game/stages/artie/moose.ts:281"
+ },
+ {
+  "voice": "announcer",
   "text": "NO LIFEGUARD ON DUTY!",
   "from": "KILL_CALLOUTS"
  },
@@ -398,6 +418,11 @@
   "voice": "announcer",
   "text": "OD'D!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "OFF HIS HEAD!",
+  "from": "game/stages/dale/junkie.ts:530"
  },
  {
   "voice": "announcer",
@@ -531,6 +556,11 @@
  },
  {
   "voice": "announcer",
+  "text": "SEPPUKU!",
+  "from": "game/stages/dale/town.ts:457"
+ },
+ {
+  "voice": "announcer",
   "text": "SHATTERED!",
   "from": "KILL_CALLOUTS"
  },
@@ -656,6 +686,11 @@
  },
  {
   "voice": "announcer",
+  "text": "THE EYE IS CLOSED!",
+  "from": "game/stages/hector/eye.ts:319"
+ },
+ {
+  "voice": "announcer",
   "text": "TIRE TRACKS!",
   "from": "KILL_CALLOUTS"
  },
@@ -733,6 +768,11 @@
   "voice": "announcer",
   "text": "YEETED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "YOU'RE ON THE LIST NOW!",
+  "from": "game/stages/victor/doorman.ts:800"
  },
  {
   "voice": "announcer",
@@ -4312,7 +4352,7 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE LISTENED",
-  "from": "game/stages/tommy/thing.ts:336"
+  "from": "game/stages/tommy/thing.ts:338"
  },
  {
   "voice": "death",

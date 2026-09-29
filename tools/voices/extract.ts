@@ -260,6 +260,8 @@ for (const file of files) {
       if (!vs.length) continue;
       for (const v of vs) for (const t of strings(a[ti])) add(v, t, where(c));
     }
+    // The big ones the announcer always calls: announceKill(text)
+    if (n === 'announceKill' && a[0]) for (const t of strings(a[0])) add('announcer', t, where(c));
     // The death screen, read out by the death announcer: killPlayer(ctx, message)
     if (n === 'killPlayer' && a[1]) for (const t of strings(a[1])) add('death', t, where(c));
     if (n === 'speakAsBoss') {

@@ -4,7 +4,7 @@ import {
 import { VULGARITIES, BOSS_DIALOGUE, KILL_LINES, KILL_CALLOUTS, KillCallout } from '../../content/dialogue';
 import { GameState } from './state';
 import { playSound, playGlassShatterSound } from '../platform/audio';
-import { say, isSpeaking, isTalking, canSpeak, pickFreshLine, announce, MEATHEAD_VOICE, announcerJustSpoke } from '../platform/speech';
+import { say, isSpeaking, isTalking, canSpeak, pickFreshLine, announce, MEATHEAD_VOICE, announcerJustSpoke, cutMeatheadQuip } from '../platform/speech';
 import { pickRandom } from './utils';
 import { startEnemyDeath, EnemyDeathKind } from '../enemies/deaths';
 
@@ -20,6 +20,8 @@ export const isGoreColor = (color: string) => GORE_COLORS.has(color);
 
 /** How often Meathead leaves a kill to the announcer, and how often the announcer takes one he's said nothing over. */
 const ANNOUNCER_TAKES = 0.15, ANNOUNCER_WHEN_QUIET = 0.6;
+/** How long a big one waits for quiet before it's let go (frames). */
+const ANNOUNCE_WAIT = 240;
 
 export const createFx = (state: GameState) => {
   const spawnDamageNumber = (pos: Vector2, value: number | string, isCritical: boolean = false, color?: string) => {
@@ -181,6 +183,8 @@ export const createFx = (state: GameState) => {
     }
     // A kill: now and then Meathead holds his tongue and leaves it to the announcer (if a callout goes up with it)
     const kill = category !== 'hurt' && category !== 'death';
+    // (a big kill the announcer's calling: he keeps quiet for it)
+    if (kill && state.killVoice?.forced) return;
     if (kill && !held && Math.random() < ANNOUNCER_TAKES) { (state.killVoice ??= {}).quip = { category, at: state.frame }; return; }
     // Skip entirely if every line in the pool was said recently
     const text = pickFreshLine(category === 'hurt' ? getHurtLines(hurtSource) : KILL_LINES[category]);
@@ -221,6 +225,16 @@ export const createFx = (state: GameState) => {
   const settleKillVoice = () => {
     const kv = state.killVoice;
     if (!kv) return;
+    // A mid-boss down, a set piece: the announcer always calls it (once whoever's talking has finished; Meathead's
+    // quips give way to it)
+    if (kv.forced) {
+      if (state.frame - kv.forced.at > ANNOUNCE_WAIT) { kv.forced = undefined; return; }
+      cutMeatheadQuip();
+      if (isTalking()) return;
+      announce(kv.forced.text, 1, true);
+      kv.forced = undefined; kv.callout = undefined; kv.quip = undefined;
+      return;
+    }
     const due = (at: number) => state.frame - at >= 1;
     const c = kv.callout && due(kv.callout.at) ? kv.callout : undefined;
     const q = kv.quip && due(kv.quip.at) ? kv.quip : undefined;
@@ -232,6 +246,9 @@ export const createFx = (state: GameState) => {
     if (c) kv.callout = undefined;
     if (q) kv.quip = undefined;
   };
+
+  /** A big one (a mid-boss down, a set piece): the announcer calls it, always, and Meathead leaves it to him. */
+  const announceKill = (text: string) => { (state.killVoice ??= {}).forced = { text, at: state.frame }; };
 
   /** A non-boss kill with its own death animation in place of the usual gore burst. */
   const killWithAnimation = (e: Enemy, kind: EnemyDeathKind, category: VulgarityType, callout?: KillCallout, vel?: Vector2) => {
@@ -260,6 +277,7 @@ export const createFx = (state: GameState) => {
     spawnDamageNumber,
     spawnKillCallout,
     settleKillVoice,
+    announceKill,
     spawnExplosion,
     spawnSteamExplosionParticles,
     spawnPoopExplosion,

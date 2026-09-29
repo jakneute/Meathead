@@ -5,7 +5,7 @@
 // bubble; everyone else's are drawn by the stage over wherever they are.
 
 import type { GameState } from '../../core/state';
-import { say, isSpeaking, sentenceShown, Voice, MEATHEAD_VOICE } from '../../platform/speech';
+import { say, isSpeaking, isTalking, sentenceShown, Voice, MEATHEAD_VOICE } from '../../platform/speech';
 
 export type Speaker = 'meathead' | 'dale' | 'junkie' | 'riggs' | 'ninja' | 'prisoner' | 'sheriff' | 'kid' | 'dad' | 'mom';
 
@@ -72,7 +72,7 @@ export const updateTalk = (state: GameState, talk: Talk) => {
   }
   if (!talk.queue.length || state.frame < talk.nextAt) return;
   // (someone else still talking, Meathead's "ow" say: they finish first, for a moment at most)
-  if (isSpeaking() && state.frame < talk.nextAt + WAIT_FOR_OTHERS) return;
+  if ((isSpeaking() || isTalking()) && state.frame < talk.nextAt + WAIT_FOR_OTHERS) return;
   const line = talk.queue.shift()!;
   const readFor = READ_BASE + line.text.length * READ_PER_CHAR;
   const cur = { who: line.who, text: line.text, since: state.frame, spoken: false, until: state.frame + readFor, done: false };

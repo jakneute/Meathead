@@ -527,7 +527,7 @@ const killJunkie = (ctx: FrameContext, m: Enemy, fight: JunkieFight, talk: Talk)
   fx.spawnDeathShower({ x: m.pos.x + W / 2, y: m.pos.y + H / 2 }, 0, 3, true, 120);
   shakeScreen(state, 30, 9);
   fx.spawnDamageNumber({ x: m.pos.x + W / 2 - 70, y: m.pos.y - 40 }, headbutt ? 'OFF HIS HEAD!' : 'DISTRIBUTION CUT!', true, '#FACC15');
-  if (!headbutt) fx.speakVulgarity(weapon === 'FLAMETHROWER' ? 'flamethrower_kill' : weapon === 'SHOTGUN' ? 'shotgun_kill' : weapon === 'BOULDER' ? 'boulder_kill' : weapon === 'TSUNAMI' ? 'tsunami_kill' : weapon === 'TASER' ? 'taser_kill' : weapon === 'NEEDLES' ? 'dart_kill' : weapon === 'SLUDGE' ? 'sludge_kill' : weapon === 'OIL_ROCKET' ? 'oil_kill' : 'gun_kill');
+  fx.announceKill(headbutt ? 'OFF HIS HEAD!' : 'DISTRIBUTION CUT!');
   state.player.killSatisfactionTimer = 90;
   // (the walk out's scripted: see leave)
   void talk;

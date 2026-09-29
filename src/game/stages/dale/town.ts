@@ -454,7 +454,7 @@ const updateNinja = (ctx: FrameContext, town: Town, talk: Talk): Controls | null
     return { ...NO_CONTROLS };
   }
   if (n.state === 'kneel') {
-    if (n.t === NINJA_CUT) { fx.spawnDeathShower({ x: spot.x + 6, y: spot.y - 20 }, 0, 1.2); shakeScreen(state, 6, 3); fx.spawnDamageNumber({ x: spot.x - 50, y: spot.y - 90 }, 'SEPPUKU!', true, '#F87171'); }
+    if (n.t === NINJA_CUT) { fx.spawnDeathShower({ x: spot.x + 6, y: spot.y - 20 }, 0, 1.2); shakeScreen(state, 6, 3); fx.spawnDamageNumber({ x: spot.x - 50, y: spot.y - 90 }, 'SEPPUKU!', true, '#F87171'); fx.announceKill('SEPPUKU!'); }
     if (n.t === NINJA_CUT + 20) queueLines(state, talk, [{ who: 'meathead', text: '...OKAY. SAVES ME A BULLET.' }]);
     if (n.t > NINJA_DONE) { n.state = 'dead'; n.t = 0; state.stageMemo.ninjaDead = 'yes'; }
     return { ...NO_CONTROLS };

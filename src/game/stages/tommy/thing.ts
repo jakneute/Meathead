@@ -255,6 +255,8 @@ const fight = (ctx: FrameContext, th: Thing, talk: Talk, controls: Controls): Co
   // Dead: however it went
   if (e.health <= 0) {
     th.phase = 'dying'; th.death = th.lastWeapon; th.deathT = 0; th.fist = 0; th.drops = [];
+    ctx.fx.spawnDamageNumber({ x: e.pos.x + 40, y: e.pos.y + 60 }, 'LAID TO REST!', true, '#A3E635');
+    ctx.fx.announceKill('LAID TO REST!');
     e.health = 0;
     shakeScreen(state, 50, 8);
     playSound(th.death === 'FLAMETHROWER' ? 'ignite' : th.death === 'SHOTGUN' ? 'ice' : 'tsunami');

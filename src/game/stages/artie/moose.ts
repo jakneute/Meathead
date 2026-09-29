@@ -278,7 +278,7 @@ const killMoose = (ctx: FrameContext, m: Enemy, fight: MooseFight) => {
   fx.spawnDeathShower({ x: m.pos.x + W / 2, y: m.pos.y + H / 2 }, 0, 4, true, 140);
   shakeScreen(state, 30, 9);
   fx.spawnDamageNumber({ x: m.pos.x + W / 2 - 60, y: m.pos.y - 40 }, 'MOOSE DOWN!', true, '#FACC15');
-  fx.speakVulgarity(weapon === 'FLAMETHROWER' ? 'flamethrower_kill' : weapon === 'SHOTGUN' ? 'shotgun_kill' : weapon === 'BOULDER' ? 'boulder_kill' : weapon === 'TSUNAMI' ? 'tsunami_kill' : weapon === 'TASER' ? 'taser_kill' : weapon === 'NEEDLES' ? 'dart_kill' : weapon === 'SLUDGE' ? 'sludge_kill' : weapon === 'OIL_ROCKET' ? 'oil_kill' : 'gun_kill');
+  fx.announceKill('MOOSE DOWN!');
   // The way on opens up
   state.blocks = state.blocks.filter(b => !fight.walls.includes(b));
   state.cameraOverride = null;

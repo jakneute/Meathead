@@ -797,7 +797,7 @@ const killDoorman = (ctx: FrameContext, m: Enemy, fight: DoormanFight, finisher?
   fx.spawnDeathShower({ x: m.pos.x + W / 2, y: m.pos.y + H / 2 }, 0, 3, true, 120);
   shakeScreen(state, 30, 9);
   fx.spawnDamageNumber({ x: m.pos.x + W / 2 - 70, y: m.pos.y - 40 }, 'YOU\'RE ON THE LIST NOW!', true, '#FACC15');
-  fx.speakVulgarity(weapon === 'FLAMETHROWER' ? 'flamethrower_kill' : weapon === 'SHOTGUN' ? 'shotgun_kill' : weapon === 'BOULDER' ? 'boulder_kill' : weapon === 'TSUNAMI' ? 'tsunami_kill' : weapon === 'TASER' ? 'taser_kill' : weapon === 'NEEDLES' ? 'dart_kill' : weapon === 'SLUDGE' ? 'sludge_kill' : weapon === 'OIL_ROCKET' ? 'oil_kill' : 'gun_kill');
+  fx.announceKill("YOU'RE ON THE LIST NOW!");
   state.blocks = state.blocks.filter(b => !fight.walls.includes(b));
   state.cameraOverride = null;
   state.player.killSatisfactionTimer = 90;

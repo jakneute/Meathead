@@ -632,7 +632,7 @@ const updateTumbles = (ctx: FrameContext, cv: Convoy) => {
         tb.crunched.push(k);
         playSound('crunch');
         fx.spawnDeathShower({ x: wx, y: Y - 14 }, -1, k === 0 ? 1.6 : 0.9);
-        if (k === 0) { fx.spawnDamageNumber({ x: wx - 40, y: Y - 120 }, 'FLATTENED!', true, '#F87171'); shakeScreen(state, 10, 5); }
+        if (k === 0) { fx.spawnDamageNumber({ x: wx - 40, y: Y - 120 }, 'FLATTENED!', true, '#F87171'); fx.announceKill('FLATTENED!'); shakeScreen(state, 10, 5); }
       });
     }
     // (him, where he is, tumbling; once the front wheels have him, he's under the truck: what's left is the spray)

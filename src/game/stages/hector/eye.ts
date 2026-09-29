@@ -205,7 +205,7 @@ const updateJunk = (ctx: FrameContext, f: EyeFight) => {
         // Shoot the flying cow and it goes off like a bomb full of beef
         ctx.fx.spawnDeathShower({ x: j.x, y: j.y }, Math.sign(j.vx), 3.5, true, 120);
         for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: j.x, y: j.y }, vel: { x: (Math.random() - 0.5) * 16, y: -3 - Math.random() * 9 }, life: 50 + Math.random() * 30, color: i % 3 ? '#F8FAFC' : '#111827', size: 6 + Math.random() * 7 });
-        ctx.fx.spawnDamageNumber({ x: j.x - 50, y: j.y - 60 }, 'MOO-SPLOSION!', true, '#EF4444');
+        ctx.fx.spawnDamageNumber({ x: j.x - 50, y: j.y - 60 }, 'MOO-SPLOSION!', true, '#EF4444'); ctx.fx.announceKill('MOO-SPLOSION!');
         shakeScreen(state, 14, 7);
         playSound('splat');
       } else ctx.fx.spawnExplosion({ x: j.x, y: j.y }, '#A8A29E', 10, 0, 6);
@@ -316,6 +316,6 @@ const killEye = (ctx: FrameContext, e: Enemy, f: EyeFight) => {
   shakeScreen(state, 40, 10);
   playSound('thunder');
   fx.spawnDamageNumber({ x: e.pos.x + 20, y: e.pos.y - 30 }, 'THE EYE IS CLOSED!', true, '#FACC15');
-  fx.speakVulgarity(weapon === 'FLAMETHROWER' ? 'flamethrower_kill' : weapon === 'SHOTGUN' ? 'shotgun_kill' : weapon === 'BOULDER' ? 'boulder_kill' : weapon === 'TSUNAMI' ? 'tsunami_kill' : weapon === 'TASER' ? 'taser_kill' : weapon === 'NEEDLES' ? 'dart_kill' : weapon === 'SLUDGE' ? 'sludge_kill' : weapon === 'OIL_ROCKET' ? 'oil_kill' : 'gun_kill');
+  fx.announceKill('THE EYE IS CLOSED!');
   state.player.killSatisfactionTimer = 90;
 };
