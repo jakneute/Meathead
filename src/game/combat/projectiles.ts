@@ -184,6 +184,9 @@ const updateOilRocket = (ctx: FrameContext, p: Projectile): boolean => {
   return true;
 };
 
+/** How long sludge runs down a wall before it's gone (frames). */
+const SLUDGE_SLIDE_MAX = 50;
+
 /** Gravity-affected projectiles: bouncing, sliding, shattering and lingering sludge. */
 const updatePhysicsProjectile = (ctx: FrameContext, p: Projectile): boolean => {
   const { state, fx } = ctx;
@@ -196,7 +199,16 @@ const updatePhysicsProjectile = (ctx: FrameContext, p: Projectile): boolean => {
     if (isSmallIce || p.isShrapnel) gravity = GRAVITY * 0.4;
     if (p.isPoop) gravity = 0;
     p.vel.y += gravity;
-    if (p.isSliding) p.vel.y = 1.5;
+    // Running down a wall: it picks up speed as it goes, and a run down a tall one doesn't go on for ever (it's spread
+    // itself too thin by then: a last splash, and it's gone)
+    if (p.isSliding) {
+      p.slideT = (p.slideT || 0) + 1;
+      p.vel.y = Math.min(9, 2 + p.slideT * 0.35);
+      if (p.slideT > SLUDGE_SLIDE_MAX) {
+        for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, vel: { x: (Math.random() - 0.5) * 3, y: Math.random() * 2 }, life: 16, color: i % 2 ? '#ADFF2F' : '#4ADE80', size: 3 + Math.random() * 3 });
+        return false;
+      }
+    }
     p.pos.y += p.vel.y;
   }
 
@@ -207,9 +219,10 @@ const updatePhysicsProjectile = (ctx: FrameContext, p: Projectile): boolean => {
     // Poop logs fly through walls near where they spawned
     if (p.isPoop && p.spawnX !== undefined && Math.abs(p.pos.x - p.spawnX) < 200) continue;
 
-    // NOTE: compares against the player's x, not the projectile's (original behaviour, kept as-is)
-    const overlapX = Math.min(p.pos.x + p.width - b.x, b.x + b.w - player.pos.x);
-    const overlapY = Math.min(p.pos.y + p.height - b.y, b.y + b.h - player.pos.y);
+    // NOTE: compares against the player's position, not the projectile's (original behaviour, kept as-is; not for
+    // sludge, which got read as landing on top of a tall wall it had hit side-on, or hitting a wall it had landed on)
+    const overlapX = Math.min(p.pos.x + p.width - b.x, b.x + b.w - (p.isSludge ? p.pos.x : player.pos.x));
+    const overlapY = Math.min(p.pos.y + p.height - b.y, b.y + b.h - (p.isSludge ? p.pos.y : player.pos.y));
     if (overlapX < overlapY) {
       // Hit a wall
       if (p.isMethBarrel) { p.vel.x *= -0.8; p.pos.x = (p.pos.x + p.width / 2 < b.x + b.w / 2) ? b.x - p.width : b.x + b.w; continue; }

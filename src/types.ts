@@ -413,6 +413,8 @@ export interface Projectile extends Entity {
   isDarkness?: boolean;
   isLingering?: boolean;
   isSliding?: boolean;
+  /** (sludge) Frames it's been running down a wall or a shield. */
+  slideT?: number;
   life?: number;
   bounceDecay?: number;
   spawnX?: number;
