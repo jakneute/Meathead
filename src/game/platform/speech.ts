@@ -184,6 +184,18 @@ let meatheadDoneAt = -Infinity, announcerDoneAt = -Infinity;
 const KILL_VOICE_GAP_MS = 1200;
 /** Recorded lines playing outside the queue (so they can be cut). */
 const outsideClips = new Set<ClipHandle>();
+/** A boss going down: whatever he was in the middle of saying (or waiting to say) is cut off. */
+export const cutBossLines = () => {
+  queue = queue.filter(l => !l.voice.id.startsWith('boss.'));
+  if (current && current.voice.id.startsWith('boss.')) {
+    const c = current;
+    current = null;
+    c.clip?.stop();
+    if (synthOK() && c.utterance) window.speechSynthesis.cancel();
+    c.onHide(); c.onDone?.();
+    playNext();
+  }
+};
 /** Everybody quiet, now: the line on, anything waiting, anything playing outside the queue (not the death announcer). */
 export const silenceAll = () => {
   cancelSpeech();

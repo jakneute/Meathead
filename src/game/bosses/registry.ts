@@ -2,6 +2,7 @@
 // damage, weapon reactions, dying, and running their behaviour each frame.
 // Each boss's own behaviour lives in bosses/<name>.ts.
 
+import { cutBossLines } from '../platform/speech';
 import { Enemy, Projectile, WeaponType, VulgarityType } from '../../types';
 import {
   ARENA_LEFT, ARENA_RIGHT, STAGE_WIDTH, BULLET_DAMAGE, WEAKNESS_DAMAGE, ENEMY_HIT_COOLDOWN, TASER_BOSS_DAMAGE_REDUCTION,
@@ -199,6 +200,8 @@ const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolea
   if (state.bossExplosionTimer > 0) return;
   const pos = { x: boss.pos.x + boss.width / 2, y: boss.pos.y + boss.height / 2 };
 
+  // (whatever he was in the middle of saying, he doesn't get to finish: just his last words)
+  cutBossLines();
   if (stageId && BOSS_DIALOGUE.THRESHOLDS[stageId]) speakAsBoss(stageId, BOSS_DIALOGUE.THRESHOLDS[stageId][0], helpers);
 
   state.bossVolcanoes = [];
