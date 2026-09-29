@@ -71,6 +71,8 @@ export const DROP_FROM = GROUND_Y - 320, DROP_WARN = 55, PUDDLE_R = 26, PUDDLE_F
 const DROP_DAMAGE = 12, PUDDLE_DAMAGE = 6;
 /** How often one comes down (quicker as it goes on), and sometimes a second, anywhere on the walkway. */
 const DROP_EVERY = 150;
+/** The fight's first drip waits a bit longer than that (he's only just walked in). */
+const FIRST_DROP = 110;
 
 /** What it can ask for (one of them at random each time). */
 const MENU: WeaponType[] = ['SHOTGUN', 'FLAMETHROWER', 'BOULDER', 'TSUNAMI'];
@@ -160,7 +162,7 @@ export const updateThingRoom = (ctx: FrameContext, th: Thing, talk: Talk, contro
       // Up out of the pool, and its piece said
       p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
       // (the fight's on as soon as it's up: its first ask comes after what's being said)
-      if (th.t > 90) { th.phase = 'fight'; th.t = 0; ask(state, th, talk, true); }
+      if (th.t > 90) { th.phase = 'fight'; th.t = 0; th.dropAt = state.frame + FIRST_DROP; ask(state, th, talk, true); }
       return th.t < 90 ? { ...NO_CONTROLS } : controls;
     case 'fight': return fight(ctx, th, talk, controls);
     case 'dying':

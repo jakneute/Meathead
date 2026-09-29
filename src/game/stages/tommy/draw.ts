@@ -71,7 +71,7 @@ export const drawTommyMid = (ctx: Ctx, state: GameState) => {
     drawChunks(ctx, rt);
     drawBlast(ctx, state, rt);
     if (rt.thing.e && rt.thing.phase !== 'dormant') drawThing(ctx, rt.thing.e, rt.thing, state);
-    if (rt.thing.drops.length) drawThingDrops(ctx, rt.thing, state.frame);
+    drawThingDrops(ctx, rt.thing, state.frame);
   }
 };
 

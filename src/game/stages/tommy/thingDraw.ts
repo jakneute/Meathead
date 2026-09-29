@@ -278,8 +278,9 @@ const drawWantIcon = (ctx: Ctx, w: string, x: number, y: number, f: number) => {
 
 /** The muck off the roof: the drip forming up there and its mark swelling on the walkway, the glob coming down, the puddle. */
 export const drawThingDrops = (ctx: Ctx, th: Thing, frame: number) => {
-  // Where they come from: the muck's up the dome over the walkway too, hanging off it, sagging, dripping
-  if (th.phase === 'fight') {
+  // Where they come from: the muck's up the dome over the walkway too, hanging off it, sagging, dripping (it's always
+  // been up there: before he walks in, and after)
+  {
     const C = COURSE.sewer.cistern, x1 = C.x1, x2 = C.pool + 20, y = DROP_FROM;
     // The ceiling over the walkway (a low slab of old brick on iron beams), the muck clinging to the underside of it
     ctx.fillStyle = '#2A2521'; ctx.fillRect(x1 - 20, y - 150, x2 - x1 + 40, 110);
