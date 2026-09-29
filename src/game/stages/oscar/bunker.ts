@@ -203,20 +203,18 @@ const aftermath = (ctx: FrameContext, b: Bunker, talk: Talk): Controls => {
   p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
   const B = COURSE.bunker;
   state.cameraOverride = { x: (B.x1 + B.x2) / 2 - CANVAS_WIDTH / 2, y: GROUND_Y - 550 };
-  if (b.phase === 'boom' && b.t === 70) {
+  if (b.phase === 'boom' && b.t === 45) {
     b.phase = 'aftermath'; b.t = 0;
     for (const w of b.workers) { w.state = 'furious'; w.t = 0; }
     queueLines(state, talk, [
       { who: 'worker', text: 'MY BREAK!' },
-      { who: 'worker', text: 'THAT WAS MY FIFTEEN MINUTES!' },
       { who: 'foreman', text: '...EVERYBODY. BACK. TO WORK.' },
-      { who: 'worker', text: "I'M FILING A GRIEVANCE. I'M FILING SIX." },
       { who: 'meathead', text: "BREAK'S OVER, BOYS." },
-    ], 20);
+    ], 8);
   }
   if (b.phase === 'aftermath') {
     // (stomping off to work once they've said their piece)
-    if (b.t > 60 && quiet(talk)) {
+    if (b.t > 20 && quiet(talk)) {
       for (const w of b.workers) if (w.state === 'furious') { w.state = 'gone'; w.t = 0; }
       b.phase = 'runout'; b.t = 0; b.step = 0; b.stepAt = 0;
     }
