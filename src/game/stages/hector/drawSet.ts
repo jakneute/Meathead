@@ -14,6 +14,7 @@ import type { Daycare } from './daycare';
 import { drawEyeCorpse } from './eyeDraw';
 import { drawKindEnemy } from '../../render/enemies';
 import { sentenceShown } from '../../platform/speech';
+import { DAYCARE_LINES } from '../../../content/dialogue';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -428,10 +429,11 @@ export const drawDaycare = (ctx: Ctx, state: GameState, dc: Daycare) => {
       CHEER_SPOTS.forEach((dx, k) => kid(ctx, bx + dx, g - Math.abs(Math.sin(f * 0.3 + k)) * 10, KID_COLORS[k], true, f, k));
       // ...while the grown-ups, who know what that is, lose it
       ADULT_PANIC.forEach((dx, k) => adult(ctx, bx + dx, g, k as 0 | 1, true, f));
-      if (t >= LOOK_UP + 10) bubble(ctx, bx + CHEER_SPOTS[1], g - 60, 'WHOA!!');
-      if (t >= LOOK_UP + 20) bubble(ctx, bx + CHEER_SPOTS[3], g - 60, 'YAAAY!');
-      if (t >= LOOK_UP + 6) bubble(ctx, bx + ADULT_PANIC[0], g - 86, 'OH NO. OH NO NO NO.');
-      if (t >= LOOK_UP + 16) bubble(ctx, bx + ADULT_PANIC[1], g - 86, "I'M NOT PAID ENOUGH FOR THIS");
+      for (const [who, text] of Object.entries(dc.saying)) {
+        const k = Number(who.slice(-1));
+        if (who.startsWith('kid')) bubble(ctx, bx + CHEER_SPOTS[k], g - 60, text);
+        else bubble(ctx, bx + ADULT_PANIC[k], g - 86, text);
+      }
     }
     return;
   }
@@ -459,7 +461,8 @@ export const drawDaycare = (ctx: Ctx, state: GameState, dc: Daycare) => {
   for (let x = bx - 420; x < bx + 500; x += 90) { ctx.beginPath(); ctx.ellipse(x + hash(x) * 40, g - 1, 36, 4, 0, 0, Math.PI * 2); ctx.fill(); }
   // The kids, sat on top of the wreck in their floaties, cheering (once they've ridden the wave in)
   if (t < 0 || t >= RIDE_END) for (let k = 0; k < 5; k++) { const w = wreckSpot(k); floatieKid(ctx, w.x, w.y, k, f); }
-  if (dc.kidLineT > 0) bubble(ctx, bx - 60, g - 140, dc.kidLine);
+  // (what they're saying: up on the wreck once they're there)
+  if (t < 0 || t >= RIDE_END) for (const [who, text] of Object.entries(dc.saying)) if (who.startsWith('kid')) { const w = wreckSpot(Number(who.slice(-1))); bubble(ctx, w.x, w.y - 50, text); }
 };
 
 /** The flood's timeline, in cutscene frames (daycare.ts drives it). */
@@ -506,7 +509,7 @@ export const drawDaycareFront = (ctx: Ctx, state: GameState, dc: Daycare) => {
       const x = from.x + (to.x - from.x) * k01, y = from.y + (to.y - from.y) * k01 - Math.sin(k01 * Math.PI) * (160 + k * 25);
       floatieKid(ctx, x, y, k, f);
     });
-    if (t > HIT + 12) bubble(ctx, bx, g - 250, 'WHEEEEEE!');
+    if (dc.saying[DAYCARE_LINES.ride.who]) bubble(ctx, bx, g - 250, dc.saying[DAYCARE_LINES.ride.who]);
     // The grown-ups, not riding it: rolled over and over in it, out to where they end up, red in the water round them
     ADULT_PANIC.forEach((dx, k) => {
       const x = bx + dx + (ADULT_SPLAT[k] - dx) * k01, y = g - 30 + Math.sin(k01 * Math.PI * 3) * 14;

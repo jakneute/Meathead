@@ -398,7 +398,7 @@ export const sayModulated = (text: string, voice: Voice, onDone: () => void): ((
 
 export const ANNOUNCER_VOICE: Voice = { id: 'announcer', pitch: 0.5, rate: 0.9 };
 /** How often (a chance per callout, unless it's been handed the kill), and never again within this long. */
-const ANNOUNCE_CHANCE = 0.35, ANNOUNCE_GAP_MS = 7000;
+const ANNOUNCE_CHANCE = 0.35, ANNOUNCE_GAP_MS = 5000;
 /** Could the announcer call this one right now (recorded, not too soon after the last, nobody talking)? */
 export const announcerFree = (text: string) => Date.now() - lastAnnounced >= ANNOUNCE_GAP_MS && hasClip(ANNOUNCER_VOICE.id, text) && !isTalking() && Date.now() - meatheadDoneAt >= KILL_VOICE_GAP_MS;
 let lastAnnounced = -Infinity;

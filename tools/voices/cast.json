@@ -26,6 +26,14 @@
   "dispatch": { "voice": "af_sarah", "speed": 0.95, "rate": 1.0, "fx": "radio_mild" },
   "goon": { "voice": "am_fenrir", "speed": 1.1, "rate": 0.9 },
 
+  "hector.kid0": { "voice": "af_sky", "speed": 1.1, "rate": 1.25 },
+  "hector.kid1": { "voice": "af_nova", "speed": 1.12, "rate": 1.3 },
+  "hector.kid2": { "voice": "am_puck", "speed": 1.15, "rate": 1.32 },
+  "hector.kid3": { "voice": "af_bella", "speed": 1.12, "rate": 1.32 },
+  "hector.kid4": { "voice": "am_echo", "speed": 1.15, "rate": 1.36 },
+  "hector.teacher0": { "voice": "af_sarah", "speed": 1.15, "rate": 1.02 },
+  "hector.teacher1": { "voice": "af_kore", "speed": 1.05, "rate": 0.98 },
+
   "barry.minion": { "voice": "am_echo", "speed": 1.25, "rate": 1.12 },
   "barry.barry": { "alias": "boss.barry" },
 

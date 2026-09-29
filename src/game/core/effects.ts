@@ -19,7 +19,9 @@ const GORE_COLORS = new Set([...PARTICLE_PALETTES.GORE, ...PARTICLE_PALETTES.FLE
 export const isGoreColor = (color: string) => GORE_COLORS.has(color);
 
 /** How often Meathead leaves a kill to the announcer, and how often the announcer takes one he's said nothing over. */
-const ANNOUNCER_TAKES = 0.15, ANNOUNCER_WHEN_QUIET = 0.6;
+const ANNOUNCER_TAKES = 0.22, ANNOUNCER_WHEN_QUIET = 0.75;
+/** How long a callout handed to the announcer waits for its moment before it's let go (frames). */
+const HANDED_WAIT = 75;
 
 export const createFx = (state: GameState) => {
   const spawnDamageNumber = (pos: Vector2, value: number | string, isCritical: boolean = false, color?: string) => {
@@ -183,6 +185,7 @@ export const createFx = (state: GameState) => {
     const kill = category !== 'hurt' && category !== 'death';
     // (a big kill the announcer's calling: he keeps quiet for it)
     if (kill && state.killVoice?.forced) return;
+    if (kill && state.killVoice?.handed) return;
     if (kill && !held && Math.random() < ANNOUNCER_TAKES) { (state.killVoice ??= {}).quip = { category, at: state.frame }; return; }
     // Skip entirely if every line in the pool was said recently
     const text = pickFreshLine(category === 'hurt' ? getHurtLines(hurtSource) : KILL_LINES[category]);
@@ -230,13 +233,23 @@ export const createFx = (state: GameState) => {
       kv.forced = undefined; kv.callout = undefined; kv.quip = undefined;
       return;
     }
+    // The announcer's been handed one: it goes as soon as it can (whoever's talking done, a breath after), or not at
+    // all if that's too long coming (and a quip Meathead held back for it is his again)
+    if (kv.handed) {
+      const h = kv.handed;
+      if (announce(h.text, 1)) { kv.handed = undefined; return; }
+      if (state.frame - h.at > HANDED_WAIT) { kv.handed = undefined; if (h.quip) speakVulgarity(h.quip, undefined, true); }
+      return;
+    }
     const due = (at: number) => state.frame - at >= 1;
     const c = kv.callout && due(kv.callout.at) ? kv.callout : undefined;
     const q = kv.quip && due(kv.quip.at) ? kv.quip : undefined;
     if (!c && !q) return;
     if (c) {
-      if (q) { if (!announce(c.text, 1)) speakVulgarity(q.category, undefined, true); }
-      else if (kv.quippedAt === undefined || kv.quippedAt < c.at - 1) announce(c.text, ANNOUNCER_WHEN_QUIET);
+      // Meathead held his tongue for this one: it's the announcer's
+      if (q) kv.handed = { text: c.text, at: state.frame, quip: q.category };
+      // Meathead said nothing over it (his lines on cooldown, used up...): usually it's the announcer's
+      else if ((kv.quippedAt === undefined || kv.quippedAt < c.at - 1) && Math.random() < ANNOUNCER_WHEN_QUIET) kv.handed = { text: c.text, at: state.frame };
     } else if (q) speakVulgarity(q.category, undefined, true);
     if (c) kv.callout = undefined;
     if (q) kv.quip = undefined;

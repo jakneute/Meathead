@@ -5095,6 +5095,331 @@
   "from": "game/stages/ernie/alcatraz.ts:106"
  },
  {
+  "voice": "hector.kid0",
+  "text": "AGAIN! AGAIN!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid0",
+  "text": "ARE YOU A SUPERHERO?",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid0",
+  "text": "BEST DAY EVER!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid0",
+  "text": "CAN WE KEEP THE CAR?",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid0",
+  "text": "DO IT AGAIN, MISTER!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid0",
+  "text": "HE FELL OUT OF THE SKY!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid0",
+  "text": "I FOUND A SHARK TOOTH!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid0",
+  "text": "I'M TELLING MY MOM!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid0",
+  "text": "MISS PATTY'S TAKING A NAP!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid0",
+  "text": "MY FLOATIES WORKED!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid0",
+  "text": "NAP TIME IS CANCELED!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid0",
+  "text": "THERE'S A BOAT IN THE SANDBOX!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid1",
+  "text": "AGAIN! AGAIN!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid1",
+  "text": "ARE YOU A SUPERHERO?",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid1",
+  "text": "BEST DAY EVER!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid1",
+  "text": "CAN WE KEEP THE CAR?",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid1",
+  "text": "DO IT AGAIN, MISTER!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid1",
+  "text": "HE FELL OUT OF THE SKY!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid1",
+  "text": "I FOUND A SHARK TOOTH!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid1",
+  "text": "I'M TELLING MY MOM!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid1",
+  "text": "MISS PATTY'S TAKING A NAP!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid1",
+  "text": "MY FLOATIES WORKED!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid1",
+  "text": "NAP TIME IS CANCELED!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid1",
+  "text": "THERE'S A BOAT IN THE SANDBOX!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid1",
+  "text": "WHOA!!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid2",
+  "text": "AGAIN! AGAIN!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid2",
+  "text": "ARE YOU A SUPERHERO?",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid2",
+  "text": "BEST DAY EVER!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid2",
+  "text": "CAN WE KEEP THE CAR?",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid2",
+  "text": "DO IT AGAIN, MISTER!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid2",
+  "text": "HE FELL OUT OF THE SKY!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid2",
+  "text": "I FOUND A SHARK TOOTH!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid2",
+  "text": "I'M TELLING MY MOM!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid2",
+  "text": "MISS PATTY'S TAKING A NAP!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid2",
+  "text": "MY FLOATIES WORKED!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid2",
+  "text": "NAP TIME IS CANCELED!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid2",
+  "text": "THERE'S A BOAT IN THE SANDBOX!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid2",
+  "text": "WHEEEEEE!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid3",
+  "text": "AGAIN! AGAIN!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid3",
+  "text": "ARE YOU A SUPERHERO?",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid3",
+  "text": "BEST DAY EVER!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid3",
+  "text": "CAN WE KEEP THE CAR?",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid3",
+  "text": "DO IT AGAIN, MISTER!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid3",
+  "text": "HE FELL OUT OF THE SKY!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid3",
+  "text": "I FOUND A SHARK TOOTH!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid3",
+  "text": "I'M TELLING MY MOM!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid3",
+  "text": "MISS PATTY'S TAKING A NAP!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid3",
+  "text": "MY FLOATIES WORKED!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid3",
+  "text": "NAP TIME IS CANCELED!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid3",
+  "text": "THERE'S A BOAT IN THE SANDBOX!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid3",
+  "text": "YAAAY!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid4",
+  "text": "AGAIN! AGAIN!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid4",
+  "text": "ARE YOU A SUPERHERO?",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid4",
+  "text": "BEST DAY EVER!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid4",
+  "text": "CAN WE KEEP THE CAR?",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid4",
+  "text": "DO IT AGAIN, MISTER!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid4",
+  "text": "HE FELL OUT OF THE SKY!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid4",
+  "text": "I FOUND A SHARK TOOTH!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid4",
+  "text": "I'M TELLING MY MOM!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid4",
+  "text": "MISS PATTY'S TAKING A NAP!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid4",
+  "text": "MY FLOATIES WORKED!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid4",
+  "text": "NAP TIME IS CANCELED!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid4",
+  "text": "THERE'S A BOAT IN THE SANDBOX!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.teacher0",
+  "text": "OH NO. OH NO NO NO.",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.teacher1",
+  "text": "I'M NOT PAID ENOUGH FOR THIS",
+  "from": "DAYCARE_LINES"
+ },
+ {
   "voice": "hipster",
   "text": "I'VE HEARD OF IT NOW.",
   "from": "game/stages/ernie/jetski.ts:127"
@@ -5917,7 +6242,7 @@
  {
   "voice": "meathead",
   "text": "DAYCARE'S CLOSED.",
-  "from": "game/stages/hector/daycare.ts:63"
+  "from": "game/stages/hector/daycare.ts:79"
  },
  {
   "voice": "meathead",

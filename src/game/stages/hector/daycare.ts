@@ -11,7 +11,8 @@ import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
 import { shakeScreen } from '../../core/state';
 import { playSound } from '../../platform/audio';
-import { say, MEATHEAD_VOICE } from '../../platform/speech';
+import { say, isTalking, MEATHEAD_VOICE, Voice } from '../../platform/speech';
+import { DAYCARE_LINES } from '../../../content/dialogue';
 import { floorTopAt } from '../../core/terrain';
 import { BOSS_DOOR_X } from '../../../constants';
 import { COURSE, CP } from './course';
@@ -21,16 +22,31 @@ export interface Daycare {
   t: number;
   /** Has the flood hit it yet (and when). */
   hitAt: number;
-  /** The kids' line after. */
-  kidLine: string;
-  kidLineT: number;
   /** When he hit the ground. */
   landedAt: number;
+  /** What each of them is saying right now (by who: kid0..kid4, teacher0, teacher1), for their bubbles. */
+  saying: Record<string, string>;
+  /** The kids' chatter up on the wreck: when the next line's due, and the last one said. */
+  chatterAt: number;
+  lastChatter: string;
 }
+
+/** Their voices. */
+const voiceOf = (who: string): Voice => ({ id: `hector.${who}`, pitch: who.startsWith('kid') ? 1.8 : 1.1, rate: 1.1 });
+/** A line from one of them, in turn after whoever's talking (`casual`: only if nobody is), up over their head while it's said. */
+const daycareSays = (dc: Daycare, who: string, text: string, casual = false) =>
+  say(text, voiceOf(who), casual ? 'casual' : 'queue', {
+    onShow: () => { dc.saying[who] = text; },
+    onHide: () => { if (dc.saying[who] === text) delete dc.saying[who]; },
+  });
+/** How often a kid on the wreck pipes up (frames, give or take), and how close he has to be to hear it. */
+const CHATTER_EVERY = 420, CHATTER_NEAR = 900;
 
 const D = () => COURSE.daycare;
 /** Timeline (frames): the flood starts coming down, it hits, Meathead drops in, his line, done. */
 const FALL_AT = 100, HIT_AT = 140, DROP_AT = 190, LINE_AT = 250, DONE_AT = 330;
+/** When the kids look up and see it coming (the drawing's clock too). */
+const LOOK_UP = 100;
 
 export const createDaycare = (state: GameState, startedAt: number): Daycare => {
   const done = startedAt >= CP.DOOR;
@@ -40,7 +56,7 @@ export const createDaycare = (state: GameState, startedAt: number): Daycare => {
   (['large_health', 'large_ammo'] as const).forEach((type, i) => state.pickups.push({
     id: `hector-door-refill-${i}`, pos: { x: BOSS_DOOR_X - 300 + i * 80 - 10, y: D().y - 50 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9,
   }));
-  return { phase: done ? 'done' : 'waiting', t: 0, hitAt: done ? -9999 : 0, kidLine: '', kidLineT: 0, landedAt: 0 };
+  return { phase: done ? 'done' : 'waiting', t: 0, hitAt: done ? -9999 : 0, landedAt: 0, saying: {}, chatterAt: 0, lastChatter: '' };
 };
 
 export const inDaycare = (x: number) => x >= D().x1 - 100;
@@ -70,12 +86,15 @@ const meatheadSays = (state: GameState, text: string) => {
 export const updateDaycare = (ctx: FrameContext, dc: Daycare, controls: Controls): Controls => {
   const { state } = ctx;
   const { player } = state;
-  if (dc.kidLineT > 0) dc.kidLineT--;
+  if (dc.phase === 'done') { chatter(state, dc); return controls; }
   if (dc.phase !== 'cutscene') return controls;
   dc.t++;
   const t = dc.t;
   player.invincibilityTimer = Math.max(player.invincibilityTimer, 2);
   if (t === FALL_AT) { playSound('slam'); shakeScreen(state, 60, 5); }
+  // The kids cheering it in, the grown-ups losing it; whooping as they ride it in
+  for (const l of DAYCARE_LINES.cheer) if (t === LOOK_UP + l.at) daycareSays(dc, l.who, l.text);
+  if (t === HIT_AT + 12) daycareSays(dc, DAYCARE_LINES.ride.who, DAYCARE_LINES.ride.text);
   if (t === HIT_AT) {
     dc.hitAt = state.frame;
     shakeScreen(state, 70, 14);
@@ -114,7 +133,7 @@ export const updateDaycare = (ctx: FrameContext, dc: Daycare, controls: Controls
     for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: player.pos.x + 22, y: ground - 4 }, vel: { x: (Math.random() - 0.5) * 12, y: -Math.random() * 7 }, life: 30, color: i % 2 ? '#7DD3FC' : '#E0F2FE', size: 4 + Math.random() * 6 });
   }
   if (t === LINE_AT) meatheadSays(state, "DAYCARE'S CLOSED.");
-  if (t === LINE_AT + 40) { dc.kidLine = 'AGAIN! AGAIN!'; dc.kidLineT = 150; }
+  if (t === LINE_AT + 40) daycareSays(dc, DAYCARE_LINES.again.who, DAYCARE_LINES.again.text);
   if (t >= DONE_AT) {
     dc.phase = 'done';
     player.inCutscene = false;
@@ -125,4 +144,17 @@ export const updateDaycare = (ctx: FrameContext, dc: Daycare, controls: Controls
   }
   // (a crouched superhero landing for a moment)
   return { ...NO_CONTROLS, down: !!dc.landedAt && t < dc.landedAt + 30 };
+};
+
+/** Up on the wreck, every so often (while he's about), one of the kids pipes up. */
+const chatter = (state: GameState, dc: Daycare) => {
+  const p = state.player;
+  if (Math.abs(p.pos.x - D().building) > CHATTER_NEAR) return;
+  if (!dc.chatterAt) dc.chatterAt = state.frame + 120;
+  if (state.frame < dc.chatterAt || isTalking()) return;
+  dc.chatterAt = state.frame + CHATTER_EVERY + Math.floor(Math.random() * 240);
+  const pool = DAYCARE_LINES.chatter.filter(l => l !== dc.lastChatter);
+  const text = pool[Math.floor(Math.random() * pool.length)];
+  dc.lastChatter = text;
+  daycareSays(dc, `kid${Math.floor(Math.random() * 5)}`, text, true);
 };

@@ -6,6 +6,18 @@
     { "in": "THAT LEAD", "say": "THAT LED" },
     { "in": "YOUR LEAD IS", "say": "YOUR LED IS" },
     { "in": "EAT LEAD", "say": "EAT LED" },
-    { "in": "BAR-B-QUED", "say": "BARBECUED" }
+    { "in": "BAR-B-QUED", "say": "BARBECUED" },
+    { "in": "BITIN'", "say": "BYTIN" },
+    { "in": "BRRRR-EAK", "say": "BURRR-EAK" },
+    { "in": "BRR-ZZT", "say": "BURR, BUZZT" },
+    { "in": "BRRR!", "say": "BURR!" },
+    { "in": "BZZZZT", "say": "BUZZT" },
+    { "in": "BZZT", "say": "BUZZT" },
+    { "in": "PFFT.", "say": "PAH." },
+    { "in": "NOTHIIIIIIING", "say": "NUTHINNNG" },
+    { "in": "TIIIIIIRES", "say": "TIRES" },
+    { "in": "45s", "say": "FORTY-FIVES" },
+    { "in": "B-B-BULLETS", "say": "BUH-BUH-BULLETS" },
+    { "in": "OD'D", "say": "OH-DEED" }
   ]
 }

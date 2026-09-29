@@ -974,3 +974,33 @@ export const BOSS_WEAPON_REACTIONS: Record<string, Partial<Record<WeaponType, st
     OIL_ROCKET: ["OIL? I'M NOT IN THAT BUSINESS, MAN!", "YOU GREASED THE TRUCK!", "SLICK MOVE. I RESPECT THE HUSTLE."],
   },
 };
+
+/**
+ * The daycare in Miami (Hector's stage): the kids cheering the flood in and the two grown-ups who know what it is,
+ * the kids riding the wave, and then the kids up on the wreck, chattering (a line now and then, any of them, from
+ * `chatter`). Who says what: kid0..kid4 (left to right), teacher0 and teacher1. `at`: frames after they look up.
+ */
+export const DAYCARE_LINES = {
+  cheer: [
+    { at: 6, who: 'teacher0', text: 'OH NO. OH NO NO NO.' },
+    { at: 10, who: 'kid1', text: 'WHOA!!' },
+    { at: 16, who: 'teacher1', text: "I'M NOT PAID ENOUGH FOR THIS" },
+    { at: 20, who: 'kid3', text: 'YAAAY!' },
+  ],
+  ride: { who: 'kid2', text: 'WHEEEEEE!' },
+  again: { who: 'kid0', text: 'AGAIN! AGAIN!' },
+  chatter: [
+    'AGAIN! AGAIN!',
+    'BEST DAY EVER!',
+    'DO IT AGAIN, MISTER!',
+    'THERE\'S A BOAT IN THE SANDBOX!',
+    'I FOUND A SHARK TOOTH!',
+    'CAN WE KEEP THE CAR?',
+    'HE FELL OUT OF THE SKY!',
+    'ARE YOU A SUPERHERO?',
+    'MY FLOATIES WORKED!',
+    'NAP TIME IS CANCELED!',
+    'I\'M TELLING MY MOM!',
+    'MISS PATTY\'S TAKING A NAP!',
+  ],
+} as const;
