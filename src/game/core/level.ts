@@ -54,6 +54,8 @@ export const respawn = (state: GameState, stageId: string | null, skipToBoss: bo
   p.weaponAmmo = createFullAmmo();
   state.shouldSyncWeapon = true;
   state.frame = 1;
+  // (the frame count starts over: nothing still on offer from before)
+  state.dyingSkipAt = undefined;
   const checkpointStart = buildLevel(state, stageId, atBoss);
   // A long stage's checkpoint: start there instead, with the camera already on him
   if (checkpointStart && !atBoss) {

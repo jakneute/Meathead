@@ -66,6 +66,7 @@ export const skipDying = (ctx: FrameContext, t: number, message: () => string): 
   silenceAll();
   killPlayer(ctx, message(), false);
   state.deathFrames = SKIP_AFTER + 1;
+  state.dyingSkipAt = undefined;
   return true;
 };
 
