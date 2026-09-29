@@ -20,8 +20,9 @@ export const isGoreColor = (color: string) => GORE_COLORS.has(color);
 
 /** How often Meathead leaves a kill to the announcer, and how often the announcer takes one he's said nothing over. */
 const ANNOUNCER_TAKES = 0.35, ANNOUNCER_WHEN_QUIET = 0.75;
-/** How long a callout handed to the announcer waits for its moment before it's let go (frames). */
-const HANDED_WAIT = 75;
+/** How long a callout handed to the announcer waits for its moment before it's let go (frames): barely at all, so it
+ * lands with the words going up or not at all. */
+const HANDED_WAIT = 6;
 
 export const createFx = (state: GameState) => {
   const spawnDamageNumber = (pos: Vector2, value: number | string, isCritical: boolean = false, color?: string) => {

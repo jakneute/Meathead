@@ -22,6 +22,14 @@ export const loadVoicePack = async (url: string) => {
     const n = new DataView(buf).getUint32(0, true);
     const header = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 4, n)));
     pack = { buf, base: 4 + n, clips: header.clips, voices: header.voices };
+    // (the announcer's clips, decoded now, a few at a time, so none of them has to wait later)
+    const keys = Object.keys(pack.clips).filter(k => KEEP_READY.some(v => k.startsWith(`${v}|`)));
+    const warm = async () => {
+      let ctx: AudioContext;
+      try { ctx = getAudioContext(); } catch { return; }
+      for (const k of keys) { if (!ready.has(k)) { try { await decode(ctx, k); } catch { /* skip it */ } await new Promise(r => setTimeout(r, 15)); } }
+    };
+    setTimeout(warm, 1500);
   } catch (err) {
     console.warn('voices: no pack', err);
   }
@@ -39,13 +47,20 @@ export const sentenceTimes = (voice: string, text: string): number[] => {
 // ---- decoding, and a small cache of what's been decoded
 const decoded = new Map<string, AudioBuffer>();
 const CACHE = 48;
+/** Voices whose every clip is decoded ahead of time and kept (the announcer: his call has to land the moment the
+ * words go up, with no wait for decoding). */
+const KEEP_READY = ['announcer'];
+const ready = new Map<string, AudioBuffer>();
 const decode = async (ctx: AudioContext, key: string): Promise<AudioBuffer | null> => {
+  const r = ready.get(key);
+  if (r) return r;
   const have = decoded.get(key);
   if (have) { decoded.delete(key); decoded.set(key, have); return have; }
   const at = pack?.clips[key];
   if (!pack || !at) return null;
   const bytes = pack.buf.slice(pack.base + at[0], pack.base + at[0] + at[1]);
   const audio = await ctx.decodeAudioData(bytes);
+  if (KEEP_READY.some(v => key.startsWith(`${v}|`))) { ready.set(key, audio); return audio; }
   decoded.set(key, audio);
   while (decoded.size > CACHE) decoded.delete(decoded.keys().next().value!);
   return audio;
