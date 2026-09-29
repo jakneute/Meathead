@@ -278,6 +278,17 @@ const drawWantIcon = (ctx: Ctx, w: string, x: number, y: number, f: number) => {
 
 /** The muck off the roof: the drip forming up there and its mark swelling on the walkway, the glob coming down, the puddle. */
 export const drawThingDrops = (ctx: Ctx, th: Thing, frame: number) => {
+  // Where they come from: the muck's up the dome over the walkway too, hanging off it, sagging, dripping
+  if (th.phase === 'fight') {
+    const C = COURSE.sewer.cistern, x1 = C.x1, x2 = C.pool + 20, y = DROP_FROM;
+    ctx.fillStyle = '#3F6212';
+    ctx.beginPath(); ctx.moveTo(x1, y - 60);
+    for (let x = x1; x <= x2; x += 16) ctx.lineTo(x, y - 6 + Math.sin(x * 0.07 + frame * 0.03) * 4 + (((x * 7) % 11) - 5));
+    ctx.lineTo(x2, y - 60); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#4D7C0F';
+    for (let x = x1 + 10; x < x2; x += 37) { const len = 8 + ((x * 13) % 17); ctx.beginPath(); ctx.moveTo(x - 5, y - 8); ctx.lineTo(x, y - 6 + len); ctx.lineTo(x + 5, y - 8); ctx.fill(); }
+    ctx.fillStyle = 'rgba(217, 249, 157, 0.35)'; for (let x = x1 + 20; x < x2; x += 60) ctx.fillRect(x, y - 30, 14, 3);
+  }
   for (const d of th.drops) {
     if (d.state === 'warn') {
       if (d.t < 0) continue;
@@ -304,7 +315,7 @@ export const drawThingDrops = (ctx: Ctx, th: Thing, frame: number) => {
       ctx.fillStyle = '#4D7C0F'; ctx.beginPath(); ctx.ellipse(d.x, GROUND_Y - 1, PUDDLE_R, 7, 0, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = '#84CC16'; ctx.beginPath(); ctx.ellipse(d.x - 4, GROUND_Y - 2, PUDDLE_R - 10, 4, 0, 0, Math.PI * 2); ctx.fill();
       for (let i = 0; i < 3; i++) {
-        const bt = ((frame + i * 13 + d.x) % 30) / 30;
+        const bt = ((((frame + i * 13 + d.x) % 30) + 30) % 30) / 30;
         ctx.strokeStyle = `rgba(217, 249, 157, ${0.8 * (1 - bt)})`; ctx.lineWidth = 1.5;
         ctx.beginPath(); ctx.arc(d.x - 18 + i * 18, GROUND_Y - 3, 2 + bt * 4, Math.PI, 0); ctx.stroke();
       }

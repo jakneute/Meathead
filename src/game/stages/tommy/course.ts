@@ -192,7 +192,9 @@ const build = () => {
   s.spawn('rat', 2250); s.spawn('bloater', 2480); s.spawn('sludgeling', 2760, CHANNEL_FLOOR); s.spawn('sludgeling', 2960, CHANNEL_FLOOR); s.spawn('sludgeling', 3140, CHANNEL_FLOOR);
   s.spawn('manhole', 3480); s.spawn('hazmat', 3790, Y - 130); s.spawn('rat', 3900); s.spawn('bloater', 4450);
   s.drip(2080, Y - 250, 110, 0); s.drip(2300, Y - 250, 130, 50); s.drip(2840, Y - 250, 120, 30); s.drip(3040, Y - 250, 120, 90); s.drip(3560, Y - 250, 100, 20);
-  s.pickup(1300, Y - 30, 'small_health'); s.pickup(2600, Y - 30, 'small_ammo'); s.pickup(3780, Y - 160, 'small_health');
+  // (a big one where he drops in: he's likely come down off the road hurt)
+  s.pickup(380, Y - 30, 'large_health');
+  s.pickup(2600, Y - 30, 'small_ammo'); s.pickup(3780, Y - 160, 'small_health');
   s.pickup(4300, Y - 30, 'large_health'); s.pickup(4360, Y - 30, 'small_ammo');
   s.pickup(7450, Y - 30, 'small_health');
 

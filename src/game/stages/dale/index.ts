@@ -33,6 +33,8 @@ export const daleLayout: StageLayout = {
     // The conveyor belts, the warehouse ceiling, the office
     state.blocks.push(...beltBlocks());
     state.blocks.push({ x: C.warehouse.x1, y: C.warehouse.ceiling - 30, w: C.warehouse.stairs - C.warehouse.x1 + 60, h: 30, type: 'wall', hidden: true, tag: 'warehouse-ceiling' });
+    // (and no getting up on its roof from outside: a wall up the front of it, from the roof's edge up)
+    state.blocks.push({ x: C.warehouse.x1 - 40, y: C.warehouse.ceiling - 3000, w: 40, h: 3000 - 30, type: 'wall', hidden: true, tag: 'warehouse-front' });
     state.blocks.push(...officeBlocks());
     // The town: the rooftops and the porch roofs (up through them from below), the fake jail across the street
     for (const b of C.buildings) state.blocks.push({ x: b.x1, y: b.top, w: b.x2 - b.x1, h: 14, type: 'platform', hidden: true, oneWay: true, tag: 'roof' });

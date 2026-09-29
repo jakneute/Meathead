@@ -185,9 +185,12 @@ const KILL_VOICE_GAP_MS = 1200;
 /** Recorded lines playing outside the queue (so they can be cut). */
 const outsideClips = new Set<ClipHandle>();
 /** A boss going down: whatever he was in the middle of saying (or waiting to say) is cut off. */
-export const cutBossLines = () => {
-  queue = queue.filter(l => !l.voice.id.startsWith('boss.'));
-  if (current && current.voice.id.startsWith('boss.')) {
+export const cutBossLines = () => cutVoice('boss.');
+
+/** Someone killed mid-sentence (voices whose id starts `prefix`): what they were saying, and had waiting, is cut off. */
+export const cutVoice = (prefix: string) => {
+  queue = queue.filter(l => !l.voice.id.startsWith(prefix));
+  if (current && current.voice.id.startsWith(prefix)) {
     const c = current;
     current = null;
     c.clip?.stop();

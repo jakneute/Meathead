@@ -10,7 +10,7 @@ import numpy as np
 import soundfile as sf
 from kokoro_onnx import Kokoro
 
-from voicelib import HERE, ROOT, CACHE, OUT, cast, lines, spec_of, key_of, sentences, respell
+from voicelib import HERE, ROOT, CACHE, OUT, cast, lines, spec_of, key_of, sentences, respell, speakable, KEEP
 os.makedirs(CACHE, exist_ok=True)
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 
@@ -20,29 +20,6 @@ only = args[args.index('--only') + 1] if '--only' in args else None
 
 kokoro = None
 SR = 24000
-
-# ---- words: the game's all-caps shouting, as something the model reads naturally
-KEEP = {'ID', 'FBI', 'DEA', 'TV', 'USA', 'NYC', 'OK', 'DJ', 'VIP', 'SUV', 'LMG', 'IQ', 'UFO', 'CEO', 'ATM', 'HR', 'R&D', 'AC/DC', 'NOAA', 'CPR', 'DNA', 'EPA', 'RV', 'OD', 'NASA', 'AM', 'PM', 'GPS'}
-def speakable(text):
-    t = text.replace('*', '').replace('…', '...').strip()
-    # A held-out word ("AAAAAAH", "NOOOOO", "NOTHIIIING"): the model reads a long run of one letter as gibberish,
-    # so it gets two of it, and a pure scream is just "Aaah!"
-    t = re.sub(r'\b[Aa]{3,}[Hh]*\b', 'Aaah', t)
-    t = re.sub(r'([A-Za-z])\1{2,}', r'\1\1', t)
-    words = re.split(r'(\s+)', t)
-    out = []
-    for w in words:
-        core = re.sub(r"[^A-Za-z&/'.]", '', w)
-        if core.upper().strip("'.") in KEEP and core.isupper():
-            out.append(w)
-        else:
-            out.append(w.lower())
-    t = ''.join(out)
-    # Sentences start with a capital; "i" on its own is "I"
-    t = re.sub(r"(^|[.!?]\s+)([a-z])", lambda m: m.group(1) + m.group(2).upper(), t)
-    t = re.sub(r"\bi\b", 'I', t)
-    t = re.sub(r"\bi('m|'ll|'ve|'d)\b", lambda m: 'I' + m.group(1), t)
-    return t
 
 def style(voice):
     if isinstance(voice, str): return voice

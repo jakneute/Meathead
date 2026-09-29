@@ -162,7 +162,8 @@ const drawWorker = (ctx: Ctx, state: GameState, w: Worker, x1: number) => {
     return;
   }
   const sitting = w.state === 'break' && (w.look === 'cards' || w.look === 'cards2');
-  const facing = w.state === 'gone' || w.state === 'clocked' ? -1 : w.look === 'cards2' ? -1 : w.look === 'microwave' && w.state === 'break' ? 1 : w.look === 'couch' && w.state === 'break' ? 1 : -1;
+  // (the two playing cards sit facing each other across their hand)
+  const facing = w.state === 'gone' || w.state === 'clocked' ? -1 : w.look === 'cards2' ? -1 : w.look === 'cards' && w.state === 'break' ? 1 : w.look === 'microwave' && w.state === 'break' ? 1 : w.look === 'couch' && w.state === 'break' ? 1 : -1;
   ctx.scale(facing, 1);
   if (w.look === 'couch' && w.state === 'break') {
     // Stretched out on the couch, hard hat over his face, snoring

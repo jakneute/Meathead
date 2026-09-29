@@ -30,7 +30,7 @@ import { rectsOverlap, boundsOf } from '../../core/utils';
 import { hurtPlayer } from '../../bosses/shared';
 import { killPlayer } from '../../player/player';
 import { playSound, playHornDrone } from '../../platform/audio';
-import { say, MEATHEAD_VOICE, Voice } from '../../platform/speech';
+import { say, MEATHEAD_VOICE, Voice, cutVoice } from '../../platform/speech';
 import { makeKindEnemy } from '../../enemies/kinds';
 import { COURSE, CP, TRAILER_W, TRUCK_W, TRAILER_TOP, truckDims } from './course';
 import { Talk, queueLines, replaceLines, hush, quiet } from './script';
@@ -838,6 +838,9 @@ const shootRiggs = (ctx: FrameContext, cv: Convoy, talk: Talk) => {
   const { state, fx } = ctx;
   const cab = cv.cab;
   cab.phase = 'shot'; cab.t = 0;
+  // (shot mid-sentence: that's the end of the sentence)
+  hush(state, talk);
+  cutVoice('dale.riggs');
   const ws = windshield(cv);
   fx.spawnGlassShatter({ x: ws.x + ws.w / 2, y: ws.y + ws.h / 2 });
   fx.spawnDeathShower({ x: ws.x, y: ws.y + 16 }, -1, 1.4);

@@ -423,7 +423,7 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
       ctx.fillStyle = 'rgba(0, 229, 255, 0.4)';
       ctx.fillRect(e.pos.x - 5, e.pos.y - 5, e.width + 10, e.height + 10);
       ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 2;
-      for(let j=0; j<4; j++){ ctx.beginPath(); const sx = e.width/2, sy = e.height/2; ctx.moveTo(sx, sy); ctx.lineTo(sx + (Math.random()-0.5)*100, sy + (Math.random()-0.5)*100); ctx.stroke(); }
+      for (let j = 0; j < 4; j++) { ctx.beginPath(); const sx = e.pos.x + e.width / 2, sy = e.pos.y + e.height / 2; ctx.moveTo(sx, sy); ctx.lineTo(sx + (Math.random()-0.5)*100, sy + (Math.random()-0.5)*100); ctx.stroke(); }
     }
     drawStuckNeedles(ctx, e, state.frame);
     if (!e.isBlownAway && e.drownT === undefined && !isMidBoss(e) && e.kind !== 'civilian' && e.kind !== 'visitor' && e.kind !== 'generator' && e.kind !== 'minion' && e.kind !== 'tenant' && !(e.kind === 'magmafish' && (!e.aiState || e.aiState === 'idle'))) { ctx.fillStyle = '#00FF00'; ctx.fillRect(e.pos.x, e.pos.y - 10, (e.health / e.maxHealth) * e.width, 5); }

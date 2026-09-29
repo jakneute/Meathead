@@ -18,7 +18,10 @@ def respell(text, voice=None):
     """The line as it's to be said: with the fixes in pronunciations.json (a word said wrong, respelled where it comes up)."""
     for f in fixes:
         if f.get('voice') and f['voice'] != voice: continue
-        text = re.sub(re.escape(f['in']), f['say'], text, flags=re.I)
+        pat = re.escape(f['in'])
+        # ('word': only where it's a word on its own, not inside another)
+        if f.get('word'): pat = r'(?<![A-Za-z])' + pat + r'(?![A-Za-z])'
+        text = re.sub(pat, f['say'], text, flags=re.I)
     return text
 
 def spec_of(v):
@@ -59,3 +62,26 @@ def key_of(line, spec):
 def path_of(line):
     spec = spec_of(line['voice'])
     return os.path.join(CACHE, key_of(line, spec) + '.ogg') if spec else None
+
+# ---- words: the game's all-caps shouting, as something the model reads naturally
+KEEP = {'ID', 'FBI', 'DEA', 'TV', 'USA', 'NYC', 'OK', 'DJ', 'VIP', 'SUV', 'LMG', 'IQ', 'UFO', 'CEO', 'ATM', 'HR', 'R&D', 'AC/DC', 'NOAA', 'CPR', 'DNA', 'EPA', 'RV', 'OD', 'NASA', 'AM', 'PM', 'GPS'}
+def speakable(text):
+    t = text.replace('*', '').replace('…', '...').strip()
+    # A held-out word ("AAAAAAH", "NOOOOO", "NOTHIIIING"): the model reads a long run of one letter as gibberish,
+    # so it gets two of it, and a pure scream is just "Aaah!"
+    t = re.sub(r'\b[Aa]{3,}[Hh]*\b', 'Aaah', t)
+    t = re.sub(r'([A-Za-z])\1{2,}', r'\1\1', t)
+    words = re.split(r'(\s+)', t)
+    out = []
+    for w in words:
+        core = re.sub(r"[^A-Za-z&/'.]", '', w)
+        if core.upper().strip("'.") in KEEP and core.isupper():
+            out.append(w)
+        else:
+            out.append(w.lower())
+    t = ''.join(out)
+    # Sentences start with a capital; "i" on its own is "I"
+    t = re.sub(r"(^|[.!?]\s+)([a-z])", lambda m: m.group(1) + m.group(2).upper(), t)
+    t = re.sub(r"\bi\b", 'I', t)
+    t = re.sub(r"\bi('m|'ll|'ve|'d)\b", lambda m: 'I' + m.group(1), t)
+    return t

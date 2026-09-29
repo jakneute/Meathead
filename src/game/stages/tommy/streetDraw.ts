@@ -78,7 +78,7 @@ export const drawWaterTower = (ctx: Ctx, x: number, y: number, s: number, dusk: 
   ctx.fillStyle = metal; ctx.beginPath(); ctx.moveTo(-62, -228); ctx.lineTo(0, -270); ctx.lineTo(62, -228); ctx.closePath(); ctx.fill();
   ctx.fillStyle = dark; ctx.fillRect(-2, -282, 4, 14);
   ctx.fillStyle = 'rgba(255,255,255,0.15)'; ctx.fillRect(-50, -224, 14, 72);
-  ctx.fillStyle = mix('#1E3A8A', '#1E1B4B', dusk); ctx.font = 'bold 26px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('FLINT', 0, -176); ctx.textAlign = 'left';
+  ctx.fillStyle = mix('#1E3A8A', '#1E1B4B', dusk); ctx.font = 'bold 18px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('FLINT', 0, -180, 100); ctx.textAlign = 'left'; // (fitted inside the tank's sides, with room either side)
   if (hole) { ctx.fillStyle = '#1C1917'; ctx.beginPath(); ctx.ellipse(-20, -196, 12, 9, 0.3, 0, Math.PI * 2); ctx.fill(); }
   ctx.restore();
 };

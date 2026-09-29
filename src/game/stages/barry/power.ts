@@ -6,6 +6,7 @@
 // runs round with his hands on his head and tells you exactly what you've just
 // done to the city. When the third goes, so does the room: alarms, blasts, white.
 
+import { CANVAS_WIDTH } from '../../../constants';
 import type { Enemy } from '../../../types';
 import type { FrameContext } from '../../core/context';
 import type { Controls } from '../../platform/input';
@@ -18,6 +19,8 @@ import { killPlayer } from '../../player/player';
 import { Talk, queueLines, replaceLines, quiet, hush } from './script';
 
 export interface PowerRoom {
+  /** The announcer's last call that went up on the screen. */
+  called?: string;
   phase: 'waiting' | 'fight' | 'meltdown' | 'done' | 'surge';
   t: number;
   /** How many generators he's put out. */
@@ -224,13 +227,13 @@ export const updatePower = (ctx: FrameContext, pw: PowerRoom, talk: Talk, contro
  * The beats: how long each lasts at least (it waits for what's being said), how hard it's going through them
  * (0 not, 1, 2 worse), and what's said as it starts. `fall` is who keels over at the end of it.
  */
-export const SURGE: { min: number; zap: number; lines: { who: 'minion' | 'meathead'; text: string }[]; fall?: 'minion' | 'meathead' }[] = [
+export const SURGE: { min: number; zap: number; lines: { who: 'minion' | 'meathead' | 'announcer'; text: string }[]; fall?: 'minion' | 'meathead' }[] = [
   { min: 50, zap: 0, lines: [{ who: 'minion', text: 'DID YOU JUST... THROW WATER. IN THE POWER ROOM.' }] },
-  { min: 110, zap: 1, lines: [{ who: 'minion', text: 'AAAAAAAAAAAAAAAAH!' }, { who: 'meathead', text: 'AAAAAAAAAAAAH!' }] },
+  { min: 110, zap: 1, lines: [{ who: 'minion', text: 'AAAAAAAAAAAAAAAAH!' }, { who: 'meathead', text: 'AAAAAAAAAAAAH!' }, { who: 'announcer', text: 'SHOCK THERAPY!' }] },
   { min: 80, zap: 0, lines: [{ who: 'minion', text: '...IS IT OVER?' }, { who: 'meathead', text: "I THINK IT'S OVER." }] },
-  { min: 130, zap: 2, lines: [{ who: 'minion', text: "IT'S NOT OVER! IT'S NOT OVER!" }, { who: 'meathead', text: 'I CAN TASTE COLORS!' }, { who: 'minion', text: 'I CAN SEE MY GRANDMA! SHE SAYS I SHOULD HAVE BEEN A DENTIST!' }] },
-  { min: 70, zap: 0, lines: [{ who: 'minion', text: 'TELL BARRY... I QUIT.' }], fall: 'minion' },
-  { min: 70, zap: 0, lines: [{ who: 'meathead', text: 'WORTH IT.' }], fall: 'meathead' },
+  { min: 130, zap: 2, lines: [{ who: 'announcer', text: 'ROUND TWO!' }, { who: 'minion', text: "IT'S NOT OVER! IT'S NOT OVER!" }, { who: 'meathead', text: 'I CAN TASTE COLORS!' }, { who: 'minion', text: 'I CAN SEE MY GRANDMA! SHE SAYS I SHOULD HAVE BEEN A DENTIST!' }, { who: 'announcer', text: 'MAXIMUM VOLTAGE!' }] },
+  { min: 70, zap: 0, lines: [{ who: 'minion', text: 'TELL BARRY... I QUIT.' }, { who: 'announcer', text: 'TECHNICIAN DOWN!' }], fall: 'minion' },
+  { min: 70, zap: 0, lines: [{ who: 'meathead', text: 'WORTH IT.' }, { who: 'announcer', text: 'DOUBLE KNOCKOUT!' }], fall: 'meathead' },
   { min: 70, zap: 0, lines: [] },
 ];
 /** How long a beat can wait on its lines at most (a voice that never finishes doesn't hang it). */
@@ -272,6 +275,12 @@ const updateSurge = (ctx: FrameContext, pw: PowerRoom, talk: Talk): Controls => 
   const r = COURSE.power;
   pw.surgeT++; pw.beatT++;
   p.vel.x = 0;
+  // (the announcer's calls go up in big letters when he says them)
+  const said = talk.current?.who === 'announcer' ? talk.current.text : '';
+  if (said && said !== pw.called) {
+    pw.called = said;
+    state.damageNumbers.push({ id: `surge-${state.frame}`, text: said, pos: { x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + 170 }, vel: { x: 0, y: -1 }, life: 90, maxLife: 90, isCritical: true, isCallout: true, color: '#FDE047' });
+  }
   const b = SURGE[pw.beat];
   if (b && pw.beatT >= b.min && ((!talk.current && !talk.queue.length) || pw.beatT > b.min + SURGE_WAIT)) {
     pw.beat++; pw.beatT = 0;

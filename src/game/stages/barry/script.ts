@@ -7,12 +7,14 @@
 import type { GameState } from '../../core/state';
 import { say, isSpeaking, isTalking, sentenceShown, Voice, MEATHEAD_VOICE } from '../../platform/speech';
 
-export type Speaker = 'meathead' | 'minion' | 'barry';
+export type Speaker = 'meathead' | 'minion' | 'barry' | 'announcer';
 
 export const VOICES: Record<Speaker, Voice> = {
   meathead: MEATHEAD_VOICE,
   minion: { id: 'barry.minion', pitch: 1.6, rate: 1.45 },
   barry: { id: 'barry.barry', pitch: 0.9, rate: 1.4 },
+  // (the arena announcer, calling the power room going up)
+  announcer: { id: 'announcer', pitch: 0.5, rate: 0.9 },
 };
 
 export interface ScriptLine { who: Speaker; text: string }

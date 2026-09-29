@@ -29,6 +29,9 @@ const FRAME_MS = 1000 / 60;
  * Hosts the canvas and the fixed-timestep game loop. All simulation lives in
  * src/game; this component only wires React props in and HUD updates out.
  */
+/** A frame's drawing threw (the next one starts from a clean canvas state); it's been reported once. */
+let drawFailed = false, drawWarned = false;
+
 const GameCanvas: React.FC<GameCanvasProps> = (props) => {
   const { status, stageId, currentWeapon, initialAmmo, cheats } = props;
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -73,15 +76,23 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
       const ctx = canvasRef.current?.getContext('2d');
       if (!ctx) return;
       const p = propsRef.current;
+      // (a clean slate each frame: if something threw partway through the last one, its saves and filters don't linger)
+      if (drawFailed) { (ctx as CanvasRenderingContext2D & { reset?: () => void }).reset?.(); drawFailed = false; }
       // Everything draws in game pixels (800x600); the backing store is RENDER_SCALE times that
       ctx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
-      drawWorld(ctx, state, {
-        status: p.status,
-        stageId: p.stageId,
-        currentWeapon: p.currentWeapon,
-        invincibilityEnabled: p.cheats.invincible,
-        bossTauntText: p.bossTauntText,
-      });
+      try {
+        drawWorld(ctx, state, {
+          status: p.status,
+          stageId: p.stageId,
+          currentWeapon: p.currentWeapon,
+          invincibilityEnabled: p.cheats.invincible,
+          bossTauntText: p.bossTauntText,
+        });
+      } catch (err) {
+        // (a drawing bug mustn't black out the game: the frame's what it is, the next one starts clean)
+        drawFailed = true;
+        if (!drawWarned) { drawWarned = true; console.error('draw failed', err); }
+      }
     };
 
     const tick = () => {

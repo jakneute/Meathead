@@ -19,7 +19,7 @@ const GORE_COLORS = new Set([...PARTICLE_PALETTES.GORE, ...PARTICLE_PALETTES.FLE
 export const isGoreColor = (color: string) => GORE_COLORS.has(color);
 
 /** How often Meathead leaves a kill to the announcer, and how often the announcer takes one he's said nothing over. */
-const ANNOUNCER_TAKES = 0.22, ANNOUNCER_WHEN_QUIET = 0.75;
+const ANNOUNCER_TAKES = 0.35, ANNOUNCER_WHEN_QUIET = 0.75;
 /** How long a callout handed to the announcer waits for its moment before it's let go (frames). */
 const HANDED_WAIT = 75;
 
@@ -172,24 +172,27 @@ export const createFx = (state: GameState) => {
    * Meathead shouts a line. Death always interrupts; otherwise a new line
    * never talks over one that is still playing, and respects cooldowns.
    */
-  const speakVulgarity = (category: VulgarityType, hurtSource?: string, held = false) => {
+  const speakVulgarity = (category: VulgarityType, hurtSource?: string, held = false): boolean => {
     // (what hurt him, for the death screen: whether or not he says anything about it)
     if (category === 'hurt' && hurtSource) state.lastHurt = { source: hurtSource, at: state.frame };
-    if (category !== 'death') {
-      if (isSpeaking() || isTalking() || state.isMeatheadSpeaking) return; // (asking first lets a line whose end got lost time out)
-      // (the announcer's only just had its say: he gives it a moment)
-      if (announcerJustSpoke()) return;
-      if (category === 'hurt' ? state.hurtVoiceCooldown > 0 : state.voiceLineCooldown > 0) return;
-    }
-    // A kill: now and then Meathead holds his tongue and leaves it to the announcer (if a callout goes up with it)
+    // A kill: who gets it (Meathead or the announcer) is settled next frame, with the callout, if any, in hand
     const kill = category !== 'hurt' && category !== 'death';
+    if (kill && !held) {
+      const kv = (state.killVoice ??= {});
+      if (!kv.forced && !kv.handed) kv.quip = { category, at: state.frame };
+      return false;
+    }
+    if (category !== 'death') {
+      if (isSpeaking() || isTalking() || state.isMeatheadSpeaking) return false; // (asking first lets a line whose end got lost time out)
+      // (the announcer's only just had its say: he gives it a moment)
+      if (announcerJustSpoke()) return false;
+      if (category === 'hurt' ? state.hurtVoiceCooldown > 0 : state.voiceLineCooldown > 0) return false;
+    }
     // (a big kill the announcer's calling: he keeps quiet for it)
-    if (kill && state.killVoice?.forced) return;
-    if (kill && state.killVoice?.handed) return;
-    if (kill && !held && Math.random() < ANNOUNCER_TAKES) { (state.killVoice ??= {}).quip = { category, at: state.frame }; return; }
+    if (kill && (state.killVoice?.forced || state.killVoice?.handed)) return false;
     // Skip entirely if every line in the pool was said recently
     const text = pickFreshLine(category === 'hurt' ? getHurtLines(hurtSource) : KILL_LINES[category]);
-    if (!text) return;
+    if (!text) return false;
 
     // Dying cuts off whoever's talking; anything else only speaks up when it's quiet.
     // The text over his head goes up when he starts saying it and down when he's done.
@@ -206,7 +209,7 @@ export const createFx = (state: GameState) => {
         state.voiceLineCooldown = VOICE_LINE_COOLDOWN_FRAMES;
       },
     });
-    if (!said) return;
+    if (!said) return false;
     if (kill) (state.killVoice ??= {}).quippedAt = state.frame;
     state.isMeatheadSpeaking = canSpeak() && isSpeaking();
     if (category === 'death') {
@@ -216,6 +219,7 @@ export const createFx = (state: GameState) => {
       state.voiceLineCooldown = 0;
       state.hurtVoiceCooldown = 45;
     }
+    return true;
   };
 
   /**
@@ -238,21 +242,24 @@ export const createFx = (state: GameState) => {
     if (kv.handed) {
       const h = kv.handed;
       if (announce(h.text, 1)) { kv.handed = undefined; return; }
-      if (state.frame - h.at > HANDED_WAIT) { kv.handed = undefined; if (h.quip) speakVulgarity(h.quip, undefined, true); }
+      if (state.frame - h.at > HANDED_WAIT) kv.handed = undefined;
       return;
     }
     const due = (at: number) => state.frame - at >= 1;
     const c = kv.callout && due(kv.callout.at) ? kv.callout : undefined;
     const q = kv.quip && due(kv.quip.at) ? kv.quip : undefined;
     if (!c && !q) return;
-    if (c) {
-      // Meathead held his tongue for this one: it's the announcer's
-      if (q) kv.handed = { text: c.text, at: state.frame, quip: q.category };
-      // Meathead said nothing over it (his lines on cooldown, used up...): usually it's the announcer's
-      else if ((kv.quippedAt === undefined || kv.quippedAt < c.at - 1) && Math.random() < ANNOUNCER_WHEN_QUIET) kv.handed = { text: c.text, at: state.frame };
-    } else if (q) speakVulgarity(q.category, undefined, true);
     if (c) kv.callout = undefined;
     if (q) kv.quip = undefined;
+    // A kill with a callout: one of them says something. Usually Meathead; sometimes the announcer (and the announcer
+    // for sure, near enough, when Meathead's got nothing to say right now: his lines on cooldown, used up, someone talking)
+    if (c) {
+      if (q && Math.random() >= ANNOUNCER_TAKES && speakVulgarity(q.category, undefined, true)) return;
+      if (q || Math.random() < ANNOUNCER_WHEN_QUIET) kv.handed = { text: c.text, at: state.frame };
+      return;
+    }
+    // A kill with no callout: it's his (if he's got something to say)
+    if (q) speakVulgarity(q.category, undefined, true);
   };
 
   /** A big one (a mid-boss down, a set piece): the announcer calls it, always, and Meathead leaves it to him. */

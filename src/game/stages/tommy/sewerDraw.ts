@@ -80,6 +80,38 @@ const drawSuitOnHook = (ctx: Ctx, x: number, y: number, s = 1) => {
   ctx.restore();
 };
 
+/** Concrete, poured in slabs: the joints, a crack here and there, stains running down. */
+const concrete = (ctx: Ctx, x1: number, x2: number, top: number, bottom: number) => {
+  ctx.fillStyle = '#433D38';
+  for (let y = top + 50; y < bottom; y += 64) ctx.fillRect(x1, y, x2 - x1, 2);
+  for (let x = Math.ceil(x1 / 96) * 96; x < x2; x += 96) ctx.fillRect(x, top, 2, bottom - top);
+  ctx.strokeStyle = '#38332F'; ctx.lineWidth = 1.5;
+  for (let x = Math.ceil(x1 / 70) * 70; x < x2; x += 70) {
+    if (hash(x) < 0.55) continue;
+    const y0 = top + 10 + hash(x * 3) * 60;
+    ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x + 8 - hash(x * 5) * 16, y0 + 18); ctx.lineTo(x + 3, y0 + 34); ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(28, 25, 23, 0.25)';
+  for (let x = Math.ceil(x1 / 45) * 45; x < x2; x += 45) ctx.fillRect(x + hash(x * 7) * 20, top, 4 + hash(x) * 6, 30 + hash(x * 9) * 90);
+};
+
+/** The bottom of a channel: dark silt in drifts, and what's settled in it (stones, a bone, a can, a tire). */
+const silt = (ctx: Ctx, x1: number, x2: number, top: number, bottom: number) => {
+  ctx.fillStyle = '#1F1A15'; ctx.fillRect(x1, top, x2 - x1, bottom - top);
+  ctx.fillStyle = '#2B241D';
+  ctx.beginPath(); ctx.moveTo(x1, top + 6);
+  for (let x = x1; x <= x2; x += 20) ctx.lineTo(x, top + 2 + Math.sin(x * 0.05) * 3 + hash(x) * 4);
+  ctx.lineTo(x2, top + 26); ctx.lineTo(x1, top + 26); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#171310'; for (let y = top + 34; y < bottom; y += 16) for (let x = x1 + ((y / 16) % 2) * 20; x < x2; x += 40) ctx.fillRect(x + hash(x + y) * 12, y, 12, 2);
+  for (let x = Math.ceil(x1 / 38) * 38; x < x2 - 10; x += 38) {
+    const k = hash(x * 11), y = top + 3 + hash(x * 13) * 10;
+    if (k < 0.35) { ctx.fillStyle = '#4A433C'; ctx.beginPath(); ctx.ellipse(x, y, 5 + hash(x) * 5, 3, 0, 0, Math.PI * 2); ctx.fill(); }
+    else if (k < 0.45) { ctx.fillStyle = '#D6D3C4'; ctx.fillRect(x - 7, y - 1, 14, 3); ctx.beginPath(); ctx.arc(x - 7, y, 2.5, 0, Math.PI * 2); ctx.arc(x + 7, y, 2.5, 0, Math.PI * 2); ctx.fill(); }
+    else if (k < 0.52) { ctx.fillStyle = '#7F1D1D'; ctx.fillRect(x - 4, y - 5, 8, 10); ctx.fillStyle = '#A8A29E'; ctx.fillRect(x - 4, y - 5, 8, 2); }
+    else if (k < 0.56) { ctx.strokeStyle = '#0C0A09'; ctx.lineWidth = 5; ctx.beginPath(); ctx.ellipse(x, y + 2, 12, 5, 0.1, 0, Math.PI * 2); ctx.stroke(); }
+  }
+};
+
 /** The walkways (concrete, stained, a yellow edge), the channel walls, the grates and pipe runs. */
 export const drawSewerGround = (ctx: Ctx, state: GameState) => {
   const bottom = state.camera.y + CANVAS_HEIGHT + 60;
@@ -87,13 +119,19 @@ export const drawSewerGround = (ctx: Ctx, state: GameState) => {
     if (!visible(state, r.x1, r.x2)) continue;
     if (r.surface === 'walk') {
       ctx.fillStyle = '#4B4540'; ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, bottom - r.y1);
+      // (the concrete under it: poured in slabs, cracked, stained)
+      concrete(ctx, r.x1, r.x2, r.y1 + 12, bottom);
       ctx.fillStyle = '#6B635C'; ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, 6);
       ctx.fillStyle = '#CA8A04'; for (let x = r.x1; x < r.x2; x += 28) ctx.fillRect(x, r.y1 + 6, 14, 3);
       ctx.fillStyle = 'rgba(77, 124, 15, 0.3)'; for (let x = r.x1 + 20; x < r.x2; x += 110) ctx.fillRect(x + hash(x) * 50, r.y1 + 12, 30 + hash(x * 3) * 40, 60);
     } else if (r.surface === 'muck') {
-      // The channel: its walls down to its floor (the muck's drawn over it, in front)
+      // The channel: its walls down to its floor (the muck's drawn over it, in front): old brick going down, silt and
+      // junk on the bottom
       ctx.fillStyle = '#231E1A'; ctx.fillRect(r.x1, WALK_Y, r.x2 - r.x1, r.y1 - WALK_Y);
-      ctx.fillStyle = '#1A1512'; ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, bottom - r.y1);
+      ctx.fillStyle = '#2C2520';
+      for (let y = WALK_Y + 4; y < r.y1; y += 12) for (let x = r.x1 + ((y / 12) % 2) * 14 - 14; x < r.x2; x += 28) ctx.fillRect(Math.max(r.x1, x), y, Math.min(24, r.x2 - Math.max(r.x1, x)), 8);
+      ctx.fillStyle = 'rgba(77, 124, 15, 0.18)'; ctx.fillRect(r.x1, WALK_Y, r.x2 - r.x1, 40); // (the tide mark)
+      silt(ctx, r.x1, r.x2, r.y1, bottom);
     }
   }
   // Grates and pipe runs to stand on

@@ -31,6 +31,8 @@ import { KIND_STATS } from '../../enemies/kinds';
 import { COURSE, CP } from './course';
 
 export const DOORMAN_HP = KIND_STATS.doorman.hp;
+/** He roars winding up for a charge or a slide at most this often (frames), and quieter than he used to. */
+const ROAR_EVERY = 420;
 const W = KIND_STATS.doorman.w, H = KIND_STATS.doorman.h;
 
 export type ClashKind = 'shoulder' | 'slide';
@@ -47,6 +49,8 @@ export interface Clash {
 /** (finisher: killed by winning a clash, which leaves him its own way) */
 export interface DoormanCorpse { x: number; y: number; facing: 1 | -1; weapon: WeaponType; t0: number; finisher?: ClashKind }
 export interface DoormanFight {
+  /** When he last roared winding up (it's not every time: it wore thin). */
+  roaredAt?: number;
   /**
    * Times he's smacked Meathead around; the hint Meathead's about to shout (line by line) and when the next line's
    * due; the last line said and when; how many hints so far (they get angrier); which spelled-out one's next.
@@ -267,7 +271,7 @@ export const updateDoorman = (ctx: FrameContext, m: Enemy, fight: DoormanFight):
       m.vel.x = d > want + 20 ? toward * WALK : d < want - 20 ? -toward * WALK : 0;
       if (fight.phase === 'fight') talk(fight, LINES.idle);
       if ((!fight.thrown && antiAir(m, p, px, mx))) break;
-      if (m.aiTimer > (angry ? 70 : 110) && fight.phase === 'fight') { start(m, Math.random() < 0.55 ? 'windup-charge' : 'windup-slide'); playSound('roar'); }
+      if (m.aiTimer > (angry ? 70 : 110) && fight.phase === 'fight') { start(m, Math.random() < 0.55 ? 'windup-charge' : 'windup-slide'); if (state.frame - (fight.roaredAt ?? -1e9) > ROAR_EVERY) { fight.roaredAt = state.frame; playSound('roar', 0.35); } }
       break;
     }
     case 'windup-charge':

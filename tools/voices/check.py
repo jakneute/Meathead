@@ -36,6 +36,9 @@ for i, l in enumerate(todo):
     if (i + 1) % 100 == 0: print(f'{i + 1}/{len(todo)}', flush=True)
 
 results.sort()
+# (everything, for going through by hand: check.json)
+with open(os.path.join(HERE, 'check.json'), 'w', encoding='utf-8') as f:
+    json.dump([{'score': round(s, 3), 'voice': v, 'text': t, 'heard': h} for s, v, t, h in results], f, indent=1)
 bad = [r for r in results if r[0] < below]
 with open(os.path.join(HERE, 'check.txt'), 'w', encoding='utf-8') as f:
     for s, v, t, h in bad: f.write(f'{s:.2f}  {v}\n  said: {t}\n  heard: {h}\n')

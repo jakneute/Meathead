@@ -262,9 +262,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   ctx.save();
   if (surf) {
     // Surfing: back arm out behind him, low, for balance
+    // (from the shoulder at the side of his chest, crouched as he is: clear of his face)
     ctx.fillStyle = skinShadow;
-    ctx.beginPath(); ctx.arc(-10, -40, 7.5, 0, Math.PI * 2); ctx.fill();
-    ctx.save(); ctx.translate(-10, -40); ctx.rotate(Math.PI * 0.9);
+    ctx.beginPath(); ctx.arc(-11, -30, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.save(); ctx.translate(-11, -30); ctx.rotate(Math.PI * 0.92);
     ctx.fillRect(0, -4, 26, 8); ctx.fillStyle = wristbandColor; ctx.fillRect(20, -4.5, 4, 9);
     ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(28, 0, 5, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
@@ -915,9 +916,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   ctx.save();
   if (surf) {
     // Surfing: lead arm out in front, up a bit, throwing a shaka (thumb and little finger out)
+    // (from the shoulder at the side of his chest, crouched as he is: the arm goes out and up past his face, not over it)
     ctx.fillStyle = skinTone;
-    ctx.beginPath(); ctx.arc(6, -44, 8.5, 0, Math.PI * 2); ctx.fill();
-    ctx.save(); ctx.translate(6, -44); ctx.rotate(-0.35);
+    ctx.beginPath(); ctx.arc(12, -30, 7.5, 0, Math.PI * 2); ctx.fill();
+    ctx.save(); ctx.translate(12, -30); ctx.rotate(-0.45);
     ctx.fillRect(0, -4.5, 28, 9); ctx.fillStyle = wristbandColor; ctx.fillRect(22, -5, 4, 10);
     ctx.fillStyle = skinTone; ctx.beginPath(); ctx.arc(31, 0, 5.5, 0, Math.PI * 2); ctx.fill();
     ctx.fillRect(30, -11, 3, 7); ctx.fillRect(34, 3, 6, 3); // thumb up, little finger out

@@ -69,7 +69,7 @@ export const BOSS_DIALOGUE: {
       "I'LL BURY YOU UNDER YOUR OWN SHIT!",
       "YOU CRUSTY MOTHERFUCKER!",
       "STOP BREAKING THE FLOOR, I'M TRAINING HERE!",
-      "ILL SMASH YOUR SEDIMENTARY ASS!"
+      "I'LL SMASH YOUR SEDIMENTARY ASS!"
     ],
     'Hector Hurricane': [
       "STOP THE BLOWJOB, YOU WINDY PRICK!",
@@ -83,7 +83,7 @@ export const BOSS_DIALOGUE: {
       "CATEGORY 5 FUCK YOU COMING UP!",
       "I'LL TIE YOUR WIND IN A KNOT!",
       "STOP TWISTING MY LATS, YOU BLOWHARD!",
-      "ILL SMASH YOUR ATMOSPHERE!"
+      "I'LL SMASH YOUR ATMOSPHERE!"
     ],
     'Toxic Tommy': [
       "I'M COVERED IN RANCID PUKE, FUCK!",
@@ -796,7 +796,7 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
   charge:   { lines: ["BODIED!", "PLOWED!", "TRUCKED!", "STEAMROLLED!", "SHOULDERED!"], color: '#FF8C00' },
   slide:    { lines: ["SWEPT!", "LEG DAY!", "ANKLES TAKEN!", "SLIDE TACKLE!"], color: '#FFD700' },
   uppercut: { lines: ["LAUNCHED!", "CHIN CHECKED!", "SKY HIGH!", "ORBITAL!", "LIFTOFF!"], color: '#00E5FF' },
-  divekick: { lines: ["SPLAT!", "STOMPED!", "CURB STOMP!", "PANCAKED!", "FLATTENED!"], color: '#FF0000' },
+  divekick: { lines: ["SPLAT!", "GOT STOMPED!", "CURB STOMP!", "PANCAKED!", "FLATTENED!"], color: '#FF0000' },
   shatter:  { lines: ["SHATTERED!", "ICED!", "BRAIN FREEZE!", "SMASHED CUBES!"], color: '#B3F0FF' },
   shield:   { lines: ["SLIMED!", "BARFED ON!", "FILTHY!"], color: '#7CFC00' },
   crush:    { lines: ["CRUSHED!", "STRIKE!", "BOWLED OVER!"], color: '#FFA500' },

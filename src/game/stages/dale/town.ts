@@ -319,7 +319,8 @@ const updateSniper = (ctx: FrameContext, town: Town, talk: Talk) => {
         // Where it went in: a geyser of dirt and splinters off whatever's there
         for (let i = 0; i < 26; i++) state.particles.push({ pos: { x: hit.x, y: hit.y }, vel: { x: (Math.random() - 0.5) * 12, y: -Math.random() * 11 }, life: 26 + Math.random() * 16, color: i % 4 ? '#D6B98C' : '#FDE68A', size: 3 + Math.random() * 6 });
       } else if (hit.kind === 'player') {
-        if (p.invincibilityTimer <= 0) {
+        // (no moment of grace from a hit before saves him: a rifle round's a rifle round)
+        {
           // One shot: his head comes apart (the body stays stood there a moment, then goes over)
           if (ctx.cheats.invincible) hurtPlayer(ctx, 0, 'sniper', { x: (px < m.x ? -1 : 1) * 9, y: -10 }, 30);
           else headshot(ctx, px < m.x ? -1 : 1);
@@ -563,7 +564,7 @@ const updateWarpath = (ctx: FrameContext, town: Town, talk: Talk, controls: Cont
 const JAIL_BEGGING = [
   { who: 'prisoner', text: 'IS THAT A TRUCK?! SHERIFF DAN?!' },
   { who: 'sheriff', text: 'NOPE! NOT FOR TEN BUCKS AN HOUR!' },
-  { who: 'prisoner', text: 'DAN! THE KEYS! STOP PLAYING! LET ME OUT!' },
+  { who: 'prisoner', text: 'DAN! GIMME THE KEYS! STOP PLAYING! LET ME OUT!' },
   { who: 'prisoner', text: 'I HAVE A TIMESHARE!' },
 ] as const;
 /** The latest the cab comes (if the begging's still going), and how long on the wreck after. */
@@ -701,7 +702,7 @@ const crashIntoJail = (ctx: FrameContext, town: Town, talk: Talk) => {
   for (let i = 0; i < 120; i++) state.particles.push({ pos: { x: t.jail.x1 + 100 + Math.random() * 160, y: Y - 40 - Math.random() * 120 }, vel: { x: (Math.random() - 0.35) * 22, y: -4 - Math.random() * 18 }, life: 60 + Math.random() * 50, color: i % 5 === 0 ? '#78716C' : reds[i % reds.length], size: 3 + Math.random() * 8 });
   // (chunks: an arm, a leg, a boot, a trucker cap)
   for (const [c, sz] of [['#F2C9A0', 12], ['#F2C9A0', 14], ['#44403C', 11], ['#1E3A8A', 10], ['#1C1917', 13], ['#E0AC69', 12]] as const) state.particles.push({ pos: { x: t.jail.x1 + 170, y: Y - 110 }, vel: { x: (Math.random() - 0.3) * 18, y: -12 - Math.random() * 10 }, life: 90, color: c, size: sz });
-  fx.spawnDamageNumber({ x: t.jail.x1 + 160, y: Y - 230 }, 'TIMESHARE: VACANT', true, '#FACC15');
+  fx.spawnDamageNumber({ x: t.jail.x1 + 160, y: Y - 230 }, 'TIMESHARE: VACANT', true, '#FACC15'); fx.announceKill('TIMESHARE: VACANT');
   fx.spawnDamageNumber({ x: t.jail.x1 + 40, y: Y - 330 }, 'CASE CLOSED!', true, '#F87171');
   state.stageMemo.jailWrecked = 'yes';
   queueLines(state, talk, [{ who: 'meathead', text: "RIGGS, BUDDY... YOUR LIZARD'S GONNA HAVE TO FEND FOR HIMSELF." }], 50);
