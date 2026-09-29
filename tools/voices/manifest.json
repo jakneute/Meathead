@@ -562,7 +562,7 @@
  {
   "voice": "announcer",
   "text": "SEPPUKU!",
-  "from": "game/stages/dale/town.ts:512"
+  "from": "game/stages/dale/town.ts:518"
  },
  {
   "voice": "announcer",
@@ -692,7 +692,7 @@
  {
   "voice": "announcer",
   "text": "TIMESHARE: VACANT",
-  "from": "game/stages/dale/town.ts:759"
+  "from": "game/stages/dale/town.ts:765"
  },
  {
   "voice": "announcer",
@@ -2677,32 +2677,32 @@
  {
   "voice": "dale.ninja",
   "text": "THERE IS ONLY ONE WAY TO RESTORE MY HONOR.",
-  "from": "game/stages/dale/town.ts:452"
+  "from": "game/stages/dale/town.ts:458"
  },
  {
   "voice": "dale.ninja",
   "text": "YOU CROSSED THE WHOLE TOWN UNDER MY SIGHTS, AND STILL YOU STAND. I HAVE FAILED MY MASTER.",
-  "from": "game/stages/dale/town.ts:451"
+  "from": "game/stages/dale/town.ts:457"
  },
  {
   "voice": "dale.prisoner",
   "text": "DAN! GIMME THE KEYS! STOP PLAYING! LET ME OUT!",
-  "from": "game/stages/dale/town.ts:621"
+  "from": "game/stages/dale/town.ts:627"
  },
  {
   "voice": "dale.prisoner",
   "text": "HEY! HEY, YOU! THE SHERIFF LOCKED ME IN HERE FOR A PHOTO AN HOUR AGO!",
-  "from": "game/stages/dale/town.ts:530"
+  "from": "game/stages/dale/town.ts:536"
  },
  {
   "voice": "dale.prisoner",
   "text": "I HAVE A TIMESHARE!",
-  "from": "game/stages/dale/town.ts:622"
+  "from": "game/stages/dale/town.ts:628"
  },
  {
   "voice": "dale.prisoner",
   "text": "IS THAT A TRUCK?! SHERIFF DAN?!",
-  "from": "game/stages/dale/town.ts:619"
+  "from": "game/stages/dale/town.ts:625"
  },
  {
   "voice": "dale.riggs",
@@ -2742,7 +2742,7 @@
  {
   "voice": "dale.riggs",
   "text": "ONE BULLET?! IN ONE EAR AND OUT THE OTHER, BABY! NOTHING IN THERE TO HIT!",
-  "from": "game/stages/dale/town.ts:555"
+  "from": "game/stages/dale/town.ts:561"
  },
  {
   "voice": "dale.riggs",
@@ -2762,7 +2762,7 @@
  {
   "voice": "dale.sheriff",
   "text": "NOPE! NOT FOR TEN BUCKS AN HOUR!",
-  "from": "game/stages/dale/town.ts:620"
+  "from": "game/stages/dale/town.ts:626"
  },
  {
   "voice": "death",
@@ -2772,7 +2772,7 @@
  {
   "voice": "death",
   "text": "A JUMP WON'T CLEAR IT. UPPERCUT!",
-  "from": "game/stages/dale/town.ts:602"
+  "from": "game/stages/dale/town.ts:608"
  },
  {
   "voice": "death",
@@ -3042,6 +3042,11 @@
  {
   "voice": "death",
   "text": "CIRCLED BACK ON",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CIRCLED, THEN DINNER",
   "from": "content/deaths"
  },
  {
@@ -3412,7 +3417,7 @@
  {
   "voice": "death",
   "text": "FLATTENED BY A DEAD MAN",
-  "from": "game/stages/dale/town.ts:602"
+  "from": "game/stages/dale/town.ts:608"
  },
  {
   "voice": "death",
@@ -3551,6 +3556,11 @@
  },
  {
   "voice": "death",
+  "text": "HAWK-EYED AND DEAD",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "HE HAD A LIZARD TO THINK OF",
   "from": "game/stages/dale/convoy.ts:470"
  },
@@ -3677,7 +3687,7 @@
  {
   "voice": "death",
   "text": "IT TAKES AN UPPERCUT TO CLEAR IT",
-  "from": "game/stages/dale/town.ts:602"
+  "from": "game/stages/dale/town.ts:608"
  },
  {
   "voice": "death",
@@ -3922,7 +3932,7 @@
  {
   "voice": "death",
   "text": "NOT A JUMP. AN UPPERCUT.",
-  "from": "game/stages/dale/town.ts:602"
+  "from": "game/stages/dale/town.ts:608"
  },
  {
   "voice": "death",
@@ -4016,6 +4026,11 @@
  },
  {
   "voice": "death",
+  "text": "PECKED TO DEATH BY A GRACKLE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "PEER REVIEWED",
   "from": "content/deaths"
  },
@@ -4027,6 +4042,11 @@
  {
   "voice": "death",
   "text": "PICKED APART BY AN EAGLE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PICKED CLEAN BY A VULTURE",
   "from": "content/deaths"
  },
  {
@@ -4137,7 +4157,7 @@
  {
   "voice": "death",
   "text": "RED DOT, THEN NOTHING",
-  "from": "game/stages/dale/runtime.ts:185"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -4237,7 +4257,7 @@
  {
   "voice": "death",
   "text": "RUN OVER BY RIGGS. AGAIN.",
-  "from": "game/stages/dale/town.ts:602"
+  "from": "game/stages/dale/town.ts:608"
  },
  {
   "voice": "death",
@@ -4447,7 +4467,7 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE UPPERCUT OVER IT",
-  "from": "game/stages/dale/town.ts:602"
+  "from": "game/stages/dale/town.ts:608"
  },
  {
   "voice": "death",
@@ -4696,6 +4716,11 @@
  },
  {
   "voice": "death",
+  "text": "TAKEN BY A HAWK",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "TAKEN OUT WITH THE TRASH",
   "from": "content/deaths"
  },
@@ -4808,6 +4833,11 @@
   "voice": "death",
   "text": "THE MOUNTAIN WON",
   "from": "game/stages/artie/ski.ts:422"
+ },
+ {
+  "voice": "death",
+  "text": "THE PARKING LOT BIRDS GOT YOU",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -5542,7 +5572,7 @@
  {
   "voice": "meathead",
   "text": "...OKAY. SAVES ME A BULLET.",
-  "from": "game/stages/dale/town.ts:513"
+  "from": "game/stages/dale/town.ts:519"
  },
  {
   "voice": "meathead",
@@ -7117,7 +7147,7 @@
  {
   "voice": "meathead",
   "text": "HE JUST DUCKS. CLOSER. GET CLOSER.",
-  "from": "game/stages/dale/town.ts:484"
+  "from": "game/stages/dale/town.ts:490"
  },
  {
   "voice": "meathead",
@@ -7302,7 +7332,7 @@
  {
   "voice": "meathead",
   "text": "HE'S GOT SANDBAGS UP THERE. I NEED TO GET CLOSER.",
-  "from": "game/stages/dale/town.ts:484"
+  "from": "game/stages/dale/town.ts:490"
  },
  {
   "voice": "meathead",
@@ -8557,7 +8587,7 @@
  {
   "voice": "meathead",
   "text": "NOT FROM DOWN HERE. I'VE GOT TO GET UP THERE.",
-  "from": "game/stages/dale/town.ts:484"
+  "from": "game/stages/dale/town.ts:490"
  },
  {
   "voice": "meathead",
@@ -8952,7 +8982,7 @@
  {
   "voice": "meathead",
   "text": "RIGGS, BUDDY... YOUR LIZARD'S GONNA HAVE TO FEND FOR HIMSELF.",
-  "from": "game/stages/dale/town.ts:762"
+  "from": "game/stages/dale/town.ts:768"
  },
  {
   "voice": "meathead",
@@ -9992,7 +10022,7 @@
  {
   "voice": "meathead",
   "text": "The union. The rangers. The Angels. My bar. My field's on fire, pal! ...It's insured. You're not.",
-  "from": "game/core/update.ts:146"
+  "from": "game/core/update.ts:162"
  },
  {
   "voice": "meathead",
@@ -10537,12 +10567,12 @@
  {
   "voice": "meathead",
   "text": "You blew my whole power room, man. With my guy in it. Whole city's dark now... look up. See any stars? ...Me neither.",
-  "from": "game/core/update.ts:146"
+  "from": "game/core/update.ts:162"
  },
  {
   "voice": "meathead",
   "text": "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!",
-  "from": "game/core/update.ts:146"
+  "from": "game/core/update.ts:162"
  },
  {
   "voice": "meathead",
@@ -10577,7 +10607,7 @@
  {
   "voice": "meathead",
   "text": "You crashed my VIP lounge, bro. Those were investors. Now they're a geothermal feature.",
-  "from": "game/core/update.ts:146"
+  "from": "game/core/update.ts:162"
  },
  {
   "voice": "meathead",
@@ -10587,7 +10617,7 @@
  {
   "voice": "meathead",
   "text": "You dropped a jet ski on the tour group, sonny. I schedule my quakes AROUND the tour group!",
-  "from": "game/core/update.ts:146"
+  "from": "game/core/update.ts:162"
  },
  {
   "voice": "meathead",
@@ -10597,12 +10627,12 @@
  {
   "voice": "meathead",
   "text": "You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.",
-  "from": "game/core/update.ts:146"
+  "from": "game/core/update.ts:162"
  },
  {
   "voice": "meathead",
   "text": "You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I'M the terrorist?",
-  "from": "game/core/update.ts:146"
+  "from": "game/core/update.ts:162"
  },
  {
   "voice": "meathead",
@@ -10632,7 +10662,7 @@
  {
   "voice": "meathead",
   "text": "You put the neighbors down. And you dropped my water tower on a house. Do you know how long it took me to fill that thing?",
-  "from": "game/core/update.ts:146"
+  "from": "game/core/update.ts:162"
  },
  {
   "voice": "meathead",
@@ -10717,7 +10747,7 @@
  {
   "voice": "meathead",
   "text": "YOU'RE TOAST.",
-  "from": "game/core/update.ts:146"
+  "from": "game/core/update.ts:162"
  },
  {
   "voice": "meathead",

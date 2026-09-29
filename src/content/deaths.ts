@@ -29,6 +29,7 @@ export const DEATH_LINES: Record<string, string[]> = {
   blastshield: ['BOMB SQUAD BLOCKED YOU', 'SHIELD BASHED TO DEATH'],
   blastshield_shot: ['HOT ROCKED', 'STONED'],
   salamander: ['EATEN BY A FIRE LIZARD', 'LIZARD FOOD'],
+  vulture: ['PICKED CLEAN BY A VULTURE', 'CIRCLED, THEN DINNER'],
   magmafish: ['EATEN BY A LAVA FISH', 'THE FISH LIVES IN LAVA. YOU DON\'T'],
   lava: ['MELTED', 'HOT FOOT, COLD BODY'],
   lava_bomb: ['HIT BY A LAVA BOMB', 'THE VOLCANO SPAT ON YOU'],
@@ -112,6 +113,7 @@ export const DEATH_LINES: Record<string, string[]> = {
   rattlesnake: ['SNAKE BIT', 'RATTLED'],
   scorpion: ['STUNG TO DEATH', 'SCORPION STING'],
   coyote: ['BEEP BEEP', 'EATEN BY A COYOTE'],
+  hawk: ['TAKEN BY A HAWK', 'HAWK-EYED AND DEAD'],
   cactus: ['PRICKED TO DEATH', 'HUGGED A CACTUS'],
   conveyor_crate: ['CRATED', 'KILLED BY THE PRODUCT'],
   junkie: ['BEATEN TO A PULP BY A TWEAKER', 'CHUCO SAYS HI'],
@@ -127,7 +129,7 @@ export const DEATH_LINES: Record<string, string[]> = {
   longhorn: ['GORED BY A LONGHORN', 'BULL\'S EYE'],
   road_debris: ['HIT BY A TIRE ON THE INTERSTATE', 'ROAD DEBRIS'],
   tumbleweed: ['KILLED BY A TUMBLEWEED', 'THE MOST EMBARRASSING DEATH'],
-  sniper: ['SNIPED', 'ONE SHOT, ONE MEATHEAD'],
+  sniper: ['SNIPED', 'ONE SHOT, ONE MEATHEAD', 'RED DOT, THEN NOTHING'],
   truck: ['COMPACTED BY A SEMI', 'EIGHTEEN WHEELS, ZERO SURVIVORS'],
   meth_barrel: ['BLOWN UP BY METH', 'COOKED'],
   needle: ['OVERDOSED', 'DIRTY NEEDLE'],
@@ -165,6 +167,7 @@ export const DEATH_LINES: Record<string, string[]> = {
   electric: ['ELECTROCUTED', 'GROUNDED'],
 
   // ---- Oscar's oil field
+  grackle: ['PECKED TO DEATH BY A GRACKLE', 'THE PARKING LOT BIRDS GOT YOU'],
   biker: ['CHAIN WHIPPED', 'RUN DOWN BY A BIKER GANG'],
   pickup: ['RUN DOWN BY THE UNION', 'KILLED ON THE CLOCK'],
   pickup_shot: ['KILLED BY A LUNCH PAIL', 'KILLED BY MEATLOAF'],
