@@ -140,14 +140,14 @@ export const WEAPON_NAMES: Record<string, string> = {
 };
 
 export const WEAPON_DESCRIPTIONS: Record<string, string> = {
-  'Artie Avalanche': "Freeze those noodle armed fucks in a block of ice and shatter them into a million pieces with your bulging biceps.",
-  'Victor Volcano': "Lock your feet and obliterate enemies and their projectiles.",
-  'Ernie Earthquake': "Roll over the competition with ground based pulverization, or fire upwards to heave it like a shotput.",
-  'Hector Hurricane': "Screen nuke! Watch as every living thing in your vicinity just fucking dies to torrential destruction!",
-  'Toxic Tommy': "Barf out a sample of your finest toxic waste and watch your foes rot in its filth while you become comfortably protected in it.",
-  'Blackout Barry': "It's one of those 'human remote controls' the police use! Hold your charge and zap those bastards until they get set on fire!",
-  'Oily Oscar': "Coat those greasy bastards in flammable oil and watch them slide around before you nuke them with the flamethrower.",
-  'Drug Trade Dale': "Inject the enemy with drugs! Which drugs? All the drugs! Keep pumping them until they overdose!"
+  'Artie Avalanche': "A fan of ice pellets that ricochet off every wall and freeze whatever they touch. Then walk up and shatter the popsicle with your bare fucking hands.",
+  'Victor Volcano': "Hold it down and the stream grows. Sweep it up or down to cook whatever's hiding. Burns their bullets out of the air, too. Plant your feet.",
+  'Ernie Earthquake': "Roll it along the ground and flatten everything, heave it up like a shotput, or spike it straight down from midair. It's a rock. It doesn't care.",
+  'Hector Hurricane': "One wave, the whole screen, whichever way you're facing. Everything in front of it just fucking dies. Wait for it to wash out before you do it again.",
+  'Toxic Tommy': "Puke a lobbed stream of toxic waste that rots whatever it lands on, and coats you in a filth shield nobody wants to touch. Gross. Effective.",
+  'Blackout Barry': "Hold it and it locks onto the nearest bastard and doesn't let go. Stunned, fried, then on fire. You can't walk while you're zapping, so pick your moment.",
+  'Oily Oscar': "Steer the rocket up or down in flight (crouch to fire it dead straight). Everything it hits is greased and sliding. Now get the flamethrower out.",
+  'Drug Trade Dale': "Rapid-fire dirty needles. Stack the doses until they overdose, float off and take out anyone they bump into on the way up."
 };
 
 export const BOSS_WEAPON_MAP: Record<string, WeaponType> = {
@@ -182,8 +182,8 @@ export const getWeaponInfo = (weapon: WeaponType) => {
 };
 
 export const getWeaponDescription = (weapon: WeaponType): string => {
-  if (weapon === 'LMG') return "Dirty Dan's pride and joy. Belt-fed, bipod, zero accuracy. Hold the trigger down and let God sort out the rest.";
-  if (weapon === 'GUN') return "Your trusty sidearm. Never runs dry, never jams, never lets you down. Point it at a face and pull the trigger.";
+  if (weapon === 'LMG') return "Dirty Dan's pride and joy. Zero accuracy, every round goes through three of them, and getting shot doesn't even make you let go. Let God sort out the rest.";
+  if (weapon === 'GUN') return "Your trusty sidearm. Straight line, never runs dry, never jams. The only thing small enough to pop a gas line. Point it at a face and pull the trigger.";
   const bossId = Object.keys(BOSS_WEAPON_MAP).find(id => BOSS_WEAPON_MAP[id] === weapon);
   return (bossId && WEAPON_DESCRIPTIONS[bossId]) || "HEAVY DEVASTATION";
 };
