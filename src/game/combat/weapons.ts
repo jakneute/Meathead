@@ -88,7 +88,7 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
       // GML oBoulderBlunderbuss: one boulder per press; up+fire lobs it
       if (!input.shootPressed) break;
       const size = 48;
-      const lob = input.moveUp;
+      let lob = input.moveUp;
       // Down+fire in the air: spiked down in front of him, steep and hard
       const spike = !lob && input.moveDown && !player.isGrounded;
       // Heaved straight up from over his head, or rolled out from the rock in his hand
@@ -96,9 +96,15 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
       // leaves from down by his feet, clear of him)
       const cx = lob ? pos.x + width / 2 + facing * gml(3) : spike ? pos.x + width / 2 + facing * (width / 2 + size / 2 + 10) : muzzle.x + facing * 12;
       const cy = lob ? pos.y - size / 2 - 2 : spike ? pos.y + player.height - size / 2 : muzzle.y;
-      const spawn = { x: cx - size / 2, y: cy - size / 2, w: size, h: size };
+      let spawn = { x: cx - size / 2, y: cy - size / 2, w: size, h: size };
       // Don't fire into a wall (a lob goes up through a jump-through ledge overhead, as he would)
-      if (state.blocks.some(b => b.type !== 'pit' && !(lob && b.oneWay) && rectsOverlap(spawn, b))) break;
+      const blocked = (r: typeof spawn, up: boolean) => state.blocks.some(b => b.type !== 'pit' && !(up && b.oneWay) && rectsOverlap(r, b));
+      if (blocked(spawn, lob)) {
+        // A low ceiling (no room over his head, or at his hand): it comes out along the floor instead, rolling
+        const low = { x: muzzle.x + facing * 12 - size / 2, y: pos.y + player.height - size - 1, w: size, h: size };
+        if (spike || blocked(low, false)) break;
+        spawn = low; lob = false;
+      }
       addProjectile({
         id: `b-${Date.now()}-${Math.random()}`,
         pos: { x: spawn.x, y: spawn.y },

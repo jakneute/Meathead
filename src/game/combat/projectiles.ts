@@ -401,7 +401,8 @@ const updatePlayerBoulder = (ctx: FrameContext, p: Projectile): boolean => {
 
   // Walls break it
   // (a jump-through ledge is never a wall: it rolls past the end of one, and through one it's rising into)
-  if (solidForBoulder(state, { x: p.pos.x + p.vel.x, y: p.pos.y - GML_SCALE * 8, w: p.width, h: p.height - GML_SCALE * 8 }, -1, Infinity)) {
+  // (a band across its top half: it still rides up over a low step, and a low ceiling it's rolling along under isn't a wall)
+  if (solidForBoulder(state, { x: p.pos.x + p.vel.x, y: p.pos.y + 3, w: p.width, h: p.height - GML_SCALE * 16 - 3 }, -1, Infinity)) {
     shatterBoulder(ctx, p);
     return false;
   }
