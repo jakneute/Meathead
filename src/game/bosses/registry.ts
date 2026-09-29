@@ -240,6 +240,13 @@ const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolea
     helpers.spawnDeathShower(state.bossExplosionPos, playerFacing, 35, true, 120);
   } else {
     helpers.spawnDeathShower(pos, playerFacing, 6, true, 45);
+    // Not his weakness: no eruption, he just goes over, dead (away from what hit him, unless there's a wall that way)
+    const floor = getBossDef(stageId)?.arena?.floorless ? state.tommySludgeY - 10 : FLOOR_Y;
+    let dir: 1 | -1 = playerFacing < 0 ? -1 : 1;
+    const reach = Math.max(boss.width, boss.height);
+    if (dir === 1 && boss.pos.x + boss.width + reach > getArenaRight(stageId)) dir = -1;
+    else if (dir === -1 && boss.pos.x - reach < ARENA_LEFT) dir = 1;
+    state.bossFallen = { e: { ...boss, pos: { ...boss.pos }, vel: { x: 0, y: 0 }, hitCooldown: 0 }, dir, floor, frame0: state.frame };
     helpers.onBossDeath();
     state.victoryString = "V";
     state.postVictoryTimer = 0;

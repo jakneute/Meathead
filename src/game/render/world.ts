@@ -4,7 +4,7 @@ import {
 } from '../../constants';
 import { drawSkyClouds, DEPLOY_CLOUD_SCROLL_END, SKYFALL_CLOUD_SPEED } from './skyClouds';
 import { STAGE_COLORS } from '../../content/roster';
-import { GameState } from '../core/state';
+import { GameState, BOSS_FALL } from '../core/state';
 import { drawCustomBossArena } from './bosses/arenas';
 import { drawBoss, drawBossOverlay } from './bosses';
 import { drawVentTelegraph, drawVent, drawMagma, isMagma } from './bosses/victorVents';
@@ -95,6 +95,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     }
     drawBossHazards(wctx, state);
     if (state.bossCorpse) drawBossCorpse(wctx, state.bossCorpse, state.frame);
+    if (state.bossFallen) drawBossFallen(wctx, state, stageId);
     drawIcicles(wctx, state);
     drawOilSlicks(wctx, state);
     drawProjectiles(wctx, state, 'puddles');
@@ -366,6 +367,29 @@ const drawBossHazards = (ctx: CanvasRenderingContext2D, state: GameState) => {
   });
 };
 
+
+/**
+ * A boss killed some other way than his weakness: no eruption, he's just dead. He drops to the floor if he was up off
+ * it, and goes over like a felled tree (away from what hit him), and lies there, gone grey, till it's done.
+ */
+const FALL_DROP = BOSS_FALL.DROP, FALL_OVER = BOSS_FALL.OVER;
+const drawBossFallen = (ctx: CanvasRenderingContext2D, state: GameState, stageId: string | null) => {
+  const fb = state.bossFallen!;
+  const e = fb.e, t = state.frame - fb.frame0;
+  const feet = e.pos.y + e.height;
+  // Down to the floor first (a flyer, one caught mid-leap)
+  const drop = Math.max(0, fb.floor - feet) * Math.min(1, (t / FALL_DROP) ** 2);
+  // Then over, about the edge of him on the way he's going, speeding up as he goes, a little bounce as he lands
+  const k = Math.min(1, Math.max(0, t - (feet < fb.floor - 4 ? FALL_DROP : 0)) / FALL_OVER);
+  const over = k < 1 ? k * k : 1 + Math.sin(Math.min(1, (t - FALL_OVER) / 10) * Math.PI) * 0.04 * (t - FALL_OVER < 10 ? 1 : 0);
+  const px = fb.dir > 0 ? e.pos.x + e.width : e.pos.x, py = feet;
+  ctx.save();
+  ctx.translate(0, drop);
+  ctx.translate(px, py); ctx.rotate(fb.dir * (Math.PI / 2) * Math.min(1.04, over)); ctx.translate(-px, -py);
+  ctx.filter = `grayscale(${Math.min(0.6, t / 60)}) brightness(${1 - Math.min(0.25, t / 120)})`;
+  drawBoss(ctx, e, stageId, fb.frame0);
+  ctx.restore();
+};
 
 const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, stageId, bossTauntText }: WorldView) => {
   const { enemies, player } = state;

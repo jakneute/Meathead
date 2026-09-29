@@ -14,7 +14,7 @@ import { respawn, getStartX } from './level';
 import { updateSewerNuke } from '../scenes/sewerNuke';
 import { updateEnemyDeaths } from '../enemies/deaths';
 import { updateVolcanoFinale } from '../scenes/volcanoFinale';
-import { calmPlayer, DEFAULT_SHAKE, shakeScreen } from './state';
+import { calmPlayer, DEFAULT_SHAKE, shakeScreen, BOSS_FALL } from './state';
 import { playSound } from '../platform/audio';
 import { LEVEL_INTRO_STYLE } from '../../constants';
 import { updateBarfStream, updateFlameSegments } from '../combat/weapons';
@@ -289,6 +289,12 @@ const updateVictorySequence = (ctx: FrameContext) => {
   calmPlayer(state.player);
   // (killed him with a move of his own: held in it, the still of the kill; not after a weakness kill, he's off to the corpse)
   if (!state.bossCorpse && state.killPose) Object.assign(state.player, state.killPose);
+  // (a boss going over, not his weakness: he hits the floor)
+  const fb = state.bossFallen;
+  if (fb) {
+    const up = fb.e.pos.y + fb.e.height < fb.floor - 4 ? BOSS_FALL.DROP : 0;
+    if (state.frame - fb.frame0 === up + BOSS_FALL.OVER) { shakeScreen(state, 16, 8); playSound('thud'); }
+  }
   state.playerStunTimer = 0;
   state.projectiles = [];
   state.damageNumbers = [];

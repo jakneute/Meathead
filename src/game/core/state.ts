@@ -119,6 +119,8 @@ export interface GameState {
   bossExplosionTimer: number;
   bossExplosionPos: Vector2;
   bossCorpse: BossCorpse | null;
+  /** A boss killed any way but his weakness: him as he was, going over (which way), where the floor is, when it started. */
+  bossFallen?: { e: Enemy; dir: 1 | -1; floor: number; frame0: number } | null;
   /** The boss-defeated event has been sent (so it only goes once). */
   victoryReported: boolean;
   /** Forces React to switch the equipped weapon back to GUN (after respawn). */
@@ -330,6 +332,9 @@ export const resetPlayerCombatState = (player: Player) => {
 };
 
 /** The boss is dead: Meathead drops out of any hurt, flinch or special pose into a plain neutral stance. */
+/** A boss going over (not his weakness): frames dropping to the floor if he's up off it, then going over. */
+export const BOSS_FALL = { DROP: 12, OVER: 26 };
+
 export const calmPlayer = (player: Player) => {
   resetPlayerCombatState(player);
   player.invincibilityTimer = 0;
@@ -389,6 +394,7 @@ export const resetStageState = (s: GameState) => {
   s.victoryQuiet = 0;
   s.bossExplosionTimer = 0;
   s.bossCorpse = null;
+  s.bossFallen = null;
   s.victoryReported = false;
 
   s.tsunamiActive = false;
