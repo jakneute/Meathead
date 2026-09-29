@@ -313,6 +313,8 @@ const spawn = (state: GameState, ch: Chase) => {
   if (--ch.spawnTimer > 0 || on >= MAX_ON(ch.kills)) return;
   ch.spawnTimer = Math.max(40, 95 - ch.kills * 1.5) + Math.floor(Math.random() * 35);
   let kind = ORDER[ch.spawned++ % ORDER.length];
+  // (he waited out the union's break: they respect that, and they're not in this. Nobody takes their turn: fewer after him, and it takes longer)
+  if (kind === 'pickup' && state.stageMemo.unionRespect) return;
   // (never more than a few cars and trucks at once: a biker instead)
   if (kind !== 'chopper' && state.enemies.filter(e => (e.kind === 'pickup' || e.kind === 'cruiser') && e.health > 0).length >= MAX_CARS) kind = 'chopper';
   const behind = Math.random() < 0.55;

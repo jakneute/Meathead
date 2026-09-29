@@ -124,9 +124,13 @@ export const updateEnding = (ctx: FrameContext, en: Ending, talk: Talk, controls
       if (en.gun.state === 'flying') {
         const g = en.gun;
         g.vy += 0.5; g.x += g.vx; g.y += g.vy; g.rot += 0.35;
-        if (g.vy > 0 && g.y >= GROUND_Y - 34) { g.state = 'dumped'; g.y = GROUND_Y - 34; g.rot = 0.3; playSound('clang'); }
+        if (g.vy > 0 && g.y >= GROUND_Y - 34) {
+          g.state = 'dumped'; g.y = GROUND_Y - 34; g.rot = 0.3; playSound('clang');
+          // (on what's left of the two of them)
+          queueLines(state, talk, [{ who: 'meathead', text: "KEEP IT, FELLAS. I'M TRYING TO QUIT." }], 14);
+        }
       }
-      if (en.t > 64) {
+      if (en.t > 64 && quiet(talk)) {
         en.phase = 'done'; en.t = 0;
         p.inCutscene = false;
         state.cameraOverride = null;

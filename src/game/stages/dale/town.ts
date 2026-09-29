@@ -39,7 +39,7 @@ import { playSound, playSniperShot, playHornDrone } from '../../platform/audio';
 import { cancelSpeech } from '../../platform/speech';
 import { makeKindEnemy } from '../../enemies/kinds';
 import { COURSE, CP } from './course';
-import { Talk, queueLines, replaceLines, hush } from './script';
+import { Talk, queueLines, replaceLines, hush, quiet } from './script';
 
 const Y = GROUND_Y;
 const T = () => COURSE.town;
@@ -70,7 +70,9 @@ export interface Town {
   arrive: { t: number; x: number; h: number; vx: number; vh: number; rot: number; spin: number; landedAt: number } | null;
   /** The hole in the curio shop (not till the cab's gone into it). */
   shopHit: boolean;
-  ninja: { state: 'perch' | 'speech' | 'kneel' | 'dead'; t: number; /** Which way he turned to face Meathead (and stays that way). */ face: 1 | -1 };
+  ninja: { state: 'perch' | 'speech' | 'kneel' | 'dead'; t: number; /** Which way he turned to face Meathead (and stays that way). */ face: 1 | -1; /** Which way he's aiming, up there (he turns round after him if he gets past). */ aim?: 1 | -1 };
+  /** Meathead up against the jail with the sniper still up the tower: when he last said so, and how many times. */
+  wallNagAt?: number; wallNags?: number;
   cab: { x: number; speed: number; facing: 1 | -1; spin: number; state: 'arrive' | 'parked' | 'reverse' | 'spin' | 'go' | 'wrecked'; t: number };
   props: TownProp[];
   sheriff: { x: number; running: boolean };
@@ -225,6 +227,7 @@ export const updateTown = (ctx: FrameContext, town: Town, talk: Talk, controls: 
     if (once(state, town, 'sniper')) replaceLines(state, talk, [{ who: 'meathead', text: "A LITTLE RED DOT ON MY PECS... SNIPER! THE PORCH ROOFS! HE CAN'T SEE ME UNDER THOSE!" }]);
   }
   if (town.sniper.on) updateSniper(ctx, town, talk);
+  sniperFirst(state, town, talk);
   const ninjaControls = updateNinja(ctx, town, talk);
   if (ninjaControls) return ninjaControls;
   updatePrisoner(state, town, talk);
@@ -235,6 +238,25 @@ const checkpoints = (state: GameState) => {
   const p = state.player;
   if (!p.isGrounded) return;
   if (state.checkpoint < CP.ROOFTOPS && p.pos.x >= COURSE.checkpoints[CP.ROOFTOPS].x) state.checkpoint = CP.ROOFTOPS;
+};
+
+/** Up against the jail with the sniper still up his tower: Meathead knows he should deal with him first. */
+const WALL_NAGS = [
+  'I SHOULD REALLY TAKE OUT THAT SNIPER BEFORE I GO ANY FURTHER.',
+  "NOT WITH A SNIPER ON MY BACK. HE'S UP THE BELL TOWER.",
+  'SNIPER FIRST. THEN THE DRUGS.',
+];
+const WALL_NAG_EVERY = 480;
+const sniperFirst = (state: GameState, town: Town, talk: Talk) => {
+  const p = state.player;
+  if (town.ninja.state !== 'perch' || p.pos.x + p.width < T().jail.x1 - 60 || p.pos.x > T().jail.x2) return;
+  // (all three, then only now and then)
+  if (town.wallNagAt !== undefined && town.t - town.wallNagAt < ((town.wallNags ?? 0) < WALL_NAGS.length ? WALL_NAG_EVERY : WALL_NAG_EVERY * 3)) return;
+  if (!quiet(talk)) return;
+  town.wallNagAt = town.t;
+  const n = town.wallNags ?? 0;
+  town.wallNags = n + 1;
+  queueLines(state, talk, [{ who: 'meathead', text: WALL_NAGS[n % WALL_NAGS.length] }]);
 };
 
 /** Standing under a porch roof: out of the sniper's sight. */
@@ -267,6 +289,9 @@ const updateSniper = (ctx: FrameContext, town: Town, talk: Talk) => {
   const s = town.sniper;
   s.t++;
   const px = p.pos.x + p.width / 2, py = p.pos.y + p.height / 2;
+  // (he swings round after the crosshair if it goes past his side of the tower)
+  const n = town.ninja, sx = ninjaSpot().x;
+  if (s.x > sx + 40) n.aim = 1; else if (s.x < sx - 40) n.aim = -1;
   if (s.state === 'track' || s.state === 'cool') {
     // Drifting after him, a little behind, a little shaky
     const k = s.state === 'cool' ? 0.02 : 0.045;
@@ -279,12 +304,12 @@ const updateSniper = (ctx: FrameContext, town: Town, talk: Talk) => {
     if (s.t >= LOCK) {
       // Fire: the first thing along the laser takes it (him, or a goon in the way), and only that
       s.state = 'cool'; s.t = 0; s.shots++;
-      const hit = firstHit(state, s);
+      const hit = firstHit(state, s, town.ninja.aim);
       s.lastShot = { x: hit.x, y: hit.y, t: state.frame, covered: hit.kind === 'roof' };
       playSniperShot(); shakeScreen(state, 18, 12);
       // The muzzle blast up the tower
-      const m = muzzle();
-      for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: m.x, y: m.y }, vel: { x: -Math.random() * 7, y: (Math.random() - 0.5) * 4 }, life: 30 + Math.random() * 20, color: i % 3 ? '#57534E' : '#FDE68A', size: 5 + Math.random() * 7 });
+      const m = muzzle(town.ninja.aim);
+      for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: m.x, y: m.y }, vel: { x: (town.ninja.aim ?? -1) * Math.random() * 7, y: (Math.random() - 0.5) * 4 }, life: 30 + Math.random() * 20, color: i % 3 ? '#57534E' : '#FDE68A', size: 5 + Math.random() * 7 });
       if (hit.kind === 'roof') {
         // Into the porch roof
         for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: hit.x, y: hit.y }, vel: { x: (Math.random() - 0.5) * 6, y: -Math.random() * 4 }, life: 26, color: i % 2 ? '#92400E' : '#D6B98C', size: 2 + Math.random() * 3 });
@@ -309,8 +334,8 @@ const updateSniper = (ctx: FrameContext, town: Town, talk: Talk) => {
   }
 };
 
-/** Where the rifle's muzzle is, up the tower. */
-export const muzzle = () => ({ x: ninjaSpot().x - 50, y: ninjaSpot().y - 22 });
+/** Where the rifle's muzzle is, up the tower (the way he's aiming). */
+export const muzzle = (aim: 1 | -1 = -1) => ({ x: ninjaSpot().x + aim * 50, y: ninjaSpot().y - 22 });
 
 /** Where the laser (and the round) stops: the crosshair. It goes no further than that. */
 export const laserEnd = (s: { x: number; y: number }) => ({ x: s.x, y: s.y });
@@ -320,9 +345,9 @@ export const laserEnd = (s: { x: number; y: number }) => ({ x: s.x, y: s.y });
  * if it gets all the way to the crosshair, whatever's in the crosshair (him first), or the ground there. (Under a porch
  * roof, he's out of it: the round goes into the roof over him.)
  */
-const firstHit = (state: GameState, s: { x: number; y: number }): { kind: 'roof' | 'player' | 'enemy' | 'ground'; x: number; y: number; enemy?: Enemy } => {
+const firstHit = (state: GameState, s: { x: number; y: number }, aim: 1 | -1 = -1): { kind: 'roof' | 'player' | 'enemy' | 'ground'; x: number; y: number; enemy?: Enemy } => {
   const p = state.player;
-  const m = muzzle();
+  const m = muzzle(aim);
   const covered = underCover({ x: p.pos.x, y: p.pos.y, w: p.width });
   const me = { x: p.pos.x + 4, y: p.pos.y + 4, w: p.width - 8, h: p.height - 4 };
   const goons = state.enemies.filter(e => e.health > 0 && !e.isBlownAway && e.type !== 'boss');

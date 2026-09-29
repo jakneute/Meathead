@@ -255,6 +255,8 @@ const onBreak = (ctx: FrameContext, b: Bunker, talk: Talk, controls: Controls, i
 const clockOut = (ctx: FrameContext, b: Bunker, talk: Talk) => {
   const { state } = ctx;
   b.phase = 'clockout'; b.t = 0; b.peaceful = true;
+  // (and the union sits out the chase: see chase.ts)
+  state.stageMemo.unionRespect = 'yes';
   hush(state, talk);
   playSound('truckhorn');
   queueLines(state, talk, [

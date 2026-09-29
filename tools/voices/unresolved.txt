@@ -15,5 +15,5 @@ game/stages/tommy/bike.ts:529 name: undefined
 game/stages/oscar/bunker.ts:248 template: `${NUMBERS[left] ?? left} MINUTE${left === 1 ? '' : 'S'} LEFT, FELLAS. SAVOR IT.`
 game/stages/oscar/runtime.ts:166 name: undefined
 game/stages/oscar/bar.ts:151 template: `NOT ENOUGH GAS YET. ${left === 1 ? 'ONE MORE LINE' : 'TWO MORE LINES'} TO OPEN.`
-game/stages/oscar/chase.ts:581 name: undefined
+game/stages/oscar/chase.ts:583 name: undefined
 game/core/update.ts:136 name: undefined

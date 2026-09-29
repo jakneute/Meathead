@@ -457,7 +457,7 @@ const drawNinja = (ctx: Ctx, state: GameState, town: Town) => {
   if (!visible(state, s.x - 60, s.x + 60)) return;
   const f = state.frame;
   // (turned to Meathead when he got up there, and that's the way he stays, speech to seppuku to face down)
-  ctx.save(); ctx.translate(s.x, s.y); ctx.scale(n.state === 'perch' ? -1 : n.face, 1);
+  ctx.save(); ctx.translate(s.x, s.y); ctx.scale(n.state === 'perch' ? (n.aim ?? -1) : n.face, 1);
   const black = '#111827', dark = '#1F2937';
   if (n.state === 'perch') {
     // Prone-ish, kneeling behind the rifle, sighting down the street
@@ -522,7 +522,7 @@ export const drawTownFront = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
     const k = lock ? sn.t / 46 : 0;
     // The laser from up the tower to the crosshair (all of it's the line of fire; the crosshair's where it stops),
     // blinking: slowly while it's looking for him, fast once it's locked
-    const m = muzzle(), end = laserEnd(sn);
+    const m = muzzle(town.ninja.aim), end = laserEnd(sn);
     const on = lock ? Math.floor(f / 3) % 2 === 0 : Math.floor(f / 12) % 3 !== 0;
     ctx.lineCap = 'round';
     ctx.strokeStyle = `rgba(239, 68, 68, ${on ? (lock ? 0.35 + k * 0.3 : 0.28) : 0.08})`; ctx.lineWidth = lock ? 10 : 7;
@@ -546,7 +546,7 @@ export const drawTownFront = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   const ls = sn.lastShot;
   const since = ls ? f - ls.t : 999;
   if (ls && since < 22) {
-    const m = muzzle();
+    const m = muzzle(town.ninja.aim), dir = town.ninja.aim ?? -1;
     const fade = 1 - since / 22;
     if (since < 3) { ctx.fillStyle = `rgba(255, 255, 255, ${0.55 - since * 0.15})`; ctx.fillRect(state.camera.x, state.camera.y, CANVAS_WIDTH, CANVAS_HEIGHT); }
     ctx.lineCap = 'round';
@@ -567,7 +567,7 @@ export const drawTownFront = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
       ctx.restore();
     }
     // The muzzle blast
-    if (since < 8) { ctx.fillStyle = `rgba(255, 247, 200, ${1 - since / 8})`; ctx.beginPath(); ctx.arc(m.x - 10, m.y, 26 - since * 2, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.moveTo(m.x, m.y - 6); ctx.lineTo(m.x - 70 + since * 6, m.y); ctx.lineTo(m.x, m.y + 6); ctx.fill(); }
+    if (since < 8) { ctx.fillStyle = `rgba(255, 247, 200, ${1 - since / 8})`; ctx.beginPath(); ctx.arc(m.x + dir * 10, m.y, 26 - since * 2, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.moveTo(m.x, m.y - 6); ctx.lineTo(m.x + dir * (70 - since * 6), m.y); ctx.lineTo(m.x, m.y + 6); ctx.fill(); }
     // Where it went in
     if (!ls.covered) {
       ctx.strokeStyle = `rgba(254, 215, 170, ${fade})`; ctx.lineWidth = 4 * fade + 1;
