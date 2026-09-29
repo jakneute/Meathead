@@ -752,6 +752,8 @@ const knockBackEnemy = (ctx: FrameContext, e: Enemy, mass: number, wasFrozen: bo
     if (!player.isDivekicking) e.vel.y = 0;
   }
   e.pauseTimer = ENEMY_DAZE_FRAMES;
+  // (a shoulder charge's shove: into a wall, that's a lot more than a bump)
+  if (player.isCharging && !player.isSliding && !player.isUppercutting) e.chargedAt = ctx.state.frame;
   interrupt(e);
 };
 
@@ -890,6 +892,9 @@ const shieldShove = (ctx: FrameContext, e: Enemy): boolean => {
   // (no sucker punch the moment you let up)
   e.pos.x = side > 0 ? p.pos.x + p.width + 2 : p.pos.x - e.width - 2;
   e.vel.x = p.vel.x * 0.9;
+  // Less room between Meathead and a wall than he is wide: he's compacted between the two, shield and all
+  const wall = wallAgainst(state, e);
+  if (wall) { compact(ctx, e, wall, side); return true; }
   e.pauseTimer = Math.max(e.pauseTimer || 0, SHIELD_SHOVE_RECOVER);
   e.melee = undefined;
   e.shootTimer = 0;
@@ -909,8 +914,31 @@ const shieldShove = (ctx: FrameContext, e: Enemy): boolean => {
   return true;
 };
 const SHIELD_SHOVE_CHIP = 5;
+/** A shoulder charge's shove into a wall: the bonus on top of the usual slam, and how long after the hit it still counts. */
+const CHARGE_WALL_BONUS = 45, CHARGE_WALL_WINDOW = 45;
 /** How long a held charge can keep driving a shield goon back (most of a second more), and how long he's reeling after. */
 const SHIELD_SHOVE_FRAMES = 50, SHIELD_SHOVE_RECOVER = 55;
+
+/** A wall (or a shut door) the enemy's body is up against or into (its feet and head aside: floors and ceilings don't count). */
+const wallAgainst = (state: FrameContext['state'], e: Enemy) => {
+  const box = { x: e.pos.x, y: e.pos.y + 6, w: e.width, h: e.height - 16 };
+  const doorShut = state.doorState !== 'opening' && state.doorState !== 'open' && state.doorState !== 'closing';
+  return state.blocks.find(b => (b.type === 'wall' || (b.type === 'door' && doorShut)) && rectsOverlap(box, b));
+};
+
+/** A shield goon crushed flat between Meathead and a wall: dead on the spot, and messily. */
+const compact = (ctx: FrameContext, e: Enemy, wall: { x: number; w: number }, side: number) => {
+  const { state, fx } = ctx;
+  const at = { x: side > 0 ? wall.x : wall.x + wall.w, y: e.pos.y + e.height / 2 };
+  e.pos.x = side > 0 ? wall.x - e.width : wall.x + wall.w;
+  fx.spawnDamageNumber(e.pos, e.health, true);
+  impactKill(ctx, e, 'compacted', -side);
+  fx.spawnDeathShower(at, 0, 1.5);
+  fx.spawnExplosion(at, '#E5E7EB', 12, -side * 6, 12);
+  fx.playGunSound('ice');
+  shakeScreen(state, 14, 8);
+  state.player.shoveT = 0;
+};
 
 /**
  * A frozen enemy thawed out by hitting something (a wall, another enemy): the ice bursts off him, and the burst hurts
@@ -949,7 +977,10 @@ const slamIntoWalls = (ctx: FrameContext, e: Enemy, speed: number): boolean => {
   // Only a shove (or a blast) slams it into the wall; walking into one under its own steam it just stops there
   if ((e.pauseTimer || 0) <= 0) return false;
 
-  const damage = toGml(speed) * DAMAGE_WALL_IMPACT_SCALER * (isFrozen(e) ? FROZEN_WALL_IMPACT_MULTIPLIER : 1);
+  // Shoulder-charged into it: major bonus damage, however slow it got there
+  const charged = e.chargedAt !== undefined && state.frame - e.chargedAt < CHARGE_WALL_WINDOW;
+  e.chargedAt = undefined;
+  const damage = toGml(speed) * DAMAGE_WALL_IMPACT_SCALER * (isFrozen(e) ? FROZEN_WALL_IMPACT_MULTIPLIER : 1) + (charged ? CHARGE_WALL_BONUS : 0);
   // (frozen, it thaws on the wall with a burst, however hard it hit)
   if (isFrozen(e)) {
     e.health -= damage;
@@ -957,7 +988,8 @@ const slamIntoWalls = (ctx: FrameContext, e: Enemy, speed: number): boolean => {
   }
   if (damage <= IMPACT_DAMAGE_THRESHOLD) return false;
   e.health -= damage;
-  fx.spawnDamageNumber(e.pos, damage, isFrozen(e));
+  fx.spawnDamageNumber(e.pos, Math.round(damage), isFrozen(e) || charged);
+  if (charged) fx.spawnExplosion({ x: dir > 0 ? wall.x : wall.x + wall.w, y: e.pos.y + e.height / 2 }, '#FFFFFF', 8, -dir * 5, 10);
   fx.spawnExplosion({ x: dir > 0 ? wall.x : wall.x + wall.w, y: e.pos.y + e.height / 2 }, '#FDE047', 5, -dir * 4, 8);
   shakeScreen(state, 8, Math.min(10, toGml(speed)) * GML_SCALE * 0.6);
   if (e.health <= 0) { impactKill(ctx, e, 'wallsplat', -dir); return true; }

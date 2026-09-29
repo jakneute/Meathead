@@ -25,7 +25,7 @@ export type Entry = 'left' | 'right' | 'back0' | 'back1' | 'back2' | 'roof';
 export const WAVES: { t: number; spawns: [EnemyKind, Entry][] }[] = [
   { t: 150, spawns: [['wolverine', 'left'], ['wolverine', 'right']] },
   { t: 440, spawns: [['eagle', 'back1'], ['shooter', 'roof']] },
-  { t: 780, spawns: [['goat', 'right'], ['charger', 'left']] },
+  { t: 780, spawns: [['goat', 'right'], ['shielder', 'left']] },
   { t: 1120, spawns: [['eagle', 'back0'], ['wolverine', 'right']] },
   { t: 1460, spawns: [['shielder', 'roof'], ['shooter', 'back1']] },
   { t: 1800, spawns: [['charger', 'right'], ['eagle', 'back1']] },
@@ -57,6 +57,10 @@ export interface Tram {
   wave: number;
   /** Frames the roof hatch has been swinging open. */
   hatch: number;
+  /** The mess: a splatter up the back wall and a pool on the floor for everything killed in here (relative to the cabin). */
+  gore: { x: number; y: number; seed: number }[];
+  /** Who's alive in here, and where they were last frame (to know who's just died, and where). */
+  aboard: Map<string, { x: number; y: number }>;
 }
 
 const cabinBlocks = (x: number, y: number) => ({
@@ -73,7 +77,7 @@ export const createTram = (state: GameState, startedAt: number): Tram => {
   const blocks = cabinBlocks(x, y);
   // Docked at the bottom: open on the left to walk in. Parked at the top: open on the right.
   state.blocks.push(blocks.floor, blocks.roof, atTop ? blocks.left : blocks.right);
-  return { phase: atTop ? 'done' : 'docked', t: 0, x, y, blocks, broken: BACK_WINDOWS.map(() => atTop), doorBroken: [atTop, atTop], wave: 0, hatch: 0 };
+  return { phase: atTop ? 'done' : 'docked', t: 0, x, y, blocks, broken: BACK_WINDOWS.map(() => atTop), doorBroken: [atTop, atTop], wave: 0, hatch: 0, gore: [], aboard: new Map() };
 };
 
 const inCabin = (tram: Tram, x: number, y: number, pad = 0) =>
@@ -174,6 +178,20 @@ export const updateTram = (ctx: FrameContext, tram: Tram) => {
       break;
   }
   if (tram.hatch > 0) tram.hatch--;
+  if (tram.phase !== 'docked' && tram.phase !== 'done') bloodyCabin(state, tram);
+};
+
+/** Everyone killed in here leaves his mark on the place: the more that die, the bloodier it gets. */
+const bloodyCabin = (state: GameState, tram: Tram) => {
+  const alive = new Map(cabinEnemies(state, tram).map(e => [e.id, { x: e.pos.x + e.width / 2 - tram.x, y: e.pos.y + e.height / 2 - tram.y }]));
+  for (const [id, at] of tram.aboard) {
+    if (alive.has(id)) continue;
+    // (gone: dead, or blown out of a window; either way he bled in here first)
+    const e = state.enemies.find(q => q.id === id);
+    if (e && e.health > 0 && !e.isBlownAway) continue;
+    tram.gore.push({ x: Math.max(30, Math.min(CABIN_W - 30, at.x)), y: Math.max(-CABIN_H + 50, Math.min(-50, at.y - 20 - ((tram.gore.length * 37) % 50))), seed: tram.gore.length * 7.31 + at.x * 0.17 });
+  }
+  tram.aboard = alive;
 };
 
 /** Moves the cabin and everything in it. */

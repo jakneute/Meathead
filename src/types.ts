@@ -213,6 +213,8 @@ export interface Enemy extends Entity {
   melee?: { state: 'windup' | 'strike' | 'recover'; t: number; hit: boolean };
   /** The last frame Meathead was driving him backward on his own shield with a shoulder charge. */
   shovedAt?: number;
+  /** The frame a shoulder charge knocked it back (a wall it's slammed into soon after hurts a lot more). */
+  chargedAt?: number;
   enemyType: 'drone' | 'tank' | 'turret' | 'flyer' | 'shield';
   behavior: 'patrol' | 'shoot' | 'hover' | 'fly' | 'custom';
   /** A themed stage enemy with its own look and AI (see enemies/kinds/index.ts). */

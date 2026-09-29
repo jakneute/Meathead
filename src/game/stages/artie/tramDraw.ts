@@ -131,6 +131,43 @@ const drawCabinInside = (ctx: Ctx, state: GameState, tram: Tram) => {
     }
     ctx.strokeStyle = '#2B0A0A'; ctx.lineWidth = 4; ctx.strokeRect(l, winTop, winW, winH);
   });
+  drawCabinGore(ctx, tram);
+};
+
+const rnd = (n: number) => { const v = Math.sin(n * 91.7 + 17.3) * 43758.5453; return v - Math.floor(v); };
+
+/** The mess everyone killed in here has left: a splatter up the back wall with drips running down it, spots flung wide, a pool on the floor. */
+const drawCabinGore = (ctx: Ctx, tram: Tram) => {
+  const { x, y } = tram;
+  tram.gore.forEach((g, i) => {
+    const gx = x + g.x, gy = y + g.y;
+    const r = 14 + rnd(g.seed) * 12;
+    // (bright and wet, so it shows up against the cabin's own dark red)
+    ctx.fillStyle = i % 2 ? 'rgba(220, 38, 38, 0.9)' : 'rgba(239, 68, 68, 0.85)';
+    // The splat
+    ctx.beginPath();
+    for (let k = 0; k < 12; k++) {
+      const a = (k / 12) * Math.PI * 2, rr = r * (0.6 + rnd(g.seed + k) * 0.7);
+      if (k === 0) ctx.moveTo(gx + Math.cos(a) * rr, gy + Math.sin(a) * rr * 0.8); else ctx.lineTo(gx + Math.cos(a) * rr, gy + Math.sin(a) * rr * 0.8);
+    }
+    ctx.closePath(); ctx.fill();
+    // Drips running down the wall
+    for (let k = 0; k < 4; k++) {
+      const dx = gx + (rnd(g.seed + 20 + k) - 0.5) * r * 1.4, len = 16 + rnd(g.seed + 30 + k) * 50;
+      const bottom = Math.min(gy + len, y - 30);
+      ctx.fillRect(dx, gy, 3, Math.max(0, bottom - gy)); ctx.beginPath(); ctx.arc(dx + 1.5, bottom, 2.5, 0, Math.PI * 2); ctx.fill();
+    }
+    // Spots flung out round it
+    for (let k = 0; k < 7; k++) {
+      const a = rnd(g.seed + 40 + k) * Math.PI * 2, d = r + 6 + rnd(g.seed + 50 + k) * 30;
+      ctx.beginPath(); ctx.arc(gx + Math.cos(a) * d, gy + Math.sin(a) * d * 0.7, 1.5 + rnd(g.seed + 60 + k) * 3, 0, Math.PI * 2); ctx.fill();
+    }
+    // A wet shine on it
+    ctx.fillStyle = 'rgba(254, 202, 202, 0.5)'; ctx.beginPath(); ctx.ellipse(gx - r * 0.3, gy - r * 0.3, r * 0.25, r * 0.12, -0.5, 0, Math.PI * 2); ctx.fill();
+    // And the pool on the floor under him
+    ctx.fillStyle = 'rgba(185, 28, 28, 0.9)';
+    ctx.beginPath(); ctx.ellipse(gx + (rnd(g.seed + 70) - 0.5) * 20, y - 2, 20 + rnd(g.seed + 71) * 22, 4, 0, 0, Math.PI * 2); ctx.fill();
+  });
 };
 
 /** In front: roof shell, underside, doors, the hanger arm and the carriage riding the cable. */

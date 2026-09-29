@@ -778,7 +778,7 @@ export const KILL_LINES: Record<Exclude<VulgarityType, 'hurt'>, string[]> = {
 export type KillCallout =
   | 'charge' | 'slide' | 'uppercut' | 'divekick' | 'shatter' | 'shield'
   | 'crush' | 'overdose' | 'nuke' | 'tsunami' | 'fried'
-  | 'wallsplat' | 'groundsplat' | 'flattened' | 'squished' | 'truck' | 'blowout' | 'crash'
+  | 'wallsplat' | 'groundsplat' | 'flattened' | 'squished' | 'truck' | 'blowout' | 'crash' | 'compacted'
   | 'moon' | 'cliff' | 'yeet'
   | 'charred' | 'melted' | 'greased' | 'contact' | 'pulverized' | 'cooked'
   // On the jet ski
@@ -807,6 +807,7 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
   swim:      { lines: ["FILLETED!", "SUSHI!", "FISH STICKS!", "CATCH OF THE DAY!", "SLEEPS WITH THE FISHES!", "BELLY UP!"], color: '#22D3EE' },
   bike:      { lines: ["RUN DOWN!", "TIRE TRACKS!", "BIKE LANE!", "PEDAL TO THE METAL!", "HANDLEBARRED!"], color: '#F87171' },
   wallsplat:   { lines: ["WALL SPLAT!", "SPLATTERED!", "REDECORATED!"], color: '#DC2626' },
+  compacted:   { lines: ["COMPACTED!", "TRASH COMPACTOR!", "PANINI'D!", "FLAT PACKED!", "SANDWICHED!"], color: '#E5E7EB' },
   groundsplat: { lines: ["FACEPLANT!", "GROUNDED!", "KISSED CONCRETE!"], color: '#F97316' },
   flattened:   { lines: ["ROLLED!", "ROADKILL!", "PAVED!"], color: '#A16207' },
   truck:       { lines: ["TOTALED!", "DELIVERY DENIED!", "WRECKED!", "SHIPMENT LOST!"], color: '#7CFC00' },
