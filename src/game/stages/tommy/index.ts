@@ -6,7 +6,7 @@ import type { StageLayout } from '../index';
 import type { Block } from '../../../types';
 import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH, DOOR_WIDTH, CANVAS_WIDTH } from '../../../constants';
 import { groundBlocks } from '../../core/terrain';
-import { COURSE, CP, placeOf, TUNNEL_ROOF } from './course';
+import { COURSE, CP, placeOf, TUNNEL_ROOF, CAVERN_ROOF } from './course';
 import { createTommyRuntime, getTommy, updateTommy, tommyDeathMessage } from './runtime';
 import { hitThing } from './thing';
 import { bottleZoom, isRidingBike } from './bike';
@@ -42,6 +42,9 @@ export const tommyLayout: StageLayout = {
     // wandering off out of sight
     const outside = BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH / DOOR_ZOOM;
     state.blocks.push(wall(outside - 60, GROUND_Y - 1200, 60, 1200, 'door-left'));
+    // (and its ceiling, either side of the hole he came down through: no jumping up out of it)
+    const P = C.ruins.pit, PW = C.ruins.pitW;
+    state.blocks.push(wall(outside - 60, GROUND_Y - CAVERN_ROOF - 160, P - (outside - 60), 160, 'cavern-roof'), wall(P + PW, GROUND_Y - CAVERN_ROOF - 160, BOSS_DOOR_X - P - PW, 160, 'cavern-roof'));
     // The sewer's roof (a hole in it where he comes down through the manhole), and the flooded tunnel's, low over the muck
     const S = C.sewer;
     state.blocks.push(wall(S.x1, GROUND_Y - 940, S.drop - 80 - S.x1, 600, 'sewer-roof'), wall(S.drop + 80, GROUND_Y - 940, S.tunnel.x1 - S.drop - 80, 600, 'sewer-roof'));

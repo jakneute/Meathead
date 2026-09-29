@@ -85,6 +85,8 @@ const RUINS_X0 = BOSS_DOOR_X - 3000;
 const PIT = 2560, PIT_W = 110;
 /** How high up the ruins are over the ground at Tommy's door. */
 export const RUINS_Y = Y - 2200;
+/** How high the cavern outside Tommy's door is, floor to ceiling. */
+export const CAVERN_ROOF = 330;
 
 /** The sewer's levels: the walkways, the muck's surface in a channel, the channel's floor. */
 export const WALK_Y = Y, MUCK_Y = Y + 40, CHANNEL_FLOOR = Y + 170;

@@ -9,7 +9,7 @@
 
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
-import { COURSE, RUINS_Y } from './course';
+import { COURSE, RUINS_Y, CAVERN_ROOF } from './course';
 import type { TommyRuntime } from './runtime';
 import { TOWER_FRAMES, FAMILY_FRAMES, CRUSH_FRAMES, MELT_FRAMES } from './escape';
 import { drawStreetSky, drawWaterTower } from './streetDraw';
@@ -257,6 +257,14 @@ export const drawRuinsGround = (ctx: Ctx, state: GameState) => {
     ctx.fillStyle = '#1C1714'; ctx.fillRect(P - 420, GROUND_Y - 330, 900, 330);
     ctx.fillStyle = '#2A2521'; for (let y = GROUND_Y - 320; y < GROUND_Y; y += 16) for (let x = P - 420 + ((y / 16) % 2) * 18; x < P + 480; x += 36) ctx.fillRect(x, y, 32, 12);
     ctx.fillStyle = '#5B4A3B'; ctx.fillRect(P - 420, GROUND_Y - 250, 900, 12);
+    // Its ceiling: a slab of old brick on an iron beam, the hole he came down through the only way up
+    for (const [x1, x2] of [[P - 420, P], [P + PW, P + 480]]) {
+      ctx.fillStyle = '#231C18'; ctx.fillRect(x1, GROUND_Y - CAVERN_ROOF - 160, x2 - x1, 160);
+      ctx.fillStyle = '#2F2723'; for (let y = GROUND_Y - CAVERN_ROOF - 150; y < GROUND_Y - CAVERN_ROOF - 14; y += 16) for (let x = x1 + ((y / 16) % 2) * 18; x < x2 - 4; x += 36) ctx.fillRect(x, y, Math.min(32, x2 - x), 12);
+      ctx.fillStyle = '#44403C'; ctx.fillRect(x1, GROUND_Y - CAVERN_ROOF - 14, x2 - x1, 14);
+      ctx.fillStyle = '#1C1917'; for (let x = x1 + 30; x < x2 - 10; x += 120) ctx.fillRect(x, GROUND_Y - CAVERN_ROOF - 14, 10, 14);
+      ctx.fillStyle = 'rgba(101, 163, 13, 0.35)'; for (let x = x1 + 50; x < x2 - 10; x += 90) ctx.fillRect(x, GROUND_Y - CAVERN_ROOF, 4, 6 + ((x * 7) % 9));
+    }
     ctx.fillStyle = '#0C0A09'; ctx.fillRect(P, GROUND_Y - 330, PW, 20);
   }
 };
