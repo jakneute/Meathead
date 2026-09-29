@@ -399,6 +399,8 @@ export interface Projectile extends Entity {
   isCocaine?: boolean;
   isMethBarrel?: boolean;
   isSludge?: boolean;
+  /** Just for show (Tommy's puke stream, say: where it lands is what hurts): never hits him, and gone when it lands. */
+  visualOnly?: boolean;
   isOilRocket?: boolean;
   /** Fired from a crouch: this rocket ignores steering and flies straight. */
   noSteer?: boolean;

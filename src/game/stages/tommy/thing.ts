@@ -59,7 +59,18 @@ export interface Thing {
   askLine: string;
   shown: WeaponType | null;
   shownAt: number;
+  /** Muck dropping off the cistern's roof onto the walkway: where, and how far along (see DROP_*). */
+  drops: Drop[];
+  dropAt: number;
 }
+
+/** A glob of the muck off the roof: a drip forming up there and its mark on the walkway below ('warn'), falling, then a puddle eating at whatever's in it. */
+export interface Drop { x: number; y: number; vy: number; state: 'warn' | 'fall' | 'puddle'; t: number }
+/** The roof it drops from; how long it warns; the puddle's reach and how long it lasts; what they take off him. */
+export const DROP_FROM = GROUND_Y - 480, DROP_WARN = 55, PUDDLE_R = 34, PUDDLE_FRAMES = 150;
+const DROP_DAMAGE = 12, PUDDLE_DAMAGE = 6;
+/** How often one comes down (quicker as it goes on), and sometimes a second, anywhere on the walkway. */
+const DROP_EVERY = 150;
 
 /** What it can ask for (one of them at random each time). */
 const MENU: WeaponType[] = ['SHOTGUN', 'FLAMETHROWER', 'BOULDER', 'TSUNAMI'];
@@ -97,7 +108,7 @@ export const createThing = (state: GameState, startedAt: number): Thing => {
   return {
     phase: startedAt > CP.CISTERN ? 'dead' : 'dormant', t: 0, e: null, want: MENU[0], fed: 0, asked: 0, full: 0, strikes: 0, struckAt: -999, askedAt: -999,
     fist: 0, lastWeapon: 'GUN', prevHealth: 0, spatAt: -999, asks: 0, death: startedAt > CP.CISTERN ? 'TSUNAMI' : null, deathT: 999, flash: 0,
-    askLine: '', shown: null, shownAt: 0,
+    askLine: '', shown: null, shownAt: 0, drops: [], dropAt: 0,
   };
 };
 
@@ -217,13 +228,15 @@ const fight = (ctx: FrameContext, th: Thing, talk: Talk, controls: Controls): Co
     if (th.fist === 20) playSound('roar');
     if (th.fist === FIST_LAND) {
       shakeScreen(state, 40, 16); playSound('slam'); playSound('splash');
-      // Across the whole walkway: nowhere to go
+      // Across the whole walkway: nowhere to go (and no getting out of it on the moment of grace after a hit from something else)
+      p.invincibilityTimer = 0;
       if (p.health > 0) hurtPlayer(ctx, FIST_DAMAGE, 'amalgam_fist', { x: -4, y: -9 });
       fx.spawnDamageNumber({ x: p.pos.x - 30, y: p.pos.y - 50 }, 'SMASHED!', true, '#A3E635');
       for (let i = 0; i < 40; i++) state.particles.push({ pos: { x: COURSE.sewer.cistern.x1 + 200 + Math.random() * 300, y: GROUND_Y - 4 }, vel: { x: (Math.random() - 0.5) * 12, y: -3 - Math.random() * 9 }, life: 40, color: i % 2 ? '#4D7C0F' : '#A3E635', size: 4 + Math.random() * 6 });
     }
     if (th.fist >= FIST_DONE) { th.fist = 0; th.asked = 0; }
   }
+  updateDrops(ctx, th);
   // Short on what it wants: it brings some up
   const w = th.want;
   if (MAX_AMMO[w] > 0 && (p.weaponAmmo[w] ?? 0) < MAX_AMMO[w] * SPIT_BELOW && state.frame - th.spatAt > SPIT_EVERY && !th.fist) {
@@ -241,12 +254,53 @@ const fight = (ctx: FrameContext, th: Thing, talk: Talk, controls: Controls): Co
   th.prevHealth = e.health;
   // Dead: however it went
   if (e.health <= 0) {
-    th.phase = 'dying'; th.death = th.lastWeapon; th.deathT = 0; th.fist = 0;
+    th.phase = 'dying'; th.death = th.lastWeapon; th.deathT = 0; th.fist = 0; th.drops = [];
     e.health = 0;
     shakeScreen(state, 50, 8);
     playSound(th.death === 'FLAMETHROWER' ? 'ignite' : th.death === 'SHOTGUN' ? 'ice' : 'tsunami');
   }
   return th.fist > 0 && th.fist < FIST_DONE ? { ...controls } : controls;
+};
+
+/**
+ * The muck off the roof: every so often (quicker as the fight goes on) a drip forms up there over where he's standing,
+ * its mark on the walkway below swelling, then it drops, splashes, and leaves a puddle that eats at him for a while.
+ * Standing still isn't an option.
+ */
+const updateDrops = (ctx: FrameContext, th: Thing) => {
+  const { state } = ctx;
+  const p = state.player;
+  const C = COURSE.sewer.cistern;
+  const clampX = (x: number) => Math.max(C.x1 + 30, Math.min(C.pool - 24, x));
+  if (!th.fist && state.frame - th.dropAt > hurried(th, DROP_EVERY)) {
+    th.dropAt = state.frame;
+    th.drops.push({ x: clampX(p.pos.x + p.width / 2 + (Math.random() - 0.5) * 60), y: DROP_FROM, vy: 0, state: 'warn', t: 0 });
+    if (Math.random() < 0.4) th.drops.push({ x: clampX(C.x1 + 30 + Math.random() * (C.pool - C.x1 - 54)), y: DROP_FROM, vy: 0, state: 'warn', t: -20 });
+    playSound('glug', 0.5);
+  }
+  const box = { x: p.pos.x + 6, y: p.pos.y, w: p.width - 12, h: p.height };
+  for (const d of th.drops) {
+    d.t++;
+    if (d.state === 'warn' && d.t >= DROP_WARN) { d.state = 'fall'; d.t = 0; }
+    else if (d.state === 'fall') {
+      d.vy += 1.1; d.y += d.vy;
+      // (it's him it lands on, on the way down)
+      if (d.x > box.x && d.x < box.x + box.w && d.y > box.y && d.y < box.y + box.h && p.invincibilityTimer <= 0 && p.health > 0) {
+        hurtPlayer(ctx, DROP_DAMAGE, 'amalgam_drip', { x: (p.pos.x + p.width / 2 < d.x ? -1 : 1) * 4, y: -5 });
+      }
+      if (d.y >= GROUND_Y) {
+        d.state = 'puddle'; d.t = 0; d.y = GROUND_Y;
+        playSound('splat', 0.7);
+        for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: d.x, y: GROUND_Y - 2 }, vel: { x: (Math.random() - 0.5) * 7, y: -2 - Math.random() * 5 }, life: 26, color: i % 2 ? '#65A30D' : '#D9F99D', size: 3 + Math.random() * 4 });
+      }
+    } else if (d.state === 'puddle') {
+      const feet = p.pos.y + p.height;
+      if (p.isGrounded && feet > GROUND_Y - 6 && Math.abs(p.pos.x + p.width / 2 - d.x) < PUDDLE_R + p.width / 2 - 8 && p.invincibilityTimer <= 0 && p.health > 0) {
+        hurtPlayer(ctx, PUDDLE_DAMAGE, 'amalgam_drip', { x: (p.pos.x + p.width / 2 < d.x ? -1 : 1) * 5, y: -6 });
+      }
+    }
+  }
+  th.drops = th.drops.filter(d => !(d.state === 'puddle' && d.t > PUDDLE_FRAMES));
 };
 
 /** Damage from a weapon: extra from what it asked for (and that feeds it), the rest counts against him (now and then). */

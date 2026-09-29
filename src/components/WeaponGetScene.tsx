@@ -316,8 +316,9 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, onDone }) => {
             </div>
             <p className="mt-2 text-[8px] leading-[14px] text-white/90 uppercase">{description}</p>
             <p className="mt-2 text-[7px] text-cyan-400/90 tracking-wider">TEST IT ON THE DUMMIES. THEY DON'T MIND. THEY DON'T HAVE A CHOICE. INFINITE AMMO.</p>
+            {/* (under all that, on its own: not part of what the weapon is) */}
+            {weapon === 'OIL_ROCKET' && <FlameCallout pad={getLastInputDevice() === 'gamepad'} />}
           </div>
-          {weapon === 'OIL_ROCKET' && <FlameCallout pad={getLastInputDevice() === 'gamepad'} />}
           <button onClick={finish}
             className="absolute right-3 bottom-3 px-3 py-2 text-[9px] text-black bg-yellow-400 border-2 border-black shadow-[3px_3px_0_#000] animate-pulse">
             CONTINUE ▶
@@ -545,8 +546,8 @@ export default WeaponGetScene;
  * (the controller's Y, or F on the keyboard: whichever he's been using), drawn as the button itself.
  */
 const FlameCallout = ({ pad }: { pad: boolean }) => (
-  <div className="absolute left-4 bottom-4 flex items-center gap-3 px-3 py-2 animate-in fade-in slide-in-from-bottom-4 duration-500"
-    style={{ background: 'rgba(0,0,0,0.78)', border: '2px solid #F97316', boxShadow: '3px 3px 0 #000' }}>
+  <div className="mt-3 inline-flex items-center gap-3 px-3 py-2"
+    style={{ background: 'rgba(0,0,0,0.6)', border: '2px solid #F97316', boxShadow: '3px 3px 0 #000' }}>
     <div className="animate-pulse">{pad ? <PadY /> : <KeyF />}</div>
     <div className="text-[8px] leading-[14px] text-white uppercase">
       <div className="text-orange-400">FLAMETHROWER, NO SWITCHING</div>

@@ -245,8 +245,12 @@ const puke = (ctx: FrameContext, boss: Enemy, sludgeY: number, sweep: typeof PUK
     const mouthY = boss.pos.y + 25;
     helpers.spawnExplosion({ x: splashX, y: splashY }, '#ADFF2F', 3, dir * 1.5, 4);
     helpers.spawnExplosion({ x: splashX, y: splashY }, '#27AE60', 3, 0, 3);
-    helpers.addProjectile(enemyProjectile(`tommy-puke-${Date.now()}-${Math.random()}`, mouthX, mouthY, (splashX - mouthX) / 18, -4,
-      14, 14, sweep.projectileDamage, { isSludge: true, life: 18 }));
+    // (the stream's for show, arcing down onto the splash: it's the splash that hurts, so what you see is what hits you.
+    // Thrown to come down right on it: sludge falls at GRAVITY x 1.8)
+    const T = 18, g = GRAVITY * 1.8;
+    const vy = (splashY - mouthY - (g * T * (T + 1)) / 2) / T;
+    helpers.addProjectile(enemyProjectile(`tommy-puke-${Date.now()}-${Math.random()}`, mouthX - 7, mouthY - 7, (splashX - mouthX) / T, vy,
+      14, 14, 0, { isSludge: true, life: T, visualOnly: true }));
   }
 
   const isBehind = dir > 0 ? midX(player) < midX(boss) : midX(player) > midX(boss);

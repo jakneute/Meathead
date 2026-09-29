@@ -227,6 +227,7 @@ const updatePhysicsProjectile = (ctx: FrameContext, p: Projectile): boolean => {
     } else {
       // Hit a floor or ceiling
       if (p.isIce && p.width > 30) { shatterIceBlock(ctx, p); return false; }
+      if (p.isSludge && p.visualOnly) return false;
       if (p.isSludge) {
         // Splat into a lingering puddle
         p.isLingering = true;
@@ -644,7 +645,7 @@ const hitBossWithProjectile = (ctx: FrameContext, boss: Enemy, p: Projectile): b
 const resolveEnemyProjectileHit = (ctx: FrameContext, p: Projectile): boolean => {
   const { state, fx, stageId, cheats } = ctx;
   const { player } = state;
-  if (player.invincibilityTimer > 0) return true;
+  if (player.invincibilityTimer > 0 || p.visualOnly) return true;
 
   const hurtbox = boundsOf(player);
   if (player.isDucking || player.isSliding) { hurtbox.y += 28; hurtbox.h -= 28; }

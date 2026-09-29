@@ -111,7 +111,7 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   mutantfish: { w: 50, h: 26, hp: 45, contact: 8, air: true },
   // (what's left of the people the water killed: the stage runs it)
   // (it goes all the way down to the bottom of its pool)
-  amalgam: { w: 300, h: 580, hp: 11000, contact: 0 },
+  amalgam: { w: 300, h: 580, hp: 8000, contact: 0 },
   // Oscar's stage
   ranger: { w: 42, h: 68, hp: 130, contact: 6 },
   biker: { w: 54, h: 72, hp: 240, contact: 13 },

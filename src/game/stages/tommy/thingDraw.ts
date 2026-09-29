@@ -12,7 +12,7 @@ import type { Enemy } from '../../../types';
 import type { GameState } from '../../core/state';
 import { GROUND_Y } from '../../../constants';
 import { COURSE, WALK_Y } from './course';
-import { Thing, FIST_UP, FIST_LAND, FIST_DONE, WANT_NAME, THING_SURFACE, NEED, inGrace, GRACE_FRAMES } from './thing';
+import { Thing, FIST_UP, FIST_LAND, FIST_DONE, WANT_NAME, THING_SURFACE, NEED, inGrace, GRACE_FRAMES, DROP_FROM, DROP_WARN, PUDDLE_R, PUDDLE_FRAMES } from './thing';
 import { getTommy } from './runtime';
 import { saying } from './script';
 
@@ -274,4 +274,42 @@ const drawWantIcon = (ctx: Ctx, w: string, x: number, y: number, f: number) => {
     ctx.fillStyle = '#E0F2FE'; ctx.beginPath(); ctx.arc(10, -14, 5, 0, Math.PI * 2); ctx.fill();
   }
   ctx.restore();
+};
+
+/** The muck off the roof: the drip forming up there and its mark swelling on the walkway, the glob coming down, the puddle. */
+export const drawThingDrops = (ctx: Ctx, th: Thing, frame: number) => {
+  for (const d of th.drops) {
+    if (d.state === 'warn') {
+      if (d.t < 0) continue;
+      const k = Math.min(1, d.t / DROP_WARN);
+      // Up on the roof: a bulge of it, swelling, about to let go
+      ctx.fillStyle = '#3F6212'; ctx.beginPath(); ctx.ellipse(d.x, DROP_FROM, 16, 6, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#65A30D'; ctx.beginPath(); ctx.ellipse(d.x, DROP_FROM + 4 + k * 8, 5 + k * 6, 5 + k * 9, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(217, 249, 157, 0.7)'; ctx.fillRect(d.x - 3, DROP_FROM + 2 + k * 6, 2, 3);
+      // Down on the walkway: where it'll land, growing, blinking faster at the end
+      const on = k < 0.6 || Math.floor(frame / 3) % 2 === 0;
+      ctx.fillStyle = `rgba(101, 163, 13, ${on ? 0.25 + k * 0.35 : 0.15})`;
+      ctx.beginPath(); ctx.ellipse(d.x, GROUND_Y - 1, 8 + k * (PUDDLE_R - 8), 4 + k * 3, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = `rgba(217, 249, 157, ${on ? 0.4 + k * 0.5 : 0.2})`; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.ellipse(d.x, GROUND_Y - 1, PUDDLE_R, 7, 0, 0, Math.PI * 2); ctx.stroke();
+    } else if (d.state === 'fall') {
+      ctx.fillStyle = 'rgba(101, 163, 13, 0.35)'; ctx.fillRect(d.x - 3, d.y - 30, 6, 30);
+      ctx.fillStyle = '#65A30D'; ctx.beginPath(); ctx.ellipse(d.x, d.y, 10, 14, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#E7E5D6'; ctx.fillRect(d.x - 3, d.y - 4, 5, 4); // (a bit of someone in it)
+      ctx.fillStyle = 'rgba(217, 249, 157, 0.8)'; ctx.fillRect(d.x - 5, d.y - 8, 3, 4);
+    } else {
+      // The puddle: bubbling, eating at the walkway, drying up at the end
+      const fade = Math.min(1, (PUDDLE_FRAMES - d.t) / 30);
+      ctx.globalAlpha = fade;
+      ctx.fillStyle = '#4D7C0F'; ctx.beginPath(); ctx.ellipse(d.x, GROUND_Y - 1, PUDDLE_R, 7, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#84CC16'; ctx.beginPath(); ctx.ellipse(d.x - 4, GROUND_Y - 2, PUDDLE_R - 10, 4, 0, 0, Math.PI * 2); ctx.fill();
+      for (let i = 0; i < 3; i++) {
+        const bt = ((frame + i * 13 + d.x) % 30) / 30;
+        ctx.strokeStyle = `rgba(217, 249, 157, ${0.8 * (1 - bt)})`; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(d.x - 18 + i * 18, GROUND_Y - 3, 2 + bt * 4, Math.PI, 0); ctx.stroke();
+      }
+      ctx.fillStyle = 'rgba(163, 230, 53, 0.25)'; for (let i = 0; i < 2; i++) { const q = ((frame * 0.7 + i * 20) % 40) / 40; ctx.beginPath(); ctx.arc(d.x + (i ? 10 : -10), GROUND_Y - 8 - q * 30, 4 + q * 6, 0, Math.PI * 2); ctx.fill(); }
+      ctx.globalAlpha = 1;
+    }
+  }
 };

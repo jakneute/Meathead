@@ -1947,7 +1947,7 @@
  {
   "voice": "boss.tommy",
   "text": "BLAARGH! CRUDE OIL?! I CAN'T CHUNDER!",
-  "from": "game/bosses/tommy.ts:280"
+  "from": "game/bosses/tommy.ts:284"
  },
  {
   "voice": "boss.tommy",
@@ -2827,7 +2827,7 @@
  {
   "voice": "death",
   "text": "FLATTENED BY THE COMMUNITY",
-  "from": "game/stages/tommy/thing.ts:282"
+  "from": "game/stages/tommy/thing.ts:336"
  },
  {
   "voice": "death",
@@ -3122,7 +3122,7 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE LISTENED",
-  "from": "game/stages/tommy/thing.ts:282"
+  "from": "game/stages/tommy/thing.ts:336"
  },
  {
   "voice": "death",
@@ -3267,7 +3267,7 @@
  {
   "voice": "death",
   "text": "THE EAST SIDE HAS SPOKEN",
-  "from": "game/stages/tommy/thing.ts:282"
+  "from": "game/stages/tommy/thing.ts:336"
  },
  {
   "voice": "death",
@@ -4832,7 +4832,7 @@
  {
   "voice": "meathead",
   "text": "Get that camera outta my face.",
-  "from": "components/WeaponGetScene.tsx:145"
+  "from": "components/WeaponGetScene.tsx:147"
  },
  {
   "voice": "meathead",
@@ -6101,6 +6101,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S RAINING PEOPLE! GROSS PEOPLE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "JUICED UP AND DEAD",
   "from": "VULGARITIES"
  },
@@ -7356,6 +7361,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SOMEBODY'S GRANDMA JUST LANDED ON ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "SOMETHING DRIPPED ON ME! IT'S WARM!",
   "from": "HAZARD_HURT"
  },
@@ -7827,6 +7837,11 @@
  {
   "voice": "meathead",
   "text": "THE CEILING IS STABBING ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE CEILING'S LEAKING NEIGHBORS!",
   "from": "HAZARD_HURT"
  },
  {
@@ -8492,7 +8507,7 @@
  {
   "voice": "meathead",
   "text": "YEAH, OKAY.",
-  "from": "game/stages/tommy/thing.ts:144"
+  "from": "game/stages/tommy/thing.ts:155"
  },
  {
   "voice": "meathead",
@@ -9102,117 +9117,117 @@
  {
   "voice": "tommy.thing",
   "text": "A WAVE OF CLEAN WATER! DROWN US IN IT!",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "ARE YOU LISTENING TO US?",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "BURN US. BOIL US AWAY. THE FIRE.",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "FIRE! LIKE THE REFINERY! PLEASE!",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "HERE. WE BROUGHT THIS UP FOR YOU.",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "ICE! WE WANT TO FEEL SOMETHING THAT ISN'T WARM!",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "LISTEN. TO. US.",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "MEATHEAD. WE ASKED YOU FOR SOMETHING.",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "MORE... THANK YOU...",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "NOT THAT.",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "OH, THAT'S THE GOOD STUFF.",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "ROCKS. THROW ROCKS AT US. BREAK US.",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "THANK... YOU...",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "THAT'S NOT WHAT WE ASKED FOR.",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "THE COLD. FREEZE US. PLEASE. THE ICE.",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "THE ROCKS! SMASH THE BONES LOOSE!",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "WATER. CLEAN WATER. WE HAVEN'T SEEN CLEAN WATER IN YEARS.",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "WE ASKED NICELY.",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "WE DRANK THE WATER. PLEASE. KILL US.",
-  "from": "game/stages/tommy/thing.ts:143"
+  "from": "game/stages/tommy/thing.ts:154"
  },
  {
   "voice": "tommy.thing",
   "text": "WE FELT THAT. ALL OF US.",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "WE WERE A NEIGHBORHOOD ONCE. WE HAD MANNERS.",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "WE'RE WAITING...",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tommy.thing",
   "text": "YES... YES...",
-  "from": "game/stages/tommy/thing.ts:109"
+  "from": "game/stages/tommy/thing.ts:120"
  },
  {
   "voice": "tourist",

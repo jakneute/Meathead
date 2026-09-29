@@ -12,7 +12,7 @@ import { getTommy, fadeAmount, TommyRuntime } from './runtime';
 import { drawStreetSky, drawStreetGround, drawStreetFronts, drawJunk, drawCorner, drawRoadEnd, drawRiddenBike, drawTumble, drawCarRampSigns } from './streetDraw';
 import { drawSewerBack, drawSewerGround, drawDrips, drawMuckFront, drawChunks } from './sewerDraw';
 import { drawCutScene, drawRuinsGround, drawRuinsHouse, drawSuitMelt, drawBlast } from './escapeDraw';
-import { drawThingBar, drawThing } from './thingDraw';
+import { drawThingBar, drawThing, drawThingDrops } from './thingDraw';
 import { thingSpot, THING_SURFACE } from './thing';
 import { inCutScene, dropFade } from './escape';
 import { saying, drawBubble, Speaker } from './script';
@@ -71,6 +71,7 @@ export const drawTommyMid = (ctx: Ctx, state: GameState) => {
     drawChunks(ctx, rt);
     drawBlast(ctx, state, rt);
     if (rt.thing.e && rt.thing.phase !== 'dormant') drawThing(ctx, rt.thing.e, rt.thing, state);
+    if (rt.thing.drops.length) drawThingDrops(ctx, rt.thing, state.frame);
   }
 };
 
