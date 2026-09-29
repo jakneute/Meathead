@@ -1,5 +1,6 @@
 // Top-level game loop step: dispatches on game status and runs each gameplay system in order.
 
+import { isMidBoss } from '../combat/midBoss';
 import { GameStatus, WeaponType } from '../../types';
 import {
   CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, ARENA_RIGHT, DOOR_OPEN_SPEED, MAX_AMMO,
@@ -338,6 +339,27 @@ const dripStuckGore = (state: FrameContext['state']) => {
 // Gameplay
 // ---------------------------------------------------------------------------
 
+/**
+ * A little cutscene in a stage (Meathead's not in control: a speech, a theft, a ride): everything that's out to get
+ * him holds off till it's over. The regular enemies stop where they are and don't shoot (birds included), what they'd
+ * already fired fizzles as it starts, and nothing touches him meanwhile. (Mid-bosses and bosses run their own scenes.)
+ */
+const holdOffForCutscene = (ctx: FrameContext) => {
+  const { state } = ctx;
+  const p = state.player;
+  const on = !!p.inCutscene && state.deathTimer <= 0;
+  if (on && !state.cutsceneHold) state.projectiles = state.projectiles.filter(pj => pj.owner !== 'enemy' || pj.visualOnly);
+  state.cutsceneHold = on;
+  if (!on) return;
+  p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
+  for (const e of state.enemies) {
+    if (e.type === 'boss' || isMidBoss(e) || e.health <= 0 || e.isBlownAway) continue;
+    e.pauseTimer = Math.max(e.pauseTimer || 0, 2);
+    e.vel = { x: 0, y: 0 };
+    e.shootTimer = Math.max(e.shootTimer || 0, 30);
+  }
+};
+
 const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
   const { state } = ctx;
   const { player } = state;
@@ -346,6 +368,7 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
   // A hand-built stage runs its hazards and set pieces (and can take over the controls for cutscenes)
   const layout = getStageLayout(ctx.stageId);
   if (layout && !state.arenaLocked) controls = layout.update(ctx, controls);
+  holdOffForCutscene(ctx);
 
   updateBarfStream(state);
   updateTsunami(ctx);

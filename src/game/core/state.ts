@@ -94,6 +94,8 @@ export interface GameState {
   /** Where the stage's opening drop lands him, when it's started at a checkpoint (the skip cheat): else the start. */
   introAt?: { x: number; y: number };
   deathFrames: number;
+  /** A little cutscene's going (enemies holding off): set while it is (see holdOffForCutscene). */
+  cutsceneHold?: boolean;
   /** A death held on a still for a moment first (the sniper's headshot): frames since it started (see updateDeathScreen). */
   deathFreeze?: number;
   /** The last frame a long death on its way offered SKIP >> (see skipDying). */

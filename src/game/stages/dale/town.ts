@@ -511,6 +511,10 @@ const updateNinja = (ctx: FrameContext, town: Town, talk: Talk): Controls | null
     }
     return null;
   }
+  // His piece, and the seppuku: everything else holds off (the goons, the hawks, whatever they'd already fired), and
+  // nothing gets at Meathead while he's stood there listening
+  // (it's a cutscene: see holdOffForCutscene)
+  if (n.state === 'speech' || n.state === 'kneel') p.inCutscene = true;
   if (n.state === 'speech') {
     p.vel.x = 0;
     if (!talk.current && !talk.queue.length && n.t > 20) { n.state = 'kneel'; n.t = 0; playSound('clink'); }
@@ -519,7 +523,7 @@ const updateNinja = (ctx: FrameContext, town: Town, talk: Talk): Controls | null
   if (n.state === 'kneel') {
     if (n.t === NINJA_CUT) { fx.spawnDeathShower({ x: spot.x + 6, y: spot.y - 20 }, 0, 1.2); shakeScreen(state, 6, 3); fx.spawnDamageNumber({ x: spot.x - 50, y: spot.y - 90 }, 'SEPPUKU!', true, '#F87171'); fx.announceKill('SEPPUKU!'); }
     if (n.t === NINJA_CUT + 20) queueLines(state, talk, [{ who: 'meathead', text: '...OKAY. SAVES ME A BULLET.' }]);
-    if (n.t > NINJA_DONE) { n.state = 'dead'; n.t = 0; state.stageMemo.ninjaDead = 'yes'; }
+    if (n.t > NINJA_DONE) { n.state = 'dead'; n.t = 0; state.stageMemo.ninjaDead = 'yes'; p.inCutscene = false; }
     return { ...NO_CONTROLS };
   }
   return null;
