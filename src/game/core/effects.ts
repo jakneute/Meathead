@@ -4,7 +4,7 @@ import {
 import { VULGARITIES, BOSS_DIALOGUE, KILL_LINES, KILL_CALLOUTS, KillCallout } from '../../content/dialogue';
 import { GameState } from './state';
 import { playSound, playGlassShatterSound } from '../platform/audio';
-import { say, isSpeaking, canSpeak, pickFreshLine, MEATHEAD_VOICE } from '../platform/speech';
+import { say, isSpeaking, isTalking, canSpeak, pickFreshLine, announce, MEATHEAD_VOICE } from '../platform/speech';
 import { pickRandom } from './utils';
 import { startEnemyDeath, EnemyDeathKind } from '../enemies/deaths';
 
@@ -38,9 +38,12 @@ export const createFx = (state: GameState) => {
   const spawnKillCallout = (e: { pos: Vector2, width: number, kind?: string }, kind: KillCallout) => {
     if (e.kind === 'tenant') return;
     const { lines, color } = KILL_CALLOUTS[kind];
+    const text = pickRandom(lines);
+    // (every so often, the announcer calls it)
+    if (announce(text)) state.isMeatheadSpeaking = false;
     state.damageNumbers.push({
       id: `callout-${Date.now()}-${Math.random()}`,
-      text: pickRandom(lines),
+      text,
       pos: { x: e.pos.x + e.width / 2, y: e.pos.y - 10 },
       vel: { x: (Math.random() - 0.5) * 1.5, y: -3 },
       life: 75,
@@ -166,7 +169,7 @@ export const createFx = (state: GameState) => {
    */
   const speakVulgarity = (category: VulgarityType, hurtSource?: string) => {
     if (category !== 'death') {
-      if (isSpeaking() || state.isMeatheadSpeaking) return; // (asking first lets a line whose end got lost time out)
+      if (isSpeaking() || isTalking() || state.isMeatheadSpeaking) return; // (asking first lets a line whose end got lost time out)
       if (category === 'hurt' ? state.hurtVoiceCooldown > 0 : state.voiceLineCooldown > 0) return;
     }
     // Skip entirely if every line in the pool was said recently

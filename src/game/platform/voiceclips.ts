@@ -69,6 +69,22 @@ const fxChain = (ctx: AudioContext, fx: string, out: AudioNode): AudioNode => {
     hp.connect(lp); lp.connect(drive); drive.connect(g); g.connect(out);
     return hp;
   }
+  if (fx === 'announcer') {
+    // The arena announcer: a touch of grit, and a big hall throwing it back
+    const drive = ctx.createWaveShaper();
+    const curve = new Float32Array(1024);
+    for (let i = 0; i < curve.length; i++) { const x = (i / (curve.length - 1)) * 2 - 1; curve[i] = Math.tanh(1.8 * x) / Math.tanh(1.8); }
+    drive.curve = curve;
+    const low = ctx.createBiquadFilter(); low.type = 'lowshelf'; low.frequency.value = 200; low.gain.value = 5;
+    drive.connect(low); low.connect(out);
+    for (const [at, level] of [[0.11, 0.35], [0.23, 0.22], [0.37, 0.12]] as const) {
+      const d = ctx.createDelay(1); d.delayTime.value = at;
+      const g = ctx.createGain(); g.gain.value = level;
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2400;
+      low.connect(d); d.connect(lp); lp.connect(g); g.connect(out);
+    }
+    return drive;
+  }
   if (fx === 'radio_mild') {
     // A handheld radio, quietly: just the phone band, no crunch
     const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 320;

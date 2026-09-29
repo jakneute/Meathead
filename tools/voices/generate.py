@@ -10,7 +10,7 @@ import numpy as np
 import soundfile as sf
 from kokoro_onnx import Kokoro
 
-from voicelib import HERE, ROOT, CACHE, OUT, cast, lines, spec_of, key_of
+from voicelib import HERE, ROOT, CACHE, OUT, cast, lines, spec_of, key_of, sentences
 os.makedirs(CACHE, exist_ok=True)
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 
@@ -50,8 +50,17 @@ def style(voice):
     return sum(kokoro.get_voice_style(n) * (w / total) for n, w in voice)
 
 def synth(text, voice, speed):
-    s, sr = kokoro.create(speakable(text), voice=style(voice), speed=speed, lang='en-us')
-    return np.asarray(s, dtype=np.float32)
+    # A sentence at a time, with a proper pause after each (said all in one go, the model runs them together)
+    parts = sentences(text)
+    if len(parts) == 1:
+        s, sr = kokoro.create(speakable(text), voice=style(voice), speed=speed, lang='en-us')
+        return np.asarray(s, dtype=np.float32)
+    out = []
+    for k, (sent, gap) in enumerate(parts):
+        s, sr = kokoro.create(speakable(sent), voice=style(voice), speed=speed, lang='en-us')
+        out.append(trim(np.asarray(s, dtype=np.float32)))
+        if k < len(parts) - 1: out.append(np.zeros(int(gap * SR / speed), np.float32))
+    return np.concatenate(out)
 
 def trim(x, thresh=0.012):
     idx = np.where(np.abs(x) > thresh)[0]

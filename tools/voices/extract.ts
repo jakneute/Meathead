@@ -49,6 +49,8 @@ for (const t of allStrings(dialogue.VICTOR_LINES)) add('boss.victor', t, 'VICTOR
 for (const t of allStrings(dialogue.DALE_LINES)) add('boss.dale', t, 'DALE_LINES');
 for (const t of allStrings(dialogue.BARRY_LINES)) add('boss.barry', t, 'BARRY_LINES');
 for (const t of allStrings(dialogue.OSCAR_LINES)) add('boss.oscar', t, 'OSCAR_LINES');
+// The announcer calls out the kill callouts
+for (const c of Object.values(dialogue.KILL_CALLOUTS)) for (const t of c.lines) add('announcer', t, 'KILL_CALLOUTS');
 
 // ---------------------------------------------------------------------------------------------------------------
 // The code

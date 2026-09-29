@@ -1,144 +1,108 @@
-0.00  barry.minion
-  said: AAAAAAAAAAAAAAAAH!
-  heard: Bawa
-0.00  dale.junkie
-  said: GOTCHA! HUH?! HUH?!
-  heard: got you hilhah
-0.00  dale.junkie
-  said: HUH?! HUH?! HUH?!
-  heard: Unk-k-k!
-0.00  dale.junkie
-  said: MINE! MINE MINE MINE!
-  heard: Mind, mind, mind, mind.
-0.00  doorman
-  said: NOOOOOOO!
-  heard: No.
-0.00  meathead
-  said: ...HUH?
-  heard: Yeah.
-0.00  meathead
-  said: AAAAAAAAAAAAAAAAAAAAAAAA
-  heard: There you are.
-0.00  meathead
-  said: AAAAAAAAAAAAAAHHHHHHH
-  heard: There you are.
-0.00  meathead
-  said: AAAAAAAAAAAAH!
-  heard: I love you.
-0.00  meathead
-  said: AAAAAAH!
-  heard: I love you.
-0.00  meathead
-  said: AQUA-CRUSHED
-  heard: Aquacrush.
-0.00  meathead
-  said: BULK SMASH
-  heard: Bulks math
-0.00  meathead
-  said: COWABUNGAAAAA!
-  heard: Cowabunga
-0.00  meathead
-  said: DIE ASSHOLE
-  heard: Diasal  //
-0.00  meathead
-  said: EAT SHIT
-  heard: Leech at.
-0.00  meathead
-  said: KNEEL
-  heard: Neil.
-0.00  meathead
-  said: MY KOMBUCHAAAAAAA
-  heard: Mike Hombucha.
-0.00  meathead
-  said: OOF!
-  heard: Move.
-0.00  meathead
-  said: OW!
-  heard: Oh.
-0.00  meathead
-  said: OW! OW!
-  heard: Oh, no.
-0.00  meathead
-  said: ROT IN FILTH
-  heard: Rod and Phil.
-0.00  meathead
-  said: SHIT
-  heard: That's it.
-0.00  meathead
-  said: SMASHED
-  heard: Smash.
-0.00  meathead
-  said: WEAKLING
-  heard: We clean.
-0.00  oldman
-  said: WHOOAAA!
-  heard: Woola!
-0.00  oscar.foreman
-  said: UP.
-  heard: Love ya!
-0.00  oscar.worker
-  said: GIN.
-  heard: Jin.
-0.00  skier
-  said: AAAAAAAAAAHHHHH
-  heard: Hang on.
-0.12  meathead
-  said: UNION RULES.
-  heard: Union Rules  8.  2.  3.  3.  3.  1  2.  4  2.  5.  3.  1.  4.  6.  4.  4.  5.  3.  4.  9.  7.  1.  7.  5.  5.  8.  5.  9.
-0.18  meathead
-  said: PURE THERMIC POWER
-  heard: Pure Thermic Power  8.  8  8.  8.  8.  8.  8.  7.  8.  8.  8.  9.  8.  8.  8.  8.  8.  8.  9.  8.  5.  8.  8.  9.  9.  8.  8.  8.
-0.25  boss.ernie
-  said: YOU'RE... TOASTING... A MOUNTAIN.
-  heard: your toasting amount in
-0.33  boss.barry
-  said: EW! CONDUCTIVE PUKE!
-  heard: You conductive puking.
-0.33  dale.riggs
-  said: ...SORRY, SIR REGINALD.
-  heard: I'm sorry, Soreginald.
-0.33  meathead
-  said: CORROSIVE COWARD
-  heard: Car Sense of Coward
-0.33  meathead
-  said: MY TIIIIIIRES!
-  heard: My T-I-ers.
-0.33  meathead
-  said: OD'D ON MY GAINS
-  heard: Adama gains.  //  //  //
-0.33  meathead
-  said: OVEN-BAKED FAILURE
-  heard: of Unbaked Failure.
-0.33  meathead
-  said: SLID INTO HELL
-  heard: Slitting to hell.
-0.33  tommy.thing
-  said: THE COLD. FREEZE US. PLEASE. THE ICE.
-  heard: The cold, three nights late.
-0.36  tommy.thing
-  said: FIRE! LIKE THE REFINERY! PLEASE!
-  heard: I am the final, please. Please.
-0.40  hipster
-  said: MY KOMBUCHAAAAAAA
-  heard: My combi-chai.  //
-0.40  meathead
-  said: BRRRR-EAK IN HALF
-  heard: B.R.R. Reek in half.
-0.40  meathead
-  said: CREATINE WITHDRAWAL
-  heard: Create teen withdrawal.
-0.40  meathead
-  said: GET STEAMROLLED
-  heard: Get steam rolled.
-0.40  meathead
-  said: GOD DAMNIT
-  heard: God damn it.  //
-0.40  meathead
-  said: UPPERCUT! THAT'S MY UPPERCUT!
-  heard: Upper cut, that's my upper cut.
-0.44  meathead
-  said: NEEDLE IN A GAYSTACK
-  heard: Needle and a gay stack.
-0.44  tommy.rider
-  said: NIGGA STOLE MY BIKE!
-  heard: You can store my bike.
+0.00  announcer
+  said: AVALANCHED!
+  heard: Avalanche
+0.00  announcer
+  said: BARFED ON!
+  heard: Barf done.
+0.00  announcer
+  said: BODIED!
+  heard: Bodies
+0.00  announcer
+  said: CHARRED!
+  heard: Chard!
+0.00  announcer
+  said: CRUSHED!
+  heard: Grushed.
+0.00  announcer
+  said: FACEPLANT!
+  heard: Vaseplant.  //
+0.00  announcer
+  said: FILLETED!
+  heard: Valayid.
+0.00  announcer
+  said: FISH STICKS!
+  heard: Where's the exit?
+0.00  announcer
+  said: ICEBERG'D!
+  heard: Iceberg
+0.00  announcer
+  said: LIFTOFF!
+  heard: Lift off.
+0.00  announcer
+  said: LIQUEFIED!
+  heard: liquified.
+0.00  announcer
+  said: NUKED!
+  heard: Nukta.
+0.00  announcer
+  said: OD'D!
+  heard: I did.
+0.00  announcer
+  said: ORBITAL!
+  heard: orbitals
+0.00  announcer
+  said: REDECORATED!
+  heard: Redecorateds.
+0.00  announcer
+  said: SEA-DOO'D!
+  heard: See dude!
+0.00  announcer
+  said: SHIPWRECKED!
+  heard: Shipractor.
+0.00  announcer
+  said: SMASHED CUBES!
+  heard: Smash Cube!
+0.00  announcer
+  said: STOMPED!
+  heard: stomp ya
+0.00  announcer
+  said: SUNK!
+  heard: Sanke.
+0.00  announcer
+  said: TORPEDOED!
+  heard: Torpedo'd
+0.00  announcer
+  said: TOTALED!
+  heard: Total death.
+0.00  announcer
+  said: TRUCKED!
+  heard: Trugged it.
+0.00  announcer
+  said: WHEELIED!
+  heard: Wheel 8.
+0.00  announcer
+  said: WRECKED!
+  heard: Rectave.
+0.00  announcer
+  said: YEETED!
+  heard: eat it.
+0.33  announcer
+  said: SECONDHAND DOSE!
+  heard: 2nd hand dose.
+0.33  announcer
+  said: WAKE UP CALL!
+  heard: Week up calls.
+0.50  announcer
+  said: BOWLED OVER!
+  heard: Bold over.
+0.50  announcer
+  said: BURNT TOAST!
+  heard: Burn toast!
+0.50  announcer
+  said: CONTACT HIGH!
+  heard: Contact Hi.
+0.50  announcer
+  said: CURB STOMP!
+  heard: curb stomping
+0.50  announcer
+  said: DAVY JONES!
+  heard: Davey Jones
+0.50  announcer
+  said: HULL CHECK!
+  heard: Hold check.
+0.50  announcer
+  said: SHIPMENT LOST!
+  heard: Shipman lost.
+0.57  announcer
+  said: SHOULD'VE TAKEN LESSONS!
+  heard: Should have taken lessons.

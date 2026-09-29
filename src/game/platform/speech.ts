@@ -79,6 +79,8 @@ export const isSpeaking = () => busy();
 
 /** Recorded lines playing outside the dialogue queue (the menus, the cutscenes' radio). */
 let outside = 0;
+/** One of those over: whoever was waiting on it goes. */
+const afterOutside = () => { if (outside === 0 && !current) playNext(); };
 /**
  * For a cutscene run on a frame clock: at one of its `holds` (frames), it doesn't go on till whoever's talking has
  * finished, and a breath after (so nobody talks over anybody, unless the scene means them to). Returns whether the
@@ -113,7 +115,7 @@ export interface LineHooks {
   onDone?: () => void;
 }
 
-interface Line extends LineHooks { text: string; voice: Voice; queuedAt: number; }
+interface Line extends LineHooks { text: string; voice: Voice; queuedAt: number; casual?: boolean }
 interface Playing extends Line {
   startedAt: number;
   started: boolean;
@@ -232,13 +234,14 @@ const busy = () => {
  */
 export const say = (text: string, voice: Voice, priority: SpeechPriority, hooks: LineHooks): boolean => {
   if (!isFresh(text, Date.now())) return false;
-  const line: Line = { text, voice, queuedAt: Date.now(), ...hooks };
+  const line: Line = { text, voice, queuedAt: Date.now(), casual: priority === 'casual', ...hooks };
   if (priority === 'urgent') {
     cancelSpeech();
     start(line);
     return true;
   }
-  if (!busy() && queue.length === 0) {
+  // (a recorded line playing outside the queue, the announcer or a radio, has the floor too: nobody starts over it)
+  if (!busy() && queue.length === 0 && outside === 0) {
     start(line);
     return true;
   }
@@ -272,7 +275,7 @@ interface SpeakOptions {
 export const speak = (text: string, voice: Voice, { onStart, onDone }: SpeakOptions = {}) => {
   outside++;
   let out = false;
-  const done = () => { if (!out) { out = true; outside--; } };
+  const done = () => { if (!out) { out = true; outside--; afterOutside(); } };
   if (playClip(voice.id, text, { onStart: () => onStart?.(), onEnd: () => { done(); onDone?.(); } })) return;
   done();
   noteMiss(voice, text);
@@ -300,7 +303,7 @@ export const sayModulated = (text: string, voice: Voice, onDone: () => void): ((
   let finished = false;
   outside++;
   let out = false;
-  const done = () => { if (!out) { out = true; outside--; } };
+  const done = () => { if (!out) { out = true; outside--; afterOutside(); } };
   const clip = playClip(voice.id, text, { radio: true, onEnd: () => { done(); if (!finished) { finished = true; onDone(); } } });
   if (clip) return () => { finished = true; clip.stop(); done(); };
   done();
@@ -313,4 +316,29 @@ export const sayModulated = (text: string, voice: Voice, onDone: () => void): ((
     onDone: () => { left--; if (left === 0 && !cancelled) onDone(); },
   }));
   return () => { cancelled = true; if (synthOK()) window.speechSynthesis.cancel(); };
+};
+
+// ---------------------------------------------------------------------------
+// The announcer: a big, booming, fighting-game voice calling out the kill callouts (SPLAT! CHIN CHECKED!) now and
+// then. Never over anybody's dialogue; it does get to cut in on a kill quip of Meathead's that's only just started
+// (the two of them never both go at once).
+// ---------------------------------------------------------------------------
+
+export const ANNOUNCER_VOICE: Voice = { id: 'announcer', pitch: 0.5, rate: 0.9 };
+/** How often (a chance per callout), and never again within this long. */
+const ANNOUNCE_CHANCE = 0.35, ANNOUNCE_GAP_MS = 7000;
+let lastAnnounced = -Infinity;
+
+/** Maybe calls out a callout. Returns whether it did. */
+export const announce = (text: string, force = false): boolean => {
+  const now = Date.now();
+  if (!force && (Math.random() > ANNOUNCE_CHANCE || now - lastAnnounced < ANNOUNCE_GAP_MS)) return false;
+  if (!hasClip(ANNOUNCER_VOICE.id, text)) return false;
+  // (a quip of his that's only just been started gives way; anything else, it waits its turn: it just doesn't happen)
+  const c = current;
+  if (c && c.casual && c.voice.id === 'meathead' && now - c.startedAt < 250) cancelSpeech();
+  else if (isTalking()) return false;
+  lastAnnounced = now;
+  speak(text, ANNOUNCER_VOICE);
+  return true;
 };

@@ -50,6 +50,696 @@
   "from": "components/IntroCutscene.tsx:22"
  },
  {
+  "voice": "announcer",
+  "text": "ANKLES TAKEN!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "AVALANCHED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "BAD TRIP!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "BARFED ON!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "BELLY UP!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "BIKE LANE!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "BIRDIE!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "BLASTING OFF AGAIN!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "BLOWOUT!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "BODIED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "BOWLED OVER!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "BRAIN FREEZE!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "BURIED ALIVE!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "BURNT TO A CRISP!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "BURNT TOAST!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "CAPSIZED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "CATCH OF THE DAY!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "CHARRED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "CHIN CHECKED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "CLIPPED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "COLLATERAL!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "COMPACTED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "CONTACT HIGH!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "COOKED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "CRUSHED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "CURB STOMP!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "DAVY JONES!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "DEEP FRIED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "DELIVERY DENIED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "DISSOLVED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "DROPPED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "DROWNED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "EXTRA CRISPY!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "FACEPLANT!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "FILLETED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "FILTHY!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "FISH STICKS!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "FLAT PACKED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "FLATLINED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "FLATTENED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "FRIED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "GLUG GLUG!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "GONE!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "GOO'D!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "GRAVITY CHECK!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "GRAVITY WINS!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "GREASED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "GROUNDED FOREVER!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "GROUNDED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "HANDLEBARRED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "HIT AND RUN!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "HOUSTON!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "HULL CHECK!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "ICEBERG'D!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "ICED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "KABOOM!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "KISSED CONCRETE!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "LAUNCHED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "LEG DAY!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "LIFTOFF!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "LIQUEFIED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "LONG WAY DOWN!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "LOW ORBIT!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "LUBED UP!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "MAN OVERBOARD!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "MELTED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "MIND THE GAP!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "NO LIFEGUARD ON DUTY!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "NUKED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "OD'D!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "OFF THE CLIFF!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "OIL CHANGE!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "ONE SMALL STEP!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "ORBITAL!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "OUT OF BOUNDS!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "OVERDOSE!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "PANCAKED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "PANINI'D!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "PAVED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "PEDAL TO THE METAL!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "PLOWED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "PULVERIZED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "RAMMED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "REDECORATED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "RIGHT OF WAY!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "ROADKILL!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "ROLLED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "RUN AGROUND!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "RUN DOWN!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "RUN OVER!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SANDWICHED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SANK LIKE A ROCK!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SEA-DOO'D!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SECONDHAND DOSE!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SEE YA!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SELF-DELIVERED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SHATTERED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SHIPMENT LOST!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SHIPWRECKED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SHORT CIRCUIT!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SHOT DOWN!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SHOULD'VE TAKEN LESSONS!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SHOULDERED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SIGNED FOR IT!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SKY HIGH!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SLEEPS WITH THE FISHES!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SLICK RIDE!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SLICK!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SLIDE TACKLE!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SLIMED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SMASHED CUBES!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SNOWED UNDER!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SPLAT!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SPLATTERED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SQUISHED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "STEAMROLLED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "STOMPED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "STRIKE!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SUNK!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SUSHI!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SWEPT!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "TIRE TRACKS!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "TIRES POPPED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "TO THE MOON!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "TORPEDOED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "TOTALED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "TRASH COMPACTOR!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "TRUCKED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "VAPORIZED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "WAKE UP CALL!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "WALL SPLAT!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "WASHED OUT!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "WELL DONE!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "WHEELIED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "WIPEOUT!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "WRECKED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "YEETED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "ZAPPED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
   "voice": "barry.minion",
   "text": "...IS IT OVER?",
   "from": "game/stages/barry/power.ts:230"
