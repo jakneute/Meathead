@@ -5,3 +5,10 @@ cache/
 .extract.cjs
 smoke.py
 smoke.ogg
+
+# Caches and reports (they regenerate: python, check.py, pronscan.py)
+__pycache__/
+check.txt
+check.json
+pronscan.txt
+.triage.txt
