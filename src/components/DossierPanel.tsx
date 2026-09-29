@@ -87,7 +87,11 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
   const field = (label: string, value: string) => (
     <div className="leading-[10px]"><span className="font-bold text-[#7F1D1D]">{label}: </span>{value}</div>
   );
-  const section = (title: string, body: string) => (
+  // (a line with parts blacked out: [[like this]])
+  const redacted = (body: string) => body.split(/(\[\[.*?\]\])/).map((part, i) => part.startsWith('[[')
+    ? <span key={i} className="bg-[#1C1917] text-transparent select-none px-[1px]">{part.slice(2, -2)}</span>
+    : <React.Fragment key={i}>{part}</React.Fragment>);
+  const section = (title: string, body: React.ReactNode) => (
     <div className="mt-[5px]">
       <div className="font-bold text-[#7F1D1D] tracking-wider border-b border-[#7F1D1D]/40 mb-[2px] leading-[10px]">{title}</div>
       <div className="leading-[10px]">{body}</div>
@@ -162,6 +166,7 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
             {section('WHAT HE\'S ACTUALLY DOING', d.reality)}
             {section('FIELD INTEL', d.intel)}
             {section('APPROVED DISPOSAL', d.disposal)}
+            {section('WHY NOT BRING HIM IN ALIVE', redacted(d.notAlive))}
             <div className="mt-[6px] p-[4px] leading-[10px] bg-[#FEF3C7] border border-[#A16207]/50 rotate-[-0.6deg]" style={{ boxShadow: '1px 1px 0 rgba(0,0,0,0.25)' }}>
               <span className="font-bold">HANDLER'S NOTE RE: ASSET "MEATHEAD": </span>{d.handler}
             </div>
