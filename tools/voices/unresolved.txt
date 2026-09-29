@@ -1,6 +1,6 @@
 game/stages/artie/ski.ts:417 name: undefined
-game/stages/hector/hazards.ts:426 name: undefined
-game/stages/hector/hazards.ts:432 name: undefined
+game/stages/hector/hazards.ts:427 name: undefined
+game/stages/hector/hazards.ts:433 name: undefined
 game/stages/victor/hazards.ts:261 name: undefined
 game/stages/victor/hazards.ts:269 name: undefined
 game/stages/ernie/quake.ts:305 name: undefined

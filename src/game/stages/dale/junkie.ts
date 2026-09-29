@@ -165,13 +165,19 @@ const SPELL: Record<PropName, string> = {
   fan: "KEEP HEAVING BOULDERS STRAIGHT UP AT THAT FAN. BRING IT DOWN.",
   closet: "ICE THE STIFF IN THE CLOSET WITH THE SHOTGUN. SHATTER HIM.",
 };
+/** A stash out of one of his things: he'd forgotten all about it, and he's touched you found it for him. */
+const FOUND: Record<PropName, string[]> = {
+  desk: ["MY DESK STASH! I FORGOT I HAD A DESK STASH! THANKS, MUSCLES!", "I BEEN LOOKING FOR THAT SINCE TUESDAY! YOU'RE A GOOD FRIEND, FED!"],
+  cabinet: ["IN THE FILING CABINET?! WHO FILES THEIR BLUE?! ...ME! I DO! THANK YOU!", "I THOUGHT THAT DRAWER WAS TAXES! BEST TAXES EVER!"],
+  fan: ["THE FAN?! WHEN DID I PUT BLUE IN THE FAN?! BLESS YOU, MAN!", "SO THAT'S WHY IT WOBBLED! THANK YOU, MUSCLES!"],
+  closet: ["HE WAS HOLDING FOR ME THE WHOLE TIME?! THAT SNITCH! ...THANKS FOR ICING HIM!", "I FORGOT HE HAD IT ON HIM! I FORGOT HE WAS IN THERE! YOU'RE THE BEST, FED!"],
+};
 const LINES = {
   intro: [{ who: 'junkie', text: "WHO LET YOU IN HERE?! THIS IS A PLACE OF BUSINESS!" }, { who: 'junkie', text: "YOU WANT SOME?! HUH?! YOU WANT SOME OF THIS?!" }] as ScriptLine[],
   idle: ["TIGHT! TIGHT! TIGHT!", "LOOK AT MY EYES! LOOK AT 'EM!", "I'M GONNA RIP YOUR HEART OUT AND SELL IT!", "YOU THINK YOU'RE BIG?! I'M BIGGER! IN HERE!", "DALE SAYS YOU'RE A FED! ARE YOU A FED?!"],
   grab: ["COME HERE, MUSCLES!", "GOTCHA! HUH?! HUH?!"],
   throw: ["GET OUTTA MY OFFICE!", "AND STAY OUT!"],
   gun: ["YOU LIKE MY GUN?! IT'S GOLD!", "SAY HELLO TO MY GOLDEN FRIEND!"],
-  stash: ["IS THAT... BLUE?!", "MY BLUE! MY BEAUTIFUL BLUE!", "MINE! MINE MINE MINE!"],
   slap: ["OUTTA MY WAY!", "MOVE, MEATHEAD!", "NOBODY STANDS BETWEEN ME AND MY BLUE!"],
   high: ["OHHHH YEAHHHH! I CAN SEE THROUGH TIME!", "I'M A FREIGHT TRAIN, BABY!"],
   dazed: ["...THE WALL STARTED IT.", "WHO PUT THAT THERE?", "I'M OKAY! I'M OKAY!"],
@@ -263,7 +269,7 @@ export const updateJunkie = (ctx: FrameContext, m: Enemy, fight: JunkieFight, ta
   // The moment there's a stash out, it's all he can think about (unless he's got his hands full)
   if (fighting && stash && !fight.grab && (m.aiState === 'stalk' || m.aiState === 'reach' || m.aiState === 'lunge' || m.aiState === 'aim' || m.aiState === 'shoot' || m.aiState === 'recover' || m.aiState === 'dazed')) {
     start(m, 'notice');
-    junkieSays(state, talk, LINES.stash, true);
+    junkieSays(state, talk, FOUND[stash.from], true);
   }
   switch (m.aiState) {
     case 'snorting':
@@ -320,7 +326,7 @@ export const updateJunkie = (ctx: FrameContext, m: Enemy, fight: JunkieFight, ta
     case 'snort':
       m.vel.x = 0;
       if (m.aiTimer % 10 === 0) for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: mx + m.facing! * 10, y: o.floor - 8 }, vel: { x: (Math.random() - 0.5) * 2, y: -1 - Math.random() * 2 }, life: 20, color: i % 2 ? '#7DD3FC' : '#E0F2FE', size: 2 + Math.random() * 2 });
-      if (m.aiTimer > SNORT) { start(m, 'high'); junkieSays(state, talk, LINES.high, true); shakeScreen(state, 8, 4); }
+      if (m.aiTimer > SNORT) { start(m, 'high'); junkieSays(state, talk, LINES.high); shakeScreen(state, 8, 4); } // (after his thank-you, if he's still at it)
       break;
     case 'high':
       // Shaking all over, eyes out on stalks: then he picks a wall
