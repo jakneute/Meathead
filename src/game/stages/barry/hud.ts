@@ -16,6 +16,8 @@ import { drawCityBurning, drawFlames } from './draw';
 
 type Ctx = CanvasRenderingContext2D;
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
+/** Where the main HUD (top left) ends: anything up top goes right of this. */
+const HUD_CLEAR_X = 310;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 
 /** Over the world: the dark and the lights, then the power room's readout. */
@@ -23,10 +25,12 @@ export const drawBarryScreenHud = (ctx: Ctx, state: GameState, rt: BarryRuntime)
   const pw = rt.power;
   if (placeOf(state.player.pos.x) === 'power' && pw.phase === 'fight') {
     ctx.save();
-    ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(W / 2 - 140, 12, 280, 34);
-    ctx.strokeStyle = '#38BDF8'; ctx.lineWidth = 2; ctx.strokeRect(W / 2 - 140, 12, 280, 34);
+    // (right of the main HUD, clear of it)
+    const cx = (HUD_CLEAR_X + W) / 2;
+    ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(cx - 140, 12, 280, 34);
+    ctx.strokeStyle = '#38BDF8'; ctx.lineWidth = 2; ctx.strokeRect(cx - 140, 12, 280, 34);
     ctx.fillStyle = '#E0F2FE'; ctx.font = 'bold 10px "Press Start 2P"'; ctx.textAlign = 'center';
-    ctx.fillText(`GENERATORS: ${3 - pw.gone} OF 3`, W / 2, 34, 260);
+    ctx.fillText(`GENERATORS: ${3 - pw.gone} OF 3`, cx, 34, 260);
     ctx.textAlign = 'left';
     ctx.restore();
   }

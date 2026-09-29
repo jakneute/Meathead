@@ -489,6 +489,23 @@ const BLOODLESS_BOSSES = new Set<string>(['Artie Avalanche', 'Toxic Tommy']);
 /** A handgun or machine gun round. */
 const isBullet = (p: Projectile) => p.id.startsWith('p-') || p.id.startsWith('lmg-');
 
+/** What a round sparks off instead of going into: machines, vehicles. */
+const METAL = new Set<string>(['drone', 'generator', 'lowrider', 'pickup', 'cruiser', 'chopper']);
+
+/** A round off something hard (a machine, a shield): a burst of sparks where it hit, and a ping. */
+const bulletSparks = (ctx: FrameContext, p: Projectile, box: { x: number; y: number; w: number; h: number }) => {
+  const { state } = ctx;
+  const dir = -(Math.sign(p.vel.x) || 1);
+  const x = Math.max(box.x, Math.min(box.x + box.w, p.pos.x + p.width / 2));
+  const y = Math.max(box.y + 2, Math.min(box.y + box.h - 2, p.pos.y + p.height / 2));
+  state.particles.push({ pos: { x, y }, vel: { x: 0, y: 0 }, life: 3, color: '#FFFFFF', size: 9 });
+  for (let i = 0; i < 8; i++) {
+    const a = (Math.random() - 0.5) * 2.2, sp = 3 + Math.random() * 5;
+    state.particles.push({ pos: { x, y }, vel: { x: dir * Math.cos(a) * sp, y: Math.sin(a) * sp - 1.5 }, life: 6 + Math.random() * 8, color: i % 3 ? '#FDE047' : '#FFFFFF', size: 1.5 + Math.random() * 1.5 });
+  }
+  if (state.frame - (state.lastSparkSound ?? -99) > 4) { state.lastSparkSound = state.frame; playSound('clink', 0.35); }
+};
+
 /** A bullet that didn't kill: a little spray of blood out of the far side of him, in the direction it was going. */
 const bulletBlood = (ctx: FrameContext, p: Projectile, enemy: Enemy) => {
   const { state } = ctx;
@@ -530,6 +547,7 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
     // (coming down on him from above, or plunging steeply in: a boulder spiked down, say)
     const overhead = p.vel.y > 1.5 && (p.pos.y + p.height / 2 < enemy.pos.y + enemy.height * 0.45 || p.vel.y > Math.abs(p.vel.x) * 1.5);
     if (enemy.enemyType === 'shield' && enemy.isShieldActive && hitsShieldSide && !overhead) {
+      if (isBullet(p)) bulletSparks(ctx, p, boundsOf(enemy));
       if (p.isSludge) {
         // Splats against the shield and runs down it into a puddle at his feet
         p.isSliding = true;
@@ -541,6 +559,8 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
       return false;
     }
 
+    // (a round off a machine sparks)
+    if (isBullet(p) && METAL.has(enemy.kind || '')) bulletSparks(ctx, p, boundsOf(enemy));
     // A stage's mid-boss takes hits its own way (or the shot just went past it: a round thing in a square box)
     const special = enemy.kind ? getStageLayout(ctx.stageId)?.hitSpecialEnemy?.(ctx, enemy, p) : undefined;
     if (special === 'miss') continue;

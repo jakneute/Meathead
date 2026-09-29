@@ -89,6 +89,8 @@ export interface GameState {
   killVoice?: { quip?: { category: VulgarityType; at: number }; callout?: { text: string; at: number }; quippedAt?: number; forced?: { text: string; at: number }; handed?: { text: string; at: number; quip?: VulgarityType } };
   /** What hurt him last, and when (the frame): for what the death screen says. */
   lastHurt?: { source: string; at: number };
+  /** When a round last pinged off something hard (the ping isn't repeated every frame of a burst). */
+  lastSparkSound?: number;
   deathFrames: number;
   /** Reached the boss this attempt: dying now respawns right outside his door (cleared when a stage starts). */
   bossCheckpoint: boolean;

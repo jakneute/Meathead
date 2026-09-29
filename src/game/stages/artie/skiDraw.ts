@@ -418,16 +418,17 @@ export const drawSkiHud = (ctx: Ctx, state: GameState, ski: Ski) => {
   const gap = Math.max(0, state.player.pos.x - ski.avX);
   const k = Math.max(0, Math.min(1, 1 - gap / 800));
   ctx.save();
-  ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(250, 14, 300, 28);
-  ctx.fillStyle = '#1E293B'; ctx.fillRect(258, 32, 284, 6);
+  // (right of the main HUD, like the other bars up top)
+  ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(330, 14, 450, 28);
+  ctx.fillStyle = '#1E293B'; ctx.fillRect(338, 32, 434, 6);
   ctx.fillStyle = k > 0.7 ? '#EF4444' : k > 0.4 ? '#F59E0B' : '#38BDF8';
-  ctx.fillRect(258, 32, 284 * k, 6);
+  ctx.fillRect(338, 32, 434 * k, 6);
   ctx.font = 'bold 9px "Press Start 2P"'; ctx.textAlign = 'center';
-  ctx.fillStyle = '#F8FAFC'; ctx.fillText('AVALANCHE', 400, 27);
+  ctx.fillStyle = '#F8FAFC'; ctx.fillText('AVALANCHE', 555, 27);
   if (k > 0.7 && Math.floor(state.frame / 10) % 2 === 0) {
     ctx.font = 'bold 16px "Press Start 2P"';
-    ctx.fillStyle = '#000'; ctx.fillText('GO GO GO', 402, 76);
-    ctx.fillStyle = '#EF4444'; ctx.fillText('GO GO GO', 400, 74);
+    ctx.fillStyle = '#000'; ctx.fillText('GO GO GO', 557, 76);
+    ctx.fillStyle = '#EF4444'; ctx.fillText('GO GO GO', 555, 74);
   }
   ctx.restore();
 };

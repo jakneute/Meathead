@@ -603,7 +603,8 @@ export const drawTownHud = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   if (Math.floor(f / 8) % 2 === 0) {
     ctx.fillStyle = 'rgba(239, 68, 68, 0.25)'; ctx.fillRect(0, 0, 40, CANVAS_HEIGHT); ctx.fillRect(W - 40, 0, 40, CANVAS_HEIGHT);
     ctx.textAlign = 'center'; ctx.font = 'bold 26px "Press Start 2P"';
-    ctx.fillStyle = '#000'; ctx.fillText('!! INCOMING !!', W / 2 + 3, 113); ctx.fillStyle = '#EF4444'; ctx.fillText('!! INCOMING !!', W / 2, 110);
+    // (right of the main HUD, clear of it)
+    ctx.fillStyle = '#000'; ctx.fillText('!! INCOMING !!', 553, 113); ctx.fillStyle = '#EF4444'; ctx.fillText('!! INCOMING !!', 550, 110);
   }
   // The meter: the cab closing on him, the zone where it's time to go up
   const L = 200, R = 600, y = 140;
