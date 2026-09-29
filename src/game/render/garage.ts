@@ -23,7 +23,7 @@ FLOOR_ORDER.forEach((id, i) => { const x = FLOOR_X[i], y = FLOOR_Y; SLOTS[id] = 
 /** The order they're gone through with the arrow keys / the stick: along the pegboard, the shelves, the floor. */
 export const SOUVENIR_ORDER = [...WALL_ORDER, ...SHELF_ORDER, ...FLOOR_ORDER];
 
-export const drawGarage = (ctx: Ctx, t: number, owned: string[], selected: string | null) => {
+export const drawGarage = (ctx: Ctx, t: number, owned: string[], selected: string | null, showEmpty = true) => {
   drawRoom(ctx, t);
   for (const s of SOUVENIRS) {
     const slot = SLOTS[s.id];
@@ -31,7 +31,7 @@ export const drawGarage = (ctx: Ctx, t: number, owned: string[], selected: strin
     if (owned.includes(s.id)) {
       if (s.id === selected) highlight(ctx, slot, t);
       ctx.save(); ctx.translate(slot.x, slot.y); DRAW[s.id]?.(ctx, t); ctx.restore();
-    } else emptySpot(ctx, s, slot);
+    } else if (showEmpty) emptySpot(ctx, s, slot);
   }
   // The light from the tubes, over everything
   const flick = tubeFlicker(t);

@@ -5,6 +5,8 @@
 
 import { ART_W, ART_H, C, R, ell, hash } from './ending';
 import { drawSlide, Slide } from './intro';
+import { drawGarage as drawGarageRoom, GARAGE_W } from '../garage';
+import { ownedSouvenirs } from '../../garageStore';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -15,17 +17,15 @@ const G = {
   office: '#08080c', blind: '#1c2440', blindLit: '#34406c', rim: '#f8d878', tie: '#d82800', suit: '#040406',
 };
 
-/** His garage: bare block walls, a pegboard of plates, one bulb on a cord and its light. */
+/**
+ * His garage, the same one as on the map (block walls, the rack, the pegboard and the shelves, the roll-up door) with
+ * whatever he's brought home so far on the pegboard and the shelves: shrunk down to the cutscene's picture.
+ */
 export const garageBg = (ctx: Ctx) => {
-  R(ctx, 0, 0, ART_W, ART_H, G.wall);
-  for (let y = 0; y < 110; y += 10) for (let x = (y / 10) % 2 ? 0 : 12; x < ART_W; x += 24) R(ctx, x, y, 1, 10, G.wall2);
-  for (let y = 10; y < 110; y += 10) R(ctx, 0, y, ART_W, 1, G.wall2);
-  R(ctx, 0, 110, ART_W, 34, G.floor);
-  for (let x = 0; x < ART_W; x += 32) R(ctx, x, 110, 1, 34, G.floor2);
-  // The pegboard and what's hanging on it
-  R(ctx, 166, 20, 76, 50, G.peg);
-  for (let y = 24; y < 68; y += 6) for (let x = 170; x < 240; x += 6) R(ctx, x, y, 1, 1, G.pegDot);
-  for (const [x, r] of [[182, 10], [206, 8], [226, 6]] as const) { ell(ctx, x, 44, r, r, C.ink); ell(ctx, x, 44, 2, 2, C.gray); }
+  const s = ART_W / GARAGE_W;
+  ctx.save(); ctx.scale(s, s); ctx.translate(0, -44);
+  drawGarageRoom(ctx, 0, ownedSouvenirs(), null, false);
+  ctx.restore();
   // "CHEST DAY" scrawled on a whiteboard, circled
   R(ctx, 14, 22, 46, 30, C.white); R(ctx, 14, 52, 46, 2, C.gray);
   ctx.fillStyle = C.red; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center';
