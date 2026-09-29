@@ -59,6 +59,8 @@ const ARRIVE_SPEED = 21;
 export interface TownProp { x: number; look: 'barrel' | 'cutout' | 'wagon' | 'hay' | 'wanted' | 'trough'; flying: boolean; vx: number; vy: number; y: number; rot: number }
 export interface Town {
   phase: 'street' | 'pan' | 'revive' | 'chase' | 'incoming' | 'jail' | 'crashed';
+  /** While the cab's coming for him: where the camera's locked (its left edge). */
+  lockX?: number;
   /** The jail scene: when the cab went into it (-1 till then). */
   crashedAt: number;
   t: number;
@@ -585,10 +587,20 @@ const updateWarpath = (ctx: FrameContext, town: Town, talk: Talk, controls: Cont
     if (town.phase === 'chase') {
       // Following it up the street till it's close enough, then back to him
       state.cameraOverride = { x: cab.x + CAB.w - 520, y: 0 };
-      if (p.pos.x - (cab.x + CAB.w) < HANDOVER) { town.phase = 'incoming'; town.t = 0; state.cameraOverride = null; }
+      if (p.pos.x - (cab.x + CAB.w) < HANDOVER) {
+        // Back to him, and it stays put there: him on the right of it, the cab coming in off the left
+        town.phase = 'incoming'; town.t = 0;
+        town.lockX = Math.round(p.pos.x + p.width / 2 - CANVAS_WIDTH * 0.62);
+        state.cameraOverride = { x: town.lockX, y: 0 };
+      }
       return { ...NO_CONTROLS };
     }
-    // Coming for him: clear it, or else. (Come down on its roof and it bounces you back up off it)
+    // Coming for him: clear it, or else. (Come down on its roof and it bounces you back up off it). The camera's locked
+    // on it and he's kept on the screen: no running off up the street to the jail, or back down it
+    const lockX = town.lockX ?? state.camera.x;
+    state.cameraOverride = { x: lockX, y: 0 };
+    if (p.pos.x < lockX + 10) { p.pos.x = lockX + 10; if (p.vel.x < 0) p.vel.x = 0; }
+    if (p.pos.x + p.width > lockX + CANVAS_WIDTH - 10) { p.pos.x = lockX + CANVAS_WIDTH - 10 - p.width; if (p.vel.x > 0) p.vel.x = 0; }
     const feet = p.pos.y + p.height;
     // (keeping count of how he's trying it: a plain jump won't clear it)
     if (p.isGrounded) { town.jumped = false; town.boosted = false; } else { town.jumped = true; if (p.isUppercutting) town.boosted = true; }
