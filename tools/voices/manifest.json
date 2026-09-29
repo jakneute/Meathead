@@ -562,7 +562,7 @@
  {
   "voice": "announcer",
   "text": "SEPPUKU!",
-  "from": "game/stages/dale/town.ts:476"
+  "from": "game/stages/dale/town.ts:512"
  },
  {
   "voice": "announcer",
@@ -692,7 +692,7 @@
  {
   "voice": "announcer",
   "text": "TIMESHARE: VACANT",
-  "from": "game/stages/dale/town.ts:723"
+  "from": "game/stages/dale/town.ts:759"
  },
  {
   "voice": "announcer",
@@ -2677,32 +2677,32 @@
  {
   "voice": "dale.ninja",
   "text": "THERE IS ONLY ONE WAY TO RESTORE MY HONOR.",
-  "from": "game/stages/dale/town.ts:445"
+  "from": "game/stages/dale/town.ts:452"
  },
  {
   "voice": "dale.ninja",
   "text": "YOU CROSSED THE WHOLE TOWN UNDER MY SIGHTS, AND STILL YOU STAND. I HAVE FAILED MY MASTER.",
-  "from": "game/stages/dale/town.ts:444"
+  "from": "game/stages/dale/town.ts:451"
  },
  {
   "voice": "dale.prisoner",
   "text": "DAN! GIMME THE KEYS! STOP PLAYING! LET ME OUT!",
-  "from": "game/stages/dale/town.ts:585"
+  "from": "game/stages/dale/town.ts:621"
  },
  {
   "voice": "dale.prisoner",
   "text": "HEY! HEY, YOU! THE SHERIFF LOCKED ME IN HERE FOR A PHOTO AN HOUR AGO!",
-  "from": "game/stages/dale/town.ts:494"
+  "from": "game/stages/dale/town.ts:530"
  },
  {
   "voice": "dale.prisoner",
   "text": "I HAVE A TIMESHARE!",
-  "from": "game/stages/dale/town.ts:586"
+  "from": "game/stages/dale/town.ts:622"
  },
  {
   "voice": "dale.prisoner",
   "text": "IS THAT A TRUCK?! SHERIFF DAN?!",
-  "from": "game/stages/dale/town.ts:583"
+  "from": "game/stages/dale/town.ts:619"
  },
  {
   "voice": "dale.riggs",
@@ -2742,7 +2742,7 @@
  {
   "voice": "dale.riggs",
   "text": "ONE BULLET?! IN ONE EAR AND OUT THE OTHER, BABY! NOTHING IN THERE TO HIT!",
-  "from": "game/stages/dale/town.ts:519"
+  "from": "game/stages/dale/town.ts:555"
  },
  {
   "voice": "dale.riggs",
@@ -2762,7 +2762,7 @@
  {
   "voice": "dale.sheriff",
   "text": "NOPE! NOT FOR TEN BUCKS AN HOUR!",
-  "from": "game/stages/dale/town.ts:584"
+  "from": "game/stages/dale/town.ts:620"
  },
  {
   "voice": "death",
@@ -2772,7 +2772,7 @@
  {
   "voice": "death",
   "text": "A JUMP WON'T CLEAR IT. UPPERCUT!",
-  "from": "game/stages/dale/town.ts:566"
+  "from": "game/stages/dale/town.ts:602"
  },
  {
   "voice": "death",
@@ -3412,7 +3412,7 @@
  {
   "voice": "death",
   "text": "FLATTENED BY A DEAD MAN",
-  "from": "game/stages/dale/town.ts:566"
+  "from": "game/stages/dale/town.ts:602"
  },
  {
   "voice": "death",
@@ -3677,7 +3677,7 @@
  {
   "voice": "death",
   "text": "IT TAKES AN UPPERCUT TO CLEAR IT",
-  "from": "game/stages/dale/town.ts:566"
+  "from": "game/stages/dale/town.ts:602"
  },
  {
   "voice": "death",
@@ -3922,7 +3922,7 @@
  {
   "voice": "death",
   "text": "NOT A JUMP. AN UPPERCUT.",
-  "from": "game/stages/dale/town.ts:566"
+  "from": "game/stages/dale/town.ts:602"
  },
  {
   "voice": "death",
@@ -4237,7 +4237,7 @@
  {
   "voice": "death",
   "text": "RUN OVER BY RIGGS. AGAIN.",
-  "from": "game/stages/dale/town.ts:566"
+  "from": "game/stages/dale/town.ts:602"
  },
  {
   "voice": "death",
@@ -4447,7 +4447,7 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE UPPERCUT OVER IT",
-  "from": "game/stages/dale/town.ts:566"
+  "from": "game/stages/dale/town.ts:602"
  },
  {
   "voice": "death",
@@ -5542,7 +5542,7 @@
  {
   "voice": "meathead",
   "text": "...OKAY. SAVES ME A BULLET.",
-  "from": "game/stages/dale/town.ts:477"
+  "from": "game/stages/dale/town.ts:513"
  },
  {
   "voice": "meathead",
@@ -5717,7 +5717,7 @@
  {
   "voice": "meathead",
   "text": "A LITTLE RED DOT ON MY PECS... SNIPER! THE PORCH ROOFS! HE CAN'T SEE ME UNDER THOSE!",
-  "from": "game/stages/dale/town.ts:231"
+  "from": "game/stages/dale/town.ts:235"
  },
  {
   "voice": "meathead",
@@ -5917,7 +5917,7 @@
  {
   "voice": "meathead",
   "text": "AN AUTHENTIC OLD WEST TOWN. EST. NINETEEN NINETY FOUR. SURE.",
-  "from": "game/stages/dale/town.ts:223"
+  "from": "game/stages/dale/town.ts:227"
  },
  {
   "voice": "meathead",
@@ -7116,6 +7116,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE JUST DUCKS. CLOSER. GET CLOSER.",
+  "from": "game/stages/dale/town.ts:484"
+ },
+ {
+  "voice": "meathead",
   "text": "HE KNOCKED ME OUT OF THE AIR! RUDE!",
   "from": "HAZARD_HURT"
  },
@@ -7293,6 +7298,11 @@
   "voice": "meathead",
   "text": "HE'S DEAD AS SHIT. QUIT WASTING MY GAINS.",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S GOT SANDBAGS UP THERE. I NEED TO GET CLOSER.",
+  "from": "game/stages/dale/town.ts:484"
  },
  {
   "voice": "meathead",
@@ -7667,7 +7677,7 @@
  {
   "voice": "meathead",
   "text": "I SHOULD REALLY TAKE OUT THAT SNIPER BEFORE I GO ANY FURTHER.",
-  "from": "game/stages/dale/town.ts:263"
+  "from": "game/stages/dale/town.ts:268"
  },
  {
   "voice": "meathead",
@@ -8546,13 +8556,18 @@
  },
  {
   "voice": "meathead",
+  "text": "NOT FROM DOWN HERE. I'VE GOT TO GET UP THERE.",
+  "from": "game/stages/dale/town.ts:484"
+ },
+ {
+  "voice": "meathead",
   "text": "NOT THE FACE!",
   "from": "game/stages/dale/convoy.ts:389"
  },
  {
   "voice": "meathead",
   "text": "NOT WITH A SNIPER ON MY BACK. HE'S UP THE BELL TOWER.",
-  "from": "game/stages/dale/town.ts:263"
+  "from": "game/stages/dale/town.ts:268"
  },
  {
   "voice": "meathead",
@@ -8567,7 +8582,7 @@
  {
   "voice": "meathead",
   "text": "NOTE TO SELF: SHOOT THE DRIVER AFTER THE TRUCK STOPS.",
-  "from": "game/stages/dale/town.ts:222"
+  "from": "game/stages/dale/town.ts:226"
  },
  {
   "voice": "meathead",
@@ -8937,7 +8952,7 @@
  {
   "voice": "meathead",
   "text": "RIGGS, BUDDY... YOUR LIZARD'S GONNA HAVE TO FEND FOR HIMSELF.",
-  "from": "game/stages/dale/town.ts:726"
+  "from": "game/stages/dale/town.ts:762"
  },
  {
   "voice": "meathead",
@@ -9322,7 +9337,7 @@
  {
   "voice": "meathead",
   "text": "SNIPER FIRST. THEN THE DRUGS.",
-  "from": "game/stages/dale/town.ts:263"
+  "from": "game/stages/dale/town.ts:268"
  },
  {
   "voice": "meathead",
@@ -10192,7 +10207,7 @@
  {
   "voice": "meathead",
   "text": "UNDER A PORCH ROOF! THAT'S THE ONLY PLACE HE CAN'T HIT ME!",
-  "from": "game/stages/dale/town.ts:341"
+  "from": "game/stages/dale/town.ts:348"
  },
  {
   "voice": "meathead",

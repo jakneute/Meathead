@@ -72,7 +72,10 @@ export interface Town {
   arrive: { t: number; x: number; h: number; vx: number; vh: number; rot: number; spin: number; landedAt: number } | null;
   /** The hole in the curio shop (not till the cab's gone into it). */
   shopHit: boolean;
-  ninja: { state: 'perch' | 'speech' | 'kneel' | 'dead'; t: number; /** Which way he turned to face Meathead (and stays that way). */ face: 1 | -1; /** Which way he's aiming, up there (he turns round after him if he gets past). */ aim?: 1 | -1 };
+  /** Times Meathead's said he needs to get closer (shooting at the nest from down there). */
+  closerSaid: number;
+  ninja: { state: 'perch' | 'speech' | 'kneel' | 'dead'; t: number; /** Which way he turned to face Meathead (and stays that way). */ face: 1 | -1; /** Which way he's aiming, up there (he turns round after him if he gets past). */ aim?: 1 | -1;
+    /** Shot at from down there: frames left ducked behind his sandbags, and when he last came back up. */ duck?: number; upAt?: number };
   /** Meathead up against the jail with the sniper still up the tower: when he last said so, and how many times. */
   wallNagAt?: number; wallNags?: number;
   /** Riggs coming for him: whether he's jumped since he was last on the ground, and whether that jump was an uppercut. */
@@ -100,6 +103,7 @@ export const createTown = (state: GameState, startedAt: number): Town => {
   return {
     phase: wrecked ? 'crashed' : 'street', t: 0,
     sniper: { on: false, x: t.x1 + 1400, y: Y - 200, state: 'track', t: 0, shots: 0, lastShot: null },
+    closerSaid: 0,
     ninja: { state: ninjaDead ? 'dead' : 'perch', t: 999, face: -1 },
     cab: wrecked ? { x: t.jail.x1 + 30 - CAB.w, speed: 0, facing: 1, spin: 0, state: 'wrecked', t: 0 } : { x: t.crash - 20, speed: 0, facing: -1, spin: 0, state: 'parked', t: 0 },
     props, sheriff: { x: wrecked ? t.x2 + 400 : t.jail.x1 - 70, running: wrecked }, prisoner: { alive: !wrecked, said: 0 },
@@ -230,6 +234,7 @@ export const updateTown = (ctx: FrameContext, town: Town, talk: Talk, controls: 
     town.sniper.on = true; town.sniper.x = p.pos.x + 200; town.sniper.y = p.pos.y - 100; town.sniper.t = 0;
     if (once(state, town, 'sniper')) replaceLines(state, talk, [{ who: 'meathead', text: "A LITTLE RED DOT ON MY PECS... SNIPER! THE PORCH ROOFS! HE CAN'T SEE ME UNDER THOSE!" }]);
   }
+  if (town.ninja.state === 'perch') shotAtNest(ctx, town, talk);
   if (town.sniper.on) updateSniper(ctx, town, talk);
   sniperFirst(state, town, talk);
   const ninjaControls = updateNinja(ctx, town, talk);
@@ -296,6 +301,8 @@ const updateSniper = (ctx: FrameContext, town: Town, talk: Talk) => {
   // (he swings round after the crosshair if it goes past his side of the tower)
   const n = town.ninja, sx = ninjaSpot().x;
   if (s.x > sx + 40) n.aim = 1; else if (s.x < sx - 40) n.aim = -1;
+  // (down behind his sandbags: no aiming, no shooting, till he's back up)
+  if (n.duck) { s.state = 'cool'; s.t = 0; return; }
   if (s.state === 'track' || s.state === 'cool') {
     // Drifting after him, a little behind, a little shaky
     const k = s.state === 'cool' ? 0.025 : 0.058;
@@ -447,6 +454,35 @@ const NINJA_LINES = [
 
 /** The seppuku: when the blade goes in, when he's down (and you've got control back). */
 export const NINJA_CUT = 30, NINJA_DONE = 70;
+
+/**
+ * His nest up the tower: sandbags along the rail. Anything Meathead fires up there from the street goes into the
+ * sandbags, and the first time in a while, he gets his head down behind them for a bit (no shots from him meanwhile);
+ * Meathead works out it's no good from down there. (Back up, he doesn't duck again for a while: it's not a way
+ * to keep him quiet.)
+ */
+export const DUCK_FOR = 90;
+const DUCK_AGAIN = 360;
+const CLOSER_LINES = ["HE'S GOT SANDBAGS UP THERE. I NEED TO GET CLOSER.", "NOT FROM DOWN HERE. I'VE GOT TO GET UP THERE.", 'HE JUST DUCKS. CLOSER. GET CLOSER.'];
+export const nestBox = () => { const t = T().tower; return { x: t.x - 110, y: t.top - 80, w: 220, h: 84 }; };
+const shotAtNest = (ctx: FrameContext, town: Town, talk: Talk) => {
+  const { state } = ctx;
+  const n = town.ninja;
+  if (n.duck && --n.duck === 0) n.upAt = town.t;
+  const box = nestBox();
+  const hit = state.projectiles.find(pj => pj.owner === 'player' && pj.health > 0 && rectsOverlap(box, boundsOf(pj)));
+  const burnt = state.flameSegments.some(sg => rectsOverlap(box, { x: sg.x - sg.size / 2, y: sg.y - sg.size / 2, w: sg.size, h: sg.size }));
+  if (!hit && !burnt) return;
+  if (hit) {
+    // Into the sandbags: a puff of sand
+    hit.health = 0;
+    for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: hit.pos.x, y: hit.pos.y }, vel: { x: (Math.random() - 0.5) * 4, y: -Math.random() * 3 }, life: 22, color: i % 2 ? '#BFA77F' : '#D6B98C', size: 2 + Math.random() * 3 });
+    playSound('thud', 0.4);
+  }
+  if (n.duck || (n.upAt !== undefined && town.t - n.upAt < DUCK_AGAIN)) return;
+  n.duck = DUCK_FOR;
+  if (!talk.queue.length) queueLines(state, talk, [{ who: 'meathead', text: CLOSER_LINES[town.closerSaid++ % CLOSER_LINES.length] }]);
+};
 
 /** Where the ninja is (his feet, middle). */
 export const ninjaSpot = () => ({ x: T().tower.x, y: T().tower.top });

@@ -12,7 +12,7 @@ import type { GroundRun } from '../../core/terrain';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, BOSS_DOOR_X } from '../../../constants';
 import { COURSE, Building, Awning } from './course';
 import type { DaleRuntime } from './runtime';
-import { Town, TownProp, CAB, ninjaSpot, incoming, jailWrecked, townStains, muzzle, laserEnd, NINJA_CUT, NINJA_DONE, JAIL_SKIP_AFTER } from './town';
+import { Town, TownProp, CAB, ninjaSpot, incoming, jailWrecked, townStains, muzzle, laserEnd, NINJA_CUT, NINJA_DONE, JAIL_SKIP_AFTER, DUCK_FOR } from './town';
 import { drawDaleKind } from '../../render/enemies/dale';
 import { drawPlayer } from '../../render/player/player';
 import { saying, drawBubble } from './script';
@@ -116,7 +116,7 @@ const drawChapel = (ctx: Ctx, state: GameState, b: Building) => {
   ctx.fillStyle = '#A16207'; ctx.beginPath(); ctx.arc(t.x, t.top - 48, 14, Math.PI, 0); ctx.fill(); ctx.fillRect(t.x - 16, t.top - 48, 32, 8);
   ctx.fillStyle = '#A8A29E'; ctx.fillRect(tx - 6, t.top - 4, tw + 12, 8);
   // His nest: sandbags along the rail, a spotting scope, a ghillie net hung up out of the sun
-  for (let k = 0; k < 7; k++) { ctx.fillStyle = k % 2 ? '#A8916B' : '#BFA77F'; ctx.beginPath(); ctx.ellipse(tx + 14 + k * 16, t.top - 10, 10, 6, 0, 0, Math.PI * 2); ctx.fill(); }
+  for (let k = 0; k < 11; k++) { ctx.fillStyle = k % 2 ? "#A8916B" : "#BFA77F"; ctx.beginPath(); ctx.ellipse(tx + 14 + k * 16, t.top - 10, 10, 6, 0, 0, Math.PI * 2); ctx.fill(); }
   ctx.fillStyle = '#3F6212'; ctx.beginPath(); ctx.moveTo(tx + 16, t.top - 70); ctx.lineTo(tx + tw - 16, t.top - 70); ctx.lineTo(tx + tw - 30, t.top - 52); ctx.lineTo(tx + 30, t.top - 56); ctx.fill();
   ctx.fillStyle = '#27272A'; ctx.fillRect(tx + tw - 40, t.top - 22, 18, 6); ctx.fillRect(tx + tw - 34, t.top - 16, 3, 12);
   // The steeple, a cross
@@ -460,6 +460,12 @@ const drawNinja = (ctx: Ctx, state: GameState, town: Town) => {
   ctx.save(); ctx.translate(s.x, s.y); ctx.scale(n.state === 'perch' ? (n.aim ?? -1) : n.face, 1);
   const black = '#111827', dark = '#1F2937';
   if (n.state === 'perch') {
+    // (shot at: head down behind the sandbags, just the top of his head and the headband showing)
+    if (n.duck) {
+      const k = Math.min(1, Math.min(n.duck, DUCK_FOR - n.duck) / 8);
+      ctx.beginPath(); ctx.rect(-80, -120, 160, 106); ctx.clip();
+      ctx.translate(0, k * 20);
+    }
     // Prone-ish, kneeling behind the rifle, sighting down the street
     ctx.fillStyle = black; ctx.fillRect(-12, -26, 24, 14); ctx.fillRect(-18, -12, 30, 12);
     ctx.beginPath(); ctx.arc(8, -32, 8, 0, Math.PI * 2); ctx.fill();
@@ -520,7 +526,7 @@ export const drawTownFront = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   const f = state.frame;
   const sn = town.sniper;
   const spot = ninjaSpot();
-  if (sn.on) {
+  if (sn.on && !town.ninja.duck) {
     const lock = sn.state === 'lock';
     const k = lock ? sn.t / 46 : 0;
     // The laser from up the tower to the crosshair (all of it's the line of fire; the crosshair's where it stops),
