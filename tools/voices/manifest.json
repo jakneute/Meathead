@@ -5581,6 +5581,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A FEW TIDAL WAVES AND THAT FILING CABINET'S GOING FOR A SWIM.",
+  "from": "game/stages/dale/junkie.ts:718"
+ },
+ {
+  "voice": "meathead",
   "text": "A FIRE LIZARD! IT BIT MY ANKLE!",
   "from": "HAZARD_HURT"
  },
@@ -6556,11 +6561,6 @@
  },
  {
   "voice": "meathead",
-  "text": "FLAMETHROWER ON THE DESK. WHATEVER'S IN THOSE DRAWERS, SMOKE IT OUT.",
-  "from": "game/stages/dale/junkie.ts:718"
- },
- {
-  "voice": "meathead",
   "text": "FLAMMABLE FAILURE",
   "from": "VULGARITIES"
  },
@@ -7341,11 +7341,6 @@
  },
  {
   "voice": "meathead",
-  "text": "HEAVE A BOULDER STRAIGHT UP AT THAT FAN. BRING IT DOWN.",
-  "from": "game/stages/dale/junkie.ts:718"
- },
- {
-  "voice": "meathead",
   "text": "HEAVY ARMOR? MY BICEPS ARE HEAVIER!",
   "from": "HAZARD_HURT"
  },
@@ -8096,8 +8091,18 @@
  },
  {
   "voice": "meathead",
+  "text": "KEEP HEAVING BOULDERS STRAIGHT UP AT THAT FAN. BRING IT DOWN.",
+  "from": "game/stages/dale/junkie.ts:718"
+ },
+ {
+  "voice": "meathead",
   "text": "KEEP IT, FELLAS. I'M TRYING TO QUIT.",
   "from": "game/stages/oscar/ending.ts:130"
+ },
+ {
+  "voice": "meathead",
+  "text": "KEEP THE FLAMETHROWER ON THE DESK. WHATEVER'S IN THOSE DRAWERS, SMOKE IT OUT.",
+  "from": "game/stages/dale/junkie.ts:718"
  },
  {
   "voice": "meathead",
@@ -8638,11 +8643,6 @@
   "voice": "meathead",
   "text": "OKAY. SUIT. NOW WHAT?",
   "from": "game/stages/tommy/escape.ts:84"
- },
- {
-  "voice": "meathead",
-  "text": "ONE TIDAL WAVE AND THAT FILING CABINET'S GOING FOR A SWIM.",
-  "from": "game/stages/dale/junkie.ts:718"
  },
  {
   "voice": "meathead",
@@ -9651,7 +9651,7 @@
  },
  {
   "voice": "meathead",
-  "text": "THAT FAN'S HANGING BY A THREAD, ESE! ONE BIG ROCK AND DOWN IT COMES!",
+  "text": "THAT FAN'S HANGING BY A THREAD, ESE! A FEW BIG ROCKS AND DOWN IT COMES!",
   "from": "game/stages/dale/junkie.ts:712"
  },
  {
