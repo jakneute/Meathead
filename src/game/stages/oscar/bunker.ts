@@ -9,6 +9,10 @@
 // his, and he's gone. (Dirty Dan's, as it happens: the rest of them stood
 // round it admiring the machine gun he's got across his handlebars. He takes
 // that too.)
+//
+// Or he can just wait. It's a few minutes (the foreman keeps count), but break
+// does end: they clock back in, the far door's unlocked, and he walks out, the
+// room and everybody in it none the worse, to the same bikers out back.
 
 import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
@@ -22,9 +26,9 @@ import { COURSE, CP } from './course';
 import { Talk, queueLines, quiet, hush } from './script';
 import { mountMoto } from './moto';
 
-export type BunkerPhase = 'waiting' | 'break' | 'boom' | 'aftermath' | 'runout' | 'ride' | 'done';
+export type BunkerPhase = 'waiting' | 'break' | 'clockout' | 'open' | 'boom' | 'aftermath' | 'runout' | 'ride' | 'done';
 export type WorkerLook = 'couch' | 'cards' | 'cards2' | 'foreman' | 'microwave';
-export interface Worker { x: number; look: WorkerLook; state: 'break' | 'knocked' | 'furious' | 'gone'; t: number }
+export interface Worker { x: number; look: WorkerLook; state: 'break' | 'knocked' | 'furious' | 'gone' | 'clocked'; t: number }
 export interface Debris { x: number; y: number; vx: number; vy: number; rot: number; vr: number; w: number; h: number; color: string; life: number }
 /** One of the bikers out back: sat on his chopper (Dirty Dan, the first, with the machine gun), stood round it admiring it, or kicked flying. */
 export interface Biker { x: number; y: number; vx: number; vy: number; rot: number; state: 'sitting' | 'standing' | 'flying' | 'down' }
@@ -48,10 +52,15 @@ export interface Bunker {
   stepAt: number;
   /** When he last said something about trying the flamethrower too early. */
   earlyAt: number;
+  /** He waited the break out: the room's still standing, and everybody in it went back to work. */
+  peaceful: boolean;
 }
 
 /** Enough gas in the room to go up, and how long it takes to fill (frames). */
 const GAS_ENOUGH = 0.35, GAS_FILL = 420;
+/** How long what's left of their break lasts once he's in there (five minutes), and a minute of it. */
+const BREAK_FRAMES = 5 * 60 * 60, MINUTE = 60 * 60;
+const NUMBERS = ['NO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'];
 
 export const createBunker = (state: GameState, startedAt: number): Bunker => {
   const B = COURSE.bunker;
@@ -67,7 +76,7 @@ export const createBunker = (state: GameState, startedAt: number): Bunker => {
     ],
     hinted: new Set(), ambientAt: 0, ambient: 0, debris: [],
     bikers: B.bikers.map((x, i) => ({ x, y: GROUND_Y, vx: 0, vy: 0, rot: 0, state: i === 0 || i === 3 ? 'sitting' as const : 'standing' as const })),
-    step: 0, stepAt: 0, earlyAt: -999,
+    step: 0, stepAt: 0, earlyAt: -999, peaceful: false,
   };
   if (!done) {
     // The roof, and the far door (locked till break's over: and no going over the top of it)
@@ -82,7 +91,7 @@ export const veinBox = () => ({ x: COURSE.bunker.vein.x - 16, y: COURSE.bunker.v
 
 const AMBIENT: { who: 'worker' | 'foreman'; text: string }[] = [
   { who: 'worker', text: 'GIN.' },
-  { who: 'foreman', text: 'NINE MINUTES LEFT, FELLAS. SAVOR IT.' },
+  { who: 'foreman', text: 'MINUTES LEFT' },
   { who: 'worker', text: 'WHO TOOK MY YOGURT? IT HAD MY NAME ON IT.' },
   { who: 'foreman', text: 'THIS COFFEE TASTES LIKE THE WELL WATER.' },
   { who: 'worker', text: 'GO FISH.' },
@@ -112,7 +121,22 @@ export const updateBunker = (ctx: FrameContext, b: Bunker, talk: Talk, controls:
         ]);
       }
       return controls;
-    case 'break': return onBreak(ctx, b, talk, controls, inside);
+    case 'break':
+      // Waited it out: break's over
+      if (b.t >= BREAK_FRAMES) { clockOut(ctx, b, talk); return controls; }
+      return onBreak(ctx, b, talk, controls, inside);
+    case 'clockout':
+      // They get up and go back to work; then the far door's open
+      if (b.t > 20 && quiet(talk)) {
+        for (const w of b.workers) { w.state = 'clocked'; w.t = 0; }
+        state.blocks = state.blocks.filter(k => k.tag !== 'bunker-door');
+        b.phase = 'open'; b.t = 0;
+      }
+      return controls;
+    case 'open':
+      // Out the far side: the bikers
+      if (px > B.x2 + 10) { b.phase = 'runout'; b.t = 0; b.step = 0; b.stepAt = 0; }
+      return controls;
     case 'boom': case 'aftermath': return aftermath(ctx, b, talk);
     case 'runout': return runOut(ctx, b, talk);
     case 'ride': {
@@ -164,9 +188,31 @@ const onBreak = (ctx: FrameContext, b: Bunker, talk: Talk, controls: Controls, i
     if (b.popped && b.gas > 0.25 && !b.hinted.has('smell')) { b.hinted.add('smell'); b.ambientAt = state.frame; queueLines(state, talk, [{ who: 'worker', text: 'SOMEBODY MICROWAVED EGGS AGAIN.' }, { who: 'foreman', text: 'SMELLS LIKE OVERTIME TO ME.' }]); }
     else if (!b.popped && b.t > 600 && !b.hinted.has(`vein-${Math.floor(b.t / 900)}`)) { b.hinted.add(`vein-${Math.floor(b.t / 900)}`); b.ambientAt = state.frame; queueLines(state, talk, [{ who: 'meathead', text: 'THAT OLD GAS LINE ON THE WALL LOOKS REAL THIN...' }]); }
     else if (b.popped && b.gas >= 0.6 && state.frame - b.poppedAt > 700 && !b.hinted.has(`fire-${Math.floor((state.frame - b.poppedAt) / 700)}`)) { b.hinted.add(`fire-${Math.floor((state.frame - b.poppedAt) / 700)}`); b.ambientAt = state.frame; queueLines(state, talk, [{ who: 'meathead', text: 'ALL THIS ROOM NEEDS NOW IS A LITTLE FIRE.' }]); }
-    else if (since > 520) { b.ambientAt = state.frame; queueLines(state, talk, [AMBIENT[b.ambient++ % AMBIENT.length]]); }
+    // (the foreman keeps count, and calls the last minute)
+    else if (b.t > BREAK_FRAMES - MINUTE && !b.hinted.has('last')) { b.hinted.add('last'); b.ambientAt = state.frame; queueLines(state, talk, [{ who: 'foreman', text: 'ONE MINUTE, FELLAS. FINISH YOUR SANDWICHES.' }]); }
+    else if (since > 520) {
+      b.ambientAt = state.frame;
+      const line = AMBIENT[b.ambient++ % AMBIENT.length];
+      const left = Math.ceil((BREAK_FRAMES - b.t) / MINUTE);
+      queueLines(state, talk, [line.text === 'MINUTES LEFT' ? { who: 'foreman', text: `${NUMBERS[left] ?? left} MINUTE${left === 1 ? '' : 'S'} LEFT, FELLAS. SAVOR IT.` } : line]);
+    }
   }
   return controls;
+};
+
+/** Break's over, the proper way: the whistle, a stretch, and everybody back to work. He waited. They respect that. */
+const clockOut = (ctx: FrameContext, b: Bunker, talk: Talk) => {
+  const { state } = ctx;
+  b.phase = 'clockout'; b.t = 0; b.peaceful = true;
+  hush(state, talk);
+  playSound('horn');
+  queueLines(state, talk, [
+    { who: 'foreman', text: "AND THAT'S BREAK. BACK TO IT, FELLAS." },
+    { who: 'worker', text: 'FIVE MORE MINUTES...' },
+    { who: 'foreman', text: 'UP.' },
+    { who: 'foreman', text: 'DOOR\'S OPEN, PAL. YOU WAITED OUT THE WHOLE BREAK? RESPECT.' },
+    { who: 'meathead', text: 'UNION RULES.' },
+  ]);
 };
 
 /** The room goes up: the flash, the fireball, the roof and the far door gone, everybody on the floor. */
@@ -276,4 +322,6 @@ const updateBikers = (b: Bunker) => {
 };
 
 /** Is the room still standing (for drawing it whole or blown out)? */
-export const roomIntact = (b: Bunker) => b.phase === 'waiting' || b.phase === 'break';
+export const roomIntact = (b: Bunker) => b.peaceful || b.phase === 'waiting' || b.phase === 'break';
+/** The far door's still shut (it's open once they've clocked out). */
+export const doorShut = (b: Bunker) => b.phase === 'waiting' || b.phase === 'break' || b.phase === 'clockout';

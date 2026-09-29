@@ -16,7 +16,7 @@ import { drawKindCorpse } from '../../render/enemies';
 import { drawChopperBike, drawLmgProp } from '../../render/enemies/oscar';
 import { COURSE } from './course';
 import type { Bunker, Worker } from './bunker';
-import { roomIntact, veinBox } from './bunker';
+import { roomIntact, doorShut, veinBox } from './bunker';
 
 type Ctx = CanvasRenderingContext2D;
 const Y = GROUND_Y;
@@ -133,12 +133,12 @@ export const drawBunkerMid = (ctx: Ctx, state: GameState, b: Bunker) => {
 /** One of the union: on their break, knocked flat and black, up and furious, or stomping off. */
 const drawWorker = (ctx: Ctx, state: GameState, w: Worker, x1: number) => {
   const f = state.frame;
-  const sooty = w.state !== 'break';
+  const sooty = w.state !== 'break' && w.state !== 'clocked';
   const skin = sooty ? '#1C1917' : ['#F2C9A0', '#8D5524', '#E0AC69', '#C68642', '#F5D0A9'][Math.abs(Math.round(w.x)) % 5];
   const vest = sooty ? '#292524' : '#F97316';
   const hat = sooty ? '#3F3A36' : w.look === 'foreman' ? '#F8FAFC' : '#FACC15';
   let x = w.x, y = Y;
-  if (w.state === 'gone') { x = w.x - w.t * 1.8; if (x < x1 - 500) return; }
+  if (w.state === 'gone' || w.state === 'clocked') { x = w.x - w.t * 1.8; if (x < x1 - 500) return; }
   ctx.save(); ctx.translate(x, y);
   if (w.state === 'knocked') {
     // Flat on the floor, smoking, hair on end
@@ -151,7 +151,7 @@ const drawWorker = (ctx: Ctx, state: GameState, w: Worker, x1: number) => {
     return;
   }
   const sitting = w.state === 'break' && (w.look === 'cards' || w.look === 'cards2');
-  const facing = w.state === 'gone' ? -1 : w.look === 'cards2' ? -1 : w.look === 'microwave' && w.state === 'break' ? 1 : w.look === 'couch' && w.state === 'break' ? 1 : -1;
+  const facing = w.state === 'gone' || w.state === 'clocked' ? -1 : w.look === 'cards2' ? -1 : w.look === 'microwave' && w.state === 'break' ? 1 : w.look === 'couch' && w.state === 'break' ? 1 : -1;
   ctx.scale(facing, 1);
   if (w.look === 'couch' && w.state === 'break') {
     // Stretched out on the couch, hard hat over his face, snoring
@@ -164,7 +164,7 @@ const drawWorker = (ctx: Ctx, state: GameState, w: Worker, x1: number) => {
     ctx.restore();
     return;
   }
-  const walk = w.state === 'gone' ? Math.sin(f * 0.35) * 5 : 0;
+  const walk = w.state === 'gone' || w.state === 'clocked' ? Math.sin(f * 0.35) * 5 : 0;
   // Legs (bent at the knee, sat down, at the card table)
   ctx.fillStyle = '#1E3A8A';
   if (sitting) { ctx.fillRect(-10, -30, 20, 8); ctx.fillRect(4, -24, 7, 24); ctx.fillStyle = '#57534E'; ctx.fillRect(-14, -26, 22, 4); ctx.fillRect(-12, -22, 4, 22); }
@@ -233,9 +233,14 @@ export const drawBunkerFront = (ctx: Ctx, state: GameState, b: Bunker) => {
     ctx.fillStyle = '#B91C1C'; ctx.font = 'bold 9px monospace'; ctx.fillText('AUTHORIZED PERSONNEL ONLY', B.x1 + 540, Y - 60);
     ctx.textAlign = 'left';
     ctx.restore();
-    // The far door (locked)
-    ctx.fillStyle = '#57534E'; ctx.fillRect(B.x2 - 22, Y - 110, 22, 110);
-    ctx.fillStyle = '#FACC15'; ctx.fillRect(B.x2 - 14, Y - 60, 6, 6);
+    // The far door (locked; swung open once they've clocked out)
+    if (doorShut(b)) {
+      ctx.fillStyle = '#57534E'; ctx.fillRect(B.x2 - 22, Y - 110, 22, 110);
+      ctx.fillStyle = '#FACC15'; ctx.fillRect(B.x2 - 14, Y - 60, 6, 6);
+    } else {
+      ctx.fillStyle = '#1C1917'; ctx.fillRect(B.x2 - 22, Y - 110, 22, 110);
+      ctx.fillStyle = '#57534E'; ctx.fillRect(B.x2, Y - 110, 6, 110);
+    }
   } else {
     // What's left: jagged stumps of wall, black
     ctx.fillStyle = '#292524';

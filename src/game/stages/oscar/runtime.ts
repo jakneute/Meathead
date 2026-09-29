@@ -122,8 +122,9 @@ export const updateOscar = (ctx: FrameContext, controls: Controls): Controls => 
     updateField(ctx, rt.field);
     // In the break room the camera holds on the room (it fits the screen)
     const B = COURSE.bunker, px = p.pos.x + p.width / 2;
-    if ((rt.bunker.phase === 'break' || rt.bunker.phase === 'waiting') && px > B.x1 + 20 && px < B.x2) state.cameraOverride = { x: (B.x1 + B.x2) / 2 - CANVAS_WIDTH / 2, y: GROUND_Y - 550 };
-    else if (rt.bunker.phase === 'break' || rt.bunker.phase === 'waiting') state.cameraOverride = null;
+    const held = ['waiting', 'break', 'clockout', 'open'].includes(rt.bunker.phase);
+    if (held && px > B.x1 + 20 && px < B.x2) state.cameraOverride = { x: (B.x1 + B.x2) / 2 - CANVAS_WIDTH / 2, y: GROUND_Y - 550 };
+    else if (held) state.cameraOverride = null;
     controls = updateBunker(ctx, rt.bunker, rt.talk, controls, () => startFade(rt, () => {
       // Out across the field on the stolen hog: the chase
       arrive(state, COURSE.checkpoints[CP.CHASE].x, GROUND_Y);
