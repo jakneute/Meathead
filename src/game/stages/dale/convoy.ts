@@ -358,7 +358,7 @@ const FAMILY_LINES: { who: 'kid' | 'dad' | 'mom'; text: string }[] = [
   { who: 'dad', text: 'THAT? THAT WAS A... SPEED BUMP, PUMPKIN.' },
   { who: 'kid', text: 'IT HAD ABS.' },
   { who: 'dad', text: 'IT WAS A VERY FIT SPEED BUMP.' },
-  { who: 'mom', text: "GARY, THERE'S A SHOE IN THE GRILL." },
+  { who: 'mom', text: "GARY, THERE'S A SHOE IN THE GRILLE." },
   { who: 'dad', text: 'WHO WANTS NUGGETS?!' },
 ];
 const FAMILY_DEATHS = ['HIT AND RUN', 'A VERY FIT SPEED BUMP', 'WHO WANTS NUGGETS?'];
