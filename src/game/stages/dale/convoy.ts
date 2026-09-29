@@ -339,6 +339,9 @@ const startFall = (ctx: FrameContext, cv: Convoy, talk: Talk) => {
   cv.fall = { t: 0, kind: behind >= 0 ? 'runover' : 'flop', x, y: Y, truck: behind,
     road: { g: x, v: ROAD_SPEED, h: Math.max(0, Y - (p.pos.y + p.height)), vh: -6, rot: 0, spin: behind >= 0 ? 0.1 : -0.35, passed: 0, crunched: [], flat: 0, stoppedAt: -1, said: 0, smears: [] } };
   hush(state, talk);
+  // (it's just him and the road now: no junk coming, no warnings, no banners)
+  cv.debris = [];
+  cv.banner = null;
 };
 
 const FALL_LINES: Record<Fall['kind'], string[]> = {

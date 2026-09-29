@@ -677,7 +677,10 @@ export const drawConvoyHud = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
         ctx.fillStyle = '#FDE047'; ctx.fillText(tr.phase === 'cleared' ? '!! JUMP !!' : '!! ABOUT TO BLOW !!', bx + bw / 2, by + bh + 20);
       }
     }
-  }  // The big word across the middle
+  }
+  // (off a truck and on the road: none of the rest of it, just him, and whoever comes along)
+  if (cv.fall?.road) { ctx.restore(); return; }
+  // The big word across the middle
   const b = cv.banner;
   if (b && b.t < 110) {
     const k = Math.min(1, b.t / 8), out = b.t > 80 ? (b.t - 80) / 30 : 0;
