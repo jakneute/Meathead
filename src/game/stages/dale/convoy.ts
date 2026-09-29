@@ -76,6 +76,9 @@ export interface TruckState {
 }
 export interface Debris { x: number; y: number; w: number; h: number; vx: number; vy: number; rot: number; look: 'tire' | 'tumbleweed' | 'sign' | 'box'; low: boolean; hit: boolean }
 export interface Suv { x: number; toX: number; t: number; kind: EnemyKind; dropped: boolean; leaving: boolean }
+/** A goon off the front of the truck: through the air, then on the road going back under it, wheel by wheel. */
+export interface Tumble { e: Enemy; truck: number; x: number; y: number; vx: number; vy: number; road: boolean; crunched: number[] }
+
 /** Off a truck onto the road, or blown up, or melted through the roof, or Riggs pressed the button: how Meathead's going. */
 export interface Fall {
   t: number; kind: 'runover' | 'flop' | 'boom' | 'melt' | 'button'; x: number; y: number; truck: number;
@@ -109,6 +112,8 @@ export interface Convoy {
   debris: Debris[];
   suvs: Suv[];
   fall: Fall | null;
+  /** Goons knocked onto the cab: tumbling off the front and down under the wheels (the enemy, the wheels that have had it). */
+  tumbles: Tumble[];
   cab: Cab;
   /** A big word across the screen (TRUCK 1 OF 4, GO!, CLEAR!), and how long it's been up. */
   banner: { text: string; t: number; color: string } | null;
@@ -142,7 +147,7 @@ export const createConvoy = (state: GameState, startedAt: number): Convoy => {
     return { phase, offset, timeLeft: (PLANS[i]?.seconds ?? 0) * 60, t: 0, wave: 0, nextWaveAt: FIRST_WAVE, goons: [], birds: 0, debrisAt: 200, barfs: 0, blocks, boomT: 999, back: 0 };
   });
   return {
-    active: onTruck >= 0, trucks, current: Math.max(0, onTruck), scroll: 0, debris: [], suvs: [], fall: null,
+    active: onTruck >= 0, trucks, current: Math.max(0, onTruck), scroll: 0, debris: [], suvs: [], fall: null, tumbles: [],
     cab: { phase: 'none', t: 0, wrongSaid: false, swerve: 0 }, banner: null, radioT: 0, lastBarf: 0, finished: false,
   };
 };
@@ -209,10 +214,15 @@ export const updateConvoy = (ctx: FrameContext, cv: Convoy, talk: Talk, controls
     if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || e.enemyType === 'flyer') continue;
     if (e.pos.x < COURSE.highway.x1 || e.pos.x > COURSE.highway.x2) continue;
     if (e.pos.y + e.height > Y - 30) { roadkill(ctx, cv, e); continue; }
+    // Knocked onto the cab: he goes over the front, and under the wheels
+    // (off the front end of the trailer, down onto the cab or into the gap behind it: that's him gone over)
+    const on = truckUnder(cv, e.pos.x + e.width / 2, Math.min(e.pos.y + e.height, Y - 70));
+    if (on >= 0 && e.pos.x + e.width / 2 > truckX(cv, on) + truckDims(on).trailerW && e.pos.y + e.height > truckDims(on).trailerTop + 8) { overTheFront(ctx, cv, e, on); continue; }
     // (knocked clear across onto a truck that isn't in play: he'd be out of reach, so he goes off the side of it)
     const cur = truckX(cv, cv.current);
     if (e.vel.y === 0 && (e.pos.x + e.width < cur - 200 || e.pos.x > cur + truckDims(cv.current).w + 200)) roadkill(ctx, cv, e);
   }
+  updateTumbles(ctx, cv);
   updateTrucks(ctx, cv, talk);
   updateSuvs(ctx, cv);
   updateDebris(ctx, cv);
@@ -586,6 +596,50 @@ const blowUpLast = (ctx: FrameContext, cv: Convoy) => {
   for (let k = 0; k < 5; k++) fx.spawnExplosion({ x: x + 60 + k * 180, y: truckDims(3).trailerTop + 40 }, k % 2 ? '#F97316' : '#FDE047', 26, 0, 30);
   shakeScreen(state, 40, 14);
   playSound('nuke');
+};
+
+/** Off the front of the cab he goes, tumbling, down onto the road in front of the truck. */
+const overTheFront = (ctx: FrameContext, cv: Convoy, e: Enemy, truck: number) => {
+  e.health = 0; e.isBlownAway = true; e.pauseTimer = 0;
+  const front = truckX(cv, truck) + truckDims(truck).w;
+  cv.tumbles.push({ e, truck, x: e.pos.x, y: e.pos.y, vx: Math.max(3, (front + 40 - e.pos.x) / 22), vy: -7, road: false, crunched: [] });
+  ctx.fx.speakVulgarity('charge_kill');
+  ctx.state.player.killSatisfactionTimer = 60;
+};
+
+/**
+ * The goons going over the front: through the air and down onto the road ahead of the truck, where the road (going by
+ * at eighty) takes them straight back under it, and every set of wheels goes over them in turn. What's left comes out
+ * the back.
+ */
+const updateTumbles = (ctx: FrameContext, cv: Convoy) => {
+  const { state, fx } = ctx;
+  cv.tumbles = cv.tumbles.filter(tb => {
+    const e = tb.e;
+    const tx = truckX(cv, tb.truck), d = truckDims(tb.truck);
+    if (!tb.road) {
+      tb.vy += 0.7; tb.x += tb.vx; tb.y += tb.vy;
+      if (tb.y + e.height >= Y - 6 && tb.vy > 0) {
+        tb.road = true; tb.y = Y - 6 - e.height;
+        playSound('thud'); fx.spawnDeathShower({ x: tb.x + e.width / 2, y: Y - 10 }, -1, 0.5);
+      }
+    } else {
+      // On the road: it goes by, and him with it (back under the truck)
+      tb.x -= ROAD_SPEED;
+      const wheels = [TRUCK_W - 34, TRAILER_W + 74, TRAILER_W + 30, 110, 60].map(o => tx + o * d.s);
+      wheels.forEach((wx, k) => {
+        if (tb.crunched.includes(k) || Math.abs(tb.x + e.width / 2 - wx) > ROAD_SPEED / 2 + 4) return;
+        tb.crunched.push(k);
+        playSound('crunch');
+        fx.spawnDeathShower({ x: wx, y: Y - 14 }, -1, k === 0 ? 1.6 : 0.9);
+        if (k === 0) { fx.spawnDamageNumber({ x: wx - 40, y: Y - 120 }, 'FLATTENED!', true, '#F87171'); shakeScreen(state, 10, 5); }
+      });
+    }
+    // (him, where he is, tumbling; once the front wheels have him, he's under the truck: what's left is the spray)
+    e.pos.x = tb.x; e.pos.y = tb.y; e.vel = { x: 0, y: 0 };
+    if (tb.crunched.length) state.enemies = state.enemies.filter(o => o !== e);
+    return tb.x > tx - 200;
+  });
 };
 
 const roadkill = (ctx: FrameContext, cv: Convoy, e: Enemy) => {
