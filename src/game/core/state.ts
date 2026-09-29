@@ -94,6 +94,8 @@ export interface GameState {
   /** Where the stage's opening drop lands him, when it's started at a checkpoint (the skip cheat): else the start. */
   introAt?: { x: number; y: number };
   deathFrames: number;
+  /** The last frame a long death on its way offered SKIP >> (see skipDying). */
+  dyingSkipAt?: number;
   /** Reached the boss this attempt: dying now respawns right outside his door (cleared when a stage starts). */
   bossCheckpoint: boolean;
   /** The camera can't scroll left of this (no backtracking after a boss checkpoint respawn). */

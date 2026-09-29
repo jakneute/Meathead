@@ -28,7 +28,7 @@ import { GROUND_Y, CANVAS_WIDTH } from '../../../constants';
 import { shakeScreen } from '../../core/state';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 import { hurtPlayer } from '../../bosses/shared';
-import { killPlayer } from '../../player/player';
+import { killPlayer, skipDying } from '../../player/player';
 import { playSound, playHornDrone } from '../../platform/audio';
 import { say, MEATHEAD_VOICE, Voice, cutVoice } from '../../platform/speech';
 import { makeKindEnemy } from '../../enemies/kinds';
@@ -354,6 +354,7 @@ const startFall = (ctx: FrameContext, cv: Convoy, talk: Talk) => {
   cv.banner = null;
 };
 
+const pick = (l: string[]) => l[Math.floor(Math.random() * l.length)];
 const FALL_LINES: Record<Fall['kind'], string[]> = {
   runover: ['ROADKILL', 'FLATTENED ON THE INTERSTATE', 'EIGHTEEN WHEELS, ZERO SURVIVORS'],
   flop: ['THE INTERSTATE WON', 'SKIPPED LIKE A STONE AT EIGHTY MILES AN HOUR', 'ROAD RASH: TERMINAL'],
@@ -438,6 +439,12 @@ const updateFall = (ctx: FrameContext, cv: Convoy, talk: Talk): Controls => {
   // (in the trailer, the death screen holds on the moment: him on his feet, still taking it)
   if (f.kind === 'melt' && f.still !== undefined) return { ...NO_CONTROLS };
   f.t++;
+  // (the long ones can be skipped: straight to the death screen)
+  if (skipDying(ctx, f.t, () => pick(f.kind === 'flop' ? FAMILY_DEATHS : FALL_LINES[f.kind]))) {
+    hush(state, talk);
+    if (f.kind === 'melt') f.still = state.frame;
+    return { ...NO_CONTROLS };
+  }
   p.inCutscene = true;
   p.vel = { x: 0, y: 0 };
   if (f.kind === 'runover' || f.kind === 'flop') {

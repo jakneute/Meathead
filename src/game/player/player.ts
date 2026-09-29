@@ -15,7 +15,8 @@ import {
   SWIM_GRAVITY_MULT, SWIM_MAX_SINK, SWIM_STROKE, SWIM_LEAP, SWIM_SPEED_MULT, LEDGE_DROP_FRAMES,
 } from '../../constants';
 import { FrameContext } from '../core/context';
-import { announceDeath } from '../platform/speech';
+import { announceDeath, silenceAll } from '../platform/speech';
+import { SKIP_AFTER, offerSkip, takeSkip } from '../platform/skip';
 import { GameState, shakeScreen } from '../core/state';
 import { Controls } from '../platform/input';
 import { fireWeapon, updateFlamethrower } from '../combat/weapons';
@@ -50,6 +51,23 @@ const SWIM_DASH_SPEED = 9, SWIM_DASH_FRAMES = 22;
 const ANGRY_FRAMES = 50;
 const STEP_UP_HEIGHT = 6;      // any lip this small is stepped over, even in the air
 const STAIR_HEIGHT = 26;       // walking on the ground, he climbs steps up to this tall
+
+/**
+ * The long ways to go (the family's SUV, the trailer, the plunge off the bridge, drowning): once one's had a moment,
+ * SKIP >> goes straight to the death screen (and the next one skips that). Called every frame of it, with how long
+ * it's been going and what the death screen says; true once it's been skipped (he's dead).
+ */
+export const skipDying = (ctx: FrameContext, t: number, message: () => string): boolean => {
+  const { state } = ctx;
+  if (state.deathTimer > 0 || t <= SKIP_AFTER) return false;
+  offerSkip();
+  state.dyingSkipAt = state.frame;
+  if (!takeSkip()) return false;
+  silenceAll();
+  killPlayer(ctx, message(), false);
+  state.deathFrames = SKIP_AFTER + 1;
+  return true;
+};
 
 export const killPlayer = (ctx: FrameContext, message: string, gore = true) => {
   const { state, fx } = ctx;

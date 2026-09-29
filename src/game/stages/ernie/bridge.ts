@@ -21,7 +21,7 @@ import { shakeScreen } from '../../core/state';
 import { playSound } from '../../platform/audio';
 import { say, MEATHEAD_VOICE } from '../../platform/speech';
 import { makeKindEnemy } from '../../enemies/kinds';
-import { killPlayer } from '../../player/player';
+import { killPlayer, skipDying } from '../../player/player';
 import { GROUND_Y, CANVAS_WIDTH } from '../../../constants';
 import { COURSE } from './course';
 import { BURNING_SCREAMS } from '../../enemies/kinds/ernie';
@@ -181,6 +181,7 @@ export const screamOf = (br: Bridge, e: Enemy) => (e.health > 0 ? br.screams.get
 // Over the side
 // ---------------------------------------------------------------------------
 
+const PLUNGE_DEATHS = ['LIKE HITTING CONCRETE', 'SURFACE TENSION: 1, MEATHEAD: 0', 'BELLY FLOP OF THE CENTURY', 'THE BAY SAYS NO'];
 const PLUNGE_LINES: [number, string][] = [[4, 'AAAAAAAAAAAAAAHHHHHHH'], [72, 'I REGRET NOTHIIIIIIING']];
 
 const updatePlunge = (ctx: FrameContext, pl: Plunge): Controls => {
@@ -188,6 +189,7 @@ const updatePlunge = (ctx: FrameContext, pl: Plunge): Controls => {
   const p = state.player;
   pl.t++;
   if (pl.lineT > 0) pl.lineT--;
+  if (skipDying(ctx, pl.t, () => PLUNGE_DEATHS[Math.floor(Math.random() * PLUNGE_DEATHS.length)])) { p.hidden = true; return { ...NO_CONTROLS }; }
   p.inCutscene = true;
   p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false;
   // Tumbling, limbs everywhere
@@ -209,8 +211,7 @@ const updatePlunge = (ctx: FrameContext, pl: Plunge): Controls => {
     shakeScreen(state, 30, 12);
     for (let k = 0; k < 40; k++) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: water }, vel: { x: (Math.random() - 0.5) * 12, y: -3 - Math.random() * 14 }, life: 50 + Math.random() * 30, color: k % 4 === 0 ? '#B91C1C' : k % 2 ? '#E0F2FE' : '#93C5FD', size: 4 + Math.random() * 7 });
     p.hidden = true;
-    const deaths = ['LIKE HITTING CONCRETE', 'SURFACE TENSION: 1, MEATHEAD: 0', 'BELLY FLOP OF THE CENTURY', 'THE BAY SAYS NO'];
-    killPlayer(ctx, deaths[Math.floor(Math.random() * deaths.length)], false);
+    killPlayer(ctx, PLUNGE_DEATHS[Math.floor(Math.random() * PLUNGE_DEATHS.length)], false);
     fx.spawnDeathShower({ x: p.pos.x, y: water - 20 }, 0, 2);
   }
   return { ...NO_CONTROLS };
