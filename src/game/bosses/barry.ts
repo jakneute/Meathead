@@ -3,7 +3,8 @@
 // lightning storm. Gets a little faster as he loses health.
 // Weakness, needles: up to three stick in him for a small stacking drain; a
 // fourth overloads him for big damage and gets him high as a kite, and for a
-// while afterwards he's built up a tolerance and needles bounce off.
+// while afterwards he's built up a tolerance and needles bounce off. Either one
+// finishing him off is a weakness kill.
 
 import { Enemy, Projectile } from '../../types';
 import {
@@ -274,7 +275,9 @@ const needleTick = (ctx: FrameContext, boss: Enemy) => {
     boss.health -= damage;
     ctx.fx.spawnDamageNumber(boss.pos, damage);
     boss.dotTimer = 0;
-    if (boss.health <= 0) ctx.bossHelpers.killBoss(boss, 0, false, 'NEEDLES');
+    // (the drip finishing him off counts as much as the overload does: it's the needles either way)
+    const p = ctx.state.player;
+    if (boss.health <= 0) ctx.bossHelpers.killBoss(boss, boss.pos.x + boss.width / 2 >= p.pos.x + p.width / 2 ? 1 : -1, true, 'NEEDLES');
   }
 };
 
