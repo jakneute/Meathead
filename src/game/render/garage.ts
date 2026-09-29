@@ -10,14 +10,14 @@ export const GARAGE_W = 800, GARAGE_H = 600;
 /** Where each souvenir goes: its anchor (a hung thing's middle; a standing thing's bottom middle), and the box it's clicked in. */
 export interface Slot { x: number; y: number; box: { x: number; y: number; w: number; h: number } }
 const COLS = [217, 311, 405, 499, 593];
-const WALL_ROWS = [112, 200], SHELF_Y = [306, 396], FLOOR_Y = 528, FLOOR_X = [236, 366, 496, 616];
+const WALL_ROWS = [104, 188], SHELF_Y = [310, 396], FLOOR_Y = 528, FLOOR_X = [236, 366, 496, 616];
 const WALL_ORDER = ['antler', 'neon', 'seismo', 'daycare', 'hazmat', 'streetsign', 'clock', 'chain', 'goldgun', 'badge'];
 const SHELF_ORDER = ['moonboots', 'snowglobe', 'lavalamp', 'mug', 'bell', 'clicker', 'flintjar', 'horn', 'hardhat', 'toaster'];
 const FLOOR_ORDER = ['viprope', 'flamingo', 'derrick', 'lizard'];
 
 export const SLOTS: Record<string, Slot> = {};
 WALL_ORDER.forEach((id, i) => { const x = COLS[i % 5], y = WALL_ROWS[Math.floor(i / 5)]; SLOTS[id] = { x, y, box: { x: x - 44, y: y - 40, w: 88, h: 80 } }; });
-SHELF_ORDER.forEach((id, i) => { const x = COLS[i % 5], y = SHELF_Y[Math.floor(i / 5)]; SLOTS[id] = { x, y, box: { x: x - 44, y: y - 76, w: 88, h: 76 } }; });
+SHELF_ORDER.forEach((id, i) => { const x = COLS[i % 5], y = SHELF_Y[Math.floor(i / 5)]; SLOTS[id] = { x, y, box: { x: x - 44, y: y - 70, w: 88, h: 70 } }; });
 FLOOR_ORDER.forEach((id, i) => { const x = FLOOR_X[i], y = FLOOR_Y; SLOTS[id] = { x, y, box: { x: x - 52, y: y - 104, w: 104, h: 104 } }; });
 
 /** The order they're gone through with the arrow keys / the stick: along the pegboard, the shelves, the floor. */
@@ -76,9 +76,11 @@ const drawRoom = (ctx: Ctx, t: number) => {
   ctx.fillStyle = '#9CA3AF'; ctx.fillRect(4, 244, 156, 5);
   for (const [px, s] of [[14, 1], [148, 1], [22, 0.8], [140, 0.8]] as const) { ctx.fillStyle = '#111827'; ctx.fillRect(px - 5, 246 - 30 * s, 10, 60 * s); ctx.fillStyle = '#374151'; ctx.fillRect(px - 3, 246 - 26 * s, 6, 52 * s); }
   // The pegboard
-  ctx.fillStyle = '#A16207'; ctx.fillRect(166, 64, 478, 186);
-  ctx.fillStyle = '#B45309'; ctx.fillRect(166, 64, 478, 4);
-  ctx.fillStyle = '#78350F'; for (let y = 76; y < 246; y += 12) for (let x = 174; x < 640; x += 12) ctx.fillRect(x, y, 2, 2);
+  // (the pegboard's just big enough for its two rows, 8px round them)
+  const pegTop = WALL_ROWS[0] - 48, pegBottom = WALL_ROWS[1] + 48;
+  ctx.fillStyle = '#A16207'; ctx.fillRect(166, pegTop, 478, pegBottom - pegTop);
+  ctx.fillStyle = '#B45309'; ctx.fillRect(166, pegTop, 478, 4);
+  ctx.fillStyle = '#78350F'; for (let y = pegTop + 12; y < pegBottom - 4; y += 12) for (let x = 174; x < 640; x += 12) ctx.fillRect(x, y, 2, 2);
   // The shelves, and their brackets
   for (const y of SHELF_Y) {
     ctx.fillStyle = '#78716C'; ctx.fillRect(166, y, 478, 8); ctx.fillStyle = '#A8A29E'; ctx.fillRect(166, y, 478, 2);
