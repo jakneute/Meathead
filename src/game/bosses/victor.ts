@@ -132,7 +132,7 @@ export const tryCorkVent = (ctx: FrameContext, p: Projectile): boolean => {
   vent.life = Math.min(ERUPTION_FRAMES - 12, Math.max(vent.life, 60)); // frozen hot...
   vent.age = Math.max(vent.age || 0, 12);                             // ...and fully risen
   ctx.fx.spawnRockShatter({ x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 });
-  ctx.fx.playGunSound('gun');
+  ctx.fx.playGunSound('crack');
   state.screenShakeTimer = Math.max(state.screenShakeTimer, 10);
 
   // The rest of its set keep erupting (building pressure) until this one blows
@@ -167,7 +167,7 @@ export const updateCorkedVent = (ctx: FrameContext, v: Volcano): boolean => {
   // The cork blows: a burst of rock and magma that hurts anyone close
   for (const c of ['#FF6D00', '#FFD600', '#5D4037']) fx.spawnExplosion({ x: cx, y: cy }, c, 18, 0, 16);
   fx.spawnRockShatter({ x: cx, y: cy });
-  fx.playGunSound('tsunami');
+  fx.playGunSound('boom');
   state.screenShakeTimer = 20;
   const { player } = state;
   const dx = player.pos.x + player.width / 2 - cx, dy = player.pos.y + player.height / 2 - cy;

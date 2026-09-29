@@ -127,7 +127,7 @@ export const updateTram = (ctx: FrameContext, tram: Tram) => {
         addBlock(state, tram.blocks.left);
         // Anything that followed you in gets shoved out first
         pushOut(state, tram);
-        playSound('horn');
+        playSound('ding');
       }
       break;
     case 'closing':
@@ -147,7 +147,7 @@ export const updateTram = (ctx: FrameContext, tram: Tram) => {
       const incoming = incomingWave(tram);
       if (incoming && THUMPS.includes(incoming.left)) {
         shakeScreen(state, 6, 2);
-        playSound('gun');
+        playSound('thud');
         for (const [, entry] of incoming.spawns) {
           const at = entryPoint(tram, entry);
           for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: at.x + (Math.random() - 0.5) * 50, y: at.y + (Math.random() - 0.5) * 40 }, vel: { x: (Math.random() - 0.5) * 2, y: Math.random() * 1.5 }, life: 24, color: '#E0F2FE', size: 2 + Math.random() * 3 });
@@ -157,7 +157,7 @@ export const updateTram = (ctx: FrameContext, tram: Tram) => {
         for (const [kind, entry] of WAVES[tram.wave].spawns) burstIn(ctx, tram, kind, entry);
         tram.wave++;
       }
-      if (tram.t >= RIDE) { tram.phase = 'arrived'; tram.t = 0; shakeScreen(state, 16, 6); playSound('horn'); }
+      if (tram.t >= RIDE) { tram.phase = 'arrived'; tram.t = 0; shakeScreen(state, 16, 6); playSound('ding'); }
       break;
     }
     case 'arrived':
@@ -264,6 +264,6 @@ const burstIn = (ctx: FrameContext, tram: Tram, kind: EnemyKind, entry: Entry) =
   if (kind === 'wolverine') e.aiState = 'bristle';
   if (kind === 'goat') e.aiState = 'paw';
   e.homeX = e.pos.x; e.homeY = e.pos.y;
-  ctx.fx.playGunSound('ice');
+  ctx.fx.playGunSound('glass');
   state.enemies.push(e);
 };

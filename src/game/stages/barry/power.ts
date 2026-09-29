@@ -128,7 +128,7 @@ export const updateGenerator = (ctx: FrameContext, e: Enemy, pw: PowerRoom): boo
       fx.spawnExplosion({ x: e.pos.x + e.width / 2, y: e.pos.y + 20 }, '#1C1917', 20, 0, 18);
       fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 30 }, pw.gone === 3 ? 'GRID DOWN!' : 'SHORTED OUT!', true, '#FDE047');
       shakeScreen(state, 30, 12);
-      playSound('nuke');
+      playSound('boom');
     }
   }
   return true;
@@ -199,7 +199,7 @@ export const updatePower = (ctx: FrameContext, pw: PowerRoom, talk: Talk, contro
   if (pw.phase === 'meltdown') {
     pw.meltT++;
     // The alarms, blasts all round the room, the floor shaking; hands off once it's really going
-    if (pw.meltT % 50 === 1) playSound('siren');
+    if (pw.meltT % 50 === 1) playSound('alarm');
     if (pw.meltT % 9 === 0) fx.spawnExplosion({ x: r.x1 + 60 + Math.random() * (r.x2 - r.x1 - 120), y: r.floor - 40 - Math.random() * 220 }, Math.random() < 0.5 ? '#F97316' : '#FDE047', 16, 0, 20);
     if (pw.meltT % 20 === 0) shakeScreen(state, 20, 6 + pw.meltT / 20);
     if (pw.meltT === 60) playSound('nuke');
@@ -263,7 +263,7 @@ const startSurge = (ctx: FrameContext, pw: PowerRoom, talk: Talk) => {
   hush(state, talk);
   replaceLines(state, talk, SURGE[0].lines.map(l => ({ ...l })), 20);
   p.vel = { x: 0, y: 0 };
-  playSound('tsunami');
+  playSound('taser');
 };
 
 const updateSurge = (ctx: FrameContext, pw: PowerRoom, talk: Talk): Controls => {

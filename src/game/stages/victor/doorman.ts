@@ -267,7 +267,7 @@ export const updateDoorman = (ctx: FrameContext, m: Enemy, fight: DoormanFight):
       m.vel.x = d > want + 20 ? toward * WALK : d < want - 20 ? -toward * WALK : 0;
       if (fight.phase === 'fight') talk(fight, LINES.idle);
       if ((!fight.thrown && antiAir(m, p, px, mx))) break;
-      if (m.aiTimer > (angry ? 70 : 110) && fight.phase === 'fight') { start(m, Math.random() < 0.55 ? 'windup-charge' : 'windup-slide'); playSound('taser'); }
+      if (m.aiTimer > (angry ? 70 : 110) && fight.phase === 'fight') { start(m, Math.random() < 0.55 ? 'windup-charge' : 'windup-slide'); playSound('roar'); }
       break;
     }
     case 'windup-charge':
@@ -307,7 +307,7 @@ export const updateDoorman = (ctx: FrameContext, m: Enemy, fight: DoormanFight):
       break;
     case 'thrown':
       // Sailing over you; down on his back when he lands
-      if (m.aiTimer > 4 && m.pos.y >= floor) { start(m, 'tripped'); m.vel.x = 0; shakeScreen(state, 22, 9); playSound('nuke'); dust(state, m); dust(state, m); }
+      if (m.aiTimer > 4 && m.pos.y >= floor) { start(m, 'tripped'); m.vel.x = 0; shakeScreen(state, 22, 9); playSound('slam'); dust(state, m); dust(state, m); }
       break;
     case 'shove':
       m.vel.x *= 0.7;
@@ -669,7 +669,7 @@ const startClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, kind: Clas
   m.vel = { x: 0, y: 0 };
   start(m, kind === 'shoulder' ? 'clash-shoulder' : 'clash-slide');
   shakeScreen(ctx.state, 16, 8);
-  playSound('nuke');
+  playSound('punch');
   talk(fight, LINES.clash, true);
 };
 
@@ -698,7 +698,7 @@ const runClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, pressed: boo
     const k = (tt % (period * 2)) / period;
     c.meter = k < 1 ? k : 2 - k;
     if (pressed) {
-      if (Math.abs(c.meter - 0.5) < SLIDE_ZONE / 2) { c.hits++; c.flash = 12; c.missed = false; playSound('taser'); if (c.hits >= 3) return endClash(ctx, fight, m, true); }
+      if (Math.abs(c.meter - 0.5) < SLIDE_ZONE / 2) { c.hits++; c.flash = 12; c.missed = false; playSound('punch'); if (c.hits >= 3) return endClash(ctx, fight, m, true); }
       else { c.missed = true; c.flash = 12; return endClash(ctx, fight, m, false); }
     }
     if (tt > SLIDE_FRAMES_CLASH) return endClash(ctx, fight, m, false);

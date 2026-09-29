@@ -75,7 +75,7 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
       p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
       const px = p.pos.x + p.width / 2;
       if (Math.abs(px - C.rack) > 8) return { ...NO_CONTROLS, left: px > C.rack, right: px < C.rack, jump: !!p.swimming && state.frame % 12 < 6 };
-      if (p.isGrounded) { es.phase = 'suit'; es.t = 0; playSound('tinkle'); fx.spawnDamageNumber({ x: p.pos.x - 60, y: p.pos.y - 70 }, 'SUITED UP!', true, '#FACC15'); }
+      if (p.isGrounded) { es.phase = 'suit'; es.t = 0; playSound('powerup'); fx.spawnDamageNumber({ x: p.pos.x - 60, y: p.pos.y - 70 }, 'SUITED UP!', true, '#FACC15'); }
       return { ...NO_CONTROLS };
     }
     case 'suit':
@@ -100,8 +100,8 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
       return { ...NO_CONTROLS };
     case 'tower':
       p.inCutscene = true; p.hidden = true; p.vel = { x: 0, y: 0 };
-      if (es.t === 100) { playSound('ice'); playSound('tsunami'); }
-      if (es.t === 150) { playSound('nuke'); }
+      if (es.t === 100) { playSound('clang'); playSound('tsunami'); }
+      if (es.t === 150) { playSound('crash'); }
       if (es.t === 220) queueLines(state, talk, [{ who: 'meathead', text: 'UH OH.' }]);
       if (es.t > TOWER_FRAMES) { es.phase = 'family'; es.t = 0; }
       return { ...NO_CONTROLS };
@@ -111,7 +111,7 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
         { who: 'dad', text: 'HA! PASS THE CHIPS.' },
         { who: 'kid', text: "WHY'S IT GETTING DARK?" },
       ]);
-      if ((es.t > FAMILY_FRAMES - 40 && quiet(talk)) || es.t > FAMILY_FRAMES + 200) { es.phase = 'crush'; es.t = 0; playSound('nuke'); shakeScreen(state, 60, 18); }
+      if ((es.t > FAMILY_FRAMES - 40 && quiet(talk)) || es.t > FAMILY_FRAMES + 200) { es.phase = 'crush'; es.t = 0; playSound('crash'); shakeScreen(state, 60, 18); }
       return { ...NO_CONTROLS };
     case 'crush':
       p.inCutscene = true; p.hidden = true;
@@ -151,7 +151,7 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
       if (p.isGrounded && p.pos.y + p.height >= GROUND_Y - 2) {
         if (!es.landedT) {
           es.landedT = es.dropT;
-          shakeScreen(state, 30, 12); playSound('nuke');
+          shakeScreen(state, 30, 12); playSound('slam');
           p.squash = 1;
           for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: p.pos.x + 22, y: GROUND_Y - 4 }, vel: { x: (Math.random() - 0.5) * 12, y: -Math.random() * 7 }, life: 30, color: i % 2 ? '#57534E' : '#A8A29E', size: 4 + Math.random() * 6 });
           state.cameraOverride = null; state.cameraMaxX = undefined;
@@ -171,7 +171,7 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
 
 const rumble = (state: GameState, es: Escape) => {
   const C = COURSE.sewer.cistern;
-  if (state.frame % 30 === 0) { shakeScreen(state, 20, 5); playSound('thunder'); }
+  if (state.frame % 30 === 0) { shakeScreen(state, 20, 5); playSound('rumble'); }
   if (state.frame % 18 === 0) es.chunks.push({ x: C.x1 + 60 + Math.random() * (C.x2 - C.x1 - 120), y: GROUND_Y - 520, vy: 2, r: 6 + Math.random() * 10 });
   es.chunks = es.chunks.filter(c => { c.vy += 0.5; c.y += c.vy; if (c.y > GROUND_Y - 6) { for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: c.x, y: GROUND_Y - 4 }, vel: { x: (Math.random() - 0.5) * 6, y: -Math.random() * 4 }, life: 24, color: '#57534E', size: 3 + Math.random() * 3 }); return false; } return true; });
 };

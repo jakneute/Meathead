@@ -105,7 +105,7 @@ const updateSpans = (ctx: FrameContext, br: Bridge) => {
     const st = br.spans[i];
     if (st.open) { st.drop += 1; return; }
     if (st.t === 0) {
-      if (px > s.x - s.trigger && px < s.x + s.w) { st.t = 1; playSound('thunder'); }
+      if (px > s.x - s.trigger && px < s.x + s.w) { st.t = 1; playSound('rumble'); }
       return;
     }
     st.t++;
@@ -115,7 +115,7 @@ const updateSpans = (ctx: FrameContext, br: Bridge) => {
       st.open = true;
       if (st.block) { const blk = st.block; state.blocks = state.blocks.filter(b => b !== blk); }
       shakeScreen(state, 22, 9);
-      playSound('nuke');
+      playSound('crash');
       for (let k = 0; k < 22; k++) state.particles.push({ pos: { x: s.x + Math.random() * s.w, y: GROUND_Y + 6 }, vel: { x: (Math.random() - 0.5) * 3, y: 2 + Math.random() * 6 }, life: 50, color: k % 3 ? '#3F3F46' : '#C0392B', size: 4 + Math.random() * 6 });
     }
   });
@@ -205,7 +205,7 @@ const updatePlunge = (ctx: FrameContext, pl: Plunge): Controls => {
   const water = GROUND_Y + DROP_TO_WATER;
   if (p.pos.y + p.height >= water && pl.splashAt === 0 && state.deathTimer <= 0) {
     pl.splashAt = state.frame;
-    playSound('tsunami');
+    playSound('splash');
     shakeScreen(state, 30, 12);
     for (let k = 0; k < 40; k++) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: water }, vel: { x: (Math.random() - 0.5) * 12, y: -3 - Math.random() * 14 }, life: 50 + Math.random() * 30, color: k % 4 === 0 ? '#B91C1C' : k % 2 ? '#E0F2FE' : '#93C5FD', size: 4 + Math.random() * 7 });
     p.hidden = true;

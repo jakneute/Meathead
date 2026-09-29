@@ -79,7 +79,7 @@ export const updateVictor = (ctx: FrameContext, controls: Controls): Controls =>
     if (state.checkpoint < CP.CLUB && player.isGrounded && player.pos.x >= COURSE.checkpoints[CP.CLUB].x) state.checkpoint = CP.CLUB;
     controls = updateDoormanFight(ctx, rt.doorman, controls);
     // He's down: in through the club doors (and on into the volcano)
-    if (rt.doorman.phase === 'dead' && rt.enterT === 0 && player.pos.x + player.width > COURSE.club.door + 30) { rt.enterT = 1; playSound('horn'); }
+    if (rt.doorman.phase === 'dead' && rt.enterT === 0 && player.pos.x + player.width > COURSE.club.door + 30) { rt.enterT = 1; playSound('ding'); }
   }
   if (rt.enterT > 0) {
     rt.enterT++;

@@ -563,7 +563,7 @@ const burstOscar = (ctx: FrameContext, boss: Enemy) => {
   fx.spawnDamageNumber(boss.pos, OSCAR_BURST_DAMAGE, true);
   spawnCallout(state, { x: center.x, y: boss.pos.y - 50 }, 'ZZZAP!', '#00E5FF');
   for (const color of PARTICLE_PALETTES.SPARKS) fx.spawnExplosion(center, color, 10, 0, 16);
-  fx.playGunSound('tsunami');
+  fx.playGunSound('taser');
   shakeScreen(state, 20, 10);
   overloadTaser(ctx);
   if (boss.health <= 0) { ctx.bossHelpers.killBoss(boss, player.facing, true, 'TASER'); return; }
@@ -584,7 +584,7 @@ export const zapCigarette = (ctx: FrameContext, cig: Projectile) => {
   const at = { x: cig.pos.x + cig.width / 2, y: cig.pos.y + cig.height / 2 };
   fx.spawnExplosion(at, '#FF4500', 30, 0, 14);
   fx.spawnExplosion(at, '#FFD700', 20, 0, 10);
-  fx.playGunSound('tsunami');
+  fx.playGunSound('boom');
   shakeScreen(state, 25, 12);
   overloadTaser(ctx);
 

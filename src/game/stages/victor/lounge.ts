@@ -94,7 +94,7 @@ export const updateLounge = (ctx: FrameContext, lg: Lounge, controls: Controls):
   const L = COURSE.lounge;
   if (lg.phase === 'crash') {
     if (lg.t === PARTY_FRAMES) { playGlassShatterSound(); shakeScreen(state, 14, 6); }
-    if (lg.t === PARTY_FRAMES + FLIGHT_FRAMES) { playSound('nuke'); shakeScreen(state, 16, 7); meatheadSays(lg, "IT'S PARTY TIME."); }
+    if (lg.t === PARTY_FRAMES + FLIGHT_FRAMES) { playSound('slam'); shakeScreen(state, 16, 7); meatheadSays(lg, "IT'S PARTY TIME."); }
     if (lg.t >= CRASH_FRAMES) { lg.phase = 'wide'; lg.t = 0; }
   } else if (lg.phase === 'wide') {
     if (lg.t === BLAST_AT) playSound('nuke');

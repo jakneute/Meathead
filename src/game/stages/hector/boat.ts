@@ -102,7 +102,7 @@ const cutscene = (ctx: FrameContext, b: Boat): Controls => {
     player.kickPose = KICK_POSE_FRAMES;
     b.oldMan.state = 'flying'; b.oldMan.vx = 5; b.oldMan.vy = -11;
     oldManSays(b, 'WHOOAAA!');
-    ctx.fx.playGunSound('tsunami');
+    ctx.fx.playGunSound('splash');
     shakeScreen(state, 8, 4);
   }
   if ((player.kickPose || 0) > 0) player.kickPose!--;
@@ -111,7 +111,7 @@ const cutscene = (ctx: FrameContext, b: Boat): Controls => {
     // Into the boat
     player.pos.x = b.x + 40; player.pos.y = b.block.y - player.height; player.vel = { x: 0, y: -4 };
   }
-  if (t === 340) { meatheadSays(state, 'CATCH YOU LATER.'); playSound('horn'); }
+  if (t === 340) { meatheadSays(state, 'CATCH YOU LATER.'); playSound('engine'); }
   if (t >= 380) {
     b.phase = 'riding'; b.t = 0;
     state.cameraOverride = null;
@@ -135,7 +135,7 @@ const ride = (ctx: FrameContext, b: Boat, _controls: Controls): Controls => {
   if (b.x + BOAT_W / 2 > COURSE.sea.spoutX - 420) {
     b.phase = 'spout'; b.t = 0;
     meatheadSays(state, 'OH, COME ON.');
-    playSound('nuke');
+    playSound('thunder');
   }
   return { ...NO_CONTROLS };
 };

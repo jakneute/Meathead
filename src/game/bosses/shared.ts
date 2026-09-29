@@ -145,6 +145,7 @@ export const hurtPlayer = (
   if (player.health <= 0) return;
   player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;
   player.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;
+  ctx.fx.playGunSound('hurt');
   player.isHarmlessPushback = false;
   player.smugTimer = 0;
   player.pushbackTimer = pushbackFrames;

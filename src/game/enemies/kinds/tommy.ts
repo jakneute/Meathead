@@ -42,6 +42,7 @@ const shootFrom = (state: GameState, e: Enemy, x: number, y: number, tx: number,
     id: `ep-${e.kind}-${state.frame}-${Math.random()}`, pos: { x: x - 5, y: y - 5 }, vel: { x: dir * speed + carry, y: 0 },
     width: 10, height: 10, health: 1, maxHealth: 1, type: 'projectile', damage, owner: 'enemy', shooterKind: e.kind, shot: 'tracer',
   });
+  playSound('egun', 1, -2);
   // (a big red-white flash at the muzzle: you see where it's coming from)
   for (let i = 0; i < 9; i++) state.particles.push({ pos: { x, y }, vel: { x: dir * (1 + Math.random() * 4) + carry, y: (Math.random() - 0.5) * 3 }, life: 10, color: i % 3 === 0 ? '#FFFFFF' : i % 3 === 1 ? '#FF2D2D' : '#FB7185', size: 4 + Math.random() * 4 });
 };

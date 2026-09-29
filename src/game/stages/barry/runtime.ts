@@ -172,7 +172,7 @@ const updateVents = (ctx: FrameContext) => {
       p.coyoteAirTimer = 0; p.coyoteJumpTimer = 0; p.jumpHoldTimer = 0;
       p.pos.y -= 3;
       p.squash = -1;
-      playSound('oil');
+      playSound('jump');
     }
     // (and anything else standing on it goes up too)
     for (const e of state.enemies) {
@@ -302,9 +302,9 @@ const updateTransit = (ctx: FrameContext, rt: BarryRuntime): Controls => {
     return { ...NO_CONTROLS };
   }
   // The elevator
-  if (tr.t === DOORS + 10) playSound('tinkle');
+  if (tr.t === DOORS + 10) playSound('ding');
   if (tr.t === DOORS + RIDE) {
-    playSound('tinkle'); playSound('tinkle');
+    playSound('ding');
     arrive(state, rt, tr.to);
     if (tr.quip) replaceLines(state, rt.talk, [{ who: 'meathead', text: tr.quip }], 10);
   }
@@ -351,7 +351,7 @@ const updateSurf = (ctx: FrameContext, rt: BarryRuntime): Controls => {
       s.phase = 'slide'; s.t = 0; s.x = COURSE.landing.x1 + 40; s.v = SLIDE_SPEED;
       state.checkpoint = Math.max(state.checkpoint, CP.LANDING);
       applyPlaceCamera(state, 'landing');
-      shakeScreen(state, 30, 12); playSound('nuke');
+      shakeScreen(state, 30, 12); playSound('slam');
     }
     // (the camera parks at the start of the street for the cut)
     state.camera.x = COURSE.landing.x1; state.camera.y = Y - 550;

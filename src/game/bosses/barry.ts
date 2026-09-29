@@ -81,7 +81,7 @@ const teleport = (ctx: FrameContext, boss: Enemy, frames: Frames) => {
     boss.pos.x = BOSS_DOOR_X + 100 + Math.random() * (ARENA_RIGHT - 60 - (BOSS_DOOR_X + 100));
     boss.pos.y = TELEPORT_HEIGHT;
     helpers.spawnExplosion({ x: boss.pos.x + boss.width / 2, y: boss.pos.y + boss.height / 2 }, '#2E1A47', 8, 0, 5);
-    helpers.playGunSound('ignite');
+    helpers.playGunSound('taser');
   }
 
   if (boss.stateTimer! <= 0) {
@@ -93,7 +93,7 @@ const teleport = (ctx: FrameContext, boss: Enemy, frames: Frames) => {
     boss.pos.x = player.pos.x < ARENA_MID ? ARENA_RIGHT - 260 : BOSS_DOOR_X + 250;
     boss.electrifiedTimer = 0;
     boss.activeLightningStrikes = [];
-    helpers.playGunSound('ignite');
+    helpers.playGunSound('taser');
   }
 };
 
@@ -109,7 +109,7 @@ const telegraph = (ctx: FrameContext, boss: Enemy, frames: Frames) => {
     boss.stateTimer = frames(130);
     boss.activeLightningStrikes = [];
     ctx.bossHelpers.setScreenShake(15);
-    ctx.bossHelpers.playGunSound('ignite');
+    ctx.bossHelpers.playGunSound('taser');
   }
 };
 
@@ -127,7 +127,7 @@ const groundPound = (ctx: FrameContext, boss: Enemy, frames: Frames) => {
   if (!boss.electrifiedTimer) {
     boss.electrifiedTimer = ELECTRIFIED_FRAMES;
     helpers.setScreenShake(25);
-    helpers.playGunSound('tsunami');
+    helpers.playGunSound('slam');
     helpers.spawnExplosion({ x: boss.pos.x + boss.width / 2, y: 540 }, '#ffff00', 15, 0, 10);
     helpers.spawnExplosion({ x: boss.pos.x, y: 540 }, '#00ffff', 10, -5, 8);
     helpers.spawnExplosion({ x: boss.pos.x + boss.width, y: 540 }, '#00ffff', 10, 5, 8);
@@ -141,7 +141,7 @@ const groundPound = (ctx: FrameContext, boss: Enemy, frames: Frames) => {
   const touchesWall = player.pos.x <= ARENA_LEFT + 20 || player.pos.x + player.width >= ARENA_RIGHT - 20;
   if ((touchesFloor || touchesCeiling || touchesWall) && (player.invincibilityTimer || 0) <= 0) {
     helpers.spawnExplosion({ x: player.pos.x + player.width / 2, y: player.pos.y + player.height / 2 }, '#ffff00', 12, 0, 10);
-    helpers.playGunSound('gun');
+    helpers.playGunSound('taser');
     hurtPlayer(ctx, POUND_DAMAGE, 'electric', { x: (player.pos.x < boss.pos.x ? -1 : 1) * PLAYER_PUSHBACK_VEL_X, y: PLAYER_PUSHBACK_VEL_Y });
   }
 
@@ -171,7 +171,7 @@ const lightningStorm = (ctx: FrameContext, boss: Enemy, frames: Frames) => {
       strikes.push({ x, duration: STRIKE.frames, maxDuration: STRIKE.frames, width: STRIKE.width });
       helpers.spawnExplosion({ x, y: 530 }, '#ffffff', 5, 0, 5);
     }
-    helpers.playGunSound('gun');
+    helpers.playGunSound('thunder');
     helpers.setScreenShake(8);
   }
 
@@ -182,7 +182,7 @@ const lightningStorm = (ctx: FrameContext, boss: Enemy, frames: Frames) => {
     const playerMidX = player.pos.x + player.width / 2;
     if (Math.abs(playerMidX - strike.x) < strike.width / 2 + player.width / 2 && (player.invincibilityTimer || 0) <= 0) {
       helpers.spawnExplosion({ x: strike.x, y: player.pos.y + player.height / 2 }, '#ffff00', 10, 0, 10);
-      helpers.playGunSound('gun');
+      helpers.playGunSound('taser');
       hurtPlayer(ctx, STRIKE.damage, 'electric', { x: (player.pos.x < strike.x ? -1 : 1) * PLAYER_PUSHBACK_VEL_X, y: PLAYER_PUSHBACK_VEL_Y });
     }
     if (strike.duration <= 0) strikes.splice(i, 1);
@@ -205,7 +205,7 @@ const catchNeedle = (ctx: FrameContext, boss: Enemy, p: Projectile) => {
   if (boss.toleranceTimer && boss.toleranceTimer > 0) {
     ctx.fx.spawnExplosion(p.pos, '#9CA3AF', 6, -Math.sign(p.vel.x) * 3, 4);
     ctx.fx.spawnDamageNumber({ x: boss.pos.x + boss.width / 2, y: boss.pos.y - 20 }, 'TOLERANCE', false, '#C084FC');
-    ctx.fx.playGunSound('ice');
+    ctx.fx.playGunSound('clink');
     speakAsBoss(BARRY, pickRandom(BARRY_LINES.TOLERANCE), ctx.bossHelpers, 'casual');
     return true;
   }

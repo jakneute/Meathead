@@ -1,5 +1,5 @@
 import React from 'react';
-import { GameStatus, WeaponType } from '../types';
+import { GameStatus, WeaponType, SoundType } from '../types';
 import { MAX_AMMO } from '../constants';
 import {
   getStages, getWeaponDescription, BOSS_SET_TITLES, BOSS_LOCATIONS, getWeaponInfo,
@@ -11,6 +11,8 @@ import DossierPanel from './DossierPanel';
 import MeatheadCaricature from './MeatheadCaricature';
 import ControlsGuide from './ControlsGuide';
 import { setSoundTest, ALL_CUES } from '../game/music';
+import { SFX_NAMES } from '../game/platform/sfx';
+import { playSound } from '../game/platform/audio';
 
 export interface CheatFlags {
   allWeapons: boolean;
@@ -116,6 +118,20 @@ const SoundTest: React.FC = () => {
   );
 };
 
+/** The sound effects test: step through them, click the name to hear it again. */
+const SfxTest: React.FC = () => {
+  const names = SFX_NAMES();
+  const [i, setI] = React.useState(-1);
+  const go = (d: number) => { const n = (i + d + names.length) % names.length; setI(n); playSound(names[n] as SoundType); };
+  return (
+    <div className="flex w-full border-2 border-gray-600 bg-gray-900 shadow-[2px_2px_0px_white] items-center overflow-hidden">
+      <button onClick={() => go(-1)} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-white font-black text-[10px]">&lt;</button>
+      <button onClick={() => { if (i >= 0) playSound(names[i] as SoundType); }} className="flex-1 text-[6px] leading-[8px] font-black text-lime-300 uppercase text-center py-[2px]">{i >= 0 ? names[i] : 'SFX TEST'}</button>
+      <button onClick={() => go(1)} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-white font-black text-[10px]">&gt;</button>
+    </div>
+  );
+};
+
 const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['cheats']> }> = ({ rank, cheats: { flags, onToggle, onChangeRank, onPlayEnding, onPlayCall } }) => (
   <div className="absolute top-2 right-2 z-[60] flex flex-col gap-1 items-end max-w-[150px]">
     <div className="flex w-full border-2 border-gray-600 bg-gray-900 shadow-[2px_2px_0px_white] items-center overflow-hidden">
@@ -134,6 +150,7 @@ const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['che
     <button onClick={onPlayEnding} className="w-full px-2 py-1 border-2 border-gray-600 bg-gray-800 text-yellow-300 font-black text-[7px] uppercase shadow-[2px_2px_0px_white] hover:bg-gray-700">VIEW ENDING</button>
     <div className="h-2 w-full" />
     <SoundTest />
+    <SfxTest />
   </div>
 );
 

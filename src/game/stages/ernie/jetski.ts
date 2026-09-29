@@ -192,7 +192,7 @@ const theft = (ctx: FrameContext, js: JetSki): Controls => {
         h.state = 'flying'; h.vx = 10; h.vy = -13;
         talk(js, 'hipster', 'MY KOMBUCHAAAAAAA');
         shakeScreen(state, 10, 5);
-        ctx.fx.playGunSound('gun');
+        ctx.fx.playGunSound('punch');
         next();
       }
       break;
@@ -216,7 +216,7 @@ const theft = (ctx: FrameContext, js: JetSki): Controls => {
     mount(state);
     state.checkpoint = Math.max(state.checkpoint, CP.SKI);
     ctx.fx.spawnDamageNumber({ x: p.pos.x - 60, y: p.pos.y - 60 }, 'TO ALCATRAZ!', true, '#FDE68A');
-    playSound('horn');
+    playSound('engine');
   }
   return c;
 };
@@ -227,7 +227,7 @@ const updateHipster = (state: GameState, js: JetSki) => {
     h.vy += 0.5; h.x += h.vx; h.y += h.vy; h.rot += 0.28;
     if (h.vy > 0 && h.y >= COURSE.bay.water) {
       h.state = 'swimming'; h.y = COURSE.bay.water;
-      playSound('tsunami');
+      playSound('splash');
       for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: h.x, y: h.y }, vel: { x: (Math.random() - 0.5) * 6, y: -2 - Math.random() * 7 }, life: 30, color: i % 2 ? '#E0F2FE' : '#93C5FD', size: 3 + Math.random() * 5 });
     }
   }
@@ -273,7 +273,7 @@ const riding = (ctx: FrameContext, js: JetSki, controls: Controls): Controls => 
     p.isGrounded = false;
     p.isCharging = false; p.isUppercutting = false; p.isDivekicking = false;
     meatheadSays(js, 'COWABUNGAAAAA!');
-    playSound('horn');
+    playSound('engine');
   }
   return controls;
 };

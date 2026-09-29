@@ -149,7 +149,7 @@ const smashThrown = (ctx: FrameContext, p: Projectile) => {
   // (the flask: a puff of whatever was in it)
   if (p.thrown === 'flask') for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * 20, y: cy - Math.random() * 10 }, vel: { x: (Math.random() - 0.5) * 1.2, y: -0.4 - Math.random() * 0.5 }, life: 40 + Math.random() * 30, color: 'rgba(163, 230, 53, 0.45)', size: 8 + Math.random() * 8 });
   if (p.thrown === 'tequila' || p.thrown === 'forty' || p.thrown === 'flask') playGlassShatterSound();
-  else playSound(p.thrown === 'rock' ? 'ignite' : p.thrown === 'teargas' ? 'oil' : p.thrown === 'water' || p.thrown === 'coffee' || p.thrown === 'cleaner' ? 'barf' : p.thrown === 'stapler' ? 'dart' : 'ice');
+  else playSound(p.thrown === 'rock' ? 'crack' : p.thrown === 'teargas' ? 'clink' : p.thrown === 'water' || p.thrown === 'coffee' || p.thrown === 'cleaner' ? 'splash' : p.thrown === 'stapler' ? 'clink' : 'thud');
 };
 
 const updateOilRocket = (ctx: FrameContext, p: Projectile): boolean => {
@@ -309,7 +309,7 @@ const shatterIceBlock = (ctx: FrameContext, p: Projectile) => {
     });
   }
   fx.spawnGlassShatter(p.pos);
-  fx.playGunSound('ice');
+  fx.playGunSound('crack');
 };
 
 /** Ernie's lobbed boulder slamming into the floor or a wall shakes the room like his stomps (stunning you if you're on the ground). */
@@ -317,7 +317,7 @@ const HEAVED_RUMBLE_SPEED = 8; // only real slams, not the little bounces after
 const heavedBoulderRumble = (ctx: FrameContext) => {
   ctx.bossHelpers.setScreenShake(25);
   ctx.bossHelpers.setErnieVibration(ERNIE_STOMP_VIBRATION_DURATION);
-  ctx.fx.playGunSound('tsunami');
+  ctx.fx.playGunSound('slam');
 };
 
 const shatterBoulder = (ctx: FrameContext, p: Projectile) => {

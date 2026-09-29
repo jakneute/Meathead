@@ -207,7 +207,7 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
     player.chargeTimer = SWIM_DASH_FRAMES;
     player.chargeFace = player.facing;
     player.moveId = (player.moveId || 0) + 1;
-    fx.playGunSound();
+    fx.playGunSound('whoosh');
     return;
   }
   const free = cheats.infinitePower;
@@ -229,6 +229,7 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
     player.isDivekicking = false;
     player.chargeFace = player.facing;
     player.moveId = (player.moveId || 0) + 1;
+    fx.playGunSound('whoosh', 0.9, player.isSliding ? -5 : -2);
   }
 
   // Uppercut (springs straight out of a crouch once down is let go, or overridden by the E hotkey)
@@ -242,6 +243,7 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
     player.uppercutTimer = UPPERCUT_DURATION;
     player.uppercutHitIds = [];
     player.moveId = (player.moveId || 0) + 1;
+    fx.playGunSound('whoosh', 1, 3);
   }
 
   // Divekick (air only; can be re-triggered mid-bounce to chain stomps)
@@ -254,7 +256,7 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
     player.isUppercutting = false;
     player.diveKickHitIds = [];
     player.moveId = (player.moveId || 0) + 1;
-    fx.playGunSound();
+    fx.playGunSound('whoosh', 1, -4);
   }
 };
 
@@ -492,6 +494,7 @@ const updateVerticalVelocity = (ctx: FrameContext, input: FrameInput) => {
     player.jumpHoldTimer = isStandingInOil(ctx.state) || oilUnderfoot(ctx.state) === 'tar' ? Math.round(JUMP_HOLD_FRAMES * OSCAR_OIL_JUMP_MULT) : JUMP_HOLD_FRAMES;
     if (player.skiing) player.jumpHoldTimer = Math.round(JUMP_HOLD_FRAMES * SKI_JUMP_HOLD_MULT);
     player.squash = -0.5; // stretch on take-off
+    ctx.fx.playGunSound('jump');
     player.isGrounded = false;
     player.coyoteAirTimer = 0;
     player.coyoteJumpTimer = 0;
@@ -544,6 +547,7 @@ const checkBossDoor = (ctx: FrameContext) => {
   if (!door || !rectsOverlap(boundsOf(player), door)) return;
 
   state.doorState = 'opening';
+  fx.playGunSound('rumble', 0.7);
   player.vel.x = 0;
   player.vel.y = 0;
   state.projectiles = [];
@@ -681,6 +685,7 @@ export const landPlayer = (ctx: FrameContext, impactSpeed: number = 0) => {
   const impact = Math.min(1, impactSpeed / PLAYER_TERMINAL_VELOCITY);
   if (impact > 0.3) {
     player.squash = impact * 0.9;
+    if (!player.isDivekicking) fx.playGunSound('land', impact);
     spawnDust(state, player.pos.x + player.width / 2, player.pos.y + player.height, Math.round(impact * 10), 1);
     spawnDust(state, player.pos.x + player.width / 2, player.pos.y + player.height, Math.round(impact * 10), -1);
   }
@@ -698,7 +703,7 @@ export const landPlayer = (ctx: FrameContext, impactSpeed: number = 0) => {
       size: 4 + Math.random() * 5
     });
   }
-  fx.playGunSound();
+  fx.playGunSound('stomp');
 };
 
 /** Fail-safe (GML "universal de-clipping"): if we still overlap terrain, pop out the shortest way. */

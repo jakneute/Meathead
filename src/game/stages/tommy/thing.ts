@@ -137,7 +137,7 @@ export const updateThingRoom = (ctx: FrameContext, th: Thing, talk: Talk, contro
         th.e = e; th.prevHealth = e.health;
         state.blocks.push({ x: C.x1 - 40, y: GROUND_Y - 3000, w: 40, h: 3000, type: 'wall', hidden: true, tag: 'cistern-door' });
         state.checkpoint = Math.max(state.checkpoint, CP.CISTERN);
-        playSound('tsunami'); shakeScreen(state, 60, 4);
+        playSound('roar'); shakeScreen(state, 60, 4);
         hush(state, talk);
         queueLines(state, talk, [
           { who: 'thing', text: 'WE DRANK THE WATER. PLEASE. KILL US.' },
@@ -214,9 +214,9 @@ const fight = (ctx: FrameContext, th: Thing, talk: Talk, controls: Controls): Co
   // The fist
   if (th.fist) {
     th.fist++;
-    if (th.fist === 20) playSound('siren');
+    if (th.fist === 20) playSound('roar');
     if (th.fist === FIST_LAND) {
-      shakeScreen(state, 40, 16); playSound('nuke'); playSound('tsunami');
+      shakeScreen(state, 40, 16); playSound('slam'); playSound('splash');
       // Across the whole walkway: nowhere to go
       if (p.health > 0) hurtPlayer(ctx, FIST_DAMAGE, 'amalgam_fist', { x: -4, y: -9 });
       fx.spawnDamageNumber({ x: p.pos.x - 30, y: p.pos.y - 50 }, 'SMASHED!', true, '#A3E635');
@@ -235,7 +235,7 @@ const fight = (ctx: FrameContext, th: Thing, talk: Talk, controls: Controls): Co
     const land = Math.max(C.x1 + 50, Math.min(C.pool - 70, p.pos.x + p.width / 2 + 40));
     state.pickups.push({ id: `thing-ammo-${state.frame}`, pos: { x: m.x, y: m.y }, vel: { x: (land - 10 - m.x) / 9.5, y: -6 }, width: 20, height: 20, type: 'large_ammo', life: 900 });
     for (let i = 0; i < 14; i++) state.particles.push({ pos: { ...m }, vel: { x: -3 - Math.random() * 5, y: (Math.random() - 0.7) * 6 }, life: 30, color: i % 2 ? '#65A30D' : '#D9F99D', size: 3 + Math.random() * 4 });
-    playSound('barf');
+    playSound('splat');
     say(state, talk, 'HERE. WE BROUGHT THIS UP FOR YOU.');
   }
   th.prevHealth = e.health;
@@ -261,7 +261,7 @@ const feed = (ctx: FrameContext, th: Thing, talk: Talk, w: WeaponType | 'MELEE',
     th.fed += dmg * WANT_MULT;
     th.asked = 0; th.strikes = 0;
     if (state.frame % 8 === 0) fx.spawnDamageNumber({ x: e.pos.x + 60 + Math.random() * 80, y: e.pos.y + 120 }, Math.round(dmg * WANT_MULT), true, '#A3E635');
-    if (th.fed >= (NEED[w] ?? 1300)) { th.full = 1; say(state, talk, pick(THANKS, th.asks), true); playSound('tinkle'); }
+    if (th.fed >= (NEED[w] ?? 1300)) { th.full = 1; say(state, talk, pick(THANKS, th.asks), true); playSound('powerup'); }
   } else if (!th.full && !inGrace(th) && state.frame - th.askedAt > SATED_GRACE && state.frame - th.struckAt > hurried(th, WRONG_EVERY)) {
     strike(state, th, talk, pick(WRONG, th.asks + state.frame));
   }

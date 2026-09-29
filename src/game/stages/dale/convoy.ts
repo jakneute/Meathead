@@ -265,7 +265,7 @@ const updateTrucks = (ctx: FrameContext, cv: Convoy, talk: Talk) => {
       const plan = PLANS[i];
       tr.timeLeft--;
       // (the last ten seconds, a beep a second)
-      if (tr.timeLeft > 0 && tr.timeLeft <= 600 && tr.timeLeft % 60 === 0) playSound('tinkle');
+      if (tr.timeLeft > 0 && tr.timeLeft <= 600 && tr.timeLeft % 60 === 0) playSound('beep');
       // The next wave: once this lot's down (a moment after), or after a while regardless
       const alive = tr.goons.filter(id => state.enemies.some(e => e.id === id && e.health > 0 && !e.isBlownAway));
       tr.goons = alive;
@@ -293,13 +293,13 @@ const updateTrucks = (ctx: FrameContext, cv: Convoy, talk: Talk) => {
         const next = cv.trucks[i + 1];
         if (next && next.phase === 'far') next.phase = 'coming';
         cv.banner = { text: 'CLEAR! GO!', t: 0, color: '#22C55E' };
-        playSound('horn');
+        playSound('truckhorn');
         if (i === 0) queueLines(state, talk, [{ who: 'meathead', text: "ROOF'S CLEAR! NEXT TRUCK! GO GO GO!" }]);
       }
       if (tr.timeLeft <= 0) blowUp(ctx, cv, i, talk);
     } else if (tr.phase === 'cleared') {
       tr.timeLeft--;
-      if (tr.timeLeft > 0 && tr.timeLeft <= 300 && tr.timeLeft % 60 === 0) playSound('tinkle');
+      if (tr.timeLeft > 0 && tr.timeLeft <= 300 && tr.timeLeft % 60 === 0) playSound('beep');
       if (tr.timeLeft <= 0) blowUp(ctx, cv, i, talk);
     } else if (tr.phase === 'doomed') {
       if (tr.t > 50) blowUp(ctx, cv, i, talk);
@@ -385,7 +385,7 @@ const familyRide = (ctx: FrameContext, f: Fall, talk: Talk): Controls => {
     if (suv.hitAt < 0 && suv.off + 80 >= 0) {
       suv.hitAt = s;
       r.fly = { off: 0, h: 0, vx: 7, vh: -12, rot: 0 };
-      shakeScreen(state, 22, 10); playSound('nuke');
+      shakeScreen(state, 22, 10); playSound('crunch');
       fx.spawnDeathShower({ x: f.x, y: Y - 60 }, 1, 1.4);
       state.playerLastVulgarity = ''; state.playerVulgarityTimer = 0;
       queueLines(state, talk, FAMILY_LINES, 40);
@@ -397,7 +397,7 @@ const familyRide = (ctx: FrameContext, f: Fall, talk: Talk): Controls => {
       else suv.v = Math.min(20, suv.v + 0.5);
       if (!talking && !suv.over && r.fly && suv.off + 80 >= r.fly.off) {
         suv.over = true;
-        shakeScreen(state, 12, 6); playSound('gun');
+        shakeScreen(state, 12, 6); playSound('crunch');
         fx.spawnDeathShower({ x: f.x + r.fly.off, y: Y - 10 }, 1, 0.6);
       }
     }
@@ -475,9 +475,9 @@ const inTheTrailer = (ctx: FrameContext, f: Fall): Controls => {
   const u = f.t;
   const line = MELT_SAYS.find(l => l.at === u);
   if (line && line.who === 'meathead') say(line.text, MEATHEAD_VOICE, 'urgent', { onShow: () => {}, onHide: () => {} });
-  if (u === MELT.LAND) { shakeScreen(state, 10, 6); playSound('ice'); }
-  if (u === MELT.POP) playSound('taser');
-  if (u >= MELT.FIRE && u < MELT.STOP) { if (u % 3 === 0) playSound('gun'); if (u % 12 === 0) shakeScreen(state, 8, 4); }
+  if (u === MELT.LAND) { shakeScreen(state, 10, 6); playSound('thud'); }
+  if (u === MELT.POP) playSound('reload');
+  if (u >= MELT.FIRE && u < MELT.STOP) { if (u % 3 === 0) playSound('lmg'); if (u % 12 === 0) shakeScreen(state, 8, 4); }
   if (u === MELT.KILL && state.deathTimer <= 0) {
     // Dead on his feet, mid-volley: it freezes right there
     f.still = state.frame;
@@ -512,7 +512,7 @@ const onTheRoad = (ctx: FrameContext, cv: Convoy, f: Fall, talk: Talk): Controls
     state.playerLastVulgarity = lines[i]; state.playerVulgarityTimer = 50;
     say(lines[i], MEATHEAD_VOICE, 'urgent', { onShow: () => {}, onHide: () => {} });
   };
-  if (f.t === 1) { shakeScreen(state, 18, 8); playSound('nuke'); shout(0); }
+  if (f.t === 1) { shakeScreen(state, 18, 8); playSound('slam'); shout(0); }
   // Slowing down along the road (much faster while he's scraping along it)
   const scraping = r.h <= 0.5;
   r.v = Math.max(0, r.v - (scraping ? (r.flat > 0 ? 0.28 : 0.22) : 0.08));
@@ -524,7 +524,7 @@ const onTheRoad = (ctx: FrameContext, cv: Convoy, f: Fall, talk: Talk): Controls
       r.h = 0;
       if (r.vh > 3 && r.v > 2) {
         r.vh = -r.vh * 0.55; r.spin = (Math.random() < 0.5 ? -1 : 1) * (0.2 + r.v * 0.02);
-        shakeScreen(state, 8, 4); playSound('gun');
+        shakeScreen(state, 8, 4); playSound('thud');
         fx.spawnDeathShower({ x: bodyX(), y: Y - 10 }, -1, 0.35);
         r.smears.push({ g: r.g, w: 20 + r.v * 3 });
         if (f.kind === 'flop') shout(Math.min(4, r.said));
@@ -544,7 +544,7 @@ const onTheRoad = (ctx: FrameContext, cv: Convoy, f: Fall, talk: Talk): Controls
       r.crunched.push(k);
       r.flat = Math.max(1, r.flat); r.h = 0; r.vh = 0;
       shakeScreen(state, 20 + k * 2, 10);
-      playSound('nuke');
+      playSound('crunch');
       fx.spawnDeathShower({ x: wx, y: Y - 16 }, -1, 1.2);
       fx.spawnDamageNumber({ x: wx - 30, y: Y - 110 }, ['CRUNCH!', 'SPLORT!', 'CRUNCH!', 'SQUELCH!', 'SPLAT!'][k], true, '#F87171');
       shout(k + 1);

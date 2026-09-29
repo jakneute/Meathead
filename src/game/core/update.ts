@@ -182,7 +182,7 @@ const skyfall = (ctx: FrameContext, x: number) => {
       player.squash = 1;
       state.introLandedAt = state.introTimer;
       shakeScreen(state, 24, 10);
-      playSound('nuke');
+      playSound('slam');
       const cx = x + player.width / 2;
       // (snow on the icy stages, dirt and rock everywhere else)
       const debris = getBossDef(ctx.stageId)?.slipperyFloor ? PARTICLE_PALETTES.POWDER : PARTICLE_PALETTES.ROCK;
@@ -406,6 +406,7 @@ const updatePickups = (ctx: FrameContext) => {
     });
 
     if (!rectsOverlap(boundsOf(p), boundsOf(player))) return p.life > 0;
+    playSound(p.type.includes('health') ? 'pickup' : 'reload');
     if (p.type.includes('health')) {
       player.health = Math.min(player.maxHealth, player.health + (p.type === 'large_health' ? HEALTH_PICKUP_LARGE : HEALTH_PICKUP_SMALL));
     } else {

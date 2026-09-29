@@ -104,7 +104,7 @@ const shatter = (ctx: FrameContext, x: number, y: number) => {
       life: 22 + Math.random() * 16, color: i % 3 ? '#E0F2FE' : '#FFFFFF', size: 2 + Math.random() * 4, isGlass: i % 2 === 0,
     });
   }
-  ctx.fx.playGunSound('ice');
+  ctx.fx.playGunSound('crack');
 };
 
 // ---------------------------------------------------------------------------
@@ -127,7 +127,7 @@ const updateCrumbles = (ctx: FrameContext, hz: Hazards) => {
         for (let i = 0; i < 10; i++) {
           state.particles.push({ pos: { x: b.x + (i / 10) * b.w, y: b.y + 6 }, vel: { x: (Math.random() - 0.5) * 3, y: 1 + Math.random() * 3 }, life: 40, color: i % 2 ? '#BFDBFE' : '#E0F2FE', size: 5 + Math.random() * 6, isGlass: true });
         }
-        ctx.fx.playGunSound('ice');
+        ctx.fx.playGunSound('crack');
       }
     } else if (c.t >= CRUMBLE_REFREEZE && !rectsOverlap({ x: b.x - 10, y: b.y - 70, w: b.w + 20, h: 90 }, boundsOf(player))) {
       // Freezes back over (as long as you're not in the way)

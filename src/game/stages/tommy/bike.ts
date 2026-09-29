@@ -178,7 +178,7 @@ const theft = (ctx: FrameContext, b: BikeRun, talk: Talk): Controls => {
         const r = b.rider;
         r.state = 'flying'; r.vx = 9; r.vy = -12;
         shakeScreen(state, 10, 5);
-        fx.playGunSound('gun');
+        fx.playGunSound('punch');
         next();
       }
       break;
@@ -206,7 +206,7 @@ const updateRider = (state: GameState, b: BikeRun) => {
   if (r.state !== 'flying') return;
   r.vy += 0.5; r.x += r.vx; r.y += r.vy; r.rot += 0.3;
   const ground = groundLineAt(state.groundRuns, r.x);
-  if (r.vy > 0 && r.y >= ground) { r.state = 'down'; r.y = ground; r.rot = Math.PI / 2; playSound('ice'); }
+  if (r.vy > 0 && r.y >= ground) { r.state = 'down'; r.y = ground; r.rot = Math.PI / 2; playSound('thud'); }
 };
 
 // ---------------------------------------------------------------------------
@@ -242,7 +242,7 @@ const riding = (ctx: FrameContext, b: BikeRun, talk: Talk, controls: Controls): 
   if (camDx) for (const q of state.projectiles) if (q.owner === 'enemy' && q.shot === 'tracer') q.pos.x += camDx;
   // A ramp coming up, still off the screen: a ding as the call-out goes up (the stage draws it)
   const next = nextRamp(state, b);
-  if (next && next.offscreen && !b.rampCalled.has(next.i)) { b.rampCalled.add(next.i); playSound('tinkle'); }
+  if (next && next.offscreen && !b.rampCalled.has(next.i)) { b.rampCalled.add(next.i); playSound('alert'); }
   junk(ctx, b);
   teach(state, b);
   banter(state, b, talk);
@@ -385,7 +385,7 @@ const rampAway = (ctx: FrameContext, b: BikeRun) => {
 const smash = (state: GameState, j: RoadJunk, box: { x: number; y: number; w: number; h: number }) => {
   const colors = j.look === 'cones' ? ['#F97316', '#F8FAFC'] : j.look === 'trash' ? ['#374151', '#65A30D', '#A16207', '#F8FAFC'] : j.look === 'barrier' ? ['#F97316', '#F8FAFC', '#78350F'] : j.look === 'car' ? ['#44403C', '#DC2626', '#93C5FD'] : ['#E0F2FE', '#94A3B8'];
   for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: box.x + box.w / 2, y: box.y + box.h / 2 }, vel: { x: 2 + Math.random() * 8, y: -2 - Math.random() * 7 }, life: 30 + Math.random() * 20, color: colors[i % colors.length], size: 3 + Math.random() * 5 });
-  if (j.look === 'glass' || j.look === 'car') playGlassShatterSound(); else playSound('ice');
+  if (j.look === 'glass' || j.look === 'car') playGlassShatterSound(); else playSound('crunch');
 };
 
 /** The ride's banter, as he gets down the road (the crew's lines only while they're after him in a car). */
@@ -460,12 +460,12 @@ const bottle = (ctx: FrameContext, b: BikeRun, talk: Talk): Controls => {
       if (since > 40 && quiet(talk)) next();
       break;
     case bottleSteps.THROW:
-      if (since === 1) { bt.state = 'thrown'; bt.x = R.hazmat - 14; bt.y = GROUND_Y - 58; bt.vx = -5.5; bt.vy = -7; playSound('ice'); }
+      if (since === 1) { bt.state = 'thrown'; bt.x = R.hazmat - 14; bt.y = GROUND_Y - 58; bt.vx = -5.5; bt.vy = -7; playSound('whoosh'); }
       bt.vy += 0.5; bt.x += bt.vx; bt.y += bt.vy;
       if (bt.state === 'thrown' && bt.y >= GROUND_Y - 4) {
         // It bursts: glass, and a spreading, smoking, bubbling pool of it
         bt.state = 'trap'; bt.y = GROUND_Y;
-        playGlassShatterSound(); playSound('barf');
+        playGlassShatterSound(); playSound('splash');
         shakeScreen(state, 12, 5);
         for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: bt.x, y: GROUND_Y - 6 }, vel: { x: (Math.random() - 0.5) * 9, y: -2 - Math.random() * 8 }, life: 30 + Math.random() * 20, color: i % 3 ? '#A3E635' : '#E0F2FE', size: 3 + Math.random() * 5 });
         next();
@@ -485,7 +485,7 @@ const bottle = (ctx: FrameContext, b: BikeRun, talk: Talk): Controls => {
         b.fly = { x: px, y: p.pos.y + p.height / 2, vx: 7.5, vy: -14, rot: 0 };
         b.bikeWreck = { x: px, y: GROUND_Y - 14, vx: 4, vy: -8, rot: 0 };
         shakeScreen(state, 18, 8);
-        playSound('barf'); playSound('ignite');
+        playSound('splash'); playSound('crash');
         fx.spawnDamageNumber({ x: px - 40, y: p.pos.y - 50 }, 'MELTED TIRES!', true, '#A3E635');
         queueLines(state, talk, [{ who: 'meathead', text: 'MY TIIIIIIRES!' }]);
         for (let i = 0; i < 20; i++) state.particles.push({ pos: { x: px, y: GROUND_Y - 6 }, vel: { x: (Math.random() - 0.3) * 8, y: -3 - Math.random() * 6 }, life: 40, color: i % 2 ? '#1C1917' : '#A3E635', size: 4 + Math.random() * 5 });
@@ -512,7 +512,7 @@ const wipeout = (ctx: FrameContext, b: BikeRun, onSewer: () => void): Controls =
   w.vy += 0.6; w.x += w.vx; w.y += w.vy; w.rot += 0.25;
   if (w.y > GROUND_Y - 14 && w.vy > 0) { w.y = GROUND_Y - 14; w.vy *= -0.4; w.vx *= 0.7; }
   p.pos.x = f.x - p.width / 2; p.pos.y = Math.min(f.y, GROUND_Y - p.height) - p.height / 2;
-  if (b.t === 60) playSound('tsunami');
+  if (b.t === 60) playSound('splash');
   if (b.t === 90) { b.phase = 'gone'; onSewer(); }
   return { ...NO_CONTROLS };
 };

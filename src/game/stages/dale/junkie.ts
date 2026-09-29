@@ -288,7 +288,7 @@ export const updateJunkie = (ctx: FrameContext, m: Enemy, fight: JunkieFight, ta
       const dir = (stash.x < mx ? -1 : 1) as 1 | -1;
       m.facing = dir;
       m.vel.x = dir * TO_STASH;
-      if (Math.abs(stash.x - mx) < 14) { m.vel.x = 0; stash.taken = true; start(m, 'snort'); playSound('barf'); }
+      if (Math.abs(stash.x - mx) < 14) { m.vel.x = 0; stash.taken = true; start(m, 'snort'); playSound('snort'); }
       break;
     }
     case 'snort':
@@ -301,7 +301,7 @@ export const updateJunkie = (ctx: FrameContext, m: Enemy, fight: JunkieFight, ta
       m.vel.x = 0;
       if (m.aiTimer > HIGH) {
         const wall = (mx - o.x1 < o.x2 - mx ? -1 : 1) as 1 | -1;
-        start(m, 'rampage'); m.facing = wall; playSound('horn');
+        start(m, 'rampage'); m.facing = wall; playSound('roar');
       }
       break;
     case 'rampage': {
@@ -367,7 +367,7 @@ const headbutt = (ctx: FrameContext, m: Enemy, fight: JunkieFight, talk: Talk, d
   fx.spawnDeathShower({ x: wx, y: hy }, -side, big ? 0.8 : 0.2);
   for (let i = 0; i < (big ? 26 : 8); i++) state.particles.push({ pos: { x: wx, y: hy }, vel: { x: -side * Math.random() * (big ? 7 : 4), y: (Math.random() - 0.5) * (big ? 9 : 5) }, life: 30, color: i % 2 ? '#D6D3D1' : '#A8A29E', size: 3 + Math.random() * 4 });
   shakeScreen(state, big ? 30 : 10, big ? 12 : 5);
-  playSound(big ? 'nuke' : 'gun');
+  playSound(big ? 'slam' : 'punch');
   if (!big) return;
   m.vel.x = -side * 4;
   if (m.health <= 0) { m.health = 0; fight.corpse = { x: 0, y: 0, facing: side, weapon: 'GUN', t0: 0, headbutt: side }; return; }
@@ -451,7 +451,7 @@ const holdPlayer = (ctx: FrameContext, fight: JunkieFight, m: Enemy, talk: Talk)
     hurtPlayer(ctx, PUNCH, 'junkie_punch', { x: 0, y: 0 }, 8);
     p.invincibilityTimer = 0;
     shakeScreen(state, 10, 5);
-    playSound('gun');
+    playSound('punch');
     fx.spawnDeathShower({ x: p.pos.x + p.width / 2, y: p.pos.y + 16 }, side, 0.25);
     if (g.punches === 2) junkieSays(state, talk, ["HUH?! HUH?! HUH?!", "WHO'S THE FED NOW?!"], true);
   }
@@ -538,7 +538,7 @@ const updateProps = (ctx: FrameContext, fight: JunkieFight, talk: Talk) => {
       if (n === 'fan') { pr.y = Math.min(o.floor - 8, o.ceiling + 64 + 0.35 * pr.t * pr.t); }
       const reveal = n === 'desk' ? 70 : n === 'cabinet' ? 50 : n === 'fan' ? 36 : 26;
       if (pr.t === reveal) revealStash(ctx, fight, n, talk);
-      if (n === 'fan' && pr.y >= o.floor - 8 && pr.t < 60 && pr.dir !== 9) { pr.dir = 9; shakeScreen(state, 14, 6); playSound('nuke'); fanLands(ctx, fight); }
+      if (n === 'fan' && pr.y >= o.floor - 8 && pr.t < 60 && pr.dir !== 9) { pr.dir = 9; shakeScreen(state, 14, 6); playSound('crash'); fanLands(ctx, fight); }
       if (pr.t > 200) pr.state = 'gone';
       continue;
     }
@@ -556,9 +556,9 @@ const updateProps = (ctx: FrameContext, fight: JunkieFight, talk: Talk) => {
     if (set) {
       pr.state = 'going'; pr.t = 0;
       if (n === 'desk') playSound('ignite');
-      if (n === 'cabinet') playSound('tsunami');
-      if (n === 'fan') playSound('nuke');
-      if (n === 'closet') { playSound('ice'); }
+      if (n === 'cabinet') playSound('splash');
+      if (n === 'fan') playSound('crash');
+      if (n === 'closet') { playSound('clang'); }
       continue;
     }
     // The wrong thing at it: Meathead lets you know (once each)

@@ -80,7 +80,7 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
       // (the muzzle flash, big, and brass going everywhere)
       for (let k = 0; k < 3; k++) state.particles.push({ pos: { x: muzzle.x + facing * 4, y: muzzle.y }, vel: { x: facing * (2 + Math.random() * 4) + player.vel.x, y: (Math.random() - 0.5) * 3 }, life: 5, color: k === 0 ? '#FFFFFF' : '#FDE047', size: 6 + Math.random() * 6 });
       state.particles.push({ pos: { x: muzzle.x - facing * 20, y: muzzle.y }, vel: { x: -facing * (1 + Math.random() * 2) + player.vel.x, y: -2 - Math.random() * 3 }, life: 24, color: '#CA8A04', size: 2 });
-      if (state.frame % 2 === 0) fx.playGunSound('gun');
+      fx.playGunSound('lmg');
       break;
     }
 

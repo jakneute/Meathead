@@ -167,7 +167,7 @@ const arrival = (ctx: FrameContext, town: Town): Controls => {
       cab.x = t.crash - 20; cab.state = 'parked'; cab.speed = 0; cab.t = 0;
       town.shopHit = true;
       shakeScreen(state, 44, 16);
-      playSound('nuke');
+      playSound('crash');
       fx.spawnGlassShatter({ x: t.x1 + 150, y: Y - 150 });
       for (let k = 0; k < 8; k++) fx.spawnExplosion({ x: t.x1 + 60 + k * 30, y: Y - 30 - ((k * 37) % 170) }, k % 2 ? '#A0703F' : '#D2B48C', 18, 0, 22);
       const junk = ['#A0703F', '#F472B6', '#22D3EE', '#FEF3C7', '#8B6B3D', '#FACC15'];
@@ -184,7 +184,7 @@ const arrival = (ctx: FrameContext, town: Town): Controls => {
       a.h = 0;
       if (a.landedAt < 0) {
         a.landedAt = a.t; a.vh = 6; a.vx *= 0.4; a.spin *= 0.5;
-        shakeScreen(state, 16, 8); playSound('gun');
+        shakeScreen(state, 16, 8); playSound('thud');
         fx.spawnExplosion({ x: a.x, y: Y - 6 }, '#C08A55', 10, 0, 12);
         yell('OOF!');
       } else { a.vh = 0; a.vx = 0; a.spin = 0; }
@@ -254,7 +254,7 @@ const bounceAwnings = (state: GameState) => {
   p.coyoteAirTimer = 0; p.coyoteJumpTimer = 0; p.jumpHoldTimer = 0;
   p.pos.y -= 2;
   p.squash = -1;
-  playSound('tinkle');
+  playSound('jump');
 };
 
 // ---------------------------------------------------------------------------
@@ -274,7 +274,7 @@ const updateSniper = (ctx: FrameContext, town: Town, talk: Talk) => {
     s.y += (py - s.y) * k + Math.cos(state.frame * 0.11) * 1.0;
     if (s.state === 'cool' && s.t > 40) { s.state = 'track'; s.t = 0; }
     // (not while he's in a cutscene, or dead)
-    if (s.state === 'track' && s.t > TRACK && !p.inCutscene && state.deathTimer <= 0) { s.state = 'lock'; s.t = 0; playSound('taser'); }
+    if (s.state === 'track' && s.t > TRACK && !p.inCutscene && state.deathTimer <= 0) { s.state = 'lock'; s.t = 0; playSound('alert'); }
   } else if (s.state === 'lock') {
     if (s.t >= LOCK) {
       // Fire: the first thing along the laser takes it (him, or a goon in the way), and only that
@@ -405,7 +405,7 @@ const updateNinja = (ctx: FrameContext, town: Town, talk: Talk): Controls | null
   }
   if (n.state === 'speech') {
     p.vel.x = 0;
-    if (!talk.current && !talk.queue.length && n.t > 20) { n.state = 'kneel'; n.t = 0; playSound('tinkle'); }
+    if (!talk.current && !talk.queue.length && n.t > 20) { n.state = 'kneel'; n.t = 0; playSound('clink'); }
     return { ...NO_CONTROLS };
   }
   if (n.state === 'kneel') {
@@ -451,7 +451,7 @@ const updateWarpath = (ctx: FrameContext, town: Town, talk: Talk, controls: Cont
     state.cameraOverride = { x: t.x1, y: 0 };
     if (town.t > 20) {
       town.phase = 'revive'; town.t = 0; cab.state = 'parked'; cab.t = 0;
-      playSound('horn');
+      playSound('truckhorn');
       queueLines(state, talk, [{ who: 'riggs', text: 'ONE BULLET?! IN ONE EAR AND OUT THE OTHER, BABY! NOTHING IN THERE TO HIT!' }]);
     }
     return { ...NO_CONTROLS };
@@ -553,7 +553,7 @@ const jailScene = (ctx: FrameContext, town: Town, talk: Talk, controls: Controls
   if (!town.sheriff.running && town.t > 30 && !talk.queue.some(l => l.who === 'sheriff') && talk.current?.who !== 'sheriff') town.sheriff.running = true;
   if (town.sheriff.running) town.sheriff.x += 5;
   // The horn, closer and closer
-  if (town.crashedAt < 0 && town.t > 40 && town.t % Math.max(10, 50 - Math.floor(town.t / 16)) === 0) playSound('horn');
+  if (town.crashedAt < 0 && town.t > 40 && town.t % Math.max(10, 50 - Math.floor(town.t / 16)) === 0) playSound('truckhorn');
   // Here it comes (he's begged enough)
   const begged = !talk.current && !talk.queue.length && town.t > 60;
   if (cab.speed === 0 && town.crashedAt < 0 && (begged || town.t >= JAIL_CAB_BY)) { cab.speed = 26; town.sheriff.running = true; }
@@ -620,7 +620,7 @@ const plow = (ctx: FrameContext, town: Town) => {
   for (const pr of town.props) {
     if (pr.flying || pr.x < cab.x || pr.x > front) continue;
     pr.flying = true; pr.vx = 10 + Math.random() * 8; pr.vy = -12 - Math.random() * 8;
-    playSound('ice');
+    playSound('crash');
   }
 };
 
@@ -644,7 +644,7 @@ const crashIntoJail = (ctx: FrameContext, town: Town, talk: Talk) => {
   fx.spawnExplosion({ x: t.jail.x1 + 150, y: Y - 120 }, '#1C1917', 40, 0, 26);
   fx.spawnDeathShower({ x: t.jail.x1 + 120, y: Y - 60 }, 1, 2);
   shakeScreen(state, 44, 15);
-  playSound('nuke');
+  playSound('crash');
   // The guy in the cell (and what's left of Riggs), everywhere: geysers of it, bits of them, his souvenir hat
   for (let k = 0; k < 4; k++) fx.spawnDeathShower({ x: t.jail.x1 + 110 + k * 40, y: Y - 60 - k * 25 }, k % 2 ? 1 : -1, 3.5);
   const reds = ['#991B1B', '#DC2626', '#7F1D1D', '#B91C1C'];

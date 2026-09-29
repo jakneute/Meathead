@@ -39,7 +39,18 @@ export type WeaponType = 'GUN' | 'BOULDER' | 'SHOTGUN' | 'FLAMETHROWER' | 'TSUNA
 
 export type VulgarityType = 'gun_kill' | 'boulder_kill' | 'shotgun_kill' | 'flamethrower_kill' | 'tsunami_kill' | 'hurt' | 'death' | 'charge_kill' | 'uppercut_kill' | 'dart_kill' | 'taser_kill' | 'sludge_kill' | 'oil_kill' | 'truck_wreck';
 
-export type SoundType = 'gun' | 'ice' | 'flame' | 'tsunami' | 'dart' | 'horn' | 'ignite' | 'barf' | 'oil' | 'taser' | 'tinkle' | 'nuke' | 'siren' | 'thunder' | 'screams';
+export type SoundType =
+  // weapons
+  | 'gun' | 'egun' | 'lmg' | 'ice' | 'flame' | 'ignite' | 'barf' | 'oil' | 'dart' | 'taser' | 'tsunami' | 'click'
+  // bodies
+  | 'punch' | 'stomp' | 'splat' | 'crunch' | 'hurt' | 'whoosh' | 'jump' | 'land' | 'thud' | 'slam'
+  // things breaking
+  | 'clang' | 'clink' | 'crack' | 'glass' | 'crash' | 'boom' | 'nuke'
+  // water
+  | 'splash' | 'glug' | 'tinkle'
+  // signals, machines, the world
+  | 'beep' | 'alert' | 'ding' | 'pickup' | 'reload' | 'powerup' | 'alarm' | 'siren' | 'horn' | 'truckhorn' | 'engine'
+  | 'rumble' | 'thunder' | 'roar' | 'bellow' | 'snort' | 'screams';
 
 export interface Player extends Entity {
   /** Frames a shoulder charge can keep going while it's driving a shield goon back (held down, it lasts a good while longer). */

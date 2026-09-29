@@ -108,7 +108,7 @@ export const updateTour = (ctx: FrameContext, tour: Tour, controls: Controls): C
   if (t === DROP_AT) playGlassShatterSound();
   if (t === IMPACT_AT) {
     // Down on the lot of them
-    playSound('nuke'); playSound('ignite');
+    playSound('boom'); playSound('ignite');
     shakeScreen(state, 50, 14);
     const cx = C.crashX, y = C.y;
     for (const tr of TOURISTS) fx.spawnDeathShower({ x: cx + tr.dx, y: y - 40 }, tr.dx < 0 ? -1 : 1, 2.2);

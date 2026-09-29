@@ -152,7 +152,7 @@ const cutscene = (ctx: FrameContext, ski: Ski): Controls => {
     ski.skis = { x: ski.skier.x, y: ski.skier.y - 10, vx: -2.2, vy: -11, rot: 0 };
     skierSays(ski, 'AAAAAAAAAAHHHHH');
     shakeScreen(state, 10, 5);
-    ctx.fx.playGunSound('gun');
+    ctx.fx.playGunSound('punch');
   }
   if ((player.kickPose || 0) > 0) player.kickPose!--;
   // The skis come down at his feet
@@ -163,7 +163,7 @@ const cutscene = (ctx: FrameContext, ski: Ski): Controls => {
     if (s.vy > 0 && s.y >= feet - 4) { ski.skis = null; player.skiing = true; player.skiSpeed = 0; meatheadSays(state, 'MINE NOW.'); }
   }
   if (t === 230) {
-    shakeScreen(state, 90, 6); playSound('nuke');
+    shakeScreen(state, 90, 6); playSound('rumble');
     // Anything still alive on screen is about to have a very bad day
     if (enemiesOnScreen(state).length) { ski.surge = true; ski.avX = state.camera.x - 220; }
   }
@@ -354,7 +354,7 @@ const finale = (ctx: FrameContext, ski: Ski): Controls => {
   if (ski.cabinHitAt === 0 && ski.avX >= cabin.x) {
     ski.cabinHitAt = state.frame;
     shakeScreen(state, 60, 12);
-    playSound('nuke');
+    playSound('crash');
     // Planks, logs, a hat, and the ranger himself, everywhere
     for (let i = 0; i < 60; i++) {
       state.particles.push({

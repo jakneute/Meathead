@@ -80,7 +80,7 @@ export const updateSewer = (ctx: FrameContext, sw: Sewer, talk: Talk) => {
   if (p.swimming && !was && p.vel.y > 2 && state.frame - sw.splashAt > 30) {
     sw.splashAt = state.frame;
     for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: cx, y: ch!.surface }, vel: { x: (Math.random() - 0.5) * 6, y: -2 - Math.random() * 5 }, life: 26, color: i % 2 ? '#65A30D' : '#3F6212', size: 3 + Math.random() * 4 });
-    playSound('barf');
+    playSound('splash');
   }
   sw.inMuck = p.swimming ? sw.inMuck + 1 : 0;
   // It eats at him (or his suit)
@@ -88,7 +88,7 @@ export const updateSewer = (ctx: FrameContext, sw: Sewer, talk: Talk) => {
     if (sw.suitOn && sw.suit > 0) {
       sw.suit = Math.max(0, sw.suit - 1 / sw.suitFrames);
       if (state.frame % 6 === 0) state.particles.push({ pos: { x: p.pos.x + Math.random() * p.width, y: p.pos.y + Math.random() * p.height }, vel: { x: 0, y: -1 }, life: 20, color: 'rgba(250, 204, 21, 0.7)', size: 3 });
-      if (sw.suit <= 0.25 && !sw.warned) { sw.warned = true; fx.spawnDamageNumber({ x: p.pos.x - 40, y: p.pos.y - 50 }, 'SUIT FAILING!', true, '#FACC15'); playSound('siren'); }
+      if (sw.suit <= 0.25 && !sw.warned) { sw.warned = true; fx.spawnDamageNumber({ x: p.pos.x - 40, y: p.pos.y - 50 }, 'SUIT FAILING!', true, '#FACC15'); playSound('alarm'); }
       if (sw.suit <= 0) { sw.suitOn = false; fx.spawnDamageNumber({ x: p.pos.x - 40, y: p.pos.y - 50 }, 'SUIT GONE!', true, '#EF4444'); }
     } else if (sw.inMuck % MUCK_EVERY === 1) {
       if (!ctx.cheats.invincible) p.health -= MUCK_DAMAGE;
@@ -126,7 +126,7 @@ export const updateSewer = (ctx: FrameContext, sw: Sewer, talk: Talk) => {
     if (sw.opened[i] ||Math.abs(cx - lx) >= 40 || !p.isGrounded) return;
     sw.opened[i] = true; sw.suitOn = true; sw.suit = 1; sw.suitT = 0; sw.warned = false; sw.suitFrames = SUIT_FRAMES[i];
     state.checkpoint = Math.max(state.checkpoint, i === 0 ? CP.SUIT : CP.SUIT2);
-    playSound('tinkle');
+    playSound('powerup');
     fx.spawnDamageNumber({ x: p.pos.x - 60, y: p.pos.y - 70 }, 'HAZMAT SUIT!', true, '#FACC15');
   });
 

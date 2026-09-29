@@ -54,7 +54,7 @@ const sendTruck = (ctx: FrameContext, boss: Enemy) => {
   boss.stateTimer = 100;
   boss.truckX = TRUCK.startX;
   boss.truckActive = true;
-  ctx.bossHelpers.playGunSound('horn');
+  ctx.bossHelpers.playGunSound('truckhorn');
 };
 
 /** The truck runs over anything in its path, then drops off a random shipment. */
@@ -129,7 +129,7 @@ const smashWall = (ctx: FrameContext, boss: Enemy, side: 'left' | 'right') => {
     fx.spawnExplosion({ x, y: TRUCK.y + 60 }, '#B91C1C', 24, 10, 20);
     fx.spawnExplosion({ x, y: TRUCK.y + 90 }, '#E7E5E4', 30, 8, 24);
     fx.spawnDamageNumber({ x: x - 200, y: TRUCK.y - 60 }, 'EMPLOYEES ONLY!', true, '#FACC15');
-    fx.playGunSound('nuke');
+    fx.playGunSound('crash');
   }
   fx.spawnExplosion({ x, y: FLOOR_Y - 30 }, '#A8A29E', 30, 0, 18);
   shakeScreen(state, 26, 12);
@@ -155,8 +155,8 @@ const wreckTruck = (ctx: FrameContext, boss: Enemy) => {
   fx.spawnExplosion(center, '#7CFC00', 20, 0, 12);
   fx.spawnPowderExplosion(center, 30);
   fx.spawnMethExplosion({ x: center.x + 60, y: center.y }, 20);
-  fx.playGunSound('tsunami');
-  fx.playGunSound('barf');
+  fx.playGunSound('boom');
+  fx.playGunSound('splat');
   shakeScreen(state, 30, 14);
 
   // Kept on screen (the truck may still be half behind the door)
@@ -174,8 +174,8 @@ const blowOutTires = (ctx: FrameContext, boss: Enemy, puddle: Projectile) => {
   const at = { x: puddle.pos.x + puddle.width / 2, y: puddle.pos.y };
   fx.spawnExplosion(at, '#7CFC00', 25, 0, 14);
   fx.spawnExplosion(at, '#111111', 12, 0, 10); // shredded rubber
-  fx.playGunSound('gun');
-  fx.playGunSound('barf');
+  fx.playGunSound('boom');
+  fx.playGunSound('crash');
   shakeScreen(state, 12, 8);
   fx.spawnKillCallout({ pos: { x: Math.max(at.x, state.camera.x + 200), y: TRUCK.y - 10 }, width: 0 }, 'blowout');
 };
@@ -192,7 +192,7 @@ const crashIntoPlayer = (ctx: FrameContext, boss: Enemy) => {
   fx.spawnExplosion(at, pickRandom(PARTICLE_PALETTES.FIRE), 20, 0, 16);
   fx.spawnExplosion(at, '#212121', 20, 0, 12);
   fx.spawnPowderExplosion(at, 20);
-  fx.playGunSound('tsunami');
+  fx.playGunSound('boom');
   shakeScreen(state, 20, 12);
 };
 
@@ -210,7 +210,7 @@ const crashIntoDale = (ctx: FrameContext, boss: Enemy) => {
   fx.spawnExplosion(at, '#7F8C8D', 20, 0, 20);
   fx.spawnPowderExplosion(at, 30);
   fx.spawnDeathShower(at, 1, 1.5);
-  fx.playGunSound('tsunami');
+  fx.playGunSound('crash');
   shakeScreen(state, 40, 18);
   fx.spawnKillCallout({ pos: { x: at.x, y: boss.pos.y - 30 }, width: 0 }, 'crash');
   if (boss.health <= 0) { ctx.bossHelpers.killBoss(boss, 1, true, 'SLUDGE'); return; }
@@ -240,7 +240,7 @@ const useShipment = (ctx: FrameContext, boss: Enemy) => {
     boss.dashCount = DASH_BOUNCES;
     boss.vel.x = -DASH_SPEED;
     boss.stateTimer = 0;
-    helpers.playGunSound('ice');
+    helpers.playGunSound('engine');
   }
 };
 

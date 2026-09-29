@@ -14,6 +14,7 @@ import { Enemy } from '../../../types';
 import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
 import { mid, safeAhead } from './index';
+import { playSound } from '../../platform/audio';
 
 export const runErnieKindAI = (ctx: FrameContext, e: Enemy): boolean => {
   switch (e.kind) {
@@ -32,6 +33,7 @@ const shoot = (state: GameState, e: Enemy, tx: number, ty: number, speed: number
     id: `ep-${e.kind}-${state.frame}-${Math.random()}`, pos: { x: m.x - 5, y: m.y - 5 }, vel: { x: (dx / len) * speed + carry, y: (dy / len) * speed },
     width: 10, height: 10, health: 1, maxHealth: 1, type: 'projectile', damage, owner: 'enemy', shooterKind: e.kind, shot: 'slug',
   });
+  playSound('egun', 1, -4);
 };
 
 /** How long a drone hangs about between shots, and how long its red dot sits on you before it fires. */

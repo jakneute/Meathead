@@ -157,7 +157,7 @@ const updateAwnings = (ctx: FrameContext, hz: Hazards) => {
     player.isGrounded = false;
     player.squash = -0.6;
     hz.awningWobble[i] = 24;
-    ctx.fx.playGunSound('oil');
+    ctx.fx.playGunSound('jump');
     ctx.fx.spawnDamageNumber({ x: player.pos.x - 10, y: b.y - 20 }, 'BOING!', false, '#FDE047');
   });
 };
@@ -362,14 +362,14 @@ const updateSwimming = (ctx: FrameContext, hz: Hazards) => {
     // Splash (a real one: falling in, not bobbing at the surface)
     hz.splashAt = state.frame;
     for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: cx, y: zone!.surface }, vel: { x: (Math.random() - 0.5) * 7, y: -2 - Math.random() * 5 }, life: 26, color: i % 2 ? '#E0F2FE' : '#7DD3FC', size: 3 + Math.random() * 4 });
-    ctx.fx.playGunSound('tsunami');
+    ctx.fx.playGunSound('splash');
   }
   if (p.swimming && state.frame % 14 === 0) state.particles.push({ pos: { x: p.pos.x + p.width / 2 + p.facing * 8, y: p.pos.y + 10 }, vel: { x: 0, y: -1.2 }, life: 40, color: 'rgba(224, 242, 254, 0.8)', size: 3 });
   // Holding his breath while his head's under
   if (hz.drownT > 0 || state.deathTimer > 0) return;
   if (headUnder(p)) {
     hz.o2 = Math.max(0, hz.o2 - 1 / O2_FRAMES);
-    if (hz.o2 < 0.25 && state.frame % 20 === 0) playSound('tinkle');
+    if (hz.o2 < 0.25 && state.frame % 20 === 0) playSound('beep');
     if (hz.o2 <= 0) {
       // Out of air
       hz.drownT = 1;
@@ -394,7 +394,7 @@ const updateDrowning = (ctx: FrameContext, hz: Hazards) => {
   p.vel = { x: 0, y: 0 };
   p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
   if (hz.drownAt) p.pos = { x: hz.drownAt.x, y: hz.drownAt.y };
-  if (hz.drownT === 40) playSound('barf');
+  if (hz.drownT === 40) playSound('glug');
   if (hz.drownT === DROWN_FRAMES && state.deathTimer <= 0) {
     const lines = ['SLEEPING WITH THE FISHES', 'SHOULD HAVE TAKEN SWIM LESSONS', 'FORGOT TO BREATHE', 'GLUB GLUB GLUB'];
     hz.lastCause = 'drowned'; hz.lastCauseAt = state.frame;

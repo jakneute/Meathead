@@ -10,7 +10,7 @@ import type { GameState } from '../../core/state';
 import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
 import { shakeScreen } from '../../core/state';
-import { playSound, playGlassShatterSound } from '../../platform/audio';
+import { playSound } from '../../platform/audio';
 import { CANVAS_WIDTH, GROUND_Y } from '../../../constants';
 import { COURSE, CP } from './course';
 import { Talk, queueLines, quiet } from './script';
@@ -81,7 +81,7 @@ export const updateEnding = (ctx: FrameContext, en: Ending, talk: Talk, controls
   switch (en.phase) {
     case 'talk':
       p.skiSpeed = 0;
-      if (en.t > 20 && quiet(talk)) { en.phase = 'ridein'; en.t = 0; p.hidden = false; p.pos.x = S + RIDE_FROM - 300; p.skiSpeed = 12; playSound('horn'); }
+      if (en.t > 20 && quiet(talk)) { en.phase = 'ridein'; en.t = 0; p.hidden = false; p.pos.x = S + RIDE_FROM - 300; p.skiSpeed = 12; playSound('engine'); }
       break;
     case 'ridein':
       p.skiSpeed = 12;
@@ -115,7 +115,7 @@ export const updateEnding = (ctx: FrameContext, en: Ending, talk: Talk, controls
       break;
     case 'toss':
       // The trigger: nothing. Empty. On the pile with the rest of it
-      if (en.t === 4 || en.t === 14) { ctx.fx.spawnDamageNumber({ x: p.pos.x + 30, y: p.pos.y - 20 - en.t }, 'CLICK', false, '#E5E7EB'); playSound('dart'); }
+      if (en.t === 4 || en.t === 14) { ctx.fx.spawnDamageNumber({ x: p.pos.x + 30, y: p.pos.y - 20 - en.t }, 'CLICK', false, '#E5E7EB'); playSound('click'); }
       if (en.t === 26) {
         en.gun = { x: p.pos.x + p.width / 2 + 20, y: p.pos.y + 30, vx: (COURSE.end.wall - 44 - (p.pos.x + p.width / 2 + 20)) / 34, vy: -9, rot: 0, state: 'flying' };
         state.lockWeapon = undefined; p.currentWeapon = 'GUN';
@@ -124,7 +124,7 @@ export const updateEnding = (ctx: FrameContext, en: Ending, talk: Talk, controls
       if (en.gun.state === 'flying') {
         const g = en.gun;
         g.vy += 0.5; g.x += g.vx; g.y += g.vy; g.rot += 0.35;
-        if (g.vy > 0 && g.y >= GROUND_Y - 34) { g.state = 'dumped'; g.y = GROUND_Y - 34; g.rot = 0.3; playGlassShatterSound(); }
+        if (g.vy > 0 && g.y >= GROUND_Y - 34) { g.state = 'dumped'; g.y = GROUND_Y - 34; g.rot = 0.3; playSound('clang'); }
       }
       if (en.t > 64) {
         en.phase = 'done'; en.t = 0;
@@ -149,7 +149,7 @@ const updateBike = (ctx: FrameContext, en: Ending) => {
     // Into them, and them into the wall
     en.smokers = 'paste'; en.splatAt = state.frame;
     shakeScreen(state, 30, 12);
-    playSound('nuke'); playGlassShatterSound();
+    playSound('crash'); playSound('splat');
     for (let i = 0; i < 60; i++) state.particles.push({ pos: { x: COURSE.end.wall - 10, y: GROUND_Y - 30 - Math.random() * 70 }, vel: { x: -Math.random() * 7, y: -2 - Math.random() * 7 }, life: 40 + Math.random() * 30, color: ['#7F1D1D', '#B91C1C', '#DC2626', '#F8FAFC', '#FACC15', '#F97316'][i % 6], size: 3 + Math.random() * 6 });
   }
   if (bk.x >= COURSE.end.wall - 36) { bk.x = COURSE.end.wall - 36; bk.vx = 0; bk.state = 'crashed'; bk.rot = 0.5; }

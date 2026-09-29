@@ -103,7 +103,7 @@ const fallTenant = (ctx: FrameContext, e: Enemy): boolean => {
     fx.spawnDamageNumber({ x: e.pos.x - 10, y: GROUND_Y - 90 }, 'SPLAT!', true, '#DC2626');
     for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: e.pos.x + 20, y: GROUND_Y - 4 }, vel: { x: (Math.random() - 0.5) * 12, y: -Math.random() * 7 }, life: 30 + Math.random() * 30, color: i % 3 ? '#991B1B' : '#DC2626', size: 2 + Math.random() * 5 });
     shakeScreen(state, 14, 8);
-    playSound('nuke');
+    playSound('splat');
   }
   return true;
 };

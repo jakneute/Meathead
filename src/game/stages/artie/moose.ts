@@ -116,7 +116,7 @@ export const updateMoose = (ctx: FrameContext, m: Enemy, fight: MooseFight): boo
       break;
     case 'bellow':
       m.vel.x = 0;
-      if (m.aiTimer === 20) { shakeScreen(state, 30, 7); ctx.fx.playGunSound('horn'); }
+      if (m.aiTimer === 20) { shakeScreen(state, 30, 7); ctx.fx.playGunSound('bellow'); }
       if (m.aiTimer > 70) { m.aiState = 'paw'; m.aiTimer = 0; fight.phase = 'fight'; }
       break;
     case 'paw':

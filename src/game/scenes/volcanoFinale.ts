@@ -39,7 +39,7 @@ export const startVolcanoFinale = (ctx: FrameContext) => {
   state.damageNumbers = [];
   state.player.vel = { x: 0, y: 0 };
   cancelSpeech();
-  ctx.fx.playGunSound('tsunami');
+  ctx.fx.playGunSound('rumble');
 };
 
 export const updateVolcanoFinale = (ctx: FrameContext) => {
@@ -75,7 +75,7 @@ export const updateVolcanoFinale = (ctx: FrameContext) => {
   // Each body smashing into the screen: the glass cracks
   if (t === VOLCANO_FINALE.OUTSIDE + VOLCANO_FINALE.FLY || t === VOLCANO_FINALE.OUTSIDE + 2 * VOLCANO_FINALE.FLY) {
     playGlassShatterSound();
-    fx.playGunSound('gun');
+    fx.playGunSound('crash');
   }
   if (t >= VOLCANO_FINALE.END) respawn(state, ctx.stageId, ctx.cheats.skipToBoss);
 };

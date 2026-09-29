@@ -164,7 +164,7 @@ const onBreak = (ctx: FrameContext, b: Bunker, talk: Talk, controls: Controls, i
     if (hit) {
       b.popped = true; b.poppedAt = state.frame;
       state.projectiles = state.projectiles.filter(q => q !== hit);
-      playSound('ice');
+      playSound('clang');
       fx.spawnDamageNumber({ x: B.vein.x - 20, y: B.vein.y - 30 }, 'PSSSST', false, '#D9F99D');
       for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: B.vein.x, y: B.vein.y }, vel: { x: (Math.random() - 0.5) * 3, y: -Math.random() * 3 }, life: 20, color: '#78716C', size: 2 + Math.random() * 2 });
     }
@@ -205,7 +205,7 @@ const clockOut = (ctx: FrameContext, b: Bunker, talk: Talk) => {
   const { state } = ctx;
   b.phase = 'clockout'; b.t = 0; b.peaceful = true;
   hush(state, talk);
-  playSound('horn');
+  playSound('truckhorn');
   queueLines(state, talk, [
     { who: 'foreman', text: "AND THAT'S BREAK. BACK TO IT, FELLAS." },
     { who: 'worker', text: 'FIVE MORE MINUTES...' },
@@ -224,7 +224,7 @@ const blowUp = (ctx: FrameContext, b: Bunker, talk: Talk) => {
   hush(state, talk);
   state.blocks = state.blocks.filter(k => k.tag !== 'bunker-roof' && k.tag !== 'bunker-door');
   shakeScreen(state, 70, 22);
-  playSound('nuke'); playSound('ignite');
+  playSound('boom'); playSound('ignite');
   state.projectiles = state.projectiles.filter(q => q.owner !== 'player');
   p.isFlaming = false;
   for (const w of b.workers) { w.state = 'knocked'; w.t = 0; }
@@ -295,14 +295,14 @@ const runOut = (ctx: FrameContext, b: Bunker, talk: Talk): Controls => {
         // The boot, and he's off his hog
         p.kickPose = KICK_POSE_FRAMES;
         target.state = 'flying'; target.vx = 9; target.vy = -12;
-        shakeScreen(state, 10, 5); ctx.fx.playGunSound('gun');
+        shakeScreen(state, 10, 5); ctx.fx.playGunSound('punch');
         next();
       }
       break;
     case 2:
       if (since === 12) { p.pos.x = target.x - p.width / 2; p.pos.y = GROUND_Y - p.height; mountMoto(state, 0); }
       if (since === 14) queueLines(state, talk, [{ who: 'biker', text: "HE'S GOT DAN'S HOG! AND THE GUN!" }]);
-      if (since > 26) { b.phase = 'ride'; b.t = 0; playSound('horn'); }
+      if (since > 26) { b.phase = 'ride'; b.t = 0; playSound('engine'); }
       break;
   }
   return { ...NO_CONTROLS };

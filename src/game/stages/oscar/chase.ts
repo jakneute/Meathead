@@ -476,7 +476,7 @@ const updateWrecks = (ctx: FrameContext, ch: Chase) => {
       const f = ch.far[w.target];
       f.state = 'blowing'; f.t = 0;
       shakeScreen(state, 45, 14);
-      playSound('nuke'); playSound('ignite');
+      playSound('boom'); playSound('ignite');
       // (and the things either side of it catch, now and then: a tank farm going up one after another)
       for (const n of [w.target - 1, w.target + 1]) {
         const k = (n + FAR_N) % FAR_N;
@@ -488,7 +488,7 @@ const updateWrecks = (ctx: FrameContext, ch: Chase) => {
   ch.farWrecks = ch.farWrecks.filter(w => w.t <= w.dur);
   for (const f of ch.far) {
     f.t++;
-    if (f.state === 'fuse' && f.t >= 0) { f.state = 'blowing'; f.t = 0; shakeScreen(state, 30, 10); playSound('nuke'); }
+    if (f.state === 'fuse' && f.t >= 0) { f.state = 'blowing'; f.t = 0; shakeScreen(state, 30, 10); playSound('boom'); }
     if (f.state === 'blowing' && f.t > 60) { f.state = 'burning'; f.t = 0; }
   }
 };
@@ -533,6 +533,7 @@ const cruiserShoot = (state: GameState, e: Enemy) => {
   if (e.shootTimer === SHOOT_EVERY || e.shootTimer === SHOOT_EVERY + 12) {
     const dir = dx < 0 ? -1 : 1;
     const x = mid(e).x + dir * 36, y = e.pos.y + 10;
+    playSound('egun', 1, -3);
     state.projectiles.push({ id: `cr-${state.frame}-${Math.random()}`, pos: { x: x - 5, y: y - 5 }, vel: { x: dir * SHOT_SPEED, y: 0 }, width: 10, height: 10, health: 1, maxHealth: 1, type: 'projectile', damage: CHIP, owner: 'enemy', shooterKind: 'cruiser', shot: 'slug' });
     for (let i = 0; i < 6; i++) state.particles.push({ pos: { x, y }, vel: { x: dir * (1 + Math.random() * 3), y: (Math.random() - 0.5) * 2 }, life: 8, color: i % 2 ? '#FEF08A' : '#FB923C', size: 3 + Math.random() * 3 });
   }
@@ -556,7 +557,7 @@ const slicks = (ctx: FrameContext, ch: Chase) => {
     if (box.x + box.w > s.x - s.w / 2 && box.x < s.x + s.w / 2) {
       ch.spin = SPIN_FRAMES;
       fx.spawnDamageNumber({ x: p.pos.x - 30, y: p.pos.y - 60 }, 'SPIN OUT!', true, '#A855F7');
-      playSound('oil');
+      playSound('splash');
     }
   }
   ch.slicks = ch.slicks.filter(s => s.x > state.camera.x - 300);

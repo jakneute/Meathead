@@ -40,7 +40,7 @@ const PANELS: Panel[] = [
   { draw: (c, t) => drawMeatheadCloseUp(c, t, false, 'disgust'), text: 'Meathead is disgusted.', hold: 50 },
   {
     draw: (c, t) => drawPunch(c, t), text: '', hold: 70,
-    onEnter: () => { playSound('tsunami'); playSound('gun'); playSound('barf'); },
+    onEnter: () => { playSound('punch', 1.5, -3); playSound('slam'); playSound('crunch'); },
   },
   { draw: (c, t) => drawFinale(c, t, FINALE_FREEZE), text: '' },
 ];

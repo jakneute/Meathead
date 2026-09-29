@@ -130,7 +130,7 @@ export const updateTommy = (ctx: FrameContext, controls: Controls): Controls => 
       p.hurtTimer = 0;
       state.playerStunTimer = 100;
       p.squash = 1;
-      shakeScreen(state, 16, 8); playSound('nuke');
+      shakeScreen(state, 16, 8); playSound('slam');
       for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + p.height - 3 }, vel: { x: (Math.random() - 0.5) * 9, y: -Math.random() * 5 }, life: 26, color: i % 2 ? '#65A30D' : '#57534E', size: 3 + Math.random() * 5 });
       queueLines(state, rt.talk, [{ who: 'meathead', text: 'UGH... MY EVERYTHING.' }], 20);
     }

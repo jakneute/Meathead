@@ -107,7 +107,7 @@ const heaveBoulder = (ctx: FrameContext, boss: Enemy) => {
   const land = (-vy + Math.sqrt(vy * vy + 2 * GRAVITY * drop)) / GRAVITY;
   const vx = Math.max(-HEAVE_MAX_SPEED_X, Math.min(HEAVE_MAX_SPEED_X, (corner - (x + size / 2)) / land));
   ctx.bossHelpers.addProjectile(enemyProjectile(`b-ernie-heave-${Date.now()}`, x, y, vx, vy, size, size, HEAVED_BOULDER_DAMAGE, { isBoulder: true, isHeaved: true }));
-  ctx.bossHelpers.playGunSound('gun');
+  ctx.bossHelpers.playGunSound('whoosh');
   boss.bossState = 'running';
   boss.slideTargetX = midX(boss) < ARENA_MID ? ARENA_RIGHT - boss.width - 30 : ARENA_LEFT + 30;
 };
@@ -161,7 +161,7 @@ const freeze = (ctx: FrameContext, boss: Enemy, p?: Partial<Projectile>) => {
   boss.vel.x = 0;
   boss.vel.y = 0;
   ctx.fx.spawnExplosion({ x: midX(boss), y: boss.pos.y + boss.height / 2 }, '#E0FFFF', 16, 0, 10);
-  ctx.fx.playGunSound('ice');
+  ctx.fx.playGunSound('crack');
 };
 
 /** He's hit the floor in his block of ice: it shatters, and so does a good chunk of his health. */
@@ -175,7 +175,7 @@ const shatter = (ctx: FrameContext, boss: Enemy) => {
   fx.spawnGlassShatter(at);
   fx.spawnExplosion(at, '#B3F0FF', 25, 0, 16);
   fx.spawnKillCallout(boss, 'shatter');
-  fx.playGunSound('ice');
+  fx.playGunSound('glass');
   ctx.bossHelpers.setScreenShake(15);
   if (boss.health <= 0) ctx.bossHelpers.killBoss(boss, 0, true, 'SHOTGUN');
 };

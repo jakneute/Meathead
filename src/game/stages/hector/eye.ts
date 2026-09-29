@@ -141,7 +141,7 @@ const updatePlats = (ctx: FrameContext, f: EyeFight) => {
     // Worn down while he stands on it (only while the fight's on), settling slowly when he's off it
     if (f.phase === 'fight' && (p.state === 'solid' || p.state === 'shake')) {
       p.wear = on ? p.wear + 1 : Math.max(0, p.wear - 0.5);
-      if (p.state === 'solid' && p.wear > WEAR_WOBBLE) { p.state = 'shake'; p.t = 0; playSound('ice'); }
+      if (p.state === 'solid' && p.wear > WEAR_WOBBLE) { p.state = 'shake'; p.t = 0; playSound('crack'); }
       else if (p.state === 'shake' && p.wear <= WEAR_WOBBLE) { p.state = 'solid'; p.t = 0; }
       else if (p.state === 'shake' && p.wear >= WEAR_FALL) { p.state = 'fall'; p.t = 0; state.blocks = state.blocks.filter(x => x !== b); shakeScreen(state, 8, 3); }
     }
@@ -207,7 +207,7 @@ const updateJunk = (ctx: FrameContext, f: EyeFight) => {
         for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: j.x, y: j.y }, vel: { x: (Math.random() - 0.5) * 16, y: -3 - Math.random() * 9 }, life: 50 + Math.random() * 30, color: i % 3 ? '#F8FAFC' : '#111827', size: 6 + Math.random() * 7 });
         ctx.fx.spawnDamageNumber({ x: j.x - 50, y: j.y - 60 }, 'MOO-SPLOSION!', true, '#EF4444');
         shakeScreen(state, 14, 7);
-        playSound('barf');
+        playSound('splat');
       } else ctx.fx.spawnExplosion({ x: j.x, y: j.y }, '#A8A29E', 10, 0, 6);
       return false;
     }
@@ -265,7 +265,7 @@ export const updateEye = (ctx: FrameContext, e: Enemy, f: EyeFight): boolean => 
       ctx.fx.spawnDamageNumber({ x: a.x + EYE_CX - 40, y: a.y + EYE_CY - EYE_R - 20 }, 'WAAAHH!', true, '#7DD3FC');
       f.sore = 200;
       shakeScreen(state, 10, 6);
-      playSound('tsunami');
+      playSound('roar');
     }
     player.isCharging = false; player.isSliding = false;
     player.vel.x = dir * 9; player.vel.y = Math.min(player.vel.y, -6);

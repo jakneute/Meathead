@@ -127,5 +127,5 @@ const burst = (ctx: FrameContext, cr: Crate) => {
   const cx = cr.x + CRATE / 2, cy = cr.y + CRATE / 2;
   for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: cx, y: cy }, vel: { x: (Math.random() - 0.5) * 8, y: -Math.random() * 6 }, life: 30, color: i % 3 ? '#A16207' : '#78350F', size: 3 + Math.random() * 4 });
   fx.spawnPowderExplosion({ x: cx, y: cy }, 14);
-  playSound('ice');
+  playSound('crunch');
 };

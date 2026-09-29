@@ -286,6 +286,7 @@ const throwAt = (ctx: FrameContext, e: Enemy, what: ThrownKind) => {
   const t = Math.max(THROW_MIN_T, Math.min(THROW_MAX_T, Math.abs(tx - x) / 7));
   const vx = (tx - x) / t, vy = (ty - y - 0.5 * BOTTLE_GRAVITY * t * t) / t;
   const { w, h } = THROWN_SIZE[what];
+  ctx.fx.playGunSound('whoosh', 0.5, 5);
   ctx.state.projectiles.push({ id: `et-${Date.now()}-${Math.random()}`, pos: { x: x - w / 2, y: y - h / 2 }, vel: { x: vx, y: vy }, width: w, height: h, health: 1, maxHealth: 1, type: 'projectile', damage: ENEMY_BULLET_DAMAGE, owner: 'enemy', shooterKind: e.kind ?? 'enemy', thrown: what, rotation: 0 });
 };
 
@@ -299,6 +300,7 @@ const fireEnemyBullet = (ctx: FrameContext, e: Enemy, dir: number, from?: { x: n
   const x = from ? from.x : look ? e.pos.x + e.width / 2 + dir * (e.width / 2 + 6) - size / 2 : e.pos.x + e.width / 2;
   const y = from ? from.y : look ? e.pos.y + e.height - 48 : e.pos.y + 10;
   ctx.state.projectiles.push({ id: `ep-${Date.now()}-${Math.random()}`, pos: { x, y }, vel: { x: dir * (look ? shotSpeed(look, e.kind) : 7), y: 0 }, width: size, height: size, health: 1, maxHealth: 1, type: 'projectile', damage: ENEMY_BULLET_DAMAGE, owner: 'enemy', shooterKind: e.kind ?? 'enemy', shot: look });
+  if (look) ctx.fx.playGunSound('egun', 1, look === 'slug' ? -5 : -3);
   // (the flash out the end of it)
   if (look) for (let i = 0; i < 4; i++) ctx.state.particles.push({ pos: { x: x + size / 2, y: y + size / 2 }, vel: { x: dir * (1 + Math.random() * 2), y: (Math.random() - 0.5) * 1.5 }, life: 6, color: look === 'cryo' ? '#E0F2FE' : look === 'flare' ? '#FDBA74' : '#FEF08A', size: 2 + Math.random() * 3 });
 };
@@ -534,7 +536,7 @@ const resolveOiledSlideCollision = (ctx: FrameContext, e: Enemy, enemies: Enemy[
     for (let i = 0; i < 8; i++) {
       state.particles.push({ pos: { x: midX, y: midY }, vel: { x: (Math.random() - 0.5) * 12, y: -Math.random() * 8 - 2 }, life: 25, color: Math.random() > 0.4 ? '#1A110F' : '#FFD700', size: 4 + Math.random() * 4 });
     }
-    fx.playGunSound();
+    fx.playGunSound('thud');
 
     if (other.type !== 'boss') {
       other.vel.x = slideDir * Math.max(6, speed * 0.85 * massRatio(e, other));
@@ -651,6 +653,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     e.hitCooldown = ENEMY_HIT_COOLDOWN;
     e.hitByMove = player.moveId;
     fx.spawnDamageNumber(e.pos, damage, player.isUppercutting || !!player.isDivekicking || wasFrozen || hasShield);
+    fx.playGunSound(wasFrozen ? 'crack' : player.isDivekicking ? 'stomp' : 'punch');
 
     if (player.isUppercutting) {
       player.uppercutHitIds.push(e.id);
@@ -716,6 +719,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
       player.isHarmlessPushback = false;
       player.smugTimer = 0;
       fx.speakVulgarity('hurt', getContactHurtSource(ctx, e));
+      fx.playGunSound('hurt');
       player.pushbackTimer = stageDef?.contact?.pushbackFrames?.(e) ?? PLAYER_PUSHBACK_DURATION;
       // (a goat's headbutt sends you a lot further)
       const butt = e.kind === 'goat' ? 1.8 : 1;
@@ -904,7 +908,7 @@ const shieldShove = (ctx: FrameContext, e: Enemy): boolean => {
     e.health = Math.max(1, e.health - SHIELD_SHOVE_CHIP);
     fx.spawnDamageNumber({ x: cx - 20, y: e.pos.y - 16 }, 'CLANG!', true, '#E5E7EB');
     fx.spawnExplosion({ x: cx, y: cy }, '#FDE047', 14, -side * 6, 10);
-    fx.playGunSound('ice');
+    fx.playGunSound('clang');
     shakeScreen(state, 10, 5);
   }
   // Sparks streaming off the shield, and the dust off his heels
@@ -935,7 +939,7 @@ const compact = (ctx: FrameContext, e: Enemy, wall: { x: number; w: number }, si
   impactKill(ctx, e, 'compacted', -side);
   fx.spawnDeathShower(at, 0, 1.5);
   fx.spawnExplosion(at, '#E5E7EB', 12, -side * 6, 12);
-  fx.playGunSound('ice');
+  fx.playGunSound('crack');
   shakeScreen(state, 14, 8);
   state.player.shoveT = 0;
 };
@@ -952,7 +956,7 @@ const thawBurst = (ctx: FrameContext, e: Enemy, dir: number, at: { x: number; y:
   fx.spawnExplosion(at, '#E0F2FE', 16, dir * 5, 14, true);
   for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + Math.random() * e.height }, vel: { x: (Math.random() - 0.5) * 9, y: -Math.random() * 7 }, life: 24 + Math.random() * 16, color: i % 2 ? '#BAE6FD' : '#FFFFFF', size: 2 + Math.random() * 4 });
   shakeScreen(state, 12, 8);
-  fx.playGunSound('ice');
+  fx.playGunSound('glass');
   // (still frozen for the kill: he shatters)
   if (e.health <= 0) { impactKill(ctx, e, callout, dir); return true; }
   e.frozenTimer = 0;
@@ -1080,7 +1084,7 @@ const resolveShoveCollision = (ctx: FrameContext, e: Enemy, enemies: Enemy[]) =>
       e.vel.x *= 0.4;
       if (other.health <= 0) { fx.blowAwayEnemy(other, { x: -dir * 10, y: -10 }, 'charge_kill', -dir); fx.spawnKillCallout(other, isFrozen(other) ? 'shatter' : 'crush'); }
       thawBurst(ctx, e, dir, { x: midX, y: midY }, 0, 'crush');
-      fx.playGunSound();
+      fx.playGunSound('thud');
       break;
     } else {
       const massResistance = Math.min(1, Math.max(0.1, 1 - getEnemyMass(e) / 1000));
@@ -1095,7 +1099,7 @@ const resolveShoveCollision = (ctx: FrameContext, e: Enemy, enemies: Enemy[]) =>
       other.pauseTimer = Math.max(other.pauseTimer || 0, e.pauseTimer || 0);
       e.vel.x *= ENEMY_DOMINO_LOSS;
     }
-    fx.playGunSound();
+    fx.playGunSound('thud');
 
     if (other.health <= 0) {
       fx.blowAwayEnemy(other, { x: Math.sign(e.vel.x) * 10, y: -10 }, 'charge_kill', Math.sign(e.vel.x));

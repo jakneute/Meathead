@@ -75,7 +75,7 @@ export const updateDaycare = (ctx: FrameContext, dc: Daycare, controls: Controls
   dc.t++;
   const t = dc.t;
   player.invincibilityTimer = Math.max(player.invincibilityTimer, 2);
-  if (t === FALL_AT) { playSound('nuke'); shakeScreen(state, 60, 5); }
+  if (t === FALL_AT) { playSound('slam'); shakeScreen(state, 60, 5); }
   if (t === HIT_AT) {
     dc.hitAt = state.frame;
     shakeScreen(state, 70, 14);

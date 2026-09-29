@@ -171,7 +171,7 @@ const updateBombs = (ctx: FrameContext, hz: Hazards) => {
     b.t++;
     if (b.t === BOMB_WARN) {
       // Impact
-      playSound('nuke');
+      playSound('boom');
       shakeScreen(state, 12, 6);
       fx.spawnExplosion({ x: b.x, y: b.ground - 10 }, '#F97316', 16, 0, 12);
       fx.spawnExplosion({ x: b.x, y: b.ground - 10 }, '#1C1917', 10, 0, 10);

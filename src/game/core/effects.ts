@@ -214,6 +214,7 @@ export const createFx = (state: GameState) => {
     if (e.kind !== 'tenant') { e.isBlownAway = true; e.vel = vel; }
     else e.health = Math.min(e.health, 0);
     spawnDeathShower(e.pos, showerDir, showerMult);
+    playSound('splat');
     spawnPickup(e.pos);
     speakVulgarity(category);
   };

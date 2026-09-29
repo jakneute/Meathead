@@ -106,7 +106,7 @@ const windUpThrow = (ctx: FrameContext, boss: Enemy) => {
   }
   if (boss.throwWindup! > 0) return;
   throwIceBlock(ctx, boss, boss.isGroundedBoss ? 'ice-big' : 'ice-big-air');
-  ctx.fx.playGunSound('ice');
+  ctx.fx.playGunSound('whoosh');
   if (!boss.isGroundedBoss) boss.stateTimer = 50;
 };
 
@@ -179,7 +179,7 @@ const updateIcicles = (ctx: FrameContext) => {
   const shatter = (i: Icicle) => {
     fx.spawnExplosion({ x: i.x, y: i.y + i.length }, '#E0FFFF', 10, 0, 8);
     fx.spawnExplosion({ x: i.x, y: i.y + i.length }, '#FFFFFF', 6, 0, 5);
-    fx.playGunSound('ice');
+    fx.playGunSound('crack');
   };
   state.icicles = state.icicles.filter(i => {
     i.age++;

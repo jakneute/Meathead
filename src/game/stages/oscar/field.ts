@@ -118,7 +118,7 @@ export const updateField = (ctx: FrameContext, f: Field) => {
   const pit = pitAt(p.pos.x + p.width / 2);
   if (pit && p.pos.y + p.height > pit.surface && state.frame - f.splashAt > 60) {
     f.splashAt = state.frame;
-    playSound('tsunami');
+    playSound('splash');
     for (let i = 0; i < 20; i++) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: pit.surface }, vel: { x: (Math.random() - 0.5) * 7, y: -2 - Math.random() * 7 }, life: 36, color: i % 2 ? '#0C0A09' : '#292524', size: 4 + Math.random() * 5 });
   }
 };

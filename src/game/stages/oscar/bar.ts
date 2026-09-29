@@ -124,14 +124,14 @@ const drinks = (ctx: FrameContext, b: Bar, talk: Talk, controls: Controls): Cont
     state.projectiles = state.projectiles.filter(q => q !== hit);
     if (hit.id.startsWith('p-')) {
       b.open[i] = true; b.progressAt = state.frame;
-      playSound('ice');
+      playSound('clang');
       fx.spawnDamageNumber({ x: B.veins[i].x - 20, y: B.veins[i].y - 30 }, 'PSSST', false, '#D9F99D');
       const left = b.open.filter(o => !o).length;
       if (left > 0 && quiet(talk)) queueLines(state, talk, [{ who: 'meathead', text: left === 2 ? 'ONE.' : 'TWO.' }]);
       else if (left === 0) queueLines(state, talk, [{ who: 'meathead', text: 'THREE. NOW WE WAIT FOR IT.' }]);
     } else if (state.frame - b.gunHintAt > 300) {
       b.gunHintAt = state.frame;
-      playSound('ice');
+      playSound('clang');
       fx.spawnDamageNumber({ x: B.veins[i].x - 20, y: B.veins[i].y - 30 }, 'CLANK', false, '#9CA3AF');
       queueLines(state, talk, [{ who: 'meathead', text: "TOO MUCH GUN. A PISTOL ROUND'LL PUNCTURE IT." }]);
     }
@@ -190,7 +190,7 @@ const lastCall = (ctx: FrameContext, b: Bar, talk: Talk) => {
   hush(state, talk);
   state.blocks = state.blocks.filter(k => k.tag !== 'bar-ceiling' && k.tag !== 'bar-door');
   shakeScreen(state, 90, 26);
-  playSound('nuke'); playSound('ignite'); playSound('screams');
+  playSound('boom'); playSound('ignite'); playSound('screams');
   state.projectiles = state.projectiles.filter(q => q.owner !== 'player');
   p.isFlaming = false;
   p.inCutscene = true;

@@ -51,7 +51,7 @@ export const updateIntro = (ctx: FrameContext, it: Intro, talk: Talk, controls: 
   if (it.phase === 'running') {
     // Legging it for the cab
     it.daleX = Math.min(cabX, it.daleX + 6);
-    if (it.t >= it.spotT + CAB_AT - SPOT_AT) { it.phase = 'driving'; it.goT = it.t; playSound('horn'); shakeScreen(state, 6, 3); }
+    if (it.t >= it.spotT + CAB_AT - SPOT_AT) { it.phase = 'driving'; it.goT = it.t; playSound('truckhorn'); shakeScreen(state, 6, 3); }
   }
   if (it.phase === 'driving') {
     if (it.t >= it.goT + GO_AT - CAB_AT) { it.speed = Math.min(18, it.speed + 0.35); it.truckX += it.speed; }

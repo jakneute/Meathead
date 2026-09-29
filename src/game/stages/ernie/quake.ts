@@ -114,7 +114,7 @@ export const startQuake = (state: GameState, qk: Quakes, frames?: number) => {
   qk.t = qk.dur;
   qk.banner = 0;
   qk.dropTimer = 20;
-  playSound('nuke');
+  playSound('rumble');
 };
 
 /** 0..1: how hard it's shaking right now (eases in and out). */
@@ -232,7 +232,7 @@ const updateDebris = (ctx: FrameContext, qk: Quakes) => {
     if (!d.done && d.y >= d.ground - 6) {
       d.done = true;
       smash(state, d);
-      if (isOnScreen(state.camera, { pos: { x: d.x - 20, y: d.ground - 20 }, width: 40, height: 20 })) playSound('ice');
+      if (isOnScreen(state.camera, { pos: { x: d.x - 20, y: d.ground - 20 }, width: 40, height: 20 })) playSound('crack');
     }
   }
   qk.debris = qk.debris.filter(d => !d.done && d.y < state.camera.y + 1400);
@@ -268,7 +268,7 @@ const updateFaults = (ctx: FrameContext, qk: Quakes) => {
       if (px > f.x - f.trigger && px < f.x + f.w) {
         fs.t = 1;
         if (qk.t < FAULT_WARN + 40) startQuake(state, qk, Math.max(FAULT_WARN + 80, qk.t));
-        playSound('thunder');
+        playSound('rumble');
       }
       return;
     }
@@ -280,7 +280,7 @@ const updateFaults = (ctx: FrameContext, qk: Quakes) => {
       fs.openedAt = state.frame;
       state.blocks = state.blocks.filter(b => b !== fs.block);
       shakeScreen(state, 20, 8);
-      playSound('nuke');
+      playSound('crash');
       for (let k = 0; k < 26; k++) state.particles.push({ pos: { x: f.x + Math.random() * f.w, y: f.y + 4 }, vel: { x: (Math.random() - 0.5) * 3, y: 1 + Math.random() * 5 }, life: 40, color: k % 3 ? '#3B3A3E' : '#57534E', size: 5 + Math.random() * 7 });
       if (isOnScreen(state.camera, { pos: { x: f.x, y: f.y - 40 }, width: f.w, height: 40 })) ctx.fx.spawnDamageNumber({ x: f.x + f.w / 2 - 40, y: f.y - 70 }, 'FAULT LINE!', true, '#F97316');
     }
