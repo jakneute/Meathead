@@ -40,7 +40,8 @@ export interface Handoff { className: string; selector: string; after: number; o
 /** The handoff's beats (ms): the screen underneath settling, the card rising onto its title, the cutscene fading off it. */
 const SETTLE_MS = 550, RISE_MS = 900, FADE_MS = 900;
 
-const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radio?: boolean; handoff?: Handoff; onDone: () => void }> = ({ panels: PANELS, endAt, endCard, radio, handoff, onDone }) => {
+/** `skippable`: a SKIP >> in the corner (and back / Esc) jumps straight to the end card. */
+const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radio?: boolean; handoff?: Handoff; skippable?: boolean; onDone: () => void }> = ({ panels: PANELS, endAt, endCard, radio, handoff, skippable, onDone }) => {
   const LAST = PANELS.length - 1;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [panelIndex, setPanelIndex] = useState(0);
@@ -129,6 +130,16 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
     enterPanel(r.panel + 1);
   };
 
+  /** Straight to the last panel, with its end card up. */
+  const skip = () => {
+    const r = run.current;
+    if (!skippable || r.finished || r.total < INPUT_LOCK_FRAMES) return;
+    if (r.panel !== LAST) enterPanel(LAST);
+    if (r.t < endAt) { r.t = endAt - 1; }
+  };
+  const skipRef = useRef(skip);
+  skipRef.current = skip;
+
   useEffect(() => {
     if (radio) channel.current = openRadio();
     enterPanel(0);
@@ -165,15 +176,21 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
 
   // Keyboard, mouse and gamepad confirm
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') confirm(); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') confirm();
+      else if (e.key === 'Escape' || e.key === 'Backspace') skipRef.current();
+    };
     window.addEventListener('keydown', onKey);
     let padId = 0;
-    let prev = true;
+    let prev = true, prevBack = true;
     const poll = () => {
       const gp = getActiveGamepad();
       const down = !!gp && (isButtonPressed(gp, GP_BUTTONS.A) || isButtonPressed(gp, GP_BUTTONS.START));
       if (down && !prev) confirm();
       prev = down;
+      const back = !!gp && isButtonPressed(gp, GP_BUTTONS.B);
+      if (back && !prevBack) skipRef.current();
+      prevBack = back;
       padId = requestAnimationFrame(poll);
     };
     padId = requestAnimationFrame(poll);
@@ -194,6 +211,12 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
           style={{ position: 'absolute', left: 16, top: 20, width: ART_W * 3, height: ART_H * 3, imageRendering: 'pixelated' }}
         />
       </div>
+      {skippable && !theEnd && (
+        <button onMouseDown={e => { e.stopPropagation(); skip(); }}
+          className="absolute right-4 top-2 z-10 px-2 py-1 text-[9px] text-white/80 hover:text-white bg-black/60 border border-white/30 tracking-wider">
+          SKIP &gt;&gt;
+        </button>
+      )}
       {theEnd && handoff && (
         <div className="absolute left-0 right-0 flex justify-center" style={{ top: 510, transform: `translate(${lift.x}px, ${lift.y}px)`, transition: outro === 'rise' || outro === 'fade' ? `transform ${RISE_MS}ms cubic-bezier(0.65, 0, 0.35, 1)` : undefined }}>
           <h2 ref={titleRef} className={handoff.className}>{endCard}</h2>

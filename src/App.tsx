@@ -4,6 +4,7 @@ import Overlay, { CheatFlags } from './components/Overlay';
 import GameCanvas from './components/GameCanvas';
 import EndingCutscene from './components/EndingCutscene';
 import RadioCutscene from './components/RadioCutscene';
+import IntroCutscene from './components/IntroCutscene';
 import DeployTransition from './components/DeployTransition';
 import WeaponGetScene from './components/WeaponGetScene';
 import { GameStatus, WeaponType } from './types';
@@ -89,6 +90,8 @@ const App: React.FC = () => {
   const [callPreview, setCallPreview] = useState(false);
   /** The call handing off to the stage select (its title rising onto the heading, the call fading off it). */
   const [callOutro, setCallOutro] = useState(false);
+  /** The opening (START GAME + INTRO): playing over the title, then fading off the stage select. */
+  const [intro, setIntro] = useState<'off' | 'playing' | 'outro'>('off');
   /** True between the boss dying and the victory screen; blocks pausing. */
   const [isVictoryPhase, setIsVictoryPhase] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -129,6 +132,8 @@ const App: React.FC = () => {
   // Every visit to stage select starts unlocked, on the current targets
   useEffect(() => {
     if (status !== GameStatus.STAGE_SELECT) { setLockedIndex(null); setEngaging(false); setShowArchive(false); }
+    // (the title opens on START GAME)
+    if (status === GameStatus.START) setSelectedIndex(0);
   }, [status]);
 
   useEffect(() => {
@@ -186,14 +191,18 @@ const App: React.FC = () => {
     }
   };
 
-  /** The "continue" action on the title, boss intro, weapon-gained and final victory screens. */
-  const handleStart = () => {
+  /** The "continue" action on the title, boss intro, weapon-gained and final victory screens. On the title, `withIntro`
+   * says which of its two options (by default, whichever's highlighted). */
+  const handleStart = (withIntro?: boolean) => {
     if (Date.now() - screenShownAtRef.current < MIN_CONFIRM_DELAY_MS) return;
     switch (status) {
       case GameStatus.START:
+        if (intro !== 'off') break;
         setAvailableWeapons(getStartingWeapons(progressionRank, cheats.allWeapons));
         resetLoadout();
-        setStatus(GameStatus.STAGE_SELECT);
+        // (with the intro, it plays first and brings the stage select up itself at the end)
+        if (withIntro ?? selectedIndex === 1) setIntro('playing');
+        else setStatus(GameStatus.STAGE_SELECT);
         break;
       case GameStatus.BOSS_INTRO:
         setStatus(GameStatus.PLAYING);
@@ -357,6 +366,13 @@ const App: React.FC = () => {
 
   /** Moves the menu cursor. Returns false if the input did nothing on this screen. */
   const moveSelection = (dx: number, dy: number): boolean => {
+    if (intro !== 'off') return false;
+    // The title: START GAME, or START GAME + INTRO
+    if (status === GameStatus.START) {
+      if (!dy) return false;
+      setSelectedIndex(i => (i + (dy > 0 ? 1 : -1) + 2) % 2);
+      return true;
+    }
     if (status === GameStatus.STAGE_SELECT) {
       if (dx === 0 && dy === 0) return false;
       if (lockedIndex !== null || engaging) return false; // locked in: back out first
@@ -376,7 +392,7 @@ const App: React.FC = () => {
 
   const confirmSelection = () => {
     // (nothing while the call's still fading off the stage select)
-    if (callOutro) return;
+    if (callOutro || intro !== 'off') return;
     if (status === GameStatus.STAGE_SELECT) { if (lockedIndex === null) lockStage(selectedIndex); else engageStage(); }
     else if (status === GameStatus.PAUSED) { if (confirmLeave) answerBossSelect(confirmYes); else activatePauseItem(selectedIndex); }
     // The weapon screen runs its own firing range: only Start / Esc (handled there) move on
@@ -591,7 +607,8 @@ const App: React.FC = () => {
           availableWeapons={availableWeapons}
           currentWeapon={currentWeapon}
           weaponAmmo={weaponAmmo}
-          onStart={handleStart}
+          onStart={() => handleStart()}
+          onStartGame={(withIntro) => handleStart(withIntro)}
           onResume={handleResume}
           onBossSelect={askBossSelect}
           confirmLeave={confirmLeave}
@@ -614,6 +631,9 @@ const App: React.FC = () => {
           showCall={progressionRank === 0 || callPreview}
         />
         {status === GameStatus.ENDING && <EndingCutscene onDone={handleEndingDone} />}
+        {intro !== 'off' && (
+          <IntroCutscene onHandoff={() => { setIntro('outro'); setSelectedIndex(0); setStatus(GameStatus.STAGE_SELECT); }} onDone={() => setIntro('off')} />
+        )}
         {((status === GameStatus.VICTORY && (progressionRank === 0 || callPreview)) || callOutro) && (
           <RadioCutscene onHandoff={() => { setCallOutro(true); finishVictory(); }} onDone={() => setCallOutro(false)} />
         )}

@@ -32,6 +32,8 @@ interface OverlayProps {
   currentWeapon: WeaponType;
   weaponAmmo: Record<WeaponType, number>;
   onStart: () => void;
+  /** The title's two options: straight in, or the intro first. */
+  onStartGame: (withIntro: boolean) => void;
   onResume: () => void;
   onBossSelect: () => void;
   onQuitToMenu: () => void;
@@ -68,8 +70,6 @@ interface OverlayProps {
   /** The set's victory is the mid-game call (its own cutscene), not the victory screen. */
   showCall?: boolean;
 }
-
-const MISSION_BRIEFING = "Your mission is to kill everything in sight for no particular reason.";
 
 /** Full-screen menus and story screens drawn over the game canvas. */
 const Overlay: React.FC<OverlayProps> = (props) => {
@@ -119,16 +119,26 @@ const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['che
   </div>
 );
 
-const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onStart, cheats, progressionRank }) => (
+const TITLE_OPTIONS = [{ label: 'START GAME', intro: false }, { label: 'START GAME + INTRO', intro: true }];
+
+const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onStartGame, onSelectIndex, selectedIndex, cheats, progressionRank }) => (
   <>
     {cheats && <CheatPanel rank={progressionRank} cheats={cheats} />}
     <div className="animate-in fade-in zoom-in duration-700 max-w-lg relative w-full h-full flex flex-col items-center justify-center pt-1 pb-1">
       <MeatheadCaricature />
-      <h1 className="text-3xl md:text-4xl text-red-600 mb-1 font-black tracking-tighter drop-shadow-[3px_3px_0px_white] shrink-0">MEATHEAD</h1>
-      <div className="text-white text-[8px] md:text-[8.5px] mb-2 border-y border-red-900/80 py-1 px-3 italic uppercase tracking-tight leading-relaxed max-w-sm mx-auto shrink-0">MISSION: {MISSION_BRIEFING}</div>
-      <button disabled={isInputLocked} onClick={onStart} className={`px-8 py-2.5 text-white text-base md:text-lg border-b-[6px] transition-all font-black uppercase ring-2 ring-white/10 shrink-0 ${isInputLocked ? 'bg-gray-700 border-gray-900 opacity-50 cursor-not-allowed' : 'bg-red-700 hover:bg-red-500 border-red-900 active:translate-y-1 active:border-b-0'}`}>
-        {isInputLocked ? 'READYING PUMP...' : 'BEGIN THE PUMP'}
-      </button>
+      <h1 className="text-3xl md:text-4xl text-red-600 mb-3 font-black tracking-tighter drop-shadow-[3px_3px_0px_white] shrink-0">MEATHEAD</h1>
+      <div className="flex flex-col items-center gap-2 shrink-0">
+        {TITLE_OPTIONS.map((o, i) => {
+          const on = selectedIndex === i;
+          return (
+            <button key={o.label} disabled={isInputLocked} onClick={() => onStartGame(o.intro)} onMouseEnter={() => onSelectIndex(i)}
+              className={`relative w-[340px] px-8 py-2 text-white text-sm md:text-base whitespace-nowrap border-b-[5px] transition-all font-black uppercase shrink-0 ${isInputLocked ? 'bg-gray-700 border-gray-900 opacity-50 cursor-not-allowed' : on ? 'bg-red-600 border-red-900 ring-2 ring-yellow-300 active:translate-y-1 active:border-b-0' : 'bg-red-900/70 border-red-950 text-white/70 hover:bg-red-700'}`}>
+              {on && !isInputLocked && <span className="absolute left-3 text-yellow-300 animate-pulse">&#9654;</span>}
+              {isInputLocked && i === 0 ? 'READYING PUMP...' : o.label}
+            </button>
+          );
+        })}
+      </div>
       <ControlsGuide />
     </div>
   </>
