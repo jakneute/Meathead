@@ -14,8 +14,9 @@ import { playSound } from '../../platform/audio';
 import { COURSE, OilPatch, Jet, pitAt } from './course';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 
-/** A patch of oil: burning (frames left of it), whether it's burned off, and (if it pools back) how long till it has. */
-export interface Slick extends OilPatch { burn: number; gone: boolean; back: number }
+/** A patch of oil: burning (frames left of it), whether it's burned off, and (if it pools back) how long till it has;
+ * whether it was him that lit it this time (his flamethrower), or a gas jet. */
+export interface Slick extends OilPatch { burn: number; gone: boolean; back: number; hisFire?: boolean }
 
 /** A jet, and when it came on the screen (it only starts going then, and stops once it's well off it again). */
 export interface LiveJet extends Jet { seen: number }
@@ -85,6 +86,7 @@ export const updateField = (ctx: FrameContext, f: Field) => {
     const byJet = jetsOn.some(j => { const b = jetBox(j); return b.x < o.x2 && b.x + b.w > o.x1 && b.y + b.h > groundLineAt(state.groundRuns, Math.max(o.x1, Math.min(o.x2, b.x + b.w / 2))) - 20; });
     if (byHim || byJet) {
       o.burn = o.kind === 'tar' ? TAR_BURN_FRAMES : BURN_FRAMES;
+      o.hisFire = byHim;
       playSound('ignite');
       if (byHim) fx.spawnDamageNumber({ x: (o.x1 + o.x2) / 2 - 30, y: groundLineAt(state.groundRuns, o.x1) - 60 }, 'IT WENT UP!', true, '#F97316');
     }
@@ -97,7 +99,7 @@ export const updateField = (ctx: FrameContext, f: Field) => {
     const cx = p.pos.x + p.width / 2;
     const g = groundLineAt(state.groundRuns, cx);
     // In the fire: it hurts
-    if (cx > o.x1 && cx < o.x2 && p.pos.y + p.height > g - 30 && state.frame % BURN_EVERY === 0 && p.invincibilityTimer <= 0) hurtPlayer(ctx, BURN_DAMAGE, 'oil_fire', { x: 0, y: -7 });
+    if (cx > o.x1 && cx < o.x2 && p.pos.y + p.height > g - 30 && state.frame % BURN_EVERY === 0 && p.invincibilityTimer <= 0) hurtPlayer(ctx, BURN_DAMAGE, o.hisFire ? 'oil_fire' : 'oil_fire_jet', { x: 0, y: -7 });
     // ...and anything stood in it burns, fast: it goes up with it (a flyer over it's fine)
     for (const e of state.enemies) {
       if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || e.enemyType === 'flyer') continue;

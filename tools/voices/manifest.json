@@ -2787,7 +2787,7 @@
  {
   "voice": "death",
   "text": "AIR CONDITIONED",
-  "from": "game/stages/ernie/quake.ts:300"
+  "from": "game/stages/ernie/quake.ts:301"
  },
  {
   "voice": "death",
@@ -2817,7 +2817,7 @@
  {
   "voice": "death",
   "text": "BAR-B-QUED",
-  "from": "game/stages/victor/hazards.ts:268"
+  "from": "game/stages/victor/hazards.ts:269"
  },
  {
   "voice": "death",
@@ -3032,7 +3032,7 @@
  {
   "voice": "death",
   "text": "CHILLED TO DEATH",
-  "from": "game/stages/ernie/quake.ts:300"
+  "from": "game/stages/ernie/quake.ts:301"
  },
  {
   "voice": "death",
@@ -3117,7 +3117,7 @@
  {
   "voice": "death",
   "text": "CREVASSE: 1, MEATHEAD: 0",
-  "from": "game/stages/artie/ski.ts:422"
+  "from": "game/stages/artie/ski.ts:426"
  },
  {
   "voice": "death",
@@ -3157,7 +3157,7 @@
  {
   "voice": "death",
   "text": "DEATH BY PETUNIA",
-  "from": "game/stages/ernie/quake.ts:299"
+  "from": "game/stages/ernie/quake.ts:300"
  },
  {
   "voice": "death",
@@ -3327,7 +3327,7 @@
  {
   "voice": "death",
   "text": "ELECTROCUTED IN A PARKING LOT",
-  "from": "game/stages/hector/hazards.ts:432"
+  "from": "game/stages/hector/hazards.ts:433"
  },
  {
   "voice": "death",
@@ -3337,7 +3337,7 @@
  {
   "voice": "death",
   "text": "ELECTROCUTED IN THE WATER",
-  "from": "game/stages/hector/hazards.ts:220"
+  "from": "game/stages/hector/hazards.ts:221"
  },
  {
   "voice": "death",
@@ -3377,7 +3377,7 @@
  {
   "voice": "death",
   "text": "FAULT LINE: YOURS",
-  "from": "game/stages/ernie/quake.ts:296"
+  "from": "game/stages/ernie/quake.ts:297"
  },
  {
   "voice": "death",
@@ -3412,7 +3412,7 @@
  {
   "voice": "death",
   "text": "FLASH-FROZEN MEAT POPSICLE",
-  "from": "game/stages/artie/ski.ts:422"
+  "from": "game/stages/artie/ski.ts:426"
  },
  {
   "voice": "death",
@@ -3462,7 +3462,7 @@
  {
   "voice": "death",
   "text": "FORGOT TO BREATHE",
-  "from": "game/stages/hector/hazards.ts:402"
+  "from": "game/stages/hector/hazards.ts:403"
  },
  {
   "voice": "death",
@@ -3522,12 +3522,12 @@
  {
   "voice": "death",
   "text": "GLUB GLUB GLUB",
-  "from": "game/stages/hector/hazards.ts:402"
+  "from": "game/stages/hector/hazards.ts:403"
  },
  {
   "voice": "death",
   "text": "GOD HATES YOU SPECIFICALLY",
-  "from": "game/stages/hector/hazards.ts:430"
+  "from": "game/stages/hector/hazards.ts:431"
  },
  {
   "voice": "death",
@@ -3647,7 +3647,7 @@
  {
   "voice": "death",
   "text": "HOUSEPLANT HOMICIDE",
-  "from": "game/stages/ernie/quake.ts:299"
+  "from": "game/stages/ernie/quake.ts:300"
  },
  {
   "voice": "death",
@@ -3867,7 +3867,7 @@
  {
   "voice": "death",
   "text": "MIND THE GAP",
-  "from": "game/stages/ernie/quake.ts:296"
+  "from": "game/stages/ernie/quake.ts:297"
  },
  {
   "voice": "death",
@@ -3897,7 +3897,7 @@
  {
   "voice": "death",
   "text": "NEVER SWIM IN A LIGHTNING STORM",
-  "from": "game/stages/hector/hazards.ts:220"
+  "from": "game/stages/hector/hazards.ts:221"
  },
  {
   "voice": "death",
@@ -3967,7 +3967,7 @@
  {
   "voice": "death",
   "text": "ONE BRICK SHORT OF A HOUSE",
-  "from": "game/stages/ernie/quake.ts:301"
+  "from": "game/stages/ernie/quake.ts:302"
  },
  {
   "voice": "death",
@@ -4177,7 +4177,7 @@
  {
   "voice": "death",
   "text": "RIVETED",
-  "from": "game/stages/ernie/quake.ts:302"
+  "from": "game/stages/ernie/quake.ts:303"
  },
  {
   "voice": "death",
@@ -4292,7 +4292,7 @@
  {
   "voice": "death",
   "text": "SEAFOOD BOIL",
-  "from": "game/stages/hector/hazards.ts:220"
+  "from": "game/stages/hector/hazards.ts:221"
  },
  {
   "voice": "death",
@@ -4357,7 +4357,7 @@
  {
   "voice": "death",
   "text": "SHOCKINGLY STUPID",
-  "from": "game/stages/hector/hazards.ts:220"
+  "from": "game/stages/hector/hazards.ts:221"
  },
  {
   "voice": "death",
@@ -4462,7 +4462,7 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE TAKEN SWIM LESSONS",
-  "from": "game/stages/hector/hazards.ts:402"
+  "from": "game/stages/hector/hazards.ts:403"
  },
  {
   "voice": "death",
@@ -4507,7 +4507,7 @@
  {
   "voice": "death",
   "text": "SKIED INTO THE ABYSS",
-  "from": "game/stages/artie/ski.ts:422"
+  "from": "game/stages/artie/ski.ts:426"
  },
  {
   "voice": "death",
@@ -4537,7 +4537,7 @@
  {
   "voice": "death",
   "text": "SLEEPING WITH THE FISHES",
-  "from": "game/stages/hector/hazards.ts:402"
+  "from": "game/stages/hector/hazards.ts:403"
  },
  {
   "voice": "death",
@@ -4592,7 +4592,7 @@
  {
   "voice": "death",
   "text": "SOUP OF THE DAY: MEAT",
-  "from": "game/stages/victor/hazards.ts:264"
+  "from": "game/stages/victor/hazards.ts:265"
  },
  {
   "voice": "death",
@@ -4697,7 +4697,7 @@
  {
   "voice": "death",
   "text": "SWALLOWED BY THE EARTH",
-  "from": "game/stages/ernie/quake.ts:296"
+  "from": "game/stages/ernie/quake.ts:297"
  },
  {
   "voice": "death",
@@ -4802,7 +4802,7 @@
  {
   "voice": "death",
   "text": "THE GROUND ATE YOU",
-  "from": "game/stages/ernie/quake.ts:296"
+  "from": "game/stages/ernie/quake.ts:297"
  },
  {
   "voice": "death",
@@ -4832,7 +4832,7 @@
  {
   "voice": "death",
   "text": "THE MOUNTAIN WON",
-  "from": "game/stages/artie/ski.ts:422"
+  "from": "game/stages/artie/ski.ts:426"
  },
  {
   "voice": "death",
@@ -5042,7 +5042,7 @@
  {
   "voice": "death",
   "text": "YOU GOT AVALANCHED",
-  "from": "game/stages/artie/ski.ts:422"
+  "from": "game/stages/artie/ski.ts:426"
  },
  {
   "voice": "death",
@@ -5057,17 +5057,17 @@
  {
   "voice": "dispatch",
   "text": "DAVE?",
-  "from": "game/stages/artie/ski.ts:121"
+  "from": "game/stages/artie/ski.ts:122"
  },
  {
   "voice": "dispatch",
   "text": "DAVE? YOU GOOD, DAVE?",
-  "from": "game/stages/artie/ski.ts:121"
+  "from": "game/stages/artie/ski.ts:122"
  },
  {
   "voice": "dispatch",
   "text": "RANGER ONE, COME IN.",
-  "from": "game/stages/artie/ski.ts:121"
+  "from": "game/stages/artie/ski.ts:122"
  },
  {
   "voice": "doorman",
@@ -5567,7 +5567,7 @@
  {
   "voice": "meathead",
   "text": "...OH SHIT.",
-  "from": "game/stages/artie/ski.ts:95"
+  "from": "game/stages/artie/ski.ts:96"
  },
  {
   "voice": "meathead",
@@ -8292,7 +8292,7 @@
  {
   "voice": "meathead",
   "text": "MINE NOW.",
-  "from": "game/stages/artie/ski.ts:95"
+  "from": "game/stages/artie/ski.ts:96"
  },
  {
   "voice": "meathead",
@@ -8537,7 +8537,7 @@
  {
   "voice": "meathead",
   "text": "NICE SKIS.",
-  "from": "game/stages/artie/ski.ts:95"
+  "from": "game/stages/artie/ski.ts:96"
  },
  {
   "voice": "meathead",
@@ -9247,7 +9247,7 @@
  {
   "voice": "meathead",
   "text": "SHOULD'VE BUILT FURTHER UP.",
-  "from": "game/stages/artie/ski.ts:95"
+  "from": "game/stages/artie/ski.ts:96"
  },
  {
   "voice": "meathead",
@@ -9931,6 +9931,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE GAS LIT THE GROUND! WHO PUTS GAS NEXT TO OIL?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "THE GROUND IS ON FIRE!",
   "from": "HAZARD_HURT"
  },
@@ -10227,7 +10232,7 @@
  {
   "voice": "meathead",
   "text": "UGH... MY EVERYTHING.",
-  "from": "game/stages/tommy/runtime.ts:135"
+  "from": "game/stages/tommy/runtime.ts:136"
  },
  {
   "voice": "meathead",
@@ -11077,17 +11082,17 @@
  {
   "voice": "skier",
   "text": "AAAAAAAAAAHHHHH",
-  "from": "game/stages/artie/ski.ts:105"
+  "from": "game/stages/artie/ski.ts:106"
  },
  {
   "voice": "skier",
   "text": "BRO. THE POWDER UP HERE IS SICK.",
-  "from": "game/stages/artie/ski.ts:105"
+  "from": "game/stages/artie/ski.ts:106"
  },
  {
   "voice": "skier",
   "text": "THANKS, THEY'RE CARBON FIB-",
-  "from": "game/stages/artie/ski.ts:105"
+  "from": "game/stages/artie/ski.ts:106"
  },
  {
   "voice": "tommy.crew",

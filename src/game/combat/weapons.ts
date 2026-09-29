@@ -39,6 +39,21 @@ const gml = (v: number) => v * GML_SCALE;
 const pointInSolid = (state: GameState, x: number, y: number, down = true) =>
   state.blocks.some(b => b.type !== 'pit' && b.type !== 'door' && !(b.oneWay && !down) && x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h);
 
+/** What the LMG's cone leans toward: the middle of the nearest enemy out in front (the way he's shooting), on screen. */
+const lmgTarget = (state: GameState, from: { x: number; y: number }, facing: number) => {
+  let best: { x: number; y: number } | null = null, bestD = Infinity;
+  for (const e of state.enemies) {
+    if (e.health <= 0 || e.isBlownAway || e.harmless || e.innocent) continue;
+    const x = e.pos.x + e.width / 2, y = e.pos.y + e.height / 2;
+    const dx = (x - from.x) * facing;
+    if (dx < 20 || dx > CANVAS_WIDTH) continue;
+    if (x < state.camera.x || x > state.camera.x + CANVAS_WIDTH) continue;
+    const d = Math.hypot(dx, y - from.y);
+    if (d < bestD) { bestD = d; best = { x, y }; }
+  }
+  return best;
+};
+
 /**
  * Fires the player's current weapon (called when fire is held and off cooldown).
  * The taser is special: this only starts it; core/update.ts keeps it running.
@@ -67,8 +82,13 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
       break;
 
     case 'LMG': {
-      // A hose of lead: a round every few frames, each one anywhere in a wide cone (carried along with him: he's on a bike)
-      const a = (Math.random() * 2 - 1) * LMG_SPREAD_DEG * Math.PI / 180;
+      // A hose of lead: a round every few frames, each one anywhere in a wide cone (carried along with him: he's on a bike).
+      // The cone swings toward the height of whatever's nearest out the way he's shooting (up on a ledge, down in a ditch,
+      // on the road): still all over the place, but the bulk of it goes where they are
+      const spread = LMG_SPREAD_DEG * Math.PI / 180;
+      const t = lmgTarget(state, muzzle, facing);
+      const center = t ? Math.max(-spread, Math.min(spread, Math.atan2(t.y - muzzle.y, Math.abs(t.x - muzzle.x)))) : 0;
+      const a = center + (Math.random() * 2 - 1) * spread * (t ? 0.7 : 1);
       addProjectile({
         id: `lmg-${Date.now()}-${Math.random()}`,
         pos: fromMuzzle(16, 6),

@@ -176,6 +176,7 @@ export const DEATH_LINES: Record<string, string[]> = {
   chopper: ['CHAINED AT SIXTY MILES AN HOUR', 'LAID DOWN THE BIKE'],
   gas_jet: ['GASSED', 'FLARED'],
   oil_fire: ['BURNED IN THE OIL', 'FOSSIL FUELED'],
+  oil_fire_jet: ['BURNED IN THE OIL', 'FOSSIL FUELED'],
   oil: ['DROWNED IN CRUDE', 'A BARREL A DAY'],
   fire: ['BURNED ALIVE', 'OIL FIRE'],
 
