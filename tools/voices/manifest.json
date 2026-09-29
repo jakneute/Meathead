@@ -1701,17 +1701,7 @@
  },
  {
   "voice": "dale.goon",
-  "text": "goon",
-  "from": "game/stages/dale/convoy.ts:478"
- },
- {
-  "voice": "dale.goon",
   "text": "HELLO? ANYBODY BACK HERE?",
-  "from": "game/stages/dale/convoy.ts:478"
- },
- {
-  "voice": "dale.goon",
-  "text": "meathead",
   "from": "game/stages/dale/convoy.ts:478"
  },
  {
@@ -3556,11 +3546,6 @@
  },
  {
   "voice": "meathead",
-  "text": "goon",
-  "from": "game/stages/dale/convoy.ts:478"
- },
- {
-  "voice": "meathead",
   "text": "GORED BY A LONGHORN! RIGHT IN THE GLUTES!",
   "from": "HAZARD_HURT"
  },
@@ -4773,11 +4758,6 @@
   "voice": "meathead",
   "text": "MAX TONNAGE",
   "from": "VULGARITIES"
- },
- {
-  "voice": "meathead",
-  "text": "meathead",
-  "from": "game/stages/dale/convoy.ts:478"
  },
  {
   "voice": "meathead",

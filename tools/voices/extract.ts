@@ -145,7 +145,12 @@ for (const file of files) {
     if (ts.isBinaryExpression(e) && (e.operatorToken.kind === ts.SyntaxKind.BarBarToken || e.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken)) return [...s(e.left), ...s(e.right)];
     if (ts.isArrayLiteralExpression(e)) return e.elements.flatMap(x => s(ts.isSpreadElement(x) ? x.expression : x as ts.Expression));
     if (ts.isSpreadElement(e)) return s(e.expression);
-    if (ts.isObjectLiteralExpression(e)) return e.properties.flatMap(p => ts.isPropertyAssignment(p) ? s(p.initializer) : []);
+    if (ts.isObjectLiteralExpression(e)) {
+      // (a line, { who, text }: just its text; any other table: everything in it)
+      const text = e.properties.find(p => ts.isPropertyAssignment(p) && ts.isIdentifier(p.name) && p.name.text === 'text');
+      if (text && ts.isPropertyAssignment(text)) return s(text.initializer);
+      return e.properties.flatMap(p => ts.isPropertyAssignment(p) ? s(p.initializer) : []);
+    }
     if (ts.isCallExpression(e)) {
       const n = calleeName(e);
       // (picking one of a list: any of them)

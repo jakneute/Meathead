@@ -5,31 +5,18 @@ went into them (tools/voices/cache), so a run only records lines that are new or
 
   tools/voices/.venv/Scripts/python.exe tools/voices/generate.py [--limit N] [--only VOICE]
 """
-import hashlib, json, os, re, sys, struct, time
+import json, os, re, sys, struct, time
 import numpy as np
 import soundfile as sf
 from kokoro_onnx import Kokoro
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
-CACHE = os.path.join(HERE, 'cache')
-OUT = os.path.join(ROOT, 'src', 'generated', 'voices.bin')
+from voicelib import HERE, ROOT, CACHE, OUT, cast, lines, spec_of, key_of
 os.makedirs(CACHE, exist_ok=True)
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 
 args = sys.argv[1:]
 limit = int(args[args.index('--limit') + 1]) if '--limit' in args else None
 only = args[args.index('--only') + 1] if '--only' in args else None
-
-cast = {k: v for k, v in json.load(open(os.path.join(HERE, 'cast.json'), encoding='utf-8')).items() if not k.startswith('_')}
-manifest = json.load(open(os.path.join(HERE, 'manifest.json'), encoding='utf-8'))
-extras = json.load(open(os.path.join(HERE, 'extras.json'), encoding='utf-8')) if os.path.exists(os.path.join(HERE, 'extras.json')) else []
-lines = manifest + extras
-
-def spec_of(v):
-    s = cast.get(v)
-    while s and 'alias' in s: s = cast.get(s['alias'])
-    return s
 
 kokoro = None
 SR = 24000
@@ -38,6 +25,10 @@ SR = 24000
 KEEP = {'ID', 'FBI', 'DEA', 'TV', 'USA', 'NYC', 'OK', 'DJ', 'VIP', 'SUV', 'LMG', 'IQ', 'UFO', 'CEO', 'ATM', 'HR', 'R&D', 'AC/DC', 'NOAA', 'CPR', 'DNA', 'EPA', 'RV', 'OD', 'NASA', 'AM', 'PM', 'GPS'}
 def speakable(text):
     t = text.replace('*', '').replace('…', '...').strip()
+    # A held-out word ("AAAAAAH", "NOOOOO", "NOTHIIIING"): the model reads a long run of one letter as gibberish,
+    # so it gets two of it, and a pure scream is just "Aaah!"
+    t = re.sub(r'\b[Aa]{3,}[Hh]*\b', 'Aaah', t)
+    t = re.sub(r'([A-Za-z])\1{2,}', r'\1\1', t)
     words = re.split(r'(\s+)', t)
     out = []
     for w in words:
@@ -92,10 +83,6 @@ def finish(x):
     f = min(len(x), int(0.01 * SR))
     if f: x[:f] *= np.linspace(0, 1, f); x[-f:] *= np.linspace(1, 0, f)
     return x
-
-def key_of(line, spec):
-    blob = json.dumps({'t': line['text'], 's': spec, 'v': 4}, sort_keys=True)
-    return hashlib.sha1(blob.encode('utf-8')).hexdigest()
 
 todo = [l for l in lines if (not only or l['voice'] == only)]
 missing_cast = sorted({l['voice'] for l in todo if not spec_of(l['voice'])})
