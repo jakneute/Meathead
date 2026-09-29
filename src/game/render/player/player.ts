@@ -5,7 +5,7 @@ import { SLIDE_HOLD } from '../../combat/muzzle';
 import { drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive, drawStandingKick, drawPedalLegs, drawLedgeDrop } from './moves';
 import { KICK_POSE_FRAMES, LEDGE_DROP_FRAMES } from '../../../constants';
 import { GameState } from '../../core/state';
-import { beginSprite, endSprite } from './spriteOutline';
+import { beginSprite, endSprite, markEyes, eyesAt } from './spriteOutline';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawTorsoBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
 
 export interface PlayerDrawOptions {
@@ -123,10 +123,14 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // (sooted: black all over, fading back, just the whites of his eyes and a wisp of smoke off him)
     const soot = p.sootTimer && p.sootTimer > 0 ? Math.min(1, p.sootTimer / SOOT_FADE) : 0;
     if (sprite) endSprite(world, anchorX, anchorY, p.suit ? SUIT_TINT : soot > 0 ? `rgba(24, 20, 18, ${0.9 * soot})` : undefined);
+    const eye = eyesAt(anchorX, anchorY);
     if (soot > 0 && !p.suit) {
-      const faceY = anchorY - (p.isDucking ? 42 : 58), dir = p.facing;
       world.globalAlpha = soot;
-      world.fillStyle = '#F8FAFC'; world.fillRect(anchorX + dir * 5 - 1, faceY - 2, 3, 2); world.fillRect(anchorX + dir * 10 - 1, faceY - 2, 2, 2);
+      if (eye) {
+        world.save(); world.translate(eye.x, eye.y); world.rotate(eye.angle);
+        world.fillStyle = '#F8FAFC'; world.fillRect(-6, -1, 3, 2); world.fillRect(3, -1, 3, 2);
+        world.restore();
+      }
       for (let i = 0; i < 3; i++) {
         const t = ((state.frame + i * 23) % 70) / 70;
         world.fillStyle = `rgba(68, 64, 60, ${0.45 * (1 - t) * soot})`;
@@ -134,11 +138,12 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       }
       world.globalAlpha = 1;
     }
-    if (p.suit) {
-      // The hood's visor, where his face is (lower when he's ducked down)
-      const faceY = anchorY - (p.isDucking ? 42 : 58), dir = p.facing;
-      world.fillStyle = 'rgba(31, 41, 55, 0.9)'; world.fillRect(anchorX + (dir > 0 ? -1 : -13), faceY - 3, 14, 7);
-      world.fillStyle = 'rgba(163, 230, 53, 0.35)'; world.fillRect(anchorX + (dir > 0 ? 1 : -11), faceY - 2, 10, 2);
+    if (p.suit && eye) {
+      // The hood's visor, right over his eyes (whichever way he's facing, however he's posed: swimming, ducked, mid-move)
+      world.save(); world.translate(eye.x, eye.y); world.rotate(eye.angle);
+      world.fillStyle = 'rgba(31, 41, 55, 0.9)'; world.fillRect(-9, -4, 18, 8);
+      world.fillStyle = 'rgba(163, 230, 53, 0.35)'; world.fillRect(-7, -3, 14, 2);
+      world.restore();
     }
   };
 
@@ -745,6 +750,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const eyeY = headY - 4;
   const lEyeX = headX - 5;
   const rEyeX = headX + 4;
+  markEyes(ctx, (lEyeX + rEyeX) / 2, eyeY);
 
   if (p.bossKillSatisfactionTimer > 0) {
     // Glowing Demonic Red Eyes of Doom

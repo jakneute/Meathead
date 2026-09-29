@@ -44,8 +44,27 @@ export const beginSprite = (world: CanvasRenderingContext2D): CanvasRenderingCon
   b.globalAlpha = 1;
   b.filter = 'none';
   b.setTransform(res, 0, 0, res, ORIGIN_X * res, ORIGIN_Y * res);
+  eyes = null;
   return b;
 };
+
+/**
+ * Where his eyes ended up in the sprite (the middle of the pair), however he's posed, turned or tilted: noted as the
+ * face is drawn, for putting things over them afterwards (a hazmat hood's visor, soot round them).
+ */
+let eyes: { x: number; y: number; angle: number; flip: boolean } | null = null;
+export const markEyes = (ctx: CanvasRenderingContext2D, x: number, y: number) => {
+  if (!body || ctx.canvas !== body) return;
+  const m = ctx.getTransform();
+  const pt = m.transformPoint(new DOMPoint(x, y));
+  const flip = m.a * m.d - m.b * m.c < 0;
+  // (the tilt of the head: which way its "along" runs, righted when he's facing left)
+  const angle = flip ? Math.atan2(-m.b, -m.a) : Math.atan2(m.b, m.a);
+  eyes = { x: pt.x, y: pt.y, angle, flip };
+};
+/** Where his eyes are in the world (the sprite stamped with its feet at (x, y)), or null if the face wasn't drawn. */
+export const eyesAt = (x: number, y: number) =>
+  eyes ? { x: x + (eyes.x - ORIGIN_X * res) / res, y: y + (eyes.y - ORIGIN_Y * res) / res, angle: eyes.angle } : null;
 
 /**
  * Where to draw a soft glow: the sprite's glow layer (with the caller's current

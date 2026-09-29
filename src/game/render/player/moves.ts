@@ -15,7 +15,7 @@ const BELT = '#78350F';
 const BUCKLE = '#FACC15';
 const WRISTBAND = '#09090B';
 
-import { glowLayer } from './spriteOutline';
+import { glowLayer, markEyes } from './spriteOutline';
 import { drawHeadBlood, drawTorsoBlood, drawBeatenUp, getGore } from './gore';
 
 type Ctx = CanvasRenderingContext2D;
@@ -103,6 +103,7 @@ const torso = (ctx: Ctx) => {
 
 /** Meathead's head centred on (hx, hy): flat-top, rage vein, furrowed brows. */
 const head = (ctx: Ctx, hx: number, hy: number, mouth: 'grit' | 'roar') => {
+  markEyes(ctx, hx - 0.5, hy - 4);
   ctx.fillStyle = SKIN;
   ctx.beginPath(); ctx.roundRect(hx - 10, hy - 12, 20, 20, [4, 4, 3, 3]); ctx.fill();
   ctx.fillStyle = 'rgba(120, 53, 15, 0.25)';
