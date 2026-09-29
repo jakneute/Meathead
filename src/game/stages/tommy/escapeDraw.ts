@@ -134,9 +134,10 @@ const drawFamilyScene = (ctx: Ctx, state: GameState, rt: TommyRuntime, t: number
   // The window: sky, and the tower in it, coming over and filling it
   ctx.fillStyle = '#5B3A29'; ctx.fillRect(470, 90, 230, 170);
   ctx.fillStyle = '#F59E4B'; ctx.fillRect(480, 100, 210, 150);
+  // (coming straight at the window: bigger and bigger in it, dropping as it comes, till the tank fills it)
   ctx.save(); ctx.beginPath(); ctx.rect(480, 100, 210, 150); ctx.clip();
-  const lean = 0.25 + dark * 1.0;
-  drawWaterTower(ctx, 560, 420, 1.1 + dark * 0.8, 0.9, lean, true);
+  const come = dark * dark;
+  towerByTank(ctx, 585, 150 + come * 40, 0.55 + come * 1.9, 0.08 + come * 0.22);
   ctx.restore();
   ctx.fillStyle = '#5B3A29'; ctx.fillRect(582, 100, 6, 150); ctx.fillRect(480, 172, 210, 6);
   // The TV (a sitcom, a laugh track), a lamp
@@ -176,9 +177,18 @@ const drawFamilyScene = (ctx: Ctx, state: GameState, rt: TommyRuntime, t: number
   // The roof coming in: the tank through it, the water after it, filling the room
   if (crushT > 0) {
     const k = clamp01(crushT / 40);
-    ctx.fillStyle = '#6B7280'; ctx.beginPath(); ctx.ellipse(430, -260 + k * 420, 330, 180, 0.2, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#1E3A8A'; ctx.font = 'bold 40px "Press Start 2P"'; ctx.save(); ctx.translate(360, -200 + k * 420); ctx.rotate(0.2); ctx.fillText('FLINT', -60, 0); ctx.restore();
-    for (let i = 0; i < 18; i++) { ctx.fillStyle = i % 2 ? '#78716C' : '#A8A29E'; ctx.fillRect(hash(i) * W, -40 + k * (200 + hash(i * 3) * 300), 20 + hash(i * 5) * 30, 12); }
+    // In through the window and the wall round it: the tank, huge, straight on from where the window was, down into the room
+    const ease = 1 - (1 - k) * (1 - k);
+    towerByTank(ctx, 585 - ease * 190, 175 + ease * 190, 2.4 + ease * 2.2, 0.3 + ease * 0.25);
+    // The window's glass and the wall round it, blown in ahead of it
+    for (let i = 0; i < 18; i++) {
+      const sx = 480 + hash(i) * 210, sy = 100 + hash(i * 3) * 150;
+      const dx = (sx - 585) * (1 + k * 3) - k * 60, dy = k * (160 + hash(i * 5) * 300);
+      ctx.save(); ctx.translate(585 + dx, sy + dy); ctx.rotate(k * (hash(i * 7) - 0.5) * 8);
+      ctx.fillStyle = i % 3 === 0 ? 'rgba(191, 219, 254, 0.8)' : i % 3 === 1 ? '#78716C' : '#5B3A29';
+      ctx.fillRect(-10 - hash(i * 9) * 12, -6, 20 + hash(i * 9) * 24, 12);
+      ctx.restore();
+    }
     const flood = clamp01((crushT - 20) / 80);
     ctx.fillStyle = 'rgba(92, 104, 36, 0.82)'; ctx.fillRect(0, H - flood * 380, W, flood * 380);
     ctx.fillStyle = 'rgba(217, 249, 157, 0.6)'; for (let i = 0; i < 12; i++) { const x = (i * 71 + crushT * 5) % W; ctx.beginPath(); ctx.arc(x, H - flood * 380 + 4, 4, 0, Math.PI * 2); ctx.fill(); }
@@ -195,6 +205,15 @@ const drawFamilyScene = (ctx: Ctx, state: GameState, rt: TommyRuntime, t: number
   }
   bubble(ctx, state, 'dad', 300, 300); bubble(ctx, state, 'mom', 400, 300); bubble(ctx, state, 'kid', 490, 330);
   void rt;
+};
+
+/**
+ * The water tower placed by the middle of its tank (x, y), at scale s and leaning over by tilt: legs, tank, roof and
+ * all, FLINT on the side. (For it coming at the window, and in through it.)
+ */
+const towerByTank = (ctx: Ctx, x: number, y: number, s: number, tilt: number) => {
+  const TANK = 188; // (how far up the tower the tank's middle is)
+  drawWaterTower(ctx, x - Math.sin(tilt) * TANK * s, y + Math.cos(tilt) * TANK * s, s, 0.9, tilt, false);
 };
 
 /** Whoever's talking in a cut scene, over them (screen space). */
