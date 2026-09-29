@@ -15,6 +15,7 @@ import { rectsOverlap, boundsOf } from '../../core/utils';
 import { say, MEATHEAD_VOICE, Voice, holdForSpeech } from '../../platform/speech';
 import { playSound, playSquelch } from '../../platform/audio';
 import { groundLineAt } from '../../core/terrain';
+import { deathByCause } from '../../core/deathCause';
 import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES } from '../../../constants';
 import { COURSE, CP, SkiObstacle } from './course';
 
@@ -416,6 +417,9 @@ const finale = (ctx: FrameContext, ski: Ski): Controls => {
 export const skiDeathMessage = (state: GameState, ski: Ski): string | undefined => {
   if (ski.phase !== 'skiing') return undefined;
   const fell = state.player.health > 0;
+  // (something in particular got him: a log, a branch, the avalanche: that, over the mountain in general)
+  const cause = fell ? undefined : deathByCause(state);
+  if (cause) return cause;
   const lines = fell
     ? ['SKIED INTO THE ABYSS', 'CREVASSE: 1, MEATHEAD: 0']
     : ['BURIED ALIVE', 'FLASH-FROZEN MEAT POPSICLE', 'THE MOUNTAIN WON', 'YOU GOT AVALANCHED'];

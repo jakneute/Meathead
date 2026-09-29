@@ -5,14 +5,26 @@ import type { GameState } from './state';
 import { DEATH_LINES, BOSS_DEATH_LINES, FALL_DEATH_LINES } from '../../content/deaths';
 import { pickRandom } from './utils';
 
-/** How recently he has to have been hurt by it for it to be what killed him (frames). */
-const RECENT = 120;
+/**
+ * How recently he has to have been hurt by it for it to be what killed him (frames). Everything that hurts him says so
+ * the moment it does, and he's dead the moment his health runs out, so what killed him was hurt-recorded just now:
+ * anything older was something before it (a machete a second ago, then a one-shot kill that set nothing: that's not
+ * the machete's kill). A few frames' grace for a death that's checked a frame or two later.
+ */
+const RECENT = 8;
+
+/** Was this (a hurt recorded on frame `at`) just now, the hurt that killed him? */
+export const hurtJustNow = (state: GameState, at: number) => state.frame - at >= 0 && state.frame - at <= RECENT;
+
+/** Is the last thing that hurt him the one that was recorded on frame `at` (nothing's hurt him since)? A stage's own
+ * lines for one of its hazards only if it's the hazard that did it. */
+export const lastHurtWas = (state: GameState, at: number) => !!state.lastHurt && state.lastHurt.at === at && hurtJustNow(state, at);
 
 /** What killed him, if it's known (not the fall, not a boss fight in general). */
 export const deathByCause = (state: GameState): string | undefined => {
   const h = state.lastHurt;
   // (still in one piece: it was the fall, or a set piece, that got him, not what hurt him last)
-  if (!h || state.frame - h.at > RECENT || state.player.health > 0) return undefined;
+  if (!h || !hurtJustNow(state, h.at) || state.player.health > 0) return undefined;
   const lines = DEATH_LINES[h.source] ?? BOSS_DEATH_LINES[h.source];
   return lines ? pickRandom(lines) : undefined;
 };

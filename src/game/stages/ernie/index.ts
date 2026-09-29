@@ -2,6 +2,7 @@
 // the game state and hooks its quakes, the bridge, the jet ski, the tour and its
 // drawing into the engine.
 
+import { deathByCause } from '../../core/deathCause';
 import type { StageLayout } from '../index';
 import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH } from '../../../constants';
 import { groundBlocks } from '../../core/terrain';
@@ -52,7 +53,8 @@ export const ernieLayout: StageLayout = {
   deathMessage: ctx => {
     const rt = getErnie(ctx.state);
     if (!rt) return undefined;
-    return skiDeathMessage(rt.ski) ?? quakeDeathMessage(ctx.state, rt.quakes);
+    // (what got him in particular first: a jet skier, a gull; the bay's only the catch-all out there)
+    return quakeDeathMessage(ctx.state, rt.quakes) ?? deathByCause(ctx.state) ?? skiDeathMessage(rt.ski);
   },
   drawBack: (ctx, state) => { if (getErnie(state)) drawErnieBack(ctx, state); },
   drawMid: (ctx, state) => { if (getErnie(state)) drawErnieMid(ctx, state); },

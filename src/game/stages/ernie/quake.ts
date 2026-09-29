@@ -16,6 +16,7 @@
 import type { Block } from '../../../types';
 import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
+import { lastHurtWas } from '../../core/deathCause';
 import { shakeScreen } from '../../core/state';
 import { hurtPlayer } from '../../bosses/shared';
 import { playSound } from '../../platform/audio';
@@ -294,7 +295,7 @@ export const faultAmount = (qk: Quakes, i: number) => (qk.faults[i].open ? 1 : q
 export const quakeDeathMessage = (state: GameState, qk: Quakes): string | undefined => {
   const pick = (l: string[]) => l[Math.floor(Math.random() * l.length)];
   if (state.player.health > 0 && qk.nearFault >= 0) return pick(['SWALLOWED BY THE EARTH', 'MIND THE GAP', 'FAULT LINE: YOURS', 'THE GROUND ATE YOU']);
-  if (state.frame - qk.lastCauseAt < 20 && qk.lastCause === 'falling_debris') {
+  if (qk.lastCause === 'falling_debris' && lastHurtWas(state, qk.lastCauseAt)) {
     switch (qk.lastLook) {
       case 'pot': return pick(['KILLED BY A FLOWERPOT', 'HOUSEPLANT HOMICIDE', 'DEATH BY PETUNIA']);
       case 'ac': return pick(['AIR CONDITIONED', 'CHILLED TO DEATH']);

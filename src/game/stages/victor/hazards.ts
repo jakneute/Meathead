@@ -18,6 +18,7 @@
 import type { Block, Enemy } from '../../../types';
 import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
+import { lastHurtWas } from '../../core/deathCause';
 import { shakeScreen } from '../../core/state';
 import { hurtPlayer } from '../../bosses/shared';
 import { playSound } from '../../platform/audio';
@@ -258,7 +259,7 @@ const updateRafts = (state: GameState, hz: Hazards) => {
 
 /** A death message for how he just died here, if a hazard did it. */
 export const hazardDeathMessage = (state: GameState, hz: Hazards): string | undefined => {
-  if (state.frame - hz.lastCauseAt > 20) return undefined;
+  if (!lastHurtWas(state, hz.lastCauseAt)) return undefined;
   const pick = (l: string[]) => l[Math.floor(Math.random() * l.length)];
   switch (hz.lastCause) {
     case 'lava': return pick(['MELTED', 'HOT FOOT, COLD BODY', 'SOUP OF THE DAY: MEAT']);

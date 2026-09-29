@@ -2,6 +2,7 @@
 // sewer, the thing in the cistern, the way out, and the fades between them.
 // Rebuilt with the level on every (re)spawn; the checkpoint says what's behind you.
 
+import { deathByCause } from '../../core/deathCause';
 import type { GameState } from '../../core/state';
 import type { FrameContext } from '../../core/context';
 import type { Controls } from '../../platform/input';
@@ -162,5 +163,6 @@ export const fadeAmount = (rt: TommyRuntime) => {
 export const tommyDeathMessage = (ctx: FrameContext): string | undefined => {
   const rt = getTommy(ctx.state);
   if (!rt) return undefined;
-  return bikeDeathMessage(rt.bike) ?? thingDeathMessage(rt.thing) ?? escapeDeathMessage(rt.escape);
+  // (what got him in particular first; the ride and the rest are the catch-alls)
+  return deathByCause(ctx.state) ?? bikeDeathMessage(rt.bike) ?? thingDeathMessage(rt.thing) ?? escapeDeathMessage(rt.escape);
 };

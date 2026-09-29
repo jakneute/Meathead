@@ -21,6 +21,7 @@
 import type { Block, Enemy } from '../../../types';
 import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
+import { lastHurtWas } from '../../core/deathCause';
 import { shakeScreen } from '../../core/state';
 import { hurtPlayer } from '../../bosses/shared';
 import { SWIM_LEAP, PLAYER_GRAVITY, GROUND_Y } from '../../../constants';
@@ -424,7 +425,7 @@ const WET_LIMIT = 360;
 
 /** A death message for how he just died here, if a hazard did it. */
 export const hazardDeathMessage = (state: GameState, hz: Hazards): string | undefined => {
-  if (state.frame - hz.lastCauseAt > 20) return undefined;
+  if (!lastHurtWas(state, hz.lastCauseAt)) return undefined;
   const pick = (l: string[]) => l[Math.floor(Math.random() * l.length)];
   switch (hz.lastCause) {
     case 'lightning': return pick(['STRUCK BY LIGHTNING', 'EXTRA CRISPY', 'GOD HATES YOU SPECIFICALLY']);
