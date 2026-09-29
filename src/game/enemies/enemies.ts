@@ -923,12 +923,20 @@ const CHARGE_WALL_BONUS = 45, CHARGE_WALL_WINDOW = 45;
 /** How long a held charge can keep driving a shield goon back (most of a second more), and how long he's reeling after. */
 const SHIELD_SHOVE_FRAMES = 50, SHIELD_SHOVE_RECOVER = 55;
 
-/** A wall (or a shut door) the enemy's body is up against or into (its feet and head aside: floors and ceilings don't count). */
+/**
+ * A wall (or a shut door) the enemy's body is up against or into (its feet and head aside: floors and ceilings don't
+ * count); or the side of anything solid too tall to step up onto (a conveyor belt, a raised floor: he isn't pushed
+ * into it).
+ */
 const wallAgainst = (state: FrameContext['state'], e: Enemy) => {
   const box = { x: e.pos.x, y: e.pos.y + 6, w: e.width, h: e.height - 16 };
   const doorShut = state.doorState !== 'opening' && state.doorState !== 'open' && state.doorState !== 'closing';
-  return state.blocks.find(b => (b.type === 'wall' || (b.type === 'door' && doorShut)) && rectsOverlap(box, b));
+  const feet = e.pos.y + e.height;
+  return state.blocks.find(b => rectsOverlap(box, b) && (b.type === 'wall' || (b.type === 'door' && doorShut)
+    || ((b.type === 'ground' || b.type === 'platform') && !b.oneWay && b.y < feet - SHOVE_STEP)));
 };
+/** A lip this low he's shoved up onto; any higher and it's a wall to him. */
+const SHOVE_STEP = 26;
 
 /** A shield goon crushed flat between Meathead and a wall: dead on the spot, and messily. */
 const compact = (ctx: FrameContext, e: Enemy, wall: { x: number; w: number }, side: number) => {
