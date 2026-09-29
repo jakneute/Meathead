@@ -1,4 +1,4 @@
-import { GameStatus, Pickup, Enemy, TommyBoard, DamageNumber } from '../../types';
+import { GameStatus, Enemy, TommyBoard, DamageNumber } from '../../types';
 import {
   CANVAS_WIDTH, CANVAS_HEIGHT, LEVEL_INTRO_STYLE, SKYFALL_CLOUD_FRAMES, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, RENDER_SCALE, WEAPON_RANGE_STAGE, GROUND_Y,
 } from '../../constants';
@@ -26,6 +26,7 @@ import { drawSewerNukeInside, drawSewerNukeFlash, drawSewerNukeOutside } from '.
 import { drawVolcanoFinaleInside, drawVolcanoFinaleOutside } from './scenes/volcanoFinale';
 import { drawSceneLighting } from './lighting';
 import { sentenceShown } from '../platform/speech';
+import { drawPickup } from './pickups';
 import { SKIP_AFTER, drawSkipPrompt } from '../platform/skip';
 import {
   drawOilSlicks, drawOscarFire, drawOscarLaser, drawOscarRocket, drawFlyingCigarette, drawTaserOverload,
@@ -97,7 +98,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     drawIcicles(wctx, state);
     drawOilSlicks(wctx, state);
     drawProjectiles(wctx, state, 'puddles');
-    state.pickups.forEach(p => drawPickup(wctx, p));
+    state.pickups.forEach(p => drawPickup(wctx, p, state.frame));
     drawEnemies(wctx, state, view);
     drawEnemyDeaths(wctx, state);
     if (inTommyArena && state.tommyBoards) drawTommyPool(wctx, state);
@@ -361,13 +362,6 @@ const drawBossHazards = (ctx: CanvasRenderingContext2D, state: GameState) => {
   });
 };
 
-const drawPickup = (ctx: CanvasRenderingContext2D, p: Pickup) => {
-  const isHealth = p.type.includes('health');
-  ctx.fillStyle = isHealth ? 'red' : 'yellow';
-  const thick = isHealth ? (p.type === 'large_health' ? 10 : 5) : (p.type === 'large_ammo' ? 12 : 6);
-  ctx.fillRect(p.pos.x + p.width / 2 - thick / 2, p.pos.y, thick, p.height);
-  ctx.fillRect(p.pos.x, p.pos.y + p.height / 2 - thick / 2, p.width, thick);
-};
 
 const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, stageId, bossTauntText }: WorldView) => {
   const { enemies, player } = state;

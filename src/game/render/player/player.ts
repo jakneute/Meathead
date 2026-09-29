@@ -33,6 +33,9 @@ const beltBuckle = '#FACC15'; // Gold buckle
 const wristbandColor = '#09090B'; // Spiked wristband
 const backArmShade = '#A87038';   // shadow side of the far arm
 const stubbleColor = 'rgba(60, 30, 10, 0.35)';
+/** Black with soot (a room blown up round him): how long it takes to wear off at the end (frames). */
+export const SOOT_FRAMES = 420;
+const SOOT_FADE = 120;
 /** In a hazmat suit (Tommy's sewer): yellow over all of him, a hood's dark visor over his face. */
 const SUIT_TINT = 'rgba(250, 204, 21, 0.78)';
 
@@ -117,7 +120,20 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const finishBody = () => {
     ctx.restore();
     ctx = world;
-    if (sprite) endSprite(world, anchorX, anchorY, p.suit ? SUIT_TINT : undefined);
+    // (sooted: black all over, fading back, just the whites of his eyes and a wisp of smoke off him)
+    const soot = p.sootTimer && p.sootTimer > 0 ? Math.min(1, p.sootTimer / SOOT_FADE) : 0;
+    if (sprite) endSprite(world, anchorX, anchorY, p.suit ? SUIT_TINT : soot > 0 ? `rgba(24, 20, 18, ${0.9 * soot})` : undefined);
+    if (soot > 0 && !p.suit) {
+      const faceY = anchorY - (p.isDucking ? 42 : 58), dir = p.facing;
+      world.globalAlpha = soot;
+      world.fillStyle = '#F8FAFC'; world.fillRect(anchorX + dir * 5 - 1, faceY - 2, 3, 2); world.fillRect(anchorX + dir * 10 - 1, faceY - 2, 2, 2);
+      for (let i = 0; i < 3; i++) {
+        const t = ((state.frame + i * 23) % 70) / 70;
+        world.fillStyle = `rgba(68, 64, 60, ${0.45 * (1 - t) * soot})`;
+        world.beginPath(); world.arc(anchorX + Math.sin(i * 2.1 + state.frame * 0.05) * 10, anchorY - 70 - t * 40, 4 + t * 8, 0, Math.PI * 2); world.fill();
+      }
+      world.globalAlpha = 1;
+    }
     if (p.suit) {
       // The hood's visor, where his face is (lower when he's ducked down)
       const faceY = anchorY - (p.isDucking ? 42 : 58), dir = p.facing;

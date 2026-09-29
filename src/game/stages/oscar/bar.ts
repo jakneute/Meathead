@@ -10,6 +10,7 @@
 // flamethrower, a can of it turns up somewhere off the screen the other side
 // of the room.
 
+import { SOOT_FRAMES } from '../../render/player/player';
 import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
 import type { Controls } from '../../platform/input';
@@ -128,7 +129,7 @@ const drinks = (ctx: FrameContext, b: Bar, talk: Talk, controls: Controls): Cont
       fx.spawnDamageNumber({ x: B.veins[i].x - 20, y: B.veins[i].y - 30 }, 'PSSST', false, '#D9F99D');
       const left = b.open.filter(o => !o).length;
       if (left > 0 && quiet(talk)) queueLines(state, talk, [{ who: 'meathead', text: left === 2 ? 'ONE.' : 'TWO.' }]);
-      else if (left === 0) queueLines(state, talk, [{ who: 'meathead', text: 'THREE. NOW WE WAIT FOR IT.' }]);
+      else if (left === 0) queueLines(state, talk, [{ who: 'meathead', text: 'THREE. NOW ALL IT NEEDS IS A LITTLE FIRE.' }]);
     } else if (state.frame - b.gunHintAt > 300) {
       b.gunHintAt = state.frame;
       playSound('clang');
@@ -195,6 +196,7 @@ const lastCall = (ctx: FrameContext, b: Bar, talk: Talk) => {
   p.isFlaming = false;
   p.inCutscene = true;
   p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
+  p.sootTimer = SOOT_FRAMES;
   // The fireball, filling the place
   for (let i = 0; i < 140; i++) {
     const x = B.x1 + Math.random() * (B.x2 - B.x1), y = B.ceil + Math.random() * (GROUND_Y - B.ceil);

@@ -137,6 +137,8 @@ export interface Player extends Entity {
   bike?: boolean;
   /** In a hazmat suit (drawn yellow, hooded). */
   suit?: boolean;
+  /** Black with soot from a blast (frames left: it wears off). */
+  sootTimer?: number;
   /** ...on a motorcycle (Oscar's stage): the jet ski's rules, sat astride it (the stage draws the bike). */
   moto?: boolean;
   /** A lunge through the water (the special, swimming): which way (forward, up or down). */

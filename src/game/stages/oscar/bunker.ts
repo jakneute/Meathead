@@ -14,6 +14,7 @@
 // does end: they clock back in, the far door's unlocked, and he walks out, the
 // room and everybody in it none the worse, to the same bikers out back.
 
+import { SOOT_FRAMES } from '../../render/player/player';
 import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
 import type { Controls } from '../../platform/input';
@@ -275,6 +276,7 @@ const blowUp = (ctx: FrameContext, b: Bunker, talk: Talk, spite = false) => {
   const B = COURSE.bunker;
   b.phase = spite ? 'spite' : 'boom'; b.t = 0; b.gas = 0;
   if (spite) b.spited = true;
+  p.sootTimer = SOOT_FRAMES;
   hush(state, talk);
   state.blocks = state.blocks.filter(k => k.tag !== 'bunker-roof' && k.tag !== 'bunker-door');
   shakeScreen(state, 70, 22);

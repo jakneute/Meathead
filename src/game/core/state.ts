@@ -286,6 +286,7 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
 /** Cancels any attack, special move or weapon effect the player is in the middle of. */
 export const resetPlayerCombatState = (player: Player) => {
   player.filthShieldTimer = 0;
+  player.sootTimer = 0;
   player.barfTimer = 0;
   player.isFlaming = false;
   player.flameRange = 0;

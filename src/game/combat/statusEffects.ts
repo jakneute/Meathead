@@ -12,6 +12,7 @@ import { fireWeapon, findTaserTarget } from './weapons';
 import { isMidBoss, midBossDamage, MIDBOSS_DAMAGE } from './midBoss';
 import { zapCigarette, findFlyingCigarette } from '../bosses/oscar';
 import { FrameInput, hasAmmo, armsBusy } from '../player/player';
+import { playSound } from '../platform/audio';
 
 /**
  * Holding fire with the taser locks onto a target and zaps it continuously.
@@ -34,6 +35,13 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
   if (armsBusy(player)) input = { ...input, shoot: false };
   // Its target died: the beam stays off until fire is let go and pressed again
   if (!input.shoot) player.taserSpent = false;
+  // Pulling the trigger while it's still overloaded: it just fizzles, and says so
+  if (overloaded && currentWeapon === 'TASER' && input.shootPressed) {
+    const x = player.pos.x + (player.facing === 1 ? player.width : 0), y = player.pos.y + 25;
+    fx.spawnDamageNumber({ x: x - 40, y: player.pos.y - 34 }, 'STILL OVERLOADED!', false, '#00E5FF');
+    playSound('click');
+    for (let i = 0; i < 6; i++) state.particles.push({ pos: { x, y }, vel: { x: player.facing * Math.random() * 3, y: -Math.random() * 3 }, life: 12 + Math.random() * 8, color: i % 2 ? '#00E5FF' : '#E0F2FE', size: 2 });
+  }
   if (!(currentWeapon === 'TASER' && input.shoot && hasAmmo(ctx, 'TASER')) || overloaded || player.taserSpent) {
     player.isTasing = false;
     player.taserTargetId = null;
