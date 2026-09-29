@@ -148,7 +148,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   if (state.camera.x < ARENA_LEFT - CANVAS_WIDTH / 2 && !layout?.drawBackdropFront?.(ctx, state)) drawBackdropFront(ctx, stageId, state.camera.x, state.camera.y, state.frame || 0);
   if (state.victoryString && (status === GameStatus.PLAYING || status === GameStatus.VICTORY)) drawVictoryText(ctx, state.victoryString);
   if (state.sewerNuke) drawSewerNukeFlash(ctx, state);
-  else if (state.deathTimer > 0 && state.deathString) drawDeathMessage(ctx, state.deathString);
+  else if (state.deathTimer > 0 && state.deathString && state.deathFreeze === undefined) drawDeathMessage(ctx, state.deathString);
   if (state.deathTimer > 0 ? state.deathFrames > SKIP_AFTER : state.dyingSkipAt !== undefined && state.frame - state.dyingSkipAt >= 0 && state.frame - state.dyingSkipAt <= 1) drawSkipPrompt(ctx, CANVAS_WIDTH);
   // Skyfall intro: coming down out of the clouds the deploy transition dove into
   if (status === GameStatus.LEVEL_INTRO && LEVEL_INTRO_STYLE === 'skyfall' && state.introTimer < SKYFALL_CLOUD_FRAMES) {

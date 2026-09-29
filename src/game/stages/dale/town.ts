@@ -356,6 +356,10 @@ const headshot = (ctx: FrameContext, dir: number) => {
   const p = state.player;
   const hx = p.pos.x + p.width / 2, hy = p.pos.y + 8;
   p.health = 0; p.headless = 1; p.vel = { x: 0, y: 0 };
+  // (whatever he was in the middle of, flailing from a hit, a charge, a dive: he's stood there, and it's held on a still)
+  p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false; p.isDucking = false;
+  p.pushbackTimer = 0; p.hurtForm = undefined; p.hurtFormTimer = 0; p.ledgeDrop = 0; p.kickPose = 0; p.invincibilityTimer = 0; p.hurtTimer = 0;
+  state.deathFreeze = 0;
   fx.spawnDeathShower({ x: hx, y: hy }, dir, 2.2);
   fx.spawnExplosion({ x: hx, y: hy }, '#DC2626', 30, dir * 4, 16);
   for (let i = 0; i < 46; i++) {

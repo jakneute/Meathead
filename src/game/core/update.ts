@@ -80,10 +80,26 @@ const moveLooseParticles = (ctx: FrameContext) => {
 const DEATH_HOLD_MAX = 480;
 
 /** Player is dead: let the gore settle, then respawn. Skipping it goes straight to the next try (and cuts the death announcer off). */
+/** A held death: the burst gets going for a few frames, then it all stops dead, a still, before the death screen. */
+const FREEZE_BURST = 7, FREEZE_HOLD = 55;
+
 const updateDeathScreen = (ctx: FrameContext) => {
   const { state } = ctx;
+  if (state.deathFreeze !== undefined) {
+    state.deathFreeze++;
+    if (state.deathFreeze <= FREEZE_BURST) moveLooseParticles(ctx);
+    if (state.deathFreeze < FREEZE_BURST + FREEZE_HOLD) return;
+    state.deathFreeze = undefined;
+  }
   state.deathFrames++;
-  if (state.player.headless) state.player.headless++;
+  if (state.player.headless) {
+    state.player.headless++;
+    // (shot in mid-air: what's left of him comes down onto whatever's under him first)
+    const p = state.player, feet = p.pos.y + p.height;
+    const floor = floorTopAt(state.blocks, p.pos.x + p.width / 2, feet, 0);
+    if (floor !== null && feet < floor - 0.5) { p.vel.y = Math.min(16, p.vel.y + 0.8); p.pos.y = Math.min(floor - p.height, p.pos.y + p.vel.y); p.isGrounded = false; }
+    else if (floor !== null) { p.pos.y = floor - p.height; p.vel.y = 0; p.isGrounded = true; }
+  }
   if (state.deathFrames > SKIP_AFTER) offerSkip();
   if (takeSkip()) { stopDeathAnnouncer(); state.deathTimer = 0; respawn(state, ctx.stageId, ctx.cheats.skipToBoss); return; }
   // (sat out, it waits for the death announcer to finish)

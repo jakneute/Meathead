@@ -159,14 +159,14 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const squash = p.squash || 0;
   ctx.scale(1 + squash * 0.25 - airStretch * 0.5, 1 - squash * 0.25 + airStretch);
 
-  if (p.isSliding) {
+  if (p.isSliding && !p.headless) {
     drawSlideTackle(ctx, animFrame, currentWeapon, isUnarmed);
     finishBody();
     ctx.restore();
     return;
   }
   // The special moves are full poses of their own (unless he's been knocked out of one)
-  const movePose = hurtT >= 0 ? null
+  const movePose = hurtT >= 0 || p.headless ? null
     // (on the jet ski they're the ski's moves: a wheelie, a leap out of the water, a nose-first dive)
     : p.jetski ? (isCharging ? drawJetskiWheelie : isUppercutting ? drawJetskiLeap : isDivekicking ? drawJetskiDive : null)
     // (booting somebody off his skis, boat or jet ski: a big standing front kick)

@@ -526,7 +526,7 @@ export const drawTownFront = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   const f = state.frame;
   const sn = town.sniper;
   const spot = ninjaSpot();
-  if (sn.on && !town.ninja.duck) {
+  if (sn.on && !town.ninja.duck && state.deathTimer <= 0) {
     const lock = sn.state === 'lock';
     const k = lock ? sn.t / 46 : 0;
     // The laser from up the tower to the crosshair (all of it's the line of fire; the crosshair's where it stops),
