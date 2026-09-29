@@ -9,6 +9,8 @@ export interface Controls {
   jump: boolean;
   special: boolean;
   shoot: boolean;
+  /** Y on the pad, F on the keyboard: with the oil rocket launcher out, the flamethrower (to light what it's slicked); with anything else, nothing. */
+  flame?: boolean;
   /** Shift on the keyboard: the shoulder charge and nothing else (no slide, uppercut or dive kick, whatever direction's held). */
   charge?: boolean;
 }
@@ -72,16 +74,17 @@ export class KeyboardMouseState {
 
 export const readControls = (kb: KeyboardMouseState): Controls => {
   const gp = getActiveGamepad();
-  let padX = 0, padY = 0, padJump = false, padSpecial = false, padShoot = false;
+  let padX = 0, padY = 0, padJump = false, padSpecial = false, padShoot = false, padFlame = false;
   if (gp) {
     const move = getGamepadMovement(gp, 0.2);
     padX = move.x;
     padY = move.y;
     // D-pad up aims/uppercuts; only A jumps. LB/RB are reserved for weapon swapping (handled in App).
     padJump = isButtonPressed(gp, GP_BUTTONS.A);
-    padShoot = isButtonPressed(gp, GP_BUTTONS.X) || isButtonPressed(gp, GP_BUTTONS.Y) || isButtonPressed(gp, GP_BUTTONS.RT);
+    padShoot = isButtonPressed(gp, GP_BUTTONS.X) || isButtonPressed(gp, GP_BUTTONS.RT);
+    padFlame = isButtonPressed(gp, GP_BUTTONS.Y);
     padSpecial = isButtonPressed(gp, GP_BUTTONS.B) || isButtonPressed(gp, GP_BUTTONS.LT);
-    if (padJump || padShoot || padSpecial || Math.abs(padX) > 0.5 || Math.abs(padY) > 0.5) lastDevice = 'gamepad';
+    if (padJump || padShoot || padFlame || padSpecial || Math.abs(padX) > 0.5 || Math.abs(padY) > 0.5) lastDevice = 'gamepad';
   }
 
   const k = kb.isDown;
@@ -106,10 +109,11 @@ export const readControls = (kb: KeyboardMouseState): Controls => {
     special: kb.rightMouseDown || uppercutKey || diveKey || padSpecial,
     charge: k('shift', 'shiftleft', 'shiftright'),
     shoot: kb.mouseDown || padShoot || k('x', 'keyx', 'k', 'keyk'),
+    flame: padFlame || k('f', 'keyf'),
   };
 };
 
-const ACTION_BUTTONS = ['jump', 'special', 'shoot'] as const;
+const ACTION_BUTTONS = ['jump', 'special', 'shoot', 'flame'] as const;
 
 /**
  * Menu and gameplay inputs are independent: a button that was already down when

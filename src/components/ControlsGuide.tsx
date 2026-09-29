@@ -7,6 +7,7 @@ const BASICS: [action: string, keys: string, pad: string][] = [
   ['MOVE / CROUCH', 'WASD / ARROWS', 'L-STICK / D-PAD'],
   ['JUMP', 'SPACE', 'A'],
   ['FIRE', 'L-CLICK', 'X / RT'],
+  ['FLAMETHROWER (OIL ROCKETS OUT)', 'F', 'Y'],
   ['SPECIAL', 'R-CLICK', 'B / LT'],
   ['SWAP WEAPON', 'WHEEL / 1-9', 'LB / RB'],
   ['PAUSE', 'ESC', 'START'],
