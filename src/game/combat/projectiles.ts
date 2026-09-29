@@ -574,6 +574,14 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
       return false;
     }
 
+    // A dart into a machine (a generator, an electrical panel, a car): it's only a dart. It doesn't stick, nothing gets
+    // into it, nothing to overdose: just the hit
+    if (p.isDart && METAL.has(enemy.kind || '')) {
+      enemy.health -= p.damage;
+      fx.spawnDamageNumber(enemy.pos, p.damage);
+      if (enemy.health <= 0) fx.blowAwayEnemy(enemy, { x: (Math.random() - 0.5) * 10, y: -15 }, 'dart_kill');
+      return false;
+    }
     if (p.isDart) {
       enemy.needleCount = (enemy.needleCount || 0) + 1;
       stickNeedle(enemy, p, ENEMY_NEEDLE);
