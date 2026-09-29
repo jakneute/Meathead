@@ -11,7 +11,7 @@ import { createDaleRuntime, getDale, updateDale, regionOf, daleDeathMessage } fr
 import { officeBlocks, updateJunkie, hitJunkie } from './junkie';
 import { beltBlocks } from './hazards';
 import { jailWall } from './town';
-import { HIGHWAY_CAM_Y } from './convoy';
+import { HIGHWAY_CAM_Y, truckTilt } from './convoy';
 import { drawDaleBackdrop, drawDaleBack, drawDaleMid, drawDaleFront, drawDaleHud, drawDaleWeather } from './draw';
 import { drawJunkie } from './junkieDraw';
 import { daleScene } from './lighting';
@@ -72,6 +72,7 @@ export const daleLayout: StageLayout = {
   },
   drawBack: (ctx, state) => { if (getDale(state)) drawDaleBack(ctx, state); },
   drawMid: (ctx, state) => { if (getDale(state)) drawDaleMid(ctx, state); },
+  playerTilt: state => { const rt = getDale(state); return rt ? truckTilt(rt.convoy, state.player.pos) : null; },
   drawFront: (ctx, state) => { if (getDale(state)) drawDaleFront(ctx, state); },
   drawHud: (ctx, state) => { if (getDale(state)) drawDaleHud(ctx, state); },
   drawBackdrop: (ctx, state) => !!getDale(state) && drawDaleBackdrop(ctx, state),

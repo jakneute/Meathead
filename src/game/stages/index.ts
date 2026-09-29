@@ -71,6 +71,8 @@ export interface StageLayout {
   /** How it's lit where the camera is: how dark, what color the dark is, its lights (render/lighting.ts). Null: as drawn. */
   lighting?: (state: GameState) => SceneLight | null;
   zoom?: (state: GameState) => { scale: number; x: number; y: number; shiftX?: number; shiftY?: number } | null;
+  /** What he's stood on is tipping (Riggs's truck swerving): he's drawn turned by `angle` about the world point (x, y) along with it. Null: upright. */
+  playerTilt?: (state: GameState) => { x: number; y: number; angle: number } | null;
   /** Where you start when you go straight to the boss (or die to him), if not the usual spot just outside his door. */
   bossStartX?: number;
   /** Where on screen his feet sit when he's standing (default 550 of 600): higher to see more of what's below him. */

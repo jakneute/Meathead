@@ -10,7 +10,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { drawPlayer } from '../../render/player/player';
 import { COURSE, TRAILER_W, TRUCK_W, TRAILER_TOP, CAB_TOP, HOOD_TOP, SLEEPER_W, truckDims } from './course';
 import type { DaleRuntime } from './runtime';
-import { Convoy, TruckState, truckX, ROAD_SPEED, debrisComing, windshield, hood, HIGHWAY_CAM_Y, Debris, MELT, MELT_SAYS, FAMILY } from './convoy';
+import { Convoy, TruckState, truckX, ROAD_SPEED, debrisComing, windshield, hood, truckTilt, HIGHWAY_CAM_Y, Debris, MELT, MELT_SAYS, FAMILY } from './convoy';
 import type { Talk } from './script';
 import { makeKindEnemy } from '../../enemies/kinds';
 import { drawDaleKind } from '../../render/enemies/dale';
@@ -94,7 +94,8 @@ export const drawConvoyBack = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
     const w = truckDims(i).w;
     if (x > state.camera.x + CANVAS_WIDTH + 200 || x + w < state.camera.x - 200) return;
     ctx.save();
-    if (i === 3 && swerve) { ctx.translate(x + w / 2, Y); ctx.rotate(swerve * 0.04); ctx.translate(-(x + w / 2), -Y); }
+    const tilt = i === 3 && swerve ? truckTilt(cv) : null;
+    if (tilt) { ctx.translate(tilt.x, tilt.y); ctx.rotate(tilt.angle); ctx.translate(-tilt.x, -tilt.y); }
     sized(ctx, x, i);
     drawSemi(ctx, x, f, tr, i, cv);
     ctx.restore();

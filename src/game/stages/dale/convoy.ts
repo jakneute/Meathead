@@ -883,5 +883,13 @@ const crash = (ctx: FrameContext, cv: Convoy, talk: Talk): Controls => {
   return { ...NO_CONTROLS };
 };
 
+/** Swerving off the road: the last truck's drawn tipping this way and that about the road under its middle (and him
+ * on its hood with it). Null while it's running straight. */
+export const truckTilt = (cv: Convoy, onIt?: { x: number }) => {
+  if (!cv.cab.swerve || cv.cab.phase !== 'crash') return null;
+  if (onIt && (onIt.x < truckX(cv, 3) - 100 || onIt.x > truckX(cv, 3) + truckDims(3).w + 100)) return null;
+  return { x: truckX(cv, 3) + truckDims(3).w / 2, y: Y, angle: cv.cab.swerve * 0.04 };
+};
+
 /** The last few frames before the crash (for the fade and the town sign). */
 export const crashProgress = (cv: Convoy) => (cv.cab.phase === 'crash' ? cv.cab.t / CRASH_FRAMES : cv.finished ? 1 : 0);

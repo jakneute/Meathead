@@ -104,11 +104,15 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     if (inTommyArena && state.tommyBoards) drawTommyPool(wctx, state);
     // (the window-crash intro keeps him out of sight until he jumps through the glass; in the skyfall one he's falling into view)
     if (status !== GameStatus.LEVEL_INTRO || LEVEL_INTRO_STYLE === 'skyfall' || state.introTimer >= 80) {
+      // (on something that's tipping: he goes with it)
+      const tilt = layout?.playerTilt?.(state);
+      if (tilt) { wctx.save(); wctx.translate(tilt.x, tilt.y); wctx.rotate(tilt.angle); wctx.translate(-tilt.x, -tilt.y); }
       drawPlayer(wctx, state.player, state, {
         currentWeapon: view.currentWeapon,
         showFilthShield: status === GameStatus.PLAYING,
         invincibilityEnabled: view.invincibilityEnabled,
       });
+      if (tilt) wctx.restore();
       drawTaserOverload(wctx, state.player, state.frame);
       drawVictoryPee(wctx, state);
     }
