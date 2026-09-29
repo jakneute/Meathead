@@ -76,10 +76,12 @@ export const gateControls = (ctx: FrameContext, c: Controls): FrameInput => {
   const locked = player.lockTimer > 0;
   const canSteer = canAct && (!locked || (player.recoiling && player.vel.y < 0));
   const act = canAct && !locked;
-  const shoot = act && c.shoot;
+  // (the one exception: with that giant machine gun in his hands, getting hit doesn't stop him firing)
+  const grit = ctx.currentWeapon === 'LMG' && !locked;
+  const shoot = (act || grit) && c.shoot;
   return {
     shoot,
-    shootPressed: act && shootPressed,
+    shootPressed: (act || grit) && shootPressed,
     moveLeft: canSteer && c.left,
     moveRight: canSteer && c.right,
     moveUp: act && c.up,

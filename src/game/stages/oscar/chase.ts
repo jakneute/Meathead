@@ -91,7 +91,7 @@ export interface Chase {
 export interface RoadGap { x1: number; x2: number; runs: GroundRun[]; pieces: GroundRun[]; passed: boolean }
 
 /** How many to wreck to win it. */
-export const KILLS_NEEDED = 38;
+export const KILLS_NEEDED = 44;
 /** The derricks out in the field: how many to a lap, how far apart, how far back off the road they stand. */
 export const DERRICKS_PER_LAP = 8, DERRICK_GAP = LAP / DERRICKS_PER_LAP, DERRICK_BACK = 10;
 /** A big hit's worth (a ram, or a dive onto it): a car or truck takes two of these. */
@@ -99,14 +99,14 @@ const BIG_HIT = 130;
 /** What comes after him, in turn (round and round). */
 const ORDER: EnemyKind[] = ['chopper', 'pickup', 'chopper', 'cruiser', 'pickup', 'chopper', 'cruiser', 'chopper', 'pickup', 'cruiser'];
 /** How many can be on him at once (more and more as it goes on: far more than a handgun could ever deal with). */
-const MAX_ON = (kills: number) => Math.min(6, 4 + Math.floor(kills / 12));
+const MAX_ON = (kills: number) => Math.min(6, 4 + Math.floor(kills / 14));
 /** ...and of those, how many cars and trucks at most (the rest are bikers). */
 const MAX_CARS = 3;
 /** How far the view pulls back by the end (it's all of them coming at him). */
 const ZOOM_MIN = 0.72;
 const SPIN_FRAMES = 46;
 /** The jumps: at how many wrecked each one comes up, how wide it is, how far ahead of him it's cut (it's called out from then on). */
-export const GAP_AT = [7, 16, 25, 33], GAP_W = 170, GAP_AHEAD = 1900;
+export const GAP_AT = [8, 18, 28, 38], GAP_W = 170, GAP_AHEAD = 1900;
 /** What anything they do takes off him: only a chip each time, but there's nothing to get it back with till it's over. */
 const CHIP = 4;
 /** How far ahead of the view a slick's put down (it's called out from then on). */

@@ -116,6 +116,8 @@ const drinks = (ctx: FrameContext, b: Bar, talk: Talk, controls: Controls): Cont
   const inRoom = p.pos.x + p.width / 2 > B.x1 && p.pos.x + p.width / 2 < B.x2;
   for (let i = 0; i < 3; i++) {
     if (b.open[i] || !inRoom || B.veins[i].x < state.camera.x || B.veins[i].x > state.camera.x + CANVAS_WIDTH) continue;
+    // (the one in the bathroom: only from in there with it, past its wall)
+    if (i === 2 && p.pos.x + p.width / 2 < B.bathroom.x1 - 10) continue;
     const box = barVeinBox(i);
     const hit = state.projectiles.find(q => q.owner === 'player' && rectsOverlap(boundsOf(q), box));
     if (!hit) continue;

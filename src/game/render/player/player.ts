@@ -79,7 +79,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const hurtT = p.hurtForm && p.hurtFormTimer ? 1 - p.hurtFormTimer / SPECIAL_HURT_FRAMES : -1;
 
   // Animation States
-  const isHurt = p.pushbackTimer > 0 || (p.invincibilityTimer > 40) || hurtT >= 0;
+  // (firing the LMG he doesn't flinch: he just flashes and keeps it going)
+  const lmgGrit = p.currentWeapon === 'LMG' && p.shootCooldown > 0;
+  const isHurt = !lmgGrit && (p.pushbackTimer > 0 || (p.invincibilityTimer > 40) || hurtT >= 0);
   // A crouch slide has its own pose (drawSlideTackle), not the shoulder-charge afterimages
   const isCharging = p.isCharging && !p.isSliding;
   const isUppercutting = p.isUppercutting;

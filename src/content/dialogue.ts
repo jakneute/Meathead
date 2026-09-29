@@ -735,24 +735,24 @@ export const BOSS_DIALOGUE: {
     ]
   },
   THRESHOLDS: {
-    'Artie Avalanche': { 75: "IS IT GETTING WARM IN HERE? NO MATTER.", 50: "YOU'RE CHIPPING AWAY AT PERFECTION!", 25: "I'M MELTING... NO! REFREEZE EVERYTHING!", 0: "FINALLY... THE SILENCE OF THE VOID." },
-    'Victor Volcano': { 75: "A MERE SPARK! I AM THE FURNACE!", 50: "PRESSURE IS BUILDING! YOU'L EXPLODE!", 25: "MAGMA FAILING... COOLING... NOOO!", 0: "EXTINGUISHED... LIKE A WEAK CANDLE." },
-    'Ernie Earthquake': { 75: "YOU CAN'T BREAK THE MOUNTAIN, BOY.", 50: "FINE... I FLAT OUT REFUSE!", 25: "STRUCTURAL FAILURE! I'M CRUMBLING!", 0: "DUST TO DUST... DAMN IT ALL." },
-    'Hector Hurricane': { 75: "CATCH ME IF YOU CAN, SLOW-POKE!", 50: "THE WINDS ARE SHIFTING... AGAINST YOU!", 25: "I CAN'T BREATHE... THE AIR IS THIN!", 0: "JUST A WHISPER NOW... GOODBYE..." },
-    'Toxic Tommy': { 75: "TASTE THE TOXIC WASTE, MEATHEAD!", 50: "MY BILE WILL MELT YOU INTO SLOP!", 25: "CONTAINMENT BREACH! I'M LEAKING EVERYWHERE!", 0: "DISSOLVED... BACK TO THE SEWER..." },
-    'Blackout Barry': { 75: "LOWERING YOUR RESISTANCE!", 50: "POWER SURGE INCOMING!", 25: "EMERGENCY GENERATORS ACTIVE!", 0: "OUT OF JUICE... GOODNIGHT." },
-    'Oily Oscar': { 75: "CAN'T CATCH ME, I'M TOO SLICK!", 50: "SLIPPING AND SLIDING TOWARDS YOUR GRAVE!", 25: "MY RESERVES ARE BURNING UP!", 0: "SLIPPED UP... AND BURNT OUT..." },
-    'Drug Trade Dale': { 75: "BUSINESS IS BOOMING, LITERALLY.", 50: "I'M LOSING INVENTORY! MORE SHIPMENTS!", 25: "THIS IS RECREATIONAL UNTIL I KILL YOU!", 0: "MY EMPIRE... FOR A CLEAN SYRINGE..." }
+    'Artie Avalanche': { 75: 'YOU TRACKED SLUSH INTO MY VAULT!', 50: 'DO YOU KNOW WHAT THAT MOOSE MEANT TO ME?!', 25: 'I\'M... SWEATING. I HAVE NEVER SWEATED.', 0: 'TELL THE GLACIERS... I TRIED...' },
+    'Victor Volcano': { 75: 'THE DOORMAN HAD ONE JOB, BRO!', 50: 'PRESSURE\'S BUILDING! FEEL THAT HEAT!', 25: 'I\'M COOLING... NOT BEFORE MY SET!', 0: 'LAST CALL... AT CLUB CALDERA...' },
+    'Ernie Earthquake': { 75: 'THAT BRIDGE WAS COMING DOWN ANYWAY. IT WAS IN THE CALENDAR.', 50: 'YOU KIDS AND YOUR JET SKIS!', 25: 'MY HIP! MY HIP\'S GOING BEFORE THE FAULT DOES!', 0: 'STAND BY... FOR AFTERSHOCKS...' },
+    'Hector Hurricane': { 75: 'AND NOW, THE FIVE-DAY FORECAST: YOU, DEAD!', 50: 'WINDS ARE PICKING UP! AGAINST YOU!', 25: 'THIS WASN\'T IN THE FORECAST!', 0: '...BACK TO YOU IN THE STUDIO...' },
+    'Toxic Tommy': { 75: 'HOLD STILL, I\'M CHECKING YOUR WATER PRESSURE!', 50: 'I DRANK IT ALL FOR THEM! ALL OF IT!', 25: 'I\'M BACKING UP! I\'M BACKING UP!', 0: 'FLUSH ME... DOWN WITH THE NEIGHBORS...' },
+    'Blackout Barry': { 75: 'EASY, MAN. I\'M WAY TOO MELLOW FOR THIS.', 50: 'YOU KNOW WHO R&D TESTS THAT STUFF ON? ME, MAN.', 25: 'I\'M SEEING STARS! NOT THE GOOD KIND!', 0: 'THERE THEY ARE... THE STARS...' },
+    'Oily Oscar': { 75: 'CAN\'T CATCH ME, PAL! I\'M TOO SLICK!', 50: 'THAT BREAK ROOM WAS UNION-BUILT, YOU ANIMAL!', 25: 'EVERYBODY. BACK. TO WORK. ...ANYBODY?', 0: 'SHORTED OUT... ON COMPANY TIME...' },
+    'Drug Trade Dale': { 75: 'YOU\'RE NOT EVEN A FED! WHO ARE YOU?!', 50: 'THREE HITMEN! I PAID FOR THREE HITMEN!', 25: 'OKAY, OKAY! I\'M DIPPING INTO THE INVENTORY!', 0: 'CLOSED... FOR INVENTORY...' }
   },
   INTRO_QUOTES: {
-    'Victor Volcano': ["FINALLY. A SAUNA HOT ENOUGH FOR MY PUMP.", "What a nice meat specimen you are. Well done. That is how you will be cooked."],
-    'Artie Avalanche': ["COLD? I'M RUNNING ON FOUR SCOOPS OF PRE-WORKOUT. I'M A DAMN FURNACE.", "The cold will burn your face."],
-    'Hector Hurricane': ["CATEGORY FIVE? I WARM UP WITH CATEGORY FIVES.", "You better watch out for the soggy logs of shit, Meatface."],
-    'Ernie Earthquake': ["THE GROUND'S SHAKING? NAH, THAT'S JUST ME WALKING.", "Are you ready to rumble, motherfucker?"],
-    'Toxic Tommy': ["SMELLS LIKE A GYM BAG DOWN HERE. I'M RIGHT AT HOME.", "My puke melts steel beams, bitch."],
-    'Blackout Barry': ["LIGHTS OUT? GOOD. MY ABS GLOW IN THE DARK.", "I'm the reason your bill is so high."],
-    'Oily Oscar': ["BABY OIL'S FOR POSING. CRUDE OIL'S FOR YOUR FUNERAL.", "You're looking a little dry, let me grease you up."],
-    'Drug Trade Dale': ["TIME TO CUT OUT THE MIDDLEMAN.", "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!"],
+    'Artie Avalanche': ['COLD? I\'M RUNNING ON FOUR SCOOPS OF PRE-WORKOUT. I\'M A DAMN FURNACE.', 'You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I\'M the terrorist?'],
+    'Victor Volcano': ['A NIGHTCLUB IN A VOLCANO? FINALLY, A SAUNA HOT ENOUGH FOR MY PUMP.', 'You crashed my VIP lounge, bro. Those were investors. Now they\'re a geothermal feature.'],
+    'Ernie Earthquake': ['THE GROUND\'S SHAKING? NAH, THAT\'S JUST ME WALKING.', 'You dropped a jet ski on the tour group, sonny. I schedule my quakes AROUND the tour group!'],
+    'Hector Hurricane': ['CATEGORY FIVE? I WARM UP WITH CATEGORY FIVES.', 'You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.'],
+    'Toxic Tommy': ['FLINT WATER? PASS ME A GLASS. MORE MINERALS FOR THE GAINS.', 'You put the neighbors down. And you dropped my water tower on a house. Do you know how long it took me to fill that thing?'],
+    'Blackout Barry': ['LIGHTS OUT? GOOD. MY ABS GLOW IN THE DARK.', 'You blew my whole power room, man. With my guy in it. Whole city\'s dark now... look up. See any stars? ...Me neither.'],
+    'Oily Oscar': ['BABY OIL\'S FOR POSING. CRUDE OIL\'S FOR YOUR FUNERAL.', 'The union. The rangers. The Angels. My bar. My field\'s on fire, pal! ...It\'s insured. You\'re not.'],
+    'Drug Trade Dale': ['TIME TO CUT OUT THE MIDDLEMAN.', 'You blew up my whole fleet! And Riggs! Who\'s gonna feed Sir Reginald now?!'],
     'default': ["I'll break you in half!", "YOU'RE TOAST."]
   }
 };

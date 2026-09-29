@@ -104,7 +104,7 @@ export const BOSS_LOCATIONS: Record<string, BossLocationData> = {
     region: 'GULF COAST',
     coords: { x: 250, y: 218 },
     coordinatesText: "29°45'N 95°22'W",
-    threatBrief: 'PETROCHEMICAL REFINERY INFERNO'
+    threatBrief: 'OIL FIELD INFERNO & BIKER UNREST'
   },
   'Drug Trade Dale': {
     city: 'ALBUQUERQUE',
