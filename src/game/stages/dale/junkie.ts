@@ -143,7 +143,8 @@ const GUN_AFTER = 170, GUN_AIM = 36, GUN_SHOTS = 3, GUN_EVERY = 18;
 /** The stash: snorting it, the high, the wall; how long he's seeing stars after. */
 const SNORT = 64, HIGH = 36, DAZED = 130;
 /** Damage to him: his headbutt, kicking him while he's seeing stars; to you: a punch, the throw, his rampage, a bullet. */
-const HEADBUTT_QUICK = 45, HEADBUTT_BIG = 350, KICK_DAZED = 45;
+/** (one run at the wall, two quick ones and the big one, is a quarter of him) */
+const HEADBUTT_QUICK = 50, HEADBUTT_BIG = 400, KICK_DAZED = 45;
 /** The headbutts: two quick ones this far apart, then the wind-up for the big one. */
 export const BUTT_QUICK = 18, BUTT_BIG = 60;
 const PUNCH = 7, THROW = 8, RAMPAGE_HIT = 16, BULLET = 8;

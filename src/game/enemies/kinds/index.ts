@@ -72,7 +72,7 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   rattlesnake: { w: 44, h: 16, hp: 40, contact: 9 },
   scorpion: { w: 32, h: 16, hp: 30, contact: 7 },
   coyote: { w: 54, h: 34, hp: 70, contact: 10 },
-  junkie: { w: 56, h: 92, hp: 1300, contact: 6 },
+  junkie: { w: 56, h: 92, hp: 2000, contact: 6 },
   visitor: { w: 34, h: 62, hp: 1, contact: 0 },
   hawk: { w: 52, h: 28, hp: 55, contact: 10, air: true },
   // Barry's stage
