@@ -3,14 +3,14 @@ Listens back to every recording (with Whisper, a speech recognizer, run locally)
 Every line whose words don't come back right is listed, worst first, in check.txt: for catching the model mumbling,
 skipping words or reading something oddly, without anybody having to sit through 1,500 lines.
 
-  tools/voices/.venv/Scripts/python.exe tools/voices/check.py [--model base.en] [--only VOICE] [--below 0.8]
+  tools/voices/.venv/Scripts/python.exe tools/voices/check.py [--model small.en] [--only VOICE] [--below 0.8]
 """
 import difflib, json, os, re, sys
 from faster_whisper import WhisperModel
 from voicelib import HERE, lines, path_of
 
 args = sys.argv[1:]
-model_name = args[args.index('--model') + 1] if '--model' in args else 'base.en'
+model_name = args[args.index('--model') + 1] if '--model' in args else 'small.en'
 only = args[args.index('--only') + 1] if '--only' in args else None
 below = float(args[args.index('--below') + 1]) if '--below' in args else 0.8
 
