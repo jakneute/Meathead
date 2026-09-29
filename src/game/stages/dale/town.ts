@@ -73,6 +73,8 @@ export interface Town {
   ninja: { state: 'perch' | 'speech' | 'kneel' | 'dead'; t: number; /** Which way he turned to face Meathead (and stays that way). */ face: 1 | -1; /** Which way he's aiming, up there (he turns round after him if he gets past). */ aim?: 1 | -1 };
   /** Meathead up against the jail with the sniper still up the tower: when he last said so, and how many times. */
   wallNagAt?: number; wallNags?: number;
+  /** Riggs coming for him: whether he's jumped since he was last on the ground, and whether that jump was an uppercut. */
+  jumped?: boolean; boosted?: boolean;
   cab: { x: number; speed: number; facing: 1 | -1; spin: number; state: 'arrive' | 'parked' | 'reverse' | 'spin' | 'go' | 'wrecked'; t: number };
   props: TownProp[];
   sheriff: { x: number; running: boolean };
@@ -527,6 +529,8 @@ const updateWarpath = (ctx: FrameContext, town: Town, talk: Talk, controls: Cont
     }
     // Coming for him: clear it, or else. (Come down on its roof and it bounces you back up off it)
     const feet = p.pos.y + p.height;
+    // (keeping count of how he's trying it: a plain jump won't clear it)
+    if (p.isGrounded) { town.jumped = false; town.boosted = false; } else { town.jumped = true; if (p.isUppercutting) town.boosted = true; }
     // (a cab-over: flat on top, the full height of it all the way along)
     const roofs = [{ x: cab.x + 6, w: CAB.w - 12, top: Y - CAB.h }];
     const onRoof = roofs.find(r => p.pos.x + p.width > r.x && p.pos.x < r.x + r.w && feet >= r.top - 4 && feet <= r.top + 30 && p.vel.y >= 0);
@@ -536,7 +540,10 @@ const updateWarpath = (ctx: FrameContext, town: Town, talk: Talk, controls: Cont
       p.hidden = true;
       fx.spawnDeathShower({ x: p.pos.x + p.width / 2, y: p.pos.y + 30 }, 1, 3);
       shakeScreen(state, 30, 12);
-      const lines = ['FLATTENED BY A DEAD MAN', 'RUN OVER BY RIGGS. AGAIN.', 'SHOULD HAVE JUMPED'];
+      // (jumped, and not high enough: it's an uppercut that clears it, and the death screen says so)
+      const lines = town.jumped && !town.boosted
+        ? ["A JUMP WON'T CLEAR IT. UPPERCUT!", 'NOT A JUMP. AN UPPERCUT.', 'IT TAKES AN UPPERCUT TO CLEAR IT']
+        : ['FLATTENED BY A DEAD MAN', 'RUN OVER BY RIGGS. AGAIN.', 'SHOULD HAVE UPPERCUT OVER IT'];
       killPlayer(ctx, lines[Math.floor(Math.random() * lines.length)], false);
       return { ...NO_CONTROLS };
     }
