@@ -1,9 +1,25 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { WeaponType } from '../types';
 import { DOSSIERS, DOSSIER_HEADER, AFTERMATHS } from '../content/dossiers';
 import { BOSS_LOCATIONS } from '../content/roster';
 import BossPortrait from './BossPortrait';
 import CorpsePhoto from './CorpsePhoto';
+
+/** Right stick: how far it has to go before it scrolls, and how fast it scrolls at full tilt (px a frame). */
+const STICK_DEADZONE = 0.2, STICK_SPEED = 7;
+
+/** The right stick's up/down, from whichever pad is pushing it. */
+const rightStickY = () => {
+  if (typeof navigator === 'undefined' || !navigator.getGamepads) return 0;
+  try {
+    for (const gp of navigator.getGamepads()) {
+      const y = gp && gp.connected !== false && gp.axes ? gp.axes[3] : undefined;
+      if (typeof y === 'number' && Math.abs(y) > STICK_DEADZONE) return y;
+    }
+  } catch { /* no pads */ }
+  return 0;
+};
+
 
 interface DossierPanelProps {
   bossId: string;
@@ -19,7 +35,53 @@ interface DossierPanelProps {
 const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWeapon }) => {
   const d = DOSSIERS[bossId];
   const loc = BOSS_LOCATIONS[bossId];
+  // Too long for the page: our own scroll bar (the browser's is hidden), moved by the mouse wheel, the right stick or dragging it
+  const body = useRef<HTMLDivElement>(null);
+  const [view, setView] = useState({ top: 0, height: 1, client: 1 });
+  const measure = () => { const el = body.current; if (el) setView({ top: el.scrollTop, height: el.scrollHeight, client: el.clientHeight }); };
+  useEffect(() => { if (body.current) body.current.scrollTop = 0; measure(); }, [bossId, defeated, corpseWeapon]);
+  // (the evidence photo and the like can change the page's length after it's up)
+  useEffect(() => {
+    const el = body.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    for (let i = 0; i < el.children.length; i++) ro.observe(el.children[i]);
+    return () => ro.disconnect();
+  }, [bossId, defeated, corpseWeapon]);
+  useEffect(() => {
+    let raf = 0;
+    const tick = () => {
+      const y = rightStickY();
+      const el = body.current;
+      if (el && y) {
+        const k = (Math.abs(y) - STICK_DEADZONE) / (1 - STICK_DEADZONE);
+        el.scrollTop += Math.sign(y) * k * STICK_SPEED;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  const drag = useRef<{ y: number; top: number } | null>(null);
   if (!d) return null;
+  const overflow = view.height - view.client > 2;
+  const TRACK_PAD = 6;
+  const trackH = view.client - TRACK_PAD * 2;
+  const thumbH = Math.max(24, trackH * view.client / view.height);
+  const maxTop = Math.max(1, view.height - view.client);
+  const thumbY = TRACK_PAD + (trackH - thumbH) * Math.min(1, view.top / maxTop);
+  const onThumbDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    (e.target as Element).setPointerCapture(e.pointerId);
+    drag.current = { y: e.clientY, top: view.top };
+  };
+  const onThumbMove = (e: React.PointerEvent) => {
+    const el = body.current;
+    if (!drag.current || !el) return;
+    el.scrollTop = drag.current.top + (e.clientY - drag.current.y) * maxTop / Math.max(1, trackH - thumbH);
+  };
+  const onThumbUp = () => { drag.current = null; };
   const after = defeated ? AFTERMATHS[bossId] : undefined;
   const typewriter: React.CSSProperties = { fontFamily: '"Courier New", Courier, monospace' };
   const field = (label: string, value: string) => (
@@ -43,7 +105,8 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
       {/* Coffee ring */}
       <div className="absolute right-[26px] bottom-[34px] w-[64px] h-[64px] rounded-full pointer-events-none" style={{ border: '5px solid rgba(110, 70, 30, 0.18)' }} />
 
-      <div className="h-full overflow-y-auto px-3 pt-2 pb-1">
+      <style>{'.dossier-body::-webkit-scrollbar { display: none; }'}</style>
+      <div ref={body} onScroll={measure} className={`dossier-body h-full overflow-y-auto pt-2 pb-1 pl-3 ${overflow ? 'pr-[16px]' : 'pr-3'}`} style={{ scrollbarWidth: 'none' }}>
         <div className="flex justify-between items-start text-[7px] tracking-widest text-[#44403C] border-b-2 border-[#1C1917] pb-[3px] mb-[5px]">
           <span>{DOSSIER_HEADER}</span>
           <span className="text-[#B91C1C] font-bold">TOP SECRET</span>
@@ -105,6 +168,20 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
           </>
         )}
       </div>
+
+      {/* The scroll bar: a strip of tape down the edge of the file, and a tab on it that says where you are */}
+      {overflow && (
+        <>
+          <div className="absolute right-[3px] w-[7px] rounded-[2px] pointer-events-none" style={{ top: TRACK_PAD, height: trackH, background: 'rgba(87, 83, 78, 0.25)', border: '1px solid rgba(87, 83, 78, 0.35)' }} />
+          <div className="absolute right-[2px] w-[9px] rounded-[2px] cursor-pointer touch-none"
+            onPointerDown={onThumbDown} onPointerMove={onThumbMove} onPointerUp={onThumbUp} onPointerCancel={onThumbUp}
+            style={{ top: thumbY, height: thumbH, background: '#7F1D1D', boxShadow: '1px 1px 0 rgba(0,0,0,0.4)' }} />
+          {view.top < maxTop - 2 && (
+            <div className="absolute left-0 right-[14px] bottom-0 h-[26px] flex items-end justify-center pb-[2px] pointer-events-none text-[9px] font-bold text-[#7F1D1D]"
+              style={{ background: 'linear-gradient(180deg, rgba(221, 204, 166, 0) 0%, rgba(221, 204, 166, 0.95) 70%)' }}>▼ MORE ▼</div>
+          )}
+        </>
+      )}
 
       {/* Rubber stamps */}
       <div className={`absolute ${defeated ? 'top-[72px]' : 'top-[34px]'} right-[10px] rotate-[14deg] px-[6px] py-[1px] text-[14px] font-bold tracking-widest pointer-events-none`}
