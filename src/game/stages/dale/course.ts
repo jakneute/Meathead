@@ -174,6 +174,9 @@ const build = () => {
   t.spawn('enforcer', 1880); t.spawn('sicario', 2300, Y - 280);
   t.spawn('cardoor', 2860); t.spawn('sicario', 2900, Y - 200);
   t.spawn('coyote', 3400); t.spawn('sicario', 3860, Y - 290); t.spawn('enforcer', 4020);
+  // Up top, under the sniper: gunmen along the rooftops, hawks circling over them (off a porch roof, into the lot of it)
+  t.spawn('sicario', 960, Y - 290); t.spawn('sicario', 1470, Y - 250); t.spawn('sicario', 2880, Y - 340); t.spawn('enforcer', 3400, Y - 250);
+  t.spawn('hawk', 1250, Y - 430); t.spawn('hawk', 2250, Y - 470); t.spawn('hawk', 3150, Y - 450); t.spawn('hawk', 3850, Y - 470);
   t.pickup(1680, Y - 30, 'small_ammo'); t.pickup(2560, Y - 30, 'small_health'); t.pickup(3600, Y - 30, 'small_ammo');
   t.pickup(3000, Y - 370, 'small_health');
   t.pickup(6060, Y - 30, 'large_health'); t.pickup(6140, Y - 30, 'large_ammo');
