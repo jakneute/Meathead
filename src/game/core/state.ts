@@ -94,6 +94,9 @@ export interface GameState {
   /** Where the stage's opening drop lands him, when it's started at a checkpoint (the skip cheat): else the start. */
   introAt?: { x: number; y: number };
   deathFrames: number;
+  /** The move he killed the boss with, if it was one of his own (a charge, a slide, an uppercut, a dive kick): the
+   * death and the victory hold on him still in it. */
+  killPose?: { isCharging: boolean; isSliding: boolean; isUppercutting: boolean; isDivekicking: boolean } | null;
   /** A little cutscene's going (enemies holding off): set while it is (see holdOffForCutscene). */
   cutsceneHold?: boolean;
   /** A death held on a still for a moment first (the sniper's headshot): frames since it started (see updateDeathScreen). */
@@ -352,6 +355,7 @@ export const resetStageState = (s: GameState) => {
   s.pickups = [];
   s.particles = [];
   s.enemyDeaths = [];
+  s.killPose = null;
   s.damageNumbers = [];
   s.blocks = [];
   s.camera = { x: 0, y: 0 };

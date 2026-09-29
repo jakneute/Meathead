@@ -218,8 +218,14 @@ const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolea
   state.icicles = [];
   getBossDef(stageId)?.onDeath?.(state);
 
-  // Stop any lingering puke shield, stream, taser, etc.
+  // Stop any lingering puke shield, stream, taser, etc. (but if it was a charge, a slide, an uppercut or a dive kick
+  // that did it, that's the pose he's held in while it plays out)
+  const pl = state.player;
+  const pose = pl.isCharging || pl.isUppercutting || pl.isDivekicking
+    ? { isCharging: !!pl.isCharging, isSliding: !!pl.isSliding, isUppercutting: !!pl.isUppercutting, isDivekicking: !!pl.isDivekicking } : null;
   calmPlayer(state.player);
+  state.killPose = pose;
+  if (pose) Object.assign(pl, pose);
   state.playerStunTimer = 0;
 
   if (wasWeakness) {

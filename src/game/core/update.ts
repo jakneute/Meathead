@@ -287,6 +287,8 @@ const TALK_BEAT = 30, MAX_TALK_WAIT = 900;
 const updateVictorySequence = (ctx: FrameContext) => {
   const { state } = ctx;
   calmPlayer(state.player);
+  // (killed him with a move of his own: held in it, the still of the kill; not after a weakness kill, he's off to the corpse)
+  if (!state.bossCorpse && state.killPose) Object.assign(state.player, state.killPose);
   state.playerStunTimer = 0;
   state.projectiles = [];
   state.damageNumbers = [];
