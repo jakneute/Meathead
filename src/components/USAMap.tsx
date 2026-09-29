@@ -47,9 +47,10 @@ const USAMap: React.FC<USAMapProps> = ({
   // The garage's signal: never in the same place twice
   const [gq, setGq] = useState({ x: 230, y: 110 });
   useEffect(() => {
+    if (!garage) return;
     const id = setInterval(() => setGq({ x: 70 + Math.random() * 320, y: 55 + Math.random() * 135 }), 900);
     return () => clearInterval(id);
-  }, []);
+  }, [garage]);
   const activeLocation: BossLocationData = garage ? {
     city: GARAGE_MAP.place, state: '???', stateCode: '??', region: GARAGE_MAP.region, coords: gq,
     coordinatesText: GARAGE_MAP.coords, threatBrief: GARAGE_MAP.brief,
@@ -326,10 +327,12 @@ const USAMap: React.FC<USAMapProps> = ({
           {/* ========================================================= */}
           {/* ACTIVE BLINKING TARGET DOT & RETICLE                      */}
           {/* ========================================================= */}
-          {/* The garage: a question mark that won't sit still */}
-          <text x={gq.x} y={gq.y + 6} textAnchor="middle" fontSize={garage ? 18 : 13} fontFamily="monospace" fontWeight="bold"
-            fill={garage ? '#FACC15' : 'rgba(250, 204, 21, 0.45)'} style={{ cursor: 'pointer', transition: 'x 0.25s, y 0.25s' }}
-            onClick={() => onSelectGarage?.()}>?</text>
+          {/* The garage, when it's the one picked: a question mark that won't sit still */}
+          {garage && (
+            <text x={gq.x} y={gq.y + 6} textAnchor="middle" fontSize={18} fontFamily="monospace" fontWeight="bold"
+              fill="#FACC15" style={{ cursor: 'pointer', transition: 'x 0.25s, y 0.25s' }}
+              onClick={() => onSelectGarage?.()}>?</text>
+          )}
           {activeLocation && (
             <g className="pointer-events-none">
               {/* Sonar / Radar Pinging Ring */}
