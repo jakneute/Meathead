@@ -107,16 +107,19 @@ const CheatToggle: React.FC<{ label: string, on: boolean, onColor: string, onCli
 );
 
 /** The sound test: every song and arrangement, one after the other. */
-const SoundTest: React.FC = () => {
+const SoundTest: React.FC<{ enabled: boolean }> = ({ enabled }) => {
   const [i, setI] = React.useState(-1);
-  const go = (d: number) => { const n = (i + d + ALL_CUES.length + 1) % (ALL_CUES.length + 1) - 1; setI(n); setSoundTest(n < 0 ? null : ALL_CUES[n]); };
+  const go = (d: number) => { if (!enabled) return; const n = (i + d + ALL_CUES.length + 1) % (ALL_CUES.length + 1) - 1; setI(n); setSoundTest(n < 0 ? null : ALL_CUES[n]); };
   React.useEffect(() => () => setSoundTest(null), []);
+  // (music switched off: the test's off too, and back to the start)
+  React.useEffect(() => { if (!enabled) { setI(-1); setSoundTest(null); } }, [enabled]);
   const c = i >= 0 ? ALL_CUES[i] : null;
+  const arrow = `px-2 py-1 font-black text-[10px] ${enabled ? 'bg-gray-800 hover:bg-gray-700 text-white' : 'bg-gray-900 text-gray-600 cursor-not-allowed'}`;
   return (
-    <div className="flex w-full border-2 border-gray-600 bg-gray-900 shadow-[2px_2px_0px_white] items-center overflow-hidden">
-      <button onClick={() => go(-1)} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-white font-black text-[10px]">&lt;</button>
-      <div className="flex-1 text-[6px] leading-[8px] font-black text-cyan-300 uppercase text-center py-[2px]">{c ? `${c.song}${c.arr && c.arr !== 'main' ? ' / ' + c.arr : ''}` : 'SOUND TEST'}</div>
-      <button onClick={() => go(1)} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-white font-black text-[10px]">&gt;</button>
+    <div className={`flex w-full border-2 border-gray-600 bg-gray-900 shadow-[2px_2px_0px_white] items-center overflow-hidden ${enabled ? '' : 'opacity-50'}`}>
+      <button disabled={!enabled} onClick={() => go(-1)} className={arrow}>&lt;</button>
+      <div className={`flex-1 text-[6px] leading-[8px] font-black uppercase text-center py-[2px] ${enabled ? 'text-cyan-300' : 'text-gray-500'}`}>{!enabled ? 'MUSIC OFF' : c ? `${c.song}${c.arr && c.arr !== 'main' ? ' / ' + c.arr : ''}` : 'SOUND TEST'}</div>
+      <button disabled={!enabled} onClick={() => go(1)} className={arrow}>&gt;</button>
     </div>
   );
 };
@@ -135,7 +138,7 @@ const SfxTest: React.FC = () => {
   );
 };
 
-const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['cheats']> }> = ({ rank, cheats: { flags, onToggle, onChangeRank, onPlayEnding, onPlayCall } }) => (
+const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['cheats']>, musicOn: boolean }> = ({ rank, musicOn, cheats: { flags, onToggle, onChangeRank, onPlayEnding, onPlayCall } }) => (
   <div className="absolute top-2 right-2 z-[60] flex flex-col gap-1 items-end max-w-[150px]">
     <div className="flex w-full border-2 border-gray-600 bg-gray-900 shadow-[2px_2px_0px_white] items-center overflow-hidden">
       <button onClick={() => onChangeRank(-1)} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-white font-black text-[10px]">-</button>
@@ -152,7 +155,7 @@ const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['che
     <button onClick={onPlayCall} className="w-full px-2 py-1 border-2 border-gray-600 bg-gray-800 text-yellow-300 font-black text-[7px] uppercase shadow-[2px_2px_0px_white] hover:bg-gray-700">VIEW MID-GAME CALL</button>
     <button onClick={onPlayEnding} className="w-full px-2 py-1 border-2 border-gray-600 bg-gray-800 text-yellow-300 font-black text-[7px] uppercase shadow-[2px_2px_0px_white] hover:bg-gray-700">VIEW ENDING</button>
     <div className="h-2 w-full" />
-    <SoundTest />
+    <SoundTest enabled={musicOn} />
     <SfxTest />
   </div>
 );
@@ -161,7 +164,7 @@ const TITLE_OPTIONS = [{ label: 'START GAME', intro: false }, { label: 'START GA
 
 const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onStartGame, onSelectIndex, selectedIndex, cheats, progressionRank, musicOn, onToggleMusic }) => (
   <>
-    {cheats && <CheatPanel rank={progressionRank} cheats={cheats} />}
+    {cheats && <CheatPanel rank={progressionRank} cheats={cheats} musicOn={musicOn !== false} />}
     <div className="animate-in fade-in zoom-in duration-700 max-w-lg relative w-full h-full flex flex-col items-center justify-center pt-1 pb-1">
       <MeatheadCaricature />
       <h1 className="text-3xl md:text-4xl text-red-600 mb-3 font-black tracking-tighter drop-shadow-[3px_3px_0px_white] shrink-0">MEATHEAD</h1>

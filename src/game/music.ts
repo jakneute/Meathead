@@ -32,6 +32,8 @@ export const setMusicEnabled = (on: boolean) => {
   enabled = on;
   try { localStorage.setItem('meathead-music', on ? 'on' : 'off'); } catch { /* not remembered, then */ }
   last = '#';
+  // (the sound test goes quiet with it)
+  if (!on) testCue = null;
   start();
 };
 let fromGame: (() => { cue: Cue | null; muffled: boolean }) | null = null;
@@ -47,7 +49,7 @@ export const setGameMusic = (fn: () => { cue: Cue | null; muffled: boolean }) =>
 
 const apply = () => {
   const game = fromGame?.();
-  const cue = testCue ?? (!enabled ? null : screenCue !== undefined ? screenCue : game?.cue ?? null);
+  const cue = !enabled ? null : testCue ?? (screenCue !== undefined ? screenCue : game?.cue ?? null);
   const key = cue ? `${cue.song}:${cue.arr ?? ''}` : '';
   if (key !== last) {
     last = key;
