@@ -79,6 +79,16 @@ export const isSpeaking = () => busy();
 
 /** Recorded lines playing outside the dialogue queue (the menus, the cutscenes' radio). */
 let outside = 0;
+/**
+ * For a cutscene run on a frame clock: at one of its `holds` (frames), it doesn't go on till whoever's talking has
+ * finished, and a breath after (so nobody talks over anybody, unless the scene means them to). Returns whether the
+ * clock can tick. `quiet` is the scene's own count of frames it's been quiet for.
+ */
+export const holdForSpeech = (t: number, holds: ReadonlySet<number>, quiet: { n: number }, breath = 12) => {
+  quiet.n = isTalking() ? 0 : quiet.n + 1;
+  return !holds.has(t) || quiet.n >= breath;
+};
+
 /** Is anyone talking, or waiting their turn to? */
 export const isTalking = () => busy() || queue.length > 0 || outside > 0;
 

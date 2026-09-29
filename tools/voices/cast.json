@@ -21,6 +21,7 @@
   "hipster": { "voice": "am_puck", "speed": 1.12, "rate": 1.08 },
   "skier": { "voice": [["am_puck", 0.5], ["am_eric", 0.5]], "speed": 1.05, "rate": 1.05 },
   "oldman": { "voice": "am_santa", "speed": 0.85, "rate": 1.06 },
+  "dispatch": { "voice": "af_sarah", "speed": 0.95, "rate": 1.0, "fx": "radio_mild" },
   "goon": { "voice": "am_fenrir", "speed": 1.1, "rate": 0.9 },
 
   "barry.minion": { "voice": "am_echo", "speed": 1.25, "rate": 1.12 },

@@ -69,6 +69,14 @@ const fxChain = (ctx: AudioContext, fx: string, out: AudioNode): AudioNode => {
     hp.connect(lp); lp.connect(drive); drive.connect(g); g.connect(out);
     return hp;
   }
+  if (fx === 'radio_mild') {
+    // A handheld radio, quietly: just the phone band, no crunch
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 320;
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3400;
+    const g = ctx.createGain(); g.gain.value = 1.3;
+    hp.connect(lp); lp.connect(g); g.connect(out);
+    return hp;
+  }
   if (fx === 'mask') {
     const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1300; bp.Q.value = 0.6;
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3200;

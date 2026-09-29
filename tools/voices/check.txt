@@ -1,45 +1,45 @@
 0.00  barry.minion
   said: AAAAAAAAAAAAAAAAH!
-  heard: I love you, I love you.
-0.00  dale.goon
-  said: meathead
-  heard: Me Ted.
+  heard: Bawa
+0.00  dale.junkie
+  said: GOTCHA! HUH?! HUH?!
+  heard: got you hilhah
 0.00  dale.junkie
   said: HUH?! HUH?! HUH?!
-  heard: Okay, okay.
+  heard: Unk-k-k!
 0.00  dale.junkie
   said: MINE! MINE MINE MINE!
   heard: Mind, mind, mind, mind.
 0.00  doorman
   said: NOOOOOOO!
-  heard: No boo-woo-woo-woo.
+  heard: No.
 0.00  meathead
   said: ...HUH?
   heard: Yeah.
 0.00  meathead
   said: AAAAAAAAAAAAAAAAAAAAAAAA
-  heard: I love you, I love you.
+  heard: There you are.
 0.00  meathead
   said: AAAAAAAAAAAAAAHHHHHHH
-  heard: Tallow in around there.
+  heard: There you are.
 0.00  meathead
   said: AAAAAAAAAAAAH!
-  heard: Tell the weather I go.
+  heard: I love you.
 0.00  meathead
   said: AAAAAAH!
-  heard: Aloeia.
+  heard: I love you.
+0.00  meathead
+  said: AQUA-CRUSHED
+  heard: Aquacrush.
 0.00  meathead
   said: BULK SMASH
   heard: Bulks math
 0.00  meathead
   said: COWABUNGAAAAA!
-  heard: Cowabungaia
+  heard: Cowabunga
 0.00  meathead
   said: DIE ASSHOLE
   heard: Diasal  //
-0.00  meathead
-  said: DIE PIG
-  heard: Dypig  //  //  //  //  //  //  //  //  //  //  //  //  //  //  //  //  //  //  //  //  //  //  //  //  //  //  //  //
 0.00  meathead
   said: EAT SHIT
   heard: Leech at.
@@ -48,7 +48,7 @@
   heard: Neil.
 0.00  meathead
   said: MY KOMBUCHAAAAAAA
-  heard: Mike Hombachaya
+  heard: Mike Hombucha.
 0.00  meathead
   said: OOF!
   heard: Move.
@@ -63,22 +63,16 @@
   heard: Rod and Phil.
 0.00  meathead
   said: SHIT
-  heard: Red.
+  heard: That's it.
 0.00  meathead
   said: SMASHED
   heard: Smash.
 0.00  meathead
   said: WEAKLING
-  heard: We claim.
-0.00  meathead
-  said: goon
-  heard: Go on.
-0.00  meathead
-  said: meathead
-  heard: Me Ted.
+  heard: We clean.
 0.00  oldman
   said: WHOOAAA!
-  heard: Whoa, that's it.
+  heard: Woola!
 0.00  oscar.foreman
   said: UP.
   heard: Love ya!
@@ -87,25 +81,28 @@
   heard: Jin.
 0.00  skier
   said: AAAAAAAAAAHHHHH
-  heard: That'll really mean.
-0.07  meathead
-  said: PATHETIC
-  heard: pathetic  8  8  9  8  8  9  8  8  9  8  9  9  9  9  9  9  9  9  9  9  9  9  9  9  9  9  8
+  heard: Hang on.
+0.12  meathead
+  said: UNION RULES.
+  heard: Union Rules  8.  2.  3.  3.  3.  1  2.  4  2.  5.  3.  1.  4.  6.  4.  4.  5.  3.  4.  9.  7.  1.  7.  5.  5.  8.  5.  9.
+0.18  meathead
+  said: PURE THERMIC POWER
+  heard: Pure Thermic Power  8.  8  8.  8.  8.  8.  8.  7.  8.  8.  8.  9.  8.  8.  8.  8.  8.  8.  9.  8.  5.  8.  8.  9.  9.  8.  8.  8.
 0.25  boss.ernie
   said: YOU'RE... TOASTING... A MOUNTAIN.
   heard: your toasting amount in
-0.25  meathead
-  said: MY TIIIIIIRES!
-  heard: My T.A. I.R.S.
 0.33  boss.barry
   said: EW! CONDUCTIVE PUKE!
   heard: You conductive puking.
-0.33  dale.junkie
-  said: GOTCHA! HUH?! HUH?!
-  heard: Gotcha, Hell Hell!
 0.33  dale.riggs
   said: ...SORRY, SIR REGINALD.
   heard: I'm sorry, Soreginald.
+0.33  meathead
+  said: CORROSIVE COWARD
+  heard: Car Sense of Coward
+0.33  meathead
+  said: MY TIIIIIIRES!
+  heard: My T-I-ers.
 0.33  meathead
   said: OD'D ON MY GAINS
   heard: Adama gains.  //  //  //
@@ -123,7 +120,10 @@
   heard: I am the final, please. Please.
 0.40  hipster
   said: MY KOMBUCHAAAAAAA
-  heard: My combat chair.
+  heard: My combi-chai.  //
+0.40  meathead
+  said: BRRRR-EAK IN HALF
+  heard: B.R.R. Reek in half.
 0.40  meathead
   said: CREATINE WITHDRAWAL
   heard: Create teen withdrawal.
@@ -142,477 +142,3 @@
 0.44  tommy.rider
   said: NIGGA STOLE MY BIKE!
   heard: You can store my bike.
-0.45  tommy.thing
-  said: A WAVE OF CLEAN WATER! DROWN US IN IT!
-  heard: Away from the water, drown, drown, drown, drown, drown, drown us in it.
-0.50  boss.barry
-  said: CURRENT'S STILL FLOWING, PAL!
-  heard: Current still flowing pound.
-0.50  boss.dale
-  said: ICE? I DEAL ICE, BRO!
-  heard: ice idealize bro.
-0.50  boss.tommy
-  said: ELECTRIFIED SEWAGE! BZZT! HURK!
-  heard: Electrified sewage, BZT, Herk.
-0.50  boss.tommy
-  said: SPLOOSH! YOUR ROCK SANK.
-  heard: Splish your rock sink.
-0.50  meathead
-  said: AQUA-CRUSHED
-  heard: Aqua Crush.
-0.50  meathead
-  said: ASH TO ASH TRASH TO TRASH
-  heard: as to how to trash trash.
-0.50  meathead
-  said: CREATINE CRASH
-  heard: creating crash.
-0.50  meathead
-  said: CRYO-CRUSHED
-  heard: Cryo-crust.
-0.50  meathead
-  said: DISSOLVE BITCH
-  heard: Dissolve bit.
-0.50  meathead
-  said: EAT SLOP
-  heard: Eat Slap
-0.50  meathead
-  said: FREEZE BITCH
-  heard: Freeze, bet.
-0.50  meathead
-  said: GET REKT
-  heard: Get wrecked.
-0.50  meathead
-  said: HOT MESS
-  heard: Heart mess.
-0.50  meathead
-  said: I REGRET NOTHIIIIIIING
-  heard: I regret not the EI.
-0.50  meathead
-  said: MANDIBLES SMASHED
-  heard: Manable smashed.
-0.50  meathead
-  said: OH SHI-
-  heard: Oh, she...
-0.50  meathead
-  said: OW FUCK
-  heard: Oh fuck.
-0.50  meathead
-  said: RIGHTY TIGHTY, MY SKULL!
-  heard: Rydi Tydi my skull.
-0.50  meathead
-  said: SHATTERED LATS
-  heard: Shattered let.
-0.50  meathead
-  said: TOASTED GAINS
-  heard: Toasted games  //
-0.50  meathead
-  said: UPPERCUT ENEMA
-  heard: uppercut anima
-0.50  meathead
-  said: VEIN VEIN GO AWAY
-  heard: Veen, Veen, go away.
-0.50  meathead
-  said: WORTHLESS SCUM
-  heard: Worthless gum  //
-0.50  meathead
-  said: YOU'RE TOAST.
-  heard: Your toast.
-0.50  oldman
-  said: ...STILL BITIN'.
-  heard: Still bitten!
-0.50  skier
-  said: THANKS, THEY'RE CARBON FIB-
-  heard: Thanks there Carbon Fibby.
-0.50  tommy.hazmat
-  said: DRINK UP.
-  heard: drink arpa
-0.50  tommy.thing
-  said: MEATHEAD. WE ASKED YOU FOR SOMETHING.
-  heard: Meet head. We ask for something.
-0.57  boss.artie
-  said: A ROCK? HOW PREHISTORIC.
-  heard: Iraq How Prehistoric
-0.57  boss.dale
-  said: MOBILE LAB FIRE! RUN!
-  heard: Mobile LabFire Run
-0.57  doorman
-  said: MEMBERS ONLY, MEATBALL.
-  heard: Members only meet ball.
-0.57  meathead
-  said: I'M MID-SET, BRO.
-  heard: I'm Midset bro.
-0.57  meathead
-  said: POTHOLE! MY TAILBONE!
-  heard: Pot hole my tailbone.
-0.57  meathead
-  said: RUSTY NEEDLE NAPTIME
-  heard: Rusty Needle nap time.
-0.57  oscar.biker
-  said: BACK DOOR'S LOCKED TILL LAST CALL, HOSS.
-  heard: Back doors lock to last call, Haas.
-0.57  tommy.thing
-  said: WE WERE A NEIGHBORHOOD ONCE. WE HAD MANNERS.
-  heard: We were in April at once, we had mad manners.  We had manners.
-0.60  dale.junkie
-  said: MY BLUE! MY BEAUTIFUL BLUE!
-  heard: I blew my beautiful blue.
-0.60  meathead
-  said: FIRST TIME FOR EVERYTHIIIIING!!!
-  heard: First time for every Thee Eying.
-0.60  meathead
-  said: FLAME BROILED! I'M FLAME BROILED!
-  heard: Flame bribed, I'm flame bribed.
-0.60  meathead
-  said: TOXIC SPRAY IN MY PORES!
-  heard: Talks expray in my pores.
-0.60  meathead
-  said: WIND DEOESN'T BUILD MUSCLE, ASSHOLE!
-  heard: Win deosent build muscle asshole.
-0.62  meathead
-  said: A GEYSER OF LAVA! OF COURSE!
-  heard: The guys are of lava, of course.
-0.62  meathead
-  said: ICE BULLETS? YOU'RE A LOSER, PARKA BOY!
-  heard: Ice bullets your loser, parka-bye.
-0.62  meathead
-  said: OUT OF MY WAY, NOODLE-ARM!
-  heard: out of my way, new to alarm.
-0.62  boss.dale
-  said: THREE HITMEN! I PAID FOR THREE HITMEN!
-  heard: 3 hit men, I paid for 3 hit men.
-0.62  boss.hector
-  said: MISSED ME MISSED ME, NOW YOU GOTTA... OW!
-  heard: Miss me, Miss me, now you gotta, oh.
-0.62  meathead
-  said: HE'S DEAD AS SHIT. QUIT WASTING MY GAINS.
-  heard: Is that a shit quit wasting my gains?
-0.67  boss.artie
-  said: A PEASHOOTER? HOW QUAINT.
-  heard: A pea shooter, how quaint.
-0.67  boss.barry
-  said: BRR-ZZT! THAT'S A SHORT!
-  heard: BRRZT, that's a short.
-0.67  boss.barry
-  said: BZZZZT! EVERYONE'S GETTING ZAPPED!
-  heard: busy zzzt everyone's getting zapped
-0.67  boss.barry
-  said: OIL-FILLED TRANSFORMER! BOOM TIME!
-  heard: Oilfield transformer boom time.
-0.67  boss.dale
-  said: YOU'RE BAD FOR BUSINESS, MAN!
-  heard: You're bad for businessman.
-0.67  boss.ernie
-  said: FRACKING... ME... NOW?
-  heard: Fractking me now.
-0.67  boss.oscar
-  said: LIGHT 'EM UP!
-  heard: Light them up.
-0.67  boss.tommy
-  said: BLAARGH! CRUDE OIL?! I CAN'T CHUNDER!
-  heard: Blarg crude oil, I can't shunder.
-0.67  boss.tommy
-  said: BULLETS SINK IN MY SLUDGE... BLURGH.
-  heard: Bullet sink in my sludge, blurb.
-0.67  boss.victor
-  said: PRESSURE ALWAYS WINS, MEATHEAD!
-  heard: Pressure always wins meat head.
-0.67  dale.junkie
-  said: COME HERE, MUSCLES!
-  heard: Come hear muscles.
-0.67  dale.junkie
-  said: GET OUTTA MY OFFICE!
-  heard: Get out of my office.
-0.67  dale.junkie
-  said: TIGHT! TIGHT! TIGHT!
-  heard: I tight tight.
-0.67  dale.prisoner
-  said: I HAVE A TIMESHARE!
-  heard: I have a time share.
-0.67  meathead
-  said: ASCEND TO HELL
-  heard: Send to hell.
-0.67  meathead
-  said: BULL RUSHED BITCH
-  heard: Bull rust bitch.
-0.67  meathead
-  said: CHARRED BEYOND REPAIR
-  heard: Chard beyond repair.
-0.67  meathead
-  said: CHEST DAY IS EVERY DAY
-  heard: Chasta is every day.
-0.67  meathead
-  said: DELTS OF DOOM
-  heard: Deltz of doom
-0.67  meathead
-  said: DUCK. I SHOULD'VE DUCKED.
-  heard: Duck I should have ducked.
-0.67  meathead
-  said: ELEVATOR TO HELL
-  heard: Elevator to help.
-0.67  meathead
-  said: GYM CLOSED... FOREVER
-  heard: Jim closed forever.
-0.67  meathead
-  said: HANDS OFF, PARKA BOY!
-  heard: Hands off, park a boy.
-0.67  meathead
-  said: HE THREW ME! A CRACKHEAD THREW ME!
-  heard: He threw me a crack head through me.
-0.67  meathead
-  said: LEG DAY, BABY!
-  heard: Like day baby.
-0.67  meathead
-  said: MOVE OR DIE FUCKFACE
-  heard: Move or die, fuck face.
-0.67  meathead
-  said: OH HELL YEAH!
-  heard: Oh hell yes.
-0.67  meathead
-  said: OW! THE HOT STICK GOT ME!
-  heard: Oh the heart stick got me.
-0.67  meathead
-  said: PECS OF STEEL
-  heard: Packs of steel.  //  //
-0.67  meathead
-  said: PEER REVIEW THIS, EGGHEAD!
-  heard: peer review this egg head.
-0.67  meathead
-  said: PUMP COVER DESTOWNED
-  heard: Pump cover distound.
-0.67  meathead
-  said: ROCKED YOUR WORLD
-  heard: Rock your world.
-0.67  meathead
-  said: RUSTY AND REKT
-  heard: Rusty and wrecked.
-0.67  meathead
-  said: SAWHORSE TO THE SHINS!
-  heard: Saw horse to the shins.
-0.67  meathead
-  said: SHOULD'VE BUILT FURTHER UP.
-  heard: should have built further up.
-0.67  meathead
-  said: SMOKE 'EM IF YOU GOT 'EM
-  heard: Smoke M if you got M.
-0.67  meathead
-  said: SURF'S UP ASSHOLE
-  heard: Serves up asshole.
-0.67  meathead
-  said: TRACK MARK TERROR
-  heard: Track Mark Tara
-0.67  meathead
-  said: TWENTY THREE?! I PRESSED THE TOP ONE!
-  heard: 23. I press the top one.
-0.67  meathead
-  said: UGH... MY EVERYTHING.
-  heard: Uggs my everything.
-0.67  tommy.kid
-  said: WHY'S IT GETTING DARK?
-  heard: Why is it getting dark?
-0.67  tommy.thing
-  said: BURN US. BOIL US AWAY. THE FIRE.
-  heard: Burn us, boys, boys, away, fight the fire!
-0.67  tommy.thing
-  said: ICE! WE WANT TO FEEL SOMETHING THAT ISN'T WARM!
-  heard: Ice, we want to be something that is more.
-0.67  tommy.thing
-  said: THE ROCKS! SMASH THE BONES LOOSE!
-  heard: The rocks, man, and the bones!
-0.70  dale.riggs
-  said: IT'S SIR REGINALD, DALE! TWELVE YEARS AND YOU NEVER ASKED!
-  heard: It's a regional day, 12 years and you never asked.
-0.71  meathead
-  said: AN AUTHENTIC OLD WEST TOWN. EST. NINETEEN NINETY FOUR. SURE.
-  heard: An authentic Old West town, ESD 1994, sure.
-0.71  meathead
-  said: UPPERCUT A FREIGHT TRAIN? NO! SHOULDER! TO! SHOULDER!
-  heard: Upper cut of freight train, no shoulder to shoulder.
-0.71  boss.artie
-  said: STOP POKING ME, YOU DIRTY PINCUSHION.
-  heard: Stop poking me, you dirty pink-o-shin.
-0.71  dale.junkie
-  said: OHHHH YEAHHHH! I CAN SEE THROUGH TIME!
-  heard: Oh yeah, I can see through time.
-0.71  meathead
-  said: I HIT A BUOY! THE BUOY WON!
-  heard: I hit a boy, the boy won.
-0.73  boss.artie
-  said: THANKS FOR THE REFILL, MEATFACE.
-  heard: Thanks for the refill meat face.
-0.73  boss.oscar
-  said: NOTHING BEATS AN AFTER-DINNER FIRE!
-  heard: Nothing beats an afterdinner fire.
-0.73  boss.tommy
-  said: AMATEUR VOMIT. WATCH A PROFESSIONAL.
-  heard: Amit Sir Vomit, watch a professional.
-0.73  boss.tommy
-  said: THAT'S A BAD MIX, MEATHEAD!
-  heard: That's a bad mix, meat head.
-0.73  meathead
-  said: A FLOWERPOT! ON MY HEAD!
-  heard: A flower pot on my head.
-0.73  meathead
-  said: HE SHOT ME! BETWEEN STANDUPS!
-  heard: He shot me between stand-ups.
-0.73  meathead
-  said: I'M GETTING CHARBROILED OVER HERE!
-  heard: I'm getting char broiled over here.
-0.73  meathead
-  said: SAUNA'S TOO HOT FOR YOU
-  heard: Son is too hot for you.
-0.73  meathead
-  said: THAT'S A LOW BLOW, EARTH-WORM!
-  heard: That's a low blow, Earthworm.
-0.74  dale.junkie
-  said: I'M GONNA RIP YOUR HEART OUT AND SELL IT!
-  heard: and get a rip your heart out and sell it.
-0.75  boss.barry
-  said: OW! THAT'S MY SUBSTATION!
-  heard: Oh, that's my substation.
-0.75  boss.barry
-  said: ROLLING BLACKOUT, GET IT?
-  heard: Rolling blackout get it's
-0.75  boss.barry
-  said: YOU'RE OVERHEATING MY GRID!
-  heard: You're overheating my grids.
-0.75  boss.dale
-  said: YOU GREASED THE TRUCK!
-  heard: You grease the truck.
-0.75  boss.ernie
-  said: PUKE... IN MY... STRATA.
-  heard: puke in my stora.
-0.75  boss.ernie
-  said: WATER... ERODES... SLOWLY... BOY.
-  heard: Water erodes slowly by.
-0.75  boss.oscar
-  said: EW. THAT'S NOT PREMIUM.
-  heard: You, that's not premium.
-0.75  boss.oscar
-  said: FLAMETHROWER, MEET PETROLEUM. GENIUS, PAL. REAL GENIUS.
-  heard: Flam throw or meet petroleum. Genius pal, real genius.
-0.75  dale.junkie
-  said: WHO PUT THAT THERE?
-  heard: You put that there.
-0.75  dale.junkie
-  said: WHO'S THE FED NOW?!
-  heard: Who's the fan now?
-0.75  guide
-  said: HA! NOBODY'S THAT STUPID.
-  heard: How nobody's that stupid.
-0.75  meathead
-  said: AC/DC CAN SUCK MY SWEATY PECS!
-  heard: A C slash DC can suck my sweaty pecs.
-0.75  meathead
-  said: BRRRR-EAK IN HALF
-  heard: BRR RREEC in half.
-0.75  meathead
-  said: BURNT TO A CRISP
-  heard: Burn to a crisp.
-0.75  meathead
-  said: EAT THIS CHIN CHECK
-  heard: Eat this chin track.
-0.75  meathead
-  said: FLATTENED LIKE A PANCAKE
-  heard: Flatten like a pancake.
-0.75  meathead
-  said: GAINS ACHIEVED. WEAKNESS DELETED.
-  heard: GANS achieved weakness deleted.
-0.75  meathead
-  said: GAINS RESET TO ZERO
-  heard: Gaines reset to zero.
-0.75  meathead
-  said: ILL SMASH YOUR ATMOSPHERE!
-  heard: It'll smash your atmosphere.
-0.75  meathead
-  said: JUICED UP AND DEAD
-  heard: Juice up and dead.
-0.75  meathead
-  said: PLATES TO THE FACE
-  heard: Place to the face.
-0.75  meathead
-  said: ROIDS ARE KICKING IN
-  heard: Rawids are kicking in.
-0.75  meathead
-  said: YOU PUSHED ME? ME?!
-  heard: You push me, me.
-0.75  meathead
-  said: YOUR GREASE IS AN AFFRONT TO MY GAINS!
-  heard: Your grease is enough front to my gains.
-0.75  oldman
-  said: BITIN' LIKE CRAZY TODAY.
-  heard: bitten like crazy today.
-0.75  oscar.biker
-  said: RACK EM UP, TINY.
-  heard: Rack him up, tiny.
-0.75  oscar.dan
-  said: RACK EM UP, TINY.
-  heard: Rack him up, Tiny.
-0.75  oscar.foreman
-  said: WHOA, WHOA. THIS IS A UNION BREAK, PAL.
-  heard: Woah woah, this is a union break pal.
-0.75  tommy.dad
-  said: HA! PASS THE CHIPS.
-  heard: Hah, pass the chips.
-0.75  tommy.thing
-  said: ROCKS. THROW ROCKS AT US. BREAK US.
-  heard: Rocks the rocks at us!  Break us!  Break us!
-0.77  boss.barry
-  said: B-B-BULLETS? I'M WIRED FOR THIS!
-  heard: BB Bullets, I'm wired for this.
-0.77  boss.oscar
-  said: FLAME RETARDANT SUIT, PAL! NOMEX, BABY!
-  heard: Flame retardant suit pal, no mex baby.
-0.77  boss.victor
-  said: GO AHEAD, CORK IT. SEE WHAT HAPPENS.
-  heard: Go ahead, Corkett, see what happens.
-0.77  boss.victor
-  said: YOU CAN'T BURN A VOLCANO, MEATHEAD!
-  heard: You can't burn a volcano meat head.
-0.77  meathead
-  said: GET YOUR TINFOIL SUIT OFF ME!
-  heard: Get your tin foil suit off me.
-0.77  meathead
-  said: Get that camera outta my face.
-  heard: Get that camera out of my face.
-0.77  meathead
-  said: I'M LOSING MY BALANCE, GOD DAMNIT!
-  heard: I'm losing my balance, God damn it.
-0.77  meathead
-  said: MY DELTS ARE NUMB, GOD DAMNIT!
-  heard: My delts are numb, god damn it.
-0.77  meathead
-  said: MY LATS ARE DISSOLVING, GOD DAMNIT!
-  heard: My lats are dissolving, god damn it.
-0.77  meathead
-  said: STOP THE BLOWJOB, YOU WINDY PRICK!
-  heard: Stop the blow job, you windy prick.
-0.77  meathead
-  said: STOP TWISTING MY LATS, YOU BLOWHARD!
-  heard: Stop twisting my lats, you blow hard.
-0.77  meathead
-  said: THE CARGO'S LEAVING? NOT WITHOUT ME.
-  heard: The car goes leaving, not without me.
-0.77  meathead
-  said: WHO KEEPS BRICKS ON A WINDOWSILL?!
-  heard: who keeps bricks on a window sill.
-0.77  meathead
-  said: YOU'RE DRAINING MY BATTERY, LIGHTBULB HEAD!
-  heard: You're draining my battery light bulb head.
-0.77  tommy.rider
-  said: AYYY! THAT WAS MY BIRTHDAY BIKE!
-  heard: I.E. that was my birthday bike.
-0.77  tommy.thing
-  said: HERE. WE BROUGHT THIS UP FOR YOU.
-  heard: Here we brought ourselves for you!
-0.78  meathead
-  said: HIT BY A CAR! IN AN EARTHQUAKE! TODAY SUCKS!
-  heard: It by a car and an earthquake today sucks.
-0.78  meathead
-  said: I HUGGED A CACTUS! I'M NOT PROUD OF IT!
-  heard: I hug the cactus, I'm not proud of it.
-0.78  meathead
-  said: IS THAT A PEASHOOTER, YOU WEAK LITTLE SHIT?!
-  heard: Is that a P-Shooter or you weak little shit?
-0.78  dale.dale
-  said: THEN SIR REGINALD GETS THE DENTAL! PRESS IT! PRESS IT! PRESS IT!
-  heard: When Soreginal gets the dental, press it, press it, press it.

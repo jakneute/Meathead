@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "lint": "tsc --noEmit",
     "release": "vite build --mode release && node -e \"require('fs').renameSync('release/index.html','release/Meathead.html')\"",
-    "voices": "esbuild tools/voices/extract.ts --bundle --platform=node --format=cjs --outfile=tools/voices/.extract.cjs --external:typescript --log-level=error && node tools/voices/.extract.cjs && tools/voices/.venv/Scripts/python.exe tools/voices/generate.py"
+    "voices": "node tools/voices/run.cjs"
   },
   "dependencies": {
     "@fontsource/press-start-2p": "^5.3.0",

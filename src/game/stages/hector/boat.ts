@@ -10,7 +10,7 @@ import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
 import { shakeScreen } from '../../core/state';
 import { playSound } from '../../platform/audio';
-import { say, MEATHEAD_VOICE, Voice } from '../../platform/speech';
+import { say, MEATHEAD_VOICE, Voice, holdForSpeech } from '../../platform/speech';
 import { COURSE, CP } from './course';
 import { KICK_POSE_FRAMES } from '../../../constants';
 
@@ -19,6 +19,8 @@ type BoatPhase = 'waiting' | 'cutscene' | 'riding' | 'spout' | 'gone';
 export interface Boat {
   phase: BoatPhase;
   t: number;
+  /** Frames it's been quiet (the scene waits for lines to finish: see BOAT_HOLDS). */
+  quiet: { n: number };
   /** The old man: sitting, flying, bobbing in the water. */
   oldMan: { x: number; y: number; vx: number; vy: number; rot: number; state: 'fishing' | 'flying' | 'swimming'; line: string; lineT: number };
   x: number;
@@ -37,27 +39,33 @@ export const createBoat = (state: GameState, startedAt: number): Boat => {
   const past = startedAt >= CP.TOWER;
   if (!past) state.blocks.push(block);
   return {
-    phase: past ? 'gone' : 'waiting', t: 0,
+    phase: past ? 'gone' : 'waiting', t: 0, quiet: { n: 0 },
     oldMan: { x: COURSE.fisherman.x, y: COURSE.fisherman.y, vx: 0, vy: 0, rot: 0, state: 'fishing', line: '', lineT: 0 },
     x: COURSE.boat.x, y: COURSE.boat.y, block, speed: 0, spin: 0, lift: 0,
   };
 };
 
 const meatheadSays = (state: GameState, text: string) => {
-  const shown = say(text, MEATHEAD_VOICE, 'urgent', {
+  // (after whoever's talking: nobody talks over anybody)
+  const shown = say(text, MEATHEAD_VOICE, 'queue', {
     onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 150; },
     onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 30); },
   });
   if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 120; }
 };
 const OLDMAN_VOICE: Voice = { id: 'oldman', pitch: 0.8, rate: 0.9 };
-const oldManSays = (b: Boat, text: string) => { b.oldMan.line = text; b.oldMan.lineT = 120; say(text, OLDMAN_VOICE, 'urgent', { onShow: () => {}, onHide: () => {} }); };
+const oldManSays = (b: Boat, text: string) => {
+  say(text, OLDMAN_VOICE, 'queue', { onShow: () => { b.oldMan.line = text; b.oldMan.lineT = 120 + text.length * 3; }, onHide: () => { if (b.oldMan.line === text) b.oldMan.lineT = Math.min(b.oldMan.lineT, 20); } });
+};
+/** Where the scene waits for the line before to be finished: each answer, the kick, "...STILL BITIN'", getting in the boat, and off. */
+const BOAT_HOLDS = new Set([80, 150, 230, 300, 320, 340, 379]);
 
 /** Returns the controls to use (it takes them over from the cutscene on). Calls onSucked when the spout's got him. */
 export const updateBoat = (ctx: FrameContext, b: Boat, controls: Controls, onSucked: () => void): Controls => {
   const { state } = ctx;
   const { player } = state;
-  b.t++;
+  // (the cutscene's clock waits at each beat till the line before's been said)
+  if (b.phase !== 'cutscene' || holdForSpeech(b.t, BOAT_HOLDS, b.quiet)) b.t++;
   if (b.oldMan.lineT > 0) b.oldMan.lineT--;
   updateOldMan(b);
   switch (b.phase) {

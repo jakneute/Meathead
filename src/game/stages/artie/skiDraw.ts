@@ -1,6 +1,7 @@
 // The ski run's pieces: the skier, his skis, the obstacles, the avalanche,
 // Meathead rolled up in a snowball, the ranger cabin and the snow pile.
 
+import { RANGER_RADIO, RANGER_RADIO_EVERY } from './ski';
 import type { GameState } from '../../core/state';
 import { groundLineAt } from '../../core/terrain';
 import { GROUND_Y } from '../../../constants';
@@ -247,9 +248,9 @@ const drawBuriedRanger = (ctx: Ctx, state: GameState, bx: number, by: number) =>
   ctx.fillRect(gx + 3, gy - 54, 2, 10); // aerial
   ctx.fillStyle = Math.floor(f / 20) % 2 ? '#22C55E' : '#14532D'; ctx.fillRect(gx - 2, gy - 41, 3, 3);
   // Now and then, the radio
-  const chat = f % 420;
+  const chat = f % RANGER_RADIO_EVERY;
   if (chat < 150) {
-    const line = Math.floor(f / 420) % 3 === 0 ? 'KSSH... RANGER ONE, COME IN' : Math.floor(f / 420) % 3 === 1 ? 'KSSH... DAVE? YOU GOOD, DAVE?' : 'KSSH... DAVE?';
+    const line = 'KSSH... ' + RANGER_RADIO[Math.floor(f / RANGER_RADIO_EVERY) % RANGER_RADIO.length];
     ctx.font = 'bold 7px "Press Start 2P"';
     const w = ctx.measureText(line).width + 12;
     const tx = gx - w / 2, ty = gy - 86;

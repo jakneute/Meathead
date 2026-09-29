@@ -58,7 +58,7 @@ const VOICE_CONSTS: Record<string, string> = {
   MEATHEAD_VOICE: 'meathead', MEATHEAD_INTRO_VOICE: 'meathead', MEATHEAD_MENU_VOICE: 'meathead',
   AGENT_VOICE: 'agent', SHADOW_VOICE: 'president', TRUMP_VOICE: 'president', REPORTER_VOICE: 'reporter', DOORMAN_VOICE: 'doorman',
   GUIDE_VOICE: 'guide', TOURIST_VOICE: 'tourist', HIPSTER_VOICE: 'hipster', SKIER_VOICE: 'skier', OLDMAN_VOICE: 'oldman',
-  GOON_VOICE: 'dale.goon', GUEST_VOICE: 'guest',
+  GOON_VOICE: 'dale.goon', GUEST_VOICE: 'guest', DISPATCH_VOICE: 'dispatch',
 };
 /** A `who` in a stage's script, to who they are. */
 const whoVoice = (file: string, who: string): string | null => {

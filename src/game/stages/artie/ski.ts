@@ -12,8 +12,8 @@ import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
 import { shakeScreen } from '../../core/state';
 import { rectsOverlap, boundsOf } from '../../core/utils';
-import { say, MEATHEAD_VOICE, Voice } from '../../platform/speech';
-import { playSound } from '../../platform/audio';
+import { say, MEATHEAD_VOICE, Voice, holdForSpeech } from '../../platform/speech';
+import { playSound, playSquelch } from '../../platform/audio';
 import { groundLineAt } from '../../core/terrain';
 import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES } from '../../../constants';
 import { COURSE, CP, SkiObstacle } from './course';
@@ -23,6 +23,8 @@ type SkiPhase = 'waiting' | 'cutscene' | 'skiing' | 'runout' | 'finale' | 'done'
 export interface Ski {
   phase: SkiPhase;
   t: number;
+  /** Frames it's been quiet (the scene waits for lines to finish: see SKI_HOLDS). */
+  quiet: { n: number };
   skier: { x: number; y: number; vx: number; vy: number; rot: number; state: 'stand' | 'flying' | 'gone'; line: string; lineT: number };
   /** The skis in the air, on their way to Meathead's feet. */
   skis: { x: number; y: number; vx: number; vy: number; rot: number } | null;
@@ -68,7 +70,7 @@ export const createSki = (state: GameState, startedAt: number): Ski => {
   const onSkis = startedAt === CP.SKI;
   const past = startedAt > CP.SKI;
   const ski: Ski = {
-    phase: past ? 'done' : onSkis ? 'skiing' : 'waiting', t: 0,
+    phase: past ? 'done' : onSkis ? 'skiing' : 'waiting', t: 0, quiet: { n: 0 },
     skier: { x: COURSE.skier.x, y: COURSE.skier.y, vx: 0, vy: 0, rot: 0, state: onSkis || past ? 'gone' : 'stand', line: '', lineT: 0 },
     skis: null, avX: COURSE.checkpoints[CP.SKI].x - 650, ball: 0, ballX: 0, ballRot: 0, crash: 0,
     broken: COURSE.ski.obstacles.map(() => false), cabinHitAt: past ? -9999 : 0, pileX: COURSE.cabin.x + 330, surge: false, arrived: false,
@@ -89,7 +91,8 @@ const addPile = (state: GameState, ski: Ski) => {
 };
 
 const meatheadSays = (state: GameState, text: string) => {
-  const shown = say(text, MEATHEAD_VOICE, 'urgent', {
+  // (after whoever's talking: nobody talks over anybody here but the kick)
+  const shown = say(text, MEATHEAD_VOICE, 'queue', {
     onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 150; },
     onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 30); },
   });
@@ -97,14 +100,35 @@ const meatheadSays = (state: GameState, text: string) => {
 };
 
 const SKIER_VOICE: Voice = { id: 'skier', pitch: 1.2, rate: 1.1 };
-const skierSays = (ski: Ski, text: string) => { ski.skier.line = text; ski.skier.lineT = 110; say(text, SKIER_VOICE, 'urgent', { onShow: () => {}, onHide: () => {} }); };
+/** The skier's lines: in turn, except the scream, which cuts his carbon fiber short (`cut`). */
+const skierSays = (ski: Ski, text: string, cut = false) => {
+  say(text, SKIER_VOICE, cut ? 'urgent' : 'queue', { onShow: () => { ski.skier.line = text; ski.skier.lineT = 110 + text.length * 3; }, onHide: () => { if (ski.skier.line === text) ski.skier.lineT = Math.min(ski.skier.lineT, 20); } });
+  if (cut) { ski.skier.line = text; ski.skier.lineT = 110; }
+};
+/** Where the scene waits for the line before to be finished: before Meathead answers, before the skier answers him, before the rumble, before "...OH SHIT." */
+const SKI_HOLDS = new Set([75, 120, 229, 280]);
+
+/** The ranger's radio, under the snow at the bottom: every so often, dispatch asks after him (quietly, through the radio). */
+const DISPATCH_VOICE: Voice = { id: 'dispatch', pitch: 1.1, rate: 1.0 };
+export const RANGER_RADIO = ['RANGER ONE, COME IN.', 'DAVE? YOU GOOD, DAVE?', 'DAVE?'];
+export const RANGER_RADIO_EVERY = 420;
+const rangerRadio = (state: GameState, ski: Ski) => {
+  if (ski.phase !== 'done' && ski.phase !== 'finale' && ski.phase !== 'runout') return;
+  const f = state.frame;
+  if (f % RANGER_RADIO_EVERY !== 0) return;
+  const x = COURSE.cabin.x + 265;
+  if (x < state.camera.x - 40 || x > state.camera.x + CANVAS_WIDTH + 40) return;
+  if (say(RANGER_RADIO[Math.floor(f / RANGER_RADIO_EVERY) % RANGER_RADIO.length], DISPATCH_VOICE, 'casual', { onShow: () => {}, onHide: () => {} })) playSquelch();
+};
 
 /** Runs the whole thing; returns the controls to use (cutscenes take them over). */
 export const updateSki = (ctx: FrameContext, ski: Ski, controls: Controls): Controls => {
   const { state } = ctx;
   const { player } = state;
-  ski.t++;
+  // (the cutscene's clock waits at each beat till the line before's been said)
+  if (ski.phase !== 'cutscene' || !ski.arrived || holdForSpeech(ski.t, SKI_HOLDS, ski.quiet)) ski.t++;
   if (ski.skier.lineT > 0) ski.skier.lineT--;
+  rangerRadio(state, ski);
   updateSkierBody(state, ski);
   switch (ski.phase) {
     case 'waiting':
@@ -145,13 +169,14 @@ const cutscene = (ctx: FrameContext, ski: Ski): Controls => {
   if (t === 20) skierSays(ski, 'BRO. THE POWDER UP HERE IS SICK.');
   if (t === 75) meatheadSays(state, 'NICE SKIS.');
   if (t === 120) skierSays(ski, "THANKS, THEY'RE CARBON FIB-");
+  // (and the kick cuts him off, mid-word: the one interruption)
   if (t === 138) {
     // The kick
     player.facing = 1;
     player.kickPose = KICK_POSE_FRAMES;
     ski.skier.state = 'flying'; ski.skier.vx = 11; ski.skier.vy = -9;
     ski.skis = { x: ski.skier.x, y: ski.skier.y - 10, vx: -2.2, vy: -11, rot: 0 };
-    skierSays(ski, 'AAAAAAAAAAHHHHH');
+    skierSays(ski, 'AAAAAAAAAAHHHHH', true);
     shakeScreen(state, 10, 5);
     ctx.fx.playGunSound('punch');
   }

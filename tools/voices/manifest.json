@@ -1945,6 +1945,21 @@
   "from": "game/stages/dale/town.ts:515"
  },
  {
+  "voice": "dispatch",
+  "text": "DAVE?",
+  "from": "game/stages/artie/ski.ts:121"
+ },
+ {
+  "voice": "dispatch",
+  "text": "DAVE? YOU GOOD, DAVE?",
+  "from": "game/stages/artie/ski.ts:121"
+ },
+ {
+  "voice": "dispatch",
+  "text": "RANGER ONE, COME IN.",
+  "from": "game/stages/artie/ski.ts:121"
+ },
+ {
   "voice": "doorman",
   "text": "AND STAY OUT.",
   "from": "game/stages/victor/doorman.ts:135"
@@ -2117,7 +2132,7 @@
  {
   "voice": "meathead",
   "text": "...OH SHIT.",
-  "from": "game/stages/artie/ski.ts:92"
+  "from": "game/stages/artie/ski.ts:95"
  },
  {
   "voice": "meathead",
@@ -2687,7 +2702,7 @@
  {
   "voice": "meathead",
   "text": "CATCH YOU LATER.",
-  "from": "game/stages/hector/boat.ts:47"
+  "from": "game/stages/hector/boat.ts:50"
  },
  {
   "voice": "meathead",
@@ -4772,7 +4787,7 @@
  {
   "voice": "meathead",
   "text": "MINE NOW.",
-  "from": "game/stages/artie/ski.ts:92"
+  "from": "game/stages/artie/ski.ts:95"
  },
  {
   "voice": "meathead",
@@ -4992,7 +5007,7 @@
  {
   "voice": "meathead",
   "text": "NEED YOUR BOAT, GRAMPS.",
-  "from": "game/stages/hector/boat.ts:47"
+  "from": "game/stages/hector/boat.ts:50"
  },
  {
   "voice": "meathead",
@@ -5017,7 +5032,7 @@
  {
   "voice": "meathead",
   "text": "NICE SKIS.",
-  "from": "game/stages/artie/ski.ts:92"
+  "from": "game/stages/artie/ski.ts:95"
  },
  {
   "voice": "meathead",
@@ -5132,7 +5147,7 @@
  {
   "voice": "meathead",
   "text": "OH, COME ON.",
-  "from": "game/stages/hector/boat.ts:47"
+  "from": "game/stages/hector/boat.ts:50"
  },
  {
   "voice": "meathead",
@@ -5702,7 +5717,7 @@
  {
   "voice": "meathead",
   "text": "SHOULD'VE BUILT FURTHER UP.",
-  "from": "game/stages/artie/ski.ts:92"
+  "from": "game/stages/artie/ski.ts:95"
  },
  {
   "voice": "meathead",
@@ -7207,22 +7222,22 @@
  {
   "voice": "oldman",
   "text": "...STILL BITIN'.",
-  "from": "game/stages/hector/boat.ts:54"
+  "from": "game/stages/hector/boat.ts:58"
  },
  {
   "voice": "oldman",
   "text": "BITIN' LIKE CRAZY TODAY.",
-  "from": "game/stages/hector/boat.ts:54"
+  "from": "game/stages/hector/boat.ts:58"
  },
  {
   "voice": "oldman",
   "text": "IN THIS WEATHER? YOU'LL GET KILLED OUT THERE!",
-  "from": "game/stages/hector/boat.ts:54"
+  "from": "game/stages/hector/boat.ts:58"
  },
  {
   "voice": "oldman",
   "text": "WHOOAAA!",
-  "from": "game/stages/hector/boat.ts:54"
+  "from": "game/stages/hector/boat.ts:58"
  },
  {
   "voice": "oscar.biker",
@@ -7492,17 +7507,17 @@
  {
   "voice": "skier",
   "text": "AAAAAAAAAAHHHHH",
-  "from": "game/stages/artie/ski.ts:100"
+  "from": "game/stages/artie/ski.ts:105"
  },
  {
   "voice": "skier",
   "text": "BRO. THE POWDER UP HERE IS SICK.",
-  "from": "game/stages/artie/ski.ts:100"
+  "from": "game/stages/artie/ski.ts:105"
  },
  {
   "voice": "skier",
   "text": "THANKS, THEY'RE CARBON FIB-",
-  "from": "game/stages/artie/ski.ts:100"
+  "from": "game/stages/artie/ski.ts:105"
  },
  {
   "voice": "tommy.crew",
