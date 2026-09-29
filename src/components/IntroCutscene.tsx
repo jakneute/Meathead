@@ -57,7 +57,7 @@ const HOLD_TITLE = 110;
 /** `onHandoff`: bring the stage select up underneath (the title lands on its heading); `onDone`: the intro's gone. */
 const IntroCutscene: React.FC<{ onHandoff: () => void; onDone: () => void }> = ({ onHandoff, onDone }) => (
   <Cutscene
-    panels={PANELS} endAt={TITLE_AT} endCard={BOSS_SET_TITLES[0]} onDone={onDone} skippable
+    panels={PANELS} endAt={TITLE_AT} endCard={BOSS_SET_TITLES[0]} onDone={onDone}
     handoff={{ className: setTitleClass(BOSS_SET_TITLES[0]), selector: '[data-set-title]', after: HOLD_TITLE, onHandoff }}
   />
 );

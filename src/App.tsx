@@ -5,6 +5,7 @@ import GameCanvas from './components/GameCanvas';
 import EndingCutscene from './components/EndingCutscene';
 import RadioCutscene from './components/RadioCutscene';
 import IntroCutscene from './components/IntroCutscene';
+import { canSkip, requestSkip } from './game/platform/skip';
 import DeployTransition from './components/DeployTransition';
 import WeaponGetScene from './components/WeaponGetScene';
 import { GameStatus, WeaponType } from './types';
@@ -180,6 +181,8 @@ const App: React.FC = () => {
 
   const togglePause = () => {
     if (isVictoryPhase || UNPAUSABLE_SCREENS.includes(status)) return;
+    // (a cutscene in the stage that can be skipped: that's what Start / Esc does)
+    if (status === GameStatus.PLAYING && canSkip()) { requestSkip(); return; }
     if (status === GameStatus.PLAYING) {
       setSelectedIndex(availableWeapons.indexOf(currentWeapon));
       setConfirmLeave(false);

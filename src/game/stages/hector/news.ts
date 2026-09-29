@@ -4,6 +4,7 @@
 // once, a little daycare at the bottom of it, and (if you look closely) a tiny
 // Meathead falling out of the sky with it.
 
+import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../platform/skip';
 import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
 import type { Controls } from '../../platform/input';
@@ -25,8 +26,6 @@ export interface News {
   /** Frames of static as we cut away from it. */
   staticT: number;
   done: boolean;
-  /** The skip button's been let go since it started (so a held jump doesn't skip it by accident). */
-  armed: boolean;
 }
 
 const REPORTER_VOICE: Voice = { pitch: 1.35, rate: 1.05 };
@@ -39,8 +38,6 @@ const HEADLINES = ['HURRICANE JUST... STOPS', 'FLOOD HEADED FOR DAYCARE', 'FLOOD
 const TICKER = 'EXPERTS BAFFLED  •  "THAT\'S NOT HOW WEATHER WORKS," SAYS WEATHERMAN  •  MAN SEEN RIDING WATERSPOUT  •  GIANT EYEBALL SPOTTED IN STORM, SOURCES SAY  •  MOJITOS STILL 2-4-1  •  ';
 /** A line stays up at least this long, and gives up waiting for the speech after this. */
 const MIN_LINE = 80, MAX_LINE = 60 * 9;
-/** The skip prompt comes up (and works) after this long. */
-const SKIP_AFTER = 30;
 
 /** Roughly how long a line's up (what it takes to say, near enough). */
 const lineFrames = (i: number) => MIN_LINE + LINES[i].length * 2;
@@ -57,9 +54,9 @@ const expectedFrames = () => {
 /** How far down he's fallen (0..1): steady the whole way, whatever the lines are doing (past 1 he's into the torrent). */
 const fallen = (n: News) => n.t / expectedFrames();
 
-export const createNews = (): News => ({ t: 0, line: 0, lineAt: 0, said: false, showing: '', staticT: 0, done: false, armed: false });
+export const createNews = (): News => ({ t: 0, line: 0, lineAt: 0, said: false, showing: '', staticT: 0, done: false });
 
-export const startNews = (n: News) => { n.t = 1; n.line = -1; n.done = false; n.armed = false; };
+export const startNews = (n: News) => { n.t = 1; n.line = -1; n.done = false; };
 
 export const newsOn = (n: News) => n.t > 0 && !n.done;
 
@@ -75,14 +72,13 @@ const sayLine = (n: News, i: number) => {
   if (!shown) n.said = true;
 };
 
-/** Runs the broadcast (hands off while it's on). It's all or nothing: jump or shoot skips the whole thing. Calls onOver when it's done. */
+/** Runs the broadcast (hands off while it's on). It's all or nothing: skipping skips the whole thing. Calls onOver when it's done. */
 export const updateNews = (ctx: FrameContext, n: News, controls: Controls, onOver: () => void) => {
   if (n.staticT > 0) n.staticT--;
   if (!newsOn(n)) return;
   n.t++;
-  const pressing = controls.jump || controls.shoot;
-  if (!pressing) n.armed = true;
-  const skip = n.armed && pressing && n.t > SKIP_AFTER;
+  if (n.t > SKIP_AFTER) offerSkip();
+  const skip = n.t > SKIP_AFTER && takeSkip();
   if (!skip) {
     if (n.line < 0) { if (n.t > 30) sayLine(n, 0); return; }
     const on = n.t - n.lineAt;
@@ -168,7 +164,7 @@ export const drawNews = (ctx: Ctx, state: GameState, n: News) => {
   const tx = -((f * 2) % tw);
   ctx.fillText(TICKER + TICKER + TICKER, tx, H - 8);
   // All or nothing
-  if (n.t > SKIP_AFTER) { ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.font = '8px "Press Start 2P"'; ctx.textAlign = 'right'; ctx.fillText('SKIP >>', W - 24, 80); ctx.textAlign = 'left'; }
+  if (n.t > SKIP_AFTER) drawSkipPrompt(ctx, W);
   // Captions: what she's saying
   if (n.showing && n.line >= 0) drawCaption(ctx, n.showing, ly - 16);
   // TV scanlines

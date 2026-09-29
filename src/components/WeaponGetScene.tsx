@@ -11,6 +11,8 @@ import { KeyboardMouseState, readControls } from '../game/platform/input';
 import { drawWorld } from '../game/render/world';
 import { WeaponArt } from './WeaponIcon';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/platform/gamepad';
+import { SKIP_AFTER_MS } from '../game/platform/skip';
+import SkipPrompt from './SkipPrompt';
 import { playWhoosh, playPunchImpact, playThud, playTypeClack, playGlassShatterSound } from '../game/platform/audio';
 import { speak, cancelSpeech, MEATHEAD_VOICE } from '../game/platform/speech';
 
@@ -123,6 +125,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, onDone }) => {
 
     const skipOrContinue = () => {
       const now = performance.now() - startRef.current;
+      if (now < SKIP_AFTER_MS) return;
       if (now < rangeAt) {
         startRef.current = performance.now() - rangeAt;
         cancelSpeech();
@@ -313,14 +316,14 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, onDone }) => {
           </div>
           <button onClick={finish}
             className="absolute right-3 bottom-3 px-3 py-2 text-[9px] text-black bg-yellow-400 border-2 border-black shadow-[3px_3px_0_#000] animate-pulse">
-            START / ESC: CONTINUE ▶
+            CONTINUE ▶
           </button>
         </>
       )}
 
       {/* Skip hint during the cinematic */}
-      {!inRange && t > FADE_END && (
-        <div className="absolute right-3 bottom-3 text-[7px] text-white/35 tracking-wider">START / ESC: SKIP</div>
+      {!inRange && t > SKIP_AFTER_MS && (
+        <SkipPrompt onSkip={() => { startRef.current = performance.now() - rangeAt; cancelSpeech(); }} />
       )}
     </div>
   );

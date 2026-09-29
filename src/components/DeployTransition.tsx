@@ -1,7 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import USAMap from './USAMap';
 import { BOSS_LOCATIONS, StageInfo } from '../content/roster';
 import { drawSkyClouds, DEPLOY_CLOUD_SCROLL_END } from '../game/render/skyClouds';
+import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/platform/gamepad';
+import { SKIP_AFTER_MS } from '../game/platform/skip';
+import SkipPrompt from './SkipPrompt';
 
 /**
  * Target select to gameplay: the recon map goes fullscreen and the camera
@@ -9,7 +12,7 @@ import { drawSkyClouds, DEPLOY_CLOUD_SCROLL_END } from '../game/render/skyClouds
  * plane, then dives into the clouds. The stage opens by coming out of those
  * same clouds (the skyfall intro), so the two join up.
  *
- * Any key, click or pad button skips it.
+ * It skips the usual way (SKIP >>, or Start / Esc).
  */
 
 interface Props {
@@ -54,6 +57,7 @@ const DeployTransition: React.FC<Props> = ({ stageId, currentStages, defeatedSta
   const overlayRef = useRef<HTMLCanvasElement>(null);
   const doneRef = useRef(false);
   const finish = () => { if (!doneRef.current) { doneRef.current = true; onDone(); } };
+  const [skipShown, setSkipShown] = useState(false);
 
   useEffect(() => {
     const loc = BOSS_LOCATIONS[stageId];
@@ -64,6 +68,7 @@ const DeployTransition: React.FC<Props> = ({ stageId, currentStages, defeatedSta
     const out32 = new Uint32Array(out.data.buffer);
     let tex32: Uint32Array | null = null;
     let raf = 0, start = 0;
+    let padStartHeld = true, skipUp = false;
 
     // The texture: the recon map's own SVG, rasterised big, with a target painted on the town
     const svg = mapRef.current?.querySelector('svg');
@@ -180,21 +185,25 @@ const DeployTransition: React.FC<Props> = ({ stageId, currentStages, defeatedSta
       if (!start) start = now;
       const u = Math.min(1, (now - start) / DURATION);
       render(u);
-      // Any pad button skips
-      const pads = typeof navigator !== 'undefined' && navigator.getGamepads ? navigator.getGamepads() : [];
-      for (const pad of pads) if (pad && pad.buttons.some(b => b.pressed) && now - start > 400) { finish(); return; }
+      // Start skips (a fresh press)
+      const gp = getActiveGamepad();
+      const startHeld = !!gp && (isButtonPressed(gp, GP_BUTTONS.START) || isButtonPressed(gp, GP_BUTTONS.SELECT));
+      if (startHeld && !padStartHeld && now - start > SKIP_AFTER_MS) { finish(); return; }
+      padStartHeld = startHeld;
+      if (!skipUp && now - start > SKIP_AFTER_MS) { skipUp = true; setSkipShown(true); }
       if (u >= 1) { finish(); return; }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    const skip = () => { if (start && performance.now() - start > 400) finish(); };
+    const skip = (e: KeyboardEvent) => { if (e.key === 'Escape' && start && performance.now() - start > SKIP_AFTER_MS) finish(); };
     window.addEventListener('keydown', skip);
     return () => { cancelAnimationFrame(raf); window.removeEventListener('keydown', skip); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <div className="absolute inset-0 z-50 bg-black cursor-pointer" onMouseDown={() => finish()}>
+    <div className="absolute inset-0 z-50 bg-black">
+      {skipShown && <SkipPrompt onSkip={() => finish()} />}
       {/* The recon map, rendered off-screen just to lift its SVG for the texture */}
       <div ref={mapRef} className="absolute -left-[9999px] top-0 w-[440px] pointer-events-none" aria-hidden>
         <USAMap selectedBossId={stageId} defeatedStages={defeatedStages} currentStages={currentStages} />

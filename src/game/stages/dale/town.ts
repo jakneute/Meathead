@@ -24,6 +24,7 @@
 //
 // The tourists are the town's, not enemies: Meathead can't hurt them.
 
+import { SKIP_AFTER, offerSkip, takeSkip } from '../../platform/skip';
 import type { Enemy } from '../../../types';
 import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
@@ -56,9 +57,8 @@ const ARRIVE_SPEED = 21;
 export interface TownProp { x: number; look: 'barrel' | 'cutout' | 'wagon' | 'hay' | 'wanted' | 'trough'; flying: boolean; vx: number; vy: number; y: number; rot: number }
 export interface Town {
   phase: 'street' | 'pan' | 'revive' | 'chase' | 'incoming' | 'jail' | 'crashed';
-  /** The jail scene: when the cab went into it (-1 till then); the skip button's been let go since it started. */
+  /** The jail scene: when the cab went into it (-1 till then). */
   crashedAt: number;
-  jailArmed: boolean;
   t: number;
   sniper: { on: boolean; x: number; y: number; state: 'track' | 'lock' | 'cool'; t: number; shots: number; lastShot: { x: number; y: number; t: number; covered: boolean } | null };
   /** The tourists: the town's, not enemies (Meathead can't hurt them; Riggs gets every last one). */
@@ -98,7 +98,7 @@ export const createTown = (state: GameState, startedAt: number): Town => {
     cab: wrecked ? { x: t.jail.x1 + 30 - CAB.w, speed: 0, facing: 1, spin: 0, state: 'wrecked', t: 0 } : { x: t.crash - 20, speed: 0, facing: -1, spin: 0, state: 'parked', t: 0 },
     props, sheriff: { x: wrecked ? t.x2 + 400 : t.jail.x1 - 70, running: wrecked }, prisoner: { alive: !wrecked, said: 0 },
     said: new Set(), wakeT: 999,
-    tourists: wrecked ? [] : makeTourists(), gore: 0, screamAt: -999, crashedAt: -1, jailArmed: false, arrive: null, shopHit: true,
+    tourists: wrecked ? [] : makeTourists(), gore: 0, screamAt: -999, crashedAt: -1, arrive: null, shopHit: true,
   };
 };
 
@@ -519,7 +519,7 @@ const JAIL_BEGGING = [
 /** The latest the cab comes (if the begging's still going), and how long on the wreck after. */
 const JAIL_CAB_BY = 720, JAIL_AFTER = 120;
 /** The skip works (and says so) after this long. */
-export const JAIL_SKIP_AFTER = 20;
+export const JAIL_SKIP_AFTER = SKIP_AFTER;
 
 const jailScene = (ctx: FrameContext, town: Town, talk: Talk, controls: Controls): Controls => {
   const { state } = ctx;
@@ -539,10 +539,10 @@ const jailScene = (ctx: FrameContext, town: Town, talk: Talk, controls: Controls
     // (and nobody else in the shot: no goons, no bodies still coming down)
     state.enemies = state.enemies.filter(e => e.type === 'boss' || e.pos.x + e.width < camX - 100 || e.pos.x > camX + CANVAS_WIDTH + 100);
   }
-  // Jump or shoot: skip to it coming through the wall (once the button's been let go since the cut)
-  const pressing = controls.jump || controls.shoot;
-  if (!pressing) town.jailArmed = true;
-  if (town.jailArmed && pressing && town.t > JAIL_SKIP_AFTER && town.crashedAt < 0) {
+  // Skipped: straight to it coming through the wall
+  const skippable = town.t > JAIL_SKIP_AFTER && town.crashedAt < 0;
+  if (skippable) offerSkip();
+  if (skippable && takeSkip()) {
     hush(state, talk); cancelSpeech();
     town.sheriff.running = true; town.sheriff.x = Math.max(town.sheriff.x, camX + CANVAS_WIDTH + 60);
     cab.speed = 26; cab.x = t.jail.x1 + 30 - CAB.w;

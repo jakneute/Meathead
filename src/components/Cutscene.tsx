@@ -3,6 +3,8 @@ import { ART_W, ART_H } from '../game/render/scenes/ending';
 import { say, sayModulated, cancelSpeech, canSpeak, Voice } from '../game/platform/speech';
 import { openRadio, playSquelch } from '../game/platform/audio';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/platform/gamepad';
+import { SKIP_AFTER } from '../game/platform/skip';
+import SkipPrompt from './SkipPrompt';
 
 // NES-style cutscenes (the ending, the mid-game call): a run of still images with text typed out underneath.
 // Press confirm to finish the text or move on; panels also advance on their own.
@@ -40,14 +42,15 @@ export interface Handoff { className: string; selector: string; after: number; o
 /** The handoff's beats (ms): the screen underneath settling, the card rising onto its title, the cutscene fading off it. */
 const SETTLE_MS = 550, RISE_MS = 900, FADE_MS = 900;
 
-/** `skippable`: a SKIP >> in the corner (and back / Esc) jumps straight to the end card. */
-const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radio?: boolean; handoff?: Handoff; skippable?: boolean; onDone: () => void }> = ({ panels: PANELS, endAt, endCard, radio, handoff, skippable, onDone }) => {
+/** Every one can be skipped the usual way (see platform/skip): SKIP >> in the corner, or Start / Esc, jumps straight to the end card. */
+const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radio?: boolean; handoff?: Handoff; onDone: () => void }> = ({ panels: PANELS, endAt, endCard, radio, handoff, onDone }) => {
   const LAST = PANELS.length - 1;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [panelIndex, setPanelIndex] = useState(0);
   const [shownChars, setShownChars] = useState(0);
   const [ready, setReady] = useState(false);
   const [theEnd, setTheEnd] = useState(false);
+  const [skipUp, setSkipUp] = useState(false);
   // Mutable state the loop works on
   const run = useRef({ panel: 0, t: 0, total: 0, typedAt: -1, speaking: false, spoke: false, finished: false });
   const onDoneRef = useRef(onDone);
@@ -133,7 +136,7 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
   /** Straight to the last panel, with its end card up. */
   const skip = () => {
     const r = run.current;
-    if (!skippable || r.finished || r.total < INPUT_LOCK_FRAMES) return;
+    if (r.finished || r.total < SKIP_AFTER) return;
     if (r.panel !== LAST) enterPanel(LAST);
     if (r.t < endAt) { r.t = endAt - 1; }
   };
@@ -149,6 +152,7 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
       const r = run.current;
       const p = PANELS[r.panel];
       r.t++; r.total++;
+      if (r.total === SKIP_AFTER) setSkipUp(true);
       const chars = Math.min(p.text.length, Math.floor(r.t / TYPE_FRAMES_PER_CHAR));
       setShownChars(c => (c === p.text.length ? c : chars));
       if (r.typedAt < 0 && chars >= p.text.length) r.typedAt = r.t;
@@ -178,19 +182,19 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Enter' || e.key === ' ') confirm();
-      else if (e.key === 'Escape' || e.key === 'Backspace') skipRef.current();
+      else if (e.key === 'Escape') skipRef.current();
     };
     window.addEventListener('keydown', onKey);
     let padId = 0;
     let prev = true, prevBack = true;
     const poll = () => {
       const gp = getActiveGamepad();
-      const down = !!gp && (isButtonPressed(gp, GP_BUTTONS.A) || isButtonPressed(gp, GP_BUTTONS.START));
+      const down = !!gp && isButtonPressed(gp, GP_BUTTONS.A);
       if (down && !prev) confirm();
       prev = down;
-      const back = !!gp && isButtonPressed(gp, GP_BUTTONS.B);
-      if (back && !prevBack) skipRef.current();
-      prevBack = back;
+      const start = !!gp && (isButtonPressed(gp, GP_BUTTONS.START) || isButtonPressed(gp, GP_BUTTONS.SELECT));
+      if (start && !prevBack) skipRef.current();
+      prevBack = start;
       padId = requestAnimationFrame(poll);
     };
     padId = requestAnimationFrame(poll);
@@ -211,12 +215,7 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
           style={{ position: 'absolute', left: 16, top: 20, width: ART_W * 3, height: ART_H * 3, imageRendering: 'pixelated' }}
         />
       </div>
-      {skippable && !theEnd && (
-        <button onMouseDown={e => { e.stopPropagation(); skip(); }}
-          className="absolute right-4 top-2 z-10 px-2 py-1 text-[9px] text-white/80 hover:text-white bg-black/60 border border-white/30 tracking-wider">
-          SKIP &gt;&gt;
-        </button>
-      )}
+      {skipUp && !theEnd && <SkipPrompt onSkip={skip} />}
       {theEnd && handoff && (
         <div className="absolute left-0 right-0 flex justify-center" style={{ top: 510, transform: `translate(${lift.x}px, ${lift.y}px)`, transition: outro === 'rise' || outro === 'fade' ? `transform ${RISE_MS}ms cubic-bezier(0.65, 0, 0.35, 1)` : undefined }}>
           <h2 ref={titleRef} className={handoff.className}>{endCard}</h2>
