@@ -6,7 +6,7 @@ import EndingCutscene from './components/EndingCutscene';
 import RadioCutscene from './components/RadioCutscene';
 import IntroCutscene from './components/IntroCutscene';
 import { canSkip, requestSkip } from './game/platform/skip';
-import { setScreenMusic, setMusicPaused } from './game/music';
+import { setScreenMusic, setMusicPaused, musicEnabled, setMusicEnabled } from './game/music';
 import DeployTransition from './components/DeployTransition';
 import WeaponGetScene from './components/WeaponGetScene';
 import { GameStatus, WeaponType } from './types';
@@ -92,6 +92,9 @@ const App: React.FC = () => {
   const [callPreview, setCallPreview] = useState(false);
   /** The call handing off to the stage select (its title rising onto the heading, the call fading off it). */
   const [callOutro, setCallOutro] = useState(false);
+  /** The music switch on the title screen. */
+  const [musicOn, setMusicOn] = useState(musicEnabled());
+  const toggleMusic = () => { const on = !musicEnabled(); setMusicEnabled(on); setMusicOn(on); };
   /** The opening (START GAME + INTRO): playing over the title, then fading off the stage select. */
   const [intro, setIntro] = useState<'off' | 'playing' | 'outro'>('off');
   /** True between the boss dying and the victory screen; blocks pausing. */
@@ -488,8 +491,8 @@ const App: React.FC = () => {
     else if (toTitle) setStatus(GameStatus.START);
   };
 
-  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleArchive });
-  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleArchive };
+  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleArchive, toggleMusic, introOn: intro !== 'off' });
+  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleArchive, toggleMusic, introOn: intro !== 'off' };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -506,6 +509,8 @@ const App: React.FC = () => {
       }
       // Stage select: X flips between the map and the boss dossier
       if (status === GameStatus.STAGE_SELECT && key === 'x') { toggleDossier(); return; }
+      // The title: M switches the music on and off
+      if (status === GameStatus.START && key === 'm' && !inputRef.current.introOn) { inputRef.current.toggleMusic(); return; }
       // ...and Tab flips between the current targets and the old ones
       if (status === GameStatus.STAGE_SELECT && key === 'tab') { e.preventDefault(); toggleArchive(); return; }
       if (key === 'arrowup' || key === 'w') moveSelection(0, -1);
@@ -585,6 +590,7 @@ const App: React.FC = () => {
         if (inGame && justPressed('rb')) cycleWeapon(1);
         if (justPressed('a') || (justPressed('start') && TIMED_SCREENS.includes(status))) confirmSelection();
         if (justPressed('x') && status === GameStatus.STAGE_SELECT) toggleDossier();
+        if (justPressed('x') && status === GameStatus.START && !inputRef.current.introOn) inputRef.current.toggleMusic();
         if (justPressed('y') && status === GameStatus.STAGE_SELECT) toggleArchive();
         if (justPressed('b')) {
           if (status === GameStatus.PAUSED) handleResume();
@@ -625,6 +631,8 @@ const App: React.FC = () => {
           weaponAmmo={weaponAmmo}
           onStart={() => handleStart()}
           onStartGame={(withIntro) => handleStart(withIntro)}
+          musicOn={musicOn}
+          onToggleMusic={toggleMusic}
           onResume={handleResume}
           onBossSelect={askBossSelect}
           confirmLeave={confirmLeave}

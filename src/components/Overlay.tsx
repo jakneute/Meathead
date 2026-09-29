@@ -37,6 +37,9 @@ interface OverlayProps {
   onStart: () => void;
   /** The title's two options: straight in, or the intro first. */
   onStartGame: (withIntro: boolean) => void;
+  /** The music switch on the title screen. */
+  musicOn?: boolean;
+  onToggleMusic?: () => void;
   onResume: () => void;
   onBossSelect: () => void;
   onQuitToMenu: () => void;
@@ -156,7 +159,7 @@ const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['che
 
 const TITLE_OPTIONS = [{ label: 'START GAME', intro: false }, { label: 'START GAME + INTRO', intro: true }];
 
-const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onStartGame, onSelectIndex, selectedIndex, cheats, progressionRank }) => (
+const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onStartGame, onSelectIndex, selectedIndex, cheats, progressionRank, musicOn, onToggleMusic }) => (
   <>
     {cheats && <CheatPanel rank={progressionRank} cheats={cheats} />}
     <div className="animate-in fade-in zoom-in duration-700 max-w-lg relative w-full h-full flex flex-col items-center justify-center pt-1 pb-1">
@@ -174,6 +177,9 @@ const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onStartGame, onSel
           );
         })}
       </div>
+      <button onClick={onToggleMusic} className={`mt-2 px-3 py-1 text-[8px] font-black tracking-wider border-2 shrink-0 ${musicOn ? 'text-yellow-300 border-yellow-500/60 bg-black/40 hover:bg-yellow-500/10' : 'text-zinc-500 border-zinc-700 bg-black/40 hover:text-zinc-300'}`}>
+        {musicOn ? '♪ MUSIC: ON' : '♪ MUSIC: OFF'}
+      </button>
       <ControlsGuide />
     </div>
   </>

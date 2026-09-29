@@ -25,6 +25,15 @@ let screenCue: Cue | null | undefined;
 /** The sound test (the cheat panel): whatever it's playing wins. */
 let testCue: Cue | null = null;
 let paused = false;
+/** Music on or off (the title screen's switch; remembered). */
+let enabled = (() => { try { return localStorage.getItem('meathead-music') !== 'off'; } catch { return true; } })();
+export const musicEnabled = () => enabled;
+export const setMusicEnabled = (on: boolean) => {
+  enabled = on;
+  try { localStorage.setItem('meathead-music', on ? 'on' : 'off'); } catch { /* not remembered, then */ }
+  last = '#';
+  start();
+};
 let fromGame: (() => { cue: Cue | null; muffled: boolean }) | null = null;
 let timer: ReturnType<typeof setInterval> | null = null;
 let last = '';
@@ -38,11 +47,11 @@ export const setGameMusic = (fn: () => { cue: Cue | null; muffled: boolean }) =>
 
 const apply = () => {
   const game = fromGame?.();
-  const cue = testCue ?? (screenCue !== undefined ? screenCue : game?.cue ?? null);
+  const cue = testCue ?? (!enabled ? null : screenCue !== undefined ? screenCue : game?.cue ?? null);
   const key = cue ? `${cue.song}:${cue.arr ?? ''}` : '';
   if (key !== last) {
     last = key;
-    if (!cue || !SONGS[cue.song]) stop();
+    if (!cue || !SONGS[cue.song]) stop(0.3);
     else play(cue.song, SONGS[cue.song], cue.arr ?? Object.keys(SONGS[cue.song].arrangements ?? { main: 0 })[0]);
   }
   setMix(isTalking(), !testCue && (paused || (screenCue === undefined && !!game?.muffled)));
