@@ -281,10 +281,15 @@ export const drawThingDrops = (ctx: Ctx, th: Thing, frame: number) => {
   // Where they come from: the muck's up the dome over the walkway too, hanging off it, sagging, dripping
   if (th.phase === 'fight') {
     const C = COURSE.sewer.cistern, x1 = C.x1, x2 = C.pool + 20, y = DROP_FROM;
+    // The ceiling over the walkway (a low slab of old brick on iron beams), the muck clinging to the underside of it
+    ctx.fillStyle = '#2A2521'; ctx.fillRect(x1 - 20, y - 150, x2 - x1 + 40, 110);
+    ctx.fillStyle = '#342D28'; for (let yy = y - 146; yy < y - 44; yy += 14) for (let xx = x1 - 20 + ((yy / 14) % 2) * 17; xx < x2 + 20; xx += 34) ctx.fillRect(xx, yy, 31, 11);
+    ctx.fillStyle = '#44403C'; ctx.fillRect(x1 - 20, y - 48, x2 - x1 + 40, 10);
+    ctx.fillStyle = '#1C1917'; for (let xx = x1 + 20; xx < x2; xx += 110) ctx.fillRect(xx, y - 48, 12, 10);
     ctx.fillStyle = '#3F6212';
-    ctx.beginPath(); ctx.moveTo(x1, y - 60);
+    ctx.beginPath(); ctx.moveTo(x1, y - 40);
     for (let x = x1; x <= x2; x += 16) ctx.lineTo(x, y - 6 + Math.sin(x * 0.07 + frame * 0.03) * 4 + (((x * 7) % 11) - 5));
-    ctx.lineTo(x2, y - 60); ctx.closePath(); ctx.fill();
+    ctx.lineTo(x2, y - 40); ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#4D7C0F';
     for (let x = x1 + 10; x < x2; x += 37) { const len = 8 + ((x * 13) % 17); ctx.beginPath(); ctx.moveTo(x - 5, y - 8); ctx.lineTo(x, y - 6 + len); ctx.lineTo(x + 5, y - 8); ctx.fill(); }
     ctx.fillStyle = 'rgba(217, 249, 157, 0.35)'; for (let x = x1 + 20; x < x2; x += 60) ctx.fillRect(x, y - 30, 14, 3);

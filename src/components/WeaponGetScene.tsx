@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import type { Souvenir } from '../content/garage';
 import { GameStatus, Enemy, WeaponType } from '../types';
 import {
   CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, RENDER_SCALE, WEAPON_RANGE_STAGE, createFullAmmo,
@@ -95,10 +96,12 @@ const createRange = (weapon: WeaponType): GameState => {
 interface Props {
   /** The boss just beaten (his weapon is the prize). */
   stageId: string | null;
+  /** What he took home from him for the garage (if there was anything new to take). */
+  souvenir?: Souvenir | null;
   onDone: () => void;
 }
 
-const WeaponGetScene: React.FC<Props> = ({ stageId, onDone }) => {
+const WeaponGetScene: React.FC<Props> = ({ stageId, souvenir, onDone }) => {
   const weapon: WeaponType = (stageId && BOSS_WEAPON_MAP[stageId]) || 'GUN';
   const name = getWeaponInfo(weapon).name.toUpperCase();
   const description = (stageId && WEAPON_DESCRIPTIONS[stageId]) || '';
@@ -316,6 +319,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, onDone }) => {
             </div>
             <p className="mt-2 text-[8px] leading-[14px] text-white/90 uppercase">{description}</p>
             <p className="mt-2 text-[7px] text-cyan-400/90 tracking-wider">TEST IT ON THE DUMMIES. THEY DON'T MIND. THEY DON'T HAVE A CHOICE. INFINITE AMMO.</p>
+            {souvenir && <p className="mt-2 text-[7px] text-yellow-300 tracking-wider">SOUVENIR FOR THE GARAGE: {souvenir.name}</p>}
             {/* (under all that, on its own: not part of what the weapon is) */}
             {weapon === 'OIL_ROCKET' && <FlameCallout pad={getLastInputDevice() === 'gamepad'} />}
           </div>

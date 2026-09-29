@@ -8,6 +8,8 @@ import USAMap from './USAMap';
 import BossPortrait from './BossPortrait';
 import WeaponIcon, { WeaponArt } from './WeaponIcon';
 import DossierPanel from './DossierPanel';
+import { GARAGE_ID, SOUVENIRS } from '../content/garage';
+import { ownedSouvenirs } from '../game/garageStore';
 import MeatheadCaricature from './MeatheadCaricature';
 import ControlsGuide from './ControlsGuide';
 import { setSoundTest, ALL_CUES } from '../game/music';
@@ -222,12 +224,15 @@ export const setTitleClass = (title: string) =>
 
 const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedStages, selectedIndex, onSelectIndex, showDossier, onToggleDossier, lockedIndex, engaging, onStageCardClick, onEngage, showArchive, onToggleArchive, killRecords }) => {
   // The archive shows the previous set: every one of them already dead
-  const archive = showArchive && progressionRank >= 1;
+  // (the old targets' files aren't on this screen any more)
+  const archive = false;
+  void showArchive; void onToggleArchive;
+  const garageAt = selectedIndex === GARAGE_INDEX, garageLocked = lockedIndex === GARAGE_INDEX;
   const setRank = archive ? progressionRank - 1 : progressionRank;
   const currentStages = getStages(setRank);
   const deadIds = archive ? currentStages.map(s => s.id) : defeatedStages;
   const locked = lockedIndex !== null;
-  const selectedId = currentStages[selectedIndex]?.id || currentStages[0]?.id;
+  const selectedId = garageAt ? GARAGE_ID : currentStages[selectedIndex]?.id || currentStages[0]?.id;
 
   return (
     <div className={`w-full h-full flex flex-col items-center justify-start pt-2 pb-1 overflow-hidden select-none ${engaging ? 'mh-engage-shake' : 'animate-in slide-in-from-bottom-8 duration-500'}`}>
@@ -242,22 +247,6 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
 
       <div className="w-full max-w-[770px] flex flex-row items-center justify-center gap-4 px-2">
         <div className="w-[330px] shrink-0 flex flex-col gap-3">
-        {progressionRank >= 1 && (
-          <div className="flex items-center justify-between -mb-1">
-            <div className="flex">
-              {(['CURRENT TARGETS', 'OLD TARGETS'] as const).map(tab => {
-                const on = (tab === 'OLD TARGETS') === archive;
-                return (
-                  <button key={tab} onClick={() => { if (!on) onToggleArchive(); }}
-                    className={`px-2 py-[3px] text-[7px] font-black tracking-wider border-2 ${on ? 'bg-yellow-400 text-black border-yellow-400' : 'bg-zinc-900 text-zinc-400 border-zinc-700 hover:text-white'}`}>
-                    {tab}
-                  </button>
-                );
-              })}
-            </div>
-            <span className="text-[7px] font-mono text-cyan-400/80 tracking-wider">(Y) / TAB</span>
-          </div>
-        )}
         {/* 2x2 boss cards */}
         <div className="w-full grid grid-cols-2 gap-2.5">
           {currentStages.map((stage, idx) => {
@@ -312,7 +301,10 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
             <span className="text-[7px] font-mono tracking-wider">NOTHING LEFT TO KILL. READ THE FILES.</span>
           </div>
         ) : (
-          <EngageBar locked={locked} engaging={engaging} onEngage={onEngage} />
+          <>
+            <GarageCard selected={garageAt} locked={garageLocked} dim={locked && !garageLocked} onClick={() => onStageCardClick(GARAGE_INDEX)} onHover={() => onSelectIndex(GARAGE_INDEX)} />
+            <EngageBar locked={locked} engaging={engaging} onEngage={onEngage} label={garageLocked ? 'GO HOME' : undefined} />
+          </>
         )}
         </div>
 
@@ -339,6 +331,8 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
               selectedBossId={selectedId}
               defeatedStages={deadIds}
               currentStages={currentStages}
+              garage={garageAt}
+              onSelectGarage={() => onStageCardClick(GARAGE_INDEX)}
               onSelectStage={(id) => {
                 const idx = currentStages.findIndex(s => s.id === id);
                 if (idx !== -1) onStageCardClick(idx);
@@ -376,7 +370,24 @@ const LockedInMark: React.FC = () => (
 );
 
 /** Below the boss cards: how to lock in, or the big red ENGAGE button once a target is locked. */
-const EngageBar: React.FC<{ locked: boolean; engaging: boolean; onEngage: () => void }> = ({ locked, engaging, onEngage }) => {
+/** Where the garage sits among the targets on the stage select (after the four of them). */
+export const GARAGE_INDEX = 4;
+
+/** Under the targets: the garage (wherever it is), and how full it's got. */
+const GarageCard: React.FC<{ selected: boolean; locked: boolean; dim: boolean; onClick: () => void; onHover: () => void }> = ({ selected, locked, dim, onClick, onHover }) => {
+  const n = ownedSouvenirs().length;
+  const frame = locked ? 'border-red-500 bg-red-600 text-white shadow-[0_0_18px_rgba(239,68,68,0.8)]'
+    : selected ? 'border-yellow-400 bg-yellow-400 text-black shadow-[0_0_14px_rgba(255,255,0,0.5)]' : 'border-white/40 bg-zinc-900 text-white hover:border-white/80';
+  return (
+    <button onClick={onClick} onMouseEnter={onHover}
+      className={`h-[30px] -mt-1 w-full flex items-center justify-between px-2 border-3 ${frame} ${dim ? 'opacity-35 grayscale' : ''} transition-all rounded-sm`}>
+      <span className="text-[9px] font-black tracking-wider">{GARAGE_ID}</span>
+      <span className={`text-[7px] font-mono font-bold ${selected || locked ? '' : 'text-cyan-300'}`}>LOCATION: ??? // SOUVENIRS {n}/{SOUVENIRS.length}</span>
+    </button>
+  );
+};
+
+const EngageBar: React.FC<{ locked: boolean; engaging: boolean; onEngage: () => void; label?: string }> = ({ locked, engaging, onEngage, label }) => {
   if (!locked) {
     return (
       <div className="h-[58px] flex flex-col items-center justify-center gap-1 border-2 border-dashed border-zinc-700 text-zinc-400">
@@ -392,7 +403,7 @@ const EngageBar: React.FC<{ locked: boolean; engaging: boolean; onEngage: () => 
         style={{ background: 'linear-gradient(180deg, #F87171 0%, #DC2626 45%, #7F1D1D 100%)', boxShadow: '0 0 0 2px #FACC15, 0 0 18px rgba(239,68,68,0.8), 3px 3px 0 2px #000' }}>
         <span className="absolute inset-y-0 left-0 w-[10px]" style={{ background: 'repeating-linear-gradient(180deg, #FACC15 0 4px, #111 4px 8px)' }} />
         <span className="absolute inset-y-0 right-0 w-[10px]" style={{ background: 'repeating-linear-gradient(180deg, #FACC15 0 4px, #111 4px 8px)' }} />
-        <span className="[text-shadow:2px_2px_0_#000]">ENGAGE</span>
+        <span className="[text-shadow:2px_2px_0_#000]">{label ?? 'ENGAGE'}</span>
         <span className="text-[8px] not-italic tracking-normal px-1 py-[1px] bg-black/70 border border-yellow-400 text-yellow-300">(A) / ENTER</span>
       </button>
       <span className="text-[7px] font-mono tracking-wider text-zinc-400 text-center">(B) / ESC / R-CLICK: BACK OUT</span>

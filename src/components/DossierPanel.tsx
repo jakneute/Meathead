@@ -4,6 +4,8 @@ import { DOSSIERS, DOSSIER_HEADER, AFTERMATHS } from '../content/dossiers';
 import { BOSS_LOCATIONS } from '../content/roster';
 import BossPortrait from './BossPortrait';
 import CorpsePhoto from './CorpsePhoto';
+import GaragePortrait from './GaragePortrait';
+import { GARAGE_ID, GARAGE_DOSSIER } from '../content/garage';
 
 /** Right stick: how far it has to go before it scrolls, and how fast it scrolls at full tilt (px a frame). */
 const STICK_DEADZONE = 0.2, STICK_SPEED = 7;
@@ -33,8 +35,10 @@ interface DossierPanelProps {
  * dossier. Once he's dead it becomes the after-action report instead.
  */
 const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWeapon }) => {
-  const d = DOSSIERS[bossId];
-  const loc = BOSS_LOCATIONS[bossId];
+  // (the garage has a file too: what the analysts could make of it, which isn't much)
+  const garage = bossId === GARAGE_ID;
+  const d = garage ? { ...GARAGE_DOSSIER, mission: '', reality: '', background: '', intel: '', disposal: '', notAlive: '' } : DOSSIERS[bossId];
+  const loc = garage ? undefined : BOSS_LOCATIONS[bossId];
   // Too long for the page: our own scroll bar (the browser's is hidden), moved by the mouse wheel, the right stick or dragging it
   const body = useRef<HTMLDivElement>(null);
   const [view, setView] = useState({ top: 0, height: 1, client: 1 });
@@ -82,7 +86,7 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
     el.scrollTop = drag.current.top + (e.clientY - drag.current.y) * maxTop / Math.max(1, trackH - thumbH);
   };
   const onThumbUp = () => { drag.current = null; };
-  const after = defeated ? AFTERMATHS[bossId] : undefined;
+  const after = defeated && !garage ? AFTERMATHS[bossId] : undefined;
   const typewriter: React.CSSProperties = { fontFamily: '"Courier New", Courier, monospace' };
   const field = (label: string, value: string) => (
     <div className="leading-[10px]"><span className="font-bold text-[#7F1D1D]">{label}: </span>{value}</div>
@@ -119,7 +123,7 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
         <div className="flex gap-2">
           {/* Mugshot, paper-clipped to the file */}
           <div className="relative shrink-0 w-[74px] h-[82px] bg-black border-2 border-[#57534E] rotate-[-2deg]" style={{ boxShadow: '2px 2px 0 rgba(0,0,0,0.4)' }}>
-            <div className={after ? 'w-full h-full grayscale contrast-125' : 'w-full h-full'}><BossPortrait id={bossId} /></div>
+            <div className={after ? 'w-full h-full grayscale contrast-125' : 'w-full h-full'}>{garage ? <GaragePortrait /> : <BossPortrait id={bossId} />}</div>
             {after && (
               <svg viewBox="0 0 10 10" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none">
                 <path d="M1 1 L9 9 M9 1 L1 9" stroke="rgba(185, 28, 28, 0.85)" strokeWidth="1.1" strokeLinecap="round" />
@@ -132,12 +136,23 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
             {field('REAL NAME', d.realName)}
             {field('AGE', d.age)}
             {loc && field('LAST SEEN', `${loc.city}, ${loc.state}`)}
+            {garage && field('LAST SEEN', 'SEVERAL PLACES. SIMULTANEOUSLY.')}
             {after ? field('STATUS', corpseWeapon ? 'DECEASED. EXTREMELY.' : 'DECEASED.') : field('THREAT', d.threat)}
           </div>
         </div>
 
         <div className="mt-[4px] leading-[10px]"><span className="font-bold text-[#7F1D1D]">OCCUPATION: </span>{d.occupation}</div>
-        {after ? (
+        {garage ? (
+          <>
+            {section('LOCATION', GARAGE_DOSSIER.location)}
+            {section('WHAT WE THINK IT IS', GARAGE_DOSSIER.whatItIs)}
+            {section('CONTENTS (ESTIMATED)', GARAGE_DOSSIER.contents)}
+            {section('RECOMMENDATION', GARAGE_DOSSIER.recommendation)}
+            <div className="mt-[6px] p-[4px] leading-[10px] bg-[#FEF3C7] border border-[#A16207]/50 rotate-[-0.6deg]" style={{ boxShadow: '1px 1px 0 rgba(0,0,0,0.25)' }}>
+              <span className="font-bold">HANDLER'S NOTE: </span>{GARAGE_DOSSIER.handler}
+            </div>
+          </>
+        ) : after ? (
           <>
             {section('REMAINS', corpseWeapon ? after.remains.weakness : after.remains.normal)}
             {section('AFTERMATH', after.aftermath)}
@@ -190,8 +205,8 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
 
       {/* Rubber stamps */}
       <div className={`absolute ${defeated ? 'top-[72px]' : 'top-[34px]'} right-[10px] rotate-[14deg] px-[6px] py-[1px] text-[14px] font-bold tracking-widest pointer-events-none`}
-        style={{ color: defeated ? 'rgba(21, 128, 61, 0.75)' : 'rgba(185, 28, 28, 0.75)', border: `3px solid ${defeated ? 'rgba(21, 128, 61, 0.75)' : 'rgba(185, 28, 28, 0.75)'}` }}>
-        {defeated ? 'DISPOSED OF' : 'TERMINATE'}
+        style={{ color: garage ? 'rgba(161, 98, 7, 0.8)' : defeated ? 'rgba(21, 128, 61, 0.75)' : 'rgba(185, 28, 28, 0.75)', border: `3px solid ${garage ? 'rgba(161, 98, 7, 0.8)' : defeated ? 'rgba(21, 128, 61, 0.75)' : 'rgba(185, 28, 28, 0.75)'}` }}>
+        {garage ? 'UNVERIFIED' : defeated ? 'DISPOSED OF' : 'TERMINATE'}
       </div>
     </div>
   );

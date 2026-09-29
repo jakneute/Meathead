@@ -41,6 +41,10 @@ const W = KIND_STATS.junkie.w, H = KIND_STATS.junkie.h;
 
 export type PropName = 'desk' | 'cabinet' | 'fan' | 'closet';
 export const PROPS: PropName[] = ['desk', 'cabinet', 'fan', 'closet'];
+/** How much of each of his things a hit from the right weapon takes: the flames a frame's worth, a wave a frame's
+ * worth of it passing over, a boulder, a shard of ice. (Burn the desk for a couple of seconds, a wave and a bit on the
+ * cabinet, three boulders for the fan, a few blasts of ice on the snitch.) */
+export const PROP_TAKES: Record<PropName, number> = { desk: 1 / 110, cabinet: 1 / 32, fan: 0.34, closet: 0.07 };
 /** The weapon that gets at each stash. */
 export const PROP_WEAPON: Record<PropName, WeaponType> = { desk: 'FLAMETHROWER', cabinet: 'TSUNAMI', fan: 'BOULDER', closet: 'SHOTGUN' };
 
@@ -53,6 +57,10 @@ export interface PropState {
   /** Where it ended up (the fan on the floor, the cabinet washed along). */
   x: number;
   y: number;
+  /** How much it's got left in it (1 whole, 0 it goes): only the right weapon takes any off. */
+  hp: number;
+  /** When it last took some (it flashes). */
+  hitAt: number;
 }
 export interface Stash { x: number; y: number; vy: number; landed: boolean; taken: boolean; from: PropName }
 /** (headbutt: killed by his own head, into the wall) */
@@ -92,7 +100,7 @@ const office = () => COURSE.office;
 export const createJunkieFight = (state: GameState, startedAt: number): JunkieFight => {
   const o = office();
   const done = startedAt > CP.OFFICE;
-  const prop = (x: number, y: number): PropState => ({ state: done ? 'gone' : 'intact', t: 999, dir: 1, x, y });
+  const prop = (x: number, y: number): PropState => ({ state: done ? 'gone' : 'intact', t: 999, dir: 1, x, y, hp: 1, hitAt: -999 });
   const memo = state.stageMemo.junkieCorpse ? JSON.parse(state.stageMemo.junkieCorpse) as JunkieCorpse : undefined;
   return {
     phase: done ? 'done' : 'waiting', t: 0, man: null, hpFlash: 0, grab: null, thrown: null,
@@ -568,16 +576,22 @@ const updateProps = (ctx: FrameContext, fight: JunkieFight, talk: Talk) => {
     }
     if (pr.state !== 'intact') continue;
     const box = propBox(fight, n);
-    let set = false;
-    // The desk: the flamethrower's flames on it
-    if (n === 'desk' && state.flameSegments.some(s => rectsOverlap(box, { x: s.x - s.size / 2, y: s.y - s.size / 2, w: s.size, h: s.size }))) set = true;
-    // The cabinet: the tidal wave passing over it
-    if (n === 'cabinet' && state.tsunamiActive && Math.abs(state.tsunamiX - o.cabinet) < 90) { set = true; pr.dir = state.tsunamiDir; }
-    // The fan: a boulder (heaved up at it: a rolled one never gets up there)
-    if (n === 'fan') { const b = state.projectiles.find(pj => pj.isBoulder && pj.owner === 'player' && rectsOverlap(box, boundsOf(pj))); if (b) { set = true; b.vel.y = Math.abs(b.vel.y) * 0.4; } }
-    // The snitch: shotgun ice
-    if (n === 'closet') { const ice = state.projectiles.find(pj => pj.isIce && pj.owner === 'player' && pj.health > 0 && rectsOverlap(box, boundsOf(pj))); if (ice) { set = true; ice.health = 0; } }
-    if (set) {
+    // Worn down by the right weapon, and only by that (see PROP_TAKES): it goes once there's nothing left in it
+    let took = 0;
+    // The desk: the flamethrower's flames on it, for a while
+    if (n === 'desk' && state.flameSegments.some(s => rectsOverlap(box, { x: s.x - s.size / 2, y: s.y - s.size / 2, w: s.size, h: s.size }))) took = PROP_TAKES.desk;
+    // The cabinet: the tidal wave passing over it (one wave does most of it)
+    if (n === 'cabinet' && state.tsunamiActive && Math.abs(state.tsunamiX - o.cabinet) < 90) { took = PROP_TAKES.cabinet; pr.dir = state.tsunamiDir; }
+    // The fan: boulders (heaved up at it: a rolled one never gets up there)
+    if (n === 'fan') { const b = state.projectiles.find(pj => pj.isBoulder && pj.owner === 'player' && rectsOverlap(box, boundsOf(pj)) && state.frame - pr.hitAt > 20); if (b) { took = PROP_TAKES.fan; b.vel.y = Math.abs(b.vel.y) * 0.4; b.vel.x *= -0.4; } }
+    // The snitch: shotgun ice, a good few blasts of it
+    if (n === 'closet') { const ice = state.projectiles.find(pj => pj.isIce && pj.owner === 'player' && pj.health > 0 && rectsOverlap(box, boundsOf(pj))); if (ice) { took = PROP_TAKES.closet; ice.health = 0; } }
+    if (took > 0) {
+      pr.hp = Math.max(0, pr.hp - took);
+      if (state.frame - pr.hitAt > 8 && n !== 'desk') playSound(n === 'fan' ? 'clang' : n === 'closet' ? 'ice' : 'splash', 0.6);
+      pr.hitAt = state.frame;
+    }
+    if (took > 0 && pr.hp <= 0) {
       pr.state = 'going'; pr.t = 0;
       if (n === 'desk') playSound('ignite');
       if (n === 'cabinet') playSound('splash');

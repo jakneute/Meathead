@@ -19,6 +19,8 @@ interface GameCanvasProps extends GameEvents {
   initialAmmo: Record<WeaponType, number>;
   cheats: Cheats;
   bossTauntText: string;
+  /** The checkpoint to start the stage at (the skip-level cheat's picker; 0 otherwise). */
+  startCheckpoint?: number;
   /** Power is 0..POWER_CELLS (special-move cells, refilling over time). */
   onPlayerUpdate: (health: number, power: number, ammo?: Record<WeaponType, number>, forcedWeapon?: WeaponType, lockedTo?: WeaponType) => void;
 }
@@ -127,7 +129,7 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
     if (state.frame === 0 && status === GameStatus.LEVEL_INTRO) {
       resetStageState(state);
       state.bossCheckpoint = false;
-      state.checkpoint = 0;
+      state.checkpoint = propsRef.current.startCheckpoint ?? 0;
       state.stageMemo = {};
       buildLevel(state, stageId, cheats.skipToBoss);
       state.frame = 1;

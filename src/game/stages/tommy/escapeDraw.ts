@@ -137,7 +137,9 @@ const drawFamilyScene = (ctx: Ctx, state: GameState, rt: TommyRuntime, t: number
   // (coming straight at the window: bigger and bigger in it, dropping as it comes, till the tank fills it)
   ctx.save(); ctx.beginPath(); ctx.rect(480, 100, 210, 150); ctx.clip();
   const come = dark * dark;
-  towerByTank(ctx, 585, 150 + come * 40, 0.55 + come * 1.9, 0.08 + come * 0.22);
+  // (once it's through, it's in the room, not in the window: just the dark out there)
+  if (crushT === 0) towerByTank(ctx, 585, 150 + come * 40, 0.55 + come * 1.9, 0.08 + come * 0.22);
+  else { ctx.fillStyle = '#1C1917'; ctx.fillRect(480, 100, 210, 150); }
   ctx.restore();
   ctx.fillStyle = '#5B3A29'; ctx.fillRect(582, 100, 6, 150); ctx.fillRect(480, 172, 210, 6);
   // The TV (a sitcom, a laugh track), a lamp

@@ -1,4 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
+import CheckpointPicker, { StartAt } from './components/CheckpointPicker';
+import Garage from './components/Garage';
+import { GARAGE_INDEX } from './components/Overlay';
+import { takeSouvenir } from './game/garageStore';
+import type { Souvenir } from './content/garage';
 import HUD from './components/HUD';
 import Overlay, { CheatFlags } from './components/Overlay';
 import GameCanvas from './components/GameCanvas';
@@ -41,11 +46,13 @@ const UNPAUSABLE_SCREENS = [GameStatus.BOSS_TRANSITION, GameStatus.BOSS_INTRO, G
 /** The ending plays once this set of bosses is beaten (later sets will move it). */
 const ENDING_AFTER_RANK = 1;
 
-/** Stage select is a 2x2 grid: horizontal flips the column, vertical flips the row. */
+/** Stage select is a 2x2 grid with the garage under it: horizontal flips the column, vertical goes down the rows and on to the garage. */
 const navigateStageGrid = (index: number, dx: number, dy: number) => {
   let i = index;
+  if (i === GARAGE_INDEX) return dy < 0 ? 2 : i;
   if (dx !== 0) i = i % 2 === 0 ? i + 1 : i - 1;
-  if (dy !== 0) i = i < 2 ? i + 2 : i - 2;
+  if (dy > 0) i = i < 2 ? i + 2 : GARAGE_INDEX;
+  else if (dy < 0) i = i < 2 ? i : i - 2;
   return i;
 };
 
@@ -123,6 +130,13 @@ const App: React.FC = () => {
   const [lockedIndex, setLockedIndex] = useState<number | null>(null);
   /** The "LET'S FUCKIN' GO" flourish is playing; all stage select input is ignored. */
   const [engaging, setEngaging] = useState(false);
+  /** The skip-level cheat's checkpoint picker: up for this stage; where it said to start (undefined: not asked yet). */
+  const [pickFor, setPickFor] = useState<string | null>(null);
+  const [startAt, setStartAt] = useState<StartAt | undefined>(undefined);
+  /** In the garage (from the stage select). */
+  const [inGarage, setInGarage] = useState(false);
+  /** What he took home from the boss he just killed (for the weapon screen to mention). */
+  const [souvenir, setSouvenir] = useState<Souvenir | null>(null);
   /** The target being flown to after ENGAGE (the Mode 7 swoop), or null. */
   const [deployingTo, setDeployingTo] = useState<string | null>(null);
 
@@ -153,7 +167,9 @@ const App: React.FC = () => {
 
   // Every visit to stage select starts unlocked, on the current targets
   useEffect(() => {
-    if (status !== GameStatus.STAGE_SELECT) { setLockedIndex(null); setEngaging(false); setShowArchive(false); }
+    if (status !== GameStatus.STAGE_SELECT) { setLockedIndex(null); setEngaging(false); setShowArchive(false); setInGarage(false); setPickFor(null); }
+    // (back on the map: the next skip asks again)
+    if (status === GameStatus.STAGE_SELECT && !deployingTo) setStartAt(undefined);
     // (the title opens on START GAME)
     if (status === GameStatus.START) setSelectedIndex(0);
   }, [status]);
@@ -345,6 +361,8 @@ const App: React.FC = () => {
   };
 
   const lockStage = (idx: number) => {
+    // (the garage: nothing to kill there, just somewhere to go)
+    if (idx === GARAGE_INDEX) { if (engaging) return; setSelectedIndex(idx); setLockedIndex(idx); playLockInSound(); return; }
     const stage = getStages(progressionRank)[idx];
     if (!stage || engaging) return;
     setSelectedIndex(idx);
@@ -360,9 +378,13 @@ const App: React.FC = () => {
   };
 
   /** Second confirmation: Meathead fires himself up, then the stage starts. */
-  const engageStage = () => {
+  const engageStage = (picked?: StartAt) => {
     if (lockedIndex === null || engaging) return;
+    // Home to the garage
+    if (lockedIndex === GARAGE_INDEX) { setLockedIndex(null); setInGarage(true); playLockInSound(); return; }
     const stage = getStages(progressionRank)[lockedIndex];
+    // (the skip-level cheat: which checkpoint to start at first)
+    if (cheats.skipToBoss && startAt === undefined && picked === undefined) { setPickFor(stage.id); return; }
     setEngaging(true);
     playEngageSound();
     if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
@@ -370,6 +392,8 @@ const App: React.FC = () => {
     // Then the swoop down onto his hometown (DeployTransition), which drops you into the stage
     setTimeout(() => setDeployingTo(stage.id), ENGAGE_FLOURISH_MS);
   };
+
+  const engageRef = useRef(engageStage); engageRef.current = engageStage;
 
   /** Clicking a portrait (or its map pin): lock it in, or back out if it's already the locked one. */
   const handleStageCardClick = (idx: number) => {
@@ -466,6 +490,8 @@ const App: React.FC = () => {
 
   const handleBossDefeated = (stageId: string, corpseWeapon?: WeaponType) => {
     setKillRecords(prev => ({ ...prev, [stageId]: corpseWeapon ?? null }));
+    // Something of his to take home to the garage
+    setSouvenir(takeSouvenir(stageId));
     const newWeapon = BOSS_WEAPON_MAP[stageId];
     if (newWeapon) setAvailableWeapons(prev => prev.includes(newWeapon) ? prev : sortWeapons([...prev, newWeapon]));
     setDefeatedStages(prev => [...prev, stageId]);
@@ -496,12 +522,14 @@ const App: React.FC = () => {
     else if (toTitle) setStatus(GameStatus.START);
   };
 
-  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleArchive, toggleMusic, introOn: intro !== 'off' });
-  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleArchive, toggleMusic, introOn: intro !== 'off' };
+  // (in the garage, it's the garage's own input: the stage select's is off)
+  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor });
+  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      const { status, togglePause, moveSelection, confirmSelection, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleArchive } = inputRef.current;
+      if (inputRef.current.garage) return;
+      const { status, togglePause, moveSelection, confirmSelection, selectWeaponHotkey, toggleDossier, stageSelectBack } = inputRef.current;
       const key = e.key.toLowerCase();
       if (status === GameStatus.STAGE_SELECT && (key === 'escape' || key === 'backspace')) { stageSelectBack(false); return; }
       if (key === 'escape') togglePause();
@@ -516,8 +544,6 @@ const App: React.FC = () => {
       if (status === GameStatus.STAGE_SELECT && key === 'x') { toggleDossier(); return; }
       // The title: M switches the music on and off
       if (status === GameStatus.START && key === 'm' && !inputRef.current.introOn) { inputRef.current.toggleMusic(); return; }
-      // ...and Tab flips between the current targets and the old ones
-      if (status === GameStatus.STAGE_SELECT && key === 'tab') { e.preventDefault(); toggleArchive(); return; }
       if (key === 'arrowup' || key === 'w') moveSelection(0, -1);
       else if (key === 'arrowdown' || key === 's') moveSelection(0, 1);
       else if (key === 'arrowleft' || key === 'a') moveSelection(-1, 0);
@@ -536,7 +562,7 @@ const App: React.FC = () => {
     // Unpausing waits for the release, or the still-held button would fire a special on the first frame
     let rightPressedInPause = false;
     const onMouseDown = (e: MouseEvent) => {
-      if (e.button !== 2) return;
+      if (e.button !== 2 || inputRef.current.garage) return;
       const { status, stageSelectBack } = inputRef.current;
       rightPressedInPause = status === GameStatus.PAUSED;
       if (status === GameStatus.STAGE_SELECT) stageSelectBack(true);
@@ -570,8 +596,10 @@ const App: React.FC = () => {
       if (!gp) {
         prev.a = prev.b = prev.x = prev.y = prev.start = prev.lb = prev.rb = false;
       } else {
-        const { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, toggleDossier, stageSelectBack, toggleArchive } = inputRef.current;
+        const { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, toggleDossier, stageSelectBack, garage } = inputRef.current;
         const now = Date.now();
+        // (in the garage, the garage reads the pad itself)
+        if (garage) { prev.a = prev.b = prev.x = prev.y = prev.start = true; frameId = requestAnimationFrame(poll); return; }
         const move = getGamepadMovement(gp, 0.25);
         if (now - lastMoveAt > PAD_REPEAT_MS) {
           const dx = move.left ? -1 : move.right ? 1 : 0;
@@ -596,7 +624,6 @@ const App: React.FC = () => {
         if (justPressed('a') || (justPressed('start') && TIMED_SCREENS.includes(status))) confirmSelection();
         if (justPressed('x') && status === GameStatus.STAGE_SELECT) toggleDossier();
         if (justPressed('x') && status === GameStatus.START && !inputRef.current.introOn) inputRef.current.toggleMusic();
-        if (justPressed('y') && status === GameStatus.STAGE_SELECT) toggleArchive();
         if (justPressed('b')) {
           if (status === GameStatus.PAUSED) handleResume();
           else if (status === GameStatus.STAGE_SELECT) stageSelectBack(true);
@@ -649,7 +676,7 @@ const App: React.FC = () => {
           lockedIndex={lockedIndex}
           engaging={engaging}
           onStageCardClick={handleStageCardClick}
-          onEngage={engageStage}
+          onEngage={() => engageStage()}
           onWeaponIconClick={handleWeaponIconClick}
           showDossier={showDossier}
           onToggleDossier={toggleDossier}
@@ -674,14 +701,20 @@ const App: React.FC = () => {
             onDone={() => { const id = deployingTo; setDeployingTo(null); handleSelectStage(id); }}
           />
         )}
-        {status === GameStatus.BOSS_VICTORY_SPEECH && <WeaponGetScene stageId={selectedStage} onDone={handleStart} />}
+        {status === GameStatus.BOSS_VICTORY_SPEECH && <WeaponGetScene stageId={selectedStage} souvenir={souvenir} onDone={handleStart} />}
+        {status === GameStatus.STAGE_SELECT && inGarage && <Garage onLeave={() => setInGarage(false)} />}
+        {status === GameStatus.STAGE_SELECT && pickFor && (
+          <CheckpointPicker stageId={pickFor} onCancel={() => setPickFor(null)}
+            onPick={at => { setPickFor(null); setStartAt(at); engageRef.current(at); }} />
+        )}
         <GameCanvas
           status={status}
           stageId={selectedStage}
           currentWeapon={currentWeapon}
           availableWeapons={availableWeapons}
           initialAmmo={weaponAmmo}
-          cheats={{ invincible: cheats.invincible, infiniteAmmo: cheats.infiniteAmmo, infinitePower: cheats.infinitePower, skipToBoss: cheats.skipToBoss }}
+          cheats={{ invincible: cheats.invincible, infiniteAmmo: cheats.infiniteAmmo, infinitePower: cheats.infinitePower, skipToBoss: cheats.skipToBoss && (startAt === undefined || startAt === 'boss') }}
+          startCheckpoint={cheats.skipToBoss && typeof startAt === 'number' ? startAt : 0}
           bossTauntText={bossTaunt}
           onPlayerUpdate={handlePlayerUpdate}
           onBossEncounter={handleBossEncounter}

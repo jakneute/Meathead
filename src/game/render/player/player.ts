@@ -93,7 +93,11 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const isAirborne = !p.isGrounded;
   // In the water (off the bottom): arms stroking, legs kicking; freestyle when he's going somewhere, treading water when he isn't
   const isSwimming = !!p.swimming && !p.isGrounded && hurtT < 0;
-  const swimMoving = isSwimming && Math.abs(p.vel.x) > 0.8;
+  // (stretched out flat he's a lot longer than he is stood up: up against a wall or a pipe, he treads water instead,
+  // so he never pokes through it)
+  const swimRoom = { x: p.pos.x - 30, y: p.pos.y + 8, w: p.width + 60, h: p.height - 16 };
+  const cramped = isSwimming && state.blocks.some(b => b.type !== 'pit' && !b.oneWay && b.x < swimRoom.x + swimRoom.w && b.x + b.w > swimRoom.x && b.y < swimRoom.y + swimRoom.h && b.y + b.h > swimRoom.y);
+  const swimMoving = isSwimming && Math.abs(p.vel.x) > 0.8 && !cramped;
   // (on skis he glides in a stance rather than running)
   const isWalking = !p.skiing && p.isGrounded && Math.abs(p.vel.x) > 0.4 && !isCharging && !isDucking && !isDivekicking;
   const isIdle = p.isGrounded && !isWalking && !isCharging && !isDucking && !isUppercutting && !isDivekicking && !isHurt;

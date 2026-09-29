@@ -1,6 +1,7 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { BOSS_LOCATIONS, BossLocationData, StageInfo } from '../content/roster';
+import { GARAGE_MAP } from '../content/garage';
 
 /**
  * One line of text at one size for every city: the size the longest of them needs to fit on the one line (so switching
@@ -30,15 +31,29 @@ interface USAMapProps {
   defeatedStages: string[];
   currentStages: StageInfo[];
   onSelectStage?: (stageId: string) => void;
+  /** The garage is what's picked (its signal wanders the map), and picking it from the map. */
+  garage?: boolean;
+  onSelectGarage?: () => void;
 }
 
 const USAMap: React.FC<USAMapProps> = ({
   selectedBossId,
   defeatedStages,
   currentStages,
-  onSelectStage
+  onSelectStage,
+  garage,
+  onSelectGarage,
 }) => {
-  const activeLocation: BossLocationData = BOSS_LOCATIONS[selectedBossId] || {
+  // The garage's signal: never in the same place twice
+  const [gq, setGq] = useState({ x: 230, y: 110 });
+  useEffect(() => {
+    const id = setInterval(() => setGq({ x: 70 + Math.random() * 320, y: 55 + Math.random() * 135 }), 900);
+    return () => clearInterval(id);
+  }, []);
+  const activeLocation: BossLocationData = garage ? {
+    city: GARAGE_MAP.place, state: '???', stateCode: '??', region: GARAGE_MAP.region, coords: gq,
+    coordinatesText: GARAGE_MAP.coords, threatBrief: GARAGE_MAP.brief,
+  } : BOSS_LOCATIONS[selectedBossId] || {
     city: 'UNKNOWN',
     state: 'USA',
     stateCode: 'US',
@@ -311,6 +326,10 @@ const USAMap: React.FC<USAMapProps> = ({
           {/* ========================================================= */}
           {/* ACTIVE BLINKING TARGET DOT & RETICLE                      */}
           {/* ========================================================= */}
+          {/* The garage: a question mark that won't sit still */}
+          <text x={gq.x} y={gq.y + 6} textAnchor="middle" fontSize={garage ? 18 : 13} fontFamily="monospace" fontWeight="bold"
+            fill={garage ? '#FACC15' : 'rgba(250, 204, 21, 0.45)'} style={{ cursor: 'pointer', transition: 'x 0.25s, y 0.25s' }}
+            onClick={() => onSelectGarage?.()}>?</text>
           {activeLocation && (
             <g className="pointer-events-none">
               {/* Sonar / Radar Pinging Ring */}
@@ -413,7 +432,7 @@ const USAMap: React.FC<USAMapProps> = ({
                     fontFamily="monospace"
                     fontWeight="bold"
                   >
-                    TARGET LOCKED
+                    {garage ? 'SIGNAL ???' : 'TARGET LOCKED'}
                   </text>
                 </g>
               ) : (
@@ -445,7 +464,7 @@ const USAMap: React.FC<USAMapProps> = ({
                     fontFamily="monospace"
                     fontWeight="bold"
                   >
-                    TARGET LOCKED
+                    {garage ? 'SIGNAL ???' : 'TARGET LOCKED'}
                   </text>
                 </g>
               )}
@@ -488,7 +507,7 @@ const USAMap: React.FC<USAMapProps> = ({
                 ? 'bg-red-950 text-red-400 border border-red-800' 
                 : 'bg-emerald-950 text-emerald-400 border border-emerald-800 animate-pulse'
             }`}>
-              {isCurrentDefeated ? 'ELIMINATED' : 'ACTIVE THREAT'}
+              {garage ? 'UNVERIFIED' : isCurrentDefeated ? 'ELIMINATED' : 'ACTIVE THREAT'}
             </span>
           </div>
           <div className="text-gray-400 truncate">

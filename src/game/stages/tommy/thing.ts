@@ -67,7 +67,7 @@ export interface Thing {
 /** A glob of the muck off the roof: a drip forming up there and its mark on the walkway below ('warn'), falling, then a puddle eating at whatever's in it. */
 export interface Drop { x: number; y: number; vy: number; state: 'warn' | 'fall' | 'puddle'; t: number }
 /** The roof it drops from; how long it warns; the puddle's reach and how long it lasts; what they take off him. */
-export const DROP_FROM = GROUND_Y - 380, DROP_WARN = 55, PUDDLE_R = 34, PUDDLE_FRAMES = 150;
+export const DROP_FROM = GROUND_Y - 320, DROP_WARN = 55, PUDDLE_R = 26, PUDDLE_FRAMES = 110;
 const DROP_DAMAGE = 12, PUDDLE_DAMAGE = 6;
 /** How often one comes down (quicker as it goes on), and sometimes a second, anywhere on the walkway. */
 const DROP_EVERY = 150;

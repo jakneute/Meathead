@@ -293,10 +293,24 @@ export const drawOffice = (ctx: Ctx, state: GameState, fight: JunkieFight) => {
   ctx.fillStyle = '#CA8A04'; ctx.fillRect(tx - 26, floor - 36, 4, 36); ctx.fillRect(tx + 22, floor - 36, 4, 36);
   ctx.fillStyle = 'rgba(186, 230, 253, 0.8)'; ctx.fillRect(tx - 30, floor - 40, 60, 5);
   if (fight.phase === 'waiting' || fight.phase === 'intro') { ctx.fillStyle = '#7DD3FC'; ctx.beginPath(); ctx.moveTo(tx - 12, floor - 40); ctx.lineTo(tx - 2, floor - 47); ctx.lineTo(tx + 8, floor - 40); ctx.fill(); }
-  // His things
+  // His things (and how much they've got left in them, while there's a fight on)
   for (const n of PROPS) drawProp(ctx, state, fight, n);
+  if (fight.phase === 'fight') for (const n of PROPS) propBar(ctx, fight, n, f);
   // The stash, out in the open
   for (const s of fight.stashes) if (!s.taken) drawStash(ctx, s.x, s.y, f);
+};
+
+/** Over one of his things: a little bar of what it's got left in it, in the colour of what gets at it. */
+const PROP_COLORS: Record<PropName, string> = { desk: '#F97316', cabinet: '#38BDF8', fan: '#A8A29E', closet: '#A5F3FC' };
+const propBar = (ctx: Ctx, fight: JunkieFight, n: PropName, f: number) => {
+  const pr = fight.props[n];
+  if (pr.state !== 'intact') return;
+  const box = propBox(fight, n);
+  const w = 56, x = box.x + box.w / 2 - w / 2, y = n === 'fan' ? box.y + box.h + 8 : box.y - 14;
+  const flash = f - pr.hitAt < 6;
+  ctx.fillStyle = '#0C0A09'; ctx.fillRect(x - 2, y - 2, w + 4, 8);
+  ctx.fillStyle = '#44403C'; ctx.fillRect(x, y, w, 4);
+  ctx.fillStyle = flash ? '#FFFFFF' : PROP_COLORS[n]; ctx.fillRect(x, y, w * pr.hp, 4);
 };
 
 /** A baggie of it: blue, glittering. */
