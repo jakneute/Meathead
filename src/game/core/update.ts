@@ -17,7 +17,7 @@ import { calmPlayer, DEFAULT_SHAKE, shakeScreen } from './state';
 import { playSound } from '../platform/audio';
 import { LEVEL_INTRO_STYLE } from '../../constants';
 import { updateBarfStream, updateFlameSegments } from '../combat/weapons';
-import { say, MEATHEAD_INTRO_VOICE } from '../platform/speech';
+import { say, isTalking, MEATHEAD_INTRO_VOICE } from '../platform/speech';
 import { pickRandom, rectsOverlap, boundsOf } from './utils';
 import { killPlayer, gateControls, tickPlayerTimers, updatePlayerActions, updatePlayerPhysics, getSpecialForm, interruptSpecialWithHurt } from '../player/player';
 import { updateTsunami, updateSteamExplosions, updateVolcanoes, updateTommyArena } from '../bosses/hazards';
@@ -248,6 +248,8 @@ const VICTORY_HOLD = 120;
 /** After a weakness kill: a beat after he zips up, and a cap in case he never gets there. */
 const AFTER_PEE_HOLD = 30;
 const MAX_WEAKNESS_HOLD = 600;
+/** Whoever's talking gets to finish (and a beat after), up to this long past when it'd otherwise have gone. */
+const TALK_BEAT = 30, MAX_TALK_WAIT = 900;
 
 const updateVictorySequence = (ctx: FrameContext) => {
   const { state } = ctx;
@@ -277,7 +279,10 @@ const updateVictorySequence = (ctx: FrameContext) => {
   const done = state.bossCorpse
     ? (peeFinished(state.player.peeTimer) && state.postVictoryTimer >= AFTER_PEE_HOLD) || state.postVictoryTimer >= MAX_WEAKNESS_HOLD
     : state.postVictoryTimer >= VICTORY_HOLD;
-  if (done && !state.victoryReported) {
+  // (and nobody's still talking: let them finish, then a beat)
+  state.victoryQuiet = isTalking() ? 0 : state.victoryQuiet + 1;
+  const quiet = state.victoryQuiet >= TALK_BEAT || state.postVictoryTimer >= (state.bossCorpse ? MAX_WEAKNESS_HOLD : VICTORY_HOLD) + MAX_TALK_WAIT;
+  if (done && quiet && !state.victoryReported) {
     state.victoryReported = true;
     ctx.events.onBossDefeated(ctx.stageId || "", state.bossCorpse?.weapon);
   }

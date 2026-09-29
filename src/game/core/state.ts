@@ -90,6 +90,8 @@ export interface GameState {
   sewerNuke: Vector2 | null;
   victoryString: string;
   postVictoryTimer: number;
+  /** Frames since the last line finished during the VICTORY (the weapon screen waits for the talking to stop). */
+  victoryQuiet: number;
   bossExplosionTimer: number;
   bossExplosionPos: Vector2;
   bossCorpse: BossCorpse | null;
@@ -250,6 +252,7 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
   sewerNuke: null,
   victoryString: "",
   postVictoryTimer: 0,
+  victoryQuiet: 0,
   bossExplosionTimer: 0,
   bossExplosionPos: { x: 0, y: 0 },
   bossCorpse: null,
@@ -353,6 +356,7 @@ export const resetStageState = (s: GameState) => {
   s.sewerNuke = null;
   s.victoryString = "";
   s.postVictoryTimer = 0;
+  s.victoryQuiet = 0;
   s.bossExplosionTimer = 0;
   s.bossCorpse = null;
   s.victoryReported = false;

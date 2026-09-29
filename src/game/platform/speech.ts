@@ -59,6 +59,9 @@ export const canSpeak = () => typeof window !== 'undefined' && 'speechSynthesis'
 /** Is anyone talking? (Also clears out a line whose end the browser never reported, so nobody's muted for good.) */
 export const isSpeaking = () => busy();
 
+/** Is anyone talking, or waiting their turn to? */
+export const isTalking = () => busy() || queue.length > 0;
+
 // ---------------------------------------------------------------------------
 // In-game dialogue: one voice at a time, and the text over a character's head
 // only ever shows the line that's actually being spoken.
