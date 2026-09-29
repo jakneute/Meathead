@@ -77,6 +77,8 @@ export interface JunkieFight {
   spelled: Set<PropName>;
   /** Times he's had you by the collar (Meathead makes a note of it the first time). */
   grabs: number;
+  /** When he last slapped you up into the ceiling (the plaster comes down when you hit it). */
+  slappedAt?: number;
   /** Wall cracks: where he's headbutted it (x, y), per wall side. */
   cracks: { side: -1 | 1; y: number }[];
   /** Said about a weapon on the wrong thing (once each). */
@@ -131,6 +133,8 @@ const HEADBUTT_QUICK = 45, HEADBUTT_BIG = 350, KICK_DAZED = 45;
 /** The headbutts: two quick ones this far apart, then the wind-up for the big one. */
 export const BUTT_QUICK = 18, BUTT_BIG = 60;
 const PUNCH = 7, THROW = 8, RAMPAGE_HIT = 16, BULLET = 8;
+/** In his way to the stash: backhanded up into the ceiling (how hard, and how high it sends you). */
+const SLAP = 10, SLAP_UP = 26;
 /** A taunt about one of his things every so often; the first a few seconds in. */
 const FIRST_HINT = 380, HINT_EVERY = 780;
 
@@ -153,6 +157,7 @@ const LINES = {
   throw: ["GET OUTTA MY OFFICE!", "AND STAY OUT!"],
   gun: ["YOU LIKE MY GUN?! IT'S GOLD!", "SAY HELLO TO MY GOLDEN FRIEND!"],
   stash: ["IS THAT... BLUE?!", "MY BLUE! MY BEAUTIFUL BLUE!", "MINE! MINE MINE MINE!"],
+  slap: ["OUTTA MY WAY!", "MOVE, MEATHEAD!", "NOBODY STANDS BETWEEN ME AND MY BLUE!"],
   high: ["OHHHH YEAHHHH! I CAN SEE THROUGH TIME!", "I'M A FREIGHT TRAIN, BABY!"],
   dazed: ["...THE WALL STARTED IT.", "WHO PUT THAT THERE?", "I'M OKAY! I'M OKAY!"],
   shot: ["YOU CALL THAT A BULLET?!", "THAT TICKLES, FED!"],
@@ -198,6 +203,12 @@ export const updateJunkieFight = (ctx: FrameContext, fight: JunkieFight, talk: T
   }
   updateProps(ctx, fight, talk);
   updateStashes(fight);
+  // Slapped up into the ceiling: he hits it, and the plaster comes down
+  if (fight.slappedAt !== undefined && state.frame - fight.slappedAt < 60 && p.pos.y <= o.ceiling + 4) {
+    fight.slappedAt = undefined;
+    shakeScreen(state, 14, 8); playSound('thud');
+    for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: p.pos.x + Math.random() * p.width, y: o.ceiling + 2 }, vel: { x: (Math.random() - 0.5) * 5, y: Math.random() * 3 }, life: 30 + Math.random() * 20, color: i % 3 ? '#D6D3D1' : '#A8A29E', size: 2 + Math.random() * 4 });
+  }
   if (fight.phase === 'fight') hints(state, fight, talk);
   // Thrown across the room
   if (fight.thrown) {
@@ -403,7 +414,20 @@ const touch = (ctx: FrameContext, m: Enemy, fight: JunkieFight, talk: Talk) => {
         fx.spawnDamageNumber({ x: px - 40, y: p.pos.y - 34 }, 'KICKED WHILE HE\'S DOWN!', true, '#FACC15');
       }
       return;
-    case 'snort': case 'high': case 'to-stash': case 'notice':
+    case 'to-stash':
+      // In his way to his stash: a backhand so hard it puts you in the ceiling (and he doesn't break stride)
+      if (p.invincibilityTimer > 0) return;
+      endMoves();
+      hurtPlayer(ctx, SLAP, 'junkie_slap', { x: (m.facing ?? 1) * 5, y: -SLAP_UP }, 40);
+      p.isGrounded = false;
+      shakeScreen(state, 18, 10);
+      playSound('punch'); playSound('slam');
+      fx.spawnDamageNumber({ x: px - 40, y: p.pos.y - 40 }, 'PIMP SLAPPED!', true, '#F472B6');
+      for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: px, y: p.pos.y + 20 }, vel: { x: (Math.random() - 0.5) * 6, y: -Math.random() * 6 }, life: 18, color: i % 2 ? '#FFFFFF' : '#F472B6', size: 2 + Math.random() * 3 });
+      fight.slappedAt = state.frame;
+      junkieSays(state, talk, LINES.slap, true);
+      return;
+    case 'snort': case 'high': case 'notice':
       // Too busy to care; the specials bounce off him
       if (special) { endMoves(); p.vel.x = away * 8; p.vel.y = -5; }
       return;
