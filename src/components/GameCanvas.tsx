@@ -8,6 +8,7 @@ import { KeyboardMouseState, HeldButtonGate, readControls } from '../game/platfo
 import { stepGame } from '../game/core/update';
 import { drawWorld } from '../game/render/world';
 import { closeAudio } from '../game/platform/audio';
+import { setGameMusic, gameMusicCue } from '../game/music';
 
 interface GameCanvasProps extends GameEvents {
   status: GameStatus;
@@ -50,6 +51,14 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
   }, []);
 
   useEffect(() => { stateRef.current!.player.currentWeapon = currentWeapon; }, [currentWeapon]);
+
+  // The music asks what should be on (the stage's theme and where in it, a mid-boss, the boss, a jingle), and whether he's under water
+  useEffect(() => {
+    setGameMusic(() => {
+      const state = stateRef.current!, p = propsRef.current;
+      return { cue: gameMusicCue(state, p.status, p.stageId), muffled: !!state.player.swimming && !state.player.skiing };
+    });
+  }, []);
   useEffect(() => { stateRef.current!.availableWeapons = props.availableWeapons; }, [props.availableWeapons]);
   useEffect(() => { stateRef.current!.stageId = stageId; }, [stageId]);
   useEffect(() => {

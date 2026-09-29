@@ -14,6 +14,12 @@ import { drawVictorBackdrop, drawVictorBack, drawVictorMid, drawVictorFront, dra
 import { victorScene } from './lighting';
 
 export const victorLayout: StageLayout = {
+  music: state => {
+    const px = state.player.pos.x + state.player.width / 2;
+    const r = regionOf(px);
+    if (r !== 'main') return r;
+    return px >= COURSE.club.x1 - 400 ? 'club' : 'cliffs';
+  },
   left: COURSE.left,
   startX: COURSE.startX,
   verticalCamera: true,

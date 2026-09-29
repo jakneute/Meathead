@@ -15,6 +15,10 @@ import { drawTommyBackdrop, drawTommyBack, drawTommyMid, drawTommyFront, drawTom
 import { tommyScene } from './lighting';
 
 export const tommyLayout: StageLayout = {
+  music: state => {
+    const p = placeOf(state.player.pos.x + state.player.width / 2);
+    return p === 'hood' || p === 'road' || p === 'ruins' ? p : 'sewer';
+  },
   left: COURSE.left,
   startX: COURSE.startX,
   verticalCamera: true,

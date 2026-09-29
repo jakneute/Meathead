@@ -18,6 +18,8 @@ import { tommyLayout } from './tommy';
 import { oscarLayout } from './oscar';
 
 export interface StageLayout {
+  /** Which arrangement of the stage's theme goes with where he is now (see platform/music/songs). */
+  music?: (state: GameState) => string;
   /** Left edge of the stage's world. */
   left: number;
   /** Where the stage starts (the intro crash lands a little right of this). */

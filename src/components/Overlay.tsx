@@ -10,6 +10,7 @@ import WeaponIcon, { WeaponArt } from './WeaponIcon';
 import DossierPanel from './DossierPanel';
 import MeatheadCaricature from './MeatheadCaricature';
 import ControlsGuide from './ControlsGuide';
+import { setSoundTest, ALL_CUES } from '../game/music';
 
 export interface CheatFlags {
   allWeapons: boolean;
@@ -100,6 +101,21 @@ const CheatToggle: React.FC<{ label: string, on: boolean, onColor: string, onCli
   </button>
 );
 
+/** The sound test: every song and arrangement, one after the other. */
+const SoundTest: React.FC = () => {
+  const [i, setI] = React.useState(-1);
+  const go = (d: number) => { const n = (i + d + ALL_CUES.length + 1) % (ALL_CUES.length + 1) - 1; setI(n); setSoundTest(n < 0 ? null : ALL_CUES[n]); };
+  React.useEffect(() => () => setSoundTest(null), []);
+  const c = i >= 0 ? ALL_CUES[i] : null;
+  return (
+    <div className="flex w-full border-2 border-gray-600 bg-gray-900 shadow-[2px_2px_0px_white] items-center overflow-hidden">
+      <button onClick={() => go(-1)} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-white font-black text-[10px]">&lt;</button>
+      <div className="flex-1 text-[6px] leading-[8px] font-black text-cyan-300 uppercase text-center py-[2px]">{c ? `${c.song}${c.arr && c.arr !== 'main' ? ' / ' + c.arr : ''}` : 'SOUND TEST'}</div>
+      <button onClick={() => go(1)} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-white font-black text-[10px]">&gt;</button>
+    </div>
+  );
+};
+
 const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['cheats']> }> = ({ rank, cheats: { flags, onToggle, onChangeRank, onPlayEnding, onPlayCall } }) => (
   <div className="absolute top-2 right-2 z-[60] flex flex-col gap-1 items-end max-w-[150px]">
     <div className="flex w-full border-2 border-gray-600 bg-gray-900 shadow-[2px_2px_0px_white] items-center overflow-hidden">
@@ -116,6 +132,8 @@ const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['che
     <div className="h-2 w-full" />
     <button onClick={onPlayCall} className="w-full px-2 py-1 border-2 border-gray-600 bg-gray-800 text-yellow-300 font-black text-[7px] uppercase shadow-[2px_2px_0px_white] hover:bg-gray-700">VIEW MID-GAME CALL</button>
     <button onClick={onPlayEnding} className="w-full px-2 py-1 border-2 border-gray-600 bg-gray-800 text-yellow-300 font-black text-[7px] uppercase shadow-[2px_2px_0px_white] hover:bg-gray-700">VIEW ENDING</button>
+    <div className="h-2 w-full" />
+    <SoundTest />
   </div>
 );
 

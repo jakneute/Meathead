@@ -13,6 +13,14 @@ import { drawOscarBackdrop, drawOscarBack, drawOscarMid, drawOscarFront, drawOsc
 import { oscarScene } from './lighting';
 
 export const oscarLayout: StageLayout = {
+  music: state => {
+    const rt = getOscar(state);
+    const p = placeOf(state.player.pos.x + state.player.width / 2);
+    if (p === 'chase') return 'chase';
+    if (p === 'end') return 'end';
+    if (p === 'bunker' && rt && ['waiting', 'break', 'clockout', 'open'].includes(rt.bunker.phase)) return 'break';
+    return 'field';
+  },
   left: COURSE.left,
   startX: COURSE.startX,
   verticalCamera: true,

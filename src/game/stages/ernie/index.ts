@@ -14,6 +14,13 @@ import { drawErnieBackdrop, drawErnieBack, drawErnieMid, drawErnieFront, drawErn
 import { ernieScene } from './lighting';
 
 export const ernieLayout: StageLayout = {
+  music: state => {
+    const px = state.player.pos.x + state.player.width / 2;
+    const r = regionOf(px);
+    if (r === 'bay') return 'bay';
+    if (r === 'cell') return 'cell';
+    return onBridge(px) ? 'bridge' : 'streets';
+  },
   left: COURSE.left,
   startX: COURSE.startX,
   verticalCamera: true,

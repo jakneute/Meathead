@@ -6,6 +6,7 @@ import EndingCutscene from './components/EndingCutscene';
 import RadioCutscene from './components/RadioCutscene';
 import IntroCutscene from './components/IntroCutscene';
 import { canSkip, requestSkip } from './game/platform/skip';
+import { setScreenMusic, setMusicPaused } from './game/music';
 import DeployTransition from './components/DeployTransition';
 import WeaponGetScene from './components/WeaponGetScene';
 import { GameStatus, WeaponType } from './types';
@@ -129,6 +130,18 @@ const App: React.FC = () => {
     const timer = setTimeout(() => setIsInputLocked(false), INPUT_LOCK_MS);
     return () => clearTimeout(timer);
   }, [status]);
+
+  // The music for the screens (in a stage, the game picks: see game/music)
+  useEffect(() => {
+    setMusicPaused(status === GameStatus.PAUSED);
+    if (intro !== 'off') setScreenMusic({ song: 'briefing', arr: 'main' });
+    else if (status === GameStatus.START) setScreenMusic({ song: 'title', arr: 'main' });
+    else if (status === GameStatus.STAGE_SELECT) setScreenMusic(deployingTo ? { song: 'fanfare' } : callOutro ? { song: 'briefing', arr: 'radio' } : { song: 'map', arr: progressionRank >= 1 ? 'set2' : 'main' });
+    else if (status === GameStatus.VICTORY) setScreenMusic(progressionRank === 0 || callPreview ? { song: 'briefing', arr: 'radio' } : { song: 'title', arr: 'ending' });
+    else if (status === GameStatus.ENDING) setScreenMusic({ song: 'title', arr: 'ending' });
+    else if (status === GameStatus.BOSS_VICTORY_SPEECH) setScreenMusic({ song: 'weapon' });
+    else setScreenMusic(undefined);
+  }, [status, intro, deployingTo, callOutro, progressionRank, callPreview]);
 
   // Every visit to stage select starts unlocked, on the current targets
   useEffect(() => {

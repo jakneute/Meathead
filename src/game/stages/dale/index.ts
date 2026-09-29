@@ -17,6 +17,7 @@ import { drawJunkie } from './junkieDraw';
 import { daleScene } from './lighting';
 
 export const daleLayout: StageLayout = {
+  music: state => regionOf(state.player.pos.x + state.player.width / 2),
   left: COURSE.left,
   startX: COURSE.startX,
   verticalCamera: true,

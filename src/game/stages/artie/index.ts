@@ -13,6 +13,14 @@ import { skiDeathMessage } from './ski';
 import { artieScene } from './lighting';
 
 export const artieLayout: StageLayout = {
+  music: state => {
+    const rt = getArtie(state);
+    if (!rt) return 'trail';
+    if (state.player.skiing || rt.ski.phase === 'skiing' || rt.ski.phase === 'runout') return 'ski';
+    if (['closing', 'riding', 'arrived', 'open'].includes(rt.tram.phase)) return 'tram';
+    if (rt.tram.phase === 'done') return rt.ski.phase === 'done' || rt.ski.phase === 'finale' ? 'trail' : 'summit';
+    return 'trail';
+  },
   left: COURSE.left,
   startX: COURSE.startX,
   verticalCamera: true,

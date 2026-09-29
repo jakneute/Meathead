@@ -19,6 +19,10 @@ import { roomZoom, barryScene } from './lighting';
 import { drawSurgeMinion } from './surgeDraw';
 
 export const barryLayout: StageLayout = {
+  music: state => {
+    const p = placeOf(state.player.pos.x + state.player.width / 2);
+    return p === 'roofs' ? 'roofs' : p === 'power' ? 'power' : p === 'streets' || p === 'landing' ? 'streets' : 'tower';
+  },
   left: COURSE.left,
   startX: COURSE.startX,
   verticalCamera: true,

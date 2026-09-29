@@ -17,6 +17,14 @@ import { TOWER } from './tower';
 import { hectorScene } from './lighting';
 
 export const hectorLayout: StageLayout = {
+  music: state => {
+    const rt = getHector(state);
+    const r = regionOf(state.player.pos.x + state.player.width / 2);
+    if (r === 'tower' || r === 'eye') return 'tower';
+    if (r === 'daycare') return 'daycare';
+    if (rt && (rt.boat.phase === 'riding' || rt.boat.phase === 'spout')) return 'boat';
+    return rt && rt.beach.storm > 0.6 ? 'storm' : 'beach';
+  },
   left: COURSE.left,
   startX: COURSE.startX,
   // (back far enough that the wrecked daycare's in view when you come back from dying to Hector)
