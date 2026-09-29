@@ -7,6 +7,7 @@ import { groundLineAt } from '../../core/terrain';
 import { GROUND_Y } from '../../../constants';
 import { COURSE } from './course';
 import type { Ski } from './ski';
+import { sentenceShown } from '../../platform/speech';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -102,13 +103,14 @@ const drawSkier = (ctx: Ctx, state: GameState, ski: Ski) => {
   ctx.restore();
   // What he's saying
   if (sk.lineT > 0 && sk.line) {
+    const line = sentenceShown(sk.line);
     ctx.save();
     ctx.font = 'bold 9px "Press Start 2P"'; ctx.textAlign = 'center';
-    const w = ctx.measureText(sk.line).width + 14;
+    const w = ctx.measureText(line).width + 14;
     const bx = sk.x, by = sk.y - 96;
     ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.fillRect(bx - w / 2, by - 14, w, 22);
     ctx.beginPath(); ctx.moveTo(bx - 6, by + 8); ctx.lineTo(bx, by + 16); ctx.lineTo(bx + 4, by + 8); ctx.fill();
-    ctx.fillStyle = '#111'; ctx.fillText(sk.line, bx, by + 2);
+    ctx.fillStyle = '#111'; ctx.fillText(line, bx, by + 2);
     ctx.restore();
   }
   drawSkis(ctx, state, ski);

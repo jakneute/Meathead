@@ -40,6 +40,8 @@ export interface Hazards {
 export const BOMB_WARN = 70, BOMB_BLAST = 18, BOMB_RADIUS = 70;
 const BOMB_DAMAGE = 18, BOMB_ENEMY_DAMAGE = 80;
 export const VENT_WARN = 50, VENT_BURN = 60, VENT_HEIGHT = 230, VENT_HALF_WIDTH = 20;
+/** A spout out of the lava river gives longer warning (the lava swells and boils first: out on a raft, there's less to go on). */
+export const SPOUT_WARN = 80;
 const VENT_DAMAGE = 14;
 export const JET_WARN = 40, JET_BURN = 55;
 const JET_DAMAGE = 14;
@@ -129,9 +131,10 @@ const updateLava = (ctx: FrameContext, hz: Hazards) => {
 };
 
 /** Where a vent is in its cycle: smoking (the warning), erupting, or quiet. */
-export const ventPhase = (v: { period: number; phase: number }, frame: number) => {
-  const t = (frame + v.phase) % (v.period + VENT_WARN + VENT_BURN);
-  return { warning: t >= v.period && t < v.period + VENT_WARN, burning: t >= v.period + VENT_WARN, t: t - v.period };
+export const ventPhase = (v: { period: number; phase: number; lava?: boolean }, frame: number) => {
+  const warn = v.lava ? SPOUT_WARN : VENT_WARN;
+  const t = (frame + v.phase) % (v.period + warn + VENT_BURN);
+  return { warning: t >= v.period && t < v.period + warn, burning: t >= v.period + warn, t: t - v.period, warn };
 };
 
 const updateVents = (ctx: FrameContext, hz: Hazards) => {
@@ -139,9 +142,11 @@ const updateVents = (ctx: FrameContext, hz: Hazards) => {
   const p = state.player;
   for (const v of COURSE.vents) {
     const ph = ventPhase(v, state.frame);
-    if (!ph.burning) continue;
     const col = { x: v.x - VENT_HALF_WIDTH, y: v.y - VENT_HEIGHT, w: VENT_HALF_WIDTH * 2, h: VENT_HEIGHT };
-    if (ph.t === VENT_WARN && isOnScreen(state.camera, { pos: { x: col.x, y: col.y }, width: col.w, height: col.h })) playSound('flame');
+    // (a spout rumbles as the lava starts to swell)
+    if (v.lava && ph.warning && ph.t === 0 && isOnScreen(state.camera, { pos: { x: col.x, y: col.y }, width: col.w, height: col.h })) playSound('rumble', 0.6);
+    if (!ph.burning) continue;
+    if (ph.t === ph.warn && isOnScreen(state.camera, { pos: { x: col.x, y: col.y }, width: col.w, height: col.h })) playSound('flame');
     if (rectsOverlap(col, boundsOf(p))) hurt(ctx, hz, VENT_DAMAGE, v.lava ? 'lava_spout' : 'vent', { x: (p.pos.x + p.width / 2 < v.x ? -1 : 1) * 5, y: -12 });
     for (const e of state.enemies) if (catchable(state, e) && rectsOverlap(col, boundsOf(e)) && state.frame % 6 === 0) burnEnemy(ctx, e, 12);
   }

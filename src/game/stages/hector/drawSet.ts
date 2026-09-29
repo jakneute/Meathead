@@ -13,13 +13,15 @@ import type { EyeFight } from './eye';
 import type { Daycare } from './daycare';
 import { drawEyeCorpse } from './eyeDraw';
 import { drawKindEnemy } from '../../render/enemies';
+import { sentenceShown } from '../../platform/speech';
 
 type Ctx = CanvasRenderingContext2D;
 
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 const visible = (state: GameState, x1: number, x2: number) => x2 > state.camera.x - 250 && x1 < state.camera.x + CANVAS_WIDTH + 250;
 
-const bubble = (ctx: Ctx, x: number, y: number, text: string) => {
+const bubble = (ctx: Ctx, x: number, y: number, said: string) => {
+  const text = sentenceShown(said);
   ctx.font = 'bold 8px "Press Start 2P"';
   const w = ctx.measureText(text).width + 14;
   ctx.fillStyle = '#F8FAFC'; ctx.strokeStyle = '#111827'; ctx.lineWidth = 2;

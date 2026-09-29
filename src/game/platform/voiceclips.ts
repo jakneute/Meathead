@@ -9,7 +9,8 @@
 import { getAudioContext } from './audio';
 
 interface VoiceSpec { rate: number; gain: number; fx: string }
-interface Pack { buf: ArrayBuffer; base: number; clips: Record<string, [number, number]>; voices: Record<string, VoiceSpec> }
+/** A clip: where it is in the file, how long, and (a line of more than one sentence) when each sentence after the first starts, in seconds. */
+interface Pack { buf: ArrayBuffer; base: number; clips: Record<string, [number, number, number[]?]>; voices: Record<string, VoiceSpec> }
 
 let pack: Pack | null = null;
 const keyOf = (voice: string, text: string) => `${voice}|${text.trim()}`;
@@ -28,6 +29,12 @@ export const loadVoicePack = async (url: string) => {
 
 export const voicesLoaded = () => !!pack;
 export const hasClip = (voice: string, text: string) => !!pack?.clips[keyOf(voice, text)];
+/** When each sentence after the first starts in a recorded line, in ms as it's played (empty for one sentence). */
+export const sentenceTimes = (voice: string, text: string): number[] => {
+  const starts = pack?.clips[keyOf(voice, text)]?.[2];
+  const rate = pack?.voices[voice]?.rate ?? 1;
+  return starts ? starts.map(s => (s / rate) * 1000) : [];
+};
 
 // ---- decoding, and a small cache of what's been decoded
 const decoded = new Map<string, AudioBuffer>();
@@ -54,6 +61,26 @@ const busFor = (ctx: AudioContext) => {
   input.connect(comp); comp.connect(make); make.connect(ctx.destination);
   bus = { ctx, input };
   return input;
+};
+
+/** A big dark hall's reverb (made once): noise dying away over a few seconds, the top end going first. */
+let hall: { ctx: AudioContext; buf: AudioBuffer } | null = null;
+const hallFor = (ctx: AudioContext) => {
+  if (hall && hall.ctx === ctx) return hall.buf;
+  const len = Math.floor(ctx.sampleRate * 3.2);
+  const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const d = buf.getChannelData(c);
+    let lp = 0;
+    for (let i = 0; i < len; i++) {
+      const k = i / len;
+      const a = 0.08 + 0.6 * k;                       // (smoother, darker, as it dies)
+      lp += a * ((Math.random() * 2 - 1) - lp);
+      d[i] = lp * Math.pow(1 - k, 2.4) * (i < ctx.sampleRate * 0.02 ? i / (ctx.sampleRate * 0.02) : 1);
+    }
+  }
+  hall = { ctx, buf };
+  return buf;
 };
 
 /** How a voice sounds on its way out: through a radio, a respirator, gargled, or just as it is. */
@@ -84,6 +111,25 @@ const fxChain = (ctx: AudioContext, fx: string, out: AudioNode): AudioNode => {
       low.connect(d); d.connect(lp); lp.connect(g); g.connect(out);
     }
     return drive;
+  }
+  if (fx === 'doom') {
+    // The voice of death: deep, and a vast dark hall answering back (a long reverb and a slow echo)
+    const low = ctx.createBiquadFilter(); low.type = 'lowshelf'; low.frequency.value = 180; low.gain.value = 8;
+    const top = ctx.createBiquadFilter(); top.type = 'lowpass'; top.frequency.value = 4200;
+    const drive = ctx.createWaveShaper();
+    const curve = new Float32Array(1024);
+    for (let i = 0; i < curve.length; i++) { const x = (i / (curve.length - 1)) * 2 - 1; curve[i] = Math.tanh(1.4 * x) / Math.tanh(1.4); }
+    drive.curve = curve;
+    low.connect(top); top.connect(drive); drive.connect(out);
+    const hall = ctx.createConvolver(); hall.buffer = hallFor(ctx);
+    const wet = ctx.createGain(); wet.gain.value = 0.55;
+    drive.connect(hall); hall.connect(wet); wet.connect(out);
+    const echo = ctx.createDelay(2); echo.delayTime.value = 0.42;
+    const fb = ctx.createGain(); fb.gain.value = 0.38;
+    const dark = ctx.createBiquadFilter(); dark.type = 'lowpass'; dark.frequency.value = 1500;
+    const eg = ctx.createGain(); eg.gain.value = 0.45;
+    drive.connect(echo); echo.connect(dark); dark.connect(fb); fb.connect(echo); dark.connect(eg); eg.connect(out);
+    return low;
   }
   if (fx === 'radio_mild') {
     // A handheld radio, quietly: just the phone band, no crunch
@@ -132,7 +178,7 @@ export const playClip = (voice: string, text: string, opts: { radio?: boolean; o
   let ctx: AudioContext;
   try { ctx = getAudioContext(); } catch { return null; }
   const spec = pack.voices[voice] ?? { rate: 1, gain: 1, fx: '' };
-  let stopped = false, src: AudioBufferSourceNode | null = null, ended = false;
+  let stopped = false, src: AudioBufferSourceNode | null = null, post: GainNode | null = null, ended = false;
   const end = () => { if (ended) return; ended = true; opts.onEnd?.(); };
   decode(ctx, key).then(audio => {
     if (stopped || !audio) { end(); return; }
@@ -140,8 +186,9 @@ export const playClip = (voice: string, text: string, opts: { radio?: boolean; o
     src.buffer = audio;
     src.playbackRate.value = spec.rate;
     const g = ctx.createGain(); g.gain.value = spec.gain;
+    post = ctx.createGain(); post.connect(busFor(ctx));
     src.connect(g);
-    g.connect(fxChain(ctx, opts.radio ? 'radio' : spec.fx, busFor(ctx)));
+    g.connect(fxChain(ctx, opts.radio ? 'radio' : spec.fx, post));
     src.onended = () => { try { g.disconnect(); } catch { /* fine */ } end(); };
     src.start();
     // (a count of what's been said from the recordings, for checking: `window.__voicesPlayed`)
@@ -149,7 +196,15 @@ export const playClip = (voice: string, text: string, opts: { radio?: boolean; o
     (w.__voicesPlayed ??= []).push(`${voice}: ${text.slice(0, 40)} (${audio.duration.toFixed(1)}s)`);
     opts.onStart?.((audio.duration / spec.rate) * 1000);
   }).catch(() => end());
-  return { stop: () => { stopped = true; try { src?.stop(); } catch { /* fine */ } end(); } };
+  return {
+    stop: () => {
+      stopped = true;
+      try { src?.stop(); } catch { /* fine */ }
+      // (its echoes and reverb go quiet with it)
+      if (post) { const p = post; p.gain.setTargetAtTime(0, ctx.currentTime, 0.03); setTimeout(() => { try { p.disconnect(); } catch { /* fine */ } }, 400); }
+      end();
+    },
+  };
 };
 
 /** Every voice that's been recorded, and its lines (for the voice test on the title screen's cheat panel). */

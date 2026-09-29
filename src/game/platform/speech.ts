@@ -1,4 +1,4 @@
-import { hasClip, playClip, voicesLoaded, ClipHandle } from './voiceclips';
+import { hasClip, playClip, voicesLoaded, sentenceTimes, ClipHandle } from './voiceclips';
 // Who's talking, and when: every line goes through here. A line that's been recorded (voiceclips.ts: every character
 // has their own voice) plays that; anything that hasn't falls back to the browser's own speech.
 
@@ -51,6 +51,47 @@ export const takeFreshLine = (lines: readonly string[]): string | null => {
   const line = pickFreshLine(lines);
   if (line) lastSaidAt.set(line, Date.now());
   return line;
+};
+
+// ---------------------------------------------------------------------------
+// The words over their heads, a sentence at a time: a line of several sentences shows the one being said, and
+// changes when the next one starts (from the recording's own timing; with no recording, a reading pace).
+// ---------------------------------------------------------------------------
+
+/** A line's sentences (a bit of punctuation on its own, "...", stays with its neighbor). */
+export const splitSentences = (text: string): string[] => {
+  const out: string[] = [];
+  for (const p of text.trim().split(/(?<=[.!?])\s+/)) {
+    if (out.length && (!/[A-Za-z0-9]/.test(p) || !/[A-Za-z0-9]/.test(out[out.length - 1]))) out[out.length - 1] += ' ' + p;
+    else out.push(p);
+  }
+  return out;
+};
+/** When each line was last started, and when its sentences after the first come in (ms from the start). */
+const timings = new Map<string, { at: number; starts: number[] }>();
+const readingStarts = (parts: string[]) => {
+  const out: number[] = [];
+  let t = 0;
+  for (let i = 0; i < parts.length - 1; i++) { t += 700 + parts[i].length * 55; out.push(t); }
+  return out;
+};
+const noteStart = (voice: Voice, text: string, spoken: boolean) => {
+  const parts = splitSentences(text);
+  if (parts.length < 2) return;
+  const starts = spoken ? sentenceTimes(voice.id, text) : [];
+  timings.set(text, { at: Date.now(), starts: starts.length === parts.length - 1 ? starts : readingStarts(parts) });
+};
+/** What to show over someone's head for this line right now: the sentence being said. */
+export const sentenceShown = (text: string): string => {
+  if (!text) return text;
+  const parts = splitSentences(text);
+  if (parts.length < 2) return text;
+  const rec = timings.get(text);
+  if (!rec) return parts[0];
+  const el = Date.now() - rec.at;
+  let i = 0;
+  while (i < rec.starts.length && el >= rec.starts[i]) i++;
+  return parts[i];
 };
 
 /** Forget which lines were said recently (on death, respawn and starting a stage). */
@@ -168,6 +209,7 @@ const start = (line: Line) => {
         if (current !== playing) return;
         playing.started = true;
         playing.deadline = Date.now() + ms + 1500;
+        noteStart(line.voice, line.text, true);
         line.onShow(true);
       },
       onEnd: () => {
@@ -180,6 +222,7 @@ const start = (line: Line) => {
     return;
   }
   noteMiss(line.voice, line.text);
+  noteStart(line.voice, line.text, false);
   if (!synthOK()) {
     // No speech available: just show the text for its usual time
     line.onShow(false);
@@ -276,7 +319,8 @@ export const speak = (text: string, voice: Voice, { onStart, onDone }: SpeakOpti
   outside++;
   let out = false;
   const done = () => { if (!out) { out = true; outside--; afterOutside(); } };
-  if (playClip(voice.id, text, { onStart: () => onStart?.(), onEnd: () => { done(); onDone?.(); } })) return;
+  noteStart(voice, text, false);
+  if (playClip(voice.id, text, { onStart: () => { noteStart(voice, text, true); onStart?.(); }, onEnd: () => { done(); onDone?.(); } })) return;
   done();
   noteMiss(voice, text);
   if (!synthOK()) return;
@@ -341,4 +385,36 @@ export const announce = (text: string, force = false): boolean => {
   lastAnnounced = now;
   speak(text, ANNOUNCER_VOICE);
   return true;
+};
+
+// ---------------------------------------------------------------------------
+// The death announcer: when Meathead dies, a deep voice out of the dark reads out what's on the death screen, and a
+// vast hall throws it back. Skipping the death screen cuts it off (so it's never over the next try); sit it out and
+// it plays out (the screen waits for it).
+// ---------------------------------------------------------------------------
+
+export const DEATH_VOICE: Voice = { id: 'death', pitch: 0.3, rate: 0.75 };
+/** How long its echoes ring on after the words (ms): the death screen waits that out too. */
+const DEATH_TAIL_MS = 1400;
+let death: { clip: ClipHandle | null; over: number } | null = null;
+
+/** Reads out the death screen (cutting off whoever was talking). */
+export const announceDeath = (text: string) => {
+  cancelSpeech();
+  stopDeathAnnouncer();
+  if (!hasClip(DEATH_VOICE.id, text)) return;
+  const me: { clip: ClipHandle | null; over: number } = { clip: null, over: Infinity };
+  death = me;
+  me.clip = playClip(DEATH_VOICE.id, text, { onEnd: () => { if (death === me) me.over = Date.now() + DEATH_TAIL_MS; } });
+  if (!me.clip) death = null;
+};
+
+/** Still reading it out (or its echoes still going)? */
+export const deathAnnouncing = () => !!death && Date.now() < death.over;
+
+/** Cut it off (the death screen skipped). */
+export const stopDeathAnnouncer = () => {
+  const d = death;
+  death = null;
+  d?.clip?.stop();
 };

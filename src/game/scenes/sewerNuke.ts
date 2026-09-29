@@ -6,7 +6,7 @@
 
 import { Enemy } from '../../types';
 import type { FrameContext } from '../core/context';
-import { cancelSpeech, say, MEATHEAD_VOICE } from '../platform/speech';
+import { cancelSpeech, say, announceDeath, MEATHEAD_VOICE } from '../platform/speech';
 
 export const TOXIC_TOMMY = 'Toxic Tommy';
 
@@ -54,4 +54,5 @@ export const updateSewerNuke = (ctx: FrameContext) => {
     state.screenShakeMagnitude = 10;
   }
   if (t === SEWER_NUKE.ERUPT + 40) fx.playGunSound('tsunami');
+  if (t === SEWER_NUKE.TEXT) announceDeath(SEWER_NUKE_MESSAGE);
 };

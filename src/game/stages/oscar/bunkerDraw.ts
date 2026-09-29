@@ -16,7 +16,7 @@ import { drawKindCorpse } from '../../render/enemies';
 import { drawChopperBike, drawLmgProp } from '../../render/enemies/oscar';
 import { COURSE } from './course';
 import type { Bunker, Worker } from './bunker';
-import { roomIntact, doorShut, veinBox } from './bunker';
+import { roomIntact, doorShut, veinBox, clockSeconds } from './bunker';
 
 type Ctx = CanvasRenderingContext2D;
 const Y = GROUND_Y;
@@ -62,7 +62,18 @@ export const drawBunkerBack = (ctx: Ctx, state: GameState, b: Bunker) => {
   const cx = B.x1 + 620;
   ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.arc(cx, top + 50, 16, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = '#111827'; ctx.lineWidth = 2; ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(cx, top + 50); ctx.lineTo(cx, top + 38); ctx.moveTo(cx, top + 50); ctx.lineTo(cx + 8, top + 54); ctx.stroke();
+  // (it keeps real time: the second hand ticks, the minute hand creeps round to three o'clock, and on round after that)
+  const secs = clockSeconds(b, state.frame);
+  const hand = (turns: number, len: number, width: number, color: string) => {
+    const a = turns * Math.PI * 2;
+    ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(cx, top + 50); ctx.lineTo(cx + Math.sin(a) * len, top + 50 - Math.cos(a) * len); ctx.stroke();
+  };
+  ctx.fillStyle = '#111827'; for (let h = 0; h < 12; h++) { const a = (h / 12) * Math.PI * 2; ctx.fillRect(cx + Math.sin(a) * 13 - 1, top + 50 - Math.cos(a) * 13 - 1, 2, 2); }
+  hand(((secs / 3600) % 12) / 12, 8, 2.5, '#111827');
+  hand(((secs / 60) % 60) / 60, 12, 2, '#111827');
+  hand((secs % 60) / 60, 13, 1, '#DC2626');
+  ctx.lineCap = 'butt';
   // The vending machine, the fridge, the counter (coffee maker, microwave)
   ctx.fillStyle = intact ? '#B91C1C' : '#3F3A36'; ctx.fillRect(B.x1 + 150, Y - 130, 60, 130);
   ctx.fillStyle = intact ? '#1F2937' : '#111'; ctx.fillRect(B.x1 + 158, Y - 118, 36, 70);

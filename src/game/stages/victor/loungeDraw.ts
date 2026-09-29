@@ -8,6 +8,7 @@ import { drawPlayer } from '../../render/player/player';
 import { COURSE } from './course';
 import { Lounge, crashPose, PARTY_FRAMES, FLIGHT_FRAMES, WIDE_FRAMES, BLAST_AT, SCREAM_AT, ZOOM_OUT, ZOOM_IN_AT, FADE_IN, blastAmount } from './lounge';
 import { drawVolcano } from './draw';
+import { sentenceShown } from '../../platform/speech';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -246,12 +247,13 @@ export const drawLoungeFront = (ctx: Ctx, state: GameState, lg: Lounge) => {
 /** What he says coming through the window, over him. */
 export const drawLoungeHud = (ctx: Ctx, state: GameState, lg: Lounge) => {
   if (lg.phase !== 'crash' || lg.lineT <= 0 || !lg.line) return;
+  const line = sentenceShown(lg.line);
   const pose = crashPose(Math.max(0, lg.t - PARTY_FRAMES));
   const x = Math.max(140, pose.x + 22 - state.camera.x), y = pose.y - 30 - state.camera.y;
   ctx.save();
   ctx.font = 'bold 16px "Press Start 2P"'; ctx.textAlign = 'center';
-  ctx.fillStyle = '#000'; ctx.fillText(lg.line, x + 2, y + 2);
-  ctx.fillStyle = '#FDE047'; ctx.fillText(lg.line, x, y);
+  ctx.fillStyle = '#000'; ctx.fillText(line, x + 2, y + 2);
+  ctx.fillStyle = '#FDE047'; ctx.fillText(line, x, y);
   ctx.restore();
 };
 

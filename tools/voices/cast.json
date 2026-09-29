@@ -1,5 +1,5 @@
 {
-  "_about": "Who sounds like what. voice: a Kokoro voice, or a blend of several [[name, weight], ...]; speed: how fast it's said (Kokoro, no pitch change); rate: played back this much faster or slower in the game (pitch and speed together: under 1 is deeper); gain: louder or quieter; fx: 'radio' (through a radio), 'mask' (through a respirator), 'wet' (gargling it), 'chorus' (a crowd of voices at once, deep); alias: the same voice as another.",
+  "_about": "Who sounds like what. voice: a Kokoro voice, or a blend of several [[name, weight], ...]; speed: how fast it's said (Kokoro, no pitch change); rate: played back this much faster or slower in the game (pitch and speed together: under 1 is deeper); gain: louder or quieter; fx: 'radio' (through a radio), 'mask' (through a respirator), 'wet' (gargling it), 'chorus' (a crowd of voices at once, deep), 'announcer' (an arena announcer), 'doom' (the death announcer: a vast dark hall); alias: the same voice as another.",
 
   "meathead": { "voice": [["am_onyx", 0.55], ["am_fenrir", 0.45]], "speed": 1.08, "rate": 0.9, "gain": 1.1 },
 
@@ -22,6 +22,7 @@
   "skier": { "voice": [["am_puck", 0.5], ["am_eric", 0.5]], "speed": 1.05, "rate": 1.05 },
   "oldman": { "voice": "am_santa", "speed": 0.85, "rate": 1.06 },
   "announcer": { "voice": "am_fenrir", "speed": 0.9, "rate": 0.9, "gain": 1.2, "fx": "announcer" },
+  "death": { "voice": [["am_onyx", 0.6], ["bm_lewis", 0.4]], "speed": 0.85, "rate": 0.8, "gain": 1.35, "fx": "doom" },
   "dispatch": { "voice": "af_sarah", "speed": 0.95, "rate": 1.0, "fx": "radio_mild" },
   "goon": { "voice": "am_fenrir", "speed": 1.1, "rate": 0.9 },
 

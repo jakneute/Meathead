@@ -11,6 +11,16 @@ manifest = json.load(open(os.path.join(HERE, 'manifest.json'), encoding='utf-8')
 extras = json.load(open(os.path.join(HERE, 'extras.json'), encoding='utf-8')) if os.path.exists(os.path.join(HERE, 'extras.json')) else []
 lines = manifest + extras
 
+_pron = os.path.join(HERE, 'pronunciations.json')
+fixes = json.load(open(_pron, encoding='utf-8')).get('fixes', []) if os.path.exists(_pron) else []
+
+def respell(text, voice=None):
+    """The line as it's to be said: with the fixes in pronunciations.json (a word said wrong, respelled where it comes up)."""
+    for f in fixes:
+        if f.get('voice') and f['voice'] != voice: continue
+        text = re.sub(re.escape(f['in']), f['say'], text, flags=re.I)
+    return text
+
 def spec_of(v):
     s = cast.get(v)
     while s and 'alias' in s: s = cast.get(s['alias'])
@@ -40,6 +50,9 @@ def key_of(line, spec):
     if re.search(r'([A-Za-z])\1\1', line['text']): k['st'] = 1
     # (said a sentence at a time, with a pause between: those are re-recorded)
     if len(sentences(line['text'])) > 1: k['sp'] = 1
+    # (a word respelled so it's said right: re-recorded)
+    said = respell(line['text'], line.get('voice'))
+    if said != line['text']: k['say'] = said
     blob = json.dumps(k, sort_keys=True)
     return hashlib.sha1(blob.encode('utf-8')).hexdigest()
 

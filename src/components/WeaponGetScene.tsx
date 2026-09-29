@@ -14,7 +14,7 @@ import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/platform/
 import { SKIP_AFTER_MS } from '../game/platform/skip';
 import SkipPrompt from './SkipPrompt';
 import { playWhoosh, playPunchImpact, playThud, playTypeClack, playGlassShatterSound } from '../game/platform/audio';
-import { speak, cancelSpeech, MEATHEAD_VOICE } from '../game/platform/speech';
+import { speak, cancelSpeech, stopDeathAnnouncer, MEATHEAD_VOICE } from '../game/platform/speech';
 
 // After a boss: fade out of the victory lap into a black void, face to face with
 // Meathead in first person. He decks the camera; it goes down on its side. Then
@@ -171,6 +171,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, onDone }) => {
           stepGame(ctx, GameStatus.PLAYING, readControls(kb));
           // Fell out somehow: put him back
           if (range.player.pos.y > CANVAS_HEIGHT + 200 || range.deathTimer > 0) {
+            if (range.deathTimer > 0) stopDeathAnnouncer();
             range.deathTimer = 0;
             range.player.pos = { x: 140, y: GROUND_Y - range.player.height };
             range.player.vel = { x: 0, y: 0 };

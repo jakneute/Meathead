@@ -20,7 +20,8 @@ const out = new Map<string, { voice: string; text: string; from: string }>();
 const unresolved: string[] = [];
 
 const add = (voice: string, text: string, from: string) => {
-  const t = text.trim();
+  // (the death screen's line breaks are read as spaces)
+  const t = (voice === 'death' ? text.replace(/\s*\n\s*/g, ' ') : text).trim();
   if (!t || !/[A-Za-z]/.test(t)) return;
   const key = `${voice}|${t}`;
   if (!out.has(key)) out.set(key, { voice, text: t, from });
@@ -49,6 +50,9 @@ for (const t of allStrings(dialogue.VICTOR_LINES)) add('boss.victor', t, 'VICTOR
 for (const t of allStrings(dialogue.DALE_LINES)) add('boss.dale', t, 'DALE_LINES');
 for (const t of allStrings(dialogue.BARRY_LINES)) add('boss.barry', t, 'BARRY_LINES');
 for (const t of allStrings(dialogue.OSCAR_LINES)) add('boss.oscar', t, 'OSCAR_LINES');
+// The death announcer: the plain death screen, and the one the sewer blows up with
+add('death', 'YOU DIED', 'killPlayer');
+add('death', 'YOU SET FIRE TO AN OIL-SOAKED TOXIC WASTE MONSTER IN A METHANE-FILLED SEWER. YOU BOTH DIED.', 'SEWER_NUKE_MESSAGE');
 // The announcer calls out the kill callouts
 for (const c of Object.values(dialogue.KILL_CALLOUTS)) for (const t of c.lines) add('announcer', t, 'KILL_CALLOUTS');
 
@@ -254,11 +258,30 @@ for (const file of files) {
       if (!vs.length) continue;
       for (const v of vs) for (const t of strings(a[ti])) add(v, t, where(c));
     }
+    // The death screen, read out by the death announcer: killPlayer(ctx, message)
+    if (n === 'killPlayer' && a[1]) for (const t of strings(a[1])) add('death', t, where(c));
     if (n === 'speakAsBoss') {
       const bossNames = strings(a[0]);
       for (const b of bossNames) if (BOSS_ID[b]) for (const t of strings(a[1])) add(BOSS_ID[b], t, where(c));
     }
   }
+
+  // 1b) the stages' death screens: whatever a ...DeathMessage function can return
+  const deathFns = (n: ts.Node) => {
+    let body: ts.Node | undefined;
+    if (ts.isVariableDeclaration(n) && ts.isIdentifier(n.name) && /DeathMessage$/.test(n.name.text) && n.initializer && (ts.isArrowFunction(n.initializer) || ts.isFunctionExpression(n.initializer))) body = n.initializer.body;
+    if (ts.isFunctionDeclaration(n) && n.name && /DeathMessage$/.test(n.name.text)) body = n.body;
+    if (body) {
+      if (!ts.isBlock(body)) for (const t of strings(body as ts.Expression)) add('death', t, where(n));
+      const rets = (m: ts.Node) => {
+        if (ts.isReturnStatement(m) && m.expression) for (const t of strings(m.expression)) add('death', t, where(m));
+        if (!ts.isFunctionLike(m)) ts.forEachChild(m, rets);
+      };
+      ts.forEachChild(body, rets);
+    }
+    ts.forEachChild(n, deathFns);
+  };
+  deathFns(sf);
 
   // 2) { who, text } and { voice, text }
   const visitObj = (n: ts.Node) => {

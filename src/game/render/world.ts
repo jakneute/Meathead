@@ -25,6 +25,8 @@ import { drawEnemyDeaths } from './enemies/deaths';
 import { drawSewerNukeInside, drawSewerNukeFlash, drawSewerNukeOutside } from './scenes/sewerNuke';
 import { drawVolcanoFinaleInside, drawVolcanoFinaleOutside } from './scenes/volcanoFinale';
 import { drawSceneLighting } from './lighting';
+import { sentenceShown } from '../platform/speech';
+import { SKIP_AFTER, drawSkipPrompt } from '../platform/skip';
 import {
   drawOilSlicks, drawOscarFire, drawOscarLaser, drawOscarRocket, drawFlyingCigarette, drawTaserOverload,
 } from './bosses/oscarGear';
@@ -142,6 +144,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   if (state.victoryString && (status === GameStatus.PLAYING || status === GameStatus.VICTORY)) drawVictoryText(ctx, state.victoryString);
   if (state.sewerNuke) drawSewerNukeFlash(ctx, state);
   else if (state.deathTimer > 0 && state.deathString) drawDeathMessage(ctx, state.deathString);
+  if (state.deathTimer > 0 && state.deathFrames > SKIP_AFTER) drawSkipPrompt(ctx, CANVAS_WIDTH);
   // Skyfall intro: coming down out of the clouds the deploy transition dove into
   if (status === GameStatus.LEVEL_INTRO && LEVEL_INTRO_STYLE === 'skyfall' && state.introTimer < SKYFALL_CLOUD_FRAMES) {
     const k = state.introTimer / SKYFALL_CLOUD_FRAMES;
@@ -388,7 +391,7 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
     if (e.type === 'boss') {
       if (state.bossExplosionTimer <= 0) drawBoss(ctx, e, stageId, state.frame);
       const curT = (status === GameStatus.BOSS_INTRO && bossTauntText) ? bossTauntText : (state.bossVulgarityTimer > 0 ? state.bossLastVulgarity : null);
-      if (curT && state.bossExplosionTimer <= 0) { ctx.save(); ctx.font = 'bold 12px "Press Start 2P"'; ctx.fillStyle = 'white'; ctx.shadowColor = 'black'; ctx.shadowBlur = 6; ctx.textAlign = 'center'; ctx.fillText(curT, e.pos.x + e.width / 2, e.pos.y - 30); ctx.restore(); }
+      if (curT && state.bossExplosionTimer <= 0) { ctx.save(); ctx.font = 'bold 12px "Press Start 2P"'; ctx.fillStyle = 'white'; ctx.shadowColor = 'black'; ctx.shadowBlur = 6; ctx.textAlign = 'center'; ctx.fillText(sentenceShown(curT), e.pos.x + e.width / 2, e.pos.y - 30); ctx.restore(); }
       drawBossOverlay(ctx, e, stageId, state.frame);
     } else if (e.kind && getStageLayout(stageId)?.drawSpecialEnemy?.(ctx, e, state)) {
       // (a stage's mid-boss draws itself)
@@ -791,9 +794,11 @@ const drawPlayerSpeech = (ctx: CanvasRenderingContext2D, state: GameState) => {
   ctx.shadowBlur = 4;
   ctx.textAlign = 'center';
   // (kept on screen: a long line near the edge would otherwise run off it)
-  const half = ctx.measureText(state.playerLastVulgarity).width / 2 + 8;
+  // (a sentence at a time)
+  const line = sentenceShown(state.playerLastVulgarity);
+  const half = ctx.measureText(line).width / 2 + 8;
   const x = Math.max(state.camera.x + half, Math.min(state.camera.x + CANVAS_WIDTH - half, player.pos.x + player.width / 2));
-  ctx.fillText(state.playerLastVulgarity, x, player.pos.y - 20);
+  ctx.fillText(line, x, player.pos.y - 20);
   ctx.restore();
 };
 

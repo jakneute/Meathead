@@ -7,7 +7,7 @@ import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { COURSE, isLava } from './course';
 import { getVictor, regionOf, enterFade } from './runtime';
-import { ventPhase, VENT_WARN, VENT_HEIGHT, VENT_HALF_WIDTH, BOMB_WARN, BOMB_RADIUS, jetPhase, JET_WARN, barBalls } from './hazards';
+import { ventPhase, VENT_HEIGHT, VENT_HALF_WIDTH, BOMB_WARN, BOMB_RADIUS, jetPhase, JET_WARN, barBalls } from './hazards';
 import { drawDoormanCorpse, drawDoormanHud, drawClashingMeathead } from './doormanDraw';
 import { drawLoungeBack, drawLoungeFront, drawWideShot, drawLoungeHud, drawAftermathFade } from './loungeDraw';
 
@@ -314,7 +314,8 @@ const drawVents = (ctx: Ctx, state: GameState) => {
     if (!v.lava) { ctx.fillStyle = '#0A0404'; ctx.beginPath(); ctx.ellipse(v.x, v.y + 1, 22, 5, 0, 0, Math.PI * 2); ctx.fill(); }
     ctx.fillStyle = `rgba(249, 115, 22, ${ph.warning ? 0.9 : 0.35})`;
     ctx.beginPath(); ctx.ellipse(v.x, v.y, 14 + (ph.warning ? Math.sin(f * 0.8) * 3 : 0), 3, 0, 0, Math.PI * 2); ctx.fill();
-    if (ph.warning) {
+    if (ph.warning && v.lava) drawSpoutWarning(ctx, v.x, v.y, ph.t / ph.warn, f);
+    else if (ph.warning) {
       // Smoke and sparks: it's about to go
       for (let i = 0; i < 4; i++) {
         const t = ((f * 2 + i * 13) % 40) / 40;
@@ -323,7 +324,7 @@ const drawVents = (ctx: Ctx, state: GameState) => {
       ctx.fillStyle = '#FDE047'; ctx.fillRect(v.x - 8 + (f * 7) % 16, v.y - 10 - (f * 3) % 20, 2, 2);
     }
     if (ph.burning) {
-      const k = Math.min(1, ph.t < VENT_WARN + 6 ? (ph.t - VENT_WARN + 1) / 6 : 1);
+      const k = Math.min(1, ph.t < ph.warn + 6 ? (ph.t - ph.warn + 1) / 6 : 1);
       const hgt = VENT_HEIGHT * k;
       const g = ctx.createLinearGradient(0, v.y - hgt, 0, v.y);
       g.addColorStop(0, 'rgba(254, 240, 138, 0)'); g.addColorStop(0.3, 'rgba(253, 186, 116, 0.85)'); g.addColorStop(1, v.lava ? 'rgba(234, 88, 12, 0.95)' : 'rgba(254, 240, 138, 0.95)');
@@ -333,6 +334,57 @@ const drawVents = (ctx: Ctx, state: GameState) => {
       for (let y = hgt; y >= 0; y -= 12) ctx.lineTo(v.x + VENT_HALF_WIDTH * (1 - y / hgt * 0.5) + Math.sin(f * 0.5 + y + 2) * 4, v.y - y);
       ctx.closePath(); ctx.fill();
     }
+  }
+};
+
+/**
+ * A lava spout about to go (k: 0 to 1 through the warning): the lava swells up in a glowing dome and boils, spatter
+ * jumps off it, and the column it's about to throw up shows as a shimmer of heat, brighter the closer it gets.
+ */
+const drawSpoutWarning = (ctx: Ctx, x: number, y: number, k: number, f: number) => {
+  const late = k > 0.7;
+  const pulse = 0.5 + 0.5 * Math.sin(f * (late ? 1.1 : 0.5));
+  // The column to come: a heat shimmer where it'll be, the full height of it
+  ctx.save();
+  const a = (0.1 + 0.3 * k) * (0.6 + 0.4 * pulse);
+  const g = ctx.createLinearGradient(0, y - VENT_HEIGHT, 0, y);
+  g.addColorStop(0, 'rgba(253, 186, 116, 0)'); g.addColorStop(0.5, `rgba(251, 146, 60, ${a * 0.6})`); g.addColorStop(1, `rgba(249, 115, 22, ${a})`);
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.moveTo(x - VENT_HALF_WIDTH, y);
+  for (let yy = 0; yy <= VENT_HEIGHT; yy += 14) ctx.lineTo(x - VENT_HALF_WIDTH * (1 - yy / VENT_HEIGHT * 0.5) + Math.sin(f * 0.3 + yy * 0.1) * 3, y - yy);
+  for (let yy = VENT_HEIGHT; yy >= 0; yy -= 14) ctx.lineTo(x + VENT_HALF_WIDTH * (1 - yy / VENT_HEIGHT * 0.5) + Math.sin(f * 0.3 + yy * 0.1 + 2) * 3, y - yy);
+  ctx.closePath(); ctx.fill();
+  // Its edges, dashed, flickering in the last moments
+  if (late && f % 6 < 4) {
+    ctx.strokeStyle = 'rgba(254, 240, 138, 0.55)'; ctx.lineWidth = 2; ctx.setLineDash([6, 6]); ctx.lineDashOffset = -f * 2;
+    ctx.beginPath(); ctx.moveTo(x - VENT_HALF_WIDTH, y); ctx.lineTo(x - VENT_HALF_WIDTH * 0.5, y - VENT_HEIGHT); ctx.moveTo(x + VENT_HALF_WIDTH, y); ctx.lineTo(x + VENT_HALF_WIDTH * 0.5, y - VENT_HEIGHT); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  ctx.restore();
+  // The lava swelling up: a dome, bigger and brighter as it comes
+  const r = 16 + 22 * k, h = 4 + 16 * k + (late ? pulse * 4 : 0);
+  ctx.fillStyle = '#7C2D12'; ctx.beginPath(); ctx.ellipse(x, y + 2, r + 4, h * 0.5 + 3, 0, Math.PI, 0); ctx.fill();
+  ctx.fillStyle = late ? (f % 8 < 4 ? '#FDE047' : '#FB923C') : '#EA580C';
+  ctx.beginPath(); ctx.ellipse(x, y + 2, r, h, 0, Math.PI, 0); ctx.fill();
+  ctx.fillStyle = 'rgba(254, 240, 138, 0.8)'; ctx.beginPath(); ctx.ellipse(x - r * 0.3, y + 2 - h * 0.55, r * 0.35, h * 0.25, 0, 0, Math.PI * 2); ctx.fill();
+  // Boiling: bubbles swelling and popping round it
+  for (let i = 0; i < 5; i++) {
+    const bt = ((f + i * 11) % 24) / 24;
+    const bx = x + Math.sin(i * 2.3) * (r + 6);
+    ctx.strokeStyle = `rgba(253, 224, 71, ${0.9 * (1 - bt)})`; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(bx, y - 1, 2 + bt * 6 * (0.5 + k), Math.PI, 0); ctx.stroke();
+  }
+  // Spatter, higher as it comes
+  for (let i = 0; i < 3 + Math.floor(k * 5); i++) {
+    const st = ((f * 1.5 + i * 17) % 30) / 30;
+    const sx = x + Math.sin(i * 1.7 + Math.floor((f + i * 17) / 30)) * r * 0.8;
+    const sy = y - Math.sin(st * Math.PI) * (20 + 60 * k);
+    ctx.fillStyle = i % 2 ? '#FDE047' : '#F97316'; ctx.fillRect(sx - 2, sy - 2, 4, 4);
+  }
+  // Smoke off the top
+  for (let i = 0; i < 3; i++) {
+    const t = ((f * 2 + i * 13) % 40) / 40;
+    ctx.fillStyle = `rgba(68, 64, 60, ${0.5 * (1 - t)})`; ctx.beginPath(); ctx.arc(x + Math.sin(i * 2 + f * 0.1) * 10, y - 20 - t * 80, 6 + t * 12, 0, Math.PI * 2); ctx.fill();
   }
 };
 

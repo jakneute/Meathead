@@ -22,7 +22,7 @@ const fireLights = (state: GameState): Light[] => {
   for (const v of COURSE.vents) {
     if (!nearView(state, v.x)) continue;
     const ph = ventPhase(v, f);
-    out.push(ph.burning ? { x: v.x, y: v.y - 120, r: 260, a: 0.95, color: FIRE } : { x: v.x, y: v.y - 6, r: ph.warning ? 120 : 70, a: ph.warning ? 0.8 : 0.5, color: FIRE });
+    out.push(ph.burning ? { x: v.x, y: v.y - 120, r: 260, a: 0.95, color: FIRE } : { x: v.x, y: v.y - 6, r: ph.warning ? (v.lava ? 120 + 100 * (ph.t / ph.warn) : 120) : 70, a: ph.warning ? 0.8 : 0.5, color: FIRE });
   }
   for (const j of COURSE.jets) {
     if (!nearView(state, j.x)) continue;

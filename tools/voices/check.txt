@@ -1,108 +1,39 @@
-0.00  announcer
-  said: AVALANCHED!
-  heard: Avalanche
-0.00  announcer
-  said: BARFED ON!
-  heard: Barf done.
-0.00  announcer
-  said: BODIED!
-  heard: Bodies
-0.00  announcer
-  said: CHARRED!
-  heard: Chard!
-0.00  announcer
-  said: CRUSHED!
-  heard: Grushed.
-0.00  announcer
-  said: FACEPLANT!
-  heard: Vaseplant.  //
-0.00  announcer
-  said: FILLETED!
-  heard: Valayid.
-0.00  announcer
-  said: FISH STICKS!
-  heard: Where's the exit?
-0.00  announcer
-  said: ICEBERG'D!
-  heard: Iceberg
-0.00  announcer
-  said: LIFTOFF!
-  heard: Lift off.
-0.00  announcer
-  said: LIQUEFIED!
-  heard: liquified.
-0.00  announcer
-  said: NUKED!
-  heard: Nukta.
-0.00  announcer
-  said: OD'D!
-  heard: I did.
-0.00  announcer
-  said: ORBITAL!
-  heard: orbitals
-0.00  announcer
-  said: REDECORATED!
-  heard: Redecorateds.
-0.00  announcer
-  said: SEA-DOO'D!
-  heard: See dude!
-0.00  announcer
-  said: SHIPWRECKED!
-  heard: Shipractor.
-0.00  announcer
-  said: SMASHED CUBES!
-  heard: Smash Cube!
-0.00  announcer
-  said: STOMPED!
-  heard: stomp ya
-0.00  announcer
-  said: SUNK!
-  heard: Sanke.
-0.00  announcer
-  said: TORPEDOED!
-  heard: Torpedo'd
-0.00  announcer
-  said: TOTALED!
-  heard: Total death.
-0.00  announcer
-  said: TRUCKED!
-  heard: Trugged it.
-0.00  announcer
-  said: WHEELIED!
-  heard: Wheel 8.
-0.00  announcer
-  said: WRECKED!
-  heard: Rectave.
-0.00  announcer
-  said: YEETED!
-  heard: eat it.
-0.33  announcer
-  said: SECONDHAND DOSE!
-  heard: 2nd hand dose.
-0.33  announcer
-  said: WAKE UP CALL!
-  heard: Week up calls.
-0.50  announcer
-  said: BOWLED OVER!
-  heard: Bold over.
-0.50  announcer
-  said: BURNT TOAST!
-  heard: Burn toast!
-0.50  announcer
-  said: CONTACT HIGH!
-  heard: Contact Hi.
-0.50  announcer
-  said: CURB STOMP!
-  heard: curb stomping
-0.50  announcer
-  said: DAVY JONES!
-  heard: Davey Jones
-0.50  announcer
-  said: HULL CHECK!
-  heard: Hold check.
-0.50  announcer
-  said: SHIPMENT LOST!
-  heard: Shipman lost.
-0.57  announcer
-  said: SHOULD'VE TAKEN LESSONS!
-  heard: Should have taken lessons.
+0.00  death
+  said: DISSOLVED
+  heard: dissolve.
+0.00  death
+  said: DOWNSIZED
+  heard: Downsize.
+0.00  death
+  said: GLUB GLUB GLUB
+  heard: Club, Club, Club.
+0.00  death
+  said: RIVETED
+  heard: Reveray.
+0.00  death
+  said: SNIPED
+  heard: It's nice.
+0.29  death
+  said: THE INTERSTATE WON
+  heard: The Inter-State 1.
+0.33  death
+  said: HUGGED A CACTUS
+  heard: Hug the cactus.
+0.40  death
+  said: BAR-B-QUED
+  heard: barbie qued
+0.40  death
+  said: HOUSEPLANT HOMICIDE
+  heard: House Blint homicide.
+0.50  death
+  said: DRIVE-BY'D
+  heard: drive by.
+0.50  death
+  said: FOSSIL FUEL
+  heard: Vossil fuel.
+0.50  death
+  said: THE GROUND ATE YOU
+  heard: The ground 8U.
+0.50  death
+  said: YOU DIED
+  heard: You die.

@@ -106,7 +106,7 @@ const MAX_CARS = 3;
 const ZOOM_MIN = 0.72;
 const SPIN_FRAMES = 46;
 /** The jumps: at how many wrecked each one comes up, how wide it is, how far ahead of him it's cut (it's called out from then on). */
-export const GAP_AT = [8, 18, 28, 38], GAP_W = 170, GAP_AHEAD = 1900;
+export const GAP_AT = [8, 18, 28, 38], GAP_W = 230, GAP_AHEAD = 1900;
 /** What anything they do takes off him: only a chip each time, but there's nothing to get it back with till it's over. */
 const CHIP = 4;
 /** How far ahead of the view a slick's put down (it's called out from then on). */

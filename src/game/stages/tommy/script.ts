@@ -5,7 +5,7 @@
 // own speech bubble; everyone else's are drawn by the stage over wherever they are.
 
 import type { GameState } from '../../core/state';
-import { say, isSpeaking, Voice, MEATHEAD_VOICE } from '../../platform/speech';
+import { say, isSpeaking, sentenceShown, Voice, MEATHEAD_VOICE } from '../../platform/speech';
 
 export type Speaker = 'meathead' | 'crew' | 'rider' | 'hazmat' | 'thing' | 'dad' | 'mom' | 'kid';
 
@@ -90,8 +90,10 @@ export const updateTalk = (state: GameState, talk: Talk) => {
 };
 
 /** A speech bubble over (x, y) (world), in the stage's style. */
-export const drawBubble = (ctx: CanvasRenderingContext2D, x: number, y: number, text: string, fill = '#F8FAFC', ink = '#111827') => {
-  if (!text) return;
+export const drawBubble = (ctx: CanvasRenderingContext2D, x: number, y: number, said: string, fill = '#F8FAFC', ink = '#111827') => {
+  if (!said) return;
+  // (a sentence at a time)
+  const text = sentenceShown(said);
   ctx.save();
   ctx.font = 'bold 8px "Press Start 2P"';
   const w = Math.min(460, ctx.measureText(text).width + 16);

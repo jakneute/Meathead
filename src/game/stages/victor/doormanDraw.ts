@@ -11,6 +11,7 @@ import { getLastInputDevice } from '../../platform/input';
 import { drawPlayer } from '../../render/player/player';
 import { DoormanFight, DoormanCorpse, DOORMAN_HP, SLIDE_ZONE, SLIDE_COUNTDOWN } from './doorman';
 import { KIND_STATS } from '../../enemies/kinds';
+import { sentenceShown } from '../../platform/speech';
 
 type Ctx = CanvasRenderingContext2D;
 const W = KIND_STATS.doorman.w, H = KIND_STATS.doorman.h;
@@ -303,15 +304,16 @@ export const drawDoormanHud = (ctx: Ctx, state: GameState, fight: DoormanFight) 
   if (e && (fight.phase === 'intro' || fight.phase === 'fight' || fight.phase === 'waiting')) {
     // What he's saying, over his head
     if (fight.lineT > 0 && fight.line) {
+      const line = sentenceShown(fight.line);
       const x = e.pos.x + W / 2 - state.camera.x, y = e.pos.y - 28 - state.camera.y;
       ctx.save();
       ctx.font = 'bold 9px "Press Start 2P"';
-      const w = Math.min(420, ctx.measureText(fight.line).width + 18);
+      const w = Math.min(420, ctx.measureText(line).width + 18);
       const bx = Math.max(10, Math.min(CANVAS_WIDTH - w - 10, x - w / 2));
       ctx.fillStyle = '#F8FAFC'; ctx.strokeStyle = '#111827'; ctx.lineWidth = 2;
       ctx.fillRect(bx, y - 24, w, 22); ctx.strokeRect(bx, y - 24, w, 22);
       ctx.beginPath(); ctx.moveTo(x - 6, y - 2); ctx.lineTo(x + 6, y - 2); ctx.lineTo(x, y + 8); ctx.fill();
-      ctx.fillStyle = '#111827'; ctx.textAlign = 'center'; ctx.fillText(fight.line, bx + w / 2, y - 9, w - 12);
+      ctx.fillStyle = '#111827'; ctx.textAlign = 'center'; ctx.fillText(line, bx + w / 2, y - 9, w - 12);
       ctx.restore();
     }
   }

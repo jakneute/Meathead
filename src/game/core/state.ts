@@ -4,7 +4,7 @@ import {
   SteamExplosion, PoopTelegraph, TommyBoard, Vector2, WeaponType, FlameSegment, OilCell, Icicle,
 } from '../../types';
 import { INITIAL_PLAYER_HEALTH, POWER_CELLS, SCREEN_SHAKE_MAX } from '../../constants';
-import { resetLineCooldowns } from '../platform/speech';
+import { resetLineCooldowns, stopDeathAnnouncer } from '../platform/speech';
 import type { GroundRun } from './terrain';
 
 export type DoorState = 'closed' | 'opening' | 'open' | 'closing' | 'done';
@@ -79,6 +79,8 @@ export interface GameState {
   /** Skyfall intro: the intro frame he hit the ground on (0 while he's still falling). */
   introLandedAt?: number;
   deathTimer: number;
+  /** Frames the death screen's been up (it can be skipped after a moment; it waits for the death announcer). */
+  deathFrames: number;
   /** Reached the boss this attempt: dying now respawns right outside his door (cleared when a stage starts). */
   bossCheckpoint: boolean;
   /** The camera can't scroll left of this (no backtracking after a boss checkpoint respawn). */
@@ -245,6 +247,7 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
   isMeatheadSpeaking: false,
   introTimer: 0,
   deathTimer: 0,
+  deathFrames: 0,
   volcanoFinale: null,
   bossCheckpoint: false,
   cameraMinX: 0,
@@ -351,6 +354,8 @@ export const resetStageState = (s: GameState) => {
 
   s.introTimer = 0;
   s.deathTimer = 0;
+  s.deathFrames = 0;
+  stopDeathAnnouncer();
   s.cameraMinX = 0;
   s.deathString = "";
   s.sewerNuke = null;

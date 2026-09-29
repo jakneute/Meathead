@@ -17,9 +17,10 @@ import { calmPlayer, DEFAULT_SHAKE, shakeScreen } from './state';
 import { playSound } from '../platform/audio';
 import { LEVEL_INTRO_STYLE } from '../../constants';
 import { updateBarfStream, updateFlameSegments } from '../combat/weapons';
-import { say, isTalking, MEATHEAD_INTRO_VOICE } from '../platform/speech';
+import { say, isTalking, deathAnnouncing, stopDeathAnnouncer, MEATHEAD_INTRO_VOICE } from '../platform/speech';
+import { SKIP_AFTER, offerSkip, takeSkip } from '../platform/skip';
 import { pickRandom, rectsOverlap, boundsOf } from './utils';
-import { killPlayer, gateControls, tickPlayerTimers, updatePlayerActions, updatePlayerPhysics, getSpecialForm, interruptSpecialWithHurt } from '../player/player';
+import { killPlayer, DEATH_SCREEN_FRAMES, gateControls, tickPlayerTimers, updatePlayerActions, updatePlayerPhysics, getSpecialForm, interruptSpecialWithHurt } from '../player/player';
 import { updateTsunami, updateSteamExplosions, updateVolcanoes, updateTommyArena } from '../bosses/hazards';
 import { updateTaser, updateBurningProjectiles, updateEnemyStatusEffects } from '../combat/statusEffects';
 import { updateEnemy, separateEnemies } from '../enemies/enemies';
@@ -74,12 +75,20 @@ const moveLooseParticles = (ctx: FrameContext) => {
   });
 };
 
-/** Player is dead: let the gore settle, then respawn. */
+/** The longest the death screen waits on the death announcer past its own time (frames). */
+const DEATH_HOLD_MAX = 480;
+
+/** Player is dead: let the gore settle, then respawn. Skipping it goes straight to the next try (and cuts the death announcer off). */
 const updateDeathScreen = (ctx: FrameContext) => {
   const { state } = ctx;
+  state.deathFrames++;
+  if (state.deathFrames > SKIP_AFTER) offerSkip();
+  if (takeSkip()) { stopDeathAnnouncer(); state.deathTimer = 0; respawn(state, ctx.stageId, ctx.cheats.skipToBoss); return; }
+  // (sat out, it waits for the death announcer to finish)
+  if (state.deathTimer === 1 && deathAnnouncing() && state.deathFrames < DEATH_SCREEN_FRAMES + DEATH_HOLD_MAX) { moveLooseParticles(ctx); return; }
   state.deathTimer--;
   if (state.sewerNuke) updateSewerNuke(ctx);
-  if (state.deathTimer === 0) respawn(state, ctx.stageId, ctx.cheats.skipToBoss);
+  if (state.deathTimer === 0) { stopDeathAnnouncer(); respawn(state, ctx.stageId, ctx.cheats.skipToBoss); }
   moveLooseParticles(ctx);
 };
 

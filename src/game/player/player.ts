@@ -15,6 +15,7 @@ import {
   SWIM_GRAVITY_MULT, SWIM_MAX_SINK, SWIM_STROKE, SWIM_LEAP, SWIM_SPEED_MULT, LEDGE_DROP_FRAMES,
 } from '../../constants';
 import { FrameContext } from '../core/context';
+import { announceDeath } from '../platform/speech';
 import { GameState, shakeScreen } from '../core/state';
 import { Controls } from '../platform/input';
 import { fireWeapon, updateFlamethrower } from '../combat/weapons';
@@ -51,9 +52,14 @@ const STAIR_HEIGHT = 26;       // walking on the ground, he climbs steps up to t
 export const killPlayer = (ctx: FrameContext, message: string, gore = true) => {
   const { state, fx } = ctx;
   state.deathTimer = DEATH_SCREEN_FRAMES;
+  state.deathFrames = 0;
   state.deathString = message;
   if (gore) fx.spawnDeathShower(state.player.pos, state.player.facing, 3);
-  fx.speakVulgarity('death');
+  // (not a word out of him: the death announcer reads out the screen, over whoever was talking)
+  announceDeath(message);
+  state.isMeatheadSpeaking = false;
+  state.voiceLineCooldown = 0;
+  state.hurtVoiceCooldown = 0;
 };
 
 /**

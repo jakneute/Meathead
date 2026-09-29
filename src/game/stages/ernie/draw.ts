@@ -21,13 +21,15 @@ import { drawFault } from './faultDraw';
 import { drawDistricts } from './streetsDraw';
 import { Car, CAR_W, CAR_H, CAR_WARN, carsComing } from './traffic';
 import { drawBayBackdrop, drawSeaBack, drawSeaMid, drawSeaFront, drawSeaHud, drawCellBack, drawCellMid, drawCellFront, drawCellHud } from './drawSea';
+import { sentenceShown } from '../../platform/speech';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 const visible = (state: GameState, x1: number, x2: number) => x2 > state.camera.x - 250 && x1 < state.camera.x + CANVAS_WIDTH + 250;
 const Y = GROUND_Y;
 
-export const bubble = (ctx: Ctx, x: number, y: number, text: string, color = '#F8FAFC') => {
+export const bubble = (ctx: Ctx, x: number, y: number, said: string, color = '#F8FAFC') => {
+  const text = sentenceShown(said);
   ctx.save();
   ctx.font = 'bold 8px "Press Start 2P"';
   const w = ctx.measureText(text).width + 14;

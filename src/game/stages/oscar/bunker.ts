@@ -26,7 +26,7 @@ import { COURSE, CP } from './course';
 import { Talk, queueLines, quiet, hush } from './script';
 import { mountMoto } from './moto';
 
-export type BunkerPhase = 'waiting' | 'break' | 'clockout' | 'open' | 'boom' | 'aftermath' | 'runout' | 'ride' | 'done';
+export type BunkerPhase = 'waiting' | 'break' | 'clockout' | 'open' | 'spite' | 'boom' | 'aftermath' | 'runout' | 'ride' | 'done';
 export type WorkerLook = 'couch' | 'cards' | 'cards2' | 'foreman' | 'microwave';
 export interface Worker { x: number; look: WorkerLook; state: 'break' | 'knocked' | 'furious' | 'gone' | 'clocked'; t: number }
 export interface Debris { x: number; y: number; vx: number; vy: number; rot: number; vr: number; w: number; h: number; color: string; life: number }
@@ -39,6 +39,8 @@ export interface Bunker {
   /** The gas line's joint's been shot out (and when); how much gas is in the room (0..1). */
   popped: boolean;
   poppedAt: number;
+  /** The frame their break's clock started running on (it keeps real time from then: stand there all day and it goes round). */
+  clockFrom?: number;
   gas: number;
   workers: Worker[];
   /** What's been said to nudge him (once each), and when the room last said something to itself. */
@@ -54,7 +56,14 @@ export interface Bunker {
   earlyAt: number;
   /** He waited the break out: the room's still standing, and everybody in it went back to work. */
   peaceful: boolean;
+  /** ...and then he blew it up anyway, after they'd gone back to work. Nobody even looked. */
+  spited?: boolean;
 }
+
+/** What the clock on the wall says: seconds past midnight. Five to three when he walks in (break's over at three), and
+ * from then on it keeps time: a real second a second. */
+export const BREAK_CLOCK_START = (14 * 60 + 55) * 60;
+export const clockSeconds = (b: Bunker, frame: number) => BREAK_CLOCK_START + Math.floor(b.clockFrom === undefined ? 0 : (frame - b.clockFrom) / 60);
 
 /** Enough gas in the room to go up, and how long it takes to fill (frames). */
 const GAS_ENOUGH = 0.35, GAS_FILL = 420;
@@ -98,6 +107,27 @@ const AMBIENT: { who: 'worker' | 'foreman'; text: string }[] = [
   { who: 'foreman', text: "DON'T LOOK AT THE CLOCK. THE CLOCK CAN'T HURT YOU." },
 ];
 
+/**
+ * Meathead, the longer he's kept standing in here with that gas line right there: a nudge, then less of a nudge, then
+ * he's asking you, seriously, if you're really going to wait out their whole break. One every NAG_EVERY frames.
+ */
+const NAGS = [
+  'THAT OLD GAS LINE ON THE WALL LOOKS REAL THIN...',
+  "THAT GAS LINE. ONE SHOT. THAT'S ALL IT WOULD TAKE.",
+  "JUST SAYING. THAT GAS LINE ISN'T GOING TO SHOOT ITSELF.",
+  'WE ARE NOT WAITING OUT A UNION BREAK. RIGHT?',
+  'RIGHT?!',
+  'ARE YOU SERIOUSLY GOING TO WAIT OUT THEIR BREAK?',
+  "I HAVE A PRESIDENT WAITING ON ME. THEY'RE PLAYING GO FISH.",
+  "HE'S READING THE BACK OF A YOGURT. WE'RE WATCHING A MAN READ THE BACK OF A YOGURT.",
+  "NO, REALLY. I'M ASKING. ARE WE WAITING THIS OUT?",
+  'I CAN FEEL MY GAINS LEAVING MY BODY.',
+  "OKAY. FINE. WE WAIT. I'LL JUST STAND HERE. SHRINKING.",
+  'THE GAS LINE IS STILL RIGHT THERE, BY THE WAY.',
+  'WHO ARE YOU? WHO RAISED YOU?',
+];
+const NAG_FROM = 600, NAG_EVERY = 1200;
+
 export const updateBunker = (ctx: FrameContext, b: Bunker, talk: Talk, controls: Controls, onGone: () => void): Controls => {
   const { state } = ctx;
   const p = state.player;
@@ -111,7 +141,7 @@ export const updateBunker = (ctx: FrameContext, b: Bunker, talk: Talk, controls:
   switch (b.phase) {
     case 'waiting':
       if (px > B.x1 + 40 && p.isGrounded) {
-        b.phase = 'break'; b.t = 0;
+        b.phase = 'break'; b.t = 0; b.clockFrom = state.frame;
         state.checkpoint = Math.max(state.checkpoint, CP.BUNKER);
         queueLines(state, talk, [
           { who: 'foreman', text: 'WHOA, WHOA. THIS IS A UNION BREAK, PAL.' },
@@ -134,8 +164,18 @@ export const updateBunker = (ctx: FrameContext, b: Bunker, talk: Talk, controls:
       }
       return controls;
     case 'open':
+      // The gas line's still there once they've clocked back in: he can go ahead and blow the place up anyway
+      if (!b.spited && gasLine(ctx, b)) { blowUp(ctx, b, talk, true); return controls; }
       // Out the far side: the bikers
       if (px > B.x2 + 10) { b.phase = 'runout'; b.t = 0; b.step = 0; b.stepAt = 0; }
+      return controls;
+    case 'spite':
+      // Nobody panics (they've clocked in: not their problem). He knows what he did.
+      if (b.t === 50) queueLines(state, talk, [
+        { who: 'meathead', text: 'THAT WAS COMPLETELY UNNECESSARY.' },
+        { who: 'meathead', text: 'PURE SPITE. FEELS GREAT.' },
+      ]);
+      if (b.t > 50) b.phase = 'open';
       return controls;
     case 'boom': case 'aftermath': return aftermath(ctx, b, talk);
     case 'runout': return runOut(ctx, b, talk);
@@ -151,11 +191,10 @@ export const updateBunker = (ctx: FrameContext, b: Bunker, talk: Talk, controls:
   }
 };
 
-/** In the room with them: the gas line, the gas, and a flame to it. */
-const onBreak = (ctx: FrameContext, b: Bunker, talk: Talk, controls: Controls, inside: boolean): Controls => {
+/** The gas line: shot out (only from in the room, with it on the screen), the gas filling the room. Whether there's enough in here, and a flame to it. */
+const gasLine = (ctx: FrameContext, b: Bunker): boolean => {
   const { state, fx } = ctx;
   const B = COURSE.bunker;
-  // Shooting the gas line out (only from in here, with it on the screen)
   const px = state.player.pos.x + state.player.width / 2;
   const canSee = px > B.x1 && px < B.x2 && B.vein.x > state.camera.x && B.vein.x < state.camera.x + CANVAS_WIDTH;
   if (!b.popped && canSee) {
@@ -168,14 +207,22 @@ const onBreak = (ctx: FrameContext, b: Bunker, talk: Talk, controls: Controls, i
       fx.spawnDamageNumber({ x: B.vein.x - 20, y: B.vein.y - 30 }, 'PSSSST', false, '#D9F99D');
       for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: B.vein.x, y: B.vein.y }, vel: { x: (Math.random() - 0.5) * 3, y: -Math.random() * 3 }, life: 20, color: '#78716C', size: 2 + Math.random() * 2 });
     }
-  } else {
+  } else if (b.popped) {
     b.gas = Math.min(1, b.gas + 1 / GAS_FILL);
     // (the hiss, and the haze coming out of it, quietly)
     if (state.frame % 3 === 0) state.particles.push({ pos: { x: B.vein.x + (Math.random() - 0.5) * 6, y: B.vein.y }, vel: { x: (Math.random() - 0.5) * 1.2, y: -0.4 - Math.random() * 0.6 }, life: 60, color: 'rgba(217, 249, 157, 0.35)', size: 6 + Math.random() * 6 });
   }
   // Enough gas, and a flame in the room: it goes up
   const flameInRoom = state.flameSegments.some(s => s.x > B.x1 && s.x < B.x2 && s.y > B.roof && s.y < GROUND_Y);
-  if (b.popped && b.gas >= GAS_ENOUGH && flameInRoom) { blowUp(ctx, b, talk); return { ...NO_CONTROLS }; }
+  return b.popped && b.gas >= GAS_ENOUGH && flameInRoom;
+};
+
+/** In the room with them: the gas line, the gas, and a flame to it. */
+const onBreak = (ctx: FrameContext, b: Bunker, talk: Talk, controls: Controls, inside: boolean): Controls => {
+  const { state } = ctx;
+  const B = COURSE.bunker;
+  if (gasLine(ctx, b)) { blowUp(ctx, b, talk); return { ...NO_CONTROLS }; }
+  const flameInRoom = state.flameSegments.some(s => s.x > B.x1 && s.x < B.x2 && s.y > B.roof && s.y < GROUND_Y);
   // Too soon: he says what's still needed
   if (flameInRoom && state.frame - b.earlyAt > 300) {
     b.earlyAt = state.frame;
@@ -186,7 +233,11 @@ const onBreak = (ctx: FrameContext, b: Bunker, talk: Talk, controls: Controls, i
   if (inside && quiet(talk)) {
     const since = state.frame - b.ambientAt;
     if (b.popped && b.gas > 0.25 && !b.hinted.has('smell')) { b.hinted.add('smell'); b.ambientAt = state.frame; queueLines(state, talk, [{ who: 'worker', text: 'SOMEBODY MICROWAVED EGGS AGAIN.' }, { who: 'foreman', text: 'SMELLS LIKE OVERTIME TO ME.' }]); }
-    else if (!b.popped && b.t > 600 && !b.hinted.has(`vein-${Math.floor(b.t / 900)}`)) { b.hinted.add(`vein-${Math.floor(b.t / 900)}`); b.ambientAt = state.frame; queueLines(state, talk, [{ who: 'meathead', text: 'THAT OLD GAS LINE ON THE WALL LOOKS REAL THIN...' }]); }
+    else if (!b.popped && b.t > NAG_FROM && Math.floor((b.t - NAG_FROM) / NAG_EVERY) < NAGS.length && !b.hinted.has(`nag-${Math.floor((b.t - NAG_FROM) / NAG_EVERY)}`)) {
+      const n = Math.floor((b.t - NAG_FROM) / NAG_EVERY);
+      b.hinted.add(`nag-${n}`); b.ambientAt = state.frame;
+      queueLines(state, talk, [{ who: 'meathead', text: NAGS[n] }]);
+    }
     else if (b.popped && b.gas >= 0.6 && state.frame - b.poppedAt > 700 && !b.hinted.has(`fire-${Math.floor((state.frame - b.poppedAt) / 700)}`)) { b.hinted.add(`fire-${Math.floor((state.frame - b.poppedAt) / 700)}`); b.ambientAt = state.frame; queueLines(state, talk, [{ who: 'meathead', text: 'ALL THIS ROOM NEEDS NOW IS A LITTLE FIRE.' }]); }
     // (the foreman keeps count, and calls the last minute)
     else if (b.t > BREAK_FRAMES - MINUTE && !b.hinted.has('last')) { b.hinted.add('last'); b.ambientAt = state.frame; queueLines(state, talk, [{ who: 'foreman', text: 'ONE MINUTE, FELLAS. FINISH YOUR SANDWICHES.' }]); }
@@ -216,18 +267,20 @@ const clockOut = (ctx: FrameContext, b: Bunker, talk: Talk) => {
 };
 
 /** The room goes up: the flash, the fireball, the roof and the far door gone, everybody on the floor. */
-const blowUp = (ctx: FrameContext, b: Bunker, talk: Talk) => {
+const blowUp = (ctx: FrameContext, b: Bunker, talk: Talk, spite = false) => {
   const { state } = ctx;
   const p = state.player;
   const B = COURSE.bunker;
-  b.phase = 'boom'; b.t = 0; b.gas = 0;
+  b.phase = spite ? 'spite' : 'boom'; b.t = 0; b.gas = 0;
+  if (spite) b.spited = true;
   hush(state, talk);
   state.blocks = state.blocks.filter(k => k.tag !== 'bunker-roof' && k.tag !== 'bunker-door');
   shakeScreen(state, 70, 22);
   playSound('boom'); playSound('ignite');
   state.projectiles = state.projectiles.filter(q => q.owner !== 'player');
   p.isFlaming = false;
-  for (const w of b.workers) { w.state = 'knocked'; w.t = 0; }
+  // (after the break, they've clocked in and gone: nobody so much as turns round)
+  if (!spite) for (const w of b.workers) { w.state = 'knocked'; w.t = 0; }
   // The fireball
   for (let i = 0; i < 90; i++) {
     const x = B.x1 + Math.random() * (B.x2 - B.x1), y = B.roof + Math.random() * (GROUND_Y - B.roof);
@@ -237,6 +290,7 @@ const blowUp = (ctx: FrameContext, b: Bunker, talk: Talk) => {
   for (let i = 0; i < 14; i++) b.debris.push({ x: B.x1 + 40 + i * 48, y: B.roof - 20, vx: (Math.random() - 0.5) * 9, vy: -10 - Math.random() * 9, rot: 0, vr: (Math.random() - 0.5) * 0.4, w: 40 + Math.random() * 20, h: 8, color: i % 3 ? '#9CA3AF' : '#6B7280', life: 160 });
   b.debris.push({ x: B.x2 - 10, y: GROUND_Y - 60, vx: 11, vy: -9, rot: 0, vr: 0.3, w: 14, h: 90, color: '#A16207', life: 160 });
   for (let i = 0; i < 10; i++) b.debris.push({ x: B.x1 + Math.random() * (B.x2 - B.x1), y: GROUND_Y - 90, vx: (Math.random() - 0.5) * 12, vy: -6 - Math.random() * 8, rot: 0, vr: (Math.random() - 0.5) * 0.6, w: 8 + Math.random() * 8, h: 6 + Math.random() * 6, color: ['#F8FAFC', '#B91C1C', '#FACC15', '#1D4ED8'][i % 4], life: 120 });
+  if (spite) { p.invincibilityTimer = Math.max(p.invincibilityTimer, 40); return; }
   p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
   p.inCutscene = true;
 };
@@ -322,6 +376,6 @@ const updateBikers = (b: Bunker) => {
 };
 
 /** Is the room still standing (for drawing it whole or blown out)? */
-export const roomIntact = (b: Bunker) => b.peaceful || b.phase === 'waiting' || b.phase === 'break';
+export const roomIntact = (b: Bunker) => (b.peaceful && !b.spited) || b.phase === 'waiting' || b.phase === 'break';
 /** The far door's still shut (it's open once they've clocked out). */
 export const doorShut = (b: Bunker) => b.phase === 'waiting' || b.phase === 'break' || b.phase === 'clockout';

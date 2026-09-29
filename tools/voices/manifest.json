@@ -2635,6 +2635,736 @@
   "from": "game/stages/dale/town.ts:515"
  },
  {
+  "voice": "death",
+  "text": "A BARREL A DAY",
+  "from": "game/stages/oscar/runtime.ts:168"
+ },
+ {
+  "voice": "death",
+  "text": "A LONG WAY DOWN",
+  "from": "game/stages/tommy/escape.ts:189"
+ },
+ {
+  "voice": "death",
+  "text": "A VERY FIT SPEED BUMP",
+  "from": "game/stages/dale/convoy.ts:419"
+ },
+ {
+  "voice": "death",
+  "text": "AIR CONDITIONED",
+  "from": "game/stages/ernie/quake.ts:300"
+ },
+ {
+  "voice": "death",
+  "text": "BAR-B-QUED",
+  "from": "game/stages/victor/hazards.ts:268"
+ },
+ {
+  "voice": "death",
+  "text": "BEATEN TO A PULP BY A TWEAKER",
+  "from": "game/stages/dale/runtime.ts:179"
+ },
+ {
+  "voice": "death",
+  "text": "BELLY FLOP OF THE CENTURY",
+  "from": "game/stages/ernie/bridge.ts:213"
+ },
+ {
+  "voice": "death",
+  "text": "BLOWN SKY HIGH",
+  "from": "game/stages/dale/convoy.ts:453"
+ },
+ {
+  "voice": "death",
+  "text": "BOOT HILL, PLOT 12",
+  "from": "game/stages/dale/runtime.ts:184"
+ },
+ {
+  "voice": "death",
+  "text": "BURIED ALIVE",
+  "from": "game/stages/artie/ski.ts:421"
+ },
+ {
+  "voice": "death",
+  "text": "CATEGORY 5 DEATH",
+  "from": "game/stages/hector/tower.ts:142"
+ },
+ {
+  "voice": "death",
+  "text": "CHILLED TO DEATH",
+  "from": "game/stages/ernie/quake.ts:300"
+ },
+ {
+  "voice": "death",
+  "text": "CHUCO SAYS HI",
+  "from": "game/stages/dale/runtime.ts:179"
+ },
+ {
+  "voice": "death",
+  "text": "CLEANED OUT",
+  "from": "game/stages/barry/runtime.ts:392"
+ },
+ {
+  "voice": "death",
+  "text": "CON ED STRIKES AGAIN",
+  "from": "game/stages/barry/runtime.ts:389"
+ },
+ {
+  "voice": "death",
+  "text": "CREVASSE: 1, MEATHEAD: 0",
+  "from": "game/stages/artie/ski.ts:421"
+ },
+ {
+  "voice": "death",
+  "text": "DEAD IN DEADWOOD GULCH",
+  "from": "game/stages/dale/runtime.ts:184"
+ },
+ {
+  "voice": "death",
+  "text": "DEATH BY A THOUSAND NEEDLES",
+  "from": "game/stages/dale/runtime.ts:178"
+ },
+ {
+  "voice": "death",
+  "text": "DEATH BY PATIO FURNITURE",
+  "from": "game/stages/hector/hazards.ts:430"
+ },
+ {
+  "voice": "death",
+  "text": "DEATH BY PETUNIA",
+  "from": "game/stages/ernie/quake.ts:299"
+ },
+ {
+  "voice": "death",
+  "text": "DEATH FROM ABOVE",
+  "from": "game/stages/ernie/quake.ts:301"
+ },
+ {
+  "voice": "death",
+  "text": "DISSOLVED",
+  "from": "game/stages/tommy/sewer.ts:101"
+ },
+ {
+  "voice": "death",
+  "text": "DISSOLVED IN TOXIC SLUDGE",
+  "from": "game/bosses/hazards.ts:193"
+ },
+ {
+  "voice": "death",
+  "text": "DOWN THE HOLE",
+  "from": "game/stages/barry/runtime.ts:389"
+ },
+ {
+  "voice": "death",
+  "text": "DOWNSIZED",
+  "from": "game/stages/barry/runtime.ts:391"
+ },
+ {
+  "voice": "death",
+  "text": "DRIVE-BY'D",
+  "from": "game/stages/tommy/bike.ts:531"
+ },
+ {
+  "voice": "death",
+  "text": "DROWNED IN CRUDE",
+  "from": "game/stages/oscar/runtime.ts:168"
+ },
+ {
+  "voice": "death",
+  "text": "EIGHTEEN WHEELS, ZERO SURVIVORS",
+  "from": "game/stages/dale/convoy.ts:453"
+ },
+ {
+  "voice": "death",
+  "text": "ELECTROCUTED IN A PARKING LOT",
+  "from": "game/stages/hector/hazards.ts:431"
+ },
+ {
+  "voice": "death",
+  "text": "ELECTROCUTED IN THE WATER",
+  "from": "game/stages/hector/hazards.ts:220"
+ },
+ {
+  "voice": "death",
+  "text": "ELECTROCUTED! WATER AND A POWER PLANT: NOT A COMBO",
+  "from": "game/stages/barry/power.ts:280"
+ },
+ {
+  "voice": "death",
+  "text": "EVEL KNIEVEL HE IS NOT",
+  "from": "game/stages/oscar/chase.ts:582"
+ },
+ {
+  "voice": "death",
+  "text": "EXTRA CRISPY",
+  "from": "game/stages/hector/hazards.ts:429"
+ },
+ {
+  "voice": "death",
+  "text": "FAILED THE TRIAL",
+  "from": "game/stages/barry/runtime.ts:393"
+ },
+ {
+  "voice": "death",
+  "text": "FAULT LINE: YOURS",
+  "from": "game/stages/ernie/quake.ts:296"
+ },
+ {
+  "voice": "death",
+  "text": "FLAME BROILED",
+  "from": "game/stages/victor/hazards.ts:266"
+ },
+ {
+  "voice": "death",
+  "text": "FLASH-FROZEN MEAT POPSICLE",
+  "from": "game/stages/artie/ski.ts:421"
+ },
+ {
+  "voice": "death",
+  "text": "FLATTENED BY A DEAD MAN",
+  "from": "game/stages/dale/town.ts:497"
+ },
+ {
+  "voice": "death",
+  "text": "FLATTENED BY THE COMMUNITY",
+  "from": "game/stages/tommy/thing.ts:282"
+ },
+ {
+  "voice": "death",
+  "text": "FLATTENED ON THE INTERSTATE",
+  "from": "game/stages/dale/convoy.ts:453"
+ },
+ {
+  "voice": "death",
+  "text": "FLINT TAP WATER: 1, MEATHEAD: 0",
+  "from": "game/stages/tommy/sewer.ts:101"
+ },
+ {
+  "voice": "death",
+  "text": "FLINT: 1, MEATHEAD: 0",
+  "from": "game/stages/tommy/bike.ts:531"
+ },
+ {
+  "voice": "death",
+  "text": "FOR SCIENCE",
+  "from": "game/stages/barry/runtime.ts:393"
+ },
+ {
+  "voice": "death",
+  "text": "FORGOT TO BREATHE",
+  "from": "game/stages/hector/hazards.ts:401"
+ },
+ {
+  "voice": "death",
+  "text": "FOSSIL FUEL",
+  "from": "game/stages/oscar/runtime.ts:168"
+ },
+ {
+  "voice": "death",
+  "text": "FULL OF LEAD AND BARF",
+  "from": "game/stages/dale/convoy.ts:453"
+ },
+ {
+  "voice": "death",
+  "text": "GLUB GLUB GLUB",
+  "from": "game/stages/hector/hazards.ts:401"
+ },
+ {
+  "voice": "death",
+  "text": "GOD HATES YOU SPECIFICALLY",
+  "from": "game/stages/hector/hazards.ts:429"
+ },
+ {
+  "voice": "death",
+  "text": "GONE WITH THE WIND",
+  "from": "game/stages/hector/tower.ts:142"
+ },
+ {
+  "voice": "death",
+  "text": "GRAVITY: 1, MEATHEAD: 0",
+  "from": "game/stages/artie/tram.ts:107"
+ },
+ {
+  "voice": "death",
+  "text": "GROUNDED",
+  "from": "game/stages/barry/runtime.ts:395"
+ },
+ {
+  "voice": "death",
+  "text": "HE HAD A LIZARD TO THINK OF",
+  "from": "game/stages/dale/convoy.ts:453"
+ },
+ {
+  "voice": "death",
+  "text": "HIT AND RUN",
+  "from": "game/stages/dale/convoy.ts:419"
+ },
+ {
+  "voice": "death",
+  "text": "HIT BY A FLYING TOASTER",
+  "from": "game/stages/barry/runtime.ts:394"
+ },
+ {
+  "voice": "death",
+  "text": "HIT BY A LAVA BOMB",
+  "from": "game/stages/victor/hazards.ts:265"
+ },
+ {
+  "voice": "death",
+  "text": "HOT FOOT, COLD BODY",
+  "from": "game/stages/victor/hazards.ts:264"
+ },
+ {
+  "voice": "death",
+  "text": "HOUSEPLANT HOMICIDE",
+  "from": "game/stages/ernie/quake.ts:299"
+ },
+ {
+  "voice": "death",
+  "text": "HR WILL HEAR ABOUT THIS",
+  "from": "game/stages/barry/runtime.ts:391"
+ },
+ {
+  "voice": "death",
+  "text": "HUGGED A CACTUS",
+  "from": "game/stages/dale/runtime.ts:178"
+ },
+ {
+  "voice": "death",
+  "text": "INTO THE TRENCH",
+  "from": "game/stages/oscar/chase.ts:582"
+ },
+ {
+  "voice": "death",
+  "text": "JUST ANOTHER NEW YORK STATISTIC",
+  "from": "game/stages/barry/runtime.ts:389"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A BEACH CHAIR",
+  "from": "game/stages/hector/hazards.ts:430"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A FLOWERPOT",
+  "from": "game/stages/ernie/quake.ts:299"
+ },
+ {
+  "voice": "death",
+  "text": "LAID DOWN THE BIKE",
+  "from": "game/stages/oscar/chase.ts:584"
+ },
+ {
+  "voice": "death",
+  "text": "LIKE HITTING CONCRETE",
+  "from": "game/stages/ernie/bridge.ts:213"
+ },
+ {
+  "voice": "death",
+  "text": "LOST AT SEA",
+  "from": "game/stages/ernie/jetski.ts:394"
+ },
+ {
+  "voice": "death",
+  "text": "LOST IN THE CLOUDS",
+  "from": "game/stages/artie/tram.ts:107"
+ },
+ {
+  "voice": "death",
+  "text": "LOST IN THE SAND",
+  "from": "game/stages/dale/runtime.ts:183"
+ },
+ {
+  "voice": "death",
+  "text": "MELTED",
+  "from": "game/stages/victor/hazards.ts:264"
+ },
+ {
+  "voice": "death",
+  "text": "MIND THE GAP",
+  "from": "game/stages/ernie/quake.ts:296"
+ },
+ {
+  "voice": "death",
+  "text": "MISSED THE JUMP",
+  "from": "game/stages/oscar/chase.ts:582"
+ },
+ {
+  "voice": "death",
+  "text": "MOPPED UP",
+  "from": "game/stages/barry/runtime.ts:392"
+ },
+ {
+  "voice": "death",
+  "text": "MUGGED",
+  "from": "game/stages/barry/runtime.ts:389"
+ },
+ {
+  "voice": "death",
+  "text": "NEVER BARF WHERE YOU STAND",
+  "from": "game/stages/dale/convoy.ts:453"
+ },
+ {
+  "voice": "death",
+  "text": "NEVER SWIM IN A LIGHTNING STORM",
+  "from": "game/stages/hector/hazards.ts:220"
+ },
+ {
+  "voice": "death",
+  "text": "NEW YORK WELCOMES YOU",
+  "from": "game/stages/barry/runtime.ts:394"
+ },
+ {
+  "voice": "death",
+  "text": "NO VISITOR BADGE",
+  "from": "game/stages/barry/runtime.ts:390"
+ },
+ {
+  "voice": "death",
+  "text": "ONE BRICK SHORT OF A HOUSE",
+  "from": "game/stages/ernie/quake.ts:301"
+ },
+ {
+  "voice": "death",
+  "text": "ONE SHOT, ONE MEATHEAD",
+  "from": "game/stages/dale/runtime.ts:181"
+ },
+ {
+  "voice": "death",
+  "text": "PART OF THE RESERVE NOW",
+  "from": "game/stages/oscar/runtime.ts:168"
+ },
+ {
+  "voice": "death",
+  "text": "PART OF THE WATER SUPPLY NOW",
+  "from": "game/stages/tommy/sewer.ts:101"
+ },
+ {
+  "voice": "death",
+  "text": "PRICKED TO DEATH",
+  "from": "game/stages/dale/runtime.ts:178"
+ },
+ {
+  "voice": "death",
+  "text": "RED DOT, THEN NOTHING",
+  "from": "game/stages/dale/runtime.ts:181"
+ },
+ {
+  "voice": "death",
+  "text": "RIGGS FINALLY PRESSED THE BUTTON",
+  "from": "game/stages/dale/convoy.ts:453"
+ },
+ {
+  "voice": "death",
+  "text": "RIVETED",
+  "from": "game/stages/ernie/quake.ts:302"
+ },
+ {
+  "voice": "death",
+  "text": "ROAD RASH: TERMINAL",
+  "from": "game/stages/dale/convoy.ts:453"
+ },
+ {
+  "voice": "death",
+  "text": "ROADKILL",
+  "from": "game/stages/dale/convoy.ts:453"
+ },
+ {
+  "voice": "death",
+  "text": "RUN OFF THE ROAD",
+  "from": "game/stages/oscar/chase.ts:584"
+ },
+ {
+  "voice": "death",
+  "text": "RUN OVER BY RIGGS. AGAIN.",
+  "from": "game/stages/dale/town.ts:497"
+ },
+ {
+  "voice": "death",
+  "text": "SAMPLE CONTAMINATED",
+  "from": "game/stages/barry/runtime.ts:393"
+ },
+ {
+  "voice": "death",
+  "text": "SEAFOOD BOIL",
+  "from": "game/stages/hector/hazards.ts:220"
+ },
+ {
+  "voice": "death",
+  "text": "SHARK BAIT",
+  "from": "game/stages/ernie/jetski.ts:394"
+ },
+ {
+  "voice": "death",
+  "text": "SHOCKING.",
+  "from": "game/stages/hector/hazards.ts:431"
+ },
+ {
+  "voice": "death",
+  "text": "SHOCKINGLY STUPID",
+  "from": "game/stages/hector/hazards.ts:220"
+ },
+ {
+  "voice": "death",
+  "text": "SHOULD HAVE BOILED IT FIRST",
+  "from": "game/stages/tommy/sewer.ts:101"
+ },
+ {
+  "voice": "death",
+  "text": "SHOULD HAVE CLEARED THE ROOF",
+  "from": "game/stages/dale/convoy.ts:453"
+ },
+ {
+  "voice": "death",
+  "text": "SHOULD HAVE JUMPED",
+  "from": "game/stages/dale/town.ts:497"
+ },
+ {
+  "voice": "death",
+  "text": "SHOULD HAVE LISTENED",
+  "from": "game/stages/tommy/thing.ts:282"
+ },
+ {
+  "voice": "death",
+  "text": "SHOULD HAVE LISTENED TO YOURSELF",
+  "from": "game/stages/dale/convoy.ts:453"
+ },
+ {
+  "voice": "death",
+  "text": "SHOULD HAVE TAKEN SWIM LESSONS",
+  "from": "game/stages/hector/hazards.ts:401"
+ },
+ {
+  "voice": "death",
+  "text": "SHOULD HAVE WORN A HELMET",
+  "from": "game/stages/tommy/bike.ts:531"
+ },
+ {
+  "voice": "death",
+  "text": "SHOULD'VE STAYED ON THE TRAM",
+  "from": "game/stages/artie/tram.ts:107"
+ },
+ {
+  "voice": "death",
+  "text": "SIGNED OUT PERMANENTLY",
+  "from": "game/stages/barry/runtime.ts:390"
+ },
+ {
+  "voice": "death",
+  "text": "SKIED INTO THE ABYSS",
+  "from": "game/stages/artie/ski.ts:421"
+ },
+ {
+  "voice": "death",
+  "text": "SKIPPED LIKE A STONE AT EIGHTY MILES AN HOUR",
+  "from": "game/stages/dale/convoy.ts:453"
+ },
+ {
+  "voice": "death",
+  "text": "SLEEPING WITH THE FISHES",
+  "from": "game/stages/hector/hazards.ts:401"
+ },
+ {
+  "voice": "death",
+  "text": "SLEEPS WITH THE FISHES",
+  "from": "game/stages/ernie/jetski.ts:394"
+ },
+ {
+  "voice": "death",
+  "text": "SNIPED",
+  "from": "game/stages/dale/runtime.ts:181"
+ },
+ {
+  "voice": "death",
+  "text": "SOUP OF THE DAY: MEAT",
+  "from": "game/stages/victor/hazards.ts:264"
+ },
+ {
+  "voice": "death",
+  "text": "SPECIAL DELIVERY: YOU",
+  "from": "game/stages/dale/convoy.ts:453"
+ },
+ {
+  "voice": "death",
+  "text": "SPIT ROASTED",
+  "from": "game/stages/victor/hazards.ts:268"
+ },
+ {
+  "voice": "death",
+  "text": "SPLAT ON FIFTH AVENUE",
+  "from": "game/stages/barry/runtime.ts:394"
+ },
+ {
+  "voice": "death",
+  "text": "STRUCK BY LIGHTNING",
+  "from": "game/stages/hector/hazards.ts:429"
+ },
+ {
+  "voice": "death",
+  "text": "STRUCTURAL FAILURE",
+  "from": "game/stages/ernie/quake.ts:302"
+ },
+ {
+  "voice": "death",
+  "text": "SUCKED INTO THE STORM",
+  "from": "game/stages/hector/eye.ts:129"
+ },
+ {
+  "voice": "death",
+  "text": "SUCKED UP INTO THE STORM",
+  "from": "game/stages/hector/tower.ts:142"
+ },
+ {
+  "voice": "death",
+  "text": "SURFACE TENSION: 1, MEATHEAD: 0",
+  "from": "game/stages/ernie/bridge.ts:213"
+ },
+ {
+  "voice": "death",
+  "text": "SWALLOWED BY A POTHOLE",
+  "from": "game/stages/barry/runtime.ts:389"
+ },
+ {
+  "voice": "death",
+  "text": "SWALLOWED BY THE EARTH",
+  "from": "game/stages/ernie/quake.ts:296"
+ },
+ {
+  "voice": "death",
+  "text": "TAYVON WANTS HIS BIKE BACK",
+  "from": "game/stages/tommy/bike.ts:531"
+ },
+ {
+  "voice": "death",
+  "text": "TEXAS JUSTICE",
+  "from": "game/stages/oscar/chase.ts:584"
+ },
+ {
+  "voice": "death",
+  "text": "THE BAY SAYS NO",
+  "from": "game/stages/ernie/bridge.ts:213"
+ },
+ {
+  "voice": "death",
+  "text": "THE BAY WINS",
+  "from": "game/stages/ernie/jetski.ts:394"
+ },
+ {
+  "voice": "death",
+  "text": "THE BRIDGE FELL ON YOU",
+  "from": "game/stages/ernie/quake.ts:302"
+ },
+ {
+  "voice": "death",
+  "text": "THE CITY THAT NEVER SLEEPS. YOU DO NOW.",
+  "from": "game/stages/barry/runtime.ts:389"
+ },
+ {
+  "voice": "death",
+  "text": "THE DESERT CLAIMS ANOTHER",
+  "from": "game/stages/dale/runtime.ts:183"
+ },
+ {
+  "voice": "death",
+  "text": "THE EAST SIDE HAS SPOKEN",
+  "from": "game/stages/tommy/thing.ts:282"
+ },
+ {
+  "voice": "death",
+  "text": "THE GROUND ATE YOU",
+  "from": "game/stages/ernie/quake.ts:296"
+ },
+ {
+  "voice": "death",
+  "text": "THE INTERSTATE WON",
+  "from": "game/stages/dale/convoy.ts:453"
+ },
+ {
+  "voice": "death",
+  "text": "THE MOUNTAIN WON",
+  "from": "game/stages/artie/ski.ts:421"
+ },
+ {
+  "voice": "death",
+  "text": "THE VOLCANO SPAT ON YOU",
+  "from": "game/stages/victor/hazards.ts:265"
+ },
+ {
+  "voice": "death",
+  "text": "THERE'S NO PLACE LIKE HOME",
+  "from": "game/stages/hector/tower.ts:142"
+ },
+ {
+  "voice": "death",
+  "text": "TIGHT, TIGHT, TIGHT",
+  "from": "game/stages/dale/runtime.ts:179"
+ },
+ {
+  "voice": "death",
+  "text": "TOOK THE EXPRESS DOWN",
+  "from": "game/stages/artie/tram.ts:107"
+ },
+ {
+  "voice": "death",
+  "text": "TOOK THE EXPRESS WAY DOWN",
+  "from": "game/stages/barry/runtime.ts:394"
+ },
+ {
+  "voice": "death",
+  "text": "TOOK YOUR SWEET TIME",
+  "from": "game/stages/dale/convoy.ts:453"
+ },
+ {
+  "voice": "death",
+  "text": "VENTED",
+  "from": "game/stages/victor/hazards.ts:266"
+ },
+ {
+  "voice": "death",
+  "text": "VULTURE FOOD",
+  "from": "game/stages/dale/runtime.ts:183"
+ },
+ {
+  "voice": "death",
+  "text": "WANTED: DEAD. GOT IT.",
+  "from": "game/stages/dale/runtime.ts:184"
+ },
+ {
+  "voice": "death",
+  "text": "WELL DONE",
+  "from": "game/stages/victor/hazards.ts:267"
+ },
+ {
+  "voice": "death",
+  "text": "WHO WANTS NUGGETS?",
+  "from": "game/stages/dale/convoy.ts:419"
+ },
+ {
+  "voice": "death",
+  "text": "WINDOW SHOPPING",
+  "from": "game/stages/barry/runtime.ts:394"
+ },
+ {
+  "voice": "death",
+  "text": "YOU DIED",
+  "from": "killPlayer"
+ },
+ {
+  "voice": "death",
+  "text": "YOU GOT AVALANCHED",
+  "from": "game/stages/artie/ski.ts:421"
+ },
+ {
+  "voice": "death",
+  "text": "YOU SET FIRE TO AN OIL-SOAKED TOXIC WASTE MONSTER IN A METHANE-FILLED SEWER. YOU BOTH DIED.",
+  "from": "SEWER_NUKE_MESSAGE"
+ },
+ {
+  "voice": "death",
+  "text": "YOU'RE FIRED",
+  "from": "game/stages/barry/runtime.ts:391"
+ },
+ {
   "voice": "dispatch",
   "text": "DAVE?",
   "from": "game/stages/artie/ski.ts:121"
@@ -3172,7 +3902,7 @@
  {
   "voice": "meathead",
   "text": "ALL THIS ROOM NEEDS NOW IS A LITTLE FIRE.",
-  "from": "game/stages/oscar/bunker.ts:190"
+  "from": "game/stages/oscar/bunker.ts:222"
  },
  {
   "voice": "meathead",
@@ -3213,6 +3943,11 @@
   "voice": "meathead",
   "text": "ARE YOU KIDDING ME?! SAME! MOVE! AS! HIM! HOW MANY TIMES?!",
   "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "ARE YOU SERIOUSLY GOING TO WAIT OUT THEIR BREAK?",
+  "from": "game/stages/oscar/bunker.ts:220"
  },
  {
   "voice": "meathead",
@@ -3292,7 +4027,7 @@
  {
   "voice": "meathead",
   "text": "BREAK'S OVER, BOYS.",
-  "from": "game/stages/oscar/bunker.ts:258"
+  "from": "game/stages/oscar/bunker.ts:290"
  },
  {
   "voice": "meathead",
@@ -4207,7 +4942,7 @@
  {
   "voice": "meathead",
   "text": "GIVE IT A SECOND. LET THE GAS BUILD UP.",
-  "from": "game/stages/oscar/bunker.ts:183"
+  "from": "game/stages/oscar/bunker.ts:211"
  },
  {
   "voice": "meathead",
@@ -4596,6 +5331,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE'S READING THE BACK OF A YOGURT. WE'RE WATCHING A MAN READ THE BACK OF A YOGURT.",
+  "from": "game/stages/oscar/bunker.ts:220"
+ },
+ {
+  "voice": "meathead",
   "text": "HE'S RIGHT BEHIND THAT WINDSHIELD. ONE CLEAN SHOT FROM THE HOOD.",
   "from": "game/stages/dale/convoy.ts:719"
  },
@@ -4801,6 +5541,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I CAN FEEL MY GAINS LEAVING MY BODY.",
+  "from": "game/stages/oscar/bunker.ts:220"
+ },
+ {
+  "voice": "meathead",
   "text": "I CAN SEE YOU THROUGH THE SCREEN, CHAMP.",
   "from": "game/stages/victor/doorman.ts:527"
  },
@@ -4861,6 +5606,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I HAVE A PRESIDENT WAITING ON ME. THEY'RE PLAYING GO FISH.",
+  "from": "game/stages/oscar/bunker.ts:220"
+ },
+ {
+  "voice": "meathead",
   "text": "I HAVE NEVER SKIPPED LEG DAY IN MY LIFE.",
   "from": "components/IntroCutscene.tsx:26"
  },
@@ -4882,7 +5632,7 @@
  {
   "voice": "meathead",
   "text": "I JUST NEED TO GET THROUGH.",
-  "from": "game/stages/oscar/bunker.ts:119"
+  "from": "game/stages/oscar/bunker.ts:147"
  },
  {
   "voice": "meathead",
@@ -5042,7 +5792,7 @@
  {
   "voice": "meathead",
   "text": "I'LL TAKE THE BIKE. AND THE GUN.",
-  "from": "game/stages/oscar/bunker.ts:289"
+  "from": "game/stages/oscar/bunker.ts:321"
  },
  {
   "voice": "meathead",
@@ -5353,6 +6103,11 @@
   "voice": "meathead",
   "text": "JUNKIE TRASH",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "JUST SAYING. THAT GAS LINE ISN'T GOING TO SHOOT ITSELF.",
+  "from": "game/stages/oscar/bunker.ts:220"
  },
  {
   "voice": "meathead",
@@ -5751,6 +6506,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NO, REALLY. I'M ASKING. ARE WE WAITING THIS OUT?",
+  "from": "game/stages/oscar/bunker.ts:220"
+ },
+ {
+  "voice": "meathead",
   "text": "NOBODY TALKS ABOUT MY MOM.",
   "from": "components/RadioCutscene.tsx:25"
  },
@@ -5792,7 +6552,7 @@
  {
   "voice": "meathead",
   "text": "NOTHING TO LIGHT YET. THAT GAS LINE ON THE WALL THOUGH...",
-  "from": "game/stages/oscar/bunker.ts:183"
+  "from": "game/stages/oscar/bunker.ts:211"
  },
  {
   "voice": "meathead",
@@ -5873,6 +6633,11 @@
   "voice": "meathead",
   "text": "OKAY, PLAYER. I'M DONE BEING SUBTLE.",
   "from": "game/stages/victor/doorman.ts:527"
+ },
+ {
+  "voice": "meathead",
+  "text": "OKAY. FINE. WE WAIT. I'LL JUST STAND HERE. SHRINKING.",
+  "from": "game/stages/oscar/bunker.ts:220"
  },
  {
   "voice": "meathead",
@@ -6158,6 +6923,11 @@
   "voice": "meathead",
   "text": "RIGHT IN THE TEETH WITH THE POLICE SHIELD!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "RIGHT?!",
+  "from": "game/stages/oscar/bunker.ts:220"
  },
  {
   "voice": "meathead",
@@ -6886,6 +7656,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT GAS LINE. ONE SHOT. THAT'S ALL IT WOULD TAKE.",
+  "from": "game/stages/oscar/bunker.ts:220"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT GOAT HAS A HARDER HEAD THAN ME!",
   "from": "HAZARD_HURT"
  },
@@ -6917,7 +7692,7 @@
  {
   "voice": "meathead",
   "text": "THAT OLD GAS LINE ON THE WALL LOOKS REAL THIN...",
-  "from": "game/stages/oscar/bunker.ts:189"
+  "from": "game/stages/oscar/bunker.ts:220"
  },
  {
   "voice": "meathead",
@@ -7061,6 +7836,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE GAS LINE IS STILL RIGHT THERE, BY THE WAY.",
+  "from": "game/stages/oscar/bunker.ts:220"
+ },
+ {
+  "voice": "meathead",
   "text": "THE GROUND IS ON FIRE!",
   "from": "HAZARD_HURT"
  },
@@ -7152,7 +7932,7 @@
  {
   "voice": "meathead",
   "text": "The union. The rangers. The Angels. My bar. My field's on fire, pal! ...It's insured. You're not.",
-  "from": "game/core/update.ts:131"
+  "from": "game/core/update.ts:140"
  },
  {
   "voice": "meathead",
@@ -7372,7 +8152,7 @@
  {
   "voice": "meathead",
   "text": "UNION RULES.",
-  "from": "game/stages/oscar/bunker.ts:214"
+  "from": "game/stages/oscar/bunker.ts:246"
  },
  {
   "voice": "meathead",
@@ -7476,6 +8256,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WE ARE NOT WAITING OUT A UNION BREAK. RIGHT?",
+  "from": "game/stages/oscar/bunker.ts:220"
+ },
+ {
+  "voice": "meathead",
   "text": "WEAKLING",
   "from": "VULGARITIES"
  },
@@ -7523,6 +8308,11 @@
   "voice": "meathead",
   "text": "WHICH WAY TO THE GIFT SHOP?",
   "from": "game/stages/ernie/alcatraz.ts:129"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO ARE YOU? WHO RAISED YOU?",
+  "from": "game/stages/oscar/bunker.ts:220"
  },
  {
   "voice": "meathead",
@@ -7626,7 +8416,7 @@
  },
  {
   "voice": "meathead",
-  "text": "WIND DEOESN'T BUILD MUSCLE, ASSHOLE!",
+  "text": "WIND DOESN'T BUILD MUSCLE, ASSHOLE!",
   "from": "HURT"
  },
  {
@@ -7687,12 +8477,12 @@
  {
   "voice": "meathead",
   "text": "You blew my whole power room, man. With my guy in it. Whole city's dark now... look up. See any stars? ...Me neither.",
-  "from": "game/core/update.ts:131"
+  "from": "game/core/update.ts:140"
  },
  {
   "voice": "meathead",
   "text": "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!",
-  "from": "game/core/update.ts:131"
+  "from": "game/core/update.ts:140"
  },
  {
   "voice": "meathead",
@@ -7727,7 +8517,7 @@
  {
   "voice": "meathead",
   "text": "You crashed my VIP lounge, bro. Those were investors. Now they're a geothermal feature.",
-  "from": "game/core/update.ts:131"
+  "from": "game/core/update.ts:140"
  },
  {
   "voice": "meathead",
@@ -7737,7 +8527,7 @@
  {
   "voice": "meathead",
   "text": "You dropped a jet ski on the tour group, sonny. I schedule my quakes AROUND the tour group!",
-  "from": "game/core/update.ts:131"
+  "from": "game/core/update.ts:140"
  },
  {
   "voice": "meathead",
@@ -7747,12 +8537,12 @@
  {
   "voice": "meathead",
   "text": "You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.",
-  "from": "game/core/update.ts:131"
+  "from": "game/core/update.ts:140"
  },
  {
   "voice": "meathead",
   "text": "You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I'M the terrorist?",
-  "from": "game/core/update.ts:131"
+  "from": "game/core/update.ts:140"
  },
  {
   "voice": "meathead",
@@ -7782,7 +8572,7 @@
  {
   "voice": "meathead",
   "text": "You put the neighbors down. And you dropped my water tower on a house. Do you know how long it took me to fill that thing?",
-  "from": "game/core/update.ts:131"
+  "from": "game/core/update.ts:140"
  },
  {
   "voice": "meathead",
@@ -7867,7 +8657,7 @@
  {
   "voice": "meathead",
   "text": "YOU'RE TOAST.",
-  "from": "game/core/update.ts:131"
+  "from": "game/core/update.ts:140"
  },
  {
   "voice": "meathead",
@@ -7947,7 +8737,7 @@
  {
   "voice": "oscar.biker",
   "text": "HE'S GOT DAN'S HOG! AND THE GUN!",
-  "from": "game/stages/oscar/bunker.ts:304"
+  "from": "game/stages/oscar/bunker.ts:336"
  },
  {
   "voice": "oscar.biker",
@@ -7997,7 +8787,7 @@
  {
   "voice": "oscar.dan",
   "text": "NOBODY TOUCHES HER BUT DIRTY DAN.",
-  "from": "game/stages/oscar/bunker.ts:288"
+  "from": "game/stages/oscar/bunker.ts:320"
  },
  {
   "voice": "oscar.dan",
@@ -8017,57 +8807,57 @@
  {
   "voice": "oscar.foreman",
   "text": "...EVERYBODY. BACK. TO WORK.",
-  "from": "game/stages/oscar/bunker.ts:257"
+  "from": "game/stages/oscar/bunker.ts:289"
  },
  {
   "voice": "oscar.foreman",
   "text": "AND THAT'S BREAK. BACK TO IT, FELLAS.",
-  "from": "game/stages/oscar/bunker.ts:210"
+  "from": "game/stages/oscar/bunker.ts:242"
  },
  {
   "voice": "oscar.foreman",
   "text": "DON'T LOOK AT THE CLOCK. THE CLOCK CAN'T HURT YOU.",
-  "from": "game/stages/oscar/bunker.ts:98"
+  "from": "game/stages/oscar/bunker.ts:105"
  },
  {
   "voice": "oscar.foreman",
   "text": "DOOR'S LOCKED TILL BREAK'S OVER. UNION RULES.",
-  "from": "game/stages/oscar/bunker.ts:120"
+  "from": "game/stages/oscar/bunker.ts:148"
  },
  {
   "voice": "oscar.foreman",
   "text": "DOOR'S OPEN, PAL. YOU WAITED OUT THE WHOLE BREAK? RESPECT.",
-  "from": "game/stages/oscar/bunker.ts:213"
+  "from": "game/stages/oscar/bunker.ts:245"
  },
  {
   "voice": "oscar.foreman",
   "text": "MINUTES LEFT",
-  "from": "game/stages/oscar/bunker.ts:94"
+  "from": "game/stages/oscar/bunker.ts:101"
  },
  {
   "voice": "oscar.foreman",
   "text": "ONE MINUTE, FELLAS. FINISH YOUR SANDWICHES.",
-  "from": "game/stages/oscar/bunker.ts:192"
+  "from": "game/stages/oscar/bunker.ts:224"
  },
  {
   "voice": "oscar.foreman",
   "text": "SMELLS LIKE OVERTIME TO ME.",
-  "from": "game/stages/oscar/bunker.ts:188"
+  "from": "game/stages/oscar/bunker.ts:216"
  },
  {
   "voice": "oscar.foreman",
   "text": "THIS COFFEE TASTES LIKE THE WELL WATER.",
-  "from": "game/stages/oscar/bunker.ts:96"
+  "from": "game/stages/oscar/bunker.ts:103"
  },
  {
   "voice": "oscar.foreman",
   "text": "UP.",
-  "from": "game/stages/oscar/bunker.ts:212"
+  "from": "game/stages/oscar/bunker.ts:244"
  },
  {
   "voice": "oscar.foreman",
   "text": "WHOA, WHOA. THIS IS A UNION BREAK, PAL.",
-  "from": "game/stages/oscar/bunker.ts:117"
+  "from": "game/stages/oscar/bunker.ts:145"
  },
  {
   "voice": "oscar.smokerA",
@@ -8082,37 +8872,37 @@
  {
   "voice": "oscar.worker",
   "text": "FIFTEEN MINUTES. IT'S IN THE CONTRACT.",
-  "from": "game/stages/oscar/bunker.ts:118"
+  "from": "game/stages/oscar/bunker.ts:146"
  },
  {
   "voice": "oscar.worker",
   "text": "FIVE MORE MINUTES...",
-  "from": "game/stages/oscar/bunker.ts:211"
+  "from": "game/stages/oscar/bunker.ts:243"
  },
  {
   "voice": "oscar.worker",
   "text": "GIN.",
-  "from": "game/stages/oscar/bunker.ts:93"
+  "from": "game/stages/oscar/bunker.ts:100"
  },
  {
   "voice": "oscar.worker",
   "text": "GO FISH.",
-  "from": "game/stages/oscar/bunker.ts:97"
+  "from": "game/stages/oscar/bunker.ts:104"
  },
  {
   "voice": "oscar.worker",
   "text": "MY BREAK!",
-  "from": "game/stages/oscar/bunker.ts:256"
+  "from": "game/stages/oscar/bunker.ts:288"
  },
  {
   "voice": "oscar.worker",
   "text": "SOMEBODY MICROWAVED EGGS AGAIN.",
-  "from": "game/stages/oscar/bunker.ts:188"
+  "from": "game/stages/oscar/bunker.ts:216"
  },
  {
   "voice": "oscar.worker",
   "text": "WHO TOOK MY YOGURT? IT HAD MY NAME ON IT.",
-  "from": "game/stages/oscar/bunker.ts:95"
+  "from": "game/stages/oscar/bunker.ts:102"
  },
  {
   "voice": "president",

@@ -10,7 +10,7 @@ import numpy as np
 import soundfile as sf
 from kokoro_onnx import Kokoro
 
-from voicelib import HERE, ROOT, CACHE, OUT, cast, lines, spec_of, key_of, sentences
+from voicelib import HERE, ROOT, CACHE, OUT, cast, lines, spec_of, key_of, sentences, respell
 os.makedirs(CACHE, exist_ok=True)
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 
@@ -106,7 +106,7 @@ for i, l in enumerate(todo):
     if os.path.exists(path): continue
     if kokoro is None: kokoro = Kokoro(os.path.join(HERE, 'kokoro-v1.0.onnx'), os.path.join(HERE, 'voices-v1.0.bin'))
     try:
-        audio = finish(render(l['text'], spec))
+        audio = finish(render(respell(l['text'], l['voice']), spec))
         sf.write(path, audio, SR, format='OGG', subtype='OPUS', compression_level=0.95)
         made += 1
     except Exception as e:
@@ -114,6 +114,29 @@ for i, l in enumerate(todo):
     if made and made % 25 == 0:
         el = time.time() - t0
         print(f'{made} recorded ({i + 1}/{len(todo)}), {el:.0f}s', flush=True)
+
+def sentence_starts(path, n):
+    """When each sentence after the first starts (seconds), found as the n-1 longest quiet stretches in the recording
+    (the pauses put between sentences). Kept next to the recording."""
+    side = path[:-4] + '.sents.json'
+    if os.path.exists(side): return json.load(open(side))
+    x, sr = sf.read(path, dtype='float32')
+    if x.ndim > 1: x = x.mean(axis=1)
+    hop = int(0.01 * sr)
+    rms = np.array([np.sqrt(np.mean(x[i:i + hop] ** 2)) for i in range(0, len(x) - hop, hop)])
+    quiet = rms < max(0.012, 0.06 * float(rms.max() if len(rms) else 1))
+    runs = []; i = 0
+    while i < len(quiet):
+        if quiet[i]:
+            j = i
+            while j < len(quiet) and quiet[j]: j += 1
+            if i > 0 and j < len(quiet): runs.append((j - i, i, j))
+            i = j
+        else: i += 1
+    runs.sort(reverse=True)
+    starts = sorted(round(max(0, j * hop / sr - 0.03), 3) for _, i, j in runs[:n - 1])
+    json.dump(starts, open(side, 'w'))
+    return starts
 
 # ---- the pack: a header (every clip's place in the file, each voice's playback) and the clips end to end
 clips = {}; blobs = []; offset = 0
@@ -126,6 +149,8 @@ for l in lines:
     k = f"{l['voice']}|{l['text'].strip()}"
     if k in clips: continue
     clips[k] = [offset, len(data)]
+    n = len(sentences(l['text']))
+    if n > 1: clips[k].append(sentence_starts(path, n))
     blobs.append(data); offset += len(data)
 voices = {v: {'rate': spec_of(v).get('rate', 1.0), 'gain': spec_of(v).get('gain', 1.0), 'fx': spec_of(v).get('fx', '')} for v in cast if spec_of(v)}
 header = json.dumps({'clips': clips, 'voices': voices}, separators=(',', ':')).encode('utf-8')

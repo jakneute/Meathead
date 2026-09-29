@@ -19,6 +19,7 @@ import { drawPlayer } from '../../render/player/player';
 import { COURSE, Ledge, Prop, placeOf, roomOf } from './course';
 import { getBarry, BarryRuntime, ventState, barkOf } from './runtime';
 import { saying, drawBubble } from './script';
+import { drawGraffiti, drawTagOnly } from './graffiti';
 import { drawSurge, drawSurgeFlash } from './surgeDraw';
 import { lampLevel, blackout } from './lighting';
 import { drawRooms, drawRoomFront } from './rooms';
@@ -199,10 +200,16 @@ const drawStreetFronts = (ctx: Ctx, state: GameState, burning: boolean) => {
       ctx.fillStyle = 'rgba(28, 25, 23, 0.55)';
       for (let i = 0; i < 4; i++) { const t = ((f * 0.8 + i * 40 + k * 11) % 160) / 160; ctx.beginPath(); ctx.arc(x + 130 + Math.sin(t * 5 + k) * 30, top - 40 - t * 260, 24 + t * 50, 0, Math.PI * 2); ctx.fill(); }
     }
-    // Graffiti on the lower wall
-    if (hash(k + 17) < 0.5) { ctx.fillStyle = ['#F472B6', '#22D3EE', '#A3E635'][((k % 3) + 3) % 3]; ctx.font = 'bold 10px "Press Start 2P"'; ctx.fillText(['BARRY SUX', 'NO LIGHT', '4EVA', 'CON ED = DEAD'][((k % 4) + 4) % 4], x + 30, Y - 12); }
+    // Graffiti: a big piece across a closed gate, a smaller one along the wall under a window, tags on the doors
+    const words = GRAFFITI[Math.floor(hash(k + 23) * GRAFFITI.length)];
+    if (shop === 4) drawGraffiti(ctx, x + 40, Y - 44, words, 30, k + 101, 196);
+    else if (hash(k + 17) < 0.5) drawGraffiti(ctx, x + 36, Y - 7, words, 15, k + 57, 128);
+    if (hash(k + 29) < 0.45) drawTagOnly(ctx, x + 176, Y - 46, k + 7);
   }
 };
+
+/** What's sprayed on the walls. */
+const GRAFFITI = ['BARRY SUX', 'NO LIGHT', '4EVA', 'CON ED = DEAD', 'LIGHTS OUT', 'KAOS', 'DARK CITY'];
 
 /** A lot where a building's come down: a heap of rubble and rebar, a jagged stub of wall, fire in the heap, smoke. */
 const drawCollapsedLot = (ctx: Ctx, x: number, f: number, k: number) => {
