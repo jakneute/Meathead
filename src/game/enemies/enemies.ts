@@ -609,6 +609,19 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   // (a regular enemy can only be hit once per move, but a fresh charge right after lands again: you can keep shoving him;
   // a boss keeps his breather between hits)
   const fresh = e.type !== 'boss' && e.hitByMove !== player.moveId;
+  // A dive kick onto a boss still in his breather: nothing goes in, but he doesn't go through him either: he bounces
+  // off his head, same as a stomp (no power back for it)
+  if (attackHit && onScreen && e.type === 'boss' && state.arenaLocked && player.isDivekicking && e.hitCooldown && e.hitCooldown > 0
+    && !player.diveKickHitIds.includes(e.id)) {
+    player.diveKickHitIds.push(e.id);
+    fx.spawnDamageNumber(e.pos, 0);
+    fx.playGunSound('stomp');
+    player.vel.y = -Math.abs(player.vel.y) * 0.5;
+    player.vel.x *= 0.5;
+    player.lockTimer = BOUNCE_FRAMES;
+    player.recoiling = true;
+    return true;
+  }
   if (attackHit && onScreen && (!e.hitCooldown || e.hitCooldown <= 0 || fresh)) {
     // Each uppercut / divekick only hits a given enemy once
     if (player.isUppercutting && player.uppercutHitIds.includes(e.id)) return true;
