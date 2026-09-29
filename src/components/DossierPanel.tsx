@@ -204,8 +204,9 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
       )}
 
       {/* Rubber stamps */}
-      <div className={`absolute ${defeated ? 'top-[72px]' : 'top-[34px]'} right-[10px] rotate-[14deg] px-[6px] py-[1px] text-[14px] font-bold tracking-widest pointer-events-none`}
-        style={{ color: garage ? 'rgba(161, 98, 7, 0.8)' : defeated ? 'rgba(21, 128, 61, 0.75)' : 'rgba(185, 28, 28, 0.75)', border: `3px solid ${garage ? 'rgba(161, 98, 7, 0.8)' : defeated ? 'rgba(21, 128, 61, 0.75)' : 'rgba(185, 28, 28, 0.75)'}` }}>
+      {/* (the garage's goes across the corner of its photo: there's too much writing up the side of its file) */}
+      <div className={`absolute ${garage ? 'top-[92px] left-[6px] rotate-[-12deg] text-[9px]' : `${defeated ? 'top-[72px]' : 'top-[34px]'} right-[10px] rotate-[14deg] text-[14px]`} px-[6px] py-[1px] font-bold tracking-widest pointer-events-none`}
+        style={{ background: garage ? 'rgba(232, 220, 192, 0.85)' : undefined, color: garage ? 'rgba(161, 98, 7, 0.9)' : defeated ? 'rgba(21, 128, 61, 0.75)' : 'rgba(185, 28, 28, 0.75)', border: `3px solid ${garage ? 'rgba(161, 98, 7, 0.8)' : defeated ? 'rgba(21, 128, 61, 0.75)' : 'rgba(185, 28, 28, 0.75)'}` }}>
         {garage ? 'UNVERIFIED' : defeated ? 'DISPOSED OF' : 'TERMINATE'}
       </div>
     </div>
