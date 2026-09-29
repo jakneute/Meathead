@@ -369,7 +369,8 @@ const drawPickup = (ctx: CanvasRenderingContext2D, p: Pickup) => {
 const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, stageId, bossTauntText }: WorldView) => {
   const { enemies, player } = state;
   enemies.forEach(e => {
-    if (e.health <= 0 && !e.isBlownAway) return;
+    // (a tenant's dead as he falls, but he's still to be seen going)
+    if (e.health <= 0 && !e.isBlownAway && !(e.kind === 'tenant' && (e.aiState === 'fall' || e.aiState === 'splat'))) return;
     ctx.save();
     if (e.isTased && player.isTasing && player.taserTargetId === e.id) {
        ctx.translate((Math.random()-0.5)*10, (Math.random()-0.5)*10);

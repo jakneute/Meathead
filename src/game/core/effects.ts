@@ -35,7 +35,8 @@ export const createFx = (state: GameState) => {
   };
 
   /** Big "SPLAT!"-style callout over a special kill. */
-  const spawnKillCallout = (e: { pos: Vector2, width: number }, kind: KillCallout) => {
+  const spawnKillCallout = (e: { pos: Vector2, width: number, kind?: string }, kind: KillCallout) => {
+    if (e.kind === 'tenant') return;
     const { lines, color } = KILL_CALLOUTS[kind];
     state.damageNumbers.push({
       id: `callout-${Date.now()}-${Math.random()}`,
@@ -201,6 +202,8 @@ export const createFx = (state: GameState) => {
   /** A non-boss kill with its own death animation in place of the usual gore burst. */
   const killWithAnimation = (e: Enemy, kind: EnemyDeathKind, category: VulgarityType, callout?: KillCallout, vel?: Vector2) => {
     e.health = 0;
+    // (a tenant goes out of his window however he's killed: the stage does all of that)
+    if (e.kind === 'tenant') return;
     startEnemyDeath(state, e, kind, vel);
     spawnPickup(e.pos);
     speakVulgarity(category);
@@ -210,9 +213,9 @@ export const createFx = (state: GameState) => {
 
   /** Standard non-boss kill: fling the body, spray gore, maybe drop loot, taunt. */
   const blowAwayEnemy = (e: Enemy, vel: Vector2, category: VulgarityType, showerDir: number = 0, showerMult: number = 1) => {
-    // (a tenant always goes out of his window, however he's killed: the stage sees to it)
-    if (e.kind !== 'tenant') { e.isBlownAway = true; e.vel = vel; }
-    else e.health = Math.min(e.health, 0);
+    // (a tenant always goes out of his window, however he's killed: the stage does all of that)
+    if (e.kind === 'tenant') { e.health = Math.min(e.health, 0); return; }
+    e.isBlownAway = true; e.vel = vel;
     spawnDeathShower(e.pos, showerDir, showerMult);
     playSound('splat');
     spawnPickup(e.pos);

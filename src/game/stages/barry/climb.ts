@@ -64,7 +64,7 @@ export const updateTenant = (ctx: FrameContext, e: Enemy): boolean => {
   // Hit with a special move (a charge, an uppercut, a dive kick, a slide) while he's out of the window: out he goes
   const hitting = p.isCharging || p.isUppercutting || p.isDivekicking || p.isSliding;
   if (e.aiState !== 'hidden' && hitting && rectsOverlap(boundsOf(e), boundsOf(p))) e.health = 0;
-  // (killed some other way than a shot: out he goes all the same)
+  // (killed any other way at all, the wave, the flamethrower, the taser, whatever: out he goes all the same)
   if (e.health <= 0) startFall(ctx, e);
   return true;
 };
@@ -77,7 +77,8 @@ const startFall = (ctx: FrameContext, e: Enemy) => {
   const { state, fx } = ctx;
   const hx = e.homeX!, hy = e.homeY!;
   e.aiState = 'fall'; e.aiTimer = 0;
-  e.health = 1; e.isBlownAway = false; e.harmless = true;
+  // (dead, as far as everything else is concerned: nothing hits him again on the way down, or starts him over)
+  e.health = 0; e.isBlownAway = false; e.harmless = true;
   e.pos = { x: hx, y: hy - 20 };
   e.vel = { x: (e.facing ?? 1) * -1.2, y: -4 };
   e.rotation = 0;
