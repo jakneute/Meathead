@@ -12,6 +12,7 @@ import MeatheadCaricature from './MeatheadCaricature';
 import ControlsGuide from './ControlsGuide';
 import { setSoundTest, ALL_CUES } from '../game/music';
 import { SFX_NAMES } from '../game/platform/sfx';
+import { recordedVoices, playClip } from '../game/platform/voiceclips';
 import { playSound } from '../game/platform/audio';
 
 export interface CheatFlags {
@@ -124,6 +125,24 @@ const SoundTest: React.FC<{ enabled: boolean }> = ({ enabled }) => {
   );
 };
 
+/** The voice test: step through the cast, click the name to hear another of their lines. */
+const VoiceTest: React.FC = () => {
+  const [i, setI] = React.useState(-1);
+  // (read when it's used: the recordings load in after the page does)
+  const cast = () => { const v = recordedVoices(); return { v, names: Object.keys(v).sort() }; };
+  const last = React.useRef<ReturnType<typeof playClip>>(null);
+  const say = (n: number) => { const { v, names } = cast(); const lines = v[names[n]]; last.current?.stop(); if (lines?.length) last.current = playClip(names[n], lines[Math.floor(Math.random() * lines.length)]); };
+  const go = (d: number) => { const { names } = cast(); if (!names.length) return; const n = (i + d + names.length) % names.length; setI(n); say(n); };
+  const names = cast().names;
+  return (
+    <div className="flex w-full border-2 border-gray-600 bg-gray-900 shadow-[2px_2px_0px_white] items-center overflow-hidden">
+      <button onClick={() => go(-1)} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-white font-black text-[10px]">&lt;</button>
+      <button onClick={() => { if (i >= 0) say(i); }} className="flex-1 text-[6px] leading-[8px] font-black text-orange-300 uppercase text-center py-[2px]">{i >= 0 ? names[i] : 'VOICE TEST'}</button>
+      <button onClick={() => go(1)} className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-white font-black text-[10px]">&gt;</button>
+    </div>
+  );
+};
+
 /** The sound effects test: step through them, click the name to hear it again. */
 const SfxTest: React.FC = () => {
   const names = SFX_NAMES();
@@ -157,6 +176,7 @@ const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['che
     <div className="h-2 w-full" />
     <SoundTest enabled={musicOn} />
     <SfxTest />
+    <VoiceTest />
   </div>
 );
 

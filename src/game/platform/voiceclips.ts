@@ -127,3 +127,11 @@ export const playClip = (voice: string, text: string, opts: { radio?: boolean; o
   }).catch(() => end());
   return { stop: () => { stopped = true; try { src?.stop(); } catch { /* fine */ } end(); } };
 };
+
+/** Every voice that's been recorded, and its lines (for the voice test on the title screen's cheat panel). */
+export const recordedVoices = (): Record<string, string[]> => {
+  const out: Record<string, string[]> = {};
+  if (!pack) return out;
+  for (const k of Object.keys(pack.clips)) { const i = k.indexOf('|'); (out[k.slice(0, i)] ??= []).push(k.slice(i + 1)); }
+  return out;
+};
