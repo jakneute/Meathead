@@ -7,7 +7,7 @@
 import type { GameState } from '../../core/state';
 import { say, isSpeaking, Voice, MEATHEAD_VOICE } from '../../platform/speech';
 
-export type Speaker = 'meathead' | 'dale' | 'junkie' | 'riggs' | 'ninja' | 'prisoner' | 'sheriff';
+export type Speaker = 'meathead' | 'dale' | 'junkie' | 'riggs' | 'ninja' | 'prisoner' | 'sheriff' | 'kid' | 'dad' | 'mom';
 
 export const VOICES: Record<Speaker, Voice> = {
   meathead: MEATHEAD_VOICE,
@@ -17,6 +17,9 @@ export const VOICES: Record<Speaker, Voice> = {
   ninja: { pitch: 0.8, rate: 0.85 },
   prisoner: { pitch: 1.5, rate: 1.3 },
   sheriff: { pitch: 1.2, rate: 1.4 },
+  kid: { pitch: 2, rate: 1.15 },
+  dad: { pitch: 0.9, rate: 1.35 },
+  mom: { pitch: 1.4, rate: 1.05 },
 };
 
 export interface ScriptLine { who: Speaker; text: string }

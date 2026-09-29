@@ -10,7 +10,8 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { drawPlayer } from '../../render/player/player';
 import { COURSE, TRAILER_W, TRUCK_W, TRAILER_TOP, CAB_TOP, HOOD_TOP, SLEEPER_W, truckDims } from './course';
 import type { DaleRuntime } from './runtime';
-import { Convoy, TruckState, truckX, ROAD_SPEED, debrisComing, windshield, hood, HIGHWAY_CAM_Y, Debris, MELT, MELT_SAYS } from './convoy';
+import { Convoy, TruckState, truckX, ROAD_SPEED, debrisComing, windshield, hood, HIGHWAY_CAM_Y, Debris, MELT, MELT_SAYS, FAMILY } from './convoy';
+import type { Talk } from './script';
 import { makeKindEnemy } from '../../enemies/kinds';
 import { drawDaleKind } from '../../render/enemies/dale';
 import { saying, drawBubble } from './script';
@@ -272,7 +273,7 @@ export const drawConvoyFront = (ctx: Ctx, state: GameState, rt: DaleRuntime) => 
     ctx.strokeStyle = `rgba(250, 204, 21, ${0.4 + 0.3 * Math.sin(f * 0.2)})`; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
     ctx.strokeRect(h.x + 2, h.top - 70, h.x2 - h.x - 4, 70); ctx.setLineDash([]);
   }
-  drawFall(ctx, state, cv);
+  drawFall(ctx, state, cv, rt.talk);
 };
 
 /**
@@ -367,7 +368,54 @@ const drawDebris = (ctx: Ctx, d: Debris) => {
 };
 
 /** Off the side of a truck, blown up, melted through, or blown up by Riggs. */
-const drawFall = (ctx: Ctx, state: GameState, cv: Convoy) => {
+/**
+ * The family's SUV, going right: huge, boxy, fake wood down the side, a roof rack piled with luggage and a bike, a
+ * BABY ON BOARD sign and the stick family on the back window. Dad at the wheel, mom beside him, the kid in the back.
+ * After: a dent in the grille, a smear up the hood and a shoe stuck in it.
+ */
+const drawFamilySuv = (ctx: Ctx, x: number, f: number, hit: boolean) => {
+  const y = Y + 14, w = 200, h = 104;
+  const l = x - w / 2;
+  const bob = Math.sin(f * 0.6) * 1;
+  ctx.save(); ctx.translate(0, bob);
+  // Roof rack, luggage, a kid's bike on top
+  ctx.fillStyle = '#374151'; ctx.fillRect(l + 30, y - h - 6, 130, 4);
+  ctx.fillStyle = '#1E40AF'; ctx.fillRect(l + 36, y - h - 26, 50, 20); ctx.fillStyle = '#92400E'; ctx.fillRect(l + 90, y - h - 22, 40, 16); ctx.fillStyle = '#F59E0B'; ctx.fillRect(l + 50, y - h - 34, 26, 8);
+  ctx.strokeStyle = '#DC2626'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(l + 138, y - h - 14, 7, 0, Math.PI * 2); ctx.arc(l + 158, y - h - 14, 7, 0, Math.PI * 2); ctx.stroke(); ctx.beginPath(); ctx.moveTo(l + 138, y - h - 14); ctx.lineTo(l + 148, y - h - 24); ctx.lineTo(l + 158, y - h - 14); ctx.stroke();
+  // The body: a big faded maroon brick
+  ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.roundRect(l, y - h, w, h - 18, 8); ctx.fill();
+  ctx.fillStyle = '#991B1B'; ctx.fillRect(l + 4, y - h + 4, w - 8, 4);
+  // Fake wood panel down the side
+  ctx.fillStyle = '#92400E'; ctx.fillRect(l + 8, y - 56, w - 30, 22);
+  ctx.strokeStyle = '#78350F'; ctx.lineWidth = 1; for (let k = 0; k < 6; k++) { ctx.beginPath(); ctx.moveTo(l + 8, y - 52 + k * 3.5); ctx.lineTo(l + w - 22, y - 51 + k * 3.5); ctx.stroke(); }
+  // Windows: the back one (the stick family on it), the middle (the kid), the front (mom and dad)
+  ctx.fillStyle = '#93C5FD'; ctx.fillRect(l + 8, y - h + 12, 44, 30); ctx.fillRect(l + 58, y - h + 12, 56, 30); ctx.fillRect(l + 120, y - h + 12, 52, 30);
+  ctx.fillStyle = '#F8FAFC'; ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 1.5;
+  for (let k = 0; k < 5; k++) { const sx = l + 13 + k * 8, sh = k < 2 ? 14 : 9; ctx.beginPath(); ctx.arc(sx, y - h + 40 - sh - 3, 2, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.moveTo(sx, y - h + 40 - sh - 1); ctx.lineTo(sx, y - h + 36); ctx.stroke(); }
+  // Heads: the kid, mom, dad (dad's got his eyes on the road. Very much on the road)
+  const head = (hx: number, hy: number, r: number, hair: string) => { ctx.fillStyle = '#F2C9A0'; ctx.beginPath(); ctx.arc(hx, hy, r, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = hair; ctx.beginPath(); ctx.arc(hx, hy - 2, r, Math.PI, 0); ctx.fill(); };
+  head(l + 86, y - h + 34, 6, '#FACC15');
+  head(l + 134, y - h + 30, 8, '#7C2D12');
+  head(l + 158, y - h + 28, 8, '#44403C');
+  ctx.fillStyle = '#111827'; ctx.fillRect(l + 158, y - h + 26, 6, 2);
+  // BABY ON BOARD
+  ctx.save(); ctx.translate(l + 30, y - h + 27); ctx.rotate(Math.PI / 4); ctx.fillStyle = '#FACC15'; ctx.fillRect(-7, -7, 14, 14); ctx.restore();
+  // The grille and the headlight, the bumper; the dent, the smear, the shoe
+  ctx.fillStyle = '#D1D5DB'; ctx.fillRect(l + w - 10, y - 60, 12, 30);
+  ctx.fillStyle = '#FEF08A'; ctx.fillRect(l + w - 6, y - 74, 6, 10);
+  ctx.fillStyle = '#9CA3AF'; ctx.fillRect(l - 4, y - 30, w + 10, 8);
+  if (hit) {
+    ctx.fillStyle = '#6B7280'; ctx.beginPath(); ctx.moveTo(l + w + 2, y - 62); ctx.lineTo(l + w - 8, y - 48); ctx.lineTo(l + w + 2, y - 36); ctx.fill();
+    ctx.fillStyle = 'rgba(153, 27, 27, 0.9)'; ctx.fillRect(l + w - 40, y - h + 44, 36, 5); ctx.fillRect(l + w - 30, y - h + 49, 3, 10);
+    ctx.fillStyle = '#1C1917'; ctx.fillRect(l + w - 2, y - 52, 12, 6); ctx.fillRect(l + w + 6, y - 58, 4, 8);
+  }
+  // Wheels
+  ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(l + 44, y - 16, 18, 0, Math.PI * 2); ctx.arc(l + w - 44, y - 16, 18, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#9CA3AF'; ctx.beginPath(); ctx.arc(l + 44, y - 16, 7, 0, Math.PI * 2); ctx.arc(l + w - 44, y - 16, 7, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+};
+
+const drawFall = (ctx: Ctx, state: GameState, cv: Convoy, talk: Talk) => {
   let fall = cv.fall;
   if (!fall) return;
   const p = state.player;
@@ -399,6 +447,23 @@ const drawFall = (ctx: Ctx, state: GameState, cv: Convoy) => {
       ctx.fillStyle = 'rgba(17, 17, 17, 0.75)';
       for (let k = 0; k < r.crunched.length; k++) for (let s = 0; s < 6; s++) ctx.fillRect(fall.x - 40 + s * 14 + k * 3, Y - 14 + (k % 2) * 3, 7, 5);
       if (stopped && still % 47 < 5) { ctx.fillStyle = '#E0AC69'; ctx.fillRect(fall.x + 38, Y - 10 - (still % 5), 10, 3); } // a hand, flapping
+    } else if (fall.kind === 'flop' && stopped && (r.fly || still >= FAMILY.RISE)) {
+      // Off the back: up on his feet in the road, swaying and twitching; then sent flying by the family
+      const lyingAngle = Math.PI / 2 * (r.rot >= 0 ? 1 : -1);
+      const fly = r.fly;
+      if (fly) {
+        const down = fly.h <= 0 && fly.vh === 0;
+        ctx.translate(fall.x + fly.off, Y - fly.h - (down ? 12 : 30));
+        ctx.rotate(down ? Math.PI / 2 : fly.rot);
+      } else {
+        const up = Math.min(1, (still - FAMILY.RISE) / 26);
+        const jerk = (still % 23 < 3 || still % 37 < 2) ? (Math.random() - 0.5) * 6 : 0;
+        ctx.translate(fall.x + jerk, Y - 12 - up * 20);
+        ctx.rotate(lyingAngle * (1 - up) + up * (Math.sin(still * 0.09) * 0.14 + jerk * 0.03));
+      }
+      ctx.translate(-(body.pos.x + body.width / 2), -(body.pos.y + body.height / 2));
+      drawPlayer(ctx, { ...body, isGrounded: !fly }, { ...state, deathTimer: 0 }, { currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false });
+      ctx.restore();
     } else {
       // Cartwheeling down the road, and then face down on it
       const lying = stopped ? Math.PI / 2 * (r.rot >= 0 ? 1 : -1) : r.rot;
@@ -407,6 +472,13 @@ const drawFall = (ctx: Ctx, state: GameState, cv: Convoy) => {
       ctx.translate(-(body.pos.x + body.width / 2), -(body.pos.y + body.height / 2));
       drawPlayer(ctx, body, { ...state, deathTimer: 0 }, { currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false });
       ctx.restore();
+    }
+    if (r.suv) {
+      const sx = fall.x + r.suv.off;
+      drawFamilySuv(ctx, sx, f, r.suv.hitAt >= 0);
+      drawBubble(ctx, sx - 14, Y - 112, saying(talk, 'kid'), '#FEF9C3');
+      drawBubble(ctx, sx + 58, Y - 116, saying(talk, 'dad'), '#E0F2FE');
+      drawBubble(ctx, sx + 34, Y - 116, saying(talk, 'mom'), '#FCE7F3');
     }
   } else if (fall.kind === 'melt') {
     // A hole in the roof, and a cutaway of the trailer: the goons riding in the back, all firing

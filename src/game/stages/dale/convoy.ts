@@ -87,7 +87,11 @@ export interface Fall {
    * road's gone by since; the wheels that have gone over him; frames he's been flat; when he came to a stop; the
    * smears he's left.
    */
-  road?: { g: number; v: number; h: number; vh: number; rot: number; spin: number; passed: number; crunched: number[]; flat: number; stoppedAt: number; said: number; smears: { g: number; w: number }[] };
+  road?: { g: number; v: number; h: number; vh: number; rot: number; spin: number; passed: number; crunched: number[]; flat: number; stoppedAt: number; said: number; smears: { g: number; w: number }[];
+    /** Off the back: the family on their road trip. The SUV (how far it is from where he stopped, how fast it's going, when it hit him), and him, sent flying (from the same spot). */
+    suv?: { off: number; v: number; hitAt: number; over?: boolean };
+    fly?: { off: number; h: number; vx: number; vh: number; rot: number };
+  };
 }
 export interface Cab {
   phase: 'none' | 'bicker' | 'standoff' | 'shot' | 'crash' | 'done';
@@ -345,6 +349,75 @@ const FALL_LINES: Record<Fall['kind'], string[]> = {
   button: ['RIGGS FINALLY PRESSED THE BUTTON', 'HE HAD A LIZARD TO THINK OF', 'TOOK YOUR SWEET TIME'],
 };
 
+/** Off the back, on his feet in the road: when he gets up, when the family comes along, and what they say about it after. */
+export const FAMILY = { RISE: 40, STAND: 70, COMING: 110, HONK: 128 };
+/** Where the SUV pulls up while they talk it over (from where he was stood). */
+const SUV_STOP = 90;
+const FAMILY_LINES: { who: 'kid' | 'dad' | 'mom'; text: string }[] = [
+  { who: 'kid', text: 'DADDY, WHAT WAS THAT?' },
+  { who: 'dad', text: 'THAT? THAT WAS A... SPEED BUMP, PUMPKIN.' },
+  { who: 'kid', text: 'IT HAD ABS.' },
+  { who: 'dad', text: 'IT WAS A VERY FIT SPEED BUMP.' },
+  { who: 'mom', text: "GARY, THERE'S A SHOE IN THE GRILLE." },
+  { who: 'dad', text: 'WHO WANTS NUGGETS?!' },
+];
+const FAMILY_DEATHS = ['HIT AND RUN', 'A VERY FIT SPEED BUMP', 'WHO WANTS NUGGETS?'];
+
+/**
+ * Off the back, and he's stopped: he gets up. He's on his feet in the middle of the interstate, swaying, twitching,
+ * "I'M GOOD." Then a family on their road trip comes along in their enormous, terrible SUV and runs him down without
+ * so much as touching the brakes. From inside: the kids have questions. Dad has answers, of a sort. Off they go.
+ */
+const familyRide = (ctx: FrameContext, f: Fall, talk: Talk): Controls => {
+  const { state, fx } = ctx;
+  const r = f.road!;
+  const s = f.t - r.stoppedAt;
+  if (s === FAMILY.STAND) { state.playerLastVulgarity = "I'M GOOD. I'M GOOD."; state.playerVulgarityTimer = 90; say(state.playerLastVulgarity, MEATHEAD_VOICE, 'urgent', { onShow: () => {}, onHide: () => {} }); }
+  if (s === FAMILY.COMING) r.suv = { off: -CANVAS_WIDTH * 0.55 - 240, v: 17, hitAt: -1 };
+  if (s === FAMILY.HONK) playSound('horn');
+  const suv = r.suv;
+  if (suv) {
+    suv.off += suv.v;
+    // The front bumper reaches him: over he goes, and up, and away
+    if (suv.hitAt < 0 && suv.off + 80 >= 0) {
+      suv.hitAt = s;
+      r.fly = { off: 0, h: 0, vx: 7, vh: -12, rot: 0 };
+      shakeScreen(state, 22, 10); playSound('nuke');
+      fx.spawnDeathShower({ x: f.x, y: Y - 60 }, 1, 1.4);
+      state.playerLastVulgarity = ''; state.playerVulgarityTimer = 0;
+      queueLines(state, talk, FAMILY_LINES, 40);
+    }
+    if (suv.hitAt >= 0) {
+      // Pulled up just past him while they talk it over (nobody gets out); then off, quick, right over him again
+      const talking = !quiet(talk) || s - suv.hitAt < 50;
+      if (talking) suv.v = Math.max(0, Math.min(suv.v, (SUV_STOP - suv.off) * 0.08));
+      else suv.v = Math.min(20, suv.v + 0.5);
+      if (!talking && !suv.over && r.fly && suv.off + 80 >= r.fly.off) {
+        suv.over = true;
+        shakeScreen(state, 12, 6); playSound('gun');
+        fx.spawnDeathShower({ x: f.x + r.fly.off, y: Y - 10 }, 1, 0.6);
+      }
+    }
+  }
+  const fly = r.fly;
+  if (fly) {
+    fly.off += fly.vx; fly.vh += 0.8; fly.h -= fly.vh; fly.rot += fly.vx * 0.03;
+    if (fly.h <= 0) {
+      fly.h = 0;
+      if (fly.vh > 4) { fly.vh = -fly.vh * 0.4; fly.vx *= 0.6; shakeScreen(state, 6, 3); r.smears.push({ g: r.g + fly.off, w: 30 }); }
+      else { fly.vh = 0; fly.vx *= 0.85; }
+    }
+  }
+  // (his bubble goes where he is)
+  state.player.pos = { x: f.x + (fly?.off ?? 0) - state.player.width / 2, y: Y - (fly?.h ?? 0) - state.player.height };
+  // Once they're gone (or it's gone on long enough): that's it
+  const gone = suv && suv.hitAt >= 0 && quiet(talk) && suv.off > CANVAS_WIDTH * 0.45 + 160;
+  if ((gone || (suv && suv.hitAt >= 0 && s - suv.hitAt > 2400)) && state.deathTimer <= 0) {
+    killPlayer(ctx, FAMILY_DEATHS[Math.floor(Math.random() * FAMILY_DEATHS.length)], false);
+  }
+  return { ...NO_CONTROLS };
+};
+
 const updateFall = (ctx: FrameContext, cv: Convoy, talk: Talk): Controls => {
   const { state, fx } = ctx;
   const p = state.player;
@@ -356,7 +429,7 @@ const updateFall = (ctx: FrameContext, cv: Convoy, talk: Talk): Controls => {
   p.vel = { x: 0, y: 0 };
   if (f.kind === 'runover' || f.kind === 'flop') {
     p.hidden = true;
-    return onTheRoad(ctx, cv, f);
+    return onTheRoad(ctx, cv, f, talk);
   } else if (f.kind === 'boom') {
     p.hidden = true;
     if (f.t === 1) fx.spawnDeathShower({ x: p.pos.x + p.width / 2, y: p.pos.y }, 0, 4);
@@ -423,10 +496,11 @@ const RUNOVER_SAYS = ['WAIT WAIT WAIT', 'OOF!', 'MY SPLEEN!', 'NOT THE FACE!', '
  * a spray of it, flatter each time), and what's left tumbles out the back and skids to a stop. Either way it ends
  * with him face down on the asphalt, twitching.
  */
-const onTheRoad = (ctx: FrameContext, cv: Convoy, f: Fall): Controls => {
+const onTheRoad = (ctx: FrameContext, cv: Convoy, f: Fall, talk: Talk): Controls => {
   const { state, fx } = ctx;
   const r = f.road!;
-  r.passed += ROAD_SPEED;
+  // (off the back and come to a stop: he's stood there on the road, and it stays put under him)
+  if (!(f.kind === 'flop' && r.stoppedAt >= 0)) r.passed += ROAD_SPEED;
   const bodyX = () => r.g - r.passed;
   const shout = (i: number) => {
     const lines = f.kind === 'flop' ? FLOP_SAYS : RUNOVER_SAYS;
@@ -485,6 +559,8 @@ const onTheRoad = (ctx: FrameContext, cv: Convoy, f: Fall): Controls => {
   state.player.pos = { x: x - state.player.width / 2, y: Y - r.h - state.player.height };
   // Stopped: he lies there. A twitch now and then. Then that's that
   if (r.v <= 0 && r.h <= 0 && r.stoppedAt < 0) { r.stoppedAt = f.t; if (f.kind === 'flop') shout(5); else shout(5); }
+  // Off the back: he gets up, and the family comes along
+  if (f.kind === 'flop' && r.stoppedAt >= 0) return familyRide(ctx, f, talk);
   if (r.stoppedAt >= 0 && f.t === r.stoppedAt + TWITCH_FOR && state.deathTimer <= 0) {
     const lines = FALL_LINES[f.kind];
     killPlayer(ctx, lines[Math.floor(Math.random() * lines.length)], false);
