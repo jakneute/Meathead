@@ -5,6 +5,7 @@
     { "in": "FLINT. LIVES", "say": "FLINT. LIVS" },
     { "in": "THAT LEAD", "say": "THAT LED" },
     { "in": "YOUR LEAD IS", "say": "YOUR LED IS" },
-    { "in": "EAT LEAD", "say": "EAT LED" }
+    { "in": "EAT LEAD", "say": "EAT LED" },
+    { "in": "BAR-B-QUED", "say": "BARBECUED" }
   ]
 }
