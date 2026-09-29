@@ -215,6 +215,9 @@ export interface Enemy extends Entity {
   shovedAt?: number;
   /** The frame a shoulder charge knocked it back (a wall it's slammed into soon after hurts a lot more). */
   chargedAt?: number;
+  /** In the water and can't swim: frames since he went in, and where the surface is. */
+  drownT?: number;
+  drownSurface?: number;
   enemyType: 'drone' | 'tank' | 'turret' | 'flyer' | 'shield';
   behavior: 'patrol' | 'shoot' | 'hover' | 'fly' | 'custom';
   /** A themed stage enemy with its own look and AI (see enemies/kinds/index.ts). */

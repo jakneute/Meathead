@@ -8,6 +8,7 @@ import { groundBlocks } from '../../core/terrain';
 import { COURSE, CP, isBouncy } from './course';
 import { createHectorRuntime, getHector, updateHector, regionOf } from './runtime';
 import { updateEye, hitEye } from './eye';
+import { updateDrowning, drawDrowning } from './drown';
 import { hazardDeathMessage, waterZones } from './hazards';
 import { drawHectorBack, drawHectorMid, drawHectorFront, drawHectorHud, drawHectorBackdrop, drawHectorWeather } from './draw';
 import { drawEye } from './eyeDraw';
@@ -48,7 +49,10 @@ export const hectorLayout: StageLayout = {
   deathMessage: ctx => { const rt = getHector(ctx.state); return rt ? hazardDeathMessage(ctx.state, rt.hazards) : undefined; },
   updateSpecialEnemy: (ctx, e) => {
     const rt = getHector(ctx.state);
-    return e.kind === 'eye' && rt ? updateEye(ctx, e, rt.eye) : undefined;
+    if (!rt) return undefined;
+    if (e.kind === 'eye') return updateEye(ctx, e, rt.eye);
+    // (knocked into the water with no gator about: nobody out here can swim)
+    return updateDrowning(ctx, e, rt.hazards);
   },
   hitSpecialEnemy: (ctx, e, p) => {
     const rt = getHector(ctx.state);
@@ -57,6 +61,7 @@ export const hectorLayout: StageLayout = {
   drawSpecialEnemy: (ctx, e, state) => {
     // (up the storm the sharks are out in the air round it, not painted on it: they're drawn over it, flat)
     if (e.kind === 'shark' && regionOf(state.player.pos.x) === 'tower') return true;
+    if (e.drownT !== undefined) { drawDrowning(ctx, e, state); return true; }
     if (e.kind !== 'eye') return false;
     const rt = getHector(state);
     if (rt) drawEye(ctx, state, rt.eye, e);
