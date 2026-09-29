@@ -6,6 +6,7 @@
     { "in": "THAT LEAD", "say": "THAT LED" },
     { "in": "YOUR LEAD IS", "say": "YOUR LED IS" },
     { "in": "EAT LEAD", "say": "EAT LED" },
+    { "in": "OF LEAD", "say": "OF LED" },
     { "in": "BAR-B-QUED", "say": "BARBECUED" },
     { "in": "BITIN'", "say": "BYTIN" },
     { "in": "BRRRR-EAK", "say": "BURRR-EAK" },
