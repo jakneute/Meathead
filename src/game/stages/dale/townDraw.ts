@@ -512,6 +512,9 @@ const drawSheriff = (ctx: Ctx, x: number, f: number, running: boolean) => {
 // In front of everything: the crosshair, what people are saying
 // ---------------------------------------------------------------------------
 
+/** How far down the screen a bubble has to be to clear the HUD. */
+const NINJA_BUBBLE_TOP = 130;
+
 export const drawTownFront = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   const town = rt.town;
   const f = state.frame;
@@ -576,7 +579,8 @@ export const drawTownFront = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
     }
   }
   // Bubbles
-  const nt = saying(rt.talk, 'ninja'); if (nt) drawBubble(ctx, spot.x, spot.y - 80, nt, '#F1F5F9');
+  // (kept down below the HUD: up the tower, his head's near the top of the screen)
+  const nt = saying(rt.talk, 'ninja'); if (nt) drawBubble(ctx, spot.x, Math.max(spot.y - 80, state.camera.y + NINJA_BUBBLE_TOP), nt, '#F1F5F9');
   const rt2 = saying(rt.talk, 'riggs'); if (rt2) drawBubble(ctx, town.cab.x + CAB.w / 2, Y - CAB.h - 70, rt2, '#FEF3C7');
   const pt = saying(rt.talk, 'prisoner'); if (pt) drawBubble(ctx, COURSE.town.jail.x1 + 170, Y - 250, pt, '#F8FAFC');
   const st = saying(rt.talk, 'sheriff'); if (st) drawBubble(ctx, town.sheriff.x, Y - 100, st, '#FEF9C3');

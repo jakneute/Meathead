@@ -45,7 +45,7 @@ const Y = GROUND_Y;
 const T = () => COURSE.town;
 
 /** The sniper: tracking time between shots, the lock (it stops and goes red), the hit, and the crosshair's size. */
-const TRACK = 190, LOCK = 46, SNIPE_DAMAGE = 25, SIGHT_R = 34;
+const TRACK = 190, LOCK = 46, SIGHT_R = 34;
 /** The porch roofs throw you this hard. */
 export const AWNING_BOUNCE = 17.5;
 /** The cab: its size; how fast it comes up the street (chasing, then at you); how far off it is when you get control back. */
@@ -318,8 +318,9 @@ const updateSniper = (ctx: FrameContext, town: Town, talk: Talk) => {
         for (let i = 0; i < 26; i++) state.particles.push({ pos: { x: hit.x, y: hit.y }, vel: { x: (Math.random() - 0.5) * 12, y: -Math.random() * 11 }, life: 26 + Math.random() * 16, color: i % 4 ? '#D6B98C' : '#FDE68A', size: 3 + Math.random() * 6 });
       } else if (hit.kind === 'player') {
         if (p.invincibilityTimer <= 0) {
-          hurtPlayer(ctx, SNIPE_DAMAGE, 'sniper', { x: (px < m.x ? -1 : 1) * 9, y: -10 }, 30);
-          fx.spawnDeathShower({ x: px, y: py }, px < m.x ? -1 : 1, 1.4);
+          // One shot: his head comes apart (the body stays stood there a moment, then goes over)
+          if (ctx.cheats.invincible) hurtPlayer(ctx, 0, 'sniper', { x: (px < m.x ? -1 : 1) * 9, y: -10 }, 30);
+          else headshot(ctx, px < m.x ? -1 : 1);
           shakeScreen(state, 26, 16);
         }
       } else if (hit.enemy) {
@@ -329,9 +330,26 @@ const updateSniper = (ctx: FrameContext, town: Town, talk: Talk) => {
         fx.spawnDamageNumber({ x: e.pos.x - 20, y: e.pos.y - 30 }, 'FRIENDLY FIRE!', true, '#FACC15');
       }
       scatterTourists(town, s.x);
-      if (s.shots === 1 && once(state, town, 'cover')) { queueLines(state, talk, [{ who: 'meathead', text: "UNDER A PORCH ROOF! THAT'S THE ONLY PLACE HE CAN'T HIT ME!" }], 40); }
+      if (s.shots === 1 && p.health > 0 && once(state, town, 'cover')) { queueLines(state, talk, [{ who: 'meathead', text: "UNDER A PORCH ROOF! THAT'S THE ONLY PLACE HE CAN'T HIT ME!" }], 40); }
     }
   }
+};
+
+/** The round takes his head off: skull, brains, flat-top and all, and the body's left standing. */
+const headshot = (ctx: FrameContext, dir: number) => {
+  const { state, fx } = ctx;
+  const p = state.player;
+  const hx = p.pos.x + p.width / 2, hy = p.pos.y + 8;
+  p.health = 0; p.headless = 1; p.vel = { x: 0, y: 0 };
+  fx.spawnDeathShower({ x: hx, y: hy }, dir, 2.2);
+  fx.spawnExplosion({ x: hx, y: hy }, '#DC2626', 30, dir * 4, 16);
+  for (let i = 0; i < 46; i++) {
+    const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.6 + dir * 0.5, sp = 3 + Math.random() * 9;
+    state.particles.push({ pos: { x: hx, y: hy }, vel: { x: Math.cos(a) * sp, y: Math.sin(a) * sp }, life: 50 + Math.random() * 60,
+      color: ['#B91C1C', '#7F1D1D', '#F9A8D4', '#F5F5F4', '#18181B', '#DC2626'][i % 6], size: 3 + Math.random() * 6 });
+  }
+  fx.spawnDamageNumber({ x: hx - 50, y: hy - 50 }, 'HEADSHOT!', true, '#EF4444');
+  playSound('splat'); playSound('crunch');
 };
 
 /** Where the rifle's muzzle is, up the tower (the way he's aiming). */

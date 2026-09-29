@@ -41,7 +41,7 @@ const SUIT_TINT = 'rgba(250, 204, 21, 0.78)';
 
 /** Draws Meathead: effects auras, then body layers back-to-front, then the held weapon. */
 export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled, footTap = 0, surf = false }: PlayerDrawOptions) => {
-  if (state.deathTimer > 0 || p.hidden) return;
+  if ((state.deathTimer > 0 && !p.headless) || p.hidden) return;
   const animFrame = state.playerAnimFrame;
   setGore(1 - p.health / INITIAL_PLAYER_HEALTH);
   const gore = getGore();
@@ -117,6 +117,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // (on the jet ski, shooting back: he stays sat facing forward, and just his head and gun arm turn round, below)
   const seatedBack = !!p.jetski && p.facing === -1 && !p.isCharging && !p.isUppercutting && !p.isDivekicking;
   ctx.scale(seatedBack ? 1 : p.facing, 1);
+  // (headless: stood there a beat, then over backward, onto the ground)
+  if (p.headless) { const k = Math.min(1, Math.max(0, (p.headless - 25) / 30)); ctx.translate(0, -k * k * 12); ctx.rotate(-k * k * 1.5); }
   const finishBody = () => {
     ctx.restore();
     ctx = world;
@@ -656,6 +658,17 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   ctx.save();
   const headX = isDucking ? 2 : (isCharging ? 6 : (isHurt ? -4 : (isUppercutting ? -1 : (isDivekicking ? 4 : 0))));
   const headY = isDucking ? -38 : (isUppercutting ? -60 : (isCharging ? -48 : (isDivekicking ? -48 : -54)));
+  if (p.headless) {
+    // Where his head was: the neck, a ragged red stump, a bit of spine, and it's still pumping
+    ctx.fillStyle = skinTone; ctx.fillRect(headX - 6, headY + 2, 12, 8);
+    ctx.fillStyle = '#991B1B'; ctx.beginPath(); ctx.ellipse(headX, headY + 3, 7, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#F5F5F4'; ctx.fillRect(headX - 1.5, headY, 3, 3);
+    const spurt = p.headless < 70 ? 1 - p.headless / 70 : 0;
+    if (spurt > 0) {
+      ctx.fillStyle = '#DC2626';
+      for (let i = 0; i < 5; i++) { const t = ((animFrame * 0.2 + i * 0.2 + p.headless * 0.05) % 1); ctx.beginPath(); ctx.arc(headX + Math.sin(i * 2.3) * 4 * t, headY - t * 24 * spurt, 2.5 - t * 1.5, 0, Math.PI * 2); ctx.fill(); }
+    }
+  } else {
 
   // Granite Square Jaw & Face base
   ctx.fillStyle = skinTone;
@@ -893,6 +906,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   }
   drawHeadBlood(ctx, headX, headY, animFrame);
   if (!isRelieving) drawBeatenUp(ctx, headX, headY, animFrame);
+  }
   ctx.restore();
 
   // ==========================================

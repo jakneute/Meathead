@@ -82,6 +82,7 @@ const DEATH_HOLD_MAX = 480;
 const updateDeathScreen = (ctx: FrameContext) => {
   const { state } = ctx;
   state.deathFrames++;
+  if (state.player.headless) state.player.headless++;
   if (state.deathFrames > SKIP_AFTER) offerSkip();
   if (takeSkip()) { stopDeathAnnouncer(); state.deathTimer = 0; respawn(state, ctx.stageId, ctx.cheats.skipToBoss); return; }
   // (sat out, it waits for the death announcer to finish)
