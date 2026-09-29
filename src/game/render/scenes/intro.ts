@@ -198,7 +198,7 @@ export const drawEscort = (ctx: Ctx, t: number) => {
 };
 
 /** What's on the projector screen. */
-export type Slide = 'four' | 'artie' | 'victor' | 'ernie' | 'hector' | 'drop';
+export type Slide = 'four' | 'four2' | 'artie' | 'victor' | 'ernie' | 'hector' | 'tommy' | 'barry' | 'oscar' | 'dale' | 'drop';
 
 const BOSS_SLIDES: Record<string, { name: string; where: string; color: string; head: (ctx: Ctx, cx: number, top: number) => void }> = {
   artie: {
@@ -217,7 +217,34 @@ const BOSS_SLIDES: Record<string, { name: string; where: string; color: string; 
     name: 'HECTOR HURRICANE', where: 'MIAMI, FL', color: '#14b8a6',
     head: (ctx, cx, top) => { ctx.beginPath(); ctx.arc(cx, top + 6, 16, Math.PI, 0); ctx.fill(); },
   },
+  tommy: {
+    name: 'TOXIC TOMMY', where: 'FLINT, MI', color: '#65a30d',
+    // (the muck he's made of, overflowing and dripping down his sides)
+    head: (ctx, cx, top) => {
+      ctx.beginPath(); ctx.arc(cx - 6, top + 5, 7, 0, Math.PI * 2); ctx.arc(cx + 6, top + 3, 8, 0, Math.PI * 2); ctx.fill();
+      ctx.fillRect(cx - 14, top + 8, 3, 16); ctx.fillRect(cx + 12, top + 10, 3, 12); ctx.fillRect(cx - 2, top - 2, 3, 4);
+    },
+  },
+  barry: {
+    name: 'BLACKOUT BARRY', where: 'NEW YORK, NY', color: '#3b82f6',
+    head: (ctx, cx, top) => { ctx.beginPath(); ctx.arc(cx, top + 7, 13, Math.PI, 0); ctx.fill(); ctx.fillRect(cx - 17, top + 5, 34, 3); },
+  },
+  oscar: {
+    name: 'OILY OSCAR', where: 'HOUSTON, TX', color: '#ca8a04',
+    // (a ten-gallon hat, and the cigarette's ember)
+    head: (ctx, cx, top) => {
+      ctx.fillRect(cx - 20, top + 3, 40, 3); ctx.fillRect(cx - 10, top - 8, 20, 12);
+      const f = ctx.fillStyle; ctx.fillStyle = '#fcfcfc'; ctx.fillRect(cx + 8, top + 20, 8, 2); ctx.fillStyle = '#d82800'; ctx.fillRect(cx + 16, top + 20, 2, 2); ctx.fillStyle = f;
+    },
+  },
+  dale: {
+    name: 'DRUG TRADE DALE', where: 'ALBUQUERQUE, NM', color: '#ec4899',
+    head: (ctx, cx, top) => { ctx.beginPath(); ctx.arc(cx, top + 7, 12, Math.PI, 0); ctx.fill(); ctx.fillRect(cx + 6, top + 4, 15, 3); },
+  },
 };
+
+/** Each set's four, in order, and their title on the slide. */
+const SETS = { four: { title: 'THE FOUR ASSHOLES', keys: ['artie', 'victor', 'ernie', 'hector'] }, four2: { title: 'FOUR MORE ASSHOLES', keys: ['tommy', 'barry', 'oscar', 'dale'] } };
 
 /** A boss in silhouette on the slide: a head, shoulders, and the red stamp over him. */
 const slideBoss = (ctx: Ctx, cx: number, base: number, key: string, s = 1) => {
@@ -244,10 +271,11 @@ export const briefingBg = (ctx: Ctx, t: number, slide: Slide | -1) => {
   for (let i = 0; i < 10; i++) R(ctx, 120 + hash(i * 7 + Math.floor(t / 20)) * 40, 90 + hash(i * 3) * 50, 1, 1, 'rgba(252,252,220,0.4)');
 };
 
-const drawSlide = (ctx: Ctx, t: number, slide: Slide) => {
-  if (slide === 'four') {
-    text(ctx, 'THE FOUR ASSHOLES', 136, 22, C.darkRed, 8);
-    ['artie', 'victor', 'ernie', 'hector'].forEach((k, i) => slideBoss(ctx, 91 + i * 30, 80, k, 0.62));
+/** A slide on the screen (it's at 70..202 x 8..86); `stamp`: what gets slammed across a boss's. */
+export const drawSlide = (ctx: Ctx, t: number, slide: Slide, stamp = 'ASSHOLE') => {
+  if (slide === 'four' || slide === 'four2') {
+    text(ctx, SETS[slide].title, 136, 22, C.darkRed, 8);
+    SETS[slide].keys.forEach((k, i) => slideBoss(ctx, 91 + i * 30, 80, k, 0.62));
     R(ctx, 76, 26, 120, 1, C.darkRed);
     return;
   }
@@ -271,7 +299,7 @@ const drawSlide = (ctx: Ctx, t: number, slide: Slide) => {
   if (t > 20) {
     ctx.save(); ctx.translate(164, 64); ctx.rotate(-0.2);
     ctx.strokeStyle = C.red; ctx.lineWidth = 2; ctx.strokeRect(-30, -9, 60, 16);
-    text(ctx, 'ASSHOLE', 0, 3, C.red, 8);
+    text(ctx, stamp, 0, 3, C.red, 8);
     ctx.restore();
   }
 };
@@ -283,7 +311,7 @@ export const drawBriefing = (ctx: Ctx, t: number, talking: boolean, slide: Slide
   agentStanding(ctx, 216, 128, t);
   const tap = talking && t % 30 < 6 ? 2 : 0;
   ctx.strokeStyle = C.lightGray; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(206, 90); ctx.lineTo(slide === 'four' || slide === 'drop' ? 180 : 110 + tap, 52 + tap); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(206, 90); ctx.lineTo(slide === 'four' || slide === 'four2' || slide === 'drop' ? 180 : 110 + tap, 52 + tap); ctx.stroke();
   // (his mouth, when he's talking)
   if (talking && t % 10 < 5) R(ctx, 215, 72, 3, 1, '#400000');
   // The back of Meathead's head and his shoulders, lit round the edge by the screen
@@ -294,15 +322,12 @@ export const drawBriefing = (ctx: Ctx, t: number, talking: boolean, slide: Slide
   R(ctx, 92, 104, 6, 14, C.black); R(ctx, 158, 104, 6, 14, C.black);
 };
 
-/** The first four, the way the mid-game call shows the next: shapes in the dark over red, eyes lit. */
-export const drawFirstFour = (ctx: Ctx, t: number) => {
+interface Build { k: string; cx: number; w: number; h: number; head: number }
+
+/** A set's four in silhouette, rising up one after another in the dark over red, eyes lit. */
+const drawFour = (ctx: Ctx, t: number, builds: Build[]) => {
   R(ctx, 0, 0, ART_W, ART_H, C.darkRed);
   for (let y = 0; y < ART_H; y += 4) R(ctx, 0, y, ART_W, 2, 'rgba(0,0,0,0.25)');
-  // (each his own build: Artie tall and narrow, Victor a wall of muscle, Ernie short and hunched, Hector round)
-  const builds = [
-    { k: 'artie', cx: 46, w: 34, h: 76, head: 13 }, { k: 'victor', cx: 104, w: 58, h: 64, head: 15 },
-    { k: 'ernie', cx: 162, w: 40, h: 46, head: 13 }, { k: 'hector', cx: 214, w: 46, h: 58, head: 17 },
-  ] as const;
   builds.forEach((b, i) => {
     const rise = Math.max(0, 40 - (t - i * 14) * 2);
     const base = ART_H + rise;
@@ -313,3 +338,15 @@ export const drawFirstFour = (ctx: Ctx, t: number) => {
     if (t > 40 + i * 14 && (t + i * 9) % 90 > 4) { R(ctx, b.cx - 7, headY - 2, 4, 3, C.red); R(ctx, b.cx + 3, headY - 2, 4, 3, C.red); }
   });
 };
+
+/** The first four (each his own build: Artie tall and narrow, Victor a wall of muscle, Ernie short and hunched, Hector round). */
+export const drawFirstFour = (ctx: Ctx, t: number) => drawFour(ctx, t, [
+  { k: 'artie', cx: 46, w: 34, h: 76, head: 13 }, { k: 'victor', cx: 104, w: 58, h: 64, head: 15 },
+  { k: 'ernie', cx: 162, w: 40, h: 46, head: 13 }, { k: 'hector', cx: 214, w: 46, h: 58, head: 17 },
+]);
+
+/** The second four (Tommy a heap of muck, Barry a beanpole in a hard hat, Oscar portly in his hat, Dale in his cap). */
+export const drawSecondFour = (ctx: Ctx, t: number) => drawFour(ctx, t, [
+  { k: 'tommy', cx: 46, w: 48, h: 50, head: 15 }, { k: 'barry', cx: 104, w: 30, h: 72, head: 12 },
+  { k: 'oscar', cx: 160, w: 54, h: 60, head: 14 }, { k: 'dale', cx: 216, w: 38, h: 56, head: 13 },
+]);

@@ -4,6 +4,7 @@
 // (flags either side, a long red tie, a lot of hair), the line scrambled.
 
 import { ART_W, ART_H, C, R, ell, hash } from './ending';
+import { drawSlide, Slide } from './intro';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -186,18 +187,39 @@ export const drawShadowFigure = (ctx: Ctx, t: number, talking: boolean) => {
   scramble(ctx, t, talking ? 0.28 : 0.15);
 };
 
-/** Who's next: four new shapes in the dark, eyes lit, over red. */
-export const drawNextFour = (ctx: Ctx, t: number) => {
-  R(ctx, 0, 0, ART_W, ART_H, C.darkRed);
-  for (let y = 0; y < ART_H; y += 4) R(ctx, 0, y, ART_W, 2, 'rgba(0,0,0,0.25)');
-  const shapes = [
-    { x: 44, w: 26, h: 70, head: 12 }, { x: 98, w: 38, h: 62, head: 14 }, { x: 152, w: 22, h: 80, head: 10 }, { x: 204, w: 34, h: 58, head: 16 },
-  ];
-  shapes.forEach((s, i) => {
-    const rise = Math.max(0, 40 - (t - i * 14) * 2);
-    const top = ART_H - s.h + rise;
-    R(ctx, s.x - s.w / 2, top + s.head, s.w, s.h, C.black);
-    ell(ctx, s.x, top + s.head / 2, s.head * 0.7, s.head * 0.6, C.black);
-    if (t > 40 + i * 14 && (t + i * 9) % 90 > 4) { R(ctx, s.x - 5, top + s.head / 2 - 1, 3, 2, C.red); R(ctx, s.x + 2, top + s.head / 2 - 1, 3, 2, C.red); }
-  });
+/**
+ * His briefing, over the same scrambled line: a screen pulled down over the blinds in his dark office with the
+ * slides on it, and him beside it in silhouette (the hair, the long red tie), a pointer going at it while he talks.
+ */
+export const drawShadowBriefing = (ctx: Ctx, t: number, talking: boolean, slide: Slide) => {
+  R(ctx, 0, 0, ART_W, ART_H, G.office);
+  // The blinds, lit from behind, round the edges of the screen
+  R(ctx, 58, 4, 156, 96, G.blind);
+  for (let y = 6; y < 100; y += 5) R(ctx, 58, y, 156, 2, G.blindLit);
+  // A flag in the dark, off to the left
+  R(ctx, 30, 12, 2, 100, C.darkGray); ell(ctx, 31, 11, 2, 2, C.gold);
+  ctx.fillStyle = '#10101a'; ctx.beginPath(); ctx.moveTo(32, 16); ctx.lineTo(48, 20); ctx.lineTo(46, 70); ctx.lineTo(32, 66); ctx.fill();
+  // The screen, and what's on it (SAD! across each of them)
+  R(ctx, 70, 8, 132, 78, '#dcdcd0'); R(ctx, 70, 8, 132, 3, '#a0a094'); R(ctx, 134, 4, 4, 6, C.gray);
+  drawSlide(ctx, t, slide, 'SAD!');
+  // Him, beside it: a big dark shape, the hair swept up and rim-lit, the tie
+  const bob = talking ? Math.round(Math.sin(t * 0.3)) : 0;
+  const cx = 226;
+  ctx.fillStyle = G.suit;
+  ctx.beginPath(); ctx.moveTo(cx - 24, 144); ctx.lineTo(cx - 20, 92 + bob); ctx.lineTo(cx + 20, 92 + bob); ctx.lineTo(cx + 26, 144); ctx.fill();
+  ell(ctx, cx, 78 + bob, 12, 14, G.suit);
+  ctx.beginPath(); ctx.moveTo(cx + 12, 76 + bob); ctx.quadraticCurveTo(cx + 16, 58 + bob, cx + 2, 60 + bob); ctx.quadraticCurveTo(cx - 14, 58 + bob, cx - 16, 70 + bob); ctx.quadraticCurveTo(cx - 10, 66 + bob, cx - 6, 70 + bob); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = G.rim; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(cx + 12, 72 + bob); ctx.quadraticCurveTo(cx + 16, 58 + bob, cx + 2, 60 + bob); ctx.quadraticCurveTo(cx - 14, 58 + bob, cx - 16, 70 + bob); ctx.stroke();
+  R(ctx, cx - 3, 92 + bob, 6, 4, C.white);
+  ctx.fillStyle = G.tie; ctx.beginPath(); ctx.moveTo(cx - 2, 96 + bob); ctx.lineTo(cx + 2, 96 + bob); ctx.lineTo(cx + 3, 126); ctx.lineTo(cx, 130); ctx.lineTo(cx - 3, 126); ctx.fill();
+  // The pointer, jabbing at the slide while he talks
+  const jab = talking && t % 20 < 6 ? 3 : 0;
+  const onBoss = slide !== 'four' && slide !== 'four2' && slide !== 'drop';
+  ctx.strokeStyle = C.lightGray;
+  ctx.beginPath(); ctx.moveTo(cx - 18, 100); ctx.lineTo((onBoss ? 110 : 180) - jab, 52 + jab); ctx.stroke();
+  ell(ctx, cx - 18, 100, 4, 4, G.suit);
+  // The big desk across the front
+  R(ctx, 0, 118, 190, 26, '#140c06'); R(ctx, 0, 118, 190, 3, '#2c1c0c');
+  scramble(ctx, t, talking ? 0.22 : 0.12);
 };
