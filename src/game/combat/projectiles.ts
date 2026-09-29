@@ -661,6 +661,7 @@ const resolveEnemyProjectileHit = (ctx: FrameContext, p: Projectile): boolean =>
 
   if (!cheats.invincible) {
     player.health -= (p.damage / 2);
+    state.lastHurt = { source: getProjectileHurtSource(p, stageId), at: state.frame };
     if (player.health > 0) {
       player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;
       player.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;

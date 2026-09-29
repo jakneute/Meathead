@@ -2652,7 +2652,7 @@
  {
   "voice": "death",
   "text": "A BARREL A DAY",
-  "from": "game/stages/oscar/runtime.ts:168"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -2662,7 +2662,7 @@
  {
   "voice": "death",
   "text": "A LONG WAY DOWN",
-  "from": "game/stages/tommy/escape.ts:189"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -2676,13 +2676,83 @@
  },
  {
   "voice": "death",
+  "text": "ARMORED AND DANGEROUS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "ARMORED OUT",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "ARTIE PUT YOU ON ICE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BAD DEAL",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BAD DOG",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "BAR-B-QUED",
   "from": "game/stages/victor/hazards.ts:268"
  },
  {
   "voice": "death",
+  "text": "BARBECUED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BARRY TURNED YOUR LIGHTS OUT",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BATTED AROUND",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BEATEN BY A NERD",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BEATEN BY A SHIELD",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BEATEN BY A TOURIST",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BEATEN BY AN ICE CUBE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BEATEN BY THE BOYS IN BLUE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "BEATEN TO A PULP BY A TWEAKER",
-  "from": "game/stages/dale/runtime.ts:179"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BEEP BEEP",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -2691,23 +2761,158 @@
  },
  {
   "voice": "death",
+  "text": "BIKE LOCKED TO DEATH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BITTEN BY SOMETHING THAT SHOULDN'T EXIST",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BLOWN AWAY",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "BLOWN SKY HIGH",
   "from": "game/stages/dale/convoy.ts:463"
  },
  {
   "voice": "death",
+  "text": "BLOWN UP BY METH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BODY CHECKED BY A COMMUTER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BOMB SQUAD BLOCKED YOU",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "BOOT HILL, PLOT 12",
-  "from": "game/stages/dale/runtime.ts:184"
+  "from": "game/stages/dale/runtime.ts:188"
+ },
+ {
+  "voice": "death",
+  "text": "BOTTLED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BOUNCED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BRAINED WITH ICE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BUG SPRAYED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BULL'S EYE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BUOYED TO DEATH",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "BURIED ALIVE",
-  "from": "game/stages/artie/ski.ts:421"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BURIED IN A SNOWBALL",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BURIED IN IGUANAS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BURNED ALIVE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BURNED IN THE OIL",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BUZZED TO DEATH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CANCELED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CAPPED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CARTED OFF",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CARTEL JUSTICE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CARVED UP",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "CATEGORY 5 DEATH",
-  "from": "game/stages/hector/tower.ts:142"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CAUGHT A BULLET",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CAUTION: DEAD",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CHAIN WHIPPED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CHAINED AT SIXTY MILES AN HOUR",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CHECKED INTO THE BOARDS",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -2717,37 +2922,117 @@
  {
   "voice": "death",
   "text": "CHUCO SAYS HI",
-  "from": "game/stages/dale/runtime.ts:179"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CIRCLED BACK ON",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "CLEANED OUT",
-  "from": "game/stages/barry/runtime.ts:392"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CLOTHESLINED BY A BRANCH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "COCONUT TO THE DOME",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "COLD AND POINTY",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "COLD AS ARTIE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "COLD SHOULDERED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "COMPACTED BY A SEMI",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "CON ED STRIKES AGAIN",
-  "from": "game/stages/barry/runtime.ts:389"
+  "from": "game/stages/barry/runtime.ts:393"
+ },
+ {
+  "voice": "death",
+  "text": "CONTAMINATED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "COOKED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "COULDN'T GET PAST THE SHIELD",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CRABBED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CRATED",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "CREVASSE: 1, MEATHEAD: 0",
-  "from": "game/stages/artie/ski.ts:421"
+  "from": "game/stages/artie/ski.ts:422"
+ },
+ {
+  "voice": "death",
+  "text": "CRUDE AWAKENING",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CRUSHED BY A BOULDER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CUT UP",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DALE CUT YOU OFF",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "DEAD IN DEADWOOD GULCH",
-  "from": "game/stages/dale/runtime.ts:184"
+  "from": "game/stages/dale/runtime.ts:188"
  },
  {
   "voice": "death",
   "text": "DEATH BY A THOUSAND NEEDLES",
-  "from": "game/stages/dale/runtime.ts:178"
+  "from": "game/stages/dale/runtime.ts:182"
  },
  {
   "voice": "death",
   "text": "DEATH BY PATIO FURNITURE",
-  "from": "game/stages/hector/hazards.ts:430"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -2757,7 +3042,32 @@
  {
   "voice": "death",
   "text": "DEATH FROM ABOVE",
-  "from": "game/stages/ernie/quake.ts:301"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DELIVERED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DEPUTIZED TO DEATH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DIRTY NEEDLE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DISPERSED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DISRUPTED",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -2766,18 +3076,63 @@
  },
  {
   "voice": "death",
+  "text": "DISSOLVED IN SLUDGE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "DISSOLVED IN TOXIC SLUDGE",
-  "from": "game/bosses/hazards.ts:193"
+  "from": "game/bosses/hazards.ts:194"
+ },
+ {
+  "voice": "death",
+  "text": "DIVE BOMBED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DONE IN BY TINFOIL",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DOOR PRIZE",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "DOWN THE HOLE",
-  "from": "game/stages/barry/runtime.ts:389"
+  "from": "game/stages/barry/runtime.ts:393"
  },
  {
   "voice": "death",
   "text": "DOWNSIZED",
-  "from": "game/stages/barry/runtime.ts:391"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DRAGGED DOWN BY THE SLUDGE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DRIPPED ON",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DRIPPED ON BY THE NEIGHBORS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DRIVE-BY",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DRIVE-BY ON A JET SKI",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -2786,18 +3141,78 @@
  },
  {
   "voice": "death",
+  "text": "DRONE STRIKE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "DROWNED IN CRUDE",
-  "from": "game/stages/oscar/runtime.ts:168"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DUCK NEXT TIME",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "EATEN BY A COYOTE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "EATEN BY A FIRE LIZARD",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "EATEN BY A FLYING SHARK",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "EATEN BY A GATOR",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "EATEN BY A LAVA FISH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "EATEN BY A RAT",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "EATEN BY A THREE-EYED FISH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "EATEN BY A TRASH PANDA",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "EIGHTEEN WHEELS, ZERO SURVIVORS",
-  "from": "game/stages/dale/convoy.ts:463"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "ELECTROCUTED",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "ELECTROCUTED IN A PARKING LOT",
   "from": "game/stages/hector/hazards.ts:431"
+ },
+ {
+  "voice": "death",
+  "text": "ELECTROCUTED IN A PUDDLE",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -2811,18 +3226,33 @@
  },
  {
   "voice": "death",
+  "text": "ERNIE SHOOK YOU LOOSE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "ERUPTED ON",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "EVEL KNIEVEL HE IS NOT",
   "from": "game/stages/oscar/chase.ts:584"
  },
  {
   "voice": "death",
+  "text": "EXTERMINATED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "EXTRA CRISPY",
-  "from": "game/stages/hector/hazards.ts:429"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "FAILED THE TRIAL",
-  "from": "game/stages/barry/runtime.ts:393"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -2831,13 +3261,38 @@
  },
  {
   "voice": "death",
+  "text": "FELL FOR IT",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "FILED AWAY",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "FLAME BROILED",
-  "from": "game/stages/victor/hazards.ts:266"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "FLARED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "FLARED UP",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "FLASH FROZEN",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "FLASH-FROZEN MEAT POPSICLE",
-  "from": "game/stages/artie/ski.ts:421"
+  "from": "game/stages/artie/ski.ts:422"
  },
  {
   "voice": "death",
@@ -2846,8 +3301,18 @@
  },
  {
   "voice": "death",
+  "text": "FLATTENED BY A SNOWBALL",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "FLATTENED BY A TANK",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "FLATTENED BY THE COMMUNITY",
-  "from": "game/stages/tommy/thing.ts:336"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -2857,7 +3322,7 @@
  {
   "voice": "death",
   "text": "FLINT TAP WATER: 1, MEATHEAD: 0",
-  "from": "game/stages/tommy/sewer.ts:101"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -2866,8 +3331,13 @@
  },
  {
   "voice": "death",
+  "text": "FLINT'S ROADS: 1, MEATHEAD: 0",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "FOR SCIENCE",
-  "from": "game/stages/barry/runtime.ts:393"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -2877,12 +3347,57 @@
  {
   "voice": "death",
   "text": "FOSSIL FUEL",
-  "from": "game/stages/oscar/runtime.ts:168"
+  "from": "game/stages/oscar/runtime.ts:172"
+ },
+ {
+  "voice": "death",
+  "text": "FOSSIL FUELED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "FOUND THE ROCK",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "FREEDOM HURTS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "FREEZE-RAYED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "FROZEN SOLID",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "FULL OF LEAD AND BARF",
   "from": "game/stages/dale/convoy.ts:463"
+ },
+ {
+  "voice": "death",
+  "text": "FUMIGATED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "FUR COATED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "GARBAGE DAY",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "GASSED",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -2896,18 +3411,28 @@
  },
  {
   "voice": "death",
+  "text": "GOLD PLATED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "GONE WITH THE WIND",
-  "from": "game/stages/hector/tower.ts:142"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "GORED BY A LONGHORN",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "GRAVITY: 1, MEATHEAD: 0",
-  "from": "game/stages/artie/tram.ts:107"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "GROUNDED",
-  "from": "game/stages/barry/runtime.ts:395"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -2916,23 +3441,83 @@
  },
  {
   "voice": "death",
+  "text": "HEADBUTTED OFF A MOUNTAIN",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HECTOR BLEW YOU AWAY",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HIGH NOON",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HIT A CAR IN THE OCEAN",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "HIT AND RUN",
-  "from": "game/stages/dale/convoy.ts:429"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HIT BY A FLYING COW",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "HIT BY A FLYING TOASTER",
-  "from": "game/stages/barry/runtime.ts:394"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "HIT BY A LAVA BOMB",
-  "from": "game/stages/victor/hazards.ts:265"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HIT BY A TIRE ON THE INTERSTATE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HIT WITH A FORTY",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HOME RUN",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HORSESHOE TO THE HEAD",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HOSTILE TAKEOVER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HOT COFFEE",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "HOT FOOT, COLD BODY",
-  "from": "game/stages/victor/hazards.ts:264"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HOT ROCKED",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -2942,17 +3527,37 @@
  {
   "voice": "death",
   "text": "HR WILL HEAR ABOUT THIS",
-  "from": "game/stages/barry/runtime.ts:391"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "HUGGED A CACTUS",
-  "from": "game/stages/dale/runtime.ts:178"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HUGGED TO DEATH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HYDRATED TO DEATH",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "INTO THE TRENCH",
   "from": "game/stages/oscar/chase.ts:584"
+ },
+ {
+  "voice": "death",
+  "text": "IT RAINED LIZARDS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "IT RAINED PEOPLE",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -2962,27 +3567,132 @@
  {
   "voice": "death",
   "text": "JUST ANOTHER NEW YORK STATISTIC",
-  "from": "game/stages/barry/runtime.ts:389"
+  "from": "game/stages/barry/runtime.ts:393"
+ },
+ {
+  "voice": "death",
+  "text": "KETTLED",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "KILLED BY A BEACH CHAIR",
-  "from": "game/stages/hector/hazards.ts:430"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A CAR DOOR",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A FLEECE VEST",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "KILLED BY A FLOWERPOT",
-  "from": "game/stages/ernie/quake.ts:299"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A FLYING TURD",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A LUNCH PAIL",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A PELICAN",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A TUMBLEWEED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A WATER BOTTLE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY MEATLOAF",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY THE INTERN",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY THE PRODUCT",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY THE WATER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED ON THE CLOCK",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KNOCKED OUT BY A COCONUT",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "LAB COATED",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "LAID DOWN THE BIKE",
-  "from": "game/stages/oscar/chase.ts:586"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "LAID DOWN THE LAW",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "LATER, GATOR",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "LIGHTS OUT",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "LIKE HITTING CONCRETE",
   "from": "game/stages/ernie/bridge.ts:213"
+ },
+ {
+  "voice": "death",
+  "text": "LIQUIDATED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "LIZARD FOOD",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "LOGGED OUT",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -2997,12 +3707,37 @@
  {
   "voice": "death",
   "text": "LOST IN THE SAND",
-  "from": "game/stages/dale/runtime.ts:183"
+  "from": "game/stages/dale/runtime.ts:187"
+ },
+ {
+  "voice": "death",
+  "text": "LOST THE CLASH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "LUCK RAN OUT",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "MAULED BY A PIT BULL",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "MAULED BY A WOLVERINE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "MEATSICLE",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "MELTED",
-  "from": "game/stages/victor/hazards.ts:264"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -3016,13 +3751,18 @@
  },
  {
   "voice": "death",
+  "text": "MOBBED BY SEAGULLS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "MOPPED UP",
-  "from": "game/stages/barry/runtime.ts:392"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "MUGGED",
-  "from": "game/stages/barry/runtime.ts:389"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -3037,17 +3777,67 @@
  {
   "voice": "death",
   "text": "NEW YORK WELCOMES YOU",
-  "from": "game/stages/barry/runtime.ts:394"
+  "from": "game/stages/barry/runtime.ts:398"
+ },
+ {
+  "voice": "death",
+  "text": "NICE HYDRAULICS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "NIGHTSTICKED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "NO BADGE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "NO FRIES, NO MERCY",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "NO VISITOR BADGE",
-  "from": "game/stages/barry/runtime.ts:390"
+  "from": "game/stages/barry/runtime.ts:394"
  },
  {
   "voice": "death",
   "text": "NOT A JUMP. AN UPPERCUT.",
   "from": "game/stages/dale/town.ts:547"
+ },
+ {
+  "voice": "death",
+  "text": "NOT GETTING IN TONIGHT",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "NOT ON THE LIST",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "OFFICER INVOLVED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "OIL FIRE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "ON THE ROCKS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "ONE BOTTLE TOO MANY",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -3057,12 +3847,47 @@
  {
   "voice": "death",
   "text": "ONE SHOT, ONE MEATHEAD",
-  "from": "game/stages/dale/runtime.ts:181"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "ONE TEQUILA, TWO TEQUILA, DEAD",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "OSCAR GREASED YOU",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "OUT-BELLIED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "OUT-MUSCLED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "OVERDOSED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PARKA BOY GOT YOU",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PARKED PERMANENTLY",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "PART OF THE RESERVE NOW",
-  "from": "game/stages/oscar/runtime.ts:168"
+  "from": "game/stages/oscar/runtime.ts:172"
  },
  {
   "voice": "death",
@@ -3071,13 +3896,138 @@
  },
  {
   "voice": "death",
+  "text": "PECKED TO DEATH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PEER REVIEWED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PEST CONTROLLED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PICKED APART BY AN EAGLE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PICKED OFF FROM ABOVE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PIMP SLAPPED INTO THE CEILING",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PIMPED OUT",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PINCHED TO DEATH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PIPE WRENCHED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PIZZA RAT WINS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PLUMBED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "POACHED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "POLICE BRUTALITY",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "PRICKED TO DEATH",
-  "from": "game/stages/dale/runtime.ts:178"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PUKED TO DEATH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PULLED OVER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PUNCHED OUT BY A TWEAKER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PURSED TO DEATH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PUT ON ICE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RAMMED BY A JET SKI",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RAMMED BY THE RANGERS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RAN ONTO A KNIFE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RATTLED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RAY GUNNED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "READ ALL ABOUT IT",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "RED DOT, THEN NOTHING",
-  "from": "game/stages/dale/runtime.ts:181"
+  "from": "game/stages/dale/runtime.ts:185"
+ },
+ {
+  "voice": "death",
+  "text": "RESISTED TOO HARD",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -3086,8 +4036,23 @@
  },
  {
   "voice": "death",
+  "text": "RIOT CONTROLLED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "RIVETED",
   "from": "game/stages/ernie/quake.ts:302"
+ },
+ {
+  "voice": "death",
+  "text": "ROAD CLOSED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "ROAD DEBRIS",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -3101,8 +4066,58 @@
  },
  {
   "voice": "death",
+  "text": "ROCKED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RODE INTO A PARKED CAR",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "ROLLED BY AN ARMADILLO",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RUN DOWN",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RUN DOWN BY A BIKER GANG",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RUN DOWN BY A LOWRIDER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RUN DOWN BY A SHOPPING CART",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RUN DOWN BY THE UNION",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "RUN OFF THE ROAD",
   "from": "game/stages/oscar/chase.ts:586"
+ },
+ {
+  "voice": "death",
+  "text": "RUN OVER BY A TWEAKER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RUN OVER BY AN UNPAID INTERN",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -3111,8 +4126,33 @@
  },
  {
   "voice": "death",
+  "text": "RUN OVER BY THE BOUNCER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RUN OVER ON THE BRIDGE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RUSH HOUR",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "SAMPLE CONTAMINATED",
-  "from": "game/stages/barry/runtime.ts:393"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SCALDED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SCORPION STING",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -3121,18 +4161,143 @@
  },
  {
   "voice": "death",
+  "text": "SECURITY BREACH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SECURITY ESCORTED YOU OUT",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SEWER LITTER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHAKEN, NOT STIRRED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "SHARK BAIT",
   "from": "game/stages/ernie/jetski.ts:394"
  },
  {
   "voice": "death",
+  "text": "SHARKNADO",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHE HAD A BRICK IN THERE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHIELD BASHED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHIELD BASHED TO DEATH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHIELD WALL",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHIPWRECKED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "SHOCKING.",
-  "from": "game/stages/hector/hazards.ts:431"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "SHOCKINGLY STUPID",
   "from": "game/stages/hector/hazards.ts:220"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT BETWEEN STANDUPS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT BY A COWBOY",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT BY A DRONE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT BY A GUY IN SANDALS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT BY A MAN IN A FEATHERED HAT",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT BY A RENT-A-COP",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT BY THE C-SUITE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT BY THE CARTEL",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT BY THE COPS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT DEAD",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT FROM A LOWRIDER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT FROM A SQUAD CAR",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT ON THE WATER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT SIDEWAYS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT WITH A GOLD PISTOL",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -3148,6 +4313,11 @@
   "voice": "death",
   "text": "SHOULD HAVE LISTENED",
   "from": "game/stages/tommy/thing.ts:336"
+ },
+ {
+  "voice": "death",
+  "text": "SHOULD HAVE LISTENED TO THE SIGN",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -3176,18 +4346,58 @@
  },
  {
   "voice": "death",
+  "text": "SHOULDER CHARGED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHREDDED BY GLASS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SIGNAL RECEIVED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "SIGNED OUT PERMANENTLY",
-  "from": "game/stages/barry/runtime.ts:390"
+  "from": "game/stages/barry/runtime.ts:394"
+ },
+ {
+  "voice": "death",
+  "text": "SKEWERED BY AN ICICLE",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "SKIED INTO THE ABYSS",
-  "from": "game/stages/artie/ski.ts:421"
+  "from": "game/stages/artie/ski.ts:422"
+ },
+ {
+  "voice": "death",
+  "text": "SKINNY ARMS, BIG RESULTS",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "SKIPPED LIKE A STONE AT EIGHTY MILES AN HOUR",
   "from": "game/stages/dale/convoy.ts:463"
+ },
+ {
+  "voice": "death",
+  "text": "SKYNET WINS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SLAPPED TO DEATH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SLEEPING WITH THE CACTI",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -3201,8 +4411,48 @@
  },
  {
   "voice": "death",
+  "text": "SLICED AND DICED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SLIDE TACKLED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SLIPPED ON A WET FLOOR",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SMOKED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SNAKE BIT",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "SNIPED",
-  "from": "game/stages/dale/runtime.ts:181"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SOCKS AND SANDALS WIN",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SOMETHING IN THE FLASK",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SOMETHING WARM KILLED YOU",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -3217,22 +4467,67 @@
  {
   "voice": "death",
   "text": "SPIT ROASTED",
-  "from": "game/stages/victor/hazards.ts:268"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "SPLAT ON FIFTH AVENUE",
-  "from": "game/stages/barry/runtime.ts:394"
+  "from": "game/stages/barry/runtime.ts:398"
+ },
+ {
+  "voice": "death",
+  "text": "SPRAYED AND PRAYED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SQUISHED BY A BLOATER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "STABBED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "STABBED FOR YOUR PROTEIN",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "STAPLED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "STEAMED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "STONED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "STREAK FREE",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "STRUCK BY LIGHTNING",
-  "from": "game/stages/hector/hazards.ts:429"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "STRUCTURAL FAILURE",
-  "from": "game/stages/ernie/quake.ts:302"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "STUNG TO DEATH",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -3246,13 +4541,23 @@
  },
  {
   "voice": "death",
+  "text": "SUNK BY A SEDAN",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SURF'S DOWN",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "SURFACE TENSION: 1, MEATHEAD: 0",
   "from": "game/stages/ernie/bridge.ts:213"
  },
  {
   "voice": "death",
   "text": "SWALLOWED BY A POTHOLE",
-  "from": "game/stages/barry/runtime.ts:389"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -3261,13 +4566,43 @@
  },
  {
   "voice": "death",
+  "text": "SWATTED WITH THE SPORTS SECTION",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SWEPT",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TACKY AND DEAD",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TAKEN OUT WITH THE TRASH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "TAYVON WANTS HIS BIKE BACK",
   "from": "game/stages/tommy/bike.ts:531"
  },
  {
   "voice": "death",
+  "text": "TEAR GASSED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TERMINATED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "TEXAS JUSTICE",
-  "from": "game/stages/oscar/chase.ts:586"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -3282,22 +4617,47 @@
  {
   "voice": "death",
   "text": "THE BRIDGE FELL ON YOU",
-  "from": "game/stages/ernie/quake.ts:302"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE BROWN WATER GOT YOU",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE BUOY WON",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "THE CITY THAT NEVER SLEEPS. YOU DO NOW.",
-  "from": "game/stages/barry/runtime.ts:389"
+  "from": "game/stages/barry/runtime.ts:393"
  },
  {
   "voice": "death",
   "text": "THE DESERT CLAIMS ANOTHER",
-  "from": "game/stages/dale/runtime.ts:183"
+  "from": "game/stages/dale/runtime.ts:187"
  },
  {
   "voice": "death",
   "text": "THE EAST SIDE HAS SPOKEN",
-  "from": "game/stages/tommy/thing.ts:336"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE FIREMAN STARTED IT",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE FISH LIVES IN LAVA. YOU DON'T",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE GOAT WAS THE GOAT",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -3311,13 +4671,58 @@
  },
  {
   "voice": "death",
+  "text": "THE LAVA SPIT",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE MOOSE WON",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE MOST EMBARRASSING DEATH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE MOUNTAIN ATE YOU",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "THE MOUNTAIN WON",
-  "from": "game/stages/artie/ski.ts:421"
+  "from": "game/stages/artie/ski.ts:422"
+ },
+ {
+  "voice": "death",
+  "text": "THE SIGN SAID NO",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE STORM HIT THE FAN",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE STORM THREW A COW",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "THE VOLCANO SPAT ON YOU",
-  "from": "game/stages/victor/hazards.ts:265"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE WOLVERINE GOT YOUR ANKLES",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THERE WAS A ROCK",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -3326,8 +4731,28 @@
  },
  {
   "voice": "death",
+  "text": "THROWN OUT OF THE OFFICE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "TIGHT, TIGHT, TIGHT",
-  "from": "game/stages/dale/runtime.ts:179"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TIMBER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TOASTED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TOMMY POISONED YOU",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -3337,7 +4762,7 @@
  {
   "voice": "death",
   "text": "TOOK THE EXPRESS WAY DOWN",
-  "from": "game/stages/barry/runtime.ts:394"
+  "from": "game/stages/barry/runtime.ts:398"
  },
  {
   "voice": "death",
@@ -3346,23 +4771,93 @@
  },
  {
   "voice": "death",
+  "text": "TOSSED BY A NINETY-POUND MAN",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TOXIC SPRAYED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TRAMPLED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TRAMPLED BY A MOOSE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TREE HUGGER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TWO MINUTES FOR BEING DEAD",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "UPPERCUT BY A BOUNCER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "UPPERCUT BY YOUR OWN MOVE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "VACATION'S OVER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "VAPORIZED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "VENTED",
-  "from": "game/stages/victor/hazards.ts:266"
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "VICTOR ERUPTED ON YOU",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "VOLCANO'D",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "VULTURE FOOD",
-  "from": "game/stages/dale/runtime.ts:183"
+  "from": "game/stages/dale/runtime.ts:187"
+ },
+ {
+  "voice": "death",
+  "text": "WAKE BOARDED",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "WANTED: DEAD. GOT IT.",
-  "from": "game/stages/dale/runtime.ts:184"
+  "from": "game/stages/dale/runtime.ts:188"
+ },
+ {
+  "voice": "death",
+  "text": "WATCH YOUR STEP",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "WELL DONE",
-  "from": "game/stages/victor/hazards.ts:267"
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -3371,8 +4866,28 @@
  },
  {
   "voice": "death",
+  "text": "WINDEXED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "WINDOW SHOPPING",
-  "from": "game/stages/barry/runtime.ts:394"
+  "from": "game/stages/barry/runtime.ts:398"
+ },
+ {
+  "voice": "death",
+  "text": "WIPED OUT",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "WRAPPED AND ROASTED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "WRAPPED AROUND A PINE",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -3382,7 +4897,7 @@
  {
   "voice": "death",
   "text": "YOU GOT AVALANCHED",
-  "from": "game/stages/artie/ski.ts:421"
+  "from": "game/stages/artie/ski.ts:422"
  },
  {
   "voice": "death",
@@ -3392,7 +4907,7 @@
  {
   "voice": "death",
   "text": "YOU'RE FIRED",
-  "from": "game/stages/barry/runtime.ts:391"
+  "from": "game/stages/barry/runtime.ts:395"
  },
  {
   "voice": "dispatch",
@@ -3762,7 +5277,7 @@
  {
   "voice": "meathead",
   "text": "A LOBBY. EVERYBODY IN IT LOOKS LIKE THEY HATE ME ALREADY.",
-  "from": "game/stages/barry/runtime.ts:298"
+  "from": "game/stages/barry/runtime.ts:299"
  },
  {
   "voice": "meathead",
@@ -4592,7 +6107,7 @@
  {
   "voice": "meathead",
   "text": "FIFTY EIGHT. FINE. THERE BETTER BE STAIRS.",
-  "from": "game/stages/barry/runtime.ts:309"
+  "from": "game/stages/barry/runtime.ts:310"
  },
  {
   "voice": "meathead",
@@ -4667,7 +6182,7 @@
  {
   "voice": "meathead",
   "text": "FORTY ONE. THE ELEVATOR HATES ME. EVERYTHING IN THIS CITY HATES ME.",
-  "from": "game/stages/barry/runtime.ts:309"
+  "from": "game/stages/barry/runtime.ts:310"
  },
  {
   "voice": "meathead",
@@ -7037,7 +8552,7 @@
  {
   "voice": "meathead",
   "text": "ROOF ACCESS. AND THERE GO THE LIGHTS. THE WHOLE CITY. IN WAVES.",
-  "from": "game/stages/barry/runtime.ts:299"
+  "from": "game/stages/barry/runtime.ts:300"
  },
  {
   "voice": "meathead",
@@ -7637,7 +9152,7 @@
  {
   "voice": "meathead",
   "text": "SURF'S UP, DUDES!",
-  "from": "game/stages/barry/runtime.ts:348"
+  "from": "game/stages/barry/runtime.ts:349"
  },
  {
   "voice": "meathead",
@@ -7692,7 +9207,7 @@
  {
   "voice": "meathead",
   "text": "THANKS FOR THE RIDE, BUDDY.",
-  "from": "game/stages/barry/runtime.ts:372"
+  "from": "game/stages/barry/runtime.ts:373"
  },
  {
   "voice": "meathead",
@@ -8017,7 +9532,7 @@
  {
   "voice": "meathead",
   "text": "The union. The rangers. The Angels. My bar. My field's on fire, pal! ...It's insured. You're not.",
-  "from": "game/core/update.ts:141"
+  "from": "game/core/update.ts:142"
  },
  {
   "voice": "meathead",
@@ -8212,7 +9727,7 @@
  {
   "voice": "meathead",
   "text": "TWENTY THREE?! I PRESSED THE TOP ONE!",
-  "from": "game/stages/barry/runtime.ts:309"
+  "from": "game/stages/barry/runtime.ts:310"
  },
  {
   "voice": "meathead",
@@ -8562,12 +10077,12 @@
  {
   "voice": "meathead",
   "text": "You blew my whole power room, man. With my guy in it. Whole city's dark now... look up. See any stars? ...Me neither.",
-  "from": "game/core/update.ts:141"
+  "from": "game/core/update.ts:142"
  },
  {
   "voice": "meathead",
   "text": "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!",
-  "from": "game/core/update.ts:141"
+  "from": "game/core/update.ts:142"
  },
  {
   "voice": "meathead",
@@ -8602,7 +10117,7 @@
  {
   "voice": "meathead",
   "text": "You crashed my VIP lounge, bro. Those were investors. Now they're a geothermal feature.",
-  "from": "game/core/update.ts:141"
+  "from": "game/core/update.ts:142"
  },
  {
   "voice": "meathead",
@@ -8612,7 +10127,7 @@
  {
   "voice": "meathead",
   "text": "You dropped a jet ski on the tour group, sonny. I schedule my quakes AROUND the tour group!",
-  "from": "game/core/update.ts:141"
+  "from": "game/core/update.ts:142"
  },
  {
   "voice": "meathead",
@@ -8622,12 +10137,12 @@
  {
   "voice": "meathead",
   "text": "You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.",
-  "from": "game/core/update.ts:141"
+  "from": "game/core/update.ts:142"
  },
  {
   "voice": "meathead",
   "text": "You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I'M the terrorist?",
-  "from": "game/core/update.ts:141"
+  "from": "game/core/update.ts:142"
  },
  {
   "voice": "meathead",
@@ -8657,7 +10172,7 @@
  {
   "voice": "meathead",
   "text": "You put the neighbors down. And you dropped my water tower on a house. Do you know how long it took me to fill that thing?",
-  "from": "game/core/update.ts:141"
+  "from": "game/core/update.ts:142"
  },
  {
   "voice": "meathead",
@@ -8742,7 +10257,7 @@
  {
   "voice": "meathead",
   "text": "YOU'RE TOAST.",
-  "from": "game/core/update.ts:141"
+  "from": "game/core/update.ts:142"
  },
  {
   "voice": "meathead",

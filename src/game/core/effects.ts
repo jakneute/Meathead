@@ -4,7 +4,7 @@ import {
 import { VULGARITIES, BOSS_DIALOGUE, KILL_LINES, KILL_CALLOUTS, KillCallout } from '../../content/dialogue';
 import { GameState } from './state';
 import { playSound, playGlassShatterSound } from '../platform/audio';
-import { say, isSpeaking, isTalking, canSpeak, pickFreshLine, announce, MEATHEAD_VOICE } from '../platform/speech';
+import { say, isSpeaking, isTalking, canSpeak, pickFreshLine, announce, MEATHEAD_VOICE, announcerJustSpoke } from '../platform/speech';
 import { pickRandom } from './utils';
 import { startEnemyDeath, EnemyDeathKind } from '../enemies/deaths';
 
@@ -17,6 +17,9 @@ const MAX_PARTICLES = 2500;
 /** Blood and flesh colours (not the fire reds). */
 const GORE_COLORS = new Set([...PARTICLE_PALETTES.GORE, ...PARTICLE_PALETTES.FLESH].filter(c => !PARTICLE_PALETTES.FIRE.includes(c)));
 export const isGoreColor = (color: string) => GORE_COLORS.has(color);
+
+/** How often Meathead leaves a kill to the announcer, and how often the announcer takes one he's said nothing over. */
+const ANNOUNCER_TAKES = 0.15, ANNOUNCER_WHEN_QUIET = 0.6;
 
 export const createFx = (state: GameState) => {
   const spawnDamageNumber = (pos: Vector2, value: number | string, isCritical: boolean = false, color?: string) => {
@@ -39,8 +42,8 @@ export const createFx = (state: GameState) => {
     if (e.kind === 'tenant') return;
     const { lines, color } = KILL_CALLOUTS[kind];
     const text = pickRandom(lines);
-    // (every so often, the announcer calls it)
-    if (announce(text)) state.isMeatheadSpeaking = false;
+    // (who says it, if anybody, is settled next frame: see settleKillVoice)
+    (state.killVoice ??= {}).callout = { text, at: state.frame };
     state.damageNumbers.push({
       id: `callout-${Date.now()}-${Math.random()}`,
       text,
@@ -167,11 +170,18 @@ export const createFx = (state: GameState) => {
    * Meathead shouts a line. Death always interrupts; otherwise a new line
    * never talks over one that is still playing, and respects cooldowns.
    */
-  const speakVulgarity = (category: VulgarityType, hurtSource?: string) => {
+  const speakVulgarity = (category: VulgarityType, hurtSource?: string, held = false) => {
+    // (what hurt him, for the death screen: whether or not he says anything about it)
+    if (category === 'hurt' && hurtSource) state.lastHurt = { source: hurtSource, at: state.frame };
     if (category !== 'death') {
       if (isSpeaking() || isTalking() || state.isMeatheadSpeaking) return; // (asking first lets a line whose end got lost time out)
+      // (the announcer's only just had its say: he gives it a moment)
+      if (announcerJustSpoke()) return;
       if (category === 'hurt' ? state.hurtVoiceCooldown > 0 : state.voiceLineCooldown > 0) return;
     }
+    // A kill: now and then Meathead holds his tongue and leaves it to the announcer (if a callout goes up with it)
+    const kill = category !== 'hurt' && category !== 'death';
+    if (kill && !held && Math.random() < ANNOUNCER_TAKES) { (state.killVoice ??= {}).quip = { category, at: state.frame }; return; }
     // Skip entirely if every line in the pool was said recently
     const text = pickFreshLine(category === 'hurt' ? getHurtLines(hurtSource) : KILL_LINES[category]);
     if (!text) return;
@@ -192,6 +202,7 @@ export const createFx = (state: GameState) => {
       },
     });
     if (!said) return;
+    if (kill) (state.killVoice ??= {}).quippedAt = state.frame;
     state.isMeatheadSpeaking = canSpeak() && isSpeaking();
     if (category === 'death') {
       state.voiceLineCooldown = 0;
@@ -200,6 +211,26 @@ export const createFx = (state: GameState) => {
       state.voiceLineCooldown = 0;
       state.hurtVoiceCooldown = 45;
     }
+  };
+
+  /**
+   * The frame after a kill: one voice for it, never two. A quip Meathead held back goes to the announcer (or, if the
+   * announcer can't, back to him); a callout Meathead said nothing over (his lines all used up, a cooldown, whatever)
+   * usually gets the announcer; one he did say something over stays his.
+   */
+  const settleKillVoice = () => {
+    const kv = state.killVoice;
+    if (!kv) return;
+    const due = (at: number) => state.frame - at >= 1;
+    const c = kv.callout && due(kv.callout.at) ? kv.callout : undefined;
+    const q = kv.quip && due(kv.quip.at) ? kv.quip : undefined;
+    if (!c && !q) return;
+    if (c) {
+      if (q) { if (!announce(c.text, 1)) speakVulgarity(q.category, undefined, true); }
+      else if (kv.quippedAt === undefined || kv.quippedAt < c.at - 1) announce(c.text, ANNOUNCER_WHEN_QUIET);
+    } else if (q) speakVulgarity(q.category, undefined, true);
+    if (c) kv.callout = undefined;
+    if (q) kv.quip = undefined;
   };
 
   /** A non-boss kill with its own death animation in place of the usual gore burst. */
@@ -228,6 +259,7 @@ export const createFx = (state: GameState) => {
   return {
     spawnDamageNumber,
     spawnKillCallout,
+    settleKillVoice,
     spawnExplosion,
     spawnSteamExplosionParticles,
     spawnPoopExplosion,

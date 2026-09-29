@@ -117,6 +117,8 @@ export const tickPlayerTimers = (ctx: FrameContext, input: FrameInput) => {
   const { state } = ctx;
   const { player } = state;
   if (player.sootTimer && player.sootTimer > 0) player.sootTimer--;
+  // (a kill's voice, settled: Meathead's quip or the announcer, never both)
+  ctx.fx.settleKillVoice();
   if (state.playerStunTimer > 0) state.playerStunTimer--;
   if (state.playerVulgarityTimer > 0 && --state.playerVulgarityTimer <= 0) state.playerLastVulgarity = "";
   if (state.bossVulgarityTimer > 0 && --state.bossVulgarityTimer <= 0) state.bossLastVulgarity = "";

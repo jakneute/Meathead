@@ -193,7 +193,7 @@ export const playClip = (voice: string, text: string, opts: { radio?: boolean; o
     src.start();
     // (a count of what's been said from the recordings, for checking: `window.__voicesPlayed`)
     const w = window as unknown as { __voicesPlayed?: string[] };
-    (w.__voicesPlayed ??= []).push(`${voice}: ${text.slice(0, 40)} (${audio.duration.toFixed(1)}s)`);
+    (w.__voicesPlayed ??= []).push(`${voice}: ${text.slice(0, 40)} (${(audio.duration / spec.rate).toFixed(1)}s @${Math.round(performance.now())})`);
     opts.onStart?.((audio.duration / spec.rate) * 1000);
   }).catch(() => end());
   return {

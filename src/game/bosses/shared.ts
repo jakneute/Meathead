@@ -142,6 +142,8 @@ export const hurtPlayer = (
 ) => {
   const player: Player = ctx.state.player;
   if (!ctx.cheats.invincible) player.health -= damage;
+  // (what hurt him, for the death screen: the killing blow included)
+  ctx.state.lastHurt = { source, at: ctx.state.frame };
   if (player.health <= 0) return;
   player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;
   player.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;

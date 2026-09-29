@@ -179,11 +179,17 @@ const ENGINE_STUCK_MS = 12000;
 let engineBusySince = 0;
 
 let current: Playing | null = null;
+/** When Meathead and the announcer last finished a line: each gives the other a moment's space after (KILL_VOICE_GAP_MS). */
+let meatheadDoneAt = -Infinity, announcerDoneAt = -Infinity;
+const KILL_VOICE_GAP_MS = 1200;
+/** Has the announcer only just stopped (so Meathead holds off a moment)? */
+export const announcerJustSpoke = () => Date.now() - announcerDoneAt < KILL_VOICE_GAP_MS;
 let queue: Line[] = [];
 
 const finish = (line: Playing) => {
   if (current !== line) return;
   current = null;
+  if (line.voice.id === 'meathead') meatheadDoneAt = Date.now();
   line.onHide();
   line.onDone?.();
   playNext();
@@ -369,21 +375,22 @@ export const sayModulated = (text: string, voice: Voice, onDone: () => void): ((
 // ---------------------------------------------------------------------------
 
 export const ANNOUNCER_VOICE: Voice = { id: 'announcer', pitch: 0.5, rate: 0.9 };
-/** How often (a chance per callout), and never again within this long. */
+/** How often (a chance per callout, unless it's been handed the kill), and never again within this long. */
 const ANNOUNCE_CHANCE = 0.35, ANNOUNCE_GAP_MS = 7000;
+/** Could the announcer call this one right now (recorded, not too soon after the last, nobody talking)? */
+export const announcerFree = (text: string) => Date.now() - lastAnnounced >= ANNOUNCE_GAP_MS && hasClip(ANNOUNCER_VOICE.id, text) && !isTalking() && Date.now() - meatheadDoneAt >= KILL_VOICE_GAP_MS;
 let lastAnnounced = -Infinity;
 
 /** Maybe calls out a callout. Returns whether it did. */
-export const announce = (text: string, force = false): boolean => {
+export const announce = (text: string, chance = ANNOUNCE_CHANCE): boolean => {
   const now = Date.now();
-  if (!force && (Math.random() > ANNOUNCE_CHANCE || now - lastAnnounced < ANNOUNCE_GAP_MS)) return false;
+  if (Math.random() > chance || now - lastAnnounced < ANNOUNCE_GAP_MS) return false;
   if (!hasClip(ANNOUNCER_VOICE.id, text)) return false;
-  // (a quip of his that's only just been started gives way; anything else, it waits its turn: it just doesn't happen)
-  const c = current;
-  if (c && c.casual && c.voice.id === 'meathead' && now - c.startedAt < 250) cancelSpeech();
-  else if (isTalking()) return false;
+  // (never over anybody: if someone's talking, or Meathead's only just finished, it just doesn't happen)
+  if (isTalking() || now - meatheadDoneAt < KILL_VOICE_GAP_MS) return false;
   lastAnnounced = now;
-  speak(text, ANNOUNCER_VOICE);
+  announcerDoneAt = now + 3000; // (till it says it's done)
+  speak(text, ANNOUNCER_VOICE, { onDone: () => { announcerDoneAt = Date.now(); } });
   return true;
 };
 

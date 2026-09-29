@@ -5,6 +5,7 @@
 // ride down afterwards. Rebuilt with the level on every (re)spawn; the checkpoint
 // says what's behind you.
 
+import { deathByCause } from '../../core/deathCause';
 import type { GameState } from '../../core/state';
 import type { FrameContext } from '../../core/context';
 import type { Controls } from '../../platform/input';
@@ -386,6 +387,9 @@ export const barryDeathMessage = (ctx: FrameContext): string | undefined => {
   const pick = (a: string[]) => a[Math.floor(Math.random() * a.length)];
   const place = placeOf(p.pos.x);
   const fell = p.pos.y > Y + 60;
+  // (something in particular got him: that, over the place's catch-all)
+  const cause = fell ? undefined : deathByCause(state);
+  if (cause) return cause;
   if (place === 'streets') return fell ? pick(['SWALLOWED BY A POTHOLE', 'CON ED STRIKES AGAIN', 'DOWN THE HOLE']) : pick(['JUST ANOTHER NEW YORK STATISTIC', 'MUGGED', 'THE CITY THAT NEVER SLEEPS. YOU DO NOW.']);
   if (place === 'lobby') return pick(['NO VISITOR BADGE', 'SIGNED OUT PERMANENTLY']);
   if (place === 'office') return pick(['DOWNSIZED', "YOU'RE FIRED", 'HR WILL HEAR ABOUT THIS']);

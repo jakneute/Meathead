@@ -288,6 +288,7 @@ const skiing = (ctx: FrameContext, ski: Ski, controls: Controls): Controls => {
       ski.crash = CRASH_FRAMES;
       ski.broken[i] = o.kind !== 'rock';
       if (!ctx.cheats.invincible) player.health -= CRASH_DAMAGE;
+      state.lastHurt = { source: `ski_${o.kind}`, at: state.frame };
       player.invincibilityTimer = 30;
       player.vel.y = -6;
       player.isGrounded = false;

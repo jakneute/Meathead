@@ -1,4 +1,5 @@
 import type { EnemyDeath } from '../enemies/deaths';
+import type { VulgarityType } from '../../types';
 import {
   Player, Enemy, Projectile, Particle, Pickup, DamageNumber, Block, Volcano,
   SteamExplosion, PoopTelegraph, TommyBoard, Vector2, WeaponType, FlameSegment, OilCell, Icicle,
@@ -80,6 +81,14 @@ export interface GameState {
   introLandedAt?: number;
   deathTimer: number;
   /** Frames the death screen's been up (it can be skipped after a moment; it waits for the death announcer). */
+  /**
+   * A kill with a big callout gets one voice, never two: usually Meathead's quip, sometimes the announcer (more often
+   * when Meathead's got nothing to say). What's waiting to be settled next frame: a quip held back for the announcer,
+   * the callout, and when Meathead last got a kill quip out.
+   */
+  killVoice?: { quip?: { category: VulgarityType; at: number }; callout?: { text: string; at: number }; quippedAt?: number };
+  /** What hurt him last, and when (the frame): for what the death screen says. */
+  lastHurt?: { source: string; at: number };
   deathFrames: number;
   /** Reached the boss this attempt: dying now respawns right outside his door (cleared when a stage starts). */
   bossCheckpoint: boolean;

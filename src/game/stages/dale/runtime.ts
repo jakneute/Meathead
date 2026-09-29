@@ -4,6 +4,7 @@
 // last truck into the curio shop). Rebuilt with the level on every (re)spawn;
 // the checkpoint says what's behind you.
 
+import { deathByCause } from '../../core/deathCause';
 import type { GameState } from '../../core/state';
 import type { FrameContext } from '../../core/context';
 import type { Controls } from '../../platform/input';
@@ -175,6 +176,9 @@ export const daleDeathMessage = (ctx: FrameContext): string | undefined => {
   const { state } = ctx;
   const p = state.player;
   const pick = (a: string[]) => a[Math.floor(Math.random() * a.length)];
+  // (something in particular got him: that, over standing near a cactus or the region's catch-all)
+  const cause = deathByCause(state);
+  if (cause) return cause;
   if (COURSE.cacti.some(c => rectsOverlap(cactusBox(c), { x: p.pos.x - 10, y: p.pos.y - 10, w: p.width + 20, h: p.height + 20 }))) return pick(['PRICKED TO DEATH', 'HUGGED A CACTUS', 'DEATH BY A THOUSAND NEEDLES']);
   if (rt.junkie.phase === 'fight') return pick(['BEATEN TO A PULP BY A TWEAKER', 'CHUCO SAYS HI', 'TIGHT, TIGHT, TIGHT']);
   const shot = rt.town.sniper.lastShot;

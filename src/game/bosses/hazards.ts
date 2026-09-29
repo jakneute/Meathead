@@ -97,6 +97,7 @@ export const updateSteamExplosions = (ctx: FrameContext) => {
     const dy = player.pos.y + player.height / 2 - exp.pos.y;
     if (dx * dx + dy * dy < exp.radius * exp.radius && player.invincibilityTimer <= 0 && !ctx.cheats.invincible) {
       player.health -= 12;
+      state.lastHurt = { source: 'steam', at: state.frame };
       if (player.health > 0) {
         player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;
         player.pushbackTimer = PLAYER_PUSHBACK_DURATION;

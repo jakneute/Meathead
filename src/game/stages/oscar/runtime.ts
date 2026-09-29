@@ -3,6 +3,7 @@
 // them. Rebuilt with the level on every (re)spawn; the checkpoint says what's
 // behind you.
 
+import { deathByCause } from '../../core/deathCause';
 import type { GameState } from '../../core/state';
 import type { FrameContext } from '../../core/context';
 import type { Controls } from '../../platform/input';
@@ -165,6 +166,9 @@ export const oscarDeathMessage = (ctx: FrameContext): string | undefined => {
   const rt = getOscar(ctx.state);
   if (!rt) return undefined;
   const pick = (l: string[]) => l[Math.floor(Math.random() * l.length)];
+  // (something in particular got him: that, over where he was standing)
+  const cause = deathByCause(ctx.state);
+  if (cause) return cause;
   if (inCrude(ctx.state)) return pick(['DROWNED IN CRUDE', 'FOSSIL FUEL', 'A BARREL A DAY', 'PART OF THE RESERVE NOW']);
   return chaseDeathMessage(rt.chase);
 };

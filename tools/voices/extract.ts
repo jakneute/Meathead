@@ -14,6 +14,7 @@ import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as dialogue from '../../src/content/dialogue';
+import * as deaths from '../../src/content/deaths';
 
 const ROOT = path.resolve(__dirname, '../../src');
 const out = new Map<string, { voice: string; text: string; from: string }>();
@@ -52,6 +53,7 @@ for (const t of allStrings(dialogue.BARRY_LINES)) add('boss.barry', t, 'BARRY_LI
 for (const t of allStrings(dialogue.OSCAR_LINES)) add('boss.oscar', t, 'OSCAR_LINES');
 // The death announcer: the plain death screen, and the one the sewer blows up with
 add('death', 'YOU DIED', 'killPlayer');
+for (const t of allStrings([deaths.DEATH_LINES, deaths.BOSS_DEATH_LINES, deaths.FALL_DEATH_LINES])) add('death', t, 'content/deaths');
 add('death', 'YOU SET FIRE TO AN OIL-SOAKED TOXIC WASTE MONSTER IN A METHANE-FILLED SEWER. YOU BOTH DIED.', 'SEWER_NUKE_MESSAGE');
 // The announcer calls out the kill callouts
 for (const c of Object.values(dialogue.KILL_CALLOUTS)) for (const t of c.lines) add('announcer', t, 'KILL_CALLOUTS');
