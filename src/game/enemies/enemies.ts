@@ -1300,6 +1300,14 @@ const flungIntoEnemies = (ctx: FrameContext, e: Enemy, enemies: Enemy[]) => {
     if (other === e || other.type === 'boss' || other.isBlownAway || other.health <= 0 || other.innocent) continue;
     if (e.flungHits?.includes(other.id) || !rectsOverlap(boundsOf(e), boundsOf(other))) continue;
     (e.flungHits ??= []).push(other.id);
+    // (a flyer a boulder brought down: whatever it lands on is flattened)
+    if (e.crushing) {
+      if (e.vel.y <= 2 || isMidBoss(other)) continue;
+      fx.spawnDamageNumber(other.pos, other.health, true);
+      fx.killWithAnimation(other, 'pancaked', 'boulder_kill', 'squished');
+      fx.playGunSound('thud');
+      continue;
+    }
     const damage = collateral(e) * CORPSE_COLLATERAL;
     if (damage <= 2) continue;
     const dir = Math.sign(e.vel.x) || 1;

@@ -777,12 +777,21 @@ const boulderHitsEnemy = (ctx: FrameContext, p: Projectile, enemy: Enemy): boole
   }
   const flattened = absX >= absY;
   fx.spawnDeathShower(enemy.pos, flattened ? Math.sign(p.vel.x) : 0, 0.8);
-  // Flyers get knocked out of the air; anything on the ground is left flat as a pancake
-  if (enemy.pos.y + enemy.height >= 540) fx.killWithAnimation(enemy, 'pancaked', 'boulder_kill', flattened ? 'flattened' : 'squished');
-  else {
-    fx.blowAwayEnemy(enemy, { x: Math.sign(p.vel.x) * 8, y: -6 }, 'boulder_kill');
-    fx.spawnKillCallout(enemy, flattened ? 'flattened' : 'squished');
+  // Lobbed and still on its way up: it takes them up with it
+  if (p.vel.y < -1) {
+    fx.blowAwayEnemy(enemy, { x: p.vel.x * 0.6, y: Math.min(-10, p.vel.y * 1.1) }, 'boulder_kill');
+    fx.spawnKillCallout(enemy, 'uppercut');
   }
+  // On its way down (or rolling along): flat. A flyer's brought down out of the air, hard, and flattens anything it
+  // comes down on
+  else if (enemy.enemyType === 'flyer' || enemy.enemyType === 'drone' || enemy.behavior === 'fly' || enemy.behavior === 'hover') {
+    fx.blowAwayEnemy(enemy, { x: p.vel.x * 0.15 || 0.5, y: 18 }, 'boulder_kill');
+    enemy.meleeFlung = true;
+    enemy.crushing = true;
+    fx.spawnKillCallout(enemy, 'squished');
+  }
+  // Anything else is left flat as a pancake, never sent flying (up on a ledge or a hill: flat right there)
+  else fx.killWithAnimation(enemy, 'pancaked', 'boulder_kill', flattened ? 'flattened' : 'squished');
   state.player.killSatisfactionTimer = 60;
   return true;
 };

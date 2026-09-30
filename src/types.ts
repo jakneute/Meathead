@@ -258,6 +258,8 @@ export interface Enemy extends Entity {
   /** Sent flying dead by one of his moves (a charge, a slide, an uppercut, a dive kick): it's a projectile now, and
    * these are who it's already hit on the way. */
   meleeFlung?: boolean;
+  /** A flyer a boulder killed, coming straight down: it flattens whatever's under it on the way (see flungIntoEnemies). */
+  crushing?: boolean;
   /** A flyer knocked up above its height: dropping back down to it. */
   returnHome?: boolean;
   /** Uppercut dead off its feet: it comes back down and splats. */
