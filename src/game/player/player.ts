@@ -82,7 +82,7 @@ export const killPlayer = (ctx: FrameContext, message: string, gore = true) => {
   // (a stage's own death scene goes first: it's read out when that's over)
   if (!state.deathScene) announceDeath(message);
   // (and whoever was talking stops: the scene plays out in silence till the announcer reads it out at the end)
-  else silenceAll();
+  else if (!state.deathScene.voiced) silenceAll();
   state.isMeatheadSpeaking = false;
   state.voiceLineCooldown = 0;
   state.hurtVoiceCooldown = 0;

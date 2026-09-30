@@ -13,14 +13,16 @@
 // Drawn over everything, screen space (800 x 600), timed by the death scene's clock.
 
 import type { GameState } from '../../core/state';
+import type { SoundType } from '../../../types';
 import { drawPlayer } from '../../render/player/player';
 
 type Ctx = CanvasRenderingContext2D;
 
 /** The beats: close on the ball rolling (and his line); the pull out; the ball down the far side into the pond; the
  * skis, the eagle. (The ball doesn't hit the pine any more: that's never.) */
-const CLOSE_END = 200, ZOOM = 50, HIT_ICE = CLOSE_END + 130;
-const HIT_PINE = Infinity, SKI1 = HIT_ICE + 16, SKI2 = HIT_ICE + 28, EAGLE_IN = HIT_ICE + 42, EAGLE_DOWN = HIT_ICE + 62;
+export const CLOSE_END = 200, ZOOM = 50, HIT_ICE = CLOSE_END + 130;
+const HIT_PINE = Infinity;
+export const SKI1 = HIT_ICE + 16, SKI2 = HIT_ICE + 28, EAGLE_IN = HIT_ICE + 42, EAGLE_DOWN = HIT_ICE + 62;
 /** How long it runs before the death message goes up (it can be skipped). */
 export const FLING_FRAMES = HIT_ICE + 100;
 
@@ -127,7 +129,8 @@ const drawCloseUp = (ctx: Ctx, t: number) => {
   // His line, in a jagged scream bubble
   const lines = ["NOT LIKE THIS!", "I HAVEN'T EVEN HAD", 'MY PROTEIN SHAKE!'];
   ctx.save();
-  ctx.translate(210, 90); ctx.rotate(-0.06 + Math.sin(t * 0.5) * 0.02);
+  // (clear of the HUD in the top left and the skip prompt in the top right)
+  ctx.translate(500, 180); ctx.rotate(-0.06 + Math.sin(t * 0.5) * 0.02);
   ctx.fillStyle = '#FFFFFF'; ctx.strokeStyle = '#111'; ctx.lineWidth = 4;
   ctx.beginPath();
   for (let i = 0; i <= 20; i++) { const a = (i / 20) * Math.PI * 2, r = i % 2 ? 1 : 1.18; const x = Math.cos(a) * 190 * r, y = Math.sin(a) * 70 * r; if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
@@ -320,4 +323,28 @@ const drawEagle = (ctx: Ctx, t: number) => {
   ctx.fillStyle = '#111'; ctx.fillRect(-10, -14, 2, 2);
   if (k >= 1) { ctx.fillStyle = '#FACC15'; ctx.fillRect(-4, 6, 2, 5); ctx.fillRect(3, 6, 2, 5); }
   ctx.restore();
+};
+
+/**
+ * Its sounds, on its beats: the ball rumbling and crunching as it rolls (whooshing by, up close); a thud each time it
+ * comes down bounding down the far side; the crash through the ice (it shatters, a splash); the skis coming down
+ * after him (a thud, then the BONK off his boot); the eagle swooping in.
+ */
+export const flingSound = (t: number, play: (s: SoundType, vol?: number, pitch?: number) => void) => {
+  if (t < CLOSE_END) {
+    if (t % 45 === 1) play('rumble', 0.7);
+    if (t % 18 === 5) play('crunch', 0.5, -4 + (t % 5));
+    if (t % 60 === 30) play('whoosh', 0.6, -6);
+    return;
+  }
+  if (t === CLOSE_END + 2) play('whoosh', 0.9, -10);
+  // (it touches down every so often as it bounds down the face)
+  const n = Math.floor(((t - CLOSE_END) / (HIT_ICE - CLOSE_END)) * 3.5), m = Math.floor(((t - 1 - CLOSE_END) / (HIT_ICE - CLOSE_END)) * 3.5);
+  if (t < HIT_ICE && n !== m) { play('thud', 0.9); play('crunch', 0.6); }
+  if (t === HIT_ICE) { play('crash'); play('glass'); play('splash', 0.8); }
+  if (t === HIT_ICE + 6) play('crack', 0.8);
+  if (t === SKI1) play('thud', 0.8, 4);
+  if (t === SKI2) play('clang', 0.9, 6);
+  if (t === EAGLE_IN) play('whoosh', 0.7, 4);
+  if (t === EAGLE_DOWN) play('land', 0.5, 8);
 };

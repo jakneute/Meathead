@@ -154,6 +154,8 @@ export interface LineHooks {
   onHide: () => void;
   /** Called once the line is over or cut off (not for queued lines that went stale unsaid). */
   onDone?: () => void;
+  /** Said however recently it was last said (a scene's own line, every time the scene plays). */
+  always?: boolean;
 }
 
 interface Line extends LineHooks { text: string; voice: Voice; queuedAt: number; casual?: boolean }
@@ -306,7 +308,7 @@ const busy = () => {
  * talking, or it was said too recently), in which case nothing is shown either.
  */
 export const say = (text: string, voice: Voice, priority: SpeechPriority, hooks: LineHooks): boolean => {
-  if (!isFresh(text, Date.now())) return false;
+  if (!hooks.always && !isFresh(text, Date.now())) return false;
   const line: Line = { text, voice, queuedAt: Date.now(), casual: priority === 'casual', ...hooks };
   if (priority === 'urgent') {
     cancelSpeech();

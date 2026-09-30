@@ -53,6 +53,8 @@ export interface StageLayout {
   drawSpecialEnemy?: (ctx: CanvasRenderingContext2D, e: Enemy, state: GameState) => boolean;
   /** A special death message for how he died here (the avalanche), if any. */
   deathMessage?: (ctx: FrameContext) => string | undefined;
+  /** Each frame of a death scene of the stage's (state.deathScene): its sounds, on its beats. */
+  deathSceneTick?: (ctx: FrameContext, t: number) => void;
   /** World space, behind everything that moves (scenery, the tram, the cabin). */
   drawBack?: (ctx: CanvasRenderingContext2D, state: GameState) => void;
   /** World space, over the terrain but behind everything that moves (hazards, props). */

@@ -97,6 +97,7 @@ const updateDeathScreen = (ctx: FrameContext) => {
   const scene = state.deathScene;
   if (scene && scene.t < scene.len) {
     scene.t++;
+    getStageLayout(ctx.stageId)?.deathSceneTick?.(ctx, scene.t);
     if (scene.t === scene.len) announceDeath(state.deathString);
     if (state.deathFrames > SKIP_AFTER) offerSkip();
     if (takeSkip()) { stopDeathAnnouncer(); silenceAll(); state.deathTimer = 0; state.deathScene = undefined; respawn(state, ctx.stageId, ctx.cheats.skipToBoss); }

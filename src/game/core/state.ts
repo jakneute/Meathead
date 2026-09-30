@@ -111,7 +111,8 @@ export interface GameState {
   deathFreeze?: number;
   /** A stage's own death scene (the avalanche throwing him off the mountain): frames into it, and how long it runs
    * before the death message goes up (and is read out). */
-  deathScene?: { t: number; len: number };
+  /** (`voiced`: the scene's already silenced everyone and started its own line: the death doesn't cut it off) */
+  deathScene?: { t: number; len: number; voiced?: boolean };
   /** What of the world's on screen this frame (set as it's drawn): the camera's 800x600, or more of it zoomed out. */
   view?: { x: number; y: number; w: number; h: number };
   /** The last frame a long death on its way offered SKIP >> (see skipDying). */

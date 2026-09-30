@@ -1,6 +1,8 @@
 // Artie Avalanche's stage: see course.ts for the layout. This file builds it
 // into the game state and runs its hazards and set pieces each frame.
 
+import { flingSound } from './flingDraw';
+import { playSound } from '../../platform/audio';
 import type { StageLayout } from '../index';
 import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH } from '../../../constants';
 import { groundBlocks } from '../../core/terrain';
@@ -52,6 +54,8 @@ export const artieLayout: StageLayout = {
   // (zoomed out on the skis, to keep the avalanche in view)
   zoom: state => { const rt = getArtie(state); return rt ? skiZoom(state, rt.ski) : null; },
   deathMessage: ctx => { const rt = getArtie(ctx.state); return rt ? skiDeathMessage(ctx.state, rt.ski) : undefined; },
+  // (the avalanche's: thrown off the far side of the mountain)
+  deathSceneTick: (ctx, t) => { if (getArtie(ctx.state)?.ski.fling) flingSound(t, playSound); },
   updateSpecialEnemy: (ctx, e) => {
     const rt = getArtie(ctx.state);
     return e.kind === 'moose' && rt ? updateMoose(ctx, e, rt.moose) : undefined;

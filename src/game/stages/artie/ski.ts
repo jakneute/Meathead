@@ -396,10 +396,10 @@ const flingOff = (state: GameState, ski: Ski) => {
   if (ski.fling) return;
   ski.fling = true;
   state.player.hidden = true;
-  state.deathScene = { t: 0, len: FLING_FRAMES };
+  state.deathScene = { t: 0, len: FLING_FRAMES, voiced: true };
   // (whatever anyone was saying stops; he's got something to say, rolled up in there)
   silenceAll();
-  say("NOT LIKE THIS! I HAVEN'T EVEN HAD MY PROTEIN SHAKE!", MEATHEAD_VOICE, 'urgent', { onShow: () => {}, onHide: () => {} });
+  say("NOT LIKE THIS! I HAVEN'T EVEN HAD MY PROTEIN SHAKE!", MEATHEAD_VOICE, 'urgent', { onShow: () => {}, onHide: () => {}, always: true });
   playSound('whoosh', 1, -6);
 };
 
