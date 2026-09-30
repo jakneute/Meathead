@@ -272,7 +272,7 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
                 className={`w-full ${progressionRank >= 1 ? 'h-[158px]' : 'h-[165px]'} ${isDefeated ? 'opacity-70' : ''} ${locked && !isLocked ? 'opacity-35 grayscale' : ''} border-3 ${frame} bg-[#1E1E1E] transition-all flex flex-col overflow-hidden group shadow-lg rounded-sm text-left`}
               >
                 <div className="flex-1 bg-black relative overflow-hidden">
-                  <BossPortrait id={stage.id} dead={isDefeated} />
+                  <BossPortrait id={stage.id} dead={isDefeated} locked={isLocked} />
                   {isLocked && <LockedInMark />}
                   {isDefeated && (
                     <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">

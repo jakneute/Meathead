@@ -43,6 +43,18 @@ const MUGSHOT_FACES: Record<string, string> = {
   'Drug Trade Dale': 'shifty',
 };
 
+/** ...and the look he gives it once he's been picked (locked in as the target): each takes it his own way. */
+const TARGETED_FACES: Record<string, string> = {
+  'Artie Avalanche': 'fierce',
+  'Victor Volcano': 'roar',
+  'Ernie Earthquake': 'fierce',
+  'Hector Hurricane': 'shock',
+  'Toxic Tommy': 'roar',
+  'Blackout Barry': 'shock',
+  'Oily Oscar': 'fierce',
+  'Drug Trade Dale': 'manic',
+};
+
 /** His name as the booking officer would put it: no nicknames, no letters after it. */
 const bookedName = (id: string) =>
   (DOSSIERS[id]?.realName ?? id.toUpperCase()).replace(/"[^"]*"\s*/g, '').replace(/,.*$/, '').replace(/\s+/g, ' ').trim();
@@ -54,8 +66,10 @@ const bookingNo = (id: string) => {
   return `${String(100000 + h).slice(0, 6)}-${BOSS_LOCATIONS[id]?.stateCode ?? 'US'}`;
 };
 
-const BossPortrait: React.FC<{ id: string; dead?: boolean }> = ({ id, dead = false }) => {
+const BossPortrait: React.FC<{ id: string; dead?: boolean; locked?: boolean }> = ({ id, dead = false, locked = false }) => {
   const ref = useRef<HTMLCanvasElement>(null);
+  // (picked as the target: his face changes, and the flash goes off as it happens)
+  const lockedRef = useRef(locked); lockedRef.current = locked;
 
   useEffect(() => {
     const canvas = ref.current;
@@ -103,6 +117,11 @@ const BossPortrait: React.FC<{ id: string; dead?: boolean }> = ({ id, dead = fal
       if (frame % 2) return;
       // (nothing to draw while it can't be seen: under the garage, say)
       if (canvas!.checkVisibility && !canvas!.checkVisibility({ visibilityProperty: true } as CheckVisibilityOptions)) return;
+      if (!dead) {
+        const want = lockedRef.current ? TARGETED_FACES[id] : MUGSHOT_FACES[id];
+        if (lockedRef.current && sitter.faceMood !== want) frame = frame - (frame % FLASH_EVERY) + FLASH_EVERY; // the flash, now
+        sitter.faceMood = want;
+      }
       const f = frame % FLASH_EVERY;
       const flash = !dead && f < FLASH_FRAMES ? 1 - f / FLASH_FRAMES : 0;
       // He squints into the flash
