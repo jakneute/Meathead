@@ -90,7 +90,7 @@ export const updateClub = (ctx: FrameContext, club: Club, lounge: Lounge) => {
       club.yellAt = state.frame + (shown ? 110 + Math.random() * 100 : 30);
     } else club.yellAt = state.frame + 30;
   }
-  // The foot of the atrium: the staircase down into the club from the front door. He sees it
+  // The foot of the atrium: the stairwell down to the front door. He sees it
   if (!club.stairs && p.isGrounded && p.pos.x >= A.x1 + 60 && p.pos.x < A.x1 + 500) { club.stairs = true; meatheadSays(state, STAIRS_LINE); }
   // Checkpoint at the foot of it; up at the top, the window into the VIP lounge
   if (state.checkpoint < CP.ATRIUM && p.isGrounded && p.pos.x >= COURSE.checkpoints[CP.ATRIUM].x) state.checkpoint = CP.ATRIUM;

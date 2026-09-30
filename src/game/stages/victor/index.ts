@@ -88,7 +88,13 @@ export const victorLayout: StageLayout = {
   },
   drawBackdrop: (ctx, state) => !!getVictor(state) && drawVictorBackdrop(ctx, state),
   // (crossing the lava river the view sits lower, so you can see the fish coming under the surface)
-  cameraRow: state => (regionOf(state.player.pos.x) === 'inside' && state.player.pos.x < COURSE.shaft.x1 - 60 ? 420 : undefined),
+  cameraRow: state => {
+    const p = state.player, r = regionOf(p.pos.x);
+    if (r === 'inside' && p.pos.x < COURSE.shaft.x1 - 60) return 420;
+    // At the foot of the atrium, on the floor: down a bit, so the stairwell under it can be seen going down
+    if (r === 'club' && p.pos.x > COURSE.atrium.x1 - 150 && p.pos.x < COURSE.atrium.x1 + 420 && p.pos.y + p.height > COURSE.atrium.floor - 40) return 380;
+    return undefined;
+  },
   // (up the shaft the camera drifts after you rather than jerking to every catwalk)
   cameraEaseY: state => { const r = regionOf(state.player.pos.x), x = state.player.pos.x; return (r === 'inside' && x > COURSE.shaft.x1 - 100) || (r === 'club' && x > COURSE.atrium.x1 - 100) ? 0.08 : undefined; },
 };

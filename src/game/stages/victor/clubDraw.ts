@@ -4,7 +4,7 @@
 // the DJ booth, the bar, the speaker stacks, the VIP tables, the go-go cages) and
 // its atrium (not rock: glossy black walls with neon run up them, a lava lamp the
 // height of the whole thing, neon catwalks, chrome pyro cannons, disco rigs
-// spinning fire; at its foot, the staircase down from the front door he never
+// spinning fire; at its foot, the stairwell down to the front door he never
 // used). The partygoers' screams over their heads, and the tally of the ones
 // he's killed.
 
@@ -175,20 +175,40 @@ const drawAtrium = (ctx: Ctx, state: GameState) => {
   }
   // The way in from the floor under the left wall stays open
   ctx.fillStyle = '#150B1E'; ctx.fillRect(A.x1 - 60, A.floor - 170, 60, 170);
-  // At the foot of it: the staircase down from the front door (a plain one, a handrail, an EXIT sign lit over it).
-  // Just there to be seen: he can't take it
-  const sx = A.x1 + 40, sy = A.floor;
-  if (sy > state.camera.y - 300 && sy - 320 < state.camera.y + CANVAS_HEIGHT) {
-    ctx.fillStyle = '#3F3A45';
-    for (let k = 0; k < 12; k++) ctx.fillRect(sx + k * 24, sy - (k + 1) * 24, 24 * (12 - k), 24);
-    ctx.fillStyle = '#57505F'; for (let k = 0; k < 12; k++) ctx.fillRect(sx + k * 24, sy - (k + 1) * 24, 24, 4);
-    ctx.strokeStyle = '#A8A29E'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(sx + 4, sy - 40); ctx.lineTo(sx + 12 * 24, sy - 12 * 24 - 40); ctx.stroke();
-    for (let k = 0; k < 12; k += 2) { ctx.fillRect(sx + 4 + k * 24, sy - k * 24 - 40, 2, 40); }
-    // The front door up top, the EXIT sign lit over it
-    ctx.fillStyle = '#1C1917'; ctx.fillRect(sx + 12 * 24 - 10, sy - 12 * 24 - 110, 60, 110);
-    ctx.fillStyle = '#44403C'; ctx.fillRect(sx + 12 * 24 - 4, sy - 12 * 24 - 104, 48, 104);
-    ctx.fillStyle = '#16A34A'; ctx.fillRect(sx + 12 * 24 - 4, sy - 12 * 24 - 132, 48, 16);
-    ctx.fillStyle = '#F0FDF4'; ctx.font = 'bold 9px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('EXIT', sx + 12 * 24 + 20, sy - 12 * 24 - 120); ctx.textAlign = 'left';
+  // At the foot of it: the stairwell down to the front door (the club floor's up here; the door's down at the foot of
+  // the volcano). Cut away under the floor: the stairs going down, a handrail, the door at the bottom; a steel grate over
+  // the top of them in the floor, and an EXIT sign on the wall pointing down. Just there to be seen: he can't take it
+  const sx = A.x1 + 40, sw = 300, sy = A.floor;
+  if (sy > state.camera.y - 300 && sy - 200 < state.camera.y + CANVAS_HEIGHT) {
+    const bot = state.camera.y + CANVAS_HEIGHT + 40;
+    // The stairwell: bare concrete, lit by a caged bulb
+    ctx.fillStyle = '#110E15'; ctx.fillRect(sx, sy, sw, bot - sy);
+    ctx.fillStyle = 'rgba(253, 230, 138, 0.10)'; ctx.beginPath(); ctx.arc(sx + 40, sy + 40, 70, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FDE68A'; ctx.fillRect(sx + 36, sy + 30, 8, 8);
+    // The steps, down to the right
+    const n = 11, rise = 22, run = 24;
+    for (let k = 0; k < n; k++) {
+      const x = sx + 10 + k * run, y = sy + 30 + k * rise;
+      ctx.fillStyle = '#57505F'; ctx.fillRect(x, y, sw - 10 - k * run, bot - y);
+      ctx.fillStyle = '#A59DB0'; ctx.fillRect(x, y, run, 4);
+      ctx.fillStyle = '#3A3441'; ctx.fillRect(x, y + 4, 3, rise - 4);
+    }
+    // The handrail, following them down
+    ctx.strokeStyle = '#D4D4D8'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(sx + 10, sy - 6); ctx.lineTo(sx + 10 + n * run, sy - 6 + n * rise); ctx.stroke();
+    ctx.fillStyle = '#A1A1AA'; for (let k = 0; k < n; k += 2) ctx.fillRect(sx + 20 + k * run, sy - 6 + k * rise, 2, 36);
+    // The front door at the bottom
+    const dx = sx + 10 + n * run - 30, dy = sy + 30 + n * rise;
+    ctx.fillStyle = '#1C1917'; ctx.fillRect(dx, dy - 110, 60, 110);
+    ctx.fillStyle = '#44403C'; ctx.fillRect(dx + 6, dy - 104, 48, 104);
+    // The grate over the top of it (the floor he's standing on)
+    ctx.fillStyle = 'rgba(12, 10, 9, 0.35)'; ctx.fillRect(sx, sy, sw, 22);
+    ctx.fillStyle = '#71717A'; ctx.fillRect(sx, sy, sw, 3); ctx.fillRect(sx, sy + 19, sw, 3);
+    for (let x = sx; x <= sx + sw; x += 12) ctx.fillRect(x, sy, 2, 22);
+    // The EXIT sign on the wall over it, an arrow pointing down
+    const ex = sx + sw / 2 - 40, ey = sy - 150;
+    ctx.fillStyle = '#16A34A'; ctx.fillRect(ex, ey, 80, 22);
+    ctx.fillStyle = '#F0FDF4'; ctx.font = 'bold 9px "Press Start 2P"'; ctx.textAlign = 'left'; ctx.fillText('EXIT', ex + 8, ey + 15);
+    ctx.beginPath(); ctx.moveTo(ex + 58, ey + 5); ctx.lineTo(ex + 66, ey + 5); ctx.lineTo(ex + 66, ey + 11); ctx.lineTo(ex + 71, ey + 11); ctx.lineTo(ex + 62, ey + 19); ctx.lineTo(ex + 53, ey + 11); ctx.lineTo(ex + 58, ey + 11); ctx.closePath(); ctx.fill();
   }
   // The window at the top of the right wall: the VIP lounge, its party going on behind the glass
   const w = A.window;
@@ -212,9 +232,13 @@ export const drawClubLedge = (ctx: Ctx, l: Ledge, f: number) => {
   const k = beatK(f);
   if (l.look === 'neon') {
     const col = NEON[(Math.floor(l.x / 97) + Math.floor(f / BEAT)) % 4];
-    ctx.fillStyle = '#0F0B14'; ctx.fillRect(l.x, l.y, l.w, 10);
-    ctx.save(); ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 8 + k * 8; ctx.fillRect(l.x, l.y, l.w, 3); ctx.restore();
-    ctx.fillStyle = '#27272A'; ctx.fillRect(l.x + 10, l.y + 10, 4, 16); ctx.fillRect(l.x + l.w - 14, l.y + 10, 4, 16);
+    // Brushed steel (bright against the black walls), a neon strip along the top, lit underneath
+    ctx.fillStyle = '#A1A1AA'; ctx.fillRect(l.x, l.y, l.w, 10);
+    ctx.fillStyle = '#D4D4D8'; ctx.fillRect(l.x, l.y + 3, l.w, 2);
+    ctx.fillStyle = '#52525B'; ctx.fillRect(l.x, l.y + 8, l.w, 2);
+    for (let x = l.x + 12; x < l.x + l.w - 6; x += 24) { ctx.fillStyle = '#3F3F46'; ctx.fillRect(x, l.y + 5, 2, 2); }
+    ctx.save(); ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 8 + k * 8; ctx.fillRect(l.x, l.y, l.w, 3); ctx.globalAlpha = 0.35 + k * 0.3; ctx.fillRect(l.x + 4, l.y + 10, l.w - 8, 2); ctx.restore();
+    ctx.fillStyle = '#71717A'; ctx.fillRect(l.x + 10, l.y + 10, 4, 16); ctx.fillRect(l.x + l.w - 14, l.y + 10, 4, 16);
     return true;
   }
   if (l.look === 'cage') {
