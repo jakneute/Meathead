@@ -97,13 +97,15 @@ const fallTenant = (ctx: FrameContext, e: Enemy): boolean => {
   e.rotation = (e.rotation || 0) + 0.12 * Math.sign(e.vel.x || 1);
   // (the scream trailing after him)
   if (e.aiTimer % 14 === 0) state.particles.push({ pos: { x: e.pos.x + 20, y: e.pos.y - 10 }, vel: { x: 0, y: -1 }, life: 20, color: 'rgba(248, 250, 252, 0.7)', size: 3 });
-  if (e.pos.y + e.height >= GROUND_Y) {
+  // (down onto the concrete: the street, or the swanky one's terrace; straight past the fire escapes' grating)
+  const floor = Math.min(GROUND_Y, ...state.blocks.filter(b => b.type === 'wall' && b.w > 400 && e.pos.x + 20 > b.x && e.pos.x + 20 < b.x + b.w && b.y >= e.pos.y + e.height - e.vel.y - 1).map(b => b.y));
+  if (e.pos.y + e.height >= floor) {
     // SPLAT
     e.aiState = 'splat'; e.aiTimer = 0; e.vel = { x: 0, y: 0 };
-    e.pos.y = GROUND_Y - e.height;
-    fx.spawnDeathShower({ x: e.pos.x + 20, y: GROUND_Y - 6 }, 0, 2.2);
-    fx.spawnDamageNumber({ x: e.pos.x - 10, y: GROUND_Y - 90 }, 'SPLAT!', true, '#DC2626');
-    for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: e.pos.x + 20, y: GROUND_Y - 4 }, vel: { x: (Math.random() - 0.5) * 12, y: -Math.random() * 7 }, life: 30 + Math.random() * 30, color: i % 3 ? '#991B1B' : '#DC2626', size: 2 + Math.random() * 5 });
+    e.pos.y = floor - e.height;
+    fx.spawnDeathShower({ x: e.pos.x + 20, y: floor - 6 }, 0, 2.2);
+    fx.spawnDamageNumber({ x: e.pos.x - 10, y: floor - 90 }, 'SPLAT!', true, '#DC2626');
+    for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: e.pos.x + 20, y: floor - 4 }, vel: { x: (Math.random() - 0.5) * 12, y: -Math.random() * 7 }, life: 30 + Math.random() * 30, color: i % 3 ? '#991B1B' : '#DC2626', size: 2 + Math.random() * 5 });
     shakeScreen(state, 14, 8);
     playSound('splat');
   }

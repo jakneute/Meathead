@@ -281,14 +281,35 @@ const drawWalkUp = (ctx: Ctx, state: GameState) => {
   // The two walk-ups: brick all the way up to their cornices (the second one taller, older, darker)
   c.buildings.forEach((b, i) => {
     if (!visible(state, b.x1 - 100, b.x2 + 100)) return;
-    const top = b.top - 30;
+    // (its front runs up to the roof and stops: the parapet along the top, the roof over it, sky above)
+    const top = b.top;
     // (the second one's the swanky one: pale limestone, gold on the cornice and between the floors)
     ctx.fillStyle = i ? '#C8BBA0' : '#6B2E22'; ctx.fillRect(b.x1 - 60, top, b.x2 - b.x1 + 120, Y - top);
     ctx.fillStyle = i ? 'rgba(80, 60, 30, 0.14)' : 'rgba(0,0,0,0.2)'; for (let y = top + 6; y < Y; y += i ? 24 : 9) ctx.fillRect(b.x1 - 60, y, b.x2 - b.x1 + 120, 1);
     if (i) { ctx.fillStyle = '#B8860B'; for (let y = top + 120; y < Y; y += 240) ctx.fillRect(b.x1 - 60, y, b.x2 - b.x1 + 120, 4); }
-    ctx.fillStyle = i ? '#8B6914' : '#3F1B14'; ctx.fillRect(b.x1 - 70, top - 12, b.x2 - b.x1 + 140, 14); // the cornice
-    // (a water tank up on its roof)
-    ctx.fillStyle = '#6B4423'; ctx.fillRect(b.x1 + 40, b.top - 110, 60, 80); ctx.fillStyle = '#374151'; ctx.beginPath(); ctx.moveTo(b.x1 + 34, b.top - 110); ctx.lineTo(b.x1 + 70, b.top - 140); ctx.lineTo(b.x1 + 106, b.top - 110); ctx.fill();
+    // (its terrace, on the setback: a stone floor all along it, a balustrade, planters)
+    if (i) {
+      const ty = Y - 1000;
+      const tx = b.x1 + 190, tw = b.x2 + 80 - tx;
+      ctx.fillStyle = '#A8A29E'; ctx.fillRect(tx, ty, tw, 30);
+      ctx.fillStyle = '#D6D3D1'; ctx.fillRect(tx, ty, tw, 4);
+      ctx.fillStyle = '#78716C'; ctx.fillRect(tx, ty + 26, tw, 4);
+      ctx.fillStyle = '#E7E5E4'; ctx.fillRect(tx, ty - 34, tw, 5);
+      for (let x = tx + 4; x < b.x2 + 80; x += 16) { ctx.beginPath(); ctx.ellipse(x, ty - 16, 4, 14, 0, 0, Math.PI * 2); ctx.fill(); }
+      for (let x = tx + 60; x < b.x2; x += 260) { ctx.fillStyle = '#57534E'; ctx.fillRect(x, ty - 18, 36, 18); ctx.fillStyle = '#15803D'; ctx.beginPath(); ctx.arc(x + 18, ty - 26, 16, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#E7E5E4'; }
+    }
+    // The cornice at the roof line, and the parapet wall standing up along the roof's edge
+    ctx.fillStyle = i ? '#8B6914' : '#3F1B14'; ctx.fillRect(b.x1 - 70, top, b.x2 - b.x1 + 140, 16);
+    ctx.fillStyle = i ? '#A8A29E' : '#57261C'; ctx.fillRect(b.x1 - 64, top - 22, b.x2 - b.x1 + 128, 22);
+    ctx.fillStyle = i ? '#D6D3D1' : '#7C3A2B'; ctx.fillRect(b.x1 - 66, top - 26, b.x2 - b.x1 + 132, 5);
+    // Up on the roof: a water tank on legs, a vent stack, an antenna
+    const wx = b.x1 + 60;
+    ctx.strokeStyle = '#1F2937'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(wx + 8, top - 22); ctx.lineTo(wx + 12, top - 60); ctx.moveTo(wx + 52, top - 22); ctx.lineTo(wx + 48, top - 60); ctx.stroke();
+    ctx.fillStyle = '#6B4423'; ctx.fillRect(wx, top - 130, 60, 72); ctx.fillStyle = '#4A2F18'; for (let y = top - 122; y < top - 58; y += 16) ctx.fillRect(wx, y, 60, 3);
+    ctx.fillStyle = '#374151'; ctx.beginPath(); ctx.moveTo(wx - 6, top - 130); ctx.lineTo(wx + 30, top - 160); ctx.lineTo(wx + 66, top - 130); ctx.fill();
+    ctx.fillStyle = '#52525B'; ctx.fillRect(b.x2 - 70, top - 64, 22, 42); ctx.fillStyle = '#3F3F46'; ctx.fillRect(b.x2 - 74, top - 70, 30, 8);
+    ctx.fillStyle = '#71717A'; ctx.fillRect(b.x2 - 30, top - 150, 3, 128); ctx.fillRect(b.x2 - 42, top - 130, 27, 2); ctx.fillRect(b.x2 - 38, top - 116, 19, 2);
+    if (Math.floor(state.frame / 30) % 2) { ctx.fillStyle = '#EF4444'; ctx.fillRect(b.x2 - 31, top - 154, 5, 5); }
   });
   // The windows (the tenants lean out of these)
   for (const w of COURSE.windows) {
@@ -311,12 +332,57 @@ const drawWalkUp = (ctx: Ctx, state: GameState) => {
       ctx.fillStyle = 'rgba(153, 27, 27, 0.9)'; ctx.fillRect(w.x - 6, w.y, 72, 5);
     }
   }
-  // The door at the top: to the power room
-  const dx = c.door - 30, dy = c.top;
+  drawPowerHouse(ctx, state, c.door, c.top);
+};
+
+/**
+ * The power room, from outside, up on the roof: a corrugated steel shed with a concrete plinth, HIGH VOLTAGE plates
+ * all over it, fat conduits coming up out of the roof into it, a transformer humming behind a chain-link fence beside
+ * it, insulators on its roof with the lines running off to a pole, vents glowing and buzzing, a panel of blinking
+ * lights, and the door with DANGER over it.
+ */
+const drawPowerHouse = (ctx: Ctx, state: GameState, door: number, roof: number) => {
+  const f = state.frame, x1 = door - 170, x2 = door + 170, top = roof - 180;
+  // The plinth, and the shed on it: ribbed steel
+  ctx.fillStyle = '#57534E'; ctx.fillRect(x1 - 10, roof - 8, x2 - x1 + 20, 8);
+  ctx.fillStyle = '#6B7280'; ctx.fillRect(x1, top, x2 - x1, roof - 8 - top);
+  ctx.fillStyle = '#4B5563'; for (let x = x1 + 4; x < x2; x += 10) ctx.fillRect(x, top, 3, roof - 8 - top);
+  ctx.fillStyle = '#374151'; ctx.fillRect(x1 - 8, top - 10, x2 - x1 + 16, 12);
+  // Conduits coming up out of the roof into its side, and a cable tray along the top
+  ctx.fillStyle = '#9CA3AF';
+  for (const [cx, w] of [[x1 - 40, 14], [x1 - 22, 10]] as [number, number][]) { ctx.fillRect(cx, top + 30, w, roof - top - 30); ctx.fillRect(cx, top + 30, x1 - cx, w); }
+  ctx.fillStyle = '#1F2937'; ctx.fillRect(x1 - 50, top + 26, 60, 4);
+  // Insulators on its roof, the lines off to a pole at the corner of the roof
+  ctx.fillStyle = '#A16207';
+  for (let k = 0; k < 3; k++) { const ix = x1 + 60 + k * 90; ctx.fillRect(ix - 2, top - 34, 4, 24); for (let d = 0; d < 3; d++) { ctx.beginPath(); ctx.ellipse(ix, top - 30 + d * 7, 7, 3, 0, 0, Math.PI * 2); ctx.fill(); } }
+  ctx.strokeStyle = '#111827'; ctx.lineWidth = 2;
+  for (let k = 0; k < 3; k++) { const ix = x1 + 60 + k * 90; ctx.beginPath(); ctx.moveTo(ix, top - 34); ctx.quadraticCurveTo(x2 + 80, top - 20 + k * 4, x2 + 150, top - 90 + k * 8); ctx.stroke(); }
+  ctx.fillStyle = '#44403C'; ctx.fillRect(x2 + 146, top - 110, 8, roof - top + 110); ctx.fillRect(x2 + 128, top - 96, 44, 5);
+  // The transformer behind its fence, beside it (humming, a heat shimmer off it)
+  const tx = x2 + 20;
+  ctx.fillStyle = '#4B5563'; ctx.fillRect(tx, roof - 90, 90, 76); ctx.fillStyle = '#374151'; for (let k = 0; k < 6; k++) ctx.fillRect(tx + 6 + k * 14, roof - 86, 6, 68);
+  ctx.fillStyle = '#A16207'; for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.ellipse(tx + 20 + k * 25, roof - 96, 6, 4, 0, 0, Math.PI * 2); ctx.fill(); }
+  ctx.strokeStyle = 'rgba(203, 213, 225, 0.55)'; ctx.lineWidth = 1;
+  for (let x = tx - 6; x < tx + 104; x += 8) { ctx.beginPath(); ctx.moveTo(x, roof - 14); ctx.lineTo(x + 8, roof - 70); ctx.moveTo(x + 8, roof - 14); ctx.lineTo(x, roof - 70); ctx.stroke(); }
+  ctx.fillStyle = '#6B7280'; ctx.fillRect(tx - 6, roof - 72, 110, 3);
+  // HIGH VOLTAGE plates
+  const plate = (px: number, py: number) => { ctx.fillStyle = '#F8FAFC'; ctx.fillRect(px, py, 54, 30); ctx.fillStyle = '#DC2626'; ctx.fillRect(px, py, 54, 9); ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 5px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('DANGER', px + 27, py + 7); ctx.fillStyle = '#111827'; ctx.fillText('HIGH', px + 27, py + 18); ctx.fillText('VOLTAGE', px + 27, py + 26); ctx.textAlign = 'left'; };
+  plate(x1 + 20, top + 30); plate(x2 - 74, top + 30); plate(tx + 18, roof - 60);
+  // Vents up top, glowing and buzzing; a panel of lights blinking
+  for (let k = 0; k < 2; k++) { const vx = x1 + 30 + k * 220; ctx.fillStyle = '#1F2937'; ctx.fillRect(vx, top + 80, 60, 26); ctx.fillStyle = `rgba(56, 189, 248, ${0.4 + 0.3 * Math.sin(f * 0.3 + k)})`; for (let y = top + 84; y < top + 104; y += 5) ctx.fillRect(vx + 4, y, 52, 2); }
+  ctx.fillStyle = '#111827'; ctx.fillRect(x2 - 70, top + 118, 40, 30);
+  for (let k = 0; k < 6; k++) { ctx.fillStyle = (Math.floor(f / 10) + k * 3) % 4 === 0 ? '#EF4444' : (Math.floor(f / 7) + k) % 3 === 0 ? '#22C55E' : '#3F3F46'; ctx.fillRect(x2 - 66 + (k % 3) * 12, top + 124 + Math.floor(k / 3) * 12, 6, 6); }
+  // Now and then a spark off the lines
+  if (f % 97 < 5) { ctx.fillStyle = '#FDE047'; for (let k = 0; k < 5; k++) ctx.fillRect(x1 + 150 + hash(f + k) * 30, top - 40 + hash(f * 2 + k) * 20, 3, 3); }
+  // The door: steel, DANGER over it, the bolt on it
+  const dx = door - 30, dy = roof;
   ctx.fillStyle = '#374151'; ctx.fillRect(dx, dy - 96, 60, 96);
-  ctx.fillStyle = '#FACC15'; ctx.fillRect(dx, dy - 108, 60, 12); ctx.fillStyle = '#111827'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('DANGER', c.door, dy - 99);
-  ctx.fillStyle = '#FDE047'; ctx.beginPath(); ctx.moveTo(c.door, dy - 80); ctx.lineTo(c.door - 8, dy - 64); ctx.lineTo(c.door + 1, dy - 66); ctx.lineTo(c.door - 4, dy - 52); ctx.lineTo(c.door + 9, dy - 70); ctx.lineTo(c.door, dy - 68); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#4B5563'; ctx.fillRect(dx + 4, dy - 92, 52, 88); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(dx + 48, dy - 52, 6, 4);
+  ctx.fillStyle = '#FACC15'; ctx.fillRect(dx, dy - 108, 60, 12); ctx.fillStyle = '#111827'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('DANGER', door, dy - 99);
+  ctx.fillStyle = '#FDE047'; ctx.beginPath(); ctx.moveTo(door, dy - 80); ctx.lineTo(door - 8, dy - 64); ctx.lineTo(door + 1, dy - 66); ctx.lineTo(door - 4, dy - 52); ctx.lineTo(door + 9, dy - 70); ctx.lineTo(door, dy - 68); ctx.closePath(); ctx.fill();
   ctx.textAlign = 'left';
+  // A caged bulb over it
+  ctx.fillStyle = '#FEF3C7'; ctx.beginPath(); ctx.arc(door, dy - 118, 5, 0, Math.PI * 2); ctx.fill();
 };
 
 /** Barry's man, flat on his back in the street where the ride ended. */

@@ -285,13 +285,17 @@ const buildRoofs = (s: Part) => {
   // (its walls: in at the bottom from the street either side; the roof's open to the alley on the right)
   s.wall(B1 - 80, Y - B1TOP - 40, 80, B1TOP + 40 - 260);
   s.wall(B1 + B1W, Y - B1TOP + 20, 80, B1TOP - 20 - 260);
-  const B2 = 5690, B2W = 1000, B2TOP = 2220;
+  const B2 = 5690, B2W = 1000, B2TOP = 2220, B2_FLOOR = 1000;
   land(B2, [[20, 1020, 160], [280, 1150, 110], [520, 1260, 100], [750, 1370, 120], [560, 1490, 110], [330, 1610, 110], [90, 1740, 120], [330, 1860, 90], [550, 1975, 90], [770, 2095, 120]]);
   s.ledge(B2, Y - B2TOP, B2W, 'rooftop');
   s.spawn('pigeon', B2 + 650, Y - 1400); s.spawn('pigeon', B2 + 200, Y - 1700); s.spawn('pigeon', B2 + 700, Y - 2060);
   s.pickup(B2 + 570, Y - 1260 - 30, 'small_ammo');
   // (the alley side: open where you jump across onto its first landing, walled above and below that)
   s.wall(B2 - 80, Y - 1000, 80, 1000 - 260);
+  // (and a floor under the lot: the terrace on its setback, level with its first landing, so a fall up there comes down
+  // on that and not all the way back down to the street)
+  // (from past its first landing: the jump across onto that's still the big one)
+  s.wall(B2 + 190, Y - B2_FLOOR, B2W - 190 + 80, 30);
   s.wall(B2 - 80, Y - B2TOP - 300, 80, B2TOP + 300 - 1420);
   s.wall(B2 + B2W, Y - B2TOP - 300, 80, B2TOP + 300);
   s.lamp(B2 + 500, Y - B2TOP - 100, 0.3, 'bulb');
