@@ -83,7 +83,7 @@ const ROOFS_X0 = -52000;
 // climb from: the first off the last of the roofs, the second off the roof of the one across the alley from the first's
 // roof (a long jump).
 const B1 = 5000, B1W = 520, B1TOP = 1060, B1_BASE = 4700;
-const ALLEY = 185;
+const ALLEY = 290;
 const LEDGE_X = B1 + B1W + 60 + ALLEY, LEDGE_UP = 1020;
 const B2 = LEDGE_X + 220, B2W = 1000, B2TOP = 2220;
 const POWER_X0 = -36000;
