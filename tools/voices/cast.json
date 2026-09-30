@@ -14,7 +14,7 @@
 
   "agent": { "voice": "bm_daniel", "speed": 0.95, "rate": 0.94 },
   "president": { "voice": [["am_santa", 0.5], ["am_adam", 0.5]], "speed": 1.02, "rate": 0.9 },
-  "reporter": { "voice": "af_nicole", "speed": 1.1, "rate": 1.0 },
+  "reporter": { "voice": [["af_heart", 0.7], ["af_bella", 0.3]], "speed": 1.08, "rate": 1.0, "gain": 1.15 },
   "doorman": { "voice": "am_onyx", "speed": 0.9, "rate": 0.82, "gain": 1.1 },
   "guide": { "voice": "af_kore", "speed": 1.0, "rate": 1.0 },
   "tourist": { "voice": "af_sky", "speed": 1.05, "rate": 1.08 },
