@@ -32,6 +32,17 @@ const WALLS: Record<string, string> = {
   'Drug Trade Dale': '#B5A0AE',
 };
 
+/** The look each of them gives the camera (Tommy's stays his own: he's surfacing, grinning his head off). */
+const MUGSHOT_FACES: Record<string, string> = {
+  'Artie Avalanche': 'grim',
+  'Victor Volcano': 'grin',
+  'Ernie Earthquake': 'grump',
+  'Hector Hurricane': 'beam',
+  'Blackout Barry': 'blissed',
+  'Oily Oscar': 'wink',
+  'Drug Trade Dale': 'shifty',
+};
+
 /** His name as the booking officer would put it: no nicknames, no letters after it. */
 const bookedName = (id: string) =>
   (DOSSIERS[id]?.realName ?? id.toUpperCase()).replace(/"[^"]*"\s*/g, '').replace(/,.*$/, '').replace(/\s+/g, ' ').trim();
@@ -53,6 +64,7 @@ const BossPortrait: React.FC<{ id: string; dead?: boolean }> = ({ id, dead = fal
     // (dead: out cold and bloodied, the photo gone grey, and he doesn't move)
     const sitter = makeSitter(id);
     if (dead) sitter.health = 0;
+    else sitter.faceMood = MUGSHOT_FACES[id];
     const wall = dead ? '#8A8A8A' : WALLS[id] || '#A8A8A8';
     const name = bookedName(id), number = bookingNo(id);
     // (each card's flash goes off at its own time)

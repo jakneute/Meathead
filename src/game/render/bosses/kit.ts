@@ -17,7 +17,14 @@ export type Mood =
   | 'dazed'    // knocked silly: lids down, eyes off in two directions, tongue out
   | 'ko'       // out cold: X eyes
   | 'blissed'  // high: heavy lids, pupils like dinner plates, a big dopey smile
-  | 'shock';   // electrocuted: bolt upright, eyes wide, teeth rattling
+  | 'shock'    // electrocuted: bolt upright, eyes wide, teeth rattling
+  // Each one's own look at rest (their photos on the select screen):
+  | 'grim'     // cold and bitter: brows down flat, a hard stare, mouth turned down
+  | 'grin'     // the showman: brows up, a big wide toothy grin
+  | 'grump'    // the old crank: one brow crushed down, a squint, lips pursed in a frown
+  | 'beam'     // on air: brows high, eyes bright, every tooth in a TV smile
+  | 'wink'     // the salesman: one eye shut in a wink, a lopsided grin, the gold tooth showing
+  | 'shifty';  // up to something: worried brows, eyes darting side to side, a nervous clenched grin
 
 export interface FaceStyle {
   skin: string; shadow: string; highlight: string;
@@ -67,6 +74,8 @@ export const goreOf = (e: Enemy) => (e.maxHealth > 0 ? Math.max(0, Math.min(1, 1
 export const moodOf = (e: Enemy, frame: number, map: Partial<Record<BossState, Mood>>): Mood => {
   if (e.health <= 0) return 'ko';
   if ((e.hitCooldown ?? 0) > 30) return 'hurt';
+  // (his photo's look, when he's posing for one)
+  if (e.faceMood) return e.faceMood as Mood;
   const m = e.bossState ? map[e.bossState] : undefined;
   if (m) return m;
   if (goreOf(e) > 0.62) return frame % 300 < 40 ? 'fierce' : 'manic';
@@ -116,7 +125,7 @@ export const drawHead = (
     parts.hair?.();
     parts.hat?.();
     faceBlood(ctx, gore, frame);
-    if (mood === 'hurt' || mood === 'manic' || mood === 'shock') sweat(ctx, mood, frame);
+    if (mood === 'hurt' || mood === 'manic' || mood === 'shock' || mood === 'shifty') sweat(ctx, mood === 'shifty' ? 'manic' : mood, frame);
   });
 };
 
@@ -238,6 +247,28 @@ const brows = (ctx: CanvasRenderingContext2D, st: FaceStyle, mood: Mood, frame: 
       bar(L_EYE - 3.5, by - 2.5, L_EYE + 3, by - 2.8);
       bar(R_EYE + 3.5, by - 2.5, R_EYE - 3, by - 2.8);
       break;
+    case 'grim':
+      bar(L_EYE - 3.5, by + 0.2, L_EYE + 3, by + 1.2);
+      bar(R_EYE + 3.5, by + 0.2, R_EYE - 3, by + 1.2);
+      ctx.fillStyle = st.shadow; ctx.fillRect(-0.3, by, 0.6, 2.5);
+      break;
+    case 'grin': case 'beam':
+      bar(L_EYE - 3.5, by - 1.2, L_EYE, by - 3); bar(L_EYE, by - 3, L_EYE + 3, by - 2.2);
+      bar(R_EYE + 3.5, by - 1.2, R_EYE, by - 3); bar(R_EYE, by - 3, R_EYE - 3, by - 2.2);
+      break;
+    case 'grump':
+      bar(L_EYE - 3.5, by + 0.5, L_EYE + 3, by + 2.2);
+      bar(R_EYE + 3.5, by - 1.2, R_EYE - 3, by + 0.6);
+      ctx.fillStyle = st.shadow; ctx.fillRect(-1, by - 0.5, 0.6, 3); ctx.fillRect(0.5, by, 0.6, 2.5);
+      break;
+    case 'wink':
+      bar(L_EYE - 3.5, by + 1.2, L_EYE + 3, by + 1.4);
+      bar(R_EYE + 3.5, by - 1, R_EYE, by - 2.8); bar(R_EYE, by - 2.8, R_EYE - 3, by - 2);
+      break;
+    case 'shifty':
+      bar(L_EYE - 3.5, by + 0.3, L_EYE + 3, by - 1.4);
+      bar(R_EYE + 3.5, by + 0.3, R_EYE - 3, by - 1.4);
+      break;
     case 'dazed': case 'ko': case 'blissed':
       bar(L_EYE - 3.5, by - 0.5, L_EYE + 3, by - 0.2);
       bar(R_EYE + 3.5, by - 0.5, R_EYE - 3, by - 0.2);
@@ -277,6 +308,37 @@ const eyes = (ctx: CanvasRenderingContext2D, st: FaceStyle, mood: Mood, frame: n
         ctx.fillStyle = st.shadow; ctx.fillRect(x - 2.6, EYE_Y - 0.2, 5.2, 0.5);
       });
       return;
+    case 'grim': case 'grump':
+      // A hard, narrow stare (the old crank's is a squint, one eye lower than the other)
+      pair((x, i) => {
+        const h = mood === 'grump' ? (i ? 1.8 : 1.3) : 2;
+        if (blink) { line(ctx, [x - 2.5, EYE_Y + 0.3, x + 2.5, EYE_Y + 0.3], 0.9, pupil); return; }
+        ctx.fillStyle = white; ctx.fillRect(x - 2.5, EYE_Y - h / 2 + 0.3, 5, h);
+        ctx.fillStyle = st.iris; ctx.fillRect(x - 0.9 + px, EYE_Y - h / 2 + 0.3, 2, h);
+        ctx.fillStyle = pupil; ctx.fillRect(x - 0.4 + px, EYE_Y - h / 2 + 0.5, 1, h - 0.4);
+        ctx.fillStyle = st.shadow; ctx.fillRect(x - 2.7, EYE_Y - h / 2, 5.4, 0.7); ctx.fillRect(x - 2.4, EYE_Y + h / 2 + 0.4, 4.8, 0.5);
+      });
+      return;
+    case 'wink':
+      // One eye shut tight, the other wide and bright
+      line(ctx, [L_EYE - 2.6, EYE_Y + 0.6, L_EYE, EYE_Y - 0.6, L_EYE + 2.6, EYE_Y + 0.6], 1, pupil);
+      ctx.fillStyle = st.shadow; ctx.fillRect(L_EYE - 1.5, EYE_Y + 1.6, 3, 0.5);
+      ctx.fillStyle = white; ell(ctx, R_EYE, EYE_Y, 2.6, 2.2);
+      ctx.fillStyle = st.iris; disc(ctx, R_EYE + px, EYE_Y + 0.2, 1.6);
+      ctx.fillStyle = pupil; disc(ctx, R_EYE + px, EYE_Y + 0.2, 0.95);
+      ctx.fillStyle = white; ctx.fillRect(R_EYE + px + 0.4, EYE_Y - 0.9, 0.8, 0.8);
+      return;
+    case 'shifty': {
+      // Eyes flicking one way, then the other, then back
+      const dart = [-1.3, -1.3, 1.3, 1.3, 0, -1.3][Math.floor(frame / 28) % 6];
+      pair(x => {
+        ctx.fillStyle = white; ell(ctx, x, EYE_Y, 2.7, 2);
+        ctx.fillStyle = st.iris; disc(ctx, x + dart, EYE_Y + 0.2, 1.3);
+        ctx.fillStyle = pupil; disc(ctx, x + dart, EYE_Y + 0.2, 0.75);
+        ctx.fillStyle = st.shadow; ctx.fillRect(x - 2.7, EYE_Y - 2.1, 5.4, 0.6);
+      });
+      return;
+    }
     case 'blissed':
       pair(x => {
         ctx.fillStyle = white; ell(ctx, x, EYE_Y + 0.4, 2.7, 2.2);
@@ -289,15 +351,16 @@ const eyes = (ctx: CanvasRenderingContext2D, st: FaceStyle, mood: Mood, frame: n
       return;
     default: {
       // Wide open (smug, manic, shock): the stare of a man who has read everything and slept not at all
-      const big = mood === 'smug' ? 2.6 : 3.1;
-      const pupilR = mood === 'smug' ? 0.95 : 0.7;
-      if (mood === 'smug' && blink) {
+      const calm = mood === 'smug' || mood === 'grin' || mood === 'beam';
+      const big = calm ? (mood === 'beam' ? 2.8 : 2.6) : 3.1;
+      const pupilR = calm ? 0.95 : 0.7;
+      if (calm && blink) {
         pair(x => line(ctx, [x - 2.5, EYE_Y + 0.3, x + 2.5, EYE_Y + 0.3], 0.9, pupil));
         return;
       }
       pair((x, i) => {
         ctx.fillStyle = white; ell(ctx, x, EYE_Y, big, big * 0.85);
-        if (mood !== 'smug') {
+        if (!calm) {
           // Bloodshot
           ctx.save(); ctx.globalAlpha = 0.8;
           line(ctx, [x - big, EYE_Y, x - big * 0.4, EYE_Y + 0.4], 0.35, '#DC2626');
@@ -305,7 +368,7 @@ const eyes = (ctx: CanvasRenderingContext2D, st: FaceStyle, mood: Mood, frame: n
           ctx.restore();
         }
         const jit = mood === 'shock' ? (Math.sin(frame * 2.3 + i) * 0.5) : mood === 'manic' && i === 1 ? Math.sin(frame * 0.7) * 0.3 : 0;
-        ctx.fillStyle = st.iris; disc(ctx, x + px + jit, EYE_Y + 0.2, mood === 'smug' ? 1.6 : 1.3);
+        ctx.fillStyle = st.iris; disc(ctx, x + px + jit, EYE_Y + 0.2, calm ? 1.6 : 1.3);
         ctx.fillStyle = pupil; disc(ctx, x + px + jit, EYE_Y + 0.2, i === 1 && mood === 'manic' ? pupilR * 0.7 : pupilR);
         ctx.fillStyle = white; ctx.fillRect(x + px + 0.4, EYE_Y - 0.9, 0.7, 0.7);
         // Upper lid
@@ -369,6 +432,60 @@ const mouth = (ctx: CanvasRenderingContext2D, st: FaceStyle, mood: Mood, frame: 
     case 'ko':
       ctx.fillStyle = dark; ell(ctx, 1, my + 1, 2.2, 1.4);
       break;
+    case 'grim':
+      // Turned down hard at the corners
+      line(ctx, [-5, my + 2.2, -2, my + 0.9, 3, my + 0.9, 6, my + 2.4], 1.1, lip);
+      ctx.fillStyle = st.shadow; ctx.fillRect(-1, my + 3.4, 3, 0.5);
+      break;
+    case 'grump':
+      // Pursed, pushed out, turned down, the chin all bunched up under it
+      ctx.fillStyle = lip; ell(ctx, 0.8, my + 1.4, 2.6, 1.3);
+      ctx.fillStyle = dark; ctx.fillRect(-0.6, my + 1.2, 2.8, 0.5);
+      line(ctx, [-3.5, my + 2.8, -1.5, my + 1.6], 0.7, st.shadow);
+      line(ctx, [5, my + 2.8, 3, my + 1.6], 0.7, st.shadow);
+      ctx.fillStyle = st.shadow; for (let i = 0; i < 3; i++) ctx.fillRect(-1.5 + i * 1.6, my + 4.3, 0.6, 0.6);
+      break;
+    case 'grin': {
+      // Wide open and pleased with itself: the top teeth, a dark mouth, corners right up
+      ctx.fillStyle = dark;
+      ctx.beginPath(); ctx.moveTo(-6, my - 1.2); ctx.quadraticCurveTo(0.5, my + 6, 7, my - 1.4); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = teeth; ctx.fillRect(-4.8, my - 1, 10.6, 1.6);
+      toothLines(-4.8, 5.8, my - 1, 1.6);
+      ctx.fillStyle = '#DC2626'; ell(ctx, 0.8, my + 2.6, 2.6, 1);
+      line(ctx, [-6, my - 1.2, -6.8, my - 2.2], 0.6, st.shadow); line(ctx, [7, my - 1.4, 7.8, my - 2.4], 0.6, st.shadow);
+      break;
+    }
+    case 'beam': {
+      // The TV smile: a wide curve of teeth, both rows, corners pulled right up into the cheeks
+      ctx.fillStyle = lip;
+      ctx.beginPath(); ctx.moveTo(-6.6, my - 2); ctx.quadraticCurveTo(0.5, my + 0.2, 7.4, my - 2.2); ctx.quadraticCurveTo(0.5, my + 7, -6.6, my - 2); ctx.fill();
+      ctx.fillStyle = teeth;
+      ctx.beginPath(); ctx.moveTo(-5.6, my - 1.2); ctx.quadraticCurveTo(0.5, my + 0.8, 6.4, my - 1.4); ctx.quadraticCurveTo(0.5, my + 5.6, -5.6, my - 1.2); ctx.fill();
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)'; ctx.lineWidth = 0.4;
+      ctx.beginPath(); ctx.moveTo(-5, my - 0.4); ctx.quadraticCurveTo(0.5, my + 2.6, 5.8, my - 0.6); ctx.stroke();
+      toothLines(-4.6, 5.4, my - 0.2, 2.4);
+      ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-3, my - 0.2, 1.2, 0.7); // the shine on them
+      line(ctx, [-6.6, my - 2, -7.4, my - 3.2], 0.6, st.shadow); line(ctx, [7.4, my - 2.2, 8.2, my - 3.4], 0.6, st.shadow);
+      break;
+    }
+    case 'wink': {
+      // Lopsided, up on the winking side, teeth showing that side (and the gold one)
+      ctx.fillStyle = dark;
+      ctx.beginPath(); ctx.moveTo(-5.5, my - 1.5); ctx.quadraticCurveTo(-1, my + 3.4, 5.5, my + 0.6); ctx.quadraticCurveTo(0, my + 0.8, -5.5, my - 1.5); ctx.fill();
+      ctx.fillStyle = teeth; ctx.beginPath(); ctx.moveTo(-5, my - 1.2); ctx.quadraticCurveTo(-1, my + 1.8, 4.5, my + 0.6); ctx.lineTo(4.5, my + 0.1); ctx.quadraticCurveTo(-1, my + 0.6, -5, my - 1.2); ctx.fill();
+      if (st.goldTooth) { ctx.fillStyle = '#FACC15'; ctx.fillRect(-3.4, my - 0.4, 1.6, 1.2); }
+      ctx.fillStyle = st.shadow; ctx.fillRect(-6.3, my - 2.6, 0.6, 1.6);
+      break;
+    }
+    case 'shifty': {
+      // A tight, nervous grin, teeth clenched, the corners twitching
+      const tw = frame % 40 < 3 ? 0.6 : 0;
+      ctx.fillStyle = dark; ctx.beginPath(); ctx.roundRect(-5, my - 0.2 - tw, 10, 2.8, 1); ctx.fill();
+      ctx.fillStyle = teeth; ctx.fillRect(-4.5, my + 0.1 - tw, 9, 2.1);
+      toothLines(-4.5, 4.5, my + 0.1 - tw, 2.1);
+      line(ctx, [-5, my + 0.6, -6, my - 0.4 - tw], 0.6, st.shadow); line(ctx, [5, my + 0.6, 6, my + 1.4], 0.6, st.shadow);
+      break;
+    }
     case 'blissed': {
       ctx.fillStyle = dark;
       ctx.beginPath(); ctx.moveTo(-5, my - 0.5); ctx.quadraticCurveTo(0.5, my + 5, 6, my - 0.8); ctx.quadraticCurveTo(0.5, my + 1.5, -5, my - 0.5); ctx.fill();

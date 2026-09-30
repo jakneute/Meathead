@@ -364,6 +364,8 @@ export interface Enemy extends Entity {
   pukeSweepProgress?: number;
   pukeType?: 'closing_in' | 'going_outward';
   pukeDir?: number;
+  /** A boss posing for a photo: the look on his face (see the render kit's moods). */
+  faceMood?: string;
   emergeY?: number;
   // Oily Oscar
   oscarFacing?: 1 | -1;
