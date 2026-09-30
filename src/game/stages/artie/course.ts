@@ -141,6 +141,24 @@ export const buildCourse = (): Course => {
   spawn('shielder', c.x - 200);
   spawn('eagle', c.x - 90, 220);
   pickups.push({ x: c.x - 60, y: c.y - 30, type: 'small_health' });
+  // One more stretch before the station: a climb under icicles with a goat and a wolverine coming down it, then a
+  // crevasse on crumbling ice with an eagle over it, a goon and a shield goon waiting on the far side
+  const climb2 = c.x;
+  c.slope(360, -80);
+  overhang(climb2 + 80, climb2 + 300, 200, [climb2 + 120, climb2 + 200, climb2 + 280]);
+  spawn('goat', climb2 + 300);
+  spawn('wolverine', climb2 + 340);
+  c.flat(160);
+  const crev2b = c.x;
+  c.pit(300);
+  ledges.push({ x: crev2b + 40, y: c.y, w: 80, crumble: true });
+  ledges.push({ x: crev2b + 175, y: c.y - 20, w: 80, crumble: true });
+  spawn('eagle', crev2b + 200, 240);
+  c.flat(620);
+  ledges.push({ x: c.x - 380, y: c.y - 105, w: 110, crumble: false });
+  spawn('shooter', c.x - 330, 105);
+  spawn('shielder', c.x - 150);
+  pickups.push({ x: c.x - 520, y: c.y - 30, type: 'small_ammo' });
   c.slope(200, -40);
   c.flat(200);
   // The lower tram station: the cabin's docked on the deck
@@ -202,6 +220,26 @@ export const buildCourse = (): Course => {
   spawn('charger', c.x - 240);
   spawn('eagle', c.x - 130, 230);
   spawn('shielder', c.x - 60);
+  // One more stretch before the ridge: big snowballs down a slope into gusts of wind (hold your ground or get bowled),
+  // a last crevasse with the wind across it, then the wildlife up top
+  const slope5 = c.x;
+  c.slope(450, -120);
+  chutes.push({ x: c.x - 10, y: c.y, every: 150, size: 50, speed: 4, from: slope5 - 200 });
+  winds.push({ x1: slope5, x2: slope5 + 450, push: -1.8, gust: { on: 90, off: 120 } });
+  c.flat(220);
+  spawn('shooter', c.x - 120);
+  const crev5 = c.x;
+  c.pit(360);
+  ledges.push({ x: crev5 + 40, y: c.y, w: 75, crumble: true });
+  ledges.push({ x: crev5 + 150, y: c.y - 30, w: 75, crumble: false });
+  ledges.push({ x: crev5 + 260, y: c.y - 5, w: 70, crumble: true });
+  winds.push({ x1: crev5 - 40, x2: crev5 + 380, push: -2, gust: { on: 90, off: 110 } });
+  spawn('eagle', crev5 + 180, 230);
+  c.flat(560);
+  spawn('goat', c.x - 360);
+  spawn('wolverine', c.x - 220);
+  spawn('wolverine', c.x - 160);
+  pickups.push({ x: c.x - 480, y: c.y - 30, type: 'small_health' });
   // The summit ridge, and a skier admiring the view
   c.flat(280);
   const skier = { x: c.x - 60, y: c.y };
@@ -219,28 +257,35 @@ export const buildCourse = (): Course => {
   };
   /** A little kicker, then a crevasse to jump. */
   const jump = (gap: number) => { c.slope(70, -16); c.pit(gap, 30); };
-  run(400, 70, [['rock', 300]]);
-  run(500, 90, [['log', 260]]);
-  run(300, 50);
-  jump(140);
-  run(400, 80, [['branch', 220]]);
-  run(500, 100, [['pine', 300]]);
-  run(400, 70, [['rock', 150], ['rock', 330]]);
-  run(300, 40);
-  jump(170);
-  run(500, 110, [['log', 200], ['branch', 400]]);
-  run(600, 120, [['pine', 250]]);
-  run(400, 55);
-  jump(180);
-  run(500, 120, [['rock', 150], ['log', 350]]);
-  run(500, 110, [['branch', 150], ['pine', 380]]);
-  run(400, 90);
-  jump(160);
-  run(600, 140, [['rock', 200], ['pine', 420]]);
-  run(500, 110, [['log', 150], ['branch', 330]]);
-  run(500, 100, [['rock', 180], ['log', 380]]);
-  jump(150);
-  run(500, 110, [['pine', 200], ['branch', 400]]);
+  // The run, as a plan: each stretch's length and how steep it is (relative), the obstacles along it, the jumps. The
+  // drops are fitted to the height there is to come down, leaving the last of it for the run-out at the bottom
+  type Step = { run: number; steep: number; obs?: [SkiObstacleKind, number][] } | { jump: number };
+  const PLAN: Step[] = [
+    { run: 400, steep: 70, obs: [['rock', 300]] }, { run: 500, steep: 90, obs: [['log', 260]] }, { run: 300, steep: 50 }, { jump: 140 },
+    { run: 400, steep: 80, obs: [['branch', 220]] }, { run: 500, steep: 100, obs: [['pine', 300]] }, { run: 400, steep: 70, obs: [['rock', 150], ['rock', 330]] },
+    { run: 300, steep: 40 }, { jump: 170 },
+    { run: 500, steep: 110, obs: [['log', 200], ['branch', 400]] }, { run: 600, steep: 120, obs: [['pine', 250]] }, { run: 400, steep: 55 }, { jump: 180 },
+    { run: 500, steep: 120, obs: [['rock', 150], ['log', 350]] }, { run: 500, steep: 110, obs: [['branch', 150], ['pine', 380]] }, { run: 400, steep: 90 }, { jump: 160 },
+    { run: 600, steep: 140, obs: [['rock', 200], ['pine', 420]] }, { run: 500, steep: 110, obs: [['log', 150], ['branch', 330]] },
+    { run: 500, steep: 100, obs: [['rock', 180], ['log', 380]] }, { jump: 150 },
+    { run: 500, steep: 110, obs: [['pine', 200], ['branch', 400]] },
+    // (the longer way down: a stretch through the trees, a double jump, a slalom of rocks and branches, a last long drop)
+    { run: 500, steep: 90, obs: [['pine', 120], ['pine', 300], ['branch', 440]] }, { run: 400, steep: 70, obs: [['log', 260]] }, { jump: 150 },
+    { run: 250, steep: 40 }, { jump: 170 },
+    { run: 500, steep: 120, obs: [['rock', 120], ['branch', 260], ['rock', 400]] }, { run: 500, steep: 110, obs: [['branch', 140], ['log', 300], ['pine', 440]] },
+    { run: 400, steep: 80 }, { jump: 190 },
+    { run: 600, steep: 150, obs: [['log', 180], ['rock', 360], ['branch', 520]] }, { run: 500, steep: 110, obs: [['pine', 220], ['rock', 400]] },
+    { run: 400, steep: 70, obs: [['branch', 200]] }, { jump: 160 },
+    { run: 600, steep: 130, obs: [['rock', 200], ['log', 420]] },
+  ];
+  const jumps = PLAN.filter(p => 'jump' in p).length;
+  const height = GROUND_Y - c.y - jumps * 14;
+  const steepTotal = PLAN.reduce((n, p) => n + ('run' in p ? p.steep : 0), 0);
+  const k = (height * 0.8) / steepTotal;
+  for (const p of PLAN) {
+    if ('jump' in p) jump(p.jump);
+    else run(p.run, p.steep * k, p.obs);
+  }
   // The rest of the way down to the valley floor, easing out
   const drop = GROUND_Y - c.y;
   run(900, drop * 0.7, [['rock', 300], ['log', 620]]);
