@@ -2,8 +2,10 @@
 // stopping for anyone. A horn and headlights at the edge of the screen first
 // (most come up from behind you; now and then one comes the wrong way), then a
 // minivan doing sixty. Get hit and you're flung down the road (maybe into a
-// gap). Jump on the roof and it'll carry you, right up until it drives into a
-// hole in the deck. Anything of Ernie's in the road is roadkill.
+// gap). Jump on the roof and it'll carry you. A hole in the deck doesn't stop
+// it: it launches off the lip and comes flying over after you, lands in a
+// ball of fire and goes tumbling down the road, burning (or, short of the far
+// side, down the hole). Anything of Ernie's in the road is roadkill.
 
 import type { Block } from '../../../types';
 import type { FrameContext } from '../../core/context';
@@ -12,6 +14,7 @@ import { playSound } from '../../platform/audio';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 import { floorTopAt } from '../../core/terrain';
 import { GROUND_Y, CANVAS_WIDTH } from '../../../constants';
+import { shakeScreen } from '../../core/state';
 import { COURSE } from './course';
 
 export interface Car {
@@ -22,8 +25,11 @@ export interface Car {
   vy: number;
   rot: number;
   color: string;
-  /** Coming (only its horn and headlights at the edge of the view yet), driving, or going into a gap. */
-  state: 'coming' | 'driving' | 'falling';
+  /**
+   * Coming (only its horn and headlights at the edge of the view yet), driving, launched off the lip of a gap (flying
+   * over it after you), crashed (landed in a fireball, tumbling down the road, then a burning wreck), or going down a gap.
+   */
+  state: 'coming' | 'driving' | 'launched' | 'crashed' | 'falling';
   t: number;
   /** You can stand on the roof. */
   roof: Block;
@@ -63,33 +69,94 @@ export const updateTraffic = (ctx: FrameContext, tr: Traffic) => {
       continue;
     }
     if (c.state === 'driving') drive(ctx, c);
+    else if (c.state === 'launched') flying(ctx, c);
+    else if (c.state === 'crashed') tumbling(ctx, c);
     else { c.vy += 0.6; c.y += c.vy; c.x += c.dir * c.speed * 0.4; c.rot += c.dir * 0.035; }
     c.roof.x = c.x; c.roof.y = c.y - CAR_H;
   }
   // Gone: off out of view, or down the hole
   tr.cars = tr.cars.filter(c => {
-    const gone = (c.state === 'falling' && c.y > GROUND_Y + 700) || (c.state === 'driving' && (c.x > state.camera.x + CANVAS_WIDTH + 400 || c.x < state.camera.x - 400 - CAR_W));
+    const gone = (c.state === 'falling' && c.y > GROUND_Y + 700) || (c.state !== 'coming' && c.state !== 'falling' && (c.x > state.camera.x + CANVAS_WIDTH + 400 || c.x < state.camera.x - 400 - CAR_W));
     if (gone) state.blocks = state.blocks.filter(b => b !== c.roof);
     return !gone;
   });
 };
 
 const drive = (ctx: FrameContext, c: Car) => {
-  const { state, fx } = ctx;
+  const { state } = ctx;
   const p = state.player;
   const dx = c.dir * c.speed;
   // Riding on the roof: it takes you with it
   const riding = p.isGrounded && p.pos.x + p.width > c.x && p.pos.x < c.x + CAR_W && Math.abs(p.pos.y + p.height - c.roof.y) < 3;
   c.x += dx;
   if (riding) p.pos.x += dx;
-  // Nose out over a gap in the deck: in it goes
+  // Nose out over a gap in the deck: it doesn't stop, it launches off the lip and comes flying over after you
   const front = c.dir > 0 ? c.x + CAR_W - 18 : c.x + 18;
-  if (floorTopAt(state.blocks.filter(b => b.tag !== 'car-roof'), front, c.y, 4) === null) {
-    c.state = 'falling'; c.t = 0;
-    state.blocks = state.blocks.filter(b => b !== c.roof);
-    playSound('horn');
+  if (floorTopAt(deck(state), front, c.y, 4) === null) {
+    c.state = 'launched'; c.t = 0;
+    c.vy = -9;
+    c.speed *= 1.15;
+    playSound('horn'); playSound('engine', 1, 5);
     return;
   }
+  hitThings(ctx, c);
+};
+
+/** The deck under it (not a car roof). */
+const deck = (state: FrameContext['state']) => state.blocks.filter(b => b.tag !== 'car-roof');
+
+/** In the air over the gap, nose up then down: it comes down on the far side (a fireball) or short of it (down the hole). */
+const flying = (ctx: FrameContext, c: Car) => {
+  const { state } = ctx;
+  const p = state.player;
+  const riding = p.isGrounded && p.pos.x + p.width > c.x && p.pos.x < c.x + CAR_W && Math.abs(p.pos.y + p.height - c.roof.y) < 3;
+  c.vy += 0.55; c.y += c.vy;
+  c.x += c.dir * c.speed;
+  if (riding) { p.pos.x += c.dir * c.speed; p.pos.y += c.vy; }
+  c.rot = Math.max(-0.35, Math.min(0.35, c.vy * 0.03)) * c.dir;
+  hitThings(ctx, c);
+  if (c.vy <= 0) return;
+  // Down: onto deck, or not
+  const mid = c.x + CAR_W / 2;
+  const top = floorTopAt(deck(state), mid, c.y - 10, 30);
+  if (top !== null && c.y >= top) { c.y = top; crash(ctx, c); return; }
+  if (c.y > GROUND_Y + 20) { c.state = 'falling'; state.blocks = state.blocks.filter(b => b !== c.roof); }
+};
+
+/** Comes down in a ball of fire: whoever's on the roof is thrown off, and it goes tumbling on down the road. */
+const crash = (ctx: FrameContext, c: Car) => {
+  const { state, fx } = ctx;
+  const p = state.player;
+  c.state = 'crashed'; c.t = 0; c.vy = 0;
+  const onRoof = p.pos.x + p.width > c.x && p.pos.x < c.x + CAR_W && Math.abs(p.pos.y + p.height - c.roof.y) < 12;
+  state.blocks = state.blocks.filter(b => b !== c.roof);
+  if (onRoof) { p.vel.y = -12; p.vel.x = c.dir * 6; p.isGrounded = false; }
+  const cx = c.x + CAR_W / 2, cy = c.y - CAR_H / 2;
+  playSound('boom'); playSound('crash');
+  shakeScreen(state, 25, 9);
+  fx.spawnExplosion({ x: cx, y: cy }, '#F97316', 30, 0, 18);
+  fx.spawnExplosion({ x: cx, y: cy }, '#FDE047', 18, 0, 12);
+  fx.spawnExplosion({ x: cx, y: cy }, '#1C1917', 18, 0, 14);
+  for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: cx, y: cy }, vel: { x: (Math.random() - 0.5) * 12, y: -3 - Math.random() * 8 }, life: 40 + Math.random() * 30, color: i % 3 ? c.color : '#9CA3AF', size: 3 + Math.random() * 5 });
+};
+
+/** Rolling over and over on down the road on fire, slowing, then a burning wreck (or over the edge of the next gap). */
+const tumbling = (ctx: FrameContext, c: Car) => {
+  const { state } = ctx;
+  c.speed *= 0.95;
+  c.x += c.dir * c.speed;
+  c.rot += c.dir * c.speed * 0.02;
+  if (c.speed > 1.5) hitThings(ctx, c);
+  if (state.frame % 3 === 0) state.particles.push({ pos: { x: c.x + CAR_W * Math.random(), y: c.y - CAR_H * Math.random() }, vel: { x: (Math.random() - 0.5), y: -1.5 - Math.random() * 2 }, life: 30, color: Math.random() < 0.5 ? '#F97316' : '#FDE047', size: 4 + Math.random() * 5 });
+  if (state.frame % 5 === 0) state.particles.push({ pos: { x: c.x + CAR_W / 2, y: c.y - CAR_H }, vel: { x: (Math.random() - 0.5) * 0.6, y: -1 - Math.random() }, life: 60, color: 'rgba(40, 36, 34, 0.6)', size: 8 + Math.random() * 8 });
+  // (tumbling on over the lip of another gap: down it goes)
+  if (floorTopAt(deck(state), c.x + CAR_W / 2, c.y, 4) === null) { c.state = 'falling'; c.vy = 0; }
+};
+
+/** Whatever's in the way of it: him (unless he's up on the roof), and anything of Ernie's in the road. */
+const hitThings = (ctx: FrameContext, c: Car) => {
+  const { state, fx } = ctx;
+  const p = state.player;
   const body = { x: c.x, y: c.y - CAR_H, w: CAR_W, h: CAR_H };
   // Hit him (unless he's up on the roof)
   const pb = boundsOf(p);

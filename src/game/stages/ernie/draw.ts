@@ -417,6 +417,8 @@ const drawTrafficCar = (ctx: Ctx, c: Car, f: number) => {
   ctx.translate(c.x + CAR_W / 2, c.y);
   ctx.rotate(c.rot);
   ctx.scale(c.dir, 1);
+  // (crashed: burnt out, on fire)
+  if (c.state === 'crashed') ctx.filter = 'brightness(0.35)';
   const w = CAR_W, h = CAR_H;
   // Body, with a sloped nose
   ctx.fillStyle = c.color;
@@ -444,6 +446,14 @@ const drawTrafficCar = (ctx: Ctx, c: Car, f: number) => {
     ctx.strokeStyle = '#6B7280'; ctx.lineWidth = 2;
     const a = f * 0.9 * (c.state === 'driving' ? 1 : 0.3);
     ctx.beginPath(); ctx.moveTo(wx + Math.cos(a) * 5, -7 + Math.sin(a) * 5); ctx.lineTo(wx - Math.cos(a) * 5, -7 - Math.sin(a) * 5); ctx.stroke();
+  }
+  if (c.state === 'crashed') {
+    ctx.filter = 'none';
+    for (let i = 0; i < 6; i++) {
+      const fx = -CAR_W / 2 + 10 + i * 16, h = 18 + Math.sin(f * 0.4 + i * 2) * 8;
+      ctx.fillStyle = i % 2 ? 'rgba(249, 115, 22, 0.9)' : 'rgba(253, 224, 71, 0.85)';
+      ctx.beginPath(); ctx.moveTo(fx - 7, -CAR_H + 4); ctx.quadraticCurveTo(fx + Math.sin(f * 0.3 + i) * 5, -CAR_H - h, fx + 7, -CAR_H + 4); ctx.fill();
+    }
   }
   ctx.restore();
   // Smoke off the tires
