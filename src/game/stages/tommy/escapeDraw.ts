@@ -502,10 +502,54 @@ export const drawRuinsHouse = (ctx: Ctx, state: GameState) => {
   }
   // The TV on its side, still on
   ctx.fillStyle = '#1C1917'; ctx.fillRect(hx + 190, y - 50, 60, 46); ctx.fillStyle = f % 6 < 3 ? '#E5E7EB' : '#9CA3AF'; ctx.fillRect(hx + 196, y - 44, 48, 34);
+  drawLairSign(ctx, state);
   // The water, pooled and smoking, all along the block
   ctx.fillStyle = 'rgba(92, 104, 36, 0.8)';
   for (const [dx, w] of [[-1060, 220], [-560, 240], [0, 300], [720, 160]] as [number, number][]) { ctx.beginPath(); ctx.ellipse(hx + dx, y - 2, w, 8, 0, 0, Math.PI * 2); ctx.fill(); }
   ctx.fillStyle = 'rgba(163, 190, 120, 0.25)'; for (let k = 0; k < 10; k++) { const t = ((f * 0.6 + k * 30) % 150) / 150; ctx.beginPath(); ctx.arc(hx - 1200 + k * 200, y - 10 - t * 100, 8 + t * 18, 0, Math.PI * 2); ctx.fill(); }
+};
+
+/**
+ * A big dumb neon sign on a pole right in front of the hole: TOMMY'S LAIR in green neon, chase lights round its edge,
+ * and a fat arrow under it flashing, pointing straight down the hole. (Who put it up is anyone's guess.)
+ */
+const drawLairSign = (ctx: Ctx, state: GameState) => {
+  const P = COURSE.ruins.pit, PW = COURSE.ruins.pitW, y = RUINS_Y, f = state.frame;
+  const sx = P - 120, sy = y - 300;
+  // (big: scaled up about its middle)
+  ctx.save(); ctx.translate(sx, sy + 31); ctx.scale(1.4, 1.4); ctx.translate(-sx, -(sy + 31));
+  // The pole, and a little buzzing transformer box on it
+  ctx.fillStyle = '#3F3F46'; ctx.fillRect(sx - 4, sy + 60, 8, (y - sy - 60) / 1.4 + 20);
+  // The board
+  ctx.fillStyle = '#18181B'; ctx.fillRect(sx - 110, sy, 220, 62);
+  ctx.strokeStyle = '#3F3F46'; ctx.lineWidth = 3; ctx.strokeRect(sx - 110, sy, 220, 62);
+  // Chase lights round its edge
+  for (let i = 0; i < 26; i++) {
+    const perim = 2 * (220 + 62), d = (i / 26) * perim;
+    const [lx, ly] = d < 220 ? [sx - 110 + d, sy] : d < 282 ? [sx + 110, sy + d - 220] : d < 502 ? [sx + 110 - (d - 282), sy + 62] : [sx - 110, sy + 62 - (d - 502)];
+    ctx.fillStyle = (i + Math.floor(f / 5)) % 3 === 0 ? '#FDE047' : '#713F12';
+    ctx.beginPath(); ctx.arc(lx, ly, 3, 0, Math.PI * 2); ctx.fill();
+  }
+  // TOMMY'S LAIR, buzzing (it cuts out now and then)
+  const on = (f % 97) > 6 && (f % 41) !== 3;
+  ctx.save();
+  ctx.font = 'bold 20px "Press Start 2P"'; ctx.textAlign = 'center';
+  ctx.shadowColor = '#84CC16'; ctx.shadowBlur = on ? 16 : 0;
+  ctx.fillStyle = on ? '#D9F99D' : '#365314';
+  ctx.fillText("TOMMY'S", sx, sy + 28);
+  ctx.fillText('LAIR', sx, sy + 54);
+  ctx.restore();
+  ctx.restore();
+  // The arrow: from the sign, out over the hole and straight down it, flashing
+  const lit = Math.floor(f / 12) % 2 === 0;
+  ctx.save();
+  ctx.strokeStyle = lit ? '#F472B6' : '#6B213F'; ctx.lineWidth = 8; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.shadowColor = '#F472B6'; ctx.shadowBlur = lit ? 14 : 0;
+  const ax = P + PW / 2;
+  ctx.beginPath(); ctx.moveTo(sx + 154, sy + 31); ctx.lineTo(ax, sy + 31); ctx.lineTo(ax, y - 30); ctx.stroke();
+  ctx.fillStyle = ctx.strokeStyle;
+  ctx.beginPath(); ctx.moveTo(ax - 22, y - 40); ctx.lineTo(ax + 22, y - 40); ctx.lineTo(ax, y - 8); ctx.closePath(); ctx.fill();
+  ctx.restore();
 };
 
 /** Somebody else's house on the block, after: stumps of wall, a doorframe on its own, a tub or a fridge, a skeleton. */

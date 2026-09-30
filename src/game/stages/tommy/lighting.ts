@@ -30,6 +30,9 @@ export const tommyScene = (state: GameState): SceneLight | null => {
     const lights: Light[] = [];
     const H = COURSE.ruins.house;
     if (nearView(state, H)) lights.push({ x: H + 220, y: RUINS_Y - 28, r: 160, a: 0.8 + (state.frame % 6 < 3 ? 0.15 : 0), color: 'rgba(191, 219, 254, 0.14)' });
+    // The neon sign over the hole, glowing green
+    const P = COURSE.ruins.pit;
+    if (nearView(state, P)) lights.push({ x: P - 100, y: RUINS_Y - 250, r: 260, a: 0.9, color: 'rgba(163, 230, 53, 0.16)' });
     // Down at the bottom: a work light by the door
     if (state.camera.y > RUINS_Y + 1200) lights.push({ x: BOSS_DOOR_X - 200, y: GROUND_Y - 260, r: 360, a: 0.9, cone: 170, color: 'rgba(253, 230, 138, 0.1)' });
     return { dark: state.camera.y > RUINS_Y + 1200 ? 0.4 : 0.26, shade: [30, 16, 44], lights };
