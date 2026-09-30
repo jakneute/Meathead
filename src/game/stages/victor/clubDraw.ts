@@ -147,7 +147,7 @@ const drawSolids = (ctx: Ctx, state: GameState) => {
 /** The atrium: glossy black walls with neon run up them, a lava lamp the height of it, the staircase at its foot. */
 const drawAtrium = (ctx: Ctx, state: GameState) => {
   const A = COURSE.atrium, f = state.frame;
-  const top = Math.max(A.top - 520, state.camera.y - 20), bottom = Math.min(A.floor + 200, state.camera.y + CANVAS_HEIGHT + 20);
+  const top = Math.max(A.top - 520, state.camera.y - 20), bottom = Math.min(A.floor, state.camera.y + CANVAS_HEIGHT + 20); // (down to the floor: the floor under it is drawn, not covered)
   const back = ctx.createLinearGradient(A.x1, 0, A.x2, 0);
   back.addColorStop(0, '#0B0710'); back.addColorStop(0.5, '#150B1E'); back.addColorStop(1, '#0B0710');
   ctx.fillStyle = back; ctx.fillRect(A.x1, top, A.x2 - A.x1, bottom - top);
