@@ -2,11 +2,12 @@
 // bloodshot human eyeball hanging dead centre in the storm, never moving, its
 // pupil following you about. The Eye itself is harmless (land on it and you just
 // bounce off it); what hurts is all the junk the storm flings at you from off
-// screen (a warning flashes at the edge first). The junk you stand on gives way
-// if you stay on one piece too long (it wobbles first), and once it's gone it's
-// gone: dawdle and you'll run out of places to stand. It blinks when it's taken
-// too much (shots ping off the lid). Shoulder charge into it and it goes red and
-// bawls.
+// screen (a warning flashes at the edge first). The junk you stand on wears out
+// under you: every moment you're stood on a piece takes some out of it (in the
+// air it doesn't), none of it comes back, it wobbles once it's nearly done, and
+// once it's gone it's gone: dawdle and you'll run out of places to stand. It
+// blinks when it's taken too much (shots ping off the lid). Any of his power moves
+// into it (a charge, a slide, an uppercut, a dive kick) hurts it: it goes red and bawls.
 //
 // Mid-boss rules: no invincibility, lots of health, immune to status effects.
 // Kill it and it dies a different grotesque way depending on what you used, and
@@ -15,7 +16,7 @@
 import type { Block, Enemy, Projectile, WeaponType } from '../../../types';
 import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
-import { BOSS_CHARGE_DAMAGE } from '../../../constants';
+import { BOSS_CHARGE_DAMAGE, BOSS_UPPERCUT_DAMAGE, BOSS_DIVEKICK_DAMAGE } from '../../../constants';
 import { midBossProjectileDamage } from '../../combat/midBoss';
 import { hurtPlayer } from '../../bosses/shared';
 import { shakeScreen } from '../../core/state';
@@ -62,8 +63,9 @@ const PLATS = [
   { x: 20, y: 480, w: 170, high: false }, { x: 150, y: 360, w: 140, high: true }, { x: 290, y: 540, w: 220, high: false },
   { x: 610, y: 480, w: 170, high: false }, { x: 510, y: 360, w: 140, high: true },
 ];
-/** Stand on one piece this long and it starts to wobble; this long and it goes (it settles again at half the rate when you're off it). */
+/** How much each piece can take (frames stood on it, all told): past the first it wobbles, at the second it goes. Nothing wears it off him in the air, and nothing puts it back. */
 const WEAR_WOBBLE = 110, WEAR_FALL = 200;
+export const EYE_WEAR_FALL = WEAR_FALL;
 const JUNK_DAMAGE = 12, JUNK_WARN = 45;
 const JUNK_LOOKS = ['chair', 'flamingo', 'cart', 'sign', 'tire', 'cow', 'jetski', 'grill'];
 /** How big each is (drawn about 44x36 at 1): life size next to him, near enough. A whole cow's a big thing to have coming at you. */
@@ -138,11 +140,11 @@ const updatePlats = (ctx: FrameContext, f: EyeFight) => {
     p.t++;
     const b = p.block;
     const on = player.isGrounded && player.pos.x + player.width > b.x && player.pos.x < b.x + b.w && Math.abs(player.pos.y + player.height - b.y) < 4;
-    // Worn down while he stands on it (only while the fight's on), settling slowly when he's off it
+    // Worn down while he stands on it (only while the fight's on); off it (in the air) it just stops, and the damage
+    // stays: it doesn't settle back
     if (f.phase === 'fight' && (p.state === 'solid' || p.state === 'shake')) {
-      p.wear = on ? p.wear + 1 : Math.max(0, p.wear - 0.5);
+      if (on) p.wear++;
       if (p.state === 'solid' && p.wear > WEAR_WOBBLE) { p.state = 'shake'; p.t = 0; playSound('crack'); }
-      else if (p.state === 'shake' && p.wear <= WEAR_WOBBLE) { p.state = 'solid'; p.t = 0; }
       else if (p.state === 'shake' && p.wear >= WEAR_FALL) { p.state = 'fall'; p.t = 0; state.blocks = state.blocks.filter(x => x !== b); shakeScreen(state, 8, 3); }
     }
     switch (p.state) {
@@ -251,24 +253,31 @@ export const updateEye = (ctx: FrameContext, e: Enemy, f: EyeFight): boolean => 
   f.attackT++;
   f.aim.x += (target.x - f.aim.x) * 0.1; f.aim.y += (target.y - f.aim.y) * 0.1;
   if (f.attack === 'blink' && f.attackT > BLINK_FRAMES) { f.attack = 'idle'; f.attackT = 0; f.recentDamage = 0; }
-  // It's harmless to touch: land on it and you bounce off; charge into it and it goes red and bawls
+  // It's harmless to touch: land on it and you bounce off; any power move into it (a charge, a slide, an uppercut,
+  // a dive kick) hurts it, and it goes red and bawls, and he rebounds off it
   const a = A();
   const px = player.pos.x + player.width / 2, py = player.pos.y + player.height / 2;
   const touching = Math.hypot(px - (a.x + EYE_CX), py - (a.y + EYE_CY)) < EYE_R + 20;
-  if (touching && player.isCharging) {
+  const move = player.isDivekicking ? 'divekick' : player.isUppercutting ? 'uppercut' : player.isCharging ? 'charge' : null;
+  if (touching && move) {
     const dir = px < a.x + EYE_CX ? -1 : 1;
     if (f.attack !== 'blink') {
-      e.health -= BOSS_CHARGE_DAMAGE;
+      const dmg = move === 'divekick' ? BOSS_DIVEKICK_DAMAGE : move === 'uppercut' ? BOSS_UPPERCUT_DAMAGE : BOSS_CHARGE_DAMAGE;
+      e.health -= dmg;
       e.hitFlash = 5; f.hpFlash = 8;
-      f.recentDamage += BOSS_CHARGE_DAMAGE;
-      ctx.fx.spawnDamageNumber({ x: px, y: py - 30 }, BOSS_CHARGE_DAMAGE);
-      ctx.fx.spawnDamageNumber({ x: a.x + EYE_CX - 40, y: a.y + EYE_CY - EYE_R - 20 }, 'WAAAHH!', true, '#7DD3FC');
+      f.recentDamage += dmg;
+      ctx.fx.spawnDamageNumber({ x: px, y: py - 30 }, dmg);
+      const bawl = move === 'divekick' ? 'RIGHT IN THE EYE!' : 'WAAAHH!';
+      ctx.fx.spawnDamageNumber({ x: a.x + EYE_CX - 40, y: a.y + EYE_CY - EYE_R - 20 }, bawl, true, '#7DD3FC');
       f.sore = 200;
       shakeScreen(state, 10, 6);
       playSound('roar');
     }
-    player.isCharging = false; player.isSliding = false;
-    player.vel.x = dir * 9; player.vel.y = Math.min(player.vel.y, -6);
+    // (off it he goes, whichever way he came in)
+    player.isCharging = false; player.isSliding = false; player.isUppercutting = false; player.isDivekicking = false;
+    if (move === 'divekick') { player.vel.x = dir * 5; player.vel.y = -12; }
+    else if (move === 'uppercut') { player.vel.x = dir * 7; player.vel.y = Math.max(player.vel.y, 2); }
+    else { player.vel.x = dir * 9; player.vel.y = Math.min(player.vel.y, -6); }
   } else if (touching && player.vel.y > 0 && player.pos.y + player.height < a.y + EYE_CY) {
     // Boing (just a little one)
     player.vel.y = -9;

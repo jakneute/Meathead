@@ -10,6 +10,7 @@ import { BOAT_WIDTH } from './boat';
 import type { TowerRun } from './tower';
 import { TOWER } from './tower';
 import type { EyeFight } from './eye';
+import { EYE_WEAR_FALL } from './eye';
 import type { Daycare } from './daycare';
 import { drawEyeCorpse } from './eyeDraw';
 import { drawKindEnemy } from '../../render/enemies';
@@ -240,6 +241,15 @@ export const drawEyeArena = (ctx: Ctx, state: GameState, f: EyeFight) => {
     if (p.state === 'gone') return;
     const b = p.block;
     drawJunk(ctx, b.x, b.y, b.w, EYE_JUNK[i % EYE_JUNK.length], state.frame, i + 3);
+    // The wear it's taken shows, and stays: a crack for every bit of it, spreading across the piece
+    const cracks = Math.min(5, Math.floor((p.wear / EYE_WEAR_FALL) * 6));
+    if (cracks > 0) {
+      ctx.strokeStyle = 'rgba(17, 24, 39, 0.85)'; ctx.lineWidth = 1.5;
+      for (let k = 0; k < cracks; k++) {
+        const x0 = b.x + b.w * (0.12 + hash(i * 7 + k) * 0.76);
+        ctx.beginPath(); ctx.moveTo(x0, b.y); ctx.lineTo(x0 + (hash(i + k * 3) - 0.5) * 10, b.y + 6); ctx.lineTo(x0 + (hash(i * 3 + k) - 0.5) * 14, b.y + 13); ctx.stroke();
+      }
+    }
     if (p.state === 'shake') {
       // Cracking, bits falling off
       ctx.strokeStyle = '#111827'; ctx.lineWidth = 2;
