@@ -284,20 +284,11 @@ const drawWalkUp = (ctx: Ctx, state: GameState) => {
     // (its front runs up to the roof and stops: the parapet along the top, the roof over it, sky above)
     const top = b.top;
     // (the second one's the swanky one: pale limestone, gold on the cornice and between the floors)
-    ctx.fillStyle = i ? '#C8BBA0' : '#6B2E22'; ctx.fillRect(b.x1 - 60, top, b.x2 - b.x1 + 120, Y - top);
-    ctx.fillStyle = i ? 'rgba(80, 60, 30, 0.14)' : 'rgba(0,0,0,0.2)'; for (let y = top + 6; y < Y; y += i ? 24 : 9) ctx.fillRect(b.x1 - 60, y, b.x2 - b.x1 + 120, 1);
-    if (i) { ctx.fillStyle = '#B8860B'; for (let y = top + 120; y < Y; y += 240) ctx.fillRect(b.x1 - 60, y, b.x2 - b.x1 + 120, 4); }
-    // (its terrace, on the setback: a stone floor all along it, a balustrade, planters)
-    if (i) {
-      const ty = Y - 1000;
-      const tx = b.x1 + 190, tw = b.x2 + 80 - tx;
-      ctx.fillStyle = '#A8A29E'; ctx.fillRect(tx, ty, tw, 30);
-      ctx.fillStyle = '#D6D3D1'; ctx.fillRect(tx, ty, tw, 4);
-      ctx.fillStyle = '#78716C'; ctx.fillRect(tx, ty + 26, tw, 4);
-      ctx.fillStyle = '#E7E5E4'; ctx.fillRect(tx, ty - 34, tw, 5);
-      for (let x = tx + 4; x < b.x2 + 80; x += 16) { ctx.beginPath(); ctx.ellipse(x, ty - 16, 4, 14, 0, 0, Math.PI * 2); ctx.fill(); }
-      for (let x = tx + 60; x < b.x2; x += 260) { ctx.fillStyle = '#57534E'; ctx.fillRect(x, ty - 18, 36, 18); ctx.fillStyle = '#15803D'; ctx.beginPath(); ctx.arc(x + 18, ty - 26, 16, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#E7E5E4'; }
-    }
+    // (down to the roof of the lower building in front, that it rises up out of the back of)
+    const base = b.base;
+    ctx.fillStyle = i ? '#C8BBA0' : '#6B2E22'; ctx.fillRect(b.x1 - 60, top, b.x2 - b.x1 + 120, base - top);
+    ctx.fillStyle = i ? 'rgba(80, 60, 30, 0.14)' : 'rgba(0,0,0,0.2)'; for (let y = top + 6; y < base; y += i ? 24 : 9) ctx.fillRect(b.x1 - 60, y, b.x2 - b.x1 + 120, 1);
+    if (i) { ctx.fillStyle = '#B8860B'; for (let y = top + 120; y < base; y += 240) ctx.fillRect(b.x1 - 60, y, b.x2 - b.x1 + 120, 4); }
     // The cornice at the roof line, and the parapet wall standing up along the roof's edge
     ctx.fillStyle = i ? '#8B6914' : '#3F1B14'; ctx.fillRect(b.x1 - 70, top, b.x2 - b.x1 + 140, 16);
     ctx.fillStyle = i ? '#A8A29E' : '#57261C'; ctx.fillRect(b.x1 - 64, top - 22, b.x2 - b.x1 + 128, 22);

@@ -97,8 +97,9 @@ const fallTenant = (ctx: FrameContext, e: Enemy): boolean => {
   e.rotation = (e.rotation || 0) + 0.12 * Math.sign(e.vel.x || 1);
   // (the scream trailing after him)
   if (e.aiTimer % 14 === 0) state.particles.push({ pos: { x: e.pos.x + 20, y: e.pos.y - 10 }, vel: { x: 0, y: -1 }, life: 20, color: 'rgba(248, 250, 252, 0.7)', size: 3 });
-  // (down onto the concrete: the street, or the swanky one's terrace; straight past the fire escapes' grating)
-  const floor = Math.min(GROUND_Y, ...state.blocks.filter(b => b.type === 'wall' && b.w > 400 && e.pos.x + 20 > b.x && e.pos.x + 20 < b.x + b.w && b.y >= e.pos.y + e.height - e.vel.y - 1).map(b => b.y));
+  // (down onto the roof of the building in front, straight past the fire escapes' grating)
+  const cx = e.pos.x + 20, feet = e.pos.y + e.height - e.vel.y - 1;
+  const floor = Math.min(GROUND_Y, ...state.groundRuns.filter(r => cx > r.x1 && cx < r.x2 && r.y1 >= feet).map(r => r.y1));
   if (e.pos.y + e.height >= floor) {
     // SPLAT
     e.aiState = 'splat'; e.aiTimer = 0; e.vel = { x: 0, y: 0 };

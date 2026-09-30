@@ -153,7 +153,7 @@ const checkpoints = (state: GameState, rt: BarryRuntime) => {
     if (p.pos.x >= COURSE.climb.buildings[1].x1 && up > 1950) lookUp('b2high', 'WHO LIVES UP HERE? BIRDS? RICH BIRDS?');
   }
   // (across onto the second walk-up)
-  if (state.checkpoint < CP.CLIMB2 && p.isGrounded && p.pos.x >= COURSE.climb.buildings[1].x1 && p.pos.y + p.height <= at(CP.CLIMB2).y + 4 && placeOf(p.pos.x) === 'roofs') state.checkpoint = CP.CLIMB2;
+  if (state.checkpoint < CP.CLIMB2 && p.isGrounded && p.pos.x >= COURSE.climb.ledge.x1 && p.pos.y + p.height <= at(CP.CLIMB2).y + 4 && placeOf(p.pos.x) === 'roofs') state.checkpoint = CP.CLIMB2;
 };
 
 // ---------------------------------------------------------------------------
