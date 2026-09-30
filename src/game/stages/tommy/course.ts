@@ -149,10 +149,12 @@ const build = () => {
   k.ledge(820, Y - 110, 170, 'porchroof'); k.spawn('banger', 900, Y - 110); k.spawn('pitbull', 1120);
   // A dumpster (up on it and over, or round the back)
   k.solid(1260, 96, 60, 'dumpster'); k.pickup(1308, Y - 90, 'small_ammo');
-  // The first hole: a car sunk in it up to its roof, a pallet floating, the far side (something living in it)
+  // The first hole: a van sunk in it up to its roof, a pallet floating, the far side (something living in it)
   k.channel(1450, 1880, HOLE_SURFACE, HOLE_FLOOR);
-  k.ledge(1540, Y - 8, 100, 'carroof'); k.ledge(1726, HOLE_SURFACE - 8, 64, 'pallet');
-  k.spawn('sludgeling', 1680, HOLE_FLOOR);
+  k.ledge(1530, Y - 8, 160, 'carroof'); k.ledge(1806, HOLE_SURFACE - 8, 56, 'pallet');
+  k.spawn('sludgeling', 1750, HOLE_FLOOR);
+  // (one of the crew out on the far end of the roof, holding the crossing: nothing behind him but the water)
+  k.spawn('banger', 1660, Y - 8);
   k.ground(1880, 3200);
   k.pickup(1960, Y - 30, 'small_health');
   k.spawn('rat', 2160); k.spawn('rat', 2240);
@@ -161,6 +163,8 @@ const build = () => {
   k.ledge(2420, Y - 115, 130, 'porchroof'); k.spawn('banger', 2485, Y - 115);
   // The brute with the bat, and the wreck behind him
   k.spawn('bruiser', 2860); k.solid(2990, 150, 52, 'wreck');
+  // (and one right on the lip of the last hole past the wreck, his back to it: come down off the wreck into him)
+  k.spawn('banger', 3168);
   // The last hole: a car roof, the main blowing up out of the water past it, a pallet past that; a dog on the far side
   k.channel(3200, 3560, HOLE_SURFACE, HOLE_FLOOR);
   k.ledge(3270, Y - 8, 90, 'carroof'); k.main(3405, 130, 40, 'pipe', HOLE_SURFACE); k.ledge(3450, HOLE_SURFACE - 8, 60, 'pallet');

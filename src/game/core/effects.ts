@@ -163,6 +163,9 @@ export const createFx = (state: GameState) => {
   };
 
   const getHurtLines = (hurtSource?: string): string[] => {
+    // (the same thing hurting him in another city: its lines for there, where they'd name the place, e.g. 'rat@Toxic Tommy')
+    const here = hurtSource && state.stageId ? BOSS_DIALOGUE.SPECIFIC_HAZARD_HURT[`${hurtSource}@${state.stageId}`] : undefined;
+    if (here) return here;
     if (hurtSource && BOSS_DIALOGUE.SPECIFIC_HAZARD_HURT[hurtSource]) return BOSS_DIALOGUE.SPECIFIC_HAZARD_HURT[hurtSource];
     if (hurtSource && BOSS_DIALOGUE.HURT[hurtSource]) return BOSS_DIALOGUE.HURT[hurtSource];
     if (state.stageId && BOSS_DIALOGUE.HURT[state.stageId]) return BOSS_DIALOGUE.HURT[state.stageId];

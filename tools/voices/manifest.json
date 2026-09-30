@@ -3487,7 +3487,7 @@
  {
   "voice": "death",
   "text": "DISSOLVED",
-  "from": "game/stages/tommy/sewer.ts:101"
+  "from": "game/stages/tommy/sewer.ts:105"
  },
  {
   "voice": "death",
@@ -3552,7 +3552,7 @@
  {
   "voice": "death",
   "text": "DRIVE-BY'D",
-  "from": "game/stages/tommy/bike.ts:531"
+  "from": "game/stages/tommy/bike.ts:539"
  },
  {
   "voice": "death",
@@ -3617,7 +3617,7 @@
  {
   "voice": "death",
   "text": "ELECTRIC BATH",
-  "from": "game/combat/weapons.ts:646"
+  "from": "game/combat/weapons.ts:650"
  },
  {
   "voice": "death",
@@ -3752,7 +3752,7 @@
  {
   "voice": "death",
   "text": "FLINT: 1, MEATHEAD: 0",
-  "from": "game/stages/tommy/bike.ts:531"
+  "from": "game/stages/tommy/bike.ts:539"
  },
  {
   "voice": "death",
@@ -4337,7 +4337,7 @@
  {
   "voice": "death",
   "text": "PART OF THE WATER SUPPLY NOW",
-  "from": "game/stages/tommy/sewer.ts:101"
+  "from": "game/stages/tommy/sewer.ts:105"
  },
  {
   "voice": "death",
@@ -4667,7 +4667,7 @@
  {
   "voice": "death",
   "text": "SHOCKING LACK OF JUDGMENT",
-  "from": "game/combat/weapons.ts:646"
+  "from": "game/combat/weapons.ts:650"
  },
  {
   "voice": "death",
@@ -4757,7 +4757,7 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE BOILED IT FIRST",
-  "from": "game/stages/tommy/sewer.ts:101"
+  "from": "game/stages/tommy/sewer.ts:105"
  },
  {
   "voice": "death",
@@ -4792,7 +4792,7 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE WORN A HELMET",
-  "from": "game/stages/tommy/bike.ts:531"
+  "from": "game/stages/tommy/bike.ts:539"
  },
  {
   "voice": "death",
@@ -5042,12 +5042,12 @@
  {
   "voice": "death",
   "text": "TASED YOURSELF IN THE POOL",
-  "from": "game/combat/weapons.ts:646"
+  "from": "game/combat/weapons.ts:650"
  },
  {
   "voice": "death",
   "text": "TAYVON WANTS HIS BIKE BACK",
-  "from": "game/stages/tommy/bike.ts:531"
+  "from": "game/stages/tommy/bike.ts:539"
  },
  {
   "voice": "death",
@@ -5342,7 +5342,7 @@
  {
   "voice": "death",
   "text": "WATER CONDUCTS, GENIUS",
-  "from": "game/combat/weapons.ts:646"
+  "from": "game/combat/weapons.ts:650"
  },
  {
   "voice": "death",
@@ -6142,6 +6142,11 @@
  {
   "voice": "meathead",
   "text": "A RAT BIT ME! IT HAD PIZZA BREATH!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A RAT BIT ME! IT'S BEEN DRINKING THE WATER!",
   "from": "HAZARD_HURT"
  },
  {
@@ -7321,6 +7326,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FLINT RATS! THEY'RE GLOWING AND THEY'RE BITING!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "FLINT WATER? PASS ME A GLASS. MORE MINERALS FOR THE GAINS.",
   "from": "INTRO_QUOTES"
  },
@@ -7547,7 +7557,7 @@
  {
   "voice": "meathead",
   "text": "GET OUT GET OUT GET OUT!",
-  "from": "game/stages/tommy/sewer.ts:96"
+  "from": "game/stages/tommy/sewer.ts:100"
  },
  {
   "voice": "meathead",
@@ -7592,7 +7602,7 @@
  {
   "voice": "meathead",
   "text": "GET THE FUCK OUT OF THE SLUDGE!",
-  "from": "game/stages/tommy/sewer.ts:96"
+  "from": "game/stages/tommy/sewer.ts:100"
  },
  {
   "voice": "meathead",
@@ -9047,7 +9057,7 @@
  {
   "voice": "meathead",
   "text": "IT BURNS! GET THE FUCK OUT!",
-  "from": "game/stages/tommy/sewer.ts:96"
+  "from": "game/stages/tommy/sewer.ts:100"
  },
  {
   "voice": "meathead",
@@ -9512,7 +9522,7 @@
  {
   "voice": "meathead",
   "text": "MY SKIN! MY BEAUTIFUL SKIN!",
-  "from": "game/stages/tommy/sewer.ts:96"
+  "from": "game/stages/tommy/sewer.ts:100"
  },
  {
   "voice": "meathead",
@@ -9532,7 +9542,7 @@
  {
   "voice": "meathead",
   "text": "MY TIIIIIIRES!",
-  "from": "game/stages/tommy/bike.ts:490"
+  "from": "game/stages/tommy/bike.ts:498"
  },
  {
   "voice": "meathead",
@@ -9962,7 +9972,7 @@
  {
   "voice": "meathead",
   "text": "OUT! OUT! OUT! OUT!",
-  "from": "game/stages/tommy/sewer.ts:96"
+  "from": "game/stages/tommy/sewer.ts:100"
  },
  {
   "voice": "meathead",
@@ -10067,7 +10077,7 @@
  {
   "voice": "meathead",
   "text": "PFFT. IT'S A PUDDLE.",
-  "from": "game/stages/tommy/bike.ts:475"
+  "from": "game/stages/tommy/bike.ts:483"
  },
  {
   "voice": "meathead",
@@ -12022,7 +12032,7 @@
  {
   "voice": "meathead",
   "text": "UGH... MY EVERYTHING.",
-  "from": "game/stages/tommy/runtime.ts:136"
+  "from": "game/stages/tommy/runtime.ts:146"
  },
  {
   "voice": "meathead",
@@ -12357,7 +12367,7 @@
  {
   "voice": "meathead",
   "text": "WHO'S THE ASTRONAUT?",
-  "from": "game/stages/tommy/bike.ts:449"
+  "from": "game/stages/tommy/bike.ts:457"
  },
  {
   "voice": "meathead",
@@ -13102,12 +13112,12 @@
  {
   "voice": "tommy.hazmat",
   "text": "COMPLIMENTS OF THE CITY OF FLINT.",
-  "from": "game/stages/tommy/bike.ts:454"
+  "from": "game/stages/tommy/bike.ts:462"
  },
  {
   "voice": "tommy.hazmat",
   "text": "DRINK UP.",
-  "from": "game/stages/tommy/bike.ts:459"
+  "from": "game/stages/tommy/bike.ts:467"
  },
  {
   "voice": "tommy.kid",
