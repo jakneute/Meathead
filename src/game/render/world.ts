@@ -126,6 +126,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     drawOscarLaser(wctx, state);
     if (state.player.isTasing && state.player.currentWeapon === 'TASER') drawTaserBeam(wctx, state);
     drawProjectiles(wctx, state, 'flying');
+    if (state.waterShock) drawWaterShock(wctx, state.waterShock, state.frame);
     drawParticlesAndDamageNumbers(wctx, state);
     drawBarryLighting(wctx, state, stageId);
     if (state.sewerNuke) drawSewerNukeInside(wctx, state);
@@ -162,6 +163,39 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     const k = state.introTimer / SKYFALL_CLOUD_FRAMES;
     drawSkyClouds(ctx, CANVAS_WIDTH, CANVAS_HEIGHT, 1 - k * k, DEPLOY_CLOUD_SCROLL_END + state.introTimer * SKYFALL_CLOUD_SPEED);
   }
+};
+
+/** How long the water stays lit after the taser's been put through it (frames). */
+const WATER_SHOCK_FRAMES = 40;
+
+/** Water with a current through it: the stretch flickering electric blue, bolts forking through it, the surface white hot. */
+const drawWaterShock = (ctx: CanvasRenderingContext2D, w: { x1: number; x2: number; surface: number; bottom: number; at: number }, frame: number) => {
+  const t = frame - w.at;
+  if (t < 0 || t > WATER_SHOCK_FRAMES) return;
+  const fade = 1 - t / WATER_SHOCK_FRAMES;
+  const depth = Math.min(w.bottom - w.surface, 220);
+  ctx.save();
+  ctx.globalAlpha = fade * (frame % 4 < 2 ? 0.55 : 0.35);
+  const g = ctx.createLinearGradient(0, w.surface, 0, w.surface + depth);
+  g.addColorStop(0, 'rgba(165, 243, 252, 0.9)'); g.addColorStop(1, 'rgba(0, 229, 255, 0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(w.x1, w.surface, w.x2 - w.x1, depth);
+  ctx.globalAlpha = fade;
+  // Bolts forking down through it
+  ctx.lineJoin = 'round';
+  for (let i = 0; i < 7; i++) {
+    let x = w.x1 + Math.random() * (w.x2 - w.x1), y = w.surface;
+    ctx.strokeStyle = i % 2 ? '#FFFFFF' : '#67E8F9'; ctx.lineWidth = i % 2 ? 1.5 : 2.5;
+    ctx.beginPath(); ctx.moveTo(x, y);
+    for (let k = 0; k < 5; k++) { x += (Math.random() - 0.5) * 40; y += depth / 6; ctx.lineTo(x, y); }
+    ctx.stroke();
+  }
+  // The surface, crackling white along its length
+  ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(w.x1, w.surface);
+  for (let x = w.x1; x <= w.x2; x += 16) ctx.lineTo(x, w.surface + (Math.random() - 0.5) * 6);
+  ctx.stroke();
+  ctx.restore();
 };
 
 /** How long the checkpoint banner's up (frames). */

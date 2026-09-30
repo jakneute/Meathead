@@ -18,6 +18,8 @@ import { FrameContext, killBoss } from '../core/context';
 import { hitBoss, getBossDef } from '../bosses/registry';
 import { pickRandom, rectsOverlap, boundsOf } from '../core/utils';
 import { findFlyingCigarette, igniteOilWithFlame } from '../bosses/oscar';
+import { getStageLayout } from '../stages';
+import { playSound } from '../platform/audio';
 import { icicleBounds, meltIcicle } from '../bosses/artie';
 import { pushEnemy } from './knockback';
 import { isMidBoss, midBossDamage, MIDBOSS_DAMAGE, MIDBOSS_SPLASH_DAMAGE, MIDBOSS_NUKE_DAMAGE } from './midBoss';
@@ -256,6 +258,27 @@ export const updateBarfStream = (state: GameState) => {
  * first wall, and its aim sweeps slowly toward up/down. Releasing shrinks it.
  * Runs every frame while the flamethrower is equipped.
  */
+/** The flamethrower under clean water: no flame, a stream of bubbles and steam out of the nozzle, and it says so. */
+const fizzle = (ctx: FrameContext, justPressed: boolean) => {
+  const { state, fx } = ctx;
+  const { player } = state;
+  player.isFlaming = false;
+  player.flameRange = FLAMETHROWER_START_RANGE;
+  const nozzle = flamethrowerNozzle(player);
+  for (let k = 0; k < 2; k++) {
+    state.particles.push({
+      pos: { x: nozzle.x + (Math.random() - 0.5) * 4, y: nozzle.y + (Math.random() - 0.5) * 4 },
+      vel: { x: player.facing * (1 + Math.random() * 2), y: -1 - Math.random() * 1.5 },
+      life: 20 + Math.random() * 20, color: k ? 'rgba(224, 242, 254, 0.8)' : 'rgba(203, 213, 225, 0.6)', size: 2 + Math.random() * 4, isWater: true,
+    });
+  }
+  if (justPressed) {
+    fx.spawnDamageNumber({ x: nozzle.x - 20, y: player.pos.y - 30 }, 'FIZZLE!', false, '#7DD3FC');
+    fx.playGunSound('click');
+  }
+  if (state.frame % 12 === 0) playSound('glug');
+};
+
 export const updateFlamethrower = (ctx: FrameContext, input: WeaponInput) => {
   const { state, fx, cheats, currentWeapon } = ctx;
   const { player } = state;
@@ -267,6 +290,12 @@ export const updateFlamethrower = (ctx: FrameContext, input: WeaponInput) => {
   }
 
   const firing = input.shoot && !player.isDucking && !player.isTasing;
+
+  // In clean water it won't light: it just fizzles, bubbles and steams (in Flint's muck it burns fine, somehow)
+  if (firing && player.swimming) {
+    const body = getStageLayout(ctx.stageId)?.waterBodyAt?.(state, player.pos.x + player.width / 2, player.pos.y + player.height / 2);
+    if (body?.kind === 'clean') { fizzle(ctx, input.shootPressed); return; }
+  }
 
   // Aim sweeps slowly (negative angle = up, in canvas terms), but only while it's firing:
   // up or down on their own (or ducking) leave the nozzle level
@@ -592,7 +621,7 @@ export const detonateNuke = (ctx: FrameContext, pos: Vector2) => {
  * white flash, a crackle all over him, black as a match head, and it holds on the moment before the death screen.
  */
 const TASED_IN_WATER = ['WATER CONDUCTS, GENIUS', 'TASED YOURSELF IN THE POOL', 'SHOCKING LACK OF JUDGMENT', 'ELECTRIC BATH'];
-const tasedHimself = (ctx: FrameContext) => {
+export const tasedHimself = (ctx: FrameContext) => {
   const { state, fx } = ctx;
   const p = state.player;
   const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;

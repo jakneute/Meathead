@@ -17,7 +17,12 @@ import { barryLayout } from './barry';
 import { tommyLayout } from './tommy';
 import { oscarLayout } from './oscar';
 
+/** A body of water: which one (to tell them apart), how far it runs, and whether it's clean water or muck. */
+export interface WaterBody { key: string; x1: number; x2: number; surface: number; bottom: number; kind: 'clean' | 'muck' }
+
 export interface StageLayout {
+  /** The body of water at (x, y), if there's one there (anywhere from just above its surface down). */
+  waterBodyAt?: (state: GameState, x: number, y: number) => WaterBody | null;
   /** Which arrangement of the stage's theme goes with where he is now (see platform/music/songs). */
   music?: (state: GameState) => string;
   /** Left edge of the stage's world. */

@@ -251,6 +251,11 @@
  },
  {
   "voice": "announcer",
+  "text": "ELECTRIC BATH!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "EXTRA CRISPY!",
   "from": "KILL_CALLOUTS"
  },
@@ -472,6 +477,11 @@
  {
   "voice": "announcer",
   "text": "LIQUEFIED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "LIVE WIRE IN THE WATER!",
   "from": "KILL_CALLOUTS"
  },
  {
@@ -712,6 +722,11 @@
  {
   "voice": "announcer",
   "text": "SEA-DOO'D!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SEAFOOD BOIL!",
   "from": "KILL_CALLOUTS"
  },
  {
@@ -982,6 +997,11 @@
  {
   "voice": "announcer",
   "text": "WASHED OUT!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "WATER CONDUCTS!",
   "from": "KILL_CALLOUTS"
  },
  {
@@ -3587,7 +3607,7 @@
  {
   "voice": "death",
   "text": "ELECTRIC BATH",
-  "from": "game/combat/weapons.ts:617"
+  "from": "game/combat/weapons.ts:646"
  },
  {
   "voice": "death",
@@ -3597,7 +3617,7 @@
  {
   "voice": "death",
   "text": "ELECTROCUTED IN A PARKING LOT",
-  "from": "game/stages/hector/hazards.ts:433"
+  "from": "game/stages/hector/hazards.ts:442"
  },
  {
   "voice": "death",
@@ -3647,7 +3667,7 @@
  {
   "voice": "death",
   "text": "FEEDING THE FISHES",
-  "from": "game/stages/hector/hazards.ts:403"
+  "from": "game/stages/hector/hazards.ts:412"
  },
  {
   "voice": "death",
@@ -3737,7 +3757,7 @@
  {
   "voice": "death",
   "text": "FORGOT TO BREATHE",
-  "from": "game/stages/hector/hazards.ts:403"
+  "from": "game/stages/hector/hazards.ts:412"
  },
  {
   "voice": "death",
@@ -3797,12 +3817,12 @@
  {
   "voice": "death",
   "text": "GLUB GLUB GLUB",
-  "from": "game/stages/hector/hazards.ts:403"
+  "from": "game/stages/hector/hazards.ts:412"
  },
  {
   "voice": "death",
   "text": "GOD HATES YOU SPECIFICALLY",
-  "from": "game/stages/hector/hazards.ts:431"
+  "from": "game/stages/hector/hazards.ts:440"
  },
  {
   "voice": "death",
@@ -4637,7 +4657,7 @@
  {
   "voice": "death",
   "text": "SHOCKING LACK OF JUDGMENT",
-  "from": "game/combat/weapons.ts:617"
+  "from": "game/combat/weapons.ts:646"
  },
  {
   "voice": "death",
@@ -4752,7 +4772,7 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE TAKEN SWIM LESSONS",
-  "from": "game/stages/hector/hazards.ts:403"
+  "from": "game/stages/hector/hazards.ts:412"
  },
  {
   "voice": "death",
@@ -5012,7 +5032,7 @@
  {
   "voice": "death",
   "text": "TASED YOURSELF IN THE POOL",
-  "from": "game/combat/weapons.ts:617"
+  "from": "game/combat/weapons.ts:646"
  },
  {
   "voice": "death",
@@ -5312,7 +5332,7 @@
  {
   "voice": "death",
   "text": "WATER CONDUCTS, GENIUS",
-  "from": "game/combat/weapons.ts:617"
+  "from": "game/combat/weapons.ts:646"
  },
  {
   "voice": "death",

@@ -9,7 +9,7 @@ import { COURSE, CP, isBouncy } from './course';
 import { createHectorRuntime, getHector, updateHector, regionOf } from './runtime';
 import { updateEye, hitEye } from './eye';
 import { updateDrowning, drawDrowning } from './drown';
-import { hazardDeathMessage, waterZones } from './hazards';
+import { hazardDeathMessage, waterZones, waterBodyAt } from './hazards';
 import { drawHectorBack, drawHectorMid, drawHectorFront, drawHectorHud, drawHectorBackdrop, drawHectorWeather } from './draw';
 import { drawEye } from './eyeDraw';
 import { drawSharksRound } from './drawSet';
@@ -17,6 +17,7 @@ import { TOWER } from './tower';
 import { hectorScene } from './lighting';
 
 export const hectorLayout: StageLayout = {
+  waterBodyAt,
   music: state => {
     const rt = getHector(state);
     const r = regionOf(state.player.pos.x + state.player.width / 2);

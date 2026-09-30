@@ -8,7 +8,9 @@ import {
 } from '../../constants';
 import { FrameContext, killBoss } from '../core/context';
 import { updateBossAI, getBossDef, hitBoss } from '../bosses/registry';
-import { fireWeapon, findTaserTarget } from './weapons';
+import { fireWeapon, findTaserTarget, tasedHimself } from './weapons';
+import { getStageLayout } from '../stages';
+import type { WaterBody } from '../stages';
 import { isMidBoss, midBossDamage, MIDBOSS_DAMAGE } from './midBoss';
 import { zapCigarette, findFlyingCigarette } from '../bosses/oscar';
 import { FrameInput, hasAmmo, armsBusy } from '../player/player';
@@ -51,6 +53,8 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
 
   if (!player.isTasing) fireWeapon(ctx, input);
   if (!player.isTasing) return;
+  // Into the water with the beam still going: it goes straight back up it into him
+  if (player.swimming && state.deathTimer <= 0) { cutTaser(player); tasedHimself(ctx); return; }
 
   player.taserTimer = (player.taserTimer || 0) + 1;
   if (!cheats.infiniteAmmo && state.frame % TASER_AMMO_CONSUMPTION_RATE === 0) player.weaponAmmo['TASER'] -= 1;
@@ -116,6 +120,11 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
     }
     return;
   }
+  // Got hold of something in the water (and he's out of it): the whole of it round there goes live
+  if (target.type === 'enemy') {
+    const body = getStageLayout(stageId)?.waterBodyAt?.(state, target.pos.x + target.width / 2, target.pos.y + target.height * 0.6);
+    if (body) { shockWater(ctx, target as Enemy, body); cutTaser(player); return; }
+  }
   target.isTased = true;
   if (state.frame % TASER_TICK_RATE === 0) {
     target.health -= TASER_DOT_DAMAGE;
@@ -132,6 +141,34 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
     target.isOnFire = true;
     if (target.type === 'enemy') (target as Enemy).ignitedByTaser = true;
     fx.playGunSound('ignite');
+  }
+};
+
+/** How far along the water the current kills, either way from what the taser had hold of. */
+const SHOCK_REACH = 480;
+
+/**
+ * The taser into water: the one it had hold of and everything else in that body of water near it is fried on the
+ * spot (not the bosses, not a mid-boss), the water lights up, and there's a callout for it.
+ */
+const shockWater = (ctx: FrameContext, target: Enemy, body: WaterBody) => {
+  const { state, fx, stageId } = ctx;
+  const tx = target.pos.x + target.width / 2;
+  const x1 = Math.max(body.x1, tx - SHOCK_REACH), x2 = Math.min(body.x2, tx + SHOCK_REACH);
+  const layout = getStageLayout(stageId);
+  for (const e of state.enemies) {
+    if (e.health <= 0 || e.isBlownAway || e.type !== 'enemy' || isMidBoss(e)) continue;
+    const ex = e.pos.x + e.width / 2;
+    if (ex < x1 || ex > x2) continue;
+    if (e !== target && layout?.waterBodyAt?.(state, ex, e.pos.y + e.height * 0.6)?.key !== body.key) continue;
+    fx.killWithAnimation(e, 'fried', 'taser_kill', e === target ? 'conducted' : undefined);
+  }
+  state.waterShock = { x1, x2, surface: body.surface, bottom: body.bottom, at: state.frame };
+  state.screenShakeTimer = Math.max(state.screenShakeTimer, 14);
+  fx.playGunSound('taser');
+  playSound('crack');
+  for (let i = 0; i < 30; i++) {
+    state.particles.push({ pos: { x: x1 + Math.random() * (x2 - x1), y: body.surface - 2 }, vel: { x: (Math.random() - 0.5) * 4, y: -2 - Math.random() * 5 }, life: 18 + Math.random() * 14, color: i % 3 ? '#00E5FF' : '#FFFFFF', size: 2 + Math.random() * 3 });
   }
 };
 

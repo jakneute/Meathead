@@ -325,6 +325,15 @@ export interface WaterZone {
 /** How deep the sea is under the docks. */
 export const SEA_DEPTH = 230;
 
+/** The body of water at (x, y), if any: every stretch that runs into it, as one (the sea's clean water; so's the pool). */
+export const waterBodyAt = (state: GameState, x: number, y: number) => {
+  const zones = waterZones(state);
+  const z = zones.find(w => x > w.x1 && x < w.x2 && y > w.surface - 12 && y < w.bottom);
+  if (!z) return null;
+  const all = zones.filter(w => w.body === z.body);
+  return { key: `sea-${z.body}`, x1: Math.min(...all.map(w => w.x1)), x2: Math.max(...all.map(w => w.x2)), surface: z.surface, bottom: z.bottom, kind: 'clean' as const };
+};
+
 export const waterZones = (state: GameState): WaterZone[] => {
   const zones: WaterZone[] = [];
   state.groundRuns.forEach((r, i) => {

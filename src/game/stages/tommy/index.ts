@@ -15,6 +15,13 @@ import { drawTommyBackdrop, drawTommyBack, drawTommyMid, drawTommyFront, drawTom
 import { tommyScene } from './lighting';
 
 export const tommyLayout: StageLayout = {
+  // (the muck in the sewer channels: Flint's water supply)
+  waterBodyAt: (_state, x, y) => {
+    const i = COURSE.channels.findIndex(c => x > c.x1 && x < c.x2 && y > c.surface - 12 && y < c.floor);
+    if (i < 0) return null;
+    const c = COURSE.channels[i];
+    return { key: `muck-${i}`, x1: c.x1, x2: c.x2, surface: c.surface, bottom: c.floor, kind: 'muck' };
+  },
   music: state => {
     const p = placeOf(state.player.pos.x + state.player.width / 2);
     return p === 'hood' || p === 'road' || p === 'ruins' ? p : 'sewer';

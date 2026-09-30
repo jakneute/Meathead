@@ -818,7 +818,7 @@ export type KillCallout =
   | 'charge' | 'slide' | 'uppercut' | 'divekick' | 'shatter' | 'shield'
   | 'crush' | 'overdose' | 'nuke' | 'tsunami' | 'fried'
   | 'wallsplat' | 'groundsplat' | 'flattened' | 'squished' | 'truck' | 'blowout' | 'crash' | 'compacted' | 'drowned'
-  | 'moon' | 'cliff' | 'yeet'
+  | 'moon' | 'cliff' | 'yeet' | 'conducted'
   | 'charred' | 'melted' | 'greased' | 'contact' | 'pulverized' | 'cooked'
   // On the jet ski
   | 'wheelie' | 'skileap' | 'skidive' | 'shipwreck'
@@ -871,6 +871,7 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
   melted:      { lines: ["MELTED!", "DISSOLVED!", "LIQUEFIED!", "GOO'D!"], color: '#84CC16' },
   greased:     { lines: ["GREASED!", "OIL CHANGE!", "SLICK!", "LUBED UP!"], color: '#A8A29E' },
   // Hit by an overdosed body on its way out
+  conducted:   { lines: ["WATER CONDUCTS!", "SEAFOOD BOIL!", "ELECTRIC BATH!", "LIVE WIRE IN THE WATER!"], color: '#00E5FF' },
   contact:     { lines: ["CONTACT HIGH!", "SECONDHAND DOSE!", "BAD TRIP!", "COLLATERAL!"], color: '#E879F9' },
   // The practice range: the boxer, called like a fight (and a crooked one)
   ring_gun:      { lines: ["NO CONTEST!", "DISQUALIFIED! PERMANENTLY!", "GUN TO A FISTFIGHT!", "THE REF DIDN'T SEE THAT!", "UNSPORTSMANLIKE!"], color: '#FACC15' },
