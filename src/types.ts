@@ -254,6 +254,10 @@ export interface Enemy extends Entity {
   meleeFlung?: boolean;
   /** A flyer knocked up above its height: dropping back down to it. */
   returnHome?: boolean;
+  /** Uppercut dead off its feet: it comes back down and splats. */
+  uppercutFlung?: boolean;
+  /** Its walking pace on its beat (a patrolling enemy). */
+  walkSpeed?: number;
   flungHits?: string[];
   barfAngle?: number;
   barfLen?: number;

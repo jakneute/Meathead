@@ -48,6 +48,26 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
     e.vel.y += GRAVITY * 0.5;
     e.rotation = (e.rotation || 0) + 0.3;
     if (e.meleeFlung) flungIntoEnemies(ctx, e, enemies);
+    // Uppercut off its feet: up, and back down, and it splats where it lands (like an overdose)
+    if (e.uppercutFlung) {
+      const box = boundsOf(e);
+      // (a ceiling on the way up: it bonks off it and comes down sooner)
+      if (e.vel.y < 0 && state.blocks.some(b => (b.type === 'wall' || b.type === 'ground') && rectsOverlap(box, b) && e.pos.y - e.vel.y >= b.y + b.h - 2)) e.vel.y = Math.abs(e.vel.y) * 0.3;
+      if (e.vel.y > 0) {
+        const floor = state.blocks.find(b => b.type !== 'pit' && b.type !== 'wall' && rectsOverlap(box, b) && e.pos.y + e.height - e.vel.y <= b.y + 2);
+        if (floor) {
+          e.pos.y = floor.y - e.height;
+          const c = { x: e.pos.x + e.width / 2, y: floor.y - 4 };
+          startEnemyDeath(state, e, 'pancaked');
+          ctx.fx.spawnDeathShower(e.pos, Math.sign(e.vel.x), 2.5);
+          ctx.fx.spawnExplosion(c, '#8B0000', 18, 0, 12);
+          ctx.fx.spawnKillCallout(e, 'groundsplat');
+          shakeScreen(state, 12);
+          ctx.fx.playGunSound('crunch');
+          return false;
+        }
+      }
+    }
     return e.pos.y < state.camera.y + 1000;
   }
   if (e.health <= 0) return false;
@@ -375,7 +395,7 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
   if (air) {
     if (isStunned) return;
     if (e.behavior === 'patrol' || e.behavior === 'fly') {
-      if (e.pos.x > (e.initialX + e.patrolRange) || e.pos.x < e.initialX) e.vel.x *= -1;
+      patrol(e);
     } else if (e.behavior === 'shoot' && onScreen && !holdingOff(state) && ++e.shootTimer > 60) {
       fireEnemyBullet(ctx, e, player.pos.x < e.pos.x ? -1 : 1, { x: e.pos.x + e.width / 2, y: e.pos.y + e.height - 10 });
       e.shootTimer = 0;
@@ -433,7 +453,7 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
     // (it pulls up short at the edge of a drop rather than running straight off it: it looks a few strides ahead at that speed)
     e.vel.x = (onScreen && player.invincibilityTimer <= 0 && sameLevel && !holdingOff(state) && safeAhead(ctx, e, dir, CHARGER_LOOK)) ? dir * CHARGER_SPEED : 0;
   } else if (e.behavior === 'patrol') {
-    if (e.pos.x > (e.initialX + e.patrolRange) || e.pos.x < e.initialX) e.vel.x *= -1;
+    patrol(e);
   } else if (e.behavior === 'shoot' && onScreen) {
     if (!holdingOff(state)) e.shootTimer++;
     if (e.enemyType === 'shield') {
@@ -724,7 +744,10 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
         fx.spawnKillCallout(e, wasFrozen ? 'shatter' : player.jetski ? 'skidive' : 'divekick');
         fx.speakVulgarity('charge_kill');
       } else {
-        e.vel = { x: player.isUppercutting ? 0 : player.facing * 30, y: player.isUppercutting ? -30 : -5 };
+        // (an uppercut sends one off its feet straight up, and what goes up comes down: splat, where it went up)
+        const launchUp = player.isUppercutting && !isAirEnemy(e);
+        if (launchUp) e.uppercutFlung = true;
+        e.vel = { x: player.isUppercutting ? player.facing * 0.6 : player.facing * 30, y: launchUp ? -22 : player.isUppercutting ? -30 : -5 };
         if (wasFrozen) fx.spawnGlassShatter(e.pos);
         else fx.spawnDeathShower(e.pos, player.facing);
         fx.spawnKillCallout(e, getMeleeKillCallout(player, wasFrozen));
@@ -1085,7 +1108,9 @@ const dragIntoEnemies = (ctx: FrameContext, e: Enemy) => {
 /** Knocked down onto the floor: fall damage from the landing speed (hugely if frozen). */
 const slamIntoFloor = (ctx: FrameContext, e: Enemy, speed: number) => {
   const { fx, state } = ctx;
-  const damage = toGml(speed) * DAMAGE_FALL_SCALER * (isFrozen(e) ? FROZEN_GROUND_IMPACT_MULTIPLIER : 1);
+  // (the hit it takes stopping dead: how fast it was coming down, and how much of it there is to stop)
+  const weight = Math.min(2.5, Math.max(0.4, getEnemyMass(e) / 200));
+  const damage = toGml(speed) * weight * DAMAGE_FALL_SCALER * (isFrozen(e) ? FROZEN_GROUND_IMPACT_MULTIPLIER : 1);
   if (speed <= 0 || damage <= IMPACT_DAMAGE_THRESHOLD) return;
   // (a bystander coming down from its own hop is fine; only one he sent flying gets hurt landing. And a sludgeling
   // coming down its own hops, or into the muck it lives in, is fine too)
@@ -1095,6 +1120,17 @@ const slamIntoFloor = (ctx: FrameContext, e: Enemy, speed: number) => {
   fx.spawnDamageNumber(e.pos, damage, isFrozen(e));
   if (toGml(speed) > 6) shakeScreen(state, 8, Math.min(10, toGml(speed)) * GML_SCALE * 0.5);
   if (e.health <= 0) impactKill(ctx, e, 'groundsplat', 0);
+};
+
+/**
+ * Walking (or flying) its beat: back and forth between its two ends, at its own pace. Knocked off the end of it, it
+ * heads back toward it (it used to flip round every frame out there, jittering on the spot, till it drifted back in),
+ * and at its walking pace, whatever speed a knock left it with.
+ */
+const patrol = (e: Enemy) => {
+  e.walkSpeed ??= Math.abs(e.vel.x) || 1.2;
+  const dir = e.pos.x > e.initialX + e.patrolRange ? -1 : e.pos.x < e.initialX ? 1 : Math.sign(e.vel.x) || 1;
+  e.vel.x = dir * e.walkSpeed;
 };
 
 /** What an enemy sent flying does to whoever it hits: its weight times its speed (any direction), scaled up so it counts. */
