@@ -46,6 +46,8 @@ export interface Ski {
   arrived: boolean;
   /** In the cutscene, if anything's still alive on screen: the avalanche's first surge, which comes right up behind him and pulverizes it. */
   surge: boolean;
+  /** How far back the avalanche's held (the meter): a crash lets it close in, skiing clean it slowly drops back. */
+  gap: number;
   /** How far the camera's zoomed out on the way down (1 not at all): enough to keep the avalanche's front in view. */
   zoom: number;
   /** Killed in the snowball: it's thrown him off the far side of the mountain (see drawFlingDeath). */
@@ -54,13 +56,15 @@ export interface Ski {
 
 // Ski speeds (px/frame): cruising, pushing on, and dragging your heels
 const SKI_BASE = 9.2, SKI_FAST = 11, SKI_SLOW = 7, SKI_CRASHED = 2.5;
-const AVALANCHE_SPEED = 8.7, AVALANCHE_CATCHUP = 12.5;
+const AVALANCHE_SPEED = 8.7;
+/** How much a crash lets the avalanche close in, and how fast it drops back again skiing clean (px a frame). */
+const GAP_CRASH = 130, GAP_RECOVER = 0.35;
 /** It never falls further behind than this (it catches up): the zoomed-out camera always has it in view. */
 const AVALANCHE_MAX_GAP = 660;
 /** The cutscene surge: how fast it comes in, and how close behind him it stops. */
 const SURGE_SPEED = 18, SURGE_STOP = 90;
-/** After a surge it's right on his tail: it drops back to this speed until he's got his usual head start. */
-const AVALANCHE_AFTER_SURGE = 5, AVALANCHE_HEAD_START = 650;
+/** The lead he gets on it (and what it drops back to after the cutscene's surge has it right on his tail). */
+const AVALANCHE_HEAD_START = 650;
 const BALL_FRAMES = 90, BALL_DAMAGE = 22;
 const CRASH_FRAMES = 42, CRASH_DAMAGE = 6;
 /** What goes up over his head when he skis into each kind of thing. */
@@ -96,7 +100,7 @@ export const createSki = (state: GameState, startedAt: number): Ski => {
     phase: past ? 'done' : onSkis ? 'skiing' : 'waiting', t: 0, quiet: { n: 0 },
     skier: { x: COURSE.skier.x, y: COURSE.skier.y, vx: 0, vy: 0, rot: 0, state: onSkis || past ? 'gone' : 'stand', line: '', lineT: 0 },
     skis: null, avX: COURSE.checkpoints[CP.SKI].x - 650, ball: 0, ballX: 0, ballRot: 0, crash: 0,
-    broken: COURSE.ski.obstacles.map(() => false), cabinHitAt: past ? -9999 : 0, pileX: COURSE.cabin.x + 330, surge: false, arrived: false, zoom: 1, fling: false,
+    broken: COURSE.ski.obstacles.map(() => false), cabinHitAt: past ? -9999 : 0, pileX: COURSE.cabin.x + 330, surge: false, arrived: false, zoom: 1, fling: false, gap: AVALANCHE_HEAD_START,
   };
   if (onSkis) { state.player.skiing = true; state.player.skiSpeed = SKI_BASE; state.cameraLeadX = SKI_CAMERA_LEAD; ski.zoom = skiZoomFor(COURSE.checkpoints[CP.SKI].x - ski.avX); }
   if (past) addPile(state, ski);
@@ -231,6 +235,7 @@ const cutscene = (ctx: FrameContext, ski: Ski): Controls => {
     player.skiing = true;
     player.skiSpeed = SKI_BASE;
     if (!ski.surge) ski.avX = player.pos.x - AVALANCHE_HEAD_START;
+    ski.gap = player.pos.x - ski.avX;
     state.checkpoint = Math.max(state.checkpoint, CP.SKI);
     ctx.fx.spawnDamageNumber({ x: player.pos.x - 60, y: player.pos.y - 60 }, 'AVALANCHE!', true, '#F8FAFC');
   }
@@ -314,6 +319,8 @@ const skiing = (ctx: FrameContext, ski: Ski, controls: Controls): Controls => {
     }
     if (ski.crash === 0 && player.invincibilityTimer <= 0 && rectsOverlap(hurt, box)) {
       ski.crash = CRASH_FRAMES;
+      // (and the avalanche closes in)
+      ski.gap -= GAP_CRASH;
       ski.broken[i] = o.kind !== 'rock';
       if (!ctx.cheats.invincible) player.health -= CRASH_DAMAGE;
       state.lastHurt = { source: `ski_${o.kind}`, at: state.frame };
@@ -328,11 +335,14 @@ const skiing = (ctx: FrameContext, ski: Ski, controls: Controls): Controls => {
     }
   });
 
-  // The avalanche: steady, but it catches up fast if it's fallen far behind
+  // The avalanche: how far back it's held is what he's earned (the meter). Every crash lets it close in; every stretch
+  // skied clean it drops back a little, a bit more pushing on, a bit less dragging his heels (it's an early one: it's
+  // forgiving). Right behind him after the cutscene's surge, it hangs back till he's got his usual lead
+  if (ski.surge) { ski.gap = Math.min(AVALANCHE_HEAD_START, ski.gap + 4.2); if (ski.gap >= AVALANCHE_HEAD_START) ski.surge = false; }
+  else ski.gap = Math.min(AVALANCHE_MAX_GAP, ski.gap + GAP_RECOVER + (player.skiSpeed - SKI_BASE) * 0.08);
+  // (it rolls on down to where that puts it: surging when it's closing in, never back up the mountain)
+  ski.avX += Math.max(2, (player.pos.x - ski.gap - ski.avX) * 0.15);
   const gap = player.pos.x - ski.avX;
-  // (right behind him after the cutscene surge: it hangs back until he's got his usual lead)
-  if (ski.surge && gap >= AVALANCHE_HEAD_START) ski.surge = false;
-  ski.avX += gap > AVALANCHE_MAX_GAP ? AVALANCHE_CATCHUP : ski.surge ? AVALANCHE_AFTER_SURGE : AVALANCHE_SPEED;
   if (state.frame % 3 === 0) shakeScreen(state, 4, Math.max(1, 5 - gap / 200));
   if (ski.avX >= player.pos.x + 16 && state.deathTimer <= 0) {
     // Caught: rolled up in a snowball
@@ -372,6 +382,7 @@ const inBall = (ctx: FrameContext, ski: Ski): Controls => {
       player.vel.y = -9;
       player.invincibilityTimer = 90;
       ski.avX = Math.min(ski.avX, player.pos.x - 420);
+      ski.gap = Math.max(ski.gap, 420);
       // (it's dropped back a way all at once: the camera's straight out to keep it in view)
       ski.zoom = Math.min(ski.zoom, skiZoomFor(player.pos.x + player.width / 2 - ski.avX));
       for (let i = 0; i < 20; i++) state.particles.push({ pos: { x: ski.ballX, y: ground - 30 }, vel: { x: (Math.random() - 0.5) * 10, y: -Math.random() * 8 }, life: 30 + Math.random() * 20, color: i % 3 ? '#FFFFFF' : '#DBEAFE', size: 5 + Math.random() * 8 });

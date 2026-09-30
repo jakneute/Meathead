@@ -11,6 +11,7 @@ import { createHazards, updateHazards, Hazards } from './hazards';
 import { createTram, updateTram, checkFellOffTram, Tram } from './tram';
 import { createMooseFight, updateMooseFight, MooseFight } from './moose';
 import { createSki, updateSki, Ski } from './ski';
+import { createTease, updateTease, Tease } from './tease';
 
 export interface ArtieRuntime {
   /** Which checkpoint this attempt started from (0 = the trailhead). */
@@ -19,6 +20,8 @@ export interface ArtieRuntime {
   tram: Tram;
   moose: MooseFight;
   ski: Ski;
+  /** The rumble in the woods, off the tram (the avalanche to come). */
+  tease: Tease;
 }
 
 /** Nothing's placed closer than this ahead of where you start (the trailhead or a checkpoint). */
@@ -37,7 +40,7 @@ export const createArtieRuntime = (state: GameState, skipToBoss: boolean): Artie
   // The trail's wildlife and goons (the ones still ahead, and never right on top of where you start)
   const startX = COURSE.checkpoints[startedAt].x;
   for (const s of COURSE.spawns) if (s.x >= fromX && s.x - startX >= SPAWN_CLEARANCE) state.enemies.push(makeKindEnemy(s.kind, s.x, s.y));
-  return { startedAt, hazards: createHazards(state), tram: createTram(state, startedAt), moose: createMooseFight(state, startedAt), ski: createSki(state, startedAt) };
+  return { startedAt, hazards: createHazards(state), tram: createTram(state, startedAt), moose: createMooseFight(state, startedAt), ski: createSki(state, startedAt), tease: createTease(startedAt) };
 };
 
 export const updateArtie = (ctx: FrameContext, controls: Controls): Controls => {
@@ -51,5 +54,6 @@ export const updateArtie = (ctx: FrameContext, controls: Controls): Controls => 
   updateTram(ctx, rt.tram);
   checkFellOffTram(ctx);
   updateMooseFight(ctx, rt.moose);
+  controls = updateTease(ctx, rt.tease, rt.tram, controls);
   return updateSki(ctx, rt.ski, controls);
 };

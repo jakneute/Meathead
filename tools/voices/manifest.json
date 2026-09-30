@@ -3412,7 +3412,7 @@
  {
   "voice": "death",
   "text": "CREVASSE: 1, MEATHEAD: 0",
-  "from": "game/stages/artie/ski.ts:468"
+  "from": "game/stages/artie/ski.ts:479"
  },
  {
   "voice": "death",
@@ -3717,7 +3717,7 @@
  {
   "voice": "death",
   "text": "FLASH-FROZEN MEAT POPSICLE",
-  "from": "game/stages/artie/ski.ts:468"
+  "from": "game/stages/artie/ski.ts:479"
  },
  {
   "voice": "death",
@@ -4397,7 +4397,7 @@
  {
   "voice": "death",
   "text": "PLANTED HEAD FIRST",
-  "from": "game/stages/artie/ski.ts:461"
+  "from": "game/stages/artie/ski.ts:472"
  },
  {
   "voice": "death",
@@ -4832,7 +4832,7 @@
  {
   "voice": "death",
   "text": "SKIED INTO THE ABYSS",
-  "from": "game/stages/artie/ski.ts:468"
+  "from": "game/stages/artie/ski.ts:479"
  },
  {
   "voice": "death",
@@ -4892,7 +4892,7 @@
  {
   "voice": "death",
   "text": "SNOWBALLED INTO NEXT WEEK",
-  "from": "game/stages/artie/ski.ts:461"
+  "from": "game/stages/artie/ski.ts:472"
  },
  {
   "voice": "death",
@@ -5162,12 +5162,12 @@
  {
   "voice": "death",
   "text": "THE MOUNTAIN WON",
-  "from": "game/stages/artie/ski.ts:468"
+  "from": "game/stages/artie/ski.ts:479"
  },
  {
   "voice": "death",
   "text": "THE OTHER SIDE OF THE MOUNTAIN",
-  "from": "game/stages/artie/ski.ts:461"
+  "from": "game/stages/artie/ski.ts:472"
  },
  {
   "voice": "death",
@@ -5222,7 +5222,7 @@
  {
   "voice": "death",
   "text": "THIN ICE",
-  "from": "game/stages/artie/ski.ts:461"
+  "from": "game/stages/artie/ski.ts:472"
  },
  {
   "voice": "death",
@@ -5407,7 +5407,7 @@
  {
   "voice": "death",
   "text": "YOU GOT AVALANCHED",
-  "from": "game/stages/artie/ski.ts:468"
+  "from": "game/stages/artie/ski.ts:479"
  },
  {
   "voice": "death",
@@ -5432,17 +5432,17 @@
  {
   "voice": "dispatch",
   "text": "DAVE?",
-  "from": "game/stages/artie/ski.ts:144"
+  "from": "game/stages/artie/ski.ts:148"
  },
  {
   "voice": "dispatch",
   "text": "DAVE? YOU GOOD, DAVE?",
-  "from": "game/stages/artie/ski.ts:144"
+  "from": "game/stages/artie/ski.ts:148"
  },
  {
   "voice": "dispatch",
   "text": "RANGER ONE, COME IN.",
-  "from": "game/stages/artie/ski.ts:144"
+  "from": "game/stages/artie/ski.ts:148"
  },
  {
   "voice": "doorman",
@@ -5947,7 +5947,7 @@
  {
   "voice": "meathead",
   "text": "...OH SHIT.",
-  "from": "game/stages/artie/ski.ts:118"
+  "from": "game/stages/artie/ski.ts:122"
  },
  {
   "voice": "meathead",
@@ -5963,6 +5963,11 @@
   "voice": "meathead",
   "text": "...WAIT. YOU'RE DOING THIS ON PURPOSE. JUST TO WATCH ME SUFFER.",
   "from": "game/stages/victor/doorman.ts:529"
+ },
+ {
+  "voice": "meathead",
+  "text": "...WHAT WAS THAT?",
+  "from": "game/stages/artie/tease.ts:20"
  },
  {
   "voice": "meathead",
@@ -7168,6 +7173,11 @@
   "voice": "meathead",
   "text": "EAT THIS CHIN CHECK",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "EH. PROBABLY NOTHING.",
+  "from": "game/stages/artie/tease.ts:20"
  },
  {
   "voice": "meathead",
@@ -9347,7 +9357,7 @@
  {
   "voice": "meathead",
   "text": "MINE NOW.",
-  "from": "game/stages/artie/ski.ts:118"
+  "from": "game/stages/artie/ski.ts:122"
  },
  {
   "voice": "meathead",
@@ -9692,7 +9702,7 @@
  {
   "voice": "meathead",
   "text": "NICE SKIS.",
-  "from": "game/stages/artie/ski.ts:118"
+  "from": "game/stages/artie/ski.ts:122"
  },
  {
   "voice": "meathead",
@@ -10737,7 +10747,7 @@
  {
   "voice": "meathead",
   "text": "SHOULD'VE BUILT FURTHER UP.",
-  "from": "game/stages/artie/ski.ts:118"
+  "from": "game/stages/artie/ski.ts:122"
  },
  {
   "voice": "meathead",
@@ -13077,17 +13087,17 @@
  {
   "voice": "skier",
   "text": "AAAAAAAAAAHHHHH",
-  "from": "game/stages/artie/ski.ts:128"
+  "from": "game/stages/artie/ski.ts:132"
  },
  {
   "voice": "skier",
   "text": "BRO. THE POWDER UP HERE IS SICK.",
-  "from": "game/stages/artie/ski.ts:128"
+  "from": "game/stages/artie/ski.ts:132"
  },
  {
   "voice": "skier",
   "text": "THANKS, THEY'RE CARBON FIB-",
-  "from": "game/stages/artie/ski.ts:128"
+  "from": "game/stages/artie/ski.ts:132"
  },
  {
   "voice": "tommy.crew",

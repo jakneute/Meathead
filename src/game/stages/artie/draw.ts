@@ -17,11 +17,64 @@ export const drawArtieBack = (ctx: Ctx, state: GameState) => {
   drawTramRigging(ctx, state);
   drawCloudSea(ctx, state);
   drawTramBack(ctx, state, getArtie(state)!.tram);
+  drawPines(ctx, state);
+};
+
+// ---------------------------------------------------------------------------
+// The high woods
+// ---------------------------------------------------------------------------
+
+/** The pines of the high woods, behind everything: tiers of dark needles, snow along the top of each, the trunk. */
+const drawPines = (ctx: Ctx, state: GameState) => {
+  const W = COURSE.woods;
+  const v = viewOf(state);
+  if (W.x2 < v.x - 200 || W.x1 > v.x + v.w + 200) return;
+  for (const p of W.pines) {
+    if (p.x < v.x - 120 || p.x > v.x + v.w + 120) continue;
+    const tiers = Math.max(3, Math.round(p.h / 60)), w0 = p.h * 0.32;
+    ctx.fillStyle = '#2A1A10'; ctx.fillRect(p.x - 6, p.y - p.h * 0.25, 12, p.h * 0.25 + 4);
+    ctx.fillStyle = '#3F2A1D'; ctx.fillRect(p.x - 6, p.y - p.h * 0.25, 4, p.h * 0.25 + 4);
+    for (let k = 0; k < tiers; k++) {
+      const top = p.y - p.h + (k * p.h * 0.75) / tiers, bot = top + p.h * 0.34, w = w0 * (0.45 + (0.55 * (k + 1)) / tiers);
+      // (the dark side, the lit side, the snow along the top edge)
+      ctx.fillStyle = '#0F2E1C'; ctx.beginPath(); ctx.moveTo(p.x, top); ctx.lineTo(p.x + w, bot); ctx.lineTo(p.x - w, bot); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#1B4D2E'; ctx.beginPath(); ctx.moveTo(p.x, top); ctx.lineTo(p.x - w, bot); ctx.lineTo(p.x - w * 0.2, bot); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#EEF4FB'; ctx.beginPath(); ctx.moveTo(p.x, top); ctx.lineTo(p.x - w * 0.55, top + (bot - top) * 0.55); ctx.lineTo(p.x - w * 0.2, top + (bot - top) * 0.45); ctx.lineTo(p.x + w * 0.1, top + (bot - top) * 0.6); ctx.lineTo(p.x + w * 0.45, top + (bot - top) * 0.5); ctx.closePath(); ctx.fill();
+    }
+    // (snow heaped round the foot of it)
+    ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.ellipse(p.x, p.y, 18, 5, 0, Math.PI, 0); ctx.fill();
+  }
+};
+
+/** The boughs you climb (a limb off the trunk, needles along it, snow on top) and the fallen trunk. */
+const drawBoughs = (ctx: Ctx, state: GameState) => {
+  for (const l of COURSE.ledges) {
+    if (!l.look || !onScreen(state, l.x)) continue;
+    if (l.look === 'log') {
+      ctx.fillStyle = '#4A2E1A'; ctx.beginPath(); ctx.roundRect(l.x, l.y, l.w, 44, 18); ctx.fill();
+      ctx.fillStyle = '#5E3A22'; ctx.fillRect(l.x + 8, l.y + 6, l.w - 16, 10);
+      ctx.strokeStyle = 'rgba(30, 16, 8, 0.6)'; ctx.lineWidth = 1.5;
+      for (let x = l.x + 16; x < l.x + l.w - 12; x += 22) { ctx.beginPath(); ctx.moveTo(x, l.y + 8); ctx.quadraticCurveTo(x + 6, l.y + 22, x, l.y + 38); ctx.stroke(); }
+      // (its sawn-off end, the rings in it)
+      ctx.fillStyle = '#C8A070'; ctx.beginPath(); ctx.ellipse(l.x + l.w - 8, l.y + 22, 10, 21, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#8A6038'; ctx.lineWidth = 1; for (let r = 4; r < 20; r += 5) { ctx.beginPath(); ctx.ellipse(l.x + l.w - 8, l.y + 22, r * 0.5, r, 0, 0, Math.PI * 2); ctx.stroke(); }
+      ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.ellipse(l.x + l.w / 2, l.y + 2, l.w / 2 - 6, 6, 0, Math.PI, 0); ctx.fill();
+      continue;
+    }
+    // A bough: the limb, the needles hanging off it, the snow along the top
+    ctx.fillStyle = '#3F2A1D'; ctx.fillRect(l.x, l.y + 6, l.w, 7);
+    for (let x = l.x; x < l.x + l.w; x += 12) {
+      ctx.fillStyle = '#14532D'; ctx.beginPath(); ctx.moveTo(x, l.y + 8); ctx.lineTo(x + 14, l.y + 8); ctx.lineTo(x + 7, l.y + 24); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#1B4D2E'; ctx.beginPath(); ctx.moveTo(x, l.y + 8); ctx.lineTo(x + 6, l.y + 8); ctx.lineTo(x + 5, l.y + 20); ctx.closePath(); ctx.fill();
+    }
+    ctx.fillStyle = '#EEF4FB'; ctx.fillRect(l.x - 2, l.y, l.w + 4, 6); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(l.x + 2, l.y, l.w - 6, 2);
+  }
 };
 
 export const drawArtieMid = (ctx: Ctx, state: GameState) => {
   const rt = getArtie(state)!;
   drawWind(ctx, state);
+  drawBoughs(ctx, state);
   if (rt.moose.corpse) drawMooseCorpse(ctx, rt.moose.corpse, state.frame);
   drawCrumbles(ctx, state, rt.hazards);
   drawIcicles(ctx, state, rt.hazards);

@@ -15,6 +15,19 @@ type Ctx = CanvasRenderingContext2D;
 
 const visible = (state: GameState, x1: number, x2: number) => { const v = viewOf(state); return x2 > v.x - 80 && x1 < v.x + v.w + 80; };
 const groundAt = (state: GameState, x: number) => { const g = groundLineAt(state.groundRuns, x); return g === Infinity ? viewOf(state).y + viewOf(state).h : g; };
+/** The ground under the avalanche: across a crevasse it just rolls straight over (the line from one lip to the other). */
+const snowLineAt = (state: GameState, x: number) => {
+  const g = groundLineAt(state.groundRuns, x);
+  if (g !== Infinity) return g;
+  let l = x, r = x, gl = Infinity, gr = Infinity;
+  for (let d = 8; d < 800 && (gl === Infinity || gr === Infinity); d += 8) {
+    if (gl === Infinity) { gl = groundLineAt(state.groundRuns, x - d); l = x - d; }
+    if (gr === Infinity) { gr = groundLineAt(state.groundRuns, x + d); r = x + d; }
+  }
+  if (gl === Infinity) return gr === Infinity ? viewOf(state).y + viewOf(state).h : gr;
+  if (gr === Infinity) return gl;
+  return gl + ((x - l) / (r - l)) * (gr - gl);
+};
 
 // ---------------------------------------------------------------------------
 // Behind Meathead: obstacles, the skier, the cabin, the pile
@@ -376,7 +389,7 @@ const drawAvalanche = (ctx: Ctx, state: GameState, ski: Ski) => {
   const left = v.x - 60, bottom = v.y + v.h + 100;
   if (front < left) return;
   const f = state.frame;
-  const topAt = (x: number) => groundAt(state, x) - 420 - Math.sin(x * 0.02 + f * 0.1) * 30;
+  const topAt = (x: number) => snowLineAt(state, x) - 420 - Math.sin(x * 0.02 + f * 0.1) * 30;
   // Body
   const grad = ctx.createLinearGradient(0, v.y, 0, v.y + v.h);
   grad.addColorStop(0, '#F8FAFC'); grad.addColorStop(1, '#C7D6EA');
@@ -384,7 +397,7 @@ const drawAvalanche = (ctx: Ctx, state: GameState, ski: Ski) => {
   ctx.beginPath();
   ctx.moveTo(left, bottom);
   for (let x = left; x <= front; x += 30) ctx.lineTo(x, topAt(x));
-  ctx.lineTo(front, groundAt(state, front));
+  ctx.lineTo(front, snowLineAt(state, front));
   ctx.lineTo(front, bottom);
   ctx.closePath();
   ctx.fill();
@@ -392,7 +405,7 @@ const drawAvalanche = (ctx: Ctx, state: GameState, ski: Ski) => {
   for (let i = 0; i < 6; i++) {
     const dx = front - 60 - ((f * 3 + i * 97) % 500);
     if (dx < left) continue;
-    const dy = groundAt(state, dx) - 60 - ((i * 71 + f * 2) % 280);
+    const dy = snowLineAt(state, dx) - 60 - ((i * 71 + f * 2) % 280);
     ctx.save(); ctx.translate(dx, dy); ctx.rotate(f * 0.1 + i);
     if (i % 2) { ctx.fillStyle = '#14532D'; ctx.beginPath(); ctx.moveTo(0, -20); ctx.lineTo(-10, 12); ctx.lineTo(10, 12); ctx.fill(); ctx.fillStyle = '#3F2A1D'; ctx.fillRect(-2, 12, 4, 8); }
     else { ctx.fillStyle = '#57534E'; ctx.beginPath(); ctx.arc(0, 0, 10 + (i % 3) * 4, 0, Math.PI * 2); ctx.fill(); }
@@ -400,7 +413,7 @@ const drawAvalanche = (ctx: Ctx, state: GameState, ski: Ski) => {
   }
   // Billowing front edge
   for (let i = 0; i < 14; i++) {
-    const y = groundAt(state, front) - i * 32;
+    const y = snowLineAt(state, front) - i * 32;
     const bx = front + Math.sin(f * 0.2 + i * 1.3) * 12;
     const br = 30 + ((i * 17 + f) % 20);
     ctx.fillStyle = i % 2 ? '#FFFFFF' : '#E2ECF7';
@@ -410,7 +423,7 @@ const drawAvalanche = (ctx: Ctx, state: GameState, ski: Ski) => {
   ctx.fillStyle = 'rgba(255,255,255,0.8)';
   for (let i = 0; i < 20; i++) {
     const sx = front + 10 + ((f * 7 + i * 41) % 140);
-    const sy = groundAt(state, front) - ((i * 53 + f * 3) % 380);
+    const sy = snowLineAt(state, front) - ((i * 53 + f * 3) % 380);
     ctx.fillRect(sx, sy, 3 + (i % 3), 3 + (i % 3));
   }
 };

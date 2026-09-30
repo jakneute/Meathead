@@ -17,7 +17,9 @@ export const CP = { TRAILHEAD: 0, STATION: 1, TOP: 2, AFTER_MOOSE: 3, SKI: 4, DO
 
 export type WildKind = 'wolverine' | 'goat' | 'eagle' | 'shooter' | 'charger' | 'shielder';
 
-export interface Ledge { x: number; y: number; w: number; crumble: boolean }
+export interface Ledge { x: number; y: number; w: number; crumble: boolean; /** Up in the woods: a pine's bough, or a fallen trunk (else a shelf of rock). */ look?: 'bough' | 'log' }
+/** A pine in the high woods (drawn behind everything): its foot, how tall. */
+export interface Pine { x: number; y: number; h: number }
 export interface Overhang { x: number; y: number; w: number; h: number }
 export interface IcicleSpot { x: number; y: number }
 export interface WindZone { x1: number; x2: number; push: number; gust?: { on: number; off: number } }
@@ -41,6 +43,8 @@ export interface Course {
   /** The drop under the whole tram ride, full of cloud. */
   gorge: { x1: number; x2: number; y: number };
   moose: { x1: number; x2: number; y: number };
+  /** The high woods between the top of the tram and the moose's clearing (the pines through them, and round the clearing). */
+  woods: { x1: number; x2: number; pines: Pine[] };
   skier: { x: number; y: number };
   ski: { x1: number; x2: number; obstacles: SkiObstacle[] };
   cabin: { x: number; y: number; stopX: number };
@@ -179,10 +183,45 @@ export const buildCourse = (): Course => {
   // Off the tram: patch up and reload before the moose
   pickups.push({ x: deckX + 230, y: topY - 30, type: 'large_health' });
   pickups.push({ x: deckX + 320, y: topY - 30, type: 'large_ammo' });
-  // The moose's clearing: one screen, walled in while he's alive
+  // ============ THE HIGH WOODS ============
+  // Up into the pines: the same sort of going as the trail below (a bit of climbing, a gap or two), in among the
+  // trees: a fallen trunk to get up on, a frozen creek, a big pine to climb by its boughs to the ammo in it
+  const woodsX1 = c.x;
+  const pines: Pine[] = [];
+  const pine = (x: number, h: number) => pines.push({ x, y: c.groundAt(x), h });
+  c.flat(300);
+  // A fallen trunk across the path (up on it, over it); a wolverine on the far side
+  ledges.push({ x: c.x - 150, y: c.y - 44, w: 170, crumble: false, look: 'log' });
+  spawn('wolverine', c.x - 20);
+  c.flat(260);
+  c.slope(220, -50);
+  // The frozen creek: a short gap, a bough hanging over it
+  const creek = c.x;
+  c.flat(80);
+  c.pit(130);
+  ledges.push({ x: creek + 110, y: c.y - 70, w: 90, crumble: false, look: 'bough' });
+  c.flat(360);
+  // A big pine: up its boughs to a large ammo; a goat on a stump, an eagle over the treetops
+  const big = c.x - 240;
+  ledges.push({ x: big - 70, y: c.y - 90, w: 80, crumble: false, look: 'bough' });
+  ledges.push({ x: big + 20, y: c.y - 170, w: 80, crumble: false, look: 'bough' });
+  ledges.push({ x: big - 60, y: c.y - 250, w: 90, crumble: false, look: 'bough' });
+  pickups.push({ x: big - 15, y: c.y - 280, type: 'large_ammo' });
+  pines.push({ x: big, y: c.y, h: 330 });
+  ledges.push({ x: c.x - 70, y: c.y - 60, w: 60, crumble: false });
+  spawn('goat', c.x - 40, 60);
+  spawn('eagle', c.x - 60, 260);
+  c.slope(260, -40);
+  c.flat(220);
+  // (the trees all through it, thick; thinning out round the clearing's edges)
+  for (let x = woodsX1 + 40; x < c.x; x += 70 + Math.round(((x * 37) % 50))) if (Math.abs(x - big) > 80) pine(x, 150 + ((x * 13) % 110));
+  // The moose's clearing: one screen, walled in while he's alive (open: pines only round its edges)
   const mooseX1 = c.x;
   c.flat(800);
   const moose = { x1: mooseX1, x2: c.x, y: c.y };
+  for (const dx of [-60, 20, 70]) pine(mooseX1 + dx, 190 + (dx & 63));
+  for (const dx of [-60, -10, 50]) pine(c.x + dx, 200 + (dx & 31));
+  const woods = { x1: woodsX1, x2: c.x + 100, pines };
   const cp2 = { x: c.x + 60, y: c.y };
   // Wind, taught on the flat: it shoves you back
   c.flat(400);
@@ -316,6 +355,7 @@ export const buildCourse = (): Course => {
     tram: { x: sx(tramX), y: tramY, toX: sx(topX), toY: topY },
     gorge: { x1: sx(gorge.x1), x2: sx(gorge.x2), y: gorge.y },
     moose: { x1: sx(moose.x1), x2: sx(moose.x2), y: moose.y },
+    woods: { x1: sx(woods.x1), x2: sx(woods.x2), pines: woods.pines.map(p => ({ ...p, x: sx(p.x) })) },
     skier: { x: sx(skier.x), y: skier.y },
     ski: { x1: sx(ski.x1), x2: sx(ski.x2), obstacles: ski.obstacles.map(o => ({ ...o, x: sx(o.x) })) },
     cabin: { x: sx(cabin.x), y: cabin.y, stopX: sx(cabin.stopX) },
