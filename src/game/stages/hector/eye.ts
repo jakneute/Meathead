@@ -175,18 +175,18 @@ const updateJunk = (ctx: FrameContext, f: EyeFight) => {
   const { player } = state;
   const a = A();
   if (f.phase === 'fight') {
-    // The more it's hurt, the worse the storm gets: more often, faster, and two or three at a time by the end
+    // The more it's hurt, the worse the storm gets: more often, faster, two at a time past halfway and three right at the end
     const hurt = f.eye ? 1 - f.eye.health / EYE_HP : 0;
     if (--f.junkT <= 0) {
-      f.junkT = Math.round(100 - hurt * 62 + Math.random() * 25);
-      const count = 1 + (hurt > 0.35 ? 1 : 0) + (hurt > 0.7 ? 1 : 0);
+      f.junkT = Math.round(125 - hurt * 55 + Math.random() * 30);
+      const count = 1 + (hurt > 0.5 ? 1 : 0) + (hurt > 0.85 ? 1 : 0);
       for (let k = 0; k < count; k++) {
         const side: 1 | -1 = Math.random() < 0.5 ? -1 : 1;
         // (the first at him, the rest above and below, so there's a gap to find)
         const py = player.pos.y + player.height / 2 + (k === 0 ? (Math.random() - 0.5) * 60 : (k === 1 ? -1 : 1) * (90 + Math.random() * 60));
         const y = Math.max(a.y + 60, Math.min(a.y + 560, py));
         const look = JUNK_LOOKS[Math.floor(Math.random() * JUNK_LOOKS.length)], size = JUNK_SIZE[look] ?? 1;
-        f.junk.push({ look, side, x: side < 0 ? a.x - 40 - 30 * size : a.x + 840 + 30 * size, y, vx: -side * (7 + hurt * 4 + Math.random() * 2.5), vy: 0, rot: 0, warn: JUNK_WARN + k * 12, size });
+        f.junk.push({ look, side, x: side < 0 ? a.x - 40 - 30 * size : a.x + 840 + 30 * size, y, vx: -side * (6.5 + hurt * 3 + Math.random() * 2), vy: 0, rot: 0, warn: JUNK_WARN + k * 12, size });
       }
     }
   } else f.junk = [];
