@@ -2,7 +2,7 @@ import { GameStatus, Enemy, TommyBoard, DamageNumber, Particle } from '../../typ
 import { setBossLook } from './bosses/kit';
 import { isDummy, drawDummy } from './dummies';
 import {
-  CANVAS_WIDTH, CANVAS_HEIGHT, RING_CEILING_Y, LEVEL_INTRO_STYLE, SKYFALL_CLOUD_FRAMES, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, RENDER_SCALE, PRACTICE_RANGE_STAGE, isRangeStage, GROUND_Y,
+  CANVAS_WIDTH, CANVAS_HEIGHT, RING_CEILING_Y, RING_FLOOR_Y, LEVEL_INTRO_STYLE, SKYFALL_CLOUD_FRAMES, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, RENDER_SCALE, PRACTICE_RANGE_STAGE, isRangeStage, GROUND_Y,
 } from '../../constants';
 import { drawSkyClouds, DEPLOY_CLOUD_SCROLL_END, SKYFALL_CLOUD_SPEED } from './skyClouds';
 import { STAGE_COLORS } from '../../content/roster';
@@ -85,7 +85,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     if (zoom && zoom.scale !== 1) { wctx.translate(zoom.shiftX ?? 0, zoom.shiftY ?? 0); wctx.translate(zoom.x, zoom.y); wctx.scale(zoom.scale, zoom.scale); wctx.translate(-zoom.x, -zoom.y); }
 
     layout?.drawBack?.(wctx, state);
-    drawGroundProfile(wctx, state.groundRuns, stageId, state.frame || 0, { x: state.camera.x - shiftX, y: state.camera.y, w: CANVAS_WIDTH + shiftX * 2, h: CANVAS_HEIGHT });
+    if (!isRing) drawGroundProfile(wctx, state.groundRuns, stageId, state.frame || 0, { x: state.camera.x - shiftX, y: state.camera.y, w: CANVAS_WIDTH + shiftX * 2, h: CANVAS_HEIGHT });
     if (!isRing && !drawTerrain(wctx, state.blocks, stageId, state.frame || 0, state.doorOpenAmount)) drawBlocks(wctx, state, colors);
     layout?.drawMid?.(wctx, state);
     // The boss arena is drawn whenever any of it is on screen: from the moment the door
@@ -346,7 +346,7 @@ const drawCylinderWorld = (ctx: CanvasRenderingContext2D, radius: number, worldP
  */
 const RING_HASH = (n: number) => { const x = Math.sin(n * 127.1) * 43758.5453; return x - Math.floor(x); };
 const drawRing = (ctx: CanvasRenderingContext2D, frame: number) => {
-  const W = CANVAS_WIDTH, mat = GROUND_Y, h = RING_HASH, top = RING_CEILING_Y;
+  const W = CANVAS_WIDTH, mat = RING_FLOOR_Y, h = RING_HASH, top = RING_CEILING_Y;
   // Cinderblock, grimy, the paint peeling off it in patches, water stains run down from the ceiling
   ctx.fillStyle = '#1A1917'; ctx.fillRect(0, 0, W, CANVAS_HEIGHT);
   ctx.fillStyle = '#211F1C';

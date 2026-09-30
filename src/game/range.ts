@@ -6,7 +6,7 @@
 // gloves; and some idiot drifting about hanging off a bunch of party balloons. Nobody knows why. Nobody asked.
 
 import { Enemy, GameStatus, WeaponType } from '../types';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, WEAPON_RANGE_STAGE, createFullAmmo, RING_CEILING_Y, PRACTICE_RANGE_STAGE } from '../constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, WEAPON_RANGE_STAGE, createFullAmmo, RING_CEILING_Y, RING_FLOOR_Y, PRACTICE_RANGE_STAGE } from '../constants';
 import { createGameState, GameState } from './core/state';
 import { createFrameContext, GameEvents } from './core/context';
 import { stepGame } from './core/update';
@@ -23,9 +23,12 @@ let dummyCount = 0;
 export type DummyKind = 'ground' | 'air';
 export const DUMMY_KINDS: DummyKind[] = ['ground', 'air'];
 /** The boxer walks back and forth; the balloon man drifts laps overhead. Neither fights back. */
-export const makeDummy = (kind: DummyKind, x: number): Enemy => kind === 'ground'
+/** Where a range's floor is: the ring's mat, up off the bottom of the screen, or the plain range's. */
+const floorOf = (stageId: string | null) => (stageId === PRACTICE_RANGE_STAGE ? RING_FLOOR_Y : GROUND_Y);
+
+export const makeDummy = (kind: DummyKind, x: number, floor = GROUND_Y): Enemy => kind === 'ground'
   ? {
-    id: `dummy-ground-${++dummyCount}`, pos: { x, y: GROUND_Y - 70 }, vel: { x: x > CANVAS_WIDTH / 2 ? -1.2 : 1.2, y: 0 },
+    id: `dummy-ground-${++dummyCount}`, pos: { x, y: floor - 70 }, vel: { x: x > CANVAS_WIDTH / 2 ? -1.2 : 1.2, y: 0 },
     width: 50, height: 70, health: 200, maxHealth: 200, type: 'enemy', enemyType: 'tank', behavior: 'patrol',
     patrolRange: 260, initialX: Math.min(x, CANVAS_WIDTH - 330), shootTimer: 0, harmless: true,
   }
@@ -43,18 +46,20 @@ export const createRange = (weapon: WeaponType, stageId = WEAPON_RANGE_STAGE, we
     { x: CANVAS_WIDTH, y: -1000, w: 100, h: 2000, type: 'wall' },
     // (the ceiling: the gym's, down under the writing across the top, in the ring; the top of the screen elsewhere)
     { x: 0, y: (stageId === PRACTICE_RANGE_STAGE ? RING_CEILING_Y : 0) - 200, w: CANVAS_WIDTH, h: 200, type: 'wall' },
-    { x: -100, y: GROUND_Y, w: CANVAS_WIDTH + 200, h: 50, type: 'ground' },
+    { x: -100, y: floorOf(stageId), w: CANVAS_WIDTH + 200, h: CANVAS_HEIGHT, type: 'ground' },
   ];
   s.cameraMinX = 0;
   s.cameraMaxX = 0;
   s.doorState = 'done';
-  s.player.pos = { x: 140, y: GROUND_Y - s.player.height };
+  s.player.pos = { x: 140, y: floorOf(stageId) - s.player.height };
+  // (the floor's line, for blood landing on it)
+  if (stageId === PRACTICE_RANGE_STAGE) s.groundRuns = [{ x1: -100, y1: RING_FLOOR_Y, x2: CANVAS_WIDTH + 100, y2: RING_FLOOR_Y }];
   s.player.facing = 1;
   s.player.currentWeapon = weapon;
   if (weapons) s.availableWeapons = weapons;
   // (the oil rocket launcher's got the flamethrower on its own button: he has that by now, so it's here to try)
   else if (weapon === 'OIL_ROCKET') s.availableWeapons = ['GUN', 'FLAMETHROWER', 'OIL_ROCKET'];
-  s.enemies = [makeDummy('ground', 560), makeDummy('air', 420)];
+  s.enemies = [makeDummy('ground', 560, floorOf(stageId)), makeDummy('air', 420)];
   s.frame = 1;
   return s;
 };
@@ -90,7 +95,7 @@ export const stepRange = (range: GameState, controls: Controls, weapon: WeaponTy
   if (range.player.pos.y > CANVAS_HEIGHT + 200 || range.deathTimer > 0) {
     if (range.deathTimer > 0) stopDeathAnnouncer();
     range.deathTimer = 0;
-    range.player.pos = { x: 140, y: GROUND_Y - range.player.height };
+    range.player.pos = { x: 140, y: floorOf(range.stageId) - range.player.height };
     range.player.vel = { x: 0, y: 0 };
   }
   // Both dummies always come back (the other side of the ring from him)
@@ -99,7 +104,7 @@ export const stepRange = (range: GameState, controls: Controls, weapon: WeaponTy
     if (respawns[kind] <= 0) respawns[kind] = 55;
     else if (--respawns[kind] === 0) {
       const x = range.player.pos.x < CANVAS_WIDTH / 2 ? CANVAS_WIDTH - 130 : 80;
-      const d = makeDummy(kind, x);
+      const d = makeDummy(kind, x, floorOf(range.stageId));
       range.enemies.push(d);
       for (let i = 0; i < 14; i++) range.particles.push({ pos: { x: x + d.width / 2, y: d.pos.y + d.height / 2 }, vel: { x: (Math.random() - 0.5) * 6, y: -Math.random() * 5 }, life: 25, color: i % 2 ? '#EF4444' : '#FFFFFF', size: 3 + Math.random() * 4 });
     }
