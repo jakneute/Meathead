@@ -58,56 +58,65 @@ const BossPortrait: React.FC<{ id: string; dead?: boolean }> = ({ id, dead = fal
     // (each card's flash goes off at its own time)
     let frame = Math.floor(Math.random() * FLASH_EVERY), raf = 0;
 
-    const sprite = (shadow: boolean) => {
-      ctx.save();
-      ctx.translate(OX + (shadow ? 9 : 0), OY + (shadow ? 5 : 0));
-      ctx.scale(SCALE, SCALE);
-      if (shadow) ctx.filter = 'brightness(0) blur(2px)';
+    const sprite = (on: CanvasRenderingContext2D, f: number) => {
+      on.save();
+      on.translate(OX, OY);
+      on.scale(SCALE, SCALE);
       setCameraStare(true);
-      drawBoss(ctx, sitter, id, dead ? 0 : frame);
+      drawBoss(on, sitter, id, f);
       setCameraStare(false);
-      ctx.restore();
+      on.restore();
     };
+    const offscreen = () => { const c = document.createElement('canvas'); c.width = SIZE; c.height = SIZE; return c; };
+
+    // Drawn once: the wall (lit from the front, darker round the edges) with its height chart, and his shadow
+    // (a blurred silhouette: filters are dear, so it isn't redone every frame)
+    const back = offscreen(), bctx = back.getContext('2d')!;
+    bctx.fillStyle = wall;
+    bctx.fillRect(0, 0, SIZE, SIZE);
+    const lit = bctx.createRadialGradient(SIZE / 2, SIZE * 0.35, 20, SIZE / 2, SIZE / 2, SIZE * 0.8);
+    lit.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
+    lit.addColorStop(1, 'rgba(0, 0, 0, 0.45)');
+    bctx.fillStyle = lit;
+    bctx.fillRect(0, 0, SIZE, SIZE);
+    heightChart(bctx);
+    const shade = offscreen(), sctx = shade.getContext('2d')!;
+    sctx.filter = 'brightness(0) blur(2px)';
+    sprite(sctx, 0);
 
     const draw = () => {
       frame++;
+      raf = requestAnimationFrame(draw);
+      // (30 frames a second is plenty for a photo that breathes)
+      if (frame % 2) return;
       const f = frame % FLASH_EVERY;
       const flash = !dead && f < FLASH_FRAMES ? 1 - f / FLASH_FRAMES : 0;
       // He squints into the flash
       if (!dead) sitter.hitCooldown = f < 12 ? 45 : 0;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.filter = 'none';
-
-      // The wall, lit from the front, darker round the edges
-      ctx.fillStyle = wall;
-      ctx.fillRect(0, 0, SIZE, SIZE);
-      const lit = ctx.createRadialGradient(SIZE / 2, SIZE * 0.35, 20, SIZE / 2, SIZE / 2, SIZE * 0.8);
-      lit.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
-      lit.addColorStop(1, 'rgba(0, 0, 0, 0.45)');
-      ctx.fillStyle = lit;
-      ctx.fillRect(0, 0, SIZE, SIZE);
-      heightChart(ctx);
+      ctx.drawImage(back, 0, 0);
 
       // His shadow on the wall (hard and sudden in the flash), then him
-      ctx.save();
       ctx.globalAlpha = 0.18 + flash * 0.35;
-      sprite(true);
-      ctx.restore();
+      ctx.drawImage(shade, 9, 5);
+      ctx.globalAlpha = 1;
       if (dead) ctx.filter = 'grayscale(0.85) contrast(1.15)';
-      sprite(false);
+      sprite(ctx, dead ? 0 : frame);
       ctx.filter = 'none';
 
       placard(ctx, name, dead ? 'DECEASED' : number, dead ? 0 : frame, dead);
       if (dead) crossedOff(ctx);
 
-      // The flash itself, the film's grain, and the photo's edge
+      // The flash itself, and the film's grain
       if (flash > 0) { ctx.fillStyle = `rgba(255, 255, 255, ${flash * 0.75})`; ctx.fillRect(0, 0, SIZE, SIZE); }
       ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
-      for (let i = 0; i < 70; i++) ctx.fillRect(Math.random() * SIZE, Math.random() * SIZE, 1, 1);
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
       for (let i = 0; i < 40; i++) ctx.fillRect(Math.random() * SIZE, Math.random() * SIZE, 1, 1);
-      raf = requestAnimationFrame(draw);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+      for (let i = 0; i < 25; i++) ctx.fillRect(Math.random() * SIZE, Math.random() * SIZE, 1, 1);
+      // A dead man doesn't move: one photo, and done
+      if (dead) cancelAnimationFrame(raf);
     };
+    frame |= 1; // (odd, so the first call draws)
     draw();
     return () => cancelAnimationFrame(raf);
   }, [id, dead]);

@@ -105,10 +105,6 @@ const USAMap: React.FC<USAMapProps> = ({
               <stop offset="0%" stopColor="rgba(250,204,21,0)" />
               <stop offset="100%" stopColor="rgba(250,204,21,0.35)" />
             </linearGradient>
-            <filter id="map-glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="1.6" result="b" />
-              <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
-            </filter>
           </defs>
 
           {/* Ocean */}
@@ -217,7 +213,7 @@ const USAMap: React.FC<USAMapProps> = ({
             const tx = tagRight ? x + 18 : x - 18 - 62;
             return (
               <g className="pointer-events-none">
-                <g stroke="#EF4444" strokeWidth="1.3" fill="none" filter="url(#map-glow)">
+                <g stroke="#EF4444" strokeWidth="1.3" fill="none">
                   <path d={`M${x - 11},${y - 6} V${y - 11} H${x - 6} M${x + 6},${y - 11} H${x + 11} V${y - 6} M${x + 11},${y + 6} V${y + 11} H${x + 6} M${x - 6},${y + 11} H${x - 11} V${y + 6}`} />
                   <animateTransform attributeName="transform" type="rotate" from={`0 ${x} ${y}`} to={`90 ${x} ${y}`} dur="1.6s" repeatCount="indefinite" />
                 </g>
@@ -225,7 +221,8 @@ const USAMap: React.FC<USAMapProps> = ({
                 <line x1={x + 7} y1={y} x2={x + 16} y2={y} stroke="#EF4444" strokeWidth="0.7" />
                 <line x1={x} y1={y - 16} x2={x} y2={y - 7} stroke="#EF4444" strokeWidth="0.7" />
                 <line x1={x} y1={y + 7} x2={x} y2={y + 16} stroke="#EF4444" strokeWidth="0.7" />
-                <circle cx={x} cy={y} r="3.2" fill="#FF1F1F" stroke="#FDE047" strokeWidth="1" filter="url(#map-glow)">
+                <circle cx={x} cy={y} r="5.5" fill="#EF4444" opacity="0.3" />
+                <circle cx={x} cy={y} r="3.2" fill="#FF1F1F" stroke="#FDE047" strokeWidth="1">
                   <animate attributeName="opacity" values="1;0.35;1" dur="0.8s" repeatCount="indefinite" />
                 </circle>
                 <polyline points={`${x + (tagRight ? 4 : -4)},${y - 4} ${x + (tagRight ? 14 : -14)},${y - 16} ${tx + (tagRight ? 0 : 62)},${y - 16}`} fill="none" stroke="#FACC15" strokeWidth="0.9" />
@@ -241,8 +238,8 @@ const USAMap: React.FC<USAMapProps> = ({
 
         {/* CRT scanlines, and a slow bright band rolling down them */}
         <div className="absolute inset-0 pointer-events-none opacity-30" style={{ backgroundImage: 'repeating-linear-gradient(to bottom, rgba(0,0,0,0.55) 0px, rgba(0,0,0,0.55) 1px, transparent 1px, transparent 3px)' }} />
-        <div className="absolute inset-x-0 h-1/4 pointer-events-none bg-gradient-to-b from-transparent via-cyan-400/10 to-transparent animate-[mapscan_5s_linear_infinite]" />
-        <style>{'@keyframes mapscan { from { top: -25%; } to { top: 100%; } }'}</style>
+        <div className="absolute inset-x-0 top-0 h-1/4 pointer-events-none bg-gradient-to-b from-transparent via-cyan-400/10 to-transparent animate-[mapscan_5s_linear_infinite] will-change-transform" />
+        <style>{'@keyframes mapscan { from { transform: translateY(-100%); } to { transform: translateY(400%); } }'}</style>
       </div>
 
       {/* ========================================================= */}

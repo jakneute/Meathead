@@ -22,9 +22,9 @@ export const drawTommy = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
 
   if (isSubmerged) {
     // Under the sludge: his body dim through the muck, wrapped in a pulsating filth shield
+    // (faded, not filtered: a canvas filter on him every frame is expensive; the shield tints him green anyway)
     ctx.save();
-    ctx.globalAlpha = 0.8;
-    ctx.filter = 'saturate(0.6) brightness(0.7) hue-rotate(20deg)';
+    ctx.globalAlpha = 0.6;
     drawTommyBody(ctx, e, frame, 'fierce', false);
     ctx.restore();
     drawFilthShield(ctx, width, height, frame);
