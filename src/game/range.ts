@@ -12,6 +12,7 @@ import { createFrameContext, GameEvents } from './core/context';
 import { stepGame } from './core/update';
 import type { Controls } from './platform/input';
 import { stopDeathAnnouncer } from './platform/speech';
+import { KILL_CALLOUTS, KillCallout } from '../content/dialogue';
 
 const NO_EVENTS: GameEvents = {
   onBossDefeated: () => {}, onBossTransition: () => {}, onBossEncounter: () => {}, onBossDeath: () => {}, onIntroComplete: () => {},
@@ -68,12 +69,22 @@ export const stepRange = (range: GameState, controls: Controls, weapon: WeaponTy
   range.player.health = range.player.maxHealth;
   range.player.currentWeapon = weapon;
   const alive = new Set(range.enemies.filter(e => e.id.startsWith('dummy-') && e.health > 0 && !e.isBlownAway).map(e => e.id));
+  // (what he was doing going in: a slide, a dive kick, an uppercut, a charge)
+  const p = range.player;
+  const move = p.isSliding ? 'slide' : p.isDivekicking ? 'divekick' : p.isUppercutting ? 'uppercut' : p.isCharging ? 'charge' : null;
+  const before = { ...(range.killVoice?.callout ?? {}) };
   stepGame(ctx, GameStatus.PLAYING, controls);
   // A dummy down: what Meathead's got to say is about him (the boxer, or the balloon man), not the usual
   const downed = range.enemies.find(e => alive.has(e.id) && (e.health <= 0 || e.isBlownAway)) ?? (alive.size > range.enemies.filter(e => alive.has(e.id)).length
     ? { id: [...alive].find(id => !range.enemies.some(e => e.id === id)) ?? '' } : null);
   const kv = range.killVoice;
-  if (downed && kv?.quip) kv.quip.category = downed.id.startsWith('dummy-air') ? 'range_balloon_kill' : 'range_boxer_kill';
+  // (who it was goes with the kill; what it was done with stays what it was)
+  if (downed && kv?.quip) kv.quip.kind = downed.id.startsWith('dummy-air') ? 'dummy-balloon' : 'dummy-boxer';
+  // Dropped with the handgun or with his own body: the big callout's one of theirs
+  // (a move that started this very frame and landed: going by what he's doing now)
+  const moveNow = move ?? (p.isSliding ? 'slide' : p.isDivekicking ? 'divekick' : p.isUppercutting ? 'uppercut' : p.isCharging ? 'charge' : null);
+  const how = kv?.quip?.at === range.frame ? (kv.quip.category === 'gun_kill' ? 'gun' : kv.quip.category === 'charge_kill' || kv.quip.category === 'uppercut_kill' ? moveNow : null) : null;
+  if (downed && how) ringCallout(range, downed.id.startsWith('dummy-air') ? `sky_${how}` as KillCallout : `ring_${how}` as KillCallout, downed.id, before.at);
   // Fell out somehow: put him back
   if (range.player.pos.y > CANVAS_HEIGHT + 200 || range.deathTimer > 0) {
     if (range.deathTimer > 0) stopDeathAnnouncer();
@@ -92,4 +103,22 @@ export const stepRange = (range: GameState, controls: Controls, weapon: WeaponTy
       for (let i = 0; i < 14; i++) range.particles.push({ pos: { x: x + d.width / 2, y: d.pos.y + d.height / 2 }, vel: { x: (Math.random() - 0.5) * 6, y: -Math.random() * 5 }, life: 25, color: i % 2 ? '#EF4444' : '#FFFFFF', size: 3 + Math.random() * 4 });
     }
   }
+};
+
+/** A dummy's own callout: over the one the kill already put up this frame (if it did), else a new one over him. */
+const ringCallout = (range: GameState, kind: KillCallout, id: string, beforeAt?: number) => {
+  const { lines, color } = KILL_CALLOUTS[kind];
+  const text = lines[Math.floor(Math.random() * lines.length)];
+  const kv = (range.killVoice ??= {});
+  const fresh = kv.callout && kv.callout.at === range.frame && beforeAt !== range.frame;
+  if (fresh) {
+    const shown = range.damageNumbers.find(n => n.isCallout && n.text === kv.callout!.text);
+    if (shown) { shown.text = text; shown.color = color; }
+    kv.callout = { text, at: range.frame };
+    return;
+  }
+  kv.callout = { text, at: range.frame };
+  const e = range.enemies.find(x => x.id === id);
+  const at = e ? { x: e.pos.x + e.width / 2, y: e.pos.y - 10 } : { x: range.player.pos.x + 60, y: range.player.pos.y - 20 };
+  range.damageNumbers.push({ id: `callout-${Date.now()}-${Math.random()}`, text, pos: at, vel: { x: (Math.random() - 0.5) * 1.5, y: -3 }, life: 75, maxLife: 75, isCritical: true, isCallout: true, color });
 };

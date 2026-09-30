@@ -806,7 +806,10 @@ export type KillCallout =
   // On the jet ski
   | 'wheelie' | 'skileap' | 'skidive' | 'shipwreck'
   // Swimming (a lunge through the water), and on the bike (a wheelie)
-  | 'swim' | 'bike';
+  | 'swim' | 'bike'
+  // The practice range's two, dropped with the handgun or his own body: the boxer (ring) and the balloon man (sky)
+  | 'ring_gun' | 'ring_charge' | 'ring_slide' | 'ring_uppercut' | 'ring_divekick'
+  | 'sky_gun' | 'sky_charge' | 'sky_slide' | 'sky_uppercut' | 'sky_divekick';
 
 /** Callout text (one picked at random) and colour for each special kill. */
 export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string }> = {
@@ -847,6 +850,18 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
   greased:     { lines: ["GREASED!", "OIL CHANGE!", "SLICK!", "LUBED UP!"], color: '#A8A29E' },
   // Hit by an overdosed body on its way out
   contact:     { lines: ["CONTACT HIGH!", "SECONDHAND DOSE!", "BAD TRIP!", "COLLATERAL!"], color: '#E879F9' },
+  // The practice range: the boxer, called like a fight (and a crooked one)
+  ring_gun:      { lines: ["NO CONTEST!", "DISQUALIFIED! PERMANENTLY!", "GUN TO A FISTFIGHT!", "THE REF DIDN'T SEE THAT!", "UNSPORTSMANLIKE!"], color: '#FACC15' },
+  ring_charge:   { lines: ["KNOCKOUT!", "TECHNICAL KNOCKOUT!", "THROUGH THE ROPES!", "INTO THE CHEAP SEATS!", "HE'S NOT GETTING UP!"], color: '#FF8C00' },
+  ring_slide:    { lines: ["LOW BLOW!", "SWEEP THE LEG!", "ILLEGAL! BEAUTIFUL!", "BELOW THE BELT!", "TAKEDOWN!"], color: '#FFD700' },
+  ring_uppercut: { lines: ["UPPERCUT KNOCKOUT!", "DOWN FOR THE COUNT!", "INTO THE RAFTERS!", "GLASS JAW!", "LIGHTS OUT, KID!"], color: '#00E5FF' },
+  ring_divekick: { lines: ["FROM THE TOP ROPE!", "OFF THE TURNBUCKLE!", "ONE! TWO! DEAD!", "THROUGH THE MAT!", "PINNED FOREVER!"], color: '#FF0000' },
+  // ...and the balloon man, called like whatever that is
+  sky_gun:       { lines: ["POPPED!", "PARTY'S OVER!", "SKEET SHOOTING!", "PULL!", "BALLOON DOWN!"], color: '#F472B6' },
+  sky_charge:    { lines: ["AIR MAIL!", "RETURN TO SENDER!", "SPIKED LIKE A VOLLEYBALL!", "OUT OF THE PARK!"], color: '#FF8C00' },
+  sky_slide:     { lines: ["HOW?!", "SLID UNDER THE SKY!", "PHYSICS SAYS NO!"], color: '#FFD700' },
+  sky_uppercut:  { lines: ["TO THE MOON!", "ORBIT ACHIEVED!", "HOUSTON, WE HAVE A PROBLEM!", "NEW ALTITUDE RECORD!"], color: '#00E5FF' },
+  sky_divekick:  { lines: ["GROUNDED!", "SPIKED!", "MEATEOR!", "CRASH LANDING!", "CLEARED FOR LANDING!"], color: '#FF0000' },
 };
 
 /**
@@ -1114,3 +1129,33 @@ export const GENERIC_KILL_LINES = [
   "FUCK YOU!", "EAT SHIT!", "NEXT!", "LATER, ASSHOLE!", "GET FUCKED!", "STAY DOWN!", "WHO'S NEXT?!", "WAY TOO EASY!",
   "SIT DOWN!", "NIGHT NIGHT!", "BYE, BITCH!", "YEAH! THAT'S RIGHT!", "YOU'RE DONE!", "GOODBYE!",
 ];
+
+/** The practice range's two, by what he's used on them (as well as the lines about them in KILL_LINES). */
+export const RANGE_KILL_LINES: Record<'boxer' | 'balloon', Partial<Record<VulgarityType, string[]>>> = {
+  boxer: {
+    gun_kill: ["YOU BROUGHT GLOVES TO A GUNFIGHT, KID.", "GUN BEATS GLOVES. EVERY TIME."],
+    shotgun_kill: ["PUT SOME ICE ON IT, CHAMP.", "COOL DOWN BETWEEN ROUNDS!"],
+    flamethrower_kill: ["YOUR TOWEL'S ON FIRE. THROW IT IN.", "BURNED OUT IN THE FIRST ROUND."],
+    boulder_kill: ["HEAVYWEIGHT DIVISION, KID.", "YOU GOT ROCKED. LITERALLY."],
+    tsunami_kill: ["SAVED BY THE BELL? NO. DROWNED.", "WASHED UP AT TWENTY."],
+    sludge_kill: ["SPIT BUCKET'S OVER THERE, KID.", "THAT'S NOT GATORADE."],
+    dart_kill: ["PERFORMANCE ENHANCERS! YOU'RE WELCOME!", "FAILED THE DRUG TEST."],
+    taser_kill: ["SHOCKING UPSET!", "HE HIT THE CANVAS! AND THE CANVAS HIT BACK!"],
+    oil_kill: ["GREASED LIGHTNING! EMPHASIS ON GREASED!", "SLIPPERY WHEN DEAD."],
+    charge_kill: ["THE SHOULDER'S A LEGAL PUNCH IN MY GYM.", "NO RINGS, NO RULES!"],
+    uppercut_kill: ["NOW THAT'S AN UPPERCUT, KID. TAKE NOTES.", "DOWN GOES THE KID!"],
+  },
+  balloon: {
+    gun_kill: ["THREE BALLOONS! THEN HIM!", "SHOT HIS RIDE OUT FROM UNDER HIM."],
+    shotgun_kill: ["FROZEN SOLID. BALLOONS TOO.", "HE'S A POPSICLE ON STRINGS."],
+    flamethrower_kill: ["HOT AIR BALLOON! GET IT?!", "ROASTED ON A STRING."],
+    boulder_kill: ["WHAT GOES UP...", "ROCK BEATS BALLOON."],
+    tsunami_kill: ["HE'S IN THE DRINK NOW.", "BALLOON MAN, MEET WATER BALLOON."],
+    sludge_kill: ["DOWN THE DRAIN, BALLOON BOY.", "GROSS! BUT ACCURATE!"],
+    dart_kill: ["DARTS AND BALLOONS! COUNTY FAIR!", "SOMEBODY WIN THIS GUY A STUFFED ANIMAL!"],
+    taser_kill: ["STATIC CLING!", "RUB A BALLOON ON YOUR HEAD, THEY SAID."],
+    oil_kill: ["OIL SLICK AT ALTITUDE!", "GREASED AND GROUNDED."],
+    charge_kill: ["HOW DID I EVEN REACH HIM?!", "SHOULDER TO THE STRATOSPHERE!"],
+    uppercut_kill: ["UPPERCUT TO THE SKY GUY!", "HE'S GOING UP! OH. DOWN. HE'S GOING DOWN."],
+  },
+};

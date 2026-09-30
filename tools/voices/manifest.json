@@ -51,6 +51,11 @@
  },
  {
   "voice": "announcer",
+  "text": "AIR MAIL!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "ANKLES TAKEN!",
   "from": "KILL_CALLOUTS"
  },
@@ -66,12 +71,22 @@
  },
  {
   "voice": "announcer",
+  "text": "BALLOON DOWN!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "BARFED ON!",
   "from": "KILL_CALLOUTS"
  },
  {
   "voice": "announcer",
   "text": "BELLY UP!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "BELOW THE BELT!",
   "from": "KILL_CALLOUTS"
  },
  {
@@ -146,6 +161,11 @@
  },
  {
   "voice": "announcer",
+  "text": "CLEARED FOR LANDING!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "CLIPPED!",
   "from": "KILL_CALLOUTS"
  },
@@ -167,6 +187,11 @@
  {
   "voice": "announcer",
   "text": "COOKED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "CRASH LANDING!",
   "from": "KILL_CALLOUTS"
  },
  {
@@ -196,6 +221,11 @@
  },
  {
   "voice": "announcer",
+  "text": "DISQUALIFIED! PERMANENTLY!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "DISSOLVED!",
   "from": "KILL_CALLOUTS"
  },
@@ -203,6 +233,11 @@
   "voice": "announcer",
   "text": "DISTRIBUTION CUT!",
   "from": "game/stages/dale/junkie.ts:551"
+ },
+ {
+  "voice": "announcer",
+  "text": "DOWN FOR THE COUNT!",
+  "from": "KILL_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -261,6 +296,16 @@
  },
  {
   "voice": "announcer",
+  "text": "FROM THE TOP ROPE!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "GLASS JAW!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "GLUG GLUG!",
   "from": "KILL_CALLOUTS"
  },
@@ -306,7 +351,17 @@
  },
  {
   "voice": "announcer",
+  "text": "GUN TO A FISTFIGHT!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "HANDLEBARRED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "HE'S NOT GETTING UP!",
   "from": "KILL_CALLOUTS"
  },
  {
@@ -316,7 +371,17 @@
  },
  {
   "voice": "announcer",
+  "text": "HOUSTON, WE HAVE A PROBLEM!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "HOUSTON!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "HOW?!",
   "from": "KILL_CALLOUTS"
  },
  {
@@ -336,12 +401,32 @@
  },
  {
   "voice": "announcer",
+  "text": "ILLEGAL! BEAUTIFUL!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "INTO THE CHEAP SEATS!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "INTO THE RAFTERS!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "KABOOM!",
   "from": "KILL_CALLOUTS"
  },
  {
   "voice": "announcer",
   "text": "KISSED CONCRETE!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "KNOCKOUT!",
   "from": "KILL_CALLOUTS"
  },
  {
@@ -366,12 +451,22 @@
  },
  {
   "voice": "announcer",
+  "text": "LIGHTS OUT, KID!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "LIQUEFIED!",
   "from": "KILL_CALLOUTS"
  },
  {
   "voice": "announcer",
   "text": "LONG WAY DOWN!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "LOW BLOW!",
   "from": "KILL_CALLOUTS"
  },
  {
@@ -387,6 +482,11 @@
  {
   "voice": "announcer",
   "text": "MAN OVERBOARD!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "MEATEOR!",
   "from": "KILL_CALLOUTS"
  },
  {
@@ -408,6 +508,16 @@
   "voice": "announcer",
   "text": "MOOSE DOWN!",
   "from": "game/stages/artie/moose.ts:281"
+ },
+ {
+  "voice": "announcer",
+  "text": "NEW ALTITUDE RECORD!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "NO CONTEST!",
+  "from": "KILL_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -436,6 +546,11 @@
  },
  {
   "voice": "announcer",
+  "text": "OFF THE TURNBUCKLE!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "OIL CHANGE!",
   "from": "KILL_CALLOUTS"
  },
@@ -446,12 +561,27 @@
  },
  {
   "voice": "announcer",
+  "text": "ONE! TWO! DEAD!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "ORBIT ACHIEVED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "ORBITAL!",
   "from": "KILL_CALLOUTS"
  },
  {
   "voice": "announcer",
   "text": "OUT OF BOUNDS!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "OUT OF THE PARK!",
   "from": "KILL_CALLOUTS"
  },
  {
@@ -471,6 +601,11 @@
  },
  {
   "voice": "announcer",
+  "text": "PARTY'S OVER!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "PAVED!",
   "from": "KILL_CALLOUTS"
  },
@@ -481,7 +616,27 @@
  },
  {
   "voice": "announcer",
+  "text": "PHYSICS SAYS NO!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "PINNED FOREVER!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "PLOWED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "POPPED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "PULL!",
   "from": "KILL_CALLOUTS"
  },
  {
@@ -497,6 +652,11 @@
  {
   "voice": "announcer",
   "text": "REDECORATED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "RETURN TO SENDER!",
   "from": "KILL_CALLOUTS"
  },
  {
@@ -606,6 +766,11 @@
  },
  {
   "voice": "announcer",
+  "text": "SKEET SHOOTING!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "SKY HIGH!",
   "from": "KILL_CALLOUTS"
  },
@@ -626,6 +791,11 @@
  },
  {
   "voice": "announcer",
+  "text": "SLID UNDER THE SKY!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "SLIDE TACKLE!",
   "from": "KILL_CALLOUTS"
  },
@@ -642,6 +812,16 @@
  {
   "voice": "announcer",
   "text": "SNOWED UNDER!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SPIKED LIKE A VOLLEYBALL!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SPIKED!",
   "from": "KILL_CALLOUTS"
  },
  {
@@ -681,13 +861,43 @@
  },
  {
   "voice": "announcer",
+  "text": "SWEEP THE LEG!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "SWEPT!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "TAKEDOWN!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "TECHNICAL KNOCKOUT!",
   "from": "KILL_CALLOUTS"
  },
  {
   "voice": "announcer",
   "text": "THE EYE IS CLOSED!",
   "from": "game/stages/hector/eye.ts:319"
+ },
+ {
+  "voice": "announcer",
+  "text": "THE REF DIDN'T SEE THAT!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "THROUGH THE MAT!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "THROUGH THE ROPES!",
+  "from": "KILL_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -727,6 +937,16 @@
  {
   "voice": "announcer",
   "text": "TRUCKED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "UNSPORTSMANLIKE!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "UPPERCUT KNOCKOUT!",
   "from": "KILL_CALLOUTS"
  },
  {
@@ -6056,6 +6276,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BALLOON MAN, MEET WATER BALLOON.",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "BARF BEATS BUMPER, BITCH!",
   "from": "KILL_LINES"
  },
@@ -6198,6 +6423,11 @@
   "voice": "meathead",
   "text": "BULLSHIT! AND DEAD!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BURNED OUT IN THE FIRST ROUND.",
+  "from": "RANGE_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6441,6 +6671,11 @@
  },
  {
   "voice": "meathead",
+  "text": "COOL DOWN BETWEEN ROUNDS!",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "Cool. I'm gonna go hit the gym. It's chest day.",
   "from": "components/RadioCutscene.tsx:31"
  },
@@ -6533,6 +6768,11 @@
   "voice": "meathead",
   "text": "DAMN IT ALL",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DARTS AND BALLOONS! COUNTY FAIR!",
+  "from": "RANGE_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6678,6 +6918,16 @@
   "voice": "meathead",
   "text": "DOOR TO THE FACE! AT LEAST LET ME IN FIRST!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "DOWN GOES THE KID!",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DOWN THE DRAIN, BALLOON BOY.",
+  "from": "RANGE_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6841,6 +7091,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FAILED THE DRUG TEST.",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "FEDS? I WISH, DALE. I'M WAY WORSE.",
   "from": "game/stages/dale/intro.ts:58"
  },
@@ -6988,6 +7243,11 @@
   "voice": "meathead",
   "text": "FROSTBITTEN FAILURE",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FROZEN SOLID. BALLOONS TOO.",
+  "from": "RANGE_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -7366,6 +7626,16 @@
  },
  {
   "voice": "meathead",
+  "text": "GREASED AND GROUNDED.",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GREASED LIGHTNING! EMPHASIS ON GREASED!",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "GREASY BASTARD, GET YOUR SLICK SHIT OFF MY LATS!",
   "from": "HURT"
  },
@@ -7396,6 +7666,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GROSS! BUT ACCURATE!",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "GROSS! BUT DEAD!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -7403,6 +7678,11 @@
   "voice": "meathead",
   "text": "GUEST LIST'S A LOT SHORTER NOW.",
   "from": "game/stages/victor/lounge.ts:83"
+ },
+ {
+  "voice": "meathead",
+  "text": "GUN BEATS GLOVES. EVERY TIME.",
+  "from": "RANGE_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -7523,6 +7803,11 @@
   "voice": "meathead",
   "text": "HE HIT ME WITH HIS SIGN! IT SAYS NO!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE HIT THE CANVAS! AND THE CANVAS HIT BACK!",
+  "from": "RANGE_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -7706,6 +7991,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE'S A POPSICLE ON STRINGS.",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "HE'S ALREADY DEAD. HE JUST NEEDS TO BE A LOT COLDER.",
   "from": "game/stages/dale/junkie.ts:639"
  },
@@ -7716,6 +8006,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE'S GOING UP! OH. DOWN. HE'S GOING DOWN.",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "HE'S GOT SANDBAGS UP THERE. I NEED TO GET CLOSER.",
   "from": "game/stages/dale/town.ts:492"
  },
@@ -7723,6 +8018,11 @@
   "voice": "meathead",
   "text": "HE'S HIDING BEHIND A DOOR! COME OUT AND FIGHT!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S IN THE DRINK NOW.",
+  "from": "RANGE_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -7808,6 +8108,11 @@
   "voice": "meathead",
   "text": "HEAVY WEIGHT LIGHT WORK",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HEAVYWEIGHT DIVISION, KID.",
+  "from": "RANGE_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -7911,6 +8216,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HOT AIR BALLOON! GET IT?!",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "HOT COFFEE! THAT'S A LAWSUIT! THAT'S A LAWSUIT!",
   "from": "HAZARD_HURT"
  },
@@ -7943,6 +8253,11 @@
   "voice": "meathead",
   "text": "HOT STEAM IN MY FACE! STOP SCALDING THE MERCHANDISE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOW DID I EVEN REACH HIM?!",
+  "from": "RANGE_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9186,6 +9501,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NO RINGS, NO RULES!",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "NO ROOM IN MY LANE",
   "from": "VULGARITIES"
  },
@@ -9271,6 +9591,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOW THAT'S AN UPPERCUT, KID. TAKE NOTES.",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "NUKE FROM ORBIT",
   "from": "VULGARITIES"
  },
@@ -9328,6 +9653,11 @@
   "voice": "meathead",
   "text": "OIL IN MY EYES! I CAN'T SEE THE SQUAT RACK!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "OIL SLICK AT ALTITUDE!",
+  "from": "RANGE_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9491,6 +9821,11 @@
  },
  {
   "voice": "meathead",
+  "text": "PERFORMANCE ENHANCERS! YOU'RE WELCOME!",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "PFFT. IT'S A PUDDLE.",
   "from": "game/stages/tommy/bike.ts:475"
  },
@@ -9623,6 +9958,11 @@
   "voice": "meathead",
   "text": "PURE THERMIC POWER",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PUT SOME ICE ON IT, CHAMP.",
+  "from": "RANGE_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9796,6 +10136,16 @@
  },
  {
   "voice": "meathead",
+  "text": "ROASTED ON A STRING.",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROCK BEATS BALLOON.",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "ROCK! ROCK! WHY IS THERE ALWAYS A ROCK!",
   "from": "HAZARD_HURT"
  },
@@ -9833,6 +10183,11 @@
   "voice": "meathead",
   "text": "ROT IN FILTH",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RUB A BALLOON ON YOUR HEAD, THEY SAID.",
+  "from": "RANGE_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9878,6 +10233,11 @@
   "voice": "meathead",
   "text": "SAUNA'S TOO HOT FOR YOU",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAVED BY THE BELL? NO. DROWNED.",
+  "from": "RANGE_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10021,6 +10381,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SHOCKING UPSET!",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SHOOTING THE DESK? IT'S A DESK. IT NEEDS SOMETHING HOTTER.",
   "from": "game/stages/dale/junkie.ts:639"
  },
@@ -10071,6 +10436,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SHOT HIS RIDE OUT FROM UNDER HIM.",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SHOULD'VE BOUGHT MORE BALLOONS.",
   "from": "KILL_LINES"
  },
@@ -10113,6 +10483,11 @@
   "voice": "meathead",
   "text": "SHOULDER TO THE CHEST! THAT'S MY SHOULDER!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOULDER TO THE STRATOSPHERE!",
+  "from": "RANGE_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10216,6 +10591,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SLIPPERY WHEN DEAD.",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SMACKED WITH A SLAB OF ICE!",
   "from": "HAZARD_HURT"
  },
@@ -10306,6 +10686,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SOMEBODY WIN THIS GUY A STUFFED ANIMAL!",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SOMEBODY'S GRANDMA JUST LANDED ON ME!",
   "from": "HAZARD_HURT"
  },
@@ -10351,6 +10736,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SPIT BUCKET'S OVER THERE, KID.",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SPLINTERS IN MY TAINT!",
   "from": "HAZARD_HURT"
  },
@@ -10388,6 +10778,11 @@
   "voice": "meathead",
   "text": "STATIC CLING TO HELL",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STATIC CLING!",
+  "from": "RANGE_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10856,6 +11251,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S NOT GATORADE.",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S NOT GOOD. THAT'S A LOT OF RUMBLING.",
   "from": "game/stages/tommy/escape.ts:68"
  },
@@ -11016,6 +11416,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE SHOULDER'S A LEGAL PUNCH IN MY GYM.",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "THE STORM IS CHUCKING LAWN FURNITURE AT ME!",
   "from": "HAZARD_HURT"
  },
@@ -11113,6 +11518,11 @@
   "voice": "meathead",
   "text": "THOSE HORNS ARE WIDER THAN MY LATS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THREE BALLOONS! THEN HIM!",
+  "from": "RANGE_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -11351,6 +11761,11 @@
  },
  {
   "voice": "meathead",
+  "text": "UPPERCUT TO THE SKY GUY!",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "UPPERCUT! THAT'S MY UPPERCUT!",
   "from": "HAZARD_HURT"
  },
@@ -11393,6 +11808,11 @@
   "voice": "meathead",
   "text": "WASHED AWAY BITCH",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WASHED UP AT TWENTY.",
+  "from": "RANGE_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -11468,6 +11888,11 @@
   "voice": "meathead",
   "text": "WHAT ARE THEY FEEDING THIS GUY?! I WANT SOME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHAT GOES UP...",
+  "from": "RANGE_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -11736,6 +12161,11 @@
  },
  {
   "voice": "meathead",
+  "text": "YOU BROUGHT GLOVES TO A GUNFIGHT, KID.",
+  "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "YOU CALL THAT A BATON? I'VE GOT BIGGER VEINS!",
   "from": "HAZARD_HURT"
  },
@@ -11778,6 +12208,11 @@
   "voice": "meathead",
   "text": "YOU DROVE AN 18-WHEELER INTO MY DELTS, BASTARD!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU GOT ROCKED. LITERALLY.",
+  "from": "RANGE_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -11978,6 +12413,11 @@
   "voice": "meathead",
   "text": "YOUR STOP!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR TOWEL'S ON FIRE. THROW IT IN.",
+  "from": "RANGE_KILL_LINES"
  },
  {
   "voice": "meathead",

@@ -41,6 +41,7 @@ for (const t of allStrings(dialogue.VULGARITIES)) add('meathead', t, 'VULGARITIE
 for (const t of allStrings(dialogue.KILL_LINES)) add('meathead', t, 'KILL_LINES');
 for (const t of allStrings(dialogue.ENEMY_KILL_LINES)) add('meathead', t, 'ENEMY_KILL_LINES');
 for (const t of allStrings(dialogue.GENERIC_KILL_LINES)) add('meathead', t, 'GENERIC_KILL_LINES');
+for (const t of allStrings(dialogue.RANGE_KILL_LINES)) add('meathead', t, 'RANGE_KILL_LINES');
 for (const t of allStrings(dialogue.BOSS_DIALOGUE.HURT)) add('meathead', t, 'HURT');
 for (const t of allStrings(dialogue.BOSS_DIALOGUE.SPECIFIC_HAZARD_HURT)) add('meathead', t, 'HAZARD_HURT');
 for (const [boss, q] of Object.entries(dialogue.BOSS_DIALOGUE.INTRO_QUOTES)) {

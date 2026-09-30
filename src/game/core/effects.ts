@@ -1,7 +1,7 @@
 import { Vector2, PickupType, VulgarityType, Enemy } from '../../types';
 import {
   PARTICLE_PALETTES, BOULDER_SHRAPNEL_DAMAGE, VULGARITY_TEXT_DURATION, VOICE_LINE_COOLDOWN_FRAMES, SPOKEN_TEXT_HOLD, SPOKEN_TEXT_LINGER, isRangeStage } from '../../constants';
-import { VULGARITIES, BOSS_DIALOGUE, KILL_LINES, KILL_CALLOUTS, KillCallout, ENEMY_KILL_LINES, GENERIC_KILL_LINES } from '../../content/dialogue';
+import { VULGARITIES, BOSS_DIALOGUE, KILL_LINES, KILL_CALLOUTS, KillCallout, ENEMY_KILL_LINES, GENERIC_KILL_LINES, RANGE_KILL_LINES } from '../../content/dialogue';
 import { GameState } from './state';
 import { playSound, playGlassShatterSound } from '../platform/audio';
 import { say, isSpeaking, isTalking, canSpeak, pickFreshLine, announce, MEATHEAD_VOICE, announcerJustSpoke, silenceAll } from '../platform/speech';
@@ -186,8 +186,13 @@ export const createFx = (state: GameState) => {
   const killLine = (category: VulgarityType, victim?: string): string | null => {
     const who = victim ? ENEMY_KILL_LINES[victim] : undefined;
     const how = KILL_LINES[category as Exclude<VulgarityType, 'hurt'>];
-    // (the practice range's two have their own, and that's all)
-    if (category === 'range_boxer_kill' || category === 'range_balloon_kill') return pickFreshLine(how);
+    // (the practice range's two have their own, and that's all: about what he used on them, or about them)
+    if (victim === 'dummy-boxer' || victim === 'dummy-balloon') {
+      const which = victim === 'dummy-boxer' ? 'boxer' : 'balloon';
+      const withIt = RANGE_KILL_LINES[which][category] ?? [], them = KILL_LINES[which === 'boxer' ? 'range_boxer_kill' : 'range_balloon_kill'];
+      for (const pool of Math.random() < 0.6 ? [withIt, them] : [them, withIt]) { const t = pool.length ? pickFreshLine(pool) : null; if (t) return t; }
+      return null;
+    }
     const r = Math.random();
     const order = who
       ? (r < 0.45 ? [who, how, GENERIC_KILL_LINES] : r < 0.65 ? [GENERIC_KILL_LINES, who, how] : [how, who, GENERIC_KILL_LINES])
