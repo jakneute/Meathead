@@ -292,7 +292,7 @@
  {
   "voice": "announcer",
   "text": "DOUBLE KNOCKOUT!",
-  "from": "game/stages/barry/power.ts:239"
+  "from": "game/stages/barry/power.ts:261"
  },
  {
   "voice": "announcer",
@@ -632,7 +632,7 @@
  {
   "voice": "announcer",
   "text": "MAXIMUM VOLTAGE!",
-  "from": "game/stages/barry/power.ts:237"
+  "from": "game/stages/barry/power.ts:259"
  },
  {
   "voice": "announcer",
@@ -847,7 +847,7 @@
  {
   "voice": "announcer",
   "text": "ROUND TWO!",
-  "from": "game/stages/barry/power.ts:237"
+  "from": "game/stages/barry/power.ts:259"
  },
  {
   "voice": "announcer",
@@ -937,7 +937,7 @@
  {
   "voice": "announcer",
   "text": "SHOCK THERAPY!",
-  "from": "game/stages/barry/power.ts:235"
+  "from": "game/stages/barry/power.ts:257"
  },
  {
   "voice": "announcer",
@@ -1117,7 +1117,7 @@
  {
   "voice": "announcer",
   "text": "TECHNICIAN DOWN!",
-  "from": "game/stages/barry/power.ts:238"
+  "from": "game/stages/barry/power.ts:260"
  },
  {
   "voice": "announcer",
@@ -1252,22 +1252,22 @@
  {
   "voice": "barry.minion",
   "text": "...IS IT OVER?",
-  "from": "game/stages/barry/power.ts:236"
+  "from": "game/stages/barry/power.ts:258"
  },
  {
   "voice": "barry.minion",
   "text": "AAAAAAAAAAAAAAAAH!",
-  "from": "game/stages/barry/power.ts:235"
+  "from": "game/stages/barry/power.ts:257"
  },
  {
   "voice": "barry.minion",
   "text": "BARRY GOT ME THIS HEADSET FOR OUR ANNIVERS... FOR MY WORK ANNIVERSARY.",
-  "from": "game/stages/barry/power.ts:201"
+  "from": "game/stages/barry/power.ts:218"
  },
  {
   "voice": "barry.minion",
   "text": "BARRY IS GOING TO HEAR ABOUT THIS. HE HEARS ABOUT EVERYTHING.",
-  "from": "game/stages/barry/power.ts:201"
+  "from": "game/stages/barry/power.ts:218"
  },
  {
   "voice": "barry.minion",
@@ -1277,12 +1277,12 @@
  {
   "voice": "barry.minion",
   "text": "CAREFUL! THOSE ARE LEASED!",
-  "from": "game/stages/barry/power.ts:201"
+  "from": "game/stages/barry/power.ts:218"
  },
  {
   "voice": "barry.minion",
   "text": "DID YOU JUST... THROW WATER. IN THE POWER ROOM.",
-  "from": "game/stages/barry/power.ts:234"
+  "from": "game/stages/barry/power.ts:256"
  },
  {
   "voice": "barry.minion",
@@ -1292,22 +1292,22 @@
  {
   "voice": "barry.minion",
   "text": "I CAN SEE MY GRANDMA! SHE SAYS I SHOULD HAVE BEEN A DENTIST!",
-  "from": "game/stages/barry/power.ts:237"
+  "from": "game/stages/barry/power.ts:259"
  },
  {
   "voice": "barry.minion",
   "text": "I'M TEXTING BARRY. HE ALWAYS TEXTS BACK IN A MINUTE. ALWAYS. HE'S VERY PROFESSIONAL.",
-  "from": "game/stages/barry/power.ts:201"
+  "from": "game/stages/barry/power.ts:218"
  },
  {
   "voice": "barry.minion",
   "text": "IS THAT ALL YOU'VE GOT? THEY'RE RATED FOR HURRICANES.",
-  "from": "game/stages/barry/power.ts:201"
+  "from": "game/stages/barry/power.ts:218"
  },
  {
   "voice": "barry.minion",
   "text": "IT'S NOT OVER! IT'S NOT OVER!",
-  "from": "game/stages/barry/power.ts:237"
+  "from": "game/stages/barry/power.ts:259"
  },
  {
   "voice": "barry.minion",
@@ -1322,7 +1322,7 @@
  {
   "voice": "barry.minion",
   "text": "TELL BARRY... THE FERN... NEEDS WATERING...",
-  "from": "game/stages/barry/power.ts:238"
+  "from": "game/stages/barry/power.ts:260"
  },
  {
   "voice": "barry.minion",
@@ -1342,7 +1342,7 @@
  {
   "voice": "barry.minion",
   "text": "YOU KNOW YOU'RE ON CAMERA, RIGHT? I'M PUTTING THIS ON THE COMPANY NEWSLETTER.",
-  "from": "game/stages/barry/power.ts:201"
+  "from": "game/stages/barry/power.ts:218"
  },
  {
   "voice": "boss.artie",
@@ -2211,13 +2211,38 @@
  },
  {
   "voice": "boss.oscar",
-  "text": "CAN'T CATCH ME, PAL! I'M TOO SLICK!",
+  "text": "A HOT TUB IS JUST SOUP FOR PEOPLE. NO.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "A MILLION! A MILLION DOLLARS! IN CRUDE! BY THE BARREL!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "A RIG? LIKE A SQUAT RIG? ...HOW MANY PLATES?",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "A THOUSAND! A THOUSAND DOLLARS TO JUST... LEAVE!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "A TOUGH SELL! I LIKE THAT, PAL! I LOVE THAT!",
   "from": "THRESHOLDS"
  },
  {
   "voice": "boss.oscar",
   "text": "CAN'T WASH THIS GREASE OFF.",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "CATERED? LIKE CHICKEN? ...HOW MUCH CHICKEN?",
+  "from": "OSCAR_LINES"
  },
  {
   "voice": "boss.oscar",
@@ -2231,6 +2256,11 @@
  },
  {
   "voice": "boss.oscar",
+  "text": "DOLLARS? DO YOU HAVE PROTEIN? NO? THEN NO.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
   "text": "EASY, FRIEND. BULLETS SLIDE RIGHT OFF.",
   "from": "REACTIONS"
  },
@@ -2241,13 +2271,23 @@
  },
  {
   "voice": "boss.oscar",
-  "text": "EVERYBODY. BACK. TO WORK. ...ANYBODY?",
-  "from": "THRESHOLDS"
+  "text": "EVERYTHING! EVERYTHING I'VE GOT! PLEASE! JUST LEAVE!",
+  "from": "OSCAR_LINES"
  },
  {
   "voice": "boss.oscar",
   "text": "EW. THAT'S NOT PREMIUM.",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "FIFTY? I CAN'T COUNT THAT HIGH. NO.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "FINAL... OFFER...",
+  "from": "THRESHOLDS"
  },
  {
   "voice": "boss.oscar",
@@ -2266,8 +2306,18 @@
  },
  {
   "voice": "boss.oscar",
+  "text": "FOUR HUNDRED A MONTH. SIXTY MONTHS. YOU DO THE MATH.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
   "text": "FREEZE MY ASSETS? NICE TRY.",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "HALF THE FIELD! THE HALF THAT ISN'T ON FIRE!",
+  "from": "OSCAR_LINES"
  },
  {
   "voice": "boss.oscar",
@@ -2278,6 +2328,51 @@
   "voice": "boss.oscar",
   "text": "HEY! THAT'S STOLEN MERCHANDISE!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "I CAN PUT YOU IN A CERTIFIED PRE-OWNED DERRICK TODAY!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "I CAN'T READ. NO.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "I DON'T DO MATH. MATH DOES ME. ...WAIT.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "I DON'T EXPIRE. I'M NOT MILK.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "I DON'T HAVE BUMPERS. I HAVE DELTS.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "I DON'T KNOW WHAT A MILLION IS. IT SOUNDS LIKE A LOT. STILL NO.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "I DON'T SHARE MY TIME. I USE ALL OF IT. ON LIFTING.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "I DON'T WEAR SUITS. SHIRTS ARE ALREADY TOO MUCH.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "I DRINK SMELLS NOW? COOL.",
+  "from": "OSCAR_LINES"
  },
  {
   "voice": "boss.oscar",
@@ -2301,6 +2396,11 @@
  },
  {
   "voice": "boss.oscar",
+  "text": "I'M GONNA LEVEL WITH YOU, PAL, BECAUSE I LIKE YOU. I DON'T DO THIS FOR EVERYBODY.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
   "text": "I'M GROUNDED! LITERALLY GROUNDED!",
   "from": "OSCAR_LINES"
  },
@@ -2316,7 +2416,22 @@
  },
  {
   "voice": "boss.oscar",
+  "text": "IT'S NOT A PYRAMID, PAL. IT'S A REVERSE FUNNEL.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "LET ME TALK TO MY MANAGER. ...HE SAYS IT'S A STEAL.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
   "text": "LIGHT 'EM UP!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "LIMITED TIME OFFER! THIS DEAL EXPIRES WHEN YOU DO!",
   "from": "OSCAR_LINES"
  },
  {
@@ -2326,12 +2441,27 @@
  },
  {
   "voice": "boss.oscar",
+  "text": "MY BOAT! IT'S A YACHT! IT'S GOT A HOT TUB! A HOT TUB, PAL!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
   "text": "MY EYEBROWS! I JUST HAD 'EM WAXED!",
   "from": "OSCAR_LINES"
  },
  {
   "voice": "boss.oscar",
   "text": "MY FILLINGS! MY BEAUTIFUL GOLD FILLINGS!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "NAME YOUR PRICE! ANY NUMBER! PICK A NUMBER!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "NO. WAIT. ...NO.",
   "from": "OSCAR_LINES"
  },
  {
@@ -2346,8 +2476,33 @@
  },
  {
   "voice": "boss.oscar",
+  "text": "OKAY! OKAY! EVERYBODY'S GOT A PRICE! WHAT'S YOURS?!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "OKAY! OKAY! FIFTY BUCKS AND YOU WALK AWAY! CASH!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
   "text": "OUCH. THAT'S GONNA COST YOU EXTRA.",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "PAL. PAL. EXTENDED WARRANTY. ON YOU. BUMPER TO BUMPER.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "PRE-OWNED? LIKE SOMEBODY ELSE'S? GROSS.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "PYRAMIDS ARE IN EGYPT. ARE WE IN EGYPT?",
+  "from": "OSCAR_LINES"
  },
  {
   "voice": "boss.oscar",
@@ -2356,17 +2511,32 @@
  },
  {
   "voice": "boss.oscar",
+  "text": "SEVEN. ...NO WAIT. NO.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
   "text": "SHOOTING A SALESMAN? RUDE.",
   "from": "REACTIONS"
  },
  {
   "voice": "boss.oscar",
-  "text": "SHORTED OUT... ON COMPANY TIME...",
-  "from": "THRESHOLDS"
+  "text": "SMELL THAT? THAT'S NEW-CAR SMELL. I SELL IT BY THE GALLON.",
+  "from": "OSCAR_LINES"
  },
  {
   "voice": "boss.oscar",
   "text": "SMOKING SECTION'S OPEN, FRIEND!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "TAKE THE WALLET! TAKE THE WATCH! TAKE THE TEETH! JUST GO!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "TEN GRAND! AND THE SUIT! THE FIREPROOF SUIT! JUST GO AWAY!",
   "from": "OSCAR_LINES"
  },
  {
@@ -2378,11 +2548,6 @@
   "voice": "boss.oscar",
   "text": "THAT ALL YOU GOT? I'VE HAD HOTTER SMOKE BREAKS.",
   "from": "OSCAR_LINES"
- },
- {
-  "voice": "boss.oscar",
-  "text": "THAT BREAK ROOM WAS UNION-BUILT, YOU ANIMAL!",
-  "from": "THRESHOLDS"
  },
  {
   "voice": "boss.oscar",
@@ -2401,13 +2566,23 @@
  },
  {
   "voice": "boss.oscar",
+  "text": "THE BOOKS! YOU WANT MY BOOKS?! TAKE THE BOOKS!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "The field? The union? The bar? Water under the bridge, pal. Burning water. Now let's talk about YOU. What are you driving these days?",
+  "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "boss.oscar",
   "text": "THE SURGEON GENERAL WARNED ME ABOUT THIS.",
   "from": "OSCAR_LINES"
  },
  {
   "voice": "boss.oscar",
-  "text": "The union. The rangers. The bikers. My bar. My field's on fire, pal! ...It's insured. You're not.",
-  "from": "INTRO_QUOTES"
+  "text": "TIMESHARE IN GALVESTON! OCEAN VIEW! THE OCEAN'S ONLY A LITTLE ON FIRE!",
+  "from": "OSCAR_LINES"
  },
  {
   "voice": "boss.oscar",
@@ -2417,6 +2592,16 @@
  {
   "voice": "boss.oscar",
   "text": "WELL LOOK AT THAT, MY OWN PERSONAL ARSONIST!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "WHAT'S IT GONNA TAKE TO PUT YOU IN A NEW RIG TODAY?",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "WHICH HALF IS THAT? ...THERE ISN'T ONE. NO.",
   "from": "OSCAR_LINES"
  },
  {
@@ -2436,7 +2621,17 @@
  },
  {
   "voice": "boss.oscar",
+  "text": "YOU LIKE ME? ...I DON'T KNOW WHAT'S HAPPENING.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
   "text": "YOU LIT MY TRAP FOR ME?! HA! SAVED ME A SMOKE!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "YOU LOOK LIKE A MAN WHO NEEDS A SEMINAR. THREE DAYS. CATERED.",
   "from": "OSCAR_LINES"
  },
  {
@@ -2461,8 +2656,23 @@
  },
  {
   "voice": "boss.oscar",
+  "text": "YOUR MANAGER'S A STEAL? CALL THE COPS ON HIM.",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
   "text": "ZAP ME AND WE BOTH GO BOOM.",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "ZERO DOWN, ZERO PERCENT, ZERO QUESTIONS! SIGN RIGHT HERE!",
+  "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "ZERO? I CAN COUNT TO ZERO. THAT'S NOTHING. YOU'RE OFFERING ME NOTHING.",
+  "from": "OSCAR_LINES"
  },
  {
   "voice": "boss.tommy",
@@ -3882,7 +4092,7 @@
  {
   "voice": "death",
   "text": "ELECTROCUTED! WATER AND A POWER PLANT: NOT A COMBO",
-  "from": "game/stages/barry/power.ts:292"
+  "from": "game/stages/barry/power.ts:315"
  },
  {
   "voice": "death",
@@ -6561,6 +6771,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A HOT TUB IS JUST SOUP FOR PEOPLE. NO.",
+  "from": "game/bosses/oscar.ts:203"
+ },
+ {
+  "voice": "meathead",
   "text": "A HURRICANE TURD TO THE FACE?! THAT'S A NEW LOW, HECTOR!",
   "from": "HAZARD_HURT"
  },
@@ -6623,6 +6838,11 @@
   "voice": "meathead",
   "text": "A REUSABLE WATER BOTTLE! TO THE FACE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A RIG? LIKE A SQUAT RIG? ...HOW MANY PLATES?",
+  "from": "game/bosses/oscar.ts:203"
  },
  {
   "voice": "meathead",
@@ -6707,7 +6927,7 @@
  {
   "voice": "meathead",
   "text": "AAAAAAAAAAAAH!",
-  "from": "game/stages/barry/power.ts:235"
+  "from": "game/stages/barry/power.ts:257"
  },
  {
   "voice": "meathead",
@@ -7156,6 +7376,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CATERED? LIKE CHICKEN? ...HOW MUCH CHICKEN?",
+  "from": "game/bosses/oscar.ts:203"
+ },
+ {
+  "voice": "meathead",
   "text": "CAUTION, MY ASS!",
   "from": "HAZARD_HURT"
  },
@@ -7541,6 +7766,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DOLLARS? DO YOU HAVE PROTEIN? NO? THEN NO.",
+  "from": "game/bosses/oscar.ts:203"
+ },
+ {
+  "voice": "meathead",
   "text": "DON'T ASK. I DIDN'T.",
   "from": "KILL_LINES"
  },
@@ -7773,6 +8003,11 @@
   "voice": "meathead",
   "text": "FIFTY EIGHT. FINE. THERE BETTER BE STAIRS.",
   "from": "game/stages/barry/runtime.ts:320"
+ },
+ {
+  "voice": "meathead",
+  "text": "FIFTY? I CAN'T COUNT THAT HIGH. NO.",
+  "from": "game/bosses/oscar.ts:203"
  },
  {
   "voice": "meathead",
@@ -9082,7 +9317,7 @@
  {
   "voice": "meathead",
   "text": "I CAN TASTE COLORS!",
-  "from": "game/stages/barry/power.ts:237"
+  "from": "game/stages/barry/power.ts:259"
  },
  {
   "voice": "meathead",
@@ -9101,6 +9336,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I CAN'T READ. NO.",
+  "from": "game/bosses/oscar.ts:203"
+ },
+ {
+  "voice": "meathead",
   "text": "I DIDN'T COME HERE TO PLAY TAG! SAME MOVE AS HIM, IN HIS FACE!",
   "from": "game/stages/victor/doorman.ts:529"
  },
@@ -9111,8 +9351,28 @@
  },
  {
   "voice": "meathead",
+  "text": "I DON'T DO MATH. MATH DOES ME. ...WAIT.",
+  "from": "game/bosses/oscar.ts:203"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DON'T EXPIRE. I'M NOT MILK.",
+  "from": "game/bosses/oscar.ts:203"
+ },
+ {
+  "voice": "meathead",
   "text": "I DON'T HAVE A CAR.",
   "from": "components/RadioCutscene.tsx:25"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DON'T HAVE BUMPERS. I HAVE DELTS.",
+  "from": "game/bosses/oscar.ts:203"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DON'T KNOW WHAT A MILLION IS. IT SOUNDS LIKE A LOT. STILL NO.",
+  "from": "game/bosses/oscar.ts:203"
  },
  {
   "voice": "meathead",
@@ -9121,8 +9381,23 @@
  },
  {
   "voice": "meathead",
+  "text": "I DON'T SHARE MY TIME. I USE ALL OF IT. ON LIFTING.",
+  "from": "game/bosses/oscar.ts:203"
+ },
+ {
+  "voice": "meathead",
   "text": "I DON'T WANT WHAT YOU'RE SELLING!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DON'T WEAR SUITS. SHIRTS ARE ALREADY TOO MUCH.",
+  "from": "game/bosses/oscar.ts:203"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DRINK SMELLS NOW? COOL.",
+  "from": "game/bosses/oscar.ts:203"
  },
  {
   "voice": "meathead",
@@ -9277,7 +9552,7 @@
  {
   "voice": "meathead",
   "text": "I THINK IT'S OVER.",
-  "from": "game/stages/barry/power.ts:236"
+  "from": "game/stages/barry/power.ts:258"
  },
  {
   "voice": "meathead",
@@ -10406,6 +10681,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NO. WAIT. ...NO.",
+  "from": "game/bosses/oscar.ts:203"
+ },
+ {
+  "voice": "meathead",
   "text": "NOBODY GOOD PARTIES IN A VOLCANO.",
   "from": "ENEMY_KILL_LINES"
  },
@@ -10831,6 +11111,11 @@
  },
  {
   "voice": "meathead",
+  "text": "PRE-OWNED? LIKE SOMEBODY ELSE'S? GROSS.",
+  "from": "game/bosses/oscar.ts:203"
+ },
+ {
+  "voice": "meathead",
   "text": "PROTEIN POWDER IS NOT A SCAM!",
   "from": "components/RadioCutscene.tsx:25"
  },
@@ -10898,6 +11183,11 @@
   "voice": "meathead",
   "text": "PUT THE MACHETE DOWN AND FIGHT LIKE A MAN!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "PYRAMIDS ARE IN EGYPT. ARE WE IN EGYPT?",
+  "from": "game/bosses/oscar.ts:203"
  },
  {
   "voice": "meathead",
@@ -11243,6 +11533,11 @@
   "voice": "meathead",
   "text": "SEPTIC SHOCK WON'T STOP MY SETS, TOMMY!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SEVEN. ...NO WAIT. NO.",
+  "from": "game/bosses/oscar.ts:203"
  },
  {
   "voice": "meathead",
@@ -12376,6 +12671,11 @@
  },
  {
   "voice": "meathead",
+  "text": "The field? The union? The bar? Water under the bridge, pal. Burning water. Now let's talk about YOU. What are you driving these days?",
+  "from": "game/core/update.ts:174"
+ },
+ {
+  "voice": "meathead",
   "text": "THE FORECAST FOR MIAMI: NO MORE HECTOR.",
   "from": "BOSS_REBUKES"
  },
@@ -12533,11 +12833,6 @@
   "voice": "meathead",
   "text": "THE TREE WON. THE TREE ALWAYS WINS.",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "The union. The rangers. The bikers. My bar. My field's on fire, pal! ...It's insured. You're not.",
-  "from": "game/core/update.ts:174"
  },
  {
   "voice": "meathead",
@@ -13086,6 +13381,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHICH HALF IS THAT? ...THERE ISN'T ONE. NO.",
+  "from": "game/bosses/oscar.ts:203"
+ },
+ {
+  "voice": "meathead",
   "text": "WHICH WAY IS THE WAY?",
   "from": "game/stages/tommy/escape.ts:199"
  },
@@ -13272,7 +13572,7 @@
  {
   "voice": "meathead",
   "text": "WORTH IT.",
-  "from": "game/stages/barry/power.ts:239"
+  "from": "game/stages/barry/power.ts:261"
  },
  {
   "voice": "meathead",
@@ -13403,6 +13703,11 @@
   "voice": "meathead",
   "text": "You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I'M the terrorist?",
   "from": "game/core/update.ts:174"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU LIKE ME? ...I DON'T KNOW WHAT'S HAPPENING.",
+  "from": "game/bosses/oscar.ts:203"
  },
  {
   "voice": "meathead",
@@ -13576,6 +13881,11 @@
  },
  {
   "voice": "meathead",
+  "text": "YOUR MANAGER'S A STEAL? CALL THE COPS ON HIM.",
+  "from": "game/bosses/oscar.ts:203"
+ },
+ {
+  "voice": "meathead",
   "text": "YOUR SET'S CANCELED!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -13623,6 +13933,11 @@
   "voice": "meathead",
   "text": "ZERO REPS",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ZERO? I CAN COUNT TO ZERO. THAT'S NOTHING. YOU'RE OFFERING ME NOTHING.",
+  "from": "game/bosses/oscar.ts:203"
  },
  {
   "voice": "oldman",

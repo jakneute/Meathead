@@ -807,7 +807,7 @@ export const BOSS_DIALOGUE: {
     'Hector Hurricane': { 75: 'AND NOW, THE FIVE-DAY FORECAST: YOU, DEAD!', 50: 'WINDS ARE PICKING UP! AGAINST YOU!', 25: 'THIS WASN\'T IN THE FORECAST!', 0: '...BACK TO YOU IN THE STUDIO...' },
     'Toxic Tommy': { 75: 'HOLD STILL, I\'M CHECKING YOUR WATER PRESSURE!', 50: 'I DRANK IT ALL FOR THEM! ALL OF IT!', 25: 'I\'M BACKING UP! I\'M BACKING UP!', 0: 'FLUSH ME... DOWN WITH THE NEIGHBORS...' },
     'Blackout Barry': { 75: 'THAT\'S FOR GARY! MY... COWORKER! JUST A COWORKER, MAN!', 50: 'YOU KNOW WHO R&D TESTS THAT STUFF ON? ME, MAN.', 25: 'WE HAD MATCHING TATTOOS, MAN! A WORK THING! IT WAS A WORK THING!', 0: 'GARY... THERE THEY ARE... THE STARS... WE SAID WE\'D SEE THEM TOGETHER...' },
-    'Oily Oscar': { 75: 'CAN\'T CATCH ME, PAL! I\'M TOO SLICK!', 50: 'THAT BREAK ROOM WAS UNION-BUILT, YOU ANIMAL!', 25: 'EVERYBODY. BACK. TO WORK. ...ANYBODY?', 0: 'SHORTED OUT... ON COMPANY TIME...' },
+    'Oily Oscar': { 75: 'A TOUGH SELL! I LIKE THAT, PAL! I LOVE THAT!', 50: 'OKAY! OKAY! EVERYBODY\'S GOT A PRICE! WHAT\'S YOURS?!', 25: 'TAKE THE WALLET! TAKE THE WATCH! TAKE THE TEETH! JUST GO!', 0: 'FINAL... OFFER...' },
     'Drug Trade Dale': { 75: 'YOU\'RE NOT EVEN A FED! WHO ARE YOU?!', 50: 'THREE HITMEN! I PAID FOR THREE HITMEN!', 25: 'OKAY, OKAY! I\'M DIPPING INTO THE INVENTORY!', 0: 'CLOSED... FOR INVENTORY...' }
   },
   INTRO_QUOTES: {
@@ -817,7 +817,7 @@ export const BOSS_DIALOGUE: {
     'Hector Hurricane': ['CATEGORY FIVE? I WARM UP WITH CATEGORY FIVES.', 'You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.'],
     'Toxic Tommy': ['FLINT WATER? PASS ME A GLASS. MORE MINERALS FOR THE GAINS.', 'You put the neighbors down. You knocked over my water tower and surfed it through the block. That took WEEKS to fill!'],
     'Blackout Barry': ['LIGHTS OUT? GOOD. MY ABS GLOW IN THE DARK.', 'You blew my whole power room, man. With Gary in it. My... roommate. Eleven years. One bedroom. We were ROOMMATES, man.'],
-    'Oily Oscar': ['BABY OIL\'S FOR POSING. CRUDE OIL\'S FOR YOUR FUNERAL.', 'The union. The rangers. The bikers. My bar. My field\'s on fire, pal! ...It\'s insured. You\'re not.'],
+    'Oily Oscar': ['BABY OIL\'S FOR POSING. CRUDE OIL\'S FOR YOUR FUNERAL.', 'The field? The union? The bar? Water under the bridge, pal. Burning water. Now let\'s talk about YOU. What are you driving these days?'],
     'Drug Trade Dale': ['TIME TO CUT OUT THE MIDDLEMAN.', 'You blew up my whole fleet! And Riggs! Who\'s gonna feed Sir Reginald now?!'],
     'default': ["I'll break you in half!", "YOU'RE TOAST."]
   }
@@ -996,6 +996,59 @@ export const BARRY_LINES = {
 
 /** Oily Oscar's lines for his taser weakness and his cigarette. */
 export const OSCAR_LINES = {
+  /** The pitch: he doesn't care what the asset's done to his field, there's a sale in it. (PITCH_BACK: what Meathead
+   *  makes of each, line for line: nothing.) */
+  PITCH: [
+    "PAL. PAL. EXTENDED WARRANTY. ON YOU. BUMPER TO BUMPER.",
+    "ZERO DOWN, ZERO PERCENT, ZERO QUESTIONS! SIGN RIGHT HERE!",
+    "TIMESHARE IN GALVESTON! OCEAN VIEW! THE OCEAN'S ONLY A LITTLE ON FIRE!",
+    "I CAN PUT YOU IN A CERTIFIED PRE-OWNED DERRICK TODAY!",
+    "FOUR HUNDRED A MONTH. SIXTY MONTHS. YOU DO THE MATH.",
+    "WHAT'S IT GONNA TAKE TO PUT YOU IN A NEW RIG TODAY?",
+    "IT'S NOT A PYRAMID, PAL. IT'S A REVERSE FUNNEL.",
+    "LIMITED TIME OFFER! THIS DEAL EXPIRES WHEN YOU DO!",
+    "YOU LOOK LIKE A MAN WHO NEEDS A SEMINAR. THREE DAYS. CATERED.",
+    "LET ME TALK TO MY MANAGER. ...HE SAYS IT'S A STEAL.",
+    "SMELL THAT? THAT'S NEW-CAR SMELL. I SELL IT BY THE GALLON.",
+    "I'M GONNA LEVEL WITH YOU, PAL, BECAUSE I LIKE YOU. I DON'T DO THIS FOR EVERYBODY.",
+  ],
+  PITCH_BACK: [
+    "I DON'T HAVE BUMPERS. I HAVE DELTS.",
+    "ZERO? I CAN COUNT TO ZERO. THAT'S NOTHING. YOU'RE OFFERING ME NOTHING.",
+    "I DON'T SHARE MY TIME. I USE ALL OF IT. ON LIFTING.",
+    "PRE-OWNED? LIKE SOMEBODY ELSE'S? GROSS.",
+    "I DON'T DO MATH. MATH DOES ME. ...WAIT.",
+    "A RIG? LIKE A SQUAT RIG? ...HOW MANY PLATES?",
+    "PYRAMIDS ARE IN EGYPT. ARE WE IN EGYPT?",
+    "I DON'T EXPIRE. I'M NOT MILK.",
+    "CATERED? LIKE CHICKEN? ...HOW MUCH CHICKEN?",
+    "YOUR MANAGER'S A STEAL? CALL THE COPS ON HIM.",
+    "I DRINK SMELLS NOW? COOL.",
+    "YOU LIKE ME? ...I DON'T KNOW WHAT'S HAPPENING.",
+  ],
+  /** Losing (under half): he'll pay anything to make him go away. (BRIBE_BACK: Meathead turning each one down.) */
+  BRIBE: [
+    "OKAY! OKAY! FIFTY BUCKS AND YOU WALK AWAY! CASH!",
+    "A THOUSAND! A THOUSAND DOLLARS TO JUST... LEAVE!",
+    "TEN GRAND! AND THE SUIT! THE FIREPROOF SUIT! JUST GO AWAY!",
+    "NAME YOUR PRICE! ANY NUMBER! PICK A NUMBER!",
+    "A MILLION! A MILLION DOLLARS! IN CRUDE! BY THE BARREL!",
+    "THE BOOKS! YOU WANT MY BOOKS?! TAKE THE BOOKS!",
+    "MY BOAT! IT'S A YACHT! IT'S GOT A HOT TUB! A HOT TUB, PAL!",
+    "HALF THE FIELD! THE HALF THAT ISN'T ON FIRE!",
+    "EVERYTHING! EVERYTHING I'VE GOT! PLEASE! JUST LEAVE!",
+  ],
+  BRIBE_BACK: [
+    "FIFTY? I CAN'T COUNT THAT HIGH. NO.",
+    "DOLLARS? DO YOU HAVE PROTEIN? NO? THEN NO.",
+    "I DON'T WEAR SUITS. SHIRTS ARE ALREADY TOO MUCH.",
+    "SEVEN. ...NO WAIT. NO.",
+    "I DON'T KNOW WHAT A MILLION IS. IT SOUNDS LIKE A LOT. STILL NO.",
+    "I CAN'T READ. NO.",
+    "A HOT TUB IS JUST SOUP FOR PEOPLE. NO.",
+    "WHICH HALF IS THAT? ...THERE ISN'T ONE. NO.",
+    "NO. WAIT. ...NO.",
+  ],
   HELD: ["HEY! HANDS OFF THE MERCHANDISE!", "I'M GROUNDED! LITERALLY GROUNDED!", "THAT TICKLES... THAT BURNS... THAT TICKLES!"],
   BURST: ["MY FILLINGS! MY BEAUTIFUL GOLD FILLINGS!", "THAT ONE WENT RIGHT THROUGH THE GREASE!", "YOU FRIED MY GAUGES, PAL!"],
   ASH: ["*COUGH* ...THAT WAS MY LAST SMOKE.", "THE SURGEON GENERAL WARNED ME ABOUT THIS.", "MY EYEBROWS! I JUST HAD 'EM WAXED!"],

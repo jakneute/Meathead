@@ -397,6 +397,13 @@ export interface Enemy extends Entity {
   taserHold?: number;         // frames held by the taser
   taserHeldThisFrame?: boolean;
   taserGrace?: number;
+  /** Oscar: when he's next got something to say to you (a sale, or later a bribe), and how many of each he's made. */
+  pitchAt?: number;
+  pitchN?: number;
+  bribeN?: number;
+  /** What Meathead's got to say back to it, waiting for Oscar to finish (and how long it's been quiet). */
+  pitchReply?: string;
+  pitchQuiet?: number;
 }
 
 export interface TommyBoard {

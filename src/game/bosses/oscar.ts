@@ -17,6 +17,7 @@ import type { FrameContext } from '../core/context';
 import { GameState, shakeScreen } from '../core/state';
 import { pickRandom, rectsOverlap, boundsOf } from '../core/utils';
 import { BossDef, BOSS_WALL_GAP, FLOOR_Y, CEILING_Y, speakAsBoss, hurtPlayer as hurtMeathead, midX } from './shared';
+import { say, isTalking, MEATHEAD_VOICE } from '../platform/speech';
 
 const OSCAR = 'Oily Oscar';
 const ARENA_RIGHT = OSCAR_ARENA_RIGHT; // his room is double-wide
@@ -102,6 +103,7 @@ export const updateOscar = (ctx: FrameContext, boss: Enemy) => {
 
   const held = !!boss.taserHeldThisFrame;
   boss.taserHeldThisFrame = false;
+  salesTalk(ctx, boss);
   // Letting go drains the burst meter
   if (boss.bossState !== 'taser_held' && boss.taserHold) boss.taserHold = Math.max(0, boss.taserHold - 3);
 
@@ -152,6 +154,57 @@ export const updateOscar = (ctx: FrameContext, boss: Enemy) => {
     default:
       updateIdle(ctx, boss);
   }
+};
+
+/** How long between his offers (frames): the first soon after it starts, then each a while after the asset's answer to the last (he never shuts up). */
+const FIRST_PITCH = 200, PITCH_GAP = 300, PITCH_GAP_RANGE = 180;
+/** Frames of quiet after his pitch before Meathead answers. */
+const REPLY_BREATH = 10;
+
+/**
+ * Talking the whole time: whatever's been done to his field, there's a sale in it; one pitch after another (the
+ * asset doesn't understand a word of it). Once he's under half, it's the other way: anything, any money, to make him
+ * go away (turned down, every time). Never while he's being zapped or choking on his ash, and never over anyone else.
+ */
+const salesTalk = (ctx: FrameContext, boss: Enemy) => {
+  const { state } = ctx;
+  if (!state.arenaLocked || boss.health <= 0) return;
+  if (boss.pitchAt === undefined) boss.pitchAt = state.frame + FIRST_PITCH;
+  // (Meathead's answer: once Oscar's done, and a breath)
+  if (boss.pitchReply) {
+    if (isTalking()) { boss.pitchQuiet = 0; return; }
+    if ((boss.pitchQuiet = (boss.pitchQuiet ?? 0) + 1) < REPLY_BREATH) return;
+    meatheadSays(state, boss.pitchReply);
+    boss.pitchReply = undefined;
+    // (the next one a while after that)
+    boss.pitchAt = state.frame + PITCH_GAP + Math.round(Math.random() * PITCH_GAP_RANGE);
+    return;
+  }
+  if (state.frame < boss.pitchAt || isTalking() || boss.bossState === 'taser_held' || boss.bossState === 'ash_face') return;
+  boss.pitchAt = state.frame + PITCH_GAP + Math.round(Math.random() * PITCH_GAP_RANGE);
+  let pitch: string, reply: string;
+  if (boss.health < boss.maxHealth / 2) {
+    // (once he's offered everything he's got, that's it: he's got nothing left to offer)
+    const i = boss.bribeN ?? 0;
+    if (i >= OSCAR_LINES.BRIBE.length) return;
+    boss.bribeN = i + 1;
+    pitch = OSCAR_LINES.BRIBE[i]; reply = OSCAR_LINES.BRIBE_BACK[i];
+  } else {
+    const i = (boss.pitchN ?? 0) % OSCAR_LINES.PITCH.length;
+    boss.pitchN = (boss.pitchN ?? 0) + 1;
+    pitch = OSCAR_LINES.PITCH[i]; reply = OSCAR_LINES.PITCH_BACK[i];
+  }
+  speakAsBoss(OSCAR, pitch, ctx.bossHelpers);
+  boss.pitchReply = reply; boss.pitchQuiet = 0;
+};
+
+/** Meathead's answer, over his head (after Oscar's done). */
+const meatheadSays = (state: GameState, text: string) => {
+  const shown = say(text, MEATHEAD_VOICE, 'queue', {
+    onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 180; },
+    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 30); },
+  });
+  if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 160; }
 };
 
 const idleFrames = (boss: Enemy) =>
