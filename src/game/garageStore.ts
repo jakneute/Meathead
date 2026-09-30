@@ -1,4 +1,5 @@
-// What's in the garage: kept in the browser (it's his, it stays: across runs, across sessions). A boss's souvenirs
+// What's in the garage: kept for this session only (in memory: a refresh or a new session starts it empty, while how
+// souvenirs work might still change; nothing's written to the browser). A boss's souvenirs
 // come one per difficulty cleared: the first clear of him (on any difficulty) takes one of his three home at random,
 // and clearing him on each difficulty not cleared before takes one of the ones that are left. Clearing him again on a
 // difficulty already done brings nothing new.
@@ -11,15 +12,11 @@ export type Difficulty = 'normal' | 'hard' | 'veryhard';
 const KEY = 'meathead-garage';
 const CLEARS_KEY = 'meathead-clears';
 
-const read = <T,>(key: string, fallback: T): T => {
-  try {
-    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null;
-    return raw ? JSON.parse(raw) as T : fallback;
-  } catch { return fallback; }
-};
-const write = (key: string, value: unknown) => {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* (no storage: it's just this session's) */ }
-};
+// (this session's, in memory; and anything an earlier build left saved in the browser is cleared out, once)
+const memory = new Map<string, unknown>();
+try { if (typeof localStorage !== 'undefined') { localStorage.removeItem(KEY); localStorage.removeItem(CLEARS_KEY); } } catch { /* no storage */ }
+const read = <T,>(key: string, fallback: T): T => (memory.has(key) ? memory.get(key) as T : fallback);
+const write = (key: string, value: unknown) => { memory.set(key, value); };
 
 /** The souvenirs he's got (their ids). */
 export const ownedSouvenirs = (): string[] => {
