@@ -13,7 +13,7 @@ import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
 import { shakeScreen } from '../../core/state';
 import { playSound } from '../../platform/audio';
-import { say, canSpeak, MEATHEAD_VOICE, Voice } from '../../platform/speech';
+import { say, canSpeak, isTalking, MEATHEAD_VOICE, Voice } from '../../platform/speech';
 import { GROUND_Y } from '../../../constants';
 import { COURSE, CP } from './course';
 
@@ -72,7 +72,8 @@ const talkOver = (dc: DoorCrash) => {
   const t = dc.talk;
   if (!t) return true;
   const age = dc.t - t.at;
-  const over = age > 20 && (t.done || (!t.spoken && age > 45 + t.len * 3) || age > 60 + t.len * 5);
+  // (and nobody else still talking: the next line never starts over the end of one)
+  const over = age > 20 && (!isTalking() || age > 600) && (t.done || (!t.spoken && age > 45 + t.len * 3) || age > 60 + t.len * 5);
   if (over) { dc.talk = null; if (dc.lineT > 20) dc.lineT = 20; }
   return over;
 };

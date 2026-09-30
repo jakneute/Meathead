@@ -76,7 +76,9 @@ const talkOver = (tour: Tour, clock: number, pause: number) => {
   const k = tour.talk;
   if (!k) return true;
   const age = clock - k.at;
-  if (!k.over && age > 20 && (k.done || (!k.spoken && age > 45 + k.len * 3) || age > 60 + k.len * 5)) { k.over = clock; if (tour.lineT > 20) tour.lineT = 20; }
+  // (and nobody else still talking: the next line never starts over the end of one)
+  const quiet = !isTalking() || age > 600;
+  if (!k.over && age > 20 && quiet && (k.done || (!k.spoken && age > 45 + k.len * 3) || age > 60 + k.len * 5)) { k.over = clock; if (tour.lineT > 20) tour.lineT = 20; }
   return k.over > 0 && clock - k.over > pause;
 };
 /**
@@ -84,7 +86,7 @@ const talkOver = (tour: Tour, clock: number, pause: number) => {
  * after the guide's punchline: the tour has a good laugh at the idea before anyone hears him coming.
  */
 export const LAUGH_BEAT = 239;
-const HOLDS = new Map([[124, 14], [189, 14], [LAUGH_BEAT, 180], [DROP_AT - 9, 0], [TOUR_END - 1, 20]]);
+const HOLDS = new Map([[124, 20], [189, 20], [LAUGH_BEAT, 180], [DROP_AT - 9, 0], [TOUR_END - 1, 20]]);
 
 /** The tour's laughing at the guide's joke (the beat before he's heard). */
 export const tourLaughing = (tour: Tour) => tour.phase === 'tour' && tour.t === LAUGH_BEAT && !!tour.talk?.over;

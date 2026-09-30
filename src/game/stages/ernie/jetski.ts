@@ -22,7 +22,7 @@ import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
 import { shakeScreen } from '../../core/state';
 import { playSound, playGlassShatterSound } from '../../platform/audio';
-import { say, canSpeak, MEATHEAD_VOICE, Voice } from '../../platform/speech';
+import { say, canSpeak, isTalking, MEATHEAD_VOICE, Voice } from '../../platform/speech';
 import { makeKindEnemy } from '../../enemies/kinds';
 import { JETSKI_CRUISE } from '../../enemies/kinds/ernie';
 import { hurtPlayer } from '../../bosses/shared';
@@ -139,7 +139,8 @@ const talkOver = (js: JetSki) => {
   const t = js.talk;
   if (!t) return true;
   const age = js.t - t.at;
-  const over = age > 20 && (t.done || (!t.spoken && age > 45 + t.len * 3) || age > 60 + t.len * 5);
+  // (and nobody else still talking: the next line never starts over the end of one)
+  const over = age > 20 && (!isTalking() || age > 600) && (t.done || (!t.spoken && age > 45 + t.len * 3) || age > 60 + t.len * 5);
   if (over) { js.talk = null; if (js.lineT > 20) js.lineT = 20; if (js.hipster.lineT > 20) js.hipster.lineT = 20; }
   return over;
 };
