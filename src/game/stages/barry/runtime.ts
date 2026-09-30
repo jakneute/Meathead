@@ -194,7 +194,7 @@ const BARKS: Partial<Record<string, string[]>> = {
   mugger: ['GIMME YOUR WALLET!', 'NICE SHOES. GIMME \'EM.'],
   bum: ['SPARE SOME CHANGE?! NO?! THEN DIE!', 'THIS IS MY CORNER!'],
   guard: ['SIR! SIR! YOU NEED A VISITOR BADGE!', 'SIGN IN OR GET SHOT!'],
-  commuter: ['I\'M WALKIN\' HERE!', 'OUTTA MY WAY, I GOT A TRAIN!'],
+  commuter: ['EYES UP, PAL!', 'OUTTA MY WAY, I GOT A TRAIN!'],
   reader: ['DO YOU MIND? I\'M READING!', 'FUHGEDDABOUDIT!'],
   exec: ['YOU\'RE NOT ON MY CALENDAR!', 'I\'LL HAVE YOUR JOB! WHAT\'S YOUR JOB?'],
   intern: ['I\'M UNPAID AND I\'M ANGRY!', 'IS THIS A TEAM BUILDING THING?!'],

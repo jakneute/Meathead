@@ -125,7 +125,7 @@ export const updateEyeFight = (ctx: FrameContext, f: EyeFight, onDead: () => voi
   }
   // Off the junk and into the storm
   else if (state.deathTimer <= 0 && player.pos.y > a.y + 700) {
-    const lines = ['SUCKED INTO THE STORM', 'GONE WITH THE WIND', 'CATEGORY 5 DEATH'];
+    const lines = ['SUCKED INTO THE STORM', 'CARRIED OFF BY THE WIND', 'CATEGORY 5 DEATH'];
     killPlayer(ctx, lines[Math.floor(Math.random() * lines.length)]);
   }
   if (f.phase === 'dead' && f.corpse && state.frame - f.corpse.t0 > 170) { f.phase = 'done'; onDead(); }

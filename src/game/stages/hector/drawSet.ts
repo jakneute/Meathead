@@ -141,7 +141,7 @@ const BILLBOARDS: [string, string, string][] = [
   ['2-4-1 MOJITOS', '#F472B6', '#FEF08A'], ['BAIL BONDS 24/7', '#FACC15', '#111827'], ['CONDOS FROM $9M', '#22D3EE', '#831843'],
   ['GATOR TOURS!', '#65A30D', '#FEF9C3'], ['BOTOX WALK-INS', '#F9A8D4', '#1E3A8A'], ['CUBAN COFFEE', '#7C2D12', '#FDE68A'],
   ['TAN IN 15 MIN', '#FB923C', '#FFFFFF'], ['LADIES NITE', '#A855F7', '#5EEAD4'], ['PAWN & GOLD', '#111827', '#FACC15'],
-  ['JET SKI RENTAL', '#0EA5E9', '#FFFFFF'], ['SEX PANTHER', '#DB2777', '#FFFFFF'], ['HURRICANE SALE', '#DC2626', '#FEF08A'],
+  ['JET SKI RENTAL', '#0EA5E9', '#FFFFFF'], ['PALM READING', '#DB2777', '#FFFFFF'], ['HURRICANE SALE', '#DC2626', '#FEF08A'],
 ];
 
 export const drawJunk = (ctx: Ctx, x: number, y: number, w: number, look: string, f: number, variant = 0) => {

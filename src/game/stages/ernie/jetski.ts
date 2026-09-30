@@ -390,7 +390,7 @@ export const rideProgress = (js: JetSki) => (js.phase === 'riding' ? Math.min(1,
 /** How he died out on the water. */
 export const skiDeathMessage = (js: JetSki): string | undefined => {
   if (js.phase !== 'riding') return undefined;
-  const l = ['SLEEPS WITH THE FISHES', 'SHARK BAIT', 'LOST AT SEA', 'THE BAY WINS'];
+  const l = ['FEEDING THE FISHES', 'SHARK BAIT', 'LOST AT SEA', 'THE BAY WINS'];
   return l[Math.floor(Math.random() * l.length)];
 };
 

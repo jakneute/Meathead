@@ -396,7 +396,7 @@ const updateDrowning = (ctx: FrameContext, hz: Hazards) => {
   p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
   if (hz.drownAt) p.pos = { x: hz.drownAt.x, y: hz.drownAt.y };
   if (hz.drownT === 40) playSound('glug');
-  const lines = ['SLEEPING WITH THE FISHES', 'SHOULD HAVE TAKEN SWIM LESSONS', 'FORGOT TO BREATHE', 'GLUB GLUB GLUB'];
+  const lines = ['FEEDING THE FISHES', 'SHOULD HAVE TAKEN SWIM LESSONS', 'FORGOT TO BREATHE', 'GLUB GLUB GLUB'];
   if (hz.drownT < DROWN_FRAMES && skipDying(ctx, hz.drownT, () => lines[Math.floor(Math.random() * lines.length)])) { hz.lastCause = 'drowned'; hz.lastCauseAt = state.frame; return; }
   if (hz.drownT === DROWN_FRAMES && state.deathTimer <= 0) {
     hz.lastCause = 'drowned'; hz.lastCauseAt = state.frame;

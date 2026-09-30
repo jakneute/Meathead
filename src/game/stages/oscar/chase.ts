@@ -581,7 +581,7 @@ const teach = (state: GameState, ch: Chase) => {
 export const chaseProgress = (ch: Chase) => Math.min(1, ch.kills / KILLS_NEEDED);
 export const chaseDeathMessage = (ch: Chase): string | undefined => {
   if (ch.phase !== 'riding') return undefined;
-  if (ch.gaps.some(g => !g.passed)) return ['MISSED THE JUMP', 'EVEL KNIEVEL HE IS NOT', 'INTO THE TRENCH'][Math.floor(Math.random() * 3)];
+  if (ch.gaps.some(g => !g.passed)) return ['MISSED THE JUMP', 'STUNTMAN HE IS NOT', 'INTO THE TRENCH'][Math.floor(Math.random() * 3)];
   const l = ['ROADKILL', 'RUN OFF THE ROAD', 'LAID DOWN THE BIKE', 'TEXAS JUSTICE'];
   return l[Math.floor(Math.random() * l.length)];
 };

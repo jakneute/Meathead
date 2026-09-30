@@ -138,7 +138,7 @@ export const updateTower = (ctx: FrameContext, tr: TowerRun, onTop: () => void) 
     player.invincibilityTimer = 0;
     for (let k = 0; k < 3; k++) state.particles.push({ pos: { x: player.pos.x + Math.random() * player.width, y: player.pos.y + Math.random() * player.height }, vel: { x: -8 - Math.random() * 6, y: -3 - Math.random() * 4 }, life: 22, color: 'rgba(226, 232, 240, 0.8)', size: 3 });
     if (tr.suckT >= SUCK_FRAMES) {
-      const lines = ['SUCKED UP INTO THE STORM', 'GONE WITH THE WIND', 'CATEGORY 5 DEATH', "THERE'S NO PLACE LIKE HOME"];
+      const lines = ['SUCKED UP INTO THE STORM', 'CARRIED OFF BY THE WIND', 'CATEGORY 5 DEATH', "LAST SEEN AIRBORNE"];
       killPlayer(ctx, lines[Math.floor(Math.random() * lines.length)]);
     }
   }
