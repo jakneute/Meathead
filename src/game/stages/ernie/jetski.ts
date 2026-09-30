@@ -290,11 +290,9 @@ const riding = (ctx: FrameContext, js: JetSki, controls: Controls): Controls => 
 
 /** What the hipster has to say about all this, and what Meathead has to say back, one after another; then the ramp. */
 const CHASE_LINES: ['hipster' | 'meathead', string][] = [
-  ['hipster', "BRO. BRO! THAT JET SKI WAS VINTAGE, BRO!"],
-  ['hipster', "GOOD THING I KEEP A STANDBY. IT'S HAND-BUILT. YOU WOULDN'T GET IT."],
+  ['hipster', "BRO! THAT JET SKI WAS VINTAGE, BRO!"],
+  ['hipster', "GOOD THING I KEEP A STANDBY. THIS IS GOING ON MY PODCAST."],
   ['meathead', 'WHO HAS A STANDBY JET SKI?'],
-  ['hipster', "I WAS CHASING PEOPLE BEFORE IT WAS COOL!"],
-  ['hipster', "I'M PUTTING THIS ON MY PODCAST! ALL NINE LISTENERS WILL HEAR ABOUT IT!"],
 ];
 
 /** The hipster, pulled up right behind him, saying his piece; once he's done, the ramp comes up out ahead. */
@@ -419,6 +417,14 @@ const launch = (ctx: FrameContext, js: JetSki, onLanded: () => void): Controls =
   p.skiSpeed = 13;
   // (the camera stays on the water: he goes up out of the top of it, and so does the one after him)
   state.cameraOverride = { x: state.camera.x + 6, y: state.camera.y };
+  // Once he's up out of the top of the view he stays up there (held, out of sight) till the scene's over: nothing
+  // brings him back down into the bay
+  if (p.pos.y + p.height < state.camera.y - 40 || p.hidden) {
+    p.hidden = true;
+    p.vel = { x: 0, y: 0 };
+    p.pos.y = state.camera.y - 400;
+    p.pos.x = state.camera.x + 500;
+  }
   const c = js.chaser;
   if (c.state === 'riding') {
     c.x += c.vx;

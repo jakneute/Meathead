@@ -860,6 +860,41 @@ export type KillCallout =
   // An overdosed body going up into a ceiling (and staying there)
   | 'ceiling';
 
+/** What a body can come down on (see game/core/groundUnder.ts). */
+export type Ground = 'concrete' | 'water' | 'snow' | 'rock' | 'dirt' | 'sand' | 'wood' | 'glass' | 'carpet' | 'tile' | 'metal' | 'muck' | 'grass' | 'lava';
+
+/**
+ * The callouts that name what the body hit, by what's under it (in place of the plain lines): so it's never
+ * "KISSED CONCRETE!" on the water or in the snow.
+ */
+export const SURFACE_CALLOUTS: Partial<Record<KillCallout, Partial<Record<Ground, string[]>>>> = {
+  groundsplat: {
+    concrete: ["FACEPLANT!", "KISSED CONCRETE!", "SIDEWALK SPLAT!", "GROUNDED!"],
+    water: ["BELLY FLOP!", "SPLASHDOWN!", "LIKE HITTING CONCRETE!", "CANNONBALL!"],
+    snow: ["FACEPLANT!", "FACE FULL OF SNOW!", "SNOW ANGEL!", "POWDERED!"],
+    rock: ["FACEPLANT!", "ROCK BOTTOM!", "KISSED THE ROCK!", "STONED!"],
+    dirt: ["FACEPLANT!", "ATE DIRT!", "BIT THE DUST!"],
+    sand: ["FACEPLANT!", "BIT THE DUST!", "SAND IN EVERY CRACK!"],
+    wood: ["FACEPLANT!", "FLOORBOARDED!", "SPLINTERED!"],
+    glass: ["DANCE FLOOR DIVE!", "DROPPED THE BEAT!", "FACEPLANT!"],
+    carpet: ["RUG BURN!", "CARPET BOMBED!", "FACEPLANT!"],
+    tile: ["FACEPLANT!", "KISSED THE TILE!", "CLEANUP ON AISLE DEAD!"],
+    metal: ["CLANG!", "GRATED!", "FACEPLANT!"],
+    muck: ["SPLOOSH!", "FACE IN THE MUCK!", "BELLY FLOP!"],
+    grass: ["LAWN DART!", "ATE GRASS!", "FACEPLANT!"],
+    lava: ["SIZZLE!", "HOT FACEPLANT!", "MOLTEN BELLY FLOP!"],
+  },
+  divekick: {
+    concrete: ["SPLAT!", "CURB STOMP!", "PANCAKED!", "FLATTENED!"],
+    water: ["DUNKED!", "SPLASHDOWN!", "GOT STOMPED!", "SUNK!"],
+    snow: ["SPLAT!", "PACKED POWDER!", "PANCAKED!", "FLATTENED!"],
+    muck: ["DUNKED!", "SPLOOSH!", "GOT STOMPED!"],
+  },
+  flattened: {
+    concrete: ["ROLLED!", "ROADKILL!", "PAVED!"],
+  },
+};
+
 /** Callout text (one picked at random) and colour for each special kill. */
 /** What the banner says when Meathead reaches a checkpoint. */
 export const CHECKPOINT_CALLOUTS = ['PROGRESS LOCKED IN!'];
@@ -868,7 +903,7 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
   charge:   { lines: ["BODIED!", "PLOWED!", "TRUCKED!", "STEAMROLLED!", "SHOULDERED!"], color: '#FF8C00' },
   slide:    { lines: ["SWEPT!", "LEG DAY!", "ANKLES TAKEN!", "SLIDE TACKLE!"], color: '#FFD700' },
   uppercut: { lines: ["LAUNCHED!", "CHIN CHECKED!", "SKY HIGH!", "ORBITAL!", "LIFTOFF!"], color: '#00E5FF' },
-  divekick: { lines: ["SPLAT!", "GOT STOMPED!", "CURB STOMP!", "PANCAKED!", "FLATTENED!"], color: '#FF0000' },
+  divekick: { lines: ["SPLAT!", "GOT STOMPED!", "PANCAKED!", "FLATTENED!"], color: '#FF0000' },
   shatter:  { lines: ["SHATTERED!", "ICED!", "BRAIN FREEZE!", "SMASHED CUBES!"], color: '#B3F0FF' },
   shield:   { lines: ["SLIMED!", "BARFED ON!", "FILTHY!"], color: '#7CFC00' },
   crush:    { lines: ["CRUSHED!", "STRIKE!", "BOWLED OVER!"], color: '#FFA500' },
@@ -886,8 +921,8 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
   wallsplat:   { lines: ["WALL SPLAT!", "SPLATTERED!", "REDECORATED!"], color: '#DC2626' },
   drowned:     { lines: ["DROWNED!", "GLUG GLUG!", "SANK LIKE A ROCK!", "SHOULD'VE TAKEN LESSONS!", "NO LIFEGUARD ON DUTY!"], color: '#38BDF8' },
   compacted:   { lines: ["COMPACTED!", "TRASH COMPACTOR!", "PANINI'D!", "FLAT PACKED!", "SANDWICHED!"], color: '#E5E7EB' },
-  groundsplat: { lines: ["FACEPLANT!", "GROUNDED!", "KISSED CONCRETE!"], color: '#F97316' },
-  flattened:   { lines: ["ROLLED!", "ROADKILL!", "PAVED!"], color: '#A16207' },
+  groundsplat: { lines: ["FACEPLANT!", "GROUNDED!", "HIT THE DECK!"], color: '#F97316' },
+  flattened:   { lines: ["ROLLED!", "PRESSED FLAT!", "RUN OVER!"], color: '#A16207' },
   truck:       { lines: ["TOTALED!", "DELIVERY DENIED!", "WRECKED!", "SHIPMENT LOST!"], color: '#7CFC00' },
   blowout:     { lines: ["BLOWOUT!", "TIRES POPPED!", "SLICK RIDE!"], color: '#7CFC00' },
   crash:       { lines: ["HIT AND RUN!", "SELF-DELIVERED!", "RUN OVER!", "SIGNED FOR IT!"], color: '#FF4500' },

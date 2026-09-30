@@ -1,7 +1,8 @@
 import { Vector2, PickupType, VulgarityType, Enemy } from '../../types';
 import {
   PARTICLE_PALETTES, BOULDER_SHRAPNEL_DAMAGE, VULGARITY_TEXT_DURATION, VOICE_LINE_COOLDOWN_FRAMES, SPOKEN_TEXT_HOLD, SPOKEN_TEXT_LINGER, isRangeStage } from '../../constants';
-import { VULGARITIES, BOSS_DIALOGUE, KILL_LINES, KILL_CALLOUTS, KillCallout, ENEMY_KILL_LINES, GENERIC_KILL_LINES, RANGE_KILL_LINES } from '../../content/dialogue';
+import { VULGARITIES, BOSS_DIALOGUE, KILL_LINES, KILL_CALLOUTS, KillCallout, ENEMY_KILL_LINES, GENERIC_KILL_LINES, RANGE_KILL_LINES, SURFACE_CALLOUTS } from '../../content/dialogue';
+import { groundUnder } from './groundUnder';
 import { GameState } from './state';
 import { playSound, playGlassShatterSound } from '../platform/audio';
 import { say, isSpeaking, isTalking, canSpeak, pickFreshLine, announce, MEATHEAD_VOICE, announcerJustSpoke, silenceAll } from '../platform/speech';
@@ -41,9 +42,13 @@ export const createFx = (state: GameState) => {
   };
 
   /** Big "SPLAT!"-style callout over a special kill. */
-  const spawnKillCallout = (e: { pos: Vector2, width: number, kind?: string }, kind: KillCallout) => {
+  const spawnKillCallout = (e: { pos: Vector2, width: number, height?: number, kind?: string }, kind: KillCallout) => {
     if (e.kind === 'tenant') return;
-    const { lines, color } = KILL_CALLOUTS[kind];
+    const { color } = KILL_CALLOUTS[kind];
+    // (the ones that name what it hit go by what's actually under it)
+    const bySurface = SURFACE_CALLOUTS[kind];
+    const ground = bySurface ? groundUnder(state, e.pos.x + e.width / 2, e.pos.y + (e.height ?? 0)) : undefined;
+    const lines = (ground && bySurface?.[ground]) || KILL_CALLOUTS[kind].lines;
     const text = pickRandom(lines);
     // (who says it, if anybody, is settled next frame: see settleKillVoice)
     (state.killVoice ??= {}).callout = { text, at: state.frame };

@@ -71,6 +71,16 @@
  },
  {
   "voice": "announcer",
+  "text": "ATE DIRT!",
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "ATE GRASS!",
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "AVALANCHED!",
   "from": "KILL_CALLOUTS"
  },
@@ -91,6 +101,11 @@
  },
  {
   "voice": "announcer",
+  "text": "BELLY FLOP!",
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "BELLY UP!",
   "from": "KILL_CALLOUTS"
  },
@@ -108,6 +123,11 @@
   "voice": "announcer",
   "text": "BIRDIE!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "BIT THE DUST!",
+  "from": "SURFACE_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -146,8 +166,18 @@
  },
  {
   "voice": "announcer",
+  "text": "CANNONBALL!",
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "CAPSIZED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "CARPET BOMBED!",
+  "from": "SURFACE_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -168,6 +198,16 @@
   "voice": "announcer",
   "text": "CHIN CHECKED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "CLANG!",
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "CLEANUP ON AISLE DEAD!",
+  "from": "SURFACE_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -212,7 +252,12 @@
  {
   "voice": "announcer",
   "text": "CURB STOMP!",
-  "from": "KILL_CALLOUTS"
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "DANCE FLOOR DIVE!",
+  "from": "SURFACE_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -251,6 +296,11 @@
  },
  {
   "voice": "announcer",
+  "text": "DROPPED THE BEAT!",
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "DROPPED!",
   "from": "KILL_CALLOUTS"
  },
@@ -261,6 +311,11 @@
  },
  {
   "voice": "announcer",
+  "text": "DUNKED!",
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "ELECTRIC BATH!",
   "from": "KILL_CALLOUTS"
  },
@@ -268,6 +323,16 @@
   "voice": "announcer",
   "text": "EXTRA CRISPY!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "FACE FULL OF SNOW!",
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "FACE IN THE MUCK!",
+  "from": "SURFACE_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -311,6 +376,11 @@
  },
  {
   "voice": "announcer",
+  "text": "FLOORBOARDED!",
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "FRIED!",
   "from": "KILL_CALLOUTS"
  },
@@ -348,6 +418,11 @@
   "voice": "announcer",
   "text": "GOT STOMPED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "GRATED!",
+  "from": "SURFACE_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -406,6 +481,16 @@
  },
  {
   "voice": "announcer",
+  "text": "HIT THE DECK!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "HOT FACEPLANT!",
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "HOUSTON!",
   "from": "KILL_CALLOUTS"
  },
@@ -452,7 +537,17 @@
  {
   "voice": "announcer",
   "text": "KISSED CONCRETE!",
-  "from": "KILL_CALLOUTS"
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "KISSED THE ROCK!",
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "KISSED THE TILE!",
+  "from": "SURFACE_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -471,6 +566,11 @@
  },
  {
   "voice": "announcer",
+  "text": "LAWN DART!",
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "LEG DAY!",
   "from": "KILL_CALLOUTS"
  },
@@ -483,6 +583,11 @@
   "voice": "announcer",
   "text": "LIGHTS OUT, KID!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "LIKE HITTING CONCRETE!",
+  "from": "SURFACE_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -533,6 +638,11 @@
   "voice": "announcer",
   "text": "MIND THE GAP!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "MOLTEN BELLY FLOP!",
+  "from": "SURFACE_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -621,6 +731,11 @@
  },
  {
   "voice": "announcer",
+  "text": "PACKED POWDER!",
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "PANCAKED!",
   "from": "KILL_CALLOUTS"
  },
@@ -637,7 +752,7 @@
  {
   "voice": "announcer",
   "text": "PAVED!",
-  "from": "KILL_CALLOUTS"
+  "from": "SURFACE_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -662,6 +777,16 @@
  {
   "voice": "announcer",
   "text": "POPPED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "POWDERED!",
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "PRESSED FLAT!",
   "from": "KILL_CALLOUTS"
  },
  {
@@ -697,12 +822,22 @@
  {
   "voice": "announcer",
   "text": "ROADKILL!",
-  "from": "KILL_CALLOUTS"
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "ROCK BOTTOM!",
+  "from": "SURFACE_CALLOUTS"
  },
  {
   "voice": "announcer",
   "text": "ROLLED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "RUG BURN!",
+  "from": "SURFACE_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -718,6 +853,11 @@
   "voice": "announcer",
   "text": "RUN OVER!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SAND IN EVERY CRACK!",
+  "from": "SURFACE_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -801,8 +941,18 @@
  },
  {
   "voice": "announcer",
+  "text": "SIDEWALK SPLAT!",
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "SIGNED FOR IT!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SIZZLE!",
+  "from": "SURFACE_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -846,6 +996,11 @@
  },
  {
   "voice": "announcer",
+  "text": "SNOW ANGEL!",
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "SNOWED UNDER!",
   "from": "KILL_CALLOUTS"
  },
@@ -861,6 +1016,11 @@
  },
  {
   "voice": "announcer",
+  "text": "SPLASHDOWN!",
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "SPLAT!",
   "from": "KILL_CALLOUTS"
  },
@@ -871,6 +1031,16 @@
  },
  {
   "voice": "announcer",
+  "text": "SPLINTERED!",
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SPLOOSH!",
+  "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "SQUISHED!",
   "from": "KILL_CALLOUTS"
  },
@@ -878,6 +1048,11 @@
   "voice": "announcer",
   "text": "STEAMROLLED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "STONED!",
+  "from": "SURFACE_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -4207,7 +4382,7 @@
  {
   "voice": "death",
   "text": "LOST AT SEA",
-  "from": "game/stages/ernie/jetski.ts:450"
+  "from": "game/stages/ernie/jetski.ts:456"
  },
  {
   "voice": "death",
@@ -4732,7 +4907,7 @@
  {
   "voice": "death",
   "text": "SHARK BAIT",
-  "from": "game/stages/ernie/jetski.ts:450"
+  "from": "game/stages/ernie/jetski.ts:456"
  },
  {
   "voice": "death",
@@ -5197,7 +5372,7 @@
  {
   "voice": "death",
   "text": "THE BAY WINS",
-  "from": "game/stages/ernie/jetski.ts:450"
+  "from": "game/stages/ernie/jetski.ts:456"
  },
  {
   "voice": "death",
@@ -6056,7 +6231,7 @@
  },
  {
   "voice": "hipster",
-  "text": "BRO. BRO! THAT JET SKI WAS VINTAGE, BRO!",
+  "text": "BRO! THAT JET SKI WAS VINTAGE, BRO!",
   "from": "game/stages/ernie/jetski.ts:133"
  },
  {
@@ -6066,22 +6241,12 @@
  },
  {
   "voice": "hipster",
-  "text": "GOOD THING I KEEP A STANDBY. IT'S HAND-BUILT. YOU WOULDN'T GET IT.",
+  "text": "GOOD THING I KEEP A STANDBY. THIS IS GOING ON MY PODCAST.",
   "from": "game/stages/ernie/jetski.ts:133"
  },
  {
   "voice": "hipster",
   "text": "hipster",
-  "from": "game/stages/ernie/jetski.ts:133"
- },
- {
-  "voice": "hipster",
-  "text": "I WAS CHASING PEOPLE BEFORE IT WAS COOL!",
-  "from": "game/stages/ernie/jetski.ts:133"
- },
- {
-  "voice": "hipster",
-  "text": "I'M PUTTING THIS ON MY PODCAST! ALL NINE LISTENERS WILL HEAR ABOUT IT!",
   "from": "game/stages/ernie/jetski.ts:133"
  },
  {
@@ -6791,7 +6956,7 @@
  },
  {
   "voice": "meathead",
-  "text": "BRO. BRO! THAT JET SKI WAS VINTAGE, BRO!",
+  "text": "BRO! THAT JET SKI WAS VINTAGE, BRO!",
   "from": "game/stages/ernie/jetski.ts:133"
  },
  {
@@ -8066,7 +8231,7 @@
  },
  {
   "voice": "meathead",
-  "text": "GOOD THING I KEEP A STANDBY. IT'S HAND-BUILT. YOU WOULDN'T GET IT.",
+  "text": "GOOD THING I KEEP A STANDBY. THIS IS GOING ON MY PODCAST.",
   "from": "game/stages/ernie/jetski.ts:133"
  },
  {
@@ -9036,11 +9201,6 @@
  },
  {
   "voice": "meathead",
-  "text": "I WAS CHASING PEOPLE BEFORE IT WAS COOL!",
-  "from": "game/stages/ernie/jetski.ts:133"
- },
- {
-  "voice": "meathead",
   "text": "I'LL BENCH PRESS THAT BIG RIG RIGHT BACK AT YOU!",
   "from": "HAZARD_HURT"
  },
@@ -9248,11 +9408,6 @@
   "voice": "meathead",
   "text": "I'M ON THE LIST, YOU BALD FUCK!",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "I'M PUTTING THIS ON MY PODCAST! ALL NINE LISTENERS WILL HEAR ABOUT IT!",
-  "from": "game/stages/ernie/jetski.ts:133"
  },
  {
   "voice": "meathead",

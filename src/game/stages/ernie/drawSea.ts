@@ -262,7 +262,7 @@ export const drawSeaFront = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
     else bubble(ctx, h.x, h.y - (h.state === 'sitting' ? 90 : h.state === 'swimming' ? 30 : 70), h.line);
   }
   // (up off the top of the view, or away off the side of it, the bubble stays on screen)
-  if (js.lineT > 0 && js.line && !p.hidden && state.deathTimer <= 0) bubble(ctx, Math.max(state.camera.x + 160, Math.min(state.camera.x + CANVAS_WIDTH - 160, p.pos.x + p.width / 2)), Math.max(state.camera.y + 64, p.pos.y - 16), js.line);
+  if (js.lineT > 0 && js.line && (!p.hidden || js.phase === 'launch') && state.deathTimer <= 0) bubble(ctx, Math.max(state.camera.x + 160, Math.min(state.camera.x + CANVAS_WIDTH - 160, p.pos.x + p.width / 2)), Math.max(state.camera.y + 64, p.pos.y - 16), js.line);
 };
 
 export const drawSeaHud = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
