@@ -200,46 +200,91 @@ export const drawEscort = (ctx: Ctx, t: number) => {
 /** What's on the projector screen. */
 export type Slide = 'four' | 'four2' | 'artie' | 'victor' | 'ernie' | 'hector' | 'tommy' | 'barry' | 'oscar' | 'dale' | 'drop';
 
+// Each one's head in silhouette, as he looks now: (cx, top) is the top of the head, which is a round about 11 across
+// sitting 12 below it. Anything lit (a lens, an ember, a bulb) is drawn in its own colour; the rest in the ink.
+const lit = (ctx: Ctx, color: string, draw: () => void) => { const f = ctx.fillStyle; ctx.fillStyle = color; draw(); ctx.fillStyle = f; };
+
 const BOSS_SLIDES: Record<string, { name: string; where: string; color: string; head: (ctx: Ctx, cx: number, top: number) => void }> = {
   artie: {
     name: 'ARTIE AVALANCHE', where: 'ANCHORAGE, AK', color: '#60a5fa',
-    head: (ctx, cx, top) => { for (const dx of [-10, -4, 2, 8]) { ctx.beginPath(); ctx.moveTo(cx + dx, top + 6); ctx.lineTo(cx + dx + 1, top - 6); ctx.lineTo(cx + dx + 4, top + 6); ctx.fill(); } },
+    // (wild hair sticking up, snow goggles up on his forehead, a big frosted beard, ice grown out of his shoulders)
+    head: (ctx, cx, top) => {
+      for (const [dx, h] of [[-11, 7], [-5, 10], [1, 8], [7, 10], [12, 6]]) { ctx.beginPath(); ctx.moveTo(cx + dx - 3, top + 6); ctx.lineTo(cx + dx, top + 6 - h); ctx.lineTo(cx + dx + 3, top + 6); ctx.fill(); }
+      ctx.beginPath(); ctx.moveTo(cx - 11, top + 14); ctx.quadraticCurveTo(cx - 10, top + 30, cx, top + 33); ctx.quadraticCurveTo(cx + 10, top + 30, cx + 11, top + 14); ctx.fill();
+      for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(cx + s * 16, top + 26); ctx.lineTo(cx + s * 22, top + 14); ctx.lineTo(cx + s * 20, top + 26); ctx.fill(); }
+      lit(ctx, '#38bdf8', () => { ctx.fillRect(cx - 8, top + 3, 6, 3); ctx.fillRect(cx + 2, top + 3, 6, 3); });
+    },
   },
   victor: {
     name: 'VICTOR VOLCANO', where: 'HILO, HI', color: '#f97316',
-    head: (ctx, cx, top) => { for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(cx + s * 8, top + 4); ctx.lineTo(cx + s * 16, top - 8); ctx.lineTo(cx + s * 12, top + 6); ctx.fill(); } },
+    // (a man bun, a sweatband, the collar of the open shirt standing up either side of his neck, a glowing pendant)
+    head: (ctx, cx, top) => {
+      ctx.beginPath(); ctx.arc(cx - 6, top - 1, 5, 0, Math.PI * 2); ctx.fill();
+      for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(cx + s * 6, top + 22); ctx.lineTo(cx + s * 15, top + 20); ctx.lineTo(cx + s * 10, top + 30); ctx.fill(); }
+      lit(ctx, '#ea580c', () => ctx.fillRect(cx - 12, top + 3, 24, 3));
+      lit(ctx, '#f97316', () => ctx.fillRect(cx - 1, top + 32, 3, 4));
+    },
   },
   ernie: {
     name: 'ERNIE EARTHQUAKE', where: 'SAN FRANCISCO, CA', color: '#b45309',
-    head: (ctx, cx, top) => { ctx.fillRect(cx - 14, top - 2, 28, 6); },
+    // (bald on top with tufts out the sides, thick glasses catching the light, a pencil behind his ear, jowls)
+    head: (ctx, cx, top) => {
+      for (const s of [-1, 1]) { ctx.beginPath(); ctx.arc(cx + s * 12, top + 9, 4, 0, Math.PI * 2); ctx.arc(cx + s * 11, top + 5, 3, 0, Math.PI * 2); ctx.fill(); }
+      ctx.beginPath(); ctx.arc(cx - 7, top + 21, 5, 0, Math.PI * 2); ctx.arc(cx + 7, top + 21, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.save(); ctx.translate(cx + 12, top + 4); ctx.rotate(0.5); ctx.fillRect(-1, -9, 2, 10); ctx.restore();
+      lit(ctx, '#e7e5e4', () => { ctx.fillRect(cx - 9, top + 8, 7, 1); ctx.fillRect(cx + 2, top + 8, 7, 1); });
+    },
   },
   hector: {
     name: 'HECTOR HURRICANE', where: 'MIAMI, FL', color: '#14b8a6',
-    head: (ctx, cx, top) => { ctx.beginPath(); ctx.arc(cx, top + 6, 16, Math.PI, 0); ctx.fill(); },
+    // (lacquered TV hair swept up at the front, the windbreaker's collar popped up round his neck, the clicker)
+    head: (ctx, cx, top) => {
+      ctx.beginPath(); ctx.moveTo(cx - 11, top + 7); ctx.quadraticCurveTo(cx - 10, top - 4, cx + 2, top - 5); ctx.quadraticCurveTo(cx + 14, top - 7, cx + 15, top + 2); ctx.quadraticCurveTo(cx + 8, top + 1, cx + 3, top + 3); ctx.closePath(); ctx.fill();
+      for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(cx + s * 7, top + 24); ctx.lineTo(cx + s * 16, top + 16); ctx.lineTo(cx + s * 15, top + 28); ctx.fill(); }
+      lit(ctx, '#dc2626', () => ctx.fillRect(cx - 24, top + 20, 2, 2));
+      ctx.fillRect(cx - 25, top + 22, 4, 6);
+    },
   },
   tommy: {
     name: 'TOXIC TOMMY', where: 'FLINT, MI', color: '#65a30d',
-    // (the muck he's made of, overflowing and dripping down his sides)
+    // (bloated, the hazmat hood hanging off his back, the tank of sludge over one shoulder, dripping)
     head: (ctx, cx, top) => {
-      ctx.beginPath(); ctx.arc(cx - 6, top + 5, 7, 0, Math.PI * 2); ctx.arc(cx + 6, top + 3, 8, 0, Math.PI * 2); ctx.fill();
-      ctx.fillRect(cx - 14, top + 8, 3, 16); ctx.fillRect(cx + 12, top + 10, 3, 12); ctx.fillRect(cx - 2, top - 2, 3, 4);
+      ctx.beginPath(); ctx.arc(cx - 9, top + 20, 7, 0, Math.PI * 2); ctx.arc(cx + 9, top + 20, 7, 0, Math.PI * 2); ctx.fill();
+      ctx.fillRect(cx - 24, top + 4, 9, 24);
+      lit(ctx, '#84cc16', () => ctx.fillRect(cx - 22, top + 12, 5, 14));
+      ctx.fillRect(cx - 16, top + 24, 3, 12); ctx.fillRect(cx + 14, top + 26, 3, 10);
     },
   },
   barry: {
     name: 'BLACKOUT BARRY', where: 'NEW YORK, NY', color: '#3b82f6',
-    head: (ctx, cx, top) => { ctx.beginPath(); ctx.arc(cx, top + 7, 13, Math.PI, 0); ctx.fill(); ctx.fillRect(cx - 17, top + 5, 34, 3); },
+    // (the hard hat, foil round it, an antenna up off the top with its bulb blinking, insulators on his shoulders)
+    head: (ctx, cx, top) => {
+      ctx.beginPath(); ctx.arc(cx, top + 7, 13, Math.PI, 0); ctx.fill(); ctx.fillRect(cx - 17, top + 5, 34, 3);
+      ctx.fillRect(cx + 4, top - 14, 1, 10);
+      lit(ctx, '#f87171', () => { ctx.beginPath(); ctx.arc(cx + 4.5, top - 15, 2, 0, Math.PI * 2); ctx.fill(); });
+      lit(ctx, '#9ca3af', () => ctx.fillRect(cx - 13, top + 1, 26, 2));
+      for (const s of [-1, 1]) for (let k = 0; k < 3; k++) ctx.fillRect(cx + s * 21 - 4 + k * 0.5, top + 22 - k * 4, 8 - k, 3);
+    },
   },
   oscar: {
     name: 'OILY OSCAR', where: 'HOUSTON, TX', color: '#ca8a04',
-    // (a ten-gallon hat, and the cigarette's ember)
+    // (the Stetson, the cigarette's ember, the fire suit's hood down round his neck, the launcher up on his shoulder)
     head: (ctx, cx, top) => {
-      ctx.fillRect(cx - 20, top + 3, 40, 3); ctx.fillRect(cx - 10, top - 8, 20, 12);
-      const f = ctx.fillStyle; ctx.fillStyle = '#fcfcfc'; ctx.fillRect(cx + 8, top + 20, 8, 2); ctx.fillStyle = '#d82800'; ctx.fillRect(cx + 16, top + 20, 2, 2); ctx.fillStyle = f;
+      ctx.beginPath(); ctx.ellipse(cx, top + 4, 22, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(cx - 11, top + 3); ctx.lineTo(cx - 10, top - 9); ctx.quadraticCurveTo(cx, top - 6, cx, top - 11); ctx.quadraticCurveTo(cx, top - 6, cx + 10, top - 9); ctx.lineTo(cx + 11, top + 3); ctx.fill();
+      ctx.fillRect(cx + 16, top + 16, 26, 9);
+      lit(ctx, '#fcfcfc', () => ctx.fillRect(cx + 8, top + 20, 8, 2)); lit(ctx, '#d82800', () => ctx.fillRect(cx + 16, top + 20, 2, 2));
     },
   },
   dale: {
     name: 'DRUG TRADE DALE', where: 'ALBUQUERQUE, NM', color: '#ec4899',
-    head: (ctx, cx, top) => { ctx.beginPath(); ctx.arc(cx, top + 7, 12, Math.PI, 0); ctx.fill(); ctx.fillRect(cx + 6, top + 4, 15, 3); },
+    // (a towering pompadour with the aviators pushed up into it, the shoulder pads, the dollar medallion)
+    head: (ctx, cx, top) => {
+      ctx.beginPath(); ctx.moveTo(cx - 12, top + 8); ctx.quadraticCurveTo(cx - 14, top - 6, cx - 2, top - 8); ctx.quadraticCurveTo(cx + 10, top - 14, cx + 17, top - 5); ctx.quadraticCurveTo(cx + 8, top - 1, cx + 4, top + 2); ctx.closePath(); ctx.fill();
+      for (const s of [-1, 1]) ctx.fillRect(cx + s * 20 - 6, top + 22, 12, 7);
+      lit(ctx, '#ff007f', () => { ctx.fillRect(cx - 7, top - 4, 5, 2); ctx.fillRect(cx + 2, top - 5, 5, 2); });
+      lit(ctx, '#ffd700', () => { ctx.beginPath(); ctx.arc(cx, top + 34, 2.5, 0, Math.PI * 2); ctx.fill(); });
+    },
   },
 };
 
@@ -252,7 +297,8 @@ const slideBoss = (ctx: Ctx, cx: number, base: number, key: string, s = 1) => {
   ctx.fillStyle = C.ink;
   ell(ctx, cx, base - 34 * s, 11 * s, 12 * s, C.ink);
   R(ctx, cx - 18 * s, base - 22 * s, 36 * s, 22 * s, C.ink);
-  ctx.fillStyle = C.ink; b.head(ctx, cx, base - 46 * s);
+  // (his head's details at the same scale as the rest of him)
+  ctx.save(); ctx.translate(cx, base - 46 * s); ctx.scale(s, s); ctx.fillStyle = C.ink; b.head(ctx, 0, 0); ctx.restore();
   R(ctx, cx - 5 * s, base - 36 * s, 3 * s, 2 * s, b.color); R(ctx, cx + 2 * s, base - 36 * s, 3 * s, 2 * s, b.color);
 };
 
@@ -339,14 +385,14 @@ const drawFour = (ctx: Ctx, t: number, builds: Build[]) => {
   });
 };
 
-/** The first four (each his own build: Artie tall and narrow, Victor a wall of muscle, Ernie short and hunched, Hector round). */
+/** The first four (each his own build: Artie tall in his parka, Victor a wall of muscle, Ernie short and stooped, Hector a TV man in a windbreaker). */
 export const drawFirstFour = (ctx: Ctx, t: number) => drawFour(ctx, t, [
-  { k: 'artie', cx: 46, w: 34, h: 76, head: 13 }, { k: 'victor', cx: 104, w: 58, h: 64, head: 15 },
+  { k: 'artie', cx: 46, w: 42, h: 74, head: 13 }, { k: 'victor', cx: 104, w: 58, h: 64, head: 15 },
   { k: 'ernie', cx: 162, w: 40, h: 46, head: 13 }, { k: 'hector', cx: 214, w: 46, h: 58, head: 17 },
 ]);
 
-/** The second four (Tommy a heap of muck, Barry a beanpole in a hard hat, Oscar portly in his hat, Dale in his cap). */
+/** The second four (Tommy bloated with his tank, Barry a beanpole in a hard hat, Oscar in his Stetson with his launcher, Dale all pompadour and shoulder pads). */
 export const drawSecondFour = (ctx: Ctx, t: number) => drawFour(ctx, t, [
-  { k: 'tommy', cx: 46, w: 48, h: 50, head: 15 }, { k: 'barry', cx: 104, w: 30, h: 72, head: 12 },
-  { k: 'oscar', cx: 160, w: 54, h: 60, head: 14 }, { k: 'dale', cx: 216, w: 38, h: 56, head: 13 },
+  { k: 'tommy', cx: 46, w: 52, h: 52, head: 15 }, { k: 'barry', cx: 104, w: 30, h: 72, head: 12 },
+  { k: 'oscar', cx: 160, w: 54, h: 60, head: 14 }, { k: 'dale', cx: 216, w: 44, h: 58, head: 13 },
 ]);
