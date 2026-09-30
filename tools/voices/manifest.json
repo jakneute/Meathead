@@ -932,7 +932,7 @@
  {
   "voice": "announcer",
   "text": "TIMESHARE: VACANT",
-  "from": "game/stages/dale/town.ts:786"
+  "from": "game/stages/dale/town.ts:791"
  },
  {
   "voice": "announcer",
@@ -2957,7 +2957,7 @@
  {
   "voice": "dale.prisoner",
   "text": "DAN! GIMME THE KEYS! STOP PLAYING! LET ME OUT!",
-  "from": "game/stages/dale/town.ts:643"
+  "from": "game/stages/dale/town.ts:648"
  },
  {
   "voice": "dale.prisoner",
@@ -2967,12 +2967,12 @@
  {
   "voice": "dale.prisoner",
   "text": "I HAVE A TIMESHARE!",
-  "from": "game/stages/dale/town.ts:644"
+  "from": "game/stages/dale/town.ts:649"
  },
  {
   "voice": "dale.prisoner",
   "text": "IS THAT A TRUCK?! SHERIFF DAN?!",
-  "from": "game/stages/dale/town.ts:641"
+  "from": "game/stages/dale/town.ts:646"
  },
  {
   "voice": "dale.riggs",
@@ -3032,7 +3032,7 @@
  {
   "voice": "dale.sheriff",
   "text": "NOPE! NOT FOR TEN BUCKS AN HOUR!",
-  "from": "game/stages/dale/town.ts:642"
+  "from": "game/stages/dale/town.ts:647"
  },
  {
   "voice": "death",
@@ -3042,7 +3042,7 @@
  {
   "voice": "death",
   "text": "A JUMP WON'T CLEAR IT. UPPERCUT!",
-  "from": "game/stages/dale/town.ts:624"
+  "from": "game/stages/dale/town.ts:629"
  },
  {
   "voice": "death",
@@ -3707,7 +3707,7 @@
  {
   "voice": "death",
   "text": "FLATTENED BY A DEAD MAN",
-  "from": "game/stages/dale/town.ts:624"
+  "from": "game/stages/dale/town.ts:629"
  },
  {
   "voice": "death",
@@ -3977,7 +3977,7 @@
  {
   "voice": "death",
   "text": "IT TAKES AN UPPERCUT TO CLEAR IT",
-  "from": "game/stages/dale/town.ts:624"
+  "from": "game/stages/dale/town.ts:629"
  },
  {
   "voice": "death",
@@ -4091,6 +4091,11 @@
  },
  {
   "voice": "death",
+  "text": "LEG DAY MEETS FRONT BUMPER",
+  "from": "game/stages/dale/town.ts:629"
+ },
+ {
+  "voice": "death",
   "text": "LIGHTS OUT",
   "from": "content/deaths"
  },
@@ -4147,6 +4152,11 @@
  {
   "voice": "death",
   "text": "MAULED BY A WOLVERINE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "MEAT VERSUS METAL. METAL WINS",
   "from": "content/deaths"
  },
  {
@@ -4227,7 +4237,7 @@
  {
   "voice": "death",
   "text": "NOT A JUMP. AN UPPERCUT.",
-  "from": "game/stages/dale/town.ts:624"
+  "from": "game/stages/dale/town.ts:629"
  },
  {
   "voice": "death",
@@ -4547,7 +4557,7 @@
  {
   "voice": "death",
   "text": "RUN OVER BY RIGGS. AGAIN.",
-  "from": "game/stages/dale/town.ts:624"
+  "from": "game/stages/dale/town.ts:629"
  },
  {
   "voice": "death",
@@ -4762,7 +4772,7 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE UPPERCUT OVER IT",
-  "from": "game/stages/dale/town.ts:624"
+  "from": "game/stages/dale/town.ts:629"
  },
  {
   "voice": "death",
@@ -4828,6 +4838,11 @@
   "voice": "death",
   "text": "SLICED AND DICED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SLID UNDER A TRUCK. IT HAD WHEELS",
+  "from": "game/stages/dale/town.ts:629"
  },
  {
   "voice": "death",
@@ -5156,6 +5171,11 @@
  },
  {
   "voice": "death",
+  "text": "THE TRUCK DIDN'T EVEN SLOW DOWN",
+  "from": "game/stages/dale/town.ts:629"
+ },
+ {
+  "voice": "death",
   "text": "THE VOLCANO SPAT ON YOU",
   "from": "content/deaths"
  },
@@ -5232,6 +5252,11 @@
  {
   "voice": "death",
   "text": "TREE HUGGER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TRUCK: 1, DELTS: 0",
   "from": "content/deaths"
  },
  {
@@ -5353,6 +5378,16 @@
   "voice": "death",
   "text": "YOU SET FIRE TO AN OIL-SOAKED TOXIC WASTE MONSTER IN A METHANE-FILLED SEWER. YOU BOTH DIED.",
   "from": "SEWER_NUKE_MESSAGE"
+ },
+ {
+  "voice": "death",
+  "text": "YOU SHOULDER-CHARGED A MOVING TRUCK",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "YOU SLIDE-TACKLED A TRUCK. THE TRUCK DID NOT FALL OVER",
+  "from": "game/stages/dale/town.ts:629"
  },
  {
   "voice": "death",
@@ -8516,6 +8551,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I HIT IT AS HARD AS I COULD! IT HIT BACK HARDER!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "I HUGGED A CACTUS! I'M NOT PROUD OF IT!",
   "from": "HAZARD_HURT"
  },
@@ -8573,6 +8613,11 @@
   "voice": "meathead",
   "text": "I SHOULD REALLY TAKE OUT THAT SNIPER BEFORE I GO ANY FURTHER.",
   "from": "game/stages/dale/town.ts:270"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SHOULDER-CHARGED A TRUCK! THE TRUCK WON!",
+  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
@@ -9311,6 +9356,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY DELTS VERSUS A FRONT GRILLE! OW!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "MY EVERYTHING!",
   "from": "game/stages/dale/convoy.ts:389"
  },
@@ -9733,6 +9783,11 @@
   "voice": "meathead",
   "text": "NOTE TO SELF: SHOOT THE DRIVER AFTER THE TRUCK STOPS.",
   "from": "game/stages/dale/town.ts:228"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOTE TO SELF: TRUCKS DON'T FLINCH!",
+  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
@@ -10247,7 +10302,7 @@
  {
   "voice": "meathead",
   "text": "RIGGS, BUDDY... YOUR LIZARD'S GONNA HAVE TO FEND FOR HIMSELF.",
-  "from": "game/stages/dale/town.ts:789"
+  "from": "game/stages/dale/town.ts:794"
  },
  {
   "voice": "meathead",

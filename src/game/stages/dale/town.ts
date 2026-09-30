@@ -617,8 +617,13 @@ const updateWarpath = (ctx: FrameContext, town: Town, talk: Talk, controls: Cont
       p.hidden = true;
       fx.spawnDeathShower({ x: p.pos.x + p.width / 2, y: p.pos.y + 30 }, 1, 3);
       shakeScreen(state, 30, 12);
-      // (jumped, and not high enough: it's an uppercut that clears it, and the death screen says so)
-      const lines = town.jumped && !town.boosted
+      // (charged it head on, or slid at it: the death screen has something to say about that; jumped, and not high
+      // enough: it's an uppercut that clears it, and the death screen says so)
+      const lines = p.isCharging && p.isSliding
+        ? ['SLID UNDER A TRUCK. IT HAD WHEELS', 'LEG DAY MEETS FRONT BUMPER', 'YOU SLIDE-TACKLED A TRUCK. THE TRUCK DID NOT FALL OVER']
+        : p.isCharging
+        ? ['YOU SHOULDER-CHARGED A MOVING TRUCK', 'TRUCK: 1, DELTS: 0', "THE TRUCK DIDN'T EVEN SLOW DOWN", 'MEAT VERSUS METAL. METAL WINS']
+        : town.jumped && !town.boosted
         ? ["A JUMP WON'T CLEAR IT. UPPERCUT!", 'NOT A JUMP. AN UPPERCUT.', 'IT TAKES AN UPPERCUT TO CLEAR IT']
         : ['FLATTENED BY A DEAD MAN', 'RUN OVER BY RIGGS. AGAIN.', 'SHOULD HAVE UPPERCUT OVER IT'];
       killPlayer(ctx, lines[Math.floor(Math.random() * lines.length)], false);

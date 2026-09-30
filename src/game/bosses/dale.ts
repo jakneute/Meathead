@@ -86,7 +86,8 @@ const driveTruck = (ctx: FrameContext, boss: Enemy) => {
     // (if you're still flashing from an earlier hit, it carries on past you)
     if (boss.truckCrashing && canHurt) { crashIntoPlayer(ctx, boss); return; }
     if (canHurt) {
-      hurtPlayer(ctx, DALE_TRUCK_DAMAGE, 'truck', { x: DALE_PUSHBACK_VEL.x, y: PLAYER_PUSHBACK_VEL_Y });
+      // (charged into it head on: that gets its own lines, and its own death screen)
+      hurtPlayer(ctx, DALE_TRUCK_DAMAGE, player.isCharging && !player.isSliding ? 'truck_charge' : 'truck', { x: DALE_PUSHBACK_VEL.x, y: PLAYER_PUSHBACK_VEL_Y });
     }
   }
   state.projectiles.forEach((p: Projectile) => { if (p.isMethBarrel && p.health > 0 && hits(p)) p.health = -1; });
