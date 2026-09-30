@@ -27,11 +27,15 @@ export const garageBg = (ctx: Ctx) => {
   ctx.save(); ctx.scale(s, s); ctx.translate(0, -44);
   drawGarageRoom(ctx, 0, ownedSouvenirs(), null, false);
   ctx.restore();
-  // "CHEST DAY" scrawled on a whiteboard, circled
-  R(ctx, 14, 22, 46, 30, C.white); R(ctx, 14, 52, 46, 2, C.gray);
+  // "CHEST DAY" scrawled on a whiteboard, circled, taped to the roll-up door (the one bit of wall with nothing on it:
+  // clear of the pegboard, the shelves and whatever he's hung on them, the rack and the poster)
+  const wx = 214, wy = 30, ww = 36, wh = 26;
+  R(ctx, wx + 1, wy + 1, ww, wh, 'rgba(0,0,0,0.3)');
+  R(ctx, wx, wy, ww, wh, C.white); R(ctx, wx, wy + wh - 2, ww, 2, '#c8c8c8');
+  R(ctx, wx + 3, wy - 2, 8, 4, 'rgba(250, 240, 190, 0.8)'); R(ctx, wx + ww - 11, wy - 2, 8, 4, 'rgba(250, 240, 190, 0.8)');
   ctx.fillStyle = C.red; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center';
-  ctx.fillText('CHEST', 37, 35); ctx.fillText('DAY!!', 37, 45); ctx.textAlign = 'left';
-  ctx.strokeStyle = C.red; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(37, 37, 20, 12, -0.1, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillText('CHEST', wx + ww / 2, wy + 11); ctx.fillText('DAY!!', wx + ww / 2, wy + 20); ctx.textAlign = 'left';
+  ctx.strokeStyle = C.red; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(wx + ww / 2, wy + wh / 2 - 1, 16, 11, -0.1, 0, Math.PI * 2); ctx.stroke();
 };
 
 /** The bulb over it all, swinging a little, and its pool of light. */
