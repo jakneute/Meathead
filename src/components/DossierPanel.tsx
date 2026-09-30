@@ -3,7 +3,7 @@ import { GP_BUTTONS } from '../game/platform/gamepad';
 import { hasRightStick } from '../game/platform/device';
 import { WeaponType } from '../types';
 import { DOSSIERS, DOSSIER_HEADER, AFTERMATHS } from '../content/dossiers';
-import { BOSS_LOCATIONS } from '../content/roster';
+import { BOSS_LOCATIONS, WEAPON_NAMES } from '../content/roster';
 import BossPortrait from './BossPortrait';
 import CorpsePhoto from './CorpsePhoto';
 import GaragePortrait from './GaragePortrait';
@@ -213,6 +213,8 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
             {section('COLLATERAL DAMAGE', after.collateral)}
             {/* (what he took home: whichever of the three it was) */}
             {(() => { const id = lastSouvenirOf(bossId); return id && after.taken[id] ? section('REMOVED FROM THE SCENE BY THE ASSET', after.taken[id]) : null; })()}
+            {/* (the weapon he came away with, and how) */}
+            {section(`ADDED TO THE ASSET'S ARSENAL: ${WEAPON_NAMES[bossId] ?? 'UNKNOWN'}`, redacted(after.procured))}
             <div className="flex gap-2 items-start">
               {/* (the evidence photo: what's left of him after his weakness, or him where he fell after anything else) */}
               {(
