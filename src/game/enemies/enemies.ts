@@ -7,7 +7,7 @@ import {
   PLAYER_PUSHBACK_DURATION, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, BOSS_CHARGE_DAMAGE, ENEMY_CHARGE_DAMAGE, ENEMY_SLIDE_DAMAGE,
   PLAYER_MASS, ENEMY_DAZE_FRAMES, UPPERCUT_LAUNCH_SPEED, UPPERCUT_LAUNCH_X, BOUNCE_FRAMES,
   GML_SCALE, POWER_CELLS, FROZEN_PUSH_MULTIPLIER, FROZEN_DAMAGE_MULTIPLIER,
-  FROZEN_WALL_IMPACT_MULTIPLIER, FROZEN_GROUND_IMPACT_MULTIPLIER, FROZEN_ENEMY_IMPACT_DAMAGE,
+  FROZEN_WALL_IMPACT_MULTIPLIER, FROZEN_GROUND_IMPACT_MULTIPLIER, FROZEN_ENEMY_IMPACT_DAMAGE, OILED_IMPACT_MULTIPLIER, OILED_LEDGE_DROP,
   DAMAGE_WALL_IMPACT_SCALER, DAMAGE_FALL_SCALER, IMPACT_DAMAGE_THRESHOLD,
   ENEMY_DOMINO_TRANSFER, ENEMY_DOMINO_LOSS, DOMINO_DAMAGE_SCALER,
   BOSS_UPPERCUT_DAMAGE, ENEMY_UPPERCUT_DAMAGE, BOSS_DIVEKICK_DAMAGE, ENEMY_DIVEKICK_DAMAGE,
@@ -438,6 +438,7 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
 
   e.pos.y = floorLevel;
   e.vel.y = 0;
+  e.lastGroundY = e.pos.y;
   if (isStunned) {
     // Sliding from knockback: further on ice, further still when oiled (and on a slick of oil on the ground; tar stops it)
     e.pauseTimer!--;
@@ -1068,7 +1069,8 @@ const slamIntoWalls = (ctx: FrameContext, e: Enemy, speed: number): boolean => {
   // Shoulder-charged into it: major bonus damage, however slow it got there
   const charged = e.chargedAt !== undefined && state.frame - e.chargedAt < CHARGE_WALL_WINDOW;
   e.chargedAt = undefined;
-  const damage = toGml(speed) * DAMAGE_WALL_IMPACT_SCALER * (isFrozen(e) ? FROZEN_WALL_IMPACT_MULTIPLIER : 1) + (charged ? CHARGE_WALL_BONUS : 0);
+  // (greased, it hits with everything it was going: nothing to slow it down on the way)
+  const damage = toGml(speed) * DAMAGE_WALL_IMPACT_SCALER * (isFrozen(e) ? FROZEN_WALL_IMPACT_MULTIPLIER : e.isOiled ? OILED_IMPACT_MULTIPLIER : 1) + (charged ? CHARGE_WALL_BONUS : 0);
   // (frozen, it thaws on the wall with a burst, however hard it hit)
   if (isFrozen(e)) {
     e.health -= damage;
@@ -1128,9 +1130,13 @@ const dragIntoEnemies = (ctx: FrameContext, e: Enemy) => {
 /** Knocked down onto the floor: fall damage from the landing speed (hugely if frozen). */
 const slamIntoFloor = (ctx: FrameContext, e: Enemy, speed: number) => {
   const { fx, state } = ctx;
+  // (greased and sliding fast, off a ledge: it comes down with all that speed sideways too, nothing to break its fall;
+  // just a hop from a shove on the flat it lands from fine)
+  const offLedge = !!e.isOiled && e.pauseTimer !== undefined && e.pauseTimer > 0 && e.lastGroundY !== undefined && e.pos.y - e.lastGroundY > OILED_LEDGE_DROP;
+  if (offLedge) speed = Math.hypot(speed, e.vel.x);
   // (the hit it takes stopping dead: how fast it was coming down, and how much of it there is to stop)
   const weight = Math.min(2.5, Math.max(0.4, getEnemyMass(e) / 200));
-  const damage = toGml(speed) * weight * DAMAGE_FALL_SCALER * (isFrozen(e) ? FROZEN_GROUND_IMPACT_MULTIPLIER : 1);
+  const damage = toGml(speed) * weight * DAMAGE_FALL_SCALER * (isFrozen(e) ? FROZEN_GROUND_IMPACT_MULTIPLIER : offLedge ? OILED_IMPACT_MULTIPLIER : 1);
   if (speed <= 0 || damage <= IMPACT_DAMAGE_THRESHOLD) return;
   // (a bystander coming down from its own hop is fine; only one he sent flying gets hurt landing. And a sludgeling
   // coming down its own hops, or into the muck it lives in, is fine too)

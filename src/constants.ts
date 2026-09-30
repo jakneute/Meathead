@@ -249,6 +249,10 @@ export const OILED_CHARGE_PUSH_MULTIPLIER = 2.6;
 export const OILED_CHARGE_MIN_PUSH = 16;       // even the heaviest oiled enemy goes at least this fast
 export const FROZEN_WALL_IMPACT_MULTIPLIER = 6.7;
 export const FROZEN_GROUND_IMPACT_MULTIPLIER = 5.4;
+/** Greased and going fast, nothing slows it down before the wall (or the floor, off a ledge): it hits with all of it. */
+export const OILED_IMPACT_MULTIPLIER = 3;
+/** How far below where it left the ground a greased slider has to come down for it to count as a fall off a ledge. */
+export const OILED_LEDGE_DROP = 30;
 export const FROZEN_ENEMY_IMPACT_DAMAGE = 20;
 /** A frozen enemy shoved into a wall or another enemy thaws out on the spot: the ice bursts, and so does he a bit (a big hit on top of the impact; enough to kill him and he shatters). */
 export const THAW_BURST_DAMAGE = 70;
