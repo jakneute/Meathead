@@ -143,6 +143,21 @@ export const updateTour = (ctx: FrameContext, tour: Tour, controls: Controls): C
   return { ...NO_CONTROLS };
 };
 
+/** Skipped: straight to him stood in what's left of the tour, in control (from wherever the scene had got to). */
+export const skipTour = (state: GameState, tour: Tour) => {
+  if (tour.phase !== 'tour') startTour(state, tour);
+  const C = COURSE.cellblock, p = state.player;
+  tour.phase = 'wrecked'; tour.t = 999; tour.talk = null; tour.lineT = 0; tour.line = '';
+  p.hidden = false; p.inCutscene = false;
+  p.pos = { x: C.crashX + 30, y: C.y - p.height };
+  p.vel = { x: 0, y: 0 };
+  p.facing = 1;
+  state.cameraOverride = null;
+  state.cameraMinX = C.x1;
+  state.camera.x = C.x1; state.camera.y = C.y - 550; state.cameraRestY = C.y - 550;
+  state.checkpoint = Math.max(state.checkpoint, CP.ALCATRAZ);
+};
+
 /** The ski on its way down through the roof (0 before it's in view .. 1 on the floor), or -1 when it's not falling. */
 export const skiDrop = (tour: Tour) => (tour.phase !== 'tour' || tour.t < DROP_AT - 8 || tour.t >= IMPACT_AT ? -1 : Math.min(1, (tour.t - (DROP_AT - 8)) / (IMPACT_AT - (DROP_AT - 8))));
 

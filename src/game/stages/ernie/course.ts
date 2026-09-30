@@ -273,7 +273,7 @@ const buildCourse = (): Course => {
   runs.forEach((r, i) => { const next = runs[i + 1]; if (next && next.x1 > r.x2 + 1) r.pitAfter = 'clouds'; });
   // The bridge deck's its own surface
   runs.forEach(r => { if (r.x1 >= bridgeX.x1 - 1 && r.x2 <= bridgeX.x2 + 1) r.surface = 'deck'; });
-  const pickups = [...bay.pickups, ...main.pickups, ...island.pickups, { x: cellblock.x2 - 300, y: Y - 30, type: 'large_health' }, { x: cellblock.x2 - 220, y: Y - 30, type: 'large_ammo' }] as PickupSpot[];
+  const pickups = [...bay.pickups, ...main.pickups, ...island.pickups, { x: cellblock.x2 - 170, y: Y - 30, type: 'large_health' }, { x: cellblock.x2 - 110, y: Y - 30, type: 'large_ammo' }] as PickupSpot[];
   return {
     runs,
     ledges: [...main.ledges, ...bay.ledges, ...island.ledges],

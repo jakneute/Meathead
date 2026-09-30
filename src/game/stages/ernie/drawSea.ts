@@ -197,6 +197,36 @@ export const drawHipsterDrilling = (ctx: Ctx, x: number, y: number, f: number) =
   ctx.restore();
 };
 
+/**
+ * What's left of him, on top of the pile of them: flat on his back across the top of it, arms flung out, scorched but
+ * plainly him (the flannel, the beard, the glasses cracked, the man bun), his kombucha spilt beside him, smoking.
+ */
+export const drawHipsterDead = (ctx: Ctx, x: number, y: number, f: number) => {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(1.35, 1.35);
+  // His standby ski, snapped, nose up out of the heap behind him
+  ctx.save(); ctx.translate(40, 14); ctx.rotate(-0.9); ctx.filter = 'brightness(0.7)'; drawSki(ctx, f, '#F59E0B'); ctx.restore();
+  ctx.save();
+  ctx.filter = 'brightness(0.85)';
+  ctx.rotate(-Math.PI / 2 + 0.08);
+  drawHipsterBody(ctx, false);
+  ctx.restore();
+  // Arms flung out either side
+  ctx.fillStyle = '#5B1414';
+  ctx.save(); ctx.translate(-26, -6); ctx.rotate(-0.9); ctx.fillRect(0, -3, 22, 6); ctx.restore();
+  ctx.save(); ctx.translate(-30, 2); ctx.rotate(0.7); ctx.fillRect(0, -3, 20, 6); ctx.restore();
+  // The glasses, cracked, and the X of his eyes
+  ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(-48, -4); ctx.lineTo(-44, 2); ctx.moveTo(-44, -4); ctx.lineTo(-48, 2); ctx.stroke();
+  // His kombucha, spilt
+  ctx.fillStyle = '#D97706'; ctx.save(); ctx.translate(34, 6); ctx.rotate(1.4); ctx.fillRect(-3, -7, 6, 14); ctx.restore();
+  ctx.fillStyle = 'rgba(217, 119, 6, 0.5)'; ctx.beginPath(); ctx.ellipse(44, 10, 12, 3, 0, 0, Math.PI * 2); ctx.fill();
+  // Smoking
+  for (let i = 0; i < 3; i++) { const t = ((f * 0.6 + i * 40) % 120) / 120; ctx.fillStyle = `rgba(60, 55, 50, ${0.5 * (1 - t)})`; ctx.beginPath(); ctx.arc(-10 + i * 14 + Math.sin(i + f * 0.02) * 6, -12 - t * 70, 5 + t * 12, 0, Math.PI * 2); ctx.fill(); }
+  ctx.restore();
+};
+
 /** What's left of him: in up to his waist, head first, legs (charred) in the air, the ski snapped off beside him. */
 export const drawHipsterPlanted = (ctx: Ctx, x: number, y: number, f: number) => {
   ctx.save();

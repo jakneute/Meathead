@@ -14,7 +14,8 @@ import { blitLayer } from '../../render/backdrops/core';
 import type { Live } from '../../render/backdrops';
 import type { LayerSpec } from '../../render/backdrops/core';
 import { COURSE } from './course';
-import { getErnie, regionOf, downFade, AWAY_FRAMES, ErnieRuntime } from './runtime';
+import { getErnie, regionOf, downFade, AWAY_FRAMES, ErnieRuntime, inHipsterScene } from './runtime';
+import { SKIP_AFTER, drawSkipPrompt } from '../../platform/skip';
 import { Quakes, quakeAmount, faultAmount, DEBRIS_HOLD, BRIDGE_HOLD, Debris, inQuakeCountry, PIECE_BOTTOM } from './quake';
 import { Bridge, mainCableY, TOWER_TOP, SPAN_WARN, DROP_TO_WATER, FAR_LANE, UNDER_STEEL, BgCar, screamOf, onBridge } from './bridge';
 import { drawFault } from './faultDraw';
@@ -630,6 +631,7 @@ export const drawErnieHud = (ctx: Ctx, state: GameState) => {
   if (region === 'main') for (const c of carsComing(rt.bridge.traffic)) drawCarWarning(ctx, state, c);
   if (region === 'bay') drawSeaHud(ctx, state, rt);
   if (region === 'cell') drawCellHud(ctx, state, rt);
+  if (inHipsterScene(rt) && rt.sceneT > SKIP_AFTER) drawSkipPrompt(ctx, CANVAS_WIDTH);
   if (region === 'cell' && rt.doorCrash.phase === 'scene') { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, CANVAS_WIDTH, 36); ctx.fillRect(0, CANVAS_HEIGHT - 36, CANVAS_WIDTH, 36); }
   // Letterbox over the drop
   if (rt.bridge.plunge && state.deathTimer <= 0) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, CANVAS_WIDTH, 36); ctx.fillRect(0, CANVAS_HEIGHT - 36, CANVAS_WIDTH, 36); }

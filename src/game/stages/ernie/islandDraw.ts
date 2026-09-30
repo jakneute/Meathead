@@ -18,7 +18,7 @@ import { tourWrecked } from './alcatraz';
 import { faultAmount, collapseState, quakeAmount } from './quake';
 import { drawFault } from './faultDraw';
 import { DoorCrash, CRASH_X, CAVE_X, CAVE_W, NIGHT_TOUR, dropAmount, crashed, cavedIn, lookingUp, ceilingTear, hipsterY } from './doorCrash';
-import { drawTourist, TOURIST_LOOKS, drawHipsterDrilling, drawHipsterPlanted } from './drawSea';
+import { drawTourist, TOURIST_LOOKS, drawHipsterDrilling, drawHipsterDead } from './drawSea';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -171,7 +171,6 @@ const drawDoorCrash = (ctx: Ctx, state: GameState, dc: DoorCrash) => {
     ctx.fillStyle = 'rgba(127, 29, 29, 0.85)';
     for (let i = 0; i < 12; i++) { const bx = x + (hash(i + 50) - 0.5) * 420; ctx.beginPath(); ctx.ellipse(bx, Y + 1, 14 + hash(i + 51) * 20, 3, 0, 0, Math.PI * 2); ctx.fill(); }
     for (let i = 0; i < 8; i++) { const bx = x + (hash(i + 60) - 0.5) * 460, by = Y - 40 - hash(i + 61) * 150; ctx.fillRect(bx, by, 5 + hash(i) * 8, 3); ctx.fillRect(bx + 2, by, 2, 10 + hash(i + 3) * 14); }
-    drawHipsterPlanted(ctx, x, Y + 2, f);
     for (let i = 0; i < 5; i++) {
       const fx = x - 34 + i * 14, h = 24 + Math.sin(f * 0.4 + i * 2) * 9;
       ctx.fillStyle = i % 2 ? 'rgba(249, 115, 22, 0.9)' : 'rgba(253, 224, 71, 0.85)';
@@ -182,14 +181,19 @@ const drawDoorCrash = (ctx: Ctx, state: GameState, dc: DoorCrash) => {
       ctx.fillStyle = `rgba(40, 36, 34, ${0.5 * (1 - t)})`;
       ctx.beginPath(); ctx.arc(x + t * 20, Y - 40 - t * 180, 14 + t * 30, 0, Math.PI * 2); ctx.fill();
     }
+    // The tour, in a heap in the crater (charred, tangled, a limb or two sticking out), and the hipster sprawled across
+    // the top of the lot of them, front and center
+    const heap = [[-46, 0, 0.1], [0, 0, -0.08], [44, 0, 0.12], [-24, -10, -0.25], [22, -11, 0.3], [-2, -20, 0.05], [30, -21, -0.2]];
     NIGHT_TOUR.forEach((tr, i) => {
-      const bx = x + tr.dx * 1.9 + (hash(i + 70) - 0.5) * 30, L = TOURIST_LOOKS[tr.look];
-      ctx.save(); ctx.translate(bx, Y); ctx.rotate((hash(i + 80) - 0.5) * 0.4);
-      ctx.fillStyle = '#1C1917'; ctx.fillRect(-L.h * 0.45, -9, L.h * 0.8, 9);
+      const [dx, dy, rot] = heap[i % heap.length], L = TOURIST_LOOKS[tr.look];
+      ctx.save(); ctx.translate(x + dx, Y + dy); ctx.rotate(rot + (i % 2 ? Math.PI : 0));
+      ctx.fillStyle = '#1C1917'; ctx.fillRect(-L.h * 0.4, -10, L.h * 0.8, 10);
       ctx.beginPath(); ctx.arc(L.h * 0.4, -6, 6, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = L.shirt; ctx.globalAlpha = 0.5; ctx.fillRect(-L.h * 0.2, -8, L.h * 0.3, 4); ctx.globalAlpha = 1;
+      ctx.fillStyle = L.shirt; ctx.globalAlpha = 0.45; ctx.fillRect(-L.h * 0.2, -9, L.h * 0.3, 5); ctx.globalAlpha = 1;
+      if (i % 3 === 0) { ctx.fillStyle = '#1C1917'; ctx.save(); ctx.translate(-L.h * 0.3, -8); ctx.rotate(-1.1); ctx.fillRect(0, -2, 18, 4); ctx.restore(); }
       ctx.restore();
     });
+    drawHipsterDead(ctx, x + 6, Y - 30, f);
     // The guide's lantern, on its side, still lit
     ctx.fillStyle = '#FDE047'; ctx.save(); ctx.translate(x + 230, Y - 5); ctx.rotate(1.3); ctx.fillRect(-4, -5, 8, 10); ctx.restore();
   }

@@ -16,9 +16,10 @@ import { COURSE, CP, onTheIsland } from './course';
 import { Quakes, createQuakes, updateQuakes } from './quake';
 import { Bridge, createBridge, updateBridge } from './bridge';
 import { JetSki, createJetSki, updateJetSki } from './jetski';
-import { Tour, createTour, startTour, updateTour, tourWrecked } from './alcatraz';
+import { Tour, createTour, startTour, updateTour, tourWrecked, skipTour } from './alcatraz';
+import { SKIP_AFTER, offerSkip, takeSkip } from '../../platform/skip';
 import { DoorCrash, createDoorCrash, updateDoorCrash } from './doorCrash';
-import { say, MEATHEAD_VOICE } from '../../platform/speech';
+import { say, cancelSpeech, MEATHEAD_VOICE } from '../../platform/speech';
 
 /** Meathead, to himself, over his head (after whoever's talking). */
 const meatheadSays = (state: GameState, text: string) => {
@@ -39,6 +40,8 @@ export interface ErnieRuntime {
   doorCrash: DoorCrash;
   /** Out in the yard he's wondered where the hipster got to. */
   wondered: boolean;
+  /** Frames into the scene from the hipster catching up to him to Meathead climbing out of the wreck (it can be skipped). */
+  sceneT: number;
   /** Off the end of the bridge and down to the water: frames of the fade (0 = not). */
   downT: number;
   /** Off the ramp and on to the island: frames of the fade to black (0 = not). */
@@ -79,6 +82,7 @@ export const createErnieRuntime = (state: GameState, skipToBoss: boolean): Ernie
     tour: createTour(startedAt),
     doorCrash: createDoorCrash(state, startedAt),
     wondered: startedAt >= CP.CITADEL,
+    sceneT: 0,
     downT: 0,
     awayT: 0,
   };
@@ -142,8 +146,26 @@ export const updateErnie = (ctx: FrameContext, controls: Controls): Controls => 
     controls = { ...NO_CONTROLS };
   }
   if (region === 'cell') controls = updateDoorCrash(ctx, rt.doorCrash, controls);
+  // The scene from the hipster catching up to him, off the ramp, to Meathead climbing out of the wreck on the tour:
+  // all or nothing, skipping it puts him right there, stood in what's left of the tour
+  if (inHipsterScene(rt)) {
+    rt.sceneT++;
+    if (rt.sceneT > SKIP_AFTER) offerSkip();
+    if (rt.sceneT > SKIP_AFTER && takeSkip()) {
+      cancelSpeech();
+      rt.ski.phase = 'gone'; rt.ski.chaser.state = 'gone'; rt.ski.lineT = 0; rt.ski.hipster.lineT = 0; rt.ski.talk = null;
+      rt.awayT = 0;
+      skipTour(state, rt.tour);
+      rt.sceneT = 0;
+      return { ...NO_CONTROLS };
+    }
+  } else rt.sceneT = 0;
   return updateTour(ctx, rt.tour, controls);
 };
+
+/** The hipster's scene is on (from him pulling up behind, to Meathead back on his feet on the island). */
+export const inHipsterScene = (rt: ErnieRuntime) =>
+  (rt.ski.phase === 'riding' && rt.ski.chaser.state !== 'off') || rt.ski.phase === 'launch' || rt.awayT > 0 || rt.tour.phase === 'tour';
 
 /** The fade off the end of the bridge (0..1). */
 // (held on black a beat either side of the cut, so nothing of the move down there shows)
