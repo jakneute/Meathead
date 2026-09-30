@@ -24,6 +24,7 @@ import { isMidBoss, midBossDamage, MIDBOSS_DAMAGE, MIDBOSS_SPLASH_DAMAGE, MIDBOS
 import { muzzlePoint, flamethrowerNozzle } from './muzzle';
 import { floorTopAt } from '../core/terrain';
 import { detonateSewerNuke, TOXIC_TOMMY } from '../scenes/sewerNuke';
+import { killPlayer } from '../player/player';
 
 /** The bits of this frame's input that weapons care about. */
 export interface WeaponInput {
@@ -205,6 +206,8 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
 
     case 'TASER':
       if (player.isTasing) break;
+      // In the water: every volt of it goes straight through him
+      if (player.swimming && state.deathTimer <= 0) { tasedHimself(ctx); break; }
       player.isTasing = true;
       player.taserTimer = 0;
       player.taserTargetId = findTaserTarget(state)?.id ?? null;
@@ -582,4 +585,36 @@ export const detonateNuke = (ctx: FrameContext, pos: Vector2) => {
   fx.playGunSound('nuke');
   state.screenShakeTimer = 30;
   state.screenShakeMagnitude = 12;
+};
+
+/**
+ * The taser, fired in the water: the whole of it goes into him (water conducts, and he's the biggest thing in it). A
+ * white flash, a crackle all over him, black as a match head, and it holds on the moment before the death screen.
+ */
+const TASED_IN_WATER = ['WATER CONDUCTS, GENIUS', 'TASED YOURSELF IN THE POOL', 'SHOCKING LACK OF JUDGMENT', 'ELECTRIC BATH'];
+const tasedHimself = (ctx: FrameContext) => {
+  const { state, fx } = ctx;
+  const p = state.player;
+  const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
+  p.health = 0;
+  p.isTasing = false;
+  p.sootTimer = 600;
+  p.shownDead = true; // (he stays on the screen through it: charred, in the water)
+  // (the water all round him lights up with it)
+  for (let i = 0; i < 50; i++) {
+    const a = Math.random() * Math.PI * 2, r = 30 + Math.random() * 140;
+    state.particles.push({ pos: { x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r * 0.6 }, vel: { x: (Math.random() - 0.5) * 3, y: (Math.random() - 0.5) * 3 }, life: 10 + Math.random() * 14, color: i % 2 ? '#00E5FF' : '#E0FFFF', size: 2 + Math.random() * 3 });
+  }
+  for (let i = 0; i < 60; i++) {
+    const a = Math.random() * Math.PI * 2, sp = 2 + Math.random() * 9;
+    state.particles.push({ pos: { x: cx, y: cy }, vel: { x: Math.cos(a) * sp, y: Math.sin(a) * sp }, life: 20 + Math.random() * 25, color: i % 3 === 0 ? '#FFFFFF' : i % 3 === 1 ? '#00E5FF' : '#FDE047', size: 2 + Math.random() * 4 });
+  }
+  fx.spawnExplosion({ x: cx, y: cy }, '#E0FFFF', 20, 0, 18);
+  fx.playGunSound('taser');
+  fx.playGunSound('boom');
+  state.screenShakeTimer = 30; state.screenShakeMagnitude = 12;
+  state.lastHurt = { source: 'self_tased', at: state.frame };
+  killPlayer(ctx, TASED_IN_WATER[Math.floor(Math.random() * TASED_IN_WATER.length)], false);
+  // (held on the still of it: see updateDeathScreen)
+  state.deathFreeze = 0;
 };

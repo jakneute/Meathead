@@ -2422,12 +2422,12 @@
  {
   "voice": "boss.victor",
   "text": "EVERYBODY OUT OF MY CLUB!",
-  "from": "game/bosses/victor.ts:83"
+  "from": "game/bosses/victor.ts:88"
  },
  {
   "voice": "boss.victor",
   "text": "FEEL THE HEAT, MEATHEAD!",
-  "from": "game/bosses/victor.ts:83"
+  "from": "game/bosses/victor.ts:88"
  },
  {
   "voice": "boss.victor",
@@ -2477,7 +2477,7 @@
  {
   "voice": "boss.victor",
   "text": "LAST CALL! IT'S ON FIRE!",
-  "from": "game/bosses/victor.ts:83"
+  "from": "game/bosses/victor.ts:88"
  },
  {
   "voice": "boss.victor",
@@ -2507,7 +2507,7 @@
  {
   "voice": "boss.victor",
   "text": "NOWHERE TO RUN, BRO!",
-  "from": "game/bosses/victor.ts:83"
+  "from": "game/bosses/victor.ts:88"
  },
  {
   "voice": "boss.victor",
@@ -3571,6 +3571,11 @@
  },
  {
   "voice": "death",
+  "text": "ELECTRIC BATH",
+  "from": "game/combat/weapons.ts:617"
+ },
+ {
+  "voice": "death",
   "text": "ELECTROCUTED",
   "from": "content/deaths"
  },
@@ -4601,6 +4606,11 @@
  },
  {
   "voice": "death",
+  "text": "SHOCKING LACK OF JUDGMENT",
+  "from": "game/combat/weapons.ts:617"
+ },
+ {
+  "voice": "death",
   "text": "SHOCKING.",
   "from": "content/deaths"
  },
@@ -4976,6 +4986,11 @@
  },
  {
   "voice": "death",
+  "text": "TASED YOURSELF IN THE POOL",
+  "from": "game/combat/weapons.ts:617"
+ },
+ {
+  "voice": "death",
   "text": "TAYVON WANTS HIS BIKE BACK",
   "from": "game/stages/tommy/bike.ts:531"
  },
@@ -5258,6 +5273,11 @@
   "voice": "death",
   "text": "WATCH YOUR STEP",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "WATER CONDUCTS, GENIUS",
+  "from": "game/combat/weapons.ts:617"
  },
  {
   "voice": "death",

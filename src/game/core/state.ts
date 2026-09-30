@@ -312,6 +312,7 @@ export const resetPlayerCombatState = (player: Player) => {
   player.filthShieldTimer = 0;
   player.sootTimer = 0;
   player.headless = 0;
+  player.shownDead = false;
   player.barfTimer = 0;
   player.isFlaming = false;
   player.flameRange = 0;

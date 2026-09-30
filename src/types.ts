@@ -141,6 +141,8 @@ export interface Player extends Entity {
   sootTimer?: number;
   /** His head's gone (the sniper): frames since. The body stays up on the death screen, and goes over. */
   headless?: number;
+  /** Dead, but still drawn through the death screen (tased himself in the water: charred where he floats). */
+  shownDead?: boolean;
   /** ...on a motorcycle (Oscar's stage): the jet ski's rules, sat astride it (the stage draws the bike). */
   moto?: boolean;
   /** A lunge through the water (the special, swimming): which way (forward, up or down). */

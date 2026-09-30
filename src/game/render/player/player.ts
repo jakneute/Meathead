@@ -41,7 +41,7 @@ const SUIT_TINT = 'rgba(250, 204, 21, 0.78)';
 
 /** Draws Meathead: effects auras, then body layers back-to-front, then the held weapon. */
 export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled, footTap = 0, surf = false }: PlayerDrawOptions) => {
-  if ((state.deathTimer > 0 && !p.headless) || p.hidden) return;
+  if ((state.deathTimer > 0 && !p.headless && !p.shownDead) || p.hidden) return;
   const animFrame = state.playerAnimFrame;
   setGore(1 - p.health / INITIAL_PLAYER_HEALTH);
   const gore = getGore();
