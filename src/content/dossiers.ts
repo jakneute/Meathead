@@ -158,7 +158,7 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     handler: 'Asset came back wearing the moon boots and the skier\'s skis. Asset says they "fell off the guy." We did not ask which guy. We know which guy.',
     remains: {
       weakness: 'Thawed where he stood. What was left slumped into a puddle of pink slush with a few organs bobbing in it like ice cubes in a bad drink. The asset urinated in it. Forensics are calling it a cocktail.',
-      normal: 'Burst like a frozen water main. Pieces were recovered from three separate rooms and one ceiling fan. The moon boots were intact. The feet inside them were not.',
+      normal: 'Went over backward like a felled pine and stayed there, in one piece, frost still on his eyebrows. The moon boots were still on. Nobody wanted to be the one to take them off.',
     },
   },
   'Victor Volcano': {
@@ -168,7 +168,7 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     handler: 'Asset asked if he is "Victor\'s spiritual equal now." We said yes. He cried. He has also asked to be put on the list at Club Caldera. There is no longer a list, or a Club Caldera, or a lounge, and the asset is the reason for all three.',
     remains: {
       weakness: 'Flash-cooled by a wall of seawater and set solid, mid-scream, into a steaming lump of volcanic rock. The asset urinated on it. It hissed. Tourists now pay to take photos with it.',
-      normal: 'Ruptured like an overfilled protein shaker. Most of him ended up on the ceiling of his own lair, where it continues to sizzle. The rest was mopped up by a very brave intern.',
+      normal: 'Keeled over on his own grating and lay there cooling, which took two days. Found intact, medium-well, still dressed for the club. The club reopened around him.',
     },
   },
   'Ernie Earthquake': {
@@ -178,7 +178,7 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     handler: 'Asset kept one of the rocks. Asset named it "Ernie." Asset talks to it. It is the best listener on the team. The hipster\'s family has asked for the jet ski back. We have sent them the rock.',
     remains: {
       weakness: 'Frozen stiff mid-stride and shattered into cold chunks that skittered across the floor like dropped dice. The asset urinated on the biggest piece. It refused to melt, out of spite.',
-      normal: 'Came apart at the hips first, then everywhere else. The remains were collected in a single shoebox. He would have mailed the city an invoice for the shoebox.',
+      normal: "Fell flat on his face and didn't get up. One piece, for once, which the coroner found disappointing after the reports. Recovered with a fist still clenched around a rock he never got to throw.",
     },
   },
   'Hector Hurricane': {
@@ -188,7 +188,7 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     handler: 'Asset fell out of a hurricane onto a daycare and "didn\'t notice." We have hosed down the asset four times. The daycare, nine. The children have asked if the big man can come back and do it again.',
     remains: {
       weakness: 'Flattened by a boulder his own storm dragged into his face. Scraped up with a snow shovel and folded twice to fit the bag. The asset urinated on him. The storm drain took the rest.',
-      normal: 'Torn apart and scattered by his own wind. Parts of him were reported in three counties. Channel 7 ran it as the weather.',
+      normal: 'Dropped out of his own storm and landed flat on his back in the arena, in one piece, still wet. The weather cleared within the hour. Channel 7 ran it as the weather.',
     },
   },
   'Toxic Tommy': {
@@ -198,7 +198,7 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     handler: 'Asset drank from the sewer "one last time, for Tommy." Asset was hospitalized. Asset says it was worth it. His doctors disagree. Tayvon has been compensated with a new bike. The asset took that one too.',
     remains: {
       weakness: 'Clogged with crude, blown open and left floating face-down in the sludge like a greased pool toy. The asset urinated into the pool. Nobody could tell the difference.',
-      normal: 'Burst in the sewer and was absorbed into it. For all practical purposes he is still down there. The water tastes slightly more like Tommy.',
+      normal: 'Went over in his own muck and floated there, face down, intact, which in Flint counts as the good outcome. He was fished out with a pool skimmer. The water still tastes slightly more like Tommy.',
     },
   },
   'Blackout Barry': {
@@ -208,7 +208,7 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     handler: 'Asset asked to "try the stuff Barry was on." Request denied. Asset had already tried it, on floor 58, on the way up, straight out of a tank. Asset has not blinked in two days.',
     remains: {
       weakness: 'Overdosed so hard he glowed, twitching and foaming on the floor long after his heart gave up. The asset urinated on him. He twitched once more. It is unclear who won.',
-      normal: 'Popped like a fuse box. The remains were located in the dark, by touch, by a cleanup crew that has since requested counseling.',
+      normal: 'Went down like a tripped breaker: all at once, and all of him. Found in the dark, by touch, in one piece, by a cleanup crew that had been braced for worse and was frankly relieved.',
     },
   },
   'Oily Oscar': {
@@ -218,7 +218,7 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     handler: 'Asset never got his refund. Asset took it out of Oscar\'s wallet, Oscar\'s watch and, disturbingly, Oscar\'s teeth. Asset has asked to keep the machine gun. Asset threw the machine gun away when it was empty. Asset has asked us to find it.',
     remains: {
       weakness: 'Fried inside his flame-retardant suit until the two fused into one continuous charred piece, like a grilled cheese left on the stove. The asset urinated on him. He sizzled.',
-      normal: 'Burst open across his own oil field, where he was indistinguishable from the product. He was accidentally refined. Some of him is in your car.',
+      normal: 'Toppled over in the dirt like a derrick in a storm and lay there leaking. In one piece, which is more than can be said for his oil field. The rangers drew a chalk outline. It took two boxes of chalk.',
     },
   },
   'Drug Trade Dale': {
@@ -228,7 +228,7 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     handler: 'Asset has the DALE\'S DRUGS sign. Asset thinks he "is Dale now." Somebody had to feed Sir Reginald, and the asset volunteered. We did not know what Sir Reginald was. We know now. We wish we did not.',
     remains: {
       weakness: 'Dissolved in a puddle of the asset\'s barf until only half a skull and a belt buckle remained. The asset urinated in the puddle. The puddle is now a controlled substance.',
-      normal: 'Scattered along his own delivery route. Some of him was signed for. Some of him is still out for delivery.',
+      normal: 'Fell over in front of his own pharmacy and stayed down, in one piece, for once the only package on the premises nobody had cut. Somebody signed for him. He was delivered to the county morgue on time, which was a first.',
     },
   },
 };

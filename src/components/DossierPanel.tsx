@@ -169,10 +169,11 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
             {section('AFTERMATH', after.aftermath)}
             {section('COLLATERAL DAMAGE', after.collateral)}
             <div className="flex gap-2 items-start">
-              {corpseWeapon && (
+              {/* (the evidence photo: what's left of him after his weakness, or him where he fell after anything else) */}
+              {(
                 <div className="relative shrink-0 w-[150px] mt-[7px] p-[3px] pb-[2px] bg-[#F5F5F4] rotate-[1.5deg]" style={{ boxShadow: '2px 2px 0 rgba(0,0,0,0.35)' }}>
-                  <CorpsePhoto bossId={bossId} weapon={corpseWeapon} />
-                  <div className="text-[6.5px] leading-[9px] text-center text-[#44403C] mt-[1px]">EXHIBIT A: WHAT'S LEFT</div>
+                  <CorpsePhoto bossId={bossId} weapon={corpseWeapon ?? null} />
+                  <div className="text-[6.5px] leading-[9px] text-center text-[#44403C] mt-[1px]">{corpseWeapon ? "EXHIBIT A: WHAT'S LEFT" : 'EXHIBIT A: WHERE HE FELL'}</div>
                   {/* Tape holding it to the file */}
                   <div className="absolute -top-[5px] left-1/2 -translate-x-1/2 w-[40px] h-[10px] bg-[#FEF9C3]/70 rotate-[-3deg]" />
                 </div>

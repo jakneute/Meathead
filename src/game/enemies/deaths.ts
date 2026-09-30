@@ -29,6 +29,8 @@ export interface EnemyDeath {
   isShield: boolean;
   /** A themed enemy (Artie's wildlife and goons) dies as itself, not as a coloured block. */
   sprite?: { kind: EnemyKind; facing: 1 | -1; phase: number };
+  /** One of the range's practice dummies (the boxer, the balloon man): drawn as himself (a person's bones, for the x-ray). */
+  dummy?: 'ground' | 'air';
   /** (headshot) The head, off: where it sat on the body (its middle, from the body's top left) and how big; where it's
    * got to (world), how it's going, its spin. */
   head?: { ox: number; oy: number; r: number; x: number; y: number; vx: number; vy: number; rot: number; landed: boolean };
@@ -87,7 +89,10 @@ export const startEnemyDeath = (state: GameState, e: Enemy, kind: EnemyDeathKind
     floorY: floorTopAt(state.blocks, e.pos.x + e.width / 2, e.pos.y + e.height) ?? FLOOR_Y,
     landed: false,
     isShield: e.enemyType === 'shield',
-    sprite: e.kind ? { kind: e.kind, facing: deathFacing(state, e), phase: Math.abs(Math.round(e.homeX || 0)) % 997 } : undefined,
+    sprite: e.kind ? { kind: e.kind, facing: deathFacing(state, e), phase: Math.abs(Math.round(e.homeX || 0)) % 997 }
+      // (a practice dummy's a person: he goes the way a person goes, drawn as himself)
+      : e.id.startsWith('dummy-') ? { kind: 'tourist', facing: e.vel.x < 0 ? -1 : 1, phase: 0 } : undefined,
+    dummy: e.id.startsWith('dummy-air') ? 'air' : e.id.startsWith('dummy-ground') ? 'ground' : undefined,
   });
   const d = state.enemyDeaths[state.enemyDeaths.length - 1];
   if (kind === 'headshot') {

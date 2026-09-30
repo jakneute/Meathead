@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Prompt } from './ButtonIcons';
 import type { Souvenir } from '../content/garage';
 import { GameStatus, WeaponType } from '../types';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, RENDER_SCALE, WEAPON_RANGE_STAGE } from '../constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, RENDER_SCALE, PRACTICE_RANGE_STAGE } from '../constants';
 import { BOSS_WEAPON_MAP, WEAPON_DESCRIPTIONS, getWeaponInfo } from '../content/roster';
 import { createRange, stepRange, newRespawns } from '../game/range';
 import { KeyboardMouseState, readControls } from '../game/platform/input';
@@ -71,7 +71,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenir, onDone }) => {
   onDoneRef.current = onDone;
   const finish = () => { if (!doneRef.current) { doneRef.current = true; onDoneRef.current(); } };
   const rangeCanvas = useRef<HTMLCanvasElement>(null);
-  const range = useMemo(() => createRange(weapon), [weapon]);
+  const range = useMemo(() => createRange(weapon, PRACTICE_RANGE_STAGE), [weapon]);
 
   useEffect(() => {
     const kb = new KeyboardMouseState();
@@ -130,7 +130,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenir, onDone }) => {
         }
         if (lastStep < wall - 200) lastStep = wall; // tab was hidden: don't fast-forward
         rc.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
-        drawWorld(rc, range, { status: GameStatus.PLAYING, stageId: WEAPON_RANGE_STAGE, currentWeapon: weapon, invincibilityEnabled: false, bossTauntText: '' });
+        drawWorld(rc, range, { status: GameStatus.PLAYING, stageId: PRACTICE_RANGE_STAGE, currentWeapon: weapon, invincibilityEnabled: false, bossTauntText: '' });
       }
       id = requestAnimationFrame(loop);
     };

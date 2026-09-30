@@ -1,5 +1,7 @@
 // Draws the special kill animations (see game/enemies/deaths.ts).
 
+import { drawDummy } from '../dummies';
+import type { Enemy } from '../../../types';
 import { GameState } from '../../core/state';
 import { EnemyDeath, DEATH_FRAMES } from '../../enemies/deaths';
 import { drawKindCorpse, KIND_HEAD, isHumanoidKind, skeletonOf } from './index';
@@ -45,7 +47,8 @@ const drawBody = (ctx: Ctx, d: EnemyDeath, state: GameState, o: { filter?: strin
   const fx = x + w / 2, fy = y + h;
   ctx.translate(fx, fy); ctx.scale(o.sx ?? 1, o.sy ?? 1); ctx.translate(-fx, -fy);
   if (o.filter) ctx.filter = o.filter;
-  if (d.sprite) drawKindCorpse(ctx, d.sprite.kind, x, y, w, h, d.sprite.facing, d.sprite.phase, state);
+  if (d.dummy) drawDummy(ctx, { id: `dummy-${d.dummy}`, pos: { x, y }, width: w, height: h, vel: { x: d.sprite?.facing ?? 1, y: 0 } } as Enemy, 0);
+  else if (d.sprite) drawKindCorpse(ctx, d.sprite.kind, x, y, w, h, d.sprite.facing, d.sprite.phase, state);
   else { ctx.fillStyle = d.color; ctx.fillRect(x, y, w, h); }
   ctx.restore();
 };
