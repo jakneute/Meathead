@@ -46,6 +46,8 @@ export interface Escape {
   /** Lost up in the ruins: how many times he's wondered where to go (it gets angrier), and when he last did. */
   lost: number;
   lostAt: number;
+  /** He'll wonder if this is Tommy's lair when he lands at the bottom (the first time: not coming back after a death). */
+  askLair: boolean;
 }
 
 /** How long each of the cut scenes runs. (The tower's: the street and the manhole first, LAUNCH frames, then the tower.) */
@@ -69,7 +71,7 @@ export const DROP_FADE = 45, DROP_FADE_IN = 40;
 
 export const createEscape = (state: GameState, startedAt: number): Escape => {
   void state;
-  return { phase: startedAt >= CP.RUINS ? 'ruins' : 'waiting', t: 0, chunks: [], dropT: 0, landedT: 0, zoomK: 0, sceneT: 0, lost: 0, lostAt: 0 };
+  return { phase: startedAt >= CP.RUINS ? 'ruins' : 'waiting', t: 0, chunks: [], dropT: 0, landedT: 0, zoomK: 0, sceneT: 0, lost: 0, lostAt: 0, askLair: startedAt < CP.RUINS };
 };
 
 /** The thing's dead: the sewer starts to come apart. */
@@ -230,7 +232,8 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
         if (es.dropT - es.landedT > DROP_FADE_IN + 20) {
           es.phase = 'done'; p.inCutscene = false; state.cameraOverride = null;
           // (the sign up there said so, in letters ten feet high)
-          queueLines(state, talk, [{ who: 'meathead', text: "IS THIS TOMMY'S LAIR?" }]);
+          if (es.askLair) queueLines(state, talk, [{ who: 'meathead', text: "IS THIS TOMMY'S LAIR?" }]);
+          es.askLair = false;
         }
       }
       return { ...NO_CONTROLS };
