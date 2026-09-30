@@ -2,9 +2,10 @@
 // (Artie, Victor, Ernie, Hector). The rest move themselves.
 
 import { Enemy } from '../../types';
-import { GRAVITY, BOSS_DOOR_X, STAGE_WIDTH } from '../../constants';
+import { GRAVITY, ARENA_LEFT } from '../../constants';
 import type { FrameContext } from '../core/context';
-import { BossPhysics, CEILING_Y, bossFloorY, dirTo } from './shared';
+import { BossPhysics, CEILING_Y, BOSS_WALL_GAP, bossFloorY, dirTo } from './shared';
+import { getArenaRight } from './registry';
 
 const KNOCKDOWN_GRAVITY = 1.5;
 const KNOCKDOWN_RECOVERY = 30; // max frames left on the floor after a knockdown lands
@@ -20,7 +21,9 @@ export const applyBossPhysics = (ctx: FrameContext, boss: Enemy, physics: BossPh
   boss.pos.x += boss.vel.x;
   const prevY = boss.pos.y;
   boss.pos.y += boss.vel.y;
-  boss.pos.x = Math.max(BOSS_DOOR_X + 10, Math.min(STAGE_WIDTH - boss.width - 10, boss.pos.x));
+  // (kept a little off the walls, so none of him goes into them)
+  const lo = ARENA_LEFT + BOSS_WALL_GAP, hi = getArenaRight(ctx.stageId) - boss.width - BOSS_WALL_GAP;
+  if (boss.pos.x < lo || boss.pos.x > hi) { boss.pos.x = Math.max(lo, Math.min(hi, boss.pos.x)); boss.vel.x = 0; }
   if (boss.pos.y < CEILING_Y) { boss.pos.y = CEILING_Y; boss.vel.y = 0; }
 
   // Land on terrain

@@ -9,7 +9,7 @@ import {
 } from '../../constants';
 import type { FrameContext } from '../core/context';
 import type { BossHelpers } from './shared';
-import { BossDef, ARENA_MID, midX, hurtPlayer, enemyProjectile } from './shared';
+import { BossDef, ARENA_MID, BOSS_WALL_GAP, midX, hurtPlayer, enemyProjectile } from './shared';
 
 const HURRICANE_FRAMES = 300;
 const REST_FRAMES = 40;
@@ -147,7 +147,8 @@ const leapToOtherSide = (boss: Enemy, helpers: BossHelpers) => {
   boss.bossState = 'jumping';
   boss.isGroundedBoss = false;
   boss.vel.y = -22 - Math.random() * 4;
-  const targetX = boss.pos.x > ARENA_MID ? ARENA_LEFT + 60 : ARENA_RIGHT - 60;
+  // (to near the far wall, but not into it)
+  const targetX = boss.pos.x > ARENA_MID ? ARENA_LEFT + BOSS_WALL_GAP + 20 : ARENA_RIGHT - boss.width - BOSS_WALL_GAP - 20;
   boss.vel.x = (targetX - boss.pos.x) * 0.035;
   helpers.clearPoopTelegraphs();
 };

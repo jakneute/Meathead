@@ -14,7 +14,7 @@ import type { FrameContext } from '../core/context';
 import { BARRY_LINES } from '../../content/dialogue';
 import { stickNeedle, BOSS_NEEDLE } from '../combat/needles';
 import { pickRandom } from '../core/utils';
-import { BossDef, ARENA_MID, CEILING_Y, bossFloorY, hurtPlayer, speakAsBoss } from './shared';
+import { BossDef, ARENA_MID, BOSS_WALL_GAP, CEILING_Y, bossFloorY, hurtPlayer, speakAsBoss } from './shared';
 
 const TELEPORT_HEIGHT = CEILING_Y;
 const POUND_DROP_SPEED = 60;
@@ -78,7 +78,7 @@ const teleport = (ctx: FrameContext, boss: Enemy, frames: Frames) => {
   if (boss.shootTimer >= interval) {
     boss.shootTimer = 0;
     boss.jumpCount = (boss.jumpCount || 0) + 1;
-    boss.pos.x = BOSS_DOOR_X + 100 + Math.random() * (ARENA_RIGHT - 60 - (BOSS_DOOR_X + 100));
+    boss.pos.x = BOSS_DOOR_X + 100 + Math.random() * (ARENA_RIGHT - boss.width - BOSS_WALL_GAP - (BOSS_DOOR_X + 100));
     boss.pos.y = TELEPORT_HEIGHT;
     helpers.spawnExplosion({ x: boss.pos.x + boss.width / 2, y: boss.pos.y + boss.height / 2 }, '#2E1A47', 8, 0, 5);
     helpers.playGunSound('taser');
@@ -252,7 +252,7 @@ const floatHigh = (ctx: FrameContext, boss: Enemy, frames: Frames) => {
   const t = HIGH_FRAMES - (boss.stateTimer || 0);
   const targetY = HIGH_FLOAT_Y + Math.sin(t * 0.08) * 25;
   boss.pos.y += (targetY - boss.pos.y) * 0.06;
-  boss.pos.x = Math.max(ARENA_LEFT + 10, Math.min(ARENA_RIGHT - boss.width - 10, boss.pos.x + Math.sin(t * 0.05) * 2.2));
+  boss.pos.x = Math.max(ARENA_LEFT + BOSS_WALL_GAP, Math.min(ARENA_RIGHT - boss.width - BOSS_WALL_GAP, boss.pos.x + Math.sin(t * 0.05) * 2.2));
   boss.rotation = Math.sin(t * 0.1) * 0.35;
   if (ctx.state.frame % 6 === 0) {
     const colors = ['#FF007F', '#39FF14', '#FFD700', '#00F0FF'];

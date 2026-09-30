@@ -7,7 +7,7 @@
 import { Enemy, Icicle, Rect } from '../../types';
 import { ARENA_LEFT, ARENA_RIGHT, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y } from '../../constants';
 import type { FrameContext } from '../core/context';
-import { BossDef, ARENA_MID, CEILING_Y, FLOOR_Y, enemyProjectile, hurtPlayer, midX } from './shared';
+import { BossDef, ARENA_MID, BOSS_WALL_GAP, CEILING_Y, FLOOR_Y, enemyProjectile, hurtPlayer, midX } from './shared';
 
 const ICE_BLOCK_SIZE = 60;
 // The block is aimed at Meathead when it's thrown and flies straight: slow off the hand,
@@ -129,7 +129,7 @@ const throwIceBlock = (ctx: FrameContext, boss: Enemy, id: string) => {
  * arena, and the jolt brings the icicles down early.
  */
 const leapAway = (ctx: FrameContext, boss: Enemy) => {
-  const targetX = boss.pos.x < ARENA_MID - 40 ? ARENA_RIGHT - 110 : ARENA_LEFT + 10;
+  const targetX = boss.pos.x < ARENA_MID - 40 ? ARENA_RIGHT - boss.width - BOSS_WALL_GAP - 20 : ARENA_LEFT + BOSS_WALL_GAP + 20;
   boss.vel.y = -22;
   boss.vel.x = (targetX - boss.pos.x) / 50;
   boss.bossState = 'jumping';

@@ -18,6 +18,8 @@ import { say, getBossVoice, SpeechPriority } from '../platform/speech';
 export const FLOOR_Y = GROUND_Y;
 export const CEILING_Y = 100;
 export const ARENA_MID = (ARENA_LEFT + ARENA_RIGHT) / 2;
+/** How far a boss keeps off the arena's walls: his whole sprite (arms, shoulders, gear) stays in the room. */
+export const BOSS_WALL_GAP = 24;
 
 /** Where a boss stands when he's on the floor. */
 export const bossFloorY = (boss: Enemy) => FLOOR_Y - boss.height;

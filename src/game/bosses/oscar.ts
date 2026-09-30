@@ -16,7 +16,7 @@ import { OSCAR_LINES } from '../../content/dialogue';
 import type { FrameContext } from '../core/context';
 import { GameState, shakeScreen } from '../core/state';
 import { pickRandom, rectsOverlap, boundsOf } from '../core/utils';
-import { BossDef, FLOOR_Y, CEILING_Y, speakAsBoss, hurtPlayer as hurtMeathead, midX } from './shared';
+import { BossDef, BOSS_WALL_GAP, FLOOR_Y, CEILING_Y, speakAsBoss, hurtPlayer as hurtMeathead, midX } from './shared';
 
 const OSCAR = 'Oily Oscar';
 const ARENA_RIGHT = OSCAR_ARENA_RIGHT; // his room is double-wide
@@ -96,7 +96,7 @@ export const updateOscar = (ctx: FrameContext, boss: Enemy) => {
   boss.pos.x += boss.vel.x;
   boss.vel.x *= 0.9;
   if (Math.abs(boss.vel.x) < 0.05) boss.vel.x = 0;
-  boss.pos.x = clamp(boss.pos.x, ARENA_LEFT + 10, ARENA_RIGHT - boss.width - 10);
+  boss.pos.x = clamp(boss.pos.x, ARENA_LEFT + BOSS_WALL_GAP, ARENA_RIGHT - boss.width - BOSS_WALL_GAP);
   boss.pos.y = FLOOR_Y - boss.height;
   if (!boss.oscarFacing) boss.oscarFacing = -1;
 
