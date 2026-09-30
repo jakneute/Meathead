@@ -12,6 +12,7 @@ import { drawBoss, makeSitter } from '../bosses';
 import { inHead } from '../bosses/kit';
 import { VOLCANO_FINALE, VOLCANO_FINALE_MESSAGE } from '../../scenes/volcanoFinale';
 import { drawSpelledMessage } from './sewerNuke';
+import { drawClubVolcano } from './clubVolcano';
 
 type Ctx = CanvasRenderingContext2D;
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
@@ -112,6 +113,9 @@ const drawScene = (ctx: Ctx, t: number, erupting: boolean, e: number) => {
   ctx.closePath(); ctx.fill();
   ctx.fillStyle = '#3D160C';
   ctx.beginPath(); ctx.moveTo(CX - 420, BASE_Y); ctx.lineTo(CX - 70, PEAK_Y + 8); ctx.lineTo(CX - 40, PEAK_Y); ctx.lineTo(CX - 20, BASE_Y); ctx.closePath(); ctx.fill();
+  // The club it is: lit up and pumping while it rumbles; when it blows, the power flickers and goes
+  const power = erupting ? (e < 30 && hash(e) > 0.4 ? 1 - e / 30 : 0) : 1;
+  drawClubVolcano(ctx, { cx: CX, top: PEAK_Y, base: BASE_Y, half: 420, crater: 40, s: 0.96, f: t, show: 1, power });
   // Three glowing plugged vents on its flank (the ones you corked), cracking as it builds
   const build = erupting ? 1 : t / VOLCANO_FINALE.ERUPT;
   for (const [vx, vy] of [[-150, 430], [130, 400], [20, 470]]) {

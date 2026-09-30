@@ -280,9 +280,9 @@ export const drawWideShot = (ctx: Ctx, state: GameState, lg: Lounge) => {
   // Stars coming out
   ctx.fillStyle = 'rgba(255,255,255,0.7)'; for (let i = 0; i < 40; i++) ctx.fillRect(hash(i) * W, hash(i + 9) * 200, 2, 2);
   const cx = W / 2, base = H - 70, s = 1.05;
-  drawVolcano(ctx, cx, base, s, f, 0);
-  // The lounge's lit window, near the top
+  // The lounge's lit window, near the top (the club all lit up round it)
   const wx = cx + 40, wy = base - 280 * s + 60;
+  drawVolcano(ctx, cx, base, s, f, 0, { show: 1, keepClear: { x: wx, y: wy, r: 16 } });
   const blast = blastAmount(lg);
   if (blast < 0.3) {
     // The lounge's window: gold frame, pink light, the party going on behind the glass (this is what the shot pulls out from)

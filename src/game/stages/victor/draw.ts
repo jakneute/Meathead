@@ -3,6 +3,7 @@
 // inside, the shaft, the lava, the hazards, and the HUD (the doorman, the
 // clashes, the fade through the club doors, the lounge's wide shot).
 
+import { drawClubVolcano, ClubVolcano } from '../../render/scenes/clubVolcano';
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { COURSE, isLava } from './course';
@@ -48,7 +49,8 @@ const drawTrailSky = (ctx: Ctx, state: GameState) => {
   // The volcano: off to the right and small at first; as the trail curves round it swings in and looms
   const s = 0.35 + k * 1.45;
   const cx = W * (1.02 - k * 0.52);
-  drawVolcano(ctx, cx, horizon + 30, s, f, k);
+  // (the closer you get, the more of it's a nightclub: the searchlights first, then the neon, the windows, the sign)
+  drawVolcano(ctx, cx, horizon + 30, s, f, k, { show: 0.2 + k * 0.8 });
   // Nearer ridges in front of its foot
   ridge(ctx, horizon + 60, 0.08, '#240C0C', 60, 23, state.camera.x);
   ridge(ctx, horizon + 110, 0.14, '#160707', 50, 37, state.camera.x);
@@ -70,8 +72,11 @@ const ridge = (ctx: Ctx, base: number, parallax: number, color: string, amp: num
   ctx.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT); ctx.closePath(); ctx.fill();
 };
 
-/** The volcano: a dark cone, glowing streams down its flanks, the crater lit from inside, and a plume of smoke. */
-export const drawVolcano = (ctx: Ctx, cx: number, base: number, s: number, f: number, k: number) => {
+/**
+ * The volcano: a dark cone, glowing streams down its flanks, the crater lit from inside, and a plume of smoke; and
+ * the nightclub it is (see clubVolcano.ts), showing as much as `club` says.
+ */
+export const drawVolcano = (ctx: Ctx, cx: number, base: number, s: number, f: number, k: number, club?: Omit<ClubVolcano, 'cx' | 'top' | 'base' | 'half' | 'crater' | 's' | 'f'>) => {
   const h = 280 * s, half = 360 * s, crater = 54 * s;
   const top = base - h;
   // Smoke plume, rolling up and drifting
@@ -97,6 +102,7 @@ export const drawVolcano = (ctx: Ctx, cx: number, base: number, s: number, f: nu
     ctx.quadraticCurveTo(cx + dx * half * 0.4 + bend * half * 0.4, top + h * 0.5, cx + dx * half * 0.75, base - 6);
     ctx.stroke();
   }
+  if (club) drawClubVolcano(ctx, { cx, top, base, half, crater, s, f, ...club });
   // Now and then it spits (bombs arcing up out of the crater)
   for (let i = 0; i < 3; i++) {
     const t = ((f + i * 70) % 210) / 60;
