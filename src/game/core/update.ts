@@ -20,7 +20,7 @@ import { LEVEL_INTRO_STYLE } from '../../constants';
 import { updateBarfStream, updateFlameSegments } from '../combat/weapons';
 import { say, isTalking, deathAnnouncing, stopDeathAnnouncer, announceDeath, MEATHEAD_INTRO_VOICE } from '../platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../platform/skip';
-import { pickRandom, rectsOverlap, boundsOf } from './utils';
+import { pickRandom, rectsOverlap, boundsOf, isOnScreen } from './utils';
 import { deathByCause, deathFallback } from './deathCause';
 import { killPlayer, DEATH_SCREEN_FRAMES, gateControls, tickPlayerTimers, updatePlayerActions, updatePlayerPhysics, getSpecialForm, interruptSpecialWithHurt } from '../player/player';
 import { updateTsunami, updateSteamExplosions, updateVolcanoes, updateTommyArena } from '../bosses/hazards';
@@ -33,7 +33,7 @@ import { isGoreColor } from './effects';
 import { updateVictoryPee, peeFinished } from '../scenes/victoryPee';
 import { getBossDef, getArenaRight, getStageWidth } from '../bosses/registry';
 import { getStageLayout } from '../stages';
-import { groundLineAt, floorTopAt } from './terrain';
+import { groundLineAt, floorTopAt, runYAt } from './terrain';
 
 const INTRO_JUMP_START = 80;
 const INTRO_JUMP_FRAMES = 60;
@@ -524,6 +524,14 @@ const updatePickups = (ctx: FrameContext) => {
     state.blocks.forEach(b => {
       if (b.type !== 'pit' && rectsOverlap(boundsOf(p), b)) { p.pos.y = b.y - p.height; p.vel.y = 0; }
     });
+    // Down in lava: it melts (a hiss, a flare, a puff of smoke, gone)
+    const cx = p.pos.x + p.width / 2, lava = state.groundRuns.find(r => r.surface === 'lava' && cx > r.x1 && cx < r.x2);
+    if (lava && p.pos.y + p.height >= runYAt(lava, cx) - 4) {
+      for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: cx, y: p.pos.y + p.height }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 3 }, life: 20 + Math.random() * 20, color: i % 3 ? '#F97316' : '#FDE047', size: 2 + Math.random() * 4 });
+      for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * 12, y: p.pos.y + p.height - 6 }, vel: { x: (Math.random() - 0.5) * 0.6, y: -0.8 - Math.random() }, life: 40, color: 'rgba(60, 50, 50, 0.6)', size: 6 + Math.random() * 6 });
+      if (isOnScreen(state.camera, p)) playSound('ignite', 0.5, 6);
+      return false;
+    }
 
     if (!rectsOverlap(boundsOf(p), boundsOf(player))) return p.life > 0;
     playSound(p.type.includes('health') ? 'pickup' : 'reload');
