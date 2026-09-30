@@ -252,6 +252,8 @@ export interface Enemy extends Entity {
   /** Sent flying dead by one of his moves (a charge, a slide, an uppercut, a dive kick): it's a projectile now, and
    * these are who it's already hit on the way. */
   meleeFlung?: boolean;
+  /** A flyer knocked up above its height: dropping back down to it. */
+  returnHome?: boolean;
   flungHits?: string[];
   barfAngle?: number;
   barfLen?: number;

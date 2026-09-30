@@ -321,6 +321,13 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
   // Air enemies bob around their spawn height (sludge drags them down to the floor)
   if (air) {
     if (e.initialY === undefined) e.initialY = e.pos.y;
+    // Knocked up above where it flies (and still in view): once it's got its wits back, it drops back down to its
+    // height before it does anything else (it's not left hanging up at the top of the screen)
+    if (!isStunned && !isHeld && e.returnHome) {
+      const dy = e.initialY - e.pos.y;
+      if (dy <= 3 || !onScreen) e.returnHome = false;
+      else { e.pos.y += Math.min(4, Math.max(1.2, dy * 0.07)); e.vel.y = 0; e.pos.x += e.vel.x * 0.5; return; }
+    }
     // A themed flyer (the eagle) flies its own path while it's free to
     if (e.behavior === 'custom' && !isStunned && !isHeld && !(e.sludgeTimer && e.sludgeTimer > 0) && runKindAI(ctx, e)) return;
     if (isStunned) {
@@ -330,6 +337,8 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
       e.vel.x *= 0.92;
       e.pos.y += e.vel.y;
       e.vel.y *= 0.92;
+      // (knocked up above its height: it'll come back down to it once it's free)
+      if (e.pauseTimer! <= 0 && e.pos.y < e.initialY - 12) e.returnHome = true;
     } else if (!isHeld) {
       if (e.sludgeTimer && e.sludgeTimer > 0) {
         // Sludge drags it down hard: it slams into the floor, or keeps going down a pit
