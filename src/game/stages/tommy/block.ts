@@ -12,13 +12,14 @@ import { pushEnemy } from '../../combat/knockback';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 import { shakeScreen } from '../../core/state';
 import { COURSE, Main } from './course';
+import { MUCK_DWELLERS } from './sewer';
 
 /** A main's cycle, at the end of each period: the gurgle before it goes, then the blast. */
 export const MAIN_WARN = 55, MAIN_BLAST = 60;
 /** How high the water goes, how wide the column is. */
 export const MAIN_HEIGHT = 250, MAIN_W = 38;
 /** What it does to him, and to anybody else. */
-const MAIN_DAMAGE = 12, MAIN_ENEMY_DAMAGE = 25;
+const MAIN_DAMAGE = 12, MAIN_ENEMY_DAMAGE = 40;
 
 export interface Block {
   /** Who's been hit by which blast (a main's blast number): once a blast each. */
@@ -76,16 +77,17 @@ export const updateBlock = (ctx: FrameContext, b: Block) => {
       hurtPlayer(ctx, MAIN_DAMAGE, 'hydrant', { x: away * 5, y: -13 });
       fx.spawnDamageNumber({ x: p.pos.x - 10, y: p.pos.y - 40 }, 'WATER MAIN!', true, '#D97706');
     }
-    // Anybody else: thrown sky high (they come down hard)
+    // Anybody else: the stuff eats them, and throws them sky high (they come down hard); what it kills, it melts. Not
+    // what lives in it
     for (const e of state.enemies) {
-      if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || e.kind === 'sludgeling' || !rectsOverlap(boundsOf(e), box)) continue;
+      if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || MUCK_DWELLERS.has(e.kind ?? '') || !rectsOverlap(boundsOf(e), box)) continue;
       if (b.hit.get(key(e.id)) === blastNo) continue;
       b.hit.set(key(e.id), blastNo);
       const away = e.pos.x + e.width / 2 < m.x ? -1 : 1;
       e.health -= MAIN_ENEMY_DAMAGE;
       e.hitFlash = 6;
-      fx.spawnDamageNumber(e.pos, MAIN_ENEMY_DAMAGE);
-      if (e.health <= 0) { fx.blowAwayEnemy(e, { x: away * 4, y: -20 }, 'charge_kill', away); state.player.killSatisfactionTimer = 60; }
+      fx.spawnDamageNumber(e.pos, MAIN_ENEMY_DAMAGE, true, '#A3E635');
+      if (e.health <= 0) { fx.killWithAnimation(e, 'melted', 'sludge_kill', 'melted'); playSound('barf'); }
       else { e.frozenTimer = 0; pushEnemy(e, away * 3, -15, 50); }
     }
   }

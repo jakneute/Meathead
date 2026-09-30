@@ -281,6 +281,8 @@ export interface Enemy extends Entity {
   frozenTimer?: number;
   /** The frame the ice went on (it's drawn held at that frame, not idling, while it's frozen). */
   frozeAt?: number;
+  /** Frames it's been in Tommy's muck (knocked in: it's being eaten). */
+  muckT?: number;
   /** Where it last stood (its y): how far it's come down, when it lands. */
   lastGroundY?: number;
   sludgeTimer?: number;

@@ -44,6 +44,10 @@ export interface Sewer {
 export const SUIT_FRAMES = [21 * 60, 42 * 60];
 /** What the muck does to him without it: this much, this often. */
 const MUCK_DAMAGE = 2, MUCK_EVERY = 15;
+/** What the muck does to anybody else who ends up in it: going in, then this much this often. */
+const MUCK_ENEMY_SPLASH = 40, MUCK_ENEMY_BITE = 12, MUCK_ENEMY_EVERY = 12;
+/** What lives in it (it doesn't touch them). */
+export const MUCK_DWELLERS = new Set(['sludgeling', 'mutantfish', 'amalgam']);
 /** A drip: how long it swells before it lets go, and what it does when it lands on you. */
 const DRIP_SWELL = 40, DRIP_DAMAGE = 8;
 /** How hard he kicks up out of the muck onto a walkway (it's thick). */
@@ -102,15 +106,21 @@ export const updateSewer = (ctx: FrameContext, sw: Sewer, talk: Talk) => {
       }
     }
   }
-  // Anybody else who ends up in it (knocked in, say) dissolves, the way the barfer's sludge does them (the
-  // sludgelings live in it)
+  // Anybody else who ends up in it (knocked in, say): it eats them, hard (a big bite going in, then more and more), and
+  // what it kills it melts, the way the barfer's sludge does. Not what lives in it: the sludgelings, the fish, the thing
   for (const e of state.enemies) {
-    if (e.health <= 0 || e.isBlownAway || e.kind === 'sludgeling' || e.kind === 'mutantfish' || e.kind === 'amalgam') continue;
-    if (!muckAt(e.pos.x + e.width / 2, e.pos.y + e.height * 0.7)) continue;
-    e.health = 0;
-    fx.killWithAnimation(e, 'melted', 'sludge_kill', 'melted');
-    for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + e.height * 0.6 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#A3E635' : '#65A30D', size: 3 + Math.random() * 4 });
-    playSound('barf');
+    if (e.health <= 0 || e.isBlownAway || MUCK_DWELLERS.has(e.kind ?? '')) continue;
+    if (!muckAt(e.pos.x + e.width / 2, e.pos.y + e.height * 0.7)) { e.muckT = undefined; continue; }
+    const first = e.muckT === undefined;
+    e.muckT = (e.muckT ?? 0) + 1;
+    if (!first && e.muckT % MUCK_ENEMY_EVERY !== 0) continue;
+    const dmg = first ? MUCK_ENEMY_SPLASH : MUCK_ENEMY_BITE;
+    e.health -= dmg;
+    e.hitFlash = 6;
+    fx.spawnDamageNumber(e.pos, dmg, first, '#A3E635');
+    for (let i = 0; i < (first ? 10 : 4); i++) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + e.height * 0.6 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#A3E635' : '#65A30D', size: 3 + Math.random() * 4 });
+    if (first) playSound('barf', 0.7);
+    if (e.health <= 0) { fx.killWithAnimation(e, 'melted', 'sludge_kill', 'melted'); playSound('barf'); }
   }
   // The sludgelings lying in wait float with just their eyes up out of it
   for (const e of state.enemies) {
