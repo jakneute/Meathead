@@ -104,6 +104,8 @@ export const enterPower = (ctx: FrameContext, pw: PowerRoom, talk: Talk) => {
   replaceLines(state, talk, INTRO.map(l => ({ ...l })), 30);
 };
 
+const hashN = (n: number) => { const s = Math.sin(n * 91.7 + 17.3) * 43758.5453; return s - Math.floor(s); };
+
 /** A generator's turn: stays put, anything that damages it drains its charge (at the one rate, whatever it was). */
 export const updateGenerator = (ctx: FrameContext, e: Enemy, pw: PowerRoom): boolean => {
   const { state, fx } = ctx;
@@ -113,7 +115,15 @@ export const updateGenerator = (ctx: FrameContext, e: Enemy, pw: PowerRoom): boo
   e.vel = { x: 0, y: 0 }; e.frozenTimer = 0; e.pauseTimer = 0; e.isOnFire = false; e.isOiled = false; e.isBlownAway = false;
   e.pos.x = COURSE.generators[pw.gens.indexOf(g)] - e.width / 2; e.pos.y = COURSE.power.floor - e.height;
   if (g.charge <= 0) {
-    // Blown: sparks and smoke for a while, then just a smoking wreck (it stays: the stage draws it)
+    // Blown: sparks and smoke for a while, then just a smoking wreck (it stays: the stage draws it). Going off after it
+    // blows (the parts inside going one by one, cooling metal ticking), then the odd spark off the wreck for good
+    const since = state.frame - g.boomAt;
+    if (since === 14) { playSound('glass', 0.8, 2); playSound('crack', 0.8, -3); }
+    if (since === 28) playSound('boom', 0.6, 5);
+    if (since === 45) { playSound('clang', 0.7, -4); playSound('taser', 0.5, 6); }
+    if (since === 70) playSound('crash', 0.5, -2);
+    if (since > 70 && since < 400 && since % 37 === 0) playSound('clink', 0.35, (since % 3) * 2);
+    if (since > 90 && hashN(state.frame + e.pos.x) < 0.012) playSound('taser', 0.25, 8);
     if (state.frame % 4 === 0) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + 20 }, vel: { x: (Math.random() - 0.5), y: -1.5 }, life: 40, color: '#44403C', size: 8 + Math.random() * 8 });
     e.health = GEN_HP;
     return true;
@@ -126,6 +136,12 @@ export const updateGenerator = (ctx: FrameContext, e: Enemy, pw: PowerRoom): boo
   const nearest = underFire.sort((a, b) => Math.abs(a.x - px) - Math.abs(b.x - px))[0];
   if (nearest && nearest.q === g) {
     g.charge -= DRAIN_PER_FRAME;
+    // Shorting out under fire: the buzz and crackle of it, higher and faster the less charge it's got left; a bang
+    // off it now and then; the whine of it failing as it gets near the end
+    const left = g.charge / 100;
+    if (state.frame % Math.max(5, Math.round(14 * left)) === 0) playSound('taser', 0.4 + (1 - left) * 0.4, Math.round((1 - left) * 8));
+    if (hashN(state.frame * 1.7 + e.pos.x) < 0.02) { playSound('crack', 0.5, 2); state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + 10 }, vel: { x: (Math.random() - 0.5) * 6, y: -3 - Math.random() * 3 }, life: 18, color: '#FEF08A', size: 3 }); }
+    if (left < 0.3 && state.frame % 24 === 0) playSound('alert', 0.35, Math.round((0.3 - left) * 30));
     if (state.frame % 5 === 0) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + Math.random() * e.height * 0.6 }, vel: { x: (Math.random() - 0.5) * 4, y: -Math.random() * 4 }, life: 14, color: Math.random() < 0.5 ? '#7DD3FC' : '#FDE047', size: 2 + Math.random() * 2 });
     if (g.charge <= 0) {
       // It goes
@@ -135,6 +151,7 @@ export const updateGenerator = (ctx: FrameContext, e: Enemy, pw: PowerRoom): boo
       fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 30 }, pw.gone === 3 ? 'GRID DOWN!' : 'SHORTED OUT!', true, '#FDE047');
       shakeScreen(state, 30, 12);
       playSound('boom');
+      playSound('nuke', 0.5, 4); playSound('crash', 0.8); playSound('glass', 0.7, -2); playSound('taser', 0.9, -6);
     }
   }
   return true;
@@ -206,6 +223,11 @@ export const updatePower = (ctx: FrameContext, pw: PowerRoom, talk: Talk, contro
     pw.meltT++;
     // The alarms, blasts all round the room, the floor shaking; hands off once it's really going
     if (pw.meltT % 50 === 1) playSound('alarm');
+    // (every blast going off with a bang of its own, things coming down, glass going, the power screaming)
+    if (pw.meltT % 9 === 0) playSound(pw.meltT % 27 === 0 ? 'crash' : 'boom', 0.45 + Math.random() * 0.3, Math.round(Math.random() * 8 - 4));
+    if (pw.meltT % 13 === 0) playSound('taser', 0.5, Math.round(Math.random() * 10 - 2));
+    if (pw.meltT % 31 === 0) playSound(Math.random() < 0.5 ? 'glass' : 'clang', 0.6, Math.round(Math.random() * 6 - 3));
+    if (pw.meltT % 45 === 20) playSound('rumble', 0.7);
     if (pw.meltT % 9 === 0) fx.spawnExplosion({ x: r.x1 + 60 + Math.random() * (r.x2 - r.x1 - 120), y: r.floor - 40 - Math.random() * 220 }, Math.random() < 0.5 ? '#F97316' : '#FDE047', 16, 0, 20);
     if (pw.meltT % 20 === 0) shakeScreen(state, 20, 6 + pw.meltT / 20);
     if (pw.meltT === 60) playSound('nuke');
