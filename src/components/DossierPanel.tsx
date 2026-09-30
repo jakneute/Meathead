@@ -28,25 +28,6 @@ const rightStickY = () => {
   return 0;
 };
 
-/**
- * Easter egg: the blacked-out words can be read. Click one, or keep X held down from the map into the file for a
- * couple of seconds (the bars go grey as it comes), and they're uncovered. Only in this file, and only while it's up:
- * moving to another file (or back) blacks them all out again.
- */
-const DECLASSIFY_HOLD_MS = 2000;
-/** X held on the keyboard right now (kept track of all along, so a hold that started on the map counts). */
-let xKeyDown = false;
-if (typeof window !== 'undefined') {
-  window.addEventListener('keydown', e => { if (e.key.toLowerCase() === 'x') xKeyDown = true; });
-  window.addEventListener('keyup', e => { if (e.key.toLowerCase() === 'x') xKeyDown = false; });
-  window.addEventListener('blur', () => { xKeyDown = false; });
-}
-const padXDown = () => {
-  if (typeof navigator === 'undefined' || !navigator.getGamepads) return false;
-  try { for (const gp of navigator.getGamepads()) if (gp && gp.connected !== false && gp.buttons?.[GP_BUTTONS.X]?.pressed) return true; } catch { /* no pads */ }
-  return false;
-};
-
 interface DossierPanelProps {
   bossId: string;
   defeated: boolean;
@@ -63,27 +44,6 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
   const garage = bossId === GARAGE_ID;
   const d = garage ? { ...GARAGE_DOSSIER, mission: '', reality: '', background: '', intel: '', rules: '', notAlive: '' } : DOSSIERS[bossId];
   const loc = garage ? undefined : BOSS_LOCATIONS[bossId];
-  // The blacked-out bits: uncovered by a click on one, or by X held from the map into the file
-  const [revealed, setRevealed] = useState(false);
-  const [holding, setHolding] = useState(0);
-  const declassify = () => { setRevealed(true); setHolding(0); };
-  useEffect(() => {
-    // (a different file: blacked out again)
-    setRevealed(false); setHolding(0);
-    // (only a hold that's on as the file opens: the X that brought him here, kept down)
-    if (!xKeyDown && !padXDown()) return;
-    const start = performance.now();
-    let raf = 0;
-    const tick = () => {
-      if (!xKeyDown && !padXDown()) { setHolding(0); return; }
-      const k = Math.min(1, (performance.now() - start) / DECLASSIFY_HOLD_MS);
-      setHolding(k);
-      if (k >= 1) { declassify(); return; }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [bossId]);
   // Too long for the page: our own scroll bar (the browser's is hidden), moved by the mouse wheel, the right stick or dragging it
   const body = useRef<HTMLDivElement>(null);
   const [view, setView] = useState({ top: 0, height: 1, client: 1 });
@@ -136,13 +96,6 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
   const field = (label: string, value: string) => (
     <div className="leading-[10px]"><span className="font-bold text-[#7F1D1D]">{label}: </span>{value}</div>
   );
-  // (a line with parts blacked out: [[like this]]; uncovered, they show through a yellow highlighter)
-  const redacted = (body: string) => body.split(/(\[\[.*?\]\])/).map((part, i) => part.startsWith('[[')
-    ? (revealed
-      ? <span key={i} className="bg-[#FDE047]/80 text-[#7F1D1D] font-bold px-[1px] animate-in fade-in duration-700">{part.slice(2, -2)}</span>
-      : <span key={i} onClick={declassify} title="" className="text-transparent select-none px-[1px] cursor-pointer"
-          style={{ background: `rgba(28, 25, 23, ${1 - holding * 0.6})` }}>{part.slice(2, -2)}</span>)
-    : <React.Fragment key={i}>{part}</React.Fragment>);
   const section = (title: string, body: React.ReactNode) => (
     <div className="mt-[5px]">
       <div className="font-bold text-[#7F1D1D] tracking-wider border-b border-[#7F1D1D]/40 mb-[2px] leading-[10px]">{title}</div>
@@ -214,7 +167,7 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
             {/* (what he took home: whichever of the three it was) */}
             {(() => { const id = lastSouvenirOf(bossId); return id && after.taken[id] ? section('REMOVED FROM THE SCENE BY THE ASSET', after.taken[id]) : null; })()}
             {/* (the weapon he came away with, and how) */}
-            {section(`ADDED TO THE ASSET'S ARSENAL: ${WEAPON_NAMES[bossId] ?? 'UNKNOWN'}`, redacted(after.procured))}
+            {section(`ADDED TO THE ASSET'S ARSENAL: ${WEAPON_NAMES[bossId] ?? 'UNKNOWN'}`, after.procured)}
             <div className="flex gap-2 items-start">
               {/* (the evidence photo: what's left of him after his weakness, or him where he fell after anything else) */}
               {(
@@ -230,7 +183,7 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
               </div>
             </div>
             <div className="mt-[6px] p-[4px] leading-[10px] bg-[#FEF3C7] border border-[#A16207]/50 rotate-[-0.6deg]" style={{ boxShadow: '1px 1px 0 rgba(0,0,0,0.25)' }}>
-              <span className="font-bold">HANDLER'S NOTE, POST-OP: </span>{redacted(after.handler)}
+              <span className="font-bold">HANDLER'S NOTE, POST-OP: </span>{after.handler}
             </div>
           </>
         ) : (
@@ -240,9 +193,9 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
             {section('WHAT HE\'S ACTUALLY DOING', d.reality)}
             {section('FIELD INTEL', d.intel)}
             {section('RULES OF ENGAGEMENT', d.rules)}
-            {section('WHY NOT BRING HIM IN ALIVE', redacted(d.notAlive))}
+            {section('WHY NOT BRING HIM IN ALIVE', d.notAlive)}
             <div className="mt-[6px] p-[4px] leading-[10px] bg-[#FEF3C7] border border-[#A16207]/50 rotate-[-0.6deg]" style={{ boxShadow: '1px 1px 0 rgba(0,0,0,0.25)' }}>
-              <span className="font-bold">HANDLER'S NOTE RE: ASSET "MEATHEAD": </span>{redacted(d.handler)}
+              <span className="font-bold">HANDLER'S NOTE RE: ASSET "MEATHEAD": </span>{d.handler}
             </div>
           </>
         )}
