@@ -3,7 +3,13 @@
 // final launch with the death message.
 
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
-import { GameState } from '../../core/state';
+import { GameState, createGameState, createPlayer } from '../../core/state';
+import { Player } from '../../../types';
+import { createFullAmmo } from '../../../constants';
+import { drawPlayer } from '../player/player';
+import { eyesAt } from '../player/spriteOutline';
+import { drawBoss, makeSitter } from '../bosses';
+import { inHead } from '../bosses/kit';
 import { VOLCANO_FINALE, VOLCANO_FINALE_MESSAGE } from '../../scenes/volcanoFinale';
 import { drawSpelledMessage } from './sewerNuke';
 
@@ -227,42 +233,72 @@ const drawCracks = (ctx: Ctx, cx: number, cy: number, seed: number, size: number
   ctx.restore();
 };
 
-const CHAR = '#1C1917', CHAR_LIGHT = '#2E2724';
-
 /** Glowing cracks and embers on a burnt silhouette. */
 const embers = (ctx: Ctx, lt: number, spots: [number, number][]) => {
   ctx.fillStyle = lt % 8 < 4 ? '#FF6D00' : '#FFB020';
   for (const [x, y] of spots) ctx.fillRect(x, y, 3, 2);
 };
 
-/** Meathead, burnt to a crisp: flat-top, huge shoulders, white cartoon eyes. */
+/**
+ * Meathead, burnt to a crisp: his own sprite, flailing, burnt near black, with big white cartoon eyes and embers
+ * glowing on him.
+ */
+let crisp: { p: Player; state: GameState } | null = null;
 const drawCharredMeathead = (ctx: Ctx, lt: number) => {
-  ctx.fillStyle = CHAR;
-  ctx.fillRect(-9, 4, 7, 20); ctx.fillRect(2, 4, 7, 20);          // legs
-  ctx.fillRect(-12, -18, 24, 24);                                 // torso
-  ctx.fillRect(-20, -18, 8, 18); ctx.fillRect(12, -18, 8, 18);    // arms flung out
-  ctx.fillStyle = CHAR_LIGHT; ctx.fillRect(-3, 1, 6, 5);          // belt buckle, dulled
-  ctx.fillStyle = CHAR;
-  ctx.fillRect(-7, -31, 14, 13);                                  // head
-  ctx.fillRect(-8, -35, 16, 5);                                   // the flat-top, still standing
-  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-5, -27, 4, 3); ctx.fillRect(1, -27, 4, 3);
-  ctx.fillStyle = '#000000'; ctx.fillRect(-4, -26, 2, 2); ctx.fillRect(2, -26, 2, 2);
-  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-3, -22, 6, 1);         // a singed grin
+  if (!crisp) {
+    const ammo = createFullAmmo();
+    crisp = { p: createPlayer(ammo), state: createGameState(null, ammo) };
+  }
+  const { p, state } = crisp;
+  p.sootTimer = 0; p.pushbackTimer = 10; p.health = 35; p.hidden = false;
+  p.isGrounded = false; p.vel = { x: 0, y: 3 };
+  p.pos = { x: -p.width / 2, y: 24 - p.height };
+  state.playerAnimFrame = lt;
+  ctx.save();
+  ctx.filter = 'brightness(0.22) sepia(0.5) contrast(1.3)';
+  drawPlayer(ctx, p, state, { currentWeapon: 'GUN', showFilthShield: false, invincibilityEnabled: false });
+  ctx.restore();
+  // Big white cartoon eyes where his are
+  const eyes = eyesAt(0, 24);
+  if (eyes) {
+    ctx.save(); ctx.translate(eyes.x, eyes.y); ctx.rotate(eyes.angle);
+    for (const [x, px] of [[-4.5, -0.8], [4.5, 1]] as const) {
+      ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(x, 0, 3.2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#000000'; ctx.beginPath(); ctx.arc(x + px, 0.4, 1.2, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  }
   embers(ctx, lt, [[-8, -10], [5, -4], [-15, -8], [14, -12], [-6, 12], [4, 16]]);
 };
 
-/** Victor, charred: horned helmet and big pauldrons, stunned eyes. */
+/**
+ * Victor, charred: his own sprite (man bun, sweatband, the open shirt, the chest, the pendant, the foil round his
+ * wrists) burnt near black, flung spread-eagle, with big white cartoon eyes and embers glowing in the cracks.
+ */
+const victorSitter = makeSitter('Victor Volcano');
 const drawCharredVictor = (ctx: Ctx, lt: number) => {
-  ctx.fillStyle = CHAR;
-  ctx.fillRect(-10, 6, 8, 18); ctx.fillRect(2, 6, 8, 18);
-  ctx.fillRect(-14, -18, 28, 26);
-  ctx.beginPath(); ctx.arc(-16, -16, 8, 0, Math.PI * 2); ctx.arc(16, -16, 8, 0, Math.PI * 2); ctx.fill(); // pauldrons
-  ctx.fillRect(-9, -32, 18, 15);
-  ctx.beginPath(); ctx.moveTo(-9, -30); ctx.lineTo(-16, -42); ctx.lineTo(-5, -32); ctx.fill();          // horns
-  ctx.beginPath(); ctx.moveTo(9, -30); ctx.lineTo(16, -42); ctx.lineTo(5, -32); ctx.fill();
-  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-6, -27, 4, 4); ctx.fillRect(2, -27, 4, 4);
-  ctx.fillStyle = '#000000'; ctx.fillRect(-5, -26, 1, 1); ctx.fillRect(4, -25, 1, 1);                  // cross-eyed
-  embers(ctx, lt, [[-10, -8], [8, -2], [-18, -18], [16, -14], [-6, 14], [5, 10], [0, -30]]);
+  const e = { ...victorSitter, health: 0, facing: 1 as const, bossState: 'jumping' as const };
+  ctx.save();
+  ctx.translate(-32, -46);
+  ctx.scale(0.8, 0.8);
+  ctx.filter = 'brightness(0.22) sepia(0.5) contrast(1.3)';
+  drawBoss(ctx, e, 'Victor Volcano', 0);
+  ctx.filter = 'none';
+  // Big white cartoon eyes on his head, looking two ways at once
+  inHead(ctx, { x: 40, y: 19, s: 1.35, f: 1 }, () => {
+    for (const [x, px] of [[-5, -1], [4.5, 1.2]] as const) {
+      ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(x, -3.5, 3, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#000000'; ctx.beginPath(); ctx.arc(x + px, -3.2, 1.1, 0, Math.PI * 2); ctx.fill();
+    }
+    // Mouth hanging open, a wisp of smoke coming out
+    ctx.fillStyle = '#000000'; ctx.beginPath(); ctx.ellipse(0.5, 6, 2.6, 2, 0, 0, Math.PI * 2); ctx.fill();
+  });
+  // The lava cracks still glowing across his chest, and the pendant
+  ctx.strokeStyle = lt % 8 < 4 ? '#FF6D00' : '#FFB020'; ctx.lineWidth = 1.1;
+  ctx.beginPath(); ctx.moveTo(24, 38); ctx.lineTo(28, 41); ctx.lineTo(27, 44); ctx.moveTo(56, 38); ctx.lineTo(52, 41); ctx.lineTo(53, 44); ctx.stroke();
+  ctx.fillStyle = '#FF8A00'; ctx.fillRect(38.5, 42, 3, 5);
+  ctx.restore();
+  embers(ctx, lt, [[-10, -8], [8, -2], [-22, -14], [20, -12], [-6, 14], [5, 10], [-8, -40], [6, -38]]);
 };
 
 /** Inside the arena: the room glows and shakes, then the magma wave surges up from below. */
