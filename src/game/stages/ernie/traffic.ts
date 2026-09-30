@@ -4,8 +4,8 @@
 // minivan doing sixty. Get hit and you're flung down the road (maybe into a
 // gap). Jump on the roof and it'll carry you. A hole in the deck doesn't stop
 // it: it launches off the lip and comes flying over after you, lands in a
-// ball of fire and goes tumbling down the road, burning (or, short of the far
-// side, down the hole). Anything of Ernie's in the road is roadkill.
+// ball of fire and goes up, bits of it everywhere, nothing left (or, short of
+// the far side, down the hole). Anything of Ernie's in the road is roadkill.
 
 import type { Block } from '../../../types';
 import type { FrameContext } from '../../core/context';
@@ -27,22 +27,23 @@ export interface Car {
   color: string;
   /**
    * Coming (only its horn and headlights at the edge of the view yet), driving, launched off the lip of a gap (flying
-   * over it after you), crashed (landed in a fireball, tumbling down the road, then a burning wreck), or going down a gap.
+   * over it after you: it lands in a ball of fire and goes up, nothing left of it), or going down a gap.
    */
-  state: 'coming' | 'driving' | 'launched' | 'crashed' | 'falling';
+  state: 'coming' | 'driving' | 'launched' | 'falling';
   t: number;
   /** You can stand on the roof. */
   roof: Block;
 }
 export interface Traffic { cars: Car[]; timer: number }
 
-export const CAR_W = 100, CAR_H = 46;
+/** A minivan's size: about as tall as he is. (It's drawn from a 100 x 46 design, scaled up to this.) */
+export const CAR_W = 140, CAR_H = 64;
 /** How long the horn and headlights warn you before it's in view. */
 export const CAR_WARN = 75;
 const CAR_DAMAGE = 14, CAR_FLING_X = 11, CAR_FLING_Y = -9;
 const COLORS = ['#2563EB', '#DC2626', '#F8FAFC', '#16A34A', '#FACC15', '#9333EA', '#F97316', '#0EA5E9'];
 
-export const createTraffic = (): Traffic => ({ cars: [], timer: 360 });
+export const createTraffic = (): Traffic => ({ cars: [], timer: 150 });
 
 /** Where the cars run: the bridge from a little way out to a little way short of the far end. */
 const inTraffic = (x: number) => x > COURSE.bridge.x1 + 150 && x < COURSE.bridge.exit - 250;
@@ -51,9 +52,12 @@ export const updateTraffic = (ctx: FrameContext, tr: Traffic) => {
   const { state } = ctx;
   const p = state.player;
   const px = p.pos.x + p.width / 2;
-  if (inTraffic(px) && tr.cars.length === 0 && --tr.timer <= 0) {
-    tr.timer = 480 + Math.floor(Math.random() * 240);
-    const dir: 1 | -1 = Math.random() < 0.72 ? 1 : -1;
+  // (one every few seconds, and two about at once at most: never two on their way in from the same side together)
+  const coming = tr.cars.filter(c => c.state === 'coming');
+  if (inTraffic(px) && tr.cars.length < 2 && --tr.timer <= 0) {
+    tr.timer = 200 + Math.floor(Math.random() * 160);
+    let dir: 1 | -1 = Math.random() < 0.72 ? 1 : -1;
+    if (coming.some(c => c.dir === dir)) dir = dir > 0 ? -1 : 1;
     const x = dir > 0 ? state.camera.x - CAR_W - 30 : state.camera.x + CANVAS_WIDTH + 30;
     const roof: Block = { x, y: GROUND_Y - CAR_H, w: CAR_W, h: 10, type: 'platform', hidden: true, oneWay: true, tag: 'car-roof' };
     tr.cars.push({ x, y: GROUND_Y, dir, speed: 7 + Math.random(), vy: 0, rot: 0, color: COLORS[Math.floor(Math.random() * COLORS.length)], state: 'coming', t: 0, roof });
@@ -70,7 +74,6 @@ export const updateTraffic = (ctx: FrameContext, tr: Traffic) => {
     }
     if (c.state === 'driving') drive(ctx, c);
     else if (c.state === 'launched') flying(ctx, c);
-    else if (c.state === 'crashed') tumbling(ctx, c);
     else { c.vy += 0.6; c.y += c.vy; c.x += c.dir * c.speed * 0.4; c.rot += c.dir * 0.035; }
     c.roof.x = c.x; c.roof.y = c.y - CAR_H;
   }
@@ -123,11 +126,12 @@ const flying = (ctx: FrameContext, c: Car) => {
   if (c.y > GROUND_Y + 20) { c.state = 'falling'; state.blocks = state.blocks.filter(b => b !== c.roof); }
 };
 
-/** Comes down in a ball of fire: whoever's on the roof is thrown off, and it goes tumbling on down the road. */
+/** Comes down in a ball of fire and goes up, all of it: whoever's on the roof is thrown off, and there's nothing left. */
 const crash = (ctx: FrameContext, c: Car) => {
   const { state, fx } = ctx;
   const p = state.player;
-  c.state = 'crashed'; c.t = 0; c.vy = 0;
+  // (whatever it comes down on gets it)
+  hitThings(ctx, c);
   const onRoof = p.pos.x + p.width > c.x && p.pos.x < c.x + CAR_W && Math.abs(p.pos.y + p.height - c.roof.y) < 12;
   state.blocks = state.blocks.filter(b => b !== c.roof);
   if (onRoof) { p.vel.y = -12; p.vel.x = c.dir * 6; p.isGrounded = false; }
@@ -137,20 +141,12 @@ const crash = (ctx: FrameContext, c: Car) => {
   fx.spawnExplosion({ x: cx, y: cy }, '#F97316', 30, 0, 18);
   fx.spawnExplosion({ x: cx, y: cy }, '#FDE047', 18, 0, 12);
   fx.spawnExplosion({ x: cx, y: cy }, '#1C1917', 18, 0, 14);
-  for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: cx, y: cy }, vel: { x: (Math.random() - 0.5) * 12, y: -3 - Math.random() * 8 }, life: 40 + Math.random() * 30, color: i % 3 ? c.color : '#9CA3AF', size: 3 + Math.random() * 5 });
-};
-
-/** Rolling over and over on down the road on fire, slowing, then a burning wreck (or over the edge of the next gap). */
-const tumbling = (ctx: FrameContext, c: Car) => {
-  const { state } = ctx;
-  c.speed *= 0.95;
-  c.x += c.dir * c.speed;
-  c.rot += c.dir * c.speed * 0.02;
-  if (c.speed > 1.5) hitThings(ctx, c);
-  if (state.frame % 3 === 0) state.particles.push({ pos: { x: c.x + CAR_W * Math.random(), y: c.y - CAR_H * Math.random() }, vel: { x: (Math.random() - 0.5), y: -1.5 - Math.random() * 2 }, life: 30, color: Math.random() < 0.5 ? '#F97316' : '#FDE047', size: 4 + Math.random() * 5 });
-  if (state.frame % 5 === 0) state.particles.push({ pos: { x: c.x + CAR_W / 2, y: c.y - CAR_H }, vel: { x: (Math.random() - 0.5) * 0.6, y: -1 - Math.random() }, life: 60, color: 'rgba(40, 36, 34, 0.6)', size: 8 + Math.random() * 8 });
-  // (tumbling on over the lip of another gap: down it goes)
-  if (floorTopAt(deck(state), c.x + CAR_W / 2, c.y, 4) === null) { c.state = 'falling'; c.vy = 0; }
+  fx.spawnExplosion({ x: cx, y: cy }, '#F97316', 24, c.dir * 4, 22);
+  // Bits of it everywhere: panels in its color, glass, the wheels
+  for (let i = 0; i < 34; i++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * CAR_W, y: cy }, vel: { x: c.dir * 3 + (Math.random() - 0.5) * 16, y: -4 - Math.random() * 11 }, life: 50 + Math.random() * 40, color: i % 4 === 0 ? '#9CA3AF' : i % 4 === 1 ? '#BFDBFE' : c.color, size: 4 + Math.random() * 7 });
+  for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: cx + (i - 1.5) * 24, y: cy + 10 }, vel: { x: c.dir * 2 + (i - 1.5) * 3, y: -7 - Math.random() * 6 }, life: 80, color: '#111827', size: 12 });
+  // ...and it's gone
+  c.state = 'falling'; c.y = GROUND_Y + 10000;
 };
 
 /** Whatever's in the way of it: him (unless he's up on the roof), and anything of Ernie's in the road. */
