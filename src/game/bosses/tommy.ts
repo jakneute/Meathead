@@ -51,6 +51,7 @@ const update = (ctx: FrameContext, boss: Enemy) => {
   }
   // His timers run at double speed (the shared boss update ticks them too)
   boss.stateTimer = (boss.stateTimer || 0) - 1;
+  streamHits(ctx, boss);
 
   switch (boss.bossState) {
     case 'submerged_chase': stalk(ctx, boss, sludgeY); break;
@@ -245,7 +246,8 @@ const puke = (ctx: FrameContext, boss: Enemy, sludgeY: number, sweep: typeof PUK
     const mouthY = boss.pos.y + 25;
     helpers.spawnExplosion({ x: splashX, y: splashY }, '#ADFF2F', 3, dir * 1.5, 4);
     helpers.spawnExplosion({ x: splashX, y: splashY }, '#27AE60', 3, 0, 3);
-    // (the stream's for show, arcing down onto the splash: it's the splash that hurts, so what you see is what hits you.
+    // (the stream arcs down onto the splash; the splash hurts, and so does the stream if he's in the way of it (see
+    // streamHits): what you see is what hits you.
     // Thrown to come down right on it: sludge falls at GRAVITY x 1.8)
     const T = 18, g = GRAVITY * 1.8;
     const vy = (splashY - mouthY - (g * T * (T + 1)) / 2) / T;
@@ -265,6 +267,28 @@ const puke = (ctx: FrameContext, boss: Enemy, sludgeY: number, sweep: typeof PUK
     boss.bossState = 'vulnerable_idle';
     boss.stateTimer = VULNERABLE_FRAMES;
   }
+};
+
+/**
+ * The stream itself, not just where it splashes: a glob of it that comes down on him (he's stood between Tommy and the
+ * splash) hits him, and bursts on him. An uppercut cuts through it, the same as it does the splash.
+ */
+const streamHits = (ctx: FrameContext, boss: Enemy) => {
+  const { state, cheats } = ctx;
+  const { player } = state;
+  const pb = { x: player.pos.x, y: player.pos.y, w: player.width, h: player.height };
+  state.projectiles = state.projectiles.filter(p => {
+    if (!p.id.startsWith('tommy-puke-')) return true;
+    if (p.pos.x + p.width < pb.x || p.pos.x > pb.x + pb.w || p.pos.y + p.height < pb.y || p.pos.y > pb.y + pb.h) return true;
+    ctx.bossHelpers.spawnExplosion({ x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, '#ADFF2F', 6, 0, 5);
+    if (player.isUppercutting) return false;
+    if ((player.invincibilityTimer || 0) <= 0 && !cheats.invincible && state.deathTimer <= 0) {
+      const dir = boss.pukeDir || (midX(player) < midX(boss) ? -1 : 1);
+      hurtPlayer(ctx, PUKE_DAMAGE, 'sludge', { x: dir * 7, y: -4 }, TOMMY_PUKE_PUSHBACK_DURATION);
+      ctx.bossHelpers.spawnExplosion({ x: midX(player), y: player.pos.y + player.height / 2 }, '#27AE60', 8, 0, 6);
+    }
+    return false;
+  });
 };
 
 /** Weakness: crude oil clogs him up, pops him out of the sludge and stuns him. */
