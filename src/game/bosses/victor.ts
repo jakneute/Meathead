@@ -29,6 +29,8 @@ const VENT_MIN_GAP = 100;
  * it swings round after you (radians a frame: slow, so getting round the other side of him buys you a while); what it
  * does; and how long before he can do it again.
  */
+/** How far from either wall he has to be to barf (backed up against one, there's no getting round behind him). */
+const BARF_WALL_CLEARANCE = 170;
 const BARF_CHANCE = 0.5, BARF_WINDUP = 45, BARF_FRAMES = 220, BARF_REACH = 900, BARF_TURN = 0.011, BARF_DAMAGE = 12, BARF_COOLDOWN = 300;
 /** How wide the stream is: at his mouth, and how much it spreads over its length. */
 export const BARF_WIDTH = { base: 10, spread: 30 };
@@ -64,7 +66,8 @@ const update = (ctx: FrameContext, boss: Enemy) => {
     default: {
       // Rested: the barf (when it's ready, about half the time), or up for the next jump and the vents
       if (boss.stateTimer! > 0) break;
-      if (boss.isGroundedBoss && state.frame >= (boss.barfReadyAt ?? 0) && Math.random() < BARF_CHANCE) startBarf(ctx, boss);
+      const clear = boss.pos.x - ARENA_LEFT > BARF_WALL_CLEARANCE && ARENA_RIGHT - (boss.pos.x + boss.width) > BARF_WALL_CLEARANCE;
+      if (boss.isGroundedBoss && clear && state.frame >= (boss.barfReadyAt ?? 0) && Math.random() < BARF_CHANCE) startBarf(ctx, boss);
       else jump(ctx, boss);
     }
   }
