@@ -14,6 +14,8 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { COURSE, Place, Prop, Room, roomOf } from './course';
 import type { BarryRuntime } from './runtime';
 import { blackout } from './lighting';
+import { makeKindEnemy } from '../../enemies/kinds';
+import { drawKindEnemy } from '../../render/enemies';
 
 type Ctx = CanvasRenderingContext2D;
 const Y = GROUND_Y;
@@ -174,6 +176,13 @@ const drawPowerWalls = (ctx: Ctx, state: GameState, room: Room, rt: BarryRuntime
     ctx.fillText(down ? 'OFFLINE' : 'ONLINE', cx + cw / 2, by + 70, cw - 18);
   });
   ctx.textAlign = 'left';
+  // Not in yet (the fade in, before the room's turn has put them out): the generators and Barry's man drawn where
+  // they'll be, so nothing pops in
+  if (rt.power.phase === 'waiting') {
+    for (const gx of COURSE.generators) drawGenerator(ctx, standIn('generator', gx), state, 100);
+    const m = standIn('minion', COURSE.power.x2 - 160); m.aiState = 'taunt'; m.facing = -1;
+    drawKindEnemy(ctx, m, state);
+  }
   // A breaker panel at either end, its lights blinking
   for (const px of [x1 + 30, x2 - 110]) {
     ctx.fillStyle = '#374151'; ctx.fillRect(px, top + 60, 80, 110);
@@ -280,6 +289,16 @@ const drawRoomProp = (ctx: Ctx, state: GameState, pr: Prop, room: Room) => {
       break;
     }
   }
+};
+
+/** A stand-in for one of the power room's lot, where the room will put him (drawn only). */
+const standIns = new Map<string, Enemy>();
+const standIn = (kind: 'generator' | 'minion', x: number): Enemy => {
+  const k = `${kind}${x}`;
+  let e = standIns.get(k);
+  if (!e) { e = makeKindEnemy(kind, x, COURSE.power.floor); standIns.set(k, e); }
+  if (kind === 'generator') { e.pos.x = x - e.width / 2; e.pos.y = COURSE.power.floor - e.height; }
+  return e;
 };
 
 /** Anything in front of him indoors (the generators' charge, as a readout). */
