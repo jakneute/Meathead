@@ -340,7 +340,14 @@ const junk = (ctx: FrameContext, b: BikeRun) => {
 
 /** How far ahead a ramp's called out (well before it's on the screen: about three seconds at a cruise). */
 export const RAMP_CALL = 1700;
-/** The next ramp he hasn't gone over, if it's close enough to call out: which, how far, whether it's still off the screen. */
+/** What has to be jumped (or launched off) to get past it: no wheelieing through these. */
+const MUST_CLEAR: RoadJunk['look'][] = ['pothole', 'car'];
+
+/**
+ * The next ramp he hasn't gone over, if it's close enough to call out: which, how far, whether it's still off the
+ * screen. Not while there's something to jump between him and it (he'd be told to wheelie with a pothole or a car to
+ * get over first): it's called once that's behind him, if it's still off the screen by then.
+ */
 export const nextRamp = (state: GameState, b: BikeRun) => {
   const p = state.player;
   const px = p.pos.x + p.width;
@@ -349,6 +356,7 @@ export const nextRamp = (state: GameState, b: BikeRun) => {
   const j = COURSE.junk[i];
   const dist = j.x - 70 - px;
   if (dist > RAMP_CALL) return null;
+  if (COURSE.junk.some((o, k) => MUST_CLEAR.includes(o.look) && !b.done.has(k) && o.x + 70 > p.pos.x && o.x < j.x)) return null;
   return { i, dist, offscreen: j.x - 70 > state.camera.x + CANVAS_WIDTH };
 };
 
