@@ -10,6 +10,8 @@ import PracticeRange from './PracticeRange';
 // them (the arrows, the stick, the mouse) and read the tags; leave to get back to the map.
 
 const REPEAT_MS = 180;
+/** (in the list of things to pick: the practice range) */
+const RANGE = '__range';
 
 const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLeave, weapons }) => {
   /** Out back at the practice range (the garage's keys and pad do nothing meanwhile). */
@@ -17,13 +19,14 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
   const practiceRef = useRef(practice); practiceRef.current = practice;
   const canvas = useRef<HTMLCanvasElement>(null);
   const owned = useMemo(() => ownedSouvenirs(), []);
-  const order = useMemo(() => SOUVENIR_ORDER.filter(id => owned.includes(id)), [owned]);
-  const [sel, setSel] = useState<string | null>(order[0] ?? null);
+  // (the souvenirs, and then the way out back to the practice range: it's one of the things to go through, so the
+  // stick and the arrows get to it like anything else)
+  const order = useMemo(() => [...SOUVENIR_ORDER.filter(id => owned.includes(id)), RANGE], [owned]);
+  const [sel, setSel] = useState<string | null>(order[0]);
   const selRef = useRef(sel); selRef.current = sel;
   const leaveRef = useRef(onLeave); leaveRef.current = onLeave;
 
   const step = (d: number) => {
-    if (!order.length) return;
     const i = Math.max(0, order.indexOf(selRef.current ?? order[0]));
     setSel(order[(i + d + order.length) % order.length]);
   };
@@ -46,7 +49,7 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
     const onKey = (e: KeyboardEvent) => {
       if (practiceRef.current) return;
       const k = e.key.toLowerCase();
-      if (k === 'r') { setPractice(true); return; }
+      if ((k === 'enter' || k === ' ') && selRef.current === RANGE) { e.preventDefault(); setPractice(true); return; }
       if (k === 'escape' || k === 'backspace') { e.preventDefault(); leaveRef.current(); }
       else if (k === 'arrowright' || k === 'd' || k === 'arrowdown' || k === 's') stepRef.current(1);
       else if (k === 'arrowleft' || k === 'a' || k === 'arrowup' || k === 'w') stepRef.current(-1);
@@ -54,18 +57,18 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
     const onMouse = (e: MouseEvent) => { if (e.button === 2 && !practiceRef.current) leaveRef.current(); };
     window.addEventListener('keydown', onKey);
     window.addEventListener('mousedown', onMouse);
-    let raf = 0, last = 0, prevB = true, prevY = true;
+    let raf = 0, last = 0, prevB = true, prevA = true;
     const poll = () => {
       const gp = getActiveGamepad();
-      if (gp && practiceRef.current) prevB = true;
+      if (gp && practiceRef.current) { prevB = true; prevA = true; }
       else if (gp) {
         const now = Date.now(), m = getGamepadMovement(gp, 0.3);
         const d = m.right || m.down ? 1 : m.left || m.up ? -1 : 0;
         if (d && now - last > REPEAT_MS) { last = now; stepRef.current(d); }
-        const b = isButtonPressed(gp, GP_BUTTONS.B), y = isButtonPressed(gp, GP_BUTTONS.Y);
+        const b = isButtonPressed(gp, GP_BUTTONS.B), a = isButtonPressed(gp, GP_BUTTONS.A);
         if (b && !prevB) leaveRef.current();
-        if (y && !prevY) setPractice(true);
-        prevB = b; prevY = y;
+        if (a && !prevA && selRef.current === RANGE) setPractice(true);
+        prevB = b; prevA = a;
       }
       raf = requestAnimationFrame(poll);
     };
@@ -79,7 +82,7 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
       onContextMenu={e => e.preventDefault()}>
       <canvas ref={canvas} width={GARAGE_W * 2} height={GARAGE_H * 2} className="absolute inset-0 w-full h-full" />
       {/* The souvenirs to point at */}
-      {order.map(id => {
+      {order.filter(id => id !== RANGE).map(id => {
         const b = SLOTS[id].box;
         return <div key={id} className="absolute cursor-pointer" style={{ left: b.x, top: b.y, width: b.w, height: b.h }}
           onMouseEnter={() => setSel(id)} onClick={() => setSel(id)} />;
@@ -99,6 +102,11 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
             </div>
             <div className="mt-1 text-[7px] leading-[11px] text-white/90">"{s.note}"</div>
           </>
+        ) : sel === RANGE ? (
+          <>
+            <div className="text-[10px] text-red-400">THE PRACTICE RANGE</div>
+            <div className="mt-1 text-[7px] leading-[11px] text-white/90">OUT BACK. A RING, TWO GUYS WHO NEED THE MONEY, AND EVERYTHING HE'S GOT TO TRY ON THEM.</div>
+          </>
         ) : (
           <div className="text-[8px] leading-[12px] text-white/80">NOTHING IN HERE YET. GO KILL SOMEBODY AND BRING SOMETHING HOME.</div>
         )}
@@ -108,8 +116,8 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
         ◀ MAP
       </button>
       {/* Out back: the practice range */}
-      <button onClick={() => setPractice(true)}
-        className="absolute right-[10px] top-[26px] px-3 py-2 text-[8px] text-black bg-red-500 border-2 border-black shadow-[3px_3px_0_#000] hover:bg-red-400">
+      <button onClick={() => setPractice(true)} onMouseEnter={() => setSel(RANGE)}
+        className={`absolute right-[10px] top-[26px] px-3 py-2 text-[8px] text-black border-2 shadow-[3px_3px_0_#000] ${sel === RANGE ? 'bg-yellow-400 border-white animate-pulse' : 'bg-red-500 border-black'}`}>
         PRACTICE RANGE ▶
       </button>
       {practice && <PracticeRange weapons={weapons} onLeave={() => setPractice(false)} />}
