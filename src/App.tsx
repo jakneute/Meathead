@@ -23,7 +23,7 @@ import WeaponGetScene from './components/WeaponGetScene';
 import { GameStatus, WeaponType } from './types';
 import { INITIAL_PLAYER_HEALTH, MAX_AMMO, POWER_CELLS, createFullAmmo } from './constants';
 import { getStages, getStartingWeapons, sortWeapons, BOSS_WEAPON_MAP, WEAPONS_AFTER_SET_0, ALL_WEAPONS } from './content/roster';
-import { VULGARITIES, BOSS_DIALOGUE } from './content/dialogue';
+import { VULGARITIES, BOSS_DIALOGUE, BOSS_REBUKES } from './content/dialogue';
 import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS, menuButtons } from './game/platform/gamepad';
 import { speak, say, isSpeaking, getBossVoice, takeFreshLine, MEATHEAD_MENU_VOICE } from './game/platform/speech';
 import { playLockInSound, playEngageSound } from './game/platform/audio';
@@ -331,9 +331,11 @@ const App: React.FC = () => {
   };
 
   /** Meathead complains if you pick a boss he already killed. */
-  const speakRebuke = () => {
+  /** He's already killed this one: something about him in particular, mostly (or just that he's dead as shit). */
+  const speakRebuke = (bossId?: string) => {
     if (isSpeaking() || Date.now() - lastRebukeEndRef.current < REBUKE_COOLDOWN_MS) return;
-    const line = takeFreshLine(VULGARITIES.REBUKE);
+    const own = bossId ? BOSS_REBUKES[bossId] : undefined;
+    const line = (own && Math.random() < 0.7 ? takeFreshLine(own) : null) ?? takeFreshLine(VULGARITIES.REBUKE) ?? (own ? takeFreshLine(own) : null);
     if (!line) return;
     speak(line, MEATHEAD_MENU_VOICE, {
       onDone: () => { lastRebukeEndRef.current = Date.now(); },
@@ -341,7 +343,7 @@ const App: React.FC = () => {
   };
 
   const handleSelectStage = (stage: string) => {
-    if (defeatedStages.includes(stage)) { speakRebuke(); return; }
+    if (defeatedStages.includes(stage)) { speakRebuke(stage); return; }
     setSelectedStage(stage);
     setHealth(INITIAL_PLAYER_HEALTH);
     setPower(POWER_CELLS);
@@ -368,7 +370,7 @@ const App: React.FC = () => {
     if (!stage || engaging) return;
     setSelectedIndex(idx);
     // Old targets are all dead already
-    if (showArchive || defeatedStages.includes(stage.id)) { setLockedIndex(null); speakRebuke(); return; }
+    if (showArchive || defeatedStages.includes(stage.id)) { setLockedIndex(null); speakRebuke(stage.id); return; }
     setLockedIndex(idx);
     playLockInSound();
   };

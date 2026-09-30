@@ -20,3 +20,4 @@ game/stages/oscar/chase.ts:583 name: undefined
 game/stages/oscar/bar.ts:152 template: `NOT ENOUGH GAS YET. ${left === 1 ? 'ONE MORE LINE' : 'TWO MORE LINES'} TO OPEN.`
 game/core/update.ts:159 name: undefined
 game/core/update.ts:433 name: undefined
+App.tsx:337 name: undefined

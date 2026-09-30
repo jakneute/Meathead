@@ -6246,6 +6246,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ARTIE'S A POPSICLE NOW. I PISSED ON HIM.",
+  "from": "BOSS_REBUKES"
+ },
+ {
+  "voice": "meathead",
   "text": "ASCEND TO HELL",
   "from": "VULGARITIES"
  },
@@ -6328,6 +6333,11 @@
   "voice": "meathead",
   "text": "BARFED ON",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BARRY'S LIGHTS ARE OUT. HIS, SPECIFICALLY.",
+  "from": "BOSS_REBUKES"
  },
  {
   "voice": "meathead",
@@ -6806,6 +6816,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DALE'S BEEN DELIVERED. SIGNED FOR AND EVERYTHING.",
+  "from": "BOSS_REBUKES"
+ },
+ {
+  "voice": "meathead",
   "text": "DAMN IT ALL",
   "from": "VULGARITIES"
  },
@@ -7071,6 +7086,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ERNIE'S DONE SHAKING. FOREVER.",
+  "from": "BOSS_REBUKES"
+ },
+ {
+  "voice": "meathead",
   "text": "EVERYBODY'S ON BREAK TODAY.",
   "from": "game/stages/oscar/bar.ts:101"
  },
@@ -7312,7 +7332,7 @@
  {
   "voice": "meathead",
   "text": "FUCK YEAH! LET'S GO!",
-  "from": "App.tsx:392"
+  "from": "App.tsx:394"
  },
  {
   "voice": "meathead",
@@ -7588,6 +7608,11 @@
   "voice": "meathead",
   "text": "GLACIER GAINS",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GO BACK TO ALASKA? FOR WHAT? THE MOOSE?",
+  "from": "BOSS_REBUKES"
  },
  {
   "voice": "meathead",
@@ -8161,6 +8186,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HECTOR BLEW HIMSELF OUT. WITH HELP. MINE.",
+  "from": "BOSS_REBUKES"
+ },
+ {
+  "voice": "meathead",
   "text": "HELL'S ANGEL? GO HOME!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -8353,6 +8383,11 @@
   "voice": "meathead",
   "text": "I ALREADY OBLITERATED THAT TRASH.",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I ALREADY PUT THAT HOTHEAD OUT.",
+  "from": "BOSS_REBUKES"
  },
  {
   "voice": "meathead",
@@ -8666,6 +8701,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M DONE WITH TEXAS. TEXAS IS DONE WITH OSCAR.",
+  "from": "BOSS_REBUKES"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M GETTING CHARBROILED OVER HERE!",
   "from": "HAZARD_HURT"
  },
@@ -8706,13 +8746,33 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M NOT CLIMBING THAT FIRE ESCAPE AGAIN.",
+  "from": "BOSS_REBUKES"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M NOT CRYING! IT'S THE GAS!",
   "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
+  "text": "I'M NOT GOING BACK IN THAT SEWER. I SMELLED LIKE IT FOR A WEEK.",
+  "from": "BOSS_REBUKES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT GOING BACK TO THAT DAYCARE. THE KIDS WANT A REMATCH.",
+  "from": "BOSS_REBUKES"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M NOT RESISTING! I'M WINNING!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT RIDING THAT CONVOY AGAIN. MY SPINE STILL HURTS.",
+  "from": "BOSS_REBUKES"
  },
  {
   "voice": "meathead",
@@ -8927,7 +8987,7 @@
  {
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
-  "from": "App.tsx:392"
+  "from": "App.tsx:394"
  },
  {
   "voice": "meathead",
@@ -9057,7 +9117,7 @@
  {
   "voice": "meathead",
   "text": "LET'S FUCKING GO!",
-  "from": "App.tsx:392"
+  "from": "App.tsx:394"
  },
  {
   "voice": "meathead",
@@ -9436,6 +9496,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NEW YORK'S GOT POWER AGAIN. BARRY DOESN'T.",
+  "from": "BOSS_REBUKES"
+ },
+ {
+  "voice": "meathead",
   "text": "NEXT!",
   "from": "GENERIC_KILL_LINES"
  },
@@ -9677,7 +9742,7 @@
  {
   "voice": "meathead",
   "text": "OH HELL YEAH!",
-  "from": "App.tsx:392"
+  "from": "App.tsx:394"
  },
  {
   "voice": "meathead",
@@ -9768,6 +9833,11 @@
   "voice": "meathead",
   "text": "ORBITAL STRIKE",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "OSCAR'S BEEN REFINED. HE'S IN SOMEBODY'S GAS TANK.",
+  "from": "BOSS_REBUKES"
  },
  {
   "voice": "meathead",
@@ -10288,6 +10358,11 @@
   "voice": "meathead",
   "text": "SAME TIME TOMORROW, CHAMP?",
   "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAN FRANCISCO CAN KEEP ITS BRIDGE. I'M DONE WITH IT.",
+  "from": "BOSS_REBUKES"
  },
  {
   "voice": "meathead",
@@ -11231,6 +11306,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT OLD MAN'S ROCKS ARE ALL MOVED. HE'S UNDER ONE.",
+  "from": "BOSS_REBUKES"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT PURSE HAD A BRICK IN IT!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -11351,6 +11431,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE CARTEL'S OUT OF BUSINESS. I'M THE REASON.",
+  "from": "BOSS_REBUKES"
+ },
+ {
+  "voice": "meathead",
   "text": "THE CEILING IS LEAKING ON MY TRAPS!",
   "from": "HAZARD_HURT"
  },
@@ -11363,6 +11448,11 @@
   "voice": "meathead",
   "text": "THE CEILING'S LEAKING NEIGHBORS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE CLUB'S CLOSED. PERMANENTLY. I CLOSED IT.",
+  "from": "BOSS_REBUKES"
  },
  {
   "voice": "meathead",
@@ -11403,6 +11493,11 @@
   "voice": "meathead",
   "text": "THE F-250 GOT ME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE FORECAST FOR MIAMI: NO MORE HECTOR.",
+  "from": "BOSS_REBUKES"
  },
  {
   "voice": "meathead",
@@ -11453,6 +11548,16 @@
   "voice": "meathead",
   "text": "THE MOUNTAIN IS EATING ME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE MOUNTAIN'S QUIET NOW. I MADE IT QUIET.",
+  "from": "BOSS_REBUKES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE OIL FIELD'S DRY. OSCAR'S DRIER.",
+  "from": "BOSS_REBUKES"
  },
  {
   "voice": "meathead",
@@ -11666,6 +11771,16 @@
  },
  {
   "voice": "meathead",
+  "text": "TOMMY'S BEEN FLUSHED. JOB DONE.",
+  "from": "BOSS_REBUKES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOMMY'S IN THE WATER SUPPLY NOW. DON'T DRINK IT.",
+  "from": "BOSS_REBUKES"
+ },
+ {
+  "voice": "meathead",
   "text": "TOO MANY EYES! TOO FEW BRAINS!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -11863,6 +11978,11 @@
   "voice": "meathead",
   "text": "VERTICAL LIMIT ACHIEVED",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "VICTOR'S EXTINCT. THE DEAD KIND OF VOLCANO.",
+  "from": "BOSS_REBUKES"
  },
  {
   "voice": "meathead",
