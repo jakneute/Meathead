@@ -487,6 +487,12 @@ export const BOSS_DIALOGUE: {
       "THE BRIDGE IS FALLING ON ME!",
       "A RIVET! TO THE SKULL!",
     ],
+    // Tommy coming up through the board under him
+    'tommy_burst': [
+      "HE CAME UP RIGHT UNDER ME!",
+      "WHOA! I'M FLYING! I'M FLYING AND IT'S GROSS!",
+      "UP THROUGH THE FLOOR?! THAT'S CHEATING!",
+    ],
     // Alcatraz
     'convict': [
       "HE HIT ME WITH HIS BALL AND CHAIN!",

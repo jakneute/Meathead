@@ -61,6 +61,7 @@ export const DEATH_LINES: Record<string, string[]> = {
   parkranger: ['RANGERED', 'KEPT OFF THE GRASS'],
   parkranger_shot: ['SHOT BY SMOKEY', 'ESCORTED OFF THE PREMISES'],
   cave_in: ['THE ROCK FELL ON YOU', 'BURIED IN ALCATRAZ'],
+  tommy_burst: ['LAUNCHED FROM BELOW', 'TOMMY CAME UP FOR AIR'],
   rockslide: ['ROCKSLIDE', 'THE ROCK ROCKED YOU'],
   traffic: ['RUN OVER ON THE BRIDGE', 'HIT AND RUN'],
   floating_car: ['HIT A CAR IN THE OCEAN', 'SUNK BY A SEDAN'],

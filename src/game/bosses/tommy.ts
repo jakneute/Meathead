@@ -21,6 +21,8 @@ const BOARD_Y = 480;
 export const TOMMY_BOARD_Y = BOARD_Y;
 const DEFAULT_EMERGE_Y = 405;
 const EMERGE_DAMAGE = 20;
+/** Stood on the board he comes up through: thrown up in the air, for this much. */
+const LAUNCH_DAMAGE = 12;
 const PUKE_FRAMES = 230;
 const PUKE_DAMAGE = 12;
 const VULNERABLE_FRAMES = 110;
@@ -182,12 +184,14 @@ const shakeBoard = (ctx: FrameContext, boss: Enemy, sludgeY: number) => {
     helpers.playGunSound('barf');
     helpers.setScreenShake(25);
 
-    // Standing on it: heavy damage and a violent launch
+    // Standing on it: he comes up under you and throws you sky high (it hurts, but not as much as the rest of him)
     const onBoard = player.pos.x + player.width > board.x && player.pos.x < board.x + board.w &&
       Math.abs(player.pos.y + player.height - board.y) < 25;
     if (onBoard && (player.invincibilityTimer || 0) <= 0 && !cheats.invincible) {
-      const knockX = player.pos.x < board.x + board.w / 2 ? -PLAYER_PUSHBACK_VEL_X : PLAYER_PUSHBACK_VEL_X;
-      hurtPlayer(ctx, EMERGE_DAMAGE, TOMMY, { x: knockX, y: PLAYER_PUSHBACK_VEL_Y });
+      const knockX = player.pos.x < board.x + board.w / 2 ? -3 : 3;
+      hurtPlayer(ctx, LAUNCH_DAMAGE, 'tommy_burst', { x: knockX, y: -19 });
+      player.isGrounded = false;
+      helpers.spawnExplosion({ x: midX(player), y: player.pos.y + player.height }, '#ADFF2F', 16, 0, 10);
     }
   }
   boss.bossState = 'emerge_shatter';

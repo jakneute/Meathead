@@ -2457,7 +2457,7 @@
  {
   "voice": "boss.tommy",
   "text": "BLAARGH! CRUDE OIL?! I CAN'T CHUNDER!",
-  "from": "game/bosses/tommy.ts:308"
+  "from": "game/bosses/tommy.ts:312"
  },
  {
   "voice": "boss.tommy",
@@ -4351,6 +4351,11 @@
  },
  {
   "voice": "death",
+  "text": "LAUNCHED FROM BELOW",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "LEG DAY MEETS FRONT BUMPER",
   "from": "game/stages/dale/town.ts:629"
  },
@@ -5562,6 +5567,11 @@
  {
   "voice": "death",
   "text": "TOASTED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TOMMY CAME UP FOR AIR",
   "from": "content/deaths"
  },
  {
@@ -8393,6 +8403,11 @@
   "voice": "meathead",
   "text": "HE CAME DOWN. MOSTLY.",
   "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE CAME UP RIGHT UNDER ME!",
+  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
@@ -12791,6 +12806,11 @@
  },
  {
   "voice": "meathead",
+  "text": "UP THROUGH THE FLOOR?! THAT'S CHEATING!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "UPPERCUT A FREIGHT TRAIN? NO! SHOULDER! TO! SHOULDER!",
   "from": "game/stages/victor/doorman.ts:529"
  },
@@ -13117,6 +13137,11 @@
  {
   "voice": "meathead",
   "text": "WHO'S THROWING PATIO FURNITURE?",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHOA! I'M FLYING! I'M FLYING AND IT'S GROSS!",
   "from": "HAZARD_HURT"
  },
  {
