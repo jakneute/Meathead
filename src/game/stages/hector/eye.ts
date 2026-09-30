@@ -2,7 +2,8 @@
 // bloodshot human eyeball hanging dead centre in the storm, never moving, its
 // pupil following you about. The Eye itself is harmless (land on it and you just
 // bounce off it); what hurts is all the junk the storm flings at you from off
-// screen (a warning flashes at the edge first). The junk you stand on wears out
+// screen (a warning flashes at the edge first). The junk you stand on (up through it from below, but no dropping
+// down through it: that's straight into the storm) wears out
 // under you: every moment you're stood on a piece takes some out of it (in the
 // air it doesn't), none of it comes back, it wobbles once it's nearly done, and
 // once it's gone it's gone: dawdle and you'll run out of places to stand. It
@@ -77,7 +78,7 @@ const A = () => COURSE.eye;
 export const createEyeFight = (state: GameState, startedAt: number): EyeFight => {
   const a = A();
   const plats = PLATS.map((p, i): EyePlat => ({
-    block: { x: a.x + p.x, y: a.y + p.y, w: p.w, h: 16, type: 'platform', hidden: true, oneWay: true, tag: `eyeplat-${i}` },
+    block: { x: a.x + p.x, y: a.y + p.y, w: p.w, h: 16, type: 'platform', hidden: true, oneWay: true, noDropThrough: true, tag: `eyeplat-${i}` },
     home: { x: a.x + p.x, y: a.y + p.y, w: p.w }, state: 'solid', t: 0, high: p.high, wear: 0,
   }));
   state.blocks.push(...plats.map(p => p.block));
@@ -272,7 +273,7 @@ export const updateEye = (ctx: FrameContext, e: Enemy, f: EyeFight): boolean => 
       ctx.fx.spawnDamageNumber({ x: a.x + EYE_CX - 40, y: a.y + EYE_CY - EYE_R - 20 }, bawl, true, '#7DD3FC');
       f.sore = 200;
       shakeScreen(state, 10, 6);
-      playSound('roar');
+      playSound('roar', 0.3, 4); // (a sob more than a roar: quieter, higher)
     }
     // (off it he goes, whichever way he came in)
     player.isCharging = false; player.isSliding = false; player.isUppercutting = false; player.isDivekicking = false;

@@ -572,7 +572,7 @@ const onJumpThroughOnly = (state: GameState) => {
   const p = state.player;
   if (collidesWithSolid(state, { ...boundsOf(p), y: p.pos.y + 1 })) return false;
   const feet = p.pos.y + p.height;
-  return state.blocks.some(b => b.oneWay && isSolid(state, b) && p.pos.x + p.width > b.x && p.pos.x < b.x + b.w && Math.abs(feet - b.y) <= 1);
+  return state.blocks.some(b => b.oneWay && !b.noDropThrough && isSolid(state, b) && p.pos.x + p.width > b.x && p.pos.x < b.x + b.w && Math.abs(feet - b.y) <= 1);
 };
 
 /** Touching the closed boss door starts the boss transition. */

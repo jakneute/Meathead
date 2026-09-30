@@ -502,6 +502,8 @@ export interface Block extends Rect {
   indoor?: boolean;
   /** A jump-through ledge: you can jump up through it from below (no bonked head) and land on top; only its top is solid. */
   oneWay?: boolean;
+  /** A jump-through he can come up through but can't drop down through (down + jump does nothing on it). */
+  noDropThrough?: boolean;
 }
 
 export interface Volcano {
