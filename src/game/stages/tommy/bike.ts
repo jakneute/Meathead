@@ -71,6 +71,8 @@ export interface BikeRun {
   boostAt: number;
   /** In the air off a ramp: coming down on a car, he just goes up again. */
   rampAir: boolean;
+  /** When he first ran into each bit of junk (frame): a wheelie a moment late, still touching it, still counts. */
+  touched: Map<number, number>;
   /** The ramps that have been called out coming up (a ding, once each). */
   rampCalled: Set<number>;
 }
@@ -88,7 +90,7 @@ export const createBikeRun = (state: GameState, startedAt: number): BikeRun => {
   const b: BikeRun = {
     phase: past ? 'gone' : onBike ? 'riding' : 'waiting', t: 0, step: 0, stepAt: 0,
     rider: { x: COURSE.hood.bike, y: GROUND_Y, vx: 0, vy: 0, rot: 0, state: onBike || past ? 'down' : 'sitting' },
-    crew: !onBike && !past, v: onBike ? BIKE_BASE : 0, done: new Set(), spawned: 0, hint: '', hintT: 0, hinted: new Set(), rampCalled: new Set(),
+    crew: !onBike && !past, v: onBike ? BIKE_BASE : 0, done: new Set(), spawned: 0, hint: '', hintT: 0, hinted: new Set(), rampCalled: new Set(), touched: new Map(),
     bottle: { x: COURSE.road.hazmat, y: GROUND_Y - 60, vx: 0, vy: 0, state: 'held' },
     fly: { x: 0, y: 0, vx: 0, vy: 0, rot: 0 }, bikeWreck: { x: 0, y: 0, vx: 0, vy: 0, rot: 0 }, zoom: 0, said: 0, camX: NaN, boostAt: -999, rampAir: false,
   };
@@ -243,6 +245,10 @@ const riding = (ctx: FrameContext, b: BikeRun, talk: Talk, controls: Controls): 
   // A ramp coming up, still off the screen: a ding as the call-out goes up (the stage draws it)
   const next = nextRamp(state, b);
   if (next && next.offscreen && !b.rampCalled.has(next.i)) { b.rampCalled.add(next.i); playSound('alert'); }
+  // (a wheelie popped this very frame counts already: the moves go in after this)
+  // (a wheelie on the ground or in the air, that is: up + special is the bunny hop, down + special in the air the slam)
+  const wheelieNow = controls.charge || (controls.special && !controls.up && !(controls.down && !p.isGrounded));
+  if (wheelieNow && (p.isCharging || p.power >= 1 || ctx.cheats.infinitePower)) b.boostAt = state.frame;
   junk(ctx, b);
   teach(state, b);
   banter(state, b, talk);
@@ -303,10 +309,13 @@ const junk = (ctx: FrameContext, b: BikeRun) => {
       return;
     }
     if (!rectsOverlap(pb, box)) return;
+    if (!b.touched.has(i)) b.touched.set(i, state.frame);
+    // (hit it a moment ago and still on it: a late wheelie still gets him out of it)
+    const late = state.frame - b.touched.get(i)! < LATE_GRACE;
     if (j.look === 'ramp') {
-      // Boosting into it (a wheelie, or one just now) and it's a big one: off the top and high into the air, faster.
-      // Otherwise he just rolls over it
-      if (boosting(state, b) && (p.isGrounded || p.vel.y >= 0)) {
+      // Boosting into it (a wheelie, or one just now, or popped while he's already on it) and it's a big one: off the top
+      // and high into the air, faster. Otherwise he just rolls over it
+      if (boosting(state, b)) {
         launch(ctx, b, -17.5, 'SICK JUMP!');
         b.v = Math.min(BIKE_FAST + 3, b.v + 3); b.done.add(i);
         rampAway(ctx, b);
@@ -314,12 +323,20 @@ const junk = (ctx: FrameContext, b: BikeRun) => {
       }
       return;
     }
+    // The bunny hop or the slam into a parked car: wrecked (the bike's fine, somehow)
+    if (j.look === 'car' && (p.isUppercutting || p.isDivekicking)) {
+      b.done.add(i);
+      smash(state, j, box);
+      shakeScreen(state, 10, 6);
+      fx.spawnDamageNumber({ x: j.x - 30, y: box.y - 30 }, 'WRECKED!', true, '#FDE047');
+      return;
+    }
     // Coming down on a wrecked car off a ramp: off the roof and up again
     if (j.look === 'car' && b.rampAir && !p.isGrounded && p.vel.y > 0) { launch(ctx, b, -17.5, 'AGAIN!'); b.v = Math.min(BIKE_FAST + 3, b.v + 3); b.done.add(i); rampAway(ctx, b); return; }
     // Boosting into a wrecked car: up and over it, no harm done
-    if (j.look === 'car' && boosting(state, b) && (p.isGrounded || p.vel.y >= 0)) { launch(ctx, b, -15, 'OVER IT!'); b.v = Math.min(BIKE_FAST + 3, b.v + 3); b.done.add(i); rampAway(ctx, b); return; }
+    if (j.look === 'car' && boosting(state, b)) { launch(ctx, b, -15, 'OVER IT!'); b.v = Math.min(BIKE_FAST + 3, b.v + 3); b.done.add(i); rampAway(ctx, b); return; }
     // Cones go flying whatever; the rest break if he wheelies through them (not a parked car: that he has to clear)
-    const breaks = j.look === 'cones' || ((p.isCharging || p.isDivekicking) && j.look !== 'car' && j.look !== 'pothole');
+    const breaks = j.look === 'cones' || ((boosting(state, b) || p.isDivekicking || p.isUppercutting) && j.look !== 'car' && j.look !== 'pothole');
     if (breaks) {
       b.done.add(i);
       smash(state, j, box);
@@ -329,6 +346,8 @@ const junk = (ctx: FrameContext, b: BikeRun) => {
     // (in the air over the flat stuff he's fine; the tall stuff he has to be over, not into)
     if (!p.isGrounded && (j.look === 'pothole' || j.look === 'glass')) return;
     if (p.invincibilityTimer > 0) return;
+    // (a moment's grace before it counts as riding into it: time for a late wheelie. Not a pothole: nothing to wheelie)
+    if (late && j.look !== 'pothole') return;
     b.done.add(i);
     hurtPlayer(ctx, JUNK_DAMAGE[j.look], `road_${j.look}`, { x: -3, y: -8 });
     if (j.look === 'car') b.v = 2;
@@ -362,6 +381,8 @@ export const nextRamp = (state: GameState, b: BikeRun) => {
 
 /** Boosting: a wheelie going now, or one in the last half second (a tap's enough). */
 const BOOST_GRACE = 30;
+/** Frames into something before it counts as a crash (a late wheelie in them still clears it). */
+const LATE_GRACE = 7;
 const boosting = (state: GameState, b: BikeRun) => state.player.isCharging || state.frame - b.boostAt < BOOST_GRACE;
 
 /** Up into the air off something he boosted into (the wheelie's over: he's flying). */
