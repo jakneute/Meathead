@@ -518,6 +518,35 @@ export const drawRuinsHouse = (ctx: Ctx, state: GameState) => {
 const drawLairSign = (ctx: Ctx, state: GameState) => {
   const P = COURSE.ruins.pit, PW = COURSE.ruins.pitW, y = RUINS_Y, f = state.frame;
   const sx = P - 120, sy = y - 300;
+  // Yellow paint slopped all round the hole (the lips, the rubble, down the sides of it), a bucket kicked over, a
+  // roller left lying: somebody really wanted you to know this is the way
+  const paint = '#FACC15';
+  ctx.fillStyle = paint;
+  for (let i = 0; i < 14; i++) {
+    const side = i % 2 ? P + PW + 6 + hash(i) * 70 : P - 6 - hash(i) * 70;
+    ctx.beginPath(); ctx.ellipse(side, y - 1, 8 + hash(i + 3) * 14, 3 + hash(i + 5) * 2, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  // (a thick stripe right along both lips, and drips running down inside the hole)
+  ctx.fillRect(P - 24, y - 3, 24, 5); ctx.fillRect(P + PW, y - 3, 24, 5);
+  for (let i = 0; i < 7; i++) { const dx = i % 2 ? P + PW - 4 - hash(i) * 6 : P + hash(i) * 6; const len = 20 + hash(i + 9) * 70 + Math.sin(f * 0.02 + i) * 3; ctx.fillRect(dx, y, 4, len); ctx.beginPath(); ctx.arc(dx + 2, y + len, 3, 0, Math.PI * 2); ctx.fill(); }
+  // (and it's run: two long streaks down the walls of the shaft, the whole way down, dripping off the bottom of it
+  // into a puddle on the cavern floor where you land)
+  const bottomY = GROUND_Y - CAVERN_ROOF;
+  for (const [sx0, w0] of [[P + 1, 5], [P + PW - 7, 6]] as [number, number][]) {
+    ctx.beginPath(); ctx.moveTo(sx0, y);
+    for (let yy = y; yy <= bottomY; yy += 40) ctx.lineTo(sx0 + Math.sin(yy * 0.02 + sx0) * 2, yy);
+    ctx.lineTo(sx0 + w0, bottomY); for (let yy = bottomY; yy >= y; yy -= 40) ctx.lineTo(sx0 + w0 + Math.sin(yy * 0.02 + sx0) * 2, yy);
+    ctx.closePath(); ctx.fill();
+  }
+  for (let i = 0; i < 3; i++) { const dx = P + 14 + i * 36, q = ((f * 1.2 + i * 40) % 90) / 90; ctx.fillRect(dx, bottomY + q * (CAVERN_ROOF - 6), 3, 6); }
+  ctx.beginPath(); ctx.ellipse(P + PW / 2, GROUND_Y - 1, 70, 5, 0, 0, Math.PI * 2); ctx.fill();
+  // (splashed up the rubble and a broken wall stump, and a big painted arrow on the ground pointing at it)
+  ctx.beginPath(); ctx.moveTo(P - 200, y - 2); ctx.lineTo(P - 90, y - 2); ctx.lineTo(P - 90, y - 7); ctx.lineTo(P - 60, y); ctx.lineTo(P - 90, y + 7); ctx.lineTo(P - 90, y + 2); ctx.lineTo(P - 200, y + 2); ctx.closePath(); ctx.fill();
+  ctx.save(); ctx.translate(P - 250, y); ctx.rotate(1.3);
+  ctx.fillStyle = '#9CA3AF'; ctx.fillRect(-10, -12, 20, 22); ctx.fillStyle = paint; ctx.fillRect(-10, -12, 20, 5);
+  ctx.restore();
+  ctx.beginPath(); ctx.ellipse(P - 238, y - 1, 26, 3, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#44403C'; ctx.fillRect(P + PW + 60, y - 4, 18, 3); ctx.fillStyle = paint; ctx.fillRect(P + PW + 76, y - 8, 14, 10);
   // (big: scaled up about its middle)
   ctx.save(); ctx.translate(sx, sy + 31); ctx.scale(1.4, 1.4); ctx.translate(-sx, -(sy + 31));
   // The pole, and a little buzzing transformer box on it

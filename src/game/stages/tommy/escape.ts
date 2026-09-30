@@ -171,7 +171,8 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
     case 'melt':
       p.inCutscene = true;
       if (es.t === 20) playSound('barf');
-      if (es.t === MELT_FRAMES - 30) queueLines(state, talk, [{ who: 'meathead', text: 'EXCUSE ME. SORRY. WRONG HOUSE.' }]);
+      // (and then, back in control, the big neon sign over the hole: he can't read it)
+      if (es.t === MELT_FRAMES - 30) queueLines(state, talk, [{ who: 'meathead', text: 'EXCUSE ME. SORRY. WRONG HOUSE.' }, { who: 'meathead', text: "OOH. SHINY LETTERS. ...ONE OF 'EM'S AN L, I THINK." }]);
       if (es.t > MELT_FRAMES) { es.phase = 'ruins'; es.t = 0; p.inCutscene = false; }
       return { ...NO_CONTROLS };
     case 'ruins':
@@ -179,7 +180,7 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
       state.cameraMaxX = p.pos.y < GROUND_Y - 1000 ? COURSE.ruins.x2 - CANVAS_WIDTH : undefined;
       // Walking on over the rubble, to the edge of the pit and over it
       // (only from up there: not a respawn down at the door dropping in from above it)
-      if (p.pos.x + p.width / 2 > COURSE.ruins.pit && p.pos.y > RUINS_Y - 20 && p.pos.y < RUINS_Y + 200 && !p.isGrounded) { es.phase = 'drop'; es.t = 0; es.dropT = 0; es.landedT = 0; hush(state, talk); queueLines(state, talk, [{ who: 'meathead', text: 'AAAAAAAAAAAAAAAAAAAAAAAA' }]); }
+      if (p.pos.x + p.width / 2 > COURSE.ruins.pit && p.pos.y > RUINS_Y - 20 && p.pos.y < RUINS_Y + 200 && !p.isGrounded) { es.phase = 'drop'; es.t = 0; es.dropT = 0; es.landedT = 0; silenceAll(); hush(state, talk); queueLines(state, talk, [{ who: 'meathead', text: 'AAAAAAAAAAAAAAAAAAAAAAAA' }]); }
       return controls;
     case 'drop': {
       // A long way down: black before the bottom, and back as he hits it
@@ -204,7 +205,11 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
           state.camera.x = Math.max(state.cameraMinX, Math.min(BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH, p.pos.x - 250));
         }
         if (es.dropT === es.landedT) hush(state, talk);
-        if (es.dropT - es.landedT > DROP_FADE_IN + 20) { es.phase = 'done'; p.inCutscene = false; state.cameraOverride = null; }
+        if (es.dropT - es.landedT > DROP_FADE_IN + 20) {
+          es.phase = 'done'; p.inCutscene = false; state.cameraOverride = null;
+          // (the sign up there said so, in letters ten feet high)
+          queueLines(state, talk, [{ who: 'meathead', text: "IS THIS TOMMY'S LAIR?" }]);
+        }
       }
       return { ...NO_CONTROLS };
     }

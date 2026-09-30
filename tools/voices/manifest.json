@@ -6657,7 +6657,7 @@
  {
   "voice": "meathead",
   "text": "AAAAAAAAAAAAAAAAAAAAAAAA",
-  "from": "game/stages/tommy/escape.ts:182"
+  "from": "game/stages/tommy/escape.ts:183"
  },
  {
   "voice": "meathead",
@@ -7662,7 +7662,7 @@
  {
   "voice": "meathead",
   "text": "EXCUSE ME. SORRY. WRONG HOUSE.",
-  "from": "game/stages/tommy/escape.ts:174"
+  "from": "game/stages/tommy/escape.ts:175"
  },
  {
   "voice": "meathead",
@@ -9561,6 +9561,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IS THIS TOMMY'S LAIR?",
+  "from": "game/stages/tommy/escape.ts:211"
+ },
+ {
+  "voice": "meathead",
   "text": "IT BIT ME! IT'S ALL TEETH AND ATTITUDE!",
   "from": "HAZARD_HURT"
  },
@@ -10508,6 +10513,11 @@
   "voice": "meathead",
   "text": "OOF!",
   "from": "game/stages/dale/convoy.ts:389"
+ },
+ {
+  "voice": "meathead",
+  "text": "OOH. SHINY LETTERS. ...ONE OF 'EM'S AN L, I THINK.",
+  "from": "game/stages/tommy/escape.ts:175"
  },
  {
   "voice": "meathead",
