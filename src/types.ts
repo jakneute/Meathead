@@ -174,7 +174,7 @@ export interface Player extends Entity {
 }
 
 export type BossState =
-  | 'idle' | 'jumping' | 'attacking' | 'hurricane' | 'telegraphing' | 'stunned_drop'
+  | 'idle' | 'barfing' | 'jumping' | 'attacking' | 'hurricane' | 'telegraphing' | 'stunned_drop'
   | 'truck_incoming' | 'using_shipment' | 'speed_dash' | 'shooting' | 'teleporting'
   | 'blackout' | 'blackout_teleport' | 'ground_pound' | 'lightning_storm' | 'exhausted'
   | 'submerged_chase' | 'telegraph_emerge' | 'emerge_shatter' | 'puke_closing_in'
@@ -246,6 +246,12 @@ export interface Enemy extends Entity {
   homeX?: number;
   homeY?: number;
   facing?: 1 | -1;
+  /** Victor's fire barf: frames into it (wind-up, then the stream), where it's pointing (radians, 0 = right), how far
+   * it reaches right now, and the frame he can do it again from. */
+  barfT?: number;
+  barfAngle?: number;
+  barfLen?: number;
+  barfReadyAt?: number;
   /** Frames of the flash from the last hit (mid-bosses show every hit; they have no invincibility). */
   hitFlash?: number;
   patrolRange: number;

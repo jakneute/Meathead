@@ -1,4 +1,5 @@
-// Victor Volcano: jumps, lands, then opens magma vents on a wall and the floor.
+// Victor Volcano: jumps, lands, then opens magma vents on a wall and the floor. Get up close to him and he barfs
+// fire: a slow stream out of his mouth, a quarter of the screen long, that swings round after you.
 // His weakness, the tsunami, turns the vents into steam (see bosses/hazards.ts).
 
 import { Enemy, Projectile, Rect, Volcano } from '../../types';
@@ -20,6 +21,16 @@ const ERUPTION_FRAMES = 180;
 const REST_FRAMES = 40;
 const VENT_MIN_GAP_FROM_VICTOR = 150;
 const VENT_MIN_GAP = 100;
+
+/**
+ * The fire barf: how close you have to be (horizontally, from his middle) for him to go for it; the gurgling wind-up
+ * (no fire yet); how long the stream goes for; how far it reaches (a quarter of the screen); how fast it swings round
+ * after you (radians a frame: slow, you can outrun it, you can't stand in it); what it does; and how long before he
+ * can do it again.
+ */
+const BARF_RANGE = 280, BARF_WINDUP = 36, BARF_FRAMES = 150, BARF_REACH = 200, BARF_TURN = 0.018, BARF_DAMAGE = 12, BARF_COOLDOWN = 240;
+/** Where his mouth is (the stream comes out of it). */
+export const victorMouth = (e: Enemy) => ({ x: e.pos.x + e.width * 0.5, y: e.pos.y + e.height * 0.33 });
 
 const update = (ctx: FrameContext, boss: Enemy) => {
   const { state } = ctx;
@@ -44,10 +55,78 @@ const update = (ctx: FrameContext, boss: Enemy) => {
     case 'jumping':
       if (boss.isGroundedBoss) telegraphVents(ctx, boss);
       break;
-    default:
-      if (boss.stateTimer! <= 0) jump(ctx, boss);
+    case 'barfing':
+      barf(ctx, boss);
+      break;
+    default: {
+      // Too close: he barfs fire at you before he goes anywhere
+      const near = Math.abs(midX(state.player) - midX(boss)) < BARF_RANGE;
+      if (near && boss.isGroundedBoss && state.frame >= (boss.barfReadyAt ?? 0)) startBarf(ctx, boss);
+      else if (boss.stateTimer! <= 0) jump(ctx, boss);
+    }
   }
   if (boss.isGroundedBoss) boss.vel.x *= 0.95;
+};
+
+const BARF_LINES = ["FEEL THE HEAT, MEATHEAD!", "PERSONAL SPACE, BRO! IT'S ON FIRE!", "TOO CLOSE! TOO HOT!", "BACK OFF MY VIP SECTION!"];
+
+const startBarf = (ctx: FrameContext, boss: Enemy) => {
+  const { state } = ctx;
+  boss.bossState = 'barfing';
+  boss.barfT = 0; boss.barfLen = 0;
+  const m = victorMouth(boss), p = state.player;
+  boss.barfAngle = Math.atan2(p.pos.y + p.height / 2 - m.y, midX(p) - m.x);
+  boss.vel.x = 0;
+  if (Math.random() < 0.6) speakAsBoss(VICTOR, pickRandom(BARF_LINES), ctx.bossHelpers, 'casual');
+};
+
+/** The barf: a gurgle, then the stream, swinging round after him slowly; it hurts to be in it. */
+const barf = (ctx: FrameContext, boss: Enemy) => {
+  const { state, fx } = ctx;
+  const p = state.player;
+  boss.vel.x = 0;
+  boss.barfT = (boss.barfT ?? 0) + 1;
+  const t = boss.barfT, m = victorMouth(boss);
+  // (the tidal wave coming through him puts it out: a hiss of steam, and he's done)
+  const doused = state.tsunamiActive && Math.abs(state.tsunamiX - midX(boss)) < 120;
+  if (t > BARF_WINDUP + BARF_FRAMES || doused) {
+    if (doused) for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: m.x, y: m.y }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 40, color: '#E5E7EB', size: 6 + Math.random() * 6 });
+    boss.bossState = 'idle'; boss.stateTimer = REST_FRAMES; boss.barfT = undefined; boss.barfLen = 0;
+    boss.barfReadyAt = state.frame + BARF_COOLDOWN;
+    return;
+  }
+  if (t < BARF_WINDUP) {
+    // Gurgling: embers out of his mouth, the sound of it coming up
+    if (t % 4 === 0) state.particles.push({ pos: { x: m.x, y: m.y }, vel: { x: (Math.random() - 0.5) * 2, y: -Math.random() * 2 }, life: 16, color: Math.random() < 0.5 ? '#FF6D00' : '#FFD600', size: 2 + Math.random() * 3 });
+    if (t === 1) fx.playGunSound('ignite');
+    return;
+  }
+  // Swinging round after him, slowly
+  const want = Math.atan2(p.pos.y + p.height / 2 - m.y, midX(p) - m.x);
+  let d = want - (boss.barfAngle ?? 0);
+  while (d > Math.PI) d -= Math.PI * 2;
+  while (d < -Math.PI) d += Math.PI * 2;
+  boss.barfAngle = (boss.barfAngle ?? 0) + Math.max(-BARF_TURN, Math.min(BARF_TURN, d));
+  // (it runs out to full reach, and back in at the end)
+  const s = t - BARF_WINDUP;
+  boss.barfLen = BARF_REACH * Math.min(1, s / 18, (BARF_FRAMES - s) / 14);
+  if (s % 6 === 0) fx.playGunSound('flame');
+  // In it: it burns
+  const a = boss.barfAngle!, len = boss.barfLen;
+  const ux = Math.cos(a), uy = Math.sin(a);
+  const pts = [{ x: midX(p), y: p.pos.y + 8 }, { x: midX(p), y: p.pos.y + p.height / 2 }, { x: midX(p), y: p.pos.y + p.height - 8 }];
+  const hit = pts.some(q => {
+    const along = (q.x - m.x) * ux + (q.y - m.y) * uy;
+    if (along < 0 || along > len) return false;
+    const off = Math.abs((q.x - m.x) * -uy + (q.y - m.y) * ux);
+    return off < 10 + 22 * (along / BARF_REACH) + p.width / 2;
+  });
+  if (hit && p.invincibilityTimer <= 0 && state.deathTimer <= 0) {
+    hurtPlayer(ctx, BARF_DAMAGE, 'victor_barf', { x: (midX(p) < midX(boss) ? -1 : 1) * PLAYER_PUSHBACK_VEL_X, y: PLAYER_PUSHBACK_VEL_Y });
+    p.sootTimer = Math.max(p.sootTimer ?? 0, 90); // (and he's blacked with it for a moment)
+  }
+  // (and it lights the room: a few sparks off it for the glow)
+  if (s % 2 === 0) state.particles.push({ pos: { x: m.x + ux * len * Math.random(), y: m.y + uy * len * Math.random() }, vel: { x: ux * 2, y: uy * 2 - 1 }, life: 12, color: '#FFB300', size: 3 });
 };
 
 /** Just landed: mark a wall vent (alternating sides) and one or two floor vents. */
@@ -172,7 +251,7 @@ export const updateCorkedVent = (ctx: FrameContext, v: Volcano): boolean => {
   const { player } = state;
   const dx = player.pos.x + player.width / 2 - cx, dy = player.pos.y + player.height / 2 - cy;
   if (dx * dx + dy * dy < CORK_BLAST_RADIUS * CORK_BLAST_RADIUS && player.invincibilityTimer <= 0) {
-    hurtPlayer(ctx, CORK_BLAST_DAMAGE, 'fire', { x: (dx < 0 ? -1 : 1) * PLAYER_PUSHBACK_VEL_X, y: PLAYER_PUSHBACK_VEL_Y });
+    hurtPlayer(ctx, CORK_BLAST_DAMAGE, 'cork_blast', { x: (dx < 0 ? -1 : 1) * PLAYER_PUSHBACK_VEL_X, y: PLAYER_PUSHBACK_VEL_Y });
   }
   return false;
 };

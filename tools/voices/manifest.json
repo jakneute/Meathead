@@ -2411,6 +2411,11 @@
  },
  {
   "voice": "boss.victor",
+  "text": "BACK OFF MY VIP SECTION!",
+  "from": "game/bosses/victor.ts:80"
+ },
+ {
+  "voice": "boss.victor",
   "text": "BULLETS MELT BEFORE THEY REACH ME!",
   "from": "REACTIONS"
  },
@@ -2418,6 +2423,11 @@
   "voice": "boss.victor",
   "text": "ELECTRIC? I'M ALREADY RED HOT!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "FEEL THE HEAT, MEATHEAD!",
+  "from": "game/bosses/victor.ts:80"
  },
  {
   "voice": "boss.victor",
@@ -2506,6 +2516,11 @@
  },
  {
   "voice": "boss.victor",
+  "text": "PERSONAL SPACE, BRO! IT'S ON FIRE!",
+  "from": "game/bosses/victor.ts:80"
+ },
+ {
+  "voice": "boss.victor",
   "text": "PRESSURE ALWAYS WINS, MEATHEAD!",
   "from": "VICTOR_LINES"
  },
@@ -2538,6 +2553,11 @@
   "voice": "boss.victor",
   "text": "THE DOORMAN HAD ONE JOB, BRO!",
   "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "TOO CLOSE! TOO HOT!",
+  "from": "game/bosses/victor.ts:80"
  },
  {
   "voice": "boss.victor",
@@ -3046,6 +3066,11 @@
  },
  {
   "voice": "death",
+  "text": "BARBECUED BY VOLCANO BREATH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "BARRY TURNED YOUR LIGHTS OUT",
   "from": "content/deaths"
  },
@@ -3117,6 +3142,11 @@
  {
   "voice": "death",
   "text": "BLOWN UP BY METH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BLOWN UP BY YOUR OWN CORK",
   "from": "content/deaths"
  },
  {
@@ -5121,6 +5151,11 @@
  },
  {
   "voice": "death",
+  "text": "TOO CLOSE TO THE FIRE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "TOOK THE EXPRESS DOWN",
   "from": "game/stages/artie/tram.ts:107"
  },
@@ -5162,6 +5197,11 @@
  {
   "voice": "death",
   "text": "TWO MINUTES FOR BEING DEAD",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "UNCORKED",
   "from": "content/deaths"
  },
  {
@@ -7731,6 +7771,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE BARFED FIRE ON ME! THAT'S NOT EVEN A MOVE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "HE BEAT ME WITH A STICK! A STICK!",
   "from": "HAZARD_HURT"
  },
@@ -8986,6 +9031,11 @@
  },
  {
   "voice": "meathead",
+  "text": "LAVA BREATH! BRUSH YOUR TEETH, VICTOR!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "LEARN TO DRIVE, YOU MANIAC!",
   "from": "HAZARD_HURT"
  },
@@ -9173,6 +9223,11 @@
   "voice": "meathead",
   "text": "MY EVERYTHING!",
   "from": "game/stages/dale/convoy.ts:389"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY FACE! HE COOKED MY FACE!",
+  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
@@ -10146,6 +10201,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ROCK SHRAPNEL IN MY GLUTES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "ROCK! ROCK! WHY IS THERE ALWAYS A ROCK!",
   "from": "HAZARD_HURT"
  },
@@ -10488,6 +10548,11 @@
   "voice": "meathead",
   "text": "SHOULDER TO THE STRATOSPHERE!",
   "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOULDN'T HAVE STOOD NEXT TO THE PRESSURE COOKER!",
+  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
@@ -11311,6 +11376,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE CORK BLEW! MY EYEBROWS WENT WITH IT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "THE DOG'S GOT MY ANKLE! BAD DOG!",
   "from": "HAZARD_HURT"
  },
@@ -11588,6 +11658,11 @@
   "voice": "meathead",
   "text": "TOASTED GAINS",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOO CLOSE! TOO HOT! BACK UP, BACK UP!",
+  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",

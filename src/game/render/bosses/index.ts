@@ -1,5 +1,6 @@
 // Boss sprites (all procedural canvas art), one file per boss.
 
+import { drawVictorBarf } from './victorBarf';
 import { Enemy } from '../../../types';
 import { drawArtie } from './artie';
 import { drawVictor } from './victor';
@@ -27,7 +28,7 @@ interface BossSprite {
 
 const BOSS_SPRITES: Record<string, BossSprite> = {
   'Artie Avalanche': { body: drawArtie },
-  'Victor Volcano': { body: drawVictor },
+  'Victor Volcano': { body: drawVictor, gear: drawVictorBarf },
   'Ernie Earthquake': { body: drawErnie, gear: (ctx, e, f) => { drawErnieHeldBoulder(ctx, e, f); drawIceEncasing(ctx, e, f); } },
   'Hector Hurricane': { body: drawHector, gear: drawHectorVortex },
   'Drug Trade Dale': { body: drawDale, gear: drawDaleTruck, overlay: drawDaleDrugs },
