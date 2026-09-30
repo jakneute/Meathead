@@ -215,6 +215,41 @@ const drawSurfScene = (ctx: Ctx, state: GameState, t: number) => {
       if (i % 2 === 0) skeleton(ctx, hx + 30, 470 - e * 60, 0.8, e * 2);
     }
   }
+  // Folk out on the street and their dogs: running for it (not fast enough), then caught up, tumbling over into the
+  // wave, melting down to the bone
+  for (let i = 0; i < 16; i++) {
+    const dog = i % 3 === 1;
+    const wx = 480 + i * 170 + (i % 2) * 60 + t * (dog ? 3.2 : 2.2);
+    const px = wx - scroll;
+    if (px < -100 || px > W + 60) continue;
+    const e = clamp01((crestX + 50 - px) / 140);
+    const run = Math.sin(f * 0.6 + i) * 5;
+    ctx.save();
+    if (e > 0) {
+      // Swept up into it: lifted, tumbling back, going under
+      ctx.translate(px - e * 120, 510 - Math.sin(e * Math.PI) * 140 + e * e * 60);
+      ctx.rotate(-e * 5 - i);
+      ctx.globalAlpha = 1 - e;
+    } else ctx.translate(px, 510);
+    if (dog) {
+      ctx.fillStyle = ['#78350F', '#A16207', '#1C1917'][i % 3];
+      ctx.fillRect(-14, -16, 28, 10); ctx.fillRect(10, -22, 10, 10);
+      ctx.fillRect(-12 + run * 0.5, -6, 4, 6); ctx.fillRect(8 - run * 0.5, -6, 4, 6); ctx.fillRect(-16, -18, 4, 3);
+      if (e > 0) { ctx.strokeStyle = '#E7E5D6'; ctx.lineWidth = 2; ctx.strokeRect(-12, -15, 24, 7); }
+    } else {
+      const shirt = ['#DC2626', '#2563EB', '#F59E0B', '#7C3AED', '#0D9488'][i % 5], skin = ['#E0AC69', '#8D5524', '#C68642', '#F2C9A0'][i % 4];
+      ctx.fillStyle = '#1F2937'; ctx.fillRect(-7 + run * 0.4, -24, 6, 24); ctx.fillRect(2 - run * 0.4, -24, 6, 24);
+      ctx.fillStyle = shirt; ctx.fillRect(-9, -50, 18, 27);
+      ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(0, -58, 8, 0, Math.PI * 2); ctx.fill();
+      // (arms up, running for it; looking back at it)
+      ctx.fillRect(-13, -66 + run * 0.3, 4, 16); ctx.fillRect(9, -66 - run * 0.3, 4, 16);
+      ctx.fillStyle = '#450A0A'; ctx.beginPath(); ctx.ellipse(-3, -56, 2.5, 3, 0, 0, Math.PI * 2); ctx.fill();
+      if (e > 0.3) skeleton(ctx, 0, 0, 0.7, (e - 0.3) * 2);
+    }
+    ctx.restore();
+    // (and they're screaming)
+    if (!dog && e === 0 && px < crestX + 260 && i % 2 === 0) { ctx.save(); ctx.font = 'bold 7px "Press Start 2P"'; ctx.fillStyle = '#FEF9C3'; ctx.strokeStyle = '#111'; ctx.lineWidth = 2; ctx.strokeText('AAAH!', px - 16, 440); ctx.fillText('AAAH!', px - 16, 440); ctx.restore(); }
+  }
   // The wave: a wall of it from the left up to the crest, curling over, foam along the top, junk in it
   const top = 250 + Math.sin(t * 0.08) * 10;
   const g = ctx.createLinearGradient(0, top, 0, H);
