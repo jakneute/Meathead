@@ -53,10 +53,14 @@ const drawBody = (ctx: Ctx, d: EnemyDeath, state: GameState, o: { filter?: strin
   ctx.restore();
 };
 
+/** Where its head is (from the middle of its feet): a themed enemy's own; the practice dummies' as they're drawn (the
+ * boxer's up top of his tall frame, the balloon man's just over his little box: he's shorter than anybody). */
+const headOf = (d: EnemyDeath) => d.dummy === 'air' ? { x: 0, y: -(d.h + 3), r: 7 } : d.dummy === 'ground' ? { x: 3, y: -66, r: 9 } : KIND_HEAD[d.sprite!.kind];
+
 /** Where its eyes are (world coords): on a themed enemy's head, else near the top of the block. */
 const eyesAt = (d: EnemyDeath, dy = 0) => {
   if (!d.sprite) return { x1: d.x + d.w * 0.3 - 3, x2: d.x + d.w * 0.62 - 2, y: d.y + Math.min(d.h * 0.3, 18) + dy };
-  const head = KIND_HEAD[d.sprite.kind], cx = d.x + d.w / 2 + head.x * d.sprite.facing;
+  const head = headOf(d), cx = d.x + d.w / 2 + head.x * d.sprite.facing;
   return { x1: cx - 6, x2: cx + 2, y: d.y + d.h + head.y - 2 + dy };
 };
 
@@ -189,7 +193,7 @@ const drawFried = (ctx: Ctx, d: EnemyDeath, frame: number, state: GameState) => 
 /** A themed enemy's skeleton, glowing white through the x-ray flash: four-legged, bird or human. */
 const drawKindSkeleton = (ctx: Ctx, d: EnemyDeath) => {
   const s = d.sprite!;
-  const head = KIND_HEAD[s.kind];
+  const head = headOf(d);
   ctx.save();
   ctx.translate(d.x + d.w / 2, d.y + d.h);
   ctx.scale(s.facing, 1);
