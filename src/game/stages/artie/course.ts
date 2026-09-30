@@ -6,7 +6,7 @@
 //
 //   trailhead (teaching, then applying: icicles, crumbling ice, crevasses)
 //   -> tram ride (kill everything that smashes in)
-//   -> moose (mid-boss) -> summit trail (wind, snowballs, combos)
+//   -> the high woods (wind) -> moose (mid-boss) -> the ice cave (snowballs, icicles under a low roof, combos)
 //   -> skier -> avalanche ski run -> ranger cabin -> boss door
 
 import { BOSS_DOOR_X, GROUND_Y } from '../../../constants';
@@ -199,13 +199,17 @@ export const buildCourse = (): Course => {
   // A fallen trunk across the path (up on it, over it); a wolverine on the far side
   ledges.push({ x: c.x - 150, y: c.y - 44, w: 170, crumble: false, look: 'log' });
   spawn('wolverine', c.x - 20);
-  c.flat(260);
+  // The wind, taught on the flat through a gap in the trees: it shoves you back
+  const windFlat = c.x;
+  c.flat(400);
+  winds.push({ x1: windFlat + 60, x2: windFlat + 360, push: -2.2 });
   c.slope(220, -50);
-  // The frozen creek: a short gap, a bough hanging over it
+  // The frozen creek: a short gap, a bough hanging over it, the wind gusting down it
   const creek = c.x;
   c.flat(80);
   c.pit(130);
   ledges.push({ x: creek + 110, y: c.y - 70, w: 90, crumble: false, look: 'bough' });
+  winds.push({ x1: creek - 40, x2: creek + 250, push: -2.1, gust: { on: 100, off: 110 } });
   c.flat(360);
   // A big pine: up its boughs to a large ammo; a goat on a stump, an eagle over the treetops
   const big = c.x - 240;
@@ -217,6 +221,16 @@ export const buildCourse = (): Course => {
   ledges.push({ x: c.x - 70, y: c.y - 60, w: 60, crumble: false });
   spawn('goat', c.x - 40, 60);
   spawn('eagle', c.x - 60, 260);
+  // A windswept gap in the trees: crumbling ice either side of a solid bough (somewhere to wait out a gust)
+  c.flat(160);
+  const gapW = c.x;
+  c.pit(340);
+  ledges.push({ x: gapW + 40, y: c.y, w: 80, crumble: true });
+  ledges.push({ x: gapW + 150, y: c.y - 25, w: 80, crumble: false, look: 'bough' });
+  ledges.push({ x: gapW + 255, y: c.y - 5, w: 70, crumble: true });
+  winds.push({ x1: gapW - 60, x2: gapW + 360, push: -2.1, gust: { on: 100, off: 100 } });
+  c.flat(300);
+  spawn('wolverine', c.x - 120);
   c.slope(260, -40);
   c.flat(220);
   // (the trees all through it, thick; thinning out round the clearing's edges)
@@ -233,18 +247,16 @@ export const buildCourse = (): Course => {
   // The summit trail runs through the mountain, in a cave of ice: its roof is low, and flush with the tops of the
   // overhangs, so the icicles have to be got past underneath (and nothing's gone over from above)
   const caveX1 = c.x + 150;
-  // Wind, taught on the flat: it shoves you back
+  // In past the mouth
   c.flat(400);
-  winds.push({ x1: mooseX1 + 900, x2: mooseX1 + 1180, push: -2.2 });
   c.slope(300, -80);
   c.flat(100);
-  // Wind in gusts over crumbling ice across a crevasse
+  // Crumbling ice across a crevasse (the middle ledge solid)
   const crev3 = c.x;
   c.pit(340);
   ledges.push({ x: crev3 + 40, y: c.y, w: 80, crumble: true });
-  ledges.push({ x: crev3 + 150, y: c.y - 25, w: 80, crumble: false }); // (solid: somewhere to wait out a gust)
+  ledges.push({ x: crev3 + 150, y: c.y - 25, w: 80, crumble: false }); // (solid: somewhere to get your footing)
   ledges.push({ x: crev3 + 255, y: c.y - 5, w: 70, crumble: true });
-  winds.push({ x1: crev3 - 60, x2: crev3 + 360, push: -2.1, gust: { on: 100, off: 100 } });
   c.flat(520);
   // Snowballs, taught on the flat: small and slow, jump them
   chutes.push({ x: c.x - 10, y: c.y, every: 170, size: 34, speed: 3, from: crev3 + 400 });
@@ -255,26 +267,24 @@ export const buildCourse = (): Course => {
   chutes.push({ x: c.x - 10, y: c.y, every: 140, size: 56, speed: 4, from: c.x - 900 });
   spawn('eagle', c.x - 250, 170);
   c.flat(250);
-  spawn('shooter', c.x - 150); // (back from the edge, so he can't shoot you into the crevasse while you wait out a gust, and clear of the chute's mouth, so its snowballs don't flatten him unless you shove him into them)
-  // The hardest gap: three crumbling ledges, icicles and gusts
+  spawn('shooter', c.x - 150); // (back from the edge, so he can't shoot you into the crevasse while you wait on a ledge, and clear of the chute's mouth, so its snowballs don't flatten him unless you shove him into them)
+  // The hardest gap: three crumbling ledges under icicles (the roof right on top of them: under, or not at all)
   const crev4 = c.x;
   c.pit(420);
   ledges.push({ x: crev4 + 45, y: c.y, w: 70, crumble: true });
   ledges.push({ x: crev4 + 170, y: c.y - 40, w: 70, crumble: false });
   ledges.push({ x: crev4 + 295, y: c.y - 10, w: 70, crumble: true });
   overhang(crev4 + 20, crev4 + 400, 220, [crev4 + 110, crev4 + 230, crev4 + 340]);
-  winds.push({ x1: crev4 - 40, x2: crev4 + 440, push: -2.1, gust: { on: 80, off: 110 } });
   c.flat(620);
   pickups.push({ x: c.x - 560, y: c.y - 30, type: 'large_health' });
   spawn('charger', c.x - 240);
   spawn('eagle', c.x - 130, 170);
   spawn('shielder', c.x - 60);
-  // One more stretch before the ridge: big snowballs down a slope into gusts of wind (hold your ground or get bowled),
-  // a last crevasse with the wind across it, then the wildlife up top
+  // One more stretch before the ridge: big snowballs down a slope, a last crevasse with icicles off the roof over it,
+  // then the wildlife up top
   const slope5 = c.x;
   c.slope(450, -120);
   chutes.push({ x: c.x - 10, y: c.y, every: 150, size: 50, speed: 4, from: slope5 - 200 });
-  winds.push({ x1: slope5, x2: slope5 + 450, push: -1.8, gust: { on: 90, off: 120 } });
   c.flat(220);
   spawn('shooter', c.x - 120);
   const crev5 = c.x;
@@ -282,7 +292,6 @@ export const buildCourse = (): Course => {
   ledges.push({ x: crev5 + 40, y: c.y, w: 75, crumble: true });
   ledges.push({ x: crev5 + 150, y: c.y - 30, w: 75, crumble: false });
   ledges.push({ x: crev5 + 260, y: c.y - 5, w: 70, crumble: true });
-  winds.push({ x1: crev5 - 40, x2: crev5 + 380, push: -2, gust: { on: 90, off: 110 } });
   spawn('eagle', crev5 + 180, 160);
   c.flat(560);
   spawn('goat', c.x - 360);
