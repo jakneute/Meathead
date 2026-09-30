@@ -27,6 +27,8 @@ export interface EnemyDeath {
   /** The floor it's lying on (greased bodies land; pancakes lie flat on it). */
   floorY: number;
   landed: boolean;
+  /** Died down in a pool (Tommy's muck): it floats up till its feet are here (the surface), and melts there, where it can be seen. */
+  floatTo?: number;
   isShield: boolean;
   /** A themed enemy (Artie's wildlife and goons) dies as itself, not as a coloured block. */
   sprite?: { kind: EnemyKind; facing: 1 | -1; phase: number };
@@ -109,6 +111,12 @@ export const startEnemyDeath = (state: GameState, e: Enemy, kind: EnemyDeathKind
 /** Advances every death animation, with the smoke, sparks and bubbles that go with them. */
 export const updateEnemyDeaths = (state: GameState) => {
   state.enemyDeaths = state.enemyDeaths.filter(d => {
+    // Killed down in a pool: up it comes, bubbling, to the surface first
+    if (d.floatTo !== undefined && d.y + d.h > d.floatTo) {
+      d.y = Math.max(d.floatTo - d.h, d.y - 2.2);
+      if (state.frame % 3 === 0) state.particles.push({ pos: { x: d.x + Math.random() * d.w, y: d.y + d.h * Math.random() }, vel: { x: (Math.random() - 0.5) * 0.6, y: -1.5 - Math.random() }, life: 20, color: 'rgba(217, 249, 157, 0.7)', size: 2 + Math.random() * 2 });
+      return true;
+    }
     // Killed in mid-air (an eagle burnt, fried or melted on the wing): it drops to the ground first, then plays out
     if (d.kind !== 'greased' && d.kind !== 'headshot' && d.kind !== 'ceilinged' && !d.landed && d.y + d.h < d.floorY - 1) {
       d.vy = Math.min(14, Math.max(0, d.vy) + GRAVITY * 0.8);

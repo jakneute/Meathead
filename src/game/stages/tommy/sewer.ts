@@ -120,7 +120,13 @@ export const updateSewer = (ctx: FrameContext, sw: Sewer, talk: Talk) => {
     fx.spawnDamageNumber(e.pos, dmg, first, '#A3E635');
     for (let i = 0; i < (first ? 10 : 4); i++) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + e.height * 0.6 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#A3E635' : '#65A30D', size: 3 + Math.random() * 4 });
     if (first) playSound('barf', 0.7);
-    if (e.health <= 0) { fx.killWithAnimation(e, 'melted', 'sludge_kill', 'melted'); playSound('barf'); }
+    if (e.health <= 0) {
+      fx.killWithAnimation(e, 'melted', 'sludge_kill', 'melted'); playSound('barf');
+      // (it bobs up and melts on the surface, where it can be seen, not down at the bottom under all that)
+      const d = state.enemyDeaths[state.enemyDeaths.length - 1];
+      const c = muckAt(e.pos.x + e.width / 2, e.pos.y + e.height * 0.7);
+      if (d?.kind === 'melted' && d.x === e.pos.x && c) { d.floatTo = c.surface + 6; d.floorY = c.surface + 6; d.landed = true; }
+    }
   }
   // The sludgelings lying in wait float with just their eyes up out of it
   for (const e of state.enemies) {
