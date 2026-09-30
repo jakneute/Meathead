@@ -690,6 +690,8 @@ export const oscar: BossDef = {
   spawn: { x: ARENA_LEFT + 600, fields: { hasCigarette: true } },
   arena: { right: OSCAR_ARENA_RIGHT },
   update: updateOscar,
+  // (greased head to toe: go into him with anything and you shoot off him, no chaining dive kicks off that head)
+  slick: { x: 17, y: 9, frames: 30 },
   onTaser: holdOscarWithTaser,
   onFlamed: shrugOffFlames,
 };

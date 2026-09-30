@@ -162,6 +162,7 @@ export const tickPlayerTimers = (ctx: FrameContext, input: FrameInput) => {
   } else if (!player.smugTimer || player.smugTimer <= 0) {
     player.isHarmlessPushback = false;
   }
+  if (player.slipT && player.slipT > 0) player.slipT--;
   if (player.lockTimer > 0) {
     player.lockTimer--;
     if (player.recoiling) player.vel.x += (0 - player.vel.x) * 0.1;
@@ -237,6 +238,8 @@ const startSpecialMoves = (ctx: FrameContext, input: FrameInput) => {
   const { state, cheats, fx } = ctx;
   const { player } = state;
   if (!input.specialPressed || player.isTasing || state.playerStunTimer > 0 || (player.skiing && !player.jetski)) return;
+  // (thrown off something too greasy to hold: nothing till he's got his balance back)
+  if ((player.slipT ?? 0) > 0) return;
   // (on the jet ski every move goes forward, whichever way he's turned to shoot)
   if (player.jetski) player.facing = 1;
   // In the water it's a lunge: forward, up, or down (down + special's the same whether he's floating or stood on the

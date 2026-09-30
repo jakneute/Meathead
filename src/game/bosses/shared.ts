@@ -87,6 +87,12 @@ export interface BossDef {
   onWeaknessHit?: (ctx: FrameContext, boss: Enemy, p?: Partial<Projectile>) => void;
   /** Meathead's melee connected (before damage is applied). */
   onMeleeHit?: (ctx: FrameContext, boss: Enemy) => void;
+  /**
+   * Too slick to get a purchase on: any move into him (a charge, a slide, an uppercut, a dive kick) throws Meathead
+   * off him, hard and sideways (x, y), and he can't start another till he's got his balance back (frames). A dive
+   * kick off him gets no power back.
+   */
+  slick?: { x: number; y: number; frames: number };
   /** He bumped into Meathead and hurt him. */
   onTouchPlayer?: (ctx: FrameContext, boss: Enemy) => void;
   /** He's just died (tidy up his arena). */

@@ -661,6 +661,20 @@ const getMeleeKillCallout = (player: Player, wasFrozen: boolean): KillCallout =>
  * Hit reactions follow the GameMaker version's oHurtbox: kills plow straight
  * through, survivors get shoved by mass and bounce you back.
  */
+/** Off a boss too greasy to hold on to: thrown off him hard, sideways, away from him, and a spray of his grease. */
+const slipOff = (ctx: FrameContext, e: Enemy, slick: { x: number; y: number; frames: number }) => {
+  const { state, fx } = ctx;
+  const p = state.player;
+  const dir = p.pos.x + p.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;
+  p.isDivekicking = false; p.isCharging = false; p.isUppercutting = false;
+  p.vel = { x: dir * slick.x, y: -slick.y };
+  p.lockTimer = Math.max(p.lockTimer, slick.frames);
+  p.recoiling = true;
+  p.slipT = slick.frames;
+  fx.playGunSound('oil', 0.8);
+  for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: p.pos.x + p.width / 2 - dir * 10, y: p.pos.y + p.height * (0.3 + Math.random() * 0.6) }, vel: { x: -dir * (1 + Math.random() * 4), y: -Math.random() * 4 }, life: 24 + Math.random() * 16, color: i % 3 ? '#1C1917' : '#44403C', size: 2 + Math.random() * 4 });
+};
+
 const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   const { state, fx, stageId, cheats } = ctx;
   const { player } = state;
@@ -704,6 +718,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
       fx.playGunSound('punch');
       recoilOff(ctx, getEnemyMass(e));
     }
+    if (bossDef?.slick) slipOff(ctx, e, bossDef.slick);
     return true;
   }
   if (attackHit && onScreen && (!e.hitCooldown || e.hitCooldown <= 0 || fresh)) {
@@ -782,8 +797,8 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
       }
       if (player.isDivekicking) {
         // Stomp: a satisfying bounce, and you can divekick again mid-bounce. It also
-        // refunds a power cell on the spot (chain them for air combos)
-        player.power = Math.min(POWER_CELLS, player.power + 1);
+        // refunds a power cell on the spot (chain them for air combos; not off a head too greasy to stand on)
+        if (!bossDef?.slick) player.power = Math.min(POWER_CELLS, player.power + 1);
         player.vel.y *= -0.5;
         player.vel.x *= 0.5;
         player.lockTimer = BOUNCE_FRAMES;
@@ -791,6 +806,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
       } else {
         recoilOff(ctx, mass);
       }
+      if (bossDef?.slick) slipOff(ctx, e, bossDef.slick);
       return true;
     }
 

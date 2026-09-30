@@ -94,6 +94,8 @@ export interface Player extends Entity {
 
   // Recoil from bouncing off an enemy (controls locked while lockTimer runs)
   lockTimer: number;
+  /** Frames left thrown off something too slick to hold on to (a boss's `slick`): no moves till it's out. */
+  slipT?: number;
   recoiling: boolean;
 
   // Previous frame's buttons, for detecting presses
