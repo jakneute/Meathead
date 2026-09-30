@@ -436,7 +436,8 @@ const finale = (ctx: FrameContext, ski: Ski): Controls => {
   if (ski.cabinHitAt === 0 && ski.avX >= cabin.x) {
     ski.cabinHitAt = state.frame;
     shakeScreen(state, 60, 12);
-    playSound('crash');
+    // The whole thing going: the walls, the windows, the ranger
+    playSound('crash'); playSound('boom', 0.8); playSound('glass'); playSound('crunch'); playSound('screams', 0.8);
     // Planks, logs, a hat, and the ranger himself, everywhere
     for (let i = 0; i < 60; i++) {
       state.particles.push({
@@ -445,6 +446,15 @@ const finale = (ctx: FrameContext, ski: Ski): Controls => {
         life: 70 + Math.random() * 60, color: ['#78350F', '#92400E', '#A16207', '#FFFFFF', '#57534E'][i % 5], size: 6 + Math.random() * 10,
       });
     }
+  }
+  // ...and it keeps going for a bit after: beams snapping, the stove clanging, stuff coming down, the snow settling
+  if (ski.cabinHitAt > 0) {
+    const since = state.frame - ski.cabinHitAt;
+    if (since === 8 || since === 19 || since === 33) playSound('crack', 0.9, since % 5);
+    if (since === 14) playSound('clang', 0.8, -4);
+    if (since === 26 || since === 44 || since === 58) playSound('thud', 0.7, -since % 4);
+    if (since === 30) playSound('glass', 0.6, 5);
+    if (since === 50) playSound('rumble', 0.6);
   }
   // It stops just short of him
   if (ski.avX >= ski.pileX) {
