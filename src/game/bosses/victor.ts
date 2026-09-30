@@ -29,9 +29,10 @@ const VENT_MIN_GAP = 100;
  * it swings round after you (radians a frame: slow, so getting round the other side of him buys you a while); what it
  * does; and how long before he can do it again.
  */
-/** How far from either wall he has to be to barf (backed up against one, there's no getting round behind him). */
-const BARF_WALL_CLEARANCE = 170;
-const BARF_CHANCE = 0.5, BARF_WINDUP = 45, BARF_FRAMES = 220, BARF_REACH = 900, BARF_TURN = 0.0085, BARF_DAMAGE = 12, BARF_COOLDOWN = 300;
+/** Room he has to leave between himself and either wall to barf, over and above Meathead's own width: enough for him
+ * to stand behind Victor there, clear of him and the stream (backed right up against a wall, there'd be nowhere to go). */
+const BARF_WALL_MARGIN = 28;
+const BARF_CHANCE = 0.85, BARF_WINDUP = 45, BARF_FRAMES = 280, BARF_REACH = 900, BARF_TURN = 0.0085, BARF_DAMAGE = 12, BARF_COOLDOWN = 200;
 /** How wide the stream is: at his mouth, and how much it spreads over its length. */
 export const BARF_WIDTH = { base: 10, spread: 30 };
 /** Where his mouth is (the stream comes out of it). */
@@ -66,7 +67,8 @@ const update = (ctx: FrameContext, boss: Enemy) => {
     default: {
       // Rested: the barf (when it's ready, about half the time), or up for the next jump and the vents
       if (boss.stateTimer! > 0) break;
-      const clear = boss.pos.x - ARENA_LEFT > BARF_WALL_CLEARANCE && ARENA_RIGHT - (boss.pos.x + boss.width) > BARF_WALL_CLEARANCE;
+      const room = state.player.width + BARF_WALL_MARGIN;
+      const clear = boss.pos.x - ARENA_LEFT > room && ARENA_RIGHT - (boss.pos.x + boss.width) > room;
       if (boss.isGroundedBoss && clear && state.frame >= (boss.barfReadyAt ?? 0) && Math.random() < BARF_CHANCE) startBarf(ctx, boss);
       else jump(ctx, boss);
     }
