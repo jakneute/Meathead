@@ -30,6 +30,8 @@ const OVERLOAD_DAMAGE = 150;
 const HIGH_FRAMES = 200;              // floating around like a kite
 export const BARRY_TOLERANCE_FRAMES = 330;         // needles bounce off (starts at the overload)
 const HIGH_FLOAT_Y = 150;
+/** His tell shrinks this much more again than his other timings by the end (on top of the speed-up). */
+const TELL_SQUEEZE = 0.2;
 
 const update = (ctx: FrameContext, boss: Enemy) => {
   // Speeding up hard as he loses health: every phase timing shrinks, most of it early (he's frantic by half)
@@ -88,7 +90,9 @@ const teleport = (ctx: FrameContext, boss: Enemy, frames: Frames) => {
     // Lights up on the far side from Meathead and picks an attack
     boss.bossState = 'telegraphing';
     boss.jumpCount = Math.random() > 0.5 ? 1 : 0; // 0 = ground pound, 1 = lightning storm
-    boss.stateTimer = frames(90);
+    // (the tell gets shorter still than everything else as he goes: less and less time to read which it'll be)
+    const worn = Math.sqrt(Math.max(0, Math.min(1, 1 - boss.health / boss.maxHealth)));
+    boss.stateTimer = Math.max(1, Math.round(frames(90) * (1 - worn * TELL_SQUEEZE)));
     boss.pos.y = TELEPORT_HEIGHT;
     boss.pos.x = player.pos.x < ARENA_MID ? ARENA_RIGHT - 260 : BOSS_DOOR_X + 250;
     boss.electrifiedTimer = 0;
