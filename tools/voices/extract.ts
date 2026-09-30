@@ -65,8 +65,6 @@ for (const l of [dialogue.DAYCARE_LINES.ride, dialogue.DAYCARE_LINES.again]) add
 for (let k = 0; k < 5; k++) for (const t of dialogue.DAYCARE_LINES.chatter) add(`hector.kid${k}`, t, 'DAYCARE_LINES');
 // The announcer calls out the kill callouts
 for (const c of Object.values(dialogue.KILL_CALLOUTS)) for (const t of c.lines) add('announcer', t, 'KILL_CALLOUTS');
-// ...and the checkpoints
-for (const t of dialogue.CHECKPOINT_CALLOUTS) add('announcer', t, 'CHECKPOINT_CALLOUTS');
 
 // ---------------------------------------------------------------------------------------------------------------
 // The code

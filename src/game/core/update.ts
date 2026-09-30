@@ -368,10 +368,7 @@ const holdOffForCutscene = (ctx: FrameContext) => {
   }
 };
 
-/**
- * A new checkpoint reached: the announcer calls it (cutting off whoever was talking, Meathead or himself) and the
- * banner goes up. Where the stage starts (or restarts) isn't called.
- */
+/** A new checkpoint reached: the banner goes up (nothing's said). Where the stage starts (or restarts) isn't shown. */
 const callCheckpoint = (ctx: FrameContext) => {
   const { state } = ctx;
   if (state.checkpointCalled === undefined) { state.checkpointCalled = state.checkpoint; return; }
@@ -379,7 +376,6 @@ const callCheckpoint = (ctx: FrameContext) => {
   state.checkpointCalled = state.checkpoint;
   const text = pickRandom(CHECKPOINT_CALLOUTS);
   state.checkpointBanner = { text, at: state.frame };
-  ctx.fx.announceKill(text);
 };
 
 const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {

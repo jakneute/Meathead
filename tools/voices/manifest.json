@@ -156,16 +156,6 @@
  },
  {
   "voice": "announcer",
-  "text": "CHECKPOINT REACHED!",
-  "from": "CHECKPOINT_CALLOUTS"
- },
- {
-  "voice": "announcer",
-  "text": "CHECKPOINT!",
-  "from": "CHECKPOINT_CALLOUTS"
- },
- {
-  "voice": "announcer",
   "text": "CHIN CHECKED!",
   "from": "KILL_CALLOUTS"
  },
@@ -653,11 +643,6 @@
   "voice": "announcer",
   "text": "POPPED!",
   "from": "KILL_CALLOUTS"
- },
- {
-  "voice": "announcer",
-  "text": "PROGRESS LOCKED IN!",
-  "from": "CHECKPOINT_CALLOUTS"
  },
  {
   "voice": "announcer",

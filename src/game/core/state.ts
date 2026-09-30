@@ -44,7 +44,7 @@ export interface GameState {
   cameraRestY: number;
   /** How far through a long stage this attempt has got (respawns start at the last one). Kept across deaths. */
   checkpoint: number;
-  /** The last checkpoint the announcer called (unset until the stage has started: where it starts isn't called). */
+  /** The last checkpoint the banner went up for (unset until the stage has started: where it starts isn't shown). */
   checkpointCalled?: number;
   /** The checkpoint banner on the screen: what it says and when it went up. */
   checkpointBanner?: { text: string; at: number };
