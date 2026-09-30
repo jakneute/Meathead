@@ -26,7 +26,7 @@ export interface DoorCrash {
   stepAt: number;
   talk: { at: number; len: number; spoken: boolean; done: boolean } | null;
   line: string;
-  who: 'guide' | 'meathead' | '';
+  who: 'guide' | 'meathead' | 'hipster' | '';
   lineT: number;
   /** When the whistle started (he's on his way down), when he hit, when the vault came in behind. */
   whistleAt: number;
@@ -39,10 +39,11 @@ const C = COURSE.cellblock;
 export const CRASH_X = C.x2 - 400;
 const TRIGGER_X = C.x2 - 640;
 export const CAVE_X = C.x2 - 740, CAVE_W = 50;
-/** How long he takes to come down through the vault. */
-export const DROP_FRAMES = 24;
+/** How long he takes to come down through the vault (slowed by the brick and bedrock he's coming through). */
+export const DROP_FRAMES = 70;
 const Y = GROUND_Y;
 const GUIDE_VOICE: Voice = { id: 'guide', pitch: 0.95, rate: 0.9 };
+const HIPSTER_VOICE: Voice = { id: 'hipster', pitch: 1.4, rate: 1.1 };
 
 /** The night tour: who's where (from CRASH_X), and how they look (the same folk as the day tour's). */
 export const NIGHT_TOUR = [
@@ -61,10 +62,10 @@ const caveIn = (state: GameState) => {
   if (!state.blocks.some(b => b.tag === 'door-cavein')) state.blocks.push({ x: CAVE_X, y: Y - 3000, w: CAVE_W, h: 3000, type: 'wall', hidden: true, tag: 'door-cavein' });
 };
 
-const speak = (dc: DoorCrash, who: 'guide' | 'meathead', text: string) => {
+const speak = (dc: DoorCrash, who: 'guide' | 'meathead' | 'hipster', text: string) => {
   const t = { at: dc.t, len: text.length, spoken: false, done: false };
   dc.talk = t; dc.line = text; dc.who = who; dc.lineT = 9999;
-  t.spoken = say(text, who === 'guide' ? GUIDE_VOICE : MEATHEAD_VOICE, 'urgent', { onShow: () => {}, onHide: () => {}, onDone: () => { t.done = true; } }) && canSpeak();
+  t.spoken = say(text, who === 'guide' ? GUIDE_VOICE : who === 'hipster' ? HIPSTER_VOICE : MEATHEAD_VOICE, 'urgent', { onShow: () => {}, onHide: () => {}, onDone: () => { t.done = true; } }) && canSpeak();
 };
 /** The line being said is over (spoken to the end; with no voice, up long enough to read; and never forever). */
 const talkOver = (dc: DoorCrash) => {
@@ -106,7 +107,7 @@ export const updateDoorCrash = (ctx: FrameContext, dc: DoorCrash, controls: Cont
       // The vault over them coming apart as he comes through it: cracks and dust first, then brick and bedrock raining down
       if (since < 30 && state.frame % 3 === 0) state.particles.push({ pos: { x: CRASH_X + (Math.random() - 0.5) * 60, y: Y - 228 }, vel: { x: (Math.random() - 0.5) * 0.6, y: 1 + Math.random() * 2 }, life: 40, color: '#A8A29E', size: 2 + Math.random() * 3 });
       if (since >= 30) {
-        if (since === 30) { playSound('crack'); shakeScreen(state, 10, 4); }
+        if (since === 30) { playSound('crack'); shakeScreen(state, 10, 4); speak(dc, 'hipster', 'NAMASTE, PEASANTS!'); }
         for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: CRASH_X + (Math.random() - 0.5) * 140, y: Y - 232 }, vel: { x: (Math.random() - 0.5) * 4, y: 2 + Math.random() * 5 }, life: 40 + Math.random() * 20, color: ['#7C4A3A', '#5A3526', '#57534E', '#A8A29E'][(i + state.frame) % 4], size: 4 + Math.random() * 7 });
       }
       if (since === 30 + DROP_FRAMES) {
@@ -133,7 +134,7 @@ export const updateDoorCrash = (ctx: FrameContext, dc: DoorCrash, controls: Cont
         shakeScreen(state, 30, 10);
         for (let i = 0; i < 40; i++) state.particles.push({ pos: { x: CAVE_X + Math.random() * CAVE_W, y: Y - 230 + Math.random() * 60 }, vel: { x: (Math.random() - 0.3) * 5, y: Math.random() * 3 }, life: 50 + Math.random() * 30, color: i % 3 ? '#7C4A3A' : '#A8A29E', size: 4 + Math.random() * 8 });
       }
-      if (since > 90) { speak(dc, 'meathead', '...THERE HE WENT.'); next(); }
+      if (since > 90 && talkOver(dc)) { speak(dc, 'meathead', '...THERE HE WENT.'); next(); }
       break;
     case 4:
       if (talkOver(dc) && since > 40) {

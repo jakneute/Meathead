@@ -5892,17 +5892,22 @@
  {
   "voice": "guide",
   "text": "...THERE HE WENT.",
-  "from": "game/stages/ernie/doorCrash.ts:67"
+  "from": "game/stages/ernie/doorCrash.ts:68"
  },
  {
   "voice": "guide",
   "text": "AND THESE VAULTS HAVE STOOD, UNTOUCHED, SINCE EIGHTEEN FIFTY-NINE.",
-  "from": "game/stages/ernie/doorCrash.ts:67"
+  "from": "game/stages/ernie/doorCrash.ts:68"
  },
  {
   "voice": "guide",
   "text": "HA! NOBODY'S THAT STUPID.",
   "from": "game/stages/ernie/alcatraz.ts:108"
+ },
+ {
+  "voice": "guide",
+  "text": "NAMASTE, PEASANTS!",
+  "from": "game/stages/ernie/doorCrash.ts:68"
  },
  {
   "voice": "hector.kid0",
@@ -6231,6 +6236,16 @@
  },
  {
   "voice": "hipster",
+  "text": "...THERE HE WENT.",
+  "from": "game/stages/ernie/doorCrash.ts:68"
+ },
+ {
+  "voice": "hipster",
+  "text": "AND THESE VAULTS HAVE STOOD, UNTOUCHED, SINCE EIGHTEEN FIFTY-NINE.",
+  "from": "game/stages/ernie/doorCrash.ts:68"
+ },
+ {
+  "voice": "hipster",
   "text": "BRO! THAT JET SKI WAS VINTAGE, BRO!",
   "from": "game/stages/ernie/jetski.ts:133"
  },
@@ -6263,6 +6278,11 @@
   "voice": "hipster",
   "text": "MY KOMBUCHAAAAAAA",
   "from": "game/stages/ernie/jetski.ts:133"
+ },
+ {
+  "voice": "hipster",
+  "text": "NAMASTE, PEASANTS!",
+  "from": "game/stages/ernie/doorCrash.ts:68"
  },
  {
   "voice": "hipster",
@@ -6327,7 +6347,7 @@
  {
   "voice": "meathead",
   "text": "...THERE HE WENT.",
-  "from": "game/stages/ernie/doorCrash.ts:67"
+  "from": "game/stages/ernie/doorCrash.ts:68"
  },
  {
   "voice": "meathead",
@@ -6722,7 +6742,7 @@
  {
   "voice": "meathead",
   "text": "AND THESE VAULTS HAVE STOOD, UNTOUCHED, SINCE EIGHTEEN FIFTY-NINE.",
-  "from": "game/stages/ernie/doorCrash.ts:67"
+  "from": "game/stages/ernie/doorCrash.ts:68"
  },
  {
   "voice": "meathead",
@@ -10088,6 +10108,11 @@
   "voice": "meathead",
   "text": "MY VEINS ARE FOR BULKING, NOT YOUR SKETCHY SHIT!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAMASTE, PEASANTS!",
+  "from": "game/stages/ernie/doorCrash.ts:68"
  },
  {
   "voice": "meathead",
