@@ -243,6 +243,8 @@ export const SHOTGUN_FREEZE_TIME = 60;
 // Frozen enemies can't act, take double melee damage, fly further when shoved,
 // and turn into projectiles that smash into walls, the floor and other enemies.
 export const FROZEN_DAMAGE_MULTIPLIER = 2;
+/** A shoulder charge into a frozen enemy: on top of that, again (all his weight into a block of ice: it goes to pieces). */
+export const FROZEN_CHARGE_MULTIPLIER = 2;
 export const FROZEN_PUSH_MULTIPLIER = 1.7;
 // A charge (or slide) into an oiled enemy sends it skidding off far harder than a dry one
 export const OILED_CHARGE_PUSH_MULTIPLIER = 2.6;
