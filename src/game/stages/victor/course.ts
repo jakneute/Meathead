@@ -170,7 +170,7 @@ const build = () => {
   stretch(R + 4150, R + 5900, 110, 2.0, [R + 4600, R + 5300], [[R + 4850, 160, 40], [R + 5550, 160, 120]]);
   n.spawn('vulture', R + 4700, Y - 300); n.spawn('vulture', R + 5400, Y - 340);
   n.ground(R + 5900, R + 6080, Y - 20);
-  n.pickup(R + 6000, Y - 50, 'small_ammo');
+  n.pickup(R + 6000, Y - 50, 'large_health');
   // The last: fast, the spouts timed close, fish in it
   stretch(R + 6080, R + 7730, 110, 2.3, [R + 6500, R + 7050, R + 7450], [[R + 6400, 150, 0], [R + 6850, 150, 50], [R + 7300, 150, 100]]);
 
