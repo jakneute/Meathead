@@ -504,15 +504,25 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
 /** What lives in the muck (in and out of it as it likes). */
 const MUCK_DWELLERS = new Set(['sludgeling', 'mutantfish', 'amalgam']);
 
-/** Its next step (at the speed it's going) is off the edge of the ground, down into a pool of muck. */
+/** Its next step (at the speed it's going), or where the hop it's starting comes down, is off the edge of the ground, down
+ * into a pool of muck. */
 const wouldWalkIntoMuck = (ctx: FrameContext, e: Enemy) => {
   const waterAt = getStageLayout(ctx.stageId)?.waterBodyAt;
   if (!waterAt || e.vel.x === 0 || MUCK_DWELLERS.has(e.kind ?? '')) return false;
-  const feet = e.pos.y + e.height;
-  const ax = e.pos.x + e.width / 2 + Math.sign(e.vel.x) * (e.width / 2 + Math.abs(e.vel.x) + 4);
-  const top = floorTopAt(ctx.state.blocks, ax, feet);
-  if (top !== null && top <= feet + 20) return false;
-  return waterAt(ctx.state, ax, (top ?? feet + 200) - 2)?.kind === 'muck';
+  const feet = e.pos.y + e.height, dir = Math.sign(e.vel.x);
+  const muckAt = (ax: number) => {
+    const top = floorTopAt(ctx.state.blocks, ax, feet);
+    if (top !== null && top <= feet + 20) return false;
+    return waterAt(ctx.state, ax, (top ?? feet + 200) - 2)?.kind === 'muck';
+  };
+  // (the leading edge of it, a step on)
+  if (muckAt(e.pos.x + e.width / 2 + dir * (e.width / 2 + Math.abs(e.vel.x) + 4))) return true;
+  // (a hop: everywhere it'll be over on the way, to where it lands)
+  if (e.vel.y < 0) {
+    const air = (2 * -e.vel.y) / (GRAVITY * 0.75), reach = Math.abs(e.vel.x) * air + e.width / 2;
+    for (let d = 16; d <= reach; d += 16) if (muckAt(e.pos.x + e.width / 2 + dir * d)) return true;
+  }
+  return false;
 };
 
 /** Which of a stage's ground oil (Oscar's field) an enemy's stood in, if any. */
