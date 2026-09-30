@@ -724,6 +724,17 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     }
     bossDef?.onMeleeHit?.(ctx, e);
 
+    // (one it reached rather than touched is pulled in onto him first, so it's plain he rammed it: a streak where it came from)
+    if (pest && !rectsOverlap(hitbox, boundsOf(e))) {
+      const from = { x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 };
+      e.pos.x = player.facing > 0 ? player.pos.x + player.width - 12 : player.pos.x - e.width + 12;
+      e.pos.y = Math.max(player.pos.y - e.height * 0.3, Math.min(player.pos.y + player.height * 0.6 - e.height, e.pos.y));
+      const to = { x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 };
+      for (let i = 0; i < 8; i++) {
+        const k = i / 8;
+        state.particles.push({ pos: { x: from.x + (to.x - from.x) * k, y: from.y + (to.y - from.y) * k }, vel: { x: (to.x - from.x) * 0.02, y: (to.y - from.y) * 0.02 }, life: 10 + i * 2, color: 'rgba(255, 255, 255, 0.6)', size: 3 + k * 3 });
+      }
+    }
     let damage = 0;
     if (pest) damage = e.health;
     else if (player.isCharging) {
