@@ -17,7 +17,7 @@ import type { ErnieRuntime } from './runtime';
 import { tourWrecked } from './alcatraz';
 import { faultAmount, collapseState, quakeAmount } from './quake';
 import { drawFault } from './faultDraw';
-import { DoorCrash, CRASH_X, CAVE_X, CAVE_W, NIGHT_TOUR, dropAmount, crashed, cavedIn, lookingUp, ceilingTear } from './doorCrash';
+import { DoorCrash, CRASH_X, CAVE_X, CAVE_W, NIGHT_TOUR, dropAmount, crashed, cavedIn, lookingUp, ceilingTear, hipsterY } from './doorCrash';
 import { drawTourist, TOURIST_LOOKS, drawHipsterOnSki } from './drawSea';
 
 type Ctx = CanvasRenderingContext2D;
@@ -118,12 +118,20 @@ const drawDoorCrash = (ctx: Ctx, state: GameState, dc: DoorCrash) => {
       ctx.stroke();
     }
     if (tear > 0.12) {
-      const w = 20 + (tear - 0.12) / 0.88 * 110, top = state.camera.y - 20;
-      ctx.fillStyle = '#050303';
-      ctx.beginPath(); ctx.moveTo(x - w * 0.6, top);
-      for (let k = 0; k <= 10; k++) { const yy = top + (VAULT + 30 - top) * (k / 10); ctx.lineTo(x - w * (0.5 + 0.2 * hash(k + 210)), yy); }
-      for (let k = 10; k >= 0; k--) { const yy = top + (VAULT + 30 - top) * (k / 10); ctx.lineTo(x + w * (0.5 + 0.2 * hash(k + 220)), yy); }
-      ctx.closePath(); ctx.fill();
+      // The tunnel he's burrowed down through the bedrock from off the top of the view, as far as he's got (then on
+      // through the vault)
+      const w = 70 + (tear - 0.12) / 0.88 * 60, top = state.camera.y - 20;
+      const bottom = crashed(dc) ? VAULT + 30 : Math.min(VAULT + 30, hipsterY(dc) + 6);
+      if (bottom > top) {
+        ctx.fillStyle = '#050303';
+        ctx.beginPath(); ctx.moveTo(x - w * 0.6, top);
+        for (let k = 0; k <= 10; k++) { const yy = top + (bottom - top) * (k / 10); ctx.lineTo(x - w * (0.5 + 0.2 * hash(k + 210)), yy); }
+        for (let k = 10; k >= 0; k--) { const yy = top + (bottom - top) * (k / 10); ctx.lineTo(x + w * (0.5 + 0.2 * hash(k + 220)), yy); }
+        ctx.closePath(); ctx.fill();
+        // Its walls: the bedrock's layers cut through, broken lips
+        ctx.fillStyle = '#4A3428';
+        for (let k = 0; k < 10; k++) { const yy = top + (bottom - top) * (k / 10); ctx.fillRect(x - w * (0.5 + 0.2 * hash(k + 210)) - 4, yy, 6, (bottom - top) / 10); ctx.fillRect(x + w * (0.5 + 0.2 * hash(k + 220)) - 2, yy, 6, (bottom - top) / 10); }
+      }
       // Broken brick hanging off its edges
       for (let k = 0; k < 8; k++) {
         const side = k % 2 ? 1 : -1, bx = x + side * w * (0.5 + 0.15 * hash(k + 230)), by = VAULT + 10 + hash(k + 231) * 30;
@@ -150,8 +158,11 @@ const drawDoorCrash = (ctx: Ctx, state: GameState, dc: DoorCrash) => {
     // The hipster, on his way down through the vault, nose first
     const k = dropAmount(dc);
     if (k >= 0) {
-      drawHipsterOnSki(ctx, x, Y - 240 + k * 240, 1.1, f);
-      for (let i = 0; i < 10; i++) { ctx.fillStyle = i % 2 ? '#7C4A3A' : '#A8A29E'; ctx.fillRect(x + (hash(i) - 0.5) * 120, Y - 236 + k * (120 + hash(i + 3) * 100), 6, 6); }
+      const hy = hipsterY(dc);
+      drawHipsterOnSki(ctx, x - 20, hy, 1.35 + Math.sin(f * 0.8) * 0.06, f);
+      // Chunks of rock round him as he drills down
+      for (let i = 0; i < 10; i++) { ctx.fillStyle = i % 2 ? '#57534E' : '#34251E'; ctx.fillRect(x + (hash(i + f % 7) - 0.5) * 90, hy - 20 - hash(i + 3) * 60, 7, 7); }
+      if (hy > VAULT) for (let i = 0; i < 10; i++) { ctx.fillStyle = i % 2 ? '#7C4A3A' : '#A8A29E'; ctx.fillRect(x + (hash(i) - 0.5) * 120, VAULT + 4 + (hy - VAULT) * (0.5 + hash(i + 3) * 0.5), 6, 6); }
     }
   } else {
     // What's left: a crater, the hipster and his ski burning in it (charred), the tour all over the place

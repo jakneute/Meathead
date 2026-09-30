@@ -22,7 +22,7 @@ import { drawDistricts } from './streetsDraw';
 import { Car, CAR_W, CAR_H, CAR_WARN, carsComing } from './traffic';
 import { drawBayBackdrop, drawSeaBack, drawSeaMid, drawSeaFront, drawSeaHud, drawCellMid, drawCellFront, drawCellHud } from './drawSea';
 import { drawIslandBackdrop, drawIslandBack } from './islandDraw';
-import { CRASH_X, dropAmount } from './doorCrash';
+import { CRASH_X, hipsterY } from './doorCrash';
 import { sentenceShown } from '../../platform/speech';
 
 type Ctx = CanvasRenderingContext2D;
@@ -694,6 +694,6 @@ const drawDoorCrashFront = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
   const dc = rt.doorCrash;
   if (dc.lineT <= 0 || !dc.line) return;
   if (dc.who === 'guide') bubble(ctx, CRASH_X + 130, Y - 100, dc.line);
-  else if (dc.who === 'hipster') { const k = Math.max(0, dropAmount(dc)); bubble(ctx, CRASH_X, Math.max(state.camera.y + 64, Y - 240 + k * 240 - 90), dc.line); }
+  else if (dc.who === 'hipster') bubble(ctx, CRASH_X, Math.max(state.camera.y + 64, hipsterY(dc) - 90), dc.line);
   else { const p = state.player; bubble(ctx, p.pos.x + p.width / 2, p.pos.y - 16, dc.line); }
 };

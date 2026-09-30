@@ -108,7 +108,12 @@ export const updateDoorCrash = (ctx: FrameContext, dc: DoorCrash, controls: Cont
       if (since < 30 && state.frame % 3 === 0) state.particles.push({ pos: { x: CRASH_X + (Math.random() - 0.5) * 60, y: Y - 228 }, vel: { x: (Math.random() - 0.5) * 0.6, y: 1 + Math.random() * 2 }, life: 40, color: '#A8A29E', size: 2 + Math.random() * 3 });
       if (since >= 30) {
         if (since === 30) { playSound('crack'); shakeScreen(state, 10, 4); speak(dc, 'hipster', 'NAMASTE, PEASANTS!'); }
-        for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: CRASH_X + (Math.random() - 0.5) * 140, y: Y - 232 }, vel: { x: (Math.random() - 0.5) * 4, y: 2 + Math.random() * 5 }, life: 40 + Math.random() * 20, color: ['#7C4A3A', '#5A3526', '#57534E', '#A8A29E'][(i + state.frame) % 4], size: 4 + Math.random() * 7 });
+        // Burrowing down through the bedrock: rock sprayed out either side of him; once he's through into the vault,
+        // brick raining down on the tour
+        const hy = hipsterY(dc);
+        if (state.frame % 3 === 0) shakeScreen(state, 4, 3);
+        for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: CRASH_X + (Math.random() - 0.5) * 50, y: hy - 10 }, vel: { x: (Math.random() < 0.5 ? -1 : 1) * (2 + Math.random() * 5), y: -2 - Math.random() * 3 }, life: 30 + Math.random() * 15, color: ['#34251E', '#57534E', '#231813', '#78716C'][(i + state.frame) % 4], size: 3 + Math.random() * 6 });
+        if (hy > Y - 240) for (let i = 0; i < 2; i++) state.particles.push({ pos: { x: CRASH_X + (Math.random() - 0.5) * 140, y: Y - 232 }, vel: { x: (Math.random() - 0.5) * 4, y: 2 + Math.random() * 5 }, life: 40 + Math.random() * 20, color: ['#7C4A3A', '#5A3526', '#57534E', '#A8A29E'][(i + state.frame) % 4], size: 4 + Math.random() * 7 });
       }
       if (since === 30 + DROP_FRAMES) {
         // Down through the vault, on top of the lot of them, and up it goes
@@ -157,6 +162,9 @@ export const ceilingTear = (dc: DoorCrash) => {
 
 /** How far down through the vault he's come (0 just in view .. 1 on them), or -1 when he's not falling. */
 export const dropAmount = (dc: DoorCrash) => (dc.phase !== 'scene' || dc.step !== 2 || dc.t - dc.whistleAt < 30 ? -1 : Math.min(1, (dc.t - dc.whistleAt - 30) / DROP_FRAMES));
+/** Where he is on his way down: from off the top of the view, burrowing down through the bedrock, then the vault, onto them. */
+export const hipsterY = (dc: DoorCrash) => Y - 640 + Math.max(0, dropAmount(dc)) * 640;
+
 /** He's come down (the tour's gone, the wreck's burning). */
 export const crashed = (dc: DoorCrash) => dc.phase === 'done' || (dc.phase === 'scene' && dc.step >= 3);
 /** The vault behind's come in. */
