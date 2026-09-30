@@ -134,7 +134,7 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
         <div className="flex gap-2">
           {/* Mugshot, paper-clipped to the file */}
           <div className="relative shrink-0 w-[74px] h-[82px] bg-black border-2 border-[#57534E] rotate-[-2deg]" style={{ boxShadow: '2px 2px 0 rgba(0,0,0,0.4)' }}>
-            <div className={after ? 'w-full h-full grayscale contrast-125' : 'w-full h-full'}>{garage ? <GaragePortrait /> : <BossPortrait id={bossId} />}</div>
+            <div className={after ? 'w-full h-full grayscale contrast-125' : 'w-full h-full'}>{garage ? <GaragePortrait /> : <BossPortrait id={bossId} dead={after} />}</div>
             {after && (
               <svg viewBox="0 0 10 10" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none">
                 <path d="M1 1 L9 9 M9 1 L1 9" stroke="rgba(185, 28, 28, 0.85)" strokeWidth="1.1" strokeLinecap="round" />

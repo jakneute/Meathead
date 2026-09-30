@@ -47,6 +47,9 @@ export const headAt = (e: Enemy, f: 1 | -1, x = 40, y = 19, s = 1.35): Head => (
 /** Where Meathead is (world x), so they can look at him; unset outside the fight (portraits, photos). */
 let lookX: number | null = null;
 export const setBossLook = (x: number | null) => { lookX = x; };
+/** Mugshots: look straight down the camera. */
+let stare = false;
+export const setCameraStare = (on: boolean) => { stare = on; };
 
 /** Which way he faces: at Meathead when there is one, else the way he's already facing (left by default). */
 export const facingOf = (e: Enemy): 1 | -1 => {
@@ -99,7 +102,7 @@ export const drawHead = (
   parts: { back?: () => void; hair?: () => void; hat?: () => void; eyewear?: () => void } = {},
 ) => {
   // Where the pupils go: toward Meathead (in the mirrored space, flipped back)
-  const lookWorld = lookX === null ? h.f * 0.6 : Math.max(-1, Math.min(1, (lookX - (h.wx ?? h.x)) / 160));
+  const lookWorld = stare ? 0 : lookX === null ? h.f * 0.6 : Math.max(-1, Math.min(1, (lookX - (h.wx ?? h.x)) / 160));
   const look = lookWorld * h.f;
   inHead(ctx, h, () => {
     parts.back?.();
