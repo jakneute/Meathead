@@ -139,8 +139,11 @@ const SKI_HOLDS = new Set([75, 120, 229, 280]);
 const DISPATCH_VOICE: Voice = { id: 'dispatch', pitch: 1.1, rate: 1.0 };
 export const RANGER_RADIO = ['RANGER ONE, COME IN.', 'DAVE? YOU GOOD, DAVE?', 'DAVE?'];
 export const RANGER_RADIO_EVERY = 420;
+/** The radio only starts up a while after the cabin's gone under (and he's under it). */
+export const radioLive = (state: GameState, ski: Ski) => ski.cabinHitAt !== 0 && state.frame - ski.cabinHitAt >= 150;
 const rangerRadio = (state: GameState, ski: Ski) => {
   if (ski.phase !== 'done' && ski.phase !== 'finale' && ski.phase !== 'runout') return;
+  if (!radioLive(state, ski)) return;
   const f = state.frame;
   if (f % RANGER_RADIO_EVERY !== 0) return;
   const x = COURSE.cabin.x + 265;

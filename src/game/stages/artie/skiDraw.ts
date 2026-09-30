@@ -1,7 +1,7 @@
 // The ski run's pieces: the skier, his skis, the obstacles, the avalanche,
 // Meathead rolled up in a snowball, the ranger cabin and the snow pile.
 
-import { RANGER_RADIO, RANGER_RADIO_EVERY } from './ski';
+import { RANGER_RADIO, RANGER_RADIO_EVERY, radioLive } from './ski';
 import type { GameState } from '../../core/state';
 import { groundLineAt } from '../../core/terrain';
 import { GROUND_Y } from '../../../constants';
@@ -209,7 +209,7 @@ const RANGER_LEG_SCALE = 0.75;
  * sticking out of the snow still gripping his radio. Every so often the legs
  * spasm, and the radio asks if he's there.
  */
-const drawBuriedRanger = (ctx: Ctx, state: GameState, bx: number, by: number) => {
+const drawBuriedRanger = (ctx: Ctx, state: GameState, bx: number, by: number, radio: boolean) => {
   const f = state.frame;
   ctx.save();
   ctx.translate(bx, by); ctx.scale(RANGER_SCALE, RANGER_SCALE);
@@ -266,7 +266,7 @@ const drawBuriedRanger = (ctx: Ctx, state: GameState, bx: number, by: number) =>
   ctx.fillStyle = Math.floor(f / 20) % 2 ? '#22C55E' : '#14532D'; ctx.fillRect(gx - 2, gy - 41, 3, 3);
   // Now and then, the radio
   const chat = f % RANGER_RADIO_EVERY;
-  if (chat < 150) {
+  if (radio && chat < 150) {
     const line = 'KSSH... ' + RANGER_RADIO[Math.floor(f / RANGER_RADIO_EVERY) % RANGER_RADIO.length];
     ctx.font = 'bold 7px "Press Start 2P"';
     const w = ctx.measureText(line).width + 12;
@@ -327,7 +327,7 @@ const drawWreck = (ctx: Ctx, state: GameState, ski: Ski) => {
     ctx.fillStyle = '#FDE68A'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.textAlign = 'center';
     ctx.fillText('RANGER', 0, -58); ctx.fillText('STATION', 0, -47); ctx.textAlign = 'left';
   });
-  drawBuriedRanger(ctx, state, c.x + 225, top(c.x + 225) + 6);
+  drawBuriedRanger(ctx, state, c.x + 225, top(c.x + 225) + 6, radioLive(state, ski));
   // His hat, blown clean off and landed up the pile from him
   const hx = c.x + 305, hy = top(c.x + 305) - 4;
   ctx.fillStyle = '#A16207'; ctx.beginPath(); ctx.ellipse(hx, hy, 20, 5, 0.15, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(hx - 10, hy - 12, 18, 12);
