@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ART_W, ART_H } from '../game/render/scenes/ending';
 import { say, sayModulated, cancelSpeech, canSpeak, Voice } from '../game/platform/speech';
 import { openRadio, playSquelch } from '../game/platform/audio';
-import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/platform/gamepad';
+import { getActiveGamepad, isButtonPressed, GP_BUTTONS, menuButtons } from '../game/platform/gamepad';
 import { SKIP_AFTER } from '../game/platform/skip';
 import SkipPrompt from './SkipPrompt';
 
@@ -183,7 +183,7 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
     let prev = true, prevBack = true;
     const poll = () => {
       const gp = getActiveGamepad();
-      const down = !!gp && isButtonPressed(gp, GP_BUTTONS.A);
+      const down = !!gp && isButtonPressed(gp, menuButtons(gp).ok);
       if (down && !prev) confirm();
       prev = down;
       const start = !!gp && (isButtonPressed(gp, GP_BUTTONS.START) || isButtonPressed(gp, GP_BUTTONS.SELECT));

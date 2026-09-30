@@ -23,7 +23,7 @@ import { GameStatus, WeaponType } from './types';
 import { INITIAL_PLAYER_HEALTH, MAX_AMMO, POWER_CELLS, createFullAmmo } from './constants';
 import { getStages, getStartingWeapons, sortWeapons, BOSS_WEAPON_MAP, WEAPONS_AFTER_SET_0, ALL_WEAPONS } from './content/roster';
 import { VULGARITIES, BOSS_DIALOGUE } from './content/dialogue';
-import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS } from './game/platform/gamepad';
+import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS, menuButtons } from './game/platform/gamepad';
 import { speak, say, isSpeaking, getBossVoice, takeFreshLine, MEATHEAD_MENU_VOICE } from './game/platform/speech';
 import { playLockInSound, playEngageSound } from './game/platform/audio';
 
@@ -608,8 +608,9 @@ const App: React.FC = () => {
         }
 
         const pressed = {
-          a: isButtonPressed(gp, GP_BUTTONS.A),
-          b: isButtonPressed(gp, GP_BUTTONS.B),
+          // (confirm and back, wherever this controller has them)
+          a: isButtonPressed(gp, menuButtons(gp).ok),
+          b: isButtonPressed(gp, menuButtons(gp).back),
           x: isButtonPressed(gp, GP_BUTTONS.X),
           y: isButtonPressed(gp, GP_BUTTONS.Y),
           start: isButtonPressed(gp, GP_BUTTONS.START) || isButtonPressed(gp, GP_BUTTONS.SELECT),

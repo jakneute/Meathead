@@ -211,7 +211,7 @@ const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onStartGame, onSel
       <button onClick={onToggleMusic} className={`mt-2 px-3 py-1 text-[8px] font-black tracking-wider border-2 shrink-0 ${musicOn ? 'text-yellow-300 border-yellow-500/60 bg-black/40 hover:bg-yellow-500/10' : 'text-zinc-500 border-zinc-700 bg-black/40 hover:text-zinc-300'}`}>
         <span className="inline-flex items-center gap-2"><Prompt pad={['X']} kb={['M']} size={14} />{musicOn ? '♪ MUSIC: ON' : '♪ MUSIC: OFF'}</span>
       </button>
-      {!isInputLocked && <Prompt pad={['A']} kb={['ENTER']} mouse="left" label="START" size={15} className="mt-1 text-[7px] font-black text-white/70 tracking-wider" />}
+      {!isInputLocked && <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label="START" size={15} className="mt-1 text-[7px] font-black text-white/70 tracking-wider" />}
       <ControlsGuide />
     </div>
   </>
@@ -394,7 +394,7 @@ const EngageBar: React.FC<{ locked: boolean; engaging: boolean; onEngage: () => 
     return (
       <div className="h-[58px] flex flex-col items-center justify-center gap-1 border-2 border-dashed border-zinc-700 text-zinc-400">
         <span className="text-[9px] font-black tracking-widest text-yellow-400/90">PICK YOUR VICTIM</span>
-        <Prompt pad={['A']} kb={['ENTER']} mouse="left" label="LOCK IN" size={15} className="text-[7px] font-mono tracking-wider" />
+        <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label="LOCK IN" size={15} className="text-[7px] font-mono tracking-wider" />
       </div>
     );
   }
@@ -406,9 +406,9 @@ const EngageBar: React.FC<{ locked: boolean; engaging: boolean; onEngage: () => 
         <span className="absolute inset-y-0 left-0 w-[10px]" style={{ background: 'repeating-linear-gradient(180deg, #FACC15 0 4px, #111 4px 8px)' }} />
         <span className="absolute inset-y-0 right-0 w-[10px]" style={{ background: 'repeating-linear-gradient(180deg, #FACC15 0 4px, #111 4px 8px)' }} />
         <span className="[text-shadow:2px_2px_0_#000]">{label ?? 'ENGAGE'}</span>
-        <Prompt pad={['A']} kb={['ENTER']} size={14} className="not-italic px-1 py-[1px] bg-black/70 border border-yellow-400" />
+        <Prompt pad={['OK']} kb={['ENTER']} size={14} className="not-italic px-1 py-[1px] bg-black/70 border border-yellow-400" />
       </button>
-      <Prompt pad={['B']} kb={['ESC']} mouse="right" label="BACK OUT" size={14} className="justify-center text-[7px] font-mono tracking-wider text-zinc-400" />
+      <Prompt pad={['BACK']} kb={['ESC']} mouse="right" label="BACK OUT" size={14} className="justify-center text-[7px] font-mono tracking-wider text-zinc-400" />
     </div>
   );
 };
@@ -540,8 +540,8 @@ const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, we
         {menuButton('QUIT', '✖', numWeapons + 2, onQuitToMenu, 'linear-gradient(180deg, #52525B, #3F3F46)', '#18181B')}
       </div>
       <div className="mt-3 flex items-center gap-4 text-[6px] text-zinc-500 tracking-wider">
-        <Prompt pad={['START', 'B']} kb={['ESC']} mouse="right" label="RESUME" size={15} />
-        <Prompt pad={['DPAD', 'A']} kb={['1-9']} mouse="left" label="EQUIP" size={15} />
+        <Prompt pad={['START', 'BACK']} kb={['ESC']} mouse="right" label="RESUME" size={15} />
+        <Prompt pad={['DPAD', 'OK']} kb={['1-9']} mouse="left" label="EQUIP" size={15} />
       </div>
 
       {/* Leaving for the boss select: are you sure? */}
@@ -641,7 +641,7 @@ const BossIntroScreen: React.FC<OverlayProps> = ({ bossTaunt, isInputLocked, onS
       <div className="flex justify-center mt-3">
         <button disabled={isInputLocked} onClick={onStart} className={`px-10 py-3 text-lg font-black uppercase italic tracking-wider -skew-x-6 border-4 transition-all ${isInputLocked ? 'bg-zinc-800 border-zinc-700 text-zinc-500' : 'bg-red-600 hover:bg-red-500 border-black text-white shadow-[5px_5px_0_#000] active:translate-x-1 active:translate-y-1 active:shadow-none mh-engage-btn'}`}>
           {isInputLocked ? 'LISTENING...' : (stageId && FIGHT_BUTTON[stageId]) || 'STFU AND DIE'}
-          {!isInputLocked && <Prompt pad={['A']} kb={['ENTER']} size={18} className="ml-3 skew-x-6 align-middle" />}
+          {!isInputLocked && <Prompt pad={['OK']} kb={['ENTER']} size={18} className="ml-3 skew-x-6 align-middle" />}
         </button>
       </div>
     </div>
@@ -663,7 +663,7 @@ const FinalVictoryScreen: React.FC<OverlayProps> = ({ progressionRank, isInputLo
     </div>
     <button disabled={isInputLocked} onClick={onStart} className={`w-full py-5 text-black font-black border-b-[8px] text-lg shadow-xl transition-all ${isInputLocked ? 'bg-gray-700 border-gray-900 opacity-50 text-gray-500' : 'bg-yellow-400 hover:bg-yellow-300 border-yellow-700 active:translate-y-1 active:border-b-0'}`}>
       {isInputLocked ? 'WAITING...' : 'BRING IT!'}
-      {!isInputLocked && <Prompt pad={['A']} kb={['ENTER']} size={18} className="ml-3" />}
+      {!isInputLocked && <Prompt pad={['OK']} kb={['ENTER']} size={18} className="ml-3" />}
     </button>
   </div>
 );

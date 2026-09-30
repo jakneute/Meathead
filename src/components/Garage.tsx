@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { SOUVENIRS } from '../content/garage';
 import { ownedSouvenirs } from '../game/garageStore';
 import { drawGarage, GARAGE_W, GARAGE_H, SLOTS, SOUVENIR_ORDER } from '../game/render/garage';
-import { getActiveGamepad, getGamepadMovement, isButtonPressed, GP_BUTTONS } from '../game/platform/gamepad';
+import { getActiveGamepad, getGamepadMovement, isButtonPressed, GP_BUTTONS, menuButtons } from '../game/platform/gamepad';
 import type { WeaponType } from '../types';
 import PracticeRange from './PracticeRange';
 import { Prompt } from './ButtonIcons';
@@ -68,7 +68,7 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
         const now = Date.now(), m = getGamepadMovement(gp, 0.3);
         const d = m.right || m.down ? 1 : m.left || m.up ? -1 : 0;
         if (d && now - last > REPEAT_MS) { last = now; stepRef.current(d); }
-        const b = isButtonPressed(gp, GP_BUTTONS.B), a = isButtonPressed(gp, GP_BUTTONS.A);
+        const mb = menuButtons(gp), b = isButtonPressed(gp, mb.back), a = isButtonPressed(gp, mb.ok);
         if (b && !prevB) leaveRef.current();
         const y = isButtonPressed(gp, GP_BUTTONS.Y);
         if (a && !prevA && selRef.current === RANGE) setPractice(true);
@@ -118,7 +118,7 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
       </div>
       <button onClick={() => onLeave()}
         className="absolute left-[10px] bottom-[8px] px-3 py-3 text-[9px] text-black bg-yellow-400 border-2 border-black shadow-[3px_3px_0_#000]">
-        <span className="inline-flex items-center gap-2"><Prompt pad={['B']} kb={['ESC']} size={14} />◀ MAP</span>
+        <span className="inline-flex items-center gap-2"><Prompt pad={['BACK']} kb={['ESC']} size={14} />◀ MAP</span>
       </button>
       {/* Out back: the practice range */}
       <button onClick={() => setPractice(true)} onMouseEnter={() => setSel(RANGE)}

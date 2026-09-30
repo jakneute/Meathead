@@ -523,7 +523,7 @@ const USAMap: React.FC<USAMapProps> = ({
         <div className="mt-1 pt-1 border-t border-gray-900 flex items-center justify-between text-[7.5px] font-mono text-gray-500">
           <span>{activeLocation.region}</span>
           <span className="text-yellow-500/90 font-bold uppercase animate-pulse">
-            {isCurrentDefeated ? 'ALREADY DEAD // PICK ANOTHER' : <Prompt pad={['A']} kb={['ENTER']} mouse="left" label="LOCK IN" size={13} />}
+            {isCurrentDefeated ? 'ALREADY DEAD // PICK ANOTHER' : <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label="LOCK IN" size={13} />}
           </span>
         </div>
       </div>

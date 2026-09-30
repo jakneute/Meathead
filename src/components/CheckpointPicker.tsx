@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { stageCheckpoints } from '../game/stages/checkpoints';
-import { getActiveGamepad, getGamepadMovement, isButtonPressed, GP_BUTTONS } from '../game/platform/gamepad';
+import { getActiveGamepad, getGamepadMovement, isButtonPressed, menuButtons } from '../game/platform/gamepad';
 import { Prompt } from './ButtonIcons';
 
 /** The skip-level cheat's picker: which checkpoint of the stage to start at (or straight to the boss). */
@@ -27,7 +27,7 @@ const CheckpointPicker: React.FC<{ stageId: string; onPick: (at: StartAt) => voi
       if (gp) {
         const now = Date.now(), m = getGamepadMovement(gp, 0.3), r = ref.current;
         if ((m.up || m.down) && now - last > 170) { last = now; setI(v => (v + (m.down ? 1 : -1) + r.items.length) % r.items.length); }
-        const a = isButtonPressed(gp, GP_BUTTONS.A), b = isButtonPressed(gp, GP_BUTTONS.B);
+        const mb = menuButtons(gp), a = isButtonPressed(gp, mb.ok), b = isButtonPressed(gp, mb.back);
         if (a && !prev.a) r.onPick(r.items[r.i].at);
         if (b && !prev.b) r.onCancel();
         prev = { a, b };
@@ -51,8 +51,8 @@ const CheckpointPicker: React.FC<{ stageId: string; onPick: (at: StartAt) => voi
           ))}
         </div>
         <div className="mt-3 flex justify-between text-[7px] text-white/70">
-          <Prompt pad={['A']} kb={['ENTER']} mouse="left" label="START HERE" size={15} />
-          <Prompt pad={['B']} kb={['ESC']} label="BACK" size={15} />
+          <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label="START HERE" size={15} />
+          <Prompt pad={['BACK']} kb={['ESC']} label="BACK" size={15} />
         </div>
       </div>
     </div>

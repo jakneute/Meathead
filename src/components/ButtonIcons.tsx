@@ -1,38 +1,86 @@
 import React from 'react';
-import { useInputDevice } from './useInputDevice';
+import { useInputDevice, usePadFamily } from './useInputDevice';
+import type { PadFamily } from '../game/platform/device';
 
 // Button prompts, drawn as the buttons themselves, for whichever you're using right now: a controller's buttons if
 // the controller was the last thing touched, the keyboard's keys (and the mouse) if it was the keyboard or the mouse.
 // They change over the moment you switch.
 
-export type PadKey = 'A' | 'B' | 'X' | 'Y' | 'START' | 'LB' | 'RB' | 'DPAD';
-const PAD_COLORS: Record<string, string> = { A: '#22C55E', B: '#EF4444', X: '#3B82F6', Y: '#FACC15' };
+/**
+ * A controller's buttons, by where they are (the layout every controller shares): A the bottom face button, B the
+ * right, X the left, Y the top; Start; the bumpers; the D-pad. And the menu's two: OK (confirm) and BACK, which are
+ * the bottom and right buttons on an Xbox or a PlayStation, and the right and bottom on a Switch (its A, on the right,
+ * confirms; its B, on the bottom, goes back). What's printed on them depends on whose controller it is: an Xbox's
+ * letters, a PlayStation's shapes, a Switch's letters (the other way round to an Xbox's).
+ */
+export type PadKey = 'A' | 'B' | 'X' | 'Y' | 'START' | 'LB' | 'RB' | 'DPAD' | 'OK' | 'BACK';
+type Face = 'A' | 'B' | 'X' | 'Y';
+const XBOX_COLORS: Record<Face, string> = { A: '#22C55E', B: '#EF4444', X: '#3B82F6', Y: '#FACC15' };
+const PS_SHAPES: Record<Face, { shape: 'cross' | 'circle' | 'square' | 'triangle'; color: string }> = {
+  A: { shape: 'cross', color: '#7DD3FC' }, B: { shape: 'circle', color: '#F87171' }, X: { shape: 'square', color: '#F9A8D4' }, Y: { shape: 'triangle', color: '#6EE7B7' },
+};
+/** What a Switch prints on each spot (bottom B, right A, left Y, top X). */
+const SWITCH_LETTERS: Record<Face, string> = { A: 'B', B: 'A', X: 'Y', Y: 'X' };
+/** What's printed on the other buttons, by kind of controller. */
+const OTHER_NAMES: Record<PadFamily, Record<'START' | 'LB' | 'RB' | 'LT' | 'RT', string>> = {
+  xbox: { START: 'START', LB: 'LB', RB: 'RB', LT: 'LT', RT: 'RT' },
+  playstation: { START: 'OPTIONS', LB: 'L1', RB: 'R1', LT: 'L2', RT: 'R2' },
+  switch: { START: '+', LB: 'L', RB: 'R', LT: 'ZL', RT: 'ZR' },
+};
 const FONT = '"Press Start 2P", monospace';
 
-/** A controller's face button: round, the letter on it in the button's color. */
-export const PadButton: React.FC<{ label: 'A' | 'B' | 'X' | 'Y'; size?: number }> = ({ label, size = 36 }) => (
-  <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">
-    <circle cx="20" cy="22" r="17" fill="#0B0B0F" />
-    <circle cx="20" cy="20" r="17" fill="#27272A" stroke="#0B0B0F" strokeWidth="2" />
-    <circle cx="20" cy="19" r="14" fill="#3F3F46" />
-    <text x="20" y="26" textAnchor="middle" fontFamily={FONT} fontSize="16" fill={PAD_COLORS[label]}>{label}</text>
-    <ellipse cx="14" cy="11" rx="5" ry="2.5" fill="rgba(255,255,255,0.18)" />
-  </svg>
-);
+/** Where the menu's confirm and back are on this kind of controller. */
+const menuSpot = (k: 'OK' | 'BACK', family: PadFamily): Face => (family === 'switch' ? (k === 'OK' ? 'B' : 'A') : (k === 'OK' ? 'A' : 'B'));
+
+/** A button's name as it's printed on this kind of controller (for text: the controls guide). */
+export const padName = (k: string, family: PadFamily): string => {
+  if (k === 'A' || k === 'B' || k === 'X' || k === 'Y') return family === 'playstation' ? ({ A: '✕', B: '○', X: '□', Y: '△' } as const)[k] : family === 'switch' ? SWITCH_LETTERS[k] : k;
+  if (k in OTHER_NAMES.xbox) return OTHER_NAMES[family][k as keyof typeof OTHER_NAMES.xbox];
+  return k;
+};
+
+/** A controller's face button (by where it is): round, with what that controller prints on it. */
+export const PadButton: React.FC<{ label: Face; size?: number; family?: PadFamily }> = ({ label, size = 36, family = 'xbox' }) => {
+  const ps = PS_SHAPES[label];
+  return (
+    <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">
+      <circle cx="20" cy="22" r="17" fill="#0B0B0F" />
+      <circle cx="20" cy="20" r="17" fill={family === 'switch' ? '#3F3F46' : '#27272A'} stroke="#0B0B0F" strokeWidth="2" />
+      <circle cx="20" cy="19" r="14" fill={family === 'switch' ? '#52525B' : '#3F3F46'} />
+      {family === 'playstation' ? (
+        ps.shape === 'cross' ? <path d="M13 12 L27 26 M27 12 L13 26" stroke={ps.color} strokeWidth="3.5" strokeLinecap="round" />
+        : ps.shape === 'circle' ? <circle cx="20" cy="19" r="7" fill="none" stroke={ps.color} strokeWidth="3.5" />
+        : ps.shape === 'square' ? <rect x="13.5" y="12.5" width="13" height="13" fill="none" stroke={ps.color} strokeWidth="3.5" />
+        : <path d="M20 11 L28 25 H12 Z" fill="none" stroke={ps.color} strokeWidth="3.2" strokeLinejoin="round" />
+      ) : (
+        <text x="20" y="26" textAnchor="middle" fontFamily={FONT} fontSize="16" fill={family === 'switch' ? '#F4F4F5' : XBOX_COLORS[label]}>{family === 'switch' ? SWITCH_LETTERS[label] : label}</text>
+      )}
+      <ellipse cx="14" cy="11" rx="5" ry="2.5" fill="rgba(255,255,255,0.18)" />
+    </svg>
+  );
+};
 
 /** The controller's other buttons: Start (a little pill), the bumpers (a wide rounded bar), the D-pad (a cross). */
-const PadOther: React.FC<{ label: 'START' | 'LB' | 'RB' | 'DPAD'; size: number }> = ({ label, size }) => {
+const PadOther: React.FC<{ label: 'START' | 'LB' | 'RB' | 'DPAD'; size: number; family?: PadFamily }> = ({ label, size, family = 'xbox' }) => {
   if (label === 'DPAD') return (
     <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">
       <path d="M15 4 H25 V15 H36 V25 H25 V36 H15 V25 H4 V15 H15 Z" fill="#27272A" stroke="#0B0B0F" strokeWidth="2" />
       <path d="M20 8 l3 4 h-6 Z M20 32 l3 -4 h-6 Z M8 20 l4 3 v-6 Z M32 20 l-4 3 v-6 Z" fill="#A1A1AA" />
     </svg>
   );
-  const w = label === 'START' ? 60 : 50;
+  const name = OTHER_NAMES[family][label];
+  // (a Switch's + is a little round button of its own)
+  if (label === 'START' && family === 'switch') return (
+    <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">
+      <circle cx="20" cy="20" r="13" fill="#27272A" stroke="#0B0B0F" strokeWidth="2" />
+      <path d="M20 13 V27 M13 20 H27" stroke="#E4E4E7" strokeWidth="3.5" strokeLinecap="round" />
+    </svg>
+  );
+  const w = label === 'START' ? Math.max(60, 20 + name.length * 9) : 50;
   return (
     <svg viewBox={`0 0 ${w} 40`} width={(size * w) / 40} height={size} className="inline-block align-middle shrink-0">
       <rect x="2" y={label === 'START' ? 10 : 6} width={w - 4} height={label === 'START' ? 22 : 28} rx={label === 'START' ? 11 : 9} fill="#27272A" stroke="#0B0B0F" strokeWidth="2" />
-      <text x={w / 2} y={label === 'START' ? 26 : 25} textAnchor="middle" fontFamily={FONT} fontSize={label === 'START' ? 9 : 12} fill="#E4E4E7">{label}</text>
+      <text x={w / 2} y={label === 'START' ? 26 : 25} textAnchor="middle" fontFamily={FONT} fontSize={label === 'START' ? 9 : 12} fill="#E4E4E7">{name}</text>
     </svg>
   );
 };
@@ -61,17 +109,19 @@ export const MouseIcon: React.FC<{ button: 'left' | 'right' | 'wheel'; size?: nu
   </svg>
 );
 
-export const PadIcon: React.FC<{ k: PadKey; size?: number }> = ({ k, size = 36 }) =>
-  k === 'A' || k === 'B' || k === 'X' || k === 'Y' ? <PadButton label={k} size={size} /> : <PadOther label={k} size={size} />;
+export const PadIcon: React.FC<{ k: PadKey; size?: number; family?: PadFamily }> = ({ k, size = 36, family = 'xbox' }) => {
+  const at = k === 'OK' || k === 'BACK' ? menuSpot(k, family as PadFamily) : k;
+  return at === 'A' || at === 'B' || at === 'X' || at === 'Y' ? <PadButton label={at} size={size} family={family} /> : <PadOther label={at} size={size} family={family} />;
+};
 
 /**
  * A prompt: the buttons that do it on whatever you're using (a controller's, or the keyboard's keys and the mouse's
  * buttons), then what it does. `kb` are key names; `mouse` the mouse button that does it too.
  */
 export const Prompt: React.FC<{ pad?: PadKey[]; kb?: string[]; mouse?: 'left' | 'right' | 'wheel'; label?: string; size?: number; className?: string }> = ({ pad = [], kb = [], mouse, label, size = 14, className = '' }) => {
-  const device = useInputDevice();
+  const device = useInputDevice(), family = usePadFamily();
   const icons = device === 'pad'
-    ? pad.map(k => <PadIcon key={k} k={k} size={size} />)
+    ? pad.map(k => <PadIcon key={k} k={k} size={size} family={family} />)
     : [...kb.map(k => <KeyCap key={k} label={k} size={size} />), ...(mouse ? [<MouseIcon key="m" button={mouse} size={size} />] : [])];
   if (!icons.length) return label ? <span className={className}>{label}</span> : null;
   return (

@@ -127,3 +127,14 @@ export function getGamepadMovement(gp: Gamepad | null, deadzone = 0.2): {
     right: dpadRight || x > 0.35,
   };
 }
+
+/**
+ * The menu buttons on this controller: confirm and back. An Xbox's (and a PlayStation's) confirm is the bottom face
+ * button and back the right one; a Switch's is the other way round (its A, confirm, is on the right; its B, back,
+ * on the bottom).
+ */
+export const menuButtons = (gp: Gamepad) => {
+  const s = gp.id.toLowerCase();
+  const nintendo = s.includes('057e') || s.includes('pro controller') || s.includes('joy-con') || s.includes('nintendo') || s.includes('switch');
+  return nintendo ? { ok: GP_BUTTONS.B, back: GP_BUTTONS.A } : { ok: GP_BUTTONS.A, back: GP_BUTTONS.B };
+};
