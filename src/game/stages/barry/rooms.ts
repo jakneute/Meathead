@@ -304,6 +304,8 @@ const standIn = (kind: 'generator' | 'minion', x: number): Enemy => {
 /** Anything in front of him indoors (the generators' charge, as a readout). */
 export const drawRoomFront = (ctx: Ctx, state: GameState, rt: BarryRuntime, place: Place) => {
   if (place !== 'power') return;
+  // (not once the water's live: the fight's over, and the announcer's calls go up there)
+  if (rt.power.phase === 'surge') return;
   rt.power.gens.forEach((g, i) => {
     const x = COURSE.generators[i];
     if (g.charge <= 0) return;
