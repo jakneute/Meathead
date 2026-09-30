@@ -523,8 +523,8 @@ const App: React.FC = () => {
   };
 
   // (in the garage, it's the garage's own input: the stage select's is off)
-  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor });
-  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor };
+  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor, dossier: showDossier });
+  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor, dossier: showDossier };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -601,7 +601,9 @@ const App: React.FC = () => {
         // (in the garage, the garage reads the pad itself)
         if (garage) { prev.a = prev.b = prev.x = prev.y = prev.start = true; frameId = requestAnimationFrame(poll); return; }
         const move = getGamepadMovement(gp, 0.25);
-        if (now - lastMoveAt > PAD_REPEAT_MS) {
+        // (the top button held on the dossier: the stick's scrolling it, not moving off the target)
+        const scrolling = status === GameStatus.STAGE_SELECT && inputRef.current.dossier && isButtonPressed(gp, GP_BUTTONS.Y);
+        if (!scrolling && now - lastMoveAt > PAD_REPEAT_MS) {
           const dx = move.left ? -1 : move.right ? 1 : 0;
           const dy = move.up ? -1 : move.down ? 1 : 0;
           if (moveSelection(dx, dy)) lastMoveAt = now;

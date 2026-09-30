@@ -135,6 +135,7 @@ export function getGamepadMovement(gp: Gamepad | null, deadzone = 0.2): {
  */
 export const menuButtons = (gp: Gamepad) => {
   const s = gp.id.toLowerCase();
+  // (a Pro Controller, a pair of Joy-Con, or one on its own sideways: Nintendo's all confirm on the right)
   const nintendo = s.includes('057e') || s.includes('pro controller') || s.includes('joy-con') || s.includes('nintendo') || s.includes('switch');
   return nintendo ? { ok: GP_BUTTONS.B, back: GP_BUTTONS.A } : { ok: GP_BUTTONS.A, back: GP_BUTTONS.B };
 };

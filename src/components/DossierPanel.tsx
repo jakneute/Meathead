@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { GP_BUTTONS } from '../game/platform/gamepad';
 import { WeaponType } from '../types';
 import { DOSSIERS, DOSSIER_HEADER, AFTERMATHS } from '../content/dossiers';
 import { BOSS_LOCATIONS } from '../content/roster';
@@ -10,12 +11,14 @@ import { GARAGE_ID, GARAGE_DOSSIER } from '../content/garage';
 /** Right stick: how far it has to go before it scrolls, and how fast it scrolls at full tilt (px a frame). */
 const STICK_DEADZONE = 0.2, STICK_SPEED = 7;
 
-/** The right stick's up/down, from whichever pad is pushing it. */
+/** The scroll off a pad: the right stick's up/down, or the (left, or only) stick's while the top face button's held. */
 const rightStickY = () => {
   if (typeof navigator === 'undefined' || !navigator.getGamepads) return 0;
   try {
     for (const gp of navigator.getGamepads()) {
-      const y = gp && gp.connected !== false && gp.axes ? gp.axes[3] : undefined;
+      if (!gp || gp.connected === false || !gp.axes) continue;
+      const held = !!gp.buttons?.[GP_BUTTONS.Y]?.pressed;
+      const y = held ? gp.axes[1] : gp.axes[3];
       if (typeof y === 'number' && Math.abs(y) > STICK_DEADZONE) return y;
     }
   } catch { /* no pads */ }

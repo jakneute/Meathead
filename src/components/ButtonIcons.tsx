@@ -26,14 +26,20 @@ const OTHER_NAMES: Record<PadFamily, Record<'START' | 'LB' | 'RB' | 'LT' | 'RT',
   xbox: { START: 'START', LB: 'LB', RB: 'RB', LT: 'LT', RT: 'RT' },
   playstation: { START: 'OPTIONS', LB: 'L1', RB: 'R1', LT: 'L2', RT: 'R2' },
   switch: { START: '+', LB: 'L', RB: 'R', LT: 'ZL', RT: 'ZR' },
+  // (one Joy-Con sideways: the little SL and SR on its rail are its shoulders; it's got no triggers)
+  'joycon-l': { START: '−', LB: 'SL', RB: 'SR', LT: '', RT: '' },
+  'joycon-r': { START: '+', LB: 'SL', RB: 'SR', LT: '', RT: '' },
 };
+const isJoyCon = (f: PadFamily) => f === 'joycon-l' || f === 'joycon-r';
 const FONT = '"Press Start 2P", monospace';
 
 /** Where the menu's confirm and back are on this kind of controller. */
-const menuSpot = (k: 'OK' | 'BACK', family: PadFamily): Face => (family === 'switch' ? (k === 'OK' ? 'B' : 'A') : (k === 'OK' ? 'A' : 'B'));
+const menuSpot = (k: 'OK' | 'BACK', family: PadFamily): Face => (family === 'switch' || isJoyCon(family) ? (k === 'OK' ? 'B' : 'A') : (k === 'OK' ? 'A' : 'B'));
 
 /** A button's name as it's printed on this kind of controller (for text: the controls guide). */
 export const padName = (k: string, family: PadFamily): string => {
+  // (a Joy-Con on its side: its four buttons go by which way round they are)
+  if ((k === 'A' || k === 'B' || k === 'X' || k === 'Y') && isJoyCon(family)) return ({ A: '▼', B: '▶', X: '◀', Y: '▲' } as const)[k];
   if (k === 'A' || k === 'B' || k === 'X' || k === 'Y') return family === 'playstation' ? ({ A: '✕', B: '○', X: '□', Y: '△' } as const)[k] : family === 'switch' ? SWITCH_LETTERS[k] : k;
   if (k in OTHER_NAMES.xbox) return OTHER_NAMES[family][k as keyof typeof OTHER_NAMES.xbox];
   return k;
@@ -42,6 +48,16 @@ export const padName = (k: string, family: PadFamily): string => {
 /** A controller's face button (by where it is): round, with what that controller prints on it. */
 export const PadButton: React.FC<{ label: Face; size?: number; family?: PadFamily }> = ({ label, size = 36, family = 'xbox' }) => {
   const ps = PS_SHAPES[label];
+  // One Joy-Con on its side: its four little buttons in their diamond, the one that's meant filled in
+  if (isJoyCon(family as PadFamily)) {
+    const spots: Record<Face, [number, number]> = { A: [20, 30], B: [30, 20], X: [10, 20], Y: [20, 10] };
+    return (
+      <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">
+        <circle cx="20" cy="20" r="19" fill="#27272A" stroke="#0B0B0F" strokeWidth="2" />
+        {(Object.keys(spots) as Face[]).map(f => <circle key={f} cx={spots[f][0]} cy={spots[f][1]} r="6" fill={f === label ? '#F4F4F5' : '#52525B'} stroke="#0B0B0F" strokeWidth="1.5" />)}
+      </svg>
+    );
+  }
   return (
     <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">
       <circle cx="20" cy="22" r="17" fill="#0B0B0F" />
@@ -70,10 +86,10 @@ const PadOther: React.FC<{ label: 'START' | 'LB' | 'RB' | 'DPAD'; size: number; 
   );
   const name = OTHER_NAMES[family][label];
   // (a Switch's + is a little round button of its own)
-  if (label === 'START' && family === 'switch') return (
+  if (label === 'START' && (family === 'switch' || isJoyCon(family as PadFamily))) return (
     <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">
       <circle cx="20" cy="20" r="13" fill="#27272A" stroke="#0B0B0F" strokeWidth="2" />
-      <path d="M20 13 V27 M13 20 H27" stroke="#E4E4E7" strokeWidth="3.5" strokeLinecap="round" />
+      <path d={family === 'joycon-l' ? 'M13 20 H27' : 'M20 13 V27 M13 20 H27'} stroke="#E4E4E7" strokeWidth="3.5" strokeLinecap="round" />
     </svg>
   );
   const w = label === 'START' ? Math.max(60, 20 + name.length * 9) : 50;

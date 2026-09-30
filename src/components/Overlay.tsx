@@ -1,4 +1,5 @@
 import React from 'react';
+import { useInputDevice } from './useInputDevice';
 import { Prompt } from './ButtonIcons';
 import { GameStatus, WeaponType, SoundType } from '../types';
 import { MAX_AMMO } from '../constants';
@@ -230,6 +231,7 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
   const archive = false;
   void showArchive; void onToggleArchive;
   const garageAt = selectedIndex === GARAGE_INDEX, garageLocked = lockedIndex === GARAGE_INDEX;
+  const padHeld = useInputDevice() === 'pad';
   const setRank = archive ? progressionRank - 1 : progressionRank;
   const currentStages = getStages(setRank);
   const deadIds = archive ? currentStages.map(s => s.id) : defeatedStages;
@@ -324,7 +326,10 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
                 );
               })}
             </div>
-            <Prompt pad={['X']} kb={['X']} mouse="left" label="SWITCH" size={14} className="text-[7px] font-mono text-cyan-400/80 tracking-wider" />
+            <span className="inline-flex items-center gap-3">
+              {showDossier && <Prompt pad={['Y']} mouse="wheel" label={padHeld ? 'HOLD + STICK: SCROLL' : 'SCROLL'} size={14} className="text-[7px] font-mono text-cyan-400/80 tracking-wider" />}
+              <Prompt pad={['X']} kb={['X']} mouse="left" label="SWITCH" size={14} className="text-[7px] font-mono text-cyan-400/80 tracking-wider" />
+            </span>
           </div>
           {showDossier ? (
             <DossierPanel bossId={selectedId} defeated={deadIds.includes(selectedId)} corpseWeapon={killRecords[selectedId]} />

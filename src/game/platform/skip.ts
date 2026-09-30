@@ -34,7 +34,7 @@ export const drawSkipPrompt = (ctx: CanvasRenderingContext2D, width: number) => 
   ctx.fillText(SKIP_LABEL, width - 24, 80);
   // (and the button that does it, on whatever's in use: Start on a controller, Esc on the keyboard)
   const pad = inputDevice() === 'pad';
-  const label = pad ? ({ xbox: 'START', playstation: 'OPTIONS', switch: '+' } as const)[padFamily()] : 'ESC', w = pad ? Math.max(18, label.length * 6 + 8) : 26, x = width - 24 - ctx.measureText(SKIP_LABEL).width - 8 - w, y = 71;
+  const label = pad ? ({ xbox: 'START', playstation: 'OPTIONS', switch: '+', 'joycon-l': '−', 'joycon-r': '+' } as const)[padFamily()] : 'ESC', w = pad ? Math.max(18, label.length * 6 + 8) : 26, x = width - 24 - ctx.measureText(SKIP_LABEL).width - 8 - w, y = 71;
   ctx.fillStyle = pad ? '#27272A' : '#E4E4E7';
   ctx.beginPath(); ctx.roundRect(x, y, w, 12, pad ? 6 : 2); ctx.fill();
   ctx.strokeStyle = pad ? '#0B0B0F' : '#52525B'; ctx.lineWidth = 1; ctx.stroke();

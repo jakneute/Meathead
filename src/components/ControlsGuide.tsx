@@ -25,12 +25,16 @@ const SPECIALS: [move: string, keys: string, pad: string][] = [
 const ControlsGuide: React.FC = () => {
   const pad = useInputDevice() === 'pad', family = usePadFamily();
   // (the controller's buttons as they're printed on this one: a PlayStation's shapes, a Switch's letters)
-  const named = (s: string) => s.replace(/\b(A|B|X|Y|RT|LT|LB|RB|START)\b/g, k => padName(k, family));
+  const single = family === 'joycon-l' || family === 'joycon-r';
+  const named = (s: string) => (single
+    // (one Joy-Con: the stick and nothing else to move, no triggers, so just the one button for firing and for specials)
+    ? s.replace('L-STICK / D-PAD', 'STICK').replace(/ \/ (RT|LT)\b/g, '')
+    : s).replace(/\b(A|B|X|Y|RT|LT|LB|RB|START)\b/g, k => padName(k, family));
   return (
     <div className="w-full max-w-md mt-2 pt-1.5 border-t border-red-950/80 shrink-0 font-mono uppercase text-[7px]">
       <div className="grid grid-cols-[1fr_1.2fr] gap-x-2 text-left">
         <span className="text-cyan-400 font-bold tracking-widest pb-0.5">CONTROLS</span>
-        <span className="text-cyan-400 font-bold tracking-wider pb-0.5">{pad ? ({ xbox: 'CONTROLLER', playstation: 'PLAYSTATION CONTROLLER', switch: 'SWITCH CONTROLLER' } as const)[family] : 'KEYBOARD + MOUSE'}</span>
+        <span className="text-cyan-400 font-bold tracking-wider pb-0.5">{pad ? ({ xbox: 'CONTROLLER', playstation: 'PLAYSTATION CONTROLLER', switch: 'SWITCH CONTROLLER', 'joycon-l': 'JOY-CON (SIDEWAYS)', 'joycon-r': 'JOY-CON (SIDEWAYS)' } as const)[family] : 'KEYBOARD + MOUSE'}</span>
         {BASICS.map(([action, keys, padKeys]) => (
           <React.Fragment key={action}>
             <span className="text-red-500 font-bold tracking-wider border-b border-gray-900/90 py-[1px]">{action}</span>
