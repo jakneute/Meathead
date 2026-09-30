@@ -16,7 +16,7 @@ import { drawErnieBackdrop, drawErnieBack, drawErnieMid, drawErnieFront, drawErn
 import { ernieScene } from './lighting';
 
 /** Down one of the island's holes: into the old fort under the cell house, off the cliff into the bay, into the cistern. */
-const islandFallMessage = (state: GameState) => {
+const islandFallDeathMessage = (state: GameState) => {
   const x = state.player.pos.x;
   if (state.player.health <= 0 || regionOf(x) !== 'cell') return undefined;
   const pick = (l: string[]) => l[Math.floor(Math.random() * l.length)];
@@ -65,7 +65,7 @@ export const ernieLayout: StageLayout = {
     const rt = getErnie(ctx.state);
     if (!rt) return undefined;
     // (what got him in particular first: a jet skier, a gull; the bay's only the catch-all out there)
-    return quakeDeathMessage(ctx.state, rt.quakes) ?? islandFallMessage(ctx.state) ?? deathByCause(ctx.state) ?? skiDeathMessage(rt.ski);
+    return quakeDeathMessage(ctx.state, rt.quakes) ?? islandFallDeathMessage(ctx.state) ?? deathByCause(ctx.state) ?? skiDeathMessage(rt.ski);
   },
   drawBack: (ctx, state) => { if (getErnie(state)) drawErnieBack(ctx, state); },
   drawMid: (ctx, state) => { if (getErnie(state)) drawErnieMid(ctx, state); },

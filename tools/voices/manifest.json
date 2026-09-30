@@ -3556,6 +3556,11 @@
  },
  {
   "voice": "death",
+  "text": "DOWN THE WELL",
+  "from": "game/stages/ernie/index.ts:25"
+ },
+ {
+  "voice": "death",
   "text": "DOWNSIZED",
   "from": "content/deaths"
  },
@@ -3598,6 +3603,11 @@
   "voice": "death",
   "text": "DROWNED IN CRUDE",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DROWNED IN THE DUNGEON",
+  "from": "game/stages/ernie/index.ts:25"
  },
  {
   "voice": "death",
@@ -3691,6 +3701,11 @@
  },
  {
   "voice": "death",
+  "text": "ESCAPED FROM ALCATRAZ",
+  "from": "game/stages/ernie/index.ts:24"
+ },
+ {
+  "voice": "death",
   "text": "ESCORTED OFF THE PREMISES",
   "from": "content/deaths"
  },
@@ -3723,6 +3738,11 @@
   "voice": "death",
   "text": "FELL FOR IT",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "FELL THROUGH THE FLOOR",
+  "from": "game/stages/ernie/index.ts:23"
  },
  {
   "voice": "death",
@@ -4716,6 +4736,11 @@
  },
  {
   "voice": "death",
+  "text": "SHARK FOOD",
+  "from": "game/stages/ernie/index.ts:24"
+ },
+ {
+  "voice": "death",
   "text": "SHARKNADO",
   "from": "content/deaths"
  },
@@ -5121,6 +5146,11 @@
  },
  {
   "voice": "death",
+  "text": "SWIM FOR IT",
+  "from": "game/stages/ernie/index.ts:24"
+ },
+ {
+  "voice": "death",
   "text": "TACKY AND DEAD",
   "from": "content/deaths"
  },
@@ -5228,6 +5258,11 @@
   "voice": "death",
   "text": "THE GROUND ATE YOU",
   "from": "game/stages/ernie/quake.ts:327"
+ },
+ {
+  "voice": "death",
+  "text": "THE HOLE",
+  "from": "game/stages/ernie/index.ts:23"
  },
  {
   "voice": "death",
