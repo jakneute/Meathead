@@ -19,9 +19,14 @@ export interface Panel {
   /** Frames to hold once the text is out (and the line is spoken) before moving on. */
   hold?: number;
   onEnter?: () => void;
+  /** Drawn at the full size it's shown at, not blown up from the pixel art (a close-up in far too much detail). The
+   * drawing's still in the art's coordinates. */
+  hires?: boolean;
 }
 
 const TYPE_FRAMES_PER_CHAR = 2;
+/** How much finer a hi-res panel's drawn (the art's shown at three times its size). */
+const HIRES = 3;
 const DEFAULT_HOLD = 90;
 const INPUT_LOCK_FRAMES = 45;
 const FRAME_MS = 1000 / 60;
@@ -152,6 +157,10 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
       setShownChars(c => (c === p.text.length ? c : chars));
       if (r.typedAt < 0 && chars >= p.text.length) r.typedAt = r.t;
       const talking = r.speaking || (!r.spoke && !!p.voice && r.typedAt < 0);
+      // (a hi-res panel: the canvas at the size it's shown, the art's coordinates scaled up to it)
+      const s = p.hires ? HIRES : 1, cv = ctx.canvas;
+      if (cv.width !== ART_W * s) { cv.width = ART_W * s; cv.height = ART_H * s; }
+      ctx.setTransform(s, 0, 0, s, 0, 0);
       p.draw(ctx, r.t, talking);
       if (r.panel === LAST) {
         if (r.t === endAt) setTheEnd(true);

@@ -1,6 +1,8 @@
 import React from 'react';
 import Cutscene, { Panel } from './Cutscene';
 import { drawMeatheadCloseUp } from '../game/render/scenes/ending';
+import { drawGrossArm, drawGrossGun } from '../game/render/scenes/grossUp';
+import { playSound } from '../game/platform/audio';
 import { drawGym, drawDoorway, drawAgent, drawEscort, drawBriefing, drawFirstFour, gymBg, briefingBg } from '../game/render/scenes/intro';
 import { Voice, MEATHEAD_VOICE } from '../game/platform/speech';
 import { BOSS_SET_TITLES } from '../content/roster';
@@ -50,8 +52,14 @@ const PANELS: Panel[] = [
   agent('And the armory. Rocket launchers, flamethrowers, anything you want. Take your pick.', 'briefing'),
   meathead('dumb', "WEAPONS? NAH. I DON'T NEED WEAPONS.", briefing),
   meathead('stoked', 'I ONLY NEED MY GUNS.', briefing, undefined, 'flex'),
+  // (a gross-up of the guns: held, in far too much detail)
+  { draw: drawGrossArm, text: '', hold: 110, hires: true, onEnter: () => playSound('slam', 0.7, -3) },
   meathead('think', '...', briefing, 50, 'flex'),
   meathead('stoked', '...AND THIS.', briefing, undefined, 'gun'),
+  // (and of the gun)
+  { draw: drawGrossGun, text: '', hold: 110, hires: true, onEnter: () => playSound('reload', 0.9) },
+  // Back to him, just him, pleased with himself
+  meathead('stoked', '...', briefing, 30),
   agent('...Noted.', 'briefing'),
   meathead('stoked', "LET'S GO HURT SOME WEAKLINGS!", briefing),
   { draw: (c, t) => drawFirstFour(c, t), text: '' },
