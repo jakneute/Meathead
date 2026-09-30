@@ -95,7 +95,14 @@ const drawPier = (ctx: Ctx, state: GameState) => {
   ctx.fillStyle = '#DC2626'; ctx.fillText('CLOSED', B.x1 + 125, top - 83);
   ctx.textAlign = 'left';
   ctx.fillStyle = '#27272A'; ctx.fillRect(B.pier - 30, top - 16, 12, 16);
-  ctx.strokeStyle = '#F97316'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(B.x1 + 300, top - 40, 14, 0, Math.PI * 2); ctx.stroke();
+  // The lifebuoy, hung on its post on the pier (a hook at the top, the ring hanging off it)
+  const lx = B.x1 + 300;
+  ctx.fillStyle = '#5E4630'; ctx.fillRect(lx - 3, top - 74, 6, 74);
+  ctx.fillStyle = '#44403C'; ctx.fillRect(lx - 3, top - 76, 6, 3);
+  ctx.strokeStyle = '#9CA3AF'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(lx, top - 62); ctx.lineTo(lx, top - 56); ctx.stroke();
+  ctx.strokeStyle = '#F97316'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(lx, top - 40, 14, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 6;
+  for (const a of [0.25, 1.82, 3.39, 4.96]) { ctx.beginPath(); ctx.arc(lx, top - 40, 14, a, a + 0.35); ctx.stroke(); }
   void state;
 };
 
