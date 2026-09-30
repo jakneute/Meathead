@@ -3072,7 +3072,7 @@
  {
   "voice": "death",
   "text": "AIR CONDITIONED",
-  "from": "game/stages/ernie/quake.ts:301"
+  "from": "game/stages/ernie/quake.ts:334"
  },
  {
   "voice": "death",
@@ -3097,6 +3097,11 @@
  {
   "voice": "death",
   "text": "BAD DOG",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BALL AND CHAINED",
   "from": "content/deaths"
  },
  {
@@ -3246,8 +3251,18 @@
  },
  {
   "voice": "death",
+  "text": "BURIED IN ALCATRAZ",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "BURIED IN IGUANAS",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BURIED IN THE DUNGEON",
+  "from": "game/stages/ernie/quake.ts:335"
  },
  {
   "voice": "death",
@@ -3311,6 +3326,11 @@
  },
  {
   "voice": "death",
+  "text": "CAVE-IN",
+  "from": "game/stages/ernie/quake.ts:331"
+ },
+ {
+  "voice": "death",
   "text": "CHAIN WHIPPED",
   "from": "content/deaths"
  },
@@ -3327,7 +3347,7 @@
  {
   "voice": "death",
   "text": "CHILLED TO DEATH",
-  "from": "game/stages/ernie/quake.ts:301"
+  "from": "game/stages/ernie/quake.ts:334"
  },
  {
   "voice": "death",
@@ -3451,13 +3471,18 @@
  },
  {
   "voice": "death",
+  "text": "DEATH BY LANDSCAPE",
+  "from": "game/stages/ernie/quake.ts:332"
+ },
+ {
+  "voice": "death",
   "text": "DEATH BY PATIO FURNITURE",
   "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "DEATH BY PETUNIA",
-  "from": "game/stages/ernie/quake.ts:300"
+  "from": "game/stages/ernie/quake.ts:333"
  },
  {
   "voice": "death",
@@ -3507,6 +3532,11 @@
  {
   "voice": "death",
   "text": "DIVE BOMBED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DOING HARD TIME",
   "from": "content/deaths"
  },
  {
@@ -3661,6 +3691,11 @@
  },
  {
   "voice": "death",
+  "text": "ESCORTED OFF THE PREMISES",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "EXTERMINATED",
   "from": "content/deaths"
  },
@@ -3677,7 +3712,7 @@
  {
   "voice": "death",
   "text": "FAULT LINE: YOURS",
-  "from": "game/stages/ernie/quake.ts:297"
+  "from": "game/stages/ernie/quake.ts:327"
  },
  {
   "voice": "death",
@@ -3952,7 +3987,7 @@
  {
   "voice": "death",
   "text": "HOUSEPLANT HOMICIDE",
-  "from": "game/stages/ernie/quake.ts:300"
+  "from": "game/stages/ernie/quake.ts:333"
  },
  {
   "voice": "death",
@@ -4003,6 +4038,11 @@
   "voice": "death",
   "text": "JUST ANOTHER NEW YORK STATISTIC",
   "from": "game/stages/barry/runtime.ts:393"
+ },
+ {
+  "voice": "death",
+  "text": "KEPT OFF THE GRASS",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -4197,7 +4237,7 @@
  {
   "voice": "death",
   "text": "MIND THE GAP",
-  "from": "game/stages/ernie/quake.ts:297"
+  "from": "game/stages/ernie/quake.ts:327"
  },
  {
   "voice": "death",
@@ -4297,7 +4337,7 @@
  {
   "voice": "death",
   "text": "ONE BRICK SHORT OF A HOUSE",
-  "from": "game/stages/ernie/quake.ts:302"
+  "from": "game/stages/ernie/quake.ts:335"
  },
  {
   "voice": "death",
@@ -4481,6 +4521,11 @@
  },
  {
   "voice": "death",
+  "text": "RANGERED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "RATTLED",
   "from": "content/deaths"
  },
@@ -4522,7 +4567,7 @@
  {
   "voice": "death",
   "text": "RIVETED",
-  "from": "game/stages/ernie/quake.ts:303"
+  "from": "game/stages/ernie/quake.ts:336"
  },
  {
   "voice": "death",
@@ -4547,6 +4592,11 @@
  {
   "voice": "death",
   "text": "ROCKED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "ROCKSLIDE",
   "from": "content/deaths"
  },
  {
@@ -4741,6 +4791,11 @@
  },
  {
   "voice": "death",
+  "text": "SHOT BY SMOKEY",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "SHOT BY THE C-SUITE",
   "from": "content/deaths"
  },
@@ -4926,6 +4981,11 @@
  },
  {
   "voice": "death",
+  "text": "SOLITARY CONFINEMENT",
+  "from": "game/stages/ernie/quake.ts:330"
+ },
+ {
+  "voice": "death",
   "text": "SOMETHING IN THE FLASK",
   "from": "content/deaths"
  },
@@ -5047,7 +5107,7 @@
  {
   "voice": "death",
   "text": "SWALLOWED BY THE EARTH",
-  "from": "game/stages/ernie/quake.ts:297"
+  "from": "game/stages/ernie/quake.ts:327"
  },
  {
   "voice": "death",
@@ -5126,6 +5186,11 @@
  },
  {
   "voice": "death",
+  "text": "THE CEILING WON",
+  "from": "game/stages/ernie/quake.ts:331"
+ },
+ {
+  "voice": "death",
   "text": "THE CITY THAT NEVER SLEEPS. YOU DO NOW.",
   "from": "game/stages/barry/runtime.ts:393"
  },
@@ -5151,13 +5216,18 @@
  },
  {
   "voice": "death",
+  "text": "THE FORT FELL ON YOU",
+  "from": "game/stages/ernie/quake.ts:335"
+ },
+ {
+  "voice": "death",
   "text": "THE GOAT WAS THE GOAT",
   "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "THE GROUND ATE YOU",
-  "from": "game/stages/ernie/quake.ts:297"
+  "from": "game/stages/ernie/quake.ts:327"
  },
  {
   "voice": "death",
@@ -5201,12 +5271,27 @@
  },
  {
   "voice": "death",
+  "text": "THE PRISON FELL ON YOU",
+  "from": "game/stages/ernie/quake.ts:330"
+ },
+ {
+  "voice": "death",
   "text": "THE RAT WINS",
   "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "THE ROBOTS WIN",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE ROCK FELL ON YOU",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE ROCK ROCKED YOU",
   "from": "content/deaths"
  },
  {
@@ -6166,6 +6251,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A LAMP! ON MY HEAD! IN JAIL!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "A LITTLE RED DOT ON MY PECS... SNIPER! THE PORCH ROOFS! HE CAN'T SEE ME UNDER THOSE!",
   "from": "game/stages/dale/town.ts:237"
  },
@@ -6442,6 +6532,11 @@
  {
   "voice": "meathead",
   "text": "BACK IN THE SEWER, SNOT!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK IN YOUR CELL!",
   "from": "ENEMY_KILL_LINES"
  },
  {
@@ -7746,6 +7841,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GET YOUR HAT OUT OF MY FACE, SMOKEY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "GET YOUR LAB COAT OFF ME, NERD!",
   "from": "HAZARD_HURT"
  },
@@ -8061,6 +8161,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE HIT ME WITH HIS BALL AND CHAIN!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "HE HIT ME WITH HIS SIGN! IT SAYS NO!",
   "from": "HAZARD_HURT"
  },
@@ -8142,6 +8247,11 @@
  {
   "voice": "meathead",
   "text": "HE SHOT ME! BETWEEN STANDUPS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SHOT ME! I WAS STAYING ON THE TRAIL!",
   "from": "HAZARD_HURT"
  },
  {
@@ -8628,6 +8738,11 @@
   "voice": "meathead",
   "text": "I DIDN'T COME HERE TO PLAY TAG! SAME MOVE AS HIM, IN HIS FACE!",
   "from": "game/stages/victor/doorman.ts:529"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DIDN'T FEED THE BIRDS! I SWEAR!",
+  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
@@ -9316,6 +9431,11 @@
  },
  {
   "voice": "meathead",
+  "text": "LEAVE NO TRACE! THERE'S A TRACE!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "LEG DAY, BABY!",
   "from": "game/stages/tommy/bike.ts:35"
  },
@@ -9337,6 +9457,11 @@
  {
   "voice": "meathead",
   "text": "LICENSE AND REGISTRATION? DEAD!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "LIFE SENTENCE! IT WAS SHORT!",
   "from": "ENEMY_KILL_LINES"
  },
  {
@@ -10061,6 +10186,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ONLY YOU CAN PREVENT ME!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "OOF!",
   "from": "game/stages/dale/convoy.ts:389"
  },
@@ -10152,6 +10282,11 @@
  {
   "voice": "meathead",
   "text": "OW! THE HOT STICK GOT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "PARK RANGERS HAVE GUNS?!",
   "from": "HAZARD_HURT"
  },
  {
@@ -10536,6 +10671,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ROCKSLIDE! ROCKSLIDE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "ROIDS ARE KICKING IN",
   "from": "VULGARITIES"
  },
@@ -10901,6 +11041,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SHOW'S OVER, JAILBIRD!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SHUT UP",
   "from": "VULGARITIES"
  },
@@ -11028,6 +11173,11 @@
   "voice": "meathead",
   "text": "SMOKED ASSHOLE",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SMOKEY SAYS HI!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -11501,6 +11651,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT BALL IS REAL IRON! WHO APPROVED THAT?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT BEARD HAD CRUMBS IN IT! ON MY FACE!",
   "from": "HAZARD_HURT"
  },
@@ -11726,7 +11881,17 @@
  },
  {
   "voice": "meathead",
+  "text": "THE CEILING! THE WHOLE CEILING!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "THE CEILING'S LEAKING NEIGHBORS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE CLIFF IS THROWING ROCKS AT ME!",
   "from": "HAZARD_HURT"
  },
  {
@@ -11841,6 +12006,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE PARK RANGER SHOVED ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "THE PARKING LOT BIRD WANTS MY BLOOD!",
   "from": "HAZARD_HURT"
  },
@@ -11852,6 +12022,11 @@
  {
   "voice": "meathead",
   "text": "THE PICKUP GOT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE PRISON IS FALLING ON ME!",
   "from": "HAZARD_HURT"
  },
  {
@@ -11872,6 +12047,11 @@
  {
   "voice": "meathead",
   "text": "THE RENT-A-COP SHOT ME! HE CAN'T EVEN DO THAT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE ROCK IS FALLING APART! THE ACTUAL ROCK!",
   "from": "HAZARD_HURT"
  },
  {
@@ -12793,6 +12973,11 @@
   "voice": "meathead",
   "text": "YOU TRYING TO RUIN MY PUMP?",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'RE AN ACTOR! STAY IN THE SCRIPT!",
+  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",

@@ -15,8 +15,12 @@ export const ernieScene = (state: GameState): SceneLight | null => {
   if (inArena(state)) return { dark: 0.26, shade: [16, 12, 8], lights: [] };
   const region = regionOf(state.camera.x + 400);
   if (region === 'cell') {
-    const lights = row(state, COURSE.cellblock.x1, COURSE.cellblock.x2, 320, GROUND_Y - 470, { r: 470, a: 0.8, cone: 160, color: 'rgba(209, 250, 229, 0.08)' });
-    return { dark: 0.36, shade: [8, 18, 16], lights };
+    // The island: the cell house dim and green under its skylights; the yard and the cliffs out in the sunset; the
+    // citadel's vaults lit by their lamps
+    const mid = state.camera.x + 400, I = COURSE.island;
+    if (mid < I.house) return { dark: 0.36, shade: [8, 18, 16], lights: row(state, COURSE.cellblock.x1, I.house, 320, GROUND_Y - 470, { r: 470, a: 0.8, cone: 160, color: 'rgba(209, 250, 229, 0.08)' }) };
+    if (mid < I.yard) return { dark: 0.12, shade: [52, 18, 44], lights: [] };
+    return { dark: 0.42, shade: [20, 10, 6], lights: row(state, I.yard, COURSE.cellblock.x2, 200, GROUND_Y - 190, { r: 220, a: 0.85, color: 'rgba(253, 186, 116, 0.14)' }) };
   }
   const lights: Light[] = [];
   // The wrecks on the bridge, burning

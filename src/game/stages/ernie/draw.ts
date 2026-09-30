@@ -20,7 +20,8 @@ import { Bridge, mainCableY, TOWER_TOP, SPAN_WARN, DROP_TO_WATER, FAR_LANE, UNDE
 import { drawFault } from './faultDraw';
 import { drawDistricts } from './streetsDraw';
 import { Car, CAR_W, CAR_H, CAR_WARN, carsComing } from './traffic';
-import { drawBayBackdrop, drawSeaBack, drawSeaMid, drawSeaFront, drawSeaHud, drawCellBack, drawCellMid, drawCellFront, drawCellHud } from './drawSea';
+import { drawBayBackdrop, drawSeaBack, drawSeaMid, drawSeaFront, drawSeaHud, drawCellMid, drawCellFront, drawCellHud } from './drawSea';
+import { drawIslandBackdrop, drawIslandBack } from './islandDraw';
 import { sentenceShown } from '../../platform/speech';
 
 type Ctx = CanvasRenderingContext2D;
@@ -54,7 +55,7 @@ const layer = (ctx: Ctx, state: GameState, i: number) => {
 export const drawErnieBackdrop = (ctx: Ctx, state: GameState): boolean => {
   const rt = getErnie(state)!;
   const region = regionOf(state.camera.x + 400);
-  if (region === 'cell') { ctx.fillStyle = '#0E1114'; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); return true; }
+  if (region === 'cell') { drawIslandBackdrop(ctx, state); return true; }
   if (region === 'bay') { drawBayBackdrop(ctx, state, rt); return true; }
   // The streets: sunset over the city (the painted ladies up the hills, the bay and the bridge out beyond them)
   const k = Math.max(0, Math.min(1, (state.camera.x + 400 - COURSE.streets.x1) / (COURSE.bridge.x1 - COURSE.streets.x1)));
@@ -156,7 +157,7 @@ export const drawErnieBack = (ctx: Ctx, state: GameState) => {
   const rt = getErnie(state)!;
   const region = regionOf(state.camera.x + 400);
   if (region === 'bay') { drawSeaBack(ctx, state, rt); return; }
-  if (region === 'cell') { drawCellBack(ctx, state, rt); return; }
+  if (region === 'cell') { drawIslandBack(ctx, state, rt); return; }
   const cam = state.camera.x;
   if (cam < COURSE.bridge.x1 + 200) drawDistricts(ctx, state, quakeAmount(rt.quakes));
   if (cam + CANVAS_WIDTH > COURSE.bridge.x1 - 700) drawBridge(ctx, state, rt.bridge);
@@ -402,7 +403,7 @@ export const drawErnieMid = (ctx: Ctx, state: GameState) => {
   const rt = getErnie(state)!;
   const region = regionOf(state.camera.x + 400);
   if (region === 'bay') { drawSeaMid(ctx, state, rt); return; }
-  if (region === 'cell') { drawCellMid(ctx, state, rt); return; }
+  if (region === 'cell') { drawCellMid(ctx, state, rt); drawLoose(ctx, state, rt.quakes); for (const d of rt.quakes.debris) drawDebris(ctx, d, state.frame); return; }
   drawLoose(ctx, state, rt.quakes);
   for (const d of rt.quakes.debris) drawDebris(ctx, d, state.frame);
   for (const c of rt.bridge.traffic.cars) if (c.state !== 'coming') drawTrafficCar(ctx, c, state.frame);
@@ -523,6 +524,10 @@ const drawLoose = (ctx: Ctx, state: GameState, qk: Quakes) => {
       // Clamped to its suspender cable (the cable runs right through it): a collar and a couple of bolts
       ctx.fillStyle = '#6E1F17'; ctx.fillRect(l.x - 5, l.y - 16, 10, 5);
       ctx.fillStyle = '#A8A29E'; ctx.fillRect(l.x - 4, l.y - 15, 2, 2); ctx.fillRect(l.x + 2, l.y - 15, 2, 2);
+    } else if (l.look === 'lamp') {
+      // Hung off the roof trusses on its chain
+      ctx.strokeStyle = '#52525B'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(l.x, l.y - 150); ctx.lineTo(l.x + (a > 0 ? Math.sin(f * 0.5 + l.x) * a * 6 : 0), l.y - 8); ctx.stroke();
     } else if (l.look === 'ac') {
       // Its brackets under it
       ctx.strokeStyle = '#52525B'; ctx.lineWidth = 2;
@@ -564,6 +569,23 @@ const drawPiece = (ctx: Ctx, look: Debris['look']) => {
       ctx.fillStyle = RED; ctx.fillRect(-18, -5, 36, 10);
       ctx.fillStyle = RED_DARK; ctx.fillRect(-18, -5, 36, 3); ctx.fillRect(-18, 2, 36, 3);
       break;
+    case 'lamp':
+      // A cell house light: an enameled shade, the bulb glowing under it
+      ctx.fillStyle = '#E5E7EB'; ctx.beginPath(); ctx.moveTo(-14, 4); ctx.lineTo(-5, -8); ctx.lineTo(5, -8); ctx.lineTo(14, 4); ctx.fill();
+      ctx.fillStyle = '#52525B'; ctx.fillRect(-3, -12, 6, 5);
+      ctx.fillStyle = '#FEF9C3'; ctx.beginPath(); ctx.arc(0, 6, 4, 0, Math.PI * 2); ctx.fill();
+      break;
+    case 'plaster':
+      // A slab of the gallery's underside, cracked through, hanging by its rebar
+      ctx.fillStyle = '#A8A29E'; ctx.beginPath(); ctx.moveTo(-14, -6); ctx.lineTo(12, -6); ctx.lineTo(15, 3); ctx.lineTo(4, 8); ctx.lineTo(-12, 5); ctx.fill();
+      ctx.fillStyle = '#78716C'; ctx.fillRect(-14, 2, 28, 2);
+      ctx.fillStyle = '#57534E'; ctx.fillRect(-6, -12, 2, 8); ctx.fillRect(6, -12, 2, 8);
+      break;
+    case 'rock':
+      ctx.fillStyle = '#78716C'; ctx.beginPath(); ctx.moveTo(-14, 6); ctx.lineTo(-12, -6); ctx.lineTo(-2, -12); ctx.lineTo(12, -8); ctx.lineTo(15, 4); ctx.lineTo(6, 10); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#A8A29E'; ctx.fillRect(-8, -8, 8, 3);
+      ctx.fillStyle = '#44403C'; ctx.fillRect(-10, 5, 18, 3);
+      break;
   }
 };
 
@@ -603,7 +625,7 @@ export const drawErnieFront = (ctx: Ctx, state: GameState) => {
 export const drawErnieHud = (ctx: Ctx, state: GameState) => {
   const rt = getErnie(state)!;
   const region = regionOf(state.camera.x + 400);
-  if (region === 'main' && inQuakeCountry(state)) drawQuakeBanner(ctx, state, rt.quakes);
+  if ((region === 'main' || region === 'cell') && inQuakeCountry(state)) drawQuakeBanner(ctx, state, rt.quakes);
   if (region === 'main') for (const c of carsComing(rt.bridge.traffic)) drawCarWarning(ctx, state, c);
   if (region === 'bay') drawSeaHud(ctx, state, rt);
   if (region === 'cell') drawCellHud(ctx, state, rt);

@@ -487,6 +487,31 @@ export const BOSS_DIALOGUE: {
       "THE BRIDGE IS FALLING ON ME!",
       "A RIVET! TO THE SKULL!",
     ],
+    // Alcatraz
+    'convict': [
+      "HE HIT ME WITH HIS BALL AND CHAIN!",
+      "YOU'RE AN ACTOR! STAY IN THE SCRIPT!",
+      "THAT BALL IS REAL IRON! WHO APPROVED THAT?!",
+    ],
+    'parkranger': [
+      "THE PARK RANGER SHOVED ME!",
+      "GET YOUR HAT OUT OF MY FACE, SMOKEY!",
+    ],
+    'parkranger_shot': [
+      "PARK RANGERS HAVE GUNS?!",
+      "HE SHOT ME! I WAS STAYING ON THE TRAIL!",
+      "I DIDN'T FEED THE BIRDS! I SWEAR!",
+    ],
+    'cave_in': [
+      "THE PRISON IS FALLING ON ME!",
+      "THE CEILING! THE WHOLE CEILING!",
+      "A LAMP! ON MY HEAD! IN JAIL!",
+    ],
+    'rockslide': [
+      "THE CLIFF IS THROWING ROCKS AT ME!",
+      "ROCKSLIDE! ROCKSLIDE!",
+      "THE ROCK IS FALLING APART! THE ACTUAL ROCK!",
+    ],
     'traffic': [
       "HE RAN ME OVER! ON THE BRIDGE!",
       "LEARN TO DRIVE, YOU MANIAC!",
@@ -1105,6 +1130,8 @@ export const ENEMY_KILL_LINES: Partial<Record<string, string[]>> = {
   seagull: ["NO FRIES FOR YOU!", "MINE THIS!", "SHUT UP, SEAGULL!"],
   drone: ["NO FLY ZONE!", "UNINSTALLED!", "GO SPY ON YOUR MOM!"],
   jetskier: ["WIPEOUT, BRO!", "NO WAKE ZONE, ASSHOLE!", "SPRING BREAK'S OVER!"],
+  convict: ["BACK IN YOUR CELL!", "SHOW'S OVER, JAILBIRD!", "LIFE SENTENCE! IT WAS SHORT!"],
+  parkranger: ["ONLY YOU CAN PREVENT ME!", "LEAVE NO TRACE! THERE'S A TRACE!", "SMOKEY SAYS HI!"],
   // Hector's Miami
   tourist: ["ENJOY YOUR STAY! IT'S PERMANENT!", "SOCKS AND SANDALS? GROSS! AND DEAD!", "NO REFUNDS!"],
   bouncer: ["YOU'RE NOT ON MY LIST EITHER!", "BOUNCE THIS!", "CLUB'S CLOSED, TINY!"],

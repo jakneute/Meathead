@@ -4,6 +4,7 @@
 
 import { deathByCause } from '../../core/deathCause';
 import type { StageLayout } from '../index';
+import type { GameState } from '../../core/state';
 import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH } from '../../../constants';
 import { groundBlocks } from '../../core/terrain';
 import { COURSE, CP } from './course';
@@ -13,6 +14,16 @@ import { onBridge } from './bridge';
 import { skiDeathMessage, isRiding } from './jetski';
 import { drawErnieBackdrop, drawErnieBack, drawErnieMid, drawErnieFront, drawErnieHud, drawErnieWeather } from './draw';
 import { ernieScene } from './lighting';
+
+/** Down one of the island's holes: into the old fort under the cell house, off the cliff into the bay, into the cistern. */
+const islandFallMessage = (state: GameState) => {
+  const x = state.player.pos.x;
+  if (state.player.health <= 0 || regionOf(x) !== 'cell') return undefined;
+  const pick = (l: string[]) => l[Math.floor(Math.random() * l.length)];
+  if (x < COURSE.island.house) return pick(['FELL THROUGH THE FLOOR', 'SOLITARY CONFINEMENT', 'THE HOLE']);
+  if (x < COURSE.island.yard) return pick(['ESCAPED FROM ALCATRAZ', 'SWIM FOR IT', 'SHARK FOOD']);
+  return pick(['DROWNED IN THE DUNGEON', 'DOWN THE WELL']);
+};
 
 export const ernieLayout: StageLayout = {
   music: state => {
@@ -26,8 +37,8 @@ export const ernieLayout: StageLayout = {
   startX: COURSE.startX,
   verticalCamera: true,
   lighting: state => ernieScene(state),
-  // (back far enough that what's left of the tour is in view when you come back from dying to Ernie)
-  bossStartX: COURSE.cellblock.x1 + 150,
+  // (at the foot of the citadel, by the refill)
+  bossStartX: COURSE.checkpoints[CP.DOOR].x,
   build: (state, skipToBoss) => {
     const C = COURSE;
     state.groundRuns = [...C.runs, { x1: BOSS_DOOR_X, y1: GROUND_Y, x2: STAGE_WIDTH, y2: GROUND_Y }];
@@ -54,7 +65,7 @@ export const ernieLayout: StageLayout = {
     const rt = getErnie(ctx.state);
     if (!rt) return undefined;
     // (what got him in particular first: a jet skier, a gull; the bay's only the catch-all out there)
-    return quakeDeathMessage(ctx.state, rt.quakes) ?? deathByCause(ctx.state) ?? skiDeathMessage(rt.ski);
+    return quakeDeathMessage(ctx.state, rt.quakes) ?? islandFallMessage(ctx.state) ?? deathByCause(ctx.state) ?? skiDeathMessage(rt.ski);
   },
   drawBack: (ctx, state) => { if (getErnie(state)) drawErnieBack(ctx, state); },
   drawMid: (ctx, state) => { if (getErnie(state)) drawErnieMid(ctx, state); },
@@ -70,4 +81,3 @@ export const ernieLayout: StageLayout = {
   },
 };
 
-void CP;

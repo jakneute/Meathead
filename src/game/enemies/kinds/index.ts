@@ -67,6 +67,8 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   // (a drone's danger is its gun: bumping into it, or body-checking it, never hurts you)
   drone: { w: 58, h: 30, hp: 40, contact: 0, air: true },
   jetskier: { w: 74, h: 54, hp: 50, contact: 12 },
+  convict: { w: 48, h: 66, hp: 210, contact: 12 },
+  parkranger: { w: 40, h: 64, hp: 120, contact: 6 },
   burning: { w: 34, h: 62, hp: 1, contact: 0 },
   // Dale's stage
   sicario: { w: 40, h: 64, hp: 120, contact: 6 },
@@ -137,7 +139,7 @@ export const isSmallCritter = (kind?: EnemyKind) =>
   || kind === 'rattlesnake' || kind === 'scorpion' || kind === 'rat' || kind === 'sludgeling' || kind === 'armadillo';
 
 /** The ones that run you down like the rusher. */
-export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind === 'bouncer' || kind === 'smokejumper' || kind === 'firedancer' || kind === 'courier' || kind === 'enforcer'
+export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind === 'bouncer' || kind === 'smokejumper' || kind === 'firedancer' || kind === 'courier' || kind === 'convict' || kind === 'enforcer'
   || kind === 'hooker' || kind === 'mugger' || kind === 'commuter' || kind === 'intern' || kind === 'janitor' || kind === 'subject'
   || kind === 'bruiser' || kind === 'bloater' || kind === 'biker';
 
@@ -176,6 +178,9 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     case 'protester': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
     case 'seagull': return { ...base, enemyType: 'flyer', initialY: pos.y };
     case 'drone': return { ...base, enemyType: 'flyer', initialY: pos.y, harmless: true };
+    // Alcatraz: a park ranger with his service pistol, the tour's convict reenactor swinging his ball and chain
+    case 'parkranger': return { ...base, behavior: 'shoot', shootTimer: Math.floor(Math.random() * 40) };
+    case 'convict': return { ...base, behavior: 'patrol', pauseTimer: 0 };
     // On fire and screaming: nobody's enemy, and only you can end it
     case 'burning': return { ...base, harmless: true, innocent: true };
     // Beachgoers: not out to hurt anyone

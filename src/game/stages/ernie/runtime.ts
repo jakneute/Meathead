@@ -11,7 +11,7 @@ import { COURSE, CP } from './course';
 import { Quakes, createQuakes, updateQuakes } from './quake';
 import { Bridge, createBridge, updateBridge } from './bridge';
 import { JetSki, createJetSki, updateJetSki } from './jetski';
-import { Tour, createTour, startTour, updateTour } from './alcatraz';
+import { Tour, createTour, startTour, updateTour, tourWrecked } from './alcatraz';
 
 export interface ErnieRuntime {
   startedAt: number;
@@ -36,7 +36,7 @@ export const AWAY_FRAMES = 40;
 export const getErnie = (state: GameState) => state.stage as ErnieRuntime | null;
 
 export const createErnieRuntime = (state: GameState, skipToBoss: boolean): ErnieRuntime => {
-  const startedAt = skipToBoss ? CP.ALCATRAZ : state.checkpoint;
+  const startedAt = skipToBoss ? CP.DOOR : state.checkpoint;
   const start = COURSE.checkpoints[startedAt];
   const order = (x: number) => ({ main: 0, bay: 1, cell: 2 })[regionOf(x)];
   const ahead = (x: number, clearance: number) => order(x) > order(start.x) || (order(x) === order(start.x) && x - start.x >= clearance);
@@ -76,7 +76,12 @@ export const updateErnie = (ctx: FrameContext, controls: Controls): Controls => 
   const { player } = state;
   const region = regionOf(player.pos.x);
 
-  updateQuakes(ctx, rt.quakes, region === 'main' && !rt.bridge.plunge);
+  // (on the island they're back on once the tour's over, all the way to Ernie's door)
+  const onIsland = region === 'cell' && tourWrecked(rt.tour) && rt.tour.phase === 'wrecked' && player.pos.x < COURSE.cellblock.x2 - 350;
+  updateQuakes(ctx, rt.quakes, (region === 'main' && !rt.bridge.plunge) || onIsland);
+  if (region === 'cell') {
+    for (const cp of [CP.YARD, CP.CITADEL, CP.DOOR]) if (state.checkpoint < cp && player.isGrounded && player.pos.x >= COURSE.checkpoints[cp].x) state.checkpoint = cp;
+  }
   if (region === 'main') {
     if (state.checkpoint < CP.QUAKES && player.isGrounded && player.pos.x >= COURSE.checkpoints[CP.QUAKES].x) state.checkpoint = CP.QUAKES;
     if (state.checkpoint < CP.BRIDGE && player.isGrounded && player.pos.x >= COURSE.checkpoints[CP.BRIDGE].x) state.checkpoint = CP.BRIDGE;

@@ -6,36 +6,47 @@
 // Bridge, coming apart a span at a time, cars going over the side and people on
 // fire. Down at the water on the far side: a hipster with a jet ski (not for
 // long), and a run across the bay to Alcatraz with everything that floats or
-// flies after you. The ride ends in the cell block, on a guided tour. Ernie's
-// door is just past it.
+// flies after you. The ride ends in the cell house, on a guided tour. Then the
+// island, with the quakes back on and worse than ever: up the cell house's
+// galleries as they come down (the floor gone into the old fort under it in
+// places), out into the recreation yard and down the cliffs, the ground opening
+// under you, and into the old citadel's vaults under the prison. Ernie's door is
+// at the bottom.
 //
 // Three places in the world, each built in its own coordinates and shifted into place:
 //   - the streets and the bridge, far to the left
 //   - the bay (the pier, and the long run of water across to the island), further left still
-//   - the cell block on Alcatraz, right before the boss door
+//   - Alcatraz (the cell house, the yard and the cliffs, the citadel), right before the boss door
 
 import { BOSS_DOOR_X, GROUND_Y } from '../../../constants';
 import type { GroundRun } from '../../core/terrain';
 import type { EnemyKind } from '../../../types';
 
-export const CP = { STREETS: 0, QUAKES: 1, BRIDGE: 2, DOCK: 3, SKI: 4, ALCATRAZ: 5 } as const;
+export const CP = { STREETS: 0, QUAKES: 1, BRIDGE: 2, DOCK: 3, SKI: 4, ALCATRAZ: 5, YARD: 6, CITADEL: 7, DOOR: 8 } as const;
 
 export interface Spawn { kind: EnemyKind; x: number; y: number }
 export interface PickupSpot { x: number; y: number; type: 'small_health' | 'large_health' | 'small_ammo' | 'large_ammo' }
-/** A fire escape or a bay window's ledge: you can jump up through it. */
-export interface Ledge { x: number; y: number; w: number }
+/**
+ * A fire escape or a bay window's ledge (on the island: a cell house gallery, a guard tower's walk, a gun port in the
+ * citadel): you can jump up through it. One with `collapse` gives way in a quake when he gets within that of it.
+ */
+export interface Ledge { x: number; y: number; w: number; collapse?: number }
 /**
  * A fault under the street: paved over till a quake splits it open (a crack, dust, then a
  * chasm). It goes when he gets within `trigger` of it with a quake on (and it starts one if
  * there isn't one): a long way off for the first, so you watch it happen; later, close
  * enough that if you're rushing you're standing on it.
  */
-export interface Fault { x: number; w: number; y: number; trigger: number }
+export interface Fault { x: number; w: number; y: number; trigger: number; look?: FaultLook }
+/** What a fault's opened up in: the street, or on the island the cell house floor, the yard, the cliff path, the citadel's. */
+export type FaultLook = 'street' | 'floor' | 'yard' | 'rock' | 'brick';
 /** A span of the bridge deck that gives way when he gets within `trigger` of it (or already has). */
 export interface Span { x: number; w: number; trigger: number; open?: boolean }
 /** A car stopped on the bridge, on fire; the people in it get out screaming when he's near. */
 export interface Wreck { x: number; people: number }
 export interface Prop { look: string; x: number; y: number; text?: string }
+/** Something on the island a quake can bring down: a cell house lamp, plaster off a gallery, a rock off the cliff, a brick off a vault. */
+export interface IslandLoose { x: number; y: number; look: 'lamp' | 'plaster' | 'rock' | 'brick' }
 
 export interface Course {
   runs: GroundRun[];
@@ -52,6 +63,8 @@ export interface Course {
   /** The bay: the pier, the hipster's jet ski at the end of it, the run of water. */
   bay: { x1: number; pier: number; ski: number; x2: number; water: number };
   cellblock: { x1: number; x2: number; y: number; crashX: number };
+  /** The island's three parts: the cell house (to house), the yard and the cliffs (to yard), the citadel (to the door). */
+  island: { house: number; yard: number; tier2: number; tier3: number; loose: IslandLoose[] };
   checkpoints: { x: number; y: number }[];
   left: number;
   startX: number;
@@ -59,7 +72,9 @@ export interface Course {
 
 const MAIN_X0 = -60000;
 const BAY_X0 = -120000;
-const CELL_X1 = BOSS_DOOR_X - 1500;
+/** Alcatraz, from the cell house to Ernie's door. */
+const ISLAND_LEN = 6700;
+const CELL_X1 = BOSS_DOOR_X - ISLAND_LEN;
 
 const Y = GROUND_Y;
 
@@ -148,7 +163,85 @@ const build = () => {
   b.ground(0, PIER, Y - 50, Y - 50, 'pier');
   b.ground(PIER, WATER_END, Y, Y, 'water');
 
+  // ============ ALCATRAZ ============
+  // (the tour's on Broadway at the start of it; the jet ski comes down through the skylight on top of them)
+  const I = part(CELL_X1), loose: IslandLoose[] = [];
+  const T2 = Y - 120, T3 = Y - 240;
+  const hang = (look: IslandLoose['look'], x: number, y: number) => loose.push({ look, x: CELL_X1 + x, y });
+  // THE CELL HOUSE. Broadway, where the tour was; the galleries up either side (the second tier, the third)
+  I.ground(0, 1250, Y, Y, 'cellblock');
+  I.pickup(820, Y - 30, 'small_ammo');
+  I.ledge(620, T2, 580); I.ledge(900, T3, 330);
+  I.pickup(1060, T3 - 30, 'small_health');
+  I.spawn('convict', 1000); I.spawn('parkranger', 1120, T2);
+  // The first quake out here: the floor goes, out ahead of you, into the old fort underneath
+  I.fault(1250, 150, Y, 420, 'floor');
+  I.ground(1400, 1600, Y, Y, 'cellblock');
+  // ...and past it, the floor's already gone: a hole down into the fort too wide to jump. Up the galleries and over it
+  // (the second tier gives way in the middle as you come: jump the gap it leaves, or up to the third and round)
+  I.ledge(1330, T2, 230); I.ledge(1560, T2, 140, 210); I.ledge(1700, T2, 300);
+  I.ledge(1500, T3, 300);
+  I.spawn('convict', 1820, T2);
+  I.ground(1950, 2150, Y, Y, 'cellblock');
+  I.spawn('convict', 2080);
+  // The far end of the block's come down in a heap: up the rubble, a gallery's worth of it, and another hole opening in it
+  I.ground(2150, 2350, Y, T2, 'rubble');
+  I.ground(2350, 2450, T2, T2, 'rubble');
+  I.spawn('parkranger', 2400, T2);
+  I.fault(2450, 150, T2, 230, 'floor');
+  I.ground(2600, 2640, T2, T2, 'rubble');
+  // Up the stairs and out the door into the yard
+  I.ground(2640, 2720, T2, T3, 'stairs');
+  for (const x of [700, 1000, 1300, 1680, 2000, 2280]) hang('lamp', x, Y - 330);
+  for (const x of [800, 1420, 1880]) hang('plaster', x, T2 + 16);
+  // THE YARD. Up top of the island, the city across the water; a fault goes open across it as you come out
+  I.ground(2720, 2900, T3, T3, 'yard');
+  I.fault(2900, 150, T3, 360, 'yard');
+  I.ground(3050, 3250, T3, T3, 'yard');
+  I.spawn('seagull', 2980, T3 - 230); I.spawn('convict', 3180, T3);
+  // The bleachers, up to the top of the yard wall (the guard tower's walk over it)
+  I.ground(3250, 3310, T3 - 50, T3 - 50, 'bleacher');
+  I.ground(3310, 3370, T3 - 100, T3 - 100, 'bleacher');
+  I.ground(3370, 3430, T3 - 150, T3 - 150, 'bleacher');
+  const TOP = T3 - 150;
+  I.ground(3430, 3650, TOP, TOP, 'yard');
+  I.pickup(3500, TOP - 30, 'small_ammo');
+  I.ledge(3470, TOP - 110, 110);
+  I.pickup(3525, TOP - 140, 'small_health');
+  I.spawn('parkranger', 3600, TOP);
+  // Over the wall and down the cliffs on the old switchback road: faults opening in it, rocks shaken off the cliff
+  // over it, a stretch washed clean out into the bay
+  I.ground(3650, 3760, TOP, TOP + 60, 'cliff');
+  I.ground(3760, 3950, TOP + 60, TOP + 60, 'cliff');
+  I.spawn('seagull', 3880, TOP - 170);
+  I.fault(3950, 160, TOP + 60, 230, 'rock');
+  I.ground(4110, 4300, TOP + 60, Y - 200, 'cliff');
+  I.spawn('parkranger', 4250, Y - 245);
+  I.ground(4300, 4450, Y - 200, Y - 200, 'cliff');
+  I.pickup(4400, Y - 230, 'small_health');
+  I.ground(4610, 4800, Y - 200, Y - 110, 'cliff');
+  I.spawn('convict', 4700, Y - 170); I.spawn('seagull', 4640, Y - 400);
+  I.fault(4800, 150, Y - 110, 190, 'rock');
+  I.ground(4950, 5150, Y - 110, Y, 'cliff');
+  // (sat on the cliff face over the road: see islandDraw.ts for where its top is)
+  const face = (x: number) => TOP - 60 + (x - 3650) * 0.18;
+  for (const x of [3830, 4180, 4370, 4700, 5020]) hang('rock', x, face(x) + 26);
+  // THE CITADEL. Down into the old fort's vaults under the prison, the bedrock: bricks coming out of the vaults
+  // over you, a fault in the floor, the old cistern (flooded), a gun port's ledge over it that won't hold
+  I.ground(5150, 5500, Y, Y, 'citadel');
+  I.spawn('convict', 5420);
+  I.fault(5500, 150, Y, 230, 'brick');
+  I.ground(5650, 5800, Y, Y, 'citadel');
+  I.spawn('parkranger', 5740);
+  I.ledge(5835, Y - 90, 90, 150);
+  I.ground(5960, 6700, Y, Y, 'citadel');
+  I.ledge(6080, Y - 120, 140);
+  I.pickup(6150, Y - 150, 'small_ammo');
+  I.spawn('convict', 6200);
+  for (const x of [5300, 5600, 5880, 6150]) hang('brick', x, Y - 196);
+
   return {
+    island: I, islandLoose: loose,
     main: m, bay: b, spans,
     bridgeX: { x1: MAIN_X0 + 8000, x2: MAIN_X0 + 13000, towers: [MAIN_X0 + 9000, MAIN_X0 + 11950], exit: MAIN_X0 + 12900 },
     bayX: { x1: BAY_X0, pier: BAY_X0 + PIER, ski: BAY_X0 + PIER + 50, x2: BAY_X0 + WATER_END, water: Y },
@@ -162,8 +255,8 @@ const part = (x0: number) => {
   return {
     runs, ledges, faults, wrecks, spawns, pickups, props,
     ground: (x1: number, x2: number, y1 = Y, y2 = y1, surface = 'street') => { runs.push({ x1: x0 + x1, y1, x2: x0 + x2, y2, surface }); },
-    ledge: (x: number, y: number, w: number) => { ledges.push({ x: x0 + x, y, w }); },
-    fault: (x: number, w: number, y: number, trigger: number) => { faults.push({ x: x0 + x, w, y, trigger }); },
+    ledge: (x: number, y: number, w: number, collapse?: number) => { ledges.push({ x: x0 + x, y, w, collapse }); },
+    fault: (x: number, w: number, y: number, trigger: number, look: FaultLook = 'street') => { faults.push({ x: x0 + x, w, y, trigger, look }); },
     wreck: (x: number, people: number) => { wrecks.push({ x: x0 + x, people }); },
     spawn: (kind: EnemyKind, x: number, y = Y) => { spawns.push({ kind, x: x0 + x, y }); },
     pickup: (x: number, y: number, type: PickupSpot['type']) => { pickups.push({ x: x0 + x, y, type }); },
@@ -172,31 +265,33 @@ const part = (x0: number) => {
 };
 
 const buildCourse = (): Course => {
-  const { main, bay, spans, bridgeX, bayX } = build();
+  const { main, bay, island, islandLoose, spans, bridgeX, bayX } = build();
   const cellblock = { x1: CELL_X1, x2: BOSS_DOOR_X, y: Y, crashX: CELL_X1 + 470 };
-  const runs = [...bay.runs, ...main.runs, { x1: cellblock.x1, y1: Y, x2: cellblock.x2, y2: Y, surface: 'cellblock' }];
+  const runs = [...bay.runs, ...main.runs, ...island.runs];
   runs.sort((a, b) => a.x1 - b.x1);
   // (the gaps are all drawn by the stage: the faults, the bridge, the gaps between the parts)
   runs.forEach((r, i) => { const next = runs[i + 1]; if (next && next.x1 > r.x2 + 1) r.pitAfter = 'clouds'; });
   // The bridge deck's its own surface
   runs.forEach(r => { if (r.x1 >= bridgeX.x1 - 1 && r.x2 <= bridgeX.x2 + 1) r.surface = 'deck'; });
-  const pickups = [...bay.pickups, ...main.pickups, { x: cellblock.x2 - 300, y: Y - 30, type: 'large_health' }, { x: cellblock.x2 - 220, y: Y - 30, type: 'large_ammo' }] as PickupSpot[];
+  const pickups = [...bay.pickups, ...main.pickups, ...island.pickups, { x: cellblock.x2 - 300, y: Y - 30, type: 'large_health' }, { x: cellblock.x2 - 220, y: Y - 30, type: 'large_ammo' }] as PickupSpot[];
   return {
     runs,
-    ledges: [...main.ledges, ...bay.ledges],
-    faults: main.faults,
+    ledges: [...main.ledges, ...bay.ledges, ...island.ledges],
+    faults: [...main.faults, ...island.faults],
     spans,
     wrecks: main.wrecks,
-    spawns: [...main.spawns, ...bay.spawns],
+    spawns: [...main.spawns, ...bay.spawns, ...island.spawns],
     pickups,
     props: [...main.props, ...bay.props],
     streets: { x1: MAIN_X0, x2: MAIN_X0 + 7400 },
     bridge: bridgeX,
     bay: bayX,
     cellblock,
+    island: { house: CELL_X1 + 2720, yard: CELL_X1 + 5150, tier2: Y - 120, tier3: Y - 240, loose: islandLoose },
     checkpoints: [
       { x: MAIN_X0 + 150, y: Y }, { x: MAIN_X0 + 1800, y: Y - 40 }, { x: MAIN_X0 + 7600, y: Y },
       { x: BAY_X0 + 120, y: Y - 50 }, { x: bayX.ski, y: Y }, { x: cellblock.crashX, y: Y },
+      { x: CELL_X1 + 2780, y: Y - 240 }, { x: CELL_X1 + 5230, y: Y }, { x: BOSS_DOOR_X - 480, y: Y },
     ],
     left: BAY_X0 - 2000,
     startX: MAIN_X0,

@@ -200,6 +200,8 @@ export type EnemyKind =
   | 'raver' | 'firedancer' | 'partygoer'
   // Ernie's stage: San Francisco's finest, its wildlife, drones, the jet ski goons, and the poor souls on fire on the bridge
   | 'techbro' | 'courier' | 'protester' | 'raccoon' | 'seagull' | 'drone' | 'jetskier' | 'burning'
+  // (and on Alcatraz: the tour's convict reenactor with his ball and chain, the park rangers)
+  | 'convict' | 'parkranger'
   // Dale's stage: the cartel's sicarios, enforcers and car-door men, the desert's wildlife, his distributor
   // (the tweaker upstairs in the warehouse office), and the tourists in the old west town
   | 'sicario' | 'enforcer' | 'cardoor' | 'rattlesnake' | 'scorpion' | 'coyote' | 'junkie' | 'visitor' | 'hawk'

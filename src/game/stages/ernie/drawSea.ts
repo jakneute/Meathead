@@ -273,56 +273,6 @@ export const drawSeaHud = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
 // The cell house
 // ---------------------------------------------------------------------------
 
-export const drawCellBack = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
-  const C = COURSE.cellblock;
-  const x1 = Math.max(C.x1 - 60, state.camera.x - 20), x2 = Math.min(C.x2 + 60, state.camera.x + CANVAS_WIDTH + 20);
-  const top = state.camera.y - 20;
-  const wrecked = tourWrecked(rt.tour);
-  // The back wall, up to the roof
-  ctx.fillStyle = '#5E6B63'; ctx.fillRect(x1, top, x2 - x1, Y - top);
-  // Roof trusses and the skylights (one of them smashed in, afterwards)
-  const roof = Y - 470;
-  ctx.fillStyle = '#2B3330'; ctx.fillRect(x1, roof - 40, x2 - x1, 40);
-  for (let x = Math.floor(x1 / 200) * 200; x < x2; x += 200) {
-    const broken = wrecked && Math.abs(x + 100 - C.crashX) < 110;
-    ctx.fillStyle = broken ? '#0B1220' : '#8FA3B0'; ctx.fillRect(x + 40, roof - 36, 120, 30);
-    if (!broken) { ctx.fillStyle = '#2B3330'; for (let k = 1; k < 4; k++) ctx.fillRect(x + 40 + k * 30, roof - 36, 3, 30); }
-    else {
-      // Jagged glass round the hole, and the evening light coming down through it
-      ctx.fillStyle = '#8FA3B0'; ctx.beginPath(); ctx.moveTo(x + 40, roof - 36); ctx.lineTo(x + 62, roof - 20); ctx.lineTo(x + 40, roof - 6); ctx.fill();
-      ctx.beginPath(); ctx.moveTo(x + 160, roof - 36); ctx.lineTo(x + 138, roof - 26); ctx.lineTo(x + 160, roof - 10); ctx.fill();
-      ctx.fillStyle = 'rgba(253, 230, 138, 0.12)';
-      ctx.beginPath(); ctx.moveTo(x + 40, roof - 6); ctx.lineTo(x + 160, roof - 6); ctx.lineTo(x + 200, Y); ctx.lineTo(x + 10, Y); ctx.fill();
-    }
-  }
-  // Two tiers of cells: bars, bunks, sinks, and the walkway between the tiers
-  for (const tierY of [Y, Y - 200]) {
-    ctx.fillStyle = '#3E4843'; ctx.fillRect(x1, tierY - 170, x2 - x1, 170);
-    for (let x = Math.floor(x1 / 80) * 80; x < x2; x += 80) {
-      ctx.fillStyle = '#1C2320'; ctx.fillRect(x + 6, tierY - 150, 68, 150);
-      ctx.fillStyle = '#6B5B45'; ctx.fillRect(x + 12, tierY - 60, 40, 8);
-      ctx.fillStyle = '#D6D3D1'; ctx.fillRect(x + 56, tierY - 50, 12, 10);
-      ctx.fillStyle = '#9CA3AF'; for (let b = x + 8; b < x + 74; b += 8) ctx.fillRect(b, tierY - 150, 2, 150);
-      ctx.fillRect(x + 6, tierY - 150, 68, 4); ctx.fillRect(x + 6, tierY - 80, 68, 3);
-      ctx.fillStyle = '#E7E5E4'; ctx.font = 'bold 6px "Press Start 2P"'; ctx.fillText(`${Math.abs(Math.floor(x / 80)) % 40 + 100}`, x + 30, tierY - 156);
-    }
-    ctx.fillStyle = '#2B3330'; ctx.fillRect(x1, tierY - 176, x2 - x1, 6);
-  }
-  // The upper walkway's railing
-  ctx.fillStyle = '#9CA3AF'; ctx.fillRect(x1, Y - 236, x2 - x1, 3);
-  for (let x = Math.floor(x1 / 20) * 20; x < x2; x += 20) ctx.fillRect(x, Y - 236, 2, 36);
-  // Signs
-  const sx = C.x1 + 240;
-  if (visible(state, sx - 100, sx + 200)) {
-    ctx.fillStyle = '#1C1917'; ctx.fillRect(sx, Y - 420, 160, 30);
-    ctx.fillStyle = '#F5F5F4'; ctx.font = 'bold 10px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('BROADWAY', sx + 80, Y - 400); ctx.textAlign = 'left';
-  }
-  // The floor
-  ctx.fillStyle = '#8A8F87'; ctx.fillRect(x1, Y, x2 - x1, 20);
-  ctx.fillStyle = '#6B706A'; ctx.fillRect(x1, Y + 20, x2 - x1, state.camera.y + CANVAS_HEIGHT + 40 - Y);
-  ctx.fillStyle = '#A3A8A0'; ctx.fillRect(x1, Y, x2 - x1, 2);
-};
-
 export const drawCellMid = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
   const tour = rt.tour;
   const C = COURSE.cellblock;

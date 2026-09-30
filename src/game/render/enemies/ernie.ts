@@ -1,7 +1,8 @@
 // Ernie's stage: San Francisco's finest (a tech bro in a fleece vest with a
 // pistol, a bike courier who runs you down swinging a U-lock, a protester
 // behind his cardboard sign), the wildlife (a trash panda, a seagull), the
-// drones, the goons on jet skis, and the poor souls on fire on the bridge.
+// drones, the goons on jet skis, and the poor souls on fire on the bridge. On
+// Alcatraz: the tour's convict reenactor and the park rangers.
 // Drawn like the rest: facing right from a point at the feet, flipped by the caller.
 
 import { Enemy } from '../../../types';
@@ -20,7 +21,59 @@ export const drawErnieKind = (ctx: Ctx, e: Enemy, f: number, state: GameState) =
     case 'drone': drawDrone(ctx, e, f, state); break;
     case 'jetskier': drawJetskier(ctx, e, f); break;
     case 'burning': drawBurning(ctx, e, f); break;
+    case 'convict': drawConvict(ctx, e, f); break;
+    case 'parkranger': drawParkRanger(ctx, e, f); break;
   }
+};
+
+/**
+ * The tour's convict reenactor, still in character: striped prison suit and cap, a stubble, a number on his chest,
+ * and the ball and chain off his ankle, swung round his head as he runs you down (it's a real iron ball; the tour
+ * went all out).
+ */
+const drawConvict = (ctx: Ctx, e: Enemy, f: number) => {
+  const running = Math.abs(e.vel.x) > 1;
+  legs(ctx, -28, f * (running ? 1.6 : 0.6), running ? 7 : 1, '#E7E5E4', '#1C1917');
+  ctx.fillStyle = '#1C1917'; for (let y = -26; y < -6; y += 6) { ctx.fillRect(-8, y, 7, 3); ctx.fillRect(2, y, 7, 3); }
+  ctx.save(); ctx.translate(0, -28); ctx.rotate(running ? 0.22 : 0);
+  // The suit: black and white stripes, the number
+  ctx.fillStyle = '#F5F5F4'; ctx.fillRect(-13, -32, 26, 32);
+  ctx.fillStyle = '#1C1917'; for (let y = -30; y < 0; y += 6) ctx.fillRect(-13, y, 26, 3);
+  ctx.fillStyle = '#F5F5F4'; ctx.fillRect(-7, -24, 14, 7);
+  ctx.fillStyle = '#1C1917'; ctx.font = 'bold 5px monospace'; ctx.fillText('1259', -7, -18);
+  head(ctx, -40, '#E0AC69');
+  ctx.fillStyle = 'rgba(40, 30, 20, 0.45)'; ctx.fillRect(-4, -38, 14, 6); // stubble
+  ctx.fillStyle = '#111827'; ctx.fillRect(4, -43, 7, 2);
+  ctx.fillStyle = '#F5F5F4'; ctx.fillRect(-7, -52, 18, 6); ctx.fillStyle = '#1C1917'; ctx.fillRect(-7, -49, 18, 2); // the cap
+  ctx.restore();
+  // The chain from his ankle up to his hand, the ball whirling round his head when he's running
+  const a = running ? f * 0.35 : Math.PI * 0.75;
+  const hx = 8, hy = -58, bx = hx + Math.cos(a) * 30, by = hy - 8 + Math.sin(a) * 16;
+  ctx.strokeStyle = '#52525B'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(4, -4); ctx.quadraticCurveTo(14, -30, hx, hy); ctx.lineTo(bx, by); ctx.stroke();
+  ctx.fillStyle = '#E0AC69'; ctx.fillRect(hx - 3, hy - 3, 7, 7);
+  ctx.fillStyle = '#27272A'; ctx.beginPath(); ctx.arc(bx, by, 9, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#71717A'; ctx.beginPath(); ctx.arc(bx - 3, by - 3, 3, 0, Math.PI * 2); ctx.fill();
+};
+
+/** A park ranger: the flat hat, gray shirt and green trousers, the arrowhead patch, a service pistol; glows before he fires. */
+const drawParkRanger = (ctx: Ctx, e: Enemy, f: number) => {
+  legs(ctx, -26, f, Math.abs(e.vel.x) > 0.5 ? 5 : 0, '#3F6212', '#44403C');
+  ctx.fillStyle = '#A8A29E'; ctx.fillRect(-12, -54, 24, 30); // shirt
+  ctx.fillStyle = '#78716C'; ctx.fillRect(-12, -54, 24, 3); ctx.fillRect(-1, -52, 2, 26);
+  ctx.fillStyle = '#854D0E'; ctx.beginPath(); ctx.moveTo(-11, -48); ctx.lineTo(-5, -48); ctx.lineTo(-8, -40); ctx.fill(); // the arrowhead
+  ctx.fillStyle = '#FACC15'; ctx.fillRect(4, -49, 5, 5); // badge
+  ctx.fillStyle = '#44403C'; ctx.fillRect(-12, -28, 24, 4); // duty belt
+  head(ctx, -64, '#C68642');
+  ctx.fillStyle = '#111827'; ctx.fillRect(4, -66, 7, 2);
+  // The flat hat: the wide brim, the pinched crown, the band
+  ctx.fillStyle = '#A16207'; ctx.fillRect(-12, -73, 28, 3);
+  ctx.beginPath(); ctx.moveTo(-5, -73); ctx.lineTo(2, -84); ctx.lineTo(9, -73); ctx.fill();
+  ctx.fillStyle = '#44403C'; ctx.fillRect(-5, -76, 14, 2);
+  const charge = Math.max(0, (e.shootTimer - 40) / 20);
+  ctx.fillStyle = '#C68642'; ctx.fillRect(6, -46, 12, 5);
+  ctx.fillStyle = '#18181B'; ctx.fillRect(16, -49, 12, 5); ctx.fillRect(16, -45, 4, 5);
+  if (charge > 0.8) { ctx.fillStyle = '#FEF08A'; ctx.beginPath(); ctx.arc(30, -47, 2 + charge * 2, 0, Math.PI * 2); ctx.fill(); }
 };
 
 const legs = (ctx: Ctx, hipY: number, f: number, stride: number, pants: string, shoe: string) => {

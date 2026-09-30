@@ -12,6 +12,11 @@
 //             he's rushing. Fall in and that's that.
 //
 // Falling stuff hurts the enemies too (but tries not to come down on them).
+//
+// And on Alcatraz, worse than ever: inside, the cell house's lamps and the
+// plaster off the galleries come down (and the bricks out of the citadel's
+// vaults), and stretches of gallery give way under you; outside, rocks come off
+// the cliffs; and the floors, the yard and the cliff road split open.
 
 import type { Block } from '../../../types';
 import type { FrameContext } from '../../core/context';
@@ -21,13 +26,13 @@ import { shakeScreen } from '../../core/state';
 import { hurtPlayer } from '../../bosses/shared';
 import { playSound } from '../../platform/audio';
 import { rectsOverlap, boundsOf, isOnScreen } from '../../core/utils';
-import { profileYAt } from '../../core/terrain';
+import { profileYAt, floorTopAt } from '../../core/terrain';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { COURSE, Fault } from './course';
 import { looseOnStreets } from './streets';
 import { mainCableY } from './bridge';
 
-export type DebrisLook = 'pot' | 'brick' | 'ac' | 'rivet' | 'beam';
+export type DebrisLook = 'pot' | 'brick' | 'ac' | 'rivet' | 'beam' | 'lamp' | 'plaster' | 'rock';
 export interface Debris {
   x: number; y: number; vy: number; rot: number; spin: number;
   /** Where it'll land, and frames till it lets go (it wobbles on the sill first). */
@@ -73,7 +78,11 @@ export interface Quakes {
   lastLook?: DebrisLook;
   /** The fault he was last standing near (for a death down it). */
   nearFault: number;
+  /** The island's galleries (and the gun port's ledge) that give way in a quake. */
+  collapses: Collapse[];
 }
+/** A stretch of gallery that goes in a quake: steady; shaking (t counting up to FAULT_WARN); then down, falling away. */
+export interface Collapse { ledge: number; block: Block; t: number; gone: boolean; fallY: number; vy: number }
 
 /** A fault's warning (the crack spreading, dust going up) before it opens. */
 export const FAULT_WARN = 55;
@@ -93,16 +102,24 @@ export const createQuakes = (state: GameState, startedAt: number): Quakes => {
     state.blocks.push(block);
     return { t: 0, open: false, block };
   });
+  const collapses: Collapse[] = [];
+  COURSE.ledges.forEach((l, i) => {
+    if (l.collapse === undefined) return;
+    const block = state.blocks.find(b => b.tag === `eledge-${i}`);
+    if (block) collapses.push({ ledge: i, block, t: 0, gone: false, fallY: 0, vy: 0 });
+  });
   return {
     t: 0, dur: 1, mag: 0, next: 400, first: startedAt === 0, debris: [], dropTimer: 0, faults,
-    loose: [...looseOnStreets(state.groundRuns).map(l => ({ ...l, gone: false })), ...looseOnBridge()],
-    sway: 1, swayT: 0, banner: 0, lastCause: '', lastCauseAt: -999, nearFault: -1,
+    loose: [...looseOnStreets(state.groundRuns).map(l => ({ ...l, gone: false })), ...looseOnBridge(), ...COURSE.island.loose.map(l => ({ ...l, gone: false }))],
+    sway: 1, swayT: 0, banner: 0, lastCause: '', lastCauseAt: -999, nearFault: -1, collapses,
   };
 };
 
 /** How far along (0..1) he is through the quake country (the streets, then the bridge on top). */
 const progress = (x: number) => {
   const s = COURSE.streets, b = COURSE.bridge;
+  // (out on the island they're the biggest yet)
+  if (onIsland(x)) return 0.85 + Math.min(1, (x - COURSE.cellblock.x1) / (COURSE.cellblock.x2 - COURSE.cellblock.x1)) * 0.2;
   if (x < s.x2) return Math.max(0, (x - s.x1) / (s.x2 - s.x1)) * 0.7;
   return 0.7 + Math.min(1, Math.max(0, (x - b.x1) / (b.x2 - b.x1))) * 0.3;
 };
@@ -117,6 +134,9 @@ export const startQuake = (state: GameState, qk: Quakes, frames?: number) => {
   qk.dropTimer = 20;
   playSound('rumble');
 };
+
+/** On Alcatraz (past the tour: the quakes are back on out there). */
+export const onIsland = (x: number) => x >= COURSE.cellblock.x1 - 200;
 
 /** 0..1: how hard it's shaking right now (eases in and out). */
 export const quakeAmount = (qk: Quakes) => {
@@ -136,8 +156,9 @@ export const updateQuakes = (ctx: FrameContext, qk: Quakes, active: boolean) => 
     else if (!qk.first && qk.t <= 0 && --qk.next <= 0) {
       startQuake(state, qk);
       const k = progress(px);
-      // (closer together the further in; but out on the bridge, with everything else going on, they give you a breather)
-      qk.next = Math.round((px > COURSE.bridge.x1 - 200 ? 560 : 560 - k * 280) + Math.random() * 200);
+      // (closer together the further in; but out on the bridge, with everything else going on, they give you a breather;
+      // on the island, one after another)
+      qk.next = Math.round((onIsland(px) ? 360 : px > COURSE.bridge.x1 - 200 ? 560 : 560 - k * 280) + Math.random() * 200);
     }
   }
   if (qk.t > 0) {
@@ -151,15 +172,19 @@ export const updateQuakes = (ctx: FrameContext, qk: Quakes, active: boolean) => 
     if (active && --qk.dropTimer <= 0) {
       dropSomething(state, qk);
       const k = progress(px);
-      qk.dropTimer = px > COURSE.bridge.x1 - 200 ? Math.round(70 + Math.random() * 30) : Math.round(46 - k * 22 + Math.random() * 20);
+      qk.dropTimer = onIsland(px) ? Math.round(40 + Math.random() * 24) : px > COURSE.bridge.x1 - 200 ? Math.round(70 + Math.random() * 30) : Math.round(46 - k * 22 + Math.random() * 20);
     }
   }
   updateFaults(ctx, qk);
+  updateCollapses(ctx, qk);
   updateDebris(ctx, qk);
 };
 
 /** How far below its middle each thing's bottom is (it sits on its ledge by it). */
-export const PIECE_BOTTOM: Record<DebrisLook, number> = { pot: 8, ac: 12, brick: 6, rivet: 0, beam: 0 };
+export const PIECE_BOTTOM: Record<DebrisLook, number> = { pot: 8, ac: 12, brick: 6, rivet: 0, beam: 0, lamp: 0, plaster: 0, rock: 10 };
+/** The island's pieces fall to whatever's under them (a gallery, the floor), not just the ground. */
+const ISLAND_LOOKS: DebrisLook[] = ['lamp', 'plaster', 'rock'];
+const landsOn = (state: GameState, l: Loose) => (onIsland(l.x) ? floorTopAt(state.blocks, l.x, l.y + 6, 0) ?? undefined : profileYAt(state.groundRuns, l.x));
 
 /** How close to the edges of the view a loose thing can be and still be picked to come down (it's all in view, the whole way). */
 const VIEW_MARGIN = 26;
@@ -181,7 +206,7 @@ const dropSomething = (state: GameState, qk: Quakes) => {
     if (l.gone) continue;
     if (l.x - 22 < cam.x + VIEW_MARGIN || l.x + 22 > cam.x + CANVAS_WIDTH - VIEW_MARGIN || l.y - 34 < cam.y + VIEW_MARGIN || l.y > cam.y + CANVAS_HEIGHT - 60) continue;
     if (l.x < px - 200 || l.x > px + 420) continue;
-    const ground = profileYAt(state.groundRuns, l.x);
+    const ground = landsOn(state, l);
     if (ground === undefined || ground <= l.y || !clear(l.x) || qk.faults.some(f => f.open && l.x > f.block.x - 20 && l.x < f.block.x + f.block.w + 20)) continue;
     const d = Math.abs(l.x - aim) + Math.random() * 160;
     if (d < bestD) { bestD = d; best = l; }
@@ -189,7 +214,7 @@ const dropSomething = (state: GameState, qk: Quakes) => {
   if (!best) return;
   best.gone = true;
   const steel = best.look === 'rivet' || best.look === 'beam';
-  qk.debris.push({ x: best.x, y: best.y - PIECE_BOTTOM[best.look], vy: 0, rot: 0, spin: (Math.random() - 0.5) * 0.3, ground: profileYAt(state.groundRuns, best.x)!, hold: steel ? BRIDGE_HOLD : DEBRIS_HOLD, look: best.look, sill: !steel, done: false });
+  qk.debris.push({ x: best.x, y: best.y - PIECE_BOTTOM[best.look], vy: 0, rot: 0, spin: (Math.random() - 0.5) * 0.3, ground: landsOn(state, best)!, hold: steel ? BRIDGE_HOLD : DEBRIS_HOLD, look: best.look, sill: !steel && !ISLAND_LOOKS.includes(best.look), done: false });
 };
 
 /** Broken fittings hanging off the bridge's suspender cables, in view from the deck, waiting for a quake to shake them off. */
@@ -218,8 +243,10 @@ const updateDebris = (ctx: FrameContext, qk: Quakes) => {
     if (!d.done && rectsOverlap(box, boundsOf(p)) && p.invincibilityTimer <= 0) {
       d.done = true;
       qk.lastCause = 'falling_debris'; qk.lastCauseAt = state.frame; qk.lastLook = d.look;
-      hurtPlayer(ctx, DEBRIS_DAMAGE, d.look === 'rivet' || d.look === 'beam' ? 'falling_steel' : 'falling_debris', { x: (p.pos.x + p.width / 2 < d.x ? -1 : 1) * 3, y: -5 });
-      fx.spawnDamageNumber({ x: p.pos.x - 20, y: p.pos.y - 30 }, { pot: 'POTTED!', ac: 'AIR CONDITIONED!', brick: 'BONK!', rivet: 'RIVETED!', beam: 'GIRDERED!' }[d.look], true, '#FDE047');
+      // (on the island: the prison coming down on him, or the cliff)
+      const source = d.look === 'rivet' || d.look === 'beam' ? 'falling_steel' : d.look === 'rock' ? 'rockslide' : onIsland(d.x) ? 'cave_in' : 'falling_debris';
+      hurtPlayer(ctx, DEBRIS_DAMAGE, source, { x: (p.pos.x + p.width / 2 < d.x ? -1 : 1) * 3, y: -5 });
+      fx.spawnDamageNumber({ x: p.pos.x - 20, y: p.pos.y - 30 }, { pot: 'POTTED!', ac: 'AIR CONDITIONED!', brick: 'BONK!', rivet: 'RIVETED!', beam: 'GIRDERED!', lamp: 'LIGHTS OUT!', plaster: 'CAVE-IN!', rock: 'ROCKSLIDE!' }[d.look], true, '#FDE047');
       smash(state, d);
     }
     for (const e of state.enemies) {
@@ -246,6 +273,9 @@ const smash = (state: GameState, d: Debris) => {
     ac: ['#D4D4D8', '#71717A', '#27272A'],
     rivet: ['#B91C1C', '#7F1D1D', '#52525B'],
     beam: ['#C0392B', '#8E2A20', '#3F3F46'],
+    lamp: ['#E5E7EB', '#FEF9C3', '#52525B'],
+    plaster: ['#D6D3D1', '#A8A29E', '#78716C'],
+    rock: ['#78716C', '#57534E', '#44403C'],
   };
   const c = colors[d.look];
   for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: d.x, y: Math.min(d.y, d.ground - 4) }, vel: { x: (Math.random() - 0.5) * 7, y: -1 - Math.random() * 5 }, life: 24 + Math.random() * 16, color: c[i % c.length], size: 3 + Math.random() * 4 });
@@ -297,9 +327,12 @@ export const quakeDeathMessage = (state: GameState, qk: Quakes): string | undefi
   if (state.player.health > 0 && qk.nearFault >= 0) return pick(['SWALLOWED BY THE EARTH', 'MIND THE GAP', 'FAULT LINE: YOURS', 'THE GROUND ATE YOU']);
   if (qk.lastCause === 'falling_debris' && lastHurtWas(state, qk.lastCauseAt)) {
     switch (qk.lastLook) {
+      case 'lamp': return pick(['LIGHTS OUT', 'THE PRISON FELL ON YOU', 'SOLITARY CONFINEMENT']);
+      case 'plaster': return pick(['CAVE-IN', 'BURIED IN ALCATRAZ', 'THE CEILING WON']);
+      case 'rock': return pick(['ROCKSLIDE', 'THE ROCK ROCKED YOU', 'DEATH BY LANDSCAPE']);
       case 'pot': return pick(['KILLED BY A FLOWERPOT', 'HOUSEPLANT HOMICIDE', 'DEATH BY PETUNIA']);
       case 'ac': return pick(['AIR CONDITIONED', 'CHILLED TO DEATH']);
-      case 'brick': return pick(['DEATH FROM ABOVE', 'ONE BRICK SHORT OF A HOUSE']);
+      case 'brick': return onIsland(state.player.pos.x) ? pick(['BURIED IN THE DUNGEON', 'THE FORT FELL ON YOU']) : pick(['DEATH FROM ABOVE', 'ONE BRICK SHORT OF A HOUSE']);
       default: return pick(['RIVETED', 'THE BRIDGE FELL ON YOU', 'STRUCTURAL FAILURE']);
     }
   }
@@ -307,4 +340,48 @@ export const quakeDeathMessage = (state: GameState, qk: Quakes): string | undefi
 };
 
 /** Is the view on quake country right now (for the banner)? */
-export const inQuakeCountry = (state: GameState) => state.camera.x + CANVAS_WIDTH / 2 < COURSE.bridge.x2 + 200 && state.camera.x + CANVAS_WIDTH / 2 > COURSE.streets.x1 - 400;
+export const inQuakeCountry = (state: GameState) => (state.camera.x + CANVAS_WIDTH / 2 < COURSE.bridge.x2 + 200 && state.camera.x + CANVAS_WIDTH / 2 > COURSE.streets.x1 - 400) || onIsland(state.camera.x + CANVAS_WIDTH / 2);
+
+// ---------------------------------------------------------------------------
+// The island's galleries, coming down
+// ---------------------------------------------------------------------------
+
+const updateCollapses = (ctx: FrameContext, qk: Quakes) => {
+  const { state } = ctx;
+  const p = state.player;
+  const px = p.pos.x + p.width / 2;
+  for (const c of qk.collapses) {
+    const l = COURSE.ledges[c.ledge];
+    if (c.gone) {
+      // What's left of it, going down
+      if (c.fallY < 1400) { c.vy = Math.min(16, c.vy + DEBRIS_GRAVITY); c.fallY += c.vy; }
+      continue;
+    }
+    if (c.t === 0) {
+      // He's close (or on it): it goes, with a quake if there isn't one on
+      if (px > l.x - (l.collapse ?? 0) && px < l.x + l.w + 40 && Math.abs(p.pos.y + p.height - l.y) < 300) {
+        c.t = 1;
+        if (qk.t < FAULT_WARN + 40) startQuake(state, qk, Math.max(FAULT_WARN + 80, qk.t));
+        playSound('crack');
+      }
+      continue;
+    }
+    c.t++;
+    if (state.frame % 4 === 0) state.particles.push({ pos: { x: l.x + Math.random() * l.w, y: l.y + 8 }, vel: { x: (Math.random() - 0.5) * 1.2, y: 1 + Math.random() * 2 }, life: 30, color: Math.random() < 0.5 ? '#A8A29E' : '#78716C', size: 2 + Math.random() * 4 });
+    if (c.t >= FAULT_WARN) {
+      // Down it goes, and anyone on it
+      c.gone = true;
+      state.blocks = state.blocks.filter(b => b !== c.block);
+      shakeScreen(state, 16, 7);
+      playSound('crash');
+      for (let k = 0; k < 20; k++) state.particles.push({ pos: { x: l.x + Math.random() * l.w, y: l.y + 4 }, vel: { x: (Math.random() - 0.5) * 3, y: 1 + Math.random() * 4 }, life: 40, color: k % 3 ? '#52525B' : '#A8A29E', size: 4 + Math.random() * 6 });
+      if (isOnScreen(state.camera, { pos: { x: l.x, y: l.y - 40 }, width: l.w, height: 40 })) ctx.fx.spawnDamageNumber({ x: l.x + l.w / 2 - 40, y: l.y - 60 }, 'GIVING WAY!', true, '#F97316');
+    }
+  }
+};
+
+/** A gallery that's going (0 steady .. 0..1 shaking), or gone (how far what's left of it has fallen). */
+export const collapseState = (qk: Quakes, ledge: number) => {
+  const c = qk.collapses.find(k => k.ledge === ledge);
+  return !c ? { k: 0, gone: false, fallY: 0 } : { k: c.gone ? 1 : c.t / FAULT_WARN, gone: c.gone, fallY: c.fallY };
+};
