@@ -138,7 +138,18 @@ export const drawThrown = (ctx: CanvasRenderingContext2D, p: Projectile, frame: 
       ctx.fillStyle = '#B91C1C'; ctx.fillRect(-10, -2, 6, 4);
       break;
     case 'household':
-      // Whatever was to hand: a pot, a toaster, a shoe, a potted plant, a phone
+      // Whatever was to hand: a pot, a toaster, a shoe, a potted plant, a phone; up the swanky building (5 on), the good
+      // stuff: a bottle of champagne, an espresso machine, a designer handbag, a gold statuette, a laptop
+      if ((p.item ?? 0) >= 5) {
+        switch ((p.item ?? 0) % 5) {
+          case 0: ctx.fillStyle = '#14532D'; ctx.fillRect(-9, -3, 14, 7); ctx.fillRect(5, -2, 5, 4); ctx.fillStyle = '#FACC15'; ctx.fillRect(8, -2, 3, 4); ctx.fillStyle = '#F5F5F4'; ctx.fillRect(-5, -2, 6, 5); break;
+          case 1: ctx.fillStyle = '#A1A1AA'; ctx.fillRect(-8, -7, 16, 13); ctx.fillStyle = '#27272A'; ctx.fillRect(-6, -2, 12, 3); ctx.fillStyle = '#E4E4E7'; ctx.fillRect(-7, -7, 14, 2); ctx.fillStyle = '#DC2626'; ctx.fillRect(4, -5, 2, 2); break;
+          case 2: ctx.fillStyle = '#7C2D12'; ctx.beginPath(); ctx.roundRect(-8, -3, 16, 9, 2); ctx.fill(); ctx.strokeStyle = '#FACC15'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, -3, 5, Math.PI, 0); ctx.stroke(); ctx.fillStyle = '#FACC15'; ctx.fillRect(-2, 0, 4, 2); break;
+          case 3: ctx.fillStyle = '#EAB308'; ctx.fillRect(-4, 2, 8, 5); ctx.fillRect(-2, -4, 4, 7); ctx.beginPath(); ctx.arc(0, -6, 3, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#FEF08A'; ctx.fillRect(-1, -5, 1, 6); break;
+          default: ctx.fillStyle = '#D4D4D8'; ctx.fillRect(-9, 1, 18, 3); ctx.fillStyle = '#A1A1AA'; ctx.fillRect(-8, -8, 16, 10); ctx.fillStyle = '#60A5FA'; ctx.fillRect(-6, -6, 12, 7); break;
+        }
+        break;
+      }
       switch ((p.item ?? 0) % 5) {
         case 0: ctx.fillStyle = '#6B7280'; ctx.fillRect(-7, -4, 12, 9); ctx.fillRect(5, -3, 6, 2); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(-7, -5, 12, 2); break;
         case 1: ctx.fillStyle = '#D1D5DB'; ctx.beginPath(); ctx.roundRect(-8, -5, 16, 11, 3); ctx.fill(); ctx.fillStyle = '#374151'; ctx.fillRect(-5, -6, 3, 3); ctx.fillRect(1, -6, 3, 3); ctx.fillStyle = '#111827'; ctx.fillRect(8, -1, 2, 3); break;

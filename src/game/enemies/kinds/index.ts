@@ -86,6 +86,7 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   mugger: { w: 40, h: 64, hp: 140, contact: 12 },
   bum: { w: 58, h: 64, hp: 170, contact: 7 },
   rat: { w: 30, h: 14, hp: 30, contact: 6 },
+  pigeon: { w: 36, h: 20, hp: 25, contact: 7, air: true },
   guard: { w: 42, h: 66, hp: 130, contact: 6 },
   commuter: { w: 44, h: 66, hp: 210, contact: 12 },
   reader: { w: 50, h: 66, hp: 160, contact: 7 },
@@ -176,7 +177,7 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     case 'techbro': return { ...base, behavior: 'shoot', shootTimer: Math.floor(Math.random() * 40) };
     case 'courier': return { ...base, behavior: 'patrol', pauseTimer: 0 };
     case 'protester': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
-    case 'seagull': return { ...base, enemyType: 'flyer', initialY: pos.y };
+    case 'seagull': case 'pigeon': return { ...base, enemyType: 'flyer', initialY: pos.y };
     case 'drone': return { ...base, enemyType: 'flyer', initialY: pos.y, harmless: true };
     // Alcatraz: a park ranger with his service pistol, the tour's convict reenactor swinging his ball and chain
     case 'parkranger': return { ...base, behavior: 'shoot', shootTimer: Math.floor(Math.random() * 40) };
@@ -234,7 +235,7 @@ export const runKindAI = (ctx: FrameContext, e: Enemy): boolean => {
     case 'magmafish': case 'partygoer': return runVictorKindAI(ctx, e);
     // Ernie's wildlife and machines: the raccoon lunges like the wolverine, the seagull swoops like the pelican
     case 'raccoon': wolverine(ctx, e); return false;
-    case 'seagull': return runHectorKindAI(ctx, e);
+    case 'seagull': case 'pigeon': return runHectorKindAI(ctx, e);
     case 'drone': case 'jetskier': case 'burning': return runErnieKindAI(ctx, e);
     // Dale's desert: the coyote lunges in bounding hops like the wolverine, the scorpion scuttles and pinches like the
     // crab; the rattlesnake coils up and strikes; the tourists in town carry on like the beachgoers

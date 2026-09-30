@@ -487,6 +487,12 @@ export const BOSS_DIALOGUE: {
       "THE BRIDGE IS FALLING ON ME!",
       "A RIVET! TO THE SKULL!",
     ],
+    // New York's pigeons, up the fire escapes
+    'pigeon': [
+      "A PIGEON! IN MY FACE! IN NEW YORK!",
+      "GET OFF ME, YOU RAT WITH WINGS!",
+      "IT CRAPPED ON ME ON THE WAY IN!",
+    ],
     // Tommy coming up through the board under him
     'tommy_burst': [
       "HE CAME UP RIGHT UNDER ME!",
@@ -1171,6 +1177,7 @@ export const ENEMY_KILL_LINES: Partial<Record<string, string[]>> = {
   seagull: ["NO FRIES FOR YOU!", "MINE THIS!", "SHUT UP, SEAGULL!"],
   drone: ["NO FLY ZONE!", "UNINSTALLED!", "GO SPY ON YOUR MOM!"],
   jetskier: ["WIPEOUT, BRO!", "NO WAKE ZONE, ASSHOLE!", "SPRING BREAK'S OVER!"],
+  pigeon: ["BACK TO THE PARK, FEATHERBRAIN!", "COO THIS!", "ONE LESS PIGEON IN NEW YORK! NOBODY'LL NOTICE!"],
   convict: ["BACK IN YOUR CELL!", "SHOW'S OVER, JAILBIRD!", "LIFE SENTENCE! IT WAS SHORT!"],
   parkranger: ["ONLY YOU CAN PREVENT ME!", "LEAVE NO TRACE! THERE'S A TRACE!", "SMOKEY SAYS HI!"],
   // Hector's Miami

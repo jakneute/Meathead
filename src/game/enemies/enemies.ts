@@ -639,7 +639,7 @@ const resolveOiledSlideCollision = (ctx: FrameContext, e: Enemy, enemies: Enemy[
 };
 
 /** The little flyers a charge takes out if they're anywhere near him (it reaches this much further, ahead and up). */
-const isPestFlyer = (kind?: EnemyKind) => kind === 'seagull' || kind === 'drone' || kind === 'eagle' || kind === 'pelican' || kind === 'vulture' || kind === 'hawk' || kind === 'grackle';
+const isPestFlyer = (kind?: EnemyKind) => kind === 'seagull' || kind === 'pigeon' || kind === 'drone' || kind === 'eagle' || kind === 'pelican' || kind === 'vulture' || kind === 'hawk' || kind === 'grackle';
 const PEST_REACH = 90;
 
 /** Which callout a melee kill earns. Shattering a frozen enemy beats everything. */

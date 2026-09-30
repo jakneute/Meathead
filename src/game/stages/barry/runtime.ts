@@ -75,7 +75,7 @@ export const createBarryRuntime = (state: GameState, skipToBoss: boolean): Barry
     state.enemies.push(e);
   }
   // The tenants in their windows (up to the climb)
-  if (startedAt <= CP.CLIMB) state.enemies.push(...makeTenants());
+  if (startedAt <= CP.CLIMB2) state.enemies.push(...makeTenants());
   const rt: BarryRuntime = {
     startedAt, talk: createTalk(), transit: null, power: createPower(), surf: null,
     barks: [], barked: new Set(), lastBark: -999, said: new Set(),
@@ -108,7 +108,7 @@ export const updateBarry = (ctx: FrameContext, controls: Controls): Controls => 
   if (rt.transit) return updateTransit(ctx, rt);
   if (rt.surf) return updateSurf(ctx, rt);
   const place = placeOf(p.pos.x);
-  checkpoints(state);
+  checkpoints(state, rt);
   updateVents(ctx);
   switch (place) {
     case 'streets':
@@ -139,11 +139,21 @@ export const updateBarry = (ctx: FrameContext, controls: Controls): Controls => 
   return controls;
 };
 
-const checkpoints = (state: GameState) => {
+const checkpoints = (state: GameState, rt: BarryRuntime) => {
   const p = state.player;
   if (!p.isGrounded) return;
   if (state.checkpoint < CP.AVENUE && p.pos.x >= at(CP.AVENUE).x && placeOf(p.pos.x) === 'streets') state.checkpoint = CP.AVENUE;
   if (state.checkpoint < CP.CLIMB && p.pos.x >= at(CP.CLIMB).x && placeOf(p.pos.x) === 'roofs') state.checkpoint = CP.CLIMB;
+  // (how high these apartment buildings go: he notices)
+  const lookUp = (key: string, text: string) => { if (!rt.said.has(key)) { rt.said.add(key); queueLines(state, rt.talk, [{ who: 'meathead', text }]); } };
+  if (placeOf(p.pos.x) === 'roofs' && p.isGrounded) {
+    const up = GROUND_Y - (p.pos.y + p.height);
+    if (up > 1050 && p.pos.x < COURSE.climb.buildings[0].x2) lookUp('b1roof', "THE ROOF. FINALLY. ...OH COME ON, THAT ONE'S TALLER.");
+    if (p.pos.x >= COURSE.climb.buildings[1].x1 && up > 1500) lookUp('b2mid', 'HOW HIGH DO THESE APARTMENTS EVEN GO?!');
+    if (p.pos.x >= COURSE.climb.buildings[1].x1 && up > 1950) lookUp('b2high', 'WHO LIVES UP HERE? BIRDS? RICH BIRDS?');
+  }
+  // (across onto the second walk-up)
+  if (state.checkpoint < CP.CLIMB2 && p.isGrounded && p.pos.x >= COURSE.climb.buildings[1].x1 && p.pos.y + p.height <= at(CP.CLIMB2).y + 4 && placeOf(p.pos.x) === 'roofs') state.checkpoint = CP.CLIMB2;
 };
 
 // ---------------------------------------------------------------------------

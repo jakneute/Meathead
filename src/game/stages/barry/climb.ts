@@ -20,13 +20,14 @@ const OUT = (w: { x: number; y: number }) => ({ x: w.x + 10, y: w.y - 44 });
 const AWAY_Y = -99999;
 
 /** Frames: how long a tenant stays in between throws (least, and the most on top), leaning out, winding up, and back in after. */
-const WAIT_MIN = 100, WAIT_RANGE = 160, LEAN = 12, WIND = 16, BACK = 26;
+// (they hang out of it a good while after they've thrown: plenty of time to get them)
+const WAIT_MIN = 100, WAIT_RANGE = 160, LEAN = 18, WIND = 16, BACK = 75;
 /** How close (up and down, and across) he has to be before they bother. */
 const RANGE_Y = 330, RANGE_X = 460;
 
-/** The tenants (one in every other window, and in all the ones higher up). */
+/** The tenants (in every other window: fewer, but what they throw hurts, and knocks you about). */
 export const makeTenants = (): Enemy[] =>
-  COURSE.windows.filter((w, i) => i % 2 === 0 || w.y < COURSE.climb.top + 700).map((w, i) => {
+  COURSE.windows.filter((w, i) => i % 2 === 0).map((w, i) => {
     const o = OUT(w);
     const e = makeKindEnemy('tenant', o.x + 20, o.y + 44);
     e.pos = { x: o.x, y: AWAY_Y };
@@ -129,6 +130,8 @@ const throwItem = (state: GameState, e: Enemy) => {
   const vx = (tx - x) / t, vy = (ty - y - 0.5 * BOTTLE_GRAVITY * t * t) / t;
   state.projectiles.push({
     id: `tenant-${state.frame}-${Math.random()}`, pos: { x: x - 9, y: y - 9 }, vel: { x: vx, y: vy }, width: 18, height: 18, health: 1, maxHealth: 1,
-    type: 'projectile', damage: ENEMY_BULLET_DAMAGE, owner: 'enemy', shooterKind: 'tenant', thrown: 'household', item: Math.floor(hash(state.frame + e.homeX!) * 5), rotation: 0,
+    type: 'projectile', damage: ENEMY_BULLET_DAMAGE * 1.75, owner: 'enemy', shooterKind: 'tenant', thrown: 'household', item: Math.floor(hash(state.frame + e.homeX!) * 5) + (e.homeX! >= COURSE.climb.buildings[1].x1 ? 5 : 0), rotation: 0,
+    // (it'll knock him clean off his jump: hard, the way it was going)
+    knock: { x: Math.sign(vx || 1) * 11, y: -5 },
   });
 };

@@ -21,7 +21,7 @@ import { getBarry, BarryRuntime, ventState, barkOf } from './runtime';
 import { saying, drawBubble } from './script';
 import { drawGraffiti, drawTagOnly } from './graffiti';
 import { drawSurge, drawSurgeFlash } from './surgeDraw';
-import { lampLevel, blackout } from './lighting';
+import { lampLevel, blackout, blackoutUp, blackoutAt } from './lighting';
 import { drawRooms, drawRoomFront } from './rooms';
 import { drawBarryOverlays, drawBarryScreenHud } from './hud';
 
@@ -278,18 +278,38 @@ const drawRoof = (ctx: Ctx, state: GameState, x1: number, x2: number, y: number)
 const drawWalkUp = (ctx: Ctx, state: GameState) => {
   const c = COURSE.climb;
   if (!visible(state, c.x1 - 100, c.x2 + 100)) return;
-  const top = c.top - 120;
-  ctx.fillStyle = '#6B2E22'; ctx.fillRect(c.x1 - 60, top, c.x2 - c.x1 + 120, Y - top);
-  ctx.fillStyle = 'rgba(0,0,0,0.2)'; for (let y = top + 6; y < Y; y += 9) ctx.fillRect(c.x1 - 60, y, c.x2 - c.x1 + 120, 1);
-  ctx.fillStyle = '#3F1B14'; ctx.fillRect(c.x1 - 70, top - 12, c.x2 - c.x1 + 140, 14); // the cornice
+  // The two walk-ups: brick all the way up to their cornices (the second one taller, older, darker)
+  c.buildings.forEach((b, i) => {
+    if (!visible(state, b.x1 - 100, b.x2 + 100)) return;
+    const top = b.top - 30;
+    // (the second one's the swanky one: pale limestone, gold on the cornice and between the floors)
+    ctx.fillStyle = i ? '#C8BBA0' : '#6B2E22'; ctx.fillRect(b.x1 - 60, top, b.x2 - b.x1 + 120, Y - top);
+    ctx.fillStyle = i ? 'rgba(80, 60, 30, 0.14)' : 'rgba(0,0,0,0.2)'; for (let y = top + 6; y < Y; y += i ? 24 : 9) ctx.fillRect(b.x1 - 60, y, b.x2 - b.x1 + 120, 1);
+    if (i) { ctx.fillStyle = '#B8860B'; for (let y = top + 120; y < Y; y += 240) ctx.fillRect(b.x1 - 60, y, b.x2 - b.x1 + 120, 4); }
+    ctx.fillStyle = i ? '#8B6914' : '#3F1B14'; ctx.fillRect(b.x1 - 70, top - 12, b.x2 - b.x1 + 140, 14); // the cornice
+    // (a water tank up on its roof)
+    ctx.fillStyle = '#6B4423'; ctx.fillRect(b.x1 + 40, b.top - 110, 60, 80); ctx.fillStyle = '#374151'; ctx.beginPath(); ctx.moveTo(b.x1 + 34, b.top - 110); ctx.lineTo(b.x1 + 70, b.top - 140); ctx.lineTo(b.x1 + 106, b.top - 110); ctx.fill();
+  });
   // The windows (the tenants lean out of these)
   for (const w of COURSE.windows) {
     if (w.y < state.camera.y - 100 || w.y > state.camera.y + CANVAS_HEIGHT + 100) continue;
-    const lit = hash(w.v * 13) < 0.7 && blackout(state.frame, w.x) < 0.5;
+    const lit = hash(w.v * 13) < 0.7 && blackoutAt(state.frame, w.x, w.y) < 0.5;
     ctx.fillStyle = '#1C1917'; ctx.fillRect(w.x - 4, w.y - 74, 68, 78);
     ctx.fillStyle = lit ? '#FDE68A' : '#111827'; ctx.fillRect(w.x, w.y - 70, 60, 70);
     ctx.fillStyle = lit ? 'rgba(146, 64, 14, 0.45)' : 'rgba(55, 65, 81, 0.6)'; ctx.fillRect(w.x, w.y - 70, 14, 70); ctx.fillRect(w.x + 46, w.y - 70, 14, 70); // curtains
     ctx.fillStyle = '#A8A29E'; ctx.fillRect(w.x - 6, w.y, 72, 5); // the sill
+    // (up the swanky one: a striped awning over it, a gold frame, a little planter on the sill)
+    if (w.x >= COURSE.climb.buildings[1].x1) {
+      ctx.strokeStyle = '#B8860B'; ctx.lineWidth = 2; ctx.strokeRect(w.x - 4, w.y - 74, 68, 78);
+      for (let k = 0; k < 6; k++) { ctx.fillStyle = k % 2 ? '#F5F5F4' : '#14532D'; ctx.fillRect(w.x - 8 + k * 13, w.y - 88, 13, 12); }
+      ctx.fillStyle = '#57534E'; ctx.fillRect(w.x + 8, w.y - 6, 44, 6); ctx.fillStyle = '#16A34A'; for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.arc(w.x + 14 + k * 11, w.y - 8, 5, 0, Math.PI * 2); ctx.fill(); }
+    }
+    // Whoever was in it, gone out of it: the glass bloodied (nobody else comes to it after)
+    if (state.enemies.some(e => e.kind === 'tenant' && e.homeX === w.x + 10 && e.homeY === w.y - 44 && (e.aiState === 'fall' || e.aiState === 'splat'))) {
+      ctx.fillStyle = 'rgba(127, 29, 29, 0.85)';
+      for (let k = 0; k < 7; k++) { const bx = w.x + 6 + hash(w.v * 7 + k) * 44, by = w.y - 64 + hash(w.v * 11 + k) * 40; ctx.beginPath(); ctx.arc(bx, by, 4 + hash(k + w.v) * 7, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(bx - 1, by, 3, 10 + hash(k * 3 + w.v) * 20); }
+      ctx.fillStyle = 'rgba(153, 27, 27, 0.9)'; ctx.fillRect(w.x - 6, w.y, 72, 5);
+    }
   }
   // The door at the top: to the power room
   const dx = c.door - 30, dy = c.top;
@@ -437,9 +457,26 @@ export const drawBarryMid = (ctx: Ctx, state: GameState) => {
   const place = placeOf(state.camera.x + CANVAS_WIDTH / 2);
   for (const l of COURSE.ledges) if (visible(state, l.x, l.x + l.w)) drawLedge(ctx, state, l);
   for (const l of COURSE.lamps) if (visible(state, l.x - 40, l.x + 40)) drawLamp(ctx, state, l.x, l.y, l.look, lampLevel(l, state.frame));
+  if (place === 'roofs') drawClimbBlackout(ctx, state);
   for (const v of COURSE.vents) if (visible(state, v.x, v.x + v.w)) drawVent(ctx, state, v.x, v.w, ventState(v, state.frame));
   // (Barry's man and what he left on the street: over the street, so it's on it)
   if (place === 'landing') drawBoard(ctx, state, getBarry(state)!);
+};
+
+/**
+ * Up the walk-ups the rolling blackout rolls up and down them, not along: a band of dark sweeping up the fronts of the
+ * buildings, everything in it (the landings, the windows) all but gone. You climb into it, and out of it.
+ */
+const drawClimbBlackout = (ctx: Ctx, state: GameState) => {
+  const c = COURSE.climb;
+  if (!visible(state, c.x1 - 100, c.x2 + 100)) return;
+  const strip = 12, x1 = c.x1 - 100, x2 = c.x2 + 100;
+  for (let sy = state.camera.y - 20; sy < state.camera.y + CANVAS_HEIGHT + 20; sy += strip) {
+    const b = blackoutUp(state.frame, sy);
+    if (b <= 0.02) continue;
+    ctx.fillStyle = `rgba(2, 3, 10, ${0.88 * b})`;
+    ctx.fillRect(x1, sy, x2 - x1, strip + 1);
+  }
 };
 
 const drawLedge = (ctx: Ctx, state: GameState, l: Ledge) => {
@@ -454,6 +491,7 @@ const drawLedge = (ctx: Ctx, state: GameState, l: Ledge) => {
       for (let px = x + 6; px < x + w; px += 12) { ctx.beginPath(); ctx.moveTo(px, y); ctx.lineTo(px, y - 26); ctx.stroke(); }
       break;
     }
+    case 'rooftop': break;
     case 'plank': ctx.fillStyle = '#A16207'; ctx.fillRect(x, y, w, 8); ctx.fillStyle = '#713F12'; ctx.fillRect(x, y + 6, w, 2); break;
     case 'escape': {
       // A fire escape landing: iron grating, a railing, the ladder up to the next one

@@ -10,6 +10,7 @@
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, ARENA_LEFT } from '../../../constants';
 import type { Light, SceneLight } from '../../render/lighting';
+import { GROUND_Y } from '../../../constants';
 import { COURSE, Lamp, placeOf, Place, roomOf } from './course';
 import type { BarryRuntime } from './runtime';
 
@@ -35,6 +36,24 @@ export const blackout = (frame: number, x: number) => {
   if (t < 540) return 1 - (t - 480) / 60;
   return 0;
 };
+
+/**
+ * Up the walk-ups it rolls up and down them instead: a band of dark sweeping up the buildings (0 lit .. 1 out, at height
+ * y), then back down, as the grid cycles.
+ */
+export const blackoutUp = (frame: number, y: number) => {
+  const cycle = 700;
+  const up = Math.floor(frame / cycle) % 2 === 0;
+  const h = GROUND_Y - y;
+  const t = (((frame % cycle) - (up ? h : 2400 - h) * 0.28) % cycle + cycle) % cycle;
+  if (t < 200) return 0;
+  if (t < 250) return (t - 200) / 50;
+  if (t < 430) return 1;
+  if (t < 480) return 1 - (t - 430) / 50;
+  return 0;
+};
+/** The blackout where something is: up the walk-ups, the one going up and down them; anywhere else, the one going along. */
+export const blackoutAt = (frame: number, x: number, y: number) => (x >= COURSE.climb.x1 - 100 && x <= COURSE.climb.x2 + 100 ? blackoutUp(frame, y) : blackout(frame, x));
 
 /** How dark it is where the camera is, right now. */
 export const darkness = (state: GameState, rt: BarryRuntime) => {

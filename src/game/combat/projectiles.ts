@@ -711,8 +711,8 @@ const resolveEnemyProjectileHit = (ctx: FrameContext, p: Projectile): boolean =>
       fx.speakVulgarity('hurt', getProjectileHurtSource(p, stageId));
       player.pushbackTimer = PLAYER_PUSHBACK_DURATION;
       const pDir = p.vel.x !== 0 ? Math.sign(p.vel.x) : (player.pos.x < p.pos.x ? -1 : 1);
-      player.vel.x = pDir * PLAYER_PUSHBACK_VEL_X;
-      player.vel.y = PLAYER_PUSHBACK_VEL_Y;
+      player.vel.x = p.knock ? p.knock.x : pDir * PLAYER_PUSHBACK_VEL_X;
+      player.vel.y = p.knock ? p.knock.y : PLAYER_PUSHBACK_VEL_Y;
       player.isCharging = false;
       player.isSliding = false;
       player.isUppercutting = false;

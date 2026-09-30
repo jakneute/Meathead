@@ -51,7 +51,7 @@ export const KIND_HEAD: Record<EnemyKind, { x: number; y: number; r: number }> =
   salamander: { x: 20, y: -9, r: 5 }, vulture: { x: 19, y: -21, r: 5 }, magmafish: { x: 12, y: -13, r: 7 }, doorman: { x: 4, y: -88, r: 12 },
   raver: { x: 2, y: -62, r: 9 }, firedancer: { x: 2, y: -64, r: 9 }, partygoer: { x: 2, y: -58, r: 8 },
   techbro: { x: 2, y: -64, r: 8 }, courier: { x: 4, y: -66, r: 8 }, protester: { x: 2, y: -62, r: 8 }, raccoon: { x: 19, y: -16, r: 5 },
-  seagull: { x: 13, y: -14, r: 4 }, drone: { x: 0, y: -15, r: 7 }, jetskier: { x: -2, y: -52, r: 7 }, burning: { x: 1, y: -64, r: 8 },
+  seagull: { x: 13, y: -14, r: 4 }, pigeon: { x: 12, y: -13, r: 4 }, drone: { x: 0, y: -15, r: 7 }, jetskier: { x: -2, y: -52, r: 7 }, burning: { x: 1, y: -64, r: 8 },
   convict: { x: 4, y: -66, r: 8 }, parkranger: { x: 2, y: -64, r: 8 },
   sicario: { x: 2, y: -64, r: 8 }, enforcer: { x: 5, y: -74, r: 9 }, cardoor: { x: 2, y: -62, r: 8 }, rattlesnake: { x: 12, y: -26, r: 5 },
   scorpion: { x: 10, y: -8, r: 3 }, coyote: { x: 24, y: -28, r: 6 }, junkie: { x: 3, y: -82, r: 10 }, visitor: { x: 2, y: -62, r: 8 },
@@ -83,7 +83,7 @@ export const isHumanoidKind = (kind?: EnemyKind) =>
 
 /** What an x-ray shows inside it. (A rattlesnake's all spine, like a fish; a scorpion's legs and claws, like a crab.) */
 export const skeletonOf = (kind: EnemyKind): 'person' | 'four-legs' | 'bird' | 'fish' | 'crab' | 'machine' =>
-  kind === 'drone' || kind === 'generator' || kind === 'lowrider' || kind === 'pickup' || kind === 'cruiser' || kind === 'chopper' ? 'machine' : isHumanoidKind(kind) ? 'person' : kind === 'eagle' || kind === 'pelican' || kind === 'vulture' || kind === 'seagull' || kind === 'hawk' || kind === 'grackle' ? 'bird'
+  kind === 'drone' || kind === 'generator' || kind === 'lowrider' || kind === 'pickup' || kind === 'cruiser' || kind === 'chopper' ? 'machine' : isHumanoidKind(kind) ? 'person' : kind === 'eagle' || kind === 'pelican' || kind === 'vulture' || kind === 'seagull' || kind === 'pigeon' || kind === 'hawk' || kind === 'grackle' ? 'bird'
   : kind === 'shark' || kind === 'magmafish' || kind === 'rattlesnake' || kind === 'mutantfish' ? 'fish' : kind === 'crab' || kind === 'scorpion' ? 'crab' : 'four-legs';
 
 const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: GameState) => {
@@ -100,7 +100,7 @@ const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: Game
     case 'heatsuit': case 'smokejumper': case 'blastshield': case 'salamander': case 'vulture': case 'magmafish': case 'raver': case 'firedancer': case 'partygoer': drawVictorKind(ctx, e, f, state); break;
     case 'techbro': case 'courier': case 'protester': case 'raccoon': case 'seagull': case 'drone': case 'jetskier': case 'burning': case 'convict': case 'parkranger': drawErnieKind(ctx, e, f, state); break;
     case 'sicario': case 'enforcer': case 'cardoor': case 'rattlesnake': case 'scorpion': case 'coyote': case 'visitor': case 'junkie': case 'hawk': drawDaleKind(ctx, e, f, state); break;
-    case 'pimp': case 'hooker': case 'mugger': case 'bum': case 'rat': case 'guard': case 'commuter': case 'reader': case 'exec': case 'intern': case 'hr':
+    case 'pimp': case 'hooker': case 'mugger': case 'bum': case 'rat': case 'pigeon': case 'guard': case 'commuter': case 'reader': case 'exec': case 'intern': case 'hr':
     case 'exterminator': case 'janitor': case 'custodian': case 'labtech': case 'subject': case 'scientist': case 'tenant': case 'minion': case 'generator':
       drawBarryKind(ctx, e, f, state); break;
     case 'banger': case 'bruiser': case 'pitbull': case 'lowrider': case 'hazmat': case 'bloater': case 'manhole': case 'sludgeling': case 'mutantfish': case 'amalgam':

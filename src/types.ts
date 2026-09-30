@@ -209,6 +209,8 @@ export type EnemyKind =
   // lobby, the office, maintenance, the lab), the tenants in their windows, his man in the power room and its generators
   | 'pimp' | 'hooker' | 'mugger' | 'bum' | 'rat' | 'guard' | 'commuter' | 'reader' | 'exec' | 'intern' | 'hr'
   | 'exterminator' | 'janitor' | 'custodian' | 'labtech' | 'subject' | 'scientist' | 'tenant' | 'minion' | 'generator'
+  // (and the pigeons up the walk-ups' fire escapes)
+  | 'pigeon'
   // Tommy's stage: Flint. The hood (gangbangers with pistols, bruisers with bats, pit bulls, the drive-by lowriders),
   // then the sewer (Tommy's hazmat crew with their sprayers, bloated mutant sewer workers, a crew man behind a manhole
   // cover, the little sludge things that hop out of the muck), and what's left of everyone the water killed
@@ -429,6 +431,8 @@ export interface Projectile extends Entity {
   isPoop?: boolean;
   /** Something a shield goon's lobbed (a bottle, a coconut, a chunk of ice...): it arcs, and smashes on whatever it hits. */
   thrown?: ThrownKind;
+  /** Hits him this hard (in place of the usual shove back). */
+  knock?: { x: number; y: number };
   /** Which household item it is (a tenant's throw: a pot, a toaster, a shoe, a potted plant, a phone). */
   item?: number;
   /** What a gun goon's shot looks like (a slug, a frost bolt, a flare). */

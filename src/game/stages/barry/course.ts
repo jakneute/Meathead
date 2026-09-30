@@ -26,13 +26,14 @@ import type { GroundRun } from '../../core/terrain';
 import type { EnemyKind } from '../../../types';
 import { GROUND_Y, BOSS_DOOR_X } from '../../../constants';
 
-export const CP = { STREET: 0, AVENUE: 1, LOBBY: 2, OFFICE: 3, MAINTENANCE: 4, LAB: 5, ROOFS: 6, CLIMB: 7, POWER: 8, LANDING: 9 } as const;
+export const CP = { STREET: 0, AVENUE: 1, LOBBY: 2, OFFICE: 3, MAINTENANCE: 4, LAB: 5, ROOFS: 6, CLIMB: 7, CLIMB2: 8, POWER: 9, LANDING: 10 } as const;
 
 export interface Spawn { kind: EnemyKind; x: number; y: number; variant?: number }
 export interface PickupSpot { x: number; y: number; type: 'small_health' | 'large_health' | 'small_ammo' | 'large_ammo' }
 /** Something you can jump up through and stand on: a stoop, a car roof, scaffolding, a desk, a fire escape, a water tower... */
-export interface Ledge { x: number; y: number; w: number; look: LedgeLook }
-export type LedgeLook = 'stoop' | 'car' | 'dumpster' | 'scaffold' | 'plank' | 'desk' | 'cubicle' | 'shelf' | 'bench' | 'tank' | 'ac' | 'tower' | 'escape' | 'catwalk' | 'counter';
+/** (`solid`: no jumping up through it from under it, a fire escape landing up the walk-ups: round the end of it or not at all) */
+export interface Ledge { x: number; y: number; w: number; look: LedgeLook; solid?: boolean }
+export type LedgeLook = 'stoop' | 'car' | 'dumpster' | 'scaffold' | 'plank' | 'desk' | 'cubicle' | 'shelf' | 'bench' | 'tank' | 'ac' | 'tower' | 'escape' | 'catwalk' | 'counter' | 'rooftop';
 /** A street lamp (its head at x, y): it lights the street under it, and some of them don't work so well. `flicker` 0 steady to 1 barely hanging on. */
 export interface Lamp { x: number; y: number; flicker: number; look: 'street' | 'sign' | 'bulb' | 'tube' | 'beacon' }
 /** A subway grate in the sidewalk that blasts steam every so often: on it when it goes and it throws you up. */
@@ -63,7 +64,7 @@ export interface Course {
   roofAccess: number;
   roofs: { x1: number; x2: number };
   /** The fire-escape building: its left and right walls, the ground, and the door up top to the power room. */
-  climb: { x1: number; x2: number; top: number; door: number };
+  climb: { x1: number; x2: number; top: number; door: number; buildings: { x1: number; x2: number; top: number }[] };
   generators: number[];
   landing: { x1: number; x2: number };
   checkpoints: { x: number; y: number }[];
@@ -82,7 +83,6 @@ const POWER_X0 = -36000;
 const LANDING_X0 = BOSS_DOOR_X - 1700;
 
 /** The fire escape: the first landing's height off the street, and each one above that (a jump's worth, near enough). */
-const CLIMB_BASE = 130, CLIMB_STEP = 124;
 
 /** Every floor's ceiling is this low (it's cramped in there). The lobby's taller. */
 const LOW_CEILING = Y - 250, LOBBY_CEILING = Y - 330;
@@ -94,7 +94,7 @@ const part = (x0: number) => {
   return {
     runs, ledges, lamps, vents, walls, props, windows, spawns, pickups, x0,
     ground: (x1: number, x2: number, y1 = Y, y2 = y1, surface?: string) => { runs.push({ x1: x0 + x1, y1, x2: x0 + x2, y2, surface }); },
-    ledge: (x: number, y: number, w: number, look: LedgeLook) => { ledges.push({ x: x0 + x, y, w, look }); },
+    ledge: (x: number, y: number, w: number, look: LedgeLook, solid = false) => { ledges.push({ x: x0 + x, y, w, look, solid }); },
     lamp: (x: number, y: number, flicker: number, look: Lamp['look'] = 'street') => { lamps.push({ x: x0 + x, y, flicker, look }); },
     vent: (x: number, w: number, every: number, offset: number) => { vents.push({ x: x0 + x, w, every, offset }); },
     wall: (x: number, y: number, w: number, h: number) => { walls.push({ x: x0 + x, y, w, h }); },
@@ -262,24 +262,41 @@ const buildRoofs = (s: Part) => {
   s.ground(4020, 4700, R - 20, R - 20, 'roof');
   s.spawn('rat', 4200, R - 20); s.spawn('pimp', 4450, R - 20);
   s.ledge(4300, R - 20 - 50, 110, 'ac'); s.prop('ac', 4300, R - 20, 110, 50);
-  // Down onto the street in front of the old walk-up (its fire escapes), and up them
+  // Down onto the street in front of the old walk-ups (their fire escapes), and up them
   s.ground(4700, 5600, Y, Y);
   s.pickup(4900, Y - 30, 'large_health');
-  // The fire escape building: from 5000 to 5520, landings zigzagging up the front of it
-  const bx = 5000, bw = 520;
-  const levels = 9;
-  for (let k = 0; k < levels; k++) {
-    const y = Y - CLIMB_BASE - k * CLIMB_STEP;
-    const left = k % 2 === 0;
-    s.ledge(bx + (left ? 20 : bw - 300), y, 280, 'escape');
-    // windows along each landing, somebody behind every other one
-    s.window(bx + (left ? 60 : bw - 250), y - 20, k * 3 + 0);
-    s.window(bx + (left ? 200 : bw - 110), y - 20, k * 3 + 1);
-  }
-  s.ledge(bx + 20, Y - CLIMB_BASE - levels * CLIMB_STEP, bw - 40, 'escape');
-  s.wall(bx + bw, Y - 2400, 80, 2400);
-  s.wall(bx - 80, Y - 2400, 80, 2400 - 260);
-  s.lamp(bx + bw / 2, Y - CLIMB_BASE - levels * CLIMB_STEP - 100, 0.3, 'bulb');
+  // The fire escapes: two walk-ups. Their landings are solid (no jumping up through one: round the end of it), and
+  // they go every which way (not the same step up every time): a jump up and across to the next, higher or lower,
+  // longer or shorter, a tenant in the window by most of them. The first building's roof, then a big jump across the
+  // alley to the second, wider one, and its fire escapes (smaller, further apart), up and up to the door on its roof.
+  const land = (bx: number, list: [number, number, number][]) => {
+    for (const [dx, up, w] of list) {
+      s.ledge(bx + dx, Y - up, w, 'escape', true);
+      s.window(bx + dx + Math.max(10, w / 2 - 30), Y - up - 20, up);
+    }
+  };
+  const B1 = 5000, B1W = 520, B1TOP = 1060;
+  land(B1, [[20, 130, 220], [330, 240, 170], [60, 370, 150], [300, 470, 200], [40, 590, 130], [200, 700, 100], [400, 830, 110], [120, 940, 200]]);
+  s.ledge(B1, Y - B1TOP, B1W, 'rooftop');
+  // (and pigeons up here, not many: off the ledges at you)
+  s.spawn('pigeon', B1 + 380, Y - 560); s.spawn('pigeon', B1 + 150, Y - 880);
+  s.pickup(B1 + 420, Y - B1TOP - 30, 'small_health');
+  s.lamp(B1 + 260, Y - B1TOP - 90, 0.3, 'bulb');
+  // (its walls: in at the bottom from the street either side; the roof's open to the alley on the right)
+  s.wall(B1 - 80, Y - B1TOP - 40, 80, B1TOP + 40 - 260);
+  s.wall(B1 + B1W, Y - B1TOP + 20, 80, B1TOP - 20 - 260);
+  const B2 = 5690, B2W = 1000, B2TOP = 2220;
+  land(B2, [[20, 1020, 160], [280, 1150, 110], [520, 1260, 100], [750, 1370, 120], [560, 1490, 110], [330, 1610, 110], [90, 1740, 120], [330, 1860, 90], [550, 1975, 90], [770, 2095, 120]]);
+  s.ledge(B2, Y - B2TOP, B2W, 'rooftop');
+  s.spawn('pigeon', B2 + 650, Y - 1400); s.spawn('pigeon', B2 + 200, Y - 1700); s.spawn('pigeon', B2 + 700, Y - 2060);
+  s.pickup(B2 + 570, Y - 1260 - 30, 'small_ammo');
+  // (the alley side: open where you jump across onto its first landing, walled above and below that)
+  s.wall(B2 - 80, Y - 1000, 80, 1000 - 260);
+  s.wall(B2 - 80, Y - B2TOP - 300, 80, B2TOP + 300 - 1420);
+  s.wall(B2 + B2W, Y - B2TOP - 300, 80, B2TOP + 300);
+  s.lamp(B2 + 500, Y - B2TOP - 100, 0.3, 'bulb');
+  // (the street runs on under the second one)
+  s.ground(5600, B2 + B2W + 80, Y, Y);
 };
 
 // ============ THE POWER ROOM ============
@@ -311,7 +328,7 @@ const buildCourse = (): Course => {
   const maintenance = room(MAINT_X0, 0, 1900, LOW_CEILING, '41', 'maintenance');
   const lab = room(LAB_X0, 0, 2100, LOW_CEILING, '58', 'lab');
   const power = room(POWER_X0, 0, 1100, Y - 300, 'POWER', 'power');
-  const climbTop = Y - CLIMB_BASE - 9 * CLIMB_STEP;
+  const climbTop = Y - 2220;
   return {
     runs,
     ledges: parts.flatMap(p => p.ledges),
@@ -330,14 +347,14 @@ const buildCourse = (): Course => {
       { x: MAINT_X0 + 1820, room: lab },
     ],
     roofAccess: LAB_X0 + 1860,
-    roofs: { x1: ROOFS_X0, x2: ROOFS_X0 + 5600 },
-    climb: { x1: ROOFS_X0 + 5000, x2: ROOFS_X0 + 5520, top: climbTop, door: ROOFS_X0 + 5260 },
+    roofs: { x1: ROOFS_X0, x2: ROOFS_X0 + 6800 },
+    climb: { x1: ROOFS_X0 + 5000, x2: ROOFS_X0 + 6690, top: climbTop, door: ROOFS_X0 + 6190, buildings: [{ x1: ROOFS_X0 + 5000, x2: ROOFS_X0 + 5520, top: Y - 1060 }, { x1: ROOFS_X0 + 5690, x2: ROOFS_X0 + 6690, top: climbTop }] },
     generators: [POWER_X0 + 320, POWER_X0 + 580, POWER_X0 + 840],
     landing: { x1: LANDING_X0, x2: BOSS_DOOR_X },
     checkpoints: [
       { x: STREETS_X0 + 150, y: Y }, { x: STREETS_X0 + 2620, y: Y },
       { x: LOBBY_X0 + 80, y: Y }, { x: OFFICE_X0 + 80, y: Y }, { x: MAINT_X0 + 80, y: Y }, { x: LAB_X0 + 80, y: Y },
-      { x: ROOFS_X0 + 80, y: Y - 40 }, { x: ROOFS_X0 + 4800, y: Y },
+      { x: ROOFS_X0 + 80, y: Y - 40 }, { x: ROOFS_X0 + 4800, y: Y }, { x: ROOFS_X0 + 5770, y: Y - 1020 },
       { x: POWER_X0 + 80, y: Y }, { x: LANDING_X0 + 300, y: Y },
     ],
     left: STREETS_X0 - 2000,

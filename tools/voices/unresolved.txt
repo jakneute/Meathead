@@ -9,8 +9,8 @@ game/stages/ernie/jetski.ts:488 name: undefined
 game/stages/ernie/index.ts:21 name: undefined
 game/stages/dale/runtime.ts:175 name: undefined
 game/stages/dale/runtime.ts:189 name: undefined
-game/stages/barry/runtime.ts:391 name: undefined
-game/stages/barry/runtime.ts:400 name: undefined
+game/stages/barry/runtime.ts:401 name: undefined
+game/stages/barry/runtime.ts:410 name: undefined
 game/stages/tommy/runtime.ts:175 name: undefined
 game/stages/tommy/escape.ts:265 name: undefined
 game/stages/tommy/thing.ts:341 name: undefined

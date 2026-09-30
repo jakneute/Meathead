@@ -22,6 +22,7 @@ export const drawBarryKind = (ctx: Ctx, e: Enemy, f: number, state: GameState) =
     case 'mugger': drawMugger(ctx, e, f); break;
     case 'bum': drawBum(ctx, e, f); break;
     case 'rat': drawRat(ctx, e, f); break;
+    case 'pigeon': drawPigeon(ctx, e, f); break;
     case 'guard': drawGuard(ctx, e, f); break;
     case 'commuter': drawCommuter(ctx, e, f); break;
     case 'reader': drawReader(ctx, e, f); break;
@@ -537,4 +538,18 @@ const drawMinion = (ctx: Ctx, e: Enemy, f: number) => {
 const drawGeneratorBox = (ctx: Ctx, e: Enemy, f: number) => {
   ctx.fillStyle = '#374151'; ctx.fillRect(-e.width / 2, -e.height, e.width, e.height);
   void f;
+};
+
+/** A New York pigeon: fat, grey, the green-and-purple sheen on its neck, orange eye, beating away (swooping at you). */
+const drawPigeon = (ctx: Ctx, e: Enemy, f: number) => {
+  const swoop = e.aiState === 'swoop';
+  const flap = swoop ? Math.sin(f * 0.2) * 3 : Math.sin(f * 0.45) * 9;
+  ctx.fillStyle = '#6B7280'; ctx.beginPath(); ctx.moveTo(-4, -11); ctx.lineTo(-20, -20 - flap); ctx.lineTo(-8, -9); ctx.fill();
+  ctx.fillStyle = '#9CA3AF'; ctx.beginPath(); ctx.ellipse(0, -10, 14, 7, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#374151'; ctx.beginPath(); ctx.moveTo(-13, -10); ctx.lineTo(-20, -13); ctx.lineTo(-20, -6); ctx.fill();
+  ctx.fillStyle = '#4B5563'; ctx.beginPath(); ctx.arc(11, -13, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(52, 211, 153, 0.7)'; ctx.fillRect(6, -11, 6, 3); ctx.fillStyle = 'rgba(168, 85, 247, 0.6)'; ctx.fillRect(6, -9, 6, 2);
+  ctx.fillStyle = '#F97316'; ctx.fillRect(12, -15, 2, 2); ctx.fillStyle = '#1F2937'; ctx.fillRect(15, -13, 5, 2);
+  ctx.fillStyle = '#9CA3AF'; ctx.beginPath(); ctx.moveTo(0, -9); ctx.lineTo(-14, -22 + flap); ctx.lineTo(6, -11); ctx.fill();
+  ctx.fillStyle = '#F87171'; ctx.fillRect(-2, -4, 2, 4); ctx.fillRect(3, -4, 2, 4);
 };
