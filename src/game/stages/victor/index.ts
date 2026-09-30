@@ -42,6 +42,14 @@ export const victorLayout: StageLayout = {
     wall(S.x2, S.top - 500, S.floor + 200, 'shaft-right');
     state.blocks.push({ x: S.x1 - 60, y: S.top - 520, w: S.x2 - S.x1 + 120, h: 20, type: 'wall', hidden: true, tag: 'shaft-roof' });
     wall(C.lounge.x1 - 60, -3000, 1400, 'lounge-end');
+    // The club floor's end, and the atrium's walls (the floor comes in under the left one) and roof
+    const A = C.atrium;
+    wall(C.floor.x1 - 60, -3000, 1400, 'floor-end');
+    wall(A.x1 - 60, A.top - 500, A.floor - 170, 'atrium-left');
+    wall(A.x2, A.top - 500, A.floor + 200, 'atrium-right');
+    state.blocks.push({ x: A.x1 - 60, y: A.top - 520, w: A.x2 - A.x1 + 120, h: 20, type: 'wall', hidden: true, tag: 'atrium-roof' });
+    // The bar and the speaker stacks: solid
+    C.solids.forEach((s, i) => state.blocks.push({ x: s.x, y: s.y, w: s.w, h: s.h, type: 'ground', hidden: true, tag: `club-solid-${i}` }));
     state.cameraMinX = C.startX;
     state.stage = createVictorRuntime(state, skipToBoss);
     const cp = skipToBoss ? 0 : state.checkpoint;
@@ -82,7 +90,7 @@ export const victorLayout: StageLayout = {
   // (crossing the lava river the view sits lower, so you can see the fish coming under the surface)
   cameraRow: state => (regionOf(state.player.pos.x) === 'inside' && state.player.pos.x < COURSE.shaft.x1 - 60 ? 420 : undefined),
   // (up the shaft the camera drifts after you rather than jerking to every catwalk)
-  cameraEaseY: state => (regionOf(state.player.pos.x) === 'inside' && state.player.pos.x > COURSE.shaft.x1 - 100 ? 0.08 : undefined),
+  cameraEaseY: state => { const r = regionOf(state.player.pos.x), x = state.player.pos.x; return (r === 'inside' && x > COURSE.shaft.x1 - 100) || (r === 'club' && x > COURSE.atrium.x1 - 100) ? 0.08 : undefined; },
 };
 
 void CP;

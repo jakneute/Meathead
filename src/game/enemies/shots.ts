@@ -14,7 +14,7 @@ export const THROWN: Partial<Record<EnemyKind, ThrownKind>> = {
 /** What a gun goon's shot looks like. */
 export const shotLook = (kind?: EnemyKind): ShotLook | undefined =>
   kind === 'shooter' ? 'cryo'
-  : kind === 'heatsuit' ? 'flare'
+  : kind === 'heatsuit' || kind === 'raver' ? 'flare'
   : kind === 'exterminator' || kind === 'hazmat' ? 'spray'
   : kind === 'banger' || kind === 'lowrider' ? 'tracer'
   : kind === 'labtech' ? 'zap'

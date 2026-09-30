@@ -13,7 +13,8 @@ import { COURSE, CP } from './course';
 import { CANVAS_WIDTH } from '../../../constants';
 import { Hazards, createHazards, updateHazards } from './hazards';
 import { DoormanFight, createDoormanFight, updateDoormanFight } from './doorman';
-import { Lounge, createLounge, startCrash, updateLounge } from './lounge';
+import { Lounge, createLounge, updateLounge } from './lounge';
+import { Club, createClub, updateClub } from './club';
 
 /** How fast the view slides over to the shaft's left wall when he starts up it (and back when he's down again), a frame. */
 const SHAFT_CAMERA_SLIDE = 24;
@@ -23,12 +24,16 @@ export interface VictorRuntime {
   hazards: Hazards;
   doorman: DoormanFight;
   lounge: Lounge;
-  /** Through the club doors: frames of the fade (0 = not). */
+  club: Club;
+  /** Through the club doors (or in off the top of the shaft onto the club floor): frames of the fade (0 = not), and where to. */
   enterT: number;
+  enterTo: 'river' | 'floor';
 }
 
-export type Region = 'main' | 'inside' | 'lounge';
-export const regionOf = (x: number): Region => (x >= COURSE.lounge.x1 - 200 ? 'lounge' : x < COURSE.inside.x2 + 400 ? 'inside' : 'main');
+export type Region = 'main' | 'inside' | 'club' | 'lounge';
+export const regionOf = (x: number): Region => (x >= COURSE.lounge.x1 - 200 ? 'lounge'
+  : x > COURSE.floor.x1 - 2400 && x < COURSE.atrium.x2 + 400 ? 'club'
+  : x > COURSE.inside.x1 - 3000 && x < COURSE.inside.x2 + 400 ? 'inside' : 'main');
 
 /** Nothing's placed closer than this ahead of where you start. */
 const SPAWN_CLEARANCE = 480;
@@ -40,7 +45,7 @@ export const createVictorRuntime = (state: GameState, skipToBoss: boolean): Vict
   const startedAt = skipToBoss ? CP.LOUNGE : state.checkpoint;
   const start = COURSE.checkpoints[startedAt];
   // Enemies and pickups ahead of you (the parts come in order: the trail, inside, the lounge)
-  const order = (x: number) => ({ main: 0, inside: 1, lounge: 2 })[regionOf(x)];
+  const order = (x: number) => ({ main: 0, inside: 1, club: 2, lounge: 3 })[regionOf(x)];
   const ahead = (x: number, clearance: number) => order(x) > order(start.x) || (order(x) === order(start.x) && x - start.x >= clearance);
   COURSE.pickups.forEach((p, i) => {
     if (!ahead(p.x, 0)) return;
@@ -52,7 +57,9 @@ export const createVictorRuntime = (state: GameState, skipToBoss: boolean): Vict
     hazards: createHazards(state),
     doorman: createDoormanFight(state, startedAt),
     lounge: createLounge(startedAt),
+    club: createClub(startedAt),
     enterT: 0,
+    enterTo: 'river',
   };
   applyRegionCamera(state, regionOf(start.x));
   return rt;
@@ -62,6 +69,7 @@ export const createVictorRuntime = (state: GameState, skipToBoss: boolean): Vict
 const applyRegionCamera = (state: GameState, region: Region) => {
   if (region === 'main') state.cameraMinX = COURSE.startX;
   else if (region === 'inside') state.cameraMinX = COURSE.inside.x1 - 40;
+  else if (region === 'club') state.cameraMinX = COURSE.floor.x1 - 40;
   else state.cameraMinX = COURSE.lounge.x1 - 40;
 };
 
@@ -79,34 +87,35 @@ export const updateVictor = (ctx: FrameContext, controls: Controls): Controls =>
     if (state.checkpoint < CP.CLUB && player.isGrounded && player.pos.x >= COURSE.checkpoints[CP.CLUB].x) state.checkpoint = CP.CLUB;
     controls = updateDoormanFight(ctx, rt.doorman, controls);
     // He's down: in through the club doors (and on into the volcano)
-    if (rt.doorman.phase === 'dead' && rt.enterT === 0 && player.pos.x + player.width > COURSE.club.door + 30) { rt.enterT = 1; playSound('ding'); }
+    if (rt.doorman.phase === 'dead' && rt.enterT === 0 && player.pos.x + player.width > COURSE.club.door + 30) { rt.enterT = 1; rt.enterTo = 'river'; playSound('ding'); }
   }
   if (rt.enterT > 0) {
     rt.enterT++;
-    controls = { ...NO_CONTROLS, right: rt.enterT < ENTER_FRAMES / 2 };
+    controls = { ...NO_CONTROLS, right: rt.enterTo === 'river' && rt.enterT < ENTER_FRAMES / 2 };
     if (rt.enterT === ENTER_FRAMES) {
-      const at = COURSE.checkpoints[CP.RIVER];
+      const into = rt.enterTo === 'floor' ? CP.FLOOR : CP.RIVER;
+      const at = COURSE.checkpoints[into];
       player.pos = { x: at.x, y: at.y - player.height };
       player.vel = { x: 0, y: 0 };
       // (let go of the club's fixed shot: we're inside now)
       state.cameraOverride = null;
       state.camera.x = at.x - 250; state.camera.y = at.y - 550;
       state.cameraRestY = at.y - 550;
-      applyRegionCamera(state, 'inside');
-      state.checkpoint = Math.max(state.checkpoint, CP.RIVER);
+      applyRegionCamera(state, into === CP.FLOOR ? 'club' : 'inside');
+      state.checkpoint = Math.max(state.checkpoint, into);
     }
     if (rt.enterT > ENTER_FRAMES + 30) rt.enterT = 0;
   }
-  // Up the shaft the view stops at its right-hand wall (and lets go again anywhere else)
-  const inShaft = region === 'inside' && player.pos.x > COURSE.shaft.x1 - 200;
-  // (and out on the trail it stops at the club: nothing past the front of it)
-  state.cameraMaxX = inShaft ? COURSE.shaft.x2 + 60 - CANVAS_WIDTH : region === 'main' ? COURSE.club.x2 - 10 - CANVAS_WIDTH + 20 : undefined;
-  // ...and once you're on your way up, at its left-hand wall too (down on the floor you can still see back out to the river)
-  // (only once he's really in there, past the wall: jumping at it from the river side doesn't count; and the
-  // view slides over to the wall and back rather than jumping)
-  if (region === 'inside') {
-    const free = COURSE.inside.x1 - 40, wall = COURSE.shaft.x1 - 60;
-    const climbing = player.pos.x > COURSE.shaft.x1 - 60 && player.pos.y + player.height < COURSE.shaft.floor - 150;
+  // Up a shaft (the volcano's, or the club's atrium) the view stops at its right-hand wall (and lets go again anywhere
+  // else); out on the trail it stops at the club: nothing past the front of it
+  const S = region === 'club' ? COURSE.atrium : COURSE.shaft;
+  const inShaft = (region === 'inside' || region === 'club') && player.pos.x > S.x1 - 200;
+  state.cameraMaxX = inShaft ? S.x2 + 60 - CANVAS_WIDTH : region === 'main' ? COURSE.club.x2 - 10 - CANVAS_WIDTH + 20 : undefined;
+  // ...and once you're on your way up, at its left-hand wall too (down on the floor you can still see back the way you
+  // came) (only once he's really in there, past the wall; and the view slides over to the wall and back rather than jumping)
+  if (region === 'inside' || region === 'club') {
+    const free = (region === 'club' ? COURSE.floor.x1 : COURSE.inside.x1) - 40, wall = S.x1 - 60;
+    const climbing = player.pos.x > S.x1 - 60 && player.pos.y + player.height < S.floor - 150;
     state.cameraMinX = !inShaft ? free
       : climbing ? Math.min(wall, state.camera.x + SHAFT_CAMERA_SLIDE)
       : Math.max(free, Math.min(wall, state.camera.x - SHAFT_CAMERA_SLIDE));
@@ -114,10 +123,11 @@ export const updateVictor = (ctx: FrameContext, controls: Controls): Controls =>
   if (region === 'inside') {
     if (state.checkpoint < CP.RIVER_MID && player.isGrounded && player.pos.x >= COURSE.checkpoints[CP.RIVER_MID].x - 60) state.checkpoint = CP.RIVER_MID;
     if (state.checkpoint < CP.SHAFT && player.isGrounded && player.pos.x >= COURSE.checkpoints[CP.SHAFT].x) state.checkpoint = CP.SHAFT;
-    // Up at the window
+    // Up at the window: through it, and out onto the club's floor
     const w = COURSE.shaft.window;
-    if (rt.lounge.phase === 'party' && player.isGrounded && player.pos.x + player.width > w.x - 60 && player.pos.y + player.height < COURSE.shaft.top + 10) startCrash(state, rt.lounge);
+    if (rt.enterT === 0 && player.isGrounded && player.pos.x + player.width > w.x - 60 && player.pos.y + player.height < COURSE.shaft.top + 10) { rt.enterT = 1; rt.enterTo = 'floor'; playSound('ding'); }
   }
+  if (region === 'club') updateClub(ctx, rt.club, rt.lounge);
   return updateLounge(ctx, rt.lounge, controls);
 };
 

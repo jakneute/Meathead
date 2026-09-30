@@ -25,6 +25,9 @@ export const DEATH_LINES: Record<string, string[]> = {
   // ---- Victor's volcano
   heatsuit: ['DONE IN BY TINFOIL', 'WRAPPED AND ROASTED'],
   heatsuit_shot: ['FLARED UP', 'SIGNAL RECEIVED'],
+  raver: ['HUGGED TO DEATH', 'RAVED TO DEATH'],
+  raver_shot: ['LAST CALL', 'ONE SHOT TOO MANY'],
+  firedancer: ['POI-SONED', 'DANCED TO DEATH'],
   smokejumper: ['THE FIREMAN STARTED IT', 'SMOKED'],
   blastshield: ['BOMB SQUAD BLOCKED YOU', 'SHIELD BASHED TO DEATH'],
   blastshield_shot: ['HOT ROCKED', 'STONED'],

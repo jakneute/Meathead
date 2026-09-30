@@ -11,14 +11,42 @@
 import { Enemy } from '../../../types';
 import { GRAVITY } from '../../../constants';
 import type { FrameContext } from '../../core/context';
-import { mid } from './index';
+import { mid, safeAhead } from './index';
 import { floorTopAt } from '../../core/terrain';
 
 export const runVictorKindAI = (ctx: FrameContext, e: Enemy): boolean => {
   switch (e.kind) {
     case 'magmafish': magmafish(ctx, e); return true;
+    case 'partygoer': partygoer(ctx, e); return false;
     default: return false;
   }
+};
+
+/** How near he has to get before the dancing stops; how far either way they'll run; how fast. */
+const PARTY_PANIC = 460, PARTY_RUN = 210, PARTY_SPEED = 3.2;
+
+/**
+ * A partygoer: dancing on the spot till he turns up (or something gets shot near them); then running back and forth,
+ * arms up, turning at the lava and at walls and every so often for no reason, with nowhere to go. There's no exit.
+ * It's a volcano.
+ */
+const partygoer = (ctx: FrameContext, e: Enemy) => {
+  const { state } = ctx;
+  const p = state.player;
+  e.aiTimer = (e.aiTimer || 0) + 1;
+  const home = e.homeX ?? e.pos.x;
+  const near = Math.abs(mid(p).x - mid(e).x) < PARTY_PANIC && Math.abs(mid(p).y - mid(e).y) < 260;
+  if (e.aiState !== 'panic') {
+    e.vel.x = 0;
+    if (near) { e.aiState = 'panic'; e.aiTimer = 0; e.facing = mid(p).x < mid(e).x ? 1 : -1; }
+    return;
+  }
+  if (e.facing === undefined) e.facing = 1;
+  const ahead = mid(e).x + e.facing * (e.width / 2 + 24);
+  const lava = state.groundRuns.some(r => r.surface === 'lava' && ahead > r.x1 && ahead < r.x2);
+  const turn = Math.abs(e.pos.x - home) > PARTY_RUN && Math.sign(e.pos.x - home) === e.facing;
+  if (lava || turn || !safeAhead(ctx, e, e.facing, 20) || e.aiTimer % (60 + ((Math.abs(Math.round(home)) % 5) * 17)) === 0) e.facing = -e.facing as 1 | -1;
+  e.vel.x = e.facing * (PARTY_SPEED + (e.variant ?? 0) * 0.35);
 };
 
 /** How far along the lava a fish will go after you, how near you have to be for it to leap, and how long it waits between leaps. */

@@ -3436,6 +3436,11 @@
  },
  {
   "voice": "death",
+  "text": "DANCED TO DEATH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "DEAD IN DEADWOOD GULCH",
   "from": "game/stages/dale/runtime.ts:188"
  },
@@ -4096,6 +4101,11 @@
  },
  {
   "voice": "death",
+  "text": "LAST CALL",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "LAST SEEN AIRBORNE",
   "from": "game/stages/hector/tower.ts:142"
  },
@@ -4291,6 +4301,11 @@
  },
  {
   "voice": "death",
+  "text": "ONE SHOT TOO MANY",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "ONE SHOT, ONE MEATHEAD",
   "from": "content/deaths"
  },
@@ -4411,6 +4426,11 @@
  },
  {
   "voice": "death",
+  "text": "POI-SONED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "POLICE BRUTALITY",
   "from": "content/deaths"
  },
@@ -4462,6 +4482,11 @@
  {
   "voice": "death",
   "text": "RATTLED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "RAVED TO DEATH",
   "from": "content/deaths"
  },
  {
@@ -5956,6 +5981,11 @@
  },
  {
   "voice": "meathead",
+  "text": "...THERE WERE STAIRS? I COULD'VE TAKEN THE STAIRS INSTEAD OF ALL THAT LAVA SHIT.",
+  "from": "game/stages/victor/club.ts:60"
+ },
+ {
+  "voice": "meathead",
   "text": "...UH OH.",
   "from": "game/stages/dale/convoy.ts:755"
  },
@@ -6047,6 +6077,11 @@
  {
   "voice": "meathead",
   "text": "A FLAMING BOULDER! OUT OF NOWHERE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A FLAMING SHOT! TO THE FACE! I DIDN'T ORDER THAT!",
   "from": "HAZARD_HURT"
  },
  {
@@ -6431,6 +6466,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BAD PERSON. PROBABLY. DEFINITELY.",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "BADGE THIS!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -6502,6 +6542,11 @@
  {
   "voice": "meathead",
   "text": "BOMB SQUAD'S DOWN A GUY!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BOTTLE SERVICE. THAT'S A CRIME, RIGHT? IT SHOULD BE.",
   "from": "ENEMY_KILL_LINES"
  },
  {
@@ -6948,6 +6993,11 @@
   "voice": "meathead",
   "text": "DAMN IT ALL",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DANCE THIS!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -7681,6 +7731,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GET YOUR GLOW STICK OUT OF MY EAR!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "GET YOUR GOLD WATCH OFF MY FACE!",
   "from": "HAZARD_HURT"
  },
@@ -8001,6 +8056,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE HIT ME WITH A FIREBALL ON A STRING!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "HE HIT ME WITH HIS SIGN! IT SAYS NO!",
   "from": "HAZARD_HURT"
  },
@@ -8146,6 +8206,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE THREW HIS DRINK AT ME! IT WAS ON FIRE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "HE THREW HIS EXPERIMENT AT ME! AM I MUTATING? AM I GETTING BIGGER?",
   "from": "HAZARD_HURT"
  },
@@ -8272,6 +8337,11 @@
  {
   "voice": "meathead",
   "text": "HE'S TRYING TO DOWNSIZE ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S VIBING ON ME! STOP VIBING ON ME!",
   "from": "HAZARD_HURT"
  },
  {
@@ -8538,6 +8608,11 @@
   "voice": "meathead",
   "text": "I CAN TASTE COLORS!",
   "from": "game/stages/barry/power.ts:234"
+ },
+ {
+  "voice": "meathead",
+  "text": "I CAN TELL. I CAN ALWAYS TELL.",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9206,6 +9281,11 @@
  },
  {
   "voice": "meathead",
+  "text": "LAST CALL, GLOW STICK!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "LAST CALL.",
   "from": "game/stages/oscar/bar.ts:233"
  },
@@ -9801,6 +9881,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOBODY GOOD PARTIES IN A VOLCANO.",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "NOBODY TALKS ABOUT MY MOM.",
   "from": "components/RadioCutscene.tsx:25"
  },
@@ -10166,6 +10251,11 @@
  },
  {
   "voice": "meathead",
+  "text": "POI TO THE FACE! MY EYEBROWS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "POLICE BRUTALITY! ON MY GAINS!",
   "from": "HAZARD_HURT"
  },
@@ -10511,6 +10601,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SAMBUCA IN MY EYEBROWS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "SAME TIME TOMORROW, CHAMP?",
   "from": "KILL_LINES"
  },
@@ -10757,6 +10852,11 @@
  {
   "voice": "meathead",
   "text": "SHOULD'VE JUMPED THE OTHER WAY!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOULD'VE KEPT THE FIRE ON THE STRING!",
   "from": "ENEMY_KILL_LINES"
  },
  {
@@ -11316,6 +11416,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SUNGLASSES AT NIGHT. BAD PERSON.",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SURF'S DOWN, DUDE!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -11556,6 +11661,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S A WRAP ON THE ROUTINE!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S ANOTHER HOUR ON THE CLOCK.",
   "from": "KILL_LINES"
  },
@@ -11568,6 +11678,11 @@
   "voice": "meathead",
   "text": "THAT'S NOT A SPORTS DRINK.",
   "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S NOT DANCING! THAT'S ASSAULT!",
+  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
@@ -11731,6 +11846,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE PARTY'S OVER!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "THE PICKUP GOT ME!",
   "from": "HAZARD_HURT"
  },
@@ -11742,6 +11862,11 @@
  {
   "voice": "meathead",
   "text": "THE RANGERS ARE AIMING FOR MY TIRES! AND MY ASS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE RAVER HUGGED ME! HE'S SO SWEATY!",
   "from": "HAZARD_HURT"
  },
  {
@@ -11823,6 +11948,11 @@
   "voice": "meathead",
   "text": "THEY RAN ME OVER WITH A CANDY PAINT JOB!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY'RE AT VICTOR'S CLUB. THEY'RE BAD PEOPLE.",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -12561,6 +12691,11 @@
  },
  {
   "voice": "meathead",
+  "text": "YOU DON'T GET ON THAT LIST BY BEING NICE.",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "You dropped a jet ski on the tour group, sonny. I schedule my quakes AROUND the tour group!",
   "from": "game/core/update.ts:173"
  },
@@ -12753,6 +12888,11 @@
   "voice": "meathead",
   "text": "YOUR GREASE IS AN AFFRONT TO MY GAINS!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR SET'S CANCELED!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -13288,5 +13428,145 @@
   "voice": "tourist",
   "text": "HAS ANYBODY EVER BROKEN IN?",
   "from": "game/stages/ernie/alcatraz.ts:105"
+ },
+ {
+  "voice": "victor.partygirl",
+  "text": "I KNEW I SHOULD'VE GONE TO THE OTHER CLUB!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partygirl",
+  "text": "I PAID A THOUSAND DOLLARS FOR BOTTLE SERVICE!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partygirl",
+  "text": "I'M ON THE LIST! I'M ON THE LIST!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partygirl",
+  "text": "IT'S HOT IN HERE AND NOT IN A GOOD WAY!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partygirl",
+  "text": "MY PHONE HAS NO SIGNAL IN HERE! IT IS A MOUNTAIN!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partygirl",
+  "text": "SOMEBODY CALL SECURITY! NOT THAT GUY!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partygirl",
+  "text": "THE EMERGENCY EXIT SIGN POINTS AT THE LAVA!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partygirl",
+  "text": "THE FIRE EXIT IS JUST MORE FIRE!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partygirl",
+  "text": "THE ONLY WAY OUT IS UP! THROUGH THE LAVA!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partygirl",
+  "text": "THERE IS NO EXIT! WE'RE INSIDE A VOLCANO!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partygirl",
+  "text": "THIS IS WHY WE DON'T PARTY IN VOLCANOES, KYLE!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partygirl",
+  "text": "WE'RE JUST HERE TO DANCE!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partygirl",
+  "text": "WHERE'S THE EXIT?!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partygirl",
+  "text": "WHO PUTS A CLUB IN A VOLCANO?!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partyguy",
+  "text": "I KNEW I SHOULD'VE GONE TO THE OTHER CLUB!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partyguy",
+  "text": "I PAID A THOUSAND DOLLARS FOR BOTTLE SERVICE!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partyguy",
+  "text": "I'M ON THE LIST! I'M ON THE LIST!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partyguy",
+  "text": "IT'S HOT IN HERE AND NOT IN A GOOD WAY!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partyguy",
+  "text": "MY PHONE HAS NO SIGNAL IN HERE! IT IS A MOUNTAIN!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partyguy",
+  "text": "SOMEBODY CALL SECURITY! NOT THAT GUY!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partyguy",
+  "text": "THE EMERGENCY EXIT SIGN POINTS AT THE LAVA!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partyguy",
+  "text": "THE FIRE EXIT IS JUST MORE FIRE!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partyguy",
+  "text": "THE ONLY WAY OUT IS UP! THROUGH THE LAVA!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partyguy",
+  "text": "THERE IS NO EXIT! WE'RE INSIDE A VOLCANO!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partyguy",
+  "text": "THIS IS WHY WE DON'T PARTY IN VOLCANOES, KYLE!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partyguy",
+  "text": "WE'RE JUST HERE TO DANCE!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partyguy",
+  "text": "WHERE'S THE EXIT?!",
+  "from": "game/stages/victor/club.ts:86"
+ },
+ {
+  "voice": "victor.partyguy",
+  "text": "WHO PUTS A CLUB IN A VOLCANO?!",
+  "from": "game/stages/victor/club.ts:86"
  }
 ]

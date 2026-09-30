@@ -10,6 +10,7 @@ import { getVictor, regionOf, enterFade } from './runtime';
 import { ventPhase, VENT_HEIGHT, VENT_HALF_WIDTH, BOMB_WARN, BOMB_RADIUS, jetPhase, JET_WARN, barBalls } from './hazards';
 import { drawDoormanCorpse, drawDoormanHud, drawClashingMeathead } from './doormanDraw';
 import { drawLoungeBack, drawLoungeFront, drawWideShot, drawLoungeHud, drawAftermathFade } from './loungeDraw';
+import { drawClubBackdrop, drawClubBack, drawClubLedge, drawClubFront, drawInnocentsTally } from './clubDraw';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -23,6 +24,7 @@ const visible = (state: GameState, x1: number, x2: number) => x2 > state.camera.
 export const drawVictorBackdrop = (ctx: Ctx, state: GameState): boolean => {
   const region = regionOf(state.camera.x + 400);
   if (region === 'inside') { drawCave(ctx, state); return true; }
+  if (region === 'club') { drawClubBackdrop(ctx, state); return true; }
   if (region === 'lounge') { ctx.fillStyle = '#0B0612'; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); return true; }
   drawTrailSky(ctx, state);
   return true;
@@ -140,6 +142,7 @@ export const drawVictorBack = (ctx: Ctx, state: GameState) => {
   const region = regionOf(state.camera.x + 400);
   if (region === 'main') drawClub(ctx, state, rt.doorman.phase === 'dead');
   if (region === 'inside') drawShaftWalls(ctx, state);
+  if (region === 'club') drawClubBack(ctx, state);
   if (region === 'lounge' || rt.lounge.phase === 'crash') drawLoungeBack(ctx, state, rt.lounge);
 };
 
@@ -277,6 +280,7 @@ const drawLava = (ctx: Ctx, state: GameState) => {
 const drawLedges = (ctx: Ctx, state: GameState) => {
   for (const l of COURSE.ledges) {
     if (!visible(state, l.x, l.x + l.w) || l.y < state.camera.y - 40 || l.y > state.camera.y + CANVAS_HEIGHT + 40) continue;
+    if (drawClubLedge(ctx, l, state.frame)) continue;
     if (l.look === 'catwalk') {
       // Steel grating on brackets out of the wall
       ctx.fillStyle = '#3F3F46'; ctx.fillRect(l.x, l.y, l.w, 8);
@@ -393,9 +397,11 @@ const drawJets = (ctx: Ctx, state: GameState) => {
   for (const j of COURSE.jets) {
     if (j.y < state.camera.y - 60 || j.y > state.camera.y + CANVAS_HEIGHT + 60) continue;
     const ph = jetPhase(j, f);
-    // The nozzle
-    ctx.fillStyle = '#52525B'; ctx.fillRect(j.dir > 0 ? j.x : j.x - 22, j.y - 12, 22, 24);
-    ctx.fillStyle = '#18181B'; ctx.fillRect(j.dir > 0 ? j.x + 18 : j.x - 22, j.y - 8, 4, 16);
+    // The nozzle (in the club, a chrome pyro cannon with a neon ring)
+    const club = regionOf(j.x) === 'club';
+    ctx.fillStyle = club ? '#D4D4D8' : '#52525B'; ctx.fillRect(j.dir > 0 ? j.x : j.x - 22, j.y - 12, 22, 24);
+    ctx.fillStyle = club ? '#F472B6' : '#18181B'; ctx.fillRect(j.dir > 0 ? j.x + 18 : j.x - 22, j.y - 8, 4, 16);
+    if (club) { ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(j.dir > 0 ? j.x + 2 : j.x - 20, j.y - 10, 16, 3); }
     if (ph.warning) {
       ctx.fillStyle = `rgba(249, 115, 22, ${0.5 + 0.5 * Math.sin(f * 0.9)})`; ctx.beginPath(); ctx.arc(j.x + j.dir * 24, j.y, 8 + (ph.t / JET_WARN) * 6, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = '#FDE047'; for (let i = 0; i < 3; i++) ctx.fillRect(j.x + j.dir * (26 + ((f * 5 + i * 9) % 30)), j.y - 6 + i * 5, 2, 2);
@@ -417,7 +423,12 @@ const drawJets = (ctx: Ctx, state: GameState) => {
 const drawBars = (ctx: Ctx, state: GameState) => {
   for (const b of COURSE.bars) {
     if (b.y < state.camera.y - 200 || b.y > state.camera.y + CANVAS_HEIGHT + 200) continue;
-    ctx.fillStyle = '#44403C'; ctx.beginPath(); ctx.arc(b.x, b.y, 10, 0, Math.PI * 2); ctx.fill();
+    if (regionOf(b.x) === 'club') {
+      // A disco ball at the hub: mirror tiles, glints going round
+      ctx.fillStyle = '#A1A1AA'; ctx.beginPath(); ctx.arc(b.x, b.y, 14, 0, Math.PI * 2); ctx.fill();
+      for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2 + state.frame * 0.05; ctx.fillStyle = k % 3 ? '#E4E4E7' : '#FFFFFF'; ctx.fillRect(b.x + Math.cos(a) * 8 - 2, b.y + Math.sin(a) * 8 - 2, 4, 4); }
+      ctx.strokeStyle = '#A1A1AA'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(b.x, b.y - 14); ctx.lineTo(b.x, b.y - 400); ctx.stroke();
+    } else { ctx.fillStyle = '#44403C'; ctx.beginPath(); ctx.arc(b.x, b.y, 10, 0, Math.PI * 2); ctx.fill(); }
     for (const ball of barBalls(b, state.frame)) {
       const g = ctx.createRadialGradient(ball.x, ball.y, 1, ball.x, ball.y, 11);
       g.addColorStop(0, '#FEF9C3'); g.addColorStop(0.5, '#FB923C'); g.addColorStop(1, 'rgba(234, 88, 12, 0)');
@@ -457,6 +468,7 @@ export const drawVictorFront = (ctx: Ctx, state: GameState) => {
   const rt = getVictor(state)!;
   drawClashingMeathead(ctx, state, rt.doorman);
   if (rt.lounge.phase === 'crash' || regionOf(state.camera.x + 400) === 'lounge') drawLoungeFront(ctx, state, rt.lounge);
+  if (regionOf(state.camera.x + 400) === 'club') drawClubFront(ctx, state);
 };
 
 // ---------------------------------------------------------------------------
@@ -467,6 +479,7 @@ export const drawVictorHud = (ctx: Ctx, state: GameState) => {
   const rt = getVictor(state)!;
   drawDoormanHud(ctx, state, rt.doorman);
   drawLoungeHud(ctx, state, rt.lounge);
+  drawInnocentsTally(ctx, state);
   // Through the club doors
   const fade = enterFade(rt);
   if (fade > 0) { ctx.fillStyle = `rgba(0, 0, 0, ${fade})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }

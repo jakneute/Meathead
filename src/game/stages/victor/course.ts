@@ -2,24 +2,30 @@
 // active volcano (it looms closer and closer as the trail curves round toward
 // it), Club Caldera at its foot (the doorman won't let you in), then inside: a
 // river of lava to cross on drifting rafts of rock, and a tall shaft full of
-// fire and furnaces up to a window near the top. Through the window: the VIP
-// lounge, a party, and then not much of one. The boss door's just past it.
+// fire and furnaces up to a window near the top. Through the window: Club
+// Caldera's main floor, lava everywhere (a dance floor of glass over it, the bar
+// in a moat of it, an infinity pool of it), the crowd, the club's own crew; then
+// the club's atrium, a tower of neon and pyro up to the VIP lounge, a party, and
+// then not much of one. The boss door's just past it.
 //
 // Three places in the world, each built in its own coordinates and shifted into place:
 //   - the main run (the cliffs and the club), far to the left
 //   - inside the volcano (the lava river, then the shaft), further left still
+//   - the club floor and its atrium, further left again
 //   - the VIP lounge, right before the boss door
 
 import { BOSS_DOOR_X, GROUND_Y } from '../../../constants';
 import type { GroundRun } from '../../core/terrain';
 import type { EnemyKind } from '../../../types';
 
-export const CP = { TRAIL: 0, BOMBS: 1, CLUB: 2, RIVER: 3, RIVER_MID: 4, SHAFT: 5, LOUNGE: 6 } as const;
+export const CP = { TRAIL: 0, BOMBS: 1, CLUB: 2, RIVER: 3, RIVER_MID: 4, SHAFT: 5, FLOOR: 6, ATRIUM: 7, LOUNGE: 8 } as const;
 
 export interface Spawn { kind: EnemyKind; x: number; y: number }
 export interface PickupSpot { x: number; y: number; type: 'small_health' | 'large_health' | 'small_ammo' | 'large_ammo' }
 /** A ledge of rock (or a steel catwalk in the shaft): you can jump up through it. */
-export interface Ledge { x: number; y: number; w: number; look: 'rock' | 'catwalk' }
+export interface Ledge { x: number; y: number; w: number; look: 'rock' | 'catwalk' | 'neon' | 'cage' | 'booth' }
+/** Something solid on the club floor to get up on or over: the bar, a stack of speakers. */
+export interface Solid { x: number; y: number; w: number; h: number; look: 'bar' | 'speakers' }
 /** A crack in the ground that vents fire: it smokes and glows, then erupts in a column (from lava: a spout). */
 export interface Vent { x: number; y: number; period: number; phase: number; lava?: boolean }
 /** Volcanic bombs come down in here (the lesson ones out ahead of you, then aimed). */
@@ -50,6 +56,10 @@ export interface Course {
   /** Inside: where it starts, and the shaft (its walls, floor and the top, with the window). */
   inside: { x1: number; x2: number };
   shaft: { x1: number; x2: number; floor: number; top: number; window: { x: number; y: number } };
+  /** Club Caldera's main floor, and its atrium (a second shaft, of neon and pyro, up to the VIP lounge's window). */
+  floor: { x1: number; x2: number };
+  atrium: { x1: number; x2: number; floor: number; top: number; window: { x: number; y: number } };
+  solids: Solid[];
   lounge: { x1: number; x2: number; y: number; window: number };
   checkpoints: { x: number; y: number }[];
   left: number;
@@ -61,6 +71,8 @@ const IN_X0 = -52000;
 /** Where the lava river starts, inside (local x: it runs up to the shaft at 3000). */
 const RIVER_X0 = 3000 - 7730;
 const LOUNGE_X1 = BOSS_DOOR_X - 1500;
+/** Club Caldera's floor and atrium, in their own coordinates. */
+const CLUB_X0 = -150000;
 
 const Y = GROUND_Y;
 
@@ -192,8 +204,72 @@ const build = () => {
   n.vent(3480, Y - 2640, 140, 60);
   n.pickup(3400, Y - 2670, 'small_ammo');
 
+  // ============ CLUB CALDERA: THE FLOOR ============
+  // In off the top of the shaft through a service door, and out onto the floor: the whole club's lava. Wall to wall
+  const c = part(CLUB_X0);
+  const floorRun = (x1: number, x2: number) => c.runs.push({ x1: CLUB_X0 + x1, y1: Y, x2: CLUB_X0 + x2, y2: Y, surface: 'clubfloor' });
+  const solid = (x: number, w: number, h: number, look: Solid['look']) => solids.push({ x: CLUB_X0 + x, y: Y - h, w, h, look });
+  const solids: Solid[] = [];
+  const party = (...xs: number[]) => { for (const x of xs) c.spawn('partygoer', x); };
+  // The service corridor in, then the dance floor: glass over lava, lit from under, the crowd on it, the pyro going off
+  // on the beat, the DJ up in his booth (a raver with him), a fire dancer working the far end
+  floorRun(0, 1500);
+  c.pickup(320, Y - 30, 'small_ammo');
+  party(640, 720, 850, 930, 1010, 1270);
+  c.vent(780, Y, 120, 0); c.vent(1180, Y, 120, 60);
+  c.ledge(1040, Y - 110, 160, 'booth'); c.spawn('raver', 1130, Y - 110);
+  c.spawn('firedancer', 1400);
+  // The bar, in a moat of lava: a raver up on the counter, the crowd cowering either side of it, security at the end
+  c.lava(1500, 1640, Y + 28);
+  floorRun(1640, 2300);
+  solid(1760, 300, 46, 'bar'); c.spawn('raver', 1910, Y - 46);
+  party(1700, 2140);
+  c.spawn('blastshield', 2250);
+  c.ledge(2110, Y - 130, 70, 'cage'); c.ledge(2210, Y - 200, 70, 'cage');
+  c.pickup(2245, Y - 230, 'small_health');
+  // The infinity pool (of lava): go-go cages hanging over it to hop across, the lava spouting on the beat
+  c.lava(2300, 2920, Y + 28);
+  c.ledge(2360, Y - 30, 70, 'cage'); c.ledge(2500, Y - 60, 70, 'cage'); c.ledge(2640, Y - 40, 70, 'cage'); c.ledge(2780, Y - 70, 70, 'cage');
+  c.spout(2440, 150, 0); c.spout(2715, 150, 75);
+  // Bottle service: the VIP tables, a speaker stack with a raver up on it, security, a fire dancer
+  floorRun(2920, 3700);
+  c.spawn('firedancer', 3060);
+  solid(3140, 90, 90, 'speakers'); c.spawn('raver', 3185, Y - 90);
+  party(2990, 3290, 3360);
+  solid(3440, 80, 60, 'speakers');
+  c.spawn('blastshield', 3590);
+  c.pickup(3640, Y - 30, 'large_health');
+  // ============ CLUB CALDERA: THE ATRIUM ============
+  // The club's own shaft up to the VIP lounge: not rock, all of it built. Neon catwalks back and forth, pyro cannons
+  // out of the walls, disco rigs spinning fire, a lava lamp the height of the whole thing
+  const AX1 = 3700, AX2 = 4500, ATOP = Y - 2400;
+  floorRun(3700, 4500);
+  const neon = (x: number, dy: number, w = 160) => c.ledge(x, Y - dy, w, 'neon');
+  neon(4200, 110); neon(3940, 220); neon(3720, 330, 180); neon(4000, 440);
+  c.jet(AX1, Y - 420, 1, 360, 140, 0);
+  neon(4280, 550, 180); neon(4040, 660);
+  c.spawn('raver', 4340, Y - 550);
+  neon(3760, 770, 180); neon(4060, 880); neon(4300, 990, 160);
+  c.jet(AX2, Y - 830, -1, 380, 130, 50);
+  c.bar(4000, Y - 1100, 120, 0.035, 0);
+  neon(3800, 1110, 150); neon(3720, 1220, 140); neon(3980, 1330); neon(4260, 1440, 200);
+  c.spawn('blastshield', 4400, Y - 1440);
+  c.vent(4300, Y - 1440, 120, 0);
+  c.pickup(3780, Y - 1250, 'small_health');
+  c.jet(AX1, Y - 1500, 1, 400, 120, 20);
+  neon(4000, 1550); neon(3740, 1660, 160); neon(4000, 1770); neon(4280, 1880, 180);
+  c.spawn('raver', 4330, Y - 1880);
+  c.bar(4080, Y - 1990, 130, -0.04, 1);
+  neon(4040, 2000, 160); neon(3780, 2110, 150); neon(3980, 2220); neon(4260, 2330, 200);
+  c.jet(AX2, Y - 2305, -1, 380, 110, 70);
+  // The top: along to the lounge's window in the right wall
+  neon(3980, 2400, 520);
+  c.pickup(4100, Y - 2430, 'small_ammo');
+
   return {
-    main, inside,
+    main, inside, club: c, solids,
+    floor: { x1: CLUB_X0, x2: CLUB_X0 + AX1 },
+    atrium: { x1: CLUB_X0 + AX1, x2: CLUB_X0 + AX2, floor: Y, top: ATOP, window: { x: CLUB_X0 + AX2, y: ATOP - 70 } },
     shaft: { x1: IN_X0 + SX1, x2: IN_X0 + SX2, floor: Y, top: TOP, window: { x: IN_X0 + SX2, y: TOP - 70 } },
   };
 };
@@ -222,10 +298,10 @@ const part = (x0: number) => {
 };
 
 const buildCourse = (): Course => {
-  const { main, inside, shaft } = build();
+  const { main, inside, club, solids, floor, atrium, shaft } = build();
   const lounge = { x1: LOUNGE_X1, x2: BOSS_DOOR_X, y: Y, window: LOUNGE_X1 + 60 };
-  const cat = <K extends keyof typeof main>(k: K) => [...(main[k] as unknown[]), ...(inside[k] as unknown[])];
-  const runs = [...inside.runs, ...main.runs, { x1: lounge.x1, y1: Y, x2: lounge.x2, y2: Y, surface: 'carpet' }];
+  const cat = <K extends keyof typeof main>(k: K) => [...(main[k] as unknown[]), ...(inside[k] as unknown[]), ...(club[k] as unknown[])];
+  const runs = [...club.runs, ...inside.runs, ...main.runs, { x1: lounge.x1, y1: Y, x2: lounge.x2, y2: Y, surface: 'carpet' }];
   // (the gaps between the parts aren't pits anyone sees: nothing's drawn in them)
   runs.forEach((r, i) => { const next = runs[i + 1]; if (next && next.x1 > r.x2 + 1) r.pitAfter = 'clouds'; });
   const pickups = [...cat('pickups'), { x: lounge.x2 - 300, y: Y - 30, type: 'large_health' }, { x: lounge.x2 - 220, y: Y - 30, type: 'large_ammo' }] as PickupSpot[];
@@ -237,12 +313,14 @@ const buildCourse = (): Course => {
     club: { x1: MAIN_X0 + 7730, x2: MAIN_X0 + 8510, y: Y, door: MAIN_X0 + 8300 },
     inside: { x1: IN_X0 + RIVER_X0, x2: IN_X0 + 3760 },
     shaft,
+    floor, atrium, solids,
     lounge,
     checkpoints: [
       { x: MAIN_X0 + 150, y: Y }, { x: MAIN_X0 + 2700, y: Y - 40 }, { x: MAIN_X0 + 7150, y: Y },
-      { x: IN_X0 + RIVER_X0 + 150, y: Y }, { x: IN_X0 + RIVER_X0 + 3990, y: Y - 20 }, { x: IN_X0 + 3080, y: Y }, { x: lounge.x1 + 300, y: Y },
+      { x: IN_X0 + RIVER_X0 + 150, y: Y }, { x: IN_X0 + RIVER_X0 + 3990, y: Y - 20 }, { x: IN_X0 + 3080, y: Y },
+      { x: CLUB_X0 + 150, y: Y }, { x: CLUB_X0 + 3780, y: Y }, { x: lounge.x1 + 300, y: Y },
     ],
-    left: IN_X0 + RIVER_X0 - 2000,
+    left: CLUB_X0 - 2000,
     startX: MAIN_X0,
   };
 };

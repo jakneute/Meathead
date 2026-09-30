@@ -53,6 +53,14 @@ export const victorScene = (state: GameState): SceneLight | null => {
     for (let x = COURSE.lounge.x1 + 150; x < COURSE.lounge.x2; x += 260, i++) if (nearView(state, x)) lights.push({ x, y: COURSE.lounge.y - 300, r: 300, a: 0.85, cone: 110, color: colors[i % 3] });
     return { dark: 0.34, shade: [22, 6, 34], lights };
   }
+  if (region === 'club') {
+    // The club: lava under the glass floor, the fire, and coloured spots sweeping on the beat
+    const colors = ['rgba(244, 114, 182, 0.14)', 'rgba(34, 211, 238, 0.12)', 'rgba(251, 146, 60, 0.13)', 'rgba(167, 139, 250, 0.12)'];
+    const lights: Light[] = [...lavaLights(state, 220), ...fireLights(state)];
+    const beat = Math.floor(state.frame / 30);
+    for (let x = Math.floor((state.camera.x - 200) / 300) * 300; x < state.camera.x + 1000; x += 300) lights.push({ x: x + Math.sin(state.frame * 0.02 + x) * 80, y: state.camera.y + 40, r: 320, a: 0.8, cone: 90, color: colors[(Math.floor(x / 300) + beat) % 4] });
+    return { dark: 0.36, shade: [30, 6, 26], lights };
+  }
   const lights = [...lavaLights(state, region === 'inside' ? 240 : 190), ...fireLights(state)];
   return region === 'inside' ? { dark: 0.44, shade: [22, 6, 2], lights } : { dark: 0.2, shade: [44, 10, 6], lights };
 };

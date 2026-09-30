@@ -55,6 +55,9 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   vulture: { w: 56, h: 30, hp: 55, contact: 10, air: true },
   magmafish: { w: 50, h: 26, hp: 40, contact: 14 },
   doorman: { w: 72, h: 100, hp: 950, contact: 8 },
+  raver: { w: 40, h: 64, hp: 110, contact: 6 },
+  firedancer: { w: 50, h: 70, hp: 210, contact: 12 },
+  partygoer: { w: 34, h: 62, hp: 1, contact: 0 },
   // Ernie's stage
   techbro: { w: 40, h: 62, hp: 110, contact: 6 },
   courier: { w: 46, h: 66, hp: 200, contact: 12 },
@@ -134,7 +137,7 @@ export const isSmallCritter = (kind?: EnemyKind) =>
   || kind === 'rattlesnake' || kind === 'scorpion' || kind === 'rat' || kind === 'sludgeling' || kind === 'armadillo';
 
 /** The ones that run you down like the rusher. */
-export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind === 'bouncer' || kind === 'smokejumper' || kind === 'courier' || kind === 'enforcer'
+export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind === 'bouncer' || kind === 'smokejumper' || kind === 'firedancer' || kind === 'courier' || kind === 'enforcer'
   || kind === 'hooker' || kind === 'mugger' || kind === 'commuter' || kind === 'intern' || kind === 'janitor' || kind === 'subject'
   || kind === 'bruiser' || kind === 'bloater' || kind === 'biker';
 
@@ -161,7 +164,9 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     case 'surfer': case 'riotcop': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
     case 'pelican': case 'shark': return { ...base, enemyType: 'flyer', initialY: pos.y };
     // Victor's goons, in heat gear: the same three jobs
-    case 'heatsuit': return { ...base, behavior: 'shoot', shootTimer: Math.floor(Math.random() * 40) };
+    case 'heatsuit': case 'raver': return { ...base, behavior: 'shoot', shootTimer: Math.floor(Math.random() * 40) };
+    case 'firedancer': return { ...base, behavior: 'patrol', pauseTimer: 0 };
+    case 'partygoer': return { ...base, harmless: true, innocent: true, variant: Math.floor(Math.abs(x) / 7) % 4 };
     case 'smokejumper': return { ...base, behavior: 'patrol', pauseTimer: 0 };
     case 'blastshield': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
     case 'vulture': case 'hawk': case 'grackle': return { ...base, enemyType: 'flyer', initialY: pos.y };
@@ -221,7 +226,7 @@ export const runKindAI = (ctx: FrameContext, e: Enemy): boolean => {
     // Dale's hawk circles and stoops like the eagle; Oscar's grackles swoop in low like the pelican
     case 'hawk': eagle(ctx, e); return true;
     case 'grackle': return runHectorKindAI(ctx, e);
-    case 'magmafish': return runVictorKindAI(ctx, e);
+    case 'magmafish': case 'partygoer': return runVictorKindAI(ctx, e);
     // Ernie's wildlife and machines: the raccoon lunges like the wolverine, the seagull swoops like the pelican
     case 'raccoon': wolverine(ctx, e); return false;
     case 'seagull': return runHectorKindAI(ctx, e);

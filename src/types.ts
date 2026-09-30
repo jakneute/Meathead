@@ -196,6 +196,8 @@ export type EnemyKind =
   | 'tourist' | 'bouncer' | 'surfer' | 'cop' | 'riotcop' | 'gator' | 'pelican' | 'iguana' | 'crab' | 'civilian' | 'shark' | 'eye'
   // Victor's stage: goons in heat gear, volcano wildlife, and the club's doorman
   | 'heatsuit' | 'smokejumper' | 'blastshield' | 'salamander' | 'vulture' | 'magmafish' | 'doorman'
+  // (and inside Club Caldera: the ravers flinging flaming shots, the fire dancers, the partygoers who'd just like to leave)
+  | 'raver' | 'firedancer' | 'partygoer'
   // Ernie's stage: San Francisco's finest, its wildlife, drones, the jet ski goons, and the poor souls on fire on the bridge
   | 'techbro' | 'courier' | 'protester' | 'raccoon' | 'seagull' | 'drone' | 'jetskier' | 'burning'
   // Dale's stage: the cartel's sicarios, enforcers and car-door men, the desert's wildlife, his distributor

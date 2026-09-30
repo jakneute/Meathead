@@ -17,6 +17,9 @@ export const drawVictorKind = (ctx: Ctx, e: Enemy, f: number, _state: GameState)
     case 'salamander': drawSalamander(ctx, e, f); break;
     case 'vulture': drawVulture(ctx, e, f); break;
     case 'magmafish': drawMagmafish(ctx, e, f); break;
+    case 'raver': drawRaver(ctx, e, f); break;
+    case 'firedancer': drawFiredancer(ctx, e, f); break;
+    case 'partygoer': drawPartygoer(ctx, e, f); break;
   }
 };
 
@@ -199,4 +202,102 @@ const drawMagmafish = (ctx: Ctx, e: Enemy, f: number) => {
   ctx.restore();
   // Lava dripping off it
   ctx.fillStyle = '#FB923C'; for (let i = 0; i < 3; i++) ctx.fillRect(-10 + i * 9, -2 + ((f * 2 + i * 7) % 12), 2, 4);
+};
+
+// ---------------------------------------------------------------------------
+// Club Caldera's crowd
+// ---------------------------------------------------------------------------
+
+/** A raver: a neon mesh top in lava orange, glow goggles up on the head, platform boots; flings flaming shots. */
+const drawRaver = (ctx: Ctx, e: Enemy, f: number) => {
+  const walking = Math.abs(e.vel.x) > 0.5;
+  const bop = Math.round(Math.abs(Math.sin(f * 0.18)) * 2);
+  legs(ctx, -26, f, walking ? 5 : 0, '#18181B', '#F97316');
+  ctx.fillStyle = '#111827'; ctx.fillRect(-11, -8, 11, 4); ctx.fillRect(1, -8, 11, 4); // (the platforms)
+  // Mesh top over the torso, glowing seams
+  ctx.fillStyle = '#E0AC69'; ctx.fillRect(-12, -52 - bop, 24, 28);
+  ctx.strokeStyle = '#FB923C'; ctx.lineWidth = 1;
+  for (let k = 0; k < 5; k++) { ctx.beginPath(); ctx.moveTo(-12, -50 + k * 6 - bop); ctx.lineTo(12, -46 + k * 6 - bop); ctx.stroke(); ctx.beginPath(); ctx.moveTo(-12 + k * 6, -52 - bop); ctx.lineTo(-10 + k * 6, -24 - bop); ctx.stroke(); }
+  ctx.fillStyle = '#F43F5E'; ctx.fillRect(-12, -28 - bop, 24, 4);
+  // Head, a buzz cut dyed orange, the goggles up on it glowing, a pacifier
+  ctx.fillStyle = '#E0AC69'; ctx.beginPath(); ctx.arc(2, -62 - bop, 9, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#EA580C'; ctx.fillRect(-7, -72 - bop, 18, 5);
+  ctx.fillStyle = `rgba(52, 211, 153, ${0.7 + 0.3 * Math.sin(f * 0.3)})`; ctx.fillRect(-6, -70 - bop, 16, 4);
+  ctx.fillStyle = '#111827'; ctx.fillRect(5, -64 - bop, 2, 2);
+  ctx.fillStyle = '#F472B6'; ctx.beginPath(); ctx.arc(10, -57 - bop, 3, 0, Math.PI * 2); ctx.fill();
+  // An arm up with a glowstick, the other with the shot glass, flaming, before it goes
+  ctx.fillStyle = '#E0AC69'; ctx.fillRect(-15, -66 - bop, 4, 16);
+  ctx.fillStyle = f % 20 < 10 ? '#A3E635' : '#22D3EE'; ctx.fillRect(-16, -78 - bop, 4, 12);
+  const charge = Math.max(0, (e.shootTimer - 40) / 20);
+  ctx.fillStyle = '#E0AC69'; ctx.fillRect(8, -46, 12, 4);
+  ctx.fillStyle = 'rgba(224, 242, 254, 0.8)'; ctx.fillRect(18, -50, 6, 8);
+  if (charge > 0.2 || f % 16 < 8) { ctx.fillStyle = `rgba(251, 146, 60, ${0.6 + charge * 0.4})`; ctx.beginPath(); ctx.moveTo(18, -50); ctx.quadraticCurveTo(21, -60 - charge * 6, 24, -50); ctx.fill(); }
+};
+
+/** A fire dancer: bare-chested, lava-red body paint, a flaming poi on a chain in each hand, spinning; he runs at you with them. */
+const drawFiredancer = (ctx: Ctx, e: Enemy, f: number) => {
+  const running = Math.abs(e.vel.x) > 1;
+  legs(ctx, -28, f * (running ? 1.8 : 0.6), running ? 7 : 1, '#7C2D12', '#1C1917');
+  ctx.fillStyle = '#B45309'; ctx.fillRect(-12, -30, 24, 5); // sash
+  ctx.fillStyle = '#C68B45'; ctx.fillRect(-13, -54, 26, 25);
+  ctx.strokeStyle = '#DC2626'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-10, -50); ctx.lineTo(0, -40); ctx.lineTo(10, -50); ctx.moveTo(-8, -36); ctx.lineTo(8, -36); ctx.stroke();
+  ctx.fillStyle = '#C68B45'; ctx.beginPath(); ctx.arc(2, -64, 9, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#1C1917'; ctx.fillRect(-7, -74, 18, 6); ctx.fillRect(5, -66, 2, 2);
+  ctx.fillStyle = '#DC2626'; ctx.fillRect(-4, -62, 12, 1);
+  // The poi: a chain from each hand out to a ball of fire, whirling
+  const spin = f * (running ? 0.45 : 0.22);
+  for (const [hx, hy, ph] of [[-14, -48, 0], [16, -48, Math.PI]] as const) {
+    const bx = hx + Math.cos(spin + ph) * 20, by = hy + Math.sin(spin + ph) * 20;
+    ctx.fillStyle = '#C68B45'; ctx.fillRect(hx - 2, hy - 2, 4, 8);
+    ctx.strokeStyle = '#A8A29E'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(bx, by); ctx.stroke();
+    const g = ctx.createRadialGradient(bx, by, 1, bx, by, 9);
+    g.addColorStop(0, '#FEF9C3'); g.addColorStop(0.5, '#F97316'); g.addColorStop(1, 'rgba(234, 88, 12, 0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(bx, by, 9, 0, Math.PI * 2); ctx.fill();
+    // (a trail of fire behind it)
+    for (let k = 1; k < 4; k++) { const tx = hx + Math.cos(spin + ph - k * 0.3) * 20, ty = hy + Math.sin(spin + ph - k * 0.3) * 20; ctx.fillStyle = `rgba(249, 115, 22, ${0.35 - k * 0.08})`; ctx.beginPath(); ctx.arc(tx, ty, 6 - k, 0, Math.PI * 2); ctx.fill(); }
+  }
+};
+
+const PARTY_SKIN = ['#E0AC69', '#8D5524', '#F1C27D', '#C68642'];
+/** A partygoer: dressed for the VIP list (a shiny shirt, a sequin dress, sunglasses at night, a lanyard); dancing, or
+ * running with their arms up and their mouth open. */
+const drawPartygoer = (ctx: Ctx, e: Enemy, f: number) => {
+  const v = e.variant ?? 0, seed = Math.abs(Math.round(e.homeX || 0));
+  const skin = PARTY_SKIN[(seed + v) % PARTY_SKIN.length];
+  const panic = e.aiState === 'panic';
+  const bop = panic ? 0 : Math.round(Math.abs(Math.sin(f * 0.2 + seed)) * 3);
+  const run = panic ? 7 : 1.5;
+  const s = Math.sin(f * (panic ? 0.5 : 0.2)) * run;
+  const dress = v === 1 || v === 3;
+  if (dress) {
+    // Legs, heels, a sequin dress (glittering)
+    ctx.fillStyle = skin; ctx.fillRect(-6 + s, -22, 5, 18); ctx.fillRect(2 - s, -22, 5, 18);
+    ctx.fillStyle = '#111827'; ctx.fillRect(-7 + s, -4, 7, 4); ctx.fillRect(1 - s, -4, 7, 4);
+    const col = v === 1 ? '#DB2777' : '#F59E0B';
+    ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(-9, -48 - bop); ctx.lineTo(9, -48 - bop); ctx.lineTo(12, -20); ctx.lineTo(-12, -20); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#FFFFFF'; for (let k = 0; k < 5; k++) if ((f + k * 7) % 20 < 6) ctx.fillRect(-8 + k * 4, -44 + (k % 3) * 8 - bop, 2, 2);
+  } else {
+    // Slacks, loafers, a shiny shirt open at the collar
+    ctx.fillStyle = '#1F2937'; ctx.fillRect(-8 + s, -26, 7, 22); ctx.fillRect(2 - s, -26, 7, 22);
+    ctx.fillStyle = '#44403C'; ctx.fillRect(-9 + s, -4, 9, 4); ctx.fillRect(1 - s, -4, 9, 4);
+    const col = v === 0 ? '#7C3AED' : '#0EA5E9';
+    ctx.fillStyle = col; ctx.fillRect(-11, -50 - bop, 22, 26);
+    ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fillRect(-9, -48 - bop, 3, 22);
+    ctx.fillStyle = skin; ctx.beginPath(); ctx.moveTo(-3, -50 - bop); ctx.lineTo(3, -50 - bop); ctx.lineTo(0, -42 - bop); ctx.fill();
+  }
+  // The VIP lanyard
+  ctx.strokeStyle = '#FACC15'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-4, -50 - bop); ctx.lineTo(0, -36 - bop); ctx.lineTo(4, -50 - bop); ctx.stroke();
+  ctx.fillStyle = '#FACC15'; ctx.fillRect(-2, -37 - bop, 4, 5);
+  // Head: hair, sunglasses at night; the mouth open, screaming, when it's all gone wrong
+  ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(2, -58 - bop, 8, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = ['#1C1917', '#FDE68A', '#78350F', '#1C1917'][v];
+  if (dress) { ctx.beginPath(); ctx.arc(1, -60 - bop, 9, Math.PI, 0); ctx.fill(); ctx.fillRect(-8, -60 - bop, 4, 14); }
+  else ctx.fillRect(-6, -67 - bop, 16, 5);
+  ctx.fillStyle = '#111827'; ctx.fillRect(0, -61 - bop, 10, 3);
+  if (panic) { ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.ellipse(5, -53, 2.5, 3.5, 0, 0, Math.PI * 2); ctx.fill(); }
+  // Arms: up in the air dancing, up in the air running
+  ctx.fillStyle = skin;
+  const wave = Math.sin(f * (panic ? 0.7 : 0.25) + seed) * (panic ? 6 : 4);
+  ctx.fillRect(-13, -70 + wave - bop, 4, 18); ctx.fillRect(9, -70 - wave - bop, 4, 18);
+  if (!panic && v === 2) { ctx.fillStyle = 'rgba(224, 242, 254, 0.8)'; ctx.fillRect(9, -76 - wave - bop, 5, 7); ctx.fillStyle = '#FDE047'; ctx.fillRect(9, -73 - wave - bop, 5, 4); } // (a drink held high)
 };
