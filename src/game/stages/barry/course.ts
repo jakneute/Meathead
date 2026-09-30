@@ -283,15 +283,14 @@ const buildRoofs = (s: Part) => {
     }
   };
   land(B1, [[20, 130, 220], [330, 240, 170], [60, 370, 150], [300, 470, 200], [40, 590, 130], [200, 700, 100], [400, 830, 110], [120, 940, 200]]);
-  s.ledge(B1, Y - B1TOP, B1W, 'rooftop');
+  s.ledge(B1, Y - B1TOP, B1W + 60, 'rooftop');
   // (and pigeons up here, not many: off the ledges at you)
   s.spawn('pigeon', B1 + 380, Y - 560); s.spawn('pigeon', B1 + 150, Y - 880);
   s.pickup(B1 + 420, Y - B1TOP - 30, 'small_health');
   s.lamp(B1 + 260, Y - B1TOP - 90, 0.3, 'bulb');
-  // (its walls: in at the bottom from the roof in front on the left; on the right its wall runs flush from its roof down
-  // to the one below, which stops there: the alley)
+  // (its wall on the left: in at the bottom from the roof in front. Nothing on the right: off its fire escapes that way,
+  // or off its roof, it's straight down the alley)
   s.wall(B1 - 80, Y - B1TOP - 40, 80, B1TOP + 40 - 260);
-  s.wall(B1 + B1W, Y - B1TOP, 60, B1TOP);
   // Across the alley (a long running jump off the first's roof): the roof of a lower building, the second walk-up rising
   // up out of the back of it
   s.ground(LEDGE_X, B2 + B2W + 80, Y - LEDGE_UP, Y - LEDGE_UP, 'roof');
@@ -299,8 +298,7 @@ const buildRoofs = (s: Part) => {
   s.ledge(B2, Y - B2TOP, B2W, 'rooftop');
   s.spawn('pigeon', B2 + 650, Y - 1400); s.spawn('pigeon', B2 + 200, Y - 1700); s.spawn('pigeon', B2 + 700, Y - 2060);
   s.pickup(B2 + 570, Y - 1260 - 30, 'small_ammo');
-  // (its walls: open on the left down low, off the roof in front; the right all the way down to that roof)
-  s.wall(B2 - 80, Y - B2TOP - 300, 80, B2TOP + 300 - 1420);
+  // (its wall on the right, all the way down to that roof; nothing on the left: off it that way's the alley again)
   s.wall(B2 + B2W, Y - B2TOP - 300, 80, B2TOP + 300 - LEDGE_UP);
   s.lamp(B2 + 500, Y - B2TOP - 100, 0.3, 'bulb');
 };
