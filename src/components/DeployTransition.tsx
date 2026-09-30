@@ -77,6 +77,8 @@ const DeployTransition: React.FC<Props> = ({ stageId, currentStages, defeatedSta
       copy.setAttribute('width', String(TW));
       copy.setAttribute('height', String(TH));
       copy.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      // (not the radar sweep going round the target: the fly-in paints its own)
+      copy.querySelectorAll('[data-noraster]').forEach(n => n.remove());
       const img = new Image();
       img.onload = () => {
         const t = document.createElement('canvas'); t.width = TW; t.height = TH;

@@ -1,4 +1,5 @@
 import { WeaponType } from '../types';
+import { mapPoint } from './mapGeo';
 
 /** Boss roster, locations, arena colors and the weapons each boss drops. */
 
@@ -48,7 +49,7 @@ export const BOSS_LOCATIONS: Record<string, BossLocationData> = {
     state: 'ALASKA',
     stateCode: 'AK',
     region: 'ALASKA INSET',
-    coords: { x: 58, y: 236 },
+    coords: mapPoint('ak', -149.9, 61.2),
     coordinatesText: "61°13'N 149°54'W",
     threatBrief: 'SUB-ZERO GLACIAL BLIZZARD ZONE'
   },
@@ -57,7 +58,7 @@ export const BOSS_LOCATIONS: Record<string, BossLocationData> = {
     state: 'HAWAII',
     stateCode: 'HI',
     region: 'PACIFIC ISLANDS',
-    coords: { x: 172, y: 262 },
+    coords: mapPoint('hi', -155.1, 19.7),
     coordinatesText: "19°43'N 155°05'W",
     threatBrief: 'ACTIVE MAGMA CALDERA ANARCHY'
   },
@@ -66,7 +67,7 @@ export const BOSS_LOCATIONS: Record<string, BossLocationData> = {
     state: 'CALIFORNIA',
     stateCode: 'CA',
     region: 'PACIFIC COAST',
-    coords: { x: 50, y: 126 },
+    coords: mapPoint('us', -122.4, 37.8),
     coordinatesText: "37°46'N 122°25'W",
     threatBrief: 'SAN ANDREAS FAULT PULVERIZATION'
   },
@@ -75,7 +76,7 @@ export const BOSS_LOCATIONS: Record<string, BossLocationData> = {
     state: 'FLORIDA',
     stateCode: 'FL',
     region: 'ATLANTIC COAST',
-    coords: { x: 370, y: 252 },
+    coords: mapPoint('us', -80.2, 25.8),
     coordinatesText: "25°46'N 80°11'W",
     threatBrief: 'CAT-5 STORM SURGE & FLOODING'
   },
@@ -84,7 +85,7 @@ export const BOSS_LOCATIONS: Record<string, BossLocationData> = {
     state: 'MICHIGAN',
     stateCode: 'MI',
     region: 'GREAT LAKES',
-    coords: { x: 326, y: 88 },
+    coords: mapPoint('us', -83.7, 43.0),
     coordinatesText: "43°00'N 83°41'W",
     threatBrief: 'BIO-CORROSIVE SEWAGE OVERFLOW'
   },
@@ -93,7 +94,7 @@ export const BOSS_LOCATIONS: Record<string, BossLocationData> = {
     state: 'NEW YORK',
     stateCode: 'NY',
     region: 'MID-ATLANTIC',
-    coords: { x: 396, y: 106 },
+    coords: mapPoint('us', -74.0, 40.7),
     coordinatesText: "40°42'N 74°00'W",
     threatBrief: 'HIGH-VOLTAGE POWER GRID CRISIS'
   },
@@ -102,7 +103,7 @@ export const BOSS_LOCATIONS: Record<string, BossLocationData> = {
     state: 'TEXAS',
     stateCode: 'TX',
     region: 'GULF COAST',
-    coords: { x: 250, y: 218 },
+    coords: mapPoint('us', -95.4, 29.8),
     coordinatesText: "29°45'N 95°22'W",
     threatBrief: 'OIL FIELD INFERNO & BIKER UNREST'
   },
@@ -111,7 +112,7 @@ export const BOSS_LOCATIONS: Record<string, BossLocationData> = {
     state: 'NEW MEXICO',
     stateCode: 'NM',
     region: 'SOUTHWEST DESERT',
-    coords: { x: 146, y: 162 },
+    coords: mapPoint('us', -106.6, 35.1),
     coordinatesText: "35°05'N 106°39'W",
     threatBrief: 'ILLEGAL PHARMACEUTICAL CARTEL'
   }

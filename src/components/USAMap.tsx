@@ -3,6 +3,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Prompt } from './ButtonIcons';
 import { BOSS_LOCATIONS, BossLocationData, StageInfo } from '../content/roster';
 import { GARAGE_MAP } from '../content/garage';
+import { MAP_PATHS, AK_BOX, HI_BOX } from '../content/mapGeo';
 
 /**
  * One line of text at one size for every city: the size the longest of them needs to fit on the one line (so switching
@@ -82,402 +83,166 @@ const USAMap: React.FC<USAMapProps> = ({
         </div>
       </div>
 
-      {/* SVG Map of the United States */}
-      <div className="relative w-full aspect-[440/290] bg-[#03070d] border border-cyan-900/80 overflow-hidden shadow-inner flex items-center justify-center">
-        {/* Radar scan grid background */}
-        <div 
-          className="absolute inset-0 pointer-events-none opacity-20"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, rgba(0, 255, 255, 0.15) 1px, transparent 1px),
-              linear-gradient(to bottom, rgba(0, 255, 255, 0.15) 1px, transparent 1px)
-            `,
-            backgroundSize: '20px 20px'
-          }}
-        />
-
-        <svg viewBox="0 0 440 290" className="w-full h-full select-none">
+      {/* The map: the real outlines, a dotted ocean, lat/long lines, state lines, the insets, the pins */}
+      <div className="relative w-full aspect-[440/290] bg-[#02060c] border border-cyan-900/80 overflow-hidden shadow-inner">
+        <svg viewBox="0 0 440 290" className="w-full h-full select-none" fontFamily="'Press Start 2P', monospace">
           <defs>
-            {/* Radar gradient */}
-            <radialGradient id="radarGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="rgba(6, 182, 212, 0.12)" />
-              <stop offset="100%" stopColor="rgba(3, 7, 13, 0)" />
+            <pattern id="ocean-dots" width="5" height="5" patternUnits="userSpaceOnUse">
+              <circle cx="1" cy="1" r="0.45" fill="#0E7490" />
+            </pattern>
+            <pattern id="land-hatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+              <line x1="0" y1="0" x2="0" y2="4" stroke="#22D3EE" strokeWidth="0.35" opacity="0.18" />
+            </pattern>
+            <linearGradient id="land-fill" x1="0" y1="0" x2="0.4" y2="1">
+              <stop offset="0%" stopColor="#123247" />
+              <stop offset="100%" stopColor="#0A1C2B" />
+            </linearGradient>
+            <radialGradient id="ocean-vignette" cx="50%" cy="45%" r="70%">
+              <stop offset="55%" stopColor="rgba(2,6,12,0)" />
+              <stop offset="100%" stopColor="rgba(0,0,0,0.75)" />
             </radialGradient>
-            
-            {/* Blinking pin gradient */}
-            <radialGradient id="targetGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#FFFF00" />
-              <stop offset="50%" stopColor="#FF0000" />
-              <stop offset="100%" stopColor="rgba(255,0,0,0)" />
-            </radialGradient>
-
-            {/* Filter for glowing target */}
-            <filter id="neonGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="2.5" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
+            <linearGradient id="sweep" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="rgba(250,204,21,0)" />
+              <stop offset="100%" stopColor="rgba(250,204,21,0.35)" />
+            </linearGradient>
+            <filter id="map-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="1.6" result="b" />
+              <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
             </filter>
           </defs>
 
-          {/* Background subtle radar circles */}
-          <circle cx="220" cy="145" r="70" fill="none" stroke="rgba(0, 255, 255, 0.08)" strokeDasharray="3 3" />
-          <circle cx="220" cy="145" r="130" fill="none" stroke="rgba(0, 255, 255, 0.08)" strokeDasharray="4 4" />
-          <line x1="220" y1="10" x2="220" y2="280" stroke="rgba(0, 255, 255, 0.06)" strokeDasharray="2 2" />
-          <line x1="10" y1="145" x2="430" y2="145" stroke="rgba(0, 255, 255, 0.06)" strokeDasharray="2 2" />
-
-          {/* ========================================================= */}
-          {/* MAINLAND UNITED STATES SILHOUETTE                         */}
-          {/* ========================================================= */}
-          <path
-            d="
-              M 42,38 
-              L 54,38 L 96,38 L 148,38 L 210,38 L 244,28 L 258,38 L 274,44 L 296,50 L 316,52 L 324,72 L 340,76 L 360,64 L 380,54 L 396,42 L 416,32 L 432,40 L 426,55 L 416,78 L 422,84 L 410,92 L 412,102 L 398,106 L 394,120 L 388,134 L 396,152 L 382,168 L 368,180 L 358,195 L 360,206 L 368,226 L 372,242 L 372,260 L 362,236 L 352,218 L 335,210 L 312,212 L 298,226 L 270,216 L 254,218 L 235,236 L 236,252 L 218,220 L 195,226 L 168,198 L 130,184 L 82,182 L 74,168 L 62,154 L 44,122 L 36,95 L 42,38 Z
-            "
-            fill="#0f2336"
-            stroke="#00E5FF"
-            strokeWidth="1.75"
-            strokeLinejoin="round"
-            className="transition-colors duration-300"
-          />
-
-          {/* Internal State/Regional Grid Dividers */}
-          <g stroke="rgba(0, 229, 255, 0.2)" strokeWidth="0.8" fill="none" strokeDasharray="2 2">
-            {/* West Coast border */}
-            <path d="M 74,38 L 72,118 L 82,182" />
-            <path d="M 72,90 L 102,90 L 102,142" />
-            {/* Mountain / Desert borders */}
-            <path d="M 124,38 L 122,125 L 172,125 L 170,186" />
-            <path d="M 122,125 L 72,125" />
-            {/* Midwest / Texas border */}
-            <path d="M 172,38 L 172,125" />
-            <path d="M 172,148 L 244,148 L 244,218" />
-            {/* Mississippi river division */}
-            <path d="M 284,48 L 280,105 L 294,165 L 298,226" />
-            {/* Northeast corridor */}
-            <path d="M 346,78 L 346,140 L 388,134" />
-            <path d="M 335,210 L 346,140" />
+          {/* Ocean */}
+          <rect width="440" height="290" fill="#02060c" />
+          <rect width="440" height="290" fill="url(#ocean-dots)" opacity="0.55" />
+          <g stroke="#22D3EE" strokeWidth="0.45" fill="none" opacity="0.13">
+            {MAP_PATHS.graticule.map((d, i) => <path key={i} d={d} strokeDasharray="1.5 2" />)}
           </g>
 
-          {/* Great Lakes Water cutouts */}
-          <g fill="#03070d" stroke="#00E5FF" strokeWidth="0.8" opacity="0.9">
-            {/* Lake Superior */}
-            <ellipse cx="278" cy="46" rx="16" ry="6" />
-            {/* Lake Michigan */}
-            <path d="M 302,56 Q 306,78 308,92 Q 303,92 298,72 Z" />
-            {/* Lake Huron */}
-            <ellipse cx="328" cy="62" rx="8" ry="10" />
-            {/* Lake Erie */}
-            <ellipse cx="348" cy="74" rx="11" ry="5" />
-            {/* Lake Ontario */}
-            <ellipse cx="372" cy="64" rx="9" ry="4" />
+          {/* The lower 48: a glow along the coast, the land, its hatching, the state lines, the lakes */}
+          <path d={MAP_PATHS.lower48} fill="none" stroke="#22D3EE" strokeWidth="4" opacity="0.18" strokeLinejoin="round" />
+          <path d={MAP_PATHS.lower48} fill="url(#land-fill)" />
+          <path d={MAP_PATHS.lower48} fill="url(#land-hatch)" />
+          <g stroke="#67E8F9" strokeWidth="0.5" fill="none" opacity="0.28" strokeDasharray="2 1.4">
+            {MAP_PATHS.borders.map((d, i) => <path key={i} d={d} />)}
+          </g>
+          <path d={MAP_PATHS.lower48} fill="none" stroke="#22D3EE" strokeWidth="1.1" strokeLinejoin="round" />
+          <g fill="#02060c" stroke="#22D3EE" strokeWidth="0.6" strokeLinejoin="round">
+            {MAP_PATHS.lakes.map((d, i) => <path key={i} d={d} />)}
           </g>
 
-          {/* ========================================================= */}
-          {/* ALASKA INSET (AK) - Explicitly required                    */}
-          {/* ========================================================= */}
-          <g>
-            {/* Inset Border Box */}
-            <rect
-              x="10"
-              y="190"
-              width="106"
-              height="90"
-              fill="#06121d"
-              stroke="#00E5FF"
-              strokeWidth="1.2"
-              strokeDasharray="4 2"
-              rx="2"
-            />
-            {/* Box Header */}
-            <rect x="10" y="190" width="106" height="13" fill="rgba(0, 229, 255, 0.2)" />
-            <text
-              x="14"
-              y="200"
-              fill="#00FFFF"
-              fontSize="7"
-              fontFamily="monospace"
-              fontWeight="bold"
-              letterSpacing="1"
-            >
-              INSET 01 // ALASKA (AK)
-            </text>
+          {/* The insets */}
+          {[{ box: AK_BOX, label: 'INSET 01 // AK' }, { box: HI_BOX, label: 'INSET 02 // HI' }].map(({ box, label }) => (
+            <g key={label}>
+              <rect x={box.x} y={box.y} width={box.w} height={box.h} fill="#030b13" stroke="#22D3EE" strokeWidth="0.9" strokeDasharray="4 2" />
+              <rect x={box.x} y={box.y} width={box.w} height={box.h} fill="url(#ocean-dots)" opacity="0.4" />
+              <rect x={box.x} y={box.y} width={box.w} height="11" fill="rgba(34,211,238,0.16)" />
+              <text x={box.x + 3} y={box.y + 7.8} fill="#67E8F9" fontSize="4.6">{label}</text>
+            </g>
+          ))}
+          <path d={MAP_PATHS.alaska} fill="url(#land-fill)" stroke="#22D3EE" strokeWidth="1" strokeLinejoin="round" />
+          <path d={MAP_PATHS.alaska} fill="url(#land-hatch)" />
+          {MAP_PATHS.aleutians.filter(p => p.x > AK_BOX.x + 3 && p.y < AK_BOX.y + AK_BOX.h - 2).map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={1.1 - i * 0.1} fill="#22D3EE" />)}
+          {MAP_PATHS.hawaii.map((d, i) => <path key={i} d={d} fill="url(#land-fill)" stroke="#22D3EE" strokeWidth="0.9" strokeLinejoin="round" />)}
 
-            {/* Alaska Landmass */}
-            <path
-              d="
-                M 18,228 
-                L 26,218 L 38,210 L 64,208 L 84,212 L 96,218 L 98,244 L 92,254 L 84,248 L 74,258 L 68,244 L 56,242 L 50,256 L 42,266 L 36,258 L 44,248 L 34,244 L 24,248 L 22,238 Z
-              "
-              fill="#0f2336"
-              stroke="#00E5FF"
-              strokeWidth="1.4"
-              strokeLinejoin="round"
-            />
-            {/* Aleutian Islands dots */}
-            <circle cx="28" cy="270" r="1.5" fill="#00E5FF" />
-            <circle cx="22" cy="274" r="1.2" fill="#00E5FF" />
-            <circle cx="16" cy="278" r="1" fill="#00E5FF" />
-            {/* Alaska Panhandle */}
-            <path d="M 92,254 L 98,266 L 102,274" stroke="#00E5FF" strokeWidth="1.2" fill="none" />
+          {/* Corner brackets and the compass */}
+          <g stroke="#FACC15" strokeWidth="1.4" fill="none" opacity="0.8">
+            <path d="M3,14 V3 H14" /><path d="M426,3 H437 V14" /><path d="M437,276 V287 H426" /><path d="M14,287 H3 V276" />
           </g>
-
-          {/* ========================================================= */}
-          {/* HAWAII INSET (HI) - Explicitly required                    */}
-          {/* ========================================================= */}
-          <g>
-            {/* Inset Border Box */}
-            <rect
-              x="122"
-              y="226"
-              width="82"
-              height="54"
-              fill="#06121d"
-              stroke="#00E5FF"
-              strokeWidth="1.2"
-              strokeDasharray="4 2"
-              rx="2"
-            />
-            {/* Box Header */}
-            <rect x="122" y="226" width="82" height="13" fill="rgba(0, 229, 255, 0.2)" />
-            <text
-              x="126"
-              y="235"
-              fill="#00FFFF"
-              fontSize="7"
-              fontFamily="monospace"
-              fontWeight="bold"
-              letterSpacing="1"
-            >
-              INSET 02 // HAWAII (HI)
-            </text>
-
-            {/* Hawaiian Island Archipelago */}
-            {/* Kauai */}
-            <ellipse cx="134" cy="248" rx="3.5" ry="2.5" fill="#0f2336" stroke="#00E5FF" strokeWidth="1" />
-            {/* Oahu (Honolulu) */}
-            <ellipse cx="146" cy="252" rx="4" ry="3" fill="#0f2336" stroke="#00E5FF" strokeWidth="1" />
-            {/* Molokai */}
-            <line x1="154" y1="254" x2="160" y2="254" stroke="#00E5FF" strokeWidth="1.8" />
-            {/* Maui */}
-            <ellipse cx="165" cy="256" rx="4" ry="3" fill="#0f2336" stroke="#00E5FF" strokeWidth="1" />
-            {/* Big Island (Hawaii / Hilo) */}
-            <path
-              d="M 172,260 L 178,258 L 184,264 L 182,274 L 174,272 Z"
-              fill="#0f2336"
-              stroke="#00E5FF"
-              strokeWidth="1.2"
-            />
+          <g transform="translate(418 196)" opacity="0.85">
+            <circle r="10" fill="rgba(2,6,12,0.8)" stroke="#22D3EE" strokeWidth="0.6" />
+            <path d="M0,-8 L2.4,0 L0,-1.6 L-2.4,0 Z" fill="#F87171" />
+            <path d="M0,8 L2.4,0 L0,1.6 L-2.4,0 Z" fill="#67E8F9" />
+            <text y="-11.5" fill="#E2E8F0" fontSize="4.5" textAnchor="middle">N</text>
           </g>
+          <g transform="translate(330 284)" fill="#67E8F9" fontSize="3.8">
+            <rect width="40" height="1.6" fill="#22D3EE" /><rect width="10" height="1.6" fill="#02060c" x="10" /><rect width="10" height="1.6" fill="#02060c" x="30" />
+            <text x="44" y="2">500 MI</text>
+          </g>
+          <text x="232" y="286" fill="#155E75" fontSize="3.8">CONUS // {currentStages.length - defeatedStages.filter(id => currentStages.some(s => s.id === id)).length} LIVE CONTACTS</text>
 
-          {/* ========================================================= */}
-          {/* BOSS PINS ON MAP                                          */}
-          {/* ========================================================= */}
+          {/* Radar round the target: rings and a sweep going round */}
+          {activeLocation && (
+            <g className="pointer-events-none" data-noraster="1">
+              {[18, 34, 50].map(r => (
+                <circle key={r} cx={activeLocation.coords.x} cy={activeLocation.coords.y} r={r} fill="none" stroke="#FACC15" strokeWidth="0.5" strokeDasharray="1.5 2.5" opacity={0.5 - r / 140} />
+              ))}
+              <g>
+                <path d={`M${activeLocation.coords.x},${activeLocation.coords.y} L${activeLocation.coords.x + 50},${activeLocation.coords.y} A50,50 0 0,0 ${activeLocation.coords.x + 50 * Math.cos(0.7)},${activeLocation.coords.y - 50 * Math.sin(0.7)} Z`}
+                  fill="url(#sweep)" />
+                <animateTransform attributeName="transform" type="rotate" from={`0 ${activeLocation.coords.x} ${activeLocation.coords.y}`}
+                  to={`-360 ${activeLocation.coords.x} ${activeLocation.coords.y}`} dur="3s" repeatCount="indefinite" />
+              </g>
+            </g>
+          )}
+
+          {/* The bosses: a marker and the town's name for each; the dead ones struck off */}
           {currentStages.map((st) => {
             const loc = BOSS_LOCATIONS[st.id];
             if (!loc) return null;
-            const isSelected = st.id === selectedBossId;
+            const isSelected = st.id === selectedBossId && !garage;
             const isDefeated = defeatedStages.includes(st.id);
-
-            // If not selected, render a subtle ping / pin
-            if (!isSelected) {
-              return (
-                <g 
-                  key={st.id} 
-                  className="cursor-pointer transition-transform hover:scale-125"
-                  onClick={() => onSelectStage?.(st.id)}
-                >
-                  <circle
-                    cx={loc.coords.x}
-                    cy={loc.coords.y}
-                    r={isDefeated ? 3 : 3.5}
-                    fill={isDefeated ? "#4B5563" : "#00E5FF"}
-                    stroke={isDefeated ? "#1F2937" : "#FFFFFF"}
-                    strokeWidth="1"
-                    opacity={isDefeated ? 0.6 : 0.85}
-                  />
-                  {isDefeated ? (
-                    <text
-                      x={loc.coords.x}
-                      y={loc.coords.y + 2.5}
-                      fill="#EF4444"
-                      fontSize="6"
-                      fontWeight="black"
-                      textAnchor="middle"
-                    >
-                      ×
-                    </text>
-                  ) : null}
-                  <text
-                    x={loc.coords.x + 5}
-                    y={loc.coords.y + 3}
-                    fill={isDefeated ? "#6B7280" : "#94A3B8"}
-                    fontSize="6"
-                    fontFamily="monospace"
-                    fontWeight="bold"
-                  >
-                    {loc.stateCode}
-                  </text>
-                </g>
-              );
-            }
-            return null;
+            const { x, y } = loc.coords;
+            const labelLeft = x > 330;
+            return (
+              <g key={st.id} className="cursor-pointer" onClick={() => onSelectStage?.(st.id)}>
+                <rect x={x - 3.2} y={y - 3.2} width="6.4" height="6.4" transform={`rotate(45 ${x} ${y})`}
+                  fill={isDefeated ? '#1F2937' : isSelected ? '#EF4444' : '#FACC15'} stroke={isDefeated ? '#6B7280' : '#FFFFFF'} strokeWidth="0.8" />
+                {isDefeated && <path d={`M${x - 3.5},${y - 3.5} L${x + 3.5},${y + 3.5} M${x + 3.5},${y - 3.5} L${x - 3.5},${y + 3.5}`} stroke="#EF4444" strokeWidth="1.2" />}
+                {!isDefeated && !isSelected && (
+                  <circle cx={x} cy={y} r="4" fill="none" stroke="#FACC15" strokeWidth="0.6">
+                    <animate attributeName="r" values="4;9;4" dur="2.4s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.8;0;0.8" dur="2.4s" repeatCount="indefinite" />
+                  </circle>
+                )}
+                <text x={labelLeft ? x - 6 : x + 6} y={y + 1.8} textAnchor={labelLeft ? 'end' : 'start'} fontSize="4.2"
+                  fill={isDefeated ? '#6B7280' : isSelected ? '#FDE047' : '#CBD5E1'} textDecoration={isDefeated ? 'line-through' : undefined}
+                  stroke="#02060c" strokeWidth="1.4" paintOrder="stroke">
+                  {loc.city}
+                </text>
+              </g>
+            );
           })}
 
-          {/* ========================================================= */}
-          {/* ACTIVE BLINKING TARGET DOT & RETICLE                      */}
-          {/* ========================================================= */}
           {/* The garage, when it's the one picked: a question mark that won't sit still */}
           {garage && (
-            <text x={gq.x} y={gq.y + 6} textAnchor="middle" fontSize={18} fontFamily="monospace" fontWeight="bold"
-              fill="#FACC15" style={{ cursor: 'pointer', transition: 'x 0.25s, y 0.25s' }}
+            <text x={gq.x} y={gq.y + 6} textAnchor="middle" fontSize={16}
+              fill="#FACC15" stroke="#02060c" strokeWidth="1.5" paintOrder="stroke" style={{ cursor: 'pointer', transition: 'x 0.25s, y 0.25s' }}
               onClick={() => onSelectGarage?.()}>?</text>
           )}
-          {activeLocation && (
-            <g className="pointer-events-none">
-              {/* Sonar / Radar Pinging Ring */}
-              <circle
-                cx={activeLocation.coords.x}
-                cy={activeLocation.coords.y}
-                r="14"
-                fill="none"
-                stroke="#FF3333"
-                strokeWidth="2"
-                className="animate-ping"
-                style={{ transformOrigin: `${activeLocation.coords.x}px ${activeLocation.coords.y}px` }}
-              />
 
-              {/* Second outer pulsing ring */}
-              <circle
-                cx={activeLocation.coords.x}
-                cy={activeLocation.coords.y}
-                r="9"
-                fill="none"
-                stroke="#FACC15"
-                strokeWidth="1.5"
-                strokeDasharray="2 2"
-                className="animate-pulse"
-              />
-
-              {/* Crosshair lines */}
-              <line
-                x1={activeLocation.coords.x - 14}
-                y1={activeLocation.coords.y}
-                x2={activeLocation.coords.x - 5}
-                y2={activeLocation.coords.y}
-                stroke="#EF4444"
-                strokeWidth="1.5"
-              />
-              <line
-                x1={activeLocation.coords.x + 5}
-                y1={activeLocation.coords.y}
-                x2={activeLocation.coords.x + 14}
-                y2={activeLocation.coords.y}
-                stroke="#EF4444"
-                strokeWidth="1.5"
-              />
-              <line
-                x1={activeLocation.coords.x}
-                y1={activeLocation.coords.y - 14}
-                x2={activeLocation.coords.x}
-                y2={activeLocation.coords.y - 5}
-                stroke="#EF4444"
-                strokeWidth="1.5"
-              />
-              <line
-                x1={activeLocation.coords.x}
-                y1={activeLocation.coords.y + 5}
-                x2={activeLocation.coords.x}
-                y2={activeLocation.coords.y + 14}
-                stroke="#EF4444"
-                strokeWidth="1.5"
-              />
-
-              {/* Core Blinking Dot */}
-              <circle
-                cx={activeLocation.coords.x}
-                cy={activeLocation.coords.y}
-                r="4.5"
-                fill="#FF0000"
-                stroke="#FFFF00"
-                strokeWidth="1.5"
-                filter="url(#neonGlow)"
-                className="animate-pulse"
-              />
-
-              {/* Callout Tag attached with line */}
-              {activeLocation.coords.x < 300 ? (
-                <g>
-                  <polyline
-                    points={`
-                      ${activeLocation.coords.x + 4},${activeLocation.coords.y - 4} 
-                      ${activeLocation.coords.x + 20},${activeLocation.coords.y - 16} 
-                      ${activeLocation.coords.x + 75},${activeLocation.coords.y - 16}
-                    `}
-                    fill="none"
-                    stroke="#FACC15"
-                    strokeWidth="1.2"
-                  />
-                  <rect
-                    x={activeLocation.coords.x + 20}
-                    y={activeLocation.coords.y - 27}
-                    width="55"
-                    height="10"
-                    fill="rgba(0,0,0,0.85)"
-                    stroke="#FACC15"
-                    strokeWidth="0.8"
-                  />
-                  <text
-                    x={activeLocation.coords.x + 22}
-                    y={activeLocation.coords.y - 19}
-                    fill="#FFFF00"
-                    fontSize="6.5"
-                    fontFamily="monospace"
-                    fontWeight="bold"
-                  >
-                    {garage ? 'SIGNAL ???' : 'TARGET LOCKED'}
-                  </text>
+          {/* The locked target: a reticle closing in and turning, and the tag */}
+          {activeLocation && (() => {
+            const { x, y } = activeLocation.coords;
+            const tagRight = x < 300;
+            const tx = tagRight ? x + 18 : x - 18 - 62;
+            return (
+              <g className="pointer-events-none">
+                <g stroke="#EF4444" strokeWidth="1.3" fill="none" filter="url(#map-glow)">
+                  <path d={`M${x - 11},${y - 6} V${y - 11} H${x - 6} M${x + 6},${y - 11} H${x + 11} V${y - 6} M${x + 11},${y + 6} V${y + 11} H${x + 6} M${x - 6},${y + 11} H${x - 11} V${y + 6}`} />
+                  <animateTransform attributeName="transform" type="rotate" from={`0 ${x} ${y}`} to={`90 ${x} ${y}`} dur="1.6s" repeatCount="indefinite" />
                 </g>
-              ) : (
-                <g>
-                  <polyline
-                    points={`
-                      ${activeLocation.coords.x - 4},${activeLocation.coords.y - 4} 
-                      ${activeLocation.coords.x - 20},${activeLocation.coords.y - 16} 
-                      ${activeLocation.coords.x - 75},${activeLocation.coords.y - 16}
-                    `}
-                    fill="none"
-                    stroke="#FACC15"
-                    strokeWidth="1.2"
-                  />
-                  <rect
-                    x={activeLocation.coords.x - 75}
-                    y={activeLocation.coords.y - 27}
-                    width="55"
-                    height="10"
-                    fill="rgba(0,0,0,0.85)"
-                    stroke="#FACC15"
-                    strokeWidth="0.8"
-                  />
-                  <text
-                    x={activeLocation.coords.x - 73}
-                    y={activeLocation.coords.y - 19}
-                    fill="#FFFF00"
-                    fontSize="6.5"
-                    fontFamily="monospace"
-                    fontWeight="bold"
-                  >
-                    {garage ? 'SIGNAL ???' : 'TARGET LOCKED'}
-                  </text>
-                </g>
-              )}
-            </g>
-          )}
+                <line x1={x - 16} y1={y} x2={x - 7} y2={y} stroke="#EF4444" strokeWidth="0.7" />
+                <line x1={x + 7} y1={y} x2={x + 16} y2={y} stroke="#EF4444" strokeWidth="0.7" />
+                <line x1={x} y1={y - 16} x2={x} y2={y - 7} stroke="#EF4444" strokeWidth="0.7" />
+                <line x1={x} y1={y + 7} x2={x} y2={y + 16} stroke="#EF4444" strokeWidth="0.7" />
+                <circle cx={x} cy={y} r="3.2" fill="#FF1F1F" stroke="#FDE047" strokeWidth="1" filter="url(#map-glow)">
+                  <animate attributeName="opacity" values="1;0.35;1" dur="0.8s" repeatCount="indefinite" />
+                </circle>
+                <polyline points={`${x + (tagRight ? 4 : -4)},${y - 4} ${x + (tagRight ? 14 : -14)},${y - 16} ${tx + (tagRight ? 0 : 62)},${y - 16}`} fill="none" stroke="#FACC15" strokeWidth="0.9" />
+                <rect x={tx} y={y - 24} width="62" height="10" fill="rgba(0,0,0,0.9)" stroke="#FACC15" strokeWidth="0.8" />
+                <rect x={tx} y={y - 24} width="3" height="10" fill="#FACC15" />
+                <text x={tx + 6} y={y - 17} fill="#FDE047" fontSize="4.6">{garage ? 'SIGNAL ???' : isCurrentDefeated ? 'ELIMINATED' : 'TARGET LOCKED'}</text>
+              </g>
+            );
+          })()}
+
+          <rect width="440" height="290" fill="url(#ocean-vignette)" pointerEvents="none" />
         </svg>
 
-        {/* Scanline CRT overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent pointer-events-none animate-pulse" />
+        {/* CRT scanlines, and a slow bright band rolling down them */}
+        <div className="absolute inset-0 pointer-events-none opacity-30" style={{ backgroundImage: 'repeating-linear-gradient(to bottom, rgba(0,0,0,0.55) 0px, rgba(0,0,0,0.55) 1px, transparent 1px, transparent 3px)' }} />
+        <div className="absolute inset-x-0 h-1/4 pointer-events-none bg-gradient-to-b from-transparent via-cyan-400/10 to-transparent animate-[mapscan_5s_linear_infinite]" />
+        <style>{'@keyframes mapscan { from { top: -25%; } to { top: 100%; } }'}</style>
       </div>
 
       {/* ========================================================= */}
