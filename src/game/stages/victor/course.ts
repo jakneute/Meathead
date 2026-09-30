@@ -69,7 +69,7 @@ export interface Course {
 const MAIN_X0 = -30000;
 const IN_X0 = -52000;
 /** Where the lava river starts, inside (local x: it runs up to the shaft at 3000). */
-const RIVER_X0 = 3000 - 7730;
+const RIVER_X0 = 3000 - 4020;
 const LOUNGE_X1 = BOSS_DOOR_X - 1500;
 /** Club Caldera's floor and atrium, in their own coordinates. */
 const CLUB_X0 = -150000;
@@ -157,22 +157,16 @@ const build = () => {
     for (const [sx, period, phase] of spouts) n.spout(sx, period, phase);
   };
   n.ground(R, R + 420);
-  // Slow and steady first: the rafts come to you, one fish, one spout
-  stretch(R + 420, R + 2070, 130, 1.3, [R + 1300], [[R + 900, 200, 20]]);
-  n.ground(R + 2070, R + 2250, Y - 20);
-  n.spawn('heatsuit', R + 2190, Y - 20);
-  // Quicker: two fish, two spouts
-  stretch(R + 2250, R + 3950, 120, 1.7, [R + 2700, R + 3450], [[R + 2950, 180, 90], [R + 3650, 170, 30]]);
-  n.ground(R + 3950, R + 4150, Y - 20);
-  n.spawn('blastshield', R + 4090, Y - 20);
-  n.pickup(R + 3990, Y - 50, 'small_health');
-  // Quicker still, smaller rafts, vultures over it (knocked off a raft, it's a long way to anywhere)
-  stretch(R + 4150, R + 5900, 110, 2.0, [R + 4600, R + 5300], [[R + 4850, 160, 40], [R + 5550, 160, 120]]);
-  n.spawn('vulture', R + 4700, Y - 300); n.spawn('vulture', R + 5400, Y - 340);
-  n.ground(R + 5900, R + 6080, Y - 20);
-  n.pickup(R + 6000, Y - 50, 'large_health');
-  // The last: fast, the spouts timed close, fish in it
-  stretch(R + 6080, R + 7730, 110, 2.3, [R + 6500, R + 7050, R + 7450], [[R + 6400, 150, 0], [R + 6850, 150, 50], [R + 7300, 150, 100]]);
+  // Steady first: the rafts come to you, a fish, two spouts
+  stretch(R + 420, R + 2120, 125, 1.5, [R + 1000, R + 1700], [[R + 800, 190, 20], [R + 1450, 180, 90]]);
+  // The island halfway: a checkpoint, a bomb tech, a big health
+  n.ground(R + 2120, R + 2320, Y - 20);
+  n.spawn('blastshield', R + 2260, Y - 20);
+  n.pickup(R + 2170, Y - 50, 'large_health');
+  // Then fast: smaller rafts, the spouts timed close, fish in it, vultures over it (knocked off a raft, it's a long
+  // way to anywhere)
+  stretch(R + 2320, R + 4020, 110, 2.1, [R + 2700, R + 3250, R + 3700], [[R + 2600, 160, 0], [R + 3050, 150, 50], [R + 3500, 150, 100]]);
+  n.spawn('vulture', R + 2900, Y - 300); n.spawn('vulture', R + 3550, Y - 340);
 
   // ============ INSIDE: THE SHAFT ============
   // Up the chimney of the volcano: catwalks back and forth, jets of flame out of the walls, spinning fire bars
@@ -317,7 +311,7 @@ const buildCourse = (): Course => {
     lounge,
     checkpoints: [
       { x: MAIN_X0 + 150, y: Y }, { x: MAIN_X0 + 2700, y: Y - 40 }, { x: MAIN_X0 + 7150, y: Y },
-      { x: IN_X0 + RIVER_X0 + 150, y: Y }, { x: IN_X0 + RIVER_X0 + 3990, y: Y - 20 }, { x: IN_X0 + 3080, y: Y },
+      { x: IN_X0 + RIVER_X0 + 150, y: Y }, { x: IN_X0 + RIVER_X0 + 2170, y: Y - 20 }, { x: IN_X0 + 3080, y: Y },
       { x: CLUB_X0 + 150, y: Y }, { x: CLUB_X0 + 3780, y: Y }, { x: lounge.x1 + 300, y: Y },
     ],
     left: CLUB_X0 - 2000,
