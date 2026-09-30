@@ -29,10 +29,10 @@ const rightStickY = () => {
 
 /**
  * Easter egg: the blacked-out words can be read. Click one, or keep X held down from the map into the file for a
- * couple of seconds (the bars go grey as it comes), and they're uncovered, for the rest of the session.
+ * couple of seconds (the bars go grey as it comes), and they're uncovered. Only in this file, and only while it's up:
+ * moving to another file (or back) blacks them all out again.
  */
 const DECLASSIFY_HOLD_MS = 2000;
-let declassified = false;
 /** X held on the keyboard right now (kept track of all along, so a hold that started on the map counts). */
 let xKeyDown = false;
 if (typeof window !== 'undefined') {
@@ -63,11 +63,12 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
   const d = garage ? { ...GARAGE_DOSSIER, mission: '', reality: '', background: '', intel: '', rules: '', notAlive: '' } : DOSSIERS[bossId];
   const loc = garage ? undefined : BOSS_LOCATIONS[bossId];
   // The blacked-out bits: uncovered by a click on one, or by X held from the map into the file
-  const [revealed, setRevealed] = useState(declassified);
+  const [revealed, setRevealed] = useState(false);
   const [holding, setHolding] = useState(0);
-  const declassify = () => { declassified = true; setRevealed(true); setHolding(0); };
+  const declassify = () => { setRevealed(true); setHolding(0); };
   useEffect(() => {
-    if (declassified) return;
+    // (a different file: blacked out again)
+    setRevealed(false); setHolding(0);
     // (only a hold that's on as the file opens: the X that brought him here, kept down)
     if (!xKeyDown && !padXDown()) return;
     const start = performance.now();
