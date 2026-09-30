@@ -16,7 +16,8 @@ export interface Dossier {
   /** How the intel people think he goes down (a nudge, not a manual). */
   intel: string;
   /** The approved method, as undignified as the budget allows. */
-  disposal: string;
+  /** The office's do's and don'ts for the job (how to beat him is the field intel's). */
+  rules: string;
   /** Why he's to be killed and not arrested: what a trial would drag out. [[Double brackets]] are blacked out. */
   notAlive: string;
   /** The handler's note on how the asset was pointed at him this time. */
@@ -35,7 +36,7 @@ export const DOSSIERS: Record<string, Dossier> = {
     reality: 'The trail up the mountain is a death trap of icicles and crevasses, the tram is under attack by the local wildlife, and the moose has gotten very large and very angry. The glaciers are still melting.',
     background: 'Spent twenty years measuring glaciers while they melted in front of him. Published 400 papers. Nobody read them. So he stopped writing papers and started building a cryo-vault at the bottom of the mountain, and now the whole range is freezing over from the inside. He has personally befriended the moose. He has a laminated trail map with every crevasse on it. He is the only person on Earth who would think this mountain needs to be colder.',
     intel: 'Thin-skinned in every sense. A man made of freezer burn cannot stand open flame. Put some on him and he jumps clean across the room, and he lands hard enough to shake his own ceiling loose.',
-    disposal: 'Thaw him like a supermarket chicken left in the sink. Then shatter whatever is left.',
+    rules: "Keep it off the news: ski season opens in a month. The moose is a protected species. Nobody is to tell the asset that.",
     notAlive: 'Taken alive, he gets a trial, and a trial puts his 400 papers into evidence, including the one tracing the melt back to the Department of the [[Interior\'s]] own drilling leases. Nobody has read his papers. Let\'s keep it that way.',
     handler: 'Asset was told Artie "looked at his protein shake funny." That was sufficient. The quickest way down from the summit is a ski run. The asset does not ski. We have not told him this is a problem, because it is not a problem for him.',
   },
@@ -48,7 +49,7 @@ export const DOSSIERS: Record<string, Dossier> = {
     reality: 'Drilled into an active magma chamber and built a nightclub around the hole. CLUB CALDERA. VIP lounge at the top of the furnace shaft. The doorman is enormous, and the dress code is "not you."',
     background: 'Moved to Hilo to "reconnect with the planet\'s heartbeat." Found it. Put a hole in it. Believes the power company has been hoarding the volcano for profit, which is, technically, not how volcanoes work. Funds the drilling with bottle service. Has been steroid-cycling for eleven years in pursuit of "geological levels of mass." Considers himself Meathead\'s spiritual equal. This is the most offensive thing in his file.',
     intel: 'He\'s all pressure and no release valve. Anything that hot really, really hates water. Not a squirt gun. A wall of it.',
-    disposal: 'Steam him like a dumpling. DO NOT PLUG HIS VENTS WITH ROCKS. PLUG ALL THREE ONCE HE\'S HALF-COOKED AND THE WHOLE MOUNTAIN GOES, WITH BOTH OF YOU IN IT. THE LAST GUY LANDED ON A NEWS CHOPPER.',
+    rules: "DO NOT PLUG HIS VENTS WITH ROCKS. PLUG ALL THREE ONCE HE'S HALF-COOKED AND THE WHOLE MOUNTAIN GOES, WITH BOTH OF YOU IN IT. THE LAST GUY LANDED ON A NEWS CHOPPER.",
     notAlive: 'His drill works. One well powered the whole island, for free, for fourteen months. A trial would ask him to demonstrate it. [[The utilities]] have asked that nobody demonstrate it, and [[the utilities]] have been very generous to [[this office]].',
     handler: 'Asset was informed that Victor "skips leg day" and that the club "won\'t let him in." Asset did not wait for the rest of the briefing. There is a back way in, through the lava. We had assumed that would be a deterrent.',
   },
@@ -61,7 +62,7 @@ export const DOSSIERS: Record<string, Dossier> = {
     reality: 'The quakes are getting worse by the hour. The streets are splitting open, the bricks are coming off the windowsills and the Golden Gate is coming apart one span at a time. Everyone is ready for it. Nobody is enjoying it.',
     background: 'Spent fifty years predicting California\'s next great earthquake and got tired of waiting for it. Figured a controlled disaster beats a surprise disaster. Moved into the old cell house on Alcatraz for the bedrock and the quiet, and schedules every quake around the guided tours so as not to disturb anybody. Mails the city an itemized invoice after every one. Nobody has paid him. This has made him worse.',
     intel: 'Old man, bad circulation, worse hips. A cold snap locks his joints solid, but only when it catches him mid-stride or mid-hop. Standing still, he just shivers and swears.',
-    disposal: 'Knock him on his ass mid-stride. He\'ll break a hip. Do not help him up.',
+    rules: "Alcatraz is a national park. Try not to break it. Try harder than that.",
     notAlive: 'His predictions were right. So were his inspection reports on the federal buildings [[downtown]] certified quake-safe in [[1991]], which he kept copies of and has offered to read aloud at any trial. Every one of them.',
     handler: 'Asset believes he is "helping an old man move rocks." The island is only reachable by water. The asset has no boat. We are confident he will not let that stop him, and we have pre-apologized to the Coast Guard.',
   },
@@ -74,7 +75,7 @@ export const DOSSIERS: Record<string, Dossier> = {
     reality: 'The beach is gone, the motels are airborne and the marina is in the sky. The storm drains backed up in week one. That is not mud flying around up there.',
     background: 'Was fired live on air for forecasting "sunny and 75" during a named storm. Decided the only way to never be wrong again was to make the weather himself. His hurricane has parked over Miami Beach and will not leave. Something at the top of it is watching. We have satellite photos. We have stopped looking at the satellite photos. He genuinely believes a good hard rinse is exactly what this city needs, and gives the forecast every night anyway. It is always his hurricane.',
     intel: 'His storm pulls everything toward him. EVERYTHING. Lawn chairs, stray dogs, anything big, round and heavy you roll his way. He never checks what\'s coming. Think about it.',
-    disposal: 'Let his own storm drag something enormous into his face. Film it. Send it to Channel 7.',
+    rules: "If there's a camera up there, the footage belongs to this office. Channel 7 has already made an offer. So has his mother.",
     notAlive: 'He did not get the forecast wrong. He read the one he was handed. [[NOAA]] changed it an hour before air, at the request of [[the tourism board and two insurers]]. He kept the original. He has asked for a jury.',
     handler: 'Asset was told Hector predicted "a bad forecast for his gains." Asset asked how to get to the top of a hurricane. We said nobody knows. Asset said "up." We don\'t know where he keeps getting the shorts.',
   },
@@ -87,7 +88,7 @@ export const DOSSIERS: Record<string, Dossier> = {
     reality: 'He is not a filtration system. He is a man vomiting in a sewer. The water is worse. The water tower over the East Side is full of it.',
     background: 'Told the city the water was safe, then drank it on live TV to prove it. It was not safe. Something happened to him down there, and now he believes he can drink the town\'s poison and puke it back out purified. He was not the only one it happened to. Everyone the water took over the years went down the drains, and something in the cistern under the East Side is made of them. Tommy calls it "the neighbors." He brings it things.',
     intel: 'He filters water, not crude. A face full of heavy oil clogs his whole system like a hairball in a drain and pops him right up out of the muck, gasping.',
-    disposal: 'Plug him up like a backed-up toilet and flush. DO NOT, UNDER ANY CIRCUMSTANCES, SET AN OILED SUBJECT ON FIRE. WE MEAN IT. THE PAPERWORK ALONE.',
+    rules: "DO NOT, UNDER ANY CIRCUMSTANCES, SET AN OILED SUBJECT ON FIRE. WE MEAN IT. THE PAPERWORK ALONE.",
     notAlive: 'He did not decide the water was safe. He was told to say so, in writing, by the [[governor\'s]] office. He kept the memo. It is down in the sewer with him, and we would prefer it stayed there.',
     handler: 'Four down, four to go. The asset has taken a phone call nobody on this floor authorized, from a number that does not exist, and now believes Tommy is "laughing at his gains." He has not asked for a hazmat suit. He has asked whether the sewer water has "electrolytes."',
   },
@@ -100,7 +101,7 @@ export const DOSSIERS: Record<string, Dossier> = {
     reality: 'Rolling blackouts every night. Eight million people looked up, tripped over things in the dark and started mugging each other. Nobody saw a single star. It\'s New York. There\'s smog.',
     background: 'Grew up in the Bronx without ever seeing the Milky Way and never got over it. Took a job at the power company to get his hands on the big switch, and runs the blackouts from a power room on top of an old walk-up, through a guy on a headset who thinks he\'s very important. Volunteers for whatever the R&D floor of his office building is cooking up, for "perspective." Has, at this point, a startling tolerance. Sincerely thinks he\'s giving the city a gift. The city thinks he\'s a lunatic in a hard hat. Both are right.',
     intel: 'Subject self-medicates heavily and keeps count. He can take three more doses. The fourth sends him clean over the limit. Afterwards he builds a tolerance, so pace yourself.',
-    disposal: 'Push him over the edge. Keep pushing. Stop when he\'s talking to the ceiling.',
+    rules: "Nothing on the R&D floor is to be drunk, eaten, huffed or rubbed on. The asset has been told. The asset nodded.",
     notAlive: 'The blackouts proved the city runs fine on half the power it\'s billed for. And what he\'s on comes from the R&D floor of his building, [[PROJECT BLACKOUT]], which is ours. He is a talker. Especially now.',
     handler: 'Asset believes Barry "stole his headphones." Barry has never met the asset. The man on the radio told him so. We do not know who the man on the radio is, and he keeps calling us "folks."',
   },
@@ -113,7 +114,7 @@ export const DOSSIERS: Record<string, Dossier> = {
     reality: 'The field outside Houston is a swamp of slick and tar. The union is on permanent break. The site security is a biker gang and two Texas Rangers he pays in crude. Somebody is always smoking under the NO SMOKING sign.',
     background: 'Believes friction is the root of all human suffering and that the cure comes by the barrel. Greased the streets, the stairs and the city council. Hired a biker gang as security because they "understand lubrication," and lets them run a bar on site, which is mostly gas lines and beer. Wears a flame-retardant suit "for insurance purposes" and sells it as a lifestyle. Chain-smokes in an oil field on principle. Will try to sell you something mid-fight. Do not buy it. It\'s oil.',
     intel: 'Fire does nothing to him, so save your eyebrows. He\'s a walking puddle of conductive grease: get a current into him and DON\'T LET GO. And that cigarette he keeps lighting is a spark looking for a friend.',
-    disposal: 'Electrocute him until his fillings sing. Leave him face-down in his own product.',
+    rules: "Do not buy anything from him. Not the suit, not the oil, not the seminar. The asset has a history.",
     notAlive: 'Giving oil away is bad enough. But Oscar keeps books: everyone in Washington he\'s paid in crude, by the barrel, since [[1987]]. He calls it his insurance. It is why nobody is coming to arrest him.',
     handler: 'Asset was told Oscar "sells counterfeit creatine." This is actually true. The man on the radio also told the asset the bikers "said something about his mother." They did not. They will not get the chance to.',
   },
@@ -126,7 +127,7 @@ export const DOSSIERS: Record<string, Dossier> = {
     reality: 'It is not love. It is meth, speed and whatever fell off the shelf, out of a cartel warehouse in the desert, on a convoy of semis doing eighty down the interstate. Every one of them is rigged to blow if it gets stopped.',
     background: 'Watched one too many customers turned away at his counter and snapped. Loaded his pharmacy into a box truck and started "delivering care" across the desert, at speed, through storefronts. Now runs a warehouse, a convoy and a pharmacy at the end of Main Street in Deadwood Gulch, a tourist-trap ghost town (est. 1994). Has three hitmen on retainer and a driver named Riggs he has worked with for twelve years and knows nothing about. Microdoses his own inventory to "stay relatable." Is prouder of the DALE\'S DRUGS sign on his truck than of anything else in his life.',
     intel: 'Plants himself and never moves, so anything foul you spray at him pools under his feet and he marinates in it. A puddle of the same in the truck\'s path, early, does very funny things to tires.',
-    disposal: 'Hose him down with something foul and let his own delivery arrive. Sign for it on his behalf.',
+    rules: "Accept no free samples. The asset has already accepted several. Do not sign for anything addressed to Dale.",
     notAlive: 'The cartel answers to Dale. Dale\'s supply answers to someone else: it comes in on military transport, through [[a program that does not exist]]. Dale has worked this out. Dale is not a man who can keep a secret.',
     handler: 'Asset has been told Dale "keeps parking in his spot." Asset does not have a car. Or a spot. Dale saw the asset fall out of the sky and assumed it was the feds. We have no idea what the asset was falling out of.',
   },

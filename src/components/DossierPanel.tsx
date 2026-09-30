@@ -42,7 +42,7 @@ interface DossierPanelProps {
 const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWeapon }) => {
   // (the garage has a file too: what the analysts could make of it, which isn't much)
   const garage = bossId === GARAGE_ID;
-  const d = garage ? { ...GARAGE_DOSSIER, mission: '', reality: '', background: '', intel: '', disposal: '', notAlive: '' } : DOSSIERS[bossId];
+  const d = garage ? { ...GARAGE_DOSSIER, mission: '', reality: '', background: '', intel: '', rules: '', notAlive: '' } : DOSSIERS[bossId];
   const loc = garage ? undefined : BOSS_LOCATIONS[bossId];
   // Too long for the page: our own scroll bar (the browser's is hidden), moved by the mouse wheel, the right stick or dragging it
   const body = useRef<HTMLDivElement>(null);
@@ -192,7 +192,7 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
             {section('WHAT HE THINKS HE\'S DOING', d.mission)}
             {section('WHAT HE\'S ACTUALLY DOING', d.reality)}
             {section('FIELD INTEL', d.intel)}
-            {section('APPROVED DISPOSAL', d.disposal)}
+            {section('RULES OF ENGAGEMENT', d.rules)}
             {section('WHY NOT BRING HIM IN ALIVE', redacted(d.notAlive))}
             <div className="mt-[6px] p-[4px] leading-[10px] bg-[#FEF3C7] border border-[#A16207]/50 rotate-[-0.6deg]" style={{ boxShadow: '1px 1px 0 rgba(0,0,0,0.25)' }}>
               <span className="font-bold">HANDLER'S NOTE RE: ASSET "MEATHEAD": </span>{d.handler}
