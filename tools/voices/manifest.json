@@ -1227,57 +1227,62 @@
  {
   "voice": "barry.announcer",
   "text": "DOUBLE KNOCKOUT!",
-  "from": "game/stages/barry/power.ts:237"
+  "from": "game/stages/barry/power.ts:239"
  },
  {
   "voice": "barry.announcer",
   "text": "MAXIMUM VOLTAGE!",
-  "from": "game/stages/barry/power.ts:235"
+  "from": "game/stages/barry/power.ts:237"
  },
  {
   "voice": "barry.announcer",
   "text": "ROUND TWO!",
-  "from": "game/stages/barry/power.ts:235"
+  "from": "game/stages/barry/power.ts:237"
  },
  {
   "voice": "barry.announcer",
   "text": "SHOCK THERAPY!",
-  "from": "game/stages/barry/power.ts:233"
+  "from": "game/stages/barry/power.ts:235"
  },
  {
   "voice": "barry.announcer",
   "text": "TECHNICIAN DOWN!",
-  "from": "game/stages/barry/power.ts:236"
+  "from": "game/stages/barry/power.ts:238"
  },
  {
   "voice": "barry.minion",
   "text": "...IS IT OVER?",
-  "from": "game/stages/barry/power.ts:234"
+  "from": "game/stages/barry/power.ts:236"
  },
  {
   "voice": "barry.minion",
   "text": "AAAAAAAAAAAAAAAAH!",
-  "from": "game/stages/barry/power.ts:233"
+  "from": "game/stages/barry/power.ts:235"
  },
  {
   "voice": "barry.minion",
   "text": "BARRY GOT ME THIS HEADSET FOR OUR ANNIVERS... FOR MY WORK ANNIVERSARY.",
-  "from": "game/stages/barry/power.ts:199"
+  "from": "game/stages/barry/power.ts:201"
  },
  {
   "voice": "barry.minion",
   "text": "BARRY IS GOING TO HEAR ABOUT THIS. HE HEARS ABOUT EVERYTHING.",
-  "from": "game/stages/barry/power.ts:199"
+  "from": "game/stages/barry/power.ts:201"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "BARRY'S GONNA KILL ME. OR WORSE. I'LL BE ON THE COUCH FOR A MONTH.",
+  "from": "game/stages/barry/power.ts:80"
  },
  {
   "voice": "barry.minion",
   "text": "CAREFUL! THOSE ARE LEASED!",
-  "from": "game/stages/barry/power.ts:199"
+  "from": "game/stages/barry/power.ts:201"
  },
  {
   "voice": "barry.minion",
   "text": "DID YOU JUST... THROW WATER. IN THE POWER ROOM.",
-  "from": "game/stages/barry/power.ts:232"
+  "from": "game/stages/barry/power.ts:234"
  },
  {
   "voice": "barry.minion",
@@ -1287,22 +1292,27 @@
  {
   "voice": "barry.minion",
   "text": "I CAN SEE MY GRANDMA! SHE SAYS I SHOULD HAVE BEEN A DENTIST!",
-  "from": "game/stages/barry/power.ts:235"
+  "from": "game/stages/barry/power.ts:237"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "I'M TEXTING BARRY. HE ALWAYS TEXTS BACK IN A MINUTE. ALWAYS. HE'S VERY PROFESSIONAL.",
+  "from": "game/stages/barry/power.ts:201"
  },
  {
   "voice": "barry.minion",
   "text": "IS THAT ALL YOU'VE GOT? THEY'RE RATED FOR HURRICANES.",
-  "from": "game/stages/barry/power.ts:199"
+  "from": "game/stages/barry/power.ts:201"
  },
  {
   "voice": "barry.minion",
   "text": "IT'S NOT OVER! IT'S NOT OVER!",
-  "from": "game/stages/barry/power.ts:235"
+  "from": "game/stages/barry/power.ts:237"
  },
  {
   "voice": "barry.minion",
   "text": "NO NO NO NO! THAT ONE RAN THE SUBWAY SIGNALS! EVERY TRAIN ON THE A LINE IS JUST... GOING. FOREVER. TO FAR ROCKAWAY.",
-  "from": "game/stages/barry/power.ts:74"
+  "from": "game/stages/barry/power.ts:75"
  },
  {
   "voice": "barry.minion",
@@ -1312,17 +1322,17 @@
  {
   "voice": "barry.minion",
   "text": "TELL BARRY... THE FERN... NEEDS WATERING...",
-  "from": "game/stages/barry/power.ts:236"
+  "from": "game/stages/barry/power.ts:238"
  },
  {
   "voice": "barry.minion",
   "text": "THAT WAS TRAFFIC CONTROL! EVERY LIGHT IN MANHATTAN JUST WENT GREEN! ALL OF THEM! AT ONCE! THE CABS! OH GOD, THE CABS!",
-  "from": "game/stages/barry/power.ts:78"
+  "from": "game/stages/barry/power.ts:79"
  },
  {
   "voice": "barry.minion",
   "text": "THE HOSPITALS! THE STOCK EXCHANGE! THE HOT DOG CARTS! AND THE FAILSAFE THAT KEEPS THIS ROOM FROM EXPLO",
-  "from": "game/stages/barry/power.ts:81"
+  "from": "game/stages/barry/power.ts:83"
  },
  {
   "voice": "barry.minion",
@@ -1332,7 +1342,7 @@
  {
   "voice": "barry.minion",
   "text": "YOU KNOW YOU'RE ON CAMERA, RIGHT? I'M PUTTING THIS ON THE COMPANY NEWSLETTER.",
-  "from": "game/stages/barry/power.ts:199"
+  "from": "game/stages/barry/power.ts:201"
  },
  {
   "voice": "boss.artie",
@@ -3867,7 +3877,7 @@
  {
   "voice": "death",
   "text": "ELECTROCUTED! WATER AND A POWER PLANT: NOT A COMBO",
-  "from": "game/stages/barry/power.ts:290"
+  "from": "game/stages/barry/power.ts:292"
  },
  {
   "voice": "death",
@@ -6682,7 +6692,7 @@
  {
   "voice": "meathead",
   "text": "AAAAAAAAAAAAH!",
-  "from": "game/stages/barry/power.ts:233"
+  "from": "game/stages/barry/power.ts:235"
  },
  {
   "voice": "meathead",
@@ -9042,7 +9052,7 @@
  {
   "voice": "meathead",
   "text": "I CAN TASTE COLORS!",
-  "from": "game/stages/barry/power.ts:235"
+  "from": "game/stages/barry/power.ts:237"
  },
  {
   "voice": "meathead",
@@ -9237,7 +9247,7 @@
  {
   "voice": "meathead",
   "text": "I THINK IT'S OVER.",
-  "from": "game/stages/barry/power.ts:234"
+  "from": "game/stages/barry/power.ts:236"
  },
  {
   "voice": "meathead",
@@ -13197,7 +13207,7 @@
  {
   "voice": "meathead",
   "text": "WORTH IT.",
-  "from": "game/stages/barry/power.ts:237"
+  "from": "game/stages/barry/power.ts:239"
  },
  {
   "voice": "meathead",
@@ -13377,7 +13387,7 @@
  {
   "voice": "meathead",
   "text": "YOU SAID TOUCH NOTHING. I HEARD SMASH EVERYTHING.",
-  "from": "game/stages/barry/power.ts:75"
+  "from": "game/stages/barry/power.ts:76"
  },
  {
   "voice": "meathead",
