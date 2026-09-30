@@ -291,6 +291,11 @@
  },
  {
   "voice": "announcer",
+  "text": "DOUBLE KNOCKOUT!",
+  "from": "game/stages/barry/power.ts:239"
+ },
+ {
+  "voice": "announcer",
   "text": "DOWN FOR THE COUNT!",
   "from": "KILL_CALLOUTS"
  },
@@ -626,6 +631,11 @@
  },
  {
   "voice": "announcer",
+  "text": "MAXIMUM VOLTAGE!",
+  "from": "game/stages/barry/power.ts:237"
+ },
+ {
+  "voice": "announcer",
   "text": "MEATEOR!",
   "from": "KILL_CALLOUTS"
  },
@@ -836,6 +846,11 @@
  },
  {
   "voice": "announcer",
+  "text": "ROUND TWO!",
+  "from": "game/stages/barry/power.ts:237"
+ },
+ {
+  "voice": "announcer",
   "text": "RUG BURN!",
   "from": "SURFACE_CALLOUTS"
  },
@@ -918,6 +933,11 @@
   "voice": "announcer",
   "text": "SHIPWRECKED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SHOCK THERAPY!",
+  "from": "game/stages/barry/power.ts:235"
  },
  {
   "voice": "announcer",
@@ -1096,6 +1116,11 @@
  },
  {
   "voice": "announcer",
+  "text": "TECHNICIAN DOWN!",
+  "from": "game/stages/barry/power.ts:238"
+ },
+ {
+  "voice": "announcer",
   "text": "THE EYE IS CLOSED!",
   "from": "game/stages/hector/eye.ts:330"
  },
@@ -1223,31 +1248,6 @@
   "voice": "announcer",
   "text": "ZAPPED!",
   "from": "KILL_CALLOUTS"
- },
- {
-  "voice": "barry.announcer",
-  "text": "DOUBLE KNOCKOUT!",
-  "from": "game/stages/barry/power.ts:239"
- },
- {
-  "voice": "barry.announcer",
-  "text": "MAXIMUM VOLTAGE!",
-  "from": "game/stages/barry/power.ts:237"
- },
- {
-  "voice": "barry.announcer",
-  "text": "ROUND TWO!",
-  "from": "game/stages/barry/power.ts:237"
- },
- {
-  "voice": "barry.announcer",
-  "text": "SHOCK THERAPY!",
-  "from": "game/stages/barry/power.ts:235"
- },
- {
-  "voice": "barry.announcer",
-  "text": "TECHNICIAN DOWN!",
-  "from": "game/stages/barry/power.ts:238"
  },
  {
   "voice": "barry.minion",

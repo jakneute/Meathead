@@ -77,9 +77,26 @@ const VOICE_CONSTS: Record<string, string> = {
   GUIDE_VOICE: 'guide', TOURIST_VOICE: 'tourist', HIPSTER_VOICE: 'hipster', SKIER_VOICE: 'skier', OLDMAN_VOICE: 'oldman',
   GOON_VOICE: 'dale.goon', GUEST_VOICE: 'guest', DISPATCH_VOICE: 'dispatch',
 };
+/** A stage's script voices (its VOICES table in script.ts): who, to the voice id the game actually plays them in. */
+const stageVoices = new Map<string, Record<string, string>>();
+const scriptVoices = (stage: string): Record<string, string> => {
+  const known = stageVoices.get(stage);
+  if (known) return known;
+  const table: Record<string, string> = {};
+  const f = path.join(ROOT, 'game', 'stages', stage, 'script.ts');
+  if (fs.existsSync(f)) {
+    const body = fs.readFileSync(f, 'utf8').match(/export const VOICES[^=]*=\s*\{([\s\S]*?)\n\};/)?.[1] ?? '';
+    for (const m of body.matchAll(/^\s*(\w+):\s*\{\s*id:\s*'([^']+)'/gm)) table[m[1]] = m[2];
+    for (const m of body.matchAll(/^\s*(\w+):\s*(\w+_VOICE)\b/gm)) if (VOICE_CONSTS[m[2]]) table[m[1]] = VOICE_CONSTS[m[2]];
+  }
+  stageVoices.set(stage, table);
+  return table;
+};
 /** A `who` in a stage's script, to who they are. */
 const whoVoice = (file: string, who: string): string | null => {
   if (who === 'meathead') return 'meathead';
+  const own = file.match(/stages[\\/](\w+)[\\/]/)?.[1];
+  if (own && scriptVoices(own)[who]) return scriptVoices(own)[who];
   const stage = file.match(/stages[\\/](\w+)[\\/]/)?.[1];
   if (!stage) return null;
   if (['dale', 'barry', 'tommy', 'oscar'].includes(stage)) return `${stage}.${who}`;
@@ -174,6 +191,7 @@ for (const file of files) {
       if (['pick', 'pickRandom', 'takeFreshLine', 'pickFreshLine'].includes(n) || /pick/i.test(n)) return e.arguments.flatMap(a => s(a));
       // (taking one off a list: `queue.shift()`)
       if (['shift', 'pop', 'at', 'slice', 'concat', 'filter', 'sort', 'reverse', 'find'].includes(n) && ts.isPropertyAccessExpression(e.expression)) return s(e.expression.expression);
+      unresolved.push(`${where(e)} call: ${e.getText().slice(0, 90)}`);
       return [];
     }
     if (ts.isElementAccessExpression(e)) return s(e.expression);
@@ -241,6 +259,7 @@ for (const file of files) {
       if (!out.length && !found.length) unresolved.push(`${where(e)} name: ${e.text}`);
       return out;
     }
+    unresolved.push(`${where(e)} expr: ${e.getText().slice(0, 90)}`);
     return [];
   };
 
@@ -266,7 +285,7 @@ for (const file of files) {
       let ti = 0, vi = 1;
       if (a.length === 4 && n === 'speak') { ti = 2; vi = 3; }
       const vs = voices(a[vi]);
-      if (!vs.length) continue;
+      if (!vs.length) { unresolved.push(`${where(c)} voice: ${a[vi]?.getText().slice(0, 60)}`); continue; }
       for (const v of vs) for (const t of strings(a[ti])) add(v, t, where(c));
     }
     // The big ones the announcer always calls: announceKill(text)
@@ -308,6 +327,7 @@ for (const file of files) {
         for (const w of strings(who.initializer)) {
           const v = whoVoice(file, w);
           if (v) for (const t of strings(textExpr)) add(v, t, where(n));
+          else unresolved.push(`${where(n)} who: ${w}`);
         }
       } else if (textExpr && voice && ts.isPropertyAssignment(voice)) {
         for (const v of voices(voice.initializer)) for (const t of strings(textExpr)) add(v, t, where(n));
