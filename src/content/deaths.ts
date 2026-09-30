@@ -176,7 +176,7 @@ export const DEATH_LINES: Record<string, string[]> = {
   subject: ['HUGGED TO DEATH', 'FAILED THE TRIAL'],
   scientist: ['FOR SCIENCE', 'PEER REVIEWED'],
   scientist_shot: ['SAMPLE CONTAMINATED', 'SOMETHING IN THE FLASK'],
-  tenant_shot: ['HIT BY A FLYING TOASTER', 'TOASTED'],
+  tenant_shot: ['KILLED BY A NEIGHBOR', 'DEATH FROM ABOVE: HOUSEWARES EDITION'],
   electric: ['ELECTROCUTED', 'GROUNDED'],
 
   // ---- Oscar's oil field

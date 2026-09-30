@@ -1316,7 +1316,7 @@
  },
  {
   "voice": "barry.minion",
-  "text": "OH, LOOK WHO FINALLY MADE IT UP ALL THOSE STAIRS. YOU'RE SWEATY. IT'S GROSS.",
+  "text": "OH, LOOK WHO FINALLY MADE IT UP ALL THOSE FIRE ESCAPES. YOU'RE SWEATY. IT'S GROSS.",
   "from": "game/stages/barry/power.ts:57"
  },
  {
@@ -3681,6 +3681,11 @@
  },
  {
   "voice": "death",
+  "text": "DEATH FROM ABOVE: HOUSEWARES EDITION",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "DELIVERED",
   "from": "content/deaths"
  },
@@ -4147,7 +4152,7 @@
  {
   "voice": "death",
   "text": "HIT BY A FLYING TOASTER",
-  "from": "content/deaths"
+  "from": "game/stages/barry/runtime.ts:408"
  },
  {
   "voice": "death",
@@ -4287,6 +4292,11 @@
  {
   "voice": "death",
   "text": "KILLED BY A LUNCH PAIL",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A NEIGHBOR",
   "from": "content/deaths"
  },
  {
@@ -5591,11 +5601,6 @@
  },
  {
   "voice": "death",
-  "text": "TOASTED",
-  "from": "content/deaths"
- },
- {
-  "voice": "death",
   "text": "TOMMY CAME UP FOR AIR",
   "from": "content/deaths"
  },
@@ -6597,11 +6602,6 @@
  {
   "voice": "meathead",
   "text": "A PIPE WRENCH! TO THE DOME!",
-  "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "A POTTED PLANT! FROM THE FOURTH FLOOR!",
   "from": "HAZARD_HURT"
  },
  {
@@ -8656,11 +8656,6 @@
  },
  {
   "voice": "meathead",
-  "text": "HE THREW A TOASTER OUT THE WINDOW! AT ME!",
-  "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
   "text": "HE THREW HIS BOTTLE! THAT WAS HIS DINNER!",
   "from": "HAZARD_HURT"
  },
@@ -9456,7 +9451,7 @@
  },
  {
   "voice": "meathead",
-  "text": "I'M NOT CLIMBING THAT FIRE ESCAPE AGAIN.",
+  "text": "I'M NOT CLIMBING THOSE FIRE ESCAPES AGAIN. EITHER OF THEM.",
   "from": "BOSS_REBUKES"
  },
  {
@@ -10981,6 +10976,11 @@
  },
  {
   "voice": "meathead",
+  "text": "RENT'S HIGH! THAT'S NO EXCUSE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "RESISTING ARREST? YEAH, I AM!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -12261,6 +12261,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S COMING OUT OF YOUR DEPOSIT, PAL!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S MY MOVE, YOU THIEVING SLAB OF BEEF!",
   "from": "HAZARD_HURT"
  },
@@ -12592,6 +12597,11 @@
  {
   "voice": "meathead",
   "text": "THEY'RE THROWING THE BREAK ROOM AT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY'RE THROWING THEIR STUFF AT ME! OUT THE WINDOW!",
   "from": "HAZARD_HURT"
  },
  {
@@ -13161,12 +13171,12 @@
  },
  {
   "voice": "meathead",
-  "text": "WHO THROWS A SHOE?! HONESTLY!",
+  "text": "WHO THROWS COCONUTS?! SURFERS THROW COCONUTS!",
   "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
-  "text": "WHO THROWS COCONUTS?! SURFERS THROW COCONUTS!",
+  "text": "WHO THROWS THINGS OUT A WINDOW THIS HIGH UP?!",
   "from": "HAZARD_HURT"
  },
  {
