@@ -1,5 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
+import { Prompt } from './ButtonIcons';
 import { BOSS_LOCATIONS, BossLocationData, StageInfo } from '../content/roster';
 import { GARAGE_MAP } from '../content/garage';
 
@@ -522,7 +523,7 @@ const USAMap: React.FC<USAMapProps> = ({
         <div className="mt-1 pt-1 border-t border-gray-900 flex items-center justify-between text-[7.5px] font-mono text-gray-500">
           <span>{activeLocation.region}</span>
           <span className="text-yellow-500/90 font-bold uppercase animate-pulse">
-            {isCurrentDefeated ? 'ALREADY DEAD // PICK ANOTHER' : 'ENTER / (A) / CLICK: LOCK IN'}
+            {isCurrentDefeated ? 'ALREADY DEAD // PICK ANOTHER' : <Prompt pad={['A']} kb={['ENTER']} mouse="left" label="LOCK IN" size={13} />}
           </span>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Prompt } from './ButtonIcons';
 import { GameStatus, WeaponType } from '../types';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, RENDER_SCALE, PRACTICE_RANGE_STAGE } from '../constants';
 import { getWeaponInfo, getWeaponDescription } from '../content/roster';
@@ -80,7 +81,8 @@ const PracticeRange: React.FC<{ weapons: WeaponType[]; onLeave: () => void }> = 
         <p className="mt-2 text-[8px] leading-[14px] text-white/90 uppercase">{getWeaponDescription(weapon)}</p>
         <p className="mt-2 text-[7px] text-cyan-400/90 tracking-wider">THE HIRED HELP: A WANNABE BOXER WHO ANSWERED AN AD, AND A GUY ON BALLOONS. DON'T ASK. THEY GET PAID BY THE HOUR. INFINITE AMMO.</p>
       </div>
-      {/* Everything he's got: the one in hand lit up */}
+      {/* Everything he's got: the one in hand lit up (and how to change it) */}
+      <Prompt pad={['LB', 'RB']} kb={['1-9']} mouse="wheel" label="SWITCH" size={13} className="absolute left-3 bottom-[62px] text-[7px] text-white/80" />
       <div className="absolute left-3 bottom-3 flex gap-1">
         {weapons.map((w, i) => (
           <button key={w} onClick={() => setWeapon(w)}
@@ -92,7 +94,7 @@ const PracticeRange: React.FC<{ weapons: WeaponType[]; onLeave: () => void }> = 
       </div>
       <button onClick={() => onLeave()}
         className="absolute right-3 bottom-3 px-3 py-2 text-[9px] text-black bg-yellow-400 border-2 border-black shadow-[3px_3px_0_#000]">
-        ◀ GARAGE
+        <span className="inline-flex items-center gap-2"><Prompt pad={['START']} kb={['ESC']} size={14} />◀ GARAGE</span>
       </button>
     </div>
   );

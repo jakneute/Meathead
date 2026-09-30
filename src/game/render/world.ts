@@ -211,46 +211,118 @@ const drawCylinderWorld = (ctx: CanvasRenderingContext2D, radius: number, worldP
 
 /** The weapon range: a black void with a red glow and a receding grid floor. */
 /**
- * The practice range, in the garage: the same one-screen range as after a boss, dressed as a boxing ring. The dark
- * of a gym after hours, a light over the ring; the ropes (red, white and blue) strung along the back between the
- * corner posts, the turnbuckle pads; the mat, and the skirt of the apron under it. (The mat's the floor: nothing about
- * it plays any differently.)
+ * The practice range, in the garage: the same one-screen range as after a boss, dressed as a boxing ring, in a gym
+ * that's seen better decades. Water-stained cinderblock with the paint coming off it, one window up high with a pane
+ * out, a tube light over the ring that won't stay on, bleachers with seats gone and a section fallen in, a heavy bag
+ * held together with tape, a condemned notice. The ropes sag, the posts are rusting, the mat's patched with duct
+ * tape, and a bucket in the corner's catching what comes through the roof. (The mat's the floor: nothing about it
+ * plays any differently.)
  */
+const RING_HASH = (n: number) => { const x = Math.sin(n * 127.1) * 43758.5453; return x - Math.floor(x); };
 const drawRing = (ctx: CanvasRenderingContext2D, frame: number) => {
-  const W = CANVAS_WIDTH, mat = GROUND_Y;
-  // The gym, dark, the bleachers in it just shapes
-  ctx.fillStyle = '#0B0B10'; ctx.fillRect(0, 0, W, CANVAS_HEIGHT);
-  ctx.fillStyle = '#15151C';
-  for (let r = 0; r < 4; r++) ctx.fillRect(0, 250 + r * 42, W, 26);
-  ctx.fillStyle = '#1D1D26';
-  for (let r = 0; r < 4; r++) for (let x = (r % 2) * 22; x < W; x += 44) { ctx.beginPath(); ctx.arc(x + 12, 246 + r * 42, 9, Math.PI, 0); ctx.fill(); }
-  // The one light, over the ring
+  const W = CANVAS_WIDTH, mat = GROUND_Y, h = RING_HASH;
+  // Cinderblock, grimy, the paint peeling off it in patches, water stains run down from the roof
+  ctx.fillStyle = '#1A1917'; ctx.fillRect(0, 0, W, CANVAS_HEIGHT);
+  ctx.fillStyle = '#211F1C';
+  for (let y = 0; y < mat; y += 20) for (let x = ((y / 20) % 2) * 22; x < W; x += 44) ctx.fillRect(x + 1, y + 1, 42, 18);
+  ctx.fillStyle = 'rgba(64, 80, 58, 0.35)'; // (old green paint, what's left of it)
+  for (let k = 0; k < 7; k++) { ctx.beginPath(); const px = h(k) * W, py = 60 + h(k + 9) * 150; ctx.ellipse(px, py, 30 + h(k + 3) * 60, 16 + h(k + 5) * 30, 0, 0, Math.PI * 2); ctx.fill(); }
+  ctx.fillStyle = 'rgba(80, 60, 30, 0.28)';
+  for (let k = 0; k < 6; k++) { const sx = 40 + h(k + 20) * (W - 80); ctx.fillRect(sx, 0, 8 + h(k + 21) * 10, 90 + h(k + 22) * 160); }
+  // A window up high: one pane out, the dirty light coming in through it, dust in the light
+  const wx = 560, wy = 40;
+  ctx.fillStyle = '#3F3F46'; ctx.fillRect(wx - 4, wy - 4, 128, 68);
+  for (let i = 0; i < 4; i++) { ctx.fillStyle = i === 2 ? '#0B0B0F' : 'rgba(148, 163, 184, 0.35)'; ctx.fillRect(wx + (i % 2) * 62, wy + Math.floor(i / 2) * 31, 58, 28); }
+  ctx.fillStyle = 'rgba(203, 213, 225, 0.5)'; ctx.beginPath(); ctx.moveTo(wx, wy + 31); ctx.lineTo(wx + 20, wy + 31); ctx.lineTo(wx, wy + 48); ctx.fill();
+  ctx.fillStyle = 'rgba(226, 232, 240, 0.05)'; ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx + 120, wy); ctx.lineTo(wx - 60, mat); ctx.lineTo(wx - 260, mat); ctx.fill();
+  ctx.fillStyle = 'rgba(226, 232, 240, 0.35)';
+  for (let k = 0; k < 14; k++) { const t = (frame * 0.2 + k * 37) % 400; ctx.fillRect(wx - 140 + h(k) * 200 - t * 0.3, wy + 40 + t, 1.5, 1.5); }
+  // The bleachers: rows of benches, seats gone out of them, a section fallen in on the left
+  for (let r = 0; r < 4; r++) {
+    const y = 250 + r * 42;
+    for (let x = 0; x < W; x += 44) {
+      const gone = h(x * 3 + r * 17) < 0.18 || (x < 176 && r >= 2);
+      if (gone) continue;
+      ctx.fillStyle = '#2A2724'; ctx.fillRect(x + 2, y, 40, 8);
+      ctx.fillStyle = '#1F1C1A'; ctx.fillRect(x + 4, y + 8, 4, 18); ctx.fillRect(x + 36, y + 8, 4, 18);
+    }
+  }
+  // (the fallen-in bit: planks down at an angle, a folding chair on its side)
+  ctx.fillStyle = '#2A2724';
+  for (let k = 0; k < 4; k++) { ctx.save(); ctx.translate(30 + k * 38, 340 + (k % 2) * 30); ctx.rotate(0.35 - k * 0.2); ctx.fillRect(-24, -4, 48, 8); ctx.restore(); }
+  ctx.strokeStyle = '#52525B'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(210, 400); ctx.lineTo(236, 392); ctx.lineTo(240, 410); ctx.moveTo(214, 392); ctx.lineTo(230, 414); ctx.stroke();
+  // The heavy bag on its chain, taped up where it split; a poster half off the wall; the notice
+  const bagSway = Math.sin(frame * 0.02) * 0.04;
+  ctx.save(); ctx.translate(96, 0); ctx.rotate(bagSway);
+  ctx.strokeStyle = '#71717A'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 150); ctx.stroke();
+  ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.roundRect(-18, 150, 36, 80, 10); ctx.fill();
+  ctx.fillStyle = '#A1A1AA'; ctx.fillRect(-18, 176, 36, 7); ctx.fillRect(-18, 204, 36, 5);
+  ctx.fillStyle = '#D6D3D1'; ctx.fillRect(-6, 214, 12, 10); ctx.restore();
+  ctx.save(); ctx.translate(330, 110); ctx.rotate(-0.08);
+  ctx.fillStyle = '#A8A29E'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(70, 0); ctx.lineTo(70, 60); ctx.lineTo(40, 96); ctx.lineTo(0, 96); ctx.fill();
+  ctx.fillStyle = '#7F1D1D'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.fillText('FIGHT', 8, 20); ctx.fillText('NIGHT', 8, 32);
+  ctx.fillStyle = '#44403C'; ctx.font = '6px "Press Start 2P"'; ctx.fillText('1987', 8, 48); ctx.restore();
+  ctx.fillStyle = '#FDE68A'; ctx.fillRect(440, 150, 54, 40);
+  ctx.fillStyle = '#B91C1C'; ctx.font = 'bold 6px "Press Start 2P"'; ctx.fillText('CONDEMNED', 441, 164);
+  ctx.fillStyle = '#44403C'; for (let k = 0; k < 3; k++) ctx.fillRect(444, 172 + k * 5, 44 - k * 8, 2);
+  // The light over the ring: a tube fixture, one tube dead, the other flickering
+  const flick = h(Math.floor(frame / 3)) < 0.08 ? 0.25 : h(Math.floor(frame / 40)) < 0.1 ? 0.6 : 1;
   const light = ctx.createRadialGradient(W / 2, 40, 10, W / 2, mat - 40, 520);
-  light.addColorStop(0, `rgba(254, 243, 199, ${0.34 + Math.sin(frame * 0.05) * 0.015})`);
+  light.addColorStop(0, `rgba(236, 252, 203, ${0.28 * flick})`);
   light.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.fillStyle = light; ctx.fillRect(0, 0, W, CANVAS_HEIGHT);
-  ctx.fillStyle = '#27272A'; ctx.fillRect(W / 2 - 70, 0, 140, 16); ctx.fillStyle = '#FEF3C7'; ctx.fillRect(W / 2 - 60, 14, 120, 4);
-  // The corner posts, the turnbuckles, the ropes strung between them along the back
+  ctx.strokeStyle = '#3F3F46'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(W / 2 - 50, 0); ctx.lineTo(W / 2 - 50, 12); ctx.moveTo(W / 2 + 50, 0); ctx.lineTo(W / 2 + 50, 16); ctx.stroke();
+  ctx.save(); ctx.translate(W / 2, 14); ctx.rotate(0.03);
+  ctx.fillStyle = '#27272A'; ctx.fillRect(-70, 0, 140, 8);
+  ctx.fillStyle = '#52525B'; ctx.fillRect(-62, 8, 124, 3);
+  ctx.fillStyle = `rgba(236, 252, 203, ${0.35 + 0.65 * flick})`; ctx.fillRect(-62, 11, 124, 3); ctx.restore();
+  // The drip from the roof into the bucket
+  const bx = W - 70;
+  ctx.fillStyle = '#52525B'; ctx.beginPath(); ctx.moveTo(bx - 14, mat - 26); ctx.lineTo(bx + 14, mat - 26); ctx.lineTo(bx + 11, mat); ctx.lineTo(bx - 11, mat); ctx.fill();
+  ctx.fillStyle = '#3F3F46'; ctx.fillRect(bx - 14, mat - 27, 28, 3);
+  const dt = frame % 70;
+  ctx.fillStyle = 'rgba(147, 197, 253, 0.7)';
+  if (dt < 40) ctx.fillRect(bx - 1, 20 + (mat - 50) * (dt / 40) ** 2, 2, 4);
+  else if (dt < 46) { ctx.beginPath(); ctx.arc(bx, mat - 26, (dt - 40) * 1.5, Math.PI, 0); ctx.fill(); }
+  // The corner posts, rusting, the turnbuckle pads cracked and taped; the ropes, sagging between them
   const posts = [10, W - 10];
-  const ropes = [{ y: mat - 150, c: '#DC2626' }, { y: mat - 105, c: '#F8FAFC' }, { y: mat - 60, c: '#1D4ED8' }];
+  const ropes = [{ y: mat - 150, c: '#B91C1C', sag: 10 }, { y: mat - 105, c: '#D6D3D1', sag: 16 }, { y: mat - 60, c: '#1E40AF', sag: 8 }];
   for (const r of ropes) {
-    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(posts[0], r.y + 4, posts[1] - posts[0], 4);
-    ctx.fillStyle = r.c; ctx.fillRect(posts[0], r.y, posts[1] - posts[0], 5);
+    ctx.lineWidth = 5; ctx.lineCap = 'round';
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.moveTo(posts[0], r.y + 5); ctx.quadraticCurveTo(W / 2, r.y + 5 + r.sag * 2, posts[1], r.y + 5); ctx.stroke();
+    ctx.strokeStyle = r.c; ctx.beginPath(); ctx.moveTo(posts[0], r.y); ctx.quadraticCurveTo(W / 2, r.y + r.sag * 2, posts[1], r.y); ctx.stroke();
+    // (duct tape round it where it's frayed)
+    for (const tx of [0.3, 0.64]) { const x = posts[0] + (posts[1] - posts[0]) * tx, y = r.y + 4 * r.sag * tx * (1 - tx); ctx.fillStyle = '#A1A1AA'; ctx.fillRect(x - 5, y - 4, 10, 8); }
   }
+  ctx.lineCap = 'butt';
   for (const x of posts) {
-    ctx.fillStyle = '#A1A1AA'; ctx.fillRect(x - 6, mat - 180, 12, 180);
-    ctx.fillStyle = '#71717A'; ctx.fillRect(x - 6, mat - 180, 3, 180);
-    for (const r of ropes) { ctx.fillStyle = r.c === '#F8FAFC' ? '#E5E7EB' : r.c; ctx.fillRect(x - 11, r.y - 7, 22, 18); ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(x - 11, r.y + 7, 22, 4); }
+    ctx.fillStyle = '#78716C'; ctx.fillRect(x - 6, mat - 180, 12, 180);
+    ctx.fillStyle = 'rgba(154, 52, 18, 0.6)'; for (let k = 0; k < 6; k++) ctx.fillRect(x - 6 + h(x + k) * 8, mat - 175 + k * 28, 4 + h(k) * 4, 6 + h(x * k) * 10);
+    for (const r of ropes) {
+      ctx.fillStyle = r.c; ctx.fillRect(x - 11, r.y - 7, 22, 18);
+      ctx.strokeStyle = '#0B0B0F'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x - 6, r.y - 5); ctx.lineTo(x - 1, r.y + 3); ctx.lineTo(x + 4, r.y + 9); ctx.stroke();
+      ctx.fillStyle = '#A1A1AA'; ctx.fillRect(x - 11, r.y + 2, 22, 4);
+    }
   }
-  // The mat (the floor), scuffed, the corner logo; the apron skirt under it
-  ctx.fillStyle = '#D6D3D1'; ctx.fillRect(0, mat, W, 14);
-  ctx.fillStyle = '#A8A29E'; ctx.fillRect(0, mat, W, 2);
-  ctx.fillStyle = 'rgba(120, 113, 108, 0.35)'; for (let x = 30; x < W; x += 97) ctx.fillRect(x, mat + 5, 30, 2);
+  // The mat: grey gone yellow, stains, duct-tape crosses over the splits, a tear
+  ctx.fillStyle = '#C8C0A8'; ctx.fillRect(0, mat, W, 14);
+  ctx.fillStyle = '#9C9480'; ctx.fillRect(0, mat, W, 2);
+  ctx.fillStyle = 'rgba(92, 64, 51, 0.4)'; for (let k = 0; k < 5; k++) { ctx.beginPath(); ctx.ellipse(80 + k * 160 + h(k) * 60, mat + 7, 22 + h(k + 1) * 20, 4, 0, 0, Math.PI * 2); ctx.fill(); }
+  ctx.fillStyle = '#A1A1AA'; for (const tx of [210, 470]) { ctx.save(); ctx.translate(tx, mat + 7); ctx.rotate(0.5); ctx.fillRect(-14, -2, 28, 4); ctx.rotate(-1); ctx.fillRect(-14, -2, 28, 4); ctx.restore(); }
+  ctx.fillStyle = '#44403C'; ctx.beginPath(); ctx.moveTo(620, mat + 4); ctx.lineTo(660, mat + 8); ctx.lineTo(624, mat + 11); ctx.fill();
   ctx.fillStyle = 'rgba(153, 27, 27, 0.35)'; ctx.fillRect(W * 0.62, mat + 6, 14, 3); ctx.fillRect(W * 0.3, mat + 8, 6, 2);
-  ctx.fillStyle = '#1E3A8A'; ctx.fillRect(0, mat + 14, W, CANVAS_HEIGHT - mat - 14);
-  ctx.fillStyle = '#172554'; for (let x = 0; x < W; x += 60) ctx.fillRect(x, mat + 14, 3, CANVAS_HEIGHT - mat - 14);
-  ctx.fillStyle = '#FACC15'; ctx.font = 'bold 12px "Press Start 2P"'; ctx.textAlign = 'center';
-  ctx.fillText("MEATHEAD'S GYM", W / 2, mat + 38); ctx.textAlign = 'left';
+  // The apron skirt, faded, stained, its lettering coming off (one letter gone)
+  ctx.fillStyle = '#243152'; ctx.fillRect(0, mat + 14, W, CANVAS_HEIGHT - mat - 14);
+  ctx.fillStyle = '#1B2540'; for (let x = 0; x < W; x += 60) ctx.fillRect(x, mat + 14, 3, CANVAS_HEIGHT - mat - 14);
+  ctx.fillStyle = 'rgba(60, 40, 20, 0.35)'; for (let k = 0; k < 4; k++) ctx.fillRect(h(k + 40) * W, mat + 14, 20 + h(k + 41) * 40, CANVAS_HEIGHT - mat - 14);
+  ctx.font = 'bold 12px "Press Start 2P"'; ctx.textAlign = 'left';
+  const word = "MEATHEAD'S GYM", gone = word.indexOf('Y');
+  let lx = W / 2 - ctx.measureText(word).width / 2;
+  for (let i = 0; i < word.length; i++) {
+    ctx.fillStyle = i === gone ? 'rgba(202, 164, 21, 0.18)' : 'rgba(202, 164, 21, 0.75)';
+    ctx.fillText(word[i], lx, mat + 38 + (i === gone + 1 ? 2 : 0));
+    lx += ctx.measureText(word[i]).width;
+  }
 };
 
 const drawRangeVoid = (ctx: CanvasRenderingContext2D, frame: number) => {

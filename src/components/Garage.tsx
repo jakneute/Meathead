@@ -5,6 +5,7 @@ import { drawGarage, GARAGE_W, GARAGE_H, SLOTS, SOUVENIR_ORDER } from '../game/r
 import { getActiveGamepad, getGamepadMovement, isButtonPressed, GP_BUTTONS } from '../game/platform/gamepad';
 import type { WeaponType } from '../types';
 import PracticeRange from './PracticeRange';
+import { Prompt } from './ButtonIcons';
 
 // Meathead's garage: what he's brought home from the bosses, up on the pegboard, the shelves and the floor. Go through
 // them (the arrows, the stick, the mouse) and read the tags; leave to get back to the map.
@@ -50,6 +51,8 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
       if (practiceRef.current) return;
       const k = e.key.toLowerCase();
       if ((k === 'enter' || k === ' ') && selRef.current === RANGE) { e.preventDefault(); setPractice(true); return; }
+      // (and straight there from anywhere in the garage: the button shown on it)
+      if (k === 'r') { setPractice(true); return; }
       if (k === 'escape' || k === 'backspace') { e.preventDefault(); leaveRef.current(); }
       else if (k === 'arrowright' || k === 'd' || k === 'arrowdown' || k === 's') stepRef.current(1);
       else if (k === 'arrowleft' || k === 'a' || k === 'arrowup' || k === 'w') stepRef.current(-1);
@@ -57,18 +60,20 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
     const onMouse = (e: MouseEvent) => { if (e.button === 2 && !practiceRef.current) leaveRef.current(); };
     window.addEventListener('keydown', onKey);
     window.addEventListener('mousedown', onMouse);
-    let raf = 0, last = 0, prevB = true, prevA = true;
+    let raf = 0, last = 0, prevB = true, prevA = true, prevY = true;
     const poll = () => {
       const gp = getActiveGamepad();
-      if (gp && practiceRef.current) { prevB = true; prevA = true; }
+      if (gp && practiceRef.current) { prevB = true; prevA = true; prevY = true; }
       else if (gp) {
         const now = Date.now(), m = getGamepadMovement(gp, 0.3);
         const d = m.right || m.down ? 1 : m.left || m.up ? -1 : 0;
         if (d && now - last > REPEAT_MS) { last = now; stepRef.current(d); }
         const b = isButtonPressed(gp, GP_BUTTONS.B), a = isButtonPressed(gp, GP_BUTTONS.A);
         if (b && !prevB) leaveRef.current();
+        const y = isButtonPressed(gp, GP_BUTTONS.Y);
         if (a && !prevA && selRef.current === RANGE) setPractice(true);
-        prevB = b; prevA = a;
+        if (y && !prevY) setPractice(true);
+        prevB = b; prevA = a; prevY = y;
       }
       raf = requestAnimationFrame(poll);
     };
@@ -113,12 +118,15 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
       </div>
       <button onClick={() => onLeave()}
         className="absolute left-[10px] bottom-[8px] px-3 py-3 text-[9px] text-black bg-yellow-400 border-2 border-black shadow-[3px_3px_0_#000]">
-        ◀ MAP
+        <span className="inline-flex items-center gap-2"><Prompt pad={['B']} kb={['ESC']} size={14} />◀ MAP</span>
       </button>
       {/* Out back: the practice range */}
       <button onClick={() => setPractice(true)} onMouseEnter={() => setSel(RANGE)}
         className={`absolute right-[10px] top-[26px] px-3 py-2 text-[8px] text-black border-2 shadow-[3px_3px_0_#000] ${sel === RANGE ? 'bg-yellow-400 border-white animate-pulse' : 'bg-red-500 border-black'}`}>
-        PRACTICE RANGE ▶
+        <span className="inline-flex items-center gap-2">
+          <Prompt pad={['Y']} kb={['R']} size={18} />
+          PRACTICE RANGE ▶
+        </span>
       </button>
       {practice && <PracticeRange weapons={weapons} onLeave={() => setPractice(false)} />}
     </div>

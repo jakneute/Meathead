@@ -19,6 +19,7 @@ export interface Controls {
 export type InputDevice = 'keyboard' | 'mouse' | 'gamepad';
 let lastDevice: InputDevice = 'keyboard';
 export const getLastInputDevice = () => lastDevice;
+export const setLastInputDevice = (d: InputDevice) => { lastDevice = d; };
 
 export const NO_CONTROLS: Controls = { left: false, right: false, up: false, down: false, jump: false, special: false, shoot: false };
 

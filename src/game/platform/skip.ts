@@ -5,6 +5,8 @@
 // A cutscene in a stage offers the skip every frame it can be skipped (offerSkip), and takes it (takeSkip) when it's
 // been asked for; the menus ask for it (requestSkip) off Start / Esc, in place of pausing, while one's on offer.
 
+import { inputDevice } from './device';
+
 /** How long a cutscene runs before it can be skipped (frames, and the same in milliseconds). */
 export const SKIP_AFTER = 30;
 export const SKIP_AFTER_MS = 500;
@@ -30,5 +32,13 @@ export const drawSkipPrompt = (ctx: CanvasRenderingContext2D, width: number) => 
   ctx.save();
   ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.font = '8px "Press Start 2P"'; ctx.textAlign = 'right';
   ctx.fillText(SKIP_LABEL, width - 24, 80);
+  // (and the button that does it, on whatever's in use: Start on a controller, Esc on the keyboard)
+  const pad = inputDevice() === 'pad';
+  const label = pad ? 'START' : 'ESC', w = pad ? 34 : 26, x = width - 24 - ctx.measureText(SKIP_LABEL).width - 8 - w, y = 71;
+  ctx.fillStyle = pad ? '#27272A' : '#E4E4E7';
+  ctx.beginPath(); ctx.roundRect(x, y, w, 12, pad ? 6 : 2); ctx.fill();
+  ctx.strokeStyle = pad ? '#0B0B0F' : '#52525B'; ctx.lineWidth = 1; ctx.stroke();
+  ctx.fillStyle = pad ? '#E4E4E7' : '#18181B'; ctx.font = '6px "Press Start 2P"'; ctx.textAlign = 'center';
+  ctx.fillText(label, x + w / 2, y + 9);
   ctx.restore();
 };

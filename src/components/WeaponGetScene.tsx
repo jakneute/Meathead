@@ -1,10 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Prompt } from './ButtonIcons';
 import type { Souvenir } from '../content/garage';
 import { GameStatus, WeaponType } from '../types';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, RENDER_SCALE, WEAPON_RANGE_STAGE } from '../constants';
 import { BOSS_WEAPON_MAP, WEAPON_DESCRIPTIONS, getWeaponInfo } from '../content/roster';
 import { createRange, stepRange, newRespawns } from '../game/range';
-import { KeyboardMouseState, readControls, getLastInputDevice } from '../game/platform/input';
+import { KeyboardMouseState, readControls } from '../game/platform/input';
+import { PadButton, KeyCap } from './ButtonIcons';
+import { useInputDevice } from './useInputDevice';
 import { drawWorld } from '../game/render/world';
 import { WeaponArt } from './WeaponIcon';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/platform/gamepad';
@@ -253,11 +256,11 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenir, onDone }) => {
             <p className="mt-2 text-[7px] text-cyan-400/90 tracking-wider">TEST IT ON THE HIRED HELP: A WANNABE BOXER WHO ANSWERED AN AD, AND A GUY ON BALLOONS. DON'T ASK. INFINITE AMMO.</p>
             {souvenir && <p className="mt-2 text-[7px] text-yellow-300 tracking-wider">SOUVENIR FOR THE GARAGE: {souvenir.name}</p>}
             {/* (under all that, on its own: not part of what the weapon is) */}
-            {weapon === 'OIL_ROCKET' && <FlameCallout pad={getLastInputDevice() === 'gamepad'} />}
+            {weapon === 'OIL_ROCKET' && <FlameCallout />}
           </div>
           <button onClick={finish}
             className="absolute right-3 bottom-3 px-3 py-2 text-[9px] text-black bg-yellow-400 border-2 border-black shadow-[3px_3px_0_#000] animate-pulse">
-            CONTINUE ▶
+            <span className="inline-flex items-center gap-2"><Prompt pad={['START']} kb={['ESC']} size={14} />CONTINUE ▶</span>
           </button>
         </>
       )}
@@ -478,37 +481,19 @@ export const FaceOffMeathead: React.FC<{ t: number; windup: number; punching: bo
 export default WeaponGetScene;
 
 /**
- * The one place a button's shown: the oil rocket launcher's test, where the flamethrower's on a button of its own
- * (the controller's Y, or F on the keyboard: whichever he's been using), drawn as the button itself.
+ * A button shown: the oil rocket launcher's test, where the flamethrower's on a button of its own (the controller's
+ * Y, or F on the keyboard: whichever's being used right now, and it changes over as you switch), drawn as the button.
  */
-const FlameCallout = ({ pad }: { pad: boolean }) => (
-  <div className="mt-3 inline-flex items-center gap-3 px-3 py-2"
-    style={{ background: 'rgba(0,0,0,0.6)', border: '2px solid #F97316', boxShadow: '3px 3px 0 #000' }}>
-    <div className="animate-pulse">{pad ? <PadY /> : <KeyF />}</div>
-    <div className="text-[8px] leading-[14px] text-white uppercase">
-      <div className="text-orange-400">FLAMETHROWER, NO SWITCHING</div>
-      <div className="text-white/80">SLICK 'EM WITH OIL. THEN LIGHT 'EM UP.</div>
+const FlameCallout = () => {
+  const pad = useInputDevice() === 'pad';
+  return (
+    <div className="mt-3 inline-flex items-center gap-3 px-3 py-2"
+      style={{ background: 'rgba(0,0,0,0.6)', border: '2px solid #F97316', boxShadow: '3px 3px 0 #000' }}>
+      <div className="animate-pulse">{pad ? <PadButton label="Y" /> : <KeyCap label="F" />}</div>
+      <div className="text-[8px] leading-[14px] text-white uppercase">
+        <div className="text-orange-400">FLAMETHROWER, NO SWITCHING</div>
+        <div className="text-white/80">SLICK 'EM WITH OIL. THEN LIGHT 'EM UP.</div>
+      </div>
     </div>
-  </div>
-);
-
-/** A controller's Y button: a round yellow face button, the letter in it. */
-const PadY = () => (
-  <svg viewBox="0 0 40 40" width={36} height={36}>
-    <circle cx="20" cy="22" r="17" fill="#0B0B0F" />
-    <circle cx="20" cy="20" r="17" fill="#27272A" stroke="#0B0B0F" strokeWidth="2" />
-    <circle cx="20" cy="19" r="14" fill="#3F3F46" />
-    <path d="M12 11 L20 20 L28 11 M20 20 L20 29" stroke="#FACC15" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    <ellipse cx="14" cy="11" rx="5" ry="2.5" fill="rgba(255,255,255,0.18)" />
-  </svg>
-);
-
-/** A keyboard's F key: a keycap, the letter on it. */
-const KeyF = () => (
-  <svg viewBox="0 0 40 40" width={36} height={36}>
-    <rect x="3" y="6" width="34" height="32" rx="5" fill="#52525B" />
-    <rect x="3" y="3" width="34" height="30" rx="5" fill="#E4E4E7" stroke="#52525B" strokeWidth="2" />
-    <rect x="8" y="6" width="24" height="22" rx="3" fill="#F4F4F5" />
-    <path d="M15 11 L15 25 M15 11 L25 11 M15 18 L23 18" stroke="#18181B" strokeWidth="3.5" strokeLinecap="square" fill="none" />
-  </svg>
-);
+  );
+};
