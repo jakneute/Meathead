@@ -14,7 +14,7 @@ import { respawn, getStartX } from './level';
 import { updateSewerNuke } from '../scenes/sewerNuke';
 import { updateEnemyDeaths } from '../enemies/deaths';
 import { updateVolcanoFinale } from '../scenes/volcanoFinale';
-import { calmPlayer, DEFAULT_SHAKE, shakeScreen, BOSS_FALL } from './state';
+import { calmPlayer, DEFAULT_SHAKE, shakeScreen, BOSS_FALL, STAIN_FRAMES } from './state';
 import { playSound } from '../platform/audio';
 import { LEVEL_INTRO_STYLE } from '../../constants';
 import { updateBarfStream, updateFlameSegments } from '../combat/weapons';
@@ -368,6 +368,34 @@ const holdOffForCutscene = (ctx: FrameContext) => {
   }
 };
 
+/** How many slicks can be on the water at once, and how long one lasts (frames). */
+const MAX_STAINS = 24;
+
+/**
+ * Sludge or an oil rocket going into clean water fouls it: a slick spreads out on the surface where it went in, and
+ * fades after a while. (Flint's water can't get any worse.) The sludge sinks where it goes in.
+ */
+const stainWater = (ctx: FrameContext) => {
+  const { state, stageId } = ctx;
+  const waterAt = getStageLayout(stageId)?.waterBodyAt;
+  if (!waterAt) return;
+  for (const p of state.projectiles) {
+    if (p.stainedWater || p.owner !== 'player' || p.health <= 0 || !(p.isSludge || p.isOilRocket)) continue;
+    const x = p.pos.x + p.width / 2, y = p.pos.y + p.height / 2;
+    const body = waterAt(state, x, y);
+    if (!body || body.kind !== 'clean' || y < body.surface) continue;
+    p.stainedWater = true;
+    const stains = (state.waterStains ??= []);
+    // (going in close to one that's still fresh just adds to it)
+    const near = stains.find(s => s.kind === (p.isSludge ? 'sludge' : 'oil') && Math.abs(s.x - x) < 40 && state.frame - s.at < STAIN_FRAMES / 2);
+    if (near) near.at = Math.max(near.at, state.frame - 60);
+    else stains.push({ x, surface: body.surface, x1: body.x1, x2: body.x2, kind: p.isSludge ? 'sludge' : 'oil', at: state.frame });
+    if (stains.length > MAX_STAINS) stains.shift();
+    if (p.isSludge) p.health = 0;
+  }
+  if (state.waterStains?.length) state.waterStains = state.waterStains.filter(s => state.frame - s.at < STAIN_FRAMES);
+};
+
 /** The checkpoint banner: off for now (it was going up at the wrong times; the checkpoints need looking at first). */
 const CHECKPOINT_BANNER = false;
 
@@ -395,6 +423,7 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
   updateBarfStream(state);
   updateTsunami(ctx);
   updateSteamExplosions(ctx);
+  stainWater(ctx);
 
   // Meathead only animates during live gameplay (not intros, boss deaths or victory)
   state.playerAnimFrame++;

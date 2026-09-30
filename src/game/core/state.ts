@@ -44,6 +44,8 @@ export interface GameState {
   cameraRestY: number;
   /** How far through a long stage this attempt has got (respawns start at the last one). Kept across deaths. */
   checkpoint: number;
+  /** Clean water fouled by the sludge barfer or an oil rocket: a slick spreading on the surface, fading after a while. */
+  waterStains?: { x: number; surface: number; x1: number; x2: number; kind: 'sludge' | 'oil'; at: number }[];
   /** The taser just put a current through a stretch of water: where, and when. */
   waterShock?: { x1: number; x2: number; surface: number; bottom: number; at: number };
   /** The last checkpoint the banner went up for (unset until the stage has started: where it starts isn't shown). */
@@ -243,6 +245,9 @@ export const shakeScreen = (s: GameState, frames: number, magnitude: number = DE
   s.screenShakeMagnitude = s.screenShakeTimer > 0 ? Math.max(s.screenShakeMagnitude, magnitude) : magnitude;
   s.screenShakeTimer = Math.max(s.screenShakeTimer, frames);
 };
+
+/** How long a slick fouling clean water lasts (frames). */
+export const STAIN_FRAMES = 660;
 
 export const createGameState = (stageId: string | null, ammo: Record<WeaponType, number>): GameState => ({
   stageId,

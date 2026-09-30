@@ -428,6 +428,8 @@ export interface Projectile extends Entity {
   /** Just for show (Tommy's puke stream, say: where it lands is what hurts): never hits him, and gone when it lands. */
   visualOnly?: boolean;
   isOilRocket?: boolean;
+  /** It's already fouled the water it went into (once is enough). */
+  stainedWater?: boolean;
   /** Fired from a crouch: this rocket ignores steering and flies straight. */
   noSteer?: boolean;
   isOscarRocket?: boolean;

@@ -6,7 +6,7 @@ import {
 } from '../../constants';
 import { drawSkyClouds, DEPLOY_CLOUD_SCROLL_END, SKYFALL_CLOUD_SPEED } from './skyClouds';
 import { STAGE_COLORS } from '../../content/roster';
-import { GameState, BOSS_FALL } from '../core/state';
+import { GameState, BOSS_FALL, STAIN_FRAMES } from '../core/state';
 import { drawCustomBossArena } from './bosses/arenas';
 import { drawBoss, drawBossOverlay } from './bosses';
 import { drawVentTelegraph, drawVent, drawMagma, isMagma } from './bosses/victorVents';
@@ -132,6 +132,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     if (state.sewerNuke) drawSewerNukeInside(wctx, state);
     if (state.volcanoFinale) drawVolcanoFinaleInside(wctx, state);
     layout?.drawFront?.(wctx, state);
+    if (state.waterStains?.length) drawWaterStains(wctx, state);
     // (what he says goes over everything, the stage's buildings and scenery in front included)
     if (status !== GameStatus.LEVEL_INTRO || LEVEL_INTRO_STYLE === 'skyfall' || state.introTimer >= 80) drawPlayerSpeech(wctx, state);
     wctx.restore();
@@ -163,6 +164,49 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     const k = state.introTimer / SKYFALL_CLOUD_FRAMES;
     drawSkyClouds(ctx, CANVAS_WIDTH, CANVAS_HEIGHT, 1 - k * k, DEPLOY_CLOUD_SCROLL_END + state.introTimer * SKYFALL_CLOUD_SPEED);
   }
+};
+
+/**
+ * Fouled water: a slick spreading out on the surface from where the sludge or the rocket went in, with the water
+ * under it clouded (green-brown for the sludge; black with a rainbow sheen for the oil), fading out as it breaks up.
+ */
+const drawWaterStains = (ctx: CanvasRenderingContext2D, state: GameState) => {
+  ctx.save();
+  for (const s of state.waterStains!) {
+    const t = state.frame - s.at;
+    const k = t / STAIN_FRAMES;
+    const r = Math.min(170, 18 + t * 1.2);
+    const a = (t < 20 ? t / 20 : 1) * (k > 0.6 ? 1 - (k - 0.6) / 0.4 : 1);
+    const x1 = Math.max(s.x1, s.x - r), x2 = Math.min(s.x2, s.x + r);
+    if (x2 <= x1) continue;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x1, s.surface - 6, x2 - x1, 200); ctx.clip();
+    // Clouded water under it
+    const g = ctx.createLinearGradient(0, s.surface, 0, s.surface + 150);
+    const deep = s.kind === 'sludge' ? '77, 92, 30' : '12, 10, 16';
+    g.addColorStop(0, `rgba(${deep}, ${0.55 * a})`); g.addColorStop(1, `rgba(${deep}, 0)`);
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.ellipse(s.x, s.surface, r, 150, 0, 0, Math.PI); ctx.fill();
+    // The slick on top
+    ctx.fillStyle = s.kind === 'sludge' ? `rgba(101, 124, 30, ${0.85 * a})` : `rgba(10, 10, 14, ${0.9 * a})`;
+    ctx.beginPath(); ctx.ellipse(s.x, s.surface + 1, r, 5, 0, 0, Math.PI * 2); ctx.fill();
+    if (s.kind === 'oil') {
+      // A rainbow sheen on it
+      const bands = ['#F472B6', '#FACC15', '#22D3EE', '#A78BFA'];
+      ctx.lineWidth = 1;
+      bands.forEach((c, i) => {
+        ctx.strokeStyle = c; ctx.globalAlpha = 0.45 * a;
+        ctx.beginPath(); ctx.ellipse(s.x + Math.sin(state.frame * 0.02 + i) * 6, s.surface + 1, r * (0.3 + i * 0.15), 2.2, 0, 0, Math.PI * 2); ctx.stroke();
+      });
+      ctx.globalAlpha = 1;
+    } else {
+      // Scum and bubbles
+      ctx.fillStyle = `rgba(163, 190, 60, ${0.8 * a})`;
+      for (let i = 0; i < 6; i++) { const bx = s.x + Math.sin(i * 2.3 + s.at) * r * 0.8; ctx.beginPath(); ctx.arc(bx, s.surface + Math.sin(state.frame * 0.1 + i) * 1.2, 1.6 + (i % 3), 0, Math.PI * 2); ctx.fill(); }
+    }
+    ctx.restore();
+  }
+  ctx.restore();
 };
 
 /** How long the water stays lit after the taser's been put through it (frames). */
