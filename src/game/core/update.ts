@@ -7,7 +7,7 @@ import {
   AMMO_PICKUP_PCT, HEALTH_PICKUP_SMALL, HEALTH_PICKUP_LARGE, PLAYER_STUN_DURATION, PARTICLE_PALETTES,
   SPOKEN_TEXT_HOLD, SPOKEN_TEXT_LINGER, CANVAS_HEIGHT,
 } from '../../constants';
-import { BOSS_DIALOGUE } from '../../content/dialogue';
+import { BOSS_DIALOGUE, CHECKPOINT_CALLOUTS } from '../../content/dialogue';
 import { FrameContext } from './context';
 import { Controls } from '../platform/input';
 import { respawn, getStartX } from './level';
@@ -368,6 +368,20 @@ const holdOffForCutscene = (ctx: FrameContext) => {
   }
 };
 
+/**
+ * A new checkpoint reached: the announcer calls it (cutting off whoever was talking, Meathead or himself) and the
+ * banner goes up. Where the stage starts (or restarts) isn't called.
+ */
+const callCheckpoint = (ctx: FrameContext) => {
+  const { state } = ctx;
+  if (state.checkpointCalled === undefined) { state.checkpointCalled = state.checkpoint; return; }
+  if (state.checkpoint <= state.checkpointCalled) return;
+  state.checkpointCalled = state.checkpoint;
+  const text = pickRandom(CHECKPOINT_CALLOUTS);
+  state.checkpointBanner = { text, at: state.frame };
+  ctx.fx.announceKill(text);
+};
+
 const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
   const { state } = ctx;
   const { player } = state;
@@ -376,6 +390,7 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
   // A hand-built stage runs its hazards and set pieces (and can take over the controls for cutscenes)
   const layout = getStageLayout(ctx.stageId);
   if (layout && !state.arenaLocked) controls = layout.update(ctx, controls);
+  callCheckpoint(ctx);
   holdOffForCutscene(ctx);
 
   updateBarfStream(state);

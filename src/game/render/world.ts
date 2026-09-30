@@ -153,6 +153,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   // Screen space: the stage's weather over the level (not inside the boss arenas)
   if (state.camera.x < ARENA_LEFT - CANVAS_WIDTH / 2 && !layout?.drawBackdropFront?.(ctx, state)) drawBackdropFront(ctx, stageId, state.camera.x, state.camera.y, state.frame || 0);
   if (state.victoryString && (status === GameStatus.PLAYING || status === GameStatus.VICTORY)) drawVictoryText(ctx, state.victoryString);
+  if (state.checkpointBanner && state.deathTimer <= 0) drawCheckpointBanner(ctx, state.checkpointBanner, state.frame);
   if (state.sewerNuke) drawSewerNukeFlash(ctx, state);
   else if (state.deathTimer > 0 && state.deathString && state.deathFreeze === undefined) drawDeathMessage(ctx, state.deathString);
   if (state.deathTimer > 0 ? state.deathFrames > SKIP_AFTER : state.dyingSkipAt !== undefined && state.frame - state.dyingSkipAt >= 0 && state.frame - state.dyingSkipAt <= 1) drawSkipPrompt(ctx, CANVAS_WIDTH);
@@ -161,6 +162,51 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     const k = state.introTimer / SKYFALL_CLOUD_FRAMES;
     drawSkyClouds(ctx, CANVAS_WIDTH, CANVAS_HEIGHT, 1 - k * k, DEPLOY_CLOUD_SCROLL_END + state.introTimer * SKYFALL_CLOUD_SPEED);
   }
+};
+
+/** How long the checkpoint banner's up (frames). */
+const BANNER_FRAMES = 120;
+
+/**
+ * The checkpoint banner, screen space: a slanted hazard-striped band slams in across the upper screen with the
+ * announcer's words on it in big type, holds, then slides away.
+ */
+const drawCheckpointBanner = (ctx: CanvasRenderingContext2D, b: { text: string; at: number }, frame: number) => {
+  const t = frame - b.at;
+  if (t < 0 || t > BANNER_FRAMES) return;
+  const inK = Math.min(1, t / 8), outK = Math.max(0, (t - (BANNER_FRAMES - 16)) / 16);
+  const cx = CANVAS_WIDTH / 2, cy = 150;
+  ctx.save();
+  ctx.translate(cx + (1 - inK) * -CANVAS_WIDTH + outK * CANVAS_WIDTH, cy);
+  ctx.rotate(-0.04);
+  // (a punch as it lands)
+  const pop = t < 14 ? 1 + Math.sin((t / 14) * Math.PI) * 0.08 : 1;
+  ctx.scale(pop, pop);
+  // The band: black edges, hazard stripes along them, a dark middle
+  const w = 620, h = 64;
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+  ctx.fillRect(-w / 2, -h / 2, w, h);
+  for (const y of [-h / 2, h / 2 - 8]) {
+    ctx.save();
+    ctx.beginPath(); ctx.rect(-w / 2, y, w, 8); ctx.clip();
+    for (let x = -w / 2 - 16; x < w / 2 + 16; x += 16) {
+      ctx.fillStyle = '#FACC15';
+      ctx.beginPath(); ctx.moveTo(x + ((frame * 2) % 16), y); ctx.lineTo(x + 8 + ((frame * 2) % 16), y); ctx.lineTo(x + ((frame * 2) % 16), y + 8); ctx.lineTo(x - 8 + ((frame * 2) % 16), y + 8); ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  }
+  // The words
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  let size = 26;
+  ctx.font = `${size}px "Press Start 2P", monospace`;
+  while (size > 12 && ctx.measureText(b.text).width > w - 40) { size -= 1; ctx.font = `${size}px "Press Start 2P", monospace`; }
+  ctx.lineWidth = 6; ctx.strokeStyle = '#000000'; ctx.lineJoin = 'round';
+  ctx.strokeText(b.text, 3, 3);
+  ctx.fillStyle = '#7F1D1D'; ctx.fillText(b.text, 3, 3);
+  ctx.strokeText(b.text, 0, 0);
+  ctx.fillStyle = t % 10 < 5 && t < 30 ? '#FFFFFF' : '#FDE047';
+  ctx.fillText(b.text, 0, 0);
+  ctx.restore();
 };
 
 /** The offscreen strip the cylinder pass draws the world into (reused). */
