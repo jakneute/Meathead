@@ -549,7 +549,11 @@ export const explodeOilRocket = (ctx: FrameContext, pos: Vector2, rocketVelX?: n
     const isAirEnemy = e.enemyType === 'flyer' || e.enemyType === 'drone' || e.behavior === 'fly' || e.behavior === 'hover';
 
     if (e.health <= 0) {
-      fx.killWithAnimation(e, 'greased', 'oil_kill', 'greased', { x: pushDir * 12, y: -10 });
+      // (a real body flying, slick and black: it splats into a wall, a ceiling or the floor like any other, and where
+      // it comes down on the floor it lies in its own slick)
+      fx.blowAwayEnemy(e, { x: pushDir * 12, y: -10 }, 'oil_kill', pushDir);
+      fx.spawnKillCallout(e, 'greased');
+      state.player.killSatisfactionTimer = 60;
     } else if (isAirEnemy) {
       // Air enemies: shoved back (light ones further)
       pushEnemy(e, pushDir * 8, -2, 25);

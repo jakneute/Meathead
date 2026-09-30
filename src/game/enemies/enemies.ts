@@ -1219,7 +1219,13 @@ const splatBody = (ctx: FrameContext, e: Enemy): boolean => {
     if (floor) {
       e.pos.y = floor.y - e.height;
       const c = { x: e.pos.x + e.width / 2, y: floor.y - 4 };
-      startEnemyDeath(state, e, 'pancaked');
+      // (a greased one comes down in a slick of its own oil; anything else, a pancake)
+      if (e.isOiled) {
+        startEnemyDeath(state, e, 'greased');
+        const d = state.enemyDeaths[state.enemyDeaths.length - 1];
+        if (d?.kind === 'greased') { d.landed = true; d.floorY = floor.y; d.y = floor.y - d.h; }
+        fx.spawnExplosion(c, '#111111', 18, 0, 12);
+      } else startEnemyDeath(state, e, 'pancaked');
       fx.spawnDeathShower(e.pos, Math.sign(e.vel.x), 2.5);
       fx.spawnExplosion(c, '#8B0000', 18, 0, 12);
       if (!e.splatCalled && (e.vel.y > SPLAT_CALLOUT_SPEED || e.uppercutFlung)) fx.spawnKillCallout(e, 'groundsplat');
