@@ -4,7 +4,7 @@
 import type { StageLayout } from '../index';
 import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH } from '../../../constants';
 import { groundBlocks } from '../../core/terrain';
-import { COURSE } from './course';
+import { COURSE, CAVE_STEP } from './course';
 import { createArtieRuntime, getArtie, updateArtie } from './runtime';
 import { drawArtieBack, drawArtieMid, drawArtieFront, drawArtieHud } from './draw';
 import { updateMoose, hitMoose } from './moose';
@@ -37,6 +37,8 @@ export const artieLayout: StageLayout = {
       // (a fallen trunk's solid: up on it or over it, not through it)
       ? { x: l.x, y: l.y, w: l.w, h: 44, type: 'ground', hidden: true, tag: `log-${i}` }
       : { x: l.x, y: l.y, w: l.w, h: l.crumble ? 18 : 26, type: 'platform', oneWay: true, hidden: !!l.look, tag: l.crumble ? `crumble-${i}` : `rock-${i}` }));
+    // The ice cave's roof: solid, a column of it every step along
+    C.cave.roof.forEach((y, i) => state.blocks.push({ x: C.cave.x1 + i * CAVE_STEP, y: y - 800, w: CAVE_STEP, h: 800, type: 'wall', hidden: true, tag: `cave-roof-${i}` }));
     state.cameraMinX = C.left;
     state.stage = createArtieRuntime(state, skipToBoss);
     const cp = skipToBoss ? 0 : state.checkpoint;
@@ -67,4 +69,6 @@ export const artieLayout: StageLayout = {
   drawMid: (ctx, state) => { if (getArtie(state)) drawArtieMid(ctx, state); },
   drawFront: (ctx, state) => { if (getArtie(state)) drawArtieFront(ctx, state); },
   drawHud: (ctx, state) => { if (getArtie(state)) drawArtieHud(ctx, state); },
+  // (no snow coming down inside the ice cave)
+  drawBackdropFront: (_ctx, state) => { const cx = state.camera.x + 400; return cx > COURSE.cave.x1 + 200 && cx < COURSE.cave.x2 - 200; },
 };

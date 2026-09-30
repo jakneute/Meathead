@@ -3,7 +3,7 @@
 import { drawFlingDeath, FLING_FRAMES } from './flingDraw';
 import type { GameState } from '../../core/state';
 import { getArtie } from './runtime';
-import { COURSE } from './course';
+import { COURSE, CAVE_STEP } from './course';
 import { windBlowing, Hazards, chuteLive, CHUTE_WARN_FRAMES } from './hazards';
 import { drawTramRigging, drawTramBack, drawTramFront, drawTramHud } from './tramDraw';
 import { tramFloorLineAt, CABIN_W } from './tram';
@@ -13,11 +13,93 @@ import { drawSkiMid, drawSkiFront, drawSkiHud } from './skiDraw';
 type Ctx = CanvasRenderingContext2D;
 
 export const drawArtieBack = (ctx: Ctx, state: GameState) => {
+  drawCave(ctx, state);
   // Pylons rise out of the clouds; the stations and the cabin are in front of them
   drawTramRigging(ctx, state);
   drawCloudSea(ctx, state);
   drawTramBack(ctx, state, getArtie(state)!.tram);
   drawPines(ctx, state);
+};
+
+// ---------------------------------------------------------------------------
+// The ice cave
+// ---------------------------------------------------------------------------
+
+/** The underside of the cave's roof at x (straight between its samples). */
+export const caveRoofAt = (x: number) => {
+  const C = COURSE.cave, i = (x - C.x1) / CAVE_STEP, i0 = Math.max(0, Math.min(C.roof.length - 1, Math.floor(i))), i1 = Math.min(C.roof.length - 1, i0 + 1);
+  return C.roof[i0] + (C.roof[i1] - C.roof[i0]) * Math.max(0, Math.min(1, i - i0));
+};
+
+/** Inside the mountain: walls of blue ice (lit from within, crystals glowing in it, the odd thing frozen into it), the
+ * roof low overhead (dark rock and ice, a fringe of little icicles along its underside), a mouth at each end. */
+const drawCave = (ctx: Ctx, state: GameState) => {
+  const C = COURSE.cave, v = viewOf(state);
+  if (C.x2 < v.x - 100 || C.x1 > v.x + v.w + 100) return;
+  const x1 = Math.max(C.x1, v.x - 60), x2 = Math.min(C.x2, v.x + v.w + 60);
+  const top = v.y - 200, bottom = v.y + v.h + 200;
+  // The back wall
+  const g = ctx.createLinearGradient(0, v.y, 0, v.y + v.h);
+  g.addColorStop(0, '#081830'); g.addColorStop(0.55, '#10305A'); g.addColorStop(1, '#1A4A7A');
+  ctx.fillStyle = g; ctx.fillRect(x1, top, x2 - x1, bottom - top);
+  // Streaks down the ice, and crystals growing out of it (glowing)
+  for (let x = Math.floor(x1 / 46) * 46; x < x2; x += 46) {
+    const h = hash(x * 0.13);
+    ctx.fillStyle = `rgba(147, 197, 253, ${0.06 + h * 0.08})`; ctx.fillRect(x + h * 20, caveRoofAt(x) + 10, 2 + h * 3, 200 + h * 160);
+  }
+  for (let x = Math.floor(x1 / 310) * 310 + 120; x < x2; x += 310) {
+    const h = hash(x * 0.71), cy = caveRoofAt(x) + 90 + h * 90;
+    ctx.fillStyle = 'rgba(103, 232, 249, 0.12)'; ctx.beginPath(); ctx.arc(x, cy, 46, 0, Math.PI * 2); ctx.fill();
+    for (let k = 0; k < 4; k++) {
+      const a = -Math.PI / 2 + (k - 1.5) * 0.45, len = 18 + hash(x + k) * 20;
+      ctx.save(); ctx.translate(x, cy + 16); ctx.rotate(a + Math.PI / 2);
+      ctx.fillStyle = k % 2 ? '#67E8F9' : '#A5F3FC'; ctx.beginPath(); ctx.moveTo(-4, 0); ctx.lineTo(0, -len); ctx.lineTo(4, 0); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+  }
+  // (something frozen in the wall, now and then: a fish, a tusk, a ski pole)
+  for (let x = Math.floor(x1 / 900) * 900 + 450; x < x2; x += 900) {
+    const k = Math.floor(hash(x * 0.3) * 3), cy = caveRoofAt(x) + 150;
+    ctx.save(); ctx.globalAlpha = 0.45; ctx.translate(x, cy);
+    if (k === 0) { ctx.fillStyle = '#94A3B8'; ctx.beginPath(); ctx.ellipse(0, 0, 18, 8, 0.2, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.moveTo(16, 2); ctx.lineTo(28, -6); ctx.lineTo(28, 10); ctx.closePath(); ctx.fill(); }
+    else if (k === 1) { ctx.strokeStyle = '#F5F5DC'; ctx.lineWidth = 7; ctx.beginPath(); ctx.arc(0, 0, 30, 0.2, 1.8); ctx.stroke(); }
+    else { ctx.fillStyle = '#DC2626'; ctx.fillRect(-2, -30, 4, 60); ctx.beginPath(); ctx.arc(0, 26, 7, 0, Math.PI * 2); ctx.fill(); }
+    ctx.restore();
+  }
+  // The roof: rock and old ice above its underside (bands in it, lighter down toward the edge), a lighter band along
+  // the edge, a fringe of little icicles
+  const rg = ctx.createLinearGradient(0, caveRoofAt((x1 + x2) / 2) - 260, 0, caveRoofAt((x1 + x2) / 2));
+  rg.addColorStop(0, '#1A2536'); rg.addColorStop(1, '#2E4666');
+  ctx.fillStyle = rg;
+  ctx.beginPath(); ctx.moveTo(x1, top);
+  for (let x = x1; x <= x2; x += 10) ctx.lineTo(x, caveRoofAt(x));
+  ctx.lineTo(x2, top); ctx.closePath(); ctx.fill();
+  ctx.save(); ctx.beginPath(); ctx.moveTo(x1, top); for (let x = x1; x <= x2; x += 10) ctx.lineTo(x, caveRoofAt(x)); ctx.lineTo(x2, top); ctx.closePath(); ctx.clip();
+  for (let b = 0; b < 6; b++) {
+    ctx.strokeStyle = b % 2 ? 'rgba(148, 163, 184, 0.16)' : 'rgba(15, 23, 42, 0.35)'; ctx.lineWidth = 3 + (b % 3) * 2;
+    ctx.beginPath(); for (let x = x1; x <= x2; x += 20) { const y = caveRoofAt(x) - 30 - b * 38 + Math.sin(x * 0.01 + b) * 8; if (x === x1) ctx.moveTo(x, y); else ctx.lineTo(x, y); } ctx.stroke();
+  }
+  for (let x = Math.floor(x1 / 60) * 60; x < x2; x += 60) { ctx.fillStyle = 'rgba(71, 85, 105, 0.5)'; ctx.beginPath(); ctx.ellipse(x + hash(x) * 30, caveRoofAt(x) - 60 - hash(x * 3) * 150, 10 + hash(x * 5) * 14, 6 + hash(x * 7) * 6, 0, 0, Math.PI * 2); ctx.fill(); }
+  ctx.restore();
+  ctx.strokeStyle = '#3B6EA8'; ctx.lineWidth = 4;
+  ctx.beginPath(); for (let x = x1; x <= x2; x += 10) { const y = caveRoofAt(x) - 2; if (x === x1) ctx.moveTo(x, y); else ctx.lineTo(x, y); } ctx.stroke();
+  ctx.fillStyle = 'rgba(191, 219, 254, 0.8)';
+  for (let x = Math.floor(x1 / 17) * 17; x < x2; x += 17) { const y = caveRoofAt(x), l = 5 + hash(x) * 12; ctx.beginPath(); ctx.moveTo(x - 3, y); ctx.lineTo(x + 3, y); ctx.lineTo(x, y + l); ctx.closePath(); ctx.fill(); }
+  // The mouths, each end: the mountain's face going up from the lip of the opening (rock, snow lying on its ledges)
+  for (const [mx, dir] of [[C.x1, -1], [C.x2, 1]] as const) {
+    if (mx < v.x - 200 || mx > v.x + v.w + 200) continue;
+    const ry = caveRoofAt(mx);
+    const face = ctx.createLinearGradient(mx + dir * 90, 0, mx, 0);
+    face.addColorStop(0, '#24344E'); face.addColorStop(1, '#344C70');
+    ctx.fillStyle = face;
+    ctx.beginPath(); ctx.moveTo(mx - dir * 6, ry); ctx.quadraticCurveTo(mx + dir * 10, ry - 60, mx + dir * 30, ry - 110);
+    ctx.lineTo(mx + dir * 50, ry - 170); ctx.lineTo(mx + dir * 90, top); ctx.lineTo(mx - dir * 20, top); ctx.lineTo(mx - dir * 20, ry); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#0F172A'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(mx - dir * 6, ry); ctx.quadraticCurveTo(mx + dir * 10, ry - 60, mx + dir * 30, ry - 110); ctx.lineTo(mx + dir * 50, ry - 170); ctx.lineTo(mx + dir * 90, top); ctx.stroke();
+    // (snow on its ledges, the icicles off the lip of the opening)
+    ctx.fillStyle = '#F1F5F9';
+    for (const [dx, dy, w] of [[8, -60, 26], [32, -112, 30], [52, -172, 34]] as const) { ctx.beginPath(); ctx.ellipse(mx + dir * dx, ry + dy, w / 2, 5, dir * -0.3, Math.PI, 0); ctx.fill(); }
+    ctx.fillStyle = '#BFDBFE'; for (let k = 0; k < 4; k++) { const ix = mx + dir * (k * 6 - 12); ctx.beginPath(); ctx.moveTo(ix - 3, ry); ctx.lineTo(ix + 3, ry); ctx.lineTo(ix, ry + 14 + (k % 2) * 8); ctx.closePath(); ctx.fill(); }
+  }
 };
 
 // ---------------------------------------------------------------------------

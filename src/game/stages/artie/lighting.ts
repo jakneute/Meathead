@@ -9,6 +9,7 @@ import type { Light, SceneLight } from '../../render/lighting';
 import { COURSE } from './course';
 import { CABIN_W, CABIN_H } from './tram';
 import { getArtie } from './runtime';
+import { caveRoofAt } from './draw';
 import { nearView, inArena } from '../lightKit';
 
 const WARM = 'rgba(253, 186, 116, 0.16)';
@@ -23,5 +24,11 @@ export const artieScene = (state: GameState): SceneLight | null => {
   if (rt && nearView(state, rt.tram.x + CABIN_W / 2)) for (const k of [0.25, 0.75]) lights.push({ x: rt.tram.x + CABIN_W * k, y: rt.tram.y - CABIN_H + 30, r: 230, a: 0.85, color: WARM });
   // The ranger cabin's windows at the bottom of the run
   if (nearView(state, COURSE.cabin.x)) lights.push({ x: COURSE.cabin.x + 160, y: COURSE.cabin.y - 90, r: 300, a: 0.85, color: WARM });
+  // In the ice cave: darker, bluer, lit by the crystals in the walls
+  const cx = state.camera.x + 400;
+  if (cx > COURSE.cave.x1 && cx < COURSE.cave.x2) {
+    for (let x = Math.floor((cx - 600) / 310) * 310 + 120; x < cx + 600; x += 310) if (x > COURSE.cave.x1 && x < COURSE.cave.x2) lights.push({ x, y: caveRoofAt(x) + 150, r: 200, a: 0.8, color: 'rgba(103, 232, 249, 0.14)' });
+    return { dark: 0.5, shade: [4, 16, 48], lights };
+  }
   return { dark: 0.36, shade: [10, 18, 52], lights };
 };

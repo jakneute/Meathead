@@ -43,6 +43,9 @@ export interface Course {
   /** The drop under the whole tram ride, full of cloud. */
   gorge: { x1: number; x2: number; y: number };
   moose: { x1: number; x2: number; y: number };
+  /** The ice cave the summit trail runs through (from past the moose's clearing to the ridge where the skier is): its
+   * roof's underside (sampled every CAVE_STEP along it), flush with the tops of the icicle overhangs: no going over them. */
+  cave: { x1: number; x2: number; roof: number[] };
   /** The high woods between the top of the tram and the moose's clearing (the pines through them, and round the clearing). */
   woods: { x1: number; x2: number; pines: Pine[] };
   skier: { x: number; y: number };
@@ -53,6 +56,9 @@ export interface Course {
   left: number;
   startX: number;
 }
+
+/** The ice cave's roof: how high over the ground (flush with the tops of the icicle overhangs), and how finely it's sampled. */
+export const CAVE_H = 266, CAVE_STEP = 20;
 
 /** A cursor walking along the ground, laying runs and dropping features. */
 class Cursor {
@@ -223,6 +229,10 @@ export const buildCourse = (): Course => {
   for (const dx of [-60, -10, 50]) pine(c.x + dx, 200 + (dx & 31));
   const woods = { x1: woodsX1, x2: c.x + 100, pines };
   const cp2 = { x: c.x + 60, y: c.y };
+  // ============ THE ICE CAVE ============
+  // The summit trail runs through the mountain, in a cave of ice: its roof is low, and flush with the tops of the
+  // overhangs, so the icicles have to be got past underneath (and nothing's gone over from above)
+  const caveX1 = c.x + 150;
   // Wind, taught on the flat: it shoves you back
   c.flat(400);
   winds.push({ x1: mooseX1 + 900, x2: mooseX1 + 1180, push: -2.2 });
@@ -243,7 +253,7 @@ export const buildCourse = (): Course => {
   // Then big ones barrelling down a slope at you
   c.slope(500, -150);
   chutes.push({ x: c.x - 10, y: c.y, every: 140, size: 56, speed: 4, from: c.x - 900 });
-  spawn('eagle', c.x - 250, 260);
+  spawn('eagle', c.x - 250, 170);
   c.flat(250);
   spawn('shooter', c.x - 150); // (back from the edge, so he can't shoot you into the crevasse while you wait out a gust, and clear of the chute's mouth, so its snowballs don't flatten him unless you shove him into them)
   // The hardest gap: three crumbling ledges, icicles and gusts
@@ -257,7 +267,7 @@ export const buildCourse = (): Course => {
   c.flat(620);
   pickups.push({ x: c.x - 560, y: c.y - 30, type: 'large_health' });
   spawn('charger', c.x - 240);
-  spawn('eagle', c.x - 130, 230);
+  spawn('eagle', c.x - 130, 170);
   spawn('shielder', c.x - 60);
   // One more stretch before the ridge: big snowballs down a slope into gusts of wind (hold your ground or get bowled),
   // a last crevasse with the wind across it, then the wildlife up top
@@ -273,13 +283,15 @@ export const buildCourse = (): Course => {
   ledges.push({ x: crev5 + 150, y: c.y - 30, w: 75, crumble: false });
   ledges.push({ x: crev5 + 260, y: c.y - 5, w: 70, crumble: true });
   winds.push({ x1: crev5 - 40, x2: crev5 + 380, push: -2, gust: { on: 90, off: 110 } });
-  spawn('eagle', crev5 + 180, 230);
+  spawn('eagle', crev5 + 180, 160);
   c.flat(560);
   spawn('goat', c.x - 360);
   spawn('wolverine', c.x - 220);
   spawn('wolverine', c.x - 160);
   pickups.push({ x: c.x - 480, y: c.y - 30, type: 'small_health' });
-  // The summit ridge, and a skier admiring the view
+  // Out of the cave onto the summit ridge, and a skier admiring the view
+  c.flat(80);
+  const caveX2 = c.x;
   c.flat(280);
   const skier = { x: c.x - 60, y: c.y };
 
@@ -340,6 +352,20 @@ export const buildCourse = (): Course => {
   pickups.push({ x: c.x - 420, y: GROUND_Y - 30, type: 'large_health' });
   pickups.push({ x: c.x - 340, y: GROUND_Y - 30, type: 'large_ammo' });
 
+  const lineAt = (x: number) => {
+    const r = c.runs.find(r => x >= r.x1 && x <= r.x2);
+    if (r) return r.x2 === r.x1 ? r.y1 : r.y1 + ((x - r.x1) / (r.x2 - r.x1)) * (r.y2 - r.y1);
+    const before = [...c.runs].reverse().find(r => r.x2 < x), after = c.runs.find(r => r.x1 > x);
+    if (!before || !after) return c.y;
+    return before.y2 + ((x - before.x2) / (after.x1 - before.x2)) * (after.y1 - before.y2);
+  };
+  const roof: number[] = [];
+  for (let x = caveX1; x <= caveX2; x += CAVE_STEP) roof.push(lineAt(x) - CAVE_H);
+  const cave = { x1: caveX1, x2: caveX2, roof };
+  // Icicles off the roof itself: a pair just inside (the lesson again, under a roof now), and a run of them over the
+  // last crevasse, to get past underneath while the ledges crumble
+  for (const x of [caveX1 + 140, caveX1 + 230, crev5 + 110, crev5 + 200, crev5 + 290]) icicles.push({ x, y: lineAt(x) - CAVE_H });
+
   // Shift everything so the run-out ends at the boss door
   const dx = BOSS_DOOR_X - c.x;
   const sx = (v: number) => v + dx;
@@ -355,6 +381,7 @@ export const buildCourse = (): Course => {
     tram: { x: sx(tramX), y: tramY, toX: sx(topX), toY: topY },
     gorge: { x1: sx(gorge.x1), x2: sx(gorge.x2), y: gorge.y },
     moose: { x1: sx(moose.x1), x2: sx(moose.x2), y: moose.y },
+    cave: { x1: sx(cave.x1), x2: sx(cave.x2), roof: cave.roof },
     woods: { x1: sx(woods.x1), x2: sx(woods.x2), pines: woods.pines.map(p => ({ ...p, x: sx(p.x) })) },
     skier: { x: sx(skier.x), y: skier.y },
     ski: { x1: sx(ski.x1), x2: sx(ski.x2), obstacles: ski.obstacles.map(o => ({ ...o, x: sx(o.x) })) },
