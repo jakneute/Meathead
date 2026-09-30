@@ -800,7 +800,7 @@ export const BOSS_DIALOGUE: {
     'Ernie Earthquake': { 75: 'THAT BRIDGE WAS COMING DOWN ANYWAY. IT WAS IN THE CALENDAR.', 50: 'YOU KIDS AND YOUR JET SKIS!', 25: 'MY HIP! MY HIP\'S GOING BEFORE THE FAULT DOES!', 0: 'STAND BY... FOR AFTERSHOCKS...' },
     'Hector Hurricane': { 75: 'AND NOW, THE FIVE-DAY FORECAST: YOU, DEAD!', 50: 'WINDS ARE PICKING UP! AGAINST YOU!', 25: 'THIS WASN\'T IN THE FORECAST!', 0: '...BACK TO YOU IN THE STUDIO...' },
     'Toxic Tommy': { 75: 'HOLD STILL, I\'M CHECKING YOUR WATER PRESSURE!', 50: 'I DRANK IT ALL FOR THEM! ALL OF IT!', 25: 'I\'M BACKING UP! I\'M BACKING UP!', 0: 'FLUSH ME... DOWN WITH THE NEIGHBORS...' },
-    'Blackout Barry': { 75: 'EASY, MAN. I\'M WAY TOO MELLOW FOR THIS.', 50: 'YOU KNOW WHO R&D TESTS THAT STUFF ON? ME, MAN.', 25: 'I\'M SEEING STARS! NOT THE GOOD KIND!', 0: 'THERE THEY ARE... THE STARS...' },
+    'Blackout Barry': { 75: 'THAT\'S FOR GARY! MY... COWORKER! JUST A COWORKER, MAN!', 50: 'YOU KNOW WHO R&D TESTS THAT STUFF ON? ME, MAN.', 25: 'WE HAD MATCHING TATTOOS, MAN! A WORK THING! IT WAS A WORK THING!', 0: 'GARY... THERE THEY ARE... THE STARS... WE SAID WE\'D SEE THEM TOGETHER...' },
     'Oily Oscar': { 75: 'CAN\'T CATCH ME, PAL! I\'M TOO SLICK!', 50: 'THAT BREAK ROOM WAS UNION-BUILT, YOU ANIMAL!', 25: 'EVERYBODY. BACK. TO WORK. ...ANYBODY?', 0: 'SHORTED OUT... ON COMPANY TIME...' },
     'Drug Trade Dale': { 75: 'YOU\'RE NOT EVEN A FED! WHO ARE YOU?!', 50: 'THREE HITMEN! I PAID FOR THREE HITMEN!', 25: 'OKAY, OKAY! I\'M DIPPING INTO THE INVENTORY!', 0: 'CLOSED... FOR INVENTORY...' }
   },
@@ -810,7 +810,7 @@ export const BOSS_DIALOGUE: {
     'Ernie Earthquake': ['THE GROUND\'S SHAKING? NAH, THAT\'S JUST ME WALKING.', 'Two jet skis, sonny. Two tour groups. And now my front hall\'s caved in. I schedule my quakes AROUND the tour groups!'],
     'Hector Hurricane': ['CATEGORY FIVE? I WARM UP WITH CATEGORY FIVES.', 'You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.'],
     'Toxic Tommy': ['FLINT WATER? PASS ME A GLASS. MORE MINERALS FOR THE GAINS.', 'You put the neighbors down. You knocked over my water tower and surfed it through the block. That took WEEKS to fill!'],
-    'Blackout Barry': ['LIGHTS OUT? GOOD. MY ABS GLOW IN THE DARK.', 'You blew my whole power room, man. With my guy in it. Whole city\'s dark now... look up. See any stars? ...Me neither.'],
+    'Blackout Barry': ['LIGHTS OUT? GOOD. MY ABS GLOW IN THE DARK.', 'You blew my whole power room, man. With Gary in it. My... roommate. Eleven years. One bedroom. We were ROOMMATES, man.'],
     'Oily Oscar': ['BABY OIL\'S FOR POSING. CRUDE OIL\'S FOR YOUR FUNERAL.', 'The union. The rangers. The bikers. My bar. My field\'s on fire, pal! ...It\'s insured. You\'re not.'],
     'Drug Trade Dale': ['TIME TO CUT OUT THE MIDDLEMAN.', 'You blew up my whole fleet! And Riggs! Who\'s gonna feed Sir Reginald now?!'],
     'default': ["I'll break you in half!", "YOU'RE TOAST."]
@@ -1068,7 +1068,7 @@ export const BOSS_WEAPON_REACTIONS: Record<string, Partial<Record<WeaponType, st
     OIL_ROCKET: ["OIL?! IT'S CLOGGING MY PIPES!", "I CAN'T HURL! I'M BACKED UP!", "CRUDE OIL! MY ONLY WEAKNESS! BLARGH!"],
   },
   'Blackout Barry': {
-    GUN: ["B-B-BULLETS? I'M WIRED FOR THIS!", "YOU MISSED THE BREAKER, DUMMY!", "CURRENT'S STILL FLOWING, PAL!"],
+    GUN: ["B-B-BULLETS? I'M WIRED FOR THIS!", "YOU MISSED THE BREAKER, DUMMY!", "THAT'S FOR GARY! MY... EMPLOYEE OF THE MONTH!"],
     SHOTGUN: ["ICE ON THE LINES! OUTAGE! OUTAGE!", "FROZEN TRANSFORMER! NOT COOL!", "BRR-ZZT! THAT'S A SHORT!"],
     FLAMETHROWER: ["ELECTRICAL FIRE! DON'T USE WATER!", "YOU'RE OVERHEATING MY GRID!", "SMELL THAT? THAT'S MY INSULATION!"],
     BOULDER: ["YOU KNOCKED OUT A POWER POLE!", "ROLLING BLACKOUT, GET IT?", "OW! THAT'S MY SUBSTATION!"],

@@ -65,6 +65,7 @@ const TAUNTS = [
   "BARRY IS GOING TO HEAR ABOUT THIS. HE HEARS ABOUT EVERYTHING.",
   "YOU KNOW YOU'RE ON CAMERA, RIGHT? I'M PUTTING THIS ON THE COMPANY NEWSLETTER.",
   "CAREFUL! THOSE ARE LEASED!",
+  "BARRY GOT ME THIS HEADSET FOR OUR ANNIVERS... FOR MY WORK ANNIVERSARY.",
 ];
 
 /** What each one did, and his reaction. */
@@ -232,7 +233,7 @@ export const SURGE: { min: number; zap: number; lines: { who: 'minion' | 'meathe
   { min: 110, zap: 1, lines: [{ who: 'minion', text: 'AAAAAAAAAAAAAAAAH!' }, { who: 'meathead', text: 'AAAAAAAAAAAAH!' }, { who: 'announcer', text: 'SHOCK THERAPY!' }] },
   { min: 80, zap: 0, lines: [{ who: 'minion', text: '...IS IT OVER?' }, { who: 'meathead', text: "I THINK IT'S OVER." }] },
   { min: 130, zap: 2, lines: [{ who: 'announcer', text: 'ROUND TWO!' }, { who: 'minion', text: "IT'S NOT OVER! IT'S NOT OVER!" }, { who: 'meathead', text: 'I CAN TASTE COLORS!' }, { who: 'minion', text: 'I CAN SEE MY GRANDMA! SHE SAYS I SHOULD HAVE BEEN A DENTIST!' }, { who: 'announcer', text: 'MAXIMUM VOLTAGE!' }] },
-  { min: 70, zap: 0, lines: [{ who: 'minion', text: 'TELL BARRY... I QUIT.' }, { who: 'announcer', text: 'TECHNICIAN DOWN!' }], fall: 'minion' },
+  { min: 70, zap: 0, lines: [{ who: 'minion', text: 'TELL BARRY... THE FERN... NEEDS WATERING...' }, { who: 'announcer', text: 'TECHNICIAN DOWN!' }], fall: 'minion' },
   { min: 70, zap: 0, lines: [{ who: 'meathead', text: 'WORTH IT.' }, { who: 'announcer', text: 'DOUBLE KNOCKOUT!' }], fall: 'meathead' },
   { min: 70, zap: 0, lines: [] },
 ];
