@@ -25,6 +25,7 @@ import { INITIAL_PLAYER_HEALTH, MAX_AMMO, POWER_CELLS, createFullAmmo } from './
 import { getStages, getStartingWeapons, sortWeapons, BOSS_WEAPON_MAP, WEAPONS_AFTER_SET_0, ALL_WEAPONS } from './content/roster';
 import { VULGARITIES, BOSS_DIALOGUE, BOSS_REBUKES } from './content/dialogue';
 import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS, menuButtons } from './game/platform/gamepad';
+import WeaponWheel, { wheelIndexAt } from './components/WeaponWheel';
 import { speak, say, isSpeaking, getBossVoice, takeFreshLine, MEATHEAD_MENU_VOICE } from './game/platform/speech';
 import { playLockInSound, playEngageSound } from './game/platform/audio';
 
@@ -115,6 +116,8 @@ const App: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   /** A set piece (a ride) that only allows the one weapon: the others show locked in the pause menu. */
   const [lockedWeapon, setLockedWeapon] = useState<WeaponType | undefined>(undefined);
+  /** The weapon wheel (the right stick): which one it's pointing at, while it's up. */
+  const [wheelAt, setWheelAt] = useState<number | null>(null);
   /** The pause menu's "are you sure" before leaving for the boss select, and which answer's highlighted. */
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [confirmYes, setConfirmYes] = useState(false);
@@ -526,8 +529,8 @@ const App: React.FC = () => {
   };
 
   // (in the garage, it's the garage's own input: the stage select's is off)
-  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor, dossier: showDossier });
-  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor, dossier: showDossier };
+  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor, dossier: showDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon });
+  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor, dossier: showDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -593,6 +596,7 @@ const App: React.FC = () => {
     let frameId = 0;
     let lastMoveAt = 0;
     const prev = { a: false, b: false, x: false, y: false, start: false, lb: false, rb: false };
+    const wheel: { at: number | null } = { at: null };
 
     const poll = () => {
       const gp = getActiveGamepad();
@@ -627,6 +631,20 @@ const App: React.FC = () => {
 
         if (inGame && justPressed('lb')) cycleWeapon(-1);
         if (inGame && justPressed('rb')) cycleWeapon(1);
+        // The weapon wheel, on the right stick (not on a Joy-Con on its own: it hasn't got one; and only where the stick's
+        // mapped where we'd look for it): push it any way and the wheel comes up, pointing at a weapon; let it go and
+        // that's the one
+        const { weaponCount, locked, selectWeaponHotkey } = inputRef.current;
+        if (status === GameStatus.PLAYING && hasRightStick(gp.id) && gp.mapping === 'standard' && weaponCount > 1 && !locked) {
+          const rx = gp.axes[2] ?? 0, ry = gp.axes[3] ?? 0, mag = Math.hypot(rx, ry);
+          if (mag > 0.55) {
+            const i = wheelIndexAt(rx, ry, weaponCount);
+            if (wheel.at !== i) { wheel.at = i; setWheelAt(i); }
+          } else if (mag < 0.3 && wheel.at !== null) {
+            selectWeaponHotkey(wheel.at);
+            wheel.at = null; setWheelAt(null);
+          }
+        } else if (wheel.at !== null) { wheel.at = null; setWheelAt(null); }
         if (justPressed('a') || (justPressed('start') && TIMED_SCREENS.includes(status))) confirmSelection();
         if (justPressed('x') && status === GameStatus.STAGE_SELECT) toggleDossier();
         if (justPressed('x') && status === GameStatus.START && !inputRef.current.introOn) inputRef.current.toggleMusic();
@@ -646,6 +664,7 @@ const App: React.FC = () => {
   return (
     <div className="relative w-screen h-screen flex items-center justify-center bg-black overflow-hidden">
       <div className="relative shrink-0 shadow-2xl border-4 border-gray-800 bg-[#121212] overflow-hidden" style={{ width: 800, height: 600, boxSizing: 'content-box', transform: `scale(${viewScale})` }}>
+        {wheelAt !== null && status === GameStatus.PLAYING && <WeaponWheel weapons={availableWeapons} index={wheelAt} current={currentWeapon} />}
         {HUD_SCREENS.includes(status) && (
           <HUD
             health={health}
