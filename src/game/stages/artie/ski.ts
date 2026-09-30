@@ -12,7 +12,7 @@ import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
 import { shakeScreen } from '../../core/state';
 import { rectsOverlap, boundsOf } from '../../core/utils';
-import { say, MEATHEAD_VOICE, Voice, holdForSpeech } from '../../platform/speech';
+import { say, silenceAll, MEATHEAD_VOICE, Voice, holdForSpeech } from '../../platform/speech';
 import { playSound, playSquelch } from '../../platform/audio';
 import { groundLineAt } from '../../core/terrain';
 import { deathByCause } from '../../core/deathCause';
@@ -397,6 +397,8 @@ const flingOff = (state: GameState, ski: Ski) => {
   ski.fling = true;
   state.player.hidden = true;
   state.deathScene = { t: 0, len: FLING_FRAMES };
+  // (whatever anyone was saying stops)
+  silenceAll();
   playSound('whoosh', 1, -6);
 };
 

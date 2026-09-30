@@ -59,6 +59,8 @@ const STAIR_HEIGHT = 26;       // walking on the ground, he climbs steps up to t
  */
 export const skipDying = (ctx: FrameContext, t: number, message: () => string): boolean => {
   const { state } = ctx;
+  // (as it starts, whoever was talking stops: the scene's its own)
+  if (t <= 2 && state.deathTimer <= 0) silenceAll();
   if (state.deathTimer > 0 || t <= SKIP_AFTER) return false;
   offerSkip();
   state.dyingSkipAt = state.frame;
@@ -79,6 +81,8 @@ export const killPlayer = (ctx: FrameContext, message: string, gore = true) => {
   // (not a word out of him: the death announcer reads out the screen, over whoever was talking)
   // (a stage's own death scene goes first: it's read out when that's over)
   if (!state.deathScene) announceDeath(message);
+  // (and whoever was talking stops: the scene plays out in silence till the announcer reads it out at the end)
+  else silenceAll();
   state.isMeatheadSpeaking = false;
   state.voiceLineCooldown = 0;
   state.hurtVoiceCooldown = 0;
