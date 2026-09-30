@@ -97,7 +97,7 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
         pos: fromMuzzle(16, 6),
         vel: { x: facing * Math.cos(a) * LMG_VELOCITY + player.vel.x, y: Math.sin(a) * LMG_VELOCITY },
         width: 16, height: 6, health: 1, maxHealth: 1,
-        type: 'projectile', damage: LMG_DAMAGE, owner: 'player', fromX: pos.x + width / 2, pierce: 3, hitIds: [],
+        type: 'projectile', damage: LMG_DAMAGE, owner: 'player', fromX: pos.x + width / 2, pierce: 3, hitIds: [], isLmg: true,
       });
       player.shootCooldown = LMG_COOLDOWN;
       // (the muzzle flash, big, and brass going everywhere)

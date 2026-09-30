@@ -26,7 +26,7 @@ import { rectsOverlap, boundsOf } from '../../core/utils';
 import { hurtPlayer } from '../../bosses/shared';
 import { playSound } from '../../platform/audio';
 import { say, isSpeaking, Voice, MEATHEAD_VOICE } from '../../platform/speech';
-import { midBossProjectileDamage, doormanShare } from '../../combat/midBoss';
+import { midBossProjectileDamage, doormanShare, DOORMAN_DOWN_MULT } from '../../combat/midBoss';
 import { KIND_STATS } from '../../enemies/kinds';
 import { COURSE, CP } from './course';
 
@@ -228,8 +228,6 @@ const CLASH_WIN = 170, SCRATCH = 12;
 const HIT_CHARGE = 16, HIT_SLIDE = 14, HIT_UPPERCUT = 20, CLASH_LOSE = 24, SHOVE = 5;
 /** On top, for meeting one of his moves with the wrong one of yours. */
 const WRECK_EXTRA = 8;
-/** Once he's down he's more open (the usual share: doormanShare in combat/midBoss.ts). */
-const BULLET_SCALE_DOWN = 0.4;
 
 export const isAttacking = (m: Enemy) => m.aiState === 'charge' || m.aiState === 'slide' || m.aiState === 'uppercut';
 
@@ -774,7 +772,7 @@ const endClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, won: boolean
 export const hitDoorman = (ctx: FrameContext, m: Enemy, p: Projectile, fight: DoormanFight): boolean => {
   if (fight.phase !== 'fight' || fight.clash || m.aiState === 'launched' || m.aiState === 'spun') return true;
   // (he's built like a vault: a small slice of whatever it is)
-  const dmg = midBossProjectileDamage(p) * (m.aiState === 'tripped' ? BULLET_SCALE_DOWN : doormanShare(p));
+  const dmg = midBossProjectileDamage(p) * doormanShare(p) * (m.aiState === 'tripped' ? DOORMAN_DOWN_MULT : 1);
   if (dmg <= 0) return true;
   m.health -= dmg;
   m.hitFlash = 4;
