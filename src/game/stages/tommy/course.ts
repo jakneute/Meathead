@@ -17,9 +17,10 @@
 //        suit's eaten through. Another locker, and a flooded pit past it, deep:
 //        down it past the baffles, under the wall at the bottom and back up the
 //        far side. Then the cistern, and what's in it.
-//   IV.  Blown up out of the sewer (onto the water tower, and the tower onto a
-//        house), what's left of the house, and the pit past it, all the way
-//        down to Tommy's door.
+//   IV.  Blown up out of the sewer (into the water tower, over onto the next
+//        block, and him surfing the wave down the street), what's left of the
+//        block, the TOMMY'S LAIR sign, and the pit past it, all the way down
+//        to Tommy's door.
 //
 // Each part is built in its own coordinates and shifted into place.
 

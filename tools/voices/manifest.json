@@ -2601,7 +2601,7 @@
  },
  {
   "voice": "boss.tommy",
-  "text": "You put the neighbors down. And you dropped my water tower on a house. Do you know how long it took me to fill that thing?",
+  "text": "You put the neighbors down. You knocked my water tower over and surfed it down the street, through the whole block. Do you know how long it took me to fill that thing?",
   "from": "INTRO_QUOTES"
  },
  {
@@ -7887,7 +7887,7 @@
  {
   "voice": "meathead",
   "text": "FUCK YEAH! LET'S GO!",
-  "from": "App.tsx:394"
+  "from": "App.tsx:397"
  },
  {
   "voice": "meathead",
@@ -9612,7 +9612,7 @@
  {
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
-  "from": "App.tsx:394"
+  "from": "App.tsx:397"
  },
  {
   "voice": "meathead",
@@ -9747,7 +9747,7 @@
  {
   "voice": "meathead",
   "text": "LET'S FUCKING GO!",
-  "from": "App.tsx:394"
+  "from": "App.tsx:397"
  },
  {
   "voice": "meathead",
@@ -10417,7 +10417,7 @@
  {
   "voice": "meathead",
   "text": "OH HELL YEAH!",
-  "from": "App.tsx:394"
+  "from": "App.tsx:397"
  },
  {
   "voice": "meathead",
@@ -13266,7 +13266,7 @@
  },
  {
   "voice": "meathead",
-  "text": "You put the neighbors down. And you dropped my water tower on a house. Do you know how long it took me to fill that thing?",
+  "text": "You put the neighbors down. You knocked my water tower over and surfed it down the street, through the whole block. Do you know how long it took me to fill that thing?",
   "from": "game/core/update.ts:174"
  },
  {

@@ -30,7 +30,7 @@ export const tommyLayout: StageLayout = {
   startX: COURSE.startX,
   verticalCamera: true,
   lighting: state => tommyScene(state),
-  // (dying to Tommy: back in front of what's left of the house, and down the hole again)
+  // (dying to Tommy: back in front of what's left of the family's house, and down the hole again)
   bossStartX: COURSE.ruins.house - 300,
   build: (state, skipToBoss) => {
     const C = COURSE;

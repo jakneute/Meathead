@@ -803,7 +803,7 @@ export const BOSS_DIALOGUE: {
     'Victor Volcano': ['A NIGHTCLUB IN A VOLCANO? FINALLY, A SAUNA HOT ENOUGH FOR MY PUMP.', 'You crashed my VIP lounge, bro. Those were investors. Now they\'re a geothermal feature.'],
     'Ernie Earthquake': ['THE GROUND\'S SHAKING? NAH, THAT\'S JUST ME WALKING.', 'Two jet skis, sonny. Two tour groups. And now my front hall\'s caved in. I schedule my quakes AROUND the tour groups!'],
     'Hector Hurricane': ['CATEGORY FIVE? I WARM UP WITH CATEGORY FIVES.', 'You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.'],
-    'Toxic Tommy': ['FLINT WATER? PASS ME A GLASS. MORE MINERALS FOR THE GAINS.', 'You put the neighbors down. And you dropped my water tower on a house. Do you know how long it took me to fill that thing?'],
+    'Toxic Tommy': ['FLINT WATER? PASS ME A GLASS. MORE MINERALS FOR THE GAINS.', 'You put the neighbors down. You knocked my water tower over and surfed it down the street, through the whole block. Do you know how long it took me to fill that thing?'],
     'Blackout Barry': ['LIGHTS OUT? GOOD. MY ABS GLOW IN THE DARK.', 'You blew my whole power room, man. With my guy in it. Whole city\'s dark now... look up. See any stars? ...Me neither.'],
     'Oily Oscar': ['BABY OIL\'S FOR POSING. CRUDE OIL\'S FOR YOUR FUNERAL.', 'The union. The rangers. The bikers. My bar. My field\'s on fire, pal! ...It\'s insured. You\'re not.'],
     'Drug Trade Dale': ['TIME TO CUT OUT THE MIDDLEMAN.', 'You blew up my whole fleet! And Riggs! Who\'s gonna feed Sir Reginald now?!'],
