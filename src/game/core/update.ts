@@ -603,14 +603,14 @@ const CAMERA_LOOK_AHEAD = 380, CAMERA_LOOK_DOWN = 320, CAMERA_LANDING_MARGIN = 7
  * The lowest thing to stand on along the way he's going (or facing), within reach below him: the ground after a step
  * down, the far side of a gap, the next ledge down. Null if there's nothing lower than where he is.
  */
-const nextLanding = (blocks: FrameContext['state']['blocks'], player: FrameContext['state']['player']): number | null => {
+const nextLanding = (blocks: FrameContext['state']['blocks'], player: FrameContext['state']['player'], surfaceAt: (x: number, top: number | null) => number | null): number | null => {
   const dir = Math.abs(player.vel.x) > 0.5 ? Math.sign(player.vel.x) : player.facing;
   const feet = player.pos.y + player.height;
   const cx = player.pos.x + player.width / 2;
   let lowest: number | null = null;
   for (let d = 20; d <= CAMERA_LOOK_AHEAD; d += 20) {
     // (the topmost surface at that x that isn't way up over his head)
-    const top = floorTopAt(blocks, cx + dir * d, feet - 60, 0);
+    const top = surfaceAt(cx + dir * d, floorTopAt(blocks, cx + dir * d, feet - 60, 0));
     if (top === null || top > feet + CAMERA_LOOK_DOWN || top <= feet + 4) continue;
     if (lowest === null || top > lowest) lowest = top;
   }
@@ -638,15 +638,23 @@ const updateCamera = (ctx: FrameContext) => {
     // (the bottom of the sea only counts once he's under: bobbing at the surface, or falling in, it stays up top)
     const underwater = !!player.swimming && player.pos.y > (player.swimSurfaceY ?? Infinity);
     const floors = underwater ? state.blocks : state.blocks.filter(b => b.tag !== 'seabed');
+    // (the bottom of a pool of water isn't what he's coming down on: its surface is. Looking ahead to the bottom of a
+    // flooded hole, the camera would lurch down to it and back up again past it)
+    const waterAt = layout.waterBodyAt;
+    const surfaceAt = (x: number, top: number | null) => {
+      if (top === null || underwater || !waterAt) return top;
+      const w = waterAt(state, x, top - 2);
+      return w ? Math.min(top, w.surface) : top;
+    };
     // Ground under him (null over a pit, where the camera doesn't follow him down)
-    const below = floorTopAt(floors, player.pos.x + player.width / 2, feet, 0);
+    const below = surfaceAt(player.pos.x + player.width / 2, floorTopAt(floors, player.pos.x + player.width / 2, feet, 0));
     if (player.swimming && !underwater) state.cameraRestY = (player.swimSurfaceY ?? feet) + 10 - row;
     else if (player.isGrounded) state.cameraRestY = feet - row;
     // Dropping toward lower ground: head down to meet it rather than waiting for him to land
     else if (player.vel.y > 0 && below !== null) state.cameraRestY = Math.max(state.cameraRestY, below - row);
     // And never so high that the next thing to stand on is out of sight below: the ground (or ledge) along the way
     // he's headed, stepping down or across a gap, is kept up off the bottom of the screen
-    const landing = player.skiing || player.jetski || player.swimming ? null : nextLanding(floors, player);
+    const landing = player.skiing || player.jetski || player.swimming ? null : nextLanding(floors, player, surfaceAt);
     const rest = landing === null ? state.cameraRestY : Math.max(state.cameraRestY, landing - (CANVAS_HEIGHT - CAMERA_LANDING_MARGIN));
     const target = Math.min(rest, player.pos.y - CAMERA_TOP_MARGIN);
     state.camera.y += (target - state.camera.y) * (layout.cameraEaseY?.(state) ?? CAMERA_EASE_Y);
