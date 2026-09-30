@@ -1,6 +1,6 @@
 // Regular enemy movement, oiled-enemy collisions and body contact with the player.
 
-import { Enemy, Rect, Player } from '../../types';
+import { Enemy, Rect, Player, Block } from '../../types';
 import { KillCallout } from '../../content/dialogue';
 import {
   CANVAS_WIDTH, CANVAS_HEIGHT, BOSS_DOOR_X, GRAVITY, PLAYER_INVINCIBILITY_FRAMES, PLAYER_STUN_INVINCIBILITY,
@@ -46,28 +46,12 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
     e.pos.x += e.vel.x;
     e.pos.y += e.vel.y;
     e.vel.y += GRAVITY * 0.5;
-    e.rotation = (e.rotation || 0) + 0.3;
+    // (tumbling as it goes; one sliding down a wall it hit just slides)
+    if (e.vel.x !== 0) e.rotation = (e.rotation || 0) + 0.3;
     if (e.meleeFlung) flungIntoEnemies(ctx, e, enemies);
-    // Uppercut off its feet: up, and back down, and it splats where it lands (like an overdose)
-    if (e.uppercutFlung) {
-      const box = boundsOf(e);
-      // (a ceiling on the way up: it bonks off it and comes down sooner)
-      if (e.vel.y < 0 && state.blocks.some(b => (b.type === 'wall' || b.type === 'ground') && rectsOverlap(box, b) && e.pos.y - e.vel.y >= b.y + b.h - 2)) e.vel.y = Math.abs(e.vel.y) * 0.3;
-      if (e.vel.y > 0) {
-        const floor = state.blocks.find(b => b.type !== 'pit' && b.type !== 'wall' && rectsOverlap(box, b) && e.pos.y + e.height - e.vel.y <= b.y + 2);
-        if (floor) {
-          e.pos.y = floor.y - e.height;
-          const c = { x: e.pos.x + e.width / 2, y: floor.y - 4 };
-          startEnemyDeath(state, e, 'pancaked');
-          ctx.fx.spawnDeathShower(e.pos, Math.sign(e.vel.x), 2.5);
-          ctx.fx.spawnExplosion(c, '#8B0000', 18, 0, 12);
-          ctx.fx.spawnKillCallout(e, 'groundsplat');
-          shakeScreen(state, 12);
-          ctx.fx.playGunSound('crunch');
-          return false;
-        }
-      }
-    }
+    // A body in flight splats on whatever it hits: a wall (it slaps against it and slides down it), a ceiling (it bonks
+    // off it), the ground (it's done: it lies there, flat, where it came down: like an overdose)
+    if (splatBody(ctx, e)) return false;
     return e.pos.y < state.camera.y + 1000;
   }
   if (e.health <= 0) return false;
@@ -89,7 +73,8 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
   if (e.type !== 'boss' && knockedOutOfBounds(ctx, e)) return false;
   if (e.sludgeTimer && e.sludgeTimer > 0) e.sludgeTimer--;
   if (e.type !== 'boss') {
-    if (slamIntoWalls(ctx, e, shoveSpeed)) return false;
+    // (killed against it: gone, unless he's a body sliding down it now)
+    if (slamIntoWalls(ctx, e, shoveSpeed)) return !!e.isBlownAway;
     if (!e.isOiled && isBeingShoved(e) && (!e.enemyCollisionCooldown || e.enemyCollisionCooldown <= 0)) {
       resolveShoveCollision(ctx, e, enemies);
     }
@@ -887,6 +872,14 @@ const impactKill = (ctx: FrameContext, e: Enemy, callout: KillCallout, splatDir:
   } else {
     fx.spawnDeathShower({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 }, splatDir, 1.5);
     fx.spawnKillCallout(e, callout);
+    // Killed by the ground: he's flattened on it, same as a body coming down on it. Killed by a wall: he slides down
+    // it (a body now), and splats when he gets to the bottom
+    if (callout === 'groundsplat') {
+      startEnemyDeath(state, e, 'pancaked');
+      fx.spawnExplosion({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height - 4 }, '#8B0000', 16, 0, 12);
+    } else if (callout === 'wallsplat') {
+      e.isBlownAway = true; e.splatCalled = true; e.vel = { x: 0, y: 1 }; e.rotation = 0;
+    }
   }
   fx.spawnPickup(e.pos);
   fx.speakVulgarity('charge_kill');
@@ -1120,6 +1113,55 @@ const slamIntoFloor = (ctx: FrameContext, e: Enemy, speed: number) => {
   fx.spawnDamageNumber(e.pos, damage, isFrozen(e));
   if (toGml(speed) > 6) shakeScreen(state, 8, Math.min(10, toGml(speed)) * GML_SCALE * 0.5);
   if (e.health <= 0) impactKill(ctx, e, 'groundsplat', 0);
+};
+
+/** How fast a body has to hit for the splat to get a callout (a gentle drop's just a splat). */
+const SPLAT_CALLOUT_SPEED = 12;
+
+/** A dead body in flight meeting the level. True once it's come down for good (it's become a flattened body on the ground). */
+const splatBody = (ctx: FrameContext, e: Enemy): boolean => {
+  const { state, fx } = ctx;
+  const box = boundsOf(e);
+  const solid = (b: Block) => b.type !== 'pit' && b.type !== 'door' && rectsOverlap(box, b);
+  // A wall: against it, a smear of it, and down it goes
+  if (e.vel.x !== 0) {
+    const wall = state.blocks.find(b => b.type === 'wall' && solid(b) && e.pos.y + e.height > b.y + 4 && e.pos.y < b.y + b.h - 4
+      && (e.vel.x > 0 ? e.pos.x + e.width - e.vel.x <= b.x + 2 : e.pos.x - e.vel.x >= b.x + b.w - 2));
+    if (wall) {
+      const hitSpeed = Math.abs(e.vel.x);
+      e.pos.x = e.vel.x > 0 ? wall.x - e.width : wall.x + wall.w;
+      const at = { x: e.vel.x > 0 ? wall.x : wall.x + wall.w, y: e.pos.y + e.height / 2 };
+      fx.spawnDeathShower(at, -Math.sign(e.vel.x), 2, true, 90);
+      fx.spawnExplosion(at, '#8B0000', 14, -Math.sign(e.vel.x) * 3, 10);
+      if (!e.splatCalled && hitSpeed > SPLAT_CALLOUT_SPEED) { e.splatCalled = true; fx.spawnKillCallout(e, 'wallsplat'); }
+      shakeScreen(state, 8);
+      fx.playGunSound('thud');
+      e.vel.x = 0; e.vel.y = Math.max(e.vel.y, 1);
+      e.rotation = 0;
+      return false;
+    }
+  }
+  // A ceiling on the way up: it bonks off it and comes down sooner
+  if (e.vel.y < 0 && state.blocks.some(b => (b.type === 'wall' || b.type === 'ground') && solid(b) && e.pos.y - e.vel.y >= b.y + b.h - 2)) {
+    e.vel.y = Math.abs(e.vel.y) * 0.3;
+    return false;
+  }
+  // The ground: splat, and that's where it stays
+  if (e.vel.y > 0) {
+    const floor = state.blocks.find(b => b.type !== 'wall' && solid(b) && e.pos.y + e.height - e.vel.y <= b.y + 2);
+    if (floor) {
+      e.pos.y = floor.y - e.height;
+      const c = { x: e.pos.x + e.width / 2, y: floor.y - 4 };
+      startEnemyDeath(state, e, 'pancaked');
+      fx.spawnDeathShower(e.pos, Math.sign(e.vel.x), 2.5);
+      fx.spawnExplosion(c, '#8B0000', 18, 0, 12);
+      if (!e.splatCalled && (e.vel.y > SPLAT_CALLOUT_SPEED || e.uppercutFlung)) fx.spawnKillCallout(e, 'groundsplat');
+      shakeScreen(state, e.vel.y > SPLAT_CALLOUT_SPEED ? 12 : 5);
+      fx.playGunSound('crunch');
+      return true;
+    }
+  }
+  return false;
 };
 
 /**

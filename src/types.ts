@@ -256,6 +256,8 @@ export interface Enemy extends Entity {
   returnHome?: boolean;
   /** Uppercut dead off its feet: it comes back down and splats. */
   uppercutFlung?: boolean;
+  /** Its body's splat has had its callout already (a wall, then the floor: only the one). */
+  splatCalled?: boolean;
   /** Its walking pace on its beat (a patrolling enemy). */
   walkSpeed?: number;
   flungHits?: string[];
