@@ -65,7 +65,7 @@ const AVALANCHE_MAX_GAP = 660;
 const SURGE_SPEED = 18, SURGE_STOP = 90;
 /** The lead he gets on it (and what it drops back to after the cutscene's surge has it right on his tail). */
 const AVALANCHE_HEAD_START = 650;
-const BALL_FRAMES = 90, BALL_DAMAGE = 22;
+const BALL_FRAMES = 90;
 const CRASH_FRAMES = 42, CRASH_DAMAGE = 6;
 /** What goes up over his head when he skis into each kind of thing. */
 const CRASH_CALLOUTS: Record<SkiObstacle['kind'], { lines: string[]; color: string }> = {
@@ -345,15 +345,15 @@ const skiing = (ctx: FrameContext, ski: Ski, controls: Controls): Controls => {
   const gap = player.pos.x - ski.avX;
   if (state.frame % 3 === 0) shakeScreen(state, 4, Math.max(1, 5 - gap / 200));
   if (ski.avX >= player.pos.x + 16 && state.deathTimer <= 0) {
-    // Caught: rolled up in a snowball
+    // Caught: rolled up in a snowball, and that's him (thrown off the far side of the mountain). Only the
+    // invincibility cheat gets spat back out ahead of it
     ski.ball = BALL_FRAMES;
     ski.ballX = player.pos.x + player.width / 2;
     ski.ballRot = 0;
     player.hidden = true;
-    if (!ctx.cheats.invincible) player.health -= BALL_DAMAGE;
-    if (player.health <= 0) flingOff(state, ski);
     fx.spawnDamageNumber({ x: player.pos.x - 40, y: player.pos.y - 40 }, 'SNOWBALLED!', true, '#E0F2FE');
-    fx.speakVulgarity('hurt', 'avalanche');
+    if (!ctx.cheats.invincible) { player.health = 0; flingOff(state, ski); }
+    else fx.speakVulgarity('hurt', 'avalanche');
     shakeScreen(state, 25, 8);
   }
 

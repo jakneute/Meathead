@@ -116,8 +116,10 @@ const updateCrumbles = (ctx: FrameContext, hz: Hazards) => {
     const b = c.block;
     c.t++;
     if (c.state === 'solid') {
-      const standing = player.pos.y + player.height >= b.y - 2 && player.pos.y + player.height <= b.y + 4
-        && player.pos.x + player.width > b.x && player.pos.x < b.x + b.w && player.vel.y >= 0;
+      // Anyone's weight on it sets it going: him, or anything of theirs that walks (or gets knocked) out onto it
+      const on = (x: number, y: number, w: number, h: number, vy: number) => y + h >= b.y - 2 && y + h <= b.y + 4 && x + w > b.x && x < b.x + b.w && vy >= 0;
+      const standing = on(player.pos.x, player.pos.y, player.width, player.height, player.vel.y)
+        || state.enemies.some(e => e.type !== 'boss' && e.health > 0 && !e.isBlownAway && e.enemyType !== 'flyer' && e.enemyType !== 'drone' && e.behavior !== 'fly' && e.behavior !== 'hover' && on(e.pos.x, e.pos.y, e.width, e.height, e.vel.y));
       if (standing) { c.state = 'shake'; c.t = 0; }
     } else if (c.state === 'shake') {
       if (c.t % 5 === 0) state.particles.push({ pos: { x: b.x + Math.random() * b.w, y: b.y + b.h }, vel: { x: 0, y: 1.5 }, life: 18, color: '#DBEAFE', size: 2 + Math.random() * 3 });
@@ -129,8 +131,9 @@ const updateCrumbles = (ctx: FrameContext, hz: Hazards) => {
         }
         ctx.fx.playGunSound('crack');
       }
-    } else if (c.t >= CRUMBLE_REFREEZE && !rectsOverlap({ x: b.x - 10, y: b.y - 70, w: b.w + 20, h: 90 }, boundsOf(player))) {
-      // Freezes back over (as long as you're not in the way)
+    } else if (c.t >= CRUMBLE_REFREEZE && !rectsOverlap({ x: b.x - 10, y: b.y - 70, w: b.w + 20, h: 90 }, boundsOf(player))
+      && !state.enemies.some(e => e.health > 0 && rectsOverlap({ x: b.x - 10, y: b.y - 70, w: b.w + 20, h: 90 }, boundsOf(e)))) {
+      // Freezes back over (as long as nobody's in the way)
       c.state = 'solid'; c.t = 0;
       state.blocks.push(b);
     }
