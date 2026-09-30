@@ -6931,13 +6931,13 @@
  },
  {
   "voice": "meathead",
-  "text": "FLUSHED DOWN THE TOILET",
-  "from": "VULGARITIES"
+  "text": "FLUSHED AWAY!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
-  "text": "FLUSHED!",
-  "from": "ENEMY_KILL_LINES"
+  "text": "FLUSHED DOWN THE TOILET",
+  "from": "VULGARITIES"
  },
  {
   "voice": "meathead",
@@ -8801,11 +8801,6 @@
  },
  {
   "voice": "meathead",
-  "text": "MISSED YOUR TRAIN!",
-  "from": "ENEMY_KILL_LINES"
- },
- {
-  "voice": "meathead",
   "text": "MOIST MOTHERFUCKER",
   "from": "VULGARITIES"
  },
@@ -10181,7 +10176,7 @@
  },
  {
   "voice": "meathead",
-  "text": "SIT! STAY! FOREVER!",
+  "text": "SIT. STAY. PLAY DEAD.",
   "from": "ENEMY_KILL_LINES"
  },
  {
@@ -11186,11 +11181,6 @@
  },
  {
   "voice": "meathead",
-  "text": "TOO EASY!",
-  "from": "GENERIC_KILL_LINES"
- },
- {
-  "voice": "meathead",
   "text": "TOO MANY EYES! TOO FEW BRAINS!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -11443,6 +11433,11 @@
   "voice": "meathead",
   "text": "WATERLOGGED LOSER",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WAY TOO EASY!",
+  "from": "GENERIC_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -11808,6 +11803,11 @@
   "voice": "meathead",
   "text": "YOU MISSED THE HEART, OFFICER! IT'S BEHIND THE PECS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU MISSED YOUR TRAIN!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",

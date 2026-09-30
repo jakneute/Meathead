@@ -1063,12 +1063,12 @@ export const ENEMY_KILL_LINES: Partial<Record<string, string[]>> = {
   // Tommy's Flint
   banger: ["HOLD YOUR GUN STRAIGHT NEXT TIME!", "GANGSTER? GONE!", "DRIVE-BY? DIE-BY!"],
   bruiser: ["STRIKE THREE! YOU'RE OUT!", "NICE BAT! NOW IT'S MINE! KIDDING!", "HOME RUN! INTO THE GROUND!"],
-  pitbull: ["BAD DOG!", "WHO'S A DEAD BOY?!", "SIT! STAY! FOREVER!"],
+  pitbull: ["BAD DOG!", "WHO'S A DEAD BOY?!", "SIT. STAY. PLAY DEAD."],
   lowrider: ["LOW ENOUGH NOW?!", "NICE HYDRAULICS! BOUNCE ON THIS!", "TOTALED!"],
   hazmat: ["SUIT DIDN'T HELP, HUH?", "CONTAIN THIS!", "HAZARDOUS WASTE! THAT'S YOU!"],
   bloater: ["POPPED LIKE A ZIT!", "GROSS! BUT DEAD!", "DIET STARTS NEVER!"],
   manhole: ["BACK IN THE HOLE!", "PLUMB THIS!", "CLOGGED!"],
-  sludgeling: ["BACK IN THE SEWER, SNOT!", "FLUSHED!", "GROSS LITTLE BOOGER!"],
+  sludgeling: ["BACK IN THE SEWER, SNOT!", "FLUSHED AWAY!", "GROSS LITTLE BOOGER!"],
   mutantfish: ["THREE EYES AND NONE OF 'EM SAW THAT COMING!", "TOO MANY EYES! TOO FEW BRAINS!", "EVOLUTION STOPS HERE!"],
   // Blackout Barry's New York
   pimp: ["PIMP HAND WEAK!", "NICE HAT! I'LL TAKE IT! NO I WON'T!", "BIG PIMPIN'? BIG DYIN'!"],
@@ -1077,7 +1077,7 @@ export const ENEMY_KILL_LINES: Partial<Record<string, string[]>> = {
   bum: ["SPARE THIS!", "GET A JOB! OH. TOO LATE.", "SHOPPING CART'S EMPTY NOW!"],
   rat: ["PIZZA RAT'S DONE EATING!", "SQUEAK THIS!", "RAT RACE OVER!"],
   guard: ["RENT-A-COP'S LEASE IS UP!", "SECURITY BREACH!", "MALL COP! DEAD COP!"],
-  commuter: ["MISSED YOUR TRAIN!", "RUSH HOUR'S OVER, PAL!", "YOUR STOP!"],
+  commuter: ["YOU MISSED YOUR TRAIN!", "RUSH HOUR'S OVER, PAL!", "YOUR STOP!"],
   reader: ["READ ALL ABOUT IT!", "EXTRA! EXTRA! HE'S DEAD!", "SPORTS SECTION! YOU LOST!"],
   exec: ["YOU'RE FIRED!", "HOSTILE TAKEOVER!", "GOLDEN PARACHUTE DIDN'T OPEN!"],
   intern: ["UNPAID AND UNALIVE!", "COFFEE RUN'S CANCELED!", "EXPOSURE! YOU GOT IT!"],
@@ -1111,6 +1111,6 @@ export const ENEMY_KILL_LINES: Partial<Record<string, string[]>> = {
 
 /** A kill, any kill: nothing about who or how. */
 export const GENERIC_KILL_LINES = [
-  "FUCK YOU!", "EAT SHIT!", "NEXT!", "LATER, ASSHOLE!", "GET FUCKED!", "STAY DOWN!", "WHO'S NEXT?!", "TOO EASY!",
+  "FUCK YOU!", "EAT SHIT!", "NEXT!", "LATER, ASSHOLE!", "GET FUCKED!", "STAY DOWN!", "WHO'S NEXT?!", "WAY TOO EASY!",
   "SIT DOWN!", "NIGHT NIGHT!", "BYE, BITCH!", "YEAH! THAT'S RIGHT!", "YOU'RE DONE!", "GOODBYE!",
 ];
