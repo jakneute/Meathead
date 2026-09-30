@@ -103,6 +103,12 @@ export const updateDoorCrash = (ctx: FrameContext, dc: DoorCrash, controls: Cont
       break;
     case 2:
       if (since === 30) playSound('whoosh', 1, 4);
+      // The vault over them coming apart as he comes through it: cracks and dust first, then brick and bedrock raining down
+      if (since < 30 && state.frame % 3 === 0) state.particles.push({ pos: { x: CRASH_X + (Math.random() - 0.5) * 60, y: Y - 228 }, vel: { x: (Math.random() - 0.5) * 0.6, y: 1 + Math.random() * 2 }, life: 40, color: '#A8A29E', size: 2 + Math.random() * 3 });
+      if (since >= 30) {
+        if (since === 30) { playSound('crack'); shakeScreen(state, 10, 4); }
+        for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: CRASH_X + (Math.random() - 0.5) * 140, y: Y - 232 }, vel: { x: (Math.random() - 0.5) * 4, y: 2 + Math.random() * 5 }, life: 40 + Math.random() * 20, color: ['#7C4A3A', '#5A3526', '#57534E', '#A8A29E'][(i + state.frame) % 4], size: 4 + Math.random() * 7 });
+      }
       if (since === 30 + DROP_FRAMES) {
         // Down through the vault, on top of the lot of them, and up it goes
         dc.impactAt = dc.t;
@@ -138,6 +144,14 @@ export const updateDoorCrash = (ctx: FrameContext, dc: DoorCrash, controls: Cont
       break;
   }
   return { ...NO_CONTROLS };
+};
+
+/** The vault over the tour torn open (0 whole; a little while the cracks spread; to 1 as he comes through it). */
+export const ceilingTear = (dc: DoorCrash) => {
+  if (crashed(dc)) return 1;
+  if (dc.phase !== 'scene' || dc.step !== 2) return 0;
+  const since = dc.t - dc.whistleAt;
+  return since < 30 ? 0.12 * (since / 30) : 0.12 + 0.88 * Math.min(1, (since - 30) / DROP_FRAMES);
 };
 
 /** How far down through the vault he's come (0 just in view .. 1 on them), or -1 when he's not falling. */

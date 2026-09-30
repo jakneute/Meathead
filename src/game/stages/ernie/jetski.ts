@@ -28,7 +28,7 @@ import { JETSKI_CRUISE } from '../../enemies/kinds/ernie';
 import { hurtPlayer } from '../../bosses/shared';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 import { GROUND_Y, CANVAS_WIDTH, KICK_POSE_FRAMES } from '../../../constants';
-import { COURSE, CP } from './course';
+import { COURSE, CP, onTheIsland } from './course';
 
 export type SkiPhase = 'waiting' | 'theft' | 'riding' | 'launch' | 'gone';
 export interface FloatingWreck { x: number; look: 'car' | 'buoy' | 'crate'; hit: boolean; rot: number }
@@ -254,11 +254,11 @@ const riding = (ctx: FrameContext, js: JetSki, controls: Controls): Controls => 
   p.skiSpeed = controls.right ? SKI_FAST : controls.left ? SKI_SLOW : SKI_BASE;
   // Everything in the air goes along with him (they're chasing him; the AI works out where to be from where he is)
   for (const e of state.enemies) {
-    if (e.health <= 0 || e.isBlownAway) continue;
+    if (e.health <= 0 || e.isBlownAway || onTheIsland(e)) continue;
     if (e.kind === 'drone' || e.kind === 'seagull') { e.pos.x += p.vel.x; if (e.homeX !== undefined) e.homeX += p.vel.x; }
   }
   // ...and anything left far behind is gone (it gave up)
-  state.enemies = state.enemies.filter(e => e.type === 'boss' || (e.pos.x > state.camera.x - 500 && e.pos.x < state.camera.x + 1700));
+  state.enemies = state.enemies.filter(e => e.type === 'boss' || onTheIsland(e) || (e.pos.x > state.camera.x - 500 && e.pos.x < state.camera.x + 1700));
   spawnWaves(state, js);
   teach(state, js);
   updateWrecks(ctx, js);
@@ -266,7 +266,7 @@ const riding = (ctx: FrameContext, js: JetSki, controls: Controls): Controls => 
   if (p.isGrounded && state.frame % 2 === 0) state.particles.push({ pos: { x: p.pos.x + 2, y: GROUND_Y - 4 }, vel: { x: -2 - Math.random() * 3, y: -Math.random() * 3 }, life: 18, color: Math.random() < 0.5 ? '#E0F2FE' : '#BAE6FD', size: 3 + Math.random() * 4 });
   // Time's up: here comes the hipster, back on his standby jet ski, flat out after him (everything else drops back)
   if (js.t === RIDE_FRAMES) {
-    state.enemies = state.enemies.filter(e => e.type === 'boss');
+    state.enemies = state.enemies.filter(e => e.type === 'boss' || onTheIsland(e));
     state.projectiles = [];
     js.chaser = { x: state.camera.x - 120, y: GROUND_Y, vx: 0, vy: 0, rot: 0, state: 'riding', at: 0 };
     js.hipster.state = 'swimming'; js.hipster.x = -1e6;
@@ -416,7 +416,8 @@ const launch = (ctx: FrameContext, js: JetSki, onLanded: () => void): Controls =
   p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
   p.skiSpeed = 13;
   // (the camera stays on the water: he goes up out of the top of it, and so does the one after him)
-  state.cameraOverride = { x: state.camera.x + 6, y: state.camera.y };
+  const c = js.chaser;
+  if (c.state !== 'gone') state.cameraOverride = { x: state.camera.x + 6, y: state.camera.y };
   // Once he's up out of the top of the view he stays up there (held, out of sight) till the scene's over: nothing
   // brings him back down into the bay
   if (p.pos.y + p.height < state.camera.y - 40 || p.hidden) {
@@ -425,7 +426,6 @@ const launch = (ctx: FrameContext, js: JetSki, onLanded: () => void): Controls =
     p.pos.y = state.camera.y - 400;
     p.pos.x = state.camera.x + 500;
   }
-  const c = js.chaser;
   if (c.state === 'riding') {
     c.x += c.vx;
     if (js.t === 1) c.x = Math.min(c.x, p.pos.x - 150);
@@ -435,10 +435,11 @@ const launch = (ctx: FrameContext, js: JetSki, onLanded: () => void): Controls =
     c.vy += 0.55; c.x += c.vx; c.y += c.vy; c.rot = Math.max(-0.5, c.rot - 0.02);
     if (c.y < state.camera.y - 300) c.state = 'gone';
   }
-  // The hipster's yell going off it, then Meathead's take on that from somewhere up there (each once the one before's done)
-  if (js.chaserLine === 'no' && c.state === 'flying' && talkOver(js)) { talk(js, 'hipster', 'NAMASTE, BROOOOO!'); js.chaserLine = 'said'; }
-  else if (js.chaserLine === 'said' && talkOver(js) && js.t - c.at > 20) { talk(js, 'meathead', 'THE HIPSTER?! GET YOUR OWN RAMP!'); js.chaserLine = 'done'; }
-  if (js.t >= 110 && ((js.chaserLine === 'done' && talkOver(js)) || js.t > 600)) {
+  // Meathead's take on that, from somewhere up there, once he's done yelling (the hipster goes off it without a word)
+  if (js.chaserLine === 'no' && c.state === 'flying' && talkOver(js)) { talk(js, 'meathead', 'THE HIPSTER?! GET YOUR OWN RAMP!'); js.chaserLine = 'done'; }
+  // ...and straight on to the island once he's said it (the camera's stopped by then: nothing more to see on the water)
+  if (c.state === 'gone') state.cameraOverride = { x: state.camera.x, y: state.camera.y };
+  if (js.t >= 60 && ((js.chaserLine === 'done' && talkOver(js)) || js.t > 360)) {
     js.phase = 'gone';
     js.lineT = 0;
     onLanded();

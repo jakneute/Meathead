@@ -17,7 +17,7 @@ import type { ErnieRuntime } from './runtime';
 import { tourWrecked } from './alcatraz';
 import { faultAmount, collapseState, quakeAmount } from './quake';
 import { drawFault } from './faultDraw';
-import { DoorCrash, CRASH_X, CAVE_X, CAVE_W, NIGHT_TOUR, dropAmount, crashed, cavedIn, lookingUp } from './doorCrash';
+import { DoorCrash, CRASH_X, CAVE_X, CAVE_W, NIGHT_TOUR, dropAmount, crashed, cavedIn, lookingUp, ceilingTear } from './doorCrash';
 import { drawTourist, TOURIST_LOOKS, drawHipsterOnSki } from './drawSea';
 
 type Ctx = CanvasRenderingContext2D;
@@ -106,6 +106,35 @@ export const drawIslandBack = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => 
 
 const drawDoorCrash = (ctx: Ctx, state: GameState, dc: DoorCrash) => {
   const f = state.frame, x = CRASH_X;
+  // The vault over them, torn open: cracks spreading, then a ragged hole up through the brick and the bedrock
+  const tear = ceilingTear(dc);
+  if (tear > 0) {
+    ctx.strokeStyle = '#140C08'; ctx.lineWidth = 2;
+    for (let i = 0; i < 7; i++) {
+      const a = (i / 7) * Math.PI - Math.PI, len = 30 + tear * 140 + hash(i + 200) * 40;
+      ctx.beginPath(); ctx.moveTo(x, VAULT + 4);
+      ctx.lineTo(x + Math.cos(a) * len * 0.5 + (hash(i + 201) - 0.5) * 20, VAULT + 4 + Math.abs(Math.sin(a)) * len * 0.25 + 10);
+      ctx.lineTo(x + Math.cos(a) * len, VAULT + 4 + Math.abs(Math.sin(a)) * len * 0.3 + 20 * hash(i + 202));
+      ctx.stroke();
+    }
+    if (tear > 0.12) {
+      const w = 20 + (tear - 0.12) / 0.88 * 110, top = state.camera.y - 20;
+      ctx.fillStyle = '#050303';
+      ctx.beginPath(); ctx.moveTo(x - w * 0.6, top);
+      for (let k = 0; k <= 10; k++) { const yy = top + (VAULT + 30 - top) * (k / 10); ctx.lineTo(x - w * (0.5 + 0.2 * hash(k + 210)), yy); }
+      for (let k = 10; k >= 0; k--) { const yy = top + (VAULT + 30 - top) * (k / 10); ctx.lineTo(x + w * (0.5 + 0.2 * hash(k + 220)), yy); }
+      ctx.closePath(); ctx.fill();
+      // Broken brick hanging off its edges
+      for (let k = 0; k < 8; k++) {
+        const side = k % 2 ? 1 : -1, bx = x + side * w * (0.5 + 0.15 * hash(k + 230)), by = VAULT + 10 + hash(k + 231) * 30;
+        ctx.fillStyle = k % 3 ? '#7C4A3A' : '#5A3526';
+        ctx.save(); ctx.translate(bx, by); ctx.rotate((hash(k + 232) - 0.5) * 1.2); ctx.fillRect(-9, -4, 18, 8); ctx.restore();
+      }
+      // Dust pouring down out of it
+      ctx.fillStyle = `rgba(168, 162, 158, ${crashed(dc) ? 0.12 : 0.28})`;
+      ctx.beginPath(); ctx.moveTo(x - w * 0.4, VAULT + 30); ctx.lineTo(x + w * 0.4, VAULT + 30); ctx.lineTo(x + w * 0.8, Y); ctx.lineTo(x - w * 0.8, Y); ctx.fill();
+    }
+  }
   if (!crashed(dc)) {
     // The night tour, stood listening (looking up, once they hear him coming); the guide's lantern
     NIGHT_TOUR.forEach((tr, i) => {

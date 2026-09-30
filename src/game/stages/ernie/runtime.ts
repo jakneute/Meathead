@@ -7,7 +7,12 @@ import type { FrameContext } from '../../core/context';
 import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
 import { makeKindEnemy } from '../../enemies/kinds';
-import { COURSE, CP } from './course';
+
+/** Alcatraz's lot, placed once he's landed on the island (past where the tour was). */
+export const spawnIsland = (state: GameState) => {
+  for (const s of COURSE.spawns) if (onTheIsland({ pos: s }) && s.x > COURSE.cellblock.crashX + SPAWN_CLEARANCE) state.enemies.push(makeKindEnemy(s.kind, s.x, s.y));
+};
+import { COURSE, CP, onTheIsland } from './course';
 import { Quakes, createQuakes, updateQuakes } from './quake';
 import { Bridge, createBridge, updateBridge } from './bridge';
 import { JetSki, createJetSki, updateJetSki } from './jetski';
@@ -47,10 +52,12 @@ export const createErnieRuntime = (state: GameState, skipToBoss: boolean): Ernie
     if (!ahead(p.x, 0)) return;
     state.pickups.push({ id: `ernie-pickup-${i}`, pos: { x: p.x - 10, y: p.y - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: p.type, life: 1e9 });
   });
+  // (the island's lot only once he's there: out ahead of him all the way from the streets, the birds would be off
+  // across the bay after him)
+  const startedOnIsland = order(start.x) === 2;
   for (const s of COURSE.spawns) {
-    if (!ahead(s.x, SPAWN_CLEARANCE)) continue;
-    const e = makeKindEnemy(s.kind, s.x, s.y);
-    state.enemies.push(e);
+    if (!ahead(s.x, SPAWN_CLEARANCE) || (!startedOnIsland && onTheIsland({ pos: s }))) continue;
+    state.enemies.push(makeKindEnemy(s.kind, s.x, s.y));
   }
   const rt: ErnieRuntime = {
     startedAt,
@@ -106,7 +113,7 @@ export const updateErnie = (ctx: FrameContext, controls: Controls): Controls => 
       applyRegionCamera(state, 'bay');
       state.checkpoint = Math.max(state.checkpoint, CP.DOCK);
       // (nothing from up there follows you down)
-      state.enemies = state.enemies.filter(e => e.type === 'boss');
+      state.enemies = state.enemies.filter(e => e.type === 'boss' || onTheIsland(e));
       state.projectiles = [];
     }
     if (rt.downT > DOWN_FRAMES + DOWN_HOLD + 30) rt.downT = 0;

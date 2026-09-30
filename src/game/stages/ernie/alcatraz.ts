@@ -14,6 +14,7 @@ import { playSound, playGlassShatterSound } from '../../platform/audio';
 import { say, canSpeak, MEATHEAD_VOICE, Voice } from '../../platform/speech';
 import { GROUND_Y } from '../../../constants';
 import { COURSE, CP } from './course';
+import { spawnIsland } from './runtime';
 
 export type TourPhase = 'waiting' | 'tour' | 'wrecked';
 export interface Tour {
@@ -57,8 +58,9 @@ export const startTour = (state: GameState, tour: Tour) => {
   state.camera.x = C.x1; state.camera.y = C.y - 550;
   state.cameraRestY = C.y - 550;
   state.cameraMinX = C.x1;
-  // (everything from the bay's gone; Ernie's still waiting behind his door)
+  // (everything from the bay's gone; the island's own lot are put out, and Ernie's still waiting behind his door)
   state.enemies = state.enemies.filter(e => e.type === 'boss');
+  spawnIsland(state);
   state.projectiles = [];
 };
 
@@ -126,9 +128,9 @@ export const updateTour = (ctx: FrameContext, tour: Tour, controls: Controls): C
     p.facing = 1;
     p.squash = 0.6;
   }
-  // (the one who came off the ramp after him isn't anywhere)
-  if (t === CLIMB_AT + 30) speak(tour, 'meathead', '...I WONDER WHERE HE WENT.', MEATHEAD_VOICE);
-  if (t === CLIMB_AT + 70) speak(tour, 'meathead', 'WHICH WAY TO THE GIFT SHOP?', MEATHEAD_VOICE);
+  if (t === CLIMB_AT + 30) speak(tour, 'meathead', 'WHICH WAY TO THE GIFT SHOP?', MEATHEAD_VOICE);
+  // (and the one who came off the ramp after him isn't anywhere)
+  if (t === CLIMB_AT + 70) speak(tour, 'meathead', '...I WONDER WHERE HE WENT.', MEATHEAD_VOICE);
   if (t >= TOUR_END) {
     tour.phase = 'wrecked'; tour.t = 999;
     p.inCutscene = false;

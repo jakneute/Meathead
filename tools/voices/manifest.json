@@ -4382,7 +4382,7 @@
  {
   "voice": "death",
   "text": "LOST AT SEA",
-  "from": "game/stages/ernie/jetski.ts:456"
+  "from": "game/stages/ernie/jetski.ts:457"
  },
  {
   "voice": "death",
@@ -4907,7 +4907,7 @@
  {
   "voice": "death",
   "text": "SHARK BAIT",
-  "from": "game/stages/ernie/jetski.ts:456"
+  "from": "game/stages/ernie/jetski.ts:457"
  },
  {
   "voice": "death",
@@ -5372,7 +5372,7 @@
  {
   "voice": "death",
   "text": "THE BAY WINS",
-  "from": "game/stages/ernie/jetski.ts:456"
+  "from": "game/stages/ernie/jetski.ts:457"
  },
  {
   "voice": "death",
@@ -5887,7 +5887,7 @@
  {
   "voice": "guide",
   "text": "...AND NOBODY EVER ESCAPED FROM THE ROCK.",
-  "from": "game/stages/ernie/alcatraz.ts:104"
+  "from": "game/stages/ernie/alcatraz.ts:106"
  },
  {
   "voice": "guide",
@@ -5902,7 +5902,7 @@
  {
   "voice": "guide",
   "text": "HA! NOBODY'S THAT STUPID.",
-  "from": "game/stages/ernie/alcatraz.ts:106"
+  "from": "game/stages/ernie/alcatraz.ts:108"
  },
  {
   "voice": "hector.kid0",
@@ -6266,11 +6266,6 @@
  },
  {
   "voice": "hipster",
-  "text": "NAMASTE, BROOOOO!",
-  "from": "game/stages/ernie/jetski.ts:133"
- },
- {
-  "voice": "hipster",
   "text": "SICK RIDE, RIGHT? IT'S VINTAGE.",
   "from": "game/stages/ernie/jetski.ts:133"
  },
@@ -6312,7 +6307,7 @@
  {
   "voice": "meathead",
   "text": "...I WONDER WHERE HE WENT.",
-  "from": "game/stages/ernie/alcatraz.ts:130"
+  "from": "game/stages/ernie/alcatraz.ts:133"
  },
  {
   "voice": "meathead",
@@ -7752,7 +7747,7 @@
  {
   "voice": "meathead",
   "text": "FIRST TIME FOR EVERYTHIIIIING!!!",
-  "from": "game/stages/ernie/alcatraz.ts:107"
+  "from": "game/stages/ernie/alcatraz.ts:109"
  },
  {
   "voice": "meathead",
@@ -10093,11 +10088,6 @@
   "voice": "meathead",
   "text": "MY VEINS ARE FOR BULKING, NOT YOUR SKETCHY SHIT!",
   "from": "HURT"
- },
- {
-  "voice": "meathead",
-  "text": "NAMASTE, BROOOOO!",
-  "from": "game/stages/ernie/jetski.ts:133"
  },
  {
   "voice": "meathead",
@@ -13922,7 +13912,7 @@
  {
   "voice": "tourist",
   "text": "HAS ANYBODY EVER BROKEN IN?",
-  "from": "game/stages/ernie/alcatraz.ts:105"
+  "from": "game/stages/ernie/alcatraz.ts:107"
  },
  {
   "voice": "victor.partygirl",

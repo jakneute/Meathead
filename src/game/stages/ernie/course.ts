@@ -304,3 +304,6 @@ export const HOUSES_END = COURSE.bridge.x1 - 700;
 
 /** Where a fault or a span is under x, if anywhere. */
 export const faultAt = (x: number) => COURSE.faults.findIndex(f => x > f.x && x < f.x + f.w);
+
+/** Placed on Alcatraz (waiting there for him: whatever clears the streets, the bridge or the bay doesn't touch it). */
+export const onTheIsland = (e: { pos: { x: number } }) => e.pos.x >= COURSE.cellblock.x1 - 200;
