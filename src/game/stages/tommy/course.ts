@@ -186,9 +186,11 @@ const build = () => {
   r.ground(0, END);
   const junk: RoadJunk[] = [];
   const j = (lx: number, look: RoadJunk['look']) => junk.push({ x: HOOD_X0 + ROAD_START + lx, look });
-  // One thing at a time to learn early (cones are just for smashing), mixing up through the middle, busy at the end
-  j(900, 'cones'); j(1700, 'trash'); j(2700, 'pothole'); j(3500, 'ramp'); j(5100, 'car');
-  j(6000, 'hydrant'); j(6800, 'cones'); j(7300, 'barrier'); j(8200, 'glass'); j(9000, 'pothole');
+  // One thing at a time to learn early (cones are just for smashing), mixing up through the middle, busy at the end.
+  // Nothing that has to be jumped (a pothole, a car) in the run-up to a ramp: its callout goes up that far out
+  // (RAMP_CALL, in bike.ts), and it's held back while there's something to jump first
+  j(700, 'cones'); j(1200, 'trash'); j(1700, 'pothole'); j(3500, 'ramp'); j(5100, 'car');
+  j(6000, 'hydrant'); j(6800, 'cones'); j(7300, 'barrier'); j(8200, 'pothole'); j(9000, 'glass');
   j(10400, 'ramp'); j(11200, 'car'); j(12100, 'hydrant'); j(12800, 'barrier'); j(13600, 'glass');
   j(15000, 'car'); j(15700, 'pothole'); j(16900, 'hydrant'); j(17600, 'ramp'); j(18300, 'car');
   j(19000, 'barrier'); j(19600, 'trash'); j(20900, 'hydrant'); j(21500, 'car'); j(22200, 'pothole');
