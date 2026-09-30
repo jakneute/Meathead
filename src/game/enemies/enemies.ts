@@ -224,6 +224,27 @@ const flyOverdosedBody = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolea
   e.pos.y += e.vel.y;
   e.rotation = (e.rotation || 0) + (e.overdosePhase === 'rise' ? 0.3 : 0.12);
 
+  // A ceiling on the way up: that's where it ends. It goes into it and stays up there (what's left of it: a red mess on
+  // the underside of it, dripping), and nothing comes back down
+  if (e.vel.y < 0) {
+    const box = boundsOf(e);
+    const ceiling = state.blocks.find(b => (b.type === 'wall' || b.type === 'ground' || b.type === 'platform') && !b.oneWay && rectsOverlap(box, b) && e.pos.y - e.vel.y >= b.y + b.h - 2);
+    if (ceiling) {
+      const at = { x: c.x, y: ceiling.y + ceiling.h + 2 };
+      fx.spawnDeathShower(at, 0, 2.5);
+      fx.spawnExplosion(at, '#8B0000', 20, 0, 14);
+      fx.spawnExplosion(at, '#E879F9', 10, 0, 10);
+      // ...and what's left of him flattened on the underside of it, dripping
+      startEnemyDeath(state, e, 'ceilinged');
+      const d = state.enemyDeaths[state.enemyDeaths.length - 1];
+      if (d && d.kind === 'ceilinged') { d.y = ceiling.y + ceiling.h - d.h; d.x = c.x - d.w / 2; }
+      fx.spawnKillCallout(e, 'ceiling');
+      shakeScreen(state, 10);
+      fx.playGunSound('crunch');
+      return false;
+    }
+  }
+
   // Plowing through anyone in the way
   const box = boundsOf(e);
   for (const o of enemies) {

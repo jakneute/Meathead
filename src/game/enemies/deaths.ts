@@ -5,6 +5,7 @@
 //   greased   (oil rocket): flung off slick and black, splats into an oil slick
 //   pancaked  (boulder): flattened on the floor
 //   headshot  (the sniper up the bell tower): head off in one piece, the body stood there a moment, then over
+//   ceilinged (an overdose that went up into a ceiling): flattened on the underside of it, dripping, and it stays
 // The enemy itself is removed; one of these plays in its place.
 
 import { Enemy, EnemyKind, Vector2 } from '../../types';
@@ -14,7 +15,7 @@ import { floorTopAt } from '../core/terrain';
 import { isMidBoss } from '../combat/midBoss';
 import { KIND_HEAD } from '../render/enemies/index';
 
-export type EnemyDeathKind = 'charred' | 'fried' | 'melted' | 'greased' | 'pancaked' | 'headshot';
+export type EnemyDeathKind = 'charred' | 'fried' | 'melted' | 'greased' | 'pancaked' | 'headshot' | 'ceilinged';
 
 export interface EnemyDeath {
   kind: EnemyDeathKind;
@@ -37,7 +38,7 @@ export interface EnemyDeath {
 }
 
 export const DEATH_FRAMES: Record<EnemyDeathKind, number> = {
-  charred: 95, fried: 85, melted: 110, greased: 160, pancaked: 130, headshot: 170,
+  charred: 95, fried: 85, melted: 110, greased: 160, pancaked: 130, headshot: 170, ceilinged: 600,
 };
 
 const FLOOR_Y = 550;
@@ -109,7 +110,7 @@ export const startEnemyDeath = (state: GameState, e: Enemy, kind: EnemyDeathKind
 export const updateEnemyDeaths = (state: GameState) => {
   state.enemyDeaths = state.enemyDeaths.filter(d => {
     // Killed in mid-air (an eagle burnt, fried or melted on the wing): it drops to the ground first, then plays out
-    if (d.kind !== 'greased' && d.kind !== 'headshot' && !d.landed && d.y + d.h < d.floorY - 1) {
+    if (d.kind !== 'greased' && d.kind !== 'headshot' && d.kind !== 'ceilinged' && !d.landed && d.y + d.h < d.floorY - 1) {
       d.vy = Math.min(14, Math.max(0, d.vy) + GRAVITY * 0.8);
       d.y = Math.min(d.floorY - d.h, d.y + d.vy);
       return d.y < d.floorY + 1000;
@@ -147,6 +148,10 @@ export const updateEnemyDeaths = (state: GameState) => {
         }
         break;
       case 'pancaked':
+        break;
+      case 'ceilinged':
+        // (dripping off the ceiling: a drop now and then, less as it goes)
+        if (d.t % Math.max(6, Math.round(12 + d.t / 25)) === 0) state.particles.push({ pos: { x: d.x + d.w / 2 + (Math.random() - 0.5) * d.w * 1.3, y: d.y + d.h + 5 }, vel: { x: 0, y: 1 }, life: 60, color: Math.random() < 0.5 ? '#7F1D1D' : '#991B1B', size: 2 + Math.random() * 2.5 });
         break;
       case 'headshot': {
         // The body: shot on the wing, it drops; on its feet, it stays stood there

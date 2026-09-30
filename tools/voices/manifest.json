@@ -151,6 +151,11 @@
  },
  {
   "voice": "announcer",
+  "text": "CEILING'D!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "CHARRED!",
   "from": "KILL_CALLOUTS"
  },
@@ -311,6 +316,11 @@
  },
  {
   "voice": "announcer",
+  "text": "GOING UP! STAYING UP!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "GONE!",
   "from": "KILL_CALLOUTS"
  },
@@ -362,6 +372,11 @@
  {
   "voice": "announcer",
   "text": "HE'S NOT GETTING UP!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "HIGH AS A KITE!",
   "from": "KILL_CALLOUTS"
  },
  {
@@ -847,6 +862,11 @@
  {
   "voice": "announcer",
   "text": "STRIKE!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "STUCK TO THE CEILING!",
   "from": "KILL_CALLOUTS"
  },
  {

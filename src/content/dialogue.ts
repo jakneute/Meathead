@@ -820,7 +820,9 @@ export type KillCallout =
   | 'swim' | 'bike'
   // The practice range's two, dropped with the handgun or his own body: the boxer (ring) and the balloon man (sky)
   | 'ring_gun' | 'ring_charge' | 'ring_slide' | 'ring_uppercut' | 'ring_divekick'
-  | 'sky_gun' | 'sky_charge' | 'sky_slide' | 'sky_uppercut' | 'sky_divekick';
+  | 'sky_gun' | 'sky_charge' | 'sky_slide' | 'sky_uppercut' | 'sky_divekick'
+  // An overdosed body going up into a ceiling (and staying there)
+  | 'ceiling';
 
 /** Callout text (one picked at random) and colour for each special kill. */
 export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string }> = {
@@ -872,6 +874,7 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
   sky_charge:    { lines: ["AIR MAIL!", "RETURN TO SENDER!", "SPIKED LIKE A VOLLEYBALL!", "OUT OF THE PARK!"], color: '#FF8C00' },
   sky_slide:     { lines: ["HOW?!", "SLID UNDER THE SKY!", "PHYSICS SAYS NO!"], color: '#FFD700' },
   sky_uppercut:  { lines: ["TO THE MOON!", "ORBIT ACHIEVED!", "HOUSTON, WE HAVE A PROBLEM!", "NEW ALTITUDE RECORD!"], color: '#00E5FF' },
+  ceiling:       { lines: ["STUCK TO THE CEILING!", "HIGH AS A KITE!", "GOING UP! STAYING UP!", "CEILING'D!"], color: '#E879F9' },
   sky_divekick:  { lines: ["GROUNDED!", "SPIKED!", "MEATEOR!", "CRASH LANDING!", "CLEARED FOR LANDING!"], color: '#FF0000' },
 };
 

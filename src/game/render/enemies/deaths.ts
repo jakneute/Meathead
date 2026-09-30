@@ -29,6 +29,16 @@ export const drawEnemyDeaths = (ctx: Ctx, state: GameState) => {
       case 'melted': drawMelted(ctx, d, state.frame, state); break;
       case 'greased': drawGreased(ctx, d, state.frame, state); break;
       case 'pancaked': drawPancaked(ctx, d, state); break;
+      case 'ceilinged': {
+        // The pancake, upside down on the underside of the ceiling (its feet line is the ceiling), strands hanging off it
+        const ceil = d.y + d.h;
+        ctx.save(); ctx.translate(0, 2 * ceil); ctx.scale(1, -1); drawPancaked(ctx, d, state); ctx.restore();
+        ctx.globalAlpha = fadeOut(d, 30);
+        ctx.strokeStyle = '#7F1D1D'; ctx.lineWidth = 2; ctx.beginPath();
+        for (let k = 0; k < 3; k++) { const sx = d.x + d.w / 2 + (k - 1) * d.w * 0.5, len = 6 + ((d.t * (0.3 + k * 0.17)) % 14); ctx.moveTo(sx, ceil + 4); ctx.lineTo(sx, ceil + 4 + len); }
+        ctx.stroke();
+        break;
+      }
       case 'headshot': drawHeadshot(ctx, d, state); break;
     }
     ctx.restore();
