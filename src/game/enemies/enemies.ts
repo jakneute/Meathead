@@ -492,11 +492,27 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
   if (e.behavior === 'shoot') settleAfterKnockback(e);
   // (the cops don't stand and shoot: they come at you and club you)
   if (isMeleeCop(e)) copMelee(ctx, e, onScreen);
+  // A little sense of self-preservation: nothing walks (or lunges) itself off into a pool of muck. Only he puts them in
+  if (wouldWalkIntoMuck(ctx, e)) e.vel.x = 0;
   // Oil on the ground: tar holds its feet (a crawl), a slick has it sliding about (slow to get going, slow to stop)
   const oil = groundOilUnder(state, e);
   if (oil === 'tar') { e.pos.x += e.vel.x * 0.35; e.oilSlide = e.vel.x * 0.35; }
   else if (oil === 'slick') { e.oilSlide = (e.oilSlide ?? 0) + (e.vel.x - (e.oilSlide ?? 0)) * 0.04; e.pos.x += e.oilSlide; }
   else { e.oilSlide = e.vel.x; e.pos.x += e.vel.x; }
+};
+
+/** What lives in the muck (in and out of it as it likes). */
+const MUCK_DWELLERS = new Set(['sludgeling', 'mutantfish', 'amalgam']);
+
+/** Its next step (at the speed it's going) is off the edge of the ground, down into a pool of muck. */
+const wouldWalkIntoMuck = (ctx: FrameContext, e: Enemy) => {
+  const waterAt = getStageLayout(ctx.stageId)?.waterBodyAt;
+  if (!waterAt || e.vel.x === 0 || MUCK_DWELLERS.has(e.kind ?? '')) return false;
+  const feet = e.pos.y + e.height;
+  const ax = e.pos.x + e.width / 2 + Math.sign(e.vel.x) * (e.width / 2 + Math.abs(e.vel.x) + 4);
+  const top = floorTopAt(ctx.state.blocks, ax, feet);
+  if (top !== null && top <= feet + 20) return false;
+  return waterAt(ctx.state, ax, (top ?? feet + 200) - 2)?.kind === 'muck';
 };
 
 /** Which of a stage's ground oil (Oscar's field) an enemy's stood in, if any. */
@@ -699,6 +715,8 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     }
     else if (player.isUppercutting) damage = (e.type === 'boss' ? BOSS_UPPERCUT_DAMAGE : ENEMY_UPPERCUT_DAMAGE);
     else if (player.isDivekicking) damage = (e.type === 'boss' ? BOSS_DIVEKICK_DAMAGE : ENEMY_DIVEKICK_DAMAGE);
+    // (the bike's bunny hop or slam into a lowrider: that's the car wrecked)
+    if (e.kind === 'lowrider' && (player.isUppercutting || player.isDivekicking)) damage = e.health;
 
     if (hasShield) {
       damage += FILTH_SHIELD_CONTACT_DAMAGE;

@@ -141,6 +141,13 @@ export const drawSewerGround = (ctx: Ctx, state: GameState) => {
       ctx.fillStyle = '#374151'; ctx.fillRect(l.x, l.y, l.w, 8);
       ctx.fillStyle = '#1F2937'; for (let x = l.x + 4; x < l.x + l.w; x += 7) ctx.fillRect(x, l.y + 1, 3, 6);
       ctx.fillStyle = '#4B5563'; ctx.fillRect(l.x + 6, l.y + 8, 5, 60); ctx.fillRect(l.x + l.w - 11, l.y + 8, 5, 60);
+    } else if (l.look === 'hangpipe') {
+      // Hung from the roof on two rods, brackets round it, a flange at each end
+      ctx.fillStyle = '#44403C'; ctx.fillRect(l.x + 16, WALK_Y - 340, 4, l.y - (WALK_Y - 340)); ctx.fillRect(l.x + l.w - 20, WALK_Y - 340, 4, l.y - (WALK_Y - 340));
+      ctx.fillStyle = '#5B4A3B'; ctx.fillRect(l.x, l.y, l.w, 16); ctx.fillStyle = '#6B584A'; ctx.fillRect(l.x, l.y, l.w, 5);
+      ctx.fillStyle = '#3F3228'; ctx.fillRect(l.x - 3, l.y - 2, 8, 20); ctx.fillRect(l.x + l.w - 5, l.y - 2, 8, 20);
+      ctx.fillStyle = '#57534E'; ctx.fillRect(l.x + 12, l.y + 3, 12, 14); ctx.fillRect(l.x + l.w - 24, l.y + 3, 12, 14);
+      ctx.fillStyle = 'rgba(77, 124, 15, 0.5)'; ctx.fillRect(l.x + l.w / 2, l.y + 16, 3, 8); // (a drip of the muck off it)
     } else if (l.look === 'pipe') {
       ctx.fillStyle = '#5B4A3B'; ctx.fillRect(l.x, l.y, l.w, 16); ctx.fillStyle = '#6B584A'; ctx.fillRect(l.x, l.y, l.w, 5);
       ctx.fillStyle = '#3F3228'; for (let x = l.x; x < l.x + l.w; x += 60) ctx.fillRect(x, l.y - 2, 10, 20);

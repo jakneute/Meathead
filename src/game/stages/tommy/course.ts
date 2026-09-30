@@ -32,7 +32,7 @@ export const CP = { HOOD: 0, BLOCK: 1, ROAD: 2, ROAD_MID: 3, SEWER: 4, SUIT: 5, 
 export interface Spawn { kind: EnemyKind; x: number; y: number; variant?: number }
 export interface PickupSpot { x: number; y: number; type: 'small_health' | 'large_health' | 'small_ammo' | 'large_ammo' }
 /** Something you jump up through and stand on: a porch, a grate over the muck, a pipe run. */
-export interface Ledge { x: number; y: number; w: number; look: 'porch' | 'grate' | 'pipe' | 'porchroof' | 'carroof' | 'pallet' }
+export interface Ledge { x: number; y: number; w: number; look: 'porch' | 'grate' | 'pipe' | 'hangpipe' | 'porchroof' | 'carroof' | 'pallet' }
 /** Something solid on the block to get up on or over: a dumpster, a burned-out car. */
 export interface Solid { x: number; y: number; w: number; h: number; look: 'dumpster' | 'wreck' }
 /**
@@ -215,8 +215,10 @@ const build = () => {
   s.ground(860, 1600); s.channel(1600, 1900); s.ledge(1720, Y - 6, 60, 'grate');
   s.ground(1900, 2700); s.channel(2700, 3200); s.ledge(2800, Y - 6, 70, 'grate'); s.ledge(3010, Y - 6, 70, 'grate');
   s.ground(3200, 4000); s.ledge(3680, Y - 130, 220, 'pipe');
-  s.channel(4000, 4150);
-  s.ground(4150, 4760);
+  // (wide past the manhole man, too wide to jump: a pipe hung from the roof over the middle of it to hop across on, high
+  // enough that anything he's shoved along the walkway goes under it and in, not across)
+  s.channel(4000, 4300); s.ledge(4095, Y - 92, 110, 'hangpipe');
+  s.ground(4300, 4760);
   // The flooded tunnel: the muck right up near its roof, pipes down from the roof to go under, grates up off the floor to go over
   s.channel(4760, 7200, TUNNEL_SURFACE, TUNNEL_FLOOR);
   s.bar(5150, 60, TUNNEL_ROOF, Y + 60); s.bar(5520, 50, Y + 95, TUNNEL_FLOOR); s.bar(5900, 60, TUNNEL_ROOF, Y + 70);
