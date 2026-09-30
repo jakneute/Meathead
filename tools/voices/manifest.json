@@ -5981,6 +5981,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ARMOR'S NOT ENOUGH, LITTLE GUY!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "ASCEND TO HELL",
   "from": "VULGARITIES"
  },
@@ -5991,8 +5996,63 @@
  },
  {
   "voice": "meathead",
+  "text": "BAA THIS, GOAT!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "BABY OIL'S FOR POSING. CRUDE OIL'S FOR YOUR FUNERAL.",
   "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK IN THE BIN, BANDIT!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK IN THE HOLE!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK IN THE LAVA, GECKO!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK IN THE SEWER, SNOT!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BACK IN YOUR HOT TUB, NEMO!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BAD DOG!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BAD LITTLE BADGER THING!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BADGE THIS!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BAKED POTATO!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BALD AND DEAD!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6003,6 +6063,26 @@
   "voice": "meathead",
   "text": "BARFED ON",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BEAK THIS!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BEEP BEEP, MOTHERFUCKER!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BIG MOUTH! DEAD MOUTH!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BIG PIMPIN'? BIG DYIN'!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6023,6 +6103,21 @@
   "voice": "meathead",
   "text": "BODY COMPACTED",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BOMB SQUAD'S DOWN A GUY!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BORN TO BE DEAD!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BOUNCE THIS!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6071,6 +6166,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BUGGED OUT!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "BULK SMASH",
   "from": "VULGARITIES"
  },
@@ -6093,6 +6193,11 @@
   "voice": "meathead",
   "text": "BULLETS WON'T GET INTO THAT CABINET. IT NEEDS A WHOLE LOT OF WATER.",
   "from": "game/stages/dale/junkie.ts:639"
+ },
+ {
+  "voice": "meathead",
+  "text": "BULLSHIT! AND DEAD!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6121,6 +6226,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BYE, BITCH!",
+  "from": "GENERIC_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "CACTUS! IN MY GLUTES! THERE'S A CACTUS IN MY GLUTES!",
   "from": "HAZARD_HURT"
  },
@@ -6128,6 +6238,11 @@
   "voice": "meathead",
   "text": "CAN'T HEAR YOU OVER MY CALVES.",
   "from": "game/stages/tommy/bike.ts:34"
+ },
+ {
+  "voice": "meathead",
+  "text": "CAR DOOR? CORPSE DOOR!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6141,8 +6256,18 @@
  },
  {
   "voice": "meathead",
+  "text": "CARTEL'S DOWN A GUY!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "CATABOLIC BITCH",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CATCH OF THE DAY!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6163,6 +6288,11 @@
   "voice": "meathead",
   "text": "CAUTION, MY ASS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "CAUTION! DEAD!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6188,6 +6318,11 @@
   "voice": "meathead",
   "text": "CHEAP PLASTIC DRONE SCRATCHED MY PUMP!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHECK THIS, HOCKEY BOY!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6236,8 +6371,28 @@
  },
  {
   "voice": "meathead",
+  "text": "CHILL OUT. PERMANENTLY.",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CIRCLE THIS, BIRDBRAIN!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "CLEANSED BY THE PUMP",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CLEANUP ON AISLE YOU!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CLOGGED!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6246,8 +6401,23 @@
  },
  {
   "voice": "meathead",
+  "text": "CLUB'S CLOSED, TINY!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "COFFEE ALL OVER MY PECS! TWO SUGARS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "COFFEE RUN'S CANCELED!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "COLD SHOULDER THIS!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6263,6 +6433,11 @@
   "voice": "meathead",
   "text": "CONGRATULATIONS, PLAYER. YOU DID THE ONE THING. I'M WEEPING.",
   "from": "game/stages/victor/doorman.ts:531"
+ },
+ {
+  "voice": "meathead",
+  "text": "CONTAIN THIS!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6296,6 +6471,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CRAB LEGS! ALL YOU CAN EAT!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "CRACKED YOUR JAW LIKE AN EGG",
   "from": "VULGARITIES"
  },
@@ -6318,6 +6498,11 @@
   "voice": "meathead",
   "text": "CRUDE OIL IS NOT SQUAT CHALK, FUCKER!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "CRUNCHY!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6366,8 +6551,23 @@
  },
  {
   "voice": "meathead",
+  "text": "DEFUSED!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DELIVERY'S LATE! FOREVER!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "DELTS OF DOOM",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DEPUTY DEAD!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6386,6 +6586,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DIET STARTS NEVER!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "DIRTY NEEDLE BITCH",
   "from": "VULGARITIES"
  },
@@ -6393,6 +6598,16 @@
   "voice": "meathead",
   "text": "DIRTY NEEDLE! KEEP YOUR TAINTED JUNK OFF ME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "DISPERSE, BITCH!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DISRUPT THIS!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6441,6 +6656,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DON'T MESS WITH ME, TEXAS!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "DON'T MESS WITH TEXAS, I GET IT!",
   "from": "HAZARD_HURT"
  },
@@ -6471,6 +6691,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DRIVE-BY? DIE-BY!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "DROPPED THE BAR ON MY NECK",
   "from": "VULGARITIES"
  },
@@ -6491,6 +6716,11 @@
  },
  {
   "voice": "meathead",
+  "text": "EASY RIDER? EASY KILL!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "EAT MY DELTS",
   "from": "VULGARITIES"
  },
@@ -6498,6 +6728,11 @@
   "voice": "meathead",
   "text": "EAT SHIT",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "EAT SHIT!",
+  "from": "GENERIC_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6541,6 +6776,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ENJOY YOUR STAY! IT'S PERMANENT!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "EVERYBODY'S ON BREAK TODAY.",
   "from": "game/stages/oscar/bar.ts:101"
  },
@@ -6551,8 +6791,23 @@
  },
  {
   "voice": "meathead",
+  "text": "EVICTED!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "EVOLUTION STOPS HERE!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "EXCUSE ME. SORRY. WRONG HOUSE.",
   "from": "game/stages/tommy/escape.ts:131"
+ },
+ {
+  "voice": "meathead",
+  "text": "EXPERIMENT FAILED!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6561,8 +6816,23 @@
  },
  {
   "voice": "meathead",
+  "text": "EXPOSURE! YOU GOT IT!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "EXTERMINATE THIS!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "EXTRA CRISPY TRASH",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "EXTRA! EXTRA! HE'S DEAD!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6591,6 +6861,16 @@
  },
  {
   "voice": "meathead",
+  "text": "FILE A COMPLAINT! OH WAIT!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FIN!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "FIRE FROM THE GROUND! WHO BUILT THIS PLACE?!",
   "from": "HAZARD_HURT"
  },
@@ -6608,6 +6888,11 @@
   "voice": "meathead",
   "text": "FIRST TIME FOR EVERYTHIIIIING!!!",
   "from": "game/stages/ernie/alcatraz.ts:107"
+ },
+ {
+  "voice": "meathead",
+  "text": "FISH FRY!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6651,6 +6936,16 @@
  },
  {
   "voice": "meathead",
+  "text": "FLUSHED!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FLY AWAY! OH, YOU CAN'T!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "FLYING RAT! GET OFF MY HEAD!",
   "from": "HAZARD_HURT"
  },
@@ -6658,6 +6953,11 @@
   "voice": "meathead",
   "text": "FORTY ONE. THE ELEVATOR HATES ME. EVERYTHING IN THIS CITY HATES ME.",
   "from": "game/stages/barry/runtime.ts:310"
+ },
+ {
+  "voice": "meathead",
+  "text": "FREEDOM ISN'T FREE, BUDDY!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6712,12 +7012,17 @@
  {
   "voice": "meathead",
   "text": "FUCK YEAH! LET'S GO!",
-  "from": "App.tsx:391"
+  "from": "App.tsx:392"
  },
  {
   "voice": "meathead",
   "text": "FUCK YOU",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FUCK YOU!",
+  "from": "GENERIC_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6746,6 +7051,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GANGSTER? GONE!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "GARBAGE",
   "from": "VULGARITIES"
  },
@@ -6763,6 +7073,11 @@
   "voice": "meathead",
   "text": "GEOLOGY SAYS YOU'RE A BITCH!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET A JOB! OH. TOO LATE.",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6798,6 +7113,11 @@
   "voice": "meathead",
   "text": "GET DOWN HERE AND FIGHT LIKE A MAN, FLYER!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET FUCKED!",
+  "from": "GENERIC_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -6986,8 +7306,18 @@
  },
  {
   "voice": "meathead",
+  "text": "GO BITE SOMEBODY'S ANKLES IN HELL!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "GO PUT OUT A FIRE, HOSE BOY!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GO SPY ON YOUR MOM!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -7006,6 +7336,16 @@
  },
  {
   "voice": "meathead",
+  "text": "GOLDEN PARACHUTE DIDN'T OPEN!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GOODBYE!",
+  "from": "GENERIC_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "GORED BY A LONGHORN! RIGHT IN THE GLUTES!",
   "from": "HAZARD_HURT"
  },
@@ -7013,6 +7353,11 @@
   "voice": "meathead",
   "text": "GOT HIT BY A ROAD SIGN! THE SIGN SAID OUCH!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GRACKLE CRACKLE!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -7036,8 +7381,23 @@
  },
  {
   "voice": "meathead",
+  "text": "GREATEST OF ALL TIME? NOT ANYMORE!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GROSS LITTLE BOOGER!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "GROSS! BIOHAZARD BILE ALL OVER MY CHEST, TOMMY!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GROSS! BUT DEAD!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -7071,8 +7431,23 @@
  },
  {
   "voice": "meathead",
+  "text": "HANG TEN FEET UNDER!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "HAVE A GOOD SLEEP",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HAWK DOWN!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HAZARDOUS WASTE! THAT'S YOU!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -7406,6 +7781,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HEADBUTT THAT, BILLY!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "HEADBUTTED BY A GOAT! IN MY OWN TERRITORY!",
   "from": "HAZARD_HURT"
  },
@@ -7431,6 +7811,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HELL'S ANGEL? GO HOME!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "HELL'S ANGEL? MORE LIKE HELL'S ASSHOLE!",
   "from": "HAZARD_HURT"
  },
@@ -7448,6 +7833,16 @@
   "voice": "meathead",
   "text": "HIDING BEHIND AN ICE CUBE, COWARD?",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIGH NOON! LOW YOU!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIGH SPEED CHASE! HIGH SPEED DEAD!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -7491,13 +7886,28 @@
  },
  {
   "voice": "meathead",
+  "text": "HOLD YOUR GUN STRAIGHT NEXT TIME!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "HOLDING IT SIDEWAYS DOESN'T MAKE IT HURT LESS!",
   "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
+  "text": "HOME RUN! INTO THE GROUND!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "HOSED DOWN WITH FLINT WATER! I'M GONNA GROW A THIRD EYE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOSTILE TAKEOVER!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -7518,6 +7928,11 @@
   "voice": "meathead",
   "text": "HOT FOOT! HOT FOOT! HOT FUCKING FOOT!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOT LIZARD, COLD CORPSE!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -7551,8 +7966,23 @@
  },
  {
   "voice": "meathead",
+  "text": "HUMAN RESOURCES? HUMAN REMAINS!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "HUMAN TORCH BITCH",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HYDRATE IN HELL!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HYPOTHESIS: YOU DIE! CONFIRMED!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -8046,6 +8476,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IGUANA? I GOT YA!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "IMAGINE BEING ORGANIC AND THIS WEAK.",
   "from": "VULGARITIES"
  },
@@ -8127,7 +8562,7 @@
  {
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
-  "from": "App.tsx:391"
+  "from": "App.tsx:392"
  },
  {
   "voice": "meathead",
@@ -8148,6 +8583,11 @@
   "voice": "meathead",
   "text": "JUICED UP AND DEAD",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "JUMP THE SHARK? KILLED THE SHARK!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -8196,13 +8636,33 @@
  },
  {
   "voice": "meathead",
+  "text": "LAB COAT! BODY BAG!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "LACKING SYMMETRY",
   "from": "VULGARITIES"
  },
  {
   "voice": "meathead",
+  "text": "LAID YOUR BIKE DOWN! AND YOU!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "LAST CALL.",
   "from": "game/stages/oscar/bar.ts:233"
+ },
+ {
+  "voice": "meathead",
+  "text": "LATER, ASSHOLE!",
+  "from": "GENERIC_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "LATER, GATOR!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -8227,12 +8687,17 @@
  {
   "voice": "meathead",
   "text": "LET'S FUCKING GO!",
-  "from": "App.tsx:391"
+  "from": "App.tsx:392"
  },
  {
   "voice": "meathead",
   "text": "LET'S GO HURT SOME WEAKLINGS!",
   "from": "components/IntroCutscene.tsx:26"
+ },
+ {
+  "voice": "meathead",
+  "text": "LICENSE AND REGISTRATION? DEAD!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -8243,6 +8708,11 @@
   "voice": "meathead",
   "text": "LIQUIFIED LOSER",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "LITTLE DRAGON DOWN!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -8261,6 +8731,16 @@
  },
  {
   "voice": "meathead",
+  "text": "LOW ENOUGH NOW?!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MACHETE THIS!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "MACHETE TO THE MIDSECTION! MY ABS! MY PRECIOUS ABS!",
   "from": "HAZARD_HURT"
  },
@@ -8268,6 +8748,11 @@
   "voice": "meathead",
   "text": "MAKE ME DO WHAT HE DOES, WHEN HE DOES IT! NOT A JUMP!",
   "from": "game/stages/victor/doorman.ts:531"
+ },
+ {
+  "voice": "meathead",
+  "text": "MALL COP! DEAD COP!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -8311,6 +8796,16 @@
  },
  {
   "voice": "meathead",
+  "text": "MINE THIS!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MISSED YOUR TRAIN!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "MOIST MOTHERFUCKER",
   "from": "VULGARITIES"
  },
@@ -8318,6 +8813,11 @@
   "voice": "meathead",
   "text": "MOLTEN ROCK TO THE FACE! MY PORES!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MOP THAT UP!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -8343,6 +8843,11 @@
   "voice": "meathead",
   "text": "MOVE OR DIE FUCKFACE",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MUG THIS!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -8521,6 +9026,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NARCO? NAR-GONE!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "NATURE'S DUMBBELL",
   "from": "VULGARITIES"
  },
@@ -8541,13 +9051,78 @@
  },
  {
   "voice": "meathead",
+  "text": "NERD DOWN!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEW BELT!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEW BOOTS!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEXT!",
+  "from": "GENERIC_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE BAT! NOW IT'S MINE! KIDDING!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "NICE BIKE. I'M TAKING IT.",
   "from": "game/stages/tommy/bike.ts:169"
  },
  {
   "voice": "meathead",
+  "text": "NICE CHAIN! NICE COFFIN!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "NICE DESK, CHUCO! REAL WOOD? BE A SHAME IF IT CAUGHT FIRE!",
   "from": "game/stages/dale/junkie.ts:719"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE DOOR! KNOCK KNOCK! DEAD!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE HAT! I'LL TAKE IT! NO I WON'T!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE HORNS! MINE NOW!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE HYDRAULICS! BOUNCE ON THIS!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE ICE CUBE! ENJOY THE AFTERLIFE!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE PARKA. SHAME ABOUT THE GUY IN IT.",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE SHIELD! GREAT! DEAD!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -8561,13 +9136,53 @@
  },
  {
   "voice": "meathead",
+  "text": "NIGHT NIGHT!",
+  "from": "GENERIC_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "NIGHTSTICK TO THE NECK! I'M NOT EVEN RESISTING!",
   "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
+  "text": "NO CHARGE!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "NO DEPTH ON THAT SQUAT",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO FLY ZONE!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO FRIES FOR YOU!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO MORE CHOPPING FOR YOU!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO MORE GARBAGE FOR YOU!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO MORE SQUAWKING!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO REFUNDS!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -8578,6 +9193,16 @@
   "voice": "meathead",
   "text": "NO ROOM IN MY LANE",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO TEETH? NO PROBLEM! NO LIFE!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO WAKE ZONE, ASSHOLE!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -8603,6 +9228,11 @@
   "voice": "meathead",
   "text": "NOT FROM DOWN HERE. I'VE GOT TO GET UP THERE.",
   "from": "game/stages/dale/town.ts:492"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT SO TOUGH WITHOUT THE CLAWS, HUH?",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -8661,8 +9291,13 @@
  },
  {
   "voice": "meathead",
+  "text": "OFF THE CLOCK! FOREVER!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "OH HELL YEAH!",
-  "from": "App.tsx:391"
+  "from": "App.tsx:392"
  },
  {
   "voice": "meathead",
@@ -8728,6 +9363,11 @@
   "voice": "meathead",
   "text": "OKAY. SUIT. NOW WHAT?",
   "from": "game/stages/tommy/escape.ts:84"
+ },
+ {
+  "voice": "meathead",
+  "text": "ONE TEQUILA, TWO TEQUILA, NO MORE!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -8851,6 +9491,11 @@
  },
  {
   "voice": "meathead",
+  "text": "PEER REVIEW THIS!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "PFFT. IT'S A PUDDLE.",
   "from": "game/stages/tommy/bike.ts:475"
  },
@@ -8861,8 +9506,23 @@
  },
  {
   "voice": "meathead",
+  "text": "PICK ON SOMEBODY YOUR OWN SIZE! OH WAIT.",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "PIECE OF TRASH",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PIMP HAND WEAK!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PINCH THIS!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -8876,8 +9536,23 @@
  },
  {
   "voice": "meathead",
+  "text": "PIVOT TO BEING DEAD!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PIZZA RAT'S DONE EATING!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "PLATES TO THE FACE",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PLUMB THIS!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -8891,6 +9566,11 @@
  },
  {
   "voice": "meathead",
+  "text": "POPPED LIKE A ZIT!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "POTHOLE! MY TAILBONE!",
   "from": "HAZARD_HURT"
  },
@@ -8901,8 +9581,18 @@
  },
  {
   "voice": "meathead",
+  "text": "PROTEST THIS!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "PUKING ON ME WON'T SAVE YOUR LIFE, YOU FILTHY PIG!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "PULL OVER THIS!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -8941,6 +9631,11 @@
  },
  {
   "voice": "meathead",
+  "text": "PUT THAT IN YOUR POUCH!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "PUT THE MACHETE DOWN AND FIGHT LIKE A MAN!",
   "from": "HAZARD_HURT"
  },
@@ -8971,8 +9666,33 @@
  },
  {
   "voice": "meathead",
+  "text": "RANGER'S RETIRED!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RAT RACE OVER!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "RATS! NEW YORK RATS! THEY'RE BIGGER THAN MY CALVES!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "RATTLE THIS!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "READ ALL ABOUT IT!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "READ ME MY RIGHTS NOW, PIG!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -8983,6 +9703,21 @@
   "voice": "meathead",
   "text": "RED DOT! THEN PAIN! EVERY TIME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "RENT-A-COP'S LEASE IS UP!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RENT'S DUE!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RESISTING ARREST? YEAH, I AM!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -8998,6 +9733,11 @@
   "voice": "meathead",
   "text": "RIDE THE LIGHTNING",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RIDE THIS!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9031,13 +9771,33 @@
  },
  {
   "voice": "meathead",
+  "text": "RING YOUR LITTLE BELL IN HELL!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "RIOT SHIELD TO THE FACE! I'M NOT RIOTING!",
   "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
+  "text": "RIOT'S OVER, OFFICER!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "ROAD CLOSED, THEY SAID. I DIDN'T LISTEN.",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROADKILL! TEXAS STYLE!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROADRUNNER SAYS HI!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9053,6 +9813,11 @@
   "voice": "meathead",
   "text": "ROIDS ARE KICKING IN",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROLL THIS, TANK!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9081,6 +9846,11 @@
  },
  {
   "voice": "meathead",
+  "text": "RUSH HOUR'S OVER, PAL!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "RUSTED OUT COWARD",
   "from": "VULGARITIES"
  },
@@ -9093,6 +9863,11 @@
   "voice": "meathead",
   "text": "RUSTY NEEDLE NAPTIME",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SALAMANDER SALAD!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9121,13 +9896,28 @@
  },
  {
   "voice": "meathead",
+  "text": "SCIENCE! BITCH!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SCREECH ALL YOU WANT, YOU FEATHERED SHIV!",
   "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
+  "text": "SECURITY BREACH!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SECURITY! THAT'S NOT HOW YOU CHECK A BADGE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SEE YOU NEVER, CROCODILE!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9153,6 +9943,11 @@
   "voice": "meathead",
   "text": "SHARK BITE! IN THE SKY! WHY!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHARK WEEK'S CANCELED!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9206,6 +10001,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SHIELD'S NICE! YOU'RE NOT!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SHIT",
   "from": "VULGARITIES"
  },
@@ -9228,6 +10028,11 @@
   "voice": "meathead",
   "text": "SHOOTING THE DESK? IT'S A DESK. IT NEEDS SOMETHING HOTTER.",
   "from": "game/stages/dale/junkie.ts:639"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOPPING CART'S EMPTY NOW!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9281,6 +10086,21 @@
  },
  {
   "voice": "meathead",
+  "text": "SHOULD'VE CALLED THE SHERIFF!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOULD'VE JUMPED THE OTHER WAY!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOULD'VE STAYED ON THE DOLLAR BILL!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SHOULDER FIRST INTO A SWITCHBLADE! GENIUS MOVE, MEATHEAD!",
   "from": "HAZARD_HURT"
  },
@@ -9311,13 +10131,38 @@
  },
  {
   "voice": "meathead",
+  "text": "SHUT UP, PARKING LOT BIRD!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP, SEAGULL!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SICK RIDE, RIGHT? IT'S VINTAGE.",
   "from": "game/stages/ernie/jetski.ts:127"
  },
  {
   "voice": "meathead",
+  "text": "SIDE EFFECTS INCLUDE ME!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SIDEWAYS INTO THE GRAVE!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SIGN FOR THIS, HUH? SIGN FOR THIS?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SIGN FOR THIS!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9328,6 +10173,16 @@
   "voice": "meathead",
   "text": "SIT DOWN AND DIE",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SIT DOWN!",
+  "from": "GENERIC_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SIT! STAY! FOREVER!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9343,6 +10198,16 @@
   "voice": "meathead",
   "text": "SKY HIGH TRASH",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SLEEP WITH THE CACTI!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SLICE AND DIE!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9396,6 +10261,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SNAKE EYES!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SNIPER FIRST. THEN THE DRUGS.",
   "from": "game/stages/dale/town.ts:270"
  },
@@ -9418,6 +10288,11 @@
   "voice": "meathead",
   "text": "SOAKED AND SMASHED",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOCKS AND SANDALS? GROSS! AND DEAD!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9461,6 +10336,16 @@
  },
  {
   "voice": "meathead",
+  "text": "SORRY, BUDDY! IT'S FOR SCIENCE!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SPARE THIS!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SPICY DEATH",
   "from": "VULGARITIES"
  },
@@ -9476,8 +10361,28 @@
  },
  {
   "voice": "meathead",
+  "text": "SPORTS SECTION! YOU LOST!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SPOTLESS! EXCEPT FOR YOU!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SPRING BREAK'S OVER!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SQUASHED LIKE A BUG",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SQUEAK THIS!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9493,6 +10398,11 @@
   "voice": "meathead",
   "text": "STAY DOWN, KID. THAT'S WHAT THE MONEY'S FOR.",
   "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STAY DOWN!",
+  "from": "GENERIC_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9516,6 +10426,11 @@
  },
  {
   "voice": "meathead",
+  "text": "STEAK DINNER!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "STEAMING HOT MAGMA BURNS, SON OF A BITCH!",
   "from": "HAZARD_HURT"
  },
@@ -9523,6 +10438,11 @@
   "voice": "meathead",
   "text": "STERILE BITCH",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STING THIS!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9568,6 +10488,11 @@
   "voice": "meathead",
   "text": "STOP DOSING MY GAINS, DALE!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "STOP FALLING OUT OF TREES!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9651,6 +10576,11 @@
  },
  {
   "voice": "meathead",
+  "text": "STOP THROWING YOUR KITCHEN AT ME!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "STOP TOUCHING THE MERCHANDISE",
   "from": "VULGARITIES"
  },
@@ -9661,6 +10591,21 @@
  },
  {
   "voice": "meathead",
+  "text": "STOP, DROP, AND DIE!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STREAK FREE!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STRIKE THREE! YOU'RE OUT!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "STRUCK BY LIGHTNING! I CAN TASTE COLORS!",
   "from": "HAZARD_HURT"
  },
@@ -9668,6 +10613,16 @@
   "voice": "meathead",
   "text": "SUB-ZERO IQ",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SUIT DIDN'T HELP, HUH?",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SURF'S DOWN, DUDE!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9713,6 +10668,11 @@
   "voice": "meathead",
   "text": "TAKE A FLIGHT ON PURE ROID POWER",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TALON THIS!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9808,6 +10768,11 @@
   "voice": "meathead",
   "text": "THAT OLD GAS LINE ON THE WALL LOOKS REAL THIN...",
   "from": "game/stages/oscar/bunker.ts:240"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT PURSE HAD A BRICK IN IT!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10141,6 +11106,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THIS MEETING COULD'VE BEEN AN EMAIL!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "THIS WHOLE TOWN SMELLS LIKE PENNIES.",
   "from": "game/stages/tommy/bike.ts:36"
  },
@@ -10153,6 +11123,11 @@
   "voice": "meathead",
   "text": "THREE BIG HUMMING BOXES. GOT IT.",
   "from": "game/stages/barry/power.ts:60"
+ },
+ {
+  "voice": "meathead",
+  "text": "THREE EYES AND NONE OF 'EM SAW THAT COMING!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10186,6 +11161,16 @@
  },
  {
   "voice": "meathead",
+  "text": "TINFOIL DIDN'T HELP, HUH?",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TINY BUG! TINY GRAVE!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "TINY LOBSTER FROM HELL! GET OFF ME!",
   "from": "HAZARD_HURT"
  },
@@ -10198,6 +11183,16 @@
   "voice": "meathead",
   "text": "TOASTED GAINS",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOO EASY!",
+  "from": "GENERIC_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOO MANY EYES! TOO FEW BRAINS!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10231,6 +11226,16 @@
  },
  {
   "voice": "meathead",
+  "text": "TOTALED!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOTALLY WIPED OUT, BRAH!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "TOXIC SPRAY IN MY PORES!",
   "from": "HAZARD_HURT"
  },
@@ -10261,6 +11266,26 @@
  },
  {
   "voice": "meathead",
+  "text": "TRASH PANDA'S IN THE TRASH NOW!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TRIAL'S OVER!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TRUCK YOU!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TRY STABBING NOW!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "TSUNAMI OF PAIN",
   "from": "VULGARITIES"
  },
@@ -10268,6 +11293,11 @@
   "voice": "meathead",
   "text": "TWENTY THREE?! I PRESSED THE TOP ONE!",
   "from": "game/stages/barry/runtime.ts:310"
+ },
+ {
+  "voice": "meathead",
+  "text": "TWO MINUTES IN THE BOX! FOREVER!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10291,6 +11321,16 @@
  },
  {
   "voice": "meathead",
+  "text": "UNINSTALLED!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "UNION BUSTED!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "UNION RULES.",
   "from": "game/stages/oscar/bunker.ts:268"
  },
@@ -10298,6 +11338,11 @@
   "voice": "meathead",
   "text": "UNLIMITED... PROTEIN?",
   "from": "components/IntroCutscene.tsx:26"
+ },
+ {
+  "voice": "meathead",
+  "text": "UNPAID AND UNALIVE!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10343,6 +11388,11 @@
   "voice": "meathead",
   "text": "WAIT WAIT WAIT",
   "from": "game/stages/dale/convoy.ts:389"
+ },
+ {
+  "voice": "meathead",
+  "text": "WALLET'S STAYING IN MY PANTS!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10416,6 +11466,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WET FLOOR! YOUR BLOOD!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "WHAT ARE THEY FEEDING THIS GUY?! I WANT SOME!",
   "from": "HAZARD_HURT"
  },
@@ -10443,6 +11498,16 @@
   "voice": "meathead",
   "text": "WHEN WE LOCK UP, MASH! MASH LIKE MY PROTEIN DEPENDS ON IT!",
   "from": "game/stages/victor/doorman.ts:531"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHERE'S THE FIRE? OH, IT'S YOU!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHERE'S YOUR ANVIL NOW?!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10531,6 +11596,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHO'S A DEAD BOY?!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "WHO'S DUMPING THEIR PACKAGES IN THE WATER?!",
   "from": "HAZARD_HURT"
  },
@@ -10541,8 +11611,23 @@
  },
  {
   "voice": "meathead",
+  "text": "WHO'S NEXT?!",
+  "from": "GENERIC_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "WHO'S THE ASTRONAUT?",
   "from": "game/stages/tommy/bike.ts:449"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO'S THE CARCASS NOW?!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO'S THE PEST NOW?!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10586,6 +11671,16 @@
  },
  {
   "voice": "meathead",
+  "text": "WIPEOUT, BRO!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WORKING GIRL? SHE'S RETIRED!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "WORTH IT.",
   "from": "game/stages/barry/power.ts:236"
  },
@@ -10601,6 +11696,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WRAPPED AND READY TO SERVE!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "WRONG MOVE AND HE FOLDS ME LIKE A LAWN CHAIR! MATCH HIM, DUMMY!",
   "from": "game/stages/victor/doorman.ts:531"
  },
@@ -10608,6 +11708,11 @@
   "voice": "meathead",
   "text": "YEAH, OKAY.",
   "from": "game/stages/tommy/thing.ts:157"
+ },
+ {
+  "voice": "meathead",
+  "text": "YEAH! THAT'S RIGHT!",
+  "from": "GENERIC_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10678,6 +11783,11 @@
   "voice": "meathead",
   "text": "YOU DROVE AN 18-WHEELER INTO MY DELTS, BASTARD!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU HAVE THE RIGHT TO REMAIN DEAD!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10766,8 +11876,18 @@
  },
  {
   "voice": "meathead",
+  "text": "YOU'RE DONE!",
+  "from": "GENERIC_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "YOU'RE DRAINING MY BATTERY, LIGHTBULB HEAD!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'RE FIRED!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10783,6 +11903,11 @@
   "voice": "meathead",
   "text": "YOU'RE NOT GETTING ME OUT OF THIS CLUB, CHAINS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'RE NOT ON MY LIST EITHER!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10826,8 +11951,33 @@
  },
  {
   "voice": "meathead",
+  "text": "YOUR FREEZE RAY'S MINE NOW! JUST KIDDING. IT'S GARBAGE.",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "YOUR GREASE IS AN AFFRONT TO MY GAINS!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR SHIELD WAS WATER, IDIOT!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR SIGN SPELLED IT WRONG!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR STARTUP JUST SHUT DOWN!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR STOP!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",

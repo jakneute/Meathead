@@ -1,7 +1,7 @@
 import { Vector2, PickupType, VulgarityType, Enemy } from '../../types';
 import {
   PARTICLE_PALETTES, BOULDER_SHRAPNEL_DAMAGE, VULGARITY_TEXT_DURATION, VOICE_LINE_COOLDOWN_FRAMES, SPOKEN_TEXT_HOLD, SPOKEN_TEXT_LINGER, isRangeStage } from '../../constants';
-import { VULGARITIES, BOSS_DIALOGUE, KILL_LINES, KILL_CALLOUTS, KillCallout } from '../../content/dialogue';
+import { VULGARITIES, BOSS_DIALOGUE, KILL_LINES, KILL_CALLOUTS, KillCallout, ENEMY_KILL_LINES, GENERIC_KILL_LINES } from '../../content/dialogue';
 import { GameState } from './state';
 import { playSound, playGlassShatterSound } from '../platform/audio';
 import { say, isSpeaking, isTalking, canSpeak, pickFreshLine, announce, MEATHEAD_VOICE, announcerJustSpoke, silenceAll } from '../platform/speech';
@@ -169,18 +169,45 @@ export const createFx = (state: GameState) => {
     return VULGARITIES.HURT;
   };
 
+  /** Who was just killed (the kind of him): the first body this frame that nobody's said anything over yet. */
+  const noted = new WeakSet<Enemy>();
+  const victimOf = (): string | undefined => {
+    const e = state.enemies.find(x => (x.health <= 0 || x.isBlownAway) && !noted.has(x));
+    if (!e) return undefined;
+    noted.add(e);
+    return e.kind;
+  };
+
+  /**
+   * What he says over a kill: sometimes about who it was (if he's got anything for them), sometimes about how (the
+   * weapon's lines), sometimes nothing in particular ("FUCK YOU!"). Whichever's picked, if it's all been said lately,
+   * one of the others.
+   */
+  const killLine = (category: VulgarityType, victim?: string): string | null => {
+    const who = victim ? ENEMY_KILL_LINES[victim] : undefined;
+    const how = KILL_LINES[category as Exclude<VulgarityType, 'hurt'>];
+    // (the practice range's two have their own, and that's all)
+    if (category === 'range_boxer_kill' || category === 'range_balloon_kill') return pickFreshLine(how);
+    const r = Math.random();
+    const order = who
+      ? (r < 0.45 ? [who, how, GENERIC_KILL_LINES] : r < 0.65 ? [GENERIC_KILL_LINES, who, how] : [how, who, GENERIC_KILL_LINES])
+      : (r < 0.25 ? [GENERIC_KILL_LINES, how] : [how, GENERIC_KILL_LINES]);
+    for (const pool of order) { const t = pickFreshLine(pool); if (t) return t; }
+    return null;
+  };
+
   /**
    * Meathead shouts a line. Death always interrupts; otherwise a new line
    * never talks over one that is still playing, and respects cooldowns.
    */
-  const speakVulgarity = (category: VulgarityType, hurtSource?: string, held = false): boolean => {
+  const speakVulgarity = (category: VulgarityType, hurtSource?: string, held = false, victim?: string): boolean => {
     // (what hurt him, for the death screen: whether or not he says anything about it)
     if (category === 'hurt' && hurtSource) state.lastHurt = { source: hurtSource, at: state.frame };
     // A kill: who gets it (Meathead or the announcer) is settled next frame, with the callout, if any, in hand
     const kill = category !== 'hurt' && category !== 'death';
     if (kill && !held) {
       const kv = (state.killVoice ??= {});
-      if (!kv.forced && !kv.handed) kv.quip = { category, at: state.frame };
+      if (!kv.forced && !kv.handed) kv.quip = { category, at: state.frame, kind: victimOf() };
       return false;
     }
     if (category !== 'death') {
@@ -192,7 +219,7 @@ export const createFx = (state: GameState) => {
     // (a big kill the announcer's calling: he keeps quiet for it)
     if (kill && (state.killVoice?.forced || state.killVoice?.handed)) return false;
     // Skip entirely if every line in the pool was said recently
-    const text = pickFreshLine(category === 'hurt' ? getHurtLines(hurtSource) : KILL_LINES[category]);
+    const text = category === 'hurt' ? pickFreshLine(getHurtLines(hurtSource)) : kill ? killLine(category, victim) : pickFreshLine(KILL_LINES[category]);
     if (!text) return false;
 
     // Dying cuts off whoever's talking; anything else only speaks up when it's quiet.
@@ -255,12 +282,12 @@ export const createFx = (state: GameState) => {
     // A kill with a callout: one of them says something. Usually Meathead; sometimes the announcer (and the announcer
     // for sure, near enough, when Meathead's got nothing to say right now: his lines on cooldown, used up, someone talking)
     if (c) {
-      if (q && Math.random() >= ANNOUNCER_TAKES && speakVulgarity(q.category, undefined, true)) return;
+      if (q && Math.random() >= ANNOUNCER_TAKES && speakVulgarity(q.category, undefined, true, q.kind)) return;
       if (q || Math.random() < ANNOUNCER_WHEN_QUIET) kv.handed = { text: c.text, at: state.frame };
       return;
     }
     // A kill with no callout: it's his (if he's got something to say)
-    if (q) speakVulgarity(q.category, undefined, true);
+    if (q) speakVulgarity(q.category, undefined, true, q.kind);
   };
 
   /** A big one (a mid-boss down, a set piece): the announcer calls it, always, and Meathead leaves it to him. */
