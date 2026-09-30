@@ -22,8 +22,8 @@ const agent = (text: string, where: 'gym' | 'briefing' = 'gym'): Panel =>
   ({ draw: (c, t, talk) => drawAgent(c, t, talk, where), speaker: AGENT, voice: AGENT_VOICE, text });
 const slide = (s: Parameters<typeof drawBriefing>[3], text: string): Panel =>
   ({ draw: (c, t, talk) => drawBriefing(c, t, talk, s), speaker: AGENT, voice: AGENT_VOICE, text });
-const meathead = (mood: 'dumb' | 'disgust' | 'think' | 'stoked', text: string, bg = gym, hold?: number): Panel =>
-  ({ draw: (c, t, talk) => drawMeatheadCloseUp(c, t, talk, mood, { bg, medal: false }), speaker: 'MEATHEAD', voice: text === '...' ? undefined : MEATHEAD_VOICE, text, hold });
+const meathead = (mood: 'dumb' | 'disgust' | 'think' | 'stoked', text: string, bg = gym, hold?: number, pose?: 'flex' | 'gun'): Panel =>
+  ({ draw: (c, t, talk) => drawMeatheadCloseUp(c, t, talk, mood, { bg, medal: false, pose }), speaker: 'MEATHEAD', voice: text === '...' ? undefined : MEATHEAD_VOICE, text, hold });
 
 const PANELS: Panel[] = [
   { draw: (c, t) => drawGym(c, t), text: "THE IRON PIT. 5 A.M.\nMEATHEAD'S FOURTH HOUR OF CHEST DAY.", hold: 80 },
@@ -46,6 +46,13 @@ const PANELS: Panel[] = [
   slide('drop', "We don't do that kind of thing. You do. Planes, choppers, cargo drops: unlimited resources to put you wherever you need to be."),
   meathead('think', 'UNLIMITED... PROTEIN?', briefing),
   agent('...Unlimited resources.', 'briefing'),
+  // The armory: he won't need it. He's got his guns. And a gun.
+  agent('And the armory. Rocket launchers, flamethrowers, anything you want. Take your pick.', 'briefing'),
+  meathead('dumb', "WEAPONS? NAH. I DON'T NEED WEAPONS.", briefing),
+  meathead('stoked', 'I ONLY NEED MY GUNS.', briefing, undefined, 'flex'),
+  meathead('think', '...', briefing, 50, 'flex'),
+  meathead('stoked', '...AND THIS.', briefing, undefined, 'gun'),
+  agent('...Noted.', 'briefing'),
   meathead('stoked', "LET'S GO HURT SOME WEAKLINGS!", briefing),
   { draw: (c, t) => drawFirstFour(c, t), text: '' },
 ];

@@ -497,7 +497,7 @@ export const drawBelly = (ctx: Ctx, t: number) => {
  * Meathead up close. Moods: dumb, disgust; think (eyes rolled up and off to the side, mouth screwed up), stoked (eyes
  * wide, sparkling, a huge grin). Where he is (the press room's curtain by default) and whether he's got the medal on.
  */
-export const drawMeatheadCloseUp = (ctx: Ctx, t: number, talking: boolean, mood: 'dumb' | 'disgust' | 'think' | 'stoked', where: { bg?: (ctx: Ctx) => void; medal?: boolean } = {}) => {
+export const drawMeatheadCloseUp = (ctx: Ctx, t: number, talking: boolean, mood: 'dumb' | 'disgust' | 'think' | 'stoked', where: { bg?: (ctx: Ctx) => void; medal?: boolean; pose?: 'flex' | 'gun' } = {}) => {
   if (where.bg) where.bg(ctx); else curtain(ctx, ART_H);
   // Traps and shoulders
   ell(ctx, 128, 150, 130, 34, C.mSkin);
@@ -590,6 +590,56 @@ export const drawMeatheadCloseUp = (ctx: Ctx, t: number, talking: boolean, mood:
   }
   // Square jaw line
   R(ctx, 90, 96, 76, 2, C.mSkinShade);
+  if (where.pose === 'flex') drawDoubleBiceps(ctx, t);
+  if (where.pose === 'gun') drawHandgunUp(ctx, t);
+};
+
+/** Both arms up either side of his head, biceps like boulders: his guns. */
+const drawDoubleBiceps = (ctx: Ctx, t: number) => {
+  const pump = t % 20 < 10 ? 1 : 0;
+  for (const s of [-1, 1]) {
+    const x = s < 0 ? 46 : 210;          // the bicep's middle
+    const ex = x + s * 22;               // the elbow, out at the side
+    // Upper arm out from the shoulder to the elbow
+    R(ctx, Math.min(x, ex) - 14, 100, 50, 22, C.mSkin);
+    // Forearm straight up from the elbow, the fist up by his ear
+    R(ctx, ex - 9, 30, 18, 76, C.mSkin);
+    R(ctx, ex + (s < 0 ? -9 : 5), 30, 4, 76, C.mSkinShade);
+    ell(ctx, ex, 28, 12, 11, C.mSkin);
+    for (let k = 0; k < 3; k++) R(ctx, ex - 8 + k * 6, 21, 4, 3, C.mSkinShade);
+    R(ctx, ex - 10, 44, 20, 6, C.ink); for (let k = 0; k < 4; k++) R(ctx, ex - 8 + k * 5, 42, 2, 2, C.lightGray);
+    // The bicep, peaked up off the upper arm in the crook of it, pumping
+    ell(ctx, x, 90 - pump, 25 + pump, 21 + pump, C.mSkin);
+    ell(ctx, x - s * 4, 82 - pump, 13, 9, C.mSkinLight);
+    R(ctx, x + s * 14, 76, 3, 26, C.mSkinShade); // the crease where it meets the forearm
+    R(ctx, x - s * 6, 86, 2, 14, C.vein); R(ctx, x - s * 8, 82, 3, 2, C.vein);
+  }
+  // Pump lines
+  if (t % 20 < 10) for (const [x, y] of [[4, 60], [4, 80], [250, 60], [250, 80]]) R(ctx, x, y, 5, 2, C.gold);
+};
+
+/** His hand coming up by his face with the handgun in it, held up and sideways, a gleam running along the slide. */
+const drawHandgunUp = (ctx: Ctx, t: number) => {
+  const rise = Math.max(0, 14 - t * 2);
+  const y = 50 + rise;
+  // Forearm up from below the frame
+  R(ctx, 196, y + 30, 22, 80, C.mSkin); R(ctx, 212, y + 30, 6, 80, C.mSkinShade);
+  R(ctx, 194, y + 60, 26, 7, C.ink); for (let k = 0; k < 5; k++) R(ctx, 196 + k * 5, y + 58, 2, 2, C.lightGray);
+  // The pistol: barrel pointing up, the grip in his fist
+  R(ctx, 200, y - 36, 14, 50, C.darkGray);        // slide
+  R(ctx, 200, y - 36, 14, 3, C.gray);
+  R(ctx, 202, y - 40, 4, 4, C.darkGray);           // front sight
+  for (let k = 0; k < 5; k++) R(ctx, 211, y - 2 + k * 3, 3, 1, C.ink); // serrations
+  R(ctx, 196, y + 10, 22, 16, C.ink);              // frame
+  R(ctx, 214, y + 12, 8, 6, C.ink);                // trigger guard
+  // His fist round the grip
+  ell(ctx, 206, y + 26, 15, 12, C.mSkin);
+  for (let k = 0; k < 3; k++) R(ctx, 194 + k * 7, y + 20, 5, 3, C.mSkinShade);
+  R(ctx, 212, y + 14, 8, 6, C.mSkin);              // his trigger finger along the frame
+  // The gleam running up the slide, and a sparkle off the top
+  const g = (t * 3) % 60;
+  if (g < 44) R(ctx, 202, y + 10 - g, 3, 6, C.white);
+  if (t % 30 < 12) { R(ctx, 206, y - 50, 2, 8, C.white); R(ctx, 203, y - 47, 8, 2, C.white); }
 };
 
 /** The punch lands: fist into face against a burst of speed rays. */
