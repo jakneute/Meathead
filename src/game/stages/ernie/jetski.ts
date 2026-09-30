@@ -11,7 +11,9 @@
 // take a drone out of the sky, and down + special in the air drives him down on
 // top of a jet ski to crush it.
 //
-// At the end: a ramp, and up and away...
+// At the end: a ramp, and up and away... and one of the goons behind him goes
+// right off it after him: the hipster, on his standby jet ski (see doorCrash.ts
+// for where he comes down).
 
 import type { Enemy, EnemyKind } from '../../../types';
 import type { FrameContext } from '../../core/context';
@@ -55,6 +57,9 @@ export interface JetSki {
   /** The ramp at the end (world x), and when he left it. */
   rampX: number;
   launchT: number;
+  /** The hipster, back on his standby jet ski, flat out behind him, who goes off the ramp after him; and Meathead's word on that. */
+  chaser: { x: number; y: number; vx: number; vy: number; rot: number; state: 'off' | 'riding' | 'flying' | 'gone'; at: number };
+  chaserLine: 'no' | 'said' | 'done';
 }
 
 /** How long the run lasts. */
@@ -100,6 +105,7 @@ export const createJetSki = (state: GameState, startedAt: number): JetSki => {
     hipster: { x: B.ski, y: B.water, vx: 0, vy: 0, rot: 0, state: onSki || past ? 'swimming' : 'sitting', line: '', lineT: 0 },
     line: '', lineT: 0, arrived: false, step: 0, stepAt: 0, talk: null, wrecks: [], wreckTimer: 500, spawned: 0, hint: '', hintT: 0, hinted: new Set(),
     rampX: 0, launchT: 0,
+    chaser: { x: 0, y: 0, vx: 0, vy: 0, rot: 0, state: 'off', at: 0 }, chaserLine: 'no',
   };
   if (!past && !onSki) {
     // (no going in the water till you've got something to ride)
@@ -134,10 +140,6 @@ const talkOver = (js: JetSki) => {
   const over = age > 20 && (t.done || (!t.spoken && age > 45 + t.len * 3) || age > 60 + t.len * 5);
   if (over) { js.talk = null; if (js.lineT > 20) js.lineT = 20; if (js.hipster.lineT > 20) js.hipster.lineT = 20; }
   return over;
-};
-const meatheadSays = (js: JetSki, text: string) => {
-  const shown = say(text, MEATHEAD_VOICE, 'urgent', { onShow: () => { js.line = text; js.lineT = 110; }, onHide: () => { if (js.line === text) js.lineT = Math.min(js.lineT, 30); } });
-  if (!shown) { js.line = text; js.lineT = 100; }
 };
 
 export const updateJetSki = (ctx: FrameContext, js: JetSki, controls: Controls, onLanded: () => void): Controls => {
@@ -236,13 +238,13 @@ const updateHipster = (state: GameState, js: JetSki) => {
 // ---------------------------------------------------------------------------
 
 const riding = (ctx: FrameContext, js: JetSki, controls: Controls): Controls => {
-  const { state, fx } = ctx;
+  const { state } = ctx;
   const p = state.player;
   if (!p.skiing) mount(state);
   p.currentWeapon = 'GUN';
   // The pace: gun it, ease off (and turn round to shoot back), or cruise
   // Once the ramp's in sight it's out of his hands: straight at it, cruising, nothing he can do to boost or hop past it
-  if (js.rampX) {
+  if (js.rampX || js.chaser.state !== 'off') {
     controls = { ...NO_CONTROLS };
     p.isCharging = false; p.isUppercutting = false; p.isDivekicking = false;
     p.facing = 1;
@@ -262,20 +264,60 @@ const riding = (ctx: FrameContext, js: JetSki, controls: Controls): Controls => 
   updateWrecks(ctx, js);
   // Splashing along
   if (p.isGrounded && state.frame % 2 === 0) state.particles.push({ pos: { x: p.pos.x + 2, y: GROUND_Y - 4 }, vel: { x: -2 - Math.random() * 3, y: -Math.random() * 3 }, life: 18, color: Math.random() < 0.5 ? '#E0F2FE' : '#BAE6FD', size: 3 + Math.random() * 4 });
-  // Time's up: the ramp comes up out ahead
+  // Time's up: here comes the hipster, back on his standby jet ski, flat out after him (everything else drops back)
   if (js.t === RIDE_FRAMES) {
-    js.rampX = state.camera.x + CANVAS_WIDTH + 200;
-    fx.spawnDamageNumber({ x: p.pos.x - 40, y: p.pos.y - 70 }, 'RAMP AHEAD!', true, '#FDE68A');
+    state.enemies = state.enemies.filter(e => e.type === 'boss');
+    state.projectiles = [];
+    js.chaser = { x: state.camera.x - 120, y: GROUND_Y, vx: 0, vy: 0, rot: 0, state: 'riding', at: 0 };
+    js.hipster.state = 'swimming'; js.hipster.x = -1e6;
+    js.step = 0; js.stepAt = js.t; js.talk = null;
+    playSound('engine', 1, 3);
   }
+  if (js.chaser.state === 'riding') chase(ctx, js);
   if (js.rampX && p.pos.x + p.width >= js.rampX - 40) {
     js.phase = 'launch'; js.t = 0;
     p.vel = { x: 13, y: -26 };
     p.isGrounded = false;
     p.isCharging = false; p.isUppercutting = false; p.isDivekicking = false;
-    meatheadSays(js, 'COWABUNGAAAAA!');
+    js.talk = null;
+    talk(js, 'meathead', 'COWABUNGAAAAA!');
     playSound('engine');
+    // (and the hipster isn't stopping either)
+    js.chaser.vx = 13;
   }
   return controls;
+};
+
+/** What the hipster has to say about all this, and what Meathead has to say back, one after another; then the ramp. */
+const CHASE_LINES: ['hipster' | 'meathead', string][] = [
+  ['hipster', "BRO. BRO! THAT JET SKI WAS VINTAGE, BRO!"],
+  ['hipster', "GOOD THING I KEEP A STANDBY. IT'S HAND-BUILT. YOU WOULDN'T GET IT."],
+  ['meathead', 'WHO HAS A STANDBY JET SKI?'],
+  ['hipster', "I WAS CHASING PEOPLE BEFORE IT WAS COOL!"],
+  ['hipster', "I'M PUTTING THIS ON MY PODCAST! ALL NINE LISTENERS WILL HEAR ABOUT IT!"],
+];
+
+/** The hipster, pulled up right behind him, saying his piece; once he's done, the ramp comes up out ahead. */
+const chase = (ctx: FrameContext, js: JetSki) => {
+  const { state, fx } = ctx;
+  const p = state.player;
+  const c = js.chaser;
+  // Riding up to just behind him and sitting there
+  const target = p.pos.x - 150;
+  c.x += p.vel.x + Math.max(-2, Math.min(6, (target - c.x) * 0.06));
+  if (state.frame % 2 === 0) state.particles.push({ pos: { x: c.x - 30, y: GROUND_Y - 4 }, vel: { x: -2 - Math.random() * 3, y: -Math.random() * 3 }, life: 18, color: Math.random() < 0.5 ? '#E0F2FE' : '#BAE6FD', size: 3 + Math.random() * 4 });
+  if (js.rampX) return;
+  const since = js.t - js.stepAt;
+  if (js.step < CHASE_LINES.length) {
+    if ((js.step === 0 ? since > 50 : since > 20) && talkOver(js)) {
+      const [who, text] = CHASE_LINES[js.step];
+      talk(js, who, text);
+      js.step++; js.stepAt = js.t;
+    }
+  } else if (talkOver(js) && since > 30) {
+    js.rampX = state.camera.x + CANVAS_WIDTH + 200;
+    fx.spawnDamageNumber({ x: p.pos.x - 40, y: p.pos.y - 70 }, 'RAMP AHEAD!', true, '#FDE68A');
+  }
 };
 
 const hint = (js: JetSki, text: string) => { if (js.hinted.has(text)) return; js.hinted.add(text); js.hint = text; js.hintT = 1; };
@@ -375,10 +417,24 @@ const launch = (ctx: FrameContext, js: JetSki, onLanded: () => void): Controls =
   p.inCutscene = true;
   p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
   p.skiSpeed = 13;
-  // (the camera stays on the water: he goes up out of the top of it)
+  // (the camera stays on the water: he goes up out of the top of it, and so does the one after him)
   state.cameraOverride = { x: state.camera.x + 6, y: state.camera.y };
-  if (js.t === 70) {
+  const c = js.chaser;
+  if (c.state === 'riding') {
+    c.x += c.vx;
+    if (js.t === 1) c.x = Math.min(c.x, p.pos.x - 150);
+    if (state.frame % 2 === 0) state.particles.push({ pos: { x: c.x - 30, y: GROUND_Y - 4 }, vel: { x: -2 - Math.random() * 3, y: -Math.random() * 3 }, life: 18, color: Math.random() < 0.5 ? '#E0F2FE' : '#BAE6FD', size: 3 + Math.random() * 4 });
+    if (c.x >= js.rampX - 40) { c.state = 'flying'; c.vx = 12; c.vy = -30; c.at = js.t; playSound('engine', 1, 3); }
+  } else if (c.state === 'flying') {
+    c.vy += 0.55; c.x += c.vx; c.y += c.vy; c.rot = Math.max(-0.5, c.rot - 0.02);
+    if (c.y < state.camera.y - 300) c.state = 'gone';
+  }
+  // The hipster's yell going off it, then Meathead's take on that from somewhere up there (each once the one before's done)
+  if (js.chaserLine === 'no' && c.state === 'flying' && talkOver(js)) { talk(js, 'hipster', 'NAMASTE, BROOOOO!'); js.chaserLine = 'said'; }
+  else if (js.chaserLine === 'said' && talkOver(js) && js.t - c.at > 20) { talk(js, 'meathead', 'THE HIPSTER?! GET YOUR OWN RAMP!'); js.chaserLine = 'done'; }
+  if (js.t >= 110 && ((js.chaserLine === 'done' && talkOver(js)) || js.t > 600)) {
     js.phase = 'gone';
+    js.lineT = 0;
     onLanded();
   }
   return { ...NO_CONTROLS };

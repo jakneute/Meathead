@@ -12,6 +12,7 @@ import { Quakes, createQuakes, updateQuakes } from './quake';
 import { Bridge, createBridge, updateBridge } from './bridge';
 import { JetSki, createJetSki, updateJetSki } from './jetski';
 import { Tour, createTour, startTour, updateTour, tourWrecked } from './alcatraz';
+import { DoorCrash, createDoorCrash, updateDoorCrash } from './doorCrash';
 
 export interface ErnieRuntime {
   startedAt: number;
@@ -19,6 +20,8 @@ export interface ErnieRuntime {
   bridge: Bridge;
   ski: JetSki;
   tour: Tour;
+  /** The one who went off the ramp after him, coming down outside Ernie's door. */
+  doorCrash: DoorCrash;
   /** Off the end of the bridge and down to the water: frames of the fade (0 = not). */
   downT: number;
   /** Off the ramp and on to the island: frames of the fade to black (0 = not). */
@@ -55,6 +58,7 @@ export const createErnieRuntime = (state: GameState, skipToBoss: boolean): Ernie
     bridge: createBridge(state),
     ski: createJetSki(state, startedAt),
     tour: createTour(startedAt),
+    doorCrash: createDoorCrash(state, startedAt),
     downT: 0,
     awayT: 0,
   };
@@ -77,7 +81,7 @@ export const updateErnie = (ctx: FrameContext, controls: Controls): Controls => 
   const region = regionOf(player.pos.x);
 
   // (on the island they're back on once the tour's over, all the way to Ernie's door)
-  const onIsland = region === 'cell' && tourWrecked(rt.tour) && rt.tour.phase === 'wrecked' && player.pos.x < COURSE.cellblock.x2 - 350;
+  const onIsland = region === 'cell' && tourWrecked(rt.tour) && rt.tour.phase === 'wrecked' && rt.doorCrash.phase !== 'scene' && player.pos.x < COURSE.cellblock.x2 - 350;
   updateQuakes(ctx, rt.quakes, (region === 'main' && !rt.bridge.plunge) || onIsland);
   if (region === 'cell') {
     for (const cp of [CP.YARD, CP.CITADEL, CP.DOOR]) if (state.checkpoint < cp && player.isGrounded && player.pos.x >= COURSE.checkpoints[cp].x) state.checkpoint = cp;
@@ -115,6 +119,7 @@ export const updateErnie = (ctx: FrameContext, controls: Controls): Controls => 
     if (rt.awayT === AWAY_FRAMES) { startTour(state, rt.tour); rt.awayT = 0; }
     controls = { ...NO_CONTROLS };
   }
+  if (region === 'cell') controls = updateDoorCrash(ctx, rt.doorCrash, controls);
   return updateTour(ctx, rt.tour, controls);
 };
 

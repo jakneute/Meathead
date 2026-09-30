@@ -105,6 +105,9 @@ export const drawSeaMid = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
   drawHipster(ctx, state, js);
   for (const w of js.wrecks) if (visible(state, w.x - 60, w.x + 60)) drawWreck(ctx, w, state.frame);
   if (js.rampX && visible(state, js.rampX - 100, js.rampX + 200)) drawRamp(ctx, js.rampX, state.frame);
+  // The one who went off the ramp after him
+  const c = js.chaser;
+  if (c.state === 'riding' || c.state === 'flying') drawHipsterOnSki(ctx, c.x, c.y, c.rot, state.frame);
   // Meathead's ride
   const p = state.player;
   if (p.jetski && !p.hidden && state.deathTimer <= 0) drawRide(ctx, state);
@@ -131,8 +134,13 @@ const drawHipster = (ctx: Ctx, state: GameState, js: JetSki) => {
     ctx.restore();
     return;
   }
-  // Sat on it (or flying off it): skinny jeans, flannel, beard, big glasses, man bun, a kombucha
-  const sit = h.state === 'sitting';
+  drawHipsterBody(ctx, h.state === 'sitting');
+  ctx.restore();
+};
+
+/** The hipster (his feet at 0, 0; sat, up on a seat): skinny jeans, flannel, beard, big glasses, man bun, a kombucha. */
+const drawHipsterBody = (ctx: Ctx, sit: boolean) => {
+  ctx.save();
   ctx.translate(0, sit ? -22 : 0);
   ctx.fillStyle = '#1E3A8A'; ctx.fillRect(-10, -8, 22, 7); ctx.fillRect(8, -8, 5, 16);
   ctx.fillStyle = '#7F1D1D'; ctx.fillRect(-10, -36, 20, 30);
@@ -145,6 +153,19 @@ const drawHipster = (ctx: Ctx, state: GameState, js: JetSki) => {
   // The kombucha
   ctx.fillStyle = '#E0AC69'; ctx.fillRect(8, -30, 10, 4);
   ctx.fillStyle = '#D97706'; ctx.fillRect(16, -38, 6, 14);
+  ctx.restore();
+};
+
+/**
+ * The hipster on his standby jet ski (it's also vintage), coming after Meathead: its keel at (x, y), tipped by rot.
+ * Charred, after he's come down on the night tour.
+ */
+export const drawHipsterOnSki = (ctx: Ctx, x: number, y: number, rot: number, f: number, charred = false) => {
+  ctx.save();
+  ctx.translate(x, y); ctx.rotate(rot);
+  if (charred) ctx.filter = 'brightness(0.18)';
+  drawSki(ctx, f, '#F59E0B');
+  drawHipsterBody(ctx, true);
   ctx.restore();
 };
 
@@ -234,15 +255,22 @@ export const drawSeaFront = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
   const p = state.player;
   // The hipster's lines (in front of everybody)
   const h = js.hipster;
-  if (h.lineT > 0 && h.line) bubble(ctx, h.x, h.y - (h.state === 'sitting' ? 90 : h.state === 'swimming' ? 30 : 70), h.line);
-  if (js.lineT > 0 && js.line && !p.hidden && state.deathTimer <= 0) bubble(ctx, p.pos.x + p.width / 2, Math.max(state.camera.y + 40, p.pos.y - 16), js.line);
+  if (h.lineT > 0 && h.line) {
+    // (off after Meathead on his standby ski, the bubble goes with him, and stays on screen)
+    const c = js.chaser, chasing = c.state === 'riding' || c.state === 'flying';
+    if (chasing) bubble(ctx, Math.max(state.camera.x + 160, Math.min(state.camera.x + CANVAS_WIDTH - 160, c.x)), Math.max(state.camera.y + 64, c.y - 100), h.line);
+    else bubble(ctx, h.x, h.y - (h.state === 'sitting' ? 90 : h.state === 'swimming' ? 30 : 70), h.line);
+  }
+  // (up off the top of the view, or away off the side of it, the bubble stays on screen)
+  if (js.lineT > 0 && js.line && !p.hidden && state.deathTimer <= 0) bubble(ctx, Math.max(state.camera.x + 160, Math.min(state.camera.x + CANVAS_WIDTH - 160, p.pos.x + p.width / 2)), Math.max(state.camera.y + 64, p.pos.y - 16), js.line);
 };
 
 export const drawSeaHud = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
   const js = rt.ski;
   const W = CANVAS_WIDTH;
-  if (js.phase === 'theft' || js.phase === 'launch') { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, 36); ctx.fillRect(0, CANVAS_HEIGHT - 36, W, 36); }
-  if (js.phase !== 'riding') return;
+  const chasing = js.phase === 'riding' && js.chaser.state !== 'off';
+  if (js.phase === 'theft' || js.phase === 'launch' || chasing) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, 36); ctx.fillRect(0, CANVAS_HEIGHT - 36, W, 36); }
+  if (js.phase !== 'riding' || chasing) return;
   // How far to the island, and the time left
   const k = rideProgress(js);
   // (over on the right, clear of the health and power in the top left)
@@ -321,7 +349,7 @@ const drawTourGroup = (ctx: Ctx, state: GameState, t: number) => {
   });
 };
 
-const TOURIST_LOOKS: Record<string, { shirt: string; pants: string; skin: string; h: number }> = {
+export const TOURIST_LOOKS: Record<string, { shirt: string; pants: string; skin: string; h: number }> = {
   dad: { shirt: '#F97316', pants: '#D6D3D1', skin: '#F2C9A0', h: 64 },
   mom: { shirt: '#EC4899', pants: '#60A5FA', skin: '#E0AC69', h: 58 },
   kid: { shirt: '#FACC15', pants: '#1E3A8A', skin: '#F2C9A0', h: 40 },
@@ -331,7 +359,7 @@ const TOURIST_LOOKS: Record<string, { shirt: string; pants: string; skin: string
   guide: { shirt: '#166534', pants: '#A16207', skin: '#E0AC69', h: 62 },
 };
 
-const drawTourist = (ctx: Ctx, look: string, i: number, f: number, up: boolean) => {
+export const drawTourist = (ctx: Ctx, look: string, i: number, f: number, up: boolean) => {
   const L = TOURIST_LOOKS[look];
   const h = L.h;
   ctx.fillStyle = L.pants; ctx.fillRect(-7, -h * 0.45, 6, h * 0.45); ctx.fillRect(2, -h * 0.45, 6, h * 0.45);

@@ -17,6 +17,8 @@ import type { ErnieRuntime } from './runtime';
 import { tourWrecked } from './alcatraz';
 import { faultAmount, collapseState, quakeAmount } from './quake';
 import { drawFault } from './faultDraw';
+import { DoorCrash, CRASH_X, CAVE_X, CAVE_W, NIGHT_TOUR, dropAmount, crashed, cavedIn, lookingUp } from './doorCrash';
+import { drawTourist, TOURIST_LOOKS, drawHipsterOnSki } from './drawSea';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -94,7 +96,77 @@ export const drawIslandBack = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => 
     else drawGunPort(ctx, l.x, l.y, l.w, k.k > 0 && !k.gone);
     ctx.restore();
   });
+  if (visible(state, CAVE_X - 100, C.x2)) drawDoorCrash(ctx, state, rt.doorCrash);
   void quakeAmount;
+};
+
+// ---------------------------------------------------------------------------
+// Outside Ernie's door: the night tour, the goon coming down on it, the vault caving in behind
+// ---------------------------------------------------------------------------
+
+const drawDoorCrash = (ctx: Ctx, state: GameState, dc: DoorCrash) => {
+  const f = state.frame, x = CRASH_X;
+  if (!crashed(dc)) {
+    // The night tour, stood listening (looking up, once they hear him coming); the guide's lantern
+    NIGHT_TOUR.forEach((tr, i) => {
+      ctx.save(); ctx.translate(x + tr.dx, Y);
+      if (tr.look === 'guide') ctx.scale(-1, 1);
+      drawTourist(ctx, tr.look, i, f, lookingUp(dc));
+      ctx.restore();
+    });
+    const g = ctx.createRadialGradient(x + 118, Y - 44, 2, x + 118, Y - 44, 70);
+    g.addColorStop(0, 'rgba(253, 224, 71, 0.35)'); g.addColorStop(1, 'rgba(253, 224, 71, 0)');
+    ctx.fillStyle = g; ctx.fillRect(x + 48, Y - 114, 140, 140);
+    ctx.fillStyle = '#FDE047'; ctx.fillRect(x + 114, Y - 50, 8, 10);
+    // The hipster, on his way down through the vault, nose first
+    const k = dropAmount(dc);
+    if (k >= 0) {
+      drawHipsterOnSki(ctx, x, Y - 240 + k * 240, 1.1, f);
+      for (let i = 0; i < 10; i++) { ctx.fillStyle = i % 2 ? '#7C4A3A' : '#A8A29E'; ctx.fillRect(x + (hash(i) - 0.5) * 120, Y - 236 + k * (120 + hash(i + 3) * 100), 6, 6); }
+    }
+  } else {
+    // What's left: a crater, the hipster and his ski burning in it (charred), the tour all over the place
+    ctx.fillStyle = 'rgba(20, 16, 14, 0.8)'; ctx.beginPath(); ctx.ellipse(x, Y + 2, 180, 12, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#1C1917'; ctx.beginPath(); ctx.ellipse(x, Y + 4, 70, 10, 0, 0, Math.PI); ctx.fill();
+    ctx.fillStyle = 'rgba(127, 29, 29, 0.85)';
+    for (let i = 0; i < 12; i++) { const bx = x + (hash(i + 50) - 0.5) * 420; ctx.beginPath(); ctx.ellipse(bx, Y + 1, 14 + hash(i + 51) * 20, 3, 0, 0, Math.PI * 2); ctx.fill(); }
+    for (let i = 0; i < 8; i++) { const bx = x + (hash(i + 60) - 0.5) * 460, by = Y - 40 - hash(i + 61) * 150; ctx.fillRect(bx, by, 5 + hash(i) * 8, 3); ctx.fillRect(bx + 2, by, 2, 10 + hash(i + 3) * 14); }
+    drawHipsterOnSki(ctx, x - 6, Y + 2, 0.5, f, true);
+    for (let i = 0; i < 5; i++) {
+      const fx = x - 34 + i * 14, h = 24 + Math.sin(f * 0.4 + i * 2) * 9;
+      ctx.fillStyle = i % 2 ? 'rgba(249, 115, 22, 0.9)' : 'rgba(253, 224, 71, 0.85)';
+      ctx.beginPath(); ctx.moveTo(fx - 7, Y - 10); ctx.quadraticCurveTo(fx + Math.sin(f * 0.3 + i) * 5, Y - 10 - h, fx + 7, Y - 10); ctx.fill();
+    }
+    for (let i = 0; i < 4; i++) {
+      const t = ((f * 0.7 + i * 50) % 200) / 200;
+      ctx.fillStyle = `rgba(40, 36, 34, ${0.5 * (1 - t)})`;
+      ctx.beginPath(); ctx.arc(x + t * 20, Y - 40 - t * 180, 14 + t * 30, 0, Math.PI * 2); ctx.fill();
+    }
+    NIGHT_TOUR.forEach((tr, i) => {
+      const bx = x + tr.dx * 1.9 + (hash(i + 70) - 0.5) * 30, L = TOURIST_LOOKS[tr.look];
+      ctx.save(); ctx.translate(bx, Y); ctx.rotate((hash(i + 80) - 0.5) * 0.4);
+      ctx.fillStyle = '#1C1917'; ctx.fillRect(-L.h * 0.45, -9, L.h * 0.8, 9);
+      ctx.beginPath(); ctx.arc(L.h * 0.4, -6, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = L.shirt; ctx.globalAlpha = 0.5; ctx.fillRect(-L.h * 0.2, -8, L.h * 0.3, 4); ctx.globalAlpha = 1;
+      ctx.restore();
+    });
+    // The guide's lantern, on its side, still lit
+    ctx.fillStyle = '#FDE047'; ctx.save(); ctx.translate(x + 230, Y - 5); ctx.rotate(1.3); ctx.fillRect(-4, -5, 8, 10); ctx.restore();
+  }
+  if (cavedIn(dc)) {
+    // The vault behind him, come down: a heap of brick and bedrock floor to roof
+    const cx = CAVE_X + CAVE_W / 2;
+    ctx.fillStyle = '#2A1C16';
+    ctx.beginPath(); ctx.moveTo(cx - 90, Y); ctx.lineTo(cx - 50, Y - 150); ctx.lineTo(cx - 30, VAULT - 20); ctx.lineTo(cx + 30, VAULT - 20); ctx.lineTo(cx + 60, Y - 140); ctx.lineTo(cx + 95, Y); ctx.closePath(); ctx.fill();
+    for (let i = 0; i < 34; i++) {
+      const s = hash(i + 90), yy = Y - hash(i + 91) * 240, spread = 30 + (Y - yy) * -0.25 + 60;
+      ctx.fillStyle = s < 0.4 ? '#7C4A3A' : s < 0.7 ? '#5A3526' : '#57534E';
+      ctx.save(); ctx.translate(cx + (hash(i + 92) - 0.5) * spread * 1.4, yy); ctx.rotate(s * 3); ctx.fillRect(-10, -6, 20 + s * 10, 12); ctx.restore();
+    }
+    // Dust still settling
+    const since = dc.phase === 'done' ? 999 : state.frame;
+    if (since < 999) { ctx.fillStyle = 'rgba(168, 162, 158, 0.25)'; ctx.beginPath(); ctx.arc(cx, Y - 120, 110, 0, Math.PI * 2); ctx.fill(); }
+  }
 };
 
 /** The cell house: the back wall, the skylights (one smashed in once the tour's over), three tiers of cells, the end wall. */

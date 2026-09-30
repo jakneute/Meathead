@@ -1811,6 +1811,11 @@
  },
  {
   "voice": "boss.ernie",
+  "text": "Two jet skis, sonny. Two tour groups. And now my front hall's caved in. I schedule my quakes AROUND the tour groups!",
+  "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "boss.ernie",
   "text": "WARM... LIKE THE EARTH'S... CORE.",
   "from": "REACTIONS"
  },
@@ -1823,11 +1828,6 @@
   "voice": "boss.ernie",
   "text": "YOU DRILL... TOO SHALLOW.",
   "from": "REACTIONS"
- },
- {
-  "voice": "boss.ernie",
-  "text": "You dropped a jet ski on the tour group, sonny. I schedule my quakes AROUND the tour group!",
-  "from": "INTRO_QUOTES"
  },
  {
   "voice": "boss.ernie",
@@ -4207,7 +4207,7 @@
  {
   "voice": "death",
   "text": "LOST AT SEA",
-  "from": "game/stages/ernie/jetski.ts:394"
+  "from": "game/stages/ernie/jetski.ts:450"
  },
  {
   "voice": "death",
@@ -4732,7 +4732,7 @@
  {
   "voice": "death",
   "text": "SHARK BAIT",
-  "from": "game/stages/ernie/jetski.ts:394"
+  "from": "game/stages/ernie/jetski.ts:450"
  },
  {
   "voice": "death",
@@ -5197,7 +5197,7 @@
  {
   "voice": "death",
   "text": "THE BAY WINS",
-  "from": "game/stages/ernie/jetski.ts:394"
+  "from": "game/stages/ernie/jetski.ts:450"
  },
  {
   "voice": "death",
@@ -5716,6 +5716,16 @@
  },
  {
   "voice": "guide",
+  "text": "...THERE HE WENT.",
+  "from": "game/stages/ernie/doorCrash.ts:67"
+ },
+ {
+  "voice": "guide",
+  "text": "AND THESE VAULTS HAVE STOOD, UNTOUCHED, SINCE EIGHTEEN FIFTY-NINE.",
+  "from": "game/stages/ernie/doorCrash.ts:67"
+ },
+ {
+  "voice": "guide",
   "text": "HA! NOBODY'S THAT STUPID.",
   "from": "game/stages/ernie/alcatraz.ts:106"
  },
@@ -6046,28 +6056,78 @@
  },
  {
   "voice": "hipster",
+  "text": "BRO. BRO! THAT JET SKI WAS VINTAGE, BRO!",
+  "from": "game/stages/ernie/jetski.ts:133"
+ },
+ {
+  "voice": "hipster",
+  "text": "COWABUNGAAAAA!",
+  "from": "game/stages/ernie/jetski.ts:133"
+ },
+ {
+  "voice": "hipster",
+  "text": "GOOD THING I KEEP A STANDBY. IT'S HAND-BUILT. YOU WOULDN'T GET IT.",
+  "from": "game/stages/ernie/jetski.ts:133"
+ },
+ {
+  "voice": "hipster",
+  "text": "hipster",
+  "from": "game/stages/ernie/jetski.ts:133"
+ },
+ {
+  "voice": "hipster",
+  "text": "I WAS CHASING PEOPLE BEFORE IT WAS COOL!",
+  "from": "game/stages/ernie/jetski.ts:133"
+ },
+ {
+  "voice": "hipster",
+  "text": "I'M PUTTING THIS ON MY PODCAST! ALL NINE LISTENERS WILL HEAR ABOUT IT!",
+  "from": "game/stages/ernie/jetski.ts:133"
+ },
+ {
+  "voice": "hipster",
   "text": "I'VE HEARD OF IT NOW.",
-  "from": "game/stages/ernie/jetski.ts:127"
+  "from": "game/stages/ernie/jetski.ts:133"
+ },
+ {
+  "voice": "hipster",
+  "text": "meathead",
+  "from": "game/stages/ernie/jetski.ts:133"
  },
  {
   "voice": "hipster",
   "text": "MY KOMBUCHAAAAAAA",
-  "from": "game/stages/ernie/jetski.ts:127"
+  "from": "game/stages/ernie/jetski.ts:133"
+ },
+ {
+  "voice": "hipster",
+  "text": "NAMASTE, BROOOOO!",
+  "from": "game/stages/ernie/jetski.ts:133"
  },
  {
   "voice": "hipster",
   "text": "SICK RIDE, RIGHT? IT'S VINTAGE.",
-  "from": "game/stages/ernie/jetski.ts:127"
+  "from": "game/stages/ernie/jetski.ts:133"
  },
  {
   "voice": "hipster",
   "text": "SMELLS LIKE BEARD OIL.",
-  "from": "game/stages/ernie/jetski.ts:127"
+  "from": "game/stages/ernie/jetski.ts:133"
+ },
+ {
+  "voice": "hipster",
+  "text": "THE HIPSTER?! GET YOUR OWN RAMP!",
+  "from": "game/stages/ernie/jetski.ts:133"
+ },
+ {
+  "voice": "hipster",
+  "text": "WHO HAS A STANDBY JET SKI?",
+  "from": "game/stages/ernie/jetski.ts:133"
  },
  {
   "voice": "hipster",
   "text": "YOU'VE PROBABLY NEVER HEARD OF IT.",
-  "from": "game/stages/ernie/jetski.ts:127"
+  "from": "game/stages/ernie/jetski.ts:133"
  },
  {
   "voice": "meathead",
@@ -6086,6 +6146,11 @@
  },
  {
   "voice": "meathead",
+  "text": "...I WONDER WHERE HE WENT.",
+  "from": "game/stages/ernie/alcatraz.ts:130"
+ },
+ {
+  "voice": "meathead",
   "text": "...NOPE.",
   "from": "game/stages/dale/convoy.ts:389"
  },
@@ -6098,6 +6163,11 @@
   "voice": "meathead",
   "text": "...OKAY. SAVES ME A BULLET.",
   "from": "game/stages/dale/town.ts:525"
+ },
+ {
+  "voice": "meathead",
+  "text": "...THERE HE WENT.",
+  "from": "game/stages/ernie/doorCrash.ts:67"
  },
  {
   "voice": "meathead",
@@ -6491,6 +6561,11 @@
  },
  {
   "voice": "meathead",
+  "text": "AND THESE VAULTS HAVE STOOD, UNTOUCHED, SINCE EIGHTEEN FIFTY-NINE.",
+  "from": "game/stages/ernie/doorCrash.ts:67"
+ },
+ {
+  "voice": "meathead",
   "text": "ANNOYING MOSQUITO TOUCHED MY SHOULDERS!",
   "from": "HAZARD_HURT"
  },
@@ -6713,6 +6788,11 @@
   "voice": "meathead",
   "text": "BRO DO YOU EVEN SURVIVE?",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BRO. BRO! THAT JET SKI WAS VINTAGE, BRO!",
+  "from": "game/stages/ernie/jetski.ts:133"
  },
  {
   "voice": "meathead",
@@ -7052,7 +7132,7 @@
  {
   "voice": "meathead",
   "text": "COWABUNGAAAAA!",
-  "from": "game/stages/ernie/jetski.ts:139"
+  "from": "game/stages/ernie/jetski.ts:133"
  },
  {
   "voice": "meathead",
@@ -7986,6 +8066,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GOOD THING I KEEP A STANDBY. IT'S HAND-BUILT. YOU WOULDN'T GET IT.",
+  "from": "game/stages/ernie/jetski.ts:133"
+ },
+ {
+  "voice": "meathead",
   "text": "GOODBYE!",
   "from": "GENERIC_KILL_LINES"
  },
@@ -8576,6 +8661,11 @@
  },
  {
   "voice": "meathead",
+  "text": "hipster",
+  "from": "game/stages/ernie/jetski.ts:133"
+ },
+ {
+  "voice": "meathead",
   "text": "HIT BY A CAR! IN AN EARTHQUAKE! TODAY SUCKS!",
   "from": "HAZARD_HURT"
  },
@@ -8946,6 +9036,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I WAS CHASING PEOPLE BEFORE IT WAS COOL!",
+  "from": "game/stages/ernie/jetski.ts:133"
+ },
+ {
+  "voice": "meathead",
   "text": "I'LL BENCH PRESS THAT BIG RIG RIGHT BACK AT YOU!",
   "from": "HAZARD_HURT"
  },
@@ -9156,6 +9251,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M PUTTING THIS ON MY PODCAST! ALL NINE LISTENERS WILL HEAR ABOUT IT!",
+  "from": "game/stages/ernie/jetski.ts:133"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M ROTISSERIE MEATHEAD NOW!",
   "from": "HAZARD_HURT"
  },
@@ -9207,7 +9307,7 @@
  {
   "voice": "meathead",
   "text": "I'VE HEARD OF IT NOW.",
-  "from": "game/stages/ernie/jetski.ts:127"
+  "from": "game/stages/ernie/jetski.ts:133"
  },
  {
   "voice": "meathead",
@@ -9586,6 +9686,11 @@
  },
  {
   "voice": "meathead",
+  "text": "meathead",
+  "from": "game/stages/ernie/jetski.ts:133"
+ },
+ {
+  "voice": "meathead",
   "text": "MELTED LATS",
   "from": "VULGARITIES"
  },
@@ -9722,7 +9827,7 @@
  {
   "voice": "meathead",
   "text": "MY KOMBUCHAAAAAAA",
-  "from": "game/stages/ernie/jetski.ts:127"
+  "from": "game/stages/ernie/jetski.ts:133"
  },
  {
   "voice": "meathead",
@@ -9833,6 +9938,11 @@
   "voice": "meathead",
   "text": "MY VEINS ARE FOR BULKING, NOT YOUR SKETCHY SHIT!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAMASTE, BROOOOO!",
+  "from": "game/stages/ernie/jetski.ts:133"
  },
  {
   "voice": "meathead",
@@ -11097,7 +11207,7 @@
  {
   "voice": "meathead",
   "text": "SICK RIDE, RIGHT? IT'S VINTAGE.",
-  "from": "game/stages/ernie/jetski.ts:127"
+  "from": "game/stages/ernie/jetski.ts:133"
  },
  {
   "voice": "meathead",
@@ -11197,7 +11307,7 @@
  {
   "voice": "meathead",
   "text": "SMELLS LIKE BEARD OIL.",
-  "from": "game/stages/ernie/jetski.ts:127"
+  "from": "game/stages/ernie/jetski.ts:133"
  },
  {
   "voice": "meathead",
@@ -12006,6 +12116,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE HIPSTER?! GET YOUR OWN RAMP!",
+  "from": "game/stages/ernie/jetski.ts:133"
+ },
+ {
+  "voice": "meathead",
   "text": "THE INTERN RAN ME OVER! HE'S NOT EVEN GETTING PAID!",
   "from": "HAZARD_HURT"
  },
@@ -12396,6 +12511,11 @@
  },
  {
   "voice": "meathead",
+  "text": "Two jet skis, sonny. Two tour groups. And now my front hall's caved in. I schedule my quakes AROUND the tour groups!",
+  "from": "game/core/update.ts:173"
+ },
+ {
+  "voice": "meathead",
   "text": "TWO MINUTES IN THE BOX! FOREVER!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -12642,7 +12762,7 @@
  {
   "voice": "meathead",
   "text": "WHICH WAY TO THE GIFT SHOP?",
-  "from": "game/stages/ernie/alcatraz.ts:129"
+  "from": "game/stages/ernie/alcatraz.ts:131"
  },
  {
   "voice": "meathead",
@@ -12658,6 +12778,11 @@
   "voice": "meathead",
   "text": "WHO GAVE THE MOOSE STEROIDS? THAT'S MY THING!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO HAS A STANDBY JET SKI?",
+  "from": "game/stages/ernie/jetski.ts:133"
  },
  {
   "voice": "meathead",
@@ -12911,11 +13036,6 @@
  },
  {
   "voice": "meathead",
-  "text": "You dropped a jet ski on the tour group, sonny. I schedule my quakes AROUND the tour group!",
-  "from": "game/core/update.ts:173"
- },
- {
-  "voice": "meathead",
   "text": "YOU DROVE AN 18-WHEELER INTO MY DELTS, BASTARD!",
   "from": "HAZARD_HURT"
  },
@@ -13082,7 +13202,7 @@
  {
   "voice": "meathead",
   "text": "YOU'VE PROBABLY NEVER HEARD OF IT.",
-  "from": "game/stages/ernie/jetski.ts:127"
+  "from": "game/stages/ernie/jetski.ts:133"
  },
  {
   "voice": "meathead",

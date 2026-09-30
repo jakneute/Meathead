@@ -22,6 +22,7 @@ import { drawDistricts } from './streetsDraw';
 import { Car, CAR_W, CAR_H, CAR_WARN, carsComing } from './traffic';
 import { drawBayBackdrop, drawSeaBack, drawSeaMid, drawSeaFront, drawSeaHud, drawCellMid, drawCellFront, drawCellHud } from './drawSea';
 import { drawIslandBackdrop, drawIslandBack } from './islandDraw';
+import { CRASH_X } from './doorCrash';
 import { sentenceShown } from '../../platform/speech';
 
 type Ctx = CanvasRenderingContext2D;
@@ -597,7 +598,7 @@ export const drawErnieFront = (ctx: Ctx, state: GameState) => {
   const rt = getErnie(state)!;
   const region = regionOf(state.camera.x + 400);
   if (region === 'bay') { drawSeaFront(ctx, state, rt); return; }
-  if (region === 'cell') { drawCellFront(ctx, state, rt); return; }
+  if (region === 'cell') { drawCellFront(ctx, state, rt); drawDoorCrashFront(ctx, state, rt); return; }
   // What the burning are screaming
   for (const e of state.enemies) {
     if (e.kind !== 'burning') continue;
@@ -629,6 +630,7 @@ export const drawErnieHud = (ctx: Ctx, state: GameState) => {
   if (region === 'main') for (const c of carsComing(rt.bridge.traffic)) drawCarWarning(ctx, state, c);
   if (region === 'bay') drawSeaHud(ctx, state, rt);
   if (region === 'cell') drawCellHud(ctx, state, rt);
+  if (region === 'cell' && rt.doorCrash.phase === 'scene') { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, CANVAS_WIDTH, 36); ctx.fillRect(0, CANVAS_HEIGHT - 36, CANVAS_WIDTH, 36); }
   // Letterbox over the drop
   if (rt.bridge.plunge && state.deathTimer <= 0) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, CANVAS_WIDTH, 36); ctx.fillRect(0, CANVAS_HEIGHT - 36, CANVAS_WIDTH, 36); }
   // (the fades go over the weather, where there is any: see drawErnieWeather)
@@ -685,4 +687,12 @@ const drawQuakeBanner = (ctx: Ctx, state: GameState, qk: Quakes) => {
   }
   ctx.stroke();
   ctx.restore();
+};
+
+/** The lines outside Ernie's door: the night tour's guide, then Meathead. */
+const drawDoorCrashFront = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
+  const dc = rt.doorCrash;
+  if (dc.lineT <= 0 || !dc.line) return;
+  if (dc.who === 'guide') bubble(ctx, CRASH_X + 130, Y - 100, dc.line);
+  else { const p = state.player; bubble(ctx, p.pos.x + p.width / 2, p.pos.y - 16, dc.line); }
 };

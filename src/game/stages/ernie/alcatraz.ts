@@ -82,7 +82,7 @@ const talkOver = (tour: Tour, clock: number, pause: number) => {
  * after the guide's punchline: the tour has a good laugh at the idea before anyone hears him coming.
  */
 export const LAUGH_BEAT = 239;
-const HOLDS = new Map([[124, 14], [189, 14], [LAUGH_BEAT, 180], [DROP_AT - 9, 0], [TOUR_END - 1, 20]]);
+const HOLDS = new Map([[124, 14], [189, 14], [LAUGH_BEAT, 180], [DROP_AT - 9, 0], [CLIMB_AT + 31, 25], [TOUR_END - 1, 20]]);
 
 /** The tour's laughing at the guide's joke (the beat before he's heard). */
 export const tourLaughing = (tour: Tour) => tour.phase === 'tour' && tour.t === LAUGH_BEAT && !!tour.talk?.over;
@@ -126,7 +126,9 @@ export const updateTour = (ctx: FrameContext, tour: Tour, controls: Controls): C
     p.facing = 1;
     p.squash = 0.6;
   }
-  if (t === CLIMB_AT + 40) speak(tour, 'meathead', 'WHICH WAY TO THE GIFT SHOP?', MEATHEAD_VOICE);
+  // (the one who came off the ramp after him isn't anywhere)
+  if (t === CLIMB_AT + 30) speak(tour, 'meathead', '...I WONDER WHERE HE WENT.', MEATHEAD_VOICE);
+  if (t === CLIMB_AT + 70) speak(tour, 'meathead', 'WHICH WAY TO THE GIFT SHOP?', MEATHEAD_VOICE);
   if (t >= TOUR_END) {
     tour.phase = 'wrecked'; tour.t = 999;
     p.inCutscene = false;

@@ -237,7 +237,6 @@ const build = () => {
   I.ground(5960, 6700, Y, Y, 'citadel');
   I.ledge(6080, Y - 120, 140);
   I.pickup(6150, Y - 150, 'small_ammo');
-  I.spawn('convict', 6200);
   for (const x of [5300, 5600, 5880, 6150]) hang('brick', x, Y - 196);
 
   return {
