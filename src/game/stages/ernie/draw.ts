@@ -35,11 +35,27 @@ export const bubble = (ctx: Ctx, x: number, y: number, said: string, color = '#F
   const text = sentenceShown(said);
   ctx.save();
   ctx.font = 'bold 8px "Press Start 2P"';
-  const w = ctx.measureText(text).width + 14;
+  // (a long line goes over two, split at the space nearest its middle)
+  let lines = [text];
+  if (ctx.measureText(text).width > 340 && text.includes(' ')) {
+    const mid = text.length / 2;
+    let cut = -1;
+    for (let i = 0; i < text.length; i++) if (text[i] === ' ' && (cut < 0 || Math.abs(i - mid) < Math.abs(cut - mid))) cut = i;
+    lines = [text.slice(0, cut), text.slice(cut + 1)];
+  }
+  const w = Math.max(...lines.map(l => ctx.measureText(l).width)) + 14, h = 8 + lines.length * 12;
+  // (and the box is kept on screen, whole: it slides along to fit, its tail still pointing at whoever's talking)
+  const m = ctx.getTransform();
+  let bx = x - w / 2;
+  const left = m.a * bx + m.e, right = m.a * (bx + w) + m.e, edge = 8 * m.a;
+  if (left < edge) bx += (edge - left) / m.a;
+  else if (right > ctx.canvas.width - edge) bx -= (right - (ctx.canvas.width - edge)) / m.a;
   ctx.fillStyle = color; ctx.strokeStyle = '#111827'; ctx.lineWidth = 2;
-  ctx.fillRect(x - w / 2, y - 22, w, 20); ctx.strokeRect(x - w / 2, y - 22, w, 20);
-  ctx.beginPath(); ctx.moveTo(x - 5, y - 2); ctx.lineTo(x + 5, y - 2); ctx.lineTo(x, y + 6); ctx.fillStyle = color; ctx.fill();
-  ctx.fillStyle = '#111827'; ctx.textAlign = 'center'; ctx.fillText(text, x, y - 8);
+  ctx.fillRect(bx, y - 2 - h, w, h); ctx.strokeRect(bx, y - 2 - h, w, h);
+  const tx = Math.max(bx + 8, Math.min(bx + w - 8, x));
+  ctx.beginPath(); ctx.moveTo(tx - 5, y - 2); ctx.lineTo(tx + 5, y - 2); ctx.lineTo(tx, y + 6); ctx.fillStyle = color; ctx.fill();
+  ctx.fillStyle = '#111827'; ctx.textAlign = 'center';
+  lines.forEach((l, i) => ctx.fillText(l, bx + w / 2, y - 2 - h + 14 + i * 12));
   ctx.restore();
 };
 

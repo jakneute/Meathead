@@ -211,14 +211,15 @@ export const drawHipsterDead = (ctx: Ctx, x: number, y: number, f: number) => {
   ctx.filter = 'brightness(0.85)';
   ctx.rotate(-Math.PI / 2 + 0.08);
   drawHipsterBody(ctx, false);
+  // An X in each lens of his glasses (drawn with him, so they sit right in them)
+  ctx.filter = 'none';
+  ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 1;
+  for (const cx of [3, 9.5]) { ctx.beginPath(); ctx.moveTo(cx - 2, -48.5); ctx.lineTo(cx + 2, -44.5); ctx.moveTo(cx + 2, -48.5); ctx.lineTo(cx - 2, -44.5); ctx.stroke(); }
   ctx.restore();
   // Arms flung out either side
   ctx.fillStyle = '#5B1414';
   ctx.save(); ctx.translate(-26, -6); ctx.rotate(-0.9); ctx.fillRect(0, -3, 22, 6); ctx.restore();
   ctx.save(); ctx.translate(-30, 2); ctx.rotate(0.7); ctx.fillRect(0, -3, 20, 6); ctx.restore();
-  // The glasses, cracked, and the X of his eyes
-  ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(-48, -4); ctx.lineTo(-44, 2); ctx.moveTo(-44, -4); ctx.lineTo(-48, 2); ctx.stroke();
   // His kombucha, spilt
   ctx.fillStyle = '#D97706'; ctx.save(); ctx.translate(34, 6); ctx.rotate(1.4); ctx.fillRect(-3, -7, 6, 14); ctx.restore();
   ctx.fillStyle = 'rgba(217, 119, 6, 0.5)'; ctx.beginPath(); ctx.ellipse(44, 10, 12, 3, 0, 0, Math.PI * 2); ctx.fill();
