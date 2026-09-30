@@ -2,7 +2,7 @@ import { GameStatus, Enemy, TommyBoard, DamageNumber, Particle } from '../../typ
 import { setBossLook } from './bosses/kit';
 import { isDummy, drawDummy } from './dummies';
 import {
-  CANVAS_WIDTH, CANVAS_HEIGHT, LEVEL_INTRO_STYLE, SKYFALL_CLOUD_FRAMES, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, RENDER_SCALE, PRACTICE_RANGE_STAGE, isRangeStage, GROUND_Y,
+  CANVAS_WIDTH, CANVAS_HEIGHT, RING_CEILING_Y, LEVEL_INTRO_STYLE, SKYFALL_CLOUD_FRAMES, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, RENDER_SCALE, PRACTICE_RANGE_STAGE, isRangeStage, GROUND_Y,
 } from '../../constants';
 import { drawSkyClouds, DEPLOY_CLOUD_SCROLL_END, SKYFALL_CLOUD_SPEED } from './skyClouds';
 import { STAGE_COLORS } from '../../content/roster';
@@ -346,17 +346,29 @@ const drawCylinderWorld = (ctx: CanvasRenderingContext2D, radius: number, worldP
  */
 const RING_HASH = (n: number) => { const x = Math.sin(n * 127.1) * 43758.5453; return x - Math.floor(x); };
 const drawRing = (ctx: CanvasRenderingContext2D, frame: number) => {
-  const W = CANVAS_WIDTH, mat = GROUND_Y, h = RING_HASH;
-  // Cinderblock, grimy, the paint peeling off it in patches, water stains run down from the roof
+  const W = CANVAS_WIDTH, mat = GROUND_Y, h = RING_HASH, top = RING_CEILING_Y;
+  // Cinderblock, grimy, the paint peeling off it in patches, water stains run down from the ceiling
   ctx.fillStyle = '#1A1917'; ctx.fillRect(0, 0, W, CANVAS_HEIGHT);
   ctx.fillStyle = '#211F1C';
-  for (let y = 0; y < mat; y += 20) for (let x = ((y / 20) % 2) * 22; x < W; x += 44) ctx.fillRect(x + 1, y + 1, 42, 18);
+  for (let y = top; y < mat; y += 20) for (let x = (((y - top) / 20) % 2) * 22; x < W; x += 44) ctx.fillRect(x + 1, y + 1, 42, 18);
   ctx.fillStyle = 'rgba(64, 80, 58, 0.35)'; // (old green paint, what's left of it)
-  for (let k = 0; k < 7; k++) { ctx.beginPath(); const px = h(k) * W, py = 60 + h(k + 9) * 150; ctx.ellipse(px, py, 30 + h(k + 3) * 60, 16 + h(k + 5) * 30, 0, 0, Math.PI * 2); ctx.fill(); }
+  for (let k = 0; k < 7; k++) { ctx.beginPath(); const px = h(k) * W, py = top + 40 + h(k + 9) * 130; ctx.ellipse(px, py, 30 + h(k + 3) * 60, 16 + h(k + 5) * 30, 0, 0, Math.PI * 2); ctx.fill(); }
   ctx.fillStyle = 'rgba(80, 60, 30, 0.28)';
-  for (let k = 0; k < 6; k++) { const sx = 40 + h(k + 20) * (W - 80); ctx.fillRect(sx, 0, 8 + h(k + 21) * 10, 90 + h(k + 22) * 160); }
+  for (let k = 0; k < 6; k++) { const sx = 40 + h(k + 20) * (W - 80); ctx.fillRect(sx, top, 8 + h(k + 21) * 10, 60 + h(k + 22) * 130); }
+  // The ceiling: sagging tiles on a grid, a few gone (the dark in the holes), one hanging down, a brown stain over the
+  // corner where the roof leaks, and a joist along the front edge of it
+  ctx.fillStyle = '#34312C'; ctx.fillRect(0, 0, W, top);
+  for (let x = 0; x < W; x += 50) for (let y = top - 150; y < top; y += 30) {
+    const k = x * 7 + y;
+    ctx.fillStyle = h(k) < 0.12 ? '#0B0A09' : h(k + 1) < 0.2 ? '#3E3A33' : '#46423A';
+    ctx.fillRect(x + 1, y + 1, 48, 28);
+  }
+  ctx.fillStyle = 'rgba(120, 85, 40, 0.35)'; ctx.beginPath(); ctx.ellipse(W - 70, top - 12, 60, 20, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.save(); ctx.translate(250, top - 2); ctx.rotate(0.35); ctx.fillStyle = '#46423A'; ctx.fillRect(0, 0, 48, 6); ctx.restore(); // (a tile hanging off by a corner)
+  ctx.fillStyle = '#1C1A17'; ctx.fillRect(0, top - 8, W, 10);
+  ctx.fillStyle = '#2B2823'; ctx.fillRect(0, top - 8, W, 2);
   // A window up high: one pane out, the dirty light coming in through it, dust in the light
-  const wx = 560, wy = 40;
+  const wx = 560, wy = top + 16;
   ctx.fillStyle = '#3F3F46'; ctx.fillRect(wx - 4, wy - 4, 128, 68);
   for (let i = 0; i < 4; i++) { ctx.fillStyle = i === 2 ? '#0B0B0F' : 'rgba(148, 163, 184, 0.35)'; ctx.fillRect(wx + (i % 2) * 62, wy + Math.floor(i / 2) * 31, 58, 28); }
   ctx.fillStyle = 'rgba(203, 213, 225, 0.5)'; ctx.beginPath(); ctx.moveTo(wx, wy + 31); ctx.lineTo(wx + 20, wy + 31); ctx.lineTo(wx, wy + 48); ctx.fill();
@@ -379,26 +391,26 @@ const drawRing = (ctx: CanvasRenderingContext2D, frame: number) => {
   ctx.strokeStyle = '#52525B'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(210, 400); ctx.lineTo(236, 392); ctx.lineTo(240, 410); ctx.moveTo(214, 392); ctx.lineTo(230, 414); ctx.stroke();
   // The heavy bag on its chain, taped up where it split; a poster half off the wall; the notice
   const bagSway = Math.sin(frame * 0.02) * 0.04;
-  ctx.save(); ctx.translate(96, 0); ctx.rotate(bagSway);
+  ctx.save(); ctx.translate(96, top); ctx.rotate(bagSway);
   ctx.strokeStyle = '#71717A'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 150); ctx.stroke();
   ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.roundRect(-18, 150, 36, 80, 10); ctx.fill();
   ctx.fillStyle = '#A1A1AA'; ctx.fillRect(-18, 176, 36, 7); ctx.fillRect(-18, 204, 36, 5);
   ctx.fillStyle = '#D6D3D1'; ctx.fillRect(-6, 214, 12, 10); ctx.restore();
-  ctx.save(); ctx.translate(330, 110); ctx.rotate(-0.08);
+  ctx.save(); ctx.translate(330, top + 26); ctx.rotate(-0.08);
   ctx.fillStyle = '#A8A29E'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(70, 0); ctx.lineTo(70, 60); ctx.lineTo(40, 96); ctx.lineTo(0, 96); ctx.fill();
   ctx.fillStyle = '#7F1D1D'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.fillText('FIGHT', 8, 20); ctx.fillText('NIGHT', 8, 32);
   ctx.fillStyle = '#44403C'; ctx.font = '6px "Press Start 2P"'; ctx.fillText('1987', 8, 48); ctx.restore();
-  ctx.fillStyle = '#FDE68A'; ctx.fillRect(440, 150, 54, 40);
-  ctx.fillStyle = '#B91C1C'; ctx.font = 'bold 6px "Press Start 2P"'; ctx.fillText('CONDEMNED', 441, 164);
-  ctx.fillStyle = '#44403C'; for (let k = 0; k < 3; k++) ctx.fillRect(444, 172 + k * 5, 44 - k * 8, 2);
+  ctx.fillStyle = '#FDE68A'; ctx.fillRect(440, top + 40, 54, 40);
+  ctx.fillStyle = '#B91C1C'; ctx.font = 'bold 6px "Press Start 2P"'; ctx.fillText('CONDEMNED', 441, top + 54);
+  ctx.fillStyle = '#44403C'; for (let k = 0; k < 3; k++) ctx.fillRect(444, top + 62 + k * 5, 44 - k * 8, 2);
   // The light over the ring: a tube fixture, one tube dead, the other flickering
   const flick = h(Math.floor(frame / 3)) < 0.08 ? 0.25 : h(Math.floor(frame / 40)) < 0.1 ? 0.6 : 1;
-  const light = ctx.createRadialGradient(W / 2, 40, 10, W / 2, mat - 40, 520);
+  const light = ctx.createRadialGradient(W / 2, top + 30, 10, W / 2, mat - 40, 460);
   light.addColorStop(0, `rgba(236, 252, 203, ${0.28 * flick})`);
   light.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.fillStyle = light; ctx.fillRect(0, 0, W, CANVAS_HEIGHT);
-  ctx.strokeStyle = '#3F3F46'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(W / 2 - 50, 0); ctx.lineTo(W / 2 - 50, 12); ctx.moveTo(W / 2 + 50, 0); ctx.lineTo(W / 2 + 50, 16); ctx.stroke();
-  ctx.save(); ctx.translate(W / 2, 14); ctx.rotate(0.03);
+  ctx.strokeStyle = '#3F3F46'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(W / 2 - 50, top); ctx.lineTo(W / 2 - 50, top + 12); ctx.moveTo(W / 2 + 50, top); ctx.lineTo(W / 2 + 50, top + 16); ctx.stroke();
+  ctx.save(); ctx.translate(W / 2, top + 14); ctx.rotate(0.03);
   ctx.fillStyle = '#27272A'; ctx.fillRect(-70, 0, 140, 8);
   ctx.fillStyle = '#52525B'; ctx.fillRect(-62, 8, 124, 3);
   ctx.fillStyle = `rgba(236, 252, 203, ${0.35 + 0.65 * flick})`; ctx.fillRect(-62, 11, 124, 3); ctx.restore();
@@ -408,7 +420,7 @@ const drawRing = (ctx: CanvasRenderingContext2D, frame: number) => {
   ctx.fillStyle = '#3F3F46'; ctx.fillRect(bx - 14, mat - 27, 28, 3);
   const dt = frame % 70;
   ctx.fillStyle = 'rgba(147, 197, 253, 0.7)';
-  if (dt < 40) ctx.fillRect(bx - 1, 20 + (mat - 50) * (dt / 40) ** 2, 2, 4);
+  if (dt < 40) ctx.fillRect(bx - 1, top + 4 + (mat - 30 - top) * (dt / 40) ** 2, 2, 4);
   else if (dt < 46) { ctx.beginPath(); ctx.arc(bx, mat - 26, (dt - 40) * 1.5, Math.PI, 0); ctx.fill(); }
   // The corner posts, rusting, the turnbuckle pads cracked and taped; the ropes, sagging between them
   const posts = [10, W - 10];

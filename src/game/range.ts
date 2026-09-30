@@ -6,7 +6,7 @@
 // gloves; and some idiot drifting about hanging off a bunch of party balloons. Nobody knows why. Nobody asked.
 
 import { Enemy, GameStatus, WeaponType } from '../types';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, WEAPON_RANGE_STAGE, createFullAmmo } from '../constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, WEAPON_RANGE_STAGE, createFullAmmo, RING_CEILING_Y, PRACTICE_RANGE_STAGE } from '../constants';
 import { createGameState, GameState } from './core/state';
 import { createFrameContext, GameEvents } from './core/context';
 import { stepGame } from './core/update';
@@ -41,7 +41,8 @@ export const createRange = (weapon: WeaponType, stageId = WEAPON_RANGE_STAGE, we
   s.blocks = [
     { x: -100, y: -1000, w: 100, h: 2000, type: 'wall' },
     { x: CANVAS_WIDTH, y: -1000, w: 100, h: 2000, type: 'wall' },
-    { x: 0, y: -200, w: CANVAS_WIDTH, h: 200, type: 'wall' },
+    // (the ceiling: the gym's, down under the writing across the top, in the ring; the top of the screen elsewhere)
+    { x: 0, y: (stageId === PRACTICE_RANGE_STAGE ? RING_CEILING_Y : 0) - 200, w: CANVAS_WIDTH, h: 200, type: 'wall' },
     { x: -100, y: GROUND_Y, w: CANVAS_WIDTH + 200, h: 50, type: 'ground' },
   ];
   s.cameraMinX = 0;

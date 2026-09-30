@@ -38,6 +38,8 @@ export const GROUND_Y = 550;
 export const WEAPON_RANGE_STAGE = 'WEAPON_RANGE';
 /** The practice range in the garage: the same range, in a boxing ring. */
 export const PRACTICE_RANGE_STAGE = 'PRACTICE_RANGE';
+/** The gym's ceiling over the ring (low enough to clear the range's writing across the top of the screen). */
+export const RING_CEILING_Y = 150;
 /** Is this one of the ranges (no pickups, no stage of its own)? */
 export const isRangeStage = (stageId: string | null | undefined) => stageId === WEAPON_RANGE_STAGE || stageId === PRACTICE_RANGE_STAGE;
 // Oil rockets can be nudged up or down in flight (enough to catch a flyer, not to turn corners)
