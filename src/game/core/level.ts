@@ -57,6 +57,7 @@ export const respawn = (state: GameState, stageId: string | null, skipToBoss: bo
   // (the frame count starts over: nothing still on offer from before)
   state.dyingSkipAt = undefined;
   state.deathFreeze = undefined;
+  state.deathScene = undefined;
   state.killPose = null;
   state.lastHurt = undefined;
   const checkpointStart = buildLevel(state, stageId, atBoss);

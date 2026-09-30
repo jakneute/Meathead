@@ -83,9 +83,14 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     // A stage can push the camera in on something (a clash), keeping that spot where it is on screen
     const zoom = getStageLayout(stageId)?.zoom?.(state);
     if (zoom && zoom.scale !== 1) { wctx.translate(zoom.shiftX ?? 0, zoom.shiftY ?? 0); wctx.translate(zoom.x, zoom.y); wctx.scale(zoom.scale, zoom.scale); wctx.translate(-zoom.x, -zoom.y); }
+    // (what of the world that puts on screen: what's drawn to fill the screen fills this)
+    const camX = state.camera.x - shiftX, camY = state.camera.y;
+    state.view = zoom && zoom.scale !== 1
+      ? { x: zoom.x + (camX - (zoom.shiftX ?? 0) - zoom.x) / zoom.scale, y: zoom.y + (camY - (zoom.shiftY ?? 0) - zoom.y) / zoom.scale, w: (CANVAS_WIDTH + shiftX * 2) / zoom.scale, h: CANVAS_HEIGHT / zoom.scale }
+      : { x: camX, y: camY, w: CANVAS_WIDTH + shiftX * 2, h: CANVAS_HEIGHT };
 
     layout?.drawBack?.(wctx, state);
-    if (!isRing) drawGroundProfile(wctx, state.groundRuns, stageId, state.frame || 0, { x: state.camera.x - shiftX, y: state.camera.y, w: CANVAS_WIDTH + shiftX * 2, h: CANVAS_HEIGHT });
+    if (!isRing) drawGroundProfile(wctx, state.groundRuns, stageId, state.frame || 0, state.view);
     if (!isRing && !drawTerrain(wctx, state.blocks, stageId, state.frame || 0, state.doorOpenAmount)) drawBlocks(wctx, state, colors);
     layout?.drawMid?.(wctx, state);
     // The boss arena is drawn whenever any of it is on screen: from the moment the door
@@ -157,7 +162,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   if (state.victoryString && (status === GameStatus.PLAYING || status === GameStatus.VICTORY)) drawVictoryText(ctx, state.victoryString);
   if (state.checkpointBanner && state.deathTimer <= 0) drawCheckpointBanner(ctx, state.checkpointBanner, state.frame);
   if (state.sewerNuke) drawSewerNukeFlash(ctx, state);
-  else if (state.deathTimer > 0 && state.deathString && state.deathFreeze === undefined) drawDeathMessage(ctx, state.deathString);
+  else if (state.deathTimer > 0 && state.deathString && state.deathFreeze === undefined && !(state.deathScene && state.deathScene.t < state.deathScene.len)) drawDeathMessage(ctx, state.deathString);
   if (state.deathTimer > 0 ? state.deathFrames > SKIP_AFTER : state.dyingSkipAt !== undefined && state.frame - state.dyingSkipAt >= 0 && state.frame - state.dyingSkipAt <= 1) drawSkipPrompt(ctx, CANVAS_WIDTH);
   // Skyfall intro: coming down out of the clouds the deploy transition dove into
   if (status === GameStatus.LEVEL_INTRO && LEVEL_INTRO_STYLE === 'skyfall' && state.introTimer < SKYFALL_CLOUD_FRAMES) {

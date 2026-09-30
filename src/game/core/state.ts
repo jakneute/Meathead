@@ -109,6 +109,11 @@ export interface GameState {
   cutsceneHold?: boolean;
   /** A death held on a still for a moment first (the sniper's headshot): frames since it started (see updateDeathScreen). */
   deathFreeze?: number;
+  /** A stage's own death scene (the avalanche throwing him off the mountain): frames into it, and how long it runs
+   * before the death message goes up (and is read out). */
+  deathScene?: { t: number; len: number };
+  /** What of the world's on screen this frame (set as it's drawn): the camera's 800x600, or more of it zoomed out. */
+  view?: { x: number; y: number; w: number; h: number };
   /** The last frame a long death on its way offered SKIP >> (see skipDying). */
   dyingSkipAt?: number;
   /** Reached the boss this attempt: dying now respawns right outside his door (cleared when a stage starts). */

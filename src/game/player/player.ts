@@ -77,7 +77,8 @@ export const killPlayer = (ctx: FrameContext, message: string, gore = true) => {
   state.deathString = message;
   if (gore) fx.spawnDeathShower(state.player.pos, state.player.facing, 3);
   // (not a word out of him: the death announcer reads out the screen, over whoever was talking)
-  announceDeath(message);
+  // (a stage's own death scene goes first: it's read out when that's over)
+  if (!state.deathScene) announceDeath(message);
   state.isMeatheadSpeaking = false;
   state.voiceLineCooldown = 0;
   state.hurtVoiceCooldown = 0;

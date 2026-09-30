@@ -1,5 +1,6 @@
 // Drawing for Artie's stage: hazards, set pieces and their HUD.
 
+import { drawFlingDeath, FLING_FRAMES } from './flingDraw';
 import type { GameState } from '../../core/state';
 import { getArtie } from './runtime';
 import { COURSE } from './course';
@@ -39,6 +40,8 @@ export const drawArtieHud = (ctx: Ctx, state: GameState) => {
   drawMooseHud(ctx, state, getArtie(state)!.moose);
   drawSkiHud(ctx, state, getArtie(state)!.ski);
   drawChuteWarnings(ctx, state, getArtie(state)!.hazards);
+  // Killed in the snowball: thrown off the far side of the mountain (over everything, while it plays and under the message)
+  if (state.deathTimer > 0 && getArtie(state)!.ski.fling) drawFlingDeath(ctx, state, state.deathScene?.t ?? FLING_FRAMES);
 };
 
 /** How far along a chute's telegraph is (0..1), or 0 if it isn't about to go. */
@@ -81,10 +84,11 @@ const hash = (n: number) => { const s = Math.sin(n * 127.1) * 43758.5453; return
 const drawCloudSea = (ctx: Ctx, state: GameState) => {
   const gz = COURSE.gorge;
   const x1 = gz.x1 - 40, x2 = gz.x2 + 40;
-  if (x2 < state.camera.x - 50 || x1 > state.camera.x + 850) return;
+  const vw = viewOf(state);
+  if (x2 < vw.x - 50 || x1 > vw.x + vw.w + 50) return;
   // Where the cloud tops are at x: a steady distance under the cable line (under the cabin's middle as it passes)
   const topAt = (x: number) => tramFloorLineAt(x + CABIN_W / 2) + CLOUD_TOP;
-  const bottom = Math.max(state.camera.y + 700, topAt(Math.max(x1, state.camera.x)) + 300);
+  const bottom = Math.max(vw.y + vw.h + 100, topAt(Math.max(x1, vw.x)) + 300);
   const layers = [
     { dy: 0, color: '#5E6C8C', r: 70, drift: 0.12, step: 80 },
     { dy: 45, color: '#8290AE', r: 62, drift: -0.2, step: 70 },
@@ -108,12 +112,15 @@ const drawCloudSea = (ctx: Ctx, state: GameState) => {
   });
 };
 
-const onScreen = (state: GameState, x: number, pad = 120) => x > state.camera.x - pad && x < state.camera.x + 800 + pad;
+const onScreen = (state: GameState, x: number, pad = 120) => { const v = viewOf(state); return x > v.x - pad && x < v.x + v.w + pad; };
+
+/** What of the world's on screen (more than the camera's 800 across when it's zoomed out, on the skis). */
+export const viewOf = (state: GameState) => state.view ?? { x: state.camera.x, y: state.camera.y, w: 800, h: 600 };
 
 /** Height of the ground line at x (or the bottom of the view over a pit). */
 export const floorY = (state: GameState, x: number) => {
   for (const r of state.groundRuns) if (x >= r.x1 && x <= r.x2) return r.y1 + ((x - r.x1) / (r.x2 - r.x1 || 1)) * (r.y2 - r.y1);
-  return state.camera.y + 550;
+  return viewOf(state).y + 550;
 };
 
 // ---------------------------------------------------------------------------
@@ -176,7 +183,8 @@ const drawCrumbles = (ctx: Ctx, state: GameState, hz: Hazards) => {
 
 const drawWind = (ctx: Ctx, state: GameState) => {
   for (const w of COURSE.winds) {
-    if (w.x2 < state.camera.x - 50 || w.x1 > state.camera.x + 850) continue;
+    const vw = viewOf(state);
+    if (w.x2 < vw.x - 50 || w.x1 > vw.x + vw.w + 50) continue;
     const on = windBlowing(w, state.frame);
     // A tattered trail flag on a pole at the near end: stiff in the wind, limp when it drops
     const px = w.x1 - 20, py = floorY(state, px);

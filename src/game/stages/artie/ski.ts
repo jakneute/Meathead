@@ -18,6 +18,7 @@ import { groundLineAt } from '../../core/terrain';
 import { deathByCause } from '../../core/deathCause';
 import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES } from '../../../constants';
 import { COURSE, CP, SkiObstacle } from './course';
+import { FLING_FRAMES } from './flingDraw';
 
 type SkiPhase = 'waiting' | 'cutscene' | 'skiing' | 'runout' | 'finale' | 'done';
 
@@ -45,11 +46,17 @@ export interface Ski {
   arrived: boolean;
   /** In the cutscene, if anything's still alive on screen: the avalanche's first surge, which comes right up behind him and pulverizes it. */
   surge: boolean;
+  /** How far the camera's zoomed out on the way down (1 not at all): enough to keep the avalanche's front in view. */
+  zoom: number;
+  /** Killed in the snowball: it's thrown him off the far side of the mountain (see drawFlingDeath). */
+  fling: boolean;
 }
 
 // Ski speeds (px/frame): cruising, pushing on, and dragging your heels
 const SKI_BASE = 9.2, SKI_FAST = 11, SKI_SLOW = 7, SKI_CRASHED = 2.5;
 const AVALANCHE_SPEED = 8.7, AVALANCHE_CATCHUP = 12.5;
+/** It never falls further behind than this (it catches up): the zoomed-out camera always has it in view. */
+const AVALANCHE_MAX_GAP = 660;
 /** The cutscene surge: how fast it comes in, and how close behind him it stops. */
 const SURGE_SPEED = 18, SURGE_STOP = 90;
 /** After a surge it's right on his tail: it drops back to this speed until he's got his usual head start. */
@@ -64,6 +71,21 @@ const CRASH_CALLOUTS: Record<SkiObstacle['kind'], { lines: string[]; color: stri
   branch: { lines: ['CLOTHESLINED!', 'SHOULDA DUCKED!', 'BRANCHED!'], color: '#FDE047' },
 };
 
+/** Zoomed out on the skis: how much of the slope it always keeps in view ahead of him, the margin behind the
+ * avalanche's front, and the furthest out it goes. */
+const SKI_VIEW_AHEAD = 520, SKI_VIEW_BEHIND = 90, SKI_ZOOM_MIN = 0.58;
+const skiZoomFor = (gap: number) => Math.max(SKI_ZOOM_MIN, Math.min(1, CANVAS_WIDTH / (Math.max(0, gap) + SKI_VIEW_BEHIND + SKI_VIEW_AHEAD)));
+
+/** The zoom for the stage's hook: about his feet, and shifted right so the avalanche's front stays on the screen. */
+export const skiZoom = (state: GameState, ski: Ski) => {
+  if (ski.zoom >= 0.999) return null;
+  const p = state.player, s = ski.zoom;
+  const px = p.pos.x + p.width / 2, py = p.pos.y + p.height;
+  const normal = px - state.camera.x;
+  const want = Math.max(normal, (Math.max(0, px - ski.avX) + SKI_VIEW_BEHIND) * s);
+  return { scale: s, x: px, y: py, shiftX: Math.min(CANVAS_WIDTH - SKI_VIEW_AHEAD * s, want) - normal, shiftY: 0 };
+};
+
 /** How far ahead of him the camera looks on skis (not so far he ends up under the HUD in the corner). */
 const SKI_CAMERA_LEAD = 190;
 
@@ -74,9 +96,9 @@ export const createSki = (state: GameState, startedAt: number): Ski => {
     phase: past ? 'done' : onSkis ? 'skiing' : 'waiting', t: 0, quiet: { n: 0 },
     skier: { x: COURSE.skier.x, y: COURSE.skier.y, vx: 0, vy: 0, rot: 0, state: onSkis || past ? 'gone' : 'stand', line: '', lineT: 0 },
     skis: null, avX: COURSE.checkpoints[CP.SKI].x - 650, ball: 0, ballX: 0, ballRot: 0, crash: 0,
-    broken: COURSE.ski.obstacles.map(() => false), cabinHitAt: past ? -9999 : 0, pileX: COURSE.cabin.x + 330, surge: false, arrived: false,
+    broken: COURSE.ski.obstacles.map(() => false), cabinHitAt: past ? -9999 : 0, pileX: COURSE.cabin.x + 330, surge: false, arrived: false, zoom: 1, fling: false,
   };
-  if (onSkis) { state.player.skiing = true; state.player.skiSpeed = SKI_BASE; state.cameraLeadX = SKI_CAMERA_LEAD; }
+  if (onSkis) { state.player.skiing = true; state.player.skiSpeed = SKI_BASE; state.cameraLeadX = SKI_CAMERA_LEAD; ski.zoom = skiZoomFor(COURSE.checkpoints[CP.SKI].x - ski.avX); }
   if (past) addPile(state, ski);
   return ski;
 };
@@ -131,6 +153,11 @@ export const updateSki = (ctx: FrameContext, ski: Ski, controls: Controls): Cont
   if (ski.skier.lineT > 0) ski.skier.lineT--;
   rangerRadio(state, ski);
   updateSkierBody(state, ski);
+  // Zoomed out on the way down, as far as it takes to keep the avalanche's front on screen behind him (and a good
+  // look ahead): easing in and out, back to normal at the bottom
+  const want = ski.phase === 'skiing' ? skiZoomFor(player.pos.x + player.width / 2 - ski.avX) : 1;
+  ski.zoom += (want - ski.zoom) * (want < ski.zoom ? 0.18 : 0.03);
+  if (Math.abs(ski.zoom - 1) < 0.002) ski.zoom = 1;
   switch (ski.phase) {
     case 'waiting':
       if (player.isGrounded && Math.abs(player.pos.x + player.width / 2 - ski.skier.x) < 260) { ski.phase = 'cutscene'; ski.t = 0; }
@@ -305,7 +332,7 @@ const skiing = (ctx: FrameContext, ski: Ski, controls: Controls): Controls => {
   const gap = player.pos.x - ski.avX;
   // (right behind him after the cutscene surge: it hangs back until he's got his usual lead)
   if (ski.surge && gap >= AVALANCHE_HEAD_START) ski.surge = false;
-  ski.avX += gap > 850 ? AVALANCHE_CATCHUP : ski.surge ? AVALANCHE_AFTER_SURGE : AVALANCHE_SPEED;
+  ski.avX += gap > AVALANCHE_MAX_GAP ? AVALANCHE_CATCHUP : ski.surge ? AVALANCHE_AFTER_SURGE : AVALANCHE_SPEED;
   if (state.frame % 3 === 0) shakeScreen(state, 4, Math.max(1, 5 - gap / 200));
   if (ski.avX >= player.pos.x + 16 && state.deathTimer <= 0) {
     // Caught: rolled up in a snowball
@@ -314,6 +341,7 @@ const skiing = (ctx: FrameContext, ski: Ski, controls: Controls): Controls => {
     ski.ballRot = 0;
     player.hidden = true;
     if (!ctx.cheats.invincible) player.health -= BALL_DAMAGE;
+    if (player.health <= 0) flingOff(state, ski);
     fx.spawnDamageNumber({ x: player.pos.x - 40, y: player.pos.y - 40 }, 'SNOWBALLED!', true, '#E0F2FE');
     fx.speakVulgarity('hurt', 'avalanche');
     shakeScreen(state, 25, 8);
@@ -336,17 +364,29 @@ const inBall = (ctx: FrameContext, ski: Ski): Controls => {
   player.pos.x = ski.ballX - player.width / 2;
   player.pos.y = ground - player.height;
   player.vel = { x: 0, y: 0 };
-  if (ski.ball === 0 || player.health <= 0) {
+  if (player.health <= 0) { flingOff(state, ski); return { ...NO_CONTROLS }; }
+  if (ski.ball === 0) {
     // Spat out ahead of it
     player.hidden = false;
     if (player.health > 0) {
       player.vel.y = -9;
       player.invincibilityTimer = 90;
       ski.avX = Math.min(ski.avX, player.pos.x - 420);
+      // (it's dropped back a way all at once: the camera's straight out to keep it in view)
+      ski.zoom = Math.min(ski.zoom, skiZoomFor(player.pos.x + player.width / 2 - ski.avX));
       for (let i = 0; i < 20; i++) state.particles.push({ pos: { x: ski.ballX, y: ground - 30 }, vel: { x: (Math.random() - 0.5) * 10, y: -Math.random() * 8 }, life: 30 + Math.random() * 20, color: i % 3 ? '#FFFFFF' : '#DBEAFE', size: 5 + Math.random() * 8 });
     }
   }
   return { ...NO_CONTROLS };
+};
+
+/** It's killed him: the snowball throws him off the far side of the mountain (the death scene: see flingDraw.ts). */
+const flingOff = (state: GameState, ski: Ski) => {
+  if (ski.fling) return;
+  ski.fling = true;
+  state.player.hidden = true;
+  state.deathScene = { t: 0, len: FLING_FRAMES };
+  playSound('whoosh', 1, -6);
 };
 
 const splinters = (state: GameState, o: SkiObstacle) => {
@@ -417,6 +457,8 @@ const finale = (ctx: FrameContext, ski: Ski): Controls => {
 export const skiDeathMessage = (state: GameState, ski: Ski): string | undefined => {
   if (ski.phase !== 'skiing') return undefined;
   const fell = state.player.health > 0;
+  // (thrown off the far side of the mountain, head first into a frozen pond)
+  if (ski.fling) { const l = ['THIN ICE', 'PLANTED HEAD FIRST', 'THE OTHER SIDE OF THE MOUNTAIN', 'SNOWBALLED INTO NEXT WEEK']; return l[Math.floor(Math.random() * l.length)]; }
   // (something in particular got him: a log, a branch, the avalanche: that, over the mountain in general)
   const cause = fell ? undefined : deathByCause(state);
   if (cause) return cause;

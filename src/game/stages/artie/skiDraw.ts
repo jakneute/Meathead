@@ -9,10 +9,12 @@ import { COURSE } from './course';
 import type { Ski } from './ski';
 import { sentenceShown } from '../../platform/speech';
 
+import { viewOf } from './draw';
+
 type Ctx = CanvasRenderingContext2D;
 
-const visible = (state: GameState, x1: number, x2: number) => x2 > state.camera.x - 80 && x1 < state.camera.x + 880;
-const groundAt = (state: GameState, x: number) => { const g = groundLineAt(state.groundRuns, x); return g === Infinity ? state.camera.y + 600 : g; };
+const visible = (state: GameState, x1: number, x2: number) => { const v = viewOf(state); return x2 > v.x - 80 && x1 < v.x + v.w + 80; };
+const groundAt = (state: GameState, x: number) => { const g = groundLineAt(state.groundRuns, x); return g === Infinity ? viewOf(state).y + viewOf(state).h : g; };
 
 // ---------------------------------------------------------------------------
 // Behind Meathead: obstacles, the skier, the cabin, the pile
@@ -175,8 +177,8 @@ const drawPile = (ctx: Ctx, state: GameState, ski: Ski) => {
   ctx.moveTo(x2, g);
   ctx.quadraticCurveTo(x2 + 10, g - 200, x2 - 120, g - 240);
   ctx.lineTo(x2 - 600, g - 300);
-  ctx.lineTo(Math.min(x2 - 600, state.camera.x - 100), g - 300);
-  ctx.lineTo(Math.min(x2 - 600, state.camera.x - 100), g + 60);
+  ctx.lineTo(Math.min(x2 - 600, viewOf(state).x - 100), g - 300);
+  ctx.lineTo(Math.min(x2 - 600, viewOf(state).x - 100), g + 60);
   ctx.lineTo(x2, g + 60);
   ctx.fill();
   ctx.fillStyle = '#CFE0F3';
@@ -370,19 +372,20 @@ const drawBall = (ctx: Ctx, state: GameState, ski: Ski) => {
 /** A wall of churning snow, taller than the screen, with trees and rocks tumbling in it. */
 const drawAvalanche = (ctx: Ctx, state: GameState, ski: Ski) => {
   const front = ski.avX;
-  const left = state.camera.x - 60;
+  const v = viewOf(state);
+  const left = v.x - 60, bottom = v.y + v.h + 100;
   if (front < left) return;
   const f = state.frame;
   const topAt = (x: number) => groundAt(state, x) - 420 - Math.sin(x * 0.02 + f * 0.1) * 30;
   // Body
-  const grad = ctx.createLinearGradient(0, state.camera.y, 0, state.camera.y + 600);
+  const grad = ctx.createLinearGradient(0, v.y, 0, v.y + v.h);
   grad.addColorStop(0, '#F8FAFC'); grad.addColorStop(1, '#C7D6EA');
   ctx.fillStyle = grad;
   ctx.beginPath();
-  ctx.moveTo(left, state.camera.y + 700);
+  ctx.moveTo(left, bottom);
   for (let x = left; x <= front; x += 30) ctx.lineTo(x, topAt(x));
   ctx.lineTo(front, groundAt(state, front));
-  ctx.lineTo(front, state.camera.y + 700);
+  ctx.lineTo(front, bottom);
   ctx.closePath();
   ctx.fill();
   // Tumbling debris inside it

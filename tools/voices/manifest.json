@@ -2,62 +2,62 @@
  {
   "voice": "agent",
   "text": "...Noted.",
-  "from": "components/IntroCutscene.tsx:22"
+  "from": "components/IntroCutscene.tsx:24"
  },
  {
   "voice": "agent",
   "text": "...Unlimited resources.",
-  "from": "components/IntroCutscene.tsx:22"
+  "from": "components/IntroCutscene.tsx:24"
  },
  {
   "voice": "agent",
   "text": "And the armory. Rocket launchers, flamethrowers, anything you want. Take your pick.",
-  "from": "components/IntroCutscene.tsx:22"
+  "from": "components/IntroCutscene.tsx:24"
  },
  {
   "voice": "agent",
   "text": "Artie Avalanche. Alaska. He looked at your protein shake funny.",
-  "from": "components/IntroCutscene.tsx:24"
+  "from": "components/IntroCutscene.tsx:26"
  },
  {
   "voice": "agent",
   "text": "Do you like hurting weaklings?",
-  "from": "components/IntroCutscene.tsx:22"
+  "from": "components/IntroCutscene.tsx:24"
  },
  {
   "voice": "agent",
   "text": "Ernie Earthquake. San Francisco. An old man with some very heavy rocks. He needs help moving them. Permanently.",
-  "from": "components/IntroCutscene.tsx:24"
+  "from": "components/IntroCutscene.tsx:26"
  },
  {
   "voice": "agent",
   "text": "Hector Hurricane. Miami. He went on the news and predicted a bad forecast for your gains.",
-  "from": "components/IntroCutscene.tsx:24"
+  "from": "components/IntroCutscene.tsx:26"
  },
  {
   "voice": "agent",
   "text": "Meathead. We represent a department of the government that does not exist.",
-  "from": "components/IntroCutscene.tsx:22"
+  "from": "components/IntroCutscene.tsx:24"
  },
  {
   "voice": "agent",
   "text": "These are the four assholes. Very dangerous. Very weak. Extremely hurtable.",
-  "from": "components/IntroCutscene.tsx:24"
+  "from": "components/IntroCutscene.tsx:26"
  },
  {
   "voice": "agent",
   "text": "Victor Volcano. Hawaii. He's telling everybody you skip leg day.",
-  "from": "components/IntroCutscene.tsx:24"
+  "from": "components/IntroCutscene.tsx:26"
  },
  {
   "voice": "agent",
   "text": "We don't do that kind of thing. You do. Planes, choppers, cargo drops: unlimited resources to put you wherever you need to be.",
-  "from": "components/IntroCutscene.tsx:24"
+  "from": "components/IntroCutscene.tsx:26"
  },
  {
   "voice": "agent",
   "text": "We'll be brief. We have an offer you cannot refuse.",
-  "from": "components/IntroCutscene.tsx:22"
+  "from": "components/IntroCutscene.tsx:24"
  },
  {
   "voice": "announcer",
@@ -2282,7 +2282,7 @@
  {
   "voice": "boss.tommy",
   "text": "BLAARGH! CRUDE OIL?! I CAN'T CHUNDER!",
-  "from": "game/bosses/tommy.ts:284"
+  "from": "game/bosses/tommy.ts:308"
  },
  {
   "voice": "boss.tommy",
@@ -3412,7 +3412,7 @@
  {
   "voice": "death",
   "text": "CREVASSE: 1, MEATHEAD: 0",
-  "from": "game/stages/artie/ski.ts:426"
+  "from": "game/stages/artie/ski.ts:468"
  },
  {
   "voice": "death",
@@ -3552,7 +3552,7 @@
  {
   "voice": "death",
   "text": "DRIVE-BY'D",
-  "from": "game/stages/tommy/bike.ts:539"
+  "from": "game/stages/tommy/bike.ts:560"
  },
  {
   "voice": "death",
@@ -3717,7 +3717,7 @@
  {
   "voice": "death",
   "text": "FLASH-FROZEN MEAT POPSICLE",
-  "from": "game/stages/artie/ski.ts:426"
+  "from": "game/stages/artie/ski.ts:468"
  },
  {
   "voice": "death",
@@ -3752,7 +3752,7 @@
  {
   "voice": "death",
   "text": "FLINT: 1, MEATHEAD: 0",
-  "from": "game/stages/tommy/bike.ts:539"
+  "from": "game/stages/tommy/bike.ts:560"
  },
  {
   "voice": "death",
@@ -4396,6 +4396,11 @@
  },
  {
   "voice": "death",
+  "text": "PLANTED HEAD FIRST",
+  "from": "game/stages/artie/ski.ts:461"
+ },
+ {
+  "voice": "death",
   "text": "PLUMBED",
   "from": "content/deaths"
  },
@@ -4792,7 +4797,7 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE WORN A HELMET",
-  "from": "game/stages/tommy/bike.ts:539"
+  "from": "game/stages/tommy/bike.ts:560"
  },
  {
   "voice": "death",
@@ -4827,7 +4832,7 @@
  {
   "voice": "death",
   "text": "SKIED INTO THE ABYSS",
-  "from": "game/stages/artie/ski.ts:426"
+  "from": "game/stages/artie/ski.ts:468"
  },
  {
   "voice": "death",
@@ -4883,6 +4888,11 @@
   "voice": "death",
   "text": "SNIPED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SNOWBALLED INTO NEXT WEEK",
+  "from": "game/stages/artie/ski.ts:461"
  },
  {
   "voice": "death",
@@ -5047,7 +5057,7 @@
  {
   "voice": "death",
   "text": "TAYVON WANTS HIS BIKE BACK",
-  "from": "game/stages/tommy/bike.ts:539"
+  "from": "game/stages/tommy/bike.ts:560"
  },
  {
   "voice": "death",
@@ -5152,7 +5162,12 @@
  {
   "voice": "death",
   "text": "THE MOUNTAIN WON",
-  "from": "game/stages/artie/ski.ts:426"
+  "from": "game/stages/artie/ski.ts:468"
+ },
+ {
+  "voice": "death",
+  "text": "THE OTHER SIDE OF THE MOUNTAIN",
+  "from": "game/stages/artie/ski.ts:461"
  },
  {
   "voice": "death",
@@ -5203,6 +5218,11 @@
   "voice": "death",
   "text": "THERE WAS A ROCK",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THIN ICE",
+  "from": "game/stages/artie/ski.ts:461"
  },
  {
   "voice": "death",
@@ -5387,7 +5407,7 @@
  {
   "voice": "death",
   "text": "YOU GOT AVALANCHED",
-  "from": "game/stages/artie/ski.ts:426"
+  "from": "game/stages/artie/ski.ts:468"
  },
  {
   "voice": "death",
@@ -5412,17 +5432,17 @@
  {
   "voice": "dispatch",
   "text": "DAVE?",
-  "from": "game/stages/artie/ski.ts:122"
+  "from": "game/stages/artie/ski.ts:144"
  },
  {
   "voice": "dispatch",
   "text": "DAVE? YOU GOOD, DAVE?",
-  "from": "game/stages/artie/ski.ts:122"
+  "from": "game/stages/artie/ski.ts:144"
  },
  {
   "voice": "dispatch",
   "text": "RANGER ONE, COME IN.",
-  "from": "game/stages/artie/ski.ts:122"
+  "from": "game/stages/artie/ski.ts:144"
  },
  {
   "voice": "doorman",
@@ -5907,7 +5927,7 @@
  {
   "voice": "meathead",
   "text": "...AND THIS.",
-  "from": "components/IntroCutscene.tsx:26"
+  "from": "components/IntroCutscene.tsx:28"
  },
  {
   "voice": "meathead",
@@ -5927,7 +5947,7 @@
  {
   "voice": "meathead",
   "text": "...OH SHIT.",
-  "from": "game/stages/artie/ski.ts:96"
+  "from": "game/stages/artie/ski.ts:118"
  },
  {
   "voice": "meathead",
@@ -7017,12 +7037,12 @@
  {
   "voice": "meathead",
   "text": "DO I LIKE HURTING WEAKLINGS?! THAT'S MY FAVORITE THING! AFTER CHEST DAY! WHERE ARE THEY?!",
-  "from": "components/IntroCutscene.tsx:26"
+  "from": "components/IntroCutscene.tsx:28"
  },
  {
   "voice": "meathead",
   "text": "Do you even lift, bro?",
-  "from": "components/EndingCutscene.tsx:32"
+  "from": "components/EndingCutscene.tsx:34"
  },
  {
   "voice": "meathead",
@@ -8567,7 +8587,7 @@
  {
   "voice": "meathead",
   "text": "I HAVE NEVER SKIPPED LEG DAY IN MY LIFE.",
-  "from": "components/IntroCutscene.tsx:26"
+  "from": "components/IntroCutscene.tsx:28"
  },
  {
   "voice": "meathead",
@@ -8622,7 +8642,7 @@
  {
   "voice": "meathead",
   "text": "I ONLY NEED MY GUNS.",
-  "from": "components/IntroCutscene.tsx:26"
+  "from": "components/IntroCutscene.tsx:28"
  },
  {
   "voice": "meathead",
@@ -8837,7 +8857,7 @@
  {
   "voice": "meathead",
   "text": "I'M MID-SET, BRO.",
-  "from": "components/IntroCutscene.tsx:26"
+  "from": "components/IntroCutscene.tsx:28"
  },
  {
   "voice": "meathead",
@@ -9222,7 +9242,7 @@
  {
   "voice": "meathead",
   "text": "LET'S GO HURT SOME WEAKLINGS!",
-  "from": "components/IntroCutscene.tsx:26"
+  "from": "components/IntroCutscene.tsx:28"
  },
  {
   "voice": "meathead",
@@ -9327,7 +9347,7 @@
  {
   "voice": "meathead",
   "text": "MINE NOW.",
-  "from": "game/stages/artie/ski.ts:96"
+  "from": "game/stages/artie/ski.ts:118"
  },
  {
   "voice": "meathead",
@@ -9497,7 +9517,7 @@
  {
   "voice": "meathead",
   "text": "MY SHAKE?!",
-  "from": "components/IntroCutscene.tsx:26"
+  "from": "components/IntroCutscene.tsx:28"
  },
  {
   "voice": "meathead",
@@ -9542,7 +9562,7 @@
  {
   "voice": "meathead",
   "text": "MY TIIIIIIRES!",
-  "from": "game/stages/tommy/bike.ts:498"
+  "from": "game/stages/tommy/bike.ts:519"
  },
  {
   "voice": "meathead",
@@ -9622,7 +9642,7 @@
  {
   "voice": "meathead",
   "text": "NICE BIKE. I'M TAKING IT.",
-  "from": "game/stages/tommy/bike.ts:169"
+  "from": "game/stages/tommy/bike.ts:171"
  },
  {
   "voice": "meathead",
@@ -9672,7 +9692,7 @@
  {
   "voice": "meathead",
   "text": "NICE SKIS.",
-  "from": "game/stages/artie/ski.ts:96"
+  "from": "game/stages/artie/ski.ts:118"
  },
  {
   "voice": "meathead",
@@ -10077,7 +10097,7 @@
  {
   "voice": "meathead",
   "text": "PFFT. IT'S A PUDDLE.",
-  "from": "game/stages/tommy/bike.ts:483"
+  "from": "game/stages/tommy/bike.ts:504"
  },
  {
   "voice": "meathead",
@@ -10362,7 +10382,7 @@
  {
   "voice": "meathead",
   "text": "RING RING, BITCHES.",
-  "from": "game/stages/tommy/bike.ts:189"
+  "from": "game/stages/tommy/bike.ts:191"
  },
  {
   "voice": "meathead",
@@ -10717,7 +10737,7 @@
  {
   "voice": "meathead",
   "text": "SHOULD'VE BUILT FURTHER UP.",
-  "from": "game/stages/artie/ski.ts:96"
+  "from": "game/stages/artie/ski.ts:118"
  },
  {
   "voice": "meathead",
@@ -11752,7 +11772,7 @@
  {
   "voice": "meathead",
   "text": "The union. The rangers. The bikers. My bar. My field's on fire, pal! ...It's insured. You're not.",
-  "from": "game/core/update.ts:163"
+  "from": "game/core/update.ts:173"
  },
  {
   "voice": "meathead",
@@ -12062,7 +12082,7 @@
  {
   "voice": "meathead",
   "text": "UNLIMITED... PROTEIN?",
-  "from": "components/IntroCutscene.tsx:26"
+  "from": "components/IntroCutscene.tsx:28"
  },
  {
   "voice": "meathead",
@@ -12207,7 +12227,7 @@
  {
   "voice": "meathead",
   "text": "WEAPONS? NAH. I DON'T NEED WEAPONS.",
-  "from": "components/IntroCutscene.tsx:26"
+  "from": "components/IntroCutscene.tsx:28"
  },
  {
   "voice": "meathead",
@@ -12367,7 +12387,7 @@
  {
   "voice": "meathead",
   "text": "WHO'S THE ASTRONAUT?",
-  "from": "game/stages/tommy/bike.ts:457"
+  "from": "game/stages/tommy/bike.ts:478"
  },
  {
   "voice": "meathead",
@@ -12397,7 +12417,7 @@
  {
   "voice": "meathead",
   "text": "WHY DON'T YOU GUYS DO IT? YOU'VE GOT SUITS.",
-  "from": "components/IntroCutscene.tsx:26"
+  "from": "components/IntroCutscene.tsx:28"
  },
  {
   "voice": "meathead",
@@ -12477,12 +12497,12 @@
  {
   "voice": "meathead",
   "text": "You blew my whole power room, man. With my guy in it. Whole city's dark now... look up. See any stars? ...Me neither.",
-  "from": "game/core/update.ts:163"
+  "from": "game/core/update.ts:173"
  },
  {
   "voice": "meathead",
   "text": "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!",
-  "from": "game/core/update.ts:163"
+  "from": "game/core/update.ts:173"
  },
  {
   "voice": "meathead",
@@ -12522,7 +12542,7 @@
  {
   "voice": "meathead",
   "text": "You crashed my VIP lounge, bro. Those were investors. Now they're a geothermal feature.",
-  "from": "game/core/update.ts:163"
+  "from": "game/core/update.ts:173"
  },
  {
   "voice": "meathead",
@@ -12532,7 +12552,7 @@
  {
   "voice": "meathead",
   "text": "You dropped a jet ski on the tour group, sonny. I schedule my quakes AROUND the tour group!",
-  "from": "game/core/update.ts:163"
+  "from": "game/core/update.ts:173"
  },
  {
   "voice": "meathead",
@@ -12552,12 +12572,12 @@
  {
   "voice": "meathead",
   "text": "You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.",
-  "from": "game/core/update.ts:163"
+  "from": "game/core/update.ts:173"
  },
  {
   "voice": "meathead",
   "text": "You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I'M the terrorist?",
-  "from": "game/core/update.ts:163"
+  "from": "game/core/update.ts:173"
  },
  {
   "voice": "meathead",
@@ -12592,7 +12612,7 @@
  {
   "voice": "meathead",
   "text": "You put the neighbors down. And you dropped my water tower on a house. Do you know how long it took me to fill that thing?",
-  "from": "game/core/update.ts:163"
+  "from": "game/core/update.ts:173"
  },
  {
   "voice": "meathead",
@@ -12692,7 +12712,7 @@
  {
   "voice": "meathead",
   "text": "YOU'RE TOAST.",
-  "from": "game/core/update.ts:163"
+  "from": "game/core/update.ts:173"
  },
  {
   "voice": "meathead",
@@ -12992,7 +13012,7 @@
  {
   "voice": "president",
   "text": "Excuse me?",
-  "from": "components/EndingCutscene.tsx:36"
+  "from": "components/EndingCutscene.tsx:38"
  },
  {
   "voice": "president",
@@ -13012,7 +13032,7 @@
  {
   "voice": "president",
   "text": "It's my great honor to give him the Presidential Medal of Freedom. Beautiful medal. Very expensive. Frankly, I should get one too.",
-  "from": "components/EndingCutscene.tsx:26"
+  "from": "components/EndingCutscene.tsx:27"
  },
  {
   "voice": "president",
@@ -13022,7 +13042,7 @@
  {
   "voice": "president",
   "text": "Nobody's ever seen anything like it. Tremendous job. The best job. People are saying he's the greatest hero in the history of heroes. Maybe ever.",
-  "from": "components/EndingCutscene.tsx:22"
+  "from": "components/EndingCutscene.tsx:23"
  },
  {
   "voice": "president",
@@ -13032,7 +13052,7 @@
  {
   "voice": "president",
   "text": "Thank you. Thank you. What a crowd. This man, Meathead, took out the most dangerous, most evil terrorists. Believe me.",
-  "from": "components/EndingCutscene.tsx:18"
+  "from": "components/EndingCutscene.tsx:19"
  },
  {
   "voice": "president",
@@ -13057,22 +13077,22 @@
  {
   "voice": "skier",
   "text": "AAAAAAAAAAHHHHH",
-  "from": "game/stages/artie/ski.ts:106"
+  "from": "game/stages/artie/ski.ts:128"
  },
  {
   "voice": "skier",
   "text": "BRO. THE POWDER UP HERE IS SICK.",
-  "from": "game/stages/artie/ski.ts:106"
+  "from": "game/stages/artie/ski.ts:128"
  },
  {
   "voice": "skier",
   "text": "THANKS, THEY'RE CARBON FIB-",
-  "from": "game/stages/artie/ski.ts:106"
+  "from": "game/stages/artie/ski.ts:128"
  },
  {
   "voice": "tommy.crew",
   "text": "HE TOOK TAYVON'S BIKE! GET THE CAR!",
-  "from": "game/stages/tommy/bike.ts:189"
+  "from": "game/stages/tommy/bike.ts:191"
  },
  {
   "voice": "tommy.crew",
@@ -13082,7 +13102,7 @@
  {
   "voice": "tommy.crew",
   "text": "NAH, THE WATER ALWAYS BEEN THAT COLOR.",
-  "from": "game/stages/tommy/bike.ts:166"
+  "from": "game/stages/tommy/bike.ts:168"
  },
  {
   "voice": "tommy.crew",
@@ -13097,7 +13117,7 @@
  {
   "voice": "tommy.crew",
   "text": "YO. WHO'S THIS BIG DUDE?",
-  "from": "game/stages/tommy/bike.ts:168"
+  "from": "game/stages/tommy/bike.ts:170"
  },
  {
   "voice": "tommy.crew",
@@ -13112,12 +13132,12 @@
  {
   "voice": "tommy.hazmat",
   "text": "COMPLIMENTS OF THE CITY OF FLINT.",
-  "from": "game/stages/tommy/bike.ts:462"
+  "from": "game/stages/tommy/bike.ts:483"
  },
  {
   "voice": "tommy.hazmat",
   "text": "DRINK UP.",
-  "from": "game/stages/tommy/bike.ts:467"
+  "from": "game/stages/tommy/bike.ts:488"
  },
  {
   "voice": "tommy.kid",
@@ -13127,17 +13147,17 @@
  {
   "voice": "tommy.rider",
   "text": "AYYY! THAT WAS MY BIRTHDAY BIKE!",
-  "from": "game/stages/tommy/bike.ts:189"
+  "from": "game/stages/tommy/bike.ts:191"
  },
  {
   "voice": "tommy.rider",
   "text": "MY GRANDMA SAYS IT GOT FLAVOR NOW.",
-  "from": "game/stages/tommy/bike.ts:167"
+  "from": "game/stages/tommy/bike.ts:169"
  },
  {
   "voice": "tommy.rider",
   "text": "NIGGA STOLE MY BIKE!",
-  "from": "game/stages/tommy/bike.ts:189"
+  "from": "game/stages/tommy/bike.ts:191"
  },
  {
   "voice": "tommy.thing",

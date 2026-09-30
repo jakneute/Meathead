@@ -9,7 +9,7 @@ import { createArtieRuntime, getArtie, updateArtie } from './runtime';
 import { drawArtieBack, drawArtieMid, drawArtieFront, drawArtieHud } from './draw';
 import { updateMoose, hitMoose } from './moose';
 import { drawMoose } from './mooseDraw';
-import { skiDeathMessage } from './ski';
+import { skiDeathMessage, skiZoom } from './ski';
 import { artieScene } from './lighting';
 
 export const artieLayout: StageLayout = {
@@ -43,6 +43,8 @@ export const artieLayout: StageLayout = {
     }
   },
   update: (ctx, controls) => updateArtie(ctx, controls),
+  // (zoomed out on the skis, to keep the avalanche in view)
+  zoom: state => { const rt = getArtie(state); return rt ? skiZoom(state, rt.ski) : null; },
   deathMessage: ctx => { const rt = getArtie(ctx.state); return rt ? skiDeathMessage(ctx.state, rt.ski) : undefined; },
   updateSpecialEnemy: (ctx, e) => {
     const rt = getArtie(ctx.state);
