@@ -2,6 +2,7 @@
 // damage, weapon reactions, dying, and running their behaviour each frame.
 // Each boss's own behaviour lives in bosses/<name>.ts.
 
+import { attackless } from '../enemies/attackless';
 import { cutBossLines } from '../platform/speech';
 import { Enemy, Projectile, WeaponType, VulgarityType } from '../../types';
 import {
@@ -246,7 +247,8 @@ const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolea
     const reach = Math.max(boss.width, boss.height);
     if (dir === 1 && boss.pos.x + boss.width + reach > getArenaRight(stageId)) dir = -1;
     else if (dir === -1 && boss.pos.x - reach < ARENA_LEFT) dir = 1;
-    state.bossFallen = { e: { ...boss, pos: { ...boss.pos }, vel: { x: 0, y: 0 }, hitCooldown: 0 }, dir, floor, frame0: state.frame };
+    // (without whatever attack he was in the middle of: that doesn't keel over with him)
+    state.bossFallen = { e: { ...attackless(boss), vel: { x: 0, y: 0 }, hitCooldown: 0 }, dir, floor, frame0: state.frame };
     helpers.onBossDeath();
     state.victoryString = "V";
     state.postVictoryTimer = 0;

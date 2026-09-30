@@ -1,4 +1,5 @@
 import { GameStatus, Enemy, TommyBoard, DamageNumber, Particle } from '../../types';
+import { attackless } from '../enemies/attackless';
 import { setBossLook } from './bosses/kit';
 import { isDummy, drawDummy } from './dummies';
 import {
@@ -654,9 +655,11 @@ const drawBossFallen = (ctx: CanvasRenderingContext2D, state: GameState, stageId
 
 const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, stageId, bossTauntText }: WorldView) => {
   const { enemies, player } = state;
-  enemies.forEach(e => {
+  enemies.forEach(live => {
     // (a tenant's dead as he falls, but he's still to be seen going)
-    if (e.health <= 0 && !e.isBlownAway && !(e.kind === 'tenant' && (e.aiState === 'fall' || e.aiState === 'splat'))) return;
+    if (live.health <= 0 && !live.isBlownAway && !(live.kind === 'tenant' && (live.aiState === 'fall' || live.aiState === 'splat'))) return;
+    // (dead and going: without whatever attack it was in the middle of, so that doesn't go flying with it)
+    const e = live.isBlownAway || live.health <= 0 ? attackless(live) : live;
     ctx.save();
     if (e.isTased && player.isTasing && player.taserTargetId === e.id) {
        ctx.translate((Math.random()-0.5)*10, (Math.random()-0.5)*10);
