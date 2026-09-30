@@ -15,6 +15,7 @@ import type { Live } from '../../render/backdrops';
 import type { LayerSpec } from '../../render/backdrops/core';
 import { drawBackdropFront } from '../../render/backdrops';
 import { drawBarryKind } from '../../render/enemies/barry';
+import { drawKindEnemy } from '../../render/enemies';
 import { drawPlayer } from '../../render/player/player';
 import { COURSE, Ledge, Prop, placeOf, roomOf } from './course';
 import { getBarry, BarryRuntime, ventState, barkOf } from './runtime';
@@ -643,6 +644,17 @@ export const drawBarryFront = (ctx: Ctx, state: GameState) => {
   const place = placeOf(state.camera.x + CANVAS_WIDTH / 2);
   if (roomOf(place)) drawRoomFront(ctx, state, rt, place);
   if (place === 'power') drawSurge(ctx, state, rt.power);
+  // A tenant leaning out of the window he's stood right in front of: out over him, not hidden behind him (dimmed like
+  // the rest if the blackout's on it)
+  const p = state.player;
+  for (const e of state.enemies) {
+    if (e.kind !== 'tenant' || (e.aiState !== 'lean' && e.aiState !== 'throw') || e.health <= 0) continue;
+    if (e.pos.x + e.width < p.pos.x || e.pos.x > p.pos.x + p.width || e.pos.y + e.height < p.pos.y || e.pos.y > p.pos.y + p.height) continue;
+    ctx.save();
+    if (blackoutAt(state.frame, e.pos.x, e.pos.y) > 0.5) ctx.filter = 'brightness(0.35)';
+    drawKindEnemy(ctx, e, state);
+    ctx.restore();
+  }
   for (const e of state.enemies) {
     const b = barkOf(rt, e);
     if (b) drawBubble(ctx, e.pos.x + e.width / 2, e.pos.y - 14, b.text, '#F8FAFC');
