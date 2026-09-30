@@ -1,4 +1,4 @@
-import { GameStatus, Enemy, TommyBoard, DamageNumber } from '../../types';
+import { GameStatus, Enemy, TommyBoard, DamageNumber, Particle } from '../../types';
 import { setBossLook } from './bosses/kit';
 import { isDummy, drawDummy } from './dummies';
 import {
@@ -14,6 +14,7 @@ import { drawIcicles, drawIceBlock, drawIceShard } from './bosses/artieIce';
 import { drawBoulder, drawRockChip } from './bosses/boulders';
 import { drawBullet, drawThrown, drawEnemyBullet, drawIcePellet, drawDart, drawPoopLog, drawCocaine, drawMethBarrel, drawSludgeBlob } from './projectiles';
 import { drawParticle } from './particles';
+import { drawComposited, needsComposite } from './composite';
 import { drawBossCorpse } from './bosses/corpses';
 import { drawVictoryPee } from './scenes/victoryPee';
 import { drawPlayer } from './player/player';
@@ -542,7 +543,9 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
     } else if (e.kind && getStageLayout(stageId)?.drawSpecialEnemy?.(ctx, e, state)) {
       // (a stage's mid-boss draws itself)
     } else if (e.kind) {
-      drawKindEnemy(ctx, e, state);
+      // (oiled, drugged or flickering: the filter goes on the finished enemy once, not on each of its shapes)
+      if (needsComposite(ctx)) drawComposited(ctx, { x: e.pos.x - 40, y: e.pos.y - 60, w: e.width + 80, h: e.height + 100 }, c => drawKindEnemy(c, e, state));
+      else drawKindEnemy(ctx, e, state);
       // Dazed from a knock: a few stars going round his head
       if ((e.pauseTimer || 0) > 0 && !e.isBlownAway && e.health > 0) {
         const hx = e.pos.x + e.width / 2, hy = e.pos.y - 8;
@@ -1101,14 +1104,57 @@ const drawProjectiles = (ctx: CanvasRenderingContext2D, state: GameState, layer:
   });
 };
 
+/** The layer stuck gore is painted onto: the view (as it was when the gore started sticking) at the view's resolution. */
+interface GoreLayer { canvas: HTMLCanvasElement; x: number; y: number; w: number; h: number; k: number; baked: WeakSet<Particle> }
+const goreLayers = new WeakMap<GameState, GoreLayer>();
+
+/**
+ * Paints any newly stuck gore onto the layer and draws the layer; returns the set of what's on it (so it isn't drawn
+ * again), or null when there's none. The layer's wiped once none of its gore is left (a respawn, a new stage).
+ */
+const goreLayer = (ctx: CanvasRenderingContext2D, state: GameState) => {
+  if (typeof document === 'undefined') return null;
+  let layer = goreLayers.get(state);
+  let stuck = 0, onLayer = 0;
+  for (const p of state.particles) if (p.isStuck) { stuck++; if (layer?.baked.has(p)) onLayer++; }
+  if (layer && onLayer === 0) { goreLayers.delete(state); layer = undefined; }
+  if (!stuck) return null;
+  if (!layer) {
+    const m = ctx.getTransform();
+    const k = Math.max(1, Math.min(2, Math.hypot(m.a, m.b)));
+    const x = state.camera.x - 120, y = state.camera.y - 120, w = CANVAS_WIDTH + 240, h = CANVAS_HEIGHT + 240;
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.ceil(w * k); canvas.height = Math.ceil(h * k);
+    layer = { canvas, x, y, w, h, k, baked: new WeakSet() };
+    goreLayers.set(state, layer);
+  }
+  const g = layer.canvas.getContext('2d')!;
+  g.setTransform(layer.k, 0, 0, layer.k, -layer.x * layer.k, -layer.y * layer.k);
+  g.globalAlpha = 0.85;
+  for (const p of state.particles) {
+    if (!p.isStuck || layer.baked.has(p)) continue;
+    // (only what's inside the layer: anything stuck outside it is drawn as usual)
+    if (p.pos.x < layer.x || p.pos.x > layer.x + layer.w || p.pos.y < layer.y || p.pos.y > layer.y + layer.h) continue;
+    if (p.alpha !== undefined) continue;
+    drawParticle(g, p);
+    layer.baked.add(p);
+  }
+  ctx.drawImage(layer.canvas, layer.x, layer.y, layer.w, layer.h);
+  return layer.baked;
+};
+
 const drawParticlesAndDamageNumbers = (ctx: CanvasRenderingContext2D, state: GameState) => {
   const { particles, damageNumbers } = state;
-  particles.forEach(p => {
-    ctx.save();
+  // Gore that's stuck fast to the walls and ceiling doesn't change: it's painted once onto a layer and the layer is
+  // drawn (after a weakness kill that's a couple of thousand splats, which were being redrawn every frame)
+  const layer = goreLayer(ctx, state);
+  ctx.save();
+  for (const p of particles) {
+    if (layer && p.isStuck && layer.has(p)) continue;
     ctx.globalAlpha = p.alpha ?? (p.isStuck ? 0.85 : (p.life < 100 ? p.life / 100 : 1));
     drawParticle(ctx, p);
-    ctx.restore();
-  });
+  }
+  ctx.restore();
   damageNumbers.forEach(d => {
     if (d.isCallout) { drawCallout(ctx, d, state.camera); return; }
     ctx.save();

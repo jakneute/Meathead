@@ -104,28 +104,31 @@ export const drawHector = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
   });
   ctx.restore();
 
-  // Hurricane weather round him
-  if (storm) {
-    ctx.save();
-    ctx.translate(40, 40);
-    ctx.strokeStyle = 'rgba(200, 255, 255, 0.6)';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < 8; i++) {
-      const rx = (Math.random() - 0.5) * 300, ry = (Math.random() - 0.5) * 300;
-      const len = 20 + Math.random() * 30, inward = rx < 0 ? 1 : -1; // blown in toward the eye of the storm
-      ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx + inward * len, ry + len / 2); ctx.stroke();
-    }
-    if (Math.random() > 0.7) {
-      ctx.strokeStyle = '#FFFF00'; ctx.lineWidth = 2; ctx.shadowColor = '#FFFF00'; ctx.shadowBlur = 10;
-      ctx.beginPath();
-      let lx = (Math.random() - 0.5) * 150, ly = (Math.random() - 0.5) * 150;
-      ctx.moveTo(lx, ly);
-      for (let j = 0; j < 4; j++) { lx += (Math.random() - 0.5) * 40; ly += (Math.random() - 0.5) * 40; ctx.lineTo(lx, ly); }
-      ctx.stroke();
-    }
-    ctx.restore();
+  ctx.restore();
+};
+
+/** The hurricane's weather round him (world space: rain blown in toward him, the odd bolt). */
+export const drawHectorStorm = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
+  if (e.bossState !== 'hurricane') return;
+  ctx.save();
+  ctx.translate(e.pos.x + e.width / 2, e.pos.y + e.height / 2);
+  ctx.strokeStyle = 'rgba(200, 255, 255, 0.6)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 8; i++) {
+    const rx = (Math.random() - 0.5) * 300, ry = (Math.random() - 0.5) * 300;
+    const len = 20 + Math.random() * 30, inward = rx < 0 ? 1 : -1; // blown in toward the eye of the storm
+    ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx + inward * len, ry + len / 2); ctx.stroke();
+  }
+  if (Math.random() > 0.7) {
+    ctx.strokeStyle = '#FFFF00'; ctx.lineWidth = 2; ctx.shadowColor = '#FFFF00'; ctx.shadowBlur = 10;
+    ctx.beginPath();
+    let lx = (Math.random() - 0.5) * 150, ly = (Math.random() - 0.5) * 150;
+    ctx.moveTo(lx, ly);
+    for (let j = 0; j < 4; j++) { lx += (Math.random() - 0.5) * 40; ly += (Math.random() - 0.5) * 40; ctx.lineTo(lx, ly); }
+    ctx.stroke();
   }
   ctx.restore();
+  void frame;
 };
 
 /**

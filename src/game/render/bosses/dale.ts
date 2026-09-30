@@ -17,17 +17,13 @@ const FACE: FaceStyle = {
 const SUIT = '#8E44AD', SUIT_DARK = '#5B2C6F', SUIT_LIGHT = '#A569BD';
 
 export const drawDale = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
-  // Speed: a strobing high while he dashes, and twitching harder and harder as the needle goes in
-  if (e.bossState === 'speed_dash') {
-    ctx.filter = `hue-rotate(${frame * 10}deg) saturate(3)`;
-  }
+  // Speed: twitching harder and harder as the needle goes in (the strobing colours are daleFx's)
   const windingUp = e.bossState === 'using_shipment' && e.shipmentType === 'speed';
   if (windingUp) {
     const t = 1 - (e.stateTimer || 0) / DALE_SPEED_WINDUP;
     if (t > 0.55) {
       const j = (t - 0.55) * 10;
       ctx.translate((Math.random() - 0.5) * j, (Math.random() - 0.5) * j);
-      ctx.filter = `hue-rotate(${Math.floor(frame * 12 * t)}deg) saturate(${1 + t * 2})`;
     }
   }
   const f = facingOf(e);
@@ -127,6 +123,16 @@ export const drawDale = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number)
   });
   ctx.restore();
   ctx.restore();
+};
+
+/** Speed: a strobing high over the whole of him while he dashes, and coming on as the needle goes in. */
+export const daleFx = (e: Enemy, frame: number) => {
+  if (e.bossState === 'speed_dash') return { filter: `hue-rotate(${frame * 10}deg) saturate(3)` };
+  if (e.bossState === 'using_shipment' && e.shipmentType === 'speed') {
+    const t = 1 - (e.stateTimer || 0) / DALE_SPEED_WINDUP;
+    if (t > 0.55) return { filter: `hue-rotate(${Math.floor(frame * 12 * t)}deg) saturate(${1 + t * 2})` };
+  }
+  return null;
 };
 
 export const drawDaleDrugs = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {

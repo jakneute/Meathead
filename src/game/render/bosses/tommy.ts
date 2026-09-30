@@ -44,7 +44,6 @@ export const drawTommy = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
   }
 
   ctx.save();
-  if (isExhausted && Math.sin(frame * 0.3) > 0) { ctx.shadowColor = '#FFFF00'; ctx.shadowBlur = 15; }
   const mood = isExhausted ? 'ko' : moodOf(e, frame, { puke_closing_in: 'roar', puke_going_outward: 'roar', emerge_shatter: 'manic' });
   drawTommyBody(ctx, e, frame, mood, isPuking);
   ctx.restore();
@@ -67,6 +66,10 @@ export const drawTommy = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
     ctx.beginPath(); ctx.arc(width * 0.5, height * 0.6, 12, 0, Math.PI * 2); ctx.fill();
   }
 };
+
+/** Knocked out, he flashes: a yellow glow round the whole of him, on and off. */
+export const tommyFx = (e: Enemy, frame: number) =>
+  (e.bossState === 'vulnerable_idle' || e.bossState === 'weakness_stunned') && Math.sin(frame * 0.3) > 0 ? { shadowColor: '#FFFF00', shadowBlur: 15 } : null;
 
 /** Tommy himself (in an 80x80 box). */
 const drawTommyBody = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number, mood: Mood, puking: boolean) => {

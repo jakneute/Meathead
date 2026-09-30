@@ -24,14 +24,8 @@ export const drawBarry = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
   const isLightning = e.bossState === 'lightning_storm';
   const isExhausted = e.bossState === 'exhausted';
 
-  const _α = isTeleporting ? Math.abs(Math.sin(frame * 0.4)) : 1.0;
-  ctx.globalAlpha = _α;
-
-  // High as a kite: a kite string trailing below him and a psychedelic colour cycle
-  if (e.bossState === 'high') {
-    drawKiteString(ctx, width, height, frame);
-    ctx.filter = `hue-rotate(${(frame * 12) % 360}deg) saturate(2.5)`;
-  }
+  // High as a kite: a kite string trailing below him (the colours cycling are barryFx's)
+  if (e.bossState === 'high') drawKiteString(ctx, width, height, frame);
 
   if (isExhausted) {
     // Stars going round his head
@@ -73,6 +67,36 @@ export const drawBarry = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
     }
   }
 
+  if (isTeleporting) {
+    for (let i = 0; i < 8; i++) {
+      const px = (Math.random() - 0.5) * width * 2 + width/2;
+      const py = (Math.random() - 0.5) * height * 2 + height/2;
+      ctx.fillStyle = (Math.random() > 0.5) ? '#120820' : '#4a1175';
+      ctx.fillRect(px, py, 3, 3);
+    }
+  }
+};
+
+/** His fading in and out as he teleports, and the psychedelic colours when he's high: over the whole of him at once. */
+export const barryFx = (e: Enemy, frame: number) => {
+  const teleporting = e.bossState === 'blackout_teleport', high = e.bossState === 'high';
+  if (!teleporting && !high) return null;
+  return {
+    alpha: teleporting ? Math.abs(Math.sin(frame * 0.4)) : undefined,
+    filter: high ? `hue-rotate(${(frame * 12) % 360}deg) saturate(2.5)` : undefined,
+  };
+};
+
+/**
+ * The storm he makes, across the whole arena (world space): the lightning bolts coming down, and the walls, floor and
+ * ceiling lit up with current when he lands a ground pound.
+ */
+export const drawBarryStorm = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
+  const isGroundPound = e.bossState === 'ground_pound';
+  const isLightning = e.bossState === 'lightning_storm';
+  if (!isGroundPound && !isLightning) return;
+  ctx.save();
+  ctx.translate(e.pos.x, e.pos.y);
   if (isLightning && e.activeLightningStrikes && e.activeLightningStrikes.length > 0) {
     // Lightning Storm: Vertical bolts everywhere except directly under the boss, persisting with the hurtbox
     ctx.save();
@@ -235,16 +259,7 @@ export const drawBarry = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
     }
   }
 
-  if (isTeleporting) {
-    for (let i = 0; i < 8; i++) {
-      const px = (Math.random() - 0.5) * width * 2 + width/2;
-      const py = (Math.random() - 0.5) * height * 2 + height/2;
-      ctx.fillStyle = (Math.random() > 0.5) ? '#120820' : '#4a1175';
-      ctx.fillRect(px, py, 3, 3);
-    }
-  }
-
-  ctx.globalAlpha = 1.0;
+  ctx.restore();
 };
 
 const drawKiteString = (ctx: CanvasRenderingContext2D, width: number, height: number, frame: number) => {
