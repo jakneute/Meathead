@@ -50,6 +50,9 @@ export const updateArtie = (ctx: FrameContext, controls: Controls): Controls => 
   const { player } = state;
   // Reaching the tram station saves your place
   if (state.checkpoint < CP.STATION && player.isGrounded && player.pos.x >= COURSE.checkpoints[CP.STATION].x) state.checkpoint = CP.STATION;
+  // ...the edge of the moose's clearing, and halfway through the ice cave
+  if (state.checkpoint >= CP.TOP && state.checkpoint < CP.CLEARING && player.isGrounded && player.pos.x >= COURSE.checkpoints[CP.CLEARING].x) state.checkpoint = CP.CLEARING;
+  if (state.checkpoint >= CP.AFTER_MOOSE && state.checkpoint < CP.CAVE && player.isGrounded && player.pos.x >= COURSE.checkpoints[CP.CAVE].x) state.checkpoint = CP.CAVE;
   updateHazards(ctx, rt.hazards);
   updateTram(ctx, rt.tram);
   checkFellOffTram(ctx);

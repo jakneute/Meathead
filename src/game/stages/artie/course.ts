@@ -13,7 +13,7 @@ import { BOSS_DOOR_X, GROUND_Y } from '../../../constants';
 import type { GroundRun } from '../../core/terrain';
 
 /** Checkpoints through the stage, in order. Dying starts you at the last one you reached. */
-export const CP = { TRAILHEAD: 0, STATION: 1, TOP: 2, AFTER_MOOSE: 3, SKI: 4, DOOR: 5 } as const;
+export const CP = { TRAILHEAD: 0, STATION: 1, TOP: 2, CLEARING: 3, AFTER_MOOSE: 4, CAVE: 5, SKI: 6, DOOR: 7 } as const;
 
 export type WildKind = 'wolverine' | 'goat' | 'eagle' | 'shooter' | 'charger' | 'shielder';
 
@@ -237,6 +237,8 @@ export const buildCourse = (): Course => {
   for (let x = woodsX1 + 40; x < c.x; x += 70 + Math.round(((x * 37) % 50))) if (Math.abs(x - big) > 80) pine(x, 150 + ((x * 13) % 110));
   // The moose's clearing: one screen, walled in while he's alive (open: pines only round its edges)
   const mooseX1 = c.x;
+  // (a checkpoint at its edge: die to the moose and you're back here, not the far side of the woods)
+  const cpClearing = { x: mooseX1 - 150, y: c.y };
   c.flat(800);
   const moose = { x1: mooseX1, x2: c.x, y: c.y };
   for (const dx of [-60, 20, 70]) pine(mooseX1 + dx, 190 + (dx & 63));
@@ -276,6 +278,8 @@ export const buildCourse = (): Course => {
   ledges.push({ x: crev4 + 295, y: c.y - 10, w: 70, crumble: true });
   overhang(crev4 + 20, crev4 + 400, 220, [crev4 + 110, crev4 + 230, crev4 + 340]);
   c.flat(620);
+  // (a checkpoint just past it: halfway through the cave)
+  const cpCave = { x: crev4 + 480, y: c.y };
   pickups.push({ x: c.x - 560, y: c.y - 30, type: 'large_health' });
   spawn('charger', c.x - 240);
   spawn('eagle', c.x - 130, 170);
@@ -397,7 +401,8 @@ export const buildCourse = (): Course => {
     cabin: { x: sx(cabin.x), y: cabin.y, stopX: sx(cabin.stopX) },
     checkpoints: [
       { x: sx(150), y: GROUND_Y }, { x: sx(tramX - 160), y: tramY }, { x: sx(cp1.x), y: cp1.y },
-      { x: sx(cp2.x), y: cp2.y }, { x: sx(cp3.x), y: cp3.y }, { x: BOSS_DOOR_X - 650, y: GROUND_Y },
+      { x: sx(cpClearing.x), y: cpClearing.y }, { x: sx(cp2.x), y: cp2.y }, { x: sx(cpCave.x), y: cpCave.y },
+      { x: sx(cp3.x), y: cp3.y }, { x: BOSS_DOOR_X - 650, y: GROUND_Y },
     ],
     left: sx(0),
     startX: sx(0),
