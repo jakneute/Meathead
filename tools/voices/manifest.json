@@ -3607,7 +3607,7 @@
  {
   "voice": "death",
   "text": "CREVASSE: 1, MEATHEAD: 0",
-  "from": "game/stages/artie/ski.ts:482"
+  "from": "game/stages/artie/ski.ts:495"
  },
  {
   "voice": "death",
@@ -3952,7 +3952,7 @@
  {
   "voice": "death",
   "text": "FLASH-FROZEN MEAT POPSICLE",
-  "from": "game/stages/artie/ski.ts:482"
+  "from": "game/stages/artie/ski.ts:495"
  },
  {
   "voice": "death",
@@ -4647,7 +4647,7 @@
  {
   "voice": "death",
   "text": "PLANTED HEAD FIRST",
-  "from": "game/stages/artie/ski.ts:475"
+  "from": "game/stages/artie/ski.ts:488"
  },
  {
   "voice": "death",
@@ -5112,7 +5112,7 @@
  {
   "voice": "death",
   "text": "SKIED INTO THE ABYSS",
-  "from": "game/stages/artie/ski.ts:482"
+  "from": "game/stages/artie/ski.ts:495"
  },
  {
   "voice": "death",
@@ -5172,7 +5172,7 @@
  {
   "voice": "death",
   "text": "SNOWBALLED INTO NEXT WEEK",
-  "from": "game/stages/artie/ski.ts:475"
+  "from": "game/stages/artie/ski.ts:488"
  },
  {
   "voice": "death",
@@ -5467,12 +5467,12 @@
  {
   "voice": "death",
   "text": "THE MOUNTAIN WON",
-  "from": "game/stages/artie/ski.ts:482"
+  "from": "game/stages/artie/ski.ts:495"
  },
  {
   "voice": "death",
   "text": "THE OTHER SIDE OF THE MOUNTAIN",
-  "from": "game/stages/artie/ski.ts:475"
+  "from": "game/stages/artie/ski.ts:488"
  },
  {
   "voice": "death",
@@ -5542,7 +5542,7 @@
  {
   "voice": "death",
   "text": "THIN ICE",
-  "from": "game/stages/artie/ski.ts:475"
+  "from": "game/stages/artie/ski.ts:488"
  },
  {
   "voice": "death",
@@ -5727,7 +5727,7 @@
  {
   "voice": "death",
   "text": "YOU GOT AVALANCHED",
-  "from": "game/stages/artie/ski.ts:482"
+  "from": "game/stages/artie/ski.ts:495"
  },
  {
   "voice": "death",
@@ -5752,17 +5752,17 @@
  {
   "voice": "dispatch",
   "text": "DAVE?",
-  "from": "game/stages/artie/ski.ts:148"
+  "from": "game/stages/artie/ski.ts:151"
  },
  {
   "voice": "dispatch",
   "text": "DAVE? YOU GOOD, DAVE?",
-  "from": "game/stages/artie/ski.ts:148"
+  "from": "game/stages/artie/ski.ts:151"
  },
  {
   "voice": "dispatch",
   "text": "RANGER ONE, COME IN.",
-  "from": "game/stages/artie/ski.ts:148"
+  "from": "game/stages/artie/ski.ts:151"
  },
  {
   "voice": "doorman",
@@ -6657,7 +6657,7 @@
  {
   "voice": "meathead",
   "text": "AAAAAAAAAAAAAAAAAAAAAAAA",
-  "from": "game/stages/tommy/escape.ts:139"
+  "from": "game/stages/tommy/escape.ts:182"
  },
  {
   "voice": "meathead",
@@ -7662,7 +7662,7 @@
  {
   "voice": "meathead",
   "text": "EXCUSE ME. SORRY. WRONG HOUSE.",
-  "from": "game/stages/tommy/escape.ts:131"
+  "from": "game/stages/tommy/escape.ts:174"
  },
  {
   "voice": "meathead",
@@ -10342,7 +10342,7 @@
  {
   "voice": "meathead",
   "text": "NOT LIKE THIS! I HAVEN'T EVEN HAD MY PROTEIN SHAKE!",
-  "from": "game/stages/artie/ski.ts:402"
+  "from": "game/stages/artie/ski.ts:405"
  },
  {
   "voice": "meathead",
@@ -10487,7 +10487,7 @@
  {
   "voice": "meathead",
   "text": "OKAY. SUIT. NOW WHAT?",
-  "from": "game/stages/tommy/escape.ts:84"
+  "from": "game/stages/tommy/escape.ts:108"
  },
  {
   "voice": "meathead",
@@ -11901,6 +11901,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SURF'S UP, FLINT!",
+  "from": "game/stages/tommy/escape.ts:144"
+ },
+ {
+  "voice": "meathead",
   "text": "SURPRISE!",
   "from": "game/stages/dale/convoy.ts:495"
  },
@@ -12157,7 +12162,7 @@
  {
   "voice": "meathead",
   "text": "THAT'S NOT GOOD. THAT'S A LOT OF RUMBLING.",
-  "from": "game/stages/tommy/escape.ts:68"
+  "from": "game/stages/tommy/escape.ts:92"
  },
  {
   "voice": "meathead",
@@ -12407,7 +12412,7 @@
  {
   "voice": "meathead",
   "text": "The union. The rangers. The bikers. My bar. My field's on fire, pal! ...It's insured. You're not.",
-  "from": "game/core/update.ts:173"
+  "from": "game/core/update.ts:174"
  },
  {
   "voice": "meathead",
@@ -12682,7 +12687,7 @@
  {
   "voice": "meathead",
   "text": "Two jet skis, sonny. Two tour groups. And now my front hall's caved in. I schedule my quakes AROUND the tour groups!",
-  "from": "game/core/update.ts:173"
+  "from": "game/core/update.ts:174"
  },
  {
   "voice": "meathead",
@@ -12702,7 +12707,7 @@
  {
   "voice": "meathead",
   "text": "UH OH.",
-  "from": "game/stages/tommy/escape.ts:105"
+  "from": "game/stages/tommy/escape.ts:134"
  },
  {
   "voice": "meathead",
@@ -13147,12 +13152,12 @@
  {
   "voice": "meathead",
   "text": "You blew my whole power room, man. With my guy in it. Whole city's dark now... look up. See any stars? ...Me neither.",
-  "from": "game/core/update.ts:173"
+  "from": "game/core/update.ts:174"
  },
  {
   "voice": "meathead",
   "text": "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!",
-  "from": "game/core/update.ts:173"
+  "from": "game/core/update.ts:174"
  },
  {
   "voice": "meathead",
@@ -13192,7 +13197,7 @@
  {
   "voice": "meathead",
   "text": "You crashed my VIP lounge, bro. Those were investors. Now they're a geothermal feature.",
-  "from": "game/core/update.ts:173"
+  "from": "game/core/update.ts:174"
  },
  {
   "voice": "meathead",
@@ -13222,12 +13227,12 @@
  {
   "voice": "meathead",
   "text": "You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.",
-  "from": "game/core/update.ts:173"
+  "from": "game/core/update.ts:174"
  },
  {
   "voice": "meathead",
   "text": "You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I'M the terrorist?",
-  "from": "game/core/update.ts:173"
+  "from": "game/core/update.ts:174"
  },
  {
   "voice": "meathead",
@@ -13262,7 +13267,7 @@
  {
   "voice": "meathead",
   "text": "You put the neighbors down. And you dropped my water tower on a house. Do you know how long it took me to fill that thing?",
-  "from": "game/core/update.ts:173"
+  "from": "game/core/update.ts:174"
  },
  {
   "voice": "meathead",
@@ -13367,7 +13372,7 @@
  {
   "voice": "meathead",
   "text": "YOU'RE TOAST.",
-  "from": "game/core/update.ts:173"
+  "from": "game/core/update.ts:174"
  },
  {
   "voice": "meathead",
@@ -13787,7 +13792,7 @@
  {
   "voice": "tommy.dad",
   "text": "HA! PASS THE CHIPS.",
-  "from": "game/stages/tommy/escape.ts:111"
+  "from": "game/stages/tommy/escape.ts:152"
  },
  {
   "voice": "tommy.hazmat",
@@ -13802,7 +13807,7 @@
  {
   "voice": "tommy.kid",
   "text": "WHY'S IT GETTING DARK?",
-  "from": "game/stages/tommy/escape.ts:112"
+  "from": "game/stages/tommy/escape.ts:153"
  },
  {
   "voice": "tommy.rider",

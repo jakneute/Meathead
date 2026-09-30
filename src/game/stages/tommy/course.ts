@@ -262,7 +262,8 @@ const build = () => {
   // ============ THE RUINS ============
   const u = part(RUINS_X0);
   // Up top: the ruins, right up to a narrow hole, and the ground on past it; down below, the floor outside the door
-  u.ground(1500, PIT, RUINS_Y); u.ground(PIT + PIT_W, 3000, RUINS_Y); u.ground(2200, 3000, Y);
+  // (a block's worth of what's left: the family's house, and more either side of it)
+  u.ground(900, PIT, RUINS_Y); u.ground(PIT + PIT_W, 3000, RUINS_Y); u.ground(2200, 3000, Y);
   u.pickup(2700, Y - 30, 'large_health'); u.pickup(2780, Y - 30, 'large_ammo');
   return { k, h, r, s, u, junk, waves, END };
 };
@@ -301,7 +302,7 @@ const buildCourse = (): Course => {
       pit: { x1: SEWER_X0 + 7700, x2: SEWER_X0 + 8600, floor: PIT_FLOOR, roof1: SEWER_X0 + 7770, roof2: SEWER_X0 + 8530 },
       cistern: { x1: SEWER_X0 + 9200, x2: SEWER_X0 + 10000, pool: SEWER_X0 + 9550, rack: SEWER_X0 + 9280 },
     },
-    ruins: { x1: RUINS_X0 + 1500, x2: BOSS_DOOR_X, y: RUINS_Y, house: RUINS_X0 + 2130, pit: RUINS_X0 + PIT, pitW: PIT_W },
+    ruins: { x1: RUINS_X0 + 900, x2: BOSS_DOOR_X, y: RUINS_Y, house: RUINS_X0 + 2130, pit: RUINS_X0 + PIT, pitW: PIT_W },
     checkpoints: [
       { x: BLOCK_X0 + 150, y: Y }, { x: BLOCK_X0 + 1940, y: Y }, { x: RX + 60, y: Y }, { x: RX + 12000, y: Y },
       { x: SEWER_X0 + 200, y: Y }, { x: SEWER_X0 + 4450, y: Y }, { x: SEWER_X0 + 7400, y: Y }, { x: SEWER_X0 + 8700, y: Y }, { x: RUINS_X0 + 1640, y: RUINS_Y },

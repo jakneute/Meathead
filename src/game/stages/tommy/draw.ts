@@ -11,7 +11,7 @@ import { COURSE, placeOf, RUINS_Y } from './course';
 import { getTommy, fadeAmount, TommyRuntime } from './runtime';
 import { drawStreetSky, drawStreetGround, drawStreetFronts, drawJunk, drawCorner, drawRoadEnd, drawRiddenBike, drawTumble, drawCarRampSigns } from './streetDraw';
 import { drawSewerBack, drawSewerGround, drawDrips, drawMuckFront, drawChunks } from './sewerDraw';
-import { drawCutScene, drawRuinsGround, drawRuinsHouse, drawSuitMelt, drawBlast } from './escapeDraw';
+import { drawCutScene, drawRuinsGround, drawRuinsHouse, drawSuitMelt, drawBlast, drawEscapeSkip } from './escapeDraw';
 import { drawThingBar, drawThing, drawThingDrops } from './thingDraw';
 import { drawBlockBack, drawBlockFront } from './blockDraw';
 import { thingSpot, THING_SURFACE } from './thing';
@@ -183,6 +183,7 @@ export const drawTommyHud = (ctx: Ctx, state: GameState) => {
   if (b.phase === 'riding' && state.player.bike) drawRampComing(ctx, state, rt);
   drawThingBar(ctx, rt.thing, state.frame);
   if (inCutScene(rt.escape)) drawCutScene(ctx, state, rt);
+  drawEscapeSkip(ctx, rt);
 };
 
 /** Over the lot: the fades. */

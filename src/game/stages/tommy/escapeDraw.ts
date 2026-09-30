@@ -1,17 +1,19 @@
-// The way out, drawn. Three cut scenes over the whole screen: the water tower
-// (the manhole cover through its tank, the town's water pouring out of the
-// hole, him landing on top, the whole thing starting to lean); the family on
-// their couch in front of the TV (the room getting darker, the window filling
-// up with tower); the tower coming down through the roof (the water with it,
-// eating them to the bone, him in his suit in the middle of it). Then the
-// ruins: the tower lying across what's left of the house, the three of them
-// on what's left of the couch, the TV still on, and past it, the pit.
+// The way out, drawn. Cut scenes over the whole screen: the street, the manhole
+// cover blasting up out of it and him after it; the water tower (the cover
+// through its tank, him slamming into it, and over it goes onto the next block,
+// the tank bursting); him surfing the cover down the street on the front of the
+// wave, the houses going under and melting away; the family on their couch in
+// front of the TV (the room getting darker, the window filling up with the
+// wave); the wave through the wall, and close up, eating them to the bone. Then
+// the ruins: a block's worth of houses washed out and melted, the three of them
+// on what's left of their couch, the TV still on, and past it, the pit.
 
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { COURSE, RUINS_Y, CAVERN_ROOF } from './course';
 import type { TommyRuntime } from './runtime';
-import { TOWER_FRAMES, FAMILY_FRAMES, CRUSH_FRAMES, MELT_FRAMES } from './escape';
+import { TOWER_FRAMES, SURF_FRAMES, FAMILY_FRAMES, CRUSH_FRAMES, MELT_FRAMES, LAUNCH, COVER_HIT, MAN_HIT, TOWER_DOWN, inSkippable } from './escape';
+import { SKIP_AFTER, drawSkipPrompt } from '../../platform/skip';
 import { drawStreetSky, drawWaterTower } from './streetDraw';
 import { saying, drawBubble } from './script';
 
@@ -38,88 +40,229 @@ const suitedMan = (ctx: Ctx, x: number, y: number, s: number, rot = 0, suit = 1)
 
 export const drawCutScene = (ctx: Ctx, state: GameState, rt: TommyRuntime) => {
   const es = rt.escape;
-  if (es.phase === 'tower') drawTowerScene(ctx, state, es.t);
+  if (es.phase === 'tower') { if (es.t < LAUNCH) drawLaunchScene(ctx, state, es.t); else drawTowerScene(ctx, state, es.t - LAUNCH); }
+  else if (es.phase === 'surf') drawSurfScene(ctx, state, es.t);
   else if (es.phase === 'family') drawFamilyScene(ctx, state, rt, es.t, 0);
   else if (es.phase === 'crush') drawFamilyScene(ctx, state, rt, FAMILY_FRAMES, es.t);
 };
 
-/** The tower: the cover through it, the water out of it, him onto it, and over it goes (a push in the whole time, a punch at every impact). */
+/** SKIP >> while the scene can be skipped (from the blast out of the cistern to the ruins). */
+export const drawEscapeSkip = (ctx: Ctx, rt: TommyRuntime) => { if (inSkippable(rt.escape) && rt.escape.sceneT > SKIP_AFTER) drawSkipPrompt(ctx, W); };
+
+/** A manhole cover, spinning (edge-on and face-on as it turns), at (x, y). */
+const drawCover = (ctx: Ctx, x: number, y: number, spin: number, s = 1) => {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ctx.fillStyle = '#44403C'; ctx.beginPath(); ctx.ellipse(0, 0, 22, 6 + Math.abs(Math.sin(spin)) * 16, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#292524'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.restore();
+};
+
+/**
+ * The street at the foot of the tower, dusk: a manhole in the road. It shudders, then the cover blasts up out of it
+ * spinning, a geyser of the stuff after it, and him after that, up out of the top of the screen.
+ */
+const drawLaunchScene = (ctx: Ctx, state: GameState, t: number) => {
+  const shake = t >= 8 && t < 26 ? (Math.random() - 0.5) * 14 : t >= 34 && t < 46 ? (Math.random() - 0.5) * 8 : t < 8 ? (Math.random() - 0.5) * 3 : 0;
+  ctx.save(); ctx.translate(shake, shake * 0.6);
+  drawStreetSky(ctx, { ...state, camera: { x: COURSE.road.x2 - 400, y: GROUND_Y - 550 } } as GameState, 0.85, true);
+  // The road, the curb, a house or two across it
+  ctx.fillStyle = '#3F3F46'; ctx.fillRect(-20, 470, W + 40, 150);
+  ctx.fillStyle = '#A8A29E'; ctx.fillRect(-20, 458, W + 40, 12);
+  ctx.fillStyle = '#FDE68A'; for (let x = 0; x < W; x += 90) ctx.fillRect(x, 540, 50, 5);
+  drawHouse(ctx, 120, 458, 0.9, 0);
+  drawHouse(ctx, 640, 458, 0.85, 3);
+  // The manhole
+  const mx = 400, my = 500;
+  ctx.fillStyle = '#1C1917'; ctx.beginPath(); ctx.ellipse(mx, my, 34, 10, 0, 0, Math.PI * 2); ctx.fill();
+  if (t < 8) drawCover(ctx, mx + (Math.random() - 0.5) * 3, my - 2 - Math.random() * 3, 0, 1.5);
+  // The cover, blasted up spinning
+  if (t >= 8) { const k = (t - 8) * 26; if (my - k > -60) drawCover(ctx, mx, my - k, t * 0.8, 1.5); }
+  // The geyser after it
+  if (t >= 8) {
+    const h = Math.min(1, (t - 8) / 8) * (my + 60);
+    ctx.fillStyle = '#65A30D'; ctx.fillRect(mx - 22, my - h, 44, h);
+    ctx.fillStyle = '#BEF264'; ctx.fillRect(mx - 10, my - h, 20, h);
+    for (let i = 0; i < 12; i++) { const q = ((t * 3 + i * 9) % 30) / 30; ctx.fillStyle = `rgba(190, 242, 100, ${1 - q})`; ctx.beginPath(); ctx.arc(mx + (i % 2 ? 1 : -1) * (24 + q * 70), my - q * 40, 5, 0, Math.PI * 2); ctx.fill(); }
+  }
+  // Him, after it, in his suit, arms up
+  if (t >= 34) { const y = my - (t - 34) * 30; if (y > -100) { suitedMan(ctx, mx, y, 1.6, Math.sin(t) * 0.1); ctx.strokeStyle = 'rgba(250, 204, 21, 0.5)'; ctx.lineWidth = 3; for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(mx + i * 12, y + 10); ctx.lineTo(mx + i * 12, y + 90); ctx.stroke(); } } }
+  ctx.restore();
+  if (t >= 8 && t < 12) { ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(0, 0, W, H); }
+  // (a moment of black in, and out: the cut)
+  if (t < 4) { ctx.fillStyle = `rgba(0,0,0,${1 - t / 4})`; ctx.fillRect(0, 0, W, H); }
+};
+
+/** A little house on the block (its door at x, its floor at y): walls, a roof, windows, a porch light. */
+const HOUSE_COLORS = ['#9E6B5C', '#7D8C9E', '#B8A27A', '#7C9A6E', '#A7766C', '#8B7FA3'];
+const drawHouse = (ctx: Ctx, x: number, y: number, s: number, seed: number) => {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ctx.fillStyle = HOUSE_COLORS[seed % HOUSE_COLORS.length]; ctx.fillRect(-80, -110, 160, 110);
+  ctx.fillStyle = 'rgba(0,0,0,0.12)'; for (let yy = -104; yy < 0; yy += 9) ctx.fillRect(-80, yy, 160, 1);
+  ctx.fillStyle = ['#3F2A1D', '#4B5563', '#57534E'][seed % 3]; ctx.beginPath(); ctx.moveTo(-94, -108); ctx.lineTo(0, -168); ctx.lineTo(94, -108); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#FDE68A'; ctx.fillRect(-62, -86, 34, 28); ctx.fillRect(28, -86, 34, 28);
+  ctx.fillStyle = '#44403C'; ctx.fillRect(-62, -73, 34, 2); ctx.fillRect(-46, -86, 2, 28); ctx.fillRect(28, -73, 34, 2); ctx.fillRect(44, -86, 2, 28);
+  ctx.fillStyle = '#5B3A29'; ctx.fillRect(-14, -58, 28, 58);
+  ctx.fillStyle = '#FEF3C7'; ctx.fillRect(18, -60, 5, 6);
+  ctx.restore();
+};
+
+/**
+ * The tower: the cover through its tank (the town's water jetting out of the hole), him slamming into it after (a dent,
+ * a CLANG, him bouncing off it), and over it goes, onto the next block over: slow at first, then all at once, the tank
+ * bursting as it hits and the water going out of it in a wave. A push in the whole time, a punch at every impact.
+ */
 const drawTowerScene = (ctx: Ctx, state: GameState, t: number) => {
-  const tx = 420, ty = 540, s = 1.55;
-  const hitAt = 100, landAt = 150;
-  // Over it goes: a creak and a shudder first, then faster and faster
-  const lean = clamp01((t - landAt - 25) / (TOWER_FRAMES - landAt - 25));
-  const tilt = t > landAt ? lean * lean * lean * 0.42 + (t > landAt && t < landAt + 40 ? Math.sin(t * 0.9) * 0.012 : 0) : 0;
-  // The camera: pushing in all the way through, punching in and shaking at the hit and the landing
+  const tx = 330, ty = 540, s = 1.45;
+  // Over it goes: a shudder, then faster and faster (to the right: onto the block over there)
+  const lean = clamp01((t - MAN_HIT - 10) / (TOWER_DOWN - MAN_HIT - 10));
+  const tilt = t > MAN_HIT ? lean * lean * lean * 1.35 + (t < MAN_HIT + 30 ? Math.sin(t * 0.9) * 0.015 : 0) : 0;
   const punch = (at: number) => (t >= at && t < at + 22 ? Math.sin(((t - at) / 22) * Math.PI) : 0);
-  const zoom = 1 + (t / TOWER_FRAMES) * 0.14 + punch(hitAt) * 0.1 + punch(landAt) * 0.07;
-  const shakeK = Math.max(punch(hitAt) * 16, punch(landAt) * 12, t > landAt + 40 ? lean * 5 : 0);
+  const zoom = 1 + Math.min(t, TOWER_DOWN) / TOWER_DOWN * 0.08 + punch(COVER_HIT) * 0.1 + punch(MAN_HIT) * 0.08 + punch(TOWER_DOWN) * 0.12;
+  const shakeK = Math.max(punch(COVER_HIT) * 16, punch(MAN_HIT) * 14, punch(TOWER_DOWN) * 26, t > MAN_HIT + 20 && t < TOWER_DOWN ? lean * 5 : 0);
   const sx = (Math.random() - 0.5) * shakeK, sy = (Math.random() - 0.5) * shakeK;
   ctx.save();
   ctx.translate(W / 2 + sx, H * 0.55 + sy); ctx.scale(zoom, zoom); ctx.translate(-W / 2, -H * 0.55);
-  drawStreetSky(ctx, { ...state, camera: { x: COURSE.road.x2 + t * 6, y: GROUND_Y - 550 } } as GameState, 0.85, false);
-  // Dust off its feet as it goes
-  if (t > landAt + 30) for (let i = 0; i < 6; i++) { const q = ((t * 1.3 + i * 20) % 90) / 90; ctx.fillStyle = `rgba(120, 100, 90, ${0.5 * (1 - q)})`; ctx.beginPath(); ctx.arc(tx - 60 + i * 24 + q * 30 * (i % 2 ? 1 : -1), ty - q * 40, 10 + q * 20, 0, Math.PI * 2); ctx.fill(); }
-  drawWaterTower(ctx, tx, ty, s, 0.85, tilt, t >= hitAt);
-  const hx = tx + (-20 * Math.cos(tilt) + 196 * Math.sin(tilt)) * s, hy = ty + (-196 * Math.cos(tilt) - 20 * Math.sin(tilt)) * s;
-  // The water out of the hole: a thick jet of it, blasting, arcing off and down, spraying
-  if (t >= hitAt) {
-    const k = clamp01((t - hitAt) / 12);
+  drawStreetSky(ctx, { ...state, camera: { x: COURSE.road.x2 + t * 4, y: GROUND_Y - 550 } } as GameState, 0.85, false);
+  // The block over there it's going to come down on
+  for (let i = 0; i < 4; i++) drawHouse(ctx, 560 + i * 130, 560, 0.55, i + 2);
+  if (t > MAN_HIT + 30) for (let i = 0; i < 6; i++) { const q = ((t * 1.3 + i * 20) % 90) / 90; ctx.fillStyle = `rgba(120, 100, 90, ${0.5 * (1 - q)})`; ctx.beginPath(); ctx.arc(tx - 60 + i * 24 + q * 30 * (i % 2 ? 1 : -1), ty - q * 40, 10 + q * 20, 0, Math.PI * 2); ctx.fill(); }
+  const down = t >= TOWER_DOWN;
+  if (!down) drawWaterTower(ctx, tx, ty, s, 0.85, tilt, t >= COVER_HIT);
+  else {
+    // Down across the block, the tank burst open, the wave going out of it
+    drawWaterTower(ctx, tx, ty, s, 0.85, 1.35, true);
+    const k = clamp01((t - TOWER_DOWN) / 30);
+    ctx.fillStyle = 'rgba(92, 104, 36, 0.9)';
+    ctx.beginPath(); ctx.moveTo(560, 580); ctx.quadraticCurveTo(620 + k * 200, 560 - 180 * k, 700 + k * 400, 560 - 120 * k); ctx.lineTo(W + 60, 600); ctx.lineTo(560, 620); ctx.closePath(); ctx.fill();
+    for (let i = 0; i < 14; i++) { const q = ((t * 3 + i * 13) % 40) / 40; ctx.fillStyle = `rgba(217, 249, 157, ${0.8 * (1 - q)})`; ctx.beginPath(); ctx.arc(620 + i * 30 + q * 60, 540 - 120 * k - q * 50 + (i % 3) * 20, 6 + q * 8, 0, Math.PI * 2); ctx.fill(); }
+  }
+  const tank = (u: number) => ({ x: tx + (-20 * Math.cos(u) + 196 * Math.sin(u)) * s, y: ty + (-196 * Math.cos(u) - 20 * Math.sin(u)) * s });
+  const hole = tank(tilt);
+  // The water jetting out of the hole
+  if (t >= COVER_HIT && !down) {
+    const k = clamp01((t - COVER_HIT) / 12);
     ctx.strokeStyle = 'rgba(120, 140, 60, 0.9)'; ctx.lineWidth = 22 * k; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(hx, hy); ctx.quadraticCurveTo(hx - 140, hy - 30, hx - 210, H + 40); ctx.stroke();
-    ctx.strokeStyle = 'rgba(217, 249, 157, 0.5)'; ctx.lineWidth = 6 * k;
-    ctx.beginPath(); ctx.moveTo(hx, hy - 4); ctx.quadraticCurveTo(hx - 140, hy - 36, hx - 206, H + 40); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(hole.x, hole.y); ctx.quadraticCurveTo(hole.x - 140, hole.y - 30, hole.x - 210, H + 40); ctx.stroke();
     ctx.fillStyle = 'rgba(190, 200, 120, 0.8)';
-    for (let i = 0; i < 18; i++) { const q = ((t * 4 + i * 23) % 100) / 100; ctx.fillRect(hx - q * 210 - 10 + Math.sin(i * 3) * 18 * q, hy + q * q * (H - hy) - 10 + Math.cos(i) * 12 * q, 5, 5); }
+    for (let i = 0; i < 16; i++) { const q = ((t * 4 + i * 23) % 100) / 100; ctx.fillRect(hole.x - q * 210 - 10 + Math.sin(i * 3) * 18 * q, hole.y + q * q * (H - hole.y) - 10, 5, 5); }
   }
-  // The hit: a flash, a ring, shards of the tank flying
-  if (t >= hitAt && t < hitAt + 45) {
-    const k = (t - hitAt) / 45;
+  // The hits: a flash and a ring, shards flying
+  for (const at of [COVER_HIT, MAN_HIT]) if (t >= at && t < at + 45 && !down) {
+    const k = (t - at) / 45, c = at === COVER_HIT ? hole : tank(tilt * 0.5);
     ctx.strokeStyle = `rgba(255, 255, 255, ${1 - k})`; ctx.lineWidth = 6 * (1 - k);
-    ctx.beginPath(); ctx.arc(hx, hy, 20 + k * 180, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(c.x, c.y, 20 + k * 180, 0, Math.PI * 2); ctx.stroke();
     ctx.fillStyle = '#8E9AAB';
-    for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2 + 0.3; const d = k * (120 + (i % 3) * 60); ctx.save(); ctx.translate(hx + Math.cos(a) * d, hy + Math.sin(a) * d + k * k * 160); ctx.rotate(t * 0.4 + i); ctx.fillRect(-6, -3, 12, 6); ctx.restore(); }
+    for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2 + 0.3, d = k * (120 + (i % 3) * 60); ctx.save(); ctx.translate(c.x + Math.cos(a) * d, c.y + Math.sin(a) * d + k * k * 160); ctx.rotate(t * 0.4 + i); ctx.fillRect(-6, -3, 12, 6); ctx.restore(); }
   }
-  // The manhole cover: spinning up out of the bottom of the screen at the tank, a trail behind it, speed lines
-  if (t < hitAt) {
-    const pos = (u: number) => { const k = clamp01(u / hitAt); return { x: 150 + (tx - 20 * s - 150) * k, y: H + 60 - (H + 60 - (ty - 196 * s)) * (1 - (1 - k) * (1 - k)) }; };
-    for (let g = 4; g >= 0; g--) {
-      const c = pos(t - g * 2.5);
-      ctx.save(); ctx.globalAlpha = g === 0 ? 1 : 0.18; ctx.translate(c.x, c.y); ctx.rotate((t - g * 2.5) * 0.7);
-      ctx.fillStyle = '#44403C'; ctx.beginPath(); ctx.ellipse(0, 0, 20, 7 + Math.abs(Math.sin((t - g * 2.5) * 0.7)) * 13, 0, 0, Math.PI * 2); ctx.fill();
-      if (g === 0) { ctx.strokeStyle = '#292524'; ctx.lineWidth = 1.5; ctx.stroke(); }
-      ctx.restore();
-    }
-    const c = pos(t), p0 = pos(t - 6), a = Math.atan2(c.y - p0.y, c.x - p0.x);
-    ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 2;
-    for (let i = 0; i < 6; i++) { const o = (i - 2.5) * 9; ctx.beginPath(); ctx.moveTo(c.x - Math.cos(a) * 30 - Math.sin(a) * o, c.y - Math.sin(a) * 30 + Math.cos(a) * o); ctx.lineTo(c.x - Math.cos(a) * (80 + (i % 3) * 30) - Math.sin(a) * o, c.y - Math.sin(a) * (80 + (i % 3) * 30) + Math.cos(a) * o); ctx.stroke(); }
-  }
-  // Him: blasted up after it, tumbling, over the top, and down onto the tank's roof with a CLANG
-  if (t > 40) {
-    const topX = tx + 270 * Math.sin(tilt) * s, topY = ty - 270 * Math.cos(tilt) * s;
-    const pos = (u: number) => { const k = clamp01((u - 40) / (landAt - 40)); return { x: 110 + (topX - 110) * k, y: H + 80 - (H + 80 - topY) * k - Math.sin(k * Math.PI) * 170 }; };
-    if (t < landAt) {
-      const c = pos(t), p0 = pos(t - 5), a = Math.atan2(c.y - p0.y, c.x - p0.x);
-      ctx.strokeStyle = 'rgba(250, 204, 21, 0.5)'; ctx.lineWidth = 3;
-      for (let i = 0; i < 5; i++) { const o = (i - 2) * 12; ctx.beginPath(); ctx.moveTo(c.x - Math.cos(a) * 30 - Math.sin(a) * o, c.y - 30 - Math.sin(a) * 30 + Math.cos(a) * o); ctx.lineTo(c.x - Math.cos(a) * 110 - Math.sin(a) * o, c.y - 30 - Math.sin(a) * 110 + Math.cos(a) * o); ctx.stroke(); }
-      suitedMan(ctx, c.x, c.y, 1.2, t * 0.35);
+  // The cover: up out of the bottom of the screen at the tank (then, through it, dropping away on the far side)
+  if (t < COVER_HIT) {
+    const k = clamp01(t / COVER_HIT);
+    drawCover(ctx, 120 + (hole.x - 120) * k, H + 60 - (H + 60 - hole.y) * (1 - (1 - k) * (1 - k)), t * 0.7, 1.2);
+  } else if (!down) drawCover(ctx, hole.x + (t - COVER_HIT) * 3, hole.y + (t - COVER_HIT) ** 2 * 0.08, t * 0.5, 1.2);
+  // Him: blasted up after it, straight into the side of the tank, and off it
+  if (t > 15 && !down) {
+    const hit = tank(0);
+    if (t < MAN_HIT) {
+      const k = clamp01((t - 15) / (MAN_HIT - 15));
+      suitedMan(ctx, 90 + (hit.x - 30 - 90) * k, H + 80 - (H + 80 - hit.y - 40) * (1 - (1 - k) * (1 - k)), 1.2, t * 0.35);
     } else {
-      // (landed: a crouch that springs up, then clinging on as it goes)
-      const squash = t < landAt + 12 ? 1 - Math.sin(((t - landAt) / 12) * Math.PI) * 0.3 : 1;
-      ctx.save(); ctx.translate(topX, topY); ctx.rotate(tilt); ctx.scale(1, squash); suitedMan(ctx, 0, 0, 1.2, 0); ctx.restore();
-    }
-    if (t >= landAt && t < landAt + 30) {
-      const k = (t - landAt) / 30;
-      ctx.fillStyle = `rgba(160, 150, 140, ${0.7 * (1 - k)})`; for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc(topX + (i - 2.5) * (14 + k * 30), topY + 2 - k * 10, 8 + k * 14, 0, Math.PI * 2); ctx.fill(); }
-      ctx.save(); ctx.translate(topX + 70, topY - 70); ctx.rotate(-0.2); ctx.scale(1 + k * 0.4, 1 + k * 0.4);
-      ctx.fillStyle = `rgba(253, 224, 71, ${1 - k})`; ctx.beginPath(); for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2, r = i % 2 ? 22 : 44; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill();
-      ctx.fillStyle = `rgba(28, 25, 23, ${1 - k})`; ctx.font = 'bold 13px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('CLANG', 0, 6); ctx.textAlign = 'left';
-      ctx.restore();
+      // (splatted against it a moment, then off, falling back, tumbling)
+      const u = t - MAN_HIT;
+      const x = hit.x - 30 - u * 1.2, y = hit.y + 40 + (u > 10 ? (u - 10) ** 2 * 0.05 : 0);
+      ctx.save(); ctx.translate(x, y); ctx.scale(u < 10 ? 0.7 : 1, 1); suitedMan(ctx, 0, 0, 1.2, u < 10 ? 0 : (u - 10) * -0.2); ctx.restore();
+      if (u < 30) {
+        const k = u / 30;
+        ctx.save(); ctx.translate(hit.x + 40, hit.y - 40); ctx.rotate(-0.2); ctx.scale(1 + k * 0.4, 1 + k * 0.4);
+        ctx.fillStyle = `rgba(253, 224, 71, ${1 - k})`; ctx.beginPath(); for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2, r = i % 2 ? 22 : 44; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill();
+        ctx.fillStyle = `rgba(28, 25, 23, ${1 - k})`; ctx.font = 'bold 13px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('CLANG', 0, 6); ctx.textAlign = 'left';
+        ctx.restore();
+      }
     }
   }
   ctx.restore();
-  if (t > hitAt && t < hitAt + 6) { ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillRect(0, 0, W, H); }
-  bubble(ctx, state, 'meathead', tx, ty - 330 * s + 30);
+  if ((t > COVER_HIT && t < COVER_HIT + 5) || (t > TOWER_DOWN && t < TOWER_DOWN + 8)) { ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillRect(0, 0, W, H); }
+  // (out to white as the wave goes)
+  if (t > TOWER_FRAMES - LAUNCH - 14) { ctx.fillStyle = `rgba(255,255,255,${(t - (TOWER_FRAMES - LAUNCH - 14)) / 14})`; ctx.fillRect(0, 0, W, H); }
+  bubble(ctx, state, 'meathead', 260, 150);
+};
+
+/**
+ * Down the street on the front of the wave: him on the cover up on its crest, in his suit, riding it (knees bent, arms
+ * out); the block going by, and every house the wave reaches lifted, tipped over into it and melting away (a skeleton
+ * or two bobbing up out of it); junk in the wave behind him.
+ */
+const drawSurfScene = (ctx: Ctx, state: GameState, t: number) => {
+  const f = state.frame;
+  drawStreetSky(ctx, { ...state, camera: { x: COURSE.road.x2 + 2000 + t * 3, y: GROUND_Y - 550 } } as GameState, 0.9, false);
+  const scroll = t * 7;
+  // The street, going by
+  ctx.fillStyle = '#3F3F46'; ctx.fillRect(0, 500, W, 100);
+  ctx.fillStyle = '#A8A29E'; ctx.fillRect(0, 488, W, 12);
+  ctx.fillStyle = '#FDE68A'; for (let x = -((scroll) % 90); x < W; x += 90) ctx.fillRect(x, 560, 50, 5);
+  const crestX = 360 + Math.sin(t * 0.05) * 20;
+  // The houses: every 280 along, reached by the wave and gone
+  for (let i = 0; i < 12; i++) {
+    const hx = 600 + i * 280 - scroll;
+    if (hx < -200 || hx > W + 200) continue;
+    const e = clamp01((crestX + 90 - hx) / 220);
+    ctx.save();
+    if (e > 0) { ctx.translate(hx, 488); ctx.rotate(-e * 0.6); ctx.translate(-hx, -488 - e * 20); ctx.globalAlpha = 1 - e; }
+    drawHouse(ctx, hx, 488, 0.95, i);
+    ctx.restore();
+    if (e > 0 && e < 1) {
+      // Melting: smoke and bubbles off it, a skeleton coming up out of it
+      for (let k = 0; k < 4; k++) { const q = ((f * 0.8 + k * 20 + i * 7) % 60) / 60; ctx.fillStyle = `rgba(163, 190, 120, ${0.5 * (1 - q)})`; ctx.beginPath(); ctx.arc(hx - 60 + k * 40, 400 - q * 120, 12 + q * 20, 0, Math.PI * 2); ctx.fill(); }
+      if (i % 2 === 0) skeleton(ctx, hx + 30, 470 - e * 60, 0.8, e * 2);
+    }
+  }
+  // The wave: a wall of it from the left up to the crest, curling over, foam along the top, junk in it
+  const top = 250 + Math.sin(t * 0.08) * 10;
+  const g = ctx.createLinearGradient(0, top, 0, H);
+  g.addColorStop(0, '#84A13A'); g.addColorStop(0.4, '#5C6824'); g.addColorStop(1, '#3A4217');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.moveTo(-20, H); ctx.lineTo(-20, top - 20);
+  for (let x = -20; x <= crestX; x += 20) ctx.lineTo(x, top - 20 + Math.sin(x * 0.03 + t * 0.2) * 10);
+  ctx.quadraticCurveTo(crestX + 80, top - 30, crestX + 60, top + 60);
+  ctx.quadraticCurveTo(crestX + 110, top + 160, crestX + 160, H);
+  ctx.closePath(); ctx.fill();
+  // (its lip curling over, and foam)
+  ctx.fillStyle = 'rgba(217, 249, 157, 0.85)';
+  for (let x = -20; x <= crestX + 60; x += 14) ctx.fillRect(x, top - 24 + Math.sin(x * 0.03 + t * 0.2) * 10, 10, 6);
+  for (let i = 0; i < 10; i++) { const q = ((t * 3 + i * 11) % 40) / 40; ctx.fillStyle = `rgba(217, 249, 157, ${0.8 * (1 - q)})`; ctx.beginPath(); ctx.arc(crestX + 60 + q * 60, top + 40 + i * 20 - q * 30, 5 + q * 6, 0, Math.PI * 2); ctx.fill(); }
+  // Junk tumbling in it: a car, a mailbox, a couch, a skeleton
+  for (let i = 0; i < 5; i++) {
+    const jx = ((i * 173 + t * 2) % (crestX + 40)), jy = top + 60 + (i * 67) % 200;
+    ctx.save(); ctx.translate(jx, jy); ctx.rotate(t * 0.05 + i);
+    ctx.fillStyle = ['#DC2626', '#1E3A8A', '#65743F', '#E7E5D6', '#44403C'][i];
+    if (i === 3) skeleton(ctx, 0, 0, 0.6, 1); else ctx.fillRect(-18, -8, 36, 16);
+    ctx.restore();
+  }
+  // Him, on the cover on the crest, riding it
+  const bob = Math.sin(t * 0.15) * 6;
+  const rx = crestX - 20, ry = top - 26 + bob;
+  ctx.save(); ctx.translate(rx, ry); ctx.rotate(-0.12 + Math.sin(t * 0.1) * 0.08);
+  drawCover(ctx, 0, 6, 1.4, 1.6);
+  ctx.restore();
+  suitedMan(ctx, rx, ry, 1.3, -0.1 + Math.sin(t * 0.1) * 0.06);
+  // (arms out for balance)
+  ctx.fillStyle = '#FACC15'; ctx.save(); ctx.translate(rx, ry - 60); ctx.rotate(Math.sin(t * 0.2) * 0.2); ctx.fillRect(-44, -4, 88, 8); ctx.restore();
+  // Spray off the front of it
+  for (let i = 0; i < 8; i++) { const q = ((t * 4 + i * 9) % 30) / 30; ctx.fillStyle = `rgba(190, 242, 100, ${0.9 * (1 - q)})`; ctx.fillRect(rx + 30 + q * 80, ry - q * 40 + i * 3, 5, 5); }
+  if (t < 12) { ctx.fillStyle = `rgba(255,255,255,${1 - t / 12})`; ctx.fillRect(0, 0, W, H); }
+  bubble(ctx, state, 'meathead', rx, ry - 110);
+  void SURF_FRAMES;
+};
+
+/** A skeleton (bones, grinning), upright at its feet (x, y), `s` big. */
+const skeleton = (ctx: Ctx, x: number, y: number, s: number, a = 1) => {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.globalAlpha *= Math.min(1, a);
+  ctx.fillStyle = '#E7E5D6'; ctx.beginPath(); ctx.arc(0, -70, 12, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#1C1917'; ctx.fillRect(-6, -74, 4, 4); ctx.fillRect(2, -74, 4, 4); ctx.fillRect(-4, -64, 8, 2);
+  ctx.strokeStyle = '#E7E5D6'; ctx.lineWidth = 3; ctx.beginPath();
+  ctx.moveTo(0, -58); ctx.lineTo(0, -24); for (let r = -54; r < -30; r += 6) { ctx.moveTo(-10, r); ctx.lineTo(10, r); }
+  ctx.moveTo(0, -24); ctx.lineTo(-8, 0); ctx.moveTo(0, -24); ctx.lineTo(8, 0); ctx.moveTo(0, -52); ctx.lineTo(-16, -30); ctx.moveTo(0, -52); ctx.lineTo(16, -30);
+  ctx.stroke();
+  ctx.restore();
 };
 
 /** The family: the couch, the TV, a nice night in; the room going dark as the tower comes over; then the roof coming in. */
@@ -134,12 +277,17 @@ const drawFamilyScene = (ctx: Ctx, state: GameState, rt: TommyRuntime, t: number
   // The window: sky, and the tower in it, coming over and filling it
   ctx.fillStyle = '#5B3A29'; ctx.fillRect(470, 90, 230, 170);
   ctx.fillStyle = '#F59E4B'; ctx.fillRect(480, 100, 210, 150);
-  // (coming straight at the window: bigger and bigger in it, dropping as it comes, till the tank fills it)
+  // (the wave coming up the street at the window: a green wall rising in it, foam along the top, till it fills it)
   ctx.save(); ctx.beginPath(); ctx.rect(480, 100, 210, 150); ctx.clip();
   const come = dark * dark;
-  // (once it's through, it's in the room, not in the window: just the dark out there)
-  if (crushT === 0) towerByTank(ctx, 585, 150 + come * 40, 0.55 + come * 1.9, 0.08 + come * 0.22);
-  else { ctx.fillStyle = '#1C1917'; ctx.fillRect(480, 100, 210, 150); }
+  if (crushT === 0) {
+    const wy = 250 - come * 170;
+    ctx.fillStyle = '#5C6824'; ctx.fillRect(480, wy, 210, 260);
+    ctx.fillStyle = '#84A13A'; ctx.beginPath(); ctx.moveTo(480, wy + 10); for (let x = 480; x <= 690; x += 15) ctx.lineTo(x, wy + Math.sin(x * 0.08 + f * 0.2) * 6); ctx.lineTo(690, wy + 30); ctx.lineTo(480, wy + 30); ctx.fill();
+    ctx.fillStyle = 'rgba(217, 249, 157, 0.9)'; for (let x = 480; x <= 690; x += 12) ctx.fillRect(x, wy - 3 + Math.sin(x * 0.08 + f * 0.2) * 6, 8, 4);
+    // (a car and a mailbox going by in it)
+    ctx.fillStyle = '#DC2626'; ctx.fillRect(500 + (f * 2) % 180, wy + 40, 30, 12); ctx.fillStyle = '#1E3A8A'; ctx.fillRect(620 - (f * 1.3) % 140, wy + 70, 10, 16);
+  } else { ctx.fillStyle = '#3A4217'; ctx.fillRect(480, 100, 210, 150); }
   ctx.restore();
   ctx.fillStyle = '#5B3A29'; ctx.fillRect(582, 100, 6, 150); ctx.fillRect(480, 172, 210, 6);
   // The TV (a sitcom, a laugh track), a lamp
@@ -176,32 +324,25 @@ const drawFamilyScene = (ctx: Ctx, state: GameState, rt: TommyRuntime, t: number
   if (crushT === 0) { ctx.fillStyle = '#FACC15'; ctx.fillRect(330, 430, 22, 16); ctx.fillStyle = '#F97316'; ctx.fillRect(488, 390, 10, 14); }
   // Getting dark in here
   ctx.fillStyle = `rgba(20, 16, 30, ${dark * 0.55})`; ctx.fillRect(0, 0, W, H);
-  // The roof coming in: the tank through it, the water after it, filling the room
+  // The wave through the window and the wall round it, filling the room
   if (crushT > 0) {
-    const k = clamp01(crushT / 40);
-    // In through the window and the wall round it: the tank, huge, straight on from where the window was, down into the room
-    const ease = 1 - (1 - k) * (1 - k);
-    towerByTank(ctx, 585 - ease * 190, 175 + ease * 190, 2.4 + ease * 2.2, 0.3 + ease * 0.25);
-    // The window's glass and the wall round it, blown in ahead of it
+    const k = clamp01(crushT / 30);
     for (let i = 0; i < 18; i++) {
       const sx = 480 + hash(i) * 210, sy = 100 + hash(i * 3) * 150;
-      const dx = (sx - 585) * (1 + k * 3) - k * 60, dy = k * (160 + hash(i * 5) * 300);
+      const dx = (sx - 585) * (1 + k * 3) - k * 120, dy = k * (160 + hash(i * 5) * 300);
       ctx.save(); ctx.translate(585 + dx, sy + dy); ctx.rotate(k * (hash(i * 7) - 0.5) * 8);
       ctx.fillStyle = i % 3 === 0 ? 'rgba(191, 219, 254, 0.8)' : i % 3 === 1 ? '#78716C' : '#5B3A29';
       ctx.fillRect(-10 - hash(i * 9) * 12, -6, 20 + hash(i * 9) * 24, 12);
       ctx.restore();
     }
-    const flood = clamp01((crushT - 20) / 80);
-    ctx.fillStyle = 'rgba(92, 104, 36, 0.82)'; ctx.fillRect(0, H - flood * 380, W, flood * 380);
-    ctx.fillStyle = 'rgba(217, 249, 157, 0.6)'; for (let i = 0; i < 12; i++) { const x = (i * 71 + crushT * 5) % W; ctx.beginPath(); ctx.arc(x, H - flood * 380 + 4, 4, 0, Math.PI * 2); ctx.fill(); }
-    // Him, landing in the middle of it, fine (the suit smoking)
-    if (crushT > 40) {
-      const land = clamp01((crushT - 40) / 25);
-      suitedMan(ctx, 400, -60 + land * 520, 1.6);
-      if (crushT > 70) { ctx.fillStyle = 'rgba(214, 211, 209, 0.45)'; for (let k2 = 0; k2 < 4; k2++) { const q = ((crushT * 1.5 + k2 * 20) % 80) / 80; ctx.beginPath(); ctx.arc(390 + k2 * 8, 360 - q * 100, 8 + q * 12, 0, Math.PI * 2); ctx.fill(); } }
-    }
+    const flood = clamp01((crushT - 6) / 50);
+    ctx.fillStyle = 'rgba(92, 104, 36, 0.8)';
+    ctx.beginPath(); ctx.moveTo(W, 90); ctx.quadraticCurveTo(W - flood * 500, 200, W - flood * 900, H); ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
+    ctx.fillRect(0, H - flood * 300, W, flood * 300);
+    ctx.fillStyle = 'rgba(217, 249, 157, 0.6)'; for (let i = 0; i < 12; i++) { const x = (i * 71 + crushT * 5) % W; ctx.beginPath(); ctx.arc(x, H - flood * 300 + 4, 4, 0, Math.PI * 2); ctx.fill(); }
     if (crushT < 8) { ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(0, 0, W, H); }
-    // Out to black at the end
+    // Close up on them: in it, the skin coming away (sizzling, smoking) from the top down to the bone
+    if (crushT > 40) drawBurnCloseUp(ctx, f, crushT);
     const out = clamp01((crushT - (CRUSH_FRAMES - 40)) / 40);
     if (out > 0) { ctx.fillStyle = `rgba(0,0,0,${out})`; ctx.fillRect(0, 0, W, H); }
   }
@@ -210,12 +351,41 @@ const drawFamilyScene = (ctx: Ctx, state: GameState, rt: TommyRuntime, t: number
 };
 
 /**
- * The water tower placed by the middle of its tank (x, y), at scale s and leaning over by tilt: legs, tank, roof and
- * all, FLINT on the side. (For it coming at the window, and in through it.)
+ * Close up on the three of them on the couch as the wave eats them: pushed right in, the green stuff over them, and
+ * each one's skin burning away from the top down (a line of fizz working down them, smoke coming off), the bones left
+ * sat there grinning.
  */
-const towerByTank = (ctx: Ctx, x: number, y: number, s: number, tilt: number) => {
-  const TANK = 188; // (how far up the tower the tank's middle is)
-  drawWaterTower(ctx, x - Math.sin(tilt) * TANK * s, y + Math.cos(tilt) * TANK * s, s, 0.9, tilt, false);
+const drawBurnCloseUp = (ctx: Ctx, f: number, crushT: number) => {
+  const zin = clamp01((crushT - 40) / 20);
+  ctx.save();
+  ctx.globalAlpha = zin;
+  ctx.fillStyle = '#3A4217'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#4D5A2E'; ctx.fillRect(40, 380, 720, 220);
+  const burn = clamp01((crushT - 70) / 110);
+  const people: [number, string, string, number][] = [[190, '#1D4ED8', '#E0AC69', 2.1], [400, '#BE185D', '#E0AC69', 2.0], [610, '#16A34A', '#E0AC69', 1.6]];
+  people.forEach(([x, shirt, skin, sc], i) => {
+    ctx.save(); ctx.translate(x, 470); ctx.scale(sc, sc);
+    // (their mouths open: screaming)
+    const b = clamp01(burn * 1.3 - i * 0.12);
+    const cut = -120 + b * 130;
+    skeleton(ctx, 0, 40, 1.2);
+    ctx.save(); ctx.beginPath(); ctx.rect(-40, cut, 80, 200); ctx.clip();
+    ctx.fillStyle = shirt; ctx.fillRect(-20, -70, 40, 60);
+    ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(0, -88, 18, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#111827'; ctx.fillRect(4, -94, 4, 4); ctx.fillRect(-8, -94, 4, 4);
+    ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.ellipse(0, -78, 6, 8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    // The line it's burning along: fizz and smoke
+    if (b > 0 && b < 1) {
+      ctx.fillStyle = 'rgba(217, 249, 157, 0.9)'; for (let k = 0; k < 8; k++) ctx.fillRect(-22 + k * 6, cut - 2 + Math.sin(f * 0.8 + k) * 2, 4, 4);
+      for (let k = 0; k < 3; k++) { const q = ((f * 0.9 + k * 15) % 40) / 40; ctx.fillStyle = `rgba(200, 200, 180, ${0.5 * (1 - q)})`; ctx.beginPath(); ctx.arc(-10 + k * 10, cut - q * 50, 5 + q * 8, 0, Math.PI * 2); ctx.fill(); }
+    }
+    ctx.restore();
+  });
+  // The green stuff over it all, bubbling
+  ctx.fillStyle = 'rgba(92, 104, 36, 0.35)'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(217, 249, 157, 0.6)'; for (let i = 0; i < 20; i++) { const q = ((f * 1.5 + i * 17) % 80) / 80; ctx.beginPath(); ctx.arc((i * 47) % W, H - q * H, 3 + (i % 3) * 2, 0, Math.PI * 2); ctx.fill(); }
+  ctx.restore();
 };
 
 /** Whoever's talking in a cut scene, over them (screen space). */
@@ -269,18 +439,24 @@ export const drawRuinsGround = (ctx: Ctx, state: GameState) => {
   }
 };
 
-/** What's left of the house: the tower lying across it, the three of them on the couch, the TV still going. */
+/**
+ * What's left of the block: a row of houses washed out and melted (walls down to stumps, a doorframe standing on its own,
+ * a bathtub, a fridge on its side, the odd skeleton), theirs among them, the three of them on what's left of the couch,
+ * the TV still going; the water, pooled and smoking. Off in the distance, the tower, lying where it came down.
+ */
 export const drawRuinsHouse = (ctx: Ctx, state: GameState) => {
   const hx = COURSE.ruins.house, y = RUINS_Y, f = state.frame;
-  if (hx + 700 < state.camera.x || hx - 700 > state.camera.x + W) return;
-  // The walls, what's standing of them
+  if (hx + 1500 < state.camera.x || hx - 1500 > state.camera.x + W) return;
+  // The tower, down, off in the distance behind
+  ctx.save(); ctx.globalAlpha = 0.55; ctx.translate(hx - 900, y - 40); ctx.rotate(-1.45); drawWaterTower(ctx, 0, 0, 0.7, 0.95, 0, true); ctx.restore();
+  // The other houses: washed out and melted
+  for (const [dx, seed] of [[-1060, 1], [-560, 4], [720, 2]] as [number, number][]) wreckedHouse(ctx, hx + dx, y, seed, f);
+  // Theirs: what's standing of the walls
   ctx.fillStyle = '#9E6B5C'; ctx.beginPath(); ctx.moveTo(hx - 260, y); ctx.lineTo(hx - 260, y - 150); ctx.lineTo(hx - 200, y - 120); ctx.lineTo(hx - 170, y - 170); ctx.lineTo(hx - 120, y - 90); ctx.lineTo(hx - 120, y); ctx.fill();
   ctx.beginPath(); ctx.moveTo(hx + 180, y); ctx.lineTo(hx + 180, y - 110); ctx.lineTo(hx + 230, y - 160); ctx.lineTo(hx + 260, y - 70); ctx.lineTo(hx + 260, y); ctx.fill();
   ctx.fillStyle = 'rgba(0,0,0,0.15)'; for (let yy = y - 150; yy < y; yy += 9) { ctx.fillRect(hx - 260, yy, 140, 1); ctx.fillRect(hx + 180, yy, 80, 1); }
-  // The water tower, down across it: legs up in the air off to the left, the tank crushed into the middle of the house
-  ctx.save(); ctx.translate(hx - 40, y - 10); ctx.rotate(-1.45);
-  drawWaterTower(ctx, 0, 0, 1.1, 0.95, 0, true);
-  ctx.restore();
+  // (the green stuff's line up the walls, and the walls eaten away under it)
+  ctx.fillStyle = 'rgba(92, 104, 36, 0.35)'; ctx.fillRect(hx - 260, y - 60, 140, 60); ctx.fillRect(hx + 180, y - 60, 80, 60);
   // The couch, and them on it (bones, sat just where they were)
   ctx.fillStyle = '#4D5A2E'; ctx.fillRect(hx + 40, y - 34, 120, 34); ctx.fillRect(hx + 36, y - 52, 128, 18);
   for (let i = 0; i < 3; i++) {
@@ -291,9 +467,28 @@ export const drawRuinsHouse = (ctx: Ctx, state: GameState) => {
   }
   // The TV on its side, still on
   ctx.fillStyle = '#1C1917'; ctx.fillRect(hx + 190, y - 50, 60, 46); ctx.fillStyle = f % 6 < 3 ? '#E5E7EB' : '#9CA3AF'; ctx.fillRect(hx + 196, y - 44, 48, 34);
-  // The water, pooled and smoking
-  ctx.fillStyle = 'rgba(92, 104, 36, 0.8)'; ctx.beginPath(); ctx.ellipse(hx, y - 2, 300, 8, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = 'rgba(163, 190, 120, 0.25)'; for (let k = 0; k < 5; k++) { const t = ((f * 0.6 + k * 30) % 150) / 150; ctx.beginPath(); ctx.arc(hx - 200 + k * 100, y - 10 - t * 100, 8 + t * 18, 0, Math.PI * 2); ctx.fill(); }
+  // The water, pooled and smoking, all along the block
+  ctx.fillStyle = 'rgba(92, 104, 36, 0.8)';
+  for (const [dx, w] of [[-1060, 220], [-560, 240], [0, 300], [720, 160]] as [number, number][]) { ctx.beginPath(); ctx.ellipse(hx + dx, y - 2, w, 8, 0, 0, Math.PI * 2); ctx.fill(); }
+  ctx.fillStyle = 'rgba(163, 190, 120, 0.25)'; for (let k = 0; k < 10; k++) { const t = ((f * 0.6 + k * 30) % 150) / 150; ctx.beginPath(); ctx.arc(hx - 1200 + k * 200, y - 10 - t * 100, 8 + t * 18, 0, Math.PI * 2); ctx.fill(); }
+};
+
+/** Somebody else's house on the block, after: stumps of wall, a doorframe on its own, a tub or a fridge, a skeleton. */
+const wreckedHouse = (ctx: Ctx, x: number, y: number, seed: number, f: number) => {
+  ctx.fillStyle = HOUSE_COLORS[seed % HOUSE_COLORS.length];
+  ctx.beginPath(); ctx.moveTo(x - 140, y); ctx.lineTo(x - 140, y - 70 - seed * 8); ctx.lineTo(x - 110, y - 40); ctx.lineTo(x - 90, y - 90); ctx.lineTo(x - 60, y - 30); ctx.lineTo(x - 60, y); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(x + 80, y); ctx.lineTo(x + 80, y - 50); ctx.lineTo(x + 110, y - 100 + seed * 6); ctx.lineTo(x + 140, y - 40); ctx.lineTo(x + 140, y); ctx.fill();
+  ctx.fillStyle = 'rgba(92, 104, 36, 0.35)'; ctx.fillRect(x - 140, y - 50, 80, 50); ctx.fillRect(x + 80, y - 50, 60, 50);
+  // The doorframe, standing on its own
+  ctx.fillStyle = '#5B3A29'; ctx.fillRect(x - 24, y - 90, 6, 90); ctx.fillRect(x + 18, y - 90, 6, 90); ctx.fillRect(x - 24, y - 94, 48, 6);
+  // A bathtub, or a fridge on its side
+  if (seed % 2) { ctx.fillStyle = '#F5F5F4'; ctx.fillRect(x + 30, y - 22, 44, 22); ctx.fillStyle = '#D6D3D1'; ctx.fillRect(x + 30, y - 22, 44, 4); }
+  else { ctx.fillStyle = '#E7E5E4'; ctx.fillRect(x + 20, y - 26, 60, 26); ctx.fillStyle = '#A8A29E'; ctx.fillRect(x + 64, y - 22, 3, 14); }
+  // Whoever lived there, sat up against what's left
+  skeleton(ctx, x - 90, y, 0.55);
+  // Roof shingles and bricks about
+  ctx.fillStyle = '#44403C'; for (let i = 0; i < 6; i++) ctx.fillRect(x - 120 + i * 40 + ((i * 13) % 11), y - 4 - (i % 2) * 3, 14, 5);
+  void f;
 };
 
 /** The suit coming off him in the ruins: strips of yellow melting down him and away (over him, while it goes). */
