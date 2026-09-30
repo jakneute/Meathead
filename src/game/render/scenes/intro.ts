@@ -1,10 +1,11 @@
-// The opening, drawn the ending's way (NES-style pixel art on a 256x144 canvas): Meathead
+// The opening, drawn the ending's way (SNES-style pixel art on a 256x144 canvas): Meathead
 // benching in a dingy gym at five in the morning, two men in black suits in the doorway,
 // the one who does the talking up close, Meathead trotting after them down a government
 // corridor, and the briefing room: a projector, a screen, a man with a pointer, and the
 // back of Meathead's head.
 
 import { ART_W, ART_H, C, R, ell, hash } from './ending';
+import { shaded, layer, ball, box, bands, RAMP } from './snes';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -21,16 +22,26 @@ const text = (ctx: Ctx, s: string, x: number, y: number, color: string, size = 8
 };
 
 /** The gym: brick, a strip of mirror, a rack of dumbbells, a sign, rubber floor, a door on the right. */
-export const gymBg = (ctx: Ctx) => {
-  R(ctx, 0, 0, ART_W, ART_H, G.brick);
+export const gymBg = (ctx: Ctx) => layer(ctx, 'gym', ART_W, ART_H, g => gymBgOnce(g));
+
+const gymBgOnce = (ctx: Ctx) => {
+  // Brick: every one its own shade, a lit top edge and a shadowed bottom one; darker away from the tube light
+  R(ctx, 0, 0, ART_W, ART_H, G.mortar);
+  const BR = ['#3c0c06', '#4c140c', '#5c1c14', '#6c2418', '#7c2c1c'];
   for (let y = 0; y < 112; y += 8) {
-    R(ctx, 0, y, ART_W, 1, G.mortar);
-    for (let x = (y / 8) % 2 ? 0 : 10; x < ART_W; x += 20) R(ctx, x, y, 1, 8, G.mortar);
+    for (let x = (y / 8) % 2 ? -10 : 0; x < ART_W; x += 20) {
+      const lit = Math.max(0, 1 - Math.abs(x + 9 - 110) / 150) * (1 - y / 160);
+      const i = Math.max(0, Math.min(4, Math.round(lit * 3 + hash(x * 7 + y) * 1.4)));
+      R(ctx, x + 1, y + 1, 19, 7, BR[i]);
+      R(ctx, x + 1, y + 1, 19, 1, BR[Math.min(4, i + 1)]);
+      R(ctx, x + 1, y + 7, 19, 1, BR[Math.max(0, i - 1)]);
+    }
   }
   for (let i = 0; i < 30; i++) R(ctx, hash(i) * ART_W, hash(i + 50) * 110, 6, 3, G.brick2);
-  // The mirror, and the sign over it
-  R(ctx, 8, 30, 150, 50, G.mirror);
-  for (let k = 0; k < 6; k++) R(ctx, 20 + k * 26, 30, 2, 50, G.mirrorLit);
+  // The mirror, and the sign over it (the room in it, dim; streaks of light down it)
+  bands(ctx, 8, 30, 150, 50, ['#6c8c9c', '#5c7c8c', '#4c6c7c', '#3c5c6c', '#34505c']);
+  for (let k = 0; k < 6; k++) { R(ctx, 20 + k * 26, 30, 2, 50, G.mirrorLit); R(ctx, 22 + k * 26, 30, 1, 50, 'rgba(255,255,255,0.12)'); }
+  R(ctx, 8, 29, 150, 1, '#8c8c8c'); R(ctx, 8, 80, 150, 1, '#1c1c1c');
   R(ctx, 30, 8, 110, 16, C.ink); R(ctx, 31, 9, 108, 14, C.darkRed);
   text(ctx, 'THE IRON PIT', 85, 19, C.gold);
   // A poster: NO PAIN NO GAIN
@@ -41,8 +52,9 @@ export const gymBg = (ctx: Ctx) => {
   // Dumbbell rack along the bottom of the mirror
   R(ctx, 10, 86, 146, 4, G.rack);
   for (let k = 0; k < 9; k++) { const x = 16 + k * 16; ell(ctx, x, 84, 4, 4, G.plate); ell(ctx, x + 8, 84, 4, 4, G.plate); R(ctx, x, 83, 8, 2, G.rack); }
-  // Floor: rubber tiles, flecked, a chalk handprint or two
-  R(ctx, 0, 112, ART_W, 32, G.floor);
+  // Floor: rubber tiles, flecked, a chalk handprint or two; lighter under the light
+  bands(ctx, 0, 112, ART_W, 32, ['#262626', '#202020', '#1a1a1a', '#141414']);
+  ctx.fillStyle = 'rgba(252, 252, 220, 0.05)'; ctx.beginPath(); ctx.ellipse(110, 126, 70, 12, 0, 0, Math.PI * 2); ctx.fill();
   for (let x = 0; x < ART_W; x += 32) R(ctx, x, 112, 1, 32, G.floor2);
   R(ctx, 0, 127, ART_W, 1, G.floor2);
   for (let i = 0; i < 60; i++) R(ctx, hash(i * 4.1) * ART_W, 113 + hash(i * 6.3) * 30, 1, 1, i % 4 ? '#303030' : '#4a4a4a');
@@ -59,7 +71,7 @@ export const gymBg = (ctx: Ctx) => {
 const tubeLight = (ctx: Ctx, t: number, x: number) => {
   const on = !(hash(Math.floor(t / 6)) > 0.93);
   R(ctx, x, 2, 40, 3, on ? G.tube : '#7c7c70');
-  if (on) { ctx.fillStyle = 'rgba(252, 252, 220, 0.06)'; ctx.beginPath(); ctx.moveTo(x, 5); ctx.lineTo(x + 40, 5); ctx.lineTo(x + 80, 144); ctx.lineTo(x - 40, 144); ctx.fill(); }
+  if (on) for (let k = 0; k < 4; k++) { const sp = 1 - k * 0.22; ctx.fillStyle = 'rgba(252, 252, 220, 0.035)'; ctx.beginPath(); ctx.moveTo(x + 20 - 20 * sp, 5); ctx.lineTo(x + 20 + 20 * sp, 5); ctx.lineTo(x + 20 + 60 * sp, 144); ctx.lineTo(x + 20 - 60 * sp, 144); ctx.fill(); }
 };
 
 /** Meathead flat on the bench, pushing: side on, the bar's plate going up and down (or racked). */
@@ -164,21 +176,24 @@ export const drawAgent = (ctx: Ctx, t: number, talking: boolean, where: 'gym' | 
   // The other one, behind him, out of focus
   R(ctx, 190, 50, 50, 94, G.suitLit); R(ctx, 200, 22, 30, 30, '#8c7460'); R(ctx, 198, 18, 34, 8, C.ink); R(ctx, 202, 32, 26, 6, G.shades);
   // Shoulders, lapels, shirt, tie
-  ell(ctx, 120, 150, 96, 40, G.suit);
-  R(ctx, 104, 104, 32, 40, G.shirt);
+  shaded(ctx, 'ag-shoulders', 24, 108, 192, 84, RAMP.aSuit, ball(-0.4, -0.85, 0.08));
+  shaded(ctx, 'ag-shirt', 104, 104, 32, 40, RAMP.shirt, box(-0.5, -0.5, 0.3, 1, 0.3));
   ctx.fillStyle = G.suit;
   ctx.beginPath(); ctx.moveTo(104, 104); ctx.lineTo(120, 144); ctx.lineTo(96, 144); ctx.fill();
   ctx.beginPath(); ctx.moveTo(136, 104); ctx.lineTo(120, 144); ctx.lineTo(144, 144); ctx.fill();
   R(ctx, 116, 106, 8, 38, C.black);
   // Head: square, pale, a side parting you could cut yourself on
-  R(ctx, 88, 24, 64, 80, G.skin); R(ctx, 140, 24, 12, 80, G.skinShade);
-  R(ctx, 84, 12, 72, 16, C.ink); R(ctx, 84, 28, 6, 14, C.ink); R(ctx, 108, 12, 2, 10, '#3c3c3c');
-  R(ctx, 80, 50, 8, 18, G.skinShade); R(ctx, 152, 50, 8, 18, G.skinShade);
+  shaded(ctx, 'ag-head', 88, 24, 64, 80, RAMP.aSkin, box(-0.5, -0.4, 0.18, 1, 0.45));
+  shaded(ctx, 'ag-hair', 84, 12, 72, 16, RAMP.mHair, box(-0.4, -0.9, 0.1, 0.7, 1));
+  R(ctx, 84, 28, 6, 14, RAMP.mHair[1]); R(ctx, 108, 12, 2, 10, '#3c3c3c');
+  shaded(ctx, 'ag-ear', 80, 50, 8, 18, RAMP.aSkin, ball(-0.5, -0.4, 0.2)); shaded(ctx, 'ag-ear2', 152, 50, 8, 18, RAMP.aSkin, ball(-0.9, -0.2, 0.08));
   // The earpiece, and its coil down into the collar
   R(ctx, 154, 54, 4, 5, C.lightGray);
   for (let k = 0; k < 8; k++) R(ctx, 156 + (k % 2), 60 + k * 5, 2, 3, C.lightGray);
   // The shades, and a glint going across them
   R(ctx, 94, 44, 26, 12, G.shades); R(ctx, 124, 44, 26, 12, G.shades); R(ctx, 118, 46, 8, 2, G.shades);
+  // (the lenses: the room's light across their tops, going dark down them)
+  for (const lx of [94, 124]) { R(ctx, lx + 1, 45, 24, 2, '#1c1c28'); R(ctx, lx + 1, 47, 24, 1, '#10101a'); }
   const g = (t * 2) % 120;
   if (g < 26) { R(ctx, 94 + g, 45, 2, 4, G.glint); R(ctx, 124 + g, 45, 2, 4, G.glint); }
   // Nose, mouth: a flat line, or barely open when he talks
@@ -191,7 +206,6 @@ export const drawAgent = (ctx: Ctx, t: number, talking: boolean, where: 'gym' | 
   // The inside of his ears; the cheekbones under the shades; the nostrils; the cleft in his chin; a five o'clock shadow
   R(ctx, 82, 54, 3, 10, '#a07858'); R(ctx, 155, 54, 3, 10, '#a07858');
   R(ctx, 96, 58, 20, 2, G.skinShade); R(ctx, 126, 58, 18, 2, G.skinShade);
-  R(ctx, 92, 62, 4, 28, G.skinShade);
   R(ctx, 114, 73, 3, 2, '#8c5c40'); R(ctx, 123, 73, 3, 2, '#8c5c40');
   R(ctx, 119, 92, 2, 5, G.skinShade);
   for (let i = 0; i < 60; i++) { const sx = 90 + hash(i * 2.3) * 60, sy = 80 + hash(i * 4.9) * 18; if (Math.abs(sx - 120) > 14 || sy > 90) R(ctx, sx, sy, 1, 1, '#b8987c'); }
@@ -205,8 +219,8 @@ export const drawAgent = (ctx: Ctx, t: number, talking: boolean, where: 'gym' | 
 
 /** Out of the gym and down a government corridor: two suits walking, Meathead bounding round them like a dog. */
 export const drawEscort = (ctx: Ctx, t: number) => {
-  R(ctx, 0, 0, ART_W, ART_H, G.hall);
-  R(ctx, 0, 0, ART_W, 14, G.hall2);
+  bands(ctx, 0, 0, ART_W, 114, ['#4c5450', '#5c6460', '#687070', '#707874', '#6c7470', '#646c68', '#5c645f']);
+  bands(ctx, 0, 0, ART_W, 14, ['#3c4440', '#444c48', '#4c5450']);
   // Doors going by, each with a little frosted window and a number
   const scroll = (t * 1.2) % 80;
   for (let k = -1; k < 5; k++) {
@@ -225,7 +239,7 @@ export const drawEscort = (ctx: Ctx, t: number) => {
   // Lights along the ceiling
   for (let k = -1; k < 5; k++) R(ctx, Math.round(k * 80 - scroll + 44), 16, 30, 3, G.tube);
   // Floor, polished: the ceiling lights shining back up off it
-  R(ctx, 0, 114, ART_W, 30, G.hallFloor);
+  bands(ctx, 0, 114, ART_W, 30, ['#4c504c', '#444844', '#3c403c', '#343834', '#2c302c']);
   for (let k = -1; k < 5; k++) { const lx = Math.round(k * 80 - scroll + 44); R(ctx, lx, 120, 30, 2, 'rgba(252, 252, 240, 0.18)'); R(ctx, lx + 6, 128, 18, 1, 'rgba(252, 252, 240, 0.1)'); }
   for (let k = 0; k < 8; k++) R(ctx, Math.round((k * 40 - scroll * 1.5) % 300) - 20, 124, 18, 1, '#5c605c');
   // The two of them, walking in step
@@ -359,11 +373,17 @@ const slideBoss = (ctx: Ctx, cx: number, base: number, key: string, s = 1) => {
 
 /** The briefing room: dark, the projector's beam, the screen, and whatever slide's up (-1: nothing, the room only). */
 export const briefingBg = (ctx: Ctx, t: number, slide: Slide | -1) => {
-  R(ctx, 0, 0, ART_W, ART_H, G.dark);
-  // Wood paneling, just about visible
-  for (let x = 0; x < ART_W; x += 16) R(ctx, x, 0, 1, ART_H, '#141008');
-  // The seal on the wall, in the dark
-  ell(ctx, 28, 30, 14, 14, '#1c1810'); ell(ctx, 28, 30, 10, 10, '#141008'); R(ctx, 22, 28, 12, 4, '#241c10');
+  layer(ctx, 'briefing', ART_W, ART_H, g => {
+    // Wood paneling, just about visible, lit by the screen: brighter near it, falling off in rings
+    shaded(g, 'brief-wall', 0, 0, ART_W, ART_H, ['#050406', '#0a0808', '#100c0a', '#18120c', '#221810', '#2c2014'], (u, v) => {
+      const d = Math.hypot((u - 0.53) * 1.8, (v - 0.33) * 1.1);
+      return Math.max(0, 1 - d * 1.15);
+    });
+    for (let x = 0; x < ART_W; x += 16) R(g, x, 0, 1, ART_H, 'rgba(0,0,0,0.35)');
+    // The seal on the wall, in the dark (a gold rim catching the screen)
+    shaded(g, 'brief-seal', 14, 16, 28, 28, ['#140e06', '#1c1408', '#2a1e0c', '#3a2a10', '#4c3814'], ball(0.6, -0.3, 0.1));
+    ell(g, 28, 30, 10, 10, '#141008'); R(g, 22, 28, 12, 4, '#241c10');
+  });
   // The screen
   R(ctx, 70, 8, 132, 78, G.screen); R(ctx, 70, 8, 132, 3, '#a0a094'); R(ctx, 134, 4, 4, 6, C.gray);
   if (slide !== -1) drawSlide(ctx, t, slide);
@@ -436,8 +456,8 @@ interface Build { k: string; cx: number; w: number; h: number; head: number }
 
 /** A set's four in silhouette, rising up one after another in the dark over red, eyes lit. */
 const drawFour = (ctx: Ctx, t: number, builds: Build[]) => {
-  R(ctx, 0, 0, ART_W, ART_H, C.darkRed);
-  for (let y = 0; y < ART_H; y += 4) R(ctx, 0, y, ART_W, 2, 'rgba(0,0,0,0.25)');
+  bands(ctx, 0, 0, ART_W, ART_H, ['#1a0000', '#2a0200', '#3c0402', '#520804', '#6a0e06', '#841808', '#a0240c', '#bc3410', '#d84c18']);
+  ctx.fillStyle = 'rgba(255, 140, 60, 0.1)'; for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.ellipse(128, ART_H, 160 - k * 40, 50 - k * 12, 0, 0, Math.PI * 2); ctx.fill(); }
   builds.forEach((b, i) => {
     const rise = Math.max(0, 40 - (t - i * 14) * 2);
     const base = ART_H + rise;

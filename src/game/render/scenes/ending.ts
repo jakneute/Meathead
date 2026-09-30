@@ -1,7 +1,9 @@
-// The ending cutscene's still images, drawn as NES-style pixel art on a
+// The ending cutscene's still images, drawn as SNES-style pixel art on a
 // 256x144 canvas (scaled up with no smoothing). Each panel is a function of
 // its frame counter so it can blink, flash and animate a little, the way NES
 // cutscenes do.
+
+import { shaded, ball, box, bands, RAMP } from './snes';
 
 export const ART_W = 256;
 export const ART_H = 144;
@@ -47,11 +49,15 @@ export const hash = (n: number) => {
 
 /** Vertical folds of the blue press-room curtain. */
 const curtain = (ctx: Ctx, h: number) => {
-  R(ctx, 0, 0, ART_W, h, C.curtain);
-  for (let x = 0; x < ART_W; x += 12) {
-    R(ctx, x, 0, 3, h, C.curtainDark);
-    R(ctx, x + 6, 0, 2, h, C.curtainLight);
-  }
+  // (each fold round, lit from the upper left; the stage lights pooling down the middle, falling off to the sides and
+  // down toward the floor)
+  shaded(ctx, 'curtain', 0, 0, ART_W, h, RAMP.curtain, (u, v) => {
+    const x = u * ART_W, fold = 0.5 + 0.5 * Math.sin((x / 14) * Math.PI * 2 - 0.6);
+    const pool = Math.exp(-((u - 0.5) ** 2) / 0.09);
+    return (0.18 + fold * 0.55) * (0.55 + 0.45 * pool) * (1.05 - v * 0.35);
+  });
+  // (the hem of each fold catching a sharper light)
+  for (let x = 4; x < ART_W; x += 14) R(ctx, x, 0, 1, h, 'rgba(160, 200, 255, 0.18)');
 };
 
 /** A US flag hanging from a pole. */
@@ -79,9 +85,8 @@ const whSign = (ctx: Ctx, cx: number, cy: number) => {
 
 const podium = (ctx: Ctx, cx: number, top: number, tilt = 0) => {
   R(ctx, cx - 22, top, 44, 5, C.woodLight);
-  R(ctx, cx - 20, top + 5, 40, 42, C.wood);
-  R(ctx, cx - 20, top + 5, 4, 42, C.woodDark);
-  R(ctx, cx + 16, top + 5, 4, 42, C.woodDark);
+  shaded(ctx, 'podium', cx - 20, top + 5, 40, 42, RAMP.wood, box(-0.55, -0.4, 0.15, 1, 0.3));
+  for (let k = 0; k < 4; k++) R(ctx, cx - 18, top + 10 + k * 10, 36, 1, 'rgba(40, 16, 4, 0.35)'); // (the grain)
   // Presidential seal
   ell(ctx, cx, top + 20, 9, 9, C.gold);
   ell(ctx, cx, top + 20, 7, 7, C.navy);
@@ -108,6 +113,10 @@ const reporters = (ctx: Ctx, t: number, frenzy: number) => {
     ell(ctx, x, y, 7, 8, '#e4a070');
     ell(ctx, x, y - 3, 7, 5, hair);
     R(ctx, x - 7, y - 3, 14, 5, hair);
+    // (the stage lights on them from the front and above: a sheen on the hair, the far cheek in shadow, the shoulders' edges)
+    R(ctx, x - 4, y - 7, 6, 1, 'rgba(255,255,255,0.22)');
+    R(ctx, x + 3, y + 2, 3, 5, 'rgba(120, 50, 20, 0.35)');
+    R(ctx, x - 11, y + 8, 22, 1, 'rgba(255,255,255,0.15)'); R(ctx, x + 8, y + 9, 3, 19, 'rgba(0,0,0,0.25)');
     // Every other one has a camera up
     if (i % 2 === 1) {
       const cx = x + 3, cy = y - 3;
@@ -152,6 +161,9 @@ const trumpSmall = (ctx: Ctx, cx: number, top: number, t: number, talking: boole
   R(ctx, cx - 1, top - 2, 10, 3, C.tHair);
   R(ctx, cx + 6, top + 1, 3, 4, C.tHair);
   R(ctx, cx - 3, top - 2, 6, 1, C.tHairLight);
+  // (lit from the upper left)
+  R(ctx, cx - 13, top + 14, 2, 20, RAMP.navy[4]); R(ctx, cx + 11, top + 14, 2, 20, RAMP.navy[1]);
+  R(ctx, cx - 6, top + 3, 2, 8, RAMP.tSkin[5]); R(ctx, cx + 5, top + 5, 2, 7, RAMP.tSkin[2]);
 };
 
 /** Meathead full-body, standing (feet at baseY). */
@@ -180,6 +192,11 @@ const meatheadStanding = (ctx: Ctx, cx: number, baseY: number, withMedal: boolea
   R(ctx, cx - 4, baseY - 58, 3, 1, C.ink);
   R(ctx, cx + 1, baseY - 58, 3, 1, C.ink);
   R(ctx, cx - 3, baseY - 53, 6, 1, C.darkRed);
+  // (lit from the upper left: the light down his left side, his right in shadow, the shading under his pecs)
+  R(ctx, cx - 14, baseY - 50, 2, 9, C.mSkinLight); R(ctx, cx - 10, baseY - 42, 2, 14, C.mSkinLight); R(ctx, cx - 6, baseY - 62, 2, 12, C.mSkinLight);
+  R(ctx, cx + 12, baseY - 50, 2, 9, RAMP.mSkin[3]); R(ctx, cx + 8, baseY - 42, 2, 14, RAMP.mSkin[3]); R(ctx, cx + 4, baseY - 62, 2, 12, RAMP.mSkin[3]);
+  R(ctx, cx - 19, baseY - 50, 2, 22, RAMP.mSkin[2]); R(ctx, cx + 17, baseY - 50, 2, 22, RAMP.mSkin[3]);
+  R(ctx, cx - 7, baseY - 16, 2, 10, '#2c4ca0'); R(ctx, cx + 2, baseY - 16, 2, 10, '#2c4ca0');
   if (withMedal) {
     R(ctx, cx - 5, baseY - 50, 2, 6, C.blue);
     R(ctx, cx + 3, baseY - 50, 2, 6, C.blue);
@@ -264,7 +281,7 @@ const trumpFlying = (ctx: Ctx, cx: number, cy: number, t: number) => {
 // ---------------------------------------------------------------------------
 
 export const drawWhiteHouse = (ctx: Ctx, t: number) => {
-  for (let y = 0; y < 110; y += 2) R(ctx, 0, y, ART_W, 2, y < 50 ? C.night : (y / 2) % 2 === 0 ? C.night : C.night2);
+  bands(ctx, 0, 0, ART_W, 110, ['#02021a', '#04042a', '#08083c', '#0c0c4c', '#12125c', '#1c1c6c', '#2a2a7c', '#3c3c88']);
   for (let i = 0; i < 40; i++) {
     if (Math.floor(t / 20 + i) % 7 === 0) continue;
     R(ctx, hash(i) * ART_W, hash(i + 40) * 50, 1, 1, C.white);
@@ -272,11 +289,13 @@ export const drawWhiteHouse = (ctx: Ctx, t: number) => {
   ell(ctx, 222, 20, 9, 9, C.moon);
   ell(ctx, 226, 18, 8, 8, C.night);
   // Lawn and fence
-  R(ctx, 0, 108, ART_W, 36, C.darkGrass);
-  for (let y = 112; y < ART_H; y += 6) R(ctx, 0, y, ART_W, 2, C.grass);
+  bands(ctx, 0, 108, ART_W, 36, ['#0c2a0c', '#123a12', '#184a16', '#1e5a1c', '#246a22', '#2c7a28']);
+  for (let y = 114; y < ART_H; y += 7) for (let x = (y * 3) % 5; x < ART_W; x += 5) R(ctx, x, y, 1, 2, '#3c8c34');
+  // (the building's glow on the lawn)
+  ctx.fillStyle = 'rgba(252, 224, 168, 0.08)'; ctx.beginPath(); ctx.ellipse(128, 112, 110, 10, 0, 0, Math.PI * 2); ctx.fill();
   // Wings
-  R(ctx, 36, 62, 184, 46, C.white);
-  R(ctx, 36, 100, 184, 8, C.lightGray);
+  shaded(ctx, 'wh-wings', 36, 62, 184, 46, ['#8c8ca4', '#a8a8bc', '#c4c4d4', '#dcdce8', '#f0f0f8', '#ffffff'], (u, v) => 0.95 - v * 0.55 - Math.abs(u - 0.5) * 0.35);
+  R(ctx, 36, 100, 184, 8, '#9c9cb0');
   R(ctx, 34, 58, 188, 4, C.lightGray);
   for (let x = 36; x < 220; x += 4) R(ctx, x, 55, 2, 3, C.lightGray);
   for (const row of [68, 86]) {
@@ -314,7 +333,7 @@ export const drawPressRoom = (ctx: Ctx, t: number, talking: boolean) => {
   whSign(ctx, 128, 20);
   hangingFlag(ctx, 50, 38);
   hangingFlag(ctx, 190, 38);
-  R(ctx, 0, 112, ART_W, 32, C.darkRed);
+  bands(ctx, 0, 112, ART_W, 32, ['#7c1000', '#6a0c00', '#580800', '#460600', '#340400']);
   trumpSmall(ctx, 128, 46, t, talking);
   podium(ctx, 128, 72);
   meatheadStanding(ctx, 172, 118, false);
@@ -325,23 +344,19 @@ export const drawPressRoom = (ctx: Ctx, t: number, talking: boolean) => {
 export const drawTrumpCloseUp = (ctx: Ctx, t: number, talking: boolean, mood: 'proud' | 'huh') => {
   curtain(ctx, ART_H);
   // Suit, shirt and the long red tie
-  R(ctx, 30, 118, 196, 26, C.navy);
-  R(ctx, 30, 118, 12, 26, C.navyDark);
-  R(ctx, 214, 118, 12, 26, C.navyDark);
+  shaded(ctx, 'tr-suit', 30, 116, 196, 40, RAMP.navy, ball(-0.4, -0.85, 0.15));
   for (let i = 0; i < 16; i++) R(ctx, 106 + i, 112 + i, 44 - i * 2, 1, C.white);
   R(ctx, 120, 114, 16, 8, C.red);
   R(ctx, 122, 122, 12, 22, C.red);
   R(ctx, 127, 122, 2, 22, C.darkRed);
   // Neck and jowls
-  R(ctx, 102, 96, 52, 22, C.tSkinShade);
-  // Face
-  ell(ctx, 128, 76, 38, 42, C.tSkin);
-  ell(ctx, 128, 102, 32, 14, C.tSkin);
-  R(ctx, 92, 90, 4, 18, C.tSkinShade);
-  R(ctx, 160, 90, 4, 18, C.tSkinShade);
+  shaded(ctx, 'tr-neck', 102, 94, 52, 26, RAMP.tSkin, box(-0.5, -0.2, 0.1, 1, 0.3));
+  // Face: round, lit from the upper left, the jowls hanging off it in their own light
+  shaded(ctx, 'tr-face', 90, 34, 76, 84, RAMP.tSkin, ball(-0.4, -0.5, 0.18));
+  shaded(ctx, 'tr-jowls', 96, 88, 64, 28, RAMP.tSkin, ball(-0.35, -0.7, 0.14));
   // Ears
-  ell(ctx, 89, 74, 4, 9, C.tSkinShade);
-  ell(ctx, 167, 74, 4, 9, C.tSkinShade);
+  shaded(ctx, 'tr-ear', 85, 65, 8, 18, RAMP.tSkin, ball(-0.5, -0.4, 0.2));
+  shaded(ctx, 'tr-ear2', 163, 65, 8, 18, RAMP.tSkin, ball(-0.9, -0.2, 0.08));
   // The pale goggles around the eyes
   ell(ctx, 112, 70, 12, 6, C.tSkinPale);
   ell(ctx, 144, 70, 12, 6, C.tSkinPale);
@@ -371,12 +386,12 @@ export const drawTrumpCloseUp = (ctx: Ctx, t: number, talking: boolean, mood: 'p
   }
   // Chin creases
   R(ctx, 112, 110, 32, 1, C.tSkinShade);
-  // The hair: a huge swept swoop
-  ell(ctx, 128, 42, 44, 16, C.tHair);
-  ell(ctx, 136, 38, 40, 12, C.tHair);
-  R(ctx, 88, 40, 8, 26, C.tHair);
-  R(ctx, 160, 40, 10, 22, C.tHair);
-  ell(ctx, 164, 50, 10, 8, C.tHair);
+  // The hair: a huge swept swoop, lacquered, catching the lights
+  R(ctx, 88, 40, 8, 26, RAMP.tHair[2]);
+  R(ctx, 160, 40, 10, 22, RAMP.tHair[1]);
+  shaded(ctx, 'tr-hair1', 84, 26, 88, 32, RAMP.tHair, ball(-0.3, -0.8, 0.2));
+  shaded(ctx, 'tr-hair2', 96, 26, 80, 24, RAMP.tHair, ball(-0.4, -0.75, 0.25));
+  shaded(ctx, 'tr-hair3', 154, 42, 20, 16, RAMP.tHair, ball(-0.6, -0.5, 0.15));
   for (let i = 0; i < 6; i++) R(ctx, 100 + i * 12, 34 + (i % 2) * 2, 10, 1, C.tHairLight);
   R(ctx, 96, 52, 70, 2, C.tHairShade);
   R(ctx, 150, 54, 16, 2, C.tHairShade);
@@ -394,7 +409,6 @@ export const drawTrumpCloseUp = (ctx: Ctx, t: number, talking: boolean, mood: 'p
   // The suit: its lapels, the flag pin, the shirt collar points
   for (let i = 0; i < 16; i++) { R(ctx, 104 - i, 112 + i, 1, 1, C.navyDark); R(ctx, 151 + i, 112 + i, 1, 1, C.navyDark); }
   R(ctx, 74, 126, 6, 4, C.white); R(ctx, 74, 126, 6, 1, C.red); R(ctx, 74, 128, 6, 1, C.red); R(ctx, 74, 126, 2, 2, C.blue);
-  R(ctx, 30, 118, 196, 1, '#34347c');
 };
 
 /** Medium two-shot: Trump hanging the medal round Meathead's neck. */
@@ -402,37 +416,40 @@ export const drawMedal = (ctx: Ctx, t: number, talking: boolean) => {
   curtain(ctx, ART_H);
   hangingFlag(ctx, 122, 20);
   // Trump (left), side-on, big belly, arms out with the ribbon
-  R(ctx, 34, 70, 58, 74, C.navy);
-  ell(ctx, 76, 116, 26, 26, C.navy);
-  R(ctx, 34, 70, 10, 74, C.navyDark);
+  shaded(ctx, 'md-trbody', 34, 70, 58, 74, RAMP.navy, box(0.5, -0.4, 0.15, 1, 0.3));
+  shaded(ctx, 'md-trgut', 50, 90, 52, 52, RAMP.navy, ball(0.35, -0.6, 0.15));
   R(ctx, 74, 70, 12, 14, C.white);
   R(ctx, 78, 76, 5, 56, C.red);
   R(ctx, 76, 80, 32, 9, C.navyDark);
   R(ctx, 108, 78, 8, 9, C.tSkin);
-  ell(ctx, 66, 50, 18, 20, C.tSkin);
-  ell(ctx, 58, 64, 14, 8, C.tSkin);
+  shaded(ctx, 'md-trhead', 48, 30, 36, 40, RAMP.tSkin, ball(0.45, -0.5, 0.15));
+  shaded(ctx, 'md-trjowl', 44, 56, 28, 16, RAMP.tSkin, ball(0.4, -0.6, 0.12));
   ell(ctx, 76, 46, 7, 3, C.tSkinPale);
   R(ctx, 74, 45, 5, 2, C.ink);
   R(ctx, 80, 52, 4, 7, C.tSkinShade);
   const open = talking && t % 10 < 5;
   R(ctx, 74, 61, 8, open ? 4 : 2, '#801010');
-  ell(ctx, 64, 32, 20, 8, C.tHair);
+  shaded(ctx, 'md-trhair', 44, 24, 40, 16, RAMP.tHair, ball(0.3, -0.8, 0.2));
   R(ctx, 64, 27, 26, 7, C.tHair);
   ell(ctx, 88, 34, 5, 5, C.tHair);
   R(ctx, 46, 32, 6, 20, C.tHair);
   R(ctx, 68, 28, 18, 1, C.tHairLight);
   // Meathead (right), a wall of muscle, leaning in for the medal
-  R(ctx, 150, 88, 90, 56, C.mSkin);
-  ell(ctx, 152, 100, 16, 18, C.mSkin);
-  ell(ctx, 238, 100, 16, 18, C.mSkinShade);
+  // (one mass: the shoulders rounding off either side of it, the chest under)
+  shaded(ctx, 'md-mhtorso', 132, 80, 128, 100, RAMP.mSkin, (u, v) => {
+    const nx = u * 2 - 1, ny = v * 1.6 - 0.8;
+    const top = Math.max(0, 1 - Math.abs(nx) ** 4) ** 0.5;
+    if (ny < -top) return -1;
+    const lx = -0.5, ly = -0.55, nz = Math.sqrt(Math.max(0.05, 1 - nx * nx * 0.8 - Math.max(0, -ny) ** 2 * 0.6));
+    return 0.14 + 0.86 * Math.max(0, nx * 0.8 * lx + Math.min(0, ny) * ly * -1 * -1 + nz * 0.62);
+  });
   R(ctx, 166, 110, 58, 1, C.mSkinShade);
   R(ctx, 194, 110, 1, 34, C.mSkinShade);
   R(ctx, 178, 94, 12, 3, C.mSkinLight);
   R(ctx, 200, 94, 12, 3, C.mSkinLight);
-  R(ctx, 178, 70, 32, 20, C.mSkin);
-  R(ctx, 172, 30, 44, 42, C.mSkin);
-  R(ctx, 208, 30, 8, 42, C.mSkinShade);
-  R(ctx, 170, 20, 48, 14, C.mHair);
+  shaded(ctx, 'md-mhneck', 178, 68, 32, 22, RAMP.mSkin, box(-0.6, -0.1, 0.15, 1, 0.2));
+  shaded(ctx, 'md-mhhead', 172, 30, 44, 42, RAMP.mSkin, box(-0.5, -0.45, 0.16, 1, 0.5));
+  shaded(ctx, 'md-mhhair', 170, 20, 48, 14, RAMP.mHair, box(-0.4, -0.8, 0.1, 0.8, 1));
   R(ctx, 176, 36, 4, 5, C.vein);
   R(ctx, 176, 44, 12, 3, C.ink);
   R(ctx, 196, 44, 12, 3, C.ink);
@@ -446,8 +463,8 @@ export const drawMedal = (ctx: Ctx, t: number, talking: boolean) => {
   R(ctx, 172, 76, 6, 20, C.blue);
   R(ctx, 208, 76, 6, 20, C.blue);
   R(ctx, 176, 94, 34, 4, C.blue);
-  ell(ctx, 192, 104, 7, 7, C.gold);
-  R(ctx, 190, 101, 4, 6, C.goldLight);
+  shaded(ctx, 'md-medal', 185, 97, 14, 14, RAMP.gold, ball(-0.5, -0.6, 0.2));
+  R(ctx, 191, 101, 2, 6, RAMP.gold[1]);
   if (t % 30 < 6) R(ctx, 196, 99, 2, 2, C.white);
 };
 
@@ -455,8 +472,12 @@ export const drawMedal = (ctx: Ctx, t: number, talking: boolean) => {
 export const drawMeatheadEyes = (ctx: Ctx, t: number) => {
   R(ctx, 0, 0, ART_W, ART_H, C.black);
   // The strip of his face: shaded toward the top and bottom of it, pores, a bead of sweat running
-  R(ctx, 0, 36, ART_W, 72, C.mSkin);
-  R(ctx, 0, 42, ART_W, 4, C.mSkinShade); R(ctx, 0, 100, ART_W, 8, C.mSkinShade);
+  shaded(ctx, 'eyes-skin', 0, 36, ART_W, 72, RAMP.mSkin, (u, v) => {
+    // (the brow ridge standing out over the sockets, the cheeks under them, the bridge of the nose lit down the middle)
+    const brow = Math.exp(-((v - 0.22) ** 2) / 0.006), socket = Math.exp(-((v - 0.55) ** 2) / 0.02);
+    const nose = Math.exp(-((u - 0.5) ** 2) / 0.0015) * (v > 0.5 ? 1 : 0.3);
+    return 0.62 + brow * 0.25 - socket * 0.2 + nose * 0.2 - Math.abs(v - 0.45) * 0.35;
+  });
   for (let i = 0; i < 160; i++) R(ctx, hash(i * 1.3) * ART_W, 44 + hash(i * 2.7) * 60, 1, 1, i % 3 ? '#c08a4c' : C.mSkinLight);
   R(ctx, 0, 36, ART_W, 6, C.mHair);
   const drip = (t * 0.5) % 60;
@@ -502,12 +523,10 @@ export const drawMeatheadEyes = (ctx: Ctx, t: number) => {
  */
 export const drawMeatheadCloseUp = (ctx: Ctx, t: number, talking: boolean, mood: 'dumb' | 'disgust' | 'think' | 'stoked', where: { bg?: (ctx: Ctx) => void; medal?: boolean; pose?: 'flex' | 'gun' } = {}) => {
   if (where.bg) where.bg(ctx); else curtain(ctx, ART_H);
-  // Traps and shoulders
-  ell(ctx, 128, 150, 130, 34, C.mSkin);
-  ell(ctx, 60, 140, 40, 22, C.mSkinShade);
-  R(ctx, 96, 96, 64, 30, C.mSkin);
-  // (the light along the top of the traps, the cords of his neck running down into them, the split of his pecs)
-  ell(ctx, 66, 124, 22, 5, C.mSkinLight); ell(ctx, 190, 124, 22, 5, C.mSkinLight);
+  // Traps and shoulders, the neck, rounded and lit from the upper left
+  shaded(ctx, 'mh-traps', -2, 116, 260, 70, RAMP.mSkin, ball(-0.35, -0.85, 0.12));
+  shaded(ctx, 'mh-neck', 96, 94, 64, 36, RAMP.mSkin, box(-0.6, -0.1, 0.18, 1, 0.15));
+  // (the cords of his neck running down into the traps, the split of his pecs)
   for (let k = 0; k < 10; k++) { R(ctx, 102 + k, 104 + k * 2, 3, 2, C.mSkinShade); R(ctx, 151 - k, 104 + k * 2, 3, 2, C.mSkinShade); }
   R(ctx, 127, 128, 2, 16, C.mSkinShade); R(ctx, 112, 136, 12, 1, C.mSkinShade); R(ctx, 132, 136, 12, 1, C.mSkinShade);
   // Medal ribbon and medal
@@ -518,18 +537,16 @@ export const drawMeatheadCloseUp = (ctx: Ctx, t: number, talking: boolean, mood:
     ell(ctx, 128, 141, 8, 8, C.gold);
     R(ctx, 126, 136, 4, 8, C.goldLight);
   }
-  // Square head
-  R(ctx, 90, 22, 76, 84, C.mSkin);
-  R(ctx, 152, 22, 14, 84, C.mSkinShade);
-  R(ctx, 94, 100, 68, 6, C.mSkinShade);
-  R(ctx, 126, 98, 4, 6, C.mSkinShade);
-  // Flat-top
-  R(ctx, 86, 6, 84, 22, C.mHair);
-  R(ctx, 86, 28, 6, 18, C.mHair);
-  R(ctx, 164, 28, 6, 18, C.mHair);
+  // Square head: rounded at the sides, lit from the upper left, the jaw in its own shadow
+  shaded(ctx, 'mh-head', 90, 22, 76, 84, RAMP.mSkin, box(-0.5, -0.45, 0.16, 1, 0.5));
+  R(ctx, 94, 102, 68, 1, RAMP.mSkin[2]); R(ctx, 94, 103, 68, 3, RAMP.mSkin[3]);
+  // Flat-top (the top of it catching the light) and the sideburns
+  shaded(ctx, 'mh-hair', 86, 6, 84, 22, RAMP.mHair, box(-0.4, -0.8, 0.1, 0.8, 1));
+  R(ctx, 86, 28, 6, 18, RAMP.mHair[1]);
+  R(ctx, 164, 28, 6, 18, RAMP.mHair[0]);
   // Ears
-  R(ctx, 82, 48, 8, 18, C.mSkinShade);
-  R(ctx, 166, 48, 8, 18, C.mSkinShade);
+  shaded(ctx, 'mh-ear', 82, 48, 8, 18, RAMP.mSkin, ball(-0.5, -0.4, 0.2));
+  shaded(ctx, 'mh-ear2', 166, 48, 8, 18, RAMP.mSkin, ball(-0.9, -0.2, 0.08));
   // Vein
   R(ctx, 104, 32, 3, 8, C.vein);
   R(ctx, 106, 38, 5, 3, C.vein);
@@ -541,7 +558,6 @@ export const drawMeatheadCloseUp = (ctx: Ctx, t: number, talking: boolean, mood:
   R(ctx, 84, 52, 3, 10, '#a86a2c'); R(ctx, 169, 52, 3, 10, '#a86a2c'); R(ctx, 85, 50, 2, 2, C.mSkin); R(ctx, 169, 50, 2, 2, C.mSkin);
   // Shading: under the cheekbones, down the shadow side of the nose, the temples; the stubble along the jaw; the chin's cleft
   R(ctx, 96, 64, 8, 2, C.mSkinShade); R(ctx, 148, 64, 4, 2, C.mSkinShade);
-  R(ctx, 92, 68, 4, 22, C.mSkinShade); R(ctx, 94, 30, 4, 10, C.mSkinShade);
   R(ctx, 130, 60, 2, 12, C.mSkinShade);
   for (let i = 0; i < 70; i++) { const sx = 92 + hash(i * 3.7) * 72, sy = 88 + hash(i * 5.1) * 12; if (Math.abs(sx - 128) > 16 || sy > 94) R(ctx, sx, sy, 1, 1, '#9c6c38'); }
   R(ctx, 127, 99, 2, 5, C.mSkinShade);
@@ -622,16 +638,14 @@ const drawDoubleBiceps = (ctx: Ctx, t: number) => {
     const x = s < 0 ? 46 : 210;          // the bicep's middle
     const ex = x + s * 22;               // the elbow, out at the side
     // Upper arm out from the shoulder to the elbow
-    R(ctx, Math.min(x, ex) - 14, 100, 50, 22, C.mSkin);
+    shaded(ctx, `mh-uarm${s}`, Math.min(x, ex) - 14, 98, 50, 26, RAMP.mSkin, box(-0.3, -0.8, 0.14, 0.3, 1));
     // Forearm straight up from the elbow, the fist up by his ear
-    R(ctx, ex - 9, 30, 18, 76, C.mSkin);
-    R(ctx, ex + (s < 0 ? -9 : 5), 30, 4, 76, C.mSkinShade);
-    ell(ctx, ex, 28, 12, 11, C.mSkin);
+    shaded(ctx, `mh-farm${s}`, ex - 9, 30, 18, 76, RAMP.mSkin, box(s < 0 ? -0.6 : -0.4, -0.3, 0.14, 1, 0.2));
+    shaded(ctx, `mh-fist${s}`, ex - 12, 17, 24, 22, RAMP.mSkin, ball(-0.45, -0.6, 0.15));
     for (let k = 0; k < 3; k++) R(ctx, ex - 8 + k * 6, 21, 4, 3, C.mSkinShade);
     R(ctx, ex - 10, 44, 20, 6, C.ink); for (let k = 0; k < 4; k++) R(ctx, ex - 8 + k * 5, 42, 2, 2, C.lightGray);
     // The bicep, peaked up off the upper arm in the crook of it, pumping
-    ell(ctx, x, 90 - pump, 25 + pump, 21 + pump, C.mSkin);
-    ell(ctx, x - s * 4, 82 - pump, 13, 9, C.mSkinLight);
+    shaded(ctx, `mh-bicep${s}`, x - 26, 68 - pump * 2, 52, 44, RAMP.mSkin, ball(-0.4, -0.75, 0.14));
     R(ctx, x + s * 14, 76, 3, 26, C.mSkinShade); // the crease where it meets the forearm
     R(ctx, x - s * 6, 86, 2, 14, C.vein); R(ctx, x - s * 8, 82, 3, 2, C.vein);
   }
@@ -644,7 +658,7 @@ const drawHandgunUp = (ctx: Ctx, t: number) => {
   const rise = Math.max(0, 14 - t * 2);
   const y = 50 + rise;
   // Forearm up from below the frame
-  R(ctx, 196, y + 30, 22, 80, C.mSkin); R(ctx, 212, y + 30, 6, 80, C.mSkinShade);
+  shaded(ctx, 'mh-gunarm', 196, y + 30, 22, 80, RAMP.mSkin, box(-0.55, -0.3, 0.14, 1, 0.2));
   R(ctx, 194, y + 60, 26, 7, C.ink); for (let k = 0; k < 5; k++) R(ctx, 196 + k * 5, y + 58, 2, 2, C.lightGray);
   // The pistol: barrel pointing up, the grip in his fist
   R(ctx, 200, y - 36, 14, 50, C.darkGray);        // slide
@@ -654,7 +668,7 @@ const drawHandgunUp = (ctx: Ctx, t: number) => {
   R(ctx, 196, y + 10, 22, 16, C.ink);              // frame
   R(ctx, 214, y + 12, 8, 6, C.ink);                // trigger guard
   // His fist round the grip
-  ell(ctx, 206, y + 26, 15, 12, C.mSkin);
+  shaded(ctx, 'mh-gunfist', 191, y + 14, 30, 24, RAMP.mSkin, ball(-0.45, -0.6, 0.15));
   for (let k = 0; k < 3; k++) R(ctx, 194 + k * 7, y + 20, 5, 3, C.mSkinShade);
   R(ctx, 212, y + 14, 8, 6, C.mSkin);              // his trigger finger along the frame
   // The gleam running up the slide, and a sparkle off the top
@@ -681,8 +695,8 @@ export const drawPunch = (ctx: Ctx, t: number) => {
     ctx.fill();
   }
   // Trump's face, squashed by the fist, hair flying off to the right
-  ell(ctx, 196, 72, 30, 38, C.tSkin);
-  ell(ctx, 212, 90, 16, 14, C.tSkinShade);
+  shaded(ctx, 'pn-face', 166, 34, 60, 76, RAMP.tSkin, ball(-0.6, -0.4, 0.15));
+  shaded(ctx, 'pn-jowl', 196, 76, 32, 28, RAMP.tSkin, ball(-0.3, -0.6, 0.1));
   R(ctx, 178, 34, 60, 12, C.tHair);
   R(ctx, 210, 26, 40, 10, C.tHair);
   R(ctx, 232, 18, 24, 8, C.tHair);
@@ -696,11 +710,9 @@ export const drawPunch = (ctx: Ctx, t: number) => {
   R(ctx, 236, 100 - (t % 20), 4, 5, C.white);
   R(ctx, 228, 50 - (t % 12), 3, 3, C.white);
   // The fist, huge, from the left
-  R(ctx, -4, 50, 96, 36, C.mSkin);
-  R(ctx, -4, 80, 96, 6, C.mSkinShade);
-  R(ctx, 76, 46, 18, 44, C.ink);
-  R(ctx, 94, 40, 70, 56, C.mSkin);
-  R(ctx, 94, 88, 70, 8, C.mSkinShade);
+  shaded(ctx, 'pn-arm', -4, 50, 96, 36, RAMP.mSkin, box(-0.3, -0.8, 0.14, 0.2, 1));
+  R(ctx, 76, 46, 18, 44, C.ink); R(ctx, 76, 46, 18, 2, '#2a2a2a');
+  shaded(ctx, 'pn-fist', 94, 40, 70, 56, RAMP.mSkin, box(-0.3, -0.75, 0.15, 0.7, 0.8));
   for (let i = 0; i < 4; i++) {
     R(ctx, 150, 42 + i * 13, 14, 12, C.mSkinLight);
     R(ctx, 150, 53 + i * 13, 14, 2, C.mSkinShade);

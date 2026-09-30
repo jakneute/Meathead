@@ -1,9 +1,10 @@
-// The mid-game call, drawn the ending's way (NES-style pixel art on a 256x144
+// The mid-game call, drawn the ending's way (SNES-style pixel art on a 256x144
 // canvas): Meathead in his half-built garage gym with a field radio, and the
 // man on the other end of it, a silhouette in a dark office behind a big desk
 // (flags either side, a long red tie, a lot of hair), the line scrambled.
 
 import { ART_W, ART_H, C, R, ell, hash } from './ending';
+import { shaded, ball, box, RAMP } from './snes';
 import { drawSlide, Slide } from './intro';
 import { drawGarage as drawGarageRoom, GARAGE_W } from '../garage';
 import { ownedSouvenirs } from '../../garageStore';
@@ -84,13 +85,15 @@ export const drawGarage = (ctx: Ctx, t: number, talking: boolean, meatheadTalkin
   R(ctx, 84, 110, 40, 10, C.pants); R(ctx, 84, 120, 10, 16, C.pants); R(ctx, 114, 120, 10, 16, C.pants);
   R(ctx, 82, 134, 14, 4, C.ink); R(ctx, 112, 134, 14, 4, C.ink);
   R(ctx, 86, 104, 36, 6, C.belt); R(ctx, 100, 104, 8, 6, C.buckle);
-  R(ctx, 84, 72, 40, 34, C.mSkin); R(ctx, 116, 72, 8, 34, C.mSkinShade);
-  R(ctx, 92, 80, 10, 8, C.mSkinShade); R(ctx, 106, 80, 10, 8, C.mSkinShade); // pecs
-  R(ctx, 72, 74, 14, 26, C.mSkin); // the far arm, on his knee
-  R(ctx, 122, 64, 12, 14, C.mSkin); R(ctx, 124, 50, 10, 16, C.mSkin); // the near arm, up
+  shaded(ctx, 'gr-torso', 84, 72, 40, 34, RAMP.mSkin, box(-0.4, -0.5, 0.15, 1, 0.4));
+  // (pecs: flat slabs, the crease down between them, the shadow under them)
+  R(ctx, 88, 76, 16, 2, RAMP.mSkin[6]); R(ctx, 105, 76, 13, 2, RAMP.mSkin[5]);
+  R(ctx, 104, 76, 1, 12, RAMP.mSkin[3]); R(ctx, 89, 87, 15, 2, RAMP.mSkin[3]); R(ctx, 105, 87, 13, 2, RAMP.mSkin[2]);
+  shaded(ctx, 'gr-farm', 72, 74, 14, 26, RAMP.mSkin, box(-0.6, -0.3, 0.15, 1, 0.3)); // the far arm, on his knee
+  shaded(ctx, 'gr-narm', 122, 64, 12, 14, RAMP.mSkin, ball(-0.5, -0.5, 0.15)); shaded(ctx, 'gr-narm2', 124, 50, 10, 16, RAMP.mSkin, box(-0.5, -0.3, 0.15, 1, 0.3)); // the near arm, up
   // Head
-  R(ctx, 92, 44, 26, 28, C.mSkin); R(ctx, 112, 44, 6, 28, C.mSkinShade);
-  R(ctx, 90, 38, 30, 8, C.mHair);
+  shaded(ctx, 'gr-head', 92, 44, 26, 28, RAMP.mSkin, box(-0.5, -0.45, 0.16, 1, 0.5));
+  shaded(ctx, 'gr-hair', 90, 38, 30, 8, RAMP.mHair, box(-0.4, -0.8, 0.1, 0.8, 1));
   R(ctx, 96, 52, 8, 3, C.mHair); R(ctx, 108, 52, 8, 3, C.mHair);
   R(ctx, 98, 56, 4, 3, C.ink); R(ctx, 110, 56, 4, 3, C.ink);
   if (meatheadTalking && t % 10 < 5) R(ctx, 100, 64, 10, 4, '#500000'); else R(ctx, 100, 65, 10, 2, C.darkRed);
