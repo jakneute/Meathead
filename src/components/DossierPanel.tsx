@@ -119,7 +119,13 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
       <div className="absolute right-[26px] bottom-[34px] w-[64px] h-[64px] rounded-full pointer-events-none" style={{ border: '5px solid rgba(110, 70, 30, 0.18)' }} />
 
       <style>{'.dossier-body::-webkit-scrollbar { display: none; }'}</style>
-      <div ref={body} onScroll={measure} className={`dossier-body h-full overflow-y-auto pt-2 pb-1 pl-3 ${overflow ? 'pr-[16px]' : 'pr-3'}`} style={{ scrollbarWidth: 'none', overscrollBehavior: 'contain' }}>
+      <div ref={body} onScroll={measure} className={`dossier-body relative h-full overflow-y-auto pt-2 pb-1 pl-3 ${overflow ? 'pr-[16px]' : 'pr-3'}`} style={{ scrollbarWidth: 'none', overscrollBehavior: 'contain' }}>
+        {/* The rubber stamp: across the corner of the photo, off the writing; it's on the paper, so it goes up with the
+            rest of the file as it's scrolled (and off the top, a long way down it) */}
+        <div className="absolute top-[74px] left-[4px] rotate-[-12deg] text-[10px] px-[6px] py-[1px] font-bold tracking-widest pointer-events-none z-10"
+          style={{ background: 'rgba(232, 220, 192, 0.85)', color: garage ? 'rgba(161, 98, 7, 0.9)' : defeated ? 'rgba(21, 128, 61, 0.85)' : 'rgba(185, 28, 28, 0.85)', border: `3px solid ${garage ? 'rgba(161, 98, 7, 0.8)' : defeated ? 'rgba(21, 128, 61, 0.75)' : 'rgba(185, 28, 28, 0.75)'}` }}>
+          {garage ? 'UNVERIFIED' : defeated ? 'DISPOSED OF' : 'TERMINATE'}
+        </div>
         <div className="flex justify-between items-start text-[7px] tracking-widest text-[#44403C] border-b-2 border-[#1C1917] pb-[3px] mb-[5px]">
           <span>{DOSSIER_HEADER}</span>
           <span className="text-[#B91C1C] font-bold">TOP SECRET</span>
@@ -208,12 +214,6 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
         </>
       )}
 
-      {/* Rubber stamps */}
-      {/* (the garage's goes across the corner of its photo: there's too much writing up the side of its file) */}
-      <div className={`absolute ${garage ? 'top-[92px] left-[6px] rotate-[-12deg] text-[9px]' : `${defeated ? 'top-[72px]' : 'top-[34px]'} right-[10px] rotate-[14deg] text-[14px]`} px-[6px] py-[1px] font-bold tracking-widest pointer-events-none`}
-        style={{ background: garage ? 'rgba(232, 220, 192, 0.85)' : undefined, color: garage ? 'rgba(161, 98, 7, 0.9)' : defeated ? 'rgba(21, 128, 61, 0.75)' : 'rgba(185, 28, 28, 0.75)', border: `3px solid ${garage ? 'rgba(161, 98, 7, 0.8)' : defeated ? 'rgba(21, 128, 61, 0.75)' : 'rgba(185, 28, 28, 0.75)'}` }}>
-        {garage ? 'UNVERIFIED' : defeated ? 'DISPOSED OF' : 'TERMINATE'}
-      </div>
     </div>
   );
 };
