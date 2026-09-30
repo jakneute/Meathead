@@ -1,6 +1,7 @@
 // Victor's fire barf: a stream out of his mouth, thin at his lips and fanning out, rolling flame along it.
 
 import type { Enemy } from '../../../types';
+import { BARF_WIDTH } from '../../bosses/victor';
 
 export const drawVictorBarf = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
   const len = e.barfLen ?? 0;
@@ -19,14 +20,14 @@ export const drawVictorBarf = (ctx: CanvasRenderingContext2D, e: Enemy, frame: n
   for (const [color, k] of layers) {
     ctx.fillStyle = color;
     ctx.beginPath(); ctx.moveTo(0, -5 * k);
-    for (let x = 0; x <= len; x += 12) ctx.lineTo(x, -(8 + 26 * (x / 200)) * k - Math.sin(x * 0.08 - frame * 0.5) * 3 * k);
-    for (let x = len; x >= 0; x -= 12) ctx.lineTo(x, (8 + 26 * (x / 200)) * k + Math.sin(x * 0.09 - frame * 0.45) * 3 * k);
+    for (let x = 0; x <= len; x += 12) ctx.lineTo(x, -(BARF_WIDTH.base + BARF_WIDTH.spread * (x / 900)) * k - Math.sin(x * 0.08 - frame * 0.5) * 3 * k);
+    for (let x = len; x >= 0; x -= 12) ctx.lineTo(x, (BARF_WIDTH.base + BARF_WIDTH.spread * (x / 900)) * k + Math.sin(x * 0.09 - frame * 0.45) * 3 * k);
     ctx.closePath(); ctx.fill();
   }
   // Rolling balls of flame along it
-  for (let i = 0; i < 7; i++) {
-    const x = ((frame * 5 + i * 31) % Math.max(1, len));
-    const r = 5 + (x / 200) * 12;
+  for (let i = 0; i < 16; i++) {
+    const x = ((frame * 9 + i * 57) % Math.max(1, len));
+    const r = 5 + (x / 900) * 16;
     ctx.fillStyle = i % 2 ? 'rgba(255, 145, 0, 0.8)' : 'rgba(255, 235, 59, 0.8)';
     ctx.beginPath(); ctx.arc(x, Math.sin(i * 1.7 + frame * 0.3) * r * 0.5, r, 0, Math.PI * 2); ctx.fill();
   }

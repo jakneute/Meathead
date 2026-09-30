@@ -2411,11 +2411,6 @@
  },
  {
   "voice": "boss.victor",
-  "text": "BACK OFF MY VIP SECTION!",
-  "from": "game/bosses/victor.ts:80"
- },
- {
-  "voice": "boss.victor",
   "text": "BULLETS MELT BEFORE THEY REACH ME!",
   "from": "REACTIONS"
  },
@@ -2426,8 +2421,13 @@
  },
  {
   "voice": "boss.victor",
+  "text": "EVERYBODY OUT OF MY CLUB!",
+  "from": "game/bosses/victor.ts:83"
+ },
+ {
+  "voice": "boss.victor",
   "text": "FEEL THE HEAT, MEATHEAD!",
-  "from": "game/bosses/victor.ts:80"
+  "from": "game/bosses/victor.ts:83"
  },
  {
   "voice": "boss.victor",
@@ -2476,6 +2476,11 @@
  },
  {
   "voice": "boss.victor",
+  "text": "LAST CALL! IT'S ON FIRE!",
+  "from": "game/bosses/victor.ts:83"
+ },
+ {
+  "voice": "boss.victor",
   "text": "LAST CALL... AT CLUB CALDERA...",
   "from": "THRESHOLDS"
  },
@@ -2501,6 +2506,11 @@
  },
  {
   "voice": "boss.victor",
+  "text": "NOWHERE TO RUN, BRO!",
+  "from": "game/bosses/victor.ts:83"
+ },
+ {
+  "voice": "boss.victor",
   "text": "OH NO... WHAT HAVE YOU DONE, YOU",
   "from": "VICTOR_LINES"
  },
@@ -2513,11 +2523,6 @@
   "voice": "boss.victor",
   "text": "PATHETIC. I ERUPT HARDER THAN THAT.",
   "from": "REACTIONS"
- },
- {
-  "voice": "boss.victor",
-  "text": "PERSONAL SPACE, BRO! IT'S ON FIRE!",
-  "from": "game/bosses/victor.ts:80"
  },
  {
   "voice": "boss.victor",
@@ -2553,11 +2558,6 @@
   "voice": "boss.victor",
   "text": "THE DOORMAN HAD ONE JOB, BRO!",
   "from": "THRESHOLDS"
- },
- {
-  "voice": "boss.victor",
-  "text": "TOO CLOSE! TOO HOT!",
-  "from": "game/bosses/victor.ts:80"
  },
  {
   "voice": "boss.victor",
@@ -8891,6 +8891,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT GOES ALL THE WAY ACROSS! GET BEHIND HIM!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "IT KICKED ME IN THE DICK! THE MOOSE KICKED ME IN THE DICK!",
   "from": "HAZARD_HURT"
  },
@@ -11658,11 +11663,6 @@
   "voice": "meathead",
   "text": "TOASTED GAINS",
   "from": "VULGARITIES"
- },
- {
-  "voice": "meathead",
-  "text": "TOO CLOSE! TOO HOT! BACK UP, BACK UP!",
-  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",

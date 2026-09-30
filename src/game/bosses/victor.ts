@@ -1,5 +1,6 @@
-// Victor Volcano: jumps, lands, then opens magma vents on a wall and the floor. Get up close to him and he barfs
-// fire: a slow stream out of his mouth, a quarter of the screen long, that swings round after you.
+// Victor Volcano: jumps, lands, then opens magma vents on a wall and the floor. Between times he barfs fire: a stream
+// out of his mouth right across the arena, wall to wall, that swings round after you, slowly: get round the other
+// side of him (over him) and it has to come all the way round to find you again.
 // His weakness, the tsunami, turns the vents into steam (see bosses/hazards.ts).
 
 import { Enemy, Projectile, Rect, Volcano } from '../../types';
@@ -23,12 +24,14 @@ const VENT_MIN_GAP_FROM_VICTOR = 150;
 const VENT_MIN_GAP = 100;
 
 /**
- * The fire barf: how close you have to be (horizontally, from his middle) for him to go for it; the gurgling wind-up
- * (no fire yet); how long the stream goes for; how far it reaches (a quarter of the screen); how fast it swings round
- * after you (radians a frame: slow, you can outrun it, you can't stand in it); what it does; and how long before he
- * can do it again.
+ * The fire barf: how often he goes for it instead of a jump (when it's ready); the gurgling wind-up (no fire yet); how
+ * long the stream goes for; how far it reaches (right across the arena: it stops at the walls and the floor); how fast
+ * it swings round after you (radians a frame: slow, so getting round the other side of him buys you a while); what it
+ * does; and how long before he can do it again.
  */
-const BARF_RANGE = 280, BARF_WINDUP = 36, BARF_FRAMES = 150, BARF_REACH = 200, BARF_TURN = 0.018, BARF_DAMAGE = 12, BARF_COOLDOWN = 240;
+const BARF_CHANCE = 0.5, BARF_WINDUP = 45, BARF_FRAMES = 220, BARF_REACH = 900, BARF_TURN = 0.011, BARF_DAMAGE = 12, BARF_COOLDOWN = 300;
+/** How wide the stream is: at his mouth, and how much it spreads over its length. */
+export const BARF_WIDTH = { base: 10, spread: 30 };
 /** Where his mouth is (the stream comes out of it). */
 export const victorMouth = (e: Enemy) => ({ x: e.pos.x + e.width * 0.5, y: e.pos.y + e.height * 0.33 });
 
@@ -59,16 +62,16 @@ const update = (ctx: FrameContext, boss: Enemy) => {
       barf(ctx, boss);
       break;
     default: {
-      // Too close: he barfs fire at you before he goes anywhere
-      const near = Math.abs(midX(state.player) - midX(boss)) < BARF_RANGE;
-      if (near && boss.isGroundedBoss && state.frame >= (boss.barfReadyAt ?? 0)) startBarf(ctx, boss);
-      else if (boss.stateTimer! <= 0) jump(ctx, boss);
+      // Rested: the barf (when it's ready, about half the time), or up for the next jump and the vents
+      if (boss.stateTimer! > 0) break;
+      if (boss.isGroundedBoss && state.frame >= (boss.barfReadyAt ?? 0) && Math.random() < BARF_CHANCE) startBarf(ctx, boss);
+      else jump(ctx, boss);
     }
   }
   if (boss.isGroundedBoss) boss.vel.x *= 0.95;
 };
 
-const BARF_LINES = ["FEEL THE HEAT, MEATHEAD!", "PERSONAL SPACE, BRO! IT'S ON FIRE!", "TOO CLOSE! TOO HOT!", "BACK OFF MY VIP SECTION!"];
+const BARF_LINES = ["FEEL THE HEAT, MEATHEAD!", "NOWHERE TO RUN, BRO!", "LAST CALL! IT'S ON FIRE!", "EVERYBODY OUT OF MY CLUB!"];
 
 const startBarf = (ctx: FrameContext, boss: Enemy) => {
   const { state } = ctx;
@@ -109,7 +112,12 @@ const barf = (ctx: FrameContext, boss: Enemy) => {
   boss.barfAngle = (boss.barfAngle ?? 0) + Math.max(-BARF_TURN, Math.min(BARF_TURN, d));
   // (it runs out to full reach, and back in at the end)
   const s = t - BARF_WINDUP;
-  boss.barfLen = BARF_REACH * Math.min(1, s / 18, (BARF_FRAMES - s) / 14);
+  // (out across the room fast, stopping at a wall or the floor, and back in at the end)
+  const a0 = boss.barfAngle!, cx = Math.cos(a0), cy = Math.sin(a0);
+  const toWall = cx > 0.01 ? (ARENA_RIGHT - m.x) / cx : cx < -0.01 ? (ARENA_LEFT - m.x) / cx : Infinity;
+  const toFloor = cy > 0.01 ? (FLOOR_Y - m.y) / cy : Infinity;
+  const reach = Math.min(BARF_REACH, toWall, toFloor);
+  boss.barfLen = reach * Math.min(1, s / 24, (BARF_FRAMES - s) / 16);
   if (s % 6 === 0) fx.playGunSound('flame');
   // In it: it burns
   const a = boss.barfAngle!, len = boss.barfLen;
@@ -119,7 +127,7 @@ const barf = (ctx: FrameContext, boss: Enemy) => {
     const along = (q.x - m.x) * ux + (q.y - m.y) * uy;
     if (along < 0 || along > len) return false;
     const off = Math.abs((q.x - m.x) * -uy + (q.y - m.y) * ux);
-    return off < 10 + 22 * (along / BARF_REACH) + p.width / 2;
+    return off < (BARF_WIDTH.base + BARF_WIDTH.spread * (along / BARF_REACH)) * 0.8 + p.width / 2;
   });
   if (hit && p.invincibilityTimer <= 0 && state.deathTimer <= 0) {
     hurtPlayer(ctx, BARF_DAMAGE, 'victor_barf', { x: (midX(p) < midX(boss) ? -1 : 1) * PLAYER_PUSHBACK_VEL_X, y: PLAYER_PUSHBACK_VEL_Y });
