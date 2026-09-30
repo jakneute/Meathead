@@ -832,7 +832,7 @@ export type KillCallout =
 
 /** Callout text (one picked at random) and colour for each special kill. */
 /** What the banner says when Meathead reaches a checkpoint. */
-export const CHECKPOINT_CALLOUTS = ['CHECKPOINT!', 'CHECKPOINT REACHED!', 'PROGRESS LOCKED IN!'];
+export const CHECKPOINT_CALLOUTS = ['PROGRESS LOCKED IN!'];
 
 export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string }> = {
   charge:   { lines: ["BODIED!", "PLOWED!", "TRUCKED!", "STEAMROLLED!", "SHOULDERED!"], color: '#FF8C00' },
