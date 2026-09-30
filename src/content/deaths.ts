@@ -38,7 +38,7 @@ export const DEATH_LINES: Record<string, string[]> = {
   flamejet: ['WELL DONE', 'FLAME BROILED'],
   firebar: ['SPIT ROASTED', 'BARBECUED'],
   steam: ['STEAMED', 'POACHED'],
-  victor_barf: ['BARBECUED BY VOLCANO BREATH', 'TOO CLOSE TO THE FIRE'],
+  victor_barf: ['BARBECUED BY VOLCANO BREATH', 'FLAME-BROILED'],
   cork_blast: ['UNCORKED', 'BLOWN UP BY YOUR OWN CORK'],
 
   // ---- Ernie's San Francisco
