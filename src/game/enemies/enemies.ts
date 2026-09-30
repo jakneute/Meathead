@@ -453,8 +453,16 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
   } else if (e.id.startsWith('rusher') || isChargerKind(e.kind)) {
     const sameLevel = Math.abs((player.pos.y + player.height / 2) - (e.pos.y + e.height / 2)) < 80;
     const dir = player.pos.x < e.pos.x ? -1 : 1;
+    // Him up on something right over its head (a desk, a crate, a car roof) where it can't get at him: it plants itself
+    // under him and waits for him to come down (facing him), instead of running back and forth under him. It sets off
+    // again once he's moved off to the side far enough, or come down to its level
+    const dx = (player.pos.x + player.width / 2) - (e.pos.x + e.width / 2);
+    const above = player.pos.y + player.height < e.pos.y + e.height - 20;
+    const under = Math.abs(dx) < e.width / 2 + player.width / 2 + (e.waitingUnder ? 40 : 6);
+    e.waitingUnder = above && under;
+    if (e.waitingUnder) { e.vel.x = 0; if (Math.abs(dx) > 2) e.facing = dx < 0 ? -1 : 1; }
     // (it pulls up short at the edge of a drop rather than running straight off it: it looks a few strides ahead at that speed)
-    e.vel.x = (onScreen && player.invincibilityTimer <= 0 && sameLevel && !holdingOff(state) && safeAhead(ctx, e, dir, CHARGER_LOOK)) ? dir * CHARGER_SPEED : 0;
+    else e.vel.x = (onScreen && player.invincibilityTimer <= 0 && sameLevel && !holdingOff(state) && safeAhead(ctx, e, dir, CHARGER_LOOK)) ? dir * CHARGER_SPEED : 0;
   } else if (e.behavior === 'patrol') {
     patrol(e);
   } else if (e.behavior === 'shoot' && onScreen) {

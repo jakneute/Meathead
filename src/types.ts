@@ -260,6 +260,8 @@ export interface Enemy extends Entity {
   uppercutFlung?: boolean;
   /** Its body's splat has had its callout already (a wall, then the floor: only the one). */
   splatCalled?: boolean;
+  /** A charger stood under him while he's up on something out of its reach, waiting for him to come down. */
+  waitingUnder?: boolean;
   /** Its walking pace on its beat (a patrolling enemy). */
   walkSpeed?: number;
   flungHits?: string[];
