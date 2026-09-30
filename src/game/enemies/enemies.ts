@@ -42,11 +42,12 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
   if (special !== undefined) return special;
   if (e.isBlownAway) {
     if (e.overdosed) return flyOverdosedBody(ctx, e, enemies);
-    // Dead bodies tumble off-screen
+    // Dead bodies tumble off-screen (one he sent flying with a move of his takes out whoever it hits on the way)
     e.pos.x += e.vel.x;
     e.pos.y += e.vel.y;
     e.vel.y += GRAVITY * 0.5;
     e.rotation = (e.rotation || 0) + 0.3;
+    if (e.meleeFlung) flungIntoEnemies(ctx, e, enemies);
     return e.pos.y < state.camera.y + 1000;
   }
   if (e.health <= 0) return false;
@@ -705,6 +706,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
       killBoss(ctx, e, player.facing, false);
     } else {
       e.isBlownAway = true;
+      e.meleeFlung = true;
       if (player.isDivekicking) {
         // Splat the enemy into the ground; Meathead keeps plummeting
         e.vel = { x: player.facing * 8, y: 18 };
@@ -722,7 +724,9 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
       fx.spawnPickup(e.pos);
       player.killSatisfactionTimer = 60;
     }
-    return false;
+    // (a body he's sent flying stays in the world while it flies: it's drawn tumbling off, and it takes out anybody
+    // it hits on the way)
+    return e.type !== 'boss' && !!e.isBlownAway;
   }
 
   // Plain body contact hurts the player (ducking shrinks the hurtbox)
@@ -1084,6 +1088,41 @@ const slamIntoFloor = (ctx: FrameContext, e: Enemy, speed: number) => {
   if (e.health <= 0) impactKill(ctx, e, 'groundsplat', 0);
 };
 
+/** What an enemy sent flying does to whoever it hits: its weight times its speed (any direction), scaled up so it counts. */
+const COLLATERAL_SCALE = 2;
+/** A dead body he's sent flying hits a bit harder still (all of it, nothing held back). */
+const CORPSE_COLLATERAL = 1.3;
+const collateral = (e: Enemy) => {
+  const weight = Math.min(2.5, Math.max(0.4, getEnemyMass(e) / 200));
+  return toGml(Math.hypot(e.vel.x, e.vel.y)) * weight * DOMINO_DAMAGE_SCALER * COLLATERAL_SCALE;
+};
+
+/** A body he sent flying dead: it hits everyone in its way (once each), by its weight and speed, and knocks them on. */
+const flungIntoEnemies = (ctx: FrameContext, e: Enemy, enemies: Enemy[]) => {
+  const { fx } = ctx;
+  for (const other of enemies) {
+    if (other === e || other.type === 'boss' || other.isBlownAway || other.health <= 0 || other.innocent) continue;
+    if (e.flungHits?.includes(other.id) || !rectsOverlap(boundsOf(e), boundsOf(other))) continue;
+    (e.flungHits ??= []).push(other.id);
+    const damage = collateral(e) * CORPSE_COLLATERAL;
+    if (damage <= 2) continue;
+    const dir = Math.sign(e.vel.x) || 1;
+    other.health -= damage;
+    fx.spawnDamageNumber(other.pos, damage, damage > 30);
+    fx.spawnExplosion({ x: other.pos.x + other.width / 2, y: other.pos.y + other.height / 2 }, '#8B0000', 6 + Math.min(12, Math.round(damage / 5)), 0, 8);
+    fx.playGunSound('thud');
+    if (other.health <= 0) {
+      fx.blowAwayEnemy(other, { x: e.vel.x * 0.7 * massRatio(e, other) || dir * 10, y: Math.min(-8, e.vel.y * 0.7) }, 'charge_kill', dir);
+      other.meleeFlung = true;
+      fx.spawnKillCallout(other, 'crush');
+    } else {
+      other.vel.x = e.vel.x * ENEMY_DOMINO_TRANSFER * massRatio(e, other);
+      if (e.vel.y < -2) other.vel.y = e.vel.y * ENEMY_DOMINO_TRANSFER * massRatio(e, other);
+      other.pauseTimer = Math.max(other.pauseTimer || 0, 30);
+    }
+  }
+};
+
 /**
  * A shoved enemy hitting another one. Frozen enemies are projectiles: they
  * hurt what they hit and keep going. Otherwise it's a domino: both take damage
@@ -1115,15 +1154,17 @@ const resolveShoveCollision = (ctx: FrameContext, e: Enemy, enemies: Enemy[]) =>
       fx.playGunSound('thud');
       break;
     } else {
-      const massResistance = Math.min(1, Math.max(0.1, 1 - getEnemyMass(e) / 1000));
-      const damage = (toGml(e.vel.x) + toGml(e.vel.y)) * DOMINO_DAMAGE_SCALER * massResistance;
+      // (how hard it hits: how heavy it is and how fast it's going, whichever way: an uppercut sends one up into a
+      // flyer as hard as a charge sends one along the ground into another)
+      const damage = collateral(e);
       if (damage > 2) {
         e.health -= damage;
         other.health -= damage;
-        fx.spawnDamageNumber(other.pos, damage);
-        fx.spawnExplosion({ x: midX, y: midY }, '#FDE047', 3, 0, 6);
+        fx.spawnDamageNumber(other.pos, damage, damage > 30);
+        fx.spawnExplosion({ x: midX, y: midY }, '#FDE047', 3 + Math.min(10, Math.round(damage / 6)), 0, 6);
       }
       other.vel.x = e.vel.x * ENEMY_DOMINO_TRANSFER * massRatio(e, other);
+      if (e.vel.y < -2) other.vel.y = e.vel.y * ENEMY_DOMINO_TRANSFER * massRatio(e, other);
       other.pauseTimer = Math.max(other.pauseTimer || 0, e.pauseTimer || 0);
       e.vel.x *= ENEMY_DOMINO_LOSS;
     }

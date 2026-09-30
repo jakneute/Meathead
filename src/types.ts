@@ -249,6 +249,10 @@ export interface Enemy extends Entity {
   /** Victor's fire barf: frames into it (wind-up, then the stream), where it's pointing (radians, 0 = right), how far
    * it reaches right now, and the frame he can do it again from. */
   barfT?: number;
+  /** Sent flying dead by one of his moves (a charge, a slide, an uppercut, a dive kick): it's a projectile now, and
+   * these are who it's already hit on the way. */
+  meleeFlung?: boolean;
+  flungHits?: string[];
   barfAngle?: number;
   barfLen?: number;
   barfReadyAt?: number;
