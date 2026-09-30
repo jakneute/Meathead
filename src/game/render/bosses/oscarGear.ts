@@ -3,6 +3,7 @@ import { OSCAR_FLICK_WINDUP, OSCAR_TASER_HOLD_FRAMES, TASER_OVERLOAD_FRAMES } fr
 import { GameState } from '../../core/state';
 import { getOscarLauncher, getOscarMouth, flameStrength } from '../../bosses/oscar';
 import { muzzlePoint } from '../../combat/muzzle';
+import { Head, inHead } from './kit';
 
 /** Oily Oscar's gear, laser sight, rockets, cigarette, oil slicks and fire. */
 
@@ -297,66 +298,68 @@ const drawCigaretteAndArm = (ctx: CanvasRenderingContext2D, e: Enemy, frame: num
   }
 };
 
-/** Blown-up cigarette: a cartoon soot face with blinking eyes and frazzled smoke. Clears up at the end. */
+/**
+ * Blown-up cigarette: his face blacked with soot to the hat brim, big blinking cartoon eyes and a little "o" of a
+ * mouth, the moustache singed to a frizz, hair blown out from under the Stetson, the hat scorched and smoking.
+ * Drawn on his head as it is (the face kit's unit space), and it clears up at the end.
+ */
 const drawAshFace = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
   const fade = Math.min(1, (e.stateTimer || 0) / 30);
-  const cx = e.pos.x + e.width / 2, top = e.pos.y;
+  const k = e.width / 80;
+  const f = (e.oscarFacing || -1) as 1 | -1;
+  const h: Head = { x: e.pos.x + 40 * k, y: e.pos.y + 19 * k, s: 1.35 * k, f };
   ctx.save();
   ctx.globalAlpha = fade;
-  // Soot over the whole helmet
-  ctx.fillStyle = '#141414';
-  ctx.beginPath();
-  for (let i = 0; i <= 16; i++) {
-    const a = (i / 16) * Math.PI * 2;
-    const r = 30 + (i % 2 === 0 ? 4 : -2);
-    const px = cx + Math.cos(a) * r, py = top + 20 + Math.sin(a) * r * 0.75;
-    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-  }
-  ctx.closePath();
-  ctx.fill();
-  // Frazzled tufts sticking up
-  ctx.strokeStyle = '#141414';
-  ctx.lineWidth = 3;
-  for (let i = -2; i <= 2; i++) {
-    const bx = cx + i * 9;
+  inHead(ctx, h, () => {
+    // Soot over the face, ragged at the edges, a little lighter where it's thinner
+    ctx.fillStyle = '#141414';
     ctx.beginPath();
-    ctx.moveTo(bx, top);
-    ctx.lineTo(bx - 3, top - 7);
-    ctx.lineTo(bx + 3, top - 12);
-    ctx.lineTo(bx, top - 17 - Math.abs(i) * -2);
-    ctx.stroke();
-  }
-  // Big cartoon eyes (blinking)
-  const blink = frame % 45 < 5;
-  for (const side of [-1, 1]) {
-    const ex = cx + side * 11, ey = top + 18;
-    if (blink) {
-      ctx.strokeStyle = '#FFFFFF';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(ex - 6, ey);
-      ctx.lineTo(ex + 6, ey);
-      ctx.stroke();
-    } else {
-      ctx.fillStyle = '#FFFFFF';
-      ctx.beginPath();
-      ctx.arc(ex, ey, 7, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#000000';
-      ctx.beginPath();
-      ctx.arc(ex + Math.sin(frame * 0.2) * 1.5, ey + 1, 3, 0, Math.PI * 2);
-      ctx.fill();
+    for (let i = 0; i <= 20; i++) {
+      const a = (i / 20) * Math.PI * 2;
+      const r = 1 + (i % 2 ? 0.08 : -0.06);
+      const x = Math.cos(a) * 12.2 * r, y = -0.5 + Math.sin(a) * 12 * r;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     }
-  }
-  // Dazed little "o" mouth
-  ctx.strokeStyle = '#FFFFFF';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.arc(cx, top + 33, 3, 0, Math.PI * 2);
-  ctx.stroke();
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(64, 64, 64, 0.6)';
+    ctx.beginPath(); ctx.ellipse(6, 1, 3.5, 2.5, 0.3, 0, Math.PI * 2); ctx.fill();
+    // Hair blown out from under the hat
+    ctx.strokeStyle = '#0A0A0A'; ctx.lineWidth = 1; ctx.lineCap = 'round';
+    for (const [x, y, dx] of [[-12, -8, -1], [-12.5, -4, -1], [11.5, -8, 1], [12, -4, 1]] as const) {
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + dx * 2, y - 1.5); ctx.lineTo(x + dx * 1.2, y - 3); ctx.lineTo(x + dx * 3, y - 4); ctx.stroke();
+    }
+    // The moustache, singed to a frizz
+    ctx.strokeStyle = '#3F3F46'; ctx.lineWidth = 0.6;
+    for (let i = 0; i < 6; i++) { const x = -3.5 + i * 1.8; ctx.beginPath(); ctx.moveTo(x, 3); ctx.lineTo(x + (i % 2 ? 0.8 : -0.8), 1.8); ctx.stroke(); }
+    // Big cartoon eyes, blinking
+    const blink = frame % 45 < 5;
+    for (const x of [-5, 4.5]) {
+      if (blink) {
+        ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 0.9;
+        ctx.beginPath(); ctx.moveTo(x - 3, -3.5); ctx.lineTo(x + 3, -3.5); ctx.stroke();
+      } else {
+        ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(x, -3.5, 3.2, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#000000'; ctx.beginPath(); ctx.arc(x + Math.sin(frame * 0.2) * 0.9, -3, 1.3, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    // A dazed little "o" of a mouth
+    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.arc(1, 6, 1.6, 0, Math.PI * 2); ctx.stroke();
+    // The Stetson, scorched: the brim blackened and frayed, the crown charred
+    ctx.fillStyle = '#2A1A0E';
+    ctx.beginPath(); ctx.ellipse(0, -11, 17, 3.2, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-9, -12); ctx.lineTo(-8, -20); ctx.quadraticCurveTo(-3, -18, 0, -21); ctx.quadraticCurveTo(3, -18, 8, -20); ctx.lineTo(9, -12); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#5B3A1E';
+    ctx.fillRect(-7, -17, 3, 2); ctx.fillRect(3, -19, 2.5, 1.5);
+    ctx.fillStyle = '#F97316';
+    if (frame % 20 < 12) { ctx.fillRect(-15, -11.4, 1.2, 0.8); ctx.fillRect(12, -10.8, 1.2, 0.8); } // embers on the brim
+    ctx.fillStyle = '#0A0A0A';
+    for (const x of [-16.5, -14, 13.5, 16]) { ctx.beginPath(); ctx.moveTo(x - 1, -11); ctx.lineTo(x, -8.5); ctx.lineTo(x + 1, -11); ctx.fill(); }
+  });
   ctx.restore();
-  drawSmokeWisp(ctx, cx - 14, top - 8, frame);
-  drawSmokeWisp(ctx, cx + 12, top - 12, frame + 17);
+  // Smoke off the hat
+  drawSmokeWisp(ctx, h.x - 10 * k, h.y - 26 * k, frame);
+  drawSmokeWisp(ctx, h.x + 9 * k, h.y - 29 * k, frame + 17);
 };
 
 /** How close the taser is to bursting him. */
