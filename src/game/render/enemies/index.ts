@@ -20,9 +20,12 @@ type Ctx = CanvasRenderingContext2D;
 const PARKA = '#E4EDF7', PARKA_SHADE = '#B8C9DD', PARKA_DARK = '#8FA3BC', FUR = '#F4EBDC', FUR_SHADE = '#CDBFA8';
 const GOGGLE = '#38BDF8', GOGGLE_GLINT = '#E0F2FE', BALACLAVA = '#1F2937', PANTS = '#334155', BOOT = '#111827';
 
+/** The frame an enemy's drawn at: now, or held where it was when the ice went on (a frozen one doesn't idle). */
+export const animFrame = (e: Enemy, frame: number) => (e.frozenTimer && e.frozenTimer > 0 && e.frozeAt !== undefined ? e.frozeAt : frame);
+
 export const drawKindEnemy = (ctx: Ctx, e: Enemy, state: GameState) => {
   // (a per-enemy offset so they don't all animate in step; kept positive, since this stage's x runs negative)
-  drawKindPose(ctx, e, kindFacing(e, state), state.frame + (Math.abs(Math.round(e.homeX || 0)) % 997), state);
+  drawKindPose(ctx, e, kindFacing(e, state), animFrame(e, state.frame) + (Math.abs(Math.round(e.homeX || 0)) % 997), state);
 };
 
 /**

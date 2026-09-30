@@ -279,6 +279,8 @@ export interface Enemy extends Entity {
   isShieldActive?: boolean;
   hitCooldown?: number;
   frozenTimer?: number;
+  /** The frame the ice went on (it's drawn held at that frame, not idling, while it's frozen). */
+  frozeAt?: number;
   sludgeTimer?: number;
   /** How fast sludge is dragging a flyer down right now. */
   sludgeFallSpeed?: number;

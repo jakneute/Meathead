@@ -246,7 +246,8 @@ export const updateEnemyStatusEffects = (ctx: FrameContext) => {
 
     if (e.type === 'boss') {
       if (e.health > 0 && state.arenaLocked) updateBossAI(ctx, e);
-    } else if (((e.frozenTimer && e.frozenTimer > 0) || (e.isTased && player.isTasing && player.taserTargetId === e.id)) && (e.pauseTimer || 0) <= 0) {
+    } else if (!e.isBlownAway && ((e.frozenTimer && e.frozenTimer > 0) || (e.isTased && player.isTasing && player.taserTargetId === e.id)) && (e.pauseTimer || 0) <= 0) {
+      // (held still: frozen, or tased; a body on its way out never is)
       e.vel.x = 0;
       e.vel.y = 0;
     } else {

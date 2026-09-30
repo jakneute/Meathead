@@ -18,7 +18,7 @@ import { drawComposited, needsComposite } from './composite';
 import { drawBossCorpse } from './bosses/corpses';
 import { drawVictoryPee } from './scenes/victoryPee';
 import { drawPlayer } from './player/player';
-import { drawKindEnemy } from './enemies';
+import { drawKindEnemy, animFrame } from './enemies';
 import { muzzlePoint } from '../combat/muzzle';
 import { isMidBoss } from '../combat/midBoss';
 import { drawBackdrop, drawBackdropFront } from './backdrops';
@@ -675,7 +675,7 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
       if (curT && state.bossExplosionTimer <= 0) { ctx.save(); ctx.font = 'bold 12px "Press Start 2P"'; ctx.fillStyle = 'white'; ctx.shadowColor = 'black'; ctx.shadowBlur = 6; ctx.textAlign = 'center'; ctx.fillText(sentenceShown(curT), e.pos.x + e.width / 2, e.pos.y - 30); ctx.restore(); }
       drawBossOverlay(ctx, e, stageId, state.frame);
     } else if (isDummy(e)) {
-      drawDummy(ctx, e, state.frame);
+      drawDummy(ctx, e, animFrame(e, state.frame));
     } else if (e.kind && getStageLayout(stageId)?.drawSpecialEnemy?.(ctx, e, state)) {
       // (a stage's mid-boss draws itself)
     } else if (e.kind) {

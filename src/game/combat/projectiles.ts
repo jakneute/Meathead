@@ -628,7 +628,7 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
       // Oiled enemies go flying from any hit (light ones furthest)
       pushEnemy(enemy, p.vel.x * OIL_ROCKET_OILED_PUSHBACK_MULT, -8, 30);
     }
-    if (p.isIce) enemy.frozenTimer = SHOTGUN_FREEZE_TIME;
+    if (p.isIce) { if (!wasFrozen) enemy.frozeAt = state.frame; enemy.frozenTimer = SHOTGUN_FREEZE_TIME; }
     fx.spawnDamageNumber(enemy.pos, p.damage, p.isBoulder);
     if (p.isIce) spawnIceMist(state, p, 8);
     if (isBullet(p) && enemy.health > 0 && !wasFrozen && !BLOODLESS.has(enemy.kind || '')) bulletBlood(ctx, p, enemy);

@@ -314,7 +314,7 @@ export const createFx = (state: GameState) => {
   const blowAwayEnemy = (e: Enemy, vel: Vector2, category: VulgarityType, showerDir: number = 0, showerMult: number = 1) => {
     // (a tenant always goes out of his window, however he's killed: the stage does all of that)
     if (e.kind === 'tenant') { e.health = Math.min(e.health, 0); return; }
-    e.isBlownAway = true; e.vel = vel;
+    e.isBlownAway = true; e.vel = vel; e.frozenTimer = 0;
     spawnDeathShower(e.pos, showerDir, showerMult);
     playSound('splat');
     spawnPickup(e.pos);

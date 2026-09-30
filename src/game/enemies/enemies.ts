@@ -747,6 +747,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     } else {
       e.isBlownAway = true;
       e.meleeFlung = true;
+      e.frozenTimer = 0; // (the ice shatters off it: nothing holds it where it stood)
       if (player.isDivekicking) {
         // Splat the enemy into the ground; Meathead keeps plummeting
         e.vel = { x: player.facing * 8, y: 18 };
