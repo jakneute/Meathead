@@ -36,6 +36,10 @@ export const STAGE_WIDTH = 8000;
 export const GROUND_Y = 550;
 /** The weapon test range after a boss (a one-screen void arena run by its own copy of the engine). */
 export const WEAPON_RANGE_STAGE = 'WEAPON_RANGE';
+/** The practice range in the garage: the same range, in a boxing ring. */
+export const PRACTICE_RANGE_STAGE = 'PRACTICE_RANGE';
+/** Is this one of the ranges (no pickups, no stage of its own)? */
+export const isRangeStage = (stageId: string | null | undefined) => stageId === WEAPON_RANGE_STAGE || stageId === PRACTICE_RANGE_STAGE;
 // Oil rockets can be nudged up or down in flight (enough to catch a flyer, not to turn corners)
 export const OIL_ROCKET_STEER_ACCEL = 0.6;
 export const OIL_ROCKET_STEER_MAX = 8;          // vertical speed cap (about 18 degrees off level)

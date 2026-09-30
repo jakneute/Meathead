@@ -1,6 +1,7 @@
 import { GameStatus, Enemy, TommyBoard, DamageNumber } from '../../types';
+import { isDummy, drawDummy } from './dummies';
 import {
-  CANVAS_WIDTH, CANVAS_HEIGHT, LEVEL_INTRO_STYLE, SKYFALL_CLOUD_FRAMES, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, RENDER_SCALE, WEAPON_RANGE_STAGE, GROUND_Y,
+  CANVAS_WIDTH, CANVAS_HEIGHT, LEVEL_INTRO_STYLE, SKYFALL_CLOUD_FRAMES, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, RENDER_SCALE, PRACTICE_RANGE_STAGE, isRangeStage, GROUND_Y,
 } from '../../constants';
 import { drawSkyClouds, DEPLOY_CLOUD_SCROLL_END, SKYFALL_CLOUD_SPEED } from './skyClouds';
 import { STAGE_COLORS } from '../../content/roster';
@@ -55,10 +56,12 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   if (state.sewerNuke && drawSewerNukeOutside(ctx, state)) return;
   if (state.volcanoFinale && drawVolcanoFinaleOutside(ctx, state)) return;
 
-  const isRange = stageId === WEAPON_RANGE_STAGE;
+  const isRange = isRangeStage(stageId), isRing = stageId === PRACTICE_RANGE_STAGE;
   const colors = isRange ? { ground: '#0A0A0C', bg: '#000', accent: '#7F1D1D' } : STAGE_COLORS[stageId || ""] || { ground: COLORS.GROUND, bg: COLORS.BG_DARK, accent: '#fff' };
   // Layered parallax scenery for the stage (a flat colour where there isn't any)
-  if (isRange) {
+  if (isRing) {
+    drawRing(ctx, state.frame || 0);
+  } else if (isRange) {
     drawRangeVoid(ctx, state.frame || 0);
   } else if (getStageLayout(stageId)?.drawBackdrop?.(ctx, state)) {
     // (a stage that changes its own sky: Hector's beach going from sunny to hurricane, the inside of the storm)
@@ -81,7 +84,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
 
     layout?.drawBack?.(wctx, state);
     drawGroundProfile(wctx, state.groundRuns, stageId, state.frame || 0, { x: state.camera.x - shiftX, y: state.camera.y, w: CANVAS_WIDTH + shiftX * 2, h: CANVAS_HEIGHT });
-    if (!drawTerrain(wctx, state.blocks, stageId, state.frame || 0, state.doorOpenAmount)) drawBlocks(wctx, state, colors);
+    if (!isRing && !drawTerrain(wctx, state.blocks, stageId, state.frame || 0, state.doorOpenAmount)) drawBlocks(wctx, state, colors);
     layout?.drawMid?.(wctx, state);
     // The boss arena is drawn whenever any of it is on screen: from the moment the door
     // opens onto it, through the fight, his death and the victory lap
@@ -207,6 +210,49 @@ const drawCylinderWorld = (ctx: CanvasRenderingContext2D, radius: number, worldP
 };
 
 /** The weapon range: a black void with a red glow and a receding grid floor. */
+/**
+ * The practice range, in the garage: the same one-screen range as after a boss, dressed as a boxing ring. The dark
+ * of a gym after hours, a light over the ring; the ropes (red, white and blue) strung along the back between the
+ * corner posts, the turnbuckle pads; the mat, and the skirt of the apron under it. (The mat's the floor: nothing about
+ * it plays any differently.)
+ */
+const drawRing = (ctx: CanvasRenderingContext2D, frame: number) => {
+  const W = CANVAS_WIDTH, mat = GROUND_Y;
+  // The gym, dark, the bleachers in it just shapes
+  ctx.fillStyle = '#0B0B10'; ctx.fillRect(0, 0, W, CANVAS_HEIGHT);
+  ctx.fillStyle = '#15151C';
+  for (let r = 0; r < 4; r++) ctx.fillRect(0, 250 + r * 42, W, 26);
+  ctx.fillStyle = '#1D1D26';
+  for (let r = 0; r < 4; r++) for (let x = (r % 2) * 22; x < W; x += 44) { ctx.beginPath(); ctx.arc(x + 12, 246 + r * 42, 9, Math.PI, 0); ctx.fill(); }
+  // The one light, over the ring
+  const light = ctx.createRadialGradient(W / 2, 40, 10, W / 2, mat - 40, 520);
+  light.addColorStop(0, `rgba(254, 243, 199, ${0.34 + Math.sin(frame * 0.05) * 0.015})`);
+  light.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = light; ctx.fillRect(0, 0, W, CANVAS_HEIGHT);
+  ctx.fillStyle = '#27272A'; ctx.fillRect(W / 2 - 70, 0, 140, 16); ctx.fillStyle = '#FEF3C7'; ctx.fillRect(W / 2 - 60, 14, 120, 4);
+  // The corner posts, the turnbuckles, the ropes strung between them along the back
+  const posts = [10, W - 10];
+  const ropes = [{ y: mat - 150, c: '#DC2626' }, { y: mat - 105, c: '#F8FAFC' }, { y: mat - 60, c: '#1D4ED8' }];
+  for (const r of ropes) {
+    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(posts[0], r.y + 4, posts[1] - posts[0], 4);
+    ctx.fillStyle = r.c; ctx.fillRect(posts[0], r.y, posts[1] - posts[0], 5);
+  }
+  for (const x of posts) {
+    ctx.fillStyle = '#A1A1AA'; ctx.fillRect(x - 6, mat - 180, 12, 180);
+    ctx.fillStyle = '#71717A'; ctx.fillRect(x - 6, mat - 180, 3, 180);
+    for (const r of ropes) { ctx.fillStyle = r.c === '#F8FAFC' ? '#E5E7EB' : r.c; ctx.fillRect(x - 11, r.y - 7, 22, 18); ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(x - 11, r.y + 7, 22, 4); }
+  }
+  // The mat (the floor), scuffed, the corner logo; the apron skirt under it
+  ctx.fillStyle = '#D6D3D1'; ctx.fillRect(0, mat, W, 14);
+  ctx.fillStyle = '#A8A29E'; ctx.fillRect(0, mat, W, 2);
+  ctx.fillStyle = 'rgba(120, 113, 108, 0.35)'; for (let x = 30; x < W; x += 97) ctx.fillRect(x, mat + 5, 30, 2);
+  ctx.fillStyle = 'rgba(153, 27, 27, 0.35)'; ctx.fillRect(W * 0.62, mat + 6, 14, 3); ctx.fillRect(W * 0.3, mat + 8, 6, 2);
+  ctx.fillStyle = '#1E3A8A'; ctx.fillRect(0, mat + 14, W, CANVAS_HEIGHT - mat - 14);
+  ctx.fillStyle = '#172554'; for (let x = 0; x < W; x += 60) ctx.fillRect(x, mat + 14, 3, CANVAS_HEIGHT - mat - 14);
+  ctx.fillStyle = '#FACC15'; ctx.font = 'bold 12px "Press Start 2P"'; ctx.textAlign = 'center';
+  ctx.fillText("MEATHEAD'S GYM", W / 2, mat + 38); ctx.textAlign = 'left';
+};
+
 const drawRangeVoid = (ctx: CanvasRenderingContext2D, frame: number) => {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -415,6 +461,8 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
       const curT = (status === GameStatus.BOSS_INTRO && bossTauntText) ? bossTauntText : (state.bossVulgarityTimer > 0 ? state.bossLastVulgarity : null);
       if (curT && state.bossExplosionTimer <= 0) { ctx.save(); ctx.font = 'bold 12px "Press Start 2P"'; ctx.fillStyle = 'white'; ctx.shadowColor = 'black'; ctx.shadowBlur = 6; ctx.textAlign = 'center'; ctx.fillText(sentenceShown(curT), e.pos.x + e.width / 2, e.pos.y - 30); ctx.restore(); }
       drawBossOverlay(ctx, e, stageId, state.frame);
+    } else if (isDummy(e)) {
+      drawDummy(ctx, e, state.frame);
     } else if (e.kind && getStageLayout(stageId)?.drawSpecialEnemy?.(ctx, e, state)) {
       // (a stage's mid-boss draws itself)
     } else if (e.kind) {

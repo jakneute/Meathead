@@ -1,6 +1,6 @@
 import { Vector2, PickupType, VulgarityType, Enemy } from '../../types';
 import {
-  PARTICLE_PALETTES, BOULDER_SHRAPNEL_DAMAGE, VULGARITY_TEXT_DURATION, VOICE_LINE_COOLDOWN_FRAMES, SPOKEN_TEXT_HOLD, SPOKEN_TEXT_LINGER, WEAPON_RANGE_STAGE } from '../../constants';
+  PARTICLE_PALETTES, BOULDER_SHRAPNEL_DAMAGE, VULGARITY_TEXT_DURATION, VOICE_LINE_COOLDOWN_FRAMES, SPOKEN_TEXT_HOLD, SPOKEN_TEXT_LINGER, isRangeStage } from '../../constants';
 import { VULGARITIES, BOSS_DIALOGUE, KILL_LINES, KILL_CALLOUTS, KillCallout } from '../../content/dialogue';
 import { GameState } from './state';
 import { playSound, playGlassShatterSound } from '../platform/audio';
@@ -149,7 +149,7 @@ export const createFx = (state: GameState) => {
   /** 60% chance to drop a random health or ammo pickup. */
   const spawnPickup = (pos: Vector2) => {
     // Nothing drops in the weapon test range
-    if (state.stageId === WEAPON_RANGE_STAGE || Math.random() >= 0.6) return;
+    if (isRangeStage(state.stageId) || Math.random() >= 0.6) return;
     const r = Math.random();
     let type: PickupType;
     if (r < 0.25) type = 'small_health';

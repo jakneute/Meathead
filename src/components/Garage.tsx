@@ -3,13 +3,18 @@ import { SOUVENIRS } from '../content/garage';
 import { ownedSouvenirs } from '../game/garageStore';
 import { drawGarage, GARAGE_W, GARAGE_H, SLOTS, SOUVENIR_ORDER } from '../game/render/garage';
 import { getActiveGamepad, getGamepadMovement, isButtonPressed, GP_BUTTONS } from '../game/platform/gamepad';
+import type { WeaponType } from '../types';
+import PracticeRange from './PracticeRange';
 
 // Meathead's garage: what he's brought home from the bosses, up on the pegboard, the shelves and the floor. Go through
 // them (the arrows, the stick, the mouse) and read the tags; leave to get back to the map.
 
 const REPEAT_MS = 180;
 
-const Garage: React.FC<{ onLeave: () => void }> = ({ onLeave }) => {
+const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLeave, weapons }) => {
+  /** Out back at the practice range (the garage's keys and pad do nothing meanwhile). */
+  const [practice, setPractice] = useState(false);
+  const practiceRef = useRef(practice); practiceRef.current = practice;
   const canvas = useRef<HTMLCanvasElement>(null);
   const owned = useMemo(() => ownedSouvenirs(), []);
   const order = useMemo(() => SOUVENIR_ORDER.filter(id => owned.includes(id)), [owned]);
@@ -39,24 +44,28 @@ const Garage: React.FC<{ onLeave: () => void }> = ({ onLeave }) => {
   // The keyboard and the pad: through the souvenirs, and out
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (practiceRef.current) return;
       const k = e.key.toLowerCase();
+      if (k === 'r') { setPractice(true); return; }
       if (k === 'escape' || k === 'backspace') { e.preventDefault(); leaveRef.current(); }
       else if (k === 'arrowright' || k === 'd' || k === 'arrowdown' || k === 's') stepRef.current(1);
       else if (k === 'arrowleft' || k === 'a' || k === 'arrowup' || k === 'w') stepRef.current(-1);
     };
-    const onMouse = (e: MouseEvent) => { if (e.button === 2) leaveRef.current(); };
+    const onMouse = (e: MouseEvent) => { if (e.button === 2 && !practiceRef.current) leaveRef.current(); };
     window.addEventListener('keydown', onKey);
     window.addEventListener('mousedown', onMouse);
-    let raf = 0, last = 0, prevB = true;
+    let raf = 0, last = 0, prevB = true, prevY = true;
     const poll = () => {
       const gp = getActiveGamepad();
-      if (gp) {
+      if (gp && practiceRef.current) prevB = true;
+      else if (gp) {
         const now = Date.now(), m = getGamepadMovement(gp, 0.3);
         const d = m.right || m.down ? 1 : m.left || m.up ? -1 : 0;
         if (d && now - last > REPEAT_MS) { last = now; stepRef.current(d); }
-        const b = isButtonPressed(gp, GP_BUTTONS.B);
+        const b = isButtonPressed(gp, GP_BUTTONS.B), y = isButtonPressed(gp, GP_BUTTONS.Y);
         if (b && !prevB) leaveRef.current();
-        prevB = b;
+        if (y && !prevY) setPractice(true);
+        prevB = b; prevY = y;
       }
       raf = requestAnimationFrame(poll);
     };
@@ -98,6 +107,12 @@ const Garage: React.FC<{ onLeave: () => void }> = ({ onLeave }) => {
         className="absolute left-[10px] bottom-[8px] px-3 py-3 text-[9px] text-black bg-yellow-400 border-2 border-black shadow-[3px_3px_0_#000]">
         ◀ MAP
       </button>
+      {/* Out back: the practice range */}
+      <button onClick={() => setPractice(true)}
+        className="absolute right-[10px] top-[26px] px-3 py-2 text-[8px] text-black bg-red-500 border-2 border-black shadow-[3px_3px_0_#000] hover:bg-red-400">
+        PRACTICE RANGE ▶
+      </button>
+      {practice && <PracticeRange weapons={weapons} onLeave={() => setPractice(false)} />}
     </div>
   );
 };

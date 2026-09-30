@@ -1,13 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { Souvenir } from '../content/garage';
-import { GameStatus, Enemy, WeaponType } from '../types';
-import {
-  CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, RENDER_SCALE, WEAPON_RANGE_STAGE, createFullAmmo,
-} from '../constants';
+import { GameStatus, WeaponType } from '../types';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, RENDER_SCALE, WEAPON_RANGE_STAGE } from '../constants';
 import { BOSS_WEAPON_MAP, WEAPON_DESCRIPTIONS, getWeaponInfo } from '../content/roster';
-import { createGameState, GameState } from '../game/core/state';
-import { createFrameContext, GameEvents } from '../game/core/context';
-import { stepGame } from '../game/core/update';
+import { createRange, stepRange, newRespawns } from '../game/range';
 import { KeyboardMouseState, readControls, getLastInputDevice } from '../game/platform/input';
 import { drawWorld } from '../game/render/world';
 import { WeaponArt } from './WeaponIcon';
@@ -15,7 +11,7 @@ import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/platform/
 import { SKIP_AFTER_MS } from '../game/platform/skip';
 import SkipPrompt from './SkipPrompt';
 import { playWhoosh, playPunchImpact, playThud, playTypeClack, playGlassShatterSound } from '../game/platform/audio';
-import { speak, cancelSpeech, stopDeathAnnouncer, MEATHEAD_VOICE } from '../game/platform/speech';
+import { speak, cancelSpeech, MEATHEAD_VOICE } from '../game/platform/speech';
 
 // After a boss: fade out of the victory lap into a black void, face to face with
 // Meathead in first person. He decks the camera; it goes down on its side. Then
@@ -50,49 +46,6 @@ const easeOutBounce = (x: number) => {
   return n * (x -= 2.625 / d) * x + 0.984375;
 };
 
-const NO_EVENTS: GameEvents = {
-  onBossDefeated: () => {}, onBossTransition: () => {}, onBossEncounter: () => {}, onBossDeath: () => {}, onIntroComplete: () => {},
-};
-const RANGE_CHEATS = { invincible: true, infiniteAmmo: true, infinitePower: false, skipToBoss: false };
-
-let dummyCount = 0;
-type DummyKind = 'ground' | 'air';
-/** Practice dummies: one walks back and forth, one flies laps overhead. Neither fights back. */
-const makeDummy = (kind: DummyKind, x: number): Enemy => kind === 'ground'
-  ? {
-    id: `dummy-ground-${++dummyCount}`, pos: { x, y: GROUND_Y - 70 }, vel: { x: x > CANVAS_WIDTH / 2 ? -1.2 : 1.2, y: 0 },
-    width: 50, height: 70, health: 200, maxHealth: 200, type: 'enemy', enemyType: 'tank', behavior: 'patrol',
-    patrolRange: 260, initialX: Math.min(x, CANVAS_WIDTH - 330), shootTimer: 0, harmless: true,
-  }
-  : {
-    id: `dummy-air-${++dummyCount}`, pos: { x, y: 330 }, vel: { x: x > CANVAS_WIDTH / 2 ? -2 : 2, y: 0 },
-    width: 40, height: 30, health: 60, maxHealth: 60, type: 'enemy', enemyType: 'flyer', behavior: 'fly',
-    patrolRange: 480, initialX: 160, shootTimer: 0, harmless: true,
-  };
-const DUMMY_KINDS: DummyKind[] = ['ground', 'air'];
-
-/** A one-screen void arena with Meathead, the new weapon and a dummy. */
-const createRange = (weapon: WeaponType): GameState => {
-  const s = createGameState(WEAPON_RANGE_STAGE, createFullAmmo());
-  s.blocks = [
-    { x: -100, y: -1000, w: 100, h: 2000, type: 'wall' },
-    { x: CANVAS_WIDTH, y: -1000, w: 100, h: 2000, type: 'wall' },
-    { x: 0, y: -200, w: CANVAS_WIDTH, h: 200, type: 'wall' },
-    { x: -100, y: GROUND_Y, w: CANVAS_WIDTH + 200, h: 50, type: 'ground' },
-  ];
-  s.cameraMinX = 0;
-  s.cameraMaxX = 0;
-  s.doorState = 'done';
-  s.player.pos = { x: 140, y: GROUND_Y - s.player.height };
-  s.player.facing = 1;
-  s.player.currentWeapon = weapon;
-  // (the oil rocket launcher's got the flamethrower on its own button: he has that by now, so it's here to try)
-  if (weapon === 'OIL_ROCKET') s.availableWeapons = ['GUN', 'FLAMETHROWER', 'OIL_ROCKET'];
-  s.enemies = [makeDummy('ground', 560), makeDummy('air', 420)];
-  s.frame = 1;
-  return s;
-};
-
 interface Props {
   /** The boss just beaten (his weapon is the prize). */
   stageId: string | null;
@@ -124,7 +77,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenir, onDone }) => {
     const once = (key: string, at: number, now: number, fn: () => void) => { if (now >= at && !fired.has(key)) { fired.add(key); fn(); } };
     let typedHeader = 0, typedName = 0;
     let lastStep = 0;
-    const respawnIn: Record<DummyKind, number> = { ground: 0, air: 0 };
+    const respawns = newRespawns();
     let padStartHeld = true; // ignore a Start that's still held from before
     let id = 0;
 
@@ -170,28 +123,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenir, onDone }) => {
         while (wall - lastStep >= FRAME_MS - 2 && steps < 4) {
           lastStep += FRAME_MS;
           steps++;
-          const ctx = createFrameContext(range, WEAPON_RANGE_STAGE, weapon, RANGE_CHEATS, NO_EVENTS);
-          range.player.health = range.player.maxHealth;
-          range.player.currentWeapon = weapon;
-          stepGame(ctx, GameStatus.PLAYING, readControls(kb));
-          // Fell out somehow: put him back
-          if (range.player.pos.y > CANVAS_HEIGHT + 200 || range.deathTimer > 0) {
-            if (range.deathTimer > 0) stopDeathAnnouncer();
-            range.deathTimer = 0;
-            range.player.pos = { x: 140, y: GROUND_Y - range.player.height };
-            range.player.vel = { x: 0, y: 0 };
-          }
-          // Both dummies always come back
-          for (const kind of DUMMY_KINDS) {
-            if (range.enemies.some(e => e.id.startsWith(`dummy-${kind}`) && !e.isBlownAway && e.health > 0)) continue;
-            if (respawnIn[kind] <= 0) respawnIn[kind] = 55;
-            else if (--respawnIn[kind] === 0) {
-              const x = range.player.pos.x < CANVAS_WIDTH / 2 ? CANVAS_WIDTH - 130 : 80;
-              const d = makeDummy(kind, x);
-              range.enemies.push(d);
-              for (let i = 0; i < 14; i++) range.particles.push({ pos: { x: x + d.width / 2, y: d.pos.y + d.height / 2 }, vel: { x: (Math.random() - 0.5) * 6, y: -Math.random() * 5 }, life: 25, color: i % 2 ? '#EF4444' : '#FFFFFF', size: 3 + Math.random() * 4 });
-            }
-          }
+          stepRange(range, readControls(kb), weapon, respawns);
         }
         if (lastStep < wall - 200) lastStep = wall; // tab was hidden: don't fast-forward
         rc.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
@@ -318,7 +250,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenir, onDone }) => {
               <span className="text-[15px] text-yellow-300 italic [text-shadow:2px_2px_0_#7F1D1D]">{name}</span>
             </div>
             <p className="mt-2 text-[8px] leading-[14px] text-white/90 uppercase">{description}</p>
-            <p className="mt-2 text-[7px] text-cyan-400/90 tracking-wider">TEST IT ON THE DUMMIES. THEY DON'T MIND. THEY DON'T HAVE A CHOICE. INFINITE AMMO.</p>
+            <p className="mt-2 text-[7px] text-cyan-400/90 tracking-wider">TEST IT ON THE HIRED HELP: A WANNABE BOXER WHO ANSWERED AN AD, AND A GUY ON BALLOONS. DON'T ASK. INFINITE AMMO.</p>
             {souvenir && <p className="mt-2 text-[7px] text-yellow-300 tracking-wider">SOUVENIR FOR THE GARAGE: {souvenir.name}</p>}
             {/* (under all that, on its own: not part of what the weapon is) */}
             {weapon === 'OIL_ROCKET' && <FlameCallout pad={getLastInputDevice() === 'gamepad'} />}

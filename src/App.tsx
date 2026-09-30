@@ -702,7 +702,7 @@ const App: React.FC = () => {
           />
         )}
         {status === GameStatus.BOSS_VICTORY_SPEECH && <WeaponGetScene stageId={selectedStage} souvenir={souvenir} onDone={handleStart} />}
-        {status === GameStatus.STAGE_SELECT && inGarage && <Garage onLeave={() => setInGarage(false)} />}
+        {status === GameStatus.STAGE_SELECT && inGarage && <Garage weapons={cheats.allWeapons ? ALL_WEAPONS : getEarnedWeapons()} onLeave={() => setInGarage(false)} />}
         {status === GameStatus.STAGE_SELECT && pickFor && (
           <CheckpointPicker stageId={pickFor} onCancel={() => setPickFor(null)}
             onPick={at => { setPickFor(null); setStartAt(at); engageRef.current(at); }} />
