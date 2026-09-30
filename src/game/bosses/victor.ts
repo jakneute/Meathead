@@ -13,12 +13,12 @@ import { startVolcanoFinale } from '../scenes/volcanoFinale';
 
 const VICTOR = 'Victor Volcano';
 /** A corked vent holds for this long, then blows (long enough to cork the other two of a set). */
-export const CORK_FUSE = 330;
+export const CORK_FUSE = 270;
 const CORK_BLAST_RADIUS = 180;
 const CORK_BLAST_DAMAGE = 35;   // corking is a trap, not a strategy: standing near one when it blows really hurts
 
 const TELEGRAPH_FRAMES = 60;
-const ERUPTION_FRAMES = 180;
+const ERUPTION_FRAMES = 130;
 const REST_FRAMES = 40;
 const VENT_MIN_GAP_FROM_VICTOR = 150;
 const VENT_MIN_GAP = 100;
