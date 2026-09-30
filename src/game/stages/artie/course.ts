@@ -325,7 +325,7 @@ export const buildCourse = (): Course => {
   // drops are fitted to the height there is to come down, leaving the last of it for the run-out at the bottom
   type Step = { run: number; steep: number; obs?: [SkiObstacleKind, number][] } | { jump: number };
   const PLAN: Step[] = [
-    { run: 400, steep: 70, obs: [['rock', 300]] }, { run: 500, steep: 90, obs: [['log', 260]] }, { run: 300, steep: 50 }, { jump: 140 },
+    { run: 400, steep: 70 }, { run: 500, steep: 90, obs: [['log', 260]] }, { run: 300, steep: 50 }, { jump: 140 },
     { run: 400, steep: 80, obs: [['branch', 220]] }, { run: 500, steep: 100, obs: [['pine', 300]] }, { run: 400, steep: 70, obs: [['rock', 150], ['rock', 330]] },
     { run: 300, steep: 40 }, { jump: 170 },
     { run: 500, steep: 110, obs: [['log', 200], ['branch', 400]] }, { run: 600, steep: 120, obs: [['pine', 250]] }, { run: 400, steep: 55 }, { jump: 180 },
