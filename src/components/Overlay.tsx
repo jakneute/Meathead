@@ -636,10 +636,11 @@ const BossIntroScreen: React.FC<OverlayProps> = ({ bossTaunt, isInputLocked, onS
             {loc && <div className="mt-1 text-[9px] font-mono font-bold text-cyan-300 uppercase">{loc.city}, {loc.stateCode}</div>}
           </div>
           {/* His taunt */}
-          <div className="mh-bubble-in relative mt-auto mb-auto bg-white text-black border-[3px] border-black px-3 py-2 shadow-[4px_4px_0_#7F1D1D] max-h-28 overflow-y-auto">
+          {/* (never a scrolling box: it's as big as it needs to be, and a long one's set a size smaller) */}
+          <div className="mh-bubble-in relative mt-auto mb-auto bg-white text-black border-[3px] border-black px-3 py-2 shadow-[4px_4px_0_#7F1D1D]">
             <div className="absolute -left-[12px] top-4 w-0 h-0 border-y-[8px] border-y-transparent border-r-[12px] border-r-black" />
             <div className="absolute -left-[7px] top-[18px] w-0 h-0 border-y-[6px] border-y-transparent border-r-[9px] border-r-white" />
-            <p className="text-[11px] md:text-xs font-black uppercase italic leading-snug">&ldquo;{bossTaunt}&rdquo;</p>
+            <p className={`${bossTaunt.length > 110 ? 'text-[10px] md:text-[11px]' : 'text-[11px] md:text-xs'} font-black uppercase italic leading-snug`}>&ldquo;{bossTaunt}&rdquo;</p>
           </div>
         </div>
       </div>
