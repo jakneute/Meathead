@@ -112,6 +112,7 @@ export const updateVictor = (ctx: FrameContext, controls: Controls): Controls =>
       : Math.max(free, Math.min(wall, state.camera.x - SHAFT_CAMERA_SLIDE));
   }
   if (region === 'inside') {
+    if (state.checkpoint < CP.RIVER_MID && player.isGrounded && player.pos.x >= COURSE.checkpoints[CP.RIVER_MID].x - 60) state.checkpoint = CP.RIVER_MID;
     if (state.checkpoint < CP.SHAFT && player.isGrounded && player.pos.x >= COURSE.checkpoints[CP.SHAFT].x) state.checkpoint = CP.SHAFT;
     // Up at the window
     const w = COURSE.shaft.window;

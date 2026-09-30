@@ -14,7 +14,7 @@ import { BOSS_DOOR_X, GROUND_Y } from '../../../constants';
 import type { GroundRun } from '../../core/terrain';
 import type { EnemyKind } from '../../../types';
 
-export const CP = { TRAIL: 0, BOMBS: 1, CLUB: 2, RIVER: 3, SHAFT: 4, LOUNGE: 5 } as const;
+export const CP = { TRAIL: 0, BOMBS: 1, CLUB: 2, RIVER: 3, RIVER_MID: 4, SHAFT: 5, LOUNGE: 6 } as const;
 
 export interface Spawn { kind: EnemyKind; x: number; y: number }
 export interface PickupSpot { x: number; y: number; type: 'small_health' | 'large_health' | 'small_ammo' | 'large_ammo' }
@@ -58,6 +58,8 @@ export interface Course {
 
 const MAIN_X0 = -30000;
 const IN_X0 = -52000;
+/** Where the lava river starts, inside (local x: it runs up to the shaft at 3000). */
+const RIVER_X0 = 3000 - 7730;
 const LOUNGE_X1 = BOSS_DOOR_X - 1500;
 
 const Y = GROUND_Y;
@@ -129,16 +131,36 @@ const build = () => {
   
 
   // ============ INSIDE: THE LAVA RIVER ============
+  // (it runs from RIVER_X0, left of 0: the shaft stays where it is at 3000). Every stretch of it is wider than he can
+  // get across in the air, a jump and every charge he's got strung together (1,460 or so): it's the rafts or nothing.
+  // The rafts are close enough together to hop between; the islands between the stretches are too short to get a run
+  // at it
   const n = inside;
-  n.ground(0, 420);
-  n.lava(420, 1300, Y + 28); n.raftLane(420, 1300, 3, 130, 1.3); n.fish(860, Y + 28); n.spout(700, 200, 20);
-  n.ground(1300, 1460, Y - 20);
-  n.spawn('heatsuit', 1400, Y - 20);
-  n.lava(1460, 2300, Y + 28); n.raftLane(1460, 2300, 3, 120, 1.6); n.fish(1700, Y + 28); n.fish(2080, Y + 28); n.spout(1880, 180, 90);
-  n.ground(2300, 2460, Y - 20);
-  n.spawn('blastshield', 2400, Y - 20);
-  n.pickup(2330, Y - 50, 'small_health');
-  n.lava(2460, 3000, Y + 28); n.raftLane(2460, 3000, 2, 120, 1.9); n.fish(2700, Y + 28); n.spout(2800, 160, 40);
+  const R = RIVER_X0;
+  /** A stretch of the river from x1 to x2: rafts (as many as keep a hop between them), the fish, the spouts. */
+  const stretch = (x1: number, x2: number, w: number, speed: number, fish: number[], spouts: [number, number, number][]) => {
+    n.lava(x1, x2, Y + 28);
+    n.raftLane(x1, x2, Math.floor((x2 - x1) / (w + 145)), w, speed);
+    for (const f of fish) n.fish(f, Y + 28);
+    for (const [sx, period, phase] of spouts) n.spout(sx, period, phase);
+  };
+  n.ground(R, R + 420);
+  // Slow and steady first: the rafts come to you, one fish, one spout
+  stretch(R + 420, R + 2070, 130, 1.3, [R + 1300], [[R + 900, 200, 20]]);
+  n.ground(R + 2070, R + 2250, Y - 20);
+  n.spawn('heatsuit', R + 2190, Y - 20);
+  // Quicker: two fish, two spouts
+  stretch(R + 2250, R + 3950, 120, 1.7, [R + 2700, R + 3450], [[R + 2950, 180, 90], [R + 3650, 170, 30]]);
+  n.ground(R + 3950, R + 4150, Y - 20);
+  n.spawn('blastshield', R + 4090, Y - 20);
+  n.pickup(R + 3990, Y - 50, 'small_health');
+  // Quicker still, smaller rafts, vultures over it (knocked off a raft, it's a long way to anywhere)
+  stretch(R + 4150, R + 5900, 110, 2.0, [R + 4600, R + 5300], [[R + 4850, 160, 40], [R + 5550, 160, 120]]);
+  n.spawn('vulture', R + 4700, Y - 300); n.spawn('vulture', R + 5400, Y - 340);
+  n.ground(R + 5900, R + 6080, Y - 20);
+  n.pickup(R + 6000, Y - 50, 'small_ammo');
+  // The last: fast, the spouts timed close, fish in it
+  stretch(R + 6080, R + 7730, 110, 2.3, [R + 6500, R + 7050, R + 7450], [[R + 6400, 150, 0], [R + 6850, 150, 50], [R + 7300, 150, 100]]);
 
   // ============ INSIDE: THE SHAFT ============
   // Up the chimney of the volcano: catwalks back and forth, jets of flame out of the walls, spinning fire bars
@@ -213,14 +235,14 @@ const buildCourse = (): Course => {
     bars: cat('bars') as FireBar[], rafts: cat('rafts') as RaftLane[], spawns: cat('spawns') as Spawn[], pickups, props: cat('props') as Prop[],
     approach: { x1: MAIN_X0, x2: MAIN_X0 + 7100 },
     club: { x1: MAIN_X0 + 7730, x2: MAIN_X0 + 8510, y: Y, door: MAIN_X0 + 8300 },
-    inside: { x1: IN_X0, x2: IN_X0 + 3760 },
+    inside: { x1: IN_X0 + RIVER_X0, x2: IN_X0 + 3760 },
     shaft,
     lounge,
     checkpoints: [
       { x: MAIN_X0 + 150, y: Y }, { x: MAIN_X0 + 2700, y: Y - 40 }, { x: MAIN_X0 + 7150, y: Y },
-      { x: IN_X0 + 150, y: Y }, { x: IN_X0 + 3080, y: Y }, { x: lounge.x1 + 300, y: Y },
+      { x: IN_X0 + RIVER_X0 + 150, y: Y }, { x: IN_X0 + RIVER_X0 + 3990, y: Y - 20 }, { x: IN_X0 + 3080, y: Y }, { x: lounge.x1 + 300, y: Y },
     ],
-    left: IN_X0 - 2000,
+    left: IN_X0 + RIVER_X0 - 2000,
     startX: MAIN_X0,
   };
 };
