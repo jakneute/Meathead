@@ -162,10 +162,55 @@ const drawHipsterBody = (ctx: Ctx, sit: boolean) => {
  */
 export const drawHipsterOnSki = (ctx: Ctx, x: number, y: number, rot: number, f: number, charred = false) => {
   ctx.save();
-  ctx.translate(x, y); ctx.rotate(rot);
+  // (turning about his middle, not the keel: tumbling end over end off the ramp he goes round his own center)
+  ctx.translate(x, y - 30); ctx.rotate(rot); ctx.translate(0, 30);
   if (charred) ctx.filter = 'brightness(0.18)';
   drawSki(ctx, f, '#F59E0B');
   drawHipsterBody(ctx, true);
+  ctx.restore();
+};
+
+/**
+ * The hipster and his ski coming down nose first, spinning like a top (round and round about the up-and-down, so he
+ * narrows and widens and flips as he turns): a drill bit, his middle at (x, y). The spiral of the bore round him.
+ */
+export const drawHipsterDrilling = (ctx: Ctx, x: number, y: number, f: number) => {
+  const spin = f * 0.9;
+  ctx.save();
+  ctx.translate(x, y);
+  // The bore: spiral bands of churned dirt whipping round him
+  ctx.strokeStyle = 'rgba(120, 90, 60, 0.7)'; ctx.lineWidth = 3;
+  for (let k = 0; k < 4; k++) {
+    const ph = spin + k * 1.6;
+    ctx.beginPath(); ctx.ellipse(0, -40 + k * 26, 30 + k * 4, 7, 0, ph % (Math.PI * 2), ph % (Math.PI * 2) + Math.PI * 0.9); ctx.stroke();
+  }
+  ctx.save();
+  ctx.scale(Math.cos(spin) || 0.05, 1);
+  ctx.rotate(Math.PI / 2);
+  ctx.translate(0, 30);
+  drawSki(ctx, f, '#F59E0B');
+  drawHipsterBody(ctx, true);
+  ctx.restore();
+  // Sparks off the tip where it's grinding through
+  ctx.fillStyle = '#FDE047';
+  for (let k = 0; k < 5; k++) { const a = spin * 2 + k * 1.3; ctx.fillRect(Math.cos(a) * 16, 44 + Math.sin(a * 1.7) * 6, 3, 3); }
+  ctx.restore();
+};
+
+/** What's left of him: in up to his waist, head first, legs (charred) in the air, the ski snapped off beside him. */
+export const drawHipsterPlanted = (ctx: Ctx, x: number, y: number, f: number) => {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.save(); ctx.translate(26, -4); ctx.rotate(-0.6); ctx.filter = 'brightness(0.2)'; drawSki(ctx, f, '#F59E0B'); ctx.restore();
+  // The skinny jeans, sticking up out of the floor, a shoe gone
+  ctx.fillStyle = '#111827';
+  ctx.save(); ctx.rotate(-0.12); ctx.fillRect(-9, -46, 7, 46); ctx.restore();
+  ctx.save(); ctx.rotate(0.18); ctx.fillRect(2, -42, 7, 42); ctx.restore();
+  ctx.fillStyle = '#1C1917'; ctx.fillRect(-12, -52, 10, 7);
+  ctx.fillStyle = '#E0AC69'; ctx.fillRect(9, -48, 6, 6);
+  ctx.fillStyle = '#2A1C16'; ctx.beginPath(); ctx.ellipse(0, 0, 18, 5, 0, 0, Math.PI * 2); ctx.fill();
+  // Smoke coming off him
+  for (let i = 0; i < 3; i++) { const t = ((f * 0.6 + i * 40) % 120) / 120; ctx.fillStyle = `rgba(60, 55, 50, ${0.5 * (1 - t)})`; ctx.beginPath(); ctx.arc(Math.sin(i + f * 0.02) * 6, -50 - t * 70, 5 + t * 12, 0, Math.PI * 2); ctx.fill(); }
   ctx.restore();
 };
 

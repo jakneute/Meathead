@@ -167,7 +167,12 @@ export const updateQuakes = (ctx: FrameContext, qk: Quakes, active: boolean) => 
     if (state.frame % 4 === 0) shakeScreen(state, 5, 2 + a * 6);
     // Jostled as he goes: a nudge one way, then the other (never enough to stop him)
     if (--qk.swayT <= 0) { qk.sway = Math.random() < 0.5 ? -1 : 1; qk.swayT = 25 + Math.floor(Math.random() * 30); }
-    if (p.isGrounded && !p.inCutscene && !p.isCharging && state.deathTimer <= 0) p.pos.x += qk.sway * SWAY * a * (0.6 + 0.4 * Math.sin(state.frame * 0.3));
+    // (and never into a wall: a nudge that would put him into one doesn't happen, or he'd be shoved through it)
+    if (p.isGrounded && !p.inCutscene && !p.isCharging && state.deathTimer <= 0) {
+      const dx = qk.sway * SWAY * a * (0.6 + 0.4 * Math.sin(state.frame * 0.3));
+      const box = { x: p.pos.x + dx, y: p.pos.y, w: p.width, h: p.height - 4 };
+      if (!state.blocks.some(b => b.type !== 'pit' && !b.oneWay && rectsOverlap(box, b))) p.pos.x += dx;
+    }
     // Stuff coming down
     if (active && --qk.dropTimer <= 0) {
       dropSomething(state, qk);

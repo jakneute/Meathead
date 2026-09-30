@@ -432,7 +432,8 @@ const launch = (ctx: FrameContext, js: JetSki, onLanded: () => void): Controls =
     if (state.frame % 2 === 0) state.particles.push({ pos: { x: c.x - 30, y: GROUND_Y - 4 }, vel: { x: -2 - Math.random() * 3, y: -Math.random() * 3 }, life: 18, color: Math.random() < 0.5 ? '#E0F2FE' : '#BAE6FD', size: 3 + Math.random() * 4 });
     if (c.x >= js.rampX - 40) { c.state = 'flying'; c.vx = 12; c.vy = -30; c.at = js.t; playSound('engine', 1, 3); }
   } else if (c.state === 'flying') {
-    c.vy += 0.55; c.x += c.vx; c.y += c.vy; c.rot = Math.max(-0.5, c.rot - 0.02);
+    // (out of control, spinning end over end)
+    c.vy += 0.55; c.x += c.vx; c.y += c.vy; c.rot -= 0.45;
     if (c.y < state.camera.y - 300) c.state = 'gone';
   }
   // Meathead's take on that, from somewhere up there, once he's done yelling (the hipster goes off it without a word)

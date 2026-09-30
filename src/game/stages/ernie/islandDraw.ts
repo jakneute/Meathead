@@ -18,7 +18,7 @@ import { tourWrecked } from './alcatraz';
 import { faultAmount, collapseState, quakeAmount } from './quake';
 import { drawFault } from './faultDraw';
 import { DoorCrash, CRASH_X, CAVE_X, CAVE_W, NIGHT_TOUR, dropAmount, crashed, cavedIn, lookingUp, ceilingTear, hipsterY } from './doorCrash';
-import { drawTourist, TOURIST_LOOKS, drawHipsterOnSki } from './drawSea';
+import { drawTourist, TOURIST_LOOKS, drawHipsterDrilling, drawHipsterPlanted } from './drawSea';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -159,19 +159,19 @@ const drawDoorCrash = (ctx: Ctx, state: GameState, dc: DoorCrash) => {
     const k = dropAmount(dc);
     if (k >= 0) {
       const hy = hipsterY(dc);
-      drawHipsterOnSki(ctx, x - 20, hy, 1.35 + Math.sin(f * 0.8) * 0.06, f);
+      drawHipsterDrilling(ctx, x, hy - 50, f);
       // Chunks of rock round him as he drills down
       for (let i = 0; i < 10; i++) { ctx.fillStyle = i % 2 ? '#57534E' : '#34251E'; ctx.fillRect(x + (hash(i + f % 7) - 0.5) * 90, hy - 20 - hash(i + 3) * 60, 7, 7); }
       if (hy > VAULT) for (let i = 0; i < 10; i++) { ctx.fillStyle = i % 2 ? '#7C4A3A' : '#A8A29E'; ctx.fillRect(x + (hash(i) - 0.5) * 120, VAULT + 4 + (hy - VAULT) * (0.5 + hash(i + 3) * 0.5), 6, 6); }
     }
   } else {
-    // What's left: a crater, the hipster and his ski burning in it (charred), the tour all over the place
+    // What's left: a crater, the hipster drilled into the floor in the middle of it, legs up, his ski snapped off burning, the tour all over the place
     ctx.fillStyle = 'rgba(20, 16, 14, 0.8)'; ctx.beginPath(); ctx.ellipse(x, Y + 2, 180, 12, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#1C1917'; ctx.beginPath(); ctx.ellipse(x, Y + 4, 70, 10, 0, 0, Math.PI); ctx.fill();
     ctx.fillStyle = 'rgba(127, 29, 29, 0.85)';
     for (let i = 0; i < 12; i++) { const bx = x + (hash(i + 50) - 0.5) * 420; ctx.beginPath(); ctx.ellipse(bx, Y + 1, 14 + hash(i + 51) * 20, 3, 0, 0, Math.PI * 2); ctx.fill(); }
     for (let i = 0; i < 8; i++) { const bx = x + (hash(i + 60) - 0.5) * 460, by = Y - 40 - hash(i + 61) * 150; ctx.fillRect(bx, by, 5 + hash(i) * 8, 3); ctx.fillRect(bx + 2, by, 2, 10 + hash(i + 3) * 14); }
-    drawHipsterOnSki(ctx, x - 6, Y + 2, 0.5, f, true);
+    drawHipsterPlanted(ctx, x, Y + 2, f);
     for (let i = 0; i < 5; i++) {
       const fx = x - 34 + i * 14, h = 24 + Math.sin(f * 0.4 + i * 2) * 9;
       ctx.fillStyle = i % 2 ? 'rgba(249, 115, 22, 0.9)' : 'rgba(253, 224, 71, 0.85)';
@@ -197,7 +197,7 @@ const drawDoorCrash = (ctx: Ctx, state: GameState, dc: DoorCrash) => {
     // The vault behind him, come down: a heap of brick and bedrock floor to roof
     const cx = CAVE_X + CAVE_W / 2;
     ctx.fillStyle = '#2A1C16';
-    ctx.beginPath(); ctx.moveTo(cx - 90, Y); ctx.lineTo(cx - 50, Y - 150); ctx.lineTo(cx - 30, VAULT - 20); ctx.lineTo(cx + 30, VAULT - 20); ctx.lineTo(cx + 60, Y - 140); ctx.lineTo(cx + 95, Y); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx - 90, Y); ctx.lineTo(cx - 50, Y - 150); ctx.lineTo(cx - 30, VAULT - 20); ctx.lineTo(cx + 30, VAULT - 20); ctx.lineTo(cx + 50, Y - 140); ctx.lineTo(cx + 66, Y); ctx.closePath(); ctx.fill();
     for (let i = 0; i < 34; i++) {
       const s = hash(i + 90), yy = Y - hash(i + 91) * 240, spread = 30 + (Y - yy) * -0.25 + 60;
       ctx.fillStyle = s < 0.4 ? '#7C4A3A' : s < 0.7 ? '#5A3526' : '#57534E';

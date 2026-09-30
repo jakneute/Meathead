@@ -36,9 +36,9 @@ export interface DoorCrash {
 
 const C = COURSE.cellblock;
 /** Where the tour's stood (and he comes down), where Meathead walks into it, and the vault that caves in behind him. */
-export const CRASH_X = C.x2 - 400;
-const TRIGGER_X = C.x2 - 640;
-export const CAVE_X = C.x2 - 740, CAVE_W = 50;
+export const CRASH_X = C.x2 - 360;
+const TRIGGER_X = C.x2 - 740;
+export const CAVE_X = C.x2 - 900, CAVE_W = 120;
 /** How long he takes to come down through the vault (slowed by the brick and bedrock he's coming through). */
 export const DROP_FRAMES = 70;
 const Y = GROUND_Y;
@@ -87,7 +87,7 @@ export const updateDoorCrash = (ctx: FrameContext, dc: DoorCrash, controls: Cont
     // He's in: the camera takes the vault, and whatever's still about clears off
     dc.phase = 'scene'; dc.t = 0; dc.step = 0; dc.stepAt = 0;
     p.inCutscene = true;
-    state.cameraOverride = { x: C.x2 - 800, y: Y - 550 };
+    state.cameraOverride = { x: C.x2 - 860, y: Y - 550 };
     state.enemies = state.enemies.filter(e => e.type === 'boss' || e.pos.x < CAVE_X - 200);
     state.projectiles = [];
   }

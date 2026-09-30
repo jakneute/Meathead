@@ -73,7 +73,7 @@ export interface Course {
 const MAIN_X0 = -60000;
 const BAY_X0 = -120000;
 /** Alcatraz, from the cell house to Ernie's door. */
-const ISLAND_LEN = 6700;
+const ISLAND_LEN = 7100;
 const CELL_X1 = BOSS_DOOR_X - ISLAND_LEN;
 
 const Y = GROUND_Y;
@@ -234,7 +234,8 @@ const build = () => {
   I.ground(5650, 5800, Y, Y, 'citadel');
   I.spawn('parkranger', 5740);
   I.ledge(5835, Y - 90, 90, 150);
-  I.ground(5960, 6700, Y, Y, 'citadel');
+  // (and the last hallway, a good long one, down to Ernie's door)
+  I.ground(5960, 7100, Y, Y, 'citadel');
   I.ledge(6080, Y - 120, 140);
   I.pickup(6150, Y - 150, 'small_ammo');
   for (const x of [5300, 5600, 5880, 6150]) hang('brick', x, Y - 196);
