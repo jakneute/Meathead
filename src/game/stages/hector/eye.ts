@@ -32,7 +32,7 @@ export const EYE_CX = 400, EYE_CY = 262, EYE_R = 78;
 
 type PlatState = 'solid' | 'shake' | 'fall' | 'gone';
 /** (wear: frames he's stood on it, less what it's had to settle since) */
-export interface EyePlat { block: Block; home: { x: number; y: number; w: number }; state: PlatState; t: number; high: boolean; wear: number }
+export interface EyePlat { block: Block; home: { x: number; y: number; w: number }; state: PlatState; t: number; high: boolean; wear: number; /** He's stood on it right now. */ under?: boolean }
 export type EyeAttack = 'idle' | 'blink';
 /** Something the storm's flinging at you: a warning at the screen edge (warn > 0), then it flies across. */
 export interface FlyingJunk { look: string; side: 1 | -1; x: number; y: number; vx: number; vy: number; rot: number; warn: number; size: number }
@@ -140,6 +140,7 @@ const updatePlats = (ctx: FrameContext, f: EyeFight) => {
     p.t++;
     const b = p.block;
     const on = player.isGrounded && player.pos.x + player.width > b.x && player.pos.x < b.x + b.w && Math.abs(player.pos.y + player.height - b.y) < 4;
+    p.under = on;
     // Worn down while he stands on it (only while the fight's on); off it (in the air) it just stops, and the damage
     // stays: it doesn't settle back
     if (f.phase === 'fight' && (p.state === 'solid' || p.state === 'shake')) {
@@ -149,10 +150,10 @@ const updatePlats = (ctx: FrameContext, f: EyeFight) => {
     }
     switch (p.state) {
       case 'shake': {
-        // Wobbling, harder the closer it is to going
+        // Nearly done: it wobbles while he's stood on it (harder the closer it is to going), and sits still when he's off
         const k = (p.wear - WEAR_WOBBLE) / (WEAR_FALL - WEAR_WOBBLE);
         const amp = 1 + k * 3;
-        b.x = p.home.x + (p.t % 4 < 2 ? -amp : amp);
+        b.x = on ? p.home.x + (p.t % 4 < 2 ? -amp : amp) : p.home.x;
         break;
       }
       case 'fall':

@@ -254,7 +254,7 @@ export const drawEyeArena = (ctx: Ctx, state: GameState, f: EyeFight) => {
       // Cracking, bits falling off
       ctx.strokeStyle = '#111827'; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(b.x + b.w * 0.4, b.y); ctx.lineTo(b.x + b.w * 0.5, b.y + 8); ctx.lineTo(b.x + b.w * 0.45, b.y + 14); ctx.stroke();
-      if (state.frame % 4 === 0) { ctx.fillStyle = '#78350F'; ctx.fillRect(b.x + hash(state.frame) * b.w, b.y + 16 + (state.frame % 12), 4, 4); }
+      if (p.under && state.frame % 4 === 0) { ctx.fillStyle = '#78350F'; ctx.fillRect(b.x + hash(state.frame) * b.w, b.y + 16 + (state.frame % 12), 4, 4); }
     }
   });
   if (f.corpse) drawEyeCorpse(ctx, state, f.corpse.weapon, f.corpse.t0);
