@@ -11,7 +11,7 @@ import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
 import { shakeScreen } from '../../core/state';
 import { playSound, playGlassShatterSound } from '../../platform/audio';
-import { say, canSpeak, MEATHEAD_VOICE, Voice } from '../../platform/speech';
+import { say, canSpeak, isTalking, MEATHEAD_VOICE, Voice } from '../../platform/speech';
 import { GROUND_Y } from '../../../constants';
 import { COURSE, CP } from './course';
 import { spawnIsland } from './runtime';
@@ -84,7 +84,7 @@ const talkOver = (tour: Tour, clock: number, pause: number) => {
  * after the guide's punchline: the tour has a good laugh at the idea before anyone hears him coming.
  */
 export const LAUGH_BEAT = 239;
-const HOLDS = new Map([[124, 14], [189, 14], [LAUGH_BEAT, 180], [DROP_AT - 9, 0], [CLIMB_AT + 31, 25], [TOUR_END - 1, 20]]);
+const HOLDS = new Map([[124, 14], [189, 14], [LAUGH_BEAT, 180], [DROP_AT - 9, 0], [TOUR_END - 1, 20]]);
 
 /** The tour's laughing at the guide's joke (the beat before he's heard). */
 export const tourLaughing = (tour: Tour) => tour.phase === 'tour' && tour.t === LAUGH_BEAT && !!tour.talk?.over;
@@ -98,7 +98,9 @@ export const updateTour = (ctx: FrameContext, tour: Tour, controls: Controls): C
   tour.clock++;
   // (it holds at each beat till the line before it's been said)
   const hold = HOLDS.get(tour.t);
-  if (!(hold !== undefined && !talkOver(tour, tour.clock, hold))) tour.t++;
+  // (and it doesn't open on the guide till Meathead's done with what he was saying off the ramp)
+  const waiting = tour.t === 39 && isTalking();
+  if (!waiting && !(hold !== undefined && !talkOver(tour, tour.clock, hold))) tour.t++;
   else return { ...NO_CONTROLS };
   const t = tour.t;
   p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
@@ -129,8 +131,6 @@ export const updateTour = (ctx: FrameContext, tour: Tour, controls: Controls): C
     p.squash = 0.6;
   }
   if (t === CLIMB_AT + 30) speak(tour, 'meathead', 'WHICH WAY TO THE GIFT SHOP?', MEATHEAD_VOICE);
-  // (and the one who came off the ramp after him isn't anywhere)
-  if (t === CLIMB_AT + 70) speak(tour, 'meathead', '...I WONDER WHERE HE WENT.', MEATHEAD_VOICE);
   if (t >= TOUR_END) {
     tour.phase = 'wrecked'; tour.t = 999;
     p.inCutscene = false;

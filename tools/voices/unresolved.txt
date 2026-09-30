@@ -5,7 +5,7 @@ game/stages/hector/hazards.ts:443 name: undefined
 game/stages/victor/hazards.ts:262 name: undefined
 game/stages/victor/hazards.ts:270 name: undefined
 game/stages/ernie/quake.ts:339 name: undefined
-game/stages/ernie/jetski.ts:455 name: undefined
+game/stages/ernie/jetski.ts:456 name: undefined
 game/stages/ernie/index.ts:21 name: undefined
 game/stages/dale/runtime.ts:175 name: undefined
 game/stages/dale/runtime.ts:189 name: undefined

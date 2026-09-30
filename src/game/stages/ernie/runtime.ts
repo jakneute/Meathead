@@ -18,6 +18,16 @@ import { Bridge, createBridge, updateBridge } from './bridge';
 import { JetSki, createJetSki, updateJetSki } from './jetski';
 import { Tour, createTour, startTour, updateTour, tourWrecked } from './alcatraz';
 import { DoorCrash, createDoorCrash, updateDoorCrash } from './doorCrash';
+import { say, MEATHEAD_VOICE } from '../../platform/speech';
+
+/** Meathead, to himself, over his head (after whoever's talking). */
+const meatheadSays = (state: GameState, text: string) => {
+  const shown = say(text, MEATHEAD_VOICE, 'queue', {
+    onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 180; },
+    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 30); },
+  });
+  if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 160; }
+};
 
 export interface ErnieRuntime {
   startedAt: number;
@@ -27,6 +37,8 @@ export interface ErnieRuntime {
   tour: Tour;
   /** The one who went off the ramp after him, coming down outside Ernie's door. */
   doorCrash: DoorCrash;
+  /** Out in the yard he's wondered where the hipster got to. */
+  wondered: boolean;
   /** Off the end of the bridge and down to the water: frames of the fade (0 = not). */
   downT: number;
   /** Off the ramp and on to the island: frames of the fade to black (0 = not). */
@@ -39,7 +51,7 @@ export const regionOf = (x: number): Region => (x >= COURSE.cellblock.x1 - 200 ?
 /** Nothing's placed closer than this ahead of where you start. */
 const SPAWN_CLEARANCE = 480;
 export const DOWN_FRAMES = 50, DOWN_HOLD = 8;
-export const AWAY_FRAMES = 40;
+export const AWAY_FRAMES = 30;
 
 export const getErnie = (state: GameState) => state.stage as ErnieRuntime | null;
 
@@ -66,6 +78,7 @@ export const createErnieRuntime = (state: GameState, skipToBoss: boolean): Ernie
     ski: createJetSki(state, startedAt),
     tour: createTour(startedAt),
     doorCrash: createDoorCrash(state, startedAt),
+    wondered: startedAt >= CP.CITADEL,
     downT: 0,
     awayT: 0,
   };
@@ -91,6 +104,8 @@ export const updateErnie = (ctx: FrameContext, controls: Controls): Controls => 
   const onIsland = region === 'cell' && tourWrecked(rt.tour) && rt.tour.phase === 'wrecked' && rt.doorCrash.phase !== 'scene' && player.pos.x < COURSE.cellblock.x2 - 350;
   updateQuakes(ctx, rt.quakes, (region === 'main' && !rt.bridge.plunge) || onIsland);
   if (region === 'cell') {
+    // Out into the yard: no sign of the hipster anywhere (he's still up there somewhere)
+    if (!rt.wondered && player.isGrounded && player.pos.x > COURSE.island.house + 60) { rt.wondered = true; meatheadSays(state, "HUH. WHERE'D THAT HIPSTER LAND? HE WAS RIGHT BEHIND ME."); }
     for (const cp of [CP.YARD, CP.CITADEL, CP.DOOR]) if (state.checkpoint < cp && player.isGrounded && player.pos.x >= COURSE.checkpoints[cp].x) state.checkpoint = cp;
   }
   if (region === 'main') {

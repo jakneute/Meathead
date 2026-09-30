@@ -280,7 +280,7 @@ const riding = (ctx: FrameContext, js: JetSki, controls: Controls): Controls => 
     p.isGrounded = false;
     p.isCharging = false; p.isUppercutting = false; p.isDivekicking = false;
     js.talk = null;
-    talk(js, 'meathead', 'COWABUNGAAAAA!');
+    talk(js, 'meathead', 'COWABUNGA!');
     playSound('engine');
     // (and the hipster isn't stopping either)
     js.chaser.vx = 13;
@@ -439,7 +439,8 @@ const launch = (ctx: FrameContext, js: JetSki, onLanded: () => void): Controls =
   if (js.chaserLine === 'no' && c.state === 'flying' && talkOver(js)) { talk(js, 'meathead', 'THE HIPSTER?! GET YOUR OWN RAMP!'); js.chaserLine = 'done'; }
   // ...and straight on to the island once he's said it (the camera's stopped by then: nothing more to see on the water)
   if (c.state === 'gone') state.cameraOverride = { x: state.camera.x, y: state.camera.y };
-  if (js.t >= 60 && ((js.chaserLine === 'done' && talkOver(js)) || js.t > 360)) {
+  // (it cuts away as soon as they're both gone and he's into his line: it finishes over the fade, and the island waits for it)
+  if (js.t >= 40 && ((js.chaserLine === 'done' && c.state === 'gone') || js.t > 300)) {
     js.phase = 'gone';
     js.lineT = 0;
     onLanded();

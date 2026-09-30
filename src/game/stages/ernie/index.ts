@@ -51,6 +51,9 @@ export const ernieLayout: StageLayout = {
     wall(C.bridge.x2, 'bridge-end');
     wall(C.bay.x1 - 60, 'bay-end');
     wall(C.cellblock.x1 - 60, 'cell-end');
+    // The cell house's roof (under the skylights), and the citadel's vaults: nobody's jumping out through either
+    state.blocks.push({ x: C.cellblock.x1 - 60, y: GROUND_Y - 470 - 40, w: C.island.house - C.cellblock.x1 + 60, h: 40, type: 'wall', hidden: true, tag: 'house-roof' });
+    state.blocks.push({ x: C.island.yard, y: GROUND_Y - 230 - 40, w: C.cellblock.x2 - C.island.yard, h: 40, type: 'wall', hidden: true, tag: 'citadel-vault' });
     state.cameraMinX = C.startX;
     state.stage = createErnieRuntime(state, skipToBoss);
     const cp = skipToBoss ? 0 : state.checkpoint;
