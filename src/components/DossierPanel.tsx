@@ -8,6 +8,7 @@ import BossPortrait from './BossPortrait';
 import CorpsePhoto from './CorpsePhoto';
 import GaragePortrait from './GaragePortrait';
 import { GARAGE_ID, GARAGE_DOSSIER } from '../content/garage';
+import { lastSouvenirOf } from '../game/garageStore';
 
 /** Right stick: how far it has to go before it scrolls, and how fast it scrolls at full tilt (px a frame). */
 const STICK_DEADZONE = 0.2, STICK_SPEED = 7;
@@ -210,6 +211,8 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
             {section('REMAINS', corpseWeapon ? after.remains.weakness : after.remains.normal)}
             {section('AFTERMATH', after.aftermath)}
             {section('COLLATERAL DAMAGE', after.collateral)}
+            {/* (what he took home: whichever of the three it was) */}
+            {(() => { const id = lastSouvenirOf(bossId); return id && after.taken[id] ? section('REMOVED FROM THE SCENE BY THE ASSET', after.taken[id]) : null; })()}
             <div className="flex gap-2 items-start">
               {/* (the evidence photo: what's left of him after his weakness, or him where he fell after anything else) */}
               {(

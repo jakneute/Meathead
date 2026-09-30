@@ -24,6 +24,12 @@ export const ownedSouvenirs = (): string[] => {
   return Array.isArray(ids) ? ids.filter((id): id is string => typeof id === 'string' && SOUVENIRS.some(s => s.id === id)) : [];
 };
 
+/** The souvenir of this boss's he took home most recently (its id), if he's got any. */
+export const lastSouvenirOf = (boss: string): string | null => {
+  const mine = ownedSouvenirs().filter(id => SOUVENIRS.find(s => s.id === id)?.boss === boss);
+  return mine.length ? mine[mine.length - 1] : null;
+};
+
 /** Which difficulties each boss has been cleared on. */
 const clears = (): Record<string, Difficulty[]> => {
   const c = read<unknown>(CLEARS_KEY, {});

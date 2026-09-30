@@ -149,20 +149,32 @@ export interface Aftermath {
   handler: string;
   /** What became of the body: after a weakness kill (the wrecked corpse he left, pissed on), or a plain one. */
   remains: { weakness: string; normal: string };
+  /** What he took home from the scene: a line for each of the boss's souvenirs (the one he's got goes in the file). */
+  taken: Record<string, string>;
 }
 
 export const AFTERMATHS: Record<string, Aftermath> = {
   'Artie Avalanche': {
+    taken: {
+      antler: "One (1) moose antler, removed from the moose. The asset hangs towels on it. The Parks Service has asked for it back. The asset has asked what a Parks Service is.",
+      moonboots: "One (1) pair of moon boots, removed from the deceased. The asset wears them to leg day. Forensics would like them back. Forensics has since smelled them and no longer would.",
+      snowglobe: "One (1) snow globe from the gift stand at the tram station. It was paid for. We checked. We were surprised.",
+    },
     aftermath: 'The asset went up the mountain on foot, by tram and over a moose, and came down it on a stolen pair of skis with an avalanche behind him that he started. The ranger cabin at the bottom was flattened. The cryo-vault, left unsupervised, thawed in an afternoon. The trail is still closed. The tram is still being hosed out.',
     collateral: 'One (1) aerial tram, windows and roof hatch. Every eagle, wolverine and mountain goat on the trail. Artie\'s entire crew. One (1) moose, a local favorite. One (1) skier, booted off the summit mid-selfie. One (1) ranger cabin, under an avalanche.',
     finding: 'THE TRAM WAS OVER BUDGET. THE MOOSE WAS GRAZING ON FEDERAL LAND WITHOUT A PERMIT. THE SKIER WAS CANADIAN. THE RANGER CABIN HAS BEEN RECLASSIFIED AS A CONTROLLED AVALANCHE, WHICH WE MEANT TO DO. SUCCESS.',
-    handler: 'Asset came back wearing the moon boots and the skier\'s skis. Asset says they "fell off the guy." We did not ask which guy. We know which guy. [[The ranger in the cabin saw the whole thing. Saw.]]',
+    handler: 'Asset came back wearing the skier\'s skis. Asset says they "fell off the guy." We did not ask which guy. We know which guy. [[The ranger in the cabin saw the whole thing. Saw.]]',
     remains: {
       weakness: 'Thawed where he stood. What was left slumped into a puddle of pink slush with a few organs bobbing in it like ice cubes in a bad drink. The asset urinated in it. Forensics are calling it a cocktail.',
-      normal: 'Went over backward like a felled pine and stayed there, in one piece, frost still on his eyebrows. The moon boots were still on. Nobody wanted to be the one to take them off.',
+      normal: 'Went over backward like a felled pine and stayed there, in one piece, frost still on his eyebrows. His boots were still on. Nobody wanted to be the one to take them off.',
     },
   },
   'Victor Volcano': {
+    taken: {
+      viprope: "One (1) velvet VIP rope, posts included, from the door of Club Caldera. The asset has set it up across his garage door. We have not been let in.",
+      lavalamp: "One (1) lava lamp from the VIP lounge, still working. The only lava on the island that was not evidence.",
+      neon: "One (1) CLUB CALDERA neon sign, torn off the wall with the wiring still in it. The asset carried it home lit.",
+    },
     aftermath: 'The asset was refused entry to Club Caldera and took it personally. The doorman was removed. The asset went in the back way, across the lava and up the furnace shaft, and came through the window of the VIP lounge feet first announcing that it was "party time." The explosion was heard from the far side of the island. So was the screaming. The club is closed.',
     collateral: 'One (1) doorman. Every heat-suit worker, salamander and vulture between the cliffs and the top of the shaft. The entire VIP list of Club Caldera, and the DJ. The lounge, which is now a crater with a velvet rope around it.',
     finding: 'THE GUEST LIST WAS THE MOST CONCENTRATED GATHERING OF UNTAXED INCOME IN THE PACIFIC. IT HAS BEEN SETTLED IN FULL, BY THE ESTATES. THE DOORMAN WAS UNLICENSED. THE ISLAND\'S NIGHTLIFE IS NOW FEDERALLY COMPLIANT. SUCCESS.',
@@ -173,6 +185,11 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     },
   },
   'Ernie Earthquake': {
+    taken: {
+      mug: "One (1) Alcatraz gift shop mug. The asset paid for it. It is the only thing he has paid for this year.",
+      seismo: "One (1) seismograph readout, torn off the drum. The spike in the middle of it is the asset landing. He has had it framed.",
+      bell: "One (1) cable car bell, unbolted from a cable car still in service. The cable car is still in service. It no longer rings.",
+    },
     aftermath: 'The asset crossed San Francisco during a scheduled earthquake, crossed the Golden Gate while it fell into the bay, took a jet ski off a man who was sitting on it, and landed it through the skylight of the Alcatraz cell house on a guided tour at the exact moment the guide said nobody had ever broken in. When the smoke cleared there was one man standing. It was the asset.',
     collateral: 'Most of the tech bros, bike couriers, protesters, raccoons and seagulls on the way down to the bay. Several motorists on the bridge, already on fire, "put out of their misery." One (1) hipster, one (1) jet ski. The Alcatraz tour group, the tour guide and the skylight.',
     finding: 'THE GOLDEN GATE WAS OVERDUE FOR A REPAINT. THE PROTESTERS HAD NO PERMIT. THE TOUR GROUP HAS CONFIRMED, ONCE AND FOR ALL, THAT NOBODY LEAVES ALCATRAZ, WHICH IS GREAT PR FOR THE PRISON SYSTEM. SUCCESS.',
@@ -183,6 +200,11 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     },
   },
   'Hector Hurricane': {
+    taken: {
+      flamingo: "One (1) plastic lawn flamingo that came down out of the storm onto a man. The asset kept the flamingo. The man has been returned to his family.",
+      clicker: "One (1) weather clicker, taken out of the deceased's hand. The asset has pressed it several hundred times. The forecast in his garage is unchanged.",
+      daycare: "One (1) LITTLE SUNSHINE DAYCARE sign, off what is left of the daycare. The children said he could have it. The children have been told not to make promises on behalf of the state.",
+    },
     aftermath: 'The asset walked Miami Beach, the motel strip and the marina in the middle of a hurricane, threw an old man off the end of a pier to take his boat, and drove it into a waterspout. At the top of the storm he killed the Eye, and everything the storm was holding came down at once, on a daycare. The asset came down with it. The children were fine. The two staff on duty, who saw it coming and ran, were not.',
     collateral: 'Every surfer, tourist, bouncer, gator, crab, pelican and iguana between the beach and the marina, and any riot police who responded. One (1) fisherman, thrown in. One (1) boat. The Eye. One (1) daycare, flattened, with two (2) staff members under it.',
     finding: 'THE STAFF ABANDONED THEIR POSTS AND WERE DISCIPLINED BY NATURE. THE CHILDREN RECEIVED THE THOROUGH RINSE MR. DELGADO HAD PROMISED THEM, AT NO COST TO THE STATE. THE FISHERMAN HAD NO LICENSE. HURRICANE PREPAREDNESS HAS NEVER BEEN HIGHER. SUCCESS.',
@@ -193,6 +215,11 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     },
   },
   'Toxic Tommy': {
+    taken: {
+      flintjar: "One (1) jar of Flint tap water, collected by the asset personally. It glows. It is not evidence. It is a hazard. It is on his shelf.",
+      hazmat: "One (1) hazmat hood off one of Tommy's crew, still damp. The asset looked through it at something in the sewer. He will not say what.",
+      horn: "One (1) bicycle horn, the property of a child named Tayvon. Tayvon has asked for it back. We passed his request on to the asset. The asset honked.",
+    },
     aftermath: 'The asset stole a birthday bike off a child on a street corner, rode it across Flint with the child\'s friends shooting at him, went down a manhole, and killed the thing in the cistern that the East Side had become. Then the sewer blew him out of the ground, through the water tower, which came down through the roof of a house where a family was watching TV. The water got them. It did not get the asset.',
     collateral: 'One (1) bicycle, the property of Tayvon, a birthday present. Several lowriders, their occupants and their pit bulls. Tommy\'s crew and everything living in the sewer. The East Side, which was already dead. One (1) water tower. One (1) house. One (1) family, on the couch.',
     finding: 'THE FAMILY WILL NEVER DRINK FLINT WATER AGAIN, WHICH IS MORE THAN THE STATE HAD PROMISED ANYBODY. THE EAST SIDE HAS BEEN PERMANENTLY REMOVED FROM THE CLASS ACTION. THE BIKE WAS UNREGISTERED. SUCCESS.',
@@ -203,6 +230,11 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     },
   },
   'Blackout Barry': {
+    taken: {
+      hardhat: "One (1) power company hard hat. The asset uses it as a bowl. The power company has asked for it back. The power company can come and get it.",
+      toaster: "One (1) toaster, thrown at the asset out of a window. He caught it with his face. It still makes toast.",
+      streetsign: "One (1) FIFTH AVE street sign. The city has noticed. The city has bigger problems. The asset was most of them.",
+    },
     aftermath: 'The asset came up through Manhattan the hard way: the street, every floor of an office building, the rooftops in the dark and up the fire escape of a walk-up whose tenants threw appliances at him. At the top he destroyed all three generators, one at a time, while Barry\'s man on the grid read out what each one had been running. Then the room blew up, and the asset rode Barry\'s man down onto the street like a sled.',
     collateral: 'The pimps, muggers and rats of one (1) block. The lobby. Floor 23. Floor 41. Floor 58, its staff and its test subjects. Every tenant who leaned out of a window. Three (3) generators, one (1) power room and Barry\'s man. The subway signals, the traffic lights, the hospitals, the stock exchange and the hot dog carts.',
     finding: 'EVERY TRAFFIC LIGHT IN MANHATTAN WAS GREEN AT ONCE, AND TRAFFIC MOVED FOR THE FIRST TIME IN THE CITY\'S HISTORY. THE STOCK EXCHANGE CLOSED BEFORE ANYBODY COULD SELL. THE TENANTS WHO THREW APPLIANCES AT A FEDERAL ASSET HAVE BEEN EVICTED, VERTICALLY. SUCCESS.',
@@ -213,6 +245,11 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     },
   },
   'Oily Oscar': {
+    taken: {
+      derrick: "One (1) oil derrick, desk model, still pumping, still leaking. It came off Oscar's desk. The oil came with it.",
+      clock: "One (1) clock, off the wall of the union break room. It still keeps time. The union has filed a grievance about the break.",
+      chain: "One (1) bike chain, the property of a biker called Dirty Dan. Dirty Dan was not available for comment. Dirty Dan will not be available for comment.",
+    },
     aftermath: 'The asset crossed the field through the slick and the tar, filled the union break room with gas while the union was still on break in it and lit it. Then he took a chopper and a machine gun off a biker called Dirty Dan and wrecked every vehicle that came after him, ran the bike into the two men on their smoke break at the field office, and did to the bikers\' bar what he\'d done to the break room. Then he went to find Oscar.',
     collateral: 'The field\'s rangers, deputies, bikers, armadillos, longhorns and grackles. One (1) union break room, with the union in it. One (1) chopper and one (1) machine gun, the property of Dirty Dan. Every pickup, cruiser and chopper of the Angry Mob, each now at the top of a derrick. Two (2) smokers. The Broken Spoke and every biker in it. The field, still burning.',
     finding: 'THE UNION IS NO LONGER ON BREAK. THE BIKER GANG IS NO LONGER A REGIONAL CONCERN. WITH A FIELD ON FIRE, OIL PRICES ARE UP 40%, AND THE DERRICKS HAVE BEEN LISTED AS A STRATEGIC VEHICLE RESERVE. SUCCESS.',
@@ -223,10 +260,15 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     },
   },
   'Drug Trade Dale': {
+    taken: {
+      goldgun: "One (1) gold-plated pistol, the property of Chuco the distributor. It is loaded. It has always been loaded. It is mounted on the asset's wall.",
+      badge: "One (1) sheriff's badge (costume), the property of Sheriff Dan, ten dollars an hour. The asset says he is the sheriff now. Nobody has argued.",
+      lizard: "One (1) lizard, the property of the late Riggs. The asset has promised to feed it crickets twice a day. It is the only promise he has ever kept.",
+    },
     aftermath: 'The asset fell out of the sky onto Dale\'s crew in the desert and was mistaken for the feds, which was close enough. He went through the cartel warehouse and its distributor, down Dale\'s convoy one semi at a time while they blew up behind him, and up the main street of Deadwood Gulch. The third hitman, a ninja up the church tower, missed him so many times he killed himself out of shame. The second, Riggs, came back from the dead in the last truck and took the tourists and the jail with him. Dale was signed for at his pharmacy.',
     collateral: 'The desert\'s rattlesnakes, scorpions, coyotes and hawks. The cartel warehouse, its staff and Chuco, its distributor. Three (3) semis and their crews, blown up on the interstate. One (1) curio shop. One (1) ninja, by his own hand. Every tourist on Main Street and one (1) man locked in the jail for a photo, all by Riggs. Riggs.',
     finding: 'THE CARTEL\'S DISTRIBUTION NETWORK HAS BEEN DISMANTLED, MOSTLY ACROSS AN INTERSTATE. THE NINJA TOOK HIS OWN LIFE, SAVING THE TAXPAYER A TRIAL. THE TOURISTS WERE RUN DOWN BY A CARTEL EMPLOYEE AND COUNT TOWARD THE WAR ON DRUGS AS CARTEL CASUALTIES. WE ARE WINNING. SUCCESS.',
-    handler: 'Asset has the DALE\'S DRUGS sign. Asset thinks he "is Dale now." Somebody had to feed Sir Reginald, and the asset volunteered. We did not know what Sir Reginald was. We know now. We wish we did not. [[The shipments start up again on Monday. Under new management. Ours.]]',
+    handler: 'Asset has the DALE\'S DRUGS sign. Asset thinks he "is Dale now." He has started answering the pharmacy phone. Several customers have been served. [[The shipments start up again on Monday. Under new management. Ours.]]',
     remains: {
       weakness: 'Dissolved in a puddle of the asset\'s barf until only half a skull and a belt buckle remained. The asset urinated in the puddle. The puddle is now a controlled substance.',
       normal: 'Fell over in front of his own pharmacy and stayed down, in one piece, for once the only package on the premises nobody had cut. Somebody signed for him. He was delivered to the county morgue on time, which was a first.',

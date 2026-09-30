@@ -1,5 +1,5 @@
 // Artie Avalanche's sprite: a glaciologist who stopped writing papers. Puffy ice-blue parka gone
-// crystalline at the shoulders, moon boots (indoors), a frosted white beard, snow goggles up on his
+// crystalline at the shoulders, moon boots (indoors), a salt-and-pepper beard stiff with frost, snow goggles up on his
 // forehead and his hood lined with emergency foil. Drawn in the boss's local space (0,0 = his top-left
 // corner), in an 80x80 box.
 
@@ -8,8 +8,8 @@ import { Enemy } from '../../../types';
 import { FaceStyle, Mood, drawHead, headAt, facingOf, goreOf, moodOf, inHead, limb, hand, foil, bodyBlood, breath } from './kit';
 
 const FACE: FaceStyle = {
-  skin: '#EBCFC4', shadow: '#B99AA0', highlight: '#FFF1EC', brow: '#F8FAFC', iris: '#0EA5E9',
-  jaw: 'long', age: 0.75, bags: '#8FA3B8', nose: 'red', lips: '#8FA3B8', bushy: true,
+  skin: '#EBCFC4', shadow: '#B99AA0', highlight: '#FFF1EC', brow: '#4A3F37', iris: '#0EA5E9',
+  jaw: 'long', age: 0.5, bags: '#8FA3B8', nose: 'red', lips: '#8FA3B8', bushy: true,
 };
 const PARKA = '#7FB3D5', PARKA_DARK = '#4F86AD', PARKA_LIGHT = '#B7D7EC', MITT = '#1E40AF';
 
@@ -85,28 +85,32 @@ export const drawArtie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
       foil(ctx, [-16, -4, -14, -12, -8, -16, 0, -17, 7, -15, 10, -12, 4, -10, -6, -9, -11, -2, -13, 6, -16, 4], frame, 2);
     },
     hair: () => {
-      // Beard: frosted, white, stiff, ringing the jaw under his mouth
-      ctx.fillStyle = '#F8FAFC';
+      // Beard: salt and pepper (he's 44: going grey, not there yet), stiff with frost, ringing the jaw under his mouth
+      ctx.fillStyle = '#5C5048';
       ctx.beginPath();
       ctx.moveTo(-10, 0); ctx.quadraticCurveTo(-10, 12, -2, 15); ctx.lineTo(0, 17); ctx.lineTo(3, 14.5);
       ctx.quadraticCurveTo(10, 12, 10.5, 1); ctx.lineTo(8.5, 2); ctx.quadraticCurveTo(7, 9.5, 1, 10); ctx.quadraticCurveTo(-6, 9.5, -8, 1); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#CBD5E1';
-      for (let i = 0; i < 6; i++) ctx.fillRect(-7 + i * 2.8, 11 + (i % 2), 0.6, 2.4);
+      ctx.fillStyle = '#A8A29E';
+      for (let i = 0; i < 9; i++) ctx.fillRect(-8 + i * 2, 4 + ((i * 5) % 8), 0.7, 2.4);  // the grey coming through
+      ctx.fillStyle = '#F1F5F9';
+      for (let i = 0; i < 6; i++) ctx.fillRect(-7 + i * 2.8, 11.5 + (i % 2), 1.2, 1);      // frost on the ends
       // Icicles hanging off it
       ctx.fillStyle = '#BAE6FD';
       for (const x of [-4, 0.5, 4]) { ctx.beginPath(); ctx.moveTo(x - 0.8, 13); ctx.lineTo(x, 17.5 + (x % 2)); ctx.lineTo(x + 0.8, 13); ctx.fill(); }
-      // Moustache
-      ctx.fillStyle = '#F1F5F9';
+      // Moustache (greyer than the rest)
+      ctx.fillStyle = '#78716C';
       ctx.beginPath(); ctx.ellipse(-1.5, 2.6, 4, 1.05, 0.1, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.ellipse(5, 2.4, 3.2, 1, -0.2, 0, Math.PI * 2); ctx.fill();
-      // Wild white hair, sticking up
-      ctx.fillStyle = '#F8FAFC';
+      // Wild hair sticking up: dark, greying through, grey at the temples
+      ctx.fillStyle = '#4A3F37';
       ctx.beginPath();
       ctx.moveTo(-11, -6); ctx.lineTo(-14, -12); ctx.lineTo(-9, -12); ctx.lineTo(-10, -17); ctx.lineTo(-4, -14);
       ctx.lineTo(-2, -19); ctx.lineTo(2, -14.5); ctx.lineTo(6, -18.5); ctx.lineTo(7, -13.5); ctx.lineTo(12, -15); ctx.lineTo(10, -10);
       ctx.lineTo(4, -12.5); ctx.lineTo(-4, -12); ctx.lineTo(-9, -9); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#CBD5E1';
-      ctx.fillRect(-6, -15, 0.6, 3); ctx.fillRect(1, -16, 0.6, 3); ctx.fillRect(7, -15, 0.6, 2.5);
+      ctx.fillStyle = '#A8A29E';
+      ctx.fillRect(-6, -15, 0.8, 3); ctx.fillRect(1, -16, 0.8, 3); ctx.fillRect(7, -15, 0.8, 2.5); ctx.fillRect(-3, -13.5, 0.8, 2); ctx.fillRect(4, -14, 0.8, 2);
+      ctx.fillStyle = '#D6D3D1';
+      ctx.fillRect(-11.5, -9, 2, 3.5); ctx.fillRect(9.5, -11, 1.6, 3); // grey at the temples
     },
     hat: () => {
       // Snow goggles pushed up on his forehead
