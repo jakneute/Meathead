@@ -31,7 +31,7 @@ const VENT_MIN_GAP = 100;
  */
 /** How far from either wall he has to be to barf (backed up against one, there's no getting round behind him). */
 const BARF_WALL_CLEARANCE = 170;
-const BARF_CHANCE = 0.5, BARF_WINDUP = 45, BARF_FRAMES = 220, BARF_REACH = 900, BARF_TURN = 0.011, BARF_DAMAGE = 12, BARF_COOLDOWN = 300;
+const BARF_CHANCE = 0.5, BARF_WINDUP = 45, BARF_FRAMES = 220, BARF_REACH = 900, BARF_TURN = 0.0085, BARF_DAMAGE = 12, BARF_COOLDOWN = 300;
 /** How wide the stream is: at his mouth, and how much it spreads over its length. */
 export const BARF_WIDTH = { base: 10, spread: 30 };
 /** Where his mouth is (the stream comes out of it). */
