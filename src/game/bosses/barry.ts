@@ -32,9 +32,9 @@ export const BARRY_TOLERANCE_FRAMES = 330;         // needles bounce off (starts
 const HIGH_FLOAT_Y = 150;
 
 const update = (ctx: FrameContext, boss: Enemy) => {
-  // Mild speed-up as he loses health: every phase timing shrinks a little
+  // Speeding up hard as he loses health: every phase timing shrinks, most of it early (he's frantic by half)
   const missingHpRatio = Math.max(0, Math.min(1, 1 - boss.health / boss.maxHealth));
-  const pace = 1 - missingHpRatio * BARRY_SPEEDUP_AT_ZERO_HP;
+  const pace = 1 - Math.sqrt(missingHpRatio) * BARRY_SPEEDUP_AT_ZERO_HP;
   const frames = (n: number) => Math.max(1, Math.round(n * pace));
   if (boss.toleranceTimer && boss.toleranceTimer > 0) boss.toleranceTimer--;
 

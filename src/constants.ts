@@ -374,7 +374,7 @@ export const TOMMY_TELEGRAPH_FRAMES = 62;        // board shake warning before h
 export const TOMMY_TELEGRAPH_RAMP = 10;          // frames shaved off at 0 HP
 
 // BLACKOUT BARRY: a mild speed-up as he loses health
-export const BARRY_SPEEDUP_AT_ZERO_HP = 0.2;     // his phases run up to 20% faster
+export const BARRY_SPEEDUP_AT_ZERO_HP = 0.55;    // his phases run up to 55% quicker (more than twice as fast by the end)
 
 // OILY OSCAR
 export const OSCAR_IDLE_FRAMES = 40;           // repositioning between attacks (shrinks as he loses health)
