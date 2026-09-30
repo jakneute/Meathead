@@ -2186,7 +2186,7 @@
  },
  {
   "voice": "boss.oscar",
-  "text": "The union. The rangers. The Angels. My bar. My field's on fire, pal! ...It's insured. You're not.",
+  "text": "The union. The rangers. The bikers. My bar. My field's on fire, pal! ...It's insured. You're not.",
   "from": "INTRO_QUOTES"
  },
  {
@@ -11701,7 +11701,7 @@
  },
  {
   "voice": "meathead",
-  "text": "The union. The rangers. The Angels. My bar. My field's on fire, pal! ...It's insured. You're not.",
+  "text": "The union. The rangers. The bikers. My bar. My field's on fire, pal! ...It's insured. You're not.",
   "from": "game/core/update.ts:163"
  },
  {

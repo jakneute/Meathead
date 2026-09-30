@@ -195,7 +195,7 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     case 'manhole': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
     case 'amalgam': return { ...base, harmless: true };
     case 'mutantfish': return { ...base, enemyType: 'flyer', initialY: pos.y };
-    // Oscar's: a Texas ranger with his revolver, a Hell's Angel who comes at you with his chain, a deputy behind a riot
+    // Oscar's: a Texas ranger with his revolver, a biker who comes at you with his chain, a deputy behind a riot
     // shield (he drops it to pitch a horseshoe); the chase's vehicles are run by the stage
     case 'ranger': return { ...base, behavior: 'shoot', shootTimer: Math.floor(Math.random() * 40) };
     case 'biker': return { ...base, behavior: 'patrol', pauseTimer: 0 };

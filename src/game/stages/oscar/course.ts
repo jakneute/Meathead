@@ -3,7 +3,7 @@
 //   I.   The field: crashed down among the pumpjacks. Oil on the ground in two
 //        kinds (a slick you slide about on, tar that holds your feet), pits of
 //        crude to fall in, pipelines to get up on. The field's security (Texas
-//        rangers, Hell's Angels, a deputy behind a riot shield) and its
+//        rangers, bikers, a deputy behind a riot shield) and its
 //        wildlife (armadillos, longhorns, grackles, rattlesnakes).
 //   II.  The break room: a little prefab bunker, the union on its break inside.
 //        Nobody in there can be touched, and the far door's locked till break's

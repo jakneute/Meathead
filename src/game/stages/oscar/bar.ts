@@ -1,4 +1,4 @@
-// The last room before Oscar's: the Hell's Angels' bar. The bikers are on
+// The last room before Oscar's: the bikers' bar. The bikers are on
 // their break in here (a hand of pool, drinks at the counter, the band on the
 // stage, one passed out in the booth), and while they are nobody lays a hand
 // on anybody: they can't hurt him and he can't hurt them. The far door's

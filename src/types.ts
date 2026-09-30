@@ -209,7 +209,7 @@ export type EnemyKind =
   // then the sewer (Tommy's hazmat crew with their sprayers, bloated mutant sewer workers, a crew man behind a manhole
   // cover, the little sludge things that hop out of the muck), and what's left of everyone the water killed
   | 'banger' | 'bruiser' | 'pitbull' | 'lowrider' | 'hazmat' | 'bloater' | 'manhole' | 'sludgeling' | 'mutantfish' | 'amalgam'
-  // Oscar's stage: the oil field's security (Texas rangers with revolvers, Hell's Angels who come at you, a deputy behind
+  // Oscar's stage: the oil field's security (Texas rangers with revolvers, bikers who come at you, a deputy behind
   // his riot shield), its wildlife (armadillos, longhorns), and the chase: union pickups, ranger cruisers, the bikers' choppers
   | 'ranger' | 'biker' | 'deputy' | 'armadillo' | 'longhorn' | 'grackle' | 'pickup' | 'cruiser' | 'chopper';
 

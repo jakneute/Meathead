@@ -1,5 +1,5 @@
 // Oscar's stage: the Texas oil field. Its security (Texas rangers with their
-// revolvers, Hell's Angels coming at you with a chain, a deputy behind a riot
+// revolvers, bikers coming at you with a chain, a deputy behind a riot
 // shield pitching horseshoes), its wildlife (armadillos that roll up and come
 // at you, longhorns), and the chase: union pickups with a man in the bed
 // throwing whatever's in it, ranger cruisers with their lights going, and the
@@ -89,7 +89,7 @@ const drawRanger = (ctx: Ctx, e: Enemy, f: number) => {
   if (c > 0.6) { ctx.fillStyle = `rgba(254, 240, 138, ${c})`; ctx.beginPath(); ctx.arc(39, -52, 2 + c * 3, 0, Math.PI * 2); ctx.fill(); }
 };
 
-/** A Hell's Angel: huge, a leather vest with the club's skull on it, bare tattooed arms, a beard to his belly, a chain swinging. */
+/** A biker: huge, a leather vest with the club's skull on it, bare tattooed arms, a beard to his belly, a chain swinging. */
 const drawBiker = (ctx: Ctx, e: Enemy, f: number) => {
   const running = Math.abs(e.vel.x) > 1;
   const skin = skinOf(e);
@@ -340,7 +340,7 @@ export const drawChopperBike = (ctx: Ctx, x: number, y: number, tilt: number, tu
   ctx.restore();
 };
 
-/** A Hell's Angel on his chopper: sat back, boots up on the pegs, one hand on the bars, the other swinging a chain. */
+/** A biker on his chopper: sat back, boots up on the pegs, one hand on the bars, the other swinging a chain. */
 const drawChopperRider = (ctx: Ctx, e: Enemy, f: number) => {
   const swing = e.aiState === 'swing' ? (e.aiTimer || 0) / 18 : 0;
   const tilt = e.aiState === 'swing' ? -0.08 : 0;
