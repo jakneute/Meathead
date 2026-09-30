@@ -221,7 +221,8 @@ const drawShaftWalls = (ctx: Ctx, state: GameState) => {
   }
   // The opening at the foot of the left wall (where the river comes in) stays dark
   ctx.fillStyle = '#0A0404'; ctx.fillRect(S.x1 - 60, S.floor - 170, 60, 170);
-  // The window at the top of the right wall: warm light and silhouettes moving behind the glass
+  // The window at the top of the right wall: into the club itself (its main floor: the VIP lounge is further on), warm
+  // light and silhouettes moving behind the glass
   const w = S.window;
   if (w.y > state.camera.y - 200 && w.y < state.camera.y + CANVAS_HEIGHT + 200) {
     const g = ctx.createLinearGradient(w.x - 20, w.y - 60, w.x - 20, w.y + 60);
@@ -230,7 +231,7 @@ const drawShaftWalls = (ctx: Ctx, state: GameState) => {
     ctx.fillStyle = 'rgba(0,0,0,0.5)';
     for (let i = 0; i < 2; i++) { const sx = w.x + 5 + ((f * 0.4 + i * 30) % 40); ctx.fillRect(sx, w.y - 20, 10, 60); ctx.beginPath(); ctx.arc(sx + 5, w.y - 26, 6, 0, Math.PI * 2); ctx.fill(); }
     ctx.strokeStyle = '#CA8A04'; ctx.lineWidth = 4; ctx.strokeRect(w.x - 10, w.y - 60, 60, 120);
-    ctx.fillStyle = '#FDE68A'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('VIP', w.x + 20, w.y - 68); ctx.textAlign = 'left';
+    ctx.fillStyle = '#FDE68A'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('CLUB CALDERA', w.x + 20, w.y - 68); ctx.textAlign = 'left';
     // Bass thumping out of it
     if (Math.floor(f / 15) % 2) { ctx.strokeStyle = 'rgba(236, 72, 153, 0.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(w.x - 10, w.y, 30, Math.PI * 0.6, Math.PI * 1.4); ctx.stroke(); }
   }
