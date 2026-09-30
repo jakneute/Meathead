@@ -1,7 +1,11 @@
 // Toxic Tommy's stage, laid out as data. Flint, Michigan.
 //
 //   I.   The hood, late afternoon, the water tower up on its legs over the
-//        rooftops. A little way up the street, a few of the local crew are
+//        rooftops. On foot down the block first: the crew's gangbangers up on
+//        the porch roofs, their pit bulls, the rats; the hydrants sheared off
+//        and blowing the town's water sky high every so often; the street
+//        caved in where the mains burst, and the holes flooded with the stuff.
+//        Then, a little way up the street, a few of the local crew are
 //        hanging out on the corner, one of them sat on his bike. Not for long.
 //   II.  The bike run: down the long, flat road across town, the crew after
 //        you in their lowriders,
@@ -23,12 +27,19 @@ import type { EnemyKind } from '../../../types';
 import type { GroundRun } from '../../core/terrain';
 import { GROUND_Y, BOSS_DOOR_X } from '../../../constants';
 
-export const CP = { HOOD: 0, ROAD: 1, ROAD_MID: 2, SEWER: 3, SUIT: 4, SUIT2: 5, CISTERN: 6, RUINS: 7 } as const;
+export const CP = { HOOD: 0, BLOCK: 1, ROAD: 2, ROAD_MID: 3, SEWER: 4, SUIT: 5, SUIT2: 6, CISTERN: 7, RUINS: 8 } as const;
 
 export interface Spawn { kind: EnemyKind; x: number; y: number; variant?: number }
 export interface PickupSpot { x: number; y: number; type: 'small_health' | 'large_health' | 'small_ammo' | 'large_ammo' }
 /** Something you jump up through and stand on: a porch, a grate over the muck, a pipe run. */
-export interface Ledge { x: number; y: number; w: number; look: 'porch' | 'grate' | 'pipe' }
+export interface Ledge { x: number; y: number; w: number; look: 'porch' | 'grate' | 'pipe' | 'porchroof' | 'carroof' | 'pallet' }
+/** Something solid on the block to get up on or over: a dumpster, a burned-out car. */
+export interface Solid { x: number; y: number; w: number; h: number; look: 'dumpster' | 'wreck' }
+/**
+ * A burst water main: a hydrant sheared off at the curb, or the broken pipe down in a flooded hole. Every `period` frames
+ * it gurgles, then blows the town's water sky high for a moment (hurts, him or anybody). `base` is where it comes up from.
+ */
+export interface Main { x: number; base: number; period: number; phase: number; look: 'hydrant' | 'pipe' }
 export interface Prop { look: string; x: number; y: number; w?: number; text?: string }
 /** Junk in the road on the bike run (world x): what it is, and how you get past it. */
 export interface RoadJunk { x: number; look: 'cones' | 'trash' | 'pothole' | 'glass' | 'car' | 'hydrant' | 'ramp' | 'barrier' }
@@ -52,6 +63,8 @@ export interface Course {
   drips: Drip[];
   channels: Channel[];
   bars: TunnelBar[];
+  solids: Solid[];
+  mains: Main[];
   /** The corner: the crew, the bike (and where he's stopped to watch). */
   hood: { x1: number; x2: number; corner: number; bike: number; stop: number };
   /** The road: where the ride starts and where it ends (the hazmat man and the open manhole). */
@@ -76,6 +89,8 @@ export interface Course {
 
 const Y = GROUND_Y;
 const HOOD_X0 = -120000;
+/** The block before it, on foot (it ends where the corner's street starts). */
+const BLOCK_LEN = 3800, BLOCK_X0 = HOOD_X0 - BLOCK_LEN;
 const ROAD_START = 1400;
 /** How long the road is, and how far past it the hazmat man's waiting. */
 export const ROAD_LEN = 26000;
@@ -98,9 +113,11 @@ export const TUNNEL_ROOF = Y - 70, TUNNEL_SURFACE = Y + 10, TUNNEL_FLOOR = Y + 2
 
 const part = (x0: number) => {
   const runs: GroundRun[] = [], ledges: Ledge[] = [], spawns: Spawn[] = [], pickups: PickupSpot[] = [], props: Prop[] = [];
-  const drips: Drip[] = [], channels: Channel[] = [], bars: TunnelBar[] = [];
+  const drips: Drip[] = [], channels: Channel[] = [], bars: TunnelBar[] = [], solids: Solid[] = [], mains: Main[] = [];
   return {
-    runs, ledges, spawns, pickups, props, drips, channels, bars,
+    runs, ledges, spawns, pickups, props, drips, channels, bars, solids, mains,
+    solid: (x: number, w: number, h: number, look: Solid['look']) => { solids.push({ x: x0 + x, y: Y - h, w, h, look }); },
+    main: (x: number, period: number, phase: number, look: Main['look'] = 'hydrant', base = Y) => { mains.push({ x: x0 + x, base, period, phase, look }); },
     ground: (x1: number, x2: number, y1 = Y, y2 = y1, surface?: string) => { runs.push({ x1: x0 + x1, y1, x2: x0 + x2, y2, surface }); },
     ledge: (x: number, y: number, w: number, look: Ledge['look']) => { ledges.push({ x: x0 + x, y, w, look }); },
     spawn: (kind: EnemyKind, x: number, y = Y, variant?: number) => { spawns.push({ kind, x: x0 + x, y, variant }); },
@@ -116,7 +133,41 @@ const part = (x0: number) => {
   };
 };
 
+/** A hole in the street where the main burst, flooded: its surface, and its floor. */
+const HOLE_SURFACE = Y + 34, HOLE_FLOOR = Y + 190;
+
 const build = () => {
+  // ============ THE BLOCK ============
+  // On foot, down to the corner. A hydrant blowing on its own first; the crew up on the porch roofs, a dog on the
+  // sidewalk; a flooded hole in the street to get across; hydrants either side of a porch with a shooter up on it; a
+  // brute and a wreck; and a last hole with the main still blowing up out of the middle of it, a dog waiting past it.
+  const k = part(BLOCK_X0);
+  k.ground(0, 1450);
+  // A hydrant going off on its own, out in the open (see what it does)
+  k.main(560, 170, 0);
+  // Up on a porch roof, one of the crew; a pit bull on the sidewalk under him
+  k.ledge(820, Y - 110, 170, 'porchroof'); k.spawn('banger', 900, Y - 110); k.spawn('pitbull', 1120);
+  // A dumpster (up on it and over, or round the back)
+  k.solid(1260, 96, 60, 'dumpster'); k.pickup(1308, Y - 90, 'small_ammo');
+  // The first hole: a car sunk in it up to its roof, a pallet floating, the far side (something living in it)
+  k.channel(1450, 1880, HOLE_SURFACE, HOLE_FLOOR);
+  k.ledge(1540, Y - 8, 100, 'carroof'); k.ledge(1726, HOLE_SURFACE - 8, 64, 'pallet');
+  k.spawn('sludgeling', 1680, HOLE_FLOOR);
+  k.ground(1880, 3200);
+  k.pickup(1960, Y - 30, 'small_health');
+  k.spawn('rat', 2160); k.spawn('rat', 2240);
+  // Two hydrants going off in turn, a porch between them with one of the crew up on it
+  k.main(2380, 150, 0); k.main(2600, 150, 75);
+  k.ledge(2420, Y - 115, 130, 'porchroof'); k.spawn('banger', 2485, Y - 115);
+  // The brute with the bat, and the wreck behind him
+  k.spawn('bruiser', 2860); k.solid(2990, 150, 52, 'wreck');
+  // The last hole: a car roof, the main blowing up out of the water past it, a pallet past that; a dog on the far side
+  k.channel(3200, 3560, HOLE_SURFACE, HOLE_FLOOR);
+  k.ledge(3270, Y - 8, 90, 'carroof'); k.main(3405, 130, 40, 'pipe', HOLE_SURFACE); k.ledge(3450, HOLE_SURFACE - 8, 60, 'pallet');
+  k.ground(3560, BLOCK_LEN);
+  k.spawn('pitbull', 3720);
+  k.pickup(3640, Y - 30, 'small_health');
+
   // ============ THE HOOD ============
   const h = part(HOOD_X0);
   h.ground(0, ROAD_START);
@@ -205,12 +256,12 @@ const build = () => {
   // Up top: the ruins, right up to a narrow hole, and the ground on past it; down below, the floor outside the door
   u.ground(1500, PIT, RUINS_Y); u.ground(PIT + PIT_W, 3000, RUINS_Y); u.ground(2200, 3000, Y);
   u.pickup(2700, Y - 30, 'large_health'); u.pickup(2780, Y - 30, 'large_ammo');
-  return { h, r, s, u, junk, waves, END };
+  return { k, h, r, s, u, junk, waves, END };
 };
 
 const buildCourse = (): Course => {
-  const { h, r, s, u, junk, waves, END } = build();
-  const all = [h, r, s, u];
+  const { k, h, r, s, u, junk, waves, END } = build();
+  const all = [k, h, r, s, u];
   const runs = all.flatMap(p => p.runs);
   runs.sort((a, b) => a.x1 - b.x1 || a.y1 - b.y1);
   // (the stage draws all of its own ground, and the gaps between the parts)
@@ -227,9 +278,12 @@ const buildCourse = (): Course => {
     props: all.flatMap(p => p.props),
     junk, waves,
     drips: s.drips,
-    channels: s.channels,
+    // (the flooded holes up on the block first, then the sewer's)
+    channels: [...k.channels, ...s.channels],
     bars: s.bars,
-    hood: { x1: HOOD_X0, x2: RX, corner: HOOD_X0 + 900, bike: HOOD_X0 + 1000, stop: HOOD_X0 + 620 },
+    solids: k.solids,
+    mains: k.mains,
+    hood: { x1: BLOCK_X0, x2: RX, corner: HOOD_X0 + 900, bike: HOOD_X0 + 1000, stop: HOOD_X0 + 620 },
     road: { x1: RX, x2: RX + END, hazmat: RX + ROAD_LEN + 520, manhole: RX + ROAD_LEN + 760 },
     sewer: {
       x1: SEWER_X0, x2: SEWER_X0 + 10000, drop: SEWER_X0 + 200, lockers: [SEWER_X0 + 4600, SEWER_X0 + 7580],
@@ -241,11 +295,11 @@ const buildCourse = (): Course => {
     },
     ruins: { x1: RUINS_X0 + 1500, x2: BOSS_DOOR_X, y: RUINS_Y, house: RUINS_X0 + 2130, pit: RUINS_X0 + PIT, pitW: PIT_W },
     checkpoints: [
-      { x: HOOD_X0 + 150, y: Y }, { x: RX + 60, y: Y }, { x: RX + 12000, y: Y },
+      { x: BLOCK_X0 + 150, y: Y }, { x: BLOCK_X0 + 1940, y: Y }, { x: RX + 60, y: Y }, { x: RX + 12000, y: Y },
       { x: SEWER_X0 + 200, y: Y }, { x: SEWER_X0 + 4450, y: Y }, { x: SEWER_X0 + 7400, y: Y }, { x: SEWER_X0 + 8700, y: Y }, { x: RUINS_X0 + 1640, y: RUINS_Y },
     ],
-    left: HOOD_X0 - 2000,
-    startX: HOOD_X0,
+    left: BLOCK_X0 - 2000,
+    startX: BLOCK_X0,
   };
 };
 

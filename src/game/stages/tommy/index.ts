@@ -38,6 +38,8 @@ export const tommyLayout: StageLayout = {
     state.blocks.push(...groundBlocks(C.runs));
     // Grates over the muck, pipe runs, porches: all things you jump up through and stand on
     C.ledges.forEach((l, i) => state.blocks.push({ x: l.x, y: l.y, w: l.w, h: 14, type: 'platform', hidden: true, oneWay: true, tag: `tledge-${i}` }));
+    // Dumpsters and wrecks on the block: solid, get up on them
+    C.solids.forEach((s, i) => state.blocks.push({ x: s.x, y: s.y, w: s.w, h: s.h, type: 'ground', hidden: true, tag: `tsolid-${i}` }));
     const wall = (x: number, y: number, w: number, h: number, tag: string): Block => ({ x, y, w, h, type: 'wall', hidden: true, tag });
     // The ends of each part
     state.blocks.push(wall(C.hood.x1 - 60, -3000, 60, 4400, 'hood-start'), wall(C.road.x2, -3000, 60, 4400, 'road-end'));

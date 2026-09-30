@@ -13,6 +13,7 @@ import { drawStreetSky, drawStreetGround, drawStreetFronts, drawJunk, drawCorner
 import { drawSewerBack, drawSewerGround, drawDrips, drawMuckFront, drawChunks } from './sewerDraw';
 import { drawCutScene, drawRuinsGround, drawRuinsHouse, drawSuitMelt, drawBlast } from './escapeDraw';
 import { drawThingBar, drawThing, drawThingDrops } from './thingDraw';
+import { drawBlockBack, drawBlockFront } from './blockDraw';
 import { thingSpot, THING_SURFACE } from './thing';
 import { inCutScene, dropFade } from './escape';
 import { saying, drawBubble, Speaker } from './script';
@@ -52,7 +53,7 @@ const drawUnderground = (ctx: Ctx, state: GameState) => {
 export const drawTommyBack = (ctx: Ctx, state: GameState) => {
   const rt = getTommy(state)!;
   const place = view(state);
-  if (place === 'hood' || place === 'road') { drawStreetFronts(ctx, state); drawStreetGround(ctx, state); }
+  if (place === 'hood' || place === 'road') { drawStreetFronts(ctx, state); drawStreetGround(ctx, state); drawBlockBack(ctx, state); }
   else if (place === 'ruins') { drawRuinsGround(ctx, state); drawRuinsHouse(ctx, state); }
   else { drawSewerBack(ctx, state, rt); drawSewerGround(ctx, state); }
 };
@@ -105,6 +106,8 @@ export const drawTommyFront = (ctx: Ctx, state: GameState) => {
       ctx.fillStyle = '#1C1917'; ctx.fillRect(cx - 5, dv.surface - 7 + bob, 4, 4); ctx.fillRect(cx + 1, dv.surface - 7 + bob, 4, 4);
     }
   }
+  // (up on the block: the flooded holes, and the mains blowing)
+  if (place === 'hood') { drawMuckFront(ctx, state); drawBlockFront(ctx, state); }
   if (place !== 'hood' && place !== 'road' && place !== 'ruins') drawMuckFront(ctx, state);
   drawSuitMelt(ctx, state, rt);
   drawSpeech(ctx, state, rt);

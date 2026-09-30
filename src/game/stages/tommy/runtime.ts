@@ -17,10 +17,13 @@ import { BikeRun, createBikeRun, updateBikeRun, bikeDeathMessage } from './bike'
 import { Sewer, createSewer, updateSewer } from './sewer';
 import { Thing, createThing, updateThingRoom, thingDeathMessage } from './thing';
 import { Escape, createEscape, updateEscape, escapeDeathMessage, startEscape } from './escape';
+import { Block, createBlock, updateBlock } from './block';
 
 export interface TommyRuntime {
   startedAt: number;
   talk: Talk;
+  /** The block before the corner: the mains blowing. */
+  block: Block;
   bike: BikeRun;
   sewer: Sewer;
   thing: Thing;
@@ -60,6 +63,7 @@ export const createTommyRuntime = (state: GameState, skipToBoss: boolean): Tommy
   const rt: TommyRuntime = {
     startedAt,
     talk: createTalk(),
+    block: createBlock(),
     bike: createBikeRun(state, startedAt),
     sewer: createSewer(startedAt),
     thing: createThing(state, startedAt),
@@ -113,6 +117,12 @@ export const updateTommy = (ctx: FrameContext, controls: Controls): Controls => 
     if (rt.fade.t < FADE_OUT + FADE_HOLD / 2) return { ...NO_CONTROLS };
   }
   const place = placeOf(p.pos.x);
+  // On foot down the block: the mains going off, the flooded holes (the sewer's muck, the same stuff)
+  if (place === 'hood' && rt.bike.phase === 'waiting') {
+    updateBlock(ctx, rt.block);
+    updateSewer(ctx, rt.sewer, rt.talk);
+    if (state.checkpoint < CP.BLOCK && p.isGrounded && p.pos.x > COURSE.checkpoints[CP.BLOCK].x) state.checkpoint = CP.BLOCK;
+  }
   if (place === 'hood' || place === 'road') {
     if (state.checkpoint < CP.ROAD_MID && rt.bike.phase === 'riding' && p.pos.x >= COURSE.checkpoints[CP.ROAD_MID].x) state.checkpoint = CP.ROAD_MID;
     controls = updateBikeRun(ctx, rt.bike, rt.talk, controls, () => startFade(rt, () => {

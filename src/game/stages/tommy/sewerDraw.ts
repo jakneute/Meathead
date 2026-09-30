@@ -170,14 +170,16 @@ export const drawMuckFront = (ctx: Ctx, state: GameState) => {
     if (!visible(state, c.x1, c.x2)) continue;
     const bottom = c.floor;
     const g = ctx.createLinearGradient(0, c.surface, 0, bottom);
-    // (thick, but he's still to be seen in it)
-    g.addColorStop(0, 'rgba(92, 104, 36, 0.62)'); g.addColorStop(1, 'rgba(38, 44, 14, 0.86)');
+    // (thick, but he's still to be seen in it; up in the street holes it's the tap water, rust-brown, not the sewer's green)
+    const street = c.x1 < COURSE.road.x1;
+    if (street) { g.addColorStop(0, 'rgba(133, 77, 14, 0.66)'); g.addColorStop(1, 'rgba(46, 26, 8, 0.9)'); }
+    else { g.addColorStop(0, 'rgba(92, 104, 36, 0.62)'); g.addColorStop(1, 'rgba(38, 44, 14, 0.86)'); }
     ctx.fillStyle = g;
     ctx.beginPath(); ctx.moveTo(c.x1, bottom);
     for (let x = c.x1; x <= c.x2; x += 16) ctx.lineTo(x, c.surface + Math.sin(x * 0.05 + f * 0.05) * 1.5);
     ctx.lineTo(c.x2, bottom); ctx.closePath(); ctx.fill();
     // The scum on top, things in it
-    ctx.fillStyle = 'rgba(190, 200, 90, 0.55)'; for (let x = c.x1 + ((f * 0.3) % 40); x < c.x2; x += 40) ctx.fillRect(x, c.surface - 1, 16, 2);
+    ctx.fillStyle = street ? 'rgba(214, 163, 92, 0.55)' : 'rgba(190, 200, 90, 0.55)'; for (let x = c.x1 + ((f * 0.3) % 40); x < c.x2; x += 40) ctx.fillRect(x, c.surface - 1, 16, 2);
     for (let x = c.x1 + 30; x < c.x2 - 20; x += 90) {
       const h = hash(x);
       if (h < 0.3) { ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x, c.surface - 3, 8, 4); } // a bottle
