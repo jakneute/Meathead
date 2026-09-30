@@ -277,8 +277,29 @@ export const mid = (o: { pos: { x: number; y: number }; width: number; height: n
 /** Is there ground a step ahead that isn't a drop? (So prowlers don't wander off ledges.) */
 /** Ground to step onto `look` px past its leading edge (look further ahead the faster it's going, to stop in time). */
 export const safeAhead = (ctx: FrameContext, e: Enemy, dir: number, look = 8) => {
-  const top = floorTopAt(ctx.state.blocks, e.pos.x + e.width / 2 + dir * (e.width / 2 + look), e.pos.y + e.height);
+  // (ground rising ahead, up a ramp or a steep hill, is fine too: as high as that far along a slope it can walk up goes)
+  const reach = 26 + (e.width / 2 + look) * 1.4;
+  const top = floorTopAt(ctx.state.blocks, e.pos.x + e.width / 2 + dir * (e.width / 2 + look), e.pos.y + e.height, reach);
   return top !== null && top - (e.pos.y + e.height) < 40;
+};
+
+/**
+ * Can it walk (run) from where it is to under him along the ground: no gap, no step it can't climb, and him stood on
+ * that ground (not up on a ledge over it)? Up and down a ramp or a hill, however far above or below it he is.
+ */
+export const walkableTo = (state: GameState, e: Enemy) => {
+  const runs = state.groundRuns, p = state.player;
+  if (!runs.length) return false;
+  const x1 = e.pos.x + e.width / 2, x2 = p.pos.x + p.width / 2, dir = Math.sign(x2 - x1) || 1;
+  let prev = profileYAt(runs, x1);
+  if (prev === undefined || Math.abs(prev - (e.pos.y + e.height)) > 30) return false;
+  for (let x = x1 + dir * 10; dir > 0 ? x < x2 : x > x2; x += dir * 10) {
+    const y = profileYAt(runs, x);
+    if (y === undefined || prev - y > 26) return false;
+    prev = y;
+  }
+  const end = profileYAt(runs, x2);
+  return end !== undefined && Math.abs(end - (p.pos.y + p.height)) < 30;
 };
 
 export const seesPlayer = (ctx: FrameContext, e: Enemy, rangeX: number, rangeY: number) => {

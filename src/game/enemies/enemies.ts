@@ -28,7 +28,7 @@ import { startEnemyDeath } from './deaths';
 import { getEnemyMass, enemyGrip, massRatio } from '../combat/knockback';
 import { floorTopAt, groundLineAt } from '../core/terrain';
 import { getStageLeft, getStageLayout } from '../stages';
-import { runKindAI, kindContactDamage, holdingOff, shieldFacing, isChargerKind, safeAhead, isSmallCritter } from './kinds';
+import { runKindAI, kindContactDamage, holdingOff, shieldFacing, isChargerKind, safeAhead, walkableTo, isSmallCritter } from './kinds';
 import { selfPropelled } from './kinds/hector';
 import { copMelee, isMeleeCop } from './copMelee';
 import { submerged } from './kinds/victor';
@@ -452,7 +452,8 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
   if (e.behavior === 'custom') {
     runKindAI(ctx, e);
   } else if (e.id.startsWith('rusher') || isChargerKind(e.kind)) {
-    const sameLevel = Math.abs((player.pos.y + player.height / 2) - (e.pos.y + e.height / 2)) < 80;
+    // (level with him, or with nothing but walkable ground between them: up a ramp or a hill after him, however high)
+    const sameLevel = Math.abs((player.pos.y + player.height / 2) - (e.pos.y + e.height / 2)) < 80 || walkableTo(state, e);
     const dir = player.pos.x < e.pos.x ? -1 : 1;
     // Him up on something right over its head (a desk, a crate, a car roof) where it can't get at him: it plants itself
     // under him and waits for him to come down (facing him), instead of running back and forth under him. It sets off
