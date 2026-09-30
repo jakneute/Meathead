@@ -67,7 +67,13 @@ export const stepRange = (range: GameState, controls: Controls, weapon: WeaponTy
   const ctx = createFrameContext(range, stageId, weapon, RANGE_CHEATS, NO_EVENTS);
   range.player.health = range.player.maxHealth;
   range.player.currentWeapon = weapon;
+  const alive = new Set(range.enemies.filter(e => e.id.startsWith('dummy-') && e.health > 0 && !e.isBlownAway).map(e => e.id));
   stepGame(ctx, GameStatus.PLAYING, controls);
+  // A dummy down: what Meathead's got to say is about him (the boxer, or the balloon man), not the usual
+  const downed = range.enemies.find(e => alive.has(e.id) && (e.health <= 0 || e.isBlownAway)) ?? (alive.size > range.enemies.filter(e => alive.has(e.id)).length
+    ? { id: [...alive].find(id => !range.enemies.some(e => e.id === id)) ?? '' } : null);
+  const kv = range.killVoice;
+  if (downed && kv?.quip) kv.quip.category = downed.id.startsWith('dummy-air') ? 'range_balloon_kill' : 'range_boxer_kill';
   // Fell out somehow: put him back
   if (range.player.pos.y > CANVAS_HEIGHT + 200 || range.deathTimer > 0) {
     if (range.deathTimer > 0) stopDeathAnnouncer();

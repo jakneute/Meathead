@@ -562,7 +562,7 @@
  {
   "voice": "announcer",
   "text": "SEPPUKU!",
-  "from": "game/stages/dale/town.ts:518"
+  "from": "game/stages/dale/town.ts:524"
  },
  {
   "voice": "announcer",
@@ -692,7 +692,7 @@
  {
   "voice": "announcer",
   "text": "TIMESHARE: VACANT",
-  "from": "game/stages/dale/town.ts:765"
+  "from": "game/stages/dale/town.ts:786"
  },
  {
   "voice": "announcer",
@@ -2677,32 +2677,32 @@
  {
   "voice": "dale.ninja",
   "text": "THERE IS ONLY ONE WAY TO RESTORE MY HONOR.",
-  "from": "game/stages/dale/town.ts:458"
+  "from": "game/stages/dale/town.ts:460"
  },
  {
   "voice": "dale.ninja",
   "text": "YOU CROSSED THE WHOLE TOWN UNDER MY SIGHTS, AND STILL YOU STAND. I HAVE FAILED MY MASTER.",
-  "from": "game/stages/dale/town.ts:457"
+  "from": "game/stages/dale/town.ts:459"
  },
  {
   "voice": "dale.prisoner",
   "text": "DAN! GIMME THE KEYS! STOP PLAYING! LET ME OUT!",
-  "from": "game/stages/dale/town.ts:627"
+  "from": "game/stages/dale/town.ts:643"
  },
  {
   "voice": "dale.prisoner",
   "text": "HEY! HEY, YOU! THE SHERIFF LOCKED ME IN HERE FOR A PHOTO AN HOUR AGO!",
-  "from": "game/stages/dale/town.ts:536"
+  "from": "game/stages/dale/town.ts:542"
  },
  {
   "voice": "dale.prisoner",
   "text": "I HAVE A TIMESHARE!",
-  "from": "game/stages/dale/town.ts:628"
+  "from": "game/stages/dale/town.ts:644"
  },
  {
   "voice": "dale.prisoner",
   "text": "IS THAT A TRUCK?! SHERIFF DAN?!",
-  "from": "game/stages/dale/town.ts:625"
+  "from": "game/stages/dale/town.ts:641"
  },
  {
   "voice": "dale.riggs",
@@ -2742,7 +2742,7 @@
  {
   "voice": "dale.riggs",
   "text": "ONE BULLET?! IN ONE EAR AND OUT THE OTHER, BABY! NOTHING IN THERE TO HIT!",
-  "from": "game/stages/dale/town.ts:561"
+  "from": "game/stages/dale/town.ts:567"
  },
  {
   "voice": "dale.riggs",
@@ -2762,7 +2762,7 @@
  {
   "voice": "dale.sheriff",
   "text": "NOPE! NOT FOR TEN BUCKS AN HOUR!",
-  "from": "game/stages/dale/town.ts:626"
+  "from": "game/stages/dale/town.ts:642"
  },
  {
   "voice": "death",
@@ -2772,7 +2772,7 @@
  {
   "voice": "death",
   "text": "A JUMP WON'T CLEAR IT. UPPERCUT!",
-  "from": "game/stages/dale/town.ts:608"
+  "from": "game/stages/dale/town.ts:624"
  },
  {
   "voice": "death",
@@ -3417,7 +3417,7 @@
  {
   "voice": "death",
   "text": "FLATTENED BY A DEAD MAN",
-  "from": "game/stages/dale/town.ts:608"
+  "from": "game/stages/dale/town.ts:624"
  },
  {
   "voice": "death",
@@ -3687,7 +3687,7 @@
  {
   "voice": "death",
   "text": "IT TAKES AN UPPERCUT TO CLEAR IT",
-  "from": "game/stages/dale/town.ts:608"
+  "from": "game/stages/dale/town.ts:624"
  },
  {
   "voice": "death",
@@ -3932,7 +3932,7 @@
  {
   "voice": "death",
   "text": "NOT A JUMP. AN UPPERCUT.",
-  "from": "game/stages/dale/town.ts:608"
+  "from": "game/stages/dale/town.ts:624"
  },
  {
   "voice": "death",
@@ -4257,7 +4257,7 @@
  {
   "voice": "death",
   "text": "RUN OVER BY RIGGS. AGAIN.",
-  "from": "game/stages/dale/town.ts:608"
+  "from": "game/stages/dale/town.ts:624"
  },
  {
   "voice": "death",
@@ -4467,7 +4467,7 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE UPPERCUT OVER IT",
-  "from": "game/stages/dale/town.ts:608"
+  "from": "game/stages/dale/town.ts:624"
  },
  {
   "voice": "death",
@@ -5572,7 +5572,7 @@
  {
   "voice": "meathead",
   "text": "...OKAY. SAVES ME A BULLET.",
-  "from": "game/stages/dale/town.ts:519"
+  "from": "game/stages/dale/town.ts:525"
  },
  {
   "voice": "meathead",
@@ -5747,7 +5747,7 @@
  {
   "voice": "meathead",
   "text": "A LITTLE RED DOT ON MY PECS... SNIPER! THE PORCH ROOFS! HE CAN'T SEE ME UNDER THOSE!",
-  "from": "game/stages/dale/town.ts:235"
+  "from": "game/stages/dale/town.ts:237"
  },
  {
   "voice": "meathead",
@@ -5947,7 +5947,7 @@
  {
   "voice": "meathead",
   "text": "AN AUTHENTIC OLD WEST TOWN. EST. NINETEEN NINETY FOUR. SURE.",
-  "from": "game/stages/dale/town.ts:227"
+  "from": "game/stages/dale/town.ts:229"
  },
  {
   "voice": "meathead",
@@ -6426,6 +6426,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DON'T ASK. I DIDN'T.",
+  "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "DON'T COAT MY DELTS IN BIOHAZARD SLOP!",
   "from": "HURT"
  },
@@ -6847,7 +6852,7 @@
  {
   "voice": "meathead",
   "text": "Get that camera outta my face.",
-  "from": "components/WeaponGetScene.tsx:150"
+  "from": "components/WeaponGetScene.tsx:106"
  },
  {
   "voice": "meathead",
@@ -7086,6 +7091,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE CAME DOWN. MOSTLY.",
+  "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "HE CHARGES, I CHARGE! SHOULDER TO SHOULDER, YOU IDIOT!",
   "from": "game/stages/victor/doorman.ts:531"
  },
@@ -7147,7 +7157,7 @@
  {
   "voice": "meathead",
   "text": "HE JUST DUCKS. CLOSER. GET CLOSER.",
-  "from": "game/stages/dale/town.ts:490"
+  "from": "game/stages/dale/town.ts:492"
  },
  {
   "voice": "meathead",
@@ -7332,7 +7342,7 @@
  {
   "voice": "meathead",
   "text": "HE'S GOT SANDBAGS UP THERE. I NEED TO GET CLOSER.",
-  "from": "game/stages/dale/town.ts:490"
+  "from": "game/stages/dale/town.ts:492"
  },
  {
   "voice": "meathead",
@@ -7707,7 +7717,7 @@
  {
   "voice": "meathead",
   "text": "I SHOULD REALLY TAKE OUT THAT SNIPER BEFORE I GO ANY FURTHER.",
-  "from": "game/stages/dale/town.ts:268"
+  "from": "game/stages/dale/town.ts:270"
  },
  {
   "voice": "meathead",
@@ -8171,6 +8181,11 @@
  },
  {
   "voice": "meathead",
+  "text": "KEEP YOUR GUARD UP. OH. TOO LATE.",
+  "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "KEEP YOUR RUSTY SYRINGES OFF MY DELTS!",
   "from": "HURT"
  },
@@ -8587,7 +8602,7 @@
  {
   "voice": "meathead",
   "text": "NOT FROM DOWN HERE. I'VE GOT TO GET UP THERE.",
-  "from": "game/stages/dale/town.ts:490"
+  "from": "game/stages/dale/town.ts:492"
  },
  {
   "voice": "meathead",
@@ -8597,7 +8612,7 @@
  {
   "voice": "meathead",
   "text": "NOT WITH A SNIPER ON MY BACK. HE'S UP THE BELL TOWER.",
-  "from": "game/stages/dale/town.ts:268"
+  "from": "game/stages/dale/town.ts:270"
  },
  {
   "voice": "meathead",
@@ -8612,7 +8627,7 @@
  {
   "voice": "meathead",
   "text": "NOTE TO SELF: SHOOT THE DRIVER AFTER THE TRUCK STOPS.",
-  "from": "game/stages/dale/town.ts:226"
+  "from": "game/stages/dale/town.ts:228"
  },
  {
   "voice": "meathead",
@@ -8871,6 +8886,11 @@
  },
  {
   "voice": "meathead",
+  "text": "POP GOES THE WEASEL.",
+  "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "POTHOLE! MY TAILBONE!",
   "from": "HAZARD_HURT"
  },
@@ -8982,7 +9002,7 @@
  {
   "voice": "meathead",
   "text": "RIGGS, BUDDY... YOUR LIZARD'S GONNA HAVE TO FEND FOR HIMSELF.",
-  "from": "game/stages/dale/town.ts:768"
+  "from": "game/stages/dale/town.ts:789"
  },
  {
   "voice": "meathead",
@@ -9073,6 +9093,11 @@
   "voice": "meathead",
   "text": "RUSTY NEEDLE NAPTIME",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SAME TIME TOMORROW, CHAMP?",
+  "from": "KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9246,6 +9271,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SHOULD'VE BOUGHT MORE BALLOONS.",
+  "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SHOULD'VE BUILT FURTHER UP.",
   "from": "game/stages/artie/ski.ts:96"
  },
@@ -9367,7 +9397,7 @@
  {
   "voice": "meathead",
   "text": "SNIPER FIRST. THEN THE DRUGS.",
-  "from": "game/stages/dale/town.ts:268"
+  "from": "game/stages/dale/town.ts:270"
  },
  {
   "voice": "meathead",
@@ -9458,6 +9488,11 @@
   "voice": "meathead",
   "text": "STATIC CLING TO HELL",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STAY DOWN, KID. THAT'S WHAT THE MONEY'S FOR.",
+  "from": "KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9851,6 +9886,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S ANOTHER HOUR ON THE CLOCK.",
+  "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S MY MOVE, YOU THIEVING SLAB OF BEEF!",
   "from": "HAZARD_HURT"
  },
@@ -9863,6 +9903,11 @@
   "voice": "meathead",
   "text": "THAT'S THE WHOLE MOTOR POOL. WHERE'S THE BOSS?",
   "from": "game/stages/oscar/chase.ts:195"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE AD SAID LIGHT SPARRING. THE AD LIED.",
+  "from": "KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10027,7 +10072,7 @@
  {
   "voice": "meathead",
   "text": "The union. The rangers. The Angels. My bar. My field's on fire, pal! ...It's insured. You're not.",
-  "from": "game/core/update.ts:162"
+  "from": "game/core/update.ts:163"
  },
  {
   "voice": "meathead",
@@ -10242,7 +10287,7 @@
  {
   "voice": "meathead",
   "text": "UNDER A PORCH ROOF! THAT'S THE ONLY PLACE HE CAN'T HIT ME!",
-  "from": "game/stages/dale/town.ts:348"
+  "from": "game/stages/dale/town.ts:350"
  },
  {
   "voice": "meathead",
@@ -10411,6 +10456,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHO EVEN ARE YOU?!",
+  "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "WHO GAVE THE MOOSE STEROIDS? THAT'S MY THING!",
   "from": "HAZARD_HURT"
  },
@@ -10572,12 +10622,12 @@
  {
   "voice": "meathead",
   "text": "You blew my whole power room, man. With my guy in it. Whole city's dark now... look up. See any stars? ...Me neither.",
-  "from": "game/core/update.ts:162"
+  "from": "game/core/update.ts:163"
  },
  {
   "voice": "meathead",
   "text": "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!",
-  "from": "game/core/update.ts:162"
+  "from": "game/core/update.ts:163"
  },
  {
   "voice": "meathead",
@@ -10612,7 +10662,7 @@
  {
   "voice": "meathead",
   "text": "You crashed my VIP lounge, bro. Those were investors. Now they're a geothermal feature.",
-  "from": "game/core/update.ts:162"
+  "from": "game/core/update.ts:163"
  },
  {
   "voice": "meathead",
@@ -10622,7 +10672,7 @@
  {
   "voice": "meathead",
   "text": "You dropped a jet ski on the tour group, sonny. I schedule my quakes AROUND the tour group!",
-  "from": "game/core/update.ts:162"
+  "from": "game/core/update.ts:163"
  },
  {
   "voice": "meathead",
@@ -10632,12 +10682,12 @@
  {
   "voice": "meathead",
   "text": "You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.",
-  "from": "game/core/update.ts:162"
+  "from": "game/core/update.ts:163"
  },
  {
   "voice": "meathead",
   "text": "You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I'M the terrorist?",
-  "from": "game/core/update.ts:162"
+  "from": "game/core/update.ts:163"
  },
  {
   "voice": "meathead",
@@ -10667,7 +10717,7 @@
  {
   "voice": "meathead",
   "text": "You put the neighbors down. And you dropped my water tower on a house. Do you know how long it took me to fill that thing?",
-  "from": "game/core/update.ts:162"
+  "from": "game/core/update.ts:163"
  },
  {
   "voice": "meathead",
@@ -10752,7 +10802,7 @@
  {
   "voice": "meathead",
   "text": "YOU'RE TOAST.",
-  "from": "game/core/update.ts:162"
+  "from": "game/core/update.ts:163"
  },
  {
   "voice": "meathead",

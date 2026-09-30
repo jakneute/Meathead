@@ -779,6 +779,21 @@ export const KILL_LINES: Record<Exclude<VulgarityType, 'hurt'>, string[]> = {
   oil_kill: VULGARITIES.OIL_KILL,
   death: VULGARITIES.DEATH,
   truck_wreck: ["BARF BEATS BUMPER, BITCH!", "YOUR DELIVERY GOT DENIED!", "RETURN TO SENDER, DALE!", "TOTALED BY A PROTEIN SHAKE!"],
+  // The practice range's hired help: the wannabe boxer who answered an ad, and the guy on the balloons
+  range_boxer_kill: [
+    "STAY DOWN, KID. THAT'S WHAT THE MONEY'S FOR.",
+    "KEEP YOUR GUARD UP. OH. TOO LATE.",
+    "SAME TIME TOMORROW, CHAMP?",
+    "THAT'S ANOTHER HOUR ON THE CLOCK.",
+    "THE AD SAID LIGHT SPARRING. THE AD LIED.",
+  ],
+  range_balloon_kill: [
+    "POP GOES THE WEASEL.",
+    "SHOULD'VE BOUGHT MORE BALLOONS.",
+    "WHO EVEN ARE YOU?!",
+    "DON'T ASK. I DIDN'T.",
+    "HE CAME DOWN. MOSTLY.",
+  ],
 };
 
 /** Kinds of kill that get a big on-screen callout. */
