@@ -368,6 +368,9 @@ const holdOffForCutscene = (ctx: FrameContext) => {
   }
 };
 
+/** The checkpoint banner: off for now (it was going up at the wrong times; the checkpoints need looking at first). */
+const CHECKPOINT_BANNER = false;
+
 /** A new checkpoint reached: the banner goes up (nothing's said). Where the stage starts (or restarts) isn't shown. */
 const callCheckpoint = (ctx: FrameContext) => {
   const { state } = ctx;
@@ -375,7 +378,7 @@ const callCheckpoint = (ctx: FrameContext) => {
   if (state.checkpoint <= state.checkpointCalled) return;
   state.checkpointCalled = state.checkpoint;
   const text = pickRandom(CHECKPOINT_CALLOUTS);
-  state.checkpointBanner = { text, at: state.frame };
+  if (CHECKPOINT_BANNER) state.checkpointBanner = { text, at: state.frame };
 };
 
 const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
