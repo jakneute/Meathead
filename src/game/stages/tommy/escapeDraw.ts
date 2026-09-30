@@ -206,7 +206,8 @@ const drawSurfScene = (ctx: Ctx, state: GameState, t: number) => {
     if (hx < -200 || hx > W + 200) continue;
     const e = clamp01((crestX + 90 - hx) / 220);
     ctx.save();
-    if (e > 0) { ctx.translate(hx, 488); ctx.rotate(-e * 0.6); ctx.translate(-hx, -488 - e * 20); ctx.globalAlpha = 1 - e; }
+    // (seen through the water as it goes under: tipping, sinking, going green and melting away)
+    if (e > 0) { ctx.translate(hx, 488); ctx.rotate(-e * 0.6); ctx.translate(-hx, -488 - e * 20 + e * e * 60); ctx.globalAlpha = 1 - e * 0.75; }
     drawHouse(ctx, hx, 488, 0.95, i);
     ctx.restore();
     if (e > 0 && e < 1) {
@@ -229,7 +230,7 @@ const drawSurfScene = (ctx: Ctx, state: GameState, t: number) => {
       // Swept up into it: lifted, tumbling back, going under
       ctx.translate(px - e * 120, 510 - Math.sin(e * Math.PI) * 140 + e * e * 60);
       ctx.rotate(-e * 5 - i);
-      ctx.globalAlpha = 1 - e;
+      ctx.globalAlpha = 1 - e * 0.6;
     } else ctx.translate(px, 510);
     if (dog) {
       ctx.fillStyle = ['#78350F', '#A16207', '#1C1917'][i % 3];
@@ -251,18 +252,19 @@ const drawSurfScene = (ctx: Ctx, state: GameState, t: number) => {
     if (!dog && e === 0 && px < crestX + 260 && i % 2 === 0) { ctx.save(); ctx.font = 'bold 7px "Press Start 2P"'; ctx.fillStyle = '#FEF9C3'; ctx.strokeStyle = '#111'; ctx.lineWidth = 2; ctx.strokeText('AAAH!', px - 16, 440); ctx.fillText('AAAH!', px - 16, 440); ctx.restore(); }
   }
   // The wave: a wall of it from the left up to the crest, curling over, foam along the top, junk in it
-  const top = 250 + Math.sin(t * 0.08) * 10;
+  // (a bit smaller, and see-through: everything it's run into tumbling and melting in it)
+  const top = 330 + Math.sin(t * 0.08) * 8;
   const g = ctx.createLinearGradient(0, top, 0, H);
-  g.addColorStop(0, '#84A13A'); g.addColorStop(0.4, '#5C6824'); g.addColorStop(1, '#3A4217');
+  g.addColorStop(0, 'rgba(132, 161, 58, 0.62)'); g.addColorStop(0.4, 'rgba(92, 104, 36, 0.55)'); g.addColorStop(1, 'rgba(58, 66, 23, 0.7)');
   ctx.fillStyle = g;
   ctx.beginPath(); ctx.moveTo(-20, H); ctx.lineTo(-20, top - 20);
   for (let x = -20; x <= crestX; x += 20) ctx.lineTo(x, top - 20 + Math.sin(x * 0.03 + t * 0.2) * 10);
-  ctx.quadraticCurveTo(crestX + 80, top - 30, crestX + 60, top + 60);
-  ctx.quadraticCurveTo(crestX + 110, top + 160, crestX + 160, H);
+  ctx.quadraticCurveTo(crestX + 64, top - 24, crestX + 48, top + 46);
+  ctx.quadraticCurveTo(crestX + 88, top + 120, crestX + 128, H);
   ctx.closePath(); ctx.fill();
   // (its lip curling over, and foam)
   ctx.fillStyle = 'rgba(217, 249, 157, 0.85)';
-  for (let x = -20; x <= crestX + 60; x += 14) ctx.fillRect(x, top - 24 + Math.sin(x * 0.03 + t * 0.2) * 10, 10, 6);
+  for (let x = -20; x <= crestX + 48; x += 14) ctx.fillRect(x, top - 24 + Math.sin(x * 0.03 + t * 0.2) * 10, 10, 6);
   for (let i = 0; i < 10; i++) { const q = ((t * 3 + i * 11) % 40) / 40; ctx.fillStyle = `rgba(217, 249, 157, ${0.8 * (1 - q)})`; ctx.beginPath(); ctx.arc(crestX + 60 + q * 60, top + 40 + i * 20 - q * 30, 5 + q * 6, 0, Math.PI * 2); ctx.fill(); }
   // Junk tumbling in it: a car, a mailbox, a couch, a skeleton
   for (let i = 0; i < 5; i++) {
