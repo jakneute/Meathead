@@ -28,7 +28,7 @@ const ControlsGuide: React.FC = () => {
   const single = family === 'joycon-l' || family === 'joycon-r';
   const named = (s: string) => (single
     // (one Joy-Con: the stick and nothing else to move, no triggers, so just the one button for firing and for specials)
-    ? s.replace('L-STICK / D-PAD', 'STICK').replace(/ \/ (RT|LT)\b/g, '')
+    ? s.replace('L-STICK / D-PAD', 'STICK').replace(/ \/ (RT|LT)\b/g, '').replace('START', family === 'joycon-l' ? 'MINUS (−)' : 'PLUS (+)')
     : s).replace(/\b(A|B|X|Y|RT|LT|LB|RB|START)\b/g, k => padName(k, family));
   return (
     <div className="w-full max-w-md mt-2 pt-1.5 border-t border-red-950/80 shrink-0 font-mono uppercase text-[7px]">
