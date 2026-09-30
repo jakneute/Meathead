@@ -1,11 +1,12 @@
 import React from 'react';
 import Cutscene, { Panel } from './Cutscene';
 import {
-  drawWhiteHouse, drawPressRoom, drawTrumpCloseUp, drawMedal, drawMeatheadEyes, drawBelly,
+  drawWhiteHouse, drawPressRoom, drawTrumpCloseUp, drawMedal, drawMeatheadEyes,
   drawMeatheadCloseUp, drawPunch, drawFinale,
 } from '../game/render/scenes/ending';
 import { Voice, MEATHEAD_VOICE } from '../game/platform/speech';
 import { playSound } from '../game/platform/audio';
+import { drawGrossPresident } from '../game/render/scenes/grossUp';
 
 // NES-style ending: a run of still images with text typed out underneath (see Cutscene).
 
@@ -28,7 +29,8 @@ const PANELS: Panel[] = [
     text: "It's my great honor to give him the Presidential Medal of Freedom. Beautiful medal. Very expensive. Frankly, I should get one too.",
   },
   { draw: (c, t) => drawMeatheadEyes(c, t), text: 'Meathead looks the President up and down...', hold: 60 },
-  { draw: (c, t) => drawBelly(c, t), text: '...', hold: 50 },
+  // (a gross-up of what he's looking at, the camera tilting down it and back up as his eyes do)
+  { draw: drawGrossPresident, text: '', hold: 185, hires: true },
   {
     draw: (c, t, talk) => drawMeatheadCloseUp(c, t, talk, 'dumb'), speaker: 'MEATHEAD', voice: MEATHEAD_VOICE,
     text: 'Do you even lift, bro?',

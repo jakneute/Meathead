@@ -373,3 +373,196 @@ export const drawGrossGun = (ctx: Ctx, t: number) => {
   ctx.restore();
   finish(ctx, t);
 };
+
+// ---------------------------------------------------------------------------
+// The President, as Meathead looks him up and down
+// ---------------------------------------------------------------------------
+
+/** How tall the painting is (art units): the camera tilts down it and back up. */
+const PRES_H = 330, PRES_TOP = 36;
+
+/** Where the tilt's got to (0 the chins, 1 the belt): down, a beat, back up (not all the way). */
+const presTilt = (t: number) => {
+  const ease = (k: number) => k * k * (3 - 2 * k);
+  if (t < 15) return 0;
+  if (t < 95) return ease((t - 15) / 80);
+  if (t < 112) return 1;
+  if (t < 172) return 1 - ease((t - 112) / 60) * 0.85;
+  return 0.15;
+};
+
+export const drawGrossPresident = (ctx: Ctx, t: number) => {
+  ctx.save();
+  backdrop(ctx, t, 128, 60, '#233B8C', '#060A1C', 'rgba(255, 255, 255, 0.04)');
+  // (starting on the pout, down to the belt)
+  ctx.translate(0, PRES_TOP - presTilt(t) * (PRES_H + PRES_TOP - H));
+  const ink = '#1A0B06';
+
+  // --- The trousers and the belt, down under all of it (the overhang covers most of it) ---
+  ctx.fillStyle = '#191C30'; ctx.fillRect(40, 286, 176, 60);
+  ctx.fillStyle = '#0C0D18'; ctx.fillRect(40, 286, 176, 10);
+  ctx.fillStyle = '#3A2414'; ctx.fillRect(44, 290, 168, 8);
+
+  // --- The jacket: open, because it hasn't closed in years; pinstripes, creases, the flag pin ---
+  for (const side of [-1, 1]) {
+    ctx.save();
+    ctx.beginPath();
+    if (side < 0) { ctx.moveTo(-10, 80); ctx.lineTo(84, 88); ctx.bezierCurveTo(60, 160, 40, 240, 46, 300); ctx.lineTo(-10, 300); }
+    else { ctx.moveTo(266, 80); ctx.lineTo(172, 88); ctx.bezierCurveTo(196, 160, 216, 240, 210, 300); ctx.lineTo(266, 300); }
+    ctx.closePath();
+    const jg = ctx.createLinearGradient(side < 0 ? 0 : 256, 0, side < 0 ? 80 : 176, 0);
+    jg.addColorStop(0, '#0E1230'); jg.addColorStop(1, '#262E66');
+    ctx.fillStyle = jg; ctx.fill(); ctx.strokeStyle = ink; ctx.lineWidth = 1.8; ctx.stroke();
+    ctx.clip();
+    ctx.strokeStyle = 'rgba(160, 170, 220, 0.12)'; ctx.lineWidth = 0.35;
+    for (let x = -10; x < 270; x += 5) { ctx.beginPath(); ctx.moveTo(x, 80); ctx.lineTo(x + side * -6, 300); ctx.stroke(); }
+    // (creases where it's pulled tight across him)
+    ctx.strokeStyle = 'rgba(0, 0, 10, 0.45)'; ctx.lineWidth = 0.8;
+    for (let k = 0; k < 6; k++) { const y = 140 + k * 22; ctx.beginPath(); ctx.moveTo(side < 0 ? 10 : 246, y); ctx.quadraticCurveTo(side < 0 ? 40 : 216, y - 10, side < 0 ? 60 : 196, y + 6); ctx.stroke(); }
+    ctx.restore();
+    // The lapel
+    ctx.beginPath();
+    if (side < 0) { ctx.moveTo(84, 88); ctx.lineTo(56, 104); ctx.lineTo(66, 150); ctx.lineTo(80, 130); }
+    else { ctx.moveTo(172, 88); ctx.lineTo(200, 104); ctx.lineTo(190, 150); ctx.lineTo(176, 130); }
+    ctx.closePath(); ctx.fillStyle = '#303A7A'; ctx.fill(); ctx.strokeStyle = ink; ctx.lineWidth = 1; ctx.stroke();
+  }
+  // (the flag pin)
+  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(62, 118, 9, 6);
+  ctx.fillStyle = '#C8201C'; for (let k = 0; k < 3; k++) ctx.fillRect(62, 118 + k * 2, 9, 1);
+  ctx.fillStyle = '#1E3A8A'; ctx.fillRect(62, 118, 4, 3);
+  ctx.strokeStyle = '#D4AF37'; ctx.lineWidth = 0.5; ctx.strokeRect(62, 118, 9, 6);
+
+  // --- The shirt, the gut in it: bulging out between the jacket, down over the belt ---
+  const gut = () => {
+    ctx.beginPath();
+    ctx.moveTo(84, 88); ctx.bezierCurveTo(52, 150, 26, 230, 60, 280);
+    ctx.bezierCurveTo(90, 304, 166, 304, 196, 280);
+    ctx.bezierCurveTo(230, 230, 204, 150, 172, 88);
+    ctx.closePath();
+  };
+  gut();
+  const sg = ctx.createRadialGradient(118, 200, 10, 128, 200, 120);
+  sg.addColorStop(0, '#FFFFFF'); sg.addColorStop(0.55, '#E6E3D8'); sg.addColorStop(1, '#9A9CA8');
+  ctx.fillStyle = sg; ctx.fill();
+  ctx.save(); gut(); ctx.clip();
+  // Sweat through it, under the arms and under the gut
+  ctx.fillStyle = 'rgba(190, 170, 110, 0.25)';
+  ctx.beginPath(); ctx.ellipse(56, 150, 18, 28, 0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(200, 150, 18, 28, -0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(128, 292, 70, 12, 0, 0, Math.PI * 2); ctx.fill();
+  // The buttons, straining: each one pulling the cloth into a star of creases, a gap under it with the undershirt
+  // showing through, the thread giving
+  [124, 162, 200, 238, 272].forEach((by, i) => {
+    const strain = 1 + (i === 2 ? 0.4 : 0) + Math.sin(t * 0.35 + i) * 0.15;
+    ctx.strokeStyle = 'rgba(80, 80, 100, 0.45)'; ctx.lineWidth = 0.5;
+    for (let a = 0; a < 8; a++) {
+      const ang = (a / 8) * Math.PI * 2 + 0.2, len = (9 + (a % 3) * 4) * strain;
+      ctx.beginPath(); ctx.moveTo(142, by); ctx.quadraticCurveTo(142 + Math.cos(ang) * len * 0.6, by + Math.sin(ang) * len * 0.4 + 2, 142 + Math.cos(ang) * len, by + Math.sin(ang) * len * 0.6); ctx.stroke();
+    }
+    ctx.fillStyle = '#F4F1E6'; ctx.beginPath(); ctx.ellipse(142, by + 12, 5 * strain, 3 * strain, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(70, 70, 90, 0.7)'; ctx.lineWidth = 0.5; ctx.stroke();
+    const bg = ctx.createRadialGradient(141, by - 0.5, 0.2, 142, by, 2.4);
+    bg.addColorStop(0, '#FFFFFF'); bg.addColorStop(1, '#B8B2A0');
+    ctx.fillStyle = bg; ctx.beginPath(); ctx.arc(142, by, 2.3, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(60, 60, 60, 0.7)'; ctx.lineWidth = 0.35; ctx.stroke();
+    ctx.fillStyle = 'rgba(60,60,60,0.8)'; ctx.fillRect(141.2, by - 0.4, 0.5, 0.5); ctx.fillRect(142.4, by - 0.4, 0.5, 0.5);
+    ctx.strokeStyle = 'rgba(240, 240, 230, 0.9)'; ctx.lineWidth = 0.25; ctx.beginPath(); ctx.moveTo(142, by + 2); ctx.lineTo(141 + Math.sin(t * 0.5 + i) * 0.6, by + 4); ctx.stroke();
+  });
+  // Folds round the sides of it, where it rolls
+  ctx.strokeStyle = 'rgba(90, 90, 110, 0.35)'; ctx.lineWidth = 0.7;
+  for (let k = 0; k < 7; k++) { const y = 150 + k * 18; ctx.beginPath(); ctx.moveTo(40 + k * 2, y); ctx.quadraticCurveTo(70, y + 8, 88, y + 2); ctx.stroke(); ctx.beginPath(); ctx.moveTo(216 - k * 2, y); ctx.quadraticCurveTo(186, y + 8, 168, y + 2); ctx.stroke(); }
+  ctx.restore();
+  gut(); ctx.strokeStyle = ink; ctx.lineWidth = 2; ctx.stroke();
+  // The shadow the overhang throws on the belt
+  ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.beginPath(); ctx.ellipse(128, 300, 70, 5, 0, 0, Math.PI * 2); ctx.fill();
+
+  // --- The tie: far too long, taped at the back, lunch down it, the tip hanging past the belt ---
+  ctx.beginPath(); ctx.moveTo(122, 96); ctx.lineTo(134, 96); ctx.lineTo(140, 300); ctx.lineTo(128, 318); ctx.lineTo(116, 300); ctx.closePath();
+  const tg = ctx.createLinearGradient(116, 0, 140, 0);
+  tg.addColorStop(0, '#8A1410'); tg.addColorStop(0.45, '#E0302A'); tg.addColorStop(1, '#8A1410');
+  ctx.fillStyle = tg; ctx.fill(); ctx.strokeStyle = ink; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.strokeStyle = 'rgba(255, 170, 160, 0.2)'; ctx.lineWidth = 0.35;
+  for (let y = 100; y < 300; y += 3) { ctx.beginPath(); ctx.moveTo(121, y); ctx.lineTo(135, y + 5); ctx.stroke(); }
+  // (the tape, where the back end's stuck down: see-through, a glint on it)
+  ctx.fillStyle = 'rgba(235, 240, 245, 0.35)'; ctx.fillRect(119, 150, 18, 7);
+  ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 0.4; ctx.strokeRect(119, 150, 18, 7);
+  ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.fillRect(121, 151, 5, 0.6);
+  // (ketchup, a drip of mustard, crumbs)
+  ctx.fillStyle = '#B4200C'; ctx.beginPath(); ctx.ellipse(130, 208, 4, 3, 0.4, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255, 140, 120, 0.6)'; ctx.fillRect(128.5, 206.5, 1.2, 0.8);
+  ctx.fillStyle = '#E8B418'; ctx.beginPath(); ctx.moveTo(124, 226); ctx.quadraticCurveTo(122, 234, 124, 240); ctx.quadraticCurveTo(126, 234, 125.5, 226); ctx.fill();
+  ctx.fillStyle = '#C89A5A'; for (let k = 0; k < 7; k++) ctx.fillRect(120 + hash(k * 3.3) * 16, 240 + hash(k * 7.1) * 40, 1, 0.8);
+
+  // --- Tiny hands, hanging out of the sleeves at his sides ---
+  for (const side of [-1, 1]) {
+    const hx = side < 0 ? 30 : 226, hy = 286;
+    ctx.fillStyle = '#0E1230'; ctx.fillRect(hx - 12, hy - 18, 24, 14);
+    ctx.fillStyle = '#F4F1E6'; ctx.fillRect(hx - 10, hy - 6, 20, 4);
+    ctx.fillStyle = '#E8844A'; ctx.beginPath(); ctx.roundRect(hx - 6, hy - 2, 12, 9, 3); ctx.fill();
+    ctx.strokeStyle = ink; ctx.lineWidth = 0.7; ctx.stroke();
+    for (let f = 0; f < 4; f++) { ctx.fillStyle = '#E8844A'; ctx.beginPath(); ctx.roundRect(hx - 5.5 + f * 2.9, hy + 6, 2.4, 3.5, 1); ctx.fill(); ctx.stroke(); }
+  }
+
+  // --- The chins, spilling over a collar that won't close ---
+  // The collar, and the tie's knot jammed up into it
+  ctx.beginPath(); ctx.moveTo(84, 72); ctx.lineTo(104, 98); ctx.lineTo(128, 88); ctx.lineTo(152, 98); ctx.lineTo(172, 72); ctx.closePath();
+  ctx.fillStyle = '#F4F1E6'; ctx.fill(); ctx.strokeStyle = ink; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(118, 82); ctx.lineTo(138, 82); ctx.lineTo(136, 98); ctx.lineTo(120, 98); ctx.closePath();
+  ctx.fillStyle = tg; ctx.fill(); ctx.strokeStyle = ink; ctx.lineWidth = 1; ctx.stroke();
+  // The neck: one mass of it, wider at the bottom than the jaw, spilling out over both sides of the collar
+  const neck = () => {
+    ctx.beginPath();
+    ctx.moveTo(74, -80);
+    ctx.bezierCurveTo(60, 10, 52, 50, 70, 78);
+    ctx.bezierCurveTo(84, 92, 110, 90, 128, 90);
+    ctx.bezierCurveTo(146, 90, 172, 92, 186, 78);
+    ctx.bezierCurveTo(204, 50, 196, 10, 182, -80);
+    ctx.closePath();
+  };
+  neck();
+  const ng = ctx.createLinearGradient(0, -30, 0, 90);
+  ng.addColorStop(0, '#F59848'); ng.addColorStop(0.6, '#E8803A'); ng.addColorStop(1, '#D06A2A');
+  ctx.fillStyle = ng; ctx.fill();
+  ctx.save(); neck(); ctx.clip();
+  // Where the spray tan stops: a hard line round it, pale as a fish below
+  ctx.fillStyle = '#F2D0B0'; ctx.beginPath(); ctx.moveTo(40, 66); ctx.bezierCurveTo(90, 76, 166, 76, 216, 66); ctx.lineTo(216, 100); ctx.lineTo(40, 100); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(190, 80, 20, 0.7)'; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.moveTo(40, 66); ctx.bezierCurveTo(90, 76, 166, 76, 216, 66); ctx.stroke();
+  // The rolls: each lit along its top, a deep crease under it (hatched), hanging over the next
+  for (const [cy, rx, sag] of [[24, 62, 10], [44, 68, 12], [62, 70, 12]] as const) {
+    const hl = ctx.createLinearGradient(0, cy - 12, 0, cy + sag);
+    hl.addColorStop(0, 'rgba(255, 220, 170, 0)'); hl.addColorStop(0.5, 'rgba(255, 220, 170, 0.35)'); hl.addColorStop(1, 'rgba(255, 220, 170, 0)');
+    ctx.fillStyle = hl; ctx.beginPath(); ctx.ellipse(128, cy - 2, rx - 6, 9, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(110, 40, 10, 0.75)'; ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.moveTo(128 - rx, cy - 4); ctx.quadraticCurveTo(128, cy + sag * 2, 128 + rx, cy - 4); ctx.stroke();
+    ctx.strokeStyle = 'rgba(110, 40, 10, 0.35)'; ctx.lineWidth = 0.4;
+    for (let x = 128 - rx + 6; x < 128 + rx - 6; x += 2) {
+      const k = (x - (128 - rx)) / (2 * rx), yy = (1 - k) * (1 - k) * (cy - 4) + 2 * k * (1 - k) * (cy + sag * 2) + k * k * (cy - 4);
+      ctx.beginPath(); ctx.moveTo(x, yy - 4); ctx.lineTo(x + 1, yy - 0.5); ctx.stroke();
+    }
+  }
+  // Pores, stubble he missed
+  for (let i = 0; i < 800; i++) { const x = 52 + hash(i * 1.9) * 152, y = -30 + hash(i * 3.7) * 120; ctx.fillStyle = i % 4 ? 'rgba(120, 50, 10, 0.3)' : 'rgba(255, 230, 200, 0.22)'; ctx.fillRect(x, y, 0.45, 0.45); }
+  ctx.fillStyle = 'rgba(80, 50, 30, 0.55)'; for (let i = 0; i < 70; i++) ctx.fillRect(92 + hash(i * 5.3) * 72, -18 + hash(i * 2.2) * 30, 0.4, 0.8);
+  ctx.restore();
+  neck(); ctx.strokeStyle = ink; ctx.lineWidth = 1.6; ctx.stroke();
+  // The chin, up out of the rolls (a dimple in it), and the pout over it
+  const chg = ctx.createRadialGradient(124, -6, 2, 128, 0, 40);
+  chg.addColorStop(0, '#FFB068'); chg.addColorStop(1, '#E27A34');
+  ctx.fillStyle = chg; ctx.beginPath(); ctx.ellipse(128, 0, 38, 16, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(110, 40, 10, 0.8)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(128, 0, 38, 16, 0, 0.2, Math.PI - 0.2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(126, 4); ctx.quadraticCurveTo(128, 8, 130, 4); ctx.stroke();
+  ctx.fillStyle = '#B83A26'; ctx.beginPath(); ctx.ellipse(128, -20, 13, 6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#8A2216'; ctx.beginPath(); ctx.ellipse(128, -18, 9, 2.4, 0, 0, Math.PI); ctx.fill();
+  ctx.fillStyle = 'rgba(255, 200, 190, 0.6)'; ctx.fillRect(122, -24, 6, 1);
+  ctx.strokeStyle = ink; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.ellipse(128, -20, 13, 6, 0, 0, Math.PI * 2); ctx.stroke();
+  // A mole with a hair in it, a nick from the razor (a bit of tissue on it), sweat beaded in the creases
+  ctx.fillStyle = '#5A3018'; ctx.beginPath(); ctx.arc(156, 44, 1.6, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(40, 20, 10, 0.9)'; ctx.lineWidth = 0.3; ctx.beginPath(); ctx.moveTo(156, 43); ctx.quadraticCurveTo(158, 40, 157, 38); ctx.stroke();
+  ctx.fillStyle = '#C0201C'; ctx.fillRect(104, 20, 3, 0.8); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(103, 19.2, 2, 1.4);
+  for (let i = 0; i < 18; i++) bead(ctx, 72 + hash(i * 6.6) * 112, 26 + hash(i * 2.9) * 48, 0.7 + hash(i * 4.4) * 1.1);
+  const drip = (t * 0.4) % 80;
+  bead(ctx, 100, 62 + drip * 0.6, 1.6);
+
+  ctx.restore();
+  finish(ctx, t);
+};

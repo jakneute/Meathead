@@ -460,38 +460,6 @@ export const drawMeatheadEyes = (ctx: Ctx, t: number) => {
   R(ctx, 122, 88, 12, 20, C.mSkinShade);
 };
 
-/** What Meathead sees: a suit straining over a presidential gut. */
-export const drawBelly = (ctx: Ctx, t: number) => {
-  curtain(ctx, ART_H);
-  // Trousers and belt, mostly hidden under the overhang
-  R(ctx, 74, 128, 108, 16, '#2c2c3c');
-  R(ctx, 74, 126, 108, 4, C.ink);
-  // Jacket over the chest, then the gut bulging out below it
-  R(ctx, 66, 0, 124, 80, C.navy);
-  ell(ctx, 128, 90, 96, 40, C.navy);
-  ell(ctx, 128, 96, 90, 32, C.navy);
-  ell(ctx, 150, 84, 42, 20, '#2c2c7c');
-  R(ctx, 66, 0, 10, 80, C.navyDark);
-  R(ctx, 180, 0, 10, 80, C.navyDark);
-  for (let i = 0; i < 12; i++) R(ctx, 40 + i * 2, 100 + i * 2, 4, 2, C.navyDark);
-  for (let i = 0; i < 12; i++) R(ctx, 212 - i * 2, 100 + i * 2, 4, 2, C.navyDark);
-  // Shirt gap and the too-long tie, down past his belt
-  for (let i = 0; i < 40; i++) R(ctx, 128 - (40 - i) / 2 - 8, i, 40 - i + 16, 1, C.white);
-  R(ctx, 120, 0, 16, 6, C.red);
-  R(ctx, 122, 6, 12, 128, C.red);
-  R(ctx, 127, 6, 2, 128, C.darkRed);
-  ell(ctx, 128, 134, 6, 4, C.red);
-  // Buttons hanging on for dear life
-  const strain = t % 16 < 8 ? 0 : 1;
-  for (const by of [70, 100]) {
-    R(ctx, 104 - strain, by - 1, 48 + strain * 2, 1, C.navyDark);
-    ell(ctx, 114, by, 3, 3, C.gold);
-  }
-  // Strain lines
-  for (let i = 0; i < 4; i++) R(ctx, 76 + i * 4, 90 + i * 6, 14, 1, C.navyDark);
-  for (let i = 0; i < 4; i++) R(ctx, 160 - i * 4, 90 + i * 6, 14, 1, C.navyDark);
-};
-
 /** Meathead's face, filling the frame (medal round his neck). */
 /**
  * Meathead up close. Moods: dumb, disgust; think (eyes rolled up and off to the side, mouth screwed up), stoked (eyes
