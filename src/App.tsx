@@ -656,6 +656,9 @@ const App: React.FC = () => {
             maxAmmo={MAX_AMMO[currentWeapon]}
           />
         )}
+        {/* (hidden, so it isn't painted, while the garage covers it: the map's animations and the four photos under the
+            garage and its practice range were costing frames) */}
+        <div className="contents" style={{ visibility: status === GameStatus.STAGE_SELECT && inGarage ? 'hidden' : undefined }}>
         <Overlay
           status={status}
           selectedIndex={selectedIndex}
@@ -692,6 +695,7 @@ const App: React.FC = () => {
           cheats={SHOW_CHEATS ? { flags: cheatFlags, onToggle: handleToggleCheat, onChangeRank: handleChangeRank, onPlayEnding: () => setStatus(GameStatus.ENDING), onPlayCall: () => { setCallPreview(true); setStatus(GameStatus.VICTORY); } } : undefined}
           showCall={progressionRank === 0 || callPreview}
         />
+        </div>
         {status === GameStatus.ENDING && <EndingCutscene onDone={handleEndingDone} />}
         {intro !== 'off' && (
           <IntroCutscene onHandoff={() => { setIntro('outro'); setSelectedIndex(0); setStatus(GameStatus.STAGE_SELECT); }} onDone={() => setIntro('off')} />

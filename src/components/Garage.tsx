@@ -38,7 +38,8 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
     let raf = 0, t = 0;
     const tick = () => {
       const ctx = canvas.current?.getContext('2d');
-      if (ctx) { ctx.setTransform(canvas.current!.width / GARAGE_W, 0, 0, canvas.current!.height / GARAGE_H, 0, 0); drawGarage(ctx, t++, owned, selRef.current); }
+      // (not while he's out back at the range: it covers the room, and both drawing at once was a drag)
+      if (ctx && !practiceRef.current) { ctx.setTransform(canvas.current!.width / GARAGE_W, 0, 0, canvas.current!.height / GARAGE_H, 0, 0); drawGarage(ctx, t++, owned, selRef.current); }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);

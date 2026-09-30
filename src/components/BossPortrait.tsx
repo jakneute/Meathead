@@ -89,6 +89,8 @@ const BossPortrait: React.FC<{ id: string; dead?: boolean }> = ({ id, dead = fal
       raf = requestAnimationFrame(draw);
       // (30 frames a second is plenty for a photo that breathes)
       if (frame % 2) return;
+      // (nothing to draw while it can't be seen: under the garage, say)
+      if (canvas!.checkVisibility && !canvas!.checkVisibility({ visibilityProperty: true } as CheckVisibilityOptions)) return;
       const f = frame % FLASH_EVERY;
       const flash = !dead && f < FLASH_FRAMES ? 1 - f / FLASH_FRAMES : 0;
       // He squints into the flash
