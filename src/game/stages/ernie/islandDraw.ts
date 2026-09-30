@@ -120,16 +120,17 @@ const drawHouse = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
     ctx.strokeStyle = 'rgba(30, 36, 33, 0.7)'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(x + 20, ROOF + 10); ctx.lineTo(x + 34 + hash(x) * 20, ROOF + 50); ctx.lineTo(x + 24, ROOF + 90); ctx.stroke();
   }
-  // Three tiers of cells: bars, bunks, sinks, the numbers
+  // Three tiers of cells, kept dim and quiet (they're only the back wall: what you stand on is the galleries in front):
+  // bars, a bunk, a sink, the numbers
+  ctx.fillStyle = '#323B37'; ctx.fillRect(x1, IS.tier3 - 120, x2 - x1, Y - (IS.tier3 - 120));
   for (const tierY of [Y, IS.tier2, IS.tier3]) {
-    ctx.fillStyle = '#3E4843'; ctx.fillRect(x1, tierY - 110, x2 - x1, 110);
     for (let x = Math.floor(x1 / 70) * 70; x < x2; x += 70) {
-      ctx.fillStyle = '#1C2320'; ctx.fillRect(x + 5, tierY - 100, 60, 100);
-      ctx.fillStyle = '#6B5B45'; ctx.fillRect(x + 10, tierY - 42, 34, 6);
-      ctx.fillStyle = '#D6D3D1'; ctx.fillRect(x + 48, tierY - 34, 10, 8);
-      ctx.fillStyle = '#9CA3AF'; for (let b = x + 7; b < x + 64; b += 7) ctx.fillRect(b, tierY - 100, 2, 100);
-      ctx.fillRect(x + 5, tierY - 100, 60, 3); ctx.fillRect(x + 5, tierY - 56, 60, 2);
-      ctx.fillStyle = '#E7E5E4'; ctx.font = 'bold 6px "Press Start 2P"'; ctx.fillText(`${Math.abs(Math.floor(x / 70)) % 40 + (tierY === Y ? 100 : tierY === IS.tier2 ? 200 : 300)}`, x + 24, tierY - 104);
+      ctx.fillStyle = '#1A201D'; ctx.fillRect(x + 6, tierY - 100, 58, 96);
+      ctx.fillStyle = '#3B342B'; ctx.fillRect(x + 11, tierY - 40, 32, 5);
+      ctx.fillStyle = '#4A4F4C'; ctx.fillRect(x + 48, tierY - 32, 9, 7);
+      ctx.fillStyle = '#48524D'; for (let b = x + 9; b < x + 62; b += 9) ctx.fillRect(b, tierY - 100, 1, 96);
+      ctx.fillRect(x + 6, tierY - 100, 58, 2);
+      ctx.fillStyle = 'rgba(231, 229, 228, 0.3)'; ctx.font = 'bold 6px "Press Start 2P"'; ctx.fillText(`${Math.abs(Math.floor(x / 70)) % 40 + (tierY === Y ? 100 : tierY === IS.tier2 ? 200 : 300)}`, x + 24, tierY - 106);
     }
   }
   // Signs
@@ -186,18 +187,23 @@ const drawYard = (ctx: Ctx, state: GameState) => {
   const c1 = wallX, c2 = YARD[1];
   if (visible(state, c1, c2)) {
     const top = WALL_TOP - 60;
+    const faceY = (x: number) => top + Math.sin(x * 0.013) * 12 + (x - c1) * 0.18;
     const tx = YARD[0] + 1850;
     if (visible(state, tx - 90, tx + 90)) {
+      // (stood on the cliff top: each leg down to the ground under it, a little way into it)
+      const legs = [tx - 60, tx - 20, tx + 20, tx + 60], t0 = Math.min(...legs.map(faceY)) - 150;
       ctx.fillStyle = '#6B3F2A';
-      for (const lx2 of [tx - 60, tx - 20, tx + 20, tx + 60]) ctx.fillRect(lx2 - 3, top - 150, 6, 150);
-      ctx.fillStyle = '#9A6B4F'; ctx.fillRect(tx - 70, top - 250, 140, 100);
-      ctx.fillStyle = '#6B3F2A'; ctx.beginPath(); ctx.moveTo(tx - 74, top - 250); ctx.lineTo(tx, top - 290); ctx.lineTo(tx + 74, top - 250); ctx.fill();
+      for (const lx2 of legs) ctx.fillRect(lx2 - 3, t0, 6, faceY(lx2) + 8 - t0);
+      ctx.strokeStyle = '#6B3F2A'; ctx.lineWidth = 2;
+      ctx.beginPath(); for (let k = 0; k < 3; k++) { ctx.moveTo(legs[k], t0 + 40 + k * 10); ctx.lineTo(legs[k + 1], t0 + 90 + k * 10); } ctx.stroke();
+      ctx.fillStyle = '#9A6B4F'; ctx.fillRect(tx - 70, t0 - 100, 140, 100);
+      ctx.fillStyle = '#6B3F2A'; ctx.beginPath(); ctx.moveTo(tx - 74, t0 - 100); ctx.lineTo(tx, t0 - 140); ctx.lineTo(tx + 74, t0 - 100); ctx.fill();
       ctx.fillStyle = '#F5F5F4'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'center';
-      ctx.fillText('PEACE AND', tx, top - 214); ctx.fillText('FREEDOM', tx, top - 200); ctx.textAlign = 'left';
+      ctx.fillText('PEACE AND', tx, t0 - 64); ctx.fillText('FREEDOM', tx, t0 - 50); ctx.textAlign = 'left';
     }
     ctx.fillStyle = '#6E5D4E';
     ctx.beginPath(); ctx.moveTo(c1, top);
-    for (let x = c1; x <= c2; x += 40) ctx.lineTo(x, top + Math.sin(x * 0.013) * 12 + (x - c1) * 0.18);
+    for (let x = c1; x <= c2; x += 40) ctx.lineTo(x, faceY(x));
     ctx.lineTo(c2, Y); ctx.lineTo(c1, Y); ctx.closePath(); ctx.fill();
     ctx.strokeStyle = 'rgba(40, 30, 24, 0.45)'; ctx.lineWidth = 2;
     for (let x = Math.floor(c1 / 90) * 90; x < c2; x += 90) { ctx.beginPath(); ctx.moveTo(x, top + 30 + (x - c1) * 0.18); ctx.lineTo(x + 30, top + 90 + (x - c1) * 0.18); ctx.lineTo(x + 10, top + 160 + (x - c1) * 0.18); ctx.stroke(); }
@@ -335,12 +341,19 @@ const drawPits = (ctx: Ctx, state: GameState) => {
 
 /** A gallery in front of a tier of cells: a steel walkway, the railing, the brackets under it. Shaking loose, sparks off the bolts. */
 const drawGallery = (ctx: Ctx, x: number, y: number, w: number, going: boolean) => {
-  ctx.fillStyle = '#374151'; ctx.fillRect(x, y, w, 8);
-  ctx.fillStyle = '#4B5563'; for (let gx = x + 2; gx < x + w; gx += 6) ctx.fillRect(gx, y + 2, 3, 4);
-  ctx.fillStyle = '#9CA3AF'; ctx.fillRect(x, y - 30, w, 3);
-  for (let rx = x; rx <= x + w; rx += 16) ctx.fillRect(rx, y - 30, 2, 30);
-  ctx.strokeStyle = '#1F2937'; ctx.lineWidth = 3;
-  for (let bx = x + 20; bx < x + w - 10; bx += 90) { ctx.beginPath(); ctx.moveTo(bx, y + 8); ctx.lineTo(bx + 18, y + 30); ctx.stroke(); }
+  // (bright and solid against the dim cells behind: the thing you can stand on should read as that)
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.35)'; ctx.fillRect(x, y + 14, w, 8);
+  ctx.fillStyle = '#6B7280'; ctx.fillRect(x, y, w, 14);
+  ctx.fillStyle = '#D1D5DB'; ctx.fillRect(x, y, w, 3);
+  ctx.fillStyle = '#4B5563'; for (let gx = x + 4; gx < x + w - 2; gx += 8) ctx.fillRect(gx, y + 5, 4, 4);
+  // A yellow safety stripe along its edge
+  ctx.fillStyle = '#EAB308'; ctx.fillRect(x, y + 10, w, 3);
+  ctx.fillStyle = '#1F2937'; for (let sx = x; sx < x + w; sx += 12) ctx.fillRect(sx, y + 10, 5, 3);
+  // The railing (thin, so it doesn't clutter), the brackets under it
+  ctx.fillStyle = '#9CA3AF'; ctx.fillRect(x, y - 28, w, 2);
+  for (let rx = x; rx <= x + w; rx += 24) ctx.fillRect(rx, y - 28, 2, 28);
+  ctx.strokeStyle = '#4B5563'; ctx.lineWidth = 3;
+  for (let bx = x + 20; bx < x + w - 10; bx += 90) { ctx.beginPath(); ctx.moveTo(bx, y + 14); ctx.lineTo(bx + 16, y + 34); ctx.stroke(); }
   if (going) { ctx.fillStyle = '#FDE047'; ctx.fillRect(x + 2, y + 6, 3, 3); ctx.fillRect(x + w - 5, y + 6, 3, 3); }
 };
 
