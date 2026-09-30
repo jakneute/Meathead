@@ -49,6 +49,9 @@ export interface Escape {
 export const LAUNCH = 70, TOWER_FRAMES = LAUNCH + 230, SURF_FRAMES = 360, FAMILY_FRAMES = 250, CRUSH_FRAMES = 300, MELT_FRAMES = 110;
 /** The beats in the tower shot (frames after LAUNCH): the cover through the tank, him into it, it hitting the ground. */
 export const COVER_HIT = 55, MAN_HIT = 85, TOWER_DOWN = 200;
+/** Lost up in the ruins (the way's written up in neon right in front of him): what he wonders, and how often. */
+const LOST_LINES = ['WHERE DO I GO NOW?', 'HELLO? TOMMY?', 'SOMEBODY SHOULD PUT UP A SIGN OR SOMETHING.', 'WHICH WAY IS THE WAY?', 'I THINK I CAME FROM OVER THERE. OR THERE.'];
+const LOST_EVERY = 540;
 /** The fall: how long to black, and how long it takes to come back up once he's landed. */
 export const DROP_FADE = 45, DROP_FADE_IN = 40;
 
@@ -176,6 +179,10 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
       if (es.t > MELT_FRAMES) { es.phase = 'ruins'; es.t = 0; p.inCutscene = false; }
       return { ...NO_CONTROLS };
     case 'ruins':
+      // Up here, lost, under a ten-foot sign he can't read: every so often he wonders out loud where he's meant to go
+      if (quiet(talk) && p.pos.y < RUINS_Y + 40 && es.t > 0 && es.t % LOST_EVERY === 0) {
+        queueLines(state, talk, [{ who: 'meathead', text: LOST_LINES[(es.t / LOST_EVERY - 1) % LOST_LINES.length] }]);
+      }
       // (up top the camera stops where the ground does: nothing past the end of it on show)
       state.cameraMaxX = p.pos.y < GROUND_Y - 1000 ? COURSE.ruins.x2 - CANVAS_WIDTH : undefined;
       // Walking on over the rubble, to the edge of the pit and over it

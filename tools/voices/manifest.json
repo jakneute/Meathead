@@ -6657,7 +6657,7 @@
  {
   "voice": "meathead",
   "text": "AAAAAAAAAAAAAAAAAAAAAAAA",
-  "from": "game/stages/tommy/escape.ts:183"
+  "from": "game/stages/tommy/escape.ts:190"
  },
  {
   "voice": "meathead",
@@ -7662,7 +7662,7 @@
  {
   "voice": "meathead",
   "text": "EXCUSE ME. SORRY. WRONG HOUSE.",
-  "from": "game/stages/tommy/escape.ts:175"
+  "from": "game/stages/tommy/escape.ts:178"
  },
  {
   "voice": "meathead",
@@ -8796,6 +8796,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HELLO? TOMMY?",
+  "from": "game/stages/tommy/escape.ts:184"
+ },
+ {
+  "voice": "meathead",
   "text": "HEY. YOU. YEAH, YOU, WITH THE PLASTIC DOOHICKEY.",
   "from": "game/stages/victor/doorman.ts:529"
  },
@@ -9206,6 +9211,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I THINK I CAME FROM OVER THERE. OR THERE.",
+  "from": "game/stages/tommy/escape.ts:184"
+ },
+ {
+  "voice": "meathead",
   "text": "I THINK IT'S OVER.",
   "from": "game/stages/barry/power.ts:233"
  },
@@ -9562,7 +9572,7 @@
  {
   "voice": "meathead",
   "text": "IS THIS TOMMY'S LAIR?",
-  "from": "game/stages/tommy/escape.ts:211"
+  "from": "game/stages/tommy/escape.ts:218"
  },
  {
   "voice": "meathead",
@@ -10492,7 +10502,7 @@
  {
   "voice": "meathead",
   "text": "OKAY. SUIT. NOW WHAT?",
-  "from": "game/stages/tommy/escape.ts:108"
+  "from": "game/stages/tommy/escape.ts:111"
  },
  {
   "voice": "meathead",
@@ -10517,7 +10527,7 @@
  {
   "voice": "meathead",
   "text": "OOH. SHINY LETTERS. ...ONE OF 'EM'S AN L, I THINK.",
-  "from": "game/stages/tommy/escape.ts:175"
+  "from": "game/stages/tommy/escape.ts:178"
  },
  {
   "voice": "meathead",
@@ -11566,6 +11576,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SOMEBODY SHOULD PUT UP A SIGN OR SOMETHING.",
+  "from": "game/stages/tommy/escape.ts:184"
+ },
+ {
+  "voice": "meathead",
   "text": "SOMEBODY WIN THIS GUY A STUFFED ANIMAL!",
   "from": "RANGE_KILL_LINES"
  },
@@ -11912,7 +11927,7 @@
  {
   "voice": "meathead",
   "text": "SURF'S UP, FLINT!",
-  "from": "game/stages/tommy/escape.ts:144"
+  "from": "game/stages/tommy/escape.ts:147"
  },
  {
   "voice": "meathead",
@@ -12172,7 +12187,7 @@
  {
   "voice": "meathead",
   "text": "THAT'S NOT GOOD. THAT'S A LOT OF RUMBLING.",
-  "from": "game/stages/tommy/escape.ts:92"
+  "from": "game/stages/tommy/escape.ts:95"
  },
  {
   "voice": "meathead",
@@ -12717,7 +12732,7 @@
  {
   "voice": "meathead",
   "text": "UH OH.",
-  "from": "game/stages/tommy/escape.ts:134"
+  "from": "game/stages/tommy/escape.ts:137"
  },
  {
   "voice": "meathead",
@@ -12941,8 +12956,18 @@
  },
  {
   "voice": "meathead",
+  "text": "WHERE DO I GO NOW?",
+  "from": "game/stages/tommy/escape.ts:184"
+ },
+ {
+  "voice": "meathead",
   "text": "WHERE'S THE FIRE? OH, IT'S YOU!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHICH WAY IS THE WAY?",
+  "from": "game/stages/tommy/escape.ts:184"
  },
  {
   "voice": "meathead",
@@ -13802,7 +13827,7 @@
  {
   "voice": "tommy.dad",
   "text": "HA! PASS THE CHIPS.",
-  "from": "game/stages/tommy/escape.ts:152"
+  "from": "game/stages/tommy/escape.ts:155"
  },
  {
   "voice": "tommy.hazmat",
@@ -13817,7 +13842,7 @@
  {
   "voice": "tommy.kid",
   "text": "WHY'S IT GETTING DARK?",
-  "from": "game/stages/tommy/escape.ts:153"
+  "from": "game/stages/tommy/escape.ts:156"
  },
  {
   "voice": "tommy.rider",
