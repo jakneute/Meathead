@@ -31,7 +31,7 @@ const WeaponWheel: React.FC<{ weapons: WeaponType[]; index: number; current: Wea
           );
         })}
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="max-w-[140px] text-center font-mono font-bold uppercase text-[9px] leading-tight text-yellow-300 [text-shadow:0_1px_0_#000]">{picked ? getWeaponInfo(picked).name : ''}</span>
+          <span className="max-w-[170px] text-center font-mono font-bold uppercase text-[15px] leading-tight text-yellow-300 [text-shadow:0_2px_0_#000]">{picked ? getWeaponInfo(picked).name : ''}</span>
         </div>
       </div>
     </div>
