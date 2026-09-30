@@ -13,7 +13,7 @@ import type { PadFamily } from '../game/platform/device';
  * confirms; its B, on the bottom, goes back). What's printed on them depends on whose controller it is: an Xbox's
  * letters, a PlayStation's shapes, a Switch's letters (the other way round to an Xbox's).
  */
-export type PadKey = 'A' | 'B' | 'X' | 'Y' | 'START' | 'LB' | 'RB' | 'DPAD' | 'OK' | 'BACK';
+export type PadKey = 'A' | 'B' | 'X' | 'Y' | 'START' | 'LB' | 'RB' | 'DPAD' | 'RSTICK' | 'OK' | 'BACK';
 type Face = 'A' | 'B' | 'X' | 'Y';
 const XBOX_COLORS: Record<Face, string> = { A: '#22C55E', B: '#EF4444', X: '#3B82F6', Y: '#FACC15' };
 const PS_SHAPES: Record<Face, { shape: 'cross' | 'circle' | 'square' | 'triangle'; color: string }> = {
@@ -77,7 +77,16 @@ export const PadButton: React.FC<{ label: Face; size?: number; family?: PadFamil
 };
 
 /** The controller's other buttons: Start (a little pill), the bumpers (a wide rounded bar), the D-pad (a cross). */
-const PadOther: React.FC<{ label: 'START' | 'LB' | 'RB' | 'DPAD'; size: number; family?: PadFamily }> = ({ label, size, family = 'xbox' }) => {
+const PadOther: React.FC<{ label: 'START' | 'LB' | 'RB' | 'DPAD' | 'RSTICK'; size: number; family?: PadFamily }> = ({ label, size, family = 'xbox' }) => {
+  // (the right stick: a thumbstick seen from above, R on it, arrows up and down)
+  if (label === 'RSTICK') return (
+    <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">
+      <circle cx="20" cy="20" r="17" fill="#27272A" stroke="#0B0B0F" strokeWidth="2" />
+      <circle cx="20" cy="20" r="11" fill="#3F3F46" stroke="#18181B" strokeWidth="2" />
+      <text x="20" y="25" textAnchor="middle" fontFamily={FONT} fontSize="11" fill="#E4E4E7">R</text>
+      <path d="M20 1 l3 4 h-6 Z M20 39 l3 -4 h-6 Z" fill="#A1A1AA" />
+    </svg>
+  );
   if (label === 'DPAD') return (
     <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">
       <path d="M15 4 H25 V15 H36 V25 H25 V36 H15 V25 H4 V15 H15 Z" fill="#27272A" stroke="#0B0B0F" strokeWidth="2" />

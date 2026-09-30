@@ -23,6 +23,9 @@ const singleJoyCon = (s: string): PadFamily | null => {
   return null;
 };
 
+/** Does this controller have a right stick? (One Joy-Con on its own doesn't.) */
+export const hasRightStick = (id: string) => { const f = familyOf(id); return f !== 'joycon-l' && f !== 'joycon-r'; };
+
 export const familyOf = (id: string): PadFamily => {
   const s = id.toLowerCase();
   const single = singleJoyCon(s);

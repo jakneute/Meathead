@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GP_BUTTONS } from '../game/platform/gamepad';
+import { hasRightStick } from '../game/platform/device';
 import { WeaponType } from '../types';
 import { DOSSIERS, DOSSIER_HEADER, AFTERMATHS } from '../content/dossiers';
 import { BOSS_LOCATIONS } from '../content/roster';
@@ -11,14 +12,15 @@ import { GARAGE_ID, GARAGE_DOSSIER } from '../content/garage';
 /** Right stick: how far it has to go before it scrolls, and how fast it scrolls at full tilt (px a frame). */
 const STICK_DEADZONE = 0.2, STICK_SPEED = 7;
 
-/** The scroll off a pad: the right stick's up/down, or the (left, or only) stick's while the top face button's held. */
+/** The scroll off a pad: the right stick's up/down; on a pad without one (one Joy-Con), its stick while the top button's held. */
 const rightStickY = () => {
   if (typeof navigator === 'undefined' || !navigator.getGamepads) return 0;
   try {
     for (const gp of navigator.getGamepads()) {
       if (!gp || gp.connected === false || !gp.axes) continue;
-      const held = !!gp.buttons?.[GP_BUTTONS.Y]?.pressed;
-      const y = held ? gp.axes[1] : gp.axes[3];
+      // (a pad with a right stick: that, and only that; one Joy-Con, with the one stick: that stick, while the top
+      // button's held)
+      const y = hasRightStick(gp.id) ? gp.axes[3] : gp.buttons?.[GP_BUTTONS.Y]?.pressed ? gp.axes[1] : undefined;
       if (typeof y === 'number' && Math.abs(y) > STICK_DEADZONE) return y;
     }
   } catch { /* no pads */ }

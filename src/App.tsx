@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { hasRightStick } from './game/platform/device';
 import CheckpointPicker, { StartAt } from './components/CheckpointPicker';
 import Garage from './components/Garage';
 import { GARAGE_INDEX } from './components/Overlay';
@@ -602,7 +603,7 @@ const App: React.FC = () => {
         if (garage) { prev.a = prev.b = prev.x = prev.y = prev.start = true; frameId = requestAnimationFrame(poll); return; }
         const move = getGamepadMovement(gp, 0.25);
         // (the top button held on the dossier: the stick's scrolling it, not moving off the target)
-        const scrolling = status === GameStatus.STAGE_SELECT && inputRef.current.dossier && isButtonPressed(gp, GP_BUTTONS.Y);
+        const scrolling = status === GameStatus.STAGE_SELECT && inputRef.current.dossier && !hasRightStick(gp.id) && isButtonPressed(gp, GP_BUTTONS.Y);
         if (!scrolling && now - lastMoveAt > PAD_REPEAT_MS) {
           const dx = move.left ? -1 : move.right ? 1 : 0;
           const dy = move.up ? -1 : move.down ? 1 : 0;
