@@ -43,21 +43,33 @@ export interface Escape {
   zoomK: number;
   /** Frames into the blast-to-the-ruins scene (it can be skipped: all of it). */
   sceneT: number;
+  /** Lost up in the ruins: how many times he's wondered where to go (it gets angrier), and when he last did. */
+  lost: number;
+  lostAt: number;
 }
 
 /** How long each of the cut scenes runs. (The tower's: the street and the manhole first, LAUNCH frames, then the tower.) */
 export const LAUNCH = 70, TOWER_FRAMES = LAUNCH + 230, SURF_FRAMES = 360, FAMILY_FRAMES = 250, CRUSH_FRAMES = 300, MELT_FRAMES = 110;
 /** The beats in the tower shot (frames after LAUNCH): the cover through the tank, him into it, it hitting the ground. */
 export const COVER_HIT = 55, MAN_HIT = 85, TOWER_DOWN = 200;
-/** Lost up in the ruins (the way's written up in neon right in front of him): what he wonders, and how often. */
-const LOST_LINES = ['WHERE DO I GO NOW?', 'HELLO? TOMMY?', 'SOMEBODY SHOULD PUT UP A SIGN OR SOMETHING.', 'WHICH WAY IS THE WAY?', 'I THINK I CAME FROM OVER THERE. OR THERE.'];
-const LOST_EVERY = 540;
+/**
+ * Lost up in the ruins (the way's written up in neon right in front of him): what he wonders, in order, the longer he
+ * hangs about up there: puzzled, then flustered, then angry (and then just angry, round and round), and how often.
+ */
+const LOST_LINES = [
+  'WHERE DO I GO NOW?', 'HELLO? TOMMY?', 'WHICH WAY IS THE WAY?', 'I THINK I CAME FROM OVER THERE. OR THERE.',
+  'SOMEBODY SHOULD PUT UP A SIGN OR SOMETHING.', 'OKAY. OKAY. THINK. WHERE WOULD A TOMMY BE?',
+  'THIS IS STUPID. THIS IS A STUPID NEIGHBORHOOD.', "WHY DOESN'T ANYBODY LABEL ANYTHING?!",
+  "I'VE WALKED THIS WAY LIKE NINE TIMES!", 'TOMMY! COME OUT HERE AND FIGHT ME, YOU COWARD!', "I'M GONNA PUNCH THIS WHOLE BLOCK! THE WHOLE BLOCK!",
+];
+/** From here on he's angry (and stays angry: the last few, round and round). */
+const LOST_ANGRY = 7, LOST_EVERY = 540, LOST_EVERY_ANGRY = 400;
 /** The fall: how long to black, and how long it takes to come back up once he's landed. */
 export const DROP_FADE = 45, DROP_FADE_IN = 40;
 
 export const createEscape = (state: GameState, startedAt: number): Escape => {
   void state;
-  return { phase: startedAt >= CP.RUINS ? 'ruins' : 'waiting', t: 0, chunks: [], dropT: 0, landedT: 0, zoomK: 0, sceneT: 0 };
+  return { phase: startedAt >= CP.RUINS ? 'ruins' : 'waiting', t: 0, chunks: [], dropT: 0, landedT: 0, zoomK: 0, sceneT: 0, lost: 0, lostAt: 0 };
 };
 
 /** The thing's dead: the sewer starts to come apart. */
@@ -180,8 +192,11 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
       return { ...NO_CONTROLS };
     case 'ruins':
       // Up here, lost, under a ten-foot sign he can't read: every so often he wonders out loud where he's meant to go
-      if (quiet(talk) && p.pos.y < RUINS_Y + 40 && es.t > 0 && es.t % LOST_EVERY === 0) {
-        queueLines(state, talk, [{ who: 'meathead', text: LOST_LINES[(es.t / LOST_EVERY - 1) % LOST_LINES.length] }]);
+      if (quiet(talk) && p.pos.y < RUINS_Y + 40 && es.t >= es.lostAt + (es.lost >= LOST_ANGRY ? LOST_EVERY_ANGRY : LOST_EVERY)) {
+        const i = es.lost < LOST_LINES.length ? es.lost : LOST_LINES.length - 3 + ((es.lost - LOST_LINES.length) % 3);
+        queueLines(state, talk, [{ who: 'meathead', text: LOST_LINES[i] }]);
+        if (es.lost >= LOST_ANGRY) p.angryTimer = 240;
+        es.lost++; es.lostAt = es.t;
       }
       // (up top the camera stops where the ground does: nothing past the end of it on show)
       state.cameraMaxX = p.pos.y < GROUND_Y - 1000 ? COURSE.ruins.x2 - CANVAS_WIDTH : undefined;

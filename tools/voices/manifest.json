@@ -6657,7 +6657,7 @@
  {
   "voice": "meathead",
   "text": "AAAAAAAAAAAAAAAAAAAAAAAA",
-  "from": "game/stages/tommy/escape.ts:190"
+  "from": "game/stages/tommy/escape.ts:205"
  },
  {
   "voice": "meathead",
@@ -7662,7 +7662,7 @@
  {
   "voice": "meathead",
   "text": "EXCUSE ME. SORRY. WRONG HOUSE.",
-  "from": "game/stages/tommy/escape.ts:178"
+  "from": "game/stages/tommy/escape.ts:190"
  },
  {
   "voice": "meathead",
@@ -8797,7 +8797,7 @@
  {
   "voice": "meathead",
   "text": "HELLO? TOMMY?",
-  "from": "game/stages/tommy/escape.ts:184"
+  "from": "game/stages/tommy/escape.ts:197"
  },
  {
   "voice": "meathead",
@@ -9212,7 +9212,7 @@
  {
   "voice": "meathead",
   "text": "I THINK I CAME FROM OVER THERE. OR THERE.",
-  "from": "game/stages/tommy/escape.ts:184"
+  "from": "game/stages/tommy/escape.ts:197"
  },
  {
   "voice": "meathead",
@@ -9356,6 +9356,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M GONNA PUNCH THIS WHOLE BLOCK! THE WHOLE BLOCK!",
+  "from": "game/stages/tommy/escape.ts:197"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M GOOD. I'M GOOD.",
   "from": "game/stages/dale/convoy.ts:389"
  },
@@ -9491,6 +9496,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'VE WALKED THIS WAY LIKE NINE TIMES!",
+  "from": "game/stages/tommy/escape.ts:197"
+ },
+ {
+  "voice": "meathead",
   "text": "ICE BATH... FOREVER",
   "from": "VULGARITIES"
  },
@@ -9572,7 +9582,7 @@
  {
   "voice": "meathead",
   "text": "IS THIS TOMMY'S LAIR?",
-  "from": "game/stages/tommy/escape.ts:218"
+  "from": "game/stages/tommy/escape.ts:233"
  },
  {
   "voice": "meathead",
@@ -10501,8 +10511,13 @@
  },
  {
   "voice": "meathead",
+  "text": "OKAY. OKAY. THINK. WHERE WOULD A TOMMY BE?",
+  "from": "game/stages/tommy/escape.ts:197"
+ },
+ {
+  "voice": "meathead",
   "text": "OKAY. SUIT. NOW WHAT?",
-  "from": "game/stages/tommy/escape.ts:111"
+  "from": "game/stages/tommy/escape.ts:123"
  },
  {
   "voice": "meathead",
@@ -10527,7 +10542,7 @@
  {
   "voice": "meathead",
   "text": "OOH. SHINY LETTERS. ...ONE OF 'EM'S AN L, I THINK.",
-  "from": "game/stages/tommy/escape.ts:178"
+  "from": "game/stages/tommy/escape.ts:190"
  },
  {
   "voice": "meathead",
@@ -11577,7 +11592,7 @@
  {
   "voice": "meathead",
   "text": "SOMEBODY SHOULD PUT UP A SIGN OR SOMETHING.",
-  "from": "game/stages/tommy/escape.ts:184"
+  "from": "game/stages/tommy/escape.ts:197"
  },
  {
   "voice": "meathead",
@@ -11927,7 +11942,7 @@
  {
   "voice": "meathead",
   "text": "SURF'S UP, FLINT!",
-  "from": "game/stages/tommy/escape.ts:147"
+  "from": "game/stages/tommy/escape.ts:159"
  },
  {
   "voice": "meathead",
@@ -12187,7 +12202,7 @@
  {
   "voice": "meathead",
   "text": "THAT'S NOT GOOD. THAT'S A LOT OF RUMBLING.",
-  "from": "game/stages/tommy/escape.ts:95"
+  "from": "game/stages/tommy/escape.ts:107"
  },
  {
   "voice": "meathead",
@@ -12511,6 +12526,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THIS IS STUPID. THIS IS A STUPID NEIGHBORHOOD.",
+  "from": "game/stages/tommy/escape.ts:197"
+ },
+ {
+  "voice": "meathead",
   "text": "THIS MEETING COULD'VE BEEN AN EMAIL!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -12593,6 +12613,11 @@
   "voice": "meathead",
   "text": "TOASTED GAINS",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOMMY! COME OUT HERE AND FIGHT ME, YOU COWARD!",
+  "from": "game/stages/tommy/escape.ts:197"
  },
  {
   "voice": "meathead",
@@ -12732,7 +12757,7 @@
  {
   "voice": "meathead",
   "text": "UH OH.",
-  "from": "game/stages/tommy/escape.ts:137"
+  "from": "game/stages/tommy/escape.ts:149"
  },
  {
   "voice": "meathead",
@@ -12957,7 +12982,7 @@
  {
   "voice": "meathead",
   "text": "WHERE DO I GO NOW?",
-  "from": "game/stages/tommy/escape.ts:184"
+  "from": "game/stages/tommy/escape.ts:197"
  },
  {
   "voice": "meathead",
@@ -12967,7 +12992,7 @@
  {
   "voice": "meathead",
   "text": "WHICH WAY IS THE WAY?",
-  "from": "game/stages/tommy/escape.ts:184"
+  "from": "game/stages/tommy/escape.ts:197"
  },
  {
   "voice": "meathead",
@@ -13103,6 +13128,11 @@
   "voice": "meathead",
   "text": "WHOSE PIT BULLS ARE THESE?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHY DOESN'T ANYBODY LABEL ANYTHING?!",
+  "from": "game/stages/tommy/escape.ts:197"
  },
  {
   "voice": "meathead",
@@ -13827,7 +13857,7 @@
  {
   "voice": "tommy.dad",
   "text": "HA! PASS THE CHIPS.",
-  "from": "game/stages/tommy/escape.ts:155"
+  "from": "game/stages/tommy/escape.ts:167"
  },
  {
   "voice": "tommy.hazmat",
@@ -13842,7 +13872,7 @@
  {
   "voice": "tommy.kid",
   "text": "WHY'S IT GETTING DARK?",
-  "from": "game/stages/tommy/escape.ts:156"
+  "from": "game/stages/tommy/escape.ts:168"
  },
  {
   "voice": "tommy.rider",

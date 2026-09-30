@@ -12,7 +12,7 @@ game/stages/dale/runtime.ts:189 name: undefined
 game/stages/barry/runtime.ts:391 name: undefined
 game/stages/barry/runtime.ts:400 name: undefined
 game/stages/tommy/runtime.ts:175 name: undefined
-game/stages/tommy/escape.ts:247 name: undefined
+game/stages/tommy/escape.ts:262 name: undefined
 game/stages/tommy/thing.ts:341 name: undefined
 game/stages/tommy/bike.ts:558 name: undefined
 game/stages/oscar/bunker.ts:249 template: `${NUMBERS[left] ?? left} MINUTE${left === 1 ? '' : 'S'} LEFT, FELLAS. SAVOR IT.`
