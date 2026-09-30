@@ -229,20 +229,7 @@ const flyOverdosedBody = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolea
   if (e.vel.y < 0) {
     const box = boundsOf(e);
     const ceiling = state.blocks.find(b => (b.type === 'wall' || b.type === 'ground' || b.type === 'platform') && !b.oneWay && rectsOverlap(box, b) && e.pos.y - e.vel.y >= b.y + b.h - 2);
-    if (ceiling) {
-      const at = { x: c.x, y: ceiling.y + ceiling.h + 2 };
-      fx.spawnDeathShower(at, 0, 2.5);
-      fx.spawnExplosion(at, '#8B0000', 20, 0, 14);
-      fx.spawnExplosion(at, '#E879F9', 10, 0, 10);
-      // ...and what's left of him flattened on the underside of it, dripping
-      startEnemyDeath(state, e, 'ceilinged');
-      const d = state.enemyDeaths[state.enemyDeaths.length - 1];
-      if (d && d.kind === 'ceilinged') { d.y = ceiling.y + ceiling.h - d.h; d.x = c.x - d.w / 2; }
-      fx.spawnKillCallout(e, 'ceiling');
-      shakeScreen(state, 10);
-      fx.playGunSound('crunch');
-      return false;
-    }
+    if (ceiling) { fx.spawnExplosion({ x: c.x, y: ceiling.y + ceiling.h + 2 }, '#E879F9', 10, 0, 10); ceilingSplat(ctx, e, ceiling.y + ceiling.h); return false; }
   }
 
   // Plowing through anyone in the way
@@ -427,6 +414,16 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
     // (shoved off into a pit, it stops dead against the far side of it: it doesn't go on into the ground)
     if (e.vel.x !== 0) stopAgainstGround(state, e);
     e.pos.y += e.vel.y;
+    // (a ceiling in the way going up: it bonks it, and comes back down; it doesn't go through it)
+    if (e.vel.y < 0) {
+      const ceil = ceilingHit(state, e);
+      if (ceil) {
+        const hit = -e.vel.y;
+        e.pos.y = ceil.y + ceil.h;
+        e.vel.y = hit * 0.25;
+        if (bonkCeiling(ctx, e, hit)) return;
+      }
+    }
     e.vel.y += GRAVITY * 0.75;
     e.vel.x *= grip.air;
     if (overFloor && e.pos.y >= floorLevel) {
@@ -1136,6 +1133,46 @@ const slamIntoFloor = (ctx: FrameContext, e: Enemy, speed: number) => {
   if (e.health <= 0) impactKill(ctx, e, 'groundsplat', 0);
 };
 
+/** Something solid right over it that it's just gone up into (the underside of it, from below: not a ledge you jump up through). */
+const ceilingHit = (state: GameState, e: Enemy): Block | undefined => {
+  const box = boundsOf(e);
+  return state.blocks.find(b => (b.type === 'wall' || b.type === 'ground') && !b.oneWay && rectsOverlap(box, b) && e.pos.y - e.vel.y >= b.y + b.h - 2);
+};
+
+/** Flattened on the underside of a ceiling (at `ceilY`), dripping: a blood burst, the callout, and the body stays up there. */
+const ceilingSplat = (ctx: FrameContext, e: Enemy, ceilY: number, callout = true) => {
+  const { state, fx } = ctx;
+  const at = { x: e.pos.x + e.width / 2, y: ceilY + 2 };
+  fx.spawnDeathShower(at, 0, 2.5);
+  fx.spawnExplosion(at, '#8B0000', 20, 0, 14);
+  startEnemyDeath(state, e, 'ceilinged');
+  const d = state.enemyDeaths[state.enemyDeaths.length - 1];
+  if (d && d.kind === 'ceilinged') { d.y = ceilY - d.h; d.x = at.x - d.w / 2; }
+  if (callout && !e.splatCalled) { e.splatCalled = true; fx.spawnKillCallout(e, 'ceiling'); }
+  shakeScreen(state, 10);
+  fx.playGunSound('crunch');
+};
+
+/** A live enemy knocked up into a ceiling: it takes the hit (its weight and how fast it was going up). If that kills it, it's
+ * flattened up there; if not, it's on its way back down. True if it's dead. */
+const bonkCeiling = (ctx: FrameContext, e: Enemy, speed: number): boolean => {
+  const { state, fx } = ctx;
+  const weight = Math.min(2.5, Math.max(0.4, getEnemyMass(e) / 200));
+  const damage = toGml(speed) * weight * DAMAGE_FALL_SCALER;
+  fx.playGunSound('thud');
+  if (damage <= IMPACT_DAMAGE_THRESHOLD) return false;
+  e.health -= damage;
+  fx.spawnDamageNumber(e.pos, damage, damage > 30);
+  shakeScreen(state, 6);
+  if (e.health > 0) return false;
+  e.health = 0;
+  ceilingSplat(ctx, e, e.pos.y);
+  fx.spawnPickup(e.pos);
+  fx.speakVulgarity('uppercut_kill');
+  state.player.killSatisfactionTimer = 60;
+  return true;
+};
+
 /** How fast a body has to hit for the splat to get a callout (a gentle drop's just a splat). */
 const SPLAT_CALLOUT_SPEED = 12;
 
@@ -1162,10 +1199,10 @@ const splatBody = (ctx: FrameContext, e: Enemy): boolean => {
       return false;
     }
   }
-  // A ceiling on the way up: it bonks off it and comes down sooner
-  if (e.vel.y < 0 && state.blocks.some(b => (b.type === 'wall' || b.type === 'ground') && solid(b) && e.pos.y - e.vel.y >= b.y + b.h - 2)) {
-    e.vel.y = Math.abs(e.vel.y) * 0.3;
-    return false;
+  // A ceiling on the way up: that's where it ends (like an overdose): flattened on the underside of it, and it stays
+  if (e.vel.y < 0) {
+    const ceil = ceilingHit(state, e);
+    if (ceil) { ceilingSplat(ctx, e, ceil.y + ceil.h); return true; }
   }
   // The ground: splat, and that's where it stays
   if (e.vel.y > 0) {
