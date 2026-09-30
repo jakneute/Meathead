@@ -380,6 +380,21 @@ export const drawTrumpCloseUp = (ctx: Ctx, t: number, talking: boolean, mood: 'p
   for (let i = 0; i < 6; i++) R(ctx, 100 + i * 12, 34 + (i % 2) * 2, 10, 1, C.tHairLight);
   R(ctx, 96, 52, 70, 2, C.tHairShade);
   R(ctx, 150, 54, 16, 2, C.tHairShade);
+  // (the swoop, strand by strand, combed over from the far side)
+  for (let i = 0; i < 9; i++) { const sx = 94 + i * 8; R(ctx, sx, 38 + (i % 3), 7, 1, i % 2 ? C.tHairLight : C.tHairShade); R(ctx, sx + 3, 44 + (i % 2), 6, 1, C.tHairShade); }
+  R(ctx, 164, 44, 2, 12, C.tHairShade); R(ctx, 168, 48, 1, 8, C.tHairLight);
+  // Lines in his face: the forehead, the bags under his eyes, down from his nose, the jowls; the flush in his cheeks
+  R(ctx, 112, 56, 32, 1, C.tSkinShade);
+  R(ctx, 104, 76, 14, 1, C.tSkinShade); R(ctx, 106, 78, 10, 1, C.tSkinShade);
+  R(ctx, 138, 76, 14, 1, C.tSkinShade); R(ctx, 140, 78, 10, 1, C.tSkinShade);
+  for (let k = 0; k < 10; k++) { R(ctx, 116 - Math.floor(k / 2), 88 + k, 1, 1, C.tSkinShade); R(ctx, 140 + Math.floor(k / 2), 88 + k, 1, 1, C.tSkinShade); }
+  ell(ctx, 102, 88, 7, 4, '#f07a38'); ell(ctx, 154, 88, 7, 4, '#f07a38');
+  R(ctx, 100, 106, 10, 1, C.tSkinShade); R(ctx, 146, 106, 10, 1, C.tSkinShade);
+  R(ctx, 104, 114, 48, 1, C.tSkinShade);
+  // The suit: its lapels, the flag pin, the shirt collar points
+  for (let i = 0; i < 16; i++) { R(ctx, 104 - i, 112 + i, 1, 1, C.navyDark); R(ctx, 151 + i, 112 + i, 1, 1, C.navyDark); }
+  R(ctx, 74, 126, 6, 4, C.white); R(ctx, 74, 126, 6, 1, C.red); R(ctx, 74, 128, 6, 1, C.red); R(ctx, 74, 126, 2, 2, C.blue);
+  R(ctx, 30, 118, 196, 1, '#34347c');
 };
 
 /** Medium two-shot: Trump hanging the medal round Meathead's neck. */
@@ -439,25 +454,45 @@ export const drawMedal = (ctx: Ctx, t: number, talking: boolean) => {
 /** Ninja Gaiden-style eyes shot: Meathead looks Trump up and down. */
 export const drawMeatheadEyes = (ctx: Ctx, t: number) => {
   R(ctx, 0, 0, ART_W, ART_H, C.black);
+  // The strip of his face: shaded toward the top and bottom of it, pores, a bead of sweat running
   R(ctx, 0, 36, ART_W, 72, C.mSkin);
+  R(ctx, 0, 42, ART_W, 4, C.mSkinShade); R(ctx, 0, 100, ART_W, 8, C.mSkinShade);
+  for (let i = 0; i < 160; i++) R(ctx, hash(i * 1.3) * ART_W, 44 + hash(i * 2.7) * 60, 1, 1, i % 3 ? '#c08a4c' : C.mSkinLight);
   R(ctx, 0, 36, ART_W, 6, C.mHair);
-  // Heavy brows lowering as he takes it in
+  const drip = (t * 0.5) % 60;
+  R(ctx, 111, 46 + drip, 3, 4, 'rgba(255,255,255,0.45)'); R(ctx, 111, 46 + drip, 1, 1, C.white);
+  // Heavy brows lowering as he takes it in: every hair of them
   const lower = Math.min(4, Math.floor(t / 20));
-  R(ctx, 30, 50 + lower, 76, 10, C.mHair);
-  R(ctx, 150, 50 + lower, 76, 10, C.mHair);
-  R(ctx, 120, 44, 16, 3, C.vein);
-  R(ctx, 126, 47, 3, 8, C.vein);
-  // Eyes: pupils drift down (to the belly) and back up
+  for (const bx of [30, 150]) {
+    R(ctx, bx, 50 + lower, 76, 10, C.mHair);
+    // (unkempt: hairs sticking up off it, at odd lengths and angles, the odd one catching the light)
+    for (let k = 0; k < 14; k++) { const hx = bx + 2 + hash(k * 7.3 + bx) * 72, hh = 1 + Math.floor(hash(k * 3.1 + bx) * 3); R(ctx, hx, 50 + lower - hh, 1, hh, C.mHair); if (k % 3 === 0) R(ctx, hx + 1, 50 + lower - hh, 1, 1, C.mHair); }
+    for (let k = 0; k < 10; k++) R(ctx, bx + 4 + hash(k * 5.9 + bx) * 68, 52 + lower + Math.floor(hash(k * 2.3) * 5), 2, 1, '#3c3c3c');
+  }
+  // The vein in his forehead, throbbing
+  const throb = t % 16 < 8 ? 1 : 0;
+  R(ctx, 120 - throb, 44, 16 + throb * 2, 3, C.vein); R(ctx, 126, 47, 3 + throb, 8, C.vein);
+  // Eyes: the pupils drift down (to the belly) and back up; what they're looking at in them, tiny
   const look = t < 30 ? 0 : t < 90 ? Math.min(10, (t - 30) / 3) : Math.max(0, 10 - (t - 90) / 3);
   for (const ex of [40, 160]) {
     R(ctx, ex, 66, 56, 22, C.white);
+    // (bloodshot: it's been a long morning)
+    for (const [vx, vy, w] of [[2, 70, 8], [3, 78, 6], [46, 72, 8], [44, 82, 9]]) { R(ctx, ex + vx, vy, w, 1, '#f08080'); R(ctx, ex + vx + (vx > 20 ? -2 : w), vy - 1, 2, 1, '#f08080'); }
     R(ctx, ex, 64, 56, 3, C.mSkinShade);
-    R(ctx, ex + 20, 68 + Math.round(look), 16, 14 - Math.round(look * 0.6), '#1e40af');
-    R(ctx, ex + 24, 71 + Math.round(look), 8, 8 - Math.round(look * 0.5), C.ink);
-    R(ctx, ex + 22, 69 + Math.round(look), 3, 3, C.white);
+    for (let k = 0; k < 9; k++) R(ctx, ex + 3 + k * 6, 63, 1, 3, C.mHair); // (lashes)
+    const ly = Math.round(look);
+    const ih = 14 - Math.round(look * 0.6);
+    R(ctx, ex + 20, 68 + ly, 16, ih, '#1e40af');
+    R(ctx, ex + 21, 69 + ly, 14, 2, '#3b6fe0');
+    R(ctx, ex + 24, 71 + ly, 8, 8 - Math.round(look * 0.5), C.ink);
+    // (the President in them: orange, a yellow swoop on top)
+    R(ctx, ex + 26, 73 + ly, 3, 3, C.tSkin); R(ctx, ex + 25, 72 + ly, 5, 1, C.tHair);
+    R(ctx, ex + 22, 69 + ly, 3, 3, C.white);
     R(ctx, ex, 88, 56, 3, C.mSkinShade);
+    R(ctx, ex + 4, 92, 48, 1, '#b07a40'); // (the bag under it)
   }
   R(ctx, 122, 88, 12, 20, C.mSkinShade);
+  R(ctx, 124, 88, 2, 16, C.mSkinLight);
 };
 
 /** Meathead's face, filling the frame (medal round his neck). */
@@ -471,6 +506,10 @@ export const drawMeatheadCloseUp = (ctx: Ctx, t: number, talking: boolean, mood:
   ell(ctx, 128, 150, 130, 34, C.mSkin);
   ell(ctx, 60, 140, 40, 22, C.mSkinShade);
   R(ctx, 96, 96, 64, 30, C.mSkin);
+  // (the light along the top of the traps, the cords of his neck running down into them, the split of his pecs)
+  ell(ctx, 66, 124, 22, 5, C.mSkinLight); ell(ctx, 190, 124, 22, 5, C.mSkinLight);
+  for (let k = 0; k < 10; k++) { R(ctx, 102 + k, 104 + k * 2, 3, 2, C.mSkinShade); R(ctx, 151 - k, 104 + k * 2, 3, 2, C.mSkinShade); }
+  R(ctx, 127, 128, 2, 16, C.mSkinShade); R(ctx, 112, 136, 12, 1, C.mSkinShade); R(ctx, 132, 136, 12, 1, C.mSkinShade);
   // Medal ribbon and medal
   if (where.medal !== false) {
     R(ctx, 96, 112, 8, 24, C.blue);
@@ -494,6 +533,18 @@ export const drawMeatheadCloseUp = (ctx: Ctx, t: number, talking: boolean, mood:
   // Vein
   R(ctx, 104, 32, 3, 8, C.vein);
   R(ctx, 106, 38, 5, 3, C.vein);
+  // The flat-top's bristles (the tips catching the light), the hairline sharp across his forehead
+  for (let x = 88; x < 168; x += 3) R(ctx, x, 8, 1, 18, '#262626');
+  for (let x = 87; x < 169; x += 3) R(ctx, x, 6, 1, 2, '#3c3c3c');
+  R(ctx, 92, 28, 60, 1, '#050505');
+  // The ears: the fold inside them
+  R(ctx, 84, 52, 3, 10, '#a86a2c'); R(ctx, 169, 52, 3, 10, '#a86a2c'); R(ctx, 85, 50, 2, 2, C.mSkin); R(ctx, 169, 50, 2, 2, C.mSkin);
+  // Shading: under the cheekbones, down the shadow side of the nose, the temples; the stubble along the jaw; the chin's cleft
+  R(ctx, 96, 64, 8, 2, C.mSkinShade); R(ctx, 148, 64, 4, 2, C.mSkinShade);
+  R(ctx, 92, 68, 4, 22, C.mSkinShade); R(ctx, 94, 30, 4, 10, C.mSkinShade);
+  R(ctx, 130, 60, 2, 12, C.mSkinShade);
+  for (let i = 0; i < 70; i++) { const sx = 92 + hash(i * 3.7) * 72, sy = 88 + hash(i * 5.1) * 12; if (Math.abs(sx - 128) > 16 || sy > 94) R(ctx, sx, sy, 1, 1, '#9c6c38'); }
+  R(ctx, 127, 99, 2, 5, C.mSkinShade);
   // Brows and eyes
   if (mood === 'disgust') {
     for (let i = 0; i < 26; i++) { R(ctx, 98 + i, 42 + Math.floor(i / 4), 1, 6, C.mHair); R(ctx, 132 + i, 48 - Math.floor(i / 4), 1, 6, C.mHair); }
@@ -530,9 +581,11 @@ export const drawMeatheadCloseUp = (ctx: Ctx, t: number, talking: boolean, mood:
     R(ctx, 110, 54, 6, mood === 'disgust' ? 4 : 7, C.ink);
     R(ctx, 144, 54, 6, mood === 'disgust' ? 4 : 7, C.ink);
   }
-  // Nose
+  // Nose (the light on its bridge, the nostrils flared)
   R(ctx, 126, 58, 4, 16, C.mSkinShade);
+  R(ctx, 124, 58, 2, 12, C.mSkinLight);
   R(ctx, 120, 72, 16, 3, C.mSkinShade);
+  R(ctx, 121, 74, 4, 2, '#6a3a18'); R(ctx, 131, 74, 4, 2, '#6a3a18');
   // Mouth
   const open = talking && t % 10 < 5;
   if (mood === 'disgust') {

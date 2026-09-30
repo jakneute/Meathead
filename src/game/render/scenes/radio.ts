@@ -102,8 +102,28 @@ export const drawGarage = (ctx: Ctx, t: number, talking: boolean, meatheadTalkin
 
 /** The radio up close, its scope going. */
 export const drawRadioCloseUp = (ctx: Ctx, t: number, talking: boolean) => {
-  R(ctx, 0, 0, ART_W, ART_H, C.ink);
+  // The pegboard behind it (a wrench, a jump rope hung on it), the bench it's on
+  R(ctx, 0, 0, ART_W, ART_H, '#1c1712');
+  for (let y = 4; y < 150; y += 8) for (let x = 4; x < ART_W; x += 8) R(ctx, x, y, 1, 1, '#0c0a08');
+  R(ctx, 8, 20, 4, 30, '#6c6c6c'); ell(ctx, 10, 18, 5, 4, '#6c6c6c'); ell(ctx, 10, 18, 2, 2, '#1c1712');
+  ctx.strokeStyle = C.red; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(236, 40, 10, 0.3, Math.PI * 2 - 0.3); ctx.stroke(); R(ctx, 244, 44, 3, 10, C.ink); R(ctx, 226, 44, 3, 10, C.ink);
   fieldRadio(ctx, t, 38, 36, 3, talking);
+  // Up close: the screws, the knobs' grips and the numbers round them, a stencil, the label on the tape
+  for (const [sx, sy] of [[42, 40], [213, 40], [42, 150], [213, 150]]) { R(ctx, sx, sy, 3, 3, '#8c8c7c'); R(ctx, sx, sy + 1, 3, 1, '#3c3c30'); }
+  for (const k of [0, 1]) {
+    const kx = 38 + (38 + k * 12) * 3, ky = 36 + 13 * 3;
+    for (let a = 0; a < 12; a++) { const an = (a / 12) * Math.PI * 2; R(ctx, kx + Math.cos(an) * 11, ky + Math.sin(an) * 11, 1, 1, '#2c2c2c'); }
+    for (let a = 0; a < 7; a++) { const an = Math.PI * 0.8 + (a / 6) * Math.PI * 1.4; R(ctx, kx + Math.cos(an) * 15, ky + Math.sin(an) * 15, 1, 2, '#c8d0a0'); }
+  }
+  ctx.fillStyle = '#c8d0a0'; ctx.font = 'bold 6px monospace'; ctx.textAlign = 'center';
+  ctx.fillText('FREQ', 38 + 38 * 3, 36 + 25 * 3); ctx.fillText('VOL', 38 + 50 * 3, 36 + 25 * 3);
+  ctx.font = 'bold 10px monospace'; ctx.fillStyle = 'rgba(200, 208, 160, 0.55)'; ctx.fillText('U.S.', 38 + 17 * 3, 36 + 36 * 3);
+  ctx.textAlign = 'left';
+  R(ctx, 146, 128, 60, 10, '#e8e0c0'); R(ctx, 146, 128, 60, 1, '#fffae0');
+  ctx.fillStyle = '#1c3a8c'; ctx.font = 'bold 6px monospace'; ctx.fillText("DON'T TOUCH -MH", 148, 135);
+  // (scuffs, the paint worn through to the metal at the corners)
+  for (let i = 0; i < 20; i++) R(ctx, 40 + hash(i * 3.1) * 176, 38 + hash(i * 5.7) * 116, 2 + hash(i) * 4, 1, '#6c7c4c');
+  R(ctx, 38, 36, 3, 3, '#8c8c7c'); R(ctx, 215, 36, 3, 3, '#8c8c7c');
   R(ctx, 38, 36 + 120, 180, 2, C.black);
   scramble(ctx, t, talking ? 0.35 : 0.12);
 };

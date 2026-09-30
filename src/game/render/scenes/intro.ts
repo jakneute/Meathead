@@ -41,9 +41,18 @@ export const gymBg = (ctx: Ctx) => {
   // Dumbbell rack along the bottom of the mirror
   R(ctx, 10, 86, 146, 4, G.rack);
   for (let k = 0; k < 9; k++) { const x = 16 + k * 16; ell(ctx, x, 84, 4, 4, G.plate); ell(ctx, x + 8, 84, 4, 4, G.plate); R(ctx, x, 83, 8, 2, G.rack); }
-  // Floor
+  // Floor: rubber tiles, flecked, a chalk handprint or two
   R(ctx, 0, 112, ART_W, 32, G.floor);
   for (let x = 0; x < ART_W; x += 32) R(ctx, x, 112, 1, 32, G.floor2);
+  R(ctx, 0, 127, ART_W, 1, G.floor2);
+  for (let i = 0; i < 60; i++) R(ctx, hash(i * 4.1) * ART_W, 113 + hash(i * 6.3) * 30, 1, 1, i % 4 ? '#303030' : '#4a4a4a');
+  R(ctx, 30, 136, 4, 2, '#d4d4cc'); R(ctx, 29, 134, 1, 2, '#d4d4cc'); R(ctx, 31, 133, 1, 2, '#d4d4cc'); R(ctx, 33, 134, 1, 2, '#d4d4cc');
+  // A kettlebell, the chalk bucket, his jug of water (a gallon of it, half gone)
+  ell(ctx, 180, 136, 7, 6, '#1c1c1c'); R(ctx, 176, 127, 8, 2, '#1c1c1c'); R(ctx, 175, 127, 2, 5, '#1c1c1c'); R(ctx, 183, 127, 2, 5, '#1c1c1c'); R(ctx, 177, 133, 3, 2, '#3c3c3c');
+  R(ctx, 12, 124, 14, 14, '#dcdcd0'); R(ctx, 12, 124, 14, 2, '#f8f8f0'); R(ctx, 14, 128, 10, 3, C.red);
+  R(ctx, 196, 116, 12, 20, 'rgba(200, 230, 250, 0.35)'); R(ctx, 196, 124, 12, 12, 'rgba(120, 180, 230, 0.5)'); R(ctx, 199, 112, 6, 4, '#e8e8e8'); R(ctx, 196, 116, 1, 20, 'rgba(255,255,255,0.6)');
+  // (the mirror catching the room: a smear, a crack across one corner)
+  R(ctx, 120, 34, 30, 1, '#8cacbc'); for (let k = 0; k < 10; k++) R(ctx, 146 - k * 2, 30 + k * 2, 1, 2, '#2c3c44');
 };
 
 /** A flickering tube light up top. */
@@ -55,16 +64,26 @@ const tubeLight = (ctx: Ctx, t: number, x: number) => {
 
 /** Meathead flat on the bench, pushing: side on, the bar's plate going up and down (or racked). */
 const bencher = (ctx: Ctx, t: number, racked: boolean) => {
-  // The bench and its uprights
-  R(ctx, 60, 106, 90, 7, G.bench); R(ctx, 60, 113, 90, 2, G.benchDark);
-  R(ctx, 66, 115, 4, 20, C.gray); R(ctx, 140, 115, 4, 20, C.gray);
-  R(ctx, 76, 70, 3, 36, C.gray); R(ctx, 72, 70, 8, 3, C.gray);
+  // The bench and its uprights; a towel over the end of it; the sweat he's left on it
+  R(ctx, 60, 106, 90, 7, G.bench); R(ctx, 60, 106, 90, 1, '#a82810'); R(ctx, 60, 113, 90, 2, G.benchDark);
+  for (let k = 0; k < 8; k++) R(ctx, 64 + k * 11, 109, 1, 3, G.benchDark); // (the stitching)
+  R(ctx, 66, 115, 4, 20, C.gray); R(ctx, 140, 115, 4, 20, C.gray); R(ctx, 66, 115, 1, 20, C.lightGray); R(ctx, 140, 115, 1, 20, C.lightGray);
+  R(ctx, 76, 70, 3, 36, C.gray); R(ctx, 76, 70, 1, 36, C.lightGray); R(ctx, 72, 70, 8, 3, C.gray);
+  R(ctx, 134, 104, 14, 12, '#dcdcd0'); R(ctx, 134, 110, 14, 1, '#b4b4a8'); R(ctx, 146, 104, 2, 14, '#b4b4a8');
+  R(ctx, 96, 113, 10, 1, '#9cdcfc');
   // Him: legs off the end, feet planted; torso along the bench; head at the rack end
-  R(ctx, 130, 96, 26, 10, C.pants); R(ctx, 150, 104, 8, 26, C.pants); R(ctx, 148, 130, 14, 5, C.ink);
+  R(ctx, 130, 96, 26, 10, C.pants); R(ctx, 132, 99, 22, 1, '#162c6a'); R(ctx, 150, 104, 8, 26, C.pants); R(ctx, 148, 130, 14, 5, C.ink); R(ctx, 148, 130, 14, 1, '#3c3c3c');
   R(ctx, 124, 96, 10, 10, C.belt); R(ctx, 126, 99, 4, 4, C.buckle);
-  R(ctx, 82, 92, 44, 14, C.mSkin); R(ctx, 82, 92, 44, 3, C.mSkinLight); R(ctx, 96, 90, 14, 4, C.mSkin); // chest, puffed
-  R(ctx, 64, 92, 18, 14, C.mSkin); R(ctx, 62, 88, 20, 5, C.mHair); R(ctx, 68, 97, 3, 2, C.ink);
-  R(ctx, 64, 90, 3, 5, C.vein);
+  // Chest, puffed: the pec's edge, the abs down to the belt, a vein
+  R(ctx, 82, 92, 44, 14, C.mSkin); R(ctx, 82, 92, 44, 3, C.mSkinLight); R(ctx, 96, 90, 14, 4, C.mSkin);
+  R(ctx, 96, 90, 14, 1, C.mSkinLight); R(ctx, 108, 94, 1, 8, C.mSkinShade);
+  for (let k = 0; k < 3; k++) R(ctx, 112 + k * 4, 96, 1, 6, C.mSkinShade);
+  R(ctx, 82, 103, 44, 3, C.mSkinShade);
+  // The head, straining: the flat-top, the eye screwed shut, the teeth gritted, the vein up
+  R(ctx, 64, 92, 18, 14, C.mSkin); R(ctx, 62, 88, 20, 5, C.mHair); for (let k = 0; k < 6; k++) R(ctx, 63 + k * 3, 87, 1, 2, '#2a2a2a');
+  R(ctx, 70, 96, 5, 1, C.ink); R(ctx, 71, 97, 3, 1, C.ink);
+  R(ctx, 69, 101, 8, 3, C.white); R(ctx, 69, 102, 8, 1, C.mSkinShade); R(ctx, 72, 101, 1, 3, C.mSkinShade);
+  R(ctx, 64, 90, 3, 5, C.vein); R(ctx, 78, 94, 3, 8, C.mSkinShade);
   // The press: arms from the shoulders up to the bar
   const lift = racked ? 1 : (Math.sin(t * 0.09) + 1) / 2;
   const barY = Math.round(58 + (1 - lift) * 20);
@@ -73,14 +92,25 @@ const bencher = (ctx: Ctx, t: number, racked: boolean) => {
     R(ctx, 70, 64, 20, 6, C.gray);
     R(ctx, 90, 100, 22, 6, C.mSkinShade);
   } else {
-    R(ctx, 86, barY + 4, 9, 92 - barY - 4, C.mSkin); R(ctx, 92, barY + 4, 3, 92 - barY - 4, C.mSkinShade);
+    const armTop = barY + 4, armH = 92 - barY - 4;
+    R(ctx, 85, armTop, 11, armH, C.mSkin); R(ctx, 92, armTop, 4, armH, C.mSkinShade); R(ctx, 85, armTop, 2, armH, C.mSkinLight);
+    // (the elbow's bend, the forearm's vein, the wristband at the bar)
+    R(ctx, 85, armTop + Math.round(armH / 2), 11, 1, C.mSkinShade);
+    R(ctx, 88, armTop + 3, 1, Math.max(0, Math.round(armH / 2) - 4), C.vein);
+    R(ctx, 84, armTop, 13, 3, C.ink);
   }
-  // The plate (side on: its face), stacked thick
+  // The plates (side on: their faces), stacked thick, the collar clamped on the bar's end
   const bx = racked ? 76 : 90;
   const by = racked ? 64 : barY;
-  ell(ctx, bx, by, 16, 16, G.plate); ell(ctx, bx, by, 14, 14, G.plateRim); ell(ctx, bx, by, 12, 12, G.plate); ell(ctx, bx, by, 3, 3, C.lightGray);
-  // (sweat, flying off him at the top of every rep)
-  if (!racked && lift > 0.9) for (let i = 0; i < 3; i++) R(ctx, 70 + i * 14 + hash(t + i) * 6, 80 - hash(t * 3 + i) * 8, 2, 2, '#9cdcfc');
+  ell(ctx, bx + 2, by, 16, 16, '#0c0c0c');
+  ell(ctx, bx, by, 16, 16, G.plate); ell(ctx, bx, by, 14, 14, G.plateRim); ell(ctx, bx, by, 12, 12, G.plate); ell(ctx, bx, by, 9, 9, '#262626');
+  R(ctx, bx - 5, by - 11, 10, 1, '#4c4c4c');
+  ell(ctx, bx, by, 4, 4, C.gray); ell(ctx, bx, by, 3, 3, C.lightGray); R(ctx, bx - 1, by - 1, 2, 2, C.white);
+  // (sweat flying off him at the top of every rep, and a puff of chalk off his hands)
+  if (!racked && lift > 0.9) {
+    for (let i = 0; i < 3; i++) R(ctx, 70 + i * 14 + hash(t + i) * 6, 80 - hash(t * 3 + i) * 8, 2, 2, '#9cdcfc');
+    for (let i = 0; i < 5; i++) R(ctx, 84 + hash(i * 3) * 14, barY + 2 - hash(i * 7 + t) * 6, 1, 1, 'rgba(255,255,255,0.7)');
+  }
 };
 
 /** An agent, standing (feet at baseY): black suit, black shades, an earpiece, hair like a helmet. */
@@ -153,8 +183,24 @@ export const drawAgent = (ctx: Ctx, t: number, talking: boolean, where: 'gym' | 
   if (g < 26) { R(ctx, 94 + g, 45, 2, 4, G.glint); R(ctx, 124 + g, 45, 2, 4, G.glint); }
   // Nose, mouth: a flat line, or barely open when he talks
   R(ctx, 118, 58, 4, 16, G.skinShade);
-  if (talking && t % 10 < 5) R(ctx, 108, 84, 24, 4, '#400000'); else R(ctx, 108, 85, 24, 2, '#8c5040');
+  if (talking && t % 10 < 5) R(ctx, 108, 84, 24, 4, '#400000'); else { R(ctx, 108, 85, 24, 2, '#8c5040'); R(ctx, 112, 88, 16, 1, '#b08870'); }
   R(ctx, 88, 98, 64, 6, G.skinShade);
+  // The comb's lines through the hair, and the shine on it
+  for (let k = 0; k < 11; k++) R(ctx, 88 + k * 6, 16 + (k % 2), 4, 1, '#2a2a2a');
+  R(ctx, 112, 14, 26, 2, '#34343c');
+  // The inside of his ears; the cheekbones under the shades; the nostrils; the cleft in his chin; a five o'clock shadow
+  R(ctx, 82, 54, 3, 10, '#a07858'); R(ctx, 155, 54, 3, 10, '#a07858');
+  R(ctx, 96, 58, 20, 2, G.skinShade); R(ctx, 126, 58, 18, 2, G.skinShade);
+  R(ctx, 92, 62, 4, 28, G.skinShade);
+  R(ctx, 114, 73, 3, 2, '#8c5c40'); R(ctx, 123, 73, 3, 2, '#8c5c40');
+  R(ctx, 119, 92, 2, 5, G.skinShade);
+  for (let i = 0; i < 60; i++) { const sx = 90 + hash(i * 2.3) * 60, sy = 80 + hash(i * 4.9) * 18; if (Math.abs(sx - 120) > 14 || sy > 90) R(ctx, sx, sy, 1, 1, '#b8987c'); }
+  // Meathead, in his shades (a tiny one in each lens)
+  for (const lx of [104, 134]) { R(ctx, lx, 49, 5, 5, C.mSkin); R(ctx, lx, 48, 5, 2, C.mHair); R(ctx, lx - 2, 54, 9, 2, C.mSkin); }
+  // The tie's knot, the clip, the flag on his lapel, the edges of the lapels catching the light
+  R(ctx, 115, 104, 10, 6, '#1c1c1c'); R(ctx, 114, 124, 12, 1, C.gold);
+  R(ctx, 96, 118, 6, 4, C.white); R(ctx, 96, 118, 6, 1, C.red); R(ctx, 96, 120, 6, 1, C.red); R(ctx, 96, 118, 2, 2, C.blue);
+  for (let i = 0; i < 40; i++) { R(ctx, 104 - Math.floor(i * 0.2), 104 + i, 1, 1, G.suitLit); R(ctx, 136 + Math.floor(i * 0.2), 104 + i, 1, 1, G.suitLit); }
 };
 
 /** Out of the gym and down a government corridor: two suits walking, Meathead bounding round them like a dog. */
@@ -168,10 +214,19 @@ export const drawEscort = (ctx: Ctx, t: number) => {
     R(ctx, x, 40, 34, 74, G.door); R(ctx, x + 6, 48, 22, 16, '#9cacac'); R(ctx, x + 26, 80, 3, 3, C.gold);
     text(ctx, `B-${(14 + k + Math.floor(t * 1.2 / 80)) % 90}`, x + 17, 60, C.ink, 6);
   }
+  // Between the doors: a portrait of somebody important, a fire extinguisher, a notice nobody reads
+  for (let k = -1; k < 5; k++) {
+    const x = Math.round(k * 80 - scroll + 20) + 46;
+    if (k % 2 === 0) { R(ctx, x, 44, 20, 24, '#8c6c2c'); R(ctx, x + 2, 46, 16, 20, '#3c4c5c'); ell(ctx, x + 10, 54, 4, 5, '#c8a888'); R(ctx, x + 5, 60, 10, 6, '#1c1c24'); }
+    else { R(ctx, x + 6, 84, 7, 18, C.red); R(ctx, x + 7, 81, 4, 3, C.ink); R(ctx, x + 6, 88, 7, 2, C.white); R(ctx, x + 2, 50, 16, 20, '#e8e8d8'); for (let l = 0; l < 5; l++) R(ctx, x + 4, 54 + l * 3, 12 - (l % 2) * 4, 1, '#8c8c80'); }
+  }
+  // The baseboard
+  R(ctx, 0, 110, ART_W, 4, '#3c4440');
   // Lights along the ceiling
   for (let k = -1; k < 5; k++) R(ctx, Math.round(k * 80 - scroll + 44), 16, 30, 3, G.tube);
-  // Floor, polished
+  // Floor, polished: the ceiling lights shining back up off it
   R(ctx, 0, 114, ART_W, 30, G.hallFloor);
+  for (let k = -1; k < 5; k++) { const lx = Math.round(k * 80 - scroll + 44); R(ctx, lx, 120, 30, 2, 'rgba(252, 252, 240, 0.18)'); R(ctx, lx + 6, 128, 18, 1, 'rgba(252, 252, 240, 0.1)'); }
   for (let k = 0; k < 8; k++) R(ctx, Math.round((k * 40 - scroll * 1.5) % 300) - 20, 124, 18, 1, '#5c605c');
   // The two of them, walking in step
   agentStanding(ctx, 150, 118, t, 1);
@@ -366,6 +421,15 @@ export const drawBriefing = (ctx: Ctx, t: number, talking: boolean, slide: Slide
   R(ctx, 96, 84, 64, 10, C.black);
   R(ctx, 96, 84, 64, 1, '#3c3c30'); R(ctx, 96, 84, 1, 20, '#3c3c30'); R(ctx, 159, 84, 1, 20, '#3c3c30');
   R(ctx, 92, 104, 6, 14, C.black); R(ctx, 158, 104, 6, 14, C.black);
+  // (the flat-top's bristles against the light, the rims of his ears, the tops of his traps)
+  for (let x = 97; x < 159; x += 3) R(ctx, x, 82 + (x % 2), 1, 2, '#5c5c48');
+  R(ctx, 92, 104, 1, 14, '#4c4c3c'); R(ctx, 163, 104, 1, 14, '#4c4c3c'); R(ctx, 92, 104, 6, 1, '#4c4c3c'); R(ctx, 158, 104, 6, 1, '#4c4c3c');
+  for (let k = 0; k < 20; k++) { R(ctx, 58 - k * 2, 126 + Math.floor(k * 0.6), 2, 1, '#3c3c30'); R(ctx, 196 + k * 2, 126 + Math.floor(k * 0.6), 2, 1, '#3c3c30'); }
+  // The table in front of him: a file stamped TOP SECRET, a mug of coffee going cold, steam off it
+  R(ctx, 0, 128, 62, 16, '#1c140c'); R(ctx, 0, 128, 62, 1, '#3c2c1c');
+  R(ctx, 8, 124, 28, 7, '#b89a5c'); R(ctx, 8, 124, 28, 1, '#d8ba7c'); R(ctx, 12, 126, 20, 2, C.darkRed);
+  R(ctx, 44, 118, 9, 10, '#dcdcd0'); R(ctx, 53, 120, 3, 5, '#dcdcd0'); R(ctx, 45, 119, 7, 2, '#3c2010');
+  for (let k = 0; k < 3; k++) { const st = (t * 0.4 + k * 6) % 18; R(ctx, 46 + k * 2 + Math.round(Math.sin(st * 0.5 + k) * 1), 116 - st, 1, 2, `rgba(220, 220, 210, ${0.35 * (1 - st / 18)})`); }
 };
 
 interface Build { k: string; cx: number; w: number; h: number; head: number }
