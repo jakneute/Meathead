@@ -18,7 +18,7 @@ import { calmPlayer, DEFAULT_SHAKE, shakeScreen, BOSS_FALL, STAIN_FRAMES } from 
 import { playSound } from '../platform/audio';
 import { LEVEL_INTRO_STYLE } from '../../constants';
 import { updateBarfStream, updateFlameSegments } from '../combat/weapons';
-import { say, isTalking, deathAnnouncing, stopDeathAnnouncer, announceDeath, MEATHEAD_INTRO_VOICE } from '../platform/speech';
+import { say, isTalking, deathAnnouncing, stopDeathAnnouncer, announceDeath, silenceAll, MEATHEAD_INTRO_VOICE } from '../platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../platform/skip';
 import { pickRandom, rectsOverlap, boundsOf, isOnScreen } from './utils';
 import { deathByCause, deathFallback } from './deathCause';
@@ -99,7 +99,7 @@ const updateDeathScreen = (ctx: FrameContext) => {
     scene.t++;
     if (scene.t === scene.len) announceDeath(state.deathString);
     if (state.deathFrames > SKIP_AFTER) offerSkip();
-    if (takeSkip()) { stopDeathAnnouncer(); state.deathTimer = 0; state.deathScene = undefined; respawn(state, ctx.stageId, ctx.cheats.skipToBoss); }
+    if (takeSkip()) { stopDeathAnnouncer(); silenceAll(); state.deathTimer = 0; state.deathScene = undefined; respawn(state, ctx.stageId, ctx.cheats.skipToBoss); }
     moveLooseParticles(ctx);
     return;
   }

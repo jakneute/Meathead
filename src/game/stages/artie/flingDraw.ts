@@ -1,9 +1,11 @@
-// Killed in the avalanche's snowball: it doesn't just bury him. The ball comes
-// flying over the top of the ridge onto the far side of the mountain (somewhere
-// the stage never goes: the back of it, in the shadow, the sun going down behind
-// the next range), clips the top of a lone pine and bursts, and he goes
-// cartwheeling out of it, screaming, the whole way down to the frozen pond at
-// the bottom: head first through the ice, right by the THIN ICE sign. His legs
+// Killed in the avalanche's snowball: it doesn't just bury him. First, close in
+// on it: a giant cartoon snowball rolling, him rolled up in it, his head and
+// arms and legs sticking out of it going round and round, screaming his line.
+// Then pull right out: the ball comes bounding over the top of the ridge onto
+// the far side of the mountain (somewhere the stage never goes: the back of it,
+// in the shadow, the sun going down behind the next range), all the way down to
+// the frozen pond at the bottom, and crashes into it: it bursts, and he's left
+// head first through the ice, right by the THIN ICE sign. His legs
 // kick, slow, go stiff and frost over. His skis come down after him: one sticks
 // in the snow beside him like a grave marker, the other bonks off his boot. An
 // eagle glides in and settles on his upturned foot. Then the death message.
@@ -15,11 +17,13 @@ import { drawPlayer } from '../../render/player/player';
 
 type Ctx = CanvasRenderingContext2D;
 
-/** How long it runs before the death message goes up. */
-export const FLING_FRAMES = 190;
+/** The beats: close on the ball rolling (and his line); the pull out; the ball down the far side into the pond; the
+ * skis, the eagle. (The ball doesn't hit the pine any more: that's never.) */
+const CLOSE_END = 200, ZOOM = 50, HIT_ICE = CLOSE_END + 130;
+const HIT_PINE = Infinity, SKI1 = HIT_ICE + 16, SKI2 = HIT_ICE + 28, EAGLE_IN = HIT_ICE + 42, EAGLE_DOWN = HIT_ICE + 62;
+/** How long it runs before the death message goes up (it can be skipped). */
+export const FLING_FRAMES = HIT_ICE + 100;
 
-/** The beats: the ball hits the pine, he hits the ice, the skis, the eagle. */
-const HIT_PINE = 46, HIT_ICE = 104, SKI1 = 120, SKI2 = 132, EAGLE_IN = 146, EAGLE_DOWN = 166;
 const PINE = { x: 300, y: 340 }, POND = { x: 560, y: 522 };
 
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -27,14 +31,109 @@ const clamp01 = (k: number) => Math.max(0, Math.min(1, k));
 
 export const drawFlingDeath = (ctx: Ctx, state: GameState, t: number) => {
   ctx.save();
-  drawFarSide(ctx, t);
-  if (t < HIT_PINE + 16) drawBall(ctx, t);
-  if (t >= HIT_PINE && t < HIT_ICE) drawFlying(ctx, state, t);
-  if (t >= HIT_ICE) drawPlanted(ctx, t);
-  drawSkis(ctx, t);
-  if (t >= EAGLE_IN) drawEagle(ctx, t);
+  if (t < CLOSE_END) drawCloseUp(ctx, t);
+  else {
+    // Pulling out from right up on the ball to the whole far side of the mountain
+    const z = t < CLOSE_END + ZOOM ? 1 + 5 * Math.pow(1 - (t - CLOSE_END) / ZOOM, 2) : 1;
+    const b = ballAt(t);
+    ctx.save();
+    // (centered on the ball at first, easing to the plain view: the ball's pinned where the pull-out takes it)
+    if (z > 1) { const m = (z - 1) / 5; ctx.translate(400 * m + b.x * (1 - m), 300 * m + b.y * (1 - m)); ctx.scale(z, z); ctx.translate(-b.x, -b.y); }
+    drawFarSide(ctx, t);
+    if (t < HIT_ICE + 16) drawBall(ctx, t);
+    if (t >= HIT_ICE) drawPlanted(ctx, t);
+    drawSkis(ctx, t);
+    if (t >= EAGLE_IN) drawEagle(ctx, t);
+    ctx.restore();
+    // (the close-up giving way to it)
+    if (t < CLOSE_END + 8) { ctx.globalAlpha = 1 - (t - CLOSE_END) / 8; drawCloseUp(ctx, t); ctx.globalAlpha = 1; }
+  }
+  void state; void drawFlying;
   // (a moment of black cutting in, the way a cutaway does)
   if (t < 6) { ctx.fillStyle = `rgba(0,0,0,${1 - t / 6})`; ctx.fillRect(0, 0, 800, 600); }
+  ctx.restore();
+};
+
+/** Where the ball is on the far side (bounding down the face from over the ridge to the pond). */
+const FACE: [number, number][] = [[-80, 60], [-10, 90], [180, 200], [330, 390], [450, 470], [560, 505]];
+const ballAt = (t: number) => {
+  const k = clamp01((t - CLOSE_END) / (HIT_ICE - CLOSE_END));
+  const x = -80 + (POND.x + 80) * k;
+  let y = FACE[FACE.length - 1][1];
+  for (let i = 0; i + 1 < FACE.length; i++) if (x >= FACE[i][0] && x <= FACE[i + 1][0]) { const [x1, y1] = FACE[i], [x2, y2] = FACE[i + 1]; y = y1 + (y2 - y1) * (x - x1) / (x2 - x1); }
+  const bounce = Math.abs(Math.sin(k * Math.PI * 3.5)) * 90 * (1 - k);
+  return { x, y: y - BALL_R - bounce, k };
+};
+const BALL_R = 52;
+
+/**
+ * Right up on the ball, rolling: a giant cartoon snowball, lumpy, packed, flecked, spinning; his head, arms and legs
+ * sticking out of it going round with it (flailing), his mouth wide open; the slope streaking by under it, powder
+ * kicking up; and his line, in a jagged scream bubble.
+ */
+const drawCloseUp = (ctx: Ctx, t: number) => {
+  // The slope, rushing past (tilted: it's steep)
+  ctx.save();
+  const sky = ctx.createLinearGradient(0, 0, 0, 600);
+  sky.addColorStop(0, '#93C5FD'); sky.addColorStop(1, '#E0F2FE');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, 800, 600);
+  ctx.translate(400, 300); ctx.rotate(0.28); ctx.translate(-400, -300);
+  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-200, 470, 1200, 400);
+  ctx.fillStyle = 'rgba(148, 163, 184, 0.5)';
+  for (let i = 0; i < 12; i++) { const x = ((i * 137 - t * 38) % 1300 + 1300) % 1300 - 250; ctx.fillRect(x, 470 + (i % 3) * 30 + 8, 120 + (i % 4) * 40, 5); }
+  // Speed lines
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)'; ctx.lineWidth = 3;
+  for (let i = 0; i < 10; i++) { const x = ((i * 211 - t * 50) % 1300 + 1300) % 1300 - 250, y = 60 + hash(i) * 380; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 140, y); ctx.stroke(); }
+  ctx.restore();
+  // The ball
+  const R = 180, cx = 400 + Math.sin(t * 0.07) * 10, cy = 330 + Math.abs(Math.sin(t * 0.18)) * -14;
+  const spin = t * 0.09;
+  // (powder spraying up off it)
+  for (let i = 0; i < 10; i++) { const k = ((t * 2 + i * 13) % 40) / 40; ctx.fillStyle = `rgba(255,255,255,${0.8 * (1 - k)})`; ctx.beginPath(); ctx.arc(cx - 120 - k * 200 + hash(i) * 60, cy + R - 20 - k * 120 * hash(i + 3), 16 + k * 30, 0, Math.PI * 2); ctx.fill(); }
+  ctx.save(); ctx.translate(cx, cy);
+  // His limbs round it (under the snow at the root), flailing
+  const flail = Math.sin(t * 0.8) * 0.3;
+  const limbs: [number, string, number, boolean][] = [[0.6, '#1E3A8A', 90, true], [1.7, '#1E3A8A', 84, true], [3.4, '#E0AC69', 80, false], [4.5, '#E0AC69', 76, false]];
+  for (const [a, col, len, leg] of limbs) {
+    ctx.save(); ctx.rotate(spin + a + flail * (leg ? 1 : -1)); ctx.fillStyle = col; ctx.fillRect(R - 30, -16, len, 32);
+    ctx.fillStyle = leg ? '#111' : '#E0AC69'; ctx.beginPath(); ctx.arc(R - 30 + len, 0, leg ? 22 : 20, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+  // Lumpy, packed snow
+  const g = ctx.createRadialGradient(-50, -60, 20, 0, 0, R);
+  g.addColorStop(0, '#FFFFFF'); g.addColorStop(0.7, '#E0EAF7'); g.addColorStop(1, '#AFC6E4');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  for (let i = 0; i <= 28; i++) { const a = (i / 28) * Math.PI * 2 + spin, r = R + Math.sin(i * 2.7) * 8; if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r); else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#7D9BC4'; ctx.lineWidth = 5; ctx.stroke();
+  ctx.fillStyle = 'rgba(125, 155, 196, 0.45)';
+  for (let i = 0; i < 18; i++) { const a = spin + i * 2.4, r = 30 + (i * 37) % 130; ctx.beginPath(); ctx.arc(Math.cos(a) * r, Math.sin(a) * r, 6 + (i % 3) * 4, 0, Math.PI * 2); ctx.fill(); }
+  // A twig and a pinecone it's picked up on the way
+  ctx.save(); ctx.rotate(spin + 2.4); ctx.fillStyle = '#5B3A1E'; ctx.fillRect(R - 20, -4, 60, 8); ctx.restore();
+  ctx.save(); ctx.rotate(spin + 5.6); ctx.fillStyle = '#7C4A1E'; ctx.beginPath(); ctx.ellipse(R - 4, 0, 16, 11, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  // His head, poking out of it: the flat top, the brow, the eyes bugging, the mouth wide open
+  ctx.save(); ctx.rotate(spin + 5.1); ctx.translate(R - 10, 0); ctx.rotate(Math.PI / 2);
+  ctx.fillStyle = '#E0AC69'; ctx.beginPath(); ctx.ellipse(0, -30, 46, 52, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#1C1917'; ctx.fillRect(-44, -86, 88, 22); for (let k = -40; k < 44; k += 12) { ctx.beginPath(); ctx.moveTo(k, -86); ctx.lineTo(k + 6, -100); ctx.lineTo(k + 12, -86); ctx.fill(); }
+  ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(-17, -44, 14, 0, Math.PI * 2); ctx.arc(17, -44, 14, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(-15 + Math.sin(t * 0.5) * 3, -42, 5, 0, Math.PI * 2); ctx.arc(19 + Math.sin(t * 0.5) * 3, -42, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#1C1917'; ctx.fillRect(-32, -62, 26, 6); ctx.fillRect(6, -62, 26, 6);
+  ctx.fillStyle = '#450A0A'; ctx.beginPath(); ctx.ellipse(0, -6, 20, 16 + Math.abs(Math.sin(t * 0.6)) * 6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#F87171'; ctx.beginPath(); ctx.ellipse(0, 4, 10, 6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-12, -20, 24, 5);
+  ctx.restore();
+  ctx.restore();
+  // His line, in a jagged scream bubble
+  const lines = ["NOT LIKE THIS!", "I HAVEN'T EVEN HAD", 'MY PROTEIN SHAKE!'];
+  ctx.save();
+  ctx.translate(210, 90); ctx.rotate(-0.06 + Math.sin(t * 0.5) * 0.02);
+  ctx.fillStyle = '#FFFFFF'; ctx.strokeStyle = '#111'; ctx.lineWidth = 4;
+  ctx.beginPath();
+  for (let i = 0; i <= 20; i++) { const a = (i / 20) * Math.PI * 2, r = i % 2 ? 1 : 1.18; const x = Math.cos(a) * 190 * r, y = Math.sin(a) * 70 * r; if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#111'; ctx.font = 'bold 14px "Press Start 2P"'; ctx.textAlign = 'center';
+  lines.forEach((l, i) => ctx.fillText(l, 0, -18 + i * 22));
   ctx.restore();
 };
 
@@ -43,7 +142,9 @@ export const drawFlingDeath = (ctx: Ctx, state: GameState, t: number) => {
 const drawFarSide = (ctx: Ctx, t: number) => {
   const sky = ctx.createLinearGradient(0, 0, 0, 420);
   sky.addColorStop(0, '#1E1B4B'); sky.addColorStop(0.45, '#4C1D95'); sky.addColorStop(0.8, '#BE185D'); sky.addColorStop(1, '#FB923C');
-  ctx.fillStyle = sky; ctx.fillRect(0, 0, 800, 600);
+  // (well past the edges: the pull-out starts in close on the ball, off by the corner)
+  ctx.fillStyle = '#1E1B4B'; ctx.fillRect(-1600, -1600, 4000, 1700);
+  ctx.fillStyle = sky; ctx.fillRect(-1600, 0, 4000, 600);
   // The sun, half down behind the next range
   ctx.fillStyle = 'rgba(253, 224, 71, 0.9)'; ctx.beginPath(); ctx.arc(640, 360, 44, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = 'rgba(253, 186, 116, 0.25)'; ctx.beginPath(); ctx.arc(640, 360, 80, 0, Math.PI * 2); ctx.fill();
@@ -57,7 +158,7 @@ const drawFarSide = (ctx: Ctx, t: number) => {
   const face = ctx.createLinearGradient(0, 100, 600, 560);
   face.addColorStop(0, '#E0E7FF'); face.addColorStop(0.5, '#A5B4FC'); face.addColorStop(1, '#C7D2FE');
   ctx.fillStyle = face;
-  ctx.beginPath(); ctx.moveTo(-10, 90); ctx.quadraticCurveTo(180, 170, 330, 390); ctx.quadraticCurveTo(420, 490, 810, 500); ctx.lineTo(810, 610); ctx.lineTo(-10, 610); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-1600, -200); ctx.lineTo(-10, 90); ctx.quadraticCurveTo(180, 170, 330, 390); ctx.quadraticCurveTo(420, 490, 810, 500); ctx.lineTo(1600, 500); ctx.lineTo(1600, 1600); ctx.lineTo(-1600, 1600); ctx.closePath(); ctx.fill();
   // (rock showing through it; shadows down it)
   ctx.fillStyle = '#4C4A6E';
   for (const [x, y, w] of [[90, 170, 40], [200, 260, 30], [140, 330, 50], [380, 460, 36]] as const) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w, y + 6); ctx.lineTo(x + w * 0.6, y + 18); ctx.closePath(); ctx.fill(); }
@@ -89,7 +190,7 @@ const drawFarSide = (ctx: Ctx, t: number) => {
     ctx.beginPath(); ctx.arc(PINE.x - 40 + i * 11, PINE.y - 60 + k * k * 160 + hash(i) * 20, 6 + hash(i * 3) * 5, 0, Math.PI * 2); ctx.fill();
   }
   // The valley floor: the pond, frozen over, and the sign by it
-  ctx.fillStyle = '#EEF2FF'; ctx.fillRect(0, 500, 800, 100);
+  ctx.fillStyle = '#EEF2FF'; ctx.fillRect(0, 500, 1600, 1100);
   const ice = ctx.createLinearGradient(0, POND.y - 22, 0, POND.y + 22);
   ice.addColorStop(0, '#DBEAFE'); ice.addColorStop(1, '#93C5FD');
   ctx.fillStyle = ice; ctx.beginPath(); ctx.ellipse(POND.x, POND.y, 150, 26, 0, 0, Math.PI * 2); ctx.fill();
@@ -101,21 +202,20 @@ const drawFarSide = (ctx: Ctx, t: number) => {
 
 /** The snowball, over the ridge and down onto the pine: tumbling, his arms and legs sticking out of it, flailing. */
 const drawBall = (ctx: Ctx, t: number) => {
-  if (t >= HIT_PINE) {
-    // Burst: powder going everywhere
-    const k = (t - HIT_PINE) / 16;
-    for (let i = 0; i < 16; i++) {
-      const a = (i / 16) * Math.PI * 2;
+  if (t >= HIT_ICE) {
+    // Burst on the ice: powder and chunks going everywhere
+    const k = (t - HIT_ICE) / 16;
+    for (let i = 0; i < 20; i++) {
+      const a = (i / 20) * Math.PI * 2;
       ctx.fillStyle = `rgba(255,255,255,${1 - k})`;
-      ctx.beginPath(); ctx.arc(PINE.x + Math.cos(a) * 70 * k, PINE.y - 60 + Math.sin(a) * 50 * k, 14 * (1 - k * 0.5), 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(POND.x + Math.cos(a) * 110 * k, POND.y - 40 + Math.sin(a) * 70 * k - k * 30, 20 * (1 - k * 0.5), 0, Math.PI * 2); ctx.fill();
     }
     return;
   }
-  const k = t / HIT_PINE;
-  const x = -60 + (PINE.x + 60) * k, y = 40 + (PINE.y - 100) * k - Math.sin(Math.PI * k) * 150;
-  const r = 40;
+  const { x, y } = ballAt(t);
+  const r = BALL_R;
   // (a trail of powder behind it)
-  for (let i = 1; i < 6; i++) { const kk = Math.max(0, k - i * 0.04); ctx.fillStyle = `rgba(255,255,255,${0.5 - i * 0.08})`; ctx.beginPath(); ctx.arc(-60 + (PINE.x + 60) * kk, 40 + (PINE.y - 100) * kk - Math.sin(Math.PI * kk) * 150, r * (1 - i * 0.12), 0, Math.PI * 2); ctx.fill(); }
+  for (let i = 1; i < 6; i++) { const b = ballAt(t - i * 3); ctx.fillStyle = `rgba(255,255,255,${0.5 - i * 0.08})`; ctx.beginPath(); ctx.arc(b.x, b.y, r * (1 - i * 0.12), 0, Math.PI * 2); ctx.fill(); }
   ctx.save(); ctx.translate(x, y); ctx.rotate(t * 0.45);
   // His limbs sticking out, flailing
   const flail = Math.sin(t * 0.9) * 0.4;

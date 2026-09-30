@@ -3247,7 +3247,7 @@
  {
   "voice": "death",
   "text": "AIR CONDITIONED",
-  "from": "game/stages/ernie/quake.ts:334"
+  "from": "game/stages/ernie/quake.ts:339"
  },
  {
   "voice": "death",
@@ -3437,7 +3437,7 @@
  {
   "voice": "death",
   "text": "BURIED IN THE DUNGEON",
-  "from": "game/stages/ernie/quake.ts:335"
+  "from": "game/stages/ernie/quake.ts:340"
  },
  {
   "voice": "death",
@@ -3502,7 +3502,7 @@
  {
   "voice": "death",
   "text": "CAVE-IN",
-  "from": "game/stages/ernie/quake.ts:331"
+  "from": "game/stages/ernie/quake.ts:336"
  },
  {
   "voice": "death",
@@ -3522,7 +3522,7 @@
  {
   "voice": "death",
   "text": "CHILLED TO DEATH",
-  "from": "game/stages/ernie/quake.ts:334"
+  "from": "game/stages/ernie/quake.ts:339"
  },
  {
   "voice": "death",
@@ -3607,7 +3607,7 @@
  {
   "voice": "death",
   "text": "CREVASSE: 1, MEATHEAD: 0",
-  "from": "game/stages/artie/ski.ts:479"
+  "from": "game/stages/artie/ski.ts:482"
  },
  {
   "voice": "death",
@@ -3647,7 +3647,7 @@
  {
   "voice": "death",
   "text": "DEATH BY LANDSCAPE",
-  "from": "game/stages/ernie/quake.ts:332"
+  "from": "game/stages/ernie/quake.ts:337"
  },
  {
   "voice": "death",
@@ -3657,7 +3657,7 @@
  {
   "voice": "death",
   "text": "DEATH BY PETUNIA",
-  "from": "game/stages/ernie/quake.ts:333"
+  "from": "game/stages/ernie/quake.ts:338"
  },
  {
   "voice": "death",
@@ -3902,7 +3902,7 @@
  {
   "voice": "death",
   "text": "FAULT LINE: YOURS",
-  "from": "game/stages/ernie/quake.ts:327"
+  "from": "game/stages/ernie/quake.ts:332"
  },
  {
   "voice": "death",
@@ -3952,7 +3952,7 @@
  {
   "voice": "death",
   "text": "FLASH-FROZEN MEAT POPSICLE",
-  "from": "game/stages/artie/ski.ts:479"
+  "from": "game/stages/artie/ski.ts:482"
  },
  {
   "voice": "death",
@@ -4182,7 +4182,7 @@
  {
   "voice": "death",
   "text": "HOUSEPLANT HOMICIDE",
-  "from": "game/stages/ernie/quake.ts:333"
+  "from": "game/stages/ernie/quake.ts:338"
  },
  {
   "voice": "death",
@@ -4382,7 +4382,7 @@
  {
   "voice": "death",
   "text": "LOST AT SEA",
-  "from": "game/stages/ernie/jetski.ts:458"
+  "from": "game/stages/ernie/jetski.ts:490"
  },
  {
   "voice": "death",
@@ -4432,7 +4432,7 @@
  {
   "voice": "death",
   "text": "MIND THE GAP",
-  "from": "game/stages/ernie/quake.ts:327"
+  "from": "game/stages/ernie/quake.ts:332"
  },
  {
   "voice": "death",
@@ -4532,7 +4532,7 @@
  {
   "voice": "death",
   "text": "ONE BRICK SHORT OF A HOUSE",
-  "from": "game/stages/ernie/quake.ts:335"
+  "from": "game/stages/ernie/quake.ts:340"
  },
  {
   "voice": "death",
@@ -4647,7 +4647,7 @@
  {
   "voice": "death",
   "text": "PLANTED HEAD FIRST",
-  "from": "game/stages/artie/ski.ts:472"
+  "from": "game/stages/artie/ski.ts:475"
  },
  {
   "voice": "death",
@@ -4762,7 +4762,7 @@
  {
   "voice": "death",
   "text": "RIVETED",
-  "from": "game/stages/ernie/quake.ts:336"
+  "from": "game/stages/ernie/quake.ts:341"
  },
  {
   "voice": "death",
@@ -4907,7 +4907,7 @@
  {
   "voice": "death",
   "text": "SHARK BAIT",
-  "from": "game/stages/ernie/jetski.ts:458"
+  "from": "game/stages/ernie/jetski.ts:490"
  },
  {
   "voice": "death",
@@ -5112,7 +5112,7 @@
  {
   "voice": "death",
   "text": "SKIED INTO THE ABYSS",
-  "from": "game/stages/artie/ski.ts:479"
+  "from": "game/stages/artie/ski.ts:482"
  },
  {
   "voice": "death",
@@ -5172,7 +5172,7 @@
  {
   "voice": "death",
   "text": "SNOWBALLED INTO NEXT WEEK",
-  "from": "game/stages/artie/ski.ts:472"
+  "from": "game/stages/artie/ski.ts:475"
  },
  {
   "voice": "death",
@@ -5182,7 +5182,7 @@
  {
   "voice": "death",
   "text": "SOLITARY CONFINEMENT",
-  "from": "game/stages/ernie/quake.ts:330"
+  "from": "game/stages/ernie/quake.ts:335"
  },
  {
   "voice": "death",
@@ -5307,7 +5307,7 @@
  {
   "voice": "death",
   "text": "SWALLOWED BY THE EARTH",
-  "from": "game/stages/ernie/quake.ts:327"
+  "from": "game/stages/ernie/quake.ts:332"
  },
  {
   "voice": "death",
@@ -5372,7 +5372,7 @@
  {
   "voice": "death",
   "text": "THE BAY WINS",
-  "from": "game/stages/ernie/jetski.ts:458"
+  "from": "game/stages/ernie/jetski.ts:490"
  },
  {
   "voice": "death",
@@ -5392,7 +5392,7 @@
  {
   "voice": "death",
   "text": "THE CEILING WON",
-  "from": "game/stages/ernie/quake.ts:331"
+  "from": "game/stages/ernie/quake.ts:336"
  },
  {
   "voice": "death",
@@ -5422,7 +5422,7 @@
  {
   "voice": "death",
   "text": "THE FORT FELL ON YOU",
-  "from": "game/stages/ernie/quake.ts:335"
+  "from": "game/stages/ernie/quake.ts:340"
  },
  {
   "voice": "death",
@@ -5432,7 +5432,7 @@
  {
   "voice": "death",
   "text": "THE GROUND ATE YOU",
-  "from": "game/stages/ernie/quake.ts:327"
+  "from": "game/stages/ernie/quake.ts:332"
  },
  {
   "voice": "death",
@@ -5467,12 +5467,12 @@
  {
   "voice": "death",
   "text": "THE MOUNTAIN WON",
-  "from": "game/stages/artie/ski.ts:479"
+  "from": "game/stages/artie/ski.ts:482"
  },
  {
   "voice": "death",
   "text": "THE OTHER SIDE OF THE MOUNTAIN",
-  "from": "game/stages/artie/ski.ts:472"
+  "from": "game/stages/artie/ski.ts:475"
  },
  {
   "voice": "death",
@@ -5482,7 +5482,7 @@
  {
   "voice": "death",
   "text": "THE PRISON FELL ON YOU",
-  "from": "game/stages/ernie/quake.ts:330"
+  "from": "game/stages/ernie/quake.ts:335"
  },
  {
   "voice": "death",
@@ -5542,7 +5542,7 @@
  {
   "voice": "death",
   "text": "THIN ICE",
-  "from": "game/stages/artie/ski.ts:472"
+  "from": "game/stages/artie/ski.ts:475"
  },
  {
   "voice": "death",
@@ -5727,7 +5727,7 @@
  {
   "voice": "death",
   "text": "YOU GOT AVALANCHED",
-  "from": "game/stages/artie/ski.ts:479"
+  "from": "game/stages/artie/ski.ts:482"
  },
  {
   "voice": "death",
@@ -5887,7 +5887,7 @@
  {
   "voice": "guide",
   "text": "...AND NOBODY EVER ESCAPED FROM THE ROCK.",
-  "from": "game/stages/ernie/alcatraz.ts:108"
+  "from": "game/stages/ernie/alcatraz.ts:110"
  },
  {
   "voice": "guide",
@@ -5902,7 +5902,7 @@
  {
   "voice": "guide",
   "text": "HA! NOBODY'S THAT STUPID.",
-  "from": "game/stages/ernie/alcatraz.ts:110"
+  "from": "game/stages/ernie/alcatraz.ts:112"
  },
  {
   "voice": "guide",
@@ -6247,37 +6247,37 @@
  {
   "voice": "hipster",
   "text": "BRO! THAT JET SKI WAS VINTAGE, BRO!",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "hipster",
   "text": "COWABUNGA!",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "hipster",
   "text": "GOOD THING I KEEP A STANDBY. THIS IS GOING ON MY PODCAST.",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "hipster",
   "text": "hipster",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "hipster",
   "text": "I'VE HEARD OF IT NOW.",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "hipster",
   "text": "meathead",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "hipster",
   "text": "MY KOMBUCHAAAAAAA",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "hipster",
@@ -6287,27 +6287,22 @@
  {
   "voice": "hipster",
   "text": "SICK RIDE, RIGHT? IT'S VINTAGE.",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "hipster",
   "text": "SMELLS LIKE BEARD OIL.",
-  "from": "game/stages/ernie/jetski.ts:133"
- },
- {
-  "voice": "hipster",
-  "text": "THE HIPSTER?! GET YOUR OWN RAMP!",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "hipster",
   "text": "WHO HAS A STANDBY JET SKI?",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "hipster",
   "text": "YOU'VE PROBABLY NEVER HEARD OF IT.",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "meathead",
@@ -6967,7 +6962,7 @@
  {
   "voice": "meathead",
   "text": "BRO! THAT JET SKI WAS VINTAGE, BRO!",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "meathead",
@@ -7307,7 +7302,7 @@
  {
   "voice": "meathead",
   "text": "COWABUNGA!",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "meathead",
@@ -7762,7 +7757,7 @@
  {
   "voice": "meathead",
   "text": "FIRST TIME FOR EVERYTHIIIIING!!!",
-  "from": "game/stages/ernie/alcatraz.ts:111"
+  "from": "game/stages/ernie/alcatraz.ts:113"
  },
  {
   "voice": "meathead",
@@ -8242,7 +8237,7 @@
  {
   "voice": "meathead",
   "text": "GOOD THING I KEEP A STANDBY. THIS IS GOING ON MY PODCAST.",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "meathead",
@@ -8837,7 +8832,7 @@
  {
   "voice": "meathead",
   "text": "hipster",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "meathead",
@@ -8962,7 +8957,7 @@
  {
   "voice": "meathead",
   "text": "HUH. WHERE'D THAT HIPSTER LAND? HE WAS RIGHT BEHIND ME.",
-  "from": "game/stages/ernie/runtime.ts:25"
+  "from": "game/stages/ernie/runtime.ts:26"
  },
  {
   "voice": "meathead",
@@ -9477,7 +9472,7 @@
  {
   "voice": "meathead",
   "text": "I'VE HEARD OF IT NOW.",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "meathead",
@@ -9857,7 +9852,7 @@
  {
   "voice": "meathead",
   "text": "meathead",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "meathead",
@@ -9997,7 +9992,7 @@
  {
   "voice": "meathead",
   "text": "MY KOMBUCHAAAAAAA",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "meathead",
@@ -10343,6 +10338,11 @@
   "voice": "meathead",
   "text": "NOT FROM DOWN HERE. I'VE GOT TO GET UP THERE.",
   "from": "game/stages/dale/town.ts:492"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT LIKE THIS! I HAVEN'T EVEN HAD MY PROTEIN SHAKE!",
+  "from": "game/stages/artie/ski.ts:402"
  },
  {
   "voice": "meathead",
@@ -11377,7 +11377,7 @@
  {
   "voice": "meathead",
   "text": "SICK RIDE, RIGHT? IT'S VINTAGE.",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "meathead",
@@ -11477,7 +11477,7 @@
  {
   "voice": "meathead",
   "text": "SMELLS LIKE BEARD OIL.",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "meathead",
@@ -12287,7 +12287,7 @@
  {
   "voice": "meathead",
   "text": "THE HIPSTER?! GET YOUR OWN RAMP!",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:470"
  },
  {
   "voice": "meathead",
@@ -12932,7 +12932,7 @@
  {
   "voice": "meathead",
   "text": "WHICH WAY TO THE GIFT SHOP?",
-  "from": "game/stages/ernie/alcatraz.ts:133"
+  "from": "game/stages/ernie/alcatraz.ts:135"
  },
  {
   "voice": "meathead",
@@ -12952,7 +12952,7 @@
  {
   "voice": "meathead",
   "text": "WHO HAS A STANDBY JET SKI?",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "meathead",
@@ -13372,7 +13372,7 @@
  {
   "voice": "meathead",
   "text": "YOU'VE PROBABLY NEVER HEARD OF IT.",
-  "from": "game/stages/ernie/jetski.ts:133"
+  "from": "game/stages/ernie/jetski.ts:135"
  },
  {
   "voice": "meathead",
@@ -13937,7 +13937,7 @@
  {
   "voice": "tourist",
   "text": "HAS ANYBODY EVER BROKEN IN?",
-  "from": "game/stages/ernie/alcatraz.ts:109"
+  "from": "game/stages/ernie/alcatraz.ts:111"
  },
  {
   "voice": "victor.partygirl",
