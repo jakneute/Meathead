@@ -300,11 +300,12 @@ const updateSurge = (ctx: FrameContext, pw: PowerRoom, talk: Talk): Controls => 
   const r = COURSE.power;
   pw.surgeT++; pw.beatT++;
   p.vel.x = 0;
-  // (the announcer's calls go up in big letters when he says them)
+  // (the announcer's calls go up in big letters when he says them: low enough, rising slowly enough, that they're never
+  // up under the HUD)
   const said = talk.current?.who === 'announcer' ? talk.current.text : '';
   if (said && said !== pw.called) {
     pw.called = said;
-    state.damageNumbers.push({ id: `surge-${state.frame}`, text: said, pos: { x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + 170 }, vel: { x: 0, y: -1 }, life: 90, maxLife: 90, isCritical: true, isCallout: true, color: '#FDE047' });
+    state.damageNumbers.push({ id: `surge-${state.frame}`, text: said, pos: { x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + 300 }, vel: { x: 0, y: -0.4 }, life: 90, maxLife: 90, isCritical: true, isCallout: true, color: '#FDE047' });
   }
   const b = SURGE[pw.beat];
   if (b && pw.beatT >= b.min && ((!talk.current && !talk.queue.length) || pw.beatT > b.min + SURGE_WAIT)) {
