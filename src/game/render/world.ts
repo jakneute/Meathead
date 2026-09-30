@@ -1,4 +1,5 @@
 import { GameStatus, Enemy, TommyBoard, DamageNumber } from '../../types';
+import { setBossLook } from './bosses/kit';
 import { isDummy, drawDummy } from './dummies';
 import {
   CANVAS_WIDTH, CANVAS_HEIGHT, LEVEL_INTRO_STYLE, SKYFALL_CLOUD_FRAMES, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, RENDER_SCALE, PRACTICE_RANGE_STAGE, isRangeStage, GROUND_Y,
@@ -529,7 +530,10 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
       ctx.filter = (ctx.filter && ctx.filter !== 'none' ? ctx.filter + ' ' : '') + 'brightness(0.4) contrast(1.2)';
     }
     if (e.type === 'boss') {
+      // (he looks at Meathead)
+      setBossLook(player.pos.x + player.width / 2);
       if (state.bossExplosionTimer <= 0) drawBoss(ctx, e, stageId, state.frame);
+      setBossLook(null);
       const curT = (status === GameStatus.BOSS_INTRO && bossTauntText) ? bossTauntText : (state.bossVulgarityTimer > 0 ? state.bossLastVulgarity : null);
       if (curT && state.bossExplosionTimer <= 0) { ctx.save(); ctx.font = 'bold 12px "Press Start 2P"'; ctx.fillStyle = 'white'; ctx.shadowColor = 'black'; ctx.shadowBlur = 6; ctx.textAlign = 'center'; ctx.fillText(sentenceShown(curT), e.pos.x + e.width / 2, e.pos.y - 30); ctx.restore(); }
       drawBossOverlay(ctx, e, stageId, state.frame);

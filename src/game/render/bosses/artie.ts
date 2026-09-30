@@ -1,150 +1,138 @@
-// Artie Avalanche's sprite.
-// Drawn in the boss's local space (0,0 = his top-left corner).
+// Artie Avalanche's sprite: a glaciologist who stopped writing papers. Puffy ice-blue parka gone
+// crystalline at the shoulders, moon boots (indoors), a frosted white beard, snow goggles up on his
+// forehead and his hood lined with emergency foil. Drawn in the boss's local space (0,0 = his top-left
+// corner), in an 80x80 box.
 
 import { THROW_WINDUP } from '../../bosses/artie';
 import { Enemy } from '../../../types';
+import { FaceStyle, Mood, drawHead, headAt, facingOf, goreOf, moodOf, inHead, limb, hand, foil, bodyBlood, breath } from './kit';
+
+const FACE: FaceStyle = {
+  skin: '#EBCFC4', shadow: '#B99AA0', highlight: '#FFF1EC', brow: '#F8FAFC', iris: '#0EA5E9',
+  jaw: 'long', age: 0.75, bags: '#8FA3B8', nose: 'red', lips: '#8FA3B8', bushy: true,
+};
+const PARKA = '#7FB3D5', PARKA_DARK = '#4F86AD', PARKA_LIGHT = '#B7D7EC', MITT = '#1E40AF';
 
 export const drawArtie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
-  const { width, height } = e;
-  // 1. Ice-crusted Boots / Greaves
-  ctx.fillStyle = '#1B4F72';
-  ctx.fillRect(width * 0.15, height * 0.72, width * 0.3, height * 0.28);
-  ctx.fillRect(width * 0.55, height * 0.72, width * 0.3, height * 0.28);
-  ctx.fillStyle = '#5DADE2';
-  ctx.fillRect(width * 0.12, height * 0.88, width * 0.35, height * 0.12);
-  ctx.fillRect(width * 0.53, height * 0.88, width * 0.35, height * 0.12);
+  const f = facingOf(e);
+  const gore = goreOf(e);
+  const windup = (e.throwWindup ?? 0) > 0;
+  const mood: Mood = windup ? 'fierce' : moodOf(e, frame, { attacking: 'fierce', jumping: e.isGroundedBoss ? 'fierce' : 'shock' });
+  const b = breath(frame);
+  ctx.save();
+  ctx.scale(e.width / 80, e.height / 80);
 
-  // 2. Heavy Cryo Torso & Ice Rune Armor
-  ctx.fillStyle = '#1B4F72';
-  ctx.fillRect(width * 0.18, height * 0.38, width * 0.64, height * 0.38);
-  ctx.strokeStyle = '#0B2027';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(width * 0.18, height * 0.38, width * 0.64, height * 0.38);
-  // Glacier chestplate rune
-  ctx.fillStyle = '#5DADE2';
-  ctx.beginPath();
-  ctx.moveTo(width * 0.5, height * 0.42);
-  ctx.lineTo(width * 0.65, height * 0.55);
-  ctx.lineTo(width * 0.5, height * 0.68);
-  ctx.lineTo(width * 0.35, height * 0.55);
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillStyle = '#EBF5FB';
-  ctx.fillRect(width * 0.46, height * 0.51, width * 0.08, height * 0.08);
+  // Moon boots: huge, white, quilted
+  for (const x of [29, 51]) {
+    ctx.fillStyle = '#F1F5F9';
+    ctx.beginPath(); ctx.roundRect(x - 10, 64, 20, 16, [7, 7, 3, 3]); ctx.fill();
+    ctx.fillStyle = '#CBD5E1';
+    ctx.fillRect(x - 10, 69, 20, 1.2); ctx.fillRect(x - 10, 74, 20, 1.2);
+    ctx.fillStyle = '#38BDF8'; ctx.fillRect(x - 10, 78, 20, 2);
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(x - 6, 65.5, 6, 1.5);
+  }
+  // Snow pants
+  ctx.fillStyle = '#1E3A5F';
+  ctx.fillRect(22, 56, 15, 10); ctx.fillRect(43, 56, 15, 10);
+  ctx.fillStyle = '#152C47'; ctx.fillRect(22, 56, 3, 10); ctx.fillRect(43, 56, 3, 10);
 
-  // 3. Spiked Crystalline Ice Shoulders / Pauldrons
-  ctx.fillStyle = '#2E86C1';
-  ctx.beginPath();
-  ctx.moveTo(width * 0.18, height * 0.38);
-  ctx.lineTo(width * 0.02, height * 0.22);
-  ctx.lineTo(width * 0.22, height * 0.26);
-  ctx.lineTo(width * 0.28, height * 0.45);
-  ctx.closePath();
-  ctx.fill();
-  ctx.strokeStyle = '#EBF5FB';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
+  // The parka: quilted, puffed, crusted with frost at the hem
+  ctx.save(); ctx.translate(0, -b);
+  ctx.fillStyle = PARKA;
+  ctx.beginPath(); ctx.roundRect(15, 32, 50, 29, [10, 10, 6, 6]); ctx.fill();
+  ctx.fillStyle = PARKA_DARK;
+  ctx.fillRect(15, 34, 5, 25);
+  for (const y of [39, 46, 53]) { ctx.fillRect(16, y, 48, 1.2); ctx.fillStyle = PARKA_LIGHT; ctx.fillRect(20, y - 3, 40, 1); ctx.fillStyle = PARKA_DARK; }
+  // Zip and a thermometer poking out of the chest pocket
+  ctx.fillStyle = '#E2E8F0'; ctx.fillRect(39.3, 36, 1.4, 25);
+  ctx.fillStyle = PARKA_DARK; ctx.fillRect(46, 41, 10, 7);
+  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(52, 35, 2, 8);
+  ctx.fillStyle = '#EF4444'; ctx.fillRect(52.4, 40, 1.2, 3); disc(ctx, 53, 43.5, 1.4);
+  // Frost along the hem
+  ctx.fillStyle = '#F0F9FF';
+  for (let x = 16; x < 64; x += 4) { ctx.beginPath(); ctx.moveTo(x, 60); ctx.lineTo(x + 2, 64 + (x % 3)); ctx.lineTo(x + 4, 60); ctx.fill(); }
+  bodyBlood(ctx, gore, [[33, 48, 4], [47, 55, 3.5], [24, 42, 3], [56, 50, 3], [36, 58, 3], [28, 53, 2.5]], frame);
 
-  ctx.fillStyle = '#2E86C1';
-  ctx.beginPath();
-  ctx.moveTo(width * 0.82, height * 0.38);
-  ctx.lineTo(width * 0.98, height * 0.22);
-  ctx.lineTo(width * 0.78, height * 0.26);
-  ctx.lineTo(width * 0.72, height * 0.45);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
+  // Ice grown out of his shoulders
+  shoulderIce(ctx, 17, 34, -1, frame);
+  shoulderIce(ctx, 63, 34, 1, frame);
 
-  // 4. White Fur-Lined Hood Collar
-  ctx.fillStyle = '#E5E8E8';
-  ctx.beginPath();
-  ctx.ellipse(width * 0.5, height * 0.36, width * 0.38, height * 0.12, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#BDC3C7';
-  ctx.lineWidth = 2;
-  ctx.stroke();
+  // Arms: puffy sleeves, big mittens (up under the block when he's about to throw one)
+  if (windup) {
+    limb(ctx, 20, 38, 22, 6, 10, PARKA, PARKA_DARK);
+    limb(ctx, 60, 38, 58, 6, 10, PARKA, PARKA_DARK);
+    hand(ctx, 22, 2, 5, MITT, '#172554');
+    hand(ctx, 58, 2, 5, MITT, '#172554');
+  } else {
+    const sway = Math.sin(frame * 0.07) * 1.5;
+    limb(ctx, 19, 38, 14, 55 + sway, 10, PARKA, PARKA_DARK);
+    limb(ctx, 61, 38, 66, 55 - sway, 10, PARKA, PARKA_DARK);
+    hand(ctx, 14, 58 + sway, 5, MITT, '#172554');
+    hand(ctx, 66, 58 - sway, 5, MITT, '#172554');
+  }
+  // Fur collar
+  ctx.fillStyle = '#F1F5F9';
+  for (let i = 0; i < 9; i++) disc(ctx, 26 + i * 3.5, 33 + Math.sin(i * 1.7) * 1, 3.2);
+  ctx.fillStyle = '#CBD5E1';
+  for (let i = 0; i < 9; i++) ctx.fillRect(25 + i * 3.5, 34.5, 1.5, 1);
 
-  // 5. Frost-Blue Head & Face
-  ctx.fillStyle = '#90CAF9';
-  ctx.beginPath();
-  ctx.arc(width * 0.5, height * 0.26, width * 0.24, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#154360';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
+  // The head: hood thrown back (lined with foil), wild white hair with icicles in it, goggles up, beard
+  const h = headAt(e, f, 40, 19);
+  drawHead(ctx, h, FACE, mood, frame, gore, {
+    back: () => {
+      ctx.fillStyle = PARKA_DARK;
+      ctx.beginPath(); ctx.ellipse(-3, -1, 15, 15.5, 0, 0, Math.PI * 2); ctx.fill();
+      foil(ctx, [-16, -4, -14, -12, -8, -16, 0, -17, 7, -15, 10, -12, 4, -10, -6, -9, -11, -2, -13, 6, -16, 4], frame, 2);
+    },
+    hair: () => {
+      // Beard: frosted, white, stiff, ringing the jaw under his mouth
+      ctx.fillStyle = '#F8FAFC';
+      ctx.beginPath();
+      ctx.moveTo(-10, 0); ctx.quadraticCurveTo(-10, 12, -2, 15); ctx.lineTo(0, 17); ctx.lineTo(3, 14.5);
+      ctx.quadraticCurveTo(10, 12, 10.5, 1); ctx.lineTo(8.5, 2); ctx.quadraticCurveTo(7, 9.5, 1, 10); ctx.quadraticCurveTo(-6, 9.5, -8, 1); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#CBD5E1';
+      for (let i = 0; i < 6; i++) ctx.fillRect(-7 + i * 2.8, 11 + (i % 2), 0.6, 2.4);
+      // Icicles hanging off it
+      ctx.fillStyle = '#BAE6FD';
+      for (const x of [-4, 0.5, 4]) { ctx.beginPath(); ctx.moveTo(x - 0.8, 13); ctx.lineTo(x, 17.5 + (x % 2)); ctx.lineTo(x + 0.8, 13); ctx.fill(); }
+      // Moustache
+      ctx.fillStyle = '#F1F5F9';
+      ctx.beginPath(); ctx.ellipse(-1.5, 2.6, 4, 1.05, 0.1, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(5, 2.4, 3.2, 1, -0.2, 0, Math.PI * 2); ctx.fill();
+      // Wild white hair, sticking up
+      ctx.fillStyle = '#F8FAFC';
+      ctx.beginPath();
+      ctx.moveTo(-11, -6); ctx.lineTo(-14, -12); ctx.lineTo(-9, -12); ctx.lineTo(-10, -17); ctx.lineTo(-4, -14);
+      ctx.lineTo(-2, -19); ctx.lineTo(2, -14.5); ctx.lineTo(6, -18.5); ctx.lineTo(7, -13.5); ctx.lineTo(12, -15); ctx.lineTo(10, -10);
+      ctx.lineTo(4, -12.5); ctx.lineTo(-4, -12); ctx.lineTo(-9, -9); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#CBD5E1';
+      ctx.fillRect(-6, -15, 0.6, 3); ctx.fillRect(1, -16, 0.6, 3); ctx.fillRect(7, -15, 0.6, 2.5);
+    },
+    hat: () => {
+      // Snow goggles pushed up on his forehead
+      ctx.fillStyle = '#1F2937'; ctx.fillRect(-12, -12.5, 24, 1.6);
+      ctx.fillStyle = '#334155';
+      ctx.beginPath(); ctx.roundRect(-8, -14.5, 7.5, 4.5, 2); ctx.fill();
+      ctx.beginPath(); ctx.roundRect(1.5, -14.5, 7.5, 4.5, 2); ctx.fill();
+      ctx.fillStyle = '#38BDF8'; ctx.fillRect(-7, -13.6, 5.5, 2.8); ctx.fillRect(2.5, -13.6, 5.5, 2.8);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'; ctx.fillRect(-6, -13.2, 1.5, 1); ctx.fillRect(3.5, -13.2, 1.5, 1);
+    },
+  });
+  ctx.restore();
 
-  // 6. Glacier Crown / Ice Horns
-  ctx.fillStyle = '#2E86C1';
-  ctx.beginPath();
-  ctx.moveTo(width * 0.34, height * 0.18);
-  ctx.lineTo(width * 0.16, -height * 0.05);
-  ctx.lineTo(width * 0.42, height * 0.1);
-  ctx.closePath();
-  ctx.fill();
-  ctx.strokeStyle = '#EBF5FB';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.moveTo(width * 0.66, height * 0.18);
-  ctx.lineTo(width * 0.84, -height * 0.05);
-  ctx.lineTo(width * 0.58, height * 0.1);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-
-  // Central crystal crest
-  ctx.fillStyle = '#5DADE2';
-  ctx.beginPath();
-  ctx.moveTo(width * 0.44, height * 0.14);
-  ctx.lineTo(width * 0.5, -height * 0.02);
-  ctx.lineTo(width * 0.56, height * 0.14);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-
-  // 7. Frosty White Eyebrows
-  ctx.fillStyle = '#EBF5FB';
-  ctx.fillRect(width * 0.32, height * 0.20, width * 0.16, height * 0.04);
-  ctx.fillRect(width * 0.52, height * 0.20, width * 0.16, height * 0.04);
-
-  // 8. Glowing Cold Cyan Eyes
-  ctx.fillStyle = '#00FFFF';
-  ctx.shadowColor = '#00FFFF';
-  ctx.shadowBlur = 6;
-  ctx.fillRect(width * 0.36, height * 0.24, width * 0.09, height * 0.05);
-  ctx.fillRect(width * 0.55, height * 0.24, width * 0.09, height * 0.05);
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(width * 0.39, height * 0.25, width * 0.03, height * 0.03);
-  ctx.fillRect(width * 0.58, height * 0.25, width * 0.03, height * 0.03);
-
-  // 9. Menacing Snarl & Sharp Teeth
-  ctx.fillStyle = '#154360';
-  ctx.fillRect(width * 0.38, height * 0.32, width * 0.24, height * 0.06);
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(width * 0.40, height * 0.32, width * 0.04, height * 0.03);
-  ctx.fillRect(width * 0.48, height * 0.32, width * 0.04, height * 0.03);
-  ctx.fillRect(width * 0.56, height * 0.32, width * 0.04, height * 0.03);
-
-  // 10. Frost Breath Particle
-  if (frame % 20 < 10) {
-    ctx.fillStyle = 'rgba(235, 245, 251, 0.6)';
-    ctx.beginPath();
-    ctx.arc(width * 0.68 + (frame % 10), height * 0.34, 3, 0, Math.PI * 2);
-    ctx.fill();
+  // Frost breath
+  if (frame % 40 < 22) {
+    const t = (frame % 40) / 22;
+    ctx.fillStyle = `rgba(240, 249, 255, ${0.65 * (1 - t)})`;
+    inHead(ctx, h, () => { disc(ctx, 9 + t * 8, 5 - t * 3, 1.5 + t * 2.5); });
   }
 
-  // 11. Hefting an ice block overhead before a throw: it freezes together, then flashes as he's about to let go
-  if (e.throwWindup && e.throwWindup > 0) {
-    const k = 1 - e.throwWindup / THROW_WINDUP;
+  // Hefting an ice block overhead before a throw: it freezes together, then flashes as he's about to let go
+  if (windup) {
+    const k = 1 - e.throwWindup! / THROW_WINDUP;
     const size = 18 + Math.min(1, k * 1.6) * 42;
-    const cx = width / 2, cy = -34;
-    // Arms up under it
-    ctx.fillStyle = '#5DADE2';
-    ctx.fillRect(width * 0.18, -6, width * 0.12, height * 0.36);
-    ctx.fillRect(width * 0.70, -6, width * 0.12, height * 0.36);
-    const flash = e.throwWindup < 10 && frame % 4 < 2;
+    const cx = 40, cy = -34;
+    const flash = e.throwWindup! < 10 && frame % 4 < 2;
     ctx.fillStyle = flash ? '#FFFFFF' : 'rgba(174, 214, 241, 0.92)';
     ctx.fillRect(cx - size / 2, cy - size / 2, size, size);
     ctx.strokeStyle = flash ? '#7DD3FC' : '#EBF5FB';
@@ -154,11 +142,25 @@ export const drawArtie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
     ctx.fillRect(cx - size / 2 + 5, cy - size / 2 + 5, size * 0.25, size * 0.12);
     ctx.fillStyle = 'rgba(21, 67, 96, 0.35)';
     ctx.fillRect(cx - size / 2, cy + size * 0.2, size, size * 0.3);
-    // A cold glint
     if (!flash && frame % 16 < 8) {
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(cx + size * 0.2, cy - size * 0.3, 3, 9);
       ctx.fillRect(cx + size * 0.2 - 3, cy - size * 0.3 + 3, 9, 3);
     }
   }
+  ctx.restore();
+};
+
+const disc = (ctx: CanvasRenderingContext2D, x: number, y: number, r: number) => { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); };
+
+/** A cluster of ice crystals grown out through the parka's shoulder. */
+const shoulderIce = (ctx: CanvasRenderingContext2D, x: number, y: number, side: number, frame: number) => {
+  const shards: [number, number, number][] = [[0, -9, 3], [side * 5, -6, 2.5], [side * -4, -5, 2], [side * 8, -2, 2]];
+  for (const [dx, dy, w] of shards) {
+    ctx.fillStyle = '#93C5FD';
+    ctx.beginPath(); ctx.moveTo(x + dx - w, y); ctx.lineTo(x + dx + side * 1.5, y + dy); ctx.lineTo(x + dx + w, y); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#EFF6FF';
+    ctx.beginPath(); ctx.moveTo(x + dx - w * 0.3, y); ctx.lineTo(x + dx + side * 1.5, y + dy); ctx.lineTo(x + dx + w * 0.2, y - 1); ctx.closePath(); ctx.fill();
+  }
+  if (frame % 80 < 6) { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(x - 0.5, y - 10, 1, 4); ctx.fillRect(x - 2, y - 8.5, 4, 1); }
 };

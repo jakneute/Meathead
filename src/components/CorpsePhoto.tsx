@@ -63,6 +63,7 @@ const drawFallen = (ctx: CanvasRenderingContext2D, bossId: string) => {
   ctx.filter = 'grayscale(0.6) brightness(0.8)';
   e.pos = { x: -e.width / 2, y: -e.height };
   e.facing = 1;
+  e.health = 0; // (dead: out cold and bloodied)
   drawBoss(ctx, e, bossId, 0);
   ctx.restore();
   ctx.save();

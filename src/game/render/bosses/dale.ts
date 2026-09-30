@@ -1,17 +1,28 @@
-// Drug Trade Dale's sprite and the drugs he's using (his truck is in ../daleTruck.ts).
-// Drawn in the boss's local space (0,0 = his top-left corner).
+// Drug Trade Dale's sprite and the drugs he's using (his truck is in ../daleTruck.ts): a pharmacist,
+// license revoked, delivering "care" across the desert. A purple double-breasted suit with shoulders out
+// to here, a pocket square, a gold chain with a dollar medallion, a pompadour with his aviators pushed up
+// into it, a gold tooth, a pill bottle in his breast pocket and a row of foil blister packs pinned to his
+// lapel like medals. Drawn in the boss's local space (0,0 = his top-left corner), in an 80x80 box.
 
 import { Enemy } from '../../../types';
 import { COLORS, ARENA_LEFT, ARENA_RIGHT, DALE_SPEED_WINDUP } from '../../../constants';
 import { drawCocaineBag, drawMethDrum } from '../projectiles';
+import { FaceStyle, drawHead, headAt, facingOf, goreOf, moodOf, limb, hand, shoe, foil, bodyBlood, breath } from './kit';
+
+const SKIN = '#EDC3A0', SKIN_DARK = '#BB8F6E';
+const FACE: FaceStyle = {
+  skin: SKIN, shadow: SKIN_DARK, highlight: '#FBDFC7', brow: '#111111', iris: '#4D7C0F',
+  jaw: 'square', stubble: '#4B5563', bags: '#8B6A8E', lips: '#9C6450', goldTooth: true, age: 0.3,
+};
+const SUIT = '#8E44AD', SUIT_DARK = '#5B2C6F', SUIT_LIGHT = '#A569BD';
 
 export const drawDale = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
-  const { width, height } = e;
   // Speed: a strobing high while he dashes, and twitching harder and harder as the needle goes in
   if (e.bossState === 'speed_dash') {
     ctx.filter = `hue-rotate(${frame * 10}deg) saturate(3)`;
   }
-  if (e.bossState === 'using_shipment' && e.shipmentType === 'speed') {
+  const windingUp = e.bossState === 'using_shipment' && e.shipmentType === 'speed';
+  if (windingUp) {
     const t = 1 - (e.stateTimer || 0) / DALE_SPEED_WINDUP;
     if (t > 0.55) {
       const j = (t - 0.55) * 10;
@@ -19,139 +30,103 @@ export const drawDale = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number)
       ctx.filter = `hue-rotate(${Math.floor(frame * 12 * t)}deg) saturate(${1 + t * 2})`;
     }
   }
-  // 1. Purple Slacks & Shiny Oxford Shoes
-  ctx.fillStyle = '#6C3483';
-  ctx.fillRect(width * 0.20, height * 0.70, width * 0.26, height * 0.30);
-  ctx.fillRect(width * 0.54, height * 0.70, width * 0.26, height * 0.30);
-  ctx.fillStyle = '#111111';
-  ctx.fillRect(width * 0.16, height * 0.90, width * 0.30, height * 0.10);
-  ctx.fillRect(width * 0.54, height * 0.90, width * 0.30, height * 0.10);
+  const f = facingOf(e);
+  const gore = goreOf(e);
+  const mood = moodOf(e, frame, { speed_dash: 'manic', using_shipment: windingUp ? 'shock' : 'blissed', running: 'fierce' });
+  const b = breath(frame);
+  ctx.save();
+  ctx.scale(e.width / 80, e.height / 80);
 
-  // 2. Double-Breasted Vice Purple Suit Jacket with Broad 80s Padded Shoulders
-  ctx.fillStyle = '#8E44AD';
-  ctx.fillRect(width * 0.14, height * 0.32, width * 0.72, height * 0.40);
-  ctx.strokeStyle = '#4A235A';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(width * 0.14, height * 0.32, width * 0.72, height * 0.40);
+  // Two-tone shoes, purple slacks
+  shoe(ctx, 30, 80, 14, 5, f, '#111111', '#000000', 'rgba(255,255,255,0.45)');
+  shoe(ctx, 50, 80, 14, 5, f, '#111111', '#000000', 'rgba(255,255,255,0.45)');
+  ctx.fillStyle = SUIT_DARK;
+  ctx.beginPath(); ctx.moveTo(23, 54); ctx.lineTo(57, 54); ctx.lineTo(56, 76); ctx.lineTo(43, 76); ctx.lineTo(40, 62); ctx.lineTo(37, 76); ctx.lineTo(24, 76); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#6C3483'; ctx.fillRect(30, 57, 0.7, 18); ctx.fillRect(50, 57, 0.7, 18);
 
-  // Broad padded shoulder pads
-  ctx.fillStyle = '#9B59B6';
-  ctx.fillRect(width * 0.06, height * 0.30, width * 0.18, height * 0.16);
-  ctx.strokeRect(width * 0.06, height * 0.30, width * 0.18, height * 0.16);
-  ctx.fillRect(width * 0.76, height * 0.30, width * 0.18, height * 0.16);
-  ctx.strokeRect(width * 0.76, height * 0.30, width * 0.18, height * 0.16);
-
-  // Hot-pink pocket square
-  ctx.fillStyle = '#FF1493';
-  ctx.beginPath();
-  ctx.moveTo(width * 0.72, height * 0.40);
-  ctx.lineTo(width * 0.78, height * 0.36);
-  ctx.lineTo(width * 0.80, height * 0.42);
-  ctx.closePath();
-  ctx.fill();
-
-  // Gold Suit Buttons
-  ctx.fillStyle = '#FFD700';
-  ctx.beginPath();
-  ctx.arc(width * 0.42, height * 0.55, 3, 0, Math.PI * 2);
-  ctx.arc(width * 0.58, height * 0.55, 3, 0, Math.PI * 2);
-  ctx.arc(width * 0.42, height * 0.65, 3, 0, Math.PI * 2);
-  ctx.arc(width * 0.58, height * 0.65, 3, 0, Math.PI * 2);
-  ctx.fill();
-
-  // 3. Unbuttoned White Dress Shirt Collar
+  ctx.save(); ctx.translate(0, -b);
+  // Shirt, open at the neck, and the chest it's open over
   ctx.fillStyle = '#FFFFFF';
-  ctx.beginPath();
-  ctx.moveTo(width * 0.38, height * 0.32);
-  ctx.lineTo(width * 0.50, height * 0.50);
-  ctx.lineTo(width * 0.62, height * 0.32);
-  ctx.closePath();
-  ctx.fill();
-
-  // 4. Giant 24k Gold Cuban Chain & Heavy Dollar Sign Medallion
-  ctx.strokeStyle = '#FFD700';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(width * 0.36, height * 0.32);
-  ctx.quadraticCurveTo(width * 0.50, height * 0.54, width * 0.64, height * 0.32);
-  ctx.stroke();
-
+  ctx.beginPath(); ctx.moveTo(33, 32); ctx.lineTo(47, 32); ctx.lineTo(42, 48); ctx.lineTo(38, 48); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = SKIN; ctx.beginPath(); ctx.moveTo(36.5, 32); ctx.lineTo(43.5, 32); ctx.lineTo(40, 42); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#44403C'; for (let i = 0; i < 5; i++) ctx.fillRect(38 + (i * 1.7) % 4, 33 + i * 1.5, 0.6, 0.6); // chest hair
+  // The jacket: double-breasted, lapels, shoulders out past his arms
+  ctx.fillStyle = SUIT;
+  ctx.beginPath(); ctx.moveTo(14, 33); ctx.lineTo(36, 31); ctx.lineTo(40, 48); ctx.lineTo(44, 31); ctx.lineTo(66, 33); ctx.lineTo(62, 57); ctx.lineTo(18, 57); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = SUIT_DARK; ctx.fillRect(17, 35, 3.5, 21);
+  ctx.fillStyle = SUIT_LIGHT;
+  ctx.beginPath(); ctx.moveTo(36, 31); ctx.lineTo(31, 36); ctx.lineTo(38, 44); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(44, 31); ctx.lineTo(49, 36); ctx.lineTo(42, 44); ctx.closePath(); ctx.fill();
   ctx.fillStyle = '#FFD700';
-  ctx.shadowColor = '#FFD700';
-  ctx.shadowBlur = 6;
-  ctx.beginPath();
-  ctx.arc(width * 0.50, height * 0.52, width * 0.10, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.strokeStyle = '#B7950B';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
+  for (const [x, y] of [[35, 50], [45, 50], [35, 54], [45, 54]] as const) { ctx.beginPath(); ctx.arc(x, y, 1.3, 0, Math.PI * 2); ctx.fill(); }
+  // Pocket square, and a pill bottle in the breast pocket
+  ctx.fillStyle = SUIT_DARK; ctx.fillRect(50, 40, 8, 1);
+  ctx.fillStyle = '#FF1493'; ctx.beginPath(); ctx.moveTo(51, 40); ctx.lineTo(53, 36.5); ctx.lineTo(55, 40); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#F97316'; ctx.fillRect(55.5, 36, 2.6, 4); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(55.3, 35, 3, 1.4);
+  // Blister packs pinned to the lapel like medals
+  for (let i = 0; i < 3; i++) {
+    const x = 26 + i * 3.6, y = 38 + (i % 2) * 1.5;
+    ctx.fillStyle = ['#DC2626', '#2563EB', '#16A34A'][i]; ctx.fillRect(x + 1, y - 3, 1.4, 3); // ribbons
+    foil(ctx, [x, y, x + 3.4, y, x + 3.4, y + 5, x, y + 5], frame, i + 2);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'; ctx.fillRect(x + 0.6, y + 0.8, 1, 1); ctx.fillRect(x + 1.9, y + 2.6, 1, 1);
+  }
+  bodyBlood(ctx, gore, [[48, 47, 3.5], [27, 50, 3], [40, 38, 2.5], [56, 52, 2.5], [33, 44, 2.5], [22, 40, 2.5]], frame);
 
-  ctx.fillStyle = '#2E1045';
-  ctx.font = 'bold 10px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('$', width * 0.50, height * 0.52);
+  // The chain and the dollar medallion
+  ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 1.6;
+  ctx.beginPath(); ctx.moveTo(35.5, 31.5); ctx.quadraticCurveTo(40, 45, 44.5, 31.5); ctx.stroke();
+  ctx.save(); ctx.shadowColor = '#FFD700'; ctx.shadowBlur = 4;
+  ctx.fillStyle = '#FFD700'; ctx.beginPath(); ctx.arc(40, 43, 4, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  ctx.strokeStyle = '#B7950B'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.arc(40, 43, 4, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = '#2E1045'; ctx.font = 'bold 6px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('$', 40, 43.3);
+  if (frame % 60 < 6) { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(41.5, 40.5, 1, 1); }
 
-  // 5. Dale's Head & Face
-  ctx.fillStyle = '#F5CBA7';
-  ctx.beginPath();
-  ctx.arc(width * 0.5, height * 0.22, width * 0.22, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#2C3E50';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
-  // 5 o'clock shadow
-  ctx.fillStyle = 'rgba(86, 101, 115, 0.25)';
-  ctx.beginPath();
-  ctx.arc(width * 0.5, height * 0.24, width * 0.18, 0, Math.PI);
-  ctx.fill();
-
-  // 6. Slicked-Back Black Pompadour Hair
-  ctx.fillStyle = '#111111';
-  ctx.beginPath();
-  ctx.moveTo(width * 0.26, height * 0.18);
-  ctx.quadraticCurveTo(width * 0.22, -height * 0.02, width * 0.50, -height * 0.05);
-  ctx.quadraticCurveTo(width * 0.78, -height * 0.02, width * 0.74, height * 0.18);
-  ctx.quadraticCurveTo(width * 0.50, height * 0.06, width * 0.26, height * 0.18);
-  ctx.closePath();
-  ctx.fill();
-  // Pompadour highlight sheen
-  ctx.strokeStyle = '#5D6D7E';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(width * 0.50, height * 0.02, width * 0.16, Math.PI * 1.1, Math.PI * 1.9);
-  ctx.stroke();
-
-  // 7. Gold Aviator Sunglasses reflecting Neon Sunset
-  ctx.fillStyle = '#111111';
-  ctx.fillRect(width * 0.30, height * 0.16, width * 0.40, height * 0.09);
-  ctx.strokeStyle = '#FFD700';
-  ctx.lineWidth = 1.5;
-  ctx.strokeRect(width * 0.30, height * 0.16, width * 0.40, height * 0.09);
-  // Neon reflections in lenses
-  ctx.fillStyle = '#FF007F';
-  ctx.fillRect(width * 0.32, height * 0.17, width * 0.16, height * 0.04);
-  ctx.fillRect(width * 0.52, height * 0.17, width * 0.16, height * 0.04);
-  ctx.fillStyle = '#00F0FF';
-  ctx.fillRect(width * 0.32, height * 0.21, width * 0.16, height * 0.03);
-  ctx.fillRect(width * 0.52, height * 0.21, width * 0.16, height * 0.03);
-
-  // 8. Cocky Smirk with Glinting Gold Tooth
-  ctx.strokeStyle = '#111111';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(width * 0.40, height * 0.28);
-  ctx.quadraticCurveTo(width * 0.50, height * 0.31, width * 0.60, height * 0.27);
-  ctx.stroke();
-  ctx.fillStyle = '#FFD700';
-  ctx.fillRect(width * 0.52, height * 0.27, 3, 3);
+  // Shoulder pads, and the arms out of them (the needle in one when he's dashing on speed)
+  for (const side of [-1, 1]) {
+    const sx = 40 + side * 22, sy = 36;
+    ctx.fillStyle = SUIT; ctx.beginPath(); ctx.roundRect(sx - 6, sy - 5, 12, 9, 3); ctx.fill();
+    ctx.fillStyle = SUIT_LIGHT; ctx.fillRect(sx - 4, sy - 4.5, 8, 1);
+    const ex = sx + side * 2, ey = sy + 10;
+    const hx = sx + side * 1.5 + Math.sin(frame * 0.07 + side) * 1.2, hy = sy + 19;
+    limb(ctx, sx, sy + 1, ex, ey, 7.5, SUIT, SUIT_DARK);
+    limb(ctx, ex, ey, hx, hy, 6.5, SUIT, SUIT_DARK);
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(hx - 3, hy - 4, 6, 1.4); // shirt cuff
+    hand(ctx, hx, hy, 3.6, SKIN, SKIN_DARK);
+    ctx.fillStyle = '#FFD700'; ctx.fillRect(hx - 2, hy - 1.2, 1.4, 1.4); // pinky ring
+  }
   if (e.bossState === 'speed_dash') {
-    ctx.save(); ctx.translate(width * 0.2, height * 0.3); ctx.rotate(-0.5);
+    ctx.save(); ctx.translate(16, 46); ctx.rotate(-0.5);
     ctx.fillStyle = COLORS.PROJECTILE_DART; ctx.fillRect(0, -2, 16, 4);
     ctx.fillStyle = 'red'; ctx.fillRect(16, -4, 6, 8); ctx.restore();
   }
+
+  // The head: pompadour, aviators pushed up into it
+  drawHead(ctx, headAt(e, f, 40, 19), FACE, mood, frame, gore, {
+    hair: () => {
+      ctx.fillStyle = '#0A0A0A';
+      ctx.beginPath();
+      ctx.moveTo(-11.5, -2); ctx.quadraticCurveTo(-13, -14, -4, -15); ctx.quadraticCurveTo(6, -21, 14, -15);
+      ctx.quadraticCurveTo(10, -12.5, 6, -12); ctx.lineTo(-8, -9.5); ctx.lineTo(-10, -5); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#6B7280'; ctx.lineWidth = 0.7;
+      ctx.beginPath(); ctx.moveTo(-6, -14.5); ctx.quadraticCurveTo(3, -19, 11, -15.5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-8, -12); ctx.quadraticCurveTo(0, -15.5, 7, -13.5); ctx.stroke();
+      // Sideburns
+      ctx.fillStyle = '#0A0A0A'; ctx.fillRect(-11, -5, 2, 6);
+    },
+    hat: () => {
+      // Gold aviators up in the pompadour, the sunset in the lenses
+      ctx.strokeStyle = '#FFD700'; ctx.lineWidth = 0.7;
+      ctx.beginPath(); ctx.moveTo(-10, -14); ctx.lineTo(-7, -14.5); ctx.moveTo(0, -15.5); ctx.lineTo(1.5, -15.5); ctx.stroke();
+      for (const x of [-4, 5]) {
+        ctx.fillStyle = '#111111'; ctx.beginPath(); ctx.ellipse(x, -15, 3.4, 2.2, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#FF007F'; ctx.fillRect(x - 2.6, -16.2, 5.2, 1);
+        ctx.fillStyle = '#00F0FF'; ctx.fillRect(x - 2.2, -14.6, 4.4, 0.8);
+        ctx.stroke();
+      }
+    },
+  });
+  ctx.restore();
+  ctx.restore();
 };
 
 export const drawDaleDrugs = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {

@@ -33,7 +33,7 @@ const findOscar = (state: GameState) => state.enemies.find(e => e.type === 'boss
 /** His shoulder-mounted launcher: pivot, aim angle and muzzle, in world space. */
 export const getOscarLauncher = (boss: Enemy) => {
   const facing = boss.oscarFacing || -1;
-  // Rests on the shoulder smokestack on the side he's facing, clear of his face
+  // Up on his shoulder on the side he's facing, clear of his face
   const pivotX = midX(boss) + facing * boss.width * 0.45;
   const pivotY = boss.pos.y + boss.height * 0.26;
   const aimX = boss.aimX ?? pivotX + facing * 200;
@@ -48,8 +48,8 @@ export const getOscarLauncher = (boss: Enemy) => {
 
 /** Where the cigarette sits in his respirator. */
 export const getOscarMouth = (boss: Enemy) => ({
-  x: midX(boss) + (boss.oscarFacing || -1) * boss.width * 0.16,
-  y: boss.pos.y + boss.height * 0.36,
+  x: midX(boss) + (boss.oscarFacing || -1) * boss.width * 0.11,
+  y: boss.pos.y + boss.height * 0.31,
 });
 
 /** How big a burning strip's flames are right now (0..1): they flare up, then die down. */

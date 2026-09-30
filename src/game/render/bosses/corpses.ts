@@ -27,7 +27,8 @@ const styleFor = (stageId: string, weapon: WeaponType): Style => {
 const S = 80; // boss sprite size
 
 /** The boss's sprite, frozen in his final pose, in a local frame where (0,0) is its top-left. */
-const sprite = (ctx: CanvasRenderingContext2D, c: BossCorpse) => drawBoss(ctx, makeSitter(c.stageId), c.stageId, c.frame0);
+// (dead, and beaten to show it)
+const sprite = (ctx: CanvasRenderingContext2D, c: BossCorpse) => drawBoss(ctx, { ...makeSitter(c.stageId), health: 0 }, c.stageId, c.frame0);
 
 export const drawBossCorpse = (ctx: CanvasRenderingContext2D, c: BossCorpse, frame: number) => {
   const style = styleFor(c.stageId, c.weapon);

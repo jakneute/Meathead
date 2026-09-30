@@ -1,9 +1,20 @@
-// Blackout Barry's sprite.
-// Drawn in the boss's local space (0,0 = his top-left corner).
+// Blackout Barry's sprite: a power grid engineer, amateur astronomer and R&D's favorite test subject.
+// Lanky, pale, unslept, pupils like dinner plates; navy coveralls with reflective stripes and
+// glow-in-the-dark star stickers, ceramic insulators bolted to his shoulders, a tool belt, and a hard hat
+// wrapped in foil with an antenna on top, blinking. Drawn in the boss's local space (0,0 = his top-left
+// corner), in an 80x80 box.
 
 import { Enemy } from '../../../types';
 import { ARENA_RIGHT } from '../../../constants';
 import { BARRY_TOLERANCE_FRAMES } from '../../bosses/barry';
+import { FaceStyle, drawHead, headAt, facingOf, goreOf, moodOf, limb, hand, shoe, foil, bodyBlood, breath } from './kit';
+
+const SKIN = '#EAD7C9', SKIN_DARK = '#B9A091';
+const FACE: FaceStyle = {
+  skin: SKIN, shadow: SKIN_DARK, highlight: '#FAF0E8', brow: '#3B2F2A', iris: '#0891B2',
+  jaw: 'long', stubble: '#4B3A33', bags: '#7C5F8F', lips: '#9A7A70', age: 0.25,
+};
+const SUIT = '#1E2A4A', SUIT_DARK = '#131B31';
 
 export const drawBarry = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
   const { width, height } = e;
@@ -23,24 +34,19 @@ export const drawBarry = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
   }
 
   if (isExhausted) {
-    // Drawing stars floating above head in a halo
+    // Stars going round his head
     ctx.save();
-    const starCount = 3;
-    for (let i = 0; i < starCount; i++) {
-      const angle = (frame * 0.08) + (i * ((Math.PI * 2) / starCount));
+    for (let i = 0; i < 3; i++) {
+      const angle = (frame * 0.08) + (i * ((Math.PI * 2) / 3));
       const sx = Math.cos(angle) * 32 + width / 2;
-      const sy = Math.sin(angle * 0.6) * 8 - 14; // Floating directly above head
-
+      const sy = Math.sin(angle * 0.6) * 8 + 2;
       ctx.fillStyle = '#ffff00';
       ctx.shadowBlur = 8;
       ctx.shadowColor = '#ffff00';
       ctx.beginPath();
-      const spikes = 5;
-      const outerRadius = 8;
-      const innerRadius = 3;
-      for (let j = 0; j < spikes * 2; j++) {
-        const r = j % 2 === 0 ? outerRadius : innerRadius;
-        const a = (j * Math.PI) / spikes;
+      for (let j = 0; j < 10; j++) {
+        const r = j % 2 === 0 ? 8 : 3;
+        const a = (j * Math.PI) / 5;
         ctx.lineTo(sx + Math.cos(a) * r, sy + Math.sin(a) * r);
       }
       ctx.closePath();
@@ -49,107 +55,21 @@ export const drawBarry = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
     ctx.restore();
   }
 
-  // Shadow cloak / Hood with High-Voltage Tesla Coils
-  ctx.fillStyle = '#0a0510';
-  ctx.beginPath();
-  if (isExhausted) {
-    // Hunched
-    ctx.moveTo(width * 0.5, height * 0.4);
-    ctx.lineTo(0, height);
-    ctx.lineTo(width, height);
-  } else {
-    ctx.moveTo(width * 0.5, 0); 
-    ctx.quadraticCurveTo(width * 0.2, 0, width * 0.1, height * 0.3); 
-    ctx.lineTo(0, height); 
-    ctx.lineTo(width, height); 
-    ctx.lineTo(width * 0.9, height * 0.3); 
-    ctx.quadraticCurveTo(width * 0.8, 0, width * 0.5, 0); 
-  }
-  ctx.closePath();
-  ctx.fill();
-  ctx.strokeStyle = '#2E1A47';
-  ctx.lineWidth = 2;
-  ctx.stroke();
+  drawBarryBody(ctx, e, frame, { isExhausted, charged: isTelegraphing || isLightning || isGroundPound });
 
-  // High-voltage ceramic insulator coils on shoulders
-  if (!isExhausted) {
-    ctx.fillStyle = '#34495E';
-    ctx.fillRect(width * 0.08, height * 0.32, 10, 16);
-    ctx.fillRect(width * 0.82, height * 0.32, 10, 16);
-    ctx.strokeStyle = '#00E5FF';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(width * 0.08, height * 0.32, 10, 16);
-    ctx.strokeRect(width * 0.82, height * 0.32, 10, 16);
-    ctx.beginPath();
-    ctx.moveTo(width * 0.08, height * 0.37); ctx.lineTo(width * 0.08 + 10, height * 0.37);
-    ctx.moveTo(width * 0.08, height * 0.43); ctx.lineTo(width * 0.08 + 10, height * 0.43);
-    ctx.moveTo(width * 0.82, height * 0.37); ctx.lineTo(width * 0.82 + 10, height * 0.37);
-    ctx.moveTo(width * 0.82, height * 0.43); ctx.lineTo(width * 0.82 + 10, height * 0.43);
-    ctx.stroke();
-
-    // Subtle spark discharge
-    if (frame % 15 < 5) {
-      ctx.strokeStyle = '#BD00FF';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(width * 0.12, height * 0.30);
-      ctx.lineTo(width * 0.16, height * 0.26);
-      ctx.lineTo(width * 0.14, height * 0.22);
-      ctx.stroke();
-    }
-  }
-
-  // Glowing Piercing Eyes
-  const eyeColor = (isGroundPound || isLightning) ? '#ff0000' : '#00e5ff';
-  ctx.fillStyle = eyeColor;
-  ctx.globalAlpha = _α;
-  ctx.shadowBlur = 15;
-  ctx.shadowColor = eyeColor;
-  const eyeY = isExhausted ? height * 0.6 : height * 0.3;
-  ctx.beginPath();
-  ctx.ellipse(width * 0.36, eyeY, 6, 3.5, 0.2, 0, Math.PI * 2);
-  ctx.ellipse(width * 0.64, eyeY, 6, 3.5, -0.2, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  // White electric eye slits
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(width * 0.35, eyeY - 1, 2, 2);
-  ctx.fillRect(width * 0.63, eyeY - 1, 2, 2);
-
-  // ARMS / POSES
-  ctx.fillStyle = '#2e1a47';
-  if (isTelegraphing || isLightning || isGroundPound) {
+  // Telegraphs: energy pouring down for the ground pound, a ring for the storm
+  if (isTelegraphing) {
     if (e.jumpCount === 0) {
-      // ARMS DOWN - More aggressive downward pose
-      ctx.fillRect(-12, height * 0.4, 18, height * 0.7);
-      ctx.fillRect(width - 6, height * 0.4, 18, height * 0.7);
-
-      // Downward wind/energy lines for telegraphing
-      if (isTelegraphing) {
-        ctx.strokeStyle = '#bd00ff';
-        ctx.lineWidth = 2;
-        for (let i = 0; i < 3; i++) {
-          const ox = (i - 1) * 20 + width/2;
-          const oy = height + 10 + (frame % 20);
-          ctx.beginPath();
-          ctx.moveTo(ox, oy);
-          ctx.lineTo(ox, oy + 20);
-          ctx.stroke();
-        }
+      ctx.strokeStyle = '#bd00ff';
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 3; i++) {
+        const ox = (i - 1) * 20 + width / 2, oy = height + 10 + (frame % 20);
+        ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox, oy + 20); ctx.stroke();
       }
     } else {
-      // ARMS OUT
-      ctx.fillRect(-40, height * 0.2, 45, 18);
-      ctx.fillRect(width - 5, height * 0.2, 45, 18);
-
-      // Circular energy for Outward telegraph
-      if (isTelegraphing) {
-          ctx.strokeStyle = '#ff0000';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.arc(width/2, height/2, 60 + Math.sin(frame * 0.2) * 10, 0, Math.PI * 2);
-          ctx.stroke();
-      }
+      ctx.strokeStyle = '#ff0000';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(width / 2, height / 2, 60 + Math.sin(frame * 0.2) * 10, 0, Math.PI * 2); ctx.stroke();
     }
   }
 
@@ -380,4 +300,106 @@ export const drawBarryTolerance = (ctx: CanvasRenderingContext2D, e: Enemy, fram
   ctx.fillStyle = '#C084FC';
   ctx.fillRect(x - 20, y + 17, 40 * Math.min(1, timer / BARRY_TOLERANCE_FRAMES), 3);
   ctx.restore();
+};
+
+/** Barry himself (in an 80x80 box): hunched over when he's spent, arms down or flung out when he's charged. */
+const drawBarryBody = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number, { isExhausted, charged }: { isExhausted: boolean; charged: boolean }) => {
+  const f = facingOf(e);
+  const gore = goreOf(e);
+  const mood = isExhausted ? 'dazed' : moodOf(e, frame, { high: 'blissed', ground_pound: 'fierce', lightning_storm: 'roar', telegraphing: 'fierce' });
+  const b = breath(frame, 0.09);
+  const armsOut = charged && e.jumpCount !== 0;
+  ctx.save();
+  ctx.scale(e.width / 80, e.height / 80);
+
+  // Work boots, coverall legs
+  shoe(ctx, 31, 80, 14, 6, f, '#27272A', '#09090B');
+  shoe(ctx, 49, 80, 14, 6, f, '#27272A', '#09090B');
+  ctx.fillStyle = SUIT;
+  ctx.fillRect(25, 56, 12, 19); ctx.fillRect(43, 56, 12, 19);
+  ctx.fillStyle = SUIT_DARK; ctx.fillRect(25, 56, 3, 19); ctx.fillRect(43, 56, 3, 19);
+  ctx.fillStyle = '#D4D4D8'; ctx.fillRect(25, 69, 12, 1.4); ctx.fillRect(43, 69, 12, 1.4); // reflective stripes
+
+  // Slumped when he's spent
+  ctx.save();
+  if (isExhausted) { ctx.translate(40, 58); ctx.rotate(f * 0.18); ctx.translate(-40, -50); }
+  else ctx.translate(0, -b);
+  // Coveralls: stripes, star stickers, a zip, a tool belt
+  ctx.fillStyle = SUIT;
+  ctx.beginPath(); ctx.roundRect(20, 32, 40, 26, [6, 6, 2, 2]); ctx.fill();
+  ctx.fillStyle = SUIT_DARK; ctx.fillRect(20, 34, 3.5, 23);
+  ctx.fillStyle = '#D4D4D8'; ctx.fillRect(20, 45, 40, 1.6);
+  ctx.fillStyle = '#64748B'; ctx.fillRect(39.4, 33, 1.2, 20);
+  const glow = 0.55 + Math.sin(frame * 0.1) * 0.3;
+  ctx.fillStyle = `rgba(190, 242, 100, ${glow})`;
+  for (const [x, y, r] of [[27, 39, 2.2], [51, 50, 1.8], [30, 52, 1.5], [53, 38, 1.4]] as const) star(ctx, x, y, r);
+  ctx.fillStyle = '#44403C'; ctx.fillRect(20, 53, 40, 4);
+  ctx.fillStyle = '#A8A29E'; ctx.fillRect(38.5, 53.5, 3, 3);
+  ctx.fillStyle = '#DC2626'; ctx.fillRect(25, 54, 2, 6); ctx.fillStyle = '#FACC15'; ctx.fillRect(28, 54, 1.5, 7); // strippers, screwdriver
+  ctx.fillStyle = '#18181B'; ctx.fillRect(50, 54, 6, 5); ctx.fillStyle = '#22C55E'; ctx.fillRect(51, 55, 2, 1); // multimeter
+  bodyBlood(ctx, gore, [[46, 40, 3.5], [30, 47, 3], [52, 50, 2.5], [35, 38, 2.5], [44, 55, 2.5], [25, 43, 2.5]], frame);
+
+  // Ceramic insulators bolted to the shoulders, crackling
+  for (const side of [-1, 1]) {
+    const x = 40 + side * 20;
+    ctx.fillStyle = '#E7E5E4';
+    for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.ellipse(x, 30 - i * 3.2, 4.5 - i * 0.6, 1.6, 0, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = '#A8A29E'; ctx.fillRect(x - 0.8, 22, 1.6, 9);
+    if ((frame + (side > 0 ? 7 : 0)) % 15 < 5 || charged) {
+      ctx.strokeStyle = charged ? '#FF3B3B' : '#BD00FF'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, 21); ctx.lineTo(x + side * 3, 17); ctx.lineTo(x + side * 1, 14); ctx.lineTo(x + side * 4, 10); ctx.stroke();
+    }
+  }
+
+  // Arms: thin and long; stiff at his sides or flung out with the current in them
+  for (const side of [-1, 1]) {
+    const sx = 40 + side * 18, sy = 36;
+    let ex, ey, hx, hy;
+    if (armsOut) { ex = sx + side * 12; ey = sy - 3; hx = sx + side * 26; hy = sy - 6; }
+    else if (charged) { ex = sx + side * 4; ey = sy + 11; hx = sx + side * 6; hy = sy + 22; }
+    else if (isExhausted) { ex = sx + side * 1; ey = sy + 12; hx = sx - side * 1; hy = sy + 24; }
+    else { ex = sx + side * 2.5; ey = sy + 10; hx = sx + side * 2 + Math.sin(frame * 0.06 + side) * 1.5; hy = sy + 20; }
+    limb(ctx, sx, sy, ex, ey, 6.5, SUIT, SUIT_DARK);
+    limb(ctx, ex, ey, hx, hy, 5.5, SUIT, SUIT_DARK);
+    ctx.fillStyle = '#D4D4D8'; ctx.fillRect(ex - 3, ey - 0.7, 6, 1.4);
+    hand(ctx, hx, hy, 3.4, SKIN, SKIN_DARK);
+    if (charged && frame % 6 < 3) {
+      ctx.strokeStyle = '#00E5FF'; ctx.lineWidth = 0.9;
+      ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx + side * 3, hy + 3); ctx.lineTo(hx + side * 1, hy + 6); ctx.stroke();
+    }
+  }
+
+  // The head: messy hair out from under a foil-wrapped hard hat with an antenna
+  drawHead(ctx, headAt(e, f, 40, 19.5), FACE, mood, frame, gore, {
+    hair: () => {
+      ctx.fillStyle = '#3B2F2A';
+      for (const [x, y] of [[-11, -7], [-10.5, -3], [10.5, -7], [-8, -10]] as const) {
+        ctx.beginPath(); ctx.moveTo(x, y - 2); ctx.lineTo(x + (x < 0 ? -2.5 : 2.5), y + 1); ctx.lineTo(x, y + 2.5); ctx.fill();
+      }
+    },
+    hat: () => {
+      // Hard hat
+      ctx.fillStyle = '#FACC15';
+      ctx.beginPath(); ctx.moveTo(-12, -9); ctx.quadraticCurveTo(-12, -20, 0, -20); ctx.quadraticCurveTo(12, -20, 12, -9); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#CA8A04'; ctx.fillRect(-14, -9.6, 29, 2); ctx.fillRect(-0.8, -20, 1.6, 10);
+      // The foil band round it
+      foil(ctx, [-12, -13, -6, -14.5, 0, -14, 6, -14.6, 12, -13, 12, -10, 6, -11, 0, -10.5, -6, -11.2, -12, -10], frame, 2);
+      // Antenna, blinking
+      ctx.strokeStyle = '#9CA3AF'; ctx.lineWidth = 0.7;
+      ctx.beginPath(); ctx.moveTo(4, -19.5); ctx.lineTo(7, -27); ctx.stroke();
+      ctx.fillStyle = frame % 40 < 20 ? '#F87171' : '#7F1D1D';
+      ctx.beginPath(); ctx.arc(7, -27.5, 1.3, 0, Math.PI * 2); ctx.fill();
+    },
+  });
+  ctx.restore();
+  ctx.restore();
+};
+
+const star = (ctx: CanvasRenderingContext2D, x: number, y: number, r: number) => {
+  ctx.beginPath();
+  for (let j = 0; j < 10; j++) {
+    const rr = j % 2 === 0 ? r : r * 0.45, a = (j * Math.PI) / 5 - Math.PI / 2;
+    ctx.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+  }
+  ctx.closePath(); ctx.fill();
 };
