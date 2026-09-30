@@ -17,7 +17,7 @@ import {
   BOTTLE_GRAVITY, THAW_BURST_DAMAGE,
 } from '../../constants';
 import { FrameContext, killBoss } from '../core/context';
-import type { ThrownKind } from '../../types';
+import type { ThrownKind, EnemyKind } from '../../types';
 import { THROWN, shotLook, shotSpeed } from './shots';
 import { getBossDef, getStageWidth } from '../bosses/registry';
 import { rectsOverlap, boundsOf } from '../core/utils';
@@ -637,6 +637,10 @@ const resolveOiledSlideCollision = (ctx: FrameContext, e: Enemy, enemies: Enemy[
   }
 };
 
+/** The little flyers a charge takes out if they're anywhere near him (it reaches this much further, ahead and up). */
+const isPestFlyer = (kind?: EnemyKind) => kind === 'seagull' || kind === 'drone' || kind === 'eagle' || kind === 'pelican' || kind === 'vulture' || kind === 'hawk' || kind === 'grackle';
+const PEST_REACH = 90;
+
 /** Which callout a melee kill earns. Shattering a frozen enemy beats everything. */
 const getMeleeKillCallout = (player: Player, wasFrozen: boolean): KillCallout => {
   if (wasFrozen) return 'shatter';
@@ -672,7 +676,12 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   const bossDef = e.type === 'boss' ? stageDef : undefined;
   const hasShield = !!(player.filthShieldTimer && player.filthShieldTimer > 0);
   const isAttacking = player.isCharging || player.isUppercutting || !!player.isDivekicking || hasShield;
-  const attackHit = isAttacking && rectsOverlap(getAttackHitbox(ctx), boundsOf(e));
+  // (a gull or a drone hanging about just ahead of him or over his head: a charge gets it even so, it doesn't get to back
+  // off out of the way of it)
+  const pest = player.isCharging && !player.isSliding && isPestFlyer(e.kind);
+  const hitbox = getAttackHitbox(ctx);
+  const reach = pest ? { x: player.facing > 0 ? hitbox.x : hitbox.x - PEST_REACH, y: hitbox.y - PEST_REACH, w: hitbox.w + PEST_REACH, h: hitbox.h + PEST_REACH } : hitbox;
+  const attackHit = isAttacking && rectsOverlap(reach, boundsOf(e));
 
   // (a regular enemy can only be hit once per move, but a fresh charge right after lands again: you can keep shoving him;
   // a boss keeps his breather between hits)
@@ -715,7 +724,8 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     bossDef?.onMeleeHit?.(ctx, e);
 
     let damage = 0;
-    if (player.isCharging) {
+    if (pest) damage = e.health;
+    else if (player.isCharging) {
       // (a boss takes the full hit; so does anything the jet ski's wheelie rams)
       if (e.type === 'boss' || player.jetski) damage = BOSS_CHARGE_DAMAGE;
       else if (player.isSliding) damage = isSmallCritter(e.kind) ? e.health : ENEMY_SLIDE_DAMAGE;

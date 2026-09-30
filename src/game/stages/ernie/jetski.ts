@@ -50,6 +50,8 @@ export interface JetSki {
   wreckTimer: number;
   /** Which of the timeline's spawns have gone out. */
   spawned: number;
+  /** Frames till the next of the extras that pile on as the run goes on (on top of the timeline's). */
+  extraTimer: number;
   /** Controls hints: which one, and for how long it's been up. */
   hint: string;
   hintT: number;
@@ -103,7 +105,7 @@ export const createJetSki = (state: GameState, startedAt: number): JetSki => {
   const js: JetSki = {
     phase: past ? 'gone' : onSki ? 'riding' : 'waiting', t: 0,
     hipster: { x: B.ski, y: B.water, vx: 0, vy: 0, rot: 0, state: onSki || past ? 'swimming' : 'sitting', line: '', lineT: 0 },
-    line: '', lineT: 0, arrived: false, step: 0, stepAt: 0, talk: null, wrecks: [], wreckTimer: 500, spawned: 0, hint: '', hintT: 0, hinted: new Set(),
+    line: '', lineT: 0, arrived: false, step: 0, stepAt: 0, talk: null, wrecks: [], wreckTimer: 500, spawned: 0, extraTimer: 900, hint: '', hintT: 0, hinted: new Set(),
     rampX: 0, launchT: 0,
     chaser: { x: 0, y: 0, vx: 0, vy: 0, rot: 0, state: 'off', at: 0 }, chaserLine: 'no',
   };
@@ -338,10 +340,32 @@ const teach = (state: GameState, js: JetSki) => {
   else if (live.some(e => e.kind === 'jetskier' && e.aiState === 'ram' && Math.abs(mx(e) - px) < 110)) hint(js, 'JUMP, THEN DOWN + SPECIAL: CRUSH HIM');
 };
 
+/**
+ * On top of the timeline, it piles on the further out he gets: from a third of the way, extras (a gull, a jet ski
+ * behind or ahead, a drone), coming quicker and quicker, and by the last stretch two at a time (one behind, one
+ * ahead), so there's always something to shoot, ram or jump. Never more than a handful about at once.
+ */
+const EXTRAS: [number, Wave['kind'], Wave['from'], number?][] = [
+  [0.3, 'seagull', 'air'], [0.3, 'jetskier', 'behind', 0], [0.45, 'jetskier', 'ahead', 1], [0.55, 'drone', 'air'], [0.6, 'seagull', 'air'],
+];
+const extras = (state: GameState, js: JetSki): Wave[] => {
+  const k = js.t / RIDE_FRAMES;
+  if (k < 0.3 || js.t > RIDE_FRAMES - 120 || --js.extraTimer > 0) return [];
+  js.extraTimer = Math.round(300 - (k - 0.3) * 300 + Math.random() * 60);
+  const live = state.enemies.filter(e => e.health > 0 && !e.isBlownAway && e.type !== 'boss').length;
+  if (live >= 6) return [];
+  const pool = EXTRAS.filter(([at]) => k >= at);
+  const pick = () => { const [, kind, from, variant] = pool[Math.floor(Math.random() * pool.length)]; return { at: js.t, kind, from, variant }; };
+  if (k > 0.75 && live <= 3) return [{ at: js.t, kind: 'jetskier', from: 'behind', variant: 0 }, { at: js.t, kind: 'jetskier', from: 'ahead', variant: 1 }];
+  return k > 0.6 && live <= 4 ? [pick(), pick()] : [pick()];
+};
+
 const spawnWaves = (state: GameState, js: JetSki) => {
   const p = state.player;
-  while (js.spawned < TIMELINE.length && TIMELINE[js.spawned].at <= js.t) {
-    const w = TIMELINE[js.spawned++];
+  const due: Wave[] = [];
+  while (js.spawned < TIMELINE.length && TIMELINE[js.spawned].at <= js.t) due.push(TIMELINE[js.spawned++]);
+  due.push(...extras(state, js));
+  for (const w of due) {
     let e: Enemy;
     if (w.from === 'air') {
       e = makeKindEnemy(w.kind, state.camera.x + CANVAS_WIDTH + 60, GROUND_Y - 250);
@@ -366,7 +390,8 @@ const updateWrecks = (ctx: FrameContext, js: JetSki) => {
   const { state, fx } = ctx;
   const p = state.player;
   if (js.t > 480 && js.t < RIDE_FRAMES - 200 && --js.wreckTimer <= 0) {
-    js.wreckTimer = 240 + Math.floor(Math.random() * 160);
+    // (more of it in the water the further out he gets)
+    js.wreckTimer = Math.round((240 + Math.random() * 160) * (1 - 0.5 * Math.min(1, js.t / RIDE_FRAMES)));
     js.wrecks.push({ x: state.camera.x + CANVAS_WIDTH + 120, look: WRECK_LOOKS[Math.floor(Math.random() * WRECK_LOOKS.length)], hit: false, rot: 0 });
   }
   for (const w of js.wrecks) {
