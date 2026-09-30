@@ -459,14 +459,19 @@ const launch = (ctx: FrameContext, js: JetSki, onLanded: () => void): Controls =
   } else if (c.state === 'flying') {
     // (out of control, spinning end over end)
     c.vy += 0.55; c.x += c.vx; c.y += c.vy; c.rot -= 0.45;
-    if (c.y < state.camera.y - 300) c.state = 'gone';
+    if (c.y < state.camera.y - 80) c.state = 'gone';
   }
-  // Meathead's take on that, from somewhere up there, once he's done yelling (the hipster goes off it without a word)
-  if (js.chaserLine === 'no' && c.state === 'flying' && talkOver(js)) { talk(js, 'meathead', 'THE HIPSTER?! GET YOUR OWN RAMP!'); js.chaserLine = 'done'; }
-  // ...and straight on to the island once he's said it (the camera's stopped by then: nothing more to see on the water)
+  // Meathead's take on that, from somewhere up there, as soon as he's done yelling (queued after it; the hipster goes off
+  // it without a word)
+  if (js.chaserLine === 'no' && c.state !== 'riding') {
+    js.chaserLine = 'done';
+    const text = 'THE HIPSTER?! GET YOUR OWN RAMP!';
+    say(text, MEATHEAD_VOICE, 'queue', { onShow: () => { js.line = text; js.lineT = 120; }, onHide: () => { if (js.line === text) js.lineT = Math.min(js.lineT, 20); } });
+  }
+  // ...and straight on to the island the moment they're both up out of the view (his line finishes over the fade, and
+  // the island waits for it)
   if (c.state === 'gone') state.cameraOverride = { x: state.camera.x, y: state.camera.y };
-  // (it cuts away as soon as they're both gone and he's into his line: it finishes over the fade, and the island waits for it)
-  if (js.t >= 40 && ((js.chaserLine === 'done' && c.state === 'gone') || js.t > 300)) {
+  if (js.t >= 30 && (c.state === 'gone' || js.t > 240)) {
     js.phase = 'gone';
     js.lineT = 0;
     onLanded();
