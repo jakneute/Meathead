@@ -209,7 +209,7 @@ export const drawHectorHud = (ctx: Ctx, state: GameState) => {
   const rt = getHector(state)!;
   // The Coast Guard: how close it is; boarded, the kill camera over everything; up the storm, not making it
   const ch = rt.boat.chase;
-  if (ch && rt.boat.phase === 'riding' && !ch.caughtT) drawChaseHud(ctx, state, ch, rt.boat.x);
+  if (ch && rt.boat.phase === 'riding' && !ch.caughtT && !ch.wreckT) drawChaseHud(ctx, state, ch, rt.boat.x);
   if (ch && ch.caughtT && state.deathTimer > 0) { drawBoarded(ctx, ch); return; }
   if (regionOf(state.camera.x + 400) === 'tower') drawCutterDemise(ctx, rt.tower.cgT, state.frame);
   const b = rt.beach;

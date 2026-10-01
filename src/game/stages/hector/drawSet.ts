@@ -2,7 +2,8 @@
 // waterspout, the junk whirling up the storm tower, the Eye's arena, and the
 // daycare (before and after the flood).
 
-import { deadCoastie, drawSeatedMeathead } from './chaseDraw';
+import { deadCoastie, drawSeatedMeathead, drawWreck } from './chaseDraw';
+import { WRECK_BLAST } from './chase';
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { COURSE } from './course';
@@ -84,7 +85,9 @@ export const drawBoatScene = (ctx: Ctx, state: GameState, b: Boat) => {
     for (let i = 0; i < 12; i++) { const a = f * 0.2 + i; ctx.beginPath(); ctx.arc(sx + Math.cos(a) * 70, bottom - 6 + Math.sin(a) * 6, 6, 0, Math.PI * 2); ctx.fill(); }
   }
   // The boat's deck and outboard (the hull's in front of him)
-  if (b.phase !== 'gone' && visible(state, b.x - 20, b.x + BOAT_WIDTH + 20)) {
+  // (wrecked: it's in bits)
+  if (b.chase?.wreckT) drawWreck(ctx, state, b.chase, b.x, b.y);
+  if (b.phase !== 'gone' && !(b.chase && b.chase.wreckT >= WRECK_BLAST) && visible(state, b.x - 20, b.x + BOAT_WIDTH + 20)) {
     ctx.save();
     ctx.translate(b.x, b.y);
     if (b.phase === 'spout') ctx.rotate(Math.sin(b.spin) * 0.3);
@@ -94,13 +97,13 @@ export const drawBoatScene = (ctx: Ctx, state: GameState, b: Boat) => {
     if (b.phase === 'riding' && state.frame % 2 === 0) ctx.fillRect(-18, 12, 4, 4);
     ctx.restore();
     // (out on the water with the Coast Guard after him: him sat at the motor)
-    if (b.phase === 'riding' && b.chase && !b.chase.caughtT) drawSeatedMeathead(ctx, b.x + 14, b.y - 2, state.frame, b.chase.crash > 0);
+    if (b.phase === 'riding' && b.chase && !b.chase.caughtT && !b.chase.wreckT) drawSeatedMeathead(ctx, b.x + 30, b.y - 22, state.frame, b.chase.crash > 0);
   }
 };
 
 /** The boat's hull, in front of him (so he's sitting in it). */
 export const drawBoatFront = (ctx: Ctx, state: GameState, b: Boat) => {
-  if (b.phase === 'gone' || !visible(state, b.x - 20, b.x + BOAT_WIDTH + 20)) return;
+  if (b.phase === 'gone' || (b.chase && b.chase.wreckT >= WRECK_BLAST) || !visible(state, b.x - 20, b.x + BOAT_WIDTH + 20)) return;
   ctx.save();
   ctx.translate(b.x, b.y);
   if (b.phase === 'spout') ctx.rotate(Math.sin(b.spin) * 0.3);

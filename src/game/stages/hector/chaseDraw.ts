@@ -4,11 +4,12 @@
 
 import type { GameState } from '../../core/state';
 import type { Chase, Junk } from './chase';
-import { junkSize, CHASE_BOAT_W, BOARD_LEAP, BOARD_BEAT, BOARD_LINE, BLOW } from './chase';
+import { junkSize, CHASE_BOAT_W, BOARD_LEAP, BOARD_BEAT, BOARD_LINE, BLOW, WRECK_BLAST } from './chase';
+import { drawSeatedAtMotor, drawFlung } from '../../render/player/moves';
 import { inputDevice, padFamily } from '../../platform/device';
 import { COURSE } from './course';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
-import { INK, hash, lin, shape, speckle, blood, deadFace } from '../../render/scenes/carnage';
+import { INK, hash, lin, shape, speckle, blood, deadFace, flames } from '../../render/scenes/carnage';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -116,59 +117,78 @@ const drawButton = (ctx: Ctx, x: number, y: number, which: 'jump' | 'left' | 'ri
   ctx.restore(); return 20;
 };
 
-/** A hint tag: the button, then what it's for (crossed out, for don't). */
-const hintTag = (ctx: Ctx, x: number, y: number, which: 'jump' | 'left' | 'right', text: string, color: string, dont = false) => {
-  ctx.save();
-  ctx.font = 'bold 8px "Press Start 2P"';
-  const tw = ctx.measureText(text).width, bw = which === 'jump' && inputDevice() !== 'pad' ? 46 : 20, w = bw + tw + 16;
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; ctx.beginPath(); ctx.roundRect(x - w / 2, y - 11, w, 22, 4); ctx.fill();
-  ctx.strokeStyle = color; ctx.lineWidth = 1.4; ctx.stroke();
-  const bx = x - w / 2 + 6 + bw / 2;
-  drawButton(ctx, bx, y, which);
-  if (dont) { ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(bx - bw / 2 - 1, y - 8); ctx.lineTo(bx + bw / 2 + 1, y + 8); ctx.stroke(); }
-  ctx.fillStyle = color; ctx.textAlign = 'left'; ctx.fillText(text, bx + bw / 2 + 5, y + 4);
-  ctx.restore();
-};
-
-/** Over each thing coming at him (once it's close enough to matter): what to do about it. */
-const drawJunkHints = (ctx: Ctx, state: GameState, c: Chase, boatX: number) => {
-  for (const j of c.junk) {
-    if (j.hit || j.passed) continue;
-    const ahead = j.x - (boatX + CHASE_BOAT_W);
-    if (j.kind !== 'drop' && (ahead > 560 || ahead < -40)) continue;
-    const blink = Math.floor(state.frame / 10) % 2 === 0;
-    if (j.kind === 'float') hintTag(ctx, j.x, COURSE.sea.y - 70 - (blink ? 2 : 0), 'jump', 'JUMP!', '#4ADE80');
-    else if (j.kind === 'flyer') hintTag(ctx, j.x, j.y - 56 - (blink ? 2 : 0), 'jump', "DON'T JUMP!", '#F87171', true);
-    else if (j.warn > 0) hintTag(ctx, j.x, COURSE.sea.y - 90 - (blink ? 2 : 0), j.hint === 'fast' ? 'right' : 'left', j.hint === 'fast' ? 'SPEED UP!' : 'SLOW DOWN!', '#FDE047');
-  }
-};
-
-/** Meathead sat at the back of the boat, a hand on the outboard's tiller (both hands, when it's rough): no gun. */
+/** Meathead sat at the back of the boat, both fists on the outboard's tiller: no gun. (x, y) is where he's sat. */
 export const drawSeatedMeathead = (ctx: Ctx, x: number, y: number, frame: number, hurt: boolean) => {
-  const bob = Math.sin(frame * 0.3) * 0.6;
-  ctx.save(); ctx.translate(x, y + bob);
+  ctx.save(); ctx.translate(x, y + Math.sin(frame * 0.3) * 0.6);
   if (hurt && Math.floor(frame / 3) % 2) ctx.globalAlpha = 0.5;
-  // (the bench he's sat on)
-  ctx.fillStyle = '#78350F'; ctx.fillRect(2, -24, 30, 4);
-  // (legs, bent, jeans, his boots on the deck)
-  shape(ctx, () => ctx.roundRect(14, -28, 22, 9, 3), '#1E3A8A', 0.8);
-  shape(ctx, () => ctx.roundRect(30, -28, 8, 18, 3), '#1E3A8A', 0.8);
-  shape(ctx, () => ctx.roundRect(30, -12, 12, 5, 2), '#18181B', 0.6);
-  // (the slab of him, sat up, the belt)
-  shape(ctx, () => ctx.roundRect(4, -60, 26, 34, 8), '#E0AC69', 1);
-  ctx.fillStyle = '#C68B45'; ctx.fillRect(6, -42, 22, 4); ctx.fillRect(16.5, -56, 1, 12);
-  ctx.fillStyle = '#F5D0A9'; ctx.fillRect(8, -57, 8, 3);
-  ctx.fillStyle = '#78350F'; ctx.fillRect(4, -30, 26, 3); ctx.fillStyle = '#FACC15'; ctx.fillRect(15, -30, 4, 3);
-  // (the arm back to the tiller, his fist on it)
-  shape(ctx, () => { ctx.moveTo(6, -52); ctx.quadraticCurveTo(-6, -46, -14, -34); ctx.lineTo(-8, -30); ctx.quadraticCurveTo(0, -40, 10, -44); ctx.closePath(); }, '#E0AC69', 0.9);
-  shape(ctx, () => ctx.arc(-13, -31, 4.4, 0, Math.PI * 2), '#E0AC69', 0.8);
-  // (the head, the flat-top, squinting into the rain, jaw out)
-  shape(ctx, () => ctx.roundRect(8, -80, 20, 21, 6), '#E0AC69', 1);
-  ctx.fillStyle = '#101010'; ctx.fillRect(7, -83, 22, 6);
-  ctx.fillStyle = '#C68B45'; ctx.fillRect(10, -66, 16, 5);
-  ctx.fillStyle = INK; ctx.fillRect(19, -73, 4, 1.4); ctx.fillRect(25, -73, 3, 1.4);
-  ctx.fillRect(20, -64, 7, 1.2);
+  drawSeatedAtMotor(ctx, frame, hurt);
   ctx.restore();
+};
+
+/** Wrecked: him flung up out of it end over end and gone off the top of the screen; then the boat going up, its bits
+ * coming down all round, the outboard cartwheeling off, the smoke; the name board floating. */
+export const drawWreck = (ctx: Ctx, state: GameState, c: Chase, bx: number, by: number) => {
+  const t = c.wreckT;
+  // Him: up and away (he's drawn till he's well off the top)
+  const mx = bx + 30 + t * 7, my = by - 50 - t * 22 + t * t * 0.16;
+  if (my > state.camera.y - 120) {
+    ctx.save(); ctx.translate(mx, my); ctx.rotate(t * 0.32); ctx.scale(1.05, 1.05);
+    drawFlung(ctx, state.frame);
+    ctx.restore();
+    // (a streak after him)
+    ctx.strokeStyle = 'rgba(241, 245, 249, 0.5)'; ctx.lineWidth = 2;
+    for (let k = 1; k <= 3; k++) { ctx.beginPath(); ctx.moveTo(mx - 10 - k * 9, my + 30 + k * 16); ctx.lineTo(mx - 4 - k * 6, my + 16 + k * 12); ctx.stroke(); }
+  }
+  // Before it goes: smoking where it was hit, a lick of fire at the stern
+  if (t < WRECK_BLAST) {
+    for (let k = 0; k < 4; k++) { const u = (t * 2 + k * 9) % 30; ctx.fillStyle = `rgba(55, 65, 81, ${0.6 - u / 60})`; ctx.beginPath(); ctx.arc(bx + 40 + k * 18 + u * 0.6, by - 30 - u * 2, 6 + u * 0.4, 0, Math.PI * 2); ctx.fill(); }
+    if (t > 8) flames(ctx, bx + 20, by - 20, 24, 8 + (t - 8), Math.floor(state.frame / 4));
+    return;
+  }
+  const u = t - WRECK_BLAST, cx = bx + CHASE_BOAT_W / 2, cy = by - 14;
+  // The smoke: a black column, leaning off in the wind
+  for (let k = 0; k < 10; k++) {
+    const a = Math.max(0, u - 6 - k * 2);
+    if (!a) continue;
+    const sx = cx - 20 + hash(k) * 40 - a * 0.8, sy = cy - 30 - a * 2.4 - k * 6, sr = 14 + a * 0.5 + hash(k * 3) * 8;
+    ctx.fillStyle = k % 2 ? 'rgba(31, 41, 55, 0.7)' : 'rgba(17, 24, 39, 0.75)';
+    ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI * 2); ctx.fill();
+  }
+  // The fireball: banded, white in the middle to red and black at the edge, swelling then breaking up into smoke
+  if (u < 40) {
+    const r = 26 + Math.min(1, u / 8) * 60 - Math.max(0, u - 20) * 1.2;
+    const ramp = ['#450A0A', '#991B1B', '#DC2626', '#F97316', '#FACC15', '#FEF9C3'];
+    for (let i = 0; i < ramp.length; i++) {
+      const rr = r * (1 - i * 0.15) * (u > 20 ? 1 - (u - 20) / 40 : 1);
+      if (rr <= 0) continue;
+      ctx.fillStyle = ramp[i];
+      ctx.beginPath();
+      for (let p = 0; p <= 16; p++) { const an = (p / 16) * Math.PI * 2, wob = 1 + (hash(p + i * 17 + Math.floor(u / 3)) - 0.5) * 0.25; const px = cx + Math.cos(an) * rr * wob, py = cy - rr * 0.35 + Math.sin(an) * rr * 0.8 * wob; if (p) ctx.lineTo(px, py); else ctx.moveTo(px, py); }
+      ctx.fill();
+    }
+    if (u < 4) { ctx.fillStyle = `rgba(255, 255, 255, ${0.6 - u * 0.15})`; ctx.fillRect(state.camera.x, state.camera.y, CANVAS_WIDTH, CANVAS_HEIGHT); }
+  }
+  // The bits of it: planks of hull, the red stripe, the windshield, up and coming down into the water
+  for (let i = 0; i < 12; i++) {
+    const vx = (hash(i * 5) - 0.5) * 14, vy = -10 - hash(i * 7) * 12;
+    const px = cx + vx * u, py = cy + vy * u + 0.45 * u * u;
+    if (py > COURSE.sea.y + 10) continue;
+    ctx.save(); ctx.translate(px, py); ctx.rotate(u * (0.2 + hash(i) * 0.3) * (i % 2 ? 1 : -1));
+    shape(ctx, () => ctx.rect(-10 - hash(i * 2) * 8, -3, 20 + hash(i * 2) * 16, 6), i % 4 === 0 ? '#DC2626' : i % 4 === 1 ? '#93C5FD' : '#F1F5F9', 0.8);
+    ctx.restore();
+  }
+  // The outboard, cartwheeling off the back, still going
+  { const px = bx - 10 - u * 5, py = cy - u * 15 + 0.45 * u * u;
+    if (py < COURSE.sea.y + 10) { ctx.save(); ctx.translate(px, py); ctx.rotate(-u * 0.35); shape(ctx, () => ctx.rect(-8, -14, 16, 26), '#374151', 1); ctx.fillStyle = '#6B7280'; ctx.fillRect(-3, 10, 6, 14); ctx.restore(); } }
+  // Afterwards: the slick burning on the water, and the name board bobbing
+  if (u > 30) {
+    flames(ctx, cx - 40, COURSE.sea.y, 40, 22, Math.floor(state.frame / 4));
+    flames(ctx, cx + 30, COURSE.sea.y, 30, 16, Math.floor(state.frame / 4) + 7);
+    ctx.save(); ctx.translate(cx + 10, COURSE.sea.y - 4 + Math.sin(state.frame * 0.1) * 2); ctx.rotate(0.15);
+    shape(ctx, () => ctx.rect(-28, -6, 56, 12), '#F8FAFC', 0.8);
+    ctx.fillStyle = '#111827'; ctx.font = 'bold 6px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('LIL BASS', 0, 3); ctx.textAlign = 'left';
+    ctx.restore();
+  }
 };
 
 /** In the world, behind and around him: the junk (and the shadows of what's coming down), the cutter after him. */
@@ -178,11 +198,9 @@ export const drawChaseWorld = (ctx: Ctx, state: GameState, c: Chase) => {
     if (j.kind !== 'drop' || j.warn <= 0) continue;
     const k = 1 - j.warn / 95;
     ctx.fillStyle = `rgba(2, 6, 23, ${0.2 + k * 0.5})`;
-    ctx.beginPath(); ctx.ellipse(j.x, COURSE.sea.y + 2, 20 + k * 30, 4 + k * 3, 0, 0, Math.PI * 2); ctx.fill();
-    if (Math.floor(state.frame / 6) % 2) { ctx.fillStyle = '#EF4444'; ctx.font = 'bold 14px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('!', j.x, COURSE.sea.y - 30); ctx.textAlign = 'left'; }
+    ctx.beginPath(); ctx.ellipse(j.tx ?? j.x, COURSE.sea.y + 2, 20 + k * 30, 4 + k * 3, 0, 0, Math.PI * 2); ctx.fill();
   }
   for (const j of c.junk) drawJunk(ctx, j);
-  drawJunkHints(ctx, state, c, c.boatX);
   // The cutter (on the water, or up the spout after him)
   const y = COURSE.boat.y + Math.sin(state.frame * 0.1) * 2 - c.cgLift;
   if (c.cgX > state.camera.x - 40 && c.cgX - 220 < state.camera.x + CANVAS_WIDTH) {
@@ -295,7 +313,7 @@ const lightWash = (ctx: Ctx, t: number, strength: number) => {
 
 /** A coastie: navy trousers and boots, the orange float coat (shaded, its reflective strip), a blue helmet with its
  * visor, a hard face, a nightstick (arm up, or swinging). */
-const coastie = (ctx: Ctx, x: number, y: number, s: number, arm: number, flip = 1) => {
+const coastie = (ctx: Ctx, x: number, y: number, s: number, arm: number | 'crossed', flip = 1) => {
   ctx.save(); ctx.translate(x, y); ctx.scale(s * flip, s);
   // (legs, boots)
   shape(ctx, () => ctx.rect(-5, -4, 4.4, 14), '#1E3A8A', 0.6); shape(ctx, () => ctx.rect(0.6, -4, 4.4, 14), '#1E3A8A', 0.6);
@@ -318,6 +336,16 @@ const coastie = (ctx: Ctx, x: number, y: number, s: number, arm: number, flip = 
   ctx.fillStyle = '#60A5FA'; ctx.fillRect(-3.6, -41, 3, 1);
   ctx.fillStyle = 'rgba(15, 23, 42, 0.85)'; ctx.fillRect(-0.5, -36.4, 7, 2);
   ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'; ctx.fillRect(4, -36.2, 1.4, 0.8);
+  // (arms folded, chin up, the nightstick tucked under one of them)
+  if (arm === 'crossed') {
+    shape(ctx, () => ctx.roundRect(-12, -22, 7, 3.2, 1.4), '#18181B', 0.5);
+    shape(ctx, () => ctx.roundRect(-9, -19, 18, 4.4, 2), '#EA580C', 0.6);
+    shape(ctx, () => ctx.roundRect(-9, -16.4, 18, 4.4, 2), '#F97316', 0.6);
+    shape(ctx, () => ctx.arc(8, -17, 2.4, 0, Math.PI * 2), '#E8B495', 0.5);
+    shape(ctx, () => ctx.arc(-8, -14.4, 2.4, 0, Math.PI * 2), '#E8B495', 0.5);
+    ctx.restore();
+    return;
+  }
   // (the arm and the nightstick)
   ctx.save(); ctx.translate(7, -20); ctx.rotate(-1.2 + arm);
   shape(ctx, () => ctx.roundRect(0, -2.4, 11, 4.8, 2), '#F97316', 0.6);
@@ -460,21 +488,16 @@ export const drawBoarded = (ctx: Ctx, c: Chase) => {
   const s = CANVAS_WIDTH / W, top = (CANVAS_HEIGHT - H * s) / 2 - 20;
   ctx.save(); ctx.translate(0, top); ctx.scale(s, s);
   ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();
-  const shake = (t < 12 || (t > BOARD_LEAP + 10 && t < BOARD_BEAT && (t - BOARD_LEAP) % BLOW < 3)) ? 3 : 0;
+  const shake = (t < 12 || (t > BOARD_LEAP + 10 && t < BOARD_BEAT && (t - BOARD_LEAP) % BLOW < 2)) ? 3 : 0;
   if (shake) ctx.translate((hash(t) - 0.5) * shake * 2, (hash(t * 3) - 0.5) * shake * 2);
   if (t < BOARD_LEAP + 10) {
     // The cutter slamming in alongside, the spray going up between them; over the side they come, nightsticks up
     stormSky(ctx, t, 90);
     sea(ctx, 90, t);
     const slam = Math.min(1, t / 10);
-    // (his boat, him at the wheel turning round to see it)
-    lilBass(ctx, 136, 108);
-    shape(ctx, () => ctx.roundRect(168, 82, 15, 17, 4), '#E0AC69', 0.9);
-    ctx.fillStyle = '#101010'; ctx.fillRect(167, 80, 17, 4);
-    shape(ctx, () => ctx.arc(171, 89, 2.6, 0, Math.PI * 2), '#FFFFFF', 0.5); shape(ctx, () => ctx.arc(177, 89, 2.6, 0, Math.PI * 2), '#FFFFFF', 0.5);
-    ctx.fillStyle = INK; ctx.fillRect(170.4, 89, 1, 1); ctx.fillRect(176.4, 89, 1, 1);
-    shape(ctx, () => ctx.ellipse(174, 95, 2, 2.4, 0, 0, Math.PI * 2), '#7F1D1D', 0.5);
-    shape(ctx, () => ctx.roundRect(164, 98, 22, 14, 4), '#E0AC69', 0.8);
+    // (his boat, him in it at the motor, knocked about by it)
+    ctx.save(); ctx.translate(166, 98); ctx.scale(0.6, 0.6); drawSeatedAtMotor(ctx, t, true); ctx.restore();
+    lilBass(ctx, 146, 108);
     bigCutter(ctx, 92 + slam * 46, 104, t);
     // (the slam: a wall of spray between them, the boats rocking)
     if (t >= 8 && t < 30) {
@@ -511,14 +534,14 @@ export const drawBoarded = (ctx: Ctx, c: Chase) => {
     fightCloud(ctx, 128, 76, t - BOARD_LEAP);
     // (his head out of it now and then, worse every time; dragged back in)
     const u = t - BOARD_LEAP;
-    if (Math.floor(u / 40) % 3 === 1) headOut(ctx, 96 + (hash(Math.floor(u / 40)) - 0.5) * 70, 46, Math.min(3, u / 110));
+    if (Math.floor(u / 26) % 3 === 1) headOut(ctx, 96 + (hash(Math.floor(u / 26)) - 0.5) * 70, 46, Math.min(3, u / 110));
     // (each blow landing: a flash ring off it)
     const since = u % BLOW;
     if (since < 5) { ctx.strokeStyle = `rgba(255, 255, 255, ${0.8 - since * 0.16})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(110 + (hash(Math.floor(u / BLOW)) - 0.5) * 50, 70 + (hash(Math.floor(u / BLOW) * 3) - 0.5) * 20, 6 + since * 5, 0, Math.PI * 2); ctx.stroke(); }
     lightWash(ctx, t, 0.1);
   } else {
-    // What's left of him: slumped over the side of his own boat, lumps on lumps; them stood over him in the rain, one
-    // wiping his nightstick, the other with the loudhailer, the light bar going
+    // What's left of him: slumped over the side of his own boat, lumps on lumps; them stood behind him in the rain, one
+    // either side, arms folded, the light bar going
     stormSky(ctx, t, 96);
     sea(ctx, 96, t);
     const hull = () => { ctx.moveTo(-10, 104); ctx.lineTo(W + 10, 100); ctx.lineTo(W + 10, H + 4); ctx.lineTo(-10, H + 4); ctx.closePath(); };
@@ -528,10 +551,8 @@ export const drawBoarded = (ctx: Ctx, c: Chase) => {
     ctx.fillStyle = 'rgba(56, 189, 248, 0.35)'; ctx.beginPath(); ctx.ellipse(120, 136, 60, 5, 0, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
     ctx.beginPath(); hull(); ctx.strokeStyle = INK; ctx.lineWidth = 1.3; ctx.stroke();
-    coastie(ctx, 196, 104, 2.3, -0.2);
-    coastie(ctx, 230, 104, 2.1, 0.5, -1);
-    // (the loudhailer, under his arm)
-    shape(ctx, () => { ctx.moveTo(214, 70); ctx.lineTo(226, 64); ctx.lineTo(226, 78); ctx.closePath(); }, '#F8FAFC', 0.8);
+    coastie(ctx, 44, 82, 1.9, 'crossed');
+    coastie(ctx, 150, 82, 1.9, 'crossed', -1);
     deadFace(ctx, 96, 90, 2.4, { skin: '#D4A06A', shade: '#7C4A2A', tilt: 0.5, xEyes: true });
     // (the lumps, the bruising, a band-aid nobody put on him)
     ctx.fillStyle = 'rgba(88, 28, 135, 0.5)';

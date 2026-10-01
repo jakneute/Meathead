@@ -589,3 +589,51 @@ export const drawPedalLegs = (ctx: Ctx, turn: number) => {
     leg(ctx, hip, knee, foot, 0.1, back);
   }
 };
+
+// ---------------------------------------------------------------------------
+// In the boat (Hector's Coast Guard chase)
+// ---------------------------------------------------------------------------
+
+/**
+ * Sat on the bench at the back of the boat, both fists on the outboard's tiller (it comes forward past his hip from the
+ * motor behind him), hunched into the rain, jaw out. (0,0) is where he's sat; the motor's head is at (-34, -8).
+ * `rough`: knocked about, teeth bared.
+ */
+export const drawSeatedAtMotor = (ctx: Ctx, frame: number, rough: boolean) => {
+  frameNow = frame;
+  const jolt = rough ? Math.sin(frame * 1.7) * 1.5 : 0;
+  // The bench under him
+  ctx.fillStyle = BELT; ctx.fillRect(-14, 0, 34, 4);
+  ctx.fillStyle = '#451A03'; ctx.fillRect(-14, 3, 34, 1.5);
+  // Legs out in front, knees up, boots braced on the deck
+  leg(ctx, [-4, -2], [16, -6], [18, 14], 0, true);
+  leg(ctx, [4, -2], [24, -4], [26, 16], 0, false);
+  // The far arm, back to the tiller beside his hip
+  arm(ctx, [-9, -26 + jolt], [-22, -20], [-18, -11], true);
+  ctx.save();
+  ctx.translate(0, -4 + jolt);
+  ctx.rotate(0.1);
+  torso(ctx);
+  ctx.save(); ctx.translate(1, -37); ctx.rotate(rough ? -0.15 : 0.05); head(ctx, 0, 0, rough ? 'roar' : 'grit'); ctx.restore();
+  ctx.restore();
+  // The tiller: from the motor's head forward past his hip, the rubber grip at the end
+  limb(ctx, -34, -8, 12, -15, 3.5, '#374151');
+  limb(ctx, 2, -13.5, 13, -15.2, 5, '#111827');
+  // The near arm, across to the end of it
+  arm(ctx, [11, -26 + jolt], [20, -18], [8, -14], false);
+};
+
+/**
+ * Thrown out of the boat end over end: arms and legs going every which way, mouth wide. Drawn about his middle
+ * (the caller spins it).
+ */
+export const drawFlung = (ctx: Ctx, frame: number) => {
+  frameNow = frame;
+  const f = Math.sin(frame * 0.9), g = Math.cos(frame * 0.7);
+  leg(ctx, [-4, 8], [-12 + f * 4, 22], [-8 + f * 8, 36], 1.2 + f * 0.4, true);
+  leg(ctx, [4, 8], [16, 18 + g * 4], [26 + g * 4, 28], 0.4, false);
+  arm(ctx, [-9, -14], [-22, -24 + f * 5], [-30, -36 + f * 8], true);
+  ctx.save(); ctx.translate(0, 10); torso(ctx); ctx.restore();
+  ctx.save(); ctx.translate(-1, -27); ctx.rotate(0.3 * f); head(ctx, 0, 0, 'roar'); ctx.restore();
+  arm(ctx, [11, -14], [24, -22 + g * 5], [32, -34 + g * 9], false);
+};

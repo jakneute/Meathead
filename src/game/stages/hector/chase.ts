@@ -2,8 +2,9 @@
 // hurricane throws whatever it's picked up at him, and each thing wants one of four answers: junk floating in the swell
 // (jump the boat over it), junk whirling over the water at about the height a jump would take him (don't jump), and junk
 // coming down out of the sky, its shadow on the water ahead (slow down, or speed up, to get out from under it). Every
-// hit slows him and lets the cutter close in (the bar fills); every one he gets past, it drops back a little (it drains). Let it catch him and they board him and
-// beat him to death in his own boat (the kill camera: see chaseDraw.ts). Get to the waterspout and it takes him, and
+// hit slows him (it doesn't hurt much) and lets the cutter close in (the bar fills): that's the danger; every one he
+// gets past, it drops back a little (it drains). Nothing says which is which: he works it out. Let it catch him and
+// they board him and beat him to death in his own boat (the kill camera: see chaseDraw.ts). Get to the waterspout and it takes him, and
 // them after him.
 
 import type { FrameContext } from '../../core/context';
@@ -15,6 +16,7 @@ import { rectsOverlap, boundsOf } from '../../core/utils';
 import { say, isTalking, silenceAll, holdForSpeech, MEATHEAD_VOICE, Voice } from '../../platform/speech';
 import { playSound } from '../../platform/audio';
 import { killPlayer } from '../../player/player';
+import { deathByCause } from '../../core/deathCause';
 import { COURSE } from './course';
 
 /** The Coast Guard's skipper on the loudhailer, and his boarding crew (up close, no loudhailer). */
@@ -32,8 +34,8 @@ export interface Junk {
   rot: number;
   /** A drop: frames till it comes down (its shadow on the water till then). */
   warn: number;
-  /** A drop: which way to get out from under it (its hint over the shadow). */
-  hint?: 'slow' | 'fast';
+  /** A drop: where it'll come down (its shadow's there; it comes in from up and to the right of it). */
+  tx?: number;
   hit: boolean;
   /** Got past without it hitting him (it's counted: the cutter drops back a bit). */
   passed?: boolean;
@@ -69,6 +71,8 @@ export interface Chase {
   /** Sucked up the spout after him: its spin and lift. */
   cgSpin: number;
   cgLift: number;
+  /** Wrecked (killed by the junk): the clock of him flung out and the boat going up (0 = not). */
+  wreckT: number;
 }
 
 // Speeds (px a frame): his, pushing on, easing off, knocked about
@@ -82,12 +86,20 @@ const CG_BOARD = 60;
 const HOP_V = -10.5, HOP_G = 0.55;
 /** How long the shadow's on the water before what's coming down lands (time to get out from under it). */
 const DROP_WARN = 95;
-const HIT_FRAMES = 40, HIT_DAMAGE = 8;
+/** How far to the right of its shadow it is, a frame out (it comes down at a slant). */
+const DROP_DRIFT = 3.5;
+
+/** Where the middle of the boat'll be `n` frames on from `x` at `v`, hands off (settling back to cruising). */
+const coast = (x: number, v: number, n: number) => { for (let i = 0; i < n; i++) { v += (BOAT_BASE - v) * 0.08; x += v; } return x; };
+/** A hit: how long he's knocked about, and what it costs him (not much: what it costs him is the cutter closing). */
+const HIT_FRAMES = 40, HIT_DAMAGE = 3;
+/** How fast what's whirling over the water comes at him (px a frame, to the left). */
+const FLYER_VX = -4.5;
 export const CHASE_BOAT_W = 150;
 
 export const createChase = (): Chase => ({
   t: 0, boatX: 0, cgX: 0, gap: CG_START, hopY: 0, hopV: 0, jumpHeld: true, relief: 0, crash: 0, junk: [], nextJunkX: 0,
-  lineAt: 0, said: new Set(), hail: '', hailT: 0, caughtT: 0, quiet: { n: 0 }, cgSpin: 0, cgLift: 0,
+  lineAt: 0, said: new Set(), hail: '', hailT: 0, caughtT: 0, quiet: { n: 0 }, cgSpin: 0, cgLift: 0, wreckT: 0,
 });
 
 const hail = (c: Chase, text: string) => {
@@ -166,13 +178,14 @@ export const updateChase = (ctx: FrameContext, c: Chase, b: { x: number; y: numb
     const look = Math.floor(Math.random() * 5);
     if (kind === 'float') c.junk.push({ kind, look, x: c.nextJunkX, y: COURSE.sea.y + 4, vx: -0.6, vy: 0, rot: 0, warn: 0, hit: false });
     // (whirling across over the water, high enough to miss him sat in the boat, low enough a jump puts him into it)
-    else if (kind === 'flyer') c.junk.push({ kind, look, x: c.nextJunkX, y: COURSE.boat.y - 112, vx: -0.8, vy: 0, rot: 0, warn: 0, hit: false });
+    // (coming in from off the right, timed so it crosses him about where the next thing's due)
+    else if (kind === 'flyer') { const eta = (c.nextJunkX - (b.x + CHASE_BOAT_W)) / Math.max(4, b.speed); c.junk.push({ kind, look, x: c.nextJunkX - FLYER_VX * eta, y: COURSE.boat.y - 112, vx: FLYER_VX, vy: 0, rot: 0, warn: 0, hit: false }); }
     else {
-      // (aimed where he'll be if he keeps on as he is: so ease off, or open it up)
-      // (a little ahead of where he'd be, so easing off's the clean way out; or a little behind, so it's opening it up)
-      const hint = Math.random() < 0.5 ? 'slow' as const : 'fast' as const;
-      const at = b.x + CHASE_BOAT_W / 2 + b.speed * DROP_WARN + (hint === 'slow' ? 60 : -60);
-      c.junk.push({ kind, look, x: at, y: state.camera.y - 120, vx: 0, vy: 0, rot: 0, warn: DROP_WARN, hint, hit: false });
+      // (aimed where he'll be if he lets go of everything: a touch ahead, so easing off gets him out from under it, or a
+      // touch behind, so it's opening it up; going flat out already, it's the one he can still do, and the same backed off)
+      const way = b.speed > BOAT_BASE + 1 ? 'slow' : b.speed < BOAT_BASE - 1 ? 'fast' : Math.random() < 0.5 ? 'slow' : 'fast';
+      const at = coast(b.x + CHASE_BOAT_W / 2, b.speed, DROP_WARN + 6) + (way === 'slow' ? 50 : -50);
+      c.junk.push({ kind, look, x: at + DROP_WARN * DROP_DRIFT, y: state.camera.y - 120, vx: 0, vy: 0, rot: 0, warn: DROP_WARN, tx: at, hit: false });
       playSound('whoosh', 0.5, -6);
     }
     // (one thing at a time: far enough apart there's always the one answer to each)
@@ -182,7 +195,8 @@ export const updateChase = (ctx: FrameContext, c: Chase, b: { x: number; y: numb
   const body = boatBox(b.x, b.y);
   c.junk = c.junk.filter(j => {
     if (j.kind === 'drop') {
-      if (j.warn > 0) { j.warn--; if (j.warn === 18) playSound('whoosh', 0.8, -10); j.y = COURSE.sea.y - 40 - j.warn * 8; }
+      // (in from up and to the right, down onto its shadow)
+      if (j.warn > 0) { j.warn--; if (j.warn === 18) playSound('whoosh', 0.8, -10); j.y = COURSE.sea.y - 40 - j.warn * 8; j.x = (j.tx ?? j.x) + j.warn * DROP_DRIFT; }
       else { j.vy += 1.2; j.y += j.vy; }
       j.rot += 0.08;
       if (j.warn === 0 && j.y >= COURSE.sea.y + 10) { splash(state, j.x, 30); if (!j.hit) c.relief += CG_PASS; return false; }
@@ -202,7 +216,7 @@ export const updateChase = (ctx: FrameContext, c: Chase, b: { x: number; y: numb
       j.hit = true;
       c.crash = HIT_FRAMES;
       c.gap -= CG_HIT;
-      if (!ctx.cheats.invincible) player.health -= HIT_DAMAGE * (j.kind === 'drop' ? 2 : 1);
+      if (!ctx.cheats.invincible) player.health -= HIT_DAMAGE + (j.kind === 'drop' ? 1 : 0);
       state.lastHurt = { source: 'storm_junk', at: state.frame };
       player.invincibilityTimer = 30;
       shakeScreen(state, j.kind === 'drop' ? 22 : 12, j.kind === 'drop' ? 9 : 5);
@@ -213,6 +227,8 @@ export const updateChase = (ctx: FrameContext, c: Chase, b: { x: number; y: numb
       if (j.kind === 'float') { j.kind = 'flyer'; j.y -= 10; }
       // (and what's still owed for what he'd got past is lost: it's the cutter's now)
       c.relief = 0;
+      // (the last of him: thrown out, and the boat goes up)
+      if (player.health <= 0 && state.deathTimer <= 0) wrecked(ctx, c);
     }
     if (j.hit) { j.vy += 0.6; j.y += j.vy; j.x += j.vx; if (j.y > COURSE.sea.y + 40) return false; }
     return true;
@@ -249,8 +265,8 @@ const splash = (state: GameState, x: number, n: number) => {
 /** Its beats: the cutter slams alongside and they come over the side; the beating; the aftermath and his one line. */
 /** (taking its time: the slam, the leap; then a good long beating, every blow landing; then a long look at what's left) */
 export const BOARD_LEAP = 90, BOARD_BEAT = 430, BOARD_LINE = 460, BOARD_END = 560;
-/** Frames between blows. */
-export const BLOW = 16;
+/** Frames between blows (they come thick and fast). */
+export const BLOW = 7;
 const BOARD_HOLDS = new Set([BOARD_LINE]);
 
 const boarded = (ctx: FrameContext, c: Chase) => {
@@ -278,11 +294,34 @@ export const tickBoarded = (ctx: FrameContext, c: Chase) => {
     const n = (t - BOARD_LEAP) / BLOW;
     playSound(n % 5 === 4 ? 'crunch' : n % 3 === 2 ? 'thud' : 'punch', 1, Math.round(Math.random() * 4 - 6));
     if (n % 5 === 4) playSound('splat', 0.7);
-    shakeScreen(state, 6, n % 5 === 4 ? 8 : 4);
+    shakeScreen(state, 5, n % 5 === 4 ? 7 : 3);
   }
   if (t > BOARD_LEAP + 10 && t < BOARD_BEAT && (t - BOARD_LEAP) % (BLOW * 7) === BLOW * 3) playSound('clang', 0.7, -4);
   if (t === BOARD_LINE) say('WE SAID. GET OUT. OF THE WATER.', COASTIE, 'urgent', { onShow: () => {}, onHide: () => {}, always: true });
   if (t === BOARD_END && state.deathScene) state.deathScene.len = state.deathScene.t + 1;
+};
+
+// ---------------------------------------------------------------------------
+// Wrecked: the junk finishes him
+// ---------------------------------------------------------------------------
+
+/** Its beats: him flung up out of the boat and gone off the top; the boat going up; the smoke; then the screen. */
+export const WRECK_BLAST = 22, WRECK_END = 140;
+
+const wrecked = (ctx: FrameContext, c: Chase) => {
+  const { state } = ctx;
+  c.wreckT = 1;
+  state.deathScene = { t: 0, len: WRECK_END, voiced: false };
+  killPlayer(ctx, deathByCause(state) ?? 'ACT OF GOD', false);
+  playSound('crash'); playSound('whoosh', 1, 4);
+  shakeScreen(state, 18, 8);
+};
+
+/** Each frame of it (the stage's death scene): the bang. */
+export const tickWreck = (ctx: FrameContext, c: Chase) => {
+  c.wreckT++;
+  if (c.wreckT === WRECK_BLAST) { playSound('boom'); playSound('crash', 0.8); shakeScreen(ctx.state, 30, 12); }
+  if (c.wreckT === WRECK_BLAST + 14) playSound('splash');
 };
 
 /** Sucked up the spout behind him: in it goes, spinning up after him. */
