@@ -15,6 +15,7 @@ import { shakeScreen } from '../../core/state';
 import { say, MEATHEAD_VOICE } from '../../platform/speech';
 import { COURSE, CP } from './course';
 import { CANVAS_WIDTH } from '../../../constants';
+import { isShat } from '../../player/gut';
 
 export interface Beach {
   /** Beachgoers killed. */
@@ -22,6 +23,8 @@ export interface Beach {
   counted: Set<string>;
   known: Map<string, Enemy>;
   panic: boolean;
+  /** He shit himself on the beach: everybody's cleared off in disgust (and nobody called the cops about that). */
+  disgust: boolean;
   police: 'none' | 'coming' | 'fight' | 'done';
   policeT: number;
   /** The cruiser pulling up: where it is, and where it stops. */
@@ -50,7 +53,7 @@ export const createBeach = (state: GameState, startedAt: number): Beach => {
       state.enemies.push(e);
     });
   }
-  return { killed: 0, counted: new Set(), known: new Map(), panic: false, police: 'none', policeT: 0, cruiserX: 0, cruiserStop: 0, copIds: [], lock: null, storm: stormy ? 1 : 0, stormAt: stormy ? -1 : 0 };
+  return { killed: 0, counted: new Set(), known: new Map(), panic: false, disgust: false, police: 'none', policeT: 0, cruiserX: 0, cruiserStop: 0, copIds: [], lock: null, storm: stormy ? 1 : 0, stormAt: stormy ? -1 : 0 };
 };
 
 export const updateBeach = (ctx: FrameContext, b: Beach) => {
@@ -74,6 +77,20 @@ export const updateBeach = (ctx: FrameContext, b: Beach) => {
       b.police = 'coming'; b.policeT = 0;
       playSound('siren');
     }
+  }
+
+  // He's shit himself out on the sand: the whole beach clears out, holding their noses. Nobody calls the cops about it.
+  if (!b.disgust && !b.panic && b.storm === 0 && isShat(state)) {
+    b.disgust = true;
+    const shouts = ['EWWW!', 'OH GOD, THE SMELL!', 'HE SHIT HIMSELF!', 'MY EYES!'];
+    let n = 0;
+    for (const c of civilians) {
+      if (c.health <= 0) continue;
+      c.aiState = 'flee'; c.aiTimer = 0; c.disgusted = true;
+      const onScreen = c.pos.x > state.camera.x - 20 && c.pos.x < state.camera.x + CANVAS_WIDTH + 20;
+      if (onScreen && n < shouts.length) state.damageNumbers.push({ id: `ew-${c.id}`, text: shouts[n++], pos: { x: c.pos.x + c.width / 2, y: c.pos.y - 16 }, vel: { x: 0, y: -1.2 }, life: 90, maxLife: 90, isCritical: false, isCallout: true, color: '#84CC16' });
+    }
+    playSound('barf', 0.35, 4);
   }
 
   updatePolice(ctx, b);

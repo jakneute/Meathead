@@ -233,6 +233,8 @@ export type EnemyKind =
   | 'suit' | 'temp' | 'clerk' | 'bob' | 'cower';
 
 export interface Enemy extends Entity {
+  /** A beachgoer running from the smell (Meathead's shit himself: game/player/gut.ts), not from a shooting. */
+  disgusted?: boolean;
   /** Its speed along a slick of oil (it doesn't stop, or get going, in a hurry on one). */
   oilSlide?: number;
   /** The water it lives in (a fish): it keeps inside it, and only goes after him when he's in it too. */

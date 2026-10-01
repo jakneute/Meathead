@@ -230,7 +230,16 @@ const drawCivilian = (ctx: Ctx, e: Enemy, f: number) => {
   if (v === 1) { ctx.fillStyle = '#22D3EE'; ctx.fillRect(-8, -66, 18, 3); }            // sweatband
   // Arms: flailing up if running for it, otherwise what they're doing
   ctx.fillStyle = skin;
-  if (panicking) {
+  if (panicking && e.disgusted) {
+    // Running from the smell: gone green, gagging, one hand pinching the nose, the other waving it away
+    ctx.fillStyle = 'rgba(132, 204, 22, 0.4)'; ctx.fillRect(-7, -69, 15, 14);
+    ctx.fillStyle = skin;
+    const wave = Math.sin(f * 0.7) * 6;
+    ctx.fillRect(8, -56, 4, 8); ctx.fillRect(5, -62, 6, 4);               // up to the nose, pinching it
+    ctx.fillRect(-12, -66 + wave, 4, 16);                                  // waving it away
+    ctx.fillStyle = '#7F1D1D'; ctx.fillRect(2, -56, 6, 2);                  // gagging
+    ctx.fillStyle = '#F472B6'; ctx.fillRect(4, -54, 3, 2);                  // (tongue out)
+  } else if (panicking) {
     const flail = Math.sin(f * 0.6) * 5;
     ctx.fillRect(-12, -70 + flail, 4, 18); ctx.fillRect(8, -70 - flail, 4, 18);
     ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.ellipse(6, -56, 2.5, 3.5, 0, 0, Math.PI * 2); ctx.fill(); // screaming
