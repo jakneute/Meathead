@@ -47,7 +47,14 @@ export const drawBayCorpse = (ctx: Ctx, state: GameState, pl: Plunge, water: num
   const r = Math.min(150, 20 + t * 0.9);
   const bg = ctx.createRadialGradient(x, water + 8, 4, x, water + 8, r);
   bg.addColorStop(0, `rgba(127, 29, 29, ${0.75 * fade})`); bg.addColorStop(0.6, `rgba(127, 29, 29, ${0.35 * fade})`); bg.addColorStop(1, 'rgba(127, 29, 29, 0)');
-  ctx.fillStyle = bg; ctx.beginPath(); ctx.ellipse(x, water + 8, r, r * 0.35, 0, 0, Math.PI * 2); ctx.fill();
+  // (in the water, not over it: kept below the surface, and the water itself going red with it, waves and all)
+  ctx.save();
+  ctx.beginPath(); ctx.rect(x - r - 10, water - 3, (r + 10) * 2, r + 40); ctx.clip();
+  ctx.globalCompositeOperation = 'multiply';
+  ctx.fillStyle = bg; ctx.beginPath(); ctx.ellipse(x, water + 4, r, r * 0.3, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 0.5; ctx.fillStyle = bg; ctx.beginPath(); ctx.ellipse(x, water + 4, r, r * 0.3, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
   // The rings off him as he bobs (bigger on a twitch)
   for (let k = 0; k < 3; k++) {
     const q = ((t + k * 25) % 75) / 75;
