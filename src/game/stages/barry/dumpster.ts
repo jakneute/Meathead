@@ -79,7 +79,8 @@ export const tickDumpster = (ctx: FrameContext, d: Dumpster) => {
   if (t === WIDE + 10) playSound('clink', 0.6);
   if (t === DOOR) playSound('slam', 0.8, 3);
   if (t === SLAM + 1) { playSound('slam'); playSound('crunch'); playSound('clang', 1, -6); playSound('splat'); }
-  if (t >= END && state.deathScene) state.deathScene.len = state.deathScene.t + 1;
+  // (once: the frame after, the scene's over and the death screen's read out)
+  if (t === END && state.deathScene) state.deathScene.len = state.deathScene.t + 1;
 };
 
 // ---------------------------------------------------------------------------
