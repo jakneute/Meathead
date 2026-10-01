@@ -16,6 +16,8 @@ import { drawYardCamp, drawMovers, drawGeyserVents, drawGeyserColumns } from './
 import { drawChaseBack, drawChaseThrown, drawRiddenMoto, drawChaseHud, drawFarField, drawChaseWarnings } from './chaseDraw';
 import { drawEndBack, drawEndMid, drawEndFront } from './endDraw';
 import { drawBarBack, drawBarMid, drawBarFront } from './barDraw';
+import { inPipes } from './swirly';
+import { drawSwirlyPipes } from './swirlyDraw';
 import { saying, drawBubble, Speaker } from './script';
 
 type Ctx = CanvasRenderingContext2D;
@@ -111,6 +113,8 @@ export const drawOscarHud = (ctx: Ctx, state: GameState) => {
   const rt = getOscar(state)!;
   drawChaseHud(ctx, rt.chase);
   drawChaseWarnings(ctx, state, rt.chase);
+  // Flushed: the pipes under the bar, over everything while it plays
+  if (inPipes(state, rt.bar)) drawSwirlyPipes(ctx, state, state.deathScene!.t);
 };
 
 /** The fades between the parts. */

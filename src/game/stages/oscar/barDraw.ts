@@ -15,6 +15,7 @@ import { drawChopperBike } from '../../render/enemies/oscar';
 import { COURSE } from './course';
 import type { Bar, BarBiker } from './bar';
 import { barIntact, barVeinBox } from './bar';
+import { drawToilet, drawSwirly } from './swirlyDraw';
 
 type Ctx = CanvasRenderingContext2D;
 const Y = GROUND_Y;
@@ -95,7 +96,15 @@ export const drawBarMid = (ctx: Ctx, state: GameState, b: Bar) => {
   ctx.fillStyle = intact ? '#166534' : '#1C1917'; ctx.fillRect(B.x1 + 860, Y - 46, 140, 12); ctx.fillStyle = intact ? '#44291A' : '#140E0B'; ctx.fillRect(B.x1 + 866, Y - 34, 8, 34); ctx.fillRect(B.x1 + 986, Y - 34, 8, 34);
   if (intact) { ctx.fillStyle = '#FDE68A'; ctx.beginPath(); ctx.moveTo(B.x1 + 900, Y - 150); ctx.lineTo(B.x1 + 960, Y - 150); ctx.lineTo(B.x1 + 970, Y - 136); ctx.lineTo(B.x1 + 890, Y - 136); ctx.fill(); ctx.fillStyle = 'rgba(253, 230, 138, 0.12)'; ctx.beginPath(); ctx.moveTo(B.x1 + 890, Y - 136); ctx.lineTo(B.x1 + 970, Y - 136); ctx.lineTo(B.x1 + 1010, Y - 46); ctx.lineTo(B.x1 + 850, Y - 46); ctx.fill(); }
   ctx.fillStyle = intact ? '#7F1D1D' : '#1C1917'; ctx.fillRect(B.x1 + 1060, Y - 70, 26, 70); ctx.fillRect(B.x1 + 1086, Y - 34, 60, 34);
-  if (intact) for (const k of b.bikers) drawBarBiker(ctx, state, k);
+  if (intact) {
+    // (the toilet in the HOGS: behind its wall till he's in there)
+    drawToilet(ctx, false);
+    // (the ones taking him out are drawn with him)
+    const busy = b.swirly && b.swirly.phase !== 'react' ? b.swirly.carriers : [];
+    b.bikers.forEach((k, i) => { if (!busy.includes(i)) drawBarBiker(ctx, state, k); });
+    if (b.swirly) drawSwirly(ctx, state, b);
+    drawToilet(ctx, true);
+  }
   else for (const g of b.gore) if (g.kind !== 'splat') drawRemains(ctx, g);
   // Choppers lined up out front (the ones that aren't going anywhere again)
   // (on the bit of ground between the last pit and the door, not out over the pit)

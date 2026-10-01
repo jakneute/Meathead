@@ -21,6 +21,8 @@ import { rectsOverlap, boundsOf } from '../../core/utils';
 import { GROUND_Y, CANVAS_WIDTH, MAX_AMMO } from '../../../constants';
 import { COURSE, CP } from './course';
 import { Talk, queueLines, quiet, hush } from './script';
+import { isShat } from '../../player/gut';
+import { Swirly, startSwirly, updateSwirly } from './swirly';
 
 export type BarPhase = 'waiting' | 'drinks' | 'boom' | 'after' | 'done';
 export type BarLook = 'band' | 'pool' | 'pool2' | 'counter' | 'counter2' | 'bartender' | 'booth' | 'dance';
@@ -47,6 +49,8 @@ export interface Bar {
   flying: Flying[];
   /** When he last said something about trying the flamethrower too early. */
   earlyAt: number;
+  /** He came in having shit himself, or did it in here: they take out the trash (see swirly.ts). */
+  swirly?: Swirly;
 }
 
 /** Gas in the room enough to go up (all three have to be open to get there), and how quick each open line fills it. */
@@ -90,11 +94,14 @@ export const updateBar = (ctx: FrameContext, b: Bar, talk: Talk, controls: Contr
   b.t++;
   updateFlying(b);
   const px = p.pos.x + p.width / 2;
+  if (b.swirly) return state.deathTimer > 0 ? { ...NO_CONTROLS } : updateSwirly(ctx, b, talk);
   switch (b.phase) {
     case 'waiting':
       if (px > B.x1 + 40 && p.isGrounded) {
         b.phase = 'drinks'; b.t = 0; b.progressAt = state.frame; b.ambientAt = state.frame;
         state.checkpoint = Math.max(state.checkpoint, CP.BAR);
+        // (walked in like that: not in their bar he doesn't)
+        if (isShat(state)) { startSwirly(ctx, b, talk, false); return { ...NO_CONTROLS }; }
         queueLines(state, talk, [
           { who: 'biker', text: 'WELL, LOOK WHAT THE CAT DRAGGED IN.' },
           { who: 'dan', text: "EASY. WE'RE ON BREAK. NOBODY TOUCHES NOBODY." },
@@ -103,7 +110,10 @@ export const updateBar = (ctx: FrameContext, b: Bar, talk: Talk, controls: Contr
         ]);
       }
       return controls;
-    case 'drinks': return drinks(ctx, b, talk, controls);
+    case 'drinks':
+      // (or did it right here, in front of them)
+      if (isShat(state) && px > B.x1 && px < B.x2) { startSwirly(ctx, b, talk, true); return { ...NO_CONTROLS }; }
+      return drinks(ctx, b, talk, controls);
     case 'boom': case 'after': return aftermath(ctx, b, talk);
     default: return controls;
   }

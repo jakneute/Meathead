@@ -12,6 +12,7 @@ import { isChaseVehicle, updateChaseVehicle, hitChaseVehicle, chaseZoom } from '
 import { drawOscarBackdrop, drawOscarBack, drawOscarMid, drawOscarFront, drawOscarHud, drawOscarOverlays } from './draw';
 import { oscarScene } from './lighting';
 import { taseZoom } from './taseCam';
+import { tickSwirlyPipes } from './swirly';
 
 export const oscarLayout: StageLayout = {
   music: state => {
@@ -57,6 +58,7 @@ export const oscarLayout: StageLayout = {
     }
   },
   update: (ctx, controls) => updateOscar(ctx, controls),
+  deathSceneTick: (ctx, t) => { if (getOscar(ctx.state)?.bar.swirly) tickSwirlyPipes(t); },
   deathMessage: ctx => oscarDeathMessage(ctx),
   // (the chase's cars, trucks and choppers are run by the stage)
   updateSpecialEnemy: (ctx, e) => {
