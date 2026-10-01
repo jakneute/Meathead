@@ -150,6 +150,8 @@ export const DOSSIERS: Record<string, Dossier> = {
  * spun into a win and signed off as a success.
  */
 export interface Aftermath {
+  /** What he does now (he's dead). */
+  occupation: string;
   /** What happened after he died, in crude detail. */
   aftermath: string;
   collateral: string;
@@ -167,6 +169,7 @@ export interface Aftermath {
 
 export const AFTERMATHS: Record<string, Aftermath> = {
   'Artie Avalanche': {
+    occupation: 'Former glaciologist. Currently a puddle. Moon boots recovered, still damp.',
     procured: "The shotgun came off the gun rack in the ranger cabin. The asset dug the cabin out of the avalanche with his hands to get it. The ranger was still holding it. He is fine. He will not talk about what he saw. The shells are another matter. The asset went back up the mountain with a cooler and a hacksaw, and came down with Artie, in chunks. He hand-loaded every shell at his kitchen table with a garlic press. They freeze whatever they hit. Our lab cannot say why, and has asked to stop being sent pieces of Artie. The asset maintains that he only uses his handgun. Asked about the shotgun, he said: \"THAT'S NOT A WEAPON. THAT'S A FREEZER.\"",
     taken: {
       antler: "One (1) moose antler, removed from the moose. The asset hangs towels on it. The Parks Service has asked for it back. The asset has asked what a Parks Service is.",
@@ -183,6 +186,7 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     },
   },
   'Victor Volcano': {
+    occupation: 'Former nightclub owner. Currently a decorative rock feature. No longer juicing anything.',
     procured: "The asset reached down Victor's throat, up to the shoulder, and pulled out something he calls \"the pilot light.\" It is still lit. It has not gone out since. He mounted it on a leaf blower and two propane tanks off the club's patio heaters, and welded the lot together with lava, by hand, on the lip of the shaft. We had the welds X-rayed. They are cleaner than the ones on our submarines. We have since had our submarines X-rayed. We are having a conversation with the contractor. Asked where he learned to weld, the asset said, \"WHAT'S WELDING?\"",
     taken: {
       viprope: "One (1) velvet VIP rope, posts included, from the door of Club Caldera. The asset has set it up across his garage door. We have not been let in.",
@@ -199,6 +203,7 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     },
   },
   'Ernie Earthquake': {
+    occupation: 'Retired, permanently. Seismic activity: none. His lawn has gone to seed, and nobody is telling anyone to get off it.',
     procured: "The boulder is the one Ernie was holding when he died. It came away with most of Ernie's fingers still around it; the asset got them off with a pair of pliers from the gift shop, which he did not pay for. It weighs four hundred pounds. He carries it in a sling he sewed on the ferry back from cell house mattresses and the tour guide's lanyard. We showed the stitching to a saddlemaker. He could not name the pattern. He called it \"upsetting\" and asked to go home. This is the rock the asset calls Ernie (see the handler's note).",
     taken: {
       mug: "One (1) Alcatraz gift shop mug. The asset paid for it. It is the only thing he has paid for this year.",
@@ -215,6 +220,7 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     },
   },
   'Hector Hurricane': {
+    occupation: 'Former weatherman. Current forecast: dead, with no chance of recovery. Forty-one windbreakers available, one careful owner.',
     procured: "The asset wrung Hector out. Literally: twisted the body like a beach towel over a fifty-five-gallon drum until the storm ran out of it, then kept twisting until the rest did. The drum holds a tidal wave. How is a question for physicists. They have asked to see the drum. The asset said no. The lid is a pressure seal of his own design, pounded out of a stop sign with the flat of a hammer. The Navy has asked for the blueprints. There are no blueprints. He drew it on a napkin at a diner, and then he ate the napkin.",
     taken: {
       flamingo: "One (1) plastic lawn flamingo, recovered from the rear end of a Coast Guard petty officer found ass up and head first in the dirt outside a daycare. The asset kept the flamingo. The petty officer has been returned to his family, flamingo-free.",
@@ -231,6 +237,7 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     },
   },
   'Toxic Tommy': {
+    occupation: 'Former water quality inspector. Rejoined the pipes for good. Water quality unchanged.',
     procured: "The asset took out Tommy's stomach, whole, while it was still going, and strapped it to his back like a canteen. It feeds a garden sprayer through a length of hose. The pump is a bicycle pump, the property of a child named Tayvon. The stomach is still digesting. It is being fed. What it is fed is not in this file. It is in a different file. It is a long file. It keeps up a running gurgle the asset says he finds \"soothing.\" He sleeps with it on.",
     taken: {
       flintjar: "One (1) jar of Flint tap water, collected by the asset personally. It glows. It is not evidence. It is a hazard. It is on his shelf.",
@@ -247,6 +254,7 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     },
   },
   'Blackout Barry': {
+    occupation: 'Power grid engineer, now permanently off the grid. No longer anyone\'s test subject. Gary\'s position remains unfilled.',
     procured: "The asset jump-started a car battery off the body. He then kept jump-starting it, for six hours, until the body stopped twitching, then for another two after that \"to be sure.\" The taser is what came of it: Barry's spine, wired through a set of jumper cables into the battery, in a housing hammered out of a subway grate. It hums in B flat. The asset says that is how you know it is working. The wiring is to code. Better than code. Our electricians have started quoting it at each other. The asset cannot program a microwave. We have seen him try.",
     taken: {
       hardhat: "One (1) power company hard hat. The asset uses it as a bowl. The power company has asked for it back. The power company can come and get it.",
@@ -263,6 +271,7 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     },
   },
   'Oily Oscar': {
+    occupation: 'Oil man, salesman, motivational speaker, cautionary tale. Assets frozen. So is he.',
     procured: "The asset took the rocket launcher out of Oscar's hands. Oscar's hands came with it and have been returned to the family separately. It is the only thing in the asset's arsenal he did not build himself. He has not changed a thing on it. He says it \"was already perfect,\" and then spent the night hand-filing the rifling on a different one out of spite. Oscar's launcher was ours. We do not know how Oscar got it. We very much know how the asset got it.",
     taken: {
       derrick: "One (1) oil derrick, desk model, still pumping, still leaking. It came off Oscar's desk. The oil came with it.",
@@ -279,6 +288,7 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     },
   },
   'Drug Trade Dale': {
+    occupation: 'Former distributor. Now distributed. Widely.',
     procured: "The asset went through Deadwood Gulch with a coffee can and picked up every used needle in town (1,114, counted, the asset's count and ours agree). The cannon is the pharmacy's pill counter, the exhaust off Dale's truck and a nail gun from the hardware store, the rest of it scrap. The feed has two hundred and twelve moving parts and it has never jammed. The asset cannot work shoelaces. Our armorer, while we are on it, got a look at the asset's handgun during his physical: no serial number, no maker's mark, hand-filed, tolerances our own shop cannot hold. The asset first said he found it. Later he said he made it in shop class. He was expelled from shop class. The shop is gone too. So is the school. Asked why a man who only needs his handgun keeps building these, the asset said: \"THEY'RE NOT WEAPONS. THEY'RE SOUVENIRS YOU CAN SHOOT.\"",
     taken: {
       goldgun: "One (1) gold-plated pistol, the property of Chuco the distributor. It is loaded. It has always been loaded. It is mounted on the asset's wall.",

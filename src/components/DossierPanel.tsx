@@ -168,7 +168,7 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
           </div>
         </div>
 
-        <div className="mt-[4px] leading-[10px]"><span className="font-bold text-[#7F1D1D]">OCCUPATION: </span>{d.occupation}</div>
+        <div className="mt-[4px] leading-[10px]"><span className="font-bold text-[#7F1D1D]">OCCUPATION: </span>{after ? after.occupation : d.occupation}</div>
         {wh ? (
           <>
             {section('THE SUMMONS', WHITE_HOUSE_DOSSIER.summons)}
