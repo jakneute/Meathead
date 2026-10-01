@@ -2,12 +2,12 @@ import { Player, WeaponType } from '../../../types';
 import { BOULDER_THROW_FRAMES, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
 import { SLIDE_HOLD, SLIDE_HOLD_LEFT } from '../../combat/muzzle';
-import { setRightSide, drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive, drawStandingKick, drawPedalLegs, drawLedgeDrop } from './moves';
+import { drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive, drawStandingKick, drawPedalLegs, drawLedgeDrop } from './moves';
 import { KICK_POSE_FRAMES, LEDGE_DROP_FRAMES } from '../../../constants';
 import { GameState } from '../../core/state';
 import { beginSprite, endSprite, markEyes, eyesAt } from './spriteOutline';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
-import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, bootColor, bootToe, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawHead } from './body';
+import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, bootColor, bootToe, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawTorsoBack, drawBelt, drawBeltBack, drawHeadBack, setFromBehind, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawHead } from './body';
 
 export interface PlayerDrawOptions {
   currentWeapon: WeaponType;
@@ -109,10 +109,11 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // (on the jet ski, shooting back: he stays sat facing forward, and just his head and gun arm turn round, below)
   const seatedBack = !!p.jetski && p.facing === -1 && !p.isCharging && !p.isUppercutting && !p.isDivekicking;
   ctx.scale(seatedBack ? 1 : p.facing, 1);
-  // He's left-handed: facing right we see his left side (the gun hand near us), facing left his right side (the gun
-  // hand on the far side, reaching across him). Same everything where it counts, posed differently to look at.
+  // He's left-handed, and stands like it: facing right he's square-ish to us, chest on; facing left he's turned
+  // away, his back to us three-quarters on (a fighter's switch stance), the gun hand still the near one. Only the
+  // drawing changes (except the slide facing left: see SLIDE_HOLD_LEFT).
   const rightSide = p.facing < 0 && !seatedBack;
-  setRightSide(rightSide);
+  setFromBehind(rightSide && !p.isSliding);
   // (headless: stood there a beat, then over backward, onto the ground)
   if (p.headless) { const k = Math.min(1, Math.max(0, (p.headless - 25) / 30)); ctx.translate(0, -k * k * 12); ctx.rotate(-k * k * 1.5); }
   const finishBody = () => {
@@ -341,14 +342,14 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // bends forward, closing as the arm comes forward and opening as it goes back, a beat behind the swing. Standing:
     // hanging, the elbow a little bent, easing with his breathing.
     const armAngle = isSwimming ? (swimMoving ? (animFrame * 0.2) % (Math.PI * 2) : 0.9 + Math.sin(animFrame * 0.15) * 0.9)
-      : isWalking ? -walkStride * 0.42
+      : isWalking ? 0.16 - walkStride * 0.42
       // (in the air: thrown up high behind him on the way up, coming down and out behind for balance as he falls)
       : isAirborne ? 2.5 - airFall * 1.2
-      : 0.06 + Math.sin(animFrame * 0.05) * 0.04;
+      : 0.2 + Math.sin(animFrame * 0.05) * 0.04;
     const bend = isSwimming ? 0.2
-      : isWalking ? 0.3 + Math.max(0, -Math.sin(walkPhase - 0.55)) * 0.7
+      : isWalking ? 0.12 + Math.max(0, -Math.sin(walkPhase - 0.55)) * 0.5
       : isAirborne ? 0.45
-      : 0.32 + Math.sin(animFrame * 0.05 + 0.8) * 0.05;
+      : 0.14 + Math.sin(animFrame * 0.05 + 0.8) * 0.05;
     ctx.save();
     ctx.translate(-15, -45);
     ctx.rotate(armAngle);
@@ -549,7 +550,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   } else {
   const beltY = isDucking ? -16 : -27;
   const beltH = isDucking ? 6 : 7;
-  drawBelt(ctx, beltY, beltH);
+  if (rightSide) drawBeltBack(ctx, beltY, beltH); else drawBelt(ctx, beltY, beltH);
   // (being undone: the strap end pulled free of the buckle, flapping)
   if (isRelieving && pee.undoing && (p.peeTimer || 0) > 8) {
     const flap = Math.sin(animFrame * 0.6) * 0.3;
@@ -565,7 +566,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const torsoTop = isDucking ? -36 : -50;
   const torsoHeight = isDucking ? 21 : 24;
   const pecY = isDucking ? -34 : -48;
-  drawTorso(ctx, torsoTop, torsoHeight, pecY, isDucking);
+  if (rightSide) drawTorsoBack(ctx, torsoTop, torsoHeight, pecY, isDucking); else drawTorso(ctx, torsoTop, torsoHeight, pecY, isDucking);
   ctx.restore();
 
   // Twisted round in the seat to shoot behind: the head and the gun arm face back, the rest stays facing forward
@@ -587,6 +588,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       ctx.fillStyle = '#DC2626';
       for (let i = 0; i < 5; i++) { const t = ((animFrame * 0.2 + i * 0.2 + p.headless * 0.05) % 1); ctx.beginPath(); ctx.arc(headX + Math.sin(i * 2.3) * 4 * t, headY - t * 24 * spurt, 2.5 - t * 1.5, 0, Math.PI * 2); ctx.fill(); }
     }
+  } else if (rightSide) {
+    // Turned away from us: the back of his head
+    drawHeadBack(ctx, headX, headY);
   } else {
 
   // Granite Square Jaw & Face base
@@ -922,13 +926,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     }
 
     const pump = armPump * 0.3;
-    if (rightSide && !throwing && !isSwimming) {
-      // From his right: the gun's in his left hand, the arm out from the far shoulder across his chest to the grip
-      // (the right arm swings along behind him, out of sight mostly: drawn with the back arm)
-      drawArm(ctx, -12, armBaseY - 3, 1 + pump * 0.4, armBaseY + 5, armBaseX + 11 + pump, armBaseY + 6, skinTone, skinShadow, skinHighlight, armBaseX + 15 + pump);
-      ctx.fillStyle = skinShadow;
-      for (let k = 0; k < 3; k++) ctx.fillRect(armBaseX + 13 + pump + k * 2, armBaseY + 8.5, 0.8, 2);
-    } else {
+    {
     // Shoulder at the edge of his chest, elbow down by his side (pumping a little as he walks), the fist out at the gun
     drawArm(ctx, armBaseX + 6, armBaseY - 3, armBaseX + 4 + pump * 0.4, armBaseY + 8, armBaseX + 11 + pump, armBaseY + 6, skinTone, skinShadow, skinHighlight, armBaseX + 15 + pump);
     // The fist round the grip: knuckles along the bottom
