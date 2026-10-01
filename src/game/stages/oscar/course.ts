@@ -201,7 +201,7 @@ const build = () => {
   f.ground(10350, 12100);
   f.tar(10560, 10860); f.geyser(10500, Y, 210, 0); f.geyser(10700, Y, 210, 70); f.geyser(10900, Y, 210, 140);
   f.ledge(10600, Y - 130, 140, 'pipe');
-  f.spawn('biker', 10620); f.spawn('biker', 10820); f.spawn('ranger', 10660, Y - 130); f.spawn('biker', 11000);
+  f.spawn('biker', 10620); f.spawn('biker', 10820); f.spawn('ranger', 10615, Y - 130);
   f.prop('flare', 10420); f.prop('sign', 10990, Y, 'NO PARKING (HOGS ONLY)');
   f.pickup(10400, Y - 30, 'small_health'); f.pickup(10980, Y - 30, 'small_ammo');
 
@@ -227,7 +227,7 @@ const build = () => {
   e.slick(2200, 2400, true); e.geyser(2300, Y, 220, 90);
   e.ledge(2380, Y - 120, 150, 'deck'); e.prop('derrick', 2455, Y);
   e.geyser(2600, Y, 190, 30); e.jet(2690, Y, 'left', 110, 190, 140, 50);
-  e.spawn('biker', 2240, Y, 7); e.spawn('ranger', 2450, Y - 120, 7); e.spawn('biker', 2560, Y, 7);
+  e.spawn('biker', 2240, Y, 7); e.spawn('ranger', 2450, Y - 120, 7); e.spawn('biker', 2460, Y, 7);
   e.pickup(2130, Y - 30, 'small_health');
   // ============ AND THE REST OF IT ============
   const r = part(END_X0 + GEYSERS);

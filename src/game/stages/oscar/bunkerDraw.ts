@@ -115,6 +115,7 @@ export const drawBunkerBack = (ctx: Ctx, state: GameState, b: Bunker) => {
 /** The furniture in the room, the union on their break (and after), the bikers out the far side. */
 export const drawBunkerMid = (ctx: Ctx, state: GameState, b: Bunker) => {
   const B = COURSE.bunker;
+  drawBikersOutBack(ctx, state, b);
   if (state.camera.x > B.x2 + 900 || state.camera.x + 800 < B.x1 - 400) return;
   const intact = roomIntact(b);
   // The couch, the card table (cards, chips, a coffee can of butts)
@@ -122,6 +123,12 @@ export const drawBunkerMid = (ctx: Ctx, state: GameState, b: Bunker) => {
   ctx.fillStyle = intact ? '#57534E' : '#1C1917'; ctx.fillRect(B.x1 + 300, Y - 40, 90, 6); ctx.fillRect(B.x1 + 342, Y - 34, 6, 34);
   if (intact) { ctx.fillStyle = '#F8FAFC'; for (let k = 0; k < 4; k++) ctx.fillRect(B.x1 + 318 + k * 13, Y - 44, 9, 4); ctx.fillStyle = '#DC2626'; ctx.fillRect(B.x1 + 370, Y - 46, 6, 6); }
   for (const w of b.workers) drawWorker(ctx, state, w, B.x1);
+};
+
+/** The bikers out back (across the yard from the room, now): drawn wherever the room is. */
+const drawBikersOutBack = (ctx: Ctx, state: GameState, b: Bunker) => {
+  const B = COURSE.bunker;
+  if (state.camera.x > Math.max(...B.bikers) + 400 || state.camera.x + 800 < Math.min(...B.bikers) - 400) return;
   // The bikers, out the far side: Dirty Dan on his chopper, the machine gun across the bars, the rest stood round it
   // admiring it (and one of them about to lose the lot)
   const p = state.player;
