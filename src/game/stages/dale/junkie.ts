@@ -44,9 +44,9 @@ export type PropName = 'desk' | 'cabinet' | 'fan' | 'closet';
 export const PROPS: PropName[] = ['desk', 'cabinet', 'fan', 'closet'];
 /** How much of each of his things a hit from the right weapon takes: the flames a frame's worth, a wave a frame's
  * worth of it passing over, a boulder, a shard of ice. (Burn the desk for five seconds, two or three waves on the
- * cabinet, eight boulders for the fan, eight or nine blasts of ice on the snitch: more than he's likely carrying, so
+ * cabinet, five boulders for the fan (however hard they're thrown), eight or nine blasts of ice on the snitch: more than he's likely carrying, so
  * Chuco's pockets make up the rest: see pocketAmmo.) */
-export const PROP_TAKES: Record<PropName, number> = { desk: 1 / 300, cabinet: 1 / 64, fan: 0.125, closet: 0.025 };
+export const PROP_TAKES: Record<PropName, number> = { desk: 1 / 300, cabinet: 1 / 64, fan: 0.201, closet: 0.025 };
 /** The weapon that gets at each stash. */
 export const PROP_WEAPON: Record<PropName, WeaponType> = { desk: 'FLAMETHROWER', cabinet: 'TSUNAMI', fan: 'BOULDER', closet: 'SHOTGUN' };
 
