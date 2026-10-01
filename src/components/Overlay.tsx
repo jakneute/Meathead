@@ -348,7 +348,8 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
             <USAMap
               selectedBossId={selectedId}
               defeatedStages={deadIds}
-              currentStages={currentStages}
+              // (nobody left: their towns come off the map, the star on Washington is all there is)
+              currentStages={whiteHouseOpen && !archive ? [] : currentStages}
               garage={garageAt}
               onSelectGarage={() => onStageCardClick(GARAGE_INDEX)}
               whiteHouse={whiteHouseOpen}
