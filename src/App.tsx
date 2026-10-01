@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { hasRightStick } from './game/platform/device';
 import CheckpointPicker, { StartAt } from './components/CheckpointPicker';
 import Garage from './components/Garage';
-import { GARAGE_INDEX } from './components/Overlay';
+import { GARAGE_INDEX, WHITE_HOUSE_INDEX } from './components/Overlay';
 import { takeSouvenir } from './game/garageStore';
 import type { Souvenir } from './content/garage';
 import HUD from './components/HUD';
@@ -22,7 +22,7 @@ import DeployTransition from './components/DeployTransition';
 import WeaponGetScene from './components/WeaponGetScene';
 import { GameStatus, WeaponType } from './types';
 import { INITIAL_PLAYER_HEALTH, MAX_AMMO, POWER_CELLS, createFullAmmo } from './constants';
-import { getStages, getStartingWeapons, sortWeapons, BOSS_WEAPON_MAP, WEAPONS_AFTER_SET_0, ALL_WEAPONS } from './content/roster';
+import { getStages, getStartingWeapons, sortWeapons, BOSS_WEAPON_MAP, WEAPONS_AFTER_SET_0, ALL_WEAPONS, STAGES_SET_0, STAGES_SET_1 } from './content/roster';
 import { VULGARITIES, BOSS_DIALOGUE, BOSS_REBUKES } from './content/dialogue';
 import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS, menuButtons } from './game/platform/gamepad';
 import WeaponWheel, { wheelIndexAt } from './components/WeaponWheel';
@@ -48,10 +48,14 @@ const UNPAUSABLE_SCREENS = [GameStatus.BOSS_TRANSITION, GameStatus.BOSS_INTRO, G
 /** The ending plays once this set of bosses is beaten (later sets will move it). */
 const ENDING_AFTER_RANK = 1;
 
-/** Stage select is a 2x2 grid with the garage under it: horizontal flips the column, vertical goes down the rows and on to the garage. */
-const navigateStageGrid = (index: number, dx: number, dy: number) => {
+/**
+ * Stage select is a 2x2 grid with the garage under it (and the White House under that, once all eight are dead):
+ * horizontal flips the column, vertical goes down the rows and on to the garage.
+ */
+const navigateStageGrid = (index: number, dx: number, dy: number, whiteHouse: boolean) => {
   let i = index;
-  if (i === GARAGE_INDEX) return dy < 0 ? 2 : i;
+  if (i === WHITE_HOUSE_INDEX) return dy < 0 ? GARAGE_INDEX : i;
+  if (i === GARAGE_INDEX) return dy < 0 ? 2 : dy > 0 && whiteHouse ? WHITE_HOUSE_INDEX : i;
   if (dx !== 0) i = i % 2 === 0 ? i + 1 : i - 1;
   if (dy > 0) i = i < 2 ? i + 2 : GARAGE_INDEX;
   else if (dy < 0) i = i < 2 ? i : i - 2;
@@ -130,6 +134,10 @@ const App: React.FC = () => {
   const [killRecords, setKillRecords] = useState<Record<string, WeaponType | null>>({});
   /** Stage select on the second set: browsing the previous set's (dead) targets instead. */
   const [showArchive, setShowArchive] = useState(false);
+  // The damage report (from the second set on): up or not, which file, and before or after
+  const [showReport, setShowReport] = useState(false);
+  const [reportIndex, setReportIndex] = useState(0);
+  const [reportAfter, setReportAfter] = useState(true);
   /** Stage select: the boss locked in as the target (null = still browsing). ENGAGE needs a lock first. */
   const [lockedIndex, setLockedIndex] = useState<number | null>(null);
   /** The "LET'S FUCKIN' GO" flourish is playing; all stage select input is ignored. */
@@ -171,7 +179,7 @@ const App: React.FC = () => {
 
   // Every visit to stage select starts unlocked, on the current targets
   useEffect(() => {
-    if (status !== GameStatus.STAGE_SELECT) { setLockedIndex(null); setEngaging(false); setShowArchive(false); setInGarage(false); setPickFor(null); }
+    if (status !== GameStatus.STAGE_SELECT) { setLockedIndex(null); setEngaging(false); setShowArchive(false); setShowReport(false); setInGarage(false); setPickFor(null); }
     // (back on the map: the next skip asks again)
     if (status === GameStatus.STAGE_SELECT && !deployingTo) setStartAt(undefined);
     // (the title opens on START GAME)
@@ -253,8 +261,9 @@ const App: React.FC = () => {
         break;
       case GameStatus.BOSS_VICTORY_SPEECH:
         setIsVictoryPhase(false);
-        if (defeatedStages.length >= 4) {
-          setStatus(progressionRank >= ENDING_AFTER_RANK ? GameStatus.ENDING : GameStatus.VICTORY);
+        // (the first set done: the call; the second: back to the map, where the White House is waiting)
+        if (defeatedStages.length >= 4 && progressionRank < ENDING_AFTER_RANK) {
+          setStatus(GameStatus.VICTORY);
         } else {
           setStatus(GameStatus.STAGE_SELECT);
           setSelectedStage(null);
@@ -357,6 +366,19 @@ const App: React.FC = () => {
 
   // --- Stage select: lock in a target, then ENGAGE ------------------------------
 
+  /** All eight dead: the White House is on the map. */
+  const whiteHouseOpen = progressionRank >= 1 && STAGES_SET_1.every(s => defeatedStages.includes(s.id));
+  /** Who's on the damage report: the first four, from the start of the second set; all eight once they're all dead. */
+  const reportBosses = progressionRank >= 1 ? [...STAGES_SET_0, ...(whiteHouseOpen ? STAGES_SET_1 : [])].map(s => s.id) : [];
+  const toggleReport = () => {
+    if (engaging || !reportBosses.length) return;
+    setShowReport(v => !v);
+    setLockedIndex(null);
+    setReportIndex(i => Math.min(i, reportBosses.length - 1));
+  };
+  /** The tab switch: the map or the dossier on the stage select, before or after on the damage report. */
+  const switchTab = () => { if (showReport) setReportAfter(v => !v); else toggleDossier(); };
+
   /** Old targets (the previous set's files) can be browsed once you're on the second set. */
   const toggleArchive = () => {
     if (engaging || progressionRank < 1) return;
@@ -368,7 +390,7 @@ const App: React.FC = () => {
 
   const lockStage = (idx: number) => {
     // (the garage: nothing to kill there, just somewhere to go)
-    if (idx === GARAGE_INDEX) { if (engaging) return; setSelectedIndex(idx); setLockedIndex(idx); playLockInSound(); return; }
+    if (idx === GARAGE_INDEX || (idx === WHITE_HOUSE_INDEX && whiteHouseOpen)) { if (engaging) return; setSelectedIndex(idx); setLockedIndex(idx); playLockInSound(); return; }
     const stage = getStages(progressionRank)[idx];
     if (!stage || engaging) return;
     setSelectedIndex(idx);
@@ -388,6 +410,15 @@ const App: React.FC = () => {
     if (lockedIndex === null || engaging) return;
     // Home to the garage
     if (lockedIndex === GARAGE_INDEX) { setLockedIndex(null); setInGarage(true); playLockInSound(); return; }
+    // To Washington: the flourish, then the end
+    if (lockedIndex === WHITE_HOUSE_INDEX) {
+      setEngaging(true);
+      playEngageSound();
+      if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
+      speak(ENGAGE_SHOUTS[Math.floor(Math.random() * ENGAGE_SHOUTS.length)], MEATHEAD_MENU_VOICE);
+      setTimeout(() => setStatus(GameStatus.ENDING), ENGAGE_FLOURISH_MS);
+      return;
+    }
     const stage = getStages(progressionRank)[lockedIndex];
     // (the skip-level cheat: which checkpoint to start at first)
     if (cheats.skipToBoss && startAt === undefined && picked === undefined) { setPickFor(stage.id); return; }
@@ -429,8 +460,14 @@ const App: React.FC = () => {
     }
     if (status === GameStatus.STAGE_SELECT) {
       if (dx === 0 && dy === 0) return false;
+      // (the damage report: round its files, four to a row)
+      if (showReport) {
+        const n = reportBosses.length;
+        setReportIndex(i => dx ? (Math.floor(i / 4) * 4 + ((i % 4) + dx + 4) % 4) % n : Math.max(0, Math.min(n - 1, i + dy * 4)));
+        return true;
+      }
       if (lockedIndex !== null || engaging) return false; // locked in: back out first
-      setSelectedIndex(i => navigateStageGrid(i, dx, dy));
+      setSelectedIndex(i => navigateStageGrid(i, dx, dy, whiteHouseOpen));
       return true;
     }
     if (status === GameStatus.PAUSED) {
@@ -447,7 +484,7 @@ const App: React.FC = () => {
   const confirmSelection = () => {
     // (nothing while the call's still fading off the stage select)
     if (callOutro || intro !== 'off') return;
-    if (status === GameStatus.STAGE_SELECT) { if (lockedIndex === null) lockStage(selectedIndex); else engageStage(); }
+    if (status === GameStatus.STAGE_SELECT) { if (showReport) setReportAfter(v => !v); else if (lockedIndex === null) lockStage(selectedIndex); else engageStage(); }
     else if (status === GameStatus.PAUSED) { if (confirmLeave) answerBossSelect(confirmYes); else activatePauseItem(selectedIndex); }
     // The weapon screen runs its own firing range: only Start / Esc (handled there) move on
     // (the mid-game call runs its own confirm)
@@ -524,18 +561,19 @@ const App: React.FC = () => {
   /** B / Escape on stage select: back out of a lock, or back to the title when nothing is locked. */
   const stageSelectBack = (toTitle: boolean) => {
     if (engaging) return;
+    if (showReport) { setShowReport(false); return; }
     if (lockedIndex !== null) unlockStage();
     else if (toTitle) setStatus(GameStatus.START);
   };
 
   // (in the garage, it's the garage's own input: the stage select's is off)
-  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor, dossier: showDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon });
-  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, toggleDossier, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor, dossier: showDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon };
+  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, toggleReport, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor, dossier: showDossier || showReport, weaponCount: availableWeapons.length, locked: !!lockedWeapon });
+  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, toggleReport, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor, dossier: showDossier || showReport, weaponCount: availableWeapons.length, locked: !!lockedWeapon };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (inputRef.current.garage) return;
-      const { status, togglePause, moveSelection, confirmSelection, selectWeaponHotkey, toggleDossier, stageSelectBack } = inputRef.current;
+      const { status, togglePause, moveSelection, confirmSelection, selectWeaponHotkey, switchTab, toggleReport, stageSelectBack } = inputRef.current;
       const key = e.key.toLowerCase();
       if (status === GameStatus.STAGE_SELECT && (key === 'escape' || key === 'backspace')) { stageSelectBack(false); return; }
       if (key === 'escape') togglePause();
@@ -546,8 +584,10 @@ const App: React.FC = () => {
         if (slot) selectWeaponHotkey(Number(slot[1]) - 1);
         return;
       }
-      // Stage select: X flips between the map and the boss dossier
-      if (status === GameStatus.STAGE_SELECT && key === 'x') { toggleDossier(); return; }
+      // Stage select: Tab flips between the map and the boss dossier (on the damage report, before and after); X is the
+      // damage report
+      if (status === GameStatus.STAGE_SELECT && key === 'tab') { e.preventDefault(); switchTab(); return; }
+      if (status === GameStatus.STAGE_SELECT && key === 'x') { toggleReport(); return; }
       // The title: M switches the music on and off
       if (status === GameStatus.START && key === 'm' && !inputRef.current.introOn) { inputRef.current.toggleMusic(); return; }
       if (key === 'arrowup' || key === 'w') moveSelection(0, -1);
@@ -603,7 +643,7 @@ const App: React.FC = () => {
       if (!gp) {
         prev.a = prev.b = prev.x = prev.y = prev.start = prev.lb = prev.rb = false;
       } else {
-        const { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, toggleDossier, stageSelectBack, garage } = inputRef.current;
+        const { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, switchTab, toggleReport, stageSelectBack, garage } = inputRef.current;
         const now = Date.now();
         // (in the garage, the garage reads the pad itself)
         if (garage) { prev.a = prev.b = prev.x = prev.y = prev.start = true; frameId = requestAnimationFrame(poll); return; }
@@ -646,7 +686,9 @@ const App: React.FC = () => {
           }
         } else if (wheel.at !== null) { wheel.at = null; setWheelAt(null); }
         if (justPressed('a') || (justPressed('start') && TIMED_SCREENS.includes(status))) confirmSelection();
-        if (justPressed('x') && status === GameStatus.STAGE_SELECT) toggleDossier();
+        // (stage select: X is the damage report; the shoulder buttons flip the map and the dossier, or before and after)
+        if (justPressed('x') && status === GameStatus.STAGE_SELECT) toggleReport();
+        if ((justPressed('lb') || justPressed('rb')) && status === GameStatus.STAGE_SELECT) switchTab();
         if (justPressed('x') && status === GameStatus.START && !inputRef.current.introOn) inputRef.current.toggleMusic();
         if (justPressed('b')) {
           if (status === GameStatus.PAUSED) handleResume();
@@ -710,6 +752,14 @@ const App: React.FC = () => {
           onToggleDossier={toggleDossier}
           showArchive={showArchive}
           onToggleArchive={toggleArchive}
+          whiteHouseOpen={whiteHouseOpen}
+          showReport={showReport}
+          reportBosses={reportBosses}
+          reportIndex={reportIndex}
+          reportAfter={reportAfter}
+          onToggleReport={toggleReport}
+          onReportSelect={setReportIndex}
+          onToggleReportAfter={() => setReportAfter(v => !v)}
           killRecords={killRecords}
           cheats={SHOW_CHEATS ? { flags: cheatFlags, onToggle: handleToggleCheat, onChangeRank: handleChangeRank, onPlayEnding: () => setStatus(GameStatus.ENDING), onPlayCall: () => { setCallPreview(true); setStatus(GameStatus.VICTORY); } } : undefined}
           showCall={progressionRank === 0 || callPreview}

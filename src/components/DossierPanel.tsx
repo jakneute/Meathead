@@ -9,6 +9,23 @@ import CorpsePhoto from './CorpsePhoto';
 import GaragePortrait from './GaragePortrait';
 import { GARAGE_ID, GARAGE_DOSSIER } from '../content/garage';
 import { lastSouvenirOf } from '../game/garageStore';
+import { WHITE_HOUSE_ID, WHITE_HOUSE_DOSSIER, WHITE_HOUSE_LOCATION } from '../content/whiteHouse';
+
+/** The White House, for its file's photo: the north portico, its columns and the flag, on a gray sky. */
+const WhiteHousePhoto: React.FC = () => (
+  <svg viewBox="0 0 74 82" className="w-full h-full">
+    <rect width="74" height="82" fill="#6B7280" />
+    <rect y="60" width="74" height="22" fill="#4D7C0F" />
+    <rect x="4" y="34" width="66" height="28" fill="#F5F5F4" />
+    <path d="M22 34 L37 22 L52 34 Z" fill="#E7E5E4" stroke="#A8A29E" strokeWidth="0.6" />
+    {[0, 1, 2, 3, 4, 5].map(k => <rect key={k} x={6 + k * 11} y="40" width="4" height="7" fill="#57534E" />)}
+    {[0, 1, 2, 3, 4, 5].map(k => <rect key={k} x={6 + k * 11} y="51" width="4" height="7" fill="#57534E" />)}
+    {[0, 1, 2, 3].map(k => <rect key={k} x={25 + k * 7} y="34" width="2.4" height="28" fill="#FFFFFF" stroke="#D6D3D1" strokeWidth="0.4" />)}
+    <rect x="36.6" y="8" width="0.8" height="15" fill="#44403C" />
+    <rect x="37.4" y="8" width="9" height="6" fill="#B91C1C" /><rect x="37.4" y="8" width="4" height="3" fill="#1E3A8A" />
+    <rect x="37.4" y="9.6" width="9" height="0.8" fill="#FFFFFF" /><rect x="37.4" y="11.6" width="9" height="0.8" fill="#FFFFFF" />
+  </svg>
+);
 
 /** Right stick: how far it has to go before it scrolls, and how fast it scrolls at full tilt (px a frame). */
 const STICK_DEADZONE = 0.2, STICK_SPEED = 7;
@@ -42,8 +59,11 @@ interface DossierPanelProps {
 const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWeapon }) => {
   // (the garage has a file too: what the analysts could make of it, which isn't much)
   const garage = bossId === GARAGE_ID;
-  const d = garage ? { ...GARAGE_DOSSIER, mission: '', reality: '', background: '', intel: '', rules: '', notAlive: '' } : DOSSIERS[bossId];
-  const loc = garage ? undefined : BOSS_LOCATIONS[bossId];
+  // (and the White House has one too, once all eight are dead: the summons)
+  const wh = bossId === WHITE_HOUSE_ID;
+  const d = garage ? { ...GARAGE_DOSSIER, mission: '', reality: '', background: '', intel: '', rules: '', notAlive: '' }
+    : wh ? { ...WHITE_HOUSE_DOSSIER, mission: '', reality: '', background: '', intel: '', rules: '', notAlive: '' } : DOSSIERS[bossId];
+  const loc = garage ? undefined : wh ? WHITE_HOUSE_LOCATION : BOSS_LOCATIONS[bossId];
   // Too long for the page: our own scroll bar (the browser's is hidden), moved by the mouse wheel, the right stick or dragging it
   const body = useRef<HTMLDivElement>(null);
   const [view, setView] = useState({ top: 0, height: 1, client: 1 });
@@ -91,7 +111,7 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
     el.scrollTop = drag.current.top + (e.clientY - drag.current.y) * maxTop / Math.max(1, trackH - thumbH);
   };
   const onThumbUp = () => { drag.current = null; };
-  const after = defeated && !garage ? AFTERMATHS[bossId] : undefined;
+  const after = defeated && !garage && !wh ? AFTERMATHS[bossId] : undefined;
   const typewriter: React.CSSProperties = { fontFamily: '"Courier New", Courier, monospace' };
   const field = (label: string, value: string) => (
     <div className="leading-[10px]"><span className="font-bold text-[#7F1D1D]">{label}: </span>{value}</div>
@@ -119,8 +139,8 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
         {/* The rubber stamp: across the corner of the photo, off the writing; it's on the paper, so it goes up with the
             rest of the file as it's scrolled (and off the top, a long way down it) */}
         <div className="absolute top-[74px] left-[4px] rotate-[-12deg] text-[10px] px-[6px] py-[1px] font-bold tracking-widest pointer-events-none z-10"
-          style={{ background: 'rgba(232, 220, 192, 0.85)', color: garage ? 'rgba(161, 98, 7, 0.9)' : defeated ? 'rgba(21, 128, 61, 0.85)' : 'rgba(185, 28, 28, 0.85)', border: `3px solid ${garage ? 'rgba(161, 98, 7, 0.8)' : defeated ? 'rgba(21, 128, 61, 0.75)' : 'rgba(185, 28, 28, 0.75)'}` }}>
-          {garage ? 'UNVERIFIED' : defeated ? 'DISPOSED OF' : 'TERMINATE'}
+          style={{ background: 'rgba(232, 220, 192, 0.85)', color: garage || wh ? 'rgba(161, 98, 7, 0.9)' : defeated ? 'rgba(21, 128, 61, 0.85)' : 'rgba(185, 28, 28, 0.85)', border: `3px solid ${garage || wh ? 'rgba(161, 98, 7, 0.8)' : defeated ? 'rgba(21, 128, 61, 0.75)' : 'rgba(185, 28, 28, 0.75)'}` }}>
+          {garage ? 'UNVERIFIED' : wh ? 'REPORT IN' : defeated ? 'DISPOSED OF' : 'TERMINATE'}
         </div>
         <div className="flex justify-between items-start text-[7px] tracking-widest text-[#44403C] border-b-2 border-[#1C1917] pb-[3px] mb-[5px]">
           <span>{DOSSIER_HEADER}</span>
@@ -130,7 +150,7 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
         <div className="flex gap-2">
           {/* Mugshot, paper-clipped to the file */}
           <div className="relative shrink-0 w-[74px] h-[82px] bg-black border-2 border-[#57534E] rotate-[-2deg]" style={{ boxShadow: '2px 2px 0 rgba(0,0,0,0.4)' }}>
-            <div className={after ? 'w-full h-full grayscale contrast-125' : 'w-full h-full'}>{garage ? <GaragePortrait /> : <BossPortrait id={bossId} dead={after} />}</div>
+            <div className={after ? 'w-full h-full grayscale contrast-125' : 'w-full h-full'}>{garage ? <GaragePortrait /> : wh ? <WhiteHousePhoto /> : <BossPortrait id={bossId} dead={after} />}</div>
             {after && (
               <svg viewBox="0 0 10 10" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none">
                 <path d="M1 1 L9 9 M9 1 L1 9" stroke="rgba(185, 28, 28, 0.85)" strokeWidth="1.1" strokeLinecap="round" />
@@ -149,7 +169,16 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
         </div>
 
         <div className="mt-[4px] leading-[10px]"><span className="font-bold text-[#7F1D1D]">OCCUPATION: </span>{d.occupation}</div>
-        {garage ? (
+        {wh ? (
+          <>
+            {section('THE SUMMONS', WHITE_HOUSE_DOSSIER.summons)}
+            {section('INSTRUCTIONS', WHITE_HOUSE_DOSSIER.instructions)}
+            {section('RISKS', WHITE_HOUSE_DOSSIER.risks)}
+            <div className="mt-[6px] p-[4px] leading-[10px] bg-[#FEF3C7] border border-[#A16207]/50 rotate-[-0.6deg]" style={{ boxShadow: '1px 1px 0 rgba(0,0,0,0.25)' }}>
+              <span className="font-bold">HANDLER'S NOTE: </span>{WHITE_HOUSE_DOSSIER.handler}
+            </div>
+          </>
+        ) : garage ? (
           <>
             {section('LOCATION', GARAGE_DOSSIER.location)}
             {section('WHAT WE THINK IT IS', GARAGE_DOSSIER.whatItIs)}

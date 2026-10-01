@@ -4,6 +4,7 @@ import { Prompt } from './ButtonIcons';
 import { BOSS_LOCATIONS, BossLocationData, StageInfo } from '../content/roster';
 import { GARAGE_MAP } from '../content/garage';
 import { MAP_PATHS, AK_BOX, HI_BOX } from '../content/mapGeo';
+import { WHITE_HOUSE_LOCATION } from '../content/whiteHouse';
 
 /**
  * One line of text at one size for every city: the size the longest of them needs to fit on the one line (so switching
@@ -36,6 +37,10 @@ interface USAMapProps {
   /** The garage is what's picked (its signal wanders the map), and picking it from the map. */
   garage?: boolean;
   onSelectGarage?: () => void;
+  /** All eight dead: the White House is on the map (a star on Washington), and whether it's the one picked. */
+  whiteHouse?: boolean;
+  whiteHouseSelected?: boolean;
+  onSelectWhiteHouse?: () => void;
 }
 
 const USAMap: React.FC<USAMapProps> = ({
@@ -45,6 +50,9 @@ const USAMap: React.FC<USAMapProps> = ({
   onSelectStage,
   garage,
   onSelectGarage,
+  whiteHouse,
+  whiteHouseSelected,
+  onSelectWhiteHouse,
 }) => {
   // The garage's signal: never in the same place twice
   const [gq, setGq] = useState({ x: 230, y: 110 });
@@ -56,7 +64,7 @@ const USAMap: React.FC<USAMapProps> = ({
   const activeLocation: BossLocationData = garage ? {
     city: GARAGE_MAP.place, state: '???', stateCode: '??', region: GARAGE_MAP.region, coords: gq,
     coordinatesText: GARAGE_MAP.coords, threatBrief: GARAGE_MAP.brief,
-  } : BOSS_LOCATIONS[selectedBossId] || {
+  } : whiteHouseSelected ? WHITE_HOUSE_LOCATION : BOSS_LOCATIONS[selectedBossId] || {
     city: 'UNKNOWN',
     state: 'USA',
     stateCode: 'US',
@@ -199,6 +207,22 @@ const USAMap: React.FC<USAMapProps> = ({
             );
           })}
 
+          {/* The White House, once there's nobody left: a star on Washington, pulsing */}
+          {whiteHouse && (() => {
+            const { x, y } = WHITE_HOUSE_LOCATION.coords;
+            const star = Array.from({ length: 10 }, (_, k) => { const a = -Math.PI / 2 + k * Math.PI / 5, r = k % 2 ? 2.4 : 5.6; return `${x + Math.cos(a) * r},${y + Math.sin(a) * r}`; }).join(' ');
+            return (
+              <g className="cursor-pointer" onClick={() => onSelectWhiteHouse?.()}>
+                <circle cx={x} cy={y} r="5" fill="none" stroke="#FDE047" strokeWidth="0.7">
+                  <animate attributeName="r" values="5;12;5" dur="1.6s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="0.9;0;0.9" dur="1.6s" repeatCount="indefinite" />
+                </circle>
+                <polygon points={star} fill={whiteHouseSelected ? '#EF4444' : '#FDE047'} stroke="#FFFFFF" strokeWidth="0.6" />
+                <text x={x - 7} y={y + 1.8} textAnchor="end" fontSize="4.2" fill={whiteHouseSelected ? '#FDE047' : '#F8FAFC'} stroke="#02060c" strokeWidth="1.4" paintOrder="stroke">WASHINGTON</text>
+              </g>
+            );
+          })()}
+
           {/* The garage, when it's the one picked: a question mark that won't sit still */}
           {garage && (
             <text x={gq.x} y={gq.y + 6} textAnchor="middle" fontSize={16}
@@ -228,7 +252,7 @@ const USAMap: React.FC<USAMapProps> = ({
                 <polyline points={`${x + (tagRight ? 4 : -4)},${y - 4} ${x + (tagRight ? 14 : -14)},${y - 16} ${tx + (tagRight ? 0 : 62)},${y - 16}`} fill="none" stroke="#FACC15" strokeWidth="0.9" />
                 <rect x={tx} y={y - 24} width="62" height="10" fill="rgba(0,0,0,0.9)" stroke="#FACC15" strokeWidth="0.8" />
                 <rect x={tx} y={y - 24} width="3" height="10" fill="#FACC15" />
-                <text x={tx + 6} y={y - 17} fill="#FDE047" fontSize="4.6">{garage ? 'SIGNAL ???' : isCurrentDefeated ? 'ELIMINATED' : 'TARGET LOCKED'}</text>
+                <text x={tx + 6} y={y - 17} fill="#FDE047" fontSize="4.6">{garage ? 'SIGNAL ???' : whiteHouseSelected ? 'SUMMONED' : isCurrentDefeated ? 'ELIMINATED' : 'TARGET LOCKED'}</text>
               </g>
             );
           })()}
@@ -266,14 +290,14 @@ const USAMap: React.FC<USAMapProps> = ({
         <div className="flex flex-col gap-0.5 text-[8px] font-mono leading-tight">
           <div className="flex items-center justify-between">
             <span className="text-gray-300">
-              TARGET: <strong className="text-white uppercase">{selectedBossId}</strong>
+              {whiteHouseSelected ? 'DESTINATION' : 'TARGET'}: <strong className="text-white uppercase">{selectedBossId}</strong>
             </span>
             <span className={`font-black uppercase px-1 py-0.2 rounded-sm ${
-              isCurrentDefeated 
+              isCurrentDefeated || whiteHouseSelected
                 ? 'bg-red-950 text-red-400 border border-red-800' 
                 : 'bg-emerald-950 text-emerald-400 border border-emerald-800 animate-pulse'
             }`}>
-              {garage ? 'UNVERIFIED' : isCurrentDefeated ? 'ELIMINATED' : 'ACTIVE THREAT'}
+              {garage ? 'UNVERIFIED' : whiteHouseSelected ? 'MEDAL WAITING' : isCurrentDefeated ? 'ELIMINATED' : 'ACTIVE THREAT'}
             </span>
           </div>
           <div className="text-gray-400 truncate">
@@ -285,7 +309,7 @@ const USAMap: React.FC<USAMapProps> = ({
         <div className="mt-1 pt-1 border-t border-gray-900 flex items-center justify-between text-[7.5px] font-mono text-gray-500">
           <span>{activeLocation.region}</span>
           <span className="text-yellow-500/90 font-bold uppercase animate-pulse">
-            {isCurrentDefeated ? 'ALREADY DEAD // PICK ANOTHER' : <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label="LOCK IN" size={13} />}
+            {isCurrentDefeated && !whiteHouseSelected ? 'ALREADY DEAD // PICK ANOTHER' : <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label="LOCK IN" size={13} />}
           </span>
         </div>
       </div>

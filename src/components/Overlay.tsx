@@ -10,6 +10,8 @@ import USAMap from './USAMap';
 import BossPortrait from './BossPortrait';
 import WeaponIcon, { WeaponArt } from './WeaponIcon';
 import DossierPanel from './DossierPanel';
+import DamageReport from './DamageReport';
+import { WHITE_HOUSE_ID } from '../content/whiteHouse';
 import { GARAGE_ID, SOUVENIRS } from '../content/garage';
 import { ownedSouvenirs } from '../game/garageStore';
 import MeatheadCaricature from './MeatheadCaricature';
@@ -68,6 +70,16 @@ interface OverlayProps {
   /** Stage select on the second set: browsing the previous set's targets (all dead) instead. */
   showArchive: boolean;
   onToggleArchive: () => void;
+  /** All eight dead: the White House is on the stage select. */
+  whiteHouseOpen?: boolean;
+  /** The damage report (from the second set on): up or not, the targets on it, which file, before or after. */
+  showReport?: boolean;
+  reportBosses?: string[];
+  reportIndex?: number;
+  reportAfter?: boolean;
+  onToggleReport?: () => void;
+  onReportSelect?: (i: number) => void;
+  onToggleReportAfter?: () => void;
   /** How each boss died: the weakness weapon that wrecked his corpse, or null for a plain kill. */
   killRecords: Record<string, WeaponType | null>;
   /** Dev cheat panel on the title screen; omitted when cheats are disabled. */
@@ -93,7 +105,7 @@ const Overlay: React.FC<OverlayProps> = (props) => {
       {status === GameStatus.START && <TitleScreen {...props} />}
       {status === GameStatus.STAGE_SELECT && <StageSelectScreen {...props} />}
       {status === GameStatus.STAGE_SELECT && props.engaging && props.lockedIndex !== null && (
-        <EngageFlash bossId={getStages(props.progressionRank)[props.lockedIndex]?.id || ''} />
+        <EngageFlash bossId={props.lockedIndex === WHITE_HOUSE_INDEX ? WHITE_HOUSE_ID : getStages(props.progressionRank)[props.lockedIndex]?.id || ''} />
       )}
       {status === GameStatus.PAUSED && <PauseMenu {...props} />}
       {status === GameStatus.BOSS_INTRO && <BossIntroScreen {...props} />}
@@ -225,7 +237,7 @@ const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onStartGame, onSel
 export const setTitleClass = (title: string) =>
   `${title.length > 20 ? 'text-[17px]' : 'text-xl md:text-2xl'} whitespace-nowrap text-red-600 font-black tracking-widest border-b-4 border-red-900 pb-1 uppercase italic drop-shadow-[0_2px_2px_rgba(153,0,0,0.8)] [text-shadow:2px_2px_0_rgb(0,0,0),_0_4px_0_rgba(153,0,0,0.8),_0_8px_0_rgba(153,0,0,0.4),_2px_12px_2px_rgba(255,0,0,0.5)]`;
 
-const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedStages, selectedIndex, onSelectIndex, showDossier, onToggleDossier, lockedIndex, engaging, onStageCardClick, onEngage, showArchive, onToggleArchive, killRecords }) => {
+const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedStages, selectedIndex, onSelectIndex, showDossier, onToggleDossier, lockedIndex, engaging, onStageCardClick, onEngage, showArchive, onToggleArchive, killRecords, whiteHouseOpen, showReport, reportBosses, reportIndex, reportAfter, onToggleReport, onReportSelect, onToggleReportAfter }) => {
   // The archive shows the previous set: every one of them already dead
   // (the old targets' files aren't on this screen any more)
   const archive = false;
@@ -238,7 +250,13 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
   const currentStages = getStages(setRank);
   const deadIds = archive ? currentStages.map(s => s.id) : defeatedStages;
   const locked = lockedIndex !== null;
-  const selectedId = garageAt ? GARAGE_ID : currentStages[selectedIndex]?.id || currentStages[0]?.id;
+  const whAt = !!whiteHouseOpen && selectedIndex === WHITE_HOUSE_INDEX, whLocked = lockedIndex === WHITE_HOUSE_INDEX;
+  const selectedId = garageAt ? GARAGE_ID : whAt ? WHITE_HOUSE_ID : currentStages[selectedIndex]?.id || currentStages[0]?.id;
+  // (the damage report: from the second set on, every target done so far, on its own screen)
+  if (showReport && reportBosses?.length) {
+    return <DamageReport bosses={reportBosses} index={reportIndex ?? 0} after={reportAfter !== false} killRecords={killRecords}
+      onSelect={i => onReportSelect?.(i)} onToggleAfter={() => onToggleReportAfter?.()} onClose={() => onToggleReport?.()} titleClass={setTitleClass('DAMAGE REPORT')} />;
+  }
 
   return (
     <div className={`w-full h-full flex flex-col items-center justify-start pt-2 pb-1 overflow-hidden select-none ${engaging ? 'mh-engage-shake' : 'animate-in slide-in-from-bottom-8 duration-500'}`}>
@@ -246,8 +264,13 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
         <h2 data-set-title className={setTitleClass(BOSS_SET_TITLES[setRank] || "THE FOUR ASSHOLES")}>
           {BOSS_SET_TITLES[setRank] || "THE FOUR ASSHOLES"}
         </h2>
-        <div className="text-[8px] font-mono text-cyan-400/90 tracking-widest uppercase mt-0.5">
-          {archive ? 'ARCHIVE // PREVIOUSLY TERMINATED TARGETS // CASES CLOSED' : 'TARGET SELECTION // UNITED STATES RADAR INFILTRATION'}
+        <div className="flex items-center gap-3 text-[8px] font-mono text-cyan-400/90 tracking-widest uppercase mt-0.5">
+          <span>{archive ? 'ARCHIVE // PREVIOUSLY TERMINATED TARGETS // CASES CLOSED' : whiteHouseOpen ? 'NOBODY LEFT // WASHINGTON IS WAITING' : 'TARGET SELECTION // UNITED STATES RADAR INFILTRATION'}</span>
+          {progressionRank >= 1 && (
+            <button onClick={() => onToggleReport?.()} className="px-2 py-[1px] border border-red-700 bg-red-950/70 text-red-300 font-black hover:bg-red-900">
+              <Prompt pad={['X']} kb={['X']} label="DAMAGE REPORT" size={12} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -309,7 +332,8 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
         ) : (
           <>
             <GarageCard selected={garageAt} locked={garageLocked} dim={locked && !garageLocked} onClick={() => onStageCardClick(GARAGE_INDEX)} onHover={() => onSelectIndex(GARAGE_INDEX)} />
-            <EngageBar locked={locked} engaging={engaging} onEngage={onEngage} label={garageLocked ? 'GO HOME' : undefined} />
+            {whiteHouseOpen && <WhiteHouseCard selected={whAt} locked={whLocked} dim={locked && !whLocked} onClick={() => onStageCardClick(WHITE_HOUSE_INDEX)} onHover={() => onSelectIndex(WHITE_HOUSE_INDEX)} />}
+            <EngageBar locked={locked} engaging={engaging} onEngage={onEngage} label={garageLocked ? 'GO HOME' : whLocked ? 'GO TO D.C.' : undefined} nobodyLeft={whiteHouseOpen} />
           </>
         )}
         </div>
@@ -330,7 +354,7 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
             </div>
             <span className="inline-flex items-center gap-3">
               {showDossier && <Prompt pad={oneStick ? ['Y'] : ['RSTICK']} mouse="wheel" label={oneStick && device === 'pad' ? 'HOLD + STICK: SCROLL' : 'SCROLL'} size={14} className="text-[7px] font-mono text-cyan-400/80 tracking-wider" />}
-              <Prompt pad={['X']} kb={['X']} mouse="left" label="SWITCH" size={14} className="text-[7px] font-mono text-cyan-400/80 tracking-wider" />
+              <Prompt pad={['LB', 'RB']} kb={['TAB']} mouse="left" label="SWITCH" size={14} className="text-[7px] font-mono text-cyan-400/80 tracking-wider" />
             </span>
           </div>
           {showDossier ? (
@@ -342,6 +366,9 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
               currentStages={currentStages}
               garage={garageAt}
               onSelectGarage={() => onStageCardClick(GARAGE_INDEX)}
+              whiteHouse={whiteHouseOpen}
+              whiteHouseSelected={whAt}
+              onSelectWhiteHouse={() => onStageCardClick(WHITE_HOUSE_INDEX)}
               onSelectStage={(id) => {
                 const idx = currentStages.findIndex(s => s.id === id);
                 if (idx !== -1) onStageCardClick(idx);
@@ -381,6 +408,21 @@ const LockedInMark: React.FC = () => (
 /** Below the boss cards: how to lock in, or the big red ENGAGE button once a target is locked. */
 /** Where the garage sits among the targets on the stage select (after the four of them). */
 export const GARAGE_INDEX = 4;
+/** The White House's place on the stage select (under the garage), once all eight are dead. */
+export const WHITE_HOUSE_INDEX = 5;
+
+/** The White House: under the garage once there's nobody left, the way to the medal (and the end). */
+const WhiteHouseCard: React.FC<{ selected: boolean; locked: boolean; dim: boolean; onClick: () => void; onHover: () => void }> = ({ selected, locked, dim, onClick, onHover }) => {
+  const frame = locked ? 'border-red-500 bg-red-600 text-white shadow-[0_0_18px_rgba(239,68,68,0.8)]'
+    : selected ? 'border-yellow-400 bg-yellow-400 text-black shadow-[0_0_14px_rgba(255,255,0,0.5)]' : 'border-yellow-500/70 bg-[#1E293B] text-white hover:border-yellow-300 animate-pulse';
+  return (
+    <button onClick={onClick} onMouseEnter={onHover}
+      className={`h-[30px] -mt-1 w-full flex items-center justify-between px-2 border-3 ${frame} ${dim ? 'opacity-35 grayscale' : ''} transition-all rounded-sm`}>
+      <span className="text-[9px] font-black tracking-wider">★ {WHITE_HOUSE_ID}</span>
+      <span className={`text-[7px] font-mono font-bold ${selected || locked ? '' : 'text-yellow-300'}`}>WASHINGTON, DC // A MEDAL WAITING</span>
+    </button>
+  );
+};
 
 /** Under the targets: the garage (wherever it is), and how full it's got. */
 const GarageCard: React.FC<{ selected: boolean; locked: boolean; dim: boolean; onClick: () => void; onHover: () => void }> = ({ selected, locked, dim, onClick, onHover }) => {
@@ -396,11 +438,11 @@ const GarageCard: React.FC<{ selected: boolean; locked: boolean; dim: boolean; o
   );
 };
 
-const EngageBar: React.FC<{ locked: boolean; engaging: boolean; onEngage: () => void; label?: string }> = ({ locked, engaging, onEngage, label }) => {
+const EngageBar: React.FC<{ locked: boolean; engaging: boolean; onEngage: () => void; label?: string; nobodyLeft?: boolean }> = ({ locked, engaging, onEngage, label, nobodyLeft }) => {
   if (!locked) {
     return (
       <div className="h-[58px] flex flex-col items-center justify-center gap-1 border-2 border-dashed border-zinc-700 text-zinc-400">
-        <span className="text-[9px] font-black tracking-widest text-yellow-400/90">PICK YOUR VICTIM</span>
+        <span className="text-[9px] font-black tracking-widest text-yellow-400/90">{nobodyLeft ? 'NOBODY LEFT TO KILL' : 'PICK YOUR VICTIM'}</span>
         <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label="LOCK IN" size={15} className="text-[7px] font-mono tracking-wider" />
       </div>
     );
