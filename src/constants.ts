@@ -182,7 +182,7 @@ export const MAX_AMMO: Record<WeaponType, number> = {
   'NEEDLES': 120,
   'TASER': 400,
   'SLUDGE': 24,
-  'OIL_ROCKET': 15,
+  'OIL_ROCKET': 22,
   // (Dirty Dan's machine gun: it's only his for the chase, and it never runs dry till it's over)
   'LMG': Infinity,
 };
