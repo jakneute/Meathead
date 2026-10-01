@@ -18,6 +18,7 @@ import { calmPlayer, DEFAULT_SHAKE, shakeScreen, BOSS_FALL, STAIN_FRAMES } from 
 import { playSound } from '../platform/audio';
 import { LEVEL_INTRO_STYLE, PLAYER_GRAVITY, PLAYER_TERMINAL_VELOCITY } from '../../constants';
 import { updateBarfStream, updateFlameSegments } from '../combat/weapons';
+import { updateBlood } from '../player/blood';
 import { say, isTalking, deathAnnouncing, stopDeathAnnouncer, announceDeath, silenceAll, MEATHEAD_INTRO_VOICE } from '../platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../platform/skip';
 import { pickRandom, rectsOverlap, boundsOf, isOnScreen } from './utils';
@@ -507,6 +508,7 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
   updateSpecialMovesVsBarrels(ctx);
   updatePickups(ctx);
   updateParticlesAndNumbers(ctx);
+  updateBlood(ctx);
   updateCamera(ctx);
 
   // Hurt mid-special: cancel the move and play its recovery animation

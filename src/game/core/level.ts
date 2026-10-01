@@ -60,6 +60,8 @@ export const respawn = (state: GameState, stageId: string | null, skipToBoss: bo
   state.deathScene = undefined;
   state.killPose = null;
   state.lastHurt = undefined;
+  // (back on his feet clean)
+  p.splats = []; p.bleedT = 0; p.bloodHp = undefined;
   const checkpointStart = buildLevel(state, stageId, atBoss);
   // A long stage's checkpoint: start there instead, with the camera already on him
   if (checkpointStart && !atBoss) {
