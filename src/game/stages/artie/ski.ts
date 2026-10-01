@@ -50,12 +50,16 @@ export interface Ski {
   gap: number;
   /** How far the camera's zoomed out on the way down (1 not at all): enough to keep the avalanche's front in view. */
   zoom: number;
+  /** Frames the how-to-ski prompt's been up (it goes after a few seconds out on the run). */
+  hintT: number;
   /** Killed in the snowball: it's thrown him off the far side of the mountain (see drawFlingDeath). */
   fling: boolean;
 }
 
 // Ski speeds (px/frame): cruising, pushing on, and dragging your heels
 const SKI_BASE = 9.2, SKI_FAST = 11, SKI_SLOW = 7, SKI_CRASHED = 2.5;
+/** How long the how-to-ski prompt stays up once he's off (frames). */
+const SKI_HINT_FOR = 420;
 const AVALANCHE_SPEED = 8.7;
 /** How much a crash lets the avalanche close in, and how fast it drops back again skiing clean (px a frame). */
 const GAP_CRASH = 130, GAP_RECOVER = 0.35;
@@ -100,7 +104,7 @@ export const createSki = (state: GameState, startedAt: number): Ski => {
     phase: past ? 'done' : onSkis ? 'skiing' : 'waiting', t: 0, quiet: { n: 0 },
     skier: { x: COURSE.skier.x, y: COURSE.skier.y, vx: 0, vy: 0, rot: 0, state: onSkis || past ? 'gone' : 'stand', line: '', lineT: 0 },
     skis: null, avX: COURSE.checkpoints[CP.SKI].x - 650, ball: 0, ballX: 0, ballRot: 0, crash: 0,
-    broken: COURSE.ski.obstacles.map(() => false), cabinHitAt: past ? -9999 : 0, pileX: COURSE.cabin.x + 330, surge: false, arrived: false, zoom: 1, fling: false, gap: AVALANCHE_HEAD_START,
+    broken: COURSE.ski.obstacles.map(() => false), cabinHitAt: past ? -9999 : 0, pileX: COURSE.cabin.x + 330, surge: false, arrived: false, zoom: 1, fling: false, gap: AVALANCHE_HEAD_START, hintT: 0,
   };
   if (onSkis) { state.player.skiing = true; state.player.skiSpeed = SKI_BASE; state.cameraLeadX = SKI_CAMERA_LEAD; ski.zoom = skiZoomFor(COURSE.checkpoints[CP.SKI].x - ski.avX); }
   if (past) addPile(state, ski);
@@ -157,6 +161,8 @@ export const updateSki = (ctx: FrameContext, ski: Ski, controls: Controls): Cont
   const { player } = state;
   // (the cutscene's clock waits at each beat till the line before's been said)
   if (ski.phase !== 'cutscene' || !ski.arrived || holdForSpeech(ski.t, SKI_HOLDS, ski.quiet)) ski.t++;
+  // (back from a death somewhere else on the mountain, or off the skis: no how-to-ski prompt left up)
+  if (ski.phase !== 'skiing' && (ski.t === 1 || (ski.hintT > 0 && ski.hintT < SKI_HINT_FOR))) { if (ski.hintT > 0) ski.hintT = SKI_HINT_FOR; ctx.events.onTutorialHint?.(null); }
   if (ski.skier.lineT > 0) ski.skier.lineT--;
   rangerRadio(state, ski);
   updateSkierBody(state, ski);
@@ -306,6 +312,8 @@ const skiing = (ctx: FrameContext, ski: Ski, controls: Controls): Controls => {
   // Rolled up in a snowball: carried along until it spits you out
   if (ski.ball > 0) return inBall(ctx, ski);
 
+  // The prompt, for the first few seconds out on the run: what left and right do (in the air too)
+  if (ski.hintT < SKI_HINT_FOR) { if (ski.hintT === 0) ctx.events.onTutorialHint?.('ski'); if (++ski.hintT === SKI_HINT_FOR) ctx.events.onTutorialHint?.(null); }
   // Speed: lean on it, drag your heels, or pick yourself up after a crash
   if (ski.crash > 0) { ski.crash--; player.skiSpeed = SKI_CRASHED + (1 - ski.crash / CRASH_FRAMES) * (SKI_BASE - SKI_CRASHED); }
   else player.skiSpeed = controls.right ? SKI_FAST : controls.left ? SKI_SLOW : SKI_BASE;

@@ -5,7 +5,7 @@ import { useInputDevice, usePadFamily } from './useInputDevice';
 // The gym's lessons (game/stages/gym/runtime.ts): what to do to the ones in the room he's in, as the buttons that do
 // it on whatever's being played with (changing over the moment you switch), for as long as there's anybody there.
 
-type Lesson = 'move' | 'fire' | 'charge' | 'push' | 'slide' | 'uppercut' | 'divekick' | 'shield';
+type Lesson = 'ski' | 'move' | 'fire' | 'charge' | 'push' | 'slide' | 'uppercut' | 'divekick' | 'shield';
 
 const SIZE = 16;
 
@@ -18,6 +18,12 @@ const Combo: React.FC<{ dir: 'UP' | 'DOWN'; kb: string[]; air?: boolean }> = ({ 
 };
 
 const LESSONS: Record<Lesson, { how: React.ReactNode; what: string; note?: string }> = {
+  // (Artie's ski run)
+  ski: {
+    how: <><Prompt pad={['DPAD']} kb={['D']} size={SIZE} label="RIGHT: FASTER" /><span className="mx-2" /><Prompt pad={['DPAD']} kb={['A']} size={SIZE} label="LEFT: SLOWER" /><span className="mx-2" /><Prompt pad={['A']} kb={['SPACE']} size={SIZE} label="JUMP" /></>,
+    what: 'IN THE AIR TOO: HOLD RIGHT TO JUMP FURTHER, LEFT TO COME DOWN SHORTER.',
+    note: 'JUMP THE ROCKS. DOWN TO DUCK THE BRANCHES. SHOOT THE LOGS AND TREES OUT OF THE WAY.',
+  },
   move: {
     how: <><Prompt pad={['DPAD']} kb={['A', 'D']} size={SIZE} label="MOVE" /><span className="mx-2" /><Prompt pad={['A']} kb={['SPACE']} size={SIZE} label="JUMP" /><span className="mx-2" /><Prompt pad={['DPAD']} kb={['S']} size={SIZE} label="DOWN: CROUCH" /></>,
     what: 'GET UP OFF THE BENCH. THERE ARE PENCIL NECKS IN YOUR GYM.',

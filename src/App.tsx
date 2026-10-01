@@ -398,6 +398,7 @@ const App: React.FC = () => {
 
   const handleSelectStage = (stage: string) => {
     if (defeatedStages.includes(stage)) { speakRebuke(stage); return; }
+    setLesson(null);
     setSelectedStage(stage);
     setHealth(INITIAL_PLAYER_HEALTH);
     setPower(POWER_CELLS);
@@ -793,7 +794,7 @@ const App: React.FC = () => {
         {(intro === 'playing' || intro === 'outro') && (
           <IntroCutscene part="pitch" onHandoff={() => { setIntro('outro'); setSelectedIndex(0); setStatus(GameStatus.STAGE_SELECT); }} onDone={() => setIntro('off')} />
         )}
-        {status === GameStatus.PLAYING && selectedStage === GYM_STAGE && <TutorialHint lesson={lesson} />}
+        {status === GameStatus.PLAYING && <TutorialHint lesson={lesson} />}
         {((status === GameStatus.VICTORY && (progressionRank === 0 || callPreview)) || callOutro) && (
           <RadioCutscene onHandoff={() => { setCallOutro(true); finishVictory(); }} onDone={() => setCallOutro(false)} />
         )}
