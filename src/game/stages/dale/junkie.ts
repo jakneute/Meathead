@@ -143,8 +143,8 @@ const GUN_AFTER = 170, GUN_AIM = 36, GUN_SHOTS = 3, GUN_EVERY = 18;
 /** The stash: snorting it, the high, the wall; how long he's seeing stars after. */
 const SNORT = 64, HIGH = 36, DAZED = 130;
 /** Damage to him: his headbutt, kicking him while he's seeing stars; to you: a punch, the throw, his rampage, a bullet. */
-/** (one run at the wall, two quick ones and the big one, is a quarter of him) */
-const HEADBUTT_QUICK = 50, HEADBUTT_BIG = 400, KICK_DAZED = 45;
+/** (one run at the wall is a quarter of him: the two quick ones are just him working up to it, the big one does it all) */
+const HEADBUTT_QUICK = 0, HEADBUTT_BIG = 500, KICK_DAZED = 45;
 /** The headbutts: two quick ones this far apart, then the wind-up for the big one. */
 export const BUTT_QUICK = 18, BUTT_BIG = 60;
 const PUNCH = 7, THROW = 8, RAMPAGE_HIT = 16, BULLET = 8;
@@ -391,10 +391,10 @@ const headbutt = (ctx: FrameContext, m: Enemy, fight: JunkieFight, talk: Talk, d
   const side = m.facing === 1 ? 1 : -1;
   m.health -= dmg;
   m.hitFlash = big ? 14 : 6;
-  fight.hpFlash = big ? 16 : 8;
+  if (dmg > 0) fight.hpFlash = big ? 16 : 8;
   const wx = m.pos.x + W / 2 + side * W / 2, hy = m.pos.y + 16;
   if (big) fight.cracks.push({ side, y: hy - 2 + Math.random() * 10 });
-  fx.spawnDamageNumber({ x: m.pos.x + W / 2, y: m.pos.y - 20 }, dmg, big, '#FF0000');
+  if (dmg > 0) fx.spawnDamageNumber({ x: m.pos.x + W / 2, y: m.pos.y - 20 }, dmg, big, '#FF0000');
   fx.spawnDamageNumber({ x: m.pos.x + W / 2 - 50, y: m.pos.y - (big ? 70 : 44) }, big ? 'HEADBUTT!!!' : 'BONK!', true, big ? '#FACC15' : '#FDE68A');
   fx.spawnDeathShower({ x: wx, y: hy }, -side, big ? 0.8 : 0.2);
   for (let i = 0; i < (big ? 26 : 8); i++) state.particles.push({ pos: { x: wx, y: hy }, vel: { x: -side * Math.random() * (big ? 7 : 4), y: (Math.random() - 0.5) * (big ? 9 : 5) }, life: 30, color: i % 2 ? '#D6D3D1' : '#A8A29E', size: 3 + Math.random() * 4 });
