@@ -312,6 +312,8 @@ export interface Enemy extends Entity {
   fireproofFlash?: number;
   /** Oscar: when the last "IMMUNE!" popped up over him. */
   immunePopFrame?: number;
+  /** A lab test subject overdosed into HYPERMODE: frames it's been on it (0/undefined: not). */
+  hyper?: number;
   isBlownAway?: boolean;
   rotation?: number;
   pauseTimer?: number;

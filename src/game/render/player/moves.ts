@@ -637,3 +637,47 @@ export const drawFlung = (ctx: Ctx, frame: number) => {
   ctx.save(); ctx.translate(-1, -27); ctx.rotate(0.3 * f); head(ctx, 0, 0, 'roar'); ctx.restore();
   arm(ctx, [11, -14], [24, -22 + g * 5], [32, -34 + g * 9], false);
 };
+
+// ---------------------------------------------------------------------------
+// Torn in half (the lab's test subjects, on hypermode)
+// ---------------------------------------------------------------------------
+
+/** The ragged edge where he came apart: meat, a ring of fat, the spine's end, blood running off it. */
+const tornEdge = (ctx: Ctx, y: number, dir: 1 | -1, frame: number) => {
+  ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.moveTo(-14, y);
+  for (let k = 0; k <= 14; k++) ctx.lineTo(-14 + k * 2, y + dir * (2 + ((k * 7) % 5)));
+  ctx.lineTo(14, y); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#DC2626'; ctx.fillRect(-12, y + dir * 1, 24, 2);
+  ctx.fillStyle = '#FDE68A'; ctx.fillRect(-13, y + dir * 0.5, 26, 1);
+  // (the spine, a stub of it)
+  ctx.fillStyle = '#F5F5F4'; ctx.fillRect(-2, y + (dir > 0 ? 0 : -6), 4, 6); ctx.fillStyle = '#D6D3D1'; ctx.fillRect(-2, y + (dir > 0 ? 2 : -4), 4, 1);
+  // (and the drips, running off it)
+  ctx.fillStyle = '#B91C1C';
+  for (let k = 0; k < 4; k++) { const len = 3 + ((frame + k * 5) % 9); ctx.fillRect(-10 + k * 6, y + dir * 3, 1.6, dir * len); }
+};
+
+/** His top half: the torso, the head (mouth wide), the arms going, the guts hanging out of the bottom of it. (0,0) is the tear. */
+export const drawTorsoHalf = (ctx: Ctx, frame: number) => {
+  frameNow = frame;
+  const f = Math.sin(frame * 0.8);
+  arm(ctx, [-9, -22], [-20, -12 + f * 6], [-28, -2 + f * 8], true);
+  // (the guts, in loops)
+  ctx.strokeStyle = '#F9A8D4'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-4, 2); ctx.quadraticCurveTo(-8 + f * 3, 14, 0, 12); ctx.quadraticCurveTo(8, 10, 6 - f * 3, 20); ctx.stroke();
+  ctx.strokeStyle = '#DB2777'; ctx.lineWidth = 1; ctx.stroke();
+  ctx.save(); ctx.beginPath(); ctx.rect(-20, -40, 40, 40); ctx.clip(); torso(ctx); ctx.restore();
+  tornEdge(ctx, 0, 1, frame);
+  ctx.save(); ctx.translate(-1, -37); ctx.rotate(0.2 * f); head(ctx, 0, 0, 'roar'); ctx.restore();
+  arm(ctx, [11, -22], [22, -30 - f * 4], [30, -40 - f * 6], false);
+};
+
+/** His bottom half: the belt and the buckle, the jeans, the boots, still kicking. (0,0) is the tear. */
+export const drawLegsHalf = (ctx: Ctx, frame: number) => {
+  frameNow = frame;
+  const f = Math.sin(frame * 0.7);
+  leg(ctx, [-5, 2], [-9 - f * 4, 18], [-6 - f * 6, 32], 0.2, true);
+  leg(ctx, [5, 2], [9 + f * 4, 17], [8 + f * 7, 31], 0.1, false);
+  ctx.fillStyle = BELT; ctx.fillRect(-14, 0, 28, 6);
+  ctx.fillStyle = BUCKLE; ctx.fillRect(-5, -0.5, 10, 7); ctx.fillStyle = '#451A03'; ctx.fillRect(-2, 1.5, 4, 3);
+  tornEdge(ctx, 0, -1, frame);
+};

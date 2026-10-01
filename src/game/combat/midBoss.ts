@@ -10,7 +10,7 @@
 import type { Enemy, Projectile, WeaponType } from '../../types';
 import { BOULDER_DAMAGE_PER_SPEED, GML_SCALE } from '../../constants';
 
-export const isMidBoss = (e: Enemy) => e.kind === 'moose' || e.kind === 'eye' || e.kind === 'doorman' || e.kind === 'junkie' || e.kind === 'amalgam';
+export const isMidBoss = (e: Enemy) => !!e.hyper || e.kind === 'moose' || e.kind === 'eye' || e.kind === 'doorman' || e.kind === 'junkie' || e.kind === 'amalgam';
 
 /**
  * Per hit on a mid-boss (per pellet for the shotgun, per tick for the flamethrower and the taser):
@@ -65,4 +65,4 @@ export const midBossProjectileDamage = (p: Projectile) => {
 };
 
 /** Damage from something that isn't a shot (the flames, the beam, a splash, a wave), with the doorman's or the distributor's resistance. */
-export const midBossDamage = (e: Enemy, amount: number) => amount * (e.kind === 'doorman' ? DOORMAN_RESIST : e.kind === 'junkie' ? JUNKIE_RESIST : 1);
+export const midBossDamage = (e: Enemy, amount: number) => amount * (e.hyper ? 0 : e.kind === 'doorman' ? DOORMAN_RESIST : e.kind === 'junkie' ? JUNKIE_RESIST : 1);

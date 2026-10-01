@@ -917,7 +917,7 @@
  {
   "voice": "announcer",
   "text": "SEPPUKU!",
-  "from": "game/stages/dale/town.ts:524"
+  "from": "game/stages/dale/town.ts:527"
  },
  {
   "voice": "announcer",
@@ -1142,7 +1142,7 @@
  {
   "voice": "announcer",
   "text": "TIMESHARE: VACANT",
-  "from": "game/stages/dale/town.ts:791"
+  "from": "game/stages/dale/town.ts:811"
  },
  {
   "voice": "announcer",
@@ -1347,17 +1347,17 @@
  {
   "voice": "barry.resident",
   "text": "...I'M OKAY!",
-  "from": "game/stages/barry/dumpster.ts:77"
+  "from": "game/stages/barry/dumpster.ts:85"
  },
  {
   "voice": "barry.resident",
   "text": "OW! GLASS! A FORK! A NEEDLE! ...A WHOLE FISH?!",
-  "from": "game/stages/barry/dumpster.ts:77"
+  "from": "game/stages/barry/dumpster.ts:85"
  },
  {
   "voice": "barry.resident",
   "text": "SHUT UP!",
-  "from": "game/stages/barry/dumpster.ts:77"
+  "from": "game/stages/barry/dumpster.ts:85"
  },
  {
   "voice": "boss.artie",
@@ -3417,32 +3417,32 @@
  {
   "voice": "dale.ninja",
   "text": "THERE IS ONLY ONE WAY TO RESTORE MY HONOR.",
-  "from": "game/stages/dale/town.ts:460"
+  "from": "game/stages/dale/town.ts:463"
  },
  {
   "voice": "dale.ninja",
   "text": "YOU CROSSED THE WHOLE TOWN UNDER MY SIGHTS, AND STILL YOU STAND. I HAVE FAILED MY MASTER.",
-  "from": "game/stages/dale/town.ts:459"
+  "from": "game/stages/dale/town.ts:462"
  },
  {
   "voice": "dale.prisoner",
   "text": "DAN! GIMME THE KEYS! STOP PLAYING! LET ME OUT!",
-  "from": "game/stages/dale/town.ts:648"
+  "from": "game/stages/dale/town.ts:654"
  },
  {
   "voice": "dale.prisoner",
   "text": "HEY! HEY, YOU! THE SHERIFF LOCKED ME IN HERE FOR A PHOTO AN HOUR AGO!",
-  "from": "game/stages/dale/town.ts:542"
+  "from": "game/stages/dale/town.ts:545"
  },
  {
   "voice": "dale.prisoner",
   "text": "I HAVE A TIMESHARE!",
-  "from": "game/stages/dale/town.ts:649"
+  "from": "game/stages/dale/town.ts:655"
  },
  {
   "voice": "dale.prisoner",
   "text": "IS THAT A TRUCK?! SHERIFF DAN?!",
-  "from": "game/stages/dale/town.ts:646"
+  "from": "game/stages/dale/town.ts:652"
  },
  {
   "voice": "dale.riggs",
@@ -3482,7 +3482,7 @@
  {
   "voice": "dale.riggs",
   "text": "ONE BULLET?! IN ONE EAR AND OUT THE OTHER, BABY! NOTHING IN THERE TO HIT!",
-  "from": "game/stages/dale/town.ts:567"
+  "from": "game/stages/dale/town.ts:570"
  },
  {
   "voice": "dale.riggs",
@@ -3502,7 +3502,7 @@
  {
   "voice": "dale.sheriff",
   "text": "NOPE! NOT FOR TEN BUCKS AN HOUR!",
-  "from": "game/stages/dale/town.ts:647"
+  "from": "game/stages/dale/town.ts:653"
  },
  {
   "voice": "death",
@@ -3522,7 +3522,7 @@
  {
   "voice": "death",
   "text": "A JUMP WON'T CLEAR IT. UPPERCUT!",
-  "from": "game/stages/dale/town.ts:629"
+  "from": "game/stages/dale/town.ts:635"
  },
  {
   "voice": "death",
@@ -3892,7 +3892,7 @@
  {
   "voice": "death",
   "text": "CON ED STRIKES AGAIN",
-  "from": "game/stages/barry/runtime.ts:408"
+  "from": "game/stages/barry/runtime.ts:411"
  },
  {
   "voice": "death",
@@ -4046,6 +4046,11 @@
  },
  {
   "voice": "death",
+  "text": "DON'T OVERDOSE THE TEST SUBJECTS",
+  "from": "game/stages/barry/hyper.ts:115"
+ },
+ {
+  "voice": "death",
   "text": "DONE IN BY TINFOIL",
   "from": "content/deaths"
  },
@@ -4057,7 +4062,7 @@
  {
   "voice": "death",
   "text": "DOWN THE HOLE",
-  "from": "game/stages/barry/runtime.ts:408"
+  "from": "game/stages/barry/runtime.ts:411"
  },
  {
   "voice": "death",
@@ -4167,7 +4172,7 @@
  {
   "voice": "death",
   "text": "ELECTRIC BATH",
-  "from": "game/combat/weapons.ts:654"
+  "from": "game/combat/weapons.ts:655"
  },
  {
   "voice": "death",
@@ -4287,7 +4292,7 @@
  {
   "voice": "death",
   "text": "FLATTENED BY A DEAD MAN",
-  "from": "game/stages/dale/town.ts:629"
+  "from": "game/stages/dale/town.ts:635"
  },
  {
   "voice": "death",
@@ -4358,6 +4363,11 @@
   "voice": "death",
   "text": "FOUND THE ROCK",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "FOUR NEEDLES IN A MUTANT WAS THREE TOO MANY",
+  "from": "game/stages/barry/hyper.ts:115"
  },
  {
   "voice": "death",
@@ -4482,7 +4492,7 @@
  {
   "voice": "death",
   "text": "HIT BY A FLYING TOASTER",
-  "from": "game/stages/barry/runtime.ts:413"
+  "from": "game/stages/barry/runtime.ts:416"
  },
  {
   "voice": "death",
@@ -4592,7 +4602,7 @@
  {
   "voice": "death",
   "text": "IT TAKES AN UPPERCUT TO CLEAR IT",
-  "from": "game/stages/dale/town.ts:629"
+  "from": "game/stages/dale/town.ts:635"
  },
  {
   "voice": "death",
@@ -4602,7 +4612,7 @@
  {
   "voice": "death",
   "text": "JUST ANOTHER NEW YORK STATISTIC",
-  "from": "game/stages/barry/runtime.ts:408"
+  "from": "game/stages/barry/runtime.ts:411"
  },
  {
   "voice": "death",
@@ -4757,7 +4767,7 @@
  {
   "voice": "death",
   "text": "LEG DAY MEETS FRONT BUMPER",
-  "from": "game/stages/dale/town.ts:629"
+  "from": "game/stages/dale/town.ts:635"
  },
  {
   "voice": "death",
@@ -4871,13 +4881,18 @@
  },
  {
   "voice": "death",
+  "text": "NEVER DOPE A SCIENCE PROJECT",
+  "from": "game/stages/barry/hyper.ts:115"
+ },
+ {
+  "voice": "death",
   "text": "NEVER SWIM IN A LIGHTNING STORM",
   "from": "game/stages/hector/hazards.ts:221"
  },
  {
   "voice": "death",
   "text": "NEW YORK WELCOMES YOU",
-  "from": "game/stages/barry/runtime.ts:413"
+  "from": "game/stages/barry/runtime.ts:416"
  },
  {
   "voice": "death",
@@ -4902,17 +4917,17 @@
  {
   "voice": "death",
   "text": "NO VISITOR BADGE",
-  "from": "game/stages/barry/runtime.ts:409"
+  "from": "game/stages/barry/runtime.ts:412"
  },
  {
   "voice": "death",
   "text": "NOISE COMPLAINT",
-  "from": "game/stages/barry/dumpster.ts:58"
+  "from": "game/stages/barry/dumpster.ts:62"
  },
  {
   "voice": "death",
   "text": "NOT A JUMP. AN UPPERCUT.",
-  "from": "game/stages/dale/town.ts:629"
+  "from": "game/stages/dale/town.ts:635"
  },
  {
   "voice": "death",
@@ -5292,7 +5307,7 @@
  {
   "voice": "death",
   "text": "RUN OVER BY RIGGS. AGAIN.",
-  "from": "game/stages/dale/town.ts:629"
+  "from": "game/stages/dale/town.ts:635"
  },
  {
   "voice": "death",
@@ -5397,7 +5412,7 @@
  {
   "voice": "death",
   "text": "SHOCKING LACK OF JUDGMENT",
-  "from": "game/combat/weapons.ts:654"
+  "from": "game/combat/weapons.ts:655"
  },
  {
   "voice": "death",
@@ -5522,7 +5537,7 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE UPPERCUT OVER IT",
-  "from": "game/stages/dale/town.ts:629"
+  "from": "game/stages/dale/town.ts:635"
  },
  {
   "voice": "death",
@@ -5552,7 +5567,7 @@
  {
   "voice": "death",
   "text": "SIGNED OUT PERMANENTLY",
-  "from": "game/stages/barry/runtime.ts:409"
+  "from": "game/stages/barry/runtime.ts:412"
  },
  {
   "voice": "death",
@@ -5592,7 +5607,7 @@
  {
   "voice": "death",
   "text": "SLID UNDER A TRUCK. IT HAD WHEELS",
-  "from": "game/stages/dale/town.ts:629"
+  "from": "game/stages/dale/town.ts:635"
  },
  {
   "voice": "death",
@@ -5667,7 +5682,7 @@
  {
   "voice": "death",
   "text": "SPLAT ON FIFTH AVENUE",
-  "from": "game/stages/barry/runtime.ts:413"
+  "from": "game/stages/barry/runtime.ts:416"
  },
  {
   "voice": "death",
@@ -5802,7 +5817,7 @@
  {
   "voice": "death",
   "text": "TASED YOURSELF IN THE POOL",
-  "from": "game/combat/weapons.ts:654"
+  "from": "game/combat/weapons.ts:655"
  },
  {
   "voice": "death",
@@ -5857,7 +5872,7 @@
  {
   "voice": "death",
   "text": "THE CITY THAT NEVER SLEEPS. YOU DO NOW.",
-  "from": "game/stages/barry/runtime.ts:408"
+  "from": "game/stages/barry/runtime.ts:411"
  },
  {
   "voice": "death",
@@ -5992,7 +6007,7 @@
  {
   "voice": "death",
   "text": "THE TRUCK DIDN'T EVEN SLOW DOWN",
-  "from": "game/stages/dale/town.ts:629"
+  "from": "game/stages/dale/town.ts:635"
  },
  {
   "voice": "death",
@@ -6047,7 +6062,7 @@
  {
   "voice": "death",
   "text": "TOOK THE EXPRESS WAY DOWN",
-  "from": "game/stages/barry/runtime.ts:413"
+  "from": "game/stages/barry/runtime.ts:416"
  },
  {
   "voice": "death",
@@ -6157,7 +6172,7 @@
  {
   "voice": "death",
   "text": "WATER CONDUCTS, GENIUS",
-  "from": "game/combat/weapons.ts:654"
+  "from": "game/combat/weapons.ts:655"
  },
  {
   "voice": "death",
@@ -6177,7 +6192,7 @@
  {
   "voice": "death",
   "text": "WINDOW SHOPPING",
-  "from": "game/stages/barry/runtime.ts:413"
+  "from": "game/stages/barry/runtime.ts:416"
  },
  {
   "voice": "death",
@@ -6201,6 +6216,11 @@
  },
  {
   "voice": "death",
+  "text": "YOU GAVE THE LAB EXPERIMENT SUPER STRENGTH",
+  "from": "game/stages/barry/hyper.ts:115"
+ },
+ {
+  "voice": "death",
   "text": "YOU GOT AVALANCHED",
   "from": "game/stages/artie/ski.ts:495"
  },
@@ -6217,12 +6237,12 @@
  {
   "voice": "death",
   "text": "YOU SLIDE-TACKLED A TRUCK. THE TRUCK DID NOT FALL OVER",
-  "from": "game/stages/dale/town.ts:629"
+  "from": "game/stages/dale/town.ts:635"
  },
  {
   "voice": "death",
   "text": "YOU'RE FIRED",
-  "from": "game/stages/barry/runtime.ts:410"
+  "from": "game/stages/barry/runtime.ts:413"
  },
  {
   "voice": "dispatch",
@@ -6852,7 +6872,7 @@
  {
   "voice": "meathead",
   "text": "...I'M OKAY!",
-  "from": "game/stages/barry/dumpster.ts:77"
+  "from": "game/stages/barry/dumpster.ts:85"
  },
  {
   "voice": "meathead",
@@ -6867,7 +6887,7 @@
  {
   "voice": "meathead",
   "text": "...OKAY. SAVES ME A BULLET.",
-  "from": "game/stages/dale/town.ts:525"
+  "from": "game/stages/dale/town.ts:528"
  },
  {
   "voice": "meathead",
@@ -7127,12 +7147,12 @@
  {
   "voice": "meathead",
   "text": "A LITTLE RED DOT ON MY PECS... SNIPER! THE PORCH ROOFS! HE CAN'T SEE ME UNDER THOSE!",
-  "from": "game/stages/dale/town.ts:237"
+  "from": "game/stages/dale/town.ts:240"
  },
  {
   "voice": "meathead",
   "text": "A LOBBY. EVERYBODY IN IT LOOKS LIKE THEY HATE ME ALREADY.",
-  "from": "game/stages/barry/runtime.ts:314"
+  "from": "game/stages/barry/runtime.ts:317"
  },
  {
   "voice": "meathead",
@@ -7352,7 +7372,7 @@
  {
   "voice": "meathead",
   "text": "AN AUTHENTIC OLD WEST TOWN. EST. NINETEEN NINETY FOUR. SURE.",
-  "from": "game/stages/dale/town.ts:229"
+  "from": "game/stages/dale/town.ts:232"
  },
  {
   "voice": "meathead",
@@ -8382,7 +8402,7 @@
  {
   "voice": "meathead",
   "text": "FIFTY EIGHT. FINE. THERE BETTER BE STAIRS.",
-  "from": "game/stages/barry/runtime.ts:325"
+  "from": "game/stages/barry/runtime.ts:328"
  },
  {
   "voice": "meathead",
@@ -8492,7 +8512,7 @@
  {
   "voice": "meathead",
   "text": "FORTY ONE. THE ELEVATOR HATES ME. EVERYTHING IN THIS CITY HATES ME.",
-  "from": "game/stages/barry/runtime.ts:325"
+  "from": "game/stages/barry/runtime.ts:328"
  },
  {
   "voice": "meathead",
@@ -9157,7 +9177,7 @@
  {
   "voice": "meathead",
   "text": "HE JUST DUCKS. CLOSER. GET CLOSER.",
-  "from": "game/stages/dale/town.ts:492"
+  "from": "game/stages/dale/town.ts:495"
  },
  {
   "voice": "meathead",
@@ -9357,7 +9377,7 @@
  {
   "voice": "meathead",
   "text": "HE'S GOT SANDBAGS UP THERE. I NEED TO GET CLOSER.",
-  "from": "game/stages/dale/town.ts:492"
+  "from": "game/stages/dale/town.ts:495"
  },
  {
   "voice": "meathead",
@@ -9617,7 +9637,7 @@
  {
   "voice": "meathead",
   "text": "HOW HIGH DO THESE APARTMENTS EVEN GO?!",
-  "from": "game/stages/barry/runtime.ts:153"
+  "from": "game/stages/barry/runtime.ts:156"
  },
  {
   "voice": "meathead",
@@ -9912,7 +9932,7 @@
  {
   "voice": "meathead",
   "text": "I SHOULD REALLY TAKE OUT THAT SNIPER BEFORE I GO ANY FURTHER.",
-  "from": "game/stages/dale/town.ts:270"
+  "from": "game/stages/dale/town.ts:273"
  },
  {
   "voice": "meathead",
@@ -11122,7 +11142,7 @@
  {
   "voice": "meathead",
   "text": "NOT FROM DOWN HERE. I'VE GOT TO GET UP THERE.",
-  "from": "game/stages/dale/town.ts:492"
+  "from": "game/stages/dale/town.ts:495"
  },
  {
   "voice": "meathead",
@@ -11142,7 +11162,7 @@
  {
   "voice": "meathead",
   "text": "NOT WITH A SNIPER ON MY BACK. HE'S UP THE BELL TOWER.",
-  "from": "game/stages/dale/town.ts:270"
+  "from": "game/stages/dale/town.ts:273"
  },
  {
   "voice": "meathead",
@@ -11157,7 +11177,7 @@
  {
   "voice": "meathead",
   "text": "NOTE TO SELF: SHOOT THE DRIVER AFTER THE TRUCK STOPS.",
-  "from": "game/stages/dale/town.ts:228"
+  "from": "game/stages/dale/town.ts:231"
  },
  {
   "voice": "meathead",
@@ -11372,7 +11392,7 @@
  {
   "voice": "meathead",
   "text": "OW! GLASS! A FORK! A NEEDLE! ...A WHOLE FISH?!",
-  "from": "game/stages/barry/dumpster.ts:77"
+  "from": "game/stages/barry/dumpster.ts:85"
  },
  {
   "voice": "meathead",
@@ -11727,7 +11747,7 @@
  {
   "voice": "meathead",
   "text": "RIGGS, BUDDY... YOUR LIZARD'S GONNA HAVE TO FEND FOR HIMSELF.",
-  "from": "game/stages/dale/town.ts:794"
+  "from": "game/stages/dale/town.ts:814"
  },
  {
   "voice": "meathead",
@@ -11827,7 +11847,7 @@
  {
   "voice": "meathead",
   "text": "ROOF ACCESS. AND THERE GO THE LIGHTS. THE WHOLE CITY. IN WAVES.",
-  "from": "game/stages/barry/runtime.ts:315"
+  "from": "game/stages/barry/runtime.ts:318"
  },
  {
   "voice": "meathead",
@@ -12197,7 +12217,7 @@
  {
   "voice": "meathead",
   "text": "SHUT UP!",
-  "from": "game/stages/barry/dumpster.ts:77"
+  "from": "game/stages/barry/dumpster.ts:85"
  },
  {
   "voice": "meathead",
@@ -12342,7 +12362,7 @@
  {
   "voice": "meathead",
   "text": "SNIPER FIRST. THEN THE DRUGS.",
-  "from": "game/stages/dale/town.ts:270"
+  "from": "game/stages/dale/town.ts:273"
  },
  {
   "voice": "meathead",
@@ -12737,7 +12757,7 @@
  {
   "voice": "meathead",
   "text": "SURF'S UP, DUDES!",
-  "from": "game/stages/barry/runtime.ts:364"
+  "from": "game/stages/barry/runtime.ts:367"
  },
  {
   "voice": "meathead",
@@ -12807,7 +12827,7 @@
  {
   "voice": "meathead",
   "text": "THANKS FOR THE RIDE, BUDDY.",
-  "from": "game/stages/barry/runtime.ts:388"
+  "from": "game/stages/barry/runtime.ts:391"
  },
  {
   "voice": "meathead",
@@ -13257,7 +13277,7 @@
  {
   "voice": "meathead",
   "text": "THE ROOF. FINALLY. ...OH COME ON, THAT ONE'S TALLER.",
-  "from": "game/stages/barry/runtime.ts:153"
+  "from": "game/stages/barry/runtime.ts:156"
  },
  {
   "voice": "meathead",
@@ -13577,7 +13597,7 @@
  {
   "voice": "meathead",
   "text": "TWENTY THREE?! I PRESSED THE TOP ONE!",
-  "from": "game/stages/barry/runtime.ts:325"
+  "from": "game/stages/barry/runtime.ts:328"
  },
  {
   "voice": "meathead",
@@ -13606,8 +13626,13 @@
  },
  {
   "voice": "meathead",
+  "text": "UH OH. THAT ONE WAS ONE TOO MANY.",
+  "from": "game/stages/barry/hyper.ts:68"
+ },
+ {
+  "voice": "meathead",
   "text": "UNDER A PORCH ROOF! THAT'S THE ONLY PLACE HE CAN'T HIT ME!",
-  "from": "game/stages/dale/town.ts:350"
+  "from": "game/stages/dale/town.ts:353"
  },
  {
   "voice": "meathead",
@@ -13887,7 +13912,7 @@
  {
   "voice": "meathead",
   "text": "WHO LIVES UP HERE? BIRDS? RICH BIRDS?",
-  "from": "game/stages/barry/runtime.ts:153"
+  "from": "game/stages/barry/runtime.ts:156"
  },
  {
   "voice": "meathead",
@@ -13997,7 +14022,7 @@
  {
   "voice": "meathead",
   "text": "WHOA-OA-OA-OAAAAAAH!",
-  "from": "game/stages/barry/dumpster.ts:59"
+  "from": "game/stages/barry/dumpster.ts:63"
  },
  {
   "voice": "meathead",

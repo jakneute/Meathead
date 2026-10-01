@@ -25,9 +25,9 @@ game/stages/dale/runtime.ts:175 name: undefined
 game/stages/dale/runtime.ts:180 call: deathByCause(state)
 game/stages/dale/runtime.ts:189 name: undefined
 game/stages/barry/script.ts:77 voice: VOICES[line.who]
-game/stages/barry/runtime.ts:406 name: undefined
-game/stages/barry/runtime.ts:406 call: deathByCause(state)
-game/stages/barry/runtime.ts:415 name: undefined
+game/stages/barry/runtime.ts:409 name: undefined
+game/stages/barry/runtime.ts:409 call: deathByCause(state)
+game/stages/barry/runtime.ts:418 name: undefined
 game/stages/tommy/runtime.ts:175 name: undefined
 game/stages/tommy/runtime.ts:177 call: deathByCause(ctx.state)
 game/stages/tommy/runtime.ts:177 call: bikeDeathMessage(rt.bike)

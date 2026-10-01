@@ -19,6 +19,7 @@ import { shakeScreen } from '../../core/state';
 import { COURSE, CP, Place, placeOf, placeIndex, roomOf, Room } from './course';
 import { Talk, createTalk, updateTalk, hush, queueLines, replaceLines } from './script';
 import { Dumpster, inTheAlley, startDumpster } from './dumpster';
+import type { Rip } from './hyper';
 import { makeTenants } from './climb';
 import { PowerRoom, createPower, enterPower, updatePower } from './power';
 import { ROOM_ZOOM } from './lighting';
@@ -52,6 +53,8 @@ export interface BarryRuntime {
   said: Set<string>;
   /** Down the alley into the dumpster: the death scene playing (see dumpster.ts). */
   dumpster: Dumpster | null;
+  /** A test subject on hypermode got him: torn in half (see hyper.ts). */
+  rip: Rip | null;
 }
 
 export const getBarry = (state: GameState) => state.stage as BarryRuntime | null;
@@ -81,7 +84,7 @@ export const createBarryRuntime = (state: GameState, skipToBoss: boolean): Barry
   if (startedAt <= CP.CLIMB2) state.enemies.push(...makeTenants());
   const rt: BarryRuntime = {
     startedAt, talk: createTalk(), transit: null, power: createPower(), surf: null,
-    barks: [], barked: new Set(), lastBark: -999, said: new Set(), dumpster: null,
+    barks: [], barked: new Set(), lastBark: -999, said: new Set(), dumpster: null, rip: null,
   };
   applyPlaceCamera(state, placeOf(start.x));
   return rt;

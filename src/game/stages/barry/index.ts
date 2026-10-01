@@ -5,6 +5,7 @@
 // drawing into the engine.
 
 import { tickDumpster } from './dumpster';
+import { hitSubject, updateHyper, tickRip, drawRip, drawHyper } from './hyper';
 import type { StageLayout } from '../index';
 import type { Block } from '../../../types';
 import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH } from '../../../constants';
@@ -53,7 +54,7 @@ export const barryLayout: StageLayout = {
   },
   update: (ctx, controls) => updateBarry(ctx, controls),
   // (the dumpster: its clock, its lines and its sounds)
-  deathSceneTick: ctx => { const d = getBarry(ctx.state)?.dumpster; if (d) tickDumpster(ctx, d); },
+  deathSceneTick: ctx => { const rt = getBarry(ctx.state); if (rt?.dumpster) tickDumpster(ctx, rt.dumpster); else if (rt?.rip) tickRip(ctx, rt.rip); },
   deathMessage: ctx => barryDeathMessage(ctx),
   updateSpecialEnemy: (ctx, e) => {
     const rt = getBarry(ctx.state);
@@ -61,10 +62,13 @@ export const barryLayout: StageLayout = {
     if (e.kind === 'tenant') return updateTenant(ctx, e);
     if (e.kind === 'generator') return updateGenerator(ctx, e, rt.power);
     if (e.kind === 'minion') return updateMinion(ctx, e, rt.power);
+    if (e.kind === 'subject' && e.hyper) return updateHyper(ctx, e, rt.rip, r => { rt.rip = r; });
     return undefined;
   },
   hitSpecialEnemy: (ctx, e, p) => {
     if (e.kind === 'tenant') return hitTenant(ctx, e, p);
+    // (a test subject: one dart too many and it's HYPERMODE)
+    if (e.kind === 'subject') return hitSubject(ctx, e, p);
     // (Barry's man isn't for shooting: he's for later)
     if (e.kind === 'minion') return 'miss';
     // (a blown generator's just a wreck: shots go on past it to the next one)
@@ -74,6 +78,7 @@ export const barryLayout: StageLayout = {
   },
   drawSpecialEnemy: (ctx, e, state) => {
     if (e.kind === 'tenant' && (e.aiState === 'fall' || e.aiState === 'splat')) { drawTenantDeath(ctx, e, state.frame); return true; }
+    if (e.kind === 'subject' && e.hyper) { drawHyper(ctx, e, state); return true; }
     const rt = getBarry(state);
     if (e.kind === 'minion' && rt?.power.phase === 'surge') { drawSurgeMinion(ctx, e, state, rt.power); return true; }
     if (e.kind !== 'generator') return false;
@@ -83,7 +88,7 @@ export const barryLayout: StageLayout = {
   },
   drawBack: (ctx, state) => { if (getBarry(state)) drawBarryBack(ctx, state); },
   drawMid: (ctx, state) => { if (getBarry(state)) drawBarryMid(ctx, state); },
-  drawFront: (ctx, state) => { if (getBarry(state)) drawBarryFront(ctx, state); },
+  drawFront: (ctx, state) => { const rt = getBarry(state); if (!rt) return; drawBarryFront(ctx, state); if (rt.rip) drawRip(ctx, state, rt.rip); },
   drawHud: (ctx, state) => { if (getBarry(state)) drawBarryHud(ctx, state); },
   drawBackdrop: (ctx, state) => !!getBarry(state) && drawBarryBackdrop(ctx, state),
   drawBackdropFront: (ctx, state) => !!getBarry(state) && drawBarryWeather(ctx, state),
