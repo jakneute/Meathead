@@ -13,6 +13,7 @@ import { playSound } from '../../platform/audio';
 import { say, MEATHEAD_VOICE, Voice, holdForSpeech } from '../../platform/speech';
 import { COURSE, CP } from './course';
 import { KICK_POSE_FRAMES } from '../../../constants';
+import { Chase, startChase, updateChase, spoutTakesCutter } from './chase';
 
 type BoatPhase = 'waiting' | 'cutscene' | 'riding' | 'spout' | 'gone';
 
@@ -30,9 +31,11 @@ export interface Boat {
   /** The waterspout spinning him up: angle and height gained. */
   spin: number;
   lift: number;
+  /** The Coast Guard after him across the open water (see chase.ts). */
+  chase: Chase | null;
 }
 
-const BOAT_W = 150, RIDE_SPEED = 9;
+const BOAT_W = 150;
 
 export const createBoat = (state: GameState, startedAt: number): Boat => {
   const block: Block = { x: COURSE.boat.x, y: COURSE.boat.y - 18, w: BOAT_W, h: 14, type: 'platform', hidden: true, oneWay: true, tag: 'boat' };
@@ -41,7 +44,7 @@ export const createBoat = (state: GameState, startedAt: number): Boat => {
   return {
     phase: past ? 'gone' : 'waiting', t: 0, quiet: { n: 0 },
     oldMan: { x: COURSE.fisherman.x, y: COURSE.fisherman.y, vx: 0, vy: 0, rot: 0, state: 'fishing', line: '', lineT: 0 },
-    x: COURSE.boat.x, y: COURSE.boat.y, block, speed: 0, spin: 0, lift: 0,
+    x: COURSE.boat.x, y: COURSE.boat.y, block, speed: 0, spin: 0, lift: 0, chase: null,
   };
 };
 
@@ -129,24 +132,31 @@ const cutscene = (ctx: FrameContext, b: Boat): Controls => {
   return c;
 };
 
-/** Flat out across the open water: a little cutscene of its own, him at the wheel. */
-const ride = (ctx: FrameContext, b: Boat, _controls: Controls): Controls => {
+/** Flat out across the open water, him at the wheel, the Coast Guard after him (see chase.ts). */
+const ride = (ctx: FrameContext, b: Boat, controls: Controls): Controls => {
   const { state } = ctx;
-  const { player } = state;
-  player.inCutscene = true;
-  player.invincibilityTimer = Math.max(player.invincibilityTimer, 2);
-  player.facing = 1;
-  player.vel.x = 0;
-  b.speed = Math.min(RIDE_SPEED, b.speed + 0.2);
-  moveBoat(state, b, b.speed, Math.sin(b.t * 0.12) * 0.8);
-  // Spray off the bow
-  if (state.frame % 2 === 0) state.particles.push({ pos: { x: b.x + BOAT_W, y: b.y - 6 }, vel: { x: 2 + Math.random() * 3, y: -2 - Math.random() * 3 }, life: 18, color: '#E0F2FE', size: 3 + Math.random() * 3 });
-  if (b.x + BOAT_W / 2 > COURSE.sea.spoutX - 420) {
+  if (!b.chase) { b.chase = startChase(state, b.x); b.speed = Math.max(b.speed, 4); }
+  // (boarded: the kill camera's playing, and that's that)
+  if (b.chase.caughtT > 0) return { ...NO_CONTROLS };
+  const c = updateChase(ctx, b.chase, b, (dx, y) => moveBoatTo(state, b, dx, y), controls);
+  if (b.x + BOAT_W / 2 > COURSE.sea.spoutX - 420 && b.chase.caughtT === 0) {
+    state.cameraLeadX = 200;
+    state.player.isDucking = false;
     b.phase = 'spout'; b.t = 0;
     meatheadSays(state, 'OH, COME ON.');
     playSound('thunder');
   }
-  return { ...NO_CONTROLS };
+  return c;
+};
+
+/** The boat on, by dx, and its keel at y (riding the swell, or up off it in a hop): him in it, all of it. */
+const moveBoatTo = (state: GameState, b: Boat, dx: number, y: number) => {
+  const { player } = state;
+  b.x += dx; b.y = y;
+  b.block.x = b.x; b.block.y = b.y - 18;
+  player.pos.x += dx;
+  player.pos.y = b.block.y - player.height;
+  player.isGrounded = true;
 };
 
 const moveBoat = (state: GameState, b: Boat, dx: number, dy: number) => {
@@ -166,6 +176,8 @@ const spout = (ctx: FrameContext, b: Boat, onSucked: () => void): Controls => {
   player.inCutscene = true;
   player.invincibilityTimer = Math.max(player.invincibilityTimer, 2);
   const toward = COURSE.sea.spoutX - (b.x + BOAT_W / 2);
+  // (and the cutter in after him)
+  if (b.chase) spoutTakesCutter(b.chase, COURSE.sea.spoutX, b.t);
   if (b.t < 50) {
     moveBoat(state, b, Math.max(2, toward * 0.06), 0);
   } else {

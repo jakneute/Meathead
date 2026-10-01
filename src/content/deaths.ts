@@ -128,6 +128,8 @@ export const DEATH_LINES: Record<string, string[]> = {
   hawk: ['TAKEN BY A HAWK', 'HAWK-EYED AND DEAD'],
   cactus: ['PRICKED TO DEATH', 'HUGGED A CACTUS'],
   conveyor_crate: ['CRATED', 'KILLED BY THE PRODUCT'],
+  // ---- Hector's open water, the Coast Guard after you
+  storm_junk: ['HIT BY FLYING FURNITURE', 'THE HURRICANE THREW A PIANO', 'ACT OF GOD'],
   junkie: ['BEATEN TO A PULP BY A TWEAKER', 'CHUCO SAYS HI'],
   junkie_punch: ['PUNCHED OUT BY A TWEAKER', 'SKINNY ARMS, BIG RESULTS'],
   junkie_throw: ['THROWN OUT OF THE OFFICE', 'TOSSED BY A NINETY-POUND MAN'],

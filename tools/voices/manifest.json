@@ -3526,6 +3526,11 @@
  },
  {
   "voice": "death",
+  "text": "ACT OF GOD",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "AIR CONDITIONED",
   "from": "game/stages/ernie/quake.ts:339"
  },
@@ -3828,6 +3833,11 @@
   "voice": "death",
   "text": "CLOTHESLINED BY A BRANCH",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "COAST GUARDED",
+  "from": "game/stages/hector/chase.ts:233"
  },
  {
   "voice": "death",
@@ -4431,6 +4441,11 @@
  },
  {
   "voice": "death",
+  "text": "HIT BY FLYING FURNITURE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "HIT WITH A FORTY",
   "from": "content/deaths"
  },
@@ -4637,7 +4652,7 @@
  {
   "voice": "death",
   "text": "LAST SEEN AIRBORNE",
-  "from": "game/stages/hector/tower.ts:142"
+  "from": "game/stages/hector/tower.ts:155"
  },
  {
   "voice": "death",
@@ -5592,7 +5607,7 @@
  {
   "voice": "death",
   "text": "SUCKED UP INTO THE STORM",
-  "from": "game/stages/hector/tower.ts:142"
+  "from": "game/stages/hector/tower.ts:155"
  },
  {
   "voice": "death",
@@ -5748,6 +5763,11 @@
   "voice": "death",
   "text": "THE HOLE",
   "from": "game/stages/ernie/index.ts:23"
+ },
+ {
+  "voice": "death",
+  "text": "THE HURRICANE THREW A PIANO",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -6218,6 +6238,61 @@
   "voice": "guide",
   "text": "NAMASTE, PEASANTS!",
   "from": "game/stages/ernie/doorCrash.ts:68"
+ },
+ {
+  "voice": "hector.coastguard",
+  "text": "GET OUT OF THE WATER, IDIOT!",
+  "from": "game/stages/hector/chase.ts:82"
+ },
+ {
+  "voice": "hector.coastguard",
+  "text": "MAYDAY! MAYDAY! COAST GUARD SEVEN-ONE-FOUR! WE ARE IN THE",
+  "from": "game/stages/hector/tower.ts:98"
+ },
+ {
+  "voice": "hector.coastguard",
+  "text": "PREPARE TO BE BOARDED!",
+  "from": "game/stages/hector/chase.ts:82"
+ },
+ {
+  "voice": "hector.coastguard",
+  "text": "PULL OVER! ...THE BOAT! PULL THE BOAT OVER!",
+  "from": "game/stages/hector/chase.ts:82"
+ },
+ {
+  "voice": "hector.coastguard",
+  "text": "SIR. THAT IS A WATERSPOUT.",
+  "from": "game/stages/hector/chase.ts:82"
+ },
+ {
+  "voice": "hector.coastguard",
+  "text": "THAT IS A STOLEN VESSEL!",
+  "from": "game/stages/hector/chase.ts:82"
+ },
+ {
+  "voice": "hector.coastguard",
+  "text": "THERE IS A HURRICANE, GENIUS!",
+  "from": "game/stages/hector/chase.ts:82"
+ },
+ {
+  "voice": "hector.coastguard",
+  "text": "TURN AROUND! NOBODY GOES OUT IN THIS!",
+  "from": "game/stages/hector/chase.ts:82"
+ },
+ {
+  "voice": "hector.coastguard",
+  "text": "WE CAN SEE YOU! WE ARE RIGHT BEHIND YOU!",
+  "from": "game/stages/hector/chase.ts:82"
+ },
+ {
+  "voice": "hector.coastguard",
+  "text": "YOU ARE BEING BOARDED!",
+  "from": "game/stages/hector/chase.ts:245"
+ },
+ {
+  "voice": "hector.coastie",
+  "text": "WE SAID. GET OUT. OF THE WATER.",
+  "from": "game/stages/hector/chase.ts:249"
  },
  {
   "voice": "hector.kid0",
@@ -6851,6 +6926,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A LAWN CHAIR?! THE STORM THREW A LAWN CHAIR AT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "A LITTLE RED DOT ON MY PECS... SNIPER! THE PORCH ROOFS! HE CAN'T SEE ME UNDER THOSE!",
   "from": "game/stages/dale/town.ts:237"
  },
@@ -7427,7 +7507,7 @@
  {
   "voice": "meathead",
   "text": "CATCH YOU LATER.",
-  "from": "game/stages/hector/boat.ts:50"
+  "from": "game/stages/hector/boat.ts:53"
  },
  {
   "voice": "meathead",
@@ -8237,7 +8317,7 @@
  {
   "voice": "meathead",
   "text": "FUCK YEAH! LET'S GO!",
-  "from": "App.tsx:419"
+  "from": "App.tsx:408"
  },
  {
   "voice": "meathead",
@@ -10042,7 +10122,7 @@
  {
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
-  "from": "App.tsx:419"
+  "from": "App.tsx:408"
  },
  {
   "voice": "meathead",
@@ -10177,7 +10257,7 @@
  {
   "voice": "meathead",
   "text": "LET'S FUCKING GO!",
-  "from": "App.tsx:419"
+  "from": "App.tsx:408"
  },
  {
   "voice": "meathead",
@@ -10248,6 +10328,11 @@
   "voice": "meathead",
   "text": "MAKE ME DO WHAT HE DOES, WHEN HE DOES IT! NOT A JUMP!",
   "from": "game/stages/victor/doorman.ts:529"
+ },
+ {
+  "voice": "meathead",
+  "text": "MAKE ME!",
+  "from": "game/stages/hector/chase.ts:85"
  },
  {
   "voice": "meathead",
@@ -10552,7 +10637,7 @@
  {
   "voice": "meathead",
   "text": "NEED YOUR BOAT, GRAMPS.",
-  "from": "game/stages/hector/boat.ts:50"
+  "from": "game/stages/hector/boat.ts:53"
  },
  {
   "voice": "meathead",
@@ -10852,7 +10937,7 @@
  {
   "voice": "meathead",
   "text": "OH HELL YEAH!",
-  "from": "App.tsx:419"
+  "from": "App.tsx:408"
  },
  {
   "voice": "meathead",
@@ -10872,7 +10957,7 @@
  {
   "voice": "meathead",
   "text": "OH, COME ON.",
-  "from": "game/stages/hector/boat.ts:50"
+  "from": "game/stages/hector/boat.ts:53"
  },
  {
   "voice": "meathead",
@@ -12596,6 +12681,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT WAS SOMEBODY'S FRIDGE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT WASN'T ON THE PROGRAM",
   "from": "VULGARITIES"
  },
@@ -12788,6 +12878,11 @@
   "voice": "meathead",
   "text": "THE HIPSTER?! GET YOUR OWN RAMP!",
   "from": "game/stages/ernie/jetski.ts:470"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE HURRICANE'S REDECORATING! ON MY FACE!",
+  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
@@ -13506,6 +13601,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHO OWNS A PIANO IN MIAMI?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "WHO PARKED IN THE BAY?!",
   "from": "HAZARD_HURT"
  },
@@ -14022,22 +14122,22 @@
  {
   "voice": "oldman",
   "text": "...STILL BITIN'.",
-  "from": "game/stages/hector/boat.ts:58"
+  "from": "game/stages/hector/boat.ts:61"
  },
  {
   "voice": "oldman",
   "text": "BITIN' LIKE CRAZY TODAY.",
-  "from": "game/stages/hector/boat.ts:58"
+  "from": "game/stages/hector/boat.ts:61"
  },
  {
   "voice": "oldman",
   "text": "IN THIS WEATHER? YOU'LL GET KILLED OUT THERE!",
-  "from": "game/stages/hector/boat.ts:58"
+  "from": "game/stages/hector/boat.ts:61"
  },
  {
   "voice": "oldman",
   "text": "WHOOAAA!",
-  "from": "game/stages/hector/boat.ts:58"
+  "from": "game/stages/hector/boat.ts:61"
  },
  {
   "voice": "oscar.biker",

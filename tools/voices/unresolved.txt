@@ -32,7 +32,6 @@ game/stages/tommy/runtime.ts:177 call: deathByCause(ctx.state)
 game/stages/tommy/runtime.ts:177 call: bikeDeathMessage(rt.bike)
 game/stages/tommy/runtime.ts:177 call: thingDeathMessage(rt.thing)
 game/stages/tommy/runtime.ts:177 call: escapeDeathMessage(rt.escape)
-game/stages/tommy/escape.ts:277 name: undefined
 game/stages/tommy/thing.ts:170 voice: talk
 game/stages/tommy/thing.ts:193 voice: talk
 game/stages/tommy/thing.ts:206 voice: talk
@@ -46,6 +45,7 @@ game/stages/tommy/thing.ts:206 expr: th.asks + state.frame
 game/stages/tommy/thing.ts:324 expr: th.asks + state.frame
 game/stages/tommy/bike.ts:558 name: undefined
 game/stages/tommy/script.ts:81 voice: VOICES[line.who]
+game/stages/tommy/escape.ts:277 name: undefined
 game/stages/oscar/bunker.ts:249 template: `${NUMBERS[left] ?? left} MINUTE${left === 1 ? '' : 'S'} LEFT, FELLAS. SAVOR IT.`
 game/stages/oscar/runtime.ts:167 name: undefined
 game/stages/oscar/runtime.ts:170 call: deathByCause(ctx.state)
@@ -61,6 +61,6 @@ game/core/update.ts:487 name: undefined
 game/core/update.ts:487 call: deathByCause(state)
 game/core/update.ts:487 call: deathFallback(state, ctx.stageId, fell)
 game/player/player.ts:69 call: message()
-App.tsx:193 voice: getBossVoice(selectedStage)
-App.tsx:350 name: undefined
-App.tsx:351 expr: null
+App.tsx:188 voice: getBossVoice(selectedStage)
+App.tsx:345 name: undefined
+App.tsx:346 expr: null

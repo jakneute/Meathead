@@ -2,6 +2,7 @@
 // into the game state and hooks its set pieces, hazards, the Eye and its
 // drawing into the engine.
 
+import { tickBoarded } from './chase';
 import type { StageLayout } from '../index';
 import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH } from '../../../constants';
 import { groundBlocks } from '../../core/terrain';
@@ -55,6 +56,8 @@ export const hectorLayout: StageLayout = {
     }
   },
   update: (ctx, controls) => updateHector(ctx, controls),
+  // (boarded by the Coast Guard: the kill camera's beats)
+  deathSceneTick: ctx => { const c = getHector(ctx.state)?.boat.chase; if (c?.caughtT) tickBoarded(ctx, c); },
   deathMessage: ctx => { const rt = getHector(ctx.state); return rt ? hazardDeathMessage(ctx.state, rt.hazards) : undefined; },
   updateSpecialEnemy: (ctx, e) => {
     const rt = getHector(ctx.state);

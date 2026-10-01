@@ -15,6 +15,11 @@ import { playSound } from '../../platform/audio';
 import { shakeScreen } from '../../core/state';
 import { killPlayer } from '../../player/player';
 import { COURSE, CP } from './course';
+import { say, cutVoice, Voice } from '../../platform/speech';
+import { DEMISE_FRAMES, DEMISE_SMASH } from './chaseDraw';
+
+/** The Coast Guard skipper, on the radio, going up the storm. */
+const COAST_GUARD_RADIO: Voice = { id: 'hector.coastguard', pitch: 0.9, rate: 1.0 };
 
 export interface TowerRun {
   /** Each platform's three copies (a lap left, here, a lap right), and where it's got to round the lap. */
@@ -27,6 +32,8 @@ export interface TowerRun {
   inT: number;
   /** Frames of him being ripped away by the storm (0 = not). */
   suckT: number;
+  /** The Coast Guard up the storm after him (frames of it; 0 = not, or over: see drawCutterDemise). */
+  cgT: number;
 }
 
 /** The storm rising under you: its speed, how much faster it comes if it's far behind, and how far behind that is. */
@@ -53,7 +60,7 @@ export const createTowerRun = (state: GameState, startedAt: number): TowerRun =>
     for (const s of T.sharks) state.enemies.push(makeKindEnemy('shark', T.x0 + s.u, s.y));
     T.pickups.forEach((p, i) => state.pickups.push({ id: `tower-pickup-${i}`, pos: { x: T.x0 + p.u - 10, y: p.y - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: p.type, life: 1e9 }));
   }
-  return { copies, u: T.plats.map(p => p.u), exitT: 0, riseY: T.floorY + RISE_START, inT: 0, suckT: 0 };
+  return { copies, u: T.plats.map(p => p.u), exitT: 0, riseY: T.floorY + RISE_START, inT: 0, suckT: 0, cgT: 0 };
 };
 
 /** Shift everything in the tower a lap sideways (walking off one side of the lap onto the other). */
@@ -85,6 +92,12 @@ export const updateTower = (ctx: FrameContext, tr: TowerRun, onTop: () => void) 
     if (tr.exitT === 26) onTop();
   }
   if (!inTower(player.pos.x)) return;
+  // The Coast Guard, up the storm after him: the mayday, cut off by the house it meets
+  if (tr.cgT > 0 && tr.cgT <= DEMISE_FRAMES) {
+    tr.cgT++;
+    if (tr.cgT === 20) say('MAYDAY! MAYDAY! COAST GUARD SEVEN-ONE-FOUR! WE ARE IN THE', COAST_GUARD_RADIO, 'urgent', { onShow: () => {}, onHide: () => {}, always: true });
+    if (tr.cgT === DEMISE_SMASH) { cutVoice('hector.coastguard'); playSound('crash'); playSound('boom'); playSound('clang', 1, -8); shakeScreen(state, 26, 8); }
+  }
   // Round the lap
   const cx = player.pos.x + player.width / 2;
   if (cx < T.x0) shiftLap(state, T.circumference);

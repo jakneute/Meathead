@@ -113,7 +113,7 @@ export const updateHector = (ctx: FrameContext, controls: Controls): Controls =>
     }
   }
   updateHazards(ctx, rt.hazards, region === 'main' && rt.beach.storm > 0.6);
-  controls = updateBoat(ctx, rt.boat, controls, () => enterTower(state));
+  controls = updateBoat(ctx, rt.boat, controls, () => { enterTower(state); rt.tower.cgT = 1; });
   updateTower(ctx, rt.tower, () => enterEye(state));
   updateEyeFight(ctx, rt.eye, () => { rt.clearT = 1; });
   // (the news: watch it all, or skip the lot)

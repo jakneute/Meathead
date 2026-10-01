@@ -2,6 +2,7 @@
 // storm), the ground (sand, road, boardwalk, lawn) and the sea, the scenery
 // (umbrellas, motels, signs, boats), the platforms, the hazards and the HUD.
 
+import { drawChaseWorld, drawChaseHud, drawBoarded, drawCutterDemise } from './chaseDraw';
 import type { GameState } from '../../core/state';
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../../../constants';
 import { drawBackdrop, drawBackdropFront } from '../../render/backdrops';
@@ -141,6 +142,7 @@ export const drawHectorMid = (ctx: Ctx, state: GameState) => {
   }
   for (const d of rt.hazards.debris) if (d.warn <= 0) drawDebris(ctx, d.x, d.y, d.rot, d.look, d.size);
   drawPoliceCruiser(ctx, state, rt);
+  if (rt.boat.chase && rt.boat.phase !== 'gone') drawChaseWorld(ctx, state, rt.boat.chase);
   drawBoatScene(ctx, state, rt.boat);
 };
 
@@ -205,6 +207,11 @@ const drawRisingStorm = (ctx: Ctx, state: GameState, top: number) => {
 
 export const drawHectorHud = (ctx: Ctx, state: GameState) => {
   const rt = getHector(state)!;
+  // The Coast Guard: how close it is; boarded, the kill camera over everything; up the storm, not making it
+  const ch = rt.boat.chase;
+  if (ch && rt.boat.phase === 'riding' && !ch.caughtT) drawChaseHud(ctx, state, ch, rt.boat.x);
+  if (ch && ch.caughtT && state.deathTimer > 0) { drawBoarded(ctx, ch); return; }
+  if (regionOf(state.camera.x + 400) === 'tower') drawCutterDemise(ctx, rt.tower.cgT, state.frame);
   const b = rt.beach;
   ctx.save();
   ctx.textAlign = 'center';
