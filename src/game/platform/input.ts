@@ -9,8 +9,8 @@ export interface Controls {
   jump: boolean;
   special: boolean;
   shoot: boolean;
-  /** Y on the pad, F on the keyboard: with the oil rocket launcher out, the flamethrower (to light what it's slicked); with anything else, nothing. */
-  flame?: boolean;
+  /** Y on the pad, F on the keyboard: secondary fire, for the weapons that have one (see SECONDARY in player.ts). */
+  secondary?: boolean;
   /** Shift on the keyboard: the shoulder charge and nothing else (no slide, uppercut or dive kick, whatever direction's held). */
   charge?: boolean;
 }
@@ -110,7 +110,7 @@ export const readControls = (kb: KeyboardMouseState): Controls => {
     special: kb.rightMouseDown || uppercutKey || diveKey || padSpecial,
     charge: k('shift', 'shiftleft', 'shiftright'),
     shoot: kb.mouseDown || padShoot || k('x', 'keyx', 'k', 'keyk'),
-    flame: padFlame || k('f', 'keyf'),
+    secondary: padFlame || k('f', 'keyf'),
   };
 };
 

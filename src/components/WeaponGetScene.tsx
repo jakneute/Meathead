@@ -478,7 +478,7 @@ const FlameCallout = () => {
       style={{ background: 'rgba(0,0,0,0.6)', border: '2px solid #F97316', boxShadow: '3px 3px 0 #000' }}>
       <div className="animate-pulse">{pad ? <PadButton label="Y" /> : <KeyCap label="F" />}</div>
       <div className="text-[8px] leading-[14px] text-white uppercase">
-        <div className="text-orange-400">FLAMETHROWER, NO SWITCHING</div>
+        <div className="text-orange-400">SECONDARY FIRE: A FLAMETHROWER, NO SWITCHING</div>
         <div className="text-white/80">SLICK 'EM WITH OIL. THEN LIGHT 'EM UP.</div>
       </div>
     </div>

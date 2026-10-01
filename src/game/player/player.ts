@@ -28,11 +28,19 @@ import { isStandingInOil } from '../bosses/oscar';
 import { getBossDef, getArenaRight } from '../bosses/registry';
 import { getStageLeft } from '../stages';
 
+/**
+ * Secondary fire (Y on the pad, F on the keyboard), by the weapon in his hands: what it does instead. Only the oil
+ * rocket launcher has one so far (its flamethrower, to light what it's slicked); more to come.
+ */
+export const SECONDARY: Partial<Record<WeaponType, 'FLAMETHROWER'>> = {
+  OIL_ROCKET: 'FLAMETHROWER',
+};
+
 export interface FrameInput {
   shoot: boolean;
   shootPressed: boolean;
-  /** The flamethrower, with the oil rocket launcher in hand (see Controls.flame). */
-  flame?: boolean;
+  /** Secondary fire, held (see SECONDARY: only for a weapon that has one). */
+  secondary?: boolean;
   moveLeft: boolean;
   moveRight: boolean;
   moveUp: boolean;
@@ -99,8 +107,8 @@ export const gateControls = (ctx: FrameContext, c: Controls): FrameInput => {
   const jumpPressed = c.jump && !player.jumpHeldLastFrame;
   const specialHeld = c.special || !!c.charge;
   const specialPressed = specialHeld && !player.specialHeldLastFrame;
-  // (the flame button only does anything with the oil rocket launcher in his hands: then it's the flamethrower)
-  const oilOut = ctx.currentWeapon === 'OIL_ROCKET';
+  // (secondary fire only does anything with a weapon that has one in his hands)
+  const hasSecondary = !!SECONDARY[ctx.currentWeapon];
   const shootHeld = c.shoot;
   const shootPressed = shootHeld && !player.shootHeldLastFrame;
   player.jumpHeldLastFrame = c.jump;
@@ -116,7 +124,7 @@ export const gateControls = (ctx: FrameContext, c: Controls): FrameInput => {
   const shoot = (act || grit) && shootHeld;
   return {
     shoot,
-    flame: act && oilOut && !!c.flame,
+    secondary: act && hasSecondary && !!c.secondary,
     shootPressed: (act || grit) && shootPressed,
     moveLeft: canSteer && c.left,
     moveRight: canSteer && c.right,
@@ -208,8 +216,9 @@ export const updatePlayerActions = (ctx: FrameContext, input: FrameInput) => {
   player.currentWeapon = currentWeapon;
   // Mid shoulder charge, uppercut or divekick his hands are busy: no shooting (a slide tackle's fine, gun out front)
   if (armsBusy(player)) input = { ...input, shoot: false, shootPressed: false };
-  // With the oil rocket launcher out, the flame button's the flamethrower (if he's got it), so he can light what he's slicked
-  const altFlame = !!input.flame && !input.shoot && !armsBusy(player) && (state.availableWeapons?.includes('FLAMETHROWER') ?? false);
+  // Secondary fire: with the oil rocket launcher out, the flamethrower (if he's got it), so he can light what he's slicked
+  const secondary = !!input.secondary && !input.shoot && !armsBusy(player) ? SECONDARY[currentWeapon] : undefined;
+  const altFlame = secondary === 'FLAMETHROWER' && (state.availableWeapons?.includes('FLAMETHROWER') ?? false);
   // (it's an igniter, not the flamethrower proper: shorter, and a lot weaker)
   if (altFlame) updateFlamethrower({ ...ctx, currentWeapon: 'FLAMETHROWER' }, { ...input, shoot: true }, true);
   else updateFlamethrower(ctx, input);
@@ -395,7 +404,7 @@ const updateCrouch = (ctx: FrameContext, input: FrameInput) => {
   // included; a slide that bounced off something keeps him down, though)
   if (!player.isGrounded || player.vel.y < 0) { if (!player.slideRecoil) player.isDucking = false; return; }
   // Holding fire with the flamethrower keeps you standing (down aims the stream instead)
-  const isFlamethrowing = (ctx.currentWeapon === 'FLAMETHROWER' && input.shoot) || !!input.flame;
+  const isFlamethrowing = (ctx.currentWeapon === 'FLAMETHROWER' && input.shoot) || (!!input.secondary && SECONDARY[ctx.currentWeapon] === 'FLAMETHROWER');
   // Bouncing back off an enemy mid-slide keeps him down, until down is let go
   if (!input.moveDown) player.slideRecoil = false;
   const lockAllowsCrouch = player.lockTimer <= 0 || !!player.slideRecoil;
