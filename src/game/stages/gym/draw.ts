@@ -27,7 +27,7 @@ export const drawGymBack = (ctx: Ctx, state: GameState) => {
   if (!rt) return;
   const x1 = Math.max(COURSE.x1, state.camera.x - 20), x2 = Math.min(COURSE.x2 + 200, state.camera.x + CANVAS_WIDTH + 20);
   drawWall(ctx, state, x1, x2);
-  for (const p of COURSE.props) if (inView(state, p.x - 120, p.x + 120)) drawProp(ctx, state, p);
+  for (const p of COURSE.props) { const [a, b] = propSpan(p); if (inView(state, a, b)) drawProp(ctx, state, p); }
   drawDoors(ctx, state, rt);
 };
 
@@ -59,7 +59,7 @@ const drawWall = (ctx: Ctx, state: GameState, x1: number, x2: number) => {
   // (the rubber floor's skirting)
   ctx.fillStyle = '#111'; ctx.fillRect(x1, Y - 8, x2 - x1, 8);
   // (the tube lights, one flickering)
-  for (let x = Math.floor(x1 / 320) * 320 + 100; x < x2; x += 320) {
+  for (let x = Math.floor(x1 / 320) * 320 - 220; x < x2 + 90; x += 320) {
     const flicker = (x / 320) % 5 === 2 && hash(Math.floor(f / 5) + x) > 0.85;
     ctx.fillStyle = '#3F3F46'; ctx.fillRect(x - 4, 62, 2, 18); ctx.fillRect(x + 82, 62, 2, 18);
     ctx.fillStyle = flicker ? '#71717A' : '#FEFCE8'; ctx.fillRect(x - 8, 80, 96, 6);
@@ -70,6 +70,10 @@ const drawWall = (ctx: Ctx, state: GameState, x1: number, x2: number) => {
     }
   }
 };
+
+/** How far a prop reaches either side of its x (a mirror or a window hangs off to the right of it; the rest are about it). */
+const propSpan = (p: Prop): [number, number] =>
+  p.look === 'mirror' ? [p.x - 4, p.x + 304] : p.look === 'window' ? [p.x - 4, p.x + 124] : p.look === 'poster' ? [p.x - 160, p.x + 160] : [p.x - 90, p.x + 90];
 
 const drawProp = (ctx: Ctx, state: GameState, p: Prop) => {
   const { x, y } = p;
@@ -177,7 +181,8 @@ const drawProp = (ctx: Ctx, state: GameState, p: Prop) => {
 /** The locker room's double doors at the end: swing doors, porthole windows, LOCKER ROOM over them; light beyond when they open. */
 const drawDoors = (ctx: Ctx, state: GameState, rt: GymRuntime) => {
   const x = COURSE.doors;
-  if (!inView(state, x - 40, x + 120)) return;
+  // (its light spills 300 out across the floor in front of it)
+  if (!inView(state, x - 300, x + 150)) return;
   const top = Y - 150, w = 70;
   ctx.fillStyle = '#18181B'; ctx.fillRect(x - 8, top - 30, w * 2 + 16, 182);
   ctx.fillStyle = '#FEF3C7'; ctx.fillRect(x, top, w * 2, 150); // (the light in there)
