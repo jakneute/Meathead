@@ -1,7 +1,8 @@
 // Out on the open water in the stolen boat, with the Coast Guard after him ("GET OUT OF THE WATER, IDIOT"). The
 // hurricane throws whatever it's picked up at him, and each thing wants one of four answers: junk floating in the swell
 // (jump the boat over it), junk whirling over the water at about the height a jump would take him (don't jump), and junk
-// coming down out of the sky, its shadow on the water ahead (slow down, or speed up, to get out from under it). Every
+// coming down out of the sky, a mark on the water by the boat where it'll land if he keeps going as he is: on the
+// back of the boat, speed up out from under it; on the front, ease off and let it go down ahead of him. Every
 // hit slows him (it doesn't hurt much) and lets the cutter close in (the bar fills): that's the danger; every one he
 // gets past, it drops back a little (it drains). Nothing says which is which: he works it out. Let it catch him and
 // they board him and beat him to death in his own boat (the kill camera: see chaseDraw.ts). Get to the waterspout and it takes him, and
@@ -44,8 +45,9 @@ export interface Junk {
 export interface Chase {
   /** Frames into it. */
   t: number;
-  /** Where the boat is (for drawing the hints: the stern, world x). */
+  /** Where the boat is (for drawing the hints: the stern, world x), and how fast it's going. */
   boatX: number;
+  boatSpeed: number;
   /** The cutter's bow (world x), how far back it's held (the meter), and its bob. */
   cgX: number;
   gap: number;
@@ -85,14 +87,17 @@ const CG_PASS = 55, CG_RELIEF_RATE = 1.2;
 const CG_BOARD = 60;
 const HOP_V = -10.5, HOP_G = 0.55;
 /** How long the shadow's on the water before what's coming down lands (time to get out from under it). */
-const DROP_WARN = 95;
+export const DROP_WARN = 66;
 /** How far to the right of its shadow it is, a frame out (it comes down at a slant). */
 const DROP_DRIFT = 3.5;
+/** How far off the middle of the boat it's aimed (if he keeps going as he is): onto its front half, or its back half. */
+const DROP_OFF = 48;
+/** Where something coming down will land, from the middle of the boat, if he keeps going as he is now (for its mark
+ * on the water: it slides back along the boat as he speeds up, forward as he eases off; it's exact when it lands). */
+export const dropAhead = (c: Chase, j: Junk) => (j.tx ?? j.x) - (c.boatX + CHASE_BOAT_W / 2 + c.boatSpeed * Math.max(0, j.warn));
 /** Frames out from landing that something coming down can already hit him (it's in among him by then). */
 const DROP_LIVE = 7;
 
-/** Where the middle of the boat'll be `n` frames on from `x` at `v`, hands off (settling back to cruising). */
-const coast = (x: number, v: number, n: number) => { for (let i = 0; i < n; i++) { v += (BOAT_BASE - v) * 0.08; x += v; } return x; };
 /** A hit: how long he's knocked about, and what it costs him (not much: what it costs him is the cutter closing). */
 const HIT_FRAMES = 40, HIT_DAMAGE = 3;
 /** After a hit, how long before the next can land (short: two at once is two). */
@@ -102,7 +107,7 @@ const FLYER_VX = -4.5;
 export const CHASE_BOAT_W = 150;
 
 export const createChase = (): Chase => ({
-  t: 0, boatX: 0, cgX: 0, gap: CG_START, hopY: 0, hopV: 0, jumpHeld: true, relief: 0, crash: 0, junk: [], nextJunkX: 0,
+  t: 0, boatX: 0, boatSpeed: 0, cgX: 0, gap: CG_START, hopY: 0, hopV: 0, jumpHeld: true, relief: 0, crash: 0, junk: [], nextJunkX: 0,
   lineAt: 0, said: new Set(), hail: '', hailT: 0, caughtT: 0, quiet: { n: 0 }, cgSpin: 0, cgLift: 0, wreckT: 0,
 });
 
@@ -161,6 +166,7 @@ export const updateChase = (ctx: FrameContext, c: Chase, b: { x: number; y: numb
   const { player } = state;
   c.t++;
   c.boatX = b.x;
+  c.boatSpeed = b.speed;
   if (c.hailT > 0) c.hailT--;
   player.inCutscene = true;
   player.facing = 1;
@@ -202,7 +208,8 @@ export const updateChase = (ctx: FrameContext, c: Chase, b: { x: number; y: numb
       // (aimed where he'll be if he lets go of everything: a touch ahead, so easing off gets him out from under it, or a
       // touch behind, so it's opening it up; going flat out already, it's the one he can still do, and the same backed off)
       const way = b.speed > BOAT_BASE + 1 ? 'slow' : b.speed < BOAT_BASE - 1 ? 'fast' : Math.random() < 0.5 ? 'slow' : 'fast';
-      const at = coast(b.x + CHASE_BOAT_W / 2, b.speed, DROP_WARN + 6) + (way === 'slow' ? 50 : -50);
+      // (on the back of the boat if he keeps on as he is: speed up out from under it; on the front: ease off)
+      const at = b.x + CHASE_BOAT_W / 2 + b.speed * DROP_WARN + (way === 'slow' ? DROP_OFF : -DROP_OFF);
       c.junk.push({ kind, look, x: at + DROP_WARN * DROP_DRIFT, y: state.camera.y - 120, vx: 0, vy: 0, rot: 0, warn: DROP_WARN, tx: at, hit: false });
       playSound('whoosh', 0.5, -6);
       // (further out, more and more often, something on the water with it as it comes down: jump it, or don't, while

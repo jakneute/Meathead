@@ -4,7 +4,7 @@
 
 import type { GameState } from '../../core/state';
 import type { Chase, Junk } from './chase';
-import { junkSize, CHASE_BOAT_W, BOARD_LEAP, BOARD_BEAT, BOARD_LINE, BLOW, WRECK_BLAST } from './chase';
+import { junkSize, CHASE_BOAT_W, BOARD_LEAP, BOARD_BEAT, BOARD_LINE, BLOW, WRECK_BLAST, dropAhead, DROP_WARN } from './chase';
 import { drawSeatedAtMotor, drawFlung } from '../../render/player/moves';
 import { inputDevice, padFamily } from '../../platform/device';
 import { COURSE } from './course';
@@ -191,15 +191,28 @@ export const drawWreck = (ctx: Ctx, state: GameState, c: Chase, bx: number, by: 
   }
 };
 
-/** In the world, behind and around him: the junk (and the shadows of what's coming down), the cutter after him. */
-export const drawChaseWorld = (ctx: Ctx, state: GameState, c: Chase) => {
-  // The shadows of what's coming down, darkening on the water as it gets closer
+/**
+ * Where what's coming down will land, if he keeps going as he is: over the boat (it's drawn over it), a ring on the
+ * water and a column of red light up from it, the way the lightning gives itself away on the beach, filling in as it
+ * comes; it slides back along the boat as he speeds up and forward as he eases off, and it's exact when it lands.
+ */
+export const drawDropMarks = (ctx: Ctx, state: GameState, c: Chase) => {
   for (const j of c.junk) {
     if (j.kind !== 'drop' || j.warn <= 0) continue;
-    const k = 1 - j.warn / 95;
-    ctx.fillStyle = `rgba(2, 6, 23, ${0.2 + k * 0.5})`;
-    ctx.beginPath(); ctx.ellipse(j.tx ?? j.x, COURSE.sea.y + 2, 20 + k * 30, 4 + k * 3, 0, 0, Math.PI * 2); ctx.fill();
+    const k = 1 - j.warn / DROP_WARN;
+    const mx = c.boatX + CHASE_BOAT_W / 2 + dropAhead(c, j), my = COURSE.sea.y + 2;
+    const blink = 0.55 + 0.45 * Math.abs(Math.floor(j.warn / 4) % 2);
+    ctx.save();
+    ctx.fillStyle = `rgba(239, 68, 68, ${(0.1 + k * 0.25) * blink})`; ctx.fillRect(mx - 22, my - 260 * k, 44, 260 * k);
+    ctx.strokeStyle = `rgba(248, 113, 113, ${0.6 + 0.4 * blink})`; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.ellipse(mx, my, 32 - k * 8, 8 - k * 2, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = `rgba(2, 6, 23, ${0.2 + k * 0.45})`; ctx.beginPath(); ctx.ellipse(mx, my, 18 + k * 10, 4 + k * 2, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
   }
+};
+
+/** In the world, behind and around him: the junk, the cutter after him (the marks for what's coming down go over the boat: drawDropMarks). */
+export const drawChaseWorld = (ctx: Ctx, state: GameState, c: Chase) => {
   for (const j of c.junk) drawJunk(ctx, j);
   // The cutter (on the water, or up the spout after him)
   const y = COURSE.boat.y + Math.sin(state.frame * 0.1) * 2 - c.cgLift;

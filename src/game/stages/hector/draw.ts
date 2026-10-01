@@ -2,7 +2,7 @@
 // storm), the ground (sand, road, boardwalk, lawn) and the sea, the scenery
 // (umbrellas, motels, signs, boats), the platforms, the hazards and the HUD.
 
-import { drawChaseWorld, drawChaseHud, drawBoarded, drawCutterDemise } from './chaseDraw';
+import { drawChaseWorld, drawDropMarks, drawChaseHud, drawBoarded, drawCutterDemise } from './chaseDraw';
 import type { GameState } from '../../core/state';
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../../../constants';
 import { drawBackdrop, drawBackdropFront } from '../../render/backdrops';
@@ -144,6 +144,7 @@ export const drawHectorMid = (ctx: Ctx, state: GameState) => {
   drawPoliceCruiser(ctx, state, rt);
   if (rt.boat.chase && rt.boat.phase !== 'gone') drawChaseWorld(ctx, state, rt.boat.chase);
   drawBoatScene(ctx, state, rt.boat);
+  if (rt.boat.chase && rt.boat.phase === 'riding') drawDropMarks(ctx, state, rt.boat.chase);
 };
 
 export const drawHectorFront = (ctx: Ctx, state: GameState) => {
