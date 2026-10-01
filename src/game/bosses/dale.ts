@@ -31,7 +31,6 @@ const PUDDLE_TICK_FRAMES = 30;       // standing in sludge: a small hit this oft
 const PUDDLE_TICK_DAMAGE = 4;        // ...of this much
 const CRASH_DAMAGE = 150;            // his own truck, tires blown, plowing into him
 const CRASH_REST_FRAMES = 180;
-const BLOWOUT_MIN_DISTANCE = 220;   // a puddle has to be at least this far in front of Dale to blow the tires
 
 type Shipment = NonNullable<Enemy['shipmentType']>;
 const SHIPMENTS: Shipment[] = ['cocaine', 'speed', 'meth'];
@@ -69,10 +68,10 @@ const driveTruck = (ctx: FrameContext, boss: Enemy) => {
   const hits = (e: { pos: { x: number, y: number }, width: number, height: number }) =>
     e.pos.x < truck.x + truck.w && e.pos.x + e.width > truck.x && e.pos.y < truck.y + truck.h && e.pos.y + e.height > truck.y;
 
-  // Driving over Meathead's sludge early on blows the tires out; it careens on into Dale.
-  // Puddles close to Dale are too late: the truck just rolls through them.
+  // Driving over Meathead's sludge blows the tires out: it careens on into Dale. Any puddle in its way does it, so long as
+  // it isn't the one under Dale himself (that one he's stood in: the truck just rolls through it to him)
   if (!boss.truckCrashing) {
-    const blowoutZoneEnd = boss.pos.x - BLOWOUT_MIN_DISTANCE;
+    const blowoutZoneEnd = boss.pos.x;
     const puddle = state.projectiles.find(p => p.owner === 'player' && p.isSludge && p.isLingering && (p.life || 0) > 0 &&
       p.pos.x + p.width <= blowoutZoneEnd && p.pos.x < truck.x + truck.w && p.pos.x + p.width > truck.x);
     if (puddle) blowOutTires(ctx, boss, puddle);
