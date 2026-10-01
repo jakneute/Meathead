@@ -1,3 +1,4 @@
+import { spared } from '../enemies/enemies';
 import { Vector2, PickupType, VulgarityType, Enemy } from '../../types';
 import {
   PARTICLE_PALETTES, BOULDER_SHRAPNEL_DAMAGE, VULGARITY_TEXT_DURATION, VOICE_LINE_COOLDOWN_FRAMES, SPOKEN_TEXT_HOLD, SPOKEN_TEXT_LINGER, isRangeStage } from '../../constants';
@@ -308,6 +309,8 @@ export const createFx = (state: GameState) => {
 
   /** A non-boss kill with its own death animation in place of the usual gore burst. */
   const killWithAnimation = (e: Enemy, kind: EnemyDeathKind, category: VulgarityType, callout?: KillCallout, vel?: Vector2) => {
+    // (never been on the screen: whatever got it out there, it didn't)
+    if (spared(e)) { e.health = e.maxHealth; return; }
     e.health = 0;
     // (a tenant goes out of his window however he's killed: the stage does all of that)
     if (e.kind === 'tenant') return;
@@ -322,6 +325,8 @@ export const createFx = (state: GameState) => {
   const blowAwayEnemy = (e: Enemy, vel: Vector2, category: VulgarityType, showerDir: number = 0, showerMult: number = 1) => {
     // (a tenant always goes out of his window, however he's killed: the stage does all of that)
     if (e.kind === 'tenant') { e.health = Math.min(e.health, 0); return; }
+    // (never been on the screen: whatever got it out there, it didn't)
+    if (spared(e)) { e.health = e.maxHealth; return; }
     e.isBlownAway = true; e.vel = vel; e.frozenTimer = 0;
     spawnDeathShower(e.pos, showerDir, showerMult);
     playSound('splat');

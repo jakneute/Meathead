@@ -34,9 +34,26 @@ import { copMelee, isMeleeCop } from './copMelee';
 import { submerged } from './kinds/victor';
 import { isMidBoss } from '../combat/midBoss';
 
+/** On the screen right now (the view as drawn, pulled back or pushed in included). */
+const onCamera = (state: FrameContext['state'], e: Enemy) => {
+  const v = state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
+  return e.pos.x + e.width > v.x && e.pos.x < v.x + v.w && e.pos.y + e.height > v.y && e.pos.y < v.y + v.h;
+};
+
+/**
+ * An enemy nobody's seen yet (it's never been on the screen) can't be killed by anything out there: a pit it walked
+ * into, a cactus, a crate, a gusher, a burning slick. Whatever it was, it's spared (back to full health, or back where
+ * it started if it fell). Not the bosses, and not bystanders (what happens to them is the stage's business).
+ */
+export const spared = (e: Enemy) => !e.seen && e.type !== 'boss' && !e.innocent;
+
 /** Moves one enemy and resolves its contact with the player. Returns false to remove it. */
 export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolean => {
   const { state } = ctx;
+  // (once it's been on the screen it's fair game; till then, nothing out there kills it: see spared())
+  e.spawnPos ??= { x: e.pos.x, y: e.pos.y };
+  if (!e.seen && onCamera(state, e)) e.seen = true;
+  if (spared(e) && e.health <= 0 && !e.isBlownAway) e.health = e.maxHealth;
   // A stage's mid-boss runs itself
   const special = e.kind ? getStageLayout(ctx.stageId)?.updateSpecialEnemy?.(ctx, e) : undefined;
   if (special !== undefined) return special;
@@ -102,6 +119,13 @@ const hasFloorBelow = (state: FrameContext['state'], e: Enemy) => floorUnder(sta
  */
 const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
   const { state, fx, stageId } = ctx;
+  // (one that's never been on the screen hasn't gone anywhere: it wandered off something out of sight; it's put back
+  // where it started, none the worse)
+  if (spared(e)) {
+    const off = e.pos.y > state.camera.y + CANVAS_HEIGHT + 200 && !hasFloorBelow(state, e);
+    if (off && e.spawnPos) { e.pos = { ...e.spawnPos }; e.vel = { x: 0, y: 0 }; e.pauseTimer = 0; }
+    return false;
+  }
   // Tommy's open-topped arena: the camera follows jumps up, so there's no top edge there
   const openAbove = !!getBossDef(stageId)?.arena?.openTop && e.pos.x + e.width > BOSS_DOOR_X;
   const hilly = !!getStageLayout(stageId)?.verticalCamera;
