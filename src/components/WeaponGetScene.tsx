@@ -13,15 +13,18 @@ import { WeaponArt } from './WeaponIcon';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/platform/gamepad';
 import { SKIP_AFTER_MS } from '../game/platform/skip';
 import SkipPrompt from './SkipPrompt';
-import { playWhoosh, playPunchImpact, playThud, playTypeClack, playGlassShatterSound } from '../game/platform/audio';
+import { playWhoosh, playPunchImpact, playThud, playTypeClack, playGlassShatterSound, playSound } from '../game/platform/audio';
 import { speak, cancelSpeech, MEATHEAD_VOICE } from '../game/platform/speech';
 import { drawFaceOff } from '../game/scenes/faceOff';
+import { drawEggBack, drawEggFront, EGG_MS, EGG_PEE_MS, EGG_SHAKE_MS, EGG_TURN_MS } from '../game/scenes/faceOffEgg';
 
 // After a boss: fade out of the victory lap into a black void, face to face with
 // Meathead in first person. He decks the camera; it goes down on its side. Then
 // the new weapon's name is hammered out on the screen next to a photo of it
 // and you get a firing range to try it out on a dummy that keeps
 // coming back. Start / Esc moves on (and skips straight to the range before that).
+// (Hold P, or the pad's top button, as it fades in, and the camera walks in on him at a urinal first: the scene's
+// clock stands still at the fade-in while that plays out, then carries on from there. See faceOffEgg.ts.)
 
 // Timeline (ms)
 const FADE_END = 600;
@@ -66,6 +69,12 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, onDone }) => {
   const rangeAt = nameAt + name.length * NAME_MS + RANGE_DELAY;
 
   const [t, setT] = useState(0);
+  /** The camera walked in on him at the urinal; and how far into that it is (ms). */
+  const [egg, setEgg] = useState<number | null>(null);
+  const eggRef = useRef(false);
+  /** Wall time past the start, less however long the urinal held the clock up. */
+  const sceneTime = (raw: number) => eggRef.current ? raw - Math.max(0, Math.min(EGG_MS, raw - FADE_END)) : raw;
+  const jumpTo = (sceneT: number) => { startRef.current = performance.now() - sceneT - (eggRef.current ? EGG_MS : 0); };
   const startRef = useRef(performance.now());
   const doneRef = useRef(false);
   const onDoneRef = useRef(onDone);
@@ -86,10 +95,10 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, onDone }) => {
     let id = 0;
 
     const skipOrContinue = () => {
-      const now = performance.now() - startRef.current;
+      const now = sceneTime(performance.now() - startRef.current);
       if (now < SKIP_AFTER_MS) return;
       if (now < rangeAt) {
-        startRef.current = performance.now() - rangeAt;
+        jumpTo(rangeAt);
         cancelSpeech();
       } else {
         finish();
@@ -98,9 +107,20 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, onDone }) => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); skipOrContinue(); } };
     window.addEventListener('keydown', onKey);
 
+    let lastTinkle = 0;
     const loop = (wall: number) => {
-      const now = wall - startRef.current;
+      const raw = wall - startRef.current;
+      // The easter egg: P, or the pad's top button, held while it fades in
+      const gp0 = getActiveGamepad();
+      if (!eggRef.current && raw < FADE_END && (kb.isDown('p') || (!!gp0 && isButtonPressed(gp0, GP_BUTTONS.Y)))) eggRef.current = true;
+      const now = sceneTime(raw);
       setT(now);
+      if (eggRef.current) {
+        const e = raw - FADE_END;
+        setEgg(e);
+        if (e > 150 && e < EGG_PEE_MS - 250 && wall - lastTinkle > 90 + Math.random() * 90) { lastTinkle = wall; playSound('tinkle', 0.9); }
+        once('egg-turn', EGG_PEE_MS + EGG_SHAKE_MS, e, playWhoosh);
+      }
 
       // Sound cues
       once('whoosh', PUNCH, now, playWhoosh);
@@ -146,7 +166,8 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, onDone }) => {
 
   // --- Derived animation values -------------------------------------------------
   const fade = clamp01(t / FADE_END);
-  const faceIn = clamp01((t - FADE_END) / (FACE_IN_END - FADE_END));
+  // (walked in on at the urinal, he's been in full view all along: he fades in on that instead)
+  const faceIn = egg !== null ? clamp01(egg / (FACE_IN_END - FADE_END)) : clamp01((t - FADE_END) / (FACE_IN_END - FADE_END));
   const windup = clamp01((t - WINDUP) / (PUNCH - WINDUP));
   const punch = clamp01((t - PUNCH) / (IMPACT - PUNCH));
   const fall = clamp01((t - IMPACT - 60) / (FALL_END - IMPACT - 60));
@@ -176,10 +197,10 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, onDone }) => {
               transformOrigin: '50% 50%',
               transform: `translate(${easeOutBounce(fall) * 190}px, ${-easeOutBounce(fall) * 20}px) rotate(${easeOutBounce(fall) * 82}deg) scale(${1 - fall * 0.4})`,
             }}>
-            <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 58%, rgba(127,29,29,0.55) 0%, rgba(20,0,0,0.6) 35%, #000 70%)' }} />
+            {egg !== null ? <RestroomWall /> : <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 58%, rgba(127,29,29,0.55) 0%, rgba(20,0,0,0.6) 35%, #000 70%)' }} />}
             <div className="absolute left-1/2 -translate-x-1/2 bottom-[40px] w-[560px] h-[60px] rounded-[50%]" style={{ background: 'radial-gradient(ellipse, rgba(239,68,68,0.25), transparent 70%)' }} />
-            <div className="absolute left-1/2 top-[40px]" style={{ width: 520, height: 1144, marginLeft: -260, opacity: faceIn, filter: 'drop-shadow(0 0 22px rgba(239,68,68,0.45))', transform: `scale(${0.88 + faceIn * 0.12}) rotate(${-windup * 5 + punch * 7}deg)`, transformOrigin: '50% 43%' }}>
-              <FaceOffMeathead t={t} windup={windup} punching={punching || (t >= IMPACT && t < IMPACT + 180)} />
+            <div className="absolute left-1/2 top-[40px]" style={{ width: 520, height: 1144, marginLeft: -260, opacity: faceIn, filter: egg !== null ? 'drop-shadow(0 6px 14px rgba(0,0,0,0.6))' : 'drop-shadow(0 0 22px rgba(239,68,68,0.45))', transform: `scale(${0.88 + faceIn * 0.12}) rotate(${-windup * 5 + punch * 7}deg)`, transformOrigin: '50% 43%' }}>
+              <FaceOffMeathead t={t} windup={windup} punching={punching || (t >= IMPACT && t < IMPACT + 180)} egg={egg} />
             </div>
           </div>
 
@@ -268,7 +289,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, onDone }) => {
 
       {/* Skip hint during the cinematic */}
       {!inRange && t > SKIP_AFTER_MS && (
-        <SkipPrompt onSkip={() => { startRef.current = performance.now() - rangeAt; cancelSpeech(); }} />
+        <SkipPrompt onSkip={() => { jumpTo(rangeAt); cancelSpeech(); }} />
       )}
     </div>
   );
@@ -350,7 +371,7 @@ const GiantFist: React.FC = () => (
  * Meathead from the front, square to the camera in a boxing guard, painted in gross-up detail (see
  * game/scenes/faceOff.ts). His right fist draws back on the wind-up and is gone (it's coming at you) during the punch.
  */
-export const FaceOffMeathead: React.FC<{ t: number; windup: number; punching: boolean }> = ({ t, windup, punching }) => {
+export const FaceOffMeathead: React.FC<{ t: number; windup: number; punching: boolean; egg?: number | null }> = ({ t, windup, punching, egg = null }) => {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const c = ref.current;
@@ -359,10 +380,32 @@ export const FaceOffMeathead: React.FC<{ t: number; windup: number; punching: bo
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, c.width, c.height);
     ctx.scale(c.width / 200, c.height / 440);
-    drawFaceOff(ctx, t, windup, punching);
-  }, [t, windup, punching]);
+    if (egg === null) { drawFaceOff(ctx, t, windup, punching); return; }
+    // Walked in on: from behind at the urinal; then he turns (the picture squeezing to a sliver and out again, his
+    // back on one side of it, his front on the other); then the face-off, it bobbing a while from the turn
+    const turnAt = EGG_PEE_MS + EGG_SHAKE_MS, q = (egg - turnAt) / EGG_TURN_MS;
+    if (q > 0 && q < 1) { ctx.translate(100, 0); ctx.scale(Math.max(0.04, Math.abs(Math.cos(q * Math.PI))), 1); ctx.translate(-100, 0); }
+    if (q < 0.5) drawEggBack(ctx, egg);
+    else drawEggFront(ctx, t, windup, punching, Math.max(0, 1 - (egg - turnAt - EGG_TURN_MS / 2) / 1400));
+  }, [t, windup, punching, egg]);
   return <canvas ref={ref} width={780} height={1716} className="w-full h-full" />;
 };
+
+/** The men's room the camera walked in on him in: grimy green tile, the grout gone dark, a stall's edge, under a flickering tube. */
+const RestroomWall: React.FC = () => (
+  <div className="absolute inset-0" style={{
+    background: [
+      'radial-gradient(ellipse at 50% 30%, rgba(254,252,232,0.35) 0%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.85) 90%)',
+      'repeating-linear-gradient(0deg, rgba(30,41,30,0.9) 0 2px, transparent 2px 34px)',
+      'repeating-linear-gradient(90deg, rgba(30,41,30,0.9) 0 2px, transparent 2px 34px)',
+      'linear-gradient(180deg, #9CB79A 0%, #7E9A7C 60%, #4B5E4A 100%)',
+    ].join(', '),
+  }}>
+    <div className="absolute left-0 top-0 bottom-0 w-[90px]" style={{ background: 'linear-gradient(90deg, #3F4A3E, #59685A)', borderRight: '4px solid #1F2620' }} />
+    <div className="absolute right-0 top-0 bottom-0 w-[90px]" style={{ background: 'linear-gradient(270deg, #3F4A3E, #59685A)', borderLeft: '4px solid #1F2620' }} />
+    <div className="absolute left-[120px] top-[60px] text-[9px] text-black/50 rotate-[-6deg]">FOR A GOOD TIME CALL</div>
+  </div>
+);
 
 export default WeaponGetScene;
 

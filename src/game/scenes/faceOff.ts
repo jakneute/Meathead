@@ -13,24 +13,24 @@ import { vein, bead } from './grossUp';
 
 type Ctx = CanvasRenderingContext2D;
 
-const SKIN_LIT = '#F6CF9C', SKIN = '#E0AC69', SKIN_MID = '#C98A48', SKIN_DARK = '#8E5A28', SKIN_DEEP = '#5E3A18';
+export const SKIN_LIT = '#F6CF9C', SKIN = '#E0AC69', SKIN_MID = '#C98A48', SKIN_DARK = '#8E5A28', SKIN_DEEP = '#5E3A18';
 
 /** Fill a path with skin, lit from the upper left, an olive tinge down in the shadows, and an ink line round it. */
-const skin = (ctx: Ctx, path: () => void, x0: number, y0: number, x1: number, y1: number, line = 2.6) => {
+export const skin = (ctx: Ctx, path: () => void, x0: number, y0: number, x1: number, y1: number, line = 2.6) => {
   const g = ctx.createLinearGradient(x0, y0, x1, y1);
   g.addColorStop(0, SKIN_LIT); g.addColorStop(0.35, SKIN); g.addColorStop(0.75, SKIN_MID); g.addColorStop(1, SKIN_DARK);
   shape(ctx, path, g, line);
 };
 
 /** A round of muscle (a delt, a pec, a bicep): a hot highlight up and to the left of its middle, dark at its rim. */
-const bulge = (ctx: Ctx, path: () => void, cx: number, cy: number, r: number, line = 2.4) => {
+export const bulge = (ctx: Ctx, path: () => void, cx: number, cy: number, r: number, line = 2.4) => {
   const g = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.4, r * 0.08, cx, cy, r * 1.15);
   g.addColorStop(0, '#FFE9C8'); g.addColorStop(0.3, SKIN_LIT); g.addColorStop(0.62, SKIN); g.addColorStop(0.88, SKIN_MID); g.addColorStop(1, SKIN_DARK);
   shape(ctx, path, g, line);
 };
 
 /** Inside a path: pores and freckles, a few hairs. */
-const pores = (ctx: Ctx, path: () => void, x: number, y: number, w: number, h: number, seed: number, n = 140) => {
+export const pores = (ctx: Ctx, path: () => void, x: number, y: number, w: number, h: number, seed: number, n = 140) => {
   ctx.save(); ctx.beginPath(); path(); ctx.clip();
   speckle(ctx, x, y, w, h, n, 'rgba(110, 60, 25, 0.35)', seed, 0.5);
   speckle(ctx, x, y, w, h, Math.floor(n / 3), 'rgba(255, 240, 215, 0.35)', seed + 7, 0.45);
@@ -38,7 +38,7 @@ const pores = (ctx: Ctx, path: () => void, x: number, y: number, w: number, h: n
 };
 
 /** A muscle groove: a soft dark line with a lighter edge beside it. */
-const groove = (ctx: Ctx, pts: number[], w = 1.6, a = 0.55) => {
+export const groove = (ctx: Ctx, pts: number[], w = 1.6, a = 0.55) => {
   ctx.lineCap = 'round';
   ctx.strokeStyle = `rgba(90, 45, 15, ${a})`; ctx.lineWidth = w;
   ctx.beginPath(); ctx.moveTo(pts[0], pts[1]); ctx.bezierCurveTo(pts[2], pts[3], pts[4], pts[5], pts[6], pts[7]); ctx.stroke();
@@ -47,7 +47,7 @@ const groove = (ctx: Ctx, pts: number[], w = 1.6, a = 0.55) => {
 };
 
 /** Cross-hatching inside a path, down the shadow side of a form (the strokes go up and to the right). */
-const shadeIn = (ctx: Ctx, path: () => void, x: number, y: number, w: number, h: number, a = 0.3, step = 2.2) => {
+export const shadeIn = (ctx: Ctx, path: () => void, x: number, y: number, w: number, h: number, a = 0.3, step = 2.2) => {
   ctx.save(); ctx.beginPath(); path(); ctx.clip();
   ctx.strokeStyle = `rgba(60, 28, 8, ${a})`; ctx.lineWidth = 0.55;
   for (let k = -h; k < w; k += step) { ctx.beginPath(); ctx.moveTo(x + k, y + h); ctx.lineTo(x + k + h * 0.55, y); ctx.stroke(); }
@@ -57,6 +57,26 @@ const shadeIn = (ctx: Ctx, path: () => void, x: number, y: number, w: number, h:
 // ---------------------------------------------------------------------------
 // From the ground up
 // ---------------------------------------------------------------------------
+
+/** One boot (s: -1 his right, our left; 1 the other): black leather, its shine, the laces, the steel toe, a scuff. */
+export const boot = (ctx: Ctx, s: number) => {
+  const X = (x: number) => 100 + s * (x - 100);
+  // The boot: black leather, its shine, the laces, the steel toe, a scuff
+  const boot = () => { ctx.moveTo(X(40), 402); ctx.lineTo(X(98), 402); ctx.lineTo(X(100), 432); ctx.lineTo(X(36), 432); ctx.closePath(); };
+  const bg = ctx.createLinearGradient(0, 402, 0, 432);
+  bg.addColorStop(0, '#3F3F46'); bg.addColorStop(0.4, '#18181B'); bg.addColorStop(1, '#09090B');
+  shape(ctx, boot, bg, 2.6);
+  ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(X(46), 406); ctx.lineTo(X(84), 405); ctx.stroke();
+  ctx.strokeStyle = '#A8A29E'; ctx.lineWidth = 0.9;
+  for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.moveTo(X(58 + k * 6), 404); ctx.lineTo(X(64 + k * 6), 412); ctx.moveTo(X(64 + k * 6), 404); ctx.lineTo(X(58 + k * 6), 412); ctx.stroke(); }
+  const toe = () => { ctx.moveTo(X(36), 420); ctx.lineTo(X(56), 418); ctx.lineTo(X(56), 432); ctx.lineTo(X(36), 432); ctx.closePath(); };
+  const tg = ctx.createLinearGradient(0, 418, 0, 432);
+  tg.addColorStop(0, '#E2E8F0'); tg.addColorStop(0.5, '#94A3B8'); tg.addColorStop(1, '#475569');
+  shape(ctx, toe, tg, 1.6);
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 0.5;
+  for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.moveTo(X(40 + k * 4), 423 + k); ctx.lineTo(X(43 + k * 4), 427 + k); ctx.stroke(); }
+  ctx.fillStyle = '#27272A'; ctx.fillRect(Math.min(X(36), X(100)), 430, 64, 2.5);
+};
 
 /** The tactical pants and the boots: a wide boxer's stance, creased, cargo pockets, steel toes, scuffed. */
 const legs = (ctx: Ctx) => {
@@ -88,21 +108,7 @@ const legs = (ctx: Ctx) => {
     ctx.strokeStyle = 'rgba(147, 170, 230, 0.4)'; ctx.lineWidth = 0.6; ctx.setLineDash([1.5, 1.5]);
     ctx.strokeRect(Math.min(X(58), X(84)) + 0.5, 339, 26, 20); ctx.setLineDash([]);
     shape(ctx, () => ctx.arc(X(71), 338, 1.6, 0, Math.PI * 2), '#9CA3AF', 0.6);
-    // The boot: black leather, its shine, the laces, the steel toe, a scuff
-    const boot = () => { ctx.moveTo(X(40), 402); ctx.lineTo(X(98), 402); ctx.lineTo(X(100), 432); ctx.lineTo(X(36), 432); ctx.closePath(); };
-    const bg = ctx.createLinearGradient(0, 402, 0, 432);
-    bg.addColorStop(0, '#3F3F46'); bg.addColorStop(0.4, '#18181B'); bg.addColorStop(1, '#09090B');
-    shape(ctx, boot, bg, 2.6);
-    ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(X(46), 406); ctx.lineTo(X(84), 405); ctx.stroke();
-    ctx.strokeStyle = '#A8A29E'; ctx.lineWidth = 0.9;
-    for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.moveTo(X(58 + k * 6), 404); ctx.lineTo(X(64 + k * 6), 412); ctx.moveTo(X(64 + k * 6), 404); ctx.lineTo(X(58 + k * 6), 412); ctx.stroke(); }
-    const toe = () => { ctx.moveTo(X(36), 420); ctx.lineTo(X(56), 418); ctx.lineTo(X(56), 432); ctx.lineTo(X(36), 432); ctx.closePath(); };
-    const tg = ctx.createLinearGradient(0, 418, 0, 432);
-    tg.addColorStop(0, '#E2E8F0'); tg.addColorStop(0.5, '#94A3B8'); tg.addColorStop(1, '#475569');
-    shape(ctx, toe, tg, 1.6);
-    ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 0.5;
-    for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.moveTo(X(40 + k * 4), 423 + k); ctx.lineTo(X(43 + k * 4), 427 + k); ctx.stroke(); }
-    ctx.fillStyle = '#27272A'; ctx.fillRect(Math.min(X(36), X(100)), 430, 64, 2.5);
+    boot(ctx, s);
   }
 };
 
@@ -129,7 +135,7 @@ const belt = (ctx: Ctx) => {
 };
 
 /** The lats, flaring out from under the arms behind him (the V of him), in shadow. */
-const lats = (ctx: Ctx) => {
+export const lats = (ctx: Ctx) => {
   for (const s of [-1, 1]) {
     const X = (x: number) => 100 + s * (x - 100);
     const path = () => { ctx.moveTo(X(52), 106); ctx.bezierCurveTo(X(30), 124, X(28), 168, X(44), 196); ctx.bezierCurveTo(X(52), 210, X(58), 220, X(60), 228); ctx.lineTo(X(70), 150); ctx.closePath(); };
@@ -142,7 +148,7 @@ const lats = (ctx: Ctx) => {
 };
 
 /** The torso: the pecs, the six-pack in its rows, the obliques, the trail down to the belt, veins, sweat, a scar. */
-const torso = (ctx: Ctx, t: number) => {
+export const torso = (ctx: Ctx, t: number) => {
   const path = () => { ctx.moveTo(50, 100); ctx.lineTo(60, 240); ctx.lineTo(140, 240); ctx.lineTo(150, 100); ctx.closePath(); };
   skin(ctx, path, 50, 100, 150, 240);
   pores(ctx, path, 50, 100, 100, 140, 21, 260);
@@ -193,7 +199,7 @@ const torso = (ctx: Ctx, t: number) => {
 };
 
 /** The traps, up like two hills from the shoulders into the neck, striated. */
-const traps = (ctx: Ctx) => {
+export const traps = (ctx: Ctx) => {
   const path = () => { ctx.moveTo(46, 102); ctx.bezierCurveTo(56, 76, 70, 62, 78, 58); ctx.lineTo(122, 58); ctx.bezierCurveTo(130, 62, 144, 76, 154, 102); ctx.closePath(); };
   const g = ctx.createLinearGradient(0, 58, 0, 102);
   g.addColorStop(0, SKIN_LIT); g.addColorStop(0.5, SKIN_MID); g.addColorStop(1, SKIN_DARK);
@@ -203,7 +209,7 @@ const traps = (ctx: Ctx) => {
 };
 
 /** The neck: as wide as his head, the cords of it standing out, a vein up it, the Adam's apple. */
-const neck = (ctx: Ctx, t: number, windup: number) => {
+export const neck = (ctx: Ctx, t: number, windup: number) => {
   const path = () => { ctx.moveTo(78, 60); ctx.lineTo(76, 88); ctx.lineTo(124, 88); ctx.lineTo(122, 60); ctx.closePath(); };
   const g = ctx.createLinearGradient(76, 0, 124, 0);
   g.addColorStop(0, SKIN_MID); g.addColorStop(0.4, SKIN); g.addColorStop(1, SKIN_DARK);
@@ -218,7 +224,7 @@ const neck = (ctx: Ctx, t: number, windup: number) => {
 };
 
 /** His head: square, the flat-top, the stubble, the ears, the brows, the eyes (bloodshot, dead on the lens), the nose, the mouth. */
-const head = (ctx: Ctx, t: number, windup: number, punching: boolean) => {
+export const head = (ctx: Ctx, t: number, windup: number, punching: boolean) => {
   // The ears: thick, a cauliflower ear on the left
   for (const s of [-1, 1]) {
     const X = (x: number) => 100 + s * (x - 100);
@@ -320,7 +326,7 @@ const head = (ctx: Ctx, t: number, windup: number, punching: boolean) => {
 };
 
 /** One guard arm: the delt, the upper arm down to the elbow, the forearm back up, the fist by his jaw, knuckles split. */
-const guardArm = (ctx: Ctx, s: 1 | -1, t: number) => {
+export const guardArm = (ctx: Ctx, s: 1 | -1, t: number) => {
   const X = (x: number) => 100 + s * (x - 100);
   // (the upper arm, down from the shoulder)
   const upper = () => { ctx.moveTo(X(168), 118); ctx.bezierCurveTo(X(184), 150, X(172), 178, X(150), 172); ctx.bezierCurveTo(X(140), 152, X(146), 128, X(152), 116); ctx.closePath(); };
