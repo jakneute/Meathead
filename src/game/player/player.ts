@@ -391,7 +391,9 @@ export const endUppercut = (ctx: FrameContext) => {
 
 const updateCrouch = (ctx: FrameContext, input: FrameInput) => {
   const { player } = ctx.state;
-  if (!player.isGrounded || player.vel.y < 0) return;
+  // (off the ground, or on his way up: no crouch, whatever was held when he left it, dropping through a ledge
+  // included; a slide that bounced off something keeps him down, though)
+  if (!player.isGrounded || player.vel.y < 0) { if (!player.slideRecoil) player.isDucking = false; return; }
   // Holding fire with the flamethrower keeps you standing (down aims the stream instead)
   const isFlamethrowing = (ctx.currentWeapon === 'FLAMETHROWER' && input.shoot) || !!input.flame;
   // Bouncing back off an enemy mid-slide keeps him down, until down is let go
@@ -495,7 +497,13 @@ const updateVerticalVelocity = (ctx: FrameContext, input: FrameInput) => {
   const { player } = ctx.state;
   // (a lunge through the water sets its own pace: no sinking while it lasts)
   if (player.swimming && player.isCharging && player.swimDash) return;
-  if (player.swimming) { swim(player); return; }
+  // (into the water: a dive kick's over the moment he's in it, and nobody ducks in the water)
+  if (player.swimming) {
+    if (player.isDivekicking) { player.isDivekicking = false; player.recoiling = false; }
+    player.isDucking = false;
+    swim(player);
+    return;
+  }
 
   // Coyote hang time: right after leaving the ground, gravity waits a few frames
   if (player.coyoteAirTimer > 0) {
