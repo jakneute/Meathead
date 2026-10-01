@@ -139,6 +139,15 @@ export const startChase = (state: GameState, boatX: number): Chase => {
 /** Where the boat's body is (for the floating junk and the falling junk to hit), its hull in the swell. */
 const boatBox = (x: number, y: number) => ({ x: x + 6, y: y - 26, w: CHASE_BOAT_W - 6, h: 30 });
 
+/** What each thing the storm throws is (by kind, then look, as chaseDraw draws them): what hit him, for what he says
+ * about it and the death screen (the hurt source is junk_<it>). */
+const JUNK_IDS: Record<JunkKind, string[]> = {
+  float: ['crate', 'oil_drum', 'car_roof', 'fridge', 'porta_potty'],
+  flyer: ['lawn_chair', 'palm_tree', 'flamingo', 'shopping_cart', 'beach_umbrella'],
+  drop: ['piano', 'jet_ski', 'cow', 'car', 'hot_tub'],
+};
+const junkId = (j: Junk) => JUNK_IDS[j.kind][Math.min(4, j.look)];
+
 /** Junk's box (what it's drawn as, near enough). */
 export const junkSize = (j: Junk) => (j.kind === 'float' ? { w: 52, h: 26 } : j.kind === 'flyer' ? { w: 60, h: 32 } : { w: 70, h: 44 });
 const junkBox = (j: Junk) => { const s = junkSize(j); return { x: j.x - s.w / 2, y: j.y - s.h, w: s.w, h: s.h }; };
@@ -213,8 +222,8 @@ export const updateChase = (ctx: FrameContext, c: Chase, b: { x: number; y: numb
       j.rot += 0.08;
       if (j.warn === 0 && j.y >= COURSE.sea.y + 10) { splash(state, j.x, 30); if (!j.hit) c.relief += CG_PASS; return false; }
     } else {
-      j.x += j.vx; j.rot += j.kind === 'flyer' ? 0.25 : 0;
-      if (j.kind === 'float') j.y = COURSE.sea.y + 4 + Math.sin(c.t * 0.1 + j.x * 0.01) * 2;
+      j.x += j.vx; j.rot += j.kind === 'flyer' || j.hit ? 0.25 : 0;
+      if (j.kind === 'float' && !j.hit) j.y = COURSE.sea.y + 4 + Math.sin(c.t * 0.1 + j.x * 0.01) * 2;
     }
     if (j.x < state.camera.x - 300) return false;
     // (got past it: the cutter drops back a bit)
@@ -230,14 +239,15 @@ export const updateChase = (ctx: FrameContext, c: Chase, b: { x: number; y: numb
       c.crash = HIT_FRAMES;
       c.gap -= CG_HIT;
       if (!ctx.cheats.invincible) player.health -= HIT_DAMAGE + (j.kind === 'drop' ? 1 : 0);
-      state.lastHurt = { source: 'storm_junk', at: state.frame };
+      const what = junkId(j);
+      state.lastHurt = { source: `junk_${what}`, at: state.frame };
       player.invincibilityTimer = 30;
       shakeScreen(state, j.kind === 'drop' ? 22 : 12, j.kind === 'drop' ? 9 : 5);
       playSound(j.kind === 'drop' ? 'crash' : 'crunch');
-      fx.spawnDamageNumber({ x: player.pos.x - 20, y: player.pos.y - 30 }, ['WHAMMO!', 'INCOMING!', 'HOMEOWNERS INSURANCE!', 'FLYING FURNITURE!'][Math.floor(Math.random() * 4)], true, '#FDE047');
-      fx.speakVulgarity('hurt', 'storm_junk');
+      fx.spawnDamageNumber({ x: player.pos.x - 20, y: player.pos.y - 30 }, `${what.replace('_', ' ').toUpperCase()}!`, true, '#FDE047');
+      fx.speakVulgarity('hurt', `junk_${what}`);
       j.vx = 4; j.vy = -6;
-      if (j.kind === 'float') { j.kind = 'flyer'; j.y -= 10; }
+      if (j.kind === 'float') j.y -= 10;
       // (and what's still owed for what he'd got past is lost: it's the cutter's now)
       c.relief = 0;
       // (the last of him: thrown out, and the boat goes up)

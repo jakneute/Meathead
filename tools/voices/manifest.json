@@ -3511,6 +3511,16 @@
  },
  {
   "voice": "death",
+  "text": "A CAR FELL ON YOU. AT SEA.",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "A COW FELL ON YOU. AT SEA.",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "A JUMP WON'T CLEAR IT. UPPERCUT!",
   "from": "game/stages/dale/town.ts:629"
  },
@@ -3527,7 +3537,7 @@
  {
   "voice": "death",
   "text": "ACT OF GOD",
-  "from": "content/deaths"
+  "from": "game/stages/hector/chase.ts:338"
  },
  {
   "voice": "death",
@@ -3577,6 +3587,11 @@
  {
   "voice": "death",
   "text": "BARBECUED BY VOLCANO BREATH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BARRELED OVER",
   "from": "content/deaths"
  },
  {
@@ -3831,13 +3846,18 @@
  },
  {
   "voice": "death",
+  "text": "CLEANUP ON AISLE SEA",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "CLOTHESLINED BY A BRANCH",
   "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "COAST GUARDED",
-  "from": "game/stages/hector/chase.ts:262"
+  "from": "game/stages/hector/chase.ts:301"
  },
  {
   "voice": "death",
@@ -3857,6 +3877,11 @@
  {
   "voice": "death",
   "text": "COLD SHOULDERED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "COLD STORAGE",
   "from": "content/deaths"
  },
  {
@@ -3948,6 +3973,11 @@
   "voice": "death",
   "text": "DEATH BY PETUNIA",
   "from": "game/stages/ernie/quake.ts:338"
+ },
+ {
+  "voice": "death",
+  "text": "DEATH BY PORTA-POTTY",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -4291,6 +4321,16 @@
  },
  {
   "voice": "death",
+  "text": "FLUSHED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "FOLDED LIKE A LAWN CHAIR",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "FOR SCIENCE",
   "from": "content/deaths"
  },
@@ -4376,6 +4416,11 @@
  },
  {
   "voice": "death",
+  "text": "GRAND FINALE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "GRAVITY: 1, MEATHEAD: 0",
   "from": "content/deaths"
  },
@@ -4426,6 +4471,11 @@
  },
  {
   "voice": "death",
+  "text": "HIT BY A FLYING JET SKI",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "HIT BY A FLYING TOASTER",
   "from": "game/stages/barry/runtime.ts:413"
  },
@@ -4441,7 +4491,7 @@
  },
  {
   "voice": "death",
-  "text": "HIT BY FLYING FURNITURE",
+  "text": "HIT BY HALF A CAR",
   "from": "content/deaths"
  },
  {
@@ -4481,6 +4531,11 @@
  },
  {
   "voice": "death",
+  "text": "HOT TUB DEATH MACHINE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "HOUSEPLANT HOMICIDE",
   "from": "game/stages/ernie/quake.ts:338"
  },
@@ -4511,8 +4566,13 @@
  },
  {
   "voice": "death",
+  "text": "IN HOT WATER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "INTO THE TRENCH",
-  "from": "game/stages/oscar/chase.ts:584"
+  "from": "game/stages/oscar/chase.ts:582"
  },
  {
   "voice": "death",
@@ -4528,6 +4588,11 @@
   "voice": "death",
   "text": "IT TAKES AN UPPERCUT TO CLEAR IT",
   "from": "game/stages/dale/town.ts:629"
+ },
+ {
+  "voice": "death",
+  "text": "JET SKIED",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -4551,6 +4616,11 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY A BEACH UMBRELLA",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY A CAR DOOR",
   "from": "content/deaths"
  },
@@ -4567,6 +4637,11 @@
  {
   "voice": "death",
   "text": "KILLED BY A FLYING TURD",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A FRIDGE",
   "from": "content/deaths"
  },
  {
@@ -4597,6 +4672,16 @@
  {
   "voice": "death",
   "text": "KILLED BY A WATER BOTTLE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY AN OIL DRUM",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY LAWN DECOR",
   "from": "content/deaths"
  },
  {
@@ -4752,11 +4837,16 @@
  {
   "voice": "death",
   "text": "MISSED THE JUMP",
-  "from": "game/stages/oscar/chase.ts:584"
+  "from": "game/stages/oscar/chase.ts:582"
  },
  {
   "voice": "death",
   "text": "MOBBED BY SEAGULLS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "MOOVED DOWN",
   "from": "content/deaths"
  },
  {
@@ -4891,7 +4981,17 @@
  },
  {
   "voice": "death",
+  "text": "PALMED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "PARKA BOY GOT YOU",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PARKED ON",
   "from": "content/deaths"
  },
  {
@@ -4962,6 +5062,11 @@
  {
   "voice": "death",
   "text": "PINCHED TO DEATH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PINK FLAMINGOED",
   "from": "content/deaths"
  },
  {
@@ -5076,6 +5181,11 @@
  },
  {
   "voice": "death",
+  "text": "RETURN TO SENDER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "RIGGS FINALLY PRESSED THE BUTTON",
   "from": "game/stages/dale/convoy.ts:470"
  },
@@ -5131,6 +5241,11 @@
  },
  {
   "voice": "death",
+  "text": "ROOFED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "RUN DOWN",
   "from": "content/deaths"
  },
@@ -5157,7 +5272,7 @@
  {
   "voice": "death",
   "text": "RUN OFF THE ROAD",
-  "from": "game/stages/oscar/chase.ts:586"
+  "from": "game/stages/oscar/chase.ts:584"
  },
  {
   "voice": "death",
@@ -5222,6 +5337,11 @@
  {
   "voice": "death",
   "text": "SEWER LITTER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHADED",
   "from": "content/deaths"
  },
  {
@@ -5597,7 +5717,7 @@
  {
   "voice": "death",
   "text": "STUNTMAN HE IS NOT",
-  "from": "game/stages/oscar/chase.ts:584"
+  "from": "game/stages/oscar/chase.ts:582"
  },
  {
   "voice": "death",
@@ -5652,6 +5772,11 @@
  {
   "voice": "death",
   "text": "TACKY AND DEAD",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TAKE A SEAT",
   "from": "content/deaths"
  },
  {
@@ -5937,6 +6062,11 @@
  {
   "voice": "death",
   "text": "TREE HUGGER",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TREE: 1, MEATHEAD: 0",
   "from": "content/deaths"
  },
  {
@@ -6242,7 +6372,7 @@
  {
   "voice": "hector.coastguard",
   "text": "GET OUT OF THE WATER, IDIOT!",
-  "from": "game/stages/hector/chase.ts:95"
+  "from": "game/stages/hector/chase.ts:111"
  },
  {
   "voice": "hector.coastguard",
@@ -6252,47 +6382,47 @@
  {
   "voice": "hector.coastguard",
   "text": "PREPARE TO BE BOARDED!",
-  "from": "game/stages/hector/chase.ts:95"
+  "from": "game/stages/hector/chase.ts:111"
  },
  {
   "voice": "hector.coastguard",
   "text": "PULL OVER! ...THE BOAT! PULL THE BOAT OVER!",
-  "from": "game/stages/hector/chase.ts:95"
+  "from": "game/stages/hector/chase.ts:111"
  },
  {
   "voice": "hector.coastguard",
   "text": "SIR. THAT IS A WATERSPOUT.",
-  "from": "game/stages/hector/chase.ts:95"
+  "from": "game/stages/hector/chase.ts:111"
  },
  {
   "voice": "hector.coastguard",
   "text": "THAT IS A STOLEN VESSEL!",
-  "from": "game/stages/hector/chase.ts:95"
+  "from": "game/stages/hector/chase.ts:111"
  },
  {
   "voice": "hector.coastguard",
   "text": "THERE IS A HURRICANE, GENIUS!",
-  "from": "game/stages/hector/chase.ts:95"
+  "from": "game/stages/hector/chase.ts:111"
  },
  {
   "voice": "hector.coastguard",
   "text": "TURN AROUND! NOBODY GOES OUT IN THIS!",
-  "from": "game/stages/hector/chase.ts:95"
+  "from": "game/stages/hector/chase.ts:111"
  },
  {
   "voice": "hector.coastguard",
   "text": "WE CAN SEE YOU! WE ARE RIGHT BEHIND YOU!",
-  "from": "game/stages/hector/chase.ts:95"
+  "from": "game/stages/hector/chase.ts:111"
  },
  {
   "voice": "hector.coastguard",
   "text": "YOU ARE BEING BOARDED!",
-  "from": "game/stages/hector/chase.ts:274"
+  "from": "game/stages/hector/chase.ts:313"
  },
  {
   "voice": "hector.coastie",
   "text": "WE SAID. GET OUT. OF THE WATER.",
-  "from": "game/stages/hector/chase.ts:284"
+  "from": "game/stages/hector/chase.ts:323"
  },
  {
   "voice": "hector.kid0",
@@ -6756,6 +6886,16 @@
  },
  {
   "voice": "meathead",
+  "text": "A BARREL TO THE SHINS! WHO LEAVES A BARREL IN THE OCEAN?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A BEACH UMBRELLA! THE POINTY END!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "A BOULDER TO THE DOME?! MY TRAPS ARE SOLID ROCK, ERNIE!",
   "from": "HAZARD_HURT"
  },
@@ -6766,7 +6906,22 @@
  },
  {
   "voice": "meathead",
+  "text": "A CAR ROOF! THE STORM'S MAKING CONVERTIBLES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A CAR! A WHOLE CAR! FROM THE SKY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "A COCONUT TO THE DOME! GNARLY, FUCK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A COW?! WHERE'D THE STORM FIND A COW?!",
   "from": "HAZARD_HURT"
  },
  {
@@ -6782,6 +6937,11 @@
  {
   "voice": "meathead",
   "text": "A CRATE! IN THE MIDDLE OF THE BAY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A CRATE! RIGHT IN THE KIDNEYS!",
   "from": "HAZARD_HURT"
  },
  {
@@ -6836,6 +6996,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A FLAMINGO! A PLASTIC FLAMINGO!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "A FLARE! RIGHT IN THE NIPPLE!",
   "from": "HAZARD_HURT"
  },
@@ -6857,6 +7022,11 @@
  {
   "voice": "meathead",
   "text": "A FORTY TO THE FACE! AND IT WAS WARM!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A FRIDGE! THERE BETTER BE BEER IN IT!",
   "from": "HAZARD_HURT"
  },
  {
@@ -6916,7 +7086,17 @@
  },
  {
   "voice": "meathead",
+  "text": "A HOT TUB! IT'S STILL WARM!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "A HURRICANE TURD TO THE FACE?! THAT'S A NEW LOW, HECTOR!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A JET SKI! A FLYING JET SKI!",
   "from": "HAZARD_HURT"
  },
  {
@@ -6951,7 +7131,17 @@
  },
  {
   "voice": "meathead",
+  "text": "A PALM TREE! THE WHOLE TREE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "A PELICAN JUST CLOTHESLINED ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A PIANO! I HEARD IT COMING! IN C MINOR!",
   "from": "HAZARD_HURT"
  },
  {
@@ -6962,6 +7152,11 @@
  {
   "voice": "meathead",
   "text": "A PIPE WRENCH! TO THE DOME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A PORTA-POTTY! IT'S NOT EMPTY! IT'S NOT EMPTY!",
   "from": "HAZARD_HURT"
  },
  {
@@ -6997,6 +7192,11 @@
  {
   "voice": "meathead",
   "text": "A SCORPION STUNG MY ANKLE! MY BEAUTIFUL ANKLE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A SHOPPING CART! THE WHEEL'S STILL WOBBLING!",
   "from": "HAZARD_HURT"
  },
  {
@@ -7133,6 +7333,11 @@
   "voice": "meathead",
   "text": "AN AUTHENTIC OLD WEST TOWN. EST. NINETEEN NINETY FOUR. SURE.",
   "from": "game/stages/dale/town.ts:229"
+ },
+ {
+  "voice": "meathead",
+  "text": "AN OIL DRUM! THAT'S A HAZMAT SITUATION!",
+  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
@@ -7477,7 +7682,7 @@
  {
   "voice": "meathead",
   "text": "CAN'T SHOOT. BOTH HANDS ON THE MOTOR.",
-  "from": "game/stages/hector/chase.ts:98"
+  "from": "game/stages/hector/chase.ts:114"
  },
  {
   "voice": "meathead",
@@ -7648,6 +7853,11 @@
   "voice": "meathead",
   "text": "CLUB'S CLOSED, TINY!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "COCONUTS! I GOT COCONUTS IN MY TEETH!",
+  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
@@ -8256,6 +8466,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FOLDING CHAIR TO THE FACE! I'VE HAD WORSE BAR FIGHTS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "FORTY ONE. THE ELEVATOR HATES ME. EVERYTHING IN THIS CITY HATES ME.",
   "from": "game/stages/barry/runtime.ts:325"
  },
@@ -8727,7 +8942,7 @@
  {
   "voice": "meathead",
   "text": "GREAT. NOW IT'S RAINING.",
-  "from": "game/stages/hector/beach.ts:95"
+  "from": "game/stages/hector/beach.ts:93"
  },
  {
   "voice": "meathead",
@@ -8768,6 +8983,11 @@
   "voice": "meathead",
   "text": "GYM CLOSED... FOREVER",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HALF A CAR! WHERE'S THE OTHER HALF?!",
+  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
@@ -9566,6 +9786,16 @@
  },
  {
   "voice": "meathead",
+  "text": "I GOT HIT BY A PORTA-POTTY! WORST DAY OF MY LIFE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I GOT HIT BY A SEDAN! IN A BOAT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "I GOT RAMMED BY THE FUCKING RIOT SQUAD!",
   "from": "HAZARD_HURT"
  },
@@ -10337,7 +10567,7 @@
  {
   "voice": "meathead",
   "text": "MAKE ME!",
-  "from": "game/stages/hector/chase.ts:98"
+  "from": "game/stages/hector/chase.ts:114"
  },
  {
   "voice": "meathead",
@@ -10967,7 +11197,7 @@
  {
   "voice": "meathead",
   "text": "OH, GREAT. WEATHER.",
-  "from": "game/stages/hector/beach.ts:95"
+  "from": "game/stages/hector/beach.ts:93"
  },
  {
   "voice": "meathead",
@@ -12006,6 +12236,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SLAPPED BY A LAWN FLAMINGO! IN FRONT OF THE COAST GUARD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "SLEEP WITH THE CACTI!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -12137,6 +12372,11 @@
  {
   "voice": "meathead",
   "text": "SOMEBODY'S GRANDMA JUST LANDED ON ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOMEBODY'S HOT TUB! THERE WAS A GUY IN IT!",
   "from": "HAZARD_HURT"
  },
  {
@@ -12566,6 +12806,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT COW WEIGHED A TON! MOO MY ASS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT DRUG BLAST SINGED MY LEG HAIR, DALE!",
   "from": "HAZARD_HURT"
  },
@@ -12602,6 +12847,11 @@
  {
   "voice": "meathead",
   "text": "THAT ICICLE CHIPPED MY QUADRICEPS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT JET SKI ISN'T EVEN MINE THIS TIME!",
   "from": "HAZARD_HURT"
  },
  {
@@ -12886,11 +13136,6 @@
  },
  {
   "voice": "meathead",
-  "text": "THE HURRICANE'S REDECORATING! ON MY FACE!",
-  "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
   "text": "THE INTERN RAN ME OVER! HE'S NOT EVEN GETTING PAID!",
   "from": "HAZARD_HURT"
  },
@@ -13007,6 +13252,11 @@
  {
   "voice": "meathead",
   "text": "THE TREE WON. THE TREE ALWAYS WINS.",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE UMBRELLA! I'M GONNA NEED SUNSCREEN AND STITCHES!",
   "from": "HAZARD_HURT"
  },
  {
@@ -13626,6 +13876,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHO SHIPS CRATES IN A HURRICANE?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "WHO SHOT ME IN THE BACK?! COWARDLY INSECT!",
   "from": "HAZARD_HURT"
  },
@@ -13657,6 +13912,11 @@
  {
   "voice": "meathead",
   "text": "WHO THROWS THINGS OUT A WINDOW THIS HIGH UP?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO TOOK A SHOPPING CART OUT TO SEA?!",
   "from": "HAZARD_HURT"
  },
  {
