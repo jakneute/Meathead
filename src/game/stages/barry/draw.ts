@@ -68,7 +68,7 @@ const LAST_SKYLINE = 2, BLACKOUT_WAVE = 3;
 
 /**
  * The rolling blackout across the skyline: where it's rolled through, the buildings go dark (every light in them
- * out, not just dimmed), and the sky over them darker; windows sputter at its edges as it goes.
+ * out, not just dimmed; the sky over them left as it is); windows sputter at its edges as it goes.
  */
 const drawSkylineBlackout = (ctx: Ctx, state: GameState) => {
   const f = state.frame;
@@ -83,7 +83,6 @@ const drawSkylineBlackout = (ctx: Ctx, state: GameState) => {
   ctx.save();
   ctx.beginPath(); for (const [x, w] of dark) ctx.rect(x, -200, w, CANVAS_HEIGHT + 400); ctx.clip();
   for (const l of BARRY_SKYLINES_DARK) blitLayer(ctx, l, state.camera.x, state.camera.y, f);
-  ctx.fillStyle = 'rgba(0, 0, 8, 0.35)'; ctx.fillRect(0, -200, CANVAS_WIDTH, CANVAS_HEIGHT + 400);
   ctx.restore();
 };
 
