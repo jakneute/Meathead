@@ -3,6 +3,7 @@
 // them. Rebuilt with the level on every (re)spawn; the checkpoint says what's
 // behind you.
 
+import { TaseCam, createTaseCam } from './taseCam';
 import { deathByCause } from '../../core/deathCause';
 import type { GameState } from '../../core/state';
 import type { FrameContext } from '../../core/context';
@@ -28,6 +29,8 @@ export interface OscarRuntime {
   chase: Chase;
   ending: Ending;
   bar: Bar;
+  /** In the fight: the pull back to take in whatever the taser's holding off the screen. */
+  taseCam: TaseCam;
   /** A cut to black and back: frames in, and what happens at the black. */
   fade: { t: number; at: (() => void) | null };
 }
@@ -67,6 +70,7 @@ export const createOscarRuntime = (state: GameState, skipToBoss: boolean): Oscar
     chase: createChase(startedAt),
     ending: createEnding(startedAt),
     bar: createBar(state, startedAt),
+    taseCam: createTaseCam(),
     fade: { t: 0, at: null },
   };
   applyPlaceCamera(state, placeOf(start.x));

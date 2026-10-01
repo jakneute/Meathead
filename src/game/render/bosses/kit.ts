@@ -18,6 +18,7 @@ export type Mood =
   | 'ko'       // out cold: X eyes
   | 'blissed'  // high: heavy lids, pupils like dinner plates, a big dopey smile
   | 'shock'    // electrocuted: bolt upright, eyes wide, teeth rattling
+  | 'baffled'  // stumped: one brow way up, the other knotted, eyes wide, the jaw dropped in a little O
   // Each one's own look at rest (their photos on the select screen):
   | 'grim'     // cold and bitter: brows down flat, a hard stare, mouth turned down
   | 'grin'     // the showman: brows up, a big wide toothy grin
@@ -243,6 +244,10 @@ const brows = (ctx: CanvasRenderingContext2D, st: FaceStyle, mood: Mood, frame: 
       bar(R_EYE + 3.5, by - 0.2, R_EYE - 3, by + 1.4);
       break;
     }
+    case 'baffled':
+      bar(L_EYE - 3.5, by - 2.6, L_EYE + 3, by - 3.6);
+      bar(R_EYE + 3.5, by + 0.4, R_EYE - 3, by - 1.2);
+      break;
     case 'shock':
       bar(L_EYE - 3.5, by - 2.5, L_EYE + 3, by - 2.8);
       bar(R_EYE + 3.5, by - 2.5, R_EYE - 3, by - 2.8);
@@ -431,6 +436,11 @@ const mouth = (ctx: CanvasRenderingContext2D, st: FaceStyle, mood: Mood, frame: 
     }
     case 'ko':
       ctx.fillStyle = dark; ell(ctx, 1, my + 1, 2.2, 1.4);
+      break;
+    case 'baffled':
+      // The jaw dropped: a little round O
+      ctx.fillStyle = lip; ell(ctx, 0.8, my + 1.6, 2.4, 3);
+      ctx.fillStyle = dark; ell(ctx, 0.8, my + 1.7, 1.6, 2.2);
       break;
     case 'grim':
       // Turned down hard at the corners

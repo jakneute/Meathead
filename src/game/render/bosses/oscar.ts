@@ -89,5 +89,12 @@ export const drawOscar = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
     },
   });
   ctx.restore();
+  // (staring at his own cigarette, hung in the air: a question mark over him)
+  if (e.baffled) {
+    ctx.fillStyle = '#FDE047'; ctx.strokeStyle = '#111111'; ctx.lineWidth = 1.2;
+    ctx.font = 'bold 14px "Press Start 2P", monospace'; ctx.textAlign = 'center';
+    const bob = Math.sin(frame * 0.2) * 1.5;
+    ctx.strokeText('?', 40, -14 + bob); ctx.fillText('?', 40, -14 + bob); ctx.textAlign = 'left';
+  }
   ctx.restore();
 };

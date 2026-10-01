@@ -1,6 +1,7 @@
 // Oily Oscar: his AI, rockets, oil slicks and fire, the flicked cigarette,
 // and how the taser beats him (hold him until it bursts, or zap the cigarette).
 
+import { TaseCam, updateTaseCam } from '../stages/oscar/taseCam';
 import { Enemy, Projectile, OilCell, Rect, Player } from '../../types';
 import {
   ARENA_LEFT, OSCAR_ARENA_RIGHT, TASER_RANGE, TASER_OVERLOAD_FRAMES, ENEMY_HIT_COOLDOWN,
@@ -92,6 +93,14 @@ export const updateOscar = (ctx: FrameContext, boss: Enemy) => {
   const { state } = ctx;
   const { player } = state;
   if (boss.fireproofFlash && boss.fireproofFlash > 0) boss.fireproofFlash--;
+
+  // (the camera, pulling back to take in whatever the taser's holding off the screen)
+  const rt = state.stage as { taseCam?: TaseCam } | null;
+  if (rt?.taseCam) updateTaseCam(state, rt.taseCam);
+  // His cigarette hanging in the air in the taser's beam: he stops dead and stares at it, baffled
+  const cigHeld = state.projectiles.some(p => p.isCigarette && p.health > 0 && state.frame - (p.zapAt ?? -9) <= 1);
+  if (cigHeld !== !!boss.baffled) { boss.baffled = cigHeld; boss.faceMood = cigHeld ? 'baffled' : undefined; }
+  if (cigHeld) { boss.vel.x = 0; boss.stateTimer = (boss.stateTimer || 0) + 1; return; }
 
   // He glides around on his own grease
   boss.pos.x += boss.vel.x;
@@ -533,8 +542,13 @@ const spawnFlame = (state: GameState, c: OilCell) => {
 /** The flicked cigarette arcs through the air; if it lands on oil, the oil goes up. */
 export const updateCigarette = (ctx: FrameContext, p: Projectile): boolean => {
   const { state } = ctx;
-  // Caught in the taser beam: it hangs there crackling
-  if (p.isTased) return true;
+  // Caught in the taser beam: it hangs there crackling, building up. Let go before it goes, and it carries on where it
+  // was going (and the build-up's gone with it)
+  if (state.frame - (p.zapAt ?? -9) <= 1) {
+    if (state.frame % 3 === 0) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, vel: { x: (Math.random() - 0.5) * 3, y: (Math.random() - 0.5) * 3 }, life: 10, color: Math.random() < 0.5 ? '#00E5FF' : '#FFB300', size: 2 + Math.random() * 2 });
+    return true;
+  }
+  p.isTased = false; p.zapFrames = 0;
   p.vel.y += OSCAR_CIGARETTE_GRAVITY;
   p.pos.x += p.vel.x;
   p.pos.y += p.vel.y;
@@ -630,7 +644,10 @@ export const zapCigarette = (ctx: FrameContext, cig: Projectile) => {
   const { state, fx } = ctx;
   const { player } = state;
   cig.isTased = true;
+  cig.zapAt = state.frame;
   cig.zapFrames = (cig.zapFrames || 0) + 1;
+  // (crackling louder, glowing hotter, the closer it gets)
+  if (cig.zapFrames % Math.max(3, 12 - Math.floor(cig.zapFrames / 6)) === 0) fx.playGunSound('taser');
   if (cig.zapFrames < OSCAR_CIGARETTE_ZAP_FRAMES) return;
 
   cig.health = 0;

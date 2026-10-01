@@ -79,7 +79,7 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
     if (player.taserTargetId.startsWith('oscar-cig-')) player.taserTargetId = null;
     else { cutTaser(player); return; }
   }
-  if (target && (target.pos.x + target.width < state.camera.x || target.pos.x > state.camera.x + CANVAS_WIDTH)) {
+  if (target && !getStageLayout(stageId)?.taserReachesOffscreen && (target.pos.x + target.width < state.camera.x || target.pos.x > state.camera.x + CANVAS_WIDTH)) {
     player.taserTargetId = null;
   }
   if (!target || target.health <= 0) return;

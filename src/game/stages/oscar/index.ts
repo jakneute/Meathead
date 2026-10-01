@@ -11,6 +11,7 @@ import { createOscarRuntime, getOscar, updateOscar, oscarDeathMessage } from './
 import { isChaseVehicle, updateChaseVehicle, hitChaseVehicle, chaseZoom } from './chase';
 import { drawOscarBackdrop, drawOscarBack, drawOscarMid, drawOscarFront, drawOscarHud, drawOscarOverlays } from './draw';
 import { oscarScene } from './lighting';
+import { taseZoom } from './taseCam';
 
 export const oscarLayout: StageLayout = {
   music: state => {
@@ -84,7 +85,8 @@ export const oscarLayout: StageLayout = {
   drawBackdrop: (ctx, state) => !!getOscar(state) && drawOscarBackdrop(ctx, state),
   drawBackdropFront: (ctx, state) => !!getOscar(state) && drawOscarOverlays(ctx, state),
   // (on the chase the view pulls back as the mob grows)
-  zoom: state => { const rt = getOscar(state); return rt ? chaseZoom(state, rt.chase) : null; },
+  taserReachesOffscreen: true,
+  zoom: state => { const rt = getOscar(state); return rt ? chaseZoom(state, rt.chase) ?? (state.arenaLocked ? taseZoom(rt.taseCam) : null) : null; },
   cameraRow: state => (placeOf(state.player.pos.x) === 'bunker' ? 520 : undefined),
 };
 

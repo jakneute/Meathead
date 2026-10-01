@@ -388,6 +388,8 @@ export interface Enemy extends Entity {
   pukeDir?: number;
   /** A boss posing for a photo: the look on his face (see the render kit's moods). */
   faceMood?: string;
+  /** Oscar, staring at his own cigarette hanging in the air in the taser's beam. */
+  baffled?: boolean;
   emergeY?: number;
   // Oily Oscar
   oscarFacing?: 1 | -1;
@@ -469,6 +471,8 @@ export interface Projectile extends Entity {
   isCigarette?: boolean;
   /** Frames the taser has been on this cigarette. */
   zapFrames?: number;
+  /** The cigarette: the frame the taser last had hold of it (let go of, it carries on where it was going). */
+  zapAt?: number;
   isDarkness?: boolean;
   isLingering?: boolean;
   isSliding?: boolean;
