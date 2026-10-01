@@ -38,6 +38,20 @@ export const drawYardCamp = (ctx: Ctx, state: GameState) => {
   const Yd = COURSE.yard, f = state.frame;
   if (!inView(state, Yd.x1, Yd.x2, 300)) return;
   ctx.save();
+  // The ground they're on, rising away behind the yard in banks (the access road at the top of it, the camp below):
+  // nothing out there's floating
+  const x1 = Math.max(Yd.x1 - 300, state.camera.x - 150), x2 = Math.min(COURSE.field.x2 + 100, state.camera.x + CANVAS_WIDTH + 150);
+  if (x2 > x1) {
+    const bank = (top: number, c: string, lip: string) => {
+      ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(x1, Y);
+      for (let x = x1; x <= x2; x += 40) ctx.lineTo(x, top + Math.sin(x * 0.013) * 3 + hash(Math.floor(x / 40)) * 2);
+      ctx.lineTo(x2, Y); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = lip; ctx.fillRect(x1, top - 1, x2 - x1, 2);
+    };
+    bank(Y - 152, '#3B2A20', 'rgba(214, 196, 160, 0.25)');
+    bank(Y - 98, '#4A3527', 'rgba(214, 196, 160, 0.2)');
+    bank(Y - 60, '#5A4030', 'rgba(214, 196, 160, 0.2)');
+  }
   // Cruising, way at the back (small, hazy), up and down the access road
   ctx.globalAlpha = 0.55;
   for (let k = 0; k < 7; k++) {

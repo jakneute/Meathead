@@ -170,9 +170,10 @@ const updateMovers = (ctx: FrameContext, f: Field) => {
     const blk = state.blocks.find(b => b.tag === `omover-${i}`);
     if (!blk) return;
     const at = moverAt(m, state.frame), dx = at.x - blk.x, dy = at.y - blk.y;
-    const on = (o: { pos: { x: number; y: number }; width: number; height: number }) => Math.abs(o.pos.y + o.height - blk.y) < 4 && o.pos.x + o.width > blk.x && o.pos.x < blk.x + blk.w;
+    const on = (o: { pos: { x: number; y: number }; width: number; height: number }) => Math.abs(o.pos.y + o.height - blk.y) < 6 && o.pos.x + o.width > blk.x && o.pos.x < blk.x + blk.w;
     if (p.isGrounded && on(p)) { p.pos.x += dx; p.pos.y += dy; }
-    for (const e of state.enemies) if (e.health > 0 && !e.isBlownAway && e.vel.y === 0 && on(e)) { e.pos.x += dx; e.pos.y += dy; }
+    // (anything stood on it goes with it too: a goon riding it along, up or down; not one that's jumped or been knocked off it)
+    for (const e of state.enemies) if (e.health > 0 && !e.isBlownAway && e.enemyType !== 'flyer' && e.vel.y > -1 && on(e)) { e.pos.x += dx; e.pos.y += dy; }
     blk.x = at.x; blk.y = at.y; m.bx = at.x; m.by = at.y;
   });
 };
