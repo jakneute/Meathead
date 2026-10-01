@@ -52,7 +52,7 @@ game/stages/oscar/runtime.ts:171 name: undefined
 game/stages/oscar/runtime.ts:174 call: deathByCause(ctx.state)
 game/stages/oscar/runtime.ts:177 call: chaseDeathMessage(rt.chase)
 game/stages/oscar/chase.ts:581 name: undefined
-game/stages/oscar/bar.ts:162 template: `NOT ENOUGH GAS YET. ${left === 1 ? 'ONE MORE LINE' : 'TWO MORE LINES'} TO OPEN.`
+game/stages/oscar/bar.ts:163 template: `NOT ENOUGH GAS YET. ${left === 1 ? 'ONE MORE LINE' : 'TWO MORE LINES'} TO OPEN.`
 game/stages/oscar/script.ts:79 voice: VOICES[line.who]
 game/stages/gym/script.ts:77 voice: VOICES[line.who]
 game/stages/gym/runtime.ts:349 name: undefined

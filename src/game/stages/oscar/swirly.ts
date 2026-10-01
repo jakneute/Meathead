@@ -60,10 +60,16 @@ export const startSwirly = (ctx: FrameContext, b: Bar, talk: Talk, onSpot: boole
   able.sort((a, c) => Math.abs(a.k.x - px) - Math.abs(c.k.x - px));
   const carriers = able.slice(0, 3).map(({ i }) => i);
   b.swirly = { phase: 'react', t: 0, carriers, x: carriers.map(i => b.bikers[i].x), mx: px, down: 0 };
-  queueLines(state, talk, [
+  // (walked in like that: they smell him coming through the door; did it in here: they all heard it)
+  queueLines(state, talk, onSpot ? [
+    { who: 'biker', text: 'DID HE JUST... IN HERE? IN FRONT OF EVERYBODY?' },
+    { who: 'dan', text: 'SOMEBODY JUST SHIT THEMSELF IN MY BAR.' },
+    { who: 'meathead', text: "...THAT ONE'S ON ME." },
+    { who: 'dan', text: "THAT'S A NEW LOW. EVEN FOR THIS PLACE. BOYS? TAKE OUT THE TRASH." },
+  ] : [
     { who: 'biker', text: 'WHOA. WHOA. WHAT IS THAT SMELL?' },
-    { who: 'dan', text: 'SOMEBODY SHIT THEMSELF IN MY BAR?' },
-    { who: 'meathead', text: onSpot ? "...THAT ONE'S ON ME." : '...I CAN EXPLAIN.' },
+    { who: 'dan', text: 'DID YOU WALK IN HERE LIKE THAT? INTO MY BAR?' },
+    { who: 'meathead', text: '...I CAN EXPLAIN.' },
     { who: 'dan', text: 'THIS IS A CLEAN ESTABLISHMENT. BOYS? TAKE OUT THE TRASH.' },
   ], onSpot ? 150 : 20);
 };

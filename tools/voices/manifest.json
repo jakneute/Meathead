@@ -4912,7 +4912,7 @@
  {
   "voice": "death",
   "text": "DON'T SHIT YOURSELF IN A BIKER BAR",
-  "from": "game/stages/oscar/swirly.ts:124"
+  "from": "game/stages/oscar/swirly.ts:130"
  },
  {
   "voice": "death",
@@ -5212,7 +5212,7 @@
  {
   "voice": "death",
   "text": "FLUSHED LIKE THE TURD YOU ARE",
-  "from": "game/stages/oscar/swirly.ts:124"
+  "from": "game/stages/oscar/swirly.ts:130"
  },
  {
   "voice": "death",
@@ -7037,7 +7037,7 @@
  {
   "voice": "death",
   "text": "TWO FLUSHES. MAYBE THREE.",
-  "from": "game/stages/oscar/swirly.ts:124"
+  "from": "game/stages/oscar/swirly.ts:130"
  },
  {
   "voice": "death",
@@ -8262,7 +8262,7 @@
  {
   "voice": "meathead",
   "text": "...I CAN EXPLAIN.",
-  "from": "game/stages/oscar/swirly.ts:66"
+  "from": "game/stages/oscar/swirly.ts:72"
  },
  {
   "voice": "meathead",
@@ -8297,7 +8297,7 @@
  {
   "voice": "meathead",
   "text": "...THAT ONE'S ON ME.",
-  "from": "game/stages/oscar/swirly.ts:66"
+  "from": "game/stages/oscar/swirly.ts:67"
  },
  {
   "voice": "meathead",
@@ -9822,7 +9822,7 @@
  {
   "voice": "meathead",
   "text": "EVERYBODY'S ON BREAK TODAY.",
-  "from": "game/stages/oscar/bar.ts:108"
+  "from": "game/stages/oscar/bar.ts:109"
  },
  {
   "voice": "meathead",
@@ -10397,7 +10397,7 @@
  {
   "voice": "meathead",
   "text": "GIVE IT A SECOND. LET IT FILL UP.",
-  "from": "game/stages/oscar/bar.ts:165"
+  "from": "game/stages/oscar/bar.ts:166"
  },
  {
   "voice": "meathead",
@@ -11082,7 +11082,7 @@
  {
   "voice": "meathead",
   "text": "HEY! PUT ME DOWN! I'M NOT DONE!",
-  "from": "game/stages/oscar/swirly.ts:97"
+  "from": "game/stages/oscar/swirly.ts:103"
  },
  {
   "voice": "meathead",
@@ -11597,7 +11597,7 @@
  {
   "voice": "meathead",
   "text": "I SMELL GAS COMING FROM THE CAN.",
-  "from": "game/stages/oscar/bar.ts:182"
+  "from": "game/stages/oscar/bar.ts:183"
  },
  {
   "voice": "meathead",
@@ -12177,7 +12177,7 @@
  {
   "voice": "meathead",
   "text": "LAST CALL.",
-  "from": "game/stages/oscar/bar.ts:243"
+  "from": "game/stages/oscar/bar.ts:244"
  },
  {
   "voice": "meathead",
@@ -12937,7 +12937,7 @@
  {
   "voice": "meathead",
   "text": "NOTHING TO LIGHT YET. OPEN UP THE GAS LINES FIRST. A PISTOL'LL DO IT.",
-  "from": "game/stages/oscar/bar.ts:165"
+  "from": "game/stages/oscar/bar.ts:166"
  },
  {
   "voice": "meathead",
@@ -12947,7 +12947,7 @@
  {
   "voice": "meathead",
   "text": "NOW JUST A LITTLE FIRE.",
-  "from": "game/stages/oscar/bar.ts:186"
+  "from": "game/stages/oscar/bar.ts:187"
  },
  {
   "voice": "meathead",
@@ -13077,7 +13077,7 @@
  {
   "voice": "meathead",
   "text": "ONE.",
-  "from": "game/stages/oscar/bar.ts:141"
+  "from": "game/stages/oscar/bar.ts:142"
  },
  {
   "voice": "meathead",
@@ -14237,7 +14237,7 @@
  {
   "voice": "meathead",
   "text": "SOMETHING HISSING DOWN LOW, BEHIND THE JUKEBOX.",
-  "from": "game/stages/oscar/bar.ts:182"
+  "from": "game/stages/oscar/bar.ts:183"
  },
  {
   "voice": "meathead",
@@ -15207,7 +15207,7 @@
  {
   "voice": "meathead",
   "text": "THERE'S A GAS LINE UP OVER THE BAND.",
-  "from": "game/stages/oscar/bar.ts:182"
+  "from": "game/stages/oscar/bar.ts:183"
  },
  {
   "voice": "meathead",
@@ -15322,12 +15322,12 @@
  {
   "voice": "meathead",
   "text": "THREE GAS LINES IN HERE, BY THE SMELL. PISTOL SHOULD DO IT.",
-  "from": "game/stages/oscar/bar.ts:182"
+  "from": "game/stages/oscar/bar.ts:183"
  },
  {
   "voice": "meathead",
   "text": "THREE. NOW ALL IT NEEDS IS A LITTLE FIRE.",
-  "from": "game/stages/oscar/bar.ts:142"
+  "from": "game/stages/oscar/bar.ts:143"
  },
  {
   "voice": "meathead",
@@ -15407,7 +15407,7 @@
  {
   "voice": "meathead",
   "text": "TOO MUCH GUN. A PISTOL ROUND'LL PUNCTURE IT.",
-  "from": "game/stages/oscar/bar.ts:147"
+  "from": "game/stages/oscar/bar.ts:148"
  },
  {
   "voice": "meathead",
@@ -15527,7 +15527,7 @@
  {
   "voice": "meathead",
   "text": "TWO.",
-  "from": "game/stages/oscar/bar.ts:141"
+  "from": "game/stages/oscar/bar.ts:142"
  },
  {
   "voice": "meathead",
@@ -16457,22 +16457,27 @@
  {
   "voice": "oscar.biker",
   "text": "ANOTHER ROUND, DARLENE.",
-  "from": "game/stages/oscar/bar.ts:189"
+  "from": "game/stages/oscar/bar.ts:190"
  },
  {
   "voice": "oscar.biker",
   "text": "BACK DOOR'S LOCKED TILL LAST CALL, HOSS.",
-  "from": "game/stages/oscar/bar.ts:109"
+  "from": "game/stages/oscar/bar.ts:110"
+ },
+ {
+  "voice": "oscar.biker",
+  "text": "DID HE JUST... IN HERE? IN FRONT OF EVERYBODY?",
+  "from": "game/stages/oscar/swirly.ts:65"
  },
  {
   "voice": "oscar.biker",
   "text": "EIGHT BALL, CORNER POCKET.",
-  "from": "game/stages/oscar/bar.ts:189"
+  "from": "game/stages/oscar/bar.ts:190"
  },
  {
   "voice": "oscar.biker",
   "text": "FLUSH IT!",
-  "from": "game/stages/oscar/swirly.ts:107"
+  "from": "game/stages/oscar/swirly.ts:113"
  },
  {
   "voice": "oscar.biker",
@@ -16487,62 +16492,67 @@
  {
   "voice": "oscar.biker",
   "text": "I'M NOT DRUNK, I'M ON BREAK.",
-  "from": "game/stages/oscar/bar.ts:189"
+  "from": "game/stages/oscar/bar.ts:190"
  },
  {
   "voice": "oscar.biker",
   "text": "RACK EM UP, TINY.",
-  "from": "game/stages/oscar/bar.ts:189"
+  "from": "game/stages/oscar/bar.ts:190"
  },
  {
   "voice": "oscar.biker",
   "text": "THIS SONG IS ABOUT MY BIKE.",
-  "from": "game/stages/oscar/bar.ts:189"
+  "from": "game/stages/oscar/bar.ts:190"
  },
  {
   "voice": "oscar.biker",
   "text": "TO THE HOGS!",
-  "from": "game/stages/oscar/swirly.ts:97"
+  "from": "game/stages/oscar/swirly.ts:103"
  },
  {
   "voice": "oscar.biker",
   "text": "WELL, LOOK WHAT THE CAT DRAGGED IN.",
-  "from": "game/stages/oscar/bar.ts:106"
+  "from": "game/stages/oscar/bar.ts:107"
  },
  {
   "voice": "oscar.biker",
   "text": "WHO TOOK MY STOOL? THAT IS MY STOOL.",
-  "from": "game/stages/oscar/bar.ts:189"
+  "from": "game/stages/oscar/bar.ts:190"
  },
  {
   "voice": "oscar.biker",
   "text": "WHOA. WHOA. WHAT IS THAT SMELL?",
-  "from": "game/stages/oscar/swirly.ts:64"
+  "from": "game/stages/oscar/swirly.ts:70"
  },
  {
   "voice": "oscar.dan",
   "text": "AND WHAT DO WE DO WITH A TURD, BOYS?",
-  "from": "game/stages/oscar/swirly.ts:107"
+  "from": "game/stages/oscar/swirly.ts:113"
  },
  {
   "voice": "oscar.dan",
   "text": "ANOTHER ROUND, DARLENE.",
-  "from": "game/stages/oscar/bar.ts:189"
+  "from": "game/stages/oscar/bar.ts:190"
+ },
+ {
+  "voice": "oscar.dan",
+  "text": "DID YOU WALK IN HERE LIKE THAT? INTO MY BAR?",
+  "from": "game/stages/oscar/swirly.ts:71"
  },
  {
   "voice": "oscar.dan",
   "text": "EASY. WE'RE ON BREAK. NOBODY TOUCHES NOBODY.",
-  "from": "game/stages/oscar/bar.ts:107"
+  "from": "game/stages/oscar/bar.ts:108"
  },
  {
   "voice": "oscar.dan",
   "text": "EIGHT BALL, CORNER POCKET.",
-  "from": "game/stages/oscar/bar.ts:189"
+  "from": "game/stages/oscar/bar.ts:190"
  },
  {
   "voice": "oscar.dan",
   "text": "I'M NOT DRUNK, I'M ON BREAK.",
-  "from": "game/stages/oscar/bar.ts:189"
+  "from": "game/stages/oscar/bar.ts:190"
  },
  {
   "voice": "oscar.dan",
@@ -16557,27 +16567,32 @@
  {
   "voice": "oscar.dan",
   "text": "RACK EM UP, TINY.",
-  "from": "game/stages/oscar/bar.ts:189"
+  "from": "game/stages/oscar/bar.ts:190"
  },
  {
   "voice": "oscar.dan",
-  "text": "SOMEBODY SHIT THEMSELF IN MY BAR?",
-  "from": "game/stages/oscar/swirly.ts:65"
+  "text": "SOMEBODY JUST SHIT THEMSELF IN MY BAR.",
+  "from": "game/stages/oscar/swirly.ts:66"
+ },
+ {
+  "voice": "oscar.dan",
+  "text": "THAT'S A NEW LOW. EVEN FOR THIS PLACE. BOYS? TAKE OUT THE TRASH.",
+  "from": "game/stages/oscar/swirly.ts:68"
  },
  {
   "voice": "oscar.dan",
   "text": "THIS IS A CLEAN ESTABLISHMENT. BOYS? TAKE OUT THE TRASH.",
-  "from": "game/stages/oscar/swirly.ts:67"
+  "from": "game/stages/oscar/swirly.ts:73"
  },
  {
   "voice": "oscar.dan",
   "text": "THIS SONG IS ABOUT MY BIKE.",
-  "from": "game/stages/oscar/bar.ts:189"
+  "from": "game/stages/oscar/bar.ts:190"
  },
  {
   "voice": "oscar.dan",
   "text": "WHO TOOK MY STOOL? THAT IS MY STOOL.",
-  "from": "game/stages/oscar/bar.ts:189"
+  "from": "game/stages/oscar/bar.ts:190"
  },
  {
   "voice": "oscar.foreman",
