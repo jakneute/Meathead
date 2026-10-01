@@ -12,6 +12,9 @@ import { GUT_LINES } from '../../content/dialogue';
 import { getStageLayout } from '../stages';
 import { STAIN_FRAMES } from '../core/state';
 
+/** A skid mark this far from the last one's end, laid in the last few frames: the same one, carried on. */
+const SMEAR_JOIN = 14;
+
 /** Crouched and still this long (frames): the grumble. Then this long: the accident. */
 export const GUT_GRUMBLE = 15 * 60, GUT_ACCIDENT = 30 * 60;
 
@@ -85,6 +88,14 @@ const leaveTrail = (ctx: FrameContext) => {
     if (near) near.at = Math.max(near.at, state.frame - 60);
     else if (state.frame % 20 === 0) stains.push({ x, surface: body.surface, x1: body.x1, x2: body.x2, kind: 'shit', at: state.frame });
     return;
+  }
+  // Sliding along the floor like that: a skid mark behind him (brown, and it fades in a while)
+  if (p.isSliding && p.isGrounded) {
+    const feet = p.pos.y + p.height, sx = p.pos.x + p.width / 2;
+    const smears = (state.groundSmears ??= []);
+    const last = smears[smears.length - 1];
+    if (last && state.frame - last.at < 3 && Math.abs(last.y - feet) < 2 && sx > last.x1 - SMEAR_JOIN && sx < last.x2 + SMEAR_JOIN) { last.x1 = Math.min(last.x1, sx); last.x2 = Math.max(last.x2, sx); last.at = state.frame; }
+    else smears.push({ x1: sx - 4, x2: sx + 4, y: feet, at: state.frame });
   }
   if (state.frame % 7 === 0) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 16, y }, vel: { x: (Math.random() - 0.5) * 0.4, y: -0.6 - Math.random() * 0.5 }, life: 45, color: 'rgba(140, 160, 70, 0.35)', size: 3 + Math.random() * 3 });
 };

@@ -8,7 +8,7 @@ import {
 } from '../../constants';
 import { drawSkyClouds, DEPLOY_CLOUD_SCROLL_END, SKYFALL_CLOUD_SPEED } from './skyClouds';
 import { STAGE_COLORS } from '../../content/roster';
-import { GameState, BOSS_FALL, STAIN_FRAMES } from '../core/state';
+import { GameState, BOSS_FALL, STAIN_FRAMES, SMEAR_FRAMES } from '../core/state';
 import { drawCustomBossArena } from './bosses/arenas';
 import { drawBoss, drawBossOverlay } from './bosses';
 import { drawVentTelegraph, drawVent, drawMagma, isMagma } from './bosses/victorVents';
@@ -96,6 +96,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     if (!isRing) drawGroundProfile(wctx, state.groundRuns, stageId, state.frame || 0, state.view);
     if (!isRing && !drawTerrain(wctx, state.blocks, stageId, state.frame || 0, state.doorOpenAmount)) drawBlocks(wctx, state, colors);
     layout?.drawMid?.(wctx, state);
+    if (state.groundSmears?.length) drawGroundSmears(wctx, state);
     // The boss arena is drawn whenever any of it is on screen: from the moment the door
     // opens onto it, through the fight, his death and the victory lap
     const arenaInView = !!stageId && state.camera.x + CANVAS_WIDTH > ARENA_LEFT;
@@ -178,6 +179,20 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
  * Fouled water: a slick spreading out on the surface from where the sludge or the rocket went in, with the water
  * under it clouded (green-brown for the sludge; black with a rainbow sheen for the oil), fading out as it breaks up.
  */
+/** Skid marks where he slid in his shitty pants: a brown streak along the floor, thickest in the middle, fading out. */
+const drawGroundSmears = (ctx: CanvasRenderingContext2D, state: GameState) => {
+  for (const s of state.groundSmears!) {
+    const k = (state.frame - s.at) / SMEAR_FRAMES;
+    const a = k > 0.5 ? 1 - (k - 0.5) / 0.5 : 1;
+    const x1 = Math.round(s.x1 / 2) * 2, w = Math.max(2, Math.round((s.x2 - s.x1) / 2) * 2), y = Math.round(s.y);
+    ctx.fillStyle = `rgba(92, 58, 22, ${0.85 * a})`; ctx.fillRect(x1, y - 2, w, 4);
+    ctx.fillStyle = `rgba(122, 82, 36, ${0.7 * a})`; ctx.fillRect(x1 + 2, y - 2, Math.max(0, w - 4), 2);
+    // (streaky: gaps and drips along it)
+    ctx.fillStyle = `rgba(60, 36, 14, ${0.8 * a})`;
+    for (let x = x1 + 6; x < x1 + w - 4; x += 14) ctx.fillRect(x, y - 1, 4, 2);
+  }
+};
+
 const drawWaterStains = (ctx: CanvasRenderingContext2D, state: GameState) => {
   ctx.save();
   for (const s of state.waterStains!) {

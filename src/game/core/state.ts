@@ -47,6 +47,8 @@ export interface GameState {
   checkpoint: number;
   /** Clean water fouled by the sludge barfer or an oil rocket: a slick spreading on the surface, fading after a while. */
   waterStains?: { x: number; surface: number; x1: number; x2: number; kind: 'sludge' | 'oil' | 'shit'; at: number }[];
+  /** Brown skid marks on the floor where he's slid with his pants full (from x1 to x2 along y; last laid at `at`). */
+  groundSmears?: { x1: number; x2: number; y: number; at: number }[];
   /** The taser just put a current through a stretch of water: where, and when. */
   waterShock?: { x1: number; x2: number; surface: number; bottom: number; at: number };
   /** The last checkpoint the banner went up for (unset until the stage has started: where it starts isn't shown). */
@@ -262,6 +264,8 @@ export const shakeScreen = (s: GameState, frames: number, magnitude: number = DE
 
 /** How long a slick fouling clean water lasts (frames). */
 export const STAIN_FRAMES = 660;
+/** How long a skid mark takes to fade. */
+export const SMEAR_FRAMES = 600;
 
 export const createGameState = (stageId: string | null, ammo: Record<WeaponType, number>): GameState => ({
   stageId,

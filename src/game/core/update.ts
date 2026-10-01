@@ -15,7 +15,7 @@ import { respawn, getStartX } from './level';
 import { updateSewerNuke } from '../scenes/sewerNuke';
 import { updateEnemyDeaths } from '../enemies/deaths';
 import { updateVolcanoFinale } from '../scenes/volcanoFinale';
-import { calmPlayer, DEFAULT_SHAKE, shakeScreen, BOSS_FALL, STAIN_FRAMES } from './state';
+import { calmPlayer, DEFAULT_SHAKE, shakeScreen, BOSS_FALL, STAIN_FRAMES, SMEAR_FRAMES } from './state';
 import { playSound } from '../platform/audio';
 import { LEVEL_INTRO_STYLE, PLAYER_GRAVITY, PLAYER_TERMINAL_VELOCITY } from '../../constants';
 import { updateBarfStream, updateFlameSegments } from '../combat/weapons';
@@ -441,6 +441,7 @@ const stainWater = (ctx: FrameContext) => {
     if (p.isSludge) p.health = 0;
   }
   if (state.waterStains?.length) state.waterStains = state.waterStains.filter(s => state.frame - s.at < STAIN_FRAMES);
+  if (state.groundSmears?.length) state.groundSmears = state.groundSmears.filter(s => state.frame - s.at < SMEAR_FRAMES);
 };
 
 /** The checkpoint banner: off for now (it was going up at the wrong times; the checkpoints need looking at first). */
