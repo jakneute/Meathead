@@ -76,10 +76,10 @@ interface OverlayProps {
   showReport?: boolean;
   reportBosses?: string[];
   reportIndex?: number;
-  reportAfter?: boolean;
+  reportView?: number;
   onToggleReport?: () => void;
   onReportSelect?: (i: number) => void;
-  onToggleReportAfter?: () => void;
+  onReportView?: (v: number) => void;
   /** How each boss died: the weakness weapon that wrecked his corpse, or null for a plain kill. */
   killRecords: Record<string, WeaponType | null>;
   /** Dev cheat panel on the title screen; omitted when cheats are disabled. */
@@ -237,7 +237,7 @@ const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onStartGame, onSel
 export const setTitleClass = (title: string) =>
   `${title.length > 20 ? 'text-[17px]' : 'text-xl md:text-2xl'} whitespace-nowrap text-red-600 font-black tracking-widest border-b-4 border-red-900 pb-1 uppercase italic drop-shadow-[0_2px_2px_rgba(153,0,0,0.8)] [text-shadow:2px_2px_0_rgb(0,0,0),_0_4px_0_rgba(153,0,0,0.8),_0_8px_0_rgba(153,0,0,0.4),_2px_12px_2px_rgba(255,0,0,0.5)]`;
 
-const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedStages, selectedIndex, onSelectIndex, showDossier, onToggleDossier, lockedIndex, engaging, onStageCardClick, onEngage, showArchive, onToggleArchive, killRecords, whiteHouseOpen, showReport, reportBosses, reportIndex, reportAfter, onToggleReport, onReportSelect, onToggleReportAfter }) => {
+const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedStages, selectedIndex, onSelectIndex, showDossier, onToggleDossier, lockedIndex, engaging, onStageCardClick, onEngage, showArchive, onToggleArchive, killRecords, whiteHouseOpen, showReport, reportBosses, reportIndex, reportView, onToggleReport, onReportSelect, onReportView }) => {
   // The archive shows the previous set: every one of them already dead
   // (the old targets' files aren't on this screen any more)
   const archive = false;
@@ -254,8 +254,8 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
   const selectedId = garageAt ? GARAGE_ID : whAt ? WHITE_HOUSE_ID : currentStages[selectedIndex]?.id || currentStages[0]?.id;
   // (the damage report: from the second set on, every target done so far, on its own screen)
   if (showReport && reportBosses?.length) {
-    return <DamageReport bosses={reportBosses} index={reportIndex ?? 0} after={reportAfter !== false} killRecords={killRecords}
-      onSelect={i => onReportSelect?.(i)} onToggleAfter={() => onToggleReportAfter?.()} onClose={() => onToggleReport?.()} titleClass={setTitleClass('DAMAGE REPORT')} />;
+    return <DamageReport bosses={reportBosses} index={reportIndex ?? 0} view={reportView ?? 1} killRecords={killRecords}
+      onSelect={i => onReportSelect?.(i)} onView={v => onReportView?.(v)} onClose={() => onToggleReport?.()} titleClass={setTitleClass('DAMAGE REPORT')} />;
   }
 
   return (

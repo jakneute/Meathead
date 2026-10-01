@@ -137,7 +137,8 @@ const App: React.FC = () => {
   // The damage report (from the second set on): up or not, which file, and before or after
   const [showReport, setShowReport] = useState(false);
   const [reportIndex, setReportIndex] = useState(0);
-  const [reportAfter, setReportAfter] = useState(true);
+  // (0 his file before, 1 the after-action report, 2 the photo)
+  const [reportView, setReportView] = useState(1);
   /** Stage select: the boss locked in as the target (null = still browsing). ENGAGE needs a lock first. */
   const [lockedIndex, setLockedIndex] = useState<number | null>(null);
   /** The "LET'S FUCKIN' GO" flourish is playing; all stage select input is ignored. */
@@ -376,8 +377,8 @@ const App: React.FC = () => {
     setLockedIndex(null);
     setReportIndex(i => Math.min(i, reportBosses.length - 1));
   };
-  /** The tab switch: the map or the dossier on the stage select, before or after on the damage report. */
-  const switchTab = () => { if (showReport) setReportAfter(v => !v); else toggleDossier(); };
+  /** The tab switch: the map or the dossier on the stage select; on the damage report, round before, after and the photo. */
+  const switchTab = (dir = 1) => { if (showReport) setReportView(v => (v + dir + 3) % 3); else toggleDossier(); };
 
   /** Old targets (the previous set's files) can be browsed once you're on the second set. */
   const toggleArchive = () => {
@@ -484,7 +485,7 @@ const App: React.FC = () => {
   const confirmSelection = () => {
     // (nothing while the call's still fading off the stage select)
     if (callOutro || intro !== 'off') return;
-    if (status === GameStatus.STAGE_SELECT) { if (showReport) setReportAfter(v => !v); else if (lockedIndex === null) lockStage(selectedIndex); else engageStage(); }
+    if (status === GameStatus.STAGE_SELECT) { if (showReport) setReportView(v => (v + 1) % 3); else if (lockedIndex === null) lockStage(selectedIndex); else engageStage(); }
     else if (status === GameStatus.PAUSED) { if (confirmLeave) answerBossSelect(confirmYes); else activatePauseItem(selectedIndex); }
     // The weapon screen runs its own firing range: only Start / Esc (handled there) move on
     // (the mid-game call runs its own confirm)
@@ -586,7 +587,7 @@ const App: React.FC = () => {
       }
       // Stage select: Tab flips between the map and the boss dossier (on the damage report, before and after); X is the
       // damage report
-      if (status === GameStatus.STAGE_SELECT && key === 'tab') { e.preventDefault(); switchTab(); return; }
+      if (status === GameStatus.STAGE_SELECT && key === 'tab') { e.preventDefault(); switchTab(e.shiftKey ? -1 : 1); return; }
       if (status === GameStatus.STAGE_SELECT && key === 'x') { toggleReport(); return; }
       // The title: M switches the music on and off
       if (status === GameStatus.START && key === 'm' && !inputRef.current.introOn) { inputRef.current.toggleMusic(); return; }
@@ -688,7 +689,8 @@ const App: React.FC = () => {
         if (justPressed('a') || (justPressed('start') && TIMED_SCREENS.includes(status))) confirmSelection();
         // (stage select: X is the damage report; the shoulder buttons flip the map and the dossier, or before and after)
         if (justPressed('x') && status === GameStatus.STAGE_SELECT) toggleReport();
-        if ((justPressed('lb') || justPressed('rb')) && status === GameStatus.STAGE_SELECT) switchTab();
+        if (justPressed('lb') && status === GameStatus.STAGE_SELECT) switchTab(-1);
+        if (justPressed('rb') && status === GameStatus.STAGE_SELECT) switchTab(1);
         if (justPressed('x') && status === GameStatus.START && !inputRef.current.introOn) inputRef.current.toggleMusic();
         if (justPressed('b')) {
           if (status === GameStatus.PAUSED) handleResume();
@@ -756,10 +758,10 @@ const App: React.FC = () => {
           showReport={showReport}
           reportBosses={reportBosses}
           reportIndex={reportIndex}
-          reportAfter={reportAfter}
+          reportView={reportView}
           onToggleReport={toggleReport}
           onReportSelect={setReportIndex}
-          onToggleReportAfter={() => setReportAfter(v => !v)}
+          onReportView={setReportView}
           killRecords={killRecords}
           cheats={SHOW_CHEATS ? { flags: cheatFlags, onToggle: handleToggleCheat, onChangeRank: handleChangeRank, onPlayEnding: () => setStatus(GameStatus.ENDING), onPlayCall: () => { setCallPreview(true); setStatus(GameStatus.VICTORY); } } : undefined}
           showCall={progressionRank === 0 || callPreview}
