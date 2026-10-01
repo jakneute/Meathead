@@ -14361,7 +14361,7 @@
  },
  {
   "voice": "tommy.hazmat",
-  "text": "...HUH. WHY IS THIS MANHOLE WARM?",
+  "text": "...WARM MANHOLE?",
   "from": "game/stages/tommy/escape.ts:153"
  },
  {
@@ -14376,7 +14376,7 @@
  },
  {
   "voice": "tommy.hazmat",
-  "text": "SAMPLE FOUR-OH-SEVEN. GREEN. GLOWING SLIGHTLY. WITHIN LIMITS.",
+  "text": "GLOWING. WITHIN LIMITS.",
   "from": "game/stages/tommy/escape.ts:152"
  },
  {
