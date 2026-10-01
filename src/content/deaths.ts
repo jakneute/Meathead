@@ -206,6 +206,8 @@ export const DEATH_LINES: Record<string, string[]> = {
   cruiser_shot: ['SHOT FROM A SQUAD CAR', 'TEXAS JUSTICE'],
   chopper: ['CHAINED AT SIXTY MILES AN HOUR', 'LAID DOWN THE BIKE'],
   gas_jet: ['GASSED', 'FLARED'],
+  oil_geyser: ['STOOD ON THE GUSHER', 'STRUCK OIL. HEAD FIRST.', 'WATCH WHERE THE GROUND BUBBLES'],
+  fire_geyser: ['STOOD ON A BURNING GUSHER', 'LIT THE VENT, THEN STOOD ON IT', 'FLAME-BROILED'],
   oil_fire: ['BURNED IN THE OIL', 'FOSSIL FUELED'],
   oil_fire_jet: ['BURNED IN THE OIL', 'FOSSIL FUELED'],
   oil: ['DROWNED IN CRUDE', 'A BARREL A DAY'],

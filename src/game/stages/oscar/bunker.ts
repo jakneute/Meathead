@@ -27,7 +27,8 @@ import { COURSE, CP } from './course';
 import { Talk, queueLines, quiet, hush } from './script';
 import { mountMoto } from './moto';
 
-export type BunkerPhase = 'waiting' | 'break' | 'clockout' | 'open' | 'spite' | 'boom' | 'aftermath' | 'runout' | 'ride' | 'done';
+/** (`outside`: out the far side and across the yard, on his own, till he's up to the bikers) */
+export type BunkerPhase = 'waiting' | 'break' | 'clockout' | 'open' | 'spite' | 'boom' | 'aftermath' | 'outside' | 'runout' | 'ride' | 'done';
 export type WorkerLook = 'couch' | 'cards' | 'cards2' | 'foreman' | 'microwave';
 export interface Worker { x: number; look: WorkerLook; state: 'break' | 'knocked' | 'furious' | 'gone' | 'clocked'; t: number }
 export interface Debris { x: number; y: number; vx: number; vy: number; rot: number; vr: number; w: number; h: number; color: string; life: number }
@@ -75,8 +76,10 @@ const NUMBERS = ['NO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'];
 export const createBunker = (state: GameState, startedAt: number): Bunker => {
   const B = COURSE.bunker;
   const done = startedAt >= CP.CHASE;
+  // (back in the yard after dying out there: the room's as he left it, the bikers still waiting)
+  const yard = startedAt === CP.YARD;
   const b: Bunker = {
-    phase: done ? 'done' : 'waiting', t: 0, popped: false, poppedAt: 0, gas: 0,
+    phase: done ? 'done' : yard ? 'outside' : 'waiting', t: 0, popped: false, poppedAt: 0, gas: 0,
     workers: [
       { x: B.x1 + 110, look: 'couch', state: 'break', t: 0 },
       { x: B.x1 + 290, look: 'cards', state: 'break', t: 0 },
@@ -86,9 +89,10 @@ export const createBunker = (state: GameState, startedAt: number): Bunker => {
     ],
     hinted: new Set(), ambientAt: 0, ambient: 0, debris: [],
     bikers: B.bikers.map((x, i) => ({ x, y: GROUND_Y, vx: 0, vy: 0, rot: 0, state: i === 0 || i === 3 ? 'sitting' as const : 'standing' as const })),
-    step: 0, stepAt: 0, earlyAt: -999, peaceful: false,
+    step: 0, stepAt: 0, earlyAt: -999, peaceful: yard && !!state.stageMemo.unionRespect,
   };
-  if (!done) {
+  if (yard) for (const w of b.workers) w.state = 'gone';
+  if (!done && !yard) {
     // The roof, and the far door (locked till break's over: and no going over the top of it)
     state.blocks.push({ x: B.x1, y: B.roof - 40, w: B.x2 - B.x1, h: 40, type: 'wall', hidden: true, tag: 'bunker-roof' });
     state.blocks.push({ x: B.x2 - 20, y: GROUND_Y - 3000, w: 20, h: 3000, type: 'wall', hidden: true, tag: 'bunker-door' });
@@ -168,7 +172,7 @@ export const updateBunker = (ctx: FrameContext, b: Bunker, talk: Talk, controls:
       // The gas line's still there once they've clocked back in: he can go ahead and blow the place up anyway
       if (!b.spited && gasLine(ctx, b)) { blowUp(ctx, b, talk, true); return controls; }
       // Out the far side: the bikers
-      if (px > B.x2 + 10) { b.phase = 'runout'; b.t = 0; b.step = 0; b.stepAt = 0; }
+      if (px > B.x2 + 10) { b.phase = 'outside'; b.t = 0; }
       return controls;
     case 'spite':
       // Nobody panics (they've clocked in: not their problem). He knows what he did.
@@ -179,6 +183,11 @@ export const updateBunker = (ctx: FrameContext, b: Bunker, talk: Talk, controls:
       if (b.t > 50) b.phase = 'open';
       return controls;
     case 'boom': case 'aftermath': return aftermath(ctx, b, talk);
+    case 'outside':
+      // Across the yard on his own; up to the bikers, and it's Dirty Dan's chopper
+      if (state.checkpoint < CP.YARD && p.isGrounded && px > COURSE.checkpoints[CP.YARD].x) state.checkpoint = CP.YARD;
+      if (p.isGrounded && px > b.bikers[0].x - 620) { b.phase = 'runout'; b.t = 0; b.step = 0; b.stepAt = 0; }
+      return controls;
     case 'runout': return runOut(ctx, b, talk);
     case 'ride': {
       // Off across the field on the stolen hog: a moment of it, then the chase
@@ -320,7 +329,9 @@ const aftermath = (ctx: FrameContext, b: Bunker, talk: Talk): Controls => {
     // (stomping off to work once they've said their piece)
     if (b.t > 20 && quiet(talk)) {
       for (const w of b.workers) if (w.state === 'furious') { w.state = 'gone'; w.t = 0; }
-      b.phase = 'runout'; b.t = 0; b.step = 0; b.stepAt = 0;
+      b.phase = 'outside'; b.t = 0;
+      p.inCutscene = false;
+      state.cameraOverride = null;
     }
   }
   return { ...NO_CONTROLS };

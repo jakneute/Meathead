@@ -8,12 +8,17 @@
 //   II.  The break room: a little prefab bunker, the union on its break inside.
 //        Nobody in there can be touched, and the far door's locked till break's
 //        over. A gas line along the wall that could be popped. And then lit.
+//   II½. The yard out back of it: the bikers' camp (their choppers parked up in rows behind, more of them cruising
+//        about), and a stretch of rigs to get across: derrick decks on skids being dragged back and forth over the
+//        pits, a derrick's lift going up and down, and the ground spouting oil (it knocks you flying; set the vent
+//        alight first and it's a column of fire instead). Then Dirty Dan and his chopper.
 //   III. The chase: out the far side on a biker's chopper, across the field,
 //        the union in their pickups, the rangers in their cruisers, the rest
 //        of the bikers, until enough of them are wrecked (it goes round and
 //        round till then). Every car and truck that goes ends up in a derrick.
 //   IV.  The field office: two of the union out back having a smoke under the
-//        NO SMOKING sign. Then Oscar's door, the field burning behind it.
+//        NO SMOKING sign. Then a stretch where the ground spouts oil, the broken gas lines lighting the vents for you,
+//        and Oscar's door, the field burning behind it.
 //
 // Each part is built in its own coordinates and shifted into place.
 
@@ -21,7 +26,7 @@ import type { EnemyKind } from '../../../types';
 import type { GroundRun } from '../../core/terrain';
 import { GROUND_Y, BOSS_DOOR_X } from '../../../constants';
 
-export const CP = { FIELD: 0, FIELD_MID: 1, FIELD_MID2: 2, BUNKER: 3, CHASE: 4, END: 5, END_MID: 6, BAR: 7, BOSS: 8 } as const;
+export const CP = { FIELD: 0, FIELD_MID: 1, FIELD_MID2: 2, BUNKER: 3, YARD: 4, CHASE: 5, END: 6, END_MID: 7, BAR: 8, BOSS: 9 } as const;
 
 export interface Spawn { kind: EnemyKind; x: number; y: number; variant?: number }
 export interface PickupSpot { x: number; y: number; type: 'small_health' | 'large_health' | 'small_ammo' | 'large_ammo' }
@@ -34,6 +39,14 @@ export interface OilPatch { x1: number; x2: number; kind: 'slick' | 'tar'; /** I
  * ground (or a pit), or along it. Its flame hurts, burns anything in it, and lights any oil it touches.
  */
 export interface Jet { x: number; y: number; dir: 'up' | 'left' | 'right'; len: number; period: number; phase: number; on: number }
+/**
+ * A vent in the ground that spouts oil: it bubbles and the ground shakes, then a column of crude goes up out of it (it
+ * knocks anything in it flying, and hurts). Put a flame to it first (his flamethrower, burning oil over it, a gas
+ * line's fire reaching it) and the next one's a column of fire instead, and that's worse.
+ */
+export interface Geyser { x: number; y: number; period: number; phase: number }
+/** A derrick on the move: a deck on skids dragged back and forth (dx), or a derrick's lift going up and down (dy). `x` is its left edge mid-travel. */
+export interface Mover { x: number; y: number; w: number; dx: number; dy: number; period: number; phase: number; look: 'skid' | 'lift' }
 /** A pit full of crude: fall in and that's it. */
 export interface CrudePit { x1: number; x2: number; surface: number }
 /** Scenery: a pumpjack nodding away, a derrick, a tank, a flare stack, a sign. */
@@ -46,12 +59,16 @@ export interface Course {
   pickups: PickupSpot[];
   oil: OilPatch[];
   jets: Jet[];
+  geysers: Geyser[];
+  movers: Mover[];
   pits: CrudePit[];
   props: Prop[];
   /** The field (from where you land to the bunker and out past it). */
   field: { x1: number; x2: number };
   /** The break room: its walls, its floor and roof, the gas line (where it can be popped), the bikers out the far side. */
   bunker: { x1: number; x2: number; roof: number; vein: { x: number; y: number }; bikers: number[] };
+  /** The yard out back of the break room, up to the bikers (where their camp's drawn behind). */
+  yard: { x1: number; x2: number };
   /** The chase: where the road starts, how long one lap of it is (it repeats), how many laps are laid down. */
   chase: { x1: number; x2: number; lap: number; laps: number };
   /** Out back of the field office: where he rides in from, where the two are smoking, the wall they end up on. */
@@ -71,7 +88,9 @@ const FIELD_X0 = -70000;
 const CHASE_X0 = -40000;
 /** One lap of the chase's road (it's the same all the way round), and how many are laid down end to end. */
 export const LAP = 6400, LAPS = 3;
-const END_X0 = BOSS_DOOR_X - 7600;
+/** The yard out back of the break room (it pushes the bikers, and the far end of the field, along); the stretch of geysers added out back of the field office. */
+const YARD = 2700, GEYSERS = 1000;
+const END_X0 = BOSS_DOOR_X - 7600 - GEYSERS;
 /** The bikers' bar, the last room before Oscar's (local to the office end): its walls, the band's stage, the bathroom in the back. */
 const BAR_X1 = 6150, BAR_X2 = 7350;
 
@@ -80,8 +99,11 @@ const LAP_HEIGHTS = [0, -40, -90, -120, -90, -30, 20, 60, 90, 60, 10, -50, -110,
 
 const part = (x0: number) => {
   const runs: GroundRun[] = [], ledges: Ledge[] = [], spawns: Spawn[] = [], pickups: PickupSpot[] = [], oil: OilPatch[] = [], pits: CrudePit[] = [], props: Prop[] = [], jets: Jet[] = [];
+  const geysers: Geyser[] = [], movers: Mover[] = [];
   return {
-    runs, ledges, spawns, pickups, oil, pits, props, jets,
+    runs, ledges, spawns, pickups, oil, pits, props, jets, geysers, movers,
+    geyser: (x: number, y: number, period: number, phase: number) => { geysers.push({ x: x0 + x, y, period, phase }); },
+    mover: (x: number, y: number, w: number, dx: number, dy: number, period: number, phase: number, look: Mover['look']) => { movers.push({ x: x0 + x, y, w, dx, dy, period, phase, look }); },
     jet: (x: number, y: number, dir: Jet['dir'], len: number, period: number, phase: number, on = 60) => { jets.push({ x: x0 + x, y, dir, len, period, phase, on }); },
     ground: (x1: number, x2: number, y1 = Y, y2 = y1) => { runs.push({ x1: x0 + x1, y1, x2: x0 + x2, y2 }); },
     ledge: (x: number, y: number, w: number, look: Ledge['look'] = 'pipe') => { ledges.push({ x: x0 + x, y, w, look }); },
@@ -148,7 +170,7 @@ const build = () => {
   f.prop('flare', 6450); f.pickup(6600, Y - 30, 'small_ammo');
   // A pipeline across the last pit
   const S = 2400;
-  f.ground(4600 + S, 4760 + S); f.pit(4760 + S, 4930 + S); f.ledge(4745 + S, Y - 36, 200, 'pipe'); f.ground(4930 + S, 7000 + S);
+  f.ground(4600 + S, 4760 + S); f.pit(4760 + S, 4930 + S); f.ledge(4745 + S, Y - 36, 200, 'pipe'); f.ground(4930 + S, 8900);
   f.spawn('grackle', 4700 + S, Y - 280);
   f.spawn('armadillo', 5000 + S);
   f.spawn('ranger', 5100 + S);
@@ -156,6 +178,32 @@ const build = () => {
   f.prop('derrick', 4560 + S, Y); f.prop('sign', 5140 + S, Y, 'BREAK ROOM');
   // The break room (the fuel for the job's in there)
   f.pickup(5270 + S, Y - 30, 'large_ammo');
+
+  // ============ THE YARD ============
+  // Out the far side, the bikers' camp behind, and the rigs to get across before Dirty Dan's chopper.
+  // A vent on its own first: watch it go (and see what fire does to it)
+  f.geyser(8740, Y, 230, 0);
+  f.spawn('biker', 8840);
+  // A pit of crude with a derrick deck on skids dragged back and forth across it
+  f.pit(8900, 9300); f.mover(9045, Y - 24, 130, 190, 0, 280, 0, 'skid');
+  f.spawn('grackle', 9100, Y - 300);
+  // A derrick's lift up to its deck (a biker up there), the ground under it spouting, a slick round the vents
+  f.ground(9300, 9900);
+  f.mover(9360, Y - 120, 110, 0, 150, 260, 0, 'lift');
+  f.ledge(9500, Y - 240, 170, 'deck'); f.prop('derrick', 9585, Y);
+  f.spawn('biker', 9580, Y - 240); f.spawn('biker', 9760);
+  f.slick(9560, 9860); f.geyser(9640, Y, 200, 60); f.geyser(9820, Y, 200, 160);
+  f.pickup(9330, Y - 30, 'small_ammo');
+  // A wide pit: a lift up out of it, then a skid across the rest
+  f.pit(9900, 10350); f.mover(9930, Y - 70, 110, 0, 110, 230, 1.5, 'lift'); f.mover(10140, Y - 120, 120, 150, 0, 250, 0.8, 'skid');
+  f.spawn('grackle', 10100, Y - 320);
+  // Three vents in tar, the bikers coming at him over it, a flare stack going
+  f.ground(10350, 12100);
+  f.tar(10560, 10860); f.geyser(10500, Y, 210, 0); f.geyser(10700, Y, 210, 70); f.geyser(10900, Y, 210, 140);
+  f.ledge(10600, Y - 130, 140, 'pipe');
+  f.spawn('biker', 10620); f.spawn('biker', 10820); f.spawn('ranger', 10660, Y - 130); f.spawn('biker', 11000);
+  f.prop('flare', 10420); f.prop('sign', 10990, Y, 'NO PARKING (HOGS ONLY)');
+  f.pickup(10400, Y - 30, 'small_health'); f.pickup(10980, Y - 30, 'small_ammo');
 
   // ============ THE CHASE ============
   const c = part(CHASE_X0);
@@ -169,53 +217,70 @@ const build = () => {
 
   // ============ OUT BACK OF THE FIELD OFFICE ============
   const e = part(END_X0);
-  e.ground(-800, 2300);
+  e.ground(-800, 1950);
+  // ============ THE VENTS ============
+  // The ground spouting, the broken gas lines going off beside the vents and lighting them for you: wait for the fire
+  // to go out of one, or get past while it's only oil
+  e.geyser(1880, Y, 200, 0); e.jet(1800, Y, 'right', 100, 200, 120, 50);
+  e.pit(1950, 2110); e.ledge(1990, Y - 40, 90, 'pipe');
+  e.ground(2110, 2760);
+  e.slick(2200, 2400, true); e.geyser(2300, Y, 220, 90);
+  e.ledge(2380, Y - 120, 150, 'deck'); e.prop('derrick', 2455, Y);
+  e.geyser(2600, Y, 190, 30); e.jet(2690, Y, 'left', 110, 190, 140, 50);
+  e.spawn('biker', 2240, Y, 7); e.spawn('ranger', 2450, Y - 120, 7); e.spawn('biker', 2560, Y, 7);
+  e.pickup(2130, Y - 30, 'small_health');
+  // ============ AND THE REST OF IT ============
+  const r = part(END_X0 + GEYSERS);
+  r.ground(1760, 2300);
   // ============ AND THE LAST OF IT, BURNING, UP TO OSCAR'S DOOR ============
   // (what's left of the mob that came after him, bloodied and furious; gas lines ruptured everywhere, spitting fire,
   // and the oil pooling back as fast as it burns off)
   // A broken line licking fire along the ground onto a slick, again and again: watch it go up, burn off, pool back
-  e.slick(1860, 2160, true); e.jet(1820, Y, 'right', 110, 330, 0, 70); e.jet(2200, Y, 'left', 110, 330, 165, 70);
-  e.spawn('ranger', 2260, Y, 7); e.spawn('biker', 2150, Y, 7);
-  e.pickup(1760, Y - 30, 'small_ammo');
+  r.slick(1860, 2160, true); r.jet(1820, Y, 'right', 110, 330, 0, 70); r.jet(2200, Y, 'left', 110, 330, 165, 70);
+  r.spawn('ranger', 2260, Y, 7); r.spawn('biker', 2150, Y, 7);
+  r.pickup(1760, Y - 30, 'small_ammo');
   // A pit of crude, a pipeline across it, a jet of fire straight up through the middle of it
-  e.pit(2300, 2560); e.ledge(2285, Y - 40, 290, 'pipe'); e.jet(2430, Y + 40, 'up', 200, 150, 40, 55);
-  e.ground(2560, 2960);
-  e.spawn('biker', 2800, Y, 7);
-  e.pickup(2900, Y - 30, 'small_health');
+  r.pit(2300, 2560); r.ledge(2285, Y - 40, 290, 'pipe'); r.jet(2430, Y + 40, 'up', 200, 150, 40, 55);
+  r.ground(2560, 2960);
+  r.spawn('biker', 2800, Y, 7);
+  r.pickup(2900, Y - 30, 'small_health');
   // Tar with a line spitting fire along it (it burns a long time): up on the derrick decks over it
-  e.ground(2960, 3700); e.tar(3000, 3440, true); e.jet(2975, Y, 'right', 120, 520, 100, 80);
-  e.ledge(3050, Y - 110, 120, 'deck'); e.ledge(3230, Y - 160, 120, 'deck'); e.ledge(3410, Y - 110, 120, 'deck');
-  e.prop('derrick', 3290, Y);
-  e.spawn('ranger', 3290, Y - 160, 7); e.spawn('deputy', 3620, Y, 7);
+  r.ground(2960, 3700); r.tar(3000, 3440, true); r.jet(2975, Y, 'right', 120, 520, 100, 80);
+  r.ledge(3050, Y - 110, 120, 'deck'); r.ledge(3230, Y - 160, 120, 'deck'); r.ledge(3410, Y - 110, 120, 'deck');
+  r.prop('derrick', 3290, Y);
+  r.spawn('ranger', 3290, Y - 160, 7); r.spawn('deputy', 3620, Y, 7);
   // Down a slick into the low ground, two jets in it going off in turn, bikers coming up it at him
-  e.ground(3700, 3900, Y, Y + 80); e.ground(3900, 4400, Y + 80); e.ground(4400, 4550, Y + 80, Y);
-  e.slick(3740, 4360, true); e.jet(3980, Y + 80, 'up', 160, 240, 0, 60); e.jet(4220, Y + 80, 'up', 160, 240, 120, 60);
-  e.spawn('biker', 4120, Y + 80, 7); e.spawn('biker', 4320, Y + 80, 7); e.spawn('ranger', 4500, Y, 7);
-  e.pickup(3760, Y - 30, 'small_health');
+  r.ground(3700, 3900, Y, Y + 80); r.ground(3900, 4400, Y + 80); r.ground(4400, 4550, Y + 80, Y);
+  r.slick(3740, 4360, true); r.jet(3980, Y + 80, 'up', 160, 240, 0, 60); r.jet(4220, Y + 80, 'up', 160, 240, 120, 60);
+  r.spawn('biker', 4120, Y + 80, 7); r.spawn('biker', 4320, Y + 80, 7); r.spawn('ranger', 4500, Y, 7);
+  r.pickup(3760, Y - 30, 'small_health');
   // A trench of tar with a jet at each end taking turns setting it going, pipe stands over it, a jet up between them
-  e.ground(4550, 5550);
-  e.tar(4700, 5260, true); e.jet(4690, Y, 'right', 170, 300, 0, 90); e.jet(5270, Y, 'left', 170, 300, 150, 90);
-  e.ledge(4760, Y - 90, 100, 'pipe'); e.ledge(4930, Y - 150, 100, 'pipe'); e.ledge(5100, Y - 90, 100, 'pipe');
-  e.jet(5040, Y, 'up', 120, 180, 90, 50);
-  e.spawn('biker', 4620, Y, 7); e.spawn('ranger', 4980, Y - 150, 7); e.spawn('biker', 5400, Y, 7);
-  e.pickup(5480, Y - 30, 'small_health');
+  r.ground(4550, 5550);
+  r.tar(4700, 5260, true); r.jet(4690, Y, 'right', 170, 300, 0, 90); r.jet(5270, Y, 'left', 170, 300, 150, 90);
+  r.ledge(4760, Y - 90, 100, 'pipe'); r.ledge(4930, Y - 150, 100, 'pipe'); r.ledge(5100, Y - 90, 100, 'pipe');
+  r.jet(5040, Y, 'up', 120, 180, 90, 50);
+  r.spawn('biker', 4620, Y, 7); r.spawn('ranger', 4980, Y - 150, 7); r.spawn('biker', 5400, Y, 7);
+  r.pickup(5480, Y - 30, 'small_health');
   // Up over the last pit on pipe stands, a jet up through the middle one
   const D = 1000;
-  e.ground(4550 + D, 4600 + D); e.pit(4600 + D, 5000 + D);
-  e.ledge(4640 + D, Y - 70, 100, 'pipe'); e.ledge(4770 + D, Y - 130, 100, 'pipe'); e.ledge(4900 + D, Y - 70, 100, 'pipe');
-  e.jet(4820 + D, Y + 40, 'up', 280, 200, 60, 60);
-  e.ground(5000 + D, 7600);
-  e.spawn('deputy', 5060 + D, Y, 7);
+  r.ground(4550 + D, 4600 + D); r.pit(4600 + D, 5000 + D);
+  r.ledge(4640 + D, Y - 70, 100, 'pipe'); r.ledge(4770 + D, Y - 130, 100, 'pipe'); r.ledge(4900 + D, Y - 70, 100, 'pipe');
+  r.jet(4820 + D, Y + 40, 'up', 280, 200, 60, 60);
+  r.ground(5000 + D, 7600);
+  r.spawn('deputy', 5060 + D, Y, 7);
   // The bikers' bar (see bar.ts): the band's stage to get up on
-  e.ledge(BAR_X1 + 70, Y - 100, 210, 'stage');
+  r.ledge(BAR_X1 + 70, Y - 100, 210, 'stage');
   // The refill before the door
-  e.pickup(7450, Y - 30, 'large_health'); e.pickup(7520, Y - 30, 'large_ammo');
-  return { f, c, e };
+  r.pickup(7450, Y - 30, 'large_health'); r.pickup(7520, Y - 30, 'large_ammo');
+  return { f, c, e, r };
 };
 
+/** Where everything after the vents out back of the field office is laid out from. */
+const R0 = END_X0 + GEYSERS;
+
 const buildCourse = (): Course => {
-  const { f, c, e } = build();
-  const all = [f, c, e];
+  const { f, c, e, r } = build();
+  const all = [f, c, e, r];
   const runs = all.flatMap(p => p.runs);
   runs.sort((a, b) => a.x1 - b.x1 || a.y1 - b.y1);
   // (the stage draws all of its own ground, the pits of crude between it included)
@@ -227,23 +292,28 @@ const buildCourse = (): Course => {
     pickups: all.flatMap(p => p.pickups),
     oil: all.flatMap(p => p.oil),
     jets: all.flatMap(p => p.jets),
+    geysers: all.flatMap(p => p.geysers),
+    movers: all.flatMap(p => p.movers),
     pits: all.flatMap(p => p.pits),
     props: all.flatMap(p => p.props),
-    field: { x1: FIELD_X0, x2: FIELD_X0 + 9400 },
-    bunker: { x1: FIELD_X0 + 7600, x2: FIELD_X0 + 8300, roof: Y - 240, vein: { x: FIELD_X0 + 7845, y: Y - 44 }, bikers: [FIELD_X0 + 8480, FIELD_X0 + 8395, FIELD_X0 + 8565, FIELD_X0 + 8660] },
+    field: { x1: FIELD_X0, x2: FIELD_X0 + 9400 + YARD },
+    yard: { x1: FIELD_X0 + 8300, x2: FIELD_X0 + 8300 + YARD + 400 },
+    bunker: { x1: FIELD_X0 + 7600, x2: FIELD_X0 + 8300, roof: Y - 240, vein: { x: FIELD_X0 + 7845, y: Y - 44 }, bikers: [8480, 8395, 8565, 8660].map(x => FIELD_X0 + YARD + x) },
     chase: { x1: CHASE_X0, x2: CHASE_X0 + LAP * (LAPS + 1), lap: LAP, laps: LAPS },
     end: { x1: END_X0 - 800, x2: BOSS_DOOR_X, smokers: END_X0 + 1060, wall: END_X0 + 1110 },
     bar: {
-      x1: END_X0 + BAR_X1, x2: END_X0 + BAR_X2, ceil: Y - 270,
-      stage: { x: END_X0 + BAR_X1 + 70, y: Y - 100, w: 210 },
-      bathroom: { x1: END_X0 + BAR_X2 - 150, x2: END_X0 + BAR_X2 },
-      veins: [{ x: END_X0 + BAR_X1 + 395, y: Y - 20 }, { x: END_X0 + BAR_X1 + 330, y: Y - 137 }, { x: END_X0 + BAR_X2 - 60, y: Y - 37 }],
+      x1: R0 + BAR_X1, x2: R0 + BAR_X2, ceil: Y - 270,
+      stage: { x: R0 + BAR_X1 + 70, y: Y - 100, w: 210 },
+      bathroom: { x1: R0 + BAR_X2 - 150, x2: R0 + BAR_X2 },
+      veins: [{ x: R0 + BAR_X1 + 395, y: Y - 20 }, { x: R0 + BAR_X1 + 330, y: Y - 137 }, { x: R0 + BAR_X2 - 60, y: Y - 37 }],
     },
     checkpoints: [
       { x: FIELD_X0 + 150, y: Y }, { x: FIELD_X0 + 2780, y: Y }, { x: FIELD_X0 + 4640, y: Y }, { x: FIELD_X0 + 7450, y: Y },
-      { x: CHASE_X0 + 300, y: Y }, { x: END_X0 + 1300, y: Y }, { x: END_X0 + 2900, y: Y }, { x: END_X0 + BAR_X1 - 80, y: Y },
+      // (out the far side of the break room, in the yard)
+      { x: FIELD_X0 + 8620, y: Y },
+      { x: CHASE_X0 + 300, y: Y }, { x: END_X0 + 1300, y: Y }, { x: R0 + 2900, y: Y }, { x: R0 + BAR_X1 - 80, y: Y },
       // (back for Oscar: in the middle of what's left of the bar)
-      { x: END_X0 + (BAR_X1 + BAR_X2) / 2, y: Y },
+      { x: R0 + (BAR_X1 + BAR_X2) / 2, y: Y },
     ],
     left: FIELD_X0 - 2000,
     startX: FIELD_X0,
