@@ -8,6 +8,7 @@ import {
 } from '../content/roster';
 import USAMap from './USAMap';
 import BossPortrait from './BossPortrait';
+import CorpsePhoto from './CorpsePhoto';
 import WeaponIcon, { WeaponArt } from './WeaponIcon';
 import DossierPanel from './DossierPanel';
 import { WHITE_HOUSE_ID } from '../content/whiteHouse';
@@ -280,12 +281,15 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
                 className={`w-full ${progressionRank >= 1 ? 'h-[158px]' : 'h-[165px]'} ${isDefeated ? 'opacity-70' : ''} ${locked && !isLocked ? 'opacity-35 grayscale' : ''} border-3 ${frame} bg-[#1E1E1E] transition-all flex flex-col overflow-hidden group shadow-lg rounded-sm text-left`}
               >
                 <div className="flex-1 bg-black relative overflow-hidden">
-                  <BossPortrait id={stage.id} dead={isDefeated} locked={isLocked} />
+                  {/* (killed with his weakness: the evidence photo of what was left of him, not the mugshot) */}
+                  {isDefeated && killRecords[stage.id] ? (
+                    <div className="absolute inset-0 flex items-center justify-center bg-[#141210]"><div className="w-full" style={{ transform: 'scale(1.7) translateY(-6%)' }}><CorpsePhoto bossId={stage.id} weapon={killRecords[stage.id]} /></div></div>
+                  ) : <BossPortrait id={stage.id} dead={isDefeated} locked={isLocked} />}
                   {isLocked && <LockedInMark />}
                   {isDefeated && (
                     <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
                       <div className="text-red-600 text-xs font-black rotate-[-15deg] border-2 border-red-900 px-1 py-0.5 uppercase tracking-tighter bg-black/90 shadow-[0_0_10px_rgba(220,38,38,0.8)] [text-shadow:1px_1px_0_black]">
-                        DEAD AS SHIT
+                        {killRecords[stage.id] ? 'EXTREMELY DEAD AS SHIT' : 'DEAD AS SHIT'}
                       </div>
                     </div>
                   )}
