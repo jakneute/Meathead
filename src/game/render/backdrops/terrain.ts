@@ -61,19 +61,27 @@ const MATERIALS: Record<string, Material> = {
   'Victor Volcano': {
     base: '#2E1510', dark: '#1A0B08', light: '#5A2A1C',
     texture: g => {
+      // Cooled lava: flecked basalt in layers (a darker seam between each flow, dithered off into the next)
       speckle(g, ['#3D1C14', '#241009', '#4A2418'], 0.35, 2);
+      for (const y of [14, 38, 56]) {
+        g.fillStyle = '#1C0C08'; for (let x = 0; x < T; x += 2) g.fillRect(x, y + (x % 8 < 4 ? 0 : 2), 2, 2);
+        g.fillStyle = '#3A1A12'; for (let x = 2; x < T; x += 4) g.fillRect(x, y - 2, 2, 2);
+      }
       g.fillStyle = '#7C2D12'; for (let i = 0; i < 14; i++) g.fillRect(8 + i * 2, 20 + Math.round(Math.sin(i) * 3), 2, 2);
       for (let i = 0; i < 10; i++) g.fillRect(40 + i * 2, 46 + Math.round(Math.cos(i) * 2), 2, 2);
     },
     cap: (ctx, b, f) => {
-      ctx.fillStyle = '#1A0B08'; ctx.fillRect(b.x, b.y, b.w, 6);
+      // The crust: a lit lip of rock, dark under it, dithered down into the body
+      ctx.fillStyle = '#1A0B08'; ctx.fillRect(b.x, b.y, b.w, 8);
+      ctx.fillStyle = '#4A2418'; ctx.fillRect(b.x, b.y, b.w, 2);
+      ctx.fillStyle = '#5A2A1C'; for (let x = b.x; x < b.x + b.w; x += 4) ctx.fillRect(x, b.y, 2, 1);
+      ctx.fillStyle = '#2E1510'; for (let x = b.x + 2; x < b.x + b.w; x += 4) ctx.fillRect(x, b.y + 8, 2, 2);
       // Lava glowing in the cracks along the crust, pulsing
       for (let x = b.x; x < b.x + b.w; x += 14) {
         const glow = 0.5 + 0.5 * Math.sin(f * 0.1 + x * 0.05);
         ctx.fillStyle = mix('#B91C1C', '#FDE047', glow);
-        ctx.fillRect(x + Math.round(hash(x) * 8), b.y + 2, 4, 2);
+        ctx.fillRect(x + Math.round(hash(x) * 8), b.y + 4, 4, 2);
       }
-      ctx.fillStyle = '#5A2A1C'; ctx.fillRect(b.x, b.y, b.w, 1);
     },
   },
   'Ernie Earthquake': {

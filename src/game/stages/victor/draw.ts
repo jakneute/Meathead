@@ -4,6 +4,7 @@
 // clashes, the fade through the club doors, the lounge's wide shot).
 
 import { drawClubVolcano, ClubVolcano } from '../../scenes/art/clubVolcano';
+import { PIX, bandedGradient, checker, hazeBands, pixelRidge, screenRidge, steppedGlow, pixelBlob } from '../../render/pixelArt';
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { COURSE, isLava } from './course';
@@ -34,26 +35,32 @@ export const drawVictorBackdrop = (ctx: Ctx, state: GameState): boolean => {
 /** How far along the trail the camera is (0 at the start, 1 at the foot of the volcano). */
 const approach = (state: GameState) => clamp01((state.camera.x + 400 - COURSE.approach.x1) / (COURSE.approach.x2 - COURSE.approach.x1));
 
+/** The trail's sky, top to bottom: night over the sea behind, the glow of the volcano and the sunset low down. */
+const TRAIL_SKY = ['#1F0A1A', '#3A1020', '#6B1A1A', '#A0321C', '#D9541F', '#F59E0B'];
+/** The colour of the air at the horizon: what the far ridges and the foot of the volcano fade into. */
+const TRAIL_HAZE = '#C84A1E';
+
 const drawTrailSky = (ctx: Ctx, state: GameState) => {
   const k = approach(state), f = state.frame;
   const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
-  const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, '#1F0A1A'); g.addColorStop(0.45, '#6B1A1A'); g.addColorStop(0.8, '#D9541F'); g.addColorStop(1, '#F59E0B');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  // A smudge of ash across the sky, thicker the closer you get
-  ctx.fillStyle = `rgba(30, 20, 20, ${0.2 + k * 0.3})`;
-  for (let i = 0; i < 6; i++) { const x = ((i * 190 - f * 0.2 - state.camera.x * 0.02) % (W + 300) + W + 300) % (W + 300) - 150; ctx.beginPath(); ctx.ellipse(x, 60 + (i % 3) * 40, 200, 30, 0, 0, Math.PI * 2); ctx.fill(); }
+  bandedGradient(ctx, 0, 0, W, H, TRAIL_SKY, 18);
+  // A smudge of ash across the sky, thicker the closer you get: long low drifts of it, ragged at the edges
+  const ash = `rgba(30, 20, 20, ${(0.2 + k * 0.3).toFixed(2)})`;
+  for (let i = 0; i < 6; i++) { const x = ((i * 190 - f * 0.2 - state.camera.x * 0.02) % (W + 300) + W + 300) % (W + 300) - 150; pixelBlob(ctx, x, 60 + (i % 3) * 40, 200, 26, ash); }
   // Far ridges
   const horizon = 430 - Math.max(-60, Math.min(60, state.camera.y * 0.04));
-  ridge(ctx, horizon + 10, 0.03, '#3B1414', 40, 11, state.camera.x);
+  pixelRidge(ctx, 0, W, H, screenRidge(11, horizon + 10, 40), state.camera.x * 0.03, { fill: '#3B1414', rim: '#6A2A22', lit: '#4E1C18', shade: '#2E0F0F' });
   // The volcano: off to the right and small at first; as the trail curves round it swings in and looms
   const s = 0.35 + k * 1.45;
   const cx = W * (1.02 - k * 0.52);
   // (the closer you get, the more of it's a nightclub: the searchlights first, then the neon, the windows, the sign)
   drawVolcano(ctx, cx, horizon + 30, s, f, k, { show: 0.2 + k * 0.8 });
-  // Nearer ridges in front of its foot
-  ridge(ctx, horizon + 60, 0.08, '#240C0C', 60, 23, state.camera.x);
-  ridge(ctx, horizon + 110, 0.14, '#160707', 50, 37, state.camera.x);
+  // The air between here and there: the far ridge and the foot of the volcano fading into the glow at the horizon
+  hazeBands(ctx, 0, horizon + 14, W, 56, TRAIL_HAZE, 0.04, 0.5, 6);
+  // Nearer ridges in front of its foot, each with its own thinner haze
+  pixelRidge(ctx, 0, W, H, screenRidge(23, horizon + 60, 60), state.camera.x * 0.08, { fill: '#240C0C', rim: '#4A1E18', lit: '#30120F', shade: '#1A0808' });
+  hazeBands(ctx, 0, horizon + 80, W, 40, '#8A2A18', 0.02, 0.3, 4);
+  pixelRidge(ctx, 0, W, H, screenRidge(37, horizon + 110, 50), state.camera.x * 0.14, { fill: '#160707', rim: '#2E1210', shade: '#100404' });
   // Ash coming down
   ctx.fillStyle = 'rgba(210, 200, 190, 0.5)';
   for (let i = 0; i < 40; i++) {
@@ -62,15 +69,8 @@ const drawTrailSky = (ctx: Ctx, state: GameState) => {
   }
 };
 
-const ridge = (ctx: Ctx, base: number, parallax: number, color: string, amp: number, seed: number, camX: number) => {
-  ctx.fillStyle = color;
-  ctx.beginPath(); ctx.moveTo(0, CANVAS_HEIGHT);
-  for (let x = 0; x <= CANVAS_WIDTH + 20; x += 20) {
-    const wx = x + camX * parallax;
-    ctx.lineTo(x, base - amp * (0.5 + 0.5 * Math.sin(wx * 0.011 + seed) * Math.cos(wx * 0.004 + seed * 2)));
-  }
-  ctx.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT); ctx.closePath(); ctx.fill();
-};
+/** The cone's rock, dark to lit (it's lit a little left of the middle, where the crater's glow comes down it). */
+const CONE_TONES = ['#140706', '#22100B', '#2E130E', '#3A1812'];
 
 /**
  * The volcano: a dark cone, glowing streams down its flanks, the crater lit from inside, and a plume of smoke; and
@@ -79,22 +79,31 @@ const ridge = (ctx: Ctx, base: number, parallax: number, color: string, amp: num
 export const drawVolcano = (ctx: Ctx, cx: number, base: number, s: number, f: number, k: number, club?: Omit<ClubVolcano, 'cx' | 'top' | 'base' | 'half' | 'crater' | 's' | 'f'>) => {
   const h = 280 * s, half = 360 * s, crater = 54 * s;
   const top = base - h;
-  // Smoke plume, rolling up and drifting
+  // Smoke plume, rolling up and drifting: chunky puffs, ragged round the edges
   for (let i = 0; i < 9; i++) {
     const t = ((f * 0.4 + i * 30) % 270) / 270;
     const r = (20 + t * 70) * s;
-    ctx.fillStyle = `rgba(${40 + i * 4}, ${30 + i * 3}, ${30 + i * 3}, ${0.55 * (1 - t)})`;
-    ctx.beginPath(); ctx.arc(cx + Math.sin(t * 3 + i) * 20 * s + t * 80 * s, top - t * 220 * s, r, 0, Math.PI * 2); ctx.fill();
+    pixelBlob(ctx, cx + Math.sin(t * 3 + i) * 20 * s + t * 80 * s, top - t * 220 * s, r, r * 0.85, `rgba(${40 + i * 4}, ${30 + i * 3}, ${30 + i * 3}, ${(0.55 * (1 - t)).toFixed(2)})`);
   }
-  // Cone
-  const g = ctx.createLinearGradient(cx - half, 0, cx + half, 0);
-  g.addColorStop(0, '#1A0A08'); g.addColorStop(0.5, '#3A1812'); g.addColorStop(1, '#140706');
-  ctx.fillStyle = g;
-  ctx.beginPath(); ctx.moveTo(cx - half, base); ctx.lineTo(cx - crater, top); ctx.lineTo(cx + crater, top); ctx.lineTo(cx + half, base); ctx.closePath(); ctx.fill();
-  // The crater, glowing
-  const cg = ctx.createRadialGradient(cx, top, 2, cx, top, crater * 1.8);
-  cg.addColorStop(0, 'rgba(254, 240, 138, 0.95)'); cg.addColorStop(0.4, 'rgba(249, 115, 22, 0.6)'); cg.addColorStop(1, 'rgba(249, 115, 22, 0)');
-  ctx.fillStyle = cg; ctx.beginPath(); ctx.arc(cx, top, crater * 1.8, 0, Math.PI * 2); ctx.fill();
+  // Cone: column by column, in four flat tones round it, dithered one into the next
+  const x0 = Math.floor((cx - half) / PIX) * PIX;
+  for (let x = x0; x < cx + half; x += PIX) {
+    const d = Math.abs(x + PIX / 2 - cx);
+    const y = d < crater ? top : top + ((d - crater) / (half - crater)) * h;
+    const yy = Math.floor(y / PIX) * PIX;
+    if (yy >= base) continue;
+    const u = (x + PIX / 2 - cx) / half;
+    const v = Math.max(0, Math.min(3.999, (1 - Math.abs(u + 0.15) / 1.15) * 4));
+    const i = Math.floor(v);
+    ctx.fillStyle = CONE_TONES[i];
+    ctx.fillRect(x, yy, PIX, base - yy);
+    if (v - i > 0.5 && i < 3) checker(ctx, x, yy, PIX, base - yy, CONE_TONES[i + 1]);
+    // (a lit edge down the left flank, where the crater's light catches it)
+    if (u < -0.2 && u > -0.98) { ctx.fillStyle = '#4A2016'; ctx.fillRect(x, yy, PIX, PIX); }
+  }
+  // The crater, glowing: rings of light, the heart of it near white
+  steppedGlow(ctx, cx, top, crater * 1.7, '#F97316', 0.7, 0, 4);
+  ctx.fillStyle = '#FEF08A'; ctx.beginPath(); ctx.arc(cx, top, crater * 0.45, 0, Math.PI * 2); ctx.fill();
   // Lava running down the flanks
   ctx.strokeStyle = `rgba(249, 115, 22, ${0.75 + 0.2 * Math.sin(f * 0.05)})`; ctx.lineWidth = Math.max(2, 5 * s);
   for (const [dx, bend] of [[-0.5, -0.3], [0.3, 0.25], [0.7, 0.1]] as [number, number][]) {

@@ -13,12 +13,18 @@ import { COURSE, RoadJunk } from './course';
 import { TommyRuntime } from './runtime';
 import { junkBox, geyserOn, BikeRun } from './bike';
 import { CRANK } from '../../render/player/moves';
+import { bandedGradient, hazeBands, steppedGlow, checker } from '../../render/pixelArt';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 const mix = (a: string, b: string, k: number) => {
   const pa = [1, 3, 5].map(i => parseInt(a.slice(i, i + 2), 16)), pb = [1, 3, 5].map(i => parseInt(b.slice(i, i + 2), 16));
   return `rgb(${pa.map((v, i) => Math.round(v + (pb[i] - v) * k)).join(',')})`;
+};
+/** The same, as a hex colour (for the sky's bands). */
+const mixHex = (a: string, b: string, k: number) => {
+  const pa = [1, 3, 5].map(i => parseInt(a.slice(i, i + 2), 16)), pb = [1, 3, 5].map(i => parseInt(b.slice(i, i + 2), 16));
+  return '#' + pa.map((v, i) => Math.round(v + (pb[i] - v) * k).toString(16).padStart(2, '0')).join('');
 };
 
 /** How far down the road the evening's got (0 late afternoon at the corner .. 1 sunset at the end of the road). */
@@ -30,15 +36,14 @@ export const eveningAt = (camX: number) => Math.max(0, Math.min(1, (camX - COURS
 
 export const drawStreetSky = (ctx: Ctx, state: GameState, dusk = -1, tower = true) => {
   const k = dusk >= 0 ? dusk : eveningAt(state.camera.x);
-  const top = mix('#5B8FC7', '#3B2A5C', k), mid = mix('#9CC3E0', '#C2546A', k), low = mix('#F6D29A', '#F59E4B', k);
-  const g = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-  g.addColorStop(0, top); g.addColorStop(0.55, mid); g.addColorStop(0.85, low);
-  ctx.fillStyle = g; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  // The sun, low and getting lower
+  // (the sky in flat bands, late afternoon blue down to the warm glow at the horizon, dithered one into the next)
+  const top = mixHex('#5B8FC7', '#3B2A5C', k), upper = mixHex('#7FAAD6', '#7A3F66', k), mid = mixHex('#9CC3E0', '#C2546A', k);
+  const lower = mixHex('#CFD4C8', '#E07A5E', k), low = mixHex('#F6D29A', '#F59E4B', k);
+  bandedGradient(ctx, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, [top, upper, mid, lower, low, low], 16);
+  // The sun, low and getting lower: a disc, and rings of its light round it
   const sy = 250 + k * 170;
-  const sg = ctx.createRadialGradient(640, sy, 6, 640, sy, 120);
-  sg.addColorStop(0, 'rgba(255, 244, 214, 0.95)'); sg.addColorStop(0.2, 'rgba(255, 214, 150, 0.6)'); sg.addColorStop(1, 'rgba(255, 180, 120, 0)');
-  ctx.fillStyle = sg; ctx.beginPath(); ctx.arc(640, sy, 120, 0, Math.PI * 2); ctx.fill();
+  steppedGlow(ctx, 640, sy, 120, mixHex('#FFE0A8', '#FFB070', k), 0.5, 0, 5);
+  ctx.fillStyle = '#FFF4D6'; ctx.beginPath(); ctx.arc(640, sy, 16, 0, Math.PI * 2); ctx.fill();
   // Streaks of cloud
   ctx.fillStyle = `rgba(255, ${Math.round(230 - k * 80)}, ${Math.round(210 - k * 90)}, 0.35)`;
   for (let i = 0; i < 5; i++) { const x = ((i * 211 - state.camera.x * 0.01) % 1000 + 1000) % 1000 - 100; ctx.fillRect(x, 90 + i * 34, 160 + (i % 2) * 80, 5); }
@@ -57,6 +62,8 @@ export const drawStreetSky = (ctx: Ctx, state: GameState, dusk = -1, tower = tru
     if (hash(id * 11) < 0.05) { for (const sx of [0, 14]) { ctx.fillRect(x + sx, horizon - h - 90, 9, 90); ctx.fillStyle = 'rgba(120, 113, 108, 0.35)'; ctx.beginPath(); ctx.arc(x + sx + 4, horizon - h - 104, 10, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = far; } }
   }
   ctx.fillRect(0, horizon, CANVAS_WIDTH, CANVAS_HEIGHT - horizon);
+  // (the air over the town: it fades into the glow at the horizon, the rooftops last)
+  hazeBands(ctx, 0, horizon - 80, CANVAS_WIDTH, 100, low, 0, 0.5, 6);
   // The water tower over it all
   const tx = 620 - (state.camera.x - COURSE.hood.x1) * 0.018;
   if (tower && tx > -120 && tx < CANVAS_WIDTH + 120) drawWaterTower(ctx, tx, horizon, 1, k);
@@ -150,7 +157,12 @@ const drawHouse = (ctx: Ctx, x: number, base: number, k: number, dusk: number) =
   const burned = hash(k * 3) < 0.15, boarded = hash(k * 5) < 0.4;
   const w = 200, h = 150;
   ctx.fillStyle = burned ? '#3F3A36' : paint; ctx.fillRect(x + 30, base - h, w, h);
+  // (the sun's off to the right and low: the right third of it in shade, dithered in, and the eaves' shadow under the roof)
+  checker(ctx, x + 30 + Math.round(w * 0.62), base - h, Math.round(w * 0.38), h, 'rgba(0, 0, 0, 0.16)');
+  ctx.fillStyle = 'rgba(0,0,0,0.22)'; ctx.fillRect(x + 30, base - h, w, 6);
+  checker(ctx, x + 30, base - h + 6, w, 4, 'rgba(0, 0, 0, 0.22)', 1);
   ctx.fillStyle = 'rgba(0,0,0,0.12)'; for (let y = base - h + 8; y < base; y += 9) ctx.fillRect(x + 30, y, w, 1); // siding
+  ctx.fillStyle = 'rgba(255,255,255,0.07)'; for (let y = base - h + 9; y < base; y += 9) ctx.fillRect(x + 30, y, w, 1);
   ctx.fillStyle = burned ? '#1C1917' : '#4B3B35';
   ctx.beginPath(); ctx.moveTo(x + 18, base - h); ctx.lineTo(x + 30 + w / 2, base - h - 60 - (hash(k * 9) < 0.3 ? -10 : 0)); ctx.lineTo(x + 42 + w, base - h); ctx.fill();
   // Windows: lit (it's getting on), dark, boarded

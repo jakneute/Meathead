@@ -9,6 +9,7 @@
 //   the power room:  steel and warning stripes, cables everywhere, the three generators
 
 import type { GameState } from '../../core/state';
+import { bandedGradient, checker } from '../../render/pixelArt';
 import type { Enemy } from '../../../types';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { COURSE, Place, Prop, Room, roomOf } from './course';
@@ -21,6 +22,15 @@ type Ctx = CanvasRenderingContext2D;
 const Y = GROUND_Y;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 const visible = (state: GameState, x1: number, x2: number) => x2 > state.camera.x - 250 && x1 < state.camera.x + CANVAS_WIDTH + 250;
+
+/** Each wall top to bottom: lit under the ceiling lights, going into the shade down by the floor. */
+const WALL_SHADE: Record<Room['kind'], string[]> = {
+  lobby: ['#DDD4C6', '#D4CBBD', '#CFC6B8', '#C4BAAA', '#B8AD9C'],
+  office: ['#E2DBCB', '#DAD3C3', '#D6CFBF', '#CBC3B2', '#BFB6A4'],
+  maintenance: ['#7A808F', '#717786', '#6B7280', '#5F6673', '#545A66'],
+  lab: ['#F1F4F8', '#E8ECF2', '#E2E8F0', '#D6DDE7', '#CBD3DE'],
+  power: ['#2E3748', '#2A3242', '#27303F', '#222A38', '#1D2430'],
+};
 
 const WALLS: Record<Room['kind'], { wall: string; trim: string; floor: string; slab: string }> = {
   lobby: { wall: '#CFC6B8', trim: '#8B7D6B', floor: '#E7E5E4', slab: '#1C1917' },
@@ -37,8 +47,35 @@ export const drawRooms = (ctx: Ctx, state: GameState, rt: BarryRuntime, place: P
   const top = state.camera.y - 40, bottom = state.camera.y + CANVAS_HEIGHT + 40;
   // The slabs above and below, the wall between
   ctx.fillStyle = c.slab; ctx.fillRect(x1 - 200, top, x2 - x1 + 400, bottom - top);
-  ctx.fillStyle = c.wall; ctx.fillRect(room.x1, room.ceiling, room.x2 - room.x1, Y - room.ceiling);
+  bandedGradient(ctx, room.x1, room.ceiling, room.x2 - room.x1, Y - room.ceiling, WALL_SHADE[room.kind], 10);
+  // (the baseboard and the cornice, each with a line of light along its top and shadow under it)
   ctx.fillStyle = c.trim; ctx.fillRect(room.x1, Y - 14, room.x2 - room.x1, 14); ctx.fillRect(room.x1, room.ceiling, room.x2 - room.x1, 8);
+  ctx.fillStyle = 'rgba(255,255,255,0.22)'; ctx.fillRect(room.x1, Y - 14, room.x2 - room.x1, 2);
+  checker(ctx, room.x1, Y - 22, room.x2 - room.x1, 8, 'rgba(0, 0, 0, 0.12)');
+  ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(room.x1, room.ceiling + 8, room.x2 - room.x1, 2);
+  checker(ctx, room.x1, room.ceiling + 10, room.x2 - room.x1, 6, 'rgba(0, 0, 0, 0.1)', 1);
+  if (room.kind === 'lobby' || room.kind === 'office') {
+    // A chair rail round the room, panelling under it
+    const rail = Y - 96;
+    ctx.fillStyle = c.trim; ctx.fillRect(room.x1, rail, room.x2 - room.x1, 5);
+    ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fillRect(room.x1, rail, room.x2 - room.x1, 1);
+    ctx.fillStyle = 'rgba(0,0,0,0.08)'; ctx.fillRect(room.x1, rail + 5, room.x2 - room.x1, Y - 14 - rail - 5);
+    ctx.strokeStyle = 'rgba(0,0,0,0.14)'; ctx.lineWidth = 2; for (let x = room.x1 + 20; x < room.x2; x += 90) ctx.strokeRect(x, rail + 14, 60, Y - 14 - rail - 26);
+    ctx.strokeStyle = 'rgba(255,255,255,0.14)'; for (let x = room.x1 + 22; x < room.x2; x += 90) ctx.strokeRect(x, rail + 16, 60, Y - 14 - rail - 26);
+  }
+  if (room.kind === 'lab') {
+    // Tiled: a grid of white tiles, the grout between them
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.35)';
+    for (let x = room.x1; x < room.x2; x += 40) ctx.fillRect(x, room.ceiling + 8, 1, Y - room.ceiling - 22);
+    for (let y = room.ceiling + 48; y < Y - 40; y += 40) ctx.fillRect(room.x1, y, room.x2 - room.x1, 1);
+  }
+  if (room.kind === 'maintenance') {
+    // Cinderblock: the blocks' lit tops and shadowed undersides
+    for (let y = room.ceiling + 10; y < Y - 16; y += 16) {
+      ctx.fillStyle = 'rgba(255,255,255,0.06)'; ctx.fillRect(room.x1, y + 1, room.x2 - room.x1, 1);
+      for (let x = room.x1 + ((y / 16) % 2) * 20; x < room.x2; x += 40) { ctx.fillStyle = 'rgba(0,0,0,0.12)'; ctx.fillRect(x + 38, y, 2, 16); }
+    }
+  }
   switch (room.kind) {
     case 'lobby': drawLobby(ctx, state, room); break;
     case 'office': drawOfficeWalls(ctx, state, room); break;
@@ -52,6 +89,9 @@ export const drawRooms = (ctx: Ctx, state: GameState, rt: BarryRuntime, place: P
   ctx.fillStyle = room.kind === 'lobby' ? '#A8A29E' : room.kind === 'power' ? '#111827' : '#D4D4D8';
   ctx.fillRect(room.x1, room.ceiling - 30, room.x2 - room.x1, 30);
   ctx.fillStyle = 'rgba(0,0,0,0.18)'; for (let x = room.x1; x < room.x2; x += 60) ctx.fillRect(x, room.ceiling - 30, 2, 30);
+  // (the ceiling's in the shade of its own tiles: darker toward its edge, and the light fittings' glow on it)
+  checker(ctx, room.x1, room.ceiling - 12, room.x2 - room.x1, 12, 'rgba(0, 0, 0, 0.14)');
+  ctx.fillStyle = 'rgba(0,0,0,0.22)'; ctx.fillRect(room.x1, room.ceiling - 4, room.x2 - room.x1, 4);
   // The end walls
   // (solid: the building's outer walls, their inside faces catching the light)
   ctx.fillStyle = c.trim; ctx.fillRect(room.x1 - 60, room.ceiling - 30, 60, Y - room.ceiling + 46); ctx.fillRect(room.x2, room.ceiling - 30, 60, Y - room.ceiling + 46);
@@ -71,6 +111,10 @@ const drawFloor = (ctx: Ctx, state: GameState, room: Room) => {
   const c = WALLS[room.kind];
   ctx.fillStyle = c.floor; ctx.fillRect(x1, Y, w, 16);
   ctx.fillStyle = c.slab; ctx.fillRect(x1, Y + 16, w, bottom - Y - 16);
+  // (the floor's edge: lit along the top, going dark down into the slab, dithered)
+  ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(x1, Y, w, 1);
+  checker(ctx, x1, Y + 8, w, 8, 'rgba(0, 0, 0, 0.2)');
+  ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(x1, Y + 14, w, 2);
   if (room.kind === 'lobby') { ctx.fillStyle = 'rgba(120, 113, 108, 0.35)'; for (let x = x1; x < x2; x += 80) ctx.fillRect(x, Y, 2, 16); ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fillRect(x1, Y, w, 2); }
   if (room.kind === 'office') { ctx.fillStyle = 'rgba(15, 23, 42, 0.3)'; for (let x = x1; x < x2; x += 12) ctx.fillRect(x, Y + 4, 6, 2); }
   if (room.kind === 'maintenance') { ctx.fillStyle = 'rgba(28, 25, 23, 0.5)'; for (let x = x1 + 40; x < x2; x += 170) { ctx.beginPath(); ctx.ellipse(x, Y + 5, 30, 3, 0, 0, Math.PI * 2); ctx.fill(); } }
