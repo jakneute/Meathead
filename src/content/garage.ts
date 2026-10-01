@@ -41,7 +41,7 @@ export const SOUVENIRS: Souvenir[] = [
   // Blackout Barry
   { id: 'hardhat', boss: 'Blackout Barry', spot: 'shelf', name: 'CON ED HARD HAT', note: 'NEVER WORE A HELMET IN MY LIFE. STILL HAVEN\'T. IT\'S A BOWL NOW.' },
   { id: 'toaster', boss: 'Blackout Barry', spot: 'shelf', name: 'THE TOASTER', note: 'THROWN OUT OF A WINDOW AT ME. CAUGHT IT WITH MY FACE. MAKES GREAT TOAST.' },
-  { id: 'streetsign', boss: 'Blackout Barry', spot: 'wall', name: 'FIFTH AVE STREET SIGN', note: 'THE CITY WILL NOTICE. THE CITY HAS BIGGER PROBLEMS. I WAS ONE OF THEM.' },
+  { id: 'breaker', boss: 'Blackout Barry', spot: 'wall', name: 'THE MANHATTAN BREAKER', note: 'THE BIG SWITCH OFF THE POWER ROOM WALL. SAYS MANHATTAN ON IT. IT SAYS OFF. IT STAYS OFF.' },
   // Oily Oscar
   { id: 'derrick', boss: 'Oily Oscar', spot: 'floor', name: 'OIL DERRICK (DESK MODEL)', note: 'STILL PUMPS. STILL LEAKS. THE FLOOR IS RUINED.' },
   { id: 'clock', boss: 'Oily Oscar', spot: 'wall', name: 'BREAK ROOM CLOCK', note: 'FROM THE UNION BREAK ROOM. STILL KEEPS TIME. STILL FEELS LIKE FIVE MINUTES LEFT.' },
@@ -60,7 +60,7 @@ export const GARAGE_DOSSIER = {
   threat: 'NONE (TO US). EXTREME (TO THE SUSPENSION OF ANY VEHICLE PARKED INSIDE)',
   location: 'Every satellite pass puts it somewhere else. Twice it came up in the middle of Lake Michigan. Once in Nebraska and Kansas at the same time. The asset gets there fine. The asset has never once been followed there, because every agent assigned to follow him has been outrun on foot.',
   whatItIs: 'Thermal imaging shows one very large heat source moving slowly between two points, which we assess to be a squat rack and a refrigerator. The refrigerator is on a separate circuit. The circuit is protein.',
-  contents: 'Grows after every operation. Items recovered from the targets have been observed going in and not coming out: a moose antler, a lamp, what appears to be an entire street sign. We have asked the asset to return evidence. The asset said "WHAT EVIDENCE."',
+  contents: 'Grows after every operation. Items recovered from the targets have been observed going in and not coming out: a moose antler, a lamp, what appears to be the main breaker for the island of Manhattan, set to OFF. We have asked the asset to return evidence. The asset said "WHAT EVIDENCE."',
   recommendation: 'Leave it alone. Nobody knows what he does in there. Everybody would like to keep it that way.',
   handler: 'Asset refers to it as "the garage" and "home" and, once, "the temple." He does not own a car. He has never mentioned a car. There is no car.',
 };

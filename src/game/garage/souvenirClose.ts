@@ -504,25 +504,69 @@ const smoke = (ctx: Ctx, t: number) => {
   for (let i = 0; i < 6; i++) { const k = ((t * 0.01 + i / 6) % 1), x = 116 + Math.sin(k * 6 + i) * 8, y = 12 - k * 20; ctx.fillStyle = `rgba(120, 113, 108, ${0.5 - k * 0.5})`; ctx.beginPath(); ctx.arc(x, y, 3 + k * 8, 0, Math.PI * 2); ctx.fill(); }
 };
 
-const streetsign = (ctx: Ctx, t: number) => {
-  backdrop(ctx, t, '#166534', '#020A04');
-  // The sign: FIFTH AVE, the enamel chipped, a bullet hole, stickers, pigeon droppings down it; the stub of the pole
-  // it came off, bent, the bolts sheared
-  ctx.save(); ctx.translate(128, 66); ctx.rotate(-0.08);
-  shape(ctx, () => ctx.roundRect(-104, -26, 208, 52, 5), '#15803D', 1.8);
-  ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 1.6; ctx.strokeRect(-99, -21, 198, 42);
-  ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 26px "Courier New", monospace'; ctx.textAlign = 'center'; ctx.fillText('5 AV', -10, 10);
-  ctx.font = 'bold 8px "Courier New", monospace'; ctx.fillText('FIFTH', 70, -4); ctx.fillText('AVENUE', 70, 8); ctx.textAlign = 'left';
-  for (let k = 0; k < 9; k++) { const cx = -100 + hash(k * 3) * 200, cy = -24 + hash(k * 5) * 48; ctx.fillStyle = '#A1A1AA'; ctx.beginPath(); ctx.ellipse(cx, cy, 2 + hash(k) * 3, 1.4 + hash(k * 2) * 2, hash(k) * 3, 0, Math.PI * 2); ctx.fill(); }
-  shape(ctx, () => ctx.arc(48, -12, 3, 0, Math.PI * 2), '#18181B', 0.6);
-  ctx.strokeStyle = '#E4E4E7'; ctx.lineWidth = 0.4; for (let k = 0; k < 6; k++) { const a = k; ctx.beginPath(); ctx.moveTo(48 + Math.cos(a) * 3, -12 + Math.sin(a) * 3); ctx.lineTo(48 + Math.cos(a) * 7, -12 + Math.sin(a) * 7); ctx.stroke(); }
-  shape(ctx, () => ctx.rect(-80, 10, 22, 10), '#F43F5E', 0.6); ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 4px "Courier New", monospace'; ctx.fillText('I <3 NY', -79, 17);
-  // (the droppings: white, runny, down off the top edge)
-  for (let k = 0; k < 4; k++) { const dx = -60 + k * 34; ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.ellipse(dx, -26, 4, 2.2, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(dx - 0.8, -26, 1.6, 10 + k * 3); ctx.fillStyle = '#57534E'; ctx.fillRect(dx - 1, -27, 1.4, 1.4); ctx.strokeStyle = INK; ctx.lineWidth = 0.3; ctx.beginPath(); ctx.ellipse(dx, -26, 4, 2.2, 0, 0, Math.PI * 2); ctx.stroke(); }
+const breaker = (ctx: Ctx, t: number) => {
+  backdrop(ctx, t, '#1E3A5F', '#02050A');
+  // The main breaker off the power room wall: a slab of slate, cracked across a corner, its bolts sheared where it came
+  // off; the two copper jaws at the top, black with scorching, the copper blades pulled down out of them to OFF, the
+  // red handle on its crossbar (a bloody print on it, and the rubber split); the label, MANHATTAN, the tape peeling;
+  // Gary's sticky note; and every so often an arc jumping off the jaws, though it isn't on anything at all
+  ctx.save(); ctx.translate(128, 72); ctx.rotate(0.04);
+  // (the slab)
+  const slab = () => { ctx.moveTo(-58, -64); ctx.lineTo(58, -64); ctx.lineTo(58, 60); ctx.lineTo(-40, 60); ctx.lineTo(-58, 44); ctx.closePath(); };
+  shape(ctx, slab, lin(ctx, -64, 60, [[0, '#57534E'], [0.5, '#3F3F46'], [1, '#27272A']]), 1.6);
+  ctx.save(); ctx.beginPath(); slab(); ctx.clip();
+  speckle(ctx, -60, -66, 120, 128, 500, 'rgba(255,255,255,0.06)', 3, 0.6);
+  speckle(ctx, -60, -66, 120, 128, 300, 'rgba(0,0,0,0.25)', 5, 0.7);
+  // (the crack, across the corner it lost)
+  ctx.strokeStyle = INK; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(-58, 30); ctx.lineTo(-44, 36); ctx.lineTo(-40, 48); ctx.lineTo(-30, 52); ctx.stroke();
   ctx.restore();
-  shape(ctx, () => { ctx.moveTo(122, 90); ctx.lineTo(134, 90); ctx.lineTo(138, 144); ctx.lineTo(118, 144); }, '#52525B', 1.4);
-  shape(ctx, () => { ctx.moveTo(118, 96); ctx.lineTo(140, 92); ctx.lineTo(146, 100); ctx.lineTo(126, 106); }, '#3F3F46', 1);
-  fly(ctx, 70, 40, t, 13);
+  // (the bolts, two of them sheared off)
+  for (const [x, y, sheared] of [[-50, -56, false], [50, -56, true], [50, 52, false], [-34, 52, true]] as const) {
+    shape(ctx, () => ctx.arc(x, y, 3.4, 0, Math.PI * 2), sheared ? '#A8A29E' : '#71717A', 0.8);
+    if (sheared) { ctx.fillStyle = '#D6D3D1'; ctx.beginPath(); ctx.arc(x - 0.6, y - 0.6, 1.8, 0, Math.PI * 2); ctx.fill(); }
+    else { ctx.strokeStyle = INK; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(x - 2.4, y); ctx.lineTo(x + 2.4, y); ctx.stroke(); }
+  }
+  // ON and OFF, stencilled
+  ctx.font = 'bold 9px "Courier New", monospace'; ctx.textAlign = 'center';
+  ctx.fillStyle = '#16A34A'; ctx.fillText('ON', 0, -50); ctx.fillStyle = '#DC2626'; ctx.fillText('OFF', 0, 56);
+  // The scorch round the jaws
+  for (const x of [-24, 24]) { const g = ctx.createRadialGradient(x, -34, 1, x, -34, 22); g.addColorStop(0, 'rgba(10,8,6,0.85)'); g.addColorStop(1, 'rgba(10,8,6,0)'); ctx.fillStyle = g; ctx.fillRect(x - 24, -58, 48, 48); }
+  // The jaws: copper, gone black and green, the springs
+  for (const x of [-24, 24]) {
+    shape(ctx, () => ctx.rect(x - 6, -44, 12, 18), lin(ctx, -44, -26, [[0, '#FDBA74'], [0.4, '#C2410C'], [1, '#431407']]), 1.2);
+    ctx.fillStyle = 'rgba(20, 83, 45, 0.6)'; ctx.fillRect(x - 5, -30, 10, 3);
+    ctx.fillStyle = '#18181B'; ctx.fillRect(x - 1, -44, 2, 18);
+    shape(ctx, () => ctx.rect(x - 7, -24, 14, 6), '#78350F', 0.8);
+  }
+  // The blades, pulled down out of them to OFF, and the crossbar and the handle
+  for (const x of [-24, 24]) shape(ctx, () => ctx.rect(x - 2.6, -20, 5.2, 50), lin(ctx, -20, 30, [[0, '#FED7AA'], [0.3, '#F59E0B'], [1, '#9A3412']]), 1);
+  for (const x of [-24, 24]) glint(ctx, x - 1.6, -16, 40, Math.PI / 2);
+  shape(ctx, () => ctx.rect(-28, 28, 56, 5), lin(ctx, 28, 33, [[0, '#D6D3D1'], [1, '#57534E']]), 1);
+  shape(ctx, () => ctx.roundRect(-10, 32, 20, 16, 3), lin(ctx, 32, 48, [[0, '#F87171'], [0.5, '#DC2626'], [1, '#7F1D1D']]), 1.2);
+  ctx.strokeStyle = '#450A0A'; ctx.lineWidth = 0.5; ctx.beginPath(); ctx.moveTo(-4, 34); ctx.lineTo(-1, 40); ctx.lineTo(-3, 46); ctx.stroke();
+  print(ctx, 4, 40, 2.6, 0.4); ctx.fillStyle = 'rgba(127, 29, 29, 0.6)'; ctx.beginPath(); ctx.ellipse(-5, 42, 2, 3, 0.3, 0, Math.PI * 2); ctx.fill();
+  // The label: a strip of tape, MANHATTAN in marker, peeling up at one end
+  shape(ctx, () => { ctx.moveTo(-34, -8); ctx.lineTo(30, -10); ctx.lineTo(36, -16); ctx.lineTo(34, 0); ctx.lineTo(-34, 2); ctx.closePath(); }, '#F5F5DC', 0.8);
+  ctx.fillStyle = '#111827'; ctx.font = 'bold 9px "Courier New", monospace'; ctx.fillText('MANHATTAN', -2, -1);
+  ctx.font = 'bold 4px "Courier New", monospace'; ctx.fillText('(ALL OF IT)', 0, 5.5);
+  // Gary's sticky note, curling: DO NOT TOUCH. — GARY. Somebody's crossed out NOT
+  ctx.save(); ctx.translate(36, 12); ctx.rotate(0.15);
+  shape(ctx, () => { ctx.moveTo(0, 0); ctx.lineTo(18, 0); ctx.lineTo(18, 14); ctx.quadraticCurveTo(12, 18, 0, 18); ctx.closePath(); }, '#FDE047', 0.6);
+  ctx.fillStyle = '#1E3A8A'; ctx.font = '3.4px "Courier New", monospace'; ctx.textAlign = 'left';
+  ctx.fillText('DO NOT', 2, 5); ctx.fillText('TOUCH', 2, 9); ctx.fillText('- GARY', 3, 14);
+  ctx.strokeStyle = '#DC2626'; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(8, 4); ctx.lineTo(14, 3.6); ctx.stroke();
+  ctx.restore();
+  // The arc, now and then, off the jaws: it isn't hooked up to anything
+  const zap = Math.floor(t / 3) % 37;
+  if (zap < 3) {
+    ctx.strokeStyle = '#E0F2FE'; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(-24, -26); let x = -24, y = -26;
+    for (let k = 0; k < 6; k++) { x += 8; y += (hash(k + Math.floor(t / 3)) - 0.5) * 14; ctx.lineTo(x, y); }
+    ctx.lineTo(24, -26); ctx.stroke();
+    ctx.strokeStyle = 'rgba(125, 211, 252, 0.4)'; ctx.lineWidth = 4; ctx.stroke();
+  }
+  ctx.restore();
+  hair(ctx, 70, 110, 10, 21);
 };
 
 const derrick = (ctx: Ctx, t: number) => {
@@ -679,7 +723,7 @@ const lizard = (ctx: Ctx, t: number) => {
 /** Each souvenir's close-up, by its id. */
 const SOUVENIR_CLOSEUPS: Record<string, (ctx: Ctx, t: number) => void> = {
   antler, moonboots, snowglobe, viprope, lavalamp, neon, mug, seismo, bell, flamingo, clicker, daycare,
-  flintjar, hazmat, horn, hardhat, toaster, streetsign, derrick, clock, chain, goldgun, badge, lizard,
+  flintjar, hazmat, horn, hardhat, toaster, breaker, derrick, clock, chain, goldgun, badge, lizard,
 };
 
 /** Draws one, with the slow push in and the finish. */

@@ -11,7 +11,7 @@ export const GARAGE_W = 800, GARAGE_H = 600;
 export interface Slot { x: number; y: number; box: { x: number; y: number; w: number; h: number } }
 const COLS = [217, 311, 405, 499, 593];
 const WALL_ROWS = [104, 188], SHELF_Y = [310, 396], FLOOR_Y = 528, FLOOR_X = [236, 366, 496, 616];
-const WALL_ORDER = ['antler', 'neon', 'seismo', 'daycare', 'hazmat', 'streetsign', 'clock', 'chain', 'goldgun', 'badge'];
+const WALL_ORDER = ['antler', 'neon', 'seismo', 'daycare', 'hazmat', 'breaker', 'clock', 'chain', 'goldgun', 'badge'];
 const SHELF_ORDER = ['moonboots', 'snowglobe', 'lavalamp', 'mug', 'bell', 'clicker', 'flintjar', 'horn', 'hardhat', 'toaster'];
 const FLOOR_ORDER = ['viprope', 'flamingo', 'derrick', 'lizard'];
 
@@ -150,10 +150,18 @@ const DRAW: Record<string, (ctx: Ctx, t: number) => void> = {
     ctx.fillStyle = '#1F2937'; ctx.fillRect(-14, -8, 28, 14); ctx.fillStyle = 'rgba(163, 230, 53, 0.35)'; ctx.fillRect(-12, -6, 24, 3);
     ctx.fillStyle = '#A16207'; ctx.fillRect(-10, 16, 20, 4);
   },
-  streetsign: ctx => {
-    peg(ctx, -30, -18); peg(ctx, 30, -18);
-    ctx.fillStyle = '#15803D'; ctx.fillRect(-44, -14, 88, 28); ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 2; ctx.strokeRect(-41, -11, 82, 22);
-    ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('5 AV', 0, 5);
+  breaker: (ctx, t) => {
+    // The big knife switch: its slate panel bolted to the pegboard, the copper blades thrown down to OFF, the red
+    // handle, MANHATTAN on the label; scorched round the jaws, and now and then an arc off them (it's on nothing)
+    peg(ctx, -24, -34); peg(ctx, 24, -34);
+    ctx.fillStyle = '#3F3F46'; ctx.fillRect(-26, -32, 52, 66); ctx.fillStyle = '#52525B'; ctx.fillRect(-24, -30, 48, 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.beginPath(); ctx.ellipse(0, -20, 18, 6, 0, 0, Math.PI * 2); ctx.fill();
+    for (const x of [-12, 12]) { ctx.fillStyle = '#B45309'; ctx.fillRect(x - 3, -24, 6, 8); ctx.fillStyle = '#D97706'; ctx.fillRect(x - 3, 10, 6, 8); }
+    ctx.fillStyle = '#F59E0B'; ctx.fillRect(-14, 0, 4, 20); ctx.fillRect(10, 0, 4, 20); ctx.fillRect(-14, 18, 28, 4);
+    ctx.fillStyle = '#DC2626'; ctx.fillRect(-8, 22, 16, 9); ctx.fillStyle = '#FCA5A5'; ctx.fillRect(-7, 23, 6, 2);
+    ctx.fillStyle = '#F5F5F4'; ctx.fillRect(-20, -9, 40, 7); ctx.fillStyle = '#111827'; ctx.font = 'bold 4px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('MANHATTAN', 0, -4);
+    ctx.fillStyle = '#16A34A'; ctx.font = 'bold 4px "Press Start 2P"'; ctx.fillText('ON', 0, -26); ctx.fillStyle = '#DC2626'; ctx.fillText('OFF', 0, 33);
+    if (Math.floor(t / 4) % 53 === 0) { ctx.strokeStyle = '#BAE6FD'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(-12, -16); ctx.lineTo(-6, -10); ctx.lineTo(-10, -6); ctx.lineTo(-4, 0); ctx.stroke(); }
   },
   clock: ctx => {
     // (it keeps real time)
