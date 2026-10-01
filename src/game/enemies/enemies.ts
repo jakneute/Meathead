@@ -687,7 +687,7 @@ const resolveOiledSlideCollision = (ctx: FrameContext, e: Enemy, enemies: Enemy[
     }
     if (other.health <= 0) {
       if (other.type === 'boss') {
-        killBoss(ctx, other, slideDir, false);
+        killBoss(ctx, other, slideDir, false, undefined, 'charge_kill');
       } else {
         other.health = 0;
         fx.blowAwayEnemy(other, { x: slideDir * 14, y: -14 }, 'oil_kill', slideDir);
@@ -874,7 +874,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     if (e.type === 'boss') {
       // (the barf shield's barf: if that's what he's weak to, it's his weakness that's killed him)
       if (hasShield && isWeakTo(stageId, 'SLUDGE')) killBoss(ctx, e, player.facing, true, 'SLUDGE');
-      else killBoss(ctx, e, player.facing, false);
+      else killBoss(ctx, e, player.facing, false, undefined, player.isUppercutting ? 'uppercut_kill' : 'charge_kill');
     } else {
       e.isBlownAway = true;
       e.meleeFlung = true;

@@ -1,4 +1,4 @@
-import { Enemy, WeaponType } from '../../types';
+import { Enemy, VulgarityType, WeaponType } from '../../types';
 import { GameState } from './state';
 import { createFx, Fx } from './effects';
 import { BossHelpers, createBossHelpers } from '../bosses/registry';
@@ -49,5 +49,5 @@ export const createFrameContext = (
   };
 };
 
-export const killBoss = (ctx: FrameContext, boss: Enemy, facing: number, wasWeakness: boolean, weapon: WeaponType = ctx.currentWeapon) =>
-  ctx.bossHelpers.killBoss(boss, facing, wasWeakness, weapon);
+export const killBoss = (ctx: FrameContext, boss: Enemy, facing: number, wasWeakness: boolean, weapon: WeaponType = ctx.currentWeapon, killLine?: VulgarityType) =>
+  ctx.bossHelpers.killBoss(boss, facing, wasWeakness, weapon, killLine);

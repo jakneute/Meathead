@@ -1,7 +1,7 @@
 // Types and helpers shared by every boss. Each boss lives in its own file in this folder
 // and is registered in ../boss.ts.
 
-import { Block, BossState, Enemy, Player, Projectile, PoopTelegraph, SoundType, Volcano, WeaponType } from '../../types';
+import { Block, BossState, Enemy, Player, Projectile, PoopTelegraph, SoundType, Volcano, VulgarityType, WeaponType } from '../../types';
 import {
   ARENA_LEFT, ARENA_RIGHT, GROUND_Y, BOSS_VULGARITY_DURATION, PLAYER_INVINCIBILITY_FRAMES, PLAYER_PUSHBACK_DURATION,
   SPOKEN_TEXT_HOLD,
@@ -110,7 +110,8 @@ export interface BossDef {
 export interface BossHelpers extends Fx {
   onBossDeath: () => void;
   /** Kills the boss (death shower, victory, Meathead's line). `weapon` defaults to the equipped one. */
-  killBoss: (boss: Enemy, facing: number, wasWeakness: boolean, weapon?: WeaponType) => void;
+  /** `killLine` is for a kill no weapon made (a charge, an uppercut): what Meathead says instead of the weapon's line. */
+  killBoss: (boss: Enemy, facing: number, wasWeakness: boolean, weapon?: WeaponType, killLine?: VulgarityType) => void;
   setBossVulgarity: (text: string, duration: number) => void;
   /** The boss finished saying `text`: take it down shortly (if it's still the one showing). */
   endBossVulgarity: (text: string) => void;

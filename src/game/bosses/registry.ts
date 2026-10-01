@@ -74,8 +74,8 @@ export const createBossHelpers = (
   const helpers: BossHelpers = {
     ...fx,
     onBossDeath,
-    killBoss: (boss, facing, wasWeakness, weapon = currentWeapon) =>
-      triggerBossDeath(boss, facing, wasWeakness, stageId, weapon, state, helpers),
+    killBoss: (boss, facing, wasWeakness, weapon = currentWeapon, killLine) =>
+      triggerBossDeath(boss, facing, wasWeakness, stageId, weapon, state, helpers, killLine),
     setBossVulgarity: (t, d) => { state.bossLastVulgarity = t; state.bossVulgarityTimer = d; },
     endBossVulgarity: (t) => { if (state.bossLastVulgarity === t) state.bossVulgarityTimer = Math.min(state.bossVulgarityTimer, SPOKEN_TEXT_LINGER); },
     setScreenShake: (d) => { state.screenShakeTimer = d; },
@@ -205,7 +205,7 @@ const KILL_LINE_FOR: Partial<Record<WeaponType, VulgarityType>> = {
  * Clears the arena and plays the death: a weakness kill erupts in gore for a
  * few seconds (see core/update.ts), anything else goes straight to victory.
  */
-const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolean, stageId: string | null, weapon: WeaponType, state: GameState, helpers: BossHelpers) => {
+const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolean, stageId: string | null, weapon: WeaponType, state: GameState, helpers: BossHelpers, killLine?: VulgarityType) => {
   // (dead already: one death each. A second blow landing on the same frame, or his own truck, or the puddle he's
   // stood in, doesn't turn a man going over into a man erupting)
   if (state.bossExplosionTimer > 0 || state.bossFallen || state.bossCorpse) return;
@@ -268,6 +268,7 @@ const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolea
   state.player.bossKillSatisfactionTimer = 240;
   state.arenaLocked = false;
 
-  if (weapon === 'NEEDLES') helpers.spawnDamageNumber(boss.pos, "OVERDOSE!", true, "#FF00FF");
-  helpers.speakVulgarity(KILL_LINE_FOR[weapon] ?? 'gun_kill');
+  // (only the needles' own kill is an overdose: a charge into him with the needles in hand, high or not, is just a charge)
+  if (wasWeakness && weapon === 'NEEDLES') helpers.spawnDamageNumber(boss.pos, "OVERDOSE!", true, "#FF00FF");
+  helpers.speakVulgarity(killLine ?? KILL_LINE_FOR[weapon] ?? 'gun_kill');
 };
