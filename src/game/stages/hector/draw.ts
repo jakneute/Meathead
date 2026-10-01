@@ -390,6 +390,133 @@ const drawGround = (ctx: Ctx, state: GameState) => {
 // Scenery
 // ---------------------------------------------------------------------------
 
+/** A bamboo pole: segment rings, a lit edge, a shaded one. */
+const bamboo = (ctx: Ctx, x: number, y: number, w: number, h: number, dark = false) => {
+  ctx.fillStyle = dark ? '#6B4A1E' : '#A97C2F'; ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = dark ? '#8A6326' : '#D4A64A'; ctx.fillRect(x + 1, y, Math.max(1, Math.round(w * 0.3)), h);
+  ctx.fillStyle = dark ? '#4A3214' : '#7A5520'; ctx.fillRect(x + w - 2, y, 2, h);
+  for (let yy = y + 14; yy < y + h - 4; yy += 18) {
+    ctx.fillStyle = dark ? '#3B2810' : '#6B4A1E'; ctx.fillRect(x - 1, yy, w + 2, 2);
+    ctx.fillStyle = dark ? '#A97C2F' : '#EBC46A'; ctx.fillRect(x, yy + 2, w, 1);
+  }
+};
+
+/**
+ * The tiki bar: a thatched palm roof in three ragged tiers (the fringe flapping in the storm), bamboo posts, a carved
+ * tiki face up the corner post, a string of party lights under the eaves, the back shelf of bottles, a bamboo-slat
+ * counter with a plank top and drinks with little umbrellas on it, two stools, a carved sign hung off the front, and a
+ * tiki torch either side (blown about, and guttering, once the storm's in).
+ */
+const drawTiki = (ctx: Ctx, p: Prop, f: number, storm: number) => {
+  const x = p.x, y = p.y;
+  // The back: shade under the roof, the back posts, the shelf and its bottles
+  ctx.fillStyle = '#3B2A1A'; ctx.fillRect(x - 86, y - 92, 172, 52);
+  bamboo(ctx, x - 78, y - 92, 6, 92, true); bamboo(ctx, x + 72, y - 92, 6, 92, true);
+  ctx.fillStyle = '#5B3A1E'; ctx.fillRect(x - 72, y - 66, 144, 4); ctx.fillRect(x - 72, y - 86, 144, 3);
+  const bottles = ['#16A34A', '#B45309', '#F8FAFC', '#2563EB', '#DC2626', '#CA8A04', '#7C3AED', '#16A34A', '#B45309', '#0EA5E9'];
+  bottles.forEach((c, i) => {
+    const bx = x - 66 + i * 14, tall = 12 + (i % 3) * 2;
+    ctx.fillStyle = c; ctx.fillRect(bx, y - 66 - tall, 6, tall); ctx.fillRect(bx + 2, y - 66 - tall - 4, 2, 4);
+    ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.fillRect(bx + 1, y - 64 - tall, 1, tall - 4);
+  });
+  // The front posts
+  bamboo(ctx, x - 94, y - 96, 10, 96); bamboo(ctx, x + 84, y - 96, 10, 96);
+  // The counter: bamboo slats, a plank top, drinks with umbrellas in them
+  for (let i = 0; i < 22; i++) {
+    const sx = x - 88 + i * 8;
+    ctx.fillStyle = i % 2 ? '#B8893A' : '#A0742C'; ctx.fillRect(sx, y - 38, 8, 38);
+    ctx.fillStyle = i % 2 ? '#DDB25A' : '#C99A44'; ctx.fillRect(sx + 1, y - 38, 2, 38);
+    ctx.fillStyle = '#6B4A1E'; ctx.fillRect(sx + 7, y - 38, 1, 38); ctx.fillRect(sx, y - 22 + (i % 3) * 2, 8, 2);
+  }
+  ctx.fillStyle = '#5B3413'; ctx.fillRect(x - 96, y - 44, 192, 8);
+  ctx.fillStyle = '#8B5A2B'; ctx.fillRect(x - 96, y - 44, 192, 3);
+  ctx.fillStyle = '#2A1A0C'; ctx.fillRect(x - 96, y - 36, 192, 2);
+  const drinks: [number, string, string][] = [[-50, '#F97316', '#EC4899'], [20, '#38BDF8', '#FACC15'], [56, '#F43F5E', '#22C55E']];
+  for (const [dx, c, u] of drinks) {
+    const gx = x + dx;
+    ctx.fillStyle = 'rgba(224, 242, 254, 0.7)'; ctx.fillRect(gx - 4, y - 56, 8, 12); ctx.fillStyle = c; ctx.fillRect(gx - 3, y - 52, 6, 8);
+    ctx.strokeStyle = '#E5E7EB'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(gx + 2, y - 52); ctx.lineTo(gx + 6, y - 64); ctx.stroke();
+    ctx.fillStyle = u; ctx.beginPath(); ctx.moveTo(gx, y - 63); ctx.lineTo(gx + 6, y - 69); ctx.lineTo(gx + 12, y - 63); ctx.closePath(); ctx.fill();
+  }
+  // Stools out front (dark legs, red cushions)
+  for (const sx of [x - 40, x + 40]) {
+    ctx.fillStyle = '#3B2810'; ctx.fillRect(sx - 7, y - 22, 3, 22); ctx.fillRect(sx + 4, y - 22, 3, 22); ctx.fillRect(sx - 6, y - 10, 12, 2);
+    ctx.fillStyle = '#7F1D1D'; ctx.fillRect(sx - 10, y - 27, 20, 6); ctx.fillStyle = '#DC2626'; ctx.fillRect(sx - 10, y - 27, 20, 3);
+    ctx.fillStyle = '#FCA5A5'; ctx.fillRect(sx - 7, y - 26, 5, 1);
+  }
+  // A tiki carving stood by the corner of the bar: a scowling face on a post, a flat-top of feathers
+  const tx = x - 122, tb = y;
+  ctx.fillStyle = '#5B3413'; ctx.fillRect(tx - 9, tb - 58, 18, 58);
+  ctx.fillStyle = '#7C4A1E'; ctx.fillRect(tx - 9, tb - 58, 13, 58);
+  ctx.fillStyle = '#A16207'; ctx.fillRect(tx - 11, tb - 60, 22, 4); ctx.fillRect(tx - 11, tb - 20, 22, 3);
+  ctx.fillStyle = '#3B2210'; ctx.fillRect(tx - 7, tb - 50, 6, 5); ctx.fillRect(tx + 1, tb - 50, 6, 5);
+  ctx.fillStyle = '#FDE68A'; ctx.fillRect(tx - 5, tb - 48, 2, 2); ctx.fillRect(tx + 3, tb - 48, 2, 2);
+  ctx.fillStyle = '#3B2210'; ctx.fillRect(tx - 2, tb - 44, 4, 7); ctx.fillRect(tx - 7, tb - 34, 14, 7);
+  ctx.fillStyle = '#F8FAFC'; for (let i = 0; i < 3; i++) ctx.fillRect(tx - 6 + i * 5, tb - 33, 2, 2);
+  ctx.fillStyle = '#3B2210'; ctx.fillRect(tx - 6, tb - 14, 12, 2); ctx.fillRect(tx - 1, tb - 18, 2, 10);
+  for (let i = 0; i < 5; i++) { ctx.fillStyle = ['#DC2626', '#FACC15', '#16A34A', '#FACC15', '#DC2626'][i]; ctx.fillRect(tx - 10 + i * 4, tb - 70 + Math.abs(i - 2) * 2, 3, 10 - Math.abs(i - 2) * 2); }
+  // The roof: three ragged tiers of thatch, darkest at the top, each fringe flapping (hard, in the storm)
+  const tiers = [
+    { half: 70, top: y - 162, bot: y - 128, c: ['#7A5A14', '#A16207', '#CA8A04'] },
+    { half: 104, top: y - 140, bot: y - 108, c: ['#8A6514', '#B07A0A', '#D9A520'] },
+    { half: 128, top: y - 120, bot: y - 88, c: ['#946C12', '#C08A10', '#EAB308'] },
+  ];
+  tiers.forEach((t, ti) => {
+    const inner = t.half * 0.35;
+    ctx.fillStyle = t.c[0];
+    ctx.beginPath(); ctx.moveTo(x - t.half, t.bot); ctx.lineTo(x - inner, t.top); ctx.lineTo(x + inner, t.top); ctx.lineTo(x + t.half, t.bot); ctx.closePath(); ctx.fill();
+    // strands down the slope, lit and shaded
+    for (let sx = -t.half + 4; sx < t.half - 2; sx += 6) {
+      const k = Math.max(0, (Math.abs(sx) - inner) / (t.half - inner));
+      const top = t.top + (t.bot - t.top) * k;
+      ctx.fillStyle = (Math.round(sx / 6) % 2) ? t.c[1] : t.c[2];
+      ctx.fillRect(Math.round(x + sx), Math.round(top), 2, Math.max(1, Math.round(t.bot - top)));
+    }
+    // the ragged fringe hanging off the bottom edge
+    ctx.fillStyle = t.c[1];
+    for (let sx = -t.half; sx < t.half; sx += 5) {
+      const flap = Math.sin(f * (0.08 + storm * 0.3) + sx * 0.3 + ti) * (1 + storm * 5);
+      const len = 6 + (((sx * 7 + ti * 13) % 5) + 5) % 5 + storm * 3;
+      ctx.beginPath(); ctx.moveTo(x + sx, t.bot - 1); ctx.lineTo(x + sx + 5, t.bot - 1); ctx.lineTo(x + sx + 2.5 + flap, t.bot + len); ctx.closePath(); ctx.fill();
+    }
+  });
+  // Party lights strung under the eaves (flickering in the storm)
+  ctx.strokeStyle = '#1C1917'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x - 92, y - 80); ctx.quadraticCurveTo(x, y - 66, x + 92, y - 80); ctx.stroke();
+  const bulbs = ['#F43F5E', '#FACC15', '#22C55E', '#38BDF8', '#F97316'];
+  for (let i = 0; i <= 12; i++) {
+    const k = i / 12, bx = x - 92 + k * 184, by = y - 80 + Math.sin(k * Math.PI) * 7 + 2;
+    const on = storm < 0.3 || (Math.floor(f / 4) + i * 7) % 11 > 2;
+    ctx.fillStyle = on ? bulbs[i % bulbs.length] : '#44403C';
+    ctx.fillRect(Math.round(bx) - 2, Math.round(by), 4, 5);
+    if (on) { ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'; ctx.fillRect(Math.round(bx) - 1, Math.round(by) + 1, 1, 2); }
+  }
+  // The sign: a carved board hung off the front of the roof on two ropes, swinging
+  const swing = Math.sin(f * 0.05) * 0.03 + storm * Math.sin(f * 0.25) * 0.12;
+  ctx.save(); ctx.translate(x, y - 104); ctx.rotate(swing);
+  ctx.strokeStyle = '#3B2810'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-34, -4); ctx.lineTo(-30, 8); ctx.moveTo(34, -4); ctx.lineTo(30, 8); ctx.stroke();
+  ctx.fillStyle = '#5B3413'; ctx.fillRect(-44, 8, 88, 22);
+  ctx.fillStyle = '#7C4A1E'; ctx.fillRect(-42, 10, 84, 18);
+  ctx.fillStyle = '#3B2210'; ctx.fillRect(-42, 26, 84, 2);
+  ctx.font = 'bold 9px "Press Start 2P"'; ctx.textAlign = 'center';
+  ctx.fillStyle = '#2A1A0C'; ctx.fillText(p.text ?? '', 1, 24);
+  ctx.fillStyle = '#FDE047'; ctx.fillText(p.text ?? '', 0, 23); ctx.textAlign = 'left';
+  ctx.restore();
+  // Tiki torches either side, flames blown about and guttering in the storm
+  for (const side of [-1, 1]) {
+    const px = x + side * (side < 0 ? 152 : 140);
+    bamboo(ctx, px - 3, y - 80, 6, 80);
+    ctx.fillStyle = '#3B2810'; ctx.fillRect(px - 6, y - 90, 12, 10); ctx.fillStyle = '#5B3413'; ctx.fillRect(px - 6, y - 90, 12, 2);
+    if (storm > 0.5 && (Math.floor(f / 7) + side + 5) % 5 === 0) continue;
+    const lean = -storm * 10, h = 16 + Math.sin(f * 0.4 + side) * 3 - storm * 6;
+    const flames: [number, number, string][] = [[8, h, '#DC2626'], [6, h * 0.75, '#F97316'], [3, h * 0.45, '#FDE047']];
+    for (const [w, hh, c] of flames) {
+      ctx.fillStyle = c;
+      ctx.beginPath(); ctx.moveTo(px - w, y - 90); ctx.quadraticCurveTo(px - w * 0.6 + lean * 0.4, y - 90 - hh * 0.6, px + lean, y - 90 - hh); ctx.quadraticCurveTo(px + w * 0.6 + lean * 0.4, y - 90 - hh * 0.6, px + w, y - 90); ctx.closePath(); ctx.fill();
+    }
+  }
+};
+
 const drawProp = (ctx: Ctx, state: GameState, p: Prop, rt: HectorRuntime) => {
   const storm = rt.beach.storm;
   const f = state.frame;
@@ -430,15 +557,7 @@ const drawProp = (ctx: Ctx, state: GameState, p: Prop, rt: HectorRuntime) => {
       ctx.restore();
       return;
     }
-    case 'tiki':
-      ctx.fillStyle = '#92400E'; ctx.fillRect(p.x - 90, p.y - 90, 8, 90); ctx.fillRect(p.x + 82, p.y - 90, 8, 90);
-      ctx.fillStyle = '#A16207'; ctx.fillRect(p.x - 90, p.y - 40, 180, 40);
-      ctx.fillStyle = '#CA8A04';
-      ctx.beginPath(); ctx.moveTo(p.x - 120, p.y - 86); ctx.lineTo(p.x, p.y - 150); ctx.lineTo(p.x + 120, p.y - 86); ctx.closePath(); ctx.fill();
-      ctx.strokeStyle = '#A16207'; ctx.lineWidth = 2;
-      for (let i = -110; i < 110; i += 8) { ctx.beginPath(); ctx.moveTo(p.x + i, p.y - 86); ctx.lineTo(p.x + i + 4, p.y - 78); ctx.stroke(); }
-      ctx.fillStyle = '#FDE047'; ctx.font = 'bold 9px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText(p.text ?? '', p.x, p.y - 58); ctx.textAlign = 'left';
-      return;
+    case 'tiki': drawTiki(ctx, p, f, storm); return;
     case 'motel': drawMotel(ctx, state, p, storm); return;
     case 'sign': {
       ctx.fillStyle = '#374151'; ctx.fillRect(p.x - 3, p.y - 170, 6, 170);
