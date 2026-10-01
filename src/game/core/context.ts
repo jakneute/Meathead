@@ -8,6 +8,8 @@ export interface Cheats {
   infiniteAmmo: boolean;
   infinitePower: boolean;
   skipToBoss: boolean;
+  /** Pants always shitty (the cheat). */
+  shittyPants?: boolean;
 }
 
 /** Callbacks from the simulation back up to React. */

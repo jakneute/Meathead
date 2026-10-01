@@ -35,7 +35,7 @@ import { playLockInSound, playEngageSound, playMenuOk, playMenuBack } from './ga
 /** Shows the dev cheat panel on the title screen. */
 const SHOW_CHEATS = true;
 
-const NO_CHEATS: CheatFlags = { allWeapons: false, invincible: false, infiniteAmmo: false, infinitePower: false, skipToBoss: false };
+const NO_CHEATS: CheatFlags = { allWeapons: false, invincible: false, infiniteAmmo: false, infinitePower: false, skipToBoss: false, shittyPants: false };
 
 /** Screens whose confirm button is locked for a moment after they appear. */
 const TIMED_SCREENS = [GameStatus.START, GameStatus.BOSS_INTRO, GameStatus.BOSS_VICTORY_SPEECH, GameStatus.VICTORY];
@@ -828,7 +828,7 @@ const App: React.FC = () => {
           currentWeapon={currentWeapon}
           availableWeapons={availableWeapons}
           initialAmmo={weaponAmmo}
-          cheats={{ invincible: cheats.invincible, infiniteAmmo: cheats.infiniteAmmo, infinitePower: cheats.infinitePower, skipToBoss: cheats.skipToBoss && selectedStage !== GYM_STAGE && (startAt === undefined || startAt === 'boss') }}
+          cheats={{ invincible: cheats.invincible, infiniteAmmo: cheats.infiniteAmmo, infinitePower: cheats.infinitePower, shittyPants: cheats.shittyPants, skipToBoss: cheats.skipToBoss && selectedStage !== GYM_STAGE && (startAt === undefined || startAt === 'boss') }}
           startCheckpoint={cheats.skipToBoss && selectedStage !== GYM_STAGE && typeof startAt === 'number' ? startAt : 0}
           bossTauntText={bossTaunt}
           onPlayerUpdate={handlePlayerUpdate}

@@ -34,6 +34,8 @@ export const updateGut = (ctx: FrameContext, input: FrameInput) => {
   const { state } = ctx;
   const p = state.player;
   const gut = (p.gut ??= { t: 0, stage: 0 });
+  // (the cheat: shitty from the off, every attempt, no fanfare: it's just how it is)
+  if (ctx.cheats.shittyPants && gut.stage !== 2) { gut.stage = 2; gut.t = 0; gut.lineAt = undefined; }
   if (gut.stage === 2) {
     // (his line about it, once the announcer's had his say: queued up behind the callout)
     if (gut.lineAt !== undefined && state.frame >= gut.lineAt) {

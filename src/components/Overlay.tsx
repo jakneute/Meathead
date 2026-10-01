@@ -28,6 +28,8 @@ export interface CheatFlags {
   infiniteAmmo: boolean;
   infinitePower: boolean;
   skipToBoss: boolean;
+  /** His pants are shitty, always: from the moment he's in a stage, and straight back that way after every death. */
+  shittyPants: boolean;
 }
 
 interface OverlayProps {
@@ -182,6 +184,7 @@ const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['che
     <CheatToggle label="ALL WEAPONS" on={flags.allWeapons} onColor="bg-yellow-500" onClick={() => onToggle('allWeapons')} />
     <CheatToggle label="INF AMMO" on={flags.infiniteAmmo} onColor="bg-blue-500" onClick={() => onToggle('infiniteAmmo')} />
     <CheatToggle label="INF POWER" on={flags.infinitePower} onColor="bg-purple-500" onClick={() => onToggle('infinitePower')} />
+    <CheatToggle label="SHITTY PANTS" on={flags.shittyPants} onColor="bg-amber-800" onClick={() => onToggle('shittyPants')} />
     <div className="h-2 w-full" />
     <button onClick={onPlayCall} className="w-full px-2 py-1 border-2 border-gray-600 bg-gray-800 text-yellow-300 font-black text-[7px] uppercase shadow-[2px_2px_0px_white] hover:bg-gray-700">VIEW MID-GAME CALL</button>
     <button onClick={onPlayEnding} className="w-full px-2 py-1 border-2 border-gray-600 bg-gray-800 text-yellow-300 font-black text-[7px] uppercase shadow-[2px_2px_0px_white] hover:bg-gray-700">VIEW ENDING</button>
