@@ -86,7 +86,7 @@ export const oscarLayout: StageLayout = {
   drawBackdropFront: (ctx, state) => !!getOscar(state) && drawOscarOverlays(ctx, state),
   // (on the chase the view pulls back as the mob grows)
   taserReachesOffscreen: true,
-  zoom: state => { const rt = getOscar(state); return rt ? chaseZoom(state, rt.chase) ?? (state.arenaLocked ? taseZoom(rt.taseCam) : null) : null; },
+  zoom: state => { const rt = getOscar(state); return rt ? chaseZoom(state, rt.chase) ?? taseZoom(state, rt.taseCam) : null; },
   cameraRow: state => (placeOf(state.player.pos.x) === 'bunker' ? 520 : undefined),
 };
 
