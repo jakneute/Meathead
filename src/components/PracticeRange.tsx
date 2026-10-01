@@ -54,7 +54,7 @@ const PracticeRange: React.FC<{ weapons: WeaponType[]; onLeave: () => void }> = 
       }
       if (lastStep === 0) lastStep = wall;
       let steps = 0;
-      while (wall - lastStep >= FRAME_MS - 2 && steps < 4) { lastStep += FRAME_MS; steps++; stepRange(range, readControls(kb), weaponRef.current, respawns); }
+      while (wall - lastStep >= FRAME_MS - 2 && steps < 4) { lastStep += FRAME_MS; steps++; if (stepRange(range, readControls(kb), weaponRef.current, respawns)) { leaveRef.current(); return; } }
       if (lastStep < wall - 200) lastStep = wall;
       const rc = canvas.current?.getContext('2d');
       if (rc) {

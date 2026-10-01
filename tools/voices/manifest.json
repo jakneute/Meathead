@@ -227,7 +227,7 @@
  {
   "voice": "announcer",
   "text": "CODE BROWN!",
-  "from": "game/player/gut.ts:60"
+  "from": "game/player/gut.ts:63"
  },
  {
   "voice": "announcer",
@@ -1183,6 +1183,11 @@
   "voice": "announcer",
   "text": "TOTALED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "TRAINING IS CANCELED",
+  "from": "game/range.ts:132"
  },
  {
   "voice": "announcer",

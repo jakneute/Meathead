@@ -13,6 +13,7 @@ import { stepGame } from './core/update';
 import type { Controls } from './platform/input';
 import { stopDeathAnnouncer } from './platform/speech';
 import { KILL_CALLOUTS, KillCallout } from '../content/dialogue';
+import { isShat } from './player/gut';
 
 const NO_EVENTS: GameEvents = {
   onBossDefeated: () => {}, onBossTransition: () => {}, onBossEncounter: () => {}, onBossDeath: () => {}, onIntroComplete: () => {},
@@ -64,12 +65,16 @@ export const createRange = (weapon: WeaponType, stageId = WEAPON_RANGE_STAGE, we
   return s;
 };
 
-/** Frames till a dummy that's gone comes back (per kind: 0, none gone). */
-export type Respawns = Record<DummyKind, number>;
+/** Frames till a dummy that's gone comes back (per kind: 0, none gone); and, once he's shit himself in here, how long since. */
+export type Respawns = Record<DummyKind, number> & { cancelled?: number };
 export const newRespawns = (): Respawns => ({ ground: 0, air: 0 });
 
-/** One frame of the range: him (he can't die, or fall out of it), and the dummies coming back. */
-export const stepRange = (range: GameState, controls: Controls, weapon: WeaponType, respawns: Respawns) => {
+/** Shit himself in here: the hired help walk out (the boxer runs for it, the balloon man lets himself float off), and
+ * once the announcer's done with CODE BROWN and Meathead's had his say, training's called off; a bit after that, it's over. */
+const CANCEL_CALL = 170, CANCEL_END = 330;
+
+/** One frame of the range: him (he can't die, or fall out of it), and the dummies coming back. True: it's over (training's been cancelled). */
+export const stepRange = (range: GameState, controls: Controls, weapon: WeaponType, respawns: Respawns): boolean => {
   const stageId = range.stageId ?? WEAPON_RANGE_STAGE;
   const ctx = createFrameContext(range, stageId, weapon, RANGE_CHEATS, NO_EVENTS);
   range.player.health = range.player.maxHealth;
@@ -81,7 +86,8 @@ export const stepRange = (range: GameState, controls: Controls, weapon: WeaponTy
   const before = { ...(range.killVoice?.callout ?? {}) };
   stepGame(ctx, GameStatus.PLAYING, controls);
   // A dummy down: what Meathead's got to say is about him (the boxer, or the balloon man), not the usual
-  const downed = range.enemies.find(e => alive.has(e.id) && (e.health <= 0 || e.isBlownAway)) ?? (alive.size > range.enemies.filter(e => alive.has(e.id)).length
+  // (gone because they walked out, not because he got them: no callout for that)
+  const downed = respawns.cancelled !== undefined ? null : range.enemies.find(e => alive.has(e.id) && (e.health <= 0 || e.isBlownAway)) ?? (alive.size > range.enemies.filter(e => alive.has(e.id)).length
     ? { id: [...alive].find(id => !range.enemies.some(e => e.id === id)) ?? '' } : null);
   const kv = range.killVoice;
   // (who it was goes with the kill; what it was done with stays what it was)
@@ -98,6 +104,36 @@ export const stepRange = (range: GameState, controls: Controls, weapon: WeaponTy
     range.player.pos = { x: 140, y: floorOf(range.stageId) - range.player.height };
     range.player.vel = { x: 0, y: 0 };
   }
+  // He's shit himself: they're off, and nobody's coming back
+  if (isShat(range)) {
+    const t = respawns.cancelled = (respawns.cancelled ?? -1) + 1;
+    // (the walls come down for them to go out through: him, he's kept in)
+    if (t === 0) range.blocks = range.blocks.filter(b => b.type !== 'wall' || b.h < 2000);
+    range.player.pos.x = Math.max(0, Math.min(CANVAS_WIDTH - range.player.width, range.player.pos.x));
+    const px = range.player.pos.x + range.player.width / 2;
+    for (const e of range.enemies) {
+      if (!e.id.startsWith('dummy-') || e.health <= 0 || e.isBlownAway) continue;
+      e.pauseTimer = Math.max(e.pauseTimer || 0, 3);
+      e.harmless = true;
+      const away = e.pos.x + e.width / 2 < px ? -1 : 1;
+      // (moved by hand here, not by their AI; which way they're going is which way they face)
+      e.vel = { x: away * 0.01, y: 0 };
+      if (e.id.startsWith('dummy-ground')) {
+        // (the boxer: off out of it, flat out, the far side from him; he waits a beat to take in the smell first)
+        if (t > 20) e.pos.x += away * Math.min(7, (t - 20) * 0.4);
+      } else {
+        // (the balloon man: lets go of the floor, up and away, kicking his legs)
+        e.pos.y -= Math.min(3.5, 0.6 + t * 0.05);
+        e.pos.x += away * 0.8;
+      }
+    }
+    range.enemies = range.enemies.filter(e => !e.id.startsWith('dummy-') || (e.pos.x > -120 && e.pos.x < CANVAS_WIDTH + 120 && e.pos.y + e.height > 4));
+    if (t === CANCEL_CALL) {
+      ctx.fx.announceKill('TRAINING IS CANCELED');
+      range.damageNumbers.push({ id: `callout-${range.frame}-cancel`, text: 'TRAINING IS CANCELED', pos: { x: CANVAS_WIDTH / 2, y: 260 }, vel: { x: 0, y: -0.6 }, life: 150, maxLife: 150, isCritical: true, isCallout: true, color: '#8B5A2B' });
+    }
+    return t >= CANCEL_END;
+  }
   // Both dummies always come back (the other side of the ring from him)
   for (const kind of DUMMY_KINDS) {
     if (range.enemies.some(e => e.id.startsWith(`dummy-${kind}`) && !e.isBlownAway && e.health > 0)) continue;
@@ -109,6 +145,7 @@ export const stepRange = (range: GameState, controls: Controls, weapon: WeaponTy
       for (let i = 0; i < 14; i++) range.particles.push({ pos: { x: x + d.width / 2, y: d.pos.y + d.height / 2 }, vel: { x: (Math.random() - 0.5) * 6, y: -Math.random() * 5 }, life: 25, color: i % 2 ? '#EF4444' : '#FFFFFF', size: 3 + Math.random() * 4 });
     }
   }
+  return false;
 };
 
 /** A dummy's own callout: over the one the kill already put up this frame (if it did), else a new one over him. */

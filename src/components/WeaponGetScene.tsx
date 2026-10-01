@@ -150,7 +150,8 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, onDone }) => {
         while (wall - lastStep >= FRAME_MS - 2 && steps < 4) {
           lastStep += FRAME_MS;
           steps++;
-          stepRange(range, readControls(kb), weapon, respawns);
+          // (training's been called off: he's shit himself, and the help's gone home)
+          if (stepRange(range, readControls(kb), weapon, respawns)) { finish(); break; }
         }
         if (lastStep < wall - 200) lastStep = wall; // tab was hidden: don't fast-forward
         rc.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
