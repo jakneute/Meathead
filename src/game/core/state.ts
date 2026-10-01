@@ -8,7 +8,8 @@ import { INITIAL_PLAYER_HEALTH, POWER_CELLS, SCREEN_SHAKE_MAX } from '../../cons
 import { resetLineCooldowns, stopDeathAnnouncer } from '../platform/speech';
 import type { GroundRun } from './terrain';
 
-export type DoorState = 'closed' | 'opening' | 'open' | 'closing' | 'done';
+/** (`landing`: the door's shut behind him and he's still in the air: he comes down onto the arena floor first) */
+export type DoorState = 'closed' | 'opening' | 'open' | 'closing' | 'landing' | 'done';
 
 /** A boss killed with his weakness, left wrecked in the arena (see render/bosses/corpses.ts). */
 export interface BossCorpse {
@@ -71,6 +72,8 @@ export interface GameState {
   arenaLocked: boolean;
   doorOpenAmount: number;
   doorState: DoorState;
+  /** Frames he's been stood on the arena floor after coming down through the door (see updateBossTransition). */
+  doorBeat?: number;
 
   // Speech bubbles & voice
   playerLastVulgarity: string;

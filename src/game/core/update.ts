@@ -16,13 +16,13 @@ import { updateEnemyDeaths } from '../enemies/deaths';
 import { updateVolcanoFinale } from '../scenes/volcanoFinale';
 import { calmPlayer, DEFAULT_SHAKE, shakeScreen, BOSS_FALL, STAIN_FRAMES } from './state';
 import { playSound } from '../platform/audio';
-import { LEVEL_INTRO_STYLE } from '../../constants';
+import { LEVEL_INTRO_STYLE, PLAYER_GRAVITY, PLAYER_TERMINAL_VELOCITY } from '../../constants';
 import { updateBarfStream, updateFlameSegments } from '../combat/weapons';
 import { say, isTalking, deathAnnouncing, stopDeathAnnouncer, announceDeath, silenceAll, MEATHEAD_INTRO_VOICE } from '../platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../platform/skip';
 import { pickRandom, rectsOverlap, boundsOf, isOnScreen } from './utils';
 import { deathByCause, deathFallback } from './deathCause';
-import { killPlayer, DEATH_SCREEN_FRAMES, gateControls, tickPlayerTimers, updatePlayerActions, updatePlayerPhysics, getSpecialForm, interruptSpecialWithHurt } from '../player/player';
+import { killPlayer, DEATH_SCREEN_FRAMES, gateControls, tickPlayerTimers, updatePlayerActions, updatePlayerPhysics, getSpecialForm, interruptSpecialWithHurt, landPlayer } from '../player/player';
 import { updateTsunami, updateSteamExplosions, updateVolcanoes, updateTommyArena } from '../bosses/hazards';
 import { updateTaser, updateBurningProjectiles, updateEnemyStatusEffects } from '../combat/statusEffects';
 import { updateEnemy, separateEnemies } from '../enemies/enemies';
@@ -249,6 +249,18 @@ const skyfall = (ctx: FrameContext, x: number, floor?: number) => {
 };
 
 /** The boss door opens, the camera and player glide into the arena, and the door shuts behind them. */
+/** Down on the arena floor (having come through the door in the air): how long he stands there before the boss speaks. */
+const LANDED_BEAT = 10;
+
+/** In, the door shut, on his feet: the boss fight's on (its intro). */
+const arriveInArena = (ctx: FrameContext) => {
+  const { state } = ctx;
+  state.doorState = 'done';
+  state.player.isGrounded = true;
+  state.bossCheckpoint = true;
+  ctx.events.onBossEncounter();
+};
+
 const updateBossTransition = (ctx: FrameContext) => {
   const { state, stageId } = ctx;
   const { player } = state;
@@ -271,14 +283,27 @@ const updateBossTransition = (ctx: FrameContext) => {
     state.doorOpenAmount -= DOOR_OPEN_SPEED;
     if (state.doorOpenAmount <= 0) {
       state.doorOpenAmount = 0;
-      state.doorState = 'done';
-      // The door's shut behind him: drop out of whatever pose he came in with, standing on the arena floor
+      // The door's shut behind him: out of whatever pose he came in with. Up in the air (he came through it
+      // mid-jump), he comes down onto the arena floor first, and only then does the boss have his say
       calmPlayer(player);
+      if (player.pos.y < targetPlayerY - 2) { state.doorState = 'landing'; player.isGrounded = false; player.vel = { x: 0, y: 0 }; player.facing = 1; state.projectiles = []; return; }
       player.pos.y = targetPlayerY;
       player.isGrounded = true;
-      state.bossCheckpoint = true;
-      ctx.events.onBossEncounter();
+      arriveInArena(ctx);
     }
+  } else if (state.doorState === 'landing') {
+    // Falling the rest of the way, the ordinary way; down on the floor, a beat, then the boss
+    player.facing = 1;
+    player.vel.x = 0;
+    state.projectiles = [];
+    if (!player.isGrounded) {
+      player.vel.y = Math.min(PLAYER_TERMINAL_VELOCITY, player.vel.y + PLAYER_GRAVITY);
+      player.pos.y += player.vel.y;
+      if (player.pos.y >= targetPlayerY) { player.pos.y = targetPlayerY; landPlayer(ctx, player.vel.y); player.vel.y = 0; state.doorBeat = 0; }
+      return;
+    }
+    if ((state.doorBeat = (state.doorBeat ?? 0) + 1) >= LANDED_BEAT) arriveInArena(ctx);
+    return;
   }
   // Like Mega Man: he's frozen mid-pose (mid-jump, crouched, mid-charge...) while the screen scrolls him through
   player.vel = { x: 0, y: 0 };
