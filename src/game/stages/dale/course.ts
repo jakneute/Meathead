@@ -161,7 +161,8 @@ const build = () => {
   d.ledge(9070, Y - 110, 90, 'rack');
   d.spawn('sicario', 9110, Y - 110);
   d.belt(7850 + W_EXT, 190, Y - 50, -2.8, 110);
-  d.pickup(7990 + W_EXT, Y - 30, 'large_health'); d.pickup(8030 + W_EXT, Y - 30, 'large_ammo');
+  // (up on the belt: it's in the way of the floor)
+  d.pickup(7990 + W_EXT, Y - 80, 'large_health'); d.pickup(8030 + W_EXT, Y - 80, 'large_ammo');
   // Up the stairs to the office
   d.ground(8060 + W_EXT, 8360 + W_EXT, Y, Y - 240, 'stairs');
   d.ground(8360 + W_EXT, 9120 + W_EXT, Y - 240, Y - 240, 'office');

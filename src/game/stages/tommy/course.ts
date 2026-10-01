@@ -257,7 +257,7 @@ const build = () => {
   // (a big one where he drops in: he's likely come down off the road hurt)
   s.pickup(380, Y - 30, 'large_health');
   s.pickup(2600, Y - 30, 'small_ammo'); s.pickup(3780, Y - 160, 'small_health');
-  s.pickup(4300, Y - 30, 'large_health'); s.pickup(4360, Y - 30, 'small_ammo');
+  s.pickup(4380, Y - 30, 'large_health'); s.pickup(4440, Y - 30, 'small_ammo');
   s.pickup(7450, Y - 30, 'small_health');
 
   // ============ THE RUINS ============

@@ -240,7 +240,7 @@ const build = () => {
   // and the oil pooling back as fast as it burns off)
   // A broken line licking fire along the ground onto a slick, again and again: watch it go up, burn off, pool back
   r.slick(1860, 2160, true); r.jet(1820, Y, 'right', 110, 330, 0, 70); r.jet(2200, Y, 'left', 110, 330, 165, 70);
-  r.spawn('ranger', 2260, Y, 7); r.spawn('biker', 2150, Y, 7);
+  r.spawn('ranger', 2275, Y, 7); r.spawn('biker', 2230, Y, 7);
   r.pickup(1760, Y - 30, 'small_ammo');
   // A pit of crude, a pipeline across it, a jet of fire straight up through the middle of it
   r.pit(2300, 2560); r.ledge(2285, Y - 40, 290, 'pipe'); r.jet(2430, Y + 40, 'up', 200, 150, 40, 55);
