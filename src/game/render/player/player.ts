@@ -351,35 +351,13 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       : isAirborne ? 0.3 + airFall * 0.3
       : Math.sin(animFrame * 0.08) * 0.1;
     ctx.save();
-    ctx.translate(-6, -40);
+    ctx.translate(-15, -45);
     ctx.rotate(armAngle);
-    // Shoulder, bulging bicep and forearm
-    ctx.fillStyle = skinShadow;
-    ctx.beginPath();
-    ctx.arc(0, 0, 7.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath(); ctx.ellipse(-0.5, 6.5, 5.5, 7.5, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillRect(-4.5, 7, 8.5, 7);
-    ctx.fillStyle = backArmShade;
-    ctx.beginPath(); ctx.ellipse(-3, 7, 2, 5.5, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillRect(-4.5, 10, 2, 4);
-    // Forearm & Spiked Wristband
-    ctx.fillStyle = wristbandColor;
-    ctx.fillRect(-6, 12, 11, 5);
-    // Studs
-    ctx.fillStyle = '#E5E7EB';
-    ctx.fillRect(-4, 13, 2, 3);
-    ctx.fillRect(1, 13, 2, 3);
-    // Fist, knuckles showing
-    ctx.fillStyle = skinShadow;
-    ctx.beginPath();
-    ctx.arc(0, 21, 5.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = backArmShade;
-    ctx.fillRect(-3, 22, 6, 0.9);
-    ctx.fillRect(-0.5, 22, 0.9, 3);
-    if (gore > 0.4) smear(ctx, 1, 2, 4, 3, bloodDark);
-    if (gore > 0.7) drip(ctx, 2, 3, 8);
+    // (the forearm swings a little further than the upper arm: a loose bend at the elbow, more when it's going back)
+    const bend = 0.15 + Math.max(0, -armAngle) * 0.5;
+    drawArm(ctx, 0, 0, -0.5, 12, Math.sin(-bend) * 10 - 0.5, 12 + Math.cos(bend) * 10, skinShadow, backArmShade, skinTone);
+    if (gore > 0.4) smear(ctx, -1, 4, 4, 3, bloodDark);
+    if (gore > 0.7) drip(ctx, 0, 5, 8);
     ctx.restore();
   }
   ctx.restore();
@@ -1021,35 +999,14 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // Shoulder jutted violently forward like a bull ram
     const ramX = 14;
     const ramY = -44;
-    // Massive cannonball delt
-    ctx.fillStyle = skinTone;
-    ctx.beginPath();
-    ctx.arc(ramX, ramY, 11, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = skinHighlight;
-    ctx.beginPath();
-    ctx.arc(ramX + 3, ramY - 3, 5, 0, Math.PI * 2);
-    ctx.fill();
-    // Bicep flexed tightly against chest
-    ctx.fillStyle = skinShadow;
-    ctx.fillRect(4, ramY - 2, 12, 8);
-    // Spiked wristband
-    ctx.fillStyle = wristbandColor;
-    ctx.fillRect(2, ramY + 3, 9, 5);
-    // Clenched fist
-    ctx.fillStyle = skinTone;
-    ctx.beginPath();
-    ctx.arc(6, ramY + 11, 6, 0, Math.PI * 2);
-    ctx.fill();
+    // The arm tucked in hard, the fist up by his chest; the shoulder leading, swollen up into a ram
+    drawArm(ctx, ramX - 1, ramY + 1, ramX - 2, ramY + 12, 5, ramY + 6, skinTone, skinShadow, skinHighlight);
+    ctx.fillStyle = skinTone; ctx.beginPath(); ctx.ellipse(ramX, ramY, 8.5, 7.5, 0.3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.ellipse(ramX - 1, ramY + 5, 6, 1.6, 0.3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = skinHighlight; ctx.beginPath(); ctx.ellipse(ramX + 2.5, ramY - 3, 3.5, 2, 0.3, 0, Math.PI * 2); ctx.fill();
   } else if (isHurt) {
-    // Lead arm knocked back
-    ctx.fillStyle = skinTone;
-    ctx.beginPath(); ctx.arc(6, -40, 7.5, 0, Math.PI * 2); ctx.fill();
-    ctx.fillRect(3, -34, 8, 12);
-    ctx.fillStyle = wristbandColor;
-    ctx.fillRect(2, -22, 10, 4);
-    ctx.fillStyle = skinTone;
-    ctx.beginPath(); ctx.arc(7, -16, 5.5, 0, Math.PI * 2); ctx.fill();
+    // Lead arm knocked back, hanging loose
+    drawArm(ctx, 13, -45, 10, -33, 8, -23, skinTone, skinShadow, skinHighlight);
   } else if (isRelieving) {
     drawReachingArm(ctx, 8, -42, 13, -32, 12, -21, skinTone);
   } else {
@@ -1066,51 +1023,13 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       ctx.translate(armBaseX, armBaseY); ctx.rotate(from + (to - from) * ease); ctx.translate(-armBaseX, -armBaseY);
     }
 
-    // Shoulder Delt
-    ctx.fillStyle = skinTone;
-    ctx.beginPath();
-    ctx.arc(armBaseX, armBaseY, 8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = skinHighlight;
-    ctx.beginPath();
-    ctx.arc(armBaseX + 2, armBaseY - 2, 3.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Upper arm / Forearm extending forward to hold weapon, bicep bulging underneath
-    ctx.fillStyle = skinTone;
-    ctx.fillRect(armBaseX - 2, armBaseY + 2, 12 + armPump * 0.3, 8);
-    ctx.beginPath(); ctx.ellipse(armBaseX + 2.5, armBaseY + 7.5, 6, 4, 0, 0, Math.PI * 2); ctx.fill();
+    // Shoulder at the edge of his chest, elbow down by his side (pumping a little as he walks), the fist out at the gun
+    const pump = armPump * 0.3;
+    drawArm(ctx, armBaseX + 6, armBaseY - 3, armBaseX + 4 + pump * 0.4, armBaseY + 8, armBaseX + 11 + pump, armBaseY + 6, skinTone, skinShadow, skinHighlight, armBaseX + 15 + pump);
+    // The fist round the grip: knuckles along the bottom
     ctx.fillStyle = skinShadow;
-    ctx.fillRect(armBaseX - 1, armBaseY + 10.2, 8, 1.2);
-    ctx.beginPath(); ctx.arc(armBaseX, armBaseY, 8, 0.6, 1.6); ctx.lineTo(armBaseX, armBaseY); ctx.fill();
-    ctx.fillStyle = skinTone;
-    ctx.beginPath(); ctx.arc(armBaseX, armBaseY, 6.8, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = skinHighlight;
-    ctx.beginPath(); ctx.arc(armBaseX + 2, armBaseY - 2, 3.5, 0, Math.PI * 2); ctx.fill();
-    ctx.fillRect(armBaseX + 3, armBaseY + 3, 4, 1);
-    // Vein on bicep
-    ctx.strokeStyle = skinVein;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(armBaseX, armBaseY + 3);
-    ctx.lineTo(armBaseX + 5, armBaseY + 6);
-    ctx.stroke();
-
-    // Spiked wristband
-    ctx.fillStyle = wristbandColor;
-    ctx.fillRect(armBaseX + 8 + armPump * 0.3, armBaseY + 1, 5, 10);
-    ctx.fillStyle = '#E5E7EB';
-    ctx.fillRect(armBaseX + 9 + armPump * 0.3, armBaseY + 3, 2, 2);
-    ctx.fillRect(armBaseX + 9 + armPump * 0.3, armBaseY + 7, 2, 2);
-
-    // Hand / Fist gripping weapon
-    ctx.fillStyle = skinTone;
-    ctx.beginPath();
-    ctx.arc(armBaseX + 15 + armPump * 0.3, armBaseY + 6, 5.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = skinShadow;
-    for (let k = 0; k < 3; k++) ctx.fillRect(armBaseX + 13 + armPump * 0.3 + k * 2, armBaseY + 8.5, 0.8, 2);
-    drawLeadArmBlood(ctx, armBaseX, armBaseY, armPump * 0.3);
+    for (let k = 0; k < 3; k++) ctx.fillRect(armBaseX + 13 + pump + k * 2, armBaseY + 8.5, 0.8, 2);
+    drawLeadArmBlood(ctx, armBaseX, armBaseY, pump);
 
     // Render Equipped Weapon in Meathead's lead hand!
     const wpnX = armBaseX + 10 + armPump * 0.3;
@@ -1485,6 +1404,54 @@ const drawGroundShadow = (ctx: CanvasRenderingContext2D, p: Player, state: GameS
   ctx.ellipse(cx, groundY, p.width * 0.65 * (0.5 + 0.5 * k), 5 * (0.5 + 0.5 * k), 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
+};
+
+/**
+ * An arm, shoulder (sx, sy) to elbow (ex, ey) to wrist (wx, wy): a deltoid capping the shoulder, the upper arm with
+ * the bicep bulging out the side the forearm bends toward, the forearm thicker by the elbow and tapering to the wrist,
+ * a spiked wristband, and a fist (at `fistX` along the forearm's line if given, else just past the wrist). Shaded:
+ * `shade` down the back of each part, `light` along the top of the deltoid and the bicep.
+ */
+const drawArm = (ctx: CanvasRenderingContext2D, sx: number, sy: number, ex: number, ey: number, wx: number, wy: number, skin: string, shade: string, light: string, fistX?: number) => {
+  const seg = (ax: number, ay: number, bx: number, by: number, ra: number, rb: number, color: string) => {
+    const a = Math.atan2(by - ay, bx - ax), nx = -Math.sin(a), ny = Math.cos(a);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(ax + nx * ra, ay + ny * ra); ctx.lineTo(bx + nx * rb, by + ny * rb);
+    ctx.lineTo(bx - nx * rb, by - ny * rb); ctx.lineTo(ax - nx * ra, ay - ny * ra); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.arc(ax, ay, ra, 0, Math.PI * 2); ctx.arc(bx, by, rb, 0, Math.PI * 2); ctx.fill();
+  };
+  // Which way the elbow bends (the bicep's on the inside of the bend)
+  const ux = ex - sx, uy = ey - sy, fx = wx - ex, fy = wy - ey;
+  const side = Math.sign(ux * fy - uy * fx) || 1;
+  const ul = Math.hypot(ux, uy) || 1, nx = (-uy / ul) * side, ny = (ux / ul) * side;
+  // Forearm (behind the upper arm at the elbow)
+  seg(ex, ey, wx, wy, 4.4, 3.3, skin);
+  const fl = Math.hypot(fx, fy) || 1, fnx = -fy / fl, fny = fx / fl;
+  ctx.fillStyle = shade; ctx.beginPath(); ctx.moveTo(ex + fnx * 4, ey + fny * 4); ctx.lineTo(wx + fnx * 3.1, wy + fny * 3.1); ctx.lineTo(wx + fnx * 1.5, wy + fny * 1.5); ctx.lineTo(ex + fnx * 1.8, ey + fny * 1.8); ctx.fill();
+  // Upper arm, the bicep bulging out on the inside of the bend, the tricep's shadow down the back
+  seg(sx, sy, ex, ey, 5, 4.2, skin);
+  const mx = sx + ux * 0.55, my = sy + uy * 0.55;
+  ctx.fillStyle = skin; ctx.beginPath(); ctx.ellipse(mx + nx * 2.4, my + ny * 2.4, 4.4, ul * 0.4, Math.atan2(uy, ux) - Math.PI / 2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = shade; ctx.beginPath(); ctx.ellipse(mx - nx * 3.8, my - ny * 3.8, 1.4, ul * 0.32, Math.atan2(uy, ux) - Math.PI / 2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = light; ctx.beginPath(); ctx.ellipse(mx + nx * 3.6, my + ny * 3.6 - 1, 1.3, ul * 0.22, Math.atan2(uy, ux) - Math.PI / 2, 0, Math.PI * 2); ctx.fill();
+  // (the crease at the elbow)
+  ctx.fillStyle = shade; ctx.fillRect(ex + nx * 1.5 - 1, ey + ny * 1.5 - 0.5, 2, 1);
+  // Deltoid: a cap over the top of the shoulder, lit on top
+  ctx.fillStyle = skin; ctx.beginPath(); ctx.ellipse(sx, sy, 6, 5.2, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = shade; ctx.beginPath(); ctx.ellipse(sx, sy + 4, 4.6, 1.2, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = light; ctx.beginPath(); ctx.ellipse(sx + 1, sy - 1.8, 2.6, 1.4, 0, 0, Math.PI * 2); ctx.fill();
+  // Spiked wristband, square to the forearm
+  const bx = wx - (fx / fl) * 1.5, by = wy - (fy / fl) * 1.5;
+  ctx.save(); ctx.translate(bx, by); ctx.rotate(Math.atan2(fy, fx));
+  ctx.fillStyle = wristbandColor; ctx.fillRect(-2.5, -5, 5, 10);
+  ctx.fillStyle = '#E5E7EB'; ctx.fillRect(-1, -3, 2, 2); ctx.fillRect(-1, 1, 2, 2);
+  ctx.restore();
+  // Fist
+  const hx = fistX ?? wx + (fx / fl) * 4.5, hy = fistX !== undefined ? wy : wy + (fy / fl) * 4.5;
+  ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(hx, hy, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = shade; ctx.beginPath(); ctx.arc(hx, hy, 5, Math.PI * 0.15, Math.PI * 0.85); ctx.lineTo(hx, hy); ctx.fill();
+  ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(hx, hy - 0.6, 4.2, 0, Math.PI * 2); ctx.fill();
 };
 
 /** An arm bent at the elbow reaching from the shoulder to a point, ending in a wristband (no fist). */

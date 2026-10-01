@@ -85,9 +85,9 @@ export const drawTorsoBlood = (ctx: CanvasRenderingContext2D, top: number, h: nu
 
 export const drawLeadArmBlood = (ctx: CanvasRenderingContext2D, ax: number, ay: number, pump: number) => {
   if (gore < 0.25) return;
-  cut(ctx, ax - 1, ay + 3, ax + 4, ay + 5);                              // bicep
+  cut(ctx, ax + 5, ay, ax + 8, ay + 4);                                  // bicep
   if (gore >= 0.5) smear(ctx, ax + 15 + pump, ay + 7, 5, 3.5);           // bloody knuckles
-  if (gore >= 0.75) drip(ctx, ax + 3, ay + 5, 6);
+  if (gore >= 0.75) drip(ctx, ax + 6, ay + 4, 6);
 };
 
 /** Badly hurt (under about a third of his health): a black eye, a split lip and sweat running off his temple. */
