@@ -162,6 +162,9 @@ export interface GameState {
   bossSteamExplosions: SteamExplosion[];
   victorWallSide: number;
   ernieVibrationTimer: number;
+  /** Hector's arena: how filthy it's got (0..1) from every poop log that's gone into his wind, and how filthy it looks so far (it catches up slowly). */
+  hectorFilth: number;
+  hectorFilthShown: number;
   /** Horizontal pull applied to the player this frame (Hector's hurricane). */
   totalPullForceX: number;
   /** Wind shoving the player this frame (a stage hazard); used up by the next move. */
@@ -317,6 +320,8 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
   bossSteamExplosions: [],
   victorWallSide: 0,
   ernieVibrationTimer: 0,
+  hectorFilth: 0,
+  hectorFilthShown: 0,
   totalPullForceX: 0,
   tommyBoards: [],
   tommySludgeY: TOMMY_SLUDGE_Y,

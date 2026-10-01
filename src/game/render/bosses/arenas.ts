@@ -33,6 +33,7 @@ export const drawCustomBossArena = (
       break;
     case 'Hector Hurricane':
       drawHectorArena(ctx, arenaLeft, arenaRight, arenaW, ceilingY, groundY, frame, windTargetX);
+      if (state) drawHectorFilth(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, state.hectorFilthShown);
       break;
     case 'Drug Trade Dale':
       drawDaleArena(ctx, arenaLeft, arenaRight, arenaW, ceilingY, groundY, frame);
@@ -1267,4 +1268,77 @@ const drawOscarArena = (
   ctx.stroke();
   ctx.fillStyle = '#5d4037';
   ctx.fillRect(left, bottom - 15, w, 2);
+};
+
+/**
+ * Hector's arena, filthier the more poop logs have gone into his wind: smears of it up the windows and the pylons with
+ * runs down them, a sludge of it building up along the deck with logs and lumps in it, a brown haze over the lot,
+ * flies over the worst of it, stink coming up off it, and the telemetry on the glass with something to say about the
+ * air. `f`: 0 clean .. 1 as bad as it gets. Every mark has its own place and turns up at its own level, so it builds.
+ */
+const drawHectorFilth = (ctx: CanvasRenderingContext2D, left: number, right: number, top: number, bottom: number, frame: number, f: number) => {
+  if (f < 0.01) return;
+  const w = right - left;
+  const h = (n: number) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+  const BROWN = ['#4A2F12', '#5C3A17', '#6B4423', '#3B2410'];
+  ctx.save();
+  ctx.beginPath(); ctx.rect(left, top, w, bottom - top); ctx.clip();
+  // Smears up the glass and the pylons, each with a run down from it (longer the longer it's been that bad)
+  for (let i = 0; i < 34; i++) {
+    const at = h(i) * 0.95;
+    if (f < at) continue;
+    const k = Math.min(1, (f - at) / 0.15);
+    const x = left + 20 + h(i + 50) * (w - 40), y = top + 30 + h(i + 90) * (bottom - top - 120), r = (6 + h(i + 130) * 14) * k;
+    ctx.fillStyle = BROWN[i % BROWN.length];
+    ctx.globalAlpha = 0.85;
+    ctx.beginPath(); ctx.ellipse(x, y, r, r * (0.6 + h(i + 7) * 0.4), h(i + 3) * 3, 0, Math.PI * 2); ctx.fill();
+    for (let s = 0; s < 4; s++) { const a = h(i * 5 + s) * Math.PI * 2; ctx.beginPath(); ctx.arc(x + Math.cos(a) * r * 1.4, y + Math.sin(a) * r * 1.2, 1 + h(i + s) * 2, 0, Math.PI * 2); ctx.fill(); }
+    const run = (8 + h(i + 170) * 50) * k * Math.min(1, f * 1.4);
+    ctx.fillRect(x - 1.5, y, 3, run); ctx.beginPath(); ctx.ellipse(x, y + run, 2.2, 3, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  // The sludge along the deck: a layer of it building up, lumpy, logs in it
+  const depth = 2 + f * 12;
+  ctx.fillStyle = '#4A2F12';
+  ctx.beginPath(); ctx.moveTo(left, bottom);
+  for (let x = left; x <= right; x += 12) ctx.lineTo(x, bottom - 14 - depth + Math.sin(x * 0.07 + 1.3) * 2 * f - h(Math.floor(x / 12)) * 3 * f);
+  ctx.lineTo(right, bottom); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(150, 110, 50, 0.4)'; for (let x = left + 6; x < right; x += 23) ctx.fillRect(x, bottom - 14 - depth + 1, 6, 1.5);
+  for (let i = 0; i < 26; i++) {
+    const at = h(i + 300) * 0.9;
+    if (f < at) continue;
+    const x = left + 30 + h(i + 320) * (w - 60), y = bottom - 14 - depth + 2;
+    ctx.save(); ctx.translate(x, y); ctx.rotate((h(i + 340) - 0.5) * 0.8);
+    ctx.fillStyle = BROWN[(i + 1) % BROWN.length]; ctx.beginPath(); ctx.roundRect(-11, -5, 22, 9, 4); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(-4, -5, 1.5, 9); ctx.fillRect(4, -5, 1.5, 9);
+    ctx.restore();
+  }
+  // A brown haze over the whole room
+  ctx.fillStyle = `rgba(92, 64, 24, ${0.28 * f})`; ctx.fillRect(left, top, w, bottom - top);
+  // Stink coming up off the deck
+  if (f > 0.3) {
+    ctx.strokeStyle = `rgba(132, 160, 60, ${0.5 * (f - 0.3) / 0.7})`; ctx.lineWidth = 2;
+    for (let i = 0; i < 8; i++) {
+      const x = left + 40 + h(i + 400) * (w - 80), t = ((frame * 0.6 + i * 37) % 90) / 90;
+      const y0 = bottom - 20 - depth - t * 120;
+      ctx.globalAlpha = 1 - t;
+      ctx.beginPath(); ctx.moveTo(x, y0); for (let k = 1; k <= 6; k++) ctx.lineTo(x + Math.sin(k * 1.4 + frame * 0.1) * 5, y0 - k * 7); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+  // Flies, over the worst of it
+  ctx.fillStyle = '#0B0B0B';
+  const flies = Math.floor(f * 28);
+  for (let i = 0; i < flies; i++) {
+    const cx = left + 40 + h(i + 500) * (w - 80), cy = bottom - 40 - h(i + 520) * 60;
+    const a = frame * (0.18 + h(i + 540) * 0.2) + i;
+    ctx.fillRect(cx + Math.cos(a) * 14 + Math.sin(a * 2.3) * 4, cy + Math.sin(a * 1.7) * 9, 2, 2);
+  }
+  // The telemetry on the glass: something to say about the air
+  if (f > 0.4) {
+    ctx.fillStyle = Math.floor(frame / 20) % 2 ? 'rgba(239, 68, 68, 0.9)' : 'rgba(253, 224, 71, 0.9)';
+    ctx.font = '7px monospace';
+    ctx.fillText(f > 0.85 ? 'AIR QUALITY: BIOHAZARD // DO NOT BREATHE' : 'AIR QUALITY: HAZARDOUS // FECAL PARTICULATE DETECTED', left + 40, top + 64);
+  }
+  ctx.restore();
 };

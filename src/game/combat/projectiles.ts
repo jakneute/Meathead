@@ -58,6 +58,8 @@ export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
     for (const b of state.enemies.filter(e => e.type === 'boss')) {
       if (Math.abs((p.pos.x + p.width / 2) - (b.pos.x + b.width / 2)) < 80 && Math.abs((p.pos.y + p.height / 2) - (b.pos.y + b.height / 2)) < 80) {
         fx.spawnPoopExplosion({ x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, 15);
+        // (and the room's that much filthier for it: it goes everywhere)
+        state.hectorFilth = Math.min(1, state.hectorFilth + HECTOR_FILTH_PER_LOG);
         return false;
       }
     }
@@ -535,6 +537,9 @@ const bulletBlood = (ctx: FrameContext, p: Projectile, enemy: Enemy) => {
 };
 
 /** Player projectile vs. enemies, bosses and meth barrels. Returns false if the projectile is spent. */
+/** How much filthier Hector's arena gets for each poop log that goes into his wind (it's at its worst after this many: 1 / it). */
+const HECTOR_FILTH_PER_LOG = 0.07;
+
 const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean => {
   const { state, fx } = ctx;
   const { player } = state;

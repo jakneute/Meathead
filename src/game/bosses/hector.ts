@@ -35,6 +35,8 @@ const POOP_DAMAGE = 18;
 const POOP_HEIGHTS = [510, 498, 440];
 
 const update = (ctx: FrameContext, boss: Enemy) => {
+  // (the room catching up with how filthy it's got: it spreads, it drips, it doesn't happen all at once)
+  const st = ctx.state; st.hectorFilthShown += (st.hectorFilth - st.hectorFilthShown) * 0.012;
   if (boss.bossState === 'hurricane') updateHurricane(ctx, boss);
   else if (boss.bossState === 'jumping') {
     if (boss.isGroundedBoss) { boss.bossState = 'hurricane'; boss.stateTimer = HURRICANE_FRAMES; boss.vel.x = 0; }
