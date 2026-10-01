@@ -90,6 +90,8 @@ const HOP_V = -10.5, HOP_G = 0.55;
 export const DROP_WARN = 66;
 /** How far to the right of its shadow it is, a frame out (it comes down at a slant). */
 const DROP_DRIFT = 3.5;
+/** How much less of something coming down counts for hitting the boat, each side (out from under it is out from under it). */
+const DROP_GRACE = 14;
 /** How far off the middle of the boat it's aimed (if he keeps going as he is): onto its front half, or its back half. */
 const DROP_OFF = 48;
 /** Where something coming down will land, from the middle of the boat, if he keeps going as he is now (for its mark
@@ -238,7 +240,9 @@ export const updateChase = (ctx: FrameContext, c: Chase, b: { x: number; y: numb
     // (one coming down can hit him from just above him on the way in)
     if (j.hit || j.warn > DROP_LIVE || j.passed) return true;
     const box = junkBox(j);
-    const hits = j.kind === 'flyer' ? rectsOverlap(box, hurt) : rectsOverlap(box, body) || (j.kind === 'drop' && rectsOverlap(box, hurt));
+    // (something coming down: only if it's well onto the boat; its mark off the end of the boat is it missing him)
+    const drop = j.kind === 'drop' ? { x: box.x + DROP_GRACE, y: box.y, w: box.w - DROP_GRACE * 2, h: box.h } : box;
+    const hits = j.kind === 'flyer' ? rectsOverlap(box, hurt) : rectsOverlap(drop, body) || (j.kind === 'drop' && rectsOverlap(drop, hurt));
     void hurt;
     // (he's in a cutscene as far as the game's concerned, so it's the knock it gave him that keeps him from taking two at once)
     if (hits && c.crash <= HIT_FRAMES - HIT_GRACE) {

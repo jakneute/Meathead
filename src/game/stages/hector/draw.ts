@@ -10,7 +10,7 @@ import { COURSE, Plat, Prop, palmTip } from './course';
 import { getHector, regionOf, HectorRuntime } from './runtime';
 import { drawNews } from './news';
 import { drawWaterHazards, drawAirMeter } from './drawWater';
-import { STRIKE_WARN, shockPhase, AWNING_BOUNCE, SEA_DEPTH } from './hazards';
+import { STRIKE_WARN, STRIKE_RING, shockPhase, AWNING_BOUNCE, SEA_DEPTH } from './hazards';
 import { copsLeft } from './beach';
 import { towerFlash, TOWER, RISE_WARNING } from './tower';
 import { drawBoatScene, drawBoatFront, drawTowerJunk, drawEyeArena, drawDaycare, drawDaycareFront, drawPoolWater } from './drawSet';
@@ -127,17 +127,33 @@ export const drawHectorMid = (ctx: Ctx, state: GameState) => {
     ctx.fillStyle = `rgba(20, 20, 20, ${0.6 * (1 - s.t / 400)})`;
     ctx.beginPath(); ctx.ellipse(s.x, s.y - 1, 24, 5, 0, 0, Math.PI * 2); ctx.fill();
   }
-  // Lightning about to land: a flickering ring, sparks crawling up
+  // Lightning about to land: the ring on the ground it'll take (a hard edge, the same size the whole way: outside it is
+  // out of it), dark ground inside it, the inside filling in yellow as it comes, a column of light up from it, the !
+  // over it, all flashing faster as it gets close
   for (const s of rt.hazards.strikes) {
     if (s.t >= STRIKE_WARN) continue;
     const k = Math.max(0, s.t / STRIKE_WARN);
+    const on = Math.floor(s.t / (k > 0.6 ? 2 : 4)) % 2 === 0;
     ctx.save();
-    ctx.globalAlpha = 0.4 + 0.6 * (Math.abs(Math.floor(s.t / 4) % 2));
-    ctx.strokeStyle = '#FDE047'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.ellipse(s.x, s.ground - 2, 30 - k * 8, 7 - k * 2, 0, 0, Math.PI * 2); ctx.stroke();
-    ctx.fillStyle = `rgba(253, 224, 71, ${0.15 + k * 0.3})`; ctx.fillRect(s.x - 24, s.ground - 300 * k, 48, 300 * k);
-    ctx.fillStyle = '#FDE047'; ctx.font = 'bold 14px "Press Start 2P"'; ctx.textAlign = 'center';
-    ctx.fillText('!', s.x, s.ground - 30);
+    // (the ground inside it, darkened, then lit from the edge in as it comes)
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.45)'; ctx.beginPath(); ctx.ellipse(s.x, s.ground - 1, STRIKE_RING, 9, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = `rgba(253, 224, 71, ${0.25 + k * 0.45})`; ctx.beginPath(); ctx.ellipse(s.x, s.ground - 1, STRIKE_RING * k, 9 * k, 0, 0, Math.PI * 2); ctx.fill();
+    // (the edge: black under yellow, so it reads on sand and on water)
+    ctx.strokeStyle = '#0F172A'; ctx.lineWidth = 5; ctx.beginPath(); ctx.ellipse(s.x, s.ground - 1, STRIKE_RING, 9, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = on ? '#FDE047' : '#FEF9C3'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(s.x, s.ground - 1, STRIKE_RING, 9, 0, 0, Math.PI * 2); ctx.stroke();
+    // (the column of light: as wide as the ring)
+    ctx.globalAlpha = on ? 1 : 0.6;
+    const cg = ctx.createLinearGradient(0, s.ground - 320, 0, s.ground);
+    cg.addColorStop(0, 'rgba(253, 224, 71, 0)'); cg.addColorStop(1, `rgba(253, 224, 71, ${0.2 + k * 0.35})`);
+    const ch = 320 * Math.max(0.3, k);
+    ctx.fillStyle = cg; ctx.fillRect(s.x - STRIKE_RING, s.ground - ch, STRIKE_RING * 2, ch);
+    // (its edges, dashed dark, marching down: it reads against a bright sky as well as a dark one)
+    ctx.strokeStyle = 'rgba(15, 23, 42, 0.55)'; ctx.lineWidth = 2; ctx.setLineDash([8, 8]); ctx.lineDashOffset = -s.t * 2;
+    ctx.beginPath(); ctx.moveTo(s.x - STRIKE_RING, s.ground - ch); ctx.lineTo(s.x - STRIKE_RING, s.ground); ctx.moveTo(s.x + STRIKE_RING, s.ground - ch); ctx.lineTo(s.x + STRIKE_RING, s.ground); ctx.stroke(); ctx.setLineDash([]);
+    // (the !, big, inked)
+    ctx.globalAlpha = 1; ctx.font = 'bold 26px "Press Start 2P"'; ctx.textAlign = 'center';
+    ctx.lineWidth = 5; ctx.strokeStyle = '#0F172A'; ctx.strokeText('!', s.x, s.ground - 56);
+    ctx.fillStyle = on ? '#FDE047' : '#FEF08A'; ctx.fillText('!', s.x, s.ground - 56);
     ctx.restore();
   }
   for (const d of rt.hazards.debris) if (d.warn <= 0) drawDebris(ctx, d.x, d.y, d.rot, d.look, d.size);

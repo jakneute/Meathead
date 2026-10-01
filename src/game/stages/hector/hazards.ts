@@ -66,6 +66,11 @@ export const STRIKE_WARN = 55, STRIKE_FLASH = 10;
 /** A bolt coming down on the water gives you this much longer to get out (it starts counting from below zero). */
 const WATER_EXTRA_WARN = 50;
 const STRIKE_DAMAGE = 16, STRIKE_ENEMY_DAMAGE = 90, STRIKE_HALF_WIDTH = 26;
+/**
+ * How far off the middle of a strike he can be and it misses him (the middle of him: being half in the ring isn't being
+ * hit). The ring on the ground is drawn just outside this (STRIKE_RING), so outside the ring is always out of it.
+ */
+export const STRIKE_HIT_REACH = 30, STRIKE_RING = 38;
 const DEBRIS_WARN = 45, DEBRIS_DAMAGE = 10;
 const SHOCK_DAMAGE = 8, SHOCK_WARN = 40;
 export const AWNING_BOUNCE = 17.5;
@@ -209,7 +214,8 @@ const updateLightning = (ctx: FrameContext, hz: Hazards) => {
       hz.scorches.push({ x: s.x, y: s.ground, t: 0 });
       for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: s.x, y: s.ground - 4 }, vel: { x: (Math.random() - 0.5) * 10, y: -Math.random() * 8 }, life: 20 + Math.random() * 15, color: i % 2 ? '#FDE047' : '#F8FAFC', size: 2 + Math.random() * 4 });
       const col = { x: s.x - STRIKE_HALF_WIDTH, y: s.ground - 900, w: STRIKE_HALF_WIDTH * 2, h: 900 };
-      if (rectsOverlap(col, boundsOf(player))) hurt(ctx, hz, STRIKE_DAMAGE, 'lightning', { x: (player.pos.x + player.width / 2 < s.x ? -1 : 1) * 6, y: -8 });
+      // (him: only if the middle of him's in it; out of the ring, or mostly, it misses him)
+      if (Math.abs(player.pos.x + player.width / 2 - s.x) < STRIKE_HIT_REACH && player.pos.y < s.ground) hurt(ctx, hz, STRIKE_DAMAGE, 'lightning', { x: (player.pos.x + player.width / 2 < s.x ? -1 : 1) * 6, y: -8 });
       // Into the water: the whole body of water lights up (under the docks too), and anything swimming in it is cooked
       const wet = waterAt(hz, s.x);
       if (wet) {
