@@ -631,26 +631,68 @@ export const drawMeatheadCloseUp = (ctx: Ctx, t: number, talking: boolean, mood:
   if (where.pose === 'gun') drawHandgunUp(ctx, t);
 };
 
-/** Both arms up either side of his head, biceps like boulders: his guns. */
+/**
+ * The light off a tapered limb: a capsule from (x0, y0), r0 thick, to (x1, y1), r1 thick (picture coordinates), for a
+ * box at (bx, by) w x h; lit from up and to the left like everything else.
+ */
+const limbLight = (bx: number, by: number, w: number, h: number, x0: number, y0: number, r0: number, x1: number, y1: number, r1: number, amb = 0.13) => {
+  const lx = -0.45, ly = -0.6, lz = Math.sqrt(1 - lx * lx - ly * ly);
+  const dx = x1 - x0, dy = y1 - y0, l2 = dx * dx + dy * dy || 1;
+  return (u: number, v: number) => {
+    const px = bx + u * w, py = by + v * h;
+    const k = Math.max(0, Math.min(1, ((px - x0) * dx + (py - y0) * dy) / l2));
+    const r = r0 + (r1 - r0) * k, nx = (px - (x0 + dx * k)) / r, ny = (py - (y0 + dy * k)) / r, d = nx * nx + ny * ny;
+    if (d > 1) return -1;
+    return amb + (1 - amb) * Math.max(0, nx * lx + ny * ly + Math.sqrt(1 - d) * lz);
+  };
+};
+
+/** A tapered limb, shaded (see limbLight). */
+const limb = (ctx: Ctx, key: string, x0: number, y0: number, r0: number, x1: number, y1: number, r1: number) => {
+  const bx = Math.floor(Math.min(x0 - r0, x1 - r1)), by = Math.floor(Math.min(y0 - r0, y1 - r1));
+  const w = Math.ceil(Math.max(x0 + r0, x1 + r1)) - bx, h = Math.ceil(Math.max(y0 + r0, y1 + r1)) - by;
+  shaded(ctx, key, bx, by, w, h, RAMP.mSkin, limbLight(bx, by, w, h, x0, y0, r0, x1, y1, r1));
+};
+
+/**
+ * The double biceps, either side of his head: the upper arms out level from the shoulders, the deltoids capping them,
+ * the biceps peaked up off them like a mountain range; the forearms back up from the elbows, thick at the elbow and
+ * tapering, leaning in, the fists up by his ears, knuckles in, the wristbands; the triceps hanging under. His guns.
+ */
 const drawDoubleBiceps = (ctx: Ctx, t: number) => {
   const pump = t % 20 < 10 ? 1 : 0;
   for (const s of [-1, 1]) {
-    const x = s < 0 ? 46 : 210;          // the bicep's middle
-    const ex = x + s * 22;               // the elbow, out at the side
-    // Upper arm out from the shoulder to the elbow
-    shaded(ctx, `mh-uarm${s}`, Math.min(x, ex) - 14, 98, 50, 26, RAMP.mSkin, box(-0.3, -0.8, 0.14, 0.3, 1));
-    // Forearm straight up from the elbow, the fist up by his ear
-    shaded(ctx, `mh-farm${s}`, ex - 9, 30, 18, 76, RAMP.mSkin, box(s < 0 ? -0.6 : -0.4, -0.3, 0.14, 1, 0.2));
-    shaded(ctx, `mh-fist${s}`, ex - 12, 17, 24, 22, RAMP.mSkin, ball(-0.45, -0.6, 0.15));
-    for (let k = 0; k < 3; k++) R(ctx, ex - 8 + k * 6, 21, 4, 3, C.mSkinShade);
-    R(ctx, ex - 10, 44, 20, 6, C.ink); for (let k = 0; k < 4; k++) R(ctx, ex - 8 + k * 5, 42, 2, 2, C.lightGray);
-    // The bicep, peaked up off the upper arm in the crook of it, pumping
-    shaded(ctx, `mh-bicep${s}`, x - 26, 68 - pump * 2, 52, 44, RAMP.mSkin, ball(-0.4, -0.75, 0.14));
-    R(ctx, x + s * 14, 76, 3, 26, C.mSkinShade); // the crease where it meets the forearm
-    R(ctx, x - s * 6, 86, 2, 14, C.vein); R(ctx, x - s * 8, 82, 3, 2, C.vein);
+    // (drawn for his right arm, the one on the left of the picture; mirrored for the other)
+    const X = (x: number) => (s < 0 ? x : ART_W - x);
+    const RX = (x: number, y: number, w: number, h: number, c: string) => R(ctx, s < 0 ? x : ART_W - x - w, y, w, h, c);
+    const blob = (key: string, cx: number, cy: number, w: number, h: number, light: (u: number, v: number) => number) => shaded(ctx, `${key}${s}`, X(cx) - w / 2, cy - h / 2, w, h, RAMP.mSkin, light);
+    // The triceps, hanging heavy under the upper arm
+    blob('mh-tri', 46, 112, 42, 20, ball(-0.3, -0.85, 0.08));
+    // Upper arm, out level from the shoulder to the elbow
+    limb(ctx, `mh-uarm${s}`, X(70), 110, 15, X(22), 100, 11);
+    // Forearm back up from the elbow: thick by the elbow, tapering to the wrist, leaning in toward his head
+    limb(ctx, `mh-farm1${s}`, X(20), 96, 11, X(23), 70, 12);
+    limb(ctx, `mh-farm2${s}`, X(23), 70, 12, X(33), 46, 7);
+    // (the vein down it)
+    for (let k = 0; k < 6; k++) RX(19 + k, 62 + k * 4, 1, 3, C.vein);
+    // The bicep, peaked up off the upper arm
+    blob('mh-bicep', 42, 89 - pump * 2, 42, 30 + pump * 2, ball(-0.4, -0.78, 0.14));
+    // (the crease where it meets the forearm, the split down its peak, the vein over it)
+    for (let k = 0; k < 6; k++) RX(25 + k, 96 - k * 2, 2, 2, RAMP.mSkin[1]);
+    RX(36, 80 - pump * 2, 2, 8, RAMP.mSkin[2]); RX(46, 84, 8, 1, C.vein); RX(52, 85, 1, 5, C.vein); RX(40, 85, 6, 1, C.vein);
+    // The deltoid, capping the shoulder
+    blob('mh-delt', 72, 106, 30, 28, ball(-0.35, -0.7, 0.14));
+    RX(64, 116, 10, 1, RAMP.mSkin[2]);
+    // The wristband, the fist on top of it: square, the knuckles turned in toward his head, the thumb across
+    blob('mh-fist', 35, 37, 22, 20, box(-0.5, -0.5, 0.15, 1, 0.8));
+    for (let k = 0; k < 4; k++) RX(26 + k * 5, 29, 4, 2, RAMP.mSkin[6]);
+    for (let k = 1; k < 4; k++) RX(25 + k * 5, 31, 1, 7, RAMP.mSkin[2]);
+    RX(27, 39, 16, 3, RAMP.mSkin[3]); RX(27, 42, 16, 1, RAMP.mSkin[2]);
+    RX(44, 32, 2, 9, RAMP.mSkin[1]);
+    RX(25, 46, 18, 6, C.ink); for (let k = 0; k < 4; k++) RX(26 + k * 4, 44, 2, 2, C.lightGray);
   }
   // Pump lines
-  if (t % 20 < 10) for (const [x, y] of [[4, 60], [4, 80], [250, 60], [250, 80]]) R(ctx, x, y, 5, 2, C.gold);
+  if (t % 20 < 10) for (const [x, y] of [[2, 70], [2, 88], [249, 70], [249, 88]]) R(ctx, x, y, 5, 2, C.gold);
 };
 
 /** His hand coming up by his face with the handgun in it, held up and sideways, a gleam running along the slide. */
