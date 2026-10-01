@@ -180,7 +180,7 @@ const updateLevelIntro = (ctx: FrameContext) => {
   }
 
   if (LEVEL_INTRO_STYLE === 'skyfall') {
-    skyfall(ctx, baseStartX + 150, at?.y);
+    skyfall(ctx, baseStartX + 150, at?.y ?? (cheats.skipToBoss ? getStageLayout(stageId)?.bossStartY : undefined));
   } else if (state.introTimer < INTRO_JUMP_START) {
     player.pos.x = baseStartX - 150;
   } else {

@@ -39,6 +39,8 @@ export const ernieLayout: StageLayout = {
   lighting: state => ernieScene(state),
   // (at the foot of the citadel, by the refill)
   bossStartX: COURSE.checkpoints[CP.DOOR].x,
+  // (down under the citadel's vaults, not on top of them)
+  bossStartY: COURSE.checkpoints[CP.DOOR].y,
   build: (state, skipToBoss) => {
     const C = COURSE;
     state.groundRuns = [...C.runs, { x1: BOSS_DOOR_X, y1: GROUND_Y, x2: STAGE_WIDTH, y2: GROUND_Y }];

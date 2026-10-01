@@ -67,6 +67,13 @@ export const respawn = (state: GameState, stageId: string | null, skipToBoss: bo
     state.camera.x = Math.max(state.cameraMinX, p.pos.x - 250);
     state.camera.y = state.cameraRestY;
   }
+  // (outside the boss's door under a ceiling: on the floor there, not on top of the roof over it)
+  const bossY = atBoss ? getStageLayout(stageId)?.bossStartY : undefined;
+  if (bossY !== undefined) {
+    p.pos.y = bossY - p.height;
+    state.camera.x = Math.max(state.cameraMinX, p.pos.x - 250);
+    state.camera.y = state.cameraRestY = bossY - 550;
+  }
   if (state.bossCheckpoint && !skipToBoss) {
     const startX = getStartX(true, stageId);
     // (all the way up: a stage can put its boss start high up, like Tommy's ruins)

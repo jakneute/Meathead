@@ -82,6 +82,8 @@ export interface StageLayout {
   playerTilt?: (state: GameState) => { x: number; y: number; angle: number } | null;
   /** Where you start when you go straight to the boss (or die to him), if not the usual spot just outside his door. */
   bossStartX?: number;
+  /** ...and the floor there, if it's not just whatever's under the top of the screen (under a ceiling, say). */
+  bossStartY?: number;
   /** Where on screen his feet sit when he's standing (default 550 of 600): higher to see more of what's below him. */
   cameraRow?: (state: GameState) => number | undefined;
   /** How quickly the vertical camera settles (default 0.2 a frame): lower is gentler, for a climb of lots of little ledges. */
