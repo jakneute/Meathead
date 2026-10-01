@@ -217,7 +217,7 @@ export const AFTERMATHS: Record<string, Aftermath> = {
   'Hector Hurricane': {
     procured: "The asset wrung Hector out. Literally: twisted the body like a beach towel over a fifty-five-gallon drum until the storm ran out of it, then kept twisting until the rest did. The drum holds a tidal wave. How is a question for physicists. They have asked to see the drum. The asset said no. The lid is a pressure seal of his own design, pounded out of a stop sign with the flat of a hammer. The Navy has asked for the blueprints. There are no blueprints. He drew it on a napkin at a diner, and then he ate the napkin.",
     taken: {
-      flamingo: "One (1) plastic lawn flamingo that came down out of the storm onto a man. The asset kept the flamingo. The man has been returned to his family.",
+      flamingo: "One (1) plastic lawn flamingo, recovered from the rear end of a Coast Guard petty officer found ass up and head first in the dirt outside a daycare. The asset kept the flamingo. The petty officer has been returned to his family, flamingo-free.",
       clicker: "One (1) weather clicker, taken out of the deceased's hand. The asset has pressed it several hundred times. The forecast in his garage is unchanged.",
       daycare: "One (1) LITTLE SUNSHINE DAYCARE sign, off what is left of the daycare. The children said he could have it. The children have been told not to make promises on behalf of the state.",
     },

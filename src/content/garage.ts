@@ -31,7 +31,7 @@ export const SOUVENIRS: Souvenir[] = [
   { id: 'seismo', boss: 'Ernie Earthquake', spot: 'wall', name: 'SEISMOGRAPH READOUT', note: 'THE BIG SPIKE IS WHERE I LANDED. FRAMED IT.' },
   { id: 'bell', boss: 'Ernie Earthquake', spot: 'shelf', name: 'CABLE CAR BELL', note: 'RING IT AFTER A PR. HAVE NOT STOPPED RINGING IT.' },
   // Hector Hurricane
-  { id: 'flamingo', boss: 'Hector Hurricane', spot: 'floor', name: 'LAWN FLAMINGO', note: 'CAME DOWN OUT OF THE STORM. LANDED ON A GUY. KEPT IT.' },
+  { id: 'flamingo', boss: 'Hector Hurricane', spot: 'floor', name: 'LAWN FLAMINGO', note: 'PULLED OUT OF A COAST GUARDSMAN''S ASS. HE WAS HEAD FIRST IN THE DIRT OUTSIDE A DAYCARE AT THE TIME. KEPT IT.' },
   { id: 'clicker', boss: 'Hector Hurricane', spot: 'shelf', name: "HECTOR'S WEATHER CLICKER", note: "CHANGES THE FORECAST. PRESSED IT. STILL SUNNY IN HERE. SUNNY FOREVER." },
   { id: 'daycare', boss: 'Hector Hurricane', spot: 'wall', name: 'LITTLE SUNSHINE DAYCARE SIGN', note: "THE KIDS SAID I COULD HAVE IT. THE GROWN-UPS DIDN'T SAY ANYTHING." },
   // Toxic Tommy
