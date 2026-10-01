@@ -4,6 +4,7 @@
 // tenants and the power room's generators and Barry's man, the lighting and the
 // drawing into the engine.
 
+import { tickDumpster } from './dumpster';
 import type { StageLayout } from '../index';
 import type { Block } from '../../../types';
 import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH } from '../../../constants';
@@ -51,6 +52,8 @@ export const barryLayout: StageLayout = {
     }
   },
   update: (ctx, controls) => updateBarry(ctx, controls),
+  // (the dumpster: its clock, its lines and its sounds)
+  deathSceneTick: ctx => { const d = getBarry(ctx.state)?.dumpster; if (d) tickDumpster(ctx, d); },
   deathMessage: ctx => barryDeathMessage(ctx),
   updateSpecialEnemy: (ctx, e) => {
     const rt = getBarry(ctx.state);

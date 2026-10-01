@@ -18,6 +18,7 @@ import { say, MEATHEAD_VOICE } from '../../platform/speech';
 import { shakeScreen } from '../../core/state';
 import { COURSE, CP, Place, placeOf, placeIndex, roomOf, Room } from './course';
 import { Talk, createTalk, updateTalk, hush, queueLines, replaceLines } from './script';
+import { Dumpster, inTheAlley, startDumpster } from './dumpster';
 import { makeTenants } from './climb';
 import { PowerRoom, createPower, enterPower, updatePower } from './power';
 import { ROOM_ZOOM } from './lighting';
@@ -49,6 +50,8 @@ export interface BarryRuntime {
   barked: Set<string>;
   lastBark: number;
   said: Set<string>;
+  /** Down the alley into the dumpster: the death scene playing (see dumpster.ts). */
+  dumpster: Dumpster | null;
 }
 
 export const getBarry = (state: GameState) => state.stage as BarryRuntime | null;
@@ -78,7 +81,7 @@ export const createBarryRuntime = (state: GameState, skipToBoss: boolean): Barry
   if (startedAt <= CP.CLIMB2) state.enemies.push(...makeTenants());
   const rt: BarryRuntime = {
     startedAt, talk: createTalk(), transit: null, power: createPower(), surf: null,
-    barks: [], barked: new Set(), lastBark: -999, said: new Set(),
+    barks: [], barked: new Set(), lastBark: -999, said: new Set(), dumpster: null,
   };
   applyPlaceCamera(state, placeOf(start.x));
   return rt;
@@ -123,6 +126,8 @@ export const updateBarry = (ctx: FrameContext, controls: Controls): Controls => 
       if (p.pos.x + p.width / 2 >= COURSE.roofAccess && p.isGrounded) startFade(state, rt, CP.ROOFS);
       break;
     case 'roofs':
+      // Off into the alley between the walk-ups: the dumpster
+      if (!rt.dumpster && state.deathTimer <= 0 && inTheAlley(state)) { rt.dumpster = startDumpster(ctx); break; }
       // The door up at the top of the fire escape
       if (p.pos.y + p.height <= COURSE.climb.top + 4 && p.isGrounded && Math.abs(p.pos.x + p.width / 2 - COURSE.climb.door) < 40) startFade(state, rt, CP.POWER);
       break;

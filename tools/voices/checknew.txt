@@ -1,0 +1,9 @@
+0.67  meathead
+  said: SHOULD'VE BOUGHT MORE BALLOONS.
+  heard: should have bought more balloons.
+0.77  meathead
+  said: ARTIE'S A POPSICLE. A PISSED-ON POPSICLE.
+  heard: Artie's a popsicle.  A piston popsicle.
+0.77  meathead
+  said: I ALREADY PUT THAT HOTHEAD OUT.
+  heard: I already put that hot head out.

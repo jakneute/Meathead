@@ -6,6 +6,7 @@
 // the power room are in rooms.ts; the lighting, the elevator, the fades and the
 // ride down in hud.ts.
 
+import { drawDumpster } from './dumpster';
 import type { GameState } from '../../core/state';
 import type { Enemy } from '../../../types';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
@@ -672,6 +673,8 @@ export const drawBarryHud = (ctx: Ctx, state: GameState) => {
   const rt = getBarry(state)!;
   drawBarryScreenHud(ctx, state, rt);
   drawSurgeFlash(ctx, state, rt.power, CANVAS_WIDTH, CANVAS_HEIGHT);
+  // Down the alley into the dumpster: the scene, over everything while it plays
+  if (rt.dumpster && state.deathTimer > 0) drawDumpster(ctx, rt.dumpster);
 };
 
 /** Over the lot: the weather outside, then the fades, the elevator, the white-out, the ride down. */

@@ -1345,6 +1345,26 @@
   "from": "game/stages/barry/power.ts:218"
  },
  {
+  "voice": "barry.resident",
+  "text": "...I'M OKAY! I'M TOTALLY OKAY! NOTHING IMPORTANT GOT HIT!",
+  "from": "game/stages/barry/dumpster.ts:77"
+ },
+ {
+  "voice": "barry.resident",
+  "text": "IS THAT A FORK? THAT'S A FORK. AND A NEEDLE. AND A RUSTY NAIL. AND... A WHOLE FISH.",
+  "from": "game/stages/barry/dumpster.ts:77"
+ },
+ {
+  "voice": "barry.resident",
+  "text": "OW. OW. GLASS. THAT IS A LOT OF GLASS.",
+  "from": "game/stages/barry/dumpster.ts:77"
+ },
+ {
+  "voice": "barry.resident",
+  "text": "SHUT UP!",
+  "from": "game/stages/barry/dumpster.ts:77"
+ },
+ {
   "voice": "boss.artie",
   "text": "A LITTLE TINGLE. HOW ADORABLE.",
   "from": "REACTIONS"
@@ -3802,7 +3822,7 @@
  {
   "voice": "death",
   "text": "CON ED STRIKES AGAIN",
-  "from": "game/stages/barry/runtime.ts:403"
+  "from": "game/stages/barry/runtime.ts:408"
  },
  {
   "voice": "death",
@@ -3957,7 +3977,7 @@
  {
   "voice": "death",
   "text": "DOWN THE HOLE",
-  "from": "game/stages/barry/runtime.ts:403"
+  "from": "game/stages/barry/runtime.ts:408"
  },
  {
   "voice": "death",
@@ -4362,7 +4382,7 @@
  {
   "voice": "death",
   "text": "HIT BY A FLYING TOASTER",
-  "from": "game/stages/barry/runtime.ts:408"
+  "from": "game/stages/barry/runtime.ts:413"
  },
  {
   "voice": "death",
@@ -4462,7 +4482,7 @@
  {
   "voice": "death",
   "text": "JUST ANOTHER NEW YORK STATISTIC",
-  "from": "game/stages/barry/runtime.ts:403"
+  "from": "game/stages/barry/runtime.ts:408"
  },
  {
   "voice": "death",
@@ -4712,7 +4732,7 @@
  {
   "voice": "death",
   "text": "NEW YORK WELCOMES YOU",
-  "from": "game/stages/barry/runtime.ts:408"
+  "from": "game/stages/barry/runtime.ts:413"
  },
  {
   "voice": "death",
@@ -4737,7 +4757,12 @@
  {
   "voice": "death",
   "text": "NO VISITOR BADGE",
-  "from": "game/stages/barry/runtime.ts:404"
+  "from": "game/stages/barry/runtime.ts:409"
+ },
+ {
+  "voice": "death",
+  "text": "NOISE COMPLAINT",
+  "from": "game/stages/barry/dumpster.ts:58"
  },
  {
   "voice": "death",
@@ -5352,7 +5377,7 @@
  {
   "voice": "death",
   "text": "SIGNED OUT PERMANENTLY",
-  "from": "game/stages/barry/runtime.ts:404"
+  "from": "game/stages/barry/runtime.ts:409"
  },
  {
   "voice": "death",
@@ -5462,7 +5487,7 @@
  {
   "voice": "death",
   "text": "SPLAT ON FIFTH AVENUE",
-  "from": "game/stages/barry/runtime.ts:408"
+  "from": "game/stages/barry/runtime.ts:413"
  },
  {
   "voice": "death",
@@ -5647,7 +5672,7 @@
  {
   "voice": "death",
   "text": "THE CITY THAT NEVER SLEEPS. YOU DO NOW.",
-  "from": "game/stages/barry/runtime.ts:403"
+  "from": "game/stages/barry/runtime.ts:408"
  },
  {
   "voice": "death",
@@ -5827,7 +5852,7 @@
  {
   "voice": "death",
   "text": "TOOK THE EXPRESS WAY DOWN",
-  "from": "game/stages/barry/runtime.ts:408"
+  "from": "game/stages/barry/runtime.ts:413"
  },
  {
   "voice": "death",
@@ -5952,7 +5977,7 @@
  {
   "voice": "death",
   "text": "WINDOW SHOPPING",
-  "from": "game/stages/barry/runtime.ts:408"
+  "from": "game/stages/barry/runtime.ts:413"
  },
  {
   "voice": "death",
@@ -5997,7 +6022,7 @@
  {
   "voice": "death",
   "text": "YOU'RE FIRED",
-  "from": "game/stages/barry/runtime.ts:405"
+  "from": "game/stages/barry/runtime.ts:410"
  },
  {
   "voice": "dispatch",
@@ -6571,6 +6596,11 @@
  },
  {
   "voice": "meathead",
+  "text": "...I'M OKAY! I'M TOTALLY OKAY! NOTHING IMPORTANT GOT HIT!",
+  "from": "game/stages/barry/dumpster.ts:77"
+ },
+ {
+  "voice": "meathead",
   "text": "...NOPE.",
   "from": "game/stages/dale/convoy.ts:389"
  },
@@ -6792,7 +6822,7 @@
  {
   "voice": "meathead",
   "text": "A LOBBY. EVERYBODY IN IT LOOKS LIKE THEY HATE ME ALREADY.",
-  "from": "game/stages/barry/runtime.ts:309"
+  "from": "game/stages/barry/runtime.ts:314"
  },
  {
   "voice": "meathead",
@@ -8002,7 +8032,7 @@
  {
   "voice": "meathead",
   "text": "FIFTY EIGHT. FINE. THERE BETTER BE STAIRS.",
-  "from": "game/stages/barry/runtime.ts:320"
+  "from": "game/stages/barry/runtime.ts:325"
  },
  {
   "voice": "meathead",
@@ -8107,7 +8137,7 @@
  {
   "voice": "meathead",
   "text": "FORTY ONE. THE ELEVATOR HATES ME. EVERYTHING IN THIS CITY HATES ME.",
-  "from": "game/stages/barry/runtime.ts:320"
+  "from": "game/stages/barry/runtime.ts:325"
  },
  {
   "voice": "meathead",
@@ -8172,7 +8202,7 @@
  {
   "voice": "meathead",
   "text": "FUCK YEAH! LET'S GO!",
-  "from": "App.tsx:397"
+  "from": "App.tsx:419"
  },
  {
   "voice": "meathead",
@@ -9227,7 +9257,7 @@
  {
   "voice": "meathead",
   "text": "HOW HIGH DO THESE APARTMENTS EVEN GO?!",
-  "from": "game/stages/barry/runtime.ts:148"
+  "from": "game/stages/barry/runtime.ts:153"
  },
  {
   "voice": "meathead",
@@ -9911,6 +9941,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IS THAT A FORK? THAT'S A FORK. AND A NEEDLE. AND A RUSTY NAIL. AND... A WHOLE FISH.",
+  "from": "game/stages/barry/dumpster.ts:77"
+ },
+ {
+  "voice": "meathead",
   "text": "IS THAT A PEASHOOTER, YOU WEAK LITTLE SHIT?!",
   "from": "HAZARD_HURT"
  },
@@ -9977,7 +10012,7 @@
  {
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
-  "from": "App.tsx:397"
+  "from": "App.tsx:419"
  },
  {
   "voice": "meathead",
@@ -10112,7 +10147,7 @@
  {
   "voice": "meathead",
   "text": "LET'S FUCKING GO!",
-  "from": "App.tsx:397"
+  "from": "App.tsx:419"
  },
  {
   "voice": "meathead",
@@ -10787,7 +10822,7 @@
  {
   "voice": "meathead",
   "text": "OH HELL YEAH!",
-  "from": "App.tsx:397"
+  "from": "App.tsx:419"
  },
  {
   "voice": "meathead",
@@ -10983,6 +11018,11 @@
   "voice": "meathead",
   "text": "OW! THE HOT STICK GOT ME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW. OW. GLASS. THAT IS A LOT OF GLASS.",
+  "from": "game/stages/barry/dumpster.ts:77"
  },
  {
   "voice": "meathead",
@@ -11407,7 +11447,7 @@
  {
   "voice": "meathead",
   "text": "ROOF ACCESS. AND THERE GO THE LIGHTS. THE WHOLE CITY. IN WAVES.",
-  "from": "game/stages/barry/runtime.ts:310"
+  "from": "game/stages/barry/runtime.ts:315"
  },
  {
   "voice": "meathead",
@@ -11778,6 +11818,11 @@
   "voice": "meathead",
   "text": "SHUT UP, SEAGULL!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP!",
+  "from": "game/stages/barry/dumpster.ts:77"
  },
  {
   "voice": "meathead",
@@ -12307,7 +12352,7 @@
  {
   "voice": "meathead",
   "text": "SURF'S UP, DUDES!",
-  "from": "game/stages/barry/runtime.ts:359"
+  "from": "game/stages/barry/runtime.ts:364"
  },
  {
   "voice": "meathead",
@@ -12377,7 +12422,7 @@
  {
   "voice": "meathead",
   "text": "THANKS FOR THE RIDE, BUDDY.",
-  "from": "game/stages/barry/runtime.ts:383"
+  "from": "game/stages/barry/runtime.ts:388"
  },
  {
   "voice": "meathead",
@@ -12802,7 +12847,7 @@
  {
   "voice": "meathead",
   "text": "THE ROOF. FINALLY. ...OH COME ON, THAT ONE'S TALLER.",
-  "from": "game/stages/barry/runtime.ts:148"
+  "from": "game/stages/barry/runtime.ts:153"
  },
  {
   "voice": "meathead",
@@ -13117,7 +13162,7 @@
  {
   "voice": "meathead",
   "text": "TWENTY THREE?! I PRESSED THE TOP ONE!",
-  "from": "game/stages/barry/runtime.ts:320"
+  "from": "game/stages/barry/runtime.ts:325"
  },
  {
   "voice": "meathead",
@@ -13427,7 +13472,7 @@
  {
   "voice": "meathead",
   "text": "WHO LIVES UP HERE? BIRDS? RICH BIRDS?",
-  "from": "game/stages/barry/runtime.ts:148"
+  "from": "game/stages/barry/runtime.ts:153"
  },
  {
   "voice": "meathead",
@@ -13518,6 +13563,11 @@
   "voice": "meathead",
   "text": "WHO'S THROWING PATIO FURNITURE?",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHOA-OA-OA-OAAAAAAH!",
+  "from": "game/stages/barry/dumpster.ts:59"
  },
  {
   "voice": "meathead",
