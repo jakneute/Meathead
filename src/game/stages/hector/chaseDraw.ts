@@ -82,7 +82,7 @@ export const drawChaseWorld = (ctx: Ctx, state: GameState, c: Chase) => {
   // The shadows of what's coming down, darkening on the water as it gets closer
   for (const j of c.junk) {
     if (j.kind !== 'drop' || j.warn <= 0) continue;
-    const k = 1 - j.warn / 80;
+    const k = 1 - j.warn / 95;
     ctx.fillStyle = `rgba(2, 6, 23, ${0.2 + k * 0.5})`;
     ctx.beginPath(); ctx.ellipse(j.x, COURSE.sea.y + 2, 20 + k * 30, 4 + k * 3, 0, 0, Math.PI * 2); ctx.fill();
     if (Math.floor(state.frame / 6) % 2) { ctx.fillStyle = '#EF4444'; ctx.font = 'bold 14px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('!', j.x, COURSE.sea.y - 30); ctx.textAlign = 'left'; }
@@ -104,10 +104,10 @@ export const drawChaseWorld = (ctx: Ctx, state: GameState, c: Chase) => {
   }
 };
 
-/** The HUD: how close the cutter is (a bar along the top), and an arrow at the edge when it's off the screen. */
+/** The HUD: how close the cutter is (a bar along the top, filling as it closes in), and an arrow at the edge when it's off the screen. */
 export const drawChaseHud = (ctx: Ctx, state: GameState, c: Chase, boatX: number) => {
   const gap = Math.max(0, boatX - c.cgX);
-  const k = Math.min(1, gap / 640);
+  const k = 1 - Math.min(1, gap / 640);
   const x = 250, y = 70, w = 300;
   ctx.save();
   ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(x - 4, y - 16, w + 8, 30);
@@ -115,7 +115,7 @@ export const drawChaseHud = (ctx: Ctx, state: GameState, c: Chase, boatX: number
   ctx.fillStyle = gap < 200 && Math.floor(state.frame / 8) % 2 ? '#EF4444' : '#F8FAFC';
   ctx.fillText(gap < 200 ? 'COAST GUARD: RIGHT BEHIND YOU' : 'COAST GUARD', x + w / 2, y - 5);
   ctx.fillStyle = '#1F2937'; ctx.fillRect(x, y, w, 8);
-  ctx.fillStyle = k > 0.5 ? '#22C55E' : k > 0.25 ? '#FACC15' : '#EF4444'; ctx.fillRect(x, y, w * k, 8);
+  ctx.fillStyle = k < 0.5 ? '#FACC15' : k < 0.75 ? '#F97316' : '#EF4444'; ctx.fillRect(x, y, w * k, 8);
   ctx.fillStyle = '#EA580C'; ctx.fillRect(x - 2, y - 2, 4, 12);
   ctx.textAlign = 'left';
   // (off the left of the screen: an arrow, flashing as it closes)

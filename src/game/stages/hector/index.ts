@@ -32,6 +32,9 @@ export const hectorLayout: StageLayout = {
   // (back far enough that the wrecked daycare's in view when you come back from dying to Hector)
   bossStartX: COURSE.daycare.building - 250,
   verticalCamera: true,
+  // (out on the water in the boat: the camera up off him, the sea and what's coming down ahead in view under him and
+  // over him, and holding still as he hops)
+  cameraRow: state => { const b = getHector(state)?.boat; return b?.phase === 'riding' && b.chase ? 380 + b.chase.hopY : undefined; },
   lighting: state => hectorScene(state),
   build: (state, skipToBoss) => {
     const C = COURSE;
