@@ -174,10 +174,25 @@ export const drawProp = (ctx: Ctx, p: Prop, f: number) => {
       break;
     }
     case 'sign':
+    {
+      // (the board sized to what's on it: a long one goes onto two lines, broken at the space nearest the middle)
+      const text = p.text ?? '';
+      ctx.font = 'bold 8px monospace';
+      let lines = [text];
+      if (ctx.measureText(text).width > 96 && text.includes(' ')) {
+        const mid = text.length / 2;
+        let at = -1;
+        for (let i = 0; i < text.length; i++) if (text[i] === ' ' && (at < 0 || Math.abs(i - mid) < Math.abs(at - mid))) at = i;
+        lines = [text.slice(0, at), text.slice(at + 1)];
+      }
+      const w = Math.max(80, Math.max(...lines.map(l => ctx.measureText(l).width)) + 16), h = 12 + lines.length * 10;
       ctx.fillStyle = '#57534E'; ctx.fillRect(-2, -56, 4, 56);
-      ctx.fillStyle = p.text === 'BREAK ROOM' ? '#1D4ED8' : '#FACC15'; ctx.fillRect(-40, -76, 80, 24);
-      ctx.strokeStyle = '#111827'; ctx.lineWidth = 2; ctx.strokeRect(-40, -76, 80, 24);
-      ctx.fillStyle = p.text === 'BREAK ROOM' ? '#F8FAFC' : '#111827'; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center'; ctx.fillText(p.text ?? '', 0, -61); ctx.textAlign = 'left';
+      ctx.fillStyle = text === 'BREAK ROOM' ? '#1D4ED8' : '#FACC15'; ctx.fillRect(-w / 2, -52 - h, w, h);
+      ctx.strokeStyle = '#111827'; ctx.lineWidth = 2; ctx.strokeRect(-w / 2, -52 - h, w, h);
+      ctx.fillStyle = text === 'BREAK ROOM' ? '#F8FAFC' : '#111827'; ctx.textAlign = 'center';
+      lines.forEach((l, i) => ctx.fillText(l, 0, -52 - h + 15 + i * 10));
+      ctx.textAlign = 'left';
+    }
       if (p.text === 'BREAK ROOM') { ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.moveTo(26, -64); ctx.lineTo(34, -60); ctx.lineTo(26, -56); ctx.fill(); }
       break;
   }
