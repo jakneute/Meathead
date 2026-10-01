@@ -3837,7 +3837,7 @@
  {
   "voice": "death",
   "text": "COAST GUARDED",
-  "from": "game/stages/hector/chase.ts:233"
+  "from": "game/stages/hector/chase.ts:262"
  },
  {
   "voice": "death",
@@ -6242,7 +6242,7 @@
  {
   "voice": "hector.coastguard",
   "text": "GET OUT OF THE WATER, IDIOT!",
-  "from": "game/stages/hector/chase.ts:82"
+  "from": "game/stages/hector/chase.ts:95"
  },
  {
   "voice": "hector.coastguard",
@@ -6252,47 +6252,47 @@
  {
   "voice": "hector.coastguard",
   "text": "PREPARE TO BE BOARDED!",
-  "from": "game/stages/hector/chase.ts:82"
+  "from": "game/stages/hector/chase.ts:95"
  },
  {
   "voice": "hector.coastguard",
   "text": "PULL OVER! ...THE BOAT! PULL THE BOAT OVER!",
-  "from": "game/stages/hector/chase.ts:82"
+  "from": "game/stages/hector/chase.ts:95"
  },
  {
   "voice": "hector.coastguard",
   "text": "SIR. THAT IS A WATERSPOUT.",
-  "from": "game/stages/hector/chase.ts:82"
+  "from": "game/stages/hector/chase.ts:95"
  },
  {
   "voice": "hector.coastguard",
   "text": "THAT IS A STOLEN VESSEL!",
-  "from": "game/stages/hector/chase.ts:82"
+  "from": "game/stages/hector/chase.ts:95"
  },
  {
   "voice": "hector.coastguard",
   "text": "THERE IS A HURRICANE, GENIUS!",
-  "from": "game/stages/hector/chase.ts:82"
+  "from": "game/stages/hector/chase.ts:95"
  },
  {
   "voice": "hector.coastguard",
   "text": "TURN AROUND! NOBODY GOES OUT IN THIS!",
-  "from": "game/stages/hector/chase.ts:82"
+  "from": "game/stages/hector/chase.ts:95"
  },
  {
   "voice": "hector.coastguard",
   "text": "WE CAN SEE YOU! WE ARE RIGHT BEHIND YOU!",
-  "from": "game/stages/hector/chase.ts:82"
+  "from": "game/stages/hector/chase.ts:95"
  },
  {
   "voice": "hector.coastguard",
   "text": "YOU ARE BEING BOARDED!",
-  "from": "game/stages/hector/chase.ts:245"
+  "from": "game/stages/hector/chase.ts:274"
  },
  {
   "voice": "hector.coastie",
   "text": "WE SAID. GET OUT. OF THE WATER.",
-  "from": "game/stages/hector/chase.ts:249"
+  "from": "game/stages/hector/chase.ts:284"
  },
  {
   "voice": "hector.kid0",
@@ -7476,6 +7476,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CAN'T SHOOT. BOTH HANDS ON THE MOTOR.",
+  "from": "game/stages/hector/chase.ts:98"
+ },
+ {
+  "voice": "meathead",
   "text": "CAR DOOR? CORPSE DOOR!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -7507,7 +7512,7 @@
  {
   "voice": "meathead",
   "text": "CATCH YOU LATER.",
-  "from": "game/stages/hector/boat.ts:53"
+  "from": "game/stages/hector/boat.ts:57"
  },
  {
   "voice": "meathead",
@@ -10332,7 +10337,7 @@
  {
   "voice": "meathead",
   "text": "MAKE ME!",
-  "from": "game/stages/hector/chase.ts:85"
+  "from": "game/stages/hector/chase.ts:98"
  },
  {
   "voice": "meathead",
@@ -10637,7 +10642,7 @@
  {
   "voice": "meathead",
   "text": "NEED YOUR BOAT, GRAMPS.",
-  "from": "game/stages/hector/boat.ts:53"
+  "from": "game/stages/hector/boat.ts:57"
  },
  {
   "voice": "meathead",
@@ -10957,7 +10962,7 @@
  {
   "voice": "meathead",
   "text": "OH, COME ON.",
-  "from": "game/stages/hector/boat.ts:53"
+  "from": "game/stages/hector/boat.ts:57"
  },
  {
   "voice": "meathead",
@@ -14122,22 +14127,22 @@
  {
   "voice": "oldman",
   "text": "...STILL BITIN'.",
-  "from": "game/stages/hector/boat.ts:61"
+  "from": "game/stages/hector/boat.ts:65"
  },
  {
   "voice": "oldman",
   "text": "BITIN' LIKE CRAZY TODAY.",
-  "from": "game/stages/hector/boat.ts:61"
+  "from": "game/stages/hector/boat.ts:65"
  },
  {
   "voice": "oldman",
   "text": "IN THIS WEATHER? YOU'LL GET KILLED OUT THERE!",
-  "from": "game/stages/hector/boat.ts:61"
+  "from": "game/stages/hector/boat.ts:65"
  },
  {
   "voice": "oldman",
   "text": "WHOOAAA!",
-  "from": "game/stages/hector/boat.ts:61"
+  "from": "game/stages/hector/boat.ts:65"
  },
  {
   "voice": "oscar.biker",
