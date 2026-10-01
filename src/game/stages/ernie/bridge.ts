@@ -26,10 +26,12 @@ import { GROUND_Y, CANVAS_WIDTH } from '../../../constants';
 import { COURSE } from './course';
 import { BURNING_SCREAMS } from '../../enemies/kinds/ernie';
 import { Traffic, createTraffic, updateTraffic } from './traffic';
+import { BAY_SCENE } from './plungeDraw';
 
 export interface SpanState { t: number; open: boolean; block: Block | null; drop: number }
 export interface BgCar { x: number; y: number; vy: number; rot: number; color: string; t: number; state: 'driving' | 'tipping' | 'falling' | 'boom'; boomAt: number }
-export interface Plunge { t: number; x: number; line: string; lineT: number; splashAt: number }
+/** Over the side: frames falling, where he went over, what he's screaming, when he hit the water and where he's floating. */
+export interface Plunge { t: number; x: number; line: string; lineT: number; splashAt: number; corpseX: number }
 export interface Bridge {
   spans: SpanState[];
   cars: BgCar[];
@@ -92,7 +94,7 @@ export const updateBridge = (ctx: FrameContext, br: Bridge, controls: Controls):
   // Through a gap in the deck: over the side he goes
   // (not down the stairs off the end of it)
   if (onBridge(px) && px < COURSE.bridge.exit && !p.isGrounded && p.pos.y > GROUND_Y + 30 && state.deathTimer <= 0) {
-    br.plunge = { t: 0, x: px, line: '', lineT: 0, splashAt: 0 };
+    br.plunge = { t: 0, x: px, line: '', lineT: 0, splashAt: 0, corpseX: px };
     return updatePlunge(ctx, br.plunge);
   }
   return controls;
@@ -191,6 +193,8 @@ const updatePlunge = (ctx: FrameContext, pl: Plunge): Controls => {
   if (pl.lineT > 0) pl.lineT--;
   if (skipDying(ctx, pl.t, () => PLUNGE_DEATHS[Math.floor(Math.random() * PLUNGE_DEATHS.length)])) { p.hidden = true; return { ...NO_CONTROLS }; }
   p.inCutscene = true;
+  // (drawn by the stage the whole way down: all arms and legs, end over end; see plungeDraw)
+  p.hidden = true;
   p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false;
   // Tumbling, limbs everywhere
   p.vel.x *= 0.96;
@@ -211,8 +215,25 @@ const updatePlunge = (ctx: FrameContext, pl: Plunge): Controls => {
     shakeScreen(state, 30, 12);
     for (let k = 0; k < 40; k++) state.particles.push({ pos: { x: p.pos.x + p.width / 2, y: water }, vel: { x: (Math.random() - 0.5) * 12, y: -3 - Math.random() * 14 }, life: 50 + Math.random() * 30, color: k % 4 === 0 ? '#B91C1C' : k % 2 ? '#E0F2FE' : '#93C5FD', size: 4 + Math.random() * 7 });
     p.hidden = true;
+    // The kill cam: him face down in the bay, bobbing, twitching, the blood spreading, a gull on him (plungeDraw)
+    pl.corpseX = p.pos.x + p.width / 2;
+    state.deathScene = { t: 0, len: BAY_SCENE, voiced: false };
     killPlayer(ctx, PLUNGE_DEATHS[Math.floor(Math.random() * PLUNGE_DEATHS.length)], false);
     fx.spawnDeathShower({ x: p.pos.x, y: water - 20 }, 0, 2);
   }
   return { ...NO_CONTROLS };
+};
+
+/** The kill cam's sounds, on its beats: the last of the air coming up out of him, the gull. */
+export const tickPlunge = (t: number) => {
+  if (t === 12 || t === 48 || t === 95) playSound('glug', 0.8);
+  if (t === 150) playSound('splash', 0.3);
+};
+
+/** The kill cam pushing in on him in the water (for the stage's zoom hook). */
+export const plungeZoom = (state: GameState, pl: Plunge | null) => {
+  if (!pl || !pl.splashAt || state.deathTimer <= 0) return null;
+  const k = Math.min(1, state.deathFrames / 140);
+  const e = k * k * (3 - 2 * k);
+  return e > 0.001 ? { scale: 1 + 0.7 * e, x: pl.corpseX, y: GROUND_Y + DROP_TO_WATER } : null;
 };

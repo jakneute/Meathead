@@ -19,6 +19,7 @@ import { SKIP_AFTER, drawSkipPrompt } from '../../platform/skip';
 import { Quakes, quakeAmount, faultAmount, DEBRIS_HOLD, BRIDGE_HOLD, Debris, inQuakeCountry, PIECE_BOTTOM } from './quake';
 import { Bridge, mainCableY, TOWER_TOP, SPAN_WARN, DROP_TO_WATER, FAR_LANE, UNDER_STEEL, BgCar, screamOf, onBridge } from './bridge';
 import { drawFault } from './faultDraw';
+import { drawPlungeFall, drawBayCorpse } from './plungeDraw';
 import { drawDistricts } from './streetsDraw';
 import { Car, CAR_W, CAR_H, CAR_WARN, carsComing } from './traffic';
 import { drawBayBackdrop, drawSeaBack, drawSeaMid, drawSeaFront, drawSeaHud, drawCellMid, drawCellFront, drawCellHud } from './drawSea';
@@ -626,6 +627,9 @@ export const drawErnieFront = (ctx: Ctx, state: GameState) => {
   }
   // Over the side: his screaming, over him
   const pl = rt.bridge.plunge;
+  // (him, on the way down; then in the bay, the kill cam)
+  if (pl && !pl.splashAt) drawPlungeFall(ctx, state, pl);
+  if (pl && pl.splashAt && state.deathTimer > 0) drawBayCorpse(ctx, state, pl, GROUND_Y + DROP_TO_WATER, state.deathFrames);
   if (pl && state.deathTimer <= 0) {
     // The air rushing past him
     ctx.fillStyle = 'rgba(241, 245, 249, 0.55)';
