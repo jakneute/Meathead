@@ -32,6 +32,8 @@ export interface Junk {
   rot: number;
   /** A drop: frames till it comes down (its shadow on the water till then). */
   warn: number;
+  /** A drop: which way to get out from under it (its hint over the shadow). */
+  hint?: 'slow' | 'fast';
   hit: boolean;
   /** Got past without it hitting him (it's counted: the cutter drops back a bit). */
   passed?: boolean;
@@ -40,6 +42,8 @@ export interface Junk {
 export interface Chase {
   /** Frames into it. */
   t: number;
+  /** Where the boat is (for drawing the hints: the stern, world x). */
+  boatX: number;
   /** The cutter's bow (world x), how far back it's held (the meter), and its bob. */
   cgX: number;
   gap: number;
@@ -82,7 +86,7 @@ const HIT_FRAMES = 40, HIT_DAMAGE = 8;
 export const CHASE_BOAT_W = 150;
 
 export const createChase = (): Chase => ({
-  t: 0, cgX: 0, gap: CG_START, hopY: 0, hopV: 0, jumpHeld: true, relief: 0, crash: 0, junk: [], nextJunkX: 0,
+  t: 0, boatX: 0, cgX: 0, gap: CG_START, hopY: 0, hopV: 0, jumpHeld: true, relief: 0, crash: 0, junk: [], nextJunkX: 0,
   lineAt: 0, said: new Set(), hail: '', hailT: 0, caughtT: 0, quiet: { n: 0 }, cgSpin: 0, cgLift: 0,
 });
 
@@ -131,10 +135,13 @@ export const updateChase = (ctx: FrameContext, c: Chase, b: { x: number; y: numb
   const { state, fx } = ctx;
   const { player } = state;
   c.t++;
+  c.boatX = b.x;
   if (c.hailT > 0) c.hailT--;
   player.inCutscene = true;
   player.facing = 1;
   player.vel = { x: 0, y: 0 };
+  // (sat down at the back, on the motor: he's drawn there, not stood up with his gun out)
+  player.hidden = true;
   // At the wheel: lean on it, ease off, or he's been knocked about
   if (c.crash > 0) { c.crash--; b.speed = BOAT_HIT + (1 - c.crash / HIT_FRAMES) * (BOAT_BASE - BOAT_HIT); }
   else b.speed += ((controls.right ? BOAT_FAST : controls.left ? BOAT_SLOW : BOAT_BASE) - b.speed) * 0.08;
@@ -162,8 +169,10 @@ export const updateChase = (ctx: FrameContext, c: Chase, b: { x: number; y: numb
     else if (kind === 'flyer') c.junk.push({ kind, look, x: c.nextJunkX, y: COURSE.boat.y - 112, vx: -0.8, vy: 0, rot: 0, warn: 0, hit: false });
     else {
       // (aimed where he'll be if he keeps on as he is: so ease off, or open it up)
-      const at = b.x + CHASE_BOAT_W / 2 + b.speed * DROP_WARN;
-      c.junk.push({ kind, look, x: at, y: state.camera.y - 120, vx: 0, vy: 0, rot: 0, warn: DROP_WARN, hit: false });
+      // (a little ahead of where he'd be, so easing off's the clean way out; or a little behind, so it's opening it up)
+      const hint = Math.random() < 0.5 ? 'slow' as const : 'fast' as const;
+      const at = b.x + CHASE_BOAT_W / 2 + b.speed * DROP_WARN + (hint === 'slow' ? 60 : -60);
+      c.junk.push({ kind, look, x: at, y: state.camera.y - 120, vx: 0, vy: 0, rot: 0, warn: DROP_WARN, hint, hit: false });
       playSound('whoosh', 0.5, -6);
     }
     // (one thing at a time: far enough apart there's always the one answer to each)
@@ -215,6 +224,7 @@ export const updateChase = (ctx: FrameContext, c: Chase, b: { x: number; y: numb
   c.gap = Math.min(CG_MAX, c.gap + drop);
   c.cgX += Math.max(2, (b.x - c.gap - c.cgX) * 0.12);
   // The skipper: the first thing out of him, the answer, then one every so often
+  if (c.t === 8) meatheadSays(state, "CAN'T SHOOT. BOTH HANDS ON THE MOTOR.");
   if (c.t === 30) hail(c, 'GET OUT OF THE WATER, IDIOT!');
   if (c.t === 31) meatheadSays(state, 'MAKE ME!');
   if (c.t > 300 && c.t - c.lineAt > 330 && !isTalking()) hail(c, HAILS[Math.floor((c.t / 330)) % HAILS.length]);
@@ -237,7 +247,10 @@ const splash = (state: GameState, x: number, n: number) => {
 // ---------------------------------------------------------------------------
 
 /** Its beats: the cutter slams alongside and they come over the side; the beating; the aftermath and his one line. */
-export const BOARD_LEAP = 50, BOARD_BEAT = 190, BOARD_LINE = 200, BOARD_END = 260;
+/** (taking its time: the slam, the leap; then a good long beating, every blow landing; then a long look at what's left) */
+export const BOARD_LEAP = 90, BOARD_BEAT = 430, BOARD_LINE = 460, BOARD_END = 560;
+/** Frames between blows. */
+export const BLOW = 16;
 const BOARD_HOLDS = new Set([BOARD_LINE]);
 
 const boarded = (ctx: FrameContext, c: Chase) => {
@@ -260,8 +273,14 @@ export const tickBoarded = (ctx: FrameContext, c: Chase) => {
   const t = c.caughtT;
   if (t === 8) say('YOU ARE BEING BOARDED!', LOUDHAILER, 'urgent', { onShow: () => {}, onHide: () => {}, always: true });
   if (t === BOARD_LEAP) playSound('whoosh');
-  if (t > BOARD_LEAP + 10 && t < BOARD_BEAT && t % 7 === 0) playSound(t % 21 === 0 ? 'crunch' : t % 14 === 0 ? 'thud' : 'punch', 0.8 + Math.random() * 0.2, Math.round(Math.random() * 6 - 3));
-  if (t > BOARD_LEAP + 10 && t < BOARD_BEAT && t % 40 === 0) playSound('clang', 0.6);
+  // (every blow, its own: a punch, a boot, the nightstick coming down; now and then a crunch that means something broke)
+  if (t > BOARD_LEAP + 10 && t < BOARD_BEAT && (t - BOARD_LEAP) % BLOW === 0) {
+    const n = (t - BOARD_LEAP) / BLOW;
+    playSound(n % 5 === 4 ? 'crunch' : n % 3 === 2 ? 'thud' : 'punch', 1, Math.round(Math.random() * 4 - 6));
+    if (n % 5 === 4) playSound('splat', 0.7);
+    shakeScreen(state, 6, n % 5 === 4 ? 8 : 4);
+  }
+  if (t > BOARD_LEAP + 10 && t < BOARD_BEAT && (t - BOARD_LEAP) % (BLOW * 7) === BLOW * 3) playSound('clang', 0.7, -4);
   if (t === BOARD_LINE) say('WE SAID. GET OUT. OF THE WATER.', COASTIE, 'urgent', { onShow: () => {}, onHide: () => {}, always: true });
   if (t === BOARD_END && state.deathScene) state.deathScene.len = state.deathScene.t + 1;
 };

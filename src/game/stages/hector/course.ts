@@ -76,7 +76,7 @@ export interface Tower {
 }
 
 // Where each part sits in the world
-const MAIN_LEN = 23100;
+const MAIN_LEN = 28100;
 const MAIN_X0 = BOSS_DOOR_X - 1500 - 300 - MAIN_LEN;  // the main run ends at the daycare wall (open water up to it)
 const TOWER_X0 = -60000;
 const EYE_X0 = -48000, EYE_Y0 = -2600;
@@ -193,7 +193,7 @@ const buildMain = () => {
   const fisherman = { x: 13080, y: Y - 20 };
   const boat = { x: 13230, y: Y + 4 };
   // (a long way out: the Coast Guard's after him the whole way)
-  const sea = { x1: 13200, x2: MAIN_LEN + 300, y: Y + 10, spoutX: 22400 };
+  const sea = { x1: 13200, x2: MAIN_LEN + 300, y: Y + 10, spoutX: 27400 };
 
   // Every beach umbrella's canopy is a trampoline
   for (const p of props) if (p.look === 'umbrella') plats.push({ x: p.x - 45, y: p.y - 108, w: 90, look: 'umbrella' });

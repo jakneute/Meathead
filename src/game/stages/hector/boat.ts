@@ -146,6 +146,7 @@ const ride = (ctx: FrameContext, b: Boat, controls: Controls): Controls => {
   if (b.x + BOAT_W / 2 > COURSE.sea.spoutX - 420 && b.chase.caughtT === 0) {
     state.cameraLeadX = 200;
     state.player.isDucking = false;
+    state.player.hidden = false;
     b.phase = 'spout'; b.t = 0;
     meatheadSays(state, 'OH, COME ON.');
     playSound('thunder');

@@ -2,7 +2,7 @@
 // waterspout, the junk whirling up the storm tower, the Eye's arena, and the
 // daycare (before and after the flood).
 
-import { deadCoastie } from './chaseDraw';
+import { deadCoastie, drawSeatedMeathead } from './chaseDraw';
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { COURSE } from './course';
@@ -93,6 +93,8 @@ export const drawBoatScene = (ctx: Ctx, state: GameState, b: Boat) => {
     ctx.fillStyle = '#6B7280'; ctx.fillRect(-10, -4, 6, 18);
     if (b.phase === 'riding' && state.frame % 2 === 0) ctx.fillRect(-18, 12, 4, 4);
     ctx.restore();
+    // (out on the water with the Coast Guard after him: him sat at the motor)
+    if (b.phase === 'riding' && b.chase && !b.chase.caughtT) drawSeatedMeathead(ctx, b.x + 14, b.y - 2, state.frame, b.chase.crash > 0);
   }
 };
 
@@ -465,9 +467,23 @@ export const drawDaycare = (ctx: Ctx, state: GameState, dc: Daycare) => {
   ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 5;
   ctx.beginPath(); ctx.moveTo(px, g); ctx.lineTo(px + 40, g - 60); ctx.lineTo(px + 110, g - 30); ctx.lineTo(px + 160, g); ctx.stroke();
   ctx.fillStyle = '#64748B'; ctx.beginPath(); ctx.ellipse(px - 120, g - 40, 40, 12, 0.7, 0, Math.PI * 2); ctx.fill();
-  // A couple of the Coast Guard, come down with the rest of it: one draped over the car on the roof, one head first in the sandbox
-  deadCoastie(ctx, bx - 40, g - 140, 2.4, 0.3);
-  ctx.save(); ctx.translate(bx - 255, g - 2); ctx.rotate(Math.PI); deadCoastie(ctx, 0, 0, 2.2, 0); ctx.restore();
+  // A couple of the Coast Guard, come down with the rest of it: one head first in the sandbox, one out on the lawn past
+  // the playground, flat on his back in a puddle of his own
+  // (the sandbox one: buried to the waist, the rest of him sticking up out of it, legs apart, a boot gone)
+  {
+    const sx = bx - 255, sy = g - 6;
+    ctx.fillStyle = '#EA580C'; ctx.beginPath(); ctx.ellipse(sx, sy, 14, 5, 0, Math.PI, 0); ctx.fill();
+    ctx.fillStyle = '#FEF08A'; ctx.fillRect(sx - 12, sy - 3, 24, 2);
+    for (const [lx, a2] of [[-5, -0.35], [5, 0.3]] as const) {
+      ctx.save(); ctx.translate(sx + lx, sy - 2); ctx.rotate(a2);
+      ctx.fillStyle = '#1E3A8A'; ctx.fillRect(-4, -34, 8, 34); ctx.fillStyle = '#172554'; ctx.fillRect(-4, -34, 2.4, 34);
+      if (lx < 0) { ctx.fillStyle = '#0A0A0A'; ctx.fillRect(-5, -42, 11, 9); } else { ctx.fillStyle = '#F2C9A8'; ctx.fillRect(-3.4, -40, 7, 7); ctx.fillStyle = '#E2E8F0'; ctx.fillRect(-3.4, -36, 7, 3); }
+      ctx.restore();
+    }
+    ctx.fillStyle = '#E7D7A8'; ctx.beginPath(); ctx.ellipse(sx, sy + 1, 22, 4, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.fillStyle = 'rgba(127, 29, 29, 0.55)'; ctx.beginPath(); ctx.ellipse(bx + 560, g - 2, 46, 6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.save(); ctx.translate(bx + 560, g - 12); ctx.rotate(-Math.PI / 2); deadCoastie(ctx, 0, 14, 2.3, 0); ctx.restore();
   // The grown-ups, once the wave's done with them
   if (t < 0 || t >= RIDE_END) ADULT_SPLAT.forEach((dx, k) => splatAdult(ctx, bx + dx, g, k as 0 | 1));
   // Puddles

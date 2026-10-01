@@ -4,7 +4,8 @@
 
 import type { GameState } from '../../core/state';
 import type { Chase, Junk } from './chase';
-import { junkSize, BOARD_LEAP, BOARD_BEAT, BOARD_LINE } from './chase';
+import { junkSize, CHASE_BOAT_W, BOARD_LEAP, BOARD_BEAT, BOARD_LINE, BLOW } from './chase';
+import { inputDevice, padFamily } from '../../platform/device';
 import { COURSE } from './course';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { INK, hash, lin, shape, speckle, blood, deadFace } from '../../render/scenes/carnage';
@@ -77,6 +78,99 @@ const drawCutter = (ctx: Ctx, bow: number, y: number, frame: number, rot = 0) =>
   ctx.restore();
 };
 
+// ---------------------------------------------------------------------------
+// The hints: which button does what, on whatever's in use
+// ---------------------------------------------------------------------------
+
+/** A button, drawn: the jump button (the bottom face button on a pad, Space on the keyboard), or left or right (the
+ * d-pad, or the arrow keys). Centred on (x, y). Returns its width. */
+const drawButton = (ctx: Ctx, x: number, y: number, which: 'jump' | 'left' | 'right') => {
+  const pad = inputDevice() === 'pad';
+  ctx.save();
+  ctx.font = '7px "Press Start 2P"'; ctx.textAlign = 'center';
+  if (which === 'jump') {
+    if (pad) {
+      const fam = padFamily();
+      const label = fam === 'playstation' ? 'X' : fam === 'switch' || fam === 'joycon-l' || fam === 'joycon-r' ? 'B' : 'A';
+      const color = fam === 'playstation' ? '#60A5FA' : fam === 'xbox' ? '#22C55E' : '#E4E4E7';
+      ctx.fillStyle = '#18181B'; ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = color; ctx.lineWidth = 1.4; ctx.stroke();
+      ctx.fillStyle = color; ctx.fillText(label, x + 0.5, y + 3.5);
+      ctx.restore(); return 18;
+    }
+    ctx.fillStyle = '#E4E4E7'; ctx.beginPath(); ctx.roundRect(x - 22, y - 7, 44, 14, 2); ctx.fill();
+    ctx.strokeStyle = '#52525B'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = '#18181B'; ctx.fillText('SPACE', x, y + 3.5);
+    ctx.restore(); return 46;
+  }
+  const d = which === 'left' ? -1 : 1;
+  if (pad) {
+    // (the d-pad, the one side of it lit)
+    ctx.fillStyle = '#27272A'; ctx.fillRect(x - 3, y - 9, 6, 18); ctx.fillRect(x - 9, y - 3, 18, 6);
+    ctx.fillStyle = '#FDE047'; ctx.beginPath(); ctx.moveTo(x + d * 9, y); ctx.lineTo(x + d * 4, y - 3.5); ctx.lineTo(x + d * 4, y + 3.5); ctx.fill();
+  } else {
+    ctx.fillStyle = '#E4E4E7'; ctx.beginPath(); ctx.roundRect(x - 8, y - 7, 16, 14, 2); ctx.fill();
+    ctx.strokeStyle = '#52525B'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = '#18181B'; ctx.beginPath(); ctx.moveTo(x + d * 4, y); ctx.lineTo(x - d * 2, y - 4); ctx.lineTo(x - d * 2, y + 4); ctx.fill();
+  }
+  ctx.restore(); return 20;
+};
+
+/** A hint tag: the button, then what it's for (crossed out, for don't). */
+const hintTag = (ctx: Ctx, x: number, y: number, which: 'jump' | 'left' | 'right', text: string, color: string, dont = false) => {
+  ctx.save();
+  ctx.font = 'bold 8px "Press Start 2P"';
+  const tw = ctx.measureText(text).width, bw = which === 'jump' && inputDevice() !== 'pad' ? 46 : 20, w = bw + tw + 16;
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; ctx.beginPath(); ctx.roundRect(x - w / 2, y - 11, w, 22, 4); ctx.fill();
+  ctx.strokeStyle = color; ctx.lineWidth = 1.4; ctx.stroke();
+  const bx = x - w / 2 + 6 + bw / 2;
+  drawButton(ctx, bx, y, which);
+  if (dont) { ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(bx - bw / 2 - 1, y - 8); ctx.lineTo(bx + bw / 2 + 1, y + 8); ctx.stroke(); }
+  ctx.fillStyle = color; ctx.textAlign = 'left'; ctx.fillText(text, bx + bw / 2 + 5, y + 4);
+  ctx.restore();
+};
+
+/** Over each thing coming at him (once it's close enough to matter): what to do about it. */
+const drawJunkHints = (ctx: Ctx, state: GameState, c: Chase, boatX: number) => {
+  for (const j of c.junk) {
+    if (j.hit || j.passed) continue;
+    const ahead = j.x - (boatX + CHASE_BOAT_W);
+    if (j.kind !== 'drop' && (ahead > 560 || ahead < -40)) continue;
+    const blink = Math.floor(state.frame / 10) % 2 === 0;
+    if (j.kind === 'float') hintTag(ctx, j.x, COURSE.sea.y - 70 - (blink ? 2 : 0), 'jump', 'JUMP!', '#4ADE80');
+    else if (j.kind === 'flyer') hintTag(ctx, j.x, j.y - 56 - (blink ? 2 : 0), 'jump', "DON'T JUMP!", '#F87171', true);
+    else if (j.warn > 0) hintTag(ctx, j.x, COURSE.sea.y - 90 - (blink ? 2 : 0), j.hint === 'fast' ? 'right' : 'left', j.hint === 'fast' ? 'SPEED UP!' : 'SLOW DOWN!', '#FDE047');
+  }
+};
+
+/** Meathead sat at the back of the boat, a hand on the outboard's tiller (both hands, when it's rough): no gun. */
+export const drawSeatedMeathead = (ctx: Ctx, x: number, y: number, frame: number, hurt: boolean) => {
+  const bob = Math.sin(frame * 0.3) * 0.6;
+  ctx.save(); ctx.translate(x, y + bob);
+  if (hurt && Math.floor(frame / 3) % 2) ctx.globalAlpha = 0.5;
+  // (the bench he's sat on)
+  ctx.fillStyle = '#78350F'; ctx.fillRect(2, -24, 30, 4);
+  // (legs, bent, jeans, his boots on the deck)
+  shape(ctx, () => ctx.roundRect(14, -28, 22, 9, 3), '#1E3A8A', 0.8);
+  shape(ctx, () => ctx.roundRect(30, -28, 8, 18, 3), '#1E3A8A', 0.8);
+  shape(ctx, () => ctx.roundRect(30, -12, 12, 5, 2), '#18181B', 0.6);
+  // (the slab of him, sat up, the belt)
+  shape(ctx, () => ctx.roundRect(4, -60, 26, 34, 8), '#E0AC69', 1);
+  ctx.fillStyle = '#C68B45'; ctx.fillRect(6, -42, 22, 4); ctx.fillRect(16.5, -56, 1, 12);
+  ctx.fillStyle = '#F5D0A9'; ctx.fillRect(8, -57, 8, 3);
+  ctx.fillStyle = '#78350F'; ctx.fillRect(4, -30, 26, 3); ctx.fillStyle = '#FACC15'; ctx.fillRect(15, -30, 4, 3);
+  // (the arm back to the tiller, his fist on it)
+  shape(ctx, () => { ctx.moveTo(6, -52); ctx.quadraticCurveTo(-6, -46, -14, -34); ctx.lineTo(-8, -30); ctx.quadraticCurveTo(0, -40, 10, -44); ctx.closePath(); }, '#E0AC69', 0.9);
+  shape(ctx, () => ctx.arc(-13, -31, 4.4, 0, Math.PI * 2), '#E0AC69', 0.8);
+  // (the head, the flat-top, squinting into the rain, jaw out)
+  shape(ctx, () => ctx.roundRect(8, -80, 20, 21, 6), '#E0AC69', 1);
+  ctx.fillStyle = '#101010'; ctx.fillRect(7, -83, 22, 6);
+  ctx.fillStyle = '#C68B45'; ctx.fillRect(10, -66, 16, 5);
+  ctx.fillStyle = INK; ctx.fillRect(19, -73, 4, 1.4); ctx.fillRect(25, -73, 3, 1.4);
+  ctx.fillRect(20, -64, 7, 1.2);
+  ctx.restore();
+};
+
 /** In the world, behind and around him: the junk (and the shadows of what's coming down), the cutter after him. */
 export const drawChaseWorld = (ctx: Ctx, state: GameState, c: Chase) => {
   // The shadows of what's coming down, darkening on the water as it gets closer
@@ -88,6 +182,7 @@ export const drawChaseWorld = (ctx: Ctx, state: GameState, c: Chase) => {
     if (Math.floor(state.frame / 6) % 2) { ctx.fillStyle = '#EF4444'; ctx.font = 'bold 14px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('!', j.x, COURSE.sea.y - 30); ctx.textAlign = 'left'; }
   }
   for (const j of c.junk) drawJunk(ctx, j);
+  drawJunkHints(ctx, state, c, c.boatX);
   // The cutter (on the water, or up the spout after him)
   const y = COURSE.boat.y + Math.sin(state.frame * 0.1) * 2 - c.cgLift;
   if (c.cgX > state.camera.x - 40 && c.cgX - 220 < state.camera.x + CANVAS_WIDTH) {
@@ -104,8 +199,17 @@ export const drawChaseWorld = (ctx: Ctx, state: GameState, c: Chase) => {
   }
 };
 
-/** The HUD: how close the cutter is (a bar along the top, filling as it closes in), and an arrow at the edge when it's off the screen. */
+/** The HUD: how close the cutter is (a bar along the top, filling as it closes in), and an arrow at the edge when it's
+ * off the screen; and along the bottom, the controls (it's just the motor and the jump). */
 export const drawChaseHud = (ctx: Ctx, state: GameState, c: Chase, boatX: number) => {
+  ctx.save();
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'; ctx.fillRect(170, 560, 460, 30);
+  ctx.font = 'bold 8px "Press Start 2P"'; ctx.fillStyle = '#F8FAFC'; ctx.textAlign = 'left';
+  drawButton(ctx, 196, 575, 'left'); ctx.fillText('SLOW', 210, 579);
+  drawButton(ctx, 270, 575, 'right'); ctx.fillText('FAST', 284, 579);
+  const jw = drawButton(ctx, 360 + 12, 575, 'jump'); ctx.fillText('JUMP', 360 + 12 + jw / 2 + 6, 579);
+  ctx.fillStyle = '#A1A1AA'; ctx.fillText('NO GUN: BOTH HANDS ON THE MOTOR', 470, 579, 155);
+  ctx.restore();
   const gap = Math.max(0, boatX - c.cgX);
   const k = 1 - Math.min(1, gap / 640);
   const x = 250, y = 70, w = 300;
@@ -132,33 +236,205 @@ export const drawChaseHud = (ctx: Ctx, state: GameState, c: Chase, boatX: number
 
 const W = 256, H = 144;
 
-/** Rain driving across the picture. */
+/** Stepped bands down an area, top color to bottom (the SNES way). */
+const bands = (ctx: Ctx, x: number, y: number, w: number, h: number, ramp: string[]) => {
+  for (let i = 0; i < ramp.length; i++) { ctx.fillStyle = ramp[i]; ctx.fillRect(x, y + (h * i) / ramp.length, w, h / ramp.length + 0.5); }
+};
+
+/** Rain driving across the picture, two layers of it. */
 const rain = (ctx: Ctx, t: number) => {
-  ctx.strokeStyle = 'rgba(203, 213, 225, 0.35)'; ctx.lineWidth = 0.5;
-  for (let i = 0; i < 50; i++) { const x = (hash(i) * 300 + t * 6) % 300 - 20, y = (hash(i * 3) * 160 + t * 9) % 160 - 10; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 4, y + 9); ctx.stroke(); }
+  for (const [n, len, alpha, sp] of [[60, 9, 0.35, 9], [30, 14, 0.5, 13]] as const) {
+    ctx.strokeStyle = `rgba(203, 213, 225, ${alpha})`; ctx.lineWidth = 0.5;
+    for (let i = 0; i < n; i++) { const x = (hash(i * 1.7 + len) * 320 + t * sp * 0.6) % 320 - 30, y = (hash(i * 3.1 + len) * 170 + t * sp) % 170 - 14; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - len * 0.45, y + len); ctx.stroke(); }
+  }
 };
 
-/** A sea in bands, the swell going by. */
+/** The storm: the sky in bands, clouds rolling over in lumps, Miami's towers dark on the horizon, lightning now and then. */
+const stormSky = (ctx: Ctx, t: number, horizon: number) => {
+  bands(ctx, 0, 0, W, horizon, ['#0B1120', '#111A2E', '#18233A', '#1F2C45', '#273650', '#2E3F5C']);
+  for (let row = 0; row < 3; row++) for (let k = -1; k < 8; k++) {
+    const cx = k * 40 + ((t * (0.3 + row * 0.2)) % 40), cy = 10 + row * 16;
+    ctx.fillStyle = ['#1A2338', '#222D46', '#2A3754'][row];
+    ctx.beginPath(); ctx.arc(cx, cy, 16, 0, Math.PI * 2); ctx.arc(cx + 18, cy + 4, 13, 0, Math.PI * 2); ctx.arc(cx - 16, cy + 5, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.12)'; ctx.beginPath(); ctx.arc(cx - 3, cy - 6, 10, Math.PI, 0); ctx.fill();
+  }
+  // (the towers)
+  for (let k = 0; k < 14; k++) {
+    const bx = k * 19 + hash(k) * 6, bh = 12 + hash(k * 3) * 26;
+    ctx.fillStyle = '#0F172A'; ctx.fillRect(bx, horizon - bh, 14, bh);
+    for (let r = 0; r < bh / 4 - 1; r++) for (let c = 0; c < 3; c++) if (hash(k * 31 + r * 7 + c) > 0.82) { ctx.fillStyle = '#FDE68A'; ctx.fillRect(bx + 2 + c * 4, horizon - bh + 2 + r * 4, 1.4, 1.4); }
+  }
+  // (lightning: a bolt, and the flash with it)
+  const cycle = t % 120;
+  if (cycle < 6) {
+    ctx.fillStyle = `rgba(226, 232, 240, ${0.35 - cycle * 0.05})`; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 1.4; ctx.beginPath();
+    let x = 180 + hash(Math.floor(t / 120)) * 60, y = 0; ctx.moveTo(x, y);
+    while (y < horizon) { x += (hash(x + y) - 0.5) * 14; y += 6 + hash(y) * 6; ctx.lineTo(x, y); }
+    ctx.stroke();
+  }
+};
+
+/** The sea: the swell in bands, rolling, whitecaps on it, foam. */
 const sea = (ctx: Ctx, y0: number, t: number) => {
-  for (let i = 0; i < 6; i++) { ctx.fillStyle = ['#334155', '#2B3A4E', '#243246', '#1E2A3D', '#182235', '#121A2B'][i]; ctx.fillRect(0, y0 + i * ((H - y0) / 6), W, (H - y0) / 6 + 1); }
-  ctx.strokeStyle = 'rgba(226, 232, 240, 0.45)'; ctx.lineWidth = 0.8;
-  for (let k = 0; k < 8; k++) { const sy = y0 + 4 + k * 6; ctx.beginPath(); for (let x = -10; x < W + 10; x += 6) ctx.lineTo(x, sy + Math.sin(x * 0.08 + t * 0.15 + k) * 1.5); ctx.stroke(); }
+  bands(ctx, 0, y0, W, H - y0, ['#3B5068', '#324660', '#2A3C55', '#22334B', '#1B2A40', '#142134']);
+  ctx.strokeStyle = 'rgba(148, 163, 184, 0.55)'; ctx.lineWidth = 0.7;
+  for (let k = 0; k < 9; k++) {
+    const sy = y0 + 3 + k * ((H - y0) / 9);
+    ctx.beginPath(); for (let x = -10; x < W + 10; x += 5) ctx.lineTo(x, sy + Math.sin(x * 0.07 + t * 0.14 + k * 1.3) * (1 + k * 0.25)); ctx.stroke();
+  }
+  for (let i = 0; i < 16; i++) { const x = (hash(i) * 280 + t * (1 + hash(i * 2))) % 280 - 12, y = y0 + 4 + hash(i * 5) * (H - y0 - 8); ctx.fillStyle = 'rgba(241, 245, 249, 0.7)'; ctx.fillRect(x, y, 4 + hash(i) * 6, 1); ctx.fillRect(x + 1, y - 1, 2, 1); }
 };
 
-/** A coastie: orange float coat, helmet, his nightstick (arm up, or swinging). */
+/** The light bar's wash over everything: blue, red, blue, red. */
+const lightWash = (ctx: Ctx, t: number, strength: number) => {
+  const on = Math.floor(t / 6) % 2;
+  ctx.fillStyle = on ? `rgba(59, 130, 246, ${strength})` : `rgba(239, 68, 68, ${strength})`;
+  ctx.fillRect(0, 0, W, H);
+};
+
+/** A coastie: navy trousers and boots, the orange float coat (shaded, its reflective strip), a blue helmet with its
+ * visor, a hard face, a nightstick (arm up, or swinging). */
 const coastie = (ctx: Ctx, x: number, y: number, s: number, arm: number, flip = 1) => {
   ctx.save(); ctx.translate(x, y); ctx.scale(s * flip, s);
-  shape(ctx, () => ctx.rect(-5, -4, 4, 14), '#1E3A8A', 0.6); shape(ctx, () => ctx.rect(1, -4, 4, 14), '#1E3A8A', 0.6);
-  shape(ctx, () => ctx.roundRect(-8, -24, 16, 22, 3), '#F97316', 0.8);
-  ctx.fillStyle = '#FEF08A'; ctx.fillRect(-8, -14, 16, 2);
-  shape(ctx, () => ctx.arc(0, -30, 6, 0, Math.PI * 2), '#E8B495', 0.8);
-  shape(ctx, () => { ctx.arc(0, -32, 6.4, Math.PI, 0); ctx.closePath(); }, '#1E3A8A', 0.7);
-  ctx.fillStyle = INK; ctx.fillRect(1, -31, 1.4, 1.4); ctx.fillRect(4, -31, 1.4, 1.4);
+  // (legs, boots)
+  shape(ctx, () => ctx.rect(-5, -4, 4.4, 14), '#1E3A8A', 0.6); shape(ctx, () => ctx.rect(0.6, -4, 4.4, 14), '#1E3A8A', 0.6);
+  ctx.fillStyle = '#172554'; ctx.fillRect(-5, 2, 1.4, 8); ctx.fillRect(0.6, 2, 1.4, 8);
+  shape(ctx, () => ctx.roundRect(-6, 9, 6, 3, 1), '#0A0A0A', 0.5); shape(ctx, () => ctx.roundRect(0, 9, 6, 3, 1), '#0A0A0A', 0.5);
+  // (the coat: three oranges, the strip, the collar)
+  ctx.save(); ctx.beginPath(); ctx.roundRect(-8, -24, 16, 22, 3); ctx.clip();
+  bands(ctx, -8, -24, 16, 22, ['#FDBA74', '#FB923C', '#F97316', '#EA580C', '#C2410C']);
+  ctx.fillStyle = '#E5E7EB'; ctx.fillRect(-8, -14, 16, 2.4); ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fillRect(-8, -14, 16, 0.7);
+  ctx.fillStyle = 'rgba(124, 45, 18, 0.5)'; ctx.fillRect(-0.4, -22, 0.8, 20);
+  ctx.restore();
+  ctx.beginPath(); ctx.roundRect(-8, -24, 16, 22, 3); ctx.strokeStyle = INK; ctx.lineWidth = 0.8; ctx.stroke();
+  // (the head: jaw set, a mustache, the helmet and its visor glinting)
+  shape(ctx, () => ctx.roundRect(-5, -36, 10, 11, 3), '#E8B495', 0.8);
+  ctx.fillStyle = '#C68B5E'; ctx.fillRect(-5, -28, 10, 2);
+  ctx.fillStyle = '#3F2A1D'; ctx.fillRect(-2.6, -29.4, 6, 1.4);
+  ctx.fillStyle = INK; ctx.fillRect(0.4, -32.4, 1.4, 1.2); ctx.fillRect(3.2, -32.4, 1.4, 1.2);
+  ctx.strokeStyle = INK; ctx.lineWidth = 0.5; ctx.beginPath(); ctx.moveTo(-0.2, -34); ctx.lineTo(2, -33.4); ctx.moveTo(5, -34); ctx.lineTo(3, -33.4); ctx.stroke();
+  shape(ctx, () => { ctx.arc(0, -36, 6.6, Math.PI, 0); ctx.closePath(); }, '#1D4ED8', 0.7);
+  ctx.fillStyle = '#60A5FA'; ctx.fillRect(-3.6, -41, 3, 1);
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.85)'; ctx.fillRect(-0.5, -36.4, 7, 2);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'; ctx.fillRect(4, -36.2, 1.4, 0.8);
+  // (the arm and the nightstick)
   ctx.save(); ctx.translate(7, -20); ctx.rotate(-1.2 + arm);
-  shape(ctx, () => ctx.rect(0, -2, 10, 4), '#F97316', 0.6);
-  shape(ctx, () => ctx.rect(9, -1.5, 14, 3), '#18181B', 0.6);
+  shape(ctx, () => ctx.roundRect(0, -2.4, 11, 4.8, 2), '#F97316', 0.6);
+  shape(ctx, () => ctx.arc(11.5, 0, 2.6, 0, Math.PI * 2), '#E8B495', 0.5);
+  shape(ctx, () => ctx.roundRect(10, -1.6, 17, 3.2, 1.4), '#18181B', 0.6);
+  ctx.fillStyle = 'rgba(148, 163, 184, 0.6)'; ctx.fillRect(14, -1.2, 11, 0.7);
   ctx.restore();
   ctx.restore();
+};
+
+/** Meathead's boat from the side: white, shaded, the red stripe, LIL BASS, the outboard. */
+const lilBass = (ctx: Ctx, x: number, y: number) => {
+  const hull = () => { ctx.moveTo(x, y - 14); ctx.lineTo(x + 92, y - 16); ctx.lineTo(x + 80, y + 6); ctx.lineTo(x + 6, y + 6); ctx.closePath(); };
+  ctx.save(); ctx.beginPath(); hull(); ctx.clip();
+  bands(ctx, x, y - 16, 92, 22, ['#FFFFFF', '#F1F5F9', '#E2E8F0', '#CBD5E1', '#94A3B8']);
+  ctx.fillStyle = '#DC2626'; ctx.fillRect(x, y - 5, 92, 2.4); ctx.fillStyle = '#991B1B'; ctx.fillRect(x, y - 2.6, 92, 0.8);
+  ctx.restore();
+  ctx.beginPath(); hull(); ctx.strokeStyle = INK; ctx.lineWidth = 1.1; ctx.stroke();
+  ctx.fillStyle = '#1E293B'; ctx.font = 'bold 5px "Courier New", monospace'; ctx.fillText('LIL BASS', x + 30, y - 8);
+  shape(ctx, () => ctx.rect(x - 8, y - 18, 9, 14), '#374151', 0.8);
+  ctx.fillStyle = '#4B5563'; ctx.fillRect(x - 7, y - 17, 2, 12);
+};
+
+/** The cutter, side on, big: the hull in bands, the orange and blue slash, U.S. COAST GUARD, the cabin and its windows,
+ * the radar mast, the light bar going, its glow. (Its bow at x.) */
+const bigCutter = (ctx: Ctx, x: number, y: number, t: number) => {
+  const hull = () => { ctx.moveTo(x, y - 34); ctx.lineTo(x - 150, y - 38); ctx.lineTo(x - 142, y + 8); ctx.lineTo(x - 18, y + 8); ctx.closePath(); };
+  ctx.save(); ctx.beginPath(); hull(); ctx.clip();
+  bands(ctx, x - 152, y - 40, 154, 48, ['#FFFFFF', '#F8FAFC', '#E2E8F0', '#CBD5E1', '#94A3B8', '#64748B']);
+  ctx.fillStyle = '#EA580C'; ctx.beginPath(); ctx.moveTo(x - 46, y - 40); ctx.lineTo(x - 32, y - 40); ctx.lineTo(x - 52, y + 10); ctx.lineTo(x - 66, y + 10); ctx.fill();
+  ctx.fillStyle = '#1D4ED8'; ctx.beginPath(); ctx.moveTo(x - 29, y - 40); ctx.lineTo(x - 25, y - 40); ctx.lineTo(x - 45, y + 10); ctx.lineTo(x - 49, y + 10); ctx.fill();
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.25)'; for (let k = 0; k < 6; k++) ctx.fillRect(x - 150, y - 30 + k * 7, 150, 0.6);
+  ctx.restore();
+  ctx.beginPath(); hull(); ctx.strokeStyle = INK; ctx.lineWidth = 1.3; ctx.stroke();
+  ctx.fillStyle = '#0F172A'; ctx.font = 'bold 8px "Courier New", monospace'; ctx.fillText('U.S. COAST GUARD', x - 140, y - 14);
+  ctx.font = 'bold 9px "Courier New", monospace'; ctx.fillText('714', x - 28, y - 14);
+  // (the cabin, windows catching the light; the mast, the radar going round)
+  shape(ctx, () => ctx.rect(x - 120, y - 70, 60, 34), '#F1F5F9', 1.1);
+  bands(ctx, x - 116, y - 64, 52, 12, ['#1E3A5F', '#0F172A']);
+  ctx.fillStyle = 'rgba(147, 197, 253, 0.5)'; ctx.fillRect(x - 112, y - 63, 10, 2); ctx.fillRect(x - 92, y - 63, 10, 2);
+  ctx.fillStyle = '#E2E8F0'; ctx.fillRect(x - 96, y - 98, 3, 28);
+  ctx.save(); ctx.translate(x - 94.5, y - 100); ctx.scale(Math.cos(t * 0.15), 1); ctx.fillStyle = '#CBD5E1'; ctx.fillRect(-12, -2, 24, 4); ctx.restore();
+  const on = Math.floor(t / 6) % 2;
+  for (const [lx, blue] of [[-114, true], [-80, false]] as const) {
+    const lit = blue ? on : !on;
+    ctx.fillStyle = lit ? (blue ? '#60A5FA' : '#F87171') : (blue ? '#1E3A8A' : '#7F1D1D'); ctx.fillRect(x + lx, y - 76, 12, 6);
+    if (lit) for (let i = 3; i >= 1; i--) { ctx.fillStyle = blue ? `rgba(96, 165, 250, ${0.08 * i})` : `rgba(248, 113, 113, ${0.08 * i})`; ctx.beginPath(); ctx.arc(x + lx + 6, y - 73, 10 + (3 - i) * 8, 0, Math.PI * 2); ctx.fill(); }
+  }
+};
+
+/**
+ * The fight cloud: a ball of dust and spray over the boat, shaded in three tones, outlined; out of it every which way,
+ * changing every beat, arms, boots, nightsticks (and his fist, once in a while); stars going round; teeth and blood
+ * flying; the noises going up in bursts.
+ */
+const fightCloud = (ctx: Ctx, cx: number, cy: number, t: number) => {
+  const beat = Math.floor(t / BLOW);
+  // (the puffs: a dark one behind each, a light cap on it)
+  const puffs: [number, number, number][] = [];
+  for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2 + beat * 0.25, r = 30 + hash(i + beat) * 10; puffs.push([cx + Math.cos(a) * r * 1.5, cy + Math.sin(a) * r * 0.75, 15 + hash(i * 3 + beat) * 9]); }
+  for (const [px, py, pr] of puffs) { ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(px, py, pr + 1.2, 0, Math.PI * 2); ctx.fill(); }
+  for (const [px, py, pr] of puffs) { ctx.fillStyle = '#A8A29E'; ctx.beginPath(); ctx.arc(px, py + 2, pr, 0, Math.PI * 2); ctx.fill(); }
+  for (const [px, py, pr] of puffs) { ctx.fillStyle = '#D6D3D1'; ctx.beginPath(); ctx.arc(px - 1, py - 1, pr * 0.85, 0, Math.PI * 2); ctx.fill(); }
+  for (const [px, py, pr] of puffs) { ctx.fillStyle = '#F5F5F4'; ctx.beginPath(); ctx.arc(px - pr * 0.3, py - pr * 0.35, pr * 0.45, 0, Math.PI * 2); ctx.fill(); }
+  ctx.fillStyle = '#E7E5E4'; ctx.beginPath(); ctx.ellipse(cx, cy, 52, 28, 0, 0, Math.PI * 2); ctx.fill();
+  // (motion lines whipping round it)
+  ctx.strokeStyle = 'rgba(28, 25, 23, 0.6)'; ctx.lineWidth = 0.8;
+  for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2 + t * 0.3; ctx.beginPath(); ctx.arc(cx, cy, 60 + (k % 3) * 4, a, a + 0.35); ctx.stroke(); }
+  // (what's sticking out of it this beat)
+  for (let i = 0; i < 7; i++) {
+    const a = hash(i * 7 + beat) * Math.PI * 2, r = 50 + hash(i + beat * 3) * 12, ex = cx + Math.cos(a) * r, ey = cy + Math.sin(a) * r * 0.62;
+    ctx.save(); ctx.translate(ex, ey); ctx.rotate(a);
+    const what = (i + beat) % 5;
+    if (what === 0) { shape(ctx, () => ctx.roundRect(-16, -2.6, 16, 5.2, 2), '#F97316', 0.7); shape(ctx, () => ctx.arc(2, 0, 4.6, 0, Math.PI * 2), '#E8B495', 0.7); }
+    else if (what === 1) { shape(ctx, () => ctx.rect(-16, -3, 16, 6), '#1E3A8A', 0.7); shape(ctx, () => ctx.roundRect(0, -4, 10, 8, 2), '#0A0A0A', 0.7); }
+    else if (what === 2) { shape(ctx, () => ctx.roundRect(-20, -1.8, 22, 3.6, 1.4), '#18181B', 0.7); }
+    else if (what === 3) { shape(ctx, () => ctx.roundRect(-16, -3, 16, 6, 3), '#E0AC69', 0.7); shape(ctx, () => ctx.arc(2, 0, 5.4, 0, Math.PI * 2), '#E0AC69', 0.7); ctx.fillStyle = '#C68B45'; ctx.fillRect(-1, -2, 1, 4); }
+    else { shape(ctx, () => ctx.rect(-14, -2.6, 14, 5.2), '#1E3A8A', 0.7); shape(ctx, () => ctx.roundRect(0, -3.4, 9, 6.8, 2), '#18181B', 0.7); }
+    ctx.restore();
+  }
+  // (stars, teeth, blood)
+  for (let k = 0; k < 5; k++) {
+    const a = t * 0.2 + k * 1.3, sx = cx + Math.cos(a) * 58, sy = cy - 34 + Math.sin(a) * 8;
+    shape(ctx, () => { for (let p = 0; p < 10; p++) { const an = -Math.PI / 2 + p * Math.PI / 5, rr = p % 2 ? 1.6 : 4; if (p) ctx.lineTo(sx + Math.cos(an) * rr, sy + Math.sin(an) * rr); else ctx.moveTo(sx + Math.cos(an) * rr, sy + Math.sin(an) * rr); } ctx.closePath(); }, '#FDE047', 0.5);
+  }
+  for (let k = 0; k < 2; k++) {
+    const q = ((t + k * 15) % 30) / 30;
+    shape(ctx, () => ctx.ellipse(cx + 20 - k * 50 + q * (50 - k * 100), cy - 20 - q * 40 + q * q * 56, 2.2, 3, q * 6, 0, Math.PI * 2), '#FEF9C3', 0.5);
+  }
+  for (let k = 0; k < 6; k++) { const q = ((t * 1.3 + k * 9) % 24) / 24; ctx.fillStyle = '#B91C1C'; ctx.beginPath(); ctx.arc(cx + (hash(k + beat) - 0.5) * 120 * q, cy - 10 - q * 30 + q * q * 40, 1.6, 0, Math.PI * 2); ctx.fill(); }
+  // (and the noise of it: a burst, halftone in it, the word)
+  const words = ['POW!', 'THWACK!', 'WHAM!', 'BONK!', 'CRUNCH!', 'OOF!', 'KRAK!'];
+  const wx = cx + (hash(beat) - 0.5) * 140, wy = cy - 36 + (hash(beat * 3) - 0.5) * 34;
+  ctx.save(); ctx.translate(wx, wy); ctx.rotate((hash(beat * 5) - 0.5) * 0.5);
+  const burst = () => { for (let k = 0; k < 14; k++) { const ang = (k / 14) * Math.PI * 2, rr = k % 2 ? 10 : 19; if (k) ctx.lineTo(Math.cos(ang) * rr * 1.7, Math.sin(ang) * rr * 0.85); else ctx.moveTo(Math.cos(ang) * rr * 1.7, Math.sin(ang) * rr * 0.85); } ctx.closePath(); };
+  shape(ctx, burst, '#FDE047', 1.2);
+  ctx.save(); ctx.beginPath(); burst(); ctx.clip();
+  ctx.fillStyle = 'rgba(234, 88, 12, 0.5)'; for (let yy = -16; yy < 16; yy += 3) for (let xx = -32 + (yy % 2); xx < 32; xx += 3) ctx.fillRect(xx, yy, 0.9, 0.9);
+  ctx.restore();
+  ctx.fillStyle = '#B91C1C'; ctx.font = 'bold 10px "Courier New", monospace'; ctx.textAlign = 'center'; ctx.strokeStyle = INK; ctx.lineWidth = 2;
+  ctx.strokeText(words[beat % words.length], 0, 3.5); ctx.fillText(words[beat % words.length], 0, 3.5); ctx.textAlign = 'left';
+  ctx.restore();
+};
+
+/** His head out of the cloud, mid-beating: one eye swelling shut, a tooth gone, blood out of his nose. */
+const headOut = (ctx: Ctx, hx: number, hy: number, k: number) => {
+  shape(ctx, () => ctx.roundRect(hx - 9, hy - 10, 18, 20, 6), '#E0AC69', 0.9);
+  ctx.fillStyle = '#C68B45'; ctx.fillRect(hx - 8, hy + 4, 16, 5);
+  ctx.fillStyle = '#101010'; ctx.fillRect(hx - 9.5, hy - 12, 19, 5);
+  shape(ctx, () => ctx.ellipse(hx - 4, hy - 2, 4 + k, 3.4 + k * 0.6, 0, 0, Math.PI * 2), '#6B21A8', 0.6);
+  ctx.fillStyle = INK; ctx.fillRect(hx - 5, hy - 2.4, 2.4, 0.8);
+  shape(ctx, () => ctx.arc(hx + 4, hy - 2, 2.6, 0, Math.PI * 2), '#FFFFFF', 0.5); ctx.fillStyle = INK; ctx.fillRect(hx + 4, hy - 2, 1, 1);
+  ctx.fillStyle = '#B91C1C'; ctx.fillRect(hx - 0.6, hy + 2, 1.2, 6);
+  shape(ctx, () => ctx.ellipse(hx, hy + 6, 4, 2.8, 0, 0, Math.PI * 2), '#7F1D1D', 0.5);
+  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(hx - 3, hy + 4.4, 2, 1.2); ctx.fillRect(hx + 1.4, hy + 4.4, 2, 1.2);
+  // (sweat flying off)
+  for (let s = 0; s < 3; s++) { ctx.fillStyle = 'rgba(224, 242, 254, 0.8)'; ctx.beginPath(); ctx.ellipse(hx + 12 + s * 3, hy - 10 - s * 3, 1, 1.6, 0.5, 0, Math.PI * 2); ctx.fill(); }
 };
 
 /** A dead coastie (for the daycare's wreck): limp, the arms and legs every which way, the eyes crossed out. */
@@ -176,47 +452,6 @@ export const deadCoastie = (ctx: Ctx, x: number, y: number, s: number, rot: numb
   ctx.restore();
 };
 
-/** Meathead's boat from the side: white, the red stripe, LIL BASS. */
-const lilBass = (ctx: Ctx, x: number, y: number) => {
-  shape(ctx, () => { ctx.moveTo(x, y - 14); ctx.lineTo(x + 92, y - 16); ctx.lineTo(x + 80, y + 6); ctx.lineTo(x + 6, y + 6); ctx.closePath(); }, '#F8FAFC', 1.1);
-  ctx.fillStyle = '#DC2626'; ctx.fillRect(x + 2, y - 4, 88, 2.4);
-  ctx.fillStyle = INK; ctx.font = 'bold 5px "Courier New", monospace'; ctx.fillText('LIL BASS', x + 30, y - 7);
-};
-
-/** The fight cloud: dust balled up over the boat, arms and boots and nightsticks out of it every which way, stars,
- * the odd tooth, POW and THWACK going up. */
-const fightCloud = (ctx: Ctx, cx: number, cy: number, t: number) => {
-  const beat = Math.floor(t / 6);
-  for (let i = 0; i < 14; i++) {
-    const a = (i / 14) * Math.PI * 2 + beat * 0.3, r = 26 + hash(i + beat) * 10;
-    shape(ctx, () => ctx.arc(cx + Math.cos(a) * r * 1.5, cy + Math.sin(a) * r * 0.8, 14 + hash(i * 3 + beat) * 8, 0, Math.PI * 2), i % 2 ? '#E7E5E4' : '#D6D3D1', 0.9);
-  }
-  shape(ctx, () => ctx.ellipse(cx, cy, 48, 26, 0, 0, Math.PI * 2), '#F5F5F4', 0);
-  // (what's sticking out of it this beat)
-  for (let i = 0; i < 6; i++) {
-    const a = hash(i * 7 + beat) * Math.PI * 2, r = 46 + hash(i + beat * 3) * 10, ex = cx + Math.cos(a) * r, ey = cy + Math.sin(a) * r * 0.6;
-    ctx.save(); ctx.translate(ex, ey); ctx.rotate(a);
-    const what = (i + beat) % 4;
-    if (what === 0) { shape(ctx, () => ctx.rect(-14, -2, 14, 4), '#F97316', 0.6); shape(ctx, () => ctx.arc(2, 0, 4, 0, Math.PI * 2), '#E8B495', 0.6); }
-    else if (what === 1) { shape(ctx, () => ctx.rect(-14, -2.5, 14, 5), '#1E3A8A', 0.6); shape(ctx, () => ctx.roundRect(0, -3.4, 8, 6.8, 2), '#18181B', 0.6); }
-    else if (what === 2) { shape(ctx, () => ctx.rect(-16, -1.6, 18, 3.2), '#18181B', 0.6); }
-    else { shape(ctx, () => ctx.rect(-14, -2.4, 14, 4.8), '#E0AC69', 0.6); shape(ctx, () => ctx.arc(2, 0, 4.4, 0, Math.PI * 2), '#E0AC69', 0.6); }
-    ctx.restore();
-  }
-  // (stars going round, a tooth, a drop of blood)
-  for (let k = 0; k < 4; k++) { const a = t * 0.2 + k * 1.6; ctx.fillStyle = '#FDE047'; ctx.font = 'bold 9px "Courier New", monospace'; ctx.fillText('*', cx + Math.cos(a) * 54, cy - 30 + Math.sin(a) * 8); }
-  const tooth = (t % 30) / 30;
-  shape(ctx, () => { ctx.ellipse(cx + 20 + tooth * 50, cy - 20 - tooth * 40 + tooth * tooth * 50, 2.2, 3, tooth * 6, 0, Math.PI * 2); }, '#FEF9C3', 0.5);
-  blood(ctx, cx - 30 + (beat % 3) * 20, cy + 20, 3, beat, 0);
-  // (and the noises, big)
-  const words = ['POW!', 'THWACK!', 'WHAM!', 'BONK!', 'CRUNCH!', 'OOF!'];
-  const wx = cx + (hash(beat) - 0.5) * 120, wy = cy - 30 + (hash(beat * 3) - 0.5) * 30;
-  ctx.save(); ctx.translate(wx, wy); ctx.rotate((hash(beat * 5) - 0.5) * 0.5);
-  shape(ctx, () => { for (let k = 0; k < 14; k++) { const ang = (k / 14) * Math.PI * 2, rr = k % 2 ? 9 : 17; if (k) ctx.lineTo(Math.cos(ang) * rr * 1.6, Math.sin(ang) * rr * 0.8); else ctx.moveTo(Math.cos(ang) * rr * 1.6, Math.sin(ang) * rr * 0.8); } ctx.closePath(); }, '#FDE047', 1);
-  ctx.fillStyle = '#B91C1C'; ctx.font = 'bold 9px "Courier New", monospace'; ctx.textAlign = 'center'; ctx.fillText(words[beat % words.length], 0, 3); ctx.textAlign = 'left';
-  ctx.restore();
-};
-
 /** Over the whole screen while it plays: the cutter alongside and them over the side; the beating; what's left of him. */
 export const drawBoarded = (ctx: Ctx, c: Chase) => {
   const t = c.caughtT;
@@ -225,83 +460,109 @@ export const drawBoarded = (ctx: Ctx, c: Chase) => {
   const s = CANVAS_WIDTH / W, top = (CANVAS_HEIGHT - H * s) / 2 - 20;
   ctx.save(); ctx.translate(0, top); ctx.scale(s, s);
   ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();
-  // The storm sky, in bands
-  for (let i = 0; i < 6; i++) { ctx.fillStyle = ['#1E293B', '#273449', '#334155', '#3B4A60', '#475569', '#4B5A70'][i]; ctx.fillRect(0, i * 14, W, 15); }
-  if (t % 90 < 4) { ctx.fillStyle = 'rgba(241, 245, 249, 0.5)'; ctx.fillRect(0, 0, W, H); }
-  const shake = (t < 12 || (t > BOARD_LEAP + 10 && t < BOARD_BEAT && t % 7 < 2)) ? 2 : 0;
+  const shake = (t < 12 || (t > BOARD_LEAP + 10 && t < BOARD_BEAT && (t - BOARD_LEAP) % BLOW < 3)) ? 3 : 0;
   if (shake) ctx.translate((hash(t) - 0.5) * shake * 2, (hash(t * 3) - 0.5) * shake * 2);
   if (t < BOARD_LEAP + 10) {
-    // The cutter alongside, slamming into him; them over the side, nightsticks up
-    sea(ctx, 96, t);
+    // The cutter slamming in alongside, the spray going up between them; over the side they come, nightsticks up
+    stormSky(ctx, t, 90);
+    sea(ctx, 90, t);
     const slam = Math.min(1, t / 10);
-    lilBass(ctx, 110, 104);
-    ctx.save(); ctx.translate(-40 + slam * 40, 0);
-    shape(ctx, () => { ctx.moveTo(10, 72); ctx.lineTo(116, 70); ctx.lineTo(104, 108); ctx.lineTo(14, 108); ctx.closePath(); }, '#F8FAFC', 1.2);
-    ctx.fillStyle = '#EA580C'; ctx.beginPath(); ctx.moveTo(60, 70); ctx.lineTo(70, 70); ctx.lineTo(60, 108); ctx.lineTo(50, 108); ctx.fill();
-    ctx.fillStyle = '#1E293B'; ctx.font = 'bold 6px "Courier New", monospace'; ctx.fillText('COAST GUARD', 16, 92);
-    const on = Math.floor(t / 5) % 2; ctx.fillStyle = on ? '#3B82F6' : '#EF4444'; ctx.fillRect(40, 52, 16, 5);
-    shape(ctx, () => ctx.rect(30, 56, 40, 16), '#F1F5F9', 0.8);
-    ctx.restore();
-    if (t < 14) for (let i = 0; i < 12; i++) { ctx.fillStyle = '#E0F2FE'; ctx.beginPath(); ctx.arc(110 + (hash(i) - 0.5) * 30, 96 - hash(i * 3) * 30 * (t / 14), 2 + hash(i) * 2, 0, Math.PI * 2); ctx.fill(); }
-    if (t >= BOARD_LEAP - 20) {
-      const k = Math.min(1, (t - (BOARD_LEAP - 20)) / 26);
-      for (const [x0, d] of [[40, 0], [70, 6]] as const) {
+    // (his boat, him at the wheel turning round to see it)
+    lilBass(ctx, 136, 108);
+    shape(ctx, () => ctx.roundRect(168, 82, 15, 17, 4), '#E0AC69', 0.9);
+    ctx.fillStyle = '#101010'; ctx.fillRect(167, 80, 17, 4);
+    shape(ctx, () => ctx.arc(171, 89, 2.6, 0, Math.PI * 2), '#FFFFFF', 0.5); shape(ctx, () => ctx.arc(177, 89, 2.6, 0, Math.PI * 2), '#FFFFFF', 0.5);
+    ctx.fillStyle = INK; ctx.fillRect(170.4, 89, 1, 1); ctx.fillRect(176.4, 89, 1, 1);
+    shape(ctx, () => ctx.ellipse(174, 95, 2, 2.4, 0, 0, Math.PI * 2), '#7F1D1D', 0.5);
+    shape(ctx, () => ctx.roundRect(164, 98, 22, 14, 4), '#E0AC69', 0.8);
+    bigCutter(ctx, 92 + slam * 46, 104, t);
+    // (the slam: a wall of spray between them, the boats rocking)
+    if (t >= 8 && t < 30) {
+      const k = (t - 8) / 22;
+      for (let i = 0; i < 26; i++) { const a = -Math.PI / 2 + (hash(i) - 0.5) * 1.4, sp = 30 + hash(i * 3) * 50; ctx.fillStyle = i % 3 ? 'rgba(241, 245, 249, 0.85)' : 'rgba(147, 197, 253, 0.8)'; ctx.beginPath(); ctx.arc(138 + Math.cos(a) * sp * k, 100 + Math.sin(a) * sp * k + k * k * 30, 1.5 + hash(i) * 2.5, 0, Math.PI * 2); ctx.fill(); }
+      ctx.save(); ctx.translate(140, 62);
+      shape(ctx, () => { for (let p = 0; p < 14; p++) { const an = (p / 14) * Math.PI * 2, rr = p % 2 ? 8 : 15; if (p) ctx.lineTo(Math.cos(an) * rr * 1.6, Math.sin(an) * rr * 0.8); else ctx.moveTo(Math.cos(an) * rr * 1.6, Math.sin(an) * rr * 0.8); } ctx.closePath(); }, '#F8FAFC', 1);
+      ctx.fillStyle = '#1D4ED8'; ctx.font = 'bold 9px "Courier New", monospace'; ctx.textAlign = 'center'; ctx.fillText('KRUNCH!', 0, 3); ctx.textAlign = 'left';
+      ctx.restore();
+    }
+    // (them, over the side: arcing across, nightsticks up, motion lines after them)
+    if (t >= BOARD_LEAP - 40) {
+      const k = Math.min(1, (t - (BOARD_LEAP - 40)) / 46);
+      for (const [x0, d] of [[40, 0], [62, 7]] as const) {
         const kk = Math.max(0, Math.min(1, k - d / 30));
-        coastie(ctx, x0 + kk * 90, 70 - Math.sin(kk * Math.PI) * 40 + kk * 24, 1.2, 0.6 + Math.sin(t * 0.5) * 0.3);
+        const px = x0 + kk * 110, py = 72 - Math.sin(kk * Math.PI) * 44 + kk * 26;
+        ctx.strokeStyle = 'rgba(241, 245, 249, 0.6)'; ctx.lineWidth = 0.8;
+        for (let m = 1; m <= 3; m++) { ctx.beginPath(); ctx.moveTo(px - 10 - m * 6, py - 20 + m * 3); ctx.lineTo(px - 4 - m * 6, py - 20 + m * 3); ctx.stroke(); }
+        coastie(ctx, px, py, 1.3, 0.4 + Math.sin(t * 0.5 + d) * 0.4);
       }
     }
-    // (him at the wheel, looking round)
-    shape(ctx, () => ctx.roundRect(150, 80, 14, 16, 4), '#E0AC69', 0.9);
-    ctx.fillStyle = '#101010'; ctx.fillRect(149, 78, 16, 4);
-    shape(ctx, () => ctx.arc(153, 86, 2.4, 0, Math.PI * 2), '#FFFFFF', 0.5); ctx.fillStyle = INK; ctx.fillRect(152, 86, 1, 1);
+    lightWash(ctx, t, 0.08);
   } else if (t < BOARD_BEAT) {
-    // The beating: a cloud of it filling the boat
-    sea(ctx, 110, t);
-    lilBass(ctx, 70, 118);
-    fightCloud(ctx, 116, 84, t - BOARD_LEAP);
-    // (his head out of it now and then, a black eye coming up)
-    if (Math.floor((t - BOARD_LEAP) / 18) % 3 === 1) {
-      const hx = 86 + (hash(Math.floor(t / 18)) - 0.5) * 60, hy = 58;
-      shape(ctx, () => ctx.roundRect(hx - 8, hy - 9, 16, 18, 5), '#E0AC69', 0.9);
-      ctx.fillStyle = '#101010'; ctx.fillRect(hx - 8.5, hy - 11, 17, 4);
-      shape(ctx, () => ctx.arc(hx - 3, hy - 2, 3, 0, Math.PI * 2), '#6B21A8', 0.5);
-      shape(ctx, () => ctx.arc(hx + 4, hy - 2, 2.2, 0, Math.PI * 2), '#FFFFFF', 0.5);
-      shape(ctx, () => ctx.ellipse(hx, hy + 4, 3, 3, 0, 0, Math.PI * 2), '#7F1D1D', 0.5);
-    }
+    // The beating: in close on his boat, a cloud of it filling it, the light bar washing over it all
+    stormSky(ctx, t, 70);
+    sea(ctx, 70, t);
+    // (the boat, big: its gunwale and deck in the foreground)
+    const hull = () => { ctx.moveTo(-10, 110); ctx.lineTo(W + 10, 106); ctx.lineTo(W + 10, H + 4); ctx.lineTo(-10, H + 4); ctx.closePath(); };
+    ctx.save(); ctx.beginPath(); hull(); ctx.clip();
+    bands(ctx, -10, 104, W + 20, 44, ['#FFFFFF', '#F1F5F9', '#E2E8F0', '#CBD5E1']);
+    ctx.fillStyle = '#DC2626'; ctx.fillRect(-10, 118, W + 20, 4); ctx.fillStyle = '#991B1B'; ctx.fillRect(-10, 122, W + 20, 1);
+    ctx.restore();
+    ctx.beginPath(); hull(); ctx.strokeStyle = INK; ctx.lineWidth = 1.3; ctx.stroke();
+    fightCloud(ctx, 128, 76, t - BOARD_LEAP);
+    // (his head out of it now and then, worse every time; dragged back in)
+    const u = t - BOARD_LEAP;
+    if (Math.floor(u / 40) % 3 === 1) headOut(ctx, 96 + (hash(Math.floor(u / 40)) - 0.5) * 70, 46, Math.min(3, u / 110));
+    // (each blow landing: a flash ring off it)
+    const since = u % BLOW;
+    if (since < 5) { ctx.strokeStyle = `rgba(255, 255, 255, ${0.8 - since * 0.16})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(110 + (hash(Math.floor(u / BLOW)) - 0.5) * 50, 70 + (hash(Math.floor(u / BLOW) * 3) - 0.5) * 20, 6 + since * 5, 0, Math.PI * 2); ctx.stroke(); }
+    lightWash(ctx, t, 0.1);
   } else {
-    // What's left of him: slumped over the side of his boat, lumps on lumps, eyes gone, teeth gone; them stood over him
-    sea(ctx, 104, t);
-    shape(ctx, () => { ctx.moveTo(-10, 104); ctx.lineTo(W + 10, 100); ctx.lineTo(W + 10, H + 4); ctx.lineTo(-10, H + 4); ctx.closePath(); }, '#F8FAFC', 1.2);
-    ctx.fillStyle = '#DC2626'; ctx.fillRect(0, 114, W, 4);
-    coastie(ctx, 196, 104, 2.2, -0.2);
-    coastie(ctx, 226, 104, 2, 0.4, -1);
-    // (the nightstick bent)
-    deadFace(ctx, 96, 92, 2.3, { skin: '#D4A06A', shade: '#7C4A2A', tilt: 0.5, xEyes: true });
-    ctx.fillStyle = 'rgba(88, 28, 135, 0.55)';
-    for (const [lx, ly, r] of [[80, 70, 9], [108, 62, 7], [118, 88, 6]] as const) { ctx.beginPath(); ctx.arc(lx, ly, r, 0, Math.PI * 2); ctx.fill(); }
-    for (const [lx, ly, r] of [[90, 52, 6], [112, 50, 5]] as const) shape(ctx, () => ctx.arc(lx, ly, r, Math.PI, 0), '#E0AC69', 0.8);
-    blood(ctx, 92, 128, 12, 7, 3);
-    for (let k = 0; k < 3; k++) { shape(ctx, () => ctx.ellipse(70 + k * 18, 132 + (k % 2) * 3, 2, 2.8, k, 0, Math.PI * 2), '#FEF9C3', 0.4); }
-    // (his arm hanging over the side, fingers trailing in the water)
-    shape(ctx, () => { ctx.moveTo(60, 104); ctx.lineTo(50, 126); ctx.lineTo(56, 128); ctx.lineTo(66, 106); ctx.closePath(); }, '#E0AC69', 0.8);
+    // What's left of him: slumped over the side of his own boat, lumps on lumps; them stood over him in the rain, one
+    // wiping his nightstick, the other with the loudhailer, the light bar going
+    stormSky(ctx, t, 96);
+    sea(ctx, 96, t);
+    const hull = () => { ctx.moveTo(-10, 104); ctx.lineTo(W + 10, 100); ctx.lineTo(W + 10, H + 4); ctx.lineTo(-10, H + 4); ctx.closePath(); };
+    ctx.save(); ctx.beginPath(); hull(); ctx.clip();
+    bands(ctx, -10, 98, W + 20, 50, ['#FFFFFF', '#F1F5F9', '#E2E8F0', '#CBD5E1', '#94A3B8']);
+    ctx.fillStyle = '#DC2626'; ctx.fillRect(-10, 114, W + 20, 4);
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.35)'; ctx.beginPath(); ctx.ellipse(120, 136, 60, 5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    ctx.beginPath(); hull(); ctx.strokeStyle = INK; ctx.lineWidth = 1.3; ctx.stroke();
+    coastie(ctx, 196, 104, 2.3, -0.2);
+    coastie(ctx, 230, 104, 2.1, 0.5, -1);
+    // (the loudhailer, under his arm)
+    shape(ctx, () => { ctx.moveTo(214, 70); ctx.lineTo(226, 64); ctx.lineTo(226, 78); ctx.closePath(); }, '#F8FAFC', 0.8);
+    deadFace(ctx, 96, 90, 2.4, { skin: '#D4A06A', shade: '#7C4A2A', tilt: 0.5, xEyes: true });
+    // (the lumps, the bruising, a band-aid nobody put on him)
+    ctx.fillStyle = 'rgba(88, 28, 135, 0.5)';
+    for (const [lx, ly, r] of [[78, 68, 9], [106, 60, 7], [118, 86, 6], [84, 96, 5]] as const) { ctx.beginPath(); ctx.arc(lx, ly, r, 0, Math.PI * 2); ctx.fill(); }
+    for (const [lx, ly, r] of [[88, 48, 7], [112, 46, 5], [100, 42, 4]] as const) { shape(ctx, () => ctx.arc(lx, ly, r, Math.PI, 0), '#E0AC69', 0.8); ctx.fillStyle = 'rgba(255, 255, 255, 0.35)'; ctx.fillRect(lx - r * 0.4, ly - r * 0.7, r * 0.5, 1); }
+    blood(ctx, 92, 128, 13, 7, 3);
+    for (let k = 0; k < 4; k++) shape(ctx, () => ctx.ellipse(66 + k * 16, 132 + (k % 2) * 3, 2, 2.8, k, 0, Math.PI * 2), '#FEF9C3', 0.4);
+    // (his arm over the side, fingers in the water, the swell lapping at them)
+    shape(ctx, () => { ctx.moveTo(58, 102); ctx.quadraticCurveTo(50, 116, 48, 128); ctx.lineTo(56, 130); ctx.quadraticCurveTo(58, 116, 66, 104); ctx.closePath(); }, '#E0AC69', 0.8);
+    ctx.fillStyle = '#C68B45'; ctx.fillRect(52, 112, 3, 12);
     speckle(ctx, 40, 96, 80, 20, 40, 'rgba(127, 29, 29, 0.6)', 3, 1);
+    // (stars still going round his head)
+    for (let k = 0; k < 3; k++) { const a = t * 0.15 + k * 2.1; ctx.fillStyle = '#FDE047'; ctx.font = 'bold 7px "Courier New", monospace'; ctx.fillText('*', 96 + Math.cos(a) * 30, 34 + Math.sin(a) * 5); }
+    lightWash(ctx, t, 0.07);
   }
   rain(ctx, t);
+  // (the letterbox's own vignette)
+  const v = ctx.createRadialGradient(W / 2, H / 2, 60, W / 2, H / 2, 160);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,0.55)');
+  ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
   ctx.restore();
-  // The caption: the one line
-  if (t >= BOARD_LINE) {
+  // The caption
+  const cap = (who: string, text: string) => {
     const y = top + H * s + 14;
     ctx.font = 'bold 13px "Press Start 2P", monospace'; ctx.textAlign = 'center';
-    ctx.fillStyle = '#F97316'; ctx.fillText('COAST GUARD', CANVAS_WIDTH / 2, y + 6);
-    ctx.font = '12px "Press Start 2P", monospace'; ctx.fillStyle = '#F8FAFC'; ctx.fillText('WE SAID. GET OUT. OF THE WATER.', CANVAS_WIDTH / 2, y + 28);
+    ctx.fillStyle = '#F97316'; ctx.fillText(who, CANVAS_WIDTH / 2, y + 6);
+    ctx.font = '12px "Press Start 2P", monospace'; ctx.fillStyle = '#F8FAFC'; ctx.fillText(text, CANVAS_WIDTH / 2, y + 28);
     ctx.textAlign = 'left';
-  } else if (t < 40) {
-    const y = top + H * s + 14;
-    ctx.font = 'bold 13px "Press Start 2P", monospace'; ctx.textAlign = 'center';
-    ctx.fillStyle = '#F97316'; ctx.fillText('COAST GUARD', CANVAS_WIDTH / 2, y + 6);
-    ctx.font = '12px "Press Start 2P", monospace'; ctx.fillStyle = '#F8FAFC'; ctx.fillText('YOU ARE BEING BOARDED!', CANVAS_WIDTH / 2, y + 28);
-    ctx.textAlign = 'left';
-  }
+  };
+  if (t >= BOARD_LINE) cap('COAST GUARD', 'WE SAID. GET OUT. OF THE WATER.');
+  else if (t < 40) cap('COAST GUARD', 'YOU ARE BEING BOARDED!');
   if (t < 6) { ctx.fillStyle = `rgba(0,0,0,${1 - t / 6})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
   ctx.restore();
 };
