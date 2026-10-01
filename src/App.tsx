@@ -547,10 +547,18 @@ const App: React.FC = () => {
     }
   };
 
+  // (the cheat's skip set: 0 the first four, 1 the second four, 2 the second four all dead and the White House open)
+  const skipSet = progressionRank + (whiteHouseOpen ? 1 : 0);
   const handleChangeRank = (delta: number) => {
-    const next = Math.max(0, Math.min(1, progressionRank + delta));
-    setProgressionRank(next);
-    if ((delta > 0 && next === 1) || (delta < 0 && next === 0)) {
+    const next = Math.max(0, Math.min(2, skipSet + delta));
+    if (next === skipSet) return;
+    setProgressionRank(Math.min(1, next));
+    if (next === 2) {
+      // Set two all done: every one of them dead, their weapons in hand
+      setDefeatedStages(STAGES_SET_1.map(st => st.id));
+      setAvailableWeapons(ALL_WEAPONS);
+    } else {
+      if (skipSet === 2) setDefeatedStages([]);
       setAvailableWeapons(getStartingWeapons(next, cheats.allWeapons));
       setCurrentWeapon('GUN');
     }
