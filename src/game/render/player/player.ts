@@ -337,17 +337,22 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   } else {
     // Idle / Walk pumping arm in opposition
     // Held a little back while he's in the air
+    // Walking: the upper arm swings from the shoulder against his stride (not far: it's a heavy arm), and the elbow
+    // bends forward, closing as the arm comes forward and opening as it goes back, a beat behind the swing. Standing:
+    // hanging, the elbow a little bent, easing with his breathing.
     const armAngle = isSwimming ? (swimMoving ? (animFrame * 0.2) % (Math.PI * 2) : 0.9 + Math.sin(animFrame * 0.15) * 0.9)
-      : isWalking ? -walkStride * 0.6
+      : isWalking ? -walkStride * 0.42
       // (in the air: thrown up high behind him on the way up, coming down and out behind for balance as he falls)
       : isAirborne ? 2.5 - airFall * 1.2
-      : Math.sin(animFrame * 0.08) * 0.1;
+      : 0.06 + Math.sin(animFrame * 0.05) * 0.04;
+    const bend = isSwimming ? 0.2
+      : isWalking ? 0.3 + Math.max(0, -Math.sin(walkPhase - 0.55)) * 0.7
+      : isAirborne ? 0.45
+      : 0.32 + Math.sin(animFrame * 0.05 + 0.8) * 0.05;
     ctx.save();
     ctx.translate(-15, -45);
     ctx.rotate(armAngle);
-    // (the forearm swings a little further than the upper arm: a loose bend at the elbow, more when it's going back)
-    const bend = 0.15 + Math.max(0, -armAngle) * 0.5;
-    drawArm(ctx, 0, 0, -0.5, 12, Math.sin(-bend) * 10 - 0.5, 12 + Math.cos(bend) * 10, skinShadow, backArmShade, skinTone);
+    drawArm(ctx, 0, 0, -0.5, 12, Math.sin(bend) * 10 - 0.5, 12 + Math.cos(bend) * 10, skinShadow, backArmShade, skinTone);
     if (gore > 0.4) smear(ctx, -1, 4, 4, 3, bloodDark);
     if (gore > 0.7) drip(ctx, 0, 5, 8);
     ctx.restore();
