@@ -88,11 +88,15 @@ const HOP_V = -10.5, HOP_G = 0.55;
 const DROP_WARN = 95;
 /** How far to the right of its shadow it is, a frame out (it comes down at a slant). */
 const DROP_DRIFT = 3.5;
+/** Frames out from landing that something coming down can already hit him (it's in among him by then). */
+const DROP_LIVE = 7;
 
 /** Where the middle of the boat'll be `n` frames on from `x` at `v`, hands off (settling back to cruising). */
 const coast = (x: number, v: number, n: number) => { for (let i = 0; i < n; i++) { v += (BOAT_BASE - v) * 0.08; x += v; } return x; };
 /** A hit: how long he's knocked about, and what it costs him (not much: what it costs him is the cutter closing). */
 const HIT_FRAMES = 40, HIT_DAMAGE = 3;
+/** After a hit, how long before the next can land (short: two at once is two). */
+const HIT_GRACE = 12;
 /** How fast what's whirling over the water comes at him (px a frame, to the left). */
 const FLYER_VX = -4.5;
 export const CHASE_BOAT_W = 150;
@@ -178,10 +182,13 @@ export const updateChase = (ctx: FrameContext, c: Chase, b: { x: number; y: numb
     const dropP = 0.32 + out * 0.16;
     const kind: JunkKind = r < dropP ? 'drop' : r < dropP + (1 - dropP) * 0.55 ? 'float' : 'flyer';
     const look = Math.floor(Math.random() * 5);
-    if (kind === 'float') c.junk.push({ kind, look, x: c.nextJunkX, y: COURSE.sea.y + 4, vx: -0.6, vy: 0, rot: 0, warn: 0, hit: false });
-    // (whirling across over the water, high enough to miss him sat in the boat, low enough a jump puts him into it)
-    // (coming in from off the right, timed so it crosses him about where the next thing's due)
-    else if (kind === 'flyer') { const eta = (c.nextJunkX - (b.x + CHASE_BOAT_W)) / Math.max(4, b.speed); c.junk.push({ kind, look, x: c.nextJunkX - FLYER_VX * eta, y: COURSE.boat.y - 112, vx: FLYER_VX, vy: 0, rot: 0, warn: 0, hit: false }); }
+    const float = (x: number) => c.junk.push({ kind: 'float', look, x, y: COURSE.sea.y + 4, vx: -0.6, vy: 0, rot: 0, warn: 0, hit: false });
+    // (whirling across over the water, high enough to miss him sat in the boat, low enough a jump puts him into it;
+    // coming in from off the right, timed so it crosses him about at x)
+    const flyer = (x: number) => { const eta = (x - (b.x + CHASE_BOAT_W)) / Math.max(4, b.speed); c.junk.push({ kind: 'flyer', look, x: x - FLYER_VX * eta, y: COURSE.boat.y - 112, vx: FLYER_VX, vy: 0, rot: 0, warn: 0, hit: false }); };
+    let gap = 0;
+    if (kind === 'float') float(c.nextJunkX);
+    else if (kind === 'flyer') flyer(c.nextJunkX);
     else {
       // (aimed where he'll be if he lets go of everything: a touch ahead, so easing off gets him out from under it, or a
       // touch behind, so it's opening it up; going flat out already, it's the one he can still do, and the same backed off)
@@ -189,16 +196,19 @@ export const updateChase = (ctx: FrameContext, c: Chase, b: { x: number; y: numb
       const at = coast(b.x + CHASE_BOAT_W / 2, b.speed, DROP_WARN + 6) + (way === 'slow' ? 50 : -50);
       c.junk.push({ kind, look, x: at + DROP_WARN * DROP_DRIFT, y: state.camera.y - 120, vx: 0, vy: 0, rot: 0, warn: DROP_WARN, tx: at, hit: false });
       playSound('whoosh', 0.5, -6);
+      // (further out, more and more often, something on the water with it as it comes down: jump it, or don't, while
+      // getting out from under; a bit more room after)
+      if (out > 0.45 && Math.random() < (out - 0.45) * 1.6) { (Math.random() < 0.6 ? float : flyer)(c.nextJunkX + 150 + Math.random() * 60); gap = 140; }
     }
-    // (one thing at a time: far enough apart there's always the one answer to each)
-    c.nextJunkX += 340 + Math.random() * 240 - out * 60;
+    // (one thing at a time, mostly: far enough apart there's the one answer to each)
+    c.nextJunkX += 340 + Math.random() * 240 - out * 60 + gap;
   }
   const hurt = boundsOf(player);
   const body = boatBox(b.x, b.y);
   c.junk = c.junk.filter(j => {
     if (j.kind === 'drop') {
       // (in from up and to the right, down onto its shadow)
-      if (j.warn > 0) { j.warn--; if (j.warn === 18) playSound('whoosh', 0.8, -10); j.y = COURSE.sea.y - 40 - j.warn * 8; j.x = (j.tx ?? j.x) + j.warn * DROP_DRIFT; }
+      if (j.warn > 0) { j.warn--; if (j.warn === 18) playSound('whoosh', 0.8, -10); j.y = COURSE.sea.y - 40 - j.warn * 8; j.x = (j.tx ?? j.x) + j.warn * DROP_DRIFT; if (j.warn === 0) j.vy = 8; }
       else { j.vy += 1.2; j.y += j.vy; }
       j.rot += 0.08;
       if (j.warn === 0 && j.y >= COURSE.sea.y + 10) { splash(state, j.x, 30); if (!j.hit) c.relief += CG_PASS; return false; }
@@ -209,12 +219,13 @@ export const updateChase = (ctx: FrameContext, c: Chase, b: { x: number; y: numb
     if (j.x < state.camera.x - 300) return false;
     // (got past it: the cutter drops back a bit)
     if (!j.hit && !j.passed && j.kind !== 'drop' && j.x + 30 < b.x) { j.passed = true; c.relief += CG_PASS; }
-    if (j.hit || j.warn > 0 || j.passed) return true;
+    // (one coming down can hit him from just above him on the way in)
+    if (j.hit || j.warn > DROP_LIVE || j.passed) return true;
     const box = junkBox(j);
     const hits = j.kind === 'flyer' ? rectsOverlap(box, hurt) : rectsOverlap(box, body) || (j.kind === 'drop' && rectsOverlap(box, hurt));
     void hurt;
     // (he's in a cutscene as far as the game's concerned, so it's the knock it gave him that keeps him from taking two at once)
-    if (hits && c.crash === 0) {
+    if (hits && c.crash <= HIT_FRAMES - HIT_GRACE) {
       j.hit = true;
       c.crash = HIT_FRAMES;
       c.gap -= CG_HIT;
