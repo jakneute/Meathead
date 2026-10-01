@@ -16,7 +16,7 @@ import { STAIN_FRAMES } from '../core/state';
 const SMEAR_JOIN = 14;
 
 /** Crouched and still this long (frames): the grumble. Then this long: the accident. */
-export const GUT_GRUMBLE = 15 * 60, GUT_ACCIDENT = 30 * 60;
+export const GUT_GRUMBLE = 7.5 * 60, GUT_ACCIDENT = 15 * 60;
 
 /** Has he shit himself (this attempt)? */
 export const isShat = (state: GameState) => state.player.gut?.stage === 2;
