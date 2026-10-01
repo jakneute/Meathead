@@ -227,7 +227,7 @@ export const BOULDER_SHRAPNEL_DAMAGE = 60;
 
 // SHOTGUN ICE (ARTIE) - ported from the GML oShotgunIce / oShotgunBullet.
 // A fan of straight-flying pellets that ricochet off terrain and freeze on hit.
-export const SHOTGUN_COOLDOWN = 30;
+export const SHOTGUN_COOLDOWN = 22;
 export const SHOTGUN_PELLET_COUNT = 10;
 export const SHOTGUN_SPREAD_DEG = 45;
 export const SHOTGUN_JITTER_DEG = 5;
