@@ -72,8 +72,9 @@ export const createBar = (state: GameState, startedAt: number): Bar => {
   };
   if (done) spill(b);
   else {
-    // The ceiling, and the far door (locked till last call: and no going over the top)
-    state.blocks.push({ x: B.x1, y: B.ceil - 40, w: B.x2 - B.x1, h: 40, type: 'wall', hidden: true, tag: 'bar-ceiling' });
+    // The ceiling, and the far door (locked till last call: and no going over the top). The ceiling goes all the way
+    // up: nothing can get up onto the roof and stand on it (and set the bar going from up there)
+    state.blocks.push({ x: B.x1, y: GROUND_Y - 3000, w: B.x2 - B.x1, h: B.ceil - (GROUND_Y - 3000), type: 'wall', hidden: true, tag: 'bar-ceiling' });
     state.blocks.push({ x: B.x2 - 20, y: GROUND_Y - 3000, w: 20, h: 3000, type: 'wall', hidden: true, tag: 'bar-door' });
   }
   return b;
