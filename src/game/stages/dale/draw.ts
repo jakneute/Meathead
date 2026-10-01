@@ -18,7 +18,7 @@ import { drawDale } from '../../render/bosses/dale';
 import type { Enemy } from '../../../types';
 import { COURSE, Cactus, Ledge } from './course';
 import { getDale, regionOf, fadeAmount, DaleRuntime } from './runtime';
-import { CRATE, beltBox } from './hazards';
+import { CRATE, CRATE_WARN, beltBox, feedX } from './hazards';
 import { daleVisible } from './intro';
 import { saying, drawBubble } from './script';
 import { drawOffice, drawOfficeFront, drawJunkieHud } from './junkieDraw';
@@ -380,7 +380,7 @@ const drawWarehouse = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
     ctx.fillStyle = '#FDE047'; for (let i = 0; i < 6; i++) ctx.fillRect(dx - 34 + i * 7, Y - 176, 3, 12);
   }
   // The belts, the crates riding them
-  COURSE.belts.forEach((b, i) => { if (visible(state, b.x, b.x + b.w)) drawBelt(ctx, i, rt.hazards.beltShift[i]); });
+  COURSE.belts.forEach((b, i) => { if (visible(state, b.x, b.x + b.w)) { drawBelt(ctx, i, rt.hazards.beltShift[i]); drawFeed(ctx, i, rt.hazards.beltTimers[i], state.frame); } });
   for (const cr of rt.hazards.crates) if (visible(state, cr.x, cr.x + CRATE)) drawCrate(ctx, cr.x, cr.y, CRATE);
 };
 
@@ -400,6 +400,44 @@ const drawBelt = (ctx: Ctx, i: number, shift: number) => {
   ctx.fillStyle = '#FDE047';
   const dir = COURSE.belts[i].speed < 0 ? -1 : 1;
   for (let x = box.x + 40; x < box.x + box.w - 40; x += 90) { ctx.beginPath(); ctx.moveTo(x + dir * 12, box.y + 26); ctx.lineTo(x - dir * 6, box.y + 20); ctx.lineTo(x - dir * 6, box.y + 32); ctx.fill(); }
+};
+
+/**
+ * Where a belt's crates come on: a chute down from the ceiling over the feed end, a hazard-striped hopper mouth and a
+ * beacon on it. When the next one's coming the beacon goes round, flashing, and the crate's seen coming down the chute
+ * (through its window), the mouth lighting up just before it drops onto the belt.
+ */
+const drawFeed = (ctx: Ctx, i: number, timer: number, frame: number) => {
+  const b = COURSE.belts[i], fx = feedX(i), cx = fx + CRATE / 2;
+  const top = b.y - 200, mouth = b.y - CRATE - 14;
+  const warn = timer <= CRATE_WARN;
+  // The chute: steel, a window down it
+  ctx.fillStyle = '#4B5563'; ctx.fillRect(cx - 22, top, 44, mouth - top);
+  ctx.fillStyle = '#1F2937'; ctx.fillRect(cx - 16, top + 10, 32, mouth - top - 20);
+  ctx.fillStyle = '#6B7280'; ctx.fillRect(cx - 22, top, 4, mouth - top); ctx.fillRect(cx + 18, top, 4, mouth - top);
+  // (the crate coming down it, while it's on its way)
+  if (warn) {
+    const k = 1 - timer / CRATE_WARN;
+    ctx.save(); ctx.beginPath(); ctx.rect(cx - 16, top + 10, 32, mouth - top - 10); ctx.clip();
+    drawCrate(ctx, fx, top - CRATE + k * (mouth - top + CRATE - 4), CRATE);
+    ctx.restore();
+  }
+  // The hopper mouth: hazard stripes round it, lit up red as the crate's about to come out
+  ctx.fillStyle = '#111827'; ctx.fillRect(cx - 26, mouth, 52, 10);
+  for (let x = 0; x < 52; x += 8) { ctx.fillStyle = (x / 8) % 2 ? '#111827' : '#FACC15'; ctx.fillRect(cx - 26 + x, mouth, 4, 10); }
+  if (warn && timer < 20 && Math.floor(frame / 4) % 2) { ctx.fillStyle = 'rgba(239, 68, 68, 0.55)'; ctx.fillRect(cx - 26, mouth, 52, 10); }
+  // The beacon on the side of it: dark till one's coming, then going round, flashing amber, throwing its light about
+  const bx = cx + 30, by = mouth - 30;
+  ctx.fillStyle = '#374151'; ctx.fillRect(bx - 5, by + 6, 10, 6);
+  ctx.fillStyle = warn ? (Math.floor(frame / 5) % 2 ? '#F59E0B' : '#FDE68A') : '#78350F';
+  ctx.beginPath(); ctx.arc(bx, by + 4, 9, Math.PI, 0); ctx.fill();
+  if (warn) {
+    const a = frame * 0.3;
+    ctx.fillStyle = 'rgba(251, 191, 36, 0.22)';
+    ctx.beginPath(); ctx.moveTo(bx, by + 2); ctx.lineTo(bx + Math.cos(a) * 140, by + 2 + Math.sin(a) * 60); ctx.lineTo(bx + Math.cos(a + 0.4) * 140, by + 2 + Math.sin(a + 0.4) * 60); ctx.fill();
+    // (and an arrow over the mouth, pointing down at where it'll land)
+    if (Math.floor(frame / 8) % 2) { ctx.fillStyle = '#EF4444'; ctx.beginPath(); ctx.moveTo(cx - 8, mouth - 30); ctx.lineTo(cx + 8, mouth - 30); ctx.lineTo(cx, mouth - 18); ctx.fill(); }
+  }
 };
 
 /** Orange steel pallet racking, a pallet on top. */

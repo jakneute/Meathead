@@ -24,6 +24,10 @@ export interface Hazards {
 }
 
 export const CRATE = 30;
+/** Frames of warning before a crate drops onto a belt: the light going round, the crate coming down the chute, the buzzer. */
+export const CRATE_WARN = 70;
+/** Where a belt's crates come on (world x of the crate's left side). */
+export const feedX = (i: number) => { const b = COURSE.belts[i]; return b.speed < 0 ? b.x + b.w - CRATE - 4 : b.x + 4; };
 const CACTUS_DAMAGE = 12, CRATE_DAMAGE = 10;
 
 export const createHazards = (): Hazards => ({
@@ -74,9 +78,12 @@ export const updateHazards = (ctx: FrameContext, hz: Hazards) => {
     if (p.isGrounded && onIt(p)) p.pos.x += b.speed;
     for (const e of state.enemies) if (e.health > 0 && !e.isBlownAway && e.vel.y === 0 && onIt(e)) e.pos.x += b.speed;
     // Crates on at the far end
+    // (the buzzer as the next one starts down the chute)
+    if (hz.beltTimers[i] === CRATE_WARN + 1) playSound('alert', 0.6, 4);
     if (--hz.beltTimers[i] <= 0) {
       hz.beltTimers[i] = b.crateEvery + Math.floor(Math.random() * 40);
-      hz.crates.push({ x: b.speed < 0 ? b.x + b.w - CRATE - 4 : b.x + 4, y: b.y - CRATE, vx: b.speed, vy: 0, belt: i, falling: false, t: 0 });
+      hz.crates.push({ x: feedX(i), y: b.y - CRATE, vx: b.speed, vy: 0, belt: i, falling: false, t: 0 });
+      playSound('thud', 0.7);
     }
   });
   hz.crates = hz.crates.filter(cr => {
