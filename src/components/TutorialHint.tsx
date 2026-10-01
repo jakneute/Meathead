@@ -18,7 +18,11 @@ const Combo: React.FC<{ dir: 'UP' | 'DOWN'; kb: string[]; air?: boolean }> = ({ 
 };
 
 const LESSONS: Record<Lesson, { how: React.ReactNode; what: string; note?: string }> = {
-  move: { how: <><Prompt pad={['DPAD']} kb={['A', 'D']} size={SIZE} label="MOVE" /><span className="mx-2" /><Prompt pad={['A']} kb={['SPACE']} size={SIZE} label="JUMP" /></>, what: 'GET UP OFF THE BENCH. THERE ARE PENCIL NECKS IN YOUR GYM.' },
+  move: {
+    how: <><Prompt pad={['DPAD']} kb={['A', 'D']} size={SIZE} label="MOVE" /><span className="mx-2" /><Prompt pad={['A']} kb={['SPACE']} size={SIZE} label="JUMP" /><span className="mx-2" /><Prompt pad={['DPAD']} kb={['S']} size={SIZE} label="DOWN: CROUCH" /></>,
+    what: 'GET UP OFF THE BENCH. THERE ARE PENCIL NECKS IN YOUR GYM.',
+    note: 'CROUCH AND MOST SHOTS GO OVER YOUR HEAD. HOLD JUMP TO JUMP HIGHER.',
+  },
   fire: { how: <Prompt pad={['X']} kb={['X']} mouse="left" size={SIZE} label="SHOOT" />, what: 'SHOOT THE PENCIL NECKS.' },
   charge: {
     how: <Prompt pad={['B']} kb={['SHIFT']} mouse="right" size={SIZE} label="SHOULDER CHARGE" />,
