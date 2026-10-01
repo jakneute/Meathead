@@ -161,6 +161,21 @@ const coastie = (ctx: Ctx, x: number, y: number, s: number, arm: number, flip = 
   ctx.restore();
 };
 
+/** A dead coastie (for the daycare's wreck): limp, the arms and legs every which way, the eyes crossed out. */
+export const deadCoastie = (ctx: Ctx, x: number, y: number, s: number, rot: number) => {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.scale(s, s);
+  shape(ctx, () => ctx.rect(-14, -2, 12, 4), '#1E3A8A', 0.6); shape(ctx, () => ctx.rect(2, 0, 12, 4), '#1E3A8A', 0.6);
+  shape(ctx, () => ctx.roundRect(-8, -12, 16, 14, 3), '#F97316', 0.8);
+  ctx.fillStyle = '#FEF08A'; ctx.fillRect(-8, -6, 16, 2);
+  shape(ctx, () => ctx.rect(-18, -12, 10, 3), '#F97316', 0.5); shape(ctx, () => ctx.rect(8, -14, 10, 3), '#F97316', 0.5);
+  shape(ctx, () => ctx.arc(0, -18, 6, 0, Math.PI * 2), '#E8B495', 0.8);
+  shape(ctx, () => { ctx.arc(0, -20, 6.4, Math.PI, 0); ctx.closePath(); }, '#1E3A8A', 0.7);
+  ctx.strokeStyle = INK; ctx.lineWidth = 0.7;
+  for (const ex of [-2.4, 2.4]) { ctx.beginPath(); ctx.moveTo(ex - 1.2, -19.2); ctx.lineTo(ex + 1.2, -16.8); ctx.moveTo(ex + 1.2, -19.2); ctx.lineTo(ex - 1.2, -16.8); ctx.stroke(); }
+  ctx.fillStyle = '#B91C1C'; ctx.beginPath(); ctx.ellipse(0, -13.6, 1.6, 1, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+};
+
 /** Meathead's boat from the side: white, the red stripe, LIL BASS. */
 const lilBass = (ctx: Ctx, x: number, y: number) => {
   shape(ctx, () => { ctx.moveTo(x, y - 14); ctx.lineTo(x + 92, y - 16); ctx.lineTo(x + 80, y + 6); ctx.lineTo(x + 6, y + 6); ctx.closePath(); }, '#F8FAFC', 1.1);
@@ -296,11 +311,12 @@ export const drawBoarded = (ctx: Ctx, c: Chase) => {
 // ---------------------------------------------------------------------------
 
 /** Frames of it (after he's out at the bottom of the storm), and the smash. */
-export const DEMISE_FRAMES = 300, DEMISE_SMASH = 150;
+export const DEMISE_FRAMES = 380, DEMISE_SMASH = 150;
 
 /**
  * Screen space, over the storm: the cutter whirled up past him, spinning, its crew hanging on; then it meets a house
- * coming the other way, and comes apart, them with it, the bits whirled away round the storm and gone.
+ * coming the other way, and comes apart, them with it, the bits whirled away round the storm and gone. The crew fall
+ * a long way, and then the storm takes them back up again, past him, one more time, and they're gone.
  */
 export const drawCutterDemise = (ctx: Ctx, t: number, frame: number) => {
   if (t <= 0 || t > DEMISE_FRAMES) return;
@@ -329,8 +345,22 @@ export const drawCutterDemise = (ctx: Ctx, t: number, frame: number) => {
       const a = hash(i) * Math.PI * 2, sp = 3 + hash(i * 3) * 6;
       const px = cx + Math.cos(a) * sp * s - s * s * 0.02, py = cy + Math.sin(a) * sp * s + s * s * 0.06;
       ctx.save(); ctx.translate(px, py); ctx.rotate(s * 0.2 + i);
-      if (i < 3) coastie(ctx, 0, 0, 1.6, Math.sin(s * 0.6 + i));
-      else { ctx.fillStyle = ['#F8FAFC', '#EA580C', '#FDE68A', '#B91C1C', '#1E293B'][i % 5]; ctx.fillRect(-8, -4, 16, 8); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(-8, -4, 16, 8); }
+      if (i < 3) { ctx.restore(); continue; }
+      { ctx.fillStyle = ['#F8FAFC', '#EA580C', '#FDE68A', '#B91C1C', '#1E293B'][i % 5]; ctx.fillRect(-8, -4, 16, 8); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(-8, -4, 16, 8); }
+      ctx.restore();
+    }
+    // The crew: thrown out, falling a long way down past him... and then the updraft has them, and up they go again,
+    // flailing, past him one more time and off the top, for good
+    for (let i = 0; i < 3; i++) {
+      const fallFor = 90 + i * 10;
+      let px: number, py: number;
+      if (s < fallFor) { px = cx - 80 - i * 70 - s * (1.5 + i * 0.4); py = cy + s * s * 0.075; }
+      else {
+        const u = s - fallFor, x0 = cx - 80 - i * 70 - fallFor * (1.5 + i * 0.4), y0 = cy + fallFor * fallFor * 0.075;
+        px = x0 + Math.sin(u * 0.08 + i) * 90 - u * 0.8; py = y0 - u * u * 0.06 - u * 2;
+      }
+      ctx.save(); ctx.translate(px, py); ctx.rotate(s * (0.25 + i * 0.05) * (i % 2 ? -1 : 1));
+      coastie(ctx, 0, 0, 1.6, Math.sin(s * 0.6 + i) * 1.4);
       ctx.restore();
     }
     if (s < 40) {

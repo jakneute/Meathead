@@ -2,6 +2,7 @@
 // waterspout, the junk whirling up the storm tower, the Eye's arena, and the
 // daycare (before and after the flood).
 
+import { deadCoastie } from './chaseDraw';
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { COURSE } from './course';
@@ -464,6 +465,9 @@ export const drawDaycare = (ctx: Ctx, state: GameState, dc: Daycare) => {
   ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 5;
   ctx.beginPath(); ctx.moveTo(px, g); ctx.lineTo(px + 40, g - 60); ctx.lineTo(px + 110, g - 30); ctx.lineTo(px + 160, g); ctx.stroke();
   ctx.fillStyle = '#64748B'; ctx.beginPath(); ctx.ellipse(px - 120, g - 40, 40, 12, 0.7, 0, Math.PI * 2); ctx.fill();
+  // A couple of the Coast Guard, come down with the rest of it: one draped over the car on the roof, one head first in the sandbox
+  deadCoastie(ctx, bx - 40, g - 140, 2.4, 0.3);
+  ctx.save(); ctx.translate(bx - 255, g - 2); ctx.rotate(Math.PI); deadCoastie(ctx, 0, 0, 2.2, 0); ctx.restore();
   // The grown-ups, once the wave's done with them
   if (t < 0 || t >= RIDE_END) ADULT_SPLAT.forEach((dx, k) => splatAdult(ctx, bx + dx, g, k as 0 | 1));
   // Puddles
@@ -504,6 +508,8 @@ export const drawDaycareFront = (ctx: Ctx, state: GameState, dc: Daycare) => {
       ctx.fillStyle = 'rgba(224, 242, 254, 0.7)';
       for (let i = 0; i < 12; i++) ctx.fillRect(bx - w / 2 + ((i * 37 + f * 9) % w), top + ((i * 53 + f * 21) % Math.max(1, bottom - top)), 6, 40);
     }
+    // (and a couple of the Coast Guard coming down in it, with everything else)
+    if (t < 146) for (let k = 0; k < 2; k++) { const kk = Math.min(1, (t - 100) / 44); deadCoastie(ctx, bx - 60 + k * 90, state.camera.y - 40 + (g - state.camera.y) * kk - k * 60, 2.4, t * 0.2 * (k ? 1 : -1)); }
     if (t > 140) {
       // The wave spreading out across the lawn
       const spread = (t - 140) * 18;
