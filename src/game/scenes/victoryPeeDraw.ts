@@ -14,9 +14,8 @@ const PEE_LIGHT = '#FFF59D';
 export const drawVictoryPee = (ctx: CanvasRenderingContext2D, state: GameState) => {
   const c = state.bossCorpse;
   const p = state.player;
-  const { peeing, shaking, out } = peeProgress(p.peeTimer);
+  const { peeing, shaking, out, t } = peeProgress(p.peeTimer);
   if (!c || !out) return;
-  const t = p.peeTimer || 0;
   const frame = state.frame;
   const f = p.facing;
   const feetX = p.pos.x + p.width / 2, feetY = p.pos.y + p.height;
@@ -72,35 +71,44 @@ export const drawVictoryPee = (ctx: CanvasRenderingContext2D, state: GameState) 
     }
   }
 
-  // His meaty wiener, out of the fly (local frame: feet centre, facing +x)
+  // The whole of it out, pants round his ankles (local frame: feet centre, facing +x): the hair, his balls hanging, and
+  // his meaty wiener, held out in both hands
   ctx.translate(feetX, feetY);
   ctx.scale(f, 1);
   const shake = shaking ? Math.sin(t * 2.2) * 0.35 : Math.sin(frame * 0.2) * 0.04;
-  ctx.fillStyle = '#0F1B3D'; // open fly
-  ctx.fillRect(3, -25, 4, 7);
+  // (the hair: a dark thatch at the base of it, curls off the edges)
+  ctx.fillStyle = '#2A170B';
+  ctx.beginPath(); ctx.ellipse(4, -24, 5.5, 3.2, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#2A170B'; ctx.lineWidth = 0.7;
+  for (let k = 0; k < 6; k++) { const a = -Math.PI + k * 0.6; ctx.beginPath(); ctx.arc(4 + Math.cos(a) * 5.5, -24 + Math.sin(a) * 3, 1, 0, Math.PI * 1.5); ctx.stroke(); }
+  // (his balls: hanging under it, a bit swinging, one lower than the other, wrinkled, a few hairs)
+  const swing = Math.sin(frame * 0.12) * 0.6 + (shaking ? Math.sin(t * 2.2) * 1.2 : 0);
+  for (const [bx, by, r, c] of [[3.2, -16.6, 3.6, SKIN_SHADOW], [6.6, -17.6, 3.4, '#D39B5A']] as const) {
+    ctx.fillStyle = c as string; ctx.beginPath(); ctx.ellipse(bx + swing * 0.5, by, r, r * 1.15, 0.2, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(120, 60, 25, 0.8)'; ctx.lineWidth = 0.6; ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(120, 60, 25, 0.6)'; ctx.lineWidth = 0.4;
+  for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.moveTo(2 + k * 1.6 + swing * 0.5, -19); ctx.quadraticCurveTo(3 + k * 1.6 + swing * 0.5, -16.5, 2 + k * 1.6 + swing * 0.5, -14.5); ctx.stroke(); }
+  ctx.beginPath(); ctx.moveTo(5 + swing * 0.5, -19.5); ctx.lineTo(5 + swing * 0.5, -14); ctx.stroke(); // (the seam)
   ctx.save();
   ctx.translate(6, -21);
   ctx.rotate(0.12 + shake);
   ctx.scale(1.4, 1.4); // it's Meathead, after all
+  // The shaft
   ctx.fillStyle = SKIN;
   ctx.strokeStyle = SKIN_SHADOW;
-  ctx.lineWidth = 1.2;
-  ctx.beginPath();
-  ctx.moveTo(0, -3);
-  ctx.lineTo(8, -3.2);
-  ctx.quadraticCurveTo(12.5, -3, 12.5, 0);
-  ctx.quadraticCurveTo(12.5, 3, 8, 3.2);
-  ctx.lineTo(0, 3);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-  ctx.strokeStyle = SKIN_SHADOW;
-  ctx.beginPath(); ctx.moveTo(8.5, -3); ctx.quadraticCurveTo(9.5, 0, 8.5, 3); ctx.stroke(); // head
-  ctx.fillStyle = SKIN_HIGHLIGHT;
-  ctx.fillRect(1, -2.2, 6, 1.2);
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(0, -2.8, 8.6, 5.6, 2.2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = SKIN_HIGHLIGHT; ctx.fillRect(1, -2.1, 6, 1.1);
   ctx.strokeStyle = '#B45309';                                                                  // a vein, naturally
-  ctx.lineWidth = 0.8;
-  ctx.beginPath(); ctx.moveTo(1, 1.5); ctx.quadraticCurveTo(4, 0.5, 7, 1.8); ctx.stroke();
+  ctx.lineWidth = 0.7;
+  ctx.beginPath(); ctx.moveTo(1, 1.5); ctx.quadraticCurveTo(4, 0.3, 7.6, 1.6); ctx.stroke();
+  // The head: rounder, a shade pinker, the ridge where it meets the shaft, the slit at the end
+  ctx.fillStyle = '#D9876E';
+  ctx.beginPath(); ctx.moveTo(8, -3.4); ctx.quadraticCurveTo(13.2, -3.6, 13.2, 0); ctx.quadraticCurveTo(13.2, 3.6, 8, 3.4); ctx.quadraticCurveTo(9.2, 0, 8, -3.4); ctx.fill();
+  ctx.strokeStyle = '#A0523D'; ctx.lineWidth = 0.8; ctx.stroke();
+  ctx.fillStyle = 'rgba(255, 220, 205, 0.7)'; ctx.fillRect(9.6, -2.6, 2, 0.9);
+  ctx.strokeStyle = '#6E2A1C'; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(13, -0.9); ctx.lineTo(13, 0.9); ctx.stroke();
   // Both hands holding it (the arms reaching down are drawn with Meathead)
   ctx.scale(1 / 1.4, 1 / 1.4);
   for (const [hx, shade] of [[1.5, SKIN_SHADOW], [6.5, SKIN]] as const) {

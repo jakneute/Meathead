@@ -103,7 +103,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const isIdle = p.isGrounded && !isWalking && !isCharging && !isDucking && !isUppercutting && !isDivekicking && !isHurt;
   // Victory lap after a weakness kill: weapon put away, and both hands on the job while he pisses
   const isUnarmed = !!state.bossCorpse && !!state.victoryString;
-  const isRelieving = isUnarmed && peeProgress(p.peeTimer).out;
+  const pee = peeProgress(p.peeTimer);
+  const isRelieving = isUnarmed && pee.busy;
   // Grim determination after a charge that didn't kill (like the Doom guy's rampage face)
   const isAngry = !!p.angryTimer && p.angryTimer > 0 && !isHurt && !isRelieving;
   // Sat astride the jet ski: knees forward, off-hand on the handlebars (the gun hand's free)
@@ -519,6 +520,30 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     drawPantLeg(ctx, -4, 0, 10, 14, pantsColor);
     drawBoot(ctx, -5, 12, 14, 7, true);
     ctx.restore();
+  } else if (isRelieving && pee.drop < 1) {
+    // Undoing the belt (pants still up), then the pants dropping: the top of them sliding down his thighs
+    const top = -22 + pee.drop * 12;
+    ctx.fillStyle = skinShadow; ctx.fillRect(-10, -22, 10, top + 22);
+    ctx.fillStyle = skinTone; ctx.fillRect(2, -22, 10, top + 22);
+    drawPantLeg(ctx, -10, top, 10, -6 - top, pantsShadow);
+    drawPantLeg(ctx, 2, top, 10, -6 - top, pantsColor, true);
+    drawBoot(ctx, -11, -6, 12, 7, false);
+    drawBoot(ctx, 2, -6, 14, 7, true);
+  } else if (isRelieving) {
+    // Pants round his ankles: bare thighs (hairy, the light on the front one), the pants bunched down over his boots
+    ctx.fillStyle = skinShadow; ctx.fillRect(-10, -22, 10, 15);
+    ctx.fillStyle = skinTone; ctx.fillRect(2, -22, 10, 15);
+    ctx.fillStyle = skinHighlight; ctx.fillRect(4, -21, 3, 10);
+    ctx.fillStyle = 'rgba(80, 40, 15, 0.45)';
+    for (let k = 0; k < 10; k++) { const hx = (k % 2 ? 3 : -9) + ((k * 37) % 8), hy = -20 + ((k * 13) % 12); ctx.fillRect(hx, hy, 0.8, 1.6); }
+    // (the bunch of them: folds of navy, the waistband turned out on top)
+    for (const [bx, c] of [[-11, pantsShadow], [1, pantsColor]] as const) {
+      ctx.fillStyle = c; ctx.beginPath(); ctx.roundRect(bx, -10, 12, 6, 2); ctx.fill();
+      ctx.fillStyle = '#0F1B3D'; ctx.fillRect(bx + 2, -8, 8, 0.8); ctx.fillRect(bx + 1, -6, 9, 0.8);
+      ctx.fillStyle = '#E5E7EB'; ctx.fillRect(bx, -10.5, 12, 1.4);
+    }
+    drawBoot(ctx, -11, -6, 12, 7, false);
+    drawBoot(ctx, 2, -6, 14, 7, true);
   } else {
     // Idle grounded solid stance
     drawPantLeg(ctx, -10, -22, 10, 16, pantsShadow);
@@ -538,6 +563,13 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // LAYER 3: WEIGHTLIFTING BELT
   // ==========================================
   ctx.save();
+  // (undone and gone down with the pants: round his ankles, not round his waist)
+  if (isRelieving && pee.drop > 0) {
+    const by = -27 + pee.drop * 21;
+    ctx.fillStyle = beltColor; ctx.fillRect(-13, by, 26, 4);
+    ctx.fillStyle = beltBuckle; ctx.fillRect(-12, by - 1, 6, 6);
+    ctx.fillStyle = beltColor; ctx.save(); ctx.translate(13, by + 2); ctx.rotate(0.9); ctx.fillRect(0, -2, 10, 4); ctx.restore();
+  } else {
   const beltY = isDucking ? -16 : -27;
   const beltH = isDucking ? 6 : 7;
   // Heavy brown leather strap
@@ -567,6 +599,12 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   }
   ctx.fillStyle = '#FEF9C3';
   ctx.fillRect(-4, beltY, 2.5, 1.2);
+  // (being undone: the strap end pulled free of the buckle, flapping)
+  if (isRelieving && pee.undoing && (p.peeTimer || 0) > 8) {
+    const flap = Math.sin(animFrame * 0.6) * 0.3;
+    ctx.fillStyle = beltColor; ctx.save(); ctx.translate(5, beltY + 3); ctx.rotate(0.6 + flap); ctx.fillRect(0, -3, 12, 6); ctx.restore();
+  }
+  }
   ctx.restore();
 
   // ==========================================

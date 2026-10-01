@@ -1,5 +1,6 @@
 // After a weakness kill, while VICTORY spells out, Meathead strolls over to
-// what's left of the boss and takes a leak on it.
+// what's left of the boss and takes a leak on it: belt undone, pants straight
+// down round his ankles (it's how he does it everywhere), and let it go.
 
 import { CANVAS_WIDTH, BOSS_DOOR_X, ARENA_LEFT, GROUND_Y, GRAVITY } from '../../constants';
 import { TOMMY_BOARD_Y } from '../bosses/tommy';
@@ -10,6 +11,9 @@ const STAND_OFF = 72;        // how far from the corpse he stands
 const WALK_SPEED = 3.5;
 const PEE_FRAMES = 200;      // then a shake and he's done
 export const PEE_SHAKE_FRAMES = 14;
+/** First the belt (fumbling with the buckle), then the pants dropping, then it starts. */
+export const PEE_UNBUCKLE = 26, PEE_DROP = 10, PEE_START = PEE_UNBUCKLE + PEE_DROP;
+const PEE_END = PEE_START + PEE_FRAMES + PEE_SHAKE_FRAMES;
 
 export const updateVictoryPee = (ctx: FrameContext) => {
   const { state, stageId } = ctx;
@@ -42,11 +46,14 @@ export const updateVictoryPee = (ctx: FrameContext) => {
     state.playerAnimFrame++;
   } else {
     p.vel.x = 0;
-    if ((p.peeTimer || 0) < PEE_FRAMES + PEE_SHAKE_FRAMES) p.peeTimer = (p.peeTimer || 0) + 1;
+    if ((p.peeTimer || 0) < PEE_END) p.peeTimer = (p.peeTimer || 0) + 1;
     state.playerAnimFrame++;
-    // Tinkle tinkle, once the stream reaches him
     const t = p.peeTimer || 0;
-    if (t > 12 && t <= PEE_FRAMES && (state.frame % 5 === 0 || Math.random() < 0.08)) ctx.fx.playGunSound('tinkle');
+    // (the buckle, and the pants hitting the floor)
+    if (t === 6) ctx.fx.playGunSound('clink');
+    if (t === PEE_UNBUCKLE + PEE_DROP - 2) ctx.fx.playGunSound('land', 0.5);
+    // Tinkle tinkle, once the stream reaches him
+    if (t > PEE_START + 12 && t <= PEE_START + PEE_FRAMES && (state.frame % 5 === 0 || Math.random() < 0.08)) ctx.fx.playGunSound('tinkle');
   }
 
   // In a wide arena the camera keeps him and the corpse in view
@@ -57,11 +64,21 @@ export const updateVictoryPee = (ctx: FrameContext) => {
   }
 };
 
-export const peeFinished = (peeTimer: number | undefined) => (peeTimer || 0) >= PEE_FRAMES + PEE_SHAKE_FRAMES;
+export const peeFinished = (peeTimer: number | undefined) => (peeTimer || 0) >= PEE_END;
 
-/** 0 before he starts, then how far into the leak he is; the stream flows until PEE_FRAMES. */
-export const peeProgress = (peeTimer: number | undefined) => ({
-  peeing: !!peeTimer && peeTimer <= PEE_FRAMES,
-  shaking: !!peeTimer && peeTimer > PEE_FRAMES && peeTimer < PEE_FRAMES + PEE_SHAKE_FRAMES,
-  out: !!peeTimer && peeTimer < PEE_FRAMES + PEE_SHAKE_FRAMES,
-});
+/**
+ * Where he's got to: undoing the belt, the pants dropping (`drop`: 0 up to 1 round his ankles), then it out and the
+ * stream going (`t`: frames since it started), then the shake. `busy`: any of it (hands down there, weapon away).
+ */
+export const peeProgress = (peeTimer: number | undefined) => {
+  const p = peeTimer || 0, t = p - PEE_START;
+  return {
+    busy: p > 0 && p < PEE_END,
+    undoing: p > 0 && p <= PEE_UNBUCKLE,
+    drop: p <= PEE_UNBUCKLE ? 0 : Math.min(1, (p - PEE_UNBUCKLE) / PEE_DROP),
+    t,
+    peeing: t > 0 && t <= PEE_FRAMES,
+    shaking: t > PEE_FRAMES && t < PEE_FRAMES + PEE_SHAKE_FRAMES,
+    out: t > 0 && p < PEE_END,
+  };
+};
