@@ -24,6 +24,8 @@ export const gymLayout: StageLayout = {
     // The wall behind his bench, and the locker room doors at the end (shut, till the bigger fellas open them)
     const wall = (x: number, tag: string): Block => ({ x, y: -3000, w: 60, h: 4400, type: 'wall', hidden: true, tag });
     state.blocks.push(wall(C.x1 - 60, 'gym-back'), wall(C.doors, 'gym-doors'));
+    // The ceiling: nobody's jumping up out through it (its underside's where the drawn one's trim is)
+    state.blocks.push({ x: C.x1 - 60, y: -3000, w: C.doors - C.x1 + 120, h: 3070, type: 'wall', hidden: true, tag: 'gym-ceiling' });
     state.stage = createGymRuntime(state);
     const cp = state.checkpoint;
     if (cp > 0) { state.cameraRestY = 0; return C.checkpoints[cp]; }

@@ -34,11 +34,21 @@ export const drawGymBack = (ctx: Ctx, state: GameState) => {
 /** The back wall: cinderblock, the lower half painted red and the top a dirty cream, a stripe between; the ceiling's beams and the tube lights hung off them. */
 const drawWall = (ctx: Ctx, state: GameState, x1: number, x2: number) => {
   const f = state.frame;
-  // (the ceiling: dark, the beams across it)
-  ctx.fillStyle = '#17110E'; ctx.fillRect(x1, 0, x2 - x1, 70);
-  ctx.fillStyle = '#251C17';
-  for (let x = Math.floor(x1 / 160) * 160; x < x2; x += 160) ctx.fillRect(x, 0, 18, 70);
-  ctx.fillStyle = '#2E241E'; ctx.fillRect(x1, 62, x2 - x1, 8);
+  // (the ceiling: a drop ceiling, its tiles gone yellow and water-stained in the grid, one missing (the dark up
+  // through it), a duct running along under it, the trim where it meets the wall)
+  ctx.fillStyle = '#6E685A'; ctx.fillRect(x1, 0, x2 - x1, 70);
+  for (let x = Math.floor(x1 / 64) * 64; x < x2; x += 64) for (let y = 0; y < 60; y += 30) {
+    const h = hash(x * 0.11 + y * 3.7);
+    ctx.fillStyle = h > 0.97 ? '#0E0A08' : h > 0.5 ? '#8A8473' : '#7E7868'; ctx.fillRect(x + 2, y + 2, 60, 26);
+    if (h > 0.97) continue;
+    ctx.fillStyle = 'rgba(60, 50, 30, 0.25)'; for (let k = 0; k < 6; k++) ctx.fillRect(x + 6 + hash(x + k + y) * 50, y + 6 + hash(x - k + y) * 18, 1, 1);
+    if (h < 0.12) { ctx.fillStyle = 'rgba(120, 84, 30, 0.35)'; ctx.beginPath(); ctx.ellipse(x + 30, y + 15, 18, 9, 0, 0, Math.PI * 2); ctx.fill(); }
+  }
+  ctx.fillStyle = '#B8B2A0'; for (let x = Math.floor(x1 / 64) * 64; x < x2; x += 64) ctx.fillRect(x, 0, 2, 60);
+  ctx.fillRect(x1, 0, x2 - x1, 2); ctx.fillRect(x1, 30, x2 - x1, 2);
+  ctx.fillStyle = '#52525B'; ctx.fillRect(x1, 46, x2 - x1, 12); ctx.fillStyle = '#71717A'; ctx.fillRect(x1, 46, x2 - x1, 2);
+  ctx.fillStyle = '#3F3F46'; for (let x = Math.floor(x1 / 200) * 200; x < x2; x += 200) ctx.fillRect(x, 44, 4, 16);
+  ctx.fillStyle = '#2E241E'; ctx.fillRect(x1, 60, x2 - x1, 10); ctx.fillStyle = '#4A3E34'; ctx.fillRect(x1, 60, x2 - x1, 2);
   // (the wall: cinderblock, every block its own shade)
   ctx.fillStyle = '#B9AE94'; ctx.fillRect(x1, 70, x2 - x1, Y - 70 - 170);
   ctx.fillStyle = '#7F1D1D'; ctx.fillRect(x1, Y - 170, x2 - x1, 170);
