@@ -572,16 +572,43 @@ export const explodeOilRocket = (ctx: FrameContext, pos: Vector2, rocketVelX?: n
   state.screenShakeTimer = 8;
 };
 
-/** Setting an oiled enemy on fire: a huge blast that wipes out everything nearby. */
-export const detonateNuke = (ctx: FrameContext, pos: Vector2) => {
+/** How far a blast set off by a fire hazard reaches (contained: round him, not the whole screen). */
+export const HAZARD_NUKE_RADIUS = 190;
+
+/**
+ * An oiled one into a fire hazard (lava, a gas jet, burning oil, a lit gusher): he goes up, a contained blast round
+ * him, and takes whatever's close with him (never Meathead). True if he did. An oiled Toxic Tommy does what an oiled
+ * Toxic Tommy always does near fire (and that one does get Meathead).
+ */
+export const oiledIntoFire = (ctx: FrameContext, e: Enemy): boolean => {
+  if (!e.isOiled || e.health <= 0 || e.isBlownAway || e.kind === 'moose') return false;
+  if (e.type === 'boss') {
+    if (ctx.stageId === TOXIC_TOMMY && ctx.state.arenaLocked && !ctx.state.sewerNuke) { detonateSewerNuke(ctx, e); return true; }
+    return false;
+  }
+  e.isOiled = false; e.oiledTimer = 0;
+  detonateNuke(ctx, { x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 }, HAZARD_NUKE_RADIUS);
+  return true;
+};
+
+/**
+ * Setting an oiled enemy on fire: a huge blast that wipes out everything nearby (`radius`: smaller, for one set off
+ * by a fire hazard, contained to round him). It never hurts Meathead.
+ */
+export const detonateNuke = (ctx: FrameContext, pos: Vector2, radius = OIL_ROCKET_NUKE_RADIUS) => {
   const { state, fx } = ctx;
-  for (let i = 0; i < 100; i++) {
+  const big = radius / OIL_ROCKET_NUKE_RADIUS;
+  // The fireball, the shockwave and the mushroom cloud (drawn: see render/blasts.ts)
+  (state.blasts ??= []).push({ x: pos.x, y: pos.y, r: radius, t: 0 });
+  // Embers flung out of it, white-hot cooling to red, and the odd lump of something
+  for (let i = 0; i < Math.round(36 * big); i++) {
+    const a = Math.random() * Math.PI * 2, sp = (4 + Math.random() * 12) * Math.sqrt(big);
     state.particles.push({
       pos: { ...pos },
-      vel: { x: (Math.random() - 0.5) * 40, y: (Math.random() - 0.5) * 40 },
-      life: 80 + Math.random() * 80,
-      color: i % 2 === 0 ? '#FFFFFF' : '#FFD700',
-      size: 15 + Math.random() * 20
+      vel: { x: Math.cos(a) * sp, y: Math.sin(a) * sp * 0.7 - 3 },
+      life: 30 + Math.random() * 40,
+      color: ['#FFFFFF', '#FEF08A', '#FACC15', '#F97316', '#DC2626'][i % 5],
+      size: 3 + Math.random() * 4,
     });
   }
 
@@ -589,7 +616,7 @@ export const detonateNuke = (ctx: FrameContext, pos: Vector2) => {
     if (e.health <= 0 || e.isBlownAway) return;
     const dx = (e.pos.x + e.width / 2) - pos.x;
     const dy = (e.pos.y + e.height / 2) - pos.y;
-    if (dx * dx + dy * dy >= OIL_ROCKET_NUKE_RADIUS * OIL_ROCKET_NUKE_RADIUS) return;
+    if (dx * dx + dy * dy >= radius * radius) return;
     // (a mid-boss caught in the blast takes a big hit, not the end of it)
     if (isMidBoss(e)) {
       const dmg = midBossDamage(e, MIDBOSS_NUKE_DAMAGE);
@@ -609,21 +636,21 @@ export const detonateNuke = (ctx: FrameContext, pos: Vector2) => {
     }
   });
 
-  // A ring of fire racing out to the edge of the blast
-  for (let i = 0; i < 48; i++) {
-    const a = (i / 48) * Math.PI * 2;
-    const speed = OIL_ROCKET_NUKE_RADIUS / 22;
+  // Flames licking out along the shockwave, low along the ground
+  for (let i = 0; i < Math.round(28 * big); i++) {
+    const a = (i / Math.round(28 * big)) * Math.PI * 2;
+    const speed = radius / 24;
     state.particles.push({
-      pos: { ...pos },
-      vel: { x: Math.cos(a) * speed, y: Math.sin(a) * speed * 0.6 },
-      life: 22,
-      color: i % 3 === 0 ? '#FFFFFF' : i % 3 === 1 ? '#FFD700' : '#FF6D00',
-      size: 10 + Math.random() * 8,
+      pos: { x: pos.x, y: pos.y + radius * 0.1 },
+      vel: { x: Math.cos(a) * speed, y: Math.sin(a) * speed * 0.3 },
+      life: 20,
+      color: i % 2 ? '#F97316' : '#FACC15',
+      size: 5 + Math.random() * 4,
     });
   }
   fx.playGunSound('nuke');
-  state.screenShakeTimer = 30;
-  state.screenShakeMagnitude = 12;
+  state.screenShakeTimer = Math.round(30 * Math.max(0.5, big));
+  state.screenShakeMagnitude = Math.round(12 * Math.max(0.5, big));
 };
 
 /**

@@ -13,6 +13,7 @@ import { hurtPlayer } from '../../bosses/shared';
 import { playSound } from '../../platform/audio';
 import { COURSE, OilPatch, Jet, Geyser, Mover, pitAt } from './course';
 import { rectsOverlap, boundsOf } from '../../core/utils';
+import { oiledIntoFire } from '../../combat/weapons';
 
 /** A patch of oil: burning (frames left of it), whether it's burned off, and (if it pools back) how long till it has;
  * whether it was him that lit it this time (his flamethrower), or a gas jet. */
@@ -107,7 +108,8 @@ export const updateField = (ctx: FrameContext, f: Field) => {
     const box = jetBox(j);
     if (state.frame % 20 === 0 && rectsOverlap(boundsOf(p), box) && p.invincibilityTimer <= 0 && !p.inCutscene) hurtPlayer(ctx, JET_DAMAGE, 'gas_jet', { x: j.dir === 'left' ? -5 : j.dir === 'right' ? 5 : 0, y: -9 });
     for (const e of state.enemies) {
-      if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || state.frame % 8 !== 0 || !rectsOverlap(boundsOf(e), box)) continue;
+      if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || !rectsOverlap(boundsOf(e), box)) continue;
+      if (oiledIntoFire(ctx, e) || state.frame % 8 !== 0) continue;
       e.health -= 12;
       if (e.health <= 0) fx.killWithAnimation(e, 'charred', 'flamethrower_kill', 'charred');
     }
@@ -142,6 +144,7 @@ export const updateField = (ctx: FrameContext, f: Field) => {
       if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || e.enemyType === 'flyer') continue;
       const ex = e.pos.x + e.width / 2;
       if (ex < o.x1 || ex > o.x2 || e.pos.y + e.height < groundLineAt(state.groundRuns, ex) - 30) continue;
+      if (oiledIntoFire(ctx, e)) continue;
       if (state.frame % 3 === 0) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + e.height - Math.random() * e.height }, vel: { x: (Math.random() - 0.5) * 2, y: -2 - Math.random() * 2 }, life: 18, color: Math.random() < 0.5 ? '#F97316' : '#FDE047', size: 4 + Math.random() * 5 });
       if (state.frame % 6 === 0) {
         e.health -= BURN_ENEMY;
@@ -230,7 +233,7 @@ const updateGeysers = (ctx: FrameContext, f: Field, jetsOn: Jet[]) => {
     for (const e of state.enemies) {
       if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || !rectsOverlap(boundsOf(e), box) || (e.hazardHitAt ?? -1e9) >= state.frame - k) continue;
       e.hazardHitAt = state.frame;
-      if (g.lit) { e.health = 0; fx.killWithAnimation(e, 'charred', 'flamethrower_kill', 'charred'); continue; }
+      if (g.lit) { if (!oiledIntoFire(ctx, e)) { e.health = 0; fx.killWithAnimation(e, 'charred', 'flamethrower_kill', 'charred'); } continue; }
       e.health -= 30;
       fx.spawnDamageNumber(e.pos, 30);
       if (e.health <= 0) { fx.blowAwayEnemy(e, { x: (Math.random() - 0.5) * 6, y: -20 }, 'oil_kill', 0); continue; }

@@ -15,7 +15,7 @@ import { respawn, getStartX } from './level';
 import { updateSewerNuke } from '../scenes/sewerNuke';
 import { updateEnemyDeaths } from '../enemies/deaths';
 import { updateVolcanoFinale } from '../scenes/volcanoFinale';
-import { calmPlayer, DEFAULT_SHAKE, shakeScreen, BOSS_FALL, STAIN_FRAMES, SMEAR_FRAMES } from './state';
+import { calmPlayer, DEFAULT_SHAKE, shakeScreen, BOSS_FALL, STAIN_FRAMES, SMEAR_FRAMES, BLAST_FRAMES } from './state';
 import { playSound } from '../platform/audio';
 import { LEVEL_INTRO_STYLE, PLAYER_GRAVITY, PLAYER_TERMINAL_VELOCITY } from '../../constants';
 import { updateBarfStream, updateFlameSegments } from '../combat/weapons';
@@ -72,7 +72,15 @@ export const stepGame = (ctx: FrameContext, status: GameStatus, controls: Contro
 // Non-gameplay phases
 // ---------------------------------------------------------------------------
 
+/** The fire-meets-oil blasts, playing out. */
+const tickBlasts = (state: FrameContext['state']) => {
+  if (!state.blasts?.length) return;
+  for (const b of state.blasts) b.t++;
+  state.blasts = state.blasts.filter(b => b.t < BLAST_FRAMES);
+};
+
 const moveLooseParticles = (ctx: FrameContext) => {
+  tickBlasts(ctx.state);
   ctx.state.particles = ctx.state.particles.filter(p => {
     if (!p.isStuck) { p.pos.x += p.vel.x; p.pos.y += p.vel.y; p.life--; }
     return p.life > 0;
@@ -588,6 +596,7 @@ const updatePickups = (ctx: FrameContext) => {
 
 const updateParticlesAndNumbers = (ctx: FrameContext) => {
   updateParticles(ctx);
+  tickBlasts(ctx.state);
   updateEnemyDeaths(ctx.state);
   updateDamageNumbers(ctx);
 };

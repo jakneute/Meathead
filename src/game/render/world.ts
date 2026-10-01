@@ -37,6 +37,7 @@ import { SKIP_AFTER, drawSkipPrompt } from '../platform/skip';
 import {
   drawOilSlicks, drawOscarFire, drawOscarLaser, drawOscarRocket, drawFlyingCigarette, drawTaserOverload,
 } from './bosses/oscarGear';
+import { drawBlasts } from './blasts';
 
 export interface WorldView {
   status: GameStatus;
@@ -136,6 +137,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     if (state.player.isTasing && state.player.currentWeapon === 'TASER') drawTaserBeam(wctx, state);
     drawProjectiles(wctx, state, 'flying');
     if (state.waterShock) drawWaterShock(wctx, state.waterShock, state.frame);
+    drawBlasts(wctx, state);
     drawParticlesAndDamageNumbers(wctx, state);
     drawBarryLighting(wctx, state, stageId);
     if (state.sewerNuke) drawSewerNukeInside(wctx, state);

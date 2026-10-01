@@ -24,6 +24,7 @@ import { hurtPlayer } from '../../bosses/shared';
 import { playSound } from '../../platform/audio';
 import { rectsOverlap, boundsOf, isOnScreen } from '../../core/utils';
 import { COURSE, isLava } from './course';
+import { oiledIntoFire } from '../../combat/weapons';
 
 export interface Bomb { x: number; ground: number; t: number }
 export interface Raft { lane: number; block: Block; x: number; t: number }
@@ -73,6 +74,8 @@ const hurt = (ctx: FrameContext, hz: Hazards, dmg: number, cause: string, kb: { 
 
 /** An enemy caught in a hazard: it takes the damage, and cooks if that's the end of it. */
 const burnEnemy = (ctx: FrameContext, e: Enemy, dmg: number) => {
+  // (oiled: he goes up)
+  if (oiledIntoFire(ctx, e)) return;
   e.health -= dmg;
   ctx.fx.spawnDamageNumber(e.pos, dmg, dmg >= 50);
   if (e.health <= 0) ctx.fx.killWithAnimation(e, 'charred', 'flamethrower_kill', 'cooked');
@@ -125,6 +128,7 @@ const updateLava = (ctx: FrameContext, hz: Hazards) => {
     if (e.kind === 'magmafish' || e.health <= 0 || e.isBlownAway || e.kind === 'doorman') continue;
     const s = lavaAt(state, e.pos.x + e.width / 2);
     if (s !== null && e.pos.y + e.height >= s - 2) {
+      if (oiledIntoFire(ctx, e)) continue;
       e.health = 0;
       ctx.fx.killWithAnimation(e, 'charred', 'flamethrower_kill', 'cooked');
     }
