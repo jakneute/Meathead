@@ -403,6 +403,8 @@ export const resetStageState = (s: GameState) => {
   s.doorOpenAmount = 0;
 
   s.playerLastVulgarity = "";
+  // (and in clean pants: a new stage, a respawn, back to the menu; whatever happened crouching last time, didn't)
+  s.player.gut = undefined;
   s.playerVulgarityTimer = 0;
   s.bossLastVulgarity = "";
   s.bossVulgarityTimer = 0;

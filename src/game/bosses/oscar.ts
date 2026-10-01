@@ -192,16 +192,21 @@ const salesTalk = (ctx: FrameContext, boss: Enemy) => {
   if (state.frame < boss.pitchAt || isTalking() || boss.bossState === 'taser_held' || boss.bossState === 'ash_face') return;
   boss.pitchAt = state.frame + PITCH_GAP + Math.round(Math.random() * PITCH_GAP_RANGE);
   let pitch: string, reply: string;
+  // (he's walked in having shit himself: the whole conversation's about that)
+  const shat = state.player.gut?.stage === 2;
+  const [PITCH, PITCH_BACK, BRIBE, BRIBE_BACK] = shat
+    ? [OSCAR_LINES.SHAT_PITCH, OSCAR_LINES.SHAT_PITCH_BACK, OSCAR_LINES.SHAT_BRIBE, OSCAR_LINES.SHAT_BRIBE_BACK]
+    : [OSCAR_LINES.PITCH, OSCAR_LINES.PITCH_BACK, OSCAR_LINES.BRIBE, OSCAR_LINES.BRIBE_BACK];
   if (boss.health < boss.maxHealth / 2) {
     // (once he's offered everything he's got, that's it: he's got nothing left to offer)
     const i = boss.bribeN ?? 0;
-    if (i >= OSCAR_LINES.BRIBE.length) return;
+    if (i >= BRIBE.length) return;
     boss.bribeN = i + 1;
-    pitch = OSCAR_LINES.BRIBE[i]; reply = OSCAR_LINES.BRIBE_BACK[i];
+    pitch = BRIBE[i]; reply = BRIBE_BACK[i];
   } else {
-    const i = (boss.pitchN ?? 0) % OSCAR_LINES.PITCH.length;
+    const i = (boss.pitchN ?? 0) % PITCH.length;
     boss.pitchN = (boss.pitchN ?? 0) + 1;
-    pitch = OSCAR_LINES.PITCH[i]; reply = OSCAR_LINES.PITCH_BACK[i];
+    pitch = PITCH[i]; reply = PITCH_BACK[i];
   }
   speakAsBoss(OSCAR, pitch, ctx.bossHelpers);
   boss.pitchReply = reply; boss.pitchQuiet = 0;

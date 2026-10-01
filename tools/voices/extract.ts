@@ -57,7 +57,8 @@ for (const [boss, r] of Object.entries(dialogue.BOSS_SHAT_LINES)) if (BOSS_ID[bo
 for (const t of allStrings(dialogue.GUT_LINES)) add('meathead', t, 'GUT');
 for (const t of allStrings(dialogue.DALE_LINES)) add('boss.dale', t, 'DALE_LINES');
 for (const t of allStrings(dialogue.BARRY_LINES)) add('boss.barry', t, 'BARRY_LINES');
-for (const t of allStrings(dialogue.OSCAR_LINES)) add('boss.oscar', t, 'OSCAR_LINES');
+// (his sales talk; the _BACK tables are Meathead's answers to it)
+for (const [k, v] of Object.entries(dialogue.OSCAR_LINES)) for (const t of allStrings(v)) add(k.endsWith('_BACK') ? 'meathead' : 'boss.oscar', t, 'OSCAR_LINES');
 // The death announcer: the plain death screen, and the one the sewer blows up with
 add('death', 'YOU DIED', 'killPlayer');
 for (const t of allStrings([deaths.DEATH_LINES, deaths.BOSS_DEATH_LINES, deaths.FALL_DEATH_LINES])) add('death', t, 'content/deaths');
