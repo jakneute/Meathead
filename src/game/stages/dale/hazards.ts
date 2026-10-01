@@ -41,6 +41,20 @@ const CACTUS_DAMAGE = 12, CRATE_DAMAGE = 10;
 /** What comes down off a high line: how far its cloud of powder reaches, what it does to him, how long a crate wobbles
  * before it tips. */
 const BLAST_R = 80, BLAST_DAMAGE = 8, WOBBLE = 40;
+/** What it does to them: one coming down on one, and the blast. */
+const CRUSH_DAMAGE = 60, BLAST_ENEMY_DAMAGE = 30;
+
+/** Can a crate (or its powder) get this one: a goon, not the boss, not Chuco, not anyone already going. */
+const canHit = (e: Enemy) => e.health > 0 && !e.isBlownAway && e.type !== 'boss' && e.kind !== 'junkie' && !e.innocent;
+
+/** A crate (or its blast) gets one of them: hurt and knocked about, or blown away if that's him done. */
+const crush = (ctx: FrameContext, e: Enemy, damage: number, vel: { x: number; y: number }) => {
+  const { fx } = ctx;
+  e.health -= damage;
+  fx.spawnDamageNumber(e.pos, damage);
+  if (e.health <= 0) { fx.blowAwayEnemy(e, vel, 'charge_kill', Math.sign(vel.x)); fx.spawnKillCallout(e, 'crush'); }
+  else { e.vel.x = vel.x; e.pauseTimer = 30; }
+};
 
 export const createHazards = (): Hazards => ({
   crates: [],
@@ -117,9 +131,12 @@ export const updateHazards = (ctx: FrameContext, hz: Hazards) => {
     } else {
       const was = cr.y + CRATE;
       cr.vy += 0.6; cr.x += cr.vx; cr.y += cr.vy;
+      // Coming down on one of them: that's him flattened (and it bursts on him)
+      const under = state.enemies.find(e => canHit(e) && rectsOverlap({ x: cr.x, y: cr.y, w: CRATE, h: CRATE }, boundsOf(e)));
+      if (under) { crush(ctx, under, CRUSH_DAMAGE, { x: cr.vx, y: -6 }); burst(ctx, cr); return false; }
       // Down on the floor, or onto a line under it: it bursts
-      const under = COURSE.belts.find((o, k) => k !== cr.belt && cr.x + CRATE > o.x && cr.x < o.x + o.w && was <= o.y && cr.y + CRATE >= o.y);
-      if (under) { cr.y = under.y - CRATE; burst(ctx, cr); return false; }
+      const onto = COURSE.belts.find((o, k) => k !== cr.belt && cr.x + CRATE > o.x && cr.x < o.x + o.w && was <= o.y && cr.y + CRATE >= o.y);
+      if (onto) { cr.y = onto.y - CRATE; burst(ctx, cr); return false; }
       if (cr.y + CRATE >= 550) { cr.y = 550 - CRATE; burst(ctx, cr); return false; }
     }
     const box = { x: cr.x, y: cr.y, w: CRATE, h: CRATE };
@@ -174,6 +191,12 @@ const powderBlast = (ctx: FrameContext, x: number, y: number) => {
   }
   playSound('boom', 0.5, 6); playSound('whoosh', 0.7, -8);
   shakeScreen(state, 6, 3);
+  // (it gets them too: knocked flying, or done for)
+  for (const e of state.enemies) {
+    if (!canHit(e)) continue;
+    const eb = boundsOf(e), ex = eb.x + eb.w / 2 - x, ey = eb.y + eb.h - y;
+    if (Math.abs(ex) < BLAST_R && ey > -BLAST_R - 40 && ey < 30) crush(ctx, e, BLAST_ENEMY_DAMAGE, { x: (ex < 0 ? -1 : 1) * 8, y: -9 });
+  }
   const p = state.player, pb = boundsOf(p);
   const dx = pb.x + pb.w / 2 - x, dy = pb.y + pb.h - y;
   if (Math.abs(dx) < BLAST_R && dy > -BLAST_R - 40 && dy < 30 && p.invincibilityTimer <= 0 && state.deathTimer <= 0) {
