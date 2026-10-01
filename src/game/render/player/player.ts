@@ -250,6 +250,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
 
   // ==========================================
   // LAYER 1: BACK ARM (Off-Hand)
+  // (standing about, walking and in the air it hangs in front of him instead: this draws it, over the torso)
+  let freeArm: (() => void) | null = null;
   // ==========================================
   ctx.save();
   if (surf) {
@@ -345,13 +347,16 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       : isWalking ? 0.12 + Math.max(0, -Math.sin(walkPhase - 0.55)) * 0.5
       : isAirborne ? 0.45
       : 0.14 + Math.sin(animFrame * 0.05 + 0.8) * 0.05;
-    ctx.save();
-    ctx.translate(-15, -45);
-    ctx.rotate(armAngle);
-    drawArm(ctx, 0, 0, -0.5, 12, Math.sin(bend) * 10 - 0.5, 12 + Math.cos(bend) * 10, skinShadow, backArmShade, skinTone);
-    if (gore > 0.4) smear(ctx, -1, 4, 4, 3, bloodDark);
-    if (gore > 0.7) drip(ctx, 0, 5, 8);
-    ctx.restore();
+    // (in front of his body, not behind it: drawn once the torso's down, below)
+    freeArm = () => {
+      ctx.save();
+      ctx.translate(-15, -45);
+      ctx.rotate(armAngle);
+      drawArm(ctx, 0, 0, -0.5, 12, Math.sin(bend) * 10 - 0.5, 12 + Math.cos(bend) * 10, skinTone, skinShadow, skinHighlight);
+      if (gore > 0.4) smear(ctx, -1, 4, 4, 3, bloodDark);
+      if (gore > 0.7) drip(ctx, 0, 5, 8);
+      ctx.restore();
+    };
   }
   ctx.restore();
 
@@ -563,6 +568,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const pecY = isDucking ? -34 : -48;
   drawTorso(ctx, torsoTop, torsoHeight, pecY, isDucking);
   ctx.restore();
+  freeArm?.();
 
   // Twisted round in the seat to shoot behind: the head and the gun arm face back, the rest stays facing forward
   if (seatedBack) ctx.scale(-1, 1);
