@@ -3,6 +3,7 @@
 // Rebuilt with the level on every (re)spawn; the checkpoint says what's behind you.
 
 import type { GameState } from '../../core/state';
+import { GatorCam, createGatorCam } from './gatorCam';
 import type { FrameContext } from '../../core/context';
 import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
@@ -30,6 +31,8 @@ export interface HectorRuntime {
   news: News;
   /** The storm dying (after the Eye): frames of the whiteout into sunshine. */
   clearT: number;
+  /** Pulls back to show a gator eating somebody. */
+  gatorCam: GatorCam;
 }
 
 export type Region = 'main' | 'tower' | 'eye' | 'daycare';
@@ -78,6 +81,7 @@ export const createHectorRuntime = (state: GameState, skipToBoss: boolean): Hect
     eye: createEyeFight(state, startedAt),
     daycare: createDaycare(state, startedAt),
     clearT: 0,
+    gatorCam: createGatorCam(),
     news: createNews(),
   };
   applyRegionCamera(state, regionOf(start.x));

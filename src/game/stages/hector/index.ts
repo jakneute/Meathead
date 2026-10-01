@@ -16,6 +16,7 @@ import { drawEye } from './eyeDraw';
 import { drawSharksRound } from './drawSet';
 import { TOWER } from './tower';
 import { hectorScene } from './lighting';
+import { gatorZoom } from './gatorCam';
 
 export const hectorLayout: StageLayout = {
   waterBodyAt,
@@ -92,5 +93,7 @@ export const hectorLayout: StageLayout = {
   drawOverCylinder: (ctx, state, radius, around) => drawSharksRound(ctx, state, radius, around),
   cylinder: state => (regionOf(state.player.pos.x) === 'tower' ? { radius: TOWER.radius } : null),
   // (up the storm, every ledge is a different height: the camera drifts after him rather than jerking to each one)
+  // (a gator eating somebody: the camera pulls back to show it)
+  zoom: state => { const rt = getHector(state); return rt && regionOf(state.player.pos.x) === 'main' ? gatorZoom(state, rt.gatorCam) : null; },
   cameraEaseY: state => (regionOf(state.player.pos.x) === 'tower' ? 0.06 : undefined),
 };
