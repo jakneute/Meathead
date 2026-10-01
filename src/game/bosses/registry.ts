@@ -7,9 +7,10 @@ import { cutBossLines } from '../platform/speech';
 import { Enemy, Projectile, WeaponType, VulgarityType } from '../../types';
 import {
   ARENA_LEFT, ARENA_RIGHT, STAGE_WIDTH, BULLET_DAMAGE, WEAKNESS_DAMAGE, ENEMY_HIT_COOLDOWN, TASER_BOSS_DAMAGE_REDUCTION,
-  BOSS_WEAPON_REACTION_CHANCE, BOSS_WEAPON_REACTION_COOLDOWN, SPOKEN_TEXT_LINGER,
+  BOSS_WEAPON_REACTION_CHANCE, BOSS_WEAPON_REACTION_COOLDOWN, SPOKEN_TEXT_LINGER, BOSS_OWN_WEAPON_DAMAGE, BOSS_OWN_WEAPON_REACTION_CHANCE,
 } from '../../constants';
-import { BOSS_DIALOGUE, BOSS_WEAPON_REACTIONS } from '../../content/dialogue';
+import { BOSS_DIALOGUE, BOSS_WEAPON_REACTIONS, BOSS_OWN_WEAPON_LINES } from '../../content/dialogue';
+import { BOSS_WEAPON_MAP } from '../../content/roster';
 import type { FrameContext } from '../core/context';
 import { GameState, calmPlayer } from '../core/state';
 import { Fx } from '../core/effects';
@@ -108,6 +109,8 @@ export const weaponOf = (p: Partial<Projectile>): WeaponType => {
 };
 
 export const isWeakTo = (stageId: string | null, weapon: WeaponType) => getBossDef(stageId)?.weakness === weapon;
+/** It's the weapon Meathead took off him (only with cheats for now; a refight, one day): it barely hurts him. */
+export const isOwnWeapon = (stageId: string | null, weapon: WeaponType) => !!stageId && BOSS_WEAPON_MAP[stageId] === weapon;
 
 export const getBossDamage = (stageId: string | null, weapon: WeaponType) => {
   const def = getBossDef(stageId);
@@ -127,7 +130,8 @@ export const hitBoss = (
 ) => {
   const { stageId, state, fx } = ctx;
   const isWeakness = isWeakTo(stageId, weapon);
-  const dmg = damage ?? getBossDamage(stageId, weapon);
+  const full = damage ?? getBossDamage(stageId, weapon);
+  const dmg = isOwnWeapon(stageId, weapon) ? Math.max(0.1, full * BOSS_OWN_WEAPON_DAMAGE) : full;
   boss.health -= dmg;
   boss.hitCooldown = ENEMY_HIT_COOLDOWN;
   fx.spawnDamageNumber(boss.pos, dmg, isWeakness);
@@ -142,9 +146,17 @@ export const hitBoss = (
  * the killing blow, and never over another boss line that's still showing.
  */
 export const maybeReactToWeapon = (boss: Enemy, weapon: WeaponType, stageId: string | null, state: GameState, helpers: BossHelpers) => {
-  if (!stageId || boss.health <= 0 || state.bossReactionCooldown > 0 || state.bossVulgarityTimer > 0) return;
-  if (Math.random() >= BOSS_WEAPON_REACTION_CHANCE) return;
-  const lines = BOSS_WEAPON_REACTIONS[stageId]?.[weapon];
+  if (!stageId || boss.health <= 0 || state.bossVulgarityTimer > 0) return;
+  // (his own weapon: the first time, he always has something to say about it, cooldown or no)
+  const own = isOwnWeapon(stageId, weapon) && BOSS_OWN_WEAPON_LINES[stageId];
+  if (own && !boss.saidOwnWeapon) {
+    const line = pickFreshLine(own);
+    if (line && speakAsBoss(stageId, line, helpers, 'casual')) { boss.saidOwnWeapon = true; state.bossReactionCooldown = BOSS_WEAPON_REACTION_COOLDOWN; }
+    return;
+  }
+  if (state.bossReactionCooldown > 0) return;
+  if (Math.random() >= (own ? BOSS_OWN_WEAPON_REACTION_CHANCE : BOSS_WEAPON_REACTION_CHANCE)) return;
+  const lines = own || BOSS_WEAPON_REACTIONS[stageId]?.[weapon];
   if (!lines) return;
   const line = pickFreshLine(lines);
   if (line && speakAsBoss(stageId, line, helpers, 'casual')) state.bossReactionCooldown = BOSS_WEAPON_REACTION_COOLDOWN;

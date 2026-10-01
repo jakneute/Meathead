@@ -1094,6 +1094,69 @@ export const OSCAR_LINES = {
   ],
 };
 
+/**
+ * A boss hit with his own weapon (the one Meathead took off his corpse: only with cheats for now, or a refight one
+ * day). It barely hurts him, and he lets him know. These take the place of his usual line for that weapon.
+ */
+export const BOSS_OWN_WEAPON_LINES: Record<string, string[]> = {
+  'Artie Avalanche': [
+    "MY SHOTGUN? YOU PRIED THAT FROM MY FROZEN FINGERS!",
+    "ICE AGAINST THE ICE MAN. HOW DREADFULLY STUPID.",
+    "THAT'S MY OWN HAIL, YOU THIEVING OAF!",
+    "I MADE THOSE SHARDS. THEY KNOW THEIR MASTER.",
+    "SHOOTING ME WITH MY OWN WEATHER? HOW GAUCHE.",
+  ],
+  'Victor Volcano': [
+    "THAT'S MY FIRE! IT LOVES ME MORE THAN YOU!",
+    "YOU STOLE MY FLAMETHROWER AND POINTED IT AT ME?!",
+    "I'M LAVA, MEATHEAD! I SHOWER IN THIS!",
+    "GIVE IT BACK! THAT'S A PERSONAL ITEM!",
+    "OH NO, NOT MY OWN HEAT. ANYWAY.",
+  ],
+  'Ernie Earthquake': [
+    "MY... OWN... BOULDER?",
+    "THAT ROCK... CAME FROM... ME... BOY.",
+    "YOU CAN'T... HURT A MOUNTAIN... WITH ITSELF.",
+    "RETURNED... TO SENDER.",
+    "THIEF... GRAVE ROBBER... HOOLIGAN.",
+  ],
+  'Hector Hurricane': [
+    "DUDE! THAT'S MY WAVE!",
+    "YOU'RE SURFING MY OWN TSUNAMI AT ME?!",
+    "WATER? ON A HURRICANE? I'M LITERALLY MADE OF THIS, BRO!",
+    "THANKS FOR THE STORM SURGE, PAL!",
+    "YOU CAN'T DROWN THE WEATHER, MAN!",
+  ],
+  'Toxic Tommy': [
+    "THAT'S MY BARF! I KNOW MY OWN BARF! BLURGH!",
+    "SECONDHAND PUKE? HURK... THAT'S ALL MINE.",
+    "YOU BOTTLED MY LUNCH AND THREW IT BACK?",
+    "TASTES... FAMILIAR... BLEGH.",
+    "IT'S COMING HOME TO DADDY!",
+  ],
+  'Blackout Barry': [
+    "M-M-MY OWN TASER? I'M IMMUNE, D-DUMMY!",
+    "YOU'RE PLUGGING ME INTO MYSELF!",
+    "THAT'S MY VOLTAGE! I'M JUST TAKING IT BACK!",
+    "FEEDBACK LOOP! I LOVE A FEEDBACK LOOP!",
+    "SHOCKING. REALLY. NOT.",
+  ],
+  'Oily Oscar': [
+    "MY OWN LAUNCHER? THAT'S A LICENSING VIOLATION, PAL.",
+    "I SOLD YOU THAT. NO REFUNDS.",
+    "CRUDE ON A CRUDE MAN? TAKE IT UP WITH THE MANUFACTURER.",
+    "YOU'RE MARINATING ME, FRIEND. I'M INTO IT.",
+    "HITTING ME WITH MY OWN HARDWARE? I'LL INVOICE YOU.",
+  ],
+  'Drug Trade Dale': [
+    "BRO, THOSE ARE MY NEEDLES. I KNOW WHERE THEY'VE BEEN.",
+    "MY OWN STASH? NOT EVEN A DISCOUNT?",
+    "DUDE, I BUILT UP A TOLERANCE TO THAT YEARS AGO.",
+    "THAT'S MY RIG, MAN! GIVE IT BACK!",
+    "OH, THAT'S THE GOOD STUFF. THANKS, BRO.",
+  ],
+};
+
 export const BOSS_WEAPON_REACTIONS: Record<string, Partial<Record<WeaponType, string[]>>> = {
   'Artie Avalanche': {
     GUN: ["A PEASHOOTER? HOW QUAINT.", "BULLETS CHIP ICE, NOT MY EGO.", "IS THAT ALL YOUR TINY GUN CAN DO?"],

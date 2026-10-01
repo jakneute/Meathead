@@ -16,10 +16,10 @@ game/stages/ernie/alcatraz.ts:72 voice: voice
 game/stages/ernie/jetski.ts:488 name: undefined
 game/stages/ernie/bridge.ts:185 expr: 4
 game/stages/ernie/bridge.ts:185 expr: 72
-game/stages/ernie/index.ts:21 name: undefined
-game/stages/ernie/doorCrash.ts:101 voice: 'guide'
-game/stages/ernie/doorCrash.ts:111 voice: 'hipster'
-game/stages/ernie/doorCrash.ts:143 voice: 'meathead'
+game/stages/ernie/index.ts:22 name: undefined
+game/stages/ernie/doorCrash.ts:105 voice: 'guide'
+game/stages/ernie/doorCrash.ts:115 voice: 'hipster'
+game/stages/ernie/doorCrash.ts:147 voice: 'meathead'
 game/stages/dale/script.ts:82 voice: VOICES[line.who]
 game/stages/dale/runtime.ts:175 name: undefined
 game/stages/dale/runtime.ts:180 call: deathByCause(state)

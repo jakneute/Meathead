@@ -361,6 +361,8 @@ export interface Enemy extends Entity {
   isGroundedBoss?: boolean;
   sideTimer?: number;
   said75?: boolean;
+  /** A boss has had his say about being hit with his own weapon (the first time, he always does). */
+  saidOwnWeapon?: boolean;
   said50?: boolean;
   said25?: boolean;
   // Drug Trade Dale

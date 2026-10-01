@@ -20,6 +20,8 @@ export const SPOKEN_TEXT_HOLD = 1200;   // text stays up while its line is being
 export const SPOKEN_TEXT_LINGER = 30;   // ...and this long after it finishes
 export const BOSS_WEAPON_REACTION_CHANCE = 0.15;   // chance a boss taunts back when hit by a weapon
 export const BOSS_WEAPON_REACTION_COOLDOWN = 240; // frames between those taunts
+export const BOSS_OWN_WEAPON_DAMAGE = 0.12;      // a boss hit with his own weapon takes this much of the usual damage
+export const BOSS_OWN_WEAPON_REACTION_CHANCE = 0.5; // ...and after the first time (always), how often he says so
 export const VOICE_LINE_COOLDOWN_FRAMES = 60;
 
 // ==========================================

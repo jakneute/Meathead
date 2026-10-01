@@ -4067,7 +4067,7 @@
  {
   "voice": "death",
   "text": "DOWN THE WELL",
-  "from": "game/stages/ernie/index.ts:25"
+  "from": "game/stages/ernie/index.ts:26"
  },
  {
   "voice": "death",
@@ -4117,7 +4117,7 @@
  {
   "voice": "death",
   "text": "DROWNED IN THE DUNGEON",
-  "from": "game/stages/ernie/index.ts:25"
+  "from": "game/stages/ernie/index.ts:26"
  },
  {
   "voice": "death",
@@ -4172,7 +4172,7 @@
  {
   "voice": "death",
   "text": "ELECTRIC BATH",
-  "from": "game/combat/weapons.ts:655"
+  "from": "game/combat/weapons.ts:656"
  },
  {
   "voice": "death",
@@ -4212,7 +4212,7 @@
  {
   "voice": "death",
   "text": "ESCAPED FROM ALCATRAZ",
-  "from": "game/stages/ernie/index.ts:24"
+  "from": "game/stages/ernie/index.ts:25"
  },
  {
   "voice": "death",
@@ -4252,7 +4252,7 @@
  {
   "voice": "death",
   "text": "FELL THROUGH THE FLOOR",
-  "from": "game/stages/ernie/index.ts:23"
+  "from": "game/stages/ernie/index.ts:24"
  },
  {
   "voice": "death",
@@ -5382,7 +5382,7 @@
  {
   "voice": "death",
   "text": "SHARK FOOD",
-  "from": "game/stages/ernie/index.ts:24"
+  "from": "game/stages/ernie/index.ts:25"
  },
  {
   "voice": "death",
@@ -5417,7 +5417,7 @@
  {
   "voice": "death",
   "text": "SHOCKING LACK OF JUDGMENT",
-  "from": "game/combat/weapons.ts:655"
+  "from": "game/combat/weapons.ts:656"
  },
  {
   "voice": "death",
@@ -5812,7 +5812,7 @@
  {
   "voice": "death",
   "text": "SWIM FOR IT",
-  "from": "game/stages/ernie/index.ts:24"
+  "from": "game/stages/ernie/index.ts:25"
  },
  {
   "voice": "death",
@@ -5837,7 +5837,7 @@
  {
   "voice": "death",
   "text": "TASED YOURSELF IN THE POOL",
-  "from": "game/combat/weapons.ts:655"
+  "from": "game/combat/weapons.ts:656"
  },
  {
   "voice": "death",
@@ -5932,7 +5932,7 @@
  {
   "voice": "death",
   "text": "THE HOLE",
-  "from": "game/stages/ernie/index.ts:23"
+  "from": "game/stages/ernie/index.ts:24"
  },
  {
   "voice": "death",
@@ -6197,7 +6197,7 @@
  {
   "voice": "death",
   "text": "WATER CONDUCTS, GENIUS",
-  "from": "game/combat/weapons.ts:655"
+  "from": "game/combat/weapons.ts:656"
  },
  {
   "voice": "death",
@@ -6412,12 +6412,12 @@
  {
   "voice": "guide",
   "text": "...THERE HE WENT.",
-  "from": "game/stages/ernie/doorCrash.ts:68"
+  "from": "game/stages/ernie/doorCrash.ts:71"
  },
  {
   "voice": "guide",
   "text": "AND THESE VAULTS HAVE STOOD, UNTOUCHED, SINCE EIGHTEEN FIFTY-NINE.",
-  "from": "game/stages/ernie/doorCrash.ts:68"
+  "from": "game/stages/ernie/doorCrash.ts:71"
  },
  {
   "voice": "guide",
@@ -6427,7 +6427,7 @@
  {
   "voice": "guide",
   "text": "NAMASTE, PEASANTS!",
-  "from": "game/stages/ernie/doorCrash.ts:68"
+  "from": "game/stages/ernie/doorCrash.ts:71"
  },
  {
   "voice": "hector.coastguard",
@@ -6812,12 +6812,12 @@
  {
   "voice": "hipster",
   "text": "...THERE HE WENT.",
-  "from": "game/stages/ernie/doorCrash.ts:68"
+  "from": "game/stages/ernie/doorCrash.ts:71"
  },
  {
   "voice": "hipster",
   "text": "AND THESE VAULTS HAVE STOOD, UNTOUCHED, SINCE EIGHTEEN FIFTY-NINE.",
-  "from": "game/stages/ernie/doorCrash.ts:68"
+  "from": "game/stages/ernie/doorCrash.ts:71"
  },
  {
   "voice": "hipster",
@@ -6857,7 +6857,7 @@
  {
   "voice": "hipster",
   "text": "NAMASTE, PEASANTS!",
-  "from": "game/stages/ernie/doorCrash.ts:68"
+  "from": "game/stages/ernie/doorCrash.ts:71"
  },
  {
   "voice": "hipster",
@@ -6917,7 +6917,7 @@
  {
   "voice": "meathead",
   "text": "...THERE HE WENT.",
-  "from": "game/stages/ernie/doorCrash.ts:68"
+  "from": "game/stages/ernie/doorCrash.ts:71"
  },
  {
   "voice": "meathead",
@@ -7417,7 +7417,7 @@
  {
   "voice": "meathead",
   "text": "AND THESE VAULTS HAVE STOOD, UNTOUCHED, SINCE EIGHTEEN FIFTY-NINE.",
-  "from": "game/stages/ernie/doorCrash.ts:68"
+  "from": "game/stages/ernie/doorCrash.ts:71"
  },
  {
   "voice": "meathead",
@@ -8787,7 +8787,7 @@
  {
   "voice": "meathead",
   "text": "Get that camera outta my face.",
-  "from": "components/WeaponGetScene.tsx:107"
+  "from": "components/WeaponGetScene.tsx:130"
  },
  {
   "voice": "meathead",
@@ -10957,7 +10957,7 @@
  {
   "voice": "meathead",
   "text": "NAMASTE, PEASANTS!",
-  "from": "game/stages/ernie/doorCrash.ts:68"
+  "from": "game/stages/ernie/doorCrash.ts:71"
  },
  {
   "voice": "meathead",
