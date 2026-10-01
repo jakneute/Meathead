@@ -21,7 +21,7 @@ import { FrameContext, killBoss } from '../core/context';
 import type { ThrownKind, EnemyKind } from '../../types';
 import { THROWN, shotLook, shotSpeed } from './shots';
 import { getBossDef, getStageWidth, isWeakTo } from '../bosses/registry';
-import { rectsOverlap, boundsOf } from '../core/utils';
+import { rectsOverlap, boundsOf, isOnScreen } from '../core/utils';
 import { getAttackHitbox, harmlessBounce, recoilOff, getContactHurtSource } from '../player/player';
 import { shakeScreen } from '../core/state';
 import type { GameState } from '../core/state';
@@ -1396,8 +1396,10 @@ const collateral = (e: Enemy) => {
 /** A body he sent flying dead: it hits everyone in its way (once each), by its weight and speed, and knocks them on. */
 const flungIntoEnemies = (ctx: FrameContext, e: Enemy, enemies: Enemy[]) => {
   const { fx } = ctx;
+  const onScreenOnly = !!getStageLayout(ctx.stageId)?.collateralOnScreenOnly;
   for (const other of enemies) {
     if (other === e || other.type === 'boss' || other.isBlownAway || other.health <= 0 || other.innocent) continue;
+    if (onScreenOnly && !isOnScreen(ctx.state.camera, other, 0)) continue;
     if (e.flungHits?.includes(other.id) || !rectsOverlap(boundsOf(e), boundsOf(other))) continue;
     (e.flungHits ??= []).push(other.id);
     // (a flyer a boulder brought down: whatever it lands on is flattened)

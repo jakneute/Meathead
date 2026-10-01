@@ -20,7 +20,7 @@ export const drawGymKind = (ctx: Ctx, e: Enemy, f: number) => {
     case 'suit': drawSuit(ctx, e, f); break;
     case 'temp': drawTemp(ctx, e, f); break;
     case 'clerk': drawClerk(ctx, e, f); break;
-    case 'dummy': drawDummy(ctx, e); break;
+    case 'bob': drawDummy(ctx, e); break;
   }
 };
 

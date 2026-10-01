@@ -16,6 +16,8 @@ export const gymLayout: StageLayout = {
   verticalCamera: false,
   // (he's already there: no dropping in out of the sky)
   startsStanding: true,
+  // (a body sent flying out of one room doesn't get to clear the next one, out of sight, before he's there)
+  collateralOnScreenOnly: true,
   build: (state) => {
     const C = COURSE;
     state.groundRuns = [...C.runs];

@@ -60,7 +60,7 @@ export const createGymRuntime = (state: GameState): GymRuntime => {
     state.enemies.push(e);
     rooms[s.room].push(e.id);
   }
-  for (const x of COURSE.dummies) if (!(startedAt > CP.START && x < start.x)) state.enemies.push(makeKindEnemy('dummy', x, GROUND_Y));
+  for (const x of COURSE.dummies) if (!(startedAt > CP.START && x < start.x)) state.enemies.push(makeKindEnemy('bob', x, GROUND_Y));
   COURSE.pickups.forEach((p, i) => {
     if (startedAt > CP.START && p.x < start.x) return;
     state.pickups.push({ id: `gym-pickup-${i}`, pos: { x: p.x - 10, y: p.y - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: p.type, life: 1e9 });
@@ -126,7 +126,7 @@ export const updateGym = (ctx: FrameContext, controls: Controls): Controls => {
  */
 const standDummiesUp = (state: GameState) => {
   for (const e of state.enemies) {
-    if (e.kind !== 'dummy') continue;
+    if (e.kind !== 'bob') continue;
     if (e.health < e.maxHealth) {
       e.health = e.maxHealth; e.aiTimer = 40;
       // (a dive kick off it bounces him back up behind it, not on past it: a dive kick comes down on a slant, so from up

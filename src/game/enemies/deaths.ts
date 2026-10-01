@@ -56,7 +56,7 @@ const KIND_COLORS: Record<string, string> = {
   subject: '#BAE6FD', scientist: '#F8FAFC', tenant: '#F8FAFC', minion: '#FACC15', generator: '#374151',
   banger: '#DC2626', bruiser: '#F8FAFC', pitbull: '#78716C', lowrider: '#9D174D', hazmat: '#FACC15', bloater: '#84A98C', manhole: '#F97316',
   sludgeling: '#4D7C0F', mutantfish: '#6B8E23', amalgam: '#3F6212',
-  suit: '#1F2937', temp: '#374151', clerk: '#27272A', dummy: '#B45309',
+  suit: '#1F2937', temp: '#374151', clerk: '#27272A', bob: '#B45309',
 };
 
 export const enemyBodyColor = (e: { id: string, enemyType?: string, width: number, kind?: string }) => {

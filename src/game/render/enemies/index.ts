@@ -67,7 +67,7 @@ export const KIND_HEAD: Record<EnemyKind, { x: number; y: number; r: number }> =
   amalgam: { x: 0, y: -300, r: 40 },
   ranger: { x: 2, y: -65, r: 8 }, biker: { x: 4, y: -74, r: 9 }, deputy: { x: 2, y: -65, r: 8 }, armadillo: { x: 16, y: -10, r: 4 },
   longhorn: { x: 42, y: -40, r: 8 }, pickup: { x: 26, y: -52, r: 7 }, cruiser: { x: 10, y: -63, r: 7 }, chopper: { x: -3, y: -70, r: 8 },
-  suit: { x: 2, y: -76, r: 7 }, temp: { x: 2, y: -76, r: 7 }, clerk: { x: 2, y: -76, r: 7 }, dummy: { x: 0, y: -66, r: 9 },
+  suit: { x: 2, y: -76, r: 7 }, temp: { x: 2, y: -76, r: 7 }, clerk: { x: 2, y: -76, r: 7 }, bob: { x: 0, y: -66, r: 9 },
 };
 
 /** People (their skeletons are human, and they keel over flat when they die). */
@@ -109,7 +109,7 @@ const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: Game
       drawTommyKind(ctx, e, f, state); break;
     case 'ranger': case 'biker': case 'deputy': case 'armadillo': case 'longhorn': case 'grackle': case 'pickup': case 'cruiser': case 'chopper':
       drawOscarKind(ctx, e, f, state); break;
-    case 'suit': case 'temp': case 'clerk': case 'dummy': drawGymKind(ctx, e, f); break;
+    case 'suit': case 'temp': case 'clerk': case 'bob': drawGymKind(ctx, e, f); break;
     default: drawHectorKind(ctx, e, f, state); break;
   }
   ctx.restore();

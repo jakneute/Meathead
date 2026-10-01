@@ -134,7 +134,7 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   temp: { w: 34, h: 78, hp: 18, contact: 4 },
   clerk: { w: 38, h: 78, hp: 60, contact: 3 },
   // (a striking dummy: it never goes down, it never hits back; the stage stands it back up after every hit)
-  dummy: { w: 40, h: 76, hp: 99999, contact: 0 },
+  bob: { w: 40, h: 76, hp: 99999, contact: 0 },
 };
 
 /**
@@ -223,7 +223,7 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     case 'suit': return { ...base, behavior: 'shoot', shootTimer: Math.floor(Math.random() * 40) };
     case 'temp': return { ...base, behavior: 'patrol', pauseTimer: 0 };
     case 'clerk': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
-    case 'dummy': return { ...base, harmless: true };
+    case 'bob': return { ...base, harmless: true };
     default: return base;
   }
 };
