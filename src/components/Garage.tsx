@@ -117,8 +117,8 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[]; report?: Ga
   const owned = useMemo(() => ownedSouvenirs(), []);
   // (the souvenirs, and then the way out back to the practice range: it's one of the things to go through, so the
   // stick and the arrows get to it like anything else)
-  const order = useMemo(() => [...SOUVENIR_ORDER.filter(id => owned.includes(id)), RANGE], [owned]);
-  const [sel, setSel] = useState<string | null>(order[0]);
+  const order = useMemo(() => SOUVENIR_ORDER.filter(id => owned.includes(id)), [owned]);
+  const [sel, setSel] = useState<string | null>(order[0] ?? null);
   const selRef = useRef(sel); selRef.current = sel;
   /** Looking at the picked one up close (A on it, Enter, or a click). */
   const [inspect, setInspect] = useState(false);
@@ -126,7 +126,7 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[]; report?: Ga
   const look = () => { if (selRef.current && selRef.current !== RANGE) setInspect(true); };
   const lookRef = useRef(look); lookRef.current = look;
   const leaveRef = useRef(onLeave); leaveRef.current = onLeave;
-  /** The damage report up (X): which target's file, and which page (0 before, 1 after, 2 the photo). */
+  /** The damage report up (X): which target's file, and which page (0 before, 1 after). */
   const reportOn = !!report && report.bosses.length > 0;
   const [showReport, setShowReport] = useState(false);
   const reportRef = useRef(showReport); reportRef.current = showReport;
@@ -140,15 +140,27 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[]; report?: Ga
     if (!n) return;
     setRIndex(i => dx ? (Math.floor(i / 4) * 4 + ((i % 4) + dx + 4) % 4) % n : Math.max(0, Math.min(n - 1, i + dy * 4)));
   };
-  const reportView = (d: number) => setRView(v => (v + d + 3) % 3);
+  const reportView = (d: number) => setRView(v => (v + d + 2) % 2);
   const toggleReport = () => { if (reportOnRef.current) setShowReport(v => !v); };
 
-  const step = (d: number) => {
-    const i = Math.max(0, order.indexOf(selRef.current ?? order[0]));
-    let next = order[(i + d + order.length) % order.length];
-    // (up close, it goes on to the next souvenir, not out back)
-    if (inspectRef.current && next === RANGE) next = order[(i + d * 2 + order.length * 2) % order.length];
-    setSel(next);
+  // Round the souvenirs, the way they're laid out (only them: out back to the range and the damage report have their own
+  // buttons): left and right to the nearest one that way along the same shelf (or the pegboard, or the floor), up and down
+  // to the nearest one above or below
+  const step = (dx: number, dy: number) => {
+    if (!order.length) return;
+    const cur = selRef.current && order.includes(selRef.current) ? selRef.current : null;
+    if (!cur) { setSel(order[0]); return; }
+    const mid = (id: string) => { const b = SLOTS[id].box; return { x: b.x + b.w / 2, y: b.y + b.h / 2 }; };
+    const c = mid(cur);
+    let best: string | null = null, bestScore = Infinity;
+    for (const id of order) {
+      if (id === cur) continue;
+      const m = mid(id), along = dx ? (m.x - c.x) * dx : (m.y - c.y) * dy, across = dx ? Math.abs(m.y - c.y) : Math.abs(m.x - c.x);
+      if (along <= 4) continue;
+      const score = along + across * 3;
+      if (score < bestScore) { bestScore = score; best = id; }
+    }
+    if (best) setSel(best);
   };
   const stepRef = useRef(step); stepRef.current = step;
 
@@ -189,8 +201,10 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[]; report?: Ga
       // (and straight there from anywhere in the garage: the button shown on it)
       if (k === 'r') { setPractice(true); return; }
       if (k === 'escape' || k === 'backspace') { e.preventDefault(); leaveRef.current(); }
-      else if (k === 'arrowright' || k === 'd' || k === 'arrowdown' || k === 's') stepRef.current(1);
-      else if (k === 'arrowleft' || k === 'a' || k === 'arrowup' || k === 'w') stepRef.current(-1);
+      else if (k === 'arrowright' || k === 'd') stepRef.current(1, 0);
+      else if (k === 'arrowleft' || k === 'a') stepRef.current(-1, 0);
+      else if (k === 'arrowdown' || k === 's') stepRef.current(0, 1);
+      else if (k === 'arrowup' || k === 'w') stepRef.current(0, -1);
     };
     const onMouse = (e: MouseEvent) => { if (e.button === 2 && !practiceRef.current) { if (reportRef.current) setShowReport(false); else if (inspectRef.current) setInspect(false); else leaveRef.current(); } };
     window.addEventListener('keydown', onKey);
@@ -213,8 +227,8 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[]; report?: Ga
       }
       else if (gp) {
         const now = Date.now(), m = getGamepadMovement(gp, 0.3);
-        const d = m.right || m.down ? 1 : m.left || m.up ? -1 : 0;
-        if (d && now - last > REPEAT_MS) { last = now; stepRef.current(d); }
+        const dx = m.left ? -1 : m.right ? 1 : 0, dy = dx ? 0 : m.up ? -1 : m.down ? 1 : 0;
+        if ((dx || dy) && now - last > REPEAT_MS) { last = now; stepRef.current(dx, dy); }
         const mb = menuButtons(gp), b = isButtonPressed(gp, mb.back), a = isButtonPressed(gp, mb.ok);
         if (b && !prevB) { if (inspectRef.current) setInspect(false); else leaveRef.current(); }
         const y = isButtonPressed(gp, GP_BUTTONS.Y);

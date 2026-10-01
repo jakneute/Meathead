@@ -1,31 +1,16 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { Prompt } from './ButtonIcons';
 import BossPortrait from './BossPortrait';
 import DossierPanel from './DossierPanel';
 import { BOSS_LOCATIONS } from '../content/roster';
-import { CARNAGE_PHOTOS } from '../game/render/scenes/carnage';
 import { WeaponType } from '../types';
 
-/** Which of each target's pages is up: his file before, the after-action report, or the photo of the scene. */
-export const REPORT_VIEWS = ['BEFORE', 'AFTER', 'PHOTO'] as const;
-
-/** A carnage photo, painted at three times its art size. */
-const Photo: React.FC<{ id: string; className?: string }> = ({ id, className }) => {
-  const canvas = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const ctx = canvas.current?.getContext('2d');
-    const p = CARNAGE_PHOTOS[id];
-    if (!ctx || !p) return;
-    ctx.setTransform(3, 0, 0, 3, 0, 0);
-    ctx.clearRect(0, 0, 256, 144);
-    p.draw(ctx);
-  }, [id]);
-  return <canvas ref={canvas} width={768} height={432} className={className} />;
-};
+/** Which of each target's pages is up: his file before, or the after-action report. */
+export const REPORT_VIEWS = ['BEFORE', 'AFTER'] as const;
 
 /**
  * The damage report: every target he's done so far, on the one screen (the first four from the start of the second
- * set; all eight once there's nobody left), each one's file before and after, and the photo the cleanup crew took.
+ * set; all eight once there's nobody left), each one's file before and after.
  */
 const DamageReport: React.FC<{
   bosses: string[];
@@ -40,7 +25,6 @@ const DamageReport: React.FC<{
   closeLabel?: string;
 }> = ({ bosses, index, view, killRecords, onSelect, onView, onClose, titleClass, closeLabel = 'BACK' }) => {
   const id = bosses[Math.min(index, bosses.length - 1)];
-  const photo = view === 2;
   const tabs = (
     <div className="flex">
       {REPORT_VIEWS.map((tab, v) => {
@@ -55,9 +39,9 @@ const DamageReport: React.FC<{
     </div>
   );
   const help = (
-    <div className={`flex ${photo ? 'flex-row justify-center gap-5' : 'flex-col gap-1 border-2 border-dashed border-zinc-700 p-2'} text-[7px] font-mono text-zinc-400 tracking-wider`}>
+    <div className="flex flex-col gap-1 border-2 border-dashed border-zinc-700 p-2 text-[7px] font-mono text-zinc-400 tracking-wider">
       <Prompt pad={['DPAD']} kb={['ARROWS']} mouse="left" label="PICK A TARGET" size={13} />
-      <Prompt pad={['LB', 'RB']} kb={['TAB']} label="BEFORE / AFTER / PHOTO" size={13} />
+      <Prompt pad={['LB', 'RB']} kb={['TAB']} label="BEFORE / AFTER" size={13} />
       <button onClick={onClose} className="self-start"><Prompt pad={['X']} kb={['X']} mouse="left" label={closeLabel} size={13} /></button>
     </div>
   );
@@ -87,28 +71,10 @@ const DamageReport: React.FC<{
       <div className="flex flex-col items-center mb-2 shrink-0">
         <h2 className={titleClass}>DAMAGE REPORT</h2>
         <div className="text-[8px] font-mono text-cyan-400/90 tracking-widest uppercase mt-0.5">
-          {bosses.length} TARGETS DISPOSED OF // EVERY FILE, BEFORE AND AFTER // THE PHOTOS
+          {bosses.length} TARGETS DISPOSED OF // EVERY FILE, BEFORE AND AFTER
         </div>
       </div>
-      {photo ? (
-        // The photo, big: a strip of the targets along the top, the print under it, its evidence tag
-        <div className="w-full max-w-[740px] flex flex-col items-center gap-2 px-2">
-          <div className="w-full flex items-center justify-between gap-3">
-            <div className="flex-1 grid gap-1.5" style={{ gridTemplateColumns: `repeat(${bosses.length}, minmax(0, 1fr))` }}>
-              {bosses.map((b, i) => card(b, i, true))}
-            </div>
-            {tabs}
-          </div>
-          <div className="relative p-[6px] pb-[22px] bg-[#F5F5F4] rotate-[-0.6deg]" style={{ boxShadow: '4px 4px 0 rgba(0,0,0,0.6)' }}>
-            {id && <Photo id={id} className="block w-[600px] h-[338px]" />}
-            <div className="absolute left-[8px] right-[8px] bottom-[4px] text-[7px] leading-[8px] text-[#292524] uppercase truncate" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
-              {CARNAGE_PHOTOS[id]?.caption}
-            </div>
-            <div className="absolute -top-[6px] left-1/2 -translate-x-1/2 w-[60px] h-[12px] bg-[#FEF9C3]/70 rotate-[2deg]" />
-          </div>
-          {help}
-        </div>
-      ) : (
+      {(
         <div className="w-full max-w-[770px] flex flex-row items-start justify-center gap-4 px-2">
           <div className="w-[330px] shrink-0 flex flex-col gap-2">
             <div className="w-full grid grid-cols-4 gap-1.5">
