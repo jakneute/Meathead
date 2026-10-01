@@ -334,8 +334,6 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   } else if (isRelieving) {
     // Reaching down and forward to hold it (the hand itself is drawn with it, over the top)
     drawReachingArm(ctx, -6, -40, -1, -30, 7, -22, skinShadow);
-  } else if (rightSide && !isSwimming && !(p.throwTimer && p.throwTimer > 0)) {
-    // (from his right side, the far arm's the gun arm: it's drawn reaching across in front of him, with the gun)
   } else {
     // Idle / Walk pumping arm in opposition
     // Held a little back while he's in the air
@@ -920,15 +918,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
 
     const pump = armPump * 0.3;
     if (rightSide && !throwing && !isSwimming) {
-      // From his right: the right arm hangs free at his near side, swinging as he goes; the gun's in his left hand,
-      // the arm out from the far shoulder across his chest, over the right, to the grip
-      const swing = isWalking ? -walkStride * 0.6 - 0.1 : isAirborne ? -0.6 - airFall * 0.9 : -0.25 + Math.sin(animFrame * 0.08) * 0.08;
-      const fbend = 0.15 + Math.max(0, -swing) * 0.5;
-      ctx.save();
-      ctx.translate(armBaseX + 6, armBaseY - 3);
-      ctx.rotate(swing);
-      drawArm(ctx, 0, 0, 0.5, 12, Math.sin(fbend) * 10 + 0.5, 12 + Math.cos(fbend) * 10, skinTone, skinShadow, skinHighlight);
-      ctx.restore();
+      // From his right: the gun's in his left hand, the arm out from the far shoulder across his chest to the grip
+      // (the right arm swings along behind him, out of sight mostly: drawn with the back arm)
       drawArm(ctx, -12, armBaseY - 3, 1 + pump * 0.4, armBaseY + 5, armBaseX + 11 + pump, armBaseY + 6, skinTone, skinShadow, skinHighlight, armBaseX + 15 + pump);
       ctx.fillStyle = skinShadow;
       for (let k = 0; k < 3; k++) ctx.fillRect(armBaseX + 13 + pump + k * 2, armBaseY + 8.5, 0.8, 2);
