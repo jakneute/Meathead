@@ -4001,6 +4001,11 @@
  },
  {
   "voice": "death",
+  "text": "DIED IN A BLIZZARD. INDOORS.",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "DIRTY NEEDLE",
   "from": "content/deaths"
  },
@@ -5621,6 +5626,11 @@
  },
  {
   "voice": "death",
+  "text": "SNOWED IN",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "SOCKS AND SANDALS WIN",
   "from": "content/deaths"
  },
@@ -5938,6 +5948,11 @@
   "voice": "death",
   "text": "THE PRISON FELL ON YOU",
   "from": "game/stages/ernie/quake.ts:335"
+ },
+ {
+  "voice": "death",
+  "text": "THE PRODUCT WON",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -7207,6 +7222,11 @@
  {
   "voice": "meathead",
   "text": "A SNOWBALL! A GROWN MAN! A SNOWBALL!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A SNOWSTORM! IN A WAREHOUSE! IN THE DESERT!",
   "from": "HAZARD_HURT"
  },
  {
@@ -9721,6 +9741,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I DIDN'T INHALE! I DIDN'T INHALE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "I DON'T DO MATH. MATH DOES ME. ...WAIT.",
   "from": "game/bosses/oscar.ts:203"
  },
@@ -10348,6 +10373,11 @@
   "voice": "meathead",
   "text": "IT'S EATING THROUGH THE METAL! ONE MORE AND I'M GOING IN THERE!",
   "from": "game/stages/dale/convoy.ts:753"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S IN MY EYES! IT'S IN MY NOSE! I CAN HEAR COLORS!",
+  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
@@ -12847,6 +12877,11 @@
  {
   "voice": "meathead",
   "text": "THAT ICICLE CHIPPED MY QUADRICEPS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT IS NOT FLOUR! THAT IS NOT FLOUR!",
   "from": "HAZARD_HURT"
  },
  {

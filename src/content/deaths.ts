@@ -129,6 +129,7 @@ export const DEATH_LINES: Record<string, string[]> = {
   cactus: ['PRICKED TO DEATH', 'HUGGED A CACTUS'],
   conveyor_crate: ['CRATED', 'KILLED BY THE PRODUCT'],
   // ---- Hector's open water, the Coast Guard after you
+  powder_blast: ['SNOWED IN', 'BLOWN AWAY', 'DIED IN A BLIZZARD. INDOORS.', 'THE PRODUCT WON'],
   // (Hector's Coast Guard chase: whatever the hurricane threw)
   junk_crate: ['CRATED', 'RETURN TO SENDER'],
   junk_oil_drum: ['BARRELED OVER', 'KILLED BY AN OIL DRUM'],

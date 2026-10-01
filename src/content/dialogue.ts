@@ -597,6 +597,12 @@ export const BOSS_DIALOGUE: {
     'junk_cow': ["A COW?! WHERE'D THE STORM FIND A COW?!", "THAT COW WEIGHED A TON! MOO MY ASS!"],
     'junk_car': ["A CAR! A WHOLE CAR! FROM THE SKY!", "I GOT HIT BY A SEDAN! IN A BOAT!"],
     'junk_hot_tub': ["A HOT TUB! IT'S STILL WARM!", "SOMEBODY'S HOT TUB! THERE WAS A GUY IN IT!"],
+    'powder_blast': [
+      "THAT IS NOT FLOUR! THAT IS NOT FLOUR!",
+      "IT'S IN MY EYES! IT'S IN MY NOSE! I CAN HEAR COLORS!",
+      "I DIDN'T INHALE! I DIDN'T INHALE!",
+      "A SNOWSTORM! IN A WAREHOUSE! IN THE DESERT!",
+    ],
     'conveyor_crate': [
       "A CRATE TO THE SHINS! WHAT'S IN THESE, BRICKS?!",
       "THE CONVEYOR BELT IS THROWING PRODUCT AT ME!",

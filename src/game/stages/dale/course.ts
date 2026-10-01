@@ -33,8 +33,9 @@ export interface PickupSpot { x: number; y: number; type: 'small_health' | 'larg
 export interface Ledge { x: number; y: number; w: number; look: 'rock' | 'rack' | 'balcony' | 'tower' }
 /** A saguaro (or a clump of prickly pear): touch it and it hurts. `h` is how tall. */
 export interface Cactus { x: number; y: number; h: number; look: 'saguaro' | 'pear' }
-/** A conveyor belt in the warehouse: its top is at y, it runs at `speed` (negative: toward the way you came), crates riding it. */
-export interface Belt { x: number; w: number; y: number; speed: number; crateEvery: number }
+/** A conveyor belt in the warehouse: its top is at y, it runs at `speed` (negative: toward the way you came), crates riding it.
+ * `high`: a line up under the roof, hung from it (jump up through it onto it), what falls off it going up in white. */
+export interface Belt { x: number; w: number; y: number; speed: number; crateEvery: number; high?: boolean }
 /** A building's porch roof on a street in town: jump up onto it and it throws you up onto the roof; under it, the sniper can't see you. */
 export interface Awning { x: number; w: number; y: number }
 /** A building in town: its false front (and roof you can walk on) from x1 to x2, and how tall. */
@@ -71,6 +72,8 @@ const HIGHWAY_X0 = -60000;
 const TOWN_X0 = BOSS_DOOR_X - 6300;
 
 const Y = GROUND_Y;
+/** How much longer the warehouse got for the high lines (everything from the last belt on is pushed along by it). */
+const W_EXT = 1300;
 
 /** The convoy's trucks, trailer end to cab front, and the lanes they sit in. */
 export const TRAILER_W = 520, CAB_W = 170, TRUCK_W = TRAILER_W + 10 + CAB_W, TRUCK_GAP = 150;
@@ -138,18 +141,30 @@ const build = () => {
   d.pickup(5800, Y - 30, 'small_ammo');
 
   // ============ THE WAREHOUSE ============
-  // In through the loading dock, a conveyor belt feeding crates at you, pallet racks up to the high shelf, another belt, the stairs
-  d.ground(6480, 8060, Y, Y, 'concrete');
+  // In through the loading dock, a conveyor belt feeding crates at you, pallet racks up to the high shelf; then the
+  // high lines, up under the roof, running back at him: ride them against the current with crates coming at him along
+  // them, or go under them with what tips off them coming down and going up in white; another belt, the stairs
+  d.ground(6480, 8060 + W_EXT, Y, Y, 'concrete');
   d.belt(6760, 420, Y - 50, -2.4, 150);
   d.spawn('cardoor', 6640);
   d.ledge(7300, Y - 90, 110, 'rack'); d.ledge(7440, Y - 180, 120, 'rack'); d.ledge(7600, Y - 270, 200, 'rack');
   d.spawn('sicario', 7700, Y - 270);
   d.spawn('enforcer', 7520);
-  d.belt(7850, 190, Y - 50, -2.8, 110);
-  d.pickup(7990, Y - 30, 'large_health'); d.pickup(8030, Y - 30, 'large_ammo');
+  // (off the top of the racks onto the first of them; under them, the floor's where it all comes down)
+  d.belt(7840, 460, Y - 250, -2.4, 120, true);
+  d.belt(8420, 520, Y - 330, -2.8, 100, true);
+  d.ledge(8440, Y - 90, 90, 'rack');
+  d.belt(8660, 360, Y - 150, -2, 140, true);
+  d.spawn('sicario', 8700, Y - 330);
+  d.spawn('enforcer', 8960);
+  d.pickup(8380, Y - 30, 'small_ammo');
+  d.ledge(9070, Y - 110, 90, 'rack');
+  d.spawn('sicario', 9110, Y - 110);
+  d.belt(7850 + W_EXT, 190, Y - 50, -2.8, 110);
+  d.pickup(7990 + W_EXT, Y - 30, 'large_health'); d.pickup(8030 + W_EXT, Y - 30, 'large_ammo');
   // Up the stairs to the office
-  d.ground(8060, 8360, Y, Y - 240, 'stairs');
-  d.ground(8360, 9120, Y - 240, Y - 240, 'office');
+  d.ground(8060 + W_EXT, 8360 + W_EXT, Y, Y - 240, 'stairs');
+  d.ground(8360 + W_EXT, 9120 + W_EXT, Y - 240, Y - 240, 'office');
 
   // ============ THE HIGHWAY ============
   // (nothing here but the trucks: the stage lays them out)
@@ -194,7 +209,7 @@ const part = (x0: number) => {
     ground: (x1: number, x2: number, y1 = Y, y2 = y1, surface?: string) => { runs.push({ x1: x0 + x1, y1, x2: x0 + x2, y2, surface }); },
     ledge: (x: number, y: number, w: number, look: Ledge['look']) => { ledges.push({ x: x0 + x, y, w, look }); },
     cactus: (x: number, y: number, h: number, look: Cactus['look']) => { cacti.push({ x: x0 + x, y, h, look }); },
-    belt: (x: number, w: number, y: number, speed: number, crateEvery: number) => { belts.push({ x: x0 + x, w, y, speed, crateEvery }); },
+    belt: (x: number, w: number, y: number, speed: number, crateEvery: number, high = false) => { belts.push({ x: x0 + x, w, y, speed, crateEvery, high }); },
     awning: (x: number, w: number) => { awnings.push({ x: x0 + x, w, y: Y - 118 }); },
     building: (x1: number, x2: number, top: number, name: string, look: Building['look']) => { buildings.push({ x1: x0 + x1, x2: x0 + x2, top, name, look }); },
     spawn: (kind: EnemyKind, x: number, y = Y, variant?: number) => { spawns.push({ kind, x: x0 + x, y, variant }); },
@@ -209,7 +224,8 @@ const buildCourse = (): Course => {
   runs.sort((a, b) => a.x1 - b.x1);
   // (every gap's drawn by the stage: the arroyos, and the gaps between the parts)
   runs.forEach((r, i) => { const next = runs[i + 1]; if (next && next.x1 > r.x2 + 1) r.pitAfter = 'clouds'; });
-  const office = { x1: DESERT_X0 + 8360, x2: DESERT_X0 + 9120, floor: Y - 240, ceiling: Y - 560, desk: DESERT_X0 + 8500, cabinet: DESERT_X0 + 8640, fan: DESERT_X0 + 8790, closet: DESERT_X0 + 8990, window: DESERT_X0 + 9120 };
+  const o = DESERT_X0 + W_EXT;
+  const office = { x1: o + 8360, x2: o + 9120, floor: Y - 240, ceiling: Y - 560, desk: o + 8500, cabinet: o + 8640, fan: o + 8790, closet: o + 8990, window: o + 9120 };
   return {
     runs,
     ledges: [...d.ledges, ...t.ledges],
@@ -222,7 +238,7 @@ const buildCourse = (): Course => {
     props: [...d.props, ...t.props],
     landing: { truckX: DESERT_X0 + 560, daleX: DESERT_X0 + 520 },
     desert: { x1: DESERT_X0, x2: DESERT_X0 + 6480 },
-    warehouse: { x1: DESERT_X0 + 6480, x2: DESERT_X0 + 8360, ceiling: Y - 470, stairs: DESERT_X0 + 8060 },
+    warehouse: { x1: DESERT_X0 + 6480, x2: o + 8360, ceiling: Y - 470, stairs: o + 8060 },
     office,
     highway: { x1: HIGHWAY_X0 - 400, x2: trucks[3].x + truckDims(3).w + 400, trucks },
     town: {
@@ -230,7 +246,7 @@ const buildCourse = (): Course => {
       tower: { x: TOWN_X0 + 4300, top: Y - 390 }, jail: { x1: TOWN_X0 + 5300, x2: TOWN_X0 + 5640 }, pharmacy: TOWN_X0 + 5860,
     },
     checkpoints: [
-      { x: DESERT_X0 + 150, y: Y }, { x: DESERT_X0 + 5100, y: Y }, { x: DESERT_X0 + 6540, y: Y }, { x: DESERT_X0 + 8300, y: Y - 192 }, // (up the stairs, just outside Chuco's door)
+      { x: DESERT_X0 + 150, y: Y }, { x: DESERT_X0 + 5100, y: Y }, { x: DESERT_X0 + 6540, y: Y }, { x: o + 8300, y: Y - 192 }, // (up the stairs, just outside Chuco's door)
       // (on each truck, at the back of its trailer)
       ...trucks.map((tr, i) => ({ x: tr.x + 160, y: truckDims(i).trailerTop })),
       { x: TOWN_X0 + 380, y: Y }, { x: TOWN_X0 + 2600, y: Y }, { x: TOWN_X0 + 4560, y: Y },

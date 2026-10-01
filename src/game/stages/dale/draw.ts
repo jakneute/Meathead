@@ -380,16 +380,39 @@ const drawWarehouse = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
     ctx.fillStyle = '#FDE047'; for (let i = 0; i < 6; i++) ctx.fillRect(dx - 34 + i * 7, Y - 176, 3, 12);
   }
   // The belts, the crates riding them
-  COURSE.belts.forEach((b, i) => { if (visible(state, b.x, b.x + b.w)) { drawBelt(ctx, i, rt.hazards.beltShift[i]); drawFeed(ctx, i, rt.hazards.beltTimers[i], state.frame); } });
-  for (const cr of rt.hazards.crates) if (visible(state, cr.x, cr.x + CRATE)) drawCrate(ctx, cr.x, cr.y, CRATE);
+  COURSE.belts.forEach((b, i) => { if (visible(state, b.x, b.x + b.w)) { drawBelt(ctx, i, rt.hazards.beltShift[i], state.frame); drawFeed(ctx, i, rt.hazards.beltTimers[i], state.frame); } });
+  for (const cr of rt.hazards.crates) {
+    if (!visible(state, cr.x, cr.x + CRATE)) continue;
+    // (one about to tip off a high line: rocking, split, the powder trickling out of it all the way down to where it'll land)
+    if (cr.wobble && !cr.falling) {
+      const cx = cr.x + CRATE / 2;
+      for (let k = 0; k < 14; k++) { const y = cr.y + CRATE + ((state.frame * 5 + k * 37) % (550 - cr.y - CRATE)); ctx.fillStyle = k % 2 ? 'rgba(248, 250, 252, 0.85)' : 'rgba(226, 232, 240, 0.7)'; ctx.fillRect(cx - 3 + hash(k) * 6, y, 2, 4); }
+      ctx.fillStyle = 'rgba(248, 250, 252, 0.6)'; ctx.beginPath(); ctx.ellipse(cx, 548, 10 + cr.wobble * 0.5, 3, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.save(); ctx.translate(cx, cr.y + CRATE); ctx.rotate(Math.sin(cr.wobble * 0.6) * 0.12 * (1 + cr.wobble / 20)); drawCrate(ctx, -CRATE / 2, -CRATE, CRATE); ctx.restore();
+      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(cx - 4, cr.y + CRATE - 6, 8, 3);
+    } else drawCrate(ctx, cr.x, cr.y, CRATE);
+  }
 };
 
-const drawBelt = (ctx: Ctx, i: number, shift: number) => {
-  const box = beltBox(i);
-  // The machine under it
-  ctx.fillStyle = '#374151'; ctx.fillRect(box.x + 10, box.y + 10, box.w - 20, box.h - 10);
-  ctx.fillStyle = '#1F2937'; for (let x = box.x + 20; x < box.x + box.w - 20; x += 40) ctx.fillRect(x, box.y + 14, 6, box.h - 14);
-  ctx.fillStyle = '#FACC15'; ctx.fillRect(box.x + 10, box.y + 10, box.w - 20, 4);
+const drawBelt = (ctx: Ctx, i: number, shift: number, frame: number) => {
+  const box = beltBox(i), b = COURSE.belts[i];
+  if (b.high) {
+    // Hung from the roof: the rods down to it, the truss under it, swaying a hair with the motor's shake
+    const sway = Math.sin(frame * 0.2 + i) * 0.6;
+    ctx.strokeStyle = '#1C1917'; ctx.lineWidth = 2;
+    for (let x = box.x + 30; x < box.x + box.w; x += 120) { ctx.beginPath(); ctx.moveTo(x, COURSE.warehouse.ceiling); ctx.lineTo(x + sway, box.y + 10); ctx.stroke(); }
+    ctx.fillStyle = '#374151'; ctx.fillRect(box.x + 4, box.y + 10, box.w - 8, 10);
+    ctx.strokeStyle = '#4B5563'; ctx.lineWidth = 1.5;
+    for (let x = box.x + 6; x < box.x + box.w - 16; x += 16) { ctx.beginPath(); ctx.moveTo(x, box.y + 20); ctx.lineTo(x + 8, box.y + 10); ctx.lineTo(x + 16, box.y + 20); ctx.stroke(); }
+    ctx.fillStyle = '#FACC15'; ctx.fillRect(box.x + 4, box.y + 10, box.w - 8, 2);
+    // (and the hazard stripes along its underside: don't stand under this)
+    for (let x = box.x + 4; x < box.x + box.w - 10; x += 12) { ctx.fillStyle = '#FACC15'; ctx.fillRect(x, box.y + 20, 6, 3); ctx.fillStyle = '#111827'; ctx.fillRect(x + 6, box.y + 20, 6, 3); }
+  } else {
+    // The machine under it
+    ctx.fillStyle = '#374151'; ctx.fillRect(box.x + 10, box.y + 10, box.w - 20, box.h - 10);
+    ctx.fillStyle = '#1F2937'; for (let x = box.x + 20; x < box.x + box.w - 20; x += 40) ctx.fillRect(x, box.y + 14, 6, box.h - 14);
+    ctx.fillStyle = '#FACC15'; ctx.fillRect(box.x + 10, box.y + 10, box.w - 20, 4);
+  }
   // The belt: black rubber, its ridges going by
   ctx.fillStyle = '#111827'; ctx.fillRect(box.x, box.y, box.w, 10);
   ctx.fillStyle = '#4B5563';
@@ -399,7 +422,7 @@ const drawBelt = (ctx: Ctx, i: number, shift: number) => {
   // An arrow painted on the side: which way it runs
   ctx.fillStyle = '#FDE047';
   const dir = COURSE.belts[i].speed < 0 ? -1 : 1;
-  for (let x = box.x + 40; x < box.x + box.w - 40; x += 90) { ctx.beginPath(); ctx.moveTo(x + dir * 12, box.y + 26); ctx.lineTo(x - dir * 6, box.y + 20); ctx.lineTo(x - dir * 6, box.y + 32); ctx.fill(); }
+  if (!b.high) for (let x = box.x + 40; x < box.x + box.w - 40; x += 90) { ctx.beginPath(); ctx.moveTo(x + dir * 12, box.y + 26); ctx.lineTo(x - dir * 6, box.y + 20); ctx.lineTo(x - dir * 6, box.y + 32); ctx.fill(); }
 };
 
 /**
@@ -409,7 +432,7 @@ const drawBelt = (ctx: Ctx, i: number, shift: number) => {
  */
 const drawFeed = (ctx: Ctx, i: number, timer: number, frame: number) => {
   const b = COURSE.belts[i], fx = feedX(i), cx = fx + CRATE / 2;
-  const top = b.y - 200, mouth = b.y - CRATE - 14;
+  const top = Math.max(b.y - 200, COURSE.warehouse.ceiling - 40), mouth = b.y - CRATE - 14;
   const warn = timer <= CRATE_WARN;
   // The chute: steel, a window down it
   ctx.fillStyle = '#4B5563'; ctx.fillRect(cx - 22, top, 44, mouth - top);

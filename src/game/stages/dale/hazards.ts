@@ -5,7 +5,11 @@
 //   belts:    the warehouse conveyors carry whatever's on them along (the way
 //             you came), and crates of product ride them at you, dropping off
 //             the end and bursting. A crate hurts if it catches you; shoot it or
-//             hit it and it bursts where it is.
+//             hit it and it bursts where it is. The high lines, up under the
+//             roof: you can ride them (against the current), and what comes off
+//             them (off the end, or tipping off partway, wobbling first, the
+//             powder trickling out of it) comes down and goes up in a cloud of
+//             white that knocks you about if you're under it.
 
 import type { Enemy } from '../../../types';
 import type { FrameContext } from '../../core/context';
@@ -13,9 +17,14 @@ import type { GameState } from '../../core/state';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 import { hurtPlayer } from '../../bosses/shared';
 import { playSound } from '../../platform/audio';
+import { shakeScreen } from '../../core/state';
 import { COURSE, Cactus } from './course';
 
-export interface Crate { x: number; y: number; vx: number; vy: number; belt: number; falling: boolean; t: number }
+export interface Crate {
+  x: number; y: number; vx: number; vy: number; belt: number; falling: boolean; t: number;
+  /** On a high line: where it tips off partway (world x), if it does; how long it's been wobbling there. */
+  tipAt?: number; wobble?: number;
+}
 export interface Hazards {
   crates: Crate[];
   beltTimers: number[];
@@ -29,6 +38,9 @@ export const CRATE_WARN = 70;
 /** Where a belt's crates come on (world x of the crate's left side). */
 export const feedX = (i: number) => { const b = COURSE.belts[i]; return b.speed < 0 ? b.x + b.w - CRATE - 4 : b.x + 4; };
 const CACTUS_DAMAGE = 12, CRATE_DAMAGE = 10;
+/** What comes down off a high line: how far its cloud of powder reaches, what it does to him, how long a crate wobbles
+ * before it tips. */
+const BLAST_R = 80, BLAST_DAMAGE = 8, WOBBLE = 40;
 
 export const createHazards = (): Hazards => ({
   crates: [],
@@ -40,10 +52,12 @@ export const createHazards = (): Hazards => ({
 export const cactusBox = (c: Cactus) => (c.look === 'saguaro' ? { x: c.x - 16, y: c.y - c.h, w: 32, h: c.h } : { x: c.x - 22, y: c.y - c.h, w: 44, h: c.h });
 
 /** A belt's machine: its top's the belt. */
-export const beltBox = (i: number) => { const b = COURSE.belts[i]; return { x: b.x, y: b.y, w: b.w, h: 550 - b.y }; };
+export const beltBox = (i: number) => { const b = COURSE.belts[i]; return { x: b.x, y: b.y, w: b.w, h: b.high ? 14 : 550 - b.y }; };
 
 /** The belts as solid blocks (built into the level). */
-export const beltBlocks = () => COURSE.belts.map((b, i) => ({ ...beltBox(i), type: 'ground' as const, hidden: true, tag: `belt-${i}` }));
+export const beltBlocks = () => COURSE.belts.map((b, i) => (b.high
+  ? { ...beltBox(i), type: 'platform' as const, oneWay: true, hidden: true, tag: `belt-${i}` }
+  : { ...beltBox(i), type: 'ground' as const, hidden: true, tag: `belt-${i}` }));
 
 const near = (state: GameState, x: number) => Math.abs(x - (state.camera.x + 400)) < 1400;
 
@@ -82,7 +96,9 @@ export const updateHazards = (ctx: FrameContext, hz: Hazards) => {
     if (hz.beltTimers[i] === CRATE_WARN + 1) playSound('alert', 0.6, 4);
     if (--hz.beltTimers[i] <= 0) {
       hz.beltTimers[i] = b.crateEvery + Math.floor(Math.random() * 40);
-      hz.crates.push({ x: feedX(i), y: b.y - CRATE, vx: b.speed, vy: 0, belt: i, falling: false, t: 0 });
+      // (one in two off a high line doesn't make it to the end: it tips off somewhere along it)
+      const tipAt = b.high && Math.random() < 0.5 ? b.x + b.w * (0.2 + Math.random() * 0.6) : undefined;
+      hz.crates.push({ x: feedX(i), y: b.y - CRATE, vx: b.speed, vy: 0, belt: i, falling: false, t: 0, tipAt, wobble: 0 });
       playSound('thud', 0.7);
     }
   });
@@ -90,12 +106,21 @@ export const updateHazards = (ctx: FrameContext, hz: Hazards) => {
     cr.t++;
     const b = COURSE.belts[cr.belt];
     if (!cr.falling) {
-      cr.x += b.speed;
-      if (cr.x + CRATE < b.x || cr.x > b.x + b.w) { cr.falling = true; cr.vx = b.speed * 1.2; cr.vy = -1; }
+      // (one that's going to tip: it gets there, stops, wobbles, the powder trickling out of it; and over it goes)
+      const there = cr.tipAt !== undefined && (b.speed < 0 ? cr.x + CRATE / 2 <= cr.tipAt : cr.x + CRATE / 2 >= cr.tipAt);
+      if (there) {
+        cr.wobble = (cr.wobble ?? 0) + 1;
+        if (cr.wobble === 1) playSound('clink', 0.6, -4);
+        if (cr.wobble >= WOBBLE) { cr.falling = true; cr.vx = b.speed * 0.25; cr.vy = 0; playSound('whoosh', 0.6, -6); }
+      } else cr.x += b.speed;
+      if (!cr.falling && (cr.x + CRATE < b.x || cr.x > b.x + b.w)) { cr.falling = true; cr.vx = b.speed * 1.2; cr.vy = -1; }
     } else {
+      const was = cr.y + CRATE;
       cr.vy += 0.6; cr.x += cr.vx; cr.y += cr.vy;
-      // Down on the floor: it bursts
-      if (cr.y + CRATE >= 550) { burst(ctx, cr); return false; }
+      // Down on the floor, or onto a line under it: it bursts
+      const under = COURSE.belts.find((o, k) => k !== cr.belt && cr.x + CRATE > o.x && cr.x < o.x + o.w && was <= o.y && cr.y + CRATE >= o.y);
+      if (under) { cr.y = under.y - CRATE; burst(ctx, cr); return false; }
+      if (cr.y + CRATE >= 550) { cr.y = 550 - CRATE; burst(ctx, cr); return false; }
     }
     const box = { x: cr.x, y: cr.y, w: CRATE, h: CRATE };
     // Shot, or hit with a special: it bursts where it is
@@ -135,4 +160,23 @@ const burst = (ctx: FrameContext, cr: Crate) => {
   for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: cx, y: cy }, vel: { x: (Math.random() - 0.5) * 8, y: -Math.random() * 6 }, life: 30, color: i % 3 ? '#A16207' : '#78350F', size: 3 + Math.random() * 4 });
   fx.spawnPowderExplosion({ x: cx, y: cy }, 14);
   playSound('crunch');
+  // Come down off a high line: it goes up in a cloud of white, and knocks him about if he's in it
+  if (cr.falling && COURSE.belts[cr.belt].high) powderBlast(ctx, cx, cr.y + CRATE);
+};
+
+/** A crate of product come down from up under the roof: a burst of white, a cloud of it hanging there after. */
+const powderBlast = (ctx: FrameContext, x: number, y: number) => {
+  const { state, fx } = ctx;
+  fx.spawnPowderExplosion({ x, y: y - 10 }, 46);
+  for (let i = 0; i < 12; i++) {
+    const a = Math.PI + (i / 11) * Math.PI;
+    state.particles.push({ pos: { x: x + Math.cos(a) * 10, y: y - 6 }, vel: { x: Math.cos(a) * (2 + Math.random() * 3), y: Math.sin(a) * (1 + Math.random() * 2) }, life: 70 + Math.random() * 40, color: i % 3 ? 'rgba(248, 250, 252, 0.8)' : 'rgba(226, 232, 240, 0.75)', size: 14 + Math.random() * 12 });
+  }
+  playSound('boom', 0.5, 6); playSound('whoosh', 0.7, -8);
+  shakeScreen(state, 6, 3);
+  const p = state.player, pb = boundsOf(p);
+  const dx = pb.x + pb.w / 2 - x, dy = pb.y + pb.h - y;
+  if (Math.abs(dx) < BLAST_R && dy > -BLAST_R - 40 && dy < 30 && p.invincibilityTimer <= 0 && state.deathTimer <= 0) {
+    hurtPlayer(ctx, BLAST_DAMAGE, 'powder_blast', { x: (dx < 0 ? -1 : 1) * 7, y: -8 });
+  }
 };
