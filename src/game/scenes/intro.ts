@@ -221,8 +221,9 @@ export const drawAgent = (ctx: Ctx, t: number, talking: boolean, where: 'gym' | 
 export const drawEscort = (ctx: Ctx, t: number) => {
   bands(ctx, 0, 0, ART_W, 114, ['#4c5450', '#5c6460', '#687070', '#707874', '#6c7470', '#646c68', '#5c645f']);
   bands(ctx, 0, 0, ART_W, 14, ['#3c4440', '#444c48', '#4c5450']);
-  // Doors going by, each with a little frosted window and a number
-  const scroll = (t * 1.2) % 80;
+  // Doors going by, each with a little frosted window and a number. (Each slot's things go by its place along the
+  // corridor, not its place on the screen: so as the scroll comes back round, nothing swaps for something else.)
+  const scroll = (t * 1.2) % 80, along = Math.floor(t * 1.2 / 80);
   for (let k = -1; k < 5; k++) {
     const x = Math.round(k * 80 - scroll + 20);
     R(ctx, x, 40, 34, 74, G.door); R(ctx, x + 6, 48, 22, 16, '#9cacac'); R(ctx, x + 26, 80, 3, 3, C.gold);
@@ -231,7 +232,7 @@ export const drawEscort = (ctx: Ctx, t: number) => {
   // Between the doors: a portrait of somebody important, a fire extinguisher, a notice nobody reads
   for (let k = -1; k < 5; k++) {
     const x = Math.round(k * 80 - scroll + 20) + 46;
-    if (k % 2 === 0) { R(ctx, x, 44, 20, 24, '#8c6c2c'); R(ctx, x + 2, 46, 16, 20, '#3c4c5c'); ell(ctx, x + 10, 54, 4, 5, '#c8a888'); R(ctx, x + 5, 60, 10, 6, '#1c1c24'); }
+    if ((k + along) % 2 === 0) { R(ctx, x, 44, 20, 24, '#8c6c2c'); R(ctx, x + 2, 46, 16, 20, '#3c4c5c'); ell(ctx, x + 10, 54, 4, 5, '#c8a888'); R(ctx, x + 5, 60, 10, 6, '#1c1c24'); }
     else { R(ctx, x + 6, 84, 7, 18, C.red); R(ctx, x + 7, 81, 4, 3, C.ink); R(ctx, x + 6, 88, 7, 2, C.white); R(ctx, x + 2, 50, 16, 20, '#e8e8d8'); for (let l = 0; l < 5; l++) R(ctx, x + 4, 54 + l * 3, 12 - (l % 2) * 4, 1, '#8c8c80'); }
   }
   // The baseboard
@@ -241,7 +242,7 @@ export const drawEscort = (ctx: Ctx, t: number) => {
   // Floor, polished: the ceiling lights shining back up off it
   bands(ctx, 0, 114, ART_W, 30, ['#4c504c', '#444844', '#3c403c', '#343834', '#2c302c']);
   for (let k = -1; k < 5; k++) { const lx = Math.round(k * 80 - scroll + 44); R(ctx, lx, 120, 30, 2, 'rgba(252, 252, 240, 0.18)'); R(ctx, lx + 6, 128, 18, 1, 'rgba(252, 252, 240, 0.1)'); }
-  for (let k = 0; k < 8; k++) R(ctx, Math.round((k * 40 - scroll * 1.5) % 300) - 20, 124, 18, 1, '#5c605c');
+  for (let k = 0; k < 8; k++) R(ctx, Math.round((((k * 40 - t * 1.8) % 320) + 320) % 320) - 20, 124, 18, 1, '#5c605c');
   // The two of them, walking in step
   agentStanding(ctx, 150, 118, t, 1);
   agentStanding(ctx, 178, 118, t, 1);
