@@ -46,7 +46,7 @@ export interface Jet { x: number; y: number; dir: 'up' | 'left' | 'right'; len: 
  */
 export interface Geyser { x: number; y: number; period: number; phase: number }
 /** A derrick on the move: a deck on skids dragged back and forth (dx), or a derrick's lift going up and down (dy). `x` is its left edge mid-travel. */
-export interface Mover { x: number; y: number; w: number; dx: number; dy: number; period: number; phase: number; look: 'skid' | 'lift' }
+export interface Mover { x: number; y: number; w: number; dx: number; dy: number; period: number; phase: number; look: 'skid' | 'lift'; /** Out back of the field office: burnt, bent, half falling apart (still going). */ wrecked?: boolean }
 /** A pit full of crude: fall in and that's it. */
 export interface CrudePit { x1: number; x2: number; surface: number }
 /** Scenery: a pumpjack nodding away, a derrick, a tank, a flare stack, a sign. */
@@ -103,7 +103,7 @@ const part = (x0: number) => {
   return {
     runs, ledges, spawns, pickups, oil, pits, props, jets, geysers, movers,
     geyser: (x: number, y: number, period: number, phase: number) => { geysers.push({ x: x0 + x, y, period, phase }); },
-    mover: (x: number, y: number, w: number, dx: number, dy: number, period: number, phase: number, look: Mover['look']) => { movers.push({ x: x0 + x, y, w, dx, dy, period, phase, look }); },
+    mover: (x: number, y: number, w: number, dx: number, dy: number, period: number, phase: number, look: Mover['look'], wrecked = false) => { movers.push({ x: x0 + x, y, w, dx, dy, period, phase, look, wrecked }); },
     jet: (x: number, y: number, dir: Jet['dir'], len: number, period: number, phase: number, on = 60) => { jets.push({ x: x0 + x, y, dir, len, period, phase, on }); },
     ground: (x1: number, x2: number, y1 = Y, y2 = y1) => { runs.push({ x1: x0 + x1, y1, x2: x0 + x2, y2 }); },
     ledge: (x: number, y: number, w: number, look: Ledge['look'] = 'pipe') => { ledges.push({ x: x0 + x, y, w, look }); },
@@ -222,7 +222,8 @@ const build = () => {
   // The ground spouting, the broken gas lines going off beside the vents and lighting them for you: wait for the fire
   // to go out of one, or get past while it's only oil
   e.geyser(1880, Y, 200, 0); e.jet(1800, Y, 'right', 100, 200, 120, 50);
-  e.pit(1950, 2110); e.ledge(1990, Y - 40, 90, 'pipe');
+  // (across the pit: a burnt-out derrick deck still being dragged back and forth on its skids)
+  e.pit(1950, 2110); e.mover(1985, Y - 30, 90, 100, 0, 220, 0, 'skid', true);
   e.ground(2110, 2760);
   e.slick(2200, 2400, true); e.geyser(2300, Y, 220, 90);
   e.ledge(2380, Y - 120, 150, 'deck'); e.prop('derrick', 2455, Y);
@@ -246,11 +247,14 @@ const build = () => {
   r.pickup(2900, Y - 30, 'small_health');
   // Tar with a line spitting fire along it (it burns a long time): up on the derrick decks over it
   r.ground(2960, 3700); r.tar(3000, 3440, true); r.jet(2975, Y, 'right', 120, 520, 100, 80);
-  r.ledge(3050, Y - 110, 120, 'deck'); r.ledge(3230, Y - 160, 120, 'deck'); r.ledge(3410, Y - 110, 120, 'deck');
+  // (the middle one a wrecked derrick's lift, still going up and down, sparking)
+  r.ledge(3050, Y - 110, 120, 'deck'); r.mover(3240, Y - 150, 100, 0, 110, 230, 0.6, 'lift', true); r.ledge(3410, Y - 110, 120, 'deck');
   r.prop('derrick', 3290, Y);
-  r.spawn('ranger', 3290, Y - 160, 7); r.spawn('deputy', 3620, Y, 7);
+  r.spawn('ranger', 3110, Y - 110, 7); r.spawn('deputy', 3620, Y, 7);
   // Down a slick into the low ground, two jets in it going off in turn, bikers coming up it at him
   r.ground(3700, 3900, Y, Y + 80); r.ground(3900, 4400, Y + 80); r.ground(4400, 4550, Y + 80, Y);
+  // (a wrecked skid dragged up and down the low ground over the jets: up out of their way, or not)
+  r.mover(4040, Y - 40, 110, 200, 0, 300, 1.2, 'skid', true);
   r.slick(3740, 4360, true); r.jet(3980, Y + 80, 'up', 160, 240, 0, 60); r.jet(4220, Y + 80, 'up', 160, 240, 120, 60);
   r.spawn('biker', 4120, Y + 80, 7); r.spawn('biker', 4320, Y + 80, 7); r.spawn('ranger', 4500, Y, 7);
   r.pickup(3760, Y - 30, 'small_health');
@@ -264,7 +268,8 @@ const build = () => {
   // Up over the last pit on pipe stands, a jet up through the middle one
   const D = 1000;
   r.ground(4550 + D, 4600 + D); r.pit(4600 + D, 5000 + D);
-  r.ledge(4640 + D, Y - 70, 100, 'pipe'); r.ledge(4770 + D, Y - 130, 100, 'pipe'); r.ledge(4900 + D, Y - 70, 100, 'pipe');
+  // (the middle one a wrecked deck on skids now, dragged across over the jet)
+  r.ledge(4640 + D, Y - 70, 100, 'pipe'); r.mover(4770 + D, Y - 120, 100, 130, 0, 240, 0, 'skid', true); r.ledge(4900 + D, Y - 70, 100, 'pipe');
   r.jet(4820 + D, Y + 40, 'up', 280, 200, 60, 60);
   r.ground(5000 + D, 7600);
   r.spawn('deputy', 5060 + D, Y, 7);

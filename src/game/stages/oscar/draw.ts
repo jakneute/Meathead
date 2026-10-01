@@ -75,7 +75,7 @@ export const drawOscarMid = (ctx: Ctx, state: GameState) => {
   const rt = getOscar(state)!;
   const place = view(state);
   if (place === 'chase') drawChaseThrown(ctx, state, rt.chase);
-  else if (place === 'end') { drawLedges(ctx, state); drawEndMid(ctx, state, rt.ending); drawBarMid(ctx, state, rt.bar); }
+  else if (place === 'end') { drawLedges(ctx, state); drawMovers(ctx, state, rt.field); drawEndMid(ctx, state, rt.ending); drawBarMid(ctx, state, rt.bar); }
   else { drawLedges(ctx, state); drawMovers(ctx, state, rt.field); drawBunkerMid(ctx, state, rt.bunker); }
   drawRiddenMoto(ctx, state, place === 'chase' ? rt.chase : null);
 };

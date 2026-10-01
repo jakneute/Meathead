@@ -7,7 +7,7 @@ import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, GROUND_Y } from '../../../constants';
 import { drawChopperBike } from '../../render/enemies/oscar';
 import { COURSE } from './course';
-import type { Field, LiveGeyser } from './field';
+import type { Field, LiveGeyser, LiveMover } from './field';
 import { geyserErupting, geyserWarning, geyserBox, geyserK, moverAt } from './field';
 
 type Ctx = CanvasRenderingContext2D;
@@ -97,6 +97,7 @@ export const drawMovers = (ctx: Ctx, state: GameState, fld: Field) => {
   for (const m of fld.movers) {
     if (!inView(state, m.x - Math.abs(m.dx), m.x + m.w + Math.abs(m.dx))) continue;
     const at = moverAt(m, state.frame);
+    if (m.wrecked) { drawWreckedMover(ctx, state, m, at); continue; }
     if (m.look === 'lift') {
       // The derrick it runs up: a lattice tower behind, the cables down to the cage, the cage's floor
       const tx = m.x + m.w / 2, top = m.y - m.dy / 2 - 200;
@@ -125,6 +126,63 @@ export const drawMovers = (ctx: Ctx, state: GameState, fld: Field) => {
       if (state.frame % 6 === 0 && Math.abs(Math.cos((state.frame / m.period) * Math.PI * 2 + m.phase)) > 0.3) state.particles.push({ pos: { x: at.x + (Math.random() < 0.5 ? 6 : m.w - 6), y: top + 20 }, vel: { x: (Math.random() - 0.5) * 2, y: -1 }, life: 12, color: '#FDE047', size: 2 });
     }
   }
+};
+
+/**
+ * A moving derrick out back of the field office, wrecked: the deck scorched black and holed (planks gone, the steel
+ * curled up at the edges), the tower on it bent over and snapped short (or the lift's tower with a chunk out of it and
+ * its cage buckled, one cable gone and the end of it swinging), fire still licking at a corner, smoke off it, sparks.
+ */
+const drawWreckedMover = (ctx: Ctx, state: GameState, m: LiveMover, at: { x: number; y: number }) => {
+  const f = state.frame, top = at.y;
+  if (m.look === 'lift') {
+    const tx = m.x + m.w / 2, crown = m.y - m.dy / 2 - 190;
+    // (the tower, a chunk blown out of one side of it, the rest leaning)
+    ctx.save(); ctx.translate(tx, Y + 40); ctx.rotate(0.06);
+    ctx.strokeStyle = '#3F3F46'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(-46, 0); ctx.lineTo(-16, crown - Y - 40); ctx.moveTo(46, 0); ctx.lineTo(30, -110); ctx.moveTo(22, -150); ctx.lineTo(16, crown - Y - 40); ctx.stroke();
+    ctx.lineWidth = 1.5;
+    for (let y = 0; y > crown - Y - 40; y -= 30) { if (y < -100 && y > -170) continue; const k = -y / (Y + 40 - crown), w = 46 - k * 30; ctx.beginPath(); ctx.moveTo(-w, y); ctx.lineTo(w - 2, y - 30); ctx.stroke(); }
+    // (bent struts sticking out of the hole)
+    ctx.strokeStyle = '#52525B'; ctx.beginPath(); ctx.moveTo(30, -110); ctx.quadraticCurveTo(44, -124, 52, -118); ctx.moveTo(22, -150); ctx.quadraticCurveTo(40, -146, 46, -160); ctx.stroke();
+    ctx.fillStyle = 'rgba(28, 25, 23, 0.8)'; ctx.fillRect(-20, crown - Y - 52, 40, 12);
+    ctx.restore();
+    // (one cable left, the other snapped and swinging)
+    ctx.strokeStyle = '#A8A29E'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(tx - 8, crown); ctx.lineTo(at.x + 10, top - 40); ctx.stroke();
+    const sw = Math.sin(f * 0.05) * 12;
+    ctx.beginPath(); ctx.moveTo(tx + 8, crown); ctx.quadraticCurveTo(tx + 14 + sw, crown + 60, tx + 10 + sw * 1.5, crown + 110); ctx.stroke();
+    // (the cage, buckled: knocked crooked, a bar bent in, scorched)
+    ctx.save(); ctx.translate(at.x + m.w / 2, top); ctx.rotate(-0.05);
+    ctx.strokeStyle = '#78716C'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-m.w / 2 + 4, 0); ctx.lineTo(-m.w / 2 + 6, -40); ctx.lineTo(m.w / 2 - 14, -38); ctx.quadraticCurveTo(m.w / 2 - 2, -30, m.w / 2 - 6, -18); ctx.moveTo(m.w / 2 - 4, 0); ctx.lineTo(m.w / 2 - 8, -12); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-m.w / 2 + 6, -20); ctx.quadraticCurveTo(0, -12, m.w / 2 - 8, -20); ctx.stroke();
+    ctx.restore();
+  } else {
+    // (the little derrick on the back of it, bent over and snapped off short)
+    ctx.save(); ctx.translate(at.x + 34, top); ctx.rotate(-0.45);
+    ctx.strokeStyle = '#52525B'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(-4, -64); ctx.moveTo(20, 0); ctx.lineTo(6, -58); ctx.stroke();
+    ctx.lineWidth = 1; for (let k = 0; k < 2; k++) { const y = -k * 26; ctx.beginPath(); ctx.moveTo(-20 + k * 6, y); ctx.lineTo(18 - k * 5, y - 26); ctx.stroke(); }
+    // (the jagged top where it snapped)
+    ctx.beginPath(); ctx.moveTo(-6, -64); ctx.lineTo(-2, -70); ctx.lineTo(2, -62); ctx.lineTo(7, -68); ctx.stroke();
+    ctx.restore();
+    // (the cable it's dragged by, frayed)
+    ctx.strokeStyle = 'rgba(168, 162, 158, 0.7)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(at.x + m.w, top + 8); ctx.lineTo(m.x + m.w + m.dx / 2 + 60, Y - 6); ctx.stroke();
+  }
+  // The deck: scorched black, planks gone, the edges curled up
+  const deck = () => { ctx.beginPath(); ctx.moveTo(at.x - 3, top - 4); ctx.lineTo(at.x + 6, top); ctx.lineTo(at.x + m.w - 8, top); ctx.lineTo(at.x + m.w + 4, top - 5); ctx.lineTo(at.x + m.w, top + 12); ctx.lineTo(at.x, top + 12); ctx.closePath(); };
+  const g = ctx.createLinearGradient(at.x, 0, at.x + m.w, 0);
+  g.addColorStop(0, '#1C1917'); g.addColorStop(0.5, '#3F3F46'); g.addColorStop(1, '#18181B');
+  ctx.fillStyle = g; deck(); ctx.fill();
+  ctx.strokeStyle = '#0C0A09'; ctx.lineWidth = 1.2; deck(); ctx.stroke();
+  // (the holes where the planks were: the dark under it showing through)
+  for (let k = 0; k < 3; k++) { const hx = at.x + 14 + k * (m.w - 30) / 2 + hash(k + m.x) * 8; ctx.fillStyle = '#050505'; ctx.fillRect(hx, top + 2, 9, 7); ctx.fillStyle = '#78350F'; ctx.fillRect(hx - 1, top + 1, 2, 9); }
+  ctx.fillStyle = 'rgba(234, 88, 12, 0.6)'; ctx.fillRect(at.x + 6, top, m.w - 14, 1.2);
+  // (a fire still going at one corner of it, smoke off it, and every so often sparks)
+  for (let k = 0; k < 4; k++) { const fh = 10 + Math.sin(f * 0.4 + k * 1.7) * 5; ctx.fillStyle = k % 2 ? '#F97316' : '#FDE047'; ctx.beginPath(); ctx.moveTo(at.x + m.w - 22 + k * 5, top); ctx.quadraticCurveTo(at.x + m.w - 20 + k * 5, top - fh, at.x + m.w - 16 + k * 5, top); ctx.fill(); }
+  if (f % 6 === 0) state.particles.push({ pos: { x: at.x + m.w - 12, y: top - 12 }, vel: { x: -0.3, y: -1.2 - Math.random() }, life: 45, color: 'rgba(28, 25, 23, 0.5)', size: 6 + Math.random() * 6 });
+  if (f % 40 < 3) state.particles.push({ pos: { x: at.x + 8 + Math.random() * (m.w - 16), y: top + 12 }, vel: { x: (Math.random() - 0.5) * 3, y: 1 + Math.random() * 2 }, life: 16, color: '#FDE047', size: 2 });
 };
 
 /** The vents, in the ground: a rusted wellhead stub, crude caked round it; bubbling before it goes; a little fire on it, lit. */
