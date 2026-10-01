@@ -101,6 +101,8 @@ export const updateBar = (ctx: FrameContext, b: Bar, talk: Talk, controls: Contr
       if (px > B.x1 + 40 && p.isGrounded) {
         b.phase = 'drinks'; b.t = 0; b.progressAt = state.frame; b.ambientAt = state.frame;
         state.checkpoint = Math.max(state.checkpoint, CP.BAR);
+        // (the shitty pants cheat: they'd flush him every time, so the bar just goes up the moment he's in)
+        if (ctx.cheats.shittyPants) { softLockAverted(ctx, b, talk); return { ...NO_CONTROLS }; }
         // (walked in like that: not in their bar he doesn't)
         if (isShat(state)) { startSwirly(ctx, b, talk, false); return { ...NO_CONTROLS }; }
         queueLines(state, talk, [
@@ -113,7 +115,10 @@ export const updateBar = (ctx: FrameContext, b: Bar, talk: Talk, controls: Contr
       return controls;
     case 'drinks':
       // (or did it right here, in front of them)
-      if (isShat(state) && px > B.x1 && px < B.x2) { startSwirly(ctx, b, talk, true); return { ...NO_CONTROLS }; }
+      if (isShat(state) && px > B.x1 && px < B.x2) {
+        if (ctx.cheats.shittyPants) softLockAverted(ctx, b, talk); else startSwirly(ctx, b, talk, true);
+        return { ...NO_CONTROLS };
+      }
       return drinks(ctx, b, talk, controls);
     case 'boom': case 'after': return aftermath(ctx, b, talk);
     default: return controls;
@@ -191,6 +196,18 @@ const drinks = (ctx: FrameContext, b: Bar, talk: Talk, controls: Controls): Cont
     }
   }
   return controls;
+};
+
+/** With the shitty pants cheat on, the swirly would get him every time: the bar goes up as he walks in instead, and the announcer owns up to it. */
+const softLockAverted = (ctx: FrameContext, b: Bar, talk: Talk) => {
+  const { state } = ctx;
+  const p = state.player;
+  lastCall(ctx, b, talk);
+  ctx.fx.announceKill('SOFT LOCK AVERTED!');
+  state.damageNumbers.push({
+    id: `callout-${state.frame}-softlock`, text: 'SOFT LOCK AVERTED!', pos: { x: p.pos.x + p.width / 2, y: p.pos.y - 40 },
+    vel: { x: 0, y: -2 }, life: 120, maxLife: 120, isCritical: true, isCallout: true, color: '#FACC15',
+  });
 };
 
 /** The bar goes up. Nobody walks out of this one. */
