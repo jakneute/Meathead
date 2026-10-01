@@ -29,9 +29,13 @@ export interface Dumpster {
   line: { by: string; text: string } | null;
 }
 
-// The beats
-const FALL_END = 64, CUT = 84;
-const L1 = 100, L3 = 101, WIDE = 102;
+// The beats: first the long way down between the two of them (off a wall, off a fire escape, caught in a washing
+// line and out of it again), then the drop into the dumpster
+const PRE = 150;
+/** The tumble's knocks: the wall, the fire escape, into the washing line, and out of it (it snaps). */
+const BONK = 30, CLANG = 60, SNAG = 95, SNAP = 114;
+const FALL_LEN = 64, FALL_END = PRE + FALL_LEN, CUT = PRE + 84;
+const L1 = PRE + 100, L3 = PRE + 101, WIDE = PRE + 102;
 // (and the moment the arm's off, it cuts straight to the death screen)
 const DOOR = WIDE + 30, SHOUT = DOOR + 30, SLAM = SHOUT + 1, END = SLAM + 5;
 const HOLDS = new Set([L1, L3, SHOUT]);
@@ -69,6 +73,10 @@ export const tickDumpster = (ctx: FrameContext, d: Dumpster) => {
   if (HOLDS.has(d.t) && d.line && !isTalking()) d.line = null;
   d.t++;
   const t = d.t;
+  if (t === BONK) { playSound('thud'); playSound('punch', 0.8, -4); }
+  if (t === CLANG) { playSound('clang'); playSound('thud', 0.7); }
+  if (t === SNAG) playSound('whoosh', 0.6, 6);
+  if (t === SNAP) { playSound('crack'); playSound('whoosh', 0.8, -6); }
   if (t === FALL_END) { playSound('crash'); playSound('glass', 0.9); playSound('splat', 0.8); playSound('clang', 0.7, -3); }
   if (t === CUT) d.line = null;
   const l = LINES[t];
@@ -290,12 +298,12 @@ const drawFall = (ctx: Ctx, t: number) => {
   dumpster(ctx, 128, 124, 1);
   for (let k = 0; k < 7; k++) bag(ctx, 92 + k * 12, 89 + (k % 2) * 3, 6, k + 9);
   ctx.fillStyle = '#E2E8F0'; ctx.fillRect(110, 84, 2, 6); ctx.fillStyle = '#65A30D'; ctx.fillRect(138, 85, 2, 5);
-  if (t < FALL_END) {
-    const k = t / FALL_END;
+  if (t < FALL_LEN) {
+    const k = t / FALL_LEN;
     tumbling(ctx, 128 + Math.sin(t * 0.2) * 6, -20 + k * k * 110, t * 0.35, t);
   } else {
     // SPLASH: garbage everywhere out of it, a burst behind CRASH!, a cloud of muck
-    const s = t - FALL_END;
+    const s = t - FALL_LEN;
     for (let i = 0; i < 22; i++) {
       const a = -Math.PI / 2 + (hash(i) - 0.5) * 2.6, sp = 1.5 + hash(i * 3) * 2.8;
       const px = 128 + Math.cos(a) * sp * s, py = 86 + Math.sin(a) * sp * s + 0.06 * s * s;
@@ -312,6 +320,97 @@ const drawFall = (ctx: Ctx, t: number) => {
       ctx.restore();
     }
   }
+};
+
+/** How far down the shaft the view's gone by frame t (it stops while he's hung up in the washing line). */
+const tumbleScroll = (t: number) => 6 * Math.min(t, SNAG) + 6 * Math.max(0, t - SNAP);
+/** Where something that meets him at frame `at` is on the screen at frame t (he stays about a third of the way down). */
+const meetsAt = (at: number, t: number) => 64 + tumbleScroll(at) - tumbleScroll(t);
+
+/** A comic-book burst with a word in it. */
+const pow = (ctx: Ctx, x: number, y: number, word: string, fill: string, age: number) => {
+  if (age < 0 || age > 16) return;
+  ctx.save(); ctx.translate(x, y); ctx.scale(0.8 + Math.min(1, age / 3) * 0.25, 0.8 + Math.min(1, age / 3) * 0.25); ctx.rotate(-0.15);
+  shape(ctx, () => { for (let k = 0; k < 14; k++) { const ang = (k / 14) * Math.PI * 2, r = k % 2 ? 10 : 19; if (k) ctx.lineTo(Math.cos(ang) * r * 1.5, Math.sin(ang) * r * 0.8); else ctx.moveTo(Math.cos(ang) * r * 1.5, Math.sin(ang) * r * 0.8); } ctx.closePath(); }, fill, 1.1);
+  ctx.fillStyle = '#FDE047'; ctx.font = 'bold 10px "Courier New", monospace'; ctx.textAlign = 'center';
+  ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.strokeText(word, 0, 3.5); ctx.fillText(word, 0, 3.5); ctx.textAlign = 'left';
+  ctx.restore();
+};
+
+/**
+ * The long way down, first: the view going down the gap between the two of them with him, the walls rushing up past,
+ * the windows, the AC units. He ping-pongs: into the limestone (BONK!), across into a fire escape's railing (CLANG!),
+ * then into a washing line strung across, which takes him, sags... and snaps (TWANG!), and he's off again with a pair
+ * of somebody's big pink drawers on his head.
+ */
+const drawTumble = (ctx: Ctx, t: number) => {
+  const sc = tumbleScroll(t);
+  // The sky's long gone: just the gap going down, darker the deeper it gets
+  bands(ctx, 70, 0, 116, H, ['#111827', '#0F172A', '#0B1020', '#070B14']);
+  // The left walk-up (red brick) and the right one (limestone), scrolling up past him
+  ctx.save(); ctx.beginPath(); ctx.rect(0, 0, 72, H); ctx.clip();
+  brickWall(ctx, 0, -(sc % 30) - 30, 72, H + 60, { mortar: '#2A1510', base: ['#7C3A2B', '#6B2E22', '#8A4232'], lit: 'rgba(255, 190, 150, 0.25)', dark: 'rgba(40, 10, 5, 0.45)' }, 1);
+  for (let k = -1; k < 5; k++) { const wy = k * 48 - (sc % 48); windowAt(ctx, 14, wy, hash(k + Math.floor(sc / 48)) > 0.5, k + Math.floor(sc / 48)); }
+  ctx.restore();
+  ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(64, 0, 8, H);
+  ctx.save(); ctx.beginPath(); ctx.rect(184, 0, 72, H); ctx.clip();
+  bands(ctx, 184, 0, 72, H, ['#D6CCB4', '#C8BBA0', '#B8AA8E', '#A69880']);
+  ctx.fillStyle = 'rgba(80, 60, 30, 0.2)'; for (let y = -(sc % 8); y < H; y += 8) ctx.fillRect(184, y, 72, 0.6);
+  for (let k = -1; k < 5; k++) {
+    const wy = k * 52 - (sc % 52), n = k + Math.floor(sc / 52);
+    windowAt(ctx, 214, wy, hash(n * 3) > 0.4, n * 7);
+    // (an AC unit hanging out of every other one, dripping)
+    if (n % 2 === 0) { shape(ctx, () => ctx.rect(186, wy + 20, 16, 10), '#A1A1AA', 0.6); ctx.fillStyle = '#52525B'; for (let g = 0; g < 4; g++) ctx.fillRect(188 + g * 3.6, wy + 22, 2, 6); }
+  }
+  ctx.restore();
+  ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(184, 0, 6, H);
+  // What he meets on the way: the fire escape off the left wall, the washing line across
+  const feY = meetsAt(CLANG, t) + 10;
+  if (feY > -20 && feY < H + 30) fireEscape(ctx, 40, feY, 46, -1);
+  const lineY = meetsAt(SNAG, t) + 6;
+  const snapped = t >= SNAP;
+  // (where he is, side to side: off the right wall, across to the fire escape, back to the middle and into the line)
+  const x = t < BONK ? 128 + (t / BONK) * 44 : t < CLANG ? 172 - ((t - BONK) / (CLANG - BONK)) * 84 : t < SNAG ? 88 + ((t - CLANG) / (SNAG - CLANG)) * 42 : 130 + Math.sin(t * 0.3) * 3;
+  const sag = t >= SNAG && !snapped ? Math.sin(Math.min(1, (t - SNAG) / 10) * Math.PI / 2) * 18 + Math.sin((t - SNAG) * 0.8) * 2 : 0;
+  const y = 64 + sag;
+  if (!snapped && lineY > -20 && lineY < H + 20) {
+    // The line, pegged across between the two, with the washing on it (and dipping where he's hung on it)
+    ctx.strokeStyle = '#E5E7EB'; ctx.lineWidth = 0.8;
+    const dip = t >= SNAG ? sag : 0;
+    ctx.beginPath(); ctx.moveTo(72, lineY); ctx.quadraticCurveTo(x, lineY + dip * 2, 184, lineY); ctx.stroke();
+    for (const [lx, c, w] of [[84, '#F472B6', 10], [100, '#60A5FA', 8], [156, '#FDE047', 9], [170, '#F8FAFC', 7]] as const) {
+      const ly = lineY + (dip * 2) * (1 - Math.abs(lx - x) / 112) * 0.9;
+      shape(ctx, () => ctx.rect(lx - w / 2, ly, w, 9), c, 0.5);
+    }
+  }
+  if (snapped) {
+    // The two ends of it whipping away up the gap, the washing going every which way
+    const u = t - SNAP;
+    ctx.strokeStyle = '#E5E7EB'; ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.moveTo(72, lineY); ctx.quadraticCurveTo(84, lineY - 10 - u, 100 - u, lineY - 20 - u * 2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(184, lineY); ctx.quadraticCurveTo(170, lineY - 10 - u, 156 + u, lineY - 20 - u * 2); ctx.stroke();
+    for (const [k, c] of [[0, '#60A5FA'], [1, '#FDE047'], [2, '#F8FAFC']] as const) {
+      ctx.save(); ctx.translate(x - 30 + k * 30 + Math.sin(u * 0.2 + k) * 6, lineY - u * (1.2 + k * 0.4)); ctx.rotate(u * 0.1 * (k - 1)); shape(ctx, () => ctx.rect(-4, -4, 8, 8), c, 0.5); ctx.restore();
+    }
+  }
+  // Him
+  const spin = t < SNAG ? t * 0.35 + (t >= BONK ? Math.PI : 0) + (t >= CLANG ? Math.PI * 0.6 : 0) : t < SNAP ? 1.4 : 1.4 + (t - SNAP) * 0.4;
+  tumbling(ctx, x, y, spin, t);
+  // (out of the line: somebody's big pink drawers, on his head the rest of the way down)
+  if (snapped) {
+    const hx = x + Math.sin(spin) * 17, hy = y - Math.cos(spin) * 17;
+    ctx.save(); ctx.translate(hx, hy); ctx.rotate(spin);
+    shape(ctx, () => { ctx.moveTo(-8, -6); ctx.lineTo(8, -6); ctx.lineTo(9, 2); ctx.lineTo(2, 4); ctx.lineTo(0, 1); ctx.lineTo(-2, 4); ctx.lineTo(-9, 2); ctx.closePath(); }, '#F472B6', 0.6);
+    ctx.fillStyle = '#FBCFE8'; ctx.fillRect(-8, -6, 16, 1.6);
+    ctx.fillStyle = '#DB2777'; for (const [px, py] of [[-4, -2], [3, -3], [5, 0]] as const) ctx.fillRect(px, py, 1.4, 1.4);
+    ctx.restore();
+  }
+  // The noises
+  pow(ctx, 186, 52, 'BONK!', '#2563EB', t - BONK);
+  pow(ctx, 66, 60, 'CLANG!', '#71717A', t - CLANG);
+  pow(ctx, x + 30, y + 20, 'TWANG!', '#DB2777', t - SNAP);
+  // (speed lines down the gap while he's going)
+  if (t < SNAG || snapped) { ctx.strokeStyle = 'rgba(226, 232, 240, 0.35)'; ctx.lineWidth = 0.6; for (let k = 0; k < 7; k++) { const lx = 80 + k * 15, ly = ((k * 37 - sc * 2) % 160 + 160) % 160 - 10; ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx, ly + 18); ctx.stroke(); } }
 };
 
 /** In the dumpster, up close: everything that was in it, now in him. */
@@ -511,7 +610,8 @@ export const drawDumpster = (ctx: Ctx, d: Dumpster) => {
   // (a shake on the landing and on the slam)
   const shake = (t >= FALL_END && t < FALL_END + 10) || (t > SLAM && t < SLAM + 10) ? 2 : 0;
   if (shake) ctx.translate((hash(t) - 0.5) * shake * 2, (hash(t * 3) - 0.5) * shake * 2);
-  if (t < CUT) drawFall(ctx, t);
+  if (t < PRE) drawTumble(ctx, t);
+  else if (t < CUT) drawFall(ctx, t - PRE);
   else if (t < WIDE) drawInside(ctx, t, isTalking(), t >= L3);
   else drawWide(ctx, t);
   ctx.restore();
