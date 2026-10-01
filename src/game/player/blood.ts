@@ -1,29 +1,14 @@
-// Blood on Meathead: his own.
-//
-// Hurt, he bleeds: a spurt off him the moment it lands (more the harder it was), a splash of it left on him where it
-// came out (running down him as it sits there, going dark, and fading off him again over the next several seconds;
-// straight off, if he goes in the water), and for a while after, drops falling off him. Drawn onto his sprite
-// (render/player/player.ts), only where he is.
+// Blood off Meathead when he's hurt: a spurt off him the moment it lands (more the harder it was), and for a while
+// after, drops falling off him. (How bloody he looks is his health: the cuts and the blood drawn on him, see
+// render/player/gore.ts. Nothing sticks to him.)
 
 import type { FrameContext } from '../core/context';
-import type { Player } from '../../types';
 import { PARTICLE_PALETTES } from '../../constants';
 
-/** The most that's on him at once (the oldest wipe off first). */
-const MAX_SPLATS = 70;
-/** How long a spatter stays on him (frames), and the stretch at the end of that over which it fades. */
-const SPLAT_LIFE = 540, SPLAT_FADE = 160;
 const GORE = PARTICLE_PALETTES.GORE;
 
-/** Puts a spatter on him at the world point (x, y). */
-const stick = (state: FrameContext['state'], p: Player, x: number, y: number, r: number, dark = false) => {
-  const splats = (p.splats ??= []);
-  if (splats.length >= MAX_SPLATS) splats.shift();
-  splats.push({ x: (x - (p.pos.x + p.width / 2)) * (p.facing || 1), y: y - (p.pos.y + p.height), r, at: state.frame, life: SPLAT_LIFE + Math.random() * 180, dark });
-};
-
 /** A point somewhere on his body (the upper three quarters of him: not his boots). */
-const onHim = (p: Player) => ({ x: p.pos.x + p.width * (0.15 + Math.random() * 0.7), y: p.pos.y + p.height * (0.08 + Math.random() * 0.62) });
+const onHim = (p: FrameContext['state']['player']) => ({ x: p.pos.x + p.width * (0.15 + Math.random() * 0.7), y: p.pos.y + p.height * (0.08 + Math.random() * 0.62) });
 
 /** Once a frame, after everything's had its go at him. */
 export const updateBlood = (ctx: FrameContext) => {
@@ -31,7 +16,7 @@ export const updateBlood = (ctx: FrameContext) => {
   const p = state.player;
   const was = p.bloodHp ?? p.health;
   p.bloodHp = p.health;
-  // Hurt: a spurt off him, some of it left on him, and he's bleeding for a while
+  // Hurt: a spurt off him, and he's bleeding for a while
   const dmg = was - p.health;
   if (dmg > 0.5 && p.health > 0) {
     const at = onHim(p);
@@ -41,7 +26,6 @@ export const updateBlood = (ctx: FrameContext) => {
       const sp = 2 + Math.random() * (3 + dmg * 0.15);
       state.particles.push({ pos: { x: at.x, y: at.y }, vel: { x: Math.cos(a) * sp, y: Math.sin(a) * sp }, life: 40 + Math.random() * 30, color: GORE[i % GORE.length], size: 1.5 + Math.random() * 3, ownBlood: true });
     }
-    for (let i = 0; i < 1 + Math.min(4, Math.round(dmg / 6)); i++) stick(state, p, at.x + (Math.random() - 0.5) * 10, at.y + (Math.random() - 0.5) * 10, 1.5 + Math.random() * 2.5);
     p.bleedT = Math.min(300, (p.bleedT ?? 0) + 50 + dmg * 5);
   }
   // Bleeding: drops off him, every so often (fewer as it stops)
@@ -52,35 +36,4 @@ export const updateBlood = (ctx: FrameContext) => {
       state.particles.push({ pos: at, vel: { x: p.vel.x * 0.3 + (Math.random() - 0.5) * 0.4, y: 0.5 }, life: 60, color: GORE[Math.floor(Math.random() * GORE.length)], size: 1.2 + Math.random() * 1.6, ownBlood: true });
     }
   }
-  // Wiped off by the water; otherwise, off with time
-  if (p.splats?.length) {
-    if (p.swimming) p.splats = [];
-    else p.splats = p.splats.filter(s => state.frame - s.at < s.life);
-  }
-};
-
-/**
- * The blood on him, drawn into his sprite (origin at his feet, +x to the world's right): each spatter a blob with
- * flecks round it, a run of it going down him from it as it sits there, going dark, fading out at the end. The
- * caller draws this so it only lands on him (the sprite's source-atop).
- */
-export const drawBloodOnHim = (ctx: CanvasRenderingContext2D, p: Player, frame: number) => {
-  if (!p.splats?.length) return;
-  const facing = p.facing || 1;
-  for (const s of p.splats) {
-    const age = frame - s.at, left = s.life - age;
-    const a = Math.min(1, left / SPLAT_FADE) * 0.92;
-    if (a <= 0) continue;
-    const x = s.x * facing, y = s.y;
-    const old = Math.min(1, age / 240);
-    ctx.globalAlpha = a;
-    ctx.fillStyle = s.dark || old > 0.6 ? '#5F0F0F' : old > 0.25 ? '#8B1414' : '#B91C1C';
-    ctx.beginPath(); ctx.ellipse(x, y, s.r, s.r * 0.8, (s.x * 7) % 3, 0, Math.PI * 2); ctx.fill();
-    // (flecks round it)
-    for (let k = 0; k < 3; k++) { const fa = s.at * 1.7 + k * 2.1; ctx.fillRect(x + Math.cos(fa) * s.r * 1.8, y + Math.sin(fa) * s.r * 1.5, 1, 1); }
-    // (running down him as it sits there)
-    const run = Math.min(9, age / 14) * (s.r / 3);
-    if (run > 0.5) { ctx.fillRect(x - 0.5, y, 1.1, run); ctx.beginPath(); ctx.ellipse(x, y + run, 0.9, 1.2, 0, 0, Math.PI * 2); ctx.fill(); }
-  }
-  ctx.globalAlpha = 1;
 };

@@ -5,8 +5,7 @@ import { SLIDE_HOLD } from '../../combat/muzzle';
 import { drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive, drawStandingKick, drawPedalLegs, drawLedgeDrop } from './moves';
 import { KICK_POSE_FRAMES, LEDGE_DROP_FRAMES } from '../../../constants';
 import { GameState } from '../../core/state';
-import { beginSprite, endSprite, markEyes, eyesAt, paintBody } from './spriteOutline';
-import { drawBloodOnHim } from '../../player/blood';
+import { beginSprite, endSprite, markEyes, eyesAt } from './spriteOutline';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawTorsoBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
 
 export interface PlayerDrawOptions {
@@ -130,8 +129,6 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx = world;
     // (sooted: black all over, fading back, just the whites of his eyes and a wisp of smoke off him)
     const soot = p.sootTimer && p.sootTimer > 0 ? Math.min(1, p.sootTimer / SOOT_FADE) : 0;
-    // (blood on him: painted over him, only where he is)
-    if (sprite && p.splats?.length) paintBody(b => drawBloodOnHim(b, p, state.frame));
     if (sprite) endSprite(world, anchorX, anchorY, p.suit ? SUIT_TINT : soot > 0 ? `rgba(24, 20, 18, ${0.9 * soot})` : undefined);
     const eye = eyesAt(anchorX, anchorY);
     if (soot > 0 && !p.suit) {

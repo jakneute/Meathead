@@ -83,18 +83,6 @@ export const glowLayer = (ctx: CanvasRenderingContext2D): CanvasRenderingContext
   return g;
 };
 
-/** Paints over what's been drawn of him so far, only where he is (source-atop): blood on him. Origin at his feet. */
-export const paintBody = (fn: (b: CanvasRenderingContext2D) => void) => {
-  if (!body) return;
-  const b = body.getContext('2d')!;
-  b.save();
-  b.setTransform(res, 0, 0, res, ORIGIN_X * res, ORIGIN_Y * res);
-  b.globalCompositeOperation = 'source-atop';
-  b.globalAlpha = 1;
-  fn(b);
-  b.restore();
-};
-
 /** Outlines what was drawn since beginSprite and draws it into the world with its feet at (x, y). */
 /** `tint`: a colour laid over the body (not the outline), keeping its shading under it (a hazmat suit, say). */
 export const endSprite = (world: CanvasRenderingContext2D, x: number, y: number, tint?: string) => {

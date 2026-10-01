@@ -111,8 +111,6 @@ export interface Player extends Entity {
   /** Knockback from taking damage; input is ignored while it runs. */
   pushbackTimer: number;
   hurtTimer?: number;
-  /** Blood on him (his own, and what flew off whatever he killed), fading off him (game/player/blood.ts). */
-  splats?: BloodSplat[];
   /** Frames he's still bleeding for (drops off him), and his health as it was last frame (to see a hit land). */
   bleedT?: number;
   bloodHp?: number;
@@ -607,9 +605,6 @@ export interface Pickup {
   /** Ammo for this weapon in particular (not whichever he's lowest on). */
   weapon?: WeaponType;
 }
-
-/** A spatter of blood on Meathead: where (from his feet: x toward the way he faces, y negative up), how big, when, how long it stays. */
-export interface BloodSplat { x: number; y: number; r: number; at: number; life: number; dark: boolean }
 
 export interface Particle {
   pos: Vector2;
