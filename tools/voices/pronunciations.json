@@ -3,6 +3,7 @@
   "fixes": [
     { "in": "FACEPLANT", "say": "FACE PLANT" },
     { "in": "NAMASTE", "say": "NAH MUH STAY" },
+    { "in": "CARBON FIB-", "say": "CARBON FYE-" },
     { "in": "WAY TOO EASY", "say": "WAY TOO EEZEE" },
     { "in": "FISH LIVES", "say": "FISH LIVS" },
     { "in": "CONDUCTS", "say": "KUN-DUKTS", "word": true },
