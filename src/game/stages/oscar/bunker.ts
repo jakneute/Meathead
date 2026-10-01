@@ -26,6 +26,7 @@ import { GROUND_Y, CANVAS_WIDTH, KICK_POSE_FRAMES } from '../../../constants';
 import { COURSE, CP } from './course';
 import { Talk, queueLines, quiet, hush } from './script';
 import { mountMoto } from './moto';
+import { isShat } from '../../player/gut';
 
 /** (`outside`: out the far side and across the yard, on his own, till he's up to the bikers) */
 export type BunkerPhase = 'waiting' | 'break' | 'clockout' | 'open' | 'spite' | 'boom' | 'aftermath' | 'outside' | 'runout' | 'ride' | 'done';
@@ -111,6 +112,15 @@ const AMBIENT: { who: 'worker' | 'foreman'; text: string }[] = [
   { who: 'worker', text: 'GO FISH.' },
   { who: 'foreman', text: "DON'T LOOK AT THE CLOCK. THE CLOCK CAN'T HURT YOU." },
 ];
+/** The same, with him stood there in his shitty pants (nobody's leaving: it's their break). */
+const AMBIENT_SHAT: typeof AMBIENT = [
+  { who: 'worker', text: 'GIN. ...CAN WE OPEN A WINDOW?' },
+  { who: 'foreman', text: 'MINUTES LEFT' },
+  { who: 'worker', text: "I CAN'T EAT MY YOGURT NOW. I CAN TASTE THE AIR." },
+  { who: 'foreman', text: 'THIS COFFEE TASTES LIKE HE SMELLS.' },
+  { who: 'worker', text: 'GO FISH. GO ANYWHERE. GO DOWNWIND.' },
+  { who: 'foreman', text: "DON'T LOOK AT HIM. DON'T BREATHE AT HIM EITHER." },
+];
 
 /**
  * Meathead, the longer he's kept standing in here with that gas line right there: a nudge, then less of a nudge, then
@@ -148,7 +158,16 @@ export const updateBunker = (ctx: FrameContext, b: Bunker, talk: Talk, controls:
       if (px > B.x1 + 40 && p.isGrounded) {
         b.phase = 'break'; b.t = 0; b.clockFrom = state.frame;
         state.checkpoint = Math.max(state.checkpoint, CP.BUNKER);
-        queueLines(state, talk, [
+        if (isShat(state)) {
+          // (walked in like that: it's still their break, smell or no smell)
+          b.hinted.add('shat');
+          queueLines(state, talk, [
+            { who: 'foreman', text: 'WHOA, WHOA. THIS IS A UNION BREAK, PAL. ...WHAT IS THAT SMELL?' },
+            { who: 'worker', text: "FIFTEEN MINUTES. IT'S IN THE CONTRACT. NOTHING IN THERE ABOUT THIS." },
+            { who: 'meathead', text: 'I JUST NEED TO GET THROUGH. QUICKLY. FOR EVERYBODY.' },
+            { who: 'foreman', text: "DOOR'S LOCKED TILL BREAK'S OVER. UNION RULES. STAND OVER BY THE VENT." },
+          ]);
+        } else queueLines(state, talk, [
           { who: 'foreman', text: 'WHOA, WHOA. THIS IS A UNION BREAK, PAL.' },
           { who: 'worker', text: 'FIFTEEN MINUTES. IT\'S IN THE CONTRACT.' },
           { who: 'meathead', text: 'I JUST NEED TO GET THROUGH.' },
@@ -239,10 +258,19 @@ const onBreak = (ctx: FrameContext, b: Bunker, talk: Talk, controls: Controls, i
     hush(state, talk);
     queueLines(state, talk, [{ who: 'meathead', text: b.popped ? 'GIVE IT A SECOND. LET THE GAS BUILD UP.' : 'NOTHING TO LIGHT YET. THAT GAS LINE ON THE WALL THOUGH...' }]);
   }
+  // He's shit himself, right there in their break room: they've got something to say about that (and stay put: it's their break)
+  if (isShat(state) && !b.hinted.has('shat')) {
+    b.hinted.add('shat'); b.ambientAt = state.frame;
+    queueLines(state, talk, [
+      { who: 'worker', text: 'OH, COME ON. NOT IN THE BREAK ROOM.' },
+      { who: 'foreman', text: "THAT'S A GRIEVANCE. I'M FILING A GRIEVANCE." },
+      { who: 'worker', text: "WE'RE NOT LEAVING, PAL. IT'S OUR BREAK. WE'LL BREATHE THROUGH OUR MOUTHS." },
+    ], 110);
+  }
   // What they say to themselves, the smell nobody notices, and a nudge now and then (never naming a button)
   if (inside && quiet(talk)) {
     const since = state.frame - b.ambientAt;
-    if (b.popped && b.gas > 0.25 && !b.hinted.has('smell')) { b.hinted.add('smell'); b.ambientAt = state.frame; queueLines(state, talk, [{ who: 'worker', text: 'SOMEBODY MICROWAVED EGGS AGAIN.' }, { who: 'foreman', text: 'SMELLS LIKE OVERTIME TO ME.' }]); }
+    if (b.popped && b.gas > 0.25 && !b.hinted.has('smell')) { b.hinted.add('smell'); b.ambientAt = state.frame; queueLines(state, talk, isShat(state) ? [{ who: 'worker', text: 'NOW IT SMELLS LIKE EGGS TOO.' }, { who: 'foreman', text: 'EGGS IS AN IMPROVEMENT.' }] : [{ who: 'worker', text: 'SOMEBODY MICROWAVED EGGS AGAIN.' }, { who: 'foreman', text: 'SMELLS LIKE OVERTIME TO ME.' }]); }
     else if (!b.popped && b.t > NAG_FROM && Math.floor((b.t - NAG_FROM) / NAG_EVERY) < NAGS.length && !b.hinted.has(`nag-${Math.floor((b.t - NAG_FROM) / NAG_EVERY)}`)) {
       const n = Math.floor((b.t - NAG_FROM) / NAG_EVERY);
       b.hinted.add(`nag-${n}`); b.ambientAt = state.frame;
@@ -250,10 +278,10 @@ const onBreak = (ctx: FrameContext, b: Bunker, talk: Talk, controls: Controls, i
     }
     else if (b.popped && b.gas >= 0.6 && state.frame - b.poppedAt > 700 && !b.hinted.has(`fire-${Math.floor((state.frame - b.poppedAt) / 700)}`)) { b.hinted.add(`fire-${Math.floor((state.frame - b.poppedAt) / 700)}`); b.ambientAt = state.frame; queueLines(state, talk, [{ who: 'meathead', text: 'ALL THIS ROOM NEEDS NOW IS A LITTLE FIRE.' }]); }
     // (the foreman keeps count, and calls the last minute)
-    else if (b.t > BREAK_FRAMES - MINUTE && !b.hinted.has('last')) { b.hinted.add('last'); b.ambientAt = state.frame; queueLines(state, talk, [{ who: 'foreman', text: 'ONE MINUTE, FELLAS. FINISH YOUR SANDWICHES.' }]); }
+    else if (b.t > BREAK_FRAMES - MINUTE && !b.hinted.has('last')) { b.hinted.add('last'); b.ambientAt = state.frame; queueLines(state, talk, [{ who: 'foreman', text: isShat(state) ? 'ONE MINUTE, FELLAS. HOLD YOUR NOSES. ALMOST THERE.' : 'ONE MINUTE, FELLAS. FINISH YOUR SANDWICHES.' }]); }
     else if (since > 520) {
       b.ambientAt = state.frame;
-      const line = AMBIENT[b.ambient++ % AMBIENT.length];
+      const line = (isShat(state) ? AMBIENT_SHAT : AMBIENT)[b.ambient++ % AMBIENT.length];
       const left = Math.ceil((BREAK_FRAMES - b.t) / MINUTE);
       queueLines(state, talk, [line.text === 'MINUTES LEFT' ? { who: 'foreman', text: `${NUMBERS[left] ?? left} MINUTE${left === 1 ? '' : 'S'} LEFT, FELLAS. SAVOR IT.` } : line]);
     }
@@ -273,8 +301,8 @@ const clockOut = (ctx: FrameContext, b: Bunker, talk: Talk) => {
     { who: 'foreman', text: "AND THAT'S BREAK. BACK TO IT, FELLAS." },
     { who: 'worker', text: 'FIVE MORE MINUTES...' },
     { who: 'foreman', text: 'UP.' },
-    { who: 'foreman', text: 'DOOR\'S OPEN, PAL. YOU WAITED OUT THE WHOLE BREAK? RESPECT.' },
-    { who: 'meathead', text: 'UNION RULES.' },
+    { who: 'foreman', text: isShat(state) ? "DOOR'S OPEN, PAL. YOU WAITED OUT THE WHOLE BREAK? LIKE THAT? RESPECT. FROM OVER HERE." : 'DOOR\'S OPEN, PAL. YOU WAITED OUT THE WHOLE BREAK? RESPECT.' },
+    { who: 'meathead', text: isShat(state) ? 'UNION RULES. SORRY ABOUT THE ROOM.' : 'UNION RULES.' },
   ]);
 };
 
@@ -320,7 +348,7 @@ const aftermath = (ctx: FrameContext, b: Bunker, talk: Talk): Controls => {
     b.phase = 'aftermath'; b.t = 0;
     for (const w of b.workers) { w.state = 'furious'; w.t = 0; }
     queueLines(state, talk, [
-      { who: 'worker', text: 'MY BREAK!' },
+      { who: 'worker', text: isShat(state) ? 'MY BREAK! AND IT STILL SMELLS LIKE HIM!' : 'MY BREAK!' },
       { who: 'foreman', text: '...EVERYBODY. BACK. TO WORK.' },
       { who: 'meathead', text: "BREAK'S OVER, BOYS." },
     ], 8);
@@ -354,8 +382,8 @@ const runOut = (ctx: FrameContext, b: Bunker, talk: Talk): Controls => {
       if (px < target.x - 70) return { ...NO_CONTROLS, right: true };
       p.vel.x = 0; p.facing = 1;
       queueLines(state, talk, [
-        { who: 'dan', text: 'NOBODY TOUCHES HER BUT DIRTY DAN.' },
-        { who: 'meathead', text: "I'LL TAKE THE BIKE. AND THE GUN." },
+        { who: 'dan', text: isShat(state) ? 'NOBODY TOUCHES HER BUT DIRTY DAN. ...AND NOBODY THAT DIRTY.' : 'NOBODY TOUCHES HER BUT DIRTY DAN.' },
+        { who: 'meathead', text: isShat(state) ? "I'LL TAKE THE BIKE. AND THE GUN. YOU WON'T WANT THE SEAT BACK." : "I'LL TAKE THE BIKE. AND THE GUN." },
       ]);
       next();
       break;
@@ -370,7 +398,7 @@ const runOut = (ctx: FrameContext, b: Bunker, talk: Talk): Controls => {
       break;
     case 2:
       if (since === 12) { p.pos.x = target.x - p.width / 2; p.pos.y = GROUND_Y - p.height; mountMoto(state, 0); }
-      if (since === 14) queueLines(state, talk, [{ who: 'biker', text: "HE'S GOT DAN'S HOG! AND THE GUN!" }]);
+      if (since === 14) queueLines(state, talk, [{ who: 'biker', text: isShat(state) ? "HE'S GOT DAN'S HOG! AND THE GUN! AND HE'S SITTING ON IT LIKE THAT!" : "HE'S GOT DAN'S HOG! AND THE GUN!" }]);
       if (since > 26) { b.phase = 'ride'; b.t = 0; playSound('engine'); }
       break;
   }

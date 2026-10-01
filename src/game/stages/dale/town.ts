@@ -40,6 +40,7 @@ import { cancelSpeech } from '../../platform/speech';
 import { makeKindEnemy } from '../../enemies/kinds';
 import { COURSE, CP } from './course';
 import { Talk, queueLines, replaceLines, hush, quiet } from './script';
+import { isShat } from '../../player/gut';
 
 const Y = GROUND_Y;
 const T = () => COURSE.town;
@@ -462,6 +463,11 @@ const NINJA_LINES = [
   { who: 'ninja', text: 'YOU CROSSED THE WHOLE TOWN UNDER MY SIGHTS, AND STILL YOU STAND. I HAVE FAILED MY MASTER.' },
   { who: 'ninja', text: 'THERE IS ONLY ONE WAY TO RESTORE MY HONOR.' },
 ] as const;
+/** The same, if he crossed it having shit himself (it's worse, for the ninja). */
+const NINJA_LINES_SHAT = [
+  { who: 'ninja', text: 'YOU CROSSED THE WHOLE TOWN UNDER MY SIGHTS. WITH SHIT IN YOUR PANTS. AND STILL YOU STAND. I HAVE FAILED MY MASTER.' },
+  { who: 'ninja', text: 'THERE IS NO HONOR LEFT TO RESTORE. BUT I WILL TRY.' },
+] as const;
 
 /** The seppuku: when the blade goes in, when he's down (and you've got control back). */
 export const NINJA_CUT = 30, NINJA_DONE = 70;
@@ -510,7 +516,7 @@ const updateNinja = (ctx: FrameContext, town: Town, talk: Talk): Controls | null
       n.state = 'speech'; n.t = 0;
       n.face = p.pos.x + p.width / 2 < spot.x ? -1 : 1;
       town.sniper.on = false;
-      replaceLines(state, talk, NINJA_LINES.map(l => ({ ...l })));
+      replaceLines(state, talk, (isShat(state) ? NINJA_LINES_SHAT : NINJA_LINES).map(l => ({ ...l })));
     }
     return null;
   }
@@ -542,7 +548,7 @@ const updatePrisoner = (state: GameState, town: Town, talk: Talk) => {
   if (!town.prisoner.alive || town.phase !== 'street') return;
   if (town.prisoner.said === 0 && p.pos.x > t.jail.x1 - 700 && p.pos.y + p.height > Y - 20 && town.ninja.state === 'dead' && town.t > 60) {
     town.prisoner.said = 1;
-    queueLines(state, talk, [{ who: 'prisoner', text: "HEY! HEY, YOU! THE SHERIFF LOCKED ME IN HERE FOR A PHOTO AN HOUR AGO!" }]);
+    queueLines(state, talk, [{ who: 'prisoner', text: isShat(state) ? "HEY! HEY, YOU! THE SHERIFF LOCKED ME IN HERE FOR A PHOTO AN HOUR AGO! ...ACTUALLY, STAY OVER THERE. I CAN WAIT." : "HEY! HEY, YOU! THE SHERIFF LOCKED ME IN HERE FOR A PHOTO AN HOUR AGO!" }]);
   }
 };
 

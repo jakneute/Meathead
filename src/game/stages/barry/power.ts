@@ -17,6 +17,7 @@ import { playSound } from '../../platform/audio';
 import { COURSE } from './course';
 import { killPlayer } from '../../player/player';
 import { Talk, queueLines, replaceLines, quiet, hush } from './script';
+import { isShat } from '../../player/gut';
 
 export interface PowerRoom {
   /** The announcer's last call that went up on the screen. */
@@ -59,6 +60,21 @@ const INTRO = [
   { who: 'minion', text: "EVERY ROLLING BLACKOUT IN THE CITY RUNS THROUGH THESE THREE BEAUTIES. NOT THAT YOU'D UNDERSTAND LOAD BALANCING." },
   { who: 'meathead', text: 'THREE BIG HUMMING BOXES. GOT IT.' },
 ] as const;
+/** The same, when he's come up all those fire escapes having shit himself. */
+const INTRO_SHAT = [
+  { who: 'minion', text: "OH, LOOK WHO FINALLY MADE IT UP ALL THOSE FIRE ESCAPES. YOU'RE SWEATY. AND YOU SHIT YOURSELF. IT'S SO GROSS." },
+  { who: 'minion', text: "THIS IS THE HEART OF THE NEW YORK POWER GRID. TOUCH NOTHING. SIT ON NOTHING. I MEAN IT. NOTHING." },
+  { who: 'minion', text: "EVERY ROLLING BLACKOUT IN THE CITY RUNS THROUGH THESE THREE BEAUTIES. AND NOW THE WHOLE ROOM SMELLS LIKE YOU." },
+  { who: 'meathead', text: 'THREE BIG HUMMING BOXES. GOT IT.' },
+] as const;
+/** What he's got to say while it's going on, when Meathead's shit himself. */
+const TAUNTS_SHAT = [
+  "IS THAT ALL YOU'VE GOT? THEY'RE RATED FOR HURRICANES. NOT FOR WHATEVER THAT SMELL IS.",
+  "BARRY IS GOING TO HEAR ABOUT THIS. AND SMELL ABOUT IT.",
+  "YOU KNOW YOU'RE ON CAMERA, RIGHT? THE WHOLE COMPANY'S GOING TO SEE YOUR PANTS.",
+  "CAREFUL! THOSE ARE LEASED! AND DON'T TOUCH THEM WITH THOSE HANDS!",
+  "I'M TEXTING BARRY. \"THE BIG ONE SHIT HIMSELF.\" HE'LL TEXT BACK. HE ALWAYS TEXTS BACK.",
+];
 
 const TAUNTS = [
   "IS THAT ALL YOU'VE GOT? THEY'RE RATED FOR HURRICANES.",
@@ -101,7 +117,7 @@ export const enterPower = (ctx: FrameContext, pw: PowerRoom, talk: Talk) => {
   state.enemies.push(m);
   pw.minion = m;
   pw.phase = 'fight'; pw.t = 0; pw.tauntAt = 0;
-  replaceLines(state, talk, INTRO.map(l => ({ ...l })), 30);
+  replaceLines(state, talk, (isShat(state) ? INTRO_SHAT : INTRO).map(l => ({ ...l })), 30);
 };
 
 const hashN = (n: number) => { const s = Math.sin(n * 91.7 + 17.3) * 43758.5453; return s - Math.floor(s); };
@@ -215,7 +231,7 @@ export const updatePower = (ctx: FrameContext, pw: PowerRoom, talk: Talk, contro
     // A dig at you now and then if you're taking your time
     if (pw.phase === 'fight' && quiet(talk) && pw.t - pw.tauntAt > 540 && pw.t > 300) {
       pw.tauntAt = pw.t;
-      queueLines(state, talk, [{ who: 'minion', text: TAUNTS[Math.floor(pw.t / 540) % TAUNTS.length] }]);
+      queueLines(state, talk, [{ who: 'minion', text: isShat(state) ? TAUNTS_SHAT[Math.floor(pw.t / 540) % TAUNTS_SHAT.length] : TAUNTS[Math.floor(pw.t / 540) % TAUNTS.length] }]);
     }
     return controls;
   }

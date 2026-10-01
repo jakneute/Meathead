@@ -1331,6 +1331,25 @@ export const DAYCARE_LINES = {
     'I\'M TELLING MY MOM!',
     'MISS PATTY\'S TAKING A NAP!',
   ],
+  /** The same, when he comes down on them having shit himself. */
+  cheerShat: [
+    { at: 6, who: 'teacher0', text: 'OH NO. OH NO NO NO.' },
+    { at: 10, who: 'kid1', text: 'EWWWW!!' },
+    { at: 16, who: 'teacher1', text: "I'M NOT PAID ENOUGH FOR THIS. HE POOPED HIMSELF." },
+    { at: 20, who: 'kid3', text: 'HE POOPED HIS PANTS! YAAAY!' },
+  ],
+  chatterShat: [
+    'HE POOPED HIS PANTS!',
+    'MISTER, YOU NEED A CHANGING TABLE!',
+    "I'M TELLING MY MOM HE POOPED!",
+    'EVEN TYLER DOESN\'T DO THAT ANYMORE!',
+    'IT SMELLS LIKE NAP TIME!',
+    'MISS PATTY! HE HAD AN ACCIDENT!',
+    'I CAN SMELL IT FROM THE SANDBOX!',
+    'DO IT AGAIN, MISTER! NOT THE POOP PART!',
+    'ARE YOU A SUPERHERO? SUPERHEROES DON\'T POOP!',
+    'HE NEEDS A DIAPER!',
+  ],
 } as const;
 
 /**

@@ -67,6 +67,8 @@ add('death', 'YOU SET FIRE TO AN OIL-SOAKED TOXIC WASTE MONSTER IN A METHANE-FIL
 for (const l of dialogue.DAYCARE_LINES.cheer) add(`hector.${l.who}`, l.text, 'DAYCARE_LINES');
 for (const l of [dialogue.DAYCARE_LINES.ride, dialogue.DAYCARE_LINES.again]) add(`hector.${l.who}`, l.text, 'DAYCARE_LINES');
 for (let k = 0; k < 5; k++) for (const t of dialogue.DAYCARE_LINES.chatter) add(`hector.kid${k}`, t, 'DAYCARE_LINES');
+for (const l of dialogue.DAYCARE_LINES.cheerShat) add(`hector.${l.who}`, l.text, 'DAYCARE_LINES');
+for (let k = 0; k < 5; k++) for (const t of dialogue.DAYCARE_LINES.chatterShat) add(`hector.kid${k}`, t, 'DAYCARE_LINES');
 // The announcer calls out the kill callouts
 for (const c of Object.values(dialogue.KILL_CALLOUTS)) for (const t of c.lines) add('announcer', t, 'KILL_CALLOUTS');
 for (const byGround of Object.values(dialogue.SURFACE_CALLOUTS)) for (const lines of Object.values(byGround ?? {})) for (const t of lines ?? []) add('announcer', t, 'SURFACE_CALLOUTS');

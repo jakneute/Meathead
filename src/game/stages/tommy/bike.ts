@@ -25,6 +25,7 @@ import { groundLineAt } from '../../core/terrain';
 import { CANVAS_WIDTH, KICK_POSE_FRAMES, GROUND_Y } from '../../../constants';
 import { COURSE, CP, RoadJunk } from './course';
 import { Talk, queueLines, quiet } from './script';
+import { isShat } from '../../player/gut';
 
 export type BikePhase = 'waiting' | 'theft' | 'riding' | 'bottle' | 'wipeout' | 'gone';
 /** Things said on the ride, how far down the road (0..1) each comes (queued after whatever's being said). */
@@ -35,6 +36,15 @@ const BANTER: { at: number; lines: { who: 'crew' | 'meathead'; text: string }[] 
   { at: 0.5, lines: [{ who: 'crew', text: 'HOW IS HE STILL GOING?!' }, { who: 'meathead', text: 'LEG DAY, BABY!' }] },
   { at: 0.72, lines: [{ who: 'meathead', text: "THIS WHOLE TOWN SMELLS LIKE PENNIES." }] },
   { at: 0.88, lines: [{ who: 'crew', text: 'TAYVON GONNA BE SO MAD.' }] },
+];
+/** The same, when he's shit himself (and he's sat on Tayvon's seat like that). */
+const BANTER_SHAT: typeof BANTER = [
+  { at: 0.06, lines: [{ who: 'crew', text: 'PULL UP ON HIM! HOLD YOUR BREATH AND PULL UP!' }] },
+  { at: 0.16, lines: [{ who: 'meathead', text: 'THIS SEAT IS GETTING WARM.' }] },
+  { at: 0.3, lines: [{ who: 'crew', text: "YOU'RE DEAD, SHITPANTS! YOU HEAR ME? DEAD!" }, { who: 'meathead', text: "CAN'T HEAR YOU OVER MY CALVES." }] },
+  { at: 0.5, lines: [{ who: 'crew', text: 'HOW IS HE STILL GOING?! HE SHIT HIMSELF!' }, { who: 'meathead', text: 'LEG DAY, BABY!' }] },
+  { at: 0.72, lines: [{ who: 'meathead', text: 'THIS WHOLE TOWN SMELLS LIKE ME NOW.' }] },
+  { at: 0.88, lines: [{ who: 'crew', text: "TAYVON GONNA HAVE TO BURN THAT SEAT." }] },
 ];
 
 export interface BikeRun {
@@ -167,8 +177,8 @@ const theft = (ctx: FrameContext, b: BikeRun, talk: Talk): Controls => {
       queueLines(state, talk, [
         { who: 'crew', text: 'NAH, THE WATER ALWAYS BEEN THAT COLOR.' },
         { who: 'rider', text: 'MY GRANDMA SAYS IT GOT FLAVOR NOW.' },
-        { who: 'crew', text: "YO. WHO'S THIS BIG DUDE?" },
-        { who: 'meathead', text: "NICE BIKE. I'M TAKING IT." },
+        { who: 'crew', text: isShat(state) ? "YO. WHAT'S THAT SMELL? IT'S THIS BIG DUDE." : "YO. WHO'S THIS BIG DUDE?" },
+        { who: 'meathead', text: isShat(state) ? "NICE BIKE. I'M TAKING IT. DON'T SNIFF THE SEAT AFTER." : "NICE BIKE. I'M TAKING IT." },
       ], 0);
       next();
       break;
@@ -188,7 +198,7 @@ const theft = (ctx: FrameContext, b: BikeRun, talk: Talk): Controls => {
       // On it, and gone (the crew yelling after him as he goes)
       if (since === 14) { mount(state); b.v = 0; p.pos.x = H.bike - p.width / 2; }
       if (since === 22) {
-        queueLines(state, talk, [{ who: 'rider', text: 'NIGGA STOLE MY BIKE!' }, { who: 'rider', text: 'AYYY! THAT WAS MY BIRTHDAY BIKE!' }, { who: 'crew', text: "HE TOOK TAYVON'S BIKE! GET THE CAR!" }, { who: 'meathead', text: 'RING RING, BITCHES.' }]);
+        queueLines(state, talk, [{ who: 'rider', text: 'NIGGA STOLE MY BIKE!' }, { who: 'rider', text: isShat(state) ? "AYYY! HE'S GOT SHIT ALL OVER MY BIRTHDAY BIKE!" : 'AYYY! THAT WAS MY BIRTHDAY BIKE!' }, { who: 'crew', text: isShat(state) ? "HE SHAT ON TAYVON'S BIKE! GET THE CAR!" : "HE TOOK TAYVON'S BIKE! GET THE CAR!" }, { who: 'meathead', text: 'RING RING, BITCHES.' }]);
         b.crew = false;
         b.phase = 'riding'; b.t = 0;
         state.cameraOverride = null;
@@ -421,8 +431,9 @@ const smash = (state: GameState, j: RoadJunk, box: { x: number; y: number; w: nu
 const banter = (state: GameState, b: BikeRun, talk: Talk) => {
   const R = COURSE.road;
   const k = (state.player.pos.x - R.x1) / (R.hazmat - R.x1);
-  while (b.said < BANTER.length && k >= BANTER[b.said].at) {
-    const beat = BANTER[b.said++];
+  const said = isShat(state) ? BANTER_SHAT : BANTER;
+  while (b.said < said.length && k >= said[b.said].at) {
+    const beat = said[b.said++];
     const car = state.enemies.some(e => e.kind === 'lowrider' && e.health > 0);
     const lines = beat.lines.filter(l => l.who !== 'crew' || car);
     if (lines.length && talk.queue.length < 3) queueLines(state, talk, lines.map(l => ({ ...l })));
@@ -480,12 +491,12 @@ const bottle = (ctx: FrameContext, b: BikeRun, talk: Talk): Controls => {
     case bottleSteps.ZOOM:
       // In on what he's holding up: a bottle of the town's finest
       b.zoom = Math.min(1, since / 50);
-      if (since === 40) queueLines(state, talk, [{ who: 'hazmat', text: 'COMPLIMENTS OF THE CITY OF FLINT.' }]);
+      if (since === 40) queueLines(state, talk, [{ who: 'hazmat', text: isShat(state) ? 'COMPLIMENTS OF THE CITY OF FLINT. AND, SIR? YOUR PANTS.' : 'COMPLIMENTS OF THE CITY OF FLINT.' }]);
       if (since > 70 && quiet(talk)) next();
       break;
     case bottleSteps.TALK:
       b.zoom = Math.max(0, 1 - since / 30);
-      if (since === 30) queueLines(state, talk, [{ who: 'hazmat', text: 'DRINK UP.' }]);
+      if (since === 30) queueLines(state, talk, [{ who: 'hazmat', text: isShat(state) ? "DRINK UP. IT'S CLEANER THAN YOU." : 'DRINK UP.' }]);
       if (since > 40 && quiet(talk)) next();
       break;
     case bottleSteps.THROW:

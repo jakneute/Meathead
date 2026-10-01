@@ -34,6 +34,7 @@ import { say, MEATHEAD_VOICE, Voice, cutVoice } from '../../platform/speech';
 import { makeKindEnemy } from '../../enemies/kinds';
 import { COURSE, CP, TRAILER_W, TRUCK_W, TRAILER_TOP, truckDims } from './course';
 import { Talk, queueLines, replaceLines, hush, quiet } from './script';
+import { isShat } from '../../player/gut';
 
 const Y = GROUND_Y;
 
@@ -261,7 +262,7 @@ const startTruck = (ctx: FrameContext, cv: Convoy, i: number, talk: Talk) => {
   if (i === 0) {
     cv.radioT = 200;
     queueLines(state, talk, [
-      { who: 'dale', text: "HE'S ON THE TRUCK! HE'S ON THE TRUCK! BLOW IT IF HE GETS CLOSE!" },
+      { who: 'dale', text: isShat(state) ? "HE'S ON THE TRUCK! HE'S SHIT HIMSELF ON THE TRUCK! BLOW IT IF HE GETS CLOSE!" : "HE'S ON THE TRUCK! HE'S ON THE TRUCK! BLOW IT IF HE GETS CLOSE!" },
       { who: 'meathead', text: "THEY'RE RIGGED?! GREAT. KILL THE CREW, THEN JUMP. EASY." },
     ], 20);
   }
@@ -375,6 +376,15 @@ const FAMILY_LINES: { who: 'kid' | 'dad' | 'mom'; text: string }[] = [
   { who: 'mom', text: "GARY, THERE'S A SHOE IN THE GRILLE." },
   { who: 'dad', text: 'WHO WANTS NUGGETS?!' },
 ];
+/** The same, if what they hit had shit itself. */
+const FAMILY_LINES_SHAT: typeof FAMILY_LINES = [
+  { who: 'kid', text: 'DADDY, WHAT WAS THAT?' },
+  { who: 'dad', text: 'THAT? THAT WAS A... SPEED BUMP, PUMPKIN.' },
+  { who: 'kid', text: 'IT HAD ABS. AND IT SMELLED LIKE POOP.' },
+  { who: 'dad', text: 'IT WAS A VERY FIT, VERY DIRTY SPEED BUMP.' },
+  { who: 'mom', text: "GARY, THERE'S A SHOE IN THE GRILLE. AND... GARY, WHAT IS THAT ON THE GRILLE?" },
+  { who: 'dad', text: 'WINDOWS UP! WHO WANTS NUGGETS?!' },
+];
 const FAMILY_DEATHS = ['HIT AND RUN', 'A VERY FIT SPEED BUMP', 'WHO WANTS NUGGETS?'];
 
 /**
@@ -399,7 +409,7 @@ const familyRide = (ctx: FrameContext, f: Fall, talk: Talk): Controls => {
       shakeScreen(state, 22, 10); playSound('crunch');
       fx.spawnDeathShower({ x: f.x, y: Y - 60 }, 1, 1.4);
       state.playerLastVulgarity = ''; state.playerVulgarityTimer = 0;
-      queueLines(state, talk, FAMILY_LINES, 40);
+      queueLines(state, talk, isShat(state) ? FAMILY_LINES_SHAT : FAMILY_LINES, 40);
     }
     if (suv.hitAt >= 0) {
       // Pulled up just past him while they talk it over (nobody gets out); then off, quick, right over him again
@@ -774,9 +784,9 @@ export const hood = (cv: Convoy) => {
 };
 
 /** Dale and Riggs over the radio: about a minute of it before Riggs gives in (the time you've got). */
-const BICKER = [
+const bicker = (shat: boolean) => [
   { who: 'dale', text: "RIGGS! HE'S ON YOUR TRUCK! BLOW IT! BLOW IT NOW!" },
-  { who: 'riggs', text: "BLOW IT? I'M DRIVING IT, DALE!" },
+  { who: 'riggs', text: shat ? "BLOW IT? I'M DRIVING IT, DALE! AND HE SMELLS LIKE HE ALREADY BLEW!" : "BLOW IT? I'M DRIVING IT, DALE!" },
   { who: 'meathead', text: "HE'S RIGHT BEHIND THAT WINDSHIELD. ONE CLEAN SHOT FROM THE HOOD." },
   { who: 'dale', text: "YOU KNEW THE RISKS WHEN YOU SIGNED UP!" },
   { who: 'riggs', text: "I SIGNED UP TO DRIVE! THE AD SAID DRIVING! NOTHING ABOUT EXPLODING!" },
@@ -809,7 +819,7 @@ const updateCab = (ctx: FrameContext, cv: Convoy, talk: Talk, controls: Controls
   const tx = truckX(cv, 3);
   if (cab.phase === 'none' && p.pos.x > tx + 200 && p.isGrounded) {
     cab.phase = 'bicker'; cab.t = 0; cv.radioT = 99999;
-    queueLines(state, talk, BICKER.map(l => ({ ...l })));
+    queueLines(state, talk, bicker(isShat(state)).map(l => ({ ...l })));
   }
   if (cab.phase === 'bicker' && (quiet(talk) || cab.t >= BICKER_MAX)) {
     // He gives in

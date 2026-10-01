@@ -2,11 +2,11 @@ components/Cutscene.tsx:86 voice: p.voice
 components/Cutscene.tsx:94 voice: p.voice
 game/bosses/shared.ts:139 voice: getBossVoice(bossId)
 game/bosses/oscar.ts:187 name: undefined
-game/stages/artie/ski.ts:493 name: undefined
-game/stages/artie/ski.ts:498 name: undefined
-game/stages/artie/ski.ts:498 call: deathByCause(state)
-game/stages/hector/daycare.ts:38 voice: voiceOf(who)
-game/stages/hector/chase.ts:349 call: deathByCause(state)
+game/stages/artie/ski.ts:494 name: undefined
+game/stages/artie/ski.ts:499 name: undefined
+game/stages/artie/ski.ts:499 call: deathByCause(state)
+game/stages/hector/daycare.ts:39 voice: voiceOf(who)
+game/stages/hector/chase.ts:358 call: deathByCause(state)
 game/stages/hector/hazards.ts:443 name: undefined
 game/stages/hector/hazards.ts:449 name: undefined
 game/stages/victor/hazards.ts:262 name: undefined
@@ -33,21 +33,21 @@ game/stages/tommy/runtime.ts:177 call: deathByCause(ctx.state)
 game/stages/tommy/runtime.ts:177 call: bikeDeathMessage(rt.bike)
 game/stages/tommy/runtime.ts:177 call: thingDeathMessage(rt.thing)
 game/stages/tommy/runtime.ts:177 call: escapeDeathMessage(rt.escape)
-game/stages/tommy/thing.ts:170 voice: talk
-game/stages/tommy/thing.ts:193 voice: talk
-game/stages/tommy/thing.ts:206 voice: talk
+game/stages/tommy/thing.ts:171 voice: talk
+game/stages/tommy/thing.ts:194 voice: talk
 game/stages/tommy/thing.ts:207 voice: talk
-game/stages/tommy/thing.ts:254 voice: talk
-game/stages/tommy/thing.ts:322 voice: talk
-game/stages/tommy/thing.ts:341 call: Math.floor(Math.random() * 3)
-game/stages/tommy/thing.ts:341 name: undefined
-game/stages/tommy/thing.ts:112 expr: 0
-game/stages/tommy/thing.ts:206 expr: th.asks + state.frame
-game/stages/tommy/thing.ts:324 expr: th.asks + state.frame
-game/stages/tommy/bike.ts:558 name: undefined
+game/stages/tommy/thing.ts:208 voice: talk
+game/stages/tommy/thing.ts:255 voice: talk
+game/stages/tommy/thing.ts:323 voice: talk
+game/stages/tommy/thing.ts:342 call: Math.floor(Math.random() * 3)
+game/stages/tommy/thing.ts:342 name: undefined
+game/stages/tommy/thing.ts:113 expr: 0
+game/stages/tommy/thing.ts:207 expr: th.asks + state.frame
+game/stages/tommy/thing.ts:325 expr: th.asks + state.frame
+game/stages/tommy/bike.ts:569 name: undefined
 game/stages/tommy/script.ts:81 voice: VOICES[line.who]
-game/stages/tommy/escape.ts:277 name: undefined
-game/stages/oscar/bunker.ts:258 template: `${NUMBERS[left] ?? left} MINUTE${left === 1 ? '' : 'S'} LEFT, FELLAS. SAVOR IT.`
+game/stages/tommy/escape.ts:278 name: undefined
+game/stages/oscar/bunker.ts:286 template: `${NUMBERS[left] ?? left} MINUTE${left === 1 ? '' : 'S'} LEFT, FELLAS. SAVOR IT.`
 game/stages/oscar/runtime.ts:171 name: undefined
 game/stages/oscar/runtime.ts:174 call: deathByCause(ctx.state)
 game/stages/oscar/runtime.ts:177 call: chaseDeathMessage(rt.chase)
@@ -55,8 +55,8 @@ game/stages/oscar/chase.ts:581 name: undefined
 game/stages/oscar/bar.ts:162 template: `NOT ENOUGH GAS YET. ${left === 1 ? 'ONE MORE LINE' : 'TWO MORE LINES'} TO OPEN.`
 game/stages/oscar/script.ts:79 voice: VOICES[line.who]
 game/stages/gym/script.ts:77 voice: VOICES[line.who]
-game/stages/gym/runtime.ts:339 name: undefined
-game/stages/gym/runtime.ts:341 call: deathByCause(ctx.state)
+game/stages/gym/runtime.ts:349 name: undefined
+game/stages/gym/runtime.ts:351 call: deathByCause(ctx.state)
 game/core/effects.ts:236 call: getHurtLines(hurtSource)
 game/core/effects.ts:236 call: killLine(category, victim)
 game/core/update.ts:181 name: undefined

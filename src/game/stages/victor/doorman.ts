@@ -29,6 +29,7 @@ import { say, isSpeaking, Voice, MEATHEAD_VOICE } from '../../platform/speech';
 import { midBossProjectileDamage, doormanShare, DOORMAN_DOWN_MULT } from '../../combat/midBoss';
 import { KIND_STATS } from '../../enemies/kinds';
 import { COURSE, CP } from './course';
+import { isShat } from '../../player/gut';
 
 export const DOORMAN_HP = KIND_STATS.doorman.hp;
 /** He roars winding up for a charge or a slide at most this often (frames), and quieter than he used to. */
@@ -128,6 +129,15 @@ const LINES = {
   hurt: ["OKAY. THAT'S STRIKE ONE.", "YOU JUST GOT YOURSELF BANNED.", "THAT'S GOING IN THE INCIDENT REPORT."],
   clash: ["YOU'RE NOT GETTING IN!", "NOT TONIGHT, PAL!"],
   win: ["AND STAY OUT.", "NEXT!"],
+};
+/** The same, when he's turned up at the door having shit himself (the dress code has something to say about that). */
+const LINES_SHAT = {
+  idle: ["ID, PLEASE. AND A CHANGE OF PANTS.", "I'M GONNA NEED TO SEE SOME PROOF OF MEMBERSHIP. AND HYGIENE.", "YOU'RE NOT ON THE LIST. YOU'RE NOT ON ANY LIST.",
+    "MEMBERS ONLY, MEATBALL. AND NO ACCIDENTS.", "NO SHIRT, NO ENTRY. NO PANTS LIKE THAT, ABSOLUTELY NO ENTRY.", "THIS IS A PRIVATE EVENT. SMELL IS A DRESS CODE VIOLATION.",
+    "I CAN SMELL YOU FROM HERE, MEATBALL. WALK.", "DON'T COME ANY CLOSER. LET'S SEE THAT ID FROM THERE."],
+  hurt: ["OKAY. THAT'S STRIKE ONE. AND THAT'S MY GOOD SUIT.", "YOU JUST GOT YOURSELF BANNED. FOR LIFE. AND HOSED DOWN.", "THAT'S GOING IN THE INCIDENT REPORT. ALL OF IT. THE SMELL TOO."],
+  clash: ["YOU'RE NOT GETTING IN! NOT LIKE THAT!", "NOT TONIGHT, PAL! NOT EVER!"],
+  win: ["AND STAY OUT. AND GET CLEANED UP.", "NEXT! SOMEBODY GET A MOP!"],
 };
 
 const talk = (fight: DoormanFight, pool: string[], force = false) => {
@@ -267,7 +277,7 @@ export const updateDoorman = (ctx: FrameContext, m: Enemy, fight: DoormanFight):
       const d = Math.abs(px - mx);
       const want = 230 + Math.sin(m.aiTimer * 0.04) * 90;
       m.vel.x = d > want + 20 ? toward * WALK : d < want - 20 ? -toward * WALK : 0;
-      if (fight.phase === 'fight') talk(fight, LINES.idle);
+      if (fight.phase === 'fight') talk(fight, isShat(state) ? LINES_SHAT.idle : LINES.idle);
       if ((!fight.thrown && antiAir(m, p, px, mx))) break;
       if (m.aiTimer > (angry ? 70 : 110) && fight.phase === 'fight') { start(m, Math.random() < 0.55 ? 'windup-charge' : 'windup-slide'); if (state.frame - (fight.roaredAt ?? -1e9) > ROAR_EVERY) { fight.roaredAt = state.frame; playSound('roar', 0.35); } }
       break;
@@ -305,7 +315,7 @@ export const updateDoorman = (ctx: FrameContext, m: Enemy, fight: DoormanFight):
     case 'tripped':
       // Flat on his back: your chance
       m.vel.x *= 0.9;
-      if (m.aiTimer > TRIPPED) { start(m, 'recover'); talk(fight, LINES.hurt, true); }
+      if (m.aiTimer > TRIPPED) { start(m, 'recover'); talk(fight, isShat(state) ? LINES_SHAT.hurt : LINES.hurt, true); }
       break;
     case 'thrown':
       // Sailing over you; down on his back when he lands
@@ -672,7 +682,7 @@ const startClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, kind: Clas
   start(m, kind === 'shoulder' ? 'clash-shoulder' : 'clash-slide');
   shakeScreen(ctx.state, 16, 8);
   playSound('punch');
-  talk(fight, LINES.clash, true);
+  talk(fight, isShat(ctx.state) ? LINES_SHAT.clash : LINES.clash, true);
 };
 
 const runClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, pressed: boolean) => {
@@ -762,7 +772,7 @@ const endClash = (ctx: FrameContext, fight: DoormanFight, m: Enemy, won: boolean
     fight.lastCall = 'LOST THE CLASH!';
     ctx.fx.spawnDamageNumber({ x: p.pos.x - 40, y: p.pos.y - 40 }, fight.lastCall, true, '#F87171');
     shakeScreen(state, 18, 8);
-    talk(fight, LINES.win, true);
+    talk(fight, isShat(state) ? LINES_SHAT.win : LINES.win, true);
   }
 };
 

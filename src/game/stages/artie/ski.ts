@@ -19,6 +19,7 @@ import { deathByCause } from '../../core/deathCause';
 import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES } from '../../../constants';
 import { COURSE, CP, SkiObstacle } from './course';
 import { FLING_FRAMES } from './flingDraw';
+import { isShat } from '../../player/gut';
 
 type SkiPhase = 'waiting' | 'cutscene' | 'skiing' | 'runout' | 'finale' | 'done';
 
@@ -207,8 +208,8 @@ const cutscene = (ctx: FrameContext, ski: Ski): Controls => {
   }
   const t = ski.t;
   player.facing = 1;
-  if (t === 20) skierSays(ski, 'BRO. THE POWDER UP HERE IS SICK.');
-  if (t === 75) meatheadSays(state, 'NICE SKIS.');
+  if (t === 20) skierSays(ski, isShat(state) ? 'BRO. THE POWDER UP HERE IS SICK. ...BRO. DID YOU SHIT YOURSELF?' : 'BRO. THE POWDER UP HERE IS SICK.');
+  if (t === 75) meatheadSays(state, isShat(state) ? "NICE SKIS. DON'T WORRY ABOUT IT." : 'NICE SKIS.');
   if (t === 120) skierSays(ski, "THANKS, THEY'RE CARBON FIB-");
   // (and the kick cuts him off, mid-word: the one interruption)
   if (t === 138) {

@@ -24,6 +24,7 @@ import { weaponOf, midBossProjectileDamage } from '../../combat/midBoss';
 import { MAX_AMMO, CANVAS_WIDTH, GROUND_Y } from '../../../constants';
 import { COURSE, CP } from './course';
 import { Talk, queueLines, replaceLines, hush } from './script';
+import { isShat } from '../../player/gut';
 
 export type ThingPhase = 'dormant' | 'rise' | 'fight' | 'dying' | 'dead';
 export interface Thing {
@@ -153,8 +154,8 @@ export const updateThingRoom = (ctx: FrameContext, th: Thing, talk: Talk, contro
         playSound('roar'); shakeScreen(state, 60, 4);
         hush(state, talk);
         queueLines(state, talk, [
-          { who: 'thing', text: 'WE DRANK THE WATER. PLEASE. KILL US.' },
-          { who: 'meathead', text: 'YEAH, OKAY.' },
+          { who: 'thing', text: isShat(state) ? 'WE DRANK THE WATER. AND NOW... THAT SMELL. PLEASE. KILL US. QUICKLY.' : 'WE DRANK THE WATER. PLEASE. KILL US.' },
+          { who: 'meathead', text: isShat(state) ? 'YEAH, OKAY. RUDE, THOUGH.' : 'YEAH, OKAY.' },
         ], 20);
       }
       return controls;

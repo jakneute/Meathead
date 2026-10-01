@@ -16,6 +16,7 @@ import { DAYCARE_LINES } from '../../../content/dialogue';
 import { floorTopAt } from '../../core/terrain';
 import { BOSS_DOOR_X } from '../../../constants';
 import { COURSE, CP } from './course';
+import { isShat } from '../../player/gut';
 
 export interface Daycare {
   phase: 'waiting' | 'cutscene' | 'done';
@@ -93,7 +94,7 @@ export const updateDaycare = (ctx: FrameContext, dc: Daycare, controls: Controls
   player.invincibilityTimer = Math.max(player.invincibilityTimer, 2);
   if (t === FALL_AT) { playSound('slam'); shakeScreen(state, 60, 5); }
   // The kids cheering it in, the grown-ups losing it; whooping as they ride it in
-  for (const l of DAYCARE_LINES.cheer) if (t === LOOK_UP + l.at) daycareSays(dc, l.who, l.text);
+  for (const l of isShat(state) ? DAYCARE_LINES.cheerShat : DAYCARE_LINES.cheer) if (t === LOOK_UP + l.at) daycareSays(dc, l.who, l.text);
   if (t === HIT_AT + 12) daycareSays(dc, DAYCARE_LINES.ride.who, DAYCARE_LINES.ride.text);
   if (t === HIT_AT) {
     dc.hitAt = state.frame;
@@ -153,7 +154,7 @@ const chatter = (state: GameState, dc: Daycare) => {
   if (!dc.chatterAt) dc.chatterAt = state.frame + 120;
   if (state.frame < dc.chatterAt || isTalking()) return;
   dc.chatterAt = state.frame + CHATTER_EVERY + Math.floor(Math.random() * 240);
-  const pool = DAYCARE_LINES.chatter.filter(l => l !== dc.lastChatter);
+  const pool = ((isShat(state) ? DAYCARE_LINES.chatterShat : DAYCARE_LINES.chatter) as readonly string[]).filter(l => l !== dc.lastChatter);
   const text = pool[Math.floor(Math.random() * pool.length)];
   dc.lastChatter = text;
   daycareSays(dc, `kid${Math.floor(Math.random() * 5)}`, text, true);

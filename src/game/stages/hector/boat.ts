@@ -14,6 +14,7 @@ import { say, MEATHEAD_VOICE, Voice, holdForSpeech } from '../../platform/speech
 import { COURSE, CP } from './course';
 import { KICK_POSE_FRAMES } from '../../../constants';
 import { Chase, startChase, updateChase, spoutTakesCutter } from './chase';
+import { isShat } from '../../player/gut';
 
 type BoatPhase = 'waiting' | 'cutscene' | 'riding' | 'spout' | 'gone';
 
@@ -110,8 +111,8 @@ const cutscene = (ctx: FrameContext, b: Boat): Controls => {
   if (t < 90 && Math.abs(px - standAt) > 6) c = { ...c, right: px < standAt, left: px > standAt };
   else if (t < 90) player.vel.x = 0;
   if (t === 10) oldManSays(b, "BITIN' LIKE CRAZY TODAY.");
-  if (t === 80) meatheadSays(state, 'NEED YOUR BOAT, GRAMPS.');
-  if (t === 150) oldManSays(b, "IN THIS WEATHER? YOU'LL GET KILLED OUT THERE!");
+  if (t === 80) meatheadSays(state, isShat(state) ? "NEED YOUR BOAT, GRAMPS. DON'T ASK ABOUT THE SMELL." : 'NEED YOUR BOAT, GRAMPS.');
+  if (t === 150) oldManSays(b, isShat(state) ? "IN THIS WEATHER? YOU'LL GET KILLED OUT THERE! ...AND DON'T YOU SIT ON MY CUSHIONS LIKE THAT!" : "IN THIS WEATHER? YOU'LL GET KILLED OUT THERE!");
   if (t === 230) {
     // Up and over, into the drink
     player.facing = 1;
@@ -122,7 +123,7 @@ const cutscene = (ctx: FrameContext, b: Boat): Controls => {
     shakeScreen(state, 8, 4);
   }
   if ((player.kickPose || 0) > 0) player.kickPose!--;
-  if (t === 300) oldManSays(b, "...STILL BITIN'.");
+  if (t === 300) oldManSays(b, isShat(state) ? "...STILL BITIN'. HE CAN KEEP THE BOAT." : "...STILL BITIN'.");
   if (t === 320) {
     // Into the boat
     player.pos.x = b.x + 40; player.pos.y = b.block.y - player.height; player.vel = { x: 0, y: -4 };

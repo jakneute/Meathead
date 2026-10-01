@@ -12,6 +12,7 @@ import { makeKindEnemy } from '../../enemies/kinds';
 import { CANVAS_WIDTH, GROUND_Y } from '../../../constants';
 import { COURSE, CP, Room, WALL_X, WALL_W, RAT_HOLES } from './course';
 import { Talk, createTalk, updateTalk, queueLines, quiet, hush } from './script';
+import { isShat } from '../../player/gut';
 
 /** What to do to the ones in front of him (the button prompt that's up), or nothing. */
 export type Lesson = 'move' | 'fire' | 'charge' | 'push' | 'slide' | 'uppercut' | 'divekick' | 'shield';
@@ -140,6 +141,15 @@ const ROOM_LINES: Partial<Record<Room, string>> = {
   mezzanine: 'STAY TOGETHER! STRENGTH IN NUMBERS!',
   lockers: 'THE BRIEFCASES WILL PROTECT US! THEY\'RE GOVERNMENT ISSUE!',
 };
+/** The same, when he's shit himself (they're still coming: it's the job). */
+const ROOM_LINES_SHAT: typeof ROOM_LINES = {
+  free: "HE'S GETTING UP! HE'S... OH GOD, HE SHIT HIMSELF!",
+  wall: "DON'T HURT ME! I'M JUST AN INTERN! I'M NOT PAID ENOUGH FOR THIS SMELL!",
+  cardio: "EVERYBODY RUSH HIM AT ONCE! HOLD YOUR BREATH! HE CAN'T GET ALL OF US!",
+  racks: "HE CAN'T REACH US UP HERE! ...BUT THE SMELL CAN!",
+  mezzanine: 'STAY TOGETHER! STAY UPWIND!',
+  lockers: "THE BRIEFCASES WILL PROTECT US! HOLD THEM OVER YOUR NOSES!",
+};
 
 export const updateGym = (ctx: FrameContext, controls: Controls): Controls => {
   const rt = getGym(ctx.state);
@@ -165,7 +175,7 @@ export const updateGym = (ctx: FrameContext, controls: Controls): Controls => {
       if (rt.said.has(room) || px < COURSE.rooms[room] - 120 || !alive(state, rt, room)) continue;
       rt.said.add(room);
       const who = rt.rooms[room].map(id => state.enemies.find(e => e.id === id && e.health > 0)).find(Boolean);
-      if (who && quiet(rt.talk)) { queueLines(state, rt.talk, [{ who: 'intern', text: ROOM_LINES[room]! }], room === 'free' ? 20 : 0); rt.speaker = who.id; }
+      if (who && quiet(rt.talk)) { queueLines(state, rt.talk, [{ who: 'intern', text: (isShat(state) ? ROOM_LINES_SHAT : ROOM_LINES)[room]! }], room === 'free' ? 20 : 0); rt.speaker = who.id; }
     }
     // (the rooms that turn up as he gets to them)
     for (const room of Object.keys(COURSE.arrivals) as Room[]) if (!rt.arrived.has(room) && px >= COURSE.arrivals[room]!) arrive(ctx, rt, room);

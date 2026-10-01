@@ -11,6 +11,7 @@ import { say, Voice, MEATHEAD_VOICE } from '../../platform/speech';
 import { playSound } from '../../platform/audio';
 import { COURSE, CP } from './course';
 import { Lounge, startCrash } from './lounge';
+import { isShat } from '../../player/gut';
 
 export interface Club {
   /** The partygoers still standing (by id), how many he's killed, when the last one went (for the tally's jolt). */
@@ -35,6 +36,17 @@ const PARTY_GUY: Voice = { id: 'victor.partyguy', pitch: 1.0, rate: 1.2 };
 const PARTY_GIRL: Voice = { id: 'victor.partygirl', pitch: 1.2, rate: 1.2 };
 
 /** What they scream as he tears through the club. Mostly: there's no way out. It's a volcano. */
+/** The same, once he's shit himself (and in a volcano with the doors shut, that's a lot to take). */
+const YELLS_SHAT = [
+  "WHERE'S THE EXIT?! I CAN'T BREATHE IN HERE!",
+  'WHO PUTS A CLUB IN A VOLCANO?! AND WHO SHITS IN ONE?!',
+  "THE FIRE EXIT IS JUST MORE FIRE! IT STILL SMELLS BETTER!",
+  'I PAID A THOUSAND DOLLARS FOR BOTTLE SERVICE! NOT THIS!',
+  "I'M ON THE LIST! HE IS NOT ON THE LIST! HOW IS HE IN HERE?!",
+  'SOMEBODY CALL SECURITY! AND A JANITOR!',
+  "IT'S HOT IN HERE AND IT SMELLS LIKE THAT!",
+  'THE LAVA SMELLS BETTER THAN HIM!',
+];
 const YELLS = [
   "WHERE'S THE EXIT?!",
   "THERE IS NO EXIT! WE'RE INSIDE A VOLCANO!",
@@ -82,7 +94,7 @@ export const updateClub = (ctx: FrameContext, club: Club, lounge: Lounge) => {
     const panicking = state.enemies.filter(e => e.kind === 'partygoer' && e.aiState === 'panic' && e.health > 0 && e.pos.x > cam.x && e.pos.x < cam.x + 800 && e.pos.y > cam.y && e.pos.y < cam.y + 600);
     const who = panicking.length ? pick(panicking) : null;
     if (who) {
-      const text = pick(YELLS);
+      const text = isShat(state) ? pick(YELLS_SHAT) : pick(YELLS);
       const shown = say(text, (who.variant ?? 0) % 2 ? PARTY_GIRL : PARTY_GUY, 'casual', {
         onShow: () => { club.yell = { id: who.id, text, until: state.frame + 60 + text.length * 3 }; },
         onHide: () => { if (club.yell?.text === text) club.yell.until = Math.min(club.yell.until, state.frame + 10); },

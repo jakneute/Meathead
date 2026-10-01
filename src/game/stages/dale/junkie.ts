@@ -36,6 +36,7 @@ import { KIND_STATS } from '../../enemies/kinds';
 import { MAX_AMMO } from '../../../constants';
 import { COURSE, CP } from './course';
 import { Talk, queueLines, replaceLines, ScriptLine } from './script';
+import { isShat } from '../../player/gut';
 
 export const JUNKIE_HP = KIND_STATS.junkie.hp;
 const W = KIND_STATS.junkie.w, H = KIND_STATS.junkie.h;
@@ -194,6 +195,13 @@ const LINES = {
   ],
   shot: ["YOU CALL THAT A BULLET?!", "THAT TICKLES, FED!"],
 };
+/** The ones that change when he's walked in having shit himself (the crackhead's still up for it: he's smelled worse). */
+const LINES_SHAT = {
+  intro: [{ who: 'junkie', text: "WHO LET YOU IN HERE?! WHAT IS THAT?! THIS IS A PLACE OF BUSINESS!" }, { who: 'junkie', text: "YOU WANT SOME?! HUH?! I'VE SMELLED WORSE! I'VE BEEN WORSE!" }] as ScriptLine[],
+  idle: ["TIGHT! TIGHT! TIGHT! ...WHAT IS THAT?!", "LOOK AT MY EYES! THEY'RE WATERING! WHY ARE THEY WATERING?!", "YOU SHIT YOUR PANTS?! I RESPECT THAT! I STILL GOTTA KILL YOU!", "DALE SAYS YOU'RE A FED! FEDS DON'T SHIT THEMSELVES! ...DO THEY?!"],
+  grab: ["COME HERE, MUSCLES! ...OH, IT'S WARM!", "GOTCHA! HUH?! EWW! HUH?!"],
+  throw: ["GET OUTTA MY OFFICE! AND TAKE THAT WITH YOU!", "AND STAY OUT! AND CHANGE!"],
+};
 
 const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)];
 const junkieSays = (state: GameState, talk: Talk, pool: string[], now = false) => {
@@ -223,7 +231,7 @@ export const updateJunkieFight = (ctx: FrameContext, fight: JunkieFight, talk: T
     if (p.pos.x > o.x1 + 40 && p.isGrounded && p.pos.y + p.height <= o.floor + 2) {
       fight.phase = 'intro'; fight.t = 0;
       state.blocks.push(...fight.walls);
-      queueLines(state, talk, LINES.intro);
+      queueLines(state, talk, isShat(state) ? LINES_SHAT.intro : LINES.intro);
     }
   }
   if (fight.phase === 'intro' || fight.phase === 'fight' || fight.phase === 'dead' || fight.phase === 'leaving') {
@@ -296,7 +304,7 @@ export const updateJunkie = (ctx: FrameContext, m: Enemy, fight: JunkieFight, ta
       // Twitching his way at you
       m.facing = toward;
       m.vel.x = Math.abs(px - mx) > 40 ? toward * WALK * (0.7 + 0.5 * Math.abs(Math.sin(m.aiTimer * 0.2))) : 0;
-      if (fighting && Math.random() < 0.004) junkieSays(state, talk, LINES.idle);
+      if (fighting && Math.random() < 0.004) junkieSays(state, talk, isShat(state) ? LINES_SHAT.idle : LINES.idle);
       if (fighting && Math.abs(px - mx) < REACH_RANGE && Math.abs(p.pos.y + p.height - (m.pos.y + H)) < 60 && p.invincibilityTimer <= 0 && state.deathTimer <= 0) start(m, 'reach');
       // Keep away from him long enough and out comes the gun
       if (fighting && Math.abs(px - mx) > 280 && m.aiTimer > GUN_AFTER) { start(m, 'aim'); junkieSays(state, talk, LINES.gun); }
@@ -487,7 +495,7 @@ const grabPlayer = (ctx: FrameContext, fight: JunkieFight, m: Enemy, talk: Talk,
   m.facing = side as 1 | -1;
   start(m, 'grab');
   p.vel = { x: 0, y: 0 };
-  junkieSays(state, talk, LINES.grab, true);
+  junkieSays(state, talk, isShat(state) ? LINES_SHAT.grab : LINES.grab, true);
   if (charged && !fight.wrongSaid.has('charge')) { fight.wrongSaid.add('charge'); queueLines(state, talk, [{ who: 'meathead', text: "NOTE TO SELF: DON'T RUN AT THE CRACKHEAD." }]); }
   else if (fight.grabs === 2 && !fight.wrongSaid.has('close')) { fight.wrongSaid.add('close'); queueLines(state, talk, [{ who: 'meathead', text: "KEEP AWAY FROM HIS HANDS! MAKE HIM COME TO THE STASH INSTEAD!" }]); }
 };
@@ -524,7 +532,7 @@ const holdPlayer = (ctx: FrameContext, fight: JunkieFight, m: Enemy, talk: Talk)
     hurtPlayer(ctx, THROW, 'junkie_throw', { x: vx, y: -12 }, 40);
     fight.thrown = { vx, t: 36 };
     state.playerStunTimer = 20;
-    junkieSays(state, talk, LINES.throw);
+    junkieSays(state, talk, isShat(state) ? LINES_SHAT.throw : LINES.throw);
     shakeScreen(state, 14, 7);
   }
 };
@@ -756,7 +764,7 @@ const leave = (ctx: FrameContext, fight: JunkieFight, talk: Talk, controls: Cont
   if (fight.phase === 'dead') { fight.phase = 'leaving'; fight.leaveT = 0; }
   fight.leaveT++;
   if (fight.leaveT === LEAVE_LINES_AT) replaceLines(state, talk, [
-    { who: 'dale', text: "LOAD THE REST OF THE CARGO! MOVE IT! HE'S COMING!" },
+    { who: 'dale', text: isShat(state) ? "LOAD THE REST OF THE CARGO! MOVE IT! HE'S COMING! I CAN SMELL HIM COMING!" : "LOAD THE REST OF THE CARGO! MOVE IT! HE'S COMING!" },
     { who: 'meathead', text: "THE CARGO'S LEAVING? NOT WITHOUT ME." },
   ]);
   if (fight.leaveT >= 10000) { p.vel.x = 0; return { ...NO_CONTROLS }; }

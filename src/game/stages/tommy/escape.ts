@@ -29,6 +29,7 @@ import { GROUND_Y, BOSS_DOOR_X, DOOR_WIDTH, CANVAS_WIDTH } from '../../../consta
 import { COURSE, CP, RUINS_Y } from './course';
 import { Talk, queueLines, quiet, hush } from './script';
 import { arrive } from './runtime';
+import { isShat } from '../../player/gut';
 
 export type EscapePhase = 'waiting' | 'rumble' | 'run' | 'suit' | 'blast' | 'tower' | 'surf' | 'family' | 'crush' | 'melt' | 'ruins' | 'drop' | 'done';
 export interface Escape {
@@ -150,7 +151,7 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
       p.inCutscene = true; p.hidden = true; p.vel = { x: 0, y: 0 };
       // The hazmat man from the road, crouched over the manhole, doing his tests, minding his own business
       if (es.t === HAZ_LINE1) queueLines(state, talk, [{ who: 'hazmat', text: 'GLOWING. WITHIN LIMITS.' }]);
-      if (es.t === HAZ_LINE2) queueLines(state, talk, [{ who: 'hazmat', text: '...WARM MANHOLE?' }]);
+      if (es.t === HAZ_LINE2) queueLines(state, talk, [{ who: 'hazmat', text: isShat(state) ? '...WARM MANHOLE? ...SMELLY MANHOLE.' : '...WARM MANHOLE?' }]);
       if (es.t === RUMBLE_AT) { playSound('rumble'); shakeScreen(state, 30, 3); }
       if (es.t > RUMBLE_AT && es.t < PRE && es.t % 14 === 0) playSound('beep', 0.5, 6);
       // Out of the street: the cover (through him), then the man himself

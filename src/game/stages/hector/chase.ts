@@ -19,6 +19,7 @@ import { playSound } from '../../platform/audio';
 import { killPlayer } from '../../player/player';
 import { deathByCause } from '../../core/deathCause';
 import { COURSE } from './course';
+import { isShat } from '../../player/gut';
 
 /** The Coast Guard's skipper on the loudhailer, and his boarding crew (up close, no loudhailer). */
 const LOUDHAILER: Voice = { id: 'hector.coastguard', pitch: 0.9, rate: 1.0 };
@@ -132,6 +133,14 @@ const HAILS = [
   'PULL OVER! ...THE BOAT! PULL THE BOAT OVER!',
   'WE CAN SEE YOU! WE ARE RIGHT BEHIND YOU!',
   'TURN AROUND! NOBODY GOES OUT IN THIS!',
+];
+/** The same, with the binoculars on him: he's shit himself. */
+const HAILS_SHAT = [
+  'THAT IS A STOLEN VESSEL! AND YOU HAVE SOILED IT!',
+  'THERE IS A HURRICANE, GENIUS! AND YOUR PANTS!',
+  'PULL OVER! ...THE BOAT! AND THEN YOUR PANTS! PULL THOSE UP TOO!',
+  'WE CAN SEE YOU! WE CAN SEE ALL OF IT! WE ARE RIGHT BEHIND YOU!',
+  'TURN AROUND! NOBODY GOES OUT IN THIS! NOBODY GOES OUT LIKE THAT!',
 ];
 
 /** Off the pier with the throttle open: the cutter's coming round the end of the marina after him. */
@@ -275,9 +284,9 @@ export const updateChase = (ctx: FrameContext, c: Chase, b: { x: number; y: numb
   c.cgX += Math.max(2, (b.x - c.gap - c.cgX) * 0.12);
   // The skipper: the first thing out of him, the answer, then one every so often
   if (c.t === 8) meatheadSays(state, "CAN'T SHOOT. BOTH HANDS ON THE MOTOR.");
-  if (c.t === 30) hail(c, 'GET OUT OF THE WATER, IDIOT!');
+  if (c.t === 30) hail(c, isShat(state) ? 'GET OUT OF THE WATER, IDIOT! ...WAIT. WE SAW THAT. STAY IN THE WATER!' : 'GET OUT OF THE WATER, IDIOT!');
   if (c.t === 31) meatheadSays(state, 'MAKE ME!');
-  if (c.t > 300 && c.t - c.lineAt > 330 && !isTalking()) hail(c, HAILS[Math.floor((c.t / 330)) % HAILS.length]);
+  if (c.t > 300 && c.t - c.lineAt > 330 && !isTalking()) hail(c, isShat(state) ? HAILS_SHAT[Math.floor((c.t / 330)) % HAILS_SHAT.length] : HAILS[Math.floor((c.t / 330)) % HAILS.length]);
   if (c.gap < 200 && !c.said.has('board') && !isTalking()) { c.said.add('board'); hail(c, 'PREPARE TO BE BOARDED!'); }
   if (c.gap > 320) c.said.delete('board');
   if (b.x > COURSE.sea.spoutX - 1300 && !c.said.has('spout') && !isTalking()) { c.said.add('spout'); hail(c, 'SIR. THAT IS A WATERSPOUT.'); }
