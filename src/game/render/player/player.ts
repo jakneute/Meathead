@@ -920,11 +920,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
 
     const pump = armPump * 0.3;
     if (rightSide && !throwing && !isSwimming) {
-      // From his right: the gun in his left hand, from the far shoulder, the forearm across his belly to the grip;
-      // the near (right) arm hanging free in front of it, swinging as he goes
-      drawArm(ctx, -12, armBaseY - 3, -2 + pump * 0.4, armBaseY + 11, armBaseX + 11 + pump, armBaseY + 6, skinShadow, backArmShade, skinTone, armBaseX + 15 + pump);
-      ctx.fillStyle = backArmShade;
-      for (let k = 0; k < 3; k++) ctx.fillRect(armBaseX + 13 + pump + k * 2, armBaseY + 8.5, 0.8, 2);
+      // From his right: the right arm hangs free at his near side, swinging as he goes; the gun's in his left hand,
+      // the arm out from the far shoulder across his chest, over the right, to the grip
       const swing = isWalking ? -walkStride * 0.6 - 0.1 : isAirborne ? -0.6 - airFall * 0.9 : -0.25 + Math.sin(animFrame * 0.08) * 0.08;
       const fbend = 0.15 + Math.max(0, -swing) * 0.5;
       ctx.save();
@@ -932,6 +929,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       ctx.rotate(swing);
       drawArm(ctx, 0, 0, 0.5, 12, Math.sin(fbend) * 10 + 0.5, 12 + Math.cos(fbend) * 10, skinTone, skinShadow, skinHighlight);
       ctx.restore();
+      drawArm(ctx, -12, armBaseY - 3, 1 + pump * 0.4, armBaseY + 5, armBaseX + 11 + pump, armBaseY + 6, skinTone, skinShadow, skinHighlight, armBaseX + 15 + pump);
+      ctx.fillStyle = skinShadow;
+      for (let k = 0; k < 3; k++) ctx.fillRect(armBaseX + 13 + pump + k * 2, armBaseY + 8.5, 0.8, 2);
     } else {
     // Shoulder at the edge of his chest, elbow down by his side (pumping a little as he walks), the fist out at the gun
     drawArm(ctx, armBaseX + 6, armBaseY - 3, armBaseX + 4 + pump * 0.4, armBaseY + 8, armBaseX + 11 + pump, armBaseY + 6, skinTone, skinShadow, skinHighlight, armBaseX + 15 + pump);
