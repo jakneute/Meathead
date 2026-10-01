@@ -25,7 +25,9 @@ const HYPER_SPEED = 9.5, HYPER_LEAP = -13.5, HYPER_BURN = 660;
 /** Torn in half: held up and pulled at; the tear; how long the halves fly before the death screen. */
 export const RIP_TEAR = 26, RIP_END = 120;
 
-export interface Rip { t: number; x: number; y: number; dir: 1 | -1 }
+/** One of his halves, flying: where, how fast, its spin, and whether it's down on the floor. */
+export interface Half { x: number; y: number; vx: number; vy: number; spin: number; rate: number; down: boolean }
+export interface Rip { t: number; x: number; y: number; dir: 1 | -1; halves?: Half[] }
 
 /** What the death screen says: what he did wrong. */
 const RIP_LINES = [
@@ -126,25 +128,57 @@ export const tickRip = (ctx: FrameContext, rip: Rip) => {
   const t = rip.t;
   if (t < RIP_TEAR && t % 8 === 0) playSound('crunch', 0.5, -4);
   if (t === RIP_TEAR) {
+    // (the top half one way, the legs the other)
+    const d = rip.dir;
+    rip.halves = [
+      { x: rip.x, y: rip.y - 34, vx: d * 6.5, vy: -11, spin: 0, rate: 0.3 * d, down: false },
+      { x: rip.x, y: rip.y - 4, vx: -d * 5.5, vy: -8, spin: 0, rate: -0.35 * d, down: false },
+    ];
     playSound('splat'); playSound('crunch'); playSound('crack');
     shakeScreen(state, 24, 10);
     fx.spawnDeathShower({ x: rip.x, y: rip.y - 30 }, 0, 4);
     fx.spawnDamageNumber({ x: rip.x - 30, y: rip.y - 90 }, 'MAKE A WISH!', true, '#EF4444');
   }
+  if (rip.halves) for (const h of rip.halves) flyHalf(ctx, h);
   // (blood off both halves as they go)
-  if (t > RIP_TEAR && t < RIP_TEAR + 50) for (const h of halves(rip)) state.particles.push({ pos: { x: h.x, y: h.y }, vel: { x: (Math.random() - 0.5) * 2, y: Math.random() * 2 }, life: 40, color: Math.random() < 0.5 ? '#991B1B' : '#DC2626', size: 2 + Math.random() * 3 });
-  if (t === RIP_TEAR + 34) playSound('thud');
+  if (t > RIP_TEAR && t < RIP_TEAR + 50) for (const h of rip.halves ?? []) state.particles.push({ pos: { x: h.x, y: h.y }, vel: { x: (Math.random() - 0.5) * 2, y: Math.random() * 2 }, life: 40, color: Math.random() < 0.5 ? '#991B1B' : '#DC2626', size: 2 + Math.random() * 3 });
 };
 
-/** Where the two halves are (and their spin), after the tear: flying apart, then down on the floor, sliding a bit. */
-const halves = (rip: Rip) => {
-  const u = Math.max(0, rip.t - RIP_TEAR), d = rip.dir, floor = Y - 12, G = 0.45;
-  const half = (y0: number, vx: number, vy: number, spinRate: number) => {
-    const tl = (-vy + Math.sqrt(vy * vy + 4 * G * (floor - y0))) / (2 * G);
-    if (u < tl) return { x: rip.x + vx * u, y: y0 + vy * u + G * u * u, spin: u * spinRate };
-    return { x: rip.x + vx * tl + vx * 0.3 * Math.min(u - tl, 12), y: floor, spin: Math.round(tl * spinRate / Math.PI) * Math.PI + Math.PI / 2 };
-  };
-  return [half(rip.y - 34, d * 6.5, -11, 0.3 * d), half(rip.y - 4, -d * 5.5, -8, -0.35 * d)];
+/** How far each half reaches from its middle (for the walls), the floor they come down on, and gravity. */
+const HALF_R = 16, HALF_FLOOR = Y - 12, HALF_G = 0.45;
+
+/** Solid to a flying half: a wall, or the side of anything solid it's going into (not a ledge you jump up through). */
+const solidAt = (state: GameState, x: number, y: number) =>
+  state.blocks.find(b => (b.type === 'wall' || b.type === 'ground' || (b.type === 'platform' && !b.oneWay)) && x + HALF_R > b.x && x - HALF_R < b.x + b.w && y + HALF_R * 0.5 > b.y && y - HALF_R < b.y + b.h);
+
+/**
+ * A half in flight: up and over, spinning; into a wall, it doesn't go through it: it smacks off it and back (a smear
+ * left on it, a thud); into a ceiling, it drops off it; down on the floor, a bounce, a skid, and still.
+ */
+const flyHalf = (ctx: FrameContext, h: Half) => {
+  const { state, fx } = ctx;
+  if (h.down) { h.x += h.vx; h.vx *= 0.8; if (Math.abs(h.vx) < 0.1) h.vx = 0; if (solidAt(state, h.x, h.y - HALF_R)) { h.x -= h.vx; h.vx = 0; } return; }
+  h.vy += HALF_G;
+  // (sideways: into a wall, and off it)
+  const nx = h.x + h.vx;
+  if (solidAt(state, nx, h.y)) {
+    fx.spawnExplosion({ x: h.x + Math.sign(h.vx) * HALF_R, y: h.y }, '#991B1B', 8, -Math.sign(h.vx) * 3, 6);
+    playSound('thud', 0.7);
+    h.vx = -h.vx * 0.45; h.rate = -h.rate * 0.6;
+  } else h.x = nx;
+  // (up into a ceiling: down off it)
+  const ny = h.y + h.vy;
+  if (h.vy < 0 && solidAt(state, h.x, ny)) h.vy = Math.abs(h.vy) * 0.3;
+  else h.y = ny;
+  h.spin += h.rate;
+  // (down on the floor: a little bounce if it came down hard, then it lies there, skidding to a stop)
+  if (h.y >= HALF_FLOOR) {
+    h.y = HALF_FLOOR;
+    if (h.vy > 6) { h.vy = -h.vy * 0.25; h.vx *= 0.6; playSound('thud', 0.8); return; }
+    h.vy = 0; h.down = true; h.vx *= 0.5;
+    h.spin = Math.round(h.spin / Math.PI) * Math.PI + Math.PI / 2;
+    playSound('thud');
+  }
 };
 
 /** The halves, in the world (and him held up whole before that). */
@@ -158,7 +192,8 @@ export const drawRip = (ctx: Ctx, state: GameState, rip: Rip) => {
     ctx.restore();
     return;
   }
-  const [top, bottom] = halves(rip);
+  if (!rip.halves) return;
+  const [top, bottom] = rip.halves;
   ctx.save(); ctx.translate(top.x, top.y); ctx.rotate(top.spin); drawTorsoHalf(ctx, state.frame); ctx.restore();
   ctx.save(); ctx.translate(bottom.x, bottom.y); ctx.rotate(bottom.spin); drawLegsHalf(ctx, state.frame); ctx.restore();
 };
