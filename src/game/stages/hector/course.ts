@@ -209,7 +209,7 @@ const buildTower = (): Tower => {
   const floorY = GROUND_Y;
   const plats: Tower['plats'] = [];
   const LOOKS = ['plank', 'door', 'carroof', 'shed', 'billboard', 'sofa', 'fridge', 'hull'];
-  // Round and up: each a jump from the last (up to ~95px higher, a gap of up to ~115px: the longest want a dash)
+  // Round and up: each a jump from the last (up to ~95px higher, a gap of 40 to ~75px)
   let u = 260, y = floorY - 80;
   for (let i = 0; i < 34; i++) {
     const w = 90 + ((i * 37) % 60);
@@ -217,7 +217,7 @@ const buildTower = (): Tower => {
     const bounce = i % 9 === 5;
     const orbit = i > 12 && i % 5 === 2 ? (i % 2 ? 0.9 : -0.9) : undefined;
     plats.push({ u, y, w, look: bounce ? 'trampoline' : LOOKS[i % LOOKS.length], bounce, orbit });
-    u = (u + w + 60 + ((i * 53) % 56)) % circumference;
+    u = (u + w + 40 + ((i * 53) % 36)) % circumference;
     y -= bounce ? 160 : 72 + ((i * 29) % 22);
   }
   const topY = y;
