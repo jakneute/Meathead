@@ -22,12 +22,14 @@ const Y = GROUND_Y;
 
 /** How fast it goes after him, how high it leaps for him, how long before its heart gives out. */
 const HYPER_SPEED = 9.5, HYPER_LEAP = -13.5, HYPER_BURN = 660;
-/** Torn in half: held up and pulled at; the tear; how long the halves fly before the death screen. */
-export const RIP_TEAR = 26, RIP_END = 120;
+/** Torn in half: held up and pulled at, straining (a good long while); the tear; how long the halves fly before the death screen. */
+export const RIP_TEAR = 80, RIP_END = 180;
+/** How much room the halves get: he's never torn apart closer than this to a wall. */
+const RIP_ROOM = 130;
 
 /** One of his halves, flying: where, how fast, its spin, and whether it's down on the floor. */
 export interface Half { x: number; y: number; vx: number; vy: number; spin: number; rate: number; down: boolean }
-export interface Rip { t: number; x: number; y: number; dir: 1 | -1; halves?: Half[] }
+export interface Rip { t: number; x: number; y: number; dir: 1 | -1; halves?: Half[]; subject?: string }
 
 /** What the death screen says: what he did wrong. */
 const RIP_LINES = [
@@ -111,7 +113,16 @@ export const updateHyper = (ctx: FrameContext, e: Enemy, rip: Rip | null, startR
   // Got him
   if (state.deathTimer <= 0 && !ctx.cheats.invincible && rectsOverlap(boundsOf(e), boundsOf(p))) {
     e.vel = { x: 0, y: 0 };
-    startRip({ t: 0, x: e.pos.x + e.width / 2, y: e.pos.y - 10, dir: dir as 1 | -1 });
+    // (down on the floor for it, wherever it caught him; and out from any wall, so there's room for what comes next)
+    e.pos.y = Y - e.height;
+    let cx = e.pos.x + e.width / 2;
+    for (let k = 0; k < 3; k++) {
+      const wall = state.blocks.find(b => b.type === 'wall' && b.y < Y - 20 && b.y + b.h > Y - 140 && cx + RIP_ROOM > b.x && cx - RIP_ROOM < b.x + b.w);
+      if (!wall) break;
+      cx = cx < wall.x + wall.w / 2 ? wall.x - RIP_ROOM : wall.x + wall.w + RIP_ROOM;
+    }
+    e.pos.x = cx - e.width / 2;
+    startRip({ t: 0, x: cx, y: e.pos.y - 10, dir: dir as 1 | -1, subject: e.id });
     p.hidden = true;
     state.deathScene = { t: 0, len: RIP_END, voiced: false };
     killPlayer(ctx, RIP_LINES[Math.floor(Math.random() * RIP_LINES.length)], false);
@@ -126,7 +137,19 @@ export const tickRip = (ctx: FrameContext, rip: Rip) => {
   const { state, fx } = ctx;
   rip.t++;
   const t = rip.t;
-  if (t < RIP_TEAR && t % 8 === 0) playSound('crunch', 0.5, -4);
+  // The strain: it shakes with it, harder and harder, steam and spit coming off it, the joints popping
+  const e = state.enemies.find(en => en.id === rip.subject);
+  if (e && t < RIP_TEAR) {
+    const k = t / RIP_TEAR;
+    e.pos.x = rip.x - e.width / 2 + (Math.random() - 0.5) * (1 + k * 5);
+    e.pos.y = Y - e.height; e.vel = { x: 0, y: 0 };
+    e.hitFlash = t % 10 < 2 ? 3 : 0;
+    if (t % 3 === 0) state.particles.push({ pos: { x: rip.x + (Math.random() - 0.5) * e.width, y: e.pos.y + Math.random() * 20 }, vel: { x: (Math.random() - 0.5) * 2, y: -1.5 - Math.random() * 2 }, life: 26, color: Math.random() < 0.5 ? 'rgba(248, 113, 113, 0.7)' : 'rgba(226, 232, 240, 0.6)', size: 4 + Math.random() * 5 });
+    if (t % 14 === 0) shakeScreen(state, 4 + k * 6, 2 + k * 3);
+  }
+  if (e && t === RIP_TEAR) e.pos.x = rip.x - e.width / 2;
+  if (t < RIP_TEAR && t % 12 === 0) playSound('crunch', 0.4 + t / RIP_TEAR * 0.5, -6 + t / RIP_TEAR * 4);
+  if (t === Math.floor(RIP_TEAR * 0.3) || t === Math.floor(RIP_TEAR * 0.7)) playSound('roar', 0.6, -4);
   if (t === RIP_TEAR) {
     // (the top half one way, the legs the other)
     const d = rip.dir;
@@ -186,8 +209,13 @@ export const drawRip = (ctx: Ctx, state: GameState, rip: Rip) => {
   const t = rip.t;
   if (t < RIP_TEAR) {
     // Held up over its head by the top and the legs, pulled at, shaking
-    const shake = (Math.random() - 0.5) * (1 + t / 8);
-    ctx.save(); ctx.translate(rip.x + shake, rip.y - 30); ctx.rotate(Math.PI / 2 * rip.dir); ctx.scale(1, 1 + t / RIP_TEAR * 0.12);
+    const k = t / RIP_TEAR;
+    const shake = (Math.random() - 0.5) * (1 + k * 6);
+    // (the strain on it: a red heat off it, building)
+    const g = ctx.createRadialGradient(rip.x, rip.y + 20, 6, rip.x, rip.y + 20, 60 + k * 30);
+    g.addColorStop(0, `rgba(239, 68, 68, ${0.15 + k * 0.35})`); g.addColorStop(1, 'rgba(239, 68, 68, 0)');
+    ctx.fillStyle = g; ctx.fillRect(rip.x - 100, rip.y - 80, 200, 200);
+    ctx.save(); ctx.translate(rip.x + shake, rip.y - 30); ctx.rotate(Math.PI / 2 * rip.dir); ctx.scale(1, 1 + k * k * 0.22);
     drawFlung(ctx, state.frame);
     ctx.restore();
     return;
