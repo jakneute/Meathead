@@ -135,6 +135,8 @@ export interface GameState {
   bossCorpse: BossCorpse | null;
   /** A boss killed any way but his weakness: him as he was, going over (which way), where the floor is, when it started. */
   bossFallen?: { e: Enemy; dir: 1 | -1; floor: number; frame0: number } | null;
+  /** The boss as he was the moment he died (however he died): what the arena still needs of him after (Dale's smashed walls). */
+  deadBoss?: Enemy | null;
   /** The boss-defeated event has been sent (so it only goes once). */
   victoryReported: boolean;
   /** Forces React to switch the equipped weapon back to GUN (after respawn). */
@@ -413,6 +415,7 @@ export const resetStageState = (s: GameState) => {
   s.bossExplosionTimer = 0;
   s.bossCorpse = null;
   s.bossFallen = null;
+  s.deadBoss = null;
   s.victoryReported = false;
 
   s.tsunamiActive = false;

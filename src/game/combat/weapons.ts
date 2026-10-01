@@ -15,7 +15,7 @@ import {
 } from '../../constants';
 import { GameState } from '../core/state';
 import { FrameContext, killBoss } from '../core/context';
-import { hitBoss, getBossDef, getBossDamage } from '../bosses/registry';
+import { hitBoss, getBossDef, getBossDamage, isWeakTo } from '../bosses/registry';
 import { pickRandom, rectsOverlap, boundsOf } from '../core/utils';
 import { findFlyingCigarette, igniteOilWithFlame } from '../bosses/oscar';
 import { getStageLayout } from '../stages';
@@ -600,7 +600,8 @@ export const detonateNuke = (ctx: FrameContext, pos: Vector2) => {
     e.health -= OIL_ROCKET_NUKE_DAMAGE;
     fx.spawnDamageNumber(e.pos, OIL_ROCKET_NUKE_DAMAGE, true, '#FF0000');
     if (e.health > 0) return;
-    if (e.type === 'boss') killBoss(ctx, e, 0, true);
+    // (only his weakness makes a boss erupt: anyone else the blast finishes goes over like any other kill)
+    if (e.type === 'boss') killBoss(ctx, e, 0, isWeakTo(ctx.stageId, 'OIL_ROCKET'), 'OIL_ROCKET');
     else {
       fx.blowAwayEnemy(e, { x: (Math.random() - 0.5) * 40, y: -25 }, 'oil_kill', 0, 3);
       fx.spawnKillCallout(e, 'nuke');

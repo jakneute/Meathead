@@ -36,7 +36,7 @@ export const drawCustomBossArena = (
       break;
     case 'Drug Trade Dale':
       drawDaleArena(ctx, arenaLeft, arenaRight, arenaW, ceilingY, groundY, frame);
-      if (state) drawDaleWalls(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, state.enemies.find(e => e.type === 'boss'), state.doorState === 'done');
+      if (state) drawDaleWalls(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, state.enemies.find(e => e.type === 'boss') ?? state.deadBoss ?? undefined, state.doorState === 'done');
       break;
     case 'Blackout Barry':
       drawBarryArena(ctx, arenaLeft, arenaRight, arenaW, ceilingY, groundY, frame);

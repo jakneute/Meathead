@@ -194,7 +194,10 @@ const KILL_LINE_FOR: Partial<Record<WeaponType, VulgarityType>> = {
  * few seconds (see core/update.ts), anything else goes straight to victory.
  */
 const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolean, stageId: string | null, weapon: WeaponType, state: GameState, helpers: BossHelpers) => {
-  if (state.bossExplosionTimer > 0) return;
+  // (dead already: one death each. A second blow landing on the same frame, or his own truck, or the puddle he's
+  // stood in, doesn't turn a man going over into a man erupting)
+  if (state.bossExplosionTimer > 0 || state.bossFallen || state.bossCorpse) return;
+  state.deadBoss = { ...boss };
   const pos = { x: boss.pos.x + boss.width / 2, y: boss.pos.y + boss.height / 2 };
 
   // (whatever he was in the middle of saying, he doesn't get to finish: just his last words)
