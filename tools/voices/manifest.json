@@ -5496,7 +5496,7 @@
  },
  {
   "voice": "death",
-  "text": "SHOULD HAVE CLEARED THE ROOF",
+  "text": "SHOULD HAVE KILLED FASTER",
   "from": "game/stages/dale/convoy.ts:470"
  },
  {
@@ -11831,11 +11831,6 @@
  },
  {
   "voice": "meathead",
-  "text": "ROOF'S CLEAR! NEXT TRUCK! GO GO GO!",
-  "from": "game/stages/dale/convoy.ts:307"
- },
- {
-  "voice": "meathead",
   "text": "ROT IN FILTH",
   "from": "VULGARITIES"
  },
@@ -13036,6 +13031,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S THE CREW! NEXT TRUCK! GO GO GO!",
+  "from": "game/stages/dale/convoy.ts:307"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S THE WHOLE MOTOR POOL. WHERE'S THE BOSS?",
   "from": "game/stages/oscar/chase.ts:195"
  },
@@ -13341,7 +13341,7 @@
  },
  {
   "voice": "meathead",
-  "text": "THEY'RE RIGGED?! GREAT. CLEAR THE ROOF, THEN JUMP. EASY.",
+  "text": "THEY'RE RIGGED?! GREAT. KILL THE CREW, THEN JUMP. EASY.",
   "from": "game/stages/dale/convoy.ts:265"
  },
  {

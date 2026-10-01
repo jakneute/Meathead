@@ -262,7 +262,7 @@ const startTruck = (ctx: FrameContext, cv: Convoy, i: number, talk: Talk) => {
     cv.radioT = 200;
     queueLines(state, talk, [
       { who: 'dale', text: "HE'S ON THE TRUCK! HE'S ON THE TRUCK! BLOW IT IF HE GETS CLOSE!" },
-      { who: 'meathead', text: "THEY'RE RIGGED?! GREAT. CLEAR THE ROOF, THEN JUMP. EASY." },
+      { who: 'meathead', text: "THEY'RE RIGGED?! GREAT. KILL THE CREW, THEN JUMP. EASY." },
     ], 20);
   }
 };
@@ -302,9 +302,9 @@ const updateTrucks = (ctx: FrameContext, cv: Convoy, talk: Talk) => {
         tr.phase = 'cleared'; tr.t = 0; tr.timeLeft = AFTER_CLEAR;
         const next = cv.trucks[i + 1];
         if (next && next.phase === 'far') next.phase = 'coming';
-        cv.banner = { text: 'CLEAR! GO!', t: 0, color: '#22C55E' };
+        cv.banner = { text: 'CREW DOWN! GO!', t: 0, color: '#22C55E' };
         playSound('truckhorn');
-        if (i === 0) queueLines(state, talk, [{ who: 'meathead', text: "ROOF'S CLEAR! NEXT TRUCK! GO GO GO!" }]);
+        if (i === 0) queueLines(state, talk, [{ who: 'meathead', text: "THAT'S THE CREW! NEXT TRUCK! GO GO GO!" }]);
       }
       if (tr.timeLeft <= 0) blowUp(ctx, cv, i, talk);
     } else if (tr.phase === 'cleared') {
@@ -358,7 +358,7 @@ const pick = (l: string[]) => l[Math.floor(Math.random() * l.length)];
 const FALL_LINES: Record<Fall['kind'], string[]> = {
   runover: ['ROADKILL', 'FLATTENED ON THE INTERSTATE', 'EIGHTEEN WHEELS, ZERO SURVIVORS'],
   flop: ['THE INTERSTATE WON', 'SKIPPED LIKE A STONE AT EIGHTY MILES AN HOUR', 'ROAD RASH: TERMINAL'],
-  boom: ['SHOULD HAVE CLEARED THE ROOF', 'SPECIAL DELIVERY: YOU', 'BLOWN SKY HIGH'],
+  boom: ['SHOULD HAVE KILLED FASTER', 'SPECIAL DELIVERY: YOU', 'BLOWN SKY HIGH'],
   melt: ['FULL OF LEAD AND BARF', 'SHOULD HAVE LISTENED TO YOURSELF', 'NEVER BARF WHERE YOU STAND'],
   button: ['RIGGS FINALLY PRESSED THE BUTTON', 'HE HAD A LIZARD TO THINK OF', 'TOOK YOUR SWEET TIME'],
 };
