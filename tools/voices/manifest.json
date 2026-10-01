@@ -1192,7 +1192,7 @@
  {
   "voice": "announcer",
   "text": "TRAINING IS CANCELED",
-  "from": "game/range.ts:165"
+  "from": "game/range.ts:167"
  },
  {
   "voice": "announcer",
@@ -1277,12 +1277,12 @@
  {
   "voice": "balloon",
   "text": "LET GO, LET GO, LET GO! UP! UP AND AWAY FROM THAT SMELL!",
-  "from": "game/range.ts:88"
+  "from": "game/range.ts:89"
  },
  {
   "voice": "balloon",
   "text": "NOPE! NOPE! I DIDN'T SIGN UP TO SPAR WITH THAT! I'M OUT!",
-  "from": "game/range.ts:88"
+  "from": "game/range.ts:89"
  },
  {
   "voice": "barry.minion",
@@ -3812,12 +3812,12 @@
  {
   "voice": "boxer",
   "text": "LET GO, LET GO, LET GO! UP! UP AND AWAY FROM THAT SMELL!",
-  "from": "game/range.ts:88"
+  "from": "game/range.ts:89"
  },
  {
   "voice": "boxer",
   "text": "NOPE! NOPE! I DIDN'T SIGN UP TO SPAR WITH THAT! I'M OUT!",
-  "from": "game/range.ts:88"
+  "from": "game/range.ts:89"
  },
  {
   "voice": "dale.dad",
@@ -5717,7 +5717,7 @@
  {
   "voice": "death",
   "text": "LOST AT SEA",
-  "from": "game/stages/ernie/jetski.ts:490"
+  "from": "game/stages/ernie/jetski.ts:498"
  },
  {
   "voice": "death",
@@ -6292,7 +6292,7 @@
  {
   "voice": "death",
   "text": "SHARK BAIT",
-  "from": "game/stages/ernie/jetski.ts:490"
+  "from": "game/stages/ernie/jetski.ts:498"
  },
  {
   "voice": "death",
@@ -6792,7 +6792,7 @@
  {
   "voice": "death",
   "text": "THE BAY WINS",
-  "from": "game/stages/ernie/jetski.ts:490"
+  "from": "game/stages/ernie/jetski.ts:498"
  },
  {
   "voice": "death",
@@ -8212,37 +8212,52 @@
  {
   "voice": "hipster",
   "text": "BRO! THAT JET SKI WAS VINTAGE, BRO!",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
+ },
+ {
+  "voice": "hipster",
+  "text": "BRO! THAT JET SKI WAS VINTAGE, BRO! AND YOU SHAT ON IT!",
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "hipster",
   "text": "COWABUNGA!",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "hipster",
   "text": "GOOD THING I KEEP A STANDBY. THIS IS GOING ON MY PODCAST.",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
+ },
+ {
+  "voice": "hipster",
+  "text": "GOOD THING I KEEP A STANDBY. THIS IS GOING ON MY PODCAST. THE WHOLE EPISODE.",
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "hipster",
   "text": "hipster",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "hipster",
   "text": "I'VE HEARD OF IT NOW.",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
+ },
+ {
+  "voice": "hipster",
+  "text": "I'VE HEARD OF IT NOW. AND YES.",
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "hipster",
   "text": "meathead",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "hipster",
   "text": "MY KOMBUCHAAAAAAA",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "hipster",
@@ -8252,22 +8267,32 @@
  {
   "voice": "hipster",
   "text": "SICK RIDE, RIGHT? IT'S VINTAGE.",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "hipster",
   "text": "SMELLS LIKE BEARD OIL.",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
+ },
+ {
+  "voice": "hipster",
+  "text": "SMELLS LIKE BEARD OIL. NOT FOR LONG.",
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "hipster",
   "text": "WHO HAS A STANDBY JET SKI?",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "hipster",
   "text": "YOU'VE PROBABLY NEVER HEARD OF IT.",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
+ },
+ {
+  "voice": "hipster",
+  "text": "YOU'VE PROBABLY NEVER HEARD OF IT. ...BRO. IS THAT YOU? DID YOU SHIT YOURSELF?",
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "meathead",
@@ -9127,7 +9152,12 @@
  {
   "voice": "meathead",
   "text": "BRO! THAT JET SKI WAS VINTAGE, BRO!",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
+ },
+ {
+  "voice": "meathead",
+  "text": "BRO! THAT JET SKI WAS VINTAGE, BRO! AND YOU SHAT ON IT!",
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "meathead",
@@ -9502,7 +9532,7 @@
  {
   "voice": "meathead",
   "text": "COWABUNGA!",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "meathead",
@@ -10497,7 +10527,12 @@
  {
   "voice": "meathead",
   "text": "GOOD THING I KEEP A STANDBY. THIS IS GOING ON MY PODCAST.",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
+ },
+ {
+  "voice": "meathead",
+  "text": "GOOD THING I KEEP A STANDBY. THIS IS GOING ON MY PODCAST. THE WHOLE EPISODE.",
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "meathead",
@@ -11147,7 +11182,7 @@
  {
   "voice": "meathead",
   "text": "hipster",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "meathead",
@@ -11937,7 +11972,12 @@
  {
   "voice": "meathead",
   "text": "I'VE HEARD OF IT NOW.",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'VE HEARD OF IT NOW. AND YES.",
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "meathead",
@@ -12377,7 +12417,7 @@
  {
   "voice": "meathead",
   "text": "meathead",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "meathead",
@@ -12527,7 +12567,7 @@
  {
   "voice": "meathead",
   "text": "MY KOMBUCHAAAAAAA",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "meathead",
@@ -14042,7 +14082,7 @@
  {
   "voice": "meathead",
   "text": "SICK RIDE, RIGHT? IT'S VINTAGE.",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "meathead",
@@ -14157,7 +14197,12 @@
  {
   "voice": "meathead",
   "text": "SMELLS LIKE BEARD OIL.",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
+ },
+ {
+  "voice": "meathead",
+  "text": "SMELLS LIKE BEARD OIL. NOT FOR LONG.",
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "meathead",
@@ -15062,7 +15107,7 @@
  {
   "voice": "meathead",
   "text": "THE HIPSTER?! GET YOUR OWN RAMP!",
-  "from": "game/stages/ernie/jetski.ts:470"
+  "from": "game/stages/ernie/jetski.ts:478"
  },
  {
   "voice": "meathead",
@@ -15867,7 +15912,7 @@
  {
   "voice": "meathead",
   "text": "WHO HAS A STANDBY JET SKI?",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "meathead",
@@ -16347,7 +16392,12 @@
  {
   "voice": "meathead",
   "text": "YOU'VE PROBABLY NEVER HEARD OF IT.",
-  "from": "game/stages/ernie/jetski.ts:135"
+  "from": "game/stages/ernie/jetski.ts:136"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'VE PROBABLY NEVER HEARD OF IT. ...BRO. IS THAT YOU? DID YOU SHIT YOURSELF?",
+  "from": "game/stages/ernie/jetski.ts:136"
  },
  {
   "voice": "meathead",

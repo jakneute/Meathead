@@ -29,6 +29,7 @@ import { hurtPlayer } from '../../bosses/shared';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 import { GROUND_Y, CANVAS_WIDTH, KICK_POSE_FRAMES } from '../../../constants';
 import { COURSE, CP, onTheIsland } from './course';
+import { isShat } from '../../player/gut';
 
 export type SkiPhase = 'waiting' | 'theft' | 'riding' | 'launch' | 'gone';
 export interface FloatingWreck { x: number; look: 'car' | 'buoy' | 'crate'; hit: boolean; rot: number }
@@ -188,8 +189,9 @@ const theft = (ctx: FrameContext, js: JetSki): Controls => {
   const next = () => { js.step++; js.stepAt = js.t; };
   switch (js.step) {
     case 0: if (since >= 20) { talk(js, 'hipster', "SICK RIDE, RIGHT? IT'S VINTAGE."); next(); } break;
-    case 1: if (talkOver(js) && since > 30) { talk(js, 'hipster', "YOU'VE PROBABLY NEVER HEARD OF IT."); next(); } break;
-    case 2: if (talkOver(js) && since > 30) { talk(js, 'meathead', "I'VE HEARD OF IT NOW."); next(); } break;
+    // (shit himself: the hipster can smell it from his seat, and says so)
+    case 1: if (talkOver(js) && since > 30) { talk(js, 'hipster', isShat(state) ? "YOU'VE PROBABLY NEVER HEARD OF IT. ...BRO. IS THAT YOU? DID YOU SHIT YOURSELF?" : "YOU'VE PROBABLY NEVER HEARD OF IT."); next(); } break;
+    case 2: if (talkOver(js) && since > 30) { talk(js, 'meathead', isShat(state) ? "I'VE HEARD OF IT NOW. AND YES." : "I'VE HEARD OF IT NOW."); next(); } break;
     case 3:
       if (talkOver(js) && since > 25) {
         p.kickPose = KICK_POSE_FRAMES;
@@ -210,7 +212,7 @@ const theft = (ctx: FrameContext, js: JetSki): Controls => {
       }
       if (since > 32 && since < 70) c = { ...c, right: p.pos.x + p.width / 2 < B.ski - 4 };
       if (since > 40 && p.isGrounded && !p.skiing) { mount(state); p.skiSpeed = 0; }
-      if (since > 70 && p.skiing && talkOver(js)) { talk(js, 'meathead', 'SMELLS LIKE BEARD OIL.'); next(); }
+      if (since > 70 && p.skiing && talkOver(js)) { talk(js, 'meathead', isShat(state) ? 'SMELLS LIKE BEARD OIL. NOT FOR LONG.' : 'SMELLS LIKE BEARD OIL.'); next(); }
       break;
   }
   if ((p.kickPose || 0) > 0) p.kickPose!--;
@@ -297,6 +299,12 @@ const CHASE_LINES: ['hipster' | 'meathead', string][] = [
   ['hipster', "GOOD THING I KEEP A STANDBY. THIS IS GOING ON MY PODCAST."],
   ['meathead', 'WHO HAS A STANDBY JET SKI?'],
 ];
+/** The same lines, when he's on the hipster's vintage jet ski in his shitty pants. */
+const CHASE_LINES_SHAT: string[] = [
+  "BRO! THAT JET SKI WAS VINTAGE, BRO! AND YOU SHAT ON IT!",
+  "GOOD THING I KEEP A STANDBY. THIS IS GOING ON MY PODCAST. THE WHOLE EPISODE.",
+  'WHO HAS A STANDBY JET SKI?',
+];
 
 /** The hipster, pulled up right behind him, saying his piece; once he's done, the ramp comes up out ahead. */
 const chase = (ctx: FrameContext, js: JetSki) => {
@@ -312,7 +320,7 @@ const chase = (ctx: FrameContext, js: JetSki) => {
   if (js.step < CHASE_LINES.length) {
     if ((js.step === 0 ? since > 50 : since > 20) && talkOver(js)) {
       const [who, text] = CHASE_LINES[js.step];
-      talk(js, who, text);
+      talk(js, who, isShat(state) ? CHASE_LINES_SHAT[js.step] : text);
       js.step++; js.stepAt = js.t;
     }
   } else if (talkOver(js) && since > 30) {

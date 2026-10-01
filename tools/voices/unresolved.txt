@@ -13,7 +13,7 @@ game/stages/victor/hazards.ts:266 name: undefined
 game/stages/victor/hazards.ts:274 name: undefined
 game/stages/ernie/quake.ts:344 name: undefined
 game/stages/ernie/alcatraz.ts:72 voice: voice
-game/stages/ernie/jetski.ts:488 name: undefined
+game/stages/ernie/jetski.ts:496 name: undefined
 game/stages/ernie/bridge.ts:187 expr: 4
 game/stages/ernie/bridge.ts:187 expr: 72
 game/stages/ernie/index.ts:23 name: undefined
