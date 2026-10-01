@@ -314,6 +314,8 @@ export interface Enemy extends Entity {
   immunePopFrame?: number;
   /** A lab test subject overdosed into HYPERMODE: frames it's been on it (0/undefined: not). */
   hyper?: number;
+  /** A tenant: what he's got in his hand to throw (see drawHouseholdItem). */
+  heldItem?: number;
   isBlownAway?: boolean;
   rotation?: number;
   pauseTimer?: number;

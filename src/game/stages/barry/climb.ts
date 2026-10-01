@@ -25,7 +25,7 @@ const WAIT_MIN = 100, WAIT_RANGE = 160, LEAN = 18, WIND = 16, BACK = 75;
 /** How close (up and down, and across) he has to be before they bother. */
 const RANGE_Y = 330, RANGE_X = 460;
 
-/** The tenants (in every other window: fewer, but what they throw hurts, and knocks you about). */
+/** The tenants (in every other window: fewer; what they throw doesn't hurt much, but it knocks you about). */
 export const makeTenants = (): Enemy[] =>
   COURSE.windows.filter((w, i) => i % 2 === 0).map((w, i) => {
     const o = OUT(w);
@@ -49,7 +49,11 @@ export const updateTenant = (ctx: FrameContext, e: Enemy): boolean => {
   switch (e.aiState) {
     case 'hidden':
       e.pos = { x: hx, y: AWAY_Y };
-      if (near && e.aiTimer > WAIT_MIN + (hash(hx + e.aiTimer) * WAIT_RANGE)) { e.aiState = 'lean'; e.aiTimer = 0; e.pos = { x: hx, y: hy }; }
+      if (near && e.aiTimer > WAIT_MIN + (hash(hx + e.aiTimer) * WAIT_RANGE)) {
+        e.aiState = 'lean'; e.aiTimer = 0; e.pos = { x: hx, y: hy };
+        // (what he's come out with: in his hand, for all to see, before it's coming at him)
+        e.heldItem = Math.floor(hash(state.frame + hx) * 5) + (hx >= COURSE.climb.buildings[1].x1 ? 5 : 0);
+      }
       else if (!near) e.aiTimer = Math.min(e.aiTimer, WAIT_MIN);
       break;
     case 'lean':
@@ -133,8 +137,8 @@ const throwItem = (state: GameState, e: Enemy) => {
   const vx = (tx - x) / t, vy = (ty - y - 0.5 * BOTTLE_GRAVITY * t * t) / t;
   state.projectiles.push({
     id: `tenant-${state.frame}-${Math.random()}`, pos: { x: x - 9, y: y - 9 }, vel: { x: vx, y: vy }, width: 18, height: 18, health: 1, maxHealth: 1,
-    type: 'projectile', damage: ENEMY_BULLET_DAMAGE * 1.75, owner: 'enemy', shooterKind: 'tenant', thrown: 'household', item: Math.floor(hash(state.frame + e.homeX!) * 5) + (e.homeX! >= COURSE.climb.buildings[1].x1 ? 5 : 0), rotation: 0,
+    type: 'projectile', damage: ENEMY_BULLET_DAMAGE * 1.1, owner: 'enemy', shooterKind: 'tenant', thrown: 'household', item: e.heldItem ?? 0, rotation: 0,
     // (it'll knock him clean off his jump: hard, the way it was going)
-    knock: { x: Math.sign(vx || 1) * 11, y: -5 },
+    knock: { x: Math.sign(vx || 1) * 9, y: -5 },
   });
 };

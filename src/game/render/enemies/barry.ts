@@ -10,6 +10,7 @@
 // windows and Barry's man in the power room.
 // Drawn like the rest: facing right from a point at the feet, flipped by the caller.
 
+import { drawHouseholdItem } from '../projectiles';
 import { Enemy } from '../../../types';
 import type { GameState } from '../../core/state';
 
@@ -448,12 +449,29 @@ const drawTenant = (ctx: Ctx, e: Enemy, f: number) => {
   if (v === 1) { ctx.fillStyle = '#F472B6'; for (const [x, y] of [[-6, -46], [0, -48], [6, -46]]) { ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill(); } } // curlers
   else { ctx.fillStyle = v === 0 ? '#44403C' : '#9CA3AF'; ctx.beginPath(); ctx.arc(1, -41, 9, Math.PI, 0); ctx.fill(); }
   ctx.fillStyle = '#111827'; ctx.fillRect(4, -41, 5, 1); // the brow, furrowed
-  // Arm back with the thing he's about to throw
-  if (e.aiState === 'throw' || e.aiState === 'lean') {
-    const wind = e.aiState === 'throw' ? Math.min(1, e.aiTimer / 14) : 0;
-    ctx.fillStyle = skin; ctx.fillRect(-10 - wind * 6, -40, 6, 14);
-    ctx.fillStyle = '#6B7280'; ctx.fillRect(-14 - wind * 8, -48, 10, 8);
+  // The throwing arm: out of the window with it held up in front of him (so you can see what's coming), then back over
+  // his head with it, winding up; then it whips over, lets go, and follows through, empty. (The arm's angle off
+  // straight down: forward's positive.)
+  const t = e.aiTimer || 0;
+  const WIND = 16;
+  let ang = 1.6, held = true;
+  if (e.aiState === 'lean') ang = 1.6 + Math.sin(t * 0.5) * 0.08;
+  else if (e.aiState === 'throw' && t < WIND) { const k = t / WIND; ang = 1.6 + k * k * 2.2; }
+  else if (e.aiState === 'throw') { const u = t - WIND; ang = u < 5 ? 3.8 - (u / 5) * 2.6 : 1.2 - Math.min(1, (u - 5) / 20) * 0.3; held = false; }
+  ctx.save(); ctx.translate(6, -27); ctx.rotate(-ang);
+  ctx.fillStyle = skin; ctx.fillRect(-3, 0, 6, 16);
+  ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.fillRect(1, 0, 2, 16);
+  ctx.beginPath(); ctx.arc(0, 17, 3.6, 0, Math.PI * 2); ctx.fillStyle = skin; ctx.fill();
+  if (held) {
+    // (held up big and clear, a light edge round it so it reads against the dark of the window)
+    ctx.save(); ctx.translate(0, 22); ctx.rotate(ang); ctx.scale(1.35, 1.35);
+    ctx.shadowColor = 'rgba(255, 255, 255, 0.9)'; ctx.shadowBlur = 3;
+    drawHouseholdItem(ctx, e.heldItem ?? 0);
+    ctx.restore();
   }
+  ctx.restore();
+  // (the swoosh as it goes)
+  if (e.aiState === 'throw' && t >= WIND && t < WIND + 6) { ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(6, -27, 22, -Math.PI * 0.75, -Math.PI * 0.05); ctx.stroke(); }
   ctx.restore();
   void f;
 };
