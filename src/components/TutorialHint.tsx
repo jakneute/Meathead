@@ -27,7 +27,7 @@ const LESSONS: Record<Lesson, { how: React.ReactNode; what: string; note?: strin
   },
   slide: { how: <Combo dir="DOWN" kb={['C']} />, what: 'GYM RATS. ACTUAL RATS. TOO LOW TO SHOOT: SLIDE TACKLE THEM.' },
   uppercut: { how: <Combo dir="UP" kb={['E']} />, what: 'THEY THINK THEY\'RE SAFE UP ON THE RACKS. UPPERCUT THEM OFF.' },
-  divekick: { how: <Combo dir="DOWN" kb={['C']} air />, what: 'JUMP OFF THE EDGE AND DIVE KICK THEM. LAND ON A HEAD, BOUNCE, DO IT AGAIN.', note: 'A DIVE KICK OFF A HEAD GIVES YOU YOUR POWER BACK: YOU CAN KEEP GOING FOREVER. THE DUMMY TAKES IT ALL DAY (A CHARGE TOO). PRACTICE.' },
+  divekick: { how: <Combo dir="DOWN" kb={['C']} air />, what: 'JUMP OFF THE EDGE AND DIVE KICK THEM. LAND ON A HEAD, BOUNCE, DO IT AGAIN.', note: 'A DIVE KICK GIVES YOU YOUR POWER BACK: YOU CAN KEEP GOING FOREVER.' },
   shield: { how: <Prompt pad={['B']} kb={['SHIFT']} mouse="right" size={SIZE} label="SHOULDER CHARGE" />, what: 'A BRIEFCASE WON\'T STOP YOU. CHARGE IT, AND DRIVE HIM INTO THE WALL.' },
 };
 
