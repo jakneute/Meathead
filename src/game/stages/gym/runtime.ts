@@ -173,8 +173,9 @@ export const updateGym = (ctx: FrameContext, controls: Controls): Controls => {
     for (const d of rt.due) if (d.kind === 'drop' && d.at - state.frame < TELEGRAPH && state.frame % 5 === 0) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * 40, y: 70 }, vel: { x: 0, y: 0.6 + Math.random() }, life: 60, color: '#B8B2A0', size: 1.5 + Math.random() * 2 });
     rt.due = rt.due.filter(d => { if (state.frame < d.at) return true; turnUp(ctx, rt, d); return false; });
     rt.lesson = lessonFor(state, rt, px);
-    // The end: him at the doors (nobody has to be dead for that: whoever's left is cleared off for the scene)
-    if (px >= COURSE.doors - 90 && p.isGrounded) startArrival(ctx, rt);
+    // The end: him at the doors, with the last lot (down off the mezzanine, and by the doors) all done. Nobody further
+    // back has to be dead for that: whoever's left back there is cleared off for the scene
+    if (px >= COURSE.doors - 90 && p.isGrounded && !alive(state, rt, 'mezzanine') && !alive(state, rt, 'lockers')) startArrival(ctx, rt);
   }
   if (rt.lesson !== rt.told) { rt.told = rt.lesson; ctx.events.onTutorialHint?.(rt.lesson); }
   if (rt.phase === 'play') return controls;
@@ -293,7 +294,8 @@ const lessonFor = (state: GameState, rt: GymRuntime, px: number): Lesson | null 
   if (px >= R.wall - 200 && px < R.benches && alive(state, rt, 'wall')) return 'push';
   if (px >= R.benches - 100 && px < R.racks && alive(state, rt, 'benches')) return 'slide';
   if (px >= R.racks - 100 && px < R.mezzanine && alive(state, rt, 'racks')) return 'uppercut';
-  if (px >= R.mezzanine - 40 && px < R.lockers && (alive(state, rt, 'mezzanine') || byDummy(px))) return 'divekick';
+  // (and still, at the doors, while any of the mezzanine lot are left: they're what's keeping the doors shut)
+  if (px >= R.mezzanine - 40 && (px < R.lockers ? alive(state, rt, 'mezzanine') || byDummy(px) : alive(state, rt, 'mezzanine') && !alive(state, rt, 'lockers'))) return 'divekick';
   if (px >= R.lockers - 100 && alive(state, rt, 'lockers')) return 'shield';
   return null;
 };
