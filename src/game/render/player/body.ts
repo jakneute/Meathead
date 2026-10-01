@@ -290,7 +290,6 @@ export type Mood = 'grit' | 'roar' | 'yell' | 'scowl';
  * mouth by `mood` (gritted teeth, a roar, a yell, or a scowl locked on).
  */
 export const drawHead = (ctx: Ctx, hx: number, hy: number, mood: Mood, frame: number) => {
-  if (fromBehind) { drawHeadBack(ctx, hx, hy); return; }
   ctx.fillStyle = skinTone;
   ctx.beginPath(); ctx.roundRect(hx - 10, hy - 12, 20, 20, [4, 4, 3, 3]); ctx.fill();
   ctx.fillStyle = 'rgba(150, 90, 35, 0.35)'; ctx.fillRect(hx - 10, hy - 11, 3.5, 18);
@@ -352,8 +351,8 @@ export const drawHead = (ctx: Ctx, hx: number, hy: number, mood: Mood, frame: nu
 /** The torso from the hips (0,0) up to the shoulders (y = -26), with the belt: the same body as standing, set on his hips. */
 export const drawTorsoFromHips = (ctx: Ctx) => {
   ctx.save(); ctx.translate(0, 24);
-  if (fromBehind) { drawTorsoBack(ctx, -50, 24, -48); drawBeltBack(ctx, -27, 7); }
-  else { drawTorso(ctx, -50, 24, -48); drawBelt(ctx, -27, 7); }
+  drawTorso(ctx, -50, 24, -48);
+  drawBelt(ctx, -27, 7);
   ctx.restore();
 };
 
@@ -367,97 +366,3 @@ export const drawRamDelt = (ctx: Ctx, x: number, y: number, r: number) => {
   // (the striations down the front of it)
   ctx.fillStyle = skinShadow; for (let k = 0; k < 3; k++) ctx.fillRect(x - r * 0.4 + k * r * 0.3, y + r * 0.05, 0.8, r * 0.35);
 };
-
-// ---------------------------------------------------------------------------
-// From behind (facing left he's turned away from us, his back three-quarters on: a fighter's switch stance)
-// ---------------------------------------------------------------------------
-
-/**
- * His torso from behind: the traps rising to his neck, the shoulder blades, the lats flaring out, the spine down the
- * middle (a touch toward his far side, he's turned), the ridges of muscle either side of it low down. Same box as the
- * front (`top` its top, `pecY` where the shoulder blades sit).
- */
-export const drawTorsoBack = (ctx: Ctx, torsoTop: number, torsoHeight: number, pecY: number, isDucking = false) => {
-  const shade = ctx.createLinearGradient(-14, 0, 14, 0);
-  shade.addColorStop(0, skinShadow); shade.addColorStop(0.35, skinTone); shade.addColorStop(1, skinTone);
-  ctx.fillStyle = shade;
-  ctx.fillRect(-14, torsoTop, 28, torsoHeight);
-  // (the lats flaring out under the arms, tapering to the waist)
-  ctx.beginPath();
-  ctx.moveTo(-14, torsoTop + 3); ctx.lineTo(-17, torsoTop + 9); ctx.lineTo(-14, torsoTop + 18);
-  ctx.moveTo(14, torsoTop + 3); ctx.lineTo(17, torsoTop + 9); ctx.lineTo(14, torsoTop + 18);
-  ctx.fill();
-  // Traps: a big slope up to his neck from each shoulder, lit along the top
-  ctx.fillStyle = skinTone;
-  ctx.beginPath(); ctx.moveTo(-14, torsoTop + 3); ctx.lineTo(-6, torsoTop - 7); ctx.lineTo(6, torsoTop - 7); ctx.lineTo(14, torsoTop + 3); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = skinHighlight; ctx.fillRect(-4, torsoTop - 6, 9, 1.4); ctx.fillRect(6, torsoTop - 3, 5, 1.2);
-  // The shoulder blades: a rounded slab each side, lit on top, a shadow under their lower edge
-  const blades = isDucking ? 7.5 : 9;
-  ctx.fillStyle = skinTone;
-  ctx.beginPath(); ctx.roundRect(-13, pecY, 11, blades, [4, 2, 4, 5]); ctx.fill();
-  ctx.beginPath(); ctx.roundRect(1, pecY, 12, blades, [2, 4, 5, 4]); ctx.fill();
-  ctx.fillStyle = skinHighlight; ctx.fillRect(-10, pecY + 1.5, 6, 1.6); ctx.fillRect(3, pecY + 1.5, 8, 1.6);
-  ctx.fillStyle = 'rgba(120, 70, 20, 0.4)';
-  ctx.beginPath(); ctx.moveTo(-12, pecY + blades); ctx.lineTo(-4, pecY + blades - 1.5); ctx.lineTo(-3, pecY + blades + 0.5); ctx.lineTo(-11, pecY + blades + 1.5); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(12, pecY + blades); ctx.lineTo(3, pecY + blades - 1.5); ctx.lineTo(2, pecY + blades + 0.5); ctx.lineTo(11, pecY + blades + 1.5); ctx.fill();
-  // The spine: a groove down the middle, the ridges of muscle either side of it low down
-  ctx.fillStyle = skinShadow;
-  ctx.fillRect(-1.6, torsoTop + 1, 1.4, torsoHeight - 2);
-  ctx.fillStyle = skinHighlight;
-  ctx.fillRect(-5.5, torsoTop + torsoHeight - 11, 3, isDucking ? 6 : 9); ctx.fillRect(1, torsoTop + torsoHeight - 11, 3, isDucking ? 6 : 9);
-  ctx.fillStyle = skinShadow;
-  ctx.fillRect(-6.5, torsoTop + torsoHeight - 11, 0.9, isDucking ? 6 : 9); ctx.fillRect(4.6, torsoTop + torsoHeight - 11, 0.9, isDucking ? 6 : 9);
-  // (the lats' edges, a sweat sheen across the blades)
-  for (let i = 0; i < 3; i++) ctx.fillRect(10, torsoTop + 12 + i * 3, 3, 0.9);
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'; ctx.fillRect(5, pecY + 3, 1.5, 1); ctx.fillRect(-8, pecY + 4, 1, 1);
-  drawTorsoBlood(ctx, torsoTop, torsoHeight, pecY);
-};
-
-/** The belt from behind: the strap round his back, stitched, the tail of it tucked through a loop; no buckle. */
-export const drawBeltBack = (ctx: Ctx, beltY: number, beltH: number) => {
-  ctx.fillStyle = beltColor; ctx.fillRect(-13, beltY, 26, beltH);
-  ctx.strokeStyle = '#451A03'; ctx.lineWidth = 1; ctx.strokeRect(-13, beltY, 26, beltH);
-  // (wider across the back: the lifting belt's broad panel, a darker patch where it's worn)
-  ctx.fillStyle = '#6B2E0C'; ctx.fillRect(-7, beltY - 1, 13, beltH + 2);
-  ctx.strokeStyle = '#451A03'; ctx.strokeRect(-7, beltY - 1, 13, beltH + 2);
-  ctx.fillStyle = '#D97706';
-  for (let sx = -12; sx < 12; sx += 2.5) { ctx.fillRect(sx, beltY + 0.8, 1.3, 0.6); ctx.fillRect(sx, beltY + beltH - 1.3, 1.3, 0.6); }
-  ctx.fillStyle = '#E5E7EB'; ctx.fillRect(-10, beltY + 2, 2, 2); ctx.fillRect(8, beltY + 2, 2, 2);
-};
-
-/**
- * His head from behind, turned a little toward where he's going: the flat-top from the back, the buzzed nape, both
- * ears, and down the leading side the edge of his jaw, his cheek and the corner of his brow.
- */
-export const drawHeadBack = (ctx: Ctx, hx: number, hy: number) => {
-  ctx.fillStyle = skinTone;
-  ctx.beginPath(); ctx.roundRect(hx - 10, hy - 12, 20, 20, [4, 4, 3, 3]); ctx.fill();
-  // The back of his skull in shadow toward the far side, the thick neck under it
-  ctx.fillStyle = 'rgba(150, 90, 35, 0.35)'; ctx.fillRect(hx - 10, hy - 11, 5, 18);
-  // The hair: the flat-top, the back of it, buzzed down short to the nape (bristle, then a fade to skin)
-  ctx.fillStyle = '#18181B';
-  ctx.fillRect(hx - 10, hy - 16, 20, 5);
-  ctx.fillRect(hx - 11, hy - 12, 20, 10);
-  ctx.fillStyle = '#27272A'; ctx.fillRect(hx - 10, hy - 2, 18, 2.5);
-  ctx.fillStyle = '#3F3F46'; for (let i = 0; i < 9; i++) ctx.fillRect(hx - 9.5 + i * 2, hy + 0.5, 1, 1);
-  ctx.fillStyle = '#3F3F46'; ctx.fillRect(hx - 8, hy - 15.5, 13, 1);
-  ctx.fillStyle = '#52525B'; for (let i = 0; i < 6; i++) ctx.fillRect(hx - 8 + i * 3, hy - 16.8, 1, 1.3);
-  // The ears, both sides; the near one (toward where he's going) bigger and lit
-  ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.roundRect(hx - 12.5, hy - 6, 3, 6, 1.5); ctx.fill();
-  ctx.fillStyle = skinTone; ctx.beginPath(); ctx.roundRect(hx + 8.5, hy - 7, 4, 7.5, 1.8); ctx.fill();
-  ctx.fillStyle = '#A0662E'; ctx.fillRect(hx + 10, hy - 5, 1.2, 3.5);
-  // The edge of his face down the leading side: the brow's corner, the cheekbone, the jaw, stubble on it
-  ctx.fillStyle = skinTone; ctx.fillRect(hx + 8, hy - 2, 3, 9);
-  ctx.fillStyle = '#09090B'; ctx.fillRect(hx + 9, hy - 9, 2.5, 1.6);
-  ctx.fillStyle = skinHighlight; ctx.fillRect(hx + 10, hy - 1, 1.2, 3);
-  ctx.fillStyle = stubbleColor; for (let i = 0; i < 4; i++) ctx.fillRect(hx + 8.5 + (i % 2), hy + 2 + i * 1.3, 0.8, 0.8);
-  ctx.fillStyle = '#A0662E'; ctx.fillRect(hx - 8, hy + 7.2, 18, 0.8);
-  // (the rolls of muscle at the back of his neck)
-  ctx.fillStyle = skinShadow; ctx.fillRect(hx - 6, hy + 5, 12, 0.8); ctx.fillRect(hx - 4, hy + 6.6, 8, 0.6);
-  drawHeadBlood(ctx, hx, hy, 0);
-};
-
-/** Which way round he's seen: the back (facing left) or the front. */
-let fromBehind = false;
-export const setFromBehind = (v: boolean) => { fromBehind = v; };
-export const seenFromBehind = () => fromBehind;
