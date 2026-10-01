@@ -208,17 +208,31 @@ const drawAgentNeck = (ctx: Ctx) => {
   }
 };
 
-/** The jacket's shoulders sloping up into the collar over the traps (curved, with the light along the left one's top). */
-const drawAgentTraps = (ctx: Ctx) => {
-  for (let x = 24; x < 216; x++) {
-    // (the top of the shoulders: low and flat out at the ends, climbing to the collar)
-    const d = x < 120 ? x - 24 : 215 - x, reach = COLLAR_L - 24;
-    if (d > reach) continue;
-    const k = d / reach, top = Math.round(116 - k * k * 13);
-    R(ctx, x, top, 1, 112 - top + 4, G.suit);
-    R(ctx, x, top, 1, 1, x < 120 ? RAMP.aSuit[5] : RAMP.aSuit[3]);
-    if (x < 120 && k > 0.3) R(ctx, x, top + 1, 1, 1, RAMP.aSuit[4]);
-  }
+/**
+ * The top of the jacket at column x: the round of the shoulders out at the sides, and in toward the neck, the traps
+ * under it climbing steeply up to the collar (whichever's higher), so the shoulders and the neck are one shape.
+ */
+const shoulderTop = (x: number) => {
+  const dx = Math.abs(x + 0.5 - 120);
+  const round = 150 - 42 * Math.sqrt(Math.max(0, 1 - (dx / 96) ** 2));
+  const inset = dx - (120 - COLLAR_L);
+  const traps = inset <= 0 ? 103 : 103 + (inset / 35) ** 2 * 30;
+  return Math.min(round, traps);
+};
+
+/** The jacket over his shoulders and traps, as one form: lit from up on the left, brightest along the top of it. */
+const drawAgentShoulders = (ctx: Ctx) => {
+  const X = 24, Y = 100, W = 192, H = 92;
+  shaded(ctx, 'ag-upper', X, Y, W, H, RAMP.aSuit, (u, v) => {
+    const x = X + u * W, y = Y + v * H, top = shoulderTop(x - 0.5);
+    if (y < top) return -1;
+    // (a mound: turned toward the light up on the left, up along the top of it, away down the far side)
+    const nx = Math.max(-0.95, Math.min(0.95, (x - 120) / 100));
+    const ny = -Math.max(0, 1 - (y - top) / 16) * 0.85;
+    const nz = Math.sqrt(Math.max(0, 1 - nx * nx - ny * ny));
+    const lx = -0.4, ly = -0.75, lz = Math.sqrt(1 - lx * lx - ly * ly);
+    return 0.06 + 0.94 * Math.max(0, nx * lx + ny * ly + nz * lz) * (1 - v * 0.35);
+  });
 };
 
 /** The agent who talks, up close: shades, earpiece, the other one behind him, the gym out of focus. */
@@ -233,8 +247,7 @@ export const drawAgent = (ctx: Ctx, t: number, talking: boolean, where: 'gym' | 
   // time it's at his collar; the light from up on the left, the jaw's shadow across the top of it
   drawAgentNeck(ctx);
   // Shoulders, lapels, shirt, tie (the traps under the jacket sloping up into the collar)
-  shaded(ctx, 'ag-shoulders', 24, 108, 192, 84, RAMP.aSuit, ball(-0.4, -0.85, 0.08));
-  drawAgentTraps(ctx);
+  drawAgentShoulders(ctx);
   shaded(ctx, 'ag-shirt', 104, 104, 32, 40, RAMP.shirt, box(-0.5, -0.5, 0.3, 1, 0.3));
   ctx.fillStyle = G.suit;
   ctx.beginPath(); ctx.moveTo(104, 104); ctx.lineTo(120, 144); ctx.lineTo(96, 144); ctx.fill();
@@ -270,12 +283,16 @@ export const drawAgent = (ctx: Ctx, t: number, talking: boolean, where: 'gym' | 
   // Meathead, in his shades (a tiny one in each lens)
   for (const lx of [104, 134]) { R(ctx, lx, 49, 5, 5, C.mSkin); R(ctx, lx, 48, 5, 2, C.mHair); R(ctx, lx - 2, 54, 9, 2, C.mSkin); }
   // (the collar, buttoned, and losing: dug in round that neck, the neck rolling over the top of it)
-  for (let x = COLLAR_L; x <= COLLAR_R; x++) {
-    // (going off round the neck at the sides, into the shade)
-    const side = Math.abs(x - 120) > 40 ? '#c8c8c8' : x < 120 ? G.shirt : '#d8d8d8';
-    R(ctx, x, 104, 1, 4, side); R(ctx, x, 108, 1, 1, '#a8a8a8');
-    if (x < 88 || x >= 152) R(ctx, x, 103, 1, 1, RAMP.aSkin[2]);
+  for (let x = COLLAR_L - 2; x <= COLLAR_R + 2; x++) {
+    // (going off round the neck at the sides, into the shade, and tucked down under the jacket at the ends)
+    const out = Math.abs(x - 120) - 38, end = Math.max(0, Math.abs(x - 120) - (120 - COLLAR_L) + 1);
+    const c = out > 8 ? (x < 120 ? '#9c9ca4' : '#7c7c84') : out > 0 ? ((x + 104) % 2 ? '#c8c8c8' : (x < 120 ? '#e0e0e0' : '#a8a8a8')) : x < 120 ? G.shirt : '#d8d8d8';
+    R(ctx, x, 104 + end, 1, 4 - Math.min(3, end), c); R(ctx, x, 108, 1, 1, '#3c3c44');
+    // (the neck just above it, in the collar's shadow)
+    if (x < 88 || x >= 152) { R(ctx, x, 103 + end, 1, 1, RAMP.aSkin[1]); if ((x + 102) % 2) R(ctx, x, 102 + end, 1, 1, RAMP.aSkin[2]); }
   }
+  // (and its points, down onto the shirt either side of the knot)
+  for (let i = 0; i < 6; i++) { R(ctx, 106 + i, 108, 1, 5 - Math.floor(i * 0.8), G.shirt); R(ctx, 128 + i, 108, 1, 1 + Math.floor(i * 0.8), '#d0d0d0'); }
   // The tie's knot, the clip, the flag on his lapel, the edges of the lapels catching the light
   R(ctx, 115, 104, 10, 6, '#1c1c1c'); R(ctx, 114, 124, 12, 1, C.gold);
   R(ctx, 96, 118, 6, 4, C.white); R(ctx, 96, 118, 6, 1, C.red); R(ctx, 96, 120, 6, 1, C.red); R(ctx, 96, 118, 2, 2, C.blue);
