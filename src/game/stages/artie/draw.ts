@@ -126,6 +126,14 @@ const drawPines = (ctx: Ctx, state: GameState) => {
     // (snow heaped round the foot of it)
     ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.ellipse(p.x, p.y, 18, 5, 0, Math.PI, 0); ctx.fill();
   }
+  // (a haze of blown snow between the pines and what's in front of them: the woods sit back, what you climb stands out)
+  const hx1 = Math.max(W.x1 - 100, v.x), hx2 = Math.min(W.x2 + 100, v.x + v.w);
+  if (hx2 > hx1) {
+    // (fading in and out over the edges of the woods: no seam)
+    const hz = ctx.createLinearGradient(W.x1 - 100, 0, W.x2 + 100, 0), e = 200 / (W.x2 - W.x1 + 200);
+    hz.addColorStop(0, 'rgba(203, 219, 238, 0)'); hz.addColorStop(e, 'rgba(203, 219, 238, 0.28)'); hz.addColorStop(1 - e, 'rgba(203, 219, 238, 0.28)'); hz.addColorStop(1, 'rgba(203, 219, 238, 0)');
+    ctx.fillStyle = hz; ctx.fillRect(hx1, v.y, hx2 - hx1, v.h);
+  }
 };
 
 /** The boughs you climb (a limb off the trunk, needles along it, snow on top) and the fallen trunk. */
@@ -134,6 +142,7 @@ const drawBoughs = (ctx: Ctx, state: GameState) => {
     if (!l.look || !onScreen(state, l.x)) continue;
     if (l.look === 'log') {
       ctx.fillStyle = '#4A2E1A'; ctx.beginPath(); ctx.roundRect(l.x, l.y, l.w, 44, 18); ctx.fill();
+      ctx.strokeStyle = '#0B1220'; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(l.x, l.y, l.w, 44, 18); ctx.stroke();
       ctx.fillStyle = '#5E3A22'; ctx.fillRect(l.x + 8, l.y + 6, l.w - 16, 10);
       ctx.strokeStyle = 'rgba(30, 16, 8, 0.6)'; ctx.lineWidth = 1.5;
       for (let x = l.x + 16; x < l.x + l.w - 12; x += 22) { ctx.beginPath(); ctx.moveTo(x, l.y + 8); ctx.quadraticCurveTo(x + 6, l.y + 22, x, l.y + 38); ctx.stroke(); }
@@ -143,13 +152,29 @@ const drawBoughs = (ctx: Ctx, state: GameState) => {
       ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.ellipse(l.x + l.w / 2, l.y + 2, l.w / 2 - 6, 6, 0, Math.PI, 0); ctx.fill();
       continue;
     }
-    // A bough: the limb, the needles hanging off it, the snow along the top
-    ctx.fillStyle = '#3F2A1D'; ctx.fillRect(l.x, l.y + 6, l.w, 7);
+    // A bough: a thick limb (bark lit along the top, inked round), the needles hanging off it in a brighter, warmer
+    // green than the woods behind, inked; a fat cap of snow along the top that you stand on, its shadow under it;
+    // icicles off the underside
+    const INKC = '#0B1220';
+    const limb = () => { ctx.beginPath(); ctx.moveTo(l.x - 4, l.y + 6); ctx.lineTo(l.x + l.w + 2, l.y + 8); ctx.lineTo(l.x + l.w, l.y + 15); ctx.lineTo(l.x - 4, l.y + 17); ctx.closePath(); };
     for (let x = l.x; x < l.x + l.w; x += 12) {
-      ctx.fillStyle = '#14532D'; ctx.beginPath(); ctx.moveTo(x, l.y + 8); ctx.lineTo(x + 14, l.y + 8); ctx.lineTo(x + 7, l.y + 24); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#1B4D2E'; ctx.beginPath(); ctx.moveTo(x, l.y + 8); ctx.lineTo(x + 6, l.y + 8); ctx.lineTo(x + 5, l.y + 20); ctx.closePath(); ctx.fill();
+      const tip = l.y + 26 + ((x * 7) % 3) * 2;
+      ctx.fillStyle = INKC; ctx.beginPath(); ctx.moveTo(x - 2, l.y + 10); ctx.lineTo(x + 16, l.y + 10); ctx.lineTo(x + 7, tip + 2); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#2F7A3E'; ctx.beginPath(); ctx.moveTo(x, l.y + 11); ctx.lineTo(x + 14, l.y + 11); ctx.lineTo(x + 7, tip); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#4A9E55'; ctx.beginPath(); ctx.moveTo(x, l.y + 11); ctx.lineTo(x + 6, l.y + 11); ctx.lineTo(x + 5, tip - 4); ctx.closePath(); ctx.fill();
     }
-    ctx.fillStyle = '#EEF4FB'; ctx.fillRect(l.x - 2, l.y, l.w + 4, 6); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(l.x + 2, l.y, l.w - 6, 2);
+    ctx.fillStyle = '#5B3A22'; limb(); ctx.fill();
+    ctx.strokeStyle = INKC; ctx.lineWidth = 2; limb(); ctx.stroke();
+    ctx.fillStyle = '#8A5A34'; ctx.fillRect(l.x, l.y + 8, l.w, 2);
+    ctx.fillStyle = 'rgba(30, 16, 8, 0.5)'; for (let x = l.x + 6; x < l.x + l.w - 4; x += 15) ctx.fillRect(x, l.y + 11, 6, 1.5);
+    // (icicles off the limb)
+    ctx.fillStyle = '#BFDBFE'; for (let x = l.x + 9; x < l.x + l.w - 6; x += 23) { ctx.beginPath(); ctx.moveTo(x - 2, l.y + 16); ctx.lineTo(x + 2, l.y + 16); ctx.lineTo(x, l.y + 24 + ((x * 3) % 7)); ctx.closePath(); ctx.fill(); }
+    // (the snow cap: thick, rounded, overhanging, inked, the blue of its shadow along its underside)
+    const cap = () => { ctx.beginPath(); ctx.moveTo(l.x - 6, l.y + 7); ctx.quadraticCurveTo(l.x - 6, l.y - 4, l.x + 6, l.y - 4); ctx.lineTo(l.x + l.w - 4, l.y - 3); ctx.quadraticCurveTo(l.x + l.w + 6, l.y - 3, l.x + l.w + 5, l.y + 8); ctx.closePath(); };
+    ctx.fillStyle = '#F8FAFC'; cap(); ctx.fill();
+    ctx.strokeStyle = INKC; ctx.lineWidth = 2; cap(); ctx.stroke();
+    ctx.fillStyle = '#9FB8D8'; ctx.fillRect(l.x - 4, l.y + 5, l.w + 8, 2.5);
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(l.x + 4, l.y - 2, l.w - 12, 2);
   }
 };
 
