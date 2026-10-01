@@ -41,10 +41,14 @@ export const createBoat = (state: GameState, startedAt: number): Boat => {
   const block: Block = { x: COURSE.boat.x, y: COURSE.boat.y - 18, w: BOAT_W, h: 14, type: 'platform', hidden: true, oneWay: true, tag: 'boat' };
   const past = startedAt >= CP.TOWER;
   if (!past) state.blocks.push(block);
+  // (back out on the water at one of the chase's checkpoints: in the boat, the old man long since in the drink, off again)
+  const out = startedAt === CP.CHASE || startedAt === CP.CHASE2;
+  const x = out ? COURSE.checkpoints[startedAt].x - 40 : COURSE.boat.x;
+  if (out) block.x = x;
   return {
-    phase: past ? 'gone' : 'waiting', t: 0, quiet: { n: 0 },
-    oldMan: { x: COURSE.fisherman.x, y: COURSE.fisherman.y, vx: 0, vy: 0, rot: 0, state: 'fishing', line: '', lineT: 0 },
-    x: COURSE.boat.x, y: COURSE.boat.y, block, speed: 0, spin: 0, lift: 0, chase: null,
+    phase: past ? 'gone' : out ? 'riding' : 'waiting', t: 0, quiet: { n: 0 },
+    oldMan: { x: COURSE.fisherman.x, y: out ? COURSE.sea.y + 6 : COURSE.fisherman.y, vx: 0, vy: 0, rot: 0, state: out ? 'swimming' : 'fishing', line: '', lineT: 0 },
+    x, y: COURSE.boat.y, block, speed: 0, spin: 0, lift: 0, chase: null,
   };
 };
 
@@ -135,7 +139,9 @@ const cutscene = (ctx: FrameContext, b: Boat): Controls => {
 /** Flat out across the open water, him at the wheel, the Coast Guard after him (see chase.ts). */
 const ride = (ctx: FrameContext, b: Boat, controls: Controls): Controls => {
   const { state } = ctx;
-  if (!b.chase) { b.chase = startChase(state, b.x); b.speed = Math.max(b.speed, 4); }
+  if (!b.chase) { b.chase = startChase(state, b.x); b.speed = Math.max(b.speed, 4); state.checkpoint = Math.max(state.checkpoint, CP.CHASE); }
+  // (halfway out: a checkpoint)
+  if (state.checkpoint < CP.CHASE2 && b.x + 40 >= COURSE.checkpoints[CP.CHASE2].x) state.checkpoint = CP.CHASE2;
   // (boarded: the kill camera's playing, and that's that)
   if (b.chase.caughtT > 0) return { ...NO_CONTROLS };
   const c = updateChase(ctx, b.chase, b, (dx, y) => moveBoatTo(state, b, dx, y), controls);

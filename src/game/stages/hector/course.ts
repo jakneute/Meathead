@@ -13,7 +13,7 @@ import { BOSS_DOOR_X, GROUND_Y } from '../../../constants';
 import type { GroundRun } from '../../core/terrain';
 import type { EnemyKind } from '../../../types';
 
-export const CP = { BEACH: 0, STORM: 1, MOTEL: 2, MARINA: 3, TOWER: 4, EYE: 5, DOOR: 6 } as const;
+export const CP = { BEACH: 0, STORM: 1, MOTEL: 2, MARINA: 3, CHASE: 4, CHASE2: 5, TOWER: 6, EYE: 7, DOOR: 8 } as const;
 
 export type Surface = 'sand' | 'road' | 'dock' | 'grass' | 'pool';
 
@@ -77,6 +77,8 @@ export interface Tower {
 
 // Where each part sits in the world
 const MAIN_LEN = 19600;
+/** Halfway out to the waterspout: the chase's second checkpoint (where the boat is). */
+const CHASE2_X = 16000;
 const MAIN_X0 = BOSS_DOOR_X - 1500 - 300 - MAIN_LEN;  // the main run ends at the daycare wall (open water up to it)
 const TOWER_X0 = -60000;
 const EYE_X0 = -48000, EYE_Y0 = -2600;
@@ -260,6 +262,8 @@ export const buildCourse = (): Course => {
     daycare,
     checkpoints: [
       { x: sx(150), y: GROUND_Y }, { x: sx(2750), y: GROUND_Y }, { x: sx(6230), y: GROUND_Y }, { x: sx(10050), y: GROUND_Y - 20 },
+      // (out on the water: in the boat as it sets off with the Coast Guard after it, and halfway out)
+      { x: sx(m.boat.x + 40), y: m.boat.y - 18 }, { x: sx(CHASE2_X + 40), y: m.boat.y - 18 },
       { x: TOWER_X0 + 120, y: tower.floorY }, { x: EYE_X0 + 80, y: EYE_Y0 + 480 }, { x: BOSS_DOOR_X - 650, y: GROUND_Y },
     ],
     left: TOWER_X0 - 3000,
