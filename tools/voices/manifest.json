@@ -1346,17 +1346,12 @@
  },
  {
   "voice": "barry.resident",
-  "text": "...I'M OKAY! I'M TOTALLY OKAY! NOTHING IMPORTANT GOT HIT!",
+  "text": "...I'M OKAY!",
   "from": "game/stages/barry/dumpster.ts:77"
  },
  {
   "voice": "barry.resident",
-  "text": "IS THAT A FORK? THAT'S A FORK. AND A NEEDLE. AND A RUSTY NAIL. AND... A WHOLE FISH.",
-  "from": "game/stages/barry/dumpster.ts:77"
- },
- {
-  "voice": "barry.resident",
-  "text": "OW. OW. GLASS. THAT IS A LOT OF GLASS.",
+  "text": "OW! GLASS! A FORK! A NEEDLE! ...A WHOLE FISH?!",
   "from": "game/stages/barry/dumpster.ts:77"
  },
  {
@@ -6636,7 +6631,7 @@
  },
  {
   "voice": "meathead",
-  "text": "...I'M OKAY! I'M TOTALLY OKAY! NOTHING IMPORTANT GOT HIT!",
+  "text": "...I'M OKAY!",
   "from": "game/stages/barry/dumpster.ts:77"
  },
  {
@@ -9981,11 +9976,6 @@
  },
  {
   "voice": "meathead",
-  "text": "IS THAT A FORK? THAT'S A FORK. AND A NEEDLE. AND A RUSTY NAIL. AND... A WHOLE FISH.",
-  "from": "game/stages/barry/dumpster.ts:77"
- },
- {
-  "voice": "meathead",
   "text": "IS THAT A PEASHOOTER, YOU WEAK LITTLE SHIT?!",
   "from": "HAZARD_HURT"
  },
@@ -11031,6 +11021,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! GLASS! A FORK! A NEEDLE! ...A WHOLE FISH?!",
+  "from": "game/stages/barry/dumpster.ts:77"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! IS THAT A DIRTY NEEDLE, YOU SICK FUCK?!",
   "from": "HURT"
  },
@@ -11058,11 +11053,6 @@
   "voice": "meathead",
   "text": "OW! THE HOT STICK GOT ME!",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "OW. OW. GLASS. THAT IS A LOT OF GLASS.",
-  "from": "game/stages/barry/dumpster.ts:77"
  },
  {
   "voice": "meathead",

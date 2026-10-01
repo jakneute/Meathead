@@ -31,14 +31,14 @@ export interface Dumpster {
 
 // The beats
 const FALL_END = 64, CUT = 84;
-const L1 = 100, L2 = 101, L3 = 102, WIDE = 103;
-const DOOR = WIDE + 50, SHOUT = DOOR + 40, SLAM = SHOUT + 1, END = SLAM + 150;
-const HOLDS = new Set([L1, L2, L3, SHOUT]);
+const L1 = 100, L3 = 101, WIDE = 102;
+// (and the moment the arm's off, it cuts straight to the death screen)
+const DOOR = WIDE + 30, SHOUT = DOOR + 30, SLAM = SHOUT + 1, END = SLAM + 5;
+const HOLDS = new Set([L1, L3, SHOUT]);
 
 const LINES: Record<number, { by: 'MEATHEAD' | 'RESIDENT'; text: string }> = {
-  [L1]: { by: 'MEATHEAD', text: 'OW. OW. GLASS. THAT IS A LOT OF GLASS.' },
-  [L2]: { by: 'MEATHEAD', text: "IS THAT A FORK? THAT'S A FORK. AND A NEEDLE. AND A RUSTY NAIL. AND... A WHOLE FISH." },
-  [L3]: { by: 'MEATHEAD', text: "...I'M OKAY! I'M TOTALLY OKAY! NOTHING IMPORTANT GOT HIT!" },
+  [L1]: { by: 'MEATHEAD', text: 'OW! GLASS! A FORK! A NEEDLE! ...A WHOLE FISH?!' },
+  [L3]: { by: 'MEATHEAD', text: "...I'M OKAY!" },
   [SHOUT]: { by: 'RESIDENT', text: 'SHUT UP!' },
 };
 
@@ -79,7 +79,6 @@ export const tickDumpster = (ctx: FrameContext, d: Dumpster) => {
   if (t === WIDE + 10) playSound('clink', 0.6);
   if (t === DOOR) playSound('slam', 0.8, 3);
   if (t === SLAM + 1) { playSound('slam'); playSound('crunch'); playSound('clang', 1, -6); playSound('splat'); }
-  if (t === SLAM + 30) playSound('thud', 0.7);
   if (t >= END && state.deathScene) state.deathScene.len = state.deathScene.t + 1;
 };
 
