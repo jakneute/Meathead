@@ -4,7 +4,7 @@
 
 import type { StageLayout } from '../index';
 import type { Block } from '../../../types';
-import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH } from '../../../constants';
+import { BOSS_DOOR_X, GROUND_Y } from '../../../constants';
 import { groundBlocks } from '../../core/terrain';
 import { COURSE, CP, placeOf } from './course';
 import { createOscarRuntime, getOscar, updateOscar, oscarDeathMessage } from './runtime';
@@ -13,6 +13,7 @@ import { drawOscarBackdrop, drawOscarBack, drawOscarMid, drawOscarFront, drawOsc
 import { oscarScene } from './lighting';
 import { taseZoom } from './taseCam';
 import { tickSwirlyPipes } from './swirly';
+import { getStageWidth } from '../../bosses/registry';
 
 export const oscarLayout: StageLayout = {
   music: state => {
@@ -31,7 +32,8 @@ export const oscarLayout: StageLayout = {
   bossStartX: COURSE.bar.x1,
   build: (state, skipToBoss) => {
     const C = COURSE;
-    state.groundRuns = [...C.runs, { x1: BOSS_DOOR_X, y1: GROUND_Y, x2: STAGE_WIDTH, y2: GROUND_Y }];
+    // (the arena's ground out to the end of his double-width arena, and past it: the fight's camera pulls back to show the lot)
+    state.groundRuns = [...C.runs, { x1: BOSS_DOOR_X, y1: GROUND_Y, x2: getStageWidth('Oily Oscar') + 800, y2: GROUND_Y }];
     state.blocks.push(...groundBlocks(C.runs));
     // Pipelines and derrick decks: things you jump up through and stand on
     C.ledges.forEach((l, i) => state.blocks.push({ x: l.x, y: l.y, w: l.w, h: 14, type: 'platform', hidden: true, oneWay: true, tag: `oledge-${i}` }));
