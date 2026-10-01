@@ -3,9 +3,11 @@
 // (most come up from behind you; now and then one comes the wrong way), then a
 // minivan doing sixty. Get hit and you're flung down the road (maybe into a
 // gap). Jump on the roof and it'll carry you. A hole in the deck doesn't stop
-// it: it launches off the lip and comes flying over after you, lands in a
-// ball of fire and goes up, bits of it everywhere, nothing left (or, short of
-// the far side, down the hole). Anything of Ernie's in the road is roadkill.
+// it the first time: it launches off the lip, flies the gap, slams down on the
+// far side (sparks, a hubcap off) and keeps on going. The second hole it comes
+// to, its luck's run out: over the lip nose first and down it goes. Run into
+// him, though, and that's it for the car: it goes up in a ball of fire, bits
+// of it everywhere. Anything of Ernie's in the road is roadkill.
 
 import type { Block } from '../../../types';
 import type { FrameContext } from '../../core/context';
@@ -31,6 +33,8 @@ export interface Car {
    */
   state: 'coming' | 'driving' | 'launched' | 'falling';
   t: number;
+  /** Gaps it's jumped (it gets the one). */
+  hops: number;
   /** You can stand on the roof. */
   roof: Block;
 }
@@ -60,7 +64,7 @@ export const updateTraffic = (ctx: FrameContext, tr: Traffic) => {
     if (coming.some(c => c.dir === dir)) dir = dir > 0 ? -1 : 1;
     const x = dir > 0 ? state.camera.x - CAR_W - 30 : state.camera.x + CANVAS_WIDTH + 30;
     const roof: Block = { x, y: GROUND_Y - CAR_H, w: CAR_W, h: 10, type: 'platform', hidden: true, oneWay: true, tag: 'car-roof' };
-    tr.cars.push({ x, y: GROUND_Y, dir, speed: 7 + Math.random(), vy: 0, rot: 0, color: COLORS[Math.floor(Math.random() * COLORS.length)], state: 'coming', t: 0, roof });
+    tr.cars.push({ x, y: GROUND_Y, dir, speed: 7 + Math.random(), vy: 0, rot: 0, color: COLORS[Math.floor(Math.random() * COLORS.length)], state: 'coming', t: 0, hops: 0, roof });
     playSound('horn');
   }
   for (const c of tr.cars) {
@@ -93,9 +97,18 @@ const drive = (ctx: FrameContext, c: Car) => {
   const riding = p.isGrounded && p.pos.x + p.width > c.x && p.pos.x < c.x + CAR_W && Math.abs(p.pos.y + p.height - c.roof.y) < 3;
   c.x += dx;
   if (riding) p.pos.x += dx;
-  // Nose out over a gap in the deck: it doesn't stop, it launches off the lip and comes flying over after you
+  // Nose out over a gap in the deck: the first one, it doesn't stop, it launches off the lip and flies it; the second,
+  // it's out of luck (over the lip nose first, and down)
   const front = c.dir > 0 ? c.x + CAR_W - 18 : c.x + 18;
   if (floorTopAt(deck(state), front, c.y, 4) === null) {
+    if (c.hops >= 1) {
+      c.state = 'falling'; c.vy = 1; c.t = 0;
+      state.blocks = state.blocks.filter(b => b !== c.roof);
+      if (riding) { p.vel.x = c.dir * c.speed * 0.6; p.isGrounded = false; }
+      playSound('horn');
+      return;
+    }
+    c.hops++;
     c.state = 'launched'; c.t = 0;
     c.vy = -9;
     c.speed *= 1.15;
@@ -122,16 +135,29 @@ const flying = (ctx: FrameContext, c: Car) => {
   // Down: onto deck, or not
   const mid = c.x + CAR_W / 2;
   const top = floorTopAt(deck(state), mid, c.y - 10, 30);
-  if (top !== null && c.y >= top) { c.y = top; crash(ctx, c); return; }
+  if (top !== null && c.y >= top) { c.y = top; slamDown(ctx, c); return; }
   if (c.y > GROUND_Y + 20) { c.state = 'falling'; state.blocks = state.blocks.filter(b => b !== c.roof); }
 };
 
-/** Comes down in a ball of fire and goes up, all of it: whoever's on the roof is thrown off, and there's nothing left. */
-const crash = (ctx: FrameContext, c: Car) => {
+/** Down on the far side, hard: the suspension bottoms out, sparks off the sills, a hubcap off and rolling, and it drives on. */
+const slamDown = (ctx: FrameContext, c: Car) => {
+  const { state, fx } = ctx;
+  if (hitThings(ctx, c)) return;
+  c.vy = 0; c.rot = 0; c.state = 'driving'; c.t = 0;
+  c.speed /= 1.15;
+  playSound('crash', 0.7); playSound('thud');
+  shakeScreen(state, 12, 5);
+  const under = { x: c.x + CAR_W / 2, y: c.y - 4 };
+  fx.spawnExplosion(under, '#FDE047', 14, -c.dir * 6, 10);
+  fx.spawnExplosion(under, '#9CA3AF', 8, -c.dir * 3, 8);
+  // (the hubcap, off and rolling away)
+  state.particles.push({ pos: { x: c.x + (c.dir > 0 ? 30 : CAR_W - 30), y: c.y - 10 }, vel: { x: c.dir * 5, y: -6 }, life: 70, color: '#D1D5DB', size: 8 });
+};
+
+/** Into him: it goes up in a ball of fire, all of it (whoever's on the roof thrown off), bits of it everywhere, nothing left. */
+const explode = (ctx: FrameContext, c: Car) => {
   const { state, fx } = ctx;
   const p = state.player;
-  // (whatever it comes down on gets it)
-  hitThings(ctx, c);
   const onRoof = p.pos.x + p.width > c.x && p.pos.x < c.x + CAR_W && Math.abs(p.pos.y + p.height - c.roof.y) < 12;
   state.blocks = state.blocks.filter(b => b !== c.roof);
   if (onRoof) { p.vel.y = -12; p.vel.x = c.dir * 6; p.isGrounded = false; }
@@ -146,11 +172,12 @@ const crash = (ctx: FrameContext, c: Car) => {
   for (let i = 0; i < 34; i++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * CAR_W, y: cy }, vel: { x: c.dir * 3 + (Math.random() - 0.5) * 16, y: -4 - Math.random() * 11 }, life: 50 + Math.random() * 40, color: i % 4 === 0 ? '#9CA3AF' : i % 4 === 1 ? '#BFDBFE' : c.color, size: 4 + Math.random() * 7 });
   for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: cx + (i - 1.5) * 24, y: cy + 10 }, vel: { x: c.dir * 2 + (i - 1.5) * 3, y: -7 - Math.random() * 6 }, life: 80, color: '#111827', size: 12 });
   // ...and it's gone
-  c.state = 'falling'; c.y = GROUND_Y + 10000;
+  c.state = 'falling'; c.y = GROUND_Y + 10000; c.vy = 0;
 };
 
-/** Whatever's in the way of it: him (unless he's up on the roof), and anything of Ernie's in the road. */
-const hitThings = (ctx: FrameContext, c: Car) => {
+/** Whatever's in the way of it: him (unless he's up on the roof: it goes up, hitting him), and anything of Ernie's in the road.
+ * True if that was the end of it. */
+const hitThings = (ctx: FrameContext, c: Car): boolean => {
   const { state, fx } = ctx;
   const p = state.player;
   const body = { x: c.x, y: c.y - CAR_H, w: CAR_W, h: CAR_H };
@@ -161,6 +188,8 @@ const hitThings = (ctx: FrameContext, c: Car) => {
     hurtPlayer(ctx, CAR_DAMAGE, 'traffic', { x: c.dir * CAR_FLING_X, y: CAR_FLING_Y });
     fx.spawnDamageNumber({ x: p.pos.x - 30, y: p.pos.y - 40 }, ['HIT AND RUN!', 'ROADKILL!', 'JAYWALKER!'][Math.floor(Math.random() * 3)], true, '#F97316');
     playSound('horn');
+    explode(ctx, c);
+    return true;
   }
   // Anything of Ernie's in the road
   for (const e of state.enemies) {
@@ -173,6 +202,7 @@ const hitThings = (ctx: FrameContext, c: Car) => {
     fx.spawnKillCallout(e, 'flattened');
     fx.spawnPickup(e.pos);
   }
+  return false;
 };
 
 /** The honking ones not in view yet (for the warning at the edge of the screen). */
