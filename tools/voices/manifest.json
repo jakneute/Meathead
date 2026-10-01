@@ -1391,6 +1391,11 @@
  },
  {
   "voice": "boss.artie",
+  "text": "I MADE THOSE SHARDS. THEY KNOW THEIR MASTER.",
+  "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.artie",
   "text": "I PREFER MY INJECTIONS CHILLED.",
   "from": "REACTIONS"
  },
@@ -1411,6 +1416,11 @@
  },
  {
   "voice": "boss.artie",
+  "text": "ICE AGAINST THE ICE MAN. HOW DREADFULLY STUPID.",
+  "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.artie",
   "text": "ICE DOESN'T CONDUCT, GENIUS.",
   "from": "REACTIONS"
  },
@@ -1418,6 +1428,11 @@
   "voice": "boss.artie",
   "text": "IS THAT ALL YOUR TINY GUN CAN DO?",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "MY SHOTGUN? YOU PRIED THAT FROM MY FROZEN FINGERS!",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.artie",
@@ -1438,6 +1453,11 @@
   "voice": "boss.artie",
   "text": "OIL ON ICE? THAT'S JUST SLIPPERY.",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "SHOOTING ME WITH MY OWN WEATHER? HOW GAUCHE.",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.artie",
@@ -1463,6 +1483,11 @@
   "voice": "boss.artie",
   "text": "THAT'S GOING TO FREEZE INTO SOMETHING HORRIBLE.",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "THAT'S MY OWN HAIL, YOU THIEVING OAF!",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.artie",
@@ -1546,6 +1571,11 @@
  },
  {
   "voice": "boss.barry",
+  "text": "FEEDBACK LOOP! I LOVE A FEEDBACK LOOP!",
+  "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.barry",
   "text": "FLOODING THE BASEMENT?! THE GENERATORS!",
   "from": "REACTIONS"
  },
@@ -1573,6 +1603,11 @@
   "voice": "boss.barry",
   "text": "ICE ON THE LINES! OUTAGE! OUTAGE!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "M-M-MY OWN TASER? I'M IMMUNE, D-DUMMY!",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.barry",
@@ -1616,6 +1651,11 @@
  },
  {
   "voice": "boss.barry",
+  "text": "SHOCKING. REALLY. NOT.",
+  "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.barry",
   "text": "SLIME IN THE CIRCUITS! SPARKS!",
   "from": "REACTIONS"
  },
@@ -1648,6 +1688,11 @@
   "voice": "boss.barry",
   "text": "THAT'S FOR GARY! MY... EMPLOYEE OF THE MONTH!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "THAT'S MY VOLTAGE! I'M JUST TAKING IT BACK!",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.barry",
@@ -1701,6 +1746,11 @@
  },
  {
   "voice": "boss.barry",
+  "text": "YOU'RE PLUGGING ME INTO MYSELF!",
+  "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.barry",
   "text": "YOU'RE TAZING THE POWER COMPANY?!",
   "from": "REACTIONS"
  },
@@ -1718,6 +1768,11 @@
   "voice": "boss.dale",
   "text": "BIG ROCK, BRO. WHAT'S IT CUT WITH?",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "BRO, THOSE ARE MY NEEDLES. I KNOW WHERE THEY'VE BEEN.",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.dale",
@@ -1743,6 +1798,11 @@
   "voice": "boss.dale",
   "text": "DON'T BURN THE STASH!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "DUDE, I BUILT UP A TOLERANCE TO THAT YEARS AGO.",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.dale",
@@ -1786,6 +1846,11 @@
  },
  {
   "voice": "boss.dale",
+  "text": "MY OWN STASH? NOT EVEN A DISCOUNT?",
+  "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.dale",
   "text": "MY OWN TRUCK?! I'M SUING!",
   "from": "DALE_LINES"
  },
@@ -1793,6 +1858,11 @@
   "voice": "boss.dale",
   "text": "MY TRUCK! THAT WAS UNINSURED!",
   "from": "DALE_LINES"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "OH, THAT'S THE GOOD STUFF. THANKS, BRO.",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.dale",
@@ -1828,6 +1898,11 @@
   "voice": "boss.dale",
   "text": "SLICK MOVE. I RESPECT THE HUSTLE.",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "THAT'S MY RIG, MAN! GIVE IT BACK!",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.dale",
@@ -1961,6 +2036,11 @@
  },
  {
   "voice": "boss.ernie",
+  "text": "MY... OWN... BOULDER?",
+  "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.ernie",
   "text": "NEEDLES... BREAK... ON GRANITE.",
   "from": "REACTIONS"
  },
@@ -1973,6 +2053,11 @@
   "voice": "boss.ernie",
   "text": "PUKE... IN MY... STRATA.",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "RETURNED... TO SENDER.",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.ernie",
@@ -2006,6 +2091,11 @@
  },
  {
   "voice": "boss.ernie",
+  "text": "THAT ROCK... CAME FROM... ME... BOY.",
+  "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.ernie",
   "text": "THAT... TICKLES... BOY.",
   "from": "REACTIONS"
  },
@@ -2013,6 +2103,11 @@
   "voice": "boss.ernie",
   "text": "THAT'S... A MILLION YEARS... OF DAMAGE.",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "THIEF... GRAVE ROBBER... HOOLIGAN.",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.ernie",
@@ -2028,6 +2123,11 @@
   "voice": "boss.ernie",
   "text": "WATER... ERODES... SLOWLY... BOY.",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "YOU CAN'T... HURT A MOUNTAIN... WITH ITSELF.",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.ernie",
@@ -2088,6 +2188,11 @@
   "voice": "boss.hector",
   "text": "CATEGORY SIX! CATEGORY SIX!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "DUDE! THAT'S MY WAVE!",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.hector",
@@ -2171,6 +2276,11 @@
  },
  {
   "voice": "boss.hector",
+  "text": "THANKS FOR THE STORM SURGE, PAL!",
+  "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.hector",
   "text": "THIS WASN'T IN THE FORECAST!",
   "from": "THRESHOLDS"
  },
@@ -2186,6 +2296,11 @@
  },
  {
   "voice": "boss.hector",
+  "text": "WATER? ON A HURRICANE? I'M LITERALLY MADE OF THIS, BRO!",
+  "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.hector",
   "text": "WHEEE! WHAT WAS IN THAT?!",
   "from": "REACTIONS"
  },
@@ -2193,6 +2308,11 @@
   "voice": "boss.hector",
   "text": "WINDS ARE PICKING UP! AGAINST YOU!",
   "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "YOU CAN'T DROWN THE WEATHER, MAN!",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.hector",
@@ -2213,6 +2333,11 @@
   "voice": "boss.hector",
   "text": "YOU'RE JUST MAKING ME A BIGGER STORM!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "YOU'RE SURFING MY OWN TSUNAMI AT ME?!",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.hector",
@@ -2268,6 +2393,11 @@
   "voice": "boss.oscar",
   "text": "CONTAMINATED BATCH! WORTHLESS!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "CRUDE ON A CRUDE MAN? TAKE IT UP WITH THE MANUFACTURER.",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.oscar",
@@ -2346,6 +2476,11 @@
  },
  {
   "voice": "boss.oscar",
+  "text": "HITTING ME WITH MY OWN HARDWARE? I'LL INVOICE YOU.",
+  "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.oscar",
   "text": "I CAN PUT YOU IN A CERTIFIED PRE-OWNED DERRICK TODAY!",
   "from": "OSCAR_LINES"
  },
@@ -2393,6 +2528,11 @@
   "voice": "boss.oscar",
   "text": "I JUST FLOAT ON TOP, BABY.",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "I SOLD YOU THAT. NO REFUNDS.",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.oscar",
@@ -2468,6 +2608,11 @@
   "voice": "boss.oscar",
   "text": "MY FILLINGS! MY BEAUTIFUL GOLD FILLINGS!",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "MY OWN LAUNCHER? THAT'S A LICENSING VIOLATION, PAL.",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.oscar",
@@ -2666,6 +2811,11 @@
  },
  {
   "voice": "boss.oscar",
+  "text": "YOU'RE MARINATING ME, FRIEND. I'M INTO IT.",
+  "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.oscar",
   "text": "YOU'RE SHOOTING ME WITH MY OWN PRODUCT?",
   "from": "REACTIONS"
  },
@@ -2781,6 +2931,11 @@
  },
  {
   "voice": "boss.tommy",
+  "text": "IT'S COMING HOME TO DADDY!",
+  "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.tommy",
   "text": "IT'S COVERED IN SLIME NOW. KEEP IT.",
   "from": "REACTIONS"
  },
@@ -2806,6 +2961,11 @@
  },
  {
   "voice": "boss.tommy",
+  "text": "SECONDHAND PUKE? HURK... THAT'S ALL MINE.",
+  "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.tommy",
   "text": "SEWER GAS! EVERYTHING'S ON FIRE!",
   "from": "REACTIONS"
  },
@@ -2813,6 +2973,11 @@
   "voice": "boss.tommy",
   "text": "SPLOOSH! YOUR ROCK SANK.",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "TASTES... FAMILIAR... BLEGH.",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.tommy",
@@ -2826,8 +2991,18 @@
  },
  {
   "voice": "boss.tommy",
+  "text": "THAT'S MY BARF! I KNOW MY OWN BARF! BLURGH!",
+  "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.tommy",
   "text": "YOU BARF ON ME? I AM BARF!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "YOU BOTTLED MY LUNCH AND THREW IT BACK?",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.tommy",
@@ -2896,6 +3071,11 @@
  },
  {
   "voice": "boss.victor",
+  "text": "GIVE IT BACK! THAT'S A PERSONAL ITEM!",
+  "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.victor",
   "text": "GO AHEAD, CORK IT. SEE WHAT HAPPENS.",
   "from": "VICTOR_LINES"
  },
@@ -2923,6 +3103,11 @@
   "voice": "boss.victor",
   "text": "I'M COOLING... NOT BEFORE MY SET!",
   "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "I'M LAVA, MEATHEAD! I SHOWER IN THIS!",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.victor",
@@ -2971,6 +3156,11 @@
  },
  {
   "voice": "boss.victor",
+  "text": "OH NO, NOT MY OWN HEAT. ANYWAY.",
+  "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.victor",
   "text": "OH NO... WHAT HAVE YOU DONE, YOU",
   "from": "VICTOR_LINES"
  },
@@ -3011,6 +3201,11 @@
  },
  {
   "voice": "boss.victor",
+  "text": "THAT'S MY FIRE! IT LOVES ME MORE THAN YOU!",
+  "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.victor",
   "text": "THAT'S NOT HOW GEOLOGY WORKS, YOU MEATBALL!",
   "from": "VICTOR_LINES"
  },
@@ -3038,6 +3233,11 @@
   "voice": "boss.victor",
   "text": "You crashed my VIP lounge, bro. Those were investors. Now they're a geothermal feature.",
   "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "YOU STOLE MY FLAMETHROWER AND POINTED IT AT ME?!",
+  "from": "OWN_WEAPON"
  },
  {
   "voice": "boss.victor",
