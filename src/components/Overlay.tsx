@@ -11,6 +11,7 @@ import BossPortrait from './BossPortrait';
 import WeaponIcon, { WeaponArt } from './WeaponIcon';
 import DossierPanel from './DossierPanel';
 import { WHITE_HOUSE_ID } from '../content/whiteHouse';
+import { drawWhiteHouse, ART_W, ART_H } from '../game/scenes/ending';
 import { GARAGE_ID, SOUVENIRS } from '../content/garage';
 import { ownedSouvenirs } from '../game/garage/store';
 import MeatheadCaricature from './MeatheadCaricature';
@@ -247,8 +248,8 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
   return (
     <div className={`w-full h-full flex flex-col items-center justify-start pt-2 pb-1 overflow-hidden select-none ${engaging ? 'mh-engage-shake' : 'animate-in slide-in-from-bottom-8 duration-500'}`}>
       <div className="flex flex-col items-center mb-2 shrink-0">
-        <h2 data-set-title className={setTitleClass(BOSS_SET_TITLES[setRank] || "THE FOUR ASSHOLES")}>
-          {BOSS_SET_TITLES[setRank] || "THE FOUR ASSHOLES"}
+        <h2 data-set-title className={setTitleClass(whiteHouseOpen ? 'MISSION ACCOMPLISHED' : BOSS_SET_TITLES[setRank] || "THE FOUR ASSHOLES")}>
+          {whiteHouseOpen ? 'MISSION ACCOMPLISHED' : BOSS_SET_TITLES[setRank] || "THE FOUR ASSHOLES"}
         </h2>
         <div className="flex items-center gap-3 text-[8px] font-mono text-cyan-400/90 tracking-widest uppercase mt-0.5">
           <span>{archive ? 'ARCHIVE // PREVIOUSLY TERMINATED TARGETS // CASES CLOSED' : whiteHouseOpen ? 'NOBODY LEFT // WASHINGTON IS WAITING' : 'TARGET SELECTION // UNITED STATES RADAR INFILTRATION'}</span>
@@ -257,7 +258,10 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
 
       <div className="w-full max-w-[770px] flex flex-row items-center justify-center gap-4 px-2">
         <div className="w-[330px] shrink-0 flex flex-col gap-3">
-        {/* 2x2 boss cards */}
+        {/* 2x2 boss cards (or, once all eight are dead, the White House in their place) */}
+        {whiteHouseOpen && !archive ? (
+          <WhiteHouseCard selected={whAt} locked={whLocked} dim={locked && !whLocked} onClick={() => onStageCardClick(WHITE_HOUSE_INDEX)} onHover={() => onSelectIndex(WHITE_HOUSE_INDEX)} />
+        ) : (
         <div className="w-full grid grid-cols-2 gap-2.5">
           {currentStages.map((stage, idx) => {
             const isDefeated = deadIds.includes(stage.id);
@@ -305,6 +309,7 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
             );
           })}
         </div>
+        )}
         {archive ? (
           <div className="h-[58px] flex flex-col items-center justify-center gap-1 border-2 border-dashed border-zinc-700 text-zinc-400">
             <span className="text-[9px] font-black tracking-widest text-red-500">CASES CLOSED</span>
@@ -313,7 +318,6 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
         ) : (
           <>
             <GarageCard selected={garageAt} locked={garageLocked} dim={locked && !garageLocked} onClick={() => onStageCardClick(GARAGE_INDEX)} onHover={() => onSelectIndex(GARAGE_INDEX)} />
-            {whiteHouseOpen && <WhiteHouseCard selected={whAt} locked={whLocked} dim={locked && !whLocked} onClick={() => onStageCardClick(WHITE_HOUSE_INDEX)} onHover={() => onSelectIndex(WHITE_HOUSE_INDEX)} />}
             <EngageBar locked={locked} engaging={engaging} onEngage={onEngage} label={garageLocked ? 'GO HOME' : whLocked ? 'GO TO D.C.' : undefined} nobodyLeft={whiteHouseOpen} />
           </>
         )}
@@ -351,6 +355,8 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
               whiteHouseSelected={whAt}
               onSelectWhiteHouse={() => onStageCardClick(WHITE_HOUSE_INDEX)}
               onSelectStage={(id) => {
+                // (nobody left: the map's just for looking at, the White House is the only way on)
+                if (whiteHouseOpen) return;
                 const idx = currentStages.findIndex(s => s.id === id);
                 if (idx !== -1) onStageCardClick(idx);
               }}
@@ -389,18 +395,42 @@ const LockedInMark: React.FC = () => (
 /** Below the boss cards: how to lock in, or the big red ENGAGE button once a target is locked. */
 /** Where the garage sits among the targets on the stage select (after the four of them). */
 export const GARAGE_INDEX = 4;
-/** The White House's place on the stage select (under the garage), once all eight are dead. */
+/** The White House's place on the stage select (in place of the targets, over the garage), once all eight are dead. */
 export const WHITE_HOUSE_INDEX = 5;
 
-/** The White House: under the garage once there's nobody left, the way to the medal (and the end). */
+/**
+ * The White House: once there's nobody left, it takes the targets' place on the stage select, the one thing there is
+ * to pick (the garage still under it): the place itself at night, the flag going, the lit windows, painted big, its
+ * name and where under it.
+ */
 const WhiteHouseCard: React.FC<{ selected: boolean; locked: boolean; dim: boolean; onClick: () => void; onHover: () => void }> = ({ selected, locked, dim, onClick, onHover }) => {
-  const frame = locked ? 'border-red-500 bg-red-600 text-white shadow-[0_0_18px_rgba(239,68,68,0.8)]'
-    : selected ? 'border-yellow-400 bg-yellow-400 text-black shadow-[0_0_14px_rgba(255,255,0,0.5)]' : 'border-yellow-500/70 bg-[#1E293B] text-white hover:border-yellow-300 animate-pulse';
+  const art = React.useRef<HTMLCanvasElement>(null);
+  React.useEffect(() => {
+    let raf = 0, t = 0;
+    const tick = () => {
+      const c = art.current;
+      if (c) { const ctx = c.getContext('2d')!; ctx.imageSmoothingEnabled = false; drawWhiteHouse(ctx, t++); }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  const frame = locked
+    ? 'border-red-500 scale-[1.02] shadow-[0_0_26px_rgba(239,68,68,0.9)] ring-2 ring-red-500/70'
+    : selected ? 'border-yellow-400 scale-[1.01] shadow-[0_0_20px_rgba(255,255,0,0.6)] ring-2 ring-yellow-400/50'
+    : 'border-yellow-500/70 hover:border-yellow-300';
   return (
     <button onClick={onClick} onMouseEnter={onHover}
-      className={`h-[30px] -mt-1 w-full flex items-center justify-between px-2 border-3 ${frame} ${dim ? 'opacity-35 grayscale' : ''} transition-all rounded-sm`}>
-      <span className="text-[9px] font-black tracking-wider">★ {WHITE_HOUSE_ID}</span>
-      <span className={`text-[7px] font-mono font-bold ${selected || locked ? '' : 'text-yellow-300'}`}>WASHINGTON, DC // A MEDAL WAITING</span>
+      className={`w-full h-[326px] border-3 ${frame} ${dim ? 'opacity-35 grayscale' : ''} bg-[#0B1023] transition-all flex flex-col overflow-hidden shadow-lg rounded-sm text-left`}>
+      <div className="relative flex-1 bg-black overflow-hidden">
+        <canvas ref={art} width={ART_W} height={ART_H} className="absolute inset-0 w-full h-full object-cover" style={{ imageRendering: 'pixelated' }} />
+        {locked && <LockedInMark />}
+        <div className="absolute top-1 right-1 bg-black/85 px-1 py-0.5 rounded border border-yellow-500/50 text-[7px] font-mono font-bold text-yellow-300 pointer-events-none">DC</div>
+      </div>
+      <div className={`py-2 flex flex-col items-center justify-center gap-1 ${locked ? 'bg-red-600 text-white' : selected ? 'bg-yellow-400 text-black' : 'bg-[#111827] text-white'}`}>
+        <span className="text-[13px] font-black tracking-wider">★ {WHITE_HOUSE_ID} ★</span>
+        <span className={`text-[7px] font-mono font-bold ${selected || locked ? '' : 'text-yellow-300'}`}>WASHINGTON, DC // A MEDAL WAITING</span>
+      </div>
     </button>
   );
 };

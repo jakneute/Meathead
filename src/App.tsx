@@ -49,13 +49,13 @@ const UNPAUSABLE_SCREENS = [GameStatus.BOSS_TRANSITION, GameStatus.BOSS_INTRO, G
 const ENDING_AFTER_RANK = 1;
 
 /**
- * Stage select is a 2x2 grid with the garage under it (and the White House under that, once all eight are dead):
- * horizontal flips the column, vertical goes down the rows and on to the garage.
+ * Stage select is a 2x2 grid with the garage under it: horizontal flips the column, vertical goes down the rows and on
+ * to the garage. Once all eight are dead it's the White House in the grid's place, the garage under it: up and down.
  */
 const navigateStageGrid = (index: number, dx: number, dy: number, whiteHouse: boolean) => {
   let i = index;
-  if (i === WHITE_HOUSE_INDEX) return dy < 0 ? GARAGE_INDEX : i;
-  if (i === GARAGE_INDEX) return dy < 0 ? 2 : dy > 0 && whiteHouse ? WHITE_HOUSE_INDEX : i;
+  if (whiteHouse) return dy > 0 ? GARAGE_INDEX : dy < 0 ? WHITE_HOUSE_INDEX : i === GARAGE_INDEX ? i : WHITE_HOUSE_INDEX;
+  if (i === GARAGE_INDEX) return dy < 0 ? 2 : i;
   if (dx !== 0) i = i % 2 === 0 ? i + 1 : i - 1;
   if (dy > 0) i = i < 2 ? i + 2 : GARAGE_INDEX;
   else if (dy < 0) i = i < 2 ? i : i - 2;
@@ -364,6 +364,8 @@ const App: React.FC = () => {
 
   /** All eight dead: the White House is on the map. */
   const whiteHouseOpen = progressionRank >= 1 && STAGES_SET_1.every(s => defeatedStages.includes(s.id));
+  // (nobody left: the targets are off the screen, the White House is in their place: that's where the cursor goes)
+  useEffect(() => { if (whiteHouseOpen && selectedIndex < GARAGE_INDEX) setSelectedIndex(WHITE_HOUSE_INDEX); }, [whiteHouseOpen, selectedIndex]);
   /** Who's on the damage report (in the garage): the first four, from the start of the second set; all eight once they're all dead. */
   const reportBosses = progressionRank >= 1 ? [...STAGES_SET_0, ...(whiteHouseOpen ? STAGES_SET_1 : [])].map(s => s.id) : [];
   /** The tab switch on the stage select: the map or the dossier. */
