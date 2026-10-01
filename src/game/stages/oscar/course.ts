@@ -191,7 +191,9 @@ const build = () => {
   f.ground(9300, 9900);
   f.mover(9360, Y - 120, 110, 0, 150, 260, 0, 'lift');
   f.ledge(9500, Y - 240, 170, 'deck'); f.prop('derrick', 9585, Y);
-  f.spawn('biker', 9580, Y - 240); f.spawn('biker', 9760);
+  // (a ranger up on the deck picking at him; the bikers down where he has to go; a deputy dug in with his shield on
+  // the far bank of the pit, right where the skid drops him)
+  f.spawn('ranger', 9580, Y - 240); f.spawn('biker', 9460); f.spawn('biker', 9760); f.spawn('deputy', 9345);
   f.slick(9560, 9860); f.geyser(9640, Y, 200, 60); f.geyser(9820, Y, 200, 160);
   f.pickup(9330, Y - 30, 'small_ammo');
   // A wide pit: a lift up out of it, then a skid across the rest
