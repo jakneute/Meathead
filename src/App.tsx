@@ -3,7 +3,7 @@ import { hasRightStick } from './game/platform/device';
 import CheckpointPicker, { StartAt } from './components/CheckpointPicker';
 import Garage from './components/Garage';
 import { GARAGE_INDEX, WHITE_HOUSE_INDEX } from './components/Overlay';
-import { takeSouvenir } from './game/garageStore';
+import { takeAllSouvenirs } from './game/garageStore';
 import type { Souvenir } from './content/garage';
 import HUD from './components/HUD';
 import Overlay, { CheatFlags } from './components/Overlay';
@@ -144,7 +144,7 @@ const App: React.FC = () => {
   /** In the garage (from the stage select). */
   const [inGarage, setInGarage] = useState(false);
   /** What he took home from the boss he just killed (for the weapon screen to mention). */
-  const [souvenir, setSouvenir] = useState<Souvenir | null>(null);
+  const [souvenirs, setSouvenirs] = useState<Souvenir[]>([]);
   /** The target being flown to after ENGAGE (the Mode 7 swoop), or null. */
   const [deployingTo, setDeployingTo] = useState<string | null>(null);
 
@@ -518,7 +518,7 @@ const App: React.FC = () => {
   const handleBossDefeated = (stageId: string, corpseWeapon?: WeaponType) => {
     setKillRecords(prev => ({ ...prev, [stageId]: corpseWeapon ?? null }));
     // Something of his to take home to the garage
-    setSouvenir(takeSouvenir(stageId));
+    setSouvenirs(takeAllSouvenirs(stageId));
     const newWeapon = BOSS_WEAPON_MAP[stageId];
     if (newWeapon) setAvailableWeapons(prev => prev.includes(newWeapon) ? prev : sortWeapons([...prev, newWeapon]));
     setDefeatedStages(prev => [...prev, stageId]);
@@ -755,7 +755,7 @@ const App: React.FC = () => {
             onDone={() => { const id = deployingTo; setDeployingTo(null); handleSelectStage(id); }}
           />
         )}
-        {status === GameStatus.BOSS_VICTORY_SPEECH && <WeaponGetScene stageId={selectedStage} souvenir={souvenir} onDone={handleStart} />}
+        {status === GameStatus.BOSS_VICTORY_SPEECH && <WeaponGetScene stageId={selectedStage} souvenirs={souvenirs} onDone={handleStart} />}
         {status === GameStatus.STAGE_SELECT && inGarage && <Garage weapons={cheats.allWeapons ? ALL_WEAPONS : getEarnedWeapons()} onLeave={() => setInGarage(false)} report={{ bosses: reportBosses, killRecords }} />}
         {status === GameStatus.STAGE_SELECT && pickFor && (
           <CheckpointPicker stageId={pickFor} onCancel={() => setPickFor(null)}

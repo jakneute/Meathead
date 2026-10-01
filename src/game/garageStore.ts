@@ -52,3 +52,14 @@ export const takeSouvenir = (boss: string, difficulty: Difficulty = 'normal'): S
   write(KEY, [...owned, got.id]);
   return got;
 };
+
+/**
+ * For the time being: a boss down takes all three of his souvenirs home at once (the ones he hasn't got), whatever the
+ * difficulty. (The one-per-difficulty way above is how it'll go once hard and very hard are in.)
+ */
+export const takeAllSouvenirs = (boss: string): Souvenir[] => {
+  const owned = ownedSouvenirs();
+  const got = SOUVENIRS.filter(s => s.boss === boss && !owned.includes(s.id));
+  if (got.length) write(KEY, [...owned, ...got.map(s => s.id)]);
+  return got;
+};
