@@ -1,23 +1,18 @@
-// Blood on Meathead: his own, and everybody else's.
+// Blood on Meathead: his own.
 //
 // Hurt, he bleeds: a spurt off him the moment it lands (more the harder it was), a splash of it left on him where it
-// came out, and for a while after, drops falling off him. And what comes out of whatever he kills up close, the blood
-// flying off it, sticks where it hits him: spattered across his chest, his arms, his face, his gun, running down him
-// as it sits there, going dark, and fading off him again over the next several seconds (straight off, if he goes in
-// the water). Drawn onto his sprite (render/player/player.ts), only where he is.
+// came out (running down him as it sits there, going dark, and fading off him again over the next several seconds;
+// straight off, if he goes in the water), and for a while after, drops falling off him. Drawn onto his sprite
+// (render/player/player.ts), only where he is.
 
 import type { FrameContext } from '../core/context';
-import type { Player, Particle } from '../../types';
-import { isGoreColor } from '../core/effects';
+import type { Player } from '../../types';
 import { PARTICLE_PALETTES } from '../../constants';
 
 /** The most that's on him at once (the oldest wipe off first). */
 const MAX_SPLATS = 70;
 /** How long a spatter stays on him (frames), and the stretch at the end of that over which it fades. */
 const SPLAT_LIFE = 540, SPLAT_FADE = 160;
-/** How much of what flies into him sticks. */
-const STICK_CHANCE = 0.55;
-
 const GORE = PARTICLE_PALETTES.GORE;
 
 /** Puts a spatter on him at the world point (x, y). */
@@ -56,16 +51,6 @@ export const updateBlood = (ctx: FrameContext) => {
       const at = onHim(p);
       state.particles.push({ pos: at, vel: { x: p.vel.x * 0.3 + (Math.random() - 0.5) * 0.4, y: 0.5 }, life: 60, color: GORE[Math.floor(Math.random() * GORE.length)], size: 1.2 + Math.random() * 1.6, ownBlood: true });
     }
-  }
-  // What flies into him off whatever he's killing sticks to him
-  const box = { x: p.pos.x + 4, y: p.pos.y + 2, w: p.width - 8, h: p.height * 0.85 };
-  for (const q of state.particles as Particle[]) {
-    if (q.ownBlood || q.isStuck || q.isSplat || q.life <= 0 || !isGoreColor(q.color)) continue;
-    if (q.pos.x < box.x || q.pos.x > box.x + box.w || q.pos.y < box.y || q.pos.y > box.y + box.h) continue;
-    if (Math.abs(q.vel.x) + Math.abs(q.vel.y) < 1) continue;
-    if (Math.random() > STICK_CHANCE) { q.ownBlood = true; continue; }
-    stick(state, p, q.pos.x, q.pos.y, Math.min(4.5, 1 + q.size * 0.35), q.color === GORE[GORE.length - 1]);
-    q.life = 0;
   }
   // Wiped off by the water; otherwise, off with time
   if (p.splats?.length) {
