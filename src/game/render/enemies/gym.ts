@@ -20,6 +20,7 @@ export const drawGymKind = (ctx: Ctx, e: Enemy, f: number) => {
     case 'suit': drawSuit(ctx, e, f); break;
     case 'temp': drawTemp(ctx, e, f); break;
     case 'clerk': drawClerk(ctx, e, f); break;
+    case 'dummy': drawDummy(ctx, e); break;
   }
 };
 
@@ -145,4 +146,34 @@ const drawClerk = (ctx: Ctx, e: Enemy, f: number) => {
     const cx = -7 - wind * 11, cy = -66;
     ctx.fillStyle = '#F8FAFC'; ctx.fillRect(cx - 3, cy, 6, 8); ctx.fillStyle = '#15803D'; ctx.fillRect(cx - 3, cy + 3, 6, 2); ctx.fillStyle = '#E5E7EB'; ctx.fillRect(cx - 4, cy - 1, 8, 2);
   }
+};
+
+/**
+ * The striking dummy: a rubber man (a torso, a head, no arms, abs moulded in, a scowl somebody's drawn on it in
+ * marker) on a post on a round black base full of water. Hit, it rocks back on the base and comes back up (the stage
+ * keeps the time since: aiTimer counts down from the hit).
+ */
+const drawDummy = (ctx: Ctx, e: Enemy) => {
+  const k = Math.max(0, e.aiTimer || 0) / 40;
+  const tilt = Math.sin((40 - (e.aiTimer || 0)) * 0.45) * 0.45 * k;
+  // (the base: a squat black tub, water sloshing in it when it rocks)
+  ctx.fillStyle = '#18181B'; ctx.beginPath(); ctx.ellipse(0, -8, 20, 8, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(-20, -14, 40, 8);
+  ctx.fillStyle = '#3F3F46'; ctx.beginPath(); ctx.ellipse(0, -14, 20, 6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#27272A'; ctx.beginPath(); ctx.ellipse(0, -14, 15, 4, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.save(); ctx.translate(0, -14); ctx.rotate(tilt);
+  // (the post)
+  ctx.fillStyle = '#52525B'; ctx.fillRect(-4, -20, 8, 20);
+  // (the torso: the pecs and abs moulded into it, the rubber shine, scuffs where it's been hit)
+  ctx.fillStyle = '#C2410C'; ctx.beginPath(); ctx.moveTo(-14, -20); ctx.lineTo(-17, -46); ctx.quadraticCurveTo(0, -54, 17, -46); ctx.lineTo(14, -20); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#EA580C'; ctx.beginPath(); ctx.ellipse(-7, -44, 7, 4, 0, 0, Math.PI * 2); ctx.ellipse(7, -44, 7, 4, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#9A3412'; for (let r = 0; r < 3; r++) { ctx.fillRect(-7, -36 + r * 5, 6, 4); ctx.fillRect(1, -36 + r * 5, 6, 4); }
+  ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fillRect(-13, -45, 2, 22);
+  ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(4, -30, 4, 2); ctx.fillRect(-9, -40, 3, 2);
+  // (the neck, the head: bald, the scowl drawn on in marker)
+  ctx.fillStyle = '#C2410C'; ctx.fillRect(-4, -54, 8, 6);
+  ctx.beginPath(); ctx.ellipse(0, -62, 8, 9, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(-5, -68, 2, 6);
+  ctx.strokeStyle = '#111'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(1, -65); ctx.lineTo(6, -64); ctx.moveTo(1, -59); ctx.lineTo(6, -60); ctx.stroke();
+  ctx.fillStyle = '#111'; ctx.fillRect(3, -63, 2, 2);
+  ctx.restore();
 };

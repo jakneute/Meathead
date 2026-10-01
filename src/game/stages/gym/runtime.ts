@@ -9,7 +9,7 @@ import type { FrameContext } from '../../core/context';
 import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
 import { makeKindEnemy } from '../../enemies/kinds';
-import { CANVAS_WIDTH } from '../../../constants';
+import { CANVAS_WIDTH, GROUND_Y } from '../../../constants';
 import { COURSE, CP, Room } from './course';
 import { Talk, createTalk, updateTalk, queueLines, quiet, hush } from './script';
 
@@ -60,6 +60,7 @@ export const createGymRuntime = (state: GameState): GymRuntime => {
     state.enemies.push(e);
     rooms[s.room].push(e.id);
   }
+  for (const x of COURSE.dummies) if (!(startedAt > CP.START && x < start.x)) state.enemies.push(makeKindEnemy('dummy', x, GROUND_Y));
   COURSE.pickups.forEach((p, i) => {
     if (startedAt > CP.START && p.x < start.x) return;
     state.pickups.push({ id: `gym-pickup-${i}`, pos: { x: p.x - 10, y: p.y - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: p.type, life: 1e9 });
@@ -96,6 +97,7 @@ export const updateGym = (ctx: FrameContext, controls: Controls): Controls => {
   if (quiet(rt.talk)) rt.speaker = null;
   rt.t++;
 
+  standDummiesUp(state);
   if (rt.phase === 'play') {
     if (Number.isNaN(rt.spawnX)) rt.spawnX = px;
     if (Math.abs(px - rt.spawnX) > 140) rt.moved = true;
@@ -118,6 +120,34 @@ export const updateGym = (ctx: FrameContext, controls: Controls): Controls => {
   return updateEnding(ctx, rt);
 };
 
+/**
+ * The striking dummies: whatever's done to one, it's back up the next moment (its health topped back up, rocked back on
+ * its base and standing up again where it stood), so he can bounce off it, or charge it, as long as he likes.
+ */
+const standDummiesUp = (state: GameState) => {
+  for (const e of state.enemies) {
+    if (e.kind !== 'dummy') continue;
+    if (e.health < e.maxHealth) {
+      e.health = e.maxHealth; e.aiTimer = 40;
+      // (a dive kick off it bounces him back up behind it, not on past it: a dive kick comes down on a slant, so from up
+      // there the next one lands right back on it, and the one after that, as long as he likes)
+      const p = state.player;
+      if (!p.isGrounded && p.pos.y + p.height < e.pos.y + 20) {
+        p.vel.x = 0;
+        const want = (e.homeX ?? e.pos.x) + e.width / 2 - p.width / 2 - p.facing * 52;
+        p.pos.x += (want - p.pos.x) * 0.7;
+      }
+    }
+    else if ((e.aiTimer || 0) > 0) e.aiTimer = (e.aiTimer || 0) - 1;
+    e.isBlownAway = false;
+    const home = e.homeX ?? e.pos.x;
+    e.pos.x += (home - e.pos.x) * 0.25; e.vel.x = 0;
+  }
+};
+
+/** Is he near a striking dummy (it's there to practise the dive kick on)? */
+const byDummy = (px: number) => COURSE.dummies.some(x => Math.abs(px - x) < 320);
+
 /** What to do to the ones in front of him, by the room he's in (for as long as there's anybody in it to do it to). */
 const lessonFor = (state: GameState, rt: GymRuntime, px: number): Lesson | null => {
   const R = COURSE.rooms;
@@ -126,7 +156,7 @@ const lessonFor = (state: GameState, rt: GymRuntime, px: number): Lesson | null 
   if (px >= R.cardio - 100 && px < R.benches && alive(state, rt, 'cardio')) return 'charge';
   if (px >= R.benches - 100 && px < R.racks && alive(state, rt, 'benches')) return 'slide';
   if (px >= R.racks - 100 && px < R.mezzanine && alive(state, rt, 'racks')) return 'uppercut';
-  if (px >= R.mezzanine - 40 && px < R.lockers && alive(state, rt, 'mezzanine')) return 'divekick';
+  if (px >= R.mezzanine - 40 && px < R.lockers && (alive(state, rt, 'mezzanine') || byDummy(px))) return 'divekick';
   if (px >= R.lockers - 100 && alive(state, rt, 'lockers')) return 'shield';
   return null;
 };

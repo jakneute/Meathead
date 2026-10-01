@@ -220,8 +220,8 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
             {section('BACKGROUND', d.background)}
             {section('WHAT HE THINKS HE\'S DOING', d.mission)}
             {section('WHAT HE\'S ACTUALLY DOING', d.reality)}
-            {section('WHAT TO EXPECT', d.expect)}
-            {section('FIELD INTEL', d.intel)}
+            {/* (the ground he's going in over, then the man himself: one section, the one picking up from the other) */}
+            {section('FIELD INTEL', <>{d.expect}<div className="mt-[3px]"><span className="font-bold">THE TARGET: </span>{d.intel}</div></>)}
             {section('RULES OF ENGAGEMENT', d.rules)}
             {section('WHY NOT BRING HIM IN ALIVE', d.notAlive)}
             <div className="mt-[6px] p-[4px] leading-[10px] bg-[#FEF3C7] border border-[#A16207]/50 rotate-[-0.6deg]" style={{ boxShadow: '1px 1px 0 rgba(0,0,0,0.25)' }}>

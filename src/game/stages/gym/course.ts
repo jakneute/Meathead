@@ -37,7 +37,7 @@ const Y = GROUND_Y;
 export const MEZZ_Y = Y - 200;
 
 const build = () => {
-  const runs: GroundRun[] = [], ledges: Ledge[] = [], spawns: Spawn[] = [], pickups: PickupSpot[] = [], props: Prop[] = [];
+  const runs: GroundRun[] = [], ledges: Ledge[] = [], spawns: Spawn[] = [], pickups: PickupSpot[] = [], props: Prop[] = [], dummies: number[] = [];
   const ground = (x1: number, x2: number, y1 = Y, y2 = y1) => { runs.push({ x1: X0 + x1, y1, x2: X0 + x2, y2 }); };
   const ledge = (x: number, y: number, w: number, look: Ledge['look']) => { ledges.push({ x: X0 + x, y, w, look }); };
   const spawn = (kind: EnemyKind, x: number, room: Room, y = Y) => { spawns.push({ kind, x: X0 + x, y, room }); };
@@ -77,25 +77,29 @@ const build = () => {
   ground(3100, 3300, MEZZ_Y);
   ground(3300, 4200);
   prop('cable', 3200, MEZZ_Y); prop('bag', 3520, Y);
-  spawn('suit', 3380, 'mezzanine'); spawn('temp', 3430, 'mezzanine'); spawn('suit', 3480, 'mezzanine'); spawn('suit', 3560, 'mezzanine');
+  // (and where a dive kick off the edge comes down, a striking dummy: it takes a dive kick, or a charge, all day long)
+  dummies.push(X0 + 3480);
+  spawn('suit', 3560, 'mezzanine'); spawn('temp', 3610, 'mezzanine'); spawn('suit', 3660, 'mezzanine'); spawn('suit', 3720, 'mezzanine');
 
   // ============ 6. THE LOCKER ROOM DOORS ============
   // Two of them behind their briefcases, backed up against the wall by the doors
-  spawn('clerk', 3800, 'lockers'); spawn('suit', 3880, 'lockers'); spawn('clerk', 4000, 'lockers');
+  spawn('clerk', 3880, 'lockers'); spawn('suit', 3950, 'lockers'); spawn('clerk', 4040, 'lockers');
   prop('poster', 3720, Y - 330, 'WIPE DOWN YOUR BENCH');
 
-  return { runs, ledges, spawns, pickups, props };
+  return { runs, ledges, spawns, pickups, props, dummies };
 };
 
 const course = () => {
-  const { runs, ledges, spawns, pickups, props } = build();
+  const { runs, ledges, spawns, pickups, props, dummies } = build();
   return {
     runs, ledges, spawns, pickups, props,
+    /** Where the striking dummies stand (never down, never hitting back: something to practise on). */
+    dummies,
     /** The wall at the left (behind his bench), and the locker room's double doors at the right, where it ends. */
     x1: X0 - 200, x2: X0 + 4200,
     doors: X0 + 4120,
     /** Where each room starts (its lesson comes up as he gets there). */
-    rooms: { free: X0 + 200, cardio: X0 + 940, benches: X0 + 1640, racks: X0 + 2220, mezzanine: X0 + 2960, lockers: X0 + 3640 } as Record<Room, number>,
+    rooms: { free: X0 + 200, cardio: X0 + 940, benches: X0 + 1640, racks: X0 + 2220, mezzanine: X0 + 2960, lockers: X0 + 3780 } as Record<Room, number>,
     checkpoints: [{ x: X0 + 150, y: Y }, { x: X0 + 1640, y: Y }, { x: X0 + 2960, y: Y }],
     left: X0 - 1000,
     startX: X0 + 100,

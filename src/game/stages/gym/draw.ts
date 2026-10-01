@@ -260,7 +260,8 @@ const drawLedge = (ctx: Ctx, l: Ledge) => {
  * Walking in from the doors (toward him), then planted, hands folded.
  */
 const drawBigFella = (ctx: Ctx, state: GameState, b: BigFella, rt: GymRuntime) => {
-  if (rt.t <= 30 + b.delay) return;
+  // (not in yet: only while the doors are opening; once the fade's started its own clock, they're in, and stay)
+  if (rt.phase === 'arrive' && rt.t <= 30 + b.delay) return;
   const walking = b.x > b.to + 0.5;
   const f = state.frame + b.delay * 7;
   ctx.save(); ctx.translate(b.x, Y); ctx.scale(-1, 1);
