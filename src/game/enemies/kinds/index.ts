@@ -226,7 +226,7 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     case 'temp': return { ...base, behavior: 'patrol', pauseTimer: 0 };
     case 'clerk': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
     case 'bob': return { ...base, harmless: true };
-    case 'cower': return { ...base, enemyType: 'shield', isShieldActive: true, harmless: true };
+    case 'cower': return { ...base, enemyType: 'shield', isShieldActive: true, harmless: true, unshakeable: true };
     default: return base;
   }
 };

@@ -937,6 +937,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
  */
 const knockBackEnemy = (ctx: FrameContext, e: Enemy, mass: number, wasFrozen: boolean) => {
   const { player } = ctx.state;
+  if (e.unshakeable) return;
   const massResistance = Math.min(1, Math.max(0.1, 1 - mass / 1000));
   let pushX = ((player.vel.x * PLAYER_MASS / mass) / 2) * massResistance;
   if (wasFrozen) pushX *= FROZEN_PUSH_MULTIPLIER;

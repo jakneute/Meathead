@@ -10,7 +10,7 @@ import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
 import { makeKindEnemy } from '../../enemies/kinds';
 import { CANVAS_WIDTH, GROUND_Y } from '../../../constants';
-import { COURSE, CP, Room } from './course';
+import { COURSE, CP, Room, WALL_X, WALL_W } from './course';
 import { Talk, createTalk, updateTalk, queueLines, quiet, hush } from './script';
 
 /** What to do to the ones in front of him (the button prompt that's up), or nothing. */
@@ -202,8 +202,9 @@ const COWER_TURN = 16;
 const NOT_YET_GAP = 70;
 
 /**
- * The one behind the mat: nothing hurts him (his health topped back up whatever's done to him), only the shove into the
- * wall (that kills him outright: see shieldShove). A dive kick or an uppercut on him: NOT YET, says the announcer. And
+ * The one behind the mat: nothing hurts him (his health topped back up whatever's done to him) but the shove into the
+ * wall (that kills him outright: see shieldShove), or a dive kick down on him over his mat. An uppercut or a slide on
+ * him: NOT YET, says the announcer. And
  * the shots that go into his mat get counted, and Meathead says something about it.
  */
 const updateCowerer = (ctx: FrameContext, rt: GymRuntime) => {
@@ -211,6 +212,11 @@ const updateCowerer = (ctx: FrameContext, rt: GymRuntime) => {
   const p = state.player;
   for (const e of state.enemies) {
     if (e.kind !== 'cower' || e.health <= 0 || e.isBlownAway) continue;
+    // (and wherever anything's left him: on the floor, on this side of the half-wall; only the shove into it moves him there)
+    if (e.pos.y + e.height > GROUND_Y) { e.pos.y = GROUND_Y - e.height; e.vel.y = 0; }
+    if (e.pos.x + e.width > WALL_X && e.pos.x < WALL_X + WALL_W) e.pos.x = WALL_X - e.width;
+    // (he doesn't skid on: still the moment nothing's shoving him)
+    if (!(e.shovedAt !== undefined && state.frame - e.shovedAt < 2)) e.vel.x = 0;
     // (jump over him and he scrambles round behind his mat to keep it between you, a moment later; not while he's being shoved)
     const side = p.pos.x + p.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;
     if (side !== (e.facing === 1 ? 1 : -1) && !(e.shovedAt !== undefined && state.frame - e.shovedAt < 10)) {
@@ -219,7 +225,17 @@ const updateCowerer = (ctx: FrameContext, rt: GymRuntime) => {
     } else e.aiTimer = 0;
     if (e.health < e.maxHealth) {
       e.health = e.maxHealth;
-      if ((p.isDivekicking || p.isUppercutting || p.isSliding) && state.frame - rt.notYetAt > NOT_YET_GAP) {
+      // A dive kick, down on him from over the top of his mat: that does him (driven into the floor, like anyone)
+      if ((p.diveKickHitIds ?? []).includes(e.id)) {
+        e.isBlownAway = true; e.meleeFlung = true;
+        e.vel = { x: p.facing * 8, y: 18 };
+        fx.spawnDeathShower(e.pos, p.facing, 2.5);
+        fx.spawnExplosion(e.pos, '#8B0000', 16, 0, 12);
+        fx.spawnKillCallout(e, 'divekick');
+        fx.speakVulgarity('charge_kill', undefined, false, e.kind);
+        continue;
+      }
+      if ((p.isUppercutting || p.isSliding) && state.frame - rt.notYetAt > NOT_YET_GAP) {
         rt.notYetAt = state.frame;
         fx.spawnDamageNumber({ x: e.pos.x - 10, y: e.pos.y - 20 }, 'NOT YET!', true, '#F8FAFC');
         fx.announceKill('NOT YET!');
