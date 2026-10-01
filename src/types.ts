@@ -316,6 +316,8 @@ export interface Enemy extends Entity {
   hyper?: number;
   /** It's been on the screen (till then nothing out there can kill it: see spared() in enemies.ts); where it started. */
   seen?: boolean;
+  /** A charger: frames before it'll jump for him again. */
+  leapCd?: number;
   spawnPos?: Vector2;
   /** A tenant: what he's got in his hand to throw (see drawHouseholdItem). */
   heldItem?: number;

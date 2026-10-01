@@ -1,5 +1,6 @@
 // Regular enemy movement, oiled-enemy collisions and body contact with the player.
 
+import { playSound } from '../platform/audio';
 import { Enemy, Rect, Player, Block } from '../../types';
 import { KillCallout } from '../../content/dialogue';
 import {
@@ -486,6 +487,11 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
     const above = player.pos.y + player.height < e.pos.y + e.height - 20;
     const under = Math.abs(dx) < e.width / 2 + player.width / 2 + (e.waitingUnder ? 40 : 6);
     e.waitingUnder = above && under;
+    if (e.leapCd && e.leapCd > 0) e.leapCd--;
+    // Him a little way up or down from it, close, nothing in the way: it jumps for him
+    // (or level with him, but the way's cut off: a drop it'd pull up at the edge of, a gap)
+    const cutOff = sameLevel && !safeAhead(ctx, e, dir, CHARGER_LOOK);
+    if ((!sameLevel || cutOff) && onScreen && player.invincibilityTimer <= 0 && !holdingOff(state) && !(e.leapCd && e.leapCd > 0) && leapAt(state, e, cutOff)) return;
     if (e.waitingUnder) { e.vel.x = 0; if (Math.abs(dx) > 2) e.facing = dx < 0 ? -1 : 1; }
     // (it pulls up short at the edge of a drop rather than running straight off it: it looks a few strides ahead at that speed)
     else e.vel.x = (onScreen && player.invincibilityTimer <= 0 && sameLevel && !holdingOff(state) && safeAhead(ctx, e, dir, CHARGER_LOOK)) ? dir * CHARGER_SPEED : 0;
@@ -562,6 +568,36 @@ const groundOilUnder = (state: GameState, e: Enemy): 'slick' | 'tar' | null => {
 
 /** How fast a charger runs you down, and how far past its front it checks there's still ground (a few strides at that speed). */
 const CHARGER_SPEED = 6, CHARGER_LOOK = 20;
+/** A charger's jump for him: how far up and down it'll go for him, how far across, how long before it'll jump again. */
+const LEAP_UP = 170, LEAP_DOWN = 260, LEAP_ACROSS = 320, LEAP_EVERY = 80;
+
+/**
+ * A charger, on the ground, him up on something (or down off something) close by with nothing solid in the way: it
+ * jumps for him, an arc to land on him (and it's away after him from wherever it comes down). Whether it went.
+ */
+const leapAt = (state: GameState, e: Enemy, gap = false): boolean => {
+  const p = state.player;
+  const dx = (p.pos.x + p.width / 2) - (e.pos.x + e.width / 2);
+  const dy = (p.pos.y + p.height) - (e.pos.y + e.height); // (up's negative)
+  if (Math.abs(dx) > LEAP_ACROSS || Math.abs(dx) < 16 || dy < -LEAP_UP || dy > LEAP_DOWN || (!gap && Math.abs(dy) < 28)) return false;
+  // (nothing solid between its head and his: a wall, a floor's underside, a step it'd go straight into)
+  for (let k = 1; k < 10; k++) {
+    const t = k / 10, x = e.pos.x + e.width / 2 + dx * t, y = e.pos.y + 6 + (p.pos.y + 6 - (e.pos.y + 6)) * t;
+    if (state.blocks.some(b => (b.type === 'wall' || b.type === 'ground') && !b.oneWay && x > b.x && x < b.x + b.w && y > b.y + 4 && y < b.y + b.h)) return false;
+  }
+  const g = GRAVITY * 0.75;
+  const rise = Math.max(0, -dy) + 36;
+  const vy = Math.sqrt(2 * g * rise);
+  // (time up to the top of it, and down from there to his level)
+  const t = vy / g + Math.sqrt(Math.max(0, 2 * (rise + dy)) / g);
+  e.vel.y = -vy;
+  e.vel.x = Math.max(-10, Math.min(10, (dx / Math.max(12, t)) * 1.08));
+  e.facing = dx < 0 ? -1 : 1;
+  e.leapCd = LEAP_EVERY;
+  e.waitingUnder = false;
+  playSound('jump', 0.5, -4);
+  return true;
+};
 
 /** Anything that high above an airborne enemy's feet is a wall it's run into, not ground it's landing on. */
 const GROUND_SIDE_STEP = 16;

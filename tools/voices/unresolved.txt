@@ -54,8 +54,8 @@ game/stages/oscar/runtime.ts:177 call: chaseDeathMessage(rt.chase)
 game/stages/oscar/chase.ts:581 name: undefined
 game/stages/oscar/bar.ts:152 template: `NOT ENOUGH GAS YET. ${left === 1 ? 'ONE MORE LINE' : 'TWO MORE LINES'} TO OPEN.`
 game/stages/oscar/script.ts:79 voice: VOICES[line.who]
-game/core/effects.ts:235 call: getHurtLines(hurtSource)
-game/core/effects.ts:235 call: killLine(category, victim)
+game/core/effects.ts:236 call: getHurtLines(hurtSource)
+game/core/effects.ts:236 call: killLine(category, victim)
 game/core/update.ts:170 name: undefined
 game/core/update.ts:512 call: layout?.deathMessage?.(ctx)
 game/core/update.ts:512 name: undefined
