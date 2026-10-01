@@ -15,6 +15,7 @@ import { SKIP_AFTER_MS } from '../game/platform/skip';
 import SkipPrompt from './SkipPrompt';
 import { playWhoosh, playPunchImpact, playThud, playTypeClack, playGlassShatterSound } from '../game/platform/audio';
 import { speak, cancelSpeech, MEATHEAD_VOICE } from '../game/platform/speech';
+import { drawFaceOff } from '../game/scenes/faceOff';
 
 // After a boss: fade out of the victory lap into a black void, face to face with
 // Meathead in first person. He decks the camera; it goes down on its side. Then
@@ -346,136 +347,21 @@ const GiantFist: React.FC = () => (
 );
 
 /**
- * Meathead from the front, square to the camera in a boxing guard: the same
- * build as the title-screen portrait. His right fist draws back on the wind-up
- * and is gone (it's coming at you) during the punch.
+ * Meathead from the front, square to the camera in a boxing guard, painted in gross-up detail (see
+ * game/scenes/faceOff.ts). His right fist draws back on the wind-up and is gone (it's coming at you) during the punch.
  */
 export const FaceOffMeathead: React.FC<{ t: number; windup: number; punching: boolean }> = ({ t, windup, punching }) => {
-  const breathe = 1 + Math.sin(t / 420) * 0.012;
-  const glint = Math.floor(t / 90) % 30 === 0;
-  return (
-    <svg viewBox="0 0 200 440" className="w-full h-full overflow-visible">
-      <defs>
-        <linearGradient id="wg-skin" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#F5D0A9" />
-          <stop offset="50%" stopColor="#E0AC69" />
-          <stop offset="100%" stopColor="#C68B45" />
-        </linearGradient>
-        <radialGradient id="wg-bulge" cx="40%" cy="30%" r="75%">
-          <stop offset="0%" stopColor="#FBE3C4" />
-          <stop offset="45%" stopColor="#E0AC69" />
-          <stop offset="100%" stopColor="#A86E32" />
-        </radialGradient>
-        <linearGradient id="wg-trap" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#D69A55" />
-          <stop offset="100%" stopColor="#9C6530" />
-        </linearGradient>
-        <linearGradient id="wg-hair" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#3F3F46" />
-          <stop offset="100%" stopColor="#09090B" />
-        </linearGradient>
-        <pattern id="wg-stubble" width="4" height="4" patternUnits="userSpaceOnUse">
-          <circle cx="1" cy="1" r="0.6" fill="#5B3413" opacity="0.55" />
-          <circle cx="3" cy="3" r="0.5" fill="#5B3413" opacity="0.45" />
-        </pattern>
-      </defs>
-
-      <g transform={`translate(100 200) scale(${breathe}) translate(-100 -200)`}>
-        {/* Legs: navy tactical pants in a wide boxer's stance, combat boots with steel toes
-            (off the bottom of the frame until the camera goes over on its side) */}
-        <path d="M58 244 L46 404 L94 404 L100 290 Z" fill="#1E3A8A" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
-        <path d="M142 244 L154 404 L106 404 L100 290 Z" fill="#1E3A8A" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
-        <path d="M100 262 L100 292 M70 300 L64 380 M130 300 L136 380" stroke="#172554" strokeWidth="4" strokeLinecap="round" />
-        <path d="M60 330 L90 330 M140 330 L110 330" stroke="#172554" strokeWidth="3" />
-        <rect x="56" y="340" width="30" height="18" rx="6" fill="#27272A" stroke="#000" strokeWidth="3" />
-        <rect x="114" y="340" width="30" height="18" rx="6" fill="#27272A" stroke="#000" strokeWidth="3" />
-        <path d="M40 402 L98 402 L100 432 L36 432 Z" fill="#18181B" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
-        <path d="M160 402 L102 402 L100 432 L164 432 Z" fill="#18181B" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
-        <path d="M36 420 L54 420 L54 432 L36 432 Z M164 420 L146 420 L146 432 L164 432 Z" fill="#94A3B8" stroke="#000" strokeWidth="2" />
-        {/* Lats and traps */}
-        <path d="M44 104 L22 170 L64 200 Z M156 104 L178 170 L136 200 Z" fill="#9C6530" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
-        <path d="M46 102 L76 58 L124 58 L154 102 Z" fill="url(#wg-trap)" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
-        <path d="M78 64 L60 94 M122 64 L140 94" stroke="#7C4A1E" strokeWidth="2" strokeLinecap="round" />
-
-        {/* Torso, pecs, abs */}
-        <path d="M50 100 L60 240 L140 240 L150 100 Z" fill="url(#wg-skin)" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
-        <path d="M54 100 C54 132 96 138 98 106 C98 95 64 94 54 100 Z" fill="url(#wg-bulge)" stroke="#000" strokeWidth="3.5" />
-        <path d="M146 100 C146 132 104 138 102 106 C102 95 136 94 146 100 Z" fill="url(#wg-bulge)" stroke="#000" strokeWidth="3.5" />
-        <line x1="100" y1="95" x2="100" y2="240" stroke="#78350F" strokeWidth="3.5" />
-        <path d="M72 150 Q100 153 128 150 M74 172 Q100 175 126 172 M76 194 Q100 197 124 194" stroke="#78350F" strokeWidth="3" fill="none" />
-        <path d="M60 110 Q80 106 92 114 M140 110 Q120 106 108 114" stroke="#F59E0B" strokeWidth="2" fill="none" opacity="0.5" />
-        <circle cx="70" cy="110" r="2" fill="#fff" opacity="0.7" />
-        <circle cx="116" cy="160" r="1.5" fill="#fff" opacity="0.6" />
-        {/* The lifting belt and its gold buckle */}
-        <path d="M57 222 L143 222 L144 250 L56 250 Z" fill="#78350F" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
-        <path d="M60 229 H140 M60 243 H140" stroke="#5B2A0C" strokeWidth="1.5" />
-        <rect x="88" y="224" width="24" height="24" rx="3" fill="#FACC15" stroke="#000" strokeWidth="3" />
-        <rect x="95" y="231" width="10" height="10" fill="#78350F" />
-
-        {/* Neck */}
-        <path d="M78 64 L76 86 L124 86 L122 64 Z" fill="#C68B45" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
-        <path d="M86 72 L90 84 M114 72 L110 84" stroke="#9C6530" strokeWidth="2" strokeLinecap="round" />
-
-        {/* Head */}
-        <path d="M68 40 Q60 42 62 52 Q64 58 69 56 Z M132 40 Q140 42 138 52 Q136 58 131 56 Z" fill="#D69A55" stroke="#000" strokeWidth="3" />
-        <path d="M70 28 L130 28 L132 60 L120 74 L80 74 L68 60 Z" fill="url(#wg-skin)" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
-        <path d="M72 58 Q100 80 128 58 L122 72 L78 72 Z" fill="#B07D48" opacity="0.35" />
-        <path d="M72 58 Q100 80 128 58 L122 72 L78 72 Z" fill="url(#wg-stubble)" />
-        <path d="M66 28 L134 28 L134 14 L66 14 Z" fill="url(#wg-hair)" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
-        <path d="M70 14 v-2 M76 14 v-3 M82 14 v-2 M88 14 v-3 M94 14 v-2 M100 14 v-3 M106 14 v-2 M112 14 v-3 M118 14 v-2 M124 14 v-3 M130 14 v-2" stroke="#18181B" strokeWidth="2" />
-        <rect x="66" y="28" width="6" height="18" fill="#27272A" />
-        <rect x="128" y="28" width="6" height="18" fill="#27272A" />
-        <path d="M76 33 L82 37 L79 43" stroke="#DC2626" strokeWidth={2.2 + windup * 1.5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-        {/* Brows: lower and angrier as he winds up */}
-        <polygon points={`71,${42 + windup} 97,${49 + windup * 1.5} 95,${43 + windup} 71,${38 + windup}`} fill="#09090B" stroke="#000" strokeWidth="1.5" />
-        <polygon points={`129,${42 + windup} 103,${49 + windup * 1.5} 105,${43 + windup} 129,${38 + windup}`} fill="#09090B" stroke="#000" strokeWidth="1.5" />
-        {/* Eyes, dead on the lens */}
-        <ellipse cx="85" cy="50" rx="7" ry={4 - windup * 1.2} fill="#FFFFFF" stroke="#000" strokeWidth="2" />
-        <ellipse cx="115" cy="50" rx="7" ry={4 - windup * 1.2} fill="#FFFFFF" stroke="#000" strokeWidth="2" />
-        <circle cx="85" cy="50" r="2.6" fill="#DC2626" />
-        <circle cx="115" cy="50" r="2.6" fill="#DC2626" />
-        <circle cx="85" cy="50" r="1.3" fill="#000" />
-        <circle cx="115" cy="50" r="1.3" fill="#000" />
-        {glint && <path d="M118 45 l1 3 l3 1 l-3 1 l-1 3 l-1 -3 l-3 -1 l3 -1 Z" fill="#FFFFFF" />}
-        {/* Nose */}
-        <path d="M96 48 L98 56 L93 58 L107 58 L102 56 L104 48" fill="#C68B45" stroke="#000" strokeWidth="2" strokeLinejoin="round" />
-        {/* Mouth: a flat stare, then bared teeth for the punch */}
-        {windup > 0.1 || punching ? (
-          <g>
-            <path d="M80 61 L120 61 L120 70 L80 70 Z" fill="#18181B" stroke="#000" strokeWidth="2.5" />
-            <path d="M82 62.5 L118 62.5 L118 69 L82 69 Z" fill="#FFFFFF" />
-            <path d="M88 62.5 V69 M94 62.5 V69 M100 62.5 V69 M106 62.5 V69 M112 62.5 V69 M82 65.8 H118" stroke="#18181B" strokeWidth="1.2" />
-          </g>
-        ) : (
-          <path d="M84 65 Q100 63 116 65" stroke="#5B3413" strokeWidth="3" fill="none" strokeLinecap="round" />
-        )}
-      </g>
-
-      {/* Left guard (his left, our right): delt, forearm up, fist by the jaw */}
-      <g>
-        <circle cx="160" cy="104" r="24" fill="url(#wg-bulge)" stroke="#000" strokeWidth="4" />
-        <path d="M168 118 C182 150 170 176 150 170 C140 150 146 128 152 116 Z" fill="url(#wg-bulge)" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
-        <path d="M150 170 C160 150 150 110 140 92 L124 100 C132 122 138 150 136 170 Z" fill="url(#wg-bulge)" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
-        <path d="M144 150 Q140 130 134 112" stroke="#DC2626" strokeWidth="2" fill="none" strokeLinecap="round" />
-        <rect x="120" y="68" width="30" height="30" rx="9" fill="url(#wg-bulge)" stroke="#000" strokeWidth="4" />
-        <path d="M126 76 H146 M126 83 H146 M126 90 H144" stroke="#78350F" strokeWidth="2" strokeLinecap="round" />
-      </g>
-
-      {/* Right guard (the punching arm): pulls back on the wind-up, gone mid-punch */}
-      {!punching && (
-        <g transform={`translate(${-windup * 14} ${windup * 10}) rotate(${-windup * 14} 40 104)`}>
-          <circle cx="40" cy="104" r="24" fill="url(#wg-bulge)" stroke="#000" strokeWidth="4" />
-          <path d="M32 118 C18 150 30 176 50 170 C60 150 54 128 48 116 Z" fill="url(#wg-bulge)" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
-          <path d="M50 170 C40 150 50 110 60 92 L76 100 C68 122 62 150 64 170 Z" fill="url(#wg-bulge)" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
-          <path d="M56 150 Q60 130 66 112" stroke="#DC2626" strokeWidth="2" fill="none" strokeLinecap="round" />
-          <rect x="50" y="68" width="30" height="30" rx="9" fill="url(#wg-bulge)" stroke="#000" strokeWidth="4" />
-          <path d="M54 76 H74 M54 83 H74 M56 90 H74" stroke="#78350F" strokeWidth="2" strokeLinecap="round" />
-        </g>
-      )}
-      {/* Mid-punch: the shoulder driving forward */}
-      {punching && <circle cx="52" cy="106" r="30" fill="url(#wg-bulge)" stroke="#000" strokeWidth="4" />}
-    </svg>
-  );
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const c = ref.current;
+    if (!c) return;
+    const ctx = c.getContext('2d')!;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.scale(c.width / 200, c.height / 440);
+    drawFaceOff(ctx, t, windup, punching);
+  }, [t, windup, punching]);
+  return <canvas ref={ref} width={780} height={1716} className="w-full h-full" />;
 };
 
 export default WeaponGetScene;

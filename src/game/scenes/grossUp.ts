@@ -47,7 +47,7 @@ const finish = (ctx: Ctx, t: number) => {
 };
 
 /** A raised vein along a path: its shadow under it, the vein, the light along its top. It throbs. */
-const vein = (ctx: Ctx, pts: number[][], w: number, throb: number) => {
+export const vein = (ctx: Ctx, pts: number[][], w: number, throb: number) => {
   const path = () => {
     ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
     for (let i = 1; i < pts.length - 1; i++) {
@@ -65,7 +65,7 @@ const vein = (ctx: Ctx, pts: number[][], w: number, throb: number) => {
 };
 
 /** A bead of sweat: see-through, a dark rim on the lower side, a hard white glint. */
-const bead = (ctx: Ctx, x: number, y: number, r: number) => {
+export const bead = (ctx: Ctx, x: number, y: number, r: number) => {
   ctx.fillStyle = 'rgba(255, 245, 225, 0.28)'; ctx.beginPath(); ctx.ellipse(x, y, r, r * 1.2, 0, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = 'rgba(90, 50, 20, 0.45)'; ctx.lineWidth = 0.35; ctx.beginPath(); ctx.arc(x, y + r * 0.1, r * 0.95, 0.2, Math.PI - 0.2); ctx.stroke();
   ctx.fillStyle = 'rgba(255,255,255,0.95)'; ctx.beginPath(); ctx.arc(x - r * 0.35, y - r * 0.45, r * 0.3, 0, Math.PI * 2); ctx.fill();
