@@ -1189,7 +1189,8 @@ const drawSlideTackle = (ctx: CanvasRenderingContext2D, frame: number, weapon: W
       for (let s = 0; s < 3; s++) ctx.fillRect(38 + ((frame * 5 + s * 7) % 12), -3 - ((frame + s * 3) % 6), 3, 2);
     }
     // The gun arm on the far side, over the top of his chest to the gun
-    drawArm(ctx, -20, -38, -10, -42, 1, -36, skinShadow, backArmShade, skinTone, 6);
+    // (behind his chest: just the forearm and the fist come out past it, to the gun)
+    drawArm(ctx, -18, -30, -7, -29, 1, -36, skinShadow, backArmShade, skinTone, 6);
     drawLeg(ctx, [-6, -12], [7, -5], [-11, -3], Math.PI, false);
     ctx.save();
     ctx.translate(-6, -13);
