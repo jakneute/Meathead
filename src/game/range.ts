@@ -11,6 +11,7 @@ import { createGameState, GameState } from './core/state';
 import { createFrameContext, GameEvents } from './core/context';
 import { stepGame } from './core/update';
 import type { Controls } from './platform/input';
+import { NO_CONTROLS } from './platform/input';
 import { stopDeathAnnouncer } from './platform/speech';
 import { KILL_CALLOUTS, KillCallout } from '../content/dialogue';
 import { isShat } from './player/gut';
@@ -109,7 +110,8 @@ export const stepRange = (range: GameState, controls: Controls, weapon: WeaponTy
   const p = range.player;
   const move = p.isSliding ? 'slide' : p.isDivekicking ? 'divekick' : p.isUppercutting ? 'uppercut' : p.isCharging ? 'charge' : null;
   const before = { ...(range.killVoice?.callout ?? {}) };
-  stepGame(ctx, GameStatus.PLAYING, controls);
+  // (shit himself: training's over, and he's stood there in it: no moving, no shooting, nothing)
+  stepGame(ctx, GameStatus.PLAYING, isShat(range) ? { ...NO_CONTROLS } : controls);
   // A dummy down: what Meathead's got to say is about him (the boxer, or the balloon man), not the usual
   // (gone because they walked out, not because he got them: no callout for that)
   const downed = respawns.cancelled !== undefined ? null : range.enemies.find(e => alive.has(e.id) && (e.health <= 0 || e.isBlownAway)) ?? (alive.size > range.enemies.filter(e => alive.has(e.id)).length
