@@ -6,7 +6,7 @@
 
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
-import { COURSE, CP, MEZZ_Y, Prop, Ledge } from './course';
+import { COURSE, CP, MEZZ_Y, END_WALL, Prop, Ledge } from './course';
 import { getGym, fadeAmount, GymRuntime, BigFella } from './runtime';
 import { saying, drawBubble } from './script';
 
@@ -29,6 +29,7 @@ export const drawGymBack = (ctx: Ctx, state: GameState) => {
   drawWall(ctx, state, x1, x2);
   for (const p of COURSE.props) { const [a, b] = propSpan(p); if (inView(state, a, b)) drawProp(ctx, state, p); }
   drawDoors(ctx, state, rt);
+  drawEndWall(ctx, state);
 };
 
 /** The back wall: cinderblock, the lower half painted red and the top a dirty cream, a stripe between; the ceiling's beams and the tube lights hung off them. */
@@ -186,6 +187,39 @@ const drawProp = (ctx: Ctx, state: GameState, p: Prop) => {
       break;
     }
   }
+};
+
+/**
+ * The gym's corner at the left, behind his bench: the end wall coming toward you, seen side on (a column of cinderblock
+ * in shadow, the two paints and the stripe carried round onto it), a fire extinguisher on it, the floor's skirting
+ * turning the corner. Nothing past it: the room stops there.
+ */
+const drawEndWall = (ctx: Ctx, state: GameState) => {
+  const x = COURSE.x1, w = END_WALL;
+  if (!inView(state, x - 200, x + w + 20)) return;
+  // (past it: nothing, the dark)
+  ctx.fillStyle = '#0B0807'; ctx.fillRect(x - 400, 0, 400, CANVAS_HEIGHT);
+  // (the face: the block in shadow, light coming onto its edge from the room)
+  const top = 70;
+  ctx.fillStyle = '#8C8470'; ctx.fillRect(x, top, w, Y - 170 - top);
+  ctx.fillStyle = '#5C1414'; ctx.fillRect(x, Y - 170, w, 170);
+  for (let y = top; y < Y; y += 24) {
+    const low = y >= Y - 170;
+    ctx.fillStyle = low ? 'rgba(0,0,0,0.3)' : 'rgba(60, 50, 30, 0.35)'; ctx.fillRect(x, y + 22, w, 2);
+    ctx.fillRect(x + (((y - top) / 24) % 2 ? 22 : 8), y, 2, 24);
+  }
+  ctx.fillStyle = '#C9A814'; ctx.fillRect(x, Y - 176, w, 6);
+  const g = ctx.createLinearGradient(x, 0, x + w, 0);
+  g.addColorStop(0, 'rgba(0,0,0,0.45)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g; ctx.fillRect(x, top, w, Y - top);
+  ctx.fillStyle = 'rgba(255, 245, 220, 0.25)'; ctx.fillRect(x + w - 3, top, 3, Y - top); // (the corner, catching the light)
+  // (the ceiling's trim turning the corner, the skirting at the foot of it)
+  ctx.fillStyle = '#2E241E'; ctx.fillRect(x, 60, w, 10);
+  ctx.fillStyle = '#111'; ctx.fillRect(x, Y - 8, w, 8);
+  // (a fire extinguisher on its bracket, and its sign)
+  ctx.fillStyle = '#DC2626'; ctx.fillRect(x + 16, Y - 120, 12, 34); ctx.fillStyle = '#18181B'; ctx.fillRect(x + 18, Y - 126, 8, 6); ctx.fillRect(x + 27, Y - 124, 6, 3);
+  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x + 18, Y - 110, 8, 6);
+  ctx.fillStyle = '#B91C1C'; ctx.fillRect(x + 12, Y - 160, 20, 12); ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 4px monospace'; ctx.fillText('FIRE', x + 15, Y - 152);
 };
 
 /** The locker room's double doors at the end: swing doors, porthole windows, LOCKER ROOM over them; light beyond when they open. */

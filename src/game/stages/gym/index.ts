@@ -4,7 +4,7 @@
 import type { StageLayout } from '../index';
 import type { Block } from '../../../types';
 import { groundBlocks } from '../../core/terrain';
-import { COURSE } from './course';
+import { COURSE, END_WALL } from './course';
 import { createGymRuntime, getGym, updateGym, gymDeathMessage } from './runtime';
 import { drawGymBackdrop, drawGymBack, drawGymMid, drawGymFront, drawGymHud } from './draw';
 
@@ -25,7 +25,8 @@ export const gymLayout: StageLayout = {
     C.ledges.forEach((l, i) => state.blocks.push({ x: l.x, y: l.y, w: l.w, h: 14, type: 'platform', hidden: true, oneWay: true, tag: `gledge-${i}` }));
     // The wall behind his bench, and the locker room doors at the end (shut, till the bigger fellas open them)
     const wall = (x: number, tag: string): Block => ({ x, y: -3000, w: 60, h: 4400, type: 'wall', hidden: true, tag });
-    state.blocks.push(wall(C.x1 - 60, 'gym-back'), wall(C.doors, 'gym-doors'));
+    // (the end wall's face is drawn from x1 out to x1 + END_WALL: that's where he stops)
+    state.blocks.push(wall(C.x1 + END_WALL - 60, 'gym-back'), wall(C.doors, 'gym-doors'));
     // The ceiling: nobody's jumping up out through it (its underside's where the drawn one's trim is)
     state.blocks.push({ x: C.x1 - 60, y: -3000, w: C.doors - C.x1 + 120, h: 3070, type: 'wall', hidden: true, tag: 'gym-ceiling' });
     state.stage = createGymRuntime(state);

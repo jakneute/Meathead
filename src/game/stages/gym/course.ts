@@ -33,6 +33,8 @@ export interface Prop { look: 'bench' | 'squat' | 'dumbbells' | 'treadmill' | 'b
 
 const X0 = BOSS_DOOR_X - 4600;
 const Y = GROUND_Y;
+/** How thick the end wall at the left is drawn (the gym's corner: the room stops there). */
+export const END_WALL = 46;
 /** The mezzanine's floor (up the steps), and how far it runs. */
 export const MEZZ_Y = Y - 200;
 
@@ -49,7 +51,8 @@ const build = () => {
   ground(-200, 3100);
   prop('bench', 150); prop('mirror', 60, Y - 250); prop('mirror', 420, Y - 250); prop('dumbbells', 280); prop('dumbbells', 520);
   prop('poster', 740, Y - 330, 'NO PAIN NO GAIN'); prop('window', 900, Y - 360);
-  spawn('suit', 560, 'free'); spawn('suit', 720, 'free'); spawn('suit', 860, 'free');
+  // (well clear of his bench: he gets up before anything comes at him)
+  spawn('suit', 640, 'free'); spawn('suit', 770, 'free'); spawn('suit', 890, 'free');
 
   // ============ 2. THE CARDIO FLOOR ============
   // Treadmills and bikes along the wall; a line of them comes running down it at him, one behind the other
@@ -100,7 +103,7 @@ const course = () => {
     doors: X0 + 4120,
     /** Where each room starts (its lesson comes up as he gets there). */
     rooms: { free: X0 + 200, cardio: X0 + 940, benches: X0 + 1640, racks: X0 + 2220, mezzanine: X0 + 2960, lockers: X0 + 3780 } as Record<Room, number>,
-    checkpoints: [{ x: X0 + 150, y: Y }, { x: X0 + 1640, y: Y }, { x: X0 + 2960, y: Y }],
+    checkpoints: [{ x: X0 + 150, y: Y }, { x: X0 + 1560, y: Y }, { x: X0 + 2960, y: Y }],
     left: X0 - 1000,
     startX: X0 + 100,
   };

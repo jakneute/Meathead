@@ -46,7 +46,9 @@ export interface GymRuntime {
 export const getGym = (state: GameState) => state.stage as GymRuntime | null;
 
 /** Nothing's placed closer than this ahead of where he starts after a checkpoint. */
-const SPAWN_CLEARANCE = 380;
+const SPAWN_CLEARANCE = 220;
+/** On (re)spawning, how long nothing starts an attack on him (frames): time to get his bearings. */
+const SPAWN_GRACE = 150;
 /** The fade out at the end (frames), before the cutscene takes over. */
 export const FADE_FRAMES = 50;
 
@@ -96,6 +98,8 @@ export const updateGym = (ctx: FrameContext, controls: Controls): Controls => {
   updateTalk(state, rt.talk);
   if (quiet(rt.talk)) rt.speaker = null;
   rt.t++;
+  // (just (re)spawned: nobody comes at him, or shoots, for a moment; he's not in harm's way the moment he's up)
+  if (rt.phase === 'play' && rt.t <= SPAWN_GRACE) state.gapGrace = Math.max(state.gapGrace || 0, SPAWN_GRACE - rt.t);
 
   standDummiesUp(state);
   if (rt.phase === 'play') {
