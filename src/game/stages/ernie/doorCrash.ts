@@ -14,7 +14,7 @@ import { NO_CONTROLS } from '../../platform/input';
 import { shakeScreen } from '../../core/state';
 import { playSound } from '../../platform/audio';
 import { say, canSpeak, isTalking, MEATHEAD_VOICE, Voice } from '../../platform/speech';
-import { GROUND_Y } from '../../../constants';
+import { GROUND_Y, BOSS_DOOR_X, DOOR_WIDTH, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { COURSE, CP } from './course';
 
 export type DoorCrashPhase = 'waiting' | 'scene' | 'done';
@@ -32,6 +32,9 @@ export interface DoorCrash {
   whistleAt: number;
   impactAt: number;
   caveAt: number;
+  /** The push in on the hallway once he's come down (0 none .. 1 all the way), and where its left edge is (world x). */
+  zoomK: number;
+  viewL: number;
 }
 
 const C = COURSE.cellblock;
@@ -54,7 +57,7 @@ export const NIGHT_TOUR = [
 export const createDoorCrash = (state: GameState, startedAt: number): DoorCrash => {
   const done = startedAt >= CP.DOOR;
   if (done) caveIn(state);
-  return { phase: done ? 'done' : 'waiting', t: 0, step: 0, stepAt: 0, talk: null, line: '', who: '', lineT: 0, whistleAt: done ? -999 : 0, impactAt: done ? -999 : 0, caveAt: done ? -999 : 0 };
+  return { phase: done ? 'done' : 'waiting', t: 0, step: 0, stepAt: 0, talk: null, line: '', who: '', lineT: 0, whistleAt: done ? -999 : 0, impactAt: done ? -999 : 0, caveAt: done ? -999 : 0, zoomK: done ? 1 : 0, viewL: NaN };
 };
 
 /** The vault behind him, come down: nothing gets back past it. */
@@ -82,6 +85,7 @@ export const updateDoorCrash = (ctx: FrameContext, dc: DoorCrash, controls: Cont
   const { state, fx } = ctx;
   const p = state.player;
   if (dc.lineT > 0) dc.lineT--;
+  easeHallZoom(state, dc);
   if (dc.phase === 'done') return controls;
   if (dc.phase === 'waiting') {
     if (!(p.isGrounded && p.pos.x + p.width / 2 >= TRIGGER_X && p.pos.x < C.x2)) return controls;
@@ -172,3 +176,40 @@ export const crashed = (dc: DoorCrash) => dc.phase === 'done' || (dc.phase === '
 export const cavedIn = (dc: DoorCrash) => dc.phase === 'done' || (dc.phase === 'scene' && dc.step >= 3 && dc.caveAt > 0);
 /** They've heard him coming (looking up). */
 export const lookingUp = (dc: DoorCrash) => dc.phase === 'scene' && dc.step >= 2;
+
+// ---------------------------------------------------------------------------
+// The camera in the hallway
+// ---------------------------------------------------------------------------
+
+/** How far it's pushed in on the hallway: about the vault, floor to roof, the bedrock over it mostly gone off the top. */
+const HALL_ZOOM = 1.6;
+const viewW = (s: number) => CANVAS_WIDTH / s, viewH = (s: number) => CANVAS_HEIGHT / s;
+/** The hallway, from the heap of rubble that came in behind him (as far left as it goes) to Ernie's door (as far right). */
+const HALL_L = CAVE_X, HALL_R = BOSS_DOOR_X + DOOR_WIDTH;
+
+/** Where the pushed-in view wants its left edge: on the crater and the cave-in while it's happening, then on him. */
+const hallTarget = (state: GameState, dc: DoorCrash) => {
+  const w = viewW(HALL_ZOOM);
+  const want = dc.phase === 'scene' ? CRASH_X + 50 - w : state.player.pos.x + state.player.width / 2 - w * 0.4;
+  return Math.max(HALL_L, Math.min(HALL_R - w, want));
+};
+
+/** In from when he hits (and from the start, starting out here); back out as Ernie's door opens, all the way by the time it's open. */
+const easeHallZoom = (state: GameState, dc: DoorCrash) => {
+  const inHall = crashed(dc) && state.player.pos.x > CAVE_X && !state.arenaLocked && state.doorState === 'closed';
+  dc.zoomK += ((inHall ? 1 : 0) - dc.zoomK) * (inHall ? 0.05 : 0.08);
+  if (dc.zoomK < 0.005) dc.zoomK = 0;
+  const target = hallTarget(state, dc);
+  dc.viewL = Number.isNaN(dc.viewL) ? target : dc.viewL + (target - dc.viewL) * 0.12;
+};
+
+/** The push in on the hallway, for the stage's zoom hook (null when there isn't one). */
+export const hallZoom = (state: GameState, dc: DoorCrash) => {
+  const open = state.doorState === 'opening' ? Math.max(0, 1 - state.doorOpenAmount / 150) : 1;
+  const k = state.doorState === 'closed' || state.doorState === 'opening' ? dc.zoomK * open : 0;
+  if (k <= 0 || Number.isNaN(dc.viewL)) return null;
+  const s = 1 + k * (HALL_ZOOM - 1), cx = state.camera.x, cy = state.camera.y;
+  // (its left edge and top, eased from where the camera has them to the hallway's: the floor kept near the bottom)
+  const L = cx + (dc.viewL - cx) * k, T = cy + (Y + 40 - viewH(HALL_ZOOM) - cy) * k;
+  return { scale: s, x: cx, y: cy, shiftX: -s * (L - cx), shiftY: -s * (T - cy) };
+};

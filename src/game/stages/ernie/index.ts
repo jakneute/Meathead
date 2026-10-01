@@ -14,6 +14,7 @@ import { onBridge } from './bridge';
 import { skiDeathMessage, isRiding } from './jetski';
 import { drawErnieBackdrop, drawErnieBack, drawErnieMid, drawErnieFront, drawErnieHud, drawErnieWeather } from './draw';
 import { ernieScene } from './lighting';
+import { hallZoom } from './doorCrash';
 
 /** Down one of the island's holes: into the old fort under the cell house, off the cliff into the bay, into the cistern. */
 const islandFallDeathMessage = (state: GameState) => {
@@ -78,6 +79,8 @@ export const ernieLayout: StageLayout = {
   drawHud: (ctx, state) => { if (getErnie(state)) drawErnieHud(ctx, state); },
   drawBackdrop: (ctx, state) => !!getErnie(state) && drawErnieBackdrop(ctx, state),
   drawBackdropFront: (ctx, state) => !!getErnie(state) && drawErnieWeather(ctx, state),
+  // (pushed in on the hallway outside Ernie's door, once the hipster's come down through it)
+  zoom: state => { const rt = getErnie(state); return rt ? hallZoom(state, rt.doorCrash) : null; },
   // (on the bridge the view sits higher, so you can see down through the gaps and the steel underneath)
   cameraRow: state => {
     const rt = getErnie(state);
