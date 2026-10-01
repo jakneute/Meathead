@@ -187,6 +187,7 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
       player.barfTimer = 24;
       player.shootCooldown = SLUDGE_COOLDOWN;
       player.filthShieldTimer = FILTH_SHIELD_DURATION;
+      player.filthShieldHp = player.health;
       useAmmo();
       fx.playGunSound('barf');
       break;

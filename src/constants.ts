@@ -321,6 +321,7 @@ export const SLUDGE_DOT_DAMAGE = 12;
 export const SLUDGE_DOT_TICK = 8;
 export const SLUDGE_LINGER_DURATION = 60;
 export const SLUDGE_COOLDOWN = 90; 
+/** The filth shield's up (it has no time limit: a hit, or putting the Sludge Barfer away, takes it down). */
 export const FILTH_SHIELD_DURATION = 240; 
 export const FILTH_SHIELD_CONTACT_DAMAGE = 250;
 

@@ -124,6 +124,8 @@ export interface Player extends Entity {
   weaponAmmo: Record<WeaponType, number>;
   // Filth Shield
   filthShieldTimer?: number;
+  /** His health when the shield went up (or since): any less and he's been hit, and it's gone. */
+  filthShieldHp?: number;
   // Flamethrower
   isFlaming?: boolean;         // stream active: locks facing
   flameAngle?: number;         // current aim in radians (negative = up)

@@ -178,7 +178,11 @@ export const tickPlayerTimers = (ctx: FrameContext, input: FrameInput) => {
   if (player.power < POWER_CELLS && !player.isCharging && !player.isUppercutting && !player.powerLocked) {
     player.power = Math.min(POWER_CELLS, player.power + 1 / POWER_CELL_RECHARGE);
   }
-  if (player.filthShieldTimer && player.filthShieldTimer > 0) player.filthShieldTimer--;
+  // The filth shield: no time limit; it's down the moment he's hit by anything, or puts the Sludge Barfer away
+  if (player.filthShieldTimer && player.filthShieldTimer > 0) {
+    if (ctx.currentWeapon !== 'SLUDGE' || player.health < (player.filthShieldHp ?? player.health)) player.filthShieldTimer = 0;
+    else player.filthShieldHp = player.health;
+  }
   if (player.taserOverloadTimer && player.taserOverloadTimer > 0) player.taserOverloadTimer--;
 
   // Jump buffer: a press is remembered for a few frames
