@@ -174,21 +174,67 @@ export const drawDoorway = (ctx: Ctx, t: number) => {
   R(ctx, 64, 84, 18, 12, C.mSkin); R(ctx, 62, 80, 20, 5, C.mHair); R(ctx, 74, 88, 3, 2, C.ink);
 };
 
+/** Where the agent's neck starts (under his ears, at the line of his jaw) and how far it's spread by his collar. */
+const NECK_TOP = 68, NECK_BOTTOM = 108;
+/** Half the neck's width at row y: the jaw's width up top, flaring out (faster the lower it gets) to the collar. */
+const neckHalf = (y: number) => { const k = Math.max(0, Math.min(1, (y - NECK_TOP) / (NECK_BOTTOM - NECK_TOP))); return 32 + Math.round(k * k * 24); };
+
+/** Where the jacket's shoulders, sloping up, meet the collar (each side, in from the neck's edge at the collar). */
+const COLLAR_L = 120 - neckHalf(104) + 6, COLLAR_R = 120 + neckHalf(104) - 6;
+
+/** The close-up agent's neck, row by row: stepped shading across it, lit on the left, the jaw's shadow over the top. */
+const drawAgentNeck = (ctx: Ctx) => {
+  const S = RAMP.aSkin;
+  for (let y = NECK_TOP; y < NECK_BOTTOM; y++) {
+    const h = neckHalf(y), l = 120 - h, r = 120 + h;
+    // (under the jaw, the top few rows in its shadow, dithered off into the light below)
+    const shadow = y < NECK_TOP + 6 || (y < NECK_TOP + 9 && y % 2 === 0);
+    for (let x = l; x < r; x++) {
+      const fromL = x - l, fromR = r - 1 - x;
+      let c: string;
+      if (fromL < 2) c = S[2];
+      else if (fromR < 2) c = S[1];
+      else if (fromL < 5) c = (fromL === 4 && (x + y) % 2) ? S[4] : S[3];
+      else if (fromR < 6) c = (fromR === 5 && (x + y) % 2) ? S[3] : S[2];
+      else if (x < 104) c = (x === 103 && (x + y) % 2) ? S[3] : S[4];
+      else c = S[3];
+      if (shadow && c !== S[1]) c = S[Math.max(1, S.indexOf(c) - 1)];
+      R(ctx, x, y, 1, 1, c);
+    }
+    // (the cord down each side, from behind the ear toward the middle of the collar: a highlight on the lit side,
+    // a crease on the other)
+    const cord = Math.round((y - NECK_TOP) * 0.18);
+    if (y > NECK_TOP + 4) { R(ctx, l + 6 + cord, y, 1, 1, S[5]); R(ctx, r - 8 - cord, y, 1, 1, S[1]); }
+  }
+};
+
+/** The jacket's shoulders sloping up into the collar over the traps (curved, with the light along the left one's top). */
+const drawAgentTraps = (ctx: Ctx) => {
+  for (let x = 24; x < 216; x++) {
+    // (the top of the shoulders: low and flat out at the ends, climbing to the collar)
+    const d = x < 120 ? x - 24 : 215 - x, reach = COLLAR_L - 24;
+    if (d > reach) continue;
+    const k = d / reach, top = Math.round(116 - k * k * 13);
+    R(ctx, x, top, 1, 112 - top + 4, G.suit);
+    R(ctx, x, top, 1, 1, x < 120 ? RAMP.aSuit[5] : RAMP.aSuit[3]);
+    if (x < 120 && k > 0.3) R(ctx, x, top + 1, 1, 1, RAMP.aSuit[4]);
+  }
+};
+
 /** The agent who talks, up close: shades, earpiece, the other one behind him, the gym out of focus. */
 export const drawAgent = (ctx: Ctx, t: number, talking: boolean, where: 'gym' | 'briefing' = 'gym') => {
   if (where === 'gym') { gymBg(ctx); ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(0, 0, ART_W, ART_H); } else briefingBg(ctx, t, -1);
   // The other one, behind him, out of focus
-  R(ctx, 190, 50, 50, 94, G.suitLit); R(ctx, 192, 42, 46, 14, '#7c6450'); R(ctx, 200, 22, 30, 30, '#8c7460'); R(ctx, 198, 18, 34, 8, C.ink); R(ctx, 202, 32, 26, 6, G.shades);
-  // The neck: wider than his head, straight down into the traps, the tendons standing out of it; under the jaw, a crease
-  shaded(ctx, 'ag-neck', 66, 66, 108, 50, RAMP.aSkin, box(-0.5, -0.4, 0.3, 1, 0.5));
-  ctx.fillStyle = G.suit;
-  ctx.beginPath(); ctx.moveTo(24, 112); ctx.lineTo(68, 88); ctx.lineTo(68, 112); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(216, 112); ctx.lineTo(172, 88); ctx.lineTo(172, 112); ctx.fill();
-  // (the cords of it, down either side, from under his ears)
-  R(ctx, 72, 70, 3, 40, G.skinShade); R(ctx, 165, 70, 3, 40, G.skinShade);
-  R(ctx, 76, 72, 2, 34, '#f0d4b4'); R(ctx, 162, 72, 2, 34, '#d8b494');
-  // Shoulders, lapels, shirt, tie
+  R(ctx, 190, 50, 50, 94, G.suitLit);
+  // (his neck too, out from under his jaw and spreading down into his collar)
+  for (let y = 44; y < 54; y++) { const w = 15 + Math.round(((y - 44) / 10) ** 2 * 9); R(ctx, 215 - w, y, w * 2, 1, '#7c6450'); R(ctx, 215 - w, y, 2, 1, '#6c5440'); R(ctx, 213 + w, y, 2, 1, '#5c4834'); }
+  R(ctx, 200, 22, 30, 30, '#8c7460'); R(ctx, 198, 18, 34, 8, C.ink); R(ctx, 202, 32, 26, 6, G.shades);
+  // The neck: out from under his jaw just below the ears and spreading as it goes down, wider than his head by the
+  // time it's at his collar; the light from up on the left, the jaw's shadow across the top of it
+  drawAgentNeck(ctx);
+  // Shoulders, lapels, shirt, tie (the traps under the jacket sloping up into the collar)
   shaded(ctx, 'ag-shoulders', 24, 108, 192, 84, RAMP.aSuit, ball(-0.4, -0.85, 0.08));
+  drawAgentTraps(ctx);
   shaded(ctx, 'ag-shirt', 104, 104, 32, 40, RAMP.shirt, box(-0.5, -0.5, 0.3, 1, 0.3));
   ctx.fillStyle = G.suit;
   ctx.beginPath(); ctx.moveTo(104, 104); ctx.lineTo(120, 144); ctx.lineTo(96, 144); ctx.fill();
@@ -224,8 +270,12 @@ export const drawAgent = (ctx: Ctx, t: number, talking: boolean, where: 'gym' | 
   // Meathead, in his shades (a tiny one in each lens)
   for (const lx of [104, 134]) { R(ctx, lx, 49, 5, 5, C.mSkin); R(ctx, lx, 48, 5, 2, C.mHair); R(ctx, lx - 2, 54, 9, 2, C.mSkin); }
   // (the collar, buttoned, and losing: dug in round that neck, the neck rolling over the top of it)
-  R(ctx, 66, 104, 108, 5, G.shirt); R(ctx, 66, 108, 108, 1, '#b8b8b8'); R(ctx, 66, 103, 108, 1, G.skinShade);
-  R(ctx, 66, 102, 22, 1, '#a07858'); R(ctx, 152, 102, 22, 1, '#a07858');
+  for (let x = COLLAR_L; x <= COLLAR_R; x++) {
+    // (going off round the neck at the sides, into the shade)
+    const side = Math.abs(x - 120) > 40 ? '#c8c8c8' : x < 120 ? G.shirt : '#d8d8d8';
+    R(ctx, x, 104, 1, 4, side); R(ctx, x, 108, 1, 1, '#a8a8a8');
+    if (x < 88 || x >= 152) R(ctx, x, 103, 1, 1, RAMP.aSkin[2]);
+  }
   // The tie's knot, the clip, the flag on his lapel, the edges of the lapels catching the light
   R(ctx, 115, 104, 10, 6, '#1c1c1c'); R(ctx, 114, 124, 12, 1, C.gold);
   R(ctx, 96, 118, 6, 4, C.white); R(ctx, 96, 118, 6, 1, C.red); R(ctx, 96, 120, 6, 1, C.red); R(ctx, 96, 118, 2, 2, C.blue);
