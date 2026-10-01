@@ -14,8 +14,13 @@ const BY_STAGE: Record<string, Record<string, number>> = {
   'Toxic Tommy': TOMMY, 'Blackout Barry': BARRY, 'Oily Oscar': OSCAR, 'Drug Trade Dale': DALE,
 };
 
+/** Where a checkpoint's own name doesn't say enough on its own. */
+const LABELS: Record<string, Record<string, string>> = {
+  'Hector Hurricane': { CHASE: 'COAST GUARD CHASE', CHASE2: 'COAST GUARD CHASE, HALFWAY' },
+};
+
 /** A stage's checkpoints, first to last: their names (as words) and numbers. */
 export const stageCheckpoints = (stageId: string): { name: string; cp: number }[] =>
   Object.entries(BY_STAGE[stageId] ?? { START: 0 })
-    .map(([k, cp]) => ({ name: k.replace(/_/g, ' '), cp }))
+    .map(([k, cp]) => ({ name: LABELS[stageId]?.[k] ?? k.replace(/_/g, ' '), cp }))
     .sort((a, b) => a.cp - b.cp);
