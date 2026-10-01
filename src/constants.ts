@@ -72,7 +72,6 @@ export const OSCAR_ARENA_RIGHT = ARENA_RIGHT + (ARENA_RIGHT - ARENA_LEFT);
 // ==========================================
 export const INITIAL_PLAYER_HEALTH = 100;
 export const PLAYER_INVINCIBILITY_FRAMES = 60;
-export const TOMMY_PUKE_INVINCIBILITY_FRAMES = 60;
 export const TOMMY_PUKE_PUSHBACK_DURATION = 16;
 export const PLAYER_STUN_INVINCIBILITY = 30;
 export const PLAYER_PUSHBACK_DURATION = 16;
@@ -222,7 +221,6 @@ export const BOULDER_BILLIARD_LOSS = 0.8;
 // Enemy (Ernie) boulders keep the original bouncing physics
 export const BOULDER_SPEED = 7;
 export const BOULDER_BOUNCE_DAMPING = 0.6;
-export const BOULDER_SHRAPNEL_COUNT = 12;
 export const BOULDER_SHRAPNEL_DAMAGE = 60;
 
 // SHOTGUN ICE (ARTIE) - ported from the GML oShotgunIce / oShotgunBullet.
@@ -417,7 +415,6 @@ export const DALE_SPEED_WINDUP = 55;     // frames Dale spends injecting before 
 export const DALE_TRUCK_DAMAGE = 28;
 export const DALE_PUSHBACK_VEL = { x: 30, y: -15 };
 export const METH_BARREL_DAMAGE = 18;
-export const METH_BARREL_HEALTH = 100;
 export const ENEMY_BULLET_DAMAGE = 16;
 
 // ==========================================

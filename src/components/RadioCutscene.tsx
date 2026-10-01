@@ -1,8 +1,8 @@
 import React from 'react';
 import Cutscene, { Panel } from './Cutscene';
-import { drawMeatheadCloseUp } from '../game/render/scenes/ending';
-import { drawGarage, drawRadioCloseUp, drawShadowFigure, drawShadowBriefing, garageBg } from '../game/render/scenes/radio';
-import { drawSecondFour, Slide } from '../game/render/scenes/intro';
+import { drawMeatheadCloseUp } from '../game/scenes/ending';
+import { drawGarage, drawRadioCloseUp, drawShadowFigure, drawShadowBriefing, garageBg } from '../game/scenes/radio';
+import { drawSecondFour, Slide } from '../game/scenes/intro';
 import { Voice, MEATHEAD_VOICE } from '../game/platform/speech';
 import { playSquelch } from '../game/platform/audio';
 import { BOSS_SET_TITLES } from '../content/roster';

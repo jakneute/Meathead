@@ -235,27 +235,10 @@ export const drawHipsterDead = (ctx: Ctx, x: number, y: number, f: number) => {
   ctx.restore();
 };
 
-/** What's left of him: in up to his waist, head first, legs (charred) in the air, the ski snapped off beside him. */
-export const drawHipsterPlanted = (ctx: Ctx, x: number, y: number, f: number) => {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.save(); ctx.translate(26, -4); ctx.rotate(-0.6); ctx.filter = 'brightness(0.2)'; drawSki(ctx, f, '#F59E0B'); ctx.restore();
-  // The skinny jeans, sticking up out of the floor, a shoe gone
-  ctx.fillStyle = '#111827';
-  ctx.save(); ctx.rotate(-0.12); ctx.fillRect(-9, -46, 7, 46); ctx.restore();
-  ctx.save(); ctx.rotate(0.18); ctx.fillRect(2, -42, 7, 42); ctx.restore();
-  ctx.fillStyle = '#1C1917'; ctx.fillRect(-12, -52, 10, 7);
-  ctx.fillStyle = '#E0AC69'; ctx.fillRect(9, -48, 6, 6);
-  ctx.fillStyle = '#2A1C16'; ctx.beginPath(); ctx.ellipse(0, 0, 18, 5, 0, 0, Math.PI * 2); ctx.fill();
-  // Smoke coming off him
-  for (let i = 0; i < 3; i++) { const t = ((f * 0.6 + i * 40) % 120) / 120; ctx.fillStyle = `rgba(60, 55, 50, ${0.5 * (1 - t)})`; ctx.beginPath(); ctx.arc(Math.sin(i + f * 0.02) * 6, -50 - t * 70, 5 + t * 12, 0, Math.PI * 2); ctx.fill(); }
-  ctx.restore();
-};
-
-/** A jet ski, facing right, its keel at (0, 0). */
 /** The hipster's ski (the one Meathead takes off him, so it's the same one all the way to Alcatraz). */
 const HIPSTER_SKI = '#14B8A6';
 
+/** A jet ski, facing right, its keel at (0, 0). */
 const drawSki = (ctx: Ctx, f: number, color = HIPSTER_SKI) => {
   ctx.fillStyle = color;
   ctx.beginPath(); ctx.moveTo(-38, -4); ctx.lineTo(30, -4); ctx.quadraticCurveTo(44, -8, 42, -18); ctx.lineTo(10, -20); ctx.lineTo(-34, -16); ctx.closePath(); ctx.fill();

@@ -3,7 +3,7 @@
 // inside, the shaft, the lava, the hazards, and the HUD (the doorman, the
 // clashes, the fade through the club doors, the lounge's wide shot).
 
-import { drawClubVolcano, ClubVolcano } from '../../render/scenes/clubVolcano';
+import { drawClubVolcano, ClubVolcano } from '../../scenes/art/clubVolcano';
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { COURSE, isLava } from './course';

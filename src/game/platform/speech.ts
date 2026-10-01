@@ -97,9 +97,6 @@ export const sentenceShown = (text: string): string => {
 /** Forget which lines were said recently (on death, respawn and starting a stage). */
 export const resetLineCooldowns = () => lastSaidAt.clear();
 
-/** Claims one specific line. False if it was said too recently. */
-export const claimLine = (line: string): boolean => takeFreshLine([line]) !== null;
-
 /** The browser's own speech is there (the fallback). */
 const synthOK = () => typeof window !== 'undefined' && 'speechSynthesis' in window;
 /** Anything can be said out loud: the recordings, or the browser's speech. */
@@ -113,7 +110,6 @@ const noteMiss = (voice: Voice, text: string) => {
   misses.add(k);
   if (typeof window !== 'undefined') (window as unknown as { __voiceMisses?: string[] }).__voiceMisses = [...misses];
 };
-export const voiceMisses = () => [...misses];
 
 /** Is anyone talking? (Also clears out a line whose end the browser never reported, so nobody's muted for good.) */
 export const isSpeaking = () => busy();
@@ -404,8 +400,6 @@ export const sayModulated = (text: string, voice: Voice, onDone: () => void): ((
 export const ANNOUNCER_VOICE: Voice = { id: 'announcer', pitch: 0.5, rate: 0.9 };
 /** How often (a chance per callout, unless it's been handed the kill), and never again within this long. */
 const ANNOUNCE_CHANCE = 0.35, ANNOUNCE_GAP_MS = 5000;
-/** Could the announcer call this one right now (recorded, not too soon after the last, nobody talking)? */
-export const announcerFree = (text: string) => Date.now() - lastAnnounced >= ANNOUNCE_GAP_MS && hasClip(ANNOUNCER_VOICE.id, text) && !isTalking() && Date.now() - meatheadDoneAt >= KILL_VOICE_GAP_MS;
 let lastAnnounced = -Infinity;
 
 /** Maybe calls out a callout. Returns whether it did. */

@@ -305,8 +305,6 @@ const bufferOf = (c: AudioContext, name: string) => {
   return b;
 };
 
-export const hasSfx = (name: string) => name in SFX;
-
 /** Plays a sound effect (`vol` a multiplier, `pitch` in semitones). Dropped if it's playing too much already. */
 export const playSfx = (c: AudioContext, name: string, vol = 1, pitch = 0) => {
   const def = SFX[name];

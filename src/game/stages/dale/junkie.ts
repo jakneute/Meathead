@@ -778,6 +778,3 @@ const leave = (ctx: FrameContext, fight: JunkieFight, talk: Talk, controls: Cont
 };
 /** Out through the window (the stage fades to the highway). */
 export const outTheWindow = (fight: JunkieFight) => fight.leaveT >= 10000;
-
-/** The fight's HUD: his health. */
-export const junkieHealth = (fight: JunkieFight) => (fight.man ? Math.max(0, fight.man.health / JUNKIE_HP) : 0);

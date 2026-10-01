@@ -890,6 +890,3 @@ export const truckTilt = (cv: Convoy, onIt?: { x: number }) => {
   if (onIt && (onIt.x < truckX(cv, 3) - 100 || onIt.x > truckX(cv, 3) + truckDims(3).w + 100)) return null;
   return { x: truckX(cv, 3) + truckDims(3).w / 2, y: Y, angle: cv.cab.swerve * 0.04 };
 };
-
-/** The last few frames before the crash (for the fade and the town sign). */
-export const crashProgress = (cv: Convoy) => (cv.cab.phase === 'crash' ? cv.cab.t / CRASH_FRAMES : cv.finished ? 1 : 0);

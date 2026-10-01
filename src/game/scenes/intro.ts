@@ -5,7 +5,7 @@
 // back of Meathead's head.
 
 import { ART_W, ART_H, C, R, ell, hash } from './ending';
-import { shaded, layer, ball, box, bands, RAMP } from './snes';
+import { shaded, layer, ball, box, bands, RAMP } from './art/snes';
 
 type Ctx = CanvasRenderingContext2D;
 

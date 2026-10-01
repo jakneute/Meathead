@@ -1,10 +1,10 @@
-// The sewer nuke easter egg (see game/scenes/sewerNuke.ts): the fireball filling the
+// The sewer nuke easter egg (see sewerNuke.ts): the fireball filling the
 // sewer, a whiteout, then the street above as a mushroom cloud bursts out of a
 // manhole while the death message spells out what you did.
 
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
-import { GameState } from '../../core/state';
-import { SEWER_NUKE, sewerNukeFrame } from '../../scenes/sewerNuke';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../constants';
+import { GameState } from '../core/state';
+import { SEWER_NUKE, sewerNukeFrame } from './sewerNuke';
 
 type Ctx = CanvasRenderingContext2D;
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ART_W, ART_H } from '../game/render/scenes/ending';
+import { ART_W, ART_H } from '../game/scenes/ending';
 import { say, sayModulated, cancelSpeech, canSpeak, Voice } from '../game/platform/speech';
 import { openRadio, playSquelch } from '../game/platform/audio';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS, menuButtons } from '../game/platform/gamepad';

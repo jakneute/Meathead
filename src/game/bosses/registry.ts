@@ -116,10 +116,6 @@ export const getBossDamage = (stageId: string | null, weapon: WeaponType) => {
   return BULLET_DAMAGE;
 };
 
-/** True while the boss can't be hurt at all (e.g. Tommy under the sludge). */
-export const isBossShielded = (stageId: string | null, boss: Enemy, state: GameState) =>
-  !!getBossDef(stageId)?.shield?.isUp(boss, state);
-
 /**
  * One of Meathead's weapons hits the boss: damage (the weapon's usual amount
  * unless `damage` is given), his weakness reaction, a possible taunt, and death.

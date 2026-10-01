@@ -53,8 +53,6 @@ export const createBeach = (state: GameState, startedAt: number): Beach => {
   return { killed: 0, counted: new Set(), known: new Map(), panic: false, police: 'none', policeT: 0, cruiserX: 0, cruiserStop: 0, copIds: [], lock: null, storm: stormy ? 1 : 0, stormAt: stormy ? -1 : 0 };
 };
 
-export const stormLevel = (b: Beach) => b.storm;
-
 export const updateBeach = (ctx: FrameContext, b: Beach) => {
   const { state } = ctx;
   const { player } = state;

@@ -11,8 +11,8 @@ import type { GameState } from '../../core/state';
 import { say, isTalking, holdForSpeech, silenceAll, sentenceShown, MEATHEAD_VOICE, Voice } from '../../platform/speech';
 import { playSound } from '../../platform/audio';
 import { killPlayer } from '../../player/player';
-import { drawMeatheadCloseUp } from '../../render/scenes/ending';
-import { INK, hash, lin, shape, speckle, blood } from '../../render/scenes/carnage';
+import { drawMeatheadCloseUp } from '../../scenes/ending';
+import { INK, hash, lin, shape, speckle, blood } from '../../scenes/art/ink';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { COURSE } from './course';
 

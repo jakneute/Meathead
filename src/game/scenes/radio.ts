@@ -4,10 +4,10 @@
 // (flags either side, a long red tie, a lot of hair), the line scrambled.
 
 import { ART_W, ART_H, C, R, ell, hash } from './ending';
-import { shaded, ball, box, RAMP } from './snes';
+import { shaded, ball, box, RAMP } from './art/snes';
 import { drawSlide, Slide } from './intro';
-import { drawGarage as drawGarageRoom, GARAGE_W } from '../garage';
-import { ownedSouvenirs } from '../../garageStore';
+import { drawGarage as drawGarageRoom, GARAGE_W } from '../garage/draw';
+import { ownedSouvenirs } from '../garage/store';
 
 type Ctx = CanvasRenderingContext2D;
 

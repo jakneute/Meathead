@@ -1,9 +1,9 @@
 // Meathead relieving himself on a boss's corpse after a weakness kill
-// (see game/scenes/victoryPee.ts): his meaty wiener, the arcing stream, the splash
+// (see victoryPee.ts): his meaty wiener, the arcing stream, the splash
 // and a spreading yellow puddle.
 
-import { GameState } from '../../core/state';
-import { peeProgress, PEE_SHAKE_FRAMES } from '../../scenes/victoryPee';
+import { GameState } from '../core/state';
+import { peeProgress, PEE_SHAKE_FRAMES } from './victoryPee';
 
 const SKIN = '#E0AC69';
 const SKIN_SHADOW = '#C68B45';

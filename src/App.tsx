@@ -3,7 +3,7 @@ import { hasRightStick } from './game/platform/device';
 import CheckpointPicker, { StartAt } from './components/CheckpointPicker';
 import Garage from './components/Garage';
 import { GARAGE_INDEX, WHITE_HOUSE_INDEX } from './components/Overlay';
-import { takeAllSouvenirs } from './game/garageStore';
+import { takeAllSouvenirs } from './game/garage/store';
 import type { Souvenir } from './content/garage';
 import HUD from './components/HUD';
 import Overlay, { CheatFlags } from './components/Overlay';

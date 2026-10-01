@@ -18,7 +18,7 @@
 // Hazards hurt the enemies too (lightning fries them, debris bowls them over,
 // the live water cooks them).
 
-import type { Block, Enemy } from '../../../types';
+import type { Block } from '../../../types';
 import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
 import { lastHurtWas } from '../../core/deathCause';
@@ -443,5 +443,3 @@ export const hazardDeathMessage = (state: GameState, hz: Hazards): string | unde
     default: return undefined;
   }
 };
-
-export const enemiesIn = (state: GameState, x1: number, x2: number): Enemy[] => state.enemies.filter(e => e.pos.x + e.width > x1 && e.pos.x < x2);

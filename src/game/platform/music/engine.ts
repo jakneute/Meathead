@@ -196,10 +196,6 @@ const fill = (events: NoteEvent[], length: number, total: number): NoteEvent[] =
   return out;
 };
 
-/** Is this song (by id) what's on right now? */
-export const nowPlaying = () => (current && !current.fading ? current.id : null);
-export const songFinished = () => !!current && current.done;
-
 /** Plays a song (from the top), fading out whatever was on. Does nothing if it's already the one playing (it just changes arrangement). */
 export const play = (id: string, song: Song, arrangement = 'main') => {
   const c = ensureChain();

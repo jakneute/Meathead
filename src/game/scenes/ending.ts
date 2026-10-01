@@ -3,7 +3,7 @@
 // its frame counter so it can blink, flash and animate a little, the way NES
 // cutscenes do.
 
-import { shaded, ball, box, bands, RAMP } from './snes';
+import { shaded, ball, box, bands, RAMP } from './art/snes';
 
 export const ART_W = 256;
 export const ART_H = 144;

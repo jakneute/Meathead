@@ -12,7 +12,7 @@ import WeaponIcon, { WeaponArt } from './WeaponIcon';
 import DossierPanel from './DossierPanel';
 import { WHITE_HOUSE_ID } from '../content/whiteHouse';
 import { GARAGE_ID, SOUVENIRS } from '../content/garage';
-import { ownedSouvenirs } from '../game/garageStore';
+import { ownedSouvenirs } from '../game/garage/store';
 import MeatheadCaricature from './MeatheadCaricature';
 import ControlsGuide from './ControlsGuide';
 import { setSoundTest, ALL_CUES } from '../game/music';

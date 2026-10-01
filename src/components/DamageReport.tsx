@@ -45,23 +45,21 @@ const DamageReport: React.FC<{
       <button onClick={onClose} className="self-start"><Prompt pad={['X']} kb={['X']} mouse="left" label={closeLabel} size={13} /></button>
     </div>
   );
-  const card = (b: string, i: number, small: boolean) => {
+  const card = (b: string, i: number) => {
     const on = i === index;
     const loc = BOSS_LOCATIONS[b];
     return (
       <button key={b} onClick={() => onSelect(i)} onMouseEnter={() => onSelect(i)}
-        className={`${small ? 'h-[74px]' : 'h-[112px]'} flex flex-col overflow-hidden border-2 rounded-sm transition-all text-left ${on ? 'border-yellow-400 scale-[1.04] shadow-[0_0_14px_rgba(255,255,0,0.55)] z-10' : 'border-white/30 hover:border-white/70 opacity-80'}`}>
+        className={`h-[112px] flex flex-col overflow-hidden border-2 rounded-sm transition-all text-left ${on ? 'border-yellow-400 scale-[1.04] shadow-[0_0_14px_rgba(255,255,0,0.55)] z-10' : 'border-white/30 hover:border-white/70 opacity-80'}`}>
         <div className="flex-1 bg-black relative overflow-hidden">
           <BossPortrait id={b} dead />
-          {!small && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="text-red-600 text-[7px] font-black rotate-[-15deg] border border-red-900 px-[2px] bg-black/85">DEAD</div>
-            </div>
-          )}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="text-red-600 text-[7px] font-black rotate-[-15deg] border border-red-900 px-[2px] bg-black/85">DEAD</div>
+          </div>
         </div>
         <div className={`px-[2px] py-[2px] ${on ? 'bg-yellow-400 text-black' : 'bg-zinc-900 text-white'}`}>
-          <div className={`${small ? 'text-[5px] h-[6px]' : 'text-[6px] h-[14px]'} font-black uppercase leading-[7px] overflow-hidden`}>{b}</div>
-          {loc && !small && <div className={`text-[5px] font-mono leading-[7px] truncate ${on ? 'text-black/75' : 'text-gray-400'}`}>{loc.city}</div>}
+          <div className={`text-[6px] h-[14px] font-black uppercase leading-[7px] overflow-hidden`}>{b}</div>
+          {loc && <div className={`text-[5px] font-mono leading-[7px] truncate ${on ? 'text-black/75' : 'text-gray-400'}`}>{loc.city}</div>}
         </div>
       </button>
     );
@@ -78,7 +76,7 @@ const DamageReport: React.FC<{
         <div className="w-full max-w-[770px] flex flex-row items-start justify-center gap-4 px-2">
           <div className="w-[330px] shrink-0 flex flex-col gap-2">
             <div className="w-full grid grid-cols-4 gap-1.5">
-              {bosses.map((b, i) => card(b, i, false))}
+              {bosses.map((b, i) => card(b, i))}
             </div>
             <div className="mt-1">{help}</div>
           </div>

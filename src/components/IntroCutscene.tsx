@@ -1,9 +1,9 @@
 import React from 'react';
 import Cutscene, { Panel } from './Cutscene';
-import { drawMeatheadCloseUp } from '../game/render/scenes/ending';
-import { drawGrossArm, drawGrossGun } from '../game/render/scenes/grossUp';
+import { drawMeatheadCloseUp } from '../game/scenes/ending';
+import { drawGrossArm, drawGrossGun } from '../game/scenes/grossUp';
 import { playSound } from '../game/platform/audio';
-import { drawGym, drawDoorway, drawAgent, drawEscort, drawBriefing, drawFirstFour, gymBg, briefingBg } from '../game/render/scenes/intro';
+import { drawGym, drawDoorway, drawAgent, drawEscort, drawBriefing, drawFirstFour, gymBg, briefingBg } from '../game/scenes/intro';
 import { Voice, MEATHEAD_VOICE } from '../game/platform/speech';
 import { BOSS_SET_TITLES } from '../content/roster';
 import { setTitleClass } from './Overlay';

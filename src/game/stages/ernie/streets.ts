@@ -32,19 +32,6 @@ export const lotAt = (x: number): Lot | undefined => {
   return { i, x: COURSE.streets.x1 + i * LOT_W, kind, name: name ?? '' };
 };
 
-/** How high up over the sidewalk this lot's windowsills are (things teeter on them in a quake); none on a glass box. */
-export const sillsOf = (kind: LotKind): number[] => {
-  switch (kind) {
-    case 'victorian': return [190, 310];
-    case 'shop': case 'taqueria': return [170];
-    case 'chinatown': return [170, 280];
-    default: return [];
-  }
-};
-
-/** There's a building here for stuff to come off (not a park, not a cross street). */
-export const buildingAt = (x: number) => { const l = lotAt(x); return !!l && l.kind !== 'park' && l.kind !== 'cross'; };
-
 /** Street height at x, going by the runs either side over a gap (the buildings sit on the lowest point under them). */
 export const groundUnder = (runs: GroundRun[], x: number) => {
   let best: number | null = null, dist = Infinity;

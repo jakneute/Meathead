@@ -11,7 +11,7 @@ import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
 import { makeKindEnemy } from '../../enemies/kinds';
 import { CANVAS_WIDTH } from '../../../constants';
-import { rectsOverlap, boundsOf } from '../../core/utils';
+import { rectsOverlap } from '../../core/utils';
 import { COURSE, CP } from './course';
 import { Talk, createTalk, updateTalk, hush } from './script';
 import { Intro, createIntro, updateIntro } from './intro';
@@ -188,6 +188,3 @@ export const daleDeathMessage = (ctx: FrameContext): string | undefined => {
   if (region === 'town') return pick(['DEAD IN DEADWOOD GULCH', 'BOOT HILL, PLOT 12', 'WANTED: DEAD. GOT IT.']);
   return undefined;
 };
-
-/** (for the draw: a quick box test on the player) */
-export const playerBox = (state: GameState) => boundsOf(state.player);

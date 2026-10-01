@@ -4,7 +4,7 @@
 // and clearing him on each difficulty not cleared before takes one of the ones that are left. Clearing him again on a
 // difficulty already done brings nothing new.
 
-import { SOUVENIRS, Souvenir } from '../content/garage';
+import { SOUVENIRS, Souvenir } from '../../content/garage';
 
 /** The difficulties a stage can be cleared on (hard and very hard are coming: normal's all there is so far). */
 export type Difficulty = 'normal' | 'hard' | 'veryhard';

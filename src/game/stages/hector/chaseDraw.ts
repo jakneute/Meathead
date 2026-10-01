@@ -9,7 +9,7 @@ import { drawSeatedAtMotor, drawFlung } from '../../render/player/moves';
 import { inputDevice, padFamily } from '../../platform/device';
 import { COURSE } from './course';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
-import { INK, hash, lin, shape, speckle, blood, deadFace, flames } from '../../render/scenes/carnage';
+import { INK, hash, lin, shape, speckle, blood, deadFace, flames } from '../../scenes/art/ink';
 
 type Ctx = CanvasRenderingContext2D;
 

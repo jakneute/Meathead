@@ -44,14 +44,20 @@ src/
     enemies/             Regular enemy AI and contact, special kill animations
       kinds/             Themed enemies per stage (index: Artie's + shared helpers; hector, victor, ernie, dale)
     bosses/              Boss registry and rules, each boss's AI, arena hazards
-    scenes/              Victory lap and easter eggs (the sewer nuke, the corked volcano)
-    stages/              Hand-built stage layouts, one folder per stage (course, runtime, set pieces, drawing)
-    render/              Canvas drawing: world.ts (the frame), particles, projectiles
+    stages/              Hand-built stage layouts, one folder per stage: course, runtime, set pieces, drawing, and
+                         the stage's own cutscenes and kill cameras (each as name.ts for the logic, nameDraw.ts for the art)
+    scenes/              Cutscenes that aren't one stage's, logic and art side by side (name.ts, nameDraw.ts):
+                         the victory pee, the sewer nuke, the corked volcano; the menu cutscenes' panels (intro, radio
+                         call, ending) and the gross-ups
+      art/               Shared art kits: snes.ts (the 16-bit look), ink.ts (the inked gross-up look), Club Caldera
+    garage/              Meathead's garage: what's in it (store), the room drawn, the souvenir close-ups
+    render/              Canvas drawing for the play field: world.ts (the frame), particles, projectiles, lighting
       player/            Meathead, his special-move poses, gore, sprite outlines
       enemies/           Themed enemy sprites (per stage) and their death animations
       bosses/            Boss sprites, arenas, corpses, boss-specific props
-      scenes/            Victory, easter egg and ending art
       backdrops/         Parallax skies and terrain textures
+    music.ts             What's playing when (the cues); the synth itself is in platform/music
+    range.ts             The firing range (after a boss, and the garage's practice range)
 ```
 
 `GameCanvas` owns the fixed 60fps loop. Each tick it builds a `FrameContext`, calls `stepGame`, draws with `drawWorld`, and reports health/ammo back to React for the HUD.

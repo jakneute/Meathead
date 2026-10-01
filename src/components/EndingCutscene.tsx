@@ -3,10 +3,10 @@ import Cutscene, { Panel } from './Cutscene';
 import {
   drawWhiteHouse, drawPressRoom, drawTrumpCloseUp, drawMedal, drawMeatheadEyes,
   drawMeatheadCloseUp, drawPunch, drawFinale,
-} from '../game/render/scenes/ending';
+} from '../game/scenes/ending';
 import { Voice, MEATHEAD_VOICE } from '../game/platform/speech';
 import { playSound } from '../game/platform/audio';
-import { drawGrossPresident } from '../game/render/scenes/grossUp';
+import { drawGrossPresident } from '../game/scenes/grossUp';
 
 // NES-style ending: a run of still images with text typed out underneath (see Cutscene).
 

@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { SOUVENIRS } from '../content/garage';
-import { ownedSouvenirs } from '../game/garageStore';
-import { drawGarage, GARAGE_W, GARAGE_H, SLOTS, SOUVENIR_ORDER } from '../game/render/garage';
+import { ownedSouvenirs } from '../game/garage/store';
+import { drawGarage, GARAGE_W, GARAGE_H, SLOTS, SOUVENIR_ORDER } from '../game/garage/draw';
 import { getActiveGamepad, getGamepadMovement, isButtonPressed, GP_BUTTONS, menuButtons } from '../game/platform/gamepad';
 import type { WeaponType } from '../types';
 import PracticeRange from './PracticeRange';
 import { Prompt } from './ButtonIcons';
-import { drawSouvenirCloseup } from '../game/render/scenes/souvenirClose';
+import { drawSouvenirCloseup } from '../game/garage/souvenirClose';
 import DamageReport from './DamageReport';
 import { setTitleClass } from './Overlay';
 

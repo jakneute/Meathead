@@ -4,7 +4,7 @@
 // In art coordinates, 256 x 144, drawn three times finer. `t` is frames since it came up: a slow push in, and the
 // odd thing that moves (the lamp's wax, the globe's snow, the lizard's tongue, the derrick nodding).
 
-import { INK, hash, lin, shape, speckle, hatch } from './carnage';
+import { INK, hash, lin, shape, speckle, hatch } from '../scenes/art/ink';
 
 type Ctx = CanvasRenderingContext2D;
 const W = 256, H = 144;
@@ -677,7 +677,7 @@ const lizard = (ctx: Ctx, t: number) => {
 };
 
 /** Each souvenir's close-up, by its id. */
-export const SOUVENIR_CLOSEUPS: Record<string, (ctx: Ctx, t: number) => void> = {
+const SOUVENIR_CLOSEUPS: Record<string, (ctx: Ctx, t: number) => void> = {
   antler, moonboots, snowglobe, viprope, lavalamp, neon, mug, seismo, bell, flamingo, clicker, daycare,
   flintjar, hazmat, horn, hardhat, toaster, streetsign, derrick, clock, chain, goldgun, badge, lizard,
 };

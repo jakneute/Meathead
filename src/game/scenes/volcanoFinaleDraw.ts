@@ -1,18 +1,18 @@
-// Victor's corked-volcano easter egg (see game/scenes/volcanoFinale.ts): the volcano
+// Victor's corked-volcano easter egg (see volcanoFinale.ts): the volcano
 // from outside rumbling then blowing, the magma wave in the arena, and the
 // final launch with the death message.
 
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
-import { GameState, createGameState, createPlayer } from '../../core/state';
-import { Player } from '../../../types';
-import { createFullAmmo } from '../../../constants';
-import { drawPlayer } from '../player/player';
-import { eyesAt } from '../player/spriteOutline';
-import { drawBoss, makeSitter } from '../bosses';
-import { inHead } from '../bosses/kit';
-import { VOLCANO_FINALE, VOLCANO_FINALE_MESSAGE } from '../../scenes/volcanoFinale';
-import { drawSpelledMessage } from './sewerNuke';
-import { drawClubVolcano } from './clubVolcano';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../constants';
+import { GameState, createGameState, createPlayer } from '../core/state';
+import { Player } from '../../types';
+import { createFullAmmo } from '../../constants';
+import { drawPlayer } from '../render/player/player';
+import { eyesAt } from '../render/player/spriteOutline';
+import { drawBoss, makeSitter } from '../render/bosses';
+import { inHead } from '../render/bosses/kit';
+import { VOLCANO_FINALE, VOLCANO_FINALE_MESSAGE } from './volcanoFinale';
+import { drawSpelledMessage } from './sewerNukeDraw';
+import { drawClubVolcano } from './art/clubVolcano';
 
 type Ctx = CanvasRenderingContext2D;
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;

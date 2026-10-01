@@ -158,6 +158,3 @@ const updateBike = (ctx: FrameContext, en: Ending) => {
   }
   if (bk.x >= COURSE.end.wall - 36) { bk.x = COURSE.end.wall - 36; bk.vx = 0; bk.state = 'crashed'; bk.rot = 0.5; }
 };
-
-/** How much of the flip's gone (for drawing him turning). */
-export const flipOf = (en: Ending) => (en.phase === 'flip' ? en.flip : null);

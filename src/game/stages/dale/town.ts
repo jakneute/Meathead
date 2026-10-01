@@ -796,6 +796,3 @@ const crashIntoJail = (ctx: FrameContext, town: Town, talk: Talk) => {
 
 /** The wreck's still burning (for the draw). */
 export const jailWrecked = (state: GameState, town: Town) => town.phase === 'crashed' || !!state.stageMemo.jailWrecked;
-
-/** The camera over the street (it doesn't need to go up and down much). */
-export const TOWN_VIEW = { minX: () => T().x1, maxX: () => T().x2 + 60 - CANVAS_WIDTH };

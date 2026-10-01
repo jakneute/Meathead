@@ -8,7 +8,7 @@ import BossPortrait from './BossPortrait';
 import CorpsePhoto from './CorpsePhoto';
 import GaragePortrait from './GaragePortrait';
 import { GARAGE_ID, GARAGE_DOSSIER } from '../content/garage';
-import { lastSouvenirOf } from '../game/garageStore';
+import { lastSouvenirOf } from '../game/garage/store';
 import { WHITE_HOUSE_ID, WHITE_HOUSE_DOSSIER, WHITE_HOUSE_LOCATION } from '../content/whiteHouse';
 
 /** The White House, for its file's photo: the north portico, its columns and the flag, on a gray sky. */
