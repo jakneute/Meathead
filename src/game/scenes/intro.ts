@@ -138,12 +138,16 @@ const agentStanding = (ctx: Ctx, cx: number, baseY: number, t: number, step = 0)
   R(ctx, cx - 3, y - 54, 6, 10, G.shirt); R(ctx, cx - 1, y - 52, 2, 14, C.black);
   R(ctx, cx - 14, y - 52, 4, 24, G.suit); R(ctx, cx + 10, y - 52, 4, 24, G.suit);
   R(ctx, cx - 14, y - 28, 4, 4, G.skin); R(ctx, cx + 10, y - 28, 4, 4, G.skin);
+  // The neck: wider than his head, the traps sloping up into it, the collar straining round it
+  R(ctx, cx - 8, y - 61, 16, 8, G.skinShade); R(ctx, cx - 6, y - 61, 10, 7, G.skin);
+  R(ctx, cx - 13, y - 56, 5, 2, G.suit); R(ctx, cx + 8, y - 56, 5, 2, G.suit); R(ctx, cx - 10, y - 57, 3, 3, G.suit); R(ctx, cx + 7, y - 57, 3, 3, G.suit);
+  R(ctx, cx - 5, y - 55, 10, 1, G.shirt);
   // Head
-  R(ctx, cx - 6, y - 66, 12, 12, G.skin); R(ctx, cx + 3, y - 66, 3, 12, G.skinShade);
-  R(ctx, cx - 7, y - 69, 14, 5, C.ink);
-  R(ctx, cx - 6, y - 62, 12, 3, G.shades); R(ctx, cx - 5, y - 62, 2, 1, G.glint);
-  R(ctx, cx + 6, y - 60, 1, 6, C.lightGray); // the earpiece's coil
-  R(ctx, cx - 2, y - 56, 5, 1, G.skinShade);
+  R(ctx, cx - 6, y - 70, 12, 12, G.skin); R(ctx, cx + 3, y - 70, 3, 12, G.skinShade);
+  R(ctx, cx - 7, y - 73, 14, 5, C.ink);
+  R(ctx, cx - 6, y - 66, 12, 3, G.shades); R(ctx, cx - 5, y - 66, 2, 1, G.glint);
+  R(ctx, cx + 6, y - 64, 1, 6, C.lightGray); // the earpiece's coil
+  R(ctx, cx - 2, y - 60, 5, 1, G.skinShade);
 };
 
 /** Chest day, 5 a.m.: Meathead benching alone under a flickering tube light. */
@@ -174,7 +178,15 @@ export const drawDoorway = (ctx: Ctx, t: number) => {
 export const drawAgent = (ctx: Ctx, t: number, talking: boolean, where: 'gym' | 'briefing' = 'gym') => {
   if (where === 'gym') { gymBg(ctx); ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(0, 0, ART_W, ART_H); } else briefingBg(ctx, t, -1);
   // The other one, behind him, out of focus
-  R(ctx, 190, 50, 50, 94, G.suitLit); R(ctx, 200, 22, 30, 30, '#8c7460'); R(ctx, 198, 18, 34, 8, C.ink); R(ctx, 202, 32, 26, 6, G.shades);
+  R(ctx, 190, 50, 50, 94, G.suitLit); R(ctx, 192, 42, 46, 14, '#7c6450'); R(ctx, 200, 22, 30, 30, '#8c7460'); R(ctx, 198, 18, 34, 8, C.ink); R(ctx, 202, 32, 26, 6, G.shades);
+  // The neck: wider than his head, straight down into the traps, the tendons standing out of it; under the jaw, a crease
+  shaded(ctx, 'ag-neck', 66, 66, 108, 50, RAMP.aSkin, box(-0.5, -0.4, 0.3, 1, 0.5));
+  ctx.fillStyle = G.suit;
+  ctx.beginPath(); ctx.moveTo(24, 112); ctx.lineTo(68, 88); ctx.lineTo(68, 112); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(216, 112); ctx.lineTo(172, 88); ctx.lineTo(172, 112); ctx.fill();
+  // (the cords of it, down either side, from under his ears)
+  R(ctx, 72, 70, 3, 40, G.skinShade); R(ctx, 165, 70, 3, 40, G.skinShade);
+  R(ctx, 76, 72, 2, 34, '#f0d4b4'); R(ctx, 162, 72, 2, 34, '#d8b494');
   // Shoulders, lapels, shirt, tie
   shaded(ctx, 'ag-shoulders', 24, 108, 192, 84, RAMP.aSuit, ball(-0.4, -0.85, 0.08));
   shaded(ctx, 'ag-shirt', 104, 104, 32, 40, RAMP.shirt, box(-0.5, -0.5, 0.3, 1, 0.3));
@@ -211,6 +223,9 @@ export const drawAgent = (ctx: Ctx, t: number, talking: boolean, where: 'gym' | 
   for (let i = 0; i < 60; i++) { const sx = 90 + hash(i * 2.3) * 60, sy = 80 + hash(i * 4.9) * 18; if (Math.abs(sx - 120) > 14 || sy > 90) R(ctx, sx, sy, 1, 1, '#b8987c'); }
   // Meathead, in his shades (a tiny one in each lens)
   for (const lx of [104, 134]) { R(ctx, lx, 49, 5, 5, C.mSkin); R(ctx, lx, 48, 5, 2, C.mHair); R(ctx, lx - 2, 54, 9, 2, C.mSkin); }
+  // (the collar, buttoned, and losing: dug in round that neck, the neck rolling over the top of it)
+  R(ctx, 66, 104, 108, 5, G.shirt); R(ctx, 66, 108, 108, 1, '#b8b8b8'); R(ctx, 66, 103, 108, 1, G.skinShade);
+  R(ctx, 66, 102, 22, 1, '#a07858'); R(ctx, 152, 102, 22, 1, '#a07858');
   // The tie's knot, the clip, the flag on his lapel, the edges of the lapels catching the light
   R(ctx, 115, 104, 10, 6, '#1c1c1c'); R(ctx, 114, 124, 12, 1, C.gold);
   R(ctx, 96, 118, 6, 4, C.white); R(ctx, 96, 118, 6, 1, C.red); R(ctx, 96, 120, 6, 1, C.red); R(ctx, 96, 118, 2, 2, C.blue);

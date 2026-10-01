@@ -376,8 +376,12 @@ const drawBigFella = (ctx: Ctx, state: GameState, b: BigFella, rt: GymRuntime) =
   ctx.fillStyle = '#0C0C10';
   if (walking) { ctx.fillRect(-28, -80 - s * 0.3, 7, 34); ctx.fillRect(21, -80 + s * 0.3, 7, 34); ctx.fillStyle = '#E8C4A0'; ctx.fillRect(-28, -47 - s * 0.3, 7, 6); ctx.fillRect(21, -47 + s * 0.3, 7, 6); }
   else { ctx.fillRect(-28, -80, 7, 26); ctx.fillRect(21, -80, 7, 26); ctx.fillRect(-22, -58, 44, 7); ctx.fillStyle = '#E8C4A0'; ctx.fillRect(-6, -58, 12, 7); }
-  // The neck: as wide as his head
-  ctx.fillStyle = '#C09470'; ctx.fillRect(-9, -92, 18, 12);
+  // The neck: wider than his head, the traps sloping up into it, the collar dug in round it
+  ctx.fillStyle = '#0C0C10'; ctx.beginPath(); ctx.moveTo(-24, -82); ctx.lineTo(-13, -90); ctx.lineTo(13, -90); ctx.lineTo(24, -82); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#C09470'; ctx.fillRect(-13, -94, 26, 13);
+  ctx.fillStyle = '#E8C4A0'; ctx.fillRect(-9, -94, 14, 12);
+  ctx.fillStyle = '#A07858'; ctx.fillRect(-6, -91, 1, 8); ctx.fillRect(3, -91, 1, 8);
+  ctx.fillStyle = '#E8E8E8'; ctx.fillRect(-11, -83, 22, 2);
   // The head: square, the side parting, shades, the earpiece and its coil
   ctx.fillStyle = '#E8C4A0'; ctx.fillRect(-10, -112, 20, 22); ctx.fillStyle = '#C09470'; ctx.fillRect(5, -112, 5, 22);
   ctx.fillStyle = '#111'; ctx.fillRect(-11, -116, 22, 7); ctx.fillRect(-11, -112, 4, 6);
