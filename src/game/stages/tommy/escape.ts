@@ -54,7 +54,7 @@ export interface Escape {
  * The street, before he comes up out of it: the hazmat man from the road, crouched over the manhole doing his tests
  * (PRE frames, and it waits on him at his lines), then it blows. (Its beats: his lines, the rumble under him.)
  */
-export const PRE = 170, HAZ_LINE1 = 16, HAZ_HOLD1 = 60, HAZ_LINE2 = 72, HAZ_HOLD2 = 112, RUMBLE_AT = 120;
+export const PRE = 120, HAZ_LINE1 = 12, HAZ_HOLD1 = 40, HAZ_LINE2 = 48, HAZ_HOLD2 = 76, RUMBLE_AT = 82;
 const HAZ_HOLDS = new Set([HAZ_HOLD1, HAZ_HOLD2]);
 /** How long each of the cut scenes runs. (The tower's: the street and the manhole first, LAUNCH frames, then the tower.) */
 export const LAUNCH = PRE + 70, TOWER_FRAMES = LAUNCH + 230, SURF_FRAMES = 360, FAMILY_FRAMES = 250, CRUSH_FRAMES = 300, MELT_FRAMES = 110;
