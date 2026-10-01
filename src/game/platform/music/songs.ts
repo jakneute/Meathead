@@ -58,6 +58,20 @@ export const SONGS: Record<string, Song> = {
   },
 
   // ---------------------------------------------------------------------------------------------------------------
+  // The gym (the opening stage): an 80s workout montage. A pumping synth bass, gated drums, a brass hook to punch the
+  // air to, a guitar chugging under it.
+  gym: {
+    bpm: 128,
+    parts: {
+      bass: { inst: 'bass', mml: rep('o2 l8 e e > e < e e e > e < e | o2 l8 c c > c < c d d > d < d', 4) },
+      chug: { inst: 'power', vol: 0.7, pan: -0.3, mml: rep('o3 l16 e e e e r8 e e e e r8 e8 g8 | o3 l16 c c c c r8 c c d d r8 d8 f+8', 4) },
+      lead: { inst: 'brass', pan: 0.2, mml: b('o5 l8 b4 b a g4 e4', 'o5 g4 a b > d4 < b4', 'o5 b4 b a g4 a4', 'o5 b2. r4', 'o6 e4 d < b > d4 e4', 'o6 d4 < b a g4 a4', 'o5 b4 > d < b a4 g4', 'o5 e1') },
+      pad: { inst: 'strings', vol: 0.5, pan: 0.35, mml: rep(`${pad(4, ['egb'])} | o4 {ceg}2 {df+a}2`, 4) },
+      drums: { inst: 'kick', drums: true, mml: b(DRIVE, DRIVE, DRIVE, ROCK_FILL, DRIVE, DRIVE, DRIVE, ROCK_FILL) },
+    },
+  },
+
+  // ---------------------------------------------------------------------------------------------------------------
   // The map (the stage select): a cool, sneaky, funky briefing groove. Darker for the second four.
   map: {
     bpm: 104,

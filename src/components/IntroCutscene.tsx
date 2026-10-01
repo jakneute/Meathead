@@ -3,39 +3,68 @@ import Cutscene, { Panel } from './Cutscene';
 import { drawMeatheadCloseUp } from '../game/scenes/ending';
 import { drawGrossArm, drawGrossGun } from '../game/scenes/grossUp';
 import { playSound } from '../game/platform/audio';
-import { drawGym, drawDoorway, drawAgent, drawEscort, drawBriefing, drawFirstFour, gymBg, briefingBg } from '../game/scenes/intro';
+import { drawGym, drawDoorwayPencils, drawPencilNeck, drawAgent, drawEscort, drawBriefing, drawFirstFour, gymBg, briefingBg } from '../game/scenes/intro';
 import { Voice, MEATHEAD_VOICE } from '../game/platform/speech';
 import { BOSS_SET_TITLES } from '../content/roster';
 import { setTitleClass } from './Overlay';
 
-// The opening (START GAME + INTRO): Meathead's on chest day at five in the morning when two men in black suits
-// walk into the gym with an offer he can't refuse. Down a corridor to a briefing room, where the four assholes are
-// explained to him, not entirely honestly, and the government's resources are put at his disposal. Then the four of
-// them in the dark, and the title goes up onto the stage select, the way the mid-game call ends.
+// The opening (START GAME + INTRO), in two halves with the gym played between them.
+//
+// The first: Meathead's on chest day at five in the morning when four skinny men in cheap suits come in through the
+// door, one of them shoved out in front to do the talking. Pencil necks. Invading his space. On chest day. He must
+// destroy them (and then he does: that's the gym, game/stages/gym).
+//
+// The second, once the last of them's down: the bigger fellas the pencil necks were sent ahead of. Meathead knows his
+// own kind when he sees it. The pitch (the interns were to see what he'd do); then down a corridor to a briefing
+// room, where the four assholes are explained to him, not entirely honestly, and the government's resources are put
+// at his disposal. Then the four of them in the dark, and the title goes up onto the stage select, the way the
+// mid-game call ends.
 
 /** The agent who does the talking: flat, quick, bored. */
 const AGENT_VOICE: Voice = { id: 'agent', pitch: 0.6, rate: 1.05 };
 const AGENT = 'AGENT';
+/** The pencil neck who's been made to do the talking: high, fast, a wobble in it. */
+const INTERN_VOICE: Voice = { id: 'gym.intern', pitch: 1.5, rate: 1.25 };
+const INTERN = 'INTERN';
 
 const gym = (ctx: CanvasRenderingContext2D) => { gymBg(ctx); ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(0, 0, 256, 144); };
 const briefing = (ctx: CanvasRenderingContext2D) => briefingBg(ctx, 0, -1);
 
 const agent = (text: string, where: 'gym' | 'briefing' = 'gym'): Panel =>
   ({ draw: (c, t, talk) => drawAgent(c, t, talk, where), speaker: AGENT, voice: AGENT_VOICE, text });
+const intern = (text: string, scared = false, hold?: number): Panel =>
+  ({ draw: (c, t, talk) => drawPencilNeck(c, t, talk, scared), speaker: INTERN, voice: INTERN_VOICE, text, hold });
 const slide = (s: Parameters<typeof drawBriefing>[3], text: string): Panel =>
   ({ draw: (c, t, talk) => drawBriefing(c, t, talk, s), speaker: AGENT, voice: AGENT_VOICE, text });
 const meathead = (mood: 'dumb' | 'disgust' | 'think' | 'stoked', text: string, bg = gym, hold?: number, pose?: 'flex' | 'gun'): Panel =>
   ({ draw: (c, t, talk) => drawMeatheadCloseUp(c, t, talk, mood, { bg, medal: false, pose }), speaker: 'MEATHEAD', voice: text === '...' ? undefined : MEATHEAD_VOICE, text, hold });
 
-const PANELS: Panel[] = [
+/** Before the gym: the pencil necks come in. */
+const OPENING: Panel[] = [
   { draw: (c, t) => drawGym(c, t), text: "THE IRON PIT. 5 A.M.\nMEATHEAD'S FOURTH HOUR OF CHEST DAY.", hold: 80 },
-  { draw: (c, t) => drawDoorway(c, t), text: 'THE DOOR OPENS. TWO MEN IN BLACK SUITS.\nNOBODY WEARS A SUIT TO THE IRON PIT.', hold: 60 },
-  agent('Meathead. We represent a department of the government that does not exist.'),
+  { draw: (c, t) => drawDoorwayPencils(c, t), text: 'THE DOOR OPENS. FOUR SKINNY MEN IN CHEAP SUITS.\nNOBODY WEARS A SUIT TO THE IRON PIT.', hold: 70 },
+  intern('Um. Excuse me. Mister... Meathead?'),
   meathead('dumb', "I'M MID-SET, BRO."),
-  agent("We'll be brief. We have an offer you cannot refuse."),
-  agent('Do you like hurting weaklings?'),
+  intern("We're from a department of the government that, uh... doesn't exist? We just need a moment of your..."),
+  meathead('disgust', 'PENCIL NECKS.'),
+  meathead('disgust', 'PENCIL NECKS... INVADING MY SPACE. ON CHEST DAY.'),
+  intern('...Is that a no?', true),
+  meathead('stoked', 'I MUST DESTROY THEM.'),
+  intern('...Oh no.', true, 20),
+];
+
+/** After the gym: the bigger fellas, the pitch, and the briefing. */
+const PITCH: Panel[] = [
+  agent('Meathead. We represent a department of the government that does not exist.'),
+  // (he knows his own kind when he sees it)
+  meathead('think', '...YOU GUYS LIFT?'),
+  agent('...We lift.'),
+  meathead('stoked', 'BROS.'),
+  agent('Those were interns. We sent them in first to see what you would do.'),
+  meathead('dumb', 'YOU SENT ME PENCIL NECKS? ...FOR ME?'),
+  agent('Looks like you enjoy hurting weaklings. How would you like to hurt more?'),
   meathead('think', '...', gym, 40),
-  meathead('stoked', "DO I LIKE HURTING WEAKLINGS?! THAT'S MY FAVORITE THING! AFTER CHEST DAY! WHERE ARE THEY?!"),
+  meathead('stoked', "HURT MORE WEAKLINGS?! THAT'S MY FAVORITE THING! AFTER CHEST DAY! WHERE ARE THEY?!"),
   { draw: (c, t) => drawEscort(c, t), text: 'MEATHEAD FOLLOWS THEM OUT OF THE GYM\nLIKE A DOG THAT HEARD THE WORD "WALK."', hold: 80 },
   slide('four', 'These are the four assholes. Very dangerous. Very weak. Extremely hurtable.'),
   slide('artie', 'Artie Avalanche. Alaska. He looked at your protein shake funny.'),
@@ -68,13 +97,20 @@ const PANELS: Panel[] = [
 /** When the title comes up over the four of them, and how long it holds before it goes up onto the stage select. */
 const TITLE_AT = 100;
 const HOLD_TITLE = 110;
+/** How long the opening's last panel holds before the gym takes over. */
+const OPENING_END = 90;
 
-/** `onHandoff`: bring the stage select up underneath (the title lands on its heading); `onDone`: the intro's gone. */
-const IntroCutscene: React.FC<{ onHandoff: () => void; onDone: () => void }> = ({ onHandoff, onDone }) => (
-  <Cutscene
-    panels={PANELS} endAt={TITLE_AT} endCard={BOSS_SET_TITLES[0]} onDone={onDone}
-    handoff={{ className: setTitleClass(BOSS_SET_TITLES[0]), selector: '[data-set-title]', after: HOLD_TITLE, onHandoff }}
-  />
+/**
+ * `part`: the opening (into the gym: `onDone` when it's over) or the pitch (`onHandoff`: bring the stage select up
+ * underneath, the title landing on its heading; `onDone`: the cutscene's gone).
+ */
+const IntroCutscene: React.FC<{ part: 'opening' | 'pitch'; onHandoff?: () => void; onDone: () => void }> = ({ part, onHandoff, onDone }) => (
+  part === 'opening'
+    ? <Cutscene panels={OPENING} endAt={OPENING_END} endCard="" autoEnd onDone={onDone} />
+    : <Cutscene
+      panels={PITCH} endAt={TITLE_AT} endCard={BOSS_SET_TITLES[0]} onDone={onDone}
+      handoff={{ className: setTitleClass(BOSS_SET_TITLES[0]), selector: '[data-set-title]', after: HOLD_TITLE, onHandoff: onHandoff ?? (() => {}) }}
+    />
 );
 
 export default IntroCutscene;

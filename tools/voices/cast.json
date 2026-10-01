@@ -36,6 +36,7 @@
   "hector.teacher0": { "voice": "af_sarah", "speed": 1.15, "rate": 1.02 },
   "hector.teacher1": { "voice": "af_kore", "speed": 1.05, "rate": 0.98 },
 
+  "gym.intern": { "voice": [["am_puck", 0.6], ["am_echo", 0.4]], "speed": 1.2, "rate": 1.14 },
   "barry.minion": { "voice": "am_echo", "speed": 1.25, "rate": 1.12 },
   "barry.resident": { "voice": "af_sarah", "speed": 1.1, "rate": 0.9 },
   "barry.barry": { "alias": "boss.barry" },

@@ -174,6 +174,13 @@ export const DEATH_LINES: Record<string, string[]> = {
   bum: ['RUN DOWN BY A SHOPPING CART', 'CARTED OFF'],
   bum_shot: ['HIT WITH A FORTY', 'BOTTLED'],
   rat: ['EATEN BY A RAT', 'THE RAT WINS'],
+
+  // ---- The Iron Pit (the department's pencil necks: anything they manage is a disgrace)
+  suit: ['BODY CHECKED BY A PENCIL NECK', 'KILLED BY A MAN WITH NO TRAPS'],
+  suit_shot: ['SHOT BY AN INTERN', 'DEATH BY A THOUSAND PEASHOOTERS'],
+  temp: ['CLIPBOARDED TO DEATH', 'DEATH BY PAPERWORK'],
+  clerk: ['BRIEFCASED', 'FILED UNDER DEAD'],
+  clerk_shot: ['DROWNED IN DECAF', 'THE COFFEE WON'],
   guard: ['SECURITY ESCORTED YOU OUT', 'NO BADGE'],
   guard_shot: ['SHOT BY A RENT-A-COP', 'SECURITY BREACH'],
   commuter: ['BODY CHECKED BY A COMMUTER', 'RUSH HOUR'],

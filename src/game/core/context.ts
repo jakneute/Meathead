@@ -18,6 +18,10 @@ export interface GameEvents {
   onBossEncounter: () => void;
   onBossDeath: () => void;
   onIntroComplete: () => void;
+  /** A stage that isn't a boss's (the gym) has played out to its end. */
+  onStageDone?: () => void;
+  /** The gym's lesson for the room he's in (a button prompt over the game), or null for none. */
+  onTutorialHint?: (lesson: string | null) => void;
 }
 
 /** Everything a simulation step needs, bundled so subsystems don't need long parameter lists. */

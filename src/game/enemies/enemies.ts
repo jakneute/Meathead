@@ -29,7 +29,7 @@ import { startEnemyDeath } from './deaths';
 import { getEnemyMass, enemyGrip, massRatio } from '../combat/knockback';
 import { floorTopAt, groundLineAt } from '../core/terrain';
 import { getStageLeft, getStageLayout } from '../stages';
-import { runKindAI, kindContactDamage, holdingOff, shieldFacing, isChargerKind, safeAhead, walkableTo, isSmallCritter } from './kinds';
+import { runKindAI, kindContactDamage, holdingOff, shieldFacing, isChargerKind, safeAhead, walkableTo, isSmallCritter, weakShot } from './kinds';
 import { selfPropelled } from './kinds/hector';
 import { copMelee, isMeleeCop } from './copMelee';
 import { submerged } from './kinds/victor';
@@ -326,7 +326,7 @@ const throwAt = (ctx: FrameContext, e: Enemy, what: ThrownKind) => {
   const vx = (tx - x) / t, vy = (ty - y - 0.5 * BOTTLE_GRAVITY * t * t) / t;
   const { w, h } = THROWN_SIZE[what];
   ctx.fx.playGunSound('whoosh', 0.5, 5);
-  ctx.state.projectiles.push({ id: `et-${Date.now()}-${Math.random()}`, pos: { x: x - w / 2, y: y - h / 2 }, vel: { x: vx, y: vy }, width: w, height: h, health: 1, maxHealth: 1, type: 'projectile', damage: ENEMY_BULLET_DAMAGE, owner: 'enemy', shooterKind: e.kind ?? 'enemy', thrown: what, rotation: 0 });
+  ctx.state.projectiles.push({ id: `et-${Date.now()}-${Math.random()}`, pos: { x: x - w / 2, y: y - h / 2 }, vel: { x: vx, y: vy }, width: w, height: h, health: 1, maxHealth: 1, type: 'projectile', damage: ENEMY_BULLET_DAMAGE * weakShot(e.kind), owner: 'enemy', shooterKind: e.kind ?? 'enemy', thrown: what, rotation: 0 });
 };
 
 /**
@@ -338,7 +338,7 @@ const fireEnemyBullet = (ctx: FrameContext, e: Enemy, dir: number, from?: { x: n
   const size = look ? (look === 'slug' ? 8 : 10) : 14;
   const x = from ? from.x : look ? e.pos.x + e.width / 2 + dir * (e.width / 2 + 6) - size / 2 : e.pos.x + e.width / 2;
   const y = from ? from.y : look ? e.pos.y + e.height - 48 : e.pos.y + 10;
-  ctx.state.projectiles.push({ id: `ep-${Date.now()}-${Math.random()}`, pos: { x, y }, vel: { x: dir * (look ? shotSpeed(look, e.kind) : 7), y: 0 }, width: size, height: size, health: 1, maxHealth: 1, type: 'projectile', damage: ENEMY_BULLET_DAMAGE, owner: 'enemy', shooterKind: e.kind ?? 'enemy', shot: look });
+  ctx.state.projectiles.push({ id: `ep-${Date.now()}-${Math.random()}`, pos: { x, y }, vel: { x: dir * (look ? shotSpeed(look, e.kind) : 7), y: 0 }, width: size, height: size, health: 1, maxHealth: 1, type: 'projectile', damage: ENEMY_BULLET_DAMAGE * weakShot(e.kind), owner: 'enemy', shooterKind: e.kind ?? 'enemy', shot: look });
   if (look) ctx.fx.playGunSound('egun', 1, look === 'slug' ? -5 : -3);
   // (the flash out the end of it)
   if (look) for (let i = 0; i < 4; i++) ctx.state.particles.push({ pos: { x: x + size / 2, y: y + size / 2 }, vel: { x: dir * (1 + Math.random() * 2), y: (Math.random() - 0.5) * 1.5 }, life: 6, color: look === 'cryo' ? '#E0F2FE' : look === 'flare' ? '#FDBA74' : '#FEF08A', size: 2 + Math.random() * 3 });

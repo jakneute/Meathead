@@ -5,7 +5,7 @@ import { GameStatus, WeaponType } from '../../types';
 import {
   CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, ARENA_RIGHT, DOOR_OPEN_SPEED, MAX_AMMO,
   AMMO_PICKUP_PCT, HEALTH_PICKUP_SMALL, HEALTH_PICKUP_LARGE, PLAYER_STUN_DURATION, PARTICLE_PALETTES,
-  SPOKEN_TEXT_HOLD, SPOKEN_TEXT_LINGER, CANVAS_HEIGHT,
+  SPOKEN_TEXT_HOLD, SPOKEN_TEXT_LINGER, CANVAS_HEIGHT, GROUND_Y,
 } from '../../constants';
 import { BOSS_DIALOGUE, CHECKPOINT_CALLOUTS } from '../../content/dialogue';
 import { FrameContext } from './context';
@@ -165,6 +165,15 @@ const updateLevelIntro = (ctx: FrameContext) => {
   state.camera.x = at ? Math.max(state.cameraMinX, at.x - 250) : baseStartX;
   if (at) state.camera.y = state.cameraRestY;
   player.facing = 1;
+  // (already there: on his feet where he starts, and away)
+  if (getStageLayout(stageId)?.startsStanding) {
+    player.pos.x = baseStartX + 150;
+    player.pos.y = (at?.y ?? GROUND_Y) - player.height;
+    player.vel = { x: 0, y: 0 };
+    player.isGrounded = true;
+    ctx.events.onIntroComplete();
+    return;
+  }
   // (started at a checkpoint: he drops out of the sky there, same as at the start)
 
   const quotes = stageId ? BOSS_DIALOGUE.INTRO_QUOTES[stageId] : undefined;

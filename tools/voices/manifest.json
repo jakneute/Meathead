@@ -2,62 +2,67 @@
  {
   "voice": "agent",
   "text": "...Noted.",
-  "from": "components/IntroCutscene.tsx:24"
+  "from": "components/IntroCutscene.tsx:34"
  },
  {
   "voice": "agent",
   "text": "...Unlimited resources.",
-  "from": "components/IntroCutscene.tsx:24"
+  "from": "components/IntroCutscene.tsx:34"
+ },
+ {
+  "voice": "agent",
+  "text": "...We lift.",
+  "from": "components/IntroCutscene.tsx:34"
  },
  {
   "voice": "agent",
   "text": "And the armory. Rocket launchers, flamethrowers, anything you want. Take your pick.",
-  "from": "components/IntroCutscene.tsx:24"
+  "from": "components/IntroCutscene.tsx:34"
  },
  {
   "voice": "agent",
   "text": "Artie Avalanche. Alaska. He looked at your protein shake funny.",
-  "from": "components/IntroCutscene.tsx:26"
- },
- {
-  "voice": "agent",
-  "text": "Do you like hurting weaklings?",
-  "from": "components/IntroCutscene.tsx:24"
+  "from": "components/IntroCutscene.tsx:38"
  },
  {
   "voice": "agent",
   "text": "Ernie Earthquake. San Francisco. An old man with some very heavy rocks. He needs help moving them. Permanently.",
-  "from": "components/IntroCutscene.tsx:26"
+  "from": "components/IntroCutscene.tsx:38"
  },
  {
   "voice": "agent",
   "text": "Hector Hurricane. Miami. He went on the news and predicted a bad forecast for your gains.",
-  "from": "components/IntroCutscene.tsx:26"
+  "from": "components/IntroCutscene.tsx:38"
+ },
+ {
+  "voice": "agent",
+  "text": "Looks like you enjoy hurting weaklings. How would you like to hurt more?",
+  "from": "components/IntroCutscene.tsx:34"
  },
  {
   "voice": "agent",
   "text": "Meathead. We represent a department of the government that does not exist.",
-  "from": "components/IntroCutscene.tsx:24"
+  "from": "components/IntroCutscene.tsx:34"
  },
  {
   "voice": "agent",
   "text": "These are the four assholes. Very dangerous. Very weak. Extremely hurtable.",
-  "from": "components/IntroCutscene.tsx:26"
+  "from": "components/IntroCutscene.tsx:38"
+ },
+ {
+  "voice": "agent",
+  "text": "Those were interns. We sent them in first to see what you would do.",
+  "from": "components/IntroCutscene.tsx:34"
  },
  {
   "voice": "agent",
   "text": "Victor Volcano. Hawaii. He's telling everybody you skip leg day.",
-  "from": "components/IntroCutscene.tsx:26"
+  "from": "components/IntroCutscene.tsx:38"
  },
  {
   "voice": "agent",
   "text": "We don't do that kind of thing. You do. Planes, choppers, cargo drops: unlimited resources to put you wherever you need to be.",
-  "from": "components/IntroCutscene.tsx:26"
- },
- {
-  "voice": "agent",
-  "text": "We'll be brief. We have an offer you cannot refuse.",
-  "from": "components/IntroCutscene.tsx:24"
+  "from": "components/IntroCutscene.tsx:38"
  },
  {
   "voice": "announcer",
@@ -3876,6 +3881,11 @@
  },
  {
   "voice": "death",
+  "text": "BODY CHECKED BY A PENCIL NECK",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "BOMB SQUAD BLOCKED YOU",
   "from": "content/deaths"
  },
@@ -3897,6 +3907,11 @@
  {
   "voice": "death",
   "text": "BRAINED WITH ICE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BRIEFCASED",
   "from": "content/deaths"
  },
  {
@@ -4051,6 +4066,11 @@
  },
  {
   "voice": "death",
+  "text": "CLIPBOARDED TO DEATH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "CLOTHESLINED BY A BRANCH",
   "from": "content/deaths"
  },
@@ -4161,8 +4181,18 @@
  },
  {
   "voice": "death",
+  "text": "DEATH BY A THOUSAND PEASHOOTERS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "DEATH BY LANDSCAPE",
   "from": "game/stages/ernie/quake.ts:337"
+ },
+ {
+  "voice": "death",
+  "text": "DEATH BY PAPERWORK",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -4203,6 +4233,11 @@
   "voice": "death",
   "text": "DIED IN A BLIZZARD. INDOORS.",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DIED ON CHEST DAY",
+  "from": "game/stages/gym/runtime.ts:174"
  },
  {
   "voice": "death",
@@ -4312,6 +4347,11 @@
  {
   "voice": "death",
   "text": "DROWNED IN CRUDE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DROWNED IN DECAF",
   "from": "content/deaths"
  },
  {
@@ -4457,6 +4497,11 @@
  {
   "voice": "death",
   "text": "FILED AWAY",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "FILED UNDER DEAD",
   "from": "content/deaths"
  },
  {
@@ -4866,6 +4911,11 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY A MAN WITH NO TRAPS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY A NEIGHBOR",
   "from": "content/deaths"
  },
@@ -4893,6 +4943,11 @@
   "voice": "death",
   "text": "KILLED BY AN OIL DRUM",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY INTERNS",
+  "from": "game/stages/gym/runtime.ts:174"
  },
  {
   "voice": "death",
@@ -5661,6 +5716,11 @@
  },
  {
   "voice": "death",
+  "text": "SHOT BY AN INTERN",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "SHOT BY SMOKEY",
   "from": "content/deaths"
  },
@@ -5793,6 +5853,11 @@
   "voice": "death",
   "text": "SKIPPED LIKE A STONE AT EIGHTY MILES AN HOUR",
   "from": "game/stages/dale/convoy.ts:470"
+ },
+ {
+  "voice": "death",
+  "text": "SKIPPED THE REST OF CHEST DAY",
+  "from": "game/stages/gym/runtime.ts:174"
  },
  {
   "voice": "death",
@@ -6096,6 +6161,11 @@
  },
  {
   "voice": "death",
+  "text": "THE COFFEE WON",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "THE DESERT CLAIMS ANOTHER",
   "from": "game/stages/dale/runtime.ts:187"
  },
@@ -6178,6 +6248,11 @@
   "voice": "death",
   "text": "THE PARKING LOT BIRDS GOT YOU",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE PENCIL NECKS WON",
+  "from": "game/stages/gym/runtime.ts:174"
  },
  {
   "voice": "death",
@@ -6628,6 +6703,51 @@
   "voice": "guide",
   "text": "NAMASTE, PEASANTS!",
   "from": "game/stages/ernie/doorCrash.ts:71"
+ },
+ {
+  "voice": "gym.intern",
+  "text": "...Is that a no?",
+  "from": "components/IntroCutscene.tsx:36"
+ },
+ {
+  "voice": "gym.intern",
+  "text": "...Oh no.",
+  "from": "components/IntroCutscene.tsx:36"
+ },
+ {
+  "voice": "gym.intern",
+  "text": "EVERYBODY RUSH HIM AT ONCE! HE CAN'T GET ALL OF US!",
+  "from": "game/stages/gym/runtime.ts:109"
+ },
+ {
+  "voice": "gym.intern",
+  "text": "HE CAN'T REACH US UP HERE! ...CAN HE?",
+  "from": "game/stages/gym/runtime.ts:109"
+ },
+ {
+  "voice": "gym.intern",
+  "text": "HE'S GETTING UP! HE'S GETTING UP!",
+  "from": "game/stages/gym/runtime.ts:109"
+ },
+ {
+  "voice": "gym.intern",
+  "text": "STAY TOGETHER! STRENGTH IN NUMBERS!",
+  "from": "game/stages/gym/runtime.ts:109"
+ },
+ {
+  "voice": "gym.intern",
+  "text": "THE BRIEFCASES WILL PROTECT US! THEY'RE GOVERNMENT ISSUE!",
+  "from": "game/stages/gym/runtime.ts:109"
+ },
+ {
+  "voice": "gym.intern",
+  "text": "Um. Excuse me. Mister... Meathead?",
+  "from": "components/IntroCutscene.tsx:36"
+ },
+ {
+  "voice": "gym.intern",
+  "text": "We're from a department of the government that, uh... doesn't exist? We just need a moment of your...",
+  "from": "components/IntroCutscene.tsx:36"
  },
  {
   "voice": "hector.coastguard",
@@ -7082,7 +7202,7 @@
  {
   "voice": "meathead",
   "text": "...AND THIS.",
-  "from": "components/IntroCutscene.tsx:28"
+  "from": "components/IntroCutscene.tsx:40"
  },
  {
   "voice": "meathead",
@@ -7103,6 +7223,11 @@
   "voice": "meathead",
   "text": "...NOPE.",
   "from": "game/stages/dale/convoy.ts:389"
+ },
+ {
+  "voice": "meathead",
+  "text": "...NOW THOSE ARE NECKS.",
+  "from": "game/stages/gym/runtime.ts:156"
  },
  {
   "voice": "meathead",
@@ -7138,6 +7263,11 @@
   "voice": "meathead",
   "text": "...WHAT WAS THAT?",
   "from": "game/stages/artie/tease.ts:20"
+ },
+ {
+  "voice": "meathead",
+  "text": "...YOU GUYS LIFT?",
+  "from": "components/IntroCutscene.tsx:40"
  },
  {
   "voice": "meathead",
@@ -7341,6 +7471,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A GYM RAT BIT ME! AN ACTUAL ONE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "A HARD HAT! TO THE FACE! THE IRONY!",
   "from": "HAZARD_HURT"
  },
@@ -7406,7 +7541,17 @@
  },
  {
   "voice": "meathead",
+  "text": "A PEASHOOTER! IT TICKLES! IT TICKLES AND I HATE IT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "A PELICAN JUST CLOTHESLINED ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A PENCIL NECK TOUCHED ME! GROSS!",
   "from": "HAZARD_HURT"
  },
  {
@@ -7851,6 +7996,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BRIEFCASE DENIED!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "BRO DO YOU EVEN SURVIVE?",
   "from": "VULGARITIES"
  },
@@ -7863,6 +8013,11 @@
   "voice": "meathead",
   "text": "BROKEN GLASS! MY TIRES! MY CALVES!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "BROS.",
+  "from": "components/IntroCutscene.tsx:40"
  },
  {
   "voice": "meathead",
@@ -7982,6 +8137,11 @@
  {
   "voice": "meathead",
   "text": "CARTEL'S DOWN A GUY!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CASE CLOSED!",
   "from": "ENEMY_KILL_LINES"
  },
  {
@@ -8386,11 +8546,6 @@
  },
  {
   "voice": "meathead",
-  "text": "DO I LIKE HURTING WEAKLINGS?! THAT'S MY FAVORITE THING! AFTER CHEST DAY! WHERE ARE THEY?!",
-  "from": "components/IntroCutscene.tsx:28"
- },
- {
-  "voice": "meathead",
   "text": "Do you even lift, bro?",
   "from": "components/EndingCutscene.tsx:34"
  },
@@ -8656,6 +8811,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FILE THAT!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "FIN!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -8822,7 +8982,7 @@
  {
   "voice": "meathead",
   "text": "FUCK YEAH! LET'S GO!",
-  "from": "App.tsx:410"
+  "from": "App.tsx:437"
  },
  {
   "voice": "meathead",
@@ -8938,6 +9098,11 @@
   "voice": "meathead",
   "text": "GET OFF ME, YOU RAT WITH WINGS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET OFF MY BENCH!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -9336,6 +9501,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE BUMPED ME! I COULD FEEL HIS RIBS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "HE CAME DOWN. MOSTLY.",
   "from": "KILL_LINES"
  },
@@ -9382,6 +9552,11 @@
  {
   "voice": "meathead",
   "text": "HE HIT ME WITH A BLAST SHIELD! FOR SCIENCE!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE HIT ME WITH A BRIEFCASE! IT'S GOT FORMS IN IT!",
   "from": "HAZARD_HURT"
  },
  {
@@ -9466,6 +9641,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE RAN INTO ME WITH A CLIPBOARD! I'VE BEEN SERVED!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "HE RAN ME OVER ON HIS WAY TO HEADBUTT A WALL!",
   "from": "HAZARD_HURT"
  },
@@ -9492,6 +9672,11 @@
  {
   "voice": "meathead",
   "text": "HE SHOT ME! I WAS STAYING ON THE TRAIL!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SHOT ME! WITH HIS EYES CLOSED!",
   "from": "HAZARD_HURT"
  },
  {
@@ -9562,6 +9747,11 @@
  {
   "voice": "meathead",
   "text": "HE THREW HIS HYDRATION AT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE THREW HIS LATTE AT ME! IT WAS DECAF! THAT'S THE INSULT!",
   "from": "HAZARD_HURT"
  },
  {
@@ -9841,6 +10031,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HOT COFFEE! MY PECS! MY BEAUTIFUL PECS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "HOT COFFEE! THAT'S A LAWSUIT! THAT'S A LAWSUIT!",
   "from": "HAZARD_HURT"
  },
@@ -9923,6 +10118,11 @@
   "voice": "meathead",
   "text": "HUMAN RESOURCES? HUMAN REMAINS!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HURT MORE WEAKLINGS?! THAT'S MY FAVORITE THING! AFTER CHEST DAY! WHERE ARE THEY?!",
+  "from": "components/IntroCutscene.tsx:40"
  },
  {
   "voice": "meathead",
@@ -10097,7 +10297,7 @@
  {
   "voice": "meathead",
   "text": "I HAVE NEVER SKIPPED LEG DAY IN MY LIFE.",
-  "from": "components/IntroCutscene.tsx:28"
+  "from": "components/IntroCutscene.tsx:40"
  },
  {
   "voice": "meathead",
@@ -10136,6 +10336,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I MUST DESTROY THEM.",
+  "from": "components/IntroCutscene.tsx:40"
+ },
+ {
+  "voice": "meathead",
   "text": "I NEED A GALLON OF BLEACH AND YOUR HEAD ON A STAKE!",
   "from": "HURT"
  },
@@ -10152,7 +10357,7 @@
  {
   "voice": "meathead",
   "text": "I ONLY NEED MY GUNS.",
-  "from": "components/IntroCutscene.tsx:28"
+  "from": "components/IntroCutscene.tsx:40"
  },
  {
   "voice": "meathead",
@@ -10382,7 +10587,7 @@
  {
   "voice": "meathead",
   "text": "I'M MID-SET, BRO.",
-  "from": "components/IntroCutscene.tsx:28"
+  "from": "components/IntroCutscene.tsx:40"
  },
  {
   "voice": "meathead",
@@ -10657,7 +10862,7 @@
  {
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
-  "from": "App.tsx:410"
+  "from": "App.tsx:437"
  },
  {
   "voice": "meathead",
@@ -10792,12 +10997,12 @@
  {
   "voice": "meathead",
   "text": "LET'S FUCKING GO!",
-  "from": "App.tsx:410"
+  "from": "App.tsx:437"
  },
  {
   "voice": "meathead",
   "text": "LET'S GO HURT SOME WEAKLINGS!",
-  "from": "components/IntroCutscene.tsx:28"
+  "from": "components/IntroCutscene.tsx:40"
  },
  {
   "voice": "meathead",
@@ -11087,7 +11292,7 @@
  {
   "voice": "meathead",
   "text": "MY SHAKE?!",
-  "from": "components/IntroCutscene.tsx:28"
+  "from": "components/IntroCutscene.tsx:40"
  },
  {
   "voice": "meathead",
@@ -11168,6 +11373,11 @@
   "voice": "meathead",
   "text": "NATURE'S DUMBBELL",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NECK SO THIN IT SNAPPED ITSELF!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -11472,7 +11682,7 @@
  {
   "voice": "meathead",
   "text": "OH HELL YEAH!",
-  "from": "App.tsx:410"
+  "from": "App.tsx:437"
  },
  {
   "voice": "meathead",
@@ -11676,6 +11886,11 @@
  },
  {
   "voice": "meathead",
+  "text": "PAPER CUT! ON MY TRAPS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "PARK RANGERS HAVE GUNS?!",
   "from": "HAZARD_HURT"
  },
@@ -11708,6 +11923,16 @@
   "voice": "meathead",
   "text": "PEER REVIEW THIS!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PENCIL NECKS.",
+  "from": "components/IntroCutscene.tsx:40"
+ },
+ {
+  "voice": "meathead",
+  "text": "PENCIL NECKS... INVADING MY SPACE. ON CHEST DAY.",
+  "from": "components/IntroCutscene.tsx:40"
  },
  {
   "voice": "meathead",
@@ -12492,6 +12717,11 @@
  {
   "voice": "meathead",
   "text": "SIGN FOR THIS!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SIGN THIS!",
   "from": "ENEMY_KILL_LINES"
  },
  {
@@ -13397,7 +13627,7 @@
  {
   "voice": "meathead",
   "text": "The field? The union? The bar? Water under the bridge, pal. Burning water. Now let's talk about YOU. What are you driving these days?",
-  "from": "game/core/update.ts:174"
+  "from": "game/core/update.ts:183"
  },
  {
   "voice": "meathead",
@@ -13512,6 +13742,11 @@
  {
   "voice": "meathead",
   "text": "THE RANGERS ARE AIMING FOR MY TIRES! AND MY ASS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE RATS ARE EATING THE PROTEIN BARS AGAIN! AND ME!",
   "from": "HAZARD_HURT"
  },
  {
@@ -13841,6 +14076,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TRY A PROTEIN SHAKE! OH WAIT!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "TRY STABBING NOW!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -13857,7 +14097,7 @@
  {
   "voice": "meathead",
   "text": "Two jet skis, sonny. Two tour groups. And now my front hall's caved in. I schedule my quakes AROUND the tour groups!",
-  "from": "game/core/update.ts:174"
+  "from": "game/core/update.ts:183"
  },
  {
   "voice": "meathead",
@@ -13907,7 +14147,7 @@
  {
   "voice": "meathead",
   "text": "UNLIMITED... PROTEIN?",
-  "from": "components/IntroCutscene.tsx:28"
+  "from": "components/IntroCutscene.tsx:40"
  },
  {
   "voice": "meathead",
@@ -14011,6 +14251,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WATCH THE CASE, PENCIL NECK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "WATCH THE LATS",
   "from": "VULGARITIES"
  },
@@ -14057,7 +14302,7 @@
  {
   "voice": "meathead",
   "text": "WEAPONS? NAH. I DON'T NEED WEAPONS.",
-  "from": "components/IntroCutscene.tsx:28"
+  "from": "components/IntroCutscene.tsx:40"
  },
  {
   "voice": "meathead",
@@ -14163,6 +14408,11 @@
   "voice": "meathead",
   "text": "WHO LET A TUMBLEWEED ON THE INTERSTATE?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO LET YOU IN HERE?!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -14302,7 +14552,7 @@
  {
   "voice": "meathead",
   "text": "WHY DON'T YOU GUYS DO IT? YOU'VE GOT SUITS.",
-  "from": "components/IntroCutscene.tsx:28"
+  "from": "components/IntroCutscene.tsx:40"
  },
  {
   "voice": "meathead",
@@ -14382,12 +14632,12 @@
  {
   "voice": "meathead",
   "text": "You blew my whole power room, man. With Gary in it. My... roommate. Eleven years. One bedroom. We were ROOMMATES, man.",
-  "from": "game/core/update.ts:174"
+  "from": "game/core/update.ts:183"
  },
  {
   "voice": "meathead",
   "text": "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!",
-  "from": "game/core/update.ts:174"
+  "from": "game/core/update.ts:183"
  },
  {
   "voice": "meathead",
@@ -14427,7 +14677,7 @@
  {
   "voice": "meathead",
   "text": "You crashed my VIP lounge, bro. Those were investors. Now they're a geothermal feature.",
-  "from": "game/core/update.ts:174"
+  "from": "game/core/update.ts:183"
  },
  {
   "voice": "meathead",
@@ -14457,12 +14707,12 @@
  {
   "voice": "meathead",
   "text": "You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.",
-  "from": "game/core/update.ts:174"
+  "from": "game/core/update.ts:183"
  },
  {
   "voice": "meathead",
   "text": "You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I'M the terrorist?",
-  "from": "game/core/update.ts:174"
+  "from": "game/core/update.ts:183"
  },
  {
   "voice": "meathead",
@@ -14502,7 +14752,7 @@
  {
   "voice": "meathead",
   "text": "You put the neighbors down. You knocked over my water tower and surfed it through the block. That took WEEKS to fill!",
-  "from": "game/core/update.ts:174"
+  "from": "game/core/update.ts:183"
  },
  {
   "voice": "meathead",
@@ -14518,6 +14768,11 @@
   "voice": "meathead",
   "text": "YOU SAID TOUCH NOTHING. I HEARD SMASH EVERYTHING.",
   "from": "game/stages/barry/power.ts:76"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU SENT ME PENCIL NECKS? ...FOR ME?",
+  "from": "components/IntroCutscene.tsx:40"
  },
  {
   "voice": "meathead",
@@ -14607,7 +14862,7 @@
  {
   "voice": "meathead",
   "text": "YOU'RE TOAST.",
-  "from": "game/core/update.ts:174"
+  "from": "game/core/update.ts:183"
  },
  {
   "voice": "meathead",
@@ -14623,6 +14878,11 @@
   "voice": "meathead",
   "text": "YOUR BUDDY IN THE CLOSET LOOKS HOT! WANT ME TO PUT HIM ON ICE?",
   "from": "game/stages/dale/junkie.ts:732"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR CLIPBOARD CAN'T SAVE YOU!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -14643,6 +14903,11 @@
   "voice": "meathead",
   "text": "YOUR MANAGER'S A STEAL? CALL THE COPS ON HIM.",
   "from": "game/bosses/oscar.ts:212"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR PAPERWORK'S IN ORDER! YOU'RE NOT!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",

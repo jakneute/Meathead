@@ -129,6 +129,10 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   pickup: { w: 150, h: 66, hp: 260, contact: 12 },
   cruiser: { w: 150, h: 56, hp: 260, contact: 12 },
   chopper: { w: 76, h: 66, hp: 60, contact: 12 },
+  // The gym's pencil necks: tall and thin (all neck), soft, and barely able to hurt him (see weakShot)
+  suit: { w: 32, h: 78, hp: 35, contact: 3 },
+  temp: { w: 34, h: 78, hp: 18, contact: 4 },
+  clerk: { w: 38, h: 78, hp: 60, contact: 3 },
 };
 
 /**
@@ -142,7 +146,7 @@ export const isSmallCritter = (kind?: EnemyKind) =>
 /** The ones that run you down like the rusher. */
 export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind === 'bouncer' || kind === 'smokejumper' || kind === 'firedancer' || kind === 'courier' || kind === 'convict' || kind === 'enforcer'
   || kind === 'hooker' || kind === 'mugger' || kind === 'commuter' || kind === 'intern' || kind === 'janitor' || kind === 'subject'
-  || kind === 'bruiser' || kind === 'bloater' || kind === 'biker';
+  || kind === 'bruiser' || kind === 'bloater' || kind === 'biker' || kind === 'temp';
 
 let spawnCount = 0;
 
@@ -212,9 +216,17 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     case 'biker': return { ...base, behavior: 'patrol', pauseTimer: 0 };
     case 'deputy': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
     case 'pickup': case 'cruiser': case 'chopper': return { ...base, facing: 1 };
+    // The gym's pencil necks: one with a service pistol he's scared of, one who runs at him with a clipboard, one
+    // behind his briefcase (he drops it to throw his coffee)
+    case 'suit': return { ...base, behavior: 'shoot', shootTimer: Math.floor(Math.random() * 40) };
+    case 'temp': return { ...base, behavior: 'patrol', pauseTimer: 0 };
+    case 'clerk': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
     default: return base;
   }
 };
+
+/** How much of a goon's usual shot his hurts (the gym's pencil necks can barely hurt him at all). */
+export const weakShot = (kind?: EnemyKind) => (kind === 'suit' || kind === 'clerk' ? 0.35 : 1);
 
 /** Contact damage for a themed enemy (undefined for the old generic ones). */
 export const kindContactDamage = (e: Enemy) => (e.kind ? KIND_STATS[e.kind].contact : undefined);

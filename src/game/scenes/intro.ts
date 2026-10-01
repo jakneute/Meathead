@@ -480,3 +480,112 @@ export const drawSecondFour = (ctx: Ctx, t: number) => drawFour(ctx, t, [
   { k: 'tommy', cx: 46, w: 52, h: 52, head: 15 }, { k: 'barry', cx: 104, w: 30, h: 72, head: 12 },
   { k: 'oscar', cx: 160, w: 54, h: 60, head: 14 }, { k: 'dale', cx: 216, w: 44, h: 58, head: 13 },
 ]);
+
+// ---------------------------------------------------------------------------
+// The pencil necks (START GAME + INTRO, before the gym's played): the department's interns, sent in first
+// ---------------------------------------------------------------------------
+
+const PN = { suit: '#1c1c22', suitLit: '#34343e', suitDark: '#0c0c10', skin: '#ecc8a4', skinShade: '#c4987c', skinDeep: '#9c7458', hair: '#4c3418', hairLit: '#7c5c34', lanyard: '#c81c1c' };
+
+/** A pencil neck standing (feet at baseY): a suit two sizes too big, a neck like a broom handle, shades too big for him. */
+const pencilStanding = (ctx: Ctx, cx: number, baseY: number, t: number, k: number) => {
+  const sh = Math.round(Math.sin(t * 1.3 + k * 2) * 0.6);
+  const x = cx + sh, y = baseY;
+  // Legs (sticks), the shoes too big too
+  R(ctx, x - 4, y - 24, 3, 22, PN.suit); R(ctx, x + 1, y - 24, 3, 22, PN.suit);
+  R(ctx, x - 6, y - 3, 6, 3, C.black); R(ctx, x + 1, y - 3, 6, 3, C.black);
+  // The jacket: the shoulders out past his (the pads), the cuffs down over his hands
+  R(ctx, x - 9, y - 46, 18, 24, PN.suit); R(ctx, x - 9, y - 46, 1, 24, PN.suitLit);
+  R(ctx, x - 11, y - 46, 22, 3, PN.suit); R(ctx, x - 11, y - 46, 22, 1, PN.suitLit);
+  R(ctx, x - 12, y - 44, 3, 20, PN.suit); R(ctx, x + 9, y - 44, 3, 20, PN.suit);
+  R(ctx, x - 2, y - 45, 4, 6, '#e8e8e8'); R(ctx, x, y - 44, 1, 8, '#1c2c6c');
+  R(ctx, x - 4, y - 40, 1, 7, PN.lanyard); R(ctx, x - 5, y - 33, 3, 4, C.white);
+  // The neck, long; the head on top of it, small; the hair flat; the shades
+  R(ctx, x - 1, y - 56, 3, 11, PN.skin); R(ctx, x + 1, y - 51, 1, 2, PN.skinShade);
+  R(ctx, x - 4, y - 66, 8, 10, PN.skin); R(ctx, x + 2, y - 66, 2, 10, PN.skinShade);
+  R(ctx, x - 5, y - 68, 10, 3, PN.hair); R(ctx, x - 3, y - 70, 1, 2, PN.hair);
+  R(ctx, x - 4, y - 62, 9, 3, C.black); R(ctx, x - 3, y - 62, 2, 1, '#5c5c6c');
+  // (sweat)
+  if ((t + k * 13) % 40 < 20) R(ctx, x - 5, y - 64 + ((t + k * 13) % 40) / 4, 1, 2, '#9cdcfc');
+};
+
+/** The door opens: light spilling in, four skinny suits jostling in it, one being shoved in front. He's racked the bar to look. */
+export const drawDoorwayPencils = (ctx: Ctx, t: number) => {
+  gymBg(ctx);
+  tubeLight(ctx, t, 90);
+  const open = Math.min(1, t / 30);
+  R(ctx, 214, 30, 38, 82, '#fcf8d8');
+  ctx.fillStyle = 'rgba(252, 248, 216, 0.25)';
+  ctx.beginPath(); ctx.moveTo(214, 112); ctx.lineTo(252, 112); ctx.lineTo(252 - 90 * open, 144); ctx.lineTo(214 - 140 * open, 144); ctx.fill();
+  R(ctx, 214, 30, Math.round(38 * (1 - open)) + 3, 82, G.door);
+  if (t > 16) {
+    // (the one at the front shoved in by the ones behind him, and trying to get back behind them)
+    const shove = Math.max(0, Math.min(14, (t - 40) * 0.5)) - Math.max(0, Math.sin(t * 0.15)) * 3;
+    pencilStanding(ctx, 246, 113, t, 3); pencilStanding(ctx, 236, 114, t, 2); pencilStanding(ctx, 226, 115, t, 1);
+    pencilStanding(ctx, 216 - shove, 117, t, 0);
+  }
+  bencher(ctx, t, true);
+  R(ctx, 64, 84, 18, 12, C.mSkin); R(ctx, 62, 80, 20, 5, C.mHair); R(ctx, 74, 88, 3, 2, C.ink);
+};
+
+/**
+ * The pencil neck who's been made to do the talking, up close: the suit hanging off him, the collar loose round a neck
+ * like a broom handle (the Adam's apple going up and down it as he swallows), the clip-on tie crooked, the lanyard,
+ * the badge (INTERN); the shades slipped down his nose and his eyes over the top of them, wide; the sweat; the shakes.
+ * The other three behind him, out of focus, the gym dim.
+ */
+export const drawPencilNeck = (ctx: Ctx, t: number, talking: boolean, scared = false) => {
+  gymBg(ctx); ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0, 0, ART_W, ART_H);
+  // The others behind him, out of focus: thin, the shoulders of their jackets out past them
+  for (const [ox, oy] of [[28, 40], [206, 34], [232, 48]] as const) {
+    R(ctx, ox - 16, oy + 40, 32, 104, '#26262e'); R(ctx, ox - 3, oy + 20, 6, 22, '#8c7460'); R(ctx, ox - 9, oy, 18, 22, '#8c7460'); R(ctx, ox - 10, oy - 2, 20, 6, '#2c2418'); R(ctx, ox - 8, oy + 8, 16, 5, '#0c0c10');
+  }
+  ctx.save();
+  // (the shakes)
+  ctx.translate(Math.round(Math.sin(t * 1.9) * (scared ? 1.4 : 0.7)), 0);
+  // The jacket: shoulders out past his own (the pads), sagging; the lapels; the gap round his neck
+  shaded(ctx, 'pn-shoulders', 40, 112, 176, 70, RAMP.aSuit, ball(-0.4, -0.85, 0.1));
+  ctx.fillStyle = PN.suitDark; ctx.beginPath(); ctx.moveTo(108, 108); ctx.lineTo(126, 144); ctx.lineTo(98, 144); ctx.fill(); ctx.beginPath(); ctx.moveTo(148, 108); ctx.lineTo(130, 144); ctx.lineTo(158, 144); ctx.fill();
+  // (the shirt collar, a size too big, standing off his neck)
+  ctx.fillStyle = '#e8e8ec'; ctx.beginPath(); ctx.moveTo(110, 104); ctx.lineTo(146, 104); ctx.lineTo(140, 116); ctx.lineTo(128, 112); ctx.lineTo(116, 116); ctx.closePath(); ctx.fill();
+  R(ctx, 112, 112, 32, 32, '#d8d8e0');
+  // (the clip-on tie, crooked, the clip showing)
+  ctx.save(); ctx.translate(128, 112); ctx.rotate(0.12);
+  R(ctx, -4, 0, 8, 6, '#1c2c6c'); R(ctx, -3, 6, 6, 26, '#24348c'); R(ctx, -3, 6, 1, 26, '#3c4ca4'); R(ctx, -4, -1, 8, 2, '#9c9ca4');
+  ctx.restore();
+  // (the lanyard and the badge: INTERN, and a photo of him looking exactly this scared)
+  ctx.strokeStyle = PN.lanyard; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(114, 108); ctx.lineTo(96, 132); ctx.moveTo(142, 108); ctx.lineTo(104, 132); ctx.stroke();
+  R(ctx, 88, 130, 26, 14, C.white); R(ctx, 90, 132, 8, 9, '#9cc4dc'); R(ctx, 92, 133, 4, 4, PN.skin); R(ctx, 100, 133, 12, 2, C.ink); R(ctx, 100, 137, 10, 1, C.gray);
+  // The neck: long and thin, the cords in it, the Adam's apple (going up and down)
+  shaded(ctx, 'pn-neck', 118, 64, 20, 48, RAMP.aSkin, box(-0.5, -0.3, 0.2, 1, 0.2));
+  const gulp = (t % 70) < 10 ? -5 : 0;
+  ell(ctx, 129, 90 + gulp, 4, 4, PN.skin); R(ctx, 131, 88 + gulp, 2, 5, PN.skinShade);
+  R(ctx, 121, 70, 1, 34, PN.skinShade); R(ctx, 135, 70, 1, 34, PN.skinShade);
+  // The head: smaller than you'd think, on top of all that
+  shaded(ctx, 'pn-head', 100, 16, 56, 56, RAMP.aSkin, box(-0.5, -0.4, 0.2, 1, 0.5));
+  shaded(ctx, 'pn-ear', 94, 38, 8, 16, RAMP.aSkin, ball(-0.5, -0.4, 0.2)); shaded(ctx, 'pn-ear2', 154, 38, 8, 16, RAMP.aSkin, ball(-0.9, -0.2, 0.08));
+  // (the hair: gelled flat and parted, shining, a cowlick sticking up anyway)
+  R(ctx, 98, 12, 60, 10, PN.hair); R(ctx, 98, 20, 6, 10, PN.hair); for (let k = 0; k < 9; k++) R(ctx, 104 + k * 6, 13 + (k % 2), 4, 1, PN.hairLit);
+  R(ctx, 116, 12, 2, 8, '#2c1c08'); R(ctx, 140, 6, 2, 7, PN.hair); R(ctx, 142, 4, 2, 3, PN.hair);
+  R(ctx, 118, 14, 30, 2, 'rgba(255,255,255,0.3)');
+  // (the eyes, over the top of the shades: wide, the brows right up)
+  const wide = scared ? 6 : 5;
+  for (const ex of [112, 136]) {
+    R(ctx, ex, 38 - (scared ? 2 : 0), 10, 2, PN.hair);
+    R(ctx, ex, 42, 10, wide, C.white); R(ctx, ex + 4, 43, 3, 3, C.ink); R(ctx, ex + 4, 43, 1, 1, C.white);
+  }
+  // (the shades, too big for him, slipped down his nose)
+  R(ctx, 104, 50, 22, 10, G.shades); R(ctx, 130, 50, 22, 10, G.shades); R(ctx, 124, 52, 8, 2, G.shades);
+  R(ctx, 105, 51, 20, 1, '#2c2c3c'); R(ctx, 131, 51, 20, 1, '#2c2c3c');
+  // Nose, the mouth: a wobbly little line, or an O when he talks
+  R(ctx, 126, 58, 4, 8, PN.skinShade);
+  if (talking && t % 10 < 5) ell(ctx, 128, 66, 4, 3, '#400000'); else { R(ctx, 120, 66, 4, 1, '#8c5040'); R(ctx, 124, 65, 4, 1, '#8c5040'); R(ctx, 128, 66, 4, 1, '#8c5040'); R(ctx, 132, 65, 4, 1, '#8c5040'); }
+  // (the zits on his chin, the fuzz he calls a mustache)
+  R(ctx, 120, 69, 2, 2, '#d47c6c'); R(ctx, 136, 68, 2, 2, '#d47c6c');
+  for (let k = 0; k < 8; k++) R(ctx, 120 + k * 2, 63, 1, 1, '#b89c7c');
+  // Sweat: beads on his forehead, a drop running down his temple and off his jaw
+  for (const [sx, sy] of [[110, 28], [128, 26], [146, 30]] as const) R(ctx, sx, sy, 2, 3, '#9cdcfc');
+  const run = (t * 0.6) % 40;
+  R(ctx, 104, 32 + run, 2, 3, '#9cdcfc');
+  ctx.restore();
+};

@@ -48,7 +48,7 @@ export interface Handoff { className: string; selector: string; after: number; o
 const SETTLE_MS = 550, RISE_MS = 900, FADE_MS = 900;
 
 /** Every one can be skipped the usual way (see platform/skip): SKIP >> in the corner, or Start / Esc, jumps straight to the end card. */
-const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radio?: boolean; handoff?: Handoff; onDone: () => void }> = ({ panels: PANELS, endAt, endCard, radio, handoff, onDone }) => {
+const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radio?: boolean; handoff?: Handoff; autoEnd?: boolean; onDone: () => void }> = ({ panels: PANELS, endAt, endCard, radio, handoff, autoEnd, onDone }) => {
   const LAST = PANELS.length - 1;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [panelIndex, setPanelIndex] = useState(0);
@@ -164,6 +164,8 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
       p.draw(ctx, r.t, talking);
       if (r.panel === LAST) {
         if (r.t === endAt) setTheEnd(true);
+        // (straight on into what comes next, no card: the gym's opening, into the gym)
+        if (autoEnd && r.t === endAt && !r.finished) { r.finished = true; hangUp.current?.(); onDoneRef.current(); }
         if (handoffRef.current && r.t === endAt + handoffRef.current.after) startHandoff();
         return;
       }

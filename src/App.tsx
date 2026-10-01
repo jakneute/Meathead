@@ -11,6 +11,8 @@ import GameCanvas from './components/GameCanvas';
 import EndingCutscene from './components/EndingCutscene';
 import RadioCutscene from './components/RadioCutscene';
 import IntroCutscene from './components/IntroCutscene';
+import TutorialHint from './components/TutorialHint';
+import { GYM_STAGE } from './game/stages/gym';
 import voicePackUrl from './generated/voices.bin?url';
 import { loadVoicePack } from './game/platform/voiceclips';
 
@@ -113,8 +115,13 @@ const App: React.FC = () => {
   /** The music switch on the title screen. */
   const [musicOn, setMusicOn] = useState(musicEnabled());
   const toggleMusic = () => { const on = !musicEnabled(); setMusicEnabled(on); setMusicOn(on); };
-  /** The opening (START GAME + INTRO): playing over the title, then fading off the stage select. */
-  const [intro, setIntro] = useState<'off' | 'playing' | 'outro'>('off');
+  /**
+   * The opening (START GAME + INTRO): its first half playing over the title ('opening'), then the gym, then its second
+   * half ('playing') over the title again, fading off the stage select ('outro').
+   */
+  const [intro, setIntro] = useState<'off' | 'opening' | 'playing' | 'outro'>('off');
+  /** The gym's lesson for the room he's in (a button prompt over the game). */
+  const [lesson, setLesson] = useState<string | null>(null);
   /** True between the boss dying and the victory screen; blocks pausing. */
   const [isVictoryPhase, setIsVictoryPhase] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -249,7 +256,7 @@ const App: React.FC = () => {
         setAvailableWeapons(getStartingWeapons(progressionRank, cheats.allWeapons));
         resetLoadout();
         // (with the intro, it plays first and brings the stage select up itself at the end)
-        if (withIntro ?? selectedIndex === 1) setIntro('playing');
+        if (withIntro ?? selectedIndex === 1) setIntro('opening');
         else setStatus(GameStatus.STAGE_SELECT);
         break;
       case GameStatus.BOSS_INTRO:
@@ -348,6 +355,26 @@ const App: React.FC = () => {
     speak(line, MEATHEAD_MENU_VOICE, {
       onDone: () => { lastRebukeEndRef.current = Date.now(); },
     });
+  };
+
+  /** The opening's first half is over: into the gym (his own, at five in the morning: no deploying to it). */
+  const startGym = () => {
+    setIntro('off');
+    setLesson(null);
+    setSelectedStage(GYM_STAGE);
+    setHealth(INITIAL_PLAYER_HEALTH);
+    setPower(POWER_CELLS);
+    resetLoadout();
+    setIsVictoryPhase(false);
+    setStatus(GameStatus.LEVEL_INTRO);
+  };
+
+  /** The gym's done (the bigger fellas are in): the opening's second half, over the title, onto the stage select. */
+  const finishGym = () => {
+    setLesson(null);
+    setSelectedStage(null);
+    setStatus(GameStatus.START);
+    setIntro('playing');
   };
 
   const handleSelectStage = (stage: string) => {
@@ -743,9 +770,11 @@ const App: React.FC = () => {
         />
         </div>
         {status === GameStatus.ENDING && <EndingCutscene onDone={handleEndingDone} />}
-        {intro !== 'off' && (
-          <IntroCutscene onHandoff={() => { setIntro('outro'); setSelectedIndex(0); setStatus(GameStatus.STAGE_SELECT); }} onDone={() => setIntro('off')} />
+        {intro === 'opening' && <IntroCutscene part="opening" onDone={startGym} />}
+        {(intro === 'playing' || intro === 'outro') && (
+          <IntroCutscene part="pitch" onHandoff={() => { setIntro('outro'); setSelectedIndex(0); setStatus(GameStatus.STAGE_SELECT); }} onDone={() => setIntro('off')} />
         )}
+        {status === GameStatus.PLAYING && selectedStage === GYM_STAGE && <TutorialHint lesson={lesson} />}
         {((status === GameStatus.VICTORY && (progressionRank === 0 || callPreview)) || callOutro) && (
           <RadioCutscene onHandoff={() => { setCallOutro(true); finishVictory(); }} onDone={() => setCallOutro(false)} />
         )}
@@ -769,8 +798,8 @@ const App: React.FC = () => {
           currentWeapon={currentWeapon}
           availableWeapons={availableWeapons}
           initialAmmo={weaponAmmo}
-          cheats={{ invincible: cheats.invincible, infiniteAmmo: cheats.infiniteAmmo, infinitePower: cheats.infinitePower, skipToBoss: cheats.skipToBoss && (startAt === undefined || startAt === 'boss') }}
-          startCheckpoint={cheats.skipToBoss && typeof startAt === 'number' ? startAt : 0}
+          cheats={{ invincible: cheats.invincible, infiniteAmmo: cheats.infiniteAmmo, infinitePower: cheats.infinitePower, skipToBoss: cheats.skipToBoss && selectedStage !== GYM_STAGE && (startAt === undefined || startAt === 'boss') }}
+          startCheckpoint={cheats.skipToBoss && selectedStage !== GYM_STAGE && typeof startAt === 'number' ? startAt : 0}
           bossTauntText={bossTaunt}
           onPlayerUpdate={handlePlayerUpdate}
           onBossEncounter={handleBossEncounter}
@@ -778,6 +807,8 @@ const App: React.FC = () => {
           onBossDefeated={handleBossDefeated}
           onBossDeath={() => setIsVictoryPhase(true)}
           onIntroComplete={() => setStatus(GameStatus.PLAYING)}
+          onStageDone={finishGym}
+          onTutorialHint={setLesson}
         />
       </div>
     </div>

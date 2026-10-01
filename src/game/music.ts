@@ -18,6 +18,7 @@ export interface Cue { song: string; arr?: string }
 const STAGE_SONG: Record<string, string> = {
   'Artie Avalanche': 'artie', 'Victor Volcano': 'victor', 'Ernie Earthquake': 'ernie', 'Hector Hurricane': 'hector',
   'Toxic Tommy': 'tommy', 'Blackout Barry': 'barry', 'Oily Oscar': 'oscar', 'Drug Trade Dale': 'dale',
+  'The Iron Pit': 'gym',
 };
 
 /** What the menus want (undefined: it's the game's call), whether it's paused, and how to ask the game. */

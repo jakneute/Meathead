@@ -31,6 +31,20 @@ const speckle = (g: Ctx, colors: string[], density: number, seed: number) => {
 };
 
 const MATERIALS: Record<string, Material> = {
+  'The Iron Pit': {
+    base: '#1A1A1A', dark: '#0D0D0D', light: '#3A3A3A',
+    texture: g => {
+      // Rubber gym tiles: flecked, the seams between them
+      speckle(g, ['#262626', '#121212', '#3A3A3A', '#2A2A2A'], 0.4, 11);
+      g.fillStyle = '#0A0A0A'; g.fillRect(0, 0, T, 2); g.fillRect(0, 0, 2, T);
+      speckle(g, ['#4A6A8A', '#8A4A4A'], 0.03, 12);
+    },
+    cap: (ctx, b) => {
+      ctx.fillStyle = '#2E2E2E'; ctx.fillRect(b.x, b.y, b.w, 6);
+      ctx.fillStyle = '#4A4A4A'; ctx.fillRect(b.x, b.y, b.w, 1);
+      ctx.fillStyle = '#E7E5E4'; for (let x = b.x + 30; x < b.x + b.w; x += 210) { ctx.fillRect(x, b.y + 2, 3, 2); ctx.fillRect(x + 4, b.y + 3, 2, 1); } // (chalk)
+    },
+  },
   'Artie Avalanche': {
     base: '#B9D3EE', dark: '#7F9CC6', light: '#EEF6FF',
     texture: g => { speckle(g, ['#A6C3E6', '#CFE2F7', '#94B4DD'], 0.3, 1); g.fillStyle = '#9DBBE0'; for (let x = 0; x < T; x += 2) g.fillRect(x, 30 + Math.round(Math.sin(x * 0.2) * 3), 2, 2); },

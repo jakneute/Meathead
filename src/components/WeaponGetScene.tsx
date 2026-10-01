@@ -170,6 +170,11 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, onDone }) => {
   // --- Derived animation values -------------------------------------------------
   const fade = clamp01(t / FADE_END);
   // (walked in on at the urinal, he's been in full view all along: he fades in on that instead)
+  // (walked in on: pulled back to start with, head to knees, his hairy ass and all, then pushing in on him as he
+  // finishes and turns round, to the face-off's usual framing; the top of him held where it is as it does)
+  const eggPush = egg === null ? 1 : clamp01((egg - EGG_PEE_MS * 0.55) / (EGG_PEE_MS * 0.45 + EGG_SHAKE_MS + EGG_TURN_MS));
+  const eggS = 0.62 + 0.38 * eggPush * eggPush * (3 - 2 * eggPush);
+  const eggPull = { s: eggS, ty: -0.43 * 1144 * (1 - eggS) };
   const faceIn = egg !== null ? clamp01(egg / (FACE_IN_END - FADE_END)) : clamp01((t - FADE_END) / (FACE_IN_END - FADE_END));
   const windup = clamp01((t - WINDUP) / (PUNCH - WINDUP));
   const punch = clamp01((t - PUNCH) / (IMPACT - PUNCH));
@@ -202,7 +207,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, onDone }) => {
             }}>
             {egg !== null ? <RestroomWall /> : <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 58%, rgba(127,29,29,0.55) 0%, rgba(20,0,0,0.6) 35%, #000 70%)' }} />}
             <div className="absolute left-1/2 -translate-x-1/2 bottom-[40px] w-[560px] h-[60px] rounded-[50%]" style={{ background: 'radial-gradient(ellipse, rgba(239,68,68,0.25), transparent 70%)' }} />
-            <div className="absolute left-1/2 top-[40px]" style={{ width: 520, height: 1144, marginLeft: -260, opacity: faceIn, filter: egg !== null ? 'drop-shadow(0 6px 14px rgba(0,0,0,0.6))' : 'drop-shadow(0 0 22px rgba(239,68,68,0.45))', transform: `scale(${0.88 + faceIn * 0.12}) rotate(${-windup * 5 + punch * 7}deg)`, transformOrigin: '50% 43%' }}>
+            <div className="absolute left-1/2 top-[40px]" style={{ width: 520, height: 1144, marginLeft: -260, opacity: faceIn, filter: egg !== null ? 'drop-shadow(0 6px 14px rgba(0,0,0,0.6))' : 'drop-shadow(0 0 22px rgba(239,68,68,0.45))', transform: `translateY(${eggPull.ty}px) scale(${(0.88 + faceIn * 0.12) * eggPull.s}) rotate(${-windup * 5 + punch * 7}deg)`, transformOrigin: '50% 43%' }}>
               <FaceOffMeathead t={t} windup={windup} punching={punching || (t >= IMPACT && t < IMPACT + 180)} egg={egg} />
             </div>
           </div>

@@ -54,14 +54,17 @@ game/stages/oscar/runtime.ts:177 call: chaseDeathMessage(rt.chase)
 game/stages/oscar/chase.ts:581 name: undefined
 game/stages/oscar/bar.ts:152 template: `NOT ENOUGH GAS YET. ${left === 1 ? 'ONE MORE LINE' : 'TWO MORE LINES'} TO OPEN.`
 game/stages/oscar/script.ts:79 voice: VOICES[line.who]
+game/stages/gym/script.ts:77 voice: VOICES[line.who]
+game/stages/gym/runtime.ts:170 name: undefined
+game/stages/gym/runtime.ts:172 call: deathByCause(ctx.state)
 game/core/effects.ts:236 call: getHurtLines(hurtSource)
 game/core/effects.ts:236 call: killLine(category, victim)
-game/core/update.ts:170 name: undefined
-game/core/update.ts:512 call: layout?.deathMessage?.(ctx)
-game/core/update.ts:512 name: undefined
-game/core/update.ts:512 call: deathByCause(state)
-game/core/update.ts:512 call: deathFallback(state, ctx.stageId, fell)
+game/core/update.ts:179 name: undefined
+game/core/update.ts:521 call: layout?.deathMessage?.(ctx)
+game/core/update.ts:521 name: undefined
+game/core/update.ts:521 call: deathByCause(state)
+game/core/update.ts:521 call: deathFallback(state, ctx.stageId, fell)
 game/player/player.ts:69 call: message()
-App.tsx:188 voice: getBossVoice(selectedStage)
-App.tsx:345 name: undefined
-App.tsx:346 expr: null
+App.tsx:195 voice: getBossVoice(selectedStage)
+App.tsx:352 name: undefined
+App.tsx:353 expr: null
