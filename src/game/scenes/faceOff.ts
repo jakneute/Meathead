@@ -5,7 +5,7 @@
 // belt's stitching and the buckle's shine; the tactical pants creased and pocketed, the steel toes scuffed.
 //
 // In the old picture's coordinates (200 x 440: the head at the top, the boots at the bottom), lit from the upper
-// left. `windup` (0..1) draws the right fist back, narrows the eyes and bares the teeth; `punching` takes the right
+// left. `windup` (0..1) draws the left fist back, narrows the eyes and bares the teeth; `punching` takes the left
 // arm away (it's coming at the lens) and drives the shoulder forward.
 
 import { INK, hash, shape, speckle } from './art/ink';
@@ -372,15 +372,16 @@ export const drawFaceOff = (ctx: Ctx, t: number, windup: number, punching: boole
   neck(ctx, t, windup);
   head(ctx, t, windup, punching);
   ctx.restore();
-  // His left guard (our right), and the right (the punching arm): back on the wind-up, gone mid-punch
-  guardArm(ctx, 1, t);
+  // His right guard (our left), and the left (the punching arm): back on the wind-up, gone mid-punch
+  // (he's a lefty: the right stays up in the guard, it's the left, on our right, that draws back and goes)
+  guardArm(ctx, -1, t);
   if (!punching) {
-    ctx.save(); ctx.translate(-windup * 14, windup * 10); ctx.translate(40, 104); ctx.rotate(-windup * 14 * Math.PI / 180); ctx.translate(-40, -104);
-    guardArm(ctx, -1, t);
+    ctx.save(); ctx.translate(windup * 14, windup * 10); ctx.translate(160, 104); ctx.rotate(windup * 14 * Math.PI / 180); ctx.translate(-160, -104);
+    guardArm(ctx, 1, t);
     ctx.restore();
   } else {
     // (the shoulder driving through, the arm already gone at the lens)
-    bulge(ctx, () => ctx.arc(52, 106, 30, 0, Math.PI * 2), 52, 106, 30, 2.8);
-    for (let k = 0; k < 5; k++) groove(ctx, [36 + k * 7, 84, 38 + k * 7, 98, 40 + k * 7, 112, 38 + k * 8, 128], 0.8, 0.35);
+    bulge(ctx, () => ctx.arc(148, 106, 30, 0, Math.PI * 2), 148, 106, 30, 2.8);
+    for (let k = 0; k < 5; k++) groove(ctx, [164 - k * 7, 84, 162 - k * 7, 98, 160 - k * 7, 112, 162 - k * 8, 128], 0.8, 0.35);
   }
 };

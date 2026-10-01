@@ -427,7 +427,7 @@ const GiantFist: React.FC = () => (
 
 /**
  * Meathead from the front, square to the camera in a boxing guard, painted in gross-up detail (see
- * game/scenes/faceOff.ts). His right fist draws back on the wind-up and is gone (it's coming at you) during the punch.
+ * game/scenes/faceOff.ts). His left fist draws back on the wind-up and is gone (it's coming at you) during the punch.
  */
 export const FaceOffMeathead: React.FC<{ t: number; windup: number; punching: boolean; egg?: number | null }> = ({ t, windup, punching, egg = null }) => {
   const ref = useRef<HTMLCanvasElement>(null);

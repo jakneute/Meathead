@@ -298,13 +298,14 @@ export const drawEggFront = (ctx: Ctx, t: number, windup: number, punching: bool
   neck(ctx, t, windup);
   head(ctx, t, windup, punching);
   ctx.restore();
-  guardArm(ctx, 1, t);
+  // (he's a lefty: the right stays up in the guard, it's the left, on our right, that draws back and goes)
+  guardArm(ctx, -1, t);
   if (!punching) {
-    ctx.save(); ctx.translate(-windup * 14, windup * 10); ctx.translate(40, 104); ctx.rotate(-windup * 14 * Math.PI / 180); ctx.translate(-40, -104);
-    guardArm(ctx, -1, t);
+    ctx.save(); ctx.translate(windup * 14, windup * 10); ctx.translate(160, 104); ctx.rotate(windup * 14 * Math.PI / 180); ctx.translate(-160, -104);
+    guardArm(ctx, 1, t);
     ctx.restore();
   } else {
-    bulge(ctx, () => ctx.arc(52, 106, 30, 0, Math.PI * 2), 52, 106, 30, 2.8);
-    for (let k = 0; k < 5; k++) groove(ctx, [36 + k * 7, 84, 38 + k * 7, 98, 40 + k * 7, 112, 38 + k * 8, 128], 0.8, 0.35);
+    bulge(ctx, () => ctx.arc(148, 106, 30, 0, Math.PI * 2), 148, 106, 30, 2.8);
+    for (let k = 0; k < 5; k++) groove(ctx, [164 - k * 7, 84, 162 - k * 7, 98, 160 - k * 7, 112, 162 - k * 8, 128], 0.8, 0.35);
   }
 };
