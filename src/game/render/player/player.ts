@@ -526,6 +526,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.restore();
   }
   ctx.restore();
+  // Shit himself (game/player/gut.ts): the seat of his pants soaked through brown, and it's run down his legs
+  if (p.gut?.stage === 2 && !isSwimming) drawShitPants(ctx, isDucking ? -16 : -26, isDucking ? 10 : 20);
 
   // ==========================================
   // LAYER 3: WEIGHTLIFTING BELT
@@ -935,6 +937,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // Back out of his local frame and stamp the outlined sprite into the world
   finishBody();
 
+  // The stink coming up off him, and the flies he's picked up
+  if (p.gut?.stage === 2 && !p.swimming) drawStink(ctx, p.pos.x + p.width / 2 - p.facing * 14, p.pos.y + p.height - 22, animFrame);
+
   // Pain sparks when knocked out of a special move
   if (hurtT >= 0 && hurtT < 0.5) {
     ctx.save();
@@ -1218,6 +1223,44 @@ const drawGroundShadow = (ctx: CanvasRenderingContext2D, p: Player, state: GameS
   ctx.beginPath();
   ctx.ellipse(cx, groundY, p.width * 0.65 * (0.5 + 0.5 * k), 5 * (0.5 + 0.5 * k), 0, 0, Math.PI * 2);
   ctx.fill();
+  ctx.restore();
+};
+
+/** The seat of his pants from `top` down `h`: soaked through brown, darkest at the seat, runs down the backs of both legs. */
+const drawShitPants = (ctx: CanvasRenderingContext2D, top: number, h: number) => {
+  ctx.save();
+  ctx.fillStyle = 'rgba(92, 58, 22, 0.75)';
+  ctx.beginPath(); ctx.ellipse(-4, top + 5, 9, 6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(70, 42, 14, 0.8)';
+  ctx.beginPath(); ctx.ellipse(-7, top + 4, 5, 4, 0, 0, Math.PI * 2); ctx.fill();
+  // (it's run: streaks down the inside of each leg, a drip off the end of the longest)
+  ctx.fillStyle = 'rgba(92, 58, 22, 0.7)';
+  ctx.fillRect(-9, top + 8, 3, h * 0.55); ctx.fillRect(-2, top + 9, 2.5, h * 0.4); ctx.fillRect(4, top + 8, 2.5, h * 0.3);
+  ctx.beginPath(); ctx.arc(-7.5, top + 8 + h * 0.55, 1.8, 0, Math.PI * 2); ctx.fill();
+  // (a wet shine on it)
+  ctx.fillStyle = 'rgba(200, 160, 100, 0.35)'; ctx.fillRect(-6, top + 2, 4, 1);
+  ctx.restore();
+};
+
+/** Wavy green stink lines rising off him, and two flies looping round his backside (world space). */
+const drawStink = (ctx: CanvasRenderingContext2D, x: number, y: number, f: number) => {
+  ctx.save();
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 3; i++) {
+    const t = ((f * 0.6 + i * 26) % 80) / 80;
+    ctx.strokeStyle = `rgba(150, 175, 70, ${(0.7 * (1 - t)).toFixed(2)})`;
+    const bx = x + (i - 1) * 6, by = y - t * 26;
+    ctx.beginPath();
+    for (let k = 0; k <= 7; k++) { const yy = by - k * 2.2, xx = bx + Math.sin(k * 0.9 + f * 0.15 + i) * 3; if (k === 0) ctx.moveTo(xx, yy); else ctx.lineTo(xx, yy); }
+    ctx.stroke();
+  }
+  ctx.fillStyle = '#111827';
+  for (let i = 0; i < 2; i++) {
+    const a = f * (0.16 + i * 0.05) + i * 2.5;
+    const fx = x + Math.cos(a) * (16 + i * 5), fy = y + 8 + Math.sin(a * 1.7) * 9;
+    ctx.fillRect(fx - 1, fy - 1, 2.5, 2.5);
+    if (f % 4 < 2) { ctx.fillStyle = 'rgba(226, 232, 240, 0.7)'; ctx.fillRect(fx - 2, fy - 3, 2, 1.5); ctx.fillRect(fx + 1, fy - 3, 2, 1.5); ctx.fillStyle = '#111827'; }
+  }
   ctx.restore();
 };
 

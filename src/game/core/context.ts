@@ -15,7 +15,8 @@ export interface GameEvents {
   /** `corpseWeapon` is set when he died to his weakness (and left a wrecked corpse behind). */
   onBossDefeated: (stageId: string, corpseWeapon?: WeaponType) => void;
   onBossTransition: () => void;
-  onBossEncounter: () => void;
+  /** `shat`: he's walked in having shit himself (game/player/gut.ts), and the boss has a different intro for it. */
+  onBossEncounter: (shat?: boolean) => void;
   onBossDeath: () => void;
   onIntroComplete: () => void;
   /** A stage that isn't a boss's (the gym) has played out to its end. */

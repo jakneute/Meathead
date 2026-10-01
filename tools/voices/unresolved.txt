@@ -1,22 +1,22 @@
 components/Cutscene.tsx:86 voice: p.voice
 components/Cutscene.tsx:94 voice: p.voice
-game/bosses/shared.ts:138 voice: getBossVoice(bossId)
+game/bosses/shared.ts:139 voice: getBossVoice(bossId)
 game/bosses/oscar.ts:187 name: undefined
-game/stages/artie/ski.ts:485 name: undefined
-game/stages/artie/ski.ts:490 name: undefined
-game/stages/artie/ski.ts:490 call: deathByCause(state)
+game/stages/artie/ski.ts:493 name: undefined
+game/stages/artie/ski.ts:498 name: undefined
+game/stages/artie/ski.ts:498 call: deathByCause(state)
 game/stages/hector/daycare.ts:38 voice: voiceOf(who)
-game/stages/hector/chase.ts:338 call: deathByCause(state)
-game/stages/hector/hazards.ts:437 name: undefined
+game/stages/hector/chase.ts:349 call: deathByCause(state)
 game/stages/hector/hazards.ts:443 name: undefined
+game/stages/hector/hazards.ts:449 name: undefined
 game/stages/victor/hazards.ts:262 name: undefined
 game/stages/victor/hazards.ts:270 name: undefined
 game/stages/ernie/quake.ts:344 name: undefined
 game/stages/ernie/alcatraz.ts:72 voice: voice
 game/stages/ernie/jetski.ts:488 name: undefined
-game/stages/ernie/bridge.ts:185 expr: 4
-game/stages/ernie/bridge.ts:185 expr: 72
-game/stages/ernie/index.ts:22 name: undefined
+game/stages/ernie/bridge.ts:187 expr: 4
+game/stages/ernie/bridge.ts:187 expr: 72
+game/stages/ernie/index.ts:23 name: undefined
 game/stages/ernie/doorCrash.ts:105 voice: 'guide'
 game/stages/ernie/doorCrash.ts:115 voice: 'hipster'
 game/stages/ernie/doorCrash.ts:147 voice: 'meathead'
@@ -55,16 +55,16 @@ game/stages/oscar/chase.ts:581 name: undefined
 game/stages/oscar/bar.ts:152 template: `NOT ENOUGH GAS YET. ${left === 1 ? 'ONE MORE LINE' : 'TWO MORE LINES'} TO OPEN.`
 game/stages/oscar/script.ts:79 voice: VOICES[line.who]
 game/stages/gym/script.ts:77 voice: VOICES[line.who]
-game/stages/gym/runtime.ts:264 name: undefined
-game/stages/gym/runtime.ts:266 call: deathByCause(ctx.state)
+game/stages/gym/runtime.ts:339 name: undefined
+game/stages/gym/runtime.ts:341 call: deathByCause(ctx.state)
 game/core/effects.ts:236 call: getHurtLines(hurtSource)
 game/core/effects.ts:236 call: killLine(category, victim)
-game/core/update.ts:180 name: undefined
-game/core/update.ts:523 call: layout?.deathMessage?.(ctx)
-game/core/update.ts:523 name: undefined
-game/core/update.ts:523 call: deathByCause(state)
-game/core/update.ts:523 call: deathFallback(state, ctx.stageId, fell)
-game/player/player.ts:69 call: message()
-App.tsx:195 voice: getBossVoice(selectedStage)
-App.tsx:352 name: undefined
-App.tsx:353 expr: null
+game/core/update.ts:181 name: undefined
+game/core/update.ts:525 call: layout?.deathMessage?.(ctx)
+game/core/update.ts:525 name: undefined
+game/core/update.ts:525 call: deathByCause(state)
+game/core/update.ts:525 call: deathFallback(state, ctx.stageId, fell)
+game/player/player.ts:77 call: message()
+App.tsx:196 voice: getBossVoice(selectedStage)
+App.tsx:371 name: undefined
+App.tsx:372 expr: null

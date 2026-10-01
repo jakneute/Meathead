@@ -191,12 +191,12 @@ const drawWaterStains = (ctx: CanvasRenderingContext2D, state: GameState) => {
     ctx.beginPath(); ctx.rect(x1, s.surface - 6, x2 - x1, 200); ctx.clip();
     // Clouded water under it
     const g = ctx.createLinearGradient(0, s.surface, 0, s.surface + 150);
-    const deep = s.kind === 'sludge' ? '77, 92, 30' : '12, 10, 16';
+    const deep = s.kind === 'sludge' ? '77, 92, 30' : s.kind === 'shit' ? '92, 58, 22' : '12, 10, 16';
     g.addColorStop(0, `rgba(${deep}, ${0.55 * a})`); g.addColorStop(1, `rgba(${deep}, 0)`);
     ctx.fillStyle = g;
     ctx.beginPath(); ctx.ellipse(s.x, s.surface, r, 150, 0, 0, Math.PI); ctx.fill();
     // The slick on top
-    ctx.fillStyle = s.kind === 'sludge' ? `rgba(101, 124, 30, ${0.85 * a})` : `rgba(10, 10, 14, ${0.9 * a})`;
+    ctx.fillStyle = s.kind === 'sludge' ? `rgba(101, 124, 30, ${0.85 * a})` : s.kind === 'shit' ? `rgba(120, 78, 30, ${0.8 * a})` : `rgba(10, 10, 14, ${0.9 * a})`;
     ctx.beginPath(); ctx.ellipse(s.x, s.surface + 1, r, 5, 0, 0, Math.PI * 2); ctx.fill();
     if (s.kind === 'oil') {
       // A rainbow sheen on it

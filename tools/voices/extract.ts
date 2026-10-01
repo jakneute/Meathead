@@ -53,6 +53,8 @@ for (const [boss, lines] of Object.entries(dialogue.BOSS_DIALOGUE.THRESHOLDS)) f
 for (const [boss, r] of Object.entries(dialogue.BOSS_WEAPON_REACTIONS)) if (BOSS_ID[boss]) for (const t of allStrings(r)) add(BOSS_ID[boss], t, 'REACTIONS');
 for (const [boss, r] of Object.entries(dialogue.BOSS_OWN_WEAPON_LINES)) if (BOSS_ID[boss]) for (const t of allStrings(r)) add(BOSS_ID[boss], t, 'OWN_WEAPON');
 for (const t of allStrings(dialogue.VICTOR_LINES)) add('boss.victor', t, 'VICTOR_LINES');
+for (const [boss, r] of Object.entries(dialogue.BOSS_SHAT_LINES)) if (BOSS_ID[boss]) for (const t of allStrings(r)) add(BOSS_ID[boss], t, 'SHAT');
+for (const t of allStrings(dialogue.GUT_LINES)) add('meathead', t, 'GUT');
 for (const t of allStrings(dialogue.DALE_LINES)) add('boss.dale', t, 'DALE_LINES');
 for (const t of allStrings(dialogue.BARRY_LINES)) add('boss.barry', t, 'BARRY_LINES');
 for (const t of allStrings(dialogue.OSCAR_LINES)) add('boss.oscar', t, 'OSCAR_LINES');

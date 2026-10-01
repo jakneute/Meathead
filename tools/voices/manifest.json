@@ -226,6 +226,11 @@
  },
  {
   "voice": "announcer",
+  "text": "CODE BROWN!",
+  "from": "game/player/gut.ts:51"
+ },
+ {
+  "voice": "announcer",
   "text": "COLLATERAL!",
   "from": "KILL_CALLOUTS"
  },
@@ -687,7 +692,7 @@
  {
   "voice": "announcer",
   "text": "NOT YET!",
-  "from": "game/stages/gym/runtime.ts:187"
+  "from": "game/stages/gym/runtime.ts:261"
  },
  {
   "voice": "announcer",
@@ -1401,6 +1406,11 @@
  },
  {
   "voice": "boss.artie",
+  "text": "DON'T SQUAT! DON'T YOU DARE SQUAT IN HERE!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.artie",
   "text": "I MADE THOSE SHARDS. THEY KNOW THEIR MASTER.",
   "from": "OWN_WEAPON"
  },
@@ -1421,6 +1431,11 @@
  },
  {
   "voice": "boss.artie",
+  "text": "I'M NOT TOUCHING YOU! I'LL FREEZE YOU FROM OVER HERE!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.artie",
   "text": "I'M... SWEATING. I HAVE NEVER SWEATED.",
   "from": "THRESHOLDS"
  },
@@ -1438,6 +1453,21 @@
   "voice": "boss.artie",
   "text": "IS THAT ALL YOUR TINY GUN CAN DO?",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "IT'S IN THE ICE CORES NOW! TEN THOUSAND YEARS OF RECORD, RUINED!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "IT'S THAWING! WHY IS IT THAWING?! KEEP IT FROZEN!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "KILLED... BY A MAN WHO SHIT HIS PANTS...",
+  "from": "SHAT"
  },
  {
   "voice": "boss.artie",
@@ -1463,6 +1493,11 @@
   "voice": "boss.artie",
   "text": "OIL ON ICE? THAT'S JUST SLIPPERY.",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "PUT IT IN THE PERMAFROST! ALL OF IT!",
+  "from": "SHAT"
  },
  {
   "voice": "boss.artie",
@@ -1508,6 +1543,11 @@
   "voice": "boss.artie",
   "text": "WATER? I'LL JUST FREEZE IT.",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.artie",
+  "text": "WHAT IS THAT SMELL?! THAT'S IN YOUR PANTS! YOU WALKED INTO MY VAULT LIKE THAT?!",
+  "from": "SHAT"
  },
  {
   "voice": "boss.artie",
@@ -1571,6 +1611,11 @@
  },
  {
   "voice": "boss.barry",
+  "text": "CUT THE POWER! CUT THE AIR VENTS! CUT EVERYTHING!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.barry",
   "text": "ELECTRICAL FIRE! DON'T USE WATER!",
   "from": "REACTIONS"
  },
@@ -1596,6 +1641,11 @@
  },
  {
   "voice": "boss.barry",
+  "text": "GARY... HE DID THAT TOO, MAN... AT THE END...",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.barry",
   "text": "GARY... THERE THEY ARE... THE STARS... WE SAID WE'D SEE THEM TOGETHER...",
   "from": "THRESHOLDS"
  },
@@ -1611,6 +1661,11 @@
  },
  {
   "voice": "boss.barry",
+  "text": "I'M NOT TOUCHING YOU, MAN! NOT EVEN WITH THE NEEDLES!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.barry",
   "text": "ICE ON THE LINES! OUTAGE! OUTAGE!",
   "from": "REACTIONS"
  },
@@ -1618,6 +1673,11 @@
   "voice": "boss.barry",
   "text": "M-M-MY OWN TASER? I'M IMMUNE, D-DUMMY!",
   "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "MAN. GARY USED TO DO THAT. WHEN HE GOT NERVOUS. MY ROOMMATE, MAN.",
+  "from": "SHAT"
  },
  {
   "voice": "boss.barry",
@@ -1691,6 +1751,11 @@
  },
  {
   "voice": "boss.barry",
+  "text": "THAT'S A STRESS THING, MAN! GARY HAD A STRESS THING!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.barry",
   "text": "THAT'S FOR GARY! MY... COWORKER! JUST A COWORKER, MAN!",
   "from": "THRESHOLDS"
  },
@@ -1703,6 +1768,16 @@
   "voice": "boss.barry",
   "text": "THAT'S MY VOLTAGE! I'M JUST TAKING IT BACK!",
   "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "THAT'S NOT A DRUG I KNOW, MAN!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.barry",
+  "text": "THE LIGHTS ARE OFF AND I CAN STILL SEE IT, MAN!",
+  "from": "SHAT"
  },
  {
   "voice": "boss.barry",
@@ -1796,6 +1871,11 @@
  },
  {
   "voice": "boss.dale",
+  "text": "CLOSED... FOR FUMIGATION...",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.dale",
   "text": "CLOSED... FOR INVENTORY...",
   "from": "THRESHOLDS"
  },
@@ -1838,6 +1918,11 @@
   "voice": "boss.dale",
   "text": "I'M GONNA HURL! THE BUYERS WILL KILL ME!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "I'M NOT PAYING STREET VALUE FOR THAT!",
+  "from": "SHAT"
  },
  {
   "voice": "boss.dale",
@@ -1886,6 +1971,11 @@
  },
  {
   "voice": "boss.dale",
+  "text": "OKAY! I'M DIPPING INTO THE INVENTORY JUST TO FORGET THIS!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.dale",
   "text": "OOH, WHAT'S IN THIS BATCH?",
   "from": "REACTIONS"
  },
@@ -1906,8 +1996,23 @@
  },
  {
   "voice": "boss.dale",
+  "text": "SIR REGINALD WOULD NEVER!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.dale",
   "text": "SLICK MOVE. I RESPECT THE HUSTLE.",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "THAT'S A FELONY IN NEW MEXICO, MAN!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "THAT'S A WHOLE SHIPMENT, MAN! WHERE'D YOU MULE THAT?!",
+  "from": "SHAT"
  },
  {
   "voice": "boss.dale",
@@ -1938,6 +2043,11 @@
   "voice": "boss.dale",
   "text": "WHOA! COPS?! OH, IT'S JUST YOU!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.dale",
+  "text": "WHOA. I'VE MOVED A LOT OF PRODUCT, MAN. NOTHING THAT STEPPED ON.",
+  "from": "SHAT"
  },
  {
   "voice": "boss.dale",
@@ -1991,6 +2101,11 @@
  },
  {
   "voice": "boss.ernie",
+  "text": "AT LEAST... I DIED... CONTINENT...",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.ernie",
   "text": "BULLETS... BOUNCE OFF... BEDROCK.",
   "from": "REACTIONS"
  },
@@ -2016,6 +2131,11 @@
  },
  {
   "voice": "boss.ernie",
+  "text": "GET OFF MY LAWN! AND TAKE YOUR PANTS WITH YOU!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.ernie",
   "text": "GROUND ME? HA... I AM... THE GROUND.",
   "from": "REACTIONS"
  },
@@ -2036,8 +2156,23 @@
  },
  {
   "voice": "boss.ernie",
+  "text": "I WEAR DEPENDS, SONNY! THEY SELL 'EM AT THE PHARMACY!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "I'VE SMELLED BETTER COMING UP OUT OF A FAULT LINE!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.ernie",
   "text": "ICE... IN MY... CREVICES!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "IN MY DAY WE MADE IT TO THE OUTHOUSE, SONNY! UPHILL! IN AN EARTHQUAKE!",
+  "from": "SHAT"
  },
  {
   "voice": "boss.ernie",
@@ -2083,6 +2218,11 @@
   "voice": "boss.ernie",
   "text": "SEDIMENT... NOW... DISGUSTING.",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.ernie",
+  "text": "SHAKE IT LOOSE, WHY DON'T YOU! IT'S ALL COMING DOWN YOUR LEG ANYWAY!",
+  "from": "SHAT"
  },
  {
   "voice": "boss.ernie",
@@ -2136,6 +2276,11 @@
  },
  {
   "voice": "boss.ernie",
+  "text": "WHAT'D YOU EAT, THE WHOLE TOUR GROUP?!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.ernie",
   "text": "YOU CAN'T... HURT A MOUNTAIN... WITH ITSELF.",
   "from": "OWN_WEAPON"
  },
@@ -2176,6 +2321,11 @@
  },
  {
   "voice": "boss.hector",
+  "text": "...THE AIR QUALITY INDEX... IS... FATAL...",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.hector",
   "text": "AND NOW, THE FIVE-DAY FORECAST: YOU, DEAD!",
   "from": "THRESHOLDS"
  },
@@ -2198,6 +2348,11 @@
   "voice": "boss.hector",
   "text": "CATEGORY SIX! CATEGORY SIX!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "DOPPLER SHOWS A BROWN MASS! IT'S YOU!",
+  "from": "SHAT"
  },
  {
   "voice": "boss.hector",
@@ -2246,6 +2401,11 @@
  },
  {
   "voice": "boss.hector",
+  "text": "I'VE THROWN A THOUSAND LOGS AT YOU, AND YOU BROUGHT YOUR OWN!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.hector",
   "text": "ICE CUBES IN MY EYE OF THE STORM!",
   "from": "REACTIONS"
  },
@@ -2266,6 +2426,11 @@
  },
  {
   "voice": "boss.hector",
+  "text": "NO WIND IN THE WORLD CAN CLEAR THIS OUT!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.hector",
   "text": "OIL SPILL HURRICANE! COMING RIGHT UP!",
   "from": "REACTIONS"
  },
@@ -2273,6 +2438,11 @@
   "voice": "boss.hector",
   "text": "OOF! PINNED DOWN! NO WIND!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "SEVERE ODOR WARNING IN EFFECT! SEEK SHELTER!",
+  "from": "SHAT"
  },
  {
   "voice": "boss.hector",
@@ -2288,6 +2458,16 @@
   "voice": "boss.hector",
   "text": "THANKS FOR THE STORM SURGE, PAL!",
   "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "THE WIND'S BLOWING IT RIGHT AT ME! WHO PLANNED THIS STORM?!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.hector",
+  "text": "THIS JUST IN: A STRONG FRONT HAS MOVED IN. FROM HIS REAR.",
+  "from": "SHAT"
  },
  {
   "voice": "boss.hector",
@@ -2416,6 +2596,11 @@
  },
  {
   "voice": "boss.oscar",
+  "text": "DON'T TRACK IT ON THE CARPET, PAL! THAT'S IMPORTED!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.oscar",
   "text": "EASY, FRIEND. BULLETS SLIDE RIGHT OFF.",
   "from": "REACTIONS"
  },
@@ -2438,6 +2623,11 @@
   "voice": "boss.oscar",
   "text": "FIFTY? I CAN'T COUNT THAT HIGH. NO.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "FINAL OFFER... A SHOWER...",
+  "from": "SHAT"
  },
  {
   "voice": "boss.oscar",
@@ -2548,6 +2738,11 @@
   "voice": "boss.oscar",
   "text": "I WORK AT A REFINERY, GENIUS. I DRESS FOR THIS.",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "I'LL BUY THE PANTS! NAME YOUR PRICE! I'LL BURN 'EM MYSELF!",
+  "from": "SHAT"
  },
  {
   "voice": "boss.oscar",
@@ -2706,6 +2901,11 @@
  },
  {
   "voice": "boss.oscar",
+  "text": "TELL YOU WHAT: NEW PANTS, MY TREAT! JUST STOP COMING CLOSER!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.oscar",
   "text": "TEN GRAND! AND THE SUIT! THE FIREPROOF SUIT! JUST GO AWAY!",
   "from": "OSCAR_LINES"
  },
@@ -2731,8 +2931,18 @@
  },
  {
   "voice": "boss.oscar",
+  "text": "THAT'LL KNOCK A ZERO OFF THE PROPERTY VALUE!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.oscar",
   "text": "THAT'S A SLIPPERY SLOPE, PAL.",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "THAT'S NOT CRUDE, PAL! THAT'S REFINED! REFINED SHIT!",
+  "from": "SHAT"
  },
  {
   "voice": "boss.oscar",
@@ -2773,6 +2983,11 @@
   "voice": "boss.oscar",
   "text": "WHICH HALF IS THAT? ...THERE ISN'T ONE. NO.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "boss.oscar",
+  "text": "WHOA, PAL! WHOA! I CAN SELL ANYTHING. ANYTHING! BUT I CAN'T SELL THAT.",
+  "from": "SHAT"
  },
  {
   "voice": "boss.oscar",
@@ -2876,13 +3091,33 @@
  },
  {
   "voice": "boss.tommy",
+  "text": "DON'T WASTE IT ON ME! GIVE IT TO THE PIPES!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.tommy",
   "text": "ELECTRIFIED SEWAGE! BZZT! HURK!",
   "from": "REACTIONS"
  },
  {
   "voice": "boss.tommy",
+  "text": "EVEN I THINK THAT'S TOO MUCH! AND I DRINK THE WATER!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "FINALLY. SOMEBODY WHO RESPECTS THE SEWER.",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.tommy",
   "text": "FLUSH ME... DOWN WITH THE NEIGHBORS...",
   "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "FLUSH... TWICE...",
+  "from": "SHAT"
  },
  {
   "voice": "boss.tommy",
@@ -2893,6 +3128,11 @@
   "voice": "boss.tommy",
   "text": "GLUG GLUG... I'M SPREADING!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "HOLD IT IN, MAN! THE SYSTEM'S ALREADY AT CAPACITY!",
+  "from": "SHAT"
  },
  {
   "voice": "boss.tommy",
@@ -3001,8 +3241,18 @@
  },
  {
   "voice": "boss.tommy",
+  "text": "THAT'S A GOOD SAMPLE! I'M GONNA NEED THAT FOR TESTING!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.tommy",
   "text": "THAT'S MY BARF! I KNOW MY OWN BARF! BLURGH!",
   "from": "OWN_WEAPON"
+ },
+ {
+  "voice": "boss.tommy",
+  "text": "THAT'S UNTREATED! I CAN TELL!",
+  "from": "SHAT"
  },
  {
   "voice": "boss.tommy",
@@ -3053,6 +3303,11 @@
   "voice": "boss.victor",
   "text": "A ROCK IN MY VENT? CUTE. IT'LL POP RIGHT OUT.",
   "from": "VICTOR_LINES"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "BRO. BRO. STRICTLY NO SHIRTLESS GUESTS, AND YOU BROUGHT THAT INTO VIP?!",
+  "from": "SHAT"
  },
  {
   "voice": "boss.victor",
@@ -3116,6 +3371,11 @@
  },
  {
   "voice": "boss.victor",
+  "text": "I'M GONNA HAVE TO BURN THE WHOLE CLUB DOWN NOW! AGAIN!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.victor",
   "text": "I'M LAVA, MEATHEAD! I SHOWER IN THIS!",
   "from": "OWN_WEAPON"
  },
@@ -3136,6 +3396,11 @@
  },
  {
   "voice": "boss.victor",
+  "text": "LAST CALL... AND IT SMELLS LIKE THIS...",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.victor",
   "text": "LAST CALL... AT CLUB CALDERA...",
   "from": "THRESHOLDS"
  },
@@ -3153,6 +3418,11 @@
   "voice": "boss.victor",
   "text": "MY BLOOD IS LAVA, THE NEEDLE MELTED!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "NOT ON THE WHITE LEATHER, BRO!",
+  "from": "SHAT"
  },
  {
   "voice": "boss.victor",
@@ -3196,6 +3466,11 @@
  },
  {
   "voice": "boss.victor",
+  "text": "SECURITY! SOMEBODY CHECK HIS PANTS! NO! DON'T!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.victor",
   "text": "SMELLS LIKE BURNT GARBAGE NOW!",
   "from": "REACTIONS"
  },
@@ -3221,8 +3496,18 @@
  },
  {
   "voice": "boss.victor",
+  "text": "THE BOTTLE GIRLS ARE GAGGING, BRO!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.victor",
   "text": "THE DOORMAN HAD ONE JOB, BRO!",
   "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "THE HEAT'S MAKING IT WORSE, BRO! IT'S COOKING!",
+  "from": "SHAT"
  },
  {
   "voice": "boss.victor",
@@ -3747,7 +4032,7 @@
  {
   "voice": "death",
   "text": "ACT OF GOD",
-  "from": "game/stages/hector/chase.ts:338"
+  "from": "game/stages/hector/chase.ts:349"
  },
  {
   "voice": "death",
@@ -3847,7 +4132,7 @@
  {
   "voice": "death",
   "text": "BELLY FLOP OF THE CENTURY",
-  "from": "game/stages/ernie/bridge.ts:214"
+  "from": "game/stages/ernie/bridge.ts:221"
  },
  {
   "voice": "death",
@@ -4082,7 +4367,7 @@
  {
   "voice": "death",
   "text": "COAST GUARDED",
-  "from": "game/stages/hector/chase.ts:301"
+  "from": "game/stages/hector/chase.ts:312"
  },
  {
   "voice": "death",
@@ -4147,7 +4432,7 @@
  {
   "voice": "death",
   "text": "CREVASSE: 1, MEATHEAD: 0",
-  "from": "game/stages/artie/ski.ts:495"
+  "from": "game/stages/artie/ski.ts:503"
  },
  {
   "voice": "death",
@@ -4242,7 +4527,7 @@
  {
   "voice": "death",
   "text": "DIED ON CHEST DAY",
-  "from": "game/stages/gym/runtime.ts:268"
+  "from": "game/stages/gym/runtime.ts:343"
  },
  {
   "voice": "death",
@@ -4287,7 +4572,7 @@
  {
   "voice": "death",
   "text": "DON'T OVERDOSE THE TEST SUBJECTS",
-  "from": "game/stages/barry/hyper.ts:115"
+  "from": "game/stages/barry/hyper.ts:128"
  },
  {
   "voice": "death",
@@ -4307,7 +4592,7 @@
  {
   "voice": "death",
   "text": "DOWN THE WELL",
-  "from": "game/stages/ernie/index.ts:26"
+  "from": "game/stages/ernie/index.ts:27"
  },
  {
   "voice": "death",
@@ -4362,7 +4647,7 @@
  {
   "voice": "death",
   "text": "DROWNED IN THE DUNGEON",
-  "from": "game/stages/ernie/index.ts:26"
+  "from": "game/stages/ernie/index.ts:27"
  },
  {
   "voice": "death",
@@ -4427,7 +4712,7 @@
  {
   "voice": "death",
   "text": "ELECTROCUTED IN A PARKING LOT",
-  "from": "game/stages/hector/hazards.ts:442"
+  "from": "game/stages/hector/hazards.ts:448"
  },
  {
   "voice": "death",
@@ -4437,7 +4722,7 @@
  {
   "voice": "death",
   "text": "ELECTROCUTED IN THE WATER",
-  "from": "game/stages/hector/hazards.ts:221"
+  "from": "game/stages/hector/hazards.ts:227"
  },
  {
   "voice": "death",
@@ -4457,7 +4742,7 @@
  {
   "voice": "death",
   "text": "ESCAPED FROM ALCATRAZ",
-  "from": "game/stages/ernie/index.ts:25"
+  "from": "game/stages/ernie/index.ts:26"
  },
  {
   "voice": "death",
@@ -4487,7 +4772,7 @@
  {
   "voice": "death",
   "text": "FEEDING THE FISHES",
-  "from": "game/stages/hector/hazards.ts:412"
+  "from": "game/stages/hector/hazards.ts:418"
  },
  {
   "voice": "death",
@@ -4497,7 +4782,7 @@
  {
   "voice": "death",
   "text": "FELL THROUGH THE FLOOR",
-  "from": "game/stages/ernie/index.ts:24"
+  "from": "game/stages/ernie/index.ts:25"
  },
  {
   "voice": "death",
@@ -4537,7 +4822,7 @@
  {
   "voice": "death",
   "text": "FLASH-FROZEN MEAT POPSICLE",
-  "from": "game/stages/artie/ski.ts:495"
+  "from": "game/stages/artie/ski.ts:503"
  },
  {
   "voice": "death",
@@ -4597,7 +4882,7 @@
  {
   "voice": "death",
   "text": "FORGOT TO BREATHE",
-  "from": "game/stages/hector/hazards.ts:412"
+  "from": "game/stages/hector/hazards.ts:418"
  },
  {
   "voice": "death",
@@ -4617,7 +4902,7 @@
  {
   "voice": "death",
   "text": "FOUR NEEDLES IN A MUTANT WAS THREE TOO MANY",
-  "from": "game/stages/barry/hyper.ts:115"
+  "from": "game/stages/barry/hyper.ts:128"
  },
  {
   "voice": "death",
@@ -4662,12 +4947,12 @@
  {
   "voice": "death",
   "text": "GLUB GLUB GLUB",
-  "from": "game/stages/hector/hazards.ts:412"
+  "from": "game/stages/hector/hazards.ts:418"
  },
  {
   "voice": "death",
   "text": "GOD HATES YOU SPECIFICALLY",
-  "from": "game/stages/hector/hazards.ts:440"
+  "from": "game/stages/hector/hazards.ts:446"
  },
  {
   "voice": "death",
@@ -4952,7 +5237,7 @@
  {
   "voice": "death",
   "text": "KILLED BY INTERNS",
-  "from": "game/stages/gym/runtime.ts:268"
+  "from": "game/stages/gym/runtime.ts:343"
  },
  {
   "voice": "death",
@@ -5037,7 +5322,7 @@
  {
   "voice": "death",
   "text": "LIKE HITTING CONCRETE",
-  "from": "game/stages/ernie/bridge.ts:214"
+  "from": "game/stages/ernie/bridge.ts:221"
  },
  {
   "voice": "death",
@@ -5147,12 +5432,12 @@
  {
   "voice": "death",
   "text": "NEVER DOPE A SCIENCE PROJECT",
-  "from": "game/stages/barry/hyper.ts:115"
+  "from": "game/stages/barry/hyper.ts:128"
  },
  {
   "voice": "death",
   "text": "NEVER SWIM IN A LIGHTNING STORM",
-  "from": "game/stages/hector/hazards.ts:221"
+  "from": "game/stages/hector/hazards.ts:227"
  },
  {
   "voice": "death",
@@ -5362,7 +5647,7 @@
  {
   "voice": "death",
   "text": "PLANTED HEAD FIRST",
-  "from": "game/stages/artie/ski.ts:488"
+  "from": "game/stages/artie/ski.ts:496"
  },
  {
   "voice": "death",
@@ -5607,7 +5892,7 @@
  {
   "voice": "death",
   "text": "SEAFOOD BOIL",
-  "from": "game/stages/hector/hazards.ts:221"
+  "from": "game/stages/hector/hazards.ts:227"
  },
  {
   "voice": "death",
@@ -5642,7 +5927,7 @@
  {
   "voice": "death",
   "text": "SHARK FOOD",
-  "from": "game/stages/ernie/index.ts:25"
+  "from": "game/stages/ernie/index.ts:26"
  },
  {
   "voice": "death",
@@ -5687,7 +5972,7 @@
  {
   "voice": "death",
   "text": "SHOCKINGLY STUPID",
-  "from": "game/stages/hector/hazards.ts:221"
+  "from": "game/stages/hector/hazards.ts:227"
  },
  {
   "voice": "death",
@@ -5802,7 +6087,7 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE TAKEN SWIM LESSONS",
-  "from": "game/stages/hector/hazards.ts:412"
+  "from": "game/stages/hector/hazards.ts:418"
  },
  {
   "voice": "death",
@@ -5847,7 +6132,7 @@
  {
   "voice": "death",
   "text": "SKIED INTO THE ABYSS",
-  "from": "game/stages/artie/ski.ts:495"
+  "from": "game/stages/artie/ski.ts:503"
  },
  {
   "voice": "death",
@@ -5862,7 +6147,7 @@
  {
   "voice": "death",
   "text": "SKIPPED THE REST OF CHEST DAY",
-  "from": "game/stages/gym/runtime.ts:268"
+  "from": "game/stages/gym/runtime.ts:343"
  },
  {
   "voice": "death",
@@ -5912,7 +6197,7 @@
  {
   "voice": "death",
   "text": "SNOWBALLED INTO NEXT WEEK",
-  "from": "game/stages/artie/ski.ts:488"
+  "from": "game/stages/artie/ski.ts:496"
  },
  {
   "voice": "death",
@@ -6057,7 +6342,7 @@
  {
   "voice": "death",
   "text": "SURFACE TENSION: 1, MEATHEAD: 0",
-  "from": "game/stages/ernie/bridge.ts:214"
+  "from": "game/stages/ernie/bridge.ts:221"
  },
  {
   "voice": "death",
@@ -6082,7 +6367,7 @@
  {
   "voice": "death",
   "text": "SWIM FOR IT",
-  "from": "game/stages/ernie/index.ts:25"
+  "from": "game/stages/ernie/index.ts:26"
  },
  {
   "voice": "death",
@@ -6132,7 +6417,7 @@
  {
   "voice": "death",
   "text": "THE BAY SAYS NO",
-  "from": "game/stages/ernie/bridge.ts:214"
+  "from": "game/stages/ernie/bridge.ts:221"
  },
  {
   "voice": "death",
@@ -6207,7 +6492,7 @@
  {
   "voice": "death",
   "text": "THE HOLE",
-  "from": "game/stages/ernie/index.ts:24"
+  "from": "game/stages/ernie/index.ts:25"
  },
  {
   "voice": "death",
@@ -6242,12 +6527,12 @@
  {
   "voice": "death",
   "text": "THE MOUNTAIN WON",
-  "from": "game/stages/artie/ski.ts:495"
+  "from": "game/stages/artie/ski.ts:503"
  },
  {
   "voice": "death",
   "text": "THE OTHER SIDE OF THE MOUNTAIN",
-  "from": "game/stages/artie/ski.ts:488"
+  "from": "game/stages/artie/ski.ts:496"
  },
  {
   "voice": "death",
@@ -6257,7 +6542,7 @@
  {
   "voice": "death",
   "text": "THE PENCIL NECKS WON",
-  "from": "game/stages/gym/runtime.ts:268"
+  "from": "game/stages/gym/runtime.ts:343"
  },
  {
   "voice": "death",
@@ -6327,7 +6612,7 @@
  {
   "voice": "death",
   "text": "THIN ICE",
-  "from": "game/stages/artie/ski.ts:488"
+  "from": "game/stages/artie/ski.ts:496"
  },
  {
   "voice": "death",
@@ -6522,12 +6807,12 @@
  {
   "voice": "death",
   "text": "YOU GAVE THE LAB EXPERIMENT SUPER STRENGTH",
-  "from": "game/stages/barry/hyper.ts:115"
+  "from": "game/stages/barry/hyper.ts:128"
  },
  {
   "voice": "death",
   "text": "YOU GOT AVALANCHED",
-  "from": "game/stages/artie/ski.ts:495"
+  "from": "game/stages/artie/ski.ts:503"
  },
  {
   "voice": "death",
@@ -6552,17 +6837,17 @@
  {
   "voice": "dispatch",
   "text": "DAVE?",
-  "from": "game/stages/artie/ski.ts:151"
+  "from": "game/stages/artie/ski.ts:155"
  },
  {
   "voice": "dispatch",
   "text": "DAVE? YOU GOOD, DAVE?",
-  "from": "game/stages/artie/ski.ts:151"
+  "from": "game/stages/artie/ski.ts:155"
  },
  {
   "voice": "dispatch",
   "text": "RANGER ONE, COME IN.",
-  "from": "game/stages/artie/ski.ts:151"
+  "from": "game/stages/artie/ski.ts:155"
  },
  {
   "voice": "doorman",
@@ -6722,32 +7007,32 @@
  {
   "voice": "gym.intern",
   "text": "DON'T HURT ME! I'M JUST AN INTERN! I'M NOT EVEN PAID!",
-  "from": "game/stages/gym/runtime.ts:123"
+  "from": "game/stages/gym/runtime.ts:168"
  },
  {
   "voice": "gym.intern",
   "text": "EVERYBODY RUSH HIM AT ONCE! HE CAN'T GET ALL OF US!",
-  "from": "game/stages/gym/runtime.ts:123"
+  "from": "game/stages/gym/runtime.ts:168"
  },
  {
   "voice": "gym.intern",
   "text": "HE CAN'T REACH US UP HERE! ...CAN HE?",
-  "from": "game/stages/gym/runtime.ts:123"
+  "from": "game/stages/gym/runtime.ts:168"
  },
  {
   "voice": "gym.intern",
   "text": "HE'S GETTING UP! HE'S GETTING UP!",
-  "from": "game/stages/gym/runtime.ts:123"
+  "from": "game/stages/gym/runtime.ts:168"
  },
  {
   "voice": "gym.intern",
   "text": "STAY TOGETHER! STRENGTH IN NUMBERS!",
-  "from": "game/stages/gym/runtime.ts:123"
+  "from": "game/stages/gym/runtime.ts:168"
  },
  {
   "voice": "gym.intern",
   "text": "THE BRIEFCASES WILL PROTECT US! THEY'RE GOVERNMENT ISSUE!",
-  "from": "game/stages/gym/runtime.ts:123"
+  "from": "game/stages/gym/runtime.ts:168"
  },
  {
   "voice": "gym.intern",
@@ -6762,7 +7047,7 @@
  {
   "voice": "hector.coastguard",
   "text": "GET OUT OF THE WATER, IDIOT!",
-  "from": "game/stages/hector/chase.ts:111"
+  "from": "game/stages/hector/chase.ts:118"
  },
  {
   "voice": "hector.coastguard",
@@ -6772,47 +7057,47 @@
  {
   "voice": "hector.coastguard",
   "text": "PREPARE TO BE BOARDED!",
-  "from": "game/stages/hector/chase.ts:111"
+  "from": "game/stages/hector/chase.ts:118"
  },
  {
   "voice": "hector.coastguard",
   "text": "PULL OVER! ...THE BOAT! PULL THE BOAT OVER!",
-  "from": "game/stages/hector/chase.ts:111"
+  "from": "game/stages/hector/chase.ts:118"
  },
  {
   "voice": "hector.coastguard",
   "text": "SIR. THAT IS A WATERSPOUT.",
-  "from": "game/stages/hector/chase.ts:111"
+  "from": "game/stages/hector/chase.ts:118"
  },
  {
   "voice": "hector.coastguard",
   "text": "THAT IS A STOLEN VESSEL!",
-  "from": "game/stages/hector/chase.ts:111"
+  "from": "game/stages/hector/chase.ts:118"
  },
  {
   "voice": "hector.coastguard",
   "text": "THERE IS A HURRICANE, GENIUS!",
-  "from": "game/stages/hector/chase.ts:111"
+  "from": "game/stages/hector/chase.ts:118"
  },
  {
   "voice": "hector.coastguard",
   "text": "TURN AROUND! NOBODY GOES OUT IN THIS!",
-  "from": "game/stages/hector/chase.ts:111"
+  "from": "game/stages/hector/chase.ts:118"
  },
  {
   "voice": "hector.coastguard",
   "text": "WE CAN SEE YOU! WE ARE RIGHT BEHIND YOU!",
-  "from": "game/stages/hector/chase.ts:111"
+  "from": "game/stages/hector/chase.ts:118"
  },
  {
   "voice": "hector.coastguard",
   "text": "YOU ARE BEING BOARDED!",
-  "from": "game/stages/hector/chase.ts:313"
+  "from": "game/stages/hector/chase.ts:324"
  },
  {
   "voice": "hector.coastie",
   "text": "WE SAID. GET OUT. OF THE WATER.",
-  "from": "game/stages/hector/chase.ts:323"
+  "from": "game/stages/hector/chase.ts:334"
  },
  {
   "voice": "hector.kid0",
@@ -7237,17 +7522,32 @@
  {
   "voice": "meathead",
   "text": "...NOW THOSE ARE NECKS.",
-  "from": "game/stages/gym/runtime.ts:250"
+  "from": "game/stages/gym/runtime.ts:325"
  },
  {
   "voice": "meathead",
   "text": "...OH SHIT.",
-  "from": "game/stages/artie/ski.ts:122"
+  "from": "game/stages/artie/ski.ts:126"
  },
  {
   "voice": "meathead",
   "text": "...OKAY. SAVES ME A BULLET.",
   "from": "game/stages/dale/town.ts:528"
+ },
+ {
+  "voice": "meathead",
+  "text": "...SHOULDN'T HAVE HAD THE GAS STATION SUSHI.",
+  "from": "GUT"
+ },
+ {
+  "voice": "meathead",
+  "text": "...THAT WASN'T A FART.",
+  "from": "GUT"
+ },
+ {
+  "voice": "meathead",
+  "text": "...THE CHILI. IT WAS THE CHILI.",
+  "from": "GUT"
  },
  {
   "voice": "meathead",
@@ -7697,7 +7997,7 @@
  {
   "voice": "meathead",
   "text": "AAAAAAAAAAAAAAHHHHHHH",
-  "from": "game/stages/ernie/bridge.ts:205"
+  "from": "game/stages/ernie/bridge.ts:209"
  },
  {
   "voice": "meathead",
@@ -8062,7 +8362,7 @@
  {
   "voice": "meathead",
   "text": "BULLETS AREN'T DOING ANYTHING. HE'S HIDING BEHIND A MAT.",
-  "from": "game/stages/gym/runtime.ts:199"
+  "from": "game/stages/gym/runtime.ts:273"
  },
  {
   "voice": "meathead",
@@ -8132,7 +8432,7 @@
  {
   "voice": "meathead",
   "text": "CAN'T SHOOT. BOTH HANDS ON THE MOTOR.",
-  "from": "game/stages/hector/chase.ts:114"
+  "from": "game/stages/hector/chase.ts:121"
  },
  {
   "voice": "meathead",
@@ -8997,7 +9297,7 @@
  {
   "voice": "meathead",
   "text": "FUCK YEAH! LET'S GO!",
-  "from": "App.tsx:437"
+  "from": "App.tsx:457"
  },
  {
   "voice": "meathead",
@@ -10382,7 +10682,7 @@
  {
   "voice": "meathead",
   "text": "I REGRET NOTHIIIIIIING",
-  "from": "game/stages/ernie/bridge.ts:205"
+  "from": "game/stages/ernie/bridge.ts:209"
  },
  {
   "voice": "meathead",
@@ -10877,7 +11177,7 @@
  {
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
-  "from": "App.tsx:437"
+  "from": "App.tsx:457"
  },
  {
   "voice": "meathead",
@@ -11012,7 +11312,7 @@
  {
   "voice": "meathead",
   "text": "LET'S FUCKING GO!",
-  "from": "App.tsx:437"
+  "from": "App.tsx:457"
  },
  {
   "voice": "meathead",
@@ -11087,7 +11387,7 @@
  {
   "voice": "meathead",
   "text": "MAKE ME!",
-  "from": "game/stages/hector/chase.ts:114"
+  "from": "game/stages/hector/chase.ts:121"
  },
  {
   "voice": "meathead",
@@ -11137,7 +11437,7 @@
  {
   "voice": "meathead",
   "text": "MINE NOW.",
-  "from": "game/stages/artie/ski.ts:122"
+  "from": "game/stages/artie/ski.ts:126"
  },
  {
   "voice": "meathead",
@@ -11492,7 +11792,7 @@
  {
   "voice": "meathead",
   "text": "NICE SKIS.",
-  "from": "game/stages/artie/ski.ts:122"
+  "from": "game/stages/artie/ski.ts:126"
  },
  {
   "voice": "meathead",
@@ -11601,6 +11901,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOBODY SAW THAT. KEEP MOVING.",
+  "from": "GUT"
+ },
+ {
+  "voice": "meathead",
   "text": "NOBODY TALKS ABOUT MY MOM.",
   "from": "components/RadioCutscene.tsx:25"
  },
@@ -11622,7 +11927,7 @@
  {
   "voice": "meathead",
   "text": "NOT LIKE THIS! I HAVEN'T EVEN HAD MY PROTEIN SHAKE!",
-  "from": "game/stages/artie/ski.ts:405"
+  "from": "game/stages/artie/ski.ts:413"
  },
  {
   "voice": "meathead",
@@ -11697,7 +12002,7 @@
  {
   "voice": "meathead",
   "text": "OH HELL YEAH!",
-  "from": "App.tsx:437"
+  "from": "App.tsx:457"
  },
  {
   "voice": "meathead",
@@ -11728,6 +12033,11 @@
   "voice": "meathead",
   "text": "OH, NOW WE FIGURE OUT THE DOOHICKEY. SLOW CLAP.",
   "from": "game/stages/victor/doorman.ts:529"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH. OH NO. OH, THAT'S EVERYWHERE.",
+  "from": "GUT"
  },
  {
   "voice": "meathead",
@@ -11767,7 +12077,7 @@
  {
   "voice": "meathead",
   "text": "OKAY. NO MORE GUN. TIME FOR SHOULDER.",
-  "from": "game/stages/gym/runtime.ts:199"
+  "from": "game/stages/gym/runtime.ts:273"
  },
  {
   "voice": "meathead",
@@ -12632,7 +12942,7 @@
  {
   "voice": "meathead",
   "text": "SHOULD'VE BUILT FURTHER UP.",
-  "from": "game/stages/artie/ski.ts:122"
+  "from": "game/stages/artie/ski.ts:126"
  },
  {
   "voice": "meathead",
@@ -13152,7 +13462,7 @@
  {
   "voice": "meathead",
   "text": "STOP SHOOTING THE MAT, MEATHEAD. SHOVE HIM.",
-  "from": "game/stages/gym/runtime.ts:199"
+  "from": "game/stages/gym/runtime.ts:273"
  },
  {
   "voice": "meathead",
@@ -13412,7 +13722,7 @@
  {
   "voice": "meathead",
   "text": "THAT MAT IS BULLETPROOF? WHAT KIND OF GYM IS THIS?",
-  "from": "game/stages/gym/runtime.ts:199"
+  "from": "game/stages/gym/runtime.ts:273"
  },
  {
   "voice": "meathead",
@@ -13438,6 +13748,11 @@
   "voice": "meathead",
   "text": "THAT OLD MAN'S ROCKS ARE ALL MOVED. HE'S UNDER ONE.",
   "from": "BOSS_REBUKES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT PROTEIN SHAKE WAS IN THE TRUCK ALL WEEK. IN THE SUN.",
+  "from": "GUT"
  },
  {
   "voice": "meathead",
@@ -13657,7 +13972,7 @@
  {
   "voice": "meathead",
   "text": "The field? The union? The bar? Water under the bridge, pal. Burning water. Now let's talk about YOU. What are you driving these days?",
-  "from": "game/core/update.ts:184"
+  "from": "game/core/update.ts:185"
  },
  {
   "voice": "meathead",
@@ -14121,13 +14436,18 @@
  },
  {
   "voice": "meathead",
+  "text": "TWELVE RAW EGGS. ON AN EMPTY STOMACH. HM.",
+  "from": "GUT"
+ },
+ {
+  "voice": "meathead",
   "text": "TWENTY THREE?! I PRESSED THE TOP ONE!",
   "from": "game/stages/barry/runtime.ts:328"
  },
  {
   "voice": "meathead",
   "text": "Two jet skis, sonny. Two tour groups. And now my front hall's caved in. I schedule my quakes AROUND the tour groups!",
-  "from": "game/core/update.ts:184"
+  "from": "game/core/update.ts:185"
  },
  {
   "voice": "meathead",
@@ -14152,7 +14472,7 @@
  {
   "voice": "meathead",
   "text": "UH OH. THAT ONE WAS ONE TOO MANY.",
-  "from": "game/stages/barry/hyper.ts:68"
+  "from": "game/stages/barry/hyper.ts:72"
  },
  {
   "voice": "meathead",
@@ -14338,6 +14658,11 @@
   "voice": "meathead",
   "text": "WELL DONE MOTHERFUCKER",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WELL. THERE GO THE GAINS.",
+  "from": "GUT"
  },
  {
   "voice": "meathead",
@@ -14662,12 +14987,12 @@
  {
   "voice": "meathead",
   "text": "You blew my whole power room, man. With Gary in it. My... roommate. Eleven years. One bedroom. We were ROOMMATES, man.",
-  "from": "game/core/update.ts:184"
+  "from": "game/core/update.ts:185"
  },
  {
   "voice": "meathead",
   "text": "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!",
-  "from": "game/core/update.ts:184"
+  "from": "game/core/update.ts:185"
  },
  {
   "voice": "meathead",
@@ -14707,7 +15032,7 @@
  {
   "voice": "meathead",
   "text": "You crashed my VIP lounge, bro. Those were investors. Now they're a geothermal feature.",
-  "from": "game/core/update.ts:184"
+  "from": "game/core/update.ts:185"
  },
  {
   "voice": "meathead",
@@ -14737,12 +15062,12 @@
  {
   "voice": "meathead",
   "text": "You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.",
-  "from": "game/core/update.ts:184"
+  "from": "game/core/update.ts:185"
  },
  {
   "voice": "meathead",
   "text": "You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I'M the terrorist?",
-  "from": "game/core/update.ts:184"
+  "from": "game/core/update.ts:185"
  },
  {
   "voice": "meathead",
@@ -14782,7 +15107,7 @@
  {
   "voice": "meathead",
   "text": "You put the neighbors down. You knocked over my water tower and surfed it through the block. That took WEEKS to fill!",
-  "from": "game/core/update.ts:184"
+  "from": "game/core/update.ts:185"
  },
  {
   "voice": "meathead",
@@ -14892,7 +15217,7 @@
  {
   "voice": "meathead",
   "text": "YOU'RE TOAST.",
-  "from": "game/core/update.ts:184"
+  "from": "game/core/update.ts:185"
  },
  {
   "voice": "meathead",
@@ -15282,17 +15607,17 @@
  {
   "voice": "skier",
   "text": "AAAAAAAAAAHHHHH",
-  "from": "game/stages/artie/ski.ts:132"
+  "from": "game/stages/artie/ski.ts:136"
  },
  {
   "voice": "skier",
   "text": "BRO. THE POWDER UP HERE IS SICK.",
-  "from": "game/stages/artie/ski.ts:132"
+  "from": "game/stages/artie/ski.ts:136"
  },
  {
   "voice": "skier",
   "text": "THANKS, THEY'RE CARBON FIB-",
-  "from": "game/stages/artie/ski.ts:132"
+  "from": "game/stages/artie/ski.ts:136"
  },
  {
   "voice": "tommy.crew",

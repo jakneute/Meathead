@@ -1,6 +1,7 @@
 // Top-level game loop step: dispatches on game status and runs each gameplay system in order.
 
 import { isMidBoss } from '../combat/midBoss';
+import { updateGut, isShat } from '../player/gut';
 import { GameStatus, WeaponType } from '../../types';
 import {
   CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, ARENA_RIGHT, DOOR_OPEN_SPEED, MAX_AMMO,
@@ -268,7 +269,7 @@ const arriveInArena = (ctx: FrameContext) => {
   state.doorState = 'done';
   state.player.isGrounded = true;
   state.bossCheckpoint = true;
-  ctx.events.onBossEncounter();
+  ctx.events.onBossEncounter(isShat(state));
 };
 
 const updateBossTransition = (ctx: FrameContext) => {
@@ -487,6 +488,7 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
 
   updatePlayerActions(ctx, input);
   updatePlayerPhysics(ctx, input);
+  updateGut(ctx, input);
   updateFlameSegments(ctx);
   updateTommyArena(ctx);
   if (state.ernieVibrationTimer > 0) {

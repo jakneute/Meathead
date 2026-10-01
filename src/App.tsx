@@ -26,7 +26,7 @@ import WeaponGetScene from './components/WeaponGetScene';
 import { GameStatus, WeaponType } from './types';
 import { INITIAL_PLAYER_HEALTH, MAX_AMMO, POWER_CELLS, createFullAmmo } from './constants';
 import { getStages, getStartingWeapons, sortWeapons, BOSS_WEAPON_MAP, WEAPONS_AFTER_SET_0, ALL_WEAPONS, STAGES_SET_0, STAGES_SET_1 } from './content/roster';
-import { VULGARITIES, BOSS_DIALOGUE, BOSS_REBUKES } from './content/dialogue';
+import { VULGARITIES, BOSS_DIALOGUE, BOSS_REBUKES, BOSS_SHAT_LINES } from './content/dialogue';
 import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS, menuButtons } from './game/platform/gamepad';
 import WeaponWheel, { wheelIndexAt } from './components/WeaponWheel';
 import { speak, say, isSpeaking, getBossVoice, takeFreshLine, MEATHEAD_MENU_VOICE } from './game/platform/speech';
@@ -566,10 +566,12 @@ const App: React.FC = () => {
 
   // --- Events from the game --------------------------------------------------
 
-  const handleBossEncounter = () => {
+  const handleBossEncounter = (shat?: boolean) => {
     setStatus(GameStatus.BOSS_INTRO);
     const pool = BOSS_DIALOGUE.INTRO_QUOTES[selectedStage || ''] || BOSS_DIALOGUE.INTRO_QUOTES['default'];
-    setBossTaunt(pool[1] || pool[0]);
+    // (he's walked in having shit himself: the boss has something else to say)
+    const shatLine = shat ? BOSS_SHAT_LINES[selectedStage || '']?.intro : undefined;
+    setBossTaunt(shatLine ?? (pool[1] || pool[0]));
   };
 
   const handleBossDefeated = (stageId: string, corpseWeapon?: WeaponType) => {

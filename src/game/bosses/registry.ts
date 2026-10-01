@@ -9,7 +9,7 @@ import {
   ARENA_LEFT, ARENA_RIGHT, STAGE_WIDTH, BULLET_DAMAGE, WEAKNESS_DAMAGE, ENEMY_HIT_COOLDOWN, TASER_BOSS_DAMAGE_REDUCTION,
   BOSS_WEAPON_REACTION_CHANCE, BOSS_WEAPON_REACTION_COOLDOWN, SPOKEN_TEXT_LINGER, BOSS_OWN_WEAPON_DAMAGE, BOSS_OWN_WEAPON_REACTION_CHANCE,
 } from '../../constants';
-import { BOSS_DIALOGUE, BOSS_WEAPON_REACTIONS, BOSS_OWN_WEAPON_LINES } from '../../content/dialogue';
+import { BOSS_DIALOGUE, BOSS_WEAPON_REACTIONS, BOSS_OWN_WEAPON_LINES, BOSS_SHAT_LINES } from '../../content/dialogue';
 import { BOSS_WEAPON_MAP } from '../../content/roster';
 import type { FrameContext } from '../core/context';
 import { GameState, calmPlayer } from '../core/state';
@@ -156,7 +156,7 @@ export const maybeReactToWeapon = (boss: Enemy, weapon: WeaponType, stageId: str
   }
   if (state.bossReactionCooldown > 0) return;
   if (Math.random() >= (own ? BOSS_OWN_WEAPON_REACTION_CHANCE : BOSS_WEAPON_REACTION_CHANCE)) return;
-  const lines = own || BOSS_WEAPON_REACTIONS[stageId]?.[weapon];
+  const lines = own || (state.player.gut?.stage === 2 ? BOSS_SHAT_LINES[stageId]?.react : undefined) || BOSS_WEAPON_REACTIONS[stageId]?.[weapon];
   if (!lines) return;
   const line = pickFreshLine(lines);
   if (line && speakAsBoss(stageId, line, helpers, 'casual')) state.bossReactionCooldown = BOSS_WEAPON_REACTION_COOLDOWN;
@@ -171,7 +171,8 @@ export const updateBossAI = (ctx: FrameContext, boss: Enemy) => {
   const { stageId } = ctx;
   boss.stateTimer = (boss.stateTimer || 0) - 1;
 
-  const lines = stageId ? BOSS_DIALOGUE.THRESHOLDS[stageId] : undefined;
+  // (he's shit himself: the boss's whole fight is about that instead)
+  const lines = stageId ? (ctx.state.player.gut?.stage === 2 && BOSS_SHAT_LINES[stageId]) || BOSS_DIALOGUE.THRESHOLDS[stageId] : undefined;
   if (stageId && lines) {
     const healthPct = (boss.health / boss.maxHealth) * 100;
     if (healthPct <= 75 && !boss.said75) { boss.said75 = true; speakAsBoss(stageId, lines[75], ctx.bossHelpers); }
@@ -214,7 +215,8 @@ const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolea
 
   // (whatever he was in the middle of saying, he doesn't get to finish: just his last words)
   cutBossLines();
-  if (stageId && BOSS_DIALOGUE.THRESHOLDS[stageId]) speakAsBoss(stageId, BOSS_DIALOGUE.THRESHOLDS[stageId][0], helpers);
+  const lastWords = stageId ? (state.player.gut?.stage === 2 && BOSS_SHAT_LINES[stageId]) || BOSS_DIALOGUE.THRESHOLDS[stageId] : undefined;
+  if (stageId && lastWords) speakAsBoss(stageId, lastWords[0], helpers);
 
   state.bossVolcanoes = [];
   state.bossVolcanoTelegraphs = [];

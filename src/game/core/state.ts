@@ -46,7 +46,7 @@ export interface GameState {
   /** How far through a long stage this attempt has got (respawns start at the last one). Kept across deaths. */
   checkpoint: number;
   /** Clean water fouled by the sludge barfer or an oil rocket: a slick spreading on the surface, fading after a while. */
-  waterStains?: { x: number; surface: number; x1: number; x2: number; kind: 'sludge' | 'oil'; at: number }[];
+  waterStains?: { x: number; surface: number; x1: number; x2: number; kind: 'sludge' | 'oil' | 'shit'; at: number }[];
   /** The taser just put a current through a stretch of water: where, and when. */
   waterShock?: { x1: number; x2: number; surface: number; bottom: number; at: number };
   /** The last checkpoint the banner went up for (unset until the stage has started: where it starts isn't shown). */

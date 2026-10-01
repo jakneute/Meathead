@@ -259,6 +259,23 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.45, gap: 300,
     make: () => { const lp = lowpass(); let ph = 0; return render(1.0, t => { ph += (55 + 90 * Math.min(1, t / 0.5)) / SFX_SR; return lp(((ph % 1) * 2 - 1) * (0.6 + 0.4 * Math.sign(Math.sin(TAU * ph * 0.5))) + rnd() * 0.2, 1200) * Math.min(1, t / 0.05) * (1 - t * 0.4); }); },
   },
+  fart: {
+    // A long, wet one: a buzzing low reed that wobbles and sags in pitch, flapping, then sputtering out in bursts
+    gain: 0.7, vary: 0.6, gap: 400, voices: 1,
+    make: () => {
+      const lp = lowpass(), bp = bandpass(), wet = crackle(0.08);
+      let ph = 0;
+      return render(1.5, t => {
+        const f = 104 + 22 * Math.sin(t * 6.3) + 9 * Math.sin(t * 23) - 34 * t;
+        ph += f / SFX_SR;
+        const reed = Math.tanh(5 * Math.sin(TAU * ph)) * (0.65 + 0.35 * Math.sin(TAU * 13 * t));
+        // (the sputter at the end: it cuts in and out)
+        const gate = t < 1.0 ? 1 : (Math.sin(TAU * (9 + (t - 1) * 14) * t) > 0.1 ? 1 : 0.08);
+        const env = Math.min(1, t / 0.02) * (t < 1.25 ? 1 : Math.max(0, 1 - (t - 1.25) / 0.25));
+        return lp(reed * 0.9 + bp(rnd(), 420, 1.4) * 0.35 + wet() * 0.5, 1300) * env * gate;
+      });
+    },
+  },
   rumble: {
     gain: 0.55, gap: 400,
     make: () => { const lp = lowpass(), c = crackle(0.01); return render(1.8, t => lp(rnd(), 140) * 3 * (0.6 + 0.4 * Math.sin(TAU * 7 * t)) * Math.min(1, t / 0.2) * ex(t, 1.2) + c() * ex(t, 1.5) * 0.4); },

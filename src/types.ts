@@ -50,7 +50,9 @@ export type SoundType =
   | 'splash' | 'glug' | 'tinkle'
   // signals, machines, the world
   | 'cursor' | 'menuok' | 'menuback' | 'beep' | 'alert' | 'ding' | 'pickup' | 'reload' | 'powerup' | 'alarm' | 'siren' | 'horn' | 'truckhorn' | 'engine'
-  | 'rumble' | 'thunder' | 'roar' | 'bellow' | 'snort' | 'screams';
+  | 'rumble' | 'thunder' | 'roar' | 'bellow' | 'snort' | 'screams'
+  // (him)
+  | 'fart';
 
 export interface Player extends Entity {
   /** Frames a shoulder charge can keep going while it's driving a shield goon back (held down, it lasts a good while longer). */
@@ -91,6 +93,8 @@ export interface Player extends Entity {
   hurtFormTimer?: number;
   /** Squash (+) / stretch (-) amount for landing and jumping, decays to 0. */
   squash?: number;
+  /** The crouching easter egg (game/player/gut.ts): frames crouched still, and how far it's got (1 the grumble, 2 he's shit himself). */
+  gut?: { t: number; stage: 0 | 1 | 2 };
 
   // Recoil from bouncing off an enemy (controls locked while lockTimer runs)
   lockTimer: number;
