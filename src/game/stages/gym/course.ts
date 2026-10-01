@@ -37,6 +37,8 @@ const Y = GROUND_Y;
 export const END_WALL = 46;
 /** The half-wall across the floor at the end of the cardio floor: where, how thick, its top. */
 export const WALL_X = X0 + 1700, WALL_W = 44, WALL_TOP = Y - 100;
+/** The mouse holes gnawed through the bottom of the wall along the benches (the far one with its vent grille hanging off). */
+export const RAT_HOLES = [X0 + 2075, X0 + 2205];
 /** The mezzanine's floor (up the steps), and how far it runs. */
 export const MEZZ_Y = Y - 200;
 
@@ -69,9 +71,10 @@ const build = () => {
 
   // ============ 3. UNDER THE BENCHES ============
   // The benches in a row, and the gym rats (real ones) scurrying between them, under where a bullet goes
-  prop('bench', 1880); prop('bench', 2010); prop('bench', 2140); prop('fountain', 2195, Y);
-  prop('poster', 2000, Y - 330, 'NO RATS ALLOWED');
-  // (they come out from under the benches once he's a way past the wall)
+  prop('bench', 1880); prop('bench', 2010); prop('bench', 2140); prop('fountain', 2290, Y);
+  prop('poster', 2205, Y - 330, 'NO RATS ALLOWED');
+  // (they come running out of the rat hole at the end of the benches once he's a way past the wall: these are where
+  // they'd be, in order, for a respawn past them)
   spawn('rat', 1980, 'benches'); spawn('rat', 2050, 'benches'); spawn('rat', 2120, 'benches'); spawn('rat', 2190, 'benches');
 
   // ============ 4. THE PLATE RACKS ============
@@ -113,7 +116,7 @@ const course = () => {
      * Rooms whose lot only turn up once he's got this far (the pacing: one thing at a time): the rats come out from under
      * the benches a way past the wall, and the ones on the racks drop through the ceiling a little past the rats.
      */
-    arrivals: { benches: X0 + 1820, racks: X0 + 2250 } as Partial<Record<Room, number>>,
+    arrivals: { benches: X0 + 1870, racks: X0 + 2250 } as Partial<Record<Room, number>>,
     rooms: { free: X0 + 200, cardio: X0 + 940, wall: X0 + 1480, benches: X0 + 1760, racks: X0 + 2220, mezzanine: X0 + 2960, lockers: X0 + 3780 } as Record<Room, number>,
     checkpoints: [{ x: X0 + 150, y: Y }, { x: X0 + 1790, y: Y }, { x: X0 + 2960, y: Y }],
     left: X0 - 1000,

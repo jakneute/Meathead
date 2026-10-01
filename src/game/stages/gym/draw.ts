@@ -6,8 +6,8 @@
 
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
-import { COURSE, CP, MEZZ_Y, END_WALL, WALL_X, WALL_W, WALL_TOP, Prop, Ledge } from './course';
-import { getGym, fadeAmount, GymRuntime, BigFella } from './runtime';
+import { COURSE, CP, MEZZ_Y, END_WALL, WALL_X, WALL_W, WALL_TOP, RAT_HOLES, Prop, Ledge } from './course';
+import { getGym, fadeAmount, GymRuntime, BigFella, TELEGRAPH } from './runtime';
 import { saying, drawBubble } from './script';
 
 type Ctx = CanvasRenderingContext2D;
@@ -30,6 +30,8 @@ export const drawGymBack = (ctx: Ctx, state: GameState) => {
   for (const p of COURSE.props) { const [a, b] = propSpan(p); if (inView(state, a, b)) drawProp(ctx, state, p); }
   drawDoors(ctx, state, rt);
   drawEndWall(ctx, state);
+  RAT_HOLES.forEach((x, i) => { if (inView(state, x - 40, x + 50)) drawRatHole(ctx, state, rt, x, i === RAT_HOLES.length - 1); });
+  drawCeilingGivingWay(ctx, state, rt);
 };
 
 /** The back wall: cinderblock, the lower half painted red and the top a dirty cream, a stripe between; the ceiling's beams and the tube lights hung off them. */
@@ -220,6 +222,51 @@ const drawEndWall = (ctx: Ctx, state: GameState) => {
   ctx.fillStyle = '#DC2626'; ctx.fillRect(x + 16, Y - 120, 12, 34); ctx.fillStyle = '#18181B'; ctx.fillRect(x + 18, Y - 126, 8, 6); ctx.fillRect(x + 27, Y - 124, 6, 3);
   ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x + 18, Y - 110, 8, 6);
   ctx.fillStyle = '#B91C1C'; ctx.fillRect(x + 12, Y - 160, 20, 12); ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 4px monospace'; ctx.fillText('FIRE', x + 15, Y - 152);
+};
+
+/**
+ * The rat hole: gnawed through the bottom of the wall at the end of the benches (an arch of dark, ragged at its edges,
+ * the gnawed block round it pale), the vent grille that was screwed over it hanging off one screw, droppings and crumbs
+ * out in front of it. The rats come out of here.
+ */
+const drawRatHole = (ctx: Ctx, state: GameState, rt: GymRuntime, x: number, grille: boolean) => {
+  const b = Y - 8;
+  ctx.fillStyle = '#C9B8A0';
+  ctx.beginPath(); ctx.moveTo(x - 20, b); ctx.lineTo(x - 18, b - 14); ctx.quadraticCurveTo(x, b - 30, x + 18, b - 14); ctx.lineTo(x + 20, b); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#0A0605';
+  ctx.beginPath(); ctx.moveTo(x - 15, b); ctx.lineTo(x - 14, b - 11); ctx.quadraticCurveTo(x, b - 25, x + 14, b - 11); ctx.lineTo(x + 15, b); ctx.closePath(); ctx.fill();
+  // (the ragged edge: teeth marks)
+  ctx.fillStyle = '#C9B8A0'; for (let k = 0; k < 7; k++) { const a = Math.PI + (k / 6) * Math.PI; ctx.fillRect(x + Math.cos(a) * 14 - 1, b - 11 + Math.sin(a) * 11 - 1, 2, 2); }
+  // (a rat about to come out of it: its eyes, catching the light, and its whiskers twitching at the edge)
+  const coming = rt.due.find(d => d.kind === 'rat' && d.x === x && d.at - state.frame < TELEGRAPH);
+  if (coming) {
+    const k = 1 - (coming.at - state.frame) / TELEGRAPH, blink = state.frame % 30 < 3;
+    if (!blink) { ctx.fillStyle = `rgba(239, 68, 68, ${0.4 + k * 0.6})`; ctx.fillRect(x - 5, b - 9, 2, 2); ctx.fillRect(x + 1, b - 9, 2, 2); }
+    if (k > 0.5) { ctx.strokeStyle = 'rgba(214, 211, 209, 0.8)'; ctx.lineWidth = 0.5; ctx.beginPath(); ctx.moveTo(x - 8, b - 7); ctx.lineTo(x - 14 - Math.sin(state.frame * 0.8) * 2, b - 8); ctx.moveTo(x - 8, b - 6); ctx.lineTo(x - 14, b - 4); ctx.stroke(); }
+  }
+  // (the grille, hanging off one screw, crooked)
+  if (grille) {
+    ctx.save(); ctx.translate(x + 22, b - 26); ctx.rotate(0.9);
+    ctx.fillStyle = '#9CA3AF'; ctx.fillRect(0, 0, 26, 16); ctx.fillStyle = '#4B5563'; for (let k = 0; k < 5; k++) ctx.fillRect(2, 2 + k * 3, 22, 1.5);
+    ctx.fillStyle = '#6B7280'; ctx.fillRect(1, 1, 2, 2);
+    ctx.restore();
+  }
+  // (droppings and crumbs out in front)
+  ctx.fillStyle = '#292524'; for (let k = 0; k < 6; k++) ctx.fillRect(x - 24 + k * 9 + (k % 2) * 3, Y - 3 - (k % 3), 2, 1.5);
+  ctx.fillStyle = '#D97706'; ctx.fillRect(x - 30, Y - 4, 3, 2); ctx.fillRect(x + 12, Y - 3, 2, 2);
+};
+
+/** A ceiling tile about to give: rattling in its grid (a crack of dark round it), until whoever's up there comes through it. */
+const drawCeilingGivingWay = (ctx: Ctx, state: GameState, rt: GymRuntime) => {
+  for (const d of rt.due) {
+    if (d.kind !== 'drop' || d.at - state.frame >= TELEGRAPH || !inView(state, d.x - 40, d.x + 40)) continue;
+    const k = 1 - (d.at - state.frame) / TELEGRAPH;
+    const tx = Math.floor(d.x / 64) * 64, ty = 30;
+    const jig = Math.sin(state.frame * (1.2 + k)) * (0.5 + k * 1.5);
+    ctx.fillStyle = '#0E0A08'; ctx.fillRect(tx + 1, ty + 1, 62, 28);
+    ctx.fillStyle = '#8A8473'; ctx.fillRect(tx + 2 + jig, ty + 2 + k * 3, 60, 26);
+    ctx.fillStyle = 'rgba(60, 50, 30, 0.35)'; ctx.fillRect(tx + 2 + jig, ty + 26 + k * 3, 60, 2);
+  }
 };
 
 /** The locker room's double doors at the end: swing doors, porthole windows, LOCKER ROOM over them; light beyond when they open. */

@@ -10,7 +10,7 @@ import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
 import { makeKindEnemy } from '../../enemies/kinds';
 import { CANVAS_WIDTH, GROUND_Y } from '../../../constants';
-import { COURSE, CP, Room, WALL_X, WALL_W } from './course';
+import { COURSE, CP, Room, WALL_X, WALL_W, RAT_HOLES } from './course';
 import { Talk, createTalk, updateTalk, queueLines, quiet, hush } from './script';
 
 /** What to do to the ones in front of him (the button prompt that's up), or nothing. */
@@ -43,6 +43,9 @@ export interface GymRuntime {
   bigFellas: BigFella[];
   /** The rooms whose lot have turned up (see COURSE.arrivals). */
   arrived: Set<Room>;
+  /** Who's still to turn up, where and when (frames): rats out of the mouse holes, pencil necks down through the ceiling
+   * onto the racks. Each gives itself away a moment before (TELEGRAPH): eyes in the hole, a ceiling tile rattling. */
+  due: { kind: 'rat' | 'drop'; x: number; y: number; at: number }[];
   /** The one behind the mat: shots that have hit it (counted once each), when Meathead last called it, when the announcer last said NOT YET. */
   matShots: number;
   shotIds: Set<string>;
@@ -82,34 +85,47 @@ export const createGymRuntime = (state: GameState): GymRuntime => {
     startedAt, talk: createTalk(), phase: 'play', t: 0, rooms, said: new Set(), speaker: null,
     moved: startedAt > CP.START, spawnX: NaN, lesson: null, told: undefined, doors: 0,
     bigFellas: [{ x: COURSE.doors, to: COURSE.doors - 190, delay: 0 }, { x: COURSE.doors, to: COURSE.doors - 120, delay: 26 }],
-    matShots: 0, shotIds: new Set(), saidShots: -999, notYetAt: -999, arrived: new Set(),
+    matShots: 0, shotIds: new Set(), saidShots: -999, notYetAt: -999, arrived: new Set(), due: [],
   };
   return rt;
 };
 
 /**
- * A room's lot turning up: the rats scurrying out from under the benches (a puff of dust where each comes out), the
+ * A room's lot turning up: the rats running out of the hole in the wall one after another (see ratsDue), the
  * ones for the racks dropping in through the ceiling tiles onto them (a tile knocked out, the dust and bits of it coming
  * down with them).
  */
 const arrive = (ctx: FrameContext, rt: GymRuntime, room: Room) => {
   const { state, fx } = ctx;
   rt.arrived.add(room);
-  for (const s of COURSE.spawns) {
-    if (s.room !== room) continue;
-    const e = makeKindEnemy(s.kind, s.x, s.y);
-    e.seen = true;
-    if (room === 'racks') {
-      // (from up in the ceiling: falls the rest of the way onto the rack)
-      e.pos.y = 72 - e.height * 0.4; e.vel = { x: 0, y: 1 };
-      for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: s.x + (Math.random() - 0.5) * 50, y: 66 }, vel: { x: (Math.random() - 0.5) * 3, y: 1 + Math.random() * 3 }, life: 50 + Math.random() * 30, color: i % 3 ? '#8A8473' : '#B8B2A0', size: 2 + Math.random() * 5 });
-      fx.playGunSound('crack', 0.6);
-    } else {
-      for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: s.x + (Math.random() - 0.5) * 30, y: s.y - 4 }, vel: { x: (Math.random() - 0.5) * 3, y: -Math.random() * 2 }, life: 24, color: '#A8A29E', size: 3 + Math.random() * 4 });
-    }
-    state.enemies.push(e);
-    rt.rooms[room].push(e.id);
+  // (the rats out of the mouse holes, a hole at a time, one after another; the ones for the racks down through the
+  // ceiling, one rack then the other: each a moment after it's given itself away)
+  const lot = COURSE.spawns.filter(s => s.room === room);
+  lot.forEach((s, i) => rt.due.push(room === 'benches'
+    ? { kind: 'rat', x: RAT_HOLES[i % RAT_HOLES.length], y: GROUND_Y, at: state.frame + TELEGRAPH + i * 26 }
+    : { kind: 'drop', x: s.x, y: s.y, at: state.frame + TELEGRAPH + i * 34 }));
+  void fx;
+};
+
+/** How long anybody gives himself away before he turns up (frames). */
+export const TELEGRAPH = 45;
+
+/** Someone turning up, when his time's come: a rat out of its hole (plaster dust), a pencil neck down through a ceiling tile. */
+const turnUp = (ctx: FrameContext, rt: GymRuntime, d: GymRuntime['due'][number]) => {
+  const { state, fx } = ctx;
+  if (d.kind === 'rat') {
+    const e = makeKindEnemy('rat', d.x, GROUND_Y);
+    e.seen = true; e.facing = -1; e.vel.x = -3;
+    state.enemies.push(e); rt.rooms.benches.push(e.id);
+    for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * 16, y: GROUND_Y - 6 }, vel: { x: -Math.random() * 2, y: -Math.random() * 1.5 }, life: 20, color: '#D6D3D1', size: 2 + Math.random() * 3 });
+    return;
   }
+  // (from up in the ceiling: the tile knocked out, and he falls the rest of the way onto the rack)
+  const e = makeKindEnemy('suit', d.x, d.y);
+  e.seen = true; e.pos.y = 72 - e.height * 0.4; e.vel = { x: 0, y: 1 };
+  state.enemies.push(e); rt.rooms.racks.push(e.id);
+  for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * 50, y: 66 }, vel: { x: (Math.random() - 0.5) * 3, y: 1 + Math.random() * 3 }, life: 50 + Math.random() * 30, color: i % 3 ? '#8A8473' : '#B8B2A0', size: 2 + Math.random() * 5 });
+  fx.playGunSound('crack', 0.6);
 };
 
 /** Is anybody in this room still up? */
@@ -153,6 +169,9 @@ export const updateGym = (ctx: FrameContext, controls: Controls): Controls => {
     }
     // (the rooms that turn up as he gets to them)
     for (const room of Object.keys(COURSE.arrivals) as Room[]) if (!rt.arrived.has(room) && px >= COURSE.arrivals[room]!) arrive(ctx, rt, room);
+    // (whoever's due, when his time comes; and the dust coming down off a ceiling tile that's about to go)
+    for (const d of rt.due) if (d.kind === 'drop' && d.at - state.frame < TELEGRAPH && state.frame % 5 === 0) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * 40, y: 70 }, vel: { x: 0, y: 0.6 + Math.random() }, life: 60, color: '#B8B2A0', size: 1.5 + Math.random() * 2 });
+    rt.due = rt.due.filter(d => { if (state.frame < d.at) return true; turnUp(ctx, rt, d); return false; });
     rt.lesson = lessonFor(state, rt, px);
     // The end: him at the doors (nobody has to be dead for that: whoever's left is cleared off for the scene)
     if (px >= COURSE.doors - 90 && p.isGrounded) startArrival(ctx, rt);
