@@ -13,7 +13,7 @@ import { WeaponArt } from './WeaponIcon';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/platform/gamepad';
 import { SKIP_AFTER_MS } from '../game/platform/skip';
 import SkipPrompt from './SkipPrompt';
-import { playWhoosh, playPunchImpact, playThud, playTypeClack, playGlassShatterSound, playSound } from '../game/platform/audio';
+import { playWhoosh, playPunchImpact, playThud, playTypeClack, playGlassShatterSound, playSound, playSquelch } from '../game/platform/audio';
 import { speak, cancelSpeech, MEATHEAD_VOICE } from '../game/platform/speech';
 import { drawFaceOff } from '../game/scenes/faceOff';
 import { drawEggBack, drawEggFront, EGG_MS, EGG_PEE_MS, EGG_SHAKE_MS, EGG_TURN_MS } from '../game/scenes/faceOffEgg';
@@ -39,6 +39,8 @@ const HEADER_AT = REVEAL + 150;
 const HEADER_MS = 32;
 const NAME_MS = 95;
 const RANGE_DELAY = 900;
+/** Walked in on at the urinal: as he swings round, what's still coming out of him catches the lens (ms into it). */
+const EGG_SPLASH_AT = EGG_PEE_MS + EGG_SHAKE_MS + EGG_TURN_MS * 0.45;
 
 const HEADER = 'NEW WEAPON ACQUIRED';
 const FRAME_MS = 1000 / 60;
@@ -120,6 +122,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, onDone }) => {
         setEgg(e);
         if (e > 150 && e < EGG_PEE_MS - 250 && wall - lastTinkle > 90 + Math.random() * 90) { lastTinkle = wall; playSound('tinkle', 0.9); }
         once('egg-turn', EGG_PEE_MS + EGG_SHAKE_MS, e, playWhoosh);
+        once('egg-splash', EGG_SPLASH_AT, e, () => { playSquelch(); playSound('tinkle', 1.2, 3); });
       }
 
       // Sound cues
@@ -220,6 +223,9 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, onDone }) => {
             </>
           )}
 
+          {/* (walked in on: he swung round still going, and some of it's on the lens) */}
+          {egg !== null && egg >= EGG_SPLASH_AT - 120 && <LensSplash since={egg - EGG_SPLASH_AT} />}
+
           {/* The lens took it: cracked glass that stays put while the camera falls */}
           {t >= IMPACT && <LensCrack />}
           <div className="absolute inset-0 bg-white pointer-events-none" style={{ opacity: flash }} />
@@ -311,6 +317,53 @@ const PortraitFrame: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     <div className="mt-[4px] text-center text-[7px] text-black tracking-widest">PROPERTY OF U.S. GOV'T</div>
   </div>
 );
+
+/**
+ * The easter egg's last word: as he swings round from the urinal, a last spurt arcs across at the camera (just
+ * before, `since` < 0) and splatters the lens: drops of it beaded on the glass, catching the light, a few running
+ * down in trails that keep getting longer. It stays put on the glass while everything behind it moves, like the crack.
+ */
+const LensSplash: React.FC<{ since: number }> = ({ since }) => {
+  if (since < 0) {
+    // (the spurt, coming at the lens)
+    const k = 1 + since / 120;
+    return (
+      <svg viewBox="0 0 800 600" className="absolute inset-0 w-full h-full pointer-events-none">
+        <path d={`M400 560 Q${380 - k * 60} ${420 - k * 120} ${330 + k * 40} ${300 - k * 40}`} stroke="rgba(234,179,8,0.75)" strokeWidth={6 + k * 30} fill="none" strokeLinecap="round" />
+        <path d={`M400 560 Q${380 - k * 60} ${420 - k * 120} ${330 + k * 40} ${300 - k * 40}`} stroke="rgba(254,249,195,0.6)" strokeWidth={2 + k * 8} fill="none" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  const DROPS = [[300, 260, 46], [362, 220, 22], [250, 330, 28], [420, 300, 34], [330, 360, 18], [470, 230, 14], [210, 240, 12], [390, 400, 16], [280, 190, 10], [500, 330, 11], [440, 180, 9], [235, 400, 9]];
+  const pop = Math.min(1, since / 60), drip = Math.min(1, since / 2200);
+  return (
+    <svg viewBox="0 0 800 600" className="absolute inset-0 w-full h-full pointer-events-none">
+      <defs>
+        <radialGradient id="wg-drop" cx="40%" cy="35%" r="65%">
+          <stop offset="0%" stopColor="rgba(254,249,195,0.85)" />
+          <stop offset="45%" stopColor="rgba(250,204,21,0.55)" />
+          <stop offset="100%" stopColor="rgba(161,98,7,0.7)" />
+        </radialGradient>
+      </defs>
+      {DROPS.map(([x, y, r], i) => {
+        const rr = r * (0.6 + pop * 0.4), trail = i % 3 === 0 ? (60 + r * 3) * drip : 0;
+        // (a splat: a lumpy blob with a spray of specks thrown out on the side it hit from)
+        const pts = Array.from({ length: 9 }, (_, k) => { const a = (k / 9) * Math.PI * 2, w = rr * (0.8 + ((i * 7 + k * 13) % 5) * 0.08); return [x + Math.cos(a) * w, y + Math.sin(a) * w * 0.9]; });
+        // (rounded off: a curve through the midpoints, bent toward each lump)
+        const mid = (k: number) => { const p = pts[k % 9], q = pts[(k + 1) % 9]; return `${(p[0] + q[0]) / 2} ${(p[1] + q[1]) / 2}`; };
+        const blob = `M${mid(0)} ` + pts.map((_, k) => `Q${pts[(k + 1) % 9][0]} ${pts[(k + 1) % 9][1]} ${mid(k + 1)}`).join(' ') + ' Z';
+        return (
+          <g key={i}>
+            {trail > 0 && <path d={`M${x - rr * 0.25} ${y} L${x - rr * 0.18} ${y + trail} Q${x} ${y + trail + rr * 0.35} ${x + rr * 0.18} ${y + trail} L${x + rr * 0.25} ${y} Z`} fill="url(#wg-drop)" />}
+            <path d={blob} fill="url(#wg-drop)" stroke="rgba(120,72,6,0.5)" strokeWidth="1.5" strokeLinejoin="round" />
+            <ellipse cx={x - rr * 0.3} cy={y - rr * 0.35} rx={rr * 0.22} ry={rr * 0.12} fill="rgba(255,255,255,0.75)" />
+            {r > 20 && Array.from({ length: 6 }, (_, k) => <circle key={k} cx={x + (k - 2.5) * r * 0.5 + 10} cy={y - r * 0.9 - (k % 2) * 14} r={2 + (k % 3)} fill="rgba(234,179,8,0.7)" />)}
+          </g>
+        );
+      })}
+    </svg>
+  );
+};
 
 /** The glass in front of the lens after a direct hit. */
 const LensCrack: React.FC = () => (
