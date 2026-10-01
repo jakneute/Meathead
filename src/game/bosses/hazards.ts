@@ -11,7 +11,7 @@ import { hitBoss, isWeakTo } from './registry';
 import { updateCorkedVent, ventTip } from './victor';
 import { pickRandom } from '../core/utils';
 import { killPlayer, landPlayer } from '../player/player';
-import { isMidBoss, midBossDamage } from '../combat/midBoss';
+import { isMidBoss, midBossDamage, JUNKIE_WAVE_RESIST } from '../combat/midBoss';
 
 /** The player's tsunami sweeps across the screen, killing regular enemies outright. */
 export const updateTsunami = (ctx: FrameContext) => {
@@ -73,7 +73,7 @@ export const updateTsunami = (ctx: FrameContext) => {
       // (each wave once: by its number, not where it started, since with the camera locked they all start in the one place)
       if (e.tsunamiWave === state.tsunamiSerial) return;
       e.tsunamiWave = state.tsunamiSerial;
-      const dmg = e.kind === 'doorman' ? TSUNAMI_DAMAGE_DOORMAN : midBossDamage(e, TSUNAMI_DAMAGE_MIDBOSS);
+      const dmg = e.kind === 'doorman' ? TSUNAMI_DAMAGE_DOORMAN : e.kind === 'junkie' ? TSUNAMI_DAMAGE_MIDBOSS * JUNKIE_WAVE_RESIST : midBossDamage(e, TSUNAMI_DAMAGE_MIDBOSS);
       e.health = e.kind === 'doorman' ? Math.max(1, e.health - dmg) : e.health - dmg;
       e.hitFlash = 8;
       fx.spawnDamageNumber(e.pos, dmg, e.kind !== 'doorman');

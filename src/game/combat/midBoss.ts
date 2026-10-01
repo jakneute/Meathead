@@ -38,8 +38,10 @@ export const DOORMAN_BULLET_RESIST = 0.04;
 export const DOORMAN_DOWN_MULT = 2;
 /** Dale's distributor, high as a kite: a fair share of anything that isn't a bullet... */
 export const JUNKIE_RESIST = 0.15;
-/** ...and hardly anything from bullets (he doesn't even notice he's been shot). */
+/** ...and hardly anything from bullets (he doesn't even notice he's been shot)... */
 export const JUNKIE_BULLET_RESIST = 0.1;
+/** ...and next to nothing from the tidal wave washing over him (it's what it does to his filing cabinet that counts). */
+export const JUNKIE_WAVE_RESIST = 0.05;
 
 const isBullet = (w: WeaponType) => w === 'GUN' || w === 'SHOTGUN' || w === 'NEEDLES' || w === 'LMG';
 
