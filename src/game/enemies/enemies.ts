@@ -19,7 +19,7 @@ import {
 import { FrameContext, killBoss } from '../core/context';
 import type { ThrownKind, EnemyKind } from '../../types';
 import { THROWN, shotLook, shotSpeed } from './shots';
-import { getBossDef, getStageWidth } from '../bosses/registry';
+import { getBossDef, getStageWidth, isWeakTo } from '../bosses/registry';
 import { rectsOverlap, boundsOf } from '../core/utils';
 import { getAttackHitbox, harmlessBounce, recoilOff, getContactHurtSource } from '../player/player';
 import { shakeScreen } from '../core/state';
@@ -812,7 +812,9 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
 
     // Lethal hit: charges and uppercuts plow straight through
     if (e.type === 'boss') {
-      killBoss(ctx, e, player.facing, false);
+      // (the barf shield's barf: if that's what he's weak to, it's his weakness that's killed him)
+      if (hasShield && isWeakTo(stageId, 'SLUDGE')) killBoss(ctx, e, player.facing, true, 'SLUDGE');
+      else killBoss(ctx, e, player.facing, false);
     } else {
       e.isBlownAway = true;
       e.meleeFlung = true;
