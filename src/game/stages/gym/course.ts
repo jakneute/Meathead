@@ -62,15 +62,17 @@ const build = () => {
   prop('treadmill', 1000); prop('treadmill', 1150); prop('bike', 1300); prop('treadmill', 1420);
   prop('poster', 1220, Y - 340, 'SWEAT IS FAT CRYING'); prop('window', 1500, Y - 360);
   spawn('temp', 1300, 'cardio'); spawn('temp', 1360, 'cardio'); spawn('temp', 1420, 'cardio'); spawn('temp', 1480, 'cardio');
-  pickup(1530, Y - 30, 'small_health');
-  // (and at the end of it, the one who won't come out from behind his mat: up against the half-wall, nearly)
-  spawn('cower', 1600, 'wall');
+  pickup(1440, Y - 30, 'small_health');
+  // (and at the end of it, the one who won't come out from behind his mat: a way out in front of the half-wall, so
+  // there's a good long shove into it)
+  spawn('cower', 1500, 'wall');
 
   // ============ 3. UNDER THE BENCHES ============
   // The benches in a row, and the gym rats (real ones) scurrying between them, under where a bullet goes
   prop('bench', 1880); prop('bench', 2010); prop('bench', 2140); prop('fountain', 2195, Y);
   prop('poster', 2000, Y - 330, 'NO RATS ALLOWED');
-  spawn('rat', 1900, 'benches'); spawn('rat', 1970, 'benches'); spawn('rat', 2040, 'benches'); spawn('rat', 2110, 'benches');
+  // (they come out from under the benches once he's a way past the wall)
+  spawn('rat', 1980, 'benches'); spawn('rat', 2050, 'benches'); spawn('rat', 2120, 'benches'); spawn('rat', 2190, 'benches');
 
   // ============ 4. THE PLATE RACKS ============
   // Two tall racks of plates, a pencil neck up on top of each one (hiding up there), right over his head
@@ -107,6 +109,11 @@ const course = () => {
     x1: X0 - 200, x2: X0 + 4200,
     doors: X0 + 4120,
     /** Where each room starts (its lesson comes up as he gets there). */
+    /**
+     * Rooms whose lot only turn up once he's got this far (the pacing: one thing at a time): the rats come out from under
+     * the benches a way past the wall, and the ones on the racks drop through the ceiling a little past the rats.
+     */
+    arrivals: { benches: X0 + 1820, racks: X0 + 2250 } as Partial<Record<Room, number>>,
     rooms: { free: X0 + 200, cardio: X0 + 940, wall: X0 + 1480, benches: X0 + 1760, racks: X0 + 2220, mezzanine: X0 + 2960, lockers: X0 + 3780 } as Record<Room, number>,
     checkpoints: [{ x: X0 + 150, y: Y }, { x: X0 + 1790, y: Y }, { x: X0 + 2960, y: Y }],
     left: X0 - 1000,

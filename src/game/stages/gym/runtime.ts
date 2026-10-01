@@ -41,6 +41,8 @@ export interface GymRuntime {
   /** The doors at the end, opening (0 shut .. 1 open), and the two of them walking in. */
   doors: number;
   bigFellas: BigFella[];
+  /** The rooms whose lot have turned up (see COURSE.arrivals). */
+  arrived: Set<Room>;
   /** The one behind the mat: shots that have hit it (counted once each), when Meathead last called it, when the announcer last said NOT YET. */
   matShots: number;
   shotIds: Set<string>;
@@ -62,6 +64,8 @@ export const createGymRuntime = (state: GameState): GymRuntime => {
   const start = COURSE.checkpoints[startedAt];
   const rooms: Record<Room, string[]> = { free: [], cardio: [], wall: [], benches: [], racks: [], mezzanine: [], lockers: [] };
   for (const s of COURSE.spawns) {
+    // (a room that turns up later is put in when he gets there: see arrive)
+    if (COURSE.arrivals[s.room] !== undefined) continue;
     if (startedAt > CP.START && s.x - start.x < SPAWN_CLEARANCE) continue;
     const e = makeKindEnemy(s.kind, s.x, s.y);
     state.enemies.push(e);
@@ -78,9 +82,34 @@ export const createGymRuntime = (state: GameState): GymRuntime => {
     startedAt, talk: createTalk(), phase: 'play', t: 0, rooms, said: new Set(), speaker: null,
     moved: startedAt > CP.START, spawnX: NaN, lesson: null, told: undefined, doors: 0,
     bigFellas: [{ x: COURSE.doors, to: COURSE.doors - 190, delay: 0 }, { x: COURSE.doors, to: COURSE.doors - 120, delay: 26 }],
-    matShots: 0, shotIds: new Set(), saidShots: -999, notYetAt: -999,
+    matShots: 0, shotIds: new Set(), saidShots: -999, notYetAt: -999, arrived: new Set(),
   };
   return rt;
+};
+
+/**
+ * A room's lot turning up: the rats scurrying out from under the benches (a puff of dust where each comes out), the
+ * ones for the racks dropping in through the ceiling tiles onto them (a tile knocked out, the dust and bits of it coming
+ * down with them).
+ */
+const arrive = (ctx: FrameContext, rt: GymRuntime, room: Room) => {
+  const { state, fx } = ctx;
+  rt.arrived.add(room);
+  for (const s of COURSE.spawns) {
+    if (s.room !== room) continue;
+    const e = makeKindEnemy(s.kind, s.x, s.y);
+    e.seen = true;
+    if (room === 'racks') {
+      // (from up in the ceiling: falls the rest of the way onto the rack)
+      e.pos.y = 72 - e.height * 0.4; e.vel = { x: 0, y: 1 };
+      for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: s.x + (Math.random() - 0.5) * 50, y: 66 }, vel: { x: (Math.random() - 0.5) * 3, y: 1 + Math.random() * 3 }, life: 50 + Math.random() * 30, color: i % 3 ? '#8A8473' : '#B8B2A0', size: 2 + Math.random() * 5 });
+      fx.playGunSound('crack', 0.6);
+    } else {
+      for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: s.x + (Math.random() - 0.5) * 30, y: s.y - 4 }, vel: { x: (Math.random() - 0.5) * 3, y: -Math.random() * 2 }, life: 24, color: '#A8A29E', size: 3 + Math.random() * 4 });
+    }
+    state.enemies.push(e);
+    rt.rooms[room].push(e.id);
+  }
 };
 
 /** Is anybody in this room still up? */
@@ -122,10 +151,11 @@ export const updateGym = (ctx: FrameContext, controls: Controls): Controls => {
       const who = rt.rooms[room].map(id => state.enemies.find(e => e.id === id && e.health > 0)).find(Boolean);
       if (who && quiet(rt.talk)) { queueLines(state, rt.talk, [{ who: 'intern', text: ROOM_LINES[room]! }], room === 'free' ? 20 : 0); rt.speaker = who.id; }
     }
+    // (the rooms that turn up as he gets to them)
+    for (const room of Object.keys(COURSE.arrivals) as Room[]) if (!rt.arrived.has(room) && px >= COURSE.arrivals[room]!) arrive(ctx, rt, room);
     rt.lesson = lessonFor(state, rt, px);
-    // The end: the last of them down, and him at the doors
-    const left = (['mezzanine', 'lockers'] as Room[]).some(r => alive(state, rt, r));
-    if (!left && px >= COURSE.rooms.lockers - 40 && p.isGrounded) startArrival(ctx, rt);
+    // The end: him at the doors (nobody has to be dead for that: whoever's left is cleared off for the scene)
+    if (px >= COURSE.doors - 90 && p.isGrounded) startArrival(ctx, rt);
   }
   if (rt.lesson !== rt.told) { rt.told = rt.lesson; ctx.events.onTutorialHint?.(rt.lesson); }
   if (rt.phase === 'play') return controls;
@@ -166,6 +196,8 @@ const MAT_SHOTS_LINES = [
 ];
 /** Shots into the mat before he says something, and the least time between his saying it (frames). */
 const MAT_SHOTS_EVERY = 5, MAT_SHOTS_GAP = 300;
+/** How long he takes to scramble round behind his mat when you get round him (frames). */
+const COWER_TURN = 16;
 /** Between the announcer's NOT YETs (frames). */
 const NOT_YET_GAP = 70;
 
@@ -179,6 +211,12 @@ const updateCowerer = (ctx: FrameContext, rt: GymRuntime) => {
   const p = state.player;
   for (const e of state.enemies) {
     if (e.kind !== 'cower' || e.health <= 0 || e.isBlownAway) continue;
+    // (jump over him and he scrambles round behind his mat to keep it between you, a moment later; not while he's being shoved)
+    const side = p.pos.x + p.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;
+    if (side !== (e.facing === 1 ? 1 : -1) && !(e.shovedAt !== undefined && state.frame - e.shovedAt < 10)) {
+      e.aiTimer = (e.aiTimer || 0) + 1;
+      if (e.aiTimer >= COWER_TURN) { e.facing = side; e.aiTimer = 0; }
+    } else e.aiTimer = 0;
     if (e.health < e.maxHealth) {
       e.health = e.maxHealth;
       if ((p.isDivekicking || p.isUppercutting || p.isSliding) && state.frame - rt.notYetAt > NOT_YET_GAP) {

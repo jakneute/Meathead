@@ -27,8 +27,8 @@ const LESSONS: Record<Lesson, { how: React.ReactNode; what: string; note?: strin
   },
   push: {
     how: <Prompt pad={['B']} kb={['SHIFT']} mouse="right" size={SIZE} label="SHOULDER CHARGE (HOLD IT)" />,
-    what: 'NOTHING GETS THROUGH THAT MAT. CHARGE INTO IT AND HOLD THE BUTTON: YOU\'LL DRIVE HIM BACK ALL THE WAY INTO THE WALL.',
-    note: 'IT\'S THE ONLY THING THAT WORKS ON HIM.',
+    what: 'NOTHING GETS THROUGH THAT MAT. CHARGE INTO IT AND HOLD THE BUTTON: A CHARGE SHOVES ANYONE BEHIND A SHIELD BACK, AS FAR AS YOU KEEP IT UP.',
+    note: 'DRIVE HIM INTO THE WALL AND THAT\'S HIM DONE. (OR JUST HOP THE WALL AND LEAVE HIM THERE.)',
   },
   slide: { how: <Combo dir="DOWN" kb={['C']} />, what: 'GYM RATS. ACTUAL RATS. TOO LOW TO SHOOT: SLIDE TACKLE THEM.' },
   uppercut: { how: <Combo dir="UP" kb={['E']} />, what: 'THEY THINK THEY\'RE SAFE UP ON THE RACKS. UPPERCUT THEM OFF.' },
