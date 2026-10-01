@@ -79,9 +79,9 @@ const build = () => {
 
   // ============ 4. THE PLATE RACKS ============
   // Two tall racks of plates, a pencil neck up on top of each one (hiding up there), right over his head
-  ledge(2340, Y - 100, 150, 'rack'); ledge(2600, Y - 100, 150, 'rack');
+  ledge(2340, Y - 100, 150, 'rack'); ledge(2600, Y - 130, 150, 'rack');
   prop('squat', 2850); prop('poster', 2480, Y - 340, 'LIFT HEAVY'); prop('window', 2700, Y - 360);
-  spawn('suit', 2415, 'racks', Y - 100); spawn('suit', 2675, 'racks', Y - 100);
+  spawn('suit', 2415, 'racks', Y - 100); spawn('suit', 2675, 'racks', Y - 130);
   pickup(2900, Y - 30, 'small_health');
 
   // ============ 5. THE MEZZANINE ============
