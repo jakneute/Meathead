@@ -16,7 +16,7 @@ const BY_STAGE: Record<string, Record<string, number>> = {
 
 /** Where a checkpoint's own name doesn't say enough on its own. */
 const LABELS: Record<string, Record<string, string>> = {
-  'Hector Hurricane': { CHASE: 'COAST GUARD CHASE', CHASE2: 'COAST GUARD CHASE, HALFWAY' },
+  'Hector Hurricane': { CHASE: 'COAST GUARD CHASE' },
 };
 
 /** A stage's checkpoints, first to last: their names (as words) and numbers. */

@@ -65,7 +65,7 @@ export interface Chase {
 // Speeds (px a frame): his, pushing on, easing off, knocked about
 const BOAT_BASE = 7.2, BOAT_FAST = 9.6, BOAT_SLOW = 5, BOAT_HIT = 2.6;
 /** The cutter: how far back it starts, the most it drops back, how much a hit lets it close, how fast it drops back clean. */
-const CG_START = 560, CG_MAX = 640, CG_HIT = 150, CG_RECOVER = 0.32;
+const CG_START = 560, CG_MAX = 640, CG_HIT = 130, CG_RECOVER = 0.32;
 /** How close it has to get to board him (its bow to his stern). */
 const CG_BOARD = 60;
 const HOP_V = -10.5, HOP_G = 0.55;
