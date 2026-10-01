@@ -481,8 +481,8 @@ export const deadCoastie = (ctx: Ctx, x: number, y: number, s: number, rot: numb
 };
 
 /**
- * A dead coastie face down on the lawn, ass in the air: on his knees, his face planted in the grass, the helmet
- * crooked, arms limp out past his head palms up; and a plastic lawn flamingo stuck in his ass by its wire legs, stood
+ * A dead coastie on the lawn, ass in the air: on his knees, his head driven into the dirt to the shoulders, blood
+ * sprayed round where it went in, arms limp out along the grass palms up; and a plastic lawn flamingo stuck in his ass by its wire legs, stood
  * up proud. Ground at y, head to the left.
  */
 export const coastieAssUp = (ctx: Ctx, x: number, y: number, s: number) => {
@@ -511,16 +511,19 @@ export const coastieAssUp = (ctx: Ctx, x: number, y: number, s: number) => {
     shape(ctx, () => { ctx.moveTo(ax, ay - 3); ctx.lineTo(ax - 14, ay - 1); ctx.lineTo(ax - 14, ay + 2); ctx.lineTo(ax, ay + 1); ctx.closePath(); }, ay < -2 ? '#C2410C' : '#F97316', 0.6);
     shape(ctx, () => ctx.ellipse(ax - 16, ay + 0.5, 2.6, 1.8, 0, 0, Math.PI * 2), '#E8B495', 0.5);
   }
-  // (the head, face first in the grass: the back of the helmet, crooked, an ear, the neck)
-  shape(ctx, () => ctx.ellipse(-18, -5, 5, 4.6, 0, 0, Math.PI * 2), '#E8B495', 0.7);
-  ctx.fillStyle = '#C68B5E'; ctx.fillRect(-16, -3, 4, 2);
-  shape(ctx, () => { ctx.ellipse(-19, -8, 6.6, 5.4, -0.5, Math.PI * 0.95, Math.PI * 2.05); ctx.closePath(); }, '#1D4ED8', 0.7);
-  ctx.fillStyle = '#60A5FA'; ctx.fillRect(-22, -12, 3, 1);
-  // (a divot kicked up round his face)
-  ctx.fillStyle = '#3F2A1D'; ctx.beginPath(); ctx.ellipse(-20, 0, 8, 1.6, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#4D7C0F'; for (let k = 0; k < 6; k++) ctx.fillRect(-27 + k * 3, -2 - (k % 2), 1, 2.4);
+  // (the head, driven into the dirt to the shoulders: the neck going in, a crater of thrown-up dirt round it, clods
+  // and torn turf, and blood sprayed out round where he went in)
+  ctx.fillStyle = 'rgba(127, 29, 29, 0.75)'; ctx.beginPath(); ctx.ellipse(-19, 0.6, 15, 2.6, 0, 0, Math.PI * 2); ctx.fill();
+  for (let k = 0; k < 9; k++) { const a = Math.PI + (k / 8) * Math.PI, r = 9 + hash(k * 3.3) * 9; ctx.fillStyle = k % 2 ? '#991B1B' : '#B91C1C'; ctx.beginPath(); ctx.ellipse(-19 + Math.cos(a) * r * 1.3, Math.sin(a) * r * 0.5 - 1, 1 + hash(k) * 1.2, 0.8 + hash(k * 7) * 0.8, 0, 0, Math.PI * 2); ctx.fill(); }
+  shape(ctx, () => { ctx.moveTo(-14, -6); ctx.quadraticCurveTo(-17, -3, -18, 0); ctx.lineTo(-13, 0); ctx.quadraticCurveTo(-12, -3, -9, -6); ctx.closePath(); }, '#E8B495', 0.6);
+  shape(ctx, () => { ctx.moveTo(-29, 0.5); ctx.quadraticCurveTo(-27, -5, -22, -4.5); ctx.quadraticCurveTo(-19, -7, -15, -4); ctx.quadraticCurveTo(-11, -4.5, -9, 0.5); ctx.closePath(); }, '#5B3A24', 0.7);
+  ctx.fillStyle = '#3F2A1D'; ctx.fillRect(-22, -3, 3, 1.2); ctx.fillRect(-15, -2, 2.4, 1);
+  ctx.fillStyle = '#7C5A3A'; ctx.fillRect(-25, -3.6, 2.4, 1); ctx.fillRect(-18, -5.4, 2, 1);
+  for (const [cx, cy] of [[-32, -1.4], [-6, -1], [-27, -7], [-11, -6]] as const) shape(ctx, () => ctx.ellipse(cx, cy, 1.4, 1, 0.4, 0, Math.PI * 2), '#5B3A24', 0.4);
+  ctx.fillStyle = '#4D7C0F'; for (let k = 0; k < 5; k++) ctx.fillRect(-28 + k * 4.4, -5 - (k % 2) * 1.6, 1, 2.4);
+  ctx.fillStyle = '#B91C1C'; ctx.fillRect(-20, -5.4, 1.4, 1.4); ctx.fillRect(-13.6, -3.4, 1, 1);
   // The flamingo: its wire legs in him to the knees, stood up out of it, head up, the black beak
-  ctx.save(); ctx.translate(11, -32); ctx.rotate(0.12);
+  ctx.save(); ctx.translate(11, -32); ctx.rotate(0.12); ctx.scale(0.8, 0.8);
   ctx.strokeStyle = '#6B7280'; ctx.lineWidth = 0.9;
   ctx.beginPath(); ctx.moveTo(-1.5, 2); ctx.lineTo(-1, -12); ctx.moveTo(1.5, 2); ctx.lineTo(1, -12); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(1, -7); ctx.lineTo(4, -9); ctx.lineTo(1, -11); ctx.stroke();

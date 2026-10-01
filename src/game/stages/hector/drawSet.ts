@@ -485,8 +485,7 @@ export const drawDaycare = (ctx: Ctx, state: GameState, dc: Daycare) => {
     }
     ctx.fillStyle = '#E7D7A8'; ctx.beginPath(); ctx.ellipse(sx, sy + 1, 22, 4, 0, 0, Math.PI * 2); ctx.fill();
   }
-  ctx.fillStyle = 'rgba(127, 29, 29, 0.55)'; ctx.beginPath(); ctx.ellipse(bx + 560, g - 2, 46, 6, 0, 0, Math.PI * 2); ctx.fill();
-  coastieAssUp(ctx, bx + 560, g, 2.3);
+  coastieAssUp(ctx, bx + 560, g, 1.8);
   // The grown-ups, once the wave's done with them
   if (t < 0 || t >= RIDE_END) ADULT_SPLAT.forEach((dx, k) => splatAdult(ctx, bx + dx, g, k as 0 | 1));
   // Puddles
