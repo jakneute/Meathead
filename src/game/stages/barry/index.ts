@@ -35,7 +35,7 @@ export const barryLayout: StageLayout = {
     state.blocks.push(...groundBlocks(runs));
     // Stoops, car roofs, scaffolding, desks, shelves, fire escapes: all things you jump up through and stand on
     // (the walk-ups' fire escape landings aren't: solid, you go round the end of one to get up on it)
-    C.ledges.forEach((l, i) => state.blocks.push({ x: l.x, y: l.y, w: l.w, h: 14, type: 'platform', hidden: true, oneWay: !l.solid, tag: `bledge-${i}` }));
+    C.ledges.forEach((l, i) => state.blocks.push({ x: l.x, y: l.y, w: l.w, h: 14, type: 'platform', hidden: true, oneWay: !l.solid, grating: l.look === 'escape', tag: `bledge-${i}` }));
     // The ceilings and walls (the stage draws them)
     C.walls.forEach((w, i) => state.blocks.push({ x: w.x, y: w.y, w: w.w, h: w.h, type: 'wall', hidden: true, tag: `bwall-${i}` }));
     // The ends of the streets and the roofs

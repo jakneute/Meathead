@@ -111,7 +111,8 @@ const updateThrown = (ctx: FrameContext, p: Projectile): boolean => {
     if (p.thrown === 'ice') state.particles.push({ pos: { x: cx, y: cy }, vel: { x: -p.vel.x * 0.1, y: 0.2 }, life: 12, color: '#E0F2FE', size: 2 });
   }
   const box = boundsOf(p);
-  const solid = state.blocks.some(b => !b.hidden && b.type !== 'platform' && rectsOverlap(box, b)) || state.blocks.some(b => (b.type === 'ground' || (b.type === 'platform' && p.vel.y > 0 && p.pos.y + p.height - p.vel.y <= b.y)) && rectsOverlap(box, b));
+  // (a fire escape's grating it just falls through)
+  const solid = state.blocks.some(b => !b.hidden && b.type !== 'platform' && rectsOverlap(box, b)) || state.blocks.some(b => !b.grating && (b.type === 'ground' || (b.type === 'platform' && p.vel.y > 0 && p.pos.y + p.height - p.vel.y <= b.y)) && rectsOverlap(box, b));
   if (solid || p.pos.y > state.camera.y + 900) { smashThrown(ctx, p); return false; }
   if (p.pos.x < state.camera.x - 400 || p.pos.x > state.camera.x + CANVAS_WIDTH + 400) return false;
   const stillFlying = resolveEnemyProjectileHit(ctx, p);

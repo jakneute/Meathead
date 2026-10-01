@@ -539,6 +539,8 @@ export interface Block extends Rect {
   oneWay?: boolean;
   /** A jump-through he can come up through but can't drop down through (down + jump does nothing on it). */
   noDropThrough?: boolean;
+  /** Open grating (a fire escape landing): he stands on it, but anything thrown goes straight through it. */
+  grating?: boolean;
 }
 
 export interface Volcano {
