@@ -94,7 +94,7 @@ export interface Player extends Entity {
   /** Squash (+) / stretch (-) amount for landing and jumping, decays to 0. */
   squash?: number;
   /** The crouching easter egg (game/player/gut.ts): frames crouched still, and how far it's got (1 the grumble, 2 he's shit himself). */
-  gut?: { t: number; stage: 0 | 1 | 2 };
+  gut?: { t: number; stage: 0 | 1 | 2; lineAt?: number };
 
   // Recoil from bouncing off an enemy (controls locked while lockTimer runs)
   lockTimer: number;

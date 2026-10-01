@@ -18,8 +18,9 @@ export const GUT_GRUMBLE = 15 * 60, GUT_ACCIDENT = 30 * 60;
 /** Has he shit himself (this attempt)? */
 export const isShat = (state: GameState) => state.player.gut?.stage === 2;
 
-const meatheadSays = (state: GameState, text: string) => {
-  const shown = say(text, MEATHEAD_VOICE, 'casual', {
+const meatheadSays = (state: GameState, text: string, after = false) => {
+  // (`after`: it waits its turn behind whoever's talking: the announcer's callout)
+  const shown = say(text, MEATHEAD_VOICE, after ? 'queue' : 'casual', {
     onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 180; },
     onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 30); },
   });
@@ -30,7 +31,15 @@ export const updateGut = (ctx: FrameContext, input: FrameInput) => {
   const { state } = ctx;
   const p = state.player;
   const gut = (p.gut ??= { t: 0, stage: 0 });
-  if (gut.stage === 2) { leaveTrail(ctx); return; }
+  if (gut.stage === 2) {
+    // (his line about it, once the announcer's had his say: queued up behind the callout)
+    if (gut.lineAt !== undefined && state.frame >= gut.lineAt) {
+      gut.lineAt = undefined;
+      meatheadSays(state, GUT_LINES.ACCIDENT[Math.floor(Math.random() * GUT_LINES.ACCIDENT.length)], true);
+    }
+    leaveTrail(ctx);
+    return;
+  }
   // Down in a crouch on the ground, doing nothing else at all
   const still = p.isDucking && p.isGrounded && !p.swimming && !input.moveLeft && !input.moveRight && !input.moveUp && !input.jump
     && !input.shoot && !input.special && !p.isSliding && !p.isCharging && Math.abs(p.vel.x) < 0.2;
@@ -49,7 +58,12 @@ export const updateGut = (ctx: FrameContext, input: FrameInput) => {
     playSound('fart', 1, 0);
     playSound('splat', 0.5, -9);
     ctx.fx.announceKill('CODE BROWN!');
-    meatheadSays(state, GUT_LINES.ACCIDENT[Math.floor(Math.random() * GUT_LINES.ACCIDENT.length)]);
+    gut.lineAt = state.frame + 12;
+    // The callout up over him too, in brown
+    state.damageNumbers.push({
+      id: `callout-${state.frame}-brown`, text: 'CODE BROWN!', pos: { x: p.pos.x + p.width / 2, y: p.pos.y - 30 },
+      vel: { x: 0, y: -2.2 }, life: 110, maxLife: 110, isCritical: true, isCallout: true, color: '#8B5A2B',
+    });
     const x = p.pos.x + p.width / 2 - p.facing * 8, y = p.pos.y + p.height - 20;
     for (let i = 0; i < 10; i++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 1.5, y: -0.5 - Math.random() * 1.2 }, life: 50 + Math.random() * 30, color: i % 2 ? 'rgba(132, 155, 60, 0.55)' : 'rgba(110, 120, 50, 0.45)', size: 4 + Math.random() * 4 });
   }
