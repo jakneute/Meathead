@@ -14,6 +14,15 @@ type Ctx = CanvasRenderingContext2D;
 /** The animation frame being drawn (for the chin drip and sweat on his head). */
 let frameNow = 0;
 
+/**
+ * Which side of him we're looking at. He's left-handed: facing right we see his left side (the gun hand, the
+ * kicking leg, the punching arm all on the near side); facing left we see his right side, and those are the far
+ * ones, so each move is posed a little differently that way round. (Only the drawing: where everything hits and
+ * fires from is the same either way.)
+ */
+let rightSide = false;
+export const setRightSide = (v: boolean) => { rightSide = v; };
+
 // ---------------------------------------------------------------------------
 // Body parts
 // ---------------------------------------------------------------------------
@@ -234,16 +243,22 @@ export const drawShoulderCharge = (ctx: Ctx, frame: number) => {
 
 const chargeBody = (ctx: Ctx, frame: number, main: boolean) => {
   const s = Math.sin(frame * 0.55);
-  // Legs pumping in a sprint
-  leg(ctx, [-4, -24], [-10 - 5 * s, -12], [-20 - 7 * s, -3], 0.2, true);
-  leg(ctx, [4, -24], [13 + 5 * s, -18 + 3 * Math.max(0, s)], [16 + 7 * s, -3 - 5 * Math.max(0, s)], -0.1, false);
+  // Legs pumping in a sprint (seen from his right, it's the far leg driving forward and the near one pushing off)
+  if (rightSide) {
+    leg(ctx, [4, -24], [13 + 5 * s, -18 + 3 * Math.max(0, s)], [16 + 7 * s, -3 - 5 * Math.max(0, s)], -0.1, true);
+    leg(ctx, [-4, -24], [-10 - 5 * s, -12], [-20 - 7 * s, -3], 0.2, false);
+  } else {
+    leg(ctx, [-4, -24], [-10 - 5 * s, -12], [-20 - 7 * s, -3], 0.2, true);
+    leg(ctx, [4, -24], [13 + 5 * s, -18 + 3 * Math.max(0, s)], [16 + 7 * s, -3 - 5 * Math.max(0, s)], -0.1, false);
+  }
 
   ctx.save();
   // Torso bent forward like a ram
   ctx.translate(0, -24);
   ctx.rotate(0.55);
-  // Back arm swinging behind
-  arm(ctx, [-8, -22], [-20, -10], [-27, -1], true);
+  // Back arm swinging behind (from his right: pumped back hard, the fist up)
+  if (rightSide) arm(ctx, [-8, -22], [-19, -27], [-29, -21], true);
+  else arm(ctx, [-8, -22], [-20, -10], [-27, -1], true);
   torso(ctx);
   // Head tucked down behind the shoulder, eyes forward
   ctx.save();
@@ -251,8 +266,9 @@ const chargeBody = (ctx: Ctx, frame: number, main: boolean) => {
   ctx.rotate(-0.4);
   head(ctx, 0, 0, 'scowl');
   ctx.restore();
-  // Lead arm braced across the chest under the shoulder
-  arm(ctx, [10, -20], [15, -9], [5, -8], false);
+  // Lead arm braced across the chest under the shoulder (from his right: up in a guard, the fist by his chin)
+  if (rightSide) arm(ctx, [10, -20], [19, -10], [20, -24], false);
+  else arm(ctx, [10, -20], [15, -9], [5, -8], false);
   // The shoulder itself: a huge delt, glowing hot
   if (main) {
     const g = glowLayer(ctx);
@@ -346,6 +362,7 @@ export const drawUppercut = (ctx: Ctx, frame: number) => {
 };
 
 const uppercutBody = (ctx: Ctx, frame: number, main: boolean) => {
+  if (rightSide) { uppercutBodyRight(ctx, frame, main); return; }
   // Back leg trailing straight down, lead knee driven up
   leg(ctx, [-4, -24], [-5, -11], [-6, 1], 1.2, true);
   leg(ctx, [5, -24], [15, -30], [16, -16], 1.3, false);
@@ -393,6 +410,53 @@ const uppercutBody = (ctx: Ctx, frame: number, main: boolean) => {
   ctx.restore();
 };
 
+
+/** The uppercut seen from his right: the left fist going up on the far side, the right pulled down to his hip. */
+const uppercutBodyRight = (ctx: Ctx, frame: number, main: boolean) => {
+  // The far knee driven up, the near leg trailing straight down
+  leg(ctx, [5, -24], [15, -30], [16, -16], 1.3, true);
+  leg(ctx, [-4, -24], [-5, -11], [-6, 1], 1.2, false);
+  ctx.save();
+  ctx.translate(0, -24);
+  ctx.rotate(-0.1);
+  const fist: [number, number] = [19, -63];
+  if (main) {
+    const g = glowLayer(ctx);
+    const glow = g.createRadialGradient(fist[0], fist[1], 2, fist[0], fist[1], 30);
+    glow.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+    glow.addColorStop(0.3, 'rgba(56, 189, 248, 0.6)');
+    glow.addColorStop(1, 'rgba(56, 189, 248, 0)');
+    g.fillStyle = glow;
+    g.beginPath(); g.arc(fist[0], fist[1], 30, 0, Math.PI * 2); g.fill();
+  }
+  // The punching arm, on the far side: behind his chest and his head, up past them
+  arm(ctx, [12, -24], [20, -42], fist, true, 7.5);
+  torso(ctx);
+  ctx.save();
+  ctx.translate(-4, -36);
+  ctx.rotate(-0.3);
+  head(ctx, 0, 0, 'roar');
+  ctx.restore();
+  // The near arm pulled down hard to his hip, in front
+  arm(ctx, [-9, -22], [-15, -9], [-7, -2], false);
+  if (main) {
+    for (let k = 0; k < 3; k++) {
+      const a = frame * 0.5 + k * (Math.PI * 2 / 3);
+      ctx.strokeStyle = k % 2 === 0 ? '#7DD3FC' : '#FDE047';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.ellipse(fist[0], fist[1] + 10 + k * 6, 13 - k * 2, 4, 0, a, a + Math.PI * 1.1);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#FFFFFF';
+    for (let s = 0; s < 4; s++) {
+      const t = ((frame * 3 + s * 9) % 24) / 24;
+      ctx.fillRect(fist[0] + Math.sin(s * 2.4) * (6 + t * 16), fist[1] - 6 - t * 18, 2.5, 2.5);
+    }
+  }
+  ctx.restore();
+};
+
 // ---------------------------------------------------------------------------
 // Divekick
 // ---------------------------------------------------------------------------
@@ -418,6 +482,24 @@ export const drawDivekick = (ctx: Ctx, frame: number) => {
 
 /** A flying kick laid out along +x (lead boot leading); the caller rotates it into the dive. */
 const diveBody = (ctx: Ctx, frame: number, main: boolean) => {
+  if (rightSide) {
+    // The kicking leg on the far side, locked straight, boot first; the near one tucked up
+    leg(ctx, [2, 0], [18, 0], [34, 0], 0, true);
+    ctx.save();
+    ctx.translate(-2, 0);
+    ctx.rotate(-Math.PI / 2 - 0.15);
+    arm(ctx, [-9, -22], [-4, -14], [6, -12], true);
+    torso(ctx);
+    ctx.save();
+    ctx.translate(2, -36);
+    ctx.rotate(Math.PI / 2 - 0.6);
+    head(ctx, 0, 0, 'grit');
+    ctx.restore();
+    // The near arm flung up and back for balance
+    arm(ctx, [10, -22], [0, -32], [-12, -38], false);
+    ctx.restore();
+    leg(ctx, [-2, 2], [9, 13], [-3, 17], 0.3, false);
+  } else {
   // Back leg tucked up
   leg(ctx, [-2, 2], [8, 12], [-4, 16], 0.3, true);
   // Torso laid back behind the kick, leaning away from it
@@ -437,6 +519,7 @@ const diveBody = (ctx: Ctx, frame: number, main: boolean) => {
   ctx.restore();
   // Lead leg: locked straight, boot first
   leg(ctx, [2, 0], [18, 0], [34, 0], 0, false);
+  }
   if (!main) return;
   // The boot's on fire
   const g = glowLayer(ctx);
