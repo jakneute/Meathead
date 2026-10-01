@@ -492,6 +492,8 @@ export interface FlameSegment {
   life: number;
   alpha: number;
   density: number;
+  /** Off the oil rocket launcher's igniter (Y / F): weaker than the flamethrower proper. */
+  alt?: boolean;
 }
 
 /** An icicle Artie shakes loose from the ceiling. */

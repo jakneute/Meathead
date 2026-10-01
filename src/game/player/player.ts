@@ -206,7 +206,8 @@ export const updatePlayerActions = (ctx: FrameContext, input: FrameInput) => {
   if (armsBusy(player)) input = { ...input, shoot: false, shootPressed: false };
   // With the oil rocket launcher out, the flame button's the flamethrower (if he's got it), so he can light what he's slicked
   const altFlame = !!input.flame && !input.shoot && !armsBusy(player) && (state.availableWeapons?.includes('FLAMETHROWER') ?? false);
-  if (altFlame) updateFlamethrower({ ...ctx, currentWeapon: 'FLAMETHROWER' }, { ...input, shoot: true });
+  // (it's an igniter, not the flamethrower proper: shorter, and a lot weaker)
+  if (altFlame) updateFlamethrower({ ...ctx, currentWeapon: 'FLAMETHROWER' }, { ...input, shoot: true }, true);
   else updateFlamethrower(ctx, input);
   if (input.shoot && player.shootCooldown <= 0 && hasAmmo(ctx, currentWeapon) && currentWeapon !== 'TASER' && currentWeapon !== 'FLAMETHROWER') {
     fireWeapon(ctx, input);

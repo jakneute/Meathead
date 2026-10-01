@@ -6,7 +6,7 @@ import {
   BOULDER_COOLDOWN, BOULDER_THROW_FRAMES, BOULDER_ROLL_SPEED, BOULDER_HEAVE_SPEED_X, BOULDER_HEAVE_SPEED_Y, BOULDER_SPIKE_SPEED_X, BOULDER_SPIKE_SPEED_Y, BOULDER_LIFETIME,
   FLAMETHROWER_DAMAGE, FLAMETHROWER_SEGMENTS, FLAMETHROWER_MAX_RANGE, FLAMETHROWER_START_RANGE,
   FLAMETHROWER_GROWTH, FLAMETHROWER_SHRINK, FLAMETHROWER_AIM_LERP, FLAMETHROWER_AIM_DEG, FLAMETHROWER_NOZZLE_GAP,
-  FLAMETHROWER_SEGMENT_LIFETIME, FLAMETHROWER_SEGMENT_SIZE, FLAMETHROWER_AMMO_EVERY, GML_SCALE,
+  FLAMETHROWER_SEGMENT_LIFETIME, FLAMETHROWER_SEGMENT_SIZE, FLAMETHROWER_AMMO_EVERY, GML_SCALE, ALT_FLAME_DAMAGE_SCALE, ALT_FLAME_RANGE_SCALE,
   TSUNAMI_COOLDOWN, COLORS, PARTICLE_PALETTES,
   TASER_RANGE, CANVAS_WIDTH, GUN_COOLDOWN, GUN_VELOCITY,
   NEEDLE_DAMAGE, NEEDLE_COOLDOWN, SLUDGE_COOLDOWN, FILTH_SHIELD_DURATION, SLUDGE_DAMAGE,
@@ -15,7 +15,7 @@ import {
 } from '../../constants';
 import { GameState } from '../core/state';
 import { FrameContext, killBoss } from '../core/context';
-import { hitBoss, getBossDef } from '../bosses/registry';
+import { hitBoss, getBossDef, getBossDamage } from '../bosses/registry';
 import { pickRandom, rectsOverlap, boundsOf } from '../core/utils';
 import { findFlyingCigarette, igniteOilWithFlame } from '../bosses/oscar';
 import { getStageLayout } from '../stages';
@@ -279,7 +279,7 @@ const fizzle = (ctx: FrameContext, justPressed: boolean) => {
   if (state.frame % 12 === 0) playSound('glug');
 };
 
-export const updateFlamethrower = (ctx: FrameContext, input: WeaponInput) => {
+export const updateFlamethrower = (ctx: FrameContext, input: WeaponInput, alt = false) => {
   const { state, fx, cheats, currentWeapon } = ctx;
   const { player } = state;
   if (currentWeapon !== 'FLAMETHROWER') {
@@ -303,12 +303,13 @@ export const updateFlamethrower = (ctx: FrameContext, input: WeaponInput) => {
   const target = !firing ? 0 : input.moveUp ? -aimRad : input.moveDown ? aimRad : 0;
   player.flameAngle = (player.flameAngle || 0) + (target - (player.flameAngle || 0)) * FLAMETHROWER_AIM_LERP;
   if (player.isDucking) player.flameAngle = 0; // crouched: the nozzle's level, full stop
-  const hasFuel = cheats.infiniteAmmo || player.weaponAmmo.FLAMETHROWER > 0;
+  // (the launcher's igniter runs off its own pilot light: it doesn't touch the flamethrower's fuel)
+  const hasFuel = alt || cheats.infiniteAmmo || player.weaponAmmo.FLAMETHROWER > 0;
   const range = player.flameRange ?? FLAMETHROWER_START_RANGE;
 
   if (firing) {
     player.flameDrainTimer = (player.flameDrainTimer || 0) + 1;
-    if (player.flameDrainTimer >= FLAMETHROWER_AMMO_EVERY && hasFuel) {
+    if (player.flameDrainTimer >= FLAMETHROWER_AMMO_EVERY && hasFuel && !alt) {
       if (!cheats.infiniteAmmo) player.weaponAmmo.FLAMETHROWER--;
       player.flameDrainTimer = 0;
     }
@@ -345,10 +346,12 @@ export const updateFlamethrower = (ctx: FrameContext, input: WeaponInput) => {
       const size = FLAMETHROWER_SEGMENT_SIZE * (1 + (dist / GML_SCALE) * 0.01);
       state.flameSegments.push({
         x, y, size, gap, dirX: dir.x, dirY: dir.y,
-        life: FLAMETHROWER_SEGMENT_LIFETIME, alpha: 1, density: 1 - i / FLAMETHROWER_SEGMENTS,
+        life: FLAMETHROWER_SEGMENT_LIFETIME, alpha: 1, density: 1 - i / FLAMETHROWER_SEGMENTS, alt,
       });
     }
-    if (range < FLAMETHROWER_MAX_RANGE) player.flameRange = range + (FLAMETHROWER_MAX_RANGE - range) * FLAMETHROWER_GROWTH;
+    const maxRange = alt ? FLAMETHROWER_MAX_RANGE * ALT_FLAME_RANGE_SCALE : FLAMETHROWER_MAX_RANGE;
+    if (range < maxRange) player.flameRange = range + (maxRange - range) * FLAMETHROWER_GROWTH;
+    else player.flameRange = range + (maxRange - range) * FLAMETHROWER_SHRINK;
     if (state.frame % 2 === 0) fx.playGunSound('flame');
   } else if (firing) {
     // Out of fuel: just sputtering smoke
@@ -410,7 +413,7 @@ export const updateFlameSegments = (ctx: FrameContext) => {
     // Burn the first enemy touched
     const e = state.enemies.find(en => en.health > 0 && !en.isBlownAway && rectsOverlap(box, boundsOf(en)));
     if (e) {
-      burnEnemy(ctx, e);
+      burnEnemy(ctx, e, seg.alt ? ALT_FLAME_DAMAGE_SCALE : 1);
       return false;
     }
 
@@ -434,7 +437,7 @@ export const updateFlameSegments = (ctx: FrameContext) => {
 };
 
 /** One flame segment touching an enemy. */
-const burnEnemy = (ctx: FrameContext, e: Enemy) => {
+const burnEnemy = (ctx: FrameContext, e: Enemy, scale = 1) => {
   const { state, fx } = ctx;
   const { player } = state;
 
@@ -446,14 +449,14 @@ const burnEnemy = (ctx: FrameContext, e: Enemy) => {
     const onFlamed = getBossDef(ctx.stageId)?.onFlamed;
     if (onFlamed) { onFlamed(ctx, e); return; }
     if (e.hitCooldown && e.hitCooldown > 0) return;
-    hitBoss(ctx, e, 'FLAMETHROWER', { facing: player.facing });
+    hitBoss(ctx, e, 'FLAMETHROWER', { facing: player.facing, damage: scale < 1 ? getBossDamage(ctx.stageId, 'FLAMETHROWER') * scale : undefined });
     return;
   }
   // A mid-boss doesn't catch fire: the flames just hurt, the same however much of it's in them (once a frame)
   if (isMidBoss(e)) {
     if (e.burntAt === state.frame) return;
     e.burntAt = state.frame;
-    e.health -= midBossDamage(e, MIDBOSS_DAMAGE.FLAMETHROWER);
+    e.health -= midBossDamage(e, MIDBOSS_DAMAGE.FLAMETHROWER) * scale;
     e.hitFlash = Math.max(e.hitFlash || 0, 2);
     if (state.frame % 3 === 0) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + Math.random() * e.height * 0.6 }, vel: { x: (Math.random() - 0.5) * 2, y: -1 - Math.random() * 2 }, life: 18, color: Math.random() > 0.6 ? '#4B5563' : '#F97316', size: 3 + Math.random() * 3 });
     if (state.frame % 20 === 0) fx.spawnDamageNumber(e.pos, Math.round(midBossDamage(e, MIDBOSS_DAMAGE.FLAMETHROWER) * 20));
@@ -467,7 +470,7 @@ const burnEnemy = (ctx: FrameContext, e: Enemy) => {
     return;
   }
 
-  e.health -= FLAMETHROWER_DAMAGE;
+  e.health -= FLAMETHROWER_DAMAGE * scale;
   // Sizzle
   for (let i = 0; i < 3; i++) {
     state.particles.push({

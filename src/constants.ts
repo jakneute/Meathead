@@ -282,6 +282,9 @@ export const FLAMETHROWER_SEGMENT_LIFETIME = 15;
 export const FLAMETHROWER_SEGMENT_SIZE = gml(8);
 export const FLAMETHROWER_DAMAGE = 1.5;             // per segment that touches an enemy
 export const FLAMETHROWER_AMMO_EVERY = 2;           // frames per unit of fuel
+// The flame off the oil rocket launcher (Y / F): an igniter for what it's slicked, not a flamethrower of its own
+export const ALT_FLAME_DAMAGE_SCALE = 0.3;          // of the flamethrower's damage (enemies, mid-bosses, bosses)
+export const ALT_FLAME_RANGE_SCALE = 0.65;          // of its reach
 export const FIRE_TICK_RATE = 12;
 export const FIRE_DOT_DAMAGE = 4;
 export const FIRE_DOT_DAMAGE_HEAVY = 112;
