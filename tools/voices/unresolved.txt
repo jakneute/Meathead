@@ -32,7 +32,7 @@ game/stages/tommy/runtime.ts:177 call: deathByCause(ctx.state)
 game/stages/tommy/runtime.ts:177 call: bikeDeathMessage(rt.bike)
 game/stages/tommy/runtime.ts:177 call: thingDeathMessage(rt.thing)
 game/stages/tommy/runtime.ts:177 call: escapeDeathMessage(rt.escape)
-game/stages/tommy/escape.ts:265 name: undefined
+game/stages/tommy/escape.ts:277 name: undefined
 game/stages/tommy/thing.ts:170 voice: talk
 game/stages/tommy/thing.ts:193 voice: talk
 game/stages/tommy/thing.ts:206 voice: talk

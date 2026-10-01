@@ -50,8 +50,14 @@ export interface Escape {
   askLair: boolean;
 }
 
+/**
+ * The street, before he comes up out of it: the hazmat man from the road, crouched over the manhole doing his tests
+ * (PRE frames, and it waits on him at his lines), then it blows. (Its beats: his lines, the rumble under him.)
+ */
+export const PRE = 170, HAZ_LINE1 = 16, HAZ_HOLD1 = 60, HAZ_LINE2 = 72, HAZ_HOLD2 = 112, RUMBLE_AT = 120;
+const HAZ_HOLDS = new Set([HAZ_HOLD1, HAZ_HOLD2]);
 /** How long each of the cut scenes runs. (The tower's: the street and the manhole first, LAUNCH frames, then the tower.) */
-export const LAUNCH = 70, TOWER_FRAMES = LAUNCH + 230, SURF_FRAMES = 360, FAMILY_FRAMES = 250, CRUSH_FRAMES = 300, MELT_FRAMES = 110;
+export const LAUNCH = PRE + 70, TOWER_FRAMES = LAUNCH + 230, SURF_FRAMES = 360, FAMILY_FRAMES = 250, CRUSH_FRAMES = 300, MELT_FRAMES = 110;
 /** The beats in the tower shot (frames after LAUNCH): the cover through the tank, him into it, it hitting the ground. */
 export const COVER_HIT = 55, MAN_HIT = 85, TOWER_DOWN = 200;
 /**
@@ -80,7 +86,8 @@ export const startEscape = (es: Escape) => { if (es.phase === 'waiting') { es.ph
 export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls: Controls): Controls => {
   const { state, fx } = ctx;
   const p = state.player;
-  es.t++;
+  // (the hazmat man gets his lines out before anything happens to him)
+  if (!(es.phase === 'tower' && HAZ_HOLDS.has(es.t) && (talk.current || talk.queue.length))) es.t++;
   const C = COURSE.sewer.cistern;
   // Down outside the door it's a tight little space: the camera pushed in on it, easing back out as the door opens
   const cramped = p.pos.x > COURSE.ruins.pit - 300 && p.pos.y > GROUND_Y - 400 && state.doorState === 'closed' && es.phase !== 'drop';
@@ -141,9 +148,14 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
       return { ...NO_CONTROLS };
     case 'tower': {
       p.inCutscene = true; p.hidden = true; p.vel = { x: 0, y: 0 };
-      // Out of the street: the cover, then him
-      if (es.t === 8) { playSound('boom'); playSound('tsunami'); shakeScreen(state, 20, 10); }
-      if (es.t === 34) { playSound('whoosh'); shakeScreen(state, 14, 6); }
+      // The hazmat man from the road, crouched over the manhole, doing his tests, minding his own business
+      if (es.t === HAZ_LINE1) queueLines(state, talk, [{ who: 'hazmat', text: 'SAMPLE FOUR-OH-SEVEN. GREEN. GLOWING SLIGHTLY. WITHIN LIMITS.' }]);
+      if (es.t === HAZ_LINE2) queueLines(state, talk, [{ who: 'hazmat', text: '...HUH. WHY IS THIS MANHOLE WARM?' }]);
+      if (es.t === RUMBLE_AT) { playSound('rumble'); shakeScreen(state, 30, 3); }
+      if (es.t > RUMBLE_AT && es.t < PRE && es.t % 14 === 0) playSound('beep', 0.5, 6);
+      // Out of the street: the cover (through him), then the man himself
+      if (es.t === PRE + 8) { playSound('boom'); playSound('tsunami'); playSound('splat'); playSound('crunch'); shakeScreen(state, 20, 10); }
+      if (es.t === PRE + 34) { playSound('whoosh'); shakeScreen(state, 14, 6); }
       // The tower: the cover through the tank, him into it, and over it goes
       const u = es.t - LAUNCH;
       if (u === COVER_HIT) { playSound('clang'); playSound('tsunami'); }

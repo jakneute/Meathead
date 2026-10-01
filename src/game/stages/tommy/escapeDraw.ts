@@ -12,7 +12,7 @@ import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { COURSE, RUINS_Y, CAVERN_ROOF } from './course';
 import type { TommyRuntime } from './runtime';
-import { TOWER_FRAMES, SURF_FRAMES, FAMILY_FRAMES, CRUSH_FRAMES, MELT_FRAMES, LAUNCH, COVER_HIT, MAN_HIT, TOWER_DOWN, inSkippable } from './escape';
+import { TOWER_FRAMES, SURF_FRAMES, FAMILY_FRAMES, CRUSH_FRAMES, MELT_FRAMES, LAUNCH, PRE, RUMBLE_AT, COVER_HIT, MAN_HIT, TOWER_DOWN, inSkippable } from './escape';
 import { SKIP_AFTER, drawSkipPrompt } from '../../platform/skip';
 import { drawStreetSky, drawWaterTower } from './streetDraw';
 import { saying, drawBubble } from './script';
@@ -61,8 +61,11 @@ const drawCover = (ctx: Ctx, x: number, y: number, spin: number, s = 1) => {
  * The street at the foot of the tower, dusk: a manhole in the road. It shudders, then the cover blasts up out of it
  * spinning, a geyser of the stuff after it, and him after that, up out of the top of the screen.
  */
-const drawLaunchScene = (ctx: Ctx, state: GameState, t: number) => {
-  const shake = t >= 8 && t < 26 ? (Math.random() - 0.5) * 14 : t >= 34 && t < 46 ? (Math.random() - 0.5) * 8 : t < 8 ? (Math.random() - 0.5) * 3 : 0;
+const drawLaunchScene = (ctx: Ctx, state: GameState, tt: number) => {
+  // (first the hazmat man at his tests over the manhole: t counts from the blast, negative before it)
+  const t = tt - PRE;
+  const rumble = tt > RUMBLE_AT && t < 0;
+  const shake = rumble ? (Math.random() - 0.5) * 2 : t < 0 ? 0 : t >= 8 && t < 26 ? (Math.random() - 0.5) * 14 : t >= 34 && t < 46 ? (Math.random() - 0.5) * 8 : t < 8 ? (Math.random() - 0.5) * 3 : 0;
   ctx.save(); ctx.translate(shake, shake * 0.6);
   drawStreetSky(ctx, { ...state, camera: { x: COURSE.road.x2 - 400, y: GROUND_Y - 550 } } as GameState, 0.85, true);
   // The road, the curb, a house or two across it
@@ -74,7 +77,11 @@ const drawLaunchScene = (ctx: Ctx, state: GameState, t: number) => {
   // The manhole
   const mx = 400, my = 500;
   ctx.fillStyle = '#1C1917'; ctx.beginPath(); ctx.ellipse(mx, my, 34, 10, 0, 0, Math.PI * 2); ctx.fill();
-  if (t < 8) drawCover(ctx, mx + (Math.random() - 0.5) * 3, my - 2 - Math.random() * 3, 0, 1.5);
+  if (t < 0) drawCover(ctx, mx + (rumble ? (Math.random() - 0.5) * 2 : 0), my - 2 - (rumble ? Math.random() * 2 : 0), 0, 1.5);
+  else if (t < 8) drawCover(ctx, mx + (Math.random() - 0.5) * 3, my - 2 - Math.random() * 3, 0, 1.5);
+  // The hazmat man, crouched on the cover with his kit: a test tube held up to the light, the meter by his knee
+  if (t < 8) hazmatAtWork(ctx, mx, my - 2, tt, rumble);
+  else hazmatGone(ctx, mx, my, t);
   // The cover, blasted up spinning
   if (t >= 8) { const k = (t - 8) * 26; if (my - k > -60) drawCover(ctx, mx, my - k, t * 0.8, 1.5); }
   // The geyser after it
@@ -89,7 +96,63 @@ const drawLaunchScene = (ctx: Ctx, state: GameState, t: number) => {
   ctx.restore();
   if (t >= 8 && t < 12) { ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(0, 0, W, H); }
   // (a moment of black in, and out: the cut)
-  if (t < 4) { ctx.fillStyle = `rgba(0,0,0,${1 - t / 4})`; ctx.fillRect(0, 0, W, H); }
+  if (tt < 4) { ctx.fillStyle = `rgba(0,0,0,${1 - tt / 4})`; ctx.fillRect(0, 0, W, H); }
+};
+
+/** The hazmat man from the road, crouched over the manhole doing his tests: the suit, the mask, a test tube up to the light, the meter, the clipboard. */
+const hazmatAtWork = (ctx: Ctx, x: number, y: number, t: number, rumble: boolean) => {
+  ctx.save(); ctx.translate(x - 8, y);
+  const s = 1.6; ctx.scale(s, s);
+  const yellow = '#FACC15', shade = '#CA8A04';
+  // (crouched: the legs folded under him)
+  ctx.fillStyle = shade; ctx.fillRect(-12, -14, 24, 12);
+  ctx.fillStyle = yellow; ctx.fillRect(-12, -40, 22, 28);
+  ctx.fillStyle = shade; ctx.fillRect(-12, -18, 22, 3);
+  // (the hood, the mask, the visor glinting)
+  ctx.fillStyle = yellow; ctx.beginPath(); ctx.arc(0, -48, 10, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#1F2937'; ctx.fillRect(1, -52, 10, 7);
+  ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillRect(3, -51, 3, 2);
+  ctx.fillStyle = '#374151'; ctx.beginPath(); ctx.arc(9, -42, 3, 0, Math.PI * 2); ctx.fill();
+  // (his arm up, the test tube in his glove, glowing green, him tilting it to look)
+  const tilt = Math.sin(t * 0.05) * 0.3;
+  ctx.fillStyle = yellow; ctx.save(); ctx.translate(8, -34); ctx.rotate(-1.1 + tilt * 0.3); ctx.fillRect(0, -3, 16, 6); ctx.restore();
+  ctx.save(); ctx.translate(18, -48); ctx.rotate(tilt);
+  ctx.fillStyle = 'rgba(224, 242, 254, 0.8)'; ctx.fillRect(-1.5, -10, 3, 12);
+  ctx.fillStyle = '#A3E635'; ctx.fillRect(-1.5, -4, 3, 6);
+  ctx.fillStyle = 'rgba(163, 230, 53, 0.35)'; ctx.beginPath(); ctx.arc(0, -1, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  // (the meter on the cover by his knee: the needle twitching, more and more as it starts to rumble)
+  ctx.fillStyle = '#27272A'; ctx.fillRect(-26, -10, 12, 9);
+  ctx.fillStyle = '#FEF3C7'; ctx.fillRect(-25, -9, 10, 5);
+  const needle = rumble ? Math.sin(t * 1.3) * 0.9 : Math.sin(t * 0.2) * 0.2;
+  ctx.strokeStyle = '#DC2626'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(-20, -4); ctx.lineTo(-20 + Math.sin(needle) * 5, -4 - Math.cos(needle) * 5); ctx.stroke();
+  if (rumble && Math.floor(t / 6) % 2) { ctx.fillStyle = '#EF4444'; ctx.fillRect(-16, -9, 2, 2); }
+  // (the clipboard on the road beside him)
+  ctx.fillStyle = '#92400E'; ctx.fillRect(14, -6, 10, 6); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(15, -5, 8, 4);
+  ctx.restore();
+};
+
+/** What's left of him once the cover's come up through him: him in bits, going up with it, and down all round. */
+const hazmatGone = (ctx: Ctx, x: number, y: number, t: number) => {
+  const s = t - 8;
+  for (let i = 0; i < 16; i++) {
+    const a = -Math.PI / 2 + (((i * 37) % 17) / 17 - 0.5) * 2.2, sp = 7 + ((i * 13) % 9);
+    const px = x + Math.cos(a) * sp * s, py = y - 40 + Math.sin(a) * sp * s + 0.45 * s * s;
+    if (py > 640) continue;
+    ctx.save(); ctx.translate(px, py); ctx.rotate(s * 0.3 + i);
+    if (i % 4 === 0) { ctx.fillStyle = '#FACC15'; ctx.fillRect(-8, -5, 16, 10); ctx.fillStyle = '#B91C1C'; ctx.fillRect(-8, 3, 16, 3); }
+    else if (i % 4 === 1) { ctx.fillStyle = '#B91C1C'; ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill(); }
+    else if (i % 4 === 2) { ctx.fillStyle = '#7F1D1D'; ctx.fillRect(-3, -3, 6, 6); }
+    else { ctx.fillStyle = '#FACC15'; ctx.fillRect(-4, -9, 8, 18); ctx.fillStyle = '#E0AC69'; ctx.fillRect(-3, 8, 6, 4); }
+    ctx.restore();
+  }
+  // (his mask, the test tube, the clipboard: up and over, spinning)
+  const spin = (px: number, py: number, draw: () => void) => { ctx.save(); ctx.translate(px, py); ctx.rotate(s * 0.25); draw(); ctx.restore(); };
+  spin(x - 30 - s * 4, y - 60 - s * 14 + 0.45 * s * s, () => { ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#1F2937'; ctx.fillRect(0, -6, 14, 10); });
+  spin(x + 40 + s * 5, y - 50 - s * 12 + 0.45 * s * s, () => { ctx.fillStyle = '#92400E'; ctx.fillRect(-12, -9, 24, 18); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-10, -7, 20, 14); });
+  // (and him, all over the road)
+  ctx.fillStyle = 'rgba(153, 27, 27, 0.85)';
+  for (let i = 0; i < 9; i++) { const bx = x + ((i * 53) % 260) - 130, r = 4 + ((i * 7) % 10); ctx.beginPath(); ctx.ellipse(bx, y + 18 + ((i * 11) % 30), r * 1.6, r * 0.5, 0, 0, Math.PI * 2); ctx.fill(); }
 };
 
 /** A little house on the block (its door at x, its floor at y): walls, a roof, windows, a porch light. */
