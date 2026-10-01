@@ -6,7 +6,7 @@
 
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
-import { COURSE, CP, MEZZ_Y, END_WALL, Prop, Ledge } from './course';
+import { COURSE, CP, MEZZ_Y, END_WALL, WALL_X, WALL_W, WALL_TOP, Prop, Ledge } from './course';
 import { getGym, fadeAmount, GymRuntime, BigFella } from './runtime';
 import { saying, drawBubble } from './script';
 
@@ -254,6 +254,7 @@ export const drawGymMid = (ctx: Ctx, state: GameState) => {
   const rt = getGym(state);
   if (!rt) return;
   for (const l of COURSE.ledges) if (inView(state, l.x, l.x + l.w)) drawLedge(ctx, l);
+  if (inView(state, WALL_X, WALL_X + WALL_W)) drawHalfWall(ctx);
   // (the mezzanine: its rail along the edge, CARDIO KILLS on its front)
   const mz = COURSE.runs.find(r => r.y1 === MEZZ_Y);
   if (mz && inView(state, mz.x1, mz.x2)) {
@@ -264,6 +265,21 @@ export const drawGymMid = (ctx: Ctx, state: GameState) => {
     ctx.fillStyle = '#18181B'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('NO SPOTTERS', mz.x1 + 100, MEZZ_Y + 45); ctx.textAlign = 'left';
   }
   for (const b of rt.bigFellas) if (rt.phase !== 'play') drawBigFella(ctx, state, b, rt);
+};
+
+/** The half-wall across the floor at the end of the cardio floor: cinderblock, painted, chipped, a sign on it. */
+const drawHalfWall = (ctx: Ctx) => {
+  const x = WALL_X, w = WALL_W, top = WALL_TOP, h = Y - top;
+  ctx.fillStyle = '#A8A08A'; ctx.fillRect(x, top, w, h);
+  for (let y = top; y < Y; y += 20) {
+    ctx.fillStyle = 'rgba(70, 60, 40, 0.45)'; ctx.fillRect(x, y + 18, w, 2);
+    ctx.fillRect(x + (((y - top) / 20) % 2 ? 22 : 10), y, 2, 20);
+  }
+  ctx.fillStyle = '#C9C1A8'; ctx.fillRect(x, top, w, 4); ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(x + w - 6, top, 6, h);
+  // (chips knocked out of it, and the sign)
+  ctx.fillStyle = '#7C7462'; ctx.fillRect(x + 4, top + 30, 5, 3); ctx.fillRect(x + 30, top + 62, 4, 4);
+  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x + 6, top + 14, w - 12, 12); ctx.fillStyle = '#DC2626'; ctx.fillRect(x + 6, top + 14, w - 12, 3);
+  ctx.fillStyle = '#111'; ctx.font = 'bold 3px monospace'; ctx.fillText('RE-RACK', x + 9, top + 22); ctx.fillText('YOUR WTS', x + 8, top + 25);
 };
 
 const drawLedge = (ctx: Ctx, l: Ledge) => {

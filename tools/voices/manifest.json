@@ -686,6 +686,11 @@
  },
  {
   "voice": "announcer",
+  "text": "NOT YET!",
+  "from": "game/stages/gym/runtime.ts:187"
+ },
+ {
+  "voice": "announcer",
   "text": "NUKED!",
   "from": "KILL_CALLOUTS"
  },
@@ -4237,7 +4242,7 @@
  {
   "voice": "death",
   "text": "DIED ON CHEST DAY",
-  "from": "game/stages/gym/runtime.ts:174"
+  "from": "game/stages/gym/runtime.ts:268"
  },
  {
   "voice": "death",
@@ -4947,7 +4952,7 @@
  {
   "voice": "death",
   "text": "KILLED BY INTERNS",
-  "from": "game/stages/gym/runtime.ts:174"
+  "from": "game/stages/gym/runtime.ts:268"
  },
  {
   "voice": "death",
@@ -5857,7 +5862,7 @@
  {
   "voice": "death",
   "text": "SKIPPED THE REST OF CHEST DAY",
-  "from": "game/stages/gym/runtime.ts:174"
+  "from": "game/stages/gym/runtime.ts:268"
  },
  {
   "voice": "death",
@@ -6252,7 +6257,7 @@
  {
   "voice": "death",
   "text": "THE PENCIL NECKS WON",
-  "from": "game/stages/gym/runtime.ts:174"
+  "from": "game/stages/gym/runtime.ts:268"
  },
  {
   "voice": "death",
@@ -6716,28 +6721,33 @@
  },
  {
   "voice": "gym.intern",
+  "text": "DON'T HURT ME! I'M JUST AN INTERN! I'M NOT EVEN PAID!",
+  "from": "game/stages/gym/runtime.ts:123"
+ },
+ {
+  "voice": "gym.intern",
   "text": "EVERYBODY RUSH HIM AT ONCE! HE CAN'T GET ALL OF US!",
-  "from": "game/stages/gym/runtime.ts:109"
+  "from": "game/stages/gym/runtime.ts:123"
  },
  {
   "voice": "gym.intern",
   "text": "HE CAN'T REACH US UP HERE! ...CAN HE?",
-  "from": "game/stages/gym/runtime.ts:109"
+  "from": "game/stages/gym/runtime.ts:123"
  },
  {
   "voice": "gym.intern",
   "text": "HE'S GETTING UP! HE'S GETTING UP!",
-  "from": "game/stages/gym/runtime.ts:109"
+  "from": "game/stages/gym/runtime.ts:123"
  },
  {
   "voice": "gym.intern",
   "text": "STAY TOGETHER! STRENGTH IN NUMBERS!",
-  "from": "game/stages/gym/runtime.ts:109"
+  "from": "game/stages/gym/runtime.ts:123"
  },
  {
   "voice": "gym.intern",
   "text": "THE BRIEFCASES WILL PROTECT US! THEY'RE GOVERNMENT ISSUE!",
-  "from": "game/stages/gym/runtime.ts:109"
+  "from": "game/stages/gym/runtime.ts:123"
  },
  {
   "voice": "gym.intern",
@@ -7227,7 +7237,7 @@
  {
   "voice": "meathead",
   "text": "...NOW THOSE ARE NECKS.",
-  "from": "game/stages/gym/runtime.ts:156"
+  "from": "game/stages/gym/runtime.ts:250"
  },
  {
   "voice": "meathead",
@@ -8048,6 +8058,11 @@
   "voice": "meathead",
   "text": "BULL RUSHED INTO THE DIRT",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BULLETS AREN'T DOING ANYTHING. HE'S HIDING BEHIND A MAT.",
+  "from": "game/stages/gym/runtime.ts:199"
  },
  {
   "voice": "meathead",
@@ -11751,6 +11766,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OKAY. NO MORE GUN. TIME FOR SHOULDER.",
+  "from": "game/stages/gym/runtime.ts:199"
+ },
+ {
+  "voice": "meathead",
   "text": "OKAY. OKAY. THINK. WHERE WOULD A TOMMY BE?",
   "from": "game/stages/tommy/escape.ts:211"
  },
@@ -13131,6 +13151,11 @@
  },
  {
   "voice": "meathead",
+  "text": "STOP SHOOTING THE MAT, MEATHEAD. SHOVE HIM.",
+  "from": "game/stages/gym/runtime.ts:199"
+ },
+ {
+  "voice": "meathead",
   "text": "STOP SHORT-CIRCUITING MY PUMP!",
   "from": "HURT"
  },
@@ -13386,6 +13411,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT MAT IS BULLETPROOF? WHAT KIND OF GYM IS THIS?",
+  "from": "game/stages/gym/runtime.ts:199"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT MOOSE HAS A PERSONAL PROBLEM WITH ME!",
   "from": "HAZARD_HURT"
  },
@@ -13627,7 +13657,7 @@
  {
   "voice": "meathead",
   "text": "The field? The union? The bar? Water under the bridge, pal. Burning water. Now let's talk about YOU. What are you driving these days?",
-  "from": "game/core/update.ts:183"
+  "from": "game/core/update.ts:184"
  },
  {
   "voice": "meathead",
@@ -14097,7 +14127,7 @@
  {
   "voice": "meathead",
   "text": "Two jet skis, sonny. Two tour groups. And now my front hall's caved in. I schedule my quakes AROUND the tour groups!",
-  "from": "game/core/update.ts:183"
+  "from": "game/core/update.ts:184"
  },
  {
   "voice": "meathead",
@@ -14632,12 +14662,12 @@
  {
   "voice": "meathead",
   "text": "You blew my whole power room, man. With Gary in it. My... roommate. Eleven years. One bedroom. We were ROOMMATES, man.",
-  "from": "game/core/update.ts:183"
+  "from": "game/core/update.ts:184"
  },
  {
   "voice": "meathead",
   "text": "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!",
-  "from": "game/core/update.ts:183"
+  "from": "game/core/update.ts:184"
  },
  {
   "voice": "meathead",
@@ -14677,7 +14707,7 @@
  {
   "voice": "meathead",
   "text": "You crashed my VIP lounge, bro. Those were investors. Now they're a geothermal feature.",
-  "from": "game/core/update.ts:183"
+  "from": "game/core/update.ts:184"
  },
  {
   "voice": "meathead",
@@ -14707,12 +14737,12 @@
  {
   "voice": "meathead",
   "text": "You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.",
-  "from": "game/core/update.ts:183"
+  "from": "game/core/update.ts:184"
  },
  {
   "voice": "meathead",
   "text": "You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I'M the terrorist?",
-  "from": "game/core/update.ts:183"
+  "from": "game/core/update.ts:184"
  },
  {
   "voice": "meathead",
@@ -14752,7 +14782,7 @@
  {
   "voice": "meathead",
   "text": "You put the neighbors down. You knocked over my water tower and surfed it through the block. That took WEEKS to fill!",
-  "from": "game/core/update.ts:183"
+  "from": "game/core/update.ts:184"
  },
  {
   "voice": "meathead",
@@ -14862,7 +14892,7 @@
  {
   "voice": "meathead",
   "text": "YOU'RE TOAST.",
-  "from": "game/core/update.ts:183"
+  "from": "game/core/update.ts:184"
  },
  {
   "voice": "meathead",

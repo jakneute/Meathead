@@ -14,7 +14,7 @@ import { COURSE, CP, Room } from './course';
 import { Talk, createTalk, updateTalk, queueLines, quiet, hush } from './script';
 
 /** What to do to the ones in front of him (the button prompt that's up), or nothing. */
-export type Lesson = 'move' | 'fire' | 'charge' | 'slide' | 'uppercut' | 'divekick' | 'shield';
+export type Lesson = 'move' | 'fire' | 'charge' | 'push' | 'slide' | 'uppercut' | 'divekick' | 'shield';
 
 export type GymPhase = 'play' | 'arrive' | 'fade' | 'done';
 
@@ -41,6 +41,11 @@ export interface GymRuntime {
   /** The doors at the end, opening (0 shut .. 1 open), and the two of them walking in. */
   doors: number;
   bigFellas: BigFella[];
+  /** The one behind the mat: shots that have hit it (counted once each), when Meathead last called it, when the announcer last said NOT YET. */
+  matShots: number;
+  shotIds: Set<string>;
+  saidShots: number;
+  notYetAt: number;
 }
 
 export const getGym = (state: GameState) => state.stage as GymRuntime | null;
@@ -55,7 +60,7 @@ export const FADE_FRAMES = 50;
 export const createGymRuntime = (state: GameState): GymRuntime => {
   const startedAt = state.checkpoint;
   const start = COURSE.checkpoints[startedAt];
-  const rooms: Record<Room, string[]> = { free: [], cardio: [], benches: [], racks: [], mezzanine: [], lockers: [] };
+  const rooms: Record<Room, string[]> = { free: [], cardio: [], wall: [], benches: [], racks: [], mezzanine: [], lockers: [] };
   for (const s of COURSE.spawns) {
     if (startedAt > CP.START && s.x - start.x < SPAWN_CLEARANCE) continue;
     const e = makeKindEnemy(s.kind, s.x, s.y);
@@ -73,6 +78,7 @@ export const createGymRuntime = (state: GameState): GymRuntime => {
     startedAt, talk: createTalk(), phase: 'play', t: 0, rooms, said: new Set(), speaker: null,
     moved: startedAt > CP.START, spawnX: NaN, lesson: null, told: undefined, doors: 0,
     bigFellas: [{ x: COURSE.doors, to: COURSE.doors - 190, delay: 0 }, { x: COURSE.doors, to: COURSE.doors - 120, delay: 26 }],
+    matShots: 0, shotIds: new Set(), saidShots: -999, notYetAt: -999,
   };
   return rt;
 };
@@ -83,6 +89,7 @@ const alive = (state: GameState, rt: GymRuntime, room: Room) => rt.rooms[room].s
 /** The pencil necks' nervous lines, as he comes into each room: said by one of them that's still up. */
 const ROOM_LINES: Partial<Record<Room, string>> = {
   free: "HE'S GETTING UP! HE'S GETTING UP!",
+  wall: "DON'T HURT ME! I'M JUST AN INTERN! I'M NOT EVEN PAID!",
   cardio: 'EVERYBODY RUSH HIM AT ONCE! HE CAN\'T GET ALL OF US!',
   racks: "HE CAN'T REACH US UP HERE! ...CAN HE?",
   mezzanine: 'STAY TOGETHER! STRENGTH IN NUMBERS!',
@@ -102,6 +109,7 @@ export const updateGym = (ctx: FrameContext, controls: Controls): Controls => {
   if (rt.phase === 'play' && rt.t <= SPAWN_GRACE) state.gapGrace = Math.max(state.gapGrace || 0, SPAWN_GRACE - rt.t);
 
   standDummiesUp(state);
+  updateCowerer(ctx, rt);
   if (rt.phase === 'play') {
     if (Number.isNaN(rt.spawnX)) rt.spawnX = px;
     if (Math.abs(px - rt.spawnX) > 140) rt.moved = true;
@@ -149,6 +157,57 @@ const standDummiesUp = (state: GameState) => {
   }
 };
 
+/** Meathead, after enough shots into the mat (he works it out, out loud, every so often while he keeps at it). */
+const MAT_SHOTS_LINES = [
+  "BULLETS AREN'T DOING ANYTHING. HE'S HIDING BEHIND A MAT.",
+  'STOP SHOOTING THE MAT, MEATHEAD. SHOVE HIM.',
+  'THAT MAT IS BULLETPROOF? WHAT KIND OF GYM IS THIS?',
+  "OKAY. NO MORE GUN. TIME FOR SHOULDER.",
+];
+/** Shots into the mat before he says something, and the least time between his saying it (frames). */
+const MAT_SHOTS_EVERY = 5, MAT_SHOTS_GAP = 300;
+/** Between the announcer's NOT YETs (frames). */
+const NOT_YET_GAP = 70;
+
+/**
+ * The one behind the mat: nothing hurts him (his health topped back up whatever's done to him), only the shove into the
+ * wall (that kills him outright: see shieldShove). A dive kick or an uppercut on him: NOT YET, says the announcer. And
+ * the shots that go into his mat get counted, and Meathead says something about it.
+ */
+const updateCowerer = (ctx: FrameContext, rt: GymRuntime) => {
+  const { state, fx } = ctx;
+  const p = state.player;
+  for (const e of state.enemies) {
+    if (e.kind !== 'cower' || e.health <= 0 || e.isBlownAway) continue;
+    if (e.health < e.maxHealth) {
+      e.health = e.maxHealth;
+      if ((p.isDivekicking || p.isUppercutting || p.isSliding) && state.frame - rt.notYetAt > NOT_YET_GAP) {
+        rt.notYetAt = state.frame;
+        fx.spawnDamageNumber({ x: e.pos.x - 10, y: e.pos.y - 20 }, 'NOT YET!', true, '#F8FAFC');
+        fx.announceKill('NOT YET!');
+      }
+    }
+    // (shots into the mat, each counted the once)
+    const box = { x: e.pos.x - 16, y: e.pos.y - 8, w: e.width + 32, h: e.height + 8 };
+    for (const q of state.projectiles) {
+      if (q.owner !== 'player' || rt.shotIds.has(q.id)) continue;
+      if (q.pos.x + q.width < box.x || q.pos.x > box.x + box.w || q.pos.y + q.height < box.y || q.pos.y > box.y + box.h) continue;
+      rt.shotIds.add(q.id); rt.matShots++;
+    }
+    if (rt.matShots >= MAT_SHOTS_EVERY && state.frame - rt.saidShots > MAT_SHOTS_GAP && quiet(rt.talk)) {
+      rt.saidShots = state.frame; rt.matShots = 0;
+      queueLines(state, rt.talk, [{ who: 'meathead', text: MAT_SHOTS_LINES[Math.floor(Math.random() * MAT_SHOTS_LINES.length)] }]);
+    }
+  }
+};
+
+/** A shot into the one behind the mat from anywhere but in front (over him, behind him): it just goes into the mat. */
+export const hitCowerer = (ctx: FrameContext, e: { kind?: string; pos: { x: number; y: number }; width: number }): boolean | undefined => {
+  if (e.kind !== 'cower') return undefined;
+  ctx.fx.spawnExplosion({ x: e.pos.x + e.width / 2, y: e.pos.y + 10 }, '#93C5FD', 5, 0, 6);
+  return true;
+};
+
 /** Is he near a striking dummy (it's there to practise the dive kick on)? */
 const byDummy = (px: number) => COURSE.dummies.some(x => Math.abs(px - x) < 320);
 
@@ -158,6 +217,7 @@ const lessonFor = (state: GameState, rt: GymRuntime, px: number): Lesson | null 
   if (!rt.moved) return 'move';
   if (px < R.cardio && alive(state, rt, 'free')) return 'fire';
   if (px >= R.cardio - 100 && px < R.benches && alive(state, rt, 'cardio')) return 'charge';
+  if (px >= R.wall - 200 && px < R.benches && alive(state, rt, 'wall')) return 'push';
   if (px >= R.benches - 100 && px < R.racks && alive(state, rt, 'benches')) return 'slide';
   if (px >= R.racks - 100 && px < R.mezzanine && alive(state, rt, 'racks')) return 'uppercut';
   if (px >= R.mezzanine - 40 && px < R.lockers && (alive(state, rt, 'mezzanine') || byDummy(px))) return 'divekick';

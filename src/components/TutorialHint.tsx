@@ -5,7 +5,7 @@ import { useInputDevice, usePadFamily } from './useInputDevice';
 // The gym's lessons (game/stages/gym/runtime.ts): what to do to the ones in the room he's in, as the buttons that do
 // it on whatever's being played with (changing over the moment you switch), for as long as there's anybody there.
 
-type Lesson = 'move' | 'fire' | 'charge' | 'slide' | 'uppercut' | 'divekick' | 'shield';
+type Lesson = 'move' | 'fire' | 'charge' | 'push' | 'slide' | 'uppercut' | 'divekick' | 'shield';
 
 const SIZE = 16;
 
@@ -23,7 +23,12 @@ const LESSONS: Record<Lesson, { how: React.ReactNode; what: string; note?: strin
   charge: {
     how: <Prompt pad={['B']} kb={['SHIFT']} mouse="right" size={SIZE} label="SHOULDER CHARGE" />,
     what: 'PLOW THROUGH THE LINE. THE ONES YOU SEND FLYING TAKE OUT THE ONES BEHIND THEM.',
-    note: 'SPECIAL MOVES USE POWER (THE CELLS UNDER YOUR HEALTH). THEY REFILL.',
+    note: 'HOLD THE BUTTON TO KEEP CHARGING. CHARGE AGAIN THE MOMENT IT ENDS: EVERY ONE LANDS. IT USES POWER (THE CELLS UNDER YOUR HEALTH): THEY REFILL.',
+  },
+  push: {
+    how: <Prompt pad={['B']} kb={['SHIFT']} mouse="right" size={SIZE} label="SHOULDER CHARGE (HOLD IT)" />,
+    what: 'NOTHING GETS THROUGH THAT MAT. CHARGE INTO IT AND HOLD THE BUTTON: YOU\'LL DRIVE HIM BACK ALL THE WAY INTO THE WALL.',
+    note: 'IT\'S THE ONLY THING THAT WORKS ON HIM.',
   },
   slide: { how: <Combo dir="DOWN" kb={['C']} />, what: 'GYM RATS. ACTUAL RATS. TOO LOW TO SHOOT: SLIDE TACKLE THEM.' },
   uppercut: { how: <Combo dir="UP" kb={['E']} />, what: 'THEY THINK THEY\'RE SAFE UP ON THE RACKS. UPPERCUT THEM OFF.' },

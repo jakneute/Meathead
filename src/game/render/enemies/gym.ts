@@ -21,6 +21,7 @@ export const drawGymKind = (ctx: Ctx, e: Enemy, f: number) => {
     case 'temp': drawTemp(ctx, e, f); break;
     case 'clerk': drawClerk(ctx, e, f); break;
     case 'bob': drawDummy(ctx, e); break;
+    case 'cower': drawCower(ctx, e, f); break;
   }
 };
 
@@ -176,4 +177,39 @@ const drawDummy = (ctx: Ctx, e: Enemy) => {
   ctx.strokeStyle = '#111'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(1, -65); ctx.lineTo(6, -64); ctx.moveTo(1, -59); ctx.lineTo(6, -60); ctx.stroke();
   ctx.fillStyle = '#111'; ctx.fillRect(3, -63, 2, 2);
   ctx.restore();
+};
+
+/**
+ * The one who won't come out: down on his knees behind a folded blue gym mat stood on end, both arms round it, his
+ * head down behind it and just the top of his gelled hair and his eyes showing over it now and then, shaking so hard
+ * the mat rattles. He never drops it, and nothing gets through it.
+ */
+const drawCower = (ctx: Ctx, e: Enemy, f: number) => {
+  const tr = tremble(f, 2.2);
+  const peek = Math.sin(f * 0.05) > 0.6;
+  // (him: on his knees, hunched, the jacket bunched up his back)
+  ctx.fillStyle = SUIT; ctx.fillRect(-14, -12, 16, 12); ctx.fillStyle = SHOE; ctx.fillRect(-20, -5, 8, 5);
+  ctx.save(); ctx.translate(tr * 0.4, 0);
+  ctx.fillStyle = SUIT; ctx.beginPath(); ctx.moveTo(-16, -12); ctx.quadraticCurveTo(-18, -38, -2, -42); ctx.lineTo(6, -40); ctx.lineTo(6, -12); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = SUIT_LIT; ctx.fillRect(-15, -30, 2, 14);
+  // (his head, down behind the mat; the eyes over the top of it, now and then)
+  const skin = skinOf(e);
+  const hy = peek ? -50 : -44;
+  ctx.fillStyle = skin; ctx.beginPath(); ctx.ellipse(2, hy, 7, 7, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = hairOf(e); ctx.beginPath(); ctx.ellipse(1, hy - 4, 7.5, 4, 0, Math.PI, 0); ctx.fill();
+  if (peek) { ctx.fillStyle = '#F8FAFC'; ctx.fillRect(4, hy - 1, 4, 3); ctx.fillStyle = '#111827'; ctx.fillRect(6, hy, 1, 1); }
+  // (sweat flying off him)
+  if (f % 16 < 8) { ctx.fillStyle = 'rgba(186, 230, 253, 0.85)'; ctx.fillRect(-6 - (f % 16), hy - 6 - (f % 16) * 0.5, 1.5, 2); }
+  ctx.restore();
+  // The mat, stood on end in front of him: blue vinyl, the folds across it, the handles, scuffed (rattling as he shakes)
+  ctx.save(); ctx.translate(14 + tr * 0.6, 0);
+  ctx.fillStyle = '#1E3A8A'; ctx.fillRect(0, -58, 14, 58);
+  ctx.fillStyle = '#2563EB'; ctx.fillRect(1, -57, 12, 56);
+  ctx.fillStyle = '#1E40AF'; for (const y of [-44, -29, -14]) ctx.fillRect(0, y, 14, 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(2, -56, 2, 54);
+  ctx.fillStyle = '#111827'; ctx.fillRect(13, -40, 3, 8);
+  ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(6, -50, 4, 3); ctx.fillRect(4, -22, 5, 2);
+  ctx.restore();
+  // (his fingers round the edge of it)
+  ctx.fillStyle = skinOf(e); ctx.fillRect(12 + tr * 0.6, -38, 3, 3); ctx.fillRect(12 + tr * 0.6, -22, 3, 3);
 };

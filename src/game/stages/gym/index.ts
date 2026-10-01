@@ -5,7 +5,7 @@ import type { StageLayout } from '../index';
 import type { Block } from '../../../types';
 import { groundBlocks } from '../../core/terrain';
 import { COURSE, END_WALL } from './course';
-import { createGymRuntime, getGym, updateGym, gymDeathMessage } from './runtime';
+import { createGymRuntime, getGym, updateGym, gymDeathMessage, hitCowerer } from './runtime';
 import { drawGymBackdrop, drawGymBack, drawGymMid, drawGymFront, drawGymHud } from './draw';
 
 export { GYM_STAGE } from './course';
@@ -34,6 +34,7 @@ export const gymLayout: StageLayout = {
     if (cp > 0) { state.cameraRestY = 0; return C.checkpoints[cp]; }
   },
   update: (ctx, controls) => updateGym(ctx, controls),
+  hitSpecialEnemy: (ctx, e) => hitCowerer(ctx, e),
   deathMessage: ctx => gymDeathMessage(ctx),
   drawBackdrop: (ctx, state) => !!getGym(state) && drawGymBackdrop(ctx),
   drawBack: (ctx, state) => drawGymBack(ctx, state),

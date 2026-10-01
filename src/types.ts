@@ -228,7 +228,7 @@ export type EnemyKind =
   // his riot shield), its wildlife (armadillos, longhorns), and the chase: union pickups, ranger cruisers, the bikers' choppers
   | 'ranger' | 'biker' | 'deputy' | 'armadillo' | 'longhorn' | 'grackle' | 'pickup' | 'cruiser' | 'chopper'
   // The gym: the department's pencil necks (sent in first, to see what he'd do)
-  | 'suit' | 'temp' | 'clerk' | 'bob';
+  | 'suit' | 'temp' | 'clerk' | 'bob' | 'cower';
 
 export interface Enemy extends Entity {
   /** Its speed along a slick of oil (it doesn't stop, or get going, in a hurry on one). */

@@ -135,6 +135,8 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   clerk: { w: 38, h: 78, hp: 60, contact: 3 },
   // (a striking dummy: it never goes down, it never hits back; the stage stands it back up after every hit)
   bob: { w: 40, h: 76, hp: 99999, contact: 0 },
+  // (the one cowering behind a gym mat: nothing gets through it, nothing hurts him; only being driven into a wall does)
+  cower: { w: 44, h: 60, hp: 99999, contact: 0 },
 };
 
 /**
@@ -224,6 +226,7 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     case 'temp': return { ...base, behavior: 'patrol', pauseTimer: 0 };
     case 'clerk': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
     case 'bob': return { ...base, harmless: true };
+    case 'cower': return { ...base, enemyType: 'shield', isShieldActive: true, harmless: true };
     default: return base;
   }
 };

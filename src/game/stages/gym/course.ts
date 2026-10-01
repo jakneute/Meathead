@@ -22,7 +22,7 @@ export const GYM_STAGE = 'The Iron Pit';
 export const CP = { START: 0, RATS: 1, MEZZANINE: 2 } as const;
 
 /** The rooms, in order (each one's lesson: see runtime.ts). */
-export type Room = 'free' | 'cardio' | 'benches' | 'racks' | 'mezzanine' | 'lockers';
+export type Room = 'free' | 'cardio' | 'wall' | 'benches' | 'racks' | 'mezzanine' | 'lockers';
 
 export interface Spawn { kind: EnemyKind; x: number; y: number; room: Room }
 export interface PickupSpot { x: number; y: number; type: 'small_health' | 'large_health' | 'small_ammo' | 'large_ammo' }
@@ -35,6 +35,8 @@ const X0 = BOSS_DOOR_X - 4600;
 const Y = GROUND_Y;
 /** How thick the end wall at the left is drawn (the gym's corner: the room stops there). */
 export const END_WALL = 46;
+/** The half-wall across the floor at the end of the cardio floor: where, how thick, its top. */
+export const WALL_X = X0 + 1700, WALL_W = 44, WALL_TOP = Y - 100;
 /** The mezzanine's floor (up the steps), and how far it runs. */
 export const MEZZ_Y = Y - 200;
 
@@ -48,7 +50,8 @@ const build = () => {
 
   // ============ 1. THE FREE WEIGHTS ============
   // His bench (where the cutscene left him), the dumbbell rack along the mirror, three of them stood about with pistols
-  ground(-200, 3100);
+  // (the floor, with a half-wall across it at the end of the cardio floor: something to drive a man into, and to hop over)
+  ground(-200, WALL_X - X0); ground(WALL_X - X0, WALL_X - X0 + WALL_W, WALL_TOP); ground(WALL_X - X0 + WALL_W, 3100);
   prop('bench', 150); prop('mirror', 60, Y - 250); prop('mirror', 420, Y - 250); prop('dumbbells', 280); prop('dumbbells', 520);
   prop('poster', 740, Y - 330, 'NO PAIN NO GAIN'); prop('window', 900, Y - 360);
   // (well clear of his bench: he gets up before anything comes at him)
@@ -59,13 +62,15 @@ const build = () => {
   prop('treadmill', 1000); prop('treadmill', 1150); prop('bike', 1300); prop('treadmill', 1420);
   prop('poster', 1220, Y - 340, 'SWEAT IS FAT CRYING'); prop('window', 1500, Y - 360);
   spawn('temp', 1300, 'cardio'); spawn('temp', 1360, 'cardio'); spawn('temp', 1420, 'cardio'); spawn('temp', 1480, 'cardio');
-  pickup(1590, Y - 30, 'small_health');
+  pickup(1530, Y - 30, 'small_health');
+  // (and at the end of it, the one who won't come out from behind his mat: up against the half-wall, nearly)
+  spawn('cower', 1600, 'wall');
 
   // ============ 3. UNDER THE BENCHES ============
   // The benches in a row, and the gym rats (real ones) scurrying between them, under where a bullet goes
-  prop('bench', 1750); prop('bench', 1900); prop('bench', 2050); prop('fountain', 2160, Y);
-  prop('poster', 1880, Y - 330, 'NO RATS ALLOWED');
-  spawn('rat', 1820, 'benches'); spawn('rat', 1900, 'benches'); spawn('rat', 1990, 'benches'); spawn('rat', 2080, 'benches');
+  prop('bench', 1880); prop('bench', 2010); prop('bench', 2140); prop('fountain', 2195, Y);
+  prop('poster', 2000, Y - 330, 'NO RATS ALLOWED');
+  spawn('rat', 1900, 'benches'); spawn('rat', 1970, 'benches'); spawn('rat', 2040, 'benches'); spawn('rat', 2110, 'benches');
 
   // ============ 4. THE PLATE RACKS ============
   // Two tall racks of plates, a pencil neck up on top of each one (hiding up there), right over his head
@@ -102,8 +107,8 @@ const course = () => {
     x1: X0 - 200, x2: X0 + 4200,
     doors: X0 + 4120,
     /** Where each room starts (its lesson comes up as he gets there). */
-    rooms: { free: X0 + 200, cardio: X0 + 940, benches: X0 + 1640, racks: X0 + 2220, mezzanine: X0 + 2960, lockers: X0 + 3780 } as Record<Room, number>,
-    checkpoints: [{ x: X0 + 150, y: Y }, { x: X0 + 1560, y: Y }, { x: X0 + 2960, y: Y }],
+    rooms: { free: X0 + 200, cardio: X0 + 940, wall: X0 + 1480, benches: X0 + 1760, racks: X0 + 2220, mezzanine: X0 + 2960, lockers: X0 + 3780 } as Record<Room, number>,
+    checkpoints: [{ x: X0 + 150, y: Y }, { x: X0 + 1790, y: Y }, { x: X0 + 2960, y: Y }],
     left: X0 - 1000,
     startX: X0 + 100,
   };
