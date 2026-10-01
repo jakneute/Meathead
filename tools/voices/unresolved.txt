@@ -1,6 +1,6 @@
 components/Cutscene.tsx:86 voice: p.voice
 components/Cutscene.tsx:94 voice: p.voice
-game/bosses/shared.ts:132 voice: getBossVoice(bossId)
+game/bosses/shared.ts:138 voice: getBossVoice(bossId)
 game/bosses/oscar.ts:178 name: undefined
 game/stages/artie/ski.ts:485 name: undefined
 game/stages/artie/ski.ts:490 name: undefined

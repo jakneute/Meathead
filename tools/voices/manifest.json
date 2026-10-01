@@ -14216,12 +14216,12 @@
  },
  {
   "voice": "reporter",
-  "text": "AND ALL OF ITS WATER IS COMING DOWN AT ONCE... DIRECTLY ONTO A DAYCARE.",
+  "text": "AND ALL OF ITS WATER IS COMING DOWN AT ONCE... ONTO A DAYCARE.",
   "from": "game/stages/hector/news.ts:67"
  },
  {
   "voice": "reporter",
-  "text": "BREAKING NEWS: IN A VERY PECULIAR TWIST, THE HURRICANE HAS JUST... STOPPED.",
+  "text": "BREAKING NEWS: THE HURRICANE HAS JUST... STOPPED. OUR OLD WEATHERMAN, HECTOR, ISN'T PICKING UP.",
   "from": "game/stages/hector/news.ts:67"
  },
  {
