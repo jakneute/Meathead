@@ -1192,7 +1192,7 @@
  {
   "voice": "announcer",
   "text": "TRAINING IS CANCELED",
-  "from": "game/range.ts:132"
+  "from": "game/range.ts:165"
  },
  {
   "voice": "announcer",
@@ -1273,6 +1273,16 @@
   "voice": "announcer",
   "text": "ZAPPED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "balloon",
+  "text": "LET GO, LET GO, LET GO! UP! UP AND AWAY FROM THAT SMELL!",
+  "from": "game/range.ts:88"
+ },
+ {
+  "voice": "balloon",
+  "text": "NOPE! NOPE! I DIDN'T SIGN UP TO SPAR WITH THAT! I'M OUT!",
+  "from": "game/range.ts:88"
  },
  {
   "voice": "barry.minion",
@@ -3798,6 +3808,16 @@
   "voice": "boss.victor",
   "text": "YOUR SNOWBALLS ARE STEAM, FOOL!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boxer",
+  "text": "LET GO, LET GO, LET GO! UP! UP AND AWAY FROM THAT SMELL!",
+  "from": "game/range.ts:88"
+ },
+ {
+  "voice": "boxer",
+  "text": "NOPE! NOPE! I DIDN'T SIGN UP TO SPAR WITH THAT! I'M OUT!",
+  "from": "game/range.ts:88"
  },
  {
   "voice": "dale.dad",

@@ -14,6 +14,7 @@ import type { Controls } from './platform/input';
 import { stopDeathAnnouncer } from './platform/speech';
 import { KILL_CALLOUTS, KillCallout } from '../content/dialogue';
 import { isShat } from './player/gut';
+import { say, isTalking, Voice } from './platform/speech';
 
 const NO_EVENTS: GameEvents = {
   onBossDefeated: () => {}, onBossTransition: () => {}, onBossEncounter: () => {}, onBossDeath: () => {}, onIntroComplete: () => {},
@@ -66,12 +67,36 @@ export const createRange = (weapon: WeaponType, stageId = WEAPON_RANGE_STAGE, we
 };
 
 /** Frames till a dummy that's gone comes back (per kind: 0, none gone); and, once he's shit himself in here, how long since. */
-export type Respawns = Record<DummyKind, number> & { cancelled?: number };
+export type Respawns = Record<DummyKind, number> & {
+  cancelled?: number;
+  /** When each of them said his piece and set off (frames into it), and when the announcer called it off. */
+  boxerGo?: number; balloonGo?: number; calledAt?: number;
+};
+
+const BOXER_VOICE: Voice = { id: 'boxer', pitch: 0.9, rate: 1.05 };
+const BALLOON_VOICE: Voice = { id: 'balloon', pitch: 1.3, rate: 1.1 };
 export const newRespawns = (): Respawns => ({ ground: 0, air: 0 });
 
 /** Shit himself in here: the hired help walk out (the boxer runs for it, the balloon man lets himself float off), and
  * once the announcer's done with CODE BROWN and Meathead's had his say, training's called off; a bit after that, it's over. */
-const CANCEL_CALL = 170, CANCEL_END = 330;
+const CANCEL_CALL = 170, CANCEL_END = 160;
+/** If their lines never get said (the speech is off), they go anyway after this long. */
+const LEAVE_ANYWAY = 300;
+
+/** What one of them says on his way out: up over him, and in his voice (queued behind whoever's talking). */
+const leaveLine = (range: GameState, respawns: Respawns, kind: DummyKind, text: string) => {
+  say(text, kind === 'ground' ? BOXER_VOICE : BALLOON_VOICE, 'queue', {
+    always: true,
+    onShow: () => {
+      const t = respawns.cancelled ?? 0;
+      if (kind === 'ground') respawns.boxerGo ??= t; else respawns.balloonGo ??= t;
+      const e = range.enemies.find(q => q.id.startsWith(`dummy-${kind}`));
+      const at = e ? { x: e.pos.x + e.width / 2, y: e.pos.y - 14 } : { x: kind === 'ground' ? CANVAS_WIDTH - 140 : CANVAS_WIDTH / 2, y: 120 };
+      range.damageNumbers.push({ id: `callout-${range.frame}-${kind}-leave`, text, pos: at, vel: { x: 0, y: -0.5 }, life: 150, maxLife: 150, isCritical: false, isCallout: true, color: '#F8FAFC' });
+    },
+    onHide: () => {},
+  });
+};
 
 /** One frame of the range: him (he can't die, or fall out of it), and the dummies coming back. True: it's over (training's been cancelled). */
 export const stepRange = (range: GameState, controls: Controls, weapon: WeaponType, respawns: Respawns): boolean => {
@@ -107,6 +132,12 @@ export const stepRange = (range: GameState, controls: Controls, weapon: WeaponTy
   // He's shit himself: they're off, and nobody's coming back
   if (isShat(range)) {
     const t = respawns.cancelled = (respawns.cancelled ?? -1) + 1;
+    // (their parting words, after CODE BROWN and whatever Meathead's got to say about it)
+    if (t === 0) {
+      leaveLine(range, respawns, 'ground', "NOPE! NOPE! I DIDN'T SIGN UP TO SPAR WITH THAT! I'M OUT!");
+      leaveLine(range, respawns, 'air', 'LET GO, LET GO, LET GO! UP! UP AND AWAY FROM THAT SMELL!');
+    }
+    if (t >= LEAVE_ANYWAY) { respawns.boxerGo ??= t; respawns.balloonGo ??= t; }
     // (the walls come down for them to go out through: him, he's kept in)
     if (t === 0) range.blocks = range.blocks.filter(b => b.type !== 'wall' || b.h < 2000);
     range.player.pos.x = Math.max(0, Math.min(CANVAS_WIDTH - range.player.width, range.player.pos.x));
@@ -119,20 +150,22 @@ export const stepRange = (range: GameState, controls: Controls, weapon: WeaponTy
       // (moved by hand here, not by their AI; which way they're going is which way they face)
       e.vel = { x: away * 0.01, y: 0 };
       if (e.id.startsWith('dummy-ground')) {
-        // (the boxer: off out of it, flat out, the far side from him; he waits a beat to take in the smell first)
-        if (t > 20) e.pos.x += away * Math.min(7, (t - 20) * 0.4);
+        // (the boxer: stood there taking in the smell till he's said his piece, then off out of it, flat out, the far side from him)
+        if (respawns.boxerGo !== undefined) e.pos.x += away * Math.min(7, (t - respawns.boxerGo) * 0.4);
       } else {
-        // (the balloon man: lets go of the floor, up and away, kicking his legs)
-        e.pos.y -= Math.min(3.5, 0.6 + t * 0.05);
-        e.pos.x += away * 0.8;
+        // (the balloon man: holds on to the floor till he's said his, then lets go, up and away, kicking his legs)
+        if (respawns.balloonGo !== undefined) { const u = t - respawns.balloonGo; e.pos.y -= Math.min(3.5, 0.6 + u * 0.05); e.pos.x += away * 0.8; }
       }
     }
     range.enemies = range.enemies.filter(e => !e.id.startsWith('dummy-') || (e.pos.x > -120 && e.pos.x < CANVAS_WIDTH + 120 && e.pos.y + e.height > 4));
-    if (t === CANCEL_CALL) {
+    // Called off once they're both gone and everybody's done talking
+    const gone = !range.enemies.some(e => e.id.startsWith('dummy-') && e.health > 0 && !e.isBlownAway);
+    if (respawns.calledAt === undefined && t >= CANCEL_CALL && gone && (!isTalking() || t >= LEAVE_ANYWAY + 240)) {
+      respawns.calledAt = t;
       ctx.fx.announceKill('TRAINING IS CANCELED');
       range.damageNumbers.push({ id: `callout-${range.frame}-cancel`, text: 'TRAINING IS CANCELED', pos: { x: CANVAS_WIDTH / 2, y: 260 }, vel: { x: 0, y: -0.6 }, life: 150, maxLife: 150, isCritical: true, isCallout: true, color: '#8B5A2B' });
     }
-    return t >= CANCEL_END;
+    return respawns.calledAt !== undefined && t >= respawns.calledAt + CANCEL_END;
   }
   // Both dummies always come back (the other side of the ring from him)
   for (const kind of DUMMY_KINDS) {
