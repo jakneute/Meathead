@@ -304,13 +304,13 @@ export const updateFlamethrower = (ctx: FrameContext, input: WeaponInput, alt = 
   const target = !firing ? 0 : input.moveUp ? -aimRad : input.moveDown ? aimRad : 0;
   player.flameAngle = (player.flameAngle || 0) + (target - (player.flameAngle || 0)) * FLAMETHROWER_AIM_LERP;
   if (player.isDucking) player.flameAngle = 0; // crouched: the nozzle's level, full stop
-  // (the launcher's igniter runs off its own pilot light: it doesn't touch the flamethrower's fuel)
-  const hasFuel = alt || cheats.infiniteAmmo || player.weaponAmmo.FLAMETHROWER > 0;
+  // (the launcher's igniter burns the flamethrower's fuel same as the flamethrower does)
+  const hasFuel = cheats.infiniteAmmo || player.weaponAmmo.FLAMETHROWER > 0;
   const range = player.flameRange ?? FLAMETHROWER_START_RANGE;
 
   if (firing) {
     player.flameDrainTimer = (player.flameDrainTimer || 0) + 1;
-    if (player.flameDrainTimer >= FLAMETHROWER_AMMO_EVERY && hasFuel && !alt) {
+    if (player.flameDrainTimer >= FLAMETHROWER_AMMO_EVERY && hasFuel) {
       if (!cheats.infiniteAmmo) player.weaponAmmo.FLAMETHROWER--;
       player.flameDrainTimer = 0;
     }
@@ -418,8 +418,9 @@ export const updateFlameSegments = (ctx: FrameContext) => {
       return false;
     }
 
-    // Melt enemy projectiles (not rubble, magma, enemy boulders or small ice shards)
-    const p = state.projectiles.find(pr => pr.owner === 'enemy' && pr.health > 0 && rectsOverlap(box, boundsOf(pr)));
+    // Melt enemy projectiles (not rubble, magma, enemy boulders or small ice shards; and only the flamethrower proper:
+    // the launcher's igniter is too weak to)
+    const p = !seg.alt && state.projectiles.find(pr => pr.owner === 'enemy' && pr.health > 0 && rectsOverlap(box, boundsOf(pr)));
     if (p) {
       const isIndestructible = p.id.startsWith('debris-') || p.id.startsWith('magma-') || p.isBoulder || (p.isIce && p.width <= 20);
       if ((p.isIce && p.width > 30) || !isIndestructible) {
