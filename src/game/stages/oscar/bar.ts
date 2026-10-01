@@ -179,7 +179,7 @@ const drinks = (ctx: FrameContext, b: Bar, talk: Talk, controls: Controls): Cont
     if (next >= 0 && since > 600 && !b.hinted.has(`v${next}-${Math.floor(since / 900)}`)) {
       b.hinted.add(`v${next}-${Math.floor(since / 900)}`);
       b.ambientAt = state.frame;
-      const where = ['SOMETHING HISSING DOWN LOW, BEHIND THE JUKEBOX.', "THERE'S A GAS LINE UP OVER THE BAND.", 'I SMELL GAS COMING FROM THE CAN.'][next];
+      const where = ['SOMETHING HISSING DOWN LOW, BEHIND THE JUKEBOX.', "THERE'S A GAS LINE UP OVER THE BAND.", "I SMELL GAS IN THE BATHROOM. THERE'S A LINE RIGHT BEHIND THE TOILET."][next];
       queueLines(state, talk, [{ who: 'meathead', text: open === 0 && !b.hinted.has('three') ? 'THREE GAS LINES IN HERE, BY THE SMELL. PISTOL SHOULD DO IT.' : where }]);
       b.hinted.add('three');
     } else if (open === 3 && b.gas >= GAS_ENOUGH && since > 400 && !b.hinted.has(`fire-${Math.floor(since / 700)}`)) {
