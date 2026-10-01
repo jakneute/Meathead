@@ -102,6 +102,9 @@ export const createTown = (state: GameState, startedAt: number): Town => {
   ].map(p => ({ ...p, look: p.look as TownProp['look'], flying: false, vx: 0, vy: 0, y: Y, rot: 0 }));
   // (back after dying past the jail: it's rubble, and Riggs is in it)
   const wrecked = !!state.stageMemo.jailWrecked;
+  // (died while Riggs was coming up the street, before he'd got to the jail: it never happened. The street's as it
+  // was, the tread marks, the blood and the beaten-up fronts gone with it, the tourists back)
+  if (!wrecked) { delete state.stageMemo.cabReach; delete state.stageMemo.townStains; }
   return {
     phase: wrecked ? 'crashed' : 'street', t: 0,
     sniper: { on: false, x: t.x1 + 1400, y: Y - 200, state: 'track', t: 0, shots: 0, lastShot: null },
@@ -585,6 +588,9 @@ const updateWarpath = (ctx: FrameContext, town: Town, talk: Talk, controls: Cont
   if (town.phase === 'jail') return jailScene(ctx, town, talk, controls);
   if (town.phase === 'chase' || town.phase === 'incoming') {
     const speed = town.phase === 'chase' ? CHASE_SPEED : RUSH_SPEED;
+    // (anyone of Dale's still about has seen what's coming too: they stop dead where they are, staring at it, no
+    // more coming at him; it gets them all, on the street or up on the roofs)
+    for (const e of state.enemies) if (e.health > 0 && !e.isBlownAway && e.type !== 'boss' && !e.innocent) { e.pauseTimer = Math.max(e.pauseTimer || 0, 2); e.vel.x = 0; e.facing = -1; }
     cab.speed += (speed - cab.speed) * 0.1;
     cab.x += cab.speed;
     plow(ctx, town);
@@ -729,29 +735,25 @@ const plow = (ctx: FrameContext, town: Town) => {
   const front = cab.x + CAB.w;
   // (how far up the street it's been: everything behind that's taken a beating, and stays that way)
   if (front > cabReach(state)) state.stageMemo.cabReach = String(Math.round(front));
+  // Anyone of Dale's still about (left alive): the same as the tourists, in the street; up on the roofs, or up in the
+  // air, the wind of it going by takes them off and away
   for (const e of state.enemies) {
-    if (e.health <= 0 || e.isBlownAway || e.type === 'boss' || e.enemyType === 'flyer') continue;
-    if (e.pos.x + e.width < cab.x || e.pos.x > front || e.pos.y + e.height < Y - CAB.h) continue;
+    if (e.health <= 0 || e.isBlownAway || e.type === 'boss') continue;
+    if (e.pos.x + e.width < cab.x || e.pos.x > front + 10) continue;
     e.health = 0;
-    fx.blowAwayEnemy(e, { x: 14 + Math.random() * 8, y: -14 - Math.random() * 6 }, 'charge_kill', 1, 1.5);
-    fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 30 }, e.kind === 'visitor' ? 'ROADKILL!' : 'HIT AND RUN!', true, '#F87171');
+    if (e.pos.y + e.height >= Y - CAB.h) roadkill(ctx, town, e);
+    else {
+      fx.blowAwayEnemy(e, { x: 16 + Math.random() * 10, y: -16 - Math.random() * 10 }, 'charge_kill', 1, 1.5);
+      fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 30 }, FLUNG[Math.floor(Math.random() * FLUNG.length)], true, '#F87171');
+      playSound('whoosh');
+    }
   }
   // The tourists: every last one
-  const SPLATS = ['ROADKILL!', 'SPLAT!', 'NO REFUNDS!', 'TOURIST TRAP!', 'WRONG WAY!', 'SPLORCH!', 'HIT AND RUN!'];
   town.tourists = town.tourists.filter(e => {
     if (e.pos.x + e.width < cab.x || e.pos.x > front + 10) return true;
     e.health = 0;
     state.enemies.push(e);
-    fx.blowAwayEnemy(e, { x: 18 + Math.random() * 12, y: -14 - Math.random() * 12 }, 'charge_kill', 1, 2.6);
-    fx.spawnDeathShower({ x: e.pos.x + e.width / 2, y: Y - 40 }, 1, 2);
-    fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 40 - Math.random() * 30 }, SPLATS[Math.floor(Math.random() * SPLATS.length)], true, '#F87171');
-    // (and what's left of them, all over the street)
-    for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: Y - 30 }, vel: { x: 4 + Math.random() * 14, y: -Math.random() * 12 }, life: 40 + Math.random() * 30, color: i % 3 ? '#991B1B' : '#DC2626', size: 3 + Math.random() * 6 });
-    town.gore = Math.min(1, town.gore + 0.1);
-    // (and where it happened stays painted: it doesn't wash off)
-    addStain(state, e.pos.x + e.width / 2);
-    shakeScreen(state, 10, 6);
-    if (state.frame - town.screamAt > 35) { town.screamAt = state.frame; playSound('screams'); }
+    roadkill(ctx, town, e);
     return false;
   });
   for (const pr of town.props) {
@@ -759,6 +761,24 @@ const plow = (ctx: FrameContext, town: Town) => {
     pr.flying = true; pr.vx = 10 + Math.random() * 8; pr.vy = -12 - Math.random() * 8;
     playSound('crash');
   }
+};
+
+const SPLATS = ['ROADKILL!', 'SPLAT!', 'NO REFUNDS!', 'TOURIST TRAP!', 'WRONG WAY!', 'SPLORCH!', 'HIT AND RUN!'];
+const FLUNG = ['SLIPSTREAMED!', 'GONE WITH THE WIND!', 'AIRBORNE!', 'SWEPT AWAY!'];
+
+/** Under the cab: thrown up and away, in pieces, the street painted with it. */
+const roadkill = (ctx: FrameContext, town: Town, e: Enemy) => {
+  const { state, fx } = ctx;
+  fx.blowAwayEnemy(e, { x: 18 + Math.random() * 12, y: -14 - Math.random() * 12 }, 'charge_kill', 1, 2.6);
+  fx.spawnDeathShower({ x: e.pos.x + e.width / 2, y: Y - 40 }, 1, 2);
+  fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 40 - Math.random() * 30 }, SPLATS[Math.floor(Math.random() * SPLATS.length)], true, '#F87171');
+  // (and what's left of them, all over the street)
+  for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: Y - 30 }, vel: { x: 4 + Math.random() * 14, y: -Math.random() * 12 }, life: 40 + Math.random() * 30, color: i % 3 ? '#991B1B' : '#DC2626', size: 3 + Math.random() * 6 });
+  town.gore = Math.min(1, town.gore + 0.1);
+  // (and where it happened stays painted: it doesn't wash off)
+  addStain(state, e.pos.x + e.width / 2);
+  shakeScreen(state, 10, 6);
+  if (state.frame - town.screamAt > 35) { town.screamAt = state.frame; playSound('screams'); }
 };
 
 const updateProps = (ctx: FrameContext, town: Town) => {
