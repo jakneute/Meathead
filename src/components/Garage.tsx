@@ -99,7 +99,7 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
         <span className="text-[8px] text-white/80 [text-shadow:1px_1px_0_#000]">SOUVENIRS {owned.length}/{SOUVENIRS.length}</span>
       </div>
       {/* The tag on whatever's picked */}
-      <div className="absolute left-[130px] right-[10px] bottom-[8px] min-h-[46px] px-3 py-2 border-2 border-yellow-500 bg-black/85 shadow-[3px_3px_0_#000] pointer-events-none">
+      <div className="absolute left-[130px] right-[10px] bottom-[8px] min-h-[46px] px-3 py-2 border-2 border-yellow-500 bg-black shadow-[3px_3px_0_#000] pointer-events-none">
         {s ? (
           <>
             <div className="flex items-baseline justify-between gap-2">
