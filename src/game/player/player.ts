@@ -562,6 +562,8 @@ const updateVerticalVelocity = (ctx: FrameContext, input: FrameInput) => {
     if (player.skiing) player.jumpHoldTimer = Math.round(JUMP_HOLD_FRAMES * SKI_JUMP_HOLD_MULT);
     player.squash = -0.5; // stretch on take-off
     ctx.fx.playGunSound('jump');
+    // (a puff of dust off the ground he pushed off: unless he's jumping out of the air, off coyote time)
+    if (player.isGrounded) { const fx0 = player.pos.x + player.width / 2, fy0 = player.pos.y + player.height; spawnDust(ctx.state, fx0, fy0, 3, 1); spawnDust(ctx.state, fx0, fy0, 3, -1); }
     player.isGrounded = false;
     player.coyoteAirTimer = 0;
     player.coyoteJumpTimer = 0;
@@ -750,8 +752,10 @@ export const landPlayer = (ctx: FrameContext, impactSpeed: number = 0) => {
 
   // Squash and kick up dust in proportion to how hard we landed
   const impact = Math.min(1, impactSpeed / PLAYER_TERMINAL_VELOCITY);
+  // (every landing gives at the knees a little; a hard one squashes him down)
+  if (impact > 0.12 && impact <= 0.3) player.squash = Math.max(player.squash || 0, 0.2 + impact * 0.6);
   if (impact > 0.3) {
-    player.squash = impact * 0.9;
+    player.squash = 0.3 + impact * 0.7;
     if (!player.isDivekicking) fx.playGunSound('land', impact);
     spawnDust(state, player.pos.x + player.width / 2, player.pos.y + player.height, Math.round(impact * 10), 1);
     spawnDust(state, player.pos.x + player.width / 2, player.pos.y + player.height, Math.round(impact * 10), -1);

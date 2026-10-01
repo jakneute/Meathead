@@ -6,7 +6,8 @@ import { drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJet
 import { KICK_POSE_FRAMES, LEDGE_DROP_FRAMES } from '../../../constants';
 import { GameState } from '../../core/state';
 import { beginSprite, endSprite, markEyes, eyesAt } from './spriteOutline';
-import { setGore, getGore, smear, drip, drawHeadBlood, drawTorsoBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
+import { setGore, getGore, smear, drip, drawHeadBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
+import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, bootColor, bootToe, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawHead } from './body';
 
 export interface PlayerDrawOptions {
   currentWeapon: WeaponType;
@@ -19,20 +20,6 @@ export interface PlayerDrawOptions {
   surf?: boolean;
 }
 
-// Palette
-const skinTone = '#E0AC69';
-const skinShadow = '#C68B45';
-const skinHighlight = '#F5D0A9';
-const skinVein = '#EF4444';
-const pantsColor = '#1E3A8A'; // Navy tactical pants
-const pantsShadow = '#172554';
-const bootColor = '#18181B'; // Dark combat boots
-const bootToe = '#94A3B8'; // Steel toe
-const beltColor = '#78350F'; // Leather belt
-const beltBuckle = '#FACC15'; // Gold buckle
-const wristbandColor = '#09090B'; // Spiked wristband
-const backArmShade = '#A87038';   // shadow side of the far arm
-const stubbleColor = 'rgba(60, 30, 10, 0.35)';
 /** Black with soot (a room blown up round him): how long it takes to wear off at the end (frames). */
 export const SOOT_FRAMES = 420;
 const SOOT_FADE = 120;
@@ -246,7 +233,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     bodyRot = swimMoving ? 0.3 : 0.02;
     bodyY = Math.sin(animFrame * 0.12) * 2;
   } else if (isAirborne) {
-    bodyRot = -0.03 + airFall * 0.06; // leaning back a touch on the way up, forward coming down
+    bodyRot = -0.09 + airFall * 0.16; // leaning back on the way up, forward coming down
   }
 
   // Lean into the run
@@ -348,7 +335,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // Held a little back while he's in the air
     const armAngle = isSwimming ? (swimMoving ? (animFrame * 0.2) % (Math.PI * 2) : 0.9 + Math.sin(animFrame * 0.15) * 0.9)
       : isWalking ? -walkStride * 0.6
-      : isAirborne ? 0.3 + airFall * 0.3
+      // (in the air: thrown up high behind him on the way up, coming down and out behind for balance as he falls)
+      : isAirborne ? 2.5 - airFall * 1.2
       : Math.sin(animFrame * 0.08) * 0.1;
     ctx.save();
     ctx.translate(-15, -45);
@@ -469,10 +457,12 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     drawJointedLeg(ctx, 5, -22, 0.1 - k * reach, 0.3 + Math.max(0, -k) * 0.3, pantsColor, true);
   } else if (isAirborne) {
     // Jumping: lead knee comes up a bit on the way up, legs straighten for the landing coming down
-    const fall = airFall;
+    // (springing up: the lead knee driven high, the back leg kicked back under him; tucked at the top; coming down,
+    // both legs reaching for the ground, a little apart, ready to take the landing)
+    const fall = airFall, tuck = Math.max(0, 1 - Math.abs(fall - 0.45) / 0.3);
     const lerp = (a: number, b: number) => a + (b - a) * fall;
-    drawJointedLeg(ctx, -4, -22, lerp(0.12, 0.05), lerp(0.2, 0.05), pantsShadow, false);
-    drawJointedLeg(ctx, 5, -22, lerp(-0.45, -0.1), lerp(0.6, 0.1), pantsColor, true);
+    drawJointedLeg(ctx, -4, -22, lerp(0.35, 0.18) - tuck * 0.25, lerp(1.0, 0.15) + tuck * 0.4, pantsShadow, false);
+    drawJointedLeg(ctx, 5, -22, lerp(-1.05, -0.2) - tuck * 0.2, lerp(1.45, 0.3) + tuck * 0.2, pantsColor, true);
   } else if (isHurt) {
     // Staggered backwards
     drawPantLeg(ctx, -14, -20, 10, 16, pantsShadow);
@@ -550,33 +540,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   } else {
   const beltY = isDucking ? -16 : -27;
   const beltH = isDucking ? 6 : 7;
-  // Heavy brown leather strap
-  ctx.fillStyle = beltColor;
-  ctx.fillRect(-13, beltY, 26, beltH);
-  ctx.strokeStyle = '#451A03';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(-13, beltY, 26, beltH);
-  // Heavy gold weightlifting buckle
-  ctx.fillStyle = beltBuckle;
-  ctx.fillRect(-5, beltY - 1, 10, beltH + 2);
-  ctx.strokeStyle = '#B45309';
-  ctx.strokeRect(-5, beltY - 1, 10, beltH + 2);
-  // Buckle cutout center
-  ctx.fillStyle = '#451A03';
-  ctx.fillRect(-2, beltY + 1, 4, beltH - 2);
-  // Silver studs
-  ctx.fillStyle = '#E5E7EB';
-  ctx.fillRect(-10, beltY + 2, 2, 2);
-  ctx.fillRect(8, beltY + 2, 2, 2);
-  // Stitching along both edges, and a glint on the buckle
-  ctx.fillStyle = '#D97706';
-  for (let sx = -12; sx < 12; sx += 2.5) {
-    if (sx > -6 && sx < 5) continue;
-    ctx.fillRect(sx, beltY + 0.8, 1.3, 0.6);
-    ctx.fillRect(sx, beltY + beltH - 1.3, 1.3, 0.6);
-  }
-  ctx.fillStyle = '#FEF9C3';
-  ctx.fillRect(-4, beltY, 2.5, 1.2);
+  drawBelt(ctx, beltY, beltH);
   // (being undone: the strap end pulled free of the buckle, flapping)
   if (isRelieving && pee.undoing && (p.peeTimer || 0) > 8) {
     const flap = Math.sin(animFrame * 0.6) * 0.3;
@@ -592,82 +556,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const torsoTop = isDucking ? -36 : -50;
   const torsoHeight = isDucking ? 21 : 24;
   const pecY = isDucking ? -34 : -48;
-  // Torso Base: lit from the front, shadowed round the back, lats flaring out
-  const torsoShade = ctx.createLinearGradient(-14, 0, 14, 0);
-  torsoShade.addColorStop(0, skinShadow);
-  torsoShade.addColorStop(0.3, skinTone);
-  torsoShade.addColorStop(1, skinTone);
-  ctx.fillStyle = torsoShade;
-  ctx.fillRect(-14, torsoTop, 28, torsoHeight);
-  ctx.beginPath();
-  ctx.moveTo(-14, torsoTop + 4); ctx.lineTo(-16, torsoTop + 9); ctx.lineTo(-14, torsoTop + 16);
-  ctx.moveTo(14, torsoTop + 4); ctx.lineTo(16, torsoTop + 9); ctx.lineTo(14, torsoTop + 16);
-  ctx.fill();
-  // Serratus ridges and obliques down the front side
-  ctx.fillStyle = skinShadow;
-  for (let i = 0; i < 3; i++) ctx.fillRect(9.5, torsoTop + 11 + i * 3, 3, 0.9);
-  ctx.beginPath();
-  ctx.moveTo(10, torsoTop + torsoHeight - 1); ctx.lineTo(13.5, torsoTop + torsoHeight - 7); ctx.lineTo(13.5, torsoTop + torsoHeight - 1);
-  ctx.fill();
-
-  // Chiseled 6-Pack Abs (compacted during crouch)
-  ctx.fillStyle = skinShadow;
-  // Linea alba (center vertical divider)
-  ctx.fillRect(-0.75, torsoTop + 9, 1.5, isDucking ? 10 : 13);
-  // Horizontal ab dividers
-  ctx.fillRect(-8, torsoTop + 13, 16, 1.2);
-  if (!isDucking) {
-    ctx.fillRect(-7, -31, 14, 1.2);
-  }
-  // Six distinct rectus abdominis muscle blocks
-  ctx.fillStyle = skinHighlight;
-  ctx.fillRect(-6, torsoTop + 9.5, 4.5, 2.8);
-  ctx.fillRect(1.5, torsoTop + 9.5, 4.5, 2.8);
-  ctx.fillRect(-5.5, torsoTop + 14, 4, 3);
-  ctx.fillRect(1.5, torsoTop + 14, 4, 3);
-  if (!isDucking) {
-    ctx.fillRect(-5, -30, 4, 2.5);
-    ctx.fillRect(1, -30, 4, 2.5);
-  }
-
-  // Bulging Pectoral Chest Muscles
-  ctx.fillStyle = skinTone;
-  // Left pec
-  ctx.beginPath();
-  ctx.roundRect(-13, pecY, 12, isDucking ? 8.5 : 10, [3, 1, 3, 4]);
-  ctx.fill();
-  // Right pec
-  ctx.beginPath();
-  ctx.roundRect(1, pecY, 12, isDucking ? 8.5 : 10, [1, 3, 4, 3]);
-  ctx.fill();
-
-  // Pec separation shadow & under-pec cleft
-  ctx.fillStyle = skinShadow;
-  ctx.fillRect(-0.75, pecY, 1.5, isDucking ? 8.5 : 10);
-  ctx.fillRect(-13, pecY + (isDucking ? 7.5 : 9), 26, 1.5);
-  // Upper pec highlights, and the underside of each pec in shadow
-  ctx.fillStyle = skinHighlight;
-  ctx.fillRect(-11, pecY + 1.5, 8, 2);
-  ctx.fillRect(3, pecY + 1.5, 8, 2);
-  ctx.fillRect(5, pecY + 4, 4, 1.2);
-  ctx.fillStyle = 'rgba(120, 70, 20, 0.35)';
-  ctx.fillRect(-12, pecY + (isDucking ? 6 : 7.5), 11, 1.5);
-  ctx.fillRect(2, pecY + (isDucking ? 6 : 7.5), 10, 1.5);
-  // Sweat sheen
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-  ctx.fillRect(6, pecY + 2, 1.5, 1);
-  ctx.fillRect(3, torsoTop + 15, 1, 1);
-
-  // Trapezius muscles rising behind neck
-  ctx.fillStyle = skinShadow;
-  ctx.beginPath();
-  ctx.moveTo(-12, torsoTop + 2);
-  ctx.lineTo(-6, torsoTop - 6);
-  ctx.lineTo(6, torsoTop - 6);
-  ctx.lineTo(12, torsoTop + 2);
-  ctx.closePath();
-  ctx.fill();
-  drawTorsoBlood(ctx, torsoTop, torsoHeight, pecY);
+  drawTorso(ctx, torsoTop, torsoHeight, pecY, isDucking);
   ctx.restore();
 
   // Twisted round in the seat to shoot behind: the head and the gun arm face back, the rest stays facing forward
@@ -1271,114 +1160,37 @@ const drawSlideTackle = (ctx: CanvasRenderingContext2D, frame: number, weapon: W
     ctx.fill();
   }
 
-  // Back arm: palm planted on the floor behind for balance
-  ctx.save();
-  ctx.fillStyle = skinShadow;
-  ctx.beginPath(); ctx.arc(-24, -30, 7, 0, Math.PI * 2); ctx.fill();
-  ctx.translate(-24, -30);
-  ctx.rotate(0.45);
-  ctx.fillRect(-4, 0, 8, 22);
-  ctx.fillStyle = wristbandColor;
-  ctx.fillRect(-5, 16, 10, 4);
-  ctx.fillStyle = skinShadow;
-  ctx.beginPath(); ctx.ellipse(0, 25, 6, 4, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.restore();
+  // Back arm: reaching down behind him, the palm planted flat on the floor, fingers splayed, skidding along with him
+  drawArm(ctx, -26, -33, -31, -18, -30, -5, skinShadow, backArmShade, skinTone);
+  ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.ellipse(-30, -2, 6, 2.6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = backArmShade; for (let k = 0; k < 3; k++) ctx.fillRect(-26 + k * 1.6, -2.6, 1.2, 2.4);
 
-  // Back leg tucked under
-  ctx.fillStyle = pantsShadow;
-  ctx.beginPath();
-  ctx.moveTo(-10, -15); ctx.lineTo(4, -10); ctx.lineTo(3, -3); ctx.lineTo(-10, -7);
-  ctx.closePath(); ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(4, -8); ctx.lineTo(-12, -5); ctx.lineTo(-12, 0); ctx.lineTo(3, -2);
-  ctx.closePath(); ctx.fill();
-  ctx.fillStyle = bootColor;
-  ctx.fillRect(-22, -6, 11, 6);
+  // Back leg folded under him, the knee on the floor, the boot sole-up behind
+  drawLeg(ctx, [-6, -12], [6, -4], [-12, -3], Math.PI, true);
 
   // Lead leg straight out along the floor, steel toe first
-  ctx.fillStyle = pantsColor;
-  ctx.beginPath();
-  ctx.moveTo(-8, -17); ctx.lineTo(22, -10); ctx.lineTo(22, -1); ctx.lineTo(-6, -6);
-  ctx.closePath(); ctx.fill();
-  ctx.fillStyle = bootColor;
-  ctx.fillRect(20, -11, 16, 10);
-  ctx.fillStyle = bootToe;
-  ctx.fillRect(30, -10, 7, 8);
-  ctx.fillStyle = '#09090B';
-  ctx.fillRect(20, -2, 17, 2);
+  drawLeg(ctx, [-4, -13], [12, -8], [26, -4], -0.05, false);
 
   // Sparks off the steel toe
   if (frame % 3 !== 0) {
     ctx.fillStyle = frame % 2 === 0 ? '#FDE047' : '#FB923C';
-    for (let s = 0; s < 3; s++) {
-      ctx.fillRect(38 + ((frame * 5 + s * 7) % 12), -3 - ((frame + s * 3) % 6), 3, 2);
-    }
+    for (let s = 0; s < 3; s++) ctx.fillRect(38 + ((frame * 5 + s * 7) % 12), -3 - ((frame + s * 3) % 6), 3, 2);
   }
 
-  // Torso leaning way back from the hips, belt at the waist
+  // Torso leaning way back from the hips: the same body as standing, laid back
   ctx.save();
-  ctx.translate(-8, -15);
-  ctx.rotate(-0.9);
-  ctx.fillStyle = skinTone;
-  ctx.fillRect(-13, -26, 26, 26);
-  ctx.fillStyle = skinShadow;
-  ctx.fillRect(-0.75, -17, 1.5, 13);
-  ctx.fillRect(-8, -12, 16, 1.2);
-  ctx.fillRect(-7, -7, 14, 1.2);
-  ctx.fillStyle = skinTone;
-  ctx.beginPath(); ctx.roundRect(-12, -25, 11, 9, [3, 1, 3, 4]); ctx.fill();
-  ctx.beginPath(); ctx.roundRect(1, -25, 11, 9, [1, 3, 4, 3]); ctx.fill();
-  ctx.fillStyle = skinShadow;
-  ctx.fillRect(-12, -17, 24, 1.5);
-  ctx.fillStyle = skinHighlight;
-  ctx.fillRect(-10, -23.5, 7, 2);
-  ctx.fillRect(3, -23.5, 7, 2);
-  ctx.fillStyle = beltColor;
-  ctx.fillRect(-13, -3, 26, 6);
-  ctx.fillStyle = beltBuckle;
-  ctx.fillRect(-5, -4, 10, 8);
-  ctx.fillStyle = '#451A03';
-  ctx.fillRect(-2, -2, 4, 4);
-  drawTorsoBlood(ctx, -26, 23, -25);
+  ctx.translate(-6, -13);
+  ctx.rotate(-1.05);
+  ctx.translate(0, 24);
+  drawTorso(ctx, -50, 24, -48);
+  drawBelt(ctx, -27, 7);
   ctx.restore();
 
-  // Head up and forward, yelling
-  const hx = -27, hy = -42;
-  ctx.fillStyle = skinTone;
-  ctx.beginPath(); ctx.roundRect(hx - 10, hy - 12, 20, 20, [4, 4, 3, 3]); ctx.fill();
-  ctx.fillStyle = 'rgba(120, 53, 15, 0.25)';
-  ctx.fillRect(hx - 9, hy + 1, 18, 7);
-  ctx.fillStyle = '#18181B';
-  ctx.fillRect(hx - 10, hy - 16, 20, 5);
-  ctx.fillRect(hx - 11, hy - 14, 2, 7);
-  ctx.fillStyle = '#09090B';
-  ctx.beginPath();
-  ctx.moveTo(hx - 8, hy - 9); ctx.lineTo(hx - 1, hy - 6); ctx.lineTo(hx - 1, hy - 4); ctx.lineTo(hx - 8, hy - 7);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(hx + 8, hy - 9); ctx.lineTo(hx + 1, hy - 6); ctx.lineTo(hx + 1, hy - 4); ctx.lineTo(hx + 8, hy - 7);
-  ctx.fill();
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(hx - 7.5, hy - 5.5, 5, 3);
-  ctx.fillRect(hx + 1.5, hy - 5.5, 5, 3);
-  ctx.fillStyle = '#09090B';
-  ctx.fillRect(hx - 5, hy - 5, 2.5, 2.5);
-  ctx.fillRect(hx + 4, hy - 5, 2.5, 2.5);
-  ctx.fillStyle = '#450A0A';
-  ctx.beginPath(); ctx.ellipse(hx + 1, hy + 4, 5, 3.5, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(hx - 2, hy + 1.5, 6, 1.5);
-  drawHeadBlood(ctx, hx, hy, frame);
-  drawBeatenUp(ctx, hx, hy, frame);
+  // Head up and forward over his chest, yelling
+  drawHead(ctx, -26, -40, 'yell', frame);
 
-  // Lead arm thrust forward, gun leading the slide
-  ctx.fillStyle = skinTone;
-  ctx.beginPath(); ctx.arc(-18, -34, 8, 0, Math.PI * 2); ctx.fill();
-  ctx.fillRect(-18, -38, 18, 8);
-  ctx.fillStyle = wristbandColor;
-  ctx.fillRect(-2, -39, 5, 10);
-  ctx.fillStyle = skinTone;
-  ctx.beginPath(); ctx.arc(6, -34, 5.5, 0, Math.PI * 2); ctx.fill();
+  // Lead arm thrust forward over his chest, the gun leading the slide
+  drawArm(ctx, -16, -33, -6, -32, 1, -36, skinTone, skinShadow, skinHighlight, 6);
   // (his actual weapon, where game/combat/muzzle.ts says shots come out mid-slide)
   if (!unarmed) drawHeldWeapon(ctx, weapon, SLIDE_HOLD.x, SLIDE_HOLD.y, 0, frame);
 
@@ -1406,54 +1218,6 @@ const drawGroundShadow = (ctx: CanvasRenderingContext2D, p: Player, state: GameS
   ctx.restore();
 };
 
-/**
- * An arm, shoulder (sx, sy) to elbow (ex, ey) to wrist (wx, wy): a deltoid capping the shoulder, the upper arm with
- * the bicep bulging out the side the forearm bends toward, the forearm thicker by the elbow and tapering to the wrist,
- * a spiked wristband, and a fist (at `fistX` along the forearm's line if given, else just past the wrist). Shaded:
- * `shade` down the back of each part, `light` along the top of the deltoid and the bicep.
- */
-const drawArm = (ctx: CanvasRenderingContext2D, sx: number, sy: number, ex: number, ey: number, wx: number, wy: number, skin: string, shade: string, light: string, fistX?: number) => {
-  const seg = (ax: number, ay: number, bx: number, by: number, ra: number, rb: number, color: string) => {
-    const a = Math.atan2(by - ay, bx - ax), nx = -Math.sin(a), ny = Math.cos(a);
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(ax + nx * ra, ay + ny * ra); ctx.lineTo(bx + nx * rb, by + ny * rb);
-    ctx.lineTo(bx - nx * rb, by - ny * rb); ctx.lineTo(ax - nx * ra, ay - ny * ra); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.arc(ax, ay, ra, 0, Math.PI * 2); ctx.arc(bx, by, rb, 0, Math.PI * 2); ctx.fill();
-  };
-  // Which way the elbow bends (the bicep's on the inside of the bend)
-  const ux = ex - sx, uy = ey - sy, fx = wx - ex, fy = wy - ey;
-  const side = Math.sign(ux * fy - uy * fx) || 1;
-  const ul = Math.hypot(ux, uy) || 1, nx = (-uy / ul) * side, ny = (ux / ul) * side;
-  // Forearm (behind the upper arm at the elbow)
-  seg(ex, ey, wx, wy, 4.4, 3.3, skin);
-  const fl = Math.hypot(fx, fy) || 1, fnx = -fy / fl, fny = fx / fl;
-  ctx.fillStyle = shade; ctx.beginPath(); ctx.moveTo(ex + fnx * 4, ey + fny * 4); ctx.lineTo(wx + fnx * 3.1, wy + fny * 3.1); ctx.lineTo(wx + fnx * 1.5, wy + fny * 1.5); ctx.lineTo(ex + fnx * 1.8, ey + fny * 1.8); ctx.fill();
-  // Upper arm, the bicep bulging out on the inside of the bend, the tricep's shadow down the back
-  seg(sx, sy, ex, ey, 5, 4.2, skin);
-  const mx = sx + ux * 0.55, my = sy + uy * 0.55;
-  ctx.fillStyle = skin; ctx.beginPath(); ctx.ellipse(mx + nx * 2.4, my + ny * 2.4, 4.4, ul * 0.4, Math.atan2(uy, ux) - Math.PI / 2, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = shade; ctx.beginPath(); ctx.ellipse(mx - nx * 3.8, my - ny * 3.8, 1.4, ul * 0.32, Math.atan2(uy, ux) - Math.PI / 2, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = light; ctx.beginPath(); ctx.ellipse(mx + nx * 3.6, my + ny * 3.6 - 1, 1.3, ul * 0.22, Math.atan2(uy, ux) - Math.PI / 2, 0, Math.PI * 2); ctx.fill();
-  // (the crease at the elbow)
-  ctx.fillStyle = shade; ctx.fillRect(ex + nx * 1.5 - 1, ey + ny * 1.5 - 0.5, 2, 1);
-  // Deltoid: a cap over the top of the shoulder, lit on top
-  ctx.fillStyle = skin; ctx.beginPath(); ctx.ellipse(sx, sy, 6, 5.2, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = shade; ctx.beginPath(); ctx.ellipse(sx, sy + 4, 4.6, 1.2, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = light; ctx.beginPath(); ctx.ellipse(sx + 1, sy - 1.8, 2.6, 1.4, 0, 0, Math.PI * 2); ctx.fill();
-  // Spiked wristband, square to the forearm
-  const bx = wx - (fx / fl) * 1.5, by = wy - (fy / fl) * 1.5;
-  ctx.save(); ctx.translate(bx, by); ctx.rotate(Math.atan2(fy, fx));
-  ctx.fillStyle = wristbandColor; ctx.fillRect(-2.5, -5, 5, 10);
-  ctx.fillStyle = '#E5E7EB'; ctx.fillRect(-1, -3, 2, 2); ctx.fillRect(-1, 1, 2, 2);
-  ctx.restore();
-  // Fist
-  const hx = fistX ?? wx + (fx / fl) * 4.5, hy = fistX !== undefined ? wy : wy + (fy / fl) * 4.5;
-  ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(hx, hy, 5, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = shade; ctx.beginPath(); ctx.arc(hx, hy, 5, Math.PI * 0.15, Math.PI * 0.85); ctx.lineTo(hx, hy); ctx.fill();
-  ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(hx, hy - 0.6, 4.2, 0, Math.PI * 2); ctx.fill();
-};
-
 /** An arm bent at the elbow reaching from the shoulder to a point, ending in a wristband (no fist). */
 const drawReachingArm = (ctx: CanvasRenderingContext2D, sx: number, sy: number, ex: number, ey: number, hx: number, hy: number, skin: string) => {
   ctx.save();
@@ -1478,64 +1242,3 @@ const drawReachingArm = (ctx: CanvasRenderingContext2D, sx: number, sy: number, 
   ctx.restore();
 };
 
-/** A trouser leg: shaded down the back, a crease at the knee and (on the near leg) a cargo pocket. */
-const drawPantLeg = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string, pocket = false) => {
-  ctx.fillStyle = color;
-  ctx.fillRect(x, y, w, h);
-  // Blood soaking into the fabric as he takes a beating
-  const gore = getGore();
-  if (gore > 0.5) {
-    ctx.fillStyle = 'rgba(60, 5, 10, 0.55)';
-    ctx.beginPath(); ctx.ellipse(x + w * 0.6, y + h * 0.25, w * 0.3, h * 0.2, 0.3, 0, Math.PI * 2); ctx.fill();
-  }
-  if (gore > 0.8) {
-    ctx.fillStyle = 'rgba(60, 5, 10, 0.5)';
-    ctx.beginPath(); ctx.ellipse(x + w * 0.35, y + h * 0.7, w * 0.35, h * 0.22, -0.2, 0, Math.PI * 2); ctx.fill();
-  }
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
-  ctx.fillRect(x, y, w * 0.3, h);
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-  ctx.fillRect(x + w - 2, y + 1, 1.2, h - 2);
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-  ctx.fillRect(x + 1, y + h * 0.58, w - 2, 0.9);
-  if (pocket) {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
-    ctx.fillRect(x + w * 0.35, y + 2, w * 0.5, h * 0.35);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
-    ctx.fillRect(x + w * 0.35, y + 2, w * 0.5, 0.8);
-  }
-};
-
-/** A combat boot: laces, a thick sole and (on the near foot) a shiny steel toe. */
-const drawBoot = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, steelToe: boolean) => {
-  ctx.fillStyle = bootColor;
-  ctx.beginPath(); ctx.roundRect(x, y, w, h, [2, 3, 1, 1]); ctx.fill();
-  ctx.fillStyle = '#3F3F46';
-  ctx.fillRect(x + 1, y + 0.8, w * 0.45, 0.9);
-  ctx.fillStyle = '#71717A';
-  for (let i = 0; i < 2; i++) ctx.fillRect(x + 2 + i * 3, y + 2, 1.6, 0.8);
-  ctx.fillStyle = '#09090B';
-  ctx.fillRect(x, y + h - 1.6, w, 1.6);
-  if (steelToe) {
-    ctx.fillStyle = bootToe;
-    ctx.beginPath(); ctx.roundRect(x + w - 6, y + 1, 6, h - 2.6, [1, 2.5, 0, 0]); ctx.fill();
-    ctx.fillStyle = '#E2E8F0';
-    ctx.fillRect(x + w - 4.5, y + 1.6, 2, 1.2);
-  }
-};
-
-/** A leg bent at the knee: thigh from the hip, then the shin (angles from straight down; negative = forward). */
-const drawJointedLeg = (ctx: CanvasRenderingContext2D, hipX: number, hipY: number, thighAngle: number, kneeBend: number, color: string, near: boolean) => {
-  const w = near ? 10 : 9;
-  ctx.save();
-  ctx.translate(hipX, hipY);
-  ctx.rotate(thighAngle);
-  drawPantLeg(ctx, -w / 2, 0, w, 12, color, near);
-  ctx.translate(0, 11);
-  ctx.rotate(kneeBend);
-  ctx.fillStyle = color;
-  ctx.beginPath(); ctx.arc(0, 0, w / 2, 0, Math.PI * 2); ctx.fill();
-  drawPantLeg(ctx, -w / 2 + 0.5, 0, w - 1, 10, color);
-  drawBoot(ctx, -w / 2, 9, w + 4, 7, near);
-  ctx.restore();
-};

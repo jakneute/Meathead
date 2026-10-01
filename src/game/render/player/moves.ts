@@ -3,20 +3,11 @@
 // tackle). Drawn in his local frame: (0,0) is between his feet, facing +x.
 
 // Palette (matches player.ts)
-const SKIN = '#E0AC69';
-const SKIN_SHADOW = '#C68B45';
-const SKIN_HIGHLIGHT = '#F5D0A9';
-const VEIN = '#EF4444';
-const PANTS = '#1E3A8A';
-const PANTS_SHADOW = '#172554';
-const BOOT = '#18181B';
-const STEEL_TOE = '#94A3B8';
 const BELT = '#78350F';
 const BUCKLE = '#FACC15';
-const WRISTBAND = '#09090B';
 
-import { glowLayer, markEyes } from './spriteOutline';
-import { drawHeadBlood, drawTorsoBlood, drawBeatenUp, getGore } from './gore';
+import { glowLayer } from './spriteOutline';
+import { drawLeg, drawArmTo, drawTorsoFromHips, drawHead, drawRamDelt, Mood } from './body';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -37,110 +28,17 @@ const limb = (ctx: Ctx, x1: number, y1: number, x2: number, y2: number, width: n
   ctx.stroke();
 };
 
-/** A leg from hip through knee to foot, with a combat boot pointing along `toeAngle`. */
-const leg = (ctx: Ctx, hip: [number, number], knee: [number, number], foot: [number, number], toeAngle: number, back: boolean) => {
-  const color = back ? PANTS_SHADOW : PANTS;
-  limb(ctx, hip[0], hip[1], knee[0], knee[1], 11, color);
-  limb(ctx, knee[0], knee[1], foot[0], foot[1], 10, color);
-  // Blood soaking into the trousers as he takes a beating
-  if (getGore() > 0.5) limb(ctx, hip[0] + (knee[0] - hip[0]) * 0.3, hip[1] + (knee[1] - hip[1]) * 0.3, hip[0] + (knee[0] - hip[0]) * 0.6, hip[1] + (knee[1] - hip[1]) * 0.6, 7, 'rgba(60, 5, 10, 0.55)');
-  ctx.save();
-  ctx.translate(foot[0], foot[1]);
-  ctx.rotate(toeAngle);
-  ctx.fillStyle = BOOT;
-  ctx.fillRect(-5, -5, 15, 9);
-  ctx.fillStyle = STEEL_TOE;
-  ctx.fillRect(6, -4, 5, 7);
-  ctx.restore();
-};
+/** A leg from hip through knee to foot, with a combat boot pointing along `toeAngle` (the same leg as standing). */
+const leg = (ctx: Ctx, hip: [number, number], knee: [number, number], foot: [number, number], toeAngle: number, back: boolean) => drawLeg(ctx, hip, knee, foot, toeAngle, back);
 
-/** An arm from shoulder through elbow to a fist, with the spiked wristband. */
-const arm = (ctx: Ctx, shoulder: [number, number], elbow: [number, number], fist: [number, number], back: boolean, fistSize = 5.5) => {
-  const color = back ? SKIN_SHADOW : SKIN;
-  ctx.fillStyle = color;
-  ctx.beginPath(); ctx.arc(shoulder[0], shoulder[1], 7.5, 0, Math.PI * 2); ctx.fill();
-  limb(ctx, shoulder[0], shoulder[1], elbow[0], elbow[1], 9, color);
-  limb(ctx, elbow[0], elbow[1], fist[0], fist[1], 8, color);
-  // Wristband just short of the fist
-  const dx = fist[0] - elbow[0], dy = fist[1] - elbow[1], len = Math.hypot(dx, dy) || 1;
-  limb(ctx, fist[0] - (dx / len) * 7, fist[1] - (dy / len) * 7, fist[0] - (dx / len) * 3, fist[1] - (dy / len) * 3, 9, WRISTBAND);
-  ctx.fillStyle = color;
-  ctx.beginPath(); ctx.arc(fist[0], fist[1], fistSize, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = SKIN_SHADOW;
-  ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.arc(fist[0], fist[1], fistSize, 0, Math.PI * 2); ctx.stroke();
-};
+/** An arm from shoulder through elbow to a fist, with the spiked wristband (the same arm as standing). */
+const arm = (ctx: Ctx, shoulder: [number, number], elbow: [number, number], fist: [number, number], back: boolean, fistSize = 5.5) => drawArmTo(ctx, shoulder, elbow, fist, back, fistSize);
 
-/** Torso from the hips (0,0) up to the shoulders (y = -26): pecs, abs and the lifting belt. */
-const torso = (ctx: Ctx) => {
-  ctx.fillStyle = SKIN;
-  ctx.fillRect(-14, -26, 28, 26);
-  ctx.fillStyle = SKIN_SHADOW;
-  ctx.fillRect(-0.75, -16, 1.5, 13);
-  ctx.fillRect(-8, -12, 16, 1.2);
-  ctx.fillRect(-7, -7, 14, 1.2);
-  ctx.fillStyle = SKIN_HIGHLIGHT;
-  ctx.fillRect(-6, -15.5, 4.5, 2.8);
-  ctx.fillRect(1.5, -15.5, 4.5, 2.8);
-  ctx.fillRect(-5.5, -11, 4, 3);
-  ctx.fillRect(1.5, -11, 4, 3);
-  ctx.fillStyle = SKIN;
-  ctx.beginPath(); ctx.roundRect(-13, -26, 12, 9, [3, 1, 3, 4]); ctx.fill();
-  ctx.beginPath(); ctx.roundRect(1, -26, 12, 9, [1, 3, 4, 3]); ctx.fill();
-  ctx.fillStyle = SKIN_SHADOW;
-  ctx.fillRect(-12, -18, 24, 1.5);
-  ctx.fillStyle = SKIN_HIGHLIGHT;
-  ctx.fillRect(-10, -24.5, 7, 2);
-  ctx.fillRect(3, -24.5, 7, 2);
-  ctx.fillStyle = BELT;
-  ctx.fillRect(-14, -3, 28, 7);
-  ctx.fillStyle = BUCKLE;
-  ctx.fillRect(-5, -4, 10, 9);
-  ctx.fillStyle = '#451A03';
-  ctx.fillRect(-2, -2, 4, 5);
-  drawTorsoBlood(ctx, -26, 23, -26);
-};
+/** Torso from the hips (0,0) up to the shoulders (y = -26): the same pecs, abs and belt as standing. */
+const torso = (ctx: Ctx) => drawTorsoFromHips(ctx);
 
-/** Meathead's head centred on (hx, hy): flat-top, rage vein, furrowed brows. */
-const head = (ctx: Ctx, hx: number, hy: number, mouth: 'grit' | 'roar') => {
-  markEyes(ctx, hx - 0.5, hy - 4);
-  ctx.fillStyle = SKIN;
-  ctx.beginPath(); ctx.roundRect(hx - 10, hy - 12, 20, 20, [4, 4, 3, 3]); ctx.fill();
-  ctx.fillStyle = 'rgba(120, 53, 15, 0.25)';
-  ctx.fillRect(hx - 9, hy + 1, 18, 7);
-  ctx.fillStyle = '#18181B';
-  ctx.fillRect(hx - 10, hy - 16, 20, 5);
-  ctx.fillRect(hx - 11, hy - 14, 2, 7);
-  ctx.fillRect(hx + 9, hy - 14, 2, 7);
-  ctx.strokeStyle = VEIN;
-  ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.moveTo(hx - 6, hy - 10); ctx.lineTo(hx - 3, hy - 8); ctx.lineTo(hx - 4, hy - 5); ctx.stroke();
-  ctx.fillStyle = '#09090B';
-  ctx.beginPath(); ctx.moveTo(hx - 8, hy - 9); ctx.lineTo(hx - 1, hy - 6); ctx.lineTo(hx - 1, hy - 4); ctx.lineTo(hx - 8, hy - 7); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(hx + 8, hy - 9); ctx.lineTo(hx + 1, hy - 6); ctx.lineTo(hx + 1, hy - 4); ctx.lineTo(hx + 8, hy - 7); ctx.fill();
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(hx - 7.5, hy - 5.5, 5, 3);
-  ctx.fillRect(hx + 1.5, hy - 5.5, 5, 3);
-  ctx.fillStyle = '#09090B';
-  ctx.fillRect(hx - 4.5, hy - 5, 2.5, 2.5);
-  ctx.fillRect(hx + 4.5, hy - 5, 2.5, 2.5);
-  if (mouth === 'roar') {
-    ctx.fillStyle = '#450A0A';
-    ctx.beginPath(); ctx.ellipse(hx + 1, hy + 4, 5, 4, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(hx - 2, hy + 1, 6, 1.6);
-  } else {
-    ctx.fillStyle = '#18181B';
-    ctx.fillRect(hx - 6, hy + 3, 12, 3);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(hx - 5, hy + 3.5, 10, 2);
-    ctx.fillStyle = '#18181B';
-    ctx.fillRect(hx - 2, hy + 3.5, 0.8, 2);
-    ctx.fillRect(hx + 1, hy + 3.5, 0.8, 2);
-  }
-  drawHeadBlood(ctx, hx, hy, frameNow);
-  drawBeatenUp(ctx, hx, hy, frameNow);
-};
+/** Meathead's head centred on (hx, hy): the same head as standing. */
+const head = (ctx: Ctx, hx: number, hy: number, mouth: Mood) => drawHead(ctx, hx, hy, mouth, frameNow);
 
 /** Faded, tinted copies of a pose trailing behind it. */
 const ghosts = (ctx: Ctx, count: number, offset: (k: number) => [number, number], tint: string, draw: (k: number) => void) => {
@@ -351,10 +249,10 @@ const chargeBody = (ctx: Ctx, frame: number, main: boolean) => {
   ctx.save();
   ctx.translate(9, -33);
   ctx.rotate(-0.4);
-  head(ctx, 0, 0, 'grit');
+  head(ctx, 0, 0, 'scowl');
   ctx.restore();
   // Lead arm braced across the chest under the shoulder
-  arm(ctx, [10, -20], [16, -8], [6, -6], false);
+  arm(ctx, [10, -20], [15, -9], [5, -8], false);
   // The shoulder itself: a huge delt, glowing hot
   if (main) {
     const g = glowLayer(ctx);
@@ -365,13 +263,7 @@ const chargeBody = (ctx: Ctx, frame: number, main: boolean) => {
     g.fillStyle = glow;
     g.beginPath(); g.arc(14, -22, 26, 0, Math.PI * 2); g.fill();
   }
-  ctx.fillStyle = SKIN;
-  ctx.beginPath(); ctx.arc(14, -22, 11, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = SKIN_HIGHLIGHT;
-  ctx.beginPath(); ctx.arc(17, -25, 5, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = VEIN;
-  ctx.lineWidth = 1.3;
-  ctx.beginPath(); ctx.moveTo(8, -26); ctx.lineTo(12, -21); ctx.lineTo(10, -16); ctx.stroke();
+  drawRamDelt(ctx, 14, -22, 10);
   ctx.restore();
 
   if (!main) return;
@@ -470,7 +362,7 @@ const uppercutBody = (ctx: Ctx, frame: number, main: boolean) => {
   head(ctx, 0, 0, 'roar');
   ctx.restore();
   // Lead arm straight up
-  const fist: [number, number] = [15, -64];
+  const fist: [number, number] = [19, -63];
   if (main) {
     const g = glowLayer(ctx);
     const glow = g.createRadialGradient(fist[0], fist[1], 2, fist[0], fist[1], 30);
@@ -480,10 +372,7 @@ const uppercutBody = (ctx: Ctx, frame: number, main: boolean) => {
     g.fillStyle = glow;
     g.beginPath(); g.arc(fist[0], fist[1], 30, 0, Math.PI * 2); g.fill();
   }
-  arm(ctx, [11, -22], [16, -43], fist, false, 7.5);
-  ctx.strokeStyle = VEIN;
-  ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.moveTo(12, -29); ctx.lineTo(15, -35); ctx.lineTo(14, -40); ctx.stroke();
+  arm(ctx, [14, -22], [21, -42], fist, false, 7.5);
   if (main) {
     // Energy spiralling around the fist and forearm
     for (let k = 0; k < 3; k++) {
