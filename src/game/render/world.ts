@@ -24,6 +24,7 @@ import { muzzlePoint } from '../combat/muzzle';
 import { isMidBoss } from '../combat/midBoss';
 import { drawBackdrop, drawBackdropFront } from './backdrops';
 import { drawTerrain, drawGroundProfile } from './backdrops/terrain';
+import { groundLineAt } from '../core/terrain';
 import { getStageLayout } from '../stages';
 import { drawEnemyDeaths } from './enemies/deaths';
 import { drawSewerNukeInside, drawSewerNukeFlash, drawSewerNukeOutside } from '../scenes/sewerNukeDraw';
@@ -1134,6 +1135,55 @@ const drawTaserBeam = (ctx: CanvasRenderingContext2D, state: GameState) => {
   ctx.restore();
 };
 
+/**
+ * A puddle of barf, stuck flat to whatever it's lying on: a low skin of it hugging the ground (following a slope), thin
+ * and ragged at the edges, thickest in the middle where it's still lumpy, a wet sheen along the top of it, flecks of it
+ * splattered on the ground round it, and bubbles coming up through it and popping.
+ */
+const drawGooPuddle = (ctx: CanvasRenderingContext2D, state: GameState, p: GameState['projectiles'][number]) => {
+  const seed = (p.id.length * 37 + Math.round(p.pos.x)) % 997;
+  const h = (n: number) => { const v = Math.sin(n * 127.1 + seed * 3.7) * 43758.5453; return v - Math.floor(v); };
+  const x0 = p.pos.x, x1 = p.pos.x + p.width, base = p.pos.y + p.height;
+  // (where the ground is under each bit of it: it lies along it, slope and all)
+  const floorAt = (x: number) => { const g = groundLineAt(state.groundRuns, x); return g !== null && g !== undefined && Math.abs(g - base) < 24 ? g : base; };
+  const thick = Math.min(9, Math.max(4, p.height * 0.55));
+  const n = Math.max(6, Math.round(p.width / 6));
+  const top: [number, number][] = [];
+  for (let i = 0; i <= n; i++) {
+    const t = i / n, x = x0 + t * p.width;
+    const edge = Math.min(1, Math.min(t, 1 - t) * 5);
+    const lump = 0.55 + h(i) * 0.45 + Math.sin(t * 9 + seed) * 0.12;
+    top.push([x, floorAt(x) - 1 - thick * edge * lump]);
+  }
+  const outline = () => {
+    ctx.beginPath(); ctx.moveTo(x0 - 2, floorAt(x0) + 1);
+    for (const [x, y] of top) ctx.lineTo(x, y);
+    ctx.lineTo(x1 + 2, floorAt(x1) + 1);
+    for (let i = n; i >= 0; i--) { const x = x0 + (i / n) * p.width; ctx.lineTo(x, floorAt(x) + 1.5); }
+    ctx.closePath();
+  };
+  // Flecks of it splattered round it, flat on the ground
+  ctx.fillStyle = '#2E7D32';
+  for (let k = 0; k < 5; k++) { const side = k % 2 ? 1 : -1, fx = side > 0 ? x1 + 3 + h(k + 9) * 14 : x0 - 3 - h(k + 9) * 14; ctx.beginPath(); ctx.ellipse(fx, floorAt(fx) - 0.6, 1.5 + h(k) * 2.5, 0.9, 0, 0, Math.PI * 2); ctx.fill(); }
+  // The body of it: dark under, the green of it, a lighter skin on top
+  const g = ctx.createLinearGradient(0, base - thick - 2, 0, base + 1);
+  g.addColorStop(0, '#7CB342'); g.addColorStop(0.35, '#43A047'); g.addColorStop(1, '#1B5E20');
+  ctx.fillStyle = g; outline(); ctx.fill();
+  ctx.strokeStyle = 'rgba(10, 40, 12, 0.7)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(top[0][0], top[0][1]); for (const [x, y] of top) ctx.lineTo(x, y); ctx.stroke();
+  // (the wet sheen along the top, broken up)
+  ctx.strokeStyle = 'rgba(220, 255, 180, 0.55)'; ctx.lineWidth = 1;
+  for (let i = 1; i < n - 1; i += 2) { if (h(i + 3) < 0.35) continue; ctx.beginPath(); ctx.moveTo(top[i][0], top[i][1] + 1.2); ctx.lineTo(top[i + 1][0], top[i + 1][1] + 1.2); ctx.stroke(); }
+  // (chunks in it)
+  for (let k = 0; k < Math.round(p.width / 22); k++) { const cx = x0 + 8 + h(k + 20) * (p.width - 16); ctx.fillStyle = k % 2 ? '#C0CA33' : '#8D6E63'; ctx.beginPath(); ctx.ellipse(cx, floorAt(cx) - thick * 0.45, 1.6 + h(k) * 1.4, 1.1, h(k) * 3, 0, Math.PI * 2); ctx.fill(); }
+  // Bubbles: one comes up, swells, and pops
+  for (let k = 0; k < Math.max(1, Math.round(p.width / 40)); k++) {
+    const period = 50 + Math.round(h(k + 30) * 40), ph = (state.frame + Math.round(h(k + 40) * period)) % period;
+    const bx = x0 + 6 + h(k + 50 + Math.floor((state.frame + h(k + 40) * period) / period)) * (p.width - 12), by = floorAt(bx) - thick * 0.6;
+    if (ph < period - 6) { const r = 1 + (ph / period) * 3.2; ctx.fillStyle = 'rgba(173, 255, 47, 0.85)'; ctx.beginPath(); ctx.arc(bx, by - r * 0.6, r, Math.PI, 0); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fillRect(bx - r * 0.4, by - r * 1.2, 1, 1); }
+    else { ctx.strokeStyle = 'rgba(173, 255, 47, 0.7)'; ctx.lineWidth = 0.8; for (let s = 0; s < 4; s++) { const a = -Math.PI * (0.15 + s * 0.23); ctx.beginPath(); ctx.moveTo(bx + Math.cos(a) * 2, by + Math.sin(a) * 2); ctx.lineTo(bx + Math.cos(a) * 5, by + Math.sin(a) * 5); ctx.stroke(); } }
+  }
+};
+
 /** Puddles lie on the floor under everyone; everything else flies over them. */
 const drawProjectiles = (ctx: CanvasRenderingContext2D, state: GameState, layer: 'puddles' | 'flying') => {
   state.projectiles.forEach(p => {
@@ -1142,39 +1192,8 @@ const drawProjectiles = (ctx: CanvasRenderingContext2D, state: GameState, layer:
     if (p.isBoulder) drawBoulder(ctx, p, state.frame);
     else if (p.isShrapnel) drawRockChip(ctx, p, state.frame);
     else if (p.isSludge) {
-      ctx.save();
-      ctx.translate(p.pos.x + p.width/2, p.pos.y + p.height/2);
-      if (p.isLingering) {
-          ctx.fillStyle = '#1B5E20';
-          const rx = p.width / 2;
-          const ry = p.height / 2;
-          const seed = (p.id.length * 123) % 1000;
-
-          // Multiple overlapping ellipses for natural look
-          for (let i = 0; i < 4; i++) {
-            ctx.save();
-            const bx = (Math.sin(seed + i * 2) * rx * 0.3);
-            const by = (Math.cos(seed + i * 2) * ry * 0.2);
-            const bw = rx * (0.8 + Math.sin(seed + i) * 0.3);
-            const bh = ry * (0.7 + Math.cos(seed + i) * 0.4);
-            ctx.translate(bx, by);
-            ctx.beginPath();
-            ctx.ellipse(0, 0, bw, bh, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-          }
-
-          // Bubbles
-          ctx.fillStyle = '#ADFF2F';
-          for (let i = 0; i < 3; i++) {
-             const bpx = Math.sin(state.frame * 0.12 + i + seed) * rx * 0.6;
-             const bpy = Math.cos(state.frame * 0.12 + i + seed) * ry * 0.3;
-             const bSize = 2 + Math.abs(Math.sin(state.frame * 0.05 + i)) * 3;
-             ctx.beginPath(); ctx.arc(bpx, bpy, bSize, 0, Math.PI * 2); ctx.fill();
-          }
-      }
-      ctx.restore();
-      if (!p.isLingering) drawSludgeBlob(ctx, p, state.frame);
+      if (p.isLingering) drawGooPuddle(ctx, state, p);
+      else drawSludgeBlob(ctx, p, state.frame);
     }
     else if (p.isCocaine) drawCocaine(ctx, p, state.frame);
     else if (p.isMethBarrel) drawMethBarrel(ctx, p, state.frame);
