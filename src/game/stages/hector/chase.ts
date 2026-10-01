@@ -174,7 +174,9 @@ export const updateChase = (ctx: FrameContext, c: Chase, b: { x: number; y: numb
   const out = (b.x - COURSE.boat.x) / (COURSE.sea.spoutX - COURSE.boat.x);
   if (b.x + 900 > c.nextJunkX && c.nextJunkX < COURSE.sea.spoutX - 700) {
     const r = Math.random();
-    const kind: JunkKind = r < 0.42 ? 'float' : r < 0.74 ? 'flyer' : 'drop';
+    // (more coming down out of the sky the further out he gets: about one in three at the start, nearly half at the end)
+    const dropP = 0.32 + out * 0.16;
+    const kind: JunkKind = r < dropP ? 'drop' : r < dropP + (1 - dropP) * 0.55 ? 'float' : 'flyer';
     const look = Math.floor(Math.random() * 5);
     if (kind === 'float') c.junk.push({ kind, look, x: c.nextJunkX, y: COURSE.sea.y + 4, vx: -0.6, vy: 0, rot: 0, warn: 0, hit: false });
     // (whirling across over the water, high enough to miss him sat in the boat, low enough a jump puts him into it)

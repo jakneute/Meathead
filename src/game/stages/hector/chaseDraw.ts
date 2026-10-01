@@ -480,6 +480,69 @@ export const deadCoastie = (ctx: Ctx, x: number, y: number, s: number, rot: numb
   ctx.restore();
 };
 
+/**
+ * A dead coastie face down on the lawn, ass in the air: on his knees, his face planted in the grass, the helmet
+ * crooked, arms limp out past his head palms up; and a plastic lawn flamingo stuck in his ass by its wire legs, stood
+ * up proud. Ground at y, head to the left.
+ */
+export const coastieAssUp = (ctx: Ctx, x: number, y: number, s: number) => {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  // (the shins flat on the grass, the boots toes down)
+  shape(ctx, () => ctx.roundRect(12, -6, 18, 6, 2), '#1E3A8A', 0.7);
+  ctx.fillStyle = '#172554'; ctx.fillRect(13, -2, 16, 1.4);
+  shape(ctx, () => ctx.roundRect(28, -7, 8, 7, 2), '#0A0A0A', 0.6);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.25)'; ctx.fillRect(29, -6, 4, 1);
+  // (the thighs up off the knees)
+  shape(ctx, () => { ctx.moveTo(10, -3); ctx.lineTo(18, -3); ctx.lineTo(18, -24); ctx.lineTo(6, -26); ctx.closePath(); }, '#1E3A8A', 0.7);
+  ctx.fillStyle = '#172554'; ctx.fillRect(15, -22, 3, 19);
+  // (the float coat, sloping down off his hips to his shoulders in the grass: three oranges, the reflective strip)
+  const coat = () => { ctx.moveTo(16, -26); ctx.lineTo(4, -30); ctx.quadraticCurveTo(-8, -22, -16, -12); ctx.lineTo(-14, -2); ctx.quadraticCurveTo(-2, -8, 14, -16); ctx.closePath(); };
+  ctx.save(); ctx.beginPath(); coat(); ctx.clip();
+  bands(ctx, -18, -32, 36, 32, ['#FDBA74', '#FB923C', '#F97316', '#EA580C', '#C2410C']);
+  ctx.strokeStyle = '#E5E7EB'; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(8, -28); ctx.lineTo(-4, -8); ctx.stroke();
+  ctx.restore();
+  ctx.beginPath(); coat(); ctx.strokeStyle = INK; ctx.lineWidth = 0.8; ctx.stroke();
+  // (the ass, highest thing on the lawn, the pants pulled tight over it, the seam)
+  shape(ctx, () => ctx.ellipse(11, -27, 8, 6, -0.25, 0, Math.PI * 2), '#1E3A8A', 0.8);
+  ctx.fillStyle = 'rgba(147, 197, 253, 0.35)'; ctx.beginPath(); ctx.ellipse(9, -30, 4, 1.6, -0.25, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#0F172A'; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(4, -29); ctx.quadraticCurveTo(11, -27, 18, -24); ctx.stroke();
+  // (the arms, out past his head along the grass, palms up)
+  for (const [ax, ay] of [[-14, -4], [-12, -1]] as const) {
+    shape(ctx, () => { ctx.moveTo(ax, ay - 3); ctx.lineTo(ax - 14, ay - 1); ctx.lineTo(ax - 14, ay + 2); ctx.lineTo(ax, ay + 1); ctx.closePath(); }, ay < -2 ? '#C2410C' : '#F97316', 0.6);
+    shape(ctx, () => ctx.ellipse(ax - 16, ay + 0.5, 2.6, 1.8, 0, 0, Math.PI * 2), '#E8B495', 0.5);
+  }
+  // (the head, face first in the grass: the back of the helmet, crooked, an ear, the neck)
+  shape(ctx, () => ctx.ellipse(-18, -5, 5, 4.6, 0, 0, Math.PI * 2), '#E8B495', 0.7);
+  ctx.fillStyle = '#C68B5E'; ctx.fillRect(-16, -3, 4, 2);
+  shape(ctx, () => { ctx.ellipse(-19, -8, 6.6, 5.4, -0.5, Math.PI * 0.95, Math.PI * 2.05); ctx.closePath(); }, '#1D4ED8', 0.7);
+  ctx.fillStyle = '#60A5FA'; ctx.fillRect(-22, -12, 3, 1);
+  // (a divot kicked up round his face)
+  ctx.fillStyle = '#3F2A1D'; ctx.beginPath(); ctx.ellipse(-20, 0, 8, 1.6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#4D7C0F'; for (let k = 0; k < 6; k++) ctx.fillRect(-27 + k * 3, -2 - (k % 2), 1, 2.4);
+  // The flamingo: its wire legs in him to the knees, stood up out of it, head up, the black beak
+  ctx.save(); ctx.translate(11, -32); ctx.rotate(0.12);
+  ctx.strokeStyle = '#6B7280'; ctx.lineWidth = 0.9;
+  ctx.beginPath(); ctx.moveTo(-1.5, 2); ctx.lineTo(-1, -12); ctx.moveTo(1.5, 2); ctx.lineTo(1, -12); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(1, -7); ctx.lineTo(4, -9); ctx.lineTo(1, -11); ctx.stroke();
+  const body = () => ctx.ellipse(0, -17, 9, 5.6, -0.15, 0, Math.PI * 2);
+  ctx.save(); ctx.beginPath(); body(); ctx.clip(); bands(ctx, -10, -23, 20, 12, ['#FBCFE8', '#F9A8D4', '#F472B6', '#EC4899', '#DB2777']); ctx.restore();
+  ctx.beginPath(); body(); ctx.strokeStyle = INK; ctx.lineWidth = 0.8; ctx.stroke();
+  // (the tail feathers, the wing's moulded line)
+  shape(ctx, () => { ctx.moveTo(-8, -18); ctx.lineTo(-13, -21); ctx.lineTo(-12, -16); ctx.closePath(); }, '#EC4899', 0.6);
+  ctx.strokeStyle = '#BE185D'; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(-5, -18); ctx.quadraticCurveTo(0, -15, 5, -18); ctx.stroke();
+  // (the neck, an S up to the head)
+  ctx.strokeStyle = INK; ctx.lineWidth = 3.4; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(6, -19); ctx.bezierCurveTo(12, -24, 4, -30, 8, -36); ctx.stroke();
+  ctx.strokeStyle = '#F472B6'; ctx.lineWidth = 2.2;
+  ctx.beginPath(); ctx.moveTo(6, -19); ctx.bezierCurveTo(12, -24, 4, -30, 8, -36); ctx.stroke();
+  shape(ctx, () => ctx.ellipse(9, -37, 3.2, 2.6, 0, 0, Math.PI * 2), '#F472B6', 0.6);
+  shape(ctx, () => { ctx.moveTo(11.5, -38); ctx.lineTo(15.5, -35.5); ctx.lineTo(11.5, -35.6); ctx.closePath(); }, '#FDF2F8', 0.5);
+  ctx.fillStyle = INK; ctx.beginPath(); ctx.moveTo(14, -36.6); ctx.lineTo(15.8, -35.4); ctx.lineTo(13.6, -35.5); ctx.fill();
+  ctx.fillRect(9.4, -38, 1, 1);
+  ctx.restore();
+  ctx.restore();
+};
+
 /** Over the whole screen while it plays: the cutter alongside and them over the side; the beating; what's left of him. */
 export const drawBoarded = (ctx: Ctx, c: Chase) => {
   const t = c.caughtT;

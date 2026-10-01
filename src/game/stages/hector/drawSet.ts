@@ -2,7 +2,7 @@
 // waterspout, the junk whirling up the storm tower, the Eye's arena, and the
 // daycare (before and after the flood).
 
-import { deadCoastie, drawSeatedMeathead, drawWreck } from './chaseDraw';
+import { deadCoastie, coastieAssUp, drawSeatedMeathead, drawWreck } from './chaseDraw';
 import { WRECK_BLAST } from './chase';
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
@@ -486,7 +486,7 @@ export const drawDaycare = (ctx: Ctx, state: GameState, dc: Daycare) => {
     ctx.fillStyle = '#E7D7A8'; ctx.beginPath(); ctx.ellipse(sx, sy + 1, 22, 4, 0, 0, Math.PI * 2); ctx.fill();
   }
   ctx.fillStyle = 'rgba(127, 29, 29, 0.55)'; ctx.beginPath(); ctx.ellipse(bx + 560, g - 2, 46, 6, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.save(); ctx.translate(bx + 560, g - 12); ctx.rotate(-Math.PI / 2); deadCoastie(ctx, 0, 14, 2.3, 0); ctx.restore();
+  coastieAssUp(ctx, bx + 560, g, 2.3);
   // The grown-ups, once the wave's done with them
   if (t < 0 || t >= RIDE_END) ADULT_SPLAT.forEach((dx, k) => splatAdult(ctx, bx + dx, g, k as 0 | 1));
   // Puddles
