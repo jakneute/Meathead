@@ -1188,10 +1188,9 @@ const drawSlideTackle = (ctx: CanvasRenderingContext2D, frame: number, weapon: W
       ctx.fillStyle = frame % 2 === 0 ? '#FDE047' : '#FB923C';
       for (let s = 0; s < 3; s++) ctx.fillRect(38 + ((frame * 5 + s * 7) % 12), -3 - ((frame + s * 3) % 6), 3, 2);
     }
-    // The gun arm on the far side, over the top of his chest to the gun
-    // (behind his chest: just the forearm and the fist come out past it, to the gun)
-    drawArm(ctx, -18, -30, -7, -29, 1, -36, skinShadow, backArmShade, skinTone, 6);
     drawLeg(ctx, [-6, -12], [7, -5], [-11, -3], Math.PI, false);
+    // Down on his right side: he rides along propped on his right forearm, flat on the floor beside his hip (the
+    // elbow under his shoulder, the fist out ahead skidding), so his left is the upper hand, and that's the gun hand
     ctx.save();
     ctx.translate(-6, -13);
     ctx.rotate(-1.05);
@@ -1199,11 +1198,12 @@ const drawSlideTackle = (ctx: CanvasRenderingContext2D, frame: number, weapon: W
     drawTorso(ctx, -50, 24, -48);
     drawBelt(ctx, -27, 7);
     ctx.restore();
-    drawHead(ctx, -26, -40, 'yell', frame);
-    // The near (right) hand reaching back across his side to the floor, the palm skidding flat
-    drawArm(ctx, -16, -30, -22, -17, -26, -5, skinTone, skinShadow, skinHighlight);
-    ctx.fillStyle = skinTone; ctx.beginPath(); ctx.ellipse(-26, -2, 6, 2.6, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = skinShadow; for (let k = 0; k < 3; k++) ctx.fillRect(-22 + k * 1.6, -2.6, 1.2, 2.4);
+    // The left arm up over the top of his chest from the far shoulder (behind his head), out to the gun
+    drawArm(ctx, -24, -40, -12, -34, 1, -36, skinTone, skinShadow, skinHighlight, 6);
+    drawHead(ctx, -27, -42, 'yell', frame);
+    drawArm(ctx, -16, -20, -22, -5, -6, -4, skinTone, skinShadow, skinHighlight, undefined, 5);
+    // (the forearm he's riding on, the skin scraping: a smear of dust kicked off it)
+    ctx.fillStyle = 'rgba(190, 175, 150, 0.6)'; for (let k = 0; k < 3; k++) ctx.fillRect(-30 - k * 5 - (frame * 2 + k * 3) % 6, -4 - k, 3, 2);
   } else {
   // Back arm: reaching down behind him, the palm planted flat on the floor, fingers splayed, skidding along with him
   drawArm(ctx, -26, -33, -31, -18, -30, -5, skinShadow, backArmShade, skinTone);
