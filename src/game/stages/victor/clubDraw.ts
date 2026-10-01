@@ -9,6 +9,7 @@
 // he's killed.
 
 import type { GameState } from '../../core/state';
+import { bandedGradient } from '../../render/pixelArt';
 import type { Ledge } from './course';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { COURSE } from './course';
@@ -31,9 +32,7 @@ const visible = (state: GameState, x1: number, x2: number) => x2 > state.camera.
 
 export const drawClubBackdrop = (ctx: Ctx, state: GameState) => {
   const f = state.frame, camX = state.camera.x;
-  const g = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-  g.addColorStop(0, '#0B0508'); g.addColorStop(0.6, '#1E0610'); g.addColorStop(1, '#3B0A0A');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  bandedGradient(ctx, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#0B0508', '#14050C', '#1E0610', '#2C080D', '#3B0A0A'], 12);
   // Far obsidian panels, veined with lava
   for (let i = 0; i < 9; i++) {
     const x = ((i * 150 - camX * 0.15) % 1350 + 1350) % 1350 - 150;

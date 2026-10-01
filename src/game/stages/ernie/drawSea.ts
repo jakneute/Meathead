@@ -5,6 +5,7 @@
 // what's left afterwards.
 
 import type { GameState } from '../../core/state';
+import { bandedGradient } from '../../render/pixelArt';
 import type { ErnieRuntime } from './runtime';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { STAGE_BACKDROPS } from '../../render/backdrops/stages';
@@ -43,9 +44,7 @@ export const drawBayBackdrop = (ctx: Ctx, state: GameState, rt: ErnieRuntime) =>
   ctx.beginPath(); ctx.moveTo(0, horizon);
   for (let x = 0; x <= W + 20; x += 16) ctx.lineTo(x, horizon - 18 - 22 * Math.sin((x + drift) * 0.006) - 10 * Math.sin((x + drift) * 0.021) - hash(Math.floor((x + drift) / 16)) * 4);
   ctx.lineTo(W + 20, horizon); ctx.fill();
-  const g = ctx.createLinearGradient(0, horizon, 0, CANVAS_HEIGHT);
-  g.addColorStop(0, '#6C5B7B'); g.addColorStop(0.15, '#3B5B80'); g.addColorStop(1, '#294461');
-  ctx.fillStyle = g; ctx.fillRect(0, horizon, W, CANVAS_HEIGHT - horizon);
+  bandedGradient(ctx, 0, horizon, W, CANVAS_HEIGHT - horizon, ['#6C5B7B', '#3B5B80', '#35526F', '#2E4A66', '#294461'], 10);
   ctx.fillStyle = 'rgba(246, 194, 122, 0.4)';
   for (let i = 0; i < 26; i++) { const x = ((hash(i) * W - state.camera.x * 0.1 + f * 0.1) % W + W) % W, y = horizon + 4 + hash(i + 3) * 60; ctx.fillRect(x, y, 8 + hash(i + 5) * 26, 1); }
   layer(ctx, state, 2);
@@ -60,9 +59,8 @@ export const drawSeaBack = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
   const B = COURSE.bay;
   const x1 = state.camera.x - 20, x2 = state.camera.x + CANVAS_WIDTH + 20;
   // The water, all the way down
-  const g = ctx.createLinearGradient(0, Y, 0, Y + 400);
-  g.addColorStop(0, '#2F5C85'); g.addColorStop(1, '#0F2640');
-  ctx.fillStyle = g; ctx.fillRect(x1, Y - 2, x2 - x1, state.camera.y + CANVAS_HEIGHT + 40 - Y);
+  ctx.fillStyle = '#0F2640'; ctx.fillRect(x1, Y - 2, x2 - x1, state.camera.y + CANVAS_HEIGHT + 40 - Y);
+  bandedGradient(ctx, x1, Y - 2, x2 - x1, 400, ['#2F5C85', '#274C70', '#1E3B5A', '#163049', '#0F2640'], 10);
   // Streaks on the water (fixed in the world, so they rush past when he's flying along)
   ctx.fillStyle = 'rgba(224, 242, 254, 0.35)';
   for (let x = Math.floor(x1 / 90) * 90; x < x2; x += 90) {

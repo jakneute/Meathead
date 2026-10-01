@@ -3,6 +3,7 @@
 // wide shot of the volcano going off near the top, and the lounge afterwards.
 
 import type { GameState } from '../../core/state';
+import { bandedGradient } from '../../render/pixelArt';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { drawPlayer } from '../../render/player/player';
 import { COURSE } from './course';
@@ -274,9 +275,8 @@ export const drawWideShot = (ctx: Ctx, state: GameState, lg: Lounge) => {
   ctx.globalAlpha = Math.min(1, t / 14);
   ctx.translate(shake, shake * 0.5);
   ctx.translate(W / 2, H / 2); ctx.scale(zoom, zoom); ctx.translate(-(W / 2 + (wx0 - W / 2) * Math.min(1, (zoom - 1) / 11)), -(H / 2 + (wy0 - H / 2) * Math.min(1, (zoom - 1) / 11)));
-  const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, '#1E1B4B'); g.addColorStop(0.55, '#7C2D12'); g.addColorStop(1, '#EA580C');
-  ctx.fillStyle = g; ctx.fillRect(-20, -20, W + 40, H + 40);
+  ctx.fillStyle = '#1E1B4B'; ctx.fillRect(-20, -20, W + 40, H + 40);
+  bandedGradient(ctx, -20, 0, W + 40, H + 20, ['#1E1B4B', '#4A2440', '#7C2D12', '#B5431A', '#EA580C'], 14);
   // Stars coming out
   ctx.fillStyle = 'rgba(255,255,255,0.7)'; for (let i = 0; i < 40; i++) ctx.fillRect(hash(i) * W, hash(i + 9) * 200, 2, 2);
   const cx = W / 2, base = H - 70, s = 1.05;

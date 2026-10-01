@@ -3,6 +3,7 @@
 // manhole while the death message spells out what you did.
 
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../constants';
+import { bandedGradient, steppedGlow } from '../render/pixelArt';
 import { GameState } from '../core/state';
 import { SEWER_NUKE, sewerNukeFrame } from './sewerNuke';
 
@@ -131,11 +132,8 @@ export const drawSewerNukeOutside = (ctx: Ctx, state: GameState): boolean => {
 };
 
 const drawSky = (ctx: Ctx, t: number, glow: number) => {
-  const g = ctx.createLinearGradient(0, 0, 0, STREET_Y);
-  g.addColorStop(0, '#0B1026');
-  g.addColorStop(1, '#2A1B3D');
-  ctx.fillStyle = g;
-  ctx.fillRect(-20, -20, CANVAS_WIDTH + 40, STREET_Y + 20);
+  ctx.fillStyle = '#0B1026'; ctx.fillRect(-20, -20, CANVAS_WIDTH + 40, STREET_Y + 20);
+  bandedGradient(ctx, -20, 0, CANVAS_WIDTH + 40, STREET_Y, ['#0B1026', '#14142E', '#1E1836', '#2A1B3D'], 10);
   ctx.fillStyle = '#FFFFFF';
   for (let i = 0; i < 60; i++) {
     ctx.globalAlpha = 0.3 + 0.7 * hash(i + 7) * (1 - glow);
@@ -144,11 +142,8 @@ const drawSky = (ctx: Ctx, t: number, glow: number) => {
   ctx.globalAlpha = 1;
   // The whole sky lit up orange by the blast
   if (glow > 0) {
-    const og = ctx.createRadialGradient(MANHOLE_X, 250, 20, MANHOLE_X, 250, 600);
-    og.addColorStop(0, `rgba(255, 150, 40, ${0.85 * glow})`);
-    og.addColorStop(1, `rgba(120, 20, 0, ${0.5 * glow})`);
-    ctx.fillStyle = og;
-    ctx.fillRect(-20, -20, CANVAS_WIDTH + 40, STREET_Y + 20);
+    ctx.fillStyle = `rgba(120, 20, 0, ${(0.5 * glow).toFixed(3)})`; ctx.fillRect(-20, -20, CANVAS_WIDTH + 40, STREET_Y + 20);
+    steppedGlow(ctx, MANHOLE_X, 250, 600, '#FF9628', 0.85 * glow, 0, 7);
   }
   void t;
 };

@@ -10,6 +10,7 @@ import { CANVAS_WIDTH } from '../../../constants';
 import { COURSE, Prop } from './course';
 import type { Field } from './field';
 import { burnLevel, jetOn, jetWarning } from './field';
+import { bandedGradient, checker } from '../../render/pixelArt';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -20,10 +21,16 @@ export const drawDirt = (ctx: Ctx, state: GameState, runs: GroundRun[] = COURSE.
   const bottom = state.camera.y + 1400;
   for (const r of runs) {
     if (view ? r.x2 < view.x1 - 100 || r.x1 > view.x2 + 100 : !inView(state, r.x1, r.x2)) continue;
-    const g = ctx.createLinearGradient(0, Math.min(r.y1, r.y2), 0, Math.min(r.y1, r.y2) + 160);
-    g.addColorStop(0, '#B08A5A'); g.addColorStop(0.15, '#8C6A42'); g.addColorStop(1, '#5B4128');
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.moveTo(r.x1, r.y1); ctx.lineTo(r.x2, r.y2); ctx.lineTo(r.x2, bottom); ctx.lineTo(r.x1, bottom); ctx.closePath(); ctx.fill();
+    // (packed in layers: the pale crust, then the dirt going darker down, a flat band at a time, dithered one into the next)
+    const top = Math.min(r.y1, r.y2);
+    ctx.save();
+    ctx.beginPath(); ctx.moveTo(r.x1, r.y1); ctx.lineTo(r.x2, r.y2); ctx.lineTo(r.x2, bottom); ctx.lineTo(r.x1, bottom); ctx.closePath(); ctx.clip();
+    ctx.fillStyle = '#5B4128'; ctx.fillRect(r.x1, top, r.x2 - r.x1, bottom - top);
+    bandedGradient(ctx, r.x1, top, r.x2 - r.x1, 170, ['#B08A5A', '#9A7449', '#8C6A42', '#7A5A38', '#6A4C30', '#5B4128'], 8);
+    // (stones and caliche nodules through the layers)
+    for (let x = Math.ceil(r.x1 / 16) * 16; x < r.x2; x += 16) { const h = hash(x * 1.7); if (h < 0.3) { ctx.fillStyle = h < 0.15 ? '#C8A878' : '#6E5234'; ctx.fillRect(x + Math.round(hash(x) * 10), top + 30 + Math.round(h * 300), 4, 2); } }
+    checker(ctx, r.x1, top + 170, r.x2 - r.x1, 6, '#6A4C30');
+    ctx.restore();
     // The top edge: a lighter crust, stones, scrub
     ctx.strokeStyle = '#D2B48C'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(r.x1, r.y1 + 1); ctx.lineTo(r.x2, r.y2 + 1); ctx.stroke();
     const len = r.x2 - r.x1;

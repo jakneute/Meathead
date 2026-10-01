@@ -6,6 +6,7 @@ import type { Backdrop, View } from './index';
 import {
   G, LayerSpec, LH, LW, PX, TILE_W, rng, hash, mix, paintBandedSky, makeRidge, fillRidge, pine, palm, wrapDraw, tileToScreenX,
 } from './core';
+import { pixelBlob, hazeBands, steppedGlow, bandedGradient } from '../pixelArt';
 
 const W = LW * PX, H = LH * PX; // screen size
 
@@ -68,6 +69,8 @@ const artieFarPeaks: LayerSpec = {
       g.fillStyle = slope > 0 ? '#E8F1FF' : '#A9C0E0';
       g.fillRect(x, Math.floor(y), 1, depth);
     }
+    // (the air between here and there: their feet fade into the sky)
+    hazeBands(g, 0, 150, w, 70, '#1E4776', 0, 0.45, 5, 1);
   },
 };
 const artieMidPeaks: LayerSpec = {
@@ -86,6 +89,7 @@ const artieMidPeaks: LayerSpec = {
     g.fillStyle = '#0E1624'; g.fillRect(cx - 7, cy - 6, 14, 8);
     g.fillStyle = '#E8F1FF'; g.fillRect(cx - 9, cy - 9, 18, 3);
     g.fillStyle = '#FCD34D'; g.fillRect(cx - 4, cy - 3, 2, 2); g.fillRect(cx + 2, cy - 3, 2, 2);
+    hazeBands(g, 0, 212, w, 40, '#2C5F8F', 0, 0.3, 4, 1);
   },
 };
 const artieForest = (key: string, seed: number, parallax: number, base: number, size: number, color: string, snow: string, ground: string): LayerSpec => ({
@@ -179,6 +183,8 @@ const victorLavaFields: LayerSpec = {
   paint: (g, w, h) => {
     const ridge = makeRidge(19, w, 235, 30, 0.25);
     fillRidge(g, w, h, ridge, '#1F0906', '#5A1A0C');
+    // (the crust in layers, a dithered strip under the lit edge)
+    for (let x = 0; x < w; x += 2) { const y = Math.floor(ridge(x)); g.fillStyle = '#3A1210'; g.fillRect(x + (y % 2), y + 2, 1, 1); g.fillRect(x + ((y + 1) % 2), y + 4, 1, 1); }
     const r = rng(20);
     // Rivers of lava winding across
     for (let k = 0; k < 4; k++) {
@@ -229,11 +235,7 @@ const eruption = (ctx: G, v: View) => {
       ctx.fillStyle = t < 0.5 ? '#FDE047' : '#F97316';
       ctx.fillRect(Math.round(x), Math.round(y), 4, 4);
     }
-    const g2 = ctx.createRadialGradient(sx, cy, 4, sx, cy, 90);
-    g2.addColorStop(0, `rgba(253, 186, 116, ${0.35 + 0.1 * Math.sin(v.frame * 0.2)})`);
-    g2.addColorStop(1, 'rgba(253, 186, 116, 0)');
-    ctx.fillStyle = g2;
-    ctx.fillRect(sx - 90, cy - 90, 180, 180);
+    steppedGlow(ctx, sx, cy, 90, '#FDBA74', 0.35 + 0.1 * Math.sin(v.frame * 0.2), 0, 5);
   });
 };
 
@@ -279,6 +281,8 @@ const ernieBay: LayerSpec = {
     };
     cable(t1, t2, 60);
     cable(t1 - 140, t1, -0.001); cable(t2, t2 + 140, -0.001);
+    // (the headlands and the bridge's feet in the haze off the bay)
+    hazeBands(g, 0, 186, w, 40, '#E98B55', 0, 0.35, 5, 1);
   },
   raster: { from: 206, wobble: (row, f) => Math.sin(row * 0.8 + f * 0.08) * 1.5 },
 };
@@ -286,10 +290,13 @@ const ernieFog: LayerSpec = {
   key: 'ernie-fog', parallax: 0.08, drift: 0.12,
   paint: (g, w) => {
     const r = rng(60);
+    // (banks of it, ragged at the edges, thicker where they overlap)
     for (let i = 0; i < 40; i++) {
       const x = r() * w, y = 160 + r() * 50, rw = 40 + r() * 70, rh = 8 + r() * 10;
-      g.fillStyle = 'rgba(235, 235, 245, 0.18)';
-      wrapDraw(w, x, rw, xx => { g.beginPath(); g.ellipse(xx + rw / 2, y, rw / 2, rh, 0, 0, Math.PI * 2); g.fill(); });
+      wrapDraw(w, x, rw, xx => {
+        pixelBlob(g, xx + rw / 2, y, rw / 2, rh, 'rgba(235, 235, 245, 0.16)', 1);
+        pixelBlob(g, xx + rw * (0.35 + hash(i) * 0.3), y - rh * 0.3, rw * 0.3, rh * 0.7, 'rgba(235, 235, 245, 0.14)', 1);
+      });
     }
   },
 };
@@ -315,6 +322,7 @@ const ernieHills: LayerSpec = {
       g.fillRect(x + 7, Math.floor(base - hh + 4), 2, 3);
       g.fillStyle = '#FFFFFF'; g.fillRect(x + 1, Math.floor(base - hh + 10), 10, 1);
     }
+    hazeBands(g, 0, 236, w, 30, '#C4524A', 0, 0.3, 4, 1);
   },
 };
 const ernieStreet: LayerSpec = {
@@ -373,11 +381,16 @@ const hectorClouds = (key: string, parallax: number, drift: number, base: number
   key, parallax, drift,
   paint: (g, w) => {
     const r = rng(seed);
+    const lit = mix(color, '#FFFFFF', 0.16), dark = mix(color, '#000000', 0.25);
     for (let i = 0; i < count; i++) {
       const x = r() * w, y = base + r() * 40, rw = (50 + r() * 90) * size, rh = (12 + r() * 16) * size;
       wrapDraw(w, x, rw, xx => {
-        g.fillStyle = color; g.beginPath(); g.ellipse(xx + rw / 2, y, rw / 2, rh, 0, 0, Math.PI * 2); g.fill();
-        g.fillStyle = mix(color, '#000000', 0.25); g.beginPath(); g.ellipse(xx + rw / 2, y + rh * 0.5, rw / 2.2, rh * 0.5, 0, 0, Math.PI * 2); g.fill();
+        // A bank of cloud: a long body with lumps heaped along its top, lit along the top edge, dark underneath,
+        // ragged all round
+        pixelBlob(g, xx + rw / 2, y, rw / 2, rh, color, 1);
+        for (let k = 0; k < 3; k++) pixelBlob(g, xx + rw * (0.25 + k * 0.25), y - rh * 0.45, rw * (0.16 + hash(i * 3 + k) * 0.08), rh * 0.75, color, 1);
+        for (let k = 0; k < 3; k++) pixelBlob(g, xx + rw * (0.25 + k * 0.25), y - rh * 0.6, rw * 0.12, rh * 0.3, lit, 1);
+        pixelBlob(g, xx + rw / 2, y + rh * 0.5, rw / 2.2, rh * 0.45, dark, 1);
       });
     }
   },
@@ -403,15 +416,15 @@ const hectorDeco: LayerSpec = {
       }
       x += bw + 2;
     }
+    // (the storm's spray and murk over their feet)
+    hazeBands(g, 0, 196, w, 36, '#33436A', 0, 0.4, 5, 1);
   },
 };
 const hectorSea: LayerSpec = {
   key: 'hector-sea', parallax: 0.26,
   paint: (g, w, h) => {
-    for (let y = 232; y < h; y++) {
-      g.fillStyle = mix('#1D3B5A', '#0C1B2C', (y - 232) / 40);
-      g.fillRect(0, y, w, 1);
-    }
+    g.fillStyle = '#0C1B2C'; g.fillRect(0, 232, w, h - 232);
+    bandedGradient(g, 0, 232, w, 44, ['#1D3B5A', '#17304A', '#12263A', '#0C1B2C'], 6, 1);
     const r = rng(95);
     for (let i = 0; i < 160; i++) { g.fillStyle = r() > 0.5 ? '#E6F4FF' : '#7FB2D9'; g.fillRect(Math.floor(r() * w), 234 + Math.floor(r() * 40), 3 + Math.floor(r() * 5), 1); }
   },
@@ -514,12 +527,15 @@ const sunnyDeco: LayerSpec = {
       }
       x += bw + 2;
     }
+    // (the sea air over their feet)
+    hazeBands(g, 0, 200, w, 32, '#B2DEF7', 0, 0.3, 4, 1);
   },
 };
 const sunnySea: LayerSpec = {
   key: 'hector-sunny-sea', parallax: 0.26,
   paint: (g, w, h) => {
-    for (let y = 232; y < h; y++) { g.fillStyle = mix('#38BDF8', '#0E7490', (y - 232) / 40); g.fillRect(0, y, w, 1); }
+    g.fillStyle = '#0E7490'; g.fillRect(0, 232, w, h - 232);
+    bandedGradient(g, 0, 232, w, 44, ['#38BDF8', '#2AA6DC', '#1C8FBE', '#0E7490'], 6, 1);
     const r = rng(96);
     for (let i = 0; i < 180; i++) { g.fillStyle = r() > 0.4 ? '#F0F9FF' : '#BAE6FD'; g.fillRect(Math.floor(r() * w), 234 + Math.floor(r() * 40), 2 + Math.floor(r() * 4), 1); }
   },
@@ -534,9 +550,7 @@ const sunnyPalms: LayerSpec = {
 };
 const sun = (ctx: G, v: View) => {
   const x = W * 0.78 - v.camX * 0.01 % 40, y = 90 - Math.max(-60, Math.min(60, v.camY * 0.02));
-  const g = ctx.createRadialGradient(x, y, 10, x, y, 120);
-  g.addColorStop(0, 'rgba(255, 244, 196, 0.9)'); g.addColorStop(1, 'rgba(255, 244, 196, 0)');
-  ctx.fillStyle = g; ctx.fillRect(x - 120, y - 120, 240, 240);
+  steppedGlow(ctx, x, y, 120, '#FFF4C4', 0.7, 0, 6);
   ctx.fillStyle = '#FFF7D1'; ctx.beginPath(); ctx.arc(x, y, 34, 0, Math.PI * 2); ctx.fill();
 };
 // The beach at the start: not a cloud in the sky, near enough (a few little wisps)
@@ -589,6 +603,8 @@ const tommyFar: LayerSpec = {
     g.fillStyle = '#231A14'; g.fillRect(280, 175, 280, 60);
     for (const sx of STACKS) { g.fillStyle = '#3A2A20'; g.fillRect(sx - 5, 110, 10, 70); g.fillStyle = '#7F1D1D'; g.fillRect(sx - 5, 118, 10, 3); g.fillRect(sx - 5, 128, 10, 3); }
     for (let x = 290; x < 550; x += 9) { g.fillStyle = hash(x) > 0.5 ? '#9ACD32' : '#1A140F'; g.fillRect(x, 195, 4, 5); }
+    // (the smog over the plant: its feet fade into the sky)
+    hazeBands(g, 0, 200, w, 34, '#3C5E1C', 0, 0.4, 5, 1);
   },
 };
 const tommyPipes: LayerSpec = {
@@ -608,12 +624,14 @@ const tommyPipes: LayerSpec = {
       g.fillStyle = '#8B4A26'; g.fillRect(0, py, w, 1);
       for (let x = 0; x < w; x += 48) { g.fillStyle = '#4A2814'; g.fillRect(x, py - 1, 3, 7); }
     }
+    hazeBands(g, 0, 226, w, 16, '#23421A', 0, 0.25, 3, 1);
   },
 };
 const tommyRiver: LayerSpec = {
   key: 'tommy-river', parallax: 0.34,
   paint: (g, w, h) => {
-    for (let y = 250; y < h; y++) { g.fillStyle = mix('#3F7F16', '#18330A', (y - 250) / 40); g.fillRect(0, y, w, 1); }
+    g.fillStyle = '#18330A'; g.fillRect(0, 250, w, h - 250);
+    bandedGradient(g, 0, 250, w, 44, ['#3F7F16', '#336612', '#26500E', '#18330A'], 6, 1);
     const r = rng(140);
     for (let i = 0; i < 200; i++) { g.fillStyle = r() > 0.6 ? '#ADFF2F' : '#5DA11F'; g.fillRect(Math.floor(r() * w), 252 + Math.floor(r() * 45), 2 + Math.floor(r() * 4), 1); }
     // Leaking drums on the bank
@@ -666,7 +684,7 @@ const tommy: Backdrop = {
 // 6. BLACKOUT BARRY: New York City at night, rolling blackouts across the skyline.
 // ===========================================================================
 
-const skyline = (key: string, parallax: number, seed: number, base: number, minH: number, maxH: number, body: string, lit: string, empire = false): LayerSpec => ({
+const skyline = (key: string, parallax: number, seed: number, base: number, minH: number, maxH: number, body: string, lit: string, empire = false, haze?: string): LayerSpec => ({
   key, parallax,
   paint: (g, w, h) => {
     const r = rng(seed);
@@ -690,14 +708,16 @@ const skyline = (key: string, parallax: number, seed: number, base: number, minH
       g.fillStyle = '#F8FAFC'; g.fillRect(ex - 5, top + 8, 10, 2); g.fillRect(ex - 9, top + 20, 18, 2);
       for (let wy = top + 44; wy < base; wy += 4) for (let wx = ex - 12; wx < ex + 12; wx += 3) if (hash(wx + wy) > 0.5) { g.fillStyle = lit; g.fillRect(wx, wy, 1, 2); }
     }
+    // (the night's haze over the streets at their feet)
+    if (haze) hazeBands(g, 0, base - 44, w, 44, haze, 0, 0.42, 5, 1);
   },
 });
-const barryFar = skyline('barry-far', 0.06, 150, 240, 40, 110, '#0C1224', '#46557A', true);
-const barryMid = skyline('barry-mid', 0.18, 151, 255, 50, 140, '#060A16', '#FCD978');
+const barryFar = skyline('barry-far', 0.06, 150, 240, 40, 110, '#0C1224', '#46557A', true, '#1C2A4F');
+const barryMid = skyline('barry-mid', 0.18, 151, 255, 50, 140, '#060A16', '#FCD978', false, '#121E3D');
 /** The same skylines with every light out (Barry's stage draws these over the lit ones where the blackout's rolled through). */
 export const BARRY_SKYLINES_DARK: LayerSpec[] = [
-  skyline('barry-far-dark', 0.06, 150, 240, 40, 110, '#0C1224', '#0C1224', true),
-  skyline('barry-mid-dark', 0.18, 151, 255, 50, 140, '#060A16', '#060A16'),
+  skyline('barry-far-dark', 0.06, 150, 240, 40, 110, '#0C1224', '#0C1224', true, '#1C2A4F'),
+  skyline('barry-mid-dark', 0.18, 151, 255, 50, 140, '#060A16', '#060A16', false, '#121E3D'),
 ];
 
 /** The rolling blackout: a wave of darkness sweeps across the skyline, windows sputtering at its edges. */
@@ -767,11 +787,18 @@ const oscarRefinery: LayerSpec = {
     g.fillStyle = '#20120C'; g.fillRect(0, 225, w, h - 225);
     const r = rng(170);
     for (let x = 0; x < w; x += 18 + Math.floor(r() * 30)) {
-      const th = 30 + r() * 80;
-      g.fillStyle = '#26160E'; g.fillRect(x, 225 - th, 6 + Math.floor(r() * 5), th);
-      g.fillStyle = '#3A2214'; for (let y = 225 - th + 6; y < 225; y += 10) g.fillRect(x - 1, y, 9, 1); // catwalk rings
+      const th = 30 + r() * 80, cw = 6 + Math.floor(r() * 5);
+      // (each column lit down its left side by the dusk, dark down the right, a cap on top)
+      g.fillStyle = '#26160E'; g.fillRect(x, 225 - th, cw, th);
+      g.fillStyle = '#3C2416'; g.fillRect(x, 225 - th, 2, th);
+      g.fillStyle = '#1A0E08'; g.fillRect(x + cw - 2, 225 - th, 2, th);
+      g.fillStyle = '#3A2214'; for (let y = 225 - th + 6; y < 225; y += 10) g.fillRect(x - 1, y, cw + 3, 1); // catwalk rings
+      g.fillStyle = '#4A2E1C'; g.fillRect(x - 1, 225 - th - 2, cw + 2, 2);
+      if (r() > 0.6) { g.fillStyle = '#1A0E08'; g.fillRect(x + cw, 225 - th + 10, 6, 1); g.fillRect(x + cw + 5, 225 - th + 10, 1, 8); } // a pipe off it
     }
-    for (const fx of FLARES) { g.fillStyle = '#2E1A10'; g.fillRect(fx - 2, 95, 4, 130); }
+    for (const fx of FLARES) { g.fillStyle = '#2E1A10'; g.fillRect(fx - 2, 95, 4, 130); g.fillStyle = '#3C2416'; g.fillRect(fx - 2, 95, 1, 130); }
+    // (the smog over the refinery: its feet fade into the dusk)
+    hazeBands(g, 0, 190, w, 36, '#9A4A18', 0, 0.4, 5, 1);
   },
 };
 const oscarTanks: LayerSpec = {
@@ -789,6 +816,7 @@ const oscarTanks: LayerSpec = {
       g.fillStyle = '#231A12'; for (let i = 0; i < th; i += 5) g.fillRect(x + 4 + i * 0.6, 250 - th + i, 2, 2); // stair
       g.fillStyle = '#3F2A1A'; g.fillRect(x - 8, 244, 90, 2); // pipe
     }
+    hazeBands(g, 0, 232, w, 20, '#9A4A18', 0, 0.3, 4, 1);
   },
 };
 const PUMPJACKS = [80, 300, 520];
@@ -805,9 +833,7 @@ const flares = (ctx: G, v: View) => {
       ctx.fillStyle = i % 2 ? '#F97316' : '#FDE047';
       ctx.fillRect(Math.round(sx - 5 + Math.sin(v.frame * 0.3 + i) * 3), Math.round(y - fh), 10 - i, fh);
     }
-    const g2 = ctx.createRadialGradient(sx, y - 20, 2, sx, y - 20, 70);
-    g2.addColorStop(0, 'rgba(251, 146, 60, 0.35)'); g2.addColorStop(1, 'rgba(251, 146, 60, 0)');
-    ctx.fillStyle = g2; ctx.fillRect(sx - 70, y - 90, 140, 140);
+    steppedGlow(ctx, sx, y - 20, 70, '#FB923C', 0.35, 0, 5);
   });
   // Blinking red aviation lights on the columns
   if (v.frame % 60 < 30) for (let i = 0; i < 6; i++) pinned(40 + i * 100, oscarRefinery, v, sx => { ctx.fillStyle = '#EF4444'; ctx.fillRect(sx, 150 + (i % 3) * 24, 4, 4); });
@@ -857,6 +883,8 @@ const daleSandias: LayerSpec = {
     // Watermelon-pink glow along the crest
     for (let x = 0; x < w; x++) { g.fillStyle = '#C0617A'; g.fillRect(x, Math.floor(ridge(x)), 1, 2); }
     for (let x = 0; x < w; x += 3) { g.fillStyle = '#6A3552'; g.fillRect(x, Math.floor(ridge(x)) + 6 + (x % 5), 1, 18); } // gullies
+    // (the dusk's haze over the valley at their feet)
+    hazeBands(g, 0, 190, w, 50, '#E0666A', 0, 0.45, 5, 1);
   },
 };
 const daleMesas: LayerSpec = {
@@ -873,13 +901,15 @@ const daleMesas: LayerSpec = {
         g.fillStyle = '#3A1D2C'; for (let s = 6; s < mh; s += 7) g.fillRect(Math.floor(xx + 14), Math.floor(240 - mh + s), Math.floor(mw - 4), 1); // strata
       });
     }
+    hazeBands(g, 0, 224, w, 18, '#A8406E', 0, 0.3, 3, 1);
   },
 };
 const RV_X = 360;
 const daleDesert: LayerSpec = {
   key: 'dale-desert', parallax: 0.36,
   paint: (g, w, h) => {
-    for (let y = 258; y < h; y++) { g.fillStyle = mix('#5B3140', '#2A1620', (y - 258) / 40); g.fillRect(0, y, w, 1); }
+    g.fillStyle = '#2A1620'; g.fillRect(0, 258, w, h - 258);
+    bandedGradient(g, 0, 258, w, 44, ['#5B3140', '#4A2834', '#3A1F2A', '#2A1620'], 6, 1);
     const r = rng(220);
     // Cholla and yucca silhouettes
     for (let x = 10; x < w; x += 25 + Math.floor(r() * 40)) {

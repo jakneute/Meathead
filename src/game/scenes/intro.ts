@@ -333,13 +333,20 @@ export const drawEscort = (ctx: Ctx, t: number) => {
   const cx = 96 + Math.round(Math.sin(t * 0.05) * 16);
   const y = 118 - Math.round(hop);
   R(ctx, cx - 8, y - 24, 7, 20, C.pants); R(ctx, cx + 1, y - 22, 7, 18, C.pants);
+  R(ctx, cx - 3, y - 24, 2, 20, '#2a3a6a'); R(ctx, cx + 6, y - 22, 2, 18, '#2a3a6a');
   R(ctx, cx - 10, y - 4, 9, 4, C.ink); R(ctx, cx + 1, y - 4, 9, 4, C.ink);
   R(ctx, cx - 10, y - 28, 20, 4, C.belt); R(ctx, cx - 2, y - 28, 4, 4, C.buckle);
+  // (lit from the ceiling lights, up and to the left: the right side of him in shade, the pecs and the shoulders catching it)
   R(ctx, cx - 10, y - 42, 20, 14, C.mSkin); R(ctx, cx - 14, y - 50, 28, 9, C.mSkin);
+  R(ctx, cx + 5, y - 42, 5, 14, C.mSkinShade); R(ctx, cx + 8, y - 50, 6, 9, C.mSkinShade);
+  R(ctx, cx - 12, y - 50, 8, 2, C.mSkinLight); R(ctx, cx - 8, y - 40, 6, 1, C.mSkinLight);
+  R(ctx, cx - 1, y - 40, 2, 8, C.mSkinShade);
   // (arms up by his chest, like paws)
   R(ctx, cx - 18, y - 48, 6, 10, C.mSkin); R(ctx, cx + 12, y - 48, 6, 10, C.mSkin);
+  R(ctx, cx + 16, y - 48, 2, 10, C.mSkinShade);
   R(ctx, cx - 16, y - 40, 5, 4, C.mSkinShade); R(ctx, cx + 11, y - 40, 5, 4, C.mSkinShade);
-  R(ctx, cx - 6, y - 62, 12, 12, C.mSkin); R(ctx, cx - 7, y - 66, 14, 5, C.mHair);
+  R(ctx, cx - 6, y - 62, 12, 12, C.mSkin); R(ctx, cx + 3, y - 62, 3, 12, C.mSkinShade); R(ctx, cx - 5, y - 61, 3, 1, C.mSkinLight);
+  R(ctx, cx - 7, y - 66, 14, 5, C.mHair); R(ctx, cx - 6, y - 65, 6, 1, '#4a4a4a');
   R(ctx, cx - 4, y - 59, 3, 3, C.ink); R(ctx, cx + 2, y - 59, 3, 3, C.ink);
   R(ctx, cx - 3, y - 54, 6, 2, '#500000'); R(ctx, cx - 1, y - 52, 3, 4 + (t % 12 < 6 ? 1 : 0), '#e05060');
   // (little hearts going up off him)

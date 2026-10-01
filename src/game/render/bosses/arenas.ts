@@ -1,5 +1,6 @@
 import { ARENA_LEFT, GROUND_Y } from '../../../constants';
 import { getArenaRight } from '../../bosses/registry';
+import { bandedGradient } from '../pixelArt';
 import type { Enemy } from '../../../types';
 import type { GameState } from '../../core/state';
 
@@ -65,12 +66,7 @@ const drawArtieArena = (
   frame: number
 ) => {
   // 1. Deep Subzero Cavern Gradient Wall
-  const wallGrad = ctx.createLinearGradient(left, top, left, bottom);
-  wallGrad.addColorStop(0, '#061320');
-  wallGrad.addColorStop(0.5, '#0b2035');
-  wallGrad.addColorStop(1, '#08182b');
-  ctx.fillStyle = wallGrad;
-  ctx.fillRect(left, top, w, bottom - top);
+  bandedGradient(ctx, left, top, w, bottom - top, ['#061320', '#081A2B', '#0B2035', '#0A1C30', '#08182B'], 12);
 
   // 2. Glacial Masonry Blocks Pattern
   ctx.strokeStyle = '#153857';
@@ -233,12 +229,7 @@ const drawVictorArena = (
   frame: number
 ) => {
   // 1. Dark Volcanic Caldera Wall
-  const wallGrad = ctx.createLinearGradient(left, top, left, bottom);
-  wallGrad.addColorStop(0, '#100403');
-  wallGrad.addColorStop(0.6, '#200805');
-  wallGrad.addColorStop(1, '#2d0a06');
-  ctx.fillStyle = wallGrad;
-  ctx.fillRect(left, top, w, bottom - top);
+  bandedGradient(ctx, left, top, w, bottom - top, ['#100403', '#180604', '#200805', '#260905', '#2D0A06'], 12);
 
   // 2. Basalt Masonry & Molten Veins
   ctx.strokeStyle = '#38120e';
@@ -543,12 +534,7 @@ const drawHectorArena = (
   windTargetX: number | null
 ) => {
   // 1. High-Altitude Turbulent Storm Sky Background
-  const skyGrad = ctx.createLinearGradient(left, top, left, bottom);
-  skyGrad.addColorStop(0, '#0a1018');
-  skyGrad.addColorStop(0.5, '#162232');
-  skyGrad.addColorStop(1, '#0e1824');
-  ctx.fillStyle = skyGrad;
-  ctx.fillRect(left, top, w, bottom - top);
+  bandedGradient(ctx, left, top, w, bottom - top, ['#0A1018', '#101925', '#162232', '#121D2B', '#0E1824'], 12);
 
   // Lightning Flash in background clouds
   const isLightning = (frame % 160) > 154;
@@ -742,9 +728,12 @@ const drawDaleArena = (
     const on = !(i === 2 && Math.floor(frame / 9) % 11 < 2);
     ctx.fillStyle = on ? '#FEFCE8' : '#A8A29E'; ctx.fillRect(lx, top + 34, 110, 8);
     if (on) {
-      const g = ctx.createLinearGradient(0, top + 42, 0, top + 260);
-      g.addColorStop(0, 'rgba(254, 252, 232, 0.35)'); g.addColorStop(1, 'rgba(254, 252, 232, 0)');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(lx, top + 42); ctx.lineTo(lx + 110, top + 42); ctx.lineTo(lx + 150, top + 260); ctx.lineTo(lx - 40, top + 260); ctx.fill();
+      // (its pool of light down the wall, in steps)
+      for (let k = 0; k < 5; k++) {
+        const a = 0.32 * (1 - k / 5), y0 = top + 42 + k * 43.6, y1 = y0 + 43.6, s0 = k / 5, s1 = (k + 1) / 5;
+        ctx.fillStyle = `rgba(254, 252, 232, ${a.toFixed(3)})`;
+        ctx.beginPath(); ctx.moveTo(lx - 40 * s0, y0); ctx.lineTo(lx + 110 + 40 * s0, y0); ctx.lineTo(lx + 110 + 40 * s1, y1); ctx.lineTo(lx - 40 * s1, y1); ctx.fill();
+      }
     }
   }
 
@@ -837,9 +826,7 @@ const drawDaleWalls = (ctx: CanvasRenderingContext2D, left: number, right: numbe
   if (!boss) return;
   const lx = left - 40, rx = right;
   const outside = (x: number, w: number, y1: number) => {
-    const g = ctx.createLinearGradient(0, y1, 0, bottom);
-    g.addColorStop(0, '#2E1A55'); g.addColorStop(0.6, '#A8406E'); g.addColorStop(1, '#F4A261');
-    ctx.fillStyle = g; ctx.fillRect(x, y1, w, bottom - y1);
+    bandedGradient(ctx, x, y1, w, bottom - y1, ['#2E1A55', '#5A2A62', '#A8406E', '#D07068', '#F4A261'], 10);
   };
   // --- The front doors
   if (doorShut) {
@@ -1114,12 +1101,7 @@ const drawOscarArena = (
   frame: number
 ) => {
   // 1. Smoggy Industrial Petroleum Twilight Sky
-  const skyGrad = ctx.createLinearGradient(left, top, left, bottom);
-  skyGrad.addColorStop(0, '#120b09');
-  skyGrad.addColorStop(0.5, '#221410');
-  skyGrad.addColorStop(1, '#180e0c');
-  ctx.fillStyle = skyGrad;
-  ctx.fillRect(left, top, w, bottom - top);
+  bandedGradient(ctx, left, top, w, bottom - top, ['#120B09', '#1A100D', '#221410', '#1D110E', '#180E0C'], 12);
 
   // 2. Towering Distillation Cracker Towers & Gas Flare Stacks
   const flareXs = [left + 120, right - 130];

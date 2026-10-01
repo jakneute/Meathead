@@ -2,6 +2,7 @@
 // Meathead rolled up in a snowball, the ranger cabin and the snow pile.
 
 import { RANGER_RADIO, RANGER_RADIO_EVERY, radioLive } from './ski';
+import { bandedGradient } from '../../render/pixelArt';
 import type { GameState } from '../../core/state';
 import { groundLineAt } from '../../core/terrain';
 import { GROUND_Y } from '../../../constants';
@@ -391,9 +392,7 @@ const drawAvalanche = (ctx: Ctx, state: GameState, ski: Ski) => {
   const f = state.frame;
   const topAt = (x: number) => snowLineAt(state, x) - 420 - Math.sin(x * 0.02 + f * 0.1) * 30;
   // Body
-  const grad = ctx.createLinearGradient(0, v.y, 0, v.y + v.h);
-  grad.addColorStop(0, '#F8FAFC'); grad.addColorStop(1, '#C7D6EA');
-  ctx.fillStyle = grad;
+  ctx.fillStyle = '#E2EAF4';
   ctx.beginPath();
   ctx.moveTo(left, bottom);
   for (let x = left; x <= front; x += 30) ctx.lineTo(x, topAt(x));
@@ -401,6 +400,8 @@ const drawAvalanche = (ctx: Ctx, state: GameState, ski: Ski) => {
   ctx.lineTo(front, bottom);
   ctx.closePath();
   ctx.fill();
+  // (the snow in bands: bright up top, blue in its own shadow down the face)
+  ctx.save(); ctx.clip(); bandedGradient(ctx, left - 20, v.y, front - left + 40, v.h, ['#F8FAFC', '#EEF3F9', '#E2EAF4', '#D4DEEC', '#C7D6EA'], 10); ctx.restore();
   // Tumbling debris inside it
   for (let i = 0; i < 6; i++) {
     const dx = front - 60 - ((f * 3 + i * 97) % 500);

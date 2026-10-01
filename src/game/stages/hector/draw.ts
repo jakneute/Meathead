@@ -13,6 +13,7 @@ import { drawWaterHazards, drawAirMeter } from './drawWater';
 import { STRIKE_WARN, STRIKE_RING, shockPhase, AWNING_BOUNCE, SEA_DEPTH } from './hazards';
 import { copsLeft } from './beach';
 import { towerFlash, TOWER, RISE_WARNING } from './tower';
+import { bandedGradient, pixelBlob } from '../../render/pixelArt';
 import { drawBoatScene, drawBoatFront, drawTowerJunk, drawEyeArena, drawDaycare, drawDaycareFront, drawPoolWater } from './drawSet';
 import { drawEyeHud } from './eyeDraw';
 
@@ -68,9 +69,7 @@ export const drawHectorWeather = (ctx: Ctx, state: GameState): boolean => {
 /** Inside the hurricane: bands of cloud and rain spiralling round (turning as you go round the storm), lightning in the murk. */
 const drawInsideStorm = (ctx: Ctx, state: GameState) => {
   const f = state.frame;
-  const g = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-  g.addColorStop(0, '#0B1224'); g.addColorStop(0.5, '#1A2340'); g.addColorStop(1, '#0B1020');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  bandedGradient(ctx, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#0B1224', '#141C34', '#1A2340', '#121A30', '#0B1020'], 14);
   // The storm turning: as you go round, the bands slide past (and they spin on their own too)
   const turn = (state.camera.x / TOWER.circumference) * Math.PI * 2 + f * 0.004;
   ctx.save();
@@ -88,6 +87,17 @@ const drawInsideStorm = (ctx: Ctx, state: GameState) => {
     ctx.stroke();
   }
   ctx.restore();
+  // Banks of cloud going round in it, lower and darker the nearer they are, ragged at their edges
+  const turnPx = (state.camera.x * 0.35 + f * 0.6);
+  for (let i = 0; i < 18; i++) {
+    const depth = (i % 3) / 2;
+    const w = 90 + hash(i * 1.7) * 120, h = 14 + hash(i * 2.9) * 12;
+    const x = ((hash(i * 3.1) * (CANVAS_WIDTH + 400) - turnPx * (0.4 + depth * 0.6)) % (CANVAS_WIDTH + 400) + CANVAS_WIDTH + 400) % (CANVAS_WIDTH + 400) - 200;
+    const y = 40 + hash(i * 4.3) * (CANVAS_HEIGHT - 120) + Math.sin(f * 0.01 + i) * 6 - state.camera.y * 0.04 % 80;
+    const c = depth > 0.6 ? 'rgba(52, 66, 104, 0.55)' : depth > 0.3 ? 'rgba(38, 48, 80, 0.6)' : 'rgba(26, 34, 58, 0.7)';
+    pixelBlob(ctx, x, y, w, h, c);
+    pixelBlob(ctx, x + w * 0.3, y - h * 0.5, w * 0.35, h * 0.7, c);
+  }
   // Lightning somewhere in the storm
   const cycle = 200, t = f % cycle;
   if (t < 8) {
@@ -654,9 +664,7 @@ const drawEyeWall = (ctx: Ctx, state: GameState) => {
   const C = TOWER.circumference;
   const x0 = state.camera.x - 600, x1 = state.camera.x + CANVAS_WIDTH + 600;
   const top = state.camera.y - 20, h = CANVAS_HEIGHT + 40;
-  const g = ctx.createLinearGradient(0, top, 0, top + h);
-  g.addColorStop(0, '#26324F'); g.addColorStop(1, '#141B30');
-  ctx.fillStyle = g; ctx.fillRect(x0, top, x1 - x0, h);
+  bandedGradient(ctx, x0, top, x1 - x0, h, ['#26324F', '#202B45', '#1A233A', '#141B30'], 8);
   // Streaks of rain and cloud whirling down the wall (they repeat every lap, so the wrap's seamless)
   const f = state.frame;
   for (let k = Math.floor((x0 - TOWER.x0) / (C / 24)) - 1; k * (C / 24) + TOWER.x0 < x1; k++) {
@@ -667,6 +675,21 @@ const drawEyeWall = (ctx: Ctx, state: GameState) => {
     const slide = (f * (2 + hash(seed + 5) * 3) + hash(seed) * 600) % 600;
     for (let y = top - 600 + slide; y < top + h; y += 300) {
       ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w, y + 20); ctx.lineTo(x + w - 20, y + 260); ctx.lineTo(x - 20, y + 240); ctx.closePath(); ctx.fill();
+    }
+  }
+  // Banks of cloud whirling round the wall (they repeat every lap too), lower and darker the nearer they are
+  for (let row = 0; row < 80; row++) {
+    const y = TOWER.floorY - 90 - row * 150;
+    if (y < top - 60) break;
+    if (y > top + h + 60) continue;
+    const slot = C / 8;
+    for (let k = Math.floor((x0 - TOWER.x0) / slot) - 1; k * slot + TOWER.x0 < x1; k++) {
+      const seed = ((k % 8) + 8) % 8 + row * 11;
+      const bx = TOWER.x0 + k * slot + ((hash(seed) * slot + f * (1.2 + hash(seed + 1) * 1.5)) % slot);
+      const w = 80 + hash(seed + 2) * 100, hh = 11 + hash(seed + 3) * 10;
+      const c = row % 3 === 0 ? 'rgba(74, 92, 134, 0.45)' : row % 3 === 1 ? 'rgba(52, 66, 104, 0.55)' : 'rgba(36, 46, 78, 0.6)';
+      pixelBlob(ctx, bx, y + Math.sin(f * 0.02 + seed) * 5, w, hh, c);
+      pixelBlob(ctx, bx + w * 0.3, y - hh * 0.5, w * 0.35, hh * 0.7, c);
     }
   }
   // The floor of the storm: a churning ring of water at the bottom

@@ -9,6 +9,7 @@
 // the ground they've opened in drawn here.
 
 import type { GameState } from '../../core/state';
+import { bandedGradient, hazeBands, steppedGlow } from '../../render/pixelArt';
 import type { GroundRun } from '../../core/terrain';
 import { runYAt } from '../../core/terrain';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
@@ -39,11 +40,10 @@ const WALL_TOP = Y - 390, VAULT = Y - 230, ROOF = Y - 470;
 export const drawIslandBackdrop = (ctx: Ctx, state: GameState) => {
   const cx = state.camera.x;
   if (!(cx + CANVAS_WIDTH > YARD[0] - 60 && cx < YARD[1] + 60)) { ctx.fillStyle = '#0E1114'; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); return; }
-  const g = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-  g.addColorStop(0, '#3B1F4A'); g.addColorStop(0.35, '#B4436C'); g.addColorStop(0.6, '#F59E62'); g.addColorStop(0.75, '#FCD9A0');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  bandedGradient(ctx, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#3B1F4A', '#78305A', '#B4436C', '#D87058', '#F59E62', '#FCD9A0', '#FCD9A0', '#FCD9A0'], 18);
   // The sun going down over the Golden Gate (what's left of it, smoking)
   const hz = 330 - Math.max(-60, Math.min(60, (state.camera.y - (Y - 790)) * 0.12));
+  steppedGlow(ctx, 640 - cx * 0.02 % 200, hz - 20, 110, '#FDE68A', 0.4, 0, 5);
   ctx.fillStyle = 'rgba(254, 240, 138, 0.9)'; ctx.beginPath(); ctx.arc(640 - cx * 0.02 % 200, hz - 20, 30, 0, Math.PI * 2); ctx.fill();
   const par = (k: number, w: number) => ((-cx * k) % w + w) % w;
   // The city across the water: the skyline, the pyramid, the tower on the hill, some of it burning
@@ -58,10 +58,10 @@ export const drawIslandBackdrop = (ctx: Ctx, state: GameState) => {
     ctx.fillStyle = 'rgba(80, 60, 70, 0.5)'; ctx.beginPath(); ctx.arc(bx + 227, hz - 70 - (state.frame * 0.2 % 40), 16, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#4A2A4F';
   }
+  // (the city fading into the haze over the water)
+  hazeBands(ctx, 0, hz - 60, CANVAS_WIDTH, 60, '#F59E62', 0, 0.45, 6);
   // The bay
-  const w = ctx.createLinearGradient(0, hz, 0, CANVAS_HEIGHT);
-  w.addColorStop(0, '#E2917A'); w.addColorStop(0.2, '#6E4A7A'); w.addColorStop(1, '#1E2A4A');
-  ctx.fillStyle = w; ctx.fillRect(0, hz, CANVAS_WIDTH, CANVAS_HEIGHT - hz);
+  bandedGradient(ctx, 0, hz, CANVAS_WIDTH, CANVAS_HEIGHT - hz, ['#E2917A', '#A86A7C', '#6E4A7A', '#4A3A62', '#2E3254', '#1E2A4A'], 14);
   ctx.fillStyle = 'rgba(254, 215, 170, 0.35)';
   for (let i = 0; i < 16; i++) { const y = hz + 8 + i * 16; ctx.fillRect((par(0.2, 800) + i * 97) % 800, y, 30 + (i % 3) * 12, 2); }
 };
@@ -219,7 +219,12 @@ const drawHouse = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
   if (x2 <= x1) return;
   const top = state.camera.y - 20;
   const wrecked = tourWrecked(rt.tour);
-  ctx.fillStyle = '#5E6B63'; ctx.fillRect(x1, top, x2 - x1, Y - top);
+  // (concrete, poured in lifts: lighter up where the skylights' light falls, grey-green down by the tiers, the lift
+  // joints across it, a stain run down from the roof here and there)
+  bandedGradient(ctx, x1, top, x2 - x1, Y - top, ['#6A776F', '#647169', '#5E6B63', '#58655D', '#525F57'], 8);
+  ctx.fillStyle = 'rgba(0,0,0,0.12)'; for (let y = Math.floor(top / 48) * 48; y < Y; y += 48) ctx.fillRect(x1, y, x2 - x1, 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.05)'; for (let y = Math.floor(top / 48) * 48 + 2; y < Y; y += 48) ctx.fillRect(x1, y, x2 - x1, 1);
+  for (let x = Math.floor(x1 / 160) * 160; x < x2; x += 160) { ctx.fillStyle = 'rgba(0,0,0,0.1)'; ctx.fillRect(x, top, 2, Y - top); ctx.fillStyle = 'rgba(30, 36, 33, 0.2)'; ctx.fillRect(x + 20 + Math.round(hash(x) * 100), top, 6, 40 + Math.round(hash(x * 3) * 160)); }
   // Roof trusses and the skylights (one of them smashed in, afterwards)
   ctx.fillStyle = '#2B3330'; ctx.fillRect(x1, Math.max(top, ROOF - 400), x2 - x1, ROOF - Math.max(top, ROOF - 400));
   for (let x = Math.floor(x1 / 200) * 200; x < x2; x += 200) {

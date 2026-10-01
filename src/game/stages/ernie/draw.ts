@@ -5,6 +5,7 @@
 // banner, the fades). The bay, the jet ski and the cell house are in drawSea.ts.
 
 import type { GameState } from '../../core/state';
+import { bandedGradient } from '../../render/pixelArt';
 import type { GroundRun } from '../../core/terrain';
 import { runYAt } from '../../core/terrain';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, ARENA_LEFT } from '../../../constants';
@@ -115,9 +116,7 @@ const drawBridgeView = (ctx: Ctx, state: GameState) => {
   // (a slow drift as you go, from where the bridge starts)
   const cx = (state.camera.x - (COURSE.bridge.x1 - 1200)) * 0.03;
   // The bay
-  const g = ctx.createLinearGradient(0, horizon, 0, CANVAS_HEIGHT + 60);
-  g.addColorStop(0, '#6C5B7B'); g.addColorStop(0.2, '#35567A'); g.addColorStop(1, '#1B2F4A');
-  ctx.fillStyle = g; ctx.fillRect(0, horizon, W, CANVAS_HEIGHT + 80 - horizon);
+  bandedGradient(ctx, 0, horizon, W, CANVAS_HEIGHT + 80 - horizon, ['#6C5B7B', '#35567A', '#2E4A6B', '#25405C', '#1B2F4A'], 14);
   ctx.fillStyle = 'rgba(246, 194, 122, 0.35)';
   for (let i = 0; i < 30; i++) { const x = ((hash(i) * W + f * 0.2) % W), y = horizon + 6 + hash(i + 3) * 200; ctx.fillRect(x, y, 10 + hash(i + 5) * 30, 1); }
   // The city behind (left), fading into the haze
@@ -271,9 +270,7 @@ const drawBridge = (ctx: Ctx, state: GameState, br: Bridge) => {
   const water = Y + DROP_TO_WATER;
   if (state.camera.y + CANVAS_HEIGHT > water - 300) {
     ctx.fillStyle = 'rgba(203, 213, 225, 0.25)'; ctx.fillRect(state.camera.x, water - 300, CANVAS_WIDTH, 300);
-    const g = ctx.createLinearGradient(0, water, 0, water + 400);
-    g.addColorStop(0, '#35567A'); g.addColorStop(1, '#0F1E33');
-    ctx.fillStyle = g; ctx.fillRect(state.camera.x, water, CANVAS_WIDTH, 400);
+    bandedGradient(ctx, state.camera.x, water, CANVAS_WIDTH, 400, ['#35567A', '#2A4664', '#1E344D', '#0F1E33'], 10);
     ctx.fillStyle = '#E0F2FE'; for (let x = Math.floor(state.camera.x / 30) * 30; x < state.camera.x + CANVAS_WIDTH; x += 30) ctx.fillRect(x + Math.sin(state.frame * 0.05 + x) * 4, water, 16, 2);
   }
   if (x2 < x1) return;

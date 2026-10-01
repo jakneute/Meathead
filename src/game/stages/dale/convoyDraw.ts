@@ -6,6 +6,7 @@
 // the radio, the warnings for what's coming, and the KILL arrow on Riggs.
 
 import type { GameState } from '../../core/state';
+import { bandedGradient, hazeBands } from '../../render/pixelArt';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { drawPlayer } from '../../render/player/player';
 import { COURSE, TRAILER_W, TRUCK_W, TRAILER_TOP, CAB_TOP, HOOD_TOP, SLEEPER_W, truckDims } from './course';
@@ -39,9 +40,7 @@ export const drawHighwayBackdrop = (ctx: Ctx, state: GameState, rt: DaleRuntime)
   layer(ctx, s, 0, f, 4);
   // Near desert, whipping by
   ctx.fillStyle = '#9A5A34'; ctx.fillRect(0, 300, CANVAS_WIDTH, ROAD - 300);
-  const g = ctx.createLinearGradient(0, 300, 0, ROAD);
-  g.addColorStop(0, 'rgba(60, 25, 30, 0.6)'); g.addColorStop(1, 'rgba(60, 25, 30, 0)');
-  ctx.fillStyle = g; ctx.fillRect(0, 300, CANVAS_WIDTH, ROAD - 300);
+  hazeBands(ctx, 0, 300, CANVAS_WIDTH, ROAD - 300, '#3C191E', 0.6, 0, 6);
   for (let k = 0; k < 24; k++) {
     const x = ((hash(k) * 1600 - s * 0.7) % 1600 + 1600) % 1600 - 200;
     const y = 318 + hash(k + 3) * (ROAD - 330);
@@ -527,9 +526,7 @@ const drawMeltScene = (ctx: Ctx, state: GameState, cv: Convoy) => {
   if (firing) ctx.translate((hash(u) - 0.5) * 8, (hash(u + 1) - 0.5) * 8);
   ctx.scale(IN_SCALE, IN_SCALE);
   // The walls: ribbed aluminum, in the dark
-  const wall = ctx.createLinearGradient(0, IN_ROOF, 0, IN_FLOOR);
-  wall.addColorStop(0, '#27272A'); wall.addColorStop(1, '#18181B');
-  ctx.fillStyle = wall; ctx.fillRect(0, IN_ROOF, IN_W, IN_FLOOR - IN_ROOF);
+  bandedGradient(ctx, 0, IN_ROOF, IN_W, IN_FLOOR - IN_ROOF, ['#27272A', '#222225', '#1D1D20', '#18181B'], 6);
   ctx.fillStyle = 'rgba(255,255,255,0.05)'; for (let x = 8; x < IN_W; x += 22) ctx.fillRect(x, IN_ROOF, 4, IN_FLOOR - IN_ROOF);
   ctx.fillStyle = '#3F3F46'; ctx.fillRect(0, 150, IN_W, 5); ctx.fillRect(0, 260, IN_W, 5); // tie-down rails
   // The back doors (left) and the front wall (right)

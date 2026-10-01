@@ -9,6 +9,7 @@
 // on what's left of their couch, the TV still on, and past it, the pit.
 
 import type { GameState } from '../../core/state';
+import { hazeBands } from '../../render/pixelArt';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { COURSE, RUINS_Y, CAVERN_ROOF } from './course';
 import type { TommyRuntime } from './runtime';
@@ -317,14 +318,17 @@ const drawSurfScene = (ctx: Ctx, state: GameState, t: number) => {
   // The wave: a wall of it from the left up to the crest, curling over, foam along the top, junk in it
   // (a bit smaller, and see-through: everything it's run into tumbling and melting in it)
   const top = 330 + Math.sin(t * 0.08) * 8;
-  const g = ctx.createLinearGradient(0, top, 0, H);
-  g.addColorStop(0, 'rgba(132, 161, 58, 0.62)'); g.addColorStop(0.4, 'rgba(92, 104, 36, 0.55)'); g.addColorStop(1, 'rgba(58, 66, 23, 0.7)');
-  ctx.fillStyle = g;
+  ctx.fillStyle = 'rgba(92, 104, 36, 0.58)';
   ctx.beginPath(); ctx.moveTo(-20, H); ctx.lineTo(-20, top - 20);
   for (let x = -20; x <= crestX; x += 20) ctx.lineTo(x, top - 20 + Math.sin(x * 0.03 + t * 0.2) * 10);
   ctx.quadraticCurveTo(crestX + 64, top - 24, crestX + 48, top + 46);
   ctx.quadraticCurveTo(crestX + 88, top + 120, crestX + 128, H);
   ctx.closePath(); ctx.fill();
+  // (lighter up at the crest, darker down in the body of it, in bands)
+  ctx.save(); ctx.clip();
+  hazeBands(ctx, -20, top - 30, crestX + 160, (H - top) * 0.4, '#84A13A', 0.35, 0, 5);
+  hazeBands(ctx, -20, top + (H - top) * 0.4, crestX + 160, (H - top) * 0.6 + 30, '#3A4217', 0, 0.45, 6);
+  ctx.restore();
   // (its lip curling over, and foam)
   ctx.fillStyle = 'rgba(217, 249, 157, 0.85)';
   for (let x = -20; x <= crestX + 48; x += 14) ctx.fillRect(x, top - 24 + Math.sin(x * 0.03 + t * 0.2) * 10, 10, 6);

@@ -3,6 +3,7 @@
 // final launch with the death message.
 
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../constants';
+import { bandedGradient, steppedGlow } from '../render/pixelArt';
 import { GameState, createGameState, createPlayer } from '../core/state';
 import { Player } from '../../types';
 import { createFullAmmo } from '../../constants';
@@ -66,12 +67,9 @@ export const drawVolcanoFinaleOutside = (ctx: Ctx, state: GameState): boolean =>
 /** Hilo at dusk: the volcano over the ocean, rumbling or erupting. */
 const drawScene = (ctx: Ctx, t: number, erupting: boolean, e: number) => {
   // Sky, darkening and glowing red once it blows
-  const sky = ctx.createLinearGradient(0, 0, 0, BASE_Y);
-  sky.addColorStop(0, erupting ? '#1A0505' : '#1E0B1E');
-  sky.addColorStop(0.6, erupting ? '#7A1A0A' : '#6B2A3A');
-  sky.addColorStop(1, erupting ? '#E0661A' : '#D9794A');
-  ctx.fillStyle = sky;
+  ctx.fillStyle = erupting ? '#1A0505' : '#1E0B1E';
   ctx.fillRect(-20, -20, W + 40, BASE_Y + 20);
+  bandedGradient(ctx, -20, 0, W + 40, BASE_Y, erupting ? ['#1A0505', '#3A0E08', '#7A1A0A', '#A83A10', '#E0661A'] : ['#1E0B1E', '#3E1A2C', '#6B2A3A', '#A05040', '#D9794A'], 14);
   // Ocean with glittering light
   ctx.fillStyle = '#1B2A40';
   ctx.fillRect(-20, BASE_Y, W + 40, H - BASE_Y + 20);
@@ -91,11 +89,7 @@ const drawScene = (ctx: Ctx, t: number, erupting: boolean, e: number) => {
       ctx.beginPath(); ctx.arc(CX + Math.sin(i * 1.7 + e * 0.03) * 30 * k, y, r, 0, Math.PI * 2); ctx.fill();
     }
     // Lava lit from below
-    const glow = ctx.createRadialGradient(CX, PEAK_Y, 10, CX, PEAK_Y, 260);
-    glow.addColorStop(0, 'rgba(255, 150, 40, 0.55)');
-    glow.addColorStop(1, 'rgba(255, 60, 0, 0)');
-    ctx.fillStyle = glow;
-    ctx.fillRect(CX - 260, PEAK_Y - 260, 520, 520);
+    steppedGlow(ctx, CX, PEAK_Y, 260, '#FF9628', 0.55, 0, 6);
   } else {
     // Rumbling: smoke puffing from the crater, harder and faster as it builds
     for (let i = 0; i < 8; i++) {
@@ -314,14 +308,14 @@ export const drawVolcanoFinaleInside = (ctx: Ctx, state: GameState) => {
   ctx.fillRect(camX, camY, W, H);
   if (f.t < VOLCANO_FINALE.WAVE) return;
   const top = camY + f.waveY;
-  const g = ctx.createLinearGradient(0, top, 0, top + 200);
-  g.addColorStop(0, '#FFF3B0'); g.addColorStop(0.08, '#FFB020'); g.addColorStop(0.4, '#FF5A00'); g.addColorStop(1, '#8A1B05');
-  ctx.fillStyle = g;
+  ctx.fillStyle = '#8A1B05';
   ctx.beginPath();
   ctx.moveTo(camX - 20, camY + H + 20);
   for (let x = -20; x <= W + 20; x += 20) ctx.lineTo(camX + x, top + Math.sin(x * 0.05 + f.t * 0.5) * 14);
   ctx.lineTo(camX + W + 20, camY + H + 20);
   ctx.closePath(); ctx.fill();
+  // (the lava: white-hot along the crest, going orange and then dark down into the body of it, in bands)
+  ctx.save(); ctx.clip(); bandedGradient(ctx, camX - 20, top - 16, W + 40, 220, ['#FFF3B0', '#FFB020', '#FF8010', '#FF5A00', '#C83A05', '#8A1B05'], 10); ctx.restore();
   // Spray thrown up off the crest
   for (let i = 0; i < 30; i++) {
     const s = ((f.t * 3 + i * 17) % 40) / 40;

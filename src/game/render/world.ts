@@ -1,5 +1,6 @@
 import { GameStatus, Enemy, TommyBoard, DamageNumber, Particle } from '../../types';
 import { attackless } from '../enemies/attackless';
+import { hazeBands, steppedGlow } from './pixelArt';
 import { setBossLook } from './bosses/kit';
 import { isDummy, drawDummy } from './dummies';
 import {
@@ -473,11 +474,7 @@ const drawRing = (ctx: CanvasRenderingContext2D, frame: number) => {
 const drawRangeVoid = (ctx: CanvasRenderingContext2D, frame: number) => {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  const glow = ctx.createRadialGradient(CANVAS_WIDTH / 2, GROUND_Y, 20, CANVAS_WIDTH / 2, GROUND_Y, 520);
-  glow.addColorStop(0, `rgba(127, 29, 29, ${0.42 + Math.sin(frame * 0.03) * 0.05})`);
-  glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  steppedGlow(ctx, CANVAS_WIDTH / 2, GROUND_Y, 520, '#7F1D1D', 0.42 + Math.sin(frame * 0.03) * 0.05, 0, 7);
   // Grid lines running off to a vanishing point on the horizon
   ctx.save();
   ctx.strokeStyle = 'rgba(239, 68, 68, 0.18)';
@@ -933,12 +930,9 @@ const drawTommyPool = (ctx: CanvasRenderingContext2D, state: GameState) => {
     ctx.fillStyle = 'rgba(10, 8, 13, 0.45)';
     ctx.fillRect(arenaLeft, sludgeY, arenaRight - arenaLeft, 300);
 
-    const sludgeGrad = ctx.createLinearGradient(0, sludgeY, 0, sludgeY + 120);
-    sludgeGrad.addColorStop(0, 'rgba(28, 19, 36, 0.55)');
-    sludgeGrad.addColorStop(0.3, 'rgba(20, 12, 26, 0.6)');
-    sludgeGrad.addColorStop(1, 'rgba(7, 4, 10, 0.7)');
-    ctx.fillStyle = sludgeGrad;
-    ctx.fillRect(arenaLeft, sludgeY + 8, arenaRight - arenaLeft, 300);
+    ctx.fillStyle = 'rgba(7, 4, 10, 0.7)'; ctx.fillRect(arenaLeft, sludgeY + 128, arenaRight - arenaLeft, 180);
+    hazeBands(ctx, arenaLeft, sludgeY + 8, arenaRight - arenaLeft, 120, '#1C1324', 0.55, 0.7, 6);
+    hazeBands(ctx, arenaLeft, sludgeY + 44, arenaRight - arenaLeft, 84, '#07040A', 0, 0.5, 5);
 
     // Back wave
     ctx.fillStyle = 'rgba(24, 16, 32, 0.45)';
@@ -1007,12 +1001,9 @@ const drawTommyPool = (ctx: CanvasRenderingContext2D, state: GameState) => {
     ctx.fillRect(arenaLeft, sludgeY, arenaRight - arenaLeft, 300);
 
     // Deep sludge gradient with translucent layers
-    const sludgeGrad = ctx.createLinearGradient(0, sludgeY, 0, sludgeY + 120);
-    sludgeGrad.addColorStop(0, 'rgba(39, 174, 96, 0.55)');
-    sludgeGrad.addColorStop(0.3, 'rgba(25, 111, 61, 0.6)');
-    sludgeGrad.addColorStop(1, 'rgba(11, 38, 18, 0.7)');
-    ctx.fillStyle = sludgeGrad;
-    ctx.fillRect(arenaLeft, sludgeY + 8, arenaRight - arenaLeft, 300);
+    ctx.fillStyle = 'rgba(11, 38, 18, 0.7)'; ctx.fillRect(arenaLeft, sludgeY + 128, arenaRight - arenaLeft, 180);
+    hazeBands(ctx, arenaLeft, sludgeY + 8, arenaRight - arenaLeft, 120, '#27AE60', 0.55, 0.2, 6);
+    hazeBands(ctx, arenaLeft, sludgeY + 44, arenaRight - arenaLeft, 84, '#0B2612', 0.1, 0.7, 5);
 
     // Back wave
     ctx.fillStyle = 'rgba(30, 132, 73, 0.45)';

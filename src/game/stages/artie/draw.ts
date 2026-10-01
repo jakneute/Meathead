@@ -1,6 +1,7 @@
 // Drawing for Artie's stage: hazards, set pieces and their HUD.
 
 import { drawFlingDeath, FLING_FRAMES } from './flingDraw';
+import { bandedGradient } from '../../render/pixelArt';
 import type { GameState } from '../../core/state';
 import { getArtie } from './runtime';
 import { COURSE, CAVE_STEP } from './course';
@@ -39,9 +40,9 @@ const drawCave = (ctx: Ctx, state: GameState) => {
   const x1 = Math.max(C.x1, v.x - 60), x2 = Math.min(C.x2, v.x + v.w + 60);
   const top = v.y - 200, bottom = v.y + v.h + 200;
   // The back wall
-  const g = ctx.createLinearGradient(0, v.y, 0, v.y + v.h);
-  g.addColorStop(0, '#081830'); g.addColorStop(0.55, '#10305A'); g.addColorStop(1, '#1A4A7A');
-  ctx.fillStyle = g; ctx.fillRect(x1, top, x2 - x1, bottom - top);
+  ctx.fillStyle = '#081830'; ctx.fillRect(x1, top, x2 - x1, v.y - top);
+  ctx.fillStyle = '#1A4A7A'; ctx.fillRect(x1, v.y + v.h, x2 - x1, bottom - v.y - v.h);
+  bandedGradient(ctx, x1, v.y, x2 - x1, v.h, ['#081830', '#0C2445', '#10305A', '#153D6A', '#1A4A7A'], 12);
   // Streaks down the ice, and crystals growing out of it (glowing)
   for (let x = Math.floor(x1 / 46) * 46; x < x2; x += 46) {
     const h = hash(x * 0.13);
@@ -68,13 +69,14 @@ const drawCave = (ctx: Ctx, state: GameState) => {
   }
   // The roof: rock and old ice above its underside (bands in it, lighter down toward the edge), a lighter band along
   // the edge, a fringe of little icicles
-  const rg = ctx.createLinearGradient(0, caveRoofAt((x1 + x2) / 2) - 260, 0, caveRoofAt((x1 + x2) / 2));
-  rg.addColorStop(0, '#1A2536'); rg.addColorStop(1, '#2E4666');
-  ctx.fillStyle = rg;
+  ctx.fillStyle = '#1A2536';
   ctx.beginPath(); ctx.moveTo(x1, top);
   for (let x = x1; x <= x2; x += 10) ctx.lineTo(x, caveRoofAt(x));
   ctx.lineTo(x2, top); ctx.closePath(); ctx.fill();
   ctx.save(); ctx.beginPath(); ctx.moveTo(x1, top); for (let x = x1; x <= x2; x += 10) ctx.lineTo(x, caveRoofAt(x)); ctx.lineTo(x2, top); ctx.closePath(); ctx.clip();
+  // (the rock lighter down toward its underside, in bands)
+  const roofMid = caveRoofAt((x1 + x2) / 2);
+  bandedGradient(ctx, x1, roofMid - 260, x2 - x1, 300, ['#1A2536', '#1F2D42', '#25384F', '#2A405B', '#2E4666', '#2E4666'], 8);
   for (let b = 0; b < 6; b++) {
     ctx.strokeStyle = b % 2 ? 'rgba(148, 163, 184, 0.16)' : 'rgba(15, 23, 42, 0.35)'; ctx.lineWidth = 3 + (b % 3) * 2;
     ctx.beginPath(); for (let x = x1; x <= x2; x += 20) { const y = caveRoofAt(x) - 30 - b * 38 + Math.sin(x * 0.01 + b) * 8; if (x === x1) ctx.moveTo(x, y); else ctx.lineTo(x, y); } ctx.stroke();

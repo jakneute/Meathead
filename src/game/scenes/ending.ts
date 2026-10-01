@@ -471,49 +471,100 @@ export const drawMedal = (ctx: Ctx, t: number, talking: boolean) => {
 /** Ninja Gaiden-style eyes shot: Meathead looks Trump up and down. */
 export const drawMeatheadEyes = (ctx: Ctx, t: number) => {
   R(ctx, 0, 0, ART_W, ART_H, C.black);
-  // The strip of his face: shaded toward the top and bottom of it, pores, a bead of sweat running
-  shaded(ctx, 'eyes-skin', 0, 36, ART_W, 72, RAMP.mSkin, (u, v) => {
-    // (the brow ridge standing out over the sockets, the cheeks under them, the bridge of the nose lit down the middle)
-    const brow = Math.exp(-((v - 0.22) ** 2) / 0.006), socket = Math.exp(-((v - 0.55) ** 2) / 0.02);
+  const S = RAMP.mSkin;
+  // The strip of his face: the brow ridge standing out over the sockets, the sockets in their own shadow, the cheeks
+  // under them rounding out, the bridge of the nose lit down the middle
+  shaded(ctx, 'eyes-skin2', 0, 36, ART_W, 72, S, (u, v) => {
+    const brow = Math.exp(-((v - 0.22) ** 2) / 0.006);
+    const socket = Math.exp(-((v - 0.55) ** 2) / 0.02) * (1 - Math.exp(-((u - 0.5) ** 2) / 0.01));
     const nose = Math.exp(-((u - 0.5) ** 2) / 0.0015) * (v > 0.5 ? 1 : 0.3);
-    return 0.62 + brow * 0.25 - socket * 0.2 + nose * 0.2 - Math.abs(v - 0.45) * 0.35;
+    const cheek = Math.exp(-((v - 0.88) ** 2) / 0.02) * Math.exp(-((Math.abs(u - 0.5) - 0.28) ** 2) / 0.02);
+    return 0.6 + brow * 0.25 - socket * 0.22 + nose * 0.2 + cheek * 0.14 - Math.abs(v - 0.45) * 0.3;
   });
-  for (let i = 0; i < 160; i++) R(ctx, hash(i * 1.3) * ART_W, 44 + hash(i * 2.7) * 60, 1, 1, i % 3 ? '#c08a4c' : C.mSkinLight);
-  R(ctx, 0, 36, ART_W, 6, C.mHair);
+  // (the odd pore up on the forehead; stubble coming in low on the cheeks, the shade's tone, never a speckle all over)
+  for (let i = 0; i < 16; i++) { const x = Math.floor(hash(i * 4.1) * ART_W), y = 44 + Math.floor(hash(i * 5.3) * 14); if (Math.abs(x - 128) > 12) R(ctx, x, y, 1, 1, S[3]); }
+  for (let i = 0; i < 44; i++) { const x = Math.floor(hash(i * 1.3) * ART_W), y = 94 + Math.floor(hash(i * 2.7) * 14); if (Math.abs(x - 128) > 32) R(ctx, x, y, 1, 1, S[2]); }
+  // The hairline along the top of the strip, ragged, and the forehead's shine under it
+  R(ctx, 0, 36, ART_W, 5, C.mHair);
+  for (let x = 0; x < ART_W; x += 2) if (hash(x * 0.7) < 0.6) R(ctx, x, 41, 1 + (x % 3 === 0 ? 1 : 0), 1, C.mHair);
+  for (let x = 2; x < ART_W; x += 4) R(ctx, x + ((x / 4) % 2), 44, 2, 1, S[5]);
   const drip = (t * 0.5) % 60;
   R(ctx, 111, 46 + drip, 3, 4, 'rgba(255,255,255,0.45)'); R(ctx, 111, 46 + drip, 1, 1, C.white);
-  // Heavy brows lowering as he takes it in: every hair of them
-  const lower = Math.min(4, Math.floor(t / 20));
-  for (const bx of [30, 150]) {
-    R(ctx, bx, 50 + lower, 76, 10, C.mHair);
-    // (unkempt: hairs sticking up off it, at odd lengths and angles, the odd one catching the light)
-    for (let k = 0; k < 14; k++) { const hx = bx + 2 + hash(k * 7.3 + bx) * 72, hh = 1 + Math.floor(hash(k * 3.1 + bx) * 3); R(ctx, hx, 50 + lower - hh, 1, hh, C.mHair); if (k % 3 === 0) R(ctx, hx + 1, 50 + lower - hh, 1, 1, C.mHair); }
-    for (let k = 0; k < 10; k++) R(ctx, bx + 4 + hash(k * 5.9 + bx) * 68, 52 + lower + Math.floor(hash(k * 2.3) * 5), 2, 1, '#3c3c3c');
-  }
   // The vein in his forehead, throbbing
   const throb = t % 16 < 8 ? 1 : 0;
   R(ctx, 120 - throb, 44, 16 + throb * 2, 3, C.vein); R(ctx, 126, 47, 3 + throb, 8, C.vein);
-  // Eyes: the pupils drift down (to the belly) and back up; what they're looking at in them, tiny
-  const look = t < 30 ? 0 : t < 90 ? Math.min(10, (t - 30) / 3) : Math.max(0, 10 - (t - 90) / 3);
-  for (const ex of [40, 160]) {
-    R(ctx, ex, 66, 56, 22, C.white);
-    // (bloodshot: it's been a long morning)
-    for (const [vx, vy, w] of [[2, 70, 8], [3, 78, 6], [46, 72, 8], [44, 82, 9]]) { R(ctx, ex + vx, vy, w, 1, '#f08080'); R(ctx, ex + vx + (vx > 20 ? -2 : w), vy - 1, 2, 1, '#f08080'); }
-    R(ctx, ex, 64, 56, 3, C.mSkinShade);
-    for (let k = 0; k < 9; k++) R(ctx, ex + 3 + k * 6, 63, 1, 3, C.mHair); // (lashes)
-    const ly = Math.round(look);
-    const ih = 14 - Math.round(look * 0.6);
-    R(ctx, ex + 20, 68 + ly, 16, ih, '#1e40af');
-    R(ctx, ex + 21, 69 + ly, 14, 2, '#3b6fe0');
-    R(ctx, ex + 24, 71 + ly, 8, 8 - Math.round(look * 0.5), C.ink);
-    // (the President in them: orange, a yellow swoop on top)
-    R(ctx, ex + 26, 73 + ly, 3, 3, C.tSkin); R(ctx, ex + 25, 72 + ly, 5, 1, C.tHair);
-    R(ctx, ex + 22, 69 + ly, 3, 3, C.white);
-    R(ctx, ex, 88, 56, 3, C.mSkinShade);
-    R(ctx, ex + 4, 92, 48, 1, '#b07a40'); // (the bag under it)
+  R(ctx, 121 - throb, 44, 14 + throb * 2, 1, '#8a6a8a');
+  // Heavy brows lowering as he takes it in: thick at the inner end and knitted down toward the nose, tapering out
+  // to the temples, every hair of them lying the one way, a lit edge along the underside
+  const lower = Math.min(4, Math.floor(t / 20));
+  for (const [bx, inner] of [[30, 1], [150, -1]] as [number, number][]) {
+    for (let k = 0; k < 76; k++) {
+      const q = inner > 0 ? k / 75 : 1 - k / 75;
+      const th = 6 + Math.round(q * 5), top = 50 + lower - Math.round((1 - q) * 2) + Math.round(q * 3);
+      R(ctx, bx + k, top, 1, th, C.mHair);
+      if (hash(k * 7.3 + bx) < 0.45) R(ctx, bx + k, top - 1 - Math.floor(hash(k * 3.1 + bx) * 2), 1, 2, C.mHair);
+      if (k % 3 === 1) R(ctx, bx + k, top + th - 1, 1, 1, '#3c3c3c');
+    }
+    for (let k = 0; k < 14; k++) {
+      const hx = bx + 3 + Math.floor(hash(k * 5.9 + bx) * 66), hy = 53 + lower + Math.floor(hash(k * 2.3 + bx) * 4);
+      R(ctx, hx, hy, 2, 1, '#2e2e2e'); R(ctx, hx + 2 * inner, hy + 1, 1, 1, '#2e2e2e');
+    }
   }
-  R(ctx, 122, 88, 12, 20, C.mSkinShade);
-  R(ctx, 124, 88, 2, 16, C.mSkinLight);
+  // Eyes: almonds, the top lid heavy over the iris; the pupils drift down (to the belly) and back up, what they're
+  // looking at in them, tiny
+  const look = t < 30 ? 0 : t < 90 ? Math.min(10, (t - 30) / 3) : Math.max(0, 10 - (t - 90) / 3);
+  const ly = Math.round(look * 0.5);
+  for (const ex of [68, 188]) {
+    const cy = 77;
+    const rowHalf = (y: number) => { const d = y - cy; const ry = d < 0 ? 9 : 7; const k = d / ry; return k * k >= 1 ? 0 : 28 * Math.sqrt(1 - k * k); };
+    // The white of it, shaded under the lid and into the corners
+    for (let dx = -28; dx <= 28; dx++) {
+      const u = dx / 28, s = Math.sqrt(Math.max(0, 1 - u * u));
+      const top = cy - Math.round(s * 9), bot = cy + Math.round(s * 7);
+      if (bot <= top) continue;
+      R(ctx, ex + dx, top, 1, bot - top + 1, Math.abs(u) > 0.78 ? '#e4dcd4' : C.white);
+      R(ctx, ex + dx, top, 1, 2, '#d4ccc4');
+    }
+    // (bloodshot: it's been a long morning; a vein or two in from each corner)
+    for (const [sx, dir, vy] of [[-26, 1, -2], [-25, 1, 3], [26, -1, -1], [25, -1, 4]] as [number, number, number][]) {
+      let x = ex + sx, y = cy + vy;
+      for (let k = 0; k < 9; k++) { R(ctx, x, y, 1, 1, '#f09090'); x += dir; if (k % 3 === 2) y += hash(k + sx) < 0.5 ? 1 : -1; if (k === 4) R(ctx, x, y + 1, 1, 1, '#f0a0a0'); }
+    }
+    // The iris: a dark rim, the blue of it, lighter toward the middle; the pupil; the light in it
+    const ix = ex, iy = cy + ly;
+    for (let dy = -9; dy <= 9; dy++) {
+      const y = iy + dy, hw = Math.floor(rowHalf(y)); if (hw <= 0) continue;
+      for (let dx = -9; dx <= 9; dx++) {
+        const d = Math.sqrt(dx * dx + dy * dy);
+        if (d > 9.2 || Math.abs(dx) > hw) continue;
+        const c = d > 7.6 ? '#172f78' : d > 4.6 ? (dy < -2 && d < 7 ? '#2d5cc4' : '#2451b8') : '#1d3f96';
+        R(ctx, ix + dx, y, 1, 1, c);
+      }
+    }
+    for (let dy = -4; dy <= 4; dy++) {
+      const y = iy + dy, hw = Math.floor(rowHalf(y)); if (hw <= 0) continue;
+      const r = Math.floor(Math.sqrt(16.5 - dy * dy));
+      R(ctx, Math.max(ix - r, ex - hw), y, Math.min(ix + r, ex + hw) - Math.max(ix - r, ex - hw) + 1, 1, C.ink);
+    }
+    // (the President in them: orange, a yellow swoop on top)
+    R(ctx, ix + 1, iy, 2, 2, C.tSkin); R(ctx, ix, iy - 1, 3, 1, C.tHair);
+    if (rowHalf(iy - 4) > 4) { R(ctx, ix - 4, iy - 4, 2, 2, C.white); R(ctx, ix - 2, iy - 2, 1, 1, '#c8d8ff'); }
+    // The lids: the top one heavy, lashes along it, a crease above; the bottom one a thin lit line, the bag under it
+    for (let dx = -28; dx <= 28; dx++) {
+      const u = dx / 28, s = Math.sqrt(Math.max(0, 1 - u * u));
+      const top = cy - Math.round(s * 9), bot = cy + Math.round(s * 7);
+      R(ctx, ex + dx, top - 2, 1, 2, S[1]);
+      R(ctx, ex + dx, top - 4, 1, 1, S[2]);
+      if (Math.abs(u) < 0.95 && (dx + 28) % 4 === 1) R(ctx, ex + dx, top - 4, 1, 2, C.mHair);
+      R(ctx, ex + dx, bot + 1, 1, 1, S[2]);
+      if (Math.abs(u) < 0.9) R(ctx, ex + dx, bot + 2, 1, 1, S[5]);
+      if (Math.abs(u) < 0.85 && (dx + cy) % 2 === 0) R(ctx, ex + dx, bot + 5, 1, 1, S[2]);
+      if (Math.abs(u) < 0.7) R(ctx, ex + dx, bot + 6, 1, 1, S[2]);
+    }
+  }
+  // The bridge of his nose: lit down the middle, in shade either side
+  R(ctx, 120, 86, 16, 22, S[2]); R(ctx, 123, 86, 10, 22, S[3]); R(ctx, 126, 88, 3, 18, S[4]); R(ctx, 127, 90, 1, 12, S[5]);
+  for (let y = 86; y < 108; y += 2) { R(ctx, 120 + (y % 4 === 0 ? 0 : 1), y, 1, 1, S[1]); R(ctx, 135 - (y % 4 === 0 ? 0 : 1), y, 1, 1, S[1]); }
 };
 
 /** Meathead's face, filling the frame (medal round his neck). */

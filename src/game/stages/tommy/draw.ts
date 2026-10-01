@@ -5,6 +5,7 @@
 // the thing's health, the cut scenes, the fades).
 
 import type { GameState } from '../../core/state';
+import { bandedGradient } from '../../render/pixelArt';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, ARENA_LEFT } from '../../../constants';
 import { drawPlayer } from '../../render/player/player';
 import { COURSE, placeOf, RUINS_Y } from './course';
@@ -37,9 +38,7 @@ export const drawTommyBackdrop = (ctx: Ctx, state: GameState) => {
 
 /** Solid ground all round: dark earth, rock in it (drifting slowly with the camera). */
 const drawUnderground = (ctx: Ctx, state: GameState) => {
-  const g = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-  g.addColorStop(0, '#0C0A09'); g.addColorStop(1, '#1C1917');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  bandedGradient(ctx, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#0C0A09', '#121010', '#171513', '#1C1917'], 8);
   const ox = state.camera.x * 0.3, oy = state.camera.y * 0.3;
   for (let i = 0; i < 40; i++) {
     const h1 = Math.sin(i * 127.1) * 43758.5453, h2 = Math.sin(i * 311.7) * 12345.678;

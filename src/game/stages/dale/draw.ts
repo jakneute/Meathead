@@ -5,6 +5,7 @@
 // the fades. The convoy's in convoyDraw.ts, the town in townDraw.ts.
 
 import type { GameState } from '../../core/state';
+import { bandedGradient, checker, hazeBands } from '../../render/pixelArt';
 import type { GroundRun } from '../../core/terrain';
 import { runYAt } from '../../core/terrain';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, ARENA_LEFT } from '../../../constants';
@@ -186,9 +187,8 @@ const drawGulch = (ctx: Ctx, state: GameState, x1: number, x2: number, yl: numbe
   ctx.save();
   path(); ctx.clip();
   // The depths: dim rock at the top of it going to black
-  const deep = ctx.createLinearGradient(0, top, 0, top + 320);
-  deep.addColorStop(0, '#6B3219'); deep.addColorStop(0.4, '#2E1208'); deep.addColorStop(1, '#050201');
-  ctx.fillStyle = deep; ctx.fillRect(x1 - 10, top, w + 20, depth);
+  ctx.fillStyle = '#050201'; ctx.fillRect(x1 - 10, top, w + 20, depth);
+  bandedGradient(ctx, x1 - 10, top, w + 20, 320, ['#6B3219', '#4A2010', '#2E1208', '#180A04', '#050201'], 10);
   // The two walls, faceted: each zig of the edge is a slab of rock, shaded a bit differently from the next
   const faces = (pts: [number, number][], dir: 1 | -1, shades: string[]) => {
     for (let k = 0; k + 1 < pts.length; k++) {
@@ -212,9 +212,8 @@ const drawGulch = (ctx: Ctx, state: GameState, x1: number, x2: number, yl: numbe
     ctx.fillStyle = '#3F1D0E'; ctx.beginPath(); ctx.ellipse(mid + 10, cy + 40, 10, 7, 0, 0, Math.PI * 2); ctx.fill();
   }
   // Going black with depth, over the lot
-  const dark = ctx.createLinearGradient(0, top + 40, 0, top + 300);
-  dark.addColorStop(0, 'rgba(5, 2, 1, 0)'); dark.addColorStop(1, 'rgba(5, 2, 1, 0.95)');
-  ctx.fillStyle = dark; ctx.fillRect(x1 - 10, top, w + 20, depth);
+  hazeBands(ctx, x1 - 10, top + 40, w + 20, 260, '#050201', 0, 0.95, 8);
+  ctx.fillStyle = 'rgba(5, 2, 1, 0.95)'; ctx.fillRect(x1 - 10, top + 300, w + 20, Math.max(0, depth - 300));
   // A little dust hanging in it
   ctx.fillStyle = 'rgba(214, 167, 122, 0.07)'; ctx.fillRect(x1, top + 60, w, 50);
   ctx.restore();
@@ -346,10 +345,24 @@ const drawWarehouse = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   const W = COURSE.warehouse;
   const top = Y - 520, ceil = W.ceiling;
   // Inside: corrugated steel, girders, strip lights, stacks of pallets in the back
-  ctx.fillStyle = '#44403C'; ctx.fillRect(W.x1, top, COURSE.office.x2 - W.x1, Y - top);
-  ctx.fillStyle = '#57534E';
-  for (let x = W.x1; x < COURSE.office.x2; x += 14) if (visible(state, x, x + 8)) ctx.fillRect(x, top, 6, Y - top);
-  ctx.fillStyle = '#292524'; ctx.fillRect(W.x1, ceil - 40, W.x2 - W.x1, 40);
+  const wx1 = Math.max(W.x1, state.camera.x - 20), wx2 = Math.min(COURSE.office.x2, state.camera.x + CANVAS_WIDTH + 20);
+  if (wx2 > wx1) {
+    // (lit along the middle where the strip lights are, into the gloom up by the roof and down by the floor)
+    bandedGradient(ctx, wx1, top, wx2 - wx1, Y - top, ['#2E2A27', '#3A3632', '#44403C', '#4A4642', '#44403C', '#3A3632', '#302C29'], 12);
+    // (each rib of it: a lit edge on the left, a shadowed one on the right)
+    for (let x = Math.floor(wx1 / 14) * 14; x < wx2; x += 14) { ctx.fillStyle = '#57534E'; ctx.fillRect(x, top, 6, Y - top); ctx.fillStyle = '#625E58'; ctx.fillRect(x, top, 2, Y - top); ctx.fillStyle = '#36322F'; ctx.fillRect(x + 6, top, 2, Y - top); }
+    // (rust run down the ribs here and there)
+    for (let x = Math.floor(wx1 / 90) * 90; x < wx2; x += 90) { if (hash(x * 0.37) < 0.55) continue; ctx.fillStyle = 'rgba(120, 53, 15, 0.3)'; ctx.fillRect(x + Math.round(hash(x) * 60), ceil + 20 + Math.round(hash(x * 3) * 80), 4, 60 + Math.round(hash(x * 5) * 200)); }
+    // The roof: girders along it, the purlins between, the whole underside in shadow
+    const gx1 = Math.max(W.x1, wx1), gx2 = Math.min(W.x2, wx2);
+    if (gx2 > gx1) {
+      ctx.fillStyle = '#292524'; ctx.fillRect(gx1, ceil - 40, gx2 - gx1, 40);
+      ctx.fillStyle = '#3A3330'; ctx.fillRect(gx1, ceil - 40, gx2 - gx1, 4); ctx.fillRect(gx1, ceil - 8, gx2 - gx1, 8);
+      ctx.fillStyle = '#1C1917'; ctx.fillRect(gx1, ceil - 36, gx2 - gx1, 2); ctx.fillRect(gx1, ceil - 10, gx2 - gx1, 2);
+      for (let x = Math.floor(gx1 / 130) * 130; x < gx2; x += 130) { ctx.fillStyle = '#3A3330'; ctx.fillRect(x, ceil - 40, 10, 40); ctx.fillStyle = '#4A433E'; ctx.fillRect(x, ceil - 40, 3, 40); }
+      checker(ctx, gx1, ceil, gx2 - gx1, 14, 'rgba(0, 0, 0, 0.25)');
+    }
+  }
   for (let x = W.x1 + 120; x < W.x2; x += 260) {
     if (!visible(state, x - 20, x + 20)) continue;
     ctx.fillStyle = '#78350F'; ctx.fillRect(x - 8, ceil, 16, Y - ceil);
@@ -358,9 +371,13 @@ const drawWarehouse = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
     ctx.strokeStyle = '#1C1917'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x + 60, ceil); ctx.lineTo(x + 60, ceil + 30); ctx.moveTo(x + 120, ceil); ctx.lineTo(x + 120, ceil + 30); ctx.stroke();
     const flick = hash(x + Math.floor(state.frame / 7)) > 0.97 ? 0.3 : 1;
     ctx.fillStyle = `rgba(254, 249, 195, ${flick})`; ctx.fillRect(x + 54, ceil + 30, 72, 6);
-    const g = ctx.createLinearGradient(0, ceil + 36, 0, Y);
-    g.addColorStop(0, `rgba(254, 249, 195, ${0.16 * flick})`); g.addColorStop(1, 'rgba(254, 249, 195, 0)');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x + 54, ceil + 36); ctx.lineTo(x + 126, ceil + 36); ctx.lineTo(x + 170, Y); ctx.lineTo(x + 10, Y); ctx.fill();
+    // (its pool of light down the wall, in steps)
+    for (let k = 0; k < 5; k++) {
+      const a = 0.15 * flick * (1 - k / 5), span = Y - ceil - 36, y0 = ceil + 36 + k * span / 5, y1 = y0 + span / 5;
+      const s0 = (y0 - ceil - 36) / span, s1 = (y1 - ceil - 36) / span;
+      ctx.fillStyle = `rgba(254, 249, 195, ${a.toFixed(3)})`;
+      ctx.beginPath(); ctx.moveTo(x + 54 - 44 * s0, y0); ctx.lineTo(x + 126 + 44 * s0, y0); ctx.lineTo(x + 126 + 44 * s1, y1); ctx.lineTo(x + 54 - 44 * s1, y1); ctx.fill();
+    }
   }
   // Pallets of crates stacked against the back wall
   for (let x = W.x1 + 200; x < W.stairs - 100; x += 330) {

@@ -5,6 +5,7 @@
 // own bike under him, and the count.
 
 import type { GameState } from '../../core/state';
+import { bandedGradient, hazeBands } from '../../render/pixelArt';
 import { groundLineAt } from '../../core/terrain';
 import { CANVAS_WIDTH } from '../../../constants';
 import { drawDirt, drawDerrick, drawPumpjack } from './fieldDraw';
@@ -45,9 +46,8 @@ export const drawChaseBack = (ctx: Ctx, state: GameState, ch: Chase) => {
   for (const g of ch.gaps) {
     if (g.x2 < v.x1 - 400 || g.x1 > v.x2 + 400) continue;
     const top = Math.min(groundLineAt(state.groundRuns, g.x1 - 2), groundLineAt(state.groundRuns, g.x2 + 2));
-    const gr = ctx.createLinearGradient(0, top, 0, top + 300);
-    gr.addColorStop(0, '#3D2B1C'); gr.addColorStop(0.35, '#0C0A09'); gr.addColorStop(1, '#000');
-    ctx.fillStyle = gr; ctx.fillRect(g.x1, top - 2, g.x2 - g.x1, state.camera.y + 1400 - top);
+    ctx.fillStyle = '#000'; ctx.fillRect(g.x1, top - 2, g.x2 - g.x1, state.camera.y + 1400 - top);
+    bandedGradient(ctx, g.x1, top - 2, g.x2 - g.x1, 300, ['#3D2B1C', '#2A1C12', '#0C0A09', '#050403', '#000000'], 10);
     ctx.fillStyle = 'rgba(168, 85, 247, 0.5)'; ctx.fillRect(g.x1 + 20 + (state.frame % 60), top + 90, 30, 2);
     for (const bx of [g.x1 - 260, g.x1 - 30]) {
       const by = groundLineAt(state.groundRuns, bx);
@@ -107,10 +107,11 @@ const PAINTS = ['#B91C1C', '#1D4ED8', '#F5F5F4', '#166534'];
 export const drawFarField = (ctx: Ctx, state: GameState, ch: Chase) => {
   const base = ch.farBase;
   // The field out there: flat, dusty, going off to the horizon (everything out there stands on it, the wrecks drive on it)
-  const g = ctx.createLinearGradient(0, base - 6, 0, base + 160);
-  g.addColorStop(0, '#6B5236'); g.addColorStop(0.3, '#7A5C3C'); g.addColorStop(1, '#5B4128');
-  ctx.fillStyle = g; ctx.fillRect(0, base - 4, CANVAS_WIDTH, 600 - base + 4);
+  ctx.fillStyle = '#5B4128'; ctx.fillRect(0, base - 4, CANVAS_WIDTH, 600 - base + 4);
+  bandedGradient(ctx, 0, base - 4, CANVAS_WIDTH, 160, ['#6B5236', '#7A5C3C', '#6E5134', '#5B4128'], 8);
   ctx.fillStyle = 'rgba(210, 180, 140, 0.35)'; ctx.fillRect(0, base - 4, CANVAS_WIDTH, 2);
+  // (the dust in the air out there: the horizon's edge softened into the sky)
+  hazeBands(ctx, 0, base - 16, CANVAS_WIDTH, 14, '#C27A3A', 0.3, 0, 4);
   // (a lease road across it, a fence, the odd scrub)
   const off = ((ch.odo * FAR_PAR * 1.2) % 60 + 60) % 60;
   ctx.fillStyle = 'rgba(160, 130, 95, 0.5)'; ctx.fillRect(0, base + 10, CANVAS_WIDTH, 5);

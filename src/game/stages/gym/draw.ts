@@ -5,6 +5,7 @@
 // up in the corner as it starts, and the fade at the end.
 
 import type { GameState } from '../../core/state';
+import { bandedGradient } from '../../render/pixelArt';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { COURSE, CP, MEZZ_Y, END_WALL, WALL_X, WALL_W, WALL_TOP, RAT_HOLES, Prop, Ledge } from './course';
 import { getGym, fadeAmount, GymRuntime, BigFella, TELEGRAPH } from './runtime';
@@ -77,9 +78,13 @@ const drawWall = (ctx: Ctx, state: GameState, x1: number, x2: number) => {
     ctx.fillStyle = '#3F3F46'; ctx.fillRect(x - 4, 62, 2, 18); ctx.fillRect(x + 82, 62, 2, 18);
     ctx.fillStyle = flicker ? '#71717A' : '#FEFCE8'; ctx.fillRect(x - 8, 80, 96, 6);
     if (!flicker) {
-      const g = ctx.createLinearGradient(0, 86, 0, Y);
-      g.addColorStop(0, 'rgba(254, 252, 232, 0.16)'); g.addColorStop(1, 'rgba(254, 252, 232, 0)');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x - 8, 86); ctx.lineTo(x + 88, 86); ctx.lineTo(x + 170, Y); ctx.lineTo(x - 90, Y); ctx.closePath(); ctx.fill();
+      // (its pool of light down the wall, in steps)
+      for (let k = 0; k < 5; k++) {
+        const a = 0.15 * (1 - k / 5), span = Y - 86, y0 = 86 + k * span / 5, y1 = y0 + span / 5;
+        const s0 = (y0 - 86) / span, s1 = (y1 - 86) / span;
+        ctx.fillStyle = `rgba(254, 252, 232, ${a.toFixed(3)})`;
+        ctx.beginPath(); ctx.moveTo(x - 8 - 82 * s0, y0); ctx.lineTo(x + 88 + 82 * s0, y0); ctx.lineTo(x + 88 + 82 * s1, y1); ctx.lineTo(x - 8 - 82 * s1, y1); ctx.closePath(); ctx.fill();
+      }
     }
   }
 };
@@ -105,9 +110,7 @@ const drawProp = (ctx: Ctx, state: GameState, p: Prop) => {
     case 'window': {
       // Still dark out: a blue before the dawn, the frame, wire glass, a streetlight's glow
       ctx.fillStyle = '#27272A'; ctx.fillRect(x - 4, y - 4, 128, 88);
-      const g = ctx.createLinearGradient(0, y, 0, y + 80);
-      g.addColorStop(0, '#0B1330'); g.addColorStop(1, '#2A2A5A');
-      ctx.fillStyle = g; ctx.fillRect(x, y, 120, 80);
+      bandedGradient(ctx, x, y, 120, 80, ['#0B1330', '#151C40', '#20234E', '#2A2A5A'], 6);
       ctx.fillStyle = 'rgba(253, 186, 116, 0.35)'; ctx.beginPath(); ctx.arc(x + 90, y + 60, 16, 0, Math.PI * 2); ctx.fill();
       ctx.strokeStyle = 'rgba(160,160,170,0.35)'; ctx.lineWidth = 0.6;
       for (let k = 0; k < 120; k += 10) { ctx.beginPath(); ctx.moveTo(x + k, y); ctx.lineTo(x + k + 10, y + 80); ctx.moveTo(x + k + 10, y); ctx.lineTo(x + k, y + 80); ctx.stroke(); }

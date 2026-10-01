@@ -125,20 +125,23 @@ export const drawVolcano = (ctx: Ctx, cx: number, base: number, s: number, f: nu
 /** Inside the volcano: black rock lit red from below, stalactites, embers going up. */
 const drawCave = (ctx: Ctx, state: GameState) => {
   const f = state.frame;
-  const g = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-  g.addColorStop(0, '#080304'); g.addColorStop(0.6, '#1F0806'); g.addColorStop(1, '#5A160A');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  // Rock columns far back
-  ctx.fillStyle = '#140605';
+  // (black rock up top, the lava's glow coming up it from below, in bands)
+  bandedGradient(ctx, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#080304', '#100505', '#1F0806', '#3A0F08', '#5A160A'], 12);
+  // Rock columns far back: each with a lit edge on the side the lava's light comes up, a dithered shadow down the other
   for (let i = 0; i < 12; i++) {
-    const x = ((i * 137 - state.camera.x * 0.1) % 1100 + 1100) % 1100 - 150, w = 40 + hash(i) * 60;
-    ctx.fillRect(x, 0, w, CANVAS_HEIGHT);
+    const x = Math.round(((i * 137 - state.camera.x * 0.1) % 1100 + 1100) % 1100 - 150), w = Math.round(40 + hash(i) * 60);
+    ctx.fillStyle = '#140605'; ctx.fillRect(x, 0, w, CANVAS_HEIGHT);
+    ctx.fillStyle = '#2A0E0A'; ctx.fillRect(x, CANVAS_HEIGHT * 0.45, 3, CANVAS_HEIGHT * 0.55);
+    checker(ctx, x + 3, CANVAS_HEIGHT * 0.5, 4, CANVAS_HEIGHT * 0.5, '#2A0E0A');
+    checker(ctx, x + w - 6, 0, 6, CANVAS_HEIGHT, '#0A0202');
+    // (a seam or two of something glowing in the rock)
+    if (hash(i * 3.3) > 0.5) { ctx.fillStyle = '#7C2D12'; for (let k = 0; k < 6; k++) ctx.fillRect(x + 8 + Math.round(hash(i + k) * (w - 16)), 200 + k * 50 + Math.round(hash(i * 7 + k) * 30), 2, 2); }
   }
-  // Stalactites
-  ctx.fillStyle = '#0C0404';
+  // Stalactites: dark, a lit edge down the lava side, dripping now and then
   for (let i = 0; i < 16; i++) {
-    const x = ((i * 83 - state.camera.x * 0.2) % 1000 + 1000) % 1000 - 100, len = 30 + hash(i + 5) * 90;
-    ctx.beginPath(); ctx.moveTo(x - 14, 0); ctx.lineTo(x, len); ctx.lineTo(x + 14, 0); ctx.fill();
+    const x = Math.round(((i * 83 - state.camera.x * 0.2) % 1000 + 1000) % 1000 - 100), len = Math.round(30 + hash(i + 5) * 90);
+    for (let y = 0; y < len; y += 2) { const hw = Math.max(1, Math.round(14 * (1 - y / len))); ctx.fillStyle = '#0C0404'; ctx.fillRect(x - hw, y, hw * 2, 2); ctx.fillStyle = '#1E0A08'; ctx.fillRect(x + hw - 2, y, 2, 2); }
+    if ((f + i * 29) % 90 < 50) { ctx.fillStyle = '#F97316'; ctx.fillRect(x - 1, len + ((f + i * 29) % 90) * 4, 2, 4); }
   }
   // Embers
   for (let i = 0; i < 30; i++) {

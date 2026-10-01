@@ -29,6 +29,32 @@ const checkerPattern = (ctx: Ctx, color: string, phase: number, px: number) => {
   return p;
 };
 
+/**
+ * A repeating tile painted once (brick, siding, tiles...) as a fill, by `key`: `paint` draws the w x h tile. The
+ * pattern lines up with the world's pixel grid under whatever transform is current when it's used.
+ */
+export const tilePattern = (ctx: Ctx, key: string, w: number, h: number, paint: (g: Ctx) => void) => {
+  let p = patterns.get('tile|' + key);
+  if (!p) {
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    paint(c.getContext('2d')!);
+    p = ctx.createPattern(c, 'repeat')!;
+    patterns.set('tile|' + key, p);
+  }
+  return p;
+};
+
+/** Brickwork as a tile: courses `course` tall, bricks `brick` wide, in two tints with mortar between. */
+export const brickPattern = (ctx: Ctx, key: string, brick: number, course: number, tints: [string, string], mortar: string) => tilePattern(ctx, key, brick * 2, course * 2, g => {
+  g.fillStyle = mortar; g.fillRect(0, 0, brick * 2, course * 2);
+  for (let row = 0; row < 2; row++) for (let i = -1; i < 3; i++) {
+    const x = i * brick + (row ? brick / 2 : 0);
+    g.fillStyle = tints[(i + row * 2 + 4) % 2];
+    g.fillRect(x, row * course, brick - 1, course - 1);
+  }
+});
+
 /** Fills (x, y, w, h) with a checkerboard of `color` (half the cells), for dithering one fill into another. */
 export const checker = (ctx: Ctx, x: number, y: number, w: number, h: number, color: string, phase = 0, px = PIX) => {
   if (typeof document === 'undefined') return;

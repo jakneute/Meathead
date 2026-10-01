@@ -7,6 +7,7 @@
 // ride down in hud.ts.
 
 import { drawDumpster } from './dumpster';
+import { brickPattern, checker, bandedGradient, hazeBands, pixelBlob } from '../../render/pixelArt';
 import type { GameState } from '../../core/state';
 import type { Enemy } from '../../../types';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
@@ -126,12 +127,14 @@ const drawDistantChaos = (ctx: Ctx, state: GameState) => {
 
 /** Fire in the sky over the city: a glow from below, smoke rolling across, embers. (k: how much.) */
 export const drawCityBurning = (ctx: Ctx, f: number, k: number) => {
-  const glow = ctx.createLinearGradient(0, CANVAS_HEIGHT, 0, 0);
-  glow.addColorStop(0, `rgba(234, 88, 12, ${0.55 * k})`); glow.addColorStop(0.5, `rgba(185, 28, 28, ${0.25 * k})`); glow.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = glow; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  hazeBands(ctx, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT / 2, '#B91C1C', 0, 0.25 * k, 6);
+  hazeBands(ctx, 0, CANVAS_HEIGHT / 2, CANVAS_WIDTH, CANVAS_HEIGHT / 2, '#EA580C', 0.25 * k, 0.55 * k, 6);
+  // (smoke rolling across it, in ragged banks)
   for (let i = 0; i < 9; i++) {
     const x = ((i * 137 + f * (0.4 + (i % 3) * 0.2)) % (CANVAS_WIDTH + 300)) - 150, y = 120 + (i * 53) % 220;
-    ctx.fillStyle = `rgba(28, 25, 23, ${0.35 * k})`; ctx.beginPath(); ctx.ellipse(x, y, 90 + (i % 3) * 30, 26 + (i % 2) * 10, 0, 0, Math.PI * 2); ctx.fill();
+    const c = `rgba(28, 25, 23, ${(0.35 * k).toFixed(3)})`;
+    pixelBlob(ctx, x, y, 90 + (i % 3) * 30, 26 + (i % 2) * 10, c);
+    pixelBlob(ctx, x + 40, y - 14, 50, 16, c);
   }
   ctx.fillStyle = `rgba(253, 186, 116, ${0.8 * k})`;
   for (let i = 0; i < 24; i++) { const x = (i * 97 + f * 1.3) % CANVAS_WIDTH, y = CANVAS_HEIGHT - ((f * (1 + (i % 4) * 0.5) + i * 61) % CANVAS_HEIGHT); ctx.fillRect(x, y, 2, 2); }
@@ -229,8 +232,13 @@ const drawRoofScape = (ctx: Ctx, state: GameState) => {
   for (const r of state.groundRuns) {
     if (r.surface !== 'roof' || !visible(state, r.x1, r.x2)) continue;
     const seed = Math.round(r.x1);
-    ctx.fillStyle = ['#3B2A2A', '#2E3440', '#44342A'][Math.abs(seed) % 3];
+    const k = Math.abs(seed) % 3;
+    ctx.fillStyle = brickPattern(ctx, 'barry-roof-' + k, 16, 8, [['#3B2A2A', '#43302F'], ['#2E3440', '#343B48'], ['#44342A', '#4C3B30']][k] as [string, string], ['#2C1F1F', '#232832', '#33271F'][k]);
     ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, bottom - r.y1);
+    // (the courses lit a little under the roof's edge, going dark down toward the street)
+    ctx.fillStyle = 'rgba(255,255,255,0.05)'; ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, 24);
+    checker(ctx, r.x1, r.y1 + 200, r.x2 - r.x1, 60, 'rgba(0, 0, 0, 0.18)');
+    ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.fillRect(r.x1, r.y1 + 260, r.x2 - r.x1, bottom - r.y1 - 260);
     const out = blackout(state.frame, (r.x1 + r.x2) / 2) > 0.5;
     for (let y = r.y1 + 40; y < bottom; y += 60) for (let x = r.x1 + 24; x < r.x2 - 40; x += 70) {
       const lit = !out && hash(x * 0.3 + y) < 0.5;
@@ -249,9 +257,8 @@ const drawGaps = (ctx: Ctx, state: GameState, place: string) => {
     const x1 = a.x2, x2 = b.x1, top = Math.max(a.y2, b.y1);
     if (place === 'streets') {
       // Dug up: packed dirt walls, a burst pipe, a puddle at the bottom, the dark
-      const g = ctx.createLinearGradient(0, top, 0, top + 260);
-      g.addColorStop(0, '#4A3728'); g.addColorStop(0.5, '#1F1712'); g.addColorStop(1, '#050403');
-      ctx.fillStyle = g; ctx.fillRect(x1, top, x2 - x1, bottom - top);
+      ctx.fillStyle = '#050403'; ctx.fillRect(x1, top, x2 - x1, bottom - top);
+      bandedGradient(ctx, x1, top, x2 - x1, 260, ['#4A3728', '#35271B', '#1F1712', '#110C08', '#050403'], 10);
       ctx.fillStyle = '#6B4F3A'; ctx.fillRect(x1, top, 10, 200); ctx.fillRect(x2 - 10, top, 10, 200);
       ctx.fillStyle = '#57534E'; ctx.fillRect(x1, top + 70, x2 - x1, 12); // a pipe across it
       ctx.fillStyle = 'rgba(96, 165, 250, 0.5)'; for (let k = 0; k < 3; k++) ctx.fillRect(x1 + 30 + k * 30, top + 82 + ((state.frame * 3 + k * 17) % 120), 2, 6); // dripping
@@ -287,8 +294,12 @@ const drawWalkUp = (ctx: Ctx, state: GameState) => {
     // (the second one's the swanky one: pale limestone, gold on the cornice and between the floors)
     // (down to the roof of the lower building in front, that it rises up out of the back of)
     const base = b.base;
-    ctx.fillStyle = i ? '#C8BBA0' : '#6B2E22'; ctx.fillRect(b.x1 - 60, top, b.x2 - b.x1 + 120, base - top);
-    ctx.fillStyle = i ? 'rgba(80, 60, 30, 0.14)' : 'rgba(0,0,0,0.2)'; for (let y = top + 6; y < base; y += i ? 24 : 9) ctx.fillRect(b.x1 - 60, y, b.x2 - b.x1 + 120, 1);
+    ctx.fillStyle = i ? brickPattern(ctx, 'barry-limestone', 48, 24, ['#C8BBA0', '#C2B498'], '#A89B80') : brickPattern(ctx, 'barry-brick', 18, 9, ['#6B2E22', '#742F24'], '#4E2119');
+    ctx.fillRect(b.x1 - 60, top, b.x2 - b.x1 + 120, base - top);
+    // (soot and shadow up the wall between the windows, the whole face darker toward its edges)
+    checker(ctx, b.x1 - 60, top, 40, base - top, 'rgba(0, 0, 0, 0.16)');
+    checker(ctx, b.x2 + 20, top, 40, base - top, 'rgba(0, 0, 0, 0.16)', 1);
+    ctx.fillStyle = 'rgba(0,0,0,0.12)'; ctx.fillRect(b.x1 - 60, top, 14, base - top); ctx.fillRect(b.x2 + 46, top, 14, base - top);
     if (i) { ctx.fillStyle = '#B8860B'; for (let y = top + 120; y < base; y += 240) ctx.fillRect(b.x1 - 60, y, b.x2 - b.x1 + 120, 4); }
     // The cornice at the roof line, and the parapet wall standing up along the roof's edge
     ctx.fillStyle = i ? '#8B6914' : '#3F1B14'; ctx.fillRect(b.x1 - 70, top, b.x2 - b.x1 + 140, 16);
