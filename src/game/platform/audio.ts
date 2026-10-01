@@ -209,6 +209,11 @@ export const playPunchImpact = () => { playSound('punch', 1.5, -3); playSound('s
 /** Something heavy (a camera) hitting the floor. */
 export const playThud = () => playSound('thud', 1.2);
 
+/** A menu's cursor moving onto something; a menu's OK (into something); its BACK (out of it, cancelled). */
+export const playCursor = () => playSound('cursor', 1);
+export const playMenuOk = () => playSound('menuok', 1);
+export const playMenuBack = () => playSound('menuback', 1);
+
 /** One aggressive keystroke: a clack with a little pitch wobble. */
 export const playTypeClack = (heavy = false) => {
   try {

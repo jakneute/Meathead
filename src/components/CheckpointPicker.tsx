@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useCursorSound } from './useCursorSound';
 import { stageCheckpoints } from '../game/stages/checkpoints';
 import { getActiveGamepad, getGamepadMovement, isButtonPressed, menuButtons } from '../game/platform/gamepad';
 import { Prompt } from './ButtonIcons';
@@ -9,6 +10,7 @@ export type StartAt = number | 'boss';
 const CheckpointPicker: React.FC<{ stageId: string; onPick: (at: StartAt) => void; onCancel: () => void }> = ({ stageId, onPick, onCancel }) => {
   const items: { label: string; at: StartAt }[] = [...stageCheckpoints(stageId).map((c, k) => ({ label: `${k + 1}. ${c.name}`, at: c.cp as StartAt })), { label: 'THE BOSS', at: 'boss' }];
   const [i, setI] = useState(0);
+  useCursorSound(i);
   const ref = useRef({ i, items, onPick, onCancel });
   ref.current = { i, items, onPick, onCancel };
   useEffect(() => {

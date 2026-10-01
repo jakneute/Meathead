@@ -1,3 +1,4 @@
+import { useCursorSound, useOpenCloseSound } from './useCursorSound';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { SOUVENIRS } from '../content/garage';
 import { ownedSouvenirs } from '../game/garage/store';
@@ -119,6 +120,7 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[]; report?: Ga
   // stick and the arrows get to it like anything else)
   const order = useMemo(() => SOUVENIR_ORDER.filter(id => owned.includes(id)), [owned]);
   const [sel, setSel] = useState<string | null>(order[0] ?? null);
+  useCursorSound(sel);
   const selRef = useRef(sel); selRef.current = sel;
   /** Looking at the picked one up close (A on it, Enter, or a click). */
   const [inspect, setInspect] = useState(false);
@@ -129,6 +131,8 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[]; report?: Ga
   /** The damage report up (X): which target's file, and which page (0 before, 1 after). */
   const reportOn = !!report && report.bosses.length > 0;
   const [showReport, setShowReport] = useState(false);
+  // (a souvenir up close, the range, the damage report: in with an OK, out with a BACK)
+  useOpenCloseSound(inspect); useOpenCloseSound(practice); useOpenCloseSound(showReport);
   const reportRef = useRef(showReport); reportRef.current = showReport;
   const reportOnRef = useRef(reportOn); reportOnRef.current = reportOn;
   const [rIndex, setRIndex] = useState(0);

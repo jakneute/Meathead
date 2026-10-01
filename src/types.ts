@@ -49,7 +49,7 @@ export type SoundType =
   // water
   | 'splash' | 'glug' | 'tinkle'
   // signals, machines, the world
-  | 'beep' | 'alert' | 'ding' | 'pickup' | 'reload' | 'powerup' | 'alarm' | 'siren' | 'horn' | 'truckhorn' | 'engine'
+  | 'cursor' | 'menuok' | 'menuback' | 'beep' | 'alert' | 'ding' | 'pickup' | 'reload' | 'powerup' | 'alarm' | 'siren' | 'horn' | 'truckhorn' | 'engine'
   | 'rumble' | 'thunder' | 'roar' | 'bellow' | 'snort' | 'screams';
 
 export interface Player extends Entity {

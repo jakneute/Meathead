@@ -185,6 +185,33 @@ const SFX: Record<string, SfxDef> = {
     make: () => render(0.08, t => Math.sin(TAU * (1500 + 1800 * Math.min(1, t / 0.04)) * t) * ex(t, 40)),
   },
   // ---- Signals, machines, the world ----
+  // The menus' cursor: a short punchy CHUNK (a square blip falling an octave, a click on the front of it, a thump under it)
+  cursor: {
+    gain: 0.3, vary: 0.5, gap: 25,
+    make: () => render(0.07, t => {
+      const f = 1500 * Math.pow(0.5, t / 0.03);
+      const sq = Math.sign(Math.sin(TAU * f * t)) * 0.45 * ex(t, 55);
+      const thump = Math.sin(TAU * 110 * t) * 0.7 * ex(t, 70);
+      return sq + thump + (t < 0.003 ? rnd() * 0.8 : 0);
+    }),
+  },
+  // ...and the menus' OK (the same chunk, rising, with a bright tick on top) and BACK (falling, duller, a soft thud)
+  menuok: {
+    gain: 0.32, gap: 40,
+    make: () => render(0.11, t => {
+      const f = 700 * Math.pow(2, Math.min(t, 0.04) / 0.04);
+      const sq = Math.sign(Math.sin(TAU * f * t)) * 0.4 * ex(t, 30);
+      const tick = t > 0.035 && t < 0.075 ? Math.sin(TAU * 2100 * t) * 0.35 * ex(t - 0.035, 50) : 0;
+      return sq + tick + Math.sin(TAU * 120 * t) * 0.7 * ex(t, 45) + (t < 0.003 ? rnd() * 0.8 : 0);
+    }),
+  },
+  menuback: {
+    gain: 0.3, gap: 40,
+    make: () => { const lp = lowpass(); return render(0.12, t => {
+      const f = 900 * Math.pow(0.4, t / 0.08);
+      return lp(Math.sign(Math.sin(TAU * f * t)) * 0.5, 2400) * ex(t, 28) + Math.sin(TAU * 85 * t) * 0.8 * ex(t, 40);
+    }); },
+  },
   beep: {
     gain: 0.22, gap: 150,
     make: () => render(0.09, t => (Math.sign(Math.sin(TAU * 1046 * t)) * 0.5 + Math.sin(TAU * 1046 * t) * 0.5) * (t < 0.08 ? 1 : 0)),

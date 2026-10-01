@@ -12,6 +12,7 @@ import EndingCutscene from './components/EndingCutscene';
 import RadioCutscene from './components/RadioCutscene';
 import IntroCutscene from './components/IntroCutscene';
 import TutorialHint from './components/TutorialHint';
+import { useCursorSound, useOpenCloseSound } from './components/useCursorSound';
 import { GYM_STAGE } from './game/stages/gym';
 import voicePackUrl from './generated/voices.bin?url';
 import { loadVoicePack } from './game/platform/voiceclips';
@@ -29,7 +30,7 @@ import { VULGARITIES, BOSS_DIALOGUE, BOSS_REBUKES } from './content/dialogue';
 import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS, menuButtons } from './game/platform/gamepad';
 import WeaponWheel, { wheelIndexAt } from './components/WeaponWheel';
 import { speak, say, isSpeaking, getBossVoice, takeFreshLine, MEATHEAD_MENU_VOICE } from './game/platform/speech';
-import { playLockInSound, playEngageSound } from './game/platform/audio';
+import { playLockInSound, playEngageSound, playMenuOk, playMenuBack } from './game/platform/audio';
 
 /** Shows the dev cheat panel on the title screen. */
 const SHOW_CHEATS = true;
@@ -196,6 +197,23 @@ const App: React.FC = () => {
     }
   }, [status, selectedStage, bossTaunt]);
 
+  // --- Menu sounds -----------------------------------------------------------
+  // The cursor moving (on the title, the map, the pause menu, its are-you-sure, the weapon wheel); things opening (OK)
+  // and closing (BACK): the pause menu, the are-you-sure, the dossier, the archive, a target unlocked, the garage, the
+  // checkpoint picker. (Locking in and ENGAGE have their own.)
+  const inMenu = status === GameStatus.START || status === GameStatus.STAGE_SELECT || status === GameStatus.PAUSED;
+  useCursorSound(selectedIndex, inMenu && intro === 'off' && !inGarage && !pickFor, `${status}|${showArchive}|${inGarage}`);
+  useCursorSound(confirmYes, confirmLeave, confirmLeave);
+  useCursorSound(wheelAt, wheelAt !== null);
+  useOpenCloseSound(status === GameStatus.PAUSED, status === GameStatus.PAUSED || status === GameStatus.PLAYING);
+  useOpenCloseSound(confirmLeave, status === GameStatus.PAUSED);
+  useOpenCloseSound(showDossier, status === GameStatus.STAGE_SELECT);
+  useOpenCloseSound(showArchive, status === GameStatus.STAGE_SELECT);
+  useOpenCloseSound(inGarage, status === GameStatus.STAGE_SELECT);
+  useOpenCloseSound(!!pickFor, status === GameStatus.STAGE_SELECT);
+  const lockedRef = useRef(lockedIndex);
+  useEffect(() => { if (lockedRef.current !== null && lockedIndex === null && status === GameStatus.STAGE_SELECT && !engaging && !inGarage) playMenuBack(); lockedRef.current = lockedIndex; }, [lockedIndex, status, engaging, inGarage]);
+
   // --- Weapons ---------------------------------------------------------------
 
   const resetLoadout = () => {
@@ -253,6 +271,7 @@ const App: React.FC = () => {
     switch (status) {
       case GameStatus.START:
         if (intro !== 'off') break;
+        playMenuOk();
         setAvailableWeapons(getStartingWeapons(progressionRank, cheats.allWeapons));
         resetLoadout();
         // (with the intro, it plays first and brings the stage select up itself at the end)
@@ -428,7 +447,7 @@ const App: React.FC = () => {
   const engageStage = (picked?: StartAt) => {
     if (lockedIndex === null || engaging) return;
     // Home to the garage
-    if (lockedIndex === GARAGE_INDEX) { setLockedIndex(null); setInGarage(true); playLockInSound(); return; }
+    if (lockedIndex === GARAGE_INDEX) { setLockedIndex(null); setInGarage(true); return; }
     // To Washington: the flourish, then the end
     if (lockedIndex === WHITE_HOUSE_INDEX) {
       setEngaging(true);
@@ -460,7 +479,7 @@ const App: React.FC = () => {
 
   const activatePauseItem = (index: number) => {
     const numWeapons = availableWeapons.length;
-    if (index < numWeapons) selectWeaponByIndex(index);
+    if (index < numWeapons) { selectWeaponByIndex(index); playMenuOk(); }
     else if (index === numWeapons) handleResume();
     else if (index === numWeapons + 1) askBossSelect();
     else if (index === numWeapons + 2) handleQuitToMenu();
