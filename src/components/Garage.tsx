@@ -6,6 +6,36 @@ import { getActiveGamepad, getGamepadMovement, isButtonPressed, GP_BUTTONS, menu
 import type { WeaponType } from '../types';
 import PracticeRange from './PracticeRange';
 import { Prompt } from './ButtonIcons';
+import { drawSouvenirCloseup } from '../game/render/scenes/souvenirClose';
+
+/** A souvenir up close: the gross-up of it, filling the screen, its tag under it. */
+const Closeup: React.FC<{ id: string; name: string; note: string; boss: string; onClose: () => void }> = ({ id, name, note, boss, onClose }) => {
+  const canvas = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    let raf = 0, t = 0;
+    const tick = () => {
+      const ctx = canvas.current?.getContext('2d');
+      if (ctx) { ctx.setTransform(3, 0, 0, 3, 0, 0); drawSouvenirCloseup(ctx, id, t++); }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [id]);
+  return (
+    <div className="absolute inset-0 z-[80] bg-black flex flex-col items-center justify-start pt-[16px] gap-2 animate-in fade-in zoom-in-95 duration-300" onClick={onClose}>
+      <canvas ref={canvas} width={768} height={432} className="block w-[768px] h-[432px] border-2 border-yellow-500/70" />
+      <div className="w-[768px] flex items-baseline justify-between">
+        <span className="text-[12px] text-yellow-300">{name}</span>
+        <span className="text-[7px] text-cyan-300/90">FROM: {boss.toUpperCase()}</span>
+      </div>
+      <div className="w-[768px] text-[8px] leading-[12px] text-white/90">"{note}"</div>
+      <div className="w-[768px] flex justify-center gap-6 text-[7px] text-zinc-400">
+        <Prompt pad={['DPAD']} kb={['ARROWS']} label="NEXT ONE" size={13} />
+        <Prompt pad={['BACK']} kb={['ESC']} mouse="right" label="PUT IT BACK" size={13} />
+      </div>
+    </div>
+  );
+};
 
 // Meathead's garage: what he's brought home from the bosses, up on the pegboard, the shelves and the floor. Go through
 // them (the arrows, the stick, the mouse) and read the tags; leave to get back to the map.
@@ -25,11 +55,19 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
   const order = useMemo(() => [...SOUVENIR_ORDER.filter(id => owned.includes(id)), RANGE], [owned]);
   const [sel, setSel] = useState<string | null>(order[0]);
   const selRef = useRef(sel); selRef.current = sel;
+  /** Looking at the picked one up close (A on it, Enter, or a click). */
+  const [inspect, setInspect] = useState(false);
+  const inspectRef = useRef(inspect); inspectRef.current = inspect;
+  const look = () => { if (selRef.current && selRef.current !== RANGE) setInspect(true); };
+  const lookRef = useRef(look); lookRef.current = look;
   const leaveRef = useRef(onLeave); leaveRef.current = onLeave;
 
   const step = (d: number) => {
     const i = Math.max(0, order.indexOf(selRef.current ?? order[0]));
-    setSel(order[(i + d + order.length) % order.length]);
+    let next = order[(i + d + order.length) % order.length];
+    // (up close, it goes on to the next souvenir, not out back)
+    if (inspectRef.current && next === RANGE) next = order[(i + d * 2 + order.length * 2) % order.length];
+    setSel(next);
   };
   const stepRef = useRef(step); stepRef.current = step;
 
@@ -51,14 +89,17 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
     const onKey = (e: KeyboardEvent) => {
       if (practiceRef.current) return;
       const k = e.key.toLowerCase();
-      if ((k === 'enter' || k === ' ') && selRef.current === RANGE) { e.preventDefault(); setPractice(true); return; }
+      if ((k === 'enter' || k === ' ') && selRef.current === RANGE && !inspectRef.current) { e.preventDefault(); setPractice(true); return; }
+      // (up close: Esc puts it back; Enter does too)
+      if (inspectRef.current && (k === 'escape' || k === 'backspace' || k === 'enter' || k === ' ')) { e.preventDefault(); setInspect(false); return; }
+      if (k === 'enter' || k === ' ') { e.preventDefault(); lookRef.current(); return; }
       // (and straight there from anywhere in the garage: the button shown on it)
       if (k === 'r') { setPractice(true); return; }
       if (k === 'escape' || k === 'backspace') { e.preventDefault(); leaveRef.current(); }
       else if (k === 'arrowright' || k === 'd' || k === 'arrowdown' || k === 's') stepRef.current(1);
       else if (k === 'arrowleft' || k === 'a' || k === 'arrowup' || k === 'w') stepRef.current(-1);
     };
-    const onMouse = (e: MouseEvent) => { if (e.button === 2 && !practiceRef.current) leaveRef.current(); };
+    const onMouse = (e: MouseEvent) => { if (e.button === 2 && !practiceRef.current) { if (inspectRef.current) setInspect(false); else leaveRef.current(); } };
     window.addEventListener('keydown', onKey);
     window.addEventListener('mousedown', onMouse);
     let raf = 0, last = 0, prevB = true, prevA = true, prevY = true;
@@ -70,10 +111,10 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
         const d = m.right || m.down ? 1 : m.left || m.up ? -1 : 0;
         if (d && now - last > REPEAT_MS) { last = now; stepRef.current(d); }
         const mb = menuButtons(gp), b = isButtonPressed(gp, mb.back), a = isButtonPressed(gp, mb.ok);
-        if (b && !prevB) leaveRef.current();
+        if (b && !prevB) { if (inspectRef.current) setInspect(false); else leaveRef.current(); }
         const y = isButtonPressed(gp, GP_BUTTONS.Y);
-        if (a && !prevA && selRef.current === RANGE) setPractice(true);
-        if (y && !prevY) setPractice(true);
+        if (a && !prevA) { if (inspectRef.current) setInspect(false); else if (selRef.current === RANGE) setPractice(true); else lookRef.current(); }
+        if (y && !prevY && !inspectRef.current) setPractice(true);
         prevB = b; prevA = a; prevY = y;
       }
       raf = requestAnimationFrame(poll);
@@ -91,7 +132,7 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
       {order.filter(id => id !== RANGE).map(id => {
         const b = SLOTS[id].box;
         return <div key={id} className="absolute cursor-pointer" style={{ left: b.x, top: b.y, width: b.w, height: b.h }}
-          onMouseEnter={() => setSel(id)} onClick={() => setSel(id)} />;
+          onMouseEnter={() => setSel(id)} onClick={() => { setSel(id); setInspect(true); }} />;
       })}
       {/* The title, the count */}
       <div className="absolute left-0 right-0 top-[6px] flex items-center justify-between px-3 pointer-events-none">
@@ -107,6 +148,7 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
               <span className="text-[6px] text-cyan-300/90 shrink-0">FROM: {s.boss.toUpperCase()}</span>
             </div>
             <div className="mt-1 text-[7px] leading-[11px] text-white/90">"{s.note}"</div>
+            <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label="LOOK CLOSER" size={12} className="mt-1 text-[6px] text-zinc-400" />
           </>
         ) : sel === RANGE ? (
           <>
@@ -129,6 +171,7 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
           PRACTICE RANGE ▶
         </span>
       </button>
+      {inspect && s && <Closeup id={s.id} name={s.name} note={s.note} boss={s.boss} onClose={() => setInspect(false)} />}
       {practice && <PracticeRange weapons={weapons} onLeave={() => setPractice(false)} />}
     </div>
   );

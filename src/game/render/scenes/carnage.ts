@@ -6,40 +6,40 @@
 
 type Ctx = CanvasRenderingContext2D;
 const W = 256, H = 144;
-const INK = '#1A0B06';
+export const INK = '#1A0B06';
 
-const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+export const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 
 // ---------------------------------------------------------------------------
 // The kit
 // ---------------------------------------------------------------------------
 
-const lin = (ctx: Ctx, y0: number, y1: number, stops: [number, string][]) => {
+export const lin = (ctx: Ctx, y0: number, y1: number, stops: [number, string][]) => {
   const g = ctx.createLinearGradient(0, y0, 0, y1);
   for (const [k, c] of stops) g.addColorStop(k, c);
   return g;
 };
 
 /** A fill and the ink line round it (the shape's drawn by `path`). */
-const shape = (ctx: Ctx, path: () => void, fill: string | CanvasGradient, line = 1) => {
+export const shape = (ctx: Ctx, path: () => void, fill: string | CanvasGradient, line = 1) => {
   ctx.beginPath(); path(); ctx.fillStyle = fill; ctx.fill();
   if (line > 0) { ctx.strokeStyle = INK; ctx.lineWidth = line; ctx.lineJoin = 'round'; ctx.stroke(); }
 };
 
 /** Specks over an area: grime, pores, stubble, gravel. */
-const speckle = (ctx: Ctx, x: number, y: number, w: number, h: number, n: number, color: string, seed: number, size = 0.5) => {
+export const speckle = (ctx: Ctx, x: number, y: number, w: number, h: number, n: number, color: string, seed: number, size = 0.5) => {
   ctx.fillStyle = color;
   for (let i = 0; i < n; i++) ctx.fillRect(x + hash(i * 1.37 + seed) * w, y + hash(i * 2.91 + seed * 1.7) * h, size, size);
 };
 
 /** Hatching: short ink strokes for the shadow side of something. */
-const hatch = (ctx: Ctx, x: number, y: number, w: number, h: number, step: number, alpha = 0.35) => {
+export const hatch = (ctx: Ctx, x: number, y: number, w: number, h: number, step: number, alpha = 0.35) => {
   ctx.strokeStyle = `rgba(26, 11, 6, ${alpha})`; ctx.lineWidth = 0.35;
   for (let k = -h; k < w; k += step) { ctx.beginPath(); ctx.moveTo(x + k, y + h); ctx.lineTo(x + k + h * 0.6, y); ctx.stroke(); }
 };
 
 /** Flames: tongues of it, red out to yellow-white in, ink round the outside. */
-const flames = (ctx: Ctx, x: number, y: number, w: number, h: number, seed: number) => {
+export const flames = (ctx: Ctx, x: number, y: number, w: number, h: number, seed: number) => {
   const n = Math.max(3, Math.round(w / 7));
   for (const [col, k, line] of [['#B91C1C', 1, 0.8], ['#F97316', 0.75, 0], ['#FDE047', 0.48, 0], ['#FFFBEB', 0.22, 0]] as const) {
     for (let i = 0; i < n; i++) {
@@ -55,7 +55,7 @@ const flames = (ctx: Ctx, x: number, y: number, w: number, h: number, seed: numb
 };
 
 /** A column of smoke: lumpy puffs, lit on one side, going up and out. */
-const smoke = (ctx: Ctx, x: number, y: number, r: number, rise: number, seed: number, dark = true) => {
+export const smoke = (ctx: Ctx, x: number, y: number, r: number, rise: number, seed: number, dark = true) => {
   for (let i = 0; i < 9; i++) {
     const k = i / 8, px = x + Math.sin(i * 1.3 + seed) * r * (0.4 + k), py = y - k * rise, pr = r * (0.6 + k * 0.9) * (0.8 + hash(i + seed) * 0.4);
     const g = ctx.createRadialGradient(px - pr * 0.3, py - pr * 0.3, pr * 0.1, px, py, pr);
@@ -68,7 +68,7 @@ const smoke = (ctx: Ctx, x: number, y: number, r: number, rise: number, seed: nu
 };
 
 /** A splat of blood: the pool, the spatter round it, drips running off it if it's on a wall. */
-const blood = (ctx: Ctx, x: number, y: number, r: number, seed: number, drips = 0) => {
+export const blood = (ctx: Ctx, x: number, y: number, r: number, seed: number, drips = 0) => {
   ctx.fillStyle = '#7F1D1D';
   ctx.beginPath();
   for (let a = 0; a <= 16; a++) { const ang = (a / 16) * Math.PI * 2, rr = r * (0.7 + hash(a + seed) * 0.6); ctx.lineTo(x + Math.cos(ang) * rr, y + Math.sin(ang) * rr * 0.6); }
@@ -85,7 +85,7 @@ const blood = (ctx: Ctx, x: number, y: number, r: number, seed: number, drips = 
  * pupils shrunk to pinpricks; bags under them in rings; the mouth hanging open, gums, crooked yellow teeth (one
  * missing), the tongue lolling out; stubble, pores, a sheen of sweat.
  */
-const deadFace = (ctx: Ctx, x: number, y: number, s: number, o: { skin: string; shade: string; tongue?: boolean; charred?: number; tilt?: number; xEyes?: boolean } ) => {
+export const deadFace = (ctx: Ctx, x: number, y: number, s: number, o: { skin: string; shade: string; tongue?: boolean; charred?: number; tilt?: number; xEyes?: boolean } ) => {
   ctx.save();
   ctx.translate(x, y); ctx.rotate(o.tilt ?? 0); ctx.scale(s, s);
   // The head
@@ -142,7 +142,7 @@ const deadFace = (ctx: Ctx, x: number, y: number, s: number, o: { skin: string; 
 };
 
 /** A bone (two knobs each end). */
-const bone = (ctx: Ctx, x0: number, y0: number, x1: number, y1: number, w: number) => {
+export const bone = (ctx: Ctx, x0: number, y0: number, x1: number, y1: number, w: number) => {
   ctx.strokeStyle = INK; ctx.lineCap = 'round'; ctx.lineWidth = w + 1;
   ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
   ctx.strokeStyle = '#F1E9D2'; ctx.lineWidth = w; ctx.stroke();
@@ -154,7 +154,7 @@ const bone = (ctx: Ctx, x0: number, y0: number, x1: number, y1: number, w: numbe
 };
 
 /** A skull: the dome, the sockets (dark, a glint of nothing in them), the nose hole, the grin. */
-const skull = (ctx: Ctx, x: number, y: number, s: number, tilt = 0) => {
+export const skull = (ctx: Ctx, x: number, y: number, s: number, tilt = 0) => {
   ctx.save(); ctx.translate(x, y); ctx.rotate(tilt); ctx.scale(s, s);
   const g = ctx.createRadialGradient(-3, -6, 1, 0, -2, 14);
   g.addColorStop(0, '#FFFBEA'); g.addColorStop(1, '#C9BB94');
