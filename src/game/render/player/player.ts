@@ -317,18 +317,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.arc(-26, -42, 5, 0, Math.PI * 2);
     ctx.fill();
   } else if (isDucking) {
-    // Tucked back defensively near thigh
-    ctx.fillStyle = skinShadow;
-    ctx.beginPath();
-    ctx.arc(-8, -26, 7, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillRect(-12, -26, 8, 12);
-    ctx.fillStyle = wristbandColor;
-    ctx.fillRect(-13, -15, 9, 4);
-    ctx.fillStyle = skinShadow;
-    ctx.beginPath();
-    ctx.arc(-8, -10, 5, 0, Math.PI * 2);
-    ctx.fill();
+    // Crouched: the arm down at his side in front of him, the fist resting on his thigh (drawn over the torso, below)
+    freeArm = () => drawArm(ctx, -15, -30, -17, -19, -13, -11, skinTone, skinShadow, skinHighlight);
   } else if (isRelieving) {
     // Reaching down and forward to hold it (the hand itself is drawn with it, over the top)
     drawReachingArm(ctx, -6, -40, -1, -30, 7, -22, skinShadow);
