@@ -7,6 +7,7 @@ import { WeaponType } from '../../../types';
 import { BossCorpse } from '../../core/state';
 import { drawBoss, makeSitter } from './index';
 import { drawRock, PLAYER_ROCK } from './boulders';
+import { skull } from '../../scenes/art/ink';
 
 type Style = 'charred' | 'melted' | 'stone' | 'shattered' | 'flattened' | 'dissolved' | 'overdosed' | 'oiled' | 'fried';
 
@@ -37,29 +38,18 @@ export const drawBossCorpse = (ctx: CanvasRenderingContext2D, c: BossCorpse, fra
   ctx.save();
   switch (style) {
     case 'melted': {
-      // A slumped heap sinking into a puddle of meltwater
-      puddle(ctx, x, floor, 80, 'rgba(150, 70, 100, 0.7)', 'rgba(255, 170, 190, 0.6)');
-      bloodSwirls(ctx, x, floor, 70);
-      const sink = Math.min(1, age / 90);
-      const squash = 0.65 - 0.2 * sink;
-      // Slushy mound he's collapsing into
-      ctx.fillStyle = 'rgba(200, 238, 255, 0.9)';
-      ctx.beginPath();
-      ctx.ellipse(x, floor - 4, S * 0.75, S * squash * 0.35, 0, Math.PI, 0);
-      ctx.fill();
-      ctx.save();
-      ctx.translate(x - S * 0.6, floor - S * squash);
-      ctx.scale(1.2, squash);
-      ctx.filter = 'saturate(0.6) brightness(1.15)';
-      sprite(ctx, c);
-      ctx.restore();
-      // What the ice was holding in: organs showing through the slush
-      organs(ctx, x - 6, floor - 14, 0.8);
-      boneStump(ctx, x - 40, floor - 8, -2.4, 26);
-      boneStump(ctx, x + 38, floor - 6, -0.7, 22);
-      eyeball(ctx, x + 58, floor - 5, 5, -1);
+      // Melting where he stood: the whole of him running down, unevenly (the middle holds out longest), every bit of
+      // him drooping in long drips into a spreading puddle of pink meltwater; the bones and an eye left in it, steam
+      // coming off him
+      const k = Math.min(1, age / 160);
+      puddle(ctx, x, floor, 50 + k * 40, 'rgba(160, 90, 120, 0.72)', 'rgba(255, 190, 210, 0.6)');
+      bloodSwirls(ctx, x, floor, 50 + k * 30);
+      melt(ctx, c, x, floor, k, frame);
+      boneStump(ctx, x - 44, floor - 6, -2.5, 22 + k * 6);
+      boneStump(ctx, x + 40, floor - 5, -0.6, 18 + k * 6);
+      eyeball(ctx, x + 60, floor - 5, 5, -1);
       drips(ctx, x, floor, frame, 'rgba(200, 60, 80, 0.9)');
-      steam(ctx, x, floor - 30, frame, 'rgba(230, 245, 255, 0.35)');
+      steam(ctx, x, floor - 30 + k * 20, frame, 'rgba(230, 245, 255, 0.35)');
       flies(ctx, x, floor - 30, frame, age, 3);
       break;
     }
@@ -154,24 +144,42 @@ export const drawBossCorpse = (ctx: CanvasRenderingContext2D, c: BossCorpse, fra
       break;
     }
     case 'dissolved': {
-      // Half sunk into a bubbling pool of barf, bones poking out
+      // Down to the chest in a bubbling pool of barf: the barf's eaten his face off to the skull (the hair going, his
+      // shades slipping off what's left of his nose), the flesh sliding off his shoulders in strings, bones and an eye
+      // floating in it with him
+      const sink = Math.min(1, age / 150);
       ctx.save();
-      // Only his top half is left above the surface
-      ctx.beginPath();
-      ctx.rect(x - S, floor - S * 1.5, S * 2, S * 1.5 - 4);
-      ctx.clip();
-      ctx.translate(x - S / 2, floor - S * 0.55);
-      ctx.filter = 'sepia(0.6) hue-rotate(40deg) saturate(1.4)';
+      ctx.beginPath(); ctx.rect(x - S, floor - S * 1.5, S * 2, S * 1.5 - 4); ctx.clip();
+      ctx.translate(x - S / 2, floor - S * (0.86 - sink * 0.06));
+      // (the body, with the head cut off it: the skull goes where the head was)
+      ctx.save(); ctx.beginPath(); ctx.rect(-10, 31, S + 20, S); ctx.clip();
+      ctx.filter = 'sepia(0.55) hue-rotate(40deg) saturate(1.3) brightness(0.9)';
       sprite(ctx, c);
-      ctx.filter = 'none';
-      // Half his face melted off: skull showing, flesh hanging in strings
-      halfSkull(ctx, S * 0.5, S * 0.05, frame);
+      ctx.restore();
+      // (the neck gone to gristle up to it)
+      ctx.fillStyle = '#7F1D1D'; ctx.fillRect(33, 26, 14, 8); ctx.fillStyle = '#E8DCC0'; ctx.fillRect(38, 24, 4, 10);
+      skull(ctx, 40, 18, 1.15, c.facing * 0.12);
+      // (what's left of the face sliding off it: raw at the edges, strings of it hanging)
+      ctx.strokeStyle = '#A33B2A'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(29, 12); ctx.quadraticCurveTo(27, 22, 31, 30); ctx.stroke();
+      ctx.lineWidth = 1.2;
+      for (let k = 0; k < 4; k++) { const len = 5 + ((frame * 0.2 + k * 7) % 9); ctx.beginPath(); ctx.moveTo(31 + k * 5, 29); ctx.quadraticCurveTo(32 + k * 5, 29 + len * 0.6, 31 + k * 5, 29 + len); ctx.stroke(); }
+      // (a few hairs still stuck to the top of it, and his shades, slipped down)
+      ctx.strokeStyle = '#3F2A1D'; ctx.lineWidth = 0.6; for (let k = 0; k < 6; k++) { ctx.beginPath(); ctx.moveTo(34 + k * 2.4, 6.5); ctx.lineTo(33 + k * 2.6, 4); ctx.stroke(); }
+      ctx.save(); ctx.translate(40, 23); ctx.rotate(0.25 * c.facing);
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.75)'; ctx.fillRect(-11, -2.5, 9, 5); ctx.fillRect(2, -2.5, 9, 5);
+      ctx.strokeStyle = '#111827'; ctx.lineWidth = 1; ctx.strokeRect(-11, -2.5, 9, 5); ctx.strokeRect(2, -2.5, 9, 5); ctx.beginPath(); ctx.moveTo(-2, -1); ctx.lineTo(2, -1); ctx.stroke();
+      ctx.restore();
+      // (the flesh coming off the shoulders in sheets)
+      ctx.fillStyle = 'rgba(173, 255, 47, 0.35)';
+      for (let k = 0; k < 5; k++) { const sx = 18 + k * 11, len = 8 + ((frame * 0.15 + k * 5) % 12); ctx.beginPath(); ctx.ellipse(sx, 36 + len / 2, 2.4, len / 2, 0, 0, Math.PI * 2); ctx.fill(); }
       ctx.restore();
       bones(ctx, x, floor);
       eyeball(ctx, x - 55, floor - 6, 5, 1);
       bloodSwirls(ctx, x, floor, 80);
       puddle(ctx, x, floor, 85, 'rgba(46, 125, 50, 0.9)', 'rgba(173, 255, 47, 0.7)');
       bubbles(ctx, x, floor, frame, '#ADFF2F');
+      flies(ctx, x, floor - 50, frame, age, 3);
       break;
     }
     case 'overdosed': {
@@ -213,7 +221,7 @@ export const drawBossCorpse = (ctx: CanvasRenderingContext2D, c: BossCorpse, fra
     case 'fried': {
       // Electrocuted to a smoking husk, sparks still crackling
       bloodPool(ctx, x, floor, 40);
-      lying(ctx, c, x, floor, frame, 'grayscale(1) brightness(0.25) contrast(1.6)', 0);
+      lying(ctx, c, x, floor, frame, 'sepia(0.8) brightness(0.42) contrast(1.4)', 0);
       charredSplits(ctx, x, floor - 34, frame);
       ribs(ctx, x - 4, floor - 40);
       eyeball(ctx, x + c.facing * 44, floor - 5, 5, c.facing, true);
@@ -236,6 +244,40 @@ export const drawBossCorpse = (ctx: CanvasRenderingContext2D, c: BossCorpse, fra
 // ---------------------------------------------------------------------------
 // Pieces
 // ---------------------------------------------------------------------------
+
+/** Scratch canvas for the melt (the sprite's drawn into it once a frame, then run down in strips). */
+let meltCanvas: HTMLCanvasElement | null = null;
+
+/**
+ * The sprite melting: drawn a strip at a time (two pixels wide), each strip slid down by how far it's run (the edges
+ * further than the middle, every strip a little different), the bottom of each smeared on down to the floor in a
+ * drip, all of it cut off at the puddle. `k` 0..1, how far gone he is.
+ */
+const melt = (ctx: CanvasRenderingContext2D, c: BossCorpse, x: number, floor: number, k: number, frame: number) => {
+  if (typeof document === 'undefined') return;
+  const scale = 2;
+  if (!meltCanvas) { meltCanvas = document.createElement('canvas'); meltCanvas.width = S * scale; meltCanvas.height = S * scale; }
+  const m = meltCanvas.getContext('2d')!;
+  m.setTransform(1, 0, 0, 1, 0, 0); m.clearRect(0, 0, meltCanvas.width, meltCanvas.height);
+  m.scale(scale, scale); m.filter = 'saturate(0.75) brightness(1.08)';
+  sprite(m, c);
+  ctx.save();
+  ctx.beginPath(); ctx.rect(x - S, floor - S * 1.4, S * 2, S * 1.4 - 3); ctx.clip();
+  const left = x - S / 2;
+  for (let sx = 0; sx < S; sx += 2) {
+    const edge = Math.abs(sx - S / 2) / (S / 2);
+    const run = k * (S * (0.2 + edge * 0.45) + Math.sin(sx * 0.37) * 6 + Math.sin(sx * 1.3 + 2) * 4) + Math.sin(frame * 0.05 + sx) * 0.6 * k;
+    const top = floor - S + run;
+    // (the strip, slumped down)
+    ctx.drawImage(meltCanvas, sx * scale, 0, 2 * scale, S * scale, left + sx, top, 2, S);
+    // (and its bottom, dragged out in a drip to the floor: the color it was, smeared)
+    if (run > 2) ctx.drawImage(meltCanvas, sx * scale, (S - 6) * scale, 2 * scale, 6 * scale, left + sx, top + S - 6, 2, Math.max(6, floor - (top + S - 6)));
+  }
+  // (a wet shine down it, and the drips running off the bottom edge of what's left)
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+  for (let sx = 6; sx < S; sx += 9) { const len = 6 + ((frame * 0.3 + sx * 3) % 18) * k; ctx.fillRect(left + sx, floor - S * (1 - k * 0.4) + 10, 1, len); }
+  ctx.restore();
+};
 
 /** The sprite keeled over on its side. */
 const lying = (ctx: CanvasRenderingContext2D, c: BossCorpse, x: number, floor: number, frame: number, filter: string, jitter: number) => {
@@ -407,34 +449,34 @@ const foam = (ctx: CanvasRenderingContext2D, x: number, y: number, frame: number
 // Gore
 // ---------------------------------------------------------------------------
 
-/** A loop of intestine spilling out along the floor in direction `dir`. */
+/**
+ * Intestine spilling out along the floor in direction `dir`: a coil of it, folding back on itself, each loop a fat
+ * glistening tube (dark down its underside, a wet shine along its top, the veins on it), and a smear of blood under it.
+ */
 const guts = (ctx: CanvasRenderingContext2D, x: number, y: number, dir: number, len: number, frame: number) => {
+  const n = Math.max(6, Math.round(len / 4));
   const pts: [number, number][] = [];
-  for (let i = 0; i <= 10; i++) {
-    const t = i / 10;
-    pts.push([x + dir * t * len, y - Math.abs(Math.sin(t * Math.PI * 2.5)) * 10 + Math.sin(frame * 0.05 + i) * 0.8]);
+  for (let i = 0; i <= n; i++) {
+    const t = i / n, coil = t * Math.PI * 2 * (len / 26);
+    pts.push([x + dir * (t * len * 0.75 + Math.sin(coil) * 7), y - 4 - (1 + Math.cos(coil)) * 3.2 + Math.sin(frame * 0.04 + i) * 0.4]);
   }
+  ctx.fillStyle = 'rgba(110, 12, 20, 0.6)'; ctx.beginPath(); ctx.ellipse(x + dir * len * 0.4, y - 1, len * 0.45, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+  // (the tube itself, under the bulges: dark, then its body)
   const trace = () => { ctx.beginPath(); pts.forEach(([px, py], i) => (i ? ctx.lineTo(px, py) : ctx.moveTo(px, py))); };
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.strokeStyle = '#6E1B2B';
-  ctx.lineWidth = 9;
-  trace(); ctx.stroke();
-  ctx.strokeStyle = '#C9566E';
-  ctx.lineWidth = 6.5;
-  trace(); ctx.stroke();
-  // Sausage-like bulges and a wet shine
-  for (let i = 1; i < pts.length; i += 2) {
-    ctx.fillStyle = '#D9738A';
-    ctx.beginPath();
-    ctx.arc(pts[i][0], pts[i][1], 4, 0, Math.PI * 2);
-    ctx.fill();
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#5E1424'; ctx.lineWidth = 8.5; trace(); ctx.stroke();
+  ctx.strokeStyle = '#B9506A'; ctx.lineWidth = 6.5; trace(); ctx.stroke();
+  // (back to front: the far side of each loop first)
+  const order = pts.map((p, i) => ({ p, i })).sort((u, v) => u.p[1] - v.p[1]);
+  for (const { p: [px, py], i } of order) {
+    const g = ctx.createRadialGradient(px - 1.2, py - 1.6, 0.4, px, py, 5);
+    g.addColorStop(0, '#F4B4C2'); g.addColorStop(0.45, '#D9738A'); g.addColorStop(0.85, '#A23B55'); g.addColorStop(1, '#5E1424');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(px, py, 4.2, 3.4, (pts[Math.min(n, i + 1)][1] - py) * 0.2, 0, Math.PI * 2); ctx.fill();
+    // (where one bulge pinches into the next)
+    ctx.strokeStyle = 'rgba(94, 20, 36, 0.55)'; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.arc(px, py, 4.4, Math.PI * 0.15, Math.PI * 0.85); ctx.stroke();
+    if (i % 3 === 0) { ctx.strokeStyle = 'rgba(120, 30, 70, 0.6)'; ctx.lineWidth = 0.35; ctx.beginPath(); ctx.moveTo(px - 2.5, py - 1); ctx.quadraticCurveTo(px, py - 2.6, px + 2.2, py - 0.6); ctx.stroke(); }
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)'; ctx.fillRect(px - 2, py - 3, 1.6, 0.9);
   }
-  ctx.strokeStyle = 'rgba(255, 220, 230, 0.55)';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  pts.forEach(([px, py], i) => (i ? ctx.lineTo(px, py - 2) : ctx.moveTo(px, py - 2)));
-  ctx.stroke();
 };
 
 /** A snapped bone sticking out of a ring of torn meat. */
@@ -544,27 +586,6 @@ const rawWound = (ctx: CanvasRenderingContext2D, x: number, y: number, rx: numbe
   ctx.fill();
 };
 
-/** Organs showing through melting ice: heart, a liver, a coil of gut. */
-const organs = (ctx: CanvasRenderingContext2D, x: number, y: number, alpha: number) => {
-  ctx.globalAlpha = alpha;
-  ctx.fillStyle = '#8B1A2B';
-  ctx.beginPath();
-  ctx.ellipse(x - 12, y, 12, 8, 0.4, 0, Math.PI * 2);   // liver
-  ctx.fill();
-  ctx.fillStyle = '#B71C1C';
-  ctx.beginPath();
-  ctx.arc(x + 8, y - 4, 6, 0, Math.PI * 2);               // heart
-  ctx.arc(x + 14, y - 4, 6, 0, Math.PI * 2);
-  ctx.moveTo(x + 3, y - 2); ctx.lineTo(x + 11, y + 8); ctx.lineTo(x + 19, y - 2);
-  ctx.fill();
-  ctx.strokeStyle = '#C9566E';
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.arc(x + 26, y + 2, 5, 0, Math.PI * 1.7);
-  ctx.stroke();
-  ctx.globalAlpha = 1;
-};
-
 /** Blood oozing out of every crack in a stone body (local sprite space). */
 const bleedFromCracks = (ctx: CanvasRenderingContext2D, frame: number) => {
   ctx.fillStyle = '#8B0000';
@@ -645,39 +666,6 @@ const ribs = (ctx: CanvasRenderingContext2D, x: number, y: number) => {
     ctx.beginPath();
     ctx.moveTo(x + k * 6, y - 11);
     ctx.quadraticCurveTo(x + k * 6 + 4, y, x + k * 6, y + 11);
-    ctx.stroke();
-  }
-};
-
-/** Half the face melted away to the skull, with strings of flesh hanging off (local sprite space). */
-const halfSkull = (ctx: CanvasRenderingContext2D, x: number, y: number, frame: number) => {
-  ctx.fillStyle = '#EDE3CC';
-  ctx.beginPath();
-  ctx.moveTo(x, y + 6);
-  ctx.quadraticCurveTo(x + 26, y + 4, x + 26, y + 26);
-  ctx.lineTo(x + 20, y + 40);
-  ctx.lineTo(x, y + 42);
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillStyle = '#1A1A1A';
-  ctx.beginPath();
-  ctx.ellipse(x + 12, y + 22, 6, 7, 0, 0, Math.PI * 2);   // eye socket
-  ctx.fill();
-  ctx.fillRect(x + 4, y + 33, 3, 5);                        // teeth gaps
-  ctx.fillRect(x + 10, y + 33, 3, 5);
-  ctx.fillRect(x + 16, y + 33, 3, 5);
-  // Melting skin edge and dangling strings
-  ctx.strokeStyle = '#A33B2A';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(x, y + 6); ctx.lineTo(x, y + 42);
-  ctx.stroke();
-  ctx.lineWidth = 1.5;
-  for (let k = 0; k < 3; k++) {
-    const len = 6 + ((frame * 0.2 + k * 7) % 10);
-    ctx.beginPath();
-    ctx.moveTo(x + 4 + k * 8, y + 42);
-    ctx.lineTo(x + 4 + k * 8, y + 42 + len);
     ctx.stroke();
   }
 };
