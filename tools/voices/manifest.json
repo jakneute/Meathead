@@ -287,7 +287,7 @@
  {
   "voice": "announcer",
   "text": "DISTRIBUTION CUT!",
-  "from": "game/stages/dale/junkie.ts:551"
+  "from": "game/stages/dale/junkie.ts:564"
  },
  {
   "voice": "announcer",
@@ -692,7 +692,7 @@
  {
   "voice": "announcer",
   "text": "OFF HIS HEAD!",
-  "from": "game/stages/dale/junkie.ts:551"
+  "from": "game/stages/dale/junkie.ts:564"
  },
  {
   "voice": "announcer",
@@ -3122,7 +3122,7 @@
  {
   "voice": "dale.dale",
   "text": "LOAD THE REST OF THE CARGO! MOVE IT! HE'S COMING!",
-  "from": "game/stages/dale/junkie.ts:746"
+  "from": "game/stages/dale/junkie.ts:759"
  },
  {
   "voice": "dale.dale",
@@ -3182,152 +3182,187 @@
  {
   "voice": "dale.junkie",
   "text": "...THE WALL STARTED IT.",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "AND STAY OUT!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "COME HERE, MUSCLES!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "DALE SAYS YOU'RE A FED! ARE YOU A FED?!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "DON'T YOU WALK AWAY FROM ME, WALL!",
+  "from": "game/stages/dale/junkie.ts:349"
  },
  {
   "voice": "dale.junkie",
   "text": "GET OUTTA MY OFFICE!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "GOTCHA! HUH?! HUH?!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "HE WAS HOLDING FOR ME THE WHOLE TIME?! THAT SNITCH! ...THANKS FOR ICING HIM!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "HEY! THAT'S MY AMMO!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "HUH?! HUH?! HUH?!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "I BEEN LOOKING FOR THAT SINCE TUESDAY! YOU'RE A GOOD FRIEND, FED!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "I FORGOT HE HAD IT ON HIM! I FORGOT HE WAS IN THERE! YOU'RE THE BEST, FED!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "I GOT HOLES IN ALL MY POCKETS, MAN!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "I THOUGHT THAT DRAWER WAS TAXES! BEST TAXES EVER!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "I'M A FREIGHT TRAIN, BABY!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "I'M GONNA RIP YOUR HEART OUT AND SELL IT!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "I'M OKAY! I'M OKAY!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "IN THE FILING CABINET?! WHO FILES THEIR BLUE?! ...ME! I DO! THANK YOU!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "LOOK AT MY EYES! LOOK AT 'EM!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "MOVE, MEATHEAD!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "MY DESK STASH! I FORGOT I HAD A DESK STASH! THANKS, MUSCLES!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "NOBODY STANDS BETWEEN ME AND MY BLUE!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "OHHHH YEAHHHH! I CAN SEE THROUGH TIME!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "OUTTA MY WAY!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "SHE'S GOLD AND SHE'S LOADED!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "SO THAT'S WHY IT WOBBLED! THANK YOU, MUSCLES!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "THAT TICKLES, FED!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "THAT WALL OWES ME TWENTY BUCKS!",
+  "from": "game/stages/dale/junkie.ts:349"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "THAT WALL'S BEEN LOOKING AT ME FUNNY ALL DAY!",
+  "from": "game/stages/dale/junkie.ts:349"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "THAT WALL'S BEEN TALKING TO DALE!",
+  "from": "game/stages/dale/junkie.ts:349"
  },
  {
   "voice": "dale.junkie",
   "text": "THAT'S NOT EVEN FOR MY GUN! WHERE'D THAT COME FROM?!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "THE FAN?! WHEN DID I PUT BLUE IN THE FAN?! BLESS YOU, MAN!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "THE WALL SAID SOMETHING ABOUT MY MOTHER!",
+  "from": "game/stages/dale/junkie.ts:349"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "THE WALL'S A FED! I KNEW IT! THE WALL'S A FED!",
+  "from": "game/stages/dale/junkie.ts:349"
  },
  {
   "voice": "dale.junkie",
   "text": "TIGHT! TIGHT! TIGHT!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "WHAT'D YOU SAY?! SAY IT AGAIN, WALL! SAY IT TO MY FACE!",
+  "from": "game/stages/dale/junkie.ts:349"
  },
  {
   "voice": "dale.junkie",
   "text": "WHO KEEPS TAKING MY AMMO?!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
@@ -3337,27 +3372,32 @@
  {
   "voice": "dale.junkie",
   "text": "WHO PUT THAT THERE?",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "WHO'S THE FED NOW?!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "YOU CALL THAT A BULLET?!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
   "text": "YOU LIKE MY GUN?! IT'S GOLD!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
+ },
+ {
+  "voice": "dale.junkie",
+  "text": "YOU LOOKING AT ME?! YEAH, YOU, WALL!",
+  "from": "game/stages/dale/junkie.ts:349"
  },
  {
   "voice": "dale.junkie",
   "text": "YOU THINK YOU'RE BIG?! I'M BIGGER! IN HERE!",
-  "from": "game/stages/dale/junkie.ts:189"
+  "from": "game/stages/dale/junkie.ts:200"
  },
  {
   "voice": "dale.junkie",
@@ -4087,7 +4127,7 @@
  {
   "voice": "death",
   "text": "ELECTRIC BATH",
-  "from": "game/combat/weapons.ts:650"
+  "from": "game/combat/weapons.ts:654"
  },
  {
   "voice": "death",
@@ -5222,7 +5262,7 @@
  {
   "voice": "death",
   "text": "SHOCKING LACK OF JUDGMENT",
-  "from": "game/combat/weapons.ts:650"
+  "from": "game/combat/weapons.ts:654"
  },
  {
   "voice": "death",
@@ -5617,7 +5657,7 @@
  {
   "voice": "death",
   "text": "TASED YOURSELF IN THE POOL",
-  "from": "game/combat/weapons.ts:650"
+  "from": "game/combat/weapons.ts:654"
  },
  {
   "voice": "death",
@@ -5957,7 +5997,7 @@
  {
   "voice": "death",
   "text": "WATER CONDUCTS, GENIUS",
-  "from": "game/combat/weapons.ts:650"
+  "from": "game/combat/weapons.ts:654"
  },
  {
   "voice": "death",
@@ -6692,7 +6732,7 @@
  {
   "voice": "meathead",
   "text": "A FEW TIDAL WAVES AND THAT FILING CABINET'S GOING FOR A SWIM.",
-  "from": "game/stages/dale/junkie.ts:725"
+  "from": "game/stages/dale/junkie.ts:738"
  },
  {
   "voice": "meathead",
@@ -7302,7 +7342,7 @@
  {
   "voice": "meathead",
   "text": "BULLETS WON'T GET INTO THAT CABINET. IT NEEDS A WHOLE LOT OF WATER.",
-  "from": "game/stages/dale/junkie.ts:639"
+  "from": "game/stages/dale/junkie.ts:652"
  },
  {
   "voice": "meathead",
@@ -8742,7 +8782,7 @@
  {
   "voice": "meathead",
   "text": "HE HEADBUTTED THE WALL?! OKAY! KEEP HIM HIGH! FIND HIM MORE STASH!",
-  "from": "game/stages/dale/junkie.ts:194"
+  "from": "game/stages/dale/junkie.ts:205"
  },
  {
   "voice": "meathead",
@@ -8982,7 +9022,7 @@
  {
   "voice": "meathead",
   "text": "HE'S ALREADY DEAD. HE JUST NEEDS TO BE A LOT COLDER.",
-  "from": "game/stages/dale/junkie.ts:639"
+  "from": "game/stages/dale/junkie.ts:652"
  },
  {
   "voice": "meathead",
@@ -9897,7 +9937,7 @@
  {
   "voice": "meathead",
   "text": "ICE THE STIFF IN THE CLOSET WITH THE SHOTGUN. SHATTER HIM.",
-  "from": "game/stages/dale/junkie.ts:725"
+  "from": "game/stages/dale/junkie.ts:738"
  },
  {
   "voice": "meathead",
@@ -9987,7 +10027,7 @@
  {
   "voice": "meathead",
   "text": "IT NEEDS SOMETHING A LOT HEAVIER THAN THAT TO BRING THAT FAN DOWN.",
-  "from": "game/stages/dale/junkie.ts:639"
+  "from": "game/stages/dale/junkie.ts:652"
  },
  {
   "voice": "meathead",
@@ -10047,12 +10087,12 @@
  {
   "voice": "meathead",
   "text": "KEEP AWAY FROM HIS HANDS! MAKE HIM COME TO THE STASH INSTEAD!",
-  "from": "game/stages/dale/junkie.ts:479"
+  "from": "game/stages/dale/junkie.ts:492"
  },
  {
   "voice": "meathead",
   "text": "KEEP HEAVING BOULDERS STRAIGHT UP AT THAT FAN. BRING IT DOWN.",
-  "from": "game/stages/dale/junkie.ts:725"
+  "from": "game/stages/dale/junkie.ts:738"
  },
  {
   "voice": "meathead",
@@ -10062,7 +10102,7 @@
  {
   "voice": "meathead",
   "text": "KEEP THE FLAMETHROWER ON THE DESK. WHATEVER'S IN THOSE DRAWERS, SMOKE IT OUT.",
-  "from": "game/stages/dale/junkie.ts:725"
+  "from": "game/stages/dale/junkie.ts:738"
  },
  {
   "voice": "meathead",
@@ -10197,7 +10237,7 @@
  {
   "voice": "meathead",
   "text": "LOOSE AMMO IN HIS POCKETS. CARELESS. THANKS, CHUCO.",
-  "from": "game/stages/dale/junkie.ts:702"
+  "from": "game/stages/dale/junkie.ts:715"
  },
  {
   "voice": "meathead",
@@ -10577,7 +10617,7 @@
  {
   "voice": "meathead",
   "text": "NICE DESK, CHUCO! REAL WOOD? BE A SHAME IF IT CAUGHT FIRE!",
-  "from": "game/stages/dale/junkie.ts:719"
+  "from": "game/stages/dale/junkie.ts:732"
  },
  {
   "voice": "meathead",
@@ -10772,7 +10812,7 @@
  {
   "voice": "meathead",
   "text": "NOTE TO SELF: DON'T RUN AT THE CRACKHEAD.",
-  "from": "game/stages/dale/junkie.ts:478"
+  "from": "game/stages/dale/junkie.ts:491"
  },
  {
   "voice": "meathead",
@@ -11682,7 +11722,7 @@
  {
   "voice": "meathead",
   "text": "SHOOTING THE DESK? IT'S A DESK. IT NEEDS SOMETHING HOTTER.",
-  "from": "game/stages/dale/junkie.ts:639"
+  "from": "game/stages/dale/junkie.ts:652"
  },
  {
   "voice": "meathead",
@@ -12452,7 +12492,7 @@
  {
   "voice": "meathead",
   "text": "THAT FAN'S HANGING BY A THREAD, ESE! A FEW BIG ROCKS AND DOWN IT COMES!",
-  "from": "game/stages/dale/junkie.ts:719"
+  "from": "game/stages/dale/junkie.ts:732"
  },
  {
   "voice": "meathead",
@@ -12642,7 +12682,7 @@
  {
   "voice": "meathead",
   "text": "THE CARGO'S LEAVING? NOT WITHOUT ME.",
-  "from": "game/stages/dale/junkie.ts:747"
+  "from": "game/stages/dale/junkie.ts:760"
  },
  {
   "voice": "meathead",
@@ -13402,7 +13442,7 @@
  {
   "voice": "meathead",
   "text": "WHAT'S IN THE FILING CABINET, TWEAKY? BET IT'D WASH RIGHT OUT!",
-  "from": "game/stages/dale/junkie.ts:719"
+  "from": "game/stages/dale/junkie.ts:732"
  },
  {
   "voice": "meathead",
@@ -13912,7 +13952,7 @@
  {
   "voice": "meathead",
   "text": "YOUR BUDDY IN THE CLOSET LOOKS HOT! WANT ME TO PUT HIM ON ICE?",
-  "from": "game/stages/dale/junkie.ts:719"
+  "from": "game/stages/dale/junkie.ts:732"
  },
  {
   "voice": "meathead",

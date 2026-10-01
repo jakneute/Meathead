@@ -181,6 +181,17 @@ const LINES = {
   slap: ["OUTTA MY WAY!", "MOVE, MEATHEAD!", "NOBODY STANDS BETWEEN ME AND MY BLUE!"],
   high: ["OHHHH YEAHHHH! I CAN SEE THROUGH TIME!", "I'M A FREIGHT TRAIN, BABY!"],
   dazed: ["...THE WALL STARTED IT.", "WHO PUT THAT THERE?", "I'M OKAY! I'M OKAY!"],
+  /** Off to headbutt a wall: what the wall did to him. */
+  wall: [
+    "YOU LOOKING AT ME?! YEAH, YOU, WALL!",
+    "THAT WALL'S BEEN LOOKING AT ME FUNNY ALL DAY!",
+    "THE WALL SAID SOMETHING ABOUT MY MOTHER!",
+    "THAT WALL OWES ME TWENTY BUCKS!",
+    "THE WALL'S A FED! I KNEW IT! THE WALL'S A FED!",
+    "DON'T YOU WALK AWAY FROM ME, WALL!",
+    "THAT WALL'S BEEN TALKING TO DALE!",
+    "WHAT'D YOU SAY?! SAY IT AGAIN, WALL! SAY IT TO MY FACE!",
+  ],
   shot: ["YOU CALL THAT A BULLET?!", "THAT TICKLES, FED!"],
 };
 
@@ -334,6 +345,8 @@ export const updateJunkie = (ctx: FrameContext, m: Enemy, fight: JunkieFight, ta
       if (m.aiTimer > HIGH) {
         const wall = (mx - o.x1 < o.x2 - mx ? -1 : 1) as 1 | -1;
         start(m, 'rampage'); m.facing = wall; playSound('roar');
+        // (what the wall did to him)
+        queueLines(state, talk, [{ who: 'junkie', text: pick(LINES.wall) }]);
       }
       break;
     case 'rampage': {
