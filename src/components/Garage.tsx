@@ -7,6 +7,8 @@ import type { WeaponType } from '../types';
 import PracticeRange from './PracticeRange';
 import { Prompt } from './ButtonIcons';
 import { drawSouvenirCloseup } from '../game/render/scenes/souvenirClose';
+import DamageReport from './DamageReport';
+import { setTitleClass } from './Overlay';
 
 /** A souvenir up close: the gross-up of it, filling the screen, its tag under it. */
 const Closeup: React.FC<{ id: string; name: string; note: string; boss: string; onClose: () => void }> = ({ id, name, note, boss, onClose }) => {
@@ -44,7 +46,70 @@ const REPEAT_MS = 180;
 /** (in the list of things to pick: the practice range) */
 const RANGE = '__range';
 
-const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLeave, weapons }) => {
+/**
+ * The shady corner of the garage the damage report's kept in: cinder block gone gray-brown with grime, one bare bulb
+ * on its cord (and its light, in bands, on the wall), cobwebs in the corner, a filing cabinet with a drawer hanging
+ * open, a stack of paint cans, a space heater glowing, an oil-stained floor. It flickers.
+ */
+const GarageCorner: React.FC = () => {
+  const canvas = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    let raf = 0, t = 0;
+    const h = (n: number) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+    const draw = () => {
+      const ctx = canvas.current?.getContext('2d');
+      if (!ctx) return;
+      ctx.setTransform(2, 0, 0, 2, 0, 0);
+      // The wall: cinder blocks, the mortar, grime down it
+      ctx.fillStyle = '#16130F'; ctx.fillRect(0, 0, 800, 600);
+      for (let r = 0; r < 22; r++) for (let c = -1; c < 14; c++) {
+        const bx = c * 62 + (r % 2) * 31, by = r * 24, k = h(r * 17 + c * 5);
+        ctx.fillStyle = ['#2A2622', '#25211D', '#2F2A25', '#221E1A'][Math.floor(k * 4)];
+        ctx.fillRect(bx + 2, by + 2, 58, 20);
+        ctx.fillStyle = 'rgba(255, 240, 220, 0.04)'; ctx.fillRect(bx + 2, by + 2, 58, 2);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'; ctx.fillRect(bx + 2, by + 19, 58, 3);
+      }
+      for (let k = 0; k < 8; k++) { ctx.fillStyle = 'rgba(20, 14, 8, 0.35)'; ctx.fillRect(40 + h(k * 3) * 720, 0, 3 + h(k) * 5, 200 + h(k * 7) * 300); }
+      // The floor: concrete, oil-stained
+      ctx.fillStyle = '#1C1A17'; ctx.fillRect(0, 520, 800, 80);
+      ctx.fillStyle = '#26231F'; ctx.fillRect(0, 520, 800, 4);
+      for (let k = 0; k < 4; k++) { ctx.fillStyle = 'rgba(8, 6, 4, 0.6)'; ctx.beginPath(); ctx.ellipse(120 + k * 190, 560 + (k % 2) * 14, 50 + h(k) * 30, 9, 0, 0, Math.PI * 2); ctx.fill(); }
+      // The bulb's light on it all, in bands, flickering now and then
+      const flick = (h(Math.floor(t / 7)) > 0.94 ? 0.55 : 1) * (0.95 + Math.sin(t * 0.3) * 0.05);
+      for (let i = 5; i >= 1; i--) { ctx.fillStyle = `rgba(253, 224, 140, ${0.035 * flick})`; ctx.beginPath(); ctx.ellipse(250, 330, i * 85, i * 70, 0, 0, Math.PI * 2); ctx.fill(); }
+      ctx.strokeStyle = '#0A0908'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(190, 0); ctx.lineTo(190, 284); ctx.stroke();
+      ctx.fillStyle = '#3F3A33'; ctx.fillRect(184, 280, 12, 8);
+      ctx.fillStyle = `rgba(255, 247, 214, ${flick})`; ctx.beginPath(); ctx.ellipse(190, 295, 7, 9, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = `rgba(255, 240, 180, ${0.2 * flick})`; ctx.beginPath(); ctx.arc(190, 295, 22, 0, Math.PI * 2); ctx.fill();
+      // Cobwebs in the corners
+      ctx.strokeStyle = 'rgba(214, 211, 209, 0.25)'; ctx.lineWidth = 0.6;
+      for (const [cx, sx] of [[0, 1], [800, -1]] as const) {
+        for (let k = 0; k < 7; k++) { const a = (k / 6) * Math.PI / 2; ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx + sx * Math.cos(a) * 110, Math.sin(a) * 110); ctx.stroke(); }
+        for (let r = 20; r < 110; r += 18) { ctx.beginPath(); for (let k = 0; k <= 6; k++) { const a = (k / 6) * Math.PI / 2, rr = r * (k % 2 ? 0.92 : 1); const px = cx + sx * Math.cos(a) * rr, py = Math.sin(a) * rr; if (k) ctx.lineTo(px, py); else ctx.moveTo(px, py); } ctx.stroke(); }
+      }
+      // The filing cabinet, left, a drawer hanging open; paint cans and the space heater, right
+      ctx.fillStyle = '#3F4A3C'; ctx.fillRect(18, 330, 70, 190); ctx.fillStyle = '#2E372C'; for (let k = 0; k < 4; k++) ctx.fillRect(22, 338 + k * 46, 62, 40);
+      ctx.fillStyle = '#4B5848'; ctx.fillRect(14, 390, 78, 30); ctx.fillStyle = '#E7E5E4'; ctx.fillRect(22, 384, 10, 8); ctx.fillRect(36, 382, 10, 10); ctx.fillRect(52, 385, 10, 7);
+      for (let k = 0; k < 3; k++) { ctx.fillStyle = ['#7F1D1D', '#1E3A8A', '#A16207'][k]; ctx.fillRect(720 + (k % 2) * 30, 470 - Math.floor(k / 2) * 44 - (k === 2 ? 0 : 0), 34, 44); ctx.fillStyle = '#A8A29E'; ctx.fillRect(720 + (k % 2) * 30, 470 - Math.floor(k / 2) * 44, 34, 4); }
+      ctx.fillStyle = '#292524'; ctx.fillRect(650, 456, 54, 64);
+      ctx.fillStyle = `rgba(249, 115, 22, ${0.75 + Math.sin(t * 0.08) * 0.15})`; for (let k = 0; k < 3; k++) ctx.fillRect(656, 466 + k * 16, 42, 6);
+      ctx.fillStyle = 'rgba(249, 115, 22, 0.08)'; ctx.beginPath(); ctx.ellipse(677, 520, 90, 18, 0, 0, Math.PI * 2); ctx.fill();
+      // Dark all round the edges
+      const v = ctx.createRadialGradient(400, 300, 180, 400, 300, 520);
+      v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,0.75)');
+      ctx.fillStyle = v; ctx.fillRect(0, 0, 800, 600);
+    };
+    const tick = () => { draw(); t++; raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return <canvas ref={canvas} width={1600} height={1200} className="absolute inset-0 w-full h-full" />;
+};
+
+/** The damage report, on the garage wall (from the second set on): the targets on it, and how each one died. */
+export interface GarageReport { bosses: string[]; killRecords: Record<string, WeaponType | null> }
+
+const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[]; report?: GarageReport }> = ({ onLeave, weapons, report }) => {
   /** Out back at the practice range (the garage's keys and pad do nothing meanwhile). */
   const [practice, setPractice] = useState(false);
   const practiceRef = useRef(practice); practiceRef.current = practice;
@@ -61,6 +126,22 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
   const look = () => { if (selRef.current && selRef.current !== RANGE) setInspect(true); };
   const lookRef = useRef(look); lookRef.current = look;
   const leaveRef = useRef(onLeave); leaveRef.current = onLeave;
+  /** The damage report up (X): which target's file, and which page (0 before, 1 after, 2 the photo). */
+  const reportOn = !!report && report.bosses.length > 0;
+  const [showReport, setShowReport] = useState(false);
+  const reportRef = useRef(showReport); reportRef.current = showReport;
+  const reportOnRef = useRef(reportOn); reportOnRef.current = reportOn;
+  const [rIndex, setRIndex] = useState(0);
+  const [rView, setRView] = useState(1);
+  const nBosses = report?.bosses.length ?? 0;
+  const nRef = useRef(nBosses); nRef.current = nBosses;
+  const reportMove = (dx: number, dy: number) => {
+    const n = nRef.current;
+    if (!n) return;
+    setRIndex(i => dx ? (Math.floor(i / 4) * 4 + ((i % 4) + dx + 4) % 4) % n : Math.max(0, Math.min(n - 1, i + dy * 4)));
+  };
+  const reportView = (d: number) => setRView(v => (v + d + 3) % 3);
+  const toggleReport = () => { if (reportOnRef.current) setShowReport(v => !v); };
 
   const step = (d: number) => {
     const i = Math.max(0, order.indexOf(selRef.current ?? order[0]));
@@ -89,6 +170,18 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
     const onKey = (e: KeyboardEvent) => {
       if (practiceRef.current) return;
       const k = e.key.toLowerCase();
+      // The damage report: round the files, round the pages, and X (or Esc) to put it away
+      if (reportRef.current) {
+        e.preventDefault();
+        if (k === 'x' || k === 'escape' || k === 'backspace') setShowReport(false);
+        else if (k === 'tab' || k === 'enter' || k === ' ') reportView(e.shiftKey ? -1 : 1);
+        else if (k === 'arrowright' || k === 'd') reportMove(1, 0);
+        else if (k === 'arrowleft' || k === 'a') reportMove(-1, 0);
+        else if (k === 'arrowdown' || k === 's') reportMove(0, 1);
+        else if (k === 'arrowup' || k === 'w') reportMove(0, -1);
+        return;
+      }
+      if (k === 'x' && !inspectRef.current) { toggleReport(); return; }
       if ((k === 'enter' || k === ' ') && selRef.current === RANGE && !inspectRef.current) { e.preventDefault(); setPractice(true); return; }
       // (up close: Esc puts it back; Enter does too)
       if (inspectRef.current && (k === 'escape' || k === 'backspace' || k === 'enter' || k === ' ')) { e.preventDefault(); setInspect(false); return; }
@@ -99,13 +192,25 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
       else if (k === 'arrowright' || k === 'd' || k === 'arrowdown' || k === 's') stepRef.current(1);
       else if (k === 'arrowleft' || k === 'a' || k === 'arrowup' || k === 'w') stepRef.current(-1);
     };
-    const onMouse = (e: MouseEvent) => { if (e.button === 2 && !practiceRef.current) { if (inspectRef.current) setInspect(false); else leaveRef.current(); } };
+    const onMouse = (e: MouseEvent) => { if (e.button === 2 && !practiceRef.current) { if (reportRef.current) setShowReport(false); else if (inspectRef.current) setInspect(false); else leaveRef.current(); } };
     window.addEventListener('keydown', onKey);
     window.addEventListener('mousedown', onMouse);
-    let raf = 0, last = 0, prevB = true, prevA = true, prevY = true;
+    let raf = 0, last = 0, prevB = true, prevA = true, prevY = true, prevX = true, prevL = true, prevR = true;
     const poll = () => {
       const gp = getActiveGamepad();
-      if (gp && practiceRef.current) { prevB = true; prevA = true; prevY = true; }
+      if (gp && practiceRef.current) { prevB = true; prevA = true; prevY = true; prevX = true; }
+      else if (gp && reportRef.current) {
+        // (the damage report's up: the stick round the files, the shoulders round the pages, X or B to put it away)
+        const now = Date.now(), m = getGamepadMovement(gp, 0.3);
+        const dx = m.left ? -1 : m.right ? 1 : 0, dy = m.up ? -1 : m.down ? 1 : 0;
+        if ((dx || dy) && now - last > REPEAT_MS) { last = now; reportMove(dx, dy); }
+        const x = isButtonPressed(gp, GP_BUTTONS.X), b = isButtonPressed(gp, menuButtons(gp).back);
+        const l = isButtonPressed(gp, GP_BUTTONS.LB), r = isButtonPressed(gp, GP_BUTTONS.RB);
+        if ((x && !prevX) || (b && !prevB)) setShowReport(false);
+        if (l && !prevL) reportView(-1);
+        if (r && !prevR) reportView(1);
+        prevX = x; prevB = b; prevL = l; prevR = r; prevA = true; prevY = true;
+      }
       else if (gp) {
         const now = Date.now(), m = getGamepadMovement(gp, 0.3);
         const d = m.right || m.down ? 1 : m.left || m.up ? -1 : 0;
@@ -115,7 +220,9 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
         const y = isButtonPressed(gp, GP_BUTTONS.Y);
         if (a && !prevA) { if (inspectRef.current) setInspect(false); else if (selRef.current === RANGE) setPractice(true); else lookRef.current(); }
         if (y && !prevY && !inspectRef.current) setPractice(true);
-        prevB = b; prevA = a; prevY = y;
+        const x = isButtonPressed(gp, GP_BUTTONS.X);
+        if (x && !prevX && !inspectRef.current) toggleReport();
+        prevB = b; prevA = a; prevY = y; prevX = x;
       }
       raf = requestAnimationFrame(poll);
     };
@@ -172,6 +279,20 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[] }> = ({ onLe
         </span>
       </button>
       {inspect && s && <Closeup id={s.id} name={s.name} note={s.note} boss={s.boss} onClose={() => setInspect(false)} />}
+      {/* On the wall: the damage report (from the second set on) */}
+      {reportOn && (
+        <button onClick={() => setShowReport(true)}
+          className="absolute right-[10px] top-[62px] px-3 py-2 text-[8px] text-white bg-red-900 border-2 border-red-500 shadow-[3px_3px_0_#000] hover:bg-red-800">
+          <span className="inline-flex items-center gap-2"><Prompt pad={['X']} kb={['X']} size={18} />DAMAGE REPORT</span>
+        </button>
+      )}
+      {showReport && report && (
+        <div className="absolute inset-0 z-[85] bg-black flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300" onContextMenu={e => e.preventDefault()}>
+          <GarageCorner />
+          <div className="relative w-full h-full flex flex-col items-center"><DamageReport bosses={report.bosses} index={Math.min(rIndex, report.bosses.length - 1)} view={rView} killRecords={report.killRecords}
+            onSelect={setRIndex} onView={setRView} onClose={() => setShowReport(false)} closeLabel="PUT IT AWAY" titleClass={setTitleClass('DAMAGE REPORT')} /></div>
+        </div>
+      )}
       {practice && <PracticeRange weapons={weapons} onLeave={() => setPractice(false)} />}
     </div>
   );

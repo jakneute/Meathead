@@ -36,7 +36,9 @@ const DamageReport: React.FC<{
   onView: (v: number) => void;
   onClose: () => void;
   titleClass: string;
-}> = ({ bosses, index, view, killRecords, onSelect, onView, onClose, titleClass }) => {
+  /** What closing it says (where it puts you back). */
+  closeLabel?: string;
+}> = ({ bosses, index, view, killRecords, onSelect, onView, onClose, titleClass, closeLabel = 'BACK' }) => {
   const id = bosses[Math.min(index, bosses.length - 1)];
   const photo = view === 2;
   const tabs = (
@@ -56,7 +58,7 @@ const DamageReport: React.FC<{
     <div className={`flex ${photo ? 'flex-row justify-center gap-5' : 'flex-col gap-1 border-2 border-dashed border-zinc-700 p-2'} text-[7px] font-mono text-zinc-400 tracking-wider`}>
       <Prompt pad={['DPAD']} kb={['ARROWS']} mouse="left" label="PICK A TARGET" size={13} />
       <Prompt pad={['LB', 'RB']} kb={['TAB']} label="BEFORE / AFTER / PHOTO" size={13} />
-      <button onClick={onClose} className="self-start"><Prompt pad={['X']} kb={['X']} mouse="left" label="BACK TO THE MAP" size={13} /></button>
+      <button onClick={onClose} className="self-start"><Prompt pad={['X']} kb={['X']} mouse="left" label={closeLabel} size={13} /></button>
     </div>
   );
   const card = (b: string, i: number, small: boolean) => {
