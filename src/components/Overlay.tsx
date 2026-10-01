@@ -203,7 +203,7 @@ const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onStartGame, onSel
   <>
     {cheats && <CheatPanel rank={progressionRank + (whiteHouseOpen ? 1 : 0)} cheats={cheats} musicOn={musicOn !== false} />}
     <div className="animate-in fade-in zoom-in duration-700 max-w-lg relative w-full h-full flex flex-col items-center justify-center pt-1 pb-1">
-      <MeatheadCaricature />
+      <MeatheadCaricature shitty={!!cheats?.flags.shittyPants} />
       <h1 className="text-3xl md:text-4xl text-red-600 mb-3 font-black tracking-tighter drop-shadow-[3px_3px_0px_white] shrink-0">MEATHEAD</h1>
       <div className="flex flex-col items-center gap-2 shrink-0">
         {TITLE_OPTIONS.map((o, i) => {

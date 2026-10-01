@@ -1,9 +1,13 @@
 import React from 'react';
 
-/** Title-screen portrait of Meathead: double-biceps flex, snarling, veins popping. */
-const MeatheadCaricature: React.FC = () => (
-  <div className="relative w-36 h-44 md:w-40 md:h-48 mb-1.5 mx-auto drop-shadow-[0_0_20px_rgba(239,68,68,0.4)]">
-    <svg viewBox="0 0 200 250" className="w-full h-full overflow-visible">
+/**
+ * Title-screen portrait of Meathead: double-biceps flex, snarling, veins popping. Head to boots, in his proportions
+ * (legs as long as his torso, thick through the thighs). `shitty`: the shitty pants cheat's on, and it shows: the seat
+ * and the inside of his legs gone brown, runs down to his boots, the stink coming up off him, flies.
+ */
+const MeatheadCaricature: React.FC<{ shitty?: boolean }> = ({ shitty = false }) => (
+  <div className="relative w-[124px] h-[186px] md:w-[136px] md:h-[204px] mb-1.5 mx-auto drop-shadow-[0_0_20px_rgba(239,68,68,0.4)]">
+    <svg viewBox="0 0 200 300" className="w-full h-full overflow-visible">
       <defs>
         <radialGradient id="meatGlow" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#EF4444" stopOpacity="0.45" />
@@ -54,6 +58,12 @@ const MeatheadCaricature: React.FC = () => (
           @keyframes mh-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.012, 1.02); } }
           @keyframes mh-throb { 0%, 100% { stroke-width: 2.2; } 50% { stroke-width: 3.4; } }
           @keyframes mh-glint { 0%, 88% { opacity: 0; } 90%, 96% { opacity: 1; } }
+          .mh-stink { animation: mh-stink 2.4s linear infinite; }
+          .mh-stink2 { animation: mh-stink 2.4s linear infinite; animation-delay: -1.2s; }
+          @keyframes mh-stink { 0% { transform: translateY(0); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translateY(-46px); opacity: 0; } }
+          .mh-fly { animation: mh-fly 1.1s linear infinite; }
+          .mh-fly2 { animation: mh-fly 1.4s linear infinite reverse; }
+          @keyframes mh-fly { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         `}</style>
       </defs>
 
@@ -151,20 +161,46 @@ const MeatheadCaricature: React.FC = () => (
         <circle cx="130" cy="196" r="2.5" fill="#E5E7EB" stroke="#000" strokeWidth="1.5" />
       </g>
 
-      {/* Combat pants and boots */}
+      {/* Combat pants: legs as long as his torso, quads bulging through them, a knee, then down to the boots */}
       <g>
-        <path d="M60 206 L55 240 L95 240 L98 215 L102 215 L105 240 L145 240 L140 206 Z" fill="url(#pantsGrad)" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
-        <line x1="72" y1="210" x2="68" y2="236" stroke="#1E40AF" strokeWidth="2" />
-        <line x1="128" y1="210" x2="132" y2="236" stroke="#1E40AF" strokeWidth="2" />
-        <rect x="76" y="214" width="14" height="10" rx="1.5" fill="none" stroke="#0B1330" strokeWidth="1.5" />
-        <rect x="110" y="214" width="14" height="10" rx="1.5" fill="none" stroke="#0B1330" strokeWidth="1.5" />
-        <rect x="52" y="238" width="44" height="12" rx="3" fill="#18181B" stroke="#000" strokeWidth="3" />
-        <rect x="104" y="238" width="44" height="12" rx="3" fill="#18181B" stroke="#000" strokeWidth="3" />
-        <path d="M58 241 l4 3 M64 241 l4 3 M110 241 l4 3 M116 241 l4 3" stroke="#71717A" strokeWidth="1.2" />
-        <rect x="84" y="240" width="12" height="9" rx="1" fill="#94A3B8" />
-        <rect x="136" y="240" width="12" height="9" rx="1" fill="#94A3B8" />
-        <path d="M86 242 h4 M138 242 h4" stroke="#F1F5F9" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M60 204 C49 222 50 242 58 254 L61 280 L93 280 L94 254 C96 240 97 228 98 218 Q100 214 102 218 C103 228 104 240 106 254 L107 280 L139 280 L142 254 C150 242 151 222 140 204 Z" fill="url(#pantsGrad)" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
+        {/* Quad sweep, the knee creases, the outer seams */}
+        <path d="M58 218 Q66 236 64 250 M142 218 Q134 236 136 250" stroke="#1E40AF" strokeWidth="2.5" fill="none" />
+        <path d="M60 256 Q72 260 86 256 M140 256 Q128 260 114 256" stroke="#0B1330" strokeWidth="2" fill="none" />
+        <path d="M60 262 L62 278 M140 262 L138 278" stroke="#1E40AF" strokeWidth="2" />
+        {/* Cargo pockets on the thighs */}
+        <rect x="72" y="224" width="16" height="14" rx="1.5" fill="none" stroke="#0B1330" strokeWidth="1.5" />
+        <rect x="112" y="224" width="16" height="14" rx="1.5" fill="none" stroke="#0B1330" strokeWidth="1.5" />
+        <path d="M72 228 h16 M112 228 h16" stroke="#0B1330" strokeWidth="1.2" />
+        {/* Boots: laced, a thick sole, the steel toes */}
+        <rect x="55" y="278" width="42" height="16" rx="3" fill="#18181B" stroke="#000" strokeWidth="3" />
+        <rect x="103" y="278" width="42" height="16" rx="3" fill="#18181B" stroke="#000" strokeWidth="3" />
+        <path d="M61 281 l4 3 M67 281 l4 3 M73 281 l4 3 M107 281 l4 3 M113 281 l4 3 M119 281 l4 3" stroke="#71717A" strokeWidth="1.2" />
+        <rect x="55" y="291" width="42" height="4" fill="#09090B" />
+        <rect x="103" y="291" width="42" height="4" fill="#09090B" />
+        <rect x="84" y="280" width="12" height="10" rx="1" fill="#94A3B8" />
+        <rect x="132" y="280" width="12" height="10" rx="1" fill="#94A3B8" />
+        <path d="M86 282 h4 M134 282 h4" stroke="#F1F5F9" strokeWidth="1.5" strokeLinecap="round" />
       </g>
+
+      {/* The shitty pants cheat: the seat and the insides of his legs gone brown, runs down to his boots, the stink, flies */}
+      {shitty && <g>
+        {/* a wet brown blotch soaked through round the crotch and up under the belt, spreading down the insides of his thighs */}
+        <path d="M84 207 Q92 205 99 208 Q107 204 116 207 Q121 214 115 219 Q118 226 110 230 Q106 236 104 244 Q102 238 100 222 Q98 238 96 244 Q94 236 90 230 Q82 226 85 219 Q79 214 84 207 Z" fill="#6B4423" opacity="0.8" />
+        <path d="M89 210 Q99 208 111 210 Q113 216 106 220 Q100 222 94 220 Q87 216 89 210 Z" fill="#4A2E14" opacity="0.75" />
+        <path d="M87 222 Q84 226 88 229 M113 222 Q116 226 112 229" stroke="#4A2E14" strokeWidth="2" fill="none" opacity="0.6" />
+        {/* runs down the insides of both legs to the boots */}
+        <path d="M96 240 Q95 252 95 262 Q94 270 95 276 M92 232 Q90 242 91 250 M104 240 Q105 252 105 264 Q106 271 105 277 M108 232 Q110 240 109 248" stroke="#5C3A1A" strokeWidth="2.6" fill="none" strokeLinecap="round" opacity="0.9" />
+        <circle cx="91" cy="251" r="1.8" fill="#5C3A1A" /><circle cx="109" cy="249" r="1.8" fill="#5C3A1A" />
+        <ellipse cx="95" cy="278" rx="3" ry="1.6" fill="#5C3A1A" /><ellipse cx="105" cy="279" rx="3" ry="1.6" fill="#5C3A1A" />
+        <path d="M88 209 Q93 207 98 208" stroke="#8B5A2B" strokeWidth="1.5" fill="none" opacity="0.7" />
+        {/* the stink, coming up off him */}
+        <g className="mh-stink"><path d="M40 236 q-5 -6 0 -12 q5 -6 0 -12 M160 236 q5 -6 0 -12 q-5 -6 0 -12" stroke="#84CC16" strokeWidth="2.5" fill="none" strokeLinecap="round" /></g>
+        <g className="mh-stink2"><path d="M52 250 q-5 -6 0 -12 q5 -6 0 -12 M148 250 q5 -6 0 -12 q-5 -6 0 -12" stroke="#A3E635" strokeWidth="2" fill="none" strokeLinecap="round" /></g>
+        {/* flies, going round his backside */}
+        <g style={{ transformOrigin: '100px 226px' }} className="mh-fly"><circle cx="128" cy="218" r="2" fill="#09090B" /><path d="M127 216 l-2 -3 M129 216 l2 -3" stroke="#CBD5E1" strokeWidth="1" /></g>
+        <g style={{ transformOrigin: '100px 230px' }} className="mh-fly2"><circle cx="70" cy="236" r="2" fill="#09090B" /><path d="M69 234 l-2 -3 M71 234 l2 -3" stroke="#CBD5E1" strokeWidth="1" /></g>
+      </g>}
 
       {/* Neck: thick as a tree trunk */}
       <path d="M80 66 L78 84 L122 84 L120 66 Z" fill="#C68B45" stroke="#000" strokeWidth="4" strokeLinejoin="round" />
