@@ -7,6 +7,7 @@
 // ride down in hud.ts.
 
 import { drawDumpster } from './dumpster';
+import { drawHydrant } from '../../render/props/hydrant';
 import { brickPattern, checker, bandedGradient, hazeBands, pixelBlob } from '../../render/pixelArt';
 import type { GameState } from '../../core/state';
 import type { Enemy } from '../../../types';
@@ -452,13 +453,16 @@ const drawProp = (ctx: Ctx, state: GameState, pr: Prop) => {
       ctx.strokeStyle = '#78350F'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x - 16, y); ctx.lineTo(x - 10, y - 30); ctx.moveTo(x + 16, y); ctx.lineTo(x + 10, y - 30); ctx.stroke();
       if (Math.floor(f / 20) % 2) { ctx.fillStyle = '#FDE047'; ctx.beginPath(); ctx.arc(x, y - 42, 4, 0, Math.PI * 2); ctx.fill(); }
       break;
-    case 'hydrant':
-      ctx.fillStyle = '#DC2626'; ctx.fillRect(x - 8, y - 30, 16, 30); ctx.fillRect(x - 12, y - 20, 24, 6);
-      ctx.beginPath(); ctx.arc(x, y - 30, 8, Math.PI, 0); ctx.fill();
-      break;
+    case 'hydrant': drawHydrant(ctx, x, y); break;
     case 'hydrantspray':
-      ctx.fillStyle = '#DC2626'; ctx.fillRect(x - 8, y - 30, 16, 30);
-      ctx.fillStyle = 'rgba(147, 197, 253, 0.6)'; for (let k = 0; k < 10; k++) { const t = ((f * 2 + k * 9) % 40) / 40; ctx.fillRect(x + 10 + t * 120, y - 22 - Math.sin(t * Math.PI) * 60, 4, 4); }
+      // (cracked open by the kids, the side nozzle gushing out across the street)
+      drawHydrant(ctx, x, y, { open: true });
+      for (let k = 0; k < 16; k++) {
+        const t = ((f * 2 + k * 9) % 40) / 40;
+        ctx.fillStyle = k % 3 ? 'rgba(147, 197, 253, 0.7)' : 'rgba(240, 249, 255, 0.85)';
+        ctx.fillRect(Math.round(x + 15 + t * 130), Math.round(y - 19 - Math.sin(t * Math.PI) * 50 + t * 16), 4 - Math.floor(t * 2), 4 - Math.floor(t * 2));
+      }
+      ctx.fillStyle = 'rgba(147, 197, 253, 0.35)'; ctx.beginPath(); ctx.ellipse(x + 110, y + 1, 50, 3, 0, 0, Math.PI * 2); ctx.fill();
       break;
     case 'car': drawCar(ctx, x, y, pr.w ?? 150, pr.v ?? 0, false); break;
     case 'burningcar': drawCar(ctx, x, y, 150, 3, true); drawFlames(ctx, x + 20, y - 60, 110, f); break;

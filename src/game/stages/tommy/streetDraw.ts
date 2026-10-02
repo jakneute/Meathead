@@ -6,6 +6,7 @@
 // road, the junk in it, the bike, the crew on the corner, the
 // man in the hazmat suit with his bottle.
 
+import { drawHydrant } from '../../render/props/hydrant';
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { groundLineAt } from '../../core/terrain';
@@ -291,7 +292,7 @@ const drawOneJunk = (ctx: Ctx, state: GameState, j: RoadJunk, box: { x: number; 
       break;
     }
     case 'hydrant': {
-      ctx.fillStyle = '#DC2626'; ctx.fillRect(j.x - 8, g - 30, 16, 30); ctx.fillRect(j.x - 11, g - 20, 22, 6); ctx.beginPath(); ctx.arc(j.x, g - 30, 8, Math.PI, 0); ctx.fill();
+      ctx.save(); ctx.translate(j.x, g); ctx.scale(0.8, 0.8); drawHydrant(ctx, 0, 0); ctx.restore();
       if (geyserOn(j, f)) {
         // The geyser: brown-green water, straight up
         const hgt = 200 + Math.sin(f * 0.5) * 12;
