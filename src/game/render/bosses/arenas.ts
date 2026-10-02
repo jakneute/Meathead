@@ -37,9 +37,15 @@ export const drawCustomBossArena = (
       if (state) drawHectorFilth(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, state.hectorFilthShown);
       break;
     case 'Drug Trade Dale':
-      drawDaleArena(ctx, arenaLeft, arenaRight, arenaW, ceilingY, groundY, frame);
-      // (more of it wrecked every time his truck's been through: see drawDaleRuin)
-      if (state) { const d = state.enemies.find(e => e.type === 'boss') ?? state.deadBoss ?? undefined; drawDaleRuin(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, Math.min(1, (d?.truckPasses ?? 0) / DALE_RUIN_PASSES)); }
+      {
+        // (more of it wrecked every time his truck's been through: what's standing goes crooked, then goes over, and
+        // lies where it fell: see drawDaleDisarray and drawDaleRuin)
+        const d = state ? state.enemies.find(e => e.type === 'boss') ?? state.deadBoss ?? undefined : undefined;
+        const runs = d?.truckPasses ?? 0;
+        drawDaleArena(ctx, arenaLeft, arenaRight, arenaW, ceilingY, groundY, frame, runs);
+        drawDaleRuin(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, Math.min(1, runs / DALE_RUIN_PASSES));
+        drawDaleDisarray(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, runs);
+      }
       if (state) drawDaleWalls(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, state.enemies.find(e => e.type === 'boss') ?? state.deadBoss ?? undefined, state.doorState === 'done');
       break;
     case 'Blackout Barry':
@@ -699,6 +705,83 @@ const drawHectorArena = (
  * ========================================================================= */
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 
+/**
+ * How the truck's left the place, run by run (`n`: how many times it's been through): what's still standing goes
+ * crooked first (a shelf leaning, the portrait askew, a sign swinging off one chain), then over it all goes, and
+ * lands here: the shelving units down across the floor with their stock spilled out of them, the signs down, the
+ * blood pressure machine on its side, the wet floor sign kicked over, pill bottles and boxes and baskets everywhere.
+ * Nothing's taken away: it's all still there, just where a truck put it.
+ */
+const DALE_FALL = { gondola0: 4, gondola1: 5, signs: 4, portrait: 4, bp: 3, wet: 1 };
+const daleTilt = (n: number, fallsAt: number) => (n >= fallsAt ? -1 : Math.min(1, Math.max(0, n - (fallsAt - 3)) / 2));
+
+const drawDaleDisarray = (ctx: CanvasRenderingContext2D, left: number, right: number, top: number, bottom: number, frame: number, n: number) => {
+  if (n <= 0) return;
+  ctx.save();
+  const stock = ['#EF4444', '#F97316', '#FACC15', '#22C55E', '#3B82F6', '#A855F7', '#F8FAFC', '#EC4899'];
+  // A shelving unit down on its side across the floor, its stock spilled out in front of it
+  const downShelf = (x: number, gw: number, dir: number, seed: number) => {
+    const h = 54;
+    ctx.save(); ctx.translate(x, bottom); ctx.rotate(dir * 0.06);
+    ctx.fillStyle = '#E7E5E4'; ctx.fillRect(dir > 0 ? 0 : -210, -h, 210, h);
+    ctx.fillStyle = '#A8A29E'; ctx.fillRect(dir > 0 ? 0 : -210, -h, 210, 5);
+    ctx.fillStyle = '#78716C'; for (let s = 1; s < 4; s++) ctx.fillRect((dir > 0 ? 0 : -210) + s * 50, -h, 4, h);
+    ctx.fillStyle = '#57534E'; ctx.fillRect(dir > 0 ? 0 : -210, -4, 210, 4);
+    ctx.restore();
+    for (let k = 0; k < 26; k++) {
+      const hsh = hash(seed + k * 3.3);
+      const bx = x + dir * (10 + hash(seed + k) * 240), bw = 8 + hsh * 8, bh = 6 + hash(seed + k + 9) * 10;
+      ctx.save(); ctx.translate(bx, bottom - bh / 2 - (k % 3) * 3); ctx.rotate((hsh - 0.5) * 2.4);
+      ctx.fillStyle = stock[Math.floor(hsh * stock.length)]; ctx.fillRect(-bw / 2, -bh / 2, bw, bh);
+      ctx.restore();
+    }
+    void gw;
+  };
+  if (daleTilt(n, DALE_FALL.gondola0) < 0) downShelf(left + 60, 180, 1, 11);
+  if (daleTilt(n, DALE_FALL.gondola1) < 0) downShelf(left + 420, 150, -1, 29);
+  // The aisle signs, down
+  if (n >= DALE_FALL.signs) {
+    for (const [sx, color, text, rot] of [[left + 170, '#2563EB', 'PAIN RELIEF', 0.2], [left + 330, '#7C3AED', 'SLEEP AIDS', -0.35]] as [number, string, string, number][]) {
+      ctx.save(); ctx.translate(sx, bottom - 12); ctx.rotate(rot);
+      ctx.fillStyle = color; ctx.fillRect(-50, -11, 100, 22);
+      ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 6px "Press Start 2P", sans-serif'; ctx.textAlign = 'center'; ctx.fillText(text, 0, 3);
+      ctx.restore();
+    }
+  }
+  // Dale's portrait, face down on the floor, the frame cracked
+  if (n >= DALE_FALL.portrait) {
+    ctx.save(); ctx.translate(left + 300, bottom - 6); ctx.rotate(0.08);
+    ctx.fillStyle = '#CA8A04'; ctx.fillRect(-36, -8, 72, 9); ctx.fillStyle = '#78350F'; ctx.fillRect(-36, -8, 72, 2);
+    ctx.restore();
+  }
+  // The blood pressure machine, on its side
+  if (n >= DALE_FALL.bp) {
+    ctx.save(); ctx.translate(left + 520, bottom); ctx.rotate(-Math.PI / 2 + 0.05);
+    ctx.fillStyle = '#1E40AF'; ctx.fillRect(0, 0, 50, 120); ctx.fillStyle = '#93C5FD'; ctx.fillRect(8, 10, 34, 20);
+    ctx.fillStyle = '#DC2626'; ctx.fillRect(12, 60, 26, 26);
+    ctx.restore();
+  }
+  // The wet floor sign, kicked over
+  if (n >= DALE_FALL.wet) {
+    ctx.save(); ctx.translate(left + 230, bottom - 4); ctx.rotate(1.4);
+    ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(0, -40); ctx.lineTo(12, 0); ctx.fill();
+    ctx.restore();
+  }
+  // Pill bottles, boxes, baskets everywhere (more every run)
+  for (let k = 0; k < Math.min(80, n * 14); k++) {
+    const x = left + 20 + hash(k * 7.7 + 3) * (right - left - 40), hsh = hash(k * 1.9 + 5);
+    ctx.save(); ctx.translate(x, bottom - 3 - (k % 4)); ctx.rotate((hsh - 0.5) * 3);
+    if (k % 9 === 0) { ctx.strokeStyle = '#DC2626'; ctx.lineWidth = 2; ctx.strokeRect(-9, -6, 18, 10); }
+    else if (k % 3 === 0) { ctx.fillStyle = '#F59E0B'; ctx.fillRect(-3, -6, 6, 9); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-3, -8, 6, 2); }
+    else { ctx.fillStyle = stock[Math.floor(hsh * stock.length)]; ctx.fillRect(-5, -4, 10, 7); }
+    ctx.restore();
+  }
+  // Pills spilled in drifts, glinting
+  ctx.fillStyle = '#FDE68A';
+  for (let k = 0; k < Math.min(160, n * 26); k++) ctx.fillRect(Math.round(left + 30 + hash(k * 3.1 + 40) * (right - left - 60)), bottom - 2 - Math.round(hash(k + 77) * 3), 2, 2);
+  ctx.restore();
+};
+
 /** How many runs of the truck through the place it takes to leave it a smoldering ruin. */
 const DALE_RUIN_PASSES = 6;
 
@@ -738,16 +821,6 @@ const drawDaleRuin = (ctx: CanvasRenderingContext2D, left: number, right: number
     ctx.strokeStyle = '#1C1917'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(hx, top + 20); ctx.quadraticCurveTo(hx + 10, top + 50, hx + 4 + Math.sin(frame * 0.05 + i) * 3, top + 70); ctx.stroke();
     if ((frame + i * 17) % 50 < 4) { ctx.fillStyle = '#FDE047'; ctx.fillRect(hx + 2, top + 68, 4, 4); ctx.fillRect(hx - 2, top + 72, 2, 2); ctx.fillRect(hx + 7, top + 74, 2, 2); }
   }
-  // Holes right through the back wall: the night outside, brick in the torn edges
-  const breaches = k > 0.4 ? Math.round((k - 0.35) * 6) : 0;
-  for (let i = 0; i < breaches; i++) {
-    const bx = at(i, 4), by = top + 70 + hash(i + 40) * 140, br = 30 + hash(i + 41) * 30 + (k - 0.4) * 50;
-    ctx.save();
-    ctx.beginPath(); for (let s = 0; s < 12; s++) { const a = (s / 12) * Math.PI * 2, r = br * (0.7 + hash(i * 12 + s) * 0.45); ctx.lineTo(bx + Math.cos(a) * r, by + Math.sin(a) * r * 0.8); } ctx.closePath();
-    ctx.fillStyle = '#B91C1C'; ctx.fill();
-    ctx.clip(); bandedGradient(ctx, bx - br, by - br, br * 2, br * 2, ['#2E1A55', '#5A2A62', '#A8406E', '#D07068'], 6);
-    ctx.restore();
-  }
   // Junk on the floor: plaster, glass, pill bottles, a toppled sign
   if (k > 0.15) {
     for (let j = 0; j < Math.round(k * 30); j++) {
@@ -759,7 +832,7 @@ const drawDaleRuin = (ctx: CanvasRenderingContext2D, left: number, right: number
   // Soot over everything, and the ceiling mostly gone at the end
   if (k > 0.65) {
     const a = (k - 0.65) / 0.35;
-    ctx.fillStyle = `rgba(12, 10, 9, ${0.35 * a})`; ctx.fillRect(left, top, w, bottom - top);
+    ctx.fillStyle = `rgba(12, 10, 9, ${0.18 * a})`; ctx.fillRect(left, top, w, bottom - top);
     ctx.fillStyle = `rgba(12, 10, 9, ${0.9 * a})`; ctx.fillRect(left, top, w, 34);
     // smoke rolling along under the roof
     for (let i = 0; i < 9; i++) {
@@ -791,7 +864,8 @@ const drawDaleArena = (
   w: number,
   top: number,
   bottom: number,
-  frame: number
+  frame: number,
+  runs = 0,
 ) => {
   // 0. Above the ceiling: the roof's dark underside, ducts and joists
   ctx.fillStyle = '#292524'; ctx.fillRect(left - 40, top - 200, w + 80, 200);
@@ -812,7 +886,16 @@ const drawDaleArena = (
   ctx.strokeStyle = '#A8A29E'; for (let x = left; x < right; x += 60) { ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, top + 34); ctx.stroke(); }
   for (let i = 0; i < 4; i++) {
     const lx = left + 70 + i * 170;
-    const on = !(i === 2 && Math.floor(frame / 9) % 11 < 2);
+    // (knocked loose by the runs through: more of them out, hanging off one end, swinging)
+    const loose = runs >= 1 + i;
+    const on = !(i === 2 && Math.floor(frame / 9) % 11 < 2) && !(runs >= 2 + i * 2);
+    if (loose) {
+      ctx.save(); ctx.translate(lx, top + 36); ctx.rotate(0.5 + Math.sin(frame * 0.05 + i) * 0.08);
+      ctx.fillStyle = on ? '#FEFCE8' : '#A8A29E'; ctx.fillRect(0, -4, 110, 8);
+      ctx.restore();
+      if (on && (frame + i * 13) % 37 < 3) { ctx.fillStyle = '#FDE047'; ctx.fillRect(lx + 4, top + 40, 3, 3); }
+      continue;
+    }
     ctx.fillStyle = on ? '#FEFCE8' : '#A8A29E'; ctx.fillRect(lx, top + 34, 110, 8);
     if (on) {
       // (its pool of light down the wall, in steps)
@@ -826,6 +909,16 @@ const drawDaleArena = (
 
   // 3. Hanging signs down the aisles
   const hangSign = (x: number, text: string, color: string) => {
+    // (swinging off one chain once it's been hit, down on the floor after: see drawDaleDisarray)
+    if (runs >= DALE_FALL.signs) return;
+    if (runs >= 2) {
+      ctx.save(); ctx.translate(x + 30, top + 34); ctx.rotate(0.6 + Math.sin(frame * 0.06) * 0.1);
+      ctx.strokeStyle = '#57534E'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 26); ctx.stroke();
+      ctx.fillStyle = color; ctx.fillRect(-80, 26, 100, 22);
+      ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 6px "Press Start 2P", sans-serif'; ctx.textAlign = 'center'; ctx.fillText(text, -30, 40);
+      ctx.restore();
+      return;
+    }
     ctx.strokeStyle = '#57534E'; ctx.beginPath(); ctx.moveTo(x - 30, top + 34); ctx.lineTo(x - 30, top + 60); ctx.moveTo(x + 30, top + 34); ctx.lineTo(x + 30, top + 60); ctx.stroke();
     ctx.fillStyle = color; ctx.fillRect(x - 50, top + 60, 100, 22);
     ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 6px "Press Start 2P", sans-serif'; ctx.textAlign = 'center'; ctx.fillText(text, x, top + 74);
@@ -834,7 +927,13 @@ const drawDaleArena = (
   hangSign(left + 340, 'SLEEP AIDS', '#7C3AED');
 
   // 4. The aisles: shelves of boxes and bottles
-  const gondola = (x: number, gw: number) => {
+  const gondola = (x: number, gw: number, fallsAt: number, dir: number) => {
+    // (leaning more every run, then over: it's down on the floor, see drawDaleDisarray; a clean patch on the wall
+    // where it stood)
+    const lean = daleTilt(runs, fallsAt);
+    if (lean < 0) { ctx.fillStyle = 'rgba(255, 255, 255, 0.25)'; ctx.fillRect(x, bottom - 214, gw, 214); return; }
+    ctx.save();
+    if (lean > 0) { const px = dir > 0 ? x + gw : x; ctx.translate(px, bottom); ctx.rotate(dir * lean * 0.22); ctx.translate(-px, -bottom); }
     ctx.fillStyle = '#E7E5E4'; ctx.fillRect(x, bottom - 210, gw, 210);
     ctx.fillStyle = '#A8A29E'; ctx.fillRect(x, bottom - 214, gw, 6);
     for (let s = 0; s < 4; s++) {
@@ -844,22 +943,32 @@ const drawDaleArena = (
         const hsh = hash(x + s * 31 + k * 7);
         const bx = x + 8 + k * 16, bh = 18 + hsh * 18;
         ctx.fillStyle = ['#EF4444', '#F97316', '#FACC15', '#22C55E', '#3B82F6', '#A855F7', '#F8FAFC', '#EC4899'][Math.floor(hsh * 8)];
+        // (shaken off the shelves, more of the stock gone every run)
+        if (hash(x + s * 13 + k * 3) < runs * 0.15) continue;
         if (hsh > 0.5) ctx.fillRect(bx, sy + 40 - bh, 12, bh);
         else { ctx.beginPath(); ctx.roundRect(bx + 1, sy + 40 - bh, 10, bh, 3); ctx.fill(); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(bx + 2, sy + 40 - bh - 3, 8, 3); }
       }
     }
     ctx.fillStyle = '#DC2626'; ctx.fillRect(x + gw / 2 - 20, bottom - 232, 40, 16);
     ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 5px "Press Start 2P", sans-serif'; ctx.textAlign = 'center'; ctx.fillText('SALE!', x + gw / 2, bottom - 221);
+    ctx.restore();
   };
-  gondola(left + 60, 180);
-  gondola(left + 270, 150);
+  gondola(left + 60, 180, DALE_FALL.gondola0, 1);
+  gondola(left + 270, 150, DALE_FALL.gondola1, -1);
 
   // 5. The pharmacy counter at the back: pill shelves, Rx, a neon sign, Dale's face
   const cx = right - 290, cw = 250;
   ctx.fillStyle = '#F5F5F4'; ctx.fillRect(cx, bottom - 290, cw, 200);
   for (let s = 0; s < 4; s++) {
     ctx.fillStyle = '#A8A29E'; ctx.fillRect(cx + 10, bottom - 250 + s * 40, cw - 20, 3);
-    for (let k = 0; k < 14; k++) { ctx.fillStyle = hash(k + s * 20) > 0.3 ? '#F59E0B' : '#F8FAFC'; ctx.fillRect(cx + 14 + k * 16, bottom - 266 + s * 40, 10, 16); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(cx + 14 + k * 16, bottom - 270 + s * 40, 10, 4); }
+    for (let k = 0; k < 14; k++) {
+      // (knocked off the shelves, more every run; the ones left tipped over)
+      if (hash(k * 5 + s * 11 + 3) < runs * 0.13) continue;
+      const tip = hash(k + s * 7 + 1) < runs * 0.1;
+      ctx.fillStyle = hash(k + s * 20) > 0.3 ? '#F59E0B' : '#F8FAFC';
+      if (tip) { ctx.fillRect(cx + 12 + k * 16, bottom - 256 + s * 40, 16, 10); continue; }
+      ctx.fillRect(cx + 14 + k * 16, bottom - 266 + s * 40, 10, 16); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(cx + 14 + k * 16, bottom - 270 + s * 40, 10, 4);
+    }
   }
   ctx.save();
   ctx.shadowColor = '#22C55E'; ctx.shadowBlur = 14;
@@ -877,22 +986,32 @@ const drawDaleArena = (
   ctx.fillStyle = '#6D28D9'; ctx.fillRect(cx - 10, bottom - 90, cw + 20, 10);
   ctx.fillStyle = '#A8A29E'; ctx.fillRect(cx - 10, bottom - 6, cw + 20, 6);
   ctx.fillStyle = '#4C1D95'; ctx.font = 'bold 26px serif'; ctx.fillText('Rx', cx + cw / 2, bottom - 36);
-  // Dale's framed portrait
+  // Dale's framed portrait (crooked after a run or two; down on the floor after that, a clean patch where it hung)
   const px = left + 345;
+  if (runs >= DALE_FALL.portrait) { ctx.fillStyle = 'rgba(255, 255, 255, 0.35)'; ctx.fillRect(px - 30, bottom - 330, 60, 72); ctx.fillStyle = '#57534E'; ctx.fillRect(px - 1, bottom - 336, 2, 4); }
+  else {
+  ctx.save(); if (runs >= 1) { ctx.translate(px, bottom - 334); ctx.rotate(0.12 * Math.min(runs, 3)); ctx.translate(-px, -(bottom - 334)); }
   ctx.fillStyle = '#CA8A04'; ctx.fillRect(px - 30, bottom - 330, 60, 72);
   ctx.fillStyle = '#6D28D9'; ctx.fillRect(px - 24, bottom - 324, 48, 60);
   ctx.fillStyle = '#F5CBA7'; ctx.beginPath(); ctx.arc(px, bottom - 300, 11, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#111'; ctx.fillRect(px - 11, bottom - 316, 22, 7); ctx.fillStyle = '#FF007F'; ctx.fillRect(px - 9, bottom - 304, 18, 4);
   ctx.fillStyle = '#FDE047'; ctx.font = '4px "Press Start 2P", sans-serif'; ctx.fillText('PHARMACIST', px, bottom - 268); ctx.fillText('OF EVERY MONTH', px, bottom - 262);
+  ctx.restore();
+  }
 
   // 6. Odds and ends: a blood pressure machine, a security mirror, a wet floor sign
   const bpx = left + 450;
-  ctx.fillStyle = '#1E40AF'; ctx.fillRect(bpx, bottom - 120, 50, 120); ctx.fillStyle = '#93C5FD'; ctx.fillRect(bpx + 8, bottom - 110, 34, 20);
-  ctx.fillStyle = '#DC2626'; ctx.fillRect(bpx + 12, bottom - 60, 26, 26); ctx.fillStyle = '#FFFFFF'; ctx.font = '4px "Press Start 2P", sans-serif'; ctx.fillText('FREE', bpx + 25, bottom - 45);
+  if (runs < DALE_FALL.bp) {
+    ctx.fillStyle = '#1E40AF'; ctx.fillRect(bpx, bottom - 120, 50, 120); ctx.fillStyle = '#93C5FD'; ctx.fillRect(bpx + 8, bottom - 110, 34, 20);
+    ctx.fillStyle = '#DC2626'; ctx.fillRect(bpx + 12, bottom - 60, 26, 26); ctx.fillStyle = '#FFFFFF'; ctx.font = '4px "Press Start 2P", sans-serif'; ctx.fillText('FREE', bpx + 25, bottom - 45);
+  }
   ctx.fillStyle = '#E5E7EB'; ctx.beginPath(); ctx.arc(right - 30, top + 70, 22, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = 'rgba(148, 163, 184, 0.6)'; ctx.beginPath(); ctx.arc(right - 30, top + 70, 18, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.moveTo(left + 250, bottom); ctx.lineTo(left + 262, bottom - 40); ctx.lineTo(left + 274, bottom); ctx.fill();
-  ctx.fillStyle = '#111'; ctx.font = '4px "Press Start 2P", sans-serif'; ctx.fillText('WET', left + 262, bottom - 14);
+  if (runs >= 2) { ctx.strokeStyle = '#334155'; ctx.lineWidth = 1; for (let c = 0; c < 5; c++) { const a = c * 1.3; ctx.beginPath(); ctx.moveTo(right - 34, top + 66); ctx.lineTo(right - 34 + Math.cos(a) * 18, top + 66 + Math.sin(a) * 18); ctx.stroke(); } }
+  if (runs < DALE_FALL.wet) {
+    ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.moveTo(left + 250, bottom); ctx.lineTo(left + 262, bottom - 40); ctx.lineTo(left + 274, bottom); ctx.fill();
+    ctx.fillStyle = '#111'; ctx.font = '4px "Press Start 2P", sans-serif'; ctx.fillText('WET', left + 262, bottom - 14);
+  }
 
   // 7. The floor: checkerboard linoleum, the slab under it
   ctx.fillStyle = '#57534E'; ctx.fillRect(left - 40, bottom, w + 80, 70);
@@ -934,8 +1053,8 @@ const drawDaleWalls = (ctx: CanvasRenderingContext2D, left: number, right: numbe
       const t = frame - (boss.leftThroughAt ?? down);
       const n = Math.max(1, boss.leftThroughs ?? 1);
       // (bigger every time it's come through: higher up the wall, further into the shop)
-      const hy = bottom - Math.min(bottom - top - 6, 330 + (n - 1) * 45);
-      const W = Math.min(440, 130 + (n - 1) * 70);
+      const hy = bottom - Math.min(380, 330 + (n - 1) * 15);
+      const W = Math.min(190, 130 + (n - 1) * 15);
       drawBreach(ctx, lx, W, hy, top, bottom, 1, n, outside);
       // (the door frame, bent over in the hole, a few teeth of glass still in it)
       ctx.fillStyle = '#9CA3AF';
@@ -980,8 +1099,8 @@ const drawDaleWalls = (ctx: CanvasRenderingContext2D, left: number, right: numbe
     // its edges, the wall and ceiling over it coming down after, a heap of it across the floor
     const t = frame - (boss.rightThroughAt ?? down);
     const n = Math.max(1, boss.rightThroughs ?? 1);
-    const ry = bottom - Math.min(bottom - top - 6, 190 + (n - 1) * 55);
-    const RW = Math.min(440, 50 + (n - 1) * 75);
+    const ry = bottom - Math.min(320, 190 + (n - 1) * 25);
+    const RW = Math.min(150, 50 + (n - 1) * 20);
     ctx.fillStyle = '#E7E5E4'; ctx.fillRect(rx, top, 40, bottom - top);
     ctx.fillStyle = '#A8A29E'; ctx.fillRect(rx, top, 6, bottom - top);
     drawBreach(ctx, rx + 40, RW, ry, top, bottom, -1, n, outside);
