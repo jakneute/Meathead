@@ -34,6 +34,7 @@ import { selfPropelled } from './kinds/hector';
 import { copMelee, isMeleeCop } from './copMelee';
 import { submerged } from './kinds/victor';
 import { isMidBoss } from '../combat/midBoss';
+import { isBeingTased } from '../combat/statusEffects';
 
 /** On the screen right now (the view as drawn, pulled back or pushed in included). */
 const onCamera = (state: FrameContext['state'], e: Enemy) => {
@@ -79,7 +80,7 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
   if (e.isOiled) updateOiledDrips(ctx, e);
 
   const { player } = state;
-  if ((e.frozenTimer && e.frozenTimer > 0) || (e.isTased && player.isTasing && player.taserTargetId === e.id)) {
+  if ((e.frozenTimer && e.frozenTimer > 0) || (e.isTased && isBeingTased(player, e))) {
     // A frozen enemy stays frozen while it's flying from a shove
     if (e.frozenTimer && !isBeingShoved(e)) e.frozenTimer--;
   } else {

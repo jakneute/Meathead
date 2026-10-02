@@ -312,6 +312,9 @@ export const TASER_DOT_DAMAGE = 3;
 export const TASER_TICK_RATE = 6;
 export const TASER_AMMO_CONSUMPTION_RATE = 5;
 export const TASER_FIRE_THRESHOLD = 120;
+/** The current jumps from whatever the taser's got to anyone this close to it (edge to edge, px), and on from them, to
+ * this many more at most. */
+export const TASER_CHAIN_REACH = 36, TASER_CHAIN_MAX = 6;
 export const TASER_BOSS_DAMAGE_REDUCTION = 0.5;
 export const TASER_OVERLOAD_FRAMES = 300;   // taser is unusable after bursting Oily Oscar
 

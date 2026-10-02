@@ -180,6 +180,10 @@ export interface Player extends Entity {
   // Taser
   isTasing?: boolean;
   taserTargetId?: string | null;
+  /** The taser's current jumping on from what it's got hold of to anyone right up against it, and on from them: who's
+   * caught (ids), and the links it's jumped (from, to), for drawing. */
+  taserChain?: string[];
+  taserLinks?: [string, string][];
   taserTimer?: number;
   /** Frames until the taser works again (it overloads after bursting Oily Oscar). */
   taserOverloadTimer?: number;

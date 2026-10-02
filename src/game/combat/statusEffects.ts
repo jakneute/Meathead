@@ -3,7 +3,7 @@
 import { Enemy, Projectile } from '../../types';
 import {
   CANVAS_WIDTH, TASER_RANGE, TASER_DOT_DAMAGE, TASER_FIRE_THRESHOLD,
-  TASER_TICK_RATE, TASER_AMMO_CONSUMPTION_RATE, FIRE_TICK_RATE, FIRE_DOT_DAMAGE,
+  TASER_TICK_RATE, TASER_AMMO_CONSUMPTION_RATE, TASER_CHAIN_REACH, TASER_CHAIN_MAX, FIRE_TICK_RATE, FIRE_DOT_DAMAGE,
   FIRE_DOT_DAMAGE_HEAVY, NEEDLE_DOT_TICK_RATE, NEEDLE_DOT_DAMAGE_PER_STACK,
 } from '../../constants';
 import { FrameContext, killBoss } from '../core/context';
@@ -26,6 +26,45 @@ const cutTaser = (player: FrameContext['state']['player']) => {
   player.taserTargetId = null;
   player.taserTimer = 0;
   player.taserSpent = true;
+  player.taserChain = []; player.taserLinks = [];
+};
+
+/** Is this one being tased right now (what the taser's got hold of, or someone the current's jumped to from it)? */
+export const isBeingTased = (player: FrameContext['state']['player'], e: { id: string }) =>
+  !!player.isTasing && (player.taserTargetId === e.id || !!player.taserChain?.includes(e.id));
+
+/** Can the current jump to this one: a regular enemy, alive, standing right up against one that's live (not a boss, not
+ * a mid-boss, not something in the water: that's its own business)? */
+const chainable = (ctx: FrameContext, e: Enemy) => e.type !== 'boss' && !isMidBoss(e) && e.health > 0 && !e.isBlownAway
+  && !getStageLayout(ctx.stageId)?.waterBodyAt?.(ctx.state, e.pos.x + e.width / 2, e.pos.y + e.height * 0.6);
+const gapBetween = (a: Enemy, b: Enemy) => Math.max(0, Math.max(a.pos.x, b.pos.x) - Math.min(a.pos.x + a.width, b.pos.x + b.width), Math.max(a.pos.y, b.pos.y) - Math.min(a.pos.y + a.height, b.pos.y + b.height));
+
+/** Whoever the current's jumped on to from `from` this frame: anyone right up against a live one, a link at a time. */
+const chainFrom = (ctx: FrameContext, from: Enemy) => {
+  const { player, enemies } = ctx.state;
+  const caught: Enemy[] = [from], links: [string, string][] = [];
+  for (let i = 0; i < caught.length && caught.length - 1 < TASER_CHAIN_MAX; i++) {
+    for (const e of enemies) {
+      if (caught.length - 1 >= TASER_CHAIN_MAX) break;
+      if (caught.includes(e) || !chainable(ctx, e) || gapBetween(caught[i], e) > TASER_CHAIN_REACH) continue;
+      caught.push(e); links.push([caught[i].id, e.id]);
+    }
+  }
+  player.taserChain = caught.slice(1).map(e => e.id);
+  player.taserLinks = links;
+  return caught.slice(1);
+};
+
+/** One tick of the current through one of them: damage, frying it if that does it; fire once it's been held long enough. */
+const zapOne = (ctx: FrameContext, e: Enemy) => {
+  const { state, fx, player } = { ...ctx, player: ctx.state.player };
+  e.isTased = true;
+  if (state.frame % TASER_TICK_RATE === 0) {
+    e.health -= TASER_DOT_DAMAGE;
+    fx.spawnDamageNumber(e.pos, TASER_DOT_DAMAGE);
+    if (e.health <= 0) { fx.killWithAnimation(e, 'fried', 'taser_kill', 'fried'); return; }
+  }
+  if (player.taserTimer! >= TASER_FIRE_THRESHOLD && !e.isOnFire) { e.isOnFire = true; e.ignitedByTaser = true; fx.playGunSound('ignite'); }
 };
 
 export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
@@ -48,11 +87,14 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
     player.isTasing = false;
     player.taserTargetId = null;
     player.taserTimer = 0;
+    player.taserChain = []; player.taserLinks = [];
     return;
   }
 
   if (!player.isTasing) fireWeapon(ctx, input);
   if (!player.isTasing) return;
+  // (who the current's jumped to is worked out afresh each frame, from whatever it's got hold of)
+  player.taserChain = []; player.taserLinks = [];
   // Into the water with the beam still going: it goes straight back up it into him
   if (player.swimming && state.deathTimer <= 0) { cutTaser(player); tasedHimself(ctx); return; }
 
@@ -125,22 +167,23 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
     const body = getStageLayout(stageId)?.waterBodyAt?.(state, target.pos.x + target.width / 2, target.pos.y + target.height * 0.6);
     if (body) { shockWater(ctx, target as Enemy, body); cutTaser(player); return; }
   }
-  target.isTased = true;
-  if (state.frame % TASER_TICK_RATE === 0) {
-    target.health -= TASER_DOT_DAMAGE;
-    fx.spawnDamageNumber(target.pos, TASER_DOT_DAMAGE);
-    if (target.health <= 0) {
-      if (target.type === 'enemy') {
-        fx.killWithAnimation(target as Enemy, 'fried', 'taser_kill', 'fried');
-      }
-      cutTaser(player);
-      return;
+  // The current jumps on from it to anyone right up against it, and on from them (the daisy chain): all of them held,
+  // fried and set alight the same as it
+  const chained = target.type === 'enemy' ? chainFrom(ctx, target as Enemy) : [];
+  if (target.type === 'enemy') { for (const e of chained) zapOne(ctx, e); zapOne(ctx, target as Enemy); }
+  else {
+    target.isTased = true;
+    if (state.frame % TASER_TICK_RATE === 0) {
+      target.health -= TASER_DOT_DAMAGE;
+      fx.spawnDamageNumber(target.pos, TASER_DOT_DAMAGE);
     }
+    if (player.taserTimer! >= TASER_FIRE_THRESHOLD && !target.isOnFire) { target.isOnFire = true; fx.playGunSound('ignite'); }
   }
-  if (player.taserTimer! >= TASER_FIRE_THRESHOLD && !target.isOnFire) {
-    target.isOnFire = true;
-    if (target.type === 'enemy') (target as Enemy).ignitedByTaser = true;
-    fx.playGunSound('ignite');
+  if (target.health <= 0) {
+    // (it's down: the beam stays on while any of the chain's still standing, on the toughest of them, till that's down too)
+    const left = chained.filter(e => e.health > 0 && !e.isBlownAway).sort((a, b) => b.health - a.health);
+    if (left.length) { player.taserTargetId = left[0].id; player.taserChain = left.slice(1).map(e => e.id); }
+    else cutTaser(player);
   }
 };
 
@@ -194,7 +237,7 @@ export const updateBurningProjectiles = (ctx: FrameContext) => {
       }
       if (state.frame % 2 === 0) spawnFlames(ctx, p, false);
     }
-    if (!player.isTasing || player.taserTargetId !== p.id) p.isTased = false;
+    if (!isBeingTased(player, p)) p.isTased = false;
   });
 };
 
@@ -246,7 +289,7 @@ export const updateEnemyStatusEffects = (ctx: FrameContext) => {
 
     if (e.type === 'boss') {
       if (e.health > 0 && state.arenaLocked) updateBossAI(ctx, e);
-    } else if (!e.isBlownAway && ((e.frozenTimer && e.frozenTimer > 0) || (e.isTased && player.isTasing && player.taserTargetId === e.id)) && (e.pauseTimer || 0) <= 0) {
+    } else if (!e.isBlownAway && ((e.frozenTimer && e.frozenTimer > 0) || (e.isTased && isBeingTased(player, e))) && (e.pauseTimer || 0) <= 0) {
       // (held still: frozen, or tased; a body on its way out never is)
       e.vel.x = 0;
       e.vel.y = 0;

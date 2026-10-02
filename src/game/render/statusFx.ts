@@ -23,7 +23,7 @@ export const statusTint = (e: Enemy, state: GameState): { color: string; alpha: 
 };
 
 export const isTasedNow = (e: Enemy, state: GameState) =>
-  !!e.isTased && state.player.isTasing && state.player.taserTargetId === e.id;
+  !!e.isTased && state.player.isTasing && (state.player.taserTargetId === e.id || !!state.player.taserChain?.includes(e.id));
 
 /** How he shakes on the end of the taser: a pixel or two either way, not all over the place. */
 export const tasedJitter = (state: GameState) => {
@@ -236,6 +236,14 @@ export const drawTaserBeam = (ctx: Ctx, state: GameState) => {
   }
   const cx = target.pos.x + target.width / 2, cy = target.pos.y + target.height / 2;
   // The two darts: one high in him, one low
+  // The current jumping on from it to whoever's right up against it, and on from them
+  for (const [a, b] of player.taserLinks ?? []) {
+    const ea = enemies.find(e => e.id === a), eb = enemies.find(e => e.id === b);
+    if (!ea || !eb) continue;
+    ctx.beginPath();
+    arcPath(ctx, ea.pos.x + ea.width / 2, ea.pos.y + ea.height / 2, eb.pos.x + eb.width / 2, eb.pos.y + eb.height / 2, 10, step * 29 + a.length * 7 + b.length, 6);
+    strokeCurrent(ctx);
+  }
   const darts: [number, number][] = [[cx - player.facing * 2, cy - Math.min(10, target.height * 0.2)], [cx + player.facing * 2, cy + Math.min(8, target.height * 0.18)]];
   const dist = Math.hypot(cx - sx, cy - sy);
   const sag = Math.min(16, dist * 0.04);
