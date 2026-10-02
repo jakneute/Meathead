@@ -18,6 +18,9 @@ import { COURSE } from './course';
 import { rideProgress, RIDE_FRAMES, wreckBox, FloatingWreck, JetSki } from './jetski';
 import { TOURISTS, FADE_IN, DROP_AT, IMPACT_AT, skiDrop, tourWrecked, tourLaughing } from './alcatraz';
 import { drawAlcatraz, bubble } from './draw';
+import { drawPerson } from '../../render/npc/person';
+import type { PersonSpec, Pose } from '../../render/npc/person';
+import { INK, ink, limb, shaded } from '../../render/npc/kit';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -131,35 +134,53 @@ const drawHipster = (ctx: Ctx, state: GameState, js: JetSki) => {
   ctx.translate(h.x, h.y);
   if (h.state === 'flying') ctx.rotate(h.rot);
   if (h.state === 'swimming') {
-    // Just his head and a flailing arm, and the man bun
+    // Just his head above the water (the glasses, the bun, yelling) and a flailing arm
     ctx.translate(0, Math.sin(state.frame * 0.15) * 2);
-    ctx.fillStyle = '#E0AC69'; ctx.beginPath(); ctx.arc(0, -4, 8, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#4A2F1D'; ctx.beginPath(); ctx.arc(0, -13, 4, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#111827'; ctx.lineWidth = 2; ctx.strokeRect(-6, -7, 5, 4); ctx.strokeRect(1, -7, 5, 4);
-    ctx.fillStyle = '#E0AC69'; ctx.save(); ctx.translate(8, -2); ctx.rotate(-1.2 + Math.sin(state.frame * 0.3) * 0.6); ctx.fillRect(0, -2, 16, 4); ctx.restore();
+    const a = -1.2 + Math.sin(state.frame * 0.3) * 0.6, ax = 9 + Math.cos(a) * 16, ay = 2 + Math.sin(a) * 16;
+    limb(ctx, 9, 4, ax, ay, 5.5, HIPSTER.top.color);
+    ink(ctx, () => ctx.arc(ax, ay, 3.4, 0, Math.PI * 2), HIPSTER.skin, 0.8);
+    ctx.save(); ctx.beginPath(); ctx.rect(-30, -40, 60, 43); ctx.clip();
+    hipsterFigure(ctx, 58, { mouth: 'open', f: state.frame });
+    ctx.restore();
     ctx.restore();
     return;
   }
-  drawHipsterBody(ctx, h.state === 'sitting');
+  drawHipsterBody(ctx, h.state === 'sitting', h.state === 'flying' ? 'flung' : h.lineT > 0 ? 'talking' : 'sat', state.frame);
   ctx.restore();
 };
 
-/** The hipster (his feet at 0, 0; sat, up on a seat): skinny jeans, flannel, beard, big glasses, man bun, a kombucha. */
-const drawHipsterBody = (ctx: Ctx, sit: boolean) => {
-  ctx.save();
-  ctx.translate(0, sit ? -22 : 0);
-  ctx.fillStyle = '#1E3A8A'; ctx.fillRect(-10, -8, 22, 7); ctx.fillRect(8, -8, 5, 16);
-  ctx.fillStyle = '#7F1D1D'; ctx.fillRect(-10, -36, 20, 30);
-  ctx.fillStyle = '#111827'; for (let y = -34; y < -8; y += 6) ctx.fillRect(-10, y, 20, 2);
-  for (let x = -8; x < 10; x += 6) ctx.fillRect(x, -36, 2, 28);
-  ctx.fillStyle = '#E0AC69'; ctx.beginPath(); ctx.arc(1, -45, 9, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#4A2F1D'; ctx.beginPath(); ctx.ellipse(3, -39, 8, 7, 0, 0, Math.PI); ctx.fill();
-  ctx.beginPath(); ctx.arc(-3, -56, 5, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(-7, -54, 16, 4);
-  ctx.strokeStyle = '#111827'; ctx.lineWidth = 2; ctx.strokeRect(0, -49, 6, 5); ctx.strokeRect(7, -49, 5, 5);
-  // The kombucha
-  ctx.fillStyle = '#E0AC69'; ctx.fillRect(8, -30, 10, 4);
-  ctx.fillStyle = '#D97706'; ctx.fillRect(16, -38, 6, 14);
-  ctx.restore();
+/** The hipster: skinny jeans, flannel, the beard, the man bun. */
+const HIPSTER: PersonSpec = {
+  skin: '#E0AC69', hair: { style: 'bun', color: '#4A2F1D' }, face: 'beard', eyes: 'glasses', build: 'slim',
+  top: { style: 'flannel', color: '#991B1B' }, legs: { color: '#1E3A8A' }, shoes: '#78350F',
+};
+
+/** His kombucha: a brown bottle, the label, the cap. */
+const kombucha = (ctx: Ctx, hx: number, hy: number) => {
+  ink(ctx, () => ctx.roundRect(hx - 2, hy - 11, 6, 12, 2), '#B45309', 0.8);
+  ink(ctx, () => ctx.rect(hx - 0.5, hy - 15, 3, 4), '#B45309', 0.7);
+  ctx.fillStyle = '#F5F5F4'; ctx.fillRect(hx - 1.6, hy - 8, 5.2, 4);
+  ctx.fillStyle = '#16A34A'; ctx.fillRect(hx - 0.6, hy - 7, 3, 2);
+  ctx.fillStyle = '#FCD34D'; ctx.fillRect(hx - 1, hy - 10, 1, 7);
+  ink(ctx, () => ctx.rect(hx - 1, hy - 16.5, 4, 1.8), '#1C1917', 0.5);
+};
+
+/** Him, feet at (0, y): the townsfolk figure, then the big thick-rimmed glasses over the little ones. */
+const hipsterFigure = (ctx: Ctx, y: number, pose: Pose) => {
+  drawPerson(ctx, 0, y, HIPSTER, pose);
+  const ey = y - 63;
+  ctx.strokeStyle = '#1C1917'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.roundRect(-0.6, ey - 2.8, 5, 4.6, 1); ctx.roundRect(4.9, ey - 2.8, 5, 4.6, 1); ctx.stroke();
+};
+
+/** The hipster (his feet at 0, 0; sat, on a seat at -24): kombucha in hand, or flung, or yelling, or laid out. */
+const drawHipsterBody = (ctx: Ctx, sit: boolean, mood: 'sat' | 'talking' | 'flung' | 'yelling' | 'dead' = 'sat', f = 0) => {
+  hipsterFigure(ctx, sit ? -1 : 0, {
+    seated: sit, f,
+    arms: mood === 'flung' || mood === 'dead' ? 'up' : 'hold',
+    mouth: mood === 'sat' ? 'flat' : mood === 'talking' ? 'talk' : mood === 'dead' ? 'o' : 'open',
+    prop: mood === 'dead' ? undefined : kombucha,
+  });
 };
 
 /**
@@ -172,7 +193,7 @@ export const drawHipsterOnSki = (ctx: Ctx, x: number, y: number, rot: number, f:
   ctx.translate(x, y - 30); ctx.rotate(rot); ctx.translate(0, 30);
   if (charred) ctx.filter = 'brightness(0.18)';
   drawSki(ctx, f, '#F59E0B');
-  drawHipsterBody(ctx, true);
+  drawHipsterBody(ctx, true, charred ? 'yelling' : 'talking', f);
   ctx.restore();
 };
 
@@ -195,7 +216,7 @@ export const drawHipsterDrilling = (ctx: Ctx, x: number, y: number, f: number) =
   ctx.rotate(Math.PI / 2);
   ctx.translate(0, 30);
   drawSki(ctx, f, '#F59E0B');
-  drawHipsterBody(ctx, true);
+  drawHipsterBody(ctx, true, 'yelling', f);
   ctx.restore();
   // Sparks off the tip where it's grinding through
   ctx.fillStyle = '#FDE047';
@@ -204,8 +225,9 @@ export const drawHipsterDrilling = (ctx: Ctx, x: number, y: number, f: number) =
 };
 
 /**
- * What's left of him, on top of the pile of them: flat on his back across the top of it, arms flung out, scorched but
- * plainly him (the flannel, the beard, the glasses cracked, the man bun), his kombucha spilt beside him, smoking.
+ * What's left of him, on top of the pile of them: flat on his back across the top of it, arms flung out over his head,
+ * scorched but plainly him (the flannel, the beard, the glasses cracked, the man bun), his kombucha spilt beside him,
+ * smoking.
  */
 export const drawHipsterDead = (ctx: Ctx, x: number, y: number, f: number) => {
   ctx.save();
@@ -216,18 +238,16 @@ export const drawHipsterDead = (ctx: Ctx, x: number, y: number, f: number) => {
   ctx.save();
   ctx.filter = 'brightness(0.85)';
   ctx.rotate(-Math.PI / 2 + 0.08);
-  drawHipsterBody(ctx, false);
-  // An X in each lens of his glasses (drawn with him, so they sit right in them)
+  ctx.scale(0.82, 0.82);
+  drawHipsterBody(ctx, false, 'dead', f);
+  // Soot on him, an X in each lens (drawn with him, so they sit right in them)
   ctx.filter = 'none';
-  ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 1;
-  for (const cx of [3, 9.5]) { ctx.beginPath(); ctx.moveTo(cx - 2, -48.5); ctx.lineTo(cx + 2, -44.5); ctx.moveTo(cx + 2, -48.5); ctx.lineTo(cx - 2, -44.5); ctx.stroke(); }
+  ctx.fillStyle = 'rgba(28, 25, 23, 0.45)'; for (let k = 0; k < 7; k++) ctx.fillRect(-8 + hash(k + 70) * 14, -50 + hash(k + 71) * 24, 3 + hash(k + 72) * 4, 2);
+  ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 0.9;
+  for (const cx of [1.9, 7.4]) { ctx.beginPath(); ctx.moveTo(cx - 1.6, -65.4); ctx.lineTo(cx + 1.6, -61.8); ctx.moveTo(cx + 1.6, -65.4); ctx.lineTo(cx - 1.6, -61.8); ctx.stroke(); }
   ctx.restore();
-  // Arms flung out either side
-  ctx.fillStyle = '#5B1414';
-  ctx.save(); ctx.translate(-26, -6); ctx.rotate(-0.9); ctx.fillRect(0, -3, 22, 6); ctx.restore();
-  ctx.save(); ctx.translate(-30, 2); ctx.rotate(0.7); ctx.fillRect(0, -3, 20, 6); ctx.restore();
   // His kombucha, spilt
-  ctx.fillStyle = '#D97706'; ctx.save(); ctx.translate(34, 6); ctx.rotate(1.4); ctx.fillRect(-3, -7, 6, 14); ctx.restore();
+  ctx.save(); ctx.translate(34, 6); ctx.rotate(1.4); kombucha(ctx, -1, 7); ctx.restore();
   ctx.fillStyle = 'rgba(217, 119, 6, 0.5)'; ctx.beginPath(); ctx.ellipse(44, 10, 12, 3, 0, 0, Math.PI * 2); ctx.fill();
   // Smoking
   for (let i = 0; i < 3; i++) { const t = ((f * 0.6 + i * 40) % 120) / 120; ctx.fillStyle = `rgba(60, 55, 50, ${0.5 * (1 - t)})`; ctx.beginPath(); ctx.arc(-10 + i * 14 + Math.sin(i + f * 0.02) * 6, -12 - t * 70, 5 + t * 12, 0, Math.PI * 2); ctx.fill(); }
@@ -424,33 +444,100 @@ export const TOURIST_LOOKS: Record<string, { shirt: string; pants: string; skin:
   guide: { shirt: '#166534', pants: '#A16207', skin: '#E0AC69', h: 62 },
 };
 
+/**
+ * What each of them's got on: dad's Hawaiian shirt, shorts, visor and camera; mom's sun hat and shades; the kid's
+ * cap; the selfie girl's ponytail; grandpa's bucket hat, specs and mustache; the backpacker's beanie and beard; the
+ * ranger's hat, badge and name tag.
+ */
+const TOURIST_SPECS: Record<string, PersonSpec> = {
+  dad: {
+    skin: '#F2B8A0', hair: { style: 'short', color: '#78716C' }, hat: { style: 'visor', color: '#F8FAFC' }, eyes: 'shades', build: 'fat',
+    top: { style: 'shirt', color: '#F97316', long: false }, legs: { color: '#D6D3D1', style: 'shorts' }, shoes: '#78350F',
+    extra: c => {
+      // (the flowers, then the camera round his neck)
+      for (const [fx, fy] of [[-8, -48], [3, -45], [-4, -38], [7, -35], [-9, -32]]) { c.fillStyle = '#FDE047'; c.fillRect(fx - 2, fy - 0.8, 4, 1.6); c.fillRect(fx - 0.8, fy - 2, 1.6, 4); c.fillStyle = '#DC2626'; c.fillRect(fx - 0.5, fy - 0.5, 1, 1); }
+      c.strokeStyle = INK; c.lineWidth = 0.8; c.beginPath(); c.moveTo(-4, -52); c.lineTo(0, -42); c.lineTo(5, -52); c.stroke();
+      ink(c, () => c.roundRect(-4, -43, 10, 7, 1.5), '#1F2937', 0.8);
+      ink(c, () => c.arc(1.5, -39.5, 2.4, 0, Math.PI * 2), '#64748B', 0.6);
+      c.fillStyle = '#E2E8F0'; c.fillRect(-3, -42, 2, 1);
+    },
+  },
+  mom: {
+    skin: '#E0AC69', hair: { style: 'long', color: '#7C2D12' }, hat: { style: 'sunhat', color: '#FDE68A' }, eyes: 'shades',
+    top: { style: 'tee', color: '#EC4899', accent: '#F9A8D4' }, legs: { color: '#60A5FA' }, shoes: '#F8FAFC',
+  },
+  kid: {
+    kid: true, skin: '#F2C9A0', hair: { style: 'short', color: '#FDE68A' }, hat: { style: 'cap', color: '#DC2626' },
+    top: { style: 'tee', color: '#FACC15', accent: '#DC2626' }, legs: { color: '#1E3A8A', style: 'shorts' }, shoes: '#3B82F6',
+  },
+  selfie: {
+    skin: '#C68642', hair: { style: 'pony', color: '#1C1917' }, build: 'slim',
+    top: { style: 'tee', color: '#A855F7', accent: '#F0ABFC' }, legs: { color: '#111827' }, shoes: '#F8FAFC',
+  },
+  grandpa: {
+    skin: '#F2C9A0', hair: { style: 'short', color: '#E7E5E4' }, hat: { style: 'bucket', color: '#F5F5F4' }, eyes: 'glasses', face: 'mustache', faceHair: '#E7E5E4', build: 'slim',
+    top: { style: 'shirt', color: '#22C55E', long: false }, legs: { color: '#78716C' }, shoes: '#F8FAFC',
+  },
+  backpacker: {
+    skin: '#8D5524', hair: { style: 'curly', color: '#1C1917' }, hat: { style: 'beanie', color: '#EA580C' }, face: 'beard', faceHair: '#1C1917',
+    top: { style: 'tee', color: '#0EA5E9', accent: '#FDE047' }, legs: { color: '#57534E', style: 'shorts' }, shoes: '#78350F',
+    extra: c => { c.fillStyle = '#3F6212'; c.fillRect(-7, -52, 3, 24); c.fillRect(4, -52, 3, 24); c.fillRect(-7, -40, 14, 2); },
+  },
+  guide: {
+    skin: '#E0AC69', hair: { style: 'short', color: '#78350F' }, hat: { style: 'stetson', color: '#A16207' },
+    top: { style: 'shirt', color: '#166534', accent: '#14532D' }, legs: { color: '#A16207' }, shoes: '#44403C',
+    extra: c => {
+      // (the badge, the name tag)
+      ink(c, () => { for (let k = 0; k < 5; k++) { const a = -Math.PI / 2 + (k * 4 * Math.PI) / 5; c.lineTo(-4 + Math.cos(a) * 3.2, -45 + Math.sin(a) * 3.2); } c.closePath(); }, '#FACC15', 0.6);
+      ink(c, () => c.rect(2, -47, 6, 2.6), '#F8FAFC', 0.5);
+    },
+  },
+};
+
 export const drawTourist = (ctx: Ctx, look: string, i: number, f: number, up: boolean) => {
-  const L = TOURIST_LOOKS[look];
-  const h = L.h;
-  ctx.fillStyle = L.pants; ctx.fillRect(-7, -h * 0.45, 6, h * 0.45); ctx.fillRect(2, -h * 0.45, 6, h * 0.45);
-  ctx.fillStyle = L.shirt; ctx.fillRect(-10, -h * 0.85, 20, h * 0.42);
-  // Hawaiian flowers on dad
-  if (look === 'dad') { ctx.fillStyle = '#FDE047'; for (let k = 0; k < 4; k++) ctx.fillRect(-8 + (k % 2) * 9, -h * 0.8 + Math.floor(k / 2) * 10, 4, 4); }
-  ctx.fillStyle = L.skin; ctx.beginPath(); ctx.arc(0, -h * 0.85 - 8, 8, 0, Math.PI * 2); ctx.fill();
-  // Looking up at the roof, mouths open
-  if (up) { ctx.fillStyle = '#450A0A'; ctx.beginPath(); ctx.ellipse(3, -h * 0.85 - 12, 2, 3, 0, 0, Math.PI * 2); ctx.fill(); }
-  else { ctx.fillStyle = '#111827'; ctx.fillRect(2, -h * 0.85 - 10, 5, 2); }
-  switch (look) {
-    case 'dad': ctx.fillStyle = '#111827'; ctx.fillRect(-4, -h * 0.72, 10, 8); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-9, -h * 0.85 - 18, 18, 4); break; // camera, visor
-    case 'mom': ctx.fillStyle = '#7C2D12'; ctx.fillRect(-9, -h * 0.85 - 16, 18, 10); ctx.fillStyle = '#F472B6'; ctx.fillRect(-12, -h * 0.5, 8, 8); break; // hair, bag
-    case 'kid': ctx.fillStyle = '#DC2626'; ctx.fillRect(-8, -h * 0.85 - 18, 16, 4); ctx.fillStyle = '#F472B6'; ctx.beginPath(); ctx.arc(10, -h * 0.9 - 14, 6, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(9, -h * 0.9 - 8, 1, 20); break; // cap, balloon
-    case 'selfie': ctx.strokeStyle = '#111827'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(6, -h * 0.7); ctx.lineTo(24, -h * 1.2); ctx.stroke(); ctx.fillStyle = '#111827'; ctx.fillRect(21, -h * 1.26, 8, 10); break;
-    case 'grandpa': ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-8, -h * 0.85 - 17, 16, 3); ctx.fillStyle = '#78350F'; ctx.fillRect(12, -h * 0.5, 3, h * 0.5); break; // cane
-    case 'backpacker': ctx.fillStyle = '#65A30D'; ctx.fillRect(-18, -h * 0.85, 10, 22); break;
-    case 'guide': {
-      // The flag on a stick, the ranger hat
-      ctx.fillStyle = '#78350F'; ctx.fillRect(-14, -h * 1.5, 2, h * 1.1);
-      ctx.fillStyle = '#FDE047'; ctx.fillRect(-12, -h * 1.5 + Math.sin(f * 0.1) * 2, 18, 12);
-      ctx.fillStyle = '#A16207'; ctx.fillRect(-12, -h * 0.85 - 16, 24, 3); ctx.fillRect(-6, -h * 0.85 - 22, 12, 7);
-      break;
-    }
+  const L = TOURIST_LOOKS[look], S = TOURIST_SPECS[look];
+  const sc = look === 'kid' ? 0.95 : L.h / 64;
+  // The backpacker's pack, behind him: the bedroll on top, a pocket, a bottle in the side
+  if (look === 'backpacker') {
+    ctx.save(); ctx.scale(sc, sc);
+    ink(ctx, () => ctx.roundRect(-14, -46, 5, 9, 1.5), '#38BDF8', 0.7);
+    shaded(ctx, () => ctx.roundRect(-19, -55, 13, 30, 3), '#65A30D', -19, -55, 13, 30);
+    ink(ctx, () => ctx.roundRect(-20, -60, 15, 6, 3), '#B45309', 0.8);
+    ink(ctx, () => ctx.roundRect(-18, -40, 9, 9, 1.5), '#4D7C0F', 0.7);
+    ctx.restore();
   }
-  void i;
+  // Smiling for the tour; mouths falling open, looking up at the roof, once they hear him coming
+  const mouth = up ? 'o' : look === 'grandpa' ? 'flat' : look === 'dad' || look === 'kid' || look === 'selfie' ? 'grin' : 'smile';
+  const pose: Pose = { mouth, f: f + i * 41 };
+  switch (look) {
+    case 'mom': pose.propBack = (c, hx, hy) => { // the bag
+      c.strokeStyle = INK; c.lineWidth = 0.8; c.beginPath(); c.arc(hx, hy + 2, 3.4, Math.PI, 0); c.stroke();
+      ink(c, () => c.roundRect(hx - 5, hy + 1, 10, 8, 2), '#F472B6', 0.8); c.fillStyle = '#FACC15'; c.fillRect(hx - 1, hy + 3, 2, 1.4);
+    }; break;
+    case 'kid': pose.arms = 'hold'; pose.prop = (c, hx, hy) => { // the balloon
+      c.strokeStyle = '#9CA3AF'; c.lineWidth = 0.8; c.beginPath(); c.moveTo(hx, hy); c.quadraticCurveTo(hx + 6, hy - 20, hx + 3, hy - 32); c.stroke();
+      shaded(c, () => c.ellipse(hx + 3, hy - 41, 7.5, 9, 0, 0, Math.PI * 2), '#F472B6', hx - 5, hy - 50, 16, 18, 0.8);
+      c.fillStyle = '#FBCFE8'; c.fillRect(hx - 1, hy - 46, 2, 3);
+    }; break;
+    case 'selfie': pose.arms = 'up'; pose.prop = (c, hx, hy) => { // the stick, the phone
+      limb(c, hx, hy, hx + 12, hy - 16, 1.6, '#94A3B8');
+      ink(c, () => c.roundRect(hx + 9, hy - 27, 8, 12, 1.5), '#1C1917', 0.8);
+      c.fillStyle = '#38BDF8'; c.fillRect(hx + 10.5, hy - 25.5, 5, 8); c.fillStyle = '#E0F2FE'; c.fillRect(hx + 11, hy - 25, 1.4, 3);
+    }; break;
+    case 'grandpa': pose.arms = 'hold'; pose.prop = (c, hx, hy) => { // the cane
+      limb(c, hx + 1, hy, hx + 3, 0, 2.4, '#78350F');
+      c.strokeStyle = INK; c.lineWidth = 4.4; c.beginPath(); c.arc(hx - 2, hy, 3, Math.PI, 0); c.stroke();
+      c.strokeStyle = '#78350F'; c.lineWidth = 2.4; c.beginPath(); c.arc(hx - 2, hy, 3, Math.PI, 0); c.stroke();
+    }; break;
+    case 'backpacker': pose.arms = 'hips'; break; // (thumbs in his straps)
+    case 'guide': pose.arms = 'point'; pose.propBack = (c, hx, hy) => { // the flag on a stick, up for the tour to follow
+      const top = -96, wave = Math.sin(f * 0.1) * 2;
+      ink(c, () => { c.moveTo(hx + 1, top + 1); c.lineTo(hx + 20, top + 5 + wave); c.lineTo(hx + 19, top + 13 + wave); c.lineTo(hx + 1, top + 13); c.closePath(); }, '#FDE047', 0.8);
+      c.fillStyle = '#CA8A04'; c.fillRect(hx + 4, top + 9, 12, 1.4);
+      limb(c, hx, hy + 6, hx, top, 2, '#78350F');
+    }; break;
+  }
+  drawPerson(ctx, 0, 0, S, pose, sc);
 };
 
 /** What's left: a crater, the ski on fire in it, and the tour all over the place. */

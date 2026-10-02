@@ -19,6 +19,9 @@ import { drawPlayer } from '../../render/player/player';
 import { saying, drawBubble } from './script';
 import { visible, hash } from './draw';
 import { wheelTurn } from '../../render/bosses/daleTruck';
+import { drawPerson } from '../../render/npc/person';
+import type { PersonSpec } from '../../render/npc/person';
+import { INK, ink, shaded } from '../../render/npc/kit';
 
 type Ctx = CanvasRenderingContext2D;
 const Y = GROUND_Y;
@@ -291,6 +294,12 @@ const drawCurioShop = (ctx: Ctx, x: number, hit: boolean) => {
   ctx.fillStyle = '#F472B6'; ctx.fillRect(x + 90, Y - 30, 14, 12); ctx.fillStyle = '#22D3EE'; ctx.fillRect(x + 200, Y - 26, 18, 10); // souvenirs everywhere
 };
 
+/** The guy in the cell: in for a photo, in the souvenir hat and a DEADWOOD GULCH tee. */
+const PRISONER: PersonSpec = {
+  skin: '#F2C9A0', hair: { style: 'short', color: '#78350F' }, face: 'stubble', hat: { style: 'stetson', color: '#1C1917' },
+  top: { style: 'tee', color: '#38BDF8', accent: '#FDE047' }, legs: { color: '#1E3A8A' },
+};
+
 /** The fake jail: stone, bars, JAIL; the guy locked in it, the "sheriff" out front. Or what's left. */
 const drawJail = (ctx: Ctx, state: GameState, town: Town) => {
   const j = COURSE.town.jail;
@@ -318,16 +327,22 @@ const drawJail = (ctx: Ctx, state: GameState, town: Town) => {
   // The cell window, and the guy in it
   const cx = j.x1 + 110, cy = Y - 130;
   ctx.fillStyle = '#0C0A09'; ctx.fillRect(cx, cy, 120, 70);
+  const shake = Math.sin(f * (town.phase === 'jail' ? 1.3 : 0.6)) * (town.phase === 'jail' ? 5 : 2);
   if (town.prisoner.alive) {
-    const shake = Math.sin(f * (town.phase === 'jail' ? 1.3 : 0.6)) * (town.phase === 'jail' ? 5 : 2);
-    ctx.fillStyle = '#F2C9A0'; ctx.beginPath(); ctx.arc(cx + 60 + shake, cy + 34, 12, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#111827'; ctx.fillRect(cx + 54 + shake, cy + 30, 3, 3); ctx.fillRect(cx + 63 + shake, cy + 30, 3, 3);
-    ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.ellipse(cx + 60 + shake, cy + 42, 3, 3, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#F2C9A0'; ctx.fillRect(cx + 38, cy + 18 + shake, 8, 14); ctx.fillRect(cx + 74, cy + 18 - shake, 8, 14);
-    ctx.fillStyle = '#1C1917'; ctx.beginPath(); ctx.ellipse(cx + 60 + shake, cy + 20, 14, 4, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(cx + 52 + shake, cy + 12, 16, 8); // the souvenir hat
+    // Head and shoulders in the window (the souvenir hat, a souvenir tee; his face between two bars), hands up on the
+    // bars, yelling
+    ctx.save(); ctx.beginPath(); ctx.rect(cx, cy, 120, 70); ctx.clip();
+    drawPerson(ctx, cx + 51 + shake, cy + 116.5, PRISONER, { arms: 'up', mouth: town.phase === 'jail' ? 'open' : 'o', f }, 1.33);
+    ctx.restore();
   }
   ctx.fillStyle = '#374151'; for (let x = cx + 6; x < cx + 120; x += 14) ctx.fillRect(x, cy, 4, 70);
   ctx.fillRect(cx, cy, 120, 4); ctx.fillRect(cx, cy + 66, 120, 4);
+  ctx.fillStyle = '#6B7280'; for (let x = cx + 6; x < cx + 120; x += 14) ctx.fillRect(x, cy + 4, 1, 62);
+  // (his fists round the bars, shaking them)
+  if (town.prisoner.alive) for (const [bx, by] of [[cx + 64.3 + shake, cy + 23.4], [cx + 37.7 + shake, cy + 26]]) {
+    ink(ctx, () => ctx.roundRect(bx - 4, by - 3.5, 8, 7, 2.5), '#F2C9A0', 0.9);
+    ctx.fillStyle = '#D4A27C'; ctx.fillRect(bx - 3, by - 0.5, 6, 0.8);
+  }
   // The door, padlocked
   ctx.fillStyle = '#44403C'; ctx.fillRect(j.x2 - 70, Y - 110, 50, 110); ctx.fillStyle = '#FACC15'; ctx.fillRect(j.x2 - 36, Y - 60, 8, 10);
 };
@@ -608,20 +623,32 @@ const drawNinja = (ctx: Ctx, state: GameState, town: Town) => {
   ctx.restore();
 };
 
-/** The "sheriff": a costume badge, a big hat, a mustache; running for it (arms up) once Riggs shows up. */
+/** The "sheriff": a white shirt, a costume vest and star, a big hat, a mustache; running for it (arms up) once Riggs shows up. */
+const SHERIFF: PersonSpec = {
+  skin: '#F2C9A0', hair: { style: 'short', color: '#3F2410' }, face: 'mustache', faceHair: '#3F2410', hat: { style: 'stetson', color: '#D6B98C' },
+  top: { style: 'shirt', color: '#F5F5F4' }, legs: { color: '#44403C' }, shoes: '#5B3417',
+  extra: c => {
+    // (the vest either side, the star on it, the holster)
+    for (const vx of [-9, 3]) shaded(c, () => c.roundRect(vx, -52, 6, 25, [3, 3, 1, 1]), '#6B4423', vx, -52, 6, 25, 0.8);
+    ink(c, () => { for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + (k * Math.PI) / 5, r = k % 2 ? 1.6 : 3.6; c.lineTo(-6 + Math.cos(a) * r, -45 + Math.sin(a) * r); } c.closePath(); }, '#FACC15', 0.6);
+    c.fillStyle = '#FEF9C3'; c.fillRect(-7, -47, 1, 1);
+    ink(c, () => c.roundRect(-11, -28, 5, 9, 1.5), '#5B3417', 0.7);
+  },
+};
+
+/** The keys to the cell, on their ring. */
+const keys = (ctx: Ctx, hx: number, hy: number, f: number) => {
+  const sw = Math.sin(f * 0.3) * 1.5;
+  ctx.strokeStyle = INK; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.arc(hx + 1, hy + 3, 2.6, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = '#D1D5DB'; ctx.lineWidth = 1; ctx.stroke();
+  for (const k of [-1, 1]) { ink(ctx, () => ctx.roundRect(hx + k * 2 + sw - 0.8, hy + 4, 1.8, 6, 0.5), '#CA8A04', 0.5); ink(ctx, () => ctx.rect(hx + k * 2 + sw + 0.8, hy + 8, 1.6, 1), '#CA8A04', 0.4); }
+};
+
 const drawSheriff = (ctx: Ctx, x: number, f: number, running: boolean) => {
-  ctx.save(); ctx.translate(x, Y);
-  const s = running ? Math.sin(f * 0.5) * 7 : 0;
-  ctx.fillStyle = '#44403C'; ctx.fillRect(-8 + s, -28, 7, 28); ctx.fillRect(2 - s, -28, 7, 28);
-  ctx.fillStyle = '#5B3417'; ctx.fillRect(-9 + s, -6, 9, 6); ctx.fillRect(1 - s, -6, 9, 6);
-  ctx.fillStyle = '#F5F5F4'; ctx.fillRect(-11, -56, 22, 30); ctx.fillStyle = '#6B4423'; ctx.fillRect(-11, -56, 7, 30); ctx.fillRect(4, -56, 7, 30);
-  ctx.fillStyle = '#FACC15'; ctx.beginPath(); for (let k = 0; k < 5; k++) { const a = -Math.PI / 2 + (k * 4 * Math.PI) / 5; ctx.lineTo(-7 + Math.cos(a) * 4, -46 + Math.sin(a) * 4); } ctx.fill();
-  ctx.fillStyle = '#F2C9A0'; ctx.beginPath(); ctx.arc(1, -64, 8, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#3F2410'; ctx.fillRect(-2, -62, 10, 3);
-  ctx.fillStyle = '#D6B98C'; ctx.beginPath(); ctx.ellipse(1, -70, 15, 3, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(-7, -79, 16, 9);
-  ctx.fillStyle = '#F2C9A0';
-  if (running) { ctx.fillRect(-12, -76 + s, 4, 18); ctx.fillRect(8, -76 - s, 4, 18); } else { ctx.fillRect(10, -52, 4, 14); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(12, -40, 6, 4); } // (the keys)
-  ctx.restore();
+  drawPerson(ctx, x, Y - (running ? Math.abs(Math.sin(f * 0.5)) * 2 : 0), SHERIFF,
+    running
+      ? { arms: 'up', walk: f * 0.5, stride: 1, mouth: 'open', f, prop: (c, hx, hy) => keys(c, hx, hy - 4, f) }
+      : { arms: 'hold', mouth: 'smile', f, prop: (c, hx, hy) => keys(c, hx, hy, f) });
 };
 
 // ---------------------------------------------------------------------------

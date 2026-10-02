@@ -20,6 +20,9 @@ import { drawDaleKind } from '../../render/enemies/dale';
 import { saying, drawBubble } from './script';
 import { layer, hash } from './draw';
 import { wheelTurn } from '../../render/bosses/daleTruck';
+import { drawPerson } from '../../render/npc/person';
+import type { PersonSpec } from '../../render/npc/person';
+import { ink, limb } from '../../render/npc/kit';
 
 type Ctx = CanvasRenderingContext2D;
 const Y = GROUND_Y;
@@ -195,26 +198,46 @@ const drawTractor = (ctx: Ctx, cx: number, f: number, last: Convoy | null) => {
 };
 
 /** Riggs: a trucker cap, aviators, a big mustache, flannel; on the radio, thumb over the red button (then slumped on the horn). */
+const RIGGS: PersonSpec = {
+  skin: '#E0AC69', hair: { style: 'short', color: '#5B3413' }, hat: { style: 'cap', color: '#1E3A8A' }, eyes: 'shades', face: 'mustache', faceHair: '#5B3413', build: 'fat',
+  top: { style: 'flannel', color: '#B91C1C' }, legs: { color: '#1E3A8A' },
+};
+
 const drawRiggs = (ctx: Ctx, x: number, y: number, f: number, cv: Convoy) => {
   const dead = cv.cab.phase === 'shot' || cv.cab.phase === 'crash';
   // Shot: his head snaps back, then he goes forward, face down on the wheel (and the horn), and stays there
   const k = cv.cab.phase === 'crash' ? 1 : dead ? Math.min(1, cv.cab.t / 24) : 0;
   const snap = dead && cv.cab.t < 5 && cv.cab.phase === 'shot' ? -0.35 : 0;
   const ease = 1 - Math.pow(1 - Math.max(0, (k - 0.2) / 0.8), 3);
+  // (all of it inside the side window)
+  ctx.save(); ctx.beginPath(); ctx.rect(x - 20, y - 16, 38, 28); ctx.clip();
   // The wheel, in front of him
-  ctx.fillStyle = '#27272A'; ctx.beginPath(); ctx.ellipse(x + 13, y + 8, 3, 10, 0.3, 0, Math.PI * 2); ctx.fill();
-  ctx.save(); ctx.translate(x + ease * 7, y + ease * 9);
-  ctx.rotate(snap + ease * 1.25);
-  ctx.fillStyle = '#B91C1C'; ctx.fillRect(-9, 4, 18, 12); // flannel
-  ctx.fillStyle = '#E0AC69'; ctx.beginPath(); ctx.arc(0, -4, 7, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#1E3A8A'; ctx.fillRect(-8, -13, 16, 5); ctx.fillRect(-2, -10, 12, 2); // cap
-  ctx.fillStyle = '#111827'; ctx.fillRect(-4, -6, 11, 3); // aviators
-  ctx.fillStyle = '#5B3413'; ctx.fillRect(-2, -1, 10, 3); // mustache
+  ink(ctx, () => ctx.ellipse(x + 13, y + 8, 3, 10, 0.3, 0, Math.PI * 2), '#27272A', 1);
+  // (bent over at the hips, down below the sill; his head at (0, -4))
+  ctx.save(); ctx.translate(x + ease * 2, y + 22.4);
+  ctx.rotate(snap * 0.5 + ease * 0.5); ctx.translate(0, -22.4);
+  drawPerson(ctx, -0.8, 44.2, RIGGS, { mouth: dead ? 'open' : cv.cab.phase === 'bicker' ? 'talk' : cv.cab.phase === 'standoff' ? 'grin' : 'flat', f }, 0.78);
+  // (aviators: gold rims round the shades)
+  ctx.strokeStyle = '#CA8A04'; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.roundRect(-1.2, -6.7, 7.8, 2.8, 1); ctx.stroke();
   if (!dead) {
-    // The radio at his mouth, the button in his other hand
-    ctx.fillStyle = '#1F2937'; ctx.fillRect(6, -2, 5, 8);
-    if (cv.cab.phase === 'standoff' || cv.cab.phase === 'bicker') { ctx.fillStyle = '#DC2626'; ctx.beginPath(); ctx.arc(-10, 12, 3.5, 0, Math.PI * 2); ctx.fill(); if (f % 20 < 10) { ctx.fillStyle = '#FCA5A5'; ctx.beginPath(); ctx.arc(-10, 12, 2, 0, Math.PI * 2); ctx.fill(); } }
-  } else { ctx.fillStyle = '#7F1D1D'; ctx.fillRect(-3, -8, 5, 5); }
+    // The radio up at his mouth, the button in his other hand
+    ctx.save(); ctx.translate(-0.8, 44.2); ctx.scale(0.78, 0.78);
+    limb(ctx, 7, -48, 12, -56, 5.5, '#B91C1C');
+    ink(ctx, () => ctx.roundRect(10, -66, 6, 11, 1.5), '#1F2937', 0.8);
+    ctx.fillStyle = '#4B5563'; ctx.fillRect(11, -64, 4, 1); ctx.fillRect(11, -62, 4, 1);
+    ink(ctx, () => ctx.arc(12.5, -55, 3.2, 0, Math.PI * 2), '#E0AC69', 0.8);
+    if (cv.cab.phase === 'standoff' || cv.cab.phase === 'bicker') {
+      ink(ctx, () => ctx.roundRect(-14, -44, 9, 8, 1.5), '#374151', 0.8);
+      ink(ctx, () => ctx.arc(-9.5, -42, 3, 0, Math.PI * 2), f % 20 < 10 ? '#FCA5A5' : '#DC2626', 0.7);
+      ink(ctx, () => ctx.arc(-11, -38, 3, 0, Math.PI * 2), '#E0AC69', 0.8);
+    }
+    ctx.restore();
+  } else {
+    // Where it went in, and running
+    ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.arc(-3, -6, 2.4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#B91C1C'; ctx.fillRect(-3.6, -6, 1.4, 6 + k * 4);
+  }
+  ctx.restore();
   ctx.restore();
 };
 
@@ -367,6 +390,11 @@ const drawDebris = (ctx: Ctx, d: Debris) => {
   ctx.restore();
 };
 
+/** The family: dad (polo, mustache, glasses), mom (her hair long), the kid (blond, a tee). */
+const FAMILY_DAD: PersonSpec = { skin: '#F2C9A0', hair: { style: 'short', color: '#44403C' }, eyes: 'glasses', face: 'mustache', top: { style: 'tee', color: '#1D4ED8', accent: '#1D4ED8' }, legs: { color: '#D6C7A1' } };
+const FAMILY_MOM: PersonSpec = { skin: '#F2C9A0', hair: { style: 'long', color: '#7C2D12' }, top: { style: 'tee', color: '#0D9488', accent: '#5EEAD4' }, legs: { color: '#1E3A8A' } };
+const FAMILY_KID: PersonSpec = { kid: true, skin: '#F2C9A0', hair: { style: 'short', color: '#FACC15' }, top: { style: 'tee', color: '#22C55E', accent: '#F8FAFC' }, legs: { color: '#1E3A8A' } };
+
 /** Off the side of a truck, blown up, melted through, or blown up by Riggs. */
 /**
  * The family's SUV, going right: huge, boxy, fake wood down the side, a roof rack piled with luggage and a bike, a
@@ -392,12 +420,20 @@ const drawFamilySuv = (ctx: Ctx, x: number, f: number, hit: boolean) => {
   ctx.fillStyle = '#93C5FD'; ctx.fillRect(l + 8, y - h + 12, 44, 30); ctx.fillRect(l + 58, y - h + 12, 56, 30); ctx.fillRect(l + 120, y - h + 12, 52, 30);
   ctx.fillStyle = '#F8FAFC'; ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 1.5;
   for (let k = 0; k < 5; k++) { const sx = l + 13 + k * 8, sh = k < 2 ? 14 : 9; ctx.beginPath(); ctx.arc(sx, y - h + 40 - sh - 3, 2, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.moveTo(sx, y - h + 40 - sh - 1); ctx.lineTo(sx, y - h + 36); ctx.stroke(); }
-  // Heads: the kid, mom, dad (dad's got his eyes on the road. Very much on the road)
-  const head = (hx: number, hy: number, r: number, hair: string) => { ctx.fillStyle = '#F2C9A0'; ctx.beginPath(); ctx.arc(hx, hy, r, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = hair; ctx.beginPath(); ctx.arc(hx, hy - 2, r, Math.PI, 0); ctx.fill(); };
-  head(l + 86, y - h + 34, 6, '#FACC15');
-  head(l + 134, y - h + 30, 8, '#7C2D12');
-  head(l + 158, y - h + 28, 8, '#44403C');
-  ctx.fillStyle = '#111827'; ctx.fillRect(l + 158, y - h + 26, 6, 2);
+  // Heads: the kid, mom, dad, each through their window (dad's got his eyes on the road. Very much on the road). The
+  // kid waving out the back; after, the lot of them screaming
+  const win = (wx: number, ww: number, draw: () => void) => {
+    ctx.save(); ctx.beginPath(); ctx.rect(wx, y - h + 12, ww, 30); ctx.clip();
+    draw();
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.22)'; ctx.beginPath(); ctx.moveTo(wx + ww * 0.55, y - h + 12); ctx.lineTo(wx + ww * 0.7, y - h + 12); ctx.lineTo(wx + ww * 0.45, y - h + 42); ctx.lineTo(wx + ww * 0.3, y - h + 42); ctx.fill();
+    ctx.restore();
+  };
+  const seat = (hx: number, hy: number) => ink(ctx, () => ctx.roundRect(hx - 15, hy - 7, 8, 30, 3), '#57534E', 0.8);
+  win(l + 58, 56, () => { seat(l + 86, y - h + 34); drawPerson(ctx, l + 85, y - h + 66.5, FAMILY_KID, { arms: hit ? 'panic' : 'wave', mouth: hit ? 'open' : 'grin', f }, 0.82); });
+  win(l + 120, 52, () => {
+    seat(l + 134, y - h + 30); drawPerson(ctx, l + 133, y - h + 85, FAMILY_MOM, { mouth: hit ? 'open' : 'smile', f: f + 30 }, 0.89);
+    seat(l + 158, y - h + 28); drawPerson(ctx, l + 157, y - h + 83, FAMILY_DAD, { mouth: hit ? 'o' : 'flat', f: f + 60 }, 0.89);
+  });
   // BABY ON BOARD
   ctx.save(); ctx.translate(l + 30, y - h + 27); ctx.rotate(Math.PI / 4); ctx.fillStyle = '#FACC15'; ctx.fillRect(-7, -7, 14, 14); ctx.restore();
   // The grille and the headlight, the bumper; the dent, the smear, the shoe
