@@ -142,6 +142,15 @@ const App: React.FC = () => {
   const toggleDossier = () => { if (!engaging) setShowDossier(v => !v); };
   /** How each boss died this run: the weakness weapon that wrecked his corpse, or null for a plain kill. */
   const [killRecords, setKillRecords] = useState<Record<string, WeaponType | null>>({});
+  /** Which bosses he killed with his pants full this run (alongside killRecords: see killFlags). */
+  const [shatKills, setShatKills] = useState<Record<string, boolean>>({});
+  /**
+   * How a boss died this run, for anything that wants to know later (the necromancer's raised bosses, say): by his
+   * weakness, with Meathead's pants shat, both, or neither. Undefined if he isn't dead.
+   */
+  const killFlags = (stageId: string): { weakness: boolean; shat: boolean } | undefined =>
+    stageId in killRecords ? { weakness: killRecords[stageId] !== null, shat: !!shatKills[stageId] } : undefined;
+  void killFlags;
   /** Stage select on the second set: browsing the previous set's (dead) targets instead. */
   const [showArchive, setShowArchive] = useState(false);
   /** Stage select: the boss locked in as the target (null = still browsing). ENGAGE needs a lock first. */
@@ -317,7 +326,7 @@ const App: React.FC = () => {
     } else {
       setAvailableWeapons(getStartingWeapons(progressionRank, cheats.allWeapons));
       resetLoadout();
-      setKillRecords({});
+      setKillRecords({}); setShatKills({});
       setSelectedIndex(0);
       setIsVictoryPhase(false);
       setStatus(GameStatus.START);
@@ -340,7 +349,7 @@ const App: React.FC = () => {
   /** After THE END: back to the title screen. */
   const handleEndingDone = () => {
     setDefeatedStages([]);
-    setKillRecords({});
+    setKillRecords({}); setShatKills({});
     setAvailableWeapons(getStartingWeapons(progressionRank, cheats.allWeapons));
     resetLoadout();
     setSelectedStage(null);
@@ -365,7 +374,7 @@ const App: React.FC = () => {
     setSelectedIndex(0);
     setIsVictoryPhase(false);
     setDefeatedStages([]);
-    setKillRecords({});
+    setKillRecords({}); setShatKills({});
     setCurrentWeapon('GUN');
     setProgressionRank(0);
     setStatus(GameStatus.START);
@@ -583,6 +592,7 @@ const App: React.FC = () => {
 
   const handleBossDefeated = (stageId: string, corpseWeapon?: WeaponType, shat?: boolean) => {
     setKillRecords(prev => ({ ...prev, [stageId]: corpseWeapon ?? null }));
+    setShatKills(prev => ({ ...prev, [stageId]: !!shat }));
     setKilledShat(!!shat);
     // Something of his to take home to the garage
     setSouvenirs(takeAllSouvenirs(stageId));
