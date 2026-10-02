@@ -4,7 +4,7 @@
 
 import type { GameState } from '../../core/state';
 import type { Chase, Junk } from './chase';
-import { junkSize, CHASE_BOAT_W, BOARD_LEAP, BOARD_BEAT, BOARD_LINE, BLOW, WRECK_BLAST, dropAhead, DROP_WARN } from './chase';
+import { junkSize, CHASE_BOAT_W, BOARD_LEAP, BOARD_BEAT, BOARD_LINE, BLOW, WRECK_BLAST, WRECK_RETURN, WRECK_SPLASH, WRECK_LEGS_LIT, dropAhead, DROP_WARN } from './chase';
 import { drawSeatedAtMotor, drawFlung } from '../../render/player/moves';
 import { inputDevice, padFamily } from '../../platform/device';
 import { drawPadFace } from '../../render/padGlyph';
@@ -123,7 +123,8 @@ export const drawSeatedMeathead = (ctx: Ctx, x: number, y: number, frame: number
 };
 
 /** Wrecked: him flung up out of it end over end and gone off the top of the screen; then the boat going up, its bits
- * coming down all round, the outboard cartwheeling off, the smoke; the name board floating. */
+ * coming down all round, the outboard cartwheeling off, the smoke; the name board floating. And him, back down out of
+ * the sky, head first into the sea by it: his legs up out of the water, twitching, till the burning slick gets to them. */
 export const drawWreck = (ctx: Ctx, state: GameState, c: Chase, bx: number, by: number) => {
   const t = c.wreckT;
   // Him: up and away (he's drawn till he's well off the top)
@@ -177,6 +178,21 @@ export const drawWreck = (ctx: Ctx, state: GameState, c: Chase, bx: number, by: 
   // The outboard, cartwheeling off the back, still going
   { const px = bx - 10 - u * 5, py = cy - u * 15 + 0.45 * u * u;
     if (py < COURSE.sea.y + 10) { ctx.save(); ctx.translate(px, py); ctx.rotate(-u * 0.35); shape(ctx, () => ctx.rect(-8, -14, 16, 26), '#374151', 1); ctx.fillStyle = '#6B7280'; ctx.fillRect(-3, 10, 6, 14); ctx.restore(); } }
+  // Him, coming back down: head first, into the water, his legs up out of it
+  if (t >= WRECK_RETURN) {
+    const lx = Math.min(cx + 150, state.camera.x + CANVAS_WIDTH - 80), sea = COURSE.sea.y;
+    const k = Math.min(1, (t - WRECK_RETURN) / (WRECK_SPLASH - WRECK_RETURN));
+    const my = t < WRECK_SPLASH ? state.camera.y - 60 + (sea - 12 - state.camera.y + 60) * k * k : sea + 4 + Math.max(0, t - WRECK_LEGS_LIT - 20) * 0.5;
+    ctx.save(); ctx.beginPath(); ctx.rect(lx - 80, state.camera.y - 100, 160, sea + 2 - state.camera.y + 100); ctx.clip();
+    ctx.translate(lx, my); ctx.rotate(Math.PI + (t >= WRECK_SPLASH ? Math.sin(t * 0.6) * 0.05 * (t < WRECK_LEGS_LIT + 30 ? 1 : 0) : Math.sin(t * 0.3) * 0.3));
+    drawFlung(ctx, t >= WRECK_SPLASH && t % 30 > 4 ? 0 : state.frame);
+    ctx.restore();
+    const sp = t - WRECK_SPLASH;
+    if (sp >= 0 && sp < 24) { ctx.strokeStyle = `rgba(241, 245, 249, ${0.8 * (1 - sp / 24)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(lx, sea, 10 + sp * 3, 3 + sp * 0.4, 0, 0, Math.PI * 2); ctx.stroke(); for (let k2 = 0; k2 < 6; k2++) { ctx.fillStyle = '#E0F2FE'; ctx.fillRect(lx + (k2 - 2.5) * 7, sea - 4 - Math.sin((k2 + 1) * 1.3) * 22 * Math.max(0, 1 - sp / 10), 3, 3); } }
+    // (the slick burning its way across to him, and up his legs)
+    if (t > WRECK_LEGS_LIT - 30) { const reach = Math.min(1, (t - WRECK_LEGS_LIT + 30) / 30); flames(ctx, cx + 30 + (lx - cx - 30) * reach, sea, 26, 14, Math.floor(state.frame / 4) + 3); }
+    if (t >= WRECK_LEGS_LIT) flames(ctx, lx, sea - 4, 22, 30, Math.floor(state.frame / 4) + 11);
+  }
   // Afterwards: the slick burning on the water, and the name board bobbing
   if (u > 30) {
     flames(ctx, cx - 40, COURSE.sea.y, 40, 22, Math.floor(state.frame / 4));

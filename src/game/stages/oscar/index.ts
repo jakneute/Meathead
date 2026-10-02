@@ -64,7 +64,7 @@ export const oscarLayout: StageLayout = {
   deathSceneTick: (ctx, t) => { if (getOscar(ctx.state)?.bar.swirly) tickSwirlyPipes(t); },
   deathMessage: ctx => oscarDeathMessage(ctx),
   // (into a pit of crude: under, and then it goes up)
-  fallDeathKind: ctx => (ctx.state.player.health > 0 && inCrude(ctx.state) ? 'fall_crude' : undefined),
+  fallDeathKind: ctx => (ctx.state.player.health <= 0 ? undefined : ctx.state.player.moto ? 'fall_moto' : inCrude(ctx.state) ? 'fall_crude' : undefined),
   // (the chase's cars, trucks and choppers are run by the stage)
   updateSpecialEnemy: (ctx, e) => {
     if (!isChaseVehicle(e.kind)) return undefined;

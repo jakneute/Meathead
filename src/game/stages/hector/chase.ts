@@ -350,8 +350,9 @@ export const tickBoarded = (ctx: FrameContext, c: Chase) => {
 // Wrecked: the junk finishes him
 // ---------------------------------------------------------------------------
 
-/** Its beats: him flung up out of the boat and gone off the top; the boat going up; the smoke; then the screen. */
-export const WRECK_BLAST = 22, WRECK_END = 140;
+/** Its beats: him flung up out of the boat and gone off the top; the boat going up; the smoke; him coming back down,
+ * head first into the sea by it, legs up; the burning slick reaching his legs; then the screen. */
+export const WRECK_BLAST = 22, WRECK_RETURN = 84, WRECK_SPLASH = 100, WRECK_LEGS_LIT = 140, WRECK_END = 200;
 
 const wrecked = (ctx: FrameContext, c: Chase) => {
   const { state } = ctx;
@@ -367,6 +368,9 @@ export const tickWreck = (ctx: FrameContext, c: Chase) => {
   c.wreckT++;
   if (c.wreckT === WRECK_BLAST) { playSound('boom'); playSound('crash', 0.8); shakeScreen(ctx.state, 30, 12); }
   if (c.wreckT === WRECK_BLAST + 14) playSound('splash');
+  if (c.wreckT === WRECK_RETURN) playSound('whoosh', 0.9, -6);
+  if (c.wreckT === WRECK_SPLASH) { playSound('splash', 1, -4); shakeScreen(ctx.state, 6, 3); }
+  if (c.wreckT === WRECK_LEGS_LIT) playSound('ignite', 0.9);
 };
 
 /** Where the cutter's bow goes round the spout (its orbit's middle, and how far out). */

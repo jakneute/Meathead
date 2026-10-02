@@ -32,6 +32,8 @@ export const deathByCause = (state: GameState): string | undefined => {
 /** A bird took his eyes (it dived on him, and that was it): that, whatever the stage would have said. */
 export const pluckDeathMessage = (state: GameState): string | undefined => {
   const h = state.lastHurt, pb = state.pluckedBy;
+  // (not riding anything: on it, whatever got him, he's flung off it)
+  if (state.player.skiing || state.player.jetski) return undefined;
   if (!h || !pb || pb.frame !== h.at || !hurtJustNow(state, h.at) || state.player.health > 0) return undefined;
   const kind = state.enemies.find(e => e.id === pb.id)?.kind ?? '';
   return pickRandom([...(PLUCK_DEATH_LINES[kind] ?? []), ...PLUCK_DEATH_LINES.any]);

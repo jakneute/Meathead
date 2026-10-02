@@ -1,11 +1,12 @@
 import type { GameState } from '../../core/state';
 import type { MeatheadDeath } from '../../player/deathAnim';
-import { MEATHEAD_DEATH_FRAMES, FALL_HIT, SPACE_OUT } from '../../player/deathAnim';
+import { MEATHEAD_DEATH_FRAMES, FALL_HIT, SPACE_OUT, MOTO_PIT_LANDS, MOTO_PIT_LIGHTS } from '../../player/deathAnim';
+import { drawChopperBike } from '../enemies/oscar';
 import { body } from './deathAnim';
 import type { DeathFace } from './deathFace';
 import { bandedGradient, checker, brickPattern, steppedGlow, pixelBlob, hazeBands } from '../pixelArt';
 import { drawFire } from '../fx/fire';
-import { drawFlameLicks } from '../fx/fireball';
+import { drawFlameLicks, drawFireball } from '../fx/fireball';
 
 // The falls: the kill cam cutting to the bottom of whatever he's gone down (see player/deathAnim), screen space, over
 // everything. Quick, and nasty: wedged head first in a crevasse and frozen there, onto the rebar in a dug-up street,
@@ -93,6 +94,7 @@ export const drawFallCam = (ctx: Ctx, state: GameState, W: number, H: number) =>
     case 'fall_trench': trench(ctx, state, d, t, f, hit, since, W, H); break;
     case 'fall_alley': alley(ctx, state, d, t, f, hit, since, W, H); break;
     case 'fall_crude': crude(ctx, state, d, t, f, hit, since, W, H); break;
+    case 'fall_moto': motoPit(ctx, state, d, t, f, hit, since, W, H); break;
     case 'fall_arroyo': arroyo(ctx, state, d, t, f, hit, since, W, H); break;
     case 'fall_rocks': rocks(ctx, state, d, t, f, hit, since, W, H); break;
     case 'fall_dungeon': dungeon(ctx, state, d, t, f, hit, since, W, H); break;
@@ -343,6 +345,81 @@ const crude: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
     const span = (W + 40) * k, seg = span / 6;
     for (let i = 0; i < 6; i++) drawFire(ctx, W + 20 - seg * (i + 0.5), surf + 4, seg * 1.3, (110 + hash(i) * 90) * die, f, { seed: i * 11, glow: 0, smoke: i % 2 ? 0.8 : 0 });
     for (let i = 0; i < 6; i++) { const q = ((since * 1.5 + i * 25) % 80) / 80; pixelBlob(ctx, 100 + i * 120 + Math.sin(i) * 30, surf - 150 - q * 220, 40 + q * 30, 22 + q * 16, `rgba(28, 25, 23, ${(0.7 * (1 - q) * die).toFixed(3)})`); }
+  }
+};
+
+/**
+ * Oscar's road out, in the chase: off the chopper and down into the trench cut across the road (asphalt on top, the
+ * dirt in its layers, black crude at the bottom). Him in up to his chest, thrashing; the chopper coming down after
+ * him, end over end, and onto him; his hand up out of it beside the wreck, and gone; the chopper's hot pipes light the
+ * crude, and the trench goes up.
+ */
+const motoPit: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
+  const cx = W / 2, top = 150, surf = 440;
+  // A strip of the evening up top, the trench falling away into the dark below it
+  bandedGradient(ctx, 0, 0, W, top, ['#1E1B4B', '#7C2D12', '#EA580C', '#FDBA74'], 10);
+  bandedGradient(ctx, 0, top, W, surf - top, ['#3F2A1D', '#1C1410', '#0A0806'], 8);
+  const hw = (y: number) => 250 - (y - top) * 0.16;
+  for (const side of [-1, 1]) {
+    wall(ctx, side, W, H, y => cx + side * (hw(y) + (hash(Math.floor(y / 20) + side * 5) - 0.5) * 14), () => {
+      ctx.save(); ctx.beginPath(); ctx.rect(0, top, W, H - top); ctx.clip();
+      strata(ctx, 0, W, H, ['#7C4A2D', '#5C3A21', '#8B5A35', '#4A2E1A', '#6B4226'], 26, 3 + side);
+      ctx.restore();
+      // (the road on top: its asphalt slab, the edge of the yellow line, broken off ragged)
+      ctx.fillStyle = '#292524'; ctx.fillRect(0, top - 18, W, 18);
+      ctx.fillStyle = '#44403C'; ctx.fillRect(0, top - 18, W, P);
+      ctx.fillStyle = '#1C1917'; ctx.fillRect(0, top - P, W, P);
+      ctx.fillStyle = '#FACC15'; ctx.fillRect(side < 0 ? cx - 420 : cx + 300, top - 12, 110, P * 2);
+    }, '#A16207', 'rgba(0, 0, 0, 0.45)');
+  }
+  // (nothing of the walls' edges up in the sky over the road)
+  ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, top - 18); ctx.clip();
+  bandedGradient(ctx, 0, 0, W, top, ['#1E1B4B', '#7C2D12', '#EA580C', '#FDBA74'], 10);
+  ctx.restore();
+  // The crude: black, the sheen sliding on it
+  bandedGradient(ctx, 0, surf, W, H - surf, ['#1C1410', '#0A0806', '#000000'], 6);
+  ctx.fillStyle = '#3F3A36'; ctx.fillRect(0, surf, W, P);
+  for (let k = 0; k < 7; k++) { const x = snap(cx - 220 + k * 70 + Math.sin(f * 0.05 + k) * 10), y = surf + P * 2 + (k % 3) * P * 3; const c = ['rgba(167, 139, 250, 0.4)', 'rgba(52, 211, 153, 0.35)', 'rgba(251, 191, 36, 0.35)'][k % 3]; ctx.fillStyle = c; ctx.fillRect(x, y, 40, P); }
+  const L = since - MOTO_PIT_LANDS, lit = since - MOTO_PIT_LIGHTS;
+  // Him: in, thrashing, up to his chest (till it's on him)
+  if (L < 0) {
+    const by = hit ? surf - 26 + Math.min(26, since * 2) : dropTo(t, surf - 30);
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, surf + 2); ctx.clip();
+    him(ctx, state, d, cx + (hit ? Math.sin(since * 0.9) * 5 : 0), by, hit ? Math.sin(since * 0.6) * 0.2 : t * 0.08, 2, 'scream', { hurtTimer: hit ? 10 : 0 });
+    ctx.restore();
+  }
+  // (rings out from him, and from the chopper)
+  for (const at of [0, MOTO_PIT_LANDS]) { const q = (since - at) / 30; if (q > 0 && q < 1) { ctx.strokeStyle = `rgba(120, 113, 108, ${(0.7 * (1 - q)).toFixed(3)})`; ctx.lineWidth = P; ctx.beginPath(); ctx.ellipse(cx, surf + 2, 20 + q * 150, 3 + q * 9, 0, 0, Math.PI * 2); ctx.stroke(); } }
+  // The chopper: down after him, end over end, and onto him; then sitting half in it, the back wheel still turning
+  const fallK = clamp01((since + 14 - MOTO_PIT_LANDS) / 14);
+  if (since + 14 >= MOTO_PIT_LANDS) {
+    const sinkB = L > 0 ? Math.min(26, L * 0.5) : 0;
+    const bx = cx + 10, by = L < 0 ? -140 + (surf - 6 + 140) * fallK * fallK : surf - 6 + sinkB;
+    const rot = L < 0 ? fallK * Math.PI * 1.6 : Math.PI * 1.6 + Math.min(0.3, L * 0.02);
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, surf + 4); ctx.clip();
+    ctx.translate(bx, by); ctx.scale(2, 2); ctx.rotate(rot);
+    if (lit > 6) ctx.filter = 'brightness(0.35) sepia(0.5)';
+    drawChopperBike(ctx, -6, 18, 0, t * (L < 0 ? 0.5 : 0.3), '#7F1D1D');
+    ctx.restore();
+    if (L >= 0 && L < 8) for (let k = 0; k < 18; k++) { ctx.fillStyle = '#0A0806'; ctx.fillRect(snap(bx + (hash(k) - 0.5) * 200), snap(surf - L * (6 + hash(k + 2) * 10) + L * L * 0.6), P * 3, P * 3); }
+  }
+  // His hand, up out of it beside the wreck, opening, closing, going down
+  if (L > 8 && L < 44) {
+    const hy = surf - 26 + Math.max(0, L - 30) * 2.2;
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, surf + 2); ctx.clip();
+    ctx.fillStyle = '#1C1410'; ctx.fillRect(snap(cx - 70), hy, 12, 40);
+    ctx.fillStyle = '#E8A87C'; ctx.fillRect(snap(cx - 70), hy, 12, 4);
+    const open = Math.floor(L / 5) % 2;
+    ctx.fillStyle = '#0A0806'; for (let k = 0; k < 4; k++) ctx.fillRect(snap(cx - 72 + k * 4), hy - 8 - (open ? 4 : 0), P * 2, 10 + (open ? 2 : 0));
+    ctx.restore();
+  }
+  // The pipes light it: a flash off the wreck, the fireball, and the trench burning wall to wall
+  if (lit >= 0) {
+    const die = 1 - clamp01((lit - 70) / 30);
+    if (lit < 24) { steppedGlow(ctx, cx + 10, surf - 20, 160 + lit * 6, '#F97316', 0.6 * (1 - lit / 24), 0, 5); drawFireball(ctx, cx + 10, surf - 30 - lit * 2, 30 + Math.min(lit, 6) * 8 - Math.max(0, lit - 12) * 3, f, { seed: 4, heat: lit < 4 ? 1 : 0 }); }
+    const k = clamp01(lit / 14), span = (W + 40) * k, seg = span / 6;
+    for (let i = 0; i < 6; i++) drawFire(ctx, cx + (i - 2.5) * seg, surf + 4, seg * 1.3, (120 + hash(i) * 90) * die, f, { seed: i * 13, glow: 0, smoke: i % 2 ? 0.8 : 0 });
+    for (let i = 0; i < 5; i++) { const q = ((lit * 1.4 + i * 22) % 80) / 80; pixelBlob(ctx, cx - 240 + i * 120, surf - 160 - q * 200, 40 + q * 30, 22 + q * 16, `rgba(28, 25, 23, ${(0.7 * (1 - q) * die).toFixed(3)})`); }
   }
 };
 

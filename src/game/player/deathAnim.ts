@@ -20,6 +20,13 @@
 //              back, through the middle, and sliding down it a way
 //   cactus     run through on a cactus: lying across the top of it with the top of it out through his middle, or pinned
 //              to the side of it on one of its arms; spines all over him
+//   crash      killed on something he's riding: flung forward off it, end over end, and how it ends is the ride's own:
+//              off the bike, face first down the asphalt and the bike down on top of him; off the chopper, sliding in
+//              sparks, the chopper down on top of him, and it goes up; off the jet ski, skipping like a stone and in head
+//              first, legs up, going under; off the skis, into the snow and rolling on as a snowball, bigger and bigger,
+//              his boots sticking out of it
+//   fall_moto  (the kill cam) off the chopper into the trench across the road: into the crude, and the chopper in after
+//              him, on top of him; its pipes light the lot
 
 import type { FrameContext } from '../core/context';
 import type { GameState } from '../core/state';
@@ -33,7 +40,9 @@ import { say, MEATHEAD_VOICE } from '../platform/speech';
 
 export type MeatheadDeathKind = 'burnt' | 'lava' | 'boiled' | 'fried' | 'frozen' | 'buried' | 'flattened' | 'dissolved' | 'roadkill' | 'overdose' | 'impaled' | 'cactus' | 'plucked' | 'spiked'
   // the falls (the kill cam at the bottom: see render/player/fallCams)
-  | 'fall_crevasse' | 'fall_trench' | 'fall_alley' | 'fall_crude' | 'fall_arroyo' | 'fall_rocks' | 'fall_dungeon'
+  | 'fall_crevasse' | 'fall_trench' | 'fall_alley' | 'fall_crude' | 'fall_arroyo' | 'fall_rocks' | 'fall_dungeon' | 'fall_moto'
+  // killed on something he's riding
+  | 'crash'
   // the storm up Hector's tower: launched clean out of the atmosphere, to float there
   | 'space'
   // off the junk in the Eye of the storm, down into the sea, the Eye watching him all the way down
@@ -59,12 +68,17 @@ export interface MeatheadDeath {
   lineUntil?: number;
   /** (plucked) The bird, and where it was when it got him. */
   bird?: { id: string; x: number; y: number };
+  /** (crash) What he was riding. */
+  ride?: Ride;
 }
+
+/** The things he rides (the boat's the stage's own: see hector/chase). */
+export type Ride = 'bike' | 'moto' | 'jetski' | 'ski';
 
 /** How long each one plays before the death screen goes up. */
 export const MEATHEAD_DEATH_FRAMES: Record<MeatheadDeathKind, number> = {
   burnt: 95, lava: 125, boiled: 85, fried: 85, frozen: 80, buried: 95, flattened: 70, dissolved: 110, roadkill: 80, overdose: 120,
-  impaled: 80, cactus: 80, plucked: 150, spiked: 100,
+  impaled: 80, cactus: 80, plucked: 150, spiked: 100, crash: 150, fall_moto: 150,
   space: 360, eye_fall: 190, fall_crevasse: 110, fall_trench: 100, fall_alley: 120, fall_crude: 150, fall_arroyo: 130, fall_rocks: 120, fall_dungeon: 110,
 };
 
@@ -99,14 +113,20 @@ const kindFor = (state: GameState): MeatheadDeathKind | undefined => {
 export const startMeatheadDeath = (ctx: FrameContext): boolean => {
   const { state } = ctx;
   const p = state.player;
-  if (p.jetski || p.bike || p.skiing || p.swimming) return false;
-  const kind = p.health > 0 ? getStageLayout(ctx.stageId)?.fallDeathKind?.(ctx) : kindFor(state);
+  if (p.swimming) return false;
+  // (riding something: whatever killed him, he's flung off it, unless it's the snow that's got him on his skis; off the
+  // road on the chopper, it's the trench)
+  const ride: Ride | undefined = p.moto ? 'moto' : p.bike ? 'bike' : p.jetski ? 'jetski' : p.skiing ? 'ski' : undefined;
+  const cause = p.health > 0 ? getStageLayout(ctx.stageId)?.fallDeathKind?.(ctx) : kindFor(state);
+  const kind: MeatheadDeathKind | undefined = !ride ? cause
+    : p.health > 0 ? (cause === 'fall_moto' ? cause : undefined)
+    : ride === 'ski' && cause === 'buried' ? cause : 'crash';
   if (!kind) return false;
   const x = p.pos.x + p.width / 2, y = p.pos.y + p.height;
   const snow = state.lastHurt?.source === 'avalanche' || state.lastHurt?.source === 'snowball';
   const bird = kind === 'plucked' ? state.enemies.find(e => e.id === state.pluckedBy!.id) : undefined;
   state.meatheadDeath = { kind, x, y, facing: p.facing === -1 ? -1 : 1, snow, impale: state.impaleAt, floor: kind === 'impaled' ? (floorTopAt(state.blocks, x, y, 0) ?? y) : undefined,
-    bird: bird ? { id: bird.id, x: bird.pos.x, y: bird.pos.y } : undefined };
+    bird: bird ? { id: bird.id, x: bird.pos.x, y: bird.pos.y } : undefined, ride: kind === 'crash' ? ride : undefined };
   state.deathScene = { t: 0, len: MEATHEAD_DEATH_FRAMES[kind], voiced: false };
   return true;
 };
@@ -234,6 +254,15 @@ export const tickMeatheadDeath = (ctx: FrameContext, d: MeatheadDeath, t: number
       if (t === PLUCK_FALL + 12) playSound('thud', 0.9);
       break;
     }
+    case 'crash': tickCrash(ctx, d, t); break;
+    case 'fall_moto': {
+      const s = t - FALL_HIT;
+      if (t === 1) playSound('whoosh', 0.9, -6);
+      if (s === 0) { playSound('splash', 1, -6); shakeScreen(state, 12, 6); }
+      if (s === MOTO_PIT_LANDS) { playSound('crash', 1); playSound('splash', 1, -8); shakeScreen(state, 18, 9); }
+      if (s === MOTO_PIT_LIGHTS) { playSound('ignite', 1); playSound('boom', 1, -4); shakeScreen(state, 26, 12); }
+      break;
+    }
     case 'fall_crevasse': case 'fall_trench': case 'fall_alley': case 'fall_crude': case 'fall_arroyo': case 'fall_rocks': case 'fall_dungeon': {
       const s = t - FALL_HIT;
       if (t === 1) playSound('whoosh', 0.9, -6);
@@ -289,6 +318,62 @@ export const tickMeatheadDeath = (ctx: FrameContext, d: MeatheadDeath, t: number
       if (t === 20) playSound('powerup', 0.7, -8);
       if (t % 3 === 0) { const y = d.y - overdoseRise(t); P.push({ pos: { x: d.x + rnd(-20, 20), y: y - rnd(0, 64) }, vel: { x: rnd(-0.8, 0.8), y: rnd(-1, 0.6) }, life: 30, color: ['#F472B6', '#A78BFA', '#67E8F9', '#FDE047', '#86EFAC'][t % 5], size: rnd(2, 5) }); }
       break;
+  }
+};
+
+/** (crash) When he comes down (end over end off it, from his feet: CRASH_V up, CRASH_VX along, CRASH_G pulling). */
+export const CRASH_LAND = 28, CRASH_V = 10, CRASH_VX = 8, CRASH_G = 2 * CRASH_V / CRASH_LAND;
+/** (crash) When the bike or chopper, cartwheeling after him, comes down on top of him; when the chopper goes up. */
+export const CRASH_PILE = 50, CRASH_BLAST = 74;
+/** (crash) How far he skids once he's down (bike and chopper): a fraction of SKID by s frames in. */
+export const SKID = 70, skidAt = (s: number) => SKID * (1 - Math.exp(-Math.max(0, s) / 8));
+/** (crash, jet ski) His skips off the water after he hits it (how long, how high, how far), then he's in. */
+export const CRASH_SKIPS = [{ t: 16, h: 22, dx: 74 }, { t: 10, h: 9, dx: 38 }];
+/** (crash, skis) When the snowball he's become stops rolling. */
+export const CRASH_BALL_STOP = 70;
+/** (fall_moto) After he's in: the chopper landing on him, and its pipes lighting the crude. */
+export const MOTO_PIT_LANDS = 18, MOTO_PIT_LIGHTS = 52;
+
+/** (crash) Its sounds and its bits, ride by ride. */
+const tickCrash = (ctx: FrameContext, d: MeatheadDeath, t: number) => {
+  const { state } = ctx;
+  const P = state.particles, F = d.facing, s = t - CRASH_LAND;
+  if (t === 1) { playSound('crash', 0.9); playSound('whoosh', 0.9, -4); }
+  const landX = d.x + F * CRASH_VX * CRASH_LAND;
+  switch (d.ride) {
+    case 'bike': case 'moto': {
+      if (s === 0) {
+        playSound('thud', 1); playSound('crunch', 0.8); shakeScreen(state, 14, 7);
+        for (let i = 0; i < 14; i++) P.push({ pos: { x: landX + rnd(-10, 10), y: d.y - rnd(4, 20) }, vel: { x: F * rnd(1, 6), y: rnd(-6, -1) }, life: rnd(40, 70), color: GORE[i % GORE.length], size: rnd(3, 6) });
+      }
+      // (skidding: grit and blood off him; off the chopper, sparks off his belt buckle too)
+      if (s > 0 && s < 26 && s % 2 === 0) {
+        const sx = landX + F * skidAt(s);
+        P.push({ pos: { x: sx, y: d.y - 3 }, vel: { x: -F * rnd(0.5, 2), y: rnd(-2, -0.5) }, life: rnd(14, 26), color: s % 4 ? '#A8A29E' : GORE[s % GORE.length], size: rnd(2, 4) });
+        if (d.ride === 'moto') P.push({ pos: { x: sx, y: d.y - 4 }, vel: { x: -F * rnd(2, 5), y: rnd(-3, -1) }, life: rnd(8, 14), color: s % 4 ? '#FDE047' : '#FB923C', size: 2 });
+      }
+      if (t === CRASH_PILE) { playSound('crash', 1); playSound('crunch', 1, -6); shakeScreen(state, 16, 8); }
+      if (d.ride === 'bike' && t > CRASH_PILE && t < CRASH_PILE + 60 && t % 15 === 0) playSound('clink', 0.3, 10);
+      if (d.ride === 'moto' && t === CRASH_BLAST) {
+        playSound('boom', 1); playSound('ignite', 0.9); shakeScreen(state, 28, 12);
+        const bx = landX + F * SKID;
+        for (let i = 0; i < 26; i++) P.push({ pos: { x: bx + rnd(-16, 16), y: d.y - rnd(6, 30) }, vel: { x: rnd(-8, 8), y: rnd(-12, -2) }, life: rnd(40, 80), color: i % 3 ? GORE[i % GORE.length] : '#1C1917', size: rnd(3, 8) });
+      }
+      break;
+    }
+    case 'jetski': {
+      if (s === 0) { playSound('splash', 1); shakeScreen(state, 8, 4); }
+      if (s === CRASH_SKIPS[0].t) playSound('splash', 0.8, 4);
+      if (s === CRASH_SKIPS[0].t + CRASH_SKIPS[1].t) { playSound('splash', 1, -4); playSound('glug', 0.6, -4); }
+      if (s > 40 && s % 9 === 0) playSound('glug', 0.35, 6);
+      break;
+    }
+    case 'ski': {
+      if (s === 0) { playSound('thud', 1); playSound('ice', 0.5, -6); shakeScreen(state, 10, 5); }
+      if (s > 0 && s < CRASH_BALL_STOP && s % 10 === 0) playSound('thud', 0.35, -8);
+      if (s === CRASH_BALL_STOP) { playSound('thud', 0.9, -10); shakeScreen(state, 8, 4); }
+      break;
+    }
   }
 };
 

@@ -4,6 +4,7 @@ import { drawPlayer } from './player';
 import { pantsColor, bootColor } from './body';
 import type { DeathFace } from './deathFace';
 import { wall as fallWall, strata as fallStrata } from './fallCams';
+import { drawCrash } from './crashDeath';
 import { bandedGradient, hazeBands } from '../pixelArt';
 import { drawFlameLicks } from '../fx/fireball';
 import { MEATHEAD_DEATH_FRAMES, LAVA_COOKOFF, FROZEN_SHATTER, ROADKILL_TWINKLE, overdoseRise, impaledFeet, PLUCKS, PLUCK_AWAY, PLUCK_FALL, pluckSway, pluckDark, SPIKE_HIT, MeatheadDeath } from '../../player/deathAnim';
@@ -210,6 +211,7 @@ export const drawMeatheadDeath = (ctx: Ctx, state: GameState, weapon: WeaponType
       }
       break;
     }
+    case 'crash': drawCrash(ctx, state, d, t, weapon); break;
     case 'roadkill': {
       // Knocked clean out of his boots: them, stood where he was; him, end over end up and off the top of the screen
       ctx.fillStyle = bootColor; ctx.fillRect(x - 12, y - 8, 10, 8); ctx.fillRect(x + 2, y - 8, 10, 8);
