@@ -4831,11 +4831,6 @@
  },
  {
   "voice": "death",
-  "text": "CON ED STRIKES AGAIN",
-  "from": "game/stages/barry/runtime.ts:411"
- },
- {
-  "voice": "death",
   "text": "CONTAMINATED",
   "from": "content/deaths"
  },
@@ -5906,6 +5901,11 @@
  },
  {
   "voice": "death",
+  "text": "NO CONES. NO SIGN. NO CREW.",
+  "from": "game/stages/barry/runtime.ts:411"
+ },
+ {
+  "voice": "death",
   "text": "NO FRIES, NO MERCY",
   "from": "content/deaths"
  },
@@ -6898,6 +6898,11 @@
   "voice": "death",
   "text": "THE COFFEE WON",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE CREW WENT ON BREAK IN 1997",
+  "from": "game/stages/barry/runtime.ts:411"
  },
  {
   "voice": "death",
@@ -17077,17 +17082,17 @@
  {
   "voice": "reporter",
   "text": "...BACK TO YOU, CHIP.",
-  "from": "game/stages/hector/news.ts:67"
+  "from": "game/stages/hector/news.ts:68"
  },
  {
   "voice": "reporter",
   "text": "AND ALL OF ITS WATER IS COMING DOWN AT ONCE... ONTO A DAYCARE.",
-  "from": "game/stages/hector/news.ts:67"
+  "from": "game/stages/hector/news.ts:68"
  },
  {
   "voice": "reporter",
   "text": "BREAKING NEWS: THE HURRICANE HAS JUST... STOPPED. OUR OLD WEATHERMAN, HECTOR, ISN'T PICKING UP.",
-  "from": "game/stages/hector/news.ts:67"
+  "from": "game/stages/hector/news.ts:68"
  },
  {
   "voice": "skier",

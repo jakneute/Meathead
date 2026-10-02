@@ -234,6 +234,14 @@ const trench: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
     ctx.fillStyle = '#7C2D12'; ctx.fillRect(x, top, 4, floor - top); ctx.fillStyle = '#C2410C'; ctx.fillRect(x, top, P, floor - top);
     ctx.fillStyle = '#431407'; for (let y = top; y < floor; y += 8) ctx.fillRect(x, y, 4, P);
   }
+  // What the crew left (a long time ago): a sawhorse knocked in, its sign face down, a coffee cup, a donut box
+  ctx.save(); ctx.translate(250, floor - 10); ctx.rotate(-0.25);
+  ctx.fillStyle = '#F97316'; ctx.fillRect(-40, -30, 80, 12); ctx.fillStyle = '#F8FAFC'; for (let k = 0; k < 4; k++) ctx.fillRect(-36 + k * 20, -30, 8, 12);
+  ctx.strokeStyle = '#78350F'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-30, 8); ctx.lineTo(-24, -18); ctx.moveTo(30, 8); ctx.lineTo(24, -18); ctx.stroke();
+  ctx.restore();
+  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(W - 236, 26, 8, 10); ctx.fillStyle = '#78350F'; ctx.fillRect(W - 236, 30, 8, 2);
+  ctx.fillStyle = '#FBCFE8'; ctx.fillRect(W - 222, 30, 26, 6); ctx.fillStyle = '#EC4899'; ctx.fillRect(W - 222, 30, 26, 2);
+  ctx.fillStyle = '#FDE68A'; ctx.fillRect(560, floor - 6, 40, 6); ctx.fillStyle = '#1C1917'; ctx.font = '5px "Press Start 2P"'; ctx.fillText('MEN AT WORK', 562, floor - 1);
   // The burst main, gushing across
   ctx.fillStyle = '#52525B'; ctx.fillRect(W - 214, 296, 70, 24); ctx.fillStyle = '#71717A'; ctx.fillRect(W - 214, 296, 70, P * 2); ctx.fillStyle = '#3F3F46'; ctx.fillRect(W - 220, 292, 10, 32);
   for (let k = 0; k < 22; k++) { const q = ((f * 4 + k * 23) % 170) / 170; const r = 6 - q * 3; ctx.fillStyle = k % 3 ? 'rgba(191, 219, 254, 0.8)' : 'rgba(255, 255, 255, 0.9)'; ctx.fillRect(snap(W - 222 - q * 240), snap(306 + q * q * 160 + Math.sin(k) * 7), snap(r) + P, snap(r * 0.7) + P); }

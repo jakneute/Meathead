@@ -408,7 +408,7 @@ export const barryDeathMessage = (ctx: FrameContext): string | undefined => {
   // (something in particular got him: that, over the place's catch-all)
   const cause = fell ? undefined : deathByCause(state);
   if (cause) return cause;
-  if (place === 'streets') return fell ? pick(['SWALLOWED BY A POTHOLE', 'CON ED STRIKES AGAIN', 'DOWN THE HOLE']) : pick(['JUST ANOTHER NEW YORK STATISTIC', 'MUGGED', 'THE CITY THAT NEVER SLEEPS. YOU DO NOW.']);
+  if (place === 'streets') return fell ? pick(['SWALLOWED BY A POTHOLE', 'THE CREW WENT ON BREAK IN 1997', 'NO CONES. NO SIGN. NO CREW.', 'DOWN THE HOLE']) : pick(['JUST ANOTHER NEW YORK STATISTIC', 'MUGGED', 'THE CITY THAT NEVER SLEEPS. YOU DO NOW.']);
   if (place === 'lobby') return pick(['NO VISITOR BADGE', 'SIGNED OUT PERMANENTLY']);
   if (place === 'office') return pick(['DOWNSIZED', "YOU'RE FIRED", 'HR WILL HEAR ABOUT THIS']);
   if (place === 'maintenance') return pick(['MOPPED UP', 'CLEANED OUT']);
