@@ -336,16 +336,19 @@ const drawDeputy = (ctx: Ctx, e: Enemy, f: number) => {
   } else {
     // A horseshoe back over his shoulder
     const wind = Math.min(1, Math.max(0, (e.shootTimer - 80) / 40));
-    const hx = -3 - wind * 12, hy = -60;
-    limb(ctx, -3, -53, -7 - wind * 7, -46, 5.5, KHAKI); limb(ctx, -7 - wind * 7, -46, hx - 1, hy + 4.6, 5, KHAKI);
-    const shoe = () => { ctx.beginPath(); ctx.arc(hx, hy, 5, Math.PI * 0.15, Math.PI * 1.85, true); };
+    // (at rest it hangs at his side, gripped by the top; it comes up over his shoulder as he winds up)
+    const up = Math.min(1, wind * 4), mixv = (a: number, b: number) => a + (b - a) * up;
+    const hx = mixv(-11, -3 - wind * 12), hy = mixv(-21, -60);
+    const fx = mixv(-11, hx - 1), fy = mixv(-26.4, hy + 4.6), ex = mixv(-10, -7 - wind * 7), ey = mixv(-40, -46);
+    limb(ctx, -3, -53, ex, ey, 5.5, KHAKI); limb(ctx, ex, ey, fx, fy, 5, KHAKI);
+    const shoe = () => { ctx.beginPath(); ctx.arc(hx, hy, 5, Math.PI * 0.15, Math.PI * 1.85); };
     ctx.lineCap = 'round';
     shoe(); ctx.strokeStyle = INK; ctx.lineWidth = 4.6; ctx.stroke();
     shoe(); ctx.strokeStyle = '#78716C'; ctx.lineWidth = 2.6; ctx.stroke();
     ctx.beginPath(); ctx.arc(hx, hy, 5.6, Math.PI * 1.1, Math.PI * 1.5); ctx.strokeStyle = '#D6D3D1'; ctx.lineWidth = 0.8; ctx.stroke();
     ctx.lineCap = 'butt';
     ctx.fillStyle = INK; for (const k of [0.45, 0.8, 1.2, 1.55]) ctx.fillRect(hx + Math.cos(Math.PI * k) * 5 - 0.5, hy + Math.sin(Math.PI * k) * 5 - 0.5, 1, 1);
-    fist(ctx, hx - 1, hy + 4.6, skin, 3.2);
+    fist(ctx, fx, fy, skin, 3.2);
     arm(ctx, 7, -54, 9, -38, KHAKI, skin);
   }
 };
@@ -656,9 +659,9 @@ export const drawPickupBody = (ctx: Ctx, paint: string, turn: number, wind: numb
   ctx.restore();
   glints(ctx, win, 12, -60, -44);
   // The decal, chrome, lights
-  ink(ctx, () => ctx.arc(24, -30, 8, 0, Math.PI * 2), '#F8FAFC', 0.8);
-  ctx.strokeStyle = '#1D4ED8'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.arc(24, -30, 6.8, 0, Math.PI * 2); ctx.stroke();
-  ctx.fillStyle = '#1D4ED8'; ctx.font = 'bold 5px monospace'; ctx.textAlign = 'center'; ctx.fillText('LOCAL', 24, -31); ctx.fillText('69', 24, -26); ctx.textAlign = 'left';
+  ink(ctx, () => ctx.arc(24, -30, 9, 0, Math.PI * 2), '#F8FAFC', 0.8);
+  ctx.strokeStyle = '#1D4ED8'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.arc(24, -30, 7.8, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = '#1D4ED8'; ctx.font = 'bold 4px monospace'; ctx.textAlign = 'center'; ctx.fillText('LOCAL', 24, -30.6); ctx.fillText('69', 24, -26.2); ctx.textAlign = 'left';
   chrome(ctx, () => ctx.roundRect(72, -26, 6, 10, 1.4), 72, -26, 6, 10);
   ink(ctx, () => ctx.rect(74, -36, 2.4, 9), '#27272A', 0.6); // the grille's edge
   lamp(ctx, 72, -38, 5, 5, '#FEF08A');
