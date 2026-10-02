@@ -9,9 +9,11 @@ import {
 } from '../../constants';
 import type { FrameContext } from '../core/context';
 import type { BossHelpers } from './shared';
-import { BossDef, ARENA_MID, BOSS_WALL_GAP, midX, hurtPlayer, enemyProjectile, bossPain } from './shared';
+import { BossDef, ARENA_MID, BOSS_WALL_GAP, midX, hurtPlayer, enemyProjectile } from './shared';
 
 const HURRICANE_FRAMES = 300;
+/** How long he's flattened by a boulder (squashed, springing back, stars) over whatever he's doing. */
+export const FLATTENED_FRAMES = 50;
 const REST_FRAMES = 40;
 /** Getting caught in the vortex itself (the visible funnel round him): a heavy hit. */
 const VORTEX_DAMAGE = 22;
@@ -37,12 +39,9 @@ const POOP_HEIGHTS = [510, 498, 440];
 const update = (ctx: FrameContext, boss: Enemy) => {
   // (the room catching up with how filthy it's got: it spreads, it drips, it doesn't happen all at once)
   const st = ctx.state; st.hectorFilthShown += (st.hectorFilth - st.hectorFilthShown) * 0.012;
-  if (boss.bossState === 'pain') {
-    // Flattened (his storm gone out of him), seeing stars; then up and off to the far side
-    boss.vel.x = 0;
-    if (boss.stateTimer! <= 0) { boss.painKind = undefined; boss.bossState = 'idle'; leapToOtherSide(boss, ctx.bossHelpers); }
-  }
-  else if (boss.bossState === 'hurricane') updateHurricane(ctx, boss);
+  // (flattened by a boulder: it plays over whatever he's doing, it doesn't stop him)
+  if ((boss.painT ?? 0) > 0 && --boss.painT! <= 0) boss.painKind = undefined;
+  if (boss.bossState === 'hurricane') updateHurricane(ctx, boss);
   else if (boss.bossState === 'jumping') {
     if (boss.isGroundedBoss) { boss.bossState = 'hurricane'; boss.stateTimer = HURRICANE_FRAMES; boss.vel.x = 0; }
   } else if (boss.stateTimer! <= 0) {
@@ -173,13 +172,14 @@ export const hector: BossDef = {
   physics: { landingEndsJump: false },
   // A melee hit ends the hurricane early; hurting Meathead makes him leap away
   onMeleeHit: (_ctx, boss) => { if (boss.bossState === 'hurricane') boss.stateTimer = 0; },
-  onTouchPlayer: (ctx, boss) => { if (boss.bossState !== 'pain') leapToOtherSide(boss, ctx.bossHelpers); },
-  // A boulder his own storm pulled into his face: flattened, the storm knocked out of him
+  onTouchPlayer: (ctx, boss) => leapToOtherSide(boss, ctx.bossHelpers),
+  // A boulder his own storm pulled into his face: flattened, springing back up seeing stars, and carrying right on
+  // (the storm doesn't stop for it)
   onWeaknessHit: (ctx, boss) => {
-    boss.vortexGrip = 0;
-    ctx.bossHelpers.clearPoopTelegraphs();
-    boss.vel.y = Math.max(boss.vel.y, 0);
-    bossPain(ctx, boss, 'flattened', 64, 'FLATTENED!', '#D6D3D1');
+    const { state } = ctx;
+    boss.painKind = 'flattened'; boss.painT = FLATTENED_FRAMES;
+    state.damageNumbers.push({ id: `pain-${state.frame}`, text: 'FLATTENED!', pos: { x: midX(boss), y: boss.pos.y - 40 }, vel: { x: 0, y: -3 }, life: 70, maxLife: 70, isCritical: true, isCallout: true, color: '#D6D3D1' });
+    state.screenShakeTimer = Math.max(state.screenShakeTimer, 14);
     ctx.bossHelpers.playGunSound('crash');
   },
 };

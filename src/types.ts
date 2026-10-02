@@ -351,6 +351,8 @@ export interface Enemy extends Entity {
   /** A boss in the middle of a weakness's pain (bossState 'pain'): which (Victor 'doused' or 'scalded', Hector
    * 'flattened'). How much this tsunami's already taken off him, and the wave his fire was put out by. */
   painKind?: string;
+  /** A pain played over whatever he's doing (it doesn't stop him): frames of it left. */
+  painT?: number;
   tsunamiPaid?: number;
   dousedWave?: number;
   /** The wave Victor's already sneered at for only rinsing him. */
