@@ -758,7 +758,9 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   const isAttacking = player.isCharging || player.isUppercutting || !!player.isDivekicking || hasShield;
   // (a gull or a drone hanging about just ahead of him or over his head: a charge gets it even so, it doesn't get to back
   // off out of the way of it)
-  const pest = player.isCharging && !player.isSliding && isPestFlyer(e.kind);
+  // (and on the jet ski, anything on the water close in front of a wheelie: it's pulled in under the hull and that's it)
+  const onJetSki = !!player.jetski && !player.bike && !player.moto;
+  const pest = player.isCharging && !player.isSliding && (isPestFlyer(e.kind) || (onJetSki && e.type !== 'boss' && !isMidBoss(e) && !isAirEnemy(e)));
   const hitbox = getAttackHitbox(ctx);
   const reach = pest ? { x: player.facing > 0 ? hitbox.x : hitbox.x - PEST_REACH, y: hitbox.y - PEST_REACH, w: hitbox.w + PEST_REACH, h: hitbox.h + PEST_REACH } : hitbox;
   const attackHit = isAttacking && rectsOverlap(reach, boundsOf(e));
