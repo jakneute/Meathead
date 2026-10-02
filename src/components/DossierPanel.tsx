@@ -63,8 +63,8 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
   const garage = bossId === GARAGE_ID;
   // (and the White House has one too, once all eight are dead: the summons)
   const wh = bossId === WHITE_HOUSE_ID;
-  const d = garage ? { ...GARAGE_DOSSIER, mission: '', reality: '', expect: '', background: '', intel: '', rules: '', notAlive: '' }
-    : wh ? { ...WHITE_HOUSE_DOSSIER, mission: '', reality: '', expect: '', background: '', intel: '', rules: '', notAlive: '' } : DOSSIERS[bossId];
+  const d = garage ? { ...GARAGE_DOSSIER, mission: '', reality: '', arsenal: '', expect: '', background: '', intel: '', rules: '', notAlive: '' }
+    : wh ? { ...WHITE_HOUSE_DOSSIER, mission: '', reality: '', arsenal: '', expect: '', background: '', intel: '', rules: '', notAlive: '' } : DOSSIERS[bossId];
   const loc = garage ? undefined : wh ? WHITE_HOUSE_LOCATION : BOSS_LOCATIONS[bossId];
   // Too long for the page: our own scroll bar (the browser's is hidden), moved by the mouse wheel, the right stick or dragging it
   const body = useRef<HTMLDivElement>(null);
@@ -222,6 +222,7 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
             {section('BACKGROUND', d.background)}
             {section('WHAT HE THINKS HE\'S DOING', d.mission)}
             {section('WHAT HE\'S ACTUALLY DOING', d.reality)}
+            {section('HOW HE FIGHTS', d.arsenal)}
             {/* (the ground he's going in over, then the man himself: one section, the one picking up from the other) */}
             {section('FIELD INTEL', <>{d.expect}<div className="mt-[3px]"><span className="font-bold">THE TARGET: </span>{d.intel}</div></>)}
             {section('RULES OF ENGAGEMENT', d.rules)}
