@@ -333,7 +333,7 @@ export const updateFlamethrower = (ctx: FrameContext, input: WeaponInput, alt = 
         vel: { x: dir.x * speed, y: dir.y * speed },
         life: 4 + Math.random() * 4,
         alpha: 0.55 + Math.random() * 0.3,
-        color: k === 0 ? '#FFF7D6' : k === 1 ? '#FFD700' : '#FFA500',
+        color: k === 0 ? '#FFF7D6' : k === 1 ? '#FFC23D' : '#FF8A1F',
         size: 5 + along * 0.35 + Math.random() * 2,
       });
     }
@@ -397,8 +397,17 @@ export const updateFlameSegments = (ctx: FrameContext) => {
         pos: { x: seg.x + seg.dirX * along + (Math.random() - 0.5) * 2 * jitter, y: seg.y + seg.dirY * along + (Math.random() - 0.5) * 2 * jitter },
         vel: { x: Math.cos(a) * speed, y: Math.sin(a) * speed },
         life: 8 + Math.random() * 10,
-        color: pickRandom(PARTICLE_PALETTES.FIRE),
+        color: pickRandom(PARTICLE_PALETTES.MOLTEN),
         size: 4 + Math.random() * 6 * seg.density + 2,
+      });
+    }
+    // (now and then a glob of it sags off the stream and drips: it lies where it lands, glowing, then crusts over)
+    if (seg.life === FLAMETHROWER_SEGMENT_LIFETIME - 2 && Math.random() < 0.07 * (0.4 + seg.density)) {
+      state.particles.push({
+        pos: { x: seg.x - 3, y: seg.y - 2 },
+        vel: { x: seg.dirX * gml(0.6) + (Math.random() - 0.5), y: 0.5 + Math.random() },
+        life: 70 + Math.random() * 40,
+        color: '#FFC23D', size: 5 + Math.random() * 4, molten: true,
       });
     }
 

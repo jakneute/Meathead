@@ -131,7 +131,7 @@ export const STAGE_COLORS: Record<string, { ground: string, bg: string, accent: 
 
 export const WEAPON_NAMES: Record<string, string> = {
   'Artie Avalanche': 'Shotgun Ice',
-  'Victor Volcano': 'Flamethrower',
+  'Victor Volcano': 'Molten Flamethrower',
   'Ernie Earthquake': "Big Fuckin' Boulder",
   'Hector Hurricane': 'TSUNAMI!',
   'Toxic Tommy': 'Sludge Barfer',

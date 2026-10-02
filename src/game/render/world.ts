@@ -142,6 +142,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     drawProjectiles(wctx, state, 'flying');
     if (state.waterShock) drawWaterShock(wctx, state.waterShock, state.frame);
     drawBlasts(wctx, state);
+    drawMoltenStream(wctx, state);
     drawParticlesAndDamageNumbers(wctx, state);
     drawBarryLighting(wctx, state, stageId);
     if (state.sewerNuke) drawSewerNukeInside(wctx, state);
@@ -1411,6 +1412,48 @@ const drawDeathMessage = (ctx: CanvasRenderingContext2D, deathString: string) =>
     ctx.shadowBlur = 8;
     ctx.strokeText(deathString, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
     ctx.fillText(deathString, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+  }
+  ctx.restore();
+};
+
+/**
+ * The flamethrower's stream, as what it is: molten rock poured out of the nozzle in a wobbling ribbon, a glow round it,
+ * the body of it orange, white-hot down the middle, thinning to its tip, with flecks of crust carried along it. Drawn
+ * along the segments laid this frame (the sparks and globs come off them as particles, over it).
+ */
+const drawMoltenStream = (ctx: CanvasRenderingContext2D, state: GameState) => {
+  const segs = state.flameSegments;
+  if (!segs.length || !state.player.isFlaming) return;
+  const newest = Math.max(...segs.map(s => s.life));
+  const run = segs.filter(s => s.life === newest);
+  if (run.length < 2) return;
+  const f = state.frame;
+  const pts = run.map((s, i) => {
+    const wob = Math.sin(f * 0.45 + i * 0.9) * s.size * 0.1 * (1 + i * 0.05);
+    return { x: s.x - s.dirY * wob, y: s.y + s.dirX * wob, w: s.size * (0.35 + 0.65 * s.density), alt: s.alt };
+  });
+  ctx.save();
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  const pass = (color: string, widthK: number) => {
+    ctx.strokeStyle = color;
+    for (let i = 1; i < pts.length; i++) {
+      ctx.lineWidth = Math.max(1, pts[i].w * widthK * (pts[i].alt ? 0.6 : 1));
+      ctx.beginPath(); ctx.moveTo(pts[i - 1].x, pts[i - 1].y); ctx.lineTo(pts[i].x, pts[i].y); ctx.stroke();
+    }
+  };
+  pass('rgba(255, 106, 26, 0.28)', 1.25);
+  pass('#C2260F', 0.72);
+  pass('#F2541B', 0.58);
+  pass('#FF8A1F', 0.42);
+  pass('#FFC23D', 0.26);
+  pass('#FFF1A8', 0.11);
+  // (crust carried along it: dark flecks riding the flow, going out)
+  for (let k = 0; k < 10; k++) {
+    const t = ((f * 0.9 + k * 37) % 100) / 100, at = t * (pts.length - 1), i = Math.floor(at), u = at - i;
+    const a = pts[i], b = pts[Math.min(pts.length - 1, i + 1)];
+    const px = a.x + (b.x - a.x) * u, py = a.y + (b.y - a.y) * u + Math.sin(k * 2.1 + f * 0.2) * a.w * 0.18;
+    ctx.fillStyle = k % 3 ? '#5A1A0C' : '#3A1208';
+    ctx.fillRect(Math.round(px - 1.5), Math.round(py - 1), 3 + (k % 2), 2);
   }
   ctx.restore();
 };

@@ -16,6 +16,7 @@ export const drawParticle = (ctx: CanvasRenderingContext2D, p: Particle) => {
   const r = Math.max(1, p.size / 2);
   const x = p.pos.x + r, y = p.pos.y + r;
   if (p.isGlass) return drawShard(ctx, p, x, y, r);
+  if (p.molten) return drawMoltenGlob(ctx, p, x, y, r);
   if (isGoreColor(p.color) || p.isBossGore) {
     if (p.isSplat || p.isStuck) return drawSplat(ctx, p, x, y, r);
     return drawDroplet(ctx, p, x, y, r);
@@ -109,5 +110,25 @@ const drawShard = (ctx: CanvasRenderingContext2D, p: Particle, x: number, y: num
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
   ctx.lineWidth = 1;
   ctx.stroke();
+  ctx.restore();
+};
+
+/** A glob of the molten stream: a crust round a glowing core, the core cooling from white-hot to dull red as it goes
+ * (and the crust taking over); landed, it's a flat little pool doing the same. */
+const drawMoltenGlob = (ctx: CanvasRenderingContext2D, p: Particle, x: number, y: number, r: number) => {
+  const heat = Math.max(0, Math.min(1, p.life / 90));
+  const core = heat > 0.66 ? '#FFF1A8' : heat > 0.4 ? '#FFC23D' : heat > 0.2 ? '#F2541B' : '#8B1A0A';
+  ctx.save();
+  if (p.isSplat) {
+    ctx.fillStyle = '#3A1208'; ctx.beginPath(); ctx.ellipse(x, y + r * 0.5, r * 1.8, r * 0.55, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = core; ctx.beginPath(); ctx.ellipse(x, y + r * 0.45, r * 1.2 * (0.4 + heat * 0.6), r * 0.32, 0, 0, Math.PI * 2); ctx.fill();
+  } else {
+    // (stretched along the way it's falling)
+    ctx.translate(x, y); ctx.rotate(Math.atan2(p.vel.y, p.vel.x));
+    const st = 1 + Math.min(1, Math.hypot(p.vel.x, p.vel.y) * 0.1);
+    ctx.fillStyle = '#3A1208'; ctx.beginPath(); ctx.ellipse(0, 0, r * 1.1 * st, r * 1.05, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = core; ctx.beginPath(); ctx.ellipse(r * 0.15, 0, r * 0.75 * st * (0.5 + heat * 0.5), r * 0.7 * (0.5 + heat * 0.5), 0, 0, Math.PI * 2); ctx.fill();
+    if (heat > 0.5) { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(r * 0.2, -r * 0.35, 1.5, 1.5); }
+  }
   ctx.restore();
 };

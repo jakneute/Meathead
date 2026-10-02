@@ -642,6 +642,8 @@ export interface Particle {
   isSplat?: boolean;
   /** Draw at this opacity instead of fading with life (short, bright bursts). */
   alpha?: number;
+  /** A glob of the flamethrower's molten stream: drips, cools as it goes (its crust darkening), and lies where it lands. */
+  molten?: boolean;
 }
 
 export interface DamageNumber {

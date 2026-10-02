@@ -469,6 +469,8 @@ export const PARTICLE_PALETTES = {
   ROCK: ['#4E342E', '#3E2723', '#212121', '#757575'],
   GLASS: ['#ADD8E6', '#F0F8FF', '#FFFFFF', '#B0C4DE'],
   FIRE: ['#FF4500', '#FF8C00', '#FFA500', '#FFD700', '#FF0000'],
+  /** The flamethrower's: not flame so much as liquid rock, white-hot to cooling red. */
+  MOLTEN: ['#FFF1A8', '#FFC23D', '#FF8A1F', '#F2541B', '#C2260F'],
   WATER: ['#00BFFF', '#1E90FF', '#4169E1', '#0000FF', '#ADD8E6'],
   STEAM: ['#FFFFFF', '#E0F7FA', '#B2EBF2', '#E1F5FE'],
   POOP: ['#5D4037', '#3E2723', '#4E342E', '#795548', '#212121'],

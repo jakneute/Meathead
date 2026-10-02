@@ -664,8 +664,14 @@ const updateParticles = (ctx: FrameContext) => {
           return true;
         }
       }
+      // A molten glob: drips, and lands in a little pool (that lies there, crusting over, till it's gone)
+      if (p.molten) {
+        p.vel.y += 0.3; p.vel.x *= 0.98;
+        const floor = groundLineAt(state.groundRuns, p.pos.x) - 2;
+        if (p.pos.y + p.size / 2 >= floor && p.pos.y < floor + 30) { p.pos.y = floor - p.size / 2; p.vel = { x: 0, y: 0 }; p.isSplat = true; }
+      }
       // Glass and fire fall and bounce on the floor
-      if (p.isGlass || (p.color && PARTICLE_PALETTES.FIRE.includes(p.color))) {
+      else if (p.isGlass || (p.color && (PARTICLE_PALETTES.FIRE.includes(p.color) || PARTICLE_PALETTES.MOLTEN.includes(p.color)))) {
         p.vel.y += 0.25;
         const floor = groundLineAt(state.groundRuns, p.pos.x) - 2;
         if (p.pos.y > floor && p.pos.y < floor + 30) { p.pos.y = floor; p.vel.y = -p.vel.y * 0.3; p.vel.x *= 0.8; }
