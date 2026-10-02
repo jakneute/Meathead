@@ -554,8 +554,10 @@ const updateVerticalVelocity = (ctx: FrameContext, input: FrameInput) => {
     player.ledgeDrop!--;
     if (player.isGrounded || player.swimming || input.shoot || player.isCharging || player.isUppercutting || player.isDivekicking || player.hurtFormTimer) player.ledgeDrop = 0;
   }
-  // Start a jump (buffered press + coyote time)
-  if (player.jumpBufferTimer > 0 && player.coyoteJumpTimer > 0 && !player.isDucking && !player.isTasing) {
+  // Start a jump (buffered press + coyote time). Crouched, he can't, except on skis: tucked under a branch, he can spring
+  // straight up out of the tuck once he's past it, without having to stand up first (on skis only: nowhere else)
+  const crouchJump = player.skiing && !player.jetski;
+  if (player.jumpBufferTimer > 0 && player.coyoteJumpTimer > 0 && (!player.isDucking || crouchJump) && !player.isTasing) {
     player.jumpBufferTimer = 0;
     // Oil underfoot: your feet slip and you barely get off the ground
     player.jumpHoldTimer = isStandingInOil(ctx.state) || oilUnderfoot(ctx.state) === 'tar' ? Math.round(JUMP_HOLD_FRAMES * OSCAR_OIL_JUMP_MULT) : JUMP_HOLD_FRAMES;
