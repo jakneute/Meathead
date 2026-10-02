@@ -190,7 +190,7 @@ export interface Player extends Entity {
 }
 
 export type BossState =
-  | 'idle' | 'barfing' | 'jumping' | 'attacking' | 'perched' | 'hurricane' | 'telegraphing' | 'stunned_drop'
+  | 'idle' | 'barfing' | 'jumping' | 'attacking' | 'perched' | 'panicking' | 'hurricane' | 'telegraphing' | 'stunned_drop'
   | 'truck_incoming' | 'using_shipment' | 'speed_dash' | 'shooting' | 'teleporting'
   | 'blackout' | 'blackout_teleport' | 'ground_pound' | 'lightning_storm' | 'exhausted'
   | 'submerged_chase' | 'telegraph_emerge' | 'emerge_shatter' | 'puke_closing_in'

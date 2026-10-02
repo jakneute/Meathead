@@ -404,6 +404,11 @@ export const resetStageState = (s: GameState) => {
   s.particles = [];
   s.enemyDeaths = [];
   s.killPose = null;
+  // (a kill line still waiting to be said from before: it was about that kill, not anything here; and what he was last
+  // saying goes with it)
+  s.killVoice = undefined;
+  s.playerLastVulgarity = '';
+  s.playerVulgarityTimer = 0;
   s.damageNumbers = [];
   s.blocks = [];
   s.camera = { x: 0, y: 0 };

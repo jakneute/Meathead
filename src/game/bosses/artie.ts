@@ -1,5 +1,6 @@
 // Artie Avalanche: hops around on low gravity, lobs big ice blocks, and
-// leaps to the far side of the room whenever the flamethrower gets him.
+// when the flamethrower gets him, panics: on fire, he hops about frantically
+// (making for the far side of the room) for as long as he can't be hit again.
 // Every jump shakes icicles loose from the ceiling (more as he gets hurt), and
 // they drop one after another. Burning him brings them down early, but the
 // flamethrower can melt them too.
@@ -44,6 +45,7 @@ const ICE_BLOCK_DAMAGE = 20;
 
 const update = (ctx: FrameContext, boss: Enemy) => {
   updateIcicles(ctx);
+  if (boss.bossState === 'panicking') { panic(ctx, boss); return; }
   if (boss.shootTimer > 0) boss.shootTimer--;
   if (boss.isGroundedBoss && Math.abs(boss.vel.x) < 0.5) boss.sideTimer = (boss.sideTimer || 0) + 1;
   else boss.sideTimer = 0;
@@ -128,17 +130,41 @@ const throwIceBlock = (ctx: FrameContext, boss: Enemy, id: string) => {
   playSound('clink', 0.5, -4);
 };
 
+/** How long he panics for (his breather after the hit: he can't be burned again till it's over). */
+const PANIC_FRAMES = 60;
+
 /**
- * Weakness: the flamethrower sends him leaping to the opposite side of the
- * arena, and the jolt brings the icicles down early.
+ * Weakness: the flamethrower sets him alight and he panics: frantic little hops all over (making for the far side of
+ * the room, mostly), arms going, on fire, for as long as he can't be hit again. The first jolt brings the icicles down
+ * early.
  */
-const leapAway = (ctx: FrameContext, boss: Enemy) => {
-  const targetX = boss.pos.x < ARENA_MID - 40 ? ARENA_RIGHT - boss.width - BOSS_WALL_GAP - 20 : ARENA_LEFT + BOSS_WALL_GAP + 20;
-  boss.vel.y = -22;
-  boss.vel.x = (targetX - boss.pos.x) / 50;
-  boss.bossState = 'jumping';
-  boss.stateTimer = 60;
+const startPanic = (ctx: FrameContext, boss: Enemy) => {
+  boss.slideTargetX = boss.pos.x < ARENA_MID - 40 ? ARENA_RIGHT - boss.width - BOSS_WALL_GAP - 20 : ARENA_LEFT + BOSS_WALL_GAP + 20;
+  boss.bossState = 'panicking';
+  boss.stateTimer = PANIC_FRAMES;
+  boss.throwWindup = 0;
+  boss.vel.y = -9; boss.vel.x = Math.sign(boss.slideTargetX - boss.pos.x) * 5;
   shakeIciclesLoose(ctx, boss, true);
+  playSound('ignite', 0.8);
+};
+
+const panic = (ctx: FrameContext, boss: Enemy) => {
+  const { state } = ctx;
+  const toward = Math.sign((boss.slideTargetX ?? ARENA_MID) - boss.pos.x) || 1;
+  // (another hop as soon as he's down: mostly the way he's going, now and then back on himself)
+  if (boss.isGroundedBoss && boss.stateTimer! > 0) {
+    boss.vel.y = -7 - Math.random() * 4;
+    boss.vel.x = (Math.random() < 0.25 ? -toward : toward) * (3 + Math.random() * 3);
+    boss.facing = boss.vel.x < 0 ? -1 : 1;
+  }
+  // He's on fire: flames off him, smoke, and what's melting off him dripping
+  const cx = boss.pos.x + boss.width / 2;
+  for (let k = 0; k < 2; k++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * boss.width * 0.8, y: boss.pos.y + Math.random() * boss.height * 0.6 }, vel: { x: (Math.random() - 0.5) * 1.5, y: -2 - Math.random() * 2.5 }, life: 14 + Math.random() * 8, color: ['#FF4500', '#FF8C00', '#FFA500', '#FFD700'][Math.floor(Math.random() * 4)], size: 5 + Math.random() * 6 });
+  if (state.frame % 3 === 0) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * 30, y: boss.pos.y - 10 }, vel: { x: (Math.random() - 0.5) * 0.8, y: -1.5 }, life: 30, color: 'rgba(120, 120, 130, 0.6)', size: 8 + Math.random() * 6 });
+  if (state.frame % 4 === 0) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * boss.width * 0.6, y: boss.pos.y + boss.height * 0.7 }, vel: { x: 0, y: 2 }, life: 20, color: '#BAE6FD', size: 3 });
+  if (state.frame % 6 === 0) playSound('ignite', 0.35);
+  // (out of breath, out of fire: back to it once he's landed)
+  if (boss.stateTimer! <= 0 && boss.isGroundedBoss) { boss.bossState = 'idle'; boss.stateTimer = 20; }
 };
 
 // ---------------------------------------------------------------------------
@@ -223,6 +249,7 @@ export const artie: BossDef = {
   spawn: { x: 7700 },
   slipperyFloor: true,
   update,
-  physics: { gravity: () => 0.5 },
-  onWeaknessHit: leapAway,
+  // (panicking, his hops are short, frantic ones)
+  physics: { gravity: boss => (boss.bossState === 'panicking' ? 1.6 : 0.5) },
+  onWeaknessHit: startPanic,
 };

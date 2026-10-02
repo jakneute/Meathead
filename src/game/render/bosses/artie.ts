@@ -17,7 +17,8 @@ export const drawArtie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
   const f = facingOf(e);
   const gore = goreOf(e);
   const windup = (e.throwWindup ?? 0) > 0;
-  const mood: Mood = windup ? 'fierce' : moodOf(e, frame, { attacking: 'fierce', jumping: e.isGroundedBoss ? 'fierce' : 'shock' });
+  const panicking = e.bossState === 'panicking' && e.health > 0;
+  const mood: Mood = panicking ? 'manic' : windup ? 'fierce' : moodOf(e, frame, { attacking: 'fierce', jumping: e.isGroundedBoss ? 'fierce' : 'shock' });
   const b = breath(frame);
   ctx.save();
   ctx.scale(e.width / 80, e.height / 80);
@@ -58,7 +59,14 @@ export const drawArtie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
   shoulderIce(ctx, 63, 34, 1, frame);
 
   // Arms: puffy sleeves, big mittens (up under the block when he's about to throw one)
-  if (windup) {
+  if (panicking) {
+    // (flailing: both arms going up and down, out of step)
+    const a = Math.sin(frame * 0.9), b2 = Math.sin(frame * 0.9 + 2.2);
+    limb(ctx, 19, 38, 8, 22 + a * 16, 10, PARKA, PARKA_DARK);
+    limb(ctx, 61, 38, 72, 22 + b2 * 16, 10, PARKA, PARKA_DARK);
+    hand(ctx, 6, 18 + a * 18, 5, MITT, '#172554');
+    hand(ctx, 74, 18 + b2 * 18, 5, MITT, '#172554');
+  } else if (windup) {
     limb(ctx, 20, 38, 22, 6, 10, PARKA, PARKA_DARK);
     limb(ctx, 60, 38, 58, 6, 10, PARKA, PARKA_DARK);
     hand(ctx, 22, 2, 5, MITT, '#172554');
@@ -150,6 +158,16 @@ export const drawArtie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(cx + size * 0.2, cy - size * 0.3, 3, 9);
       ctx.fillRect(cx + size * 0.2 - 3, cy - size * 0.3 + 3, 9, 3);
+    }
+  }
+  // On fire: tongues of it up off his shoulders, his back and his hair, flickering
+  if (panicking) {
+    for (let k = 0; k < 7; k++) {
+      const fx = 14 + k * 9 + Math.sin(frame * 0.5 + k) * 2, base = k % 3 === 0 ? 14 : 36, hgt = 14 + Math.abs(Math.sin(frame * 0.6 + k * 1.7)) * 16;
+      ctx.fillStyle = '#FF4500';
+      ctx.beginPath(); ctx.moveTo(fx - 6, base); ctx.quadraticCurveTo(fx - 4, base - hgt * 0.6, fx + Math.sin(frame * 0.8 + k) * 3, base - hgt); ctx.quadraticCurveTo(fx + 4, base - hgt * 0.6, fx + 6, base); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#FFD700';
+      ctx.beginPath(); ctx.moveTo(fx - 3, base); ctx.quadraticCurveTo(fx - 2, base - hgt * 0.4, fx, base - hgt * 0.6); ctx.quadraticCurveTo(fx + 2, base - hgt * 0.4, fx + 3, base); ctx.closePath(); ctx.fill();
     }
   }
   ctx.restore();
