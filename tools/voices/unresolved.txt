@@ -59,12 +59,12 @@ game/stages/gym/runtime.ts:349 name: undefined
 game/stages/gym/runtime.ts:351 call: deathByCause(ctx.state)
 game/core/effects.ts:236 call: getHurtLines(hurtSource)
 game/core/effects.ts:236 call: killLine(category, victim)
-game/core/update.ts:189 name: undefined
-game/core/update.ts:572 call: layout?.deathMessage?.(ctx)
-game/core/update.ts:572 name: undefined
-game/core/update.ts:572 call: deathByCause(state)
-game/core/update.ts:572 call: deathFallback(state, ctx.stageId, fell)
-game/player/player.ts:77 call: message()
+game/core/update.ts:191 name: undefined
+game/core/update.ts:574 call: layout?.deathMessage?.(ctx)
+game/core/update.ts:574 name: undefined
+game/core/update.ts:574 call: deathByCause(state)
+game/core/update.ts:574 call: deathFallback(state, ctx.stageId, fell)
+game/player/player.ts:79 call: message()
 App.tsx:211 voice: getBossVoice(selectedStage)
 App.tsx:395 name: undefined
 App.tsx:396 expr: null

@@ -63,6 +63,8 @@ export const hectorLayout: StageLayout = {
   // (boarded by the Coast Guard: the kill camera's beats; or the junk finished him: thrown out, the boat going up)
   deathSceneTick: ctx => { const c = getHector(ctx.state)?.boat.chase; if (c?.caughtT) tickBoarded(ctx, c); else if (c?.wreckT) tickWreck(ctx, c); },
   deathMessage: ctx => { const rt = getHector(ctx.state); return rt ? hazardDeathMessage(ctx.state, rt.hazards) : undefined; },
+  // (the storm up the tower got him: it doesn't stop at the clouds)
+  fallDeathKind: ctx => ((getHector(ctx.state)?.tower.suckT ?? 0) > 0 ? 'space' : undefined),
   updateSpecialEnemy: (ctx, e) => {
     const rt = getHector(ctx.state);
     if (!rt) return undefined;

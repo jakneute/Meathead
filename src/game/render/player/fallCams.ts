@@ -1,6 +1,6 @@
 import type { GameState } from '../../core/state';
 import type { MeatheadDeath } from '../../player/deathAnim';
-import { MEATHEAD_DEATH_FRAMES, FALL_HIT } from '../../player/deathAnim';
+import { MEATHEAD_DEATH_FRAMES, FALL_HIT, SPACE_OUT } from '../../player/deathAnim';
 import { body } from './deathAnim';
 import type { DeathFace } from './deathFace';
 import { bandedGradient, checker, brickPattern, steppedGlow, pixelBlob, hazeBands } from '../pixelArt';
@@ -80,7 +80,7 @@ export const strata = (ctx: Ctx, x0: number, w: number, H: number, colors: strin
 
 export const drawFallCam = (ctx: Ctx, state: GameState, W: number, H: number) => {
   const d = state.meatheadDeath;
-  if (!d || state.deathTimer <= 0 || !d.kind.startsWith('fall_')) return;
+  if (!d || state.deathTimer <= 0 || !(d.kind.startsWith('fall_') || d.kind === 'space')) return;
   const t = Math.min(state.deathScene?.t ?? 9999, MEATHEAD_DEATH_FRAMES[d.kind]);
   const f = state.frame, hit = t >= FALL_HIT, since = t - FALL_HIT;
   ctx.save();
@@ -93,6 +93,7 @@ export const drawFallCam = (ctx: Ctx, state: GameState, W: number, H: number) =>
     case 'fall_arroyo': arroyo(ctx, state, d, t, f, hit, since, W, H); break;
     case 'fall_rocks': rocks(ctx, state, d, t, f, hit, since, W, H); break;
     case 'fall_dungeon': dungeon(ctx, state, d, t, f, hit, since, W, H); break;
+    case 'space': space(ctx, state, d, t, f, W, H); break;
   }
   // (and it dims on him at the end, for the message)
   const out = clamp01((t - (MEATHEAD_DEATH_FRAMES[d.kind] - 20)) / 20);
@@ -490,4 +491,70 @@ const dungeon: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
     him(ctx, state, d, cx, floor - 30, Math.PI * 0.62 * d.facing, 1.6, 'dead');
     if (since < 12) for (let k = 0; k < 8; k++) pixelBlob(ctx, cx + (hash(k) - 0.5) * 140, floor - since * 2 - hash(k + 1) * 20, 10 + since, 6 + since * 0.6, `rgba(168, 162, 158, ${(0.6 * (1 - since / 12)).toFixed(3)})`);
   }
+};
+
+/**
+ * Up Hector's tower, the storm got him, and it doesn't stop at the clouds: straight up, spinning, the clouds tearing
+ * past and the speed lines streaming, the sky going from storm to blue to black; out of the air. Then nothing: the
+ * stars, the Earth curving away below (the hurricane a white spiral on it), the sun, and him, drifting, turning slowly
+ * over, his last breath going out of him in a puff and freezing, and that's it. (Long, for a death: SKIP >> goes
+ * straight past it.)
+ */
+const space = (ctx: Ctx, state: GameState, d: MeatheadDeath, t: number, f: number, W: number, H: number) => {
+  const up = clamp01(t / SPACE_OUT), out = clamp01((t - SPACE_OUT + 20) / 40);
+  // The sky: storm, blue, indigo, black
+  const sky = ['#475569', '#38BDF8', '#1D4ED8', '#1E1B4B', '#020617', '#000000'];
+  const at = (k: number) => sky[Math.min(sky.length - 1, Math.floor(clamp01(k) * (sky.length - 1)))];
+  bandedGradient(ctx, 0, 0, W, H, [at(up + 0.25), at(up), at(up - 0.2)], 10);
+  // The stars coming out, and staying
+  if (out > 0) for (let k = 0; k < 110; k++) {
+    const tw = (hash(k * 3) + f * 0.01 * (k % 5)) % 1 < 0.9 ? 1 : 0.4;
+    ctx.fillStyle = `rgba(255, 255, 255, ${(out * tw * (0.4 + hash(k) * 0.6)).toFixed(3)})`;
+    const s = k % 13 === 0 ? P * 2 : P;
+    ctx.fillRect(snap(hash(k + 1) * W), snap(hash(k + 2) * H), s, s);
+  }
+  // The Earth, curving away below once he's out (its atmosphere a thin glowing band), and the sun
+  if (out > 0) {
+    const rise = H + 40 - out * 170, R = 1600;
+    ctx.save(); ctx.globalAlpha = out;
+    steppedGlow(ctx, 120, 90, 110, '#FEF9C3', 0.9, 0, 6);
+    ctx.fillStyle = '#7DD3FC'; ctx.beginPath(); ctx.arc(W / 2, rise + R, R + 10, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#1D4ED8'; ctx.beginPath(); ctx.arc(W / 2, rise + R, R, 0, Math.PI * 2); ctx.fill();
+    ctx.save(); ctx.beginPath(); ctx.arc(W / 2, rise + R, R, 0, Math.PI * 2); ctx.clip();
+    ctx.fillStyle = '#15803D'; ctx.beginPath(); ctx.ellipse(W * 0.3, rise + 80, 160, 40, -0.1, 0, Math.PI * 2); ctx.fill();
+    for (let k = 0; k < 14; k++) pixelBlob(ctx, (k * 83 + f * 0.05) % (W + 100) - 50, rise + 20 + (k % 4) * 22, 40 + (k % 3) * 16, 8, 'rgba(255, 255, 255, 0.8)');
+    // (the hurricane he came up out of, a white spiral down there)
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)'; ctx.lineWidth = 3; ctx.beginPath();
+    for (let a = 0; a < Math.PI * 5; a += 0.2) { const r = 4 + a * 7, x = W * 0.68 + Math.cos(a - f * 0.004) * r, y = rise + 60 + Math.sin(a - f * 0.004) * r * 0.3; if (a === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+    ctx.stroke(); ctx.restore();
+    checker(ctx, 0, snap(rise - 4), W, P * 2, 'rgba(125, 211, 252, 0.6)');
+    ctx.restore();
+  }
+  // Going up: the clouds tearing past him
+  if (up < 1) for (let k = 0; k < 10; k++) { const y = ((t * 26 + k * 140) % (H + 300)) - 150; pixelBlob(ctx, hash(k) * W, y, 90 + hash(k + 1) * 60, 30 + hash(k + 2) * 20, `rgba(226, 232, 240, ${(0.85 * (1 - up)).toFixed(3)})`); }
+  // ...and the speed lines, streaming
+  const lines = 1 - clamp01((t - SPACE_OUT + 10) / 30);
+  if (lines > 0) for (let k = 0; k < 46; k++) {
+    const x = snap(hash(k * 5) * W), len = 80 + hash(k) * 220, y = ((t * (40 + hash(k + 3) * 30) + k * 97) % (H + len)) - len;
+    if (Math.abs(x - W / 2) < 46 && hash(k) < 0.7) continue;
+    ctx.fillStyle = `rgba(255, 255, 255, ${(lines * (0.35 + hash(k + 9) * 0.5)).toFixed(3)})`;
+    ctx.fillRect(x, snap(y), k % 4 === 0 ? P * 2 : P, snap(len));
+  }
+  // Him: shot up spinning, slowing; then drifting, turning over, dead
+  const drift = Math.max(0, t - SPACE_OUT);
+  const x = W / 2 + (up < 1 ? Math.sin(t * 1.3) * 6 * (1 - up) : drift * 0.35), y = H * 0.5 + (up < 1 ? 40 * (1 - up) : -drift * 0.22);
+  const rot = up < 1 ? t * (0.5 - up * 0.35) : SPACE_OUT * 0.325 + drift * 0.012;
+  const face: DeathFace = up < 1 ? 'scream' : drift < 40 ? 'frozen' : 'dead';
+  ctx.save();
+  if (drift > 0) ctx.filter = `saturate(${1 - clamp01(drift / 80) * 0.4}) brightness(${1 - clamp01(drift / 80) * 0.15}) hue-rotate(${-clamp01(drift / 80) * 10}deg)`;
+  him(ctx, state, d, x, y, rot, 2, face, { isGrounded: false, vel: { x: 0, y: -2 } });
+  ctx.restore();
+  // (his last breath going out of him, and freezing; frost over him)
+  if (drift > 20 && drift < 70) for (let k = 0; k < 6; k++) {
+    const q = clamp01((drift - 20 - k * 3) / 40);
+    if (q <= 0 || q >= 1) continue;
+    ctx.fillStyle = `rgba(241, 245, 249, ${(0.8 * (1 - q)).toFixed(3)})`;
+    ctx.fillRect(snap(x + 10 + q * 40 + k * 3), snap(y - 50 - q * 30 + Math.sin(k) * 6), P * 2, P * 2);
+  }
+  if (drift > 40) for (let k = 0; k < 16; k++) if (hash(k * 7) < clamp01((drift - 40) / 60)) { ctx.fillStyle = '#F0F9FF'; ctx.fillRect(snap(x - 30 + hash(k) * 60), snap(y - 50 + hash(k + 3) * 100), P, P); }
 };
