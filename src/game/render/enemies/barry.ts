@@ -13,6 +13,8 @@
 import { drawHouseholdItem } from '../projectiles';
 import { Enemy } from '../../../types';
 import type { GameState } from '../../core/state';
+import { INK, ink, shaded, shadedTop, lite, dark, eye, limb } from '../npc/kit';
+import { featherWing } from './hector';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -166,16 +168,49 @@ const drawBum = (ctx: Ctx, e: Enemy, f: number) => {
   }
 };
 
+const RAT = '#57534E', RAT_HEAD = '#6B6560', RAT_PINK = '#F9A8D4';
+
 /** A New York rat: grey-brown, pink tail and ears, fat on pizza. */
 const drawRat = (ctx: Ctx, e: Enemy, f: number) => {
   const run = Math.abs(e.vel.x) > 0.3 ? Math.sin(f * 0.7) * 2 : 0;
-  ctx.strokeStyle = '#F9A8D4'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-10, -5); ctx.quadraticCurveTo(-22, -10 + run, -28, -2); ctx.stroke();
-  ctx.fillStyle = '#57534E'; ctx.beginPath(); ctx.ellipse(-1, -7, 12, 7, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#6B6560'; ctx.beginPath(); ctx.ellipse(11, -7, 6, 4.5, 0.2, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#F9A8D4'; ctx.beginPath(); ctx.arc(7, -12, 2.5, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(16, -7, 2, 2);
-  ctx.fillStyle = '#111827'; ctx.fillRect(12, -9, 2, 2);
-  ctx.fillStyle = '#44403C'; ctx.fillRect(-6 + run, -2, 3, 2); ctx.fillRect(5 - run, -2, 3, 2);
-  if (e.aiState === 'lunge') { ctx.fillStyle = '#F8FAFC'; ctx.fillRect(16, -5, 2, 2); } // teeth
+  // The tail: long, bald, pink, ringed
+  const tail = () => { ctx.beginPath(); ctx.moveTo(-10, -5); ctx.quadraticCurveTo(-22, -10 + run, -28, -2); };
+  ctx.lineCap = 'round';
+  tail(); ctx.strokeStyle = INK; ctx.lineWidth = 3.4; ctx.stroke();
+  tail(); ctx.strokeStyle = RAT_PINK; ctx.lineWidth = 1.8; ctx.stroke();
+  ctx.lineCap = 'butt';
+  ctx.fillStyle = dark(RAT_PINK, 0.25);
+  for (let t = 0.2; t < 0.9; t += 0.16) { const u = 1 - t; ctx.fillRect(u * u * -10 + 2 * u * t * -22 + t * t * -28, u * u * -5 + 2 * u * t * (-10 + run) + t * t * -2 - 0.8, 0.8, 1.6); }
+  // A foot: the leg down, the pink foot, toes
+  const foot = (x: number, back: boolean) => {
+    limb(ctx, x, -4, x + 1, -1.4, 2, back ? dark(RAT, 0.25) : RAT);
+    ink(ctx, () => ctx.ellipse(x + 2, -0.9, 2.1, 0.9, 0, 0, Math.PI * 2), back ? dark(RAT_PINK, 0.2) : RAT_PINK, 0.6);
+  };
+  foot(-4 - run, true); foot(7 + run, true);
+  // The body: hunched, the fur ticked dark and lit along the back, the belly paler, the haunch
+  const body = () => { ctx.moveTo(-12, -6); ctx.quadraticCurveTo(-12, -14, -3, -14); ctx.quadraticCurveTo(6, -14, 9, -9); ctx.lineTo(10, -3); ctx.quadraticCurveTo(0, -1.4, -8, -2); ctx.quadraticCurveTo(-13, -3, -12, -6); ctx.closePath(); };
+  shadedTop(ctx, body, RAT, -13, -14, 23, 13);
+  ctx.save(); ctx.beginPath(); body(); ctx.clip();
+  ctx.fillStyle = lite(RAT, 0.3); ctx.fillRect(-8, -13.4, 4, 1); ctx.fillRect(-2, -13.6, 4, 1); ctx.fillRect(-10, -11, 1, 2);
+  ctx.fillStyle = dark(RAT, 0.32); for (const [x, y] of [[-6, -11], [-1, -12], [3, -10], [-8, -8], [-3, -8.6]]) ctx.fillRect(x, y, 1.4, 1);
+  ctx.fillStyle = '#A8A29E'; ctx.fillRect(-9, -3.6, 18, 2);
+  ctx.strokeStyle = dark(RAT, 0.38); ctx.lineWidth = 0.8; ctx.beginPath(); ctx.arc(-6, -4.5, 4.4, Math.PI * 1.1, Math.PI * 1.85); ctx.stroke();
+  ctx.restore();
+  ctx.beginPath(); body(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.lineJoin = 'round'; ctx.stroke();
+  // The head: pointed, the pink nose, whiskers, the ear, a black bead of an eye; the yellow incisors when it lunges
+  const head = () => { ctx.moveTo(5, -11); ctx.quadraticCurveTo(10, -12.6, 14, -9); ctx.lineTo(18, -6.6); ctx.quadraticCurveTo(18.6, -5, 16, -4.6); ctx.lineTo(8, -3); ctx.quadraticCurveTo(4, -5, 5, -11); ctx.closePath(); };
+  if (e.aiState === 'lunge') {
+    ink(ctx, () => { ctx.rect(15, -5.2, 1.3, 2.4); ctx.rect(16.3, -5.2, 1.3, 2.4); }, '#FDE68A', 0.5); // teeth
+  }
+  shaded(ctx, head, RAT_HEAD, 4, -12.6, 15, 10);
+  ink(ctx, () => ctx.ellipse(7.4, -12, 2.6, 3, -0.3, 0, Math.PI * 2), RAT_HEAD, 0.8);
+  ctx.fillStyle = RAT_PINK; ctx.beginPath(); ctx.ellipse(7.7, -11.8, 1.4, 1.9, -0.3, 0, Math.PI * 2); ctx.fill();
+  ink(ctx, () => ctx.arc(17.8, -6.2, 1.2, 0, Math.PI * 2), RAT_PINK, 0.6);
+  ink(ctx, () => ctx.arc(12, -8.6, 1.3, 0, Math.PI * 2), '#0C0A09', 0.6);
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(11.4, -9.4, 0.9, 0.9);
+  ctx.strokeStyle = 'rgba(231, 229, 228, 0.8)'; ctx.lineWidth = 0.5;
+  ctx.beginPath(); for (const [x, y] of [[22, -8.4], [22.4, -5.6], [21.4, -3.4]]) { ctx.moveTo(16, -5.8); ctx.lineTo(x, y); } ctx.stroke();
+  foot(-7 + run, false); foot(4 - run, false);
 };
 
 // ---------------------------------------------------------------------------
@@ -558,16 +593,42 @@ const drawGeneratorBox = (ctx: Ctx, e: Enemy, f: number) => {
   void f;
 };
 
+const PIGEON = '#9CA3AF', PIGEON_DARK = '#6B7280', PIGEON_HEAD = '#4B5563';
+
 /** A New York pigeon: fat, grey, the green-and-purple sheen on its neck, orange eye, beating away (swooping at you). */
 const drawPigeon = (ctx: Ctx, e: Enemy, f: number) => {
   const swoop = e.aiState === 'swoop';
   const flap = swoop ? Math.sin(f * 0.2) * 3 : Math.sin(f * 0.45) * 9;
-  ctx.fillStyle = '#6B7280'; ctx.beginPath(); ctx.moveTo(-4, -11); ctx.lineTo(-20, -20 - flap); ctx.lineTo(-8, -9); ctx.fill();
-  ctx.fillStyle = '#9CA3AF'; ctx.beginPath(); ctx.ellipse(0, -10, 14, 7, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#374151'; ctx.beginPath(); ctx.moveTo(-13, -10); ctx.lineTo(-20, -13); ctx.lineTo(-20, -6); ctx.fill();
-  ctx.fillStyle = '#4B5563'; ctx.beginPath(); ctx.arc(11, -13, 5, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = 'rgba(52, 211, 153, 0.7)'; ctx.fillRect(6, -11, 6, 3); ctx.fillStyle = 'rgba(168, 85, 247, 0.6)'; ctx.fillRect(6, -9, 6, 2);
-  ctx.fillStyle = '#F97316'; ctx.fillRect(12, -15, 2, 2); ctx.fillStyle = '#1F2937'; ctx.fillRect(15, -13, 5, 2);
-  ctx.fillStyle = '#9CA3AF'; ctx.beginPath(); ctx.moveTo(0, -9); ctx.lineTo(-14, -22 + flap); ctx.lineTo(6, -11); ctx.fill();
-  ctx.fillStyle = '#F87171'; ctx.fillRect(-2, -4, 2, 4); ctx.fillRect(3, -4, 2, 4);
+  // The far wing, in shadow
+  featherWing(ctx, -8, -9, -20, -20 - flap, -4, -11, PIGEON_DARK, 3);
+  // The tail, the black band across its end; the feet, red
+  const tail = () => { ctx.moveTo(-11, -12.5); ctx.lineTo(-21, -14); ctx.lineTo(-21, -6.5); ctx.lineTo(-11, -8); ctx.closePath(); };
+  shaded(ctx, tail, PIGEON_DARK, -21, -14, 10, 8);
+  ctx.save(); ctx.beginPath(); tail(); ctx.clip(); ctx.fillStyle = '#1F2937'; ctx.fillRect(-21, -15, 3, 10); ctx.restore();
+  ctx.beginPath(); tail(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
+  for (const x of [-1, 4]) {
+    limb(ctx, x, -5, x, -1.4, 1.4, '#F87171');
+    ctx.strokeStyle = INK; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(x - 2, 0); ctx.lineTo(x + 2.4, 0); ctx.stroke();
+  }
+  // The body: plump, lit across the top, the breast puffed
+  const body = () => ctx.ellipse(0, -10, 14, 7, 0, 0, Math.PI * 2);
+  shaded(ctx, body, PIGEON, -14, -17, 28, 14);
+  ctx.save(); ctx.beginPath(); body(); ctx.clip();
+  ctx.fillStyle = lite(PIGEON, 0.3); ctx.fillRect(-8, -16.4, 10, 1.4);
+  // The sheen on the neck, green over purple, stepped
+  ctx.fillStyle = '#3E9A82'; ctx.fillRect(4, -14, 10, 3); ctx.fillStyle = '#6FC7AE'; ctx.fillRect(6, -13.6, 3, 1);
+  ctx.fillStyle = '#7C5AA8'; ctx.fillRect(3, -11, 11, 2.6); ctx.fillStyle = '#A78BCF'; ctx.fillRect(5, -10.6, 3, 1);
+  ctx.restore();
+  ctx.beginPath(); body(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
+  // The head: small, slate grey, the orange eye; the bill dark with the white cere at its base
+  const head = () => ctx.arc(11, -13, 5, 0, Math.PI * 2);
+  shaded(ctx, head, PIGEON_HEAD, 6, -18, 10, 10);
+  ctx.save(); ctx.beginPath(); head(); ctx.clip();
+  ctx.fillStyle = '#3E9A82'; ctx.fillRect(5, -11, 12, 2); ctx.fillStyle = '#7C5AA8'; ctx.fillRect(5, -9, 12, 2); ctx.fillStyle = '#6FC7AE'; ctx.fillRect(8, -10.8, 2, 0.8);
+  ctx.restore(); ctx.beginPath(); head(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
+  ink(ctx, () => { ctx.moveTo(15.4, -14.2); ctx.lineTo(20, -12.6); ctx.lineTo(15.4, -11.6); ctx.closePath(); }, '#1F2937', 0.7);
+  ink(ctx, () => ctx.ellipse(16.2, -13.6, 1.3, 0.8, 0.2, 0, Math.PI * 2), '#F1F5F9', 0.5);
+  eye(ctx, 12.2, -14.4, 1.5, 0.4, 0, '#F97316');
+  // The near wing, beating: the two black bars across it
+  featherWing(ctx, 6, -11, -14, -22 + flap, 0, -9, PIGEON, 3, '#1F2937');
 };
