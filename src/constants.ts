@@ -258,6 +258,8 @@ export const OILED_LEDGE_DROP = 30;
 export const FROZEN_ENEMY_IMPACT_DAMAGE = 20;
 /** A frozen enemy shoved into a wall or another enemy thaws out on the spot: the ice bursts, and so does he a bit (a big hit on top of the impact; enough to kill him and he shatters). */
 export const THAW_BURST_DAMAGE = 70;
+/** Frozen mid-jump, it drops like a stone and shatters on the ground: this on top of the burst, more the further it fell. */
+export const FROZEN_DROP_DAMAGE = 40, FROZEN_DROP_PER_SPEED = 6;
 
 // SHOVED ENEMY PHYSICS - ported from the GML oEnemyParent.
 export const DAMAGE_WALL_IMPACT_SCALER = 2.0;      // x speed (GML units) when slammed into a wall

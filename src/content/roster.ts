@@ -141,7 +141,7 @@ export const WEAPON_NAMES: Record<string, string> = {
 };
 
 export const WEAPON_DESCRIPTIONS: Record<string, string> = {
-  'Artie Avalanche': "A fan of ice pellets that ricochet off every wall and freeze whatever they touch. Then walk up and shatter the popsicle with your bare fucking hands.",
+  'Artie Avalanche': "A fan of ice pellets that ricochet off every wall and freeze whatever they touch. Then walk up and shatter the popsicle with your bare fucking hands. Freeze one mid-jump and it drops like a rock and shatters itself.",
   'Victor Volcano': "Hold it down and the stream grows. Sweep it up or down to cook whatever's hiding. Burns their bullets out of the air, too. You can run and jump with it going, but you can't turn around.",
   'Ernie Earthquake': "Roll it along the ground and flatten everything, heave it up like a shotput, or spike it straight down from midair. It's a rock. It doesn't care.",
   'Hector Hurricane': "One wave, the whole screen, whichever way you're facing. Everything in front of it just fucking dies. Wait for it to wash out before you do it again.",

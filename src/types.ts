@@ -361,6 +361,8 @@ export interface Enemy extends Entity {
   calmAt?: number;
   /** Artie panicking: big leaps still to go. */
   panicLeaps?: number;
+  /** Frozen solid in mid-air (caught mid-jump): dropping like the block of ice it is, to shatter on the ground. */
+  frozenFall?: boolean;
   /** Which look a themed enemy has (a beachgoer's outfit and pastime, a gator in the water or on land). */
   variant?: number;
   /** Died of an overdose: its body flies off, veering toward anything airborne and wrecking what it hits. */

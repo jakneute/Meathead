@@ -290,9 +290,9 @@ export const updateEnemyStatusEffects = (ctx: FrameContext) => {
     if (e.type === 'boss') {
       if (e.health > 0 && state.arenaLocked) updateBossAI(ctx, e);
     } else if (!e.isBlownAway && ((e.frozenTimer && e.frozenTimer > 0) || (e.isTased && isBeingTased(player, e))) && (e.pauseTimer || 0) <= 0) {
-      // (held still: frozen, or tased; a body on its way out never is)
+      // (held still: frozen, or tased; a body on its way out never is. Frozen in mid-air, it's left to fall)
       e.vel.x = 0;
-      e.vel.y = 0;
+      if (!e.frozenFall) e.vel.y = 0;
     } else {
       e.isTased = false;
     }

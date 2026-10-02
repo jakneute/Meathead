@@ -15,7 +15,7 @@ import {
   ENEMY_HIT_COOLDOWN, ENEMY_BULLET_DAMAGE, FILTH_SHIELD_CONTACT_DAMAGE, FILTH_SHIELD_BOSS_DAMAGE, FILTH_SHIELD_BOSS_WEAKNESS_DAMAGE, OIL_ROCKET_OILED_DURATION,
   OILED_COLLISION_DAMAGE, OILED_CHARGE_PUSH_MULTIPLIER, OILED_CHARGE_MIN_PUSH, OVERDOSE_GRAVITY, OVERDOSE_RISE_RANGE, OVERDOSE_RISE_STEER, OVERDOSE_MAX_SIDE_SPEED,
   OVERDOSE_MAX_RISE_SPEED, OVERDOSE_DIVE_RANGE, OVERDOSE_DIVE_SPEED, OVERDOSE_DROP_GRAVITY, OVERDOSE_HIT_DAMAGE, OVERDOSE_MAX_FRAMES,
-  BOTTLE_GRAVITY, THAW_BURST_DAMAGE,
+  BOTTLE_GRAVITY, THAW_BURST_DAMAGE, FROZEN_DROP_DAMAGE, FROZEN_DROP_PER_SPEED,
 } from '../../constants';
 import { FrameContext, killBoss } from '../core/context';
 import type { ThrownKind, EnemyKind } from '../../types';
@@ -410,6 +410,8 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
     }
   }
 
+  // Frozen solid in mid-air (caught mid-jump): no hanging there, it drops like the block of ice it is, and shatters
+  if (!air && e.type !== 'boss' && isFrozen(e) && !isStunned && dropFrozen(ctx, e)) return;
   // Frozen/tased enemies can't act, but a shove still moves them
   if (e.type === 'boss' || (isHeld && !isStunned)) return;
 
@@ -1033,6 +1035,26 @@ const hasFloorAt = (state: GameState, e: Enemy, dx: number) => {
 };
 const isFrozen = (e: Enemy) => !!(e.frozenTimer && e.frozenTimer > 0);
 const toGml = (v: number) => Math.abs(v) / GML_SCALE;
+
+/** A ground enemy frozen off the ground (mid-jump): it falls, straight down, frozen, and on the ground it shatters (the
+ * ice bursts off it, for more the further it fell: often enough to kill it). True while it's falling or just landed. */
+const dropFrozen = (ctx: FrameContext, e: Enemy): boolean => {
+  const top = floorUnder(ctx.state, e);
+  const floorLevel = (top ?? Infinity) - e.height;
+  if (!e.frozenFall && e.vel.y >= 0 && e.pos.y >= floorLevel - 16) return false;
+  e.frozenFall = true;
+  e.vel.x = 0;
+  e.vel.y = Math.max(0, e.vel.y) + GRAVITY * 0.9;
+  e.pos.y += e.vel.y;
+  if (top === null || e.pos.y < floorLevel) return true;
+  // Down: it shatters
+  const speed = e.vel.y;
+  e.pos.y = floorLevel; e.vel.y = 0; e.frozenFall = false;
+  const impact = FROZEN_DROP_DAMAGE + toGml(speed) * FROZEN_DROP_PER_SPEED;
+  e.health -= impact;
+  thawBurst(ctx, e, 0, { x: e.pos.x + e.width / 2, y: e.pos.y + e.height - 6 }, impact, 'groundsplat');
+  return true;
+};
 
 /** Kill an enemy from an impact, splattering it (or shattering it if frozen). */
 const impactKill = (ctx: FrameContext, e: Enemy, callout: KillCallout, splatDir: number) => {
