@@ -14,7 +14,7 @@ import { drawBoss, drawBossOverlay } from './bosses';
 import { drawVentTelegraph, drawVent, drawMagma, isMagma } from './bosses/victorVents';
 import { drawIcicles, drawIceBlock, drawIceShard } from './bosses/artieIce';
 import { drawBoulder, drawRockChip } from './bosses/boulders';
-import { drawBullet, drawThrown, drawEnemyBullet, drawIcePellet, drawDart, drawPoopLog, drawCocaine, drawMethBarrel, drawSludgeBlob } from './projectiles';
+import { drawBullet, drawThrown, drawEnemyBullet, drawIcePellet, drawDart, drawPoopLog, drawCocaine, drawMethBarrel, drawSludgeBlob, drawDarkOrb, drawOilRocket } from './projectiles';
 import { drawParticle } from './particles';
 import { drawComposited, needsComposite } from './composite';
 import { drawBossCorpse } from './bosses/corpses';
@@ -1179,67 +1179,13 @@ const drawProjectiles = (ctx: CanvasRenderingContext2D, state: GameState, layer:
     else if (p.isCocaine) drawCocaine(ctx, p, state.frame);
     else if (p.isMethBarrel) drawMethBarrel(ctx, p, state.frame);
     else if (p.isDart) drawDart(ctx, p);
-    else if (p.isDarkness) {
-      ctx.save();
-      ctx.translate(p.pos.x + p.width/2, p.pos.y + p.height/2);
-      const pulse = 0.8 + Math.sin(state.frame * 0.15) * 0.2;
-      const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, p.width/2 * pulse);
-      grad.addColorStop(0, '#bd00ff');
-      grad.addColorStop(0.5, '#2e1a47');
-      grad.addColorStop(1, 'transparent');
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(0, 0, p.width/2 * pulse * 1.5, 0, Math.PI * 2);
-      ctx.fill();
-      // Core
-      ctx.fillStyle = '#000';
-      ctx.beginPath();
-      ctx.arc(0, 0, p.width/4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
+    else if (p.isDarkness) drawDarkOrb(ctx, p, state.frame);
     else if (p.isPoop) drawPoopLog(ctx, p, state.frame);
     else if (isMagma(p)) drawMagma(ctx, p, state.frame);
     else if (p.isIce && p.owner === 'enemy') (p.width > 30 ? drawIceBlock : drawIceShard)(ctx, p, state.frame);
     else if (p.isOscarRocket) drawOscarRocket(ctx, p, state.frame);
     else if (p.isCigarette) drawFlyingCigarette(ctx, p, state.frame);
-    else if (p.isOilRocket) {
-      ctx.save();
-      ctx.translate(p.pos.x + p.width / 2, p.pos.y + p.height / 2);
-      if (p.vel.x < 0) ctx.scale(-1, 1);
-      ctx.rotate(Math.atan2(p.vel.y, Math.abs(p.vel.x))); // nose follows the steering
-
-      // Rocket Body
-      ctx.fillStyle = '#212121';
-      ctx.fillRect(-20, -8, 30, 16);
-
-      // Nose Cone
-      ctx.fillStyle = '#D32F2F';
-      ctx.beginPath();
-      ctx.moveTo(10, -8);
-      ctx.lineTo(25, 0);
-      ctx.lineTo(10, 8);
-      ctx.closePath();
-      ctx.fill();
-
-      // Fins
-      ctx.fillStyle = '#757575';
-      ctx.fillRect(-20, -12, 6, 4);
-      ctx.fillRect(-20, 8, 6, 4);
-
-      // Oil Coating / Drips visual
-      ctx.fillStyle = '#000000';
-      ctx.beginPath();
-      ctx.arc(-5, 8, 4, 0, Math.PI * 2);
-      ctx.arc(5, -8, 3, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Shine
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-      ctx.fillRect(-15, -4, 20, 2);
-
-      ctx.restore();
-    }
+    else if (p.isOilRocket) drawOilRocket(ctx, p, state.frame);
     else if (p.isIce) drawIcePellet(ctx, p, state.frame);
     else if (p.thrown) drawThrown(ctx, p, state.frame);
     else if (p.owner === 'player') drawBullet(ctx, p);
