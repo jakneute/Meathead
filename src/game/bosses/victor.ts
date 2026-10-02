@@ -35,8 +35,28 @@ const BARF_WALL_MARGIN = 28;
 const BARF_CHANCE = 0.85, BARF_WINDUP = 45, BARF_FRAMES = 280, BARF_REACH = 900, BARF_TURN = 0.0085, BARF_DAMAGE = 12, BARF_COOLDOWN = 200;
 /** How wide the stream is: at his mouth, and how much it spreads over its length. */
 export const BARF_WIDTH = { base: 10, spread: 30 };
-/** Where his mouth is (the stream comes out of it). */
-export const victorMouth = (e: Enemy) => ({ x: e.pos.x + e.width * 0.5, y: e.pos.y + e.height * 0.33 });
+/**
+ * Breathing fire, his head turns to where he's aiming it, as far as a neck goes: which way he faces for it, and how
+ * far his head's tipped (up or down) from straight ahead. Null when he isn't.
+ */
+export const victorHeadTurn = (e: Enemy): { f: 1 | -1; rot: number } | null => {
+  if (e.bossState !== 'barfing' || e.barfAngle === undefined) return null;
+  const a = e.barfAngle;
+  const f: 1 | -1 = Math.cos(a) < 0 ? -1 : 1;
+  let rot = f === 1 ? a : a - Math.PI;
+  while (rot > Math.PI) rot -= Math.PI * 2;
+  while (rot < -Math.PI) rot += Math.PI * 2;
+  return { f, rot: Math.max(-1, Math.min(1, rot)) };
+};
+/** His head's middle (in his 80x80 sprite), its scale, and his mouth below it (in the head's own units). */
+const HEAD = { x: 40, y: 19, s: 1.35 }, MOUTH = { x: 0.5, y: 5.5 };
+/** Where his mouth is (the stream comes out of it): wherever his head's turned to. */
+export const victorMouth = (e: Enemy) => {
+  const t = victorHeadTurn(e);
+  let dx = MOUTH.x * (t?.f ?? 1), dy = MOUTH.y;
+  if (t) { const c = Math.cos(t.rot), s = Math.sin(t.rot); [dx, dy] = [dx * c - dy * s, dx * s + dy * c]; }
+  return { x: e.pos.x + (HEAD.x + dx * HEAD.s) * (e.width / 80), y: e.pos.y + (HEAD.y + dy * HEAD.s) * (e.height / 80) };
+};
 
 const update = (ctx: FrameContext, boss: Enemy) => {
   const { state } = ctx;

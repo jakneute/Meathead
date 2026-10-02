@@ -47,7 +47,7 @@ export interface FaceStyle {
 }
 
 /** Where the head goes (in the boss's local space), its size, which way it faces, and where it is in the world (for his eyes). */
-export interface Head { x: number; y: number; s: number; f: 1 | -1; wx?: number }
+export interface Head { x: number; y: number; s: number; f: 1 | -1; wx?: number; /** Tipped up or down (radians, world space), about its middle. */ rot?: number }
 
 /** The usual head: a little over Meathead's size, up top in his 80x80 box. */
 export const headAt = (e: Enemy, f: 1 | -1, x = 40, y = 19, s = 1.35): Head => ({ x, y, s, f, wx: e.pos.x + x * (e.width / 80) });
@@ -87,6 +87,7 @@ export const moodOf = (e: Enemy, frame: number, map: Partial<Record<BossState, M
 export const inHead = (ctx: CanvasRenderingContext2D, h: Head, draw: () => void) => {
   ctx.save();
   ctx.translate(h.x, h.y);
+  if (h.rot) ctx.rotate(h.rot);
   ctx.scale(h.s * h.f, h.s);
   draw();
   ctx.restore();

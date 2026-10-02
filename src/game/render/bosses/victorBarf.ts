@@ -1,12 +1,13 @@
 // Victor's fire barf: a stream out of his mouth, thin at his lips and fanning out, rolling flame along it.
 
 import type { Enemy } from '../../../types';
-import { BARF_WIDTH } from '../../bosses/victor';
+import { BARF_WIDTH, victorMouth } from '../../bosses/victor';
 
 export const drawVictorBarf = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
   const len = e.barfLen ?? 0;
   if (e.bossState !== 'barfing' || e.barfAngle === undefined) return;
-  const mx = e.pos.x + e.width * 0.5, my = e.pos.y + e.height * 0.33;
+  // (out of his mouth, wherever his head's turned to)
+  const { x: mx, y: my } = victorMouth(e);
   // (winding up: his mouth glows)
   if (len <= 0) {
     ctx.save(); ctx.fillStyle = `rgba(255, 179, 0, ${0.4 + Math.sin(frame * 0.6) * 0.3})`;
@@ -24,6 +25,9 @@ export const drawVictorBarf = (ctx: CanvasRenderingContext2D, e: Enemy, frame: n
     for (let x = len; x >= 0; x -= 12) ctx.lineTo(x, (BARF_WIDTH.base + BARF_WIDTH.spread * (x / 900)) * k + Math.sin(x * 0.09 - frame * 0.45) * 3 * k);
     ctx.closePath(); ctx.fill();
   }
+  // A white-hot flare right at his lips, where it comes out of him
+  ctx.fillStyle = 'rgba(255, 253, 231, 0.9)'; ctx.beginPath(); ctx.ellipse(4, 0, 9, 6 + Math.sin(frame * 0.7) * 1.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255, 214, 0, 0.6)'; ctx.beginPath(); ctx.ellipse(2, 0, 14, 9, 0, 0, Math.PI * 2); ctx.fill();
   // Rolling balls of flame along it
   for (let i = 0; i < 16; i++) {
     const x = ((frame * 9 + i * 57) % Math.max(1, len));

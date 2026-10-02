@@ -6,6 +6,7 @@
 
 import { Enemy } from '../../../types';
 import { FaceStyle, drawHead, headAt, facingOf, goreOf, moodOf, limb, hand, foil, bodyBlood, breath } from './kit';
+import { victorHeadTurn } from '../../bosses/victor';
 
 const SKIN = '#C8743F', SKIN_DARK = '#9A5228', SKIN_LIGHT = '#E6A06B';
 const FACE: FaceStyle = {
@@ -14,7 +15,9 @@ const FACE: FaceStyle = {
 };
 
 export const drawVictor = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
-  const f = facingOf(e);
+  // (breathing fire, he faces the way he's aiming it, and his head turns with it)
+  const turn = victorHeadTurn(e);
+  const f = turn ? turn.f : facingOf(e);
   const gore = goreOf(e);
   const tele = e.bossState === 'attacking' || e.bossState === 'telegraphing';
   const lOff = tele ? Math.sin(frame * 0.5) * 3 : 0;
@@ -119,7 +122,7 @@ export const drawVictor = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
   }
 
   // The head: man bun, sweatband, stubble, a stud in one ear
-  drawHead(ctx, headAt(e, f, 40, 19 + lOff * 0.3), FACE, mood, frame, gore, {
+  drawHead(ctx, { ...headAt(e, f, 40, 19 + lOff * 0.3), rot: turn?.rot }, FACE, mood, frame, gore, {
     back: () => {
       ctx.fillStyle = '#1C1917';
       ctx.beginPath(); ctx.arc(-9, -14, 4.2, 0, Math.PI * 2); ctx.fill();
