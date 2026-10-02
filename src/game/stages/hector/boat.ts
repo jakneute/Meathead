@@ -197,7 +197,9 @@ const spout = (ctx: FrameContext, b: Boat, onSucked: () => void): Controls => {
     player.pos.x = b.x + 50; player.pos.y = b.block.y - player.height;
     player.facing = Math.sin(b.spin) > 0 ? 1 : -1;
   }
-  state.cameraOverride = { x: COURSE.sea.spoutX - 400, y: Math.min(COURSE.fisherman.y - 530, b.y - 360) };
+  // (him, and the cutter coming up after him: both in the picture)
+  const cgY = b.chase ? COURSE.boat.y - b.chase.cgLift : b.y;
+  state.cameraOverride = { x: COURSE.sea.spoutX - 400, y: Math.min(COURSE.fisherman.y - 530, (b.y + cgY) / 2 - 330) };
   if (state.frame % 3 === 0) shakeScreen(state, 4, 5);
   if (b.t > 150) {
     b.phase = 'gone';

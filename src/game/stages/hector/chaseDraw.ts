@@ -74,8 +74,8 @@ const drawCutter = (ctx: Ctx, bow: number, y: number, frame: number, rot = 0) =>
   shape(ctx, () => ctx.arc(-32, -74, 8, 0, Math.PI * 2), '#E8B495', 1);
   shape(ctx, () => ctx.rect(-41, -84, 18, 6), '#F8FAFC', 0.8);
   shape(ctx, () => { ctx.moveTo(-24, -74); ctx.lineTo(-8, -82); ctx.lineTo(-8, -64); ctx.closePath(); }, '#F8FAFC', 1);
-  // (two more of them in the stern, ready)
-  for (const cx of [-176, -194]) { shape(ctx, () => ctx.rect(cx, -60, 12, 26), '#F97316', 0.8); shape(ctx, () => ctx.arc(cx + 6, -66, 6, 0, Math.PI * 2), '#1E3A8A', 0.8); }
+  // (one more of them in the stern, ready: the crew's two, the skipper and him)
+  for (const cx of [-184]) { shape(ctx, () => ctx.rect(cx, -60, 12, 26), '#F97316', 0.8); shape(ctx, () => ctx.arc(cx + 6, -66, 6, 0, Math.PI * 2), '#1E3A8A', 0.8); }
   ctx.restore();
 };
 
@@ -712,7 +712,7 @@ export const drawCutterDemise = (ctx: Ctx, t: number, frame: number) => {
     }
     // The crew: thrown out, falling a long way down past him... and then the updraft has them, and up they go again,
     // flailing, past him one more time and off the top, for good
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 2; i++) {
       const fallFor = 90 + i * 10;
       let px: number, py: number;
       if (s < fallFor) { px = cx - 80 - i * 70 - s * (1.5 + i * 0.4); py = cy + s * s * 0.075; }
@@ -732,5 +732,114 @@ export const drawCutterDemise = (ctx: Ctx, t: number, frame: number) => {
       ctx.restore();
     }
   }
+  ctx.restore();
+};
+
+/**
+ * The cutter, come down with the rest of the storm onto the lawn beside the daycare: broken in two, the bow driven into
+ * the grass nose first, the stern half up on its side with the cabin stove in, the light bar hanging off it still going,
+ * smoke coming off it, fuel in a slick round it; and one of its crew, who was in it when it hit, in pieces all round it.
+ * (x: the middle of it; g: the ground.)
+ */
+export const drawCutterWreck = (ctx: Ctx, x: number, g: number, frame: number) => {
+  ctx.save();
+  // (what's driven into the lawn is out of sight under it)
+  ctx.beginPath(); ctx.rect(x - 400, g - 400, 800, 404); ctx.clip();
+  // The fuel, in a sheen round it
+  ctx.fillStyle = 'rgba(30, 27, 75, 0.55)'; ctx.beginPath(); ctx.ellipse(x, g + 1, 170, 6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(167, 139, 250, 0.25)'; ctx.beginPath(); ctx.ellipse(x - 30, g, 90, 2.4, 0, 0, Math.PI * 2); ctx.fill();
+  // The stern half: over on its side, the break toward the bow, the cabin crushed into it
+  ctx.save(); ctx.translate(x + 50, g - 4); ctx.rotate(0.22);
+  const stern = () => { ctx.moveTo(-90, -60); ctx.lineTo(-74, -48); ctx.lineTo(-86, -34); ctx.lineTo(-70, -18); ctx.lineTo(-84, 0); ctx.lineTo(96, 4); ctx.lineTo(110, -56); ctx.closePath(); };
+  shape(ctx, stern, lin(ctx, -60, 4, [[0, '#F8FAFC'], [1, '#CBD5E1']]), 1.6);
+  ctx.save(); ctx.beginPath(); stern(); ctx.clip();
+  ctx.fillStyle = '#EA580C'; ctx.beginPath(); ctx.moveTo(20, -60); ctx.lineTo(40, -60); ctx.lineTo(16, 6); ctx.lineTo(-4, 6); ctx.fill();
+  ctx.fillStyle = '#1D4ED8'; ctx.beginPath(); ctx.moveTo(46, -60); ctx.lineTo(51, -60); ctx.lineTo(27, 6); ctx.lineTo(22, 6); ctx.fill();
+  // (the hull's insides showing at the break: dark, ribs)
+  ctx.fillStyle = '#1E293B'; ctx.beginPath(); ctx.moveTo(-90, -60); ctx.lineTo(-74, -48); ctx.lineTo(-86, -34); ctx.lineTo(-70, -18); ctx.lineTo(-84, 0); ctx.lineTo(-60, 0); ctx.lineTo(-60, -60); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#64748B'; for (const rx of [-80, -70]) ctx.fillRect(rx, -58, 3, 56);
+  ctx.restore();
+  ctx.fillStyle = '#1E293B'; ctx.font = 'bold 12px "Courier New", monospace'; ctx.fillText('714', 58, -28);
+  // (the cabin, stove in, its windows gone)
+  shape(ctx, () => { ctx.moveTo(-20, -60); ctx.lineTo(-10, -96); ctx.lineTo(44, -84); ctx.lineTo(60, -60); ctx.closePath(); }, '#E2E8F0', 1.4);
+  ctx.fillStyle = '#0F172A'; ctx.beginPath(); ctx.moveTo(-6, -88); ctx.lineTo(38, -80); ctx.lineTo(42, -70); ctx.lineTo(-10, -74); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#94A3B8'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(4, -86); ctx.lineTo(10, -74); ctx.moveTo(24, -82); ctx.lineTo(20, -72); ctx.stroke();
+  // (the light bar, hanging off by its wires, still going)
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(20, -90); ctx.quadraticCurveTo(30, -70, 34, -58); ctx.stroke();
+  ctx.save(); ctx.translate(34, -56); ctx.rotate(1.1 + Math.sin(frame * 0.05) * 0.05);
+  const on = Math.floor(frame / 9) % 2;
+  shape(ctx, () => ctx.rect(-14, -4, 14, 8), on ? '#3B82F6' : '#1E3A8A', 0.8); shape(ctx, () => ctx.rect(0, -4, 14, 8), on ? '#B91C1C' : '#EF4444', 0.8);
+  ctx.restore();
+  // (the stern's outboard, up in the air, prop bent)
+  shape(ctx, () => ctx.rect(100, -64, 14, 30), '#334155', 1);
+  ctx.strokeStyle = '#94A3B8'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(107, -34); ctx.lineTo(116, -26); ctx.moveTo(107, -34); ctx.lineTo(98, -22); ctx.stroke();
+  ctx.restore();
+  // The bow half: nose first into the lawn (what's under the grass, out of sight), a crater of turf thrown up round it
+  ctx.save(); ctx.beginPath(); ctx.rect(x - 400, g - 400, 800, 402); ctx.clip();
+  ctx.translate(x - 110, g + 6); ctx.rotate(-0.62);
+  const bow = () => { ctx.moveTo(0, 0); ctx.lineTo(100, -20); ctx.lineTo(88, -6); ctx.lineTo(104, 8); ctx.lineTo(92, 22); ctx.lineTo(102, 34); ctx.lineTo(10, 34); ctx.closePath(); };
+  shape(ctx, bow, lin(ctx, -20, 34, [[0, '#F8FAFC'], [1, '#CBD5E1']]), 1.6);
+  ctx.save(); ctx.beginPath(); bow(); ctx.clip();
+  ctx.fillStyle = '#1E293B'; ctx.font = 'bold 9px "Courier New", monospace'; ctx.fillText('COAST GU', 18, 14);
+  ctx.fillStyle = '#1E293B'; ctx.beginPath(); ctx.moveTo(100, -20); ctx.lineTo(88, -6); ctx.lineTo(104, 8); ctx.lineTo(92, 22); ctx.lineTo(102, 34); ctx.lineTo(80, 34); ctx.lineTo(80, -20); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  ctx.restore();
+  for (let k = 0; k < 10; k++) {
+    const a = Math.PI + (k / 9) * Math.PI, r = 30 + hash(k * 2.7) * 20;
+    shape(ctx, () => ctx.ellipse(x - 112 + Math.cos(a) * r, g - 2 + Math.sin(a) * r * 0.25, 4 + hash(k) * 3, 2.4, hash(k * 3) * 2, 0, Math.PI * 2), k % 2 ? '#5B3A24' : '#3F6212', 0.5);
+  }
+  // Smoke off the stern, drifting
+  for (let k = 0; k < 5; k++) {
+    const life = (frame * 0.6 + k * 40) % 200, sx = x + 70 + life * 0.25 + Math.sin((frame + k * 30) * 0.03) * 8, sy = g - 110 - life * 0.9;
+    ctx.fillStyle = `rgba(51, 65, 85, ${(0.45 * (1 - life / 200)).toFixed(3)})`;
+    ctx.beginPath(); ctx.arc(sx, sy, 10 + life * 0.12, 0, Math.PI * 2); ctx.fill();
+  }
+  // Debris: hull plates, a life ring, the loudhailer
+  for (let k = 0; k < 7; k++) {
+    const dx = x - 170 + hash(k * 5.1) * 340, ang = hash(k * 1.3) * 3;
+    ctx.save(); ctx.translate(dx, g - 3); ctx.rotate(ang);
+    shape(ctx, () => ctx.rect(-8, -2, 16, 4), k % 3 ? '#E2E8F0' : '#EA580C', 0.6); ctx.restore();
+  }
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.fillStyle = '#F97316';
+  ctx.beginPath(); ctx.ellipse(x - 20, g - 4, 12, 4, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#F8FAFC'; for (const a of [0.4, 2, 3.6, 5.2]) ctx.fillRect(x - 20 + Math.cos(a) * 9 - 2, g - 4 + Math.sin(a) * 3 - 1, 4, 2);
+  shape(ctx, () => { ctx.moveTo(x + 150, g - 2); ctx.lineTo(x + 164, g - 9); ctx.lineTo(x + 164, g + 2); ctx.closePath(); }, '#F8FAFC', 0.8);
+
+  // The one of them who was aboard when it hit: in pieces round it, a lot of blood
+  ctx.fillStyle = 'rgba(127, 29, 29, 0.8)';
+  for (const [bx, bw] of [[x - 60, 34], [x + 4, 22], [x - 136, 18], [x + 120, 16]] as const) { ctx.beginPath(); ctx.ellipse(bx, g, bw, 3, 0, 0, Math.PI * 2); ctx.fill(); }
+  blood(ctx, x - 60, g - 2, 14, 7);
+  // (the torso, in the float coat, on its back, ragged at the waist)
+  ctx.save(); ctx.translate(x - 62, g - 6); ctx.rotate(-0.1);
+  ctx.save(); ctx.beginPath(); ctx.roundRect(-14, -8, 26, 12, 3); ctx.clip();
+  bands(ctx, -14, -8, 26, 12, ['#FDBA74', '#FB923C', '#F97316', '#EA580C']);
+  ctx.fillStyle = '#E5E7EB'; ctx.fillRect(-14, -3, 26, 2);
+  ctx.restore();
+  ctx.strokeStyle = INK; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.roundRect(-14, -8, 26, 12, 3); ctx.stroke();
+  ctx.fillStyle = '#991B1B'; for (let k = 0; k < 5; k++) ctx.fillRect(12 + (k % 2) * 2, -7 + k * 2.4, 3, 1.6);
+  ctx.fillStyle = '#FCA5A5'; ctx.fillRect(13, -4, 3, 2);
+  ctx.restore();
+  // (the head, helmet still on, face to the sky, a way off from the rest)
+  ctx.save(); ctx.translate(x - 138, g - 5);
+  shape(ctx, () => ctx.roundRect(-5, -5, 10, 10, 3), '#E8B495', 0.7);
+  shape(ctx, () => { ctx.arc(0, -2, 6.4, Math.PI, 0); ctx.closePath(); }, '#1E3A8A', 0.7);
+  ctx.strokeStyle = INK; ctx.lineWidth = 0.7;
+  for (const ex of [-2.2, 2.2]) { ctx.beginPath(); ctx.moveTo(ex - 1, 0); ctx.lineTo(ex + 1, 2); ctx.moveTo(ex + 1, 0); ctx.lineTo(ex - 1, 2); ctx.stroke(); }
+  ctx.fillStyle = '#991B1B'; ctx.fillRect(-4, 5, 8, 2);
+  ctx.restore();
+  // (the legs, still in their boots, one up against the hull, one out on the grass)
+  for (const [lx, ly, rot] of [[x + 8, g - 4, 0.9], [x + 118, g - 3, -0.2]] as const) {
+    ctx.save(); ctx.translate(lx, ly); ctx.rotate(rot);
+    shape(ctx, () => ctx.rect(-12, -2.4, 18, 5), '#1E3A8A', 0.6);
+    shape(ctx, () => ctx.roundRect(6, -3.4, 6, 7, 1.4), '#0A0A0A', 0.5);
+    ctx.fillStyle = '#991B1B'; ctx.fillRect(-14, -2, 3, 4);
+    ctx.restore();
+  }
+  // (an arm, caught on the bow's broken edge, hanging)
+  ctx.save(); ctx.translate(x - 64, g - 46); ctx.rotate(1.2);
+  shape(ctx, () => ctx.rect(-2, 0, 4, 16), '#F97316', 0.5); shape(ctx, () => ctx.ellipse(0, 18, 2.4, 2, 0, 0, Math.PI * 2), '#E8B495', 0.5);
+  ctx.fillStyle = '#991B1B'; ctx.fillRect(-2, -2, 4, 2);
+  ctx.restore();
+  ctx.fillStyle = '#B91C1C'; for (let k = 0; k < 9; k++) ctx.fillRect(x - 160 + hash(k * 4.4) * 300, g - 2 - hash(k) * 3, 2, 2);
   ctx.restore();
 };

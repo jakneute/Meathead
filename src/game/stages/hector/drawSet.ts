@@ -2,7 +2,7 @@
 // waterspout, the junk whirling up the storm tower, the Eye's arena, and the
 // daycare (before and after the flood).
 
-import { deadCoastie, coastieAssUp, drawSeatedMeathead, drawWreck } from './chaseDraw';
+import { deadCoastie, coastieAssUp, drawSeatedMeathead, drawWreck, drawCutterWreck } from './chaseDraw';
 import { WRECK_BLAST } from './chase';
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
@@ -393,7 +393,7 @@ const splatAdult = (ctx: Ctx, x: number, y: number, who: 0 | 1) => {
 };
 
 /** Where the grown-ups are: Denise by the swings, Gary by the sandbox; where they run to when it comes; where they end up. */
-const ADULT_AT = [310, -210], ADULT_PANIC = [-150, 150], ADULT_SPLAT = [-290, 420];
+const ADULT_AT = [310, -210], ADULT_PANIC = [-150, 150], ADULT_SPLAT = [230, 420];
 
 export const drawDaycare = (ctx: Ctx, state: GameState, dc: Daycare) => {
   const D = COURSE.daycare, bx = D.building, g = D.y, f = state.frame;
@@ -464,27 +464,14 @@ export const drawDaycare = (ctx: Ctx, state: GameState, dc: Daycare) => {
   ctx.fillStyle = '#DB2777'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('LITTLE SUNSH', 0, 4); ctx.restore(); ctx.textAlign = 'left';
   // The junk the storm dropped
   ctx.fillStyle = '#2563EB'; ctx.save(); ctx.translate(bx - 60, g - 118); ctx.rotate(0.15); ctx.fillRect(-60, -18, 120, 30); ctx.fillStyle = '#93C5FD'; ctx.fillRect(-40, -14, 80, 10); ctx.restore();
-  ctx.fillStyle = '#F8FAFC'; ctx.save(); ctx.translate(bx - 260, g - 10); ctx.rotate(-0.2); ctx.beginPath(); ctx.moveTo(-50, -20); ctx.lineTo(60, -20); ctx.lineTo(45, 6); ctx.lineTo(-40, 6); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#DC2626'; ctx.fillRect(-44, -10, 96, 3); ctx.restore();
+  // (the cutter, come down beside it: see drawCutterWreck)
+  drawCutterWreck(ctx, bx - 300, g, f);
   // The swing set, bent in half; a shark on the slide
   const px = bx + 260;
   ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 5;
   ctx.beginPath(); ctx.moveTo(px, g); ctx.lineTo(px + 40, g - 60); ctx.lineTo(px + 110, g - 30); ctx.lineTo(px + 160, g); ctx.stroke();
   ctx.fillStyle = '#64748B'; ctx.beginPath(); ctx.ellipse(px - 120, g - 40, 40, 12, 0.7, 0, Math.PI * 2); ctx.fill();
-  // A couple of the Coast Guard, come down with the rest of it: one head first in the sandbox, one out on the lawn past
-  // the playground, flat on his back in a puddle of his own
-  // (the sandbox one: buried to the waist, the rest of him sticking up out of it, legs apart, a boot gone)
-  {
-    const sx = bx - 255, sy = g - 6;
-    ctx.fillStyle = '#EA580C'; ctx.beginPath(); ctx.ellipse(sx, sy, 14, 5, 0, Math.PI, 0); ctx.fill();
-    ctx.fillStyle = '#FEF08A'; ctx.fillRect(sx - 12, sy - 3, 24, 2);
-    for (const [lx, a2] of [[-5, -0.35], [5, 0.3]] as const) {
-      ctx.save(); ctx.translate(sx + lx, sy - 2); ctx.rotate(a2);
-      ctx.fillStyle = '#1E3A8A'; ctx.fillRect(-4, -34, 8, 34); ctx.fillStyle = '#172554'; ctx.fillRect(-4, -34, 2.4, 34);
-      if (lx < 0) { ctx.fillStyle = '#0A0A0A'; ctx.fillRect(-5, -42, 11, 9); } else { ctx.fillStyle = '#F2C9A8'; ctx.fillRect(-3.4, -40, 7, 7); ctx.fillStyle = '#E2E8F0'; ctx.fillRect(-3.4, -36, 7, 3); }
-      ctx.restore();
-    }
-    ctx.fillStyle = '#E7D7A8'; ctx.beginPath(); ctx.ellipse(sx, sy + 1, 22, 4, 0, 0, Math.PI * 2); ctx.fill();
-  }
+  // The other of the Coast Guard (the one aboard is in pieces round the wreck): out on the lawn past the playground
   coastieAssUp(ctx, bx + 560, g, 1.8);
   // The grown-ups, once the wave's done with them
   if (t < 0 || t >= RIDE_END) ADULT_SPLAT.forEach((dx, k) => splatAdult(ctx, bx + dx, g, k as 0 | 1));

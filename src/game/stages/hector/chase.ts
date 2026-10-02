@@ -71,9 +71,11 @@ export interface Chase {
   /** Caught: the kill camera's clock (0 = not), its quiet count for its one line. */
   caughtT: number;
   quiet: { n: number };
-  /** Sucked up the spout after him: its spin and lift. */
+  /** Sucked up the spout after him: its spin and lift; whether it's got there yet, and how long it's been going round. */
   cgSpin: number;
   cgLift: number;
+  cgIn?: boolean;
+  cgInT?: number;
   /** Wrecked (killed by the junk): the clock of him flung out and the boat going up (0 = not). */
   wreckT: number;
 }
@@ -367,8 +369,22 @@ export const tickWreck = (ctx: FrameContext, c: Chase) => {
   if (c.wreckT === WRECK_BLAST + 14) playSound('splash');
 };
 
-/** Sucked up the spout behind him: in it goes, spinning up after him. */
+/** Where the cutter's bow goes round the spout (its orbit's middle, and how far out). */
+const CG_ORBIT_X = -110, CG_ORBIT_R = 90;
+/** Sucked up the spout behind him: in it goes, from wherever it was (flat out, if that was a long way back: it's there to
+ * be seen going in, never just there), then round and up after him. */
 export const spoutTakesCutter = (c: Chase, spoutX: number, t: number) => {
-  if (t < 40) c.cgX += (spoutX - 260 - c.cgX) * 0.05;
-  else { c.cgSpin += 0.2; c.cgLift += 5 + (t - 40) * 0.08; c.cgX = spoutX - 110 + Math.cos(c.cgSpin) * 90; }
+  const mouth = spoutX + CG_ORBIT_X - CG_ORBIT_R;
+  if (!c.cgIn) {
+    // (there by about the time he's off the water himself, however far back it was)
+    const d = mouth - c.cgX, v = Math.max(4, d / Math.max(4, 55 - t));
+    if (d > v) { c.cgX += v; return; }
+    // (caught by it: going round from where it is, not from somewhere else)
+    c.cgIn = true; c.cgInT = 0;
+    c.cgSpin = Math.acos(Math.max(-1, Math.min(1, (c.cgX - spoutX - CG_ORBIT_X) / CG_ORBIT_R)));
+  }
+  c.cgInT = (c.cgInT ?? 0) + 1;
+  c.cgSpin += 0.2;
+  c.cgLift += 6 + c.cgInT * 0.08;
+  c.cgX = spoutX + CG_ORBIT_X + Math.cos(c.cgSpin) * CG_ORBIT_R;
 };
