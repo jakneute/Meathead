@@ -3,6 +3,7 @@
 // them, up the wall), the bike in a heap at the foot of it burning, the machine
 // gun flung on top; and him, going over backwards off the bike.
 
+import { drawPerson } from '../../render/npc/person';
 import type { GameState } from '../../core/state';
 import { GROUND_Y } from '../../../constants';
 import { drawFire } from '../../render/fx/fire';
@@ -82,21 +83,16 @@ export const drawEndMid = (ctx: Ctx, state: GameState, en: Ending) => {
 
 /** One of them, stood having a smoke: a hard hat, a vest, the cigarette going, a hand going as he complains. */
 const drawSmoker = (ctx: Ctx, x: number, facing: number, f: number, shirt: string) => {
-  ctx.save(); ctx.translate(x, Y); ctx.scale(facing, 1);
-  ctx.fillStyle = '#1E3A8A'; ctx.fillRect(-9, -28, 8, 22); ctx.fillRect(2, -28, 8, 22);
-  ctx.fillStyle = '#44403C'; ctx.fillRect(-10, -6, 11, 6); ctx.fillRect(1, -6, 12, 6);
-  ctx.fillStyle = shirt; ctx.fillRect(-12, -56, 24, 28);
-  ctx.fillStyle = '#F97316'; ctx.fillRect(-12, -56, 7, 28); ctx.fillRect(5, -56, 7, 28);
-  ctx.fillStyle = '#E0AC69'; ctx.beginPath(); ctx.arc(2, -64, 8, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.arc(2, -67, 9, Math.PI, 0); ctx.fill(); ctx.fillRect(-9, -68, 22, 2);
-  // The hand with the cigarette, up to the mouth and down
+  // A smoke break: the work shirt under the vest, the hard hat, the cigarette going up to his mouth and down
   const up = Math.sin(f * 0.03) > 0.6;
-  ctx.fillStyle = '#E0AC69'; ctx.fillRect(10, up ? -62 : -44, 6, 5);
-  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(15, up ? -62 : -44, 7, 2);
-  ctx.fillStyle = '#EF4444'; ctx.fillRect(22, up ? -62 : -44, 2, 2);
-  const q = (f % 50) / 50;
-  ctx.fillStyle = `rgba(214, 211, 209, ${0.6 * (1 - q)})`; ctx.beginPath(); ctx.arc(24 + q * 6, (up ? -64 : -46) - q * 24, 2 + q * 5, 0, Math.PI * 2); ctx.fill();
-  ctx.restore();
+  const cig = (c: Ctx, hx: number, hy: number) => {
+    c.fillStyle = '#F8FAFC'; c.fillRect(hx + 2, hy - 1, 7, 2); c.fillStyle = '#EF4444'; c.fillRect(hx + 9, hy - 1, 2, 2);
+    const q = (f % 50) / 50; pixelBlob(c, hx + 11 + q * 6, hy - 3 - q * 24, 2 + q * 5, 2 + q * 4, `rgba(214, 211, 209, ${(0.6 * (1 - q)).toFixed(3)})`);
+  };
+  drawPerson(ctx, x, Y, {
+    skin: '#E0AC69', hair: { style: 'short', color: '#3F2A1D' }, top: { style: 'vest', color: shirt, accent: '#F97316' }, legs: { color: '#1E3A8A' }, shoes: '#44403C',
+    hat: { style: 'hardhat', color: '#FACC15' }, face: 'stubble', extra: c => { c.fillStyle = '#FDE047'; c.fillRect(-9, -38, 18, 2); },
+  }, { arms: up ? 'hold' : 'down', mouth: up ? 'o' : 'flat', f, prop: cig }, 1, facing < 0 ? -1 : 1);
 };
 
 /** Him, going over backwards off the bike (the real him's hidden while he's up there). */

@@ -10,6 +10,8 @@
 // then up and furious; then stomping off back to work. Out the far side, the
 // bikers on their choppers.
 
+import { pixelBlob } from '../../render/pixelArt';
+import { drawPerson, type PersonSpec } from '../../render/npc/person';
 import type { GameState } from '../../core/state';
 import { GROUND_Y } from '../../../constants';
 import { drawFire } from '../../render/fx/fire';
@@ -154,63 +156,53 @@ const drawWorker = (ctx: Ctx, state: GameState, w: Worker, x1: number) => {
   const hat = sooty ? '#3F3A36' : w.look === 'foreman' ? '#F8FAFC' : '#FACC15';
   let x = w.x, y = Y;
   if (w.state === 'gone' || w.state === 'clocked') { x = w.x - w.t * 1.8; if (x < x1 - 500) return; }
-  ctx.save(); ctx.translate(x, y);
+  // Him: a work shirt under the hi-vis vest, jeans, boots, the hard hat (the foreman's white, and his belly, his
+  // mustache, his coffee); black with soot once the room's gone up
+  const foreman = w.look === 'foreman';
+  const spec: PersonSpec = {
+    skin, hair: { style: 'short', color: sooty ? '#0C0A09' : '#3F2A1D' }, top: { style: 'vest', color: sooty ? '#292524' : '#1D4ED8', accent: vest },
+    legs: { color: sooty ? '#1C1917' : '#1E3A8A' }, shoes: '#44403C', hat: { style: 'hardhat', color: hat },
+    face: foreman ? 'mustache' : undefined, faceHair: sooty ? '#0C0A09' : '#57534E', build: foreman ? 'fat' : undefined,
+    extra: sooty ? undefined : c => { c.fillStyle = '#FDE047'; c.fillRect(-9, -38, 18, 2); },
+  };
   if (w.state === 'knocked') {
     // Flat on the floor, smoking, hair on end
-    ctx.fillStyle = '#1F2937'; ctx.fillRect(-26, -10, 22, 9);
-    ctx.fillStyle = vest; ctx.fillRect(-4, -12, 24, 12);
-    ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(26, -7, 7, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#111827'; ctx.lineWidth = 1; for (let k = -2; k <= 2; k++) { ctx.beginPath(); ctx.moveTo(30, -8 + k * 2); ctx.lineTo(38, -10 + k * 3); ctx.stroke(); }
-    for (let k = 0; k < 2; k++) { const q = ((f + k * 20 + Math.abs(x)) % 40) / 40; ctx.fillStyle = `rgba(120, 113, 108, ${0.6 * (1 - q)})`; ctx.beginPath(); ctx.arc(8 + k * 10, -14 - q * 26, 4 + q * 6, 0, Math.PI * 2); ctx.fill(); }
+    ctx.save(); ctx.translate(x - 30, y); ctx.rotate(-Math.PI / 2); ctx.translate(-10, 30);
+    drawPerson(ctx, 0, 0, spec, { arms: 'up', mouth: 'o', f });
     ctx.restore();
+    for (let k = 0; k < 2; k++) { const q = ((f + k * 20 + Math.abs(x)) % 40) / 40; pixelBlob(ctx, x + 8 + k * 10, y - 14 - q * 26, 4 + q * 6, 4 + q * 5, `rgba(120, 113, 108, ${(0.6 * (1 - q)).toFixed(3)})`); }
     return;
   }
   const sitting = w.state === 'break' && (w.look === 'cards' || w.look === 'cards2');
   // (the two playing cards sit facing each other across their hand)
   const facing = w.state === 'gone' || w.state === 'clocked' ? -1 : w.look === 'cards2' ? -1 : w.look === 'cards' && w.state === 'break' ? 1 : w.look === 'microwave' && w.state === 'break' ? 1 : w.look === 'couch' && w.state === 'break' ? 1 : -1;
-  ctx.scale(facing, 1);
   if (w.look === 'couch' && w.state === 'break') {
     // Stretched out on the couch, hard hat over his face, snoring
-    ctx.translate(0, -44);
-    ctx.fillStyle = '#1E3A8A'; ctx.fillRect(-60, -10, 50, 10);
-    ctx.fillStyle = vest; ctx.fillRect(-12, -14, 34, 14);
-    ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(30, -8, 8, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = hat; ctx.beginPath(); ctx.arc(31, -10, 9, Math.PI * 1.1, Math.PI * 0.1); ctx.fill();
-    ctx.fillStyle = '#111827'; ctx.font = 'bold 10px monospace'; const z = (f % 90) / 90; ctx.globalAlpha = 1 - z; ctx.fillText('Z', 34 + z * 10, -24 - z * 20); ctx.globalAlpha = 1;
+    ctx.save(); ctx.translate(x, y - 44); ctx.scale(facing, 1); ctx.rotate(-Math.PI / 2); ctx.translate(-4, 36);
+    drawPerson(ctx, 0, 0, { ...spec, hat: undefined }, { arms: 'cross', mouth: 'o', f });
     ctx.restore();
+    ctx.save(); ctx.translate(x + facing * 30, y - 52); ctx.rotate(facing * 0.3);
+    ctx.fillStyle = hat; ctx.beginPath(); ctx.arc(0, 0, 9, Math.PI, 0); ctx.fill(); ctx.strokeStyle = '#1A0B06'; ctx.lineWidth = 1; ctx.stroke(); ctx.fillRect(-11, -1, 22, 2.4);
+    ctx.restore();
+    ctx.fillStyle = '#111827'; ctx.font = 'bold 10px monospace'; const z = (f % 90) / 90; ctx.globalAlpha = 1 - z; ctx.fillText('Z', x + facing * 34 + z * 10, y - 68 - z * 20); ctx.globalAlpha = 1;
     return;
   }
-  const walk = w.state === 'gone' || w.state === 'clocked' ? Math.sin(f * 0.35) * 5 : 0;
-  // Legs (bent at the knee, sat down, at the card table)
-  ctx.fillStyle = '#1E3A8A';
-  if (sitting) { ctx.fillRect(-10, -30, 20, 8); ctx.fillRect(4, -24, 7, 24); ctx.fillStyle = '#57534E'; ctx.fillRect(-14, -26, 22, 4); ctx.fillRect(-12, -22, 4, 22); }
-  else { ctx.fillRect(-9 + walk, -28, 8, 22); ctx.fillRect(2 - walk, -28, 8, 22); ctx.fillStyle = '#44403C'; ctx.fillRect(-10 + walk, -6, 11, 6); ctx.fillRect(1 - walk, -6, 12, 6); }
-  const by = sitting ? -30 : -28;
-  // The body: the vest over a work shirt, the foreman's belly
-  ctx.fillStyle = sooty ? '#292524' : '#1D4ED8'; ctx.fillRect(-12, by - 28, 24, 28);
-  ctx.fillStyle = vest; ctx.fillRect(-12, by - 28, 7, 28); ctx.fillRect(5, by - 28, 7, 28);
-  if (!sooty) { ctx.fillStyle = '#FDE047'; ctx.fillRect(-12, by - 14, 24, 3); }
-  if (w.look === 'foreman') { ctx.fillStyle = sooty ? '#292524' : '#1D4ED8'; ctx.beginPath(); ctx.ellipse(4, by - 10, 14, 10, 0, 0, Math.PI * 2); ctx.fill(); }
-  // Head, hard hat
-  ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(2, by - 36, 8, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = hat; ctx.beginPath(); ctx.arc(2, by - 39, 9, Math.PI, 0); ctx.fill(); ctx.fillRect(-9, by - 40, 22, 2);
-  if (w.look === 'foreman' && !sooty) { ctx.strokeStyle = '#57534E'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-1, by - 32); ctx.lineTo(9, by - 32); ctx.stroke(); }
-  if (w.state === 'furious') {
-    // Red eyes in the soot, fists up and shaking, steam off the top
-    ctx.fillStyle = '#EF4444'; ctx.fillRect(4, by - 38, 3, 2);
-    const shake = Math.sin(f * 0.9) * 3;
-    ctx.fillStyle = skin; ctx.fillRect(10, by - 42 + shake, 7, 7); ctx.fillRect(-16, by - 40 - shake, 7, 7);
-    const q = (f % 30) / 30; ctx.fillStyle = `rgba(214, 211, 209, ${0.7 * (1 - q)})`; ctx.beginPath(); ctx.arc(2, by - 52 - q * 16, 3 + q * 5, 0, Math.PI * 2); ctx.fill();
-  } else if (w.state === 'gone') {
-    ctx.fillStyle = '#EF4444'; ctx.fillRect(4, by - 38, 3, 2);
-  } else {
-    ctx.fillStyle = '#111827'; ctx.fillRect(5, by - 38, 2, 2);
-    // What they've got in their hands: cards, a mug, the microwave's door
-    if (sitting) { ctx.fillStyle = skin; ctx.fillRect(10, by - 20, 8, 5); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(14, by - 26, 8, 10); ctx.fillStyle = '#DC2626'; ctx.fillRect(16, by - 23, 3, 3); }
-    else if (w.look === 'foreman') { ctx.fillStyle = skin; ctx.fillRect(12, by - 22, 7, 5); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(16, by - 30, 9, 11); ctx.fillStyle = 'rgba(214, 211, 209, 0.6)'; ctx.beginPath(); ctx.arc(20, by - 36 - (f % 30) / 3, 3, 0, Math.PI * 2); ctx.fill(); }
-    else { ctx.fillStyle = skin; ctx.fillRect(10, by - 22, 9, 5); }
+  const walking = w.state === 'gone' || w.state === 'clocked';
+  const furious = w.state === 'furious';
+  // What they've got in their hands: cards, a mug, the microwave's door
+  const cards = (c: Ctx, hx: number, hy: number) => { c.fillStyle = '#F8FAFC'; c.fillRect(hx, hy - 10, 8, 10); c.strokeStyle = '#1A0B06'; c.lineWidth = 0.6; c.strokeRect(hx, hy - 10, 8, 10); c.fillStyle = '#DC2626'; c.fillRect(hx + 2, hy - 7, 3, 3); };
+  const mug = (c: Ctx, hx: number, hy: number) => { c.fillStyle = '#F8FAFC'; c.fillRect(hx - 2, hy - 10, 8, 10); c.strokeStyle = '#1A0B06'; c.lineWidth = 0.6; c.strokeRect(hx - 2, hy - 10, 8, 10); c.fillStyle = 'rgba(214, 211, 209, 0.6)'; c.beginPath(); c.arc(hx + 2, hy - 15 - (f % 30) / 3, 3, 0, Math.PI * 2); c.fill(); };
+  if (sitting) { ctx.fillStyle = '#57534E'; ctx.fillRect(x - 14 * facing - 8, y - 26, 22, 4); ctx.fillRect(x - 12 * facing - 2, y - 22, 4, 22); }
+  drawPerson(ctx, x, y, spec, {
+    arms: furious ? 'up' : sitting || foreman ? 'hold' : walking ? 'down' : 'hips', seated: sitting,
+    walk: walking ? f * 0.35 : undefined, mouth: furious ? 'open' : walking ? 'frown' : w.state === 'break' ? 'talk' : 'flat', f,
+    prop: !furious && !walking ? (sitting ? cards : foreman ? mug : undefined) : undefined,
+  }, 1, facing);
+  if (furious || w.state === 'gone') {
+    // Red eyes in the soot, and steam off the top
+    ctx.fillStyle = '#EF4444'; ctx.fillRect(x + facing * 2, y - 63, 3, 2); ctx.fillRect(x + facing * 7, y - 63, 3, 2);
+    if (furious) { const q = (f % 30) / 30; pixelBlob(ctx, x + 2, y - 82 - q * 16, 3 + q * 5, 3 + q * 4, `rgba(214, 211, 209, ${(0.7 * (1 - q)).toFixed(3)})`); }
   }
-  ctx.restore();
 };
 
 /** The shell: the roof, the front wall (faded away once he's in; blown to bits after), the gas thickening in the room, what's flying. */
