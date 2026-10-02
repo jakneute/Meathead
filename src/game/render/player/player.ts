@@ -747,26 +747,30 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillStyle = '#38BDF8';
     ctx.beginPath(); ctx.arc(headX - 12, headY - 6, 2, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(headX - 8, headY - 14, 2.5, 0, Math.PI * 2); ctx.fill();
-  } else if (p.killSatisfactionTimer > 0 || state.victoryString !== "") {
-    // Victorious grin with chewing cigar!
-    ctx.fillStyle = '#09090B';
-    ctx.fillRect(headX - 6, mouthY, 12, 3.5);
+  } else if (state.playerVulgarityTimer > 0 && !!state.playerLastVulgarity) {
+    // Talking: the jaw working, open and shut and open wider, top teeth showing, the tongue down in it when it's wide
+    const open = [3.6, 1.6, 4.6, 2.4][Math.floor(animFrame / 4) % 4];
+    ctx.fillStyle = '#18181B';
+    ctx.beginPath(); ctx.roundRect(headX - 5.5, mouthY - 0.5, 11, open + 1.5, 1.5); ctx.fill();
+    ctx.fillStyle = '#450A0A';
+    ctx.beginPath(); ctx.roundRect(headX - 4.5, mouthY + 0.3, 9, open, 1.2); ctx.fill();
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(headX - 5, mouthY, 10, 3);
-    // Tooth lines
+    ctx.fillRect(headX - 4.2, mouthY + 0.3, 8.4, 1.3);
+    if (open > 3) { ctx.fillStyle = '#DC2626'; ctx.fillRect(headX - 2.5, mouthY + open - 0.8, 5, 1.2); ctx.fillStyle = '#F5F5F4'; ctx.fillRect(headX - 3.8, mouthY + open - 0.3, 7.6, 0.8); }
+  } else if (p.killSatisfactionTimer > 0 || state.victoryString !== "") {
+    // A wide, nasty grin: the corners hauled up, every tooth showing
     ctx.fillStyle = '#09090B';
-    ctx.fillRect(headX - 2, mouthY, 0.8, 3);
-    ctx.fillRect(headX + 1, mouthY, 0.8, 3);
-    // Victory Cigar clamped in teeth
-    ctx.fillStyle = '#78350F';
-    ctx.fillRect(headX + 4, mouthY - 1, 9, 3);
-    ctx.fillStyle = '#EF4444'; // Glowing red cherry tip
-    ctx.fillRect(headX + 13, mouthY - 1, 2.5, 3);
-    // Smoke puff
-    if (animFrame % 10 < 5) {
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-      ctx.beginPath(); ctx.arc(headX + 17, mouthY - 3, 2.5, 0, Math.PI * 2); ctx.fill();
-    }
+    ctx.beginPath();
+    ctx.moveTo(headX - 7, mouthY - 1.5); ctx.lineTo(headX - 4, mouthY + 0.5); ctx.lineTo(headX + 4, mouthY + 0.5); ctx.lineTo(headX + 7, mouthY - 1.5);
+    ctx.lineTo(headX + 6, mouthY + 2.2); ctx.quadraticCurveTo(headX, mouthY + 5, headX - 6, mouthY + 2.2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.moveTo(headX - 5.6, mouthY - 0.4); ctx.lineTo(headX - 3.6, mouthY + 1); ctx.lineTo(headX + 3.6, mouthY + 1); ctx.lineTo(headX + 5.6, mouthY - 0.4);
+    ctx.lineTo(headX + 5, mouthY + 1.8); ctx.quadraticCurveTo(headX, mouthY + 3.8, headX - 5, mouthY + 1.8); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#18181B';
+    for (const tx of [-3, -1, 1, 3]) ctx.fillRect(headX + tx - 0.3, mouthY + 0.6, 0.6, 2.4);
+    // (the cheeks bunched up under the eyes with it)
+    ctx.fillStyle = skinShadow; ctx.fillRect(headX - 8, mouthY - 3, 2.5, 1); ctx.fillRect(headX + 5.5, mouthY - 3, 2.5, 1);
   } else if (isAngry) {
     // Teeth bared in a wide, clenched grimace, gums showing
     ctx.fillStyle = '#7F1D1D';
