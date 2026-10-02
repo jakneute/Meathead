@@ -572,7 +572,7 @@
  {
   "voice": "announcer",
   "text": "LAID TO REST!",
-  "from": "game/stages/tommy/thing.ts:262"
+  "from": "game/stages/tommy/thing.ts:264"
  },
  {
   "voice": "announcer",
@@ -3556,6 +3556,11 @@
  },
  {
   "voice": "boss.victor",
+  "text": "AAH! THE SAUNA'S BROKEN!",
+  "from": "VICTOR_LINES"
+ },
+ {
+  "voice": "boss.victor",
   "text": "BRO, IF YOU'RE GONNA SPLASH WATER AROUND, AIM IT AT YOUR PANTS!",
   "from": "VICTOR_LINES"
  },
@@ -3581,18 +3586,23 @@
  },
  {
   "voice": "boss.victor",
+  "text": "COUGH! BRO! NOT THE PILOT LIGHT!",
+  "from": "VICTOR_LINES"
+ },
+ {
+  "voice": "boss.victor",
   "text": "ELECTRIC? I'M ALREADY RED HOT!",
   "from": "REACTIONS"
  },
  {
   "voice": "boss.victor",
   "text": "EVERYBODY OUT OF MY CLUB!",
-  "from": "game/bosses/victor.ts:120"
+  "from": "game/bosses/victor.ts:124"
  },
  {
   "voice": "boss.victor",
   "text": "FEEL THE HEAT, MEATHEAD!",
-  "from": "game/bosses/victor.ts:120"
+  "from": "game/bosses/victor.ts:124"
  },
  {
   "voice": "boss.victor",
@@ -3611,12 +3621,22 @@
  },
  {
   "voice": "boss.victor",
+  "text": "HACK! HACK! MY... INNER... FIRE...",
+  "from": "VICTOR_LINES"
+ },
+ {
+  "voice": "boss.victor",
   "text": "HOW REFRESHING. DO IT AGAIN.",
   "from": "REACTIONS"
  },
  {
   "voice": "boss.victor",
   "text": "HYDRATION! YOU SHOULDN'T HAVE!",
+  "from": "VICTOR_LINES"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "I CAN'T... HACK! BREATHE OUT!",
   "from": "VICTOR_LINES"
  },
  {
@@ -3662,7 +3682,7 @@
  {
   "voice": "boss.victor",
   "text": "LAST CALL! IT'S ON FIRE!",
-  "from": "game/bosses/victor.ts:120"
+  "from": "game/bosses/victor.ts:124"
  },
  {
   "voice": "boss.victor",
@@ -3702,7 +3722,7 @@
  {
   "voice": "boss.victor",
   "text": "NOWHERE TO RUN, BRO!",
-  "from": "game/bosses/victor.ts:120"
+  "from": "game/bosses/victor.ts:124"
  },
  {
   "voice": "boss.victor",
@@ -3718,6 +3738,11 @@
   "voice": "boss.victor",
   "text": "OIL? YOU JUST FUELED MY FIRE!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "OW! OW! HOT! MY PORES!",
+  "from": "VICTOR_LINES"
  },
  {
   "voice": "boss.victor",
@@ -3771,6 +3796,11 @@
  },
  {
   "voice": "boss.victor",
+  "text": "THAT'S MY VENT, BRO! THAT'S ME!",
+  "from": "VICTOR_LINES"
+ },
+ {
+  "voice": "boss.victor",
   "text": "THAT'S NOT HOW GEOLOGY WORKS, YOU MEATBALL!",
   "from": "VICTOR_LINES"
  },
@@ -3798,6 +3828,16 @@
   "voice": "boss.victor",
   "text": "WATER! NO! MY MAGMA IS COOLING!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "WATER... IN THE... COUGH! FURNACE!",
+  "from": "VICTOR_LINES"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "WHO TURNED UP THE STEAM ROOM?!",
+  "from": "VICTOR_LINES"
  },
  {
   "voice": "boss.victor",
@@ -5022,7 +5062,7 @@
  {
   "voice": "death",
   "text": "DRIVE-BY'D",
-  "from": "game/stages/tommy/bike.ts:571"
+  "from": "game/stages/tommy/bike.ts:576"
  },
  {
   "voice": "death",
@@ -5252,7 +5292,7 @@
  {
   "voice": "death",
   "text": "FLINT: 1, MEATHEAD: 0",
-  "from": "game/stages/tommy/bike.ts:571"
+  "from": "game/stages/tommy/bike.ts:576"
  },
  {
   "voice": "death",
@@ -6472,7 +6512,7 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE LISTENED",
-  "from": "game/stages/tommy/thing.ts:341"
+  "from": "game/stages/tommy/thing.ts:343"
  },
  {
   "voice": "death",
@@ -6497,7 +6537,7 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE WORN A HELMET",
-  "from": "game/stages/tommy/bike.ts:571"
+  "from": "game/stages/tommy/bike.ts:576"
  },
  {
   "voice": "death",
@@ -6797,7 +6837,7 @@
  {
   "voice": "death",
   "text": "TAYVON WANTS HIS BIKE BACK",
-  "from": "game/stages/tommy/bike.ts:571"
+  "from": "game/stages/tommy/bike.ts:576"
  },
  {
   "voice": "death",
@@ -12722,7 +12762,7 @@
  {
   "voice": "meathead",
   "text": "MY TIIIIIIRES!",
-  "from": "game/stages/tommy/bike.ts:530"
+  "from": "game/stages/tommy/bike.ts:535"
  },
  {
   "voice": "meathead",
@@ -12832,12 +12872,12 @@
  {
   "voice": "meathead",
   "text": "NICE BIKE. I'M TAKING IT.",
-  "from": "game/stages/tommy/bike.ts:181"
+  "from": "game/stages/tommy/bike.ts:183"
  },
  {
   "voice": "meathead",
   "text": "NICE BIKE. I'M TAKING IT. DON'T SNIFF THE SEAT AFTER.",
-  "from": "game/stages/tommy/bike.ts:181"
+  "from": "game/stages/tommy/bike.ts:183"
  },
  {
   "voice": "meathead",
@@ -13397,7 +13437,7 @@
  {
   "voice": "meathead",
   "text": "PFFT. IT'S A PUDDLE.",
-  "from": "game/stages/tommy/bike.ts:515"
+  "from": "game/stages/tommy/bike.ts:520"
  },
  {
   "voice": "meathead",
@@ -13707,7 +13747,7 @@
  {
   "voice": "meathead",
   "text": "RING RING, BITCHES.",
-  "from": "game/stages/tommy/bike.ts:201"
+  "from": "game/stages/tommy/bike.ts:203"
  },
  {
   "voice": "meathead",
@@ -16112,7 +16152,7 @@
  {
   "voice": "meathead",
   "text": "WHO'S THE ASTRONAUT?",
-  "from": "game/stages/tommy/bike.ts:489"
+  "from": "game/stages/tommy/bike.ts:494"
  },
  {
   "voice": "meathead",
@@ -17042,12 +17082,12 @@
  {
   "voice": "tommy.crew",
   "text": "HE SHAT ON TAYVON'S BIKE! GET THE CAR!",
-  "from": "game/stages/tommy/bike.ts:201"
+  "from": "game/stages/tommy/bike.ts:203"
  },
  {
   "voice": "tommy.crew",
   "text": "HE TOOK TAYVON'S BIKE! GET THE CAR!",
-  "from": "game/stages/tommy/bike.ts:201"
+  "from": "game/stages/tommy/bike.ts:203"
  },
  {
   "voice": "tommy.crew",
@@ -17062,7 +17102,7 @@
  {
   "voice": "tommy.crew",
   "text": "NAH, THE WATER ALWAYS BEEN THAT COLOR.",
-  "from": "game/stages/tommy/bike.ts:178"
+  "from": "game/stages/tommy/bike.ts:180"
  },
  {
   "voice": "tommy.crew",
@@ -17087,12 +17127,12 @@
  {
   "voice": "tommy.crew",
   "text": "YO. WHAT'S THAT SMELL? IT'S THIS BIG DUDE.",
-  "from": "game/stages/tommy/bike.ts:180"
+  "from": "game/stages/tommy/bike.ts:182"
  },
  {
   "voice": "tommy.crew",
   "text": "YO. WHO'S THIS BIG DUDE?",
-  "from": "game/stages/tommy/bike.ts:180"
+  "from": "game/stages/tommy/bike.ts:182"
  },
  {
   "voice": "tommy.crew",
@@ -17122,22 +17162,22 @@
  {
   "voice": "tommy.hazmat",
   "text": "COMPLIMENTS OF THE CITY OF FLINT.",
-  "from": "game/stages/tommy/bike.ts:494"
+  "from": "game/stages/tommy/bike.ts:499"
  },
  {
   "voice": "tommy.hazmat",
   "text": "COMPLIMENTS OF THE CITY OF FLINT. AND, SIR? YOUR PANTS.",
-  "from": "game/stages/tommy/bike.ts:494"
+  "from": "game/stages/tommy/bike.ts:499"
  },
  {
   "voice": "tommy.hazmat",
   "text": "DRINK UP.",
-  "from": "game/stages/tommy/bike.ts:499"
+  "from": "game/stages/tommy/bike.ts:504"
  },
  {
   "voice": "tommy.hazmat",
   "text": "DRINK UP. IT'S CLEANER THAN YOU.",
-  "from": "game/stages/tommy/bike.ts:499"
+  "from": "game/stages/tommy/bike.ts:504"
  },
  {
   "voice": "tommy.hazmat",
@@ -17152,22 +17192,22 @@
  {
   "voice": "tommy.rider",
   "text": "AYYY! HE'S GOT SHIT ALL OVER MY BIRTHDAY BIKE!",
-  "from": "game/stages/tommy/bike.ts:201"
+  "from": "game/stages/tommy/bike.ts:203"
  },
  {
   "voice": "tommy.rider",
   "text": "AYYY! THAT WAS MY BIRTHDAY BIKE!",
-  "from": "game/stages/tommy/bike.ts:201"
+  "from": "game/stages/tommy/bike.ts:203"
  },
  {
   "voice": "tommy.rider",
   "text": "MY GRANDMA SAYS IT GOT FLAVOR NOW.",
-  "from": "game/stages/tommy/bike.ts:179"
+  "from": "game/stages/tommy/bike.ts:181"
  },
  {
   "voice": "tommy.rider",
   "text": "NIGGA STOLE MY BIKE!",
-  "from": "game/stages/tommy/bike.ts:201"
+  "from": "game/stages/tommy/bike.ts:203"
  },
  {
   "voice": "tommy.thing",

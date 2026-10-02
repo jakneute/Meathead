@@ -64,7 +64,9 @@ const update = (ctx: FrameContext, boss: Enemy) => {
   const { state } = ctx;
   const helpers = ctx.bossHelpers;
   // A wave that's been and gone having only washed over him: he's barely wet, and he lets you know it
-  if (boss.tsunamiWave === state.tsunamiSerial && !state.tsunamiActive && boss.rinsedWave !== state.tsunamiSerial && (boss.tsunamiPaid ?? 0) < TSUNAMI_DAMAGE_WEAKNESS && boss.health > 0) {
+  // The steam off a blown vent getting back to him: it's his own volcano, so it comes up through him
+  if (boss.steamAt !== undefined && state.frame >= boss.steamAt) steamArrives(ctx, boss);
+  if (boss.tsunamiWave === state.tsunamiSerial && !state.tsunamiActive && boss.steamAt === undefined && boss.rinsedWave !== state.tsunamiSerial && (boss.tsunamiPaid ?? 0) < TSUNAMI_DAMAGE_WEAKNESS && boss.health > 0) {
     boss.rinsedWave = state.tsunamiSerial;
     speakAsBoss(VICTOR, state.player.gut?.stage === 2 ? VICTOR_LINES.RINSED_SHAT : pickRandom(VICTOR_LINES.RINSED), helpers, 'casual');
   }
@@ -72,6 +74,8 @@ const update = (ctx: FrameContext, boss: Enemy) => {
     case 'pain':
       // (doubled over, put out; or hopping, scalded: then back to it)
       boss.vel.x = 0;
+      // Put out: choking on it, a hacking cough every so often, smoke and water coming up out of him
+      if (boss.painKind === 'doused' && boss.stateTimer! % COUGH_EVERY === 0 && boss.stateTimer! > 10) cough(ctx, boss);
       if (boss.stateTimer! <= 0) { boss.bossState = 'idle'; boss.painKind = undefined; boss.stateTimer = REST_FRAMES; }
       break;
     case 'attacking':
@@ -134,7 +138,11 @@ const barf = (ctx: FrameContext, boss: Enemy) => {
     boss.bossState = 'idle'; boss.stateTimer = REST_FRAMES; boss.barfT = undefined; boss.barfLen = 0;
     boss.barfReadyAt = state.frame + BARF_COOLDOWN;
     // (put out mid-breath: the wave counts in full, and he chokes on it)
-    if (doused) { boss.dousedWave = state.tsunamiSerial; topUpTsunami(ctx, boss); bossPain(ctx, boss, 'doused', 55, 'DOUSED!', '#38BDF8'); fx.playGunSound('ignite', 0.6, -10); }
+    if (doused) {
+      boss.dousedWave = state.tsunamiSerial; topUpTsunami(ctx, boss);
+      bossPain(ctx, boss, 'doused', DOUSED_FRAMES, 'DOUSED!', '#38BDF8'); fx.playGunSound('ignite', 0.6, -10);
+      speakAsBoss(VICTOR, pickRandom(VICTOR_LINES.DOUSED), ctx.bossHelpers, 'casual');
+    }
     return;
   }
   if (t < BARF_WINDUP) {
@@ -325,19 +333,56 @@ export const victorTsunamiHit = (ctx: FrameContext, boss: Enemy) => {
   boss.tsunamiWave = state.tsunamiSerial; boss.tsunamiPaid = 0;
   topUpTsunami(ctx, boss);
 };
-/** The wave's blown one of his vents into steam (at `at`): the wave counts in full against him now, and if he's in the
- * steam, he's scalded. */
+/** Put out mid-breath: how long he's choking on it, and a cough every so often in it. */
+const DOUSED_FRAMES = 100, COUGH_EVERY = 24;
+/** The steam off a blown vent: how fast it rushes back along to him (px a frame), and how long he's scalded by it. */
+const STEAM_RUSH = 10, SCALDED_FRAMES = 75;
+
+/** A hacking cough, choking on it: a gout of black smoke and dirty water out of his mouth, his head jerking forward. */
+const cough = (ctx: FrameContext, boss: Enemy) => {
+  const { state } = ctx;
+  const m = victorMouth(boss), f = boss.facing ?? 1;
+  for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: m.x, y: m.y }, vel: { x: f * (2 + Math.random() * 4), y: -1.5 - Math.random() * 2 }, life: 34, color: i % 3 ? '#374151' : '#9CA3AF', size: 6 + Math.random() * 7 });
+  for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: m.x, y: m.y + 4 }, vel: { x: f * (1 + Math.random() * 3), y: Math.random() * 2 }, life: 22, color: '#38BDF8', size: 2 + Math.random() * 2 });
+  state.damageNumbers.push({ id: `cough-${state.frame}`, text: pickRandom(['HACK!', 'COUGH!', 'HURK!']), pos: { x: m.x + f * 16, y: m.y - 20 }, vel: { x: f * 0.6, y: -1.6 }, life: 34, maxLife: 34, isCritical: false, isCallout: true, color: '#CBD5E1' });
+  ctx.fx.playGunSound('ignite', 0.35, -14);
+};
+
+/**
+ * The wave's blown one of his vents into steam (at `at`). The vents are him (it's his volcano): the steam rushes back
+ * along to him, plain to see, and when it gets there it comes up through him: scalded, steam out of his ears, and the
+ * wave counts in full against him. However far off he is.
+ */
 export const victorVentBlown = (ctx: FrameContext, at: { x: number; y: number }) => {
   const { state } = ctx;
-  state.tsunamiVentWave = state.tsunamiSerial;
   const boss = state.enemies.find(e => e.type === 'boss' && e.health > 0);
   if (!boss) return;
+  const tx = midX(boss), ty = boss.pos.y + boss.height * 0.45;
+  const dist = Math.hypot(tx - at.x, ty - at.y);
+  const frames = Math.max(4, Math.round(dist / STEAM_RUSH));
+  // (two blown at once: the first to get there counts)
+  // (the rush of it, along to him: the world draws it, see drawSteamRush)
+  if (boss.steamAt === undefined || state.frame + frames < boss.steamAt) { boss.steamFrom = { ...at }; boss.steamStart = state.frame; boss.steamAt = state.frame + frames; }
+  boss.steamWave = state.tsunamiSerial;
+  ctx.fx.playGunSound('ignite', 0.5, 8);
+};
+
+/** The steam's got back to him: scalded (out of whatever he was doing, fire and all), and the wave counts in full. */
+const steamArrives = (ctx: FrameContext, boss: Enemy) => {
+  const { state } = ctx;
+  boss.steamAt = undefined; boss.steamFrom = undefined;
+  if (boss.health <= 0) return;
+  if (boss.steamWave === state.tsunamiSerial) state.tsunamiVentWave = boss.steamWave;
   topUpTsunami(ctx, boss);
-  if (boss.health > 0 && Math.hypot(midX(boss) - at.x, boss.pos.y + boss.height / 2 - at.y) < 150 && boss.bossState !== 'pain') {
-    // (whatever he was in the middle of, fire and all, he's out of it)
-    boss.barfT = undefined; boss.barfLen = 0;
-    bossPain(ctx, boss, 'scalded', 60, 'STEAMED!', '#F8FAFC');
-  }
+  // (a burst of it out of all of him)
+  for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: midX(boss) + (Math.random() - 0.5) * boss.width * 0.8, y: boss.pos.y + Math.random() * boss.height * 0.8 }, vel: { x: (Math.random() - 0.5) * 5, y: -2 - Math.random() * 4 }, life: 40, color: i % 2 ? '#F8FAFC' : '#E2E8F0', size: 6 + Math.random() * 8 });
+  if (boss.health <= 0) return;
+  if (boss.bossState === 'pain' && boss.painKind === 'doused') return;
+  boss.barfT = undefined; boss.barfLen = 0;
+  const fresh = boss.bossState !== 'pain';
+  bossPain(ctx, boss, 'scalded', SCALDED_FRAMES, 'STEAMED!', '#F8FAFC');
+  ctx.fx.playGunSound('ignite', 0.7, -6);
+  if (fresh) speakAsBoss(VICTOR, pickRandom(VICTOR_LINES.STEAMED), ctx.bossHelpers, 'casual');
 };
 
 export const victor: BossDef = {

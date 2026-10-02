@@ -1021,6 +1021,20 @@ export const VICTOR_LINES = {
   ],
   /** ...and the same, with the asset's pants full. */
   RINSED_SHAT: "BRO, IF YOU'RE GONNA SPLASH WATER AROUND, AIM IT AT YOUR PANTS!",
+  /** His fire put out mid-breath: choking on the smoke and the water. */
+  DOUSED: [
+    "HACK! HACK! MY... INNER... FIRE...",
+    "COUGH! BRO! NOT THE PILOT LIGHT!",
+    "I CAN'T... HACK! BREATHE OUT!",
+    "WATER... IN THE... COUGH! FURNACE!",
+  ],
+  /** A vent of his blown into steam: it comes right back up through him. */
+  STEAMED: [
+    "OW! OW! HOT! MY PORES!",
+    "AAH! THE SAUNA'S BROKEN!",
+    "THAT'S MY VENT, BRO! THAT'S ME!",
+    "WHO TURNED UP THE STEAM ROOM?!",
+  ],
 };
 
 /** Drug Trade Dale's lines when his truck gets wrecked. */

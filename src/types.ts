@@ -355,6 +355,12 @@ export interface Enemy extends Entity {
   painT?: number;
   tsunamiPaid?: number;
   dousedWave?: number;
+  /** Victor: the steam off a vent the wave's blown, on its way back to him (the frame it gets to him, and the wave's number). */
+  steamAt?: number;
+  steamWave?: number;
+  /** ...where it came from, and when it set off (for drawing it on its way). */
+  steamFrom?: { x: number; y: number };
+  steamStart?: number;
   /** The wave Victor's already sneered at for only rinsing him. */
   rinsedWave?: number;
   /** Artie, after a panic: no big leap till this frame. */

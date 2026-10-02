@@ -144,6 +144,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     drawBlasts(wctx, state);
     drawMoltenStream(wctx, state);
     drawParticlesAndDamageNumbers(wctx, state);
+    drawSteamRush(wctx, state);
     drawBarryLighting(wctx, state, stageId);
     if (state.sewerNuke) drawSewerNukeInside(wctx, state);
     if (state.volcanoFinale) drawVolcanoFinaleInside(wctx, state);
@@ -568,6 +569,37 @@ const drawTommyShaft = (ctx: CanvasRenderingContext2D, state: GameState) => {
   ctx.restore();
 };
 const hash1 = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+
+/**
+ * Victor: the steam off a vent the wave's blown, rushing back along to him (it's his volcano: it comes up through him).
+ * A jet of it, white-hot at the core, its head billowing, from the vent to wherever he is: over the wave, so it reads.
+ */
+const drawSteamRush = (ctx: CanvasRenderingContext2D, state: GameState) => {
+  const boss = state.enemies.find(e => e.type === 'boss' && e.steamFrom && e.steamAt !== undefined && e.steamStart !== undefined);
+  if (!boss) return;
+  const a = boss.steamFrom!, span = Math.max(1, boss.steamAt! - boss.steamStart!);
+  const k = Math.min(1, (state.frame - boss.steamStart!) / span);
+  const tx = boss.pos.x + boss.width / 2, ty = boss.pos.y + boss.height * 0.45;
+  // (low along the floor, arcing up into him at the end)
+  const at = (q: number) => ({ x: a.x + (tx - a.x) * q, y: a.y + (ty - a.y) * q * q - Math.sin(q * Math.PI) * 30 });
+  const head = k, tail = Math.max(0, k - 0.55);
+  ctx.save();
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (const [w, color] of [[22, 'rgba(226, 232, 240, 0.45)'], [13, 'rgba(248, 250, 252, 0.85)'], [5, 'rgba(253, 186, 116, 0.9)']] as const) {
+    ctx.strokeStyle = color; ctx.lineWidth = w;
+    ctx.beginPath();
+    for (let q = tail; q <= head + 0.001; q += 0.04) { const pt = at(Math.min(q, head)); const wob = Math.sin(q * 30 - state.frame * 0.8) * 3; if (q === tail) ctx.moveTo(pt.x, pt.y + wob); else ctx.lineTo(pt.x, pt.y + wob); }
+    ctx.stroke();
+  }
+  // Its head: a billow of it, pushing on
+  const h = at(head);
+  for (let i = 0; i < 6; i++) {
+    const r = 9 + ((i * 7 + state.frame) % 9);
+    ctx.fillStyle = i % 2 ? 'rgba(248, 250, 252, 0.85)' : 'rgba(203, 213, 225, 0.8)';
+    ctx.beginPath(); ctx.arc(h.x + Math.cos(i * 1.7 + state.frame * 0.3) * 10, h.y + Math.sin(i * 2.3 + state.frame * 0.3) * 9, r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+};
 
 /** Victor's volcano vents and telegraphs, steam blasts, and Hector's poop warnings. */
 const drawBossHazards = (ctx: CanvasRenderingContext2D, state: GameState) => {

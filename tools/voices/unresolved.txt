@@ -37,14 +37,14 @@ game/stages/tommy/thing.ts:171 voice: talk
 game/stages/tommy/thing.ts:194 voice: talk
 game/stages/tommy/thing.ts:207 voice: talk
 game/stages/tommy/thing.ts:208 voice: talk
-game/stages/tommy/thing.ts:255 voice: talk
-game/stages/tommy/thing.ts:323 voice: talk
-game/stages/tommy/thing.ts:342 call: Math.floor(Math.random() * 3)
-game/stages/tommy/thing.ts:342 name: undefined
+game/stages/tommy/thing.ts:257 voice: talk
+game/stages/tommy/thing.ts:325 voice: talk
+game/stages/tommy/thing.ts:344 call: Math.floor(Math.random() * 3)
+game/stages/tommy/thing.ts:344 name: undefined
 game/stages/tommy/thing.ts:113 expr: 0
 game/stages/tommy/thing.ts:207 expr: th.asks + state.frame
-game/stages/tommy/thing.ts:325 expr: th.asks + state.frame
-game/stages/tommy/bike.ts:569 name: undefined
+game/stages/tommy/thing.ts:327 expr: th.asks + state.frame
+game/stages/tommy/bike.ts:574 name: undefined
 game/stages/tommy/script.ts:81 voice: VOICES[line.who]
 game/stages/tommy/escape.ts:278 name: undefined
 game/stages/oscar/bunker.ts:286 template: `${NUMBERS[left] ?? left} MINUTE${left === 1 ? '' : 'S'} LEFT, FELLAS. SAVOR IT.`

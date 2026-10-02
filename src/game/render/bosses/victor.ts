@@ -22,13 +22,16 @@ export const drawVictor = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
   const tele = e.bossState === 'attacking' || e.bossState === 'telegraphing';
   const lOff = tele ? Math.sin(frame * 0.5) * 3 : 0;
   const pain = e.bossState === 'pain' && e.health > 0 ? e.painKind : undefined;
-  const mood = pain === 'doused' ? (frame % 20 < 10 ? 'dazed' : 'hurt') : pain === 'scalded' ? 'hurt' : moodOf(e, frame, { barfing: 'roar', attacking: 'fierce', telegraphing: 'fierce', jumping: 'fierce' });
+  // (choking: each cough a heave, his head jerking forward with it, mouth wide; between them, eyes bulging)
+  const choke = pain === 'doused';
+  const heave = choke ? Math.max(0, ((e.stateTimer ?? 0) % 24) - 17) / 6 : 0;
+  const mood = choke ? (heave > 0 ? 'roar' : 'shock') : pain === 'scalded' ? 'hurt' : moodOf(e, frame, { barfing: 'roar', attacking: 'fierce', telegraphing: 'fierce', jumping: 'fierce' });
   const b = breath(frame) + lOff * 0.5;
   ctx.save();
   ctx.scale(e.width / 80, e.height / 80);
   // (scalded: hopping from foot to foot, shaking; doused: doubled over, sagging, coughing)
   if (pain === 'scalded') ctx.translate(Math.sin(frame * 1.3) * 1.5, -Math.abs(Math.sin(frame * 0.45)) * 7);
-  if (pain === 'doused') { ctx.translate(40, 80); ctx.rotate(0.12 * f + Math.sin(frame * 0.5) * 0.03); ctx.scale(1, 0.94); ctx.translate(-40, -80 + 2); }
+  if (pain === 'doused') { ctx.translate(40, 80); ctx.rotate(0.12 * f + heave * 0.12 * f + Math.sin(frame * 0.5) * 0.03); ctx.scale(1, 0.94); ctx.translate(-40, -80 + 2 + heave * 2); }
 
   // Sandals and bare feet
   for (const x of [29, 51]) {
@@ -61,10 +64,11 @@ export const drawVictor = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
   ctx.fillStyle = SKIN_LIGHT;
   ctx.fillRect(29, 39, 7, 1); ctx.fillRect(44, 39, 7, 1); ctx.fillRect(35, 47, 3, 0.8); ctx.fillRect(42, 47, 3, 0.8);
   // Lava-crack tattoos across the chest, glowing, brighter as he winds up
-  const glow = tele ? 1 : 0.55 + Math.sin(frame * 0.2) * 0.25;
+  // (put out, or steamed: gone cold and grey)
+  const glow = pain ? 0.9 : tele ? 1 : 0.55 + Math.sin(frame * 0.2) * 0.25;
   ctx.save();
-  ctx.shadowColor = '#FF5722'; ctx.shadowBlur = tele ? 8 : 4;
-  ctx.strokeStyle = `rgba(255, 138, 0, ${glow})`; ctx.lineWidth = 1.1; ctx.lineJoin = 'round';
+  ctx.shadowColor = pain ? 'transparent' : '#FF5722'; ctx.shadowBlur = pain ? 0 : tele ? 8 : 4;
+  ctx.strokeStyle = pain ? 'rgba(87, 83, 78, 0.9)' : `rgba(255, 138, 0, ${glow})`; ctx.lineWidth = 1.1; ctx.lineJoin = 'round';
   ctx.beginPath(); ctx.moveTo(24, 38); ctx.lineTo(28, 41); ctx.lineTo(27, 44); ctx.moveTo(28, 41); ctx.lineTo(33, 40);
   ctx.moveTo(56, 38); ctx.lineTo(52, 41); ctx.lineTo(53, 44); ctx.moveTo(52, 41); ctx.lineTo(47, 40); ctx.stroke();
   ctx.restore();
@@ -95,7 +99,7 @@ export const drawVictor = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
   ctx.save();
   ctx.shadowColor = '#FF5722'; ctx.shadowBlur = tele ? 12 : 6;
   ctx.fillStyle = '#A16207'; ctx.fillRect(38, 40, 4, 1.4); ctx.fillRect(38, 47.5, 4, 1.4);
-  ctx.fillStyle = tele ? '#FFEB3B' : '#FF5722';
+  ctx.fillStyle = pain ? '#57534E' : tele ? '#FFEB3B' : '#FF5722';
   ctx.beginPath(); ctx.moveTo(38.4, 41.4); ctx.lineTo(41.6, 41.4); ctx.lineTo(42.4, 47.5); ctx.lineTo(37.6, 47.5); ctx.closePath(); ctx.fill();
   ctx.restore();
   ctx.fillStyle = '#FFD54F';
@@ -111,8 +115,9 @@ export const drawVictor = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
     ctx.fillStyle = SKIN_LIGHT; ctx.fillRect(sx - 2, sy - 5.5, 4, 1.2);
     ctx.fillStyle = '#111114';
     ctx.beginPath(); ctx.arc(sx, sy - 0.5, 7.8, Math.PI * 1.05, Math.PI * 1.95); ctx.fill(); // shirt over the top of it
-    const ex = sx + side * 5, ey = armUp ? sy - 2 : sy + 10;
-    const hx = sx + side * (armUp ? 10 : 6), hy = armUp ? sy - 12 : sy + 20 + side * sway;
+    // (choking: both hands at his throat)
+    const ex = choke ? sx + side * 4 : sx + side * 5, ey = choke ? sy + 9 : armUp ? sy - 2 : sy + 10;
+    const hx = choke ? 40 + side * 5 : sx + side * (armUp ? 10 : 6), hy = choke ? 32 + Math.sin(frame * 0.9 + side) * 0.8 : armUp ? sy - 12 : sy + 20 + side * sway;
     limb(ctx, sx + side * 2, sy + 2, ex, ey, 8.5, SKIN, SKIN_DARK);
     limb(ctx, ex, ey, hx, hy, 7, SKIN, SKIN_DARK);
     // Bicep, and a vein up it
@@ -148,6 +153,28 @@ export const drawVictor = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
       ctx.beginPath(); ctx.ellipse(-3, -7.8, 0.7, 1, 0, 0, Math.PI * 2); ctx.fill();
     },
   });
+  // Choking: his hands clutching his throat (over his chin), and his face going purple
+  if (choke) {
+    ctx.fillStyle = `rgba(109, 40, 217, ${0.38 + heave * 0.12})`; ctx.beginPath(); ctx.arc(40 + f, 22, 12, 0, Math.PI * 2); ctx.fill();
+    for (const side of [-1, 1]) {
+      const hx = 40 + side * 6, hy = 35 + Math.sin(frame * 0.9 + side) * 0.8;
+      ctx.fillStyle = '#3B1A0A'; ctx.beginPath(); ctx.arc(hx, hy, 5.6, 0, Math.PI * 2); ctx.fill();
+      hand(ctx, hx, hy, 4.8, SKIN, SKIN_DARK);
+    }
+  }
+  // Scalded: the steam coming up through him and whistling out of his ears, like a kettle
+  if (pain === 'scalded') {
+    for (const side of [-1, 1]) {
+      // (a jet straight out of each ear, then billowing up)
+      ctx.fillStyle = 'rgba(248, 250, 252, 0.95)';
+      ctx.beginPath(); ctx.moveTo(40 + side * 14, 16.5); ctx.lineTo(40 + side * 26, 14 + Math.sin(frame * 1.7) * 1); ctx.lineTo(40 + side * 26, 19 + Math.sin(frame * 1.7) * 1); ctx.lineTo(40 + side * 14, 19.5); ctx.closePath(); ctx.fill();
+      for (let k = 0; k < 5; k++) {
+        const t = ((frame * 2 + k * 5 + (side > 0 ? 3 : 0)) % 24) / 24;
+        ctx.fillStyle = `rgba(248, 250, 252, ${0.95 * (1 - t)})`;
+        ctx.beginPath(); ctx.ellipse(40 + side * (24 + t * 18), 17 - t * 14, 3 + t * 6, 2.5 + t * 5, 0, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+  }
   ctx.restore();
 
   // Doused: his fire put out in his mouth: smoke and steam choking out of it, water running off him
