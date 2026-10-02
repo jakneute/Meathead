@@ -415,10 +415,7 @@ const drawFamilyScene = (ctx: Ctx, state: GameState, rt: TommyRuntime, t: number
     ctx.save(); ctx.translate(x, 420 - laugh); ctx.scale(s, s);
     if (dissolve < 1) {
       ctx.globalAlpha = 1 - dissolve;
-      ctx.fillStyle = shirt; ctx.fillRect(-20, -70, 40, 60);
-      ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(0, -88, 18, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#111827'; ctx.fillRect(4, -92, 4, 4); ctx.fillRect(-8, -92, 4, 4);
-      ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.ellipse(0, -78, 6, crushT > 0 ? 7 : 3 + laugh, 0, 0, Math.PI * 2); ctx.fill();
+      familyMember(ctx, i, shirt, skin, crushT > 0 ? 7 : 3 + laugh, crushT > 0, f);
       ctx.globalAlpha = 1;
     }
     if (crushT > 60) {
@@ -457,6 +454,64 @@ const drawFamilyScene = (ctx: Ctx, state: GameState, rt: TommyRuntime, t: number
   }
   bubble(ctx, state, 'dad', 300, 300); bubble(ctx, state, 'mom', 400, 300); bubble(ctx, state, 'kid', 490, 330);
   void rt;
+};
+
+/**
+ * One of the family, sat on the couch, in the frame their bones are drawn in (head at (0, -88), the shirt -20..20 by
+ * -70..-10): Dad (receding, a mustache, a polo), Mom (long auburn hair, bangs, hoops), the kid (a blond bowl cut, a
+ * tee); ink round all of it, shaded, faces with eyes and brows; `mouth` how open; screaming, brows up and eyes wide.
+ */
+const familyMember = (ctx: Ctx, who: number, shirt: string, skin: string, mouth: number, scream: boolean, f: number) => {
+  const INKC = '#1A0B06', skinD = '#B07A4F', skinL = '#F0C48F';
+  const inked = (path: () => void, fill: string, w = 1.6) => { ctx.beginPath(); path(); ctx.fillStyle = fill; ctx.fill(); ctx.strokeStyle = INKC; ctx.lineWidth = w; ctx.stroke(); };
+  // Shirt: shaded in steps, a collar, the arms down by their sides, hands in their laps
+  ctx.save(); ctx.beginPath(); ctx.roundRect(-20, -70, 40, 60, [10, 10, 3, 3]); ctx.clip();
+  ctx.fillStyle = shirt; ctx.fillRect(-22, -72, 44, 64);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.16)'; ctx.fillRect(-22, -72, 14, 64);
+  ctx.fillStyle = 'rgba(26, 11, 6, 0.22)'; ctx.fillRect(8, -72, 14, 64); ctx.fillRect(-22, -20, 44, 12);
+  if (who === 2) { ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.arc(0, -46, 7, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#111827'; ctx.fillRect(-3, -48, 2, 2); ctx.fillRect(2, -48, 2, 2); }
+  ctx.restore();
+  ctx.beginPath(); ctx.roundRect(-20, -70, 40, 60, [10, 10, 3, 3]); ctx.strokeStyle = INKC; ctx.lineWidth = 1.6; ctx.stroke();
+  if (who === 0) { inked(() => { ctx.moveTo(-10, -70); ctx.lineTo(0, -60); ctx.lineTo(10, -70); ctx.closePath(); }, '#F8FAFC', 1.2); ctx.fillStyle = INKC; ctx.fillRect(-1, -60, 2, 2); ctx.fillRect(-1, -55, 2, 2); }
+  for (const side of [-1, 1]) {
+    inked(() => ctx.roundRect(side * 22 - 5, -64, 10, 34, 5), shirt, 1.4);
+    inked(() => ctx.ellipse(side * 12, -24, 7, 5, 0, 0, Math.PI * 2), skin, 1.2);
+  }
+  // Head: shaded, an ear, the neck
+  inked(() => ctx.rect(-6, -74, 12, 8), skinD, 1.2);
+  ctx.save(); ctx.beginPath(); ctx.arc(0, -88, 18, 0, Math.PI * 2); ctx.clip();
+  ctx.fillStyle = skin; ctx.fillRect(-20, -108, 40, 40);
+  ctx.fillStyle = skinD; ctx.fillRect(-20, -108, 8, 40); ctx.fillRect(-20, -76, 40, 6);
+  ctx.fillStyle = skinL; ctx.fillRect(4, -102, 8, 6);
+  ctx.fillStyle = 'rgba(244, 114, 182, 0.35)'; ctx.fillRect(-12, -84, 6, 3); ctx.fillRect(7, -84, 6, 3);
+  ctx.restore();
+  ctx.beginPath(); ctx.arc(0, -88, 18, 0, Math.PI * 2); ctx.strokeStyle = INKC; ctx.lineWidth = 1.6; ctx.stroke();
+  for (const side of [-1, 1]) inked(() => ctx.ellipse(side * 18, -86, 3, 5, 0, 0, Math.PI * 2), skinD, 1.2);
+  // Hair
+  if (who === 0) { inked(() => { ctx.arc(0, -92, 18.5, Math.PI * 1.05, Math.PI * 1.32); ctx.lineTo(-10, -98); ctx.closePath(); }, '#3F2A1D', 1.2); inked(() => { ctx.arc(0, -92, 18.5, Math.PI * 1.68, Math.PI * 1.95); ctx.lineTo(10, -98); ctx.closePath(); }, '#3F2A1D', 1.2); ctx.fillStyle = skinL; ctx.fillRect(-4, -106, 8, 3); }
+  if (who === 1) {
+    inked(() => ctx.roundRect(-23, -100, 10, 40, 4), '#9A3412', 1.4); inked(() => ctx.roundRect(13, -100, 10, 40, 4), '#9A3412', 1.4);
+    inked(() => { ctx.ellipse(0, -96, 20, 13, 0, Math.PI, Math.PI * 2); ctx.lineTo(18, -92); ctx.quadraticCurveTo(0, -100, -18, -92); ctx.closePath(); }, '#9A3412', 1.4);
+    ctx.fillStyle = '#C2410C'; ctx.fillRect(-8, -106, 12, 2);
+    ctx.strokeStyle = '#FACC15'; ctx.lineWidth = 1.6; for (const side of [-1, 1]) { ctx.beginPath(); ctx.arc(side * 19, -78, 4, 0, Math.PI * 2); ctx.stroke(); }
+  }
+  if (who === 2) { inked(() => { ctx.ellipse(0, -92, 20, 16, 0, Math.PI, Math.PI * 2); ctx.lineTo(19, -90); ctx.lineTo(-19, -90); ctx.closePath(); }, '#FDE047', 1.4); ctx.fillStyle = '#CA8A04'; for (let k = -14; k <= 14; k += 4) ctx.fillRect(k, -92, 2, 3); ctx.fillStyle = '#FEF9C3'; ctx.fillRect(-6, -104, 10, 2); }
+  // Eyes: whites, pupils, brows (up and the eyes wide if they're screaming)
+  const er = scream ? 4.4 : 3.4;
+  for (const ex of [-7, 7]) {
+    inked(() => ctx.ellipse(ex, -92, er, scream ? er + 1 : er, 0, 0, Math.PI * 2), '#FFFFFF', 1);
+    ctx.fillStyle = INKC; ctx.fillRect(ex - 1, -93, scream ? 2 : 3, scream ? 2 : 3);
+    ctx.fillStyle = who === 1 ? '#7C2D12' : who === 2 ? '#CA8A04' : '#3F2A1D';
+    ctx.save(); ctx.translate(ex, -99 - (scream ? 3 : 0)); ctx.rotate((ex < 0 ? 1 : -1) * (scream ? -0.3 : 0.1)); ctx.fillRect(-5, -1, 10, 2.4); ctx.restore();
+  }
+  if (who === 0) { ctx.strokeStyle = INKC; ctx.lineWidth = 1; ctx.strokeRect(-12, -96, 10, 8); ctx.strokeRect(2, -96, 10, 8); ctx.beginPath(); ctx.moveTo(-2, -93); ctx.lineTo(2, -93); ctx.stroke(); }
+  if (who === 1) { ctx.fillStyle = INKC; for (const ex of [-7, 7]) { ctx.fillRect(ex - 5, -97, 2, 2); ctx.fillRect(ex + 3, -97, 2, 2); } }
+  // Nose, mustache, the mouth
+  ctx.fillStyle = skinD; ctx.fillRect(-2, -88, 4, 6);
+  if (who === 0) inked(() => ctx.roundRect(-8, -82, 16, 4, 2), '#3F2A1D', 1);
+  inked(() => ctx.ellipse(0, -77, 6, Math.max(1.2, mouth), 0, 0, Math.PI * 2), '#7F1D1D', 1.2);
+  if (mouth > 3) { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-4, -77 - mouth + 1, 8, 2); ctx.fillStyle = '#DC2626'; ctx.fillRect(-3, -77 + mouth - 3, 6, 2); }
+  void f;
 };
 
 /**
@@ -500,10 +555,7 @@ const drawBurnCloseUp = (ctx: Ctx, f: number, crushT: number) => {
     const cut = -120 + b * 130;
     seatedBones(ctx);
     ctx.save(); ctx.beginPath(); ctx.rect(-40, cut, 80, 200); ctx.clip();
-    ctx.fillStyle = shirt; ctx.fillRect(-20, -70, 40, 60);
-    ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(0, -88, 18, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#111827'; ctx.fillRect(4, -94, 4, 4); ctx.fillRect(-8, -94, 4, 4);
-    ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.ellipse(0, -78, 6, 8, 0, 0, Math.PI * 2); ctx.fill();
+    familyMember(ctx, i, shirt, skin, 8, true, f);
     ctx.restore();
     // The line it's burning along: fizz and smoke
     if (b > 0 && b < 1) {
