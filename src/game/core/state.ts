@@ -161,6 +161,8 @@ export interface GameState {
   tsunamiStartX: number;
   /** Which wave this is (counting up with every one cast): a mid-boss takes each wave once. */
   tsunamiSerial?: number;
+  /** The wave (by its number) that's blown out one of Victor's vents (it counts in full against him). */
+  tsunamiVentWave?: number;
   tsunamiDir: number;
   /** How far the wave's raised or lowered from a flat stage's floor: set from where he's standing when he fires it (hilly stages). */
   tsunamiOffsetY?: number;

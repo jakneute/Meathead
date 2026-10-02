@@ -145,6 +145,20 @@ export const speakAsBoss = (bossId: string, text: string, helpers: BossHelpers, 
  * A boss attack hurts Meathead: damage (unless the invincibility cheat is on),
  * invincibility frames, optional knockback, and a pained line.
  */
+/**
+ * A boss's weakness has really got him: he stops what he's doing for `frames` in a pain of his own (`kind`; his
+ * renderer draws it), with a callout over him saying so and a jolt to the screen, so it's plain it's working.
+ */
+export const bossPain = (ctx: FrameContext, boss: Enemy, kind: string, frames: number, callout: string, color: string) => {
+  const { state } = ctx;
+  boss.bossState = 'pain';
+  boss.painKind = kind;
+  boss.stateTimer = frames;
+  boss.vel.x = 0;
+  state.damageNumbers.push({ id: `pain-${state.frame}-${Math.random()}`, text: callout, pos: { x: midX(boss), y: boss.pos.y - 40 }, vel: { x: 0, y: -3 }, life: 70, maxLife: 70, isCritical: true, isCallout: true, color });
+  state.screenShakeTimer = Math.max(state.screenShakeTimer, 14);
+};
+
 export const hurtPlayer = (
   ctx: FrameContext, damage: number, source: string,
   knockback?: { x: number; y: number }, pushbackFrames = PLAYER_PUSHBACK_DURATION,

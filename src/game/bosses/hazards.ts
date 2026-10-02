@@ -8,7 +8,7 @@ import {
 } from '../../constants';
 import { FrameContext } from '../core/context';
 import { hitBoss, isWeakTo } from './registry';
-import { updateCorkedVent, ventTip } from './victor';
+import { updateCorkedVent, ventTip, victorTsunamiHit, victorVentBlown } from './victor';
 import { pickRandom } from '../core/utils';
 import { killPlayer, landPlayer } from '../player/player';
 import { isMidBoss, midBossDamage, JUNKIE_WAVE_RESIST } from '../combat/midBoss';
@@ -46,6 +46,7 @@ export const updateTsunami = (ctx: FrameContext) => {
       state.bossSteamExplosions.push({ pos: tip, life: 45, radius: 100 });
       fx.spawnSteamExplosionParticles(tip, 40);
       state.screenShakeTimer = 12;
+      if (state.arenaLocked) victorVentBlown(ctx, tip);
       return false;
     });
   }
@@ -65,6 +66,8 @@ export const updateTsunami = (ctx: FrameContext) => {
     const inWave = Math.abs(e.pos.x + e.width / 2 - state.tsunamiX) < 120 && e.pos.y + e.height > tsunamiTopY && e.pos.y < 600 + offsetY + 60;
     if (!inWave) return;
     if (e.type === 'boss') {
+      // (Victor: in full only for putting his fire out or blowing a vent; see victorTsunamiHit)
+      if (stageId === 'Victor Volcano') { if (state.arenaLocked) victorTsunamiHit(ctx, e); return; }
       if (!state.arenaLocked || (e.hitCooldown && e.hitCooldown > 0)) return;
       hitBoss(ctx, e, 'TSUNAMI', { facing: dir, damage: isWeakTo(stageId, 'TSUNAMI') ? TSUNAMI_DAMAGE_WEAKNESS : TSUNAMI_DAMAGE_BOSS });
     } else if (isMidBoss(e)) {

@@ -28,7 +28,8 @@ export const drawDale = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number)
   }
   const f = facingOf(e);
   const gore = goreOf(e);
-  const mood = moodOf(e, frame, { speed_dash: 'manic', using_shipment: windingUp ? 'shock' : 'blissed', running: 'fierce' });
+  const sick = daleSick(e, frame);
+  const mood = sick ? (frame % 50 < 34 ? 'dazed' : 'hurt') : moodOf(e, frame, { speed_dash: 'manic', using_shipment: windingUp ? 'shock' : 'blissed', running: 'fierce' });
   const b = breath(frame);
   ctx.save();
   ctx.scale(e.width / 80, e.height / 80);
@@ -126,8 +127,13 @@ export const drawDale = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number)
 };
 
 /** Speed: a strobing high over the whole of him while he dashes, and coming on as the needle goes in. */
+/** He's stood in the asset's barf (it's eating at him): sick as a dog. */
+const daleSick = (e: Enemy, frame: number) => e.health > 0 && frame - (e.sludgeDotFrame ?? -99) <= 3;
+
 export const daleFx = (e: Enemy, frame: number) => {
   if (e.bossState === 'speed_dash') return { filter: `hue-rotate(${frame * 10}deg) saturate(3)` };
+  // (green about the gills)
+  if (daleSick(e, frame)) return { filter: 'sepia(0.35) hue-rotate(55deg) saturate(1.3) brightness(0.95)' };
   if (e.bossState === 'using_shipment' && e.shipmentType === 'speed') {
     const t = 1 - (e.stateTimer || 0) / DALE_SPEED_WINDUP;
     if (t > 0.55) return { filter: `hue-rotate(${Math.floor(frame * 12 * t)}deg) saturate(${1 + t * 2})` };
@@ -136,6 +142,7 @@ export const daleFx = (e: Enemy, frame: number) => {
 };
 
 export const drawDaleDrugs = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
+  if (daleSick(e, frame)) drawDaleSick(ctx, e, frame);
   if (e.bossState === 'using_shipment' && e.shipmentType === 'speed' && e.stateTimer! > 0) {
     drawSpeedWindup(ctx, e, frame);
     return;
@@ -307,4 +314,30 @@ const drawSpeedWindup = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number)
     ctx.fillText('!!', cx, top - 58);
     ctx.restore();
   }
+};
+
+/** Sick, stood in the barf: green fumes coming up round his legs, sweat flying off him, flies at him, and every so
+ * often he retches (a gout of it out of his mouth, down his front). World space. */
+const drawDaleSick = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
+  const sx = e.width / 80, sy = e.height / 80;
+  const hx = e.pos.x + 40 * sx, hy = e.pos.y + 19 * sy, feet = e.pos.y + e.height;
+  ctx.save();
+  for (let k = 0; k < 6; k++) {
+    const t = ((frame * 0.9 + k * 13) % 60) / 60;
+    ctx.fillStyle = `rgba(132, 204, 22, ${(0.45 * (1 - t)).toFixed(2)})`;
+    ctx.beginPath(); ctx.arc(e.pos.x + e.width * (0.15 + k * 0.14) + Math.sin(t * 6 + k) * 4, feet - t * e.height * 0.8, 4 + t * 8, 0, Math.PI * 2); ctx.fill();
+  }
+  for (let k = 0; k < 3; k++) {
+    const t = ((frame * 1.2 + k * 20) % 40) / 40, side = k % 2 ? 1 : -1;
+    ctx.fillStyle = 'rgba(186, 230, 253, 0.9)';
+    ctx.beginPath(); ctx.ellipse(hx + side * (8 + t * 14), hy - 6 + t * t * 20, 1.4, 2.2, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.fillStyle = '#111111';
+  for (let k = 0; k < 5; k++) { const a = frame * (0.2 + k * 0.03) + k * 1.3; ctx.fillRect(hx + Math.cos(a) * (18 + k * 3), hy + Math.sin(a * 1.4) * 10 - 4, 2, 2); }
+  const r = frame % 90;
+  if (r < 16) {
+    ctx.fillStyle = 'rgba(101, 163, 13, 0.85)';
+    for (let k = 0; k < 6; k++) { const t = (r + k * 2) / 18; ctx.beginPath(); ctx.arc(hx + 6 * sx + t * 10 * (e.facing ?? 1), hy + 6 * sy + t * t * 40, 3 - k * 0.3, 0, Math.PI * 2); ctx.fill(); }
+  }
+  ctx.restore();
 };

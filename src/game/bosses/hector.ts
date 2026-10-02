@@ -9,7 +9,7 @@ import {
 } from '../../constants';
 import type { FrameContext } from '../core/context';
 import type { BossHelpers } from './shared';
-import { BossDef, ARENA_MID, BOSS_WALL_GAP, midX, hurtPlayer, enemyProjectile } from './shared';
+import { BossDef, ARENA_MID, BOSS_WALL_GAP, midX, hurtPlayer, enemyProjectile, bossPain } from './shared';
 
 const HURRICANE_FRAMES = 300;
 const REST_FRAMES = 40;
@@ -37,7 +37,12 @@ const POOP_HEIGHTS = [510, 498, 440];
 const update = (ctx: FrameContext, boss: Enemy) => {
   // (the room catching up with how filthy it's got: it spreads, it drips, it doesn't happen all at once)
   const st = ctx.state; st.hectorFilthShown += (st.hectorFilth - st.hectorFilthShown) * 0.012;
-  if (boss.bossState === 'hurricane') updateHurricane(ctx, boss);
+  if (boss.bossState === 'pain') {
+    // Flattened (his storm gone out of him), seeing stars; then up and off to the far side
+    boss.vel.x = 0;
+    if (boss.stateTimer! <= 0) { boss.painKind = undefined; boss.bossState = 'idle'; leapToOtherSide(boss, ctx.bossHelpers); }
+  }
+  else if (boss.bossState === 'hurricane') updateHurricane(ctx, boss);
   else if (boss.bossState === 'jumping') {
     if (boss.isGroundedBoss) { boss.bossState = 'hurricane'; boss.stateTimer = HURRICANE_FRAMES; boss.vel.x = 0; }
   } else if (boss.stateTimer! <= 0) {
@@ -168,5 +173,13 @@ export const hector: BossDef = {
   physics: { landingEndsJump: false },
   // A melee hit ends the hurricane early; hurting Meathead makes him leap away
   onMeleeHit: (_ctx, boss) => { if (boss.bossState === 'hurricane') boss.stateTimer = 0; },
-  onTouchPlayer: (ctx, boss) => leapToOtherSide(boss, ctx.bossHelpers),
+  onTouchPlayer: (ctx, boss) => { if (boss.bossState !== 'pain') leapToOtherSide(boss, ctx.bossHelpers); },
+  // A boulder his own storm pulled into his face: flattened, the storm knocked out of him
+  onWeaknessHit: (ctx, boss) => {
+    boss.vortexGrip = 0;
+    ctx.bossHelpers.clearPoopTelegraphs();
+    boss.vel.y = Math.max(boss.vel.y, 0);
+    bossPain(ctx, boss, 'flattened', 64, 'FLATTENED!', '#D6D3D1');
+    ctx.bossHelpers.playGunSound('crash');
+  },
 };

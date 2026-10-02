@@ -21,10 +21,14 @@ export const drawVictor = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
   const gore = goreOf(e);
   const tele = e.bossState === 'attacking' || e.bossState === 'telegraphing';
   const lOff = tele ? Math.sin(frame * 0.5) * 3 : 0;
-  const mood = moodOf(e, frame, { barfing: 'roar', attacking: 'fierce', telegraphing: 'fierce', jumping: 'fierce' });
+  const pain = e.bossState === 'pain' && e.health > 0 ? e.painKind : undefined;
+  const mood = pain === 'doused' ? (frame % 20 < 10 ? 'dazed' : 'hurt') : pain === 'scalded' ? 'hurt' : moodOf(e, frame, { barfing: 'roar', attacking: 'fierce', telegraphing: 'fierce', jumping: 'fierce' });
   const b = breath(frame) + lOff * 0.5;
   ctx.save();
   ctx.scale(e.width / 80, e.height / 80);
+  // (scalded: hopping from foot to foot, shaking; doused: doubled over, sagging, coughing)
+  if (pain === 'scalded') ctx.translate(Math.sin(frame * 1.3) * 1.5, -Math.abs(Math.sin(frame * 0.45)) * 7);
+  if (pain === 'doused') { ctx.translate(40, 80); ctx.rotate(0.12 * f + Math.sin(frame * 0.5) * 0.03); ctx.scale(1, 0.94); ctx.translate(-40, -80 + 2); }
 
   // Sandals and bare feet
   for (const x of [29, 51]) {
@@ -100,7 +104,7 @@ export const drawVictor = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
 
   // Shoulders like boulders, and arms to match; foil round his wrists
   const sway = Math.sin(frame * 0.06) * 1.2;
-  const armUp = e.bossState === 'jumping' || tele;
+  const armUp = e.bossState === 'jumping' || tele || pain === 'scalded';
   for (const side of [-1, 1]) {
     const sx = 40 + side * 21, sy = 37;
     ctx.fillStyle = SKIN; ctx.beginPath(); ctx.arc(sx, sy, 7.5, 0, Math.PI * 2); ctx.fill();
@@ -146,6 +150,27 @@ export const drawVictor = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
   });
   ctx.restore();
 
+  // Doused: his fire put out in his mouth: smoke and steam choking out of it, water running off him
+  if (pain === 'doused') {
+    for (let k = 0; k < 4; k++) {
+      const t = ((frame * 1.4 + k * 12) % 48) / 48;
+      ctx.fillStyle = k % 2 ? `rgba(55, 65, 81, ${0.6 * (1 - t)})` : `rgba(226, 232, 240, ${0.7 * (1 - t)})`;
+      ctx.beginPath(); ctx.arc(40 + f * (8 + t * 10) + Math.sin(t * 8 + k) * 2, 26 - t * 26, 2 + t * 6, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.8)';
+    for (let k = 0; k < 6; k++) { const t = ((frame * 1.8 + k * 9) % 40) / 40; ctx.fillRect(22 + k * 7, 30 + t * 50, 1.4, 3); }
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.35)'; ctx.fillRect(18, 14, 44, 2);
+  }
+  // Scalded: boiled red in blotches, steam pouring off all of him
+  if (pain === 'scalded') {
+    ctx.fillStyle = 'rgba(220, 38, 38, 0.45)';
+    for (const [x, y, r] of [[30, 40, 6], [50, 44, 7], [40, 22, 7], [24, 52, 4], [56, 36, 5]] as const) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
+    for (let k = 0; k < 8; k++) {
+      const t = ((frame * 1.6 + k * 7) % 40) / 40;
+      ctx.fillStyle = `rgba(248, 250, 252, ${0.7 * (1 - t)})`;
+      ctx.beginPath(); ctx.arc(14 + k * 7 + Math.sin(t * 6 + k) * 3, 60 - t * 60, 2.5 + t * 6, 0, Math.PI * 2); ctx.fill();
+    }
+  }
   // Steam coming off his shoulders
   for (const side of [-1, 1]) {
     const t = ((frame + (side > 0 ? 25 : 0)) % 50) / 50;

@@ -190,7 +190,7 @@ export interface Player extends Entity {
 }
 
 export type BossState =
-  | 'idle' | 'barfing' | 'jumping' | 'attacking' | 'perched' | 'panicking' | 'hurricane' | 'telegraphing' | 'stunned_drop'
+  | 'idle' | 'barfing' | 'jumping' | 'attacking' | 'perched' | 'panicking' | 'pain' | 'hurricane' | 'telegraphing' | 'stunned_drop'
   | 'truck_incoming' | 'using_shipment' | 'speed_dash' | 'shooting' | 'teleporting'
   | 'blackout' | 'blackout_teleport' | 'ground_pound' | 'lightning_storm' | 'exhausted'
   | 'submerged_chase' | 'telegraph_emerge' | 'emerge_shatter' | 'puke_closing_in'
@@ -344,6 +344,11 @@ export interface Enemy extends Entity {
   innocent?: boolean;
   /** A mid-boss already took a hit from this tsunami wave (it's washed over once, not every frame). */
   tsunamiWave?: number;
+  /** A boss in the middle of a weakness's pain (bossState 'pain'): which (Victor 'doused' or 'scalded', Hector
+   * 'flattened'). How much this tsunami's already taken off him, and the wave his fire was put out by. */
+  painKind?: string;
+  tsunamiPaid?: number;
+  dousedWave?: number;
   /** Which look a themed enemy has (a beachgoer's outfit and pastime, a gator in the water or on land). */
   variant?: number;
   /** Died of an overdose: its body flies off, veering toward anything airborne and wrecking what it hits. */

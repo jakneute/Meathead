@@ -340,6 +340,8 @@ const soakInSludge = (ctx: FrameContext, boss: Enemy) => {
   const { state, fx } = ctx;
   if (boss.sludgeDotFrame === state.frame) return;
   boss.sludgeDotFrame = state.frame;
+  // (green, sweating, gagging: it's getting to him; now and then he retches)
+  if (state.frame % 50 === 0) ctx.fx.playGunSound('splat', 0.4, -6);
   if (state.frame % 5 === 0) {
     state.particles.push({ pos: { x: boss.pos.x + Math.random() * boss.width, y: FLOOR_Y - 8 }, vel: { x: 0, y: -1 - Math.random() * 2 }, life: 20, color: '#7CFC00', size: 3 + Math.random() * 4 });
   }

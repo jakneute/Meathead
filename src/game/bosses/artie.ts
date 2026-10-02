@@ -146,6 +146,7 @@ const startPanic = (ctx: FrameContext, boss: Enemy) => {
   boss.vel.y = -9; boss.vel.x = Math.sign(boss.slideTargetX - boss.pos.x) * 5;
   shakeIciclesLoose(ctx, boss, true);
   playSound('ignite', 0.8);
+  ctx.state.damageNumbers.push({ id: `pain-${ctx.state.frame}`, text: 'MELTING!', pos: { x: midX(boss), y: boss.pos.y - 40 }, vel: { x: 0, y: -3 }, life: 70, maxLife: 70, isCritical: true, isCallout: true, color: '#FB923C' });
 };
 
 const panic = (ctx: FrameContext, boss: Enemy) => {

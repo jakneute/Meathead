@@ -19,11 +19,17 @@ export const drawHector = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
   const f = facingOf(e);
   const gore = goreOf(e);
   const storm = e.bossState === 'hurricane';
-  const mood = moodOf(e, frame, { hurricane: 'manic', jumping: 'fierce' });
+  const flat = e.bossState === 'pain' && e.painKind === 'flattened' && e.health > 0;
+  const mood = flat ? 'dazed' : moodOf(e, frame, { hurricane: 'manic', jumping: 'fierce' });
   const b = breath(frame);
   const gust = storm ? Math.sin(frame * 0.6) : Math.sin(frame * 0.08) * 0.3;
   ctx.save();
   ctx.scale(e.width / 80, e.height / 80);
+  // (flattened: squashed down flat at first, then springing back up, wobbling, to his full height)
+  const since = flat ? 64 - (e.stateTimer ?? 0) : 0;
+  const squash = !flat ? 0 : since < 14 ? 1 : Math.max(0, 1 - (since - 14) / 22);
+  const wob = flat && since >= 14 ? Math.sin(since * 0.7) * 0.08 * (1 - squash) : 0;
+  if (flat) { ctx.translate(40, 80); ctx.scale(1 + 0.45 * squash - wob, 1 - 0.55 * squash + wob); ctx.translate(-40, -80); }
 
   // Loafers and pressed navy slacks
   shoe(ctx, 30, 80, 14, 5, f, '#18181B', '#000000');
@@ -104,6 +110,14 @@ export const drawHector = (ctx: CanvasRenderingContext2D, e: Enemy, frame: numbe
   });
   ctx.restore();
 
+  // Seeing stars, going round his head (once he's popped back up out of it)
+  if (flat && since > 8) {
+    for (let n = 0; n < 4; n++) {
+      const a = frame * 0.2 + (n * Math.PI) / 2, sx = 40 + Math.cos(a) * 16, sy = 6 + Math.sin(a) * 4;
+      ctx.fillStyle = n % 2 ? '#FDE047' : '#FFFFFF';
+      ctx.beginPath(); for (let q = 0; q < 10; q++) { const r = q % 2 ? 1.2 : 3, aa = (q / 10) * Math.PI * 2; ctx.lineTo(sx + Math.cos(aa) * r, sy + Math.sin(aa) * r); } ctx.closePath(); ctx.fill();
+    }
+  }
   ctx.restore();
 };
 

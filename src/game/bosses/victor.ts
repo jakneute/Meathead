@@ -8,7 +8,9 @@ import { ARENA_LEFT, ARENA_RIGHT, BOSS_DOOR_X, STAGE_WIDTH, PLAYER_PUSHBACK_VEL_
 import { VICTOR_LINES } from '../../content/dialogue';
 import type { FrameContext } from '../core/context';
 import { pickRandom, rectsOverlap, boundsOf } from '../core/utils';
-import { BossDef, FLOOR_Y, midX, hurtPlayer, speakAsBoss } from './shared';
+import { BossDef, FLOOR_Y, midX, hurtPlayer, speakAsBoss, bossPain } from './shared';
+import { hitBoss } from './registry';
+import { TSUNAMI_DAMAGE_BOSS, TSUNAMI_DAMAGE_WEAKNESS } from '../../constants';
 import { startVolcanoFinale } from '../scenes/volcanoFinale';
 
 const VICTOR = 'Victor Volcano';
@@ -62,6 +64,11 @@ const update = (ctx: FrameContext, boss: Enemy) => {
   const { state } = ctx;
   const helpers = ctx.bossHelpers;
   switch (boss.bossState) {
+    case 'pain':
+      // (doubled over, put out; or hopping, scalded: then back to it)
+      boss.vel.x = 0;
+      if (boss.stateTimer! <= 0) { boss.bossState = 'idle'; boss.painKind = undefined; boss.stateTimer = REST_FRAMES; }
+      break;
     case 'attacking':
       // Vents erupting; rest once they've all gone quiet
       boss.vel.x = 0;
@@ -121,6 +128,8 @@ const barf = (ctx: FrameContext, boss: Enemy) => {
     if (doused) for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: m.x, y: m.y }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 40, color: '#E5E7EB', size: 6 + Math.random() * 6 });
     boss.bossState = 'idle'; boss.stateTimer = REST_FRAMES; boss.barfT = undefined; boss.barfLen = 0;
     boss.barfReadyAt = state.frame + BARF_COOLDOWN;
+    // (put out mid-breath: the wave counts in full, and he chokes on it)
+    if (doused) { boss.dousedWave = state.tsunamiSerial; topUpTsunami(ctx, boss); bossPain(ctx, boss, 'doused', 55, 'DOUSED!', '#38BDF8'); fx.playGunSound('ignite', 0.6, -10); }
     return;
   }
   if (t < BARF_WINDUP) {
@@ -287,6 +296,43 @@ export const updateCorkedVent = (ctx: FrameContext, v: Volcano): boolean => {
     hurtPlayer(ctx, CORK_BLAST_DAMAGE, 'cork_blast', { x: (dx < 0 ? -1 : 1) * PLAYER_PUSHBACK_VEL_X, y: PLAYER_PUSHBACK_VEL_Y });
   }
   return false;
+};
+
+/**
+ * The tsunami on Victor. It only really hurts him (in full) when it does what water does to a volcano: puts his fire out
+ * mid-breath, or blows one of his open vents into steam. Otherwise (fired too soon, with nothing of his to put out) it
+ * just rinses him, for a fraction of that. Once a wave: what it's owed is topped up if it earns more on its way through.
+ */
+const tsunamiFull = (state: FrameContext['state'], boss: Enemy) =>
+  state.tsunamiVentWave === state.tsunamiSerial || boss.dousedWave === state.tsunamiSerial || boss.bossState === 'barfing';
+const topUpTsunami = (ctx: FrameContext, boss: Enemy) => {
+  const { state } = ctx;
+  if (boss.tsunamiWave !== state.tsunamiSerial || boss.health <= 0) return;
+  const owed = (tsunamiFull(state, boss) ? TSUNAMI_DAMAGE_WEAKNESS : TSUNAMI_DAMAGE_BOSS) - (boss.tsunamiPaid ?? 0);
+  if (owed <= 0) return;
+  boss.tsunamiPaid = (boss.tsunamiPaid ?? 0) + owed;
+  hitBoss(ctx, boss, 'TSUNAMI', { facing: state.tsunamiDir, damage: owed });
+};
+/** The wave reaches him. */
+export const victorTsunamiHit = (ctx: FrameContext, boss: Enemy) => {
+  const { state } = ctx;
+  if (boss.tsunamiWave === state.tsunamiSerial) return;
+  boss.tsunamiWave = state.tsunamiSerial; boss.tsunamiPaid = 0;
+  topUpTsunami(ctx, boss);
+};
+/** The wave's blown one of his vents into steam (at `at`): the wave counts in full against him now, and if he's in the
+ * steam, he's scalded. */
+export const victorVentBlown = (ctx: FrameContext, at: { x: number; y: number }) => {
+  const { state } = ctx;
+  state.tsunamiVentWave = state.tsunamiSerial;
+  const boss = state.enemies.find(e => e.type === 'boss' && e.health > 0);
+  if (!boss) return;
+  topUpTsunami(ctx, boss);
+  if (boss.health > 0 && Math.hypot(midX(boss) - at.x, boss.pos.y + boss.height / 2 - at.y) < 150 && boss.bossState !== 'pain') {
+    // (whatever he was in the middle of, fire and all, he's out of it)
+    boss.barfT = undefined; boss.barfLen = 0;
+    bossPain(ctx, boss, 'scalded', 60, 'STEAMED!', '#F8FAFC');
+  }
 };
 
 export const victor: BossDef = {
