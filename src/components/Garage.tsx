@@ -268,12 +268,15 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[]; report?: Ga
       <div className="absolute left-[130px] right-[10px] bottom-[8px] min-h-[46px] px-3 py-2 border-2 border-yellow-500 bg-black shadow-[3px_3px_0_#000] pointer-events-none">
         {s ? (
           <>
-            <div className="flex items-baseline justify-between gap-2">
+            {/* (kept short: one line for the name, where it's from and the prompt, then the tag, so it stays below the floor) */}
+            <div className="flex items-center justify-between gap-2">
               <span className="text-[10px] text-yellow-300">{s.name}</span>
-              <span className="text-[6px] text-cyan-300/90 shrink-0">FROM: {s.boss.toUpperCase()}</span>
+              <span className="flex items-center gap-3 shrink-0">
+                <span className="text-[6px] text-cyan-300/90">FROM: {s.boss.toUpperCase()}</span>
+                <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label="LOOK CLOSER" size={12} className="text-[6px] text-zinc-400" />
+              </span>
             </div>
             <div className="mt-1 text-[7px] leading-[11px] text-white/90">"{s.note}"</div>
-            <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label="LOOK CLOSER" size={12} className="mt-1 text-[6px] text-zinc-400" />
           </>
         ) : sel === RANGE ? (
           <>

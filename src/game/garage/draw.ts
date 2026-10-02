@@ -10,7 +10,8 @@ export const GARAGE_W = 800, GARAGE_H = 600;
 /** Where each souvenir goes: its anchor (a hung thing's middle; a standing thing's bottom middle), and the box it's clicked in. */
 export interface Slot { x: number; y: number; box: { x: number; y: number; w: number; h: number } }
 const COLS = [217, 311, 405, 499, 593];
-const WALL_ROWS = [104, 188], SHELF_Y = [310, 396], FLOOR_Y = 528, FLOOR_X = [236, 366, 496, 616];
+// (the floor row sits clear of the tag box along the bottom of the screen, so nothing down there is hidden under it)
+const WALL_ROWS = [104, 188], SHELF_Y = [310, 396], FLOOR_Y = 500, FLOOR_X = [236, 366, 496, 616];
 const WALL_ORDER = ['antler', 'neon', 'seismo', 'daycare', 'hazmat', 'breaker', 'clock', 'chain', 'goldgun', 'badge'];
 const SHELF_ORDER = ['moonboots', 'snowglobe', 'lavalamp', 'mug', 'bell', 'clicker', 'flintjar', 'horn', 'hardhat', 'toaster'];
 const FLOOR_ORDER = ['viprope', 'flamingo', 'derrick', 'lizard'];
