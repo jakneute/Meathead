@@ -11,6 +11,7 @@ import { COURSE, Prop } from './course';
 import type { Field } from './field';
 import { burnLevel, jetOn, jetWarning } from './field';
 import { bandedGradient, checker } from '../../render/pixelArt';
+import { drawFire } from '../../render/fx/fire';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -104,13 +105,11 @@ export const drawOilFire = (ctx: Ctx, state: GameState, f: Field) => {
   for (const o of f.oil) {
     const k = burnLevel(o);
     if (k <= 0 || !inView(state, o.x1, o.x2)) continue;
-    for (let x = o.x1 + 6; x < o.x2 - 4; x += 12) {
-      const y = groundLineAt(state.groundRuns, x);
-      const h = (18 + Math.sin(state.frame * 0.4 + x * 0.3) * 8 + hash(x) * 14) * k;
-      ctx.fillStyle = 'rgba(220, 38, 38, 0.8)';
-      ctx.beginPath(); ctx.moveTo(x - 8, y); ctx.quadraticCurveTo(x - 4, y - h * 0.6, x, y - h); ctx.quadraticCurveTo(x + 4, y - h * 0.6, x + 8, y); ctx.fill();
-      ctx.fillStyle = 'rgba(253, 186, 116, 0.9)';
-      ctx.beginPath(); ctx.moveTo(x - 4, y); ctx.quadraticCurveTo(x - 2, y - h * 0.4, x, y - h * 0.65); ctx.quadraticCurveTo(x + 2, y - h * 0.4, x + 4, y); ctx.fill();
+    // (a few fires along it, each stood on the ground where it is)
+    const n = Math.max(1, Math.round((o.x2 - o.x1) / 48)), seg = (o.x2 - o.x1) / n;
+    for (let i = 0; i < n; i++) {
+      const x = o.x1 + seg * (i + 0.5);
+      drawFire(ctx, x, groundLineAt(state.groundRuns, x) + 2, seg + 12, 44 + hash(x) * 18, state.frame, { seed: Math.floor(x), k, smoke: 0.45 });
     }
   }
 };
@@ -175,9 +174,7 @@ export const drawProp = (ctx: Ctx, p: Prop, f: number) => {
       // A flare stack: a tall pipe, a flame on the top of it that never goes out
       ctx.fillStyle = '#57534E'; ctx.fillRect(-5, -220, 10, 220);
       ctx.strokeStyle = '#78716C'; ctx.lineWidth = 1.5; for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(0, -170); ctx.lineTo(s * 40, 0); ctx.stroke(); }
-      const h = 34 + Math.sin(f * 0.35) * 8 + Math.sin(f * 0.9) * 4;
-      ctx.fillStyle = 'rgba(249, 115, 22, 0.9)'; ctx.beginPath(); ctx.moveTo(-9, -220); ctx.quadraticCurveTo(-8 + Math.sin(f * 0.2) * 4, -220 - h * 0.6, Math.sin(f * 0.25) * 6, -220 - h); ctx.quadraticCurveTo(8, -220 - h * 0.5, 9, -220); ctx.fill();
-      ctx.fillStyle = 'rgba(253, 224, 71, 0.9)'; ctx.beginPath(); ctx.moveTo(-4, -220); ctx.quadraticCurveTo(-3, -220 - h * 0.4, 0, -220 - h * 0.6); ctx.quadraticCurveTo(3, -220 - h * 0.35, 4, -220); ctx.fill();
+      drawFire(ctx, 0, -218, 20, 56, f, { seed: 31, glow: 0.8 });
       break;
     }
     case 'sign':
@@ -257,6 +254,27 @@ export const drawJetPipes = (ctx: Ctx, state: GameState) => {
   }
 };
 
+/** A roaring jet along +x from (0, 0): chunky bands, a white-hot core and a blue throat, red at its ragged edges. */
+export const gasJet = (ctx: Ctx, len: number, f: number, seed = 0, hw = 18) => {
+  const layers = [['#B91C1C', 1, 1], ['#EA580C', 0.86, 0.8], ['#F59E0B', 0.7, 0.6], ['#FDE047', 0.52, 0.42], ['#FEF9C3', 0.32, 0.26], ['#93C5FD', 0.1, 0.22]] as const;
+  layers.forEach(([col, lk, wk], li) => {
+    const l = len * lk * (0.92 + 0.08 * Math.sin(f * (0.7 + li * 0.23) + seed));
+    ctx.fillStyle = col;
+    for (let x = 0; x < l; x += 2) {
+      const u = x / l;
+      const shape = u < 0.4 ? 0.3 + 0.7 * (u / 0.4) : 1 - Math.pow((u - 0.4) / 0.6, 1.5);
+      const w = Math.max(1, Math.round((hw * wk * shape + Math.sin(f * 0.9 + x * 0.3 + li * 2 + seed) * 1.5 * wk) / 2) * 2);
+      ctx.fillRect(x, -w + (li < 2 ? Math.round(Math.sin(f * 0.6 + x * 0.08) * 2) : 0), 2, w * 2);
+    }
+  });
+  // (licks tearing off the end of it)
+  for (let i = 0; i < 4; i++) {
+    const t = ((f * 2 + hash(seed + i) * 40) % 20) / 20;
+    ctx.fillStyle = t < 0.5 ? '#EA580C' : '#B91C1C';
+    ctx.fillRect(Math.round((len * (0.9 + t * 0.3)) / 2) * 2, Math.round(((hash(seed + i * 3) - 0.5) * hw) / 2) * 2, 4 - Math.round(t * 2), 4 - Math.round(t * 2));
+  }
+};
+
 /** The fire out of them (in front): a roaring tongue while they're on, sparks and a shimmer as they're about to go. */
 export const drawJetFire = (ctx: Ctx, state: GameState, fld: Field) => {
   const f = state.frame;
@@ -267,11 +285,7 @@ export const drawJetFire = (ctx: Ctx, state: GameState, fld: Field) => {
     ctx.save(); ctx.translate(j.x, j.y - (j.dir === 'up' ? 10 : 11));
     if (j.dir === 'up') ctx.rotate(-Math.PI / 2); else if (j.dir === 'left') ctx.scale(-1, 1);
     if (on) {
-      const len = j.len * (0.85 + Math.sin(f * 0.8) * 0.08);
-      const g = ctx.createLinearGradient(0, 0, len, 0);
-      g.addColorStop(0, 'rgba(255, 255, 255, 0.95)'); g.addColorStop(0.15, 'rgba(147, 197, 253, 0.9)'); g.addColorStop(0.35, 'rgba(253, 224, 71, 0.95)'); g.addColorStop(0.75, 'rgba(234, 88, 12, 0.85)'); g.addColorStop(1, 'rgba(220, 38, 38, 0)');
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.moveTo(0, -6); ctx.quadraticCurveTo(len * 0.5, -20 - Math.sin(f * 0.7) * 5, len, 0); ctx.quadraticCurveTo(len * 0.5, 20 + Math.sin(f * 0.9) * 5, 0, 6); ctx.closePath(); ctx.fill();
+      gasJet(ctx, j.len * (0.85 + Math.sin(f * 0.8) * 0.08), f, Math.floor(j.x));
     } else {
       // About to go: sparks spitting, a heat shimmer, a little blue flame at the break
       ctx.fillStyle = 'rgba(147, 197, 253, 0.8)'; ctx.beginPath(); ctx.ellipse(6, 0, 8 + Math.sin(f) * 2, 4, 0, 0, Math.PI * 2); ctx.fill();

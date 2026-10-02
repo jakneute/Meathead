@@ -4,6 +4,7 @@ import { GameState } from '../../core/state';
 import { getOscarLauncher, getOscarMouth, flameStrength } from '../../bosses/oscar';
 import { muzzlePoint } from '../../combat/muzzle';
 import { Head, inHead } from './kit';
+import { drawFire } from '../fx/fire';
 
 /** Oily Oscar's gear, laser sight, rockets, cigarette, oil slicks and fire. */
 
@@ -84,43 +85,15 @@ export const drawOscarFire = (ctx: CanvasRenderingContext2D, state: GameState) =
       case 'right': ctx.translate(c.x + c.w, c.y + c.h); ctx.rotate(-Math.PI / 2); break;
     }
     const len = c.surface === 'floor' || c.surface === 'ceiling' ? c.w : c.h;
-    drawFlameTongues(ctx, len, s, c.index, state.frame);
+    drawFlameTongues(ctx, len, s, c.index, state.frame, c.surface === 'floor');
     ctx.restore();
   }
   ctx.restore();
 };
 
-const drawFlameTongues = (ctx: CanvasRenderingContext2D, len: number, s: number, seed: number, frame: number) => {
-  // Soft glow
-  ctx.globalAlpha = 0.18 * s;
-  ctx.fillStyle = '#FF6D00';
-  ctx.fillRect(-2, -48 * s, len + 4, 48 * s);
-  ctx.globalAlpha = 1;
-
-  const tongues = Math.max(2, Math.round(len / 8));
-  for (let k = 0; k < tongues; k++) {
-    const x = (k + 0.5) * (len / tongues);
-    const flicker = Math.sin(frame * 0.45 + seed * 1.7 + k * 2.3);
-    const h = s * (24 + 12 * flicker + ((seed + k) % 3) * 4);
-    const sway = Math.sin(frame * 0.3 + seed + k) * 3;
-    const w = 6;
-    ctx.fillStyle = '#E64A19';
-    ctx.beginPath();
-    ctx.moveTo(x - w, 0);
-    ctx.quadraticCurveTo(x - w, -h * 0.5, x + sway, -h);
-    ctx.quadraticCurveTo(x + w, -h * 0.5, x + w, 0);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = '#FFB300';
-    ctx.beginPath();
-    ctx.moveTo(x - w * 0.55, 0);
-    ctx.quadraticCurveTo(x - w * 0.5, -h * 0.35, x + sway * 0.6, -h * 0.65);
-    ctx.quadraticCurveTo(x + w * 0.5, -h * 0.35, x + w * 0.55, 0);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = '#FFF59D';
-    ctx.fillRect(x - 2, -h * 0.25, 4, h * 0.25);
-  }
+const drawFlameTongues = (ctx: CanvasRenderingContext2D, len: number, s: number, seed: number, frame: number, smoky: boolean) => {
+  // One fire the length of the strip, standing on it (smoke only off the floor: it'd roll the wrong way off a wall)
+  drawFire(ctx, len / 2, 0, len + 6, 60, frame, { seed: seed * 13, k: s, smoke: smoky ? 0.35 : 0, glow: 0.8 });
 };
 
 // ---------------------------------------------------------------------------
@@ -430,14 +403,17 @@ export const drawOscarRocket = (ctx: CanvasRenderingContext2D, p: Projectile, fr
   ctx.save();
   ctx.translate(p.pos.x + p.width / 2, p.pos.y + p.height / 2);
   ctx.rotate(Math.atan2(p.vel.y, p.vel.x));
-  // Exhaust flame
-  ctx.fillStyle = frame % 2 === 0 ? '#FFEB3B' : '#FF6D00';
-  ctx.beginPath();
-  ctx.moveTo(-12, -4);
-  ctx.lineTo(-24 - Math.random() * 8, 0);
-  ctx.lineTo(-12, 4);
-  ctx.closePath();
-  ctx.fill();
+  // Exhaust: chunky bands, red outside to a white-hot throat, each shivering on its own
+  const exhaust = [['#B91C1C', 18, 5], ['#EA580C', 14, 4], ['#F59E0B', 10, 3], ['#FDE047', 6, 2], ['#FEF9C3', 3, 1]] as const;
+  exhaust.forEach(([col, len, hw], i) => {
+    const l = Math.round((len + Math.sin(frame * (0.9 + i * 0.37) + i) * 3 + (Math.random() < 0.3 ? 3 : 0)) / 2) * 2;
+    ctx.fillStyle = col;
+    for (let x = 0; x < l; x += 2) ctx.fillRect(-12 - x - 2, -Math.round(hw * (1 - x / l) + 0.5), 2, Math.round(hw * (1 - x / l) + 0.5) * 2);
+  });
+  // (a puff of smoke left behind, and a spark)
+  ctx.fillStyle = 'rgba(68, 64, 60, 0.45)';
+  ctx.fillRect(-36 - (frame % 6) * 2, -3 + (frame % 3), 6, 6);
+  if (frame % 3 === 0) { ctx.fillStyle = '#FDE047'; ctx.fillRect(-30 - (frame % 4) * 2, frame % 2 ? 4 : -6, 2, 2); }
   // Body, warhead, fins
   ctx.fillStyle = '#4E5B31';
   ctx.fillRect(-12, -4, 20, 8);

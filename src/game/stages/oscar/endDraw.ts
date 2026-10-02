@@ -5,6 +5,8 @@
 
 import type { GameState } from '../../core/state';
 import { GROUND_Y } from '../../../constants';
+import { drawFire } from '../../render/fx/fire';
+import { pixelBlob } from '../../render/pixelArt';
 import { drawPlayer } from '../../render/player/player';
 import { drawChopperBike, drawLmgProp } from '../../render/enemies/oscar';
 import { COURSE } from './course';
@@ -72,12 +74,8 @@ export const drawEndMid = (ctx: Ctx, state: GameState, en: Ending) => {
     ctx.save(); ctx.translate(W - 36, Y); ctx.rotate(-0.5);
     drawChopperBike(ctx, 0, 0, 0, 0, '#1C1917');
     ctx.restore();
-    for (let k = 0; k < 5; k++) {
-      const h = 26 + Math.sin(f * 0.35 + k) * 8, x = W - 70 + k * 12;
-      ctx.fillStyle = 'rgba(234, 88, 12, 0.85)'; ctx.beginPath(); ctx.moveTo(x - 8, Y); ctx.quadraticCurveTo(x, Y - h, x + 8, Y); ctx.fill();
-      ctx.fillStyle = 'rgba(253, 224, 71, 0.9)'; ctx.beginPath(); ctx.moveTo(x - 4, Y); ctx.quadraticCurveTo(x, Y - h * 0.6, x + 4, Y); ctx.fill();
-    }
-    for (let k = 0; k < 3; k++) { const q = ((f + k * 30) % 90) / 90; ctx.fillStyle = `rgba(41, 37, 36, ${0.5 * (1 - q)})`; ctx.beginPath(); ctx.arc(W - 40 + q * 20, Y - 40 - q * 140, 10 + q * 24, 0, Math.PI * 2); ctx.fill(); }
+    drawFire(ctx, W - 46, Y, 72, 34, f, { seed: 41, glow: 0.8 });
+    for (let k = 0; k < 3; k++) { const q = ((f + k * 30) % 90) / 90; pixelBlob(ctx, W - 40 + q * 20, Y - 40 - q * 140, 10 + q * 24, 8 + q * 19, `rgba(41, 37, 36, ${(0.5 * (1 - q)).toFixed(3)})`); }
   }
   if (en.gun.state !== 'held') drawLmgProp(ctx, en.gun.x, en.gun.y, en.gun.rot);
 };

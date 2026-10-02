@@ -12,6 +12,7 @@
 
 import type { GameState } from '../../core/state';
 import { GROUND_Y } from '../../../constants';
+import { drawFire } from '../../render/fx/fire';
 import { drawKindCorpse } from '../../render/enemies';
 import { drawChopperBike, drawLmgProp } from '../../render/enemies/oscar';
 import { COURSE } from './course';
@@ -39,11 +40,7 @@ export const drawBunkerBack = (ctx: Ctx, state: GameState, b: Bunker) => {
   ctx.fillStyle = intact ? '#6B4226' : '#1C1917'; ctx.fillRect(B.x1, Y - 30, B.x2 - B.x1, 30); // wainscot
   if (!intact) {
     // Scorch up the walls, fires still going here and there
-    for (let k = 0; k < 6; k++) {
-      const x = B.x1 + 60 + k * 110, h = 30 + Math.sin(state.frame * 0.3 + k) * 10;
-      ctx.fillStyle = 'rgba(249, 115, 22, 0.85)'; ctx.beginPath(); ctx.moveTo(x - 10, Y); ctx.quadraticCurveTo(x, Y - h, x + 10, Y); ctx.fill();
-      ctx.fillStyle = 'rgba(253, 224, 71, 0.9)'; ctx.beginPath(); ctx.moveTo(x - 5, Y); ctx.quadraticCurveTo(x, Y - h * 0.6, x + 5, Y); ctx.fill();
-    }
+    for (let k = 0; k < 6; k++) drawFire(ctx, B.x1 + 60 + k * 110, Y, 26, 34 + (k % 3) * 4, state.frame, { seed: k * 19, smoke: 0.3, glow: 0.7 });
   }
   // The board
   const bx = B.x1 + 400, by = top + 30;

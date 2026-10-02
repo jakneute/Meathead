@@ -4,6 +4,8 @@
 // these last out back of the field office too.
 
 import type { GameState } from '../../core/state';
+import { drawFire } from '../../render/fx/fire';
+import { steppedGlow, pixelBlob } from '../../render/pixelArt';
 import { CANVAS_WIDTH, GROUND_Y } from '../../../constants';
 import { drawChopperBike } from '../../render/enemies/oscar';
 import { COURSE } from './course';
@@ -82,11 +84,9 @@ export const drawYardCamp = (ctx: Ctx, state: GameState) => {
   for (let x = Yd.x1 + 400; x < Yd.x2; x += 900) {
     if (!inView(state, x - 80, x + 80)) continue;
     const by = Y - 70;
-    const g = ctx.createRadialGradient(x, by - 20, 4, x, by - 20, 90);
-    g.addColorStop(0, 'rgba(253, 186, 116, 0.35)'); g.addColorStop(1, 'rgba(249, 115, 22, 0)');
-    ctx.fillStyle = g; ctx.fillRect(x - 90, by - 110, 180, 180);
+    steppedGlow(ctx, x, by - 20, 90, '#F97316', 0.22, 0.04, 5);
     ctx.fillStyle = '#292524'; ctx.fillRect(x - 12, by - 24, 24, 26); ctx.fillStyle = '#57534E'; ctx.fillRect(x - 12, by - 16, 24, 2); ctx.fillRect(x - 12, by - 6, 24, 2);
-    for (let k = 0; k < 4; k++) { const fh = 14 + Math.sin(f * 0.4 + k * 2) * 6; ctx.fillStyle = k % 2 ? '#F97316' : '#FDE047'; ctx.beginPath(); ctx.moveTo(x - 10 + k * 6, by - 24); ctx.quadraticCurveTo(x - 8 + k * 6, by - 24 - fh, x - 4 + k * 6, by - 24); ctx.fill(); }
+    drawFire(ctx, x, by - 22, 26, 28, f, { seed: x, smoke: 0.3, glow: 0 });
     backBiker(ctx, x - 34, Y - 62, x, f); backBiker(ctx, x + 36, Y - 62, x + 1, f);
   }
   ctx.restore();
@@ -180,7 +180,7 @@ const drawWreckedMover = (ctx: Ctx, state: GameState, m: LiveMover, at: { x: num
   for (let k = 0; k < 3; k++) { const hx = at.x + 14 + k * (m.w - 30) / 2 + hash(k + m.x) * 8; ctx.fillStyle = '#050505'; ctx.fillRect(hx, top + 2, 9, 7); ctx.fillStyle = '#78350F'; ctx.fillRect(hx - 1, top + 1, 2, 9); }
   ctx.fillStyle = 'rgba(234, 88, 12, 0.6)'; ctx.fillRect(at.x + 6, top, m.w - 14, 1.2);
   // (a fire still going at one corner of it, smoke off it, and every so often sparks)
-  for (let k = 0; k < 4; k++) { const fh = 10 + Math.sin(f * 0.4 + k * 1.7) * 5; ctx.fillStyle = k % 2 ? '#F97316' : '#FDE047'; ctx.beginPath(); ctx.moveTo(at.x + m.w - 22 + k * 5, top); ctx.quadraticCurveTo(at.x + m.w - 20 + k * 5, top - fh, at.x + m.w - 16 + k * 5, top); ctx.fill(); }
+  drawFire(ctx, at.x + m.w - 14, top + 1, 24, 22, f, { seed: Math.floor(m.x), glow: 0.6 });
   if (f % 6 === 0) state.particles.push({ pos: { x: at.x + m.w - 12, y: top - 12 }, vel: { x: -0.3, y: -1.2 - Math.random() }, life: 45, color: 'rgba(28, 25, 23, 0.5)', size: 6 + Math.random() * 6 });
   if (f % 40 < 3) state.particles.push({ pos: { x: at.x + 8 + Math.random() * (m.w - 16), y: top + 12 }, vel: { x: (Math.random() - 0.5) * 3, y: 1 + Math.random() * 2 }, life: 16, color: '#FDE047', size: 2 });
 };
@@ -202,7 +202,7 @@ export const drawGeyserVents = (ctx: Ctx, state: GameState, fld: Field) => {
     if (warn) for (let k = 0; k < 3; k++) { const r = 2 + ((f * 0.3 + k * 5) % 6); ctx.strokeStyle = g.lit ? 'rgba(253, 224, 71, 0.8)' : 'rgba(41, 37, 36, 0.9)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(g.x - 12 + k * 12, g.y - 16, r, Math.PI, 0); ctx.stroke(); }
     if (g.lit && !geyserErupting(g, f)) {
       // Lit: fire licking off the top of it, waiting
-      for (let k = 0; k < 3; k++) { const fh = 12 + Math.sin(f * 0.5 + k * 2) * 5; ctx.fillStyle = k === 1 ? '#FDE047' : '#F97316'; ctx.beginPath(); ctx.moveTo(g.x - 9 + k * 6, g.y - 15); ctx.quadraticCurveTo(g.x - 7 + k * 6, g.y - 15 - fh, g.x - 3 + k * 6, g.y - 15); ctx.fill(); }
+      drawFire(ctx, g.x, g.y - 14, 22, 22, f, { seed: Math.floor(g.x), glow: 0.7 });
     }
   }
 };
@@ -229,14 +229,25 @@ const column = (ctx: Ctx, g: LiveGeyser, box: { x: number; y: number; w: number;
     ctx.lineTo(cx + w * 0.55, g.y); ctx.closePath();
   };
   if (g.lit) {
-    const gr = ctx.createLinearGradient(0, g.y, 0, top - 30);
-    gr.addColorStop(0, 'rgba(255, 255, 255, 0.95)'); gr.addColorStop(0.15, 'rgba(147, 197, 253, 0.85)'); gr.addColorStop(0.35, 'rgba(253, 224, 71, 0.95)'); gr.addColorStop(0.75, 'rgba(234, 88, 12, 0.9)'); gr.addColorStop(1, 'rgba(127, 29, 29, 0.2)');
-    ctx.fillStyle = gr; body(); ctx.fill();
-    const glow = ctx.createRadialGradient(cx, (g.y + top) / 2, 10, cx, (g.y + top) / 2, box.h * 0.8);
-    glow.addColorStop(0, 'rgba(253, 186, 116, 0.35)'); glow.addColorStop(1, 'rgba(249, 115, 22, 0)');
-    ctx.fillStyle = glow; ctx.fillRect(cx - box.h, top - 40, box.h * 2, box.h + 60);
+    steppedGlow(ctx, cx, (g.y + top) / 2, box.h * 0.8, '#F97316', 0.26, 0.04, 5);
+    // In bands, red at its edges in to a white-hot heart, a blue throat at the vent; each band its own flicker
+    ctx.save(); body(); ctx.clip();
+    ctx.fillStyle = '#B91C1C'; ctx.fillRect(cx - w * 2, top - 30, w * 4, g.y - top + 30);
+    const bands = [['#EA580C', 0.8, 0.04], ['#F59E0B', 0.6, 0.1], ['#FDE047', 0.42, 0.18], ['#FEF9C3', 0.24, 0.3]] as const;
+    bands.forEach(([col, wk, from], li) => {
+      ctx.fillStyle = col;
+      for (let y = Math.floor((top + box.h * from) / 4) * 4; y < g.y; y += 4) {
+        const half = w * (0.55 + (g.y - y) / box.h * 0.35) * wk + Math.sin(f * 0.7 + y * 0.15 + li * 2) * 2;
+        const lx = Math.round((cx + wob(y) - half) / 2) * 2;
+        ctx.fillRect(lx, y, Math.round((half * 2) / 2) * 2, 4);
+      }
+    });
+    ctx.fillStyle = '#93C5FD'; ctx.fillRect(Math.round(cx - w * 0.16), g.y - Math.min(18, box.h * 0.15), Math.round(w * 0.32), Math.min(18, box.h * 0.15));
+    ctx.restore();
+    // (licking up off the top of it)
+    drawFire(ctx, cx, top + 14, w * 1.7, 34 + k * 14, f, { seed: Math.floor(g.x), glow: 0 });
     // (black smoke rolling off the top)
-    for (let s = 0; s < 4; s++) { ctx.fillStyle = 'rgba(28, 25, 23, 0.6)'; ctx.beginPath(); ctx.arc(cx + Math.sin(f * 0.1 + s) * 16, top - 20 - s * 14 - k * 20, 12 + s * 5, 0, Math.PI * 2); ctx.fill(); }
+    for (let s = 0; s < 4; s++) pixelBlob(ctx, cx + Math.sin(f * 0.1 + s) * 16, top - 40 - s * 14 - k * 20, 12 + s * 5, 10 + s * 4, 'rgba(28, 25, 23, 0.6)');
   } else {
     ctx.fillStyle = '#0C0A09'; body(); ctx.fill();
     // (its gloss: a streak of sheen up it, the rainbow of it)

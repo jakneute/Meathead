@@ -4,10 +4,9 @@
 // brows and a mouth that does something, hands, shoes with a sole. Feet at (x, y), facing right (pass facing -1 to turn
 // round), about 64 tall (Meathead's height) at scale 1; a kid's about two-thirds that, big-headed.
 
-import { mix } from '../backdrops/core';
+import { INK, ink, shaded, dark, lite } from './kit';
 
 type Ctx = CanvasRenderingContext2D;
-const INK = '#1A0B06';
 
 export type Hair = 'short' | 'long' | 'bun' | 'bald' | 'pony' | 'pigtails' | 'curly' | 'flattop' | 'mullet';
 export type Top = 'tee' | 'shirt' | 'jacket' | 'vest' | 'flannel' | 'dress' | 'hoodie' | 'robe' | 'tank' | 'parka' | 'apron';
@@ -45,26 +44,6 @@ export interface Pose {
   /** Something in the back hand. */
   propBack?: (ctx: Ctx, hx: number, hy: number) => void;
 }
-
-const dark = (c: string, k = 0.28) => mix(c, '#1A0B06', k);
-const lite = (c: string, k = 0.25) => mix(c, '#FFFFFF', k);
-
-/** A fill with its ink line round it. */
-const ink = (ctx: Ctx, path: () => void, fill: string, line = 1) => {
-  ctx.beginPath(); path(); ctx.fillStyle = fill; ctx.fill();
-  ctx.strokeStyle = INK; ctx.lineWidth = line; ctx.lineJoin = 'round'; ctx.stroke();
-};
-
-/** A shaded part: clipped to `path`, the colour in steps (lit top-left, shadowed bottom-right), then its ink line. */
-const shaded = (ctx: Ctx, path: () => void, color: string, x: number, y: number, w: number, h: number) => {
-  ctx.save(); ctx.beginPath(); path(); ctx.clip();
-  ctx.fillStyle = color; ctx.fillRect(x, y, w, h);
-  ctx.fillStyle = lite(color, 0.22); ctx.fillRect(x, y, w * 0.32, h);
-  ctx.fillStyle = dark(color, 0.22); ctx.fillRect(x + w * 0.72, y, w * 0.28, h);
-  ctx.fillStyle = dark(color, 0.12); ctx.fillRect(x, y + h * 0.82, w, h * 0.18);
-  ctx.restore();
-  ctx.beginPath(); path(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.lineJoin = 'round'; ctx.stroke();
-};
 
 /** An arm: from the shoulder to the hand, sleeve and skin, the hand round. Returns where the hand is. */
 const arm = (ctx: Ctx, sx: number, sy: number, hx: number, hy: number, sleeve: string, skin: string, long: boolean, w: number) => {

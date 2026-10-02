@@ -10,6 +10,7 @@
 
 import type { GameState } from '../../core/state';
 import { GROUND_Y } from '../../../constants';
+import { drawFire } from '../../render/fx/fire';
 import { drawKindCorpse } from '../../render/enemies';
 import { drawChopperBike } from '../../render/enemies/oscar';
 import { COURSE } from './course';
@@ -61,7 +62,7 @@ export const drawBarBack = (ctx: Ctx, state: GameState, b: Bar) => {
     // Blood up the walls and everywhere (on the walls: behind him)
     for (const g of b.gore) if (g.kind === 'splat') { ctx.fillStyle = g.r > 20 ? 'rgba(127, 29, 29, 0.85)' : 'rgba(185, 28, 28, 0.8)'; ctx.beginPath(); ctx.ellipse(g.x, g.y, g.r, g.r * 0.6, g.rot, 0, Math.PI * 2); ctx.fill(); }
     // Fire still going here and there along the floor
-    for (let k = 0; k < 9; k++) { const x = B.x1 + 70 + k * 130, h = 30 + Math.sin(f * 0.3 + k) * 12; ctx.fillStyle = 'rgba(234, 88, 12, 0.85)'; ctx.beginPath(); ctx.moveTo(x - 12, Y); ctx.quadraticCurveTo(x, Y - h, x + 12, Y); ctx.fill(); ctx.fillStyle = 'rgba(253, 224, 71, 0.9)'; ctx.beginPath(); ctx.moveTo(x - 6, Y); ctx.quadraticCurveTo(x, Y - h * 0.6, x + 6, Y); ctx.fill(); }
+    for (let k = 0; k < 9; k++) drawFire(ctx, B.x1 + 70 + k * 130, Y, 30, 36 + (k % 3) * 5, f, { seed: k * 23, smoke: 0.3, glow: 0.7 });
   }
   // The gas lines: yellow pipe down the walls to each joint
   ctx.fillStyle = intact ? '#CA8A04' : '#3F3A36';

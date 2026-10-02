@@ -8,6 +8,8 @@
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, ARENA_LEFT } from '../../../constants';
 import { drawBackdrop } from '../../render/backdrops';
+import { drawFire } from '../../render/fx/fire';
+import { steppedGlow, pixelBlob } from '../../render/pixelArt';
 import { COURSE, placeOf } from './course';
 import { getOscar, fadeAmount, OscarRuntime } from './runtime';
 import { drawDirt, drawOil, drawOilFire, drawPits, drawLedges, drawProps, drawJetPipes, drawJetFire } from './fieldDraw';
@@ -50,11 +52,9 @@ export const drawOscarBackdrop = (ctx: Ctx, state: GameState) => {
     const x = ((i * 173 - state.camera.x * 0.3) % (CANVAS_WIDTH + 200) + CANVAS_WIDTH + 200) % (CANVAS_WIDTH + 200) - 100;
     const h = 40 + Math.sin(state.frame * 0.1 + i) * 10 + (i % 3) * 20;
     const base = 420 - (i % 4) * 12;
-    const fg = ctx.createRadialGradient(x, base, 4, x, base, h * 1.6);
-    fg.addColorStop(0, `rgba(253, 186, 116, ${0.7 * k})`); fg.addColorStop(1, 'rgba(249, 115, 22, 0)');
-    ctx.fillStyle = fg; ctx.fillRect(x - h * 1.6, base - h * 1.6, h * 3.2, h * 3.2);
-    ctx.fillStyle = `rgba(28, 25, 23, ${0.6 * k})`;
-    for (let s = 0; s < 3; s++) { const q = ((state.frame * 0.5 + s * 40 + i * 17) % 120) / 120; ctx.beginPath(); ctx.arc(x + q * 30, base - h - q * 240, 16 + q * 40, 0, Math.PI * 2); ctx.fill(); }
+    steppedGlow(ctx, x, base, h * 1.6, '#FDBA74', 0.5 * k, 0.04 * k, 5);
+    drawFire(ctx, x, base + 4, h * 0.7, h * 0.5, state.frame, { seed: i * 11, glow: 0, sparks: false, k: Math.min(1, 0.4 + k) });
+    for (let s = 0; s < 3; s++) { const q = ((state.frame * 0.5 + s * 40 + i * 17) % 120) / 120; pixelBlob(ctx, x + q * 30, base - h - q * 240, 16 + q * 40, 13 + q * 32, `rgba(28, 25, 23, ${(0.6 * k).toFixed(3)})`, 4); }
   }
   return true;
 };

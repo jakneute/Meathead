@@ -8,6 +8,8 @@
 
 import { Enemy } from '../../../types';
 import type { GameState } from '../../core/state';
+import { drawFire } from '../fx/fire';
+import { pixelBlob } from '../pixelArt';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -218,16 +220,13 @@ const wheel = (ctx: Ctx, x: number, y: number, r: number, turn: number, hub = '#
 
 /** Smoke and fire off a vehicle that's taken a big hit (it's on its last legs). */
 export const drawCriticalSmoke = (ctx: Ctx, x: number, y: number, f: number) => {
+  // Black smoke trailing back off the engine
   for (let k = 0; k < 5; k++) {
     const t = ((f * 2 + k * 17) % 60) / 60;
-    ctx.fillStyle = `rgba(41, 37, 36, ${0.6 * (1 - t)})`;
-    ctx.beginPath(); ctx.arc(x - t * 40, y - t * 50, 6 + t * 16, 0, Math.PI * 2); ctx.fill();
+    pixelBlob(ctx, x - t * 40, y - t * 50, 6 + t * 16, 5 + t * 13, `rgba(41, 37, 36, ${(0.6 * (1 - t)).toFixed(3)})`);
   }
-  for (let k = 0; k < 4; k++) {
-    const t = ((f * 3 + k * 11) % 20) / 20;
-    ctx.fillStyle = k % 2 ? `rgba(249, 115, 22, ${1 - t})` : `rgba(253, 224, 71, ${1 - t})`;
-    ctx.beginPath(); ctx.arc(x + (k - 2) * 4, y - t * 18, 5 * (1 - t) + 2, 0, Math.PI * 2); ctx.fill();
-  }
+  // Flames licking up out of it
+  drawFire(ctx, x, y + 4, 16, 22, f, { seed: 7, glow: 0.6 });
 };
 
 /**

@@ -5,7 +5,8 @@
 // own bike under him, and the count.
 
 import type { GameState } from '../../core/state';
-import { bandedGradient, hazeBands } from '../../render/pixelArt';
+import { bandedGradient, hazeBands, pixelBlob } from '../../render/pixelArt';
+import { drawFire } from '../../render/fx/fire';
 import { groundLineAt } from '../../core/terrain';
 import { CANVAS_WIDTH } from '../../../constants';
 import { drawDirt, drawDerrick, drawPumpjack } from './fieldDraw';
@@ -87,11 +88,7 @@ export const drawChaseBack = (ctx: Ctx, state: GameState, ch: Chase) => {
     if (w.kind === 'pickup') drawPickupBody(ctx, PAINTS[Math.abs(Math.round(w.paint / 7)) % 4], w.t * 0.8, 0, state.frame, { critical: true, slumped: true, noThrower: true });
     else drawCruiserBody(ctx, w.t * 0.8, state.frame, 1, { critical: true, slumped: true });
     // On fire from end to end
-    for (let k = 0; k < 6; k++) {
-      const h = 24 + Math.sin(state.frame * 0.4 + k) * 8, x = -60 + k * 24;
-      ctx.fillStyle = 'rgba(234, 88, 12, 0.85)'; ctx.beginPath(); ctx.moveTo(x - 10, -40); ctx.quadraticCurveTo(x, -40 - h, x + 10, -40); ctx.fill();
-      ctx.fillStyle = 'rgba(253, 224, 71, 0.9)'; ctx.beginPath(); ctx.moveTo(x - 5, -40); ctx.quadraticCurveTo(x, -40 - h * 0.6, x + 5, -40); ctx.fill();
-    }
+    drawFire(ctx, 0, -38, 150, 36, state.frame, { seed: Math.floor(w.paint), smoke: 0.35 });
     if (w.t % 16 < 8) { ctx.fillStyle = '#FDE047'; ctx.font = 'bold 14px monospace'; ctx.fillText('HOOONK', 20, -90); }
     ctx.restore();
   }
@@ -134,10 +131,11 @@ export const drawFarField = (ctx: Ctx, state: GameState, ch: Chase) => {
     ctx.scale(dir, 1);
     if (w.kind === 'pickup') drawPickupBody(ctx, PAINTS[Math.abs(Math.round(w.paint / 7)) % 4], w.t, 0, state.frame, { slumped: true, noThrower: true });
     else drawCruiserBody(ctx, w.t, state.frame, 1, { slumped: true });
-    for (let k = 0; k < 5; k++) { const h = 40 + Math.sin(state.frame * 0.4 + k) * 12; ctx.fillStyle = k % 2 ? 'rgba(234, 88, 12, 0.9)' : 'rgba(253, 224, 71, 0.9)'; ctx.beginPath(); ctx.moveTo(-60 + k * 28 - 12, -40); ctx.quadraticCurveTo(-60 + k * 28, -40 - h, -60 + k * 28 + 12, -40); ctx.fill(); }
     ctx.restore();
+    // (on fire end to end: drawn out here, not shrunk with it, so it stays as chunky as the rest)
+    drawFire(ctx, x, base - 14, 64, 22, state.frame, { seed: Math.floor(w.paint) + 5, glow: 0.6 });
     // The trail of smoke off it
-    for (let k = 0; k < 4; k++) { const q = ((state.frame + k * 12) % 48) / 48; ctx.fillStyle = `rgba(41, 37, 36, ${0.5 * (1 - q)})`; ctx.beginPath(); ctx.arc(x - dir * (10 + q * 30), base - 18 - q * 30, 4 + q * 10, 0, Math.PI * 2); ctx.fill(); }
+    for (let k = 0; k < 4; k++) { const q = ((state.frame + k * 12) % 48) / 48; pixelBlob(ctx, x - dir * (10 + q * 30), base - 18 - q * 30, 4 + q * 10, 3 + q * 8, `rgba(41, 37, 36, ${(0.5 * (1 - q)).toFixed(3)})`); }
   }
 };
 
@@ -156,8 +154,7 @@ const drawFarThing = (ctx: Ctx, look: FarThing['look'], f: number) => {
       break;
     case 'flare': {
       ctx.fillStyle = '#57534E'; ctx.fillRect(-3, -120, 6, 120);
-      const h = 18 + Math.sin(f * 0.35) * 5;
-      ctx.fillStyle = 'rgba(249, 115, 22, 0.9)'; ctx.beginPath(); ctx.moveTo(-6, -120); ctx.quadraticCurveTo(0, -120 - h * 1.4, 6, -120); ctx.fill();
+      drawFire(ctx, 0, -119, 12, 34, f, { seed: 17, sparks: false, glow: 0.6 });
       break;
     }
   }
@@ -172,13 +169,9 @@ const drawFarRuin = (ctx: Ctx, fr: FarThing, f: number) => {
   // The smoke going up, and the fire under it
   for (let k = 0; k < 7; k++) {
     const q = ((f * 0.8 + k * 20) % 140) / 140;
-    ctx.fillStyle = `rgba(28, 25, 23, ${0.75 * (1 - q)})`; ctx.beginPath(); ctx.arc(Math.sin(k * 1.7) * 10 + q * 60, -40 - q * 360, 14 + q * 60, 0, Math.PI * 2); ctx.fill();
+    pixelBlob(ctx, Math.sin(k * 1.7) * 10 + q * 60, -40 - q * 360, 14 + q * 60, 12 + q * 50, `rgba(28, 25, 23, ${(0.75 * (1 - q)).toFixed(3)})`, 4);
   }
-  for (let k = 0; k < 5; k++) {
-    const h = 30 + Math.sin(f * 0.3 + k) * 10 + (k % 2) * 16, x = -30 + k * 15;
-    ctx.fillStyle = 'rgba(234, 88, 12, 0.9)'; ctx.beginPath(); ctx.moveTo(x - 9, 0); ctx.quadraticCurveTo(x, -h, x + 9, 0); ctx.fill();
-    ctx.fillStyle = 'rgba(253, 224, 71, 0.9)'; ctx.beginPath(); ctx.moveTo(x - 4, 0); ctx.quadraticCurveTo(x, -h * 0.6, x + 4, 0); ctx.fill();
-  }
+  drawFire(ctx, 0, 1, 84, 50, f, { seed: 23 });
   if (fr.state === 'blowing') {
     // The fireball: blinding, then rolling up into a mushroom of smoke
     const k = fr.t / 60;

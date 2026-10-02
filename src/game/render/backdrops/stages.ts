@@ -7,6 +7,7 @@ import {
   G, LayerSpec, LH, LW, PX, TILE_W, rng, hash, mix, paintBandedSky, makeRidge, fillRidge, pine, palm, wrapDraw, tileToScreenX,
 } from './core';
 import { pixelBlob, hazeBands, steppedGlow, bandedGradient } from '../pixelArt';
+import { drawFire } from '../fx/fire';
 
 const W = LW * PX, H = LH * PX; // screen size
 
@@ -828,12 +829,8 @@ const oscarField: LayerSpec = {
 const flares = (ctx: G, v: View) => {
   for (const fx of FLARES) pinned(fx, oscarRefinery, v, sx => {
     const y = 95 * PX;
-    for (let i = 0; i < 6; i++) {
-      const fh = 18 + ((v.frame * 3 + i * 7) % 16);
-      ctx.fillStyle = i % 2 ? '#F97316' : '#FDE047';
-      ctx.fillRect(Math.round(sx - 5 + Math.sin(v.frame * 0.3 + i) * 3), Math.round(y - fh), 10 - i, fh);
-    }
     steppedGlow(ctx, sx, y - 20, 70, '#FB923C', 0.35, 0, 5);
+    drawFire(ctx, sx, y + 2, 16, 46, v.frame, { seed: fx, glow: 0 });
   });
   // Blinking red aviation lights on the columns
   if (v.frame % 60 < 30) for (let i = 0; i < 6; i++) pinned(40 + i * 100, oscarRefinery, v, sx => { ctx.fillStyle = '#EF4444'; ctx.fillRect(sx, 150 + (i % 3) * 24, 4, 4); });
