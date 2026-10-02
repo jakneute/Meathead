@@ -35,11 +35,12 @@ export const runTommyKindAI = (ctx: FrameContext, e: Enemy): boolean => {
   }
 };
 
-/** A round fired from (x, y) toward tx, flat along the road (it can be jumped); `carry` is how fast the shooter's going. */
+/** A round fired from (x, y) toward tx, flat along the road (it can be jumped); `carry` is how fast the shooter's going
+ * (the muzzle flash goes along with it; the round doesn't: the bike run carries those along with the road itself). */
 const shootFrom = (state: GameState, e: Enemy, x: number, y: number, tx: number, speed: number, damage: number, carry = 0) => {
   const dir = tx < x ? -1 : 1;
   state.projectiles.push({
-    id: `ep-${e.kind}-${state.frame}-${Math.random()}`, pos: { x: x - 5, y: y - 5 }, vel: { x: dir * speed + carry, y: 0 },
+    id: `ep-${e.kind}-${state.frame}-${Math.random()}`, pos: { x: x - 5, y: y - 5 }, vel: { x: dir * speed, y: 0 },
     width: 10, height: 10, health: 1, maxHealth: 1, type: 'projectile', damage, owner: 'enemy', shooterKind: e.kind, shot: 'tracer',
   });
   playSound('egun', 1, -2);
@@ -158,7 +159,8 @@ const lowrider = (ctx: FrameContext, e: Enemy) => {
     const k = e.shootTimer - CAR_REST;
     if (k % CAR_BURST_GAP === 0) {
       const w = LOWRIDER_WINDOWS[Math.floor(k / CAR_BURST_GAP) % 2];
-      // (fired from a car doing the speed of the chase: the round's carried along with it, so forward or back it comes at him at the same pace)
+      // (the round isn't given the car's speed: the bike run carries the crew's rounds along with the road already, and
+      // the car's speed on top of that had them crawling, or hanging in the air, whenever it fired back at him)
       shootFrom(state, e, mid(e).x + w.x + (e.aiX ?? 1) * 20, e.pos.y + e.height + w.y - 8, pm.x, CAR_SHOT_SPEED, CAR_SHOT_DAMAGE, e.vel.x);
     }
     // (three rounds a burst between the two of them)
