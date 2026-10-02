@@ -5,7 +5,8 @@
 // up in the corner as it starts, and the fade at the end.
 
 import type { GameState } from '../../core/state';
-import { bandedGradient } from '../../render/pixelArt';
+import { bandedGradient, checker, steppedGlow } from '../../render/pixelArt';
+import { INK, ink, shaded, shadedTop, limb, dark, lite } from '../../render/npc/kit';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { COURSE, CP, MEZZ_Y, END_WALL, WALL_X, WALL_W, WALL_TOP, RAT_HOLES, Prop, Ledge } from './course';
 import { getGym, fadeAmount, GymRuntime, BigFella, TELEGRAPH } from './runtime';
@@ -63,7 +64,9 @@ const drawWall = (ctx: Ctx, state: GameState, x1: number, x2: number) => {
       const h = hash(x * 0.37 + y);
       ctx.fillStyle = low ? (h > 0.5 ? '#86201E' : '#761A18') : (h > 0.5 ? '#C2B79C' : '#B0A588');
       ctx.fillRect(x + 1, y + 1, 46, 22);
-      ctx.fillStyle = low ? 'rgba(0,0,0,0.25)' : 'rgba(80, 64, 40, 0.35)'; ctx.fillRect(x + 1, y + 21, 46, 2);
+      ctx.fillStyle = low ? 'rgba(255, 200, 180, 0.12)' : 'rgba(255, 250, 235, 0.3)'; ctx.fillRect(x + 1, y + 1, 46, 2); ctx.fillRect(x + 1, y + 3, 2, 18); // (the lit edge)
+      ctx.fillStyle = low ? 'rgba(0,0,0,0.25)' : 'rgba(80, 64, 40, 0.35)'; ctx.fillRect(x + 1, y + 21, 46, 2); ctx.fillRect(x + 45, y + 3, 2, 18);
+      if (h > 0.86) { ctx.fillStyle = low ? 'rgba(0,0,0,0.3)' : 'rgba(80, 64, 40, 0.4)'; ctx.fillRect(x + 8 + h * 20, y + 8, 2, 2); ctx.fillRect(x + 12 + h * 20, y + 13, 1, 1); } // (pits in the block)
     }
   }
   // (the stripe between the two paints, and the grime down the wall from the ceiling)
@@ -75,8 +78,12 @@ const drawWall = (ctx: Ctx, state: GameState, x1: number, x2: number) => {
   // (the tube lights, one flickering)
   for (let x = Math.floor(x1 / 320) * 320 - 220; x < x2 + 90; x += 320) {
     const flicker = (x / 320) % 5 === 2 && hash(Math.floor(f / 5) + x) > 0.85;
-    ctx.fillStyle = '#3F3F46'; ctx.fillRect(x - 4, 62, 2, 18); ctx.fillRect(x + 82, 62, 2, 18);
-    ctx.fillStyle = flicker ? '#71717A' : '#FEFCE8'; ctx.fillRect(x - 8, 80, 96, 6);
+    ctx.fillStyle = '#3F3F46'; ctx.fillRect(x - 4, 62, 2, 16); ctx.fillRect(x + 82, 62, 2, 16);
+    shadedTop(ctx, () => ctx.rect(x - 10, 76, 100, 5), '#71717A', x - 10, 76, 100, 5, 0.8);
+    ctx.fillStyle = flicker ? '#71717A' : '#FEFCE8'; ctx.fillRect(x - 8, 81, 96, 5);
+    ctx.fillStyle = flicker ? '#52525B' : '#FFFFFF'; ctx.fillRect(x - 6, 82, 92, 1.4);
+    ctx.fillStyle = flicker ? '#3F3F46' : '#FDE68A'; ctx.fillRect(x - 8, 85, 96, 1);
+    ctx.fillStyle = '#A1A1AA'; ctx.fillRect(x - 9, 81, 3, 5); ctx.fillRect(x + 86, 81, 3, 5); // (the end caps)
     if (!flicker) {
       // (its pool of light down the wall, in steps)
       for (let k = 0; k < 5; k++) {
@@ -93,101 +100,237 @@ const drawWall = (ctx: Ctx, state: GameState, x1: number, x2: number) => {
 const propSpan = (p: Prop): [number, number] =>
   p.look === 'mirror' ? [p.x - 4, p.x + 304] : p.look === 'window' ? [p.x - 4, p.x + 124] : p.look === 'poster' ? [p.x - 160, p.x + 160] : [p.x - 90, p.x + 90];
 
+/** A plate seen edge-on on a bar at (x, y): rh its radius, w its thickness; the rubber shaded, the rim lit, the hub. */
+const plate = (ctx: Ctx, x: number, y: number, w: number, rh: number, color: string) => {
+  shaded(ctx, () => ctx.roundRect(x - w / 2, y - rh, w, rh * 2, Math.min(w / 2, 2)), color, x - w / 2, y - rh, w, rh * 2, 0.9);
+  ctx.fillStyle = lite(color, 0.35); ctx.fillRect(x - w / 2 + 0.6, y - rh + 1.4, 1, rh * 2 - 4);
+  ctx.fillStyle = dark(color, 0.45); ctx.fillRect(x - w / 2 + 0.4, y - 1.6, w - 0.8, 3.2);
+};
+
+/** A steel tube from (x, y), w x h, lit along its top or its left (whichever's the long side). */
+const steel = (ctx: Ctx, x: number, y: number, w: number, h: number, color = '#52525B') => {
+  if (w >= h) shadedTop(ctx, () => ctx.rect(x, y, w, h), color, x, y, w, h, 0.9);
+  else shaded(ctx, () => ctx.rect(x, y, w, h), color, x, y, w, h, 0.9);
+  ctx.fillStyle = lite(color, 0.45);
+  if (w >= h) ctx.fillRect(x + 1, y + 0.6, w - 2, 0.8); else ctx.fillRect(x + 0.8, y + 1, 0.8, h - 2);
+};
+
+/** A chrome bar from x1 to x2 at y: thin, a glint down its length. */
+const bar = (ctx: Ctx, x1: number, x2: number, y: number) => {
+  ink(ctx, () => ctx.rect(x1, y - 1.6, x2 - x1, 3.2), '#A1A1AA', 0.8);
+  ctx.fillStyle = '#F4F4F5'; ctx.fillRect(x1 + 2, y - 1, x2 - x1 - 4, 0.8);
+  ctx.fillStyle = '#71717A'; ctx.fillRect(x1 + 1, y + 0.6, x2 - x1 - 2, 0.8);
+};
+
+/** A padded seat or bench top, (x, y, w, h): red vinyl, the stitching, a split taped over. */
+const pad = (ctx: Ctx, x: number, y: number, w: number, h: number, color = '#991B1B') => {
+  shadedTop(ctx, () => ctx.roundRect(x, y, w, h, 2.4), color, x, y, w, h);
+  ctx.fillStyle = lite(color, 0.4); ctx.fillRect(x + 3, y + 1, w - 6, 1);
+  ctx.strokeStyle = dark(color, 0.4); ctx.lineWidth = 0.6; ctx.setLineDash([1.4, 1.4]); ctx.beginPath(); ctx.moveTo(x + 2, y + h - 2); ctx.lineTo(x + w - 2, y + h - 2); ctx.stroke(); ctx.setLineDash([]);
+};
+
+/** A shadow on the rubber floor under something, w wide at x. */
+const floorShadow = (ctx: Ctx, x: number, w: number) => {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'; ctx.fillRect(x - w / 2, Y - 3, w, 3);
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.15)'; ctx.fillRect(x - w / 2 - 4, Y - 2, w + 8, 2);
+};
+
+/** Pixel lettering on a sign: dark drop shadow under it, `fg` over. */
+const signText = (ctx: Ctx, text: string, x: number, y: number, font: string, fg: string, shadow = 'rgba(0,0,0,0.35)') => {
+  ctx.font = font; ctx.textAlign = 'center';
+  ctx.fillStyle = shadow; ctx.fillText(text, x + 1, y + 1);
+  ctx.fillStyle = fg; ctx.fillText(text, x, y);
+  ctx.textAlign = 'left';
+};
+
 const drawProp = (ctx: Ctx, state: GameState, p: Prop) => {
   const { x, y } = p;
   switch (p.look) {
     case 'mirror': {
-      // A wall of mirror: the room in it, dim, streaks of light down it, his gym bag reflected
-      const g = ctx.createLinearGradient(x, 0, x + 300, 0);
-      g.addColorStop(0, '#5B7A86'); g.addColorStop(0.5, '#7D9AA4'); g.addColorStop(1, '#4C6A76');
-      ctx.fillStyle = '#27272A'; ctx.fillRect(x - 4, y - 4, 308, 168);
-      ctx.fillStyle = g; ctx.fillRect(x, y, 300, 160);
-      ctx.fillStyle = 'rgba(255,255,255,0.18)'; for (let k = 0; k < 6; k++) ctx.fillRect(x + 20 + k * 50, y, 6, 160);
-      ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.fillRect(x, y + 120, 300, 40);
-      ctx.strokeStyle = 'rgba(30, 40, 46, 0.7)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x + 270, y); ctx.lineTo(x + 250, y + 30); ctx.lineTo(x + 262, y + 44); ctx.stroke();
+      // A wall of mirror: the room in it, dim (the lights' streaks down it, the far wall's stripe, the floor), a crack
+      // in one corner, a steel frame round it with its screws
+      shaded(ctx, () => ctx.rect(x - 4, y - 4, 308, 168), '#3F3F46', x - 4, y - 4, 308, 168);
+      bandedGradient(ctx, x, y, 300, 160, ['#4C6A76', '#6E8E99', '#7D9AA4', '#5B7A86', '#3C5864'], 8);
+      ctx.fillStyle = 'rgba(127, 29, 29, 0.35)'; ctx.fillRect(x, y + 104, 300, 40); // (the red paint behind you)
+      ctx.fillStyle = 'rgba(250, 204, 21, 0.35)'; ctx.fillRect(x, y + 100, 300, 4);
+      ctx.fillStyle = 'rgba(10, 10, 12, 0.4)'; ctx.fillRect(x, y + 144, 300, 16);
+      for (let k = 0; k < 6; k++) {
+        ctx.fillStyle = 'rgba(255,255,255,0.14)'; ctx.fillRect(x + 20 + k * 50, y, 8, 160);
+        ctx.fillStyle = 'rgba(255,255,255,0.22)'; ctx.fillRect(x + 22 + k * 50, y, 2, 160);
+      }
+      checker(ctx, x, y, 300, 2, 'rgba(0,0,0,0.25)', 0);
+      ctx.strokeStyle = 'rgba(230, 240, 245, 0.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x + 270, y); ctx.lineTo(x + 250, y + 30); ctx.lineTo(x + 262, y + 44); ctx.moveTo(x + 250, y + 30); ctx.lineTo(x + 236, y + 36); ctx.stroke();
+      ctx.strokeStyle = 'rgba(30, 40, 46, 0.7)'; ctx.beginPath(); ctx.moveTo(x + 271, y); ctx.lineTo(x + 251, y + 31); ctx.lineTo(x + 263, y + 45); ctx.stroke();
+      ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(x - 4.5, y - 4.5, 309, 169); ctx.strokeRect(x - 0.5, y - 0.5, 301, 161);
+      ctx.fillStyle = '#A1A1AA'; for (const [sx, sy] of [[x - 2, y - 2], [x + 300, y - 2], [x - 2, y + 160], [x + 300, y + 160]]) ctx.fillRect(sx, sy, 2, 2);
       break;
     }
     case 'window': {
-      // Still dark out: a blue before the dawn, the frame, wire glass, a streetlight's glow
-      ctx.fillStyle = '#27272A'; ctx.fillRect(x - 4, y - 4, 128, 88);
+      // Still dark out: a blue before the dawn, the frame, wire glass, a streetlight's glow, the sill
+      shaded(ctx, () => ctx.rect(x - 4, y - 4, 128, 88), '#3F3F46', x - 4, y - 4, 128, 88);
       bandedGradient(ctx, x, y, 120, 80, ['#0B1330', '#151C40', '#20234E', '#2A2A5A'], 6);
-      ctx.fillStyle = 'rgba(253, 186, 116, 0.35)'; ctx.beginPath(); ctx.arc(x + 90, y + 60, 16, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = 'rgba(160,160,170,0.35)'; ctx.lineWidth = 0.6;
+      steppedGlow(ctx, x + 90, y + 60, 18, '#FDBA74', 0.5, 0.08, 4);
+      ctx.fillStyle = '#FED7AA'; ctx.fillRect(x + 89, y + 59, 2, 2);
+      // (rooftops across the street, a lit window in one)
+      ctx.fillStyle = '#080A18'; ctx.fillRect(x, y + 64, 50, 16); ctx.fillRect(x + 12, y + 56, 22, 8); ctx.fillRect(x + 66, y + 70, 54, 10);
+      ctx.fillStyle = '#FCD34D'; ctx.fillRect(x + 20, y + 68, 3, 3);
+      ctx.strokeStyle = 'rgba(160,160,170,0.3)'; ctx.lineWidth = 0.6;
       for (let k = 0; k < 120; k += 10) { ctx.beginPath(); ctx.moveTo(x + k, y); ctx.lineTo(x + k + 10, y + 80); ctx.moveTo(x + k + 10, y); ctx.lineTo(x + k, y + 80); ctx.stroke(); }
-      ctx.fillStyle = '#3F3F46'; ctx.fillRect(x + 58, y, 4, 80); ctx.fillRect(x, y + 38, 120, 4);
+      steel(ctx, x + 58, y, 4, 80, '#52525B'); steel(ctx, x, y + 38, 120, 4, '#52525B');
+      ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.beginPath(); ctx.moveTo(x + 6, y); ctx.lineTo(x + 20, y); ctx.lineTo(x + 6, y + 30); ctx.fill();
+      ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(x - 4.5, y - 4.5, 129, 89); ctx.strokeRect(x - 0.5, y - 0.5, 121, 81);
+      shadedTop(ctx, () => ctx.rect(x - 8, y + 84, 136, 5), '#A8A29E', x - 8, y + 84, 136, 5);
       break;
     }
     case 'poster': {
+      // A poster: curling at a corner, a man flexing on it in a starburst, the slogan, the tape at the corners
       const text = p.text ?? '';
       ctx.font = 'bold 8px "Press Start 2P"';
-      const w = Math.max(110, ctx.measureText(text).width + 24);
-      ctx.fillStyle = '#F5F5F4'; ctx.fillRect(x - w / 2, y, w, 60);
-      ctx.fillStyle = '#DC2626'; ctx.fillRect(x - w / 2 + 6, y + 6, w - 12, 28);
-      // (a man flexing on it, in silhouette)
-      ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(x, y + 14, 4, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(x - 5, y + 18, 10, 12);
-      ctx.fillRect(x - 13, y + 16, 8, 4); ctx.fillRect(x - 15, y + 10, 4, 8); ctx.fillRect(x + 5, y + 16, 8, 4); ctx.fillRect(x + 11, y + 10, 4, 8);
-      ctx.fillStyle = '#111'; ctx.textAlign = 'center'; ctx.fillText(text, x, y + 50); ctx.textAlign = 'left';
-      ctx.fillStyle = 'rgba(120, 100, 60, 0.3)'; ctx.fillRect(x - w / 2, y + 54, w, 6);
-      ctx.fillStyle = '#A8A29E'; ctx.fillRect(x - w / 2 + 2, y + 2, 3, 3); ctx.fillRect(x + w / 2 - 5, y + 2, 3, 3);
+      const w = Math.max(110, ctx.measureText(text).width + 24), l = x - w / 2;
+      ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(l + 3, y + 3, w, 60);
+      ink(ctx, () => { ctx.moveTo(l, y); ctx.lineTo(l + w, y); ctx.lineTo(l + w, y + 52); ctx.lineTo(l + w - 8, y + 60); ctx.lineTo(l, y + 60); ctx.closePath(); }, '#F5F5F4', 1);
+      ctx.fillStyle = 'rgba(160, 130, 80, 0.25)'; ctx.fillRect(l + 1, y + 48, w - 9, 11); checker(ctx, l + 1, y + 44, w - 9, 4, 'rgba(160, 130, 80, 0.25)', 0);
+      ink(ctx, () => { ctx.moveTo(l + w, y + 52); ctx.lineTo(l + w - 8, y + 52); ctx.lineTo(l + w - 8, y + 60); ctx.closePath(); }, '#D6D3D1', 0.8); // (the curl)
+      bandedGradient(ctx, l + 6, y + 6, w - 12, 28, ['#EF4444', '#DC2626', '#991B1B'], 4);
+      ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(l + 5.5, y + 5.5, w - 11, 29);
+      // (the starburst behind him)
+      ctx.fillStyle = '#FACC15'; ctx.beginPath(); for (let k = 0; k < 16; k++) { const a = k * Math.PI / 8, r = k % 2 ? 7 : 13; ctx.lineTo(x + Math.cos(a) * r * 1.3, y + 20 + Math.sin(a) * r); } ctx.closePath(); ctx.fill();
+      // (him, flexing, in silhouette: the lats out, both biceps up)
+      ctx.fillStyle = '#111';
+      ctx.beginPath(); ctx.arc(x, y + 13, 3.4, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(x - 7, y + 17); ctx.lineTo(x + 7, y + 17); ctx.lineTo(x + 4, y + 27); ctx.lineTo(x + 5, y + 33); ctx.lineTo(x - 5, y + 33); ctx.lineTo(x - 4, y + 27); ctx.closePath(); ctx.fill();
+      for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(x + s * 6, y + 17); ctx.lineTo(x + s * 13, y + 18); ctx.lineTo(x + s * 15, y + 10); ctx.lineTo(x + s * 12, y + 9); ctx.lineTo(x + s * 11, y + 15); ctx.lineTo(x + s * 6, y + 20); ctx.closePath(); ctx.fill(); ctx.beginPath(); ctx.arc(x + s * 11, y + 15, 2.6, 0, Math.PI * 2); ctx.fill(); }
+      signText(ctx, text, x, y + 48, 'bold 8px "Press Start 2P"', '#111', 'rgba(220, 38, 38, 0.5)');
+      // (tape at the corners)
+      ctx.fillStyle = 'rgba(231, 229, 228, 0.85)'; for (const [tx, ty] of [[l - 3, y - 2], [l + w - 7, y - 2], [l - 3, y + 56]]) ctx.fillRect(tx, ty, 10, 5);
       break;
     }
     case 'bench': {
-      // A flat bench, the uprights and the bar racked on them, plates on the bar
-      ctx.fillStyle = '#52525B'; ctx.fillRect(x - 40, y - 26, 4, 26); ctx.fillRect(x + 36, y - 26, 4, 26);
-      ctx.fillStyle = '#991B1B'; ctx.fillRect(x - 46, y - 34, 92, 9); ctx.fillStyle = '#B91C1C'; ctx.fillRect(x - 46, y - 34, 92, 2);
-      ctx.fillStyle = '#71717A'; ctx.fillRect(x - 54, y - 90, 5, 58); ctx.fillRect(x - 58, y - 90, 12, 4);
-      ctx.fillStyle = '#A1A1AA'; ctx.fillRect(x - 80, y - 94, 60, 3);
-      ctx.fillStyle = '#18181B'; ctx.beginPath(); ctx.ellipse(x - 76, y - 92, 4, 16, 0, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.ellipse(x - 70, y - 92, 4, 14, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#3F3F46'; ctx.fillRect(x - 72, y - 108, 1, 32);
+      // A flat bench (the pad, the steel frame, the feet), the uprights and the bar racked on them, plates on the bar
+      floorShadow(ctx, x - 6, 120);
+      steel(ctx, x - 40, y - 26, 4, 26); steel(ctx, x + 36, y - 26, 4, 26);
+      steel(ctx, x - 44, y - 4, 12, 4); steel(ctx, x + 32, y - 4, 12, 4);
+      steel(ctx, x - 40, y - 27, 80, 3, '#3F3F46');
+      pad(ctx, x - 46, y - 35, 92, 9);
+      steel(ctx, x - 55, y - 90, 6, 90, '#71717A'); steel(ctx, x - 62, y - 4, 20, 4);
+      ink(ctx, () => { ctx.moveTo(x - 49, y - 92); ctx.lineTo(x - 44, y - 92); ctx.lineTo(x - 44, y - 86); ctx.lineTo(x - 49, y - 86); ctx.closePath(); }, '#A1A1AA', 0.8); // (the J-hook)
+      bar(ctx, x - 82, x - 20, y - 92.5);
+      plate(ctx, x - 76, y - 92.5, 6, 16, '#1F1F23'); plate(ctx, x - 69, y - 92.5, 5, 13, '#1E3A8A');
+      ink(ctx, () => ctx.rect(x - 66, y - 95, 2, 5), '#D4D4D8', 0.6); // (the collar)
       break;
     }
     case 'squat': {
-      ctx.fillStyle = '#3F3F46'; ctx.fillRect(x - 50, y - 170, 8, 170); ctx.fillRect(x + 42, y - 170, 8, 170); ctx.fillRect(x - 50, y - 170, 100, 6);
-      ctx.fillStyle = '#71717A'; for (let k = 0; k < 10; k++) { ctx.fillRect(x - 49, y - 160 + k * 15, 6, 2); ctx.fillRect(x + 43, y - 160 + k * 15, 6, 2); }
-      ctx.fillStyle = '#A1A1AA'; ctx.fillRect(x - 76, y - 112, 152, 4);
-      for (const s of [-1, 1]) for (let k = 0; k < 3; k++) { ctx.fillStyle = k % 2 ? '#1E3A8A' : '#18181B'; ctx.beginPath(); ctx.ellipse(x + s * (62 + k * 5), y - 110, 3, 22 - k * 4, 0, 0, Math.PI * 2); ctx.fill(); }
+      // A power rack: the uprights punched with holes, the cross member, the safeties, the bar loaded up
+      floorShadow(ctx, x, 120);
+      for (const ux of [x - 50, x + 42]) {
+        steel(ctx, ux, y - 170, 8, 170, '#3F3F46');
+        ctx.fillStyle = '#0A0A0C'; for (let k = 0; k < 10; k++) ctx.fillRect(ux + 3, y - 160 + k * 15, 2, 2);
+        steel(ctx, ux - 6, y - 4, 20, 4, '#3F3F46');
+      }
+      steel(ctx, x - 50, y - 172, 100, 7, '#3F3F46');
+      steel(ctx, x - 54, y - 70, 108, 3, '#52525B'); // (the safeties)
+      for (const s of [-1, 1]) ink(ctx, () => ctx.rect(x + s * 46 - 3, y - 117, 6, 6), '#71717A', 0.7);
+      bar(ctx, x - 78, x + 78, y - 110);
+      for (const s of [-1, 1]) {
+        plate(ctx, x + s * 61, y - 110, 6, 22, '#1F1F23');
+        plate(ctx, x + s * 67, y - 110, 5, 18, '#1E3A8A');
+        plate(ctx, x + s * 72, y - 110, 4, 13, '#1F1F23');
+      }
       break;
     }
     case 'dumbbells': {
-      ctx.fillStyle = '#27272A'; ctx.fillRect(x - 80, y - 46, 160, 5); ctx.fillRect(x - 80, y - 24, 160, 5); ctx.fillRect(x - 78, y - 46, 5, 46); ctx.fillRect(x + 73, y - 46, 5, 46);
-      for (let k = 0; k < 8; k++) for (const row of [-52, -30]) { const bx = x - 70 + k * 19, r = 5 + (k % 4); ctx.fillStyle = '#18181B'; ctx.fillRect(bx - 2, y + row - r, 4, r * 2); ctx.fillRect(bx + 10, y + row - r, 4, r * 2); ctx.fillStyle = '#71717A'; ctx.fillRect(bx, y + row - 1, 12, 2); }
+      // The dumbbell rack: two shelves on a steel frame, the bells on them heavier toward the end
+      floorShadow(ctx, x, 170);
+      steel(ctx, x - 78, y - 50, 5, 50, '#27272A'); steel(ctx, x + 73, y - 50, 5, 50, '#27272A');
+      for (const row of [-52, -30]) {
+        for (let k = 0; k < 8; k++) {
+          const bx = x - 70 + k * 19, r = 5 + (k % 4), cy = y + row;
+          ink(ctx, () => ctx.rect(bx + 1, cy - 1.2, 10, 2.4), '#A1A1AA', 0.6);
+          for (const hx of [bx - 2, bx + 10]) {
+            shaded(ctx, () => ctx.roundRect(hx, cy - r, 4, r * 2, 1.4), '#27272A', hx, cy - r, 4, r * 2, 0.8);
+            ctx.fillStyle = '#52525B'; ctx.fillRect(hx + 0.8, cy - r + 1.2, 0.8, r * 2 - 2.4);
+          }
+        }
+        steel(ctx, x - 80, y + row + 6, 160, 5, '#3F3F46');
+      }
       break;
     }
     case 'treadmill': {
-      ctx.fillStyle = '#27272A'; ctx.beginPath(); ctx.moveTo(x - 50, y - 6); ctx.lineTo(x + 40, y - 12); ctx.lineTo(x + 44, y); ctx.lineTo(x - 50, y); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#09090B'; ctx.fillRect(x - 46, y - 10, 84, 3);
-      ctx.fillStyle = '#3F3F46'; ctx.fillRect(x + 34, y - 74, 5, 64); ctx.fillRect(x + 20, y - 80, 30, 14);
-      ctx.fillStyle = '#16A34A'; ctx.fillRect(x + 24, y - 77, 22, 6); ctx.fillStyle = '#052e16'; ctx.fillRect(x + 25, y - 76, 20, 4);
-      ctx.fillStyle = '#4ADE80'; ctx.font = 'bold 4px monospace'; ctx.fillText('0.0', x + 28, y - 73);
-      ctx.fillStyle = '#3F3F46'; ctx.fillRect(x + 2, y - 50, 34, 3);
+      // A treadmill: the deck and its belt, the rails up to the console, the console's screen at 0.0
+      floorShadow(ctx, x - 4, 100);
+      shaded(ctx, () => { ctx.moveTo(x - 50, y - 6); ctx.lineTo(x + 40, y - 12); ctx.lineTo(x + 44, y); ctx.lineTo(x - 50, y); ctx.closePath(); }, '#3F3F46', x - 50, y - 12, 94, 12);
+      ink(ctx, () => { ctx.moveTo(x - 46, y - 8.6); ctx.lineTo(x + 38, y - 13.4); ctx.lineTo(x + 38, y - 10.6); ctx.lineTo(x - 46, y - 5.8); ctx.closePath(); }, '#111113', 0.7);
+      ctx.fillStyle = '#27272A'; for (let k = 0; k < 9; k++) ctx.fillRect(x - 42 + k * 9, y - 8.6 - k * 0.5, 1, 2);
+      ink(ctx, () => ctx.arc(x - 46, y - 4, 2.4, 0, Math.PI * 2), '#71717A', 0.7);
+      steel(ctx, x + 34, y - 74, 5, 62, '#3F3F46');
+      steel(ctx, x + 2, y - 51, 36, 3, '#52525B');
+      shadedTop(ctx, () => ctx.roundRect(x + 19, y - 82, 32, 16, 2), '#3F3F46', x + 19, y - 82, 32, 16);
+      ink(ctx, () => ctx.rect(x + 24, y - 78, 22, 7), '#052E16', 0.7);
+      ctx.fillStyle = '#4ADE80'; ctx.font = 'bold 5px monospace'; ctx.fillText('0.0', x + 27, y - 72.6);
+      ctx.fillStyle = 'rgba(74, 222, 128, 0.25)'; ctx.fillRect(x + 25, y - 77, 20, 1);
+      ctx.fillStyle = '#DC2626'; ctx.fillRect(x + 23, y - 69, 3, 2); ctx.fillStyle = '#16A34A'; ctx.fillRect(x + 43, y - 69, 3, 2);
       break;
     }
     case 'bike': {
-      ctx.fillStyle = '#27272A'; ctx.beginPath(); ctx.arc(x + 26, y - 14, 14, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#3F3F46'; ctx.fillRect(x - 30, y - 6, 70, 6); ctx.fillRect(x - 10, y - 50, 6, 46); ctx.fillRect(x + 22, y - 62, 6, 50);
-      ctx.fillStyle = '#18181B'; ctx.fillRect(x - 20, y - 54, 22, 6); ctx.fillRect(x + 16, y - 66, 24, 4);
+      // An exercise bike: the flywheel, the frame, the saddle, the bars, the pedals
+      floorShadow(ctx, x + 5, 80);
+      steel(ctx, x - 30, y - 6, 70, 6, '#3F3F46');
+      ink(ctx, () => ctx.arc(x + 26, y - 16, 14, 0, Math.PI * 2), '#27272A', 1);
+      ink(ctx, () => ctx.arc(x + 26, y - 16, 9, 0, Math.PI * 2), '#3F3F46', 0.8);
+      ctx.fillStyle = '#71717A'; ctx.fillRect(x + 18, y - 28, 6, 1.4); ctx.fillRect(x + 14, y - 22, 1.4, 6);
+      ink(ctx, () => ctx.arc(x + 26, y - 16, 2.4, 0, Math.PI * 2), '#A1A1AA', 0.7);
+      ctx.save(); ctx.translate(x - 7, y - 4); ctx.rotate(-0.25); steel(ctx, 0, -46, 6, 46, '#52525B'); ctx.restore();
+      ctx.save(); ctx.translate(x + 22, y - 12); ctx.rotate(0.1); steel(ctx, 0, -50, 6, 50, '#52525B'); ctx.restore();
+      steel(ctx, x - 6, y - 36, 30, 4, '#52525B');
+      shadedTop(ctx, () => ctx.roundRect(x - 22, y - 56, 24, 6, [3, 1, 1, 3]), '#18181B', x - 22, y - 56, 24, 6);
+      steel(ctx, x + 14, y - 68, 26, 4, '#3F3F46');
+      ink(ctx, () => ctx.roundRect(x + 36, y - 70, 6, 8, 2), '#18181B', 0.8);
+      ink(ctx, () => ctx.rect(x + 4, y - 26, 8, 3), '#18181B', 0.8);
       break;
     }
     case 'fountain': {
-      ctx.fillStyle = '#A1A1AA'; ctx.fillRect(x - 16, y - 70, 32, 70); ctx.fillStyle = '#D4D4D8'; ctx.fillRect(x - 16, y - 70, 32, 6);
-      ctx.fillStyle = '#71717A'; ctx.fillRect(x - 10, y - 62, 20, 8); ctx.fillStyle = '#52525B'; ctx.fillRect(x - 2, y - 66, 4, 4);
-      ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 4px monospace'; ctx.fillText('OUT OF', x - 10, y - 40); ctx.fillText('ORDER', x - 9, y - 34);
+      // The drinking fountain: steel, the basin, the spout, the button; out of order since the eighties
+      floorShadow(ctx, x, 40);
+      shaded(ctx, () => ctx.rect(x - 16, y - 70, 32, 70), '#A1A1AA', x - 16, y - 70, 32, 70);
+      shadedTop(ctx, () => ctx.rect(x - 17, y - 72, 34, 7), '#D4D4D8', x - 17, y - 72, 34, 7);
+      ink(ctx, () => ctx.roundRect(x - 11, y - 64, 22, 8, [0, 0, 4, 4]), '#71717A', 0.8);
+      ctx.fillStyle = '#3F3F46'; ctx.fillRect(x - 8, y - 63, 16, 2);
+      ink(ctx, () => ctx.rect(x - 2, y - 68, 4, 4), '#52525B', 0.7);
+      ink(ctx, () => ctx.rect(x + 10, y - 62, 4, 3), '#3F3F46', 0.6);
+      ctx.fillStyle = '#78350F'; ctx.fillRect(x - 4, y - 58, 3, 1.4); // (rust)
+      ink(ctx, () => ctx.rect(x - 12, y - 46, 24, 15), '#F8FAFC', 0.8);
+      ctx.fillStyle = '#B91C1C'; ctx.font = 'bold 4px monospace'; ctx.fillText('OUT OF', x - 9.5, y - 40); ctx.fillText('ORDER', x - 8.5, y - 34);
+      ctx.fillStyle = 'rgba(200, 200, 210, 0.85)'; ctx.fillRect(x - 13, y - 47, 6, 3); ctx.fillRect(x + 7, y - 47, 6, 3);
+      ctx.fillStyle = '#71717A'; for (let k = 0; k < 4; k++) ctx.fillRect(x - 10, y - 22 + k * 4, 20, 1); // (the grille)
       break;
     }
     case 'cable': {
-      ctx.fillStyle = '#3F3F46'; ctx.fillRect(x - 40, y - 180, 8, 180); ctx.fillRect(x + 32, y - 180, 8, 180); ctx.fillRect(x - 40, y - 180, 80, 8);
-      ctx.fillStyle = '#18181B'; for (let k = 0; k < 8; k++) ctx.fillRect(x - 12, y - 70 + k * 8, 24, 6);
-      ctx.strokeStyle = '#A1A1AA'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y - 172); ctx.lineTo(x, y - 70); ctx.stroke();
+      // The cable machine: the frame, the weight stack on its guide rods, the cable down to it over a pulley
+      floorShadow(ctx, x, 90);
+      steel(ctx, x - 40, y - 180, 8, 180, '#3F3F46'); steel(ctx, x + 32, y - 180, 8, 180, '#3F3F46');
+      steel(ctx, x - 40, y - 182, 80, 8, '#3F3F46');
+      ctx.fillStyle = '#A1A1AA'; ctx.fillRect(x - 16, y - 172, 1.4, 102); ctx.fillRect(x + 15, y - 172, 1.4, 102);
+      ink(ctx, () => ctx.arc(x, y - 172, 4, 0, Math.PI * 2), '#71717A', 0.8);
+      ctx.strokeStyle = '#D4D4D8'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y - 168); ctx.lineTo(x, y - 74); ctx.stroke();
+      for (let k = 0; k < 8; k++) {
+        shadedTop(ctx, () => ctx.rect(x - 12, y - 72 + k * 8, 24, 6.4), '#27272A', x - 12, y - 72 + k * 8, 24, 6.4, 0.8);
+        ctx.fillStyle = '#E5E7EB'; ctx.fillRect(x - 10, y - 70 + k * 8, 3, 1.4);
+      }
+      ink(ctx, () => ctx.rect(x + 6, y - 64, 6, 1.6), '#A1A1AA', 0.6); // (the pin)
       break;
     }
     case 'bag': {
+      // The heavy bag on its chain: leather, the straps, split and duct-taped
       const sw = Math.sin(state.frame * 0.03) * 0.05;
       ctx.save(); ctx.translate(x, 70); ctx.rotate(sw);
-      ctx.strokeStyle = '#71717A'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 260); ctx.stroke();
-      ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.roundRect(-20, 260, 40, 110, 10); ctx.fill();
-      ctx.fillStyle = '#991B1B'; ctx.fillRect(-20, 268, 8, 94);
-      ctx.fillStyle = '#18181B'; ctx.fillRect(-20, 290, 40, 4); ctx.fillRect(-20, 340, 40, 4);
-      ctx.fillStyle = '#E7E5E4'; ctx.fillRect(-10, 360, 20, 4); // (duct tape)
+      ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 248); ctx.stroke();
+      ctx.strokeStyle = '#A1A1AA'; ctx.lineWidth = 1.4; ctx.setLineDash([3, 2]); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 248); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle = '#71717A'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, 248); ctx.lineTo(-16, 262); ctx.moveTo(0, 248); ctx.lineTo(16, 262); ctx.stroke();
+      shaded(ctx, () => ctx.roundRect(-20, 260, 40, 110, 10), '#7F1D1D', -20, 260, 40, 110);
+      ctx.fillStyle = lite('#7F1D1D', 0.4); ctx.fillRect(-14, 266, 3, 96);
+      for (const sy of [290, 340]) { shadedTop(ctx, () => ctx.rect(-20, sy, 40, 5), '#18181B', -20, sy, 40, 5, 0.8); ctx.fillStyle = '#A1A1AA'; ctx.fillRect(-2, sy + 1, 4, 3); }
+      ink(ctx, () => ctx.rect(-10, 358, 20, 6), '#D6D3D1', 0.7); // (duct tape)
+      ctx.fillStyle = '#A8A29E'; ctx.fillRect(-9, 362, 18, 1);
       ctx.restore();
       break;
     }
@@ -222,9 +365,15 @@ const drawEndWall = (ctx: Ctx, state: GameState) => {
   ctx.fillStyle = '#2E241E'; ctx.fillRect(x, 60, w, 10);
   ctx.fillStyle = '#111'; ctx.fillRect(x, Y - 8, w, 8);
   // (a fire extinguisher on its bracket, and its sign)
-  ctx.fillStyle = '#DC2626'; ctx.fillRect(x + 16, Y - 120, 12, 34); ctx.fillStyle = '#18181B'; ctx.fillRect(x + 18, Y - 126, 8, 6); ctx.fillRect(x + 27, Y - 124, 6, 3);
-  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x + 18, Y - 110, 8, 6);
-  ctx.fillStyle = '#B91C1C'; ctx.fillRect(x + 12, Y - 160, 20, 12); ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 4px monospace'; ctx.fillText('FIRE', x + 15, Y - 152);
+  steel(ctx, x + 14, Y - 112, 16, 3, '#3F3F46');
+  shaded(ctx, () => ctx.roundRect(x + 16, Y - 120, 12, 34, [4, 4, 1, 1]), '#DC2626', x + 16, Y - 120, 12, 34);
+  ctx.fillStyle = lite('#DC2626', 0.45); ctx.fillRect(x + 18, Y - 117, 1.4, 26);
+  ink(ctx, () => ctx.rect(x + 18, Y - 110, 8, 7), '#F8FAFC', 0.6); ctx.fillStyle = '#18181B'; ctx.fillRect(x + 19, Y - 108, 6, 0.8); ctx.fillRect(x + 19, Y - 106, 4, 0.8);
+  ink(ctx, () => ctx.rect(x + 19, Y - 126, 6, 6), '#27272A', 0.8);
+  ink(ctx, () => ctx.rect(x + 25, Y - 125, 8, 2.4), '#18181B', 0.6);
+  ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 18, Y - 122); ctx.quadraticCurveTo(x + 10, Y - 110, x + 14, Y - 96); ctx.stroke(); // (the hose)
+  shaded(ctx, () => ctx.rect(x + 12, Y - 160, 20, 12), '#B91C1C', x + 12, Y - 160, 20, 12, 0.8);
+  ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 4px monospace'; ctx.fillText('FIRE', x + 15, Y - 152);
 };
 
 /**
@@ -278,24 +427,40 @@ const drawDoors = (ctx: Ctx, state: GameState, rt: GymRuntime) => {
   // (its light spills 300 out across the floor in front of it)
   if (!inView(state, x - 300, x + 150)) return;
   const top = Y - 150, w = 70;
-  ctx.fillStyle = '#18181B'; ctx.fillRect(x - 8, top - 30, w * 2 + 16, 182);
-  ctx.fillStyle = '#FEF3C7'; ctx.fillRect(x, top, w * 2, 150); // (the light in there)
-  ctx.fillStyle = '#B91C1C'; ctx.fillRect(x + 20, top - 26, w * 2 - 40, 16);
-  ctx.fillStyle = '#FEF9C3'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('LOCKER ROOM', x + w, top - 15); ctx.textAlign = 'left';
+  // (the frame: steel, painted, chipped; the light in there, brightest up the middle)
+  shaded(ctx, () => ctx.rect(x - 8, top - 30, w * 2 + 16, 182), '#27272A', x - 8, top - 30, w * 2 + 16, 182);
+  bandedGradient(ctx, x, top, w * 2, 150, ['#FEF9C3', '#FEF3C7', '#FDE68A', '#E9C77A'], 6);
+  // (a row of lockers in there, in the light)
+  ctx.fillStyle = 'rgba(120, 100, 60, 0.35)'; for (let k = 0; k < 7; k++) ctx.fillRect(x + 6 + k * 19, top + 20, 16, 120);
+  ctx.fillStyle = 'rgba(80, 60, 30, 0.35)'; for (let k = 0; k < 7; k++) { ctx.fillRect(x + 9 + k * 19, top + 30, 10, 1); ctx.fillRect(x + 9 + k * 19, top + 34, 10, 1); }
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(x - 0.5, top - 0.5, w * 2 + 1, 151);
+  // (the sign: a lit box)
+  shaded(ctx, () => ctx.rect(x + 20, top - 26, w * 2 - 40, 16), '#B91C1C', x + 20, top - 26, w * 2 - 40, 16);
+  signText(ctx, 'LOCKER ROOM', x + w, top - 15, 'bold 7px "Press Start 2P"', '#FEF9C3', 'rgba(60, 0, 0, 0.6)');
   // (the two leaves, swung in by `doors`: seen edge-on as they open)
   const open = rt.doors;
   for (const s of [0, 1]) {
     const lw = w * (1 - open * 0.85);
     const lx = s === 0 ? x : x + w * 2 - lw;
-    ctx.fillStyle = '#52525B'; ctx.fillRect(lx, top, lw, 150);
-    ctx.fillStyle = '#3F3F46'; ctx.fillRect(lx, top, lw, 4); ctx.fillRect(lx, top + 70, lw, 4);
-    if (lw > 30) { ctx.fillStyle = '#1F2937'; ctx.beginPath(); ctx.arc(lx + lw / 2, top + 40, 11, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = 'rgba(254, 243, 199, 0.6)'; ctx.beginPath(); ctx.arc(lx + lw / 2, top + 40, 8, 0, Math.PI * 2); ctx.fill(); }
-    ctx.fillStyle = '#A1A1AA'; ctx.fillRect(s === 0 ? lx + lw - 8 : lx + 2, top + 76, 6, 20);
+    shaded(ctx, () => ctx.rect(lx, top, lw, 150), '#52525B', lx, top, lw, 150);
+    // (the kick plate, scuffed; the push plate)
+    shadedTop(ctx, () => ctx.rect(lx + 1, top + 124, lw - 2, 24), '#A1A1AA', lx + 1, top + 124, lw - 2, 24, 0.8);
+    ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(lx + lw * 0.3, top + 132, 6, 2); ctx.fillRect(lx + lw * 0.6, top + 138, 4, 2);
+    if (lw > 30) {
+      ink(ctx, () => ctx.arc(lx + lw / 2, top + 40, 11, 0, Math.PI * 2), '#71717A', 1);
+      ink(ctx, () => ctx.arc(lx + lw / 2, top + 40, 8, 0, Math.PI * 2), '#FDE68A', 0.8);
+      ctx.fillStyle = '#FEF9C3'; ctx.fillRect(lx + lw / 2 - 4, top + 35, 3, 2); ctx.fillRect(lx + lw / 2 - 5, top + 38, 1.4, 2);
+    }
+    const hx = s === 0 ? lx + lw - 8 : lx + 2;
+    shaded(ctx, () => ctx.rect(hx, top + 76, 6, 20), '#D4D4D8', hx, top + 76, 6, 20, 0.8);
   }
   if (open > 0) {
-    const g = ctx.createLinearGradient(x, 0, x - 260, 0);
-    g.addColorStop(0, `rgba(254, 243, 199, ${0.35 * open})`); g.addColorStop(1, 'rgba(254, 243, 199, 0)');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, Y); ctx.lineTo(x - 300, Y); ctx.closePath(); ctx.fill();
+    // (the light, out across the floor, in steps)
+    for (let k = 0; k < 5; k++) {
+      const a = 0.32 * open * (1 - k / 5), x0 = x - k * 60, x1 = x - (k + 1) * 60;
+      ctx.fillStyle = `rgba(254, 243, 199, ${a.toFixed(3)})`;
+      ctx.beginPath(); ctx.moveTo(x, top + (Y - top) * (k / 5)); ctx.lineTo(x, Y); ctx.lineTo(x1, Y); ctx.lineTo(x0, Y); ctx.lineTo(x, top + (Y - top) * ((k + 1) / 5)); ctx.closePath(); ctx.fill();
+    }
   }
 };
 
@@ -305,14 +470,16 @@ export const drawGymMid = (ctx: Ctx, state: GameState) => {
   if (!rt) return;
   for (const l of COURSE.ledges) if (inView(state, l.x, l.x + l.w)) drawLedge(ctx, l);
   if (inView(state, WALL_X, WALL_X + WALL_W)) drawHalfWall(ctx);
-  // (the mezzanine: its rail along the edge, CARDIO KILLS on its front)
+  // (the mezzanine: its rail along the edge, NO SPOTTERS on its front)
   const mz = COURSE.runs.find(r => r.y1 === MEZZ_Y);
   if (mz && inView(state, mz.x1, mz.x2)) {
-    ctx.fillStyle = '#A1A1AA';
-    ctx.fillRect(mz.x1, MEZZ_Y - 40, mz.x2 - mz.x1, 3);
-    for (let x = mz.x1 + 10; x < mz.x2; x += 30) ctx.fillRect(x, MEZZ_Y - 40, 3, 40);
-    ctx.fillStyle = '#FACC15'; ctx.fillRect(mz.x1 + 30, MEZZ_Y + 30, 140, 22);
-    ctx.fillStyle = '#18181B'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('NO SPOTTERS', mz.x1 + 100, MEZZ_Y + 45); ctx.textAlign = 'left';
+    for (let x = mz.x1 + 10; x < mz.x2; x += 30) steel(ctx, x, MEZZ_Y - 40, 3, 40, '#A1A1AA');
+    steel(ctx, mz.x1, MEZZ_Y - 42, mz.x2 - mz.x1, 4, '#A1A1AA');
+    steel(ctx, mz.x1, MEZZ_Y - 20, mz.x2 - mz.x1, 2, '#71717A');
+    shaded(ctx, () => ctx.rect(mz.x1 + 30, MEZZ_Y + 30, 140, 22), '#FACC15', mz.x1 + 30, MEZZ_Y + 30, 140, 22);
+    ctx.fillStyle = '#18181B'; for (let k = 0; k < 140; k += 10) { ctx.beginPath(); ctx.moveTo(mz.x1 + 30 + k, MEZZ_Y + 30); ctx.lineTo(mz.x1 + 35 + k, MEZZ_Y + 30); ctx.lineTo(mz.x1 + 30 + k, MEZZ_Y + 35); ctx.fill(); }
+    ink(ctx, () => ctx.rect(mz.x1 + 34, MEZZ_Y + 36, 132, 12), '#FEF08A', 0.6);
+    signText(ctx, 'NO SPOTTERS', mz.x1 + 100, MEZZ_Y + 46, 'bold 8px "Press Start 2P"', '#18181B', 'rgba(161, 98, 7, 0.5)');
   }
   for (const b of rt.bigFellas) if (rt.phase !== 'play') drawBigFella(ctx, state, b, rt);
 };
@@ -320,38 +487,52 @@ export const drawGymMid = (ctx: Ctx, state: GameState) => {
 /** The half-wall across the floor at the end of the cardio floor: cinderblock, painted, chipped, a sign on it. */
 const drawHalfWall = (ctx: Ctx) => {
   const x = WALL_X, w = WALL_W, top = WALL_TOP, h = Y - top;
-  ctx.fillStyle = '#A8A08A'; ctx.fillRect(x, top, w, h);
+  ctx.fillStyle = '#6E6652'; ctx.fillRect(x, top, w, h);
   for (let y = top; y < Y; y += 20) {
-    ctx.fillStyle = 'rgba(70, 60, 40, 0.45)'; ctx.fillRect(x, y + 18, w, 2);
-    ctx.fillRect(x + (((y - top) / 20) % 2 ? 22 : 10), y, 2, 20);
+    const off = ((y - top) / 20) % 2 ? -11 : 0;
+    for (let bx = x + off; bx < x + w; bx += 22) {
+      const l = Math.max(x, bx + 1), r = Math.min(x + w, bx + 21), c = hash(bx * 0.3 + y) > 0.5 ? '#ABA38C' : '#A0987F';
+      ctx.fillStyle = c; ctx.fillRect(l, y + 1, r - l, 18);
+      ctx.fillStyle = lite(c, 0.2); ctx.fillRect(l, y + 1, r - l, 1.4);
+      ctx.fillStyle = dark(c, 0.15); ctx.fillRect(l, y + 16, r - l, 3);
+    }
   }
-  ctx.fillStyle = '#C9C1A8'; ctx.fillRect(x, top, w, 4); ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(x + w - 6, top, 6, h);
+  shadedTop(ctx, () => ctx.rect(x - 2, top, w + 4, 5), '#C9C1A8', x - 2, top, w + 4, 5);
+  ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(x + w - 6, top + 5, 6, h - 5);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(x - 0.5, top - 0.5, w + 1, h + 1);
   // (chips knocked out of it, and the sign)
-  ctx.fillStyle = '#7C7462'; ctx.fillRect(x + 4, top + 30, 5, 3); ctx.fillRect(x + 30, top + 62, 4, 4);
-  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x + 6, top + 14, w - 12, 12); ctx.fillStyle = '#DC2626'; ctx.fillRect(x + 6, top + 14, w - 12, 3);
-  ctx.fillStyle = '#111'; ctx.font = 'bold 3px monospace'; ctx.fillText('RE-RACK', x + 9, top + 22); ctx.fillText('YOUR WTS', x + 8, top + 25);
+  for (const [cx, cy, cw, ch] of [[x + 4, top + 30, 5, 3], [x + 30, top + 62, 4, 4]]) { ctx.fillStyle = '#5C5444'; ctx.fillRect(cx, cy, cw, ch); ctx.fillStyle = '#D6CFB8'; ctx.fillRect(cx, cy + ch, cw, 1); }
+  ink(ctx, () => ctx.rect(x + 6, top + 13, w - 12, 13), '#F8FAFC', 0.8);
+  ctx.fillStyle = '#DC2626'; ctx.fillRect(x + 6.5, top + 13.5, w - 13, 3);
+  ctx.fillStyle = '#111'; ctx.font = 'bold 3px monospace'; ctx.fillText('RE-RACK', x + 9, top + 21.6); ctx.fillText('YOUR WTS', x + 8, top + 25);
 };
 
 const drawLedge = (ctx: Ctx, l: Ledge) => {
   if (l.look === 'step') {
-    // A stack of plyo boxes up to it
+    // A stack of plyo boxes up to it: plywood, the edge grain, the height stenciled on, the corners scuffed
     for (let k = 0; k < 2; k++) {
-      const top = l.y + k * 50, h = 50;
-      ctx.fillStyle = k ? '#7C2D12' : '#9A3412'; ctx.fillRect(l.x, top, l.w, h);
-      ctx.fillStyle = '#C2410C'; ctx.fillRect(l.x, top, l.w, 3);
-      ctx.fillStyle = '#18181B'; ctx.font = 'bold 6px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText(k ? '24"' : '30"', l.x + l.w / 2, top + 30); ctx.textAlign = 'left';
+      const top = l.y + k * 50, h = 50, c = k ? '#B07A44' : '#C48A50';
+      shaded(ctx, () => ctx.rect(l.x, top, l.w, h), c, l.x, top, l.w, h);
+      ctx.fillStyle = lite(c, 0.35); ctx.fillRect(l.x + 1, top + 1, l.w - 2, 2);
+      ctx.fillStyle = dark(c, 0.15); for (let g = 0; g < 4; g++) ctx.fillRect(l.x + 8 + g * 22, top + 8 + (g % 2) * 20, 14, 1);
+      ctx.fillStyle = dark(c, 0.4); ctx.fillRect(l.x + 4, top + 4, 3, 3); ctx.fillRect(l.x + l.w - 7, top + 4, 3, 3); // (the screws)
+      ink(ctx, () => ctx.ellipse(l.x + l.w / 2, top + 16, 10, 4, 0, 0, Math.PI * 2), dark(c, 0.55), 0.7); // (the hand hole)
+      signText(ctx, k ? '24"' : '30"', l.x + l.w / 2, top + 36, 'bold 6px "Press Start 2P"', '#18181B', 'rgba(255,255,255,0.25)');
     }
     return;
   }
   // A plate rack: two uprights, shelves of plates, its top a steel shelf you can stand on
-  ctx.fillStyle = '#3F3F46'; ctx.fillRect(l.x, l.y, 8, Y - l.y); ctx.fillRect(l.x + l.w - 8, l.y, 8, Y - l.y);
-  ctx.fillStyle = '#71717A'; ctx.fillRect(l.x, l.y, l.w, 8); ctx.fillStyle = '#A1A1AA'; ctx.fillRect(l.x, l.y, l.w, 2);
-  ctx.fillStyle = '#52525B'; ctx.fillRect(l.x, l.y + 50, l.w, 4);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(l.x - 4, Y - 3, l.w + 8, 3);
+  steel(ctx, l.x, l.y, 8, Y - l.y, '#3F3F46'); steel(ctx, l.x + l.w - 8, l.y, 8, Y - l.y, '#3F3F46');
+  steel(ctx, l.x + 8, l.y + 50, l.w - 16, 4, '#52525B');
   for (let k = 0; k < 6; k++) {
     const px = l.x + 20 + k * ((l.w - 40) / 5);
-    ctx.fillStyle = k % 3 === 0 ? '#1E3A8A' : '#18181B'; ctx.beginPath(); ctx.ellipse(px, l.y + 32, 4, 20, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#18181B'; ctx.beginPath(); ctx.ellipse(px, Y - 26, 4, 22, 0, 0, Math.PI * 2); ctx.fill();
+    plate(ctx, px, l.y + 32, 7, 20, k % 3 === 0 ? '#1E3A8A' : '#1F1F23');
+    plate(ctx, px, Y - 26, 7, 22, k % 2 ? '#991B1B' : '#1F1F23');
   }
+  steel(ctx, l.x, l.y, l.w, 8, '#71717A');
+  ctx.fillStyle = '#E4E4E7'; ctx.fillRect(l.x + 2, l.y + 1, l.w - 4, 1);
+  ctx.fillStyle = '#FACC15'; for (let k = 0; k < l.w - 8; k += 16) ctx.fillRect(l.x + 4 + k, l.y + 4, 8, 2); // (the hazard striping on its edge)
 };
 
 /**
@@ -364,34 +545,53 @@ const drawBigFella = (ctx: Ctx, state: GameState, b: BigFella, rt: GymRuntime) =
   if (rt.phase === 'arrive' && rt.t <= 30 + b.delay) return;
   const walking = b.x > b.to + 0.5;
   const f = state.frame + b.delay * 7;
+  const SUIT = '#141418', SKIN = '#E8C4A0', SK_D = dark(SKIN, 0.22);
   ctx.save(); ctx.translate(b.x, Y); ctx.scale(-1, 1);
   const s = walking ? Math.sin(f * 0.16) * 6 : 0, bob = walking ? Math.abs(Math.sin(f * 0.16)) * 2 : 0;
+  ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(0, 0, 20, 3, 0, 0, Math.PI * 2); ctx.fill();
   ctx.translate(0, -bob);
   // Legs, shoes
-  ctx.fillStyle = '#0C0C10'; ctx.fillRect(-11 + s, -40, 10, 36); ctx.fillRect(2 - s, -40, 10, 36);
-  ctx.fillStyle = '#000'; ctx.fillRect(-13 + s, -5, 14, 5); ctx.fillRect(1 - s, -5, 14, 5);
+  for (const lx of [-11 + s, 2 - s]) {
+    shaded(ctx, () => ctx.rect(lx, -40, 10, 36), SUIT, lx, -40, 10, 36);
+    ink(ctx, () => ctx.roundRect(lx - 2, -5, 14, 5, [2, 3, 1, 1]), '#050505', 0.9);
+    ctx.fillStyle = '#52525B'; ctx.fillRect(lx + 6, -4.2, 4, 0.9);
+  }
+  // Arms behind, when walking
+  if (walking) limb(ctx, -22, -78, -24, -48 - s * 0.3, 7, SUIT);
   // The jacket, cut for the shoulders, the lit edge along it
-  ctx.fillStyle = '#0C0C10'; ctx.beginPath(); ctx.moveTo(-24, -82); ctx.lineTo(24, -82); ctx.lineTo(18, -38); ctx.lineTo(-18, -38); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#24242C'; ctx.fillRect(-24, -82, 3, 30); ctx.fillRect(-24, -82, 48, 2);
-  ctx.fillStyle = '#E8E8E8'; ctx.beginPath(); ctx.moveTo(-5, -82); ctx.lineTo(5, -82); ctx.lineTo(0, -64); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#000'; ctx.fillRect(-1, -80, 3, 18);
+  const coat = () => { ctx.moveTo(-24, -80); ctx.quadraticCurveTo(-24, -84, -18, -84); ctx.lineTo(18, -84); ctx.quadraticCurveTo(24, -84, 24, -80); ctx.lineTo(18, -38); ctx.lineTo(-18, -38); ctx.closePath(); };
+  shaded(ctx, coat, SUIT, -24, -84, 48, 46);
+  ink(ctx, () => { ctx.moveTo(-5, -83); ctx.lineTo(5, -83); ctx.lineTo(0, -64); ctx.closePath(); }, '#E8E8E8', 0.8);
+  ink(ctx, () => { ctx.moveTo(-1.4, -81); ctx.lineTo(1.6, -81); ctx.lineTo(2, -66); ctx.lineTo(0, -64); ctx.lineTo(-2, -66); ctx.closePath(); }, '#050505', 0.6);
+  for (const sx of [-1, 1]) ink(ctx, () => { ctx.moveTo(sx * 5, -83); ctx.lineTo(sx * 9, -74); ctx.lineTo(sx * 6, -72); ctx.lineTo(0, -60); ctx.closePath(); }, sx < 0 ? '#2A2A32' : SUIT, 0.7);
+  ctx.fillStyle = INK; ctx.fillRect(-1, -56, 2, 2); ctx.fillRect(-1, -48, 2, 2);
   // Arms: swinging, or hands folded in front
-  ctx.fillStyle = '#0C0C10';
-  if (walking) { ctx.fillRect(-28, -80 - s * 0.3, 7, 34); ctx.fillRect(21, -80 + s * 0.3, 7, 34); ctx.fillStyle = '#E8C4A0'; ctx.fillRect(-28, -47 - s * 0.3, 7, 6); ctx.fillRect(21, -47 + s * 0.3, 7, 6); }
-  else { ctx.fillRect(-28, -80, 7, 26); ctx.fillRect(21, -80, 7, 26); ctx.fillRect(-22, -58, 44, 7); ctx.fillStyle = '#E8C4A0'; ctx.fillRect(-6, -58, 12, 7); }
+  if (walking) {
+    limb(ctx, 22, -78, 24, -48 + s * 0.3, 7, SUIT);
+    ink(ctx, () => ctx.roundRect(20.4, -48 + s * 0.3, 7, 6, 2), SKIN, 0.8);
+  } else {
+    limb(ctx, -21, -78, -16, -55, 7, SUIT); limb(ctx, 21, -78, 16, -55, 7, SUIT);
+    limb(ctx, -16, -55, -3, -55, 7, SUIT); limb(ctx, 16, -55, 3, -55, 7, SUIT);
+    ink(ctx, () => ctx.roundRect(-6, -59, 12, 7, 2.4), SKIN, 0.8);
+    ctx.fillStyle = SK_D; ctx.fillRect(-4, -56, 8, 0.7);
+  }
   // The neck: wider than his head, the traps sloping up into it, the collar dug in round it
-  ctx.fillStyle = '#0C0C10'; ctx.beginPath(); ctx.moveTo(-24, -82); ctx.lineTo(-13, -90); ctx.lineTo(13, -90); ctx.lineTo(24, -82); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#C09470'; ctx.fillRect(-13, -94, 26, 13);
-  ctx.fillStyle = '#E8C4A0'; ctx.fillRect(-9, -94, 14, 12);
-  ctx.fillStyle = '#A07858'; ctx.fillRect(-6, -91, 1, 8); ctx.fillRect(3, -91, 1, 8);
-  ctx.fillStyle = '#E8E8E8'; ctx.fillRect(-11, -83, 22, 2);
+  ink(ctx, () => { ctx.moveTo(-24, -82); ctx.lineTo(-13, -90); ctx.lineTo(13, -90); ctx.lineTo(24, -82); ctx.closePath(); }, SUIT, 1);
+  shaded(ctx, () => ctx.rect(-13, -95, 26, 13), SKIN, -13, -95, 26, 13, 0.9);
+  ctx.fillStyle = SK_D; ctx.fillRect(-6, -91, 1, 8); ctx.fillRect(3, -91, 1, 8);
+  ink(ctx, () => ctx.rect(-11, -84, 22, 2.4), '#E8E8E8', 0.6);
   // The head: square, the side parting, shades, the earpiece and its coil
-  ctx.fillStyle = '#E8C4A0'; ctx.fillRect(-10, -112, 20, 22); ctx.fillStyle = '#C09470'; ctx.fillRect(5, -112, 5, 22);
-  ctx.fillStyle = '#111'; ctx.fillRect(-11, -116, 22, 7); ctx.fillRect(-11, -112, 4, 6);
-  ctx.fillStyle = '#040404'; ctx.fillRect(-9, -105, 18, 5);
+  shaded(ctx, () => ctx.roundRect(-10, -113, 20, 23, [3, 3, 4, 4]), SKIN, -10, -113, 20, 23);
+  ink(ctx, () => ctx.ellipse(-8.4, -101, 1.8, 3, 0, 0, Math.PI * 2), SK_D, 0.7);
+  ink(ctx, () => { ctx.moveTo(-11, -106); ctx.lineTo(-11, -114); ctx.quadraticCurveTo(-10, -118, 0, -117.4); ctx.quadraticCurveTo(10, -118, 11, -112); ctx.lineTo(10, -109.6); ctx.lineTo(-7, -110); ctx.lineTo(-7.6, -106); ctx.closePath(); }, '#111', 0.9);
+  ctx.fillStyle = '#3F3F46'; ctx.fillRect(-6, -116, 10, 1); ctx.fillStyle = '#000'; ctx.fillRect(2, -117, 0.8, 7); // (the part, the shine)
+  ink(ctx, () => ctx.roundRect(-9, -105.6, 19, 5.4, [0.6, 0.6, 2, 2]), '#040404', 0.8);
+  ctx.fillStyle = '#27272A'; ctx.fillRect(-8, -105, 17, 1);
   const g = (state.frame * 2 + b.delay * 9) % 140; if (g < 18) { ctx.fillStyle = '#FCFCFC'; ctx.fillRect(-9 + g, -105, 2, 2); }
-  ctx.fillStyle = '#A1A1AA'; ctx.fillRect(9, -100, 2, 10);
-  ctx.fillStyle = '#8C5040'; ctx.fillRect(-4, -95, 9, 1);
+  ctx.fillStyle = SK_D; ctx.fillRect(7, -99, 1.4, 2.4);
+  ctx.fillStyle = '#8C5040'; ctx.fillRect(-4, -95.4, 9, 1);
+  ink(ctx, () => ctx.arc(-9, -101, 1.4, 0, Math.PI * 2), '#D4D4D8', 0.6);
+  ctx.strokeStyle = '#D4D4D8'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(-9, -99.6); for (let k = 1; k <= 6; k++) ctx.lineTo(-9 + (k % 2 ? -1.2 : 1.2), -99.6 + k * 1.6); ctx.stroke();
   ctx.restore();
 };
 

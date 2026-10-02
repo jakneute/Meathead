@@ -1,6 +1,7 @@
 import { GameStatus, Enemy, TommyBoard, DamageNumber, Particle } from '../../types';
 import { attackless } from '../enemies/attackless';
-import { hazeBands, steppedGlow } from './pixelArt';
+import { hazeBands, steppedGlow, bandedGradient, checker, pixelBlob } from './pixelArt';
+import { INK, ink, shaded, shadedTop, dark, lite } from './npc/kit';
 import { setBossLook } from './bosses/kit';
 import { isDummy, drawDummy } from './dummies';
 import {
@@ -387,117 +388,174 @@ const RING_HASH = (n: number) => { const x = Math.sin(n * 127.1) * 43758.5453; r
 const drawRing = (ctx: CanvasRenderingContext2D, frame: number) => {
   const W = CANVAS_WIDTH, mat = RING_FLOOR_Y, h = RING_HASH, top = RING_CEILING_Y;
   // Cinderblock, grimy, the paint peeling off it in patches, water stains run down from the ceiling
-  ctx.fillStyle = '#1A1917'; ctx.fillRect(0, 0, W, CANVAS_HEIGHT);
-  ctx.fillStyle = '#211F1C';
-  for (let y = top; y < mat; y += 20) for (let x = (((y - top) / 20) % 2) * 22; x < W; x += 44) ctx.fillRect(x + 1, y + 1, 42, 18);
-  ctx.fillStyle = 'rgba(64, 80, 58, 0.35)'; // (old green paint, what's left of it)
-  for (let k = 0; k < 7; k++) { ctx.beginPath(); const px = h(k) * W, py = top + 40 + h(k + 9) * 130; ctx.ellipse(px, py, 30 + h(k + 3) * 60, 16 + h(k + 5) * 30, 0, 0, Math.PI * 2); ctx.fill(); }
-  ctx.fillStyle = 'rgba(80, 60, 30, 0.28)';
-  for (let k = 0; k < 6; k++) { const sx = 40 + h(k + 20) * (W - 80); ctx.fillRect(sx, top, 8 + h(k + 21) * 10, 60 + h(k + 22) * 130); }
+  ctx.fillStyle = '#161513'; ctx.fillRect(0, 0, W, CANVAS_HEIGHT);
+  for (let y = top; y < mat; y += 20) for (let x = (((y - top) / 20) % 2) * 22 - 22; x < W; x += 44) {
+    const c = h(x * 0.37 + y) > 0.5 ? '#24221F' : '#201E1B';
+    ctx.fillStyle = c; ctx.fillRect(x + 1, y + 1, 42, 18);
+    ctx.fillStyle = '#2C2A26'; ctx.fillRect(x + 1, y + 1, 42, 1.4); ctx.fillRect(x + 1, y + 2, 1.4, 16); // (the lit edge)
+    ctx.fillStyle = '#191715'; ctx.fillRect(x + 1, y + 17, 42, 2);
+  }
+  for (let k = 0; k < 7; k++) { // (old green paint, what's left of it)
+    const px = h(k) * W, py = top + 40 + h(k + 9) * 130, rw = 30 + h(k + 3) * 60, rh = 16 + h(k + 5) * 30;
+    pixelBlob(ctx, px, py, rw, rh, 'rgba(64, 80, 58, 0.35)');
+    ctx.fillStyle = 'rgba(120, 140, 110, 0.18)'; ctx.fillRect(Math.floor(px - rw * 0.6), Math.floor(py - rh * 0.8), Math.floor(rw * 0.8), 2); // (its curling edge, catching the light)
+  }
+  for (let k = 0; k < 6; k++) {
+    const sx = Math.floor(40 + h(k + 20) * (W - 80)), sw = Math.floor(8 + h(k + 21) * 10), sh = 60 + h(k + 22) * 130;
+    ctx.fillStyle = 'rgba(80, 60, 30, 0.28)'; ctx.fillRect(sx, top, sw, sh);
+    checker(ctx, sx, top + Math.floor(sh / 2) * 2, sw, 6, 'rgba(80, 60, 30, 0.28)', 0);
+    ctx.fillStyle = 'rgba(110, 80, 40, 0.3)'; ctx.fillRect(sx + 2, top, 2, sh - 10);
+  }
   // The ceiling: sagging tiles on a grid, a few gone (the dark in the holes), one hanging down, a brown stain over the
   // corner where the roof leaks, and a joist along the front edge of it
-  ctx.fillStyle = '#34312C'; ctx.fillRect(0, 0, W, top);
+  ctx.fillStyle = '#2A2824'; ctx.fillRect(0, 0, W, top);
   for (let x = 0; x < W; x += 50) for (let y = top - 150; y < top; y += 30) {
-    const k = x * 7 + y;
-    ctx.fillStyle = h(k) < 0.12 ? '#0B0A09' : h(k + 1) < 0.2 ? '#3E3A33' : '#46423A';
-    ctx.fillRect(x + 1, y + 1, 48, 28);
+    const k = x * 7 + y, hole = h(k) < 0.12;
+    const c = hole ? '#0B0A09' : h(k + 1) < 0.2 ? '#3E3A33' : '#46423A';
+    ctx.fillStyle = c; ctx.fillRect(x + 1, y + 1, 48, 28);
+    if (hole) { ctx.fillStyle = '#1A1815'; ctx.fillRect(x + 1, y + 1, 48, 4); continue; }
+    ctx.fillStyle = 'rgba(255, 250, 230, 0.06)'; ctx.fillRect(x + 1, y + 1, 48, 2);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.18)'; ctx.fillRect(x + 1, y + 26, 48, 3);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.12)'; for (let d = 0; d < 5; d++) ctx.fillRect(x + 4 + h(k + d) * 40, y + 4 + h(k - d) * 20, 1, 1);
   }
-  ctx.fillStyle = 'rgba(120, 85, 40, 0.35)'; ctx.beginPath(); ctx.ellipse(W - 70, top - 12, 60, 20, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.save(); ctx.translate(250, top - 2); ctx.rotate(0.35); ctx.fillStyle = '#46423A'; ctx.fillRect(0, 0, 48, 6); ctx.restore(); // (a tile hanging off by a corner)
-  ctx.fillStyle = '#1C1A17'; ctx.fillRect(0, top - 8, W, 10);
-  ctx.fillStyle = '#2B2823'; ctx.fillRect(0, top - 8, W, 2);
+  pixelBlob(ctx, W - 70, top - 12, 60, 20, 'rgba(120, 85, 40, 0.3)');
+  pixelBlob(ctx, W - 70, top - 12, 36, 11, 'rgba(120, 85, 40, 0.3)');
+  ctx.save(); ctx.translate(250, top - 2); ctx.rotate(0.35); // (a tile hanging off by a corner)
+  shadedTop(ctx, () => ctx.rect(0, 0, 48, 6), '#46423A', 0, 0, 48, 6, 0.8); ctx.restore();
+  shadedTop(ctx, () => ctx.rect(-1, top - 8, W + 2, 10), '#26231F', -1, top - 8, W + 2, 10);
+  ctx.fillStyle = '#3A362F'; ctx.fillRect(0, top - 7, W, 1.4);
   // A window up high: one pane out, the dirty light coming in through it, dust in the light
   const wx = 560, wy = top + 16;
-  ctx.fillStyle = '#3F3F46'; ctx.fillRect(wx - 4, wy - 4, 128, 68);
-  for (let i = 0; i < 4; i++) { ctx.fillStyle = i === 2 ? '#0B0B0F' : 'rgba(148, 163, 184, 0.35)'; ctx.fillRect(wx + (i % 2) * 62, wy + Math.floor(i / 2) * 31, 58, 28); }
-  ctx.fillStyle = 'rgba(203, 213, 225, 0.5)'; ctx.beginPath(); ctx.moveTo(wx, wy + 31); ctx.lineTo(wx + 20, wy + 31); ctx.lineTo(wx, wy + 48); ctx.fill();
-  ctx.fillStyle = 'rgba(226, 232, 240, 0.05)'; ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx + 120, wy); ctx.lineTo(wx - 60, mat); ctx.lineTo(wx - 260, mat); ctx.fill();
-  ctx.fillStyle = 'rgba(226, 232, 240, 0.35)';
-  for (let k = 0; k < 14; k++) { const t = (frame * 0.2 + k * 37) % 400; ctx.fillRect(wx - 140 + h(k) * 200 - t * 0.3, wy + 40 + t, 1.5, 1.5); }
+  shaded(ctx, () => ctx.rect(wx - 4, wy - 4, 128, 68), '#3F3F46', wx - 4, wy - 4, 128, 68);
+  for (let i = 0; i < 4; i++) {
+    const px = wx + (i % 2) * 62, py = wy + Math.floor(i / 2) * 31;
+    if (i === 2) { ctx.fillStyle = '#0B0B0F'; ctx.fillRect(px, py, 58, 28); continue; }
+    bandedGradient(ctx, px, py, 58, 28, ['#8D99A8', '#6F7B8A', '#58626F'], 4);
+    ctx.fillStyle = 'rgba(60, 50, 30, 0.35)'; ctx.fillRect(px, py + 20, 58, 8); checker(ctx, px, py + 16, 58, 4, 'rgba(60, 50, 30, 0.35)', 0);
+    ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fillRect(px + 4, py + 2, 2, 12); ctx.fillRect(px + 8, py + 2, 1, 6);
+    ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(px - 0.5, py - 0.5, 59, 29);
+  }
+  ink(ctx, () => { ctx.moveTo(wx, wy + 31); ctx.lineTo(wx + 20, wy + 31); ctx.lineTo(wx, wy + 48); ctx.closePath(); }, '#A8B2BF', 0.8); // (a shard still in the frame)
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(wx - 4.5, wy - 4.5, 129, 69);
+  for (let k = 0; k < 3; k++) { // (the shaft of light, in steps)
+    ctx.fillStyle = `rgba(226, 232, 240, ${(0.05 - k * 0.012).toFixed(3)})`;
+    ctx.beginPath(); ctx.moveTo(wx + k * 10, wy); ctx.lineTo(wx + 120 - k * 10, wy); ctx.lineTo(wx - 60 - k * 30, mat); ctx.lineTo(wx - 260 + k * 30, mat); ctx.fill();
+  }
+  ctx.fillStyle = 'rgba(226, 232, 240, 0.4)';
+  for (let k = 0; k < 14; k++) { const t = (frame * 0.2 + k * 37) % 400; ctx.fillRect(Math.floor(wx - 140 + h(k) * 200 - t * 0.3), Math.floor(wy + 40 + t), 2, 2); }
   // The bleachers: rows of benches, seats gone out of them, a section fallen in on the left
   for (let r = 0; r < 4; r++) {
     const y = 250 + r * 42;
     for (let x = 0; x < W; x += 44) {
       const gone = h(x * 3 + r * 17) < 0.18 || (x < 176 && r >= 2);
       if (gone) continue;
-      ctx.fillStyle = '#2A2724'; ctx.fillRect(x + 2, y, 40, 8);
-      ctx.fillStyle = '#1F1C1A'; ctx.fillRect(x + 4, y + 8, 4, 18); ctx.fillRect(x + 36, y + 8, 4, 18);
+      shaded(ctx, () => ctx.rect(x + 4, y + 8, 4, 18), '#1F1C1A', x + 4, y + 8, 4, 18, 0.8);
+      shaded(ctx, () => ctx.rect(x + 36, y + 8, 4, 18), '#1F1C1A', x + 36, y + 8, 4, 18, 0.8);
+      shadedTop(ctx, () => ctx.rect(x + 2, y, 40, 8), '#34302B', x + 2, y, 40, 8, 0.8);
+      ctx.fillStyle = '#48423A'; ctx.fillRect(x + 3, y + 1, 38, 1);
     }
   }
   // (the fallen-in bit: planks down at an angle, a folding chair on its side)
-  ctx.fillStyle = '#2A2724';
-  for (let k = 0; k < 4; k++) { ctx.save(); ctx.translate(30 + k * 38, 340 + (k % 2) * 30); ctx.rotate(0.35 - k * 0.2); ctx.fillRect(-24, -4, 48, 8); ctx.restore(); }
-  ctx.strokeStyle = '#52525B'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(210, 400); ctx.lineTo(236, 392); ctx.lineTo(240, 410); ctx.moveTo(214, 392); ctx.lineTo(230, 414); ctx.stroke();
+  for (let k = 0; k < 4; k++) { ctx.save(); ctx.translate(30 + k * 38, 340 + (k % 2) * 30); ctx.rotate(0.35 - k * 0.2); shadedTop(ctx, () => ctx.rect(-24, -4, 48, 8), '#34302B', -24, -4, 48, 8, 0.8); ctx.restore(); }
+  for (const [lw, c] of [[5, INK], [3, '#52525B']] as const) { ctx.strokeStyle = c; ctx.lineWidth = lw; ctx.beginPath(); ctx.moveTo(210, 400); ctx.lineTo(236, 392); ctx.lineTo(240, 410); ctx.moveTo(214, 392); ctx.lineTo(230, 414); ctx.stroke(); }
   // The heavy bag on its chain, taped up where it split; a poster half off the wall; the notice
   const bagSway = Math.sin(frame * 0.02) * 0.04;
   ctx.save(); ctx.translate(96, top); ctx.rotate(bagSway);
-  ctx.strokeStyle = '#71717A'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 150); ctx.stroke();
-  ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.roundRect(-18, 150, 36, 80, 10); ctx.fill();
-  ctx.fillStyle = '#A1A1AA'; ctx.fillRect(-18, 176, 36, 7); ctx.fillRect(-18, 204, 36, 5);
-  ctx.fillStyle = '#D6D3D1'; ctx.fillRect(-6, 214, 12, 10); ctx.restore();
+  ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 150); ctx.stroke();
+  ctx.strokeStyle = '#71717A'; ctx.lineWidth = 1.4; ctx.setLineDash([3, 2]); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 150); ctx.stroke(); ctx.setLineDash([]);
+  shaded(ctx, () => ctx.roundRect(-18, 150, 36, 80, 10), '#7F1D1D', -18, 150, 36, 80);
+  ctx.fillStyle = lite('#7F1D1D', 0.35); ctx.fillRect(-12, 156, 3, 66);
+  shadedTop(ctx, () => ctx.rect(-18, 176, 36, 7), '#A1A1AA', -18, 176, 36, 7, 0.8);
+  shadedTop(ctx, () => ctx.rect(-18, 204, 36, 5), '#A1A1AA', -18, 204, 36, 5, 0.8);
+  ink(ctx, () => ctx.rect(-6, 214, 12, 10), '#D6D3D1', 0.7);
+  ctx.fillStyle = '#7F1D1D'; ctx.fillRect(-2, 222, 4, 4); // (the stuffing coming out under the tape)
+  ctx.fillStyle = '#E7E5E4'; ctx.fillRect(-1, 224, 2, 3);
+  ctx.restore();
   ctx.save(); ctx.translate(330, top + 26); ctx.rotate(-0.08);
-  ctx.fillStyle = '#A8A29E'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(70, 0); ctx.lineTo(70, 60); ctx.lineTo(40, 96); ctx.lineTo(0, 96); ctx.fill();
-  ctx.fillStyle = '#7F1D1D'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.fillText('FIGHT', 8, 20); ctx.fillText('NIGHT', 8, 32);
-  ctx.fillStyle = '#44403C'; ctx.font = '6px "Press Start 2P"'; ctx.fillText('1987', 8, 48); ctx.restore();
-  ctx.fillStyle = '#FDE68A'; ctx.fillRect(440, top + 40, 54, 40);
+  ink(ctx, () => { ctx.moveTo(0, 0); ctx.lineTo(70, 0); ctx.lineTo(70, 60); ctx.lineTo(62, 66); ctx.lineTo(56, 70); ctx.lineTo(48, 80); ctx.lineTo(40, 96); ctx.lineTo(0, 96); ctx.closePath(); }, '#A8A29E', 1);
+  ctx.fillStyle = 'rgba(80, 60, 30, 0.3)'; ctx.fillRect(1, 70, 40, 25);
+  ctx.fillStyle = '#7F1D1D'; ctx.fillRect(4, 36, 60, 3);
+  ctx.font = 'bold 8px "Press Start 2P"'; ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillText('FIGHT', 9, 21); ctx.fillText('NIGHT', 9, 33);
+  ctx.fillStyle = '#7F1D1D'; ctx.fillText('FIGHT', 8, 20); ctx.fillText('NIGHT', 8, 32);
+  ctx.fillStyle = '#44403C'; ctx.font = '6px "Press Start 2P"'; ctx.fillText('1987', 8, 48);
+  ctx.fillStyle = '#57534E'; ctx.fillRect(8, 54, 34, 14); ctx.fillStyle = '#78716C'; ctx.fillRect(10, 56, 12, 10); ctx.fillRect(28, 56, 12, 10); // (the two fighters' photos, faded)
+  ctx.fillStyle = 'rgba(231, 229, 228, 0.8)'; ctx.fillRect(-3, -2, 10, 5); ctx.restore();
+  ink(ctx, () => ctx.rect(440, top + 40, 54, 40), '#FDE68A', 1);
+  ctx.fillStyle = '#E9C46A'; ctx.fillRect(441, top + 70, 52, 9);
   ctx.fillStyle = '#B91C1C'; ctx.font = 'bold 6px "Press Start 2P"'; ctx.fillText('CONDEMNED', 441, top + 54);
   ctx.fillStyle = '#44403C'; for (let k = 0; k < 3; k++) ctx.fillRect(444, top + 62 + k * 5, 44 - k * 8, 2);
-  // The light over the ring: a tube fixture, one tube dead, the other flickering
+  ctx.fillStyle = '#A1A1AA'; ctx.fillRect(442, top + 42, 2, 2); ctx.fillRect(490, top + 42, 2, 2);
+  // The light over the ring: a tube fixture, one tube dead, the other flickering; its pool of light in rings
   const flick = h(Math.floor(frame / 3)) < 0.08 ? 0.25 : h(Math.floor(frame / 40)) < 0.1 ? 0.6 : 1;
-  const light = ctx.createRadialGradient(W / 2, top + 30, 10, W / 2, mat - 40, 460);
-  light.addColorStop(0, `rgba(236, 252, 203, ${0.28 * flick})`);
-  light.addColorStop(1, 'rgba(0, 0, 0, 0)');
-  ctx.fillStyle = light; ctx.fillRect(0, 0, W, CANVAS_HEIGHT);
+  steppedGlow(ctx, W / 2, mat - 120, 420, '#ECFCCB', 0.07 * flick, 0.015 * flick, 6);
   ctx.strokeStyle = '#3F3F46'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(W / 2 - 50, top); ctx.lineTo(W / 2 - 50, top + 12); ctx.moveTo(W / 2 + 50, top); ctx.lineTo(W / 2 + 50, top + 16); ctx.stroke();
   ctx.save(); ctx.translate(W / 2, top + 14); ctx.rotate(0.03);
-  ctx.fillStyle = '#27272A'; ctx.fillRect(-70, 0, 140, 8);
+  shadedTop(ctx, () => ctx.rect(-70, 0, 140, 8), '#3F3F46', -70, 0, 140, 8, 0.9);
   ctx.fillStyle = '#52525B'; ctx.fillRect(-62, 8, 124, 3);
-  ctx.fillStyle = `rgba(236, 252, 203, ${0.35 + 0.65 * flick})`; ctx.fillRect(-62, 11, 124, 3); ctx.restore();
+  ctx.fillStyle = `rgba(236, 252, 203, ${0.35 + 0.65 * flick})`; ctx.fillRect(-62, 11, 124, 3);
+  ctx.fillStyle = `rgba(255, 255, 255, ${0.6 * flick})`; ctx.fillRect(-58, 11, 116, 1);
+  ctx.fillStyle = '#A1A1AA'; ctx.fillRect(-64, 10, 3, 5); ctx.fillRect(61, 10, 3, 5); ctx.restore();
   // The drip from the roof into the bucket
   const bx = W - 70;
-  ctx.fillStyle = '#52525B'; ctx.beginPath(); ctx.moveTo(bx - 14, mat - 26); ctx.lineTo(bx + 14, mat - 26); ctx.lineTo(bx + 11, mat); ctx.lineTo(bx - 11, mat); ctx.fill();
-  ctx.fillStyle = '#3F3F46'; ctx.fillRect(bx - 14, mat - 27, 28, 3);
+  shaded(ctx, () => { ctx.moveTo(bx - 14, mat - 26); ctx.lineTo(bx + 14, mat - 26); ctx.lineTo(bx + 11, mat); ctx.lineTo(bx - 11, mat); ctx.closePath(); }, '#52525B', bx - 14, mat - 26, 28, 26);
+  ctx.fillStyle = '#3F3F46'; ctx.fillRect(bx - 13, mat - 16, 26, 1.4); ctx.fillRect(bx - 12, mat - 7, 24, 1.4); // (its ribs)
+  ink(ctx, () => ctx.ellipse(bx, mat - 26, 14, 2.4, 0, 0, Math.PI * 2), '#1E3A5F', 0.9);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(bx, mat - 24, 12, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke(); // (the handle)
   const dt = frame % 70;
-  ctx.fillStyle = 'rgba(147, 197, 253, 0.7)';
+  ctx.fillStyle = 'rgba(147, 197, 253, 0.75)';
   if (dt < 40) ctx.fillRect(bx - 1, top + 4 + (mat - 30 - top) * (dt / 40) ** 2, 2, 4);
   else if (dt < 46) { ctx.beginPath(); ctx.arc(bx, mat - 26, (dt - 40) * 1.5, Math.PI, 0); ctx.fill(); }
   // The corner posts, rusting, the turnbuckle pads cracked and taped; the ropes, sagging between them
   const posts = [10, W - 10];
   const ropes = [{ y: mat - 150, c: '#B91C1C', sag: 10 }, { y: mat - 105, c: '#D6D3D1', sag: 16 }, { y: mat - 60, c: '#1E40AF', sag: 8 }];
   for (const r of ropes) {
-    ctx.lineWidth = 5; ctx.lineCap = 'round';
-    ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.moveTo(posts[0], r.y + 5); ctx.quadraticCurveTo(W / 2, r.y + 5 + r.sag * 2, posts[1], r.y + 5); ctx.stroke();
-    ctx.strokeStyle = r.c; ctx.beginPath(); ctx.moveTo(posts[0], r.y); ctx.quadraticCurveTo(W / 2, r.y + r.sag * 2, posts[1], r.y); ctx.stroke();
+    const curve = (dy: number) => { ctx.beginPath(); ctx.moveTo(posts[0], r.y + dy); ctx.quadraticCurveTo(W / 2, r.y + dy + r.sag * 2, posts[1], r.y + dy); ctx.stroke(); };
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 5; curve(6);
+    ctx.strokeStyle = INK; ctx.lineWidth = 7; curve(0);
+    ctx.strokeStyle = dark(r.c, 0.25); ctx.lineWidth = 5; curve(0);
+    ctx.strokeStyle = r.c; ctx.lineWidth = 3; curve(-0.6);
+    ctx.strokeStyle = lite(r.c, 0.45); ctx.lineWidth = 1; curve(-1.6);
     // (duct tape round it where it's frayed)
-    for (const tx of [0.3, 0.64]) { const x = posts[0] + (posts[1] - posts[0]) * tx, y = r.y + 4 * r.sag * tx * (1 - tx); ctx.fillStyle = '#A1A1AA'; ctx.fillRect(x - 5, y - 4, 10, 8); }
+    for (const tx of [0.3, 0.64]) { const x = posts[0] + (posts[1] - posts[0]) * tx, y = r.y + 4 * r.sag * tx * (1 - tx); shaded(ctx, () => ctx.rect(x - 5, y - 4, 10, 8), '#A1A1AA', x - 5, y - 4, 10, 8, 0.8); }
   }
   ctx.lineCap = 'butt';
   for (const x of posts) {
-    ctx.fillStyle = '#78716C'; ctx.fillRect(x - 6, mat - 180, 12, 180);
-    ctx.fillStyle = 'rgba(154, 52, 18, 0.6)'; for (let k = 0; k < 6; k++) ctx.fillRect(x - 6 + h(x + k) * 8, mat - 175 + k * 28, 4 + h(k) * 4, 6 + h(x * k) * 10);
+    shaded(ctx, () => ctx.rect(x - 6, mat - 180, 12, 180), '#78716C', x - 6, mat - 180, 12, 180);
+    for (let k = 0; k < 6; k++) {
+      const rx = Math.floor(x - 6 + h(x + k) * 8), ry = Math.floor(mat - 175 + k * 28), rw = Math.floor(4 + h(k) * 4), rh = Math.floor(6 + h(x * k) * 10);
+      ctx.fillStyle = 'rgba(154, 52, 18, 0.65)'; ctx.fillRect(rx, ry, rw, rh);
+      checker(ctx, rx, ry + rh, rw, 4, 'rgba(154, 52, 18, 0.5)', 0);
+    }
     for (const r of ropes) {
-      ctx.fillStyle = r.c; ctx.fillRect(x - 11, r.y - 7, 22, 18);
-      ctx.strokeStyle = '#0B0B0F'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x - 6, r.y - 5); ctx.lineTo(x - 1, r.y + 3); ctx.lineTo(x + 4, r.y + 9); ctx.stroke();
-      ctx.fillStyle = '#A1A1AA'; ctx.fillRect(x - 11, r.y + 2, 22, 4);
+      shaded(ctx, () => ctx.roundRect(x - 11, r.y - 7, 22, 18, 3), r.c, x - 11, r.y - 7, 22, 18);
+      ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x - 6, r.y - 5); ctx.lineTo(x - 1, r.y + 3); ctx.lineTo(x + 4, r.y + 9); ctx.stroke();
+      shadedTop(ctx, () => ctx.rect(x - 11, r.y + 2, 22, 4), '#A1A1AA', x - 11, r.y + 2, 22, 4, 0.7);
     }
   }
   // The mat: grey gone yellow, stains, duct-tape crosses over the splits, a tear
-  ctx.fillStyle = '#C8C0A8'; ctx.fillRect(0, mat, W, 14);
-  ctx.fillStyle = '#9C9480'; ctx.fillRect(0, mat, W, 2);
-  ctx.fillStyle = 'rgba(92, 64, 51, 0.4)'; for (let k = 0; k < 5; k++) { ctx.beginPath(); ctx.ellipse(80 + k * 160 + h(k) * 60, mat + 7, 22 + h(k + 1) * 20, 4, 0, 0, Math.PI * 2); ctx.fill(); }
-  ctx.fillStyle = '#A1A1AA'; for (const tx of [210, 470]) { ctx.save(); ctx.translate(tx, mat + 7); ctx.rotate(0.5); ctx.fillRect(-14, -2, 28, 4); ctx.rotate(-1); ctx.fillRect(-14, -2, 28, 4); ctx.restore(); }
-  ctx.fillStyle = '#44403C'; ctx.beginPath(); ctx.moveTo(620, mat + 4); ctx.lineTo(660, mat + 8); ctx.lineTo(624, mat + 11); ctx.fill();
-  ctx.fillStyle = 'rgba(153, 27, 27, 0.35)'; ctx.fillRect(W * 0.62, mat + 6, 14, 3); ctx.fillRect(W * 0.3, mat + 8, 6, 2);
+  bandedGradient(ctx, 0, mat, W, 14, ['#D4CCB4', '#C8C0A8', '#B4AC94'], 3);
+  ctx.fillStyle = '#E2DCC6'; ctx.fillRect(0, mat, W, 1.4);
+  ctx.fillStyle = INK; ctx.fillRect(0, mat - 0.5, W, 1);
+  for (let k = 0; k < 5; k++) { const sx = Math.floor(80 + k * 160 + h(k) * 60), sw = Math.floor(22 + h(k + 1) * 20); ctx.fillStyle = 'rgba(92, 64, 51, 0.35)'; ctx.fillRect(sx - sw, mat + 5, sw * 2, 4); ctx.fillRect(sx - sw + 6, mat + 3, sw * 2 - 12, 8); }
+  for (const tx of [210, 470]) { ctx.save(); ctx.translate(tx, mat + 7); for (const a of [0.5, -0.5]) { ctx.save(); ctx.rotate(a); ink(ctx, () => ctx.rect(-14, -2, 28, 4), '#A1A1AA', 0.6); ctx.restore(); } ctx.restore(); }
+  ink(ctx, () => { ctx.moveTo(620, mat + 4); ctx.lineTo(660, mat + 8); ctx.lineTo(624, mat + 11); ctx.closePath(); }, '#44403C', 0.8);
+  ctx.fillStyle = 'rgba(153, 27, 27, 0.4)'; ctx.fillRect(W * 0.62, mat + 6, 14, 3); ctx.fillRect(W * 0.3, mat + 8, 6, 2);
   // The apron skirt, faded, stained, its lettering coming off (one letter gone)
-  ctx.fillStyle = '#243152'; ctx.fillRect(0, mat + 14, W, CANVAS_HEIGHT - mat - 14);
-  ctx.fillStyle = '#1B2540'; for (let x = 0; x < W; x += 60) ctx.fillRect(x, mat + 14, 3, CANVAS_HEIGHT - mat - 14);
-  ctx.fillStyle = 'rgba(60, 40, 20, 0.35)'; for (let k = 0; k < 4; k++) ctx.fillRect(h(k + 40) * W, mat + 14, 20 + h(k + 41) * 40, CANVAS_HEIGHT - mat - 14);
+  const ah = CANVAS_HEIGHT - mat - 14;
+  bandedGradient(ctx, 0, mat + 14, W, ah, ['#1B2540', '#243152', '#1F2A48', '#141B30'], 6);
+  ctx.fillStyle = INK; ctx.fillRect(0, mat + 13.5, W, 1);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(0, mat + 14.5, W, 3);
+  for (let x = 0; x < W; x += 60) { ctx.fillStyle = '#141B30'; ctx.fillRect(x, mat + 14, 3, ah); ctx.fillStyle = '#2E3D63'; ctx.fillRect(x + 3, mat + 14, 1, ah); } // (the folds)
+  ctx.fillStyle = 'rgba(60, 40, 20, 0.35)'; for (let k = 0; k < 4; k++) ctx.fillRect(Math.floor(h(k + 40) * W), mat + 14, Math.floor(20 + h(k + 41) * 40), ah);
   ctx.font = 'bold 12px "Press Start 2P"'; ctx.textAlign = 'left';
   const word = "MEATHEAD'S GYM", gone = word.indexOf('Y');
   let lx = W / 2 - ctx.measureText(word).width / 2;
   for (let i = 0; i < word.length; i++) {
-    ctx.fillStyle = i === gone ? 'rgba(202, 164, 21, 0.18)' : 'rgba(202, 164, 21, 0.75)';
-    ctx.fillText(word[i], lx, mat + 38 + (i === gone + 1 ? 2 : 0));
+    const ly = mat + 38 + (i === gone + 1 ? 2 : 0);
+    if (i !== gone) { ctx.fillStyle = 'rgba(0, 0, 0, 0.45)'; ctx.fillText(word[i], lx + 1, ly + 1); }
+    ctx.fillStyle = i === gone ? 'rgba(202, 164, 21, 0.18)' : 'rgba(202, 164, 21, 0.8)';
+    ctx.fillText(word[i], lx, ly);
     lx += ctx.measureText(word[i]).width;
   }
 };
