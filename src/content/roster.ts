@@ -146,7 +146,7 @@ export const WEAPON_DESCRIPTIONS: Record<string, string> = {
   'Ernie Earthquake': "Roll it along the ground and flatten everything, heave it up like a shotput, or spike it straight down from midair. It's a rock. It doesn't care.",
   'Hector Hurricane': "One wave, the whole screen, whichever way you're facing. Everything in front of it just fucking dies. Wait for it to wash out before you do it again.",
   'Toxic Tommy': "Puke a lobbed stream of toxic waste that rots whatever it lands on, drags anything flying right out of the sky, and coats you in a filth shield nobody wants to touch. Gross. Effective.",
-  'Blackout Barry': "Hold it and it locks onto the nearest bastard and doesn't let go. Stunned, fried, then on fire, and anyone standing right up against him gets it too. You can't walk while you're zapping, so pick your moment.",
+  'Blackout Barry': "Hold it and it locks onto the nearest bastard: stunned, fried, then on fire. The juice jumps to anyone standing near him, and on down the line, and it doesn't quit till the last one drops. You can't walk while you're zapping.",
   'Oily Oscar': "Steer the rocket up or down in flight (crouch to fire it dead straight). Everything it hits is greased and sliding. Now get the flamethrower out.",
   'Drug Trade Dale': "Rapid-fire dirty needles. Stack the doses until they overdose, float off and take out anyone they bump into on the way up."
 };
