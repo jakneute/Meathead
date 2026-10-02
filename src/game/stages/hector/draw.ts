@@ -568,16 +568,7 @@ const drawProp = (ctx: Ctx, state: GameState, p: Prop, rt: HectorRuntime) => {
       ctx.fillText(p.text ?? '', p.x, p.y - 182); ctx.textAlign = 'left';
       return;
     }
-    case 'powerline': {
-      // A snapped power pole, its line down in the water, sparking
-      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(-0.25);
-      ctx.fillStyle = '#57534E'; ctx.fillRect(-5, -220, 10, 220); ctx.fillRect(-30, -210, 60, 6);
-      ctx.restore();
-      ctx.strokeStyle = '#111827'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(p.x - 45, p.y - 205); ctx.quadraticCurveTo(p.x + 20, p.y - 60, p.x + 60, p.y - 2); ctx.stroke();
-      if (f % 20 < 6) { ctx.fillStyle = '#FDE047'; ctx.beginPath(); ctx.arc(p.x + 60, p.y - 4, 5 + (f % 3), 0, Math.PI * 2); ctx.fill(); }
-      return;
-    }
+    case 'powerline': drawPowerline(ctx, state, p); return;
     case 'pool': {
       // Tiled edge (the water's drawn in front)
       ctx.fillStyle = '#F8FAFC'; ctx.fillRect(p.x - 8, p.y - 4, (p.w ?? 300) + 16, 6);
@@ -709,22 +700,168 @@ const drawFloats = (ctx: Ctx, state: GameState, rt: HectorRuntime) => {
   }
 };
 
+/** Where a shock zone's downed line goes into the water (the powerline prop's frayed end). */
+const WIRE_IN = 50;
+
+/** A jagged run of current from a to b, ends pinned, the middle thrown about (more up than down: it's on a surface). */
+const boltPath = (ctx: Ctx, ax: number, ay: number, bx: number, by: number, amp: number, seed: number, segs: number, up = false) => {
+  const dx = bx - ax, dy = by - ay, len = Math.hypot(dx, dy) || 1, nx = -dy / len, ny = dx / len;
+  ctx.moveTo(Math.round(ax), Math.round(ay));
+  for (let i = 1; i < segs; i++) {
+    const t = i / segs, env = Math.sin(t * Math.PI);
+    let o = (hash(seed + i * 3.7) - 0.5) * 2 * amp * env;
+    if (up) o = -Math.abs(o) * 0.8 - amp * 0.2 * env;
+    ctx.lineTo(Math.round(ax + dx * t + nx * o), Math.round(ay + dy * t + ny * o));
+  }
+  ctx.lineTo(Math.round(bx), Math.round(by));
+};
+/** Stroke what's been pathed as current: a wide see-through halo, the bolt, a white core. */
+const strokeBolt = (ctx: Ctx, w = 1) => {
+  ctx.lineJoin = 'miter';
+  ctx.strokeStyle = 'rgba(253, 224, 71, 0.3)'; ctx.lineWidth = 6 * w; ctx.stroke();
+  ctx.strokeStyle = '#FDE047'; ctx.lineWidth = 2 * w; ctx.stroke();
+  ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 1; ctx.stroke();
+};
+
+/** The shock zone this prop's wire is lying in, if any. */
+const zoneOf = (x: number) => COURSE.shocks.find(z => x + 30 >= z.x1 && x + 30 <= z.x2);
+
+/**
+ * A snapped wooden power pole leaning over, glass insulators on its crossarm, its line sagging down off the end into
+ * the water, the end of it frayed to bare copper and spitting: a fizz now and then while the water's dead, a ball of
+ * sparks while it's live.
+ */
+const drawPowerline = (ctx: Ctx, state: GameState, p: Prop) => {
+  const f = state.frame, z = zoneOf(p.x);
+  const ph = z ? shockPhase(z, f) : { live: f % 40 < 20, warning: false };
+  ctx.save();
+  // The stump it snapped off, splintered
+  ctx.fillStyle = '#4A3520'; ctx.fillRect(p.x - 7, p.y - 26, 14, 26);
+  ctx.fillStyle = '#6B4F2E'; ctx.fillRect(p.x - 7, p.y - 26, 5, 26);
+  ctx.fillStyle = '#8B6B42';
+  ctx.beginPath(); ctx.moveTo(p.x - 7, p.y - 26); ctx.lineTo(p.x - 4, p.y - 36); ctx.lineTo(p.x, p.y - 28); ctx.lineTo(p.x + 3, p.y - 34); ctx.lineTo(p.x + 7, p.y - 26); ctx.closePath(); ctx.fill();
+  // The pole, leaning on what's left of the stump: lit side, wood, shaded side, a few grain lines
+  ctx.translate(p.x, p.y - 24); ctx.rotate(-0.25);
+  ctx.fillStyle = '#5C4329'; ctx.fillRect(-6, -200, 12, 196);
+  ctx.fillStyle = '#7A5A36'; ctx.fillRect(-6, -200, 4, 196);
+  ctx.fillStyle = '#3F2E1B'; ctx.fillRect(4, -200, 2, 196);
+  ctx.fillStyle = '#4A3520'; for (let k = 0; k < 6; k++) ctx.fillRect(-2 + (k % 2) * 3, -190 + k * 31, 1, 12);
+  // (the climbing spikes)
+  ctx.fillStyle = '#6B7280'; for (let k = 0; k < 5; k++) ctx.fillRect(k % 2 ? 6 : -9, -150 + k * 24, 3, 2);
+  // The crossarm and its insulators
+  ctx.fillStyle = '#5C4329'; ctx.fillRect(-32, -192, 64, 7);
+  ctx.fillStyle = '#7A5A36'; ctx.fillRect(-32, -192, 64, 2);
+  for (const ix of [-28, -12, 12, 28]) {
+    ctx.fillStyle = '#5EEAD4'; ctx.fillRect(ix - 3, -200, 6, 8);
+    ctx.fillStyle = '#99F6E4'; ctx.fillRect(ix - 3, -200, 2, 8);
+    ctx.fillStyle = '#0F766E'; ctx.fillRect(ix - 3, -194, 6, 2);
+  }
+  // (where the line came off it: an empty insulator, and a stub of wire still on the next)
+  ctx.strokeStyle = '#111827'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(12, -200); ctx.quadraticCurveTo(20, -214, 30, -206); ctx.stroke();
+  // Where the downed line hangs from (the crossarm's far end), in the world
+  const m = ctx.getTransform();
+  ctx.restore();
+  const inv = ctx.getTransform().inverse();
+  const pt = new DOMPoint(-28, -200).matrixTransform(m);
+  const hang = pt.matrixTransform(inv);
+  const ex = p.x + 30, ey = p.y - 2;
+  // The line: sagging, thick, a glint along it, swaying a touch in the storm
+  const sway = Math.sin(f * 0.05) * 6;
+  const mx = (hang.x + ex) / 2 + 30 + sway, my = (hang.y + ey) / 2 + 50;
+  ctx.beginPath(); ctx.moveTo(hang.x, hang.y); ctx.quadraticCurveTo(mx, my, ex - 4, ey - 4);
+  ctx.strokeStyle = '#0B0F19'; ctx.lineWidth = 4; ctx.stroke();
+  ctx.strokeStyle = '#374151'; ctx.lineWidth = 1; ctx.stroke();
+  // Its end, frayed to bare copper
+  ctx.fillStyle = '#0B0F19'; ctx.fillRect(ex - 7, ey - 7, 6, 5);
+  ctx.fillStyle = '#D97706';
+  ctx.fillRect(ex - 2, ey - 8, 4, 1); ctx.fillRect(ex - 1, ey - 6, 5, 1); ctx.fillRect(ex - 2, ey - 4, 3, 1); ctx.fillRect(ex + 1, ey - 10, 1, 3);
+  ctx.fillStyle = '#FBBF24'; ctx.fillRect(ex + 2, ey - 6, 2, 1);
+  // Spitting: a ball of sparks while it's live, a fizz now and then while it isn't (more of one when it's about to go)
+  const fizz = ph.live || (ph.warning ? f % 6 < 3 : f % 37 < 4);
+  if (fizz) {
+    const step = Math.floor(f / 2), n = ph.live ? 5 : 2, reach = ph.live ? 22 : 10;
+    ctx.beginPath();
+    for (let k = 0; k < n; k++) {
+      const a = -Math.PI * (0.1 + hash(step * 3 + k) * 0.8);
+      boltPath(ctx, ex, ey - 5, ex + Math.cos(a) * reach * (0.6 + hash(step + k * 7) * 0.6), ey - 5 + Math.sin(a) * reach, 4, step * 11 + k * 5, 3);
+    }
+    strokeBolt(ctx, ph.live ? 1 : 0.6);
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(ex - 2, ey - 7, 5, 5);
+    for (let k = 0; k < (ph.live ? 6 : 2); k++) {
+      const life = (f + k * 4) % 14, a = -Math.PI * hash(k * 9 + Math.floor((f + k * 4) / 14));
+      ctx.fillStyle = life < 5 ? '#FFFFFF' : '#FDE047';
+      ctx.fillRect(Math.round(ex + Math.cos(a) * life * 2.5), Math.round(ey - 5 + Math.sin(a) * life * 2.5 + life * life * 0.1), 2, 2);
+    }
+  }
+};
+
+/**
+ * The flooded ground the line's lying in. Dead: murky standing water, ripples going across it. Live: the water lights
+ * up (a banded glow coming up off it), current crawling along the surface out from where the wire's in, forks jumping
+ * up off it, sparks. About to go live: it fizzes round the wire and the warning flashes.
+ */
 const drawShocks = (ctx: Ctx, state: GameState) => {
+  const f = state.frame;
   for (const z of COURSE.shocks) {
     if (!visible(state, z.x1, z.x2)) continue;
-    const { live, warning } = shockPhase(z, state.frame);
-    // Standing water, going electric
-    ctx.fillStyle = live ? `rgba(253, 224, 71, ${0.35 + 0.25 * Math.sin(state.frame * 0.8)})` : 'rgba(56, 189, 248, 0.45)';
-    ctx.fillRect(z.x1, z.y - 3, z.x2 - z.x1, 6);
+    const { live, warning } = shockPhase(z, f);
+    const w = z.x2 - z.x1, src = z.x1 + WIRE_IN, y = z.y;
+    // The water: stepped bands, a lighter skin on top
     if (live) {
-      ctx.strokeStyle = '#FEF9C3'; ctx.lineWidth = 1.5;
+      const hot = f % 4 < 2;
+      ctx.fillStyle = 'rgba(253, 224, 71, 0.10)'; ctx.fillRect(z.x1, y - 22, w, 10);
+      ctx.fillStyle = 'rgba(253, 224, 71, 0.18)'; ctx.fillRect(z.x1, y - 12, w, 6);
+      ctx.fillStyle = 'rgba(254, 240, 138, 0.28)'; ctx.fillRect(z.x1, y - 6, w, 3);
+      ctx.fillStyle = hot ? '#FEF08A' : '#FACC15'; ctx.fillRect(z.x1, y - 3, w, 6);
+      ctx.fillStyle = hot ? '#FFFFFF' : '#FEF9C3'; ctx.fillRect(z.x1, y - 3, w, 1);
+    } else {
+      ctx.fillStyle = 'rgba(30, 64, 90, 0.75)'; ctx.fillRect(z.x1, y - 3, w, 6);
+      ctx.fillStyle = 'rgba(56, 120, 160, 0.8)'; ctx.fillRect(z.x1, y - 3, w, 2);
+      ctx.fillStyle = 'rgba(186, 230, 253, 0.7)';
+      for (let k = 0; k < Math.floor(w / 50); k++) {
+        const x = z.x1 + ((k * 53 + f * (0.3 + (k % 3) * 0.15)) % w);
+        ctx.fillRect(Math.round(x), y - 3, 6 + (k % 3) * 3, 1);
+      }
+    }
+    if (live) {
+      // Current crawling along the surface, in runs out from the wire both ways, and some loose further out
+      const step = Math.floor(f / 2);
       ctx.beginPath();
-      for (let x = z.x1; x < z.x2; x += 30) { const j = (state.frame * 7 + x) % 11; ctx.moveTo(x, z.y - 2); ctx.lineTo(x + 8, z.y - 10 - j); ctx.lineTo(x + 15, z.y - 2); }
-      ctx.stroke();
-    } else if (warning && Math.floor(state.frame / 4) % 2 === 0) {
-      ctx.fillStyle = '#FDE047'; ctx.font = 'bold 12px "Press Start 2P"'; ctx.textAlign = 'center';
-      ctx.fillText('! LIVE WIRE !', (z.x1 + z.x2) / 2, z.y - 30); ctx.textAlign = 'left';
-      for (let k = 0; k < 4; k++) { const x = z.x1 + hash(state.frame + k) * (z.x2 - z.x1); ctx.fillStyle = '#FDE047'; ctx.fillRect(x, z.y - 6, 3, 3); }
+      for (let k = 0; k < Math.ceil(w / 90); k++) {
+        const a = z.x1 + hash(step * 5 + k) * (w - 60), b = Math.min(z.x2, a + 50 + hash(step * 7 + k) * 90);
+        boltPath(ctx, a, y - 2, b, y - 2, 7, step * 13 + k * 29, 7, true);
+      }
+      for (const dir of [-1, 1]) {
+        const end = Math.max(z.x1, Math.min(z.x2, src + dir * (80 + hash(step + dir) * 100)));
+        boltPath(ctx, src, y - 3, end, y - 2, 9, step * 17 + dir * 41, 9, true);
+      }
+      strokeBolt(ctx);
+      // Forks jumping up off it
+      ctx.beginPath();
+      for (let k = 0; k < 3; k++) {
+        const x = z.x1 + hash(step * 3 + k * 11) * w, h = 14 + hash(step + k * 5) * 22;
+        boltPath(ctx, x, y - 2, x + (hash(step + k) - 0.5) * 16, y - 2 - h, 5, step * 19 + k * 7, 4);
+      }
+      strokeBolt(ctx, 0.7);
+      // Sparks
+      for (let k = 0; k < Math.ceil(w / 60); k++) {
+        const life = (f + k * 5) % 12, x = z.x1 + hash(k * 13 + Math.floor((f + k * 5) / 12)) * w;
+        ctx.fillStyle = life < 4 ? '#FFFFFF' : '#FDE047';
+        ctx.fillRect(Math.round(x + (k % 2 ? 1 : -1) * life), Math.round(y - 4 - life * 2.2 + life * life * 0.12), 2, 2);
+      }
+    } else if (warning) {
+      // Fizzing round the wire, a little further out each time
+      const step = Math.floor(f / 2);
+      if (f % 4 < 2) {
+        ctx.beginPath();
+        for (const dir of [-1, 1]) boltPath(ctx, src, y - 3, src + dir * (20 + hash(step + dir) * 40), y - 2, 4, step * 23 + dir, 5, true);
+        strokeBolt(ctx, 0.6);
+      }
+      if (Math.floor(f / 4) % 2 === 0) {
+        ctx.fillStyle = '#FDE047'; ctx.font = 'bold 12px "Press Start 2P"'; ctx.textAlign = 'center';
+        ctx.fillText('! LIVE WIRE !', (z.x1 + z.x2) / 2, y - 30); ctx.textAlign = 'left';
+      }
     }
   }
 };
