@@ -610,10 +610,10 @@ const App: React.FC = () => {
 
   // Input listeners are attached once and always call the latest render's handlers.
   /** B / Escape on stage select: back out of a lock, or back to the title when nothing is locked. */
-  const stageSelectBack = (toTitle: boolean) => {
+  /** Back, on the stage select: backs out of a locked-in target; otherwise nothing (there's no going back to the title from here). */
+  const stageSelectBack = () => {
     if (engaging) return;
     if (lockedIndex !== null) unlockStage();
-    else if (toTitle) setStatus(GameStatus.START);
   };
 
   // (in the garage, it's the garage's own input: the stage select's is off)
@@ -625,7 +625,7 @@ const App: React.FC = () => {
       if (inputRef.current.garage) return;
       const { status, togglePause, moveSelection, confirmSelection, selectWeaponHotkey, switchTab, stageSelectBack } = inputRef.current;
       const key = e.key.toLowerCase();
-      if (status === GameStatus.STAGE_SELECT && (key === 'escape' || key === 'backspace')) { stageSelectBack(false); return; }
+      if (status === GameStatus.STAGE_SELECT && (key === 'escape' || key === 'backspace')) { stageSelectBack(); return; }
       if (key === 'escape') togglePause();
 
       if (status === GameStatus.PLAYING) {
@@ -659,7 +659,7 @@ const App: React.FC = () => {
       if (e.button !== 2 || inputRef.current.garage) return;
       const { status, stageSelectBack } = inputRef.current;
       rightPressedInPause = status === GameStatus.PAUSED;
-      if (status === GameStatus.STAGE_SELECT) stageSelectBack(true);
+      if (status === GameStatus.STAGE_SELECT) stageSelectBack();
     };
     const onMouseUp = (e: MouseEvent) => {
       if (e.button !== 2) return;
@@ -741,7 +741,7 @@ const App: React.FC = () => {
         if (justPressed('x') && status === GameStatus.START && !inputRef.current.introOn) inputRef.current.toggleMusic();
         if (justPressed('b')) {
           if (status === GameStatus.PAUSED) handleResume();
-          else if (status === GameStatus.STAGE_SELECT) stageSelectBack(true);
+          else if (status === GameStatus.STAGE_SELECT) stageSelectBack();
         }
         if (justPressed('start') && inGame) togglePause();
         Object.assign(prev, pressed);
