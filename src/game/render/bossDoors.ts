@@ -300,6 +300,20 @@ export const drawLairFacade = (ctx: Ctx, state: GameState, stageId: string | nul
   ctx.beginPath();
   for (let y = top; y <= ground; y += step) { const x = Math.round(door.x - reach(y)) + 1; if (y === top) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
   ctx.stroke();
+  if (stageId === 'Toxic Tommy') {
+    // The yellow paint that's led him all the way down here keeps on to the door: the trail along the foot of the
+    // wall, a fat arrow slapped on the bricks pointing at it, a handprint, a stripe down the frame
+    ctx.fillStyle = '#FACC15';
+    const startX = door.x - reach(ground - 2) - 10;
+    for (let x = startX; x < door.x - 2; x += 9) ctx.fillRect(Math.round(x), ground - 3 + Math.round(Math.sin(x * 0.07)), 7, 3);
+    ctx.beginPath(); ctx.ellipse(door.x - 12, ground - 1, 20, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+    const ay = ground - 70;
+    ctx.beginPath(); ctx.moveTo(door.x - 74, ay - 4); ctx.lineTo(door.x - 30, ay - 4); ctx.lineTo(door.x - 30, ay - 12); ctx.lineTo(door.x - 10, ay); ctx.lineTo(door.x - 30, ay + 12); ctx.lineTo(door.x - 30, ay + 4); ctx.lineTo(door.x - 74, ay + 4); ctx.closePath(); ctx.fill();
+    for (let k = 0; k < 3; k++) ctx.fillRect(door.x - 66 + k * 14, ay + 4, 3, 8 + rnd(k + 70) * 18);
+    ctx.fillRect(door.x - 6, door.y - 6, 5, door.h + 4);
+    ctx.beginPath(); ctx.arc(door.x - 44, ground - 118, 6, 0, Math.PI * 2); ctx.fill();
+    for (let k = 0; k < 4; k++) ctx.fillRect(door.x - 51 + k * 4, ground - 131 + (k === 0 || k === 3 ? 4 : 0), 3, 9);
+  }
   if (stageId === 'Artie Avalanche') {
     ctx.fillStyle = fc.accent!;
     for (let y = top + 30; y < ground - 20; y += 44) { const x = door.x - reach(y); ctx.fillRect(Math.round(x) - 2, y, Math.round(18 + rnd(y) * 12), 4); ctx.fillRect(Math.round(x) + 2, y - 2, 10, 2); }

@@ -10,7 +10,7 @@
 
 import type { GameState } from '../../core/state';
 import { hazeBands } from '../../render/pixelArt';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, BOSS_DOOR_X } from '../../../constants';
 import { COURSE, RUINS_Y, CAVERN_ROOF } from './course';
 import type { TommyRuntime } from './runtime';
 import { TOWER_FRAMES, SURF_FRAMES, FAMILY_FRAMES, CRUSH_FRAMES, MELT_FRAMES, LAUNCH, PRE, RUMBLE_AT, COVER_HIT, MAN_HIT, TOWER_DOWN, inSkippable } from './escape';
@@ -607,6 +607,29 @@ const drawLairSign = (ctx: Ctx, state: GameState) => {
   }
   for (let i = 0; i < 3; i++) { const dx = P + 14 + i * 36, q = ((f * 1.2 + i * 40) % 90) / 90; ctx.fillRect(dx, bottomY + q * (CAVERN_ROOF - 6), 3, 6); }
   ctx.beginPath(); ctx.ellipse(P + PW / 2, GROUND_Y - 1, 70, 5, 0, 0, Math.PI * 2); ctx.fill();
+  // (and on from the puddle all the way to his door: drips, a smeared line, arrows slapped down every so often,
+  // up the step and right to the foot of it, and a handprint and a splash on the wall by the door)
+  const floorAt = (x: number) => {
+    let top = GROUND_Y;
+    for (const b of state.blocks) if ((b.type === 'ground' || b.type === 'platform') && !b.hidden && x >= b.x && x <= b.x + b.w && b.y > GROUND_Y - 90 && b.y < top) top = b.y;
+    return top;
+  };
+  const from = P + PW / 2 + 74, to = BOSS_DOOR_X - 6;
+  for (let x = from; x < to; x += 9) {
+    const fy = floorAt(x), wob = Math.sin(x * 0.07) * 1.5;
+    ctx.fillRect(x, fy - 2 + wob * 0.3, 7, 3);
+    if (hash(x) > 0.82) { ctx.beginPath(); ctx.ellipse(x + 3, fy - 1, 5 + hash(x + 1) * 6, 2.2, 0, 0, Math.PI * 2); ctx.fill(); }
+  }
+  for (let x = from + 120; x < to - 60; x += 260) {
+    const fy = floorAt(x) - 1;
+    ctx.beginPath(); ctx.moveTo(x, fy - 2); ctx.lineTo(x + 40, fy - 2); ctx.lineTo(x + 40, fy - 6); ctx.lineTo(x + 62, fy); ctx.lineTo(x + 40, fy + 6); ctx.lineTo(x + 40, fy + 2); ctx.lineTo(x, fy + 2); ctx.closePath(); ctx.fill();
+  }
+  const dy = floorAt(to - 2);
+  ctx.beginPath(); ctx.ellipse(BOSS_DOOR_X - 14, dy - 1, 22, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillRect(BOSS_DOOR_X - 8, dy - 64, 6, 62);
+  for (let k = 0; k < 4; k++) ctx.fillRect(BOSS_DOOR_X - 20 + k * 3, dy - 80 + k * 3, 3, 10 + k * 4);
+  ctx.beginPath(); ctx.arc(BOSS_DOOR_X - 26, dy - 96, 6, 0, Math.PI * 2); ctx.fill();
+  for (let k = 0; k < 4; k++) ctx.fillRect(BOSS_DOOR_X - 33 + k * 4, dy - 108 + (k === 0 || k === 3 ? 4 : 0), 3, 9);
   // (splashed up the rubble and a broken wall stump, and a big painted arrow on the ground pointing at it)
   ctx.beginPath(); ctx.moveTo(P - 200, y - 2); ctx.lineTo(P - 90, y - 2); ctx.lineTo(P - 90, y - 7); ctx.lineTo(P - 60, y); ctx.lineTo(P - 90, y + 7); ctx.lineTo(P - 90, y + 2); ctx.lineTo(P - 200, y + 2); ctx.closePath(); ctx.fill();
   ctx.save(); ctx.translate(P - 250, y); ctx.rotate(1.3);
