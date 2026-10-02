@@ -125,8 +125,8 @@ const kindFacing = (e: Enemy, state: GameState): number => {
   return state.player.pos.x + state.player.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;
 };
 
-const snowflake = (ctx: Ctx, x: number, y: number, r: number) => {
-  ctx.strokeStyle = '#0EA5E9';
+const snowflake = (ctx: Ctx, x: number, y: number, r: number, color = '#0EA5E9') => {
+  ctx.strokeStyle = color;
   ctx.lineWidth = 1.2;
   for (let i = 0; i < 3; i++) {
     const a = (i * Math.PI) / 3;
@@ -380,127 +380,317 @@ const drawEagle = (ctx: Ctx, e: Enemy, f: number) => {
 // Goons
 // ---------------------------------------------------------------------------
 
-/** The hooded parka and goggled face every goon shares. Head at (0, headY). */
-const goonHead = (ctx: Ctx, headY: number, f: number) => {
-  // Fur-trimmed hood
-  ctx.fillStyle = PARKA_SHADE;
-  ctx.beginPath(); ctx.arc(0, headY, 13, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = FUR;
-  ctx.beginPath(); ctx.arc(2, headY + 1, 11, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = FUR_SHADE;
-  for (let a = 0; a < Math.PI * 2; a += 0.6) ctx.fillRect(2 + Math.cos(a) * 10 - 1, headY + 1 + Math.sin(a) * 10 - 1, 2, 2);
-  // Balaclava face and mirrored goggles
-  ctx.fillStyle = BALACLAVA;
-  ctx.beginPath(); ctx.arc(4, headY + 2, 7.5, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#0C4A6E'; ctx.fillRect(1, headY - 2, 12, 5);
-  ctx.fillStyle = GOGGLE; ctx.fillRect(2, headY - 1, 10, 3);
-  ctx.fillStyle = GOGGLE_GLINT; ctx.fillRect(3 + (f * 0.1) % 6, headY - 1, 2, 1);
+// The cult's drawn the townsfolk's way (an ink line round every part, each part shaded in steps), out of a few parts
+// of their own: snow pants and boots, a puffer, the hood and goggles, sleeves and mittens.
+
+const ICE = '#A5D6F5', ICE_LIT = '#E0F2FE', ICE_DEEP = '#4F9CC9';
+
+/** A stepped frost glow (the rifle about to go): an outer ring, a hot middle. */
+const frostGlow = (ctx: Ctx, x: number, y: number, r: number, a: number) => {
+  ctx.fillStyle = `rgba(56, 189, 248, ${(a * 0.4).toFixed(3)})`; ctx.beginPath(); ctx.arc(x, y, r + 2.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = `rgba(186, 230, 253, ${a.toFixed(3)})`; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = `rgba(255, 255, 255, ${a.toFixed(3)})`; ctx.beginPath(); ctx.arc(x, y, r * 0.45, 0, Math.PI * 2); ctx.fill();
 };
 
-/** Parka body from the waist up; arm patch with Artie's snowflake. */
+/** A puffy sleeve through the points (shoulder, elbow, wrist): one ink line round the lot, a lit seam along it. */
+const sleeve = (ctx: Ctx, pts: number[], color = PARKA, w = 6.5) => {
+  const path = () => { ctx.beginPath(); ctx.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) ctx.lineTo(pts[i], pts[i + 1]); };
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  path(); ctx.strokeStyle = INK; ctx.lineWidth = w + 2; ctx.stroke();
+  path(); ctx.strokeStyle = color; ctx.lineWidth = w; ctx.stroke();
+  ctx.save(); ctx.translate(-w * 0.18, -w * 0.18); path(); ctx.strokeStyle = lite(color, 0.45); ctx.lineWidth = w * 0.25; ctx.stroke(); ctx.restore();
+  ctx.lineCap = 'butt'; ctx.lineJoin = 'miter';
+};
+
+/** A mitten at (x, y): the fist, a thumb over the top, a lit knuckle. */
+const mitten = (ctx: Ctx, x: number, y: number, color = PARKA_DARK, r = 3.4) => {
+  ink(ctx, () => ctx.ellipse(x, y, r, r * 0.9, 0, 0, Math.PI * 2), color, 0.8);
+  ctx.fillStyle = dark(color, 0.25); ctx.fillRect(x - r * 0.2, y + r * 0.2, r, r * 0.5);
+  ink(ctx, () => ctx.ellipse(x + r * 0.5, y - r * 0.75, r * 0.5, r * 0.38, -0.4, 0, Math.PI * 2), color, 0.6);
+  ctx.fillStyle = lite(color, 0.35); ctx.fillRect(x - r * 0.6, y - r * 0.5, r * 0.6, r * 0.35);
+};
+
+/** Artie's patch on the upper arm: navy, the snowflake picked out in ice. */
+const armPatch = (ctx: Ctx, x: number, y: number) => {
+  ink(ctx, () => ctx.roundRect(x - 3.4, y - 3.4, 6.8, 6.8, 1.4), '#0C4A6E', 0.7);
+  ctx.fillStyle = '#0369A1'; ctx.fillRect(x - 2.8, y - 2.8, 2, 5.6);
+  snowflake(ctx, x, y, 2.4, '#BAE6FD');
+};
+
+/** The fur-trimmed hood, the balaclava and the mirrored goggles every goon shares. Head at (0, headY). */
+const goonHead = (ctx: Ctx, headY: number, f: number, mouth: 'grim' | 'snarl' = 'grim') => {
+  const y = headY;
+  // The hood, lit top left, a seam over the crown
+  shaded(ctx, () => ctx.arc(0, y, 13, 0, Math.PI * 2), PARKA, -13, y - 13, 26, 26);
+  ctx.strokeStyle = PARKA_DARK; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(-2, y - 12.6); ctx.quadraticCurveTo(-11, y - 7, -12, y + 4); ctx.stroke();
+  // The ruff: tufts round the opening, shadowed lower right
+  ctx.fillStyle = FUR; ctx.beginPath(); ctx.arc(2, y + 1, 10.4, 0, Math.PI * 2); ctx.fill();
+  for (let a = 0; a < Math.PI * 2 - 0.1; a += 0.42) {
+    const tx = 2 + Math.cos(a) * 10.2, ty = y + 1 + Math.sin(a) * 10.2, lit = Math.cos(a) + Math.sin(a) < -0.4, shade = Math.cos(a) + Math.sin(a) > 0.6;
+    ink(ctx, () => ctx.ellipse(tx, ty, 2.6, 2.2, a, 0, Math.PI * 2), shade ? FUR_SHADE : FUR, 0.6);
+    if (lit) { ctx.fillStyle = '#FFFBF2'; ctx.fillRect(tx - 1.2, ty - 1.2, 1.4, 1); }
+  }
+  ctx.fillStyle = FUR; ctx.beginPath(); ctx.arc(2, y + 1, 9.2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = FUR_SHADE; for (let a = 0.2; a < Math.PI * 2; a += 0.7) ctx.fillRect(2 + Math.cos(a) * 9 - 0.6, y + 1 + Math.sin(a) * 9 - 0.6, 1.2, 1.2);
+  // The balaclava, knit ribbed, the fur's shadow round it
+  const face = () => ctx.arc(4, y + 2, 7.5, 0, Math.PI * 2);
+  shaded(ctx, face, BALACLAVA, -3.5, y - 5.5, 15, 15);
+  ctx.save(); ctx.beginPath(); face(); ctx.clip();
+  ctx.fillStyle = lite(BALACLAVA, 0.1); for (let x = -3; x < 12; x += 2) ctx.fillRect(x, y - 6, 0.7, 16);
+  ctx.restore();
+  ctx.strokeStyle = FUR_SHADE; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(4, y + 2, 8.6, -0.6, 1.6); ctx.stroke();
+  // The mouth hole: a slice of skin, the mouth set hard (or bared), frost on the knit under it
+  ink(ctx, () => ctx.ellipse(8.4, y + 5.6, 2.8, 1.9, 0, 0, Math.PI * 2), '#E0AC69', 0.7);
+  ctx.fillStyle = '#B0804A'; ctx.fillRect(6, y + 4.2, 4.6, 0.8);
+  ctx.fillStyle = INK;
+  if (mouth === 'snarl') { ctx.fillRect(6.4, y + 4.8, 4.2, 1.8); ctx.fillStyle = '#FFFFFF'; for (let k = 0; k < 3; k++) ctx.fillRect(6.8 + k * 1.3, y + 5, 0.9, 0.7); }
+  else ctx.fillRect(6.6, y + 5.6, 3.8, 0.9);
+  ctx.fillStyle = '#E0F2FE'; ctx.fillRect(6.4, y + 7.8, 1, 1); ctx.fillRect(8.4, y + 8, 1, 0.8); ctx.fillRect(10, y + 7.6, 0.8, 0.8);
+  // The goggles: the strap back into the hood, the frame (its top set low at the front: a scowl), the mirror in bands
+  ink(ctx, () => ctx.rect(-6, y - 1.6, 7, 2.6), '#0F172A', 0.6);
+  const frame = () => { ctx.moveTo(0.4, y - 3.6); ctx.lineTo(13.4, y - 2); ctx.lineTo(13.6, y + 2.4); ctx.lineTo(8.6, y + 2.6); ctx.lineTo(7.4, y + 1.4); ctx.lineTo(6.2, y + 2.6); ctx.lineTo(0.6, y + 2.6); ctx.closePath(); };
+  ink(ctx, frame, '#0C4A6E', 1);
+  ctx.save(); ctx.beginPath(); ctx.moveTo(1.6, y - 2.4); ctx.lineTo(12.4, y - 1.1); ctx.lineTo(12.4, y + 1.5); ctx.lineTo(8.4, y + 1.6); ctx.lineTo(7.4, y + 0.5); ctx.lineTo(6.2, y + 1.6); ctx.lineTo(1.6, y + 1.6); ctx.closePath(); ctx.clip();
+  ctx.fillStyle = '#0369A1'; ctx.fillRect(1, y - 3, 13, 5);
+  ctx.fillStyle = GOGGLE; ctx.fillRect(1, y - 1.2, 13, 1.6);
+  ctx.fillStyle = '#7DD3FC'; ctx.fillRect(1, y + 0.4, 13, 1.4);
+  const gx = 2 + (f * 0.1) % 9;
+  ctx.fillStyle = GOGGLE_GLINT; ctx.beginPath(); ctx.moveTo(gx, y + 2); ctx.lineTo(gx + 1.4, y + 2); ctx.lineTo(gx + 3.2, y - 3); ctx.lineTo(gx + 1.8, y - 3); ctx.fill();
+  ctx.restore();
+  ctx.fillStyle = lite('#0C4A6E', 0.4); ctx.fillRect(1.4, y - 3.2, 5, 0.7);
+  // Breath, now and then, in the cold
+  const b = f % 130;
+  if (b < 26) {
+    const k = b / 26;
+    ctx.fillStyle = `rgba(241, 245, 249, ${(0.7 * (1 - k)).toFixed(3)})`;
+    ctx.beginPath(); ctx.arc(12 + k * 7, y + 5 - k * 3, 1.4 + k * 2, 0, Math.PI * 2); ctx.arc(14 + k * 9, y + 3 - k * 4, 1 + k * 1.6, 0, Math.PI * 2); ctx.fill();
+  }
+};
+
+/** The puffer from the waist up: baffled, the zip and its pull, the hem's drawstring toggles. */
 const goonBody = (ctx: Ctx, top: number, bottom: number, width: number) => {
-  ctx.fillStyle = PARKA;
-  ctx.beginPath();
-  ctx.moveTo(-width / 2, bottom); ctx.lineTo(-width / 2 + 2, top + 6); ctx.quadraticCurveTo(0, top - 2, width / 2 - 2, top + 6); ctx.lineTo(width / 2, bottom);
-  ctx.fill();
-  ctx.fillStyle = PARKA_SHADE;
-  ctx.fillRect(-width / 2, bottom - 5, width, 5); // hem
-  ctx.fillRect(-1, top + 4, 2, bottom - top - 8); // zip
-  ctx.fillStyle = PARKA_DARK;
-  for (let y = top + 12; y < bottom - 6; y += 9) ctx.fillRect(-width / 2 + 1, y, width - 2, 1.5); // puffer quilting
+  const w2 = width / 2;
+  const path = () => { ctx.moveTo(-w2, bottom); ctx.lineTo(-w2 + 2, top + 6); ctx.quadraticCurveTo(0, top - 2, w2 - 2, top + 6); ctx.lineTo(w2, bottom); ctx.closePath(); };
+  shaded(ctx, path, PARKA, -w2, top - 2, width, bottom - top + 2);
+  ctx.save(); ctx.beginPath(); path(); ctx.clip();
+  for (let y = top + 11; y < bottom - 6; y += 8) {
+    ctx.fillStyle = PARKA_SHADE; ctx.fillRect(-w2, y - 2, width, 2); // (the underside of the puff above)
+    ctx.fillStyle = PARKA_DARK; ctx.fillRect(-w2, y, width, 1); // the stitching
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-w2 + 2, y + 1.6, w2 - 3, 1); // the next puff, lit
+  }
+  ctx.fillStyle = PARKA_SHADE; ctx.fillRect(-w2, bottom - 5, width, 5);
+  ctx.fillStyle = PARKA_DARK; ctx.fillRect(-w2, bottom - 5, width, 1);
+  ctx.fillStyle = PARKA_DARK; ctx.fillRect(-1.4, top + 3, 2.8, bottom - top);
+  ctx.fillStyle = '#64748B'; for (let y = top + 4; y < bottom - 1; y += 2) ctx.fillRect(-0.8, y, 1.6, 1);
+  ctx.restore();
+  ctx.beginPath(); path(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.lineJoin = 'round'; ctx.stroke();
+  ink(ctx, () => ctx.roundRect(0.4, top + 8, 2.6, 4.4, 1), '#94A3B8', 0.6);
+  for (const tx of [-w2 + 3, w2 - 5]) {
+    ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(tx + 1, bottom - 3); ctx.lineTo(tx + 1, bottom + 1); ctx.stroke();
+    ink(ctx, () => ctx.roundRect(tx, bottom + 0.4, 2.2, 3, 0.8), '#0EA5E9', 0.5);
+  }
 };
 
+/** Snow pants, a seam at the knee; boots with a fur cuff and a treaded sole. */
 const goonLegs = (ctx: Ctx, hipY: number, f: number, stride: number) => {
-  ctx.fillStyle = PANTS;
   const s = Math.sin(f * 0.25) * stride;
-  ctx.fillRect(-8 + s, hipY, 7, -hipY - 5);
-  ctx.fillRect(2 - s, hipY, 7, -hipY - 5);
-  ctx.fillStyle = BOOT;
-  ctx.fillRect(-10 + s, -6, 11, 6);
-  ctx.fillRect(1 - s, -6, 11, 6);
+  for (const x of [-8 + s, 2 - s]) {
+    const h = -hipY - 8;
+    shaded(ctx, () => ctx.rect(x, hipY, 7, h), PANTS, x, hipY, 7, h);
+    ctx.fillStyle = dark(PANTS, 0.35); ctx.fillRect(x + 0.6, hipY + h * 0.55, 5.8, 0.8);
+    ctx.fillStyle = lite(PANTS, 0.3); ctx.fillRect(x + 0.6, hipY + h * 0.55 + 0.8, 2, 0.6);
+    ink(ctx, () => ctx.roundRect(x - 1, -9.4, 9, 4.2, 1.6), FUR, 0.8);
+    ctx.fillStyle = FUR_SHADE; ctx.fillRect(x + 4.6, -8.6, 2.4, 3); ctx.fillRect(x, -6.2, 6, 0.8);
+    ink(ctx, () => ctx.roundRect(x - 1.5, -5.8, 11.5, 5.8, [2, 3.6, 1, 1]), BOOT, 1);
+    ctx.fillStyle = lite(BOOT, 0.3); ctx.fillRect(x, -5, 3.6, 1);
+    ctx.fillStyle = lite(BOOT, 0.5); ctx.fillRect(x - 1, -1.8, 10.6, 1.2);
+    ctx.fillStyle = INK; for (let k = 0; k < 4; k++) ctx.fillRect(x + k * 2.8, -0.8, 1.2, 0.8);
+  }
 };
 
 /** A goon with a boxy cryo rifle; it frosts up and flashes just before it fires. */
 const drawShooter = (ctx: Ctx, e: Enemy, f: number, _state: GameState) => {
   goonLegs(ctx, -24, f, 0);
+  // The far arm, out under the shroud
+  sleeve(ctx, [6, -48, 12, -42, 18, -40], PARKA_SHADE);
+  mitten(ctx, 19, -39.6, dark(PARKA_DARK, 0.1));
   goonBody(ctx, -52, -22, 26);
-  // Armband
-  ctx.fillStyle = '#0EA5E9'; ctx.fillRect(-12, -44, 6, 6); snowflake(ctx, -9, -41, 2.5);
   goonHead(ctx, -58, f);
-  // Rifle held level at the shoulder
+  // The rifle held level at the shoulder: the stock, the receiver, the grip, the cryo cell, the finned shroud, the emitter
   const charge = Math.max(0, (e.shootTimer - 40) / 20);
-  ctx.fillStyle = '#334155'; ctx.fillRect(-2, -42, 26, 7);
-  ctx.fillStyle = '#1E293B'; ctx.fillRect(4, -36, 5, 7); // grip
-  ctx.fillStyle = '#475569'; ctx.fillRect(18, -44, 10, 4); // barrel shroud
-  ctx.fillStyle = `rgba(56, 189, 248, ${0.4 + charge * 0.6})`;
-  ctx.fillRect(8, -41, 9, 4); // cryo cell
-  if (charge > 0.8) { ctx.fillStyle = '#E0F2FE'; ctx.beginPath(); ctx.arc(30, -40, 3 + charge * 2, 0, Math.PI * 2); ctx.fill(); }
-  // Mittens on it
-  ctx.fillStyle = PARKA_DARK; ctx.fillRect(2, -40, 6, 6); ctx.fillRect(14, -43, 6, 6);
+  ink(ctx, () => { ctx.moveTo(-5, -42.6); ctx.lineTo(1, -42.6); ctx.lineTo(1, -36); ctx.lineTo(-5.6, -35); ctx.closePath(); }, '#1E293B', 0.9);
+  ctx.fillStyle = '#475569'; ctx.fillRect(-4.4, -41.8, 4.6, 1);
+  ink(ctx, () => { ctx.moveTo(4, -36); ctx.lineTo(9, -36); ctx.lineTo(8.4, -29); ctx.lineTo(4.4, -29); ctx.closePath(); }, '#1E293B', 0.8);
+  ctx.strokeStyle = INK; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.arc(11.4, -35.4, 2, 0, Math.PI); ctx.stroke();
+  shadedTop(ctx, () => ctx.roundRect(0, -43, 19, 7.4, 1.4), '#334155', 0, -43, 19, 7.4);
+  ctx.fillStyle = '#64748B'; ctx.fillRect(1, -42.2, 16, 0.8);
+  ctx.fillStyle = INK; ctx.fillRect(2, -38.6, 4, 0.7);
+  // (the cell: glass, coolant in bands, brightening as it charges, end caps)
+  const a = 0.4 + charge * 0.6;
+  ink(ctx, () => ctx.roundRect(7, -42, 10, 4.8, 1.6), '#0C4A6E', 0.8);
+  ctx.fillStyle = `rgba(56, 189, 248, ${a.toFixed(3)})`; ctx.fillRect(7.6, -41.4, 8.8, 3.6);
+  ctx.fillStyle = `rgba(186, 230, 253, ${a.toFixed(3)})`; ctx.fillRect(7.6, -41.4, 8.8, 1.2);
+  ctx.fillStyle = `rgba(255, 255, 255, ${(0.5 + charge * 0.5).toFixed(3)})`; ctx.fillRect(9 + (f * 0.3) % 5, -39.4, 1, 1); ctx.fillRect(13 - (f * 0.2) % 4, -40, 0.8, 0.8);
+  for (const cx of [6.4, 16.2]) ink(ctx, () => ctx.rect(cx, -42.4, 1.6, 5.6), '#94A3B8', 0.6);
+  shadedTop(ctx, () => ctx.rect(18, -44, 10, 5.4), '#475569', 18, -44, 10, 5.4);
+  ctx.fillStyle = INK; for (let x = 20; x < 27; x += 2) ctx.fillRect(x, -43.4, 0.7, 4.2);
+  ink(ctx, () => { ctx.moveTo(28, -44.6); ctx.lineTo(30.4, -43.6); ctx.lineTo(30.4, -39.4); ctx.lineTo(28, -38.4); ctx.closePath(); }, '#0EA5E9', 0.8);
+  ctx.fillStyle = '#BAE6FD'; ctx.fillRect(28.6, -43.4, 0.8, 1.6);
+  // Frost creeping up the shroud as it charges, then the flash
+  if (charge > 0.2) { ctx.fillStyle = '#F0F9FF'; for (let i = 0; i < Math.floor(charge * 6); i++) ctx.fillRect(18.6 + i * 1.6, -44.6 + (i % 2), 1.2, 1); }
+  if (charge > 0.8) frostGlow(ctx, 32, -41.4, 2 + charge * 2, Math.min(1, (charge - 0.8) * 5));
+  // The near arm, round to the grip; Artie's patch on it
+  sleeve(ctx, [-8, -47, -6, -37, 5, -34]);
+  armPatch(ctx, -7.6, -43.6);
+  ink(ctx, () => ctx.roundRect(1.4, -36.6, 3.4, 5.4, 1), FUR, 0.6);
+  mitten(ctx, 6.4, -34);
 };
 
 /** A big goon in hockey pads and a caged helmet, shoulder down. */
 const drawCharger = (ctx: Ctx, e: Enemy, f: number) => {
   const running = Math.abs(e.vel.x) > 1;
   const lean = running ? 0.25 : 0;
+  const JERSEY = '#1E3A8A', GLOVE = '#7F1D1D';
+  const sw = running ? Math.sin(f * 0.45) * 4 : 0;
   goonLegs(ctx, -26, f * (running ? 1.8 : 0.6), running ? 7 : 1);
   ctx.save();
   ctx.translate(0, -26);
   ctx.rotate(lean);
-  // Jersey over pads, Artie's snowflake on the front
-  ctx.fillStyle = '#1E3A8A';
-  ctx.beginPath(); ctx.moveTo(-18, 0); ctx.lineTo(-20, -30); ctx.quadraticCurveTo(0, -42, 20, -30); ctx.lineTo(18, 0); ctx.fill();
-  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-18, -8, 36, 3); ctx.fillRect(-18, -2, 36, 2);
-  ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.arc(2, -20, 7, 0, Math.PI * 2); ctx.fill();
-  snowflake(ctx, 2, -20, 5);
-  // Shoulder pads
-  ctx.fillStyle = '#1E40AF';
-  ctx.beginPath(); ctx.ellipse(12, -32, 10, 7, -0.3, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(-12, -32, 9, 6, 0.3, 0, Math.PI * 2); ctx.fill();
-  // Helmet with a face cage
-  ctx.fillStyle = '#F8FAFC';
-  ctx.beginPath(); ctx.arc(4, -44, 11, Math.PI, 0); ctx.fill();
-  ctx.fillRect(-7, -44, 22, 6);
-  ctx.fillStyle = BALACLAVA; ctx.fillRect(1, -42, 12, 9);
-  ctx.fillStyle = GOGGLE; ctx.fillRect(3, -41, 9, 3);
-  ctx.strokeStyle = '#9CA3AF'; ctx.lineWidth = 1.2;
-  for (let x = 2; x <= 14; x += 3) { ctx.beginPath(); ctx.moveTo(x, -43); ctx.lineTo(x, -32); ctx.stroke(); }
-  ctx.beginPath(); ctx.moveTo(1, -37); ctx.lineTo(15, -37); ctx.stroke();
-  // Gloved fists
-  ctx.fillStyle = '#7F1D1D';
-  ctx.fillRect(14, -18 + (running ? Math.sin(f * 0.45) * 4 : 0), 8, 8);
+  // The far arm, pumping behind
+  sleeve(ctx, [-12, -30, -16, -20, -14 - sw, -10], dark(JERSEY, 0.15), 7);
+  limb(ctx, -15.8, -18, -15.4 - sw * 0.3, -16, 6, '#CBD5E1');
+  const glove = (x: number, y: number) => {
+    shaded(ctx, () => ctx.roundRect(x - 4, y - 4, 8, 8, 2), GLOVE, x - 4, y - 4, 8, 8);
+    ink(ctx, () => ctx.roundRect(x - 5, y - 6.4, 10, 3.2, 1.2), dark(GLOVE, 0.15), 0.8); // the cuff
+    ctx.fillStyle = INK; ctx.fillRect(x - 3, y - 0.6, 5.6, 0.6); ctx.fillRect(x - 3, y + 1.6, 5.6, 0.6);
+    ctx.fillStyle = lite(GLOVE, 0.3); ctx.fillRect(x - 3, y - 2.6, 3, 1);
+  };
+  glove(-14 - sw, -9);
+  // Jersey over pads, the stripes at the hem, Artie's snowflake crest, the laced collar
+  const jersey = () => { ctx.moveTo(-18, 0); ctx.lineTo(-20, -30); ctx.quadraticCurveTo(0, -42, 20, -30); ctx.lineTo(18, 0); ctx.closePath(); };
+  shaded(ctx, jersey, JERSEY, -20, -38, 40, 38);
+  ctx.save(); ctx.beginPath(); jersey(); ctx.clip();
+  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-20, -9, 40, 3.4); ctx.fillRect(-20, -3, 40, 2.4);
+  ctx.fillStyle = '#CBD5E1'; ctx.fillRect(8, -9, 12, 3.4); ctx.fillRect(8, -3, 12, 2.4);
+  ctx.fillStyle = INK; ctx.fillRect(-20, -9.4, 40, 0.5); ctx.fillRect(-20, -5.6, 40, 0.5); ctx.fillRect(-20, -3.4, 40, 0.5); ctx.fillRect(-20, -0.6, 40, 0.5);
+  ctx.fillStyle = dark(JERSEY, 0.3); for (const fx of [-10, 0, 10]) ctx.fillRect(fx, -28, 0.8, 18); // the folds
   ctx.restore();
+  ctx.beginPath(); jersey(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
+  ink(ctx, () => ctx.arc(2, -20, 7.4, 0, Math.PI * 2), '#F8FAFC', 1);
+  ctx.strokeStyle = '#0EA5E9'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(2, -20, 6, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = '#E2E8F0'; ctx.fillRect(4, -16, 4, 2);
+  snowflake(ctx, 2, -20, 4.4);
+  ink(ctx, () => { ctx.moveTo(0, -37); ctx.lineTo(6, -37); ctx.lineTo(3, -31); ctx.closePath(); }, '#F8FAFC', 0.7);
+  ctx.strokeStyle = INK; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(1.6, -35.6); ctx.lineTo(4.4, -34.4); ctx.moveTo(4.4, -35.6); ctx.lineTo(1.6, -34.4); ctx.stroke();
+  // Shoulder pads, under the jersey's shoulders, a white stripe over each
+  const pad = (x: number, rx: number, ry: number, rot: number) => {
+    shadedTop(ctx, () => ctx.ellipse(x, -32, rx, ry, rot, 0, Math.PI * 2), '#1E40AF', x - rx, -32 - ry, rx * 2, ry * 2);
+    ctx.save(); ctx.beginPath(); ctx.ellipse(x, -32, rx, ry, rot, 0, Math.PI * 2); ctx.clip();
+    ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x - rx, -30, rx * 2, 1.8);
+    ctx.restore();
+  };
+  pad(-12, 9, 6, 0.3);
+  // The near arm, gloved fist out front
+  sleeve(ctx, [12, -30, 14, -20, 18, -14 + sw], JERSEY, 7);
+  limb(ctx, 14.6, -19, 15.8, -17.2 + sw * 0.35, 6, '#F8FAFC'); // (the sleeve's stripe)
+  pad(12, 10, 7, -0.3);
+  glove(18, -14 + sw);
+  // The helmet: the shell lit on top, vents, an ear guard; the face behind the cage, teeth bared; the cage
+  const shell = () => { ctx.arc(4, -44, 11, Math.PI, 0); ctx.lineTo(15, -38); ctx.lineTo(-7, -38); ctx.closePath(); };
+  shadedTop(ctx, shell, '#F8FAFC', -7, -55, 22, 17);
+  ctx.fillStyle = '#64748B'; for (const vx of [-1, 3, 7]) ctx.fillRect(vx, -52.4, 2.4, 1.2);
+  ink(ctx, () => ctx.roundRect(-5, -42, 5, 7, 2), '#E2E8F0', 0.8);
+  ctx.fillStyle = INK; ctx.fillRect(-3.4, -39.6, 1.6, 1.6);
+  shaded(ctx, () => ctx.rect(1, -42, 12, 10), BALACLAVA, 1, -42, 12, 10, 0.8);
+  ink(ctx, () => ctx.rect(2.6, -41.4, 10, 3.2), '#0C4A6E', 0.7);
+  ctx.fillStyle = GOGGLE; ctx.fillRect(3.2, -40.8, 8.8, 1.4); ctx.fillStyle = '#7DD3FC'; ctx.fillRect(3.2, -39.4, 8.8, 0.8);
+  ctx.fillStyle = GOGGLE_GLINT; ctx.fillRect(4 + (f * 0.1) % 6, -40.8, 1.4, 1.4);
+  ink(ctx, () => ctx.rect(5.4, -36.4, 6, 2.6), '#E0AC69', 0.6);
+  ctx.fillStyle = INK; ctx.fillRect(5.8, -35.8, 5.2, 1.6); ctx.fillStyle = '#FFFFFF'; for (let k = 0; k < 4; k++) ctx.fillRect(6.2 + k * 1.3, -35.6, 0.9, 0.7);
+  ctx.lineCap = 'round';
+  for (const [col, lw] of [[INK, 2.2], ['#D1D5DB', 1]] as const) {
+    ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.beginPath();
+    for (let x = 2; x <= 14; x += 3) { ctx.moveTo(x, -43); ctx.lineTo(x, -32); }
+    ctx.moveTo(1, -37); ctx.lineTo(15, -37); ctx.moveTo(1, -32); ctx.lineTo(14, -32);
+    ctx.stroke();
+  }
+  ctx.lineCap = 'butt';
+  ctx.strokeStyle = INK; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(-3, -35); ctx.lineTo(3, -31); ctx.stroke(); // the chin strap
+  ctx.restore();
+};
+
+/** The slab of ice, banded in steel like a riot shield: chipped along the top, bolted, the cult's flake cut in it, rime at the foot; cracking up as `damage` goes up. */
+const iceSlab = (ctx: Ctx, x: number, y: number, w: number, h: number, damage: number, f: number) => {
+  const r = x + w, b = y + h;
+  const path = () => {
+    ctx.moveTo(x, b); ctx.lineTo(x, y + 4); ctx.lineTo(x + w * 0.2, y); ctx.lineTo(x + w * 0.45, y + 1.5); ctx.lineTo(x + w * 0.7, y - 1.5); ctx.lineTo(r, y + 2); ctx.lineTo(r, b); ctx.closePath();
+  };
+  ctx.save(); ctx.beginPath(); path(); ctx.clip();
+  ctx.fillStyle = 'rgba(165, 214, 245, 0.82)'; ctx.fillRect(x, y - 2, w, h + 2);
+  ctx.fillStyle = 'rgba(79, 156, 201, 0.75)'; ctx.fillRect(x, y - 2, 3, h + 2); // (its thickness, the edge on to you)
+  ctx.fillStyle = 'rgba(224, 242, 254, 0.9)'; ctx.fillRect(x + 3, y - 2, 2.4, h + 2);
+  ctx.fillStyle = 'rgba(79, 156, 201, 0.45)'; ctx.fillRect(r - 3, y - 2, 3, h + 2);
+  // Facets: stepped light bands across it
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+  for (let k = 0; k < h; k += 18) { ctx.beginPath(); ctx.moveTo(x + 3, y + k + 8); ctx.lineTo(r, y + k + 2); ctx.lineTo(r, y + k + 5); ctx.lineTo(x + 3, y + k + 11); ctx.fill(); }
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+  for (const [bx, by] of [[0.55, 0.3], [0.7, 0.62], [0.4, 0.8], [0.8, 0.45]]) ctx.fillRect(x + w * bx, y + h * by, 1, 1); // trapped bubbles
+  // The flake cut into it
+  if (h > 50) snowflake(ctx, x + w * 0.58, y + h * 0.42, w * 0.26, 'rgba(255, 255, 255, 0.7)');
+  // Cracks spread as he takes damage (white, a dark edge under each)
+  const cracks = Math.floor(damage * 6), step = h / 7;
+  for (let i = 0; i < cracks; i++) {
+    const y0 = y + 8 + i * step;
+    const crack = () => { ctx.beginPath(); ctx.moveTo(x + 1, y0); ctx.lineTo(x + w * 0.4, y0 + 4); ctx.lineTo(x + w * 0.25, y0 + 8); ctx.lineTo(r - 1, y0 + step); ctx.moveTo(x + w * 0.4, y0 + 4); ctx.lineTo(x + w * 0.7, y0 + 2); };
+    crack(); ctx.strokeStyle = 'rgba(12, 74, 110, 0.7)'; ctx.lineWidth = 1.6; ctx.stroke();
+    crack(); ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)'; ctx.lineWidth = 0.8; ctx.stroke();
+  }
+  if (damage > 0.5) { ctx.fillStyle = 'rgba(12, 74, 110, 0.45)'; ctx.beginPath(); ctx.moveTo(r, y + h * 0.3); ctx.lineTo(r - 4, y + h * 0.34); ctx.lineTo(r, y + h * 0.4); ctx.fill(); }
+  ctx.restore();
+  ctx.beginPath(); path(); ctx.strokeStyle = '#0E4A6E'; ctx.lineWidth = 1.2; ctx.lineJoin = 'round'; ctx.stroke();
+  // The steel bands, bolted across
+  for (const by of h > 50 ? [y + 10, b - 14] : [y + 6, b - 10]) {
+    shadedTop(ctx, () => ctx.rect(x - 1, by, w + 2, 4), '#475569', x - 1, by, w + 2, 4, 0.8);
+    ctx.fillStyle = '#CBD5E1'; for (const bx of [x + 2, r - 3]) ctx.fillRect(bx, by + 1.2, 1.2, 1.2);
+  }
+  // Rime at the foot
+  ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.moveTo(x - 1, b);
+  for (let k = 0; k <= w + 2; k += 2.5) ctx.lineTo(x - 1 + k, b - (k % 5 < 2.5 ? 3 : 1.4));
+  ctx.lineTo(r + 1, b); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = `rgba(255, 255, 255, ${(0.5 + 0.5 * Math.sin(f * 0.08)).toFixed(3)})`; ctx.fillRect(x + 4, y + 6, 1, 3); ctx.fillRect(x + 3, y + 7, 3, 1); // a twinkle
 };
 
 /** A goon behind a thick slab of ice. It drops the slab to throw, and it cracks up as it takes hits. */
 const drawShielder = (ctx: Ctx, e: Enemy, f: number) => {
-  goonLegs(ctx, -24, f, 0);
-  goonBody(ctx, -54, -22, 28);
-  ctx.fillStyle = '#0EA5E9'; ctx.fillRect(-13, -46, 6, 6); snowflake(ctx, -10, -43, 2.5);
-  goonHead(ctx, -60, f);
   const up = !!e.isShieldActive;
+  const damage = 1 - e.health / e.maxHealth;
+  if (!up) iceSlab(ctx, -26, -34, 12, 34, damage, f); // slab down at his side
+  goonLegs(ctx, -24, f, 0);
+  if (up) sleeve(ctx, [6, -49, 8, -38, 11, -32], PARKA_SHADE); // (the far arm, braced behind it)
+  goonBody(ctx, -54, -22, 28);
+  goonHead(ctx, -60, f, up ? 'grim' : 'snarl');
   if (up) {
-    // The slab, held out in front
-    const damage = 1 - e.health / e.maxHealth;
-    ctx.fillStyle = 'rgba(165, 214, 245, 0.8)';
-    ctx.fillRect(10, -74, 16, 74);
-    ctx.fillStyle = 'rgba(224, 242, 254, 0.9)';
-    ctx.fillRect(12, -72, 3, 70);
-    ctx.strokeStyle = 'rgba(14, 116, 144, 0.9)'; ctx.lineWidth = 2; ctx.strokeRect(10, -74, 16, 74);
-    // Cracks spread as he takes damage
-    ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 1;
-    const cracks = Math.floor(damage * 6);
-    for (let i = 0; i < cracks; i++) {
-      const y0 = -66 + i * 11;
-      ctx.beginPath(); ctx.moveTo(11, y0); ctx.lineTo(17, y0 + 4); ctx.lineTo(14, y0 + 8); ctx.lineTo(25, y0 + 11); ctx.stroke();
-    }
+    // The slab, held out in front, his mitten round its edge
+    sleeve(ctx, [-7, -49, -3, -38, 9, -40]);
+    armPatch(ctx, -6.4, -45);
+    iceSlab(ctx, 10, -74, 16, 74, damage, f);
+    mitten(ctx, 10.4, -40);
   } else {
-    // Slab down at his side, arm back to throw a chunk broken off it
-    ctx.fillStyle = 'rgba(165, 214, 245, 0.7)'; ctx.fillRect(-26, -34, 12, 34);
-    const wind = Math.min(1, (e.shootTimer - 80) / 40);
-    ctx.fillStyle = PARKA_DARK; ctx.fillRect(-4 - wind * 10, -52, 7, 12);
+    // Arm back to throw a chunk broken off it; the other hangs
+    sleeve(ctx, [6, -49, 8, -40, 9, -32], PARKA_SHADE);
+    mitten(ctx, 9.4, -31);
+    const wind = Math.min(1, Math.max(0, (e.shootTimer - 80) / 40));
     const hx = -2 - wind * 12;
-    ctx.fillStyle = '#BAE6FD'; ctx.beginPath(); ctx.moveTo(hx - 6, -55); ctx.lineTo(hx - 2, -60); ctx.lineTo(hx + 5, -58); ctx.lineTo(hx + 6, -52); ctx.lineTo(hx - 3, -49); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.fillRect(hx - 3, -57, 3, 3);
+    sleeve(ctx, [-6, -49, hx - 1 + wind * 4, -44, hx + 1, -51]);
+    armPatch(ctx, -6.4, -45);
+    const chunk = () => { ctx.moveTo(hx - 6, -55); ctx.lineTo(hx - 2, -60); ctx.lineTo(hx + 5, -58); ctx.lineTo(hx + 6, -52); ctx.lineTo(hx - 3, -49); ctx.closePath(); };
+    ink(ctx, chunk, ICE, 1);
+    ctx.save(); ctx.beginPath(); chunk(); ctx.clip();
+    ctx.fillStyle = ICE_LIT; ctx.beginPath(); ctx.moveTo(hx - 6, -55); ctx.lineTo(hx - 2, -60); ctx.lineTo(hx + 1, -55); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = ICE_DEEP; ctx.beginPath(); ctx.moveTo(hx + 1, -55); ctx.lineTo(hx + 6, -52); ctx.lineTo(hx - 3, -49); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    ctx.beginPath(); chunk(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(hx - 3, -57, 2, 1); ctx.fillRect(hx - 3.6, -56, 1, 1);
+    mitten(ctx, hx + 1, -50.6);
   }
 };
