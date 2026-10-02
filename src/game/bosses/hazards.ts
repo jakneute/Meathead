@@ -137,7 +137,8 @@ export const updateTommyArena = (ctx: FrameContext) => {
   const { player } = state;
   if (stageId !== 'Toxic Tommy' || !state.arenaLocked || !state.tommyBoards) return;
 
-  state.tommyScrollY = (state.tommyScrollY + 2.5) % 400;
+  // (wrapped at a multiple of every period the shaft's drawn in, long enough that its rows don't visibly repeat)
+  state.tommyScrollY = (state.tommyScrollY + 2.5) % 96000;
   // The door he kicked in is lying across the catwalk and the first board: that board goes, and so does the door,
   // off the end into the sludge (for good)
   const first = state.tommyBoards[0];
