@@ -6,6 +6,7 @@
 // road, the junk in it, the bike, the crew on the corner, the
 // man in the hazmat suit with his bottle.
 
+import { drawPerson } from '../../render/npc/person';
 import { drawHydrant } from '../../render/props/hydrant';
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
@@ -370,15 +371,13 @@ export const drawRiddenBike = (ctx: Ctx, state: GameState) => {
 
 /** A kid on the corner (the crew), leaning, talking with his hands. */
 const drawCrewMember = (ctx: Ctx, x: number, y: number, f: number, shirt: string, skin: string, facing: number) => {
-  ctx.save(); ctx.translate(x, y); ctx.scale(facing, 1);
-  const talk = Math.sin(f * 0.2) * 3;
-  ctx.fillStyle = '#1E3A8A'; ctx.fillRect(-8, -28, 7, 23); ctx.fillRect(2, -28, 7, 23);
-  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-9, -5, 10, 5); ctx.fillRect(1, -5, 10, 5);
-  ctx.fillStyle = shirt; ctx.fillRect(-12, -54, 24, 28);
-  ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(1, -61, 8, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#111827'; ctx.fillRect(-7, -70, 16, 5); ctx.fillRect(4, -63, 2, 2);
-  ctx.fillStyle = skin; ctx.fillRect(9, -48 + talk, 12, 5);
-  ctx.restore();
+  // (a tee or a hoodie in their colour, jeans, white kicks, a cap or a do-rag; one hand going as they talk)
+  const k = Math.abs(Math.round(x * 0.37)) % 3;
+  drawPerson(ctx, x, y, {
+    skin, hair: { style: 'short', color: '#111827' }, top: { style: k === 1 ? 'hoodie' : 'tee', color: shirt, accent: k ? '#111827' : '#FACC15' },
+    legs: { color: '#1E3A8A' }, shoes: '#F8FAFC', hat: k === 2 ? { style: 'beanie', color: '#111827' } : { style: 'cap', color: k ? '#DC2626' : '#111827' },
+    extra: c => { c.strokeStyle = '#FACC15'; c.lineWidth = 1; c.beginPath(); c.arc(0, -50, 5, 0.2, Math.PI - 0.2); c.stroke(); },
+  }, { arms: Math.sin(f * 0.05) > 0 ? 'point' : 'hips', mouth: 'talk', f }, 1, facing < 0 ? -1 : 1);
 };
 
 /** The corner: the crew hanging out, the kid on his bike (then off it, flying, sprawled on the sidewalk). */

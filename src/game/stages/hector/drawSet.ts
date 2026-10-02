@@ -20,6 +20,7 @@ import { sentenceShown } from '../../platform/speech';
 import { DAYCARE_LINES } from '../../../content/dialogue';
 import { bandedGradient, checker, pixelBlob } from '../../render/pixelArt';
 import { drawPerson } from '../../render/npc/person';
+import { ink } from '../../render/npc/kit';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -49,22 +50,20 @@ export const drawBoatScene = (ctx: Ctx, state: GameState, b: Boat) => {
     ctx.translate(m.x, m.y);
     if (m.state === 'flying') ctx.rotate(m.rot);
     if (m.state === 'fishing') {
-      // Sat on a bucket, rod out over the water, bucket hat, pipe
-      ctx.fillStyle = '#6B7280'; ctx.fillRect(-10, -16, 20, 16);
-      ctx.fillStyle = '#4D7C0F'; ctx.fillRect(-9, -26, 18, 10);
-      ctx.fillStyle = '#1E3A8A'; ctx.fillRect(-12, -50, 22, 26);
-      ctx.fillStyle = '#FDE68A'; ctx.fillRect(-12, -50, 22, 4);
-      ctx.fillStyle = '#F2C9A0'; ctx.beginPath(); ctx.arc(0, -58, 8, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#E5E7EB'; ctx.fillRect(-6, -52, 12, 4);                                  // white beard
-      ctx.fillStyle = '#A16207'; ctx.fillRect(-11, -68, 22, 5); ctx.fillRect(-7, -72, 14, 5);  // bucket hat
-      ctx.strokeStyle = '#78350F'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(6, -40); ctx.lineTo(70, -90); ctx.stroke();
+      // Sat on a bucket, rod out over the water, bucket hat, the white beard, his vest of lures
+      ink(ctx, () => ctx.roundRect(-11, -20, 22, 20, 2), '#6B7280', 1); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(-9, -18, 5, 16); ctx.fillStyle = '#4B5563'; ctx.fillRect(-11, -14, 22, 2);
+      drawPerson(ctx, -4, 6, {
+        skin: '#F2C9A0', hair: { style: 'short', color: '#E5E7EB' }, top: { style: 'vest', color: '#FDE68A', accent: '#65A30D' }, legs: { color: '#1E3A8A', style: 'shorts' }, shoes: '#78350F',
+        hat: { style: 'bucket', color: '#A16207' }, face: 'beard', faceHair: '#E5E7EB',
+        extra: c => { for (let k = 0; k < 3; k++) { c.fillStyle = ['#EF4444', '#FACC15', '#3B82F6'][k]; c.fillRect(-6 + k * 4, -46, 2, 3); } },
+      }, { seated: true, arms: 'hold', mouth: 'flat', f: state.frame, prop: (c, hx, hy) => { c.strokeStyle = '#1A0B06'; c.lineWidth = 3; c.beginPath(); c.moveTo(hx - 4, hy + 4); c.lineTo(hx + 60, hy - 46); c.stroke(); c.strokeStyle = '#92400E'; c.lineWidth = 1.6; c.beginPath(); c.moveTo(hx - 4, hy + 4); c.lineTo(hx + 60, hy - 46); c.stroke(); c.fillStyle = '#374151'; c.fillRect(hx - 2, hy - 2, 5, 5); } });
       ctx.strokeStyle = 'rgba(229, 231, 235, 0.8)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(70, -90); ctx.lineTo(90, COURSE.sea.y - m.y); ctx.stroke();
     } else {
       // In the water: head, hat and rod bobbing (or cartwheeling through the air)
-      ctx.fillStyle = '#1E3A8A'; ctx.fillRect(-10, -20, 20, 22);
-      ctx.fillStyle = '#F2C9A0'; ctx.beginPath(); ctx.arc(0, -28, 8, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#A16207'; ctx.fillRect(-11, -38, 22, 5);
-      ctx.strokeStyle = '#78350F'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(6, -18); ctx.lineTo(34, -50); ctx.stroke();
+      drawPerson(ctx, 0, 34, {
+        skin: '#F2C9A0', hair: { style: 'short', color: '#E5E7EB' }, top: { style: 'vest', color: '#FDE68A', accent: '#65A30D' }, legs: { color: '#1E3A8A', style: 'shorts' }, shoes: '#78350F',
+        hat: { style: 'bucket', color: '#A16207' }, face: 'beard', faceHair: '#E5E7EB',
+      }, { arms: 'up', mouth: 'o', f: state.frame });
     }
     ctx.restore();
     if (m.lineT > 0) bubble(ctx, m.x, m.y - (m.state === 'fishing' ? 84 : 52), m.line);
