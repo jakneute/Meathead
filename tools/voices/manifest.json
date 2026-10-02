@@ -4446,12 +4446,27 @@
  },
  {
   "voice": "death",
+  "text": "A GRACKLE STOLE YOUR EYES",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "A JUMP WON'T CLEAR IT. UPPERCUT!",
   "from": "game/stages/dale/town.ts:641"
  },
  {
   "voice": "death",
   "text": "A LONG WAY DOWN",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "A PIGEON TOOK YOUR EYES",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "A SEAGULL TOOK YOUR EYES OVER FRIES",
   "from": "content/deaths"
  },
  {
@@ -4468,6 +4483,11 @@
   "voice": "death",
   "text": "AIR CONDITIONED",
   "from": "game/stages/ernie/quake.ts:339"
+ },
+ {
+  "voice": "death",
+  "text": "AN EAGLE TOOK YOUR EYES",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -4576,6 +4596,11 @@
  },
  {
   "voice": "death",
+  "text": "BLINDED BY A RAT WITH WINGS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "BLOWN AWAY",
   "from": "content/deaths"
  },
@@ -4613,6 +4638,11 @@
   "voice": "death",
   "text": "BOOT HILL, PLOT 12",
   "from": "game/stages/dale/runtime.ts:188"
+ },
+ {
+  "voice": "death",
+  "text": "BOTH EYES IN A PELICAN'S POUCH",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -5201,6 +5231,16 @@
  },
  {
   "voice": "death",
+  "text": "EYES FIRST. THE REST LATER.",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "EYES: GONE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "FAILED THE TRIAL",
   "from": "content/deaths"
  },
@@ -5351,6 +5391,11 @@
  },
  {
   "voice": "death",
+  "text": "FREEDOM HAS TALONS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "FREEDOM HURTS",
   "from": "content/deaths"
  },
@@ -5427,6 +5472,11 @@
  {
   "voice": "death",
   "text": "HAWK-EYED AND DEAD",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HAWK-EYED. HAWK HAS THE EYES.",
   "from": "content/deaths"
  },
  {
@@ -5846,6 +5896,11 @@
  },
  {
   "voice": "death",
+  "text": "MINE! MINE! MINE!",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "MISSED THE JUMP",
   "from": "game/stages/oscar/chase.ts:584"
  },
@@ -5913,6 +5968,11 @@
   "voice": "death",
   "text": "NO CONES. NO SIGN. NO CREW.",
   "from": "game/stages/barry/runtime.ts:411"
+ },
+ {
+  "voice": "death",
+  "text": "NO EYES, NO GAINS",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -6351,6 +6411,11 @@
  },
  {
   "voice": "death",
+  "text": "SCOOPED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "SCORPION STING",
   "from": "content/deaths"
  },
@@ -6417,6 +6482,11 @@
  {
   "voice": "death",
   "text": "SHIELD WALL",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHINY THINGS. LIKE EYES.",
   "from": "content/deaths"
  },
  {
@@ -6971,6 +7041,11 @@
  },
  {
   "voice": "death",
+  "text": "THE HAWK TOOK BOTH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "THE HOLE",
   "from": "game/stages/ernie/index.ts:25"
  },
@@ -7077,6 +7152,11 @@
  {
   "voice": "death",
   "text": "THE VOLCANO SPAT ON YOU",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE VULTURE COULDN'T WAIT",
   "from": "content/deaths"
  },
  {
@@ -10302,7 +10382,7 @@
  {
   "voice": "meathead",
   "text": "FUCK YEAH! LET'S GO!",
-  "from": "App.tsx:481"
+  "from": "App.tsx:480"
  },
  {
   "voice": "meathead",
@@ -10593,6 +10673,11 @@
   "voice": "meathead",
   "text": "GIVE IT A SECOND. LET THE GAS BUILD UP.",
   "from": "game/stages/oscar/bunker.ts:259"
+ },
+ {
+  "voice": "meathead",
+  "text": "GIVE THOSE BACK, YOU FEATHERED BASTARD!",
+  "from": "game/player/deathAnim.ts:232"
  },
  {
   "voice": "meathead",
@@ -11497,7 +11582,7 @@
  {
   "voice": "meathead",
   "text": "I BENCH FOUR HUNDRED AND I'M LOSING TO A BREEZE?!",
-  "from": "game/player/deathAnim.ts:259"
+  "from": "game/player/deathAnim.ts:261"
  },
  {
   "voice": "meathead",
@@ -11548,6 +11633,11 @@
   "voice": "meathead",
   "text": "I CAN'T READ. NO.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I CAN'T SEE MY GAINS!",
+  "from": "game/player/deathAnim.ts:232"
  },
  {
   "voice": "meathead",
@@ -11827,7 +11917,7 @@
  {
   "voice": "meathead",
   "text": "I WEIGH TWO-SIXTY! WHAT KIND OF WIND DOES THIS?!",
-  "from": "game/player/deathAnim.ts:259"
+  "from": "game/player/deathAnim.ts:261"
  },
  {
   "voice": "meathead",
@@ -12297,7 +12387,7 @@
  {
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
-  "from": "App.tsx:481"
+  "from": "App.tsx:480"
  },
  {
   "voice": "meathead",
@@ -12457,7 +12547,7 @@
  {
   "voice": "meathead",
   "text": "LET'S FUCKING GO!",
-  "from": "App.tsx:481"
+  "from": "App.tsx:480"
  },
  {
   "voice": "meathead",
@@ -12668,6 +12758,11 @@
   "voice": "meathead",
   "text": "MY EVERYTHING!",
   "from": "game/stages/dale/convoy.ts:399"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY EYES! MY BEAUTIFUL EYES!",
+  "from": "game/player/deathAnim.ts:232"
  },
  {
   "voice": "meathead",
@@ -13197,7 +13292,7 @@
  {
   "voice": "meathead",
   "text": "OH HELL YEAH!",
-  "from": "App.tsx:481"
+  "from": "App.tsx:480"
  },
  {
   "voice": "meathead",
@@ -15532,7 +15627,7 @@
  {
   "voice": "meathead",
   "text": "THIS ISN'T WIND! THIS IS A ROCKET ENGINE!",
-  "from": "game/player/deathAnim.ts:259"
+  "from": "game/player/deathAnim.ts:261"
  },
  {
   "voice": "meathead",
@@ -16142,7 +16237,7 @@
  {
   "voice": "meathead",
   "text": "WHO PUT A JET ENGINE IN A HURRICANE?!",
-  "from": "game/player/deathAnim.ts:259"
+  "from": "game/player/deathAnim.ts:261"
  },
  {
   "voice": "meathead",
@@ -16188,6 +16283,11 @@
   "voice": "meathead",
   "text": "WHO TOOK A SHOPPING CART OUT TO SEA?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO TURNED OFF THE LIGHTS?!",
+  "from": "game/player/deathAnim.ts:232"
  },
  {
   "voice": "meathead",

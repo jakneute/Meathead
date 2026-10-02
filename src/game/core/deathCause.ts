@@ -2,7 +2,7 @@
 // him), or the boss whose fight it was, or the fall. See content/deaths.ts.
 
 import type { GameState } from './state';
-import { DEATH_LINES, BOSS_DEATH_LINES, FALL_DEATH_LINES } from '../../content/deaths';
+import { DEATH_LINES, BOSS_DEATH_LINES, FALL_DEATH_LINES, PLUCK_DEATH_LINES } from '../../content/deaths';
 import { pickRandom } from './utils';
 
 /**
@@ -27,6 +27,14 @@ export const deathByCause = (state: GameState): string | undefined => {
   if (!h || !hurtJustNow(state, h.at) || state.player.health > 0) return undefined;
   const lines = DEATH_LINES[h.source] ?? BOSS_DEATH_LINES[h.source];
   return lines ? pickRandom(lines) : undefined;
+};
+
+/** A bird took his eyes (it dived on him, and that was it): that, whatever the stage would have said. */
+export const pluckDeathMessage = (state: GameState): string | undefined => {
+  const h = state.lastHurt, pb = state.pluckedBy;
+  if (!h || !pb || pb.frame !== h.at || !hurtJustNow(state, h.at) || state.player.health > 0) return undefined;
+  const kind = state.enemies.find(e => e.id === pb.id)?.kind ?? '';
+  return pickRandom([...(PLUCK_DEATH_LINES[kind] ?? []), ...PLUCK_DEATH_LINES.any]);
 };
 
 /** Everything else: off the bottom of the world, or the boss got him. */

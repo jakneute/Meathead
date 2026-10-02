@@ -248,5 +248,17 @@ export const BOSS_DEATH_LINES: Record<string, string[]> = {
   'Drug Trade Dale': ['DALE CUT YOU OFF', 'BAD DEAL'],
 };
 
+/** A bird's dive that got him: it landed on his head and took his eyes (by the bird; anything else, the last two). */
+export const PLUCK_DEATH_LINES: Record<string, string[]> = {
+  eagle: ['AN EAGLE TOOK YOUR EYES', 'FREEDOM HAS TALONS'],
+  vulture: ["THE VULTURE COULDN'T WAIT", 'EYES FIRST. THE REST LATER.'],
+  hawk: ['HAWK-EYED. HAWK HAS THE EYES.', 'THE HAWK TOOK BOTH'],
+  pelican: ["BOTH EYES IN A PELICAN'S POUCH", 'SCOOPED'],
+  grackle: ['A GRACKLE STOLE YOUR EYES', 'SHINY THINGS. LIKE EYES.'],
+  seagull: ['A SEAGULL TOOK YOUR EYES OVER FRIES', 'MINE! MINE! MINE!'],
+  pigeon: ['A PIGEON TOOK YOUR EYES', 'BLINDED BY A RAT WITH WINGS'],
+  any: ['EYES: GONE', 'NO EYES, NO GAINS'],
+};
+
 /** Off the bottom of the world (nothing more particular). */
 export const FALL_DEATH_LINES = ['GRAVITY: 1, MEATHEAD: 0', 'WATCH YOUR STEP', 'A LONG WAY DOWN', 'FELL FOR IT'];

@@ -23,7 +23,7 @@ import { updateBlood } from '../player/blood';
 import { say, isTalking, deathAnnouncing, stopDeathAnnouncer, announceDeath, silenceAll, MEATHEAD_INTRO_VOICE, MEATHEAD_VOICE } from '../platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../platform/skip';
 import { pickRandom, rectsOverlap, boundsOf, isOnScreen } from './utils';
-import { deathByCause, deathFallback } from './deathCause';
+import { deathByCause, deathFallback, pluckDeathMessage } from './deathCause';
 import { killPlayer, DEATH_SCREEN_FRAMES, gateControls, tickPlayerTimers, updatePlayerActions, updatePlayerPhysics, getSpecialForm, interruptSpecialWithHurt } from '../player/player';
 import { updateTsunami, updateSteamExplosions, updateVolcanoes, updateTommyArena } from '../bosses/hazards';
 import { updateTaser, updateBurningProjectiles, updateEnemyStatusEffects } from '../combat/statusEffects';
@@ -571,7 +571,7 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
   if ((player.health <= 0 || player.pos.y > state.camera.y + 1000) && state.deathTimer <= 0) {
     // (the stage's own say first, then what got him, then the fall or the boss; plain YOU DIED only if nothing's known)
     const fell = player.health > 0;
-    killPlayer(ctx, layout?.deathMessage?.(ctx) ?? (fell ? undefined : deathByCause(state)) ?? deathFallback(state, ctx.stageId, fell) ?? "YOU DIED");
+    killPlayer(ctx, (fell ? undefined : pluckDeathMessage(state)) ?? layout?.deathMessage?.(ctx) ?? (fell ? undefined : deathByCause(state)) ?? deathFallback(state, ctx.stageId, fell) ?? "YOU DIED");
   }
   if (player.isTasing && player.currentWeapon === 'TASER' && state.frame % 3 === 0) ctx.fx.playGunSound('taser');
   return true;

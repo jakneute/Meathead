@@ -429,8 +429,8 @@ const diveBody = (ctx: Ctx, frame: number, main: boolean) => {
   ctx.save();
   ctx.translate(-2, 0);
   ctx.rotate(-Math.PI / 2 - 0.15);
-  // Back arm thrown up for balance
-  arm(ctx, [-9, -22], [-20, -30], [-26, -40], true);
+  // Back arm tucked in tight to his side (nothing flapping about in a dive)
+  arm(ctx, [-9, -22], [-14, -12], [-7, -5], true);
   torso(ctx);
   ctx.save();
   ctx.translate(2, -36);

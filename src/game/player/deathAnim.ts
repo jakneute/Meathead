@@ -228,6 +228,8 @@ export const tickMeatheadDeath = (ctx: FrameContext, d: MeatheadDeath, t: number
         for (let i = 0; i < 12; i++) P.push({ pos: { x: d.x + d.facing * (at === PLUCKS[0] ? 3 : 9), y: d.y - 54 }, vel: { x: rnd(-4, 4), y: rnd(-6, -1) }, life: rnd(40, 70), color: GORE[i % GORE.length], size: rnd(2, 5) });
       }
       if (t === PLUCK_AWAY) playSound('whoosh', 0.8);
+      // (and he's got something to say about it, the bird flying off with them)
+      if (t === PLUCK_AWAY + 2) say(PLUCK_LINES[Math.floor(Math.random() * PLUCK_LINES.length)], MEATHEAD_VOICE, 'queue', { always: true, onShow: () => {}, onHide: () => {} });
       if (t > PLUCKS[0] && t % 4 === 0) P.push({ pos: { x: d.x + d.facing * 6 + rnd(-3, 3), y: d.y - 50 }, vel: { x: 0, y: 1.2 }, life: 20, color: GORE[t % GORE.length], size: rnd(2, 3) });
       if (t === PLUCK_FALL + 12) playSound('thud', 0.9);
       break;
@@ -305,6 +307,13 @@ export const PLUCK_LAND = 10, PLUCKS = [24, 36], PLUCK_AWAY = 44, PLUCK_FALL = 1
 export const pluckSway = (t: number) => (t > PLUCKS[0] ? Math.sin((t - PLUCKS[0]) * 0.11) * Math.min(1, (t - PLUCKS[0]) / 30) * 14 : 0);
 /** (plucked) How dark it's got: from the first eye, slowly, all the way. */
 export const pluckDark = (t: number) => Math.max(0, Math.min(1, (t - PLUCKS[0]) / (PLUCK_FRAMES - 10 - PLUCKS[0])));
+/** (plucked) Him, blind, as it flies off with them. */
+const PLUCK_LINES = [
+  'MY EYES! MY BEAUTIFUL EYES!',
+  'GIVE THOSE BACK, YOU FEATHERED BASTARD!',
+  "I CAN'T SEE MY GAINS!",
+  'WHO TURNED OFF THE LIGHTS?!',
+];
 /** (space) When he's out of the air (at the soonest: he gets his line out first). */
 export const SPACE_OUT = 140;
 /** (eye_fall) When he hits the water. */
