@@ -7,7 +7,7 @@ import { KICK_POSE_FRAMES, LEDGE_DROP_FRAMES } from '../../../constants';
 import { GameState } from '../../core/state';
 import { beginSprite, endSprite, markEyes, eyesAt } from './spriteOutline';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
-import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, bootColor, bootToe, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawHead } from './body';
+import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, bootColor, bootToe, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawHead, setTalking, drawTalkingMouth } from './body';
 
 export interface PlayerDrawOptions {
   currentWeapon: WeaponType;
@@ -28,6 +28,8 @@ const SUIT_TINT = 'rgba(250, 204, 21, 0.78)';
 
 /** Draws Meathead: effects auras, then body layers back-to-front, then the held weapon. */
 export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled, footTap = 0, surf = false }: PlayerDrawOptions) => {
+  // (talking, in whatever pose: the heads drawn for the moves work their jaws too)
+  setTalking(state.playerVulgarityTimer > 0 && !!state.playerLastVulgarity && !p.hidden);
   if ((state.deathTimer > 0 && !p.headless && !p.shownDead) || p.hidden) return;
   const animFrame = state.playerAnimFrame;
   setGore(1 - p.health / INITIAL_PLAYER_HEALTH);
@@ -748,15 +750,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.beginPath(); ctx.arc(headX - 12, headY - 6, 2, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(headX - 8, headY - 14, 2.5, 0, Math.PI * 2); ctx.fill();
   } else if (state.playerVulgarityTimer > 0 && !!state.playerLastVulgarity) {
-    // Talking: the jaw working, open and shut and open wider, top teeth showing, the tongue down in it when it's wide
-    const open = [3.6, 1.6, 4.6, 2.4][Math.floor(animFrame / 4) % 4];
-    ctx.fillStyle = '#18181B';
-    ctx.beginPath(); ctx.roundRect(headX - 5.5, mouthY - 0.5, 11, open + 1.5, 1.5); ctx.fill();
-    ctx.fillStyle = '#450A0A';
-    ctx.beginPath(); ctx.roundRect(headX - 4.5, mouthY + 0.3, 9, open, 1.2); ctx.fill();
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(headX - 4.2, mouthY + 0.3, 8.4, 1.3);
-    if (open > 3) { ctx.fillStyle = '#DC2626'; ctx.fillRect(headX - 2.5, mouthY + open - 0.8, 5, 1.2); ctx.fillStyle = '#F5F5F4'; ctx.fillRect(headX - 3.8, mouthY + open - 0.3, 7.6, 0.8); }
+    // Talking: the jaw working (the same in every pose: see drawTalkingMouth)
+    drawTalkingMouth(ctx, headX, mouthY, animFrame);
   } else if (p.killSatisfactionTimer > 0 || state.victoryString !== "") {
     // A wide, nasty grin: the corners hauled up, every tooth showing
     ctx.fillStyle = '#09090B';

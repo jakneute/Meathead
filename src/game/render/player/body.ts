@@ -289,6 +289,22 @@ export type Mood = 'grit' | 'roar' | 'yell' | 'scowl';
  * cheekbone, stubble, a cleft chin, the nose, the flat-top with its bristles, the rage vein, heavy brows; the eyes and
  * mouth by `mood` (gritted teeth, a roar, a yell, or a scowl locked on).
  */
+/** He's talking (set for each frame he's drawn): whatever pose he's in, his jaw works with it. */
+let talking = false;
+export const setTalking = (on: boolean) => { talking = on; };
+
+/** The talking mouth, at (hx, my): open, shut, wider, the top teeth, the tongue down in it when it's wide. */
+export const drawTalkingMouth = (ctx: Ctx, hx: number, my: number, frame: number) => {
+  const open = [3.6, 1.6, 4.6, 2.4][Math.floor(frame / 4) % 4];
+  ctx.fillStyle = '#18181B';
+  ctx.beginPath(); ctx.roundRect(hx - 5.5, my - 0.5, 11, open + 1.5, 1.5); ctx.fill();
+  ctx.fillStyle = '#450A0A';
+  ctx.beginPath(); ctx.roundRect(hx - 4.5, my + 0.3, 9, open, 1.2); ctx.fill();
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(hx - 4.2, my + 0.3, 8.4, 1.3);
+  if (open > 3) { ctx.fillStyle = '#DC2626'; ctx.fillRect(hx - 2.5, my + open - 0.8, 5, 1.2); ctx.fillStyle = '#F5F5F4'; ctx.fillRect(hx - 3.8, my + open - 0.3, 7.6, 0.8); }
+};
+
 export const drawHead = (ctx: Ctx, hx: number, hy: number, mood: Mood, frame: number) => {
   ctx.fillStyle = skinTone;
   ctx.beginPath(); ctx.roundRect(hx - 10, hy - 12, 20, 20, [4, 4, 3, 3]); ctx.fill();
@@ -327,9 +343,11 @@ export const drawHead = (ctx: Ctx, hx: number, hy: number, mood: Mood, frame: nu
     ctx.fillStyle = '#FFFFFF'; ctx.fillRect(lx + 1.4, ey - 0.8, 0.8, 0.8); ctx.fillRect(rx + 1.4, ey - 0.8, 0.8, 0.8);
     ctx.fillStyle = skinShadow; ctx.fillRect(lx - 2.5, ey + 1.5, 5, 0.8); ctx.fillRect(rx - 2.5, ey + 1.5, 5, 0.8);
   }
-  // Mouth
+  // Mouth (talking: that, whatever the mood)
   const my = hy + 3;
-  if (mood === 'roar' || mood === 'yell') {
+  if (talking) {
+    drawTalkingMouth(ctx, hx, my, frame);
+  } else if (mood === 'roar' || mood === 'yell') {
     const big = mood === 'roar' ? 1 : 0.8;
     ctx.fillStyle = '#450A0A'; ctx.beginPath(); ctx.ellipse(hx + 0.5, my + 1, 5 * big, 4 * big, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.ellipse(hx + 0.5, my + 2.6 * big, 3 * big, 1.4 * big, 0, 0, Math.PI * 2); ctx.fill();
