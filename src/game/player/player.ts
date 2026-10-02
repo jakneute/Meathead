@@ -652,6 +652,7 @@ const moveHorizontally = (ctx: FrameContext) => {
   state.windPushX = 0;
   checkBossDoor(ctx);
 
+  let bonked = false;
   for (const b of state.blocks) {
     if (!isSolid(state, b) || b.oneWay || !rectsOverlap(boundsOf(player), b)) continue;
     // A step or lip just above our feet: walk up onto it (stairs on the ground, tiny lips in the air)
@@ -666,9 +667,33 @@ const moveHorizontally = (ctx: FrameContext) => {
     if (prevX + player.width <= b.x) player.pos.x = b.x - player.width;
     else if (prevX >= b.x + b.w) player.pos.x = b.x + b.w;
     else continue;
+    // (a shoulder charge into it, not a slide or a swim: he bounces off it)
+    if (player.isCharging && !player.isSliding && !player.swimDash && !player.skiing) bonked = true;
     if (player.isCharging) endCharge(ctx);
     player.vel.x = 0;
   }
+  if (bonked) wallBonk(ctx);
+};
+
+/**
+ * A shoulder charge into a wall (even one he's standing right up against: the power's spent, so it shows): a thud, a
+ * puff of grit off the wall, the screen jolting, and him bouncing off it, his torso whipping back (the charge's knocked-
+ * out-of-it animation), staggered for a moment.
+ */
+const wallBonk = (ctx: FrameContext) => {
+  const { state, fx } = ctx;
+  const { player } = state;
+  const face = player.chargeFace || player.facing;
+  const wx = face > 0 ? player.pos.x + player.width : player.pos.x, wy = player.pos.y + player.height * 0.35;
+  fx.playGunSound('thud', 0.9); fx.playGunSound('punch', 0.5, -6);
+  shakeScreen(state, 8, 4);
+  for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: wx, y: wy + (Math.random() - 0.5) * 30 }, vel: { x: -face * (1 + Math.random() * 3), y: -1 - Math.random() * 3 }, life: 22, color: i % 2 ? '#A8A29E' : '#D6D3D1', size: 3 + Math.random() * 4 });
+  for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: wx, y: wy }, vel: { x: -face * Math.random() * 2, y: (Math.random() - 0.5) * 4 }, life: 10, color: '#FEF3C7', size: 2 + Math.random() * 2 });
+  player.hurtForm = 'charge';
+  player.hurtFormTimer = SPECIAL_HURT_FRAMES;
+  player.vel.x = -face * 3.5;
+  player.pushbackTimer = Math.max(player.pushbackTimer, 12);
+  player.isHarmlessPushback = true;
 };
 
 /** Move along y: land on floors, bonk ceilings, shake the camera on hard impacts. */
