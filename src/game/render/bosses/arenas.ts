@@ -38,6 +38,8 @@ export const drawCustomBossArena = (
       break;
     case 'Drug Trade Dale':
       drawDaleArena(ctx, arenaLeft, arenaRight, arenaW, ceilingY, groundY, frame);
+      // (more of it wrecked every time his truck's been through: see drawDaleRuin)
+      if (state) { const d = state.enemies.find(e => e.type === 'boss') ?? state.deadBoss ?? undefined; drawDaleRuin(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, Math.min(1, (d?.truckPasses ?? 0) / DALE_RUIN_PASSES)); }
       if (state) drawDaleWalls(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, state.enemies.find(e => e.type === 'boss') ?? state.deadBoss ?? undefined, state.doorState === 'done');
       break;
     case 'Blackout Barry':
@@ -696,6 +698,91 @@ const drawHectorArena = (
  * comes through, each of them comes down (and stays down).
  * ========================================================================= */
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+
+/** How many runs of the truck through the place it takes to leave it a smoldering ruin. */
+const DALE_RUIN_PASSES = 8;
+
+/**
+ * Dale's pharmacy, coming apart a little more every time his truck comes through it (looks only: the fight's the
+ * same). `k` 0..1, how far gone it is: cracks up the walls and tiles off them, a strip light out; then ceiling tiles
+ * down with wiring hanging out of the holes and sparking, scorch up the walls, junk on the floor; then holes right
+ * through the back wall with the night outside, fires along the floor; then the ceiling mostly gone, soot over
+ * everything, smoke rolling under what's left of the roof, fires everywhere, embers going up.
+ */
+const drawDaleRuin = (ctx: CanvasRenderingContext2D, left: number, right: number, top: number, bottom: number, frame: number, k: number) => {
+  if (k <= 0) return;
+  const w = right - left;
+  const at = (i: number, s: number) => left + 30 + hash(i * 13.7 + s) * (w - 60);
+  ctx.save();
+  // Cracks up the back wall
+  ctx.strokeStyle = 'rgba(41, 37, 36, 0.8)'; ctx.lineWidth = 1.5;
+  for (let c = 0; c < Math.round(k * 14); c++) {
+    let cx = at(c, 1), cy = bottom - 20 - hash(c + 4) * 200;
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    for (let s = 0; s < 5; s++) { cx += (hash(c * 7 + s) - 0.5) * 26; cy -= 16 + hash(c + s) * 14; ctx.lineTo(cx, cy); }
+    ctx.stroke();
+  }
+  // Tiles off the wall, the plaster behind
+  ctx.fillStyle = '#A8A29E';
+  for (let t = 0; t < Math.round(k * 22); t++) ctx.fillRect(Math.round(at(t, 2) / 18) * 18, bottom - 18 - Math.floor(hash(t + 9) * 9) * 18, 18, 18);
+  // Scorch climbing the walls from the floor (stepped, darker at the foot)
+  if (k > 0.2) {
+    const h = (k - 0.2) * 360;
+    for (let b = 0; b < 5; b++) { ctx.fillStyle = `rgba(28, 25, 23, ${(0.12 + b * 0.06) * Math.min(1, (k - 0.2) * 2)})`; ctx.fillRect(left, bottom - h * (1 - b / 5), w, h * (1 - b / 5)); }
+  }
+  // Holes through the ceiling: tiles down, the dark above, wiring hanging out and sparking
+  const holes = k > 0.25 ? Math.round((k - 0.15) * 8) : 0;
+  for (let i = 0; i < holes; i++) {
+    const hx = at(i, 3), hw = 50 + hash(i + 30) * 60;
+    ctx.fillStyle = '#0C0A09'; ctx.beginPath(); ctx.moveTo(hx - hw / 2, top); for (let s = 0; s <= 6; s++) ctx.lineTo(hx - hw / 2 + (hw / 6) * s, top + 18 + hash(i * 5 + s) * 18); ctx.lineTo(hx + hw / 2, top); ctx.fill();
+    ctx.strokeStyle = '#1C1917'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(hx, top + 20); ctx.quadraticCurveTo(hx + 10, top + 50, hx + 4 + Math.sin(frame * 0.05 + i) * 3, top + 70); ctx.stroke();
+    if ((frame + i * 17) % 50 < 4) { ctx.fillStyle = '#FDE047'; ctx.fillRect(hx + 2, top + 68, 4, 4); ctx.fillRect(hx - 2, top + 72, 2, 2); ctx.fillRect(hx + 7, top + 74, 2, 2); }
+  }
+  // Holes right through the back wall: the night outside, brick in the torn edges
+  const breaches = k > 0.4 ? Math.round((k - 0.35) * 6) : 0;
+  for (let i = 0; i < breaches; i++) {
+    const bx = at(i, 4), by = top + 70 + hash(i + 40) * 140, br = 30 + hash(i + 41) * 30 + (k - 0.4) * 50;
+    ctx.save();
+    ctx.beginPath(); for (let s = 0; s < 12; s++) { const a = (s / 12) * Math.PI * 2, r = br * (0.7 + hash(i * 12 + s) * 0.45); ctx.lineTo(bx + Math.cos(a) * r, by + Math.sin(a) * r * 0.8); } ctx.closePath();
+    ctx.fillStyle = '#B91C1C'; ctx.fill();
+    ctx.clip(); bandedGradient(ctx, bx - br, by - br, br * 2, br * 2, ['#2E1A55', '#5A2A62', '#A8406E', '#D07068'], 6);
+    ctx.restore();
+  }
+  // Junk on the floor: plaster, glass, pill bottles, a toppled sign
+  if (k > 0.15) {
+    for (let j = 0; j < Math.round(k * 30); j++) {
+      const jx = at(j, 5), s = 4 + hash(j + 60) * 8;
+      ctx.fillStyle = ['#D6D3D1', '#78716C', '#F97316', '#E5E7EB', '#B91C1C'][j % 5];
+      ctx.fillRect(Math.round(jx), Math.round(bottom - s), Math.round(s * 1.5), Math.round(s));
+    }
+  }
+  // Soot over everything, and the ceiling mostly gone at the end
+  if (k > 0.65) {
+    const a = (k - 0.65) / 0.35;
+    ctx.fillStyle = `rgba(12, 10, 9, ${0.35 * a})`; ctx.fillRect(left, top, w, bottom - top);
+    ctx.fillStyle = `rgba(12, 10, 9, ${0.9 * a})`; ctx.fillRect(left, top, w, 34);
+    // smoke rolling along under the roof
+    for (let i = 0; i < 9; i++) {
+      const sx = left + ((i * 97 + frame * (0.3 + hash(i) * 0.4)) % (w + 120)) - 60, sy = top + 30 + hash(i + 3) * 60;
+      ctx.fillStyle = `rgba(41, 37, 36, ${0.45 * a})`; ctx.beginPath(); ctx.arc(sx, sy, 30 + hash(i + 7) * 30, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  // Fires along the floor (more of them, bigger, the further gone it is), and embers going up off them
+  const fires = k > 0.45 ? Math.round((k - 0.4) * 16) : 0;
+  for (let i = 0; i < fires; i++) {
+    const fx = at(i, 6), fh = 14 + hash(i + 80) * 22 * k + Math.sin(frame * 0.3 + i) * 3;
+    for (const [fw, hh, c] of [[12, fh, '#DC2626'], [8, fh * 0.75, '#F97316'], [4, fh * 0.45, '#FDE047']] as [number, number, string][]) {
+      ctx.fillStyle = c;
+      ctx.beginPath(); ctx.moveTo(fx - fw, bottom); ctx.quadraticCurveTo(fx - fw * 0.5, bottom - hh * 0.6, fx + Math.sin(frame * 0.2 + i) * 2, bottom - hh); ctx.quadraticCurveTo(fx + fw * 0.5, bottom - hh * 0.6, fx + fw, bottom); ctx.closePath(); ctx.fill();
+    }
+    ctx.fillStyle = '#FDBA74';
+    for (let e = 0; e < 2; e++) { const q = ((frame * 1.5 + i * 40 + e * 70) % 140) / 140; ctx.globalAlpha = 1 - q; ctx.fillRect(Math.round(fx + Math.sin(q * 9 + i) * 10), Math.round(bottom - 10 - q * 160), 2, 2); }
+    ctx.globalAlpha = 1;
+  }
+  ctx.restore();
+};
+
+
 
 const drawDaleArena = (
   ctx: CanvasRenderingContext2D,

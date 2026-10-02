@@ -53,6 +53,7 @@ const sendTruck = (ctx: FrameContext, boss: Enemy) => {
   boss.stateTimer = 100;
   boss.truckX = TRUCK.startX;
   boss.truckActive = true;
+  boss.truckPasses = (boss.truckPasses ?? 0) + 1;
   ctx.bossHelpers.playGunSound('truckhorn');
 };
 

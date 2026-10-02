@@ -390,6 +390,8 @@ export interface Enemy extends Entity {
   /** The frame the truck first smashed through the pharmacy's front doors (left) and its back wall (right). */
   leftWallDownAt?: number;
   rightWallDownAt?: number;
+  /** How many times his truck's been through the place (the more, the more of it's wrecked: looks only). */
+  truckPasses?: number;
   /** Standing in Meathead's sludge: frames toward the next tick, and the last frame it ticked. */
   sludgeDotTimer?: number;
   sludgeDotFrame?: number;
