@@ -77,6 +77,8 @@ interface OverlayProps {
   whiteHouseOpen?: boolean;
   /** How each boss died: the weakness weapon that wrecked his corpse, or null for a plain kill. */
   killRecords: Record<string, WeaponType | null>;
+  /** Which of them he killed with his pants full. */
+  shatKills?: Record<string, boolean>;
   /** Dev cheat panel on the title screen; omitted when cheats are disabled. */
   cheats?: {
     flags: CheatFlags;
@@ -233,7 +235,7 @@ const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onStartGame, onSel
 export const setTitleClass = (title: string) =>
   `${title.length > 20 ? 'text-[17px]' : 'text-xl md:text-2xl'} whitespace-nowrap text-red-600 font-black tracking-widest border-b-4 border-red-900 pb-1 uppercase italic drop-shadow-[0_2px_2px_rgba(153,0,0,0.8)] [text-shadow:2px_2px_0_rgb(0,0,0),_0_4px_0_rgba(153,0,0,0.8),_0_8px_0_rgba(153,0,0,0.4),_2px_12px_2px_rgba(255,0,0,0.5)]`;
 
-const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedStages, selectedIndex, onSelectIndex, showDossier, onToggleDossier, lockedIndex, engaging, onStageCardClick, onEngage, showArchive, onToggleArchive, killRecords, whiteHouseOpen }) => {
+const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedStages, selectedIndex, onSelectIndex, showDossier, onToggleDossier, lockedIndex, engaging, onStageCardClick, onEngage, showArchive, onToggleArchive, killRecords, shatKills, whiteHouseOpen }) => {
   // The archive shows the previous set: every one of them already dead
   // (the old targets' files aren't on this screen any more)
   const archive = false;
@@ -350,7 +352,7 @@ const StageSelectScreen: React.FC<OverlayProps> = ({ progressionRank, defeatedSt
             </span>
           </div>
           {showDossier ? (
-            <DossierPanel bossId={selectedId} defeated={deadIds.includes(selectedId)} corpseWeapon={killRecords[selectedId]} />
+            <DossierPanel bossId={selectedId} defeated={deadIds.includes(selectedId)} corpseWeapon={killRecords[selectedId]} shat={!!shatKills?.[selectedId]} />
           ) : (
             <USAMap
               selectedBossId={selectedId}

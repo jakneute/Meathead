@@ -17,13 +17,14 @@ const DamageReport: React.FC<{
   index: number;
   view: number;
   killRecords: Record<string, WeaponType | null>;
+  shatKills?: Record<string, boolean>;
   onSelect: (i: number) => void;
   onView: (v: number) => void;
   onClose: () => void;
   titleClass: string;
   /** What closing it says (where it puts you back). */
   closeLabel?: string;
-}> = ({ bosses, index, view, killRecords, onSelect, onView, onClose, titleClass, closeLabel = 'BACK' }) => {
+}> = ({ bosses, index, view, killRecords, shatKills, onSelect, onView, onClose, titleClass, closeLabel = 'BACK' }) => {
   const id = bosses[Math.min(index, bosses.length - 1)];
   const tabs = (
     <div className="flex">
@@ -85,7 +86,7 @@ const DamageReport: React.FC<{
               {tabs}
               <Prompt pad={['RSTICK']} mouse="wheel" label="SCROLL" size={14} className="text-[7px] font-mono text-cyan-400/80 tracking-wider" />
             </div>
-            {id && <DossierPanel key={`${id}-${view}`} bossId={id} defeated={view === 1} corpseWeapon={killRecords[id]} />}
+            {id && <DossierPanel key={`${id}-${view}`} bossId={id} defeated={view === 1} corpseWeapon={killRecords[id]} shat={!!shatKills?.[id]} />}
           </div>
         </div>
       )}

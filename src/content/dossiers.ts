@@ -165,10 +165,16 @@ export interface Aftermath {
   taken: Record<string, string>;
   /** The weapon he came away with, and how he came by it (took it off him, or made it, out of him, mostly). */
   procured: string;
+  /** If he did it with his pants full: a line on the end of the official finding, and one on the end of the handler's note. */
+  shat: { finding: string; handler: string };
 }
 
 export const AFTERMATHS: Record<string, Aftermath> = {
   'Artie Avalanche': {
+    shat: {
+      finding: "THE ASSET'S CONDITION AT THE TIME HAS BEEN CLASSIFIED AS A CONTROLLED RELEASE.",
+      handler: 'The asset\'s pants were reported soiled at the time of the kill. Forensics at first logged the slush as two separate crime scenes.',
+    },
     occupation: 'Former glaciologist. Currently a puddle. Moon boots recovered, still damp.',
     procured: "The shotgun came off the gun rack in the ranger cabin. The asset dug the cabin out of the avalanche with his hands to get it. The ranger was still holding it. He is fine. He will not talk about what he saw. The shells are another matter. The asset went back up the mountain with a cooler and a hacksaw, and came down with Artie, in chunks. He hand-loaded every shell at his kitchen table with a garlic press. They freeze whatever they hit. Our lab cannot say why, and has asked to stop being sent pieces of Artie. The asset maintains that he only uses his handgun. Asked about the shotgun, he said: \"THAT'S NOT A WEAPON. THAT'S A FREEZER.\"",
     taken: {
@@ -186,6 +192,10 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     },
   },
   'Victor Volcano': {
+    shat: {
+      finding: "THE LAVA HAS BEEN RATED THE CLEANEST THING ON THE PREMISES.",
+      handler: 'The asset arrived at the VIP lounge having soiled himself. The dress code was, for once, enforced on the right person. It did not help.',
+    },
     occupation: 'Former nightclub owner. Currently a decorative rock feature. No longer juicing anything.',
     procured: "The asset reached down Victor's throat, up to the shoulder, and pulled out something he calls \"the pilot light.\" It is still lit. It has not gone out since. He mounted it on a leaf blower and two propane tanks off the club's patio heaters, and welded the lot together with lava, by hand, on the lip of the shaft. We had the welds X-rayed. They are cleaner than the ones on our submarines. We have since had our submarines X-rayed. We are having a conversation with the contractor. Asked where he learned to weld, the asset said, \"WHAT'S WELDING?\"",
     taken: {
@@ -203,6 +213,10 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     },
   },
   'Ernie Earthquake': {
+    shat: {
+      finding: "SEISMOLOGISTS ATTRIBUTE THE FINAL TREMOR TO THE ASSET'S PANTS.",
+      handler: 'The asset\'s pants were soiled throughout. The rock he calls Ernie has since been washed. Twice. It was not the rock that needed washing.',
+    },
     occupation: 'Retired, permanently. Seismic activity: none. His lawn has gone to seed, and nobody is telling anyone to get off it.',
     procured: "The boulder is the one Ernie was holding when he died. It came away with most of Ernie's fingers still around it; the asset got them off with a pair of pliers from the gift shop, which he did not pay for. It weighs four hundred pounds. He carries it in a sling he sewed on the ferry back from cell house mattresses and the tour guide's lanyard. We showed the stitching to a saddlemaker. He could not name the pattern. He called it \"upsetting\" and asked to go home. This is the rock the asset calls Ernie (see the handler's note).",
     taken: {
@@ -220,6 +234,10 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     },
   },
   'Hector Hurricane': {
+    shat: {
+      finding: "THE STORM WAS DOWNGRADED. THE ASSET WAS UPGRADED TO A BIOHAZARD.",
+      handler: 'The asset came down out of a hurricane having soiled himself. Channel 7 described the smell over the city as "a front moving in."',
+    },
     occupation: 'Former weatherman. Current forecast: dead, with no chance of recovery. Forty-one windbreakers available, one careful owner.',
     procured: "The asset wrung Hector out. Literally: twisted the body like a beach towel over a fifty-five-gallon drum until the storm ran out of it, then kept twisting until the rest did. The drum holds a tidal wave. How is a question for physicists. They have asked to see the drum. The asset said no. The lid is a pressure seal of his own design, pounded out of a stop sign with the flat of a hammer. The Navy has asked for the blueprints. There are no blueprints. He drew it on a napkin at a diner, and then he ate the napkin.",
     taken: {
@@ -237,6 +255,10 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     },
   },
   'Toxic Tommy': {
+    shat: {
+      finding: "THE SEWER HAS FILED A COMPLAINT.",
+      handler: 'The asset killed a man made of sewage while smelling worse than him. Tommy\'s last words, per the recovered audio: "Dude."',
+    },
     occupation: 'Former water quality inspector. Rejoined the pipes for good. Water quality unchanged.',
     procured: "The asset took out Tommy's stomach, whole, while it was still going, and strapped it to his back like a canteen. It feeds a garden sprayer through a length of hose. The pump is a bicycle pump, the property of a child named Tayvon. The stomach is still digesting. It is being fed. What it is fed is not in this file. It is in a different file. It is a long file. It keeps up a running gurgle the asset says he finds \"soothing.\" He sleeps with it on.",
     taken: {
@@ -254,6 +276,10 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     },
   },
   'Blackout Barry': {
+    shat: {
+      finding: "RESIDENTS HAVE DESCRIBED THE BLACKOUT AS A MERCY.",
+      handler: 'The asset climbed two walk-ups in soiled pants. The tenants have stopped throwing appliances out of their windows. They have started throwing air freshener.',
+    },
     occupation: 'Power grid engineer, now permanently off the grid. No longer anyone\'s test subject. Gary\'s position remains unfilled.',
     procured: "The asset jump-started a car battery off the body. He then kept jump-starting it, for six hours, until the body stopped twitching, then for another two after that \"to be sure.\" The taser is what came of it: Barry's spine, wired through a set of jumper cables into the battery, in a housing hammered out of a subway grate. It hums in B flat. The asset says that is how you know it is working. The wiring is to code. Better than code. Our electricians have started quoting it at each other. The asset cannot program a microwave. We have seen him try.",
     taken: {
@@ -271,6 +297,10 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     },
   },
   'Oily Oscar': {
+    shat: {
+      finding: "THE SPILL HAS BEEN RECLASSIFIED. THERE WERE TWO.",
+      handler: 'Oscar\'s last sales pitch was for a new pair of pants. The asset declined. In hindsight, the asset should have taken the pants.',
+    },
     occupation: 'Oil man, salesman, motivational speaker, cautionary tale. Assets frozen. So is he.',
     procured: "The asset took the rocket launcher out of Oscar's hands. Oscar's hands came with it and have been returned to the family separately. It is the only thing in the asset's arsenal he did not build himself. He has not changed a thing on it. He says it \"was already perfect,\" and then spent the night hand-filing the rifling on a different one out of spite. Oscar's launcher was ours. We do not know how Oscar got it. We very much know how the asset got it.",
     taken: {
@@ -288,6 +318,10 @@ export const AFTERMATHS: Record<string, Aftermath> = {
     },
   },
   'Drug Trade Dale': {
+    shat: {
+      finding: "THE SHIPMENT WAS LOST. THE ASSET'S DIGNITY, LONG BEFORE.",
+      handler: 'The asset killed Dale in soiled pants. Dale\'s last delivery, it turns out, was adult diapers. Nobody signed for them.',
+    },
     occupation: 'Former distributor. Now distributed. Widely.',
     procured: "The asset went through Deadwood Gulch with a coffee can and picked up every used needle in town (1,114, counted, the asset's count and ours agree). The cannon is the pharmacy's pill counter, the exhaust off Dale's truck and a nail gun from the hardware store, the rest of it scrap. The feed has two hundred and twelve moving parts and it has never jammed. The asset cannot work shoelaces. Our armorer, while we are on it, got a look at the asset's handgun during his physical: no serial number, no maker's mark, hand-filed, tolerances our own shop cannot hold. The asset first said he found it. Later he said he made it in shop class. He was expelled from shop class. The shop is gone too. So is the school. Asked why a man who only needs his handgun keeps building these, the asset said: \"THEY'RE NOT WEAPONS. THEY'RE SOUVENIRS YOU CAN SHOOT.\"",
     taken: {

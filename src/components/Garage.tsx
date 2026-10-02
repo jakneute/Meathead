@@ -108,7 +108,7 @@ const GarageCorner: React.FC = () => {
 };
 
 /** The damage report, on the garage wall (from the second set on): the targets on it, and how each one died. */
-export interface GarageReport { bosses: string[]; killRecords: Record<string, WeaponType | null> }
+export interface GarageReport { bosses: string[]; killRecords: Record<string, WeaponType | null>; shatKills?: Record<string, boolean> }
 
 const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[]; report?: GarageReport }> = ({ onLeave, weapons, report }) => {
   /** Out back at the practice range (the garage's keys and pad do nothing meanwhile). */
@@ -307,7 +307,7 @@ const Garage: React.FC<{ onLeave: () => void; weapons: WeaponType[]; report?: Ga
       {showReport && report && (
         <div className="absolute inset-0 z-[85] bg-black flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300" onContextMenu={e => e.preventDefault()}>
           <GarageCorner />
-          <div className="relative w-full h-full flex flex-col items-center"><DamageReport bosses={report.bosses} index={Math.min(rIndex, report.bosses.length - 1)} view={rView} killRecords={report.killRecords}
+          <div className="relative w-full h-full flex flex-col items-center"><DamageReport bosses={report.bosses} index={Math.min(rIndex, report.bosses.length - 1)} view={rView} killRecords={report.killRecords} shatKills={report.shatKills}
             onSelect={setRIndex} onView={setRView} onClose={() => setShowReport(false)} closeLabel="PUT IT AWAY" titleClass={setTitleClass('DAMAGE REPORT')} /></div>
         </div>
       )}

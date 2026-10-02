@@ -50,13 +50,15 @@ interface DossierPanelProps {
   defeated: boolean;
   /** He died to his weakness with this weapon: the file gets an evidence photo of the corpse. */
   corpseWeapon?: WeaponType | null;
+  /** He killed him with his pants full (the aftermath file says so). */
+  shat?: boolean;
 }
 
 /**
  * A classified file on the selected boss: a typewritten, stamped and coffee-stained
  * dossier. Once he's dead it becomes the after-action report instead.
  */
-const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWeapon }) => {
+const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWeapon, shat = false }) => {
   // (the garage has a file too: what the analysts could make of it, which isn't much)
   const garage = bossId === GARAGE_ID;
   // (and the White House has one too, once all eight are dead: the summons)
@@ -208,11 +210,11 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                {section('OFFICIAL FINDING', after.finding)}
+                {section('OFFICIAL FINDING', shat ? `${after.finding} ${after.shat.finding}` : after.finding)}
               </div>
             </div>
             <div className="mt-[6px] p-[4px] leading-[10px] bg-[#FEF3C7] border border-[#A16207]/50 rotate-[-0.6deg]" style={{ boxShadow: '1px 1px 0 rgba(0,0,0,0.25)' }}>
-              <span className="font-bold">HANDLER'S NOTE, POST-OP: </span>{after.handler}
+              <span className="font-bold">HANDLER'S NOTE, POST-OP: </span>{after.handler}{shat ? ` ${after.shat.handler}` : ''}
             </div>
           </>
         ) : (
