@@ -227,7 +227,7 @@
  {
   "voice": "announcer",
   "text": "CODE BROWN!",
-  "from": "game/player/gut.ts:65"
+  "from": "game/player/gut.ts:69"
  },
  {
   "voice": "announcer",
@@ -5492,7 +5492,7 @@
  {
   "voice": "death",
   "text": "INTO THE TRENCH",
-  "from": "game/stages/oscar/chase.ts:582"
+  "from": "game/stages/oscar/chase.ts:583"
  },
  {
   "voice": "death",
@@ -5772,7 +5772,7 @@
  {
   "voice": "death",
   "text": "MISSED THE JUMP",
-  "from": "game/stages/oscar/chase.ts:582"
+  "from": "game/stages/oscar/chase.ts:583"
  },
  {
   "voice": "death",
@@ -6212,7 +6212,7 @@
  {
   "voice": "death",
   "text": "RUN OFF THE ROAD",
-  "from": "game/stages/oscar/chase.ts:584"
+  "from": "game/stages/oscar/chase.ts:585"
  },
  {
   "voice": "death",
@@ -6687,7 +6687,7 @@
  {
   "voice": "death",
   "text": "STUNTMAN HE IS NOT",
-  "from": "game/stages/oscar/chase.ts:582"
+  "from": "game/stages/oscar/chase.ts:583"
  },
  {
   "voice": "death",
@@ -9066,6 +9066,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BETTER STAND UP. SQUATTING'S ONLY HELPING IT ALONG.",
+  "from": "GUT"
+ },
+ {
+  "voice": "meathead",
   "text": "BIG MOUTH! DEAD MOUTH!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -9728,6 +9733,11 @@
   "voice": "meathead",
   "text": "DON'T COAT MY DELTS IN BIOHAZARD SLOP!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "DON'T CROUCH. DON'T CROUCH. DO NOT CROUCH.",
+  "from": "GUT"
  },
  {
   "voice": "meathead",
@@ -12038,6 +12048,11 @@
   "voice": "meathead",
   "text": "ICICLE TO THE DOME, FUCK!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "IF I STAY SQUATTED DOWN LIKE THIS, IT'S COMING OUT.",
+  "from": "GUT"
  },
  {
   "voice": "meathead",
@@ -14388,6 +14403,11 @@
   "voice": "meathead",
   "text": "STATIC CLING!",
   "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "STAY DOWN HERE MUCH LONGER AND I'M SHITTING MY PANTS.",
+  "from": "GUT"
  },
  {
   "voice": "meathead",

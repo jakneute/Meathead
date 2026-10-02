@@ -17,6 +17,8 @@ const SMEAR_JOIN = 14;
 
 /** Crouched and still this long (frames): the grumble. Then this long: the accident. */
 export const GUT_GRUMBLE = 7.5 * 60, GUT_ACCIDENT = 15 * 60;
+/** ...and between them, still down there: his warning to himself (he'd better get up). */
+const GUT_WARN = GUT_GRUMBLE + 3 * 60;
 
 /** Has he shit himself (this attempt)? */
 export const isShat = (state: GameState) => state.player.gut?.stage === 2;
@@ -54,6 +56,8 @@ export const updateGut = (ctx: FrameContext, input: FrameInput) => {
     gut.stage = 1;
     playSound('rumble', 0.55, -9);
     meatheadSays(state, GUT_LINES.GRUMBLE[Math.floor(Math.random() * GUT_LINES.GRUMBLE.length)]);
+  } else if (gut.stage === 1 && gut.t === GUT_WARN) {
+    meatheadSays(state, GUT_LINES.WARN[Math.floor(Math.random() * GUT_LINES.WARN.length)], true);
   } else if (gut.stage === 1 && (gut.t - GUT_GRUMBLE) % 150 === 75) {
     playSound('rumble', 0.35, -12); // (still going on in there)
   }

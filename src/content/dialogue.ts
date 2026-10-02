@@ -1517,6 +1517,13 @@ export const GUT_LINES = {
     "THAT PROTEIN SHAKE WAS IN THE TRUCK ALL WEEK. IN THE SUN.",
     "...THE CHILI. IT WAS THE CHILI.",
   ],
+  /** A few seconds on, still squatting: the warning (get up, or else). */
+  WARN: [
+    "IF I STAY SQUATTED DOWN LIKE THIS, IT'S COMING OUT.",
+    "BETTER STAND UP. SQUATTING'S ONLY HELPING IT ALONG.",
+    "DON'T CROUCH. DON'T CROUCH. DO NOT CROUCH.",
+    "STAY DOWN HERE MUCH LONGER AND I'M SHITTING MY PANTS.",
+  ],
   ACCIDENT: [
     "...THAT WASN'T A FART.",
     "OH. OH NO. OH, THAT'S EVERYWHERE.",
