@@ -472,7 +472,8 @@ export const drawDaycare = (ctx: Ctx, state: GameState, dc: Daycare) => {
   ctx.beginPath(); ctx.moveTo(px, g); ctx.lineTo(px + 40, g - 60); ctx.lineTo(px + 110, g - 30); ctx.lineTo(px + 160, g); ctx.stroke();
   ctx.fillStyle = '#64748B'; ctx.beginPath(); ctx.ellipse(px - 120, g - 40, 40, 12, 0.7, 0, Math.PI * 2); ctx.fill();
   // The other of the Coast Guard (the one aboard is in pieces round the wreck): out on the lawn past the playground
-  coastieAssUp(ctx, bx + 560, g, 1.8);
+  // (life size: a man about Meathead's size, a touch bigger, on his knees)
+  coastieAssUp(ctx, bx + 560, g, 1.1);
   // The grown-ups, once the wave's done with them
   if (t < 0 || t >= RIDE_END) ADULT_SPLAT.forEach((dx, k) => splatAdult(ctx, bx + dx, g, k as 0 | 1));
   // Puddles
