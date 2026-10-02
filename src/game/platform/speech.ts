@@ -1,11 +1,12 @@
 import { hasClip, playClip, voicesLoaded, sentenceTimes, ClipHandle, holdVoices } from './voiceclips';
 // Who's talking, and when: every line goes through here. A line that's been recorded (voiceclips.ts: every character
-// has their own voice) plays that; anything that hasn't falls back to the browser's own speech.
+// has their own voice) plays that; anything that hasn't is only shown, never said: the browser's own speech is never
+// used (it sounds like nobody in the game).
 
 export interface Voice {
   /** Who it is (the recorded lines are filed under this: see voiceclips.ts). */
   id: string;
-  /** For the browser's own speech, when a line hasn't been recorded. */
+  /** (from when the browser's speech stood in for lines that weren't recorded; nothing reads it now) */
   pitch: number;
   rate: number;
 }
@@ -97,10 +98,8 @@ export const sentenceShown = (text: string): string => {
 /** Forget which lines were said recently (on death, respawn and starting a stage). */
 export const resetLineCooldowns = () => lastSaidAt.clear();
 
-/** The browser's own speech is there (the fallback). */
-const synthOK = () => typeof window !== 'undefined' && 'speechSynthesis' in window;
-/** Anything can be said out loud: the recordings, or the browser's speech. */
-export const canSpeak = () => voicesLoaded() || synthOK();
+/** Anything can be said out loud (the recordings are in). */
+export const canSpeak = () => voicesLoaded();
 
 /** Lines asked for that haven't been recorded (for finding gaps: `window.__voiceMisses`). */
 const misses = new Set<string>();
@@ -118,9 +117,9 @@ export const isSpeaking = () => busy();
 let outside = 0;
 /** One of those over: whoever was waiting on it goes. */
 const afterOutside = () => { if (outside === 0 && !current) playNext(); };
-/** Anything at all being said: the dialogue queue, a recorded line playing outside it (a menu line), or the
- * browser's own speech standing in for one. (`isSpeaking` is only the queue.) */
-export const anyoneTalking = () => isSpeaking() || outside > 0 || (synthOK() && window.speechSynthesis.speaking);
+/** Anything at all being said: the dialogue queue, or a recorded line playing outside it (a menu line). (`isSpeaking`
+ * is only the queue.) */
+export const anyoneTalking = () => isSpeaking() || outside > 0;
 /**
  * For a cutscene run on a frame clock: at one of its `holds` (frames), it doesn't go on till whoever's talking has
  * finished, and a breath after (so nobody talks over anybody, unless the scene means them to). Returns whether the
@@ -161,23 +160,15 @@ interface Line extends LineHooks { text: string; voice: Voice; queuedAt: number;
 interface Playing extends Line {
   startedAt: number;
   started: boolean;
-  /** Held on to: Chrome can garbage-collect an utterance mid-line and never report its end. */
-  utterance?: SpeechSynthesisUtterance;
   /** A recorded line playing. */
   clip?: ClipHandle | null;
-  /** When to give up waiting for the browser to say it's finished. */
+  /** When to give up waiting for it to say it's finished. */
   deadline: number;
 }
 
 const MAX_QUEUE = 3;
 const STALE_MS = 6000;       // a queued line this old isn't worth saying any more
-const NO_START_MS = 1500;    // speech that hasn't started by now isn't going to
 const WATCHDOG_MS = 15000;   // a line can't hold the floor longer than this
-/** Roughly how long a line takes to say, plus slack: past this, its end event was lost. */
-const expectedMs = (line: Line) => Math.min(WATCHDOG_MS, 4000 + (line.text.length * 110) / Math.max(0.3, line.voice.rate));
-/** The browser's speech engine claiming to be busy with nothing of ours playing: stuck, after this long. */
-const ENGINE_STUCK_MS = 12000;
-let engineBusySince = 0;
 
 let current: Playing | null = null;
 /** When Meathead and the announcer last finished a line: each gives the other a moment's space after (KILL_VOICE_GAP_MS). */
@@ -195,7 +186,6 @@ export const cutVoice = (prefix: string) => {
     const c = current;
     current = null;
     c.clip?.stop();
-    if (synthOK() && c.utterance) window.speechSynthesis.cancel();
     c.onHide(); c.onDone?.();
     playNext();
   }
@@ -210,7 +200,6 @@ export const pauseSpeech = (on: boolean) => {
   if (on) {
     pausedAt = Date.now();
     holdVoices(true);
-    if (synthOK()) window.speechSynthesis.pause();
     return;
   }
   const gap = Date.now() - pausedAt;
@@ -219,9 +208,7 @@ export const pauseSpeech = (on: boolean) => {
   if (current) { current.deadline += gap; current.startedAt += gap; }
   for (const l of queue) l.queuedAt += gap;
   if (death && death.over !== Infinity) death.over += gap;
-  if (engineBusySince) engineBusySince += gap;
   holdVoices(false);
-  if (synthOK()) window.speechSynthesis.resume();
 };
 
 /** Everybody quiet, now: the line on, anything waiting, anything playing outside the queue (not the death announcer). */
@@ -229,7 +216,6 @@ export const silenceAll = () => {
   cancelSpeech();
   for (const c of [...outsideClips]) c.stop();
   outsideClips.clear();
-  if (synthOK()) window.speechSynthesis.cancel();
 };
 /** Has the announcer only just stopped (so Meathead holds off a moment)? */
 export const announcerJustSpoke = () => Date.now() - announcerDoneAt < KILL_VOICE_GAP_MS;
@@ -276,37 +262,11 @@ const start = (line: Line) => {
     });
     return;
   }
+  // Not recorded: just show the text for its usual time
   noteMiss(line.voice, line.text);
   noteStart(line.voice, line.text, false);
-  if (!synthOK()) {
-    // No speech available: just show the text for its usual time
-    line.onShow(false);
-    line.onDone?.();
-    return;
-  }
-  const utterance = new SpeechSynthesisUtterance(line.text);
-  const playing: Playing = { ...line, startedAt: Date.now(), started: false, utterance, deadline: Date.now() + expectedMs(line) };
-  current = playing;
-  utterance.pitch = line.voice.pitch;
-  utterance.rate = line.voice.rate;
-  utterance.volume = 1.0;
-  utterance.onstart = () => {
-    if (current !== playing) return;
-    playing.started = true;
-    line.onShow(true);
-  };
-  utterance.onend = () => finish(playing);
-  utterance.onerror = () => finish(playing);
-  window.speechSynthesis.speak(utterance);
-  // Speech that never starts (no voices, blocked audio): fall back to timed text and move on
-  setTimeout(() => {
-    if (current !== playing || playing.started) return;
-    current = null;
-    window.speechSynthesis.cancel();
-    line.onShow(false);
-    line.onDone?.();
-    playNext();
-  }, NO_START_MS);
+  line.onShow(false);
+  line.onDone?.();
 };
 
 const busy = () => {
@@ -317,15 +277,9 @@ const busy = () => {
     // Its end never came (a lost event): call it done, and make sure the engine's really quiet
     const stale = current;
     stale.clip?.stop();
-    if (synthOK()) window.speechSynthesis.cancel();
     finish(stale);
   }
-  if (current) { engineBusySince = 0; return true; }
-  if (!synthOK() || !window.speechSynthesis.speaking) { engineBusySince = 0; return false; }
-  // The engine says it's talking but nothing of ours is: a menu line, or it's wedged
-  if (!engineBusySince) engineBusySince = now;
-  if (now - engineBusySince > ENGINE_STUCK_MS) { window.speechSynthesis.cancel(); engineBusySince = 0; return false; }
-  return true;
+  return !!current;
 };
 
 /**
@@ -358,7 +312,6 @@ export const cancelSpeech = () => {
   current = null;
   queue = [];
   playing?.clip?.stop();
-  if (synthOK()) window.speechSynthesis.cancel();
   if (playing) {
     playing.onHide();
     playing.onDone?.();
@@ -379,19 +332,10 @@ export const speak = (text: string, voice: Voice, { onStart, onDone }: SpeakOpti
   noteStart(voice, text, false);
   const clip = playClip(voice.id, text, { onStart: () => { noteStart(voice, text, true); onStart?.(); }, onEnd: () => { outsideClips.delete(clip!); done(); onDone?.(); } });
   if (clip) { outsideClips.add(clip); return; }
+  // (not recorded: nothing's said)
   done();
   noteMiss(voice, text);
-  if (!synthOK()) return;
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.pitch = voice.pitch;
-  utterance.rate = voice.rate;
-  utterance.volume = 1.0;
-  if (onStart) utterance.onstart = onStart;
-  if (onDone) {
-    utterance.onend = onDone;
-    utterance.onerror = onDone;
-  }
-  window.speechSynthesis.speak(utterance);
+  onDone?.();
 };
 
 /**
@@ -410,14 +354,8 @@ export const sayModulated = (text: string, voice: Voice, onDone: () => void): ((
   if (clip) return () => { finished = true; clip.stop(); done(); };
   done();
   noteMiss(voice, text);
-  if (!synthOK()) { onDone(); return () => {}; }
-  const chunks = text.split(/(?<=[.!?])\s+/).filter(Boolean);
-  const WOBBLE = [0, -0.18, 0.12, -0.08, 0.2, -0.14];
-  let cancelled = false, left = chunks.length;
-  chunks.forEach((c, k) => speak(c, { id: voice.id, pitch: Math.max(0.05, voice.pitch + WOBBLE[k % WOBBLE.length]), rate: voice.rate * (1 + ((k % 3) - 1) * 0.08) }, {
-    onDone: () => { left--; if (left === 0 && !cancelled) onDone(); },
-  }));
-  return () => { cancelled = true; if (synthOK()) window.speechSynthesis.cancel(); };
+  onDone();
+  return () => {};
 };
 
 // ---------------------------------------------------------------------------

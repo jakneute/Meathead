@@ -9,7 +9,7 @@ import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
 import type { Controls } from '../../platform/input';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
-import { say, cancelSpeech, Voice } from '../../platform/speech';
+import { say, cancelSpeech, canSpeak, Voice } from '../../platform/speech';
 import { drawPlayer } from '../../render/player/player';
 import { bandedGradient, checker, steppedGlow, pixelBlob } from '../../render/pixelArt';
 
@@ -48,7 +48,7 @@ const lineFrames = (i: number) => MIN_LINE + LINES[i].length * 2;
  * than a line's minimum), or captions only. The tiny Meathead falls at one steady speed to land as it ends.
  */
 const expectedFrames = () => {
-  const spoken = typeof window !== 'undefined' && 'speechSynthesis' in window;
+  const spoken = canSpeak();
   return 30 + LINES.reduce((sum, line, i) => sum + (spoken ? Math.max(MIN_LINE, line.length * 4.3) : lineFrames(i)), 0);
 };
 
@@ -83,7 +83,7 @@ export const updateNews = (ctx: FrameContext, n: News, controls: Controls, onOve
   if (!skip) {
     if (n.line < 0) { if (n.t > 30) sayLine(n, 0); return; }
     const on = n.t - n.lineAt;
-    const timed = !ctx.state || !(typeof window !== 'undefined' && 'speechSynthesis' in window);
+    const timed = !ctx.state || !canSpeak();
     const over = on > MAX_LINE || (on > MIN_LINE && (n.said || (timed && on > lineFrames(n.line))));
     if (!over) return;
     if (n.line + 1 < LINES.length) { sayLine(n, n.line + 1); return; }

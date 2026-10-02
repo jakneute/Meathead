@@ -477,7 +477,6 @@ const App: React.FC = () => {
     if (lockedIndex === WHITE_HOUSE_INDEX) {
       setEngaging(true);
       playEngageSound();
-      if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
       speak(ENGAGE_SHOUTS[Math.floor(Math.random() * ENGAGE_SHOUTS.length)], MEATHEAD_MENU_VOICE);
       setTimeout(() => setStatus(GameStatus.ENDING), ENGAGE_FLOURISH_MS);
       return;
@@ -487,7 +486,6 @@ const App: React.FC = () => {
     if (cheats.skipToBoss && startAt === undefined && picked === undefined) { setPickFor(stage.id); return; }
     setEngaging(true);
     playEngageSound();
-    if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel();
     speak(ENGAGE_SHOUTS[Math.floor(Math.random() * ENGAGE_SHOUTS.length)], MEATHEAD_MENU_VOICE);
     // Then the swoop down onto his hometown (DeployTransition), which drops you into the stage
     setTimeout(() => setDeployingTo(stage.id), ENGAGE_FLOURISH_MS);

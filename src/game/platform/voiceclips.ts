@@ -1,6 +1,6 @@
 // The recorded voices: every line in the game, said by its own character (made ahead of time with a speech model,
 // offline: see tools/voices), packed into one file that comes in with the game. A line that's been recorded plays
-// from here; one that hasn't falls back to the browser's own speech (speech.ts).
+// from here; one that hasn't is only shown, never said (speech.ts).
 //
 // The pack: a little header (where each clip is, and how each voice is played back: a touch faster or slower,
 // louder or quieter, through a radio, a respirator...), then the clips end to end (Ogg Opus). A clip's decoded when
