@@ -367,7 +367,8 @@ export const HECTOR_PULL_NEAR = 4.8;                // just inside: slightly bea
 export const HECTOR_PULL_MAX = 5.5;                 // point-blank
 
 // ERNIE EARTHQUAKE
-export const ERNIE_STOMP_VIBRATION_DURATION = 40;
+// (how long after a stomp or a boulder hitting the ground being on the ground stuns you: a short window to be in the air for)
+export const ERNIE_STOMP_VIBRATION_DURATION = 16;
 
 // TOXIC TOMMY: how much he speeds up as he loses health (values at 0 HP)
 export const TOMMY_SWIM_SPEED = 5.0;
