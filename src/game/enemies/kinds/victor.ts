@@ -13,6 +13,7 @@ import { GRAVITY } from '../../../constants';
 import type { FrameContext } from '../../core/context';
 import { mid, safeAhead } from './index';
 import { floorTopAt } from '../../core/terrain';
+import { COURSE } from '../../stages/victor/course';
 
 export const runVictorKindAI = (ctx: FrameContext, e: Enemy): boolean => {
   switch (e.kind) {
@@ -24,6 +25,8 @@ export const runVictorKindAI = (ctx: FrameContext, e: Enemy): boolean => {
 
 /** How near he has to get before the dancing stops; how far either way they'll run; how fast. */
 const PARTY_PANIC = 460, PARTY_RUN = 210, PARTY_SPEED = 3.2;
+/** How far short of a fire vent's middle a partygoer turns back (the column's half-width, and some). */
+const VENT_CLEAR = 40;
 
 /**
  * A partygoer: dancing on the spot till he turns up (or something gets shot near them); then running back and forth,
@@ -44,8 +47,11 @@ const partygoer = (ctx: FrameContext, e: Enemy) => {
   if (e.facing === undefined) e.facing = 1;
   const ahead = mid(e).x + e.facing * (e.width / 2 + 24);
   const lava = state.groundRuns.some(r => r.surface === 'lava' && ahead > r.x1 && ahead < r.x2);
+  // (and at a fire vent in the floor: everybody knows where those are, it's their club; they turn back short of it)
+  const feet = e.pos.y + e.height;
+  const vent = COURSE.vents.some(v => !v.lava && Math.abs(v.y - feet) < 30 && Math.abs(v.x - ahead) < VENT_CLEAR);
   const turn = Math.abs(e.pos.x - home) > PARTY_RUN && Math.sign(e.pos.x - home) === e.facing;
-  if (lava || turn || !safeAhead(ctx, e, e.facing, 20) || e.aiTimer % (60 + ((Math.abs(Math.round(home)) % 5) * 17)) === 0) e.facing = -e.facing as 1 | -1;
+  if (lava || vent || turn || !safeAhead(ctx, e, e.facing, 20) || e.aiTimer % (60 + ((Math.abs(Math.round(home)) % 5) * 17)) === 0) e.facing = -e.facing as 1 | -1;
   e.vel.x = e.facing * (PARTY_SPEED + (e.variant ?? 0) * 0.35);
 };
 
