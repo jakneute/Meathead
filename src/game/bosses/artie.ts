@@ -73,7 +73,9 @@ const chooseMove = (ctx: FrameContext, boss: Enemy) => {
   const { player } = ctx.state;
   const r = Math.random();
   const mustMove = (boss.sideTimer || 0) > MUST_MOVE_FRAMES;
-  if (r < 0.35 || (mustMove && r < 0.6)) {
+  // (just come out of a panic: no big moon-boot leap straight after, or it reads as the burn doing it)
+  const shaken = ctx.state.frame < (boss.calmAt ?? 0);
+  if (!shaken && (r < 0.35 || (mustMove && r < 0.6))) {
     boss.vel.y = -13 - Math.random() * 3;
     boss.vel.x = (player.pos.x < boss.pos.x ? -1 : 1) * (4 + Math.random() * 2);
     boss.stateTimer = 70;
@@ -165,7 +167,7 @@ const panic = (ctx: FrameContext, boss: Enemy) => {
   if (state.frame % 4 === 0) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * boss.width * 0.6, y: boss.pos.y + boss.height * 0.7 }, vel: { x: 0, y: 2 }, life: 20, color: '#BAE6FD', size: 3 });
   if (state.frame % 6 === 0) playSound('ignite', 0.35);
   // (out of breath, out of fire: back to it once he's landed)
-  if (boss.stateTimer! <= 0 && boss.isGroundedBoss) { boss.bossState = 'idle'; boss.stateTimer = 20; }
+  if (boss.stateTimer! <= 0 && boss.isGroundedBoss) { boss.bossState = 'idle'; boss.stateTimer = 20; boss.calmAt = state.frame + 90; }
 };
 
 // ---------------------------------------------------------------------------
