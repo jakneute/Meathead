@@ -215,11 +215,13 @@ const fight = (ctx: FrameContext, th: Thing, talk: Talk, controls: Controls): Co
   th.asked++;
   // What's up on the screen changes when it says what it wants (or, with no voice, as the line goes up)
   if (th.shown !== th.want && (talk.current?.text === th.askLine || (th.asked > 240))) { th.shown = th.want; th.shownAt = state.frame; }
-  // What the flames and the wave took off it since last frame (the shots it counts as they land)
+  // What everything but the shots took off it since last frame (the shots it counts as they land): the wave, the flames,
+  // the taser's beam, and otherwise the oil rocket's blast (its splash, or an oiled one going up next to it). All of it
+  // counts: the wrong thing gets it angry the same as a wrong shot
   const took = th.prevHealth - e.health;
   if (took > 0) {
-    const w: WeaponType | null = state.tsunamiActive ? 'TSUNAMI' : p.isFlaming && p.currentWeapon === 'FLAMETHROWER' ? 'FLAMETHROWER' : null;
-    if (w) feed(ctx, th, talk, w, took);
+    const w: WeaponType = state.tsunamiActive ? 'TSUNAMI' : p.isFlaming && p.currentWeapon === 'FLAMETHROWER' ? 'FLAMETHROWER' : p.isTasing ? 'TASER' : 'OIL_ROCKET';
+    feed(ctx, th, talk, w, took);
   }
   // Satisfied: a moment of bliss, then the next thing
   if (th.full > 0 && ++th.full > hurried(th, 70)) ask(state, th, talk);
