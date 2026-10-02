@@ -8,6 +8,7 @@
 import { Enemy } from '../../../types';
 import type { GameState } from '../../core/state';
 import { drawFlameLicks } from '../fx/fireball';
+import { INK, ink, shaded, lite, dark, limb } from '../npc/kit';
 import { DRONE_AIM } from '../../enemies/kinds/ernie';
 
 type Ctx = CanvasRenderingContext2D;
@@ -163,31 +164,120 @@ const drawRaccoon = (ctx: Ctx, e: Enemy, f: number) => {
   const st = e.aiState, lunging = st === 'lunge';
   const cycle = Math.abs(e.vel.x) > 0.3 ? f * (lunging ? 0.55 : 0.25) : 0;
   if (st === 'bristle') ctx.translate(f % 4 < 2 ? 1 : -1, 0);
-  // Ringed tail
-  for (let i = 0; i < 5; i++) { ctx.fillStyle = i % 2 ? '#1F2937' : '#9CA3AF'; ctx.beginPath(); ctx.ellipse(-20 - i * 5, -14 + i * 1.5 + Math.sin(f * 0.2) * 2, 5, 5, 0, 0, Math.PI * 2); ctx.fill(); }
-  // Legs
-  ctx.fillStyle = '#1F2937'; for (let i = 0; i < 4; i++) { const lx = (i < 2 ? 12 : -10) + (i % 2 ? 3 : -3); ctx.fillRect(lx + Math.sin(cycle + i * 1.6) * 3 - 2, -8, 4, 8); }
-  // Body and head
-  ctx.fillStyle = '#6B7280'; ctx.beginPath(); ctx.ellipse(0, -14, 18, 9, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#9CA3AF'; ctx.beginPath(); ctx.ellipse(18, -16, 9, 7, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#111827'; ctx.fillRect(14, -19, 12, 4); // the mask
-  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(18, -18, 2, 2); ctx.fillRect(23, -18, 2, 2);
-  ctx.fillStyle = '#1F2937'; ctx.beginPath(); ctx.moveTo(12, -22); ctx.lineTo(14, -28); ctx.lineTo(17, -22); ctx.fill(); // ear
-  ctx.fillStyle = '#111827'; ctx.fillRect(26, -15, 3, 2);
-  if (lunging) { ctx.fillStyle = '#F8FAFC'; ctx.fillRect(24, -13, 2, 3); ctx.fillRect(27, -13, 2, 3); }
+  const fur = '#7C7F86', furD = '#4B4F57', pale = '#D6D3D1', mask = '#16181D';
+  const crouch = st === 'bristle' ? 2 : 0;
+  // A leg: the furry upper, the dark forearm, the little black hand with its fingers
+  const leg = (i: number) => {
+    const back = i % 2 === 1, c = back ? furD : '#62666E';
+    const lx = (i < 2 ? 11 : -11) + (back ? 3 : -2);
+    const swing = Math.sin(cycle + i * 1.6) * (lunging ? 5 : 3);
+    const kx = lx + swing * 0.3, fx = lx + swing * 0.6;
+    limb(ctx, lx, -11 + crouch, kx, -5 + crouch * 0.5, 5, c);
+    limb(ctx, kx, -5 + crouch * 0.5, fx, -2, 3.6, back ? '#111317' : '#26292F');
+    ink(ctx, () => ctx.ellipse(fx + 1, -1.3, 2.8, 1.4, 0, 0, Math.PI * 2), back ? '#111317' : '#26292F', 0.8);
+    ctx.fillStyle = '#4B5563'; ctx.fillRect(fx + 2.2, -1.8, 1, 0.7); ctx.fillRect(fx + 2.6, -0.9, 1, 0.7);
+  };
+  leg(1); leg(3);
+  // The tail: bushy, ringed, lit along the top, swishing
+  ctx.save(); ctx.translate(-16, -15 + crouch); ctx.rotate(0.12 + Math.sin(f * 0.2) * 0.12 - (st === 'bristle' ? 0.4 : 0));
+  const tail = () => { ctx.moveTo(0, -4); ctx.quadraticCurveTo(-14, -7, -24, -3); ctx.quadraticCurveTo(-28, 0, -24, 3.5); ctx.quadraticCurveTo(-12, 5, 0, 4); ctx.closePath(); };
+  ctx.save(); ctx.beginPath(); tail(); ctx.clip();
+  ctx.fillStyle = '#A1A1AA'; ctx.fillRect(-30, -8, 32, 16);
+  ctx.fillStyle = mask; for (let k = 0; k < 4; k++) ctx.fillRect(-7 - k * 5.4, -8, 2.8, 16);
+  ctx.fillStyle = mask; ctx.fillRect(-30, -8, 4.6, 16);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.28)'; ctx.fillRect(-30, -8, 32, 3.4);
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.28)'; ctx.fillRect(-30, 1.6, 32, 6);
+  ctx.restore();
+  ctx.beginPath(); tail(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.lineJoin = 'round'; ctx.stroke();
+  ctx.restore();
+  // Hackles up
+  if (st === 'bristle' || lunging) for (let i = -12; i < 8; i += 4.5) ink(ctx, () => { ctx.moveTo(i, -20 + crouch + Math.abs(i) * 0.12); ctx.lineTo(i + 2.2, -26 + crouch + Math.abs(i) * 0.12); ctx.lineTo(i + 4.4, -20 + crouch + Math.abs(i) * 0.12); ctx.closePath(); }, furD, 0.8);
+  // The body: grizzled grey, a hunch to it, lit along the back, the belly pale and in shadow; the fur ticked in
+  const body = () => { for (let k = 0; k <= 30; k++) { const a = (k / 30) * Math.PI * 2, s = Math.sin(a); const r = s > 0 && k % 2 ? 0.93 : 1; ctx.lineTo(Math.cos(a) * 18 * r, -14 + crouch * 0.5 + s * 9 * r - (s < 0 ? Math.cos(a) * -1.5 : 0)); } ctx.closePath(); };
+  ctx.save(); ctx.beginPath(); body(); ctx.clip();
+  ctx.fillStyle = fur; ctx.fillRect(-19, -25, 38, 22);
+  ctx.fillStyle = lite(fur, 0.2); ctx.fillRect(-19, -25, 38, 5);
+  ctx.fillStyle = dark(fur, 0.28); ctx.fillRect(-19, -10 + crouch, 38, 6);
+  ctx.fillStyle = '#A8A29E'; ctx.fillRect(-12, -7.6 + crouch, 26, 2);
+  ctx.fillStyle = dark(fur, 0.4); for (let x = -14; x < 14; x += 5) ctx.fillRect(x, -18 + (x % 2 ? 2 : 0) + crouch, 1, 2.4);
+  ctx.fillStyle = lite(fur, 0.4); for (let x = -12; x < 14; x += 6) ctx.fillRect(x, -21 + crouch, 2, 1);
+  ctx.restore();
+  ctx.beginPath(); body(); ctx.strokeStyle = INK; ctx.lineWidth = 1.1; ctx.lineJoin = 'round'; ctx.stroke();
+  leg(0); leg(2);
+  // The head: round ears with pale rims, the pale face, the bandit mask with the eye shining in it, the pointed
+  // muzzle, the black nose; snarling on the lunge
+  const hx = 18, hy = -16 + crouch;
+  for (const [ex, ey] of [[hx - 6, hy - 6], [hx - 1, hy - 7.5]]) { ink(ctx, () => ctx.arc(ex, ey, 2.8, 0, Math.PI * 2), pale, 0.8); ctx.fillStyle = furD; ctx.beginPath(); ctx.arc(ex + 0.3, ey + 0.4, 1.5, 0, Math.PI * 2); ctx.fill(); }
+  shaded(ctx, () => ctx.ellipse(hx, hy, 8.4, 6.6, 0.05, 0, Math.PI * 2), '#9CA3AF', hx - 9, hy - 7, 18, 14);
+  const gape = lunging ? 2.6 : st === 'bristle' ? 1.2 : 0;
+  // (the lower jaw)
+  ink(ctx, () => { ctx.moveTo(hx + 3, hy + 2.6); ctx.lineTo(hx + 10, hy + 2.4 + gape); ctx.lineTo(hx + 9, hy + 4.4 + gape); ctx.quadraticCurveTo(hx + 5, hy + 5.4, hx + 2.6, hy + 4.4); ctx.closePath(); }, pale, 0.8);
+  if (gape) { ctx.fillStyle = '#7F1D1D'; ctx.fillRect(hx + 4, hy + 2.6, 5, gape * 0.7); }
+  ink(ctx, () => { ctx.moveTo(hx + 1, hy - 2.4); ctx.quadraticCurveTo(hx + 8, hy - 2.6, hx + 12, hy + 0.4); ctx.lineTo(hx + 11.4, hy + 2.2); ctx.quadraticCurveTo(hx + 6, hy + 3.4, hx + 1, hy + 3); ctx.closePath(); }, '#E7E5E4', 0.8);
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(hx + 3, hy - 2, 4, 0.9);
+  // (the white brow over the mask, the mask across both eyes)
+  ctx.fillStyle = '#F5F5F4'; ctx.fillRect(hx - 2, hy - 5, 8, 1.4);
+  ink(ctx, () => { ctx.moveTo(hx - 7, hy - 1); ctx.quadraticCurveTo(hx - 2, hy - 5, hx + 3, hy - 3.6); ctx.quadraticCurveTo(hx + 6, hy - 4.4, hx + 8.4, hy - 1.6); ctx.quadraticCurveTo(hx + 6, hy + 0.6, hx + 2.6, hy - 0.4); ctx.quadraticCurveTo(hx - 2, hy + 2, hx - 7, hy - 1); ctx.closePath(); }, mask, 0.7);
+  ink(ctx, () => ctx.arc(hx + 4.2, hy - 2, 1.4, 0, Math.PI * 2), '#1F2937', 0.5);
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(hx + 3.6, hy - 2.8, 0.9, 0.9);
+  ink(ctx, () => ctx.ellipse(hx + 11.6, hy + 0.6, 1.8, 1.4, 0, 0, Math.PI * 2), '#111111', 0.6);
+  ctx.fillStyle = '#9CA3AF'; ctx.fillRect(hx + 11, hy - 0.4, 1, 0.7);
+  if (gape) {
+    ctx.fillStyle = '#F8FAFC'; ctx.strokeStyle = INK; ctx.lineWidth = 0.5;
+    for (const tx of [hx + 6.5, hx + 9]) { ctx.beginPath(); ctx.moveTo(tx - 0.8, hy + 2.4); ctx.lineTo(tx, hy + 2.4 + gape * 0.9); ctx.lineTo(tx + 0.8, hy + 2.4); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+    ctx.strokeStyle = INK; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.moveTo(hx + 2, hy - 4.6); ctx.lineTo(hx + 6, hy - 3.4); ctx.stroke();
+  }
 };
 
 /** A seagull: white, grey wings, a yellow beak with a red spot, a mean little eye. */
 const drawSeagull = (ctx: Ctx, e: Enemy, f: number) => {
   const swoop = e.aiState === 'swoop';
   const flap = swoop ? Math.sin(f * 0.15) * 3 : Math.sin(f * 0.3) * 9;
-  ctx.fillStyle = '#9CA3AF'; ctx.beginPath(); ctx.moveTo(-4, -12); ctx.lineTo(-24, -22 - flap); ctx.lineTo(-8, -10); ctx.fill();
-  ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.ellipse(0, -11, 15, 6, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.moveTo(-15, -11); ctx.lineTo(-22, -14); ctx.lineTo(-22, -8); ctx.fill();
-  ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.arc(13, -14, 5, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#FACC15'; ctx.fillRect(17, -14, 8, 2); ctx.fillStyle = '#DC2626'; ctx.fillRect(22, -13, 2, 2);
-  ctx.fillStyle = '#111827'; ctx.fillRect(14, -16, 2, 2);
-  ctx.fillStyle = '#6B7280'; ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(-16, -24 + flap); ctx.lineTo(6, -12); ctx.fill();
+  const gull = '#A3ADB8';
+  // A wing from the shoulder: the grey mantle (lit along the leading edge), the black tip with its white spots
+  const wing = (sx: number, lift: number, span: number, c: string) => {
+    const tx = sx - span, ty = -20 - lift;
+    const path = () => { ctx.moveTo(sx + 3, -12.5); ctx.quadraticCurveTo(sx - span * 0.4, -16 - lift * 0.7, tx, ty); ctx.lineTo(tx + 2, ty + 4); ctx.quadraticCurveTo(sx - span * 0.45, -8 - lift * 0.4, sx - 4, -8); ctx.closePath(); };
+    ctx.save(); ctx.beginPath(); path(); ctx.clip();
+    ctx.fillStyle = c; ctx.fillRect(tx - 4, -40, span + 10, 36);
+    ctx.fillStyle = dark(c, 0.2); ctx.beginPath(); ctx.moveTo(sx - 4, -8); ctx.quadraticCurveTo(sx - span * 0.45, -8 - lift * 0.4, tx + 2, ty + 4); ctx.lineTo(tx + 6, ty + 5); ctx.quadraticCurveTo(sx - span * 0.45, -10.5 - lift * 0.45, sx - 4, -10.5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = lite(c, 0.3); ctx.beginPath(); ctx.moveTo(sx + 3, -13.5); ctx.quadraticCurveTo(sx - span * 0.4, -17 - lift * 0.7, tx, ty - 1); ctx.lineTo(tx + 1, ty + 0.6); ctx.quadraticCurveTo(sx - span * 0.4, -15 - lift * 0.65, sx + 2, -11.6); ctx.closePath(); ctx.fill();
+    // (the black tip, its white mirrors)
+    ctx.fillStyle = '#18181B'; ctx.beginPath(); ctx.arc(tx, ty, span * 0.36, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#F8FAFC'; ctx.fillRect(tx + span * 0.16, ty + 1 + lift * 0.1, 1.4, 1.2); ctx.fillRect(tx + 1.6, ty + 0.6, 1.2, 1);
+    ctx.restore();
+    ctx.beginPath(); path(); ctx.strokeStyle = INK; ctx.lineWidth = 0.9; ctx.lineJoin = 'round'; ctx.stroke();
+  };
+  wing(-2, flap, 20, dark(gull, 0.15));
+  // The tail: white, the black band across its end
+  ink(ctx, () => { ctx.moveTo(-12, -13); ctx.lineTo(-22, -14); ctx.lineTo(-22, -8.5); ctx.lineTo(-12, -9); ctx.closePath(); }, '#F1F5F9', 0.9);
+  ctx.fillStyle = '#18181B'; ctx.fillRect(-21.5, -13.6, 3, 4.8);
+  // The feet, tucked up (pink)
+  ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-2, -6); ctx.lineTo(-5, -4); ctx.moveTo(1, -6); ctx.lineTo(-2, -4); ctx.stroke();
+  ctx.strokeStyle = '#F9A8D4'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-2, -6); ctx.lineTo(-5, -4); ctx.moveTo(1, -6); ctx.lineTo(-2, -4); ctx.stroke();
+  // The body: white, the back grey, the belly in shadow
+  const body = () => ctx.ellipse(0, -11, 15, 6, 0, 0, Math.PI * 2);
+  ctx.save(); ctx.beginPath(); body(); ctx.clip();
+  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-15, -17, 30, 12);
+  ctx.fillStyle = gull; ctx.fillRect(-15, -17, 22, 3.6);
+  ctx.fillStyle = lite(gull, 0.3); ctx.fillRect(-8, -16.6, 8, 1);
+  ctx.fillStyle = '#CBD5E1'; ctx.fillRect(-15, -8, 30, 3);
+  ctx.fillStyle = '#E2E8F0'; ctx.fillRect(-15, -9.6, 30, 1.6);
+  ctx.restore();
+  ctx.beginPath(); body(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
+  // The head: the yellow beak (hooked, the red spot on the lower bill; gaping on the swoop), the pale mean eye with
+  // its red ring, the scowl
+  const gape = swoop ? 2 : 0;
+  ink(ctx, () => { ctx.moveTo(16.5, -12.6); ctx.lineTo(24, -12.4 + gape); ctx.lineTo(23, -10.6 + gape); ctx.lineTo(16.5, -11); ctx.closePath(); }, '#EAB308', 0.7);
+  ctx.fillStyle = '#DC2626'; ctx.fillRect(21, -11.8 + gape, 1.8, 1.2);
+  shaded(ctx, () => ctx.arc(13, -14, 5, 0, Math.PI * 2), '#F8FAFC', 8, -19, 10, 10, 1);
+  ink(ctx, () => { ctx.moveTo(16.5, -15.6); ctx.lineTo(23.6, -14.4); ctx.quadraticCurveTo(25.6, -13.8, 25, -11.8); ctx.lineTo(24, -12.6); ctx.lineTo(16.5, -12.6); ctx.closePath(); }, '#FACC15', 0.8);
+  ctx.fillStyle = '#FEF08A'; ctx.fillRect(18, -15, 3.6, 0.8);
+  ink(ctx, () => ctx.arc(14.6, -15.4, 1.5, 0, Math.PI * 2), '#FEF9C3', 0.6);
+  ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 0.5; ctx.beginPath(); ctx.arc(14.6, -15.4, 1.9, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = INK; ctx.fillRect(14.8, -15.8, 0.9, 0.9);
+  ctx.strokeStyle = INK; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.moveTo(12.4, -17.6); ctx.lineTo(16.6, -16.4); ctx.stroke();
+  wing(1, -flap, 22, gull);
 };
 
 /** A quadcopter: four rotors blurring, a camera pod, a blinking light; a red laser dot on you before it fires. */
