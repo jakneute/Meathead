@@ -11466,6 +11466,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I BENCH FOUR HUNDRED AND I'M LOSING TO A BREEZE?!",
+  "from": "game/player/deathAnim.ts:257"
+ },
+ {
+  "voice": "meathead",
   "text": "I BENCH HEAVIER ROCKS THAN THAT FOR WARM-UP!",
   "from": "HAZARD_HURT"
  },
@@ -11788,6 +11793,11 @@
   "voice": "meathead",
   "text": "I THINK IT'S OVER.",
   "from": "game/stages/barry/power.ts:274"
+ },
+ {
+  "voice": "meathead",
+  "text": "I WEIGH TWO-SIXTY! WHAT KIND OF WIND DOES THIS?!",
+  "from": "game/player/deathAnim.ts:257"
  },
  {
   "voice": "meathead",
@@ -15491,6 +15501,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THIS ISN'T WIND! THIS IS A ROCKET ENGINE!",
+  "from": "game/player/deathAnim.ts:257"
+ },
+ {
+  "voice": "meathead",
   "text": "THIS MEETING COULD'VE BEEN AN EMAIL!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -16093,6 +16108,11 @@
   "voice": "meathead",
   "text": "WHO PUT A FLAMETHROWER IN THE WALL?",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO PUT A JET ENGINE IN A HURRICANE?!",
+  "from": "game/player/deathAnim.ts:257"
  },
  {
   "voice": "meathead",

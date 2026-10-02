@@ -81,7 +81,8 @@ export const strata = (ctx: Ctx, x0: number, w: number, H: number, colors: strin
 export const drawFallCam = (ctx: Ctx, state: GameState, W: number, H: number) => {
   const d = state.meatheadDeath;
   if (!d || state.deathTimer <= 0 || !(d.kind.startsWith('fall_') || d.kind === 'space')) return;
-  const t = Math.min(state.deathScene?.t ?? 9999, MEATHEAD_DEATH_FRAMES[d.kind]);
+  const len = state.deathScene?.len ?? MEATHEAD_DEATH_FRAMES[d.kind];
+  const t = Math.min(state.deathScene?.t ?? 9999, len);
   const f = state.frame, hit = t >= FALL_HIT, since = t - FALL_HIT;
   ctx.save();
   ctx.imageSmoothingEnabled = false;
@@ -96,7 +97,7 @@ export const drawFallCam = (ctx: Ctx, state: GameState, W: number, H: number) =>
     case 'space': space(ctx, state, d, t, f, W, H); break;
   }
   // (and it dims on him at the end, for the message)
-  const out = clamp01((t - (MEATHEAD_DEATH_FRAMES[d.kind] - 20)) / 20);
+  const out = clamp01((t - (len - 20)) / 20);
   if (out > 0) hazeBands(ctx, 0, 0, W, H, '#000000', out * 0.5, out * 0.7, 4);
   ctx.restore();
 };
@@ -501,7 +502,8 @@ const dungeon: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
  * straight past it.)
  */
 const space = (ctx: Ctx, state: GameState, d: MeatheadDeath, t: number, f: number, W: number, H: number) => {
-  const up = clamp01(t / SPACE_OUT), out = clamp01((t - SPACE_OUT + 20) / 40);
+  const OUT = d.outAt ?? SPACE_OUT;
+  const up = clamp01(t / OUT), out = clamp01((t - OUT + 20) / 40);
   // The sky: storm, blue, indigo, black
   const sky = ['#475569', '#38BDF8', '#1D4ED8', '#1E1B4B', '#020617', '#000000'];
   const at = (k: number) => sky[Math.min(sky.length - 1, Math.floor(clamp01(k) * (sky.length - 1)))];
@@ -533,7 +535,7 @@ const space = (ctx: Ctx, state: GameState, d: MeatheadDeath, t: number, f: numbe
   // Going up: the clouds tearing past him
   if (up < 1) for (let k = 0; k < 10; k++) { const y = ((t * 26 + k * 140) % (H + 300)) - 150; pixelBlob(ctx, hash(k) * W, y, 90 + hash(k + 1) * 60, 30 + hash(k + 2) * 20, `rgba(226, 232, 240, ${(0.85 * (1 - up)).toFixed(3)})`); }
   // ...and the speed lines, streaming
-  const lines = 1 - clamp01((t - SPACE_OUT + 10) / 30);
+  const lines = 1 - clamp01((t - OUT + 10) / 30);
   if (lines > 0) for (let k = 0; k < 46; k++) {
     const x = snap(hash(k * 5) * W), len = 80 + hash(k) * 220, y = ((t * (40 + hash(k + 3) * 30) + k * 97) % (H + len)) - len;
     if (Math.abs(x - W / 2) < 46 && hash(k) < 0.7) continue;
@@ -541,9 +543,9 @@ const space = (ctx: Ctx, state: GameState, d: MeatheadDeath, t: number, f: numbe
     ctx.fillRect(x, snap(y), k % 4 === 0 ? P * 2 : P, snap(len));
   }
   // Him: shot up spinning, slowing; then drifting, turning over, dead
-  const drift = Math.max(0, t - SPACE_OUT);
+  const drift = Math.max(0, t - OUT);
   const x = W / 2 + (up < 1 ? Math.sin(t * 1.3) * 6 * (1 - up) : drift * 0.35), y = H * 0.5 + (up < 1 ? 40 * (1 - up) : -drift * 0.22);
-  const rot = up < 1 ? t * (0.5 - up * 0.35) : SPACE_OUT * 0.325 + drift * 0.012;
+  const rot = up < 1 ? t * (0.5 - up * 0.35) : OUT * 0.325 + drift * 0.012;
   const face: DeathFace = up < 1 ? 'scream' : drift < 40 ? 'frozen' : 'dead';
   ctx.save();
   if (drift > 0) ctx.filter = `saturate(${1 - clamp01(drift / 80) * 0.4}) brightness(${1 - clamp01(drift / 80) * 0.15}) hue-rotate(${-clamp01(drift / 80) * 10}deg)`;
@@ -555,6 +557,17 @@ const space = (ctx: Ctx, state: GameState, d: MeatheadDeath, t: number, f: numbe
     if (q <= 0 || q >= 1) continue;
     ctx.fillStyle = `rgba(241, 245, 249, ${(0.8 * (1 - q)).toFixed(3)})`;
     ctx.fillRect(snap(x + 10 + q * 40 + k * 3), snap(y - 50 - q * 30 + Math.sin(k) * 6), P * 2, P * 2);
+  }
+  // (what he's yelling on the way up, over him)
+  if (d.line && (d.talking || (d.lineUntil ?? 0) > t)) {
+    ctx.font = '8px "Press Start 2P"';
+    const words = d.line.split(' '), rows: string[] = [];
+    for (const w of words) { const last = rows[rows.length - 1]; if (last && ctx.measureText(last + ' ' + w).width < 260) rows[rows.length - 1] = last + ' ' + w; else rows.push(w); }
+    const bw = Math.max(...rows.map(r => ctx.measureText(r).width)) + 16, bh = rows.length * 12 + 10, bx = Math.max(8, Math.min(W - bw - 8, x - bw / 2)), byy = Math.max(8, y - 110 - bh);
+    ctx.fillStyle = '#000000'; ctx.fillRect(bx - 2, byy - 2, bw + 4, bh + 4);
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(bx, byy, bw, bh);
+    ctx.beginPath(); ctx.moveTo(x - 6, byy + bh); ctx.lineTo(x + 6, byy + bh); ctx.lineTo(x, byy + bh + 10); ctx.fill();
+    ctx.fillStyle = '#111827'; rows.forEach((r, k) => ctx.fillText(r, bx + 8, byy + 15 + k * 12));
   }
   if (drift > 40) for (let k = 0; k < 16; k++) if (hash(k * 7) < clamp01((drift - 40) / 60)) { ctx.fillStyle = '#F0F9FF'; ctx.fillRect(snap(x - 30 + hash(k) * 60), snap(y - 50 + hash(k + 3) * 100), P, P); }
 };

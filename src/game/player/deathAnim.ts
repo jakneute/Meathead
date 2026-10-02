@@ -29,6 +29,7 @@ import { playSound } from '../platform/audio';
 import { PARTICLE_PALETTES } from '../../constants';
 import { floorTopAt } from '../core/terrain';
 import { getStageLayout } from '../stages';
+import { say, MEATHEAD_VOICE } from '../platform/speech';
 
 export type MeatheadDeathKind = 'burnt' | 'lava' | 'boiled' | 'fried' | 'frozen' | 'buried' | 'flattened' | 'dissolved' | 'roadkill' | 'overdose' | 'impaled' | 'cactus' | 'plucked' | 'spiked'
   // the falls (the kill cam at the bottom: see render/player/fallCams)
@@ -48,6 +49,12 @@ export interface MeatheadDeath {
   /** (impaled, cactus) what went through him; and (impaled) the floor under him. */
   impale?: Impale;
   floor?: number;
+  /** (space) When he's out of the air (held back while he's still got something to say about it), and what he's
+   * saying going up, while he says it. */
+  outAt?: number;
+  line?: string;
+  talking?: boolean;
+  lineUntil?: number;
   /** (plucked) The bird, and where it was when it got him. */
   bird?: { id: string; x: number; y: number };
 }
@@ -56,7 +63,7 @@ export interface MeatheadDeath {
 export const MEATHEAD_DEATH_FRAMES: Record<MeatheadDeathKind, number> = {
   burnt: 95, lava: 125, boiled: 85, fried: 85, frozen: 80, buried: 95, flattened: 70, dissolved: 110, roadkill: 80, overdose: 120,
   impaled: 80, cactus: 80, plucked: 150, spiked: 100,
-  space: 330, fall_crevasse: 110, fall_trench: 100, fall_alley: 120, fall_crude: 150, fall_arroyo: 130, fall_rocks: 120, fall_dungeon: 110,
+  space: 360, fall_crevasse: 110, fall_trench: 100, fall_alley: 120, fall_crude: 150, fall_arroyo: 130, fall_rocks: 120, fall_dungeon: 110,
 };
 
 const BY_SOURCE: Record<string, MeatheadDeathKind> = {
@@ -240,12 +247,28 @@ export const tickMeatheadDeath = (ctx: FrameContext, d: MeatheadDeath, t: number
       if (d.kind === 'fall_dungeon' && s > 36 && s < 70 && s % 8 === 0) playSound('clink', 0.6, -6);
       break;
     }
-    case 'space':
+    case 'space': {
       // (the roar of it going up; then, out of the air, nothing at all)
+      const out = d.outAt ??= SPACE_OUT;
       if (t === 1) { playSound('thunder', 1); playSound('whoosh', 1, -8); }
-      if (t < SPACE_OUT && t % 14 === 0) playSound('whoosh', 0.9 - (t / SPACE_OUT) * 0.7, -6 + t / 20);
-      if (t === SPACE_OUT + 26) playSound('glug', 0.3, 12);
+      // Going up, he's got something to say about this wind
+      if (t === 6) {
+        const text = SPACE_LINES[Math.floor(Math.random() * SPACE_LINES.length)];
+        const said = say(text, MEATHEAD_VOICE, 'urgent', {
+          always: true,
+          onShow: spoken => { d.talking = spoken; d.lineUntil = spoken ? 0 : t + 150; },
+          onHide: () => { d.talking = false; },
+        });
+        // (up on the screen as he says it; with no voice to say it with, for a while all the same)
+        d.line = text; d.lineUntil = t + 160;
+        void said;
+      }
+      // (and he's not out of the air till he's said it)
+      if (t >= out - 40 && (d.talking || (d.lineUntil ?? 0) > t) && state.deathScene) { d.outAt = out + 1; state.deathScene.len++; }
+      if (t < out && t % 14 === 0) playSound('whoosh', 0.9 - Math.min(1, t / out) * 0.7, -6 + Math.min(t, 140) / 20);
+      if (t === out + 26) playSound('glug', 0.3, 12);
       break;
+    }
     case 'spiked':
       if (t === 1) playSound('whoosh', 0.9, -6);
       if (t === SPIKE_HIT) { playSound('crunch', 1); playSound('splat', 1, -4); shakeScreen(state, 18, 9); }
@@ -274,8 +297,15 @@ export const PLUCK_LAND = 10, PLUCKS = [24, 36], PLUCK_AWAY = 44, PLUCK_FALL = 1
 export const pluckSway = (t: number) => (t > PLUCKS[0] ? Math.sin((t - PLUCKS[0]) * 0.11) * Math.min(1, (t - PLUCKS[0]) / 30) * 14 : 0);
 /** (plucked) How dark it's got: from the first eye, slowly, all the way. */
 export const pluckDark = (t: number) => Math.max(0, Math.min(1, (t - PLUCKS[0]) / (PLUCK_FRAMES - 10 - PLUCKS[0])));
-/** (space) When he's out of the air. */
-export const SPACE_OUT = 110;
+/** (space) When he's out of the air (at the soonest: he gets his line out first). */
+export const SPACE_OUT = 140;
+/** (space) What he's got to say about it on the way up: a breeze, this is not. */
+const SPACE_LINES = [
+  'I WEIGH TWO-SIXTY! WHAT KIND OF WIND DOES THIS?!',
+  'THIS ISN\'T WIND! THIS IS A ROCKET ENGINE!',
+  'I BENCH FOUR HUNDRED AND I\'M LOSING TO A BREEZE?!',
+  'WHO PUT A JET ENGINE IN A HURRICANE?!',
+];
 /** (the falls) When he hits the bottom. */
 export const FALL_HIT = 18;
 /** (spiked) When he comes down onto it. */
