@@ -7,6 +7,7 @@ import type { Chase, Junk } from './chase';
 import { junkSize, CHASE_BOAT_W, BOARD_LEAP, BOARD_BEAT, BOARD_LINE, BLOW, WRECK_BLAST, dropAhead, DROP_WARN } from './chase';
 import { drawSeatedAtMotor, drawFlung } from '../../render/player/moves';
 import { inputDevice, padFamily } from '../../platform/device';
+import { drawPadFace } from '../../render/padGlyph';
 import { COURSE } from './course';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { INK, hash, lin, shape, speckle, blood, deadFace, flames } from '../../scenes/art/ink';
@@ -91,12 +92,8 @@ const drawButton = (ctx: Ctx, x: number, y: number, which: 'jump' | 'left' | 'ri
   ctx.font = '7px "Press Start 2P"'; ctx.textAlign = 'center';
   if (which === 'jump') {
     if (pad) {
-      const fam = padFamily();
-      const label = fam === 'playstation' ? 'X' : fam === 'switch' || fam === 'joycon-l' || fam === 'joycon-r' ? 'B' : 'A';
-      const color = fam === 'playstation' ? '#60A5FA' : fam === 'xbox' ? '#22C55E' : '#E4E4E7';
-      ctx.fillStyle = '#18181B'; ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = color; ctx.lineWidth = 1.4; ctx.stroke();
-      ctx.fillStyle = color; ctx.fillText(label, x + 0.5, y + 3.5);
+      // (the bottom face button, as this controller has it printed)
+      drawPadFace(ctx, x, y, 8, 'A', padFamily());
       ctx.restore(); return 18;
     }
     ctx.fillStyle = '#E4E4E7'; ctx.beginPath(); ctx.roundRect(x - 22, y - 7, 44, 14, 2); ctx.fill();

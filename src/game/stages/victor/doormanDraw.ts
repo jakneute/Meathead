@@ -8,6 +8,8 @@ import type { Enemy, WeaponType } from '../../../types';
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { getLastInputDevice } from '../../platform/input';
+import { padFamily } from '../../platform/device';
+import { drawPadFace } from '../../render/padGlyph';
 import { drawPlayer } from '../../render/player/player';
 import { DoormanFight, DoormanCorpse, DOORMAN_HP, SLIDE_ZONE, SLIDE_COUNTDOWN } from './doorman';
 import { KIND_STATS } from '../../enemies/kinds';
@@ -341,12 +343,15 @@ const drawSpecialButton = (ctx: Ctx, x: number, y: number, pressed: boolean, f: 
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   const bump = pressed ? 2 : 0;
   if (getLastInputDevice() === 'gamepad') {
-    const btn = (bx: number, by: number, label: string, color: string) => {
-      ctx.fillStyle = color; ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(bx, by + bump, 11, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 10px "Press Start 2P"'; ctx.fillText(label, bx + 1, by + 1 + bump);
-    };
-    btn(x, y - 18, 'Y', '#CA8A04'); btn(x - 18, y, 'X', '#2563EB'); btn(x + 18, y, 'B', '#DC2626'); btn(x, y + 18, 'A', '#16A34A');
+    // (the four face buttons, as this controller has them printed: any of them will do)
+    const fam = padFamily();
+    if (fam === 'joycon-l' || fam === 'joycon-r') {
+      drawPadFace(ctx, x, y + bump, 20, 'A', fam, pressed);
+      ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.fillText('ANY BUTTON', x, y + 34);
+    } else {
+      drawPadFace(ctx, x, y - 18 + bump, 11, 'Y', fam, pressed); drawPadFace(ctx, x - 18, y + bump, 11, 'X', fam, pressed);
+      drawPadFace(ctx, x + 18, y + bump, 11, 'B', fam, pressed); drawPadFace(ctx, x, y + 18 + bump, 11, 'A', fam, pressed);
+    }
   } else {
     // A mouse, its two buttons blinking in turn (either one will do)
     ctx.fillStyle = '#E5E7EB'; ctx.strokeStyle = '#111827'; ctx.lineWidth = 3;

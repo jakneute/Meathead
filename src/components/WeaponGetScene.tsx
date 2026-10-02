@@ -7,7 +7,7 @@ import { BOSS_WEAPON_MAP, WEAPON_DESCRIPTIONS, getWeaponInfo } from '../content/
 import { createRange, stepRange, newRespawns } from '../game/range';
 import { KeyboardMouseState, readControls } from '../game/platform/input';
 import { PadButton, KeyCap } from './ButtonIcons';
-import { useInputDevice } from './useInputDevice';
+import { useInputDevice, usePadFamily } from './useInputDevice';
 import { drawWorld } from '../game/render/world';
 import { WeaponArt } from './WeaponIcon';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/platform/gamepad';
@@ -476,10 +476,11 @@ export default WeaponGetScene;
  */
 const FlameCallout = () => {
   const pad = useInputDevice() === 'pad';
+  const family = usePadFamily();
   return (
     <div className="mt-3 inline-flex items-center gap-3 px-3 py-2"
       style={{ background: 'rgba(0,0,0,0.6)', border: '2px solid #F97316', boxShadow: '3px 3px 0 #000' }}>
-      <div className="animate-pulse">{pad ? <PadButton label="Y" /> : <KeyCap label="F" />}</div>
+      <div className="animate-pulse">{pad ? <PadButton label="Y" family={family} /> : <KeyCap label="F" />}</div>
       <div className="text-[8px] leading-[14px] text-white uppercase">
         <div className="text-orange-400">SECONDARY FIRE: A FLAMETHROWER, NO SWITCHING</div>
         <div className="text-white/80">SLICK 'EM WITH OIL. THEN LIGHT 'EM UP.</div>
