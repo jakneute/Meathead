@@ -82,6 +82,8 @@ export const tommyLayout: StageLayout = {
   },
   update: (ctx, controls) => updateTommy(ctx, controls),
   deathMessage: ctx => tommyDeathMessage(ctx),
+  // (down the sewer, the walkways are slick with it)
+  footstep: (state, floor) => { const S = COURSE.sewer; const x = state.player.pos.x; return !floor.oneWay && x > S.x1 && x < S.x2 && !state.arenaLocked ? 'wet' : undefined; },
   updateSpecialEnemy: (ctx, e) => {
     // (the thing's run by its room; it just sits in the pool)
     if (e.kind !== 'amalgam') return undefined;

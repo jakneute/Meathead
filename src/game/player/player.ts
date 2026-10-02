@@ -16,6 +16,7 @@ import {
 } from '../../constants';
 import { FrameContext } from '../core/context';
 import { startMeatheadDeath, meatExplosion } from './deathAnim';
+import { footsteps } from './footsteps';
 import { announceDeath, silenceAll } from '../platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../platform/skip';
 import { GameState, shakeScreen } from '../core/state';
@@ -479,6 +480,7 @@ export const updatePlayerPhysics = (ctx: FrameContext, input: FrameInput) => {
   if (player.pos.x < left + 50) player.pos.x = left + 50;
   // Safety net: nothing can push you out through the walls of a locked boss arena
   if (state.arenaLocked) player.pos.x = Math.max(ARENA_LEFT, Math.min(getArenaRight(ctx.stageId) - player.width, player.pos.x));
+  footsteps(ctx);
   // Footstep dust while running
   if (player.isGrounded && !isPerformingSpecial(ctx) && Math.abs(player.vel.x) > PLAYER_MOVE_SPEED * 0.6 && state.playerAnimFrame % 11 === 0) {
     spawnDust(state, player.pos.x + player.width / 2 - Math.sign(player.vel.x) * 10, player.pos.y + player.height, 2, -Math.sign(player.vel.x));

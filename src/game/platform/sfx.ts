@@ -130,6 +130,42 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.3, vary: 2, gap: 100,
     make: () => { const lp = lowpass(); return render(0.14, t => lp(rnd(), 700 * ex(t, 25) + 100) * ex(t, 22) * 1.5 + Math.sin(TAU * 80 * t) * ex(t, 30)); },
   },
+  // ---- His footsteps (quiet: under everything) ----
+  step_hard: {
+    // A heel on concrete, tile, stone: a soft tick with a little weight under it
+    gain: 0.11, vary: 3, gap: 90, voices: 2,
+    make: () => { const lp = lowpass(), body = glide(140, 90, 30); return render(0.07, t => lp(rnd(), 2400 * ex(t, 60) + 300) * ex(t, 70) * 1.2 + body(t) * ex(t, 45) * 0.5); },
+  },
+  step_snow: {
+    // Packed snow: a short squeaky crunch
+    gain: 0.12, vary: 3, gap: 90, voices: 2,
+    make: () => { const bp = bandpass(), c = crackle(0.25); return render(0.13, t => bp(rnd() * 0.5 + c(), 1500 + 900 * Math.sin(TAU * 9 * t), 0.9) * Math.sin(Math.PI * t / 0.13) * 1.3); },
+  },
+  step_metal: {
+    // A catwalk, a fire escape: a dull little clank
+    gain: 0.08, vary: 2.5, gap: 90, voices: 2,
+    make: () => { const ring = metal(380, [1, 2.76, 5.4], 30), lp = lowpass(); return render(0.14, t => ring(t) * 0.8 + lp(rnd(), 1800) * ex(t, 80) * 0.8); },
+  },
+  step_wood: {
+    // Boards: a hollow knock
+    gain: 0.13, vary: 3, gap: 90, voices: 2,
+    make: () => { const body = glide(230, 150, 40), bp = bandpass(); return render(0.09, t => body(t) * ex(t, 38) + bp(rnd(), 800, 0.8) * ex(t, 60) * 0.7); },
+  },
+  step_dirt: {
+    // Dirt, gravel, ash: a soft gritty scuff
+    gain: 0.1, vary: 3, gap: 90, voices: 2,
+    make: () => { const lp = lowpass(), c = crackle(0.06); return render(0.1, t => (lp(rnd(), 1100) * 1.2 + c() * 0.6) * Math.min(1, t / 0.008) * ex(t, 32)); },
+  },
+  step_sand: {
+    // Sand: a soft dry hiss
+    gain: 0.07, vary: 3, gap: 90, voices: 2,
+    make: () => { const bp = bandpass(); return render(0.12, t => bp(rnd(), 3200, 0.5) * Math.sin(Math.PI * Math.min(1, t / 0.12)) ** 2); },
+  },
+  step_wet: {
+    // A wet floor, a puddle: a little slap
+    gain: 0.1, vary: 3, gap: 90, voices: 2,
+    make: () => { const bp = bandpass(); return render(0.1, t => bp(rnd(), 900 + 700 * ex(t, 30), 1.2) * Math.min(1, t / 0.004) * ex(t, 35) * 1.3); },
+  },
   thud: {
     gain: 0.5, vary: 2, gap: 70,
     make: () => { const lp = lowpass(), body = glide(95, 38, 12); return render(0.3, t => body(t) * ex(t, 11) * 1.1 + lp(rnd(), 600) * ex(t, 18) * 0.6); },
