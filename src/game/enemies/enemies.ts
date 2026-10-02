@@ -16,6 +16,7 @@ import {
   OILED_COLLISION_DAMAGE, OILED_CHARGE_PUSH_MULTIPLIER, OILED_CHARGE_MIN_PUSH, OVERDOSE_GRAVITY, OVERDOSE_RISE_RANGE, OVERDOSE_RISE_STEER, OVERDOSE_MAX_SIDE_SPEED,
   OVERDOSE_MAX_RISE_SPEED, OVERDOSE_DIVE_RANGE, OVERDOSE_DIVE_SPEED, OVERDOSE_DROP_GRAVITY, OVERDOSE_HIT_DAMAGE, OVERDOSE_MAX_FRAMES,
   BOTTLE_GRAVITY, THAW_BURST_DAMAGE, FROZEN_DROP_DAMAGE, FROZEN_DROP_PER_SPEED,
+  PARTICLE_PALETTES,
 } from '../../constants';
 import { FrameContext, killBoss } from '../core/context';
 import type { ThrownKind, EnemyKind } from '../../types';
@@ -886,10 +887,27 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
       // (the barf shield's barf: if that's what he's weak to, it's his weakness that's killed him)
       if (hasShield && isWeakTo(stageId, 'SLUDGE')) killBoss(ctx, e, player.facing, true, 'SLUDGE');
       else killBoss(ctx, e, player.facing, false, undefined, player.isUppercutting ? 'uppercut_kill' : 'charge_kill');
+    } else if (wasFrozen) {
+      // Frozen solid: it doesn't go flying, it shatters where it stood, into ice and guts
+      const mid = { x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 };
+      e.frozenTimer = 0;
+      fx.spawnGlassShatter(mid);
+      // (the guts, frozen and thawing, no fire in them; the ice in chunks)
+      for (const col of PARTICLE_PALETTES.GORE) fx.spawnExplosion(mid, col, 5, player.facing * 6, 30);
+      for (const col of ['#E0F2FE', '#BAE6FD', '#7DD3FC']) fx.spawnExplosion(mid, col, 7, player.facing * 4, 28, true);
+      for (let i = 0; i < 26; i++) {
+        const ice = i % 3 !== 0;
+        state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + Math.random() * e.height }, vel: { x: (Math.random() - 0.5) * 10 + player.facing * 2, y: -2 - Math.random() * 7 }, life: 30 + Math.random() * 20, color: ice ? (i % 4 ? '#BAE6FD' : '#F0F9FF') : (i % 3 ? '#8B0000' : '#7C0A02'), size: ice ? 4 + Math.random() * 6 : 3 + Math.random() * 5 });
+      }
+      shakeScreen(state, 10, 6);
+      fx.spawnKillCallout(e, 'shatter');
+      fx.speakVulgarity(hasShield ? 'sludge_kill' : (player.isUppercutting ? 'uppercut_kill' : 'charge_kill'));
+      fx.spawnPickup(e.pos);
+      player.killSatisfactionTimer = 60;
+      return false;
     } else {
       e.isBlownAway = true;
       e.meleeFlung = true;
-      e.frozenTimer = 0; // (the ice shatters off it: nothing holds it where it stood)
       if (player.isDivekicking) {
         // Splat the enemy into the ground; Meathead keeps plummeting
         e.vel = { x: player.facing * 8, y: 18 };
