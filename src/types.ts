@@ -359,6 +359,8 @@ export interface Enemy extends Entity {
   rinsedWave?: number;
   /** Artie, after a panic: no big leap till this frame. */
   calmAt?: number;
+  /** Artie panicking: big leaps still to go. */
+  panicLeaps?: number;
   /** Which look a themed enemy has (a beachgoer's outfit and pastime, a gator in the water or on land). */
   variant?: number;
   /** Died of an overdose: its body flies off, veering toward anything airborne and wrecking what it hits. */
