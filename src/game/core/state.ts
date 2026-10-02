@@ -124,6 +124,8 @@ export interface GameState {
    * before the death message goes up (and is read out). */
   /** (`voiced`: the scene's already silenced everyone and started its own line: the death doesn't cut it off) */
   deathScene?: { t: number; len: number; voiced?: boolean };
+  /** His own death, for what got him (fire, ice, the lava...): played in his place, see player/deathAnim. */
+  meatheadDeath?: import('../player/deathAnim').MeatheadDeath;
   /** What of the world's on screen this frame (set as it's drawn): the camera's 800x600, or more of it zoomed out. */
   view?: { x: number; y: number; w: number; h: number };
   /** The last frame a long death on its way offered SKIP >> (see skipDying). */

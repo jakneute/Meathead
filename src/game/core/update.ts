@@ -32,6 +32,7 @@ import { updateGapGrace } from '../enemies/kinds';
 import { updateProjectile, updateSpecialMovesVsBarrels } from '../combat/projectiles';
 import { updateOscarHazards } from '../bosses/oscar';
 import { isGoreColor } from './effects';
+import { tickMeatheadDeath } from '../player/deathAnim';
 import { updateVictoryPee, peeFinished } from '../scenes/victoryPee';
 import { getBossDef, getArenaRight, getStageWidth } from '../bosses/registry';
 import { getStageLayout } from '../stages';
@@ -108,6 +109,7 @@ const updateDeathScreen = (ctx: FrameContext) => {
   if (scene && scene.t < scene.len) {
     scene.t++;
     getStageLayout(ctx.stageId)?.deathSceneTick?.(ctx, scene.t);
+    if (state.meatheadDeath) tickMeatheadDeath(ctx, state.meatheadDeath, scene.t);
     if (scene.t === scene.len) announceDeath(state.deathString);
     if (state.deathFrames > SKIP_AFTER) offerSkip();
     if (takeSkip()) { stopDeathAnnouncer(); silenceAll(); state.deathTimer = 0; state.deathScene = undefined; respawn(state, ctx.stageId, ctx.cheats.skipToBoss); }

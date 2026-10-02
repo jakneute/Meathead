@@ -15,6 +15,7 @@ import {
   SWIM_GRAVITY_MULT, SWIM_MAX_SINK, SWIM_STROKE, SWIM_LEAP, SWIM_SPEED_MULT, LEDGE_DROP_FRAMES,
 } from '../../constants';
 import { FrameContext } from '../core/context';
+import { startMeatheadDeath, meatExplosion } from './deathAnim';
 import { announceDeath, silenceAll } from '../platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../platform/skip';
 import { GameState, shakeScreen } from '../core/state';
@@ -81,11 +82,12 @@ export const skipDying = (ctx: FrameContext, t: number, message: () => string): 
 };
 
 export const killPlayer = (ctx: FrameContext, message: string, gore = true) => {
-  const { state, fx } = ctx;
+  const { state } = ctx;
   state.deathTimer = DEATH_SCREEN_FRAMES;
   state.deathFrames = 0;
   state.deathString = message;
-  if (gore) fx.spawnDeathShower(state.player.pos, state.player.facing, 3);
+  // (what got him gets him its own way; anything else, he comes apart)
+  if (gore && !state.deathScene && !startMeatheadDeath(ctx)) meatExplosion(ctx);
   // (not a word out of him: the death announcer reads out the screen, over whoever was talking)
   // (a stage's own death scene goes first: it's read out when that's over)
   if (!state.deathScene) announceDeath(message);

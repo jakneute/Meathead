@@ -20,6 +20,7 @@ import { drawComposited, needsComposite } from './composite';
 import { drawBossCorpse } from './bosses/corpses';
 import { drawVictoryPee } from '../scenes/victoryPeeDraw';
 import { drawPlayer } from './player/player';
+import { drawMeatheadDeath } from './player/deathAnim';
 import { drawKindEnemy, animFrame } from './enemies';
 import { isMidBoss } from '../combat/midBoss';
 import { drawBackdrop, drawBackdropFront } from './backdrops';
@@ -133,6 +134,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
         invincibilityEnabled: view.invincibilityEnabled,
       });
       if (tilt) wctx.restore();
+      if (state.meatheadDeath && state.deathTimer > 0) drawMeatheadDeath(wctx, state, view.currentWeapon);
       drawTaserOverload(wctx, state.player, state.frame);
       drawVictoryPee(wctx, state);
     }

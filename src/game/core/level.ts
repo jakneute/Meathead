@@ -59,6 +59,7 @@ export const respawn = (state: GameState, stageId: string | null, skipToBoss: bo
   state.dyingSkipAt = undefined;
   state.deathFreeze = undefined;
   state.deathScene = undefined;
+  state.meatheadDeath = undefined;
   state.killPose = null;
   state.lastHurt = undefined;
   // (back on his feet clean)
