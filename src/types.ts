@@ -52,7 +52,9 @@ export type SoundType =
   | 'cursor' | 'menuok' | 'menuback' | 'beep' | 'alert' | 'ding' | 'pickup' | 'reload' | 'powerup' | 'alarm' | 'siren' | 'horn' | 'truckhorn' | 'engine'
   | 'rumble' | 'thunder' | 'roar' | 'bellow' | 'snort' | 'screams'
   // (him)
-  | 'fart';
+  | 'fart'
+  // (Hector's flying logs)
+  | 'poopflight' | 'poopsplat';
 
 export interface Player extends Entity {
   /** Frames a shoulder charge can keep going while it's driving a shield goon back (held down, it lasts a good while longer). */

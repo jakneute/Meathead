@@ -58,6 +58,7 @@ export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
     for (const b of state.enemies.filter(e => e.type === 'boss')) {
       if (Math.abs((p.pos.x + p.width / 2) - (b.pos.x + b.width / 2)) < 80 && Math.abs((p.pos.y + p.height / 2) - (b.pos.y + b.height / 2)) < 80) {
         fx.spawnPoopExplosion({ x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, 15);
+        fx.playGunSound('poopsplat');
         // (and the room's that much filthier for it: it goes everywhere)
         state.hectorFilth = Math.min(1, state.hectorFilth + HECTOR_FILTH_PER_LOG);
         return false;

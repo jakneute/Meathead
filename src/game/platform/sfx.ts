@@ -276,6 +276,40 @@ const SFX: Record<string, SfxDef> = {
       });
     },
   },
+  poopflight: {
+    // A log of it flying: a wet, flapping whoosh (a sodden rag in a gale), something squelching and burbling in it,
+    // drips coming off it
+    gain: 0.55, vary: 1.2, gap: 250, voices: 3,
+    make: () => {
+      const bp = bandpass(), lp = lowpass(), wet = crackle(0.05);
+      let ph = 0;
+      return render(1.0, t => {
+        const swell = Math.min(1, t / 0.25) * Math.max(0, 1 - Math.max(0, t - 0.7) / 0.3);
+        const flap = 0.55 + 0.45 * Math.sin(TAU * (19 + 6 * Math.sin(t * 4)) * t);
+        const whoosh = bp(rnd(), 500 + 900 * Math.sin(Math.PI * Math.min(1, t)), 0.7) * flap;
+        ph += (62 + 18 * Math.sin(t * 17) + 9 * Math.sin(t * 41)) / SFX_SR;
+        const burble = Math.tanh(4 * Math.sin(TAU * ph)) * (0.5 + 0.5 * Math.sin(TAU * 7 * t)) * 0.45;
+        return lp(whoosh * 1.3 + burble + wet() * 0.6, 1700) * swell;
+      });
+    },
+  },
+  poopsplat: {
+    // It hitting the vortex: a big, thick, wet SPLAT (a low slap, a squelch tearing down through it), then it going
+    // everywhere: gloopy plops falling, a slurp, a last drip
+    gain: 0.8, vary: 0.8, gap: 120, voices: 3,
+    make: () => {
+      const bp = bandpass(), lp = lowpass(), slap = glide(150, 40, 18);
+      const plops = Array.from({ length: 7 }, (_, k) => ({ at: 0.12 + k * 0.1 + Math.random() * 0.05, f: 300 + Math.random() * 400 }));
+      return render(1.3, t => {
+        const hit = (t < 0.004 ? rnd() : 0) + slap(t) * ex(t, 14) * 1.2;
+        const squelch = bp(rnd(), 1800 * ex(t, 9) + 220, 1.2) * ex(t, 7) * 1.4;
+        let gloop = 0;
+        for (const p of plops) { const u = t - p.at; if (u > 0 && u < 0.09) gloop += Math.sin(TAU * (p.f * ex(u, 25) + 120) * u) * ex(u, 40) * 0.5; }
+        const slurp = t > 0.75 ? bp(rnd(), 900 - 500 * (t - 0.75), 3) * Math.max(0, Math.sin(Math.PI * (t - 0.75) / 0.4)) * 0.6 : 0;
+        return lp(hit + squelch + gloop + slurp, 3200);
+      });
+    },
+  },
   rumble: {
     gain: 0.55, gap: 400,
     make: () => { const lp = lowpass(), c = crackle(0.01); return render(1.8, t => lp(rnd(), 140) * 3 * (0.6 + 0.4 * Math.sin(TAU * 7 * t)) * Math.min(1, t / 0.2) * ex(t, 1.2) + c() * ex(t, 1.5) * 0.4); },

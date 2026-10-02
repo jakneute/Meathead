@@ -69,6 +69,8 @@ const updateHurricane = (ctx: FrameContext, boss: Enemy) => {
     const fromLeft = t.spawnX < ARENA_MID;
     helpers.addProjectile(enemyProjectile(`poop-${Date.now()}`, t.spawnX, t.pos.y, fromLeft ? POOP_SPEED : -POOP_SPEED, 0, 45, 20, POOP_DAMAGE,
       { isPoop: true, spawnX: t.spawnX }));
+    // (and you hear it coming: wet, flapping)
+    helpers.playGunSound('poopflight');
     return false;
   });
   // More of them each hurricane the more he's hurt
