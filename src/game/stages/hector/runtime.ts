@@ -95,6 +95,9 @@ const applyRegionCamera = (state: GameState, region: Region) => {
   else state.cameraMinX = COURSE.left;
 };
 
+/** Arriving in the Eye: how long his feet stay planted (frames). */
+const EYE_ARRIVE_HOLD = 45;
+
 export const updateHector = (ctx: FrameContext, controls: Controls): Controls => {
   const rt = getHector(ctx.state);
   if (!rt) return controls;
@@ -122,6 +125,12 @@ export const updateHector = (ctx: FrameContext, controls: Controls): Controls =>
   updateEyeFight(ctx, rt.eye, () => { rt.clearT = 1; });
   // (the news: watch it all, or skip the lot)
   updateNews(ctx, rt.news, controls, () => startDaycare(state, rt.daycare, true));
+  // Just arrived in the Eye (off the tower, or back at its checkpoint): feet planted a moment while he takes it in,
+  // so a right still held from the climb doesn't walk him straight off the junk (he can still shoot)
+  if (region === 'eye' && rt.eye.phase === 'intro' && rt.eye.t < EYE_ARRIVE_HOLD) {
+    controls = { ...NO_CONTROLS, shoot: controls.shoot, secondary: controls.secondary };
+    player.vel.x *= 0.6;
+  }
   // The Eye's dead: hands off while it dies and the storm clears
   if ((region === 'eye' && (rt.eye.phase === 'dead' || rt.eye.phase === 'done')) || newsOn(rt.news) || rt.hazards.drownT > 0) {
     controls = { ...NO_CONTROLS };
