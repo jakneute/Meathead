@@ -212,7 +212,49 @@ const stream = (ctx: Ctx, t: number, flow: number) => {
 };
 
 /** From behind, at the urinal. `p`: ms into it; the stream runs, tails off, then he shakes. */
-export const drawEggBack = (ctx: Ctx, p: number) => {
+/**
+ * He'd shit himself before the boss went down, and it's all still there: the crack and the bottoms of both cheeks
+ * smeared brown, runs down the backs of his thighs, the seat of the pants round his ankles full of it, flies, stink.
+ */
+const shitOn = (ctx: Ctx, p: number) => {
+  ctx.save();
+  // (the crack and the cheeks either side of it, smeared)
+  const smear = () => {
+    ctx.moveTo(90, 236); ctx.bezierCurveTo(94, 230, 106, 230, 110, 236); ctx.bezierCurveTo(116, 254, 126, 270, 124, 288);
+    ctx.bezierCurveTo(118, 298, 82, 298, 76, 288); ctx.bezierCurveTo(74, 270, 84, 254, 90, 236); ctx.closePath();
+  };
+  shape(ctx, smear, 'rgba(107, 68, 35, 0.78)', 0);
+  shape(ctx, () => { ctx.moveTo(95, 244); ctx.bezierCurveTo(98, 240, 102, 240, 105, 244); ctx.bezierCurveTo(108, 262, 110, 278, 104, 292); ctx.lineTo(96, 292); ctx.bezierCurveTo(90, 278, 92, 262, 95, 244); ctx.closePath(); }, 'rgba(74, 46, 20, 0.85)', 0);
+  // (clumps, and the shine on them)
+  for (const [x, y, r] of [[88, 280, 4], [112, 276, 3.4], [100, 262, 3], [80, 290, 2.6], [119, 289, 2.8]] as const) {
+    shape(ctx, () => ctx.ellipse(x, y, r, r * 0.8, 0, 0, Math.PI * 2), '#5C3A1A', 0);
+    ctx.fillStyle = 'rgba(214, 170, 110, 0.6)'; ctx.fillRect(x - r * 0.4, y - r * 0.5, r * 0.5, r * 0.3);
+  }
+  // (runs down the backs of both thighs)
+  ctx.strokeStyle = 'rgba(92, 58, 26, 0.85)'; ctx.lineCap = 'round';
+  for (const [x0, x1, len, w] of [[84, 80, 70, 3.2], [92, 90, 46, 2.4], [116, 120, 64, 3], [108, 110, 38, 2.2]] as const) {
+    ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x0, 292); ctx.quadraticCurveTo((x0 + x1) / 2 + 2, 292 + len * 0.5, x1, 292 + len); ctx.stroke();
+    shape(ctx, () => ctx.ellipse(x1, 292 + len + 1, w * 0.8, w, 0, 0, Math.PI * 2), '#5C3A1A', 0);
+  }
+  // (the seat of the pants round his ankles: full of it)
+  for (const s of [-1, 1]) shape(ctx, () => ctx.ellipse(100 + s * 32, 388, 18, 6, 0, 0, Math.PI * 2), 'rgba(92, 58, 26, 0.9)', 0);
+  // (the stink coming up off him, and flies round it)
+  ctx.strokeStyle = 'rgba(132, 204, 22, 0.55)'; ctx.lineWidth = 2;
+  for (let k = 0; k < 4; k++) {
+    const q = ((p / 900 + k / 4) % 1), sx = 60 + k * 26, sy = 300 - q * 90;
+    ctx.globalAlpha = Math.sin(q * Math.PI);
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.quadraticCurveTo(sx - 6, sy - 8, sx, sy - 16); ctx.quadraticCurveTo(sx + 6, sy - 24, sx, sy - 32); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  for (let k = 0; k < 3; k++) {
+    const a = p / (140 + k * 40) + k * 2.1, fx = 100 + Math.cos(a) * (34 + k * 8), fy = 270 + Math.sin(a * 1.3) * 22;
+    shape(ctx, () => ctx.ellipse(fx, fy, 2.2, 1.6, 0, 0, Math.PI * 2), '#09090B', 0);
+    ctx.fillStyle = 'rgba(203, 213, 225, 0.8)'; ctx.fillRect(fx - 2.5, fy - 2.6, 2, 1.2); ctx.fillRect(fx + 0.5, fy - 2.6, 2, 1.2);
+  }
+  ctx.restore();
+};
+
+export const drawEggBack = (ctx: Ctx, p: number, shitty = false) => {
   const flow = p < EGG_PEE_MS - 400 ? 1 : Math.max(0, (EGG_PEE_MS - p) / 400);
   const shaking = p > EGG_PEE_MS && p < EGG_PEE_MS + EGG_SHAKE_MS;
   const jig = shaking ? Math.sin(p / 22) * 2 : 0;
@@ -223,6 +265,7 @@ export const drawEggBack = (ctx: Ctx, p: number) => {
   pantsDown(ctx, false);
   ctx.save(); ctx.translate(0, jig * 0.4);
   glutes(ctx, shaking ? 2 : 0);
+  if (shitty) shitOn(ctx, p);
   ctx.translate(jig, 0);
   back(ctx, p);
   traps(ctx);

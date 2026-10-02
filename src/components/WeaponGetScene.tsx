@@ -60,10 +60,12 @@ interface Props {
   stageId: string | null;
   /** What he took home from him for the garage (if there was anything new to take). */
   souvenirs?: Souvenir[];
+  /** He'd shit himself when he killed him: the egg's view from behind shows it. */
+  shitty?: boolean;
   onDone: () => void;
 }
 
-const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, onDone }) => {
+const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, shitty = false, onDone }) => {
   const weapon: WeaponType = (stageId && BOSS_WEAPON_MAP[stageId]) || 'GUN';
   const name = getWeaponInfo(weapon).name.toUpperCase();
   const description = (stageId && WEAPON_DESCRIPTIONS[stageId]) || '';
@@ -209,7 +211,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, onDone }) => {
             {egg !== null ? <RestroomWall /> : <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 58%, rgba(127,29,29,0.55) 0%, rgba(20,0,0,0.6) 35%, #000 70%)' }} />}
             <div className="absolute left-1/2 -translate-x-1/2 bottom-[40px] w-[560px] h-[60px] rounded-[50%]" style={{ background: 'radial-gradient(ellipse, rgba(239,68,68,0.25), transparent 70%)' }} />
             <div className="absolute left-1/2 top-[40px]" style={{ width: 520, height: 1144, marginLeft: -260, opacity: faceIn, filter: egg !== null ? 'drop-shadow(0 6px 14px rgba(0,0,0,0.6))' : 'drop-shadow(0 0 22px rgba(239,68,68,0.45))', transform: `translateY(${eggPull.ty}px) scale(${(0.88 + faceIn * 0.12) * eggPull.s}) rotate(${-windup * 5 + punch * 7}deg)`, transformOrigin: '50% 43%' }}>
-              <FaceOffMeathead t={t} windup={windup} punching={punching || (t >= IMPACT && t < IMPACT + 180)} egg={egg} />
+              <FaceOffMeathead t={t} windup={windup} punching={punching || (t >= IMPACT && t < IMPACT + 180)} egg={egg} shitty={shitty} />
             </div>
           </div>
 
@@ -430,7 +432,7 @@ const GiantFist: React.FC = () => (
  * Meathead from the front, square to the camera in a boxing guard, painted in gross-up detail (see
  * game/scenes/faceOff.ts). His left fist draws back on the wind-up and is gone (it's coming at you) during the punch.
  */
-export const FaceOffMeathead: React.FC<{ t: number; windup: number; punching: boolean; egg?: number | null }> = ({ t, windup, punching, egg = null }) => {
+export const FaceOffMeathead: React.FC<{ t: number; windup: number; punching: boolean; egg?: number | null; shitty?: boolean }> = ({ t, windup, punching, egg = null, shitty = false }) => {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const c = ref.current;
@@ -444,9 +446,9 @@ export const FaceOffMeathead: React.FC<{ t: number; windup: number; punching: bo
     // back on one side of it, his front on the other); then the face-off, it bobbing a while from the turn
     const turnAt = EGG_PEE_MS + EGG_SHAKE_MS, q = (egg - turnAt) / EGG_TURN_MS;
     if (q > 0 && q < 1) { ctx.translate(100, 0); ctx.scale(Math.max(0.04, Math.abs(Math.cos(q * Math.PI))), 1); ctx.translate(-100, 0); }
-    if (q < 0.5) drawEggBack(ctx, egg);
+    if (q < 0.5) drawEggBack(ctx, egg, shitty);
     else drawEggFront(ctx, t, windup, punching, Math.max(0, 1 - (egg - turnAt - EGG_TURN_MS / 2) / 1400));
-  }, [t, windup, punching, egg]);
+  }, [t, windup, punching, egg, shitty]);
   return <canvas ref={ref} width={780} height={1716} className="w-full h-full" />;
 };
 

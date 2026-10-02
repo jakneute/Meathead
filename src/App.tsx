@@ -108,6 +108,8 @@ const App: React.FC = () => {
   const [currentWeapon, setCurrentWeapon] = useState<WeaponType>('GUN');
   const [weaponAmmo, setWeaponAmmo] = useState<Record<WeaponType, number>>(createFullAmmo);
   const [cheatFlags, setCheatFlags] = useState<CheatFlags>(NO_CHEATS);
+  /** He'd shit himself when he killed the last boss (the weapon-get screen's egg shows it). */
+  const [killedShat, setKilledShat] = useState(false);
   const [progressionRank, setProgressionRank] = useState(0);
   /** The mid-game call, played from the cheat panel. */
   const [callPreview, setCallPreview] = useState(false);
@@ -574,8 +576,9 @@ const App: React.FC = () => {
     setBossTaunt(shatLine ?? (pool[1] || pool[0]));
   };
 
-  const handleBossDefeated = (stageId: string, corpseWeapon?: WeaponType) => {
+  const handleBossDefeated = (stageId: string, corpseWeapon?: WeaponType, shat?: boolean) => {
     setKillRecords(prev => ({ ...prev, [stageId]: corpseWeapon ?? null }));
+    setKilledShat(!!shat);
     // Something of his to take home to the garage
     setSouvenirs(takeAllSouvenirs(stageId));
     const newWeapon = BOSS_WEAPON_MAP[stageId];
@@ -816,7 +819,7 @@ const App: React.FC = () => {
             onDone={() => { const id = deployingTo; setDeployingTo(null); handleSelectStage(id); }}
           />
         )}
-        {status === GameStatus.BOSS_VICTORY_SPEECH && <WeaponGetScene stageId={selectedStage} souvenirs={souvenirs} onDone={handleStart} />}
+        {status === GameStatus.BOSS_VICTORY_SPEECH && <WeaponGetScene stageId={selectedStage} souvenirs={souvenirs} shitty={killedShat} onDone={handleStart} />}
         {status === GameStatus.STAGE_SELECT && inGarage && <Garage weapons={cheats.allWeapons ? ALL_WEAPONS : getEarnedWeapons()} onLeave={() => setInGarage(false)} report={{ bosses: reportBosses, killRecords }} />}
         {status === GameStatus.STAGE_SELECT && pickFor && (
           <CheckpointPicker stageId={pickFor} onCancel={() => setPickFor(null)}

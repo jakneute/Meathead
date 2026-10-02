@@ -380,7 +380,7 @@ const updateVictorySequence = (ctx: FrameContext) => {
   const quiet = state.victoryQuiet >= TALK_BEAT || state.postVictoryTimer >= (state.bossCorpse ? MAX_WEAKNESS_HOLD : VICTORY_HOLD) + MAX_TALK_WAIT;
   if (done && quiet && !state.victoryReported) {
     state.victoryReported = true;
-    ctx.events.onBossDefeated(ctx.stageId || "", state.bossCorpse?.weapon);
+    ctx.events.onBossDefeated(ctx.stageId || "", state.bossCorpse?.weapon, isShat(state));
   }
 };
 

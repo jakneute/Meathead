@@ -15,7 +15,8 @@ export interface Cheats {
 /** Callbacks from the simulation back up to React. */
 export interface GameEvents {
   /** `corpseWeapon` is set when he died to his weakness (and left a wrecked corpse behind). */
-  onBossDefeated: (stageId: string, corpseWeapon?: WeaponType) => void;
+  /** `shat`: he'd shit himself when he killed him (it shows, on the weapon-get screen's egg). */
+  onBossDefeated: (stageId: string, corpseWeapon?: WeaponType, shat?: boolean) => void;
   onBossTransition: () => void;
   /** `shat`: he's walked in having shit himself (game/player/gut.ts), and the boss has a different intro for it. */
   onBossEncounter: (shat?: boolean) => void;
