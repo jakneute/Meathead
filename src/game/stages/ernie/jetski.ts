@@ -345,7 +345,7 @@ const teach = (state: GameState, js: JetSki) => {
   const mx = (e: Enemy) => e.pos.x + e.width / 2;
   if (live.some(e => e.kind === 'jetskier' && e.variant !== 1 && e.aiState === 'hold' && mx(e) < px - 120 && mx(e) > cam.x + 60)) hint(js, 'HOLD LEFT: TURN AND SHOOT BEHIND');
   else if (live.some(e => e.kind === 'jetskier' && e.variant === 1 && (e.aiState === 'brake' || (mx(e) > px && mx(e) < cam.x + CANVAS_WIDTH - 60)))) hint(js, 'SPECIAL: WHEELIE! RAM HIM');
-  else if (live.some(e => e.kind === 'drone' && Math.abs(mx(e) - px) < 100 && e.pos.y < p.pos.y)) hint(js, 'UP + SPECIAL: LEAP OUT OF THE WATER');
+  else if (live.some(e => e.kind === 'drone' && Math.abs(mx(e) - px) < 140 && e.pos.y < p.pos.y)) hint(js, 'UP + SPECIAL: LEAP OUT OF THE WATER');
   else if (live.some(e => e.kind === 'jetskier' && e.aiState === 'ram' && Math.abs(mx(e) - px) < 110)) hint(js, 'JUMP, THEN DOWN + SPECIAL: CRUSH HIM');
 };
 

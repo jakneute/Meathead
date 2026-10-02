@@ -150,29 +150,33 @@ export const drawThrown = (ctx: CanvasRenderingContext2D, p: Projectile, frame: 
  */
 export const drawEnemyBullet = (ctx: CanvasRenderingContext2D, p: Projectile, frame: number) => {
   if (p.shot) { drawGunShot(ctx, p, frame); return; }
+  // A plain enemy shot: a hard red ball in a thick dark rim, a white-hot middle, two stepped rings of glow (no soft
+  // bloom), and a short streak of itself behind: red means it's theirs, and it reads on anything
   const { x, y } = centerOf(p);
-  const r = p.width / 2;
+  const r = Math.max(4, Math.min(7, p.width / 2));
+  const pulse = frame % 6 < 3;
   ctx.save();
-  ctx.translate(x, y);
+  ctx.translate(Math.round(x), Math.round(y));
   ctx.rotate(angleOf(p));
-  for (let k = 1; k <= 3; k++) {
-    ctx.fillStyle = `rgba(255, 60, 40, ${0.28 - k * 0.07})`;
-    ctx.beginPath();
-    ctx.arc(-k * r * 0.9, 0, r * (1 - k * 0.2), 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.shadowColor = '#FF3D00';
-  ctx.shadowBlur = 12;
-  ctx.fillStyle = '#E53935';
-  ctx.beginPath();
-  ctx.arc(0, 0, r, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = frame % 4 < 2 ? '#FFCDD2' : '#FFAB91';
-  ctx.beginPath();
-  ctx.arc(r * 0.2, -r * 0.1, r * 0.45, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.fillStyle = 'rgba(239, 68, 68, 0.35)'; ctx.beginPath(); ctx.moveTo(-r * 3.2, 0); ctx.lineTo(0, -r * 0.8); ctx.lineTo(0, r * 0.8); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(239, 68, 68, 0.22)'; ctx.beginPath(); ctx.arc(0, 0, r + 4, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#1A0505'; ctx.beginPath(); ctx.arc(0, 0, r + 1.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = pulse ? '#EF4444' : '#DC2626'; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#FECACA'; ctx.beginPath(); ctx.arc(r * 0.2, -r * 0.15, r * 0.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(Math.round(r * 0.1), Math.round(-r * 0.35), 2, 2);
   ctx.restore();
+};
+
+/**
+ * An enemy round, the shape every gun of theirs shares: a short pill in a thick dark outline (it reads against sky,
+ * sand, fire or night), its color, a white-hot tip, and a short flat streak behind in the same color, a step down.
+ * Nothing like Meathead's own: his are yellow-white with a long glowing tracer.
+ */
+const enemyRound = (ctx: CanvasRenderingContext2D, len: number, h: number, trail: number, body: string, streak: string, tip: string) => {
+  ctx.fillStyle = streak; ctx.beginPath(); ctx.moveTo(-trail, 0); ctx.lineTo(-len * 0.3, -h * 0.35); ctx.lineTo(-len * 0.3, h * 0.35); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#140404'; ctx.beginPath(); ctx.ellipse(0, 0, len / 2 + 1.5, h / 2 + 1.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = body; ctx.beginPath(); ctx.ellipse(0, 0, len / 2, h / 2, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = tip; ctx.beginPath(); ctx.ellipse(len * 0.18, 0, len * 0.22, h * 0.25, 0, 0, Math.PI * 2); ctx.fill();
 };
 
 /** Meathead's shotgun pellets: little spinning ice crystals with a frosty wake. */
@@ -182,27 +186,11 @@ const drawGunShot = (ctx: CanvasRenderingContext2D, p: Projectile, frame: number
   ctx.translate(x, y);
   ctx.rotate(angleOf(p));
   if (p.shot === 'tracer') {
-    // A gangbanger's round: hot red, nothing like his own yellow ones or the dusk behind it: a big pulsing glow, a long
-    // red streak, a thick dark outline round a core flashing red to white, a ring throbbing off it
-    const pulse = (Math.sin(frame * 0.6 + x * 0.05) + 1) / 2;
-    const glow = ctx.createRadialGradient(0, 0, 2, 0, 0, 22);
-    glow.addColorStop(0, `rgba(255, 60, 60, ${0.55 + pulse * 0.25})`); glow.addColorStop(1, 'rgba(255, 30, 60, 0)');
-    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI * 2); ctx.fill();
-    const trail = ctx.createLinearGradient(-60, 0, 0, 0);
-    trail.addColorStop(0, 'rgba(220, 38, 38, 0)'); trail.addColorStop(0.6, 'rgba(244, 63, 94, 0.8)'); trail.addColorStop(1, 'rgba(255, 228, 230, 1)');
-    ctx.fillStyle = trail; ctx.beginPath(); ctx.moveTo(-60, 0); ctx.lineTo(0, -5); ctx.lineTo(0, 5); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#000000'; ctx.beginPath(); ctx.ellipse(1, 0, 10, 6.5, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = pulse > 0.5 ? '#FF2D2D' : '#FF6B6B'; ctx.beginPath(); ctx.ellipse(1, 0, 8, 4.8, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.ellipse(2.5, 0, 3.5 + pulse * 1.5, 2 + pulse, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = `rgba(255, 255, 255, ${0.8 * (1 - pulse)})`; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(1, 0, 10 + pulse * 8, 0, Math.PI * 2); ctx.stroke();
+    // A gangbanger's round: red, a little longer than most, flickering at the tip
+    enemyRound(ctx, 14, 6, 28, '#E11D48', 'rgba(244, 63, 94, 0.45)', frame % 4 < 2 ? '#FFFFFF' : '#FECDD3');
   } else if (p.shot === 'slug') {
-    // A hot round: an orange-white streak behind a brass point
-    const trail = ctx.createLinearGradient(-26, 0, 0, 0);
-    trail.addColorStop(0, 'rgba(251, 146, 60, 0)'); trail.addColorStop(1, 'rgba(254, 215, 170, 0.85)');
-    ctx.fillStyle = trail; ctx.beginPath(); ctx.moveTo(-26, 0); ctx.lineTo(0, -2); ctx.lineTo(0, 2); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#FDE68A'; ctx.beginPath(); ctx.ellipse(1, 0, 5, 2.4, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.ellipse(2, 0, 2.5, 1.2, 0, 0, Math.PI * 2); ctx.fill();
+    // A rifle or pistol round: hot orange-red (theirs: never the yellow of his)
+    enemyRound(ctx, 12, 5, 22, '#EA580C', 'rgba(249, 115, 22, 0.45)', '#FFEDD5');
   } else if (p.shot === 'cryo') {
     // A frost bolt: a pale blue core in a haze of cold, flakes coming off it
     ctx.fillStyle = 'rgba(125, 211, 252, 0.3)'; ctx.beginPath(); ctx.ellipse(-6, 0, 14, 6, 0, 0, Math.PI * 2); ctx.fill();

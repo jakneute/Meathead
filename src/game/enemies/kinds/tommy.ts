@@ -158,7 +158,8 @@ const lowrider = (ctx: FrameContext, e: Enemy) => {
     const k = e.shootTimer - CAR_REST;
     if (k % CAR_BURST_GAP === 0) {
       const w = LOWRIDER_WINDOWS[Math.floor(k / CAR_BURST_GAP) % 2];
-      shootFrom(state, e, mid(e).x + w.x + (e.aiX ?? 1) * 20, e.pos.y + e.height + w.y - 8, pm.x, CAR_SHOT_SPEED, CAR_SHOT_DAMAGE);
+      // (fired from a car doing the speed of the chase: the round's carried along with it, so forward or back it comes at him at the same pace)
+      shootFrom(state, e, mid(e).x + w.x + (e.aiX ?? 1) * 20, e.pos.y + e.height + w.y - 8, pm.x, CAR_SHOT_SPEED, CAR_SHOT_DAMAGE, e.vel.x);
     }
     // (three rounds a burst between the two of them)
     if (k >= CAR_BURST * CAR_BURST_GAP - 1) e.shootTimer = 0;

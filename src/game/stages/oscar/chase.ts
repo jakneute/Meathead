@@ -536,8 +536,9 @@ const cruiserShoot = (state: GameState, e: Enemy) => {
     const dir = dx < 0 ? -1 : 1;
     const x = mid(e).x + dir * 36, y = e.pos.y + 10;
     playSound('egun', 1, -3);
-    state.projectiles.push({ id: `cr-${state.frame}-${Math.random()}`, pos: { x: x - 5, y: y - 5 }, vel: { x: dir * SHOT_SPEED, y: 0 }, width: 10, height: 10, health: 1, maxHealth: 1, type: 'projectile', damage: CHIP, owner: 'enemy', shooterKind: 'cruiser', shot: 'slug' });
-    for (let i = 0; i < 6; i++) state.particles.push({ pos: { x, y }, vel: { x: dir * (1 + Math.random() * 3), y: (Math.random() - 0.5) * 2 }, life: 8, color: i % 2 ? '#FEF08A' : '#FB923C', size: 3 + Math.random() * 3 });
+    state.projectiles.push({ id: `cr-${state.frame}-${Math.random()}`, pos: { x: x - 5, y: y - 5 }, vel: { x: dir * SHOT_SPEED + e.vel.x, y: 0 }, width: 10, height: 10, health: 1, maxHealth: 1, type: 'projectile', damage: CHIP, owner: 'enemy', shooterKind: 'cruiser', shot: 'slug' });
+    // (the round goes at its speed from the car, which is doing the speed of the chase: so it reads the same whichever way it's fired)
+    for (let i = 0; i < 6; i++) state.particles.push({ pos: { x, y }, vel: { x: dir * (1 + Math.random() * 3) + e.vel.x, y: (Math.random() - 0.5) * 2 }, life: 8, color: i % 2 ? '#FEF08A' : '#FB923C', size: 3 + Math.random() * 3 });
   }
   if (e.shootTimer > SHOOT_EVERY + 24) e.shootTimer = 0;
 };

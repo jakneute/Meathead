@@ -39,8 +39,8 @@ const shoot = (state: GameState, e: Enemy, tx: number, ty: number, speed: number
 /** How long a drone hangs about between shots, and how long its red dot sits on you before it fires. */
 export const DRONE_REST = 150, DRONE_AIM = 40;
 const DRONE_SPEED = 5;
-/** Its shot: slow enough to see coming and get out of the way of. */
-const DRONE_SHOT_SPEED = 6;
+/** Its shot: slow enough to see coming and get out of the way of (quicker out on the bay, where everything's going at a lick). */
+const DRONE_SHOT_SPEED = 6, DRONE_SHOT_SPEED_BAY = 9;
 /** Closer than this and it won't fire (the shot would be in him the moment it left the barrel). */
 const DRONE_MIN_RANGE = 90;
 
@@ -59,7 +59,9 @@ const drone = (ctx: FrameContext, e: Enemy) => {
     // A spot above you and off to one side, jittering about (it's a drone)
     const side = e.aiX || 1;
     // (out on the bay it keeps in closer over him: within reach of a jet ski's leap)
-    const tx = pm.x + side * (p.skiing ? 70 : 150) - e.width / 2, ty = pm.y - (p.skiing ? 150 : 170) - e.height / 2;
+    // (out on the bay it keeps in closer over him, within reach of a jet ski's leap; but off to the side enough that
+    // its shot comes in at a slant you can read, not straight down on top of him)
+    const tx = pm.x + side * (p.skiing ? 105 : 150) - e.width / 2, ty = pm.y - (p.skiing ? 130 : 170) - e.height / 2;
     const jitter = e.aiState === 'aim' ? 0 : 1;
     e.vel.x += ((tx - e.pos.x) * 0.02 - e.vel.x) * 0.15 + (Math.random() - 0.5) * 1.2 * jitter;
     e.vel.y += ((ty - e.pos.y) * 0.02 - e.vel.y) * 0.15 + (Math.random() - 0.5) * 1.2 * jitter;
@@ -70,7 +72,7 @@ const drone = (ctx: FrameContext, e: Enemy) => {
       e.vel.x *= 0.8; e.vel.y *= 0.8;
       if (e.aiTimer === DRONE_AIM) {
         // (not point blank: with him right on top of it, it doesn't get the shot off, it just darts away)
-        if (Math.hypot(pm.x - m.x, pm.y - m.y) > DRONE_MIN_RANGE) shoot(state, e, pm.x, pm.y, DRONE_SHOT_SPEED, 10, p.skiing ? p.vel.x : 0);
+        if (Math.hypot(pm.x - m.x, pm.y - m.y) > DRONE_MIN_RANGE) shoot(state, e, pm.x, pm.y, p.skiing ? DRONE_SHOT_SPEED_BAY : DRONE_SHOT_SPEED, 10, p.skiing ? p.vel.x : 0);
         // ...and off to the other side of you
         e.aiState = 'hunt'; e.aiTimer = 0; e.aiX = -side;
       }
