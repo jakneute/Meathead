@@ -2,6 +2,7 @@ import type { GameState } from '../../core/state';
 import type { WeaponType } from '../../../types';
 import { drawPlayer } from './player';
 import { pantsColor, bootColor } from './body';
+import type { DeathFace } from './deathFace';
 import { MEATHEAD_DEATH_FRAMES, LAVA_COOKOFF, FROZEN_SHATTER, ROADKILL_TWINKLE, overdoseRise, impaledFeet, PLUCKS, PLUCK_AWAY, PLUCK_FALL, pluckSway, pluckDark, SPIKE_HIT, MeatheadDeath } from '../../player/deathAnim';
 
 // Meathead's own deaths (see player/deathAnim): him, drawn in his place, going whichever way it got him.
@@ -16,9 +17,29 @@ const body = (ctx: Ctx, state: GameState, d: MeatheadDeath, weapon: WeaponType, 
   const b = {
     ...p, pos: { x: d.x - p.width / 2, y: d.y - p.height }, facing: d.facing, hidden: false, headless: 0, shownDead: false, isGrounded: true,
     vel: { x: 0, y: 0 }, invincibilityTimer: 0, hurtTimer: 0, pushbackTimer: 0, isCharging: false, isSliding: false, isUppercutting: false,
-    isDivekicking: false, isDucking: false, squash: 0, hurtForm: null, hurtFormTimer: 0, filthShieldTimer: 0, ...extra,
+    isDivekicking: false, isDucking: false, squash: 0, hurtForm: null, hurtFormTimer: 0, filthShieldTimer: 0,
+    bossKillSatisfactionTimer: 0, killSatisfactionTimer: 0, deathFace: faceFor(d, state.deathScene?.t ?? 9999), ...extra,
   };
   drawPlayer(ctx, b as typeof p, { ...state, deathTimer: 0, playerVulgarityTimer: 0 }, { currentWeapon: weapon, showFilthShield: false, invincibilityEnabled: false });
+};
+
+/** The face he pulls, by how it's getting him and how far it's got. */
+const faceFor = (d: MeatheadDeath, t: number): DeathFace => {
+  switch (d.kind) {
+    case 'burnt': return t < 30 ? 'scream' : 'agony';
+    case 'lava': case 'roadkill': return 'scream';
+    case 'boiled': return t < 50 ? 'agony' : 'dead';
+    case 'fried': return t < 38 ? 'shock' : 'dead';
+    case 'frozen': return 'frozen';
+    case 'flattened': return 'dead';
+    case 'dissolved': return 'agony';
+    case 'overdose': return 'blissed';
+    case 'impaled': return t < 10 ? 'scream' : 'dead';
+    case 'cactus': return t < 14 ? 'agony' : 'dead';
+    case 'plucked': return t < 24 ? 'scream' : 'agony';
+    case 'spiked': return t < SPIKE_HIT + 18 ? 'scream' : 'dead';
+    default: return 'dead';
+  }
 };
 
 /** Turn the canvas about (x, y). */
@@ -337,10 +358,30 @@ export const drawSpikeCam = (ctx: Ctx, state: GameState, width: number, height: 
   const cx = width / 2, tipY = 300, floorY = height - 40;
   ctx.fillStyle = '#1C1917'; ctx.fillRect(0, floorY, width, height - floorY);
   ctx.fillStyle = '#44403C'; for (let k = 0; k < 12; k++) ctx.fillRect(40 + k * 62 + ((k * 29) % 30), floorY - 6 - (k % 3) * 3, 18 + (k % 4) * 6, 8 + (k % 3) * 3);
+  // The spike: a jag of packed earth and rock, in its layers (clay, dirt, a band of stones), roots through it, lumpy edges
   const spike = (from: number, to: number) => {
-    const w = (y: number) => 3 + ((y - tipY) / (floorY - tipY)) * 46;
-    ctx.fillStyle = '#57534E'; ctx.beginPath(); ctx.moveTo(cx - w(from), from); ctx.lineTo(cx + w(from), from); ctx.lineTo(cx + w(to), to); ctx.lineTo(cx - w(to), to); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#78716C'; ctx.beginPath(); ctx.moveTo(cx - w(from) * 0.6, from); ctx.lineTo(cx - w(from) * 0.2, from); ctx.lineTo(cx - w(to) * 0.2, to); ctx.lineTo(cx - w(to) * 0.6, to); ctx.closePath(); ctx.fill();
+    const w = (y: number) => 2 + ((y - tipY) / (floorY - tipY)) * 50;
+    const lump = (y: number, s: number) => (y < tipY + 16 ? 0 : (((Math.floor(y / 7) * 37 + s * 19) % 11) - 5) * 0.6);
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cx - 1, tipY - 4);
+    for (let y = tipY; y <= floorY; y += 7) ctx.lineTo(cx + w(y) + lump(y, 1), y);
+    for (let y = floorY; y >= tipY; y -= 7) ctx.lineTo(cx - w(y) - lump(y, 2), y);
+    ctx.closePath();
+    ctx.save(); ctx.clip();
+    ctx.beginPath(); ctx.rect(0, from, width, to - from); ctx.clip();
+    const bands = ['#6B4A2E', '#5A3D25', '#7A5636', '#4A3220', '#634329', '#806040'];
+    for (let y = tipY - 6, b = 0; y < floorY; y += 16 + (b * 7) % 9, b++) { ctx.fillStyle = bands[b % bands.length]; ctx.fillRect(cx - 70, y, 140, 24); }
+    // (stones in it, a crack down it, roots)
+    for (let k = 0; k < 22; k++) {
+      const yy = tipY + 20 + ((k * 53) % (floorY - tipY - 20)), xx = cx + (((k * 31) % 21) / 21 - 0.5) * w(yy) * 1.6;
+      ctx.fillStyle = k % 3 ? '#8A8178' : '#A8A29E'; ctx.beginPath(); ctx.ellipse(xx, yy, 2.5 + (k % 3), 1.8 + (k % 2), 0, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.strokeStyle = '#2E1F14'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx + 2, tipY + 30); for (let y = tipY + 30; y < floorY; y += 14) ctx.lineTo(cx + 2 + Math.sin(y * 0.11) * 6, y); ctx.stroke();
+    ctx.strokeStyle = '#C9A27A'; ctx.lineWidth = 1; for (const [ry, dir] of [[tipY + 90, -1], [tipY + 160, 1], [tipY + 215, -1]] as const) { ctx.beginPath(); ctx.moveTo(cx, ry); ctx.quadraticCurveTo(cx + dir * 14, ry + 6, cx + dir * (w(ry) + 8), ry + 14); ctx.stroke(); }
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.28)'; ctx.fillRect(cx + 8, tipY - 6, 70, floorY - tipY + 6);
+    ctx.restore();
+    ctx.restore();
   };
   spike(tipY, floorY);
   // Him: falling in on his back, then on it, sliding down a way

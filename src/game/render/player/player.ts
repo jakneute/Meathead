@@ -7,6 +7,7 @@ import { drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJet
 import { KICK_POSE_FRAMES, LEDGE_DROP_FRAMES } from '../../../constants';
 import { GameState } from '../../core/state';
 import { beginSprite, endSprite, markEyes, eyesAt } from './spriteOutline';
+import { drawDeathBrows, drawDeathEyes, drawDeathMouth } from './deathFace';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
 import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, bootColor, bootToe, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawHead, setTalking, drawTalkingMouth } from './body';
 
@@ -628,7 +629,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
 
   // Heavy Angry Eyebrows
   ctx.fillStyle = '#09090B';
-  if (isAngry) {
+  if (p.deathFace) drawDeathBrows(ctx, p.deathFace, headX, headY);
+  else if (isAngry) {
     // Crushed down into a deep scowl
     ctx.beginPath();
     ctx.moveTo(headX - 9, headY - 10); ctx.lineTo(headX - 0.5, headY - 4.5); ctx.lineTo(headX - 0.5, headY - 2.5); ctx.lineTo(headX - 9, headY - 7.5);
@@ -668,7 +670,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const rEyeX = headX + 4;
   markEyes(ctx, (lEyeX + rEyeX) / 2, eyeY);
 
-  if (p.bossKillSatisfactionTimer > 0) {
+  if (p.deathFace) drawDeathEyes(ctx, p.deathFace, lEyeX, rEyeX, eyeY, animFrame);
+  else if (p.bossKillSatisfactionTimer > 0) {
     // Glowing Demonic Red Eyes of Doom
     ctx.fillStyle = '#EF4444';
     ctx.shadowColor = '#EF4444';
@@ -719,7 +722,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
 
   // Mouth / Gritted Teeth
   const mouthY = headY + 3;
-  if (isUppercutting) {
+  if (p.deathFace) drawDeathMouth(ctx, p.deathFace, headX, mouthY, animFrame);
+  else if (isUppercutting) {
     // Wide open mouth roaring up to the heavens
     ctx.fillStyle = '#450A0A';
     ctx.beginPath();

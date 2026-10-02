@@ -99,6 +99,8 @@ export interface Player extends Entity {
   squash?: number;
   /** How far he's walked since his last footstep (for its sound). */
   stepDist?: number;
+  /** Dying: the face for it (see render/player/deathFace). */
+  deathFace?: import('./game/render/player/deathFace').DeathFace;
   /** The crouching easter egg (game/player/gut.ts): frames crouched still, and how far it's got (1 the grumble, 2 he's shit himself). */
   /** `at`: where (world x, y) it happened (unset if he came into the stage like that: the cheat). */
   gut?: { t: number; stage: 0 | 1 | 2; lineAt?: number; at?: { x: number; y: number } };
