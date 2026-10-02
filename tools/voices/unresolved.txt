@@ -48,9 +48,9 @@ game/stages/tommy/bike.ts:569 name: undefined
 game/stages/tommy/script.ts:81 voice: VOICES[line.who]
 game/stages/tommy/escape.ts:278 name: undefined
 game/stages/oscar/bunker.ts:286 template: `${NUMBERS[left] ?? left} MINUTE${left === 1 ? '' : 'S'} LEFT, FELLAS. SAVOR IT.`
-game/stages/oscar/runtime.ts:171 name: undefined
-game/stages/oscar/runtime.ts:174 call: deathByCause(ctx.state)
-game/stages/oscar/runtime.ts:177 call: chaseDeathMessage(rt.chase)
+game/stages/oscar/runtime.ts:172 name: undefined
+game/stages/oscar/runtime.ts:175 call: deathByCause(ctx.state)
+game/stages/oscar/runtime.ts:178 call: chaseDeathMessage(rt.chase)
 game/stages/oscar/chase.ts:581 name: undefined
 game/stages/oscar/script.ts:79 voice: VOICES[line.who]
 game/stages/oscar/bar.ts:168 template: `NOT ENOUGH GAS YET. ${left === 1 ? 'ONE MORE LINE' : 'TWO MORE LINES'} TO OPEN.`
@@ -65,6 +65,6 @@ game/core/update.ts:534 name: undefined
 game/core/update.ts:534 call: deathByCause(state)
 game/core/update.ts:534 call: deathFallback(state, ctx.stageId, fell)
 game/player/player.ts:77 call: message()
-App.tsx:196 voice: getBossVoice(selectedStage)
-App.tsx:371 name: undefined
-App.tsx:372 expr: null
+App.tsx:198 voice: getBossVoice(selectedStage)
+App.tsx:373 name: undefined
+App.tsx:374 expr: null

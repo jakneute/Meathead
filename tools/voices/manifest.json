@@ -5257,7 +5257,7 @@
  {
   "voice": "death",
   "text": "FOSSIL FUEL",
-  "from": "game/stages/oscar/runtime.ts:176"
+  "from": "game/stages/oscar/runtime.ts:177"
  },
  {
   "voice": "death",
@@ -5942,7 +5942,7 @@
  {
   "voice": "death",
   "text": "PART OF THE RESERVE NOW",
-  "from": "game/stages/oscar/runtime.ts:176"
+  "from": "game/stages/oscar/runtime.ts:177"
  },
  {
   "voice": "death",
@@ -10167,7 +10167,7 @@
  {
   "voice": "meathead",
   "text": "FUCK YEAH! LET'S GO!",
-  "from": "App.tsx:457"
+  "from": "App.tsx:459"
  },
  {
   "voice": "meathead",
@@ -10337,7 +10337,7 @@
  {
   "voice": "meathead",
   "text": "Get that camera outta my face.",
-  "from": "components/WeaponGetScene.tsx:130"
+  "from": "components/WeaponGetScene.tsx:132"
  },
  {
   "voice": "meathead",
@@ -12142,7 +12142,7 @@
  {
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
-  "from": "App.tsx:457"
+  "from": "App.tsx:459"
  },
  {
   "voice": "meathead",
@@ -12302,7 +12302,7 @@
  {
   "voice": "meathead",
   "text": "LET'S FUCKING GO!",
-  "from": "App.tsx:457"
+  "from": "App.tsx:459"
  },
  {
   "voice": "meathead",
@@ -13037,7 +13037,7 @@
  {
   "voice": "meathead",
   "text": "OH HELL YEAH!",
-  "from": "App.tsx:457"
+  "from": "App.tsx:459"
  },
  {
   "voice": "meathead",
