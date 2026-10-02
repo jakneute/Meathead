@@ -15,7 +15,7 @@ import { COURSE, RUINS_Y, CAVERN_ROOF } from './course';
 import type { TommyRuntime } from './runtime';
 import { TOWER_FRAMES, SURF_FRAMES, FAMILY_FRAMES, CRUSH_FRAMES, MELT_FRAMES, LAUNCH, PRE, RUMBLE_AT, COVER_HIT, MAN_HIT, TOWER_DOWN, inSkippable } from './escape';
 import { SKIP_AFTER, drawSkipPrompt } from '../../platform/skip';
-import { drawStreetSky, drawWaterTower } from './streetDraw';
+import { drawStreetSky, drawWaterTower, CITY_SUIT, CITY_CREASE, CITY_VEST, CITY_BAND, CITY_BLUE, CITY_FILTER } from './streetDraw';
 import { saying, drawBubble } from './script';
 
 type Ctx = CanvasRenderingContext2D;
@@ -104,19 +104,26 @@ const drawLaunchScene = (ctx: Ctx, state: GameState, tt: number) => {
 const hazmatAtWork = (ctx: Ctx, x: number, y: number, t: number, rumble: boolean) => {
   ctx.save(); ctx.translate(x - 8, y);
   const s = 1.6; ctx.scale(s, s);
-  const yellow = '#FACC15', shade = '#CA8A04';
-  // (crouched: the legs folded under him)
-  ctx.fillStyle = shade; ctx.fillRect(-12, -14, 24, 12);
-  ctx.fillStyle = yellow; ctx.fillRect(-12, -40, 22, 28);
-  ctx.fillStyle = shade; ctx.fillRect(-12, -18, 22, 3);
-  // (the hood, the mask, the visor glinting)
-  ctx.fillStyle = yellow; ctx.beginPath(); ctx.arc(0, -48, 10, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#1F2937'; ctx.fillRect(1, -52, 10, 7);
-  ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillRect(3, -51, 3, 2);
-  ctx.fillStyle = '#374151'; ctx.beginPath(); ctx.arc(9, -42, 3, 0, Math.PI * 2); ctx.fill();
+  // (the city's kit, as on the road: see drawCityWorker)
+  // (crouched: the legs folded under him, the boots)
+  ctx.fillStyle = CITY_SUIT; ctx.fillRect(-12, -14, 24, 12);
+  ctx.fillStyle = '#1E3A8A'; ctx.fillRect(-14, -6, 9, 6);
+  ctx.fillStyle = CITY_SUIT; ctx.fillRect(-12, -40, 22, 28);
+  ctx.fillStyle = CITY_VEST; ctx.fillRect(-12, -38, 22, 18);
+  ctx.fillStyle = CITY_BAND; ctx.fillRect(-12, -33, 22, 2); ctx.fillRect(-12, -26, 22, 2);
+  ctx.fillStyle = CITY_CREASE; ctx.fillRect(-12, -18, 22, 3);
+  // (the hood, the clear mask with his face in it, the filters, the hard hat)
+  ctx.fillStyle = CITY_SUIT; ctx.beginPath(); ctx.arc(0, -48, 10, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.roundRect(0, -54, 12, 11, 3); ctx.fill();
+  ctx.fillStyle = '#E0AC69'; ctx.fillRect(2, -52, 8, 7);
+  ctx.fillStyle = '#111827'; ctx.fillRect(7, -50, 2, 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillRect(3, -52, 1, 6);
+  ctx.fillStyle = CITY_FILTER; ctx.beginPath(); ctx.arc(4, -41, 2.6, 0, Math.PI * 2); ctx.arc(10, -42, 2.6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.arc(0, -55, 10, Math.PI, 0); ctx.fill(); ctx.fillRect(-11, -56, 24, 3);
+  ctx.fillStyle = CITY_BLUE; ctx.fillRect(2, -62, 5, 4);
   // (his arm up, the test tube in his glove, glowing green, him tilting it to look)
   const tilt = Math.sin(t * 0.05) * 0.3;
-  ctx.fillStyle = yellow; ctx.save(); ctx.translate(8, -34); ctx.rotate(-1.1 + tilt * 0.3); ctx.fillRect(0, -3, 16, 6); ctx.restore();
+  ctx.save(); ctx.translate(8, -34); ctx.rotate(-1.1 + tilt * 0.3); ctx.fillStyle = CITY_SUIT; ctx.fillRect(0, -3, 16, 6); ctx.fillStyle = CITY_BLUE; ctx.fillRect(13, -3.5, 5, 7); ctx.restore();
   ctx.save(); ctx.translate(18, -48); ctx.rotate(tilt);
   ctx.fillStyle = 'rgba(224, 242, 254, 0.8)'; ctx.fillRect(-1.5, -10, 3, 12);
   ctx.fillStyle = '#A3E635'; ctx.fillRect(-1.5, -4, 3, 6);
@@ -141,15 +148,15 @@ const hazmatGone = (ctx: Ctx, x: number, y: number, t: number) => {
     const px = x + Math.cos(a) * sp * s, py = y - 40 + Math.sin(a) * sp * s + 0.45 * s * s;
     if (py > 640) continue;
     ctx.save(); ctx.translate(px, py); ctx.rotate(s * 0.3 + i);
-    if (i % 4 === 0) { ctx.fillStyle = '#FACC15'; ctx.fillRect(-8, -5, 16, 10); ctx.fillStyle = '#B91C1C'; ctx.fillRect(-8, 3, 16, 3); }
+    if (i % 4 === 0) { ctx.fillStyle = CITY_VEST; ctx.fillRect(-8, -5, 16, 10); ctx.fillStyle = CITY_BAND; ctx.fillRect(-8, -1, 16, 2); ctx.fillStyle = '#B91C1C'; ctx.fillRect(-8, 3, 16, 3); }
     else if (i % 4 === 1) { ctx.fillStyle = '#B91C1C'; ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill(); }
     else if (i % 4 === 2) { ctx.fillStyle = '#7F1D1D'; ctx.fillRect(-3, -3, 6, 6); }
-    else { ctx.fillStyle = '#FACC15'; ctx.fillRect(-4, -9, 8, 18); ctx.fillStyle = '#E0AC69'; ctx.fillRect(-3, 8, 6, 4); }
+    else { ctx.fillStyle = CITY_SUIT; ctx.fillRect(-4, -9, 8, 18); ctx.fillStyle = CITY_BLUE; ctx.fillRect(-4, 7, 8, 5); }
     ctx.restore();
   }
-  // (his mask, the test tube, the clipboard: up and over, spinning)
+  // (his hard hat, the clipboard: up and over, spinning)
   const spin = (px: number, py: number, draw: () => void) => { ctx.save(); ctx.translate(px, py); ctx.rotate(s * 0.25); draw(); ctx.restore(); };
-  spin(x - 30 - s * 4, y - 60 - s * 14 + 0.45 * s * s, () => { ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#1F2937'; ctx.fillRect(0, -6, 14, 10); });
+  spin(x - 30 - s * 4, y - 60 - s * 14 + 0.45 * s * s, () => { ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.arc(0, 0, 14, Math.PI, 0); ctx.fill(); ctx.fillRect(-16, -2, 32, 4); ctx.fillStyle = CITY_BLUE; ctx.fillRect(-3, -10, 7, 6); });
   spin(x + 40 + s * 5, y - 50 - s * 12 + 0.45 * s * s, () => { ctx.fillStyle = '#92400E'; ctx.fillRect(-12, -9, 24, 18); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-10, -7, 20, 14); });
   // (and him, all over the road)
   ctx.fillStyle = 'rgba(153, 27, 27, 0.85)';
@@ -417,9 +424,7 @@ const drawFamilyScene = (ctx: Ctx, state: GameState, rt: TommyRuntime, t: number
     if (crushT > 60) {
       // What's left: the bones, sat just where they were
       ctx.globalAlpha = clamp01((crushT - 60) / 60);
-      ctx.fillStyle = '#E7E5D6'; ctx.beginPath(); ctx.arc(0, -88, 14, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#1C1917'; ctx.fillRect(-7, -92, 5, 5); ctx.fillRect(2, -92, 5, 5); ctx.fillRect(-4, -80, 8, 3);
-      ctx.strokeStyle = '#E7E5D6'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(0, -72); ctx.lineTo(0, -20); for (let r = -64; r < -30; r += 9) { ctx.moveTo(-14, r); ctx.lineTo(14, r); } ctx.stroke();
+      seatedBones(ctx);
       ctx.globalAlpha = 1;
     }
     ctx.restore();
@@ -455,6 +460,27 @@ const drawFamilyScene = (ctx: Ctx, state: GameState, rt: TommyRuntime, t: number
 };
 
 /**
+ * The bones of one of them sat on the couch, in their own body's place (the same frame as it: head at -88, the eyes'
+ * sockets where the eyes were, the jaw where the mouth was, the spine and ribs down the shirt, the arms down its sides),
+ * so the skin burning away off them leaves just what was under it.
+ */
+const seatedBones = (ctx: Ctx) => {
+  const bone = '#E7E5D6';
+  ctx.fillStyle = bone; ctx.beginPath(); ctx.arc(0, -90, 16, 0, Math.PI * 2); ctx.fill();
+  ctx.fillRect(-9, -80, 18, 7); // the jaw
+  ctx.fillStyle = '#1C1917'; ctx.fillRect(-9, -96, 6, 6); ctx.fillRect(3, -96, 6, 6); ctx.fillRect(-1, -87, 2, 3);
+  ctx.fillRect(-7, -78, 14, 1); for (let k = -6; k <= 6; k += 3) ctx.fillRect(k, -80, 1, 5); // the teeth
+  ctx.strokeStyle = bone; ctx.lineCap = 'round'; ctx.lineWidth = 4; ctx.beginPath();
+  ctx.moveTo(0, -73); ctx.lineTo(0, -17); // the spine
+  ctx.moveTo(-16, -66); ctx.lineTo(16, -66); // the collarbones
+  ctx.moveTo(-16, -66); ctx.lineTo(-17, -40); ctx.lineTo(-15, -14); ctx.moveTo(16, -66); ctx.lineTo(17, -40); ctx.lineTo(15, -14); // the arms
+  ctx.stroke();
+  ctx.lineWidth = 3; ctx.beginPath(); for (let r = -60; r <= -33; r += 7) { ctx.moveTo(-13, r + 2); ctx.quadraticCurveTo(0, r - 3, 13, r + 2); } ctx.stroke();
+  ctx.fillStyle = bone; ctx.beginPath(); ctx.ellipse(0, -17, 14, 5, 0, 0, Math.PI * 2); ctx.fill(); // the pelvis
+  ctx.lineCap = 'butt';
+};
+
+/**
  * Close up on the three of them on the couch as the wave eats them: pushed right in, the green stuff over them, and
  * each one's skin burning away from the top down (a line of fizz working down them, smoke coming off), the bones left
  * sat there grinning.
@@ -472,7 +498,7 @@ const drawBurnCloseUp = (ctx: Ctx, f: number, crushT: number) => {
     // (their mouths open: screaming)
     const b = clamp01(burn * 1.3 - i * 0.12);
     const cut = -120 + b * 130;
-    skeleton(ctx, 0, 40, 1.2);
+    seatedBones(ctx);
     ctx.save(); ctx.beginPath(); ctx.rect(-40, cut, 80, 200); ctx.clip();
     ctx.fillStyle = shirt; ctx.fillRect(-20, -70, 40, 60);
     ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(0, -88, 18, 0, Math.PI * 2); ctx.fill();

@@ -410,16 +410,11 @@ export const drawRoadEnd = (ctx: Ctx, state: GameState, rt: TommyRuntime) => {
   // The open manhole, its cover leaned against the curb
   ctx.fillStyle = '#0C0A09'; ctx.beginPath(); ctx.ellipse(R.manhole, GROUND_Y + 2, 34, 7, 0, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#44403C'; ctx.beginPath(); ctx.ellipse(R.manhole + 60, GROUND_Y - 22, 8, 22, 0, 0, Math.PI * 2); ctx.fill();
-  // Him: yellow suit, gas mask, the bottle held up (the label: FLINT WATER SUPPLY)
+  // Him: the bottle held up (the label: FLINT WATER SUPPLY), in the city's own kit (see drawCityWorker)
   const hx = R.hazmat;
   ctx.save(); ctx.translate(hx, GROUND_Y); ctx.scale(-1, 1);
-  ctx.fillStyle = '#EAB308'; ctx.fillRect(-9, -28, 8, 23); ctx.fillRect(2, -28, 8, 23);
-  ctx.fillStyle = '#1C1917'; ctx.fillRect(-10, -5, 11, 5); ctx.fillRect(1, -5, 11, 5);
-  ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.roundRect(-13, -58, 26, 32, 4); ctx.fill();
-  ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.arc(1, -66, 10, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#1F2937'; ctx.fillRect(1, -70, 11, 6); ctx.fillStyle = '#374151'; ctx.beginPath(); ctx.arc(10, -60, 4.5, 0, Math.PI * 2); ctx.fill();
   const holding = b.bottle.state === 'held';
-  ctx.fillStyle = '#FACC15'; ctx.fillRect(8, holding ? -76 : -50, 7, holding ? 26 : 12);
+  drawCityWorker(ctx, holding);
   ctx.restore();
   if (holding) drawBottle(ctx, hx - 16, GROUND_Y - 84, 0, 1.6);
   else if (b.bottle.state === 'thrown') drawBottle(ctx, b.bottle.x, b.bottle.y, f * 0.3);
@@ -436,6 +431,34 @@ export const drawRoadEnd = (ctx: Ctx, state: GameState, rt: TommyRuntime) => {
     const w = b.bikeWreck;
     drawBike(ctx, w.x, w.y + 14, w.rot, 0, 0);
   }
+};
+
+/**
+ * The city's man in his hazmat gear, stood, facing right, feet at 0 (his arm up holding something, or down). Nothing like
+ * Meathead's yellow suit and black visor: a white paper coverall, the city's orange vest over it, a white hard hat with
+ * the city's blue on it, blue gloves and boots, and a clear face mask (his face in it) with the two pink filters.
+ */
+export const CITY_SUIT = '#F1F5F9', CITY_CREASE = '#CBD5E1', CITY_VEST = '#F97316', CITY_BAND = '#E5E7EB', CITY_BLUE = '#2563EB', CITY_FILTER = '#DB2777';
+export const drawCityWorker = (ctx: Ctx, armUp: boolean) => {
+  ctx.fillStyle = CITY_SUIT; ctx.fillRect(-9, -28, 8, 23); ctx.fillRect(2, -28, 8, 23);
+  ctx.fillStyle = CITY_CREASE; ctx.fillRect(-6, -26, 1, 17); ctx.fillRect(6, -26, 1, 17);
+  ctx.fillStyle = '#1E3A8A'; ctx.fillRect(-10, -10, 11, 10); ctx.fillRect(1, -10, 11, 10); // rubber boots
+  ctx.fillStyle = CITY_SUIT; ctx.beginPath(); ctx.roundRect(-13, -58, 26, 32, 4); ctx.fill();
+  ctx.fillStyle = CITY_VEST; ctx.fillRect(-13, -56, 26, 22);
+  ctx.fillStyle = CITY_BAND; ctx.fillRect(-13, -50, 26, 3); ctx.fillRect(-13, -42, 26, 3);
+  ctx.fillStyle = CITY_SUIT; ctx.beginPath(); ctx.arc(1, -66, 10, 0, Math.PI * 2); ctx.fill(); // the hood
+  // The mask: a black frame, his face through the clear front, the glare on it; the filters under it
+  ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.roundRect(0, -72, 13, 12, 3); ctx.fill();
+  ctx.fillStyle = '#E0AC69'; ctx.fillRect(2, -70, 9, 8);
+  ctx.fillStyle = '#111827'; ctx.fillRect(8, -68, 2, 2); ctx.fillStyle = '#9A6B3F'; ctx.fillRect(6, -64, 4, 1);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.55)'; ctx.fillRect(3, -70, 1, 7);
+  ctx.fillStyle = CITY_FILTER; ctx.beginPath(); ctx.arc(5, -58, 3, 0, Math.PI * 2); ctx.arc(12, -59, 3, 0, Math.PI * 2); ctx.fill();
+  // The hard hat (the city's blue on the front of it)
+  ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.arc(1, -73, 10, Math.PI, 0); ctx.fill(); ctx.fillRect(-10, -74, 24, 3);
+  ctx.fillStyle = CITY_BLUE; ctx.fillRect(3, -80, 5, 4);
+  // The arm, the glove
+  ctx.fillStyle = CITY_SUIT; ctx.fillRect(8, armUp ? -72 : -50, 7, armUp ? 22 : 10);
+  ctx.fillStyle = CITY_BLUE; ctx.fillRect(8, armUp ? -78 : -41, 7, 6);
 };
 
 /** A bottle of the town's water: cloudy, a bit brown, the label. */
