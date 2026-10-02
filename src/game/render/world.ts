@@ -21,7 +21,6 @@ import { drawBossCorpse } from './bosses/corpses';
 import { drawVictoryPee } from '../scenes/victoryPeeDraw';
 import { drawPlayer } from './player/player';
 import { drawKindEnemy, animFrame } from './enemies';
-import { muzzlePoint } from '../combat/muzzle';
 import { isMidBoss } from '../combat/midBoss';
 import { drawBackdrop, drawBackdropFront } from './backdrops';
 import { drawTerrain, drawGroundProfile } from './backdrops/terrain';
@@ -39,6 +38,7 @@ import {
 } from './bosses/oscarGear';
 import { drawBlasts } from './blasts';
 import { drawBossDoor, drawLairFacade } from './bossDoors';
+import { drawFrozenShell, drawTasedFx, drawTaserBeam, isTasedNow, statusTint, tasedJitter } from './statusFx';
 
 export interface WorldView {
   status: GameStatus;
@@ -712,9 +712,8 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
     // (dead and going: without whatever attack it was in the middle of, so that doesn't go flying with it)
     const e = live.isBlownAway || live.health <= 0 ? attackless(live) : live;
     ctx.save();
-    if (e.isTased && player.isTasing && player.taserTargetId === e.id) {
-       ctx.translate((Math.random()-0.5)*10, (Math.random()-0.5)*10);
-    }
+    const tased = isTasedNow(e, state);
+    if (tased) { const j = tasedJitter(state); ctx.translate(j.x, j.y); }
     if (e.isBlownAway) { ctx.translate(e.pos.x + e.width / 2, e.pos.y + e.height / 2); ctx.rotate(e.rotation || 0); ctx.translate(-(e.pos.x + e.width / 2), -(e.pos.y + e.height / 2)); }
     else if (e.type === 'boss' && state.arenaLocked && e.hitCooldown && e.hitCooldown > 0 && Math.floor(state.frame / 5) % 2 === 0) ctx.globalAlpha = 0.4;
 
@@ -739,7 +738,9 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
       // (a stage's mid-boss draws itself)
     } else if (e.kind) {
       // (oiled, drugged or flickering: the filter goes on the finished enemy once, not on each of its shapes)
-      if (needsComposite(ctx)) drawComposited(ctx, { x: e.pos.x - 40, y: e.pos.y - 60, w: e.width + 80, h: e.height + 100 }, c => drawKindEnemy(c, e, state));
+      // (iced over or lit up: washed over just its own pixels)
+      const tint = statusTint(e, state);
+      if (tint || needsComposite(ctx)) drawComposited(ctx, { x: e.pos.x - 40, y: e.pos.y - 60, w: e.width + 80, h: e.height + 100 }, c => drawKindEnemy(c, e, state), tint ? { tint } : null);
       else drawKindEnemy(ctx, e, state);
       // Dazed from a knock: a few stars going round his head
       if ((e.pauseTimer || 0) > 0 && !e.isBlownAway && e.health > 0) {
@@ -768,13 +769,8 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
          ctx.restore();
       }
     }
-    if (e.type !== 'boss' && e.frozenTimer && e.frozenTimer > 0) { ctx.fillStyle = 'rgba(0, 255, 255, 0.4)'; ctx.fillRect(e.pos.x - 5, e.pos.y - 5, e.width + 10, e.height + 10); }
-    if (e.isTased && player.isTasing && player.taserTargetId === e.id) {
-      ctx.fillStyle = 'rgba(0, 229, 255, 0.4)';
-      ctx.fillRect(e.pos.x - 5, e.pos.y - 5, e.width + 10, e.height + 10);
-      ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 2;
-      for (let j = 0; j < 4; j++) { ctx.beginPath(); const sx = e.pos.x + e.width / 2, sy = e.pos.y + e.height / 2; ctx.moveTo(sx, sy); ctx.lineTo(sx + (Math.random()-0.5)*100, sy + (Math.random()-0.5)*100); ctx.stroke(); }
-    }
+    if (e.type !== 'boss' && e.frozenTimer && e.frozenTimer > 0) { ctx.filter = 'none'; ctx.shadowBlur = 0; drawFrozenShell(ctx, e, state.frame); }
+    if (tased) { ctx.filter = 'none'; ctx.shadowBlur = 0; drawTasedFx(ctx, e, state); }
     drawStuckNeedles(ctx, e, state.frame);
     if (!e.isBlownAway && e.drownT === undefined && !isMidBoss(e) && e.kind !== 'civilian' && e.kind !== 'visitor' && e.kind !== 'generator' && e.kind !== 'minion' && e.kind !== 'tenant' && !(e.kind === 'magmafish' && (!e.aiState || e.aiState === 'idle'))) { ctx.fillStyle = '#00FF00'; ctx.fillRect(e.pos.x, e.pos.y - 10, (e.health / e.maxHealth) * e.width, 5); }
     ctx.restore();
@@ -1137,45 +1133,6 @@ const drawPlayerSpeech = (ctx: CanvasRenderingContext2D, state: GameState) => {
   const half = ctx.measureText(line).width / 2 + 8;
   const x = Math.max(state.camera.x + half, Math.min(state.camera.x + CANVAS_WIDTH - half, player.pos.x + player.width / 2));
   ctx.fillText(line, x, player.pos.y - 20);
-  ctx.restore();
-};
-
-const drawTaserBeam = (ctx: CanvasRenderingContext2D, state: GameState) => {
-  const { player, enemies, projectiles } = state;
-  const target = enemies.find(en => en.id === player.taserTargetId) || projectiles.find(pr => pr.id === player.taserTargetId);
-
-  ctx.save();
-  ctx.strokeStyle = COLORS.TASER_BOLT;
-  ctx.lineWidth = 3;
-  ctx.shadowBlur = 10;
-  ctx.shadowColor = COLORS.TASER_BOLT;
-  const { x: startX, y: startY } = muzzlePoint(player, 'TASER');
-
-  let endX, endY;
-  if (target) {
-    endX = target.pos.x + target.width/2;
-    endY = target.pos.y + target.height/2;
-  } else {
-    const taserDist = 400; // Mid-range
-    endX = startX + player.facing * taserDist;
-    endY = startY + Math.sin(state.frame * 0.4) * 40;
-  }
-
-  ctx.beginPath();
-  ctx.moveTo(startX, startY);
-  const segments = 8;
-  for (let i = 1; i < segments; i++) {
-    const t = i / segments;
-    const px = startX + (endX - startX) * t + (Math.random() - 0.5) * 40;
-    const py = startY + (endY - startY) * t + (Math.random() - 0.5) * 40;
-    ctx.lineTo(px, py);
-  }
-  ctx.lineTo(endX, endY);
-  ctx.stroke();
-
-  ctx.strokeStyle = 'white';
-  ctx.lineWidth = 1;
-  ctx.stroke();
   ctx.restore();
 };
 

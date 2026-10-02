@@ -29,7 +29,7 @@ import { getStages, getStartingWeapons, sortWeapons, BOSS_WEAPON_MAP, WEAPONS_AF
 import { VULGARITIES, BOSS_DIALOGUE, BOSS_REBUKES, BOSS_SHAT_LINES } from './content/dialogue';
 import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS, menuButtons } from './game/platform/gamepad';
 import WeaponWheel, { wheelIndexAt } from './components/WeaponWheel';
-import { speak, say, isSpeaking, getBossVoice, takeFreshLine, MEATHEAD_MENU_VOICE, pauseSpeech, silenceAll, stopDeathAnnouncer } from './game/platform/speech';
+import { speak, say, anyoneTalking, getBossVoice, takeFreshLine, MEATHEAD_MENU_VOICE, pauseSpeech, silenceAll, stopDeathAnnouncer } from './game/platform/speech';
 import { playLockInSound, playEngageSound, playMenuOk, playMenuBack } from './game/platform/audio';
 
 /** Shows the dev cheat panel on the title screen. */
@@ -383,7 +383,9 @@ const App: React.FC = () => {
   /** Meathead complains if you pick a boss he already killed. */
   /** He's already killed this one: something about him in particular, mostly (or just that he's dead as shit). */
   const speakRebuke = (bossId?: string) => {
-    if (isSpeaking() || Date.now() - lastRebukeEndRef.current < REBUKE_COOLDOWN_MS) return;
+    // (the rebuke's said outside the dialogue queue, so it's anyone talking at all, him included: pick dead after dead
+    // and he finishes the one he's on, he doesn't start another over it)
+    if (anyoneTalking() || Date.now() - lastRebukeEndRef.current < REBUKE_COOLDOWN_MS) return;
     const own = bossId ? BOSS_REBUKES[bossId] : undefined;
     const line = (own && Math.random() < 0.7 ? takeFreshLine(own) : null) ?? takeFreshLine(VULGARITIES.REBUKE) ?? (own ? takeFreshLine(own) : null);
     if (!line) return;

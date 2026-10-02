@@ -17,7 +17,7 @@ let busy = false;
  */
 export const drawComposited = (
   ctx: Ctx, b: { x: number; y: number; w: number; h: number }, draw: (c: Ctx) => void,
-  extra?: { filter?: string; shadowColor?: string; shadowBlur?: number; alpha?: number } | null,
+  extra?: { filter?: string; shadowColor?: string; shadowBlur?: number; alpha?: number; tint?: { color: string; alpha: number } } | null,
 ) => {
   if (busy || typeof document === 'undefined') { draw(ctx); return; }
   // (drawn at the resolution it'll be shown at: the current transform's scale, capped)
@@ -34,6 +34,13 @@ export const drawComposited = (
   s.setTransform(k, 0, 0, k, -b.x * k, -b.y * k);
   busy = true;
   try { draw(s); } finally { busy = false; }
+  // (a colour washed over just what was drawn: iced over, lit up)
+  if (extra?.tint) {
+    s.setTransform(1, 0, 0, 1, 0, 0);
+    s.globalCompositeOperation = 'source-atop'; s.globalAlpha = extra.tint.alpha; s.fillStyle = extra.tint.color;
+    s.fillRect(0, 0, cw, ch);
+    s.globalCompositeOperation = 'source-over'; s.globalAlpha = 1;
+  }
   ctx.save();
   if (extra?.filter) ctx.filter = ctx.filter && ctx.filter !== 'none' ? `${ctx.filter} ${extra.filter}` : extra.filter;
   if (extra?.shadowBlur) { ctx.shadowBlur = extra.shadowBlur; ctx.shadowColor = extra.shadowColor ?? ctx.shadowColor; }

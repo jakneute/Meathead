@@ -118,6 +118,9 @@ export const isSpeaking = () => busy();
 let outside = 0;
 /** One of those over: whoever was waiting on it goes. */
 const afterOutside = () => { if (outside === 0 && !current) playNext(); };
+/** Anything at all being said: the dialogue queue, a recorded line playing outside it (a menu line), or the
+ * browser's own speech standing in for one. (`isSpeaking` is only the queue.) */
+export const anyoneTalking = () => isSpeaking() || outside > 0 || (synthOK() && window.speechSynthesis.speaking);
 /**
  * For a cutscene run on a frame clock: at one of its `holds` (frames), it doesn't go on till whoever's talking has
  * finished, and a breath after (so nobody talks over anybody, unless the scene means them to). Returns whether the
