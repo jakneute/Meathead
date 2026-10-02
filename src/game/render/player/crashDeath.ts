@@ -3,7 +3,7 @@ import type { WeaponType } from '../../../types';
 import { floorTopAt } from '../../core/terrain';
 import { body } from './deathAnim';
 import type { DeathFace } from './deathFace';
-import { pixelBlob, steppedGlow } from '../pixelArt';
+import { pixelBlob, steppedGlow, bandedGradient, hazeBands, checker } from '../pixelArt';
 import { drawFireball } from '../fx/fireball';
 import { drawFire } from '../fx/fire';
 import { ink } from '../npc/kit';
@@ -12,10 +12,12 @@ import { drawChopperBike } from '../enemies/oscar';
 import { drawSki } from '../../stages/ernie/drawSea';
 import {
   MeatheadDeath, CRASH_LAND, CRASH_V, CRASH_VX, CRASH_G, CRASH_PILE, CRASH_BLAST, SKID, skidAt, CRASH_SKIPS, CRASH_BALL_STOP,
+  MEATHEAD_DEATH_FRAMES,
 } from '../../player/deathAnim';
 
 // Killed on something he's riding (see player/deathAnim, 'crash'): flung forward off it, end over end, and down;
-// then each ride's own ending. World space, in his place.
+// then each ride's own ending. Played out on a set of its own (the crash cam: the ride's own stretch of road, water or
+// snow, flat and clear, cut to the moment it happens), so nothing in the level's in the way of it.
 
 type Ctx = CanvasRenderingContext2D;
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
@@ -92,7 +94,94 @@ const boot = (ctx: Ctx, x: number, y: number, a: number) => {
   ctx.restore();
 };
 
-export const drawCrash = (ctx: Ctx, state: GameState, d: MeatheadDeath, t: number, weapon: WeaponType) => {
+/** Where the ground is on the crash cam's screen, where he comes off (from the side he's heading away from), and how big. */
+const CAM_GROUND = 500, CAM_FROM = 130, CAM_Z = 1.5;
+const hash = (n: number) => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
+
+/** A row of something along the horizon at y: blocks h tall (plus up to `vary`), w wide each, in `color`. */
+const skyline = (ctx: Ctx, W: number, y: number, w: number, h: number, vary: number, color: string, seed: number) => {
+  ctx.fillStyle = color;
+  for (let x = -w, i = 0; x < W + w; x += w, i++) { const bh = Math.round((h + hash(seed + i) * vary) / 2) * 2; ctx.fillRect(x, y - bh, w - 2, bh); }
+};
+
+/** The set for each ride: the sky, what's on the horizon, and the ground he comes down on (flat, nothing in the way). */
+const backdrop = (ctx: Ctx, ride: MeatheadDeath['ride'], W: number, H: number, f: number) => {
+  const G = CAM_GROUND;
+  if (ride === 'bike') {
+    // Flint at dusk: the stacks and the water tower against it, the houses, the street
+    bandedGradient(ctx, 0, 0, W, G, ['#312E81', '#7C3AED', '#DB2777', '#F97316', '#FDBA74'], 16);
+    skyline(ctx, W, G - 60, 70, 20, 30, '#3B1D4A', 1);
+    ctx.fillStyle = '#2E1A3A'; for (const sx of [560, 600, 640]) ctx.fillRect(sx, G - 190, 14, 130);
+    ctx.fillStyle = '#2E1A3A'; ctx.fillRect(160, G - 160, 6, 100); ctx.fillRect(214, G - 160, 6, 100); ctx.beginPath(); ctx.ellipse(190, G - 175, 46, 26, 0, 0, Math.PI * 2); ctx.fill();
+    skyline(ctx, W, G - 26, 120, 34, 14, '#1E1330', 7);
+    ctx.fillStyle = '#FDE68A'; for (let i = 0; i < 9; i++) if (hash(i * 3) > 0.4) ctx.fillRect(30 + i * 90, G - 44, 8, 8);
+    ctx.fillStyle = '#9CA3AF'; ctx.fillRect(0, G - 10, W, 10); ctx.fillStyle = '#D1D5DB'; ctx.fillRect(0, G - 10, W, 2);
+    ctx.fillStyle = '#6B7280'; for (let x = 0; x < W; x += 60) ctx.fillRect(x, G - 10, 2, 10);
+    bandedGradient(ctx, 0, G, W, H - G, ['#3F3F46', '#27272A', '#18181B'], 6);
+    checker(ctx, 0, G + 20, W, 2, '#52525B');
+    ctx.fillStyle = '#FACC15'; for (let x = 20; x < W; x += 110) ctx.fillRect(x, G + 46, 56, 4);
+  } else if (ride === 'moto') {
+    // The highway out of the oil field at sundown: mesas, the derricks, the flare, the blacktop
+    bandedGradient(ctx, 0, 0, W, G, ['#1E1B4B', '#7C2D12', '#EA580C', '#FDBA74', '#FEF3C7'], 16);
+    steppedGlow(ctx, 600, G - 30, 90, '#FDE68A', 0.6, 0, 5);
+    ctx.fillStyle = '#7C2D12'; ctx.beginPath(); ctx.moveTo(0, G - 40); ctx.lineTo(80, G - 110); ctx.lineTo(260, G - 110); ctx.lineTo(320, G - 40); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#9A3412'; ctx.fillRect(80, G - 112, 180, 4);
+    ctx.fillStyle = '#431407'; for (let k = 0; k < 4; k++) { const x = 380 + k * 110; ctx.beginPath(); ctx.moveTo(x - 12, G - 20); ctx.lineTo(x, G - 90 - (k % 2) * 20); ctx.lineTo(x + 12, G - 20); ctx.fill(); }
+    bandedGradient(ctx, 0, G - 40, W, 40, ['#A16207', '#854D0E', '#713F12'], 4);
+    ctx.fillStyle = '#4D7C0F'; for (let k = 0; k < 14; k++) ctx.fillRect(Math.round(hash(k) * W), G - 8 - Math.round(hash(k + 9) * 18), 8, 6);
+    bandedGradient(ctx, 0, G, W, H - G, ['#3F3F46', '#27272A', '#18181B'], 6);
+    ctx.fillStyle = '#E5E7EB'; ctx.fillRect(0, G, W, 2);
+    ctx.fillStyle = '#FACC15'; for (let x = 20; x < W; x += 110) ctx.fillRect(x, G + 46, 56, 4);
+  } else if (ride === 'jetski') {
+    // The bay: the bridge, the island, the chop
+    bandedGradient(ctx, 0, 0, W, G, ['#0C4A6E', '#0369A1', '#38BDF8', '#BAE6FD'], 14);
+    hazeBands(ctx, 0, G - 120, W, 120, '#F1F5F9', 0, 0.35, 5);
+    ctx.fillStyle = '#9A3412';
+    for (const tx of [120, 420]) { ctx.fillRect(tx, G - 200, 12, 200); ctx.fillRect(tx - 6, G - 140, 24, 6); ctx.fillRect(tx - 6, G - 190, 24, 6); }
+    ctx.strokeStyle = '#9A3412'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-40, G - 120); ctx.quadraticCurveTo(272, G - 20, 600, G - 170); ctx.moveTo(126, G - 196); ctx.quadraticCurveTo(272, G - 70, 426, G - 196); ctx.stroke();
+    ctx.fillStyle = '#9A3412'; ctx.fillRect(-40, G - 70, W + 80, 6);
+    ctx.fillStyle = '#475569'; ctx.beginPath(); ctx.moveTo(560, G); ctx.lineTo(600, G - 34); ctx.lineTo(700, G - 40); ctx.lineTo(740, G); ctx.fill();
+    ctx.fillStyle = '#E2E8F0'; ctx.fillRect(612, G - 52, 60, 14); ctx.fillRect(650, G - 70, 8, 20);
+    bandedGradient(ctx, 0, G, W, H - G, ['#0E7490', '#155E75', '#164E63', '#083344'], 8);
+    for (let k = 0; k < 18; k++) { const x = Math.round((hash(k) * W + f * (0.3 + hash(k + 4) * 0.4)) % W), y = G + 6 + Math.round(hash(k + 2) * (H - G - 20)); ctx.fillStyle = 'rgba(224, 242, 254, 0.45)'; ctx.fillRect(x, y, 18 + Math.round(hash(k + 7) * 20), 2); }
+    ctx.fillStyle = '#E0F2FE'; ctx.fillRect(0, G, W, 2);
+  } else {
+    // The mountain: pale sky, the peaks, the spruce, the snow
+    bandedGradient(ctx, 0, 0, W, G, ['#93C5FD', '#BFDBFE', '#E0F2FE', '#F8FAFC'], 14);
+    const peaks: [number, number][] = [[-60, 260], [180, 330], [430, 240], [690, 310], [900, 260]];
+    for (const [px, ph] of peaks) {
+      ctx.fillStyle = '#64748B'; ctx.beginPath(); ctx.moveTo(px - 220, G - 40); ctx.lineTo(px, G - ph); ctx.lineTo(px + 220, G - 40); ctx.fill();
+      ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.moveTo(px - 70, G - ph + 70 * ph / 220 * 0.45); ctx.lineTo(px, G - ph); ctx.lineTo(px + 70, G - ph + 70 * ph / 220 * 0.45); ctx.fill();
+    }
+    ctx.fillStyle = '#14532D';
+    for (let k = 0; k < 16; k++) { const x = k * 54 + hash(k) * 20, h = 50 + hash(k + 3) * 40; ctx.beginPath(); ctx.moveTo(x - 14, G - 30); ctx.lineTo(x, G - 30 - h); ctx.lineTo(x + 14, G - 30); ctx.fill(); }
+    bandedGradient(ctx, 0, G - 34, W, 34, ['#E2E8F0', '#F1F5F9'], 3);
+    bandedGradient(ctx, 0, G, W, H - G, ['#F8FAFC', '#E2E8F0', '#CBD5E1'], 6);
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, G, W, 2);
+    for (let k = 0; k < 20; k++) { ctx.fillStyle = '#CBD5E1'; ctx.fillRect(Math.round(hash(k) * W), G + 8 + Math.round(hash(k + 5) * 60), 10, 2); }
+  }
+};
+
+/** The crash cam (screen space, over everything): his ride's own set, and him coming off it, flat ground and nothing
+ * in the way. Dims at the end for the message, like the falls. */
+export const drawCrashCam = (ctx: Ctx, state: GameState, W: number, H: number, weapon: WeaponType) => {
+  const d = state.meatheadDeath;
+  if (!d || d.kind !== 'crash' || state.deathTimer <= 0) return;
+  const len = state.deathScene?.len ?? MEATHEAD_DEATH_FRAMES.crash;
+  const t = Math.min(state.deathScene?.t ?? 9999, len);
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  backdrop(ctx, d.ride, W, H, state.frame);
+  ctx.save();
+  ctx.translate(d.facing > 0 ? CAM_FROM : W - CAM_FROM, CAM_GROUND); ctx.scale(CAM_Z, CAM_Z);
+  drawCrash(ctx, { ...state, blocks: [] } as GameState, { ...d, x: 0, y: 0 }, t, weapon);
+  ctx.restore();
+  const out = clamp01((t - (len - 20)) / 20);
+  if (out > 0) hazeBands(ctx, 0, 0, W, H, '#000000', out * 0.5, out * 0.7, 4);
+  ctx.restore();
+};
+
+const drawCrash = (ctx: Ctx, state: GameState, d: MeatheadDeath, t: number, weapon: WeaponType) => {
   const F = d.facing, f = state.frame, s = t - CRASH_LAND;
   const landX = d.x + F * CRASH_VX * CRASH_LAND, gLand = groundAt(state, d, landX);
   const air = t < CRASH_LAND;

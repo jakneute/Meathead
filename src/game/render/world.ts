@@ -23,6 +23,7 @@ import { drawVictoryPee } from '../scenes/victoryPeeDraw';
 import { drawPlayer } from './player/player';
 import { drawMeatheadDeath, drawBlindness, drawSpikeCam } from './player/deathAnim';
 import { drawFallCam } from './player/fallCams';
+import { drawCrashCam } from './player/crashDeath';
 import { drawEyeFallCam } from './player/eyeFallCam';
 import { drawKindEnemy, animFrame } from './enemies';
 import { isMidBoss } from '../combat/midBoss';
@@ -181,6 +182,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   drawBlindness(ctx, state, CANVAS_WIDTH, CANVAS_HEIGHT);
   drawSpikeCam(ctx, state, CANVAS_WIDTH, CANVAS_HEIGHT);
   drawFallCam(ctx, state, CANVAS_WIDTH, CANVAS_HEIGHT);
+  drawCrashCam(ctx, state, CANVAS_WIDTH, CANVAS_HEIGHT, view.currentWeapon);
   drawEyeFallCam(ctx, state, CANVAS_WIDTH, CANVAS_HEIGHT);
   if (state.sewerNuke) drawSewerNukeFlash(ctx, state);
   else if (state.deathTimer > 0 && state.deathString && state.deathFreeze === undefined && !(state.deathScene && state.deathScene.t < state.deathScene.len)) drawDeathMessage(ctx, state.deathString);
