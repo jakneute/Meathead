@@ -243,7 +243,8 @@ export const drawChaseHud = (ctx: Ctx, state: GameState, c: Chase, boatX: number
   ctx.restore();
   const gap = Math.max(0, boatX - c.cgX);
   const k = 1 - Math.min(1, gap / 640);
-  const x = 250, y = 70, w = 300;
+  // (top right: clear of the main HUD, which takes the top left)
+  const x = 476, y = 40, w = 300;
   ctx.save();
   ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(x - 4, y - 16, w + 8, 30);
   ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'center';
