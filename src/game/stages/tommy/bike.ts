@@ -79,6 +79,8 @@ export interface BikeRun {
   camX: number;
   /** The last frame he was boosting (a wheelie): hitting a ramp or a car soon after still counts. */
   boostAt: number;
+  /** The last frame the wheelie was held (or popped), whether or not he had the power left for one: a ramp takes it. */
+  rampBoostAt: number;
   /** In the air off a ramp: coming down on a car, he just goes up again. */
   rampAir: boolean;
   /** When he first ran into each bit of junk (frame): a wheelie a moment late, still touching it, still counts. */
@@ -102,7 +104,7 @@ export const createBikeRun = (state: GameState, startedAt: number): BikeRun => {
     rider: { x: COURSE.hood.bike, y: GROUND_Y, vx: 0, vy: 0, rot: 0, state: onBike || past ? 'down' : 'sitting' },
     crew: !onBike && !past, v: onBike ? BIKE_BASE : 0, done: new Set(), spawned: 0, hint: '', hintT: 0, hinted: new Set(), rampCalled: new Set(), touched: new Map(),
     bottle: { x: COURSE.road.hazmat, y: GROUND_Y - 60, vx: 0, vy: 0, state: 'held' },
-    fly: { x: 0, y: 0, vx: 0, vy: 0, rot: 0 }, bikeWreck: { x: 0, y: 0, vx: 0, vy: 0, rot: 0 }, zoom: 0, said: 0, camX: NaN, boostAt: -999, rampAir: false,
+    fly: { x: 0, y: 0, vx: 0, vy: 0, rot: 0 }, bikeWreck: { x: 0, y: 0, vx: 0, vy: 0, rot: 0 }, zoom: 0, said: 0, camX: NaN, boostAt: -999, rampBoostAt: -999, rampAir: false,
   };
   if (onBike) {
     mount(state);
@@ -259,6 +261,9 @@ const riding = (ctx: FrameContext, b: BikeRun, talk: Talk, controls: Controls): 
   // (a wheelie on the ground or in the air, that is: up + special is the bunny hop, down + special in the air the slam)
   const wheelieNow = controls.charge || (controls.special && !controls.up && !(controls.down && !p.isGrounded));
   if (wheelieNow && (p.isCharging || p.power >= 1 || ctx.cheats.infinitePower)) b.boostAt = state.frame;
+  // (a ramp's a ramp: holding the wheelie into one launches him off it even with the power spent, the wheelie run out,
+  // or him knocked out of it a moment ago: it was going them clean through before)
+  if (wheelieNow || p.isCharging) b.rampBoostAt = state.frame;
   junk(ctx, b);
   teach(state, b);
   banter(state, b, talk);
@@ -325,7 +330,7 @@ const junk = (ctx: FrameContext, b: BikeRun) => {
     if (j.look === 'ramp') {
       // Boosting into it (a wheelie, or one just now, or popped while he's already on it) and it's a big one: off the top
       // and high into the air, faster. Otherwise he just rolls over it
-      if (boosting(state, b)) {
+      if (boosting(state, b) || state.frame - b.rampBoostAt < BOOST_GRACE) {
         launch(ctx, b, -17.5, 'SICK JUMP!');
         b.v = Math.min(BIKE_FAST + 3, b.v + 3); b.done.add(i);
         rampAway(ctx, b);
@@ -402,7 +407,7 @@ const launch = (ctx: FrameContext, b: BikeRun, vy: number, callout: string) => {
   p.isCharging = false; p.isSliding = false;
   p.vel.y = vy; p.isGrounded = false;
   p.invincibilityTimer = Math.max(p.invincibilityTimer, 30);
-  b.boostAt = -999;
+  b.boostAt = -999; b.rampBoostAt = -999;
   fx.spawnDamageNumber({ x: p.pos.x - 30, y: p.pos.y - 60 }, callout, true, '#4ADE80');
   shakeScreen(state, 10, 4); playSound('horn');
 };
