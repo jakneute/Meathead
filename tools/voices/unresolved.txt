@@ -6,7 +6,7 @@ game/stages/artie/ski.ts:494 name: undefined
 game/stages/artie/ski.ts:499 name: undefined
 game/stages/artie/ski.ts:499 call: deathByCause(state)
 game/stages/hector/daycare.ts:39 voice: voiceOf(who)
-game/stages/hector/chase.ts:358 call: deathByCause(state)
+game/stages/hector/chase.ts:360 call: deathByCause(state)
 game/stages/hector/hazards.ts:443 name: undefined
 game/stages/hector/hazards.ts:449 name: undefined
 game/stages/victor/hazards.ts:266 name: undefined
@@ -51,9 +51,9 @@ game/stages/oscar/bunker.ts:286 template: `${NUMBERS[left] ?? left} MINUTE${left
 game/stages/oscar/runtime.ts:172 name: undefined
 game/stages/oscar/runtime.ts:175 call: deathByCause(ctx.state)
 game/stages/oscar/runtime.ts:178 call: chaseDeathMessage(rt.chase)
-game/stages/oscar/chase.ts:582 name: undefined
+game/stages/oscar/chase.ts:583 name: undefined
 game/stages/oscar/script.ts:79 voice: VOICES[line.who]
-game/stages/oscar/bar.ts:168 template: `NOT ENOUGH GAS YET. ${left === 1 ? 'ONE MORE LINE' : 'TWO MORE LINES'} TO OPEN.`
+game/stages/oscar/bar.ts:172 template: `NOT ENOUGH GAS YET. ${left === 1 ? 'ONE MORE LINE' : 'TWO MORE LINES'} TO OPEN.`
 game/stages/gym/script.ts:77 voice: VOICES[line.who]
 game/stages/gym/runtime.ts:349 name: undefined
 game/stages/gym/runtime.ts:351 call: deathByCause(ctx.state)
@@ -65,6 +65,6 @@ game/core/update.ts:572 name: undefined
 game/core/update.ts:572 call: deathByCause(state)
 game/core/update.ts:572 call: deathFallback(state, ctx.stageId, fell)
 game/player/player.ts:77 call: message()
-App.tsx:200 voice: getBossVoice(selectedStage)
-App.tsx:378 name: undefined
-App.tsx:379 expr: null
+App.tsx:211 voice: getBossVoice(selectedStage)
+App.tsx:395 name: undefined
+App.tsx:396 expr: null

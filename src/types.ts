@@ -349,6 +349,8 @@ export interface Enemy extends Entity {
   painKind?: string;
   tsunamiPaid?: number;
   dousedWave?: number;
+  /** The wave Victor's already sneered at for only rinsing him. */
+  rinsedWave?: number;
   /** Which look a themed enemy has (a beachgoer's outfit and pastime, a gator in the water or on land). */
   variant?: number;
   /** Died of an overdose: its body flies off, veering toward anything airborne and wrecking what it hits. */

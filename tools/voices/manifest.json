@@ -1042,7 +1042,7 @@
  {
   "voice": "announcer",
   "text": "SOFT LOCK AVERTED!",
-  "from": "game/stages/oscar/bar.ts:206"
+  "from": "game/stages/oscar/bar.ts:210"
  },
  {
   "voice": "announcer",
@@ -3556,13 +3556,28 @@
  },
  {
   "voice": "boss.victor",
+  "text": "BRO, IF YOU'RE GONNA SPLASH WATER AROUND, AIM IT AT YOUR PANTS!",
+  "from": "VICTOR_LINES"
+ },
+ {
+  "voice": "boss.victor",
   "text": "BRO. BRO. STRICTLY NO SHIRTLESS GUESTS, AND YOU BROUGHT THAT INTO VIP?!",
   "from": "SHAT"
  },
  {
   "voice": "boss.victor",
+  "text": "BRO. I'M A VOLCANO. THAT WAS A PUDDLE.",
+  "from": "VICTOR_LINES"
+ },
+ {
+  "voice": "boss.victor",
   "text": "BULLETS MELT BEFORE THEY REACH ME!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "COOLING MIST! VERY VIP OF YOU!",
+  "from": "VICTOR_LINES"
  },
  {
   "voice": "boss.victor",
@@ -3572,12 +3587,12 @@
  {
   "voice": "boss.victor",
   "text": "EVERYBODY OUT OF MY CLUB!",
-  "from": "game/bosses/victor.ts:88"
+  "from": "game/bosses/victor.ts:120"
  },
  {
   "voice": "boss.victor",
   "text": "FEEL THE HEAT, MEATHEAD!",
-  "from": "game/bosses/victor.ts:88"
+  "from": "game/bosses/victor.ts:120"
  },
  {
   "voice": "boss.victor",
@@ -3598,6 +3613,11 @@
   "voice": "boss.victor",
   "text": "HOW REFRESHING. DO IT AGAIN.",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "HYDRATION! YOU SHOULDN'T HAVE!",
+  "from": "VICTOR_LINES"
  },
  {
   "voice": "boss.victor",
@@ -3642,7 +3662,7 @@
  {
   "voice": "boss.victor",
   "text": "LAST CALL! IT'S ON FIRE!",
-  "from": "game/bosses/victor.ts:88"
+  "from": "game/bosses/victor.ts:120"
  },
  {
   "voice": "boss.victor",
@@ -3682,7 +3702,7 @@
  {
   "voice": "boss.victor",
   "text": "NOWHERE TO RUN, BRO!",
-  "from": "game/bosses/victor.ts:88"
+  "from": "game/bosses/victor.ts:120"
  },
  {
   "voice": "boss.victor",
@@ -3733,6 +3753,16 @@
   "voice": "boss.victor",
   "text": "THANK YOU FOR THE ACCELERANT!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "THANKS FOR THE RINSE, BRO!",
+  "from": "VICTOR_LINES"
+ },
+ {
+  "voice": "boss.victor",
+  "text": "THAT'S IT? I SWEAT MORE THAN THAT IN HOT YOGA!",
+  "from": "VICTOR_LINES"
  },
  {
   "voice": "boss.victor",
@@ -4392,7 +4422,7 @@
  {
   "voice": "death",
   "text": "ACT OF GOD",
-  "from": "game/stages/hector/chase.ts:358"
+  "from": "game/stages/hector/chase.ts:360"
  },
  {
   "voice": "death",
@@ -4727,7 +4757,7 @@
  {
   "voice": "death",
   "text": "COAST GUARDED",
-  "from": "game/stages/hector/chase.ts:321"
+  "from": "game/stages/hector/chase.ts:323"
  },
  {
   "voice": "death",
@@ -4917,7 +4947,7 @@
  {
   "voice": "death",
   "text": "DISSOLVED IN TOXIC SLUDGE",
-  "from": "game/bosses/hazards.ts:194"
+  "from": "game/bosses/hazards.ts:209"
  },
  {
   "voice": "death",
@@ -5067,7 +5097,7 @@
  {
   "voice": "death",
   "text": "ELECTRIC BATH",
-  "from": "game/combat/weapons.ts:683"
+  "from": "game/combat/weapons.ts:694"
  },
  {
   "voice": "death",
@@ -5492,7 +5522,7 @@
  {
   "voice": "death",
   "text": "INTO THE TRENCH",
-  "from": "game/stages/oscar/chase.ts:583"
+  "from": "game/stages/oscar/chase.ts:584"
  },
  {
   "voice": "death",
@@ -5772,7 +5802,7 @@
  {
   "voice": "death",
   "text": "MISSED THE JUMP",
-  "from": "game/stages/oscar/chase.ts:583"
+  "from": "game/stages/oscar/chase.ts:584"
  },
  {
   "voice": "death",
@@ -6212,7 +6242,7 @@
  {
   "voice": "death",
   "text": "RUN OFF THE ROAD",
-  "from": "game/stages/oscar/chase.ts:585"
+  "from": "game/stages/oscar/chase.ts:586"
  },
  {
   "voice": "death",
@@ -6332,7 +6362,7 @@
  {
   "voice": "death",
   "text": "SHOCKING LACK OF JUDGMENT",
-  "from": "game/combat/weapons.ts:683"
+  "from": "game/combat/weapons.ts:694"
  },
  {
   "voice": "death",
@@ -6687,7 +6717,7 @@
  {
   "voice": "death",
   "text": "STUNTMAN HE IS NOT",
-  "from": "game/stages/oscar/chase.ts:583"
+  "from": "game/stages/oscar/chase.ts:584"
  },
  {
   "voice": "death",
@@ -6762,7 +6792,7 @@
  {
   "voice": "death",
   "text": "TASED YOURSELF IN THE POOL",
-  "from": "game/combat/weapons.ts:683"
+  "from": "game/combat/weapons.ts:694"
  },
  {
   "voice": "death",
@@ -7137,7 +7167,7 @@
  {
   "voice": "death",
   "text": "WATER CONDUCTS, GENIUS",
-  "from": "game/combat/weapons.ts:683"
+  "from": "game/combat/weapons.ts:694"
  },
  {
   "voice": "death",
@@ -7527,12 +7557,12 @@
  {
   "voice": "hector.coastguard",
   "text": "GET OUT OF THE WATER, IDIOT!",
-  "from": "game/stages/hector/chase.ts:119"
+  "from": "game/stages/hector/chase.ts:121"
  },
  {
   "voice": "hector.coastguard",
   "text": "GET OUT OF THE WATER, IDIOT! ...WAIT. WE SAW THAT. STAY IN THE WATER!",
-  "from": "game/stages/hector/chase.ts:119"
+  "from": "game/stages/hector/chase.ts:121"
  },
  {
   "voice": "hector.coastguard",
@@ -7542,72 +7572,72 @@
  {
   "voice": "hector.coastguard",
   "text": "PREPARE TO BE BOARDED!",
-  "from": "game/stages/hector/chase.ts:119"
+  "from": "game/stages/hector/chase.ts:121"
  },
  {
   "voice": "hector.coastguard",
   "text": "PULL OVER! ...THE BOAT! AND THEN YOUR PANTS! PULL THOSE UP TOO!",
-  "from": "game/stages/hector/chase.ts:119"
+  "from": "game/stages/hector/chase.ts:121"
  },
  {
   "voice": "hector.coastguard",
   "text": "PULL OVER! ...THE BOAT! PULL THE BOAT OVER!",
-  "from": "game/stages/hector/chase.ts:119"
+  "from": "game/stages/hector/chase.ts:121"
  },
  {
   "voice": "hector.coastguard",
   "text": "SIR. THAT IS A WATERSPOUT.",
-  "from": "game/stages/hector/chase.ts:119"
+  "from": "game/stages/hector/chase.ts:121"
  },
  {
   "voice": "hector.coastguard",
   "text": "THAT IS A STOLEN VESSEL!",
-  "from": "game/stages/hector/chase.ts:119"
+  "from": "game/stages/hector/chase.ts:121"
  },
  {
   "voice": "hector.coastguard",
   "text": "THAT IS A STOLEN VESSEL! AND YOU HAVE SOILED IT!",
-  "from": "game/stages/hector/chase.ts:119"
+  "from": "game/stages/hector/chase.ts:121"
  },
  {
   "voice": "hector.coastguard",
   "text": "THERE IS A HURRICANE, GENIUS!",
-  "from": "game/stages/hector/chase.ts:119"
+  "from": "game/stages/hector/chase.ts:121"
  },
  {
   "voice": "hector.coastguard",
   "text": "THERE IS A HURRICANE, GENIUS! AND YOUR PANTS!",
-  "from": "game/stages/hector/chase.ts:119"
+  "from": "game/stages/hector/chase.ts:121"
  },
  {
   "voice": "hector.coastguard",
   "text": "TURN AROUND! NOBODY GOES OUT IN THIS!",
-  "from": "game/stages/hector/chase.ts:119"
+  "from": "game/stages/hector/chase.ts:121"
  },
  {
   "voice": "hector.coastguard",
   "text": "TURN AROUND! NOBODY GOES OUT IN THIS! NOBODY GOES OUT LIKE THAT!",
-  "from": "game/stages/hector/chase.ts:119"
+  "from": "game/stages/hector/chase.ts:121"
  },
  {
   "voice": "hector.coastguard",
   "text": "WE CAN SEE YOU! WE ARE RIGHT BEHIND YOU!",
-  "from": "game/stages/hector/chase.ts:119"
+  "from": "game/stages/hector/chase.ts:121"
  },
  {
   "voice": "hector.coastguard",
   "text": "WE CAN SEE YOU! WE CAN SEE ALL OF IT! WE ARE RIGHT BEHIND YOU!",
-  "from": "game/stages/hector/chase.ts:119"
+  "from": "game/stages/hector/chase.ts:121"
  },
  {
   "voice": "hector.coastguard",
   "text": "YOU ARE BEING BOARDED!",
-  "from": "game/stages/hector/chase.ts:333"
+  "from": "game/stages/hector/chase.ts:335"
  },
  {
   "voice": "hector.coastie",
   "text": "WE SAID. GET OUT. OF THE WATER.",
-  "from": "game/stages/hector/chase.ts:343"
+  "from": "game/stages/hector/chase.ts:345"
  },
  {
   "voice": "hector.kid0",
@@ -9282,7 +9312,7 @@
  {
   "voice": "meathead",
   "text": "CAN'T SHOOT. BOTH HANDS ON THE MOTOR.",
-  "from": "game/stages/hector/chase.ts:122"
+  "from": "game/stages/hector/chase.ts:124"
  },
  {
   "voice": "meathead",
@@ -10192,7 +10222,7 @@
  {
   "voice": "meathead",
   "text": "FUCK YEAH! LET'S GO!",
-  "from": "App.tsx:464"
+  "from": "App.tsx:481"
  },
  {
   "voice": "meathead",
@@ -10477,7 +10507,7 @@
  {
   "voice": "meathead",
   "text": "GIVE IT A SECOND. LET IT FILL UP.",
-  "from": "game/stages/oscar/bar.ts:171"
+  "from": "game/stages/oscar/bar.ts:175"
  },
  {
   "voice": "meathead",
@@ -11682,7 +11712,7 @@
  {
   "voice": "meathead",
   "text": "I SMELL GAS IN THE BATHROOM. THERE'S A LINE RIGHT BEHIND THE TOILET.",
-  "from": "game/stages/oscar/bar.ts:188"
+  "from": "game/stages/oscar/bar.ts:192"
  },
  {
   "voice": "meathead",
@@ -12177,7 +12207,7 @@
  {
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
-  "from": "App.tsx:464"
+  "from": "App.tsx:481"
  },
  {
   "voice": "meathead",
@@ -12277,7 +12307,7 @@
  {
   "voice": "meathead",
   "text": "LAST CALL.",
-  "from": "game/stages/oscar/bar.ts:261"
+  "from": "game/stages/oscar/bar.ts:265"
  },
  {
   "voice": "meathead",
@@ -12337,7 +12367,7 @@
  {
   "voice": "meathead",
   "text": "LET'S FUCKING GO!",
-  "from": "App.tsx:464"
+  "from": "App.tsx:481"
  },
  {
   "voice": "meathead",
@@ -12417,7 +12447,7 @@
  {
   "voice": "meathead",
   "text": "MAKE ME!",
-  "from": "game/stages/hector/chase.ts:122"
+  "from": "game/stages/hector/chase.ts:124"
  },
  {
   "voice": "meathead",
@@ -13042,7 +13072,7 @@
  {
   "voice": "meathead",
   "text": "NOTHING TO LIGHT YET. OPEN UP THE GAS LINES FIRST. A PISTOL'LL DO IT.",
-  "from": "game/stages/oscar/bar.ts:171"
+  "from": "game/stages/oscar/bar.ts:175"
  },
  {
   "voice": "meathead",
@@ -13052,7 +13082,7 @@
  {
   "voice": "meathead",
   "text": "NOW JUST A LITTLE FIRE.",
-  "from": "game/stages/oscar/bar.ts:192"
+  "from": "game/stages/oscar/bar.ts:196"
  },
  {
   "voice": "meathead",
@@ -13077,7 +13107,7 @@
  {
   "voice": "meathead",
   "text": "OH HELL YEAH!",
-  "from": "App.tsx:464"
+  "from": "App.tsx:481"
  },
  {
   "voice": "meathead",
@@ -13182,7 +13212,7 @@
  {
   "voice": "meathead",
   "text": "ONE.",
-  "from": "game/stages/oscar/bar.ts:147"
+  "from": "game/stages/oscar/bar.ts:151"
  },
  {
   "voice": "meathead",
@@ -14362,7 +14392,7 @@
  {
   "voice": "meathead",
   "text": "SOMETHING HISSING DOWN LOW, BEHIND THE JUKEBOX.",
-  "from": "game/stages/oscar/bar.ts:188"
+  "from": "game/stages/oscar/bar.ts:192"
  },
  {
   "voice": "meathead",
@@ -15337,7 +15367,7 @@
  {
   "voice": "meathead",
   "text": "THERE'S A GAS LINE UP OVER THE BAND.",
-  "from": "game/stages/oscar/bar.ts:188"
+  "from": "game/stages/oscar/bar.ts:192"
  },
  {
   "voice": "meathead",
@@ -15452,12 +15482,12 @@
  {
   "voice": "meathead",
   "text": "THREE GAS LINES IN HERE, BY THE SMELL. PISTOL SHOULD DO IT.",
-  "from": "game/stages/oscar/bar.ts:188"
+  "from": "game/stages/oscar/bar.ts:192"
  },
  {
   "voice": "meathead",
   "text": "THREE. NOW ALL IT NEEDS IS A LITTLE FIRE.",
-  "from": "game/stages/oscar/bar.ts:148"
+  "from": "game/stages/oscar/bar.ts:152"
  },
  {
   "voice": "meathead",
@@ -15537,7 +15567,7 @@
  {
   "voice": "meathead",
   "text": "TOO MUCH GUN. A PISTOL ROUND'LL PUNCTURE IT.",
-  "from": "game/stages/oscar/bar.ts:153"
+  "from": "game/stages/oscar/bar.ts:157"
  },
  {
   "voice": "meathead",
@@ -15657,7 +15687,7 @@
  {
   "voice": "meathead",
   "text": "TWO.",
-  "from": "game/stages/oscar/bar.ts:147"
+  "from": "game/stages/oscar/bar.ts:151"
  },
  {
   "voice": "meathead",
@@ -16592,7 +16622,7 @@
  {
   "voice": "oscar.biker",
   "text": "ANOTHER ROUND, DARLENE.",
-  "from": "game/stages/oscar/bar.ts:195"
+  "from": "game/stages/oscar/bar.ts:199"
  },
  {
   "voice": "oscar.biker",
@@ -16607,7 +16637,7 @@
  {
   "voice": "oscar.biker",
   "text": "EIGHT BALL, CORNER POCKET.",
-  "from": "game/stages/oscar/bar.ts:195"
+  "from": "game/stages/oscar/bar.ts:199"
  },
  {
   "voice": "oscar.biker",
@@ -16627,17 +16657,17 @@
  {
   "voice": "oscar.biker",
   "text": "I'M NOT DRUNK, I'M ON BREAK.",
-  "from": "game/stages/oscar/bar.ts:195"
+  "from": "game/stages/oscar/bar.ts:199"
  },
  {
   "voice": "oscar.biker",
   "text": "RACK EM UP, TINY.",
-  "from": "game/stages/oscar/bar.ts:195"
+  "from": "game/stages/oscar/bar.ts:199"
  },
  {
   "voice": "oscar.biker",
   "text": "THIS SONG IS ABOUT MY BIKE.",
-  "from": "game/stages/oscar/bar.ts:195"
+  "from": "game/stages/oscar/bar.ts:199"
  },
  {
   "voice": "oscar.biker",
@@ -16652,7 +16682,7 @@
  {
   "voice": "oscar.biker",
   "text": "WHO TOOK MY STOOL? THAT IS MY STOOL.",
-  "from": "game/stages/oscar/bar.ts:195"
+  "from": "game/stages/oscar/bar.ts:199"
  },
  {
   "voice": "oscar.biker",
@@ -16667,7 +16697,7 @@
  {
   "voice": "oscar.dan",
   "text": "ANOTHER ROUND, DARLENE.",
-  "from": "game/stages/oscar/bar.ts:195"
+  "from": "game/stages/oscar/bar.ts:199"
  },
  {
   "voice": "oscar.dan",
@@ -16682,12 +16712,12 @@
  {
   "voice": "oscar.dan",
   "text": "EIGHT BALL, CORNER POCKET.",
-  "from": "game/stages/oscar/bar.ts:195"
+  "from": "game/stages/oscar/bar.ts:199"
  },
  {
   "voice": "oscar.dan",
   "text": "I'M NOT DRUNK, I'M ON BREAK.",
-  "from": "game/stages/oscar/bar.ts:195"
+  "from": "game/stages/oscar/bar.ts:199"
  },
  {
   "voice": "oscar.dan",
@@ -16702,7 +16732,7 @@
  {
   "voice": "oscar.dan",
   "text": "RACK EM UP, TINY.",
-  "from": "game/stages/oscar/bar.ts:195"
+  "from": "game/stages/oscar/bar.ts:199"
  },
  {
   "voice": "oscar.dan",
@@ -16722,12 +16752,12 @@
  {
   "voice": "oscar.dan",
   "text": "THIS SONG IS ABOUT MY BIKE.",
-  "from": "game/stages/oscar/bar.ts:195"
+  "from": "game/stages/oscar/bar.ts:199"
  },
  {
   "voice": "oscar.dan",
   "text": "WHO TOOK MY STOOL? THAT IS MY STOOL.",
-  "from": "game/stages/oscar/bar.ts:195"
+  "from": "game/stages/oscar/bar.ts:199"
  },
  {
   "voice": "oscar.foreman",

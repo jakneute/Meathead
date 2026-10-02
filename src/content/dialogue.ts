@@ -1011,6 +1011,16 @@ export const VICTOR_LINES = {
   ],
   /** All three corked at once: cut off mid-sentence by the eruption. */
   DOOMED: "OH NO... WHAT HAVE YOU DONE, YOU ",
+  /** A tsunami that just washed over him (nothing of his put out, no vent blown): he's barely wet. */
+  RINSED: [
+    "THANKS FOR THE RINSE, BRO!",
+    "THAT'S IT? I SWEAT MORE THAN THAT IN HOT YOGA!",
+    "COOLING MIST! VERY VIP OF YOU!",
+    "BRO. I'M A VOLCANO. THAT WAS A PUDDLE.",
+    "HYDRATION! YOU SHOULDN'T HAVE!",
+  ],
+  /** ...and the same, with the asset's pants full. */
+  RINSED_SHAT: "BRO, IF YOU'RE GONNA SPLASH WATER AROUND, AIM IT AT YOUR PANTS!",
 };
 
 /** Drug Trade Dale's lines when his truck gets wrecked. */

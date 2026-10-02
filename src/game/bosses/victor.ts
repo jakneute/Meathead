@@ -63,6 +63,11 @@ export const victorMouth = (e: Enemy) => {
 const update = (ctx: FrameContext, boss: Enemy) => {
   const { state } = ctx;
   const helpers = ctx.bossHelpers;
+  // A wave that's been and gone having only washed over him: he's barely wet, and he lets you know it
+  if (boss.tsunamiWave === state.tsunamiSerial && !state.tsunamiActive && boss.rinsedWave !== state.tsunamiSerial && (boss.tsunamiPaid ?? 0) < TSUNAMI_DAMAGE_WEAKNESS && boss.health > 0) {
+    boss.rinsedWave = state.tsunamiSerial;
+    speakAsBoss(VICTOR, state.player.gut?.stage === 2 ? VICTOR_LINES.RINSED_SHAT : pickRandom(VICTOR_LINES.RINSED), helpers, 'casual');
+  }
   switch (boss.bossState) {
     case 'pain':
       // (doubled over, put out; or hopping, scalded: then back to it)
