@@ -311,6 +311,8 @@ const updateBossTransition = (ctx: FrameContext) => {
         fx.playGunSound('punch');
         playSound('crash', 0.9, -4);
         shakeScreen(state, 14, 7);
+        // (the wall round it giving: chunks of it coming down off the top of the doorway)
+        for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: BOSS_DOOR_X - 6 + Math.random() * 52, y: 360 + Math.random() * 40 }, vel: { x: (Math.random() - 0.3) * 3, y: Math.random() * 2 }, life: 40 + Math.random() * 20, color: ['#57534E', '#78716C', '#A8A29E'][i % 3], size: 3 + Math.random() * 6 });
         // (the hinges and the bolts going, and whatever's on the door)
         for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: BOSS_DOOR_X + 4, y: 410 + Math.random() * 130 }, vel: { x: 2 + Math.random() * 6, y: -2 - Math.random() * 5 }, life: 30 + Math.random() * 20, color: i % 3 === 0 ? '#E5E7EB' : i % 3 === 1 ? '#71717A' : '#A8A29E', size: 2 + Math.random() * 4 });
       }

@@ -147,6 +147,51 @@ const drawLintel = (ctx: Ctx, stageId: string | null, x: number, y: number, w: n
   }
 };
 
+/** A fixed scatter (the same broken edge every frame). */
+const rnd = (n: number) => { const v = Math.sin(n * 91.7) * 43758.5453; return v - Math.floor(v); };
+
+/**
+ * The wall round the doorway once the door's gone through it: the top of the opening torn up into the wall in a
+ * ragged bite, the edges chipped back on both sides, cracks running off up the wall, a chunk or two hanging, and the
+ * broken wall in heaps either side on the floor (`k`: how far it's got, 0..1, as the door goes over).
+ */
+const drawBrokenFrame = (ctx: Ctx, x: number, y: number, w: number, h: number, f: number, k: number) => {
+  const bottom = y + h;
+  ctx.save();
+  // (the bite out of the wall over the opening, and the chips out of its sides: the dark of the hole)
+  ctx.fillStyle = '#0C0A09';
+  ctx.beginPath();
+  ctx.moveTo(x - 8, bottom);
+  for (let yy = bottom; yy > y; yy -= 12) ctx.lineTo(x - 2 - rnd(yy) * 9, yy);
+  for (let i = 0; i <= 8; i++) ctx.lineTo(x - 6 + i * ((w + 12) / 8), y - 4 - rnd(i + 3) * 26 * Math.min(1, k * 2));
+  for (let yy = y; yy < bottom; yy += 12) ctx.lineTo(x + w + 2 + rnd(yy + 7) * 8, yy);
+  ctx.lineTo(x + w + 8, bottom);
+  ctx.closePath(); ctx.fill();
+  // (the broken edge: light where it's fresh-broken, then the stone)
+  ctx.strokeStyle = '#A8A29E'; ctx.lineWidth = 2; ctx.stroke();
+  // (cracks running off up the wall from it)
+  ctx.strokeStyle = 'rgba(12, 10, 9, 0.85)'; ctx.lineWidth = 1.5;
+  for (let c = 0; c < 6; c++) {
+    let cx = x + rnd(c + 20) * w, cy = y - 10 - rnd(c + 30) * 16;
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    const len = (30 + rnd(c + 40) * 70) * Math.min(1, k * 1.5);
+    for (let s = 0; s < 4; s++) { cx += (rnd(c * 7 + s) - 0.5) * 18; cy -= len / 4; ctx.lineTo(cx, cy); }
+    ctx.stroke();
+  }
+  // (a chunk hanging off the top of it, about to go)
+  ctx.fillStyle = '#57534E';
+  ctx.beginPath(); ctx.moveTo(x + w * 0.55, y - 6); ctx.lineTo(x + w * 0.85, y - 4); ctx.lineTo(x + w * 0.7, y + 10 + Math.sin(f * 0.2) * 0.5); ctx.closePath(); ctx.fill();
+  // (heaps of it either side, on the floor)
+  for (let i = 0; i < 14; i++) {
+    const side = i % 2 ? 1 : -1;
+    const px = (side < 0 ? x - 4 - rnd(i) * 30 : x + w + 2 + rnd(i) * 34);
+    const s = 4 + rnd(i + 50) * 7;
+    ctx.fillStyle = ['#57534E', '#78716C', '#44403C', '#A8A29E'][i % 4];
+    ctx.fillRect(Math.round(px), Math.round(bottom - s - rnd(i + 9) * 6 * (1 - Math.abs(px - (x + w / 2)) / 50)), Math.round(s * 1.4), Math.round(s));
+  }
+  ctx.restore();
+};
+
 /** The door, standing; going over into the room; or down flat on the floor in there. */
 export const drawBossDoor = (ctx: Ctx, state: GameState, stageId: string | null) => {
   const door = state.blocks.find(b => b.type === 'door');
@@ -164,6 +209,7 @@ export const drawBossDoor = (ctx: Ctx, state: GameState, stageId: string | null)
     ctx.restore();
     return;
   }
+  drawBrokenFrame(ctx, door.x, door.y, door.w, door.h, f, fall);
   // Over it goes, about its bottom edge on the room side, faster as it goes; flat, it's a slab on the floor
   const ang = (Math.PI / 2) * fall * fall;
   ctx.save();
