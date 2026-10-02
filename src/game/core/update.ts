@@ -288,6 +288,7 @@ const updateBossTransition = (ctx: FrameContext) => {
   const targetPlayerX = targetCameraX + entry.x;
   const targetPlayerY = entry.y;
   const glideSpeed = 4;
+  let stepped = false;
 
   if (state.doorState === 'opening') {
     state.doorOpenAmount += DOOR_OPEN_SPEED;
@@ -296,7 +297,7 @@ const updateBossTransition = (ctx: FrameContext) => {
     if (state.camera.x < targetCameraX) state.camera.x = Math.min(targetCameraX, state.camera.x + glideSpeed);
     // (and level with the arena, if it was following him up or down)
     state.camera.y += (0 - state.camera.y) * 0.1;
-    if (player.pos.x < targetPlayerX) player.pos.x = Math.min(targetPlayerX, player.pos.x + glideSpeed);
+    if (player.pos.x < targetPlayerX) { player.pos.x = Math.min(targetPlayerX, player.pos.x + glideSpeed); stepped = true; }
     if (state.camera.x >= targetCameraX && player.pos.x >= targetPlayerX) state.doorState = 'closing';
   } else if (state.doorState === 'closing') {
     state.doorOpenAmount -= DOOR_OPEN_SPEED;
@@ -324,8 +325,11 @@ const updateBossTransition = (ctx: FrameContext) => {
     if ((state.doorBeat = (state.doorBeat ?? 0) + 1) >= LANDED_BEAT) arriveInArena(ctx);
     return;
   }
-  // Like Mega Man: he's frozen mid-pose (mid-jump, crouched, mid-charge...) while the screen scrolls him through
-  player.vel = { x: 0, y: 0 };
+  // Like Mega Man: he's frozen mid-pose (mid-jump, crouched, mid-charge...) while the screen scrolls him through.
+  // On his feet, though, he walks it: the walk cycle going as he's carried in
+  const walking = stepped && player.isGrounded && !player.isDucking && !player.isCharging && !player.isSliding && !player.isUppercutting && !player.isDivekicking;
+  player.vel = { x: walking ? glideSpeed : 0, y: 0 };
+  if (walking) state.playerAnimFrame++;
   player.facing = 1;
   state.projectiles = [];
 };
