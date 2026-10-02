@@ -13,7 +13,8 @@ import { drawWaterHazards, drawAirMeter } from './drawWater';
 import { STRIKE_WARN, STRIKE_RING, shockPhase, AWNING_BOUNCE, SEA_DEPTH } from './hazards';
 import { copsLeft } from './beach';
 import { towerFlash, TOWER, RISE_WARNING } from './tower';
-import { bandedGradient, pixelBlob, steppedGlow } from '../../render/pixelArt';
+import { bandedGradient, checker, hazeBands, pixelBlob, steppedGlow } from '../../render/pixelArt';
+import { INK, dark, lite, ink } from '../../render/npc/kit';
 import { drawFlameLicks } from '../../render/fx/fireball';
 import { drawBoatScene, drawBoatFront, drawTowerJunk, drawEyeArena, drawDaycare, drawDaycareFront, drawPoolWater } from './drawSet';
 import { drawEyeHud } from './eyeDraw';
@@ -23,6 +24,36 @@ type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 const visible = (state: GameState, x1: number, x2: number) => x2 > state.camera.x - 250 && x1 < state.camera.x + CANVAS_WIDTH + 250;
+
+/** A block lit from the upper left: a light top and left edge, a dark right and bottom, inked round. */
+const slab = (ctx: Ctx, x: number, y: number, w: number, h: number, c: string, e = 2) => {
+  ctx.fillStyle = c; ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = lite(c, 0.3); ctx.fillRect(x, y, w, e); ctx.fillRect(x, y, e, h);
+  ctx.fillStyle = dark(c, 0.25); ctx.fillRect(x + w - e, y, e, h); ctx.fillRect(x, y + h - e, w, e);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+};
+
+/** A wheel side on: inked tire, a lit arc over the top, a hubcap with its glint. */
+const wheel = (ctx: Ctx, x: number, y: number, r: number, hub = '#9CA3AF') => {
+  ink(ctx, () => ctx.arc(x, y, r, 0, Math.PI * 2), '#1F2937');
+  ctx.strokeStyle = '#4B5563'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, r - 2, Math.PI * 1.1, Math.PI * 1.6); ctx.stroke();
+  ink(ctx, () => ctx.arc(x, y, r * 0.48, 0, Math.PI * 2), hub);
+  ctx.fillStyle = dark(hub, 0.3); ctx.fillRect(Math.round(x), Math.round(y), Math.ceil(r * 0.3), Math.ceil(r * 0.3));
+  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(Math.round(x - r * 0.25), Math.round(y - r * 0.25), 2, 2);
+};
+
+/** Neon tube lettering: a stepped halo, the dark tube when it's off, a hot white core when it's on. */
+const neon = (ctx: Ctx, text: string, x: number, y: number, size: number, color: string, on: boolean) => {
+  ctx.font = `bold ${size}px "Press Start 2P"`; ctx.textAlign = 'center';
+  if (on) {
+    ctx.save(); ctx.strokeStyle = color;
+    for (const [w, a] of [[7, 0.12], [4, 0.25]] as const) { ctx.globalAlpha = a; ctx.lineWidth = w; ctx.strokeText(text, x, y); }
+    ctx.restore();
+  }
+  ctx.fillStyle = on ? color : '#3F3F46'; ctx.fillText(text, x, y);
+  if (on) { ctx.save(); ctx.globalAlpha = 0.55; ctx.fillStyle = '#FFFFFF'; ctx.fillText(text, x, y - 1); ctx.restore(); ctx.fillStyle = color; ctx.globalAlpha = 1; }
+  ctx.textAlign = 'left';
+};
 
 /** How stormy it is where the camera is (0 sunny, 1 hurricane). */
 export const stormAt = (state: GameState, rt: HectorRuntime) => {
@@ -154,10 +185,8 @@ export const drawHectorMid = (ctx: Ctx, state: GameState) => {
     ctx.strokeStyle = on ? '#FDE047' : '#FEF9C3'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(s.x, s.ground - 1, STRIKE_RING, 9, 0, 0, Math.PI * 2); ctx.stroke();
     // (the column of light: as wide as the ring)
     ctx.globalAlpha = on ? 1 : 0.6;
-    const cg = ctx.createLinearGradient(0, s.ground - 320, 0, s.ground);
-    cg.addColorStop(0, 'rgba(253, 224, 71, 0)'); cg.addColorStop(1, `rgba(253, 224, 71, ${0.2 + k * 0.35})`);
-    const ch = 320 * Math.max(0.3, k);
-    ctx.fillStyle = cg; ctx.fillRect(s.x - STRIKE_RING, s.ground - ch, STRIKE_RING * 2, ch);
+    const ch = 320 * Math.max(0.3, k), peak = 0.2 + k * 0.35;
+    hazeBands(ctx, s.x - STRIKE_RING, s.ground - ch, STRIKE_RING * 2, ch, '#FDE047', peak * (1 - ch / 320), peak, 6);
     // (its edges, dashed dark, marching down: it reads against a bright sky as well as a dark one)
     ctx.strokeStyle = 'rgba(15, 23, 42, 0.55)'; ctx.lineWidth = 2; ctx.setLineDash([8, 8]); ctx.lineDashOffset = -s.t * 2;
     ctx.beginPath(); ctx.moveTo(s.x - STRIKE_RING, s.ground - ch); ctx.lineTo(s.x - STRIKE_RING, s.ground); ctx.moveTo(s.x + STRIKE_RING, s.ground - ch); ctx.lineTo(s.x + STRIKE_RING, s.ground); ctx.stroke(); ctx.setLineDash([]);
@@ -188,13 +217,17 @@ export const drawHectorFront = (ctx: Ctx, state: GameState) => {
   for (const s of rt.hazards.strikes) {
     if (s.t < STRIKE_WARN) continue;
     ctx.save();
-    ctx.strokeStyle = '#F8FAFF'; ctx.lineWidth = 5; ctx.shadowColor = '#BFDBFE'; ctx.shadowBlur = 18;
+    ctx.lineJoin = 'miter';
     ctx.beginPath();
     let x = s.x + (hash(s.x) - 0.5) * 60, y = state.camera.y - 20;
     ctx.moveTo(x, y);
     const steps = 9;
     for (let i = 1; i <= steps; i++) { const ty = y + (s.ground - y) * (i / steps); x = i === steps ? s.x : x + (hash(s.x + i * 13 + s.t) - 0.5) * 50; ctx.lineTo(x, ty); }
-    ctx.stroke();
+    // (a stepped halo, the bolt, a white-hot core)
+    ctx.strokeStyle = 'rgba(191, 219, 254, 0.18)'; ctx.lineWidth = 21; ctx.stroke();
+    ctx.strokeStyle = 'rgba(191, 219, 254, 0.35)'; ctx.lineWidth = 13; ctx.stroke();
+    ctx.strokeStyle = '#BFDBFE'; ctx.lineWidth = 7; ctx.stroke();
+    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 3; ctx.stroke();
     ctx.restore();
   }
   if (region === 'tower') drawRisingStorm(ctx, state, rt.tower.riseY);
@@ -206,31 +239,43 @@ const drawRisingStorm = (ctx: Ctx, state: GameState, top: number) => {
   const bottom = state.camera.y + CANVAS_HEIGHT + 40;
   if (top > bottom) return;
   const x0 = state.camera.x - 600, x1 = state.camera.x + CANVAS_WIDTH + 600, f = state.frame;
-  const g = ctx.createLinearGradient(0, top - 30, 0, top + 260);
-  g.addColorStop(0, 'rgba(71, 85, 105, 0.95)'); g.addColorStop(1, '#0F172A');
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.moveTo(x0, bottom);
-  for (let x = x0; x <= x1; x += 24) ctx.lineTo(x, top - 18 - Math.abs(Math.sin(x * 0.03 + f * 0.12)) * 26 - Math.sin(x * 0.011 - f * 0.05) * 10);
-  ctx.lineTo(x1, bottom); ctx.closePath(); ctx.fill();
-  // (a line of foam along the crest, so you can see it coming)
-  ctx.strokeStyle = 'rgba(226, 232, 240, 0.85)'; ctx.lineWidth = 3;
-  ctx.beginPath();
-  for (let x = x0; x <= x1; x += 24) { const y = top - 18 - Math.abs(Math.sin(x * 0.03 + f * 0.12)) * 26 - Math.sin(x * 0.011 - f * 0.05) * 10; if (x === x0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
-  ctx.stroke();
-  // Spray whipping off the top of it, and junk tumbling in it
-  ctx.fillStyle = 'rgba(226, 232, 240, 0.7)';
-  for (let i = 0; i < 30; i++) {
-    const x = x0 + ((i * 97 + f * (6 + (i % 4))) % (x1 - x0)), y = top - 30 - ((i * 37 + f * 2) % 50);
-    ctx.fillRect(x, y, 10, 2);
+  const crest = (x: number) => Math.round((top - 18 - Math.abs(Math.sin(x * 0.03 + f * 0.12)) * 26 - Math.sin(x * 0.011 - f * 0.05) * 10) / 2) * 2;
+  // The body of it: clipped to the churning crest, slate going black in steps
+  ctx.save();
+  ctx.beginPath(); ctx.moveTo(x0, bottom);
+  for (let x = x0; x <= x1; x += 24) ctx.lineTo(x, crest(x));
+  ctx.lineTo(x1, bottom); ctx.closePath(); ctx.clip();
+  bandedGradient(ctx, x0, top - 50, x1 - x0, 320, ['#5B6B82', '#475569', '#334155', '#1E293B', '#0F172A'], 10);
+  ctx.fillStyle = '#0F172A'; ctx.fillRect(x0, top + 270, x1 - x0, Math.max(0, bottom - top - 270));
+  // (rolls of cloud churning in it, lit along their tops)
+  for (let i = 0; i < 14; i++) {
+    const cx = x0 + ((i * 173 + f * (1.5 + (i % 3))) % (x1 - x0)), cy = top + 30 + ((i * 61) % 160);
+    pixelBlob(ctx, cx, cy, 70 + (i % 4) * 16, 12, i % 2 ? 'rgba(100, 116, 139, 0.35)' : 'rgba(15, 23, 42, 0.45)');
   }
-  ctx.fillStyle = '#78350F';
+  ctx.restore();
+  // (a lip of foam along the crest, so you can see it coming: white over its shade, inked under)
+  for (let x = Math.floor(x0 / 4) * 4; x <= x1; x += 4) {
+    const y = crest(x);
+    ctx.fillStyle = INK; ctx.fillRect(x, y + 4, 4, 2);
+    ctx.fillStyle = '#94A3B8'; ctx.fillRect(x, y + 2, 4, 2);
+    ctx.fillStyle = (x / 4) % 3 ? '#E2E8F0' : '#F8FAFC'; ctx.fillRect(x, y, 4, 2);
+  }
+  // Spray whipping off the top of it, in streaks that fade back along themselves
+  for (let i = 0; i < 30; i++) {
+    const x = Math.round(x0 + ((i * 97 + f * (6 + (i % 4))) % (x1 - x0))), y = Math.round(top - 30 - ((i * 37 + f * 2) % 50));
+    ctx.fillStyle = 'rgba(248, 250, 252, 0.8)'; ctx.fillRect(x + 6, y, 4, 2);
+    ctx.fillStyle = 'rgba(226, 232, 240, 0.5)'; ctx.fillRect(x, y, 6, 2);
+  }
+  // Junk tumbling in it: broken boards, lit and inked, a nail or two
   for (let i = 0; i < 8; i++) {
     const x = x0 + ((i * 211 + f * 4) % (x1 - x0)), y = top + 40 + ((i * 53) % 120);
-    ctx.save(); ctx.translate(x, y); ctx.rotate(f * 0.1 + i); ctx.fillRect(-12, -4, 24, 8); ctx.restore();
+    ctx.save(); ctx.translate(x, y); ctx.rotate(f * 0.1 + i);
+    slab(ctx, -12, -4, 24, 8, i % 3 ? '#78350F' : '#A16207', 1);
+    ctx.fillStyle = '#9CA3AF'; ctx.fillRect(-9, -1, 2, 2); ctx.fillRect(8, -1, 2, 2);
+    ctx.restore();
   }
   // Lightning flickering inside it
-  if (hash(Math.floor(f / 6)) > 0.8) { ctx.fillStyle = 'rgba(224, 231, 255, 0.25)'; ctx.fillRect(x0, top, x1 - x0, bottom - top); }
+  if (hash(Math.floor(f / 6)) > 0.8) hazeBands(ctx, x0, top, x1 - x0, Math.max(8, bottom - top), '#E0E7FF', 0.32, 0.12, 4);
 };
 
 export const drawHectorHud = (ctx: Ctx, state: GameState) => {
@@ -298,19 +343,53 @@ const seaStretches = (state: GameState) => {
 
 const drawSea = (ctx: Ctx, state: GameState) => {
   const bottom = state.camera.y + CANVAS_HEIGHT + 60;
+  const f = state.frame;
   seaStretches(state).forEach(({ x1, x2 }) => {
     if (!visible(state, x1, x2)) return;
     const y = COURSE.sea.y;
-    const g = ctx.createLinearGradient(0, y, 0, y + SEA_DEPTH);
-    g.addColorStop(0, '#1E4E6E'); g.addColorStop(1, '#0B2A40');
-    ctx.fillStyle = g; ctx.fillRect(x1, y, x2 - x1, bottom - y);
-    // The bottom: sand, weed, a tyre, somebody's shopping cart
+    // The water: teal at the top going navy in steps, light coming down through it in slanting shafts
+    bandedGradient(ctx, x1, y, x2 - x1, SEA_DEPTH, ['#2A6688', '#1E4E6E', '#174260', '#123650', '#0B2A40'], 8);
+    ctx.save(); ctx.beginPath(); ctx.rect(x1, y, x2 - x1, SEA_DEPTH); ctx.clip();
+    ctx.fillStyle = 'rgba(186, 230, 253, 0.07)';
+    for (let x = Math.floor(x1 / 140) * 140; x < x2; x += 140) {
+      const sx = x + hash(x) * 60 + Math.sin(f * 0.02 + x) * 8;
+      ctx.beginPath(); ctx.moveTo(sx, y); ctx.lineTo(sx + 18, y); ctx.lineTo(sx + 58, y + SEA_DEPTH); ctx.lineTo(sx + 30, y + SEA_DEPTH); ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+    // The bottom: sand in bands with a lit lip, pebbles, weed, a tire, somebody's shopping cart
     const floor = y + SEA_DEPTH;
-    ctx.fillStyle = '#B79E6B'; ctx.fillRect(x1, floor, x2 - x1, Math.max(0, bottom - floor));
-    ctx.fillStyle = '#8C7650'; for (let x = Math.ceil(x1 / 17) * 17; x < x2; x += 17) ctx.fillRect(x, floor + 6 + hash(x) * 20, 3, 2);
-    ctx.strokeStyle = '#166534'; ctx.lineWidth = 3;
-    for (let x = Math.ceil(x1 / 90) * 90; x < x2; x += 90) { const sway = Math.sin(state.frame * 0.05 + x) * 6; ctx.beginPath(); ctx.moveTo(x, floor); ctx.quadraticCurveTo(x + sway, floor - 25, x - sway, floor - 50 - hash(x) * 30); ctx.stroke(); }
-    for (let x = Math.ceil(x1 / 610) * 610; x < x2; x += 610) { ctx.strokeStyle = '#111827'; ctx.lineWidth = 6; ctx.beginPath(); ctx.ellipse(x + 200, floor - 8, 16, 8, 0, 0, Math.PI * 2); ctx.stroke(); }
+    if (bottom > floor) bandedGradient(ctx, x1, floor, x2 - x1, bottom - floor, ['#BFA574', '#A38A5A', '#7C6644'], 4);
+    ctx.fillStyle = '#D4BC8A'; ctx.fillRect(x1, floor, x2 - x1, 2);
+    for (let x = Math.ceil(x1 / 17) * 17; x < x2; x += 17) {
+      const py = Math.round(floor + 6 + hash(x) * 20);
+      ctx.fillStyle = '#6B5838'; ctx.fillRect(x, py, 4, 2); ctx.fillStyle = '#D4BC8A'; ctx.fillRect(x, py - 1, 2, 1);
+    }
+    for (let x = Math.ceil(x1 / 90) * 90; x < x2; x += 90) {
+      // (weed: a stack of stepped blades swaying more the higher they go, a lit edge, leaves off it)
+      const h = 50 + hash(x) * 30;
+      for (let k = 0; k < h; k += 4) {
+        const off = Math.round(Math.sin(f * 0.05 + x + k * 0.06) * 6 * (k / h));
+        ctx.fillStyle = '#14532D'; ctx.fillRect(x + off - 1, floor - k - 4, 4, 4);
+        ctx.fillStyle = '#22C55E'; ctx.fillRect(x + off - 1, floor - k - 4, 1, 4);
+        if (k % 12 === 8) { ctx.fillStyle = '#166534'; ctx.fillRect(x + off + (k % 24 ? 3 : -5), floor - k - 4, 4, 2); }
+      }
+    }
+    for (let x = Math.ceil(x1 / 610) * 610; x < x2; x += 610) {
+      // (the tire, half sunk: inked, tread on it, the sand showing through the middle)
+      const tx = x + 200, ty = floor - 8;
+      ink(ctx, () => ctx.ellipse(tx, ty, 19, 11, 0, 0, Math.PI * 2), '#1F2937');
+      ctx.strokeStyle = '#4B5563'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(tx, ty, 16, 8, 0, Math.PI * 1.1, Math.PI * 1.7); ctx.stroke();
+      ink(ctx, () => ctx.ellipse(tx, ty, 12, 5, 0, 0, Math.PI * 2), '#7C6644');
+      ctx.fillStyle = '#111827'; for (let k = -14; k <= 14; k += 6) ctx.fillRect(tx + k, ty + 8, 2, 2);
+      // (the cart: on its side, wire basket, a wheel up)
+      const cx = x + 430, cy = floor;
+      ctx.strokeStyle = '#64748B'; ctx.lineWidth = 2; ctx.strokeRect(cx - 18, cy - 22, 30, 18);
+      ctx.strokeStyle = '#475569'; ctx.lineWidth = 1;
+      ctx.beginPath(); for (let k = -12; k < 12; k += 5) { ctx.moveTo(cx + k + 0.5, cy - 22); ctx.lineTo(cx + k + 0.5, cy - 4); } ctx.moveTo(cx - 18, cy - 13.5); ctx.lineTo(cx + 12, cy - 13.5); ctx.stroke();
+      ctx.strokeStyle = '#94A3B8'; ctx.beginPath(); ctx.moveTo(cx - 18, cy - 22.5); ctx.lineTo(cx + 12, cy - 22.5); ctx.stroke();
+      ctx.strokeStyle = '#64748B'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx + 12, cy - 22); ctx.lineTo(cx + 20, cy - 30); ctx.stroke();
+      ink(ctx, () => ctx.arc(cx - 14, cy - 2, 3, 0, Math.PI * 2), '#111827');
+    }
   });
 };
 
@@ -320,17 +399,22 @@ const drawWaterFront = (ctx: Ctx, state: GameState) => {
   seaStretches(state).forEach(({ x1, x2 }) => {
     if (!visible(state, x1, x2)) return;
     const y = COURSE.sea.y;
-    // The water over whatever's in it (him, swimming), a murky tint deepening toward the bottom
-    const g = ctx.createLinearGradient(0, y, 0, y + SEA_DEPTH);
-    g.addColorStop(0, 'rgba(30, 78, 110, 0.55)'); g.addColorStop(1, 'rgba(8, 30, 50, 0.35)');
-    ctx.fillStyle = g;
+    const wave = (x: number) => Math.round((y + Math.sin(x * 0.04 + f * 0.1) * 4) / 2) * 2;
+    // The water over whatever's in it (him, swimming), a murky tint deepening toward the bottom in steps
+    ctx.save();
     ctx.beginPath(); ctx.moveTo(x1, y + SEA_DEPTH);
-    for (let x = x1; x <= x2; x += 10) ctx.lineTo(x, y + Math.sin(x * 0.04 + f * 0.1) * 4);
-    ctx.lineTo(x2, y + SEA_DEPTH); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = 'rgba(224, 242, 254, 0.8)'; ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (let x = x1; x <= x2; x += 10) { const yy = y + Math.sin(x * 0.04 + f * 0.1) * 4; if (x === x1) ctx.moveTo(x, yy); else ctx.lineTo(x, yy); }
-    ctx.stroke();
+    for (let x = x1; x <= x2; x += 10) ctx.lineTo(x, wave(x));
+    ctx.lineTo(x2, y + SEA_DEPTH); ctx.closePath(); ctx.clip();
+    hazeBands(ctx, x1, y - 6, x2 - x1, SEA_DEPTH + 6, '#1E4E6E', 0.55, 0.4, 5);
+    ctx.restore();
+    // (its skin: a white crest, a pale band under it, glints riding along)
+    for (let x = Math.floor(x1 / 4) * 4; x < x2; x += 4) {
+      const yy = wave(x);
+      ctx.fillStyle = 'rgba(125, 211, 252, 0.6)'; ctx.fillRect(x, yy + 2, 4, 2);
+      ctx.fillStyle = 'rgba(240, 249, 255, 0.9)'; ctx.fillRect(x, yy, 4, 2);
+    }
+    ctx.fillStyle = '#FFFFFF';
+    for (let x = Math.floor(x1 / 64) * 64; x < x2; x += 64) { const gx = x + ((f * 0.6 + hash(x) * 64) % 64); ctx.fillRect(Math.round(gx), wave(gx) + 6, 6, 2); }
   });
 };
 
@@ -349,40 +433,104 @@ const drawGround = (ctx: Ctx, state: GameState) => {
     const look = SURFACE_LOOK[r.surface] ?? SURFACE_LOOK.sand;
     const x1 = Math.max(r.x1, state.camera.x - 260), x2 = Math.min(r.x2, state.camera.x + CANVAS_WIDTH + 260);
     const yAt = (x: number) => (r.x2 === r.x1 ? r.y1 : r.y1 + ((x - r.x1) / (r.x2 - r.x1)) * (r.y2 - r.y1));
+    /** A strip following the surface, `off` below it and `h` deep. */
+    const strip = (off: number, h: number, c: string) => {
+      ctx.fillStyle = c;
+      ctx.beginPath(); ctx.moveTo(x1, yAt(x1) + off); ctx.lineTo(x2, yAt(x2) + off); ctx.lineTo(x2, yAt(x2) + off + h); ctx.lineTo(x1, yAt(x1) + off + h); ctx.closePath(); ctx.fill();
+    };
     if (r.surface === 'dock') {
-      // Boardwalk on pilings down into the water, driven into the sea bed
-      ctx.fillStyle = look.dark;
+      // Boardwalk on pilings down into the water, driven into the sea bed: round posts lit down one side, cross-braced
       const bed = COURSE.sea.y + SEA_DEPTH + 6;
-      for (let x = Math.ceil(x1 / 70) * 70; x < x2; x += 70) ctx.fillRect(x, yAt(x), 10, bed - yAt(x));
-      ctx.fillStyle = look.body; ctx.fillRect(x1, yAt(x1), x2 - x1, 14);
-      ctx.fillStyle = look.top;
-      for (let x = Math.floor(x1 / 26) * 26; x < x2; x += 26) ctx.fillRect(Math.max(x1, x), yAt(x), Math.min(24, x2 - x), 4);
+      for (let x = Math.ceil(x1 / 70) * 70; x < x2; x += 70) {
+        const py = yAt(x);
+        ctx.fillStyle = look.dark; ctx.fillRect(x, py, 10, bed - py);
+        ctx.fillStyle = '#7A5530'; ctx.fillRect(x + 1, py, 3, bed - py);
+        ctx.fillStyle = '#3A2412'; ctx.fillRect(x + 8, py, 2, bed - py);
+        ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, py + 0.5, 9, bed - py - 1);
+        // (barnacles and weed where it's in the water)
+        ctx.fillStyle = '#4D7C0F'; ctx.fillRect(x + 1, COURSE.sea.y + 8, 8, 3);
+        ctx.fillStyle = '#D6D3D1'; for (let k = 0; k < 3; k++) ctx.fillRect(x + 2 + k * 3, COURSE.sea.y + 14 + (k % 2) * 6, 2, 2);
+        if (x + 70 < x2) {
+          ctx.strokeStyle = '#3A2412'; ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.moveTo(x + 10, py + 16); ctx.lineTo(x + 70, py + 46); ctx.stroke();
+          ctx.strokeStyle = '#6B4A2A'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x + 10, py + 15); ctx.lineTo(x + 70, py + 45); ctx.stroke();
+        }
+      }
+      // (the deck: its stringer, then planks with a gap between, lit along the top, nail heads)
+      strip(0, 14, look.body); strip(10, 4, look.dark);
+      for (let x = Math.floor(x1 / 26) * 26; x < x2; x += 26) {
+        const px = Math.max(x1, x), pw = Math.min(24, x2 - px), py = Math.round(yAt(x));
+        ctx.fillStyle = look.top; ctx.fillRect(px, py, pw, 4);
+        ctx.fillStyle = '#CA8A04'; ctx.fillRect(px, py, pw, 1);
+        ctx.fillStyle = look.dark; ctx.fillRect(px + pw, py, 2, 6);
+        ctx.fillStyle = '#44403C'; ctx.fillRect(px + 3, py + 7, 2, 2); ctx.fillRect(px + pw - 5, py + 7, 2, 2);
+      }
+      ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x1, yAt(x1) + 14.5); ctx.lineTo(x2, yAt(x2) + 14.5); ctx.stroke();
       continue;
     }
     ctx.fillStyle = look.body;
     ctx.beginPath(); ctx.moveTo(x1, yAt(x1)); ctx.lineTo(x2, yAt(x2)); ctx.lineTo(x2, bottom); ctx.lineTo(x1, bottom); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = look.top;
-    ctx.beginPath(); ctx.moveTo(x1, yAt(x1)); ctx.lineTo(x2, yAt(x2)); ctx.lineTo(x2, yAt(x2) + 8); ctx.lineTo(x1, yAt(x1) + 8); ctx.closePath(); ctx.fill();
     if (r.surface === 'sand') {
+      // Sand: drier and paler on top, damper and darker going down in steps, grains in two tones
+      strip(30, 30, '#DCC287'); strip(60, 300, '#D2B77C');
+      strip(0, 8, look.top); strip(0, 2, '#FBF1D3');
       ctx.fillStyle = look.dark;
-      for (let x = Math.ceil(x1 / 13) * 13; x < x2; x += 13) ctx.fillRect(x + hash(x) * 6, yAt(x) + 14 + hash(x + 1) * 60, 2, 2);
-      // Shells and a footprint or two
-      ctx.fillStyle = '#FDF2F8';
-      for (let x = Math.ceil(x1 / 170) * 170; x < x2; x += 170) { ctx.beginPath(); ctx.arc(x + hash(x) * 40, yAt(x) + 5, 2.5, Math.PI, 0); ctx.fill(); }
+      for (let x = Math.ceil(x1 / 13) * 13; x < x2; x += 13) ctx.fillRect(Math.round(x + hash(x) * 6), Math.round(yAt(x) + 14 + hash(x + 1) * 60), 2, 2);
+      ctx.fillStyle = '#FBF1D3';
+      for (let x = Math.ceil(x1 / 19) * 19; x < x2; x += 19) ctx.fillRect(Math.round(x + hash(x + 7) * 8), Math.round(yAt(x) + 12 + hash(x + 3) * 50), 2, 1);
+      // Shells (pink, inked, ribbed) and a footprint or two
+      for (let x = Math.ceil(x1 / 170) * 170; x < x2; x += 170) {
+        const sx = Math.round(x + hash(x) * 40), sy = Math.round(yAt(x) + 6);
+        ink(ctx, () => { ctx.arc(sx, sy, 3, Math.PI, 0); ctx.closePath(); }, '#FBCFE8');
+        ctx.fillStyle = '#DB2777'; ctx.fillRect(sx - 1, sy - 2, 1, 2); ctx.fillRect(sx + 1, sy - 2, 1, 2);
+        const fx = Math.round(x + 90 + hash(x + 2) * 30), fy = Math.round(yAt(x) + 20 + hash(x + 4) * 20);
+        ctx.fillStyle = look.dark; ctx.fillRect(fx, fy, 5, 3); ctx.fillRect(fx + 1, fy - 2, 3, 1); ctx.fillRect(fx + 9, fy + 5, 5, 3); ctx.fillRect(fx + 10, fy + 3, 3, 1);
+      }
     } else if (r.surface === 'road') {
-      // Lane markings, the curb, puddles
-      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(x1, yAt(x1), x2 - x1, 3);
-      ctx.fillStyle = '#FACC15';
-      for (let x = Math.ceil(x1 / 80) * 80; x < x2; x += 80) ctx.fillRect(x, yAt(x) + 22, 40, 3);
-      ctx.fillStyle = 'rgba(148, 163, 184, 0.35)';
-      for (let x = Math.ceil(x1 / 230) * 230; x < x2; x += 230) { ctx.beginPath(); ctx.ellipse(x + 60, yAt(x) + 34, 30, 4, 0, 0, Math.PI * 2); ctx.fill(); }
+      // Asphalt with grit in it, a concrete curb, lane markings with their wear, puddles with the sky in them
+      for (let x = Math.ceil(x1 / 7) * 7; x < x2; x += 7) {
+        ctx.fillStyle = hash(x) > 0.5 ? '#2B3441' : '#4B5563';
+        ctx.fillRect(x, Math.round(yAt(x) + 12 + hash(x + 9) * 70), 2, 2);
+      }
+      strip(0, 8, look.top); strip(0, 3, '#9CA3AF'); strip(0, 1, '#D1D5DB'); strip(8, 2, INK);
+      for (let x = Math.ceil(x1 / 60) * 60; x < x2; x += 60) { ctx.fillStyle = '#1F2937'; ctx.fillRect(x, Math.round(yAt(x)), 1, 8); }
+      for (let x = Math.ceil(x1 / 80) * 80; x < x2; x += 80) {
+        const ly = Math.round(yAt(x) + 22);
+        ctx.fillStyle = '#A16207'; ctx.fillRect(x, ly + 3, 40, 1);
+        ctx.fillStyle = '#FACC15'; ctx.fillRect(x, ly, 40, 3);
+        ctx.fillStyle = '#FEF08A'; ctx.fillRect(x, ly, 40, 1);
+        ctx.fillStyle = look.body; ctx.fillRect(x + 8 + Math.floor(hash(x) * 20), ly, 3, 2);
+      }
+      for (let x = Math.ceil(x1 / 230) * 230; x < x2; x += 230) {
+        const px = x + 60, py = Math.round(yAt(x) + 34);
+        ctx.fillStyle = '#1F2937'; ctx.fillRect(px - 30, py - 3, 60, 7);
+        ctx.fillStyle = '#64748B'; ctx.fillRect(px - 28, py - 2, 56, 5);
+        ctx.fillStyle = '#94A3B8'; ctx.fillRect(px - 24, py - 2, 30, 2);
+        ctx.fillStyle = '#E2E8F0'; ctx.fillRect(px - 20, py - 2, 8, 1);
+      }
     } else if (r.surface === 'grass') {
+      // Turf over dirt, the sidewalk along it in slabs
+      strip(40, 40, '#6F5034'); strip(80, 400, '#5E432B'); checker(ctx, x1, Math.max(yAt(x1), yAt(x2)) + 38, x2 - x1, 2, '#6F5034');
+      strip(0, 8, look.top); strip(8, 6, '#3F6212');
       ctx.fillStyle = look.dark;
-      for (let x = Math.ceil(x1 / 6) * 6; x < x2; x += 6) ctx.fillRect(x, yAt(x) - 2 - hash(x) * 3, 2, 4);
-      ctx.fillStyle = '#D6D3D1'; ctx.fillRect(x1, yAt(x1) + 16, x2 - x1, 10); // sidewalk
+      for (let x = Math.ceil(x1 / 6) * 6; x < x2; x += 6) ctx.fillRect(x, Math.round(yAt(x) - 2 - hash(x) * 3), 2, 4);
+      ctx.fillStyle = '#A3E635';
+      for (let x = Math.ceil(x1 / 6) * 6 + 3; x < x2; x += 12) ctx.fillRect(x, Math.round(yAt(x) - 1 - hash(x) * 2), 1, 3);
+      strip(16, 10, '#D6D3D1'); strip(16, 2, '#F5F5F4'); strip(24, 2, '#A8A29E');
+      for (let x = Math.ceil(x1 / 48) * 48; x < x2; x += 48) { ctx.fillStyle = '#A8A29E'; ctx.fillRect(x, Math.round(yAt(x) + 16), 1, 10); }
+      ctx.fillStyle = '#5B4330';
+      for (let x = Math.ceil(x1 / 23) * 23; x < x2; x += 23) {
+        const sx = Math.round(x + hash(x) * 9), sy = Math.round(yAt(x) + 32 + hash(x + 5) * 90);
+        ctx.fillStyle = '#3F2D1D'; ctx.fillRect(sx, sy, 4, 3); ctx.fillStyle = '#A8896A'; ctx.fillRect(sx, sy, 2, 1);
+      }
     } else if (r.surface === 'pool') {
-      ctx.fillStyle = '#BAE6FD';
-      for (let x = Math.ceil(x1 / 20) * 20; x < x2; x += 20) ctx.fillRect(x, yAt(x), 1, 60);
+      // Tile: a grid of grout, a glint on each tile
+      strip(0, 8, look.top);
+      for (let x = Math.ceil(x1 / 20) * 20; x < x2; x += 20) {
+        ctx.fillStyle = '#BAE6FD'; ctx.fillRect(x, yAt(x), 1, 60);
+        ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x + 2, Math.round(yAt(x)) + 10, 4, 1); ctx.fillRect(x + 2, Math.round(yAt(x)) + 30, 4, 1);
+      }
+      for (let k = 20; k < 60; k += 20) strip(k, 1, '#BAE6FD');
     }
   }
 };
@@ -528,87 +676,207 @@ const drawProp = (ctx: Ctx, state: GameState, p: Prop, rt: HectorRuntime) => {
       const wob = bi >= 0 ? rt.hazards.awningWobble[bi] : 0;
       const give = wob > 0 ? Math.sin(wob * 0.6) * (wob / 24) * 8 : 0;
       ctx.save(); ctx.translate(p.x, p.y + give); ctx.rotate(sway * 0.25 + (storm > 0 ? Math.sin(f * 0.4 + p.x) * 0.05 * storm : 0));
-      ctx.fillStyle = '#E5E7EB'; ctx.fillRect(-1.5, -90, 3, 90);
-      ctx.fillStyle = p.color ?? '#F43F5E';
-      ctx.beginPath(); ctx.moveTo(-55, -80); ctx.quadraticCurveTo(0, -120, 55, -80); ctx.closePath(); ctx.fill();
+      // (the pole: lit down one side, inked, a crank halfway up)
+      ink(ctx, () => ctx.rect(-2, -92, 4, 92), '#E5E7EB');
+      ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-1, -92, 1, 92); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(1, -92, 1, 92);
+      ink(ctx, () => ctx.rect(-3, -50, 6, 6), '#9CA3AF');
+      // (the canopy: panels in its color and white, lit to the upper left, a shade to the right, ribs, a scalloped hem)
+      const col = p.color ?? '#F43F5E';
+      const canopy = () => { ctx.moveTo(-55, -80); ctx.quadraticCurveTo(0, -120, 55, -80); ctx.closePath(); };
+      ctx.save(); ctx.beginPath(); canopy(); ctx.clip();
+      ctx.fillStyle = col; ctx.fillRect(-56, -102, 112, 24);
       ctx.fillStyle = '#F8FAFC';
       for (let i = -2; i <= 2; i += 2) { ctx.beginPath(); ctx.moveTo(i * 11, -80); ctx.quadraticCurveTo(i * 9, -112, 0, -104); ctx.lineTo((i + 1) * 11, -80); ctx.fill(); }
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'; ctx.fillRect(-56, -102, 40, 8);
+      ctx.fillStyle = 'rgba(26, 11, 6, 0.18)'; ctx.fillRect(22, -102, 34, 24); ctx.fillRect(-56, -84, 112, 4);
+      ctx.restore();
+      ctx.strokeStyle = dark(col, 0.35); ctx.lineWidth = 1;
+      for (const rx of [-33, 33]) { ctx.beginPath(); ctx.moveTo(0, -100); ctx.quadraticCurveTo(rx * 0.7, -96, rx * 1.4, -80); ctx.stroke(); }
+      ctx.beginPath(); canopy(); ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.stroke();
+      for (let k = 0; k < 11; k++) {
+        const hx = -55 + k * 10 + 5;
+        ink(ctx, () => ctx.arc(hx, -80, 5, 0, Math.PI), k % 2 ? '#F8FAFC' : col);
+      }
+      // (the finial)
+      ink(ctx, () => ctx.rect(-2, -106, 4, 6), '#E5E7EB');
       ctx.restore();
       return;
     }
-    case 'net':
-      ctx.fillStyle = '#E5E7EB'; ctx.fillRect(p.x - 2, p.y - 100, 4, 100);
-      ctx.strokeStyle = 'rgba(248, 250, 252, 0.8)'; ctx.lineWidth = 1;
-      for (let y = p.y - 98; y < p.y - 60; y += 6) { ctx.beginPath(); ctx.moveTo(p.x - 2, y); ctx.lineTo(p.x + 2, y); ctx.stroke(); }
-      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(p.x - 4, p.y - 100, 8, 4);
+    case 'net': {
+      // A volleyball post: inked, lit down its side, the net hung off it slack, tape along the top
+      ink(ctx, () => ctx.rect(p.x - 2, p.y - 100, 4, 100), '#E5E7EB');
+      ctx.fillStyle = '#FFFFFF'; ctx.fillRect(p.x - 1, p.y - 100, 1, 100); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(p.x + 1, p.y - 100, 1, 100);
+      ctx.strokeStyle = 'rgba(31, 41, 55, 0.6)'; ctx.lineWidth = 1;
+      const sag = Math.sin(f * 0.1 + p.x) * (1 + storm * 4);
+      ctx.beginPath();
+      for (let k = 0; k <= 6; k++) { const yy = p.y - 98 + k * 6.5; ctx.moveTo(p.x + 2, yy); ctx.quadraticCurveTo(p.x + 22, yy + 4 + sag, p.x + 40, yy + sag * 1.5 + k); }
+      for (let k = 1; k <= 6; k++) { const xx = p.x + 2 + k * 6.3; ctx.moveTo(xx, p.y - 97 + k * 0.6 + sag * k / 6); ctx.lineTo(xx, p.y - 58 + k + sag * k / 6); }
+      ctx.stroke();
+      ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(p.x + 2, p.y - 98); ctx.quadraticCurveTo(p.x + 22, p.y - 94 + sag, p.x + 40, p.y - 98 + sag * 1.5); ctx.stroke();
+      ink(ctx, () => ctx.rect(p.x - 4, p.y - 102, 8, 5), '#F8FAFC');
       return;
+    }
     case 'palm': {
       const { x: tx, y: ty, lean } = palmTip(p.x, f, storm);
       ctx.save(); ctx.translate(p.x, p.y);
-      ctx.strokeStyle = '#7C5A3A'; ctx.lineWidth = 9; ctx.lineCap = 'round';
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(tx * 0.3, ty * 0.6, tx, ty); ctx.stroke();
-      ctx.fillStyle = '#15803D';
-      for (let i = 0; i < 6; i++) {
-        const a = (i / 6) * Math.PI * 2 + lean + Math.sin(f * 0.2 + i) * 0.15 * (0.3 + storm);
-        ctx.beginPath(); ctx.moveTo(tx, ty); ctx.quadraticCurveTo(tx + Math.cos(a) * 40, ty + Math.sin(a) * 20 - 10, tx + Math.cos(a) * 70, ty + Math.sin(a) * 30 + 10); ctx.lineTo(tx + Math.cos(a) * 60, ty + Math.sin(a) * 30 + 16); ctx.closePath(); ctx.fill();
+      // The trunk: inked, lit down one side, ringed where the old fronds came off
+      const at = (t: number) => ({ x: 2 * (1 - t) * t * tx * 0.3 + t * t * tx, y: 2 * (1 - t) * t * ty * 0.6 + t * t * ty });
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = INK; ctx.lineWidth = 11; ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(tx * 0.3, ty * 0.6, tx, ty); ctx.stroke();
+      ctx.strokeStyle = '#7C5A3A'; ctx.lineWidth = 9; ctx.stroke();
+      ctx.strokeStyle = '#A47B50'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-2, 0); ctx.quadraticCurveTo(tx * 0.3 - 2, ty * 0.6, tx - 2, ty); ctx.stroke();
+      ctx.lineCap = 'butt';
+      for (let t = 0.04; t < 0.96; t += 0.055) {
+        const q = at(t);
+        ctx.fillStyle = '#4A3420'; ctx.fillRect(Math.round(q.x) - 4, Math.round(q.y), 9, 2);
+        ctx.fillStyle = '#B48A5C'; ctx.fillRect(Math.round(q.x) - 3, Math.round(q.y) + 2, 3, 1);
       }
-      ctx.fillStyle = '#78350F'; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(tx - 6 + i * 6, ty + 6, 4, 0, Math.PI * 2); ctx.fill(); }
+      // The fronds: a darker layer behind, then the front ones inked, a lit edge, a midrib, leaflets ragged off the
+      // underside (same sweep as ever: the iguanas sit in them)
+      const frond = (a: number, s: number, c: string, rim: string) => {
+        const ex = tx + Math.cos(a) * 70 * s, ey = ty + Math.sin(a) * 30 * s + 10;
+        const cx = tx + Math.cos(a) * 40 * s, cy = ty + Math.sin(a) * 20 * s - 10;
+        ink(ctx, () => { ctx.moveTo(tx, ty); ctx.quadraticCurveTo(cx, cy, ex, ey); ctx.lineTo(tx + Math.cos(a) * 60 * s, ty + Math.sin(a) * 30 * s + 16); ctx.closePath(); }, c);
+        ctx.strokeStyle = rim; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(tx, ty - 1); ctx.quadraticCurveTo(cx, cy - 1, ex, ey - 1); ctx.stroke();
+        for (let k = 1; k < 7; k++) {
+          const t = k / 7, mx = (1 - t) * (1 - t) * tx + 2 * (1 - t) * t * cx + t * t * ex, my = (1 - t) * (1 - t) * ty + 2 * (1 - t) * t * cy + t * t * ey;
+          ctx.fillStyle = dark(c, 0.35); ctx.fillRect(Math.round(mx), Math.round(my) + 2, 2, 4 + (k % 2) * 2);
+          ctx.fillStyle = c; ctx.fillRect(Math.round(mx) + 2, Math.round(my) + 2, 2, 3 + (k % 2) * 3);
+        }
+      };
+      for (let i = 0; i < 6; i++) frond((i / 6) * Math.PI * 2 + Math.PI / 6 + lean * 0.8 + Math.sin(f * 0.2 + i + 3) * 0.12 * (0.3 + storm), 0.85, '#14532D', '#166534');
+      for (let i = 0; i < 6; i++) frond((i / 6) * Math.PI * 2 + lean + Math.sin(f * 0.2 + i) * 0.15 * (0.3 + storm), 1, '#15803D', '#4ADE80');
+      for (let i = 0; i < 3; i++) {
+        ink(ctx, () => ctx.arc(tx - 6 + i * 6, ty + 6, 4, 0, Math.PI * 2), '#78350F');
+        ctx.fillStyle = '#B45309'; ctx.fillRect(tx - 8 + i * 6, ty + 3, 2, 2);
+      }
       ctx.restore();
       return;
     }
     case 'tiki': drawTiki(ctx, p, f, storm); return;
     case 'motel': drawMotel(ctx, state, p, storm); return;
     case 'sign': {
-      ctx.fillStyle = '#374151'; ctx.fillRect(p.x - 3, p.y - 170, 6, 170);
+      // A roadside sign on a steel post: a black box with a bezel, a neon tube round its edge and neon letters
+      const col = p.color ?? '#F43F5E';
+      ink(ctx, () => ctx.rect(p.x - 3, p.y - 170, 6, 170), '#4B5563');
+      ctx.fillStyle = '#6B7280'; ctx.fillRect(p.x - 2, p.y - 170, 2, 170); ctx.fillStyle = '#374151'; ctx.fillRect(p.x + 1, p.y - 170, 1, 170);
+      ink(ctx, () => ctx.rect(p.x - 10, p.y - 168, 20, 4), '#374151');
       const on = Math.floor(f / (6 + hash(p.x) * 20)) % 9 !== 0; // flickering in the storm
-      ctx.fillStyle = '#111827'; ctx.fillRect(p.x - 70, p.y - 210, 140, 44);
-      ctx.strokeStyle = on ? (p.color ?? '#F43F5E') : '#374151'; ctx.lineWidth = 3; ctx.strokeRect(p.x - 66, p.y - 206, 132, 36);
-      ctx.fillStyle = on ? (p.color ?? '#F43F5E') : '#4B5563'; ctx.font = 'bold 11px "Press Start 2P"'; ctx.textAlign = 'center';
-      ctx.fillText(p.text ?? '', p.x, p.y - 182); ctx.textAlign = 'left';
+      slab(ctx, p.x - 70, p.y - 210, 140, 44, '#1F2937', 2);
+      ctx.fillStyle = '#0B0F19'; ctx.fillRect(p.x - 64, p.y - 204, 128, 32);
+      if (on) {
+        ctx.strokeStyle = col; ctx.globalAlpha = 0.18; ctx.lineWidth = 7; ctx.strokeRect(p.x - 66, p.y - 206, 132, 36);
+        ctx.globalAlpha = 1;
+      }
+      ctx.strokeStyle = on ? col : '#3F3F46'; ctx.lineWidth = 3; ctx.strokeRect(p.x - 66, p.y - 206, 132, 36);
+      if (on) { ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)'; ctx.lineWidth = 1; ctx.strokeRect(p.x - 66.5, p.y - 206.5, 133, 37); }
+      neon(ctx, p.text ?? '', p.x, p.y - 182, 11, on ? col : '#4B5563', on);
+      ctx.fillStyle = '#9CA3AF'; for (const [bx, by] of [[-67, -207], [65, -207], [-67, -171], [65, -171]]) ctx.fillRect(p.x + bx, p.y + by, 2, 2);
       return;
     }
     case 'powerline': drawPowerline(ctx, state, p); return;
     case 'pool': {
-      // Tiled edge (the water's drawn in front)
-      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(p.x - 8, p.y - 4, (p.w ?? 300) + 16, 6);
+      // Tiled coping round the edge, grout between, inked under (the water's drawn in front)
+      const pw = (p.w ?? 300) + 16;
+      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(p.x - 8, p.y - 4, pw, 6);
+      ctx.fillStyle = '#FFFFFF'; ctx.fillRect(p.x - 8, p.y - 4, pw, 1);
+      ctx.fillStyle = '#CBD5E1'; for (let x = p.x - 8; x < p.x - 8 + pw; x += 12) ctx.fillRect(x, p.y - 4, 1, 6);
+      ctx.fillStyle = '#94A3B8'; ctx.fillRect(p.x - 8, p.y + 1, pw, 1);
       return;
     }
     case 'yacht': {
-      const w = p.w ?? 280;
-      ctx.fillStyle = '#F8FAFC';
-      ctx.beginPath(); ctx.moveTo(p.x, p.y - 90); ctx.lineTo(p.x + w, p.y - 90); ctx.lineTo(p.x + w - 30, p.y + 10); ctx.lineTo(p.x + 20, p.y + 10); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#1E3A8A'; ctx.fillRect(p.x + 10, p.y - 40, w - 30, 6);
-      ctx.fillStyle = '#E5E7EB'; ctx.fillRect(p.x + 60, p.y - 140, 140, 50);
-      ctx.fillStyle = '#0F172A'; for (let i = 0; i < 4; i++) ctx.fillRect(p.x + 70 + i * 32, p.y - 130, 22, 14);
-      ctx.fillStyle = '#111827'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.fillText('REEL DEAL', p.x + 40, p.y - 20);
+      const w = p.w ?? 280, x = p.x, y = p.y;
+      // The hull: white, inked, a shade along its belly and toward the stern, a navy stripe, portholes, a rub rail
+      const hull = () => { ctx.moveTo(x, y - 90); ctx.lineTo(x + w, y - 90); ctx.lineTo(x + w - 30, y + 10); ctx.lineTo(x + 20, y + 10); ctx.closePath(); };
+      ctx.save(); ctx.beginPath(); hull(); ctx.clip();
+      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x, y - 90, w, 100);
+      ctx.fillStyle = '#E2E8F0'; ctx.fillRect(x, y - 20, w, 30);
+      ctx.fillStyle = '#CBD5E1'; ctx.fillRect(x, y - 4, w, 14); checker(ctx, x, y - 22, w, 2, '#E2E8F0');
+      ctx.fillStyle = 'rgba(26, 11, 6, 0.1)'; ctx.fillRect(x, y - 90, 24, 100);
+      ctx.fillStyle = '#1E3A8A'; ctx.fillRect(x, y - 40, w, 6); ctx.fillStyle = '#3B82F6'; ctx.fillRect(x, y - 40, w, 1);
+      ctx.restore();
+      ctx.beginPath(); hull(); ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.fillStyle = '#94A3B8'; ctx.fillRect(x, y - 92, w, 3); ctx.fillStyle = '#E2E8F0'; ctx.fillRect(x, y - 92, w, 1);
+      for (let k = 0; k < 6; k++) {
+        const hx = x + 40 + k * 36;
+        ink(ctx, () => ctx.arc(hx, y - 62, 5, 0, Math.PI * 2), '#94A3B8');
+        ctx.fillStyle = '#0F172A'; ctx.fillRect(hx - 3, y - 65, 6, 6); ctx.fillStyle = '#7DD3FC'; ctx.fillRect(hx - 2, y - 64, 2, 2);
+      }
+      // (the deck rail, posts and a top line)
+      ctx.fillStyle = '#9CA3AF'; for (let rx = x + 6; rx < x + w - 4; rx += 18) ctx.fillRect(rx, y - 104, 1, 12);
+      ctx.fillStyle = '#E5E7EB'; ctx.fillRect(x + 4, y - 105, w - 8, 2); ctx.fillStyle = '#6B7280'; ctx.fillRect(x + 4, y - 103, w - 8, 1);
+      // The cabin: banded glass, the sky glinting across it, a flybridge and a radar mast on top
+      slab(ctx, x + 60, y - 140, 140, 50, '#E5E7EB', 2);
+      for (let i = 0; i < 4; i++) {
+        const wx = x + 70 + i * 32;
+        ctx.fillStyle = '#0F172A'; ctx.fillRect(wx, y - 130, 22, 14);
+        ctx.fillStyle = '#1E3A5F'; ctx.fillRect(wx, y - 123, 22, 7);
+        ctx.fillStyle = 'rgba(186, 230, 253, 0.55)'; ctx.fillRect(wx + 3, y - 129, 3, 12); ctx.fillRect(wx + 8, y - 129, 1, 12);
+        ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(wx + 0.5, y - 129.5, 21, 13);
+      }
+      ink(ctx, () => ctx.rect(x + 80, y - 150, 90, 10), '#CBD5E1'); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x + 81, y - 149, 88, 2);
+      ink(ctx, () => ctx.rect(x + 150, y - 172, 3, 22), '#9CA3AF');
+      ink(ctx, () => ctx.rect(x + 140, y - 174, 24, 4), '#E5E7EB');
+      // (her name on the transom side)
+      ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'left';
+      ctx.fillStyle = '#CBD5E1'; ctx.fillText('REEL DEAL', x + 41, y - 19);
+      ctx.fillStyle = '#111827'; ctx.fillText('REEL DEAL', x + 40, y - 20);
       return;
     }
   }
 };
 
-/** A tacky two-storey motel: pastel stucco, a row of doors, windows, a neon name that flickers in the storm. */
+/** A tacky two-story motel: pastel stucco, a row of doors, windows (curtains drawn, an AC unit under each), a neon name that flickers in the storm. */
 const drawMotel = (ctx: Ctx, state: GameState, p: Prop, storm: number) => {
   const w = p.w ?? 600, h = p.h ?? 260, x = p.x, base = p.y;
   const color = p.color ?? '#5EEAD4';
+  // The stucco: speckled, shaded toward the right end, a scuffed plinth along the bottom
   ctx.fillStyle = '#FDF2F8'; ctx.fillRect(x, base - h, w, h);
-  ctx.fillStyle = color; ctx.fillRect(x, base - h, w, 16); ctx.fillRect(x, base - h / 2 - 8, w, 8);
-  // Doors downstairs and up
+  ctx.fillStyle = '#F5DCEB';
+  for (let k = 0; k < w * h / 260; k++) ctx.fillRect(Math.round(x + hash(k * 3.1 + x) * w), Math.round(base - h + hash(k * 7.7 + x) * h), 2, 1);
+  ctx.fillStyle = 'rgba(131, 24, 67, 0.08)'; ctx.fillRect(x + w - 60, base - h, 60, h); checker(ctx, x + w - 64, base - h, 4, h, 'rgba(131, 24, 67, 0.08)');
+  ctx.fillStyle = '#E9CFE0'; ctx.fillRect(x, base - 8, w, 8); ctx.fillStyle = '#D8B4CB'; ctx.fillRect(x, base - 2, w, 2);
+  // (the cornice and the band under the walkway, in the trim color, lit on top, a shadow cast under)
+  for (const [ty, th] of [[base - h, 16], [base - h / 2 - 8, 8]] as const) {
+    ctx.fillStyle = color; ctx.fillRect(x, ty, w, th);
+    ctx.fillStyle = lite(color, 0.35); ctx.fillRect(x, ty, w, 2);
+    ctx.fillStyle = dark(color, 0.25); ctx.fillRect(x, ty + th - 2, w, 2);
+    ctx.fillStyle = 'rgba(131, 24, 67, 0.12)'; ctx.fillRect(x, ty + th, w, 4);
+  }
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, base - h + 0.5, w - 1, h - 1);
+  // Doors downstairs and up: a frame, panels, a number, a knob, a lamp over; the window beside it with its curtains
+  let room = 1;
   for (let dx = 40; dx < w - 40; dx += 90) {
     for (const fy of [base, base - h / 2 + 2]) {
-      ctx.fillStyle = color; ctx.fillRect(x + dx, fy - 70, 34, 70);
-      ctx.fillStyle = '#FDE047'; ctx.fillRect(x + dx + 26, fy - 38, 4, 4);
+      const n = (fy === base ? 100 : 200) + room;
+      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x + dx - 3, fy - 73, 40, 73);
+      slab(ctx, x + dx, fy - 70, 34, 70, color, 2);
+      ctx.strokeStyle = dark(color, 0.3); ctx.lineWidth = 1;
+      ctx.strokeRect(x + dx + 5.5, fy - 64.5, 23, 24); ctx.strokeRect(x + dx + 5.5, fy - 34.5, 23, 26);
+      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x + dx + 10, fy - 61, 14, 7);
+      ctx.fillStyle = '#111827'; ctx.font = 'bold 5px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText(String(n), x + dx + 17, fy - 55); ctx.textAlign = 'left';
+      ink(ctx, () => ctx.rect(x + dx + 26, fy - 38, 4, 4), '#FDE047'); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(x + dx + 26, fy - 38, 1, 1);
+      ink(ctx, () => ctx.rect(x + dx + 14, fy - 80, 6, 5), '#FEF3C7'); ctx.fillStyle = 'rgba(254, 240, 138, 0.25)'; ctx.fillRect(x + dx + 12, fy - 75, 10, 4);
+      // (the window: a white frame, the glass, the curtains pulled to, a glint; the AC unit dripping under it)
+      slab(ctx, x + dx + 42, fy - 62, 34, 30, '#F8FAFC', 1);
       ctx.fillStyle = '#1E3A5F'; ctx.fillRect(x + dx + 44, fy - 60, 30, 26);
-      ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(x + dx + 46, fy - 58, 8, 22);
+      ctx.fillStyle = dark(color, 0.1); ctx.fillRect(x + dx + 44, fy - 60, 9, 26); ctx.fillRect(x + dx + 65, fy - 60, 9, 26);
+      ctx.fillStyle = dark(color, 0.35); for (let k = 0; k < 3; k++) { ctx.fillRect(x + dx + 46 + k * 3, fy - 60, 1, 26); ctx.fillRect(x + dx + 67 + k * 3, fy - 60, 1, 26); }
+      ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fillRect(x + dx + 55, fy - 58, 2, 10); ctx.fillRect(x + dx + 58, fy - 58, 1, 6);
+      slab(ctx, x + dx + 48, fy - 30, 22, 12, '#CBD5E1', 1);
+      ctx.fillStyle = '#64748B'; for (let k = 0; k < 4; k++) ctx.fillRect(x + dx + 51, fy - 27 + k * 2, 16, 1);
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.5)'; ctx.fillRect(x + dx + 66, fy - 18 + (state.frame + dx) % 14, 1, 2);
     }
+    room++;
   }
-  // The neon name on the roof
+  // The neon name on the roof: a black box on struts, a bezel, the letters in tube
   const on = storm < 0.5 || Math.floor(state.frame / (5 + hash(x) * 17)) % 7 !== 0;
-  ctx.fillStyle = '#111827'; ctx.fillRect(x + w / 2 - 130, base - h - 50, 260, 44);
-  ctx.font = 'bold 16px "Press Start 2P"'; ctx.textAlign = 'center';
-  ctx.fillStyle = on ? '#F472B6' : '#4B5563';
-  if (on) { ctx.shadowColor = '#F472B6'; ctx.shadowBlur = 10; }
-  ctx.fillText(p.text ?? 'MOTEL', x + w / 2, base - h - 20);
-  ctx.shadowBlur = 0; ctx.textAlign = 'left';
+  const sx = x + w / 2 - 130, sy = base - h - 50;
+  for (const px of [sx + 40, sx + 220]) { ink(ctx, () => ctx.rect(px - 2, sy + 44, 4, 6), '#4B5563'); }
+  slab(ctx, sx, sy, 260, 44, '#1F2937', 2);
+  ctx.fillStyle = '#0B0F19'; ctx.fillRect(sx + 5, sy + 5, 250, 34);
+  ctx.fillStyle = '#9CA3AF'; for (const bx of [sx + 3, sx + 255]) for (const by of [sy + 3, sy + 39]) ctx.fillRect(bx, by, 2, 2);
+  neon(ctx, p.text ?? 'MOTEL', x + w / 2, base - h - 20, 16, on ? '#F472B6' : '#4B5563', on);
 };
 
 // ---------------------------------------------------------------------------
@@ -618,35 +886,79 @@ const drawMotel = (ctx: Ctx, state: GameState, p: Prop, storm: number) => {
 const drawPlat = (ctx: Ctx, state: GameState, p: Plat, i: number, rt: HectorRuntime) => {
   const ground = 550;
   switch (p.look) {
-    case 'lifeguard':
-      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(p.x + 8, p.y, 6, ground - p.y); ctx.fillRect(p.x + p.w - 14, p.y, 6, ground - p.y);
-      ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(p.x + 11, p.y + 20); ctx.lineTo(p.x + p.w - 11, ground - 10); ctx.stroke();
-      ctx.fillStyle = '#EF4444'; ctx.fillRect(p.x, p.y - 50, p.w, 50);
-      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(p.x + 8, p.y - 40, p.w - 16, 22);
-      ctx.fillStyle = '#EF4444'; ctx.fillRect(p.x + p.w / 2 - 3, p.y - 38, 6, 18); ctx.fillRect(p.x + p.w / 2 - 9, p.y - 32, 18, 6);
-      ctx.fillStyle = '#FACC15'; ctx.fillRect(p.x - 6, p.y, p.w + 12, 6);
+    case 'lifeguard': {
+      // The lifeguard stand: white legs cross-braced, a ramp with treads, the red hut (its roof, a window with the
+      // cross in it), the yellow deck you stand on
+      for (const lx of [p.x + 8, p.x + p.w - 14]) {
+        ink(ctx, () => ctx.rect(lx, p.y, 6, ground - p.y), '#F8FAFC');
+        ctx.fillStyle = '#CBD5E1'; ctx.fillRect(lx + 4, p.y, 2, ground - p.y);
+      }
+      ctx.strokeStyle = '#CBD5E1'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(p.x + 14, p.y + 30); ctx.lineTo(p.x + p.w - 14, p.y + 80); ctx.moveTo(p.x + p.w - 14, p.y + 30); ctx.lineTo(p.x + 14, p.y + 80); ctx.stroke();
+      ctx.strokeStyle = INK; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(p.x + 11, p.y + 20); ctx.lineTo(p.x + p.w - 11, ground - 10); ctx.stroke();
+      ctx.strokeStyle = '#E5E7EB'; ctx.lineWidth = 3; ctx.stroke();
+      ctx.strokeStyle = '#94A3B8'; ctx.lineWidth = 1; ctx.beginPath();
+      for (let k = 1; k < 8; k++) { const t = k / 8, rx = p.x + 11 + (p.w - 22) * t, ry = p.y + 20 + (ground - 10 - p.y - 20) * t; ctx.moveTo(rx - 3, ry + 1); ctx.lineTo(rx + 3, ry - 1); }
+      ctx.stroke();
+      slab(ctx, p.x, p.y - 50, p.w, 50, '#EF4444', 2);
+      ctx.fillStyle = '#B91C1C'; for (let k = p.x + 6; k < p.x + p.w - 4; k += 8) ctx.fillRect(k, p.y - 14, 1, 12);
+      ink(ctx, () => ctx.rect(p.x - 4, p.y - 56, p.w + 8, 7), '#F8FAFC'); ctx.fillStyle = '#CBD5E1'; ctx.fillRect(p.x - 3, p.y - 51, p.w + 6, 2);
+      slab(ctx, p.x + 8, p.y - 40, p.w - 16, 22, '#F8FAFC', 1);
+      ink(ctx, () => { ctx.rect(p.x + p.w / 2 - 3, p.y - 38, 6, 18); ctx.rect(p.x + p.w / 2 - 9, p.y - 32, 18, 6); }, '#EF4444');
+      ctx.fillStyle = '#EF4444'; ctx.fillRect(p.x + p.w / 2 - 2, p.y - 31, 4, 4);
+      slab(ctx, p.x - 6, p.y, p.w + 12, 6, '#FACC15', 1);
       return;
-    case 'pier':
-      ctx.fillStyle = '#5B3A1E';
-      for (let x = p.x + 10; x < p.x + p.w; x += 60) ctx.fillRect(x, p.y, 10, COURSE.sea.y - p.y + 60);
-      ctx.fillStyle = '#A16207'; ctx.fillRect(p.x, p.y, p.w, 12);
-      ctx.fillStyle = '#854D0E'; for (let x = p.x; x < p.x + p.w; x += 22) ctx.fillRect(x, p.y, 2, 12);
-      // Broken plank ends
-      ctx.fillStyle = '#A16207';
-      ctx.beginPath(); ctx.moveTo(p.x + p.w, p.y); ctx.lineTo(p.x + p.w + 14, p.y + 4); ctx.lineTo(p.x + p.w, p.y + 10); ctx.fill();
+    }
+    case 'pier': {
+      // Pilings down into the water, then the deck: planks, a gap and a nail head each, the far end snapped off in splinters
+      for (let x = p.x + 10; x < p.x + p.w; x += 60) {
+        ink(ctx, () => ctx.rect(x, p.y, 10, COURSE.sea.y - p.y + 60), '#5B3A1E');
+        ctx.fillStyle = '#7A5530'; ctx.fillRect(x + 1, p.y + 1, 3, COURSE.sea.y - p.y + 58);
+        ctx.fillStyle = '#4D7C0F'; ctx.fillRect(x + 1, COURSE.sea.y + 6, 8, 3);
+      }
+      ctx.fillStyle = '#854D0E'; ctx.fillRect(p.x, p.y, p.w, 12);
+      for (let x = p.x; x < p.x + p.w; x += 22) {
+        ctx.fillStyle = '#A16207'; ctx.fillRect(x, p.y, 20, 9);
+        ctx.fillStyle = '#CA8A04'; ctx.fillRect(x, p.y, 20, 2);
+        ctx.fillStyle = '#5B3A1E'; ctx.fillRect(x + 20, p.y, 2, 12);
+        ctx.fillStyle = '#44403C'; ctx.fillRect(x + 3, p.y + 4, 2, 2);
+      }
+      ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(p.x + 0.5, p.y + 0.5, p.w - 1, 11);
+      ink(ctx, () => { ctx.moveTo(p.x + p.w, p.y); ctx.lineTo(p.x + p.w + 8, p.y + 2); ctx.lineTo(p.x + p.w + 3, p.y + 4); ctx.lineTo(p.x + p.w + 14, p.y + 5); ctx.lineTo(p.x + p.w + 4, p.y + 8); ctx.lineTo(p.x + p.w, p.y + 10); ctx.closePath(); }, '#A16207');
       return;
-    case 'balcony':
-      ctx.fillStyle = '#E5E7EB'; ctx.fillRect(p.x, p.y, p.w, 10);
-      ctx.fillStyle = '#6B7280';
-      for (let x = p.x; x <= p.x + p.w; x += 14) ctx.fillRect(x, p.y - 26, 2, 26);
-      ctx.fillRect(p.x, p.y - 28, p.w, 3);
+    }
+    case 'balcony': {
+      // A concrete walkway, lit along its lip, a shadow cast under; the railing's posts and top rail in painted steel
+      slab(ctx, p.x, p.y, p.w, 10, '#E5E7EB', 2);
+      ctx.fillStyle = 'rgba(131, 24, 67, 0.15)'; ctx.fillRect(p.x, p.y + 10, p.w, 5);
+      for (let x = p.x; x <= p.x + p.w; x += 14) { ctx.fillStyle = '#4B5563'; ctx.fillRect(x, p.y - 26, 2, 26); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(x, p.y - 26, 1, 26); }
+      ink(ctx, () => ctx.rect(p.x, p.y - 28, p.w, 3), '#6B7280');
+      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(p.x + 1, p.y - 28, p.w - 2, 1);
+      ctx.fillStyle = '#4B5563'; ctx.fillRect(p.x, p.y - 12, p.w, 1);
       return;
+    }
     case 'car': {
+      // A parked sedan: inked body lit along the top, a door seam and handle, chrome bumpers, its lights, glass with a
+      // glint, the wheels and hubcaps
       const c = p.color ?? '#DC2626';
-      ctx.fillStyle = c; ctx.fillRect(p.x - 20, p.y + 10, p.w + 40, 30);
-      ctx.beginPath(); ctx.moveTo(p.x, p.y + 10); ctx.lineTo(p.x + 12, p.y); ctx.lineTo(p.x + p.w - 12, p.y); ctx.lineTo(p.x + p.w, p.y + 10); ctx.fill();
-      ctx.fillStyle = '#93C5FD'; ctx.fillRect(p.x + 16, p.y + 3, p.w / 2 - 20, 8); ctx.fillRect(p.x + p.w / 2 + 4, p.y + 3, p.w / 2 - 20, 8);
-      ctx.fillStyle = '#111827'; for (const wx of [p.x, p.x + p.w - 8]) { ctx.beginPath(); ctx.arc(wx + 4, p.y + 40, 10, 0, Math.PI * 2); ctx.fill(); }
+      ink(ctx, () => { ctx.moveTo(p.x, p.y + 10); ctx.lineTo(p.x + 12, p.y); ctx.lineTo(p.x + p.w - 12, p.y); ctx.lineTo(p.x + p.w, p.y + 10); ctx.closePath(); }, c);
+      ctx.fillStyle = lite(c, 0.3); ctx.fillRect(p.x + 12, p.y + 1, p.w - 24, 1);
+      for (const [wx, ww] of [[p.x + 16, p.w / 2 - 20], [p.x + p.w / 2 + 4, p.w / 2 - 20]]) {
+        ctx.fillStyle = '#1E3A5F'; ctx.fillRect(wx, p.y + 3, ww, 8);
+        ctx.fillStyle = '#93C5FD'; ctx.fillRect(wx, p.y + 3, ww, 4);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; ctx.fillRect(wx + 4, p.y + 3, 2, 8); ctx.fillRect(wx + 8, p.y + 3, 1, 8);
+        ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(wx + 0.5, p.y + 3.5, ww - 1, 7);
+      }
+      slab(ctx, p.x - 20, p.y + 10, p.w + 40, 30, c, 2);
+      ctx.fillStyle = dark(c, 0.15); ctx.fillRect(p.x - 18, p.y + 28, p.w + 36, 10);
+      ctx.fillStyle = dark(c, 0.45); ctx.fillRect(p.x + p.w / 2, p.y + 12, 1, 24); ctx.fillRect(p.x + 8, p.y + 12, 1, 24); ctx.fillRect(p.x + p.w - 8, p.y + 12, 1, 24);
+      ctx.fillStyle = '#E5E7EB'; ctx.fillRect(p.x + p.w / 2 - 12, p.y + 16, 6, 2); ctx.fillRect(p.x + p.w / 2 + 6, p.y + 16, 6, 2);
+      ink(ctx, () => ctx.rect(p.x - 22, p.y + 32, 8, 6), '#D1D5DB'); ink(ctx, () => ctx.rect(p.x + p.w + 14, p.y + 32, 8, 6), '#D1D5DB');
+      ink(ctx, () => ctx.rect(p.x - 20, p.y + 14, 5, 5), '#FEF9C3'); ink(ctx, () => ctx.rect(p.x + p.w + 15, p.y + 14, 5, 5), '#EF4444');
+      for (const wx of [p.x, p.x + p.w - 8]) {
+        ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(wx + 4, p.y + 40, 13, Math.PI, 0); ctx.fill();
+        wheel(ctx, wx + 4, p.y + 40, 10);
+      }
       return;
     }
     case 'palm':
@@ -659,17 +971,25 @@ const drawPlat = (ctx: Ctx, state: GameState, p: Plat, i: number, rt: HectorRunt
       const idx = rt.hazards.awningBlocks.findIndex(b => b.tag === `awning-${i}`);
       const wob = idx >= 0 ? rt.hazards.awningWobble[idx] : 0;
       const sag = wob > 0 ? Math.sin(wob * 0.6) * (wob / 24) * 8 : 0;
-      // Poles, with springs where the canopy sits on them
-      ctx.fillStyle = '#374151'; ctx.fillRect(p.x, p.y + 10, 4, 550 - p.y - 10); ctx.fillRect(p.x + p.w - 4, p.y + 10, 4, 550 - p.y - 10);
-      ctx.strokeStyle = '#D1D5DB'; ctx.lineWidth = 2;
-      for (const sx of [p.x + 2, p.x + p.w - 2]) { ctx.beginPath(); for (let k = 0; k < 5; k++) { ctx.moveTo(sx - 5, p.y + 12 + k * 4 + sag * 0.5); ctx.lineTo(sx + 5, p.y + 14 + k * 4 + sag * 0.5); } ctx.stroke(); }
-      // The canopy: bold stripes, a dark outline, a shine along the top
-      for (let k = 0; k < 6; k++) {
-        ctx.fillStyle = k % 2 ? '#F8FAFC' : (p.color ?? '#F472B6');
-        const sx = p.x + (k * p.w) / 6;
-        ctx.beginPath(); ctx.moveTo(sx, p.y + sag); ctx.lineTo(sx + p.w / 6, p.y + sag); ctx.lineTo(sx + p.w / 6, p.y + 16 + sag); ctx.quadraticCurveTo(sx + p.w / 12, p.y + 26 + sag, sx, p.y + 16 + sag); ctx.closePath(); ctx.fill();
+      // Poles (lit, inked), with springs where the canopy sits on them
+      for (const px of [p.x, p.x + p.w - 4]) {
+        ink(ctx, () => ctx.rect(px, p.y + 10, 4, 550 - p.y - 10), '#374151');
+        ctx.fillStyle = '#6B7280'; ctx.fillRect(px + 1, p.y + 10, 1, 550 - p.y - 10);
       }
-      ctx.strokeStyle = '#111827'; ctx.lineWidth = 2; ctx.strokeRect(p.x, p.y + sag, p.w, 16);
+      ctx.lineWidth = 2;
+      for (const sx of [p.x + 2, p.x + p.w - 2]) {
+        ctx.strokeStyle = '#6B7280'; ctx.beginPath(); for (let k = 0; k < 5; k++) { ctx.moveTo(sx - 5, p.y + 13 + k * 4 + sag * 0.5); ctx.lineTo(sx + 5, p.y + 15 + k * 4 + sag * 0.5); } ctx.stroke();
+        ctx.strokeStyle = '#E5E7EB'; ctx.beginPath(); for (let k = 0; k < 5; k++) { ctx.moveTo(sx - 5, p.y + 12 + k * 4 + sag * 0.5); ctx.lineTo(sx + 5, p.y + 14 + k * 4 + sag * 0.5); } ctx.stroke();
+      }
+      // The canopy: bold stripes with a scalloped hem, inked, shaded under, a shine along the top
+      const col = p.color ?? '#F472B6';
+      for (let k = 0; k < 6; k++) {
+        const c = k % 2 ? '#F8FAFC' : col;
+        const sx = p.x + (k * p.w) / 6;
+        ink(ctx, () => { ctx.moveTo(sx, p.y + sag); ctx.lineTo(sx + p.w / 6, p.y + sag); ctx.lineTo(sx + p.w / 6, p.y + 16 + sag); ctx.quadraticCurveTo(sx + p.w / 12, p.y + 26 + sag, sx, p.y + 16 + sag); ctx.closePath(); }, c);
+        ctx.fillStyle = dark(c, 0.18); ctx.fillRect(sx + 1, p.y + 12 + sag, p.w / 6 - 1, 4);
+      }
+      ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.strokeRect(p.x, p.y + sag, p.w, 16);
       ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillRect(p.x + 3, p.y + 2 + sag, p.w - 6, 2);
       // Bouncing arrows over every one: it's for jumping on
       const hop = Math.abs(Math.sin(state.frame * 0.12 + i)) * 8;
@@ -682,20 +1002,33 @@ const drawPlat = (ctx: Ctx, state: GameState, p: Plat, i: number, rt: HectorRunt
       return;
     }
     case 'boat':
-      ctx.fillStyle = '#CBD5E1'; ctx.fillRect(p.x, p.y, p.w, 8);
+      // (the yacht's deck: teak on top, the white gunwale under it)
+      slab(ctx, p.x, p.y, p.w, 8, '#E2E8F0', 1);
+      ctx.fillStyle = '#B45309'; ctx.fillRect(p.x + 1, p.y + 1, p.w - 2, 3);
+      ctx.fillStyle = '#78350F'; for (let x = p.x + 12; x < p.x + p.w; x += 12) ctx.fillRect(x, p.y + 1, 1, 3);
       return;
     default:
-      ctx.fillStyle = '#854D0E'; ctx.fillRect(p.x, p.y, p.w, 14);
+      slab(ctx, p.x, p.y, p.w, 14, '#854D0E', 2);
+      ctx.fillStyle = '#5B3A1E'; for (let x = p.x + 22; x < p.x + p.w; x += 22) ctx.fillRect(x, p.y + 2, 1, 10);
   }
 };
 
 const drawFloats = (ctx: Ctx, state: GameState, rt: HectorRuntime) => {
   for (const b of rt.hazards.floatBlocks) {
     if (!visible(state, b.x, b.x + b.w)) continue;
-    ctx.fillStyle = '#2563EB';
-    for (let x = b.x + 12; x < b.x + b.w - 10; x += 34) { ctx.beginPath(); ctx.ellipse(x + 8, b.y + 16, 12, 9, 0, 0, Math.PI * 2); ctx.fill(); }
-    ctx.fillStyle = '#A16207'; ctx.fillRect(b.x, b.y, b.w, 10);
-    ctx.fillStyle = '#854D0E'; for (let x = b.x; x < b.x + b.w; x += 18) ctx.fillRect(x, b.y, 2, 10);
+    // Blue barrels lashed under it (banded, lit, inked), the deck on top: planks, gaps, a nail each
+    for (let x = b.x + 12; x < b.x + b.w - 10; x += 34) {
+      ink(ctx, () => ctx.ellipse(x + 8, b.y + 16, 12, 9, 0, 0, Math.PI * 2), '#2563EB');
+      ctx.fillStyle = '#1E40AF'; ctx.fillRect(x - 3, b.y + 19, 22, 4);
+      ctx.fillStyle = '#60A5FA'; ctx.fillRect(x, b.y + 10, 8, 2);
+      ctx.fillStyle = '#1E3A8A'; ctx.fillRect(x + 2, b.y + 8, 1, 16); ctx.fillRect(x + 14, b.y + 8, 1, 16);
+    }
+    ctx.fillStyle = '#854D0E'; ctx.fillRect(b.x, b.y, b.w, 10);
+    for (let x = b.x; x < b.x + b.w; x += 18) {
+      ctx.fillStyle = '#A16207'; ctx.fillRect(x, b.y, 16, 8); ctx.fillStyle = '#CA8A04'; ctx.fillRect(x, b.y, 16, 2);
+      ctx.fillStyle = '#44403C'; ctx.fillRect(x + 7, b.y + 4, 2, 2);
+    }
+    ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(b.x + 0.5, b.y + 0.5, b.w - 1, 9);
   }
 };
 
@@ -871,43 +1204,100 @@ export const drawDebris = (ctx: Ctx, x: number, y: number, rot: number, look: st
   const s = size / 2;
   switch (look) {
     case 'chair':
-      ctx.strokeStyle = '#E5E7EB'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-s, s); ctx.lineTo(s * 0.4, -s); ctx.moveTo(-s * 0.2, s); ctx.lineTo(s, -s * 0.2); ctx.stroke();
-      ctx.fillStyle = '#F43F5E'; ctx.fillRect(-s * 0.7, -s * 0.5, s * 1.2, s * 0.8);
+      // (aluminum frame, inked; the webbing in stripes)
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = INK; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(-s, s); ctx.lineTo(s * 0.4, -s); ctx.moveTo(-s * 0.2, s); ctx.lineTo(s, -s * 0.2); ctx.stroke();
+      ctx.strokeStyle = '#D1D5DB'; ctx.lineWidth = 3; ctx.stroke();
+      ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.lineCap = 'butt';
+      ink(ctx, () => ctx.rect(-s * 0.7, -s * 0.5, s * 1.2, s * 0.8), '#F43F5E');
       ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-s * 0.7, -s * 0.2, s * 1.2, s * 0.2);
+      ctx.fillStyle = '#BE123C'; ctx.fillRect(-s * 0.7, s * 0.2, s * 1.2, s * 0.1);
+      ctx.fillStyle = '#FDA4AF'; ctx.fillRect(-s * 0.7, -s * 0.5, s * 1.2, 1);
       break;
-    case 'umbrella':
-      ctx.fillStyle = '#E5E7EB'; ctx.fillRect(-1.5, -s, 3, s * 2);
-      ctx.fillStyle = '#22D3EE'; ctx.beginPath(); ctx.moveTo(-s, -s * 0.2); ctx.quadraticCurveTo(0, -s * 1.3, s, -s * 0.2); ctx.closePath(); ctx.fill();
+    case 'umbrella': {
+      ink(ctx, () => ctx.rect(-1.5, -s, 3, s * 2), '#E5E7EB');
+      const can = () => { ctx.moveTo(-s, -s * 0.2); ctx.quadraticCurveTo(0, -s * 1.3, s, -s * 0.2); ctx.closePath(); };
+      ctx.save(); ctx.beginPath(); can(); ctx.clip();
+      ctx.fillStyle = '#22D3EE'; ctx.fillRect(-s, -s * 1.3, s * 2, s * 1.2);
       ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.moveTo(-s * 0.3, -s * 0.2); ctx.quadraticCurveTo(0, -s * 1.1, s * 0.3, -s * 0.2); ctx.fill();
+      ctx.fillStyle = 'rgba(26, 11, 6, 0.2)'; ctx.fillRect(s * 0.4, -s * 1.3, s, s * 1.2);
+      ctx.restore();
+      ctx.beginPath(); can(); ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.stroke();
       break;
+    }
     case 'trashcan':
-      ctx.fillStyle = '#4B5563'; ctx.fillRect(-s * 0.7, -s, s * 1.4, s * 2);
-      ctx.fillStyle = '#6B7280'; ctx.fillRect(-s * 0.8, -s, s * 1.6, 4);
-      ctx.fillStyle = '#374151'; for (let i = -1; i <= 1; i++) ctx.fillRect(i * s * 0.4 - 1, -s + 6, 2, s * 1.7);
+      // (galvanized: ribbed, lit down the left, its lid knocked askew)
+      ink(ctx, () => ctx.rect(-s * 0.7, -s, s * 1.4, s * 2), '#6B7280');
+      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(-s * 0.7 + 1, -s, s * 0.4, s * 2);
+      ctx.fillStyle = '#374151'; ctx.fillRect(s * 0.4, -s, s * 0.3 - 1, s * 2);
+      for (let i = -1; i <= 1; i++) { ctx.fillStyle = '#374151'; ctx.fillRect(-s * 0.7, i * s * 0.5 - 1, s * 1.4, 2); ctx.fillStyle = '#D1D5DB'; ctx.fillRect(-s * 0.7, i * s * 0.5 - 2, s * 1.4, 1); }
+      ink(ctx, () => ctx.rect(-s * 0.85, -s - 4, s * 1.7, 4), '#9CA3AF');
+      ink(ctx, () => ctx.rect(-3, -s - 7, 6, 3), '#6B7280');
       break;
     default:
-      ctx.fillStyle = '#2563EB'; ctx.fillRect(-s, -s * 0.6, s * 2, s * 1.2);
-      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-s, -s * 0.6, s * 2, 5);
+      // (a cooler: blue tub, white lid, its handle)
+      ink(ctx, () => ctx.rect(-s, -s * 0.6, s * 2, s * 1.2), '#2563EB');
+      ctx.fillStyle = '#60A5FA'; ctx.fillRect(-s + 1, -s * 0.6 + 6, 3, s * 1.2 - 7);
+      ctx.fillStyle = '#1E40AF'; ctx.fillRect(s - 4, -s * 0.6 + 6, 3, s * 1.2 - 7); ctx.fillRect(-s + 1, s * 0.6 - 3, s * 2 - 2, 2);
+      ink(ctx, () => ctx.rect(-s, -s * 0.6, s * 2, 5), '#F8FAFC');
+      ink(ctx, () => ctx.rect(-s * 0.3, -s * 0.6 - 4, s * 0.6, 3), '#D1D5DB');
+      ctx.fillStyle = '#1E40AF'; ctx.fillRect(-s * 0.4, -2, s * 0.8, 3);
   }
   ctx.restore();
 };
 
+/**
+ * The cruiser the cops pull up in: a black-and-white, inked, its hood out front to the left, push bar, a star on the
+ * door, POLICE down the side, glass with a glint, a light bar that takes turns red and blue (dark once it's raining
+ * or they're all dead).
+ */
 const drawPoliceCruiser = (ctx: Ctx, state: GameState, rt: HectorRuntime) => {
   const b = rt.beach;
   if (b.police !== 'coming' && b.police !== 'fight' && b.police !== 'done') return;
   if (!b.cruiserX) return;
   const x = b.cruiserX, y = 550;
-  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x - 70, y - 40, 150, 26);
-  ctx.fillStyle = '#111827'; ctx.fillRect(x - 70, y - 26, 150, 6);
-  ctx.beginPath(); ctx.moveTo(x - 40, y - 40); ctx.lineTo(x - 26, y - 62); ctx.lineTo(x + 40, y - 62); ctx.lineTo(x + 56, y - 40); ctx.fillStyle = '#F8FAFC'; ctx.fill();
-  ctx.fillStyle = '#93C5FD'; ctx.fillRect(x - 22, y - 58, 28, 16); ctx.fillRect(x + 10, y - 58, 26, 16);
-  ctx.fillStyle = '#1E3A8A'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.fillText('POLICE', x - 36, y - 18);
+  // The cabin: white roof, the glass, the pillars
+  ink(ctx, () => { ctx.moveTo(x - 40, y - 40); ctx.lineTo(x - 26, y - 62); ctx.lineTo(x + 40, y - 62); ctx.lineTo(x + 56, y - 40); ctx.closePath(); }, '#F8FAFC');
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(x - 25, y - 61, 64, 2);
+  for (const [wx, ww] of [[x - 22, 28], [x + 10, 26]]) {
+    ctx.fillStyle = '#1E3A5F'; ctx.fillRect(wx, y - 58, ww, 16);
+    ctx.fillStyle = '#93C5FD'; ctx.fillRect(wx, y - 58, ww, 8);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; ctx.fillRect(wx + 5, y - 58, 3, 16); ctx.fillRect(wx + 10, y - 58, 1, 16);
+    ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(wx + 0.5, y - 57.5, ww - 1, 15);
+  }
+  // The body: white over black, lit along its top, the doors' seams, chrome bumpers, a push bar on the nose
+  slab(ctx, x - 70, y - 40, 150, 26, '#F8FAFC', 2);
+  ctx.fillStyle = '#111827'; ctx.fillRect(x - 69, y - 26, 148, 11);
+  ctx.fillStyle = '#374151'; ctx.fillRect(x - 69, y - 26, 148, 1);
+  ctx.fillStyle = '#94A3B8'; ctx.fillRect(x - 6, y - 39, 1, 24); ctx.fillRect(x + 36, y - 39, 1, 24); ctx.fillRect(x - 40, y - 39, 1, 13);
+  ink(ctx, () => ctx.rect(x - 74, y - 24, 6, 8), '#D1D5DB');
+  ink(ctx, () => ctx.rect(x + 78, y - 24, 5, 8), '#D1D5DB');
+  ink(ctx, () => { ctx.rect(x - 80, y - 36, 4, 20); ctx.rect(x - 80, y - 32, 10, 3); ctx.rect(x - 80, y - 22, 10, 3); }, '#1F2937');
+  ink(ctx, () => ctx.rect(x - 70, y - 37, 5, 5), '#FEF9C3'); ink(ctx, () => ctx.rect(x + 75, y - 37, 5, 5), '#EF4444');
+  // (the star on the door, POLICE along the side)
+  ctx.fillStyle = '#CA8A04'; ctx.beginPath();
+  for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, r = k % 2 ? 2.5 : 6; ctx.lineTo(x + 16 + Math.cos(a) * r, y - 33 + Math.sin(a) * r); }
+  ctx.closePath(); ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
+  ctx.fillStyle = '#FDE047'; ctx.fillRect(x + 15, y - 35, 2, 2);
+  ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'left';
+  ctx.fillStyle = '#93C5FD'; ctx.fillText('POLICE', x - 35, y - 17);
+  ctx.fillStyle = '#F8FAFC'; ctx.fillText('POLICE', x - 36, y - 18);
   // (the light bar goes dark once it's raining, or once the cops are all dead)
   const lit = b.storm <= 0 && b.police !== 'done';
   const blink = lit && Math.floor(state.frame / 6) % 2;
-  ctx.fillStyle = !lit ? '#7F1D1D' : blink ? '#EF4444' : '#3B82F6'; ctx.fillRect(x - 6, y - 70, 10, 8);
-  ctx.fillStyle = !lit ? '#1E3A8A' : blink ? '#3B82F6' : '#EF4444'; ctx.fillRect(x + 6, y - 70, 10, 8);
-  ctx.fillStyle = '#111827'; for (const wx of [x - 44, x + 50]) { ctx.beginPath(); ctx.arc(wx, y - 10, 11, 0, Math.PI * 2); ctx.fill(); }
+  ink(ctx, () => ctx.rect(x - 9, y - 64, 28, 3), '#111827');
+  const left = !lit ? '#7F1D1D' : blink ? '#EF4444' : '#3B82F6', right = !lit ? '#1E3A8A' : blink ? '#3B82F6' : '#EF4444';
+  if (lit) steppedGlow(ctx, blink ? x - 1 : x + 11, y - 66, 26, blink ? '#EF4444' : '#3B82F6', 0.35, 0.05, 3);
+  for (const [lx, c] of [[x - 6, left], [x + 6, right]] as const) {
+    ink(ctx, () => ctx.rect(lx, y - 70, 10, 8), c);
+    ctx.fillStyle = lite(c, lit ? 0.5 : 0.2); ctx.fillRect(lx + 1, y - 69, 4, 2);
+  }
+  // The wheels: arches inked black, tires, hubcaps
+  for (const wx of [x - 44, x + 50]) {
+    ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(wx, y - 10, 14, Math.PI, 0); ctx.fill();
+    wheel(ctx, wx, y - 10, 11, '#6B7280');
+  }
   if (blink) { ctx.fillStyle = 'rgba(239, 68, 68, 0.15)'; ctx.fillRect(state.camera.x, state.camera.y, CANVAS_WIDTH, CANVAS_HEIGHT); }
 };
 
@@ -949,9 +1339,13 @@ const drawEyeWall = (ctx: Ctx, state: GameState) => {
   }
   // The floor of the storm: a churning ring of water at the bottom
   if (state.camera.y + CANVAS_HEIGHT > TOWER.floorY - 20) {
-    ctx.fillStyle = '#1E3A5F'; ctx.fillRect(x0, TOWER.floorY, x1 - x0, 200);
-    ctx.fillStyle = '#E0F2FE';
-    for (let x = Math.floor(x0 / 30) * 30; x < x1; x += 30) ctx.fillRect(x + ((f * 3) % 30), TOWER.floorY + Math.sin(x * 0.1 + f * 0.2) * 3, 16, 3);
+    bandedGradient(ctx, x0, TOWER.floorY, x1 - x0, 200, ['#2C5378', '#1E3A5F', '#152B47', '#0B1A30'], 6);
+    for (let x = Math.floor(x0 / 30) * 30; x < x1; x += 30) {
+      const fx = x + ((f * 3) % 30), fy = Math.round(TOWER.floorY + Math.sin(x * 0.1 + f * 0.2) * 3);
+      ctx.fillStyle = '#7DD3FC'; ctx.fillRect(fx - 2, fy + 3, 20, 2);
+      ctx.fillStyle = '#E0F2FE'; ctx.fillRect(fx, fy, 16, 3);
+      ctx.fillStyle = '#FFFFFF'; ctx.fillRect(fx + 4, fy, 6, 1);
+    }
   }
 };
 

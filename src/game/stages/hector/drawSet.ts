@@ -18,14 +18,22 @@ import { drawEyeCorpse } from './eyeDraw';
 import { drawKindEnemy } from '../../render/enemies';
 import { sentenceShown } from '../../platform/speech';
 import { DAYCARE_LINES } from '../../../content/dialogue';
-import { bandedGradient, checker, pixelBlob } from '../../render/pixelArt';
+import { bandedGradient, checker, hazeBands, pixelBlob } from '../../render/pixelArt';
 import { drawPerson } from '../../render/npc/person';
-import { ink } from '../../render/npc/kit';
+import { INK, dark, lite, ink } from '../../render/npc/kit';
 
 type Ctx = CanvasRenderingContext2D;
 
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 const visible = (state: GameState, x1: number, x2: number) => x2 > state.camera.x - 250 && x1 < state.camera.x + CANVAS_WIDTH + 250;
+
+/** A block lit from the upper left: a light top and left edge, a dark right and bottom, inked round. */
+const slab = (ctx: Ctx, x: number, y: number, w: number, h: number, c: string, e = 2) => {
+  ctx.fillStyle = c; ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = lite(c, 0.3); ctx.fillRect(x, y, w, e); ctx.fillRect(x, y, e, h);
+  ctx.fillStyle = dark(c, 0.25); ctx.fillRect(x + w - e, y, e, h); ctx.fillRect(x, y + h - e, w, e);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+};
 
 const bubble = (ctx: Ctx, x: number, y: number, said: string) => {
   const text = sentenceShown(said);
@@ -73,17 +81,19 @@ export const drawBoatScene = (ctx: Ctx, state: GameState, b: Boat) => {
   if (visible(state, sx - 200, sx + 200) && b.phase !== 'waiting' && b.phase !== 'cutscene') {
     const f = state.frame;
     const top = state.camera.y - 50, bottom = COURSE.sea.y;
+    // (in rows: each lit down its left, shaded down its right, a streak of spray winding up it)
     for (let y = bottom; y > top; y -= 12) {
       const k = (bottom - y) / (bottom - top);
-      const w = 40 + k * 160;
-      const off = Math.sin(y * 0.02 + f * 0.1) * (10 + k * 30);
-      ctx.fillStyle = `rgba(${120 + k * 40}, ${135 + k * 40}, ${160 + k * 30}, ${0.55 - k * 0.2})`;
-      ctx.fillRect(sx - w / 2 + off, y - 12, w, 13);
-      ctx.fillStyle = 'rgba(226, 232, 240, 0.35)';
-      ctx.fillRect(sx - w / 2 + off + ((f * 4 + y) % w), y - 12, 6, 13);
+      const w = Math.round(40 + k * 160);
+      const left = Math.round(sx - w / 2 + Math.sin(y * 0.02 + f * 0.1) * (10 + k * 30));
+      const a = (0.55 - k * 0.2).toFixed(3);
+      ctx.fillStyle = `rgba(${Math.round(120 + k * 40)}, ${Math.round(135 + k * 40)}, ${Math.round(160 + k * 30)}, ${a})`; ctx.fillRect(left, y - 12, w, 13);
+      ctx.fillStyle = `rgba(203, 213, 225, ${a})`; ctx.fillRect(left, y - 12, Math.round(w * 0.18), 13);
+      ctx.fillStyle = `rgba(30, 41, 59, ${a})`; ctx.fillRect(left + Math.round(w * 0.8), y - 12, Math.round(w * 0.2), 13);
+      ctx.fillStyle = 'rgba(226, 232, 240, 0.4)'; ctx.fillRect(left + ((f * 4 + y) % w), y - 12, 6, 13);
+      ctx.fillStyle = 'rgba(248, 250, 252, 0.5)'; ctx.fillRect(left + ((f * 4 + y) % w) + 1, y - 12, 2, 13);
     }
-    ctx.fillStyle = 'rgba(224, 242, 254, 0.6)';
-    for (let i = 0; i < 12; i++) { const a = f * 0.2 + i; ctx.beginPath(); ctx.arc(sx + Math.cos(a) * 70, bottom - 6 + Math.sin(a) * 6, 6, 0, Math.PI * 2); ctx.fill(); }
+    for (let i = 0; i < 12; i++) { const a = f * 0.2 + i; pixelBlob(ctx, sx + Math.cos(a) * 70, bottom - 6 + Math.sin(a) * 6, 9, 6, i % 3 ? 'rgba(224, 242, 254, 0.6)' : 'rgba(255, 255, 255, 0.8)'); }
   }
   // The boat's deck and outboard (the hull's in front of him)
   // (wrecked: it's in bits)
@@ -92,10 +102,13 @@ export const drawBoatScene = (ctx: Ctx, state: GameState, b: Boat) => {
     ctx.save();
     ctx.translate(b.x, b.y);
     if (b.phase === 'spout') ctx.rotate(Math.sin(b.spin) * 0.3);
-    ctx.fillStyle = '#9CA3AF'; ctx.fillRect(4, -20, BOAT_WIDTH - 8, 6);
-    ctx.fillStyle = '#374151'; ctx.fillRect(-14, -30, 16, 26);                 // outboard motor
-    ctx.fillStyle = '#6B7280'; ctx.fillRect(-10, -4, 6, 18);
-    if (b.phase === 'riding' && state.frame % 2 === 0) ctx.fillRect(-18, 12, 4, 4);
+    // (the bench seat; the outboard: its cowling with a stripe, the leg down into the water, a prop that spits)
+    slab(ctx, 4, -20, BOAT_WIDTH - 8, 6, '#9CA3AF', 1);
+    ink(ctx, () => ctx.rect(-10, -4, 6, 18), '#6B7280'); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(-9, -4, 1, 18);
+    slab(ctx, -14, -30, 16, 26, '#374151', 2);
+    ctx.fillStyle = '#DC2626'; ctx.fillRect(-13, -20, 14, 3); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-11, -26, 6, 2);
+    ctx.fillStyle = '#6B7280';
+    if (b.phase === 'riding' && state.frame % 2 === 0) { ctx.fillRect(-18, 12, 4, 4); ctx.fillStyle = '#E0F2FE'; ctx.fillRect(-22, 10, 2, 2); }
     ctx.restore();
     // (out on the water with the Coast Guard after him: him sat at the motor)
     if (b.phase === 'riding' && b.chase && !b.chase.caughtT && !b.chase.wreckT) drawSeatedMeathead(ctx, b.x + 30, b.y - 22, state.frame, b.chase.crash > 0);
@@ -108,10 +121,19 @@ export const drawBoatFront = (ctx: Ctx, state: GameState, b: Boat) => {
   ctx.save();
   ctx.translate(b.x, b.y);
   if (b.phase === 'spout') ctx.rotate(Math.sin(b.spin) * 0.3);
-  ctx.fillStyle = '#F8FAFC';
-  ctx.beginPath(); ctx.moveTo(0, -22); ctx.lineTo(BOAT_WIDTH + 18, -26); ctx.lineTo(BOAT_WIDTH - 10, 8); ctx.lineTo(10, 8); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#DC2626'; ctx.fillRect(4, -8, BOAT_WIDTH, 4);
-  ctx.fillStyle = '#111827'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.fillText('LIL BASS', 30, -12);
+  // (white, a gray belly, a shade toward the stern, the red stripe, a rub rail; inked; the name in hand-done letters)
+  const hull = () => { ctx.moveTo(0, -22); ctx.lineTo(BOAT_WIDTH + 18, -26); ctx.lineTo(BOAT_WIDTH - 10, 8); ctx.lineTo(10, 8); ctx.closePath(); };
+  ctx.save(); ctx.beginPath(); hull(); ctx.clip();
+  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-2, -28, BOAT_WIDTH + 22, 38);
+  ctx.fillStyle = '#CBD5E1'; ctx.fillRect(-2, 0, BOAT_WIDTH + 22, 10); checker(ctx, -2, -2, BOAT_WIDTH + 22, 2, '#CBD5E1');
+  ctx.fillStyle = 'rgba(26, 11, 6, 0.1)'; ctx.fillRect(-2, -28, 16, 38);
+  ctx.fillStyle = '#DC2626'; ctx.fillRect(4, -8, BOAT_WIDTH, 4); ctx.fillStyle = '#F87171'; ctx.fillRect(4, -8, BOAT_WIDTH, 1);
+  ctx.restore();
+  ctx.beginPath(); hull(); ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.strokeStyle = '#94A3B8'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(1, -21); ctx.lineTo(BOAT_WIDTH + 16, -25); ctx.stroke();
+  ctx.font = 'bold 7px "Press Start 2P"';
+  ctx.fillStyle = '#CBD5E1'; ctx.fillText('LIL BASS', 31, -11);
+  ctx.fillStyle = '#111827'; ctx.fillText('LIL BASS', 30, -12);
   ctx.restore();
 };
 
@@ -120,11 +142,18 @@ export const drawPoolWater = (ctx: Ctx, state: GameState) => {
   for (const r of state.groundRuns) {
     if (r.surface !== 'pool' || !visible(state, r.x1, r.x2)) continue;
     const top = 560;
-    ctx.fillStyle = 'rgba(56, 189, 248, 0.55)'; ctx.fillRect(r.x1, top, r.x2 - r.x1, r.y1 - top);
-    ctx.strokeStyle = 'rgba(240, 249, 255, 0.9)'; ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (let x = r.x1; x <= r.x2; x += 8) { const y = top + Math.sin(x * 0.08 + state.frame * 0.12) * 2; if (x === r.x1) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
-    ctx.stroke();
+    // (deepening in steps, the light on the bottom wobbling, a stepped skin along the top)
+    hazeBands(ctx, r.x1, top, r.x2 - r.x1, r.y1 - top, '#38BDF8', 0.5, 0.7, 4);
+    ctx.fillStyle = 'rgba(224, 242, 254, 0.45)';
+    for (let x = Math.ceil(r.x1 / 24) * 24; x < r.x2 - 10; x += 24) for (let y = top + 10; y < r.y1 - 4; y += 14) {
+      const dx = Math.round(Math.sin(y * 0.3 + x * 0.1 + state.frame * 0.08) * 4);
+      ctx.fillRect(x + dx, y, 8, 1); ctx.fillRect(x + dx + 8, y + 1, 4, 1);
+    }
+    for (let x = r.x1; x < r.x2; x += 4) {
+      const y = Math.round(top + Math.sin(x * 0.08 + state.frame * 0.12) * 2);
+      ctx.fillStyle = 'rgba(125, 211, 252, 0.8)'; ctx.fillRect(x, y + 2, 4, 1);
+      ctx.fillStyle = 'rgba(240, 249, 255, 0.95)'; ctx.fillRect(x, y, 4, 2);
+    }
   }
 };
 
@@ -155,47 +184,90 @@ const BILLBOARDS: [string, string, string][] = [
 export const drawJunk = (ctx: Ctx, x: number, y: number, w: number, look: string, f: number, variant = 0) => {
   switch (look) {
     case 'door':
-      ctx.fillStyle = '#92400E'; ctx.fillRect(x, y, w, 16);
-      ctx.fillStyle = '#FACC15'; ctx.fillRect(x + w - 16, y + 5, 5, 5);
+      // A front door, ripped off its hinges: panels, a brass knob, the hinges still on it
+      slab(ctx, x, y, w, 16, '#92400E', 2);
+      ctx.strokeStyle = '#5B2A0A'; ctx.lineWidth = 1;
+      ctx.strokeRect(x + 6.5, y + 4.5, w * 0.4 - 6, 7); ctx.strokeRect(x + w * 0.45 + 0.5, y + 4.5, w * 0.4 - 20, 7);
+      ctx.fillStyle = '#B45309'; ctx.fillRect(x + 7, y + 5, w * 0.4 - 7, 1); ctx.fillRect(x + w * 0.45 + 1, y + 5, w * 0.4 - 21, 1);
+      ink(ctx, () => ctx.rect(x + w - 16, y + 5, 5, 5), '#FACC15'); ctx.fillStyle = '#FEF9C3'; ctx.fillRect(x + w - 15, y + 6, 1, 1);
+      ctx.fillStyle = '#6B7280'; ctx.fillRect(x + 2, y + 3, 3, 3); ctx.fillRect(x + 2, y + 10, 3, 3);
       break;
     case 'carroof':
-      ctx.fillStyle = '#2563EB'; ctx.beginPath(); ctx.moveTo(x, y + 16); ctx.lineTo(x + 12, y); ctx.lineTo(x + w - 12, y); ctx.lineTo(x + w, y + 16); ctx.fill();
-      ctx.fillStyle = '#93C5FD'; ctx.fillRect(x + 16, y + 4, w - 32, 8);
+      // The roof torn off a car: the paint lit along its top, inked, the glass still in it with a glint, a dent
+      ink(ctx, () => { ctx.moveTo(x, y + 16); ctx.lineTo(x + 12, y); ctx.lineTo(x + w - 12, y); ctx.lineTo(x + w, y + 16); ctx.closePath(); }, '#2563EB');
+      ctx.fillStyle = '#60A5FA'; ctx.fillRect(x + 12, y + 1, w - 24, 2);
+      ctx.fillStyle = '#1E40AF'; ctx.fillRect(x + 2, y + 13, w - 4, 2);
+      ctx.fillStyle = '#1E3A5F'; ctx.fillRect(x + 16, y + 4, w - 32, 8);
+      ctx.fillStyle = '#93C5FD'; ctx.fillRect(x + 16, y + 4, w - 32, 4);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; ctx.fillRect(x + 22, y + 4, 3, 8); ctx.fillRect(x + 28, y + 4, 1, 8);
+      ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(x + 16.5, y + 4.5, w - 33, 7);
+      ctx.fillStyle = '#1E40AF'; ctx.fillRect(x + w - 30, y + 2, 6, 1);
       break;
     case 'shed':
-      ctx.fillStyle = '#65A30D'; ctx.beginPath(); ctx.moveTo(x, y + 18); ctx.lineTo(x + w / 2, y - 6); ctx.lineTo(x + w, y + 18); ctx.fill();
-      ctx.fillStyle = '#4D7C0F'; ctx.fillRect(x, y + 14, w, 6);
+      // A shed's roof: corrugated green tin, inked, rust coming through at the eave
+      ink(ctx, () => { ctx.moveTo(x, y + 18); ctx.lineTo(x + w / 2, y - 6); ctx.lineTo(x + w, y + 18); ctx.closePath(); }, '#65A30D');
+      ctx.save(); ctx.beginPath(); ctx.moveTo(x, y + 18); ctx.lineTo(x + w / 2, y - 6); ctx.lineTo(x + w, y + 18); ctx.closePath(); ctx.clip();
+      for (let cx = x + 2; cx < x + w; cx += 6) { ctx.fillStyle = '#84CC16'; ctx.fillRect(cx, y - 6, 2, 26); ctx.fillStyle = '#3F6212'; ctx.fillRect(cx + 4, y - 6, 1, 26); }
+      ctx.fillStyle = 'rgba(26, 11, 6, 0.18)'; ctx.fillRect(x + w / 2, y - 6, w / 2, 26);
+      ctx.restore();
+      slab(ctx, x, y + 14, w, 6, '#4D7C0F', 1);
+      ctx.fillStyle = '#B45309'; for (let k = 0; k < 4; k++) ctx.fillRect(x + 8 + hash(k + w) * (w - 16), y + 16, 3, 2);
       break;
     case 'billboard':
     {
-      const [text, board, ink] = BILLBOARDS[variant % BILLBOARDS.length];
-      ctx.fillStyle = board; ctx.fillRect(x, y, w, 20);
+      const [text, board, lettering] = BILLBOARDS[variant % BILLBOARDS.length];
+      // (the board, lit and inked, a steel frame round it, a corner torn off where it came down)
+      slab(ctx, x, y, w, 20, board, 2);
+      ctx.fillStyle = dark(board, 0.35); ctx.fillRect(x + 3, y + 3, w - 6, 1);
       // Chasing bulbs round the edge (the tackier the better)
       for (let bx = x + 4; bx < x + w - 2; bx += 8) {
-        ctx.fillStyle = Math.floor((bx - x) / 8 + f / 6) % 2 ? '#FEF9C3' : '#78350F';
+        const lit = Math.floor((bx - x) / 8 + f / 6) % 2;
+        ctx.fillStyle = lit ? '#FEF9C3' : '#78350F';
         ctx.fillRect(bx, y + 1, 3, 2); ctx.fillRect(bx, y + 17, 3, 2);
+        if (lit) { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(bx, y + 1, 1, 1); ctx.fillRect(bx, y + 17, 1, 1); }
       }
       ctx.save();
       ctx.font = 'bold 7px "Press Start 2P"';
       const tw = ctx.measureText(text).width, room = w - 8;
       ctx.translate(x + w / 2, y + 13);
       if (tw > room) ctx.scale(room / tw, 1);
-      ctx.fillStyle = ink; ctx.textAlign = 'center'; ctx.fillText(text, 0, 0);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = dark(board, 0.45); ctx.fillText(text, 1, 1);
+      ctx.fillStyle = lettering; ctx.fillText(text, 0, 0);
       ctx.restore();
+      ink(ctx, () => { ctx.moveTo(x + w - 10, y + 20); ctx.lineTo(x + w, y + 12); ctx.lineTo(x + w, y + 20); ctx.closePath(); }, '#4B5563');
       break;
     }
     case 'sofa':
-      ctx.fillStyle = '#9D174D'; ctx.fillRect(x, y, w, 14); ctx.fillRect(x, y - 12, 12, 14); ctx.fillRect(x + w - 12, y - 12, 12, 14);
-      ctx.fillStyle = '#BE185D'; ctx.fillRect(x + 12, y - 4, w - 24, 6);
+      // A loveseat: velour, inked, the arms and back lit along the top, seams and buttons
+      slab(ctx, x, y - 12, 12, 26, '#9D174D', 2); slab(ctx, x + w - 12, y - 12, 12, 26, '#9D174D', 2);
+      slab(ctx, x + 12, y, w - 24, 14, '#9D174D', 2);
+      slab(ctx, x + 12, y - 4, w - 24, 6, '#BE185D', 1);
+      ctx.fillStyle = '#831843'; ctx.fillRect(x + w / 2, y - 3, 1, 4);
+      ctx.fillStyle = '#F9A8D4'; for (let k = 0; k < 3; k++) ctx.fillRect(x + 18 + k * (w - 36) / 2, y + 6, 2, 2);
+      ctx.fillStyle = '#3B0A20'; ctx.fillRect(x + 4, y + 14, 3, 3); ctx.fillRect(x + w - 7, y + 14, 3, 3);
       break;
     case 'fridge':
-      ctx.fillStyle = '#E5E7EB'; ctx.fillRect(x, y, w, 20);
-      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(x + w * 0.6, y + 2, 2, 16);
+      // A fridge on its back: white enamel, inked, the door seam, a chrome handle, magnets
+      slab(ctx, x, y, w, 20, '#E5E7EB', 2);
+      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(x + w * 0.35, y + 2, 1, 16);
+      ink(ctx, () => ctx.rect(x + w * 0.6, y + 2, 3, 16), '#D1D5DB'); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x + w * 0.6, y + 3, 1, 14);
+      ctx.fillStyle = '#EF4444'; ctx.fillRect(x + 8, y + 5, 3, 3); ctx.fillStyle = '#FACC15'; ctx.fillRect(x + 16, y + 11, 4, 3); ctx.fillStyle = '#3B82F6'; ctx.fillRect(x + w * 0.7, y + 6, 3, 3);
+      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x + w * 0.42, y + 4, 8, 10); ctx.fillStyle = '#94A3B8'; ctx.fillRect(x + w * 0.42 + 1, y + 6, 6, 1); ctx.fillRect(x + w * 0.42 + 1, y + 9, 5, 1);
       break;
-    case 'hull':
-      ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w - 14, y + 18); ctx.lineTo(x + 10, y + 18); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#DC2626'; ctx.fillRect(x + 6, y + 6, w - 12, 3);
+    case 'hull': {
+      // A boat's hull, upside down: white, inked, shaded under, the red stripe, a cleat
+      const hull = () => { ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w - 14, y + 18); ctx.lineTo(x + 10, y + 18); ctx.closePath(); };
+      ctx.save(); ctx.beginPath(); hull(); ctx.clip();
+      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x, y, w, 18);
+      ctx.fillStyle = '#CBD5E1'; ctx.fillRect(x, y + 12, w, 6);
+      ctx.fillStyle = '#DC2626'; ctx.fillRect(x + 6, y + 6, w - 12, 3); ctx.fillStyle = '#F87171'; ctx.fillRect(x + 6, y + 6, w - 12, 1);
+      ctx.restore();
+      ctx.beginPath(); hull(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = '#FFFFFF'; ctx.fillRect(x + 2, y + 1, w - 4, 1);
+      ink(ctx, () => ctx.rect(x + w / 2 - 5, y + 13, 10, 2), '#9CA3AF');
       break;
+    }
     case 'lift': {
       // The way up into the Eye: a lifeguard stand's deck torn off whole (striped rail, a red cross, its flag), the
       // updraft roaring up from it in a column of wind and sparkle, an arrow on a board saying so. Plain to see from below.
@@ -228,18 +300,22 @@ export const drawJunk = (ctx: Ctx, x: number, y: number, w: number, look: string
       break;
     }
     case 'trampoline': {
-      // Springy: it's for bouncing
-      ctx.fillStyle = '#111827'; ctx.fillRect(x, y + 2, w, 6);
-      ctx.fillStyle = '#3B82F6'; ctx.fillRect(x - 4, y, 8, 12); ctx.fillRect(x + w - 4, y, 8, 12);
-      ctx.strokeStyle = '#94A3B8'; ctx.lineWidth = 2;
-      for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.moveTo(x + 10 + k * (w - 20) / 3, y + 8); ctx.lineTo(x + 10 + k * (w - 20) / 3, y + 20); ctx.stroke(); }
-      if (Math.floor(f / 20) % 2 === 0) { ctx.fillStyle = '#FDE047'; ctx.beginPath(); ctx.moveTo(x + w / 2, y - 30); ctx.lineTo(x + w / 2 - 9, y - 18); ctx.lineTo(x + w / 2 + 9, y - 18); ctx.fill(); }
+      // Springy: it's for bouncing (a black mat on a padded blue frame, the springs, an arrow saying so)
+      ink(ctx, () => ctx.rect(x, y + 2, w, 6), '#111827'); ctx.fillStyle = '#374151'; ctx.fillRect(x + 1, y + 3, w - 2, 1);
+      slab(ctx, x - 4, y, 8, 12, '#3B82F6', 1); slab(ctx, x + w - 4, y, 8, 12, '#3B82F6', 1);
+      for (let k = 0; k < 4; k++) {
+        const sx = x + 10 + k * (w - 20) / 3;
+        ctx.strokeStyle = '#475569'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx, y + 8); ctx.lineTo(sx, y + 20); ctx.stroke();
+        ctx.fillStyle = '#CBD5E1'; for (let c = y + 9; c < y + 20; c += 3) ctx.fillRect(sx - 2, c, 3, 1);
+      }
+      if (Math.floor(f / 20) % 2 === 0) ink(ctx, () => { ctx.moveTo(x + w / 2, y - 30); ctx.lineTo(x + w / 2 - 9, y - 18); ctx.lineTo(x + w / 2 + 9, y - 18); ctx.closePath(); }, '#FDE047');
       break;
     }
     default: // a plank
-      ctx.fillStyle = '#A16207'; ctx.fillRect(x, y, w, 12);
-      ctx.fillStyle = '#854D0E'; ctx.fillRect(x, y + 8, w, 4);
-      ctx.fillStyle = '#44403C'; ctx.fillRect(x + 6, y + 4, 3, 3); ctx.fillRect(x + w - 10, y + 4, 3, 3);
+      slab(ctx, x, y, w, 12, '#A16207', 2);
+      ctx.fillStyle = '#854D0E'; ctx.fillRect(x + 2, y + 8, w - 4, 2);
+      ctx.fillStyle = '#7C4A0E'; for (let k = 0; k < 3; k++) ctx.fillRect(x + 10 + hash(k + w) * (w - 30), y + 4 + k % 2 * 2, 14, 1);
+      ink(ctx, () => { ctx.rect(x + 6, y + 4, 3, 3); ctx.rect(x + w - 10, y + 4, 3, 3); }, '#6B7280');
   }
 };
 
@@ -320,42 +396,82 @@ export const drawEyeArena = (ctx: Ctx, state: GameState, f: EyeFight) => {
 /** One piece of flying junk, centred on the origin (about 44x36). */
 const drawFlyingJunk = (ctx: Ctx, look: string) => {
   switch (look) {
-    case 'chair': // a folding lawn chair
-      ctx.fillStyle = '#E5E7EB'; ctx.fillRect(-18, -2, 36, 4); ctx.fillRect(-18, -18, 4, 20); ctx.fillRect(14, -2, 4, 18);
-      ctx.fillStyle = '#10B981'; for (let k = 0; k < 4; k++) ctx.fillRect(-14, -16 + k * 5, 28, 3);
+    case 'chair': // a folding lawn chair: aluminum tubes, green and white webbing
+      ink(ctx, () => { ctx.rect(-18, -2, 36, 4); ctx.rect(-18, -18, 4, 20); ctx.rect(14, -2, 4, 18); }, '#D1D5DB');
+      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-17, -17, 1, 18); ctx.fillRect(-17, -1, 34, 1);
+      for (let k = 0; k < 4; k++) { ctx.fillStyle = k % 2 ? '#F8FAFC' : '#10B981'; ctx.fillRect(-14, -16 + k * 5, 28, 3); ctx.fillStyle = k % 2 ? '#CBD5E1' : '#047857'; ctx.fillRect(-14, -14 + k * 5, 28, 1); }
+      ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(-14.5, -16.5, 29, 19);
       break;
-    case 'flamingo': // a plastic lawn flamingo
-      ctx.fillStyle = '#F472B6'; ctx.beginPath(); ctx.ellipse(0, 0, 14, 9, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillRect(10, -20, 4, 18); ctx.beginPath(); ctx.arc(14, -20, 5, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#111827'; ctx.fillRect(18, -20, 5, 3);
-      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(-2, 8, 2, 12);
+    case 'flamingo': // a plastic lawn flamingo: pink, inked, a darker wing, the black-tipped beak, its wire legs
+      ctx.strokeStyle = '#6B7280'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-2, 8); ctx.lineTo(-2, 20); ctx.moveTo(3, 8); ctx.lineTo(5, 20); ctx.stroke();
+      ink(ctx, () => ctx.ellipse(0, 0, 14, 9, 0, 0, Math.PI * 2), '#F472B6');
+      ink(ctx, () => ctx.ellipse(-3, 0, 8, 5, -0.2, 0, Math.PI * 2), '#DB2777');
+      ctx.fillStyle = '#FBCFE8'; ctx.fillRect(-8, -7, 8, 2);
+      ctx.strokeStyle = INK; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(10, -2); ctx.quadraticCurveTo(15, -10, 12, -20); ctx.stroke();
+      ctx.strokeStyle = '#F472B6'; ctx.lineWidth = 4; ctx.stroke();
+      ink(ctx, () => ctx.arc(14, -20, 5, 0, Math.PI * 2), '#F472B6');
+      ink(ctx, () => { ctx.moveTo(18, -22); ctx.lineTo(24, -20); ctx.lineTo(21, -16); ctx.lineTo(18, -18); ctx.closePath(); }, '#FBCFE8');
+      ctx.fillStyle = '#111827'; ctx.fillRect(21, -19, 3, 3); ctx.fillRect(14, -22, 2, 2);
       break;
-    case 'cart': // a shopping cart
-      ctx.strokeStyle = '#94A3B8'; ctx.lineWidth = 2;
-      ctx.strokeRect(-18, -14, 34, 20); for (let k = -12; k < 16; k += 6) { ctx.beginPath(); ctx.moveTo(k, -14); ctx.lineTo(k, 6); ctx.stroke(); }
-      ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.arc(-12, 12, 4, 0, Math.PI * 2); ctx.arc(10, 12, 4, 0, Math.PI * 2); ctx.fill();
+    case 'cart': // a shopping cart: the wire basket, its red handle, the casters
+      ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.strokeRect(-18, -14, 34, 20);
+      ctx.strokeStyle = '#CBD5E1'; ctx.lineWidth = 1.5; ctx.strokeRect(-18, -14, 34, 20);
+      ctx.strokeStyle = '#94A3B8'; ctx.lineWidth = 1; ctx.beginPath();
+      for (let k = -12; k < 16; k += 6) { ctx.moveTo(k + 0.5, -14); ctx.lineTo(k + 0.5, 6); }
+      ctx.moveTo(-18, -4.5); ctx.lineTo(16, -4.5); ctx.stroke();
+      ink(ctx, () => ctx.rect(14, -20, 8, 4), '#DC2626');
+      ink(ctx, () => ctx.rect(-16, 6, 30, 2), '#9CA3AF');
+      for (const wx of [-12, 10]) { ink(ctx, () => ctx.arc(wx, 12, 4, 0, Math.PI * 2), '#1F2937'); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(wx - 1, 11, 2, 2); }
       break;
-    case 'sign': // a stop sign on a bit of pole
-      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(-2, 6, 4, 14);
-      ctx.fillStyle = '#DC2626'; ctx.beginPath(); for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2 + Math.PI / 8; ctx.lineTo(Math.cos(a) * 15, Math.sin(a) * 15 - 4); } ctx.fill();
+    case 'sign': { // a stop sign on a bit of pole: the white rim, the bolts, the pole snapped
+      ink(ctx, () => ctx.rect(-2, 6, 4, 14), '#9CA3AF'); ctx.fillStyle = '#D1D5DB'; ctx.fillRect(-1, 6, 1, 14);
+      const oct = (r: number) => { for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2 + Math.PI / 8; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r - 4); } ctx.closePath(); };
+      ink(ctx, () => oct(15), '#F8FAFC');
+      ctx.beginPath(); oct(13); ctx.fillStyle = '#DC2626'; ctx.fill();
+      ctx.fillStyle = '#EF4444'; ctx.fillRect(-8, -14, 10, 2);
+      ctx.fillStyle = '#991B1B'; ctx.fillRect(-4, 6, 10, 1);
       ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 6px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('STOP', 0, -2);
+      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(-1, -15, 2, 2); ctx.fillRect(-1, 5, 2, 2);
       break;
-    case 'tire':
-      ctx.fillStyle = '#1F2937'; ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#6B7280'; ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI * 2); ctx.fill();
+    }
+    case 'tire': // a tire: tread blocks, the rim, its lug nuts
+      ink(ctx, () => ctx.arc(0, 0, 16, 0, Math.PI * 2), '#1F2937');
+      ctx.fillStyle = '#111827'; for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2; ctx.fillRect(Math.round(Math.cos(a) * 14) - 1, Math.round(Math.sin(a) * 14) - 1, 3, 3); }
+      ctx.strokeStyle = '#4B5563'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 11, Math.PI * 1.1, Math.PI * 1.7); ctx.stroke();
+      ink(ctx, () => ctx.arc(0, 0, 7, 0, Math.PI * 2), '#9CA3AF');
+      ctx.fillStyle = '#4B5563'; for (let k = 0; k < 5; k++) { const a = k / 5 * Math.PI * 2; ctx.fillRect(Math.round(Math.cos(a) * 4) - 1, Math.round(Math.sin(a) * 4) - 1, 2, 2); }
+      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-4, -5, 2, 2);
       break;
-    case 'cow': // a cow (it's a hurricane)
-      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-18, -10, 30, 16); ctx.fillRect(10, -14, 10, 10);
-      ctx.fillStyle = '#111827'; ctx.fillRect(-12, -10, 8, 6); ctx.fillRect(0, -2, 7, 6); ctx.fillRect(-16, 6, 4, 8); ctx.fillRect(6, 6, 4, 8);
-      ctx.fillStyle = '#F9A8D4'; ctx.fillRect(16, -8, 5, 4);
+    case 'cow': // a cow (it's a hurricane): inked, patched, horns, a pink muzzle, legs flailing, the udder
+      ink(ctx, () => { ctx.rect(-16, 6, 4, 8); ctx.rect(-8, 6, 4, 7); ctx.rect(2, 6, 4, 8); ctx.rect(8, 6, 4, 7); }, '#F8FAFC');
+      ctx.fillStyle = '#1F2937'; for (const lx of [-16, -8, 2, 8]) ctx.fillRect(lx, 12, 4, 2);
+      ink(ctx, () => ctx.ellipse(-4, 7, 4, 3, 0, 0, Math.PI * 2), '#F9A8D4');
+      ink(ctx, () => ctx.roundRect(-18, -10, 30, 17, 4), '#F8FAFC');
+      ctx.fillStyle = '#CBD5E1'; ctx.fillRect(-16, 3, 26, 3);
+      ctx.fillStyle = '#111827'; ctx.fillRect(-12, -10, 8, 6); ctx.fillRect(-10, -4, 4, 2); ctx.fillRect(0, -2, 7, 6); ctx.fillRect(-16, 0, 4, 4);
+      ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-18, -6); ctx.quadraticCurveTo(-24, -10, -22, -2); ctx.stroke();
+      ink(ctx, () => ctx.roundRect(10, -16, 11, 11, 3), '#F8FAFC');
+      ink(ctx, () => { ctx.rect(11, -19, 2, 3); ctx.rect(18, -19, 2, 3); }, '#FEF3C7');
+      ink(ctx, () => ctx.rect(15, -9, 7, 5), '#F9A8D4');
+      ctx.fillStyle = '#111827'; ctx.fillRect(13, -13, 2, 2); ctx.fillRect(18, -7, 1, 1); ctx.fillRect(20, -7, 1, 1);
       break;
-    case 'jetski':
-      ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.moveTo(-22, 4); ctx.lineTo(22, 4); ctx.lineTo(14, -8); ctx.lineTo(-16, -6); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#111827'; ctx.fillRect(-4, -12, 12, 5); ctx.fillRect(10, -16, 3, 8);
+    case 'jetski': // a jet ski: yellow hull with a stripe, black seat, handlebars
+      ink(ctx, () => { ctx.moveTo(-22, 4); ctx.lineTo(22, 4); ctx.lineTo(14, -8); ctx.lineTo(-16, -6); ctx.closePath(); }, '#FACC15');
+      ctx.fillStyle = '#FEF08A'; ctx.fillRect(-14, -5, 26, 2);
+      ctx.fillStyle = '#2563EB'; ctx.fillRect(-18, 0, 38, 2);
+      ctx.fillStyle = '#A16207'; ctx.fillRect(-20, 3, 40, 1);
+      ink(ctx, () => ctx.roundRect(-6, -12, 14, 5, 2), '#1F2937'); ctx.fillStyle = '#4B5563'; ctx.fillRect(-4, -11, 8, 1);
+      ink(ctx, () => { ctx.rect(10, -16, 3, 8); ctx.rect(7, -17, 9, 2); }, '#374151');
       break;
-    default: // a kettle grill
-      ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.arc(0, -2, 14, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#6B7280'; ctx.fillRect(-10, 10, 2, 10); ctx.fillRect(8, 10, 2, 10); ctx.fillRect(-2, -18, 4, 3);
+    default: // a kettle grill: black enamel with a shine, its vent, the legs
+      ctx.strokeStyle = INK; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(-9, 10); ctx.lineTo(-11, 20); ctx.moveTo(9, 10); ctx.lineTo(11, 20); ctx.stroke();
+      ctx.strokeStyle = '#6B7280'; ctx.lineWidth = 2; ctx.stroke();
+      ink(ctx, () => ctx.arc(0, -2, 14, 0, Math.PI * 2), '#1F2937');
+      ctx.fillStyle = '#111827'; ctx.fillRect(-14, -2, 28, 1);
+      ctx.fillStyle = '#4B5563'; ctx.fillRect(-8, -12, 6, 2); ctx.fillRect(-10, -9, 2, 4);
+      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(-7, -12, 2, 1);
+      ink(ctx, () => ctx.rect(-3, -19, 6, 3), '#6B7280');
+      ctx.fillStyle = '#9CA3AF'; for (let k = -2; k <= 2; k += 2) ctx.fillRect(k * 2, 6, 2, 1);
   }
 };
 
@@ -472,9 +588,24 @@ export const drawDaycare = (ctx: Ctx, state: GameState, dc: Daycare) => {
   drawCutterWreck(ctx, bx - 300, g, f);
   // The swing set, bent in half; a shark on the slide
   const px = bx + 260;
-  ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 5;
-  ctx.beginPath(); ctx.moveTo(px, g); ctx.lineTo(px + 40, g - 60); ctx.lineTo(px + 110, g - 30); ctx.lineTo(px + 160, g); ctx.stroke();
-  ctx.fillStyle = '#64748B'; ctx.beginPath(); ctx.ellipse(px - 120, g - 40, 40, 12, 0.7, 0, Math.PI * 2); ctx.fill();
+  // (the frame's tube: inked, lit along it)
+  ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(px, g); ctx.lineTo(px + 40, g - 60); ctx.lineTo(px + 110, g - 30); ctx.lineTo(px + 160, g);
+  ctx.strokeStyle = INK; ctx.lineWidth = 8; ctx.stroke(); ctx.strokeStyle = '#B91C1C'; ctx.lineWidth = 6; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(px - 1, g - 1); ctx.lineTo(px + 39, g - 61); ctx.lineTo(px + 109, g - 31); ctx.lineTo(px + 159, g - 1);
+  ctx.strokeStyle = '#F87171'; ctx.lineWidth = 2; ctx.stroke();
+  // (the shark, dead on its back where the slide was: gray over a white belly, fins, X for an eye)
+  ctx.save(); ctx.translate(px - 120, g - 40); ctx.rotate(0.7);
+  ink(ctx, () => { ctx.moveTo(-40, 0); ctx.lineTo(-52, -12); ctx.lineTo(-48, 0); ctx.lineTo(-52, 12); ctx.closePath(); }, '#475569');
+  ink(ctx, () => ctx.ellipse(0, 0, 40, 12, 0, 0, Math.PI * 2), '#64748B');
+  ctx.save(); ctx.beginPath(); ctx.ellipse(0, 0, 40, 12, 0, 0, Math.PI * 2); ctx.clip();
+  ctx.fillStyle = '#E2E8F0'; ctx.fillRect(-40, -12, 80, 7); ctx.fillStyle = '#94A3B8'; ctx.fillRect(-40, 6, 80, 6);
+  ctx.restore();
+  ink(ctx, () => { ctx.moveTo(-6, 10); ctx.lineTo(4, 22); ctx.lineTo(10, 10); ctx.closePath(); }, '#475569');
+  ink(ctx, () => { ctx.moveTo(8, -10); ctx.lineTo(14, -18); ctx.lineTo(18, -9); ctx.closePath(); }, '#CBD5E1');
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(26, -3); ctx.lineTo(31, 2); ctx.moveTo(31, -3); ctx.lineTo(26, 2); ctx.stroke();
+  ctx.fillStyle = '#F8FAFC'; for (let k = 0; k < 4; k++) ctx.fillRect(32 + k * 2 - 4, -8 + k, 2, 2);
+  ctx.restore();
   // The other of the Coast Guard (the one aboard is in pieces round the wreck): out on the lawn past the playground
   // (the same size as his crewmate in pieces round the wreck)
   coastieAssUp(ctx, bx + 560, g, 1);
