@@ -29,7 +29,7 @@ import { getStages, getStartingWeapons, sortWeapons, BOSS_WEAPON_MAP, WEAPONS_AF
 import { VULGARITIES, BOSS_DIALOGUE, BOSS_REBUKES, BOSS_SHAT_LINES } from './content/dialogue';
 import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS, menuButtons } from './game/platform/gamepad';
 import WeaponWheel, { wheelIndexAt } from './components/WeaponWheel';
-import { speak, say, isSpeaking, getBossVoice, takeFreshLine, MEATHEAD_MENU_VOICE } from './game/platform/speech';
+import { speak, say, isSpeaking, getBossVoice, takeFreshLine, MEATHEAD_MENU_VOICE, pauseSpeech, silenceAll, stopDeathAnnouncer } from './game/platform/speech';
 import { playLockInSound, playEngageSound, playMenuOk, playMenuBack } from './game/platform/audio';
 
 /** Shows the dev cheat panel on the title screen. */
@@ -174,6 +174,8 @@ const App: React.FC = () => {
   // The music for the screens (in a stage, the game picks: see game/music)
   useEffect(() => {
     setMusicPaused(status === GameStatus.PAUSED);
+    // (and whoever was talking holds where they are till it's unpaused)
+    pauseSpeech(status === GameStatus.PAUSED);
     if (intro !== 'off') setScreenMusic({ song: 'briefing', arr: 'main' });
     else if (status === GameStatus.START) setScreenMusic({ song: 'title', arr: 'main' });
     else if (status === GameStatus.STAGE_SELECT) setScreenMusic(deployingTo ? { song: 'fanfare' } : callOutro ? { song: 'briefing', arr: 'radio' } : { song: 'map', arr: progressionRank >= 1 ? 'set2' : 'main' });
@@ -348,6 +350,8 @@ const App: React.FC = () => {
   };
 
   const handleBossSelect = () => {
+    // (out of the stage: whoever was talking in it shuts up, now)
+    pauseSpeech(false); silenceAll(); stopDeathAnnouncer();
     setSelectedStage(null);
     setSelectedIndex(0);
     setIsVictoryPhase(false);
@@ -356,6 +360,7 @@ const App: React.FC = () => {
   };
 
   const handleQuitToMenu = () => {
+    pauseSpeech(false); silenceAll(); stopDeathAnnouncer();
     setSelectedStage(null);
     setSelectedIndex(0);
     setIsVictoryPhase(false);

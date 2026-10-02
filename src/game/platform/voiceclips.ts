@@ -182,6 +182,21 @@ const fxChain = (ctx: AudioContext, fx: string, out: AudioNode): AudioNode => {
 
 export interface ClipHandle { stop: () => void }
 
+/** What's playing right now, and the speed each is meant to go at (so they can all be held, and let go again). */
+const live = new Map<AudioBufferSourceNode, number>();
+let held = false;
+/**
+ * Every recorded line playing is held where it is (the game's paused), or let go to carry on from there. Done by
+ * the playback speed: a held line just doesn't move (its echoes ring out); the sound effects and the menus aren't
+ * touched.
+ */
+export const holdVoices = (on: boolean) => {
+  if (held === on) return;
+  held = on;
+  for (const [src, rate] of live) { try { src.playbackRate.value = on ? 0 : rate; } catch { /* fine */ } }
+};
+export const voicesHeld = () => held;
+
 /**
  * Plays a recorded line (null if there isn't one). `onStart` when it's actually going (with how long it is, in ms),
  * `onEnd` when it's done or stopped. `radio`: through a radio whatever the voice is.
@@ -199,12 +214,14 @@ export const playClip = (voice: string, text: string, opts: { radio?: boolean; o
     if (stopped || !audio) { end(); return; }
     src = ctx.createBufferSource();
     src.buffer = audio;
-    src.playbackRate.value = spec.rate;
+    src.playbackRate.value = held ? 0 : spec.rate;
+    live.set(src, spec.rate);
     const g = ctx.createGain(); g.gain.value = spec.gain;
     post = ctx.createGain(); post.connect(busFor(ctx));
     src.connect(g);
     g.connect(fxChain(ctx, opts.radio ? 'radio' : spec.fx, post));
-    src.onended = () => { try { g.disconnect(); } catch { /* fine */ } end(); };
+    const me = src;
+    src.onended = () => { live.delete(me); try { g.disconnect(); } catch { /* fine */ } end(); };
     src.start();
     // (a count of what's been said from the recordings, for checking: `window.__voicesPlayed`)
     const w = window as unknown as { __voicesPlayed?: string[] };
@@ -214,6 +231,7 @@ export const playClip = (voice: string, text: string, opts: { radio?: boolean; o
   return {
     stop: () => {
       stopped = true;
+      if (src) live.delete(src);
       try { src?.stop(); } catch { /* fine */ }
       // (its echoes and reverb go quiet with it)
       if (post) { const p = post; p.gain.setTargetAtTime(0, ctx.currentTime, 0.03); setTimeout(() => { try { p.disconnect(); } catch { /* fine */ } }, 400); }

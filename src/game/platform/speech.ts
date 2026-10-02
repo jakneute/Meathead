@@ -1,4 +1,4 @@
-import { hasClip, playClip, voicesLoaded, sentenceTimes, ClipHandle } from './voiceclips';
+import { hasClip, playClip, voicesLoaded, sentenceTimes, ClipHandle, holdVoices } from './voiceclips';
 // Who's talking, and when: every line goes through here. A line that's been recorded (voiceclips.ts: every character
 // has their own voice) plays that; anything that hasn't falls back to the browser's own speech.
 
@@ -197,6 +197,30 @@ export const cutVoice = (prefix: string) => {
     playNext();
   }
 };
+/**
+ * The game's paused: whoever's talking stops where they are (the recordings held, the browser's voice paused), and
+ * nothing waiting gets its turn; unpaused, they pick up where they left off. Nothing's timed out over the pause.
+ */
+let pausedAt = 0;
+export const pauseSpeech = (on: boolean) => {
+  if (on === (pausedAt > 0)) return;
+  if (on) {
+    pausedAt = Date.now();
+    holdVoices(true);
+    if (synthOK()) window.speechSynthesis.pause();
+    return;
+  }
+  const gap = Date.now() - pausedAt;
+  pausedAt = 0;
+  // (the clocks on what's on and what's waiting don't count the pause)
+  if (current) { current.deadline += gap; current.startedAt += gap; }
+  for (const l of queue) l.queuedAt += gap;
+  if (death && death.over !== Infinity) death.over += gap;
+  if (engineBusySince) engineBusySince += gap;
+  holdVoices(false);
+  if (synthOK()) window.speechSynthesis.resume();
+};
+
 /** Everybody quiet, now: the line on, anything waiting, anything playing outside the queue (not the death announcer). */
 export const silenceAll = () => {
   cancelSpeech();
@@ -284,6 +308,8 @@ const start = (line: Line) => {
 
 const busy = () => {
   const now = Date.now();
+  // (paused: whatever's on is still on, held)
+  if (pausedAt) return !!current || outside > 0;
   if (current && now > current.deadline) {
     // Its end never came (a lost event): call it done, and make sure the engine's really quiet
     const stale = current;
