@@ -41,10 +41,15 @@ export const drawCustomBossArena = (
         // (more of it wrecked every time his truck's been through: what's standing goes crooked, then goes over, and
         // lies where it fell: see drawDaleDisarray and drawDaleRuin)
         const d = state ? state.enemies.find(e => e.type === 'boss') ?? state.deadBoss ?? undefined : undefined;
-        const runs = d?.truckPasses ?? 0;
-        drawDaleArena(ctx, arenaLeft, arenaRight, arenaW, ceilingY, groundY, frame, runs);
-        drawDaleRuin(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, Math.min(1, runs / DALE_RUIN_PASSES));
-        drawDaleDisarray(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, runs);
+        // (each thing in the place goes when the truck gets to it on its way through, not when it sets off: the runs
+        // that are over, and this one too wherever its front's already been)
+        const active = !!d?.truckActive && d.truckX !== undefined;
+        const front = active ? d!.truckX! + 350 : -1e9;
+        const done = (d?.truckPasses ?? 0) - (active ? 1 : 0);
+        const runsAt = (x: number) => done + (active && front >= x ? 1 : 0);
+        drawDaleArena(ctx, arenaLeft, arenaRight, arenaW, ceilingY, groundY, frame, runsAt);
+        drawDaleRuin(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, Math.min(1, runsAt(arenaLeft + arenaW / 2) / DALE_RUIN_PASSES));
+        drawDaleDisarray(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, runsAt);
       }
       if (state) drawDaleWalls(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, state.enemies.find(e => e.type === 'boss') ?? state.deadBoss ?? undefined, state.doorState === 'done');
       break;
@@ -715,8 +720,8 @@ const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453
 const DALE_FALL = { gondola0: 4, gondola1: 5, signs: 4, portrait: 4, bp: 3, wet: 1 };
 const daleTilt = (n: number, fallsAt: number) => (n >= fallsAt ? -1 : Math.min(1, Math.max(0, n - (fallsAt - 3)) / 2));
 
-const drawDaleDisarray = (ctx: CanvasRenderingContext2D, left: number, right: number, top: number, bottom: number, frame: number, n: number) => {
-  if (n <= 0) return;
+const drawDaleDisarray = (ctx: CanvasRenderingContext2D, left: number, right: number, top: number, bottom: number, frame: number, runsAt: (x: number) => number) => {
+  if (runsAt(right + 400) <= 0) return;
   ctx.save();
   const stock = ['#EF4444', '#F97316', '#FACC15', '#22C55E', '#3B82F6', '#A855F7', '#F8FAFC', '#EC4899'];
   // A shelving unit down on its side across the floor, its stock spilled out in front of it
@@ -737,10 +742,10 @@ const drawDaleDisarray = (ctx: CanvasRenderingContext2D, left: number, right: nu
     }
     void gw;
   };
-  if (daleTilt(n, DALE_FALL.gondola0) < 0) downShelf(left + 60, 180, 1, 11);
-  if (daleTilt(n, DALE_FALL.gondola1) < 0) downShelf(left + 420, 150, -1, 29);
+  if (daleTilt(runsAt(left + 150), DALE_FALL.gondola0) < 0) downShelf(left + 60, 180, 1, 11);
+  if (daleTilt(runsAt(left + 345), DALE_FALL.gondola1) < 0) downShelf(left + 420, 150, -1, 29);
   // The aisle signs, down
-  if (n >= DALE_FALL.signs) {
+  if (runsAt(left + 150) >= DALE_FALL.signs) {
     for (const [sx, color, text, rot] of [[left + 170, '#2563EB', 'PAIN RELIEF', 0.2], [left + 330, '#7C3AED', 'SLEEP AIDS', -0.35]] as [number, string, string, number][]) {
       ctx.save(); ctx.translate(sx, bottom - 12); ctx.rotate(rot);
       ctx.fillStyle = color; ctx.fillRect(-50, -11, 100, 22);
@@ -749,27 +754,28 @@ const drawDaleDisarray = (ctx: CanvasRenderingContext2D, left: number, right: nu
     }
   }
   // Dale's portrait, face down on the floor, the frame cracked
-  if (n >= DALE_FALL.portrait) {
+  if (runsAt(left + 345) >= DALE_FALL.portrait) {
     ctx.save(); ctx.translate(left + 300, bottom - 6); ctx.rotate(0.08);
     ctx.fillStyle = '#CA8A04'; ctx.fillRect(-36, -8, 72, 9); ctx.fillStyle = '#78350F'; ctx.fillRect(-36, -8, 72, 2);
     ctx.restore();
   }
   // The blood pressure machine, on its side
-  if (n >= DALE_FALL.bp) {
+  if (runsAt(left + 475) >= DALE_FALL.bp) {
     ctx.save(); ctx.translate(left + 520, bottom); ctx.rotate(-Math.PI / 2 + 0.05);
     ctx.fillStyle = '#1E40AF'; ctx.fillRect(0, 0, 50, 120); ctx.fillStyle = '#93C5FD'; ctx.fillRect(8, 10, 34, 20);
     ctx.fillStyle = '#DC2626'; ctx.fillRect(12, 60, 26, 26);
     ctx.restore();
   }
   // The wet floor sign, kicked over
-  if (n >= DALE_FALL.wet) {
+  if (runsAt(left + 262) >= DALE_FALL.wet) {
     ctx.save(); ctx.translate(left + 230, bottom - 4); ctx.rotate(1.4);
     ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(0, -40); ctx.lineTo(12, 0); ctx.fill();
     ctx.restore();
   }
   // Pill bottles, boxes, baskets everywhere (more every run)
-  for (let k = 0; k < Math.min(80, n * 14); k++) {
+  for (let k = 0; k < 80; k++) {
     const x = left + 20 + hash(k * 7.7 + 3) * (right - left - 40), hsh = hash(k * 1.9 + 5);
+    if (k >= runsAt(x) * 14) continue;
     ctx.save(); ctx.translate(x, bottom - 3 - (k % 4)); ctx.rotate((hsh - 0.5) * 3);
     if (k % 9 === 0) { ctx.strokeStyle = '#DC2626'; ctx.lineWidth = 2; ctx.strokeRect(-9, -6, 18, 10); }
     else if (k % 3 === 0) { ctx.fillStyle = '#F59E0B'; ctx.fillRect(-3, -6, 6, 9); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-3, -8, 6, 2); }
@@ -778,7 +784,7 @@ const drawDaleDisarray = (ctx: CanvasRenderingContext2D, left: number, right: nu
   }
   // Pills spilled in drifts, glinting
   ctx.fillStyle = '#FDE68A';
-  for (let k = 0; k < Math.min(160, n * 26); k++) ctx.fillRect(Math.round(left + 30 + hash(k * 3.1 + 40) * (right - left - 60)), bottom - 2 - Math.round(hash(k + 77) * 3), 2, 2);
+  for (let k = 0; k < 160; k++) { const x = left + 30 + hash(k * 3.1 + 40) * (right - left - 60); if (k < runsAt(x) * 26) ctx.fillRect(Math.round(x), bottom - 2 - Math.round(hash(k + 77) * 3), 2, 2); }
   ctx.restore();
 };
 
@@ -865,7 +871,7 @@ const drawDaleArena = (
   top: number,
   bottom: number,
   frame: number,
-  runs = 0,
+  runsAt: (x: number) => number = () => 0,
 ) => {
   // 0. Above the ceiling: the roof's dark underside, ducts and joists
   ctx.fillStyle = '#292524'; ctx.fillRect(left - 40, top - 200, w + 80, 200);
@@ -887,6 +893,7 @@ const drawDaleArena = (
   for (let i = 0; i < 4; i++) {
     const lx = left + 70 + i * 170;
     // (knocked loose by the runs through: more of them out, hanging off one end, swinging)
+    const runs = runsAt(lx + 55);
     const loose = runs >= 1 + i;
     const on = !(i === 2 && Math.floor(frame / 9) % 11 < 2) && !(runs >= 2 + i * 2);
     if (loose) {
@@ -910,6 +917,7 @@ const drawDaleArena = (
   // 3. Hanging signs down the aisles
   const hangSign = (x: number, text: string, color: string) => {
     // (swinging off one chain once it's been hit, down on the floor after: see drawDaleDisarray)
+    const runs = runsAt(x);
     if (runs >= DALE_FALL.signs) return;
     if (runs >= 2) {
       ctx.save(); ctx.translate(x + 30, top + 34); ctx.rotate(0.6 + Math.sin(frame * 0.06) * 0.1);
@@ -930,6 +938,7 @@ const drawDaleArena = (
   const gondola = (x: number, gw: number, fallsAt: number, dir: number) => {
     // (leaning more every run, then over: it's down on the floor, see drawDaleDisarray; a clean patch on the wall
     // where it stood)
+    const runs = runsAt(x + gw / 2);
     const lean = daleTilt(runs, fallsAt);
     if (lean < 0) { ctx.fillStyle = 'rgba(255, 255, 255, 0.25)'; ctx.fillRect(x, bottom - 214, gw, 214); return; }
     ctx.save();
@@ -958,13 +967,14 @@ const drawDaleArena = (
 
   // 5. The pharmacy counter at the back: pill shelves, Rx, a neon sign, Dale's face
   const cx = right - 290, cw = 250;
+  const counterRuns = runsAt(cx + cw / 2);
   ctx.fillStyle = '#F5F5F4'; ctx.fillRect(cx, bottom - 290, cw, 200);
   for (let s = 0; s < 4; s++) {
     ctx.fillStyle = '#A8A29E'; ctx.fillRect(cx + 10, bottom - 250 + s * 40, cw - 20, 3);
     for (let k = 0; k < 14; k++) {
       // (knocked off the shelves, more every run; the ones left tipped over)
-      if (hash(k * 5 + s * 11 + 3) < runs * 0.13) continue;
-      const tip = hash(k + s * 7 + 1) < runs * 0.1;
+      if (hash(k * 5 + s * 11 + 3) < counterRuns * 0.13) continue;
+      const tip = hash(k + s * 7 + 1) < counterRuns * 0.1;
       ctx.fillStyle = hash(k + s * 20) > 0.3 ? '#F59E0B' : '#F8FAFC';
       if (tip) { ctx.fillRect(cx + 12 + k * 16, bottom - 256 + s * 40, 16, 10); continue; }
       ctx.fillRect(cx + 14 + k * 16, bottom - 266 + s * 40, 10, 16); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(cx + 14 + k * 16, bottom - 270 + s * 40, 10, 4);
@@ -988,9 +998,10 @@ const drawDaleArena = (
   ctx.fillStyle = '#4C1D95'; ctx.font = 'bold 26px serif'; ctx.fillText('Rx', cx + cw / 2, bottom - 36);
   // Dale's framed portrait (crooked after a run or two; down on the floor after that, a clean patch where it hung)
   const px = left + 345;
-  if (runs >= DALE_FALL.portrait) { ctx.fillStyle = 'rgba(255, 255, 255, 0.35)'; ctx.fillRect(px - 30, bottom - 330, 60, 72); ctx.fillStyle = '#57534E'; ctx.fillRect(px - 1, bottom - 336, 2, 4); }
+  const portraitRuns = runsAt(px);
+  if (portraitRuns >= DALE_FALL.portrait) { ctx.fillStyle = 'rgba(255, 255, 255, 0.35)'; ctx.fillRect(px - 30, bottom - 330, 60, 72); ctx.fillStyle = '#57534E'; ctx.fillRect(px - 1, bottom - 336, 2, 4); }
   else {
-  ctx.save(); if (runs >= 1) { ctx.translate(px, bottom - 334); ctx.rotate(0.12 * Math.min(runs, 3)); ctx.translate(-px, -(bottom - 334)); }
+  ctx.save(); if (portraitRuns >= 1) { ctx.translate(px, bottom - 334); ctx.rotate(0.12 * Math.min(portraitRuns, 3)); ctx.translate(-px, -(bottom - 334)); }
   ctx.fillStyle = '#CA8A04'; ctx.fillRect(px - 30, bottom - 330, 60, 72);
   ctx.fillStyle = '#6D28D9'; ctx.fillRect(px - 24, bottom - 324, 48, 60);
   ctx.fillStyle = '#F5CBA7'; ctx.beginPath(); ctx.arc(px, bottom - 300, 11, 0, Math.PI * 2); ctx.fill();
@@ -1001,14 +1012,14 @@ const drawDaleArena = (
 
   // 6. Odds and ends: a blood pressure machine, a security mirror, a wet floor sign
   const bpx = left + 450;
-  if (runs < DALE_FALL.bp) {
+  if (runsAt(bpx + 25) < DALE_FALL.bp) {
     ctx.fillStyle = '#1E40AF'; ctx.fillRect(bpx, bottom - 120, 50, 120); ctx.fillStyle = '#93C5FD'; ctx.fillRect(bpx + 8, bottom - 110, 34, 20);
     ctx.fillStyle = '#DC2626'; ctx.fillRect(bpx + 12, bottom - 60, 26, 26); ctx.fillStyle = '#FFFFFF'; ctx.font = '4px "Press Start 2P", sans-serif'; ctx.fillText('FREE', bpx + 25, bottom - 45);
   }
   ctx.fillStyle = '#E5E7EB'; ctx.beginPath(); ctx.arc(right - 30, top + 70, 22, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = 'rgba(148, 163, 184, 0.6)'; ctx.beginPath(); ctx.arc(right - 30, top + 70, 18, 0, Math.PI * 2); ctx.fill();
-  if (runs >= 2) { ctx.strokeStyle = '#334155'; ctx.lineWidth = 1; for (let c = 0; c < 5; c++) { const a = c * 1.3; ctx.beginPath(); ctx.moveTo(right - 34, top + 66); ctx.lineTo(right - 34 + Math.cos(a) * 18, top + 66 + Math.sin(a) * 18); ctx.stroke(); } }
-  if (runs < DALE_FALL.wet) {
+  if (runsAt(right - 30) >= 2) { ctx.strokeStyle = '#334155'; ctx.lineWidth = 1; for (let c = 0; c < 5; c++) { const a = c * 1.3; ctx.beginPath(); ctx.moveTo(right - 34, top + 66); ctx.lineTo(right - 34 + Math.cos(a) * 18, top + 66 + Math.sin(a) * 18); ctx.stroke(); } }
+  if (runsAt(left + 262) < DALE_FALL.wet) {
     ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.moveTo(left + 250, bottom); ctx.lineTo(left + 262, bottom - 40); ctx.lineTo(left + 274, bottom); ctx.fill();
     ctx.fillStyle = '#111'; ctx.font = '4px "Press Start 2P", sans-serif'; ctx.fillText('WET', left + 262, bottom - 14);
   }

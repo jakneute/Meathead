@@ -67,7 +67,7 @@ const driveTruck = (ctx: FrameContext, boss: Enemy) => {
   const truck = { x: boss.truckX!, y: TRUCK.y, w: TRUCK.w, h: TRUCK.h };
   // The first time through, it takes the pharmacy's front doors out on the way in, and the back wall on the way out
   // ...and every time after, it takes more of each end with it on the way through
-  if (!boss.truckThroughLeft && truck.x + truck.w >= ARENA_LEFT - 30) { boss.truckThroughLeft = true; if (boss.leftWallDownAt === undefined) smashWall(ctx, boss, 'left'); plowThrough(ctx, boss, 'left'); }
+  if (!boss.truckThroughLeft && truck.x + truck.w >= ARENA_LEFT + 10) { boss.truckThroughLeft = true; if (boss.leftWallDownAt === undefined) smashWall(ctx, boss, 'left'); plowThrough(ctx, boss, 'left'); }
   if (!boss.truckThroughRight && !boss.truckCrashing && truck.x + truck.w >= ARENA_RIGHT + 10) { boss.truckThroughRight = true; if (boss.rightWallDownAt === undefined) smashWall(ctx, boss, 'right'); plowThrough(ctx, boss, 'right'); }
   const hits = (e: { pos: { x: number, y: number }, width: number, height: number }) =>
     e.pos.x < truck.x + truck.w && e.pos.x + e.width > truck.x && e.pos.y < truck.y + truck.h && e.pos.y + e.height > truck.y;
@@ -144,10 +144,15 @@ const smashWall = (ctx: FrameContext, boss: Enemy, side: 'left' | 'right') => {
  * drawing), and it goes with a big rumble: the screen shaking harder the more of it there is to come down, the
  * crash, the rumble after, the wall and the ceiling over it coming down in chunks.
  */
+/** How many runs through it takes before there's nothing left in the place for the truck to wreck (see the arena's drawing). */
+const NOTHING_LEFT_AFTER = 7;
+
 const plowThrough = (ctx: FrameContext, boss: Enemy, side: 'left' | 'right') => {
   const { state, fx } = ctx;
   const n = side === 'left' ? (boss.leftThroughs = (boss.leftThroughs ?? 0) + 1) : (boss.rightThroughs = (boss.rightThroughs ?? 0) + 1);
   if (side === 'left') boss.leftThroughAt = state.frame; else boss.rightThroughAt = state.frame;
+  // (nothing left to wreck by now: it just drives through what's left, no crash, no rumble, nothing coming down)
+  if ((boss.truckPasses ?? 0) > NOTHING_LEFT_AFTER) return;
   const x = side === 'left' ? ARENA_LEFT + 10 : ARENA_RIGHT - 10;
   shakeScreen(state, 30 + n * 6, Math.min(22, 10 + n * 2));
   fx.playGunSound('crash');
