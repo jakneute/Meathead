@@ -6,6 +6,7 @@
 // bikers on their choppers.
 // Drawn like the rest: facing right from a point at the feet, flipped by the caller.
 
+import { INK, ink, shaded, shadedTop, lite, dark, eye, limb } from '../npc/kit';
 import { Enemy } from '../../../types';
 import type { GameState } from '../../core/state';
 import { drawFire } from '../fx/fire';
@@ -147,28 +148,73 @@ const drawDeputy = (ctx: Ctx, e: Enemy, f: number) => {
 
 /** An armadillo: banded shell, a little pointed face, a tail. Rolls up into a ball to come at you. */
 const drawArmadillo = (ctx: Ctx, e: Enemy, f: number) => {
+  const shell = '#A8927A', band = '#6B5B4A', skin = '#C4AE92', skinD = '#8B7A66';
   const rolling = e.aiState === 'lunge';
   if (rolling) {
-    // A ball, rolling
-    ctx.save(); ctx.translate(0, -11); ctx.rotate(f * 0.5 * (e.facing ?? 1));
-    ctx.fillStyle = '#A8927A'; ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#6B5B4A'; ctx.lineWidth = 1.5;
-    for (let k = -2; k <= 2; k++) { ctx.beginPath(); ctx.arc(0, 0, 11, k * 0.6 - 0.25, k * 0.6 + 0.25); ctx.lineTo(0, 0); ctx.stroke(); }
+    // A ball, rolling: lit from the upper left whichever way it's turned, the bands going round under the light
+    ctx.save(); ctx.translate(0, -11);
+    const ball = () => ctx.arc(0, 0, 11, 0, Math.PI * 2);
+    ctx.save(); ctx.beginPath(); ball(); ctx.clip();
+    ctx.fillStyle = dark(shell, 0.25); ctx.fillRect(-11, -11, 22, 22);
+    ctx.fillStyle = shell; ctx.beginPath(); ctx.arc(-1.5, -1.5, 9.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = lite(shell, 0.22); ctx.beginPath(); ctx.arc(-4, -4, 5.5, 0, Math.PI * 2); ctx.fill();
+    ctx.rotate(f * 0.5 * (e.facing ?? 1));
+    // (the bands, curled round from where the head and tail tuck in; the head's cap and the tail tip showing)
+    for (let k = 1; k <= 4; k++) {
+      const r = 3 + k * 4.4;
+      ctx.strokeStyle = band; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(-12, 0, r, -1.3, 1.3); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(-12, 0, r + 1.2, -1.1, 1.1); ctx.stroke();
+    }
+    ink(ctx, () => ctx.ellipse(-9, -1, 3, 4.5, 0, 0, Math.PI * 2), skinD, 0.8);
+    limb(ctx, -10, 4, -6, 7, 1.6, skinD);
     ctx.restore();
+    ctx.beginPath(); ball(); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-6, -7, 2, 1);
+    ctx.restore();
+    if (f % 6 < 3) pixelBlob(ctx, -12 - (f % 6), -2, 4, 2, 'rgba(214, 196, 160, 0.7)');
     return;
   }
   const walk = Math.abs(e.vel.x) > 0.3 ? Math.sin(f * 0.4) * 2 : 0;
   const hunch = e.aiState === 'bristle' ? 2 : 0;
-  ctx.fillStyle = '#8B7A66';
-  ctx.fillRect(-12 + walk, -5, 4, 5); ctx.fillRect(8 - walk, -5, 4, 5);
-  ctx.fillRect(-18, -8, 7, 3); // tail
-  ctx.fillStyle = '#A8927A'; ctx.beginPath(); ctx.ellipse(0, -10 - hunch, 16, 9 + hunch, 0, Math.PI, 0); ctx.fill();
-  ctx.fillRect(-16, -10, 32, 4);
-  ctx.strokeStyle = '#6B5B4A'; ctx.lineWidth = 1.2; for (let x = -10; x <= 10; x += 4) { ctx.beginPath(); ctx.moveTo(x, -18 - hunch); ctx.lineTo(x, -7); ctx.stroke(); }
-  // The head: a long snout, big ears
-  ctx.fillStyle = '#C4AE92'; ctx.beginPath(); ctx.moveTo(14, -12); ctx.lineTo(26, -6); ctx.lineTo(14, -5); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#8B7A66'; ctx.beginPath(); ctx.ellipse(14, -15, 2, 4, -0.3, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#111827'; ctx.fillRect(17, -10, 2, 2);
+  // A leg: stubby, shaded, a broad foot, the digging claws
+  const leg = (lx: number, back: boolean) => {
+    const c = back ? dark(skinD, 0.25) : skinD;
+    shaded(ctx, () => ctx.roundRect(lx - 2.5, -7, 5, 6, 1.5), c, lx - 2.5, -7, 5, 6, 1);
+    ink(ctx, () => ctx.ellipse(lx + 0.5, -1, 3.4, 1.4, 0, 0, Math.PI * 2), c, 0.8);
+    ctx.strokeStyle = '#E7E5E4'; ctx.lineWidth = 0.7; ctx.beginPath(); ctx.moveTo(lx + 3, -1.6); ctx.lineTo(lx + 4.6, -0.3); ctx.moveTo(lx + 3.4, -0.9); ctx.lineTo(lx + 4.8, 0.2); ctx.stroke();
+  };
+  leg(-9 - walk, true); leg(11 + walk, true);
+  // The tail: tapering, ringed
+  shaded(ctx, () => { ctx.moveTo(-13, -11); ctx.quadraticCurveTo(-20, -8, -25, -3); ctx.lineTo(-24.5, -2); ctx.quadraticCurveTo(-19, -4, -13, -5.5); ctx.closePath(); }, shell, -25, -11, 12, 9);
+  ctx.strokeStyle = band; ctx.lineWidth = 0.8;
+  for (let k = 0; k < 4; k++) { const tx = -15.5 - k * 2.4, ty = -8.5 + k * 1.4; ctx.beginPath(); ctx.moveTo(tx, ty - 1.8 + k * 0.3); ctx.lineTo(tx - 0.5, ty + 1.6 - k * 0.3); ctx.stroke(); }
+  // The shell: lit along the top, the belly in shadow; the shield over the shoulders, the bands across the middle,
+  // the shield over the rump; the scutes picked out in the light, the skirt scalloped along the bottom
+  const top = -19 - hunch * 2;
+  const shellPath = () => { ctx.moveTo(-17, -5); ctx.lineTo(-17, -9); ctx.ellipse(0, -9 - hunch, 17, 10 + hunch, 0, Math.PI, 0); ctx.lineTo(17, -5); ctx.closePath(); };
+  shadedTop(ctx, shellPath, shell, -17, top, 34, -5 - top);
+  ctx.save(); ctx.beginPath(); shellPath(); ctx.clip();
+  for (let x = -6; x <= 6; x += 3) {
+    ctx.fillStyle = band; ctx.fillRect(x - 0.5, top, 1.2, 20);
+    ctx.fillStyle = lite(shell, 0.3); ctx.fillRect(x + 0.7, top + 2 + hunch, 0.8, 4);
+  }
+  ctx.fillStyle = lite(shell, 0.35);
+  for (const [sx, sy] of [[-14, -11], [-11, -15], [-12, -9], [-9, -12], [9, -14], [12, -11], [10, -9], [14, -8]]) ctx.fillRect(sx, sy - hunch, 1.2, 1.2);
+  ctx.fillStyle = dark(shell, 0.3);
+  for (const [sx, sy] of [[-13, -13], [-10, -9.5], [11, -12], [13, -9.5]]) ctx.fillRect(sx, sy - hunch, 1.2, 1.2);
+  ctx.fillStyle = dark(shell, 0.35);
+  for (let x = -16; x < 17; x += 3) ctx.fillRect(x, -6.6, 1, 1.6);
+  ctx.restore();
+  ctx.beginPath(); shellPath(); ctx.strokeStyle = INK; ctx.lineWidth = 1.1; ctx.stroke();
+  leg(-12 + walk, false); leg(8 - walk, false);
+  // The head: a long pointed snout, the bony cap on top, a big ear, the little eye
+  ink(ctx, () => ctx.ellipse(14.5, -15, 2.2, 4.4, -0.3, 0, Math.PI * 2), skinD, 0.8);
+  ctx.fillStyle = '#C08A7A'; ctx.fillRect(14.5, -17, 0.8, 3);
+  shaded(ctx, () => { ctx.moveTo(13, -13.5); ctx.quadraticCurveTo(20, -12.5, 27, -6.5); ctx.lineTo(26.5, -4.8); ctx.quadraticCurveTo(20, -4, 13, -5); ctx.closePath(); }, skin, 13, -13.5, 14, 9);
+  ink(ctx, () => { ctx.moveTo(13, -13.6); ctx.quadraticCurveTo(18, -13.4, 21.5, -10.4); ctx.lineTo(19, -10); ctx.quadraticCurveTo(16, -11.4, 13, -11.6); ctx.closePath(); }, shell, 0.7);
+  ctx.fillStyle = INK; ctx.fillRect(17, -10, 1.8, 1.8); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(17.3, -9.9, 0.7, 0.7);
+  ctx.fillStyle = INK; ctx.fillRect(25.6, -6.6, 1.4, 1.2);
+  ctx.strokeStyle = dark(skin, 0.4); ctx.lineWidth = 0.7; ctx.beginPath(); ctx.moveTo(19, -5.2); ctx.lineTo(25, -5.4); ctx.stroke();
 };
 
 /** A Texas longhorn: a big rangy steer, patched red and white, horns out wider than it is long. */
@@ -178,32 +224,69 @@ const drawLonghorn = (ctx: Ctx, e: Enemy, f: number) => {
   const charging = st === 'charge';
   const cycle = charging && !airborne ? f * 0.45 : 0;
   const headDown = charging || st === 'paw' ? 8 : 0;
-  // Legs
-  ctx.fillStyle = '#7C2D12';
-  for (let i = 0; i < 4; i++) {
-    const lx = i < 2 ? 22 + (i % 2) * 7 : -30 + (i % 2) * 7;
-    if (airborne) { ctx.fillRect(lx - 2, -26, 6, 12); continue; }
-    const swing = Math.sin(cycle + i * 1.7) * 8;
-    const pawing = st === 'paw' && i === 0 ? Math.max(0, Math.sin(f * 0.4)) * -7 : 0;
-    ctx.fillRect(lx + swing * 0.4 - 3, -26 + pawing, 6, 26);
-    ctx.fillStyle = '#1C1917'; ctx.fillRect(lx + swing * 0.4 - 3, -4 + pawing, 6, 4); ctx.fillStyle = '#7C2D12';
-  }
-  // Body, patched
-  ctx.fillStyle = '#9A3412'; ctx.beginPath(); ctx.ellipse(-2, -36, 36, 15, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#F5F5F4'; ctx.beginPath(); ctx.ellipse(-8, -40, 12, 8, 0.3, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.ellipse(16, -32, 8, 6, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#7C2D12'; ctx.fillRect(-40, -44, 5, 18); // tail
-  ctx.fillStyle = '#1C1917'; ctx.fillRect(-41, -28, 6, 5);
-  // Head, lowered for the charge, and those horns
+  const hide = '#9A3412', hideD = '#7C2D12', patch = '#F5F5F4', hoof = '#1C1917';
+  // A leg: the upper (thick, shaded), the shin, the hoof (split, a glint on it)
+  const leg = (lx: number, swing: number, lift: number, back: boolean) => {
+    const c = back ? hideD : hide;
+    const kx = lx + swing * 0.25, fx = lx + swing * 0.5;
+    shaded(ctx, () => { ctx.moveTo(lx - 4, -30); ctx.lineTo(lx + 4, -30); ctx.lineTo(kx + 3, -14 - lift); ctx.lineTo(kx - 3, -14 - lift); ctx.closePath(); }, c, lx - 6, -30, 12, 18);
+    shaded(ctx, () => { ctx.moveTo(kx - 3, -15 - lift); ctx.lineTo(kx + 3, -15 - lift); ctx.lineTo(fx + 2.6, -4 - lift); ctx.lineTo(fx - 2.6, -4 - lift); ctx.closePath(); }, c, kx - 4, -15 - lift, 8, 12);
+    ink(ctx, () => ctx.roundRect(fx - 3.6, -5 - lift, 7.2, 5, [1, 1, 1.5, 1.5]), hoof, 1);
+    ctx.fillStyle = '#57534E'; ctx.fillRect(fx - 2.6, -4.4 - lift, 2, 1); ctx.fillStyle = INK; ctx.fillRect(fx - 0.3, -4 - lift, 0.8, 3.6);
+  };
+  // The far legs (behind the body, darker)
+  const legs = (back: boolean) => {
+    for (let i = 0; i < 4; i++) {
+      if ((i % 2 === 1) !== back) continue;
+      const lx = i < 2 ? 22 + (i % 2) * 7 : -30 + (i % 2) * 7;
+      if (airborne) { leg(lx, i < 2 ? 10 : -10, 8, back); continue; }
+      const swing = Math.sin(cycle + i * 1.7) * 8;
+      const pawing = st === 'paw' && i === 0 ? Math.max(0, Math.sin(f * 0.4)) * 7 : 0;
+      leg(lx, swing, pawing, back);
+    }
+  };
+  legs(true);
+  // The tail, its tuft swinging
+  const sw = Math.sin(f * 0.12) * 4;
+  limb(ctx, -36, -44, -42 + sw * 0.3, -26, 3, hideD);
+  ink(ctx, () => ctx.ellipse(-42 + sw * 0.3, -24, 3.4, 5, 0.2, 0, Math.PI * 2), '#292524', 0.8);
+  // The body: a barrel of hide, lit along the back, the belly in shadow; the patches; the ribs and the hump over the
+  // shoulders
+  const body = () => { ctx.moveTo(-38, -42); ctx.quadraticCurveTo(-36, -54, -14, -52); ctx.quadraticCurveTo(10, -56, 24, -54); ctx.quadraticCurveTo(34, -50, 32, -36); ctx.quadraticCurveTo(30, -22, 14, -22); ctx.lineTo(-24, -22); ctx.quadraticCurveTo(-40, -24, -38, -42); ctx.closePath(); };
+  ctx.save(); ctx.beginPath(); body(); ctx.clip();
+  ctx.fillStyle = hide; ctx.fillRect(-42, -58, 80, 40);
+  ctx.fillStyle = lite(hide, 0.18); ctx.fillRect(-42, -58, 80, 8);
+  ctx.fillStyle = dark(hide, 0.2); ctx.fillRect(-42, -30, 80, 10);
+  ctx.fillStyle = patch; ctx.beginPath(); ctx.ellipse(-10, -44, 13, 8, 0.3, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.ellipse(14, -30, 9, 6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#D6D3D1'; ctx.beginPath(); ctx.ellipse(-8, -40, 10, 4, 0.3, 0, Math.PI); ctx.fill();
+  ctx.strokeStyle = dark(hide, 0.35); ctx.lineWidth = 1; for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.moveTo(-2 + k * 6, -46); ctx.quadraticCurveTo(0 + k * 6, -38, -2 + k * 6, -30); ctx.stroke(); }
+  ctx.restore();
+  ctx.beginPath(); body(); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke();
+  legs(false);
+  // The head, lowered for the charge: a long face, the white blaze down it, the pink muzzle and its nostrils, an ear,
+  // the eye (red when it's coming for you), and those horns, out wide, the tips sharp
   const hx = 36, hy = -42 + headDown;
-  ctx.fillStyle = '#9A3412'; ctx.beginPath(); ctx.moveTo(26, -44); ctx.lineTo(hx, hy - 4); ctx.lineTo(hx + 4, hy + 10); ctx.lineTo(26, -26); ctx.fill();
-  ctx.fillStyle = '#F5F5F4'; ctx.beginPath(); ctx.ellipse(hx + 6, hy + 3, 7, 9, 0.2, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#FDA4AF'; ctx.fillRect(hx + 8, hy + 9, 5, 3);
-  ctx.strokeStyle = '#E7E5E4'; ctx.lineWidth = 4; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(hx + 4, hy - 4); ctx.quadraticCurveTo(hx + 26, hy - 10, hx + 34, hy - 26); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(hx + 2, hy - 4); ctx.quadraticCurveTo(hx - 20, hy - 10, hx - 26, hy - 24); ctx.stroke();
-  ctx.lineCap = 'butt';
-  ctx.fillStyle = charging || st === 'paw' ? '#DC2626' : '#111827'; ctx.fillRect(hx + 7, hy - 1, 3, 3);
-  if (st === 'paw' && f % 20 < 8) { ctx.fillStyle = 'rgba(214, 196, 160, 0.7)'; ctx.beginPath(); ctx.arc(hx + 18 + (f % 20), hy + 8, 4 + (f % 20) * 0.3, 0, Math.PI * 2); ctx.fill(); }
+  ctx.save(); ctx.translate(hx, hy); ctx.rotate(headDown ? 0.25 : 0);
+  // (the horns, behind the face's top)
+  for (const side of [-1, 1]) {
+    const hornPath = () => { ctx.moveTo(-2, -6); ctx.quadraticCurveTo(side * 22, -10, side * 32, -24); ctx.lineTo(side * 30, -22); ctx.quadraticCurveTo(side * 20, -4, -2, -1); ctx.closePath(); };
+    ink(ctx, hornPath, '#E7E5E4', 1);
+    ctx.fillStyle = '#A8A29E'; ctx.beginPath(); ctx.moveTo(side * 26, -17); ctx.lineTo(side * 32, -24); ctx.lineTo(side * 30, -22); ctx.fill();
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(side > 0 ? 6 : -10, -8, 4, 1);
+  }
+  ink(ctx, () => ctx.ellipse(-4, -6, 5, 3, -0.5, 0, Math.PI * 2), hideD, 0.8); // the ear
+  shaded(ctx, () => { ctx.moveTo(-8, -6); ctx.quadraticCurveTo(2, -10, 8, -4); ctx.lineTo(13, 10); ctx.quadraticCurveTo(6, 16, 0, 12); ctx.lineTo(-8, 4); ctx.closePath(); }, hide, -9, -10, 23, 26);
+  ctx.save(); ctx.beginPath(); ctx.moveTo(-1, -8); ctx.quadraticCurveTo(4, -4, 6, 4); ctx.lineTo(3, 6); ctx.quadraticCurveTo(0, 0, -3, -6); ctx.closePath(); ctx.fillStyle = patch; ctx.fill(); ctx.restore();
+  ink(ctx, () => ctx.ellipse(8, 10, 6.4, 5, 0.3, 0, Math.PI * 2), '#FDA4AF', 1);
+  ctx.fillStyle = '#9F1239'; ctx.fillRect(7, 9, 1.6, 2); ctx.fillRect(10.6, 10, 1.6, 2);
+  ctx.fillStyle = lite('#FDA4AF', 0.4); ctx.fillRect(5, 7, 3, 1);
+  const mad = charging || st === 'paw';
+  eye(ctx, 3, -1, 2.4, 0.6, 0, mad ? '#FECACA' : '#FFFFFF');
+  if (mad) { ctx.fillStyle = INK; ctx.fillRect(0, -4.6, 6, 1.2); }
+  ctx.restore();
+  // Snorting, pawing: a puff out of its nose, dust off the hoof
+  if (st === 'paw' && f % 20 < 8) { pixelBlob(ctx, hx + 18 + (f % 20), hy + 12, 4 + (f % 20) * 0.4, 3 + (f % 20) * 0.2, 'rgba(214, 196, 160, 0.75)'); }
+  if (mad && f % 30 < 6) { ctx.fillStyle = 'rgba(241, 245, 249, 0.8)'; ctx.fillRect(hx + 16 + (f % 30) * 2, hy + 10, 4, 2); ctx.fillRect(hx + 18 + (f % 30) * 2, hy + 13, 3, 2); }
 };
 
 // ---------------------------------------------------------------------------
@@ -384,19 +467,62 @@ const drawGrackle = (ctx: Ctx, e: Enemy, f: number) => {
   const swooping = e.aiState === 'swoop' || e.aiState === 'skim';
   ctx.translate(0, -e.height / 2);
   const flap = Math.sin(f * (swooping ? 0.5 : 0.35)) * 10;
-  ctx.fillStyle = '#1E1B4B';
-  // Far wing
-  ctx.beginPath(); ctx.moveTo(2, -2); ctx.lineTo(-10, -12 - flap); ctx.lineTo(-18, -8 - flap); ctx.lineTo(-4, 2); ctx.fill();
-  // The long keeled tail, the body
-  ctx.fillStyle = '#0F0B1E'; ctx.beginPath(); ctx.moveTo(-8, -1); ctx.lineTo(-26, -5); ctx.lineTo(-26, 5); ctx.lineTo(-8, 3); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.ellipse(0, 0, 11, 6, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = 'rgba(99, 102, 241, 0.5)'; ctx.beginPath(); ctx.ellipse(1, -2, 8, 2.5, 0, 0, Math.PI * 2); ctx.fill();
-  // Head, beak, that eye
-  ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.arc(11, -3, 4.5, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#1F2937'; ctx.beginPath(); ctx.moveTo(14, -4); ctx.lineTo(22, -2); ctx.lineTo(14, 0); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#FDE047'; ctx.fillRect(12, -5, 2, 2);
-  // Near wing
-  ctx.fillStyle = '#312E81'; ctx.beginPath(); ctx.moveTo(4, -2); ctx.lineTo(-6, -14 + flap); ctx.lineTo(-16, -12 + flap); ctx.lineTo(-2, 3); ctx.fill();
+  const black = '#16142B', gloss = '#3730A3', sheen = '#818CF8';
+  // A wing from the shoulder (sx): the glossed coverts along the front, the primaries fingered at the back
+  const wing = (sx: number, lift: number, c: string) => {
+    const B = [sx - 10, -13 + lift], C = [sx - 20, -10 + lift], D = [sx - 6, 3];
+    const path = () => {
+      ctx.moveTo(sx, -3); ctx.quadraticCurveTo(sx - 3, B[1] - 1, B[0], B[1]); ctx.lineTo(C[0], C[1]);
+      // (the primaries, each one rounded off)
+      const dx = D[0] - C[0], dy = D[1] - C[1], n = Math.hypot(dx, dy) || 1, ox = -dy / n * 2.2, oy = dx / n * 2.2;
+      for (let k = 1; k <= 4; k++) {
+        const t0 = (k - 1) / 4, t1 = k / 4, tm = (t0 + t1) / 2;
+        ctx.quadraticCurveTo(C[0] + dx * tm + ox, C[1] + dy * tm + oy, C[0] + dx * t1, C[1] + dy * t1);
+      }
+      ctx.closePath();
+    };
+    ctx.save(); ctx.beginPath(); path(); ctx.clip();
+    ctx.fillStyle = dark(c, 0.3); ctx.fillRect(sx - 24, -26, 30, 32);
+    ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(sx + 1, -4); ctx.lineTo(B[0], B[1] - 1); ctx.lineTo((B[0] + C[0]) / 2, (B[1] + C[1]) / 2 + 3); ctx.lineTo(sx - 4, 1); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = sheen; ctx.fillRect((sx + B[0]) / 2 - 1, (B[1] - 3) / 2, 2, 1); ctx.fillRect(B[0] + 1, B[1] + 1, 1.5, 1);
+    ctx.strokeStyle = INK; ctx.lineWidth = 0.6;
+    for (let k = 1; k <= 3; k++) { const t = k / 4; ctx.beginPath(); ctx.moveTo(C[0] + (D[0] - C[0]) * t, C[1] + (D[1] - C[1]) * t); ctx.lineTo(B[0] + (sx - B[0]) * t * 0.6 - 1, B[1] + 4 + (-3 - B[1]) * t * 0.5); ctx.stroke(); }
+    ctx.restore();
+    ctx.beginPath(); path(); ctx.strokeStyle = INK; ctx.lineWidth = 0.9; ctx.lineJoin = 'round'; ctx.stroke();
+  };
+  wing(2, -flap, '#1E1B4B');
+  // The long keeled tail: the two vanes folded up into a V, the crease down it, the tips notched
+  ink(ctx, () => { ctx.moveTo(-8, -1); ctx.lineTo(-27, -6); ctx.lineTo(-25.5, -2); ctx.lineTo(-28, 3.5); ctx.lineTo(-25.5, 3); ctx.lineTo(-8, 3); ctx.closePath(); }, black, 0.9);
+  ctx.fillStyle = gloss; ctx.beginPath(); ctx.moveTo(-9, -0.6); ctx.lineTo(-25, -4.8); ctx.lineTo(-24, -2.6); ctx.lineTo(-9, 0.6); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = lite(black, 0.25); ctx.lineWidth = 0.7; ctx.beginPath(); ctx.moveTo(-9, 1); ctx.lineTo(-25, 0.5); ctx.stroke();
+  // The feet, tucked up
+  ctx.strokeStyle = '#27272A'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(1, 5); ctx.lineTo(0, 7.5); ctx.lineTo(2.5, 8); ctx.moveTo(-2, 5); ctx.lineTo(-3, 7.5); ctx.lineTo(-0.5, 8); ctx.stroke();
+  // The body: blue-black, the gloss along the back, the shine picked out, the belly near black
+  const body = () => ctx.ellipse(0, 0, 11, 6, 0, 0, Math.PI * 2);
+  ctx.save(); ctx.beginPath(); body(); ctx.clip();
+  ctx.fillStyle = black; ctx.fillRect(-11, -6, 22, 12);
+  ctx.fillStyle = gloss; ctx.fillRect(-11, -6, 22, 4);
+  ctx.fillStyle = '#4F46E5'; ctx.fillRect(-4, -6, 10, 2);
+  ctx.fillStyle = '#0A0914'; ctx.fillRect(-11, 3, 22, 3);
+  ctx.fillStyle = sheen; ctx.fillRect(0, -5, 3, 1); ctx.fillRect(5, -4, 1, 1);
+  ctx.restore();
+  ctx.beginPath(); body(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
+  // The head (a purple sheen to it), the beak (open on the swoop), that eye, a scowl over it
+  const gape = swooping ? 1.6 : 0;
+  ink(ctx, () => { ctx.moveTo(14, -1); ctx.lineTo(21, -0.8 + gape); ctx.lineTo(14, 0.8); ctx.closePath(); }, '#3F3F46', 0.8);
+  const head = () => ctx.arc(11, -3, 4.5, 0, Math.PI * 2);
+  ctx.save(); ctx.beginPath(); head(); ctx.clip();
+  ctx.fillStyle = black; ctx.fillRect(6, -8, 10, 10);
+  ctx.fillStyle = '#4C1D95'; ctx.fillRect(6, -8, 10, 3.5);
+  ctx.fillStyle = '#A78BFA'; ctx.fillRect(9, -7, 2, 1);
+  ctx.restore();
+  ctx.beginPath(); head(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
+  ink(ctx, () => { ctx.moveTo(14, -4.6); ctx.lineTo(22, -1.8); ctx.lineTo(14, -1); ctx.closePath(); }, '#27272A', 0.8);
+  ctx.fillStyle = '#71717A'; ctx.fillRect(15, -4, 3, 0.8);
+  ink(ctx, () => ctx.arc(12.8, -4, 1.5, 0, Math.PI * 2), '#FDE047', 0.6);
+  ctx.fillStyle = INK; ctx.fillRect(13, -4.4, 0.9, 0.9);
+  ctx.strokeStyle = INK; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.moveTo(10.8, -6.6); ctx.lineTo(14.6, -5.2); ctx.stroke();
+  wing(4, flap, '#312E81');
 };
 
 /** What's left of the mob that came after him: bloodied, singed, a bandage round the head, eyes red, steaming mad. */
