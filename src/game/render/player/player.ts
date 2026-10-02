@@ -1,6 +1,6 @@
 import { Player, WeaponType } from '../../../types';
 import { drawFilthShield } from './filthShield';
-import { BOULDER_THROW_FRAMES, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
+import { BOULDER_THROW_FRAMES, GUN_COOLDOWN, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
 import { SLIDE_HOLD } from '../../combat/muzzle';
 import { drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive, drawStandingKick, drawPedalLegs, drawLedgeDrop } from './moves';
@@ -20,6 +20,9 @@ export interface PlayerDrawOptions {
   /** Surfing (on Barry's man, down out of the sky): knees bent low, arms out wide for balance, throwing a shaka, no gun. */
   surf?: boolean;
 }
+
+/** How long the handgun's kick takes to settle (frames after a shot). */
+const GUN_KICK_FRAMES = 6;
 
 /** Black with soot (a room blown up round him): how long it takes to wear off at the end (frames). */
 export const SOOT_FRAMES = 420;
@@ -900,6 +903,12 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     }
 
     const pump = armPump * 0.3;
+    // The handgun's kick: the arm jolted back at the shoulder and the muzzle flipped up a touch, settling over a few frames
+    const kick = currentWeapon === 'GUN' && !throwing ? Math.max(0, (p.shootCooldown - (GUN_COOLDOWN - GUN_KICK_FRAMES)) / GUN_KICK_FRAMES) : 0;
+    if (kick > 0) {
+      const k = kick * kick;
+      ctx.translate(armBaseX + 6, armBaseY - 3); ctx.rotate(-0.2 * k); ctx.translate(-(armBaseX + 6) - 3 * k, -(armBaseY - 3));
+    }
     {
     // Shoulder at the edge of his chest, elbow down by his side (pumping a little as he walks), the fist out at the gun
     drawArm(ctx, armBaseX + 6, armBaseY - 3, armBaseX + 4 + pump * 0.4, armBaseY + 8, armBaseX + 11 + pump, armBaseY + 6, skinTone, skinShadow, skinHighlight, armBaseX + 15 + pump);
