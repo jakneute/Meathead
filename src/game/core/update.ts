@@ -4,7 +4,7 @@ import { isMidBoss } from '../combat/midBoss';
 import { updateGut, isShat } from '../player/gut';
 import { GameStatus, WeaponType } from '../../types';
 import {
-  CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, ARENA_RIGHT, DOOR_OPEN_SPEED, MAX_AMMO,
+  CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, ARENA_RIGHT, KICK_POSE_FRAMES, MAX_AMMO,
   AMMO_PICKUP_PCT, HEALTH_PICKUP_SMALL, HEALTH_PICKUP_LARGE, PLAYER_STUN_DURATION, PARTICLE_PALETTES,
   SPOKEN_TEXT_HOLD, SPOKEN_TEXT_LINGER, CANVAS_HEIGHT, GROUND_Y,
 } from '../../constants';
@@ -17,14 +17,14 @@ import { updateEnemyDeaths } from '../enemies/deaths';
 import { updateVolcanoFinale } from '../scenes/volcanoFinale';
 import { calmPlayer, DEFAULT_SHAKE, shakeScreen, BOSS_FALL, STAIN_FRAMES, SMEAR_FRAMES, BLAST_FRAMES } from './state';
 import { playSound } from '../platform/audio';
-import { LEVEL_INTRO_STYLE, PLAYER_GRAVITY, PLAYER_TERMINAL_VELOCITY } from '../../constants';
+import { LEVEL_INTRO_STYLE } from '../../constants';
 import { updateBarfStream, updateFlameSegments } from '../combat/weapons';
 import { updateBlood } from '../player/blood';
 import { say, isTalking, deathAnnouncing, stopDeathAnnouncer, announceDeath, silenceAll, MEATHEAD_INTRO_VOICE } from '../platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../platform/skip';
 import { pickRandom, rectsOverlap, boundsOf, isOnScreen } from './utils';
 import { deathByCause, deathFallback } from './deathCause';
-import { killPlayer, DEATH_SCREEN_FRAMES, gateControls, tickPlayerTimers, updatePlayerActions, updatePlayerPhysics, getSpecialForm, interruptSpecialWithHurt, landPlayer } from '../player/player';
+import { killPlayer, DEATH_SCREEN_FRAMES, gateControls, tickPlayerTimers, updatePlayerActions, updatePlayerPhysics, getSpecialForm, interruptSpecialWithHurt } from '../player/player';
 import { updateTsunami, updateSteamExplosions, updateVolcanoes, updateTommyArena } from '../bosses/hazards';
 import { updateTaser, updateBurningProjectiles, updateEnemyStatusEffects } from '../combat/statusEffects';
 import { updateEnemy, separateEnemies } from '../enemies/enemies';
@@ -267,9 +267,7 @@ const skyfall = (ctx: FrameContext, x: number, floor?: number) => {
   }
 };
 
-/** The boss door opens, the camera and player glide into the arena, and the door shuts behind them. */
-/** Down on the arena floor (having come through the door in the air): how long he stands there before the boss speaks. */
-const LANDED_BEAT = 10;
+/** The boss door: he walks up to it and kicks it in, it comes down flat into the room, and he walks in over it (no going back). */
 
 /** In, the door shut, on his feet: the boss fight's on (its intro). */
 const arriveInArena = (ctx: FrameContext) => {
@@ -280,58 +278,76 @@ const arriveInArena = (ctx: FrameContext) => {
   ctx.events.onBossEncounter(isShat(state));
 };
 
+/** The boss door going in: how long he winds up once he's in place, how long it takes to come down, the beat after. */
+const KICK_WINDUP = 14, KICK_LANDS = 9, DOOR_FALL = 16, DOOR_SETTLE = 22;
+
 const updateBossTransition = (ctx: FrameContext) => {
-  const { state, stageId } = ctx;
+  const { state, stageId, fx } = ctx;
   const { player } = state;
   const targetCameraX = BOSS_DOOR_X;
   const entry = getBossDef(stageId)?.arena?.entry ?? { x: 150, y: 486 };
   const targetPlayerX = targetCameraX + entry.x;
   const targetPlayerY = entry.y;
   const glideSpeed = 4;
-  let stepped = false;
+  let step = 0;
+  player.facing = 1;
+  state.projectiles = [];
+  if ((player.kickPose || 0) > 0) player.kickPose!--;
 
   if (state.doorState === 'opening') {
-    state.doorOpenAmount += DOOR_OPEN_SPEED;
-    if (state.doorOpenAmount >= 150) { state.doorOpenAmount = 150; state.doorState = 'open'; }
+    // Up to the door, a beat, and the boot: it comes off its hinges and down flat into the room
+    const k = (state.doorKick ??= { t: 0 });
+    k.t++;
+    if (k.t === 1) calmPlayer(player);
+    if (k.hitAt === undefined) {
+      const spot = BOSS_DOOR_X - player.width - 16;
+      const dx = spot - player.pos.x;
+      if (Math.abs(dx) > 1.5) { step = Math.sign(dx) * Math.min(3, Math.abs(dx)); player.pos.x += step; }
+      else if (k.readyAt === undefined) k.readyAt = k.t;
+      // (the leg comes up and drives out: the boot meets the door when it's all the way out)
+      else if (k.kickAt === undefined && k.t - k.readyAt >= KICK_WINDUP) { k.kickAt = k.t; player.kickPose = KICK_POSE_FRAMES; playSound('whoosh', 0.6, -4); }
+      else if (k.kickAt !== undefined && k.t - k.kickAt >= KICK_LANDS) {
+        k.hitAt = k.t;
+        fx.playGunSound('punch');
+        playSound('crash', 0.9, -4);
+        shakeScreen(state, 14, 7);
+        // (the hinges and the bolts going, and whatever's on the door)
+        for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: BOSS_DOOR_X + 4, y: 410 + Math.random() * 130 }, vel: { x: 2 + Math.random() * 6, y: -2 - Math.random() * 5 }, life: 30 + Math.random() * 20, color: i % 3 === 0 ? '#E5E7EB' : i % 3 === 1 ? '#71717A' : '#A8A29E', size: 2 + Math.random() * 4 });
+      }
+    } else {
+      const u = k.t - k.hitAt;
+      state.doorOpenAmount = Math.min(150, (u / DOOR_FALL) * 150);
+      // (the view starts on into the room as it goes over, so you see it come down)
+      if (state.camera.x < targetCameraX) state.camera.x = Math.min(targetCameraX, state.camera.x + glideSpeed);
+      if (u === DOOR_FALL) {
+        // Down flat on the floor: the slam, and the dust coming up off it
+        playSound('slam'); playSound('thud', 0.8, -6);
+        shakeScreen(state, 20, 10);
+        for (let i = 0; i < 26; i++) state.particles.push({ pos: { x: BOSS_DOOR_X + 40 + Math.random() * 150, y: GROUND_Y - 4 }, vel: { x: (Math.random() - 0.3) * 4, y: -1 - Math.random() * 3 }, life: 40 + Math.random() * 30, color: i % 2 ? 'rgba(168, 162, 158, 0.7)' : 'rgba(120, 113, 108, 0.6)', size: 6 + Math.random() * 8 });
+      }
+      if (u >= DOOR_FALL + DOOR_SETTLE) state.doorState = 'open';
+    }
   } else if (state.doorState === 'open') {
+    // In over it: the screen scrolling with him as he walks in
     if (state.camera.x < targetCameraX) state.camera.x = Math.min(targetCameraX, state.camera.x + glideSpeed);
     // (and level with the arena, if it was following him up or down)
     state.camera.y += (0 - state.camera.y) * 0.1;
-    if (player.pos.x < targetPlayerX) { player.pos.x = Math.min(targetPlayerX, player.pos.x + glideSpeed); stepped = true; }
-    if (state.camera.x >= targetCameraX && player.pos.x >= targetPlayerX) state.doorState = 'closing';
-  } else if (state.doorState === 'closing') {
-    state.doorOpenAmount -= DOOR_OPEN_SPEED;
-    if (state.doorOpenAmount <= 0) {
-      state.doorOpenAmount = 0;
-      // The door's shut behind him: out of whatever pose he came in with. Up in the air (he came through it
-      // mid-jump), he comes down onto the arena floor first, and only then does the boss have his say
+    if (player.pos.x < targetPlayerX) { step = Math.min(glideSpeed, targetPlayerX - player.pos.x); player.pos.x += step; }
+    // (onto wherever the arena has him stand: a board over the sludge, say)
+    player.pos.y += (targetPlayerY - player.pos.y) * 0.2;
+    if (state.camera.x >= targetCameraX && player.pos.x >= targetPlayerX) {
       calmPlayer(player);
-      if (player.pos.y < targetPlayerY - 2) { state.doorState = 'landing'; player.isGrounded = false; player.vel = { x: 0, y: 0 }; player.facing = 1; state.projectiles = []; return; }
       player.pos.y = targetPlayerY;
       player.isGrounded = true;
+      player.vel = { x: 0, y: 0 };
       arriveInArena(ctx);
-    }
-  } else if (state.doorState === 'landing') {
-    // Falling the rest of the way, the ordinary way; down on the floor, a beat, then the boss
-    player.facing = 1;
-    player.vel.x = 0;
-    state.projectiles = [];
-    if (!player.isGrounded) {
-      player.vel.y = Math.min(PLAYER_TERMINAL_VELOCITY, player.vel.y + PLAYER_GRAVITY);
-      player.pos.y += player.vel.y;
-      if (player.pos.y >= targetPlayerY) { player.pos.y = targetPlayerY; landPlayer(ctx, player.vel.y); player.vel.y = 0; state.doorBeat = 0; }
       return;
     }
-    if ((state.doorBeat = (state.doorBeat ?? 0) + 1) >= LANDED_BEAT) arriveInArena(ctx);
-    return;
   }
-  // Like Mega Man: he's frozen mid-pose (mid-jump, crouched, mid-charge...) while the screen scrolls him through.
-  // On his feet, though, he walks it: the walk cycle going as he's carried in
-  const walking = stepped && player.isGrounded && !player.isDucking && !player.isCharging && !player.isSliding && !player.isUppercutting && !player.isDivekicking;
-  player.vel = { x: walking ? glideSpeed : 0, y: 0 };
-  if (walking) state.playerAnimFrame++;
-  player.facing = 1;
-  state.projectiles = [];
+  // On his feet the whole way: the walk cycle going while he walks (up to the door, and in), still for the kick
+  player.isGrounded = true;
+  player.vel = { x: step, y: 0 };
+  if (step !== 0) state.playerAnimFrame++;
 };
 
 /** After the boss dies, spell out "VICTORY" one letter at a time, then report back. */

@@ -193,14 +193,8 @@ export const drawTerrain = (ctx: Ctx, blocks: Block[], stageId: string | null, f
   const wallFill = texturePattern(ctx, stageId!, m, true);
   for (const b of blocks) {
     if (b.type === 'pit' || b.hidden) continue;
-    if (b.type === 'door') {
-      // The boss door: a heavy riveted shutter
-      const y = b.y - doorOpenAmount;
-      ctx.fillStyle = '#3F3F46'; ctx.fillRect(b.x, y, b.w, b.h);
-      ctx.fillStyle = '#52525B'; for (let yy = y; yy < y + b.h; yy += 12) ctx.fillRect(b.x, yy, b.w, 2);
-      ctx.fillStyle = '#FACC15'; for (let yy = y + 6; yy < y + b.h; yy += 24) ctx.fillRect(b.x + 4, yy, b.w - 8, 3);
-      continue;
-    }
+    // (the boss door's drawn by itself: see render/bossDoors.ts)
+    if (b.type === 'door') continue;
     ctx.fillStyle = b.type === 'wall' ? wallFill : fill;
     ctx.fillRect(b.x, b.y, b.w, b.h);
     if (b.type === 'wall') continue;

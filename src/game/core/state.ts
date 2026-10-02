@@ -73,6 +73,8 @@ export interface GameState {
   // Boss door & arena
   arenaLocked: boolean;
   doorOpenAmount: number;
+  /** Kicking the boss door in: frames since it started, when he was in place, when the boot went in (see updateBossTransition). */
+  doorKick?: { t: number; readyAt?: number; kickAt?: number; hitAt?: number };
   doorState: DoorState;
   /** Frames he's been stood on the arena floor after coming down through the door (see updateBossTransition). */
   doorBeat?: number;
@@ -410,6 +412,7 @@ export const resetStageState = (s: GameState) => {
   s.arenaLocked = false;
   s.doorState = 'closed';
   s.doorOpenAmount = 0;
+  s.doorKick = undefined;
 
   s.playerLastVulgarity = "";
   // (and in clean pants: a new stage, a respawn, back to the menu; whatever happened crouching last time, didn't)

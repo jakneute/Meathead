@@ -581,8 +581,9 @@ const updateVerticalVelocity = (ctx: FrameContext, input: FrameInput) => {
 const doorIsMoving = (state: GameState) =>
   state.doorState === 'opening' || state.doorState === 'open' || state.doorState === 'closing';
 
+// (the boss door's solid, shut or broken: shut, he kicks it in; broken, there's no going back out through it)
 const isSolid = (state: GameState, b: Block) =>
-  b.type !== 'pit' && !(b.type === 'door' && (doorIsMoving(state) || state.doorState === 'closed'));
+  b.type !== 'pit' && !(b.type === 'door' && doorIsMoving(state));
 
 /** (jump-through ledges don't count: only their tops are solid, and only from above) */
 const collidesWithSolid = (state: GameState, box: Rect) =>
@@ -607,16 +608,23 @@ const onJumpThroughOnly = (state: GameState) => {
   return state.blocks.some(b => b.oneWay && !b.noDropThrough && isSolid(state, b) && p.pos.x + p.width > b.x && p.pos.x < b.x + b.w && Math.abs(feet - b.y) <= 1);
 };
 
-/** Touching the closed boss door starts the boss transition. */
+/** How close to the boss door he has to walk (on the floor in front of it) for him to kick it in. */
+const DOOR_REACH = 70;
+
+/** Walking up to the boss door, on his feet in front of it: he kicks it in (the boss transition: see updateBossTransition). */
 const checkBossDoor = (ctx: FrameContext) => {
-  const { state, fx, events } = ctx;
+  const { state, events, fx } = ctx;
   const { player } = state;
-  if (state.doorState !== 'closed') return;
+  if (state.doorState !== 'closed' || state.deathTimer > 0 || player.inCutscene) return;
   const door = state.blocks.find(b => b.type === 'door');
-  if (!door || !rectsOverlap(boundsOf(player), door)) return;
+  if (!door) return;
+  const gap = door.x - (player.pos.x + player.width);
+  const feet = player.pos.y + player.height;
+  // (stood on whatever's in front of it: the floor, or a step up to it, so long as he's level with the doorway)
+  if (!player.isGrounded || gap > DOOR_REACH || gap < -4 || feet < door.y + 40 || feet > door.y + door.h + 8) return;
 
   state.doorState = 'opening';
-  fx.playGunSound('rumble', 0.7);
+  state.doorKick = { t: 0 };
   player.vel.x = 0;
   player.vel.y = 0;
   state.projectiles = [];

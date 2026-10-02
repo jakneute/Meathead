@@ -38,6 +38,7 @@ import {
   drawOilSlicks, drawOscarFire, drawOscarLaser, drawOscarRocket, drawFlyingCigarette, drawTaserOverload,
 } from './bosses/oscarGear';
 import { drawBlasts } from './blasts';
+import { drawBossDoor } from './bossDoors';
 
 export interface WorldView {
   status: GameStatus;
@@ -108,6 +109,8 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
       const hurricane = state.enemies.find(e => e.type === 'boss' && e.bossState === 'hurricane' && e.health > 0);
       drawCustomBossArena(wctx, stageId!, state.frame || 0, hurricane ? hurricane.pos.x + hurricane.width / 2 : null, state);
     }
+    // (the boss door: over the arena's backdrop, since once it's kicked in it's lying in there)
+    if (!isRing) drawBossDoor(wctx, state, stageId);
     drawBossHazards(wctx, state);
     if (state.bossCorpse) drawBossCorpse(wctx, state.bossCorpse, state.frame);
     if (state.bossFallen) drawBossFallen(wctx, state, stageId);
@@ -516,14 +519,14 @@ const drawRangeVoid = (ctx: CanvasRenderingContext2D, frame: number) => {
 
 const drawBlocks = (ctx: CanvasRenderingContext2D, state: GameState, colors: { ground: string, accent: string }) => {
   state.blocks.forEach(b => {
-    if (b.type === 'door') ctx.fillStyle = '#555';
+    if (b.type === 'door') return;
     else if (b.type === 'pit') ctx.fillStyle = '#f00';
     else {
       ctx.fillStyle = colors.ground;
       ctx.strokeStyle = colors.accent;
       ctx.strokeRect(b.x, b.y, b.w, b.h);
     }
-    ctx.fillRect(b.x, b.type === 'door' ? b.y - state.doorOpenAmount : b.y, b.w, b.h);
+    ctx.fillRect(b.x, b.y, b.w, b.h);
   });
 };
 
