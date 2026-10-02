@@ -735,6 +735,9 @@ const slipOff = (ctx: FrameContext, e: Enemy, slick: { x: number; y: number; fra
   for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: p.pos.x + p.width / 2 - dir * 10, y: p.pos.y + p.height * (0.3 + Math.random() * 0.6) }, vel: { x: -dir * (1 + Math.random() * 4), y: -Math.random() * 4 }, life: 24 + Math.random() * 16, color: i % 3 ? '#1C1917' : '#44403C', size: 2 + Math.random() * 4 });
 };
 
+/** Bounced off something with a charge: how long that one thing's body doesn't count as hurting him (no invincibility otherwise). */
+const REBOUND_GRACE = 20;
+
 const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   const { state, fx, stageId, cheats } = ctx;
   const { player } = state;
@@ -776,7 +779,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
       player.recoiling = true;
     } else {
       fx.playGunSound('punch');
-      recoilOff(ctx, getEnemyMass(e));
+      recoilOff(ctx, getEnemyMass(e)); state.reboundFrom = { id: e.id, until: state.frame + REBOUND_GRACE };
     }
     if (bossDef?.slick) slipOff(ctx, e, bossDef.slick);
     return true;
@@ -864,7 +867,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
         player.lockTimer = BOUNCE_FRAMES;
         player.recoiling = true;
       } else {
-        recoilOff(ctx, mass);
+        recoilOff(ctx, mass); state.reboundFrom = { id: e.id, until: state.frame + REBOUND_GRACE };
       }
       if (bossDef?.slick) slipOff(ctx, e, bossDef.slick);
       return true;
@@ -908,13 +911,17 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   const hurtbox: Rect = player.isDucking
     ? { x: player.pos.x + 2, y: player.pos.y + (player.height - 26), w: player.width - 4, h: 26 }
     : boundsOf(player);
-  if (!e.harmless && !isAttacking && player.invincibilityTimer <= 0 && rectsOverlap(hurtbox, boundsOf(e))) {
+  // (just bounced off this one: it doesn't get to hurt him for the bump itself; anything else still can)
+  const bouncedOff = state.reboundFrom?.id === e.id && state.frame < state.reboundFrom.until;
+  if (!e.harmless && !isAttacking && !bouncedOff && player.invincibilityTimer <= 0 && rectsOverlap(hurtbox, boundsOf(e))) {
     // (a boss's own weight behind it; anything else just a bump)
     if (!cheats.invincible) player.health -= kindContactDamage(e) ?? (e.type === 'boss' ? stageDef?.contact?.damage : undefined) ?? 5.5;
     state.lastHurt = { source: getContactHurtSource(ctx, e), at: state.frame };
     if (player.health > 0) {
       player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;
       player.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;
+      // (hurt out of a rebound: the hurt takes over, the rebound's done)
+      player.recoiling = false; player.lockTimer = 0; player.slideRecoil = false;
       player.isHarmlessPushback = false;
       player.smugTimer = 0;
       fx.speakVulgarity('hurt', getContactHurtSource(ctx, e));

@@ -157,6 +157,8 @@ export const hurtPlayer = (
   player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;
   player.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;
   ctx.fx.playGunSound('hurt');
+  // (hurt out of a rebound: the hurt takes over, the rebound's done)
+  player.recoiling = false; player.lockTimer = 0; player.slideRecoil = false;
   player.isHarmlessPushback = false;
   player.smugTimer = 0;
   player.pushbackTimer = pushbackFrames;

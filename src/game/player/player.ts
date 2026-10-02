@@ -10,7 +10,7 @@ import {
   JUMP_HOLD_FRAMES, COYOTE_AIR_FRAMES, COYOTE_JUMP_FRAMES, JUMP_BUFFER_FRAMES, LANDING_SHAKE_SPEED,
   CHARGE_SPEED, CHARGE_DURATION, SLIDE_SPEED, SLIDE_DURATION, POWER_CELLS, POWER_CELL_RECHARGE,
   UPPERCUT_SPEED, UPPERCUT_DURATION, DIVEKICK_SPEED, DIVEKICK_ANGLE,
-  PLAYER_MASS, RECOIL_FRAMES, PLAYER_STUN_INVINCIBILITY, GML_SCALE, SPECIAL_HURT_FRAMES, ARENA_LEFT,
+  PLAYER_MASS, RECOIL_FRAMES, GML_SCALE, SPECIAL_HURT_FRAMES, ARENA_LEFT,
   OSCAR_OIL_SPEED_MULT, OSCAR_OIL_JUMP_MULT, SKI_JUMP_SPEED_MULT, SKI_JUMP_HOLD_MULT,
   SWIM_GRAVITY_MULT, SWIM_MAX_SINK, SWIM_STROKE, SWIM_LEAP, SWIM_SPEED_MULT, LEDGE_DROP_FRAMES,
 } from '../../constants';
@@ -833,7 +833,7 @@ export const recoilOff = (ctx: FrameContext, enemyMass: number) => {
   player.isCharging = false;
   player.isSliding = false;
   player.isUppercutting = false;
-  player.invincibilityTimer = Math.max(player.invincibilityTimer, PLAYER_STUN_INVINCIBILITY);
+  // (no invincibility in it: bouncing off something doesn't make him safe from it, or from anything else)
   player.isHarmlessPushback = true;
   player.smugTimer = 35;
   player.hurtTimer = 0;

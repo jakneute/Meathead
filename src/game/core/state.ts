@@ -77,6 +77,8 @@ export interface GameState {
   doorKick?: { t: number; readyAt?: number; kickAt?: number; hitAt?: number };
   /** Tommy's arena: the frame the kicked-in door went into the sludge (the board it was lying on went out from under it). */
   doorSunkAt?: number;
+  /** The one thing he's just bounced a charge off, and till when its body can't hurt him for it. */
+  reboundFrom?: { id: string; until: number };
   doorState: DoorState;
   /** Frames he's been stood on the arena floor after coming down through the door (see updateBossTransition). */
   doorBeat?: number;

@@ -712,6 +712,8 @@ const resolveEnemyProjectileHit = (ctx: FrameContext, p: Projectile): boolean =>
     if (player.health > 0) {
       player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;
       player.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;
+      // (hurt out of a rebound: the hurt takes over, the rebound's done)
+      player.recoiling = false; player.lockTimer = 0; player.slideRecoil = false;
       player.isHarmlessPushback = false;
       player.smugTimer = 0;
       fx.speakVulgarity('hurt', getProjectileHurtSource(p, stageId));
