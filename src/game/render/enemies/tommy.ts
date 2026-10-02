@@ -8,6 +8,8 @@
 import { Enemy } from '../../../types';
 import type { GameState } from '../../core/state';
 import { LOWRIDER_WINDOWS } from '../../enemies/kinds/tommy';
+import { INK, ink, shaded, shadedTop, eye, limb, dark, lite } from '../npc/kit';
+import { pixelBlob } from '../pixelArt';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -99,25 +101,69 @@ const drawPitbull = (ctx: Ctx, e: Enemy, f: number) => {
   const cycle = running ? f * 0.6 : f * 0.2;
   const crouch = e.aiState === 'bristle' ? 3 : 0;
   const coat = pick(e, ['#78716C', '#A8A29E', '#57534E', '#D6D3D1']);
-  ctx.fillStyle = coat;
-  for (let i = 0; i < 4; i++) {
+  const chest = '#E7E5E4';
+  // A leg, thick and short: the upper, the lower, a round paw with its toes
+  const leg = (i: number, back: boolean) => {
+    const c = back ? dark(coat, 0.22) : coat;
     const lx = i < 2 ? 14 + (i % 2) * 4 : -16 + (i % 2) * 4;
     const sw = running ? Math.sin(cycle + i * 1.7) * 6 : 0;
-    ctx.fillRect(lx + sw * 0.5 - 2, -12 + crouch, 5, 12 - crouch);
-  }
-  ctx.beginPath(); ctx.ellipse(0, -17 + crouch, 22, 10, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = 'rgba(0,0,0,0.15)'; for (let k = -14; k < 14; k += 6) ctx.fillRect(k, -24 + crouch, 2, 12); // brindle
-  ctx.fillStyle = coat; ctx.fillRect(-26, -21 + crouch, 7, 3); // the tail
-  // Head: wide, the jaw
+    const top = -16 + crouch, kx = lx + sw * 0.3 + (i < 2 ? 0 : 1.5), fx = lx + sw * 0.5;
+    limb(ctx, lx, top, kx, -6, 5.5, c); limb(ctx, kx, -6, fx, -2, 4.2, c);
+    ink(ctx, () => ctx.ellipse(fx + 1, -1.6, 3, 1.6, 0, 0, Math.PI * 2), i < 2 && !back ? chest : dark(c, 0.1), 0.8);
+    ctx.fillStyle = INK; ctx.fillRect(fx + 2, -2.4, 0.7, 1.2);
+  };
+  for (const i of [1, 3]) leg(i, true);
+  // The tail, a short whip
+  const sw = Math.sin(f * (running ? 0.5 : 0.15)) * 3;
+  limb(ctx, -20, -21 + crouch, -27, -24 + crouch + sw, 2.4, coat);
+  // Body: a barrel of muscle, the chest broad and pale, the brindle in stripes, the shoulder's bulge
+  const body = () => { ctx.moveTo(14, -28 + crouch); ctx.quadraticCurveTo(23, -25 + crouch, 21, -14 + crouch); ctx.quadraticCurveTo(18, -8 + crouch, 10, -9 + crouch); ctx.quadraticCurveTo(0, -11 + crouch, -8, -10 + crouch); ctx.quadraticCurveTo(-21, -8 + crouch, -22, -18 + crouch); ctx.quadraticCurveTo(-22, -27 + crouch, -10, -27 + crouch); ctx.quadraticCurveTo(2, -26 + crouch, 14, -28 + crouch); ctx.closePath(); };
+  ctx.save(); ctx.beginPath(); body(); ctx.clip();
+  ctx.fillStyle = coat; ctx.fillRect(-24, -30 + crouch, 48, 24);
+  ctx.fillStyle = lite(coat, 0.2); ctx.fillRect(-24, -30 + crouch, 48, 5);
+  ctx.strokeStyle = dark(coat, 0.3); ctx.lineWidth = 1.4; // brindle
+  for (let k = -16; k < 12; k += 5) { ctx.beginPath(); ctx.moveTo(k, -27 + crouch); ctx.quadraticCurveTo(k - 2, -19 + crouch, k + 1, -10 + crouch); ctx.stroke(); }
+  ctx.fillStyle = dark(coat, 0.22); ctx.fillRect(-24, -14 + crouch, 48, 8);
+  ctx.fillStyle = chest; ctx.beginPath(); ctx.ellipse(19, -16 + crouch, 5, 9, 0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = dark(coat, 0.35); ctx.beginPath(); ctx.arc(10, -18 + crouch, 6, -0.3, 1.6); ctx.fill(); // the shoulder's shadow
+  ctx.fillStyle = coat; ctx.beginPath(); ctx.arc(9, -19 + crouch, 5.6, -0.3, 1.6); ctx.fill();
+  ctx.fillStyle = dark(coat, 0.35); ctx.beginPath(); ctx.arc(-15, -17 + crouch, 5.6, -0.6, 1.4); ctx.fill(); // the haunch
+  ctx.fillStyle = coat; ctx.beginPath(); ctx.arc(-16, -18 + crouch, 5.2, -0.6, 1.4); ctx.fill();
+  ctx.restore();
+  ctx.beginPath(); body(); ctx.strokeStyle = INK; ctx.lineWidth = 1.1; ctx.stroke();
+  for (const i of [0, 2]) leg(i, false);
+  // Head: wide, the cheeks bulging, a short muzzle and the black nose, rose ears; the jaw open when it's coming
   const open = running || e.aiState === 'bristle';
-  ctx.beginPath(); ctx.ellipse(22, -22 + crouch, 10, 8, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillRect(24, -20 + crouch, 10, open ? 5 : 7);
-  if (open) { ctx.fillStyle = '#7F1D1D'; ctx.fillRect(25, -15 + crouch, 9, 3); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(26, -16 + crouch, 2, 2); ctx.fillRect(31, -16 + crouch, 2, 2); }
-  ctx.fillStyle = '#111827'; ctx.fillRect(25, -25 + crouch, 2, 2); ctx.fillRect(33, -21 + crouch, 3, 2);
-  ctx.fillStyle = coat; ctx.beginPath(); ctx.moveTo(16, -29 + crouch); ctx.lineTo(19, -34 + crouch); ctx.lineTo(21, -28 + crouch); ctx.fill(); // an ear
-  // The spiked collar
-  ctx.fillStyle = '#111827'; ctx.fillRect(12, -24 + crouch, 5, 10);
-  ctx.fillStyle = '#E5E7EB'; for (let k = 0; k < 3; k++) ctx.fillRect(11, -23 + crouch + k * 3, 2, 2);
+  const hx = 22, hy = -22 + crouch;
+  ctx.save(); ctx.translate(hx, hy);
+  ink(ctx, () => { ctx.moveTo(-6, -6); ctx.quadraticCurveTo(-8, -11, -3, -10); ctx.lineTo(-2, -6); ctx.closePath(); }, dark(coat, 0.3), 0.9);
+  if (open) {
+    // The lower jaw down, the red of the mouth, the teeth
+    ink(ctx, () => { ctx.moveTo(-2, 3); ctx.lineTo(12, 4); ctx.quadraticCurveTo(13, 8, 10, 8); ctx.lineTo(-1, 7); ctx.closePath(); }, chest, 1);
+    ink(ctx, () => { ctx.moveTo(1, 2); ctx.lineTo(12, 2); ctx.lineTo(11, 5); ctx.lineTo(1, 5); ctx.closePath(); }, '#7F1D1D', 0.6);
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(3, 1.6, 1.6, 2); ctx.fillRect(9.4, 1.6, 1.6, 2); ctx.fillRect(4, 4.2, 1.4, 1.4); ctx.fillRect(9, 4.2, 1.4, 1.4);
+    ctx.fillStyle = '#F87171'; ctx.fillRect(5, 4, 4, 1);
+  }
+  const head = () => { ctx.moveTo(-8, 0); ctx.quadraticCurveTo(-9, -8, -2, -8.5); ctx.quadraticCurveTo(5, -9, 8, -5); ctx.lineTo(12.5, -3.5); ctx.quadraticCurveTo(14, 0, 12.5, open ? 2 : 4.5); ctx.quadraticCurveTo(6, open ? 3 : 7, 0, 6); ctx.quadraticCurveTo(-7, 5, -8, 0); ctx.closePath(); };
+  shaded(ctx, head, coat, -9, -9, 23, 16);
+  ctx.save(); ctx.beginPath(); head(); ctx.clip();
+  ctx.fillStyle = dark(coat, 0.28); ctx.beginPath(); ctx.arc(-1, 3, 5, 0.2, 2.6); ctx.fill(); // the jaw muscle's shadow
+  ctx.restore();
+  ctx.strokeStyle = dark(coat, 0.45); ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(6, -5.5); ctx.lineTo(7.5, -3); ctx.stroke(); // the stop
+  ink(ctx, () => ctx.ellipse(12.6, -2.6, 2, 1.6, 0, 0, Math.PI * 2), '#1F1A14', 0.6);
+  ctx.fillStyle = '#6B6B6B'; ctx.fillRect(12, -3.6, 1, 0.8);
+  if (!open) { ctx.fillStyle = INK; ctx.fillRect(5, 2.4, 7, 0.9); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(10, 3.2, 1, 1); }
+  eye(ctx, 3.5, -4.5, 1.6, 0.8, 0, open ? '#FCA5A5' : '#FFFFFF');
+  ctx.fillStyle = INK; ctx.fillRect(1.6, open ? -7 : -6.8, 4.4, 1); // the brow, down
+  ink(ctx, () => { ctx.moveTo(-5, -7); ctx.quadraticCurveTo(-4, -12, 1, -10); ctx.quadraticCurveTo(0, -7, -2, -6); ctx.closePath(); }, dark(coat, 0.12), 0.9);
+  ctx.restore();
+  // The spiked collar: the black strap, its steel studs
+  ink(ctx, () => ctx.roundRect(12, -25 + crouch, 5, 11, 1.5), '#1C1917', 0.9);
+  for (let k = 0; k < 3; k++) {
+    const y = -23 + crouch + k * 3.4;
+    ink(ctx, () => { ctx.moveTo(12.5, y - 1.2); ctx.lineTo(9.5, y); ctx.lineTo(12.5, y + 1.2); ctx.closePath(); }, '#D1D5DB', 0.6);
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(11, y - 0.6, 1, 0.6);
+  }
 };
 
 /**
@@ -229,43 +275,97 @@ const drawManhole = (ctx: Ctx, e: Enemy, f: number) => {
 
 /** A sludgeling: a lump of sewer muck with eyes. Under the surface it's just the eyes, blinking. */
 const drawSludgeling = (ctx: Ctx, e: Enemy, f: number) => {
+  const muck = '#4D7C0F';
   const lurking = !e.aiState || e.aiState === 'idle';
   if (lurking) {
-    // (just its eyes above the muck, and bubbles)
+    // (just its eyes above the muck, a hump of it round them, and bubbles)
     const blink = f % 120 < 6;
-    ctx.fillStyle = '#FEF08A'; if (!blink) { ctx.fillRect(-6, -20, 4, 4); ctx.fillRect(3, -20, 4, 4); }
-    ctx.fillStyle = '#111827'; if (!blink) { ctx.fillRect(-5, -19, 2, 2); ctx.fillRect(4, -19, 2, 2); }
-    if (f % 50 < 20) { ctx.fillStyle = 'rgba(101, 163, 13, 0.7)'; ctx.beginPath(); ctx.arc(8, -16 - (f % 50) / 4, 2, 0, Math.PI * 2); ctx.fill(); }
+    shadedTop(ctx, () => ctx.ellipse(0.5, -16, 9, 3, 0, Math.PI, 0), muck, -9, -19, 19, 3, 0.9);
+    for (const x of [-4, 5]) {
+      if (blink) { ink(ctx, () => ctx.ellipse(x, -18, 2.6, 1, 0, 0, Math.PI * 2), dark(muck, 0.1), 0.8); continue; }
+      eye(ctx, x, -18.5, 2.4, 0.6, 0.2, '#FEF08A');
+      ctx.fillStyle = dark(muck, 0.1); ctx.fillRect(x - 2.6, -21.4, 5.2, 1); // the lid, heavy
+    }
+    if (f % 50 < 20) {
+      const by = -16 - (f % 50) / 4;
+      ink(ctx, () => ctx.arc(9, by, 1.8, 0, Math.PI * 2), 'rgba(132, 204, 22, 0.75)', 0.6);
+      ctx.fillStyle = '#ECFCCB'; ctx.fillRect(8.2, by - 1.1, 0.8, 0.8);
+    }
     return;
   }
   const squash = e.vel.y === 0 ? 1.15 : 0.85;
-  ctx.fillStyle = '#4D7C0F'; ctx.beginPath(); ctx.ellipse(0, -9 * squash, 15 / squash, 9 * squash, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#3F6212'; ctx.beginPath(); ctx.ellipse(-4, -6, 8, 4, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#65A30D'; for (let k = -10; k <= 10; k += 7) ctx.fillRect(k, -2, 3, 3 + ((f + k) % 8) / 2); // drips
-  ctx.fillStyle = '#FEF08A'; ctx.fillRect(3, -15 * squash, 4, 4); ctx.fillRect(9, -14 * squash, 4, 4);
-  ctx.fillStyle = '#111827'; ctx.fillRect(5, -14 * squash, 2, 2); ctx.fillRect(11, -13 * squash, 2, 2);
-  ctx.fillStyle = '#1A2E05'; ctx.fillRect(6, -8, 8, 2);
+  const rw = 15 / squash, rh = 9 * squash, cy = -9 * squash;
+  // The lump: its edge wobbling, lit on top, slumped dark at the bottom; the pockets and the junk stuck in it, a shine
+  const blob = () => {
+    for (let k = 0; k <= 24; k++) {
+      const a = (k / 24) * Math.PI * 2, wob = 1 + Math.sin(a * 3 + f * 0.12) * 0.06 + Math.sin(a * 5 - f * 0.08) * 0.04;
+      const x = Math.cos(a) * rw * wob, y = cy + Math.sin(a) * rh * (Math.sin(a) > 0 ? 1 : wob);
+      if (k) ctx.lineTo(x, Math.min(0, y)); else ctx.moveTo(x, Math.min(0, y));
+    }
+    ctx.closePath();
+  };
+  shadedTop(ctx, blob, muck, -rw, cy - rh, rw * 2, rh * 2, 1);
+  ctx.save(); ctx.beginPath(); blob(); ctx.clip();
+  ctx.fillStyle = '#3F6212'; ctx.beginPath(); ctx.ellipse(-5, -5, 7, 3.4, 0, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.ellipse(8, cy - 4, 3, 2, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#A3A3A3'; ctx.fillRect(-9, cy - 2, 3, 2); ctx.fillStyle = '#E5E5E5'; ctx.fillRect(-9, cy - 2, 1, 1); // (a bottle cap)
+  ctx.fillStyle = '#78350F'; ctx.save(); ctx.translate(-3, cy - rh * 0.5); ctx.rotate(-0.5); ctx.fillRect(0, 0, 6, 1.4); ctx.restore(); // (a twig)
+  ctx.restore();
+  ctx.fillStyle = lite(muck, 0.55); ctx.fillRect(-rw * 0.55, cy - rh * 0.7, 3, 1); ctx.fillRect(-rw * 0.62, cy - rh * 0.5, 1, 1);
+  // Bubbles on its skin
+  ctx.strokeStyle = lite(muck, 0.35); ctx.lineWidth = 0.8;
+  for (const [bx, by] of [[-10, cy + 2], [1, cy - rh * 0.6]]) { ctx.beginPath(); ctx.arc(bx, by, 1.4, 0, Math.PI * 2); ctx.stroke(); }
+  // Drips off it
+  for (let k = -10; k <= 10; k += 7) {
+    const len = 1.5 + ((f + k + 20) % 8) / 4;
+    ink(ctx, () => { ctx.moveTo(k, -1.5); ctx.lineTo(k + 3, -1.5); ctx.lineTo(k + 2.4, -1.5 + len); ctx.arc(k + 1.5, -1.5 + len, 1, 0, Math.PI); ctx.closePath(); }, '#65A30D', 0.7);
+  }
+  // The eyes, the mouth (a slit, dribbling)
+  eye(ctx, 5, -13 * squash, 2.2, 0.7, 0.1, '#FEF08A');
+  eye(ctx, 11, -12 * squash, 2.2, 0.7, 0.1, '#FEF08A');
+  ink(ctx, () => { ctx.moveTo(5, -7); ctx.quadraticCurveTo(10, -5, 14, -7.5); ctx.quadraticCurveTo(10, -6.5, 5, -7); ctx.closePath(); }, '#1A2E05', 0.8);
+  ctx.fillStyle = '#65A30D'; ctx.fillRect(11, -6.2, 1, 2 + (f % 20) / 8);
 };
 
 /** A mutant sewer fish: bloated, patchy green and orange, three eyes, a sick glow to it, the bones showing at its tail. */
 const drawMutantFish = (ctx: Ctx, e: Enemy, f: number) => {
   const lunge = Math.hypot(e.vel.x, e.vel.y) > 2.5;
   const wag = Math.sin(f * (lunge ? 0.6 : 0.25)) * (lunge ? 6 : 3);
+  const skin = '#6B8E23';
   ctx.save(); ctx.translate(0, -13);
-  ctx.fillStyle = 'rgba(163, 230, 53, 0.18)'; ctx.beginPath(); ctx.ellipse(0, 0, 32, 20, 0, 0, Math.PI * 2); ctx.fill();
-  // The tail: the flesh gone off it, bones and a ragged fin
-  ctx.strokeStyle = '#E7E5D6'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-14, 0); ctx.lineTo(-26, wag * 0.5); ctx.stroke();
-  for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.moveTo(-17 - k * 3, wag * 0.2); ctx.lineTo(-18 - k * 3, -5); ctx.moveTo(-17 - k * 3, wag * 0.2); ctx.lineTo(-18 - k * 3, 5); ctx.stroke(); }
-  ctx.fillStyle = 'rgba(132, 204, 22, 0.8)'; ctx.beginPath(); ctx.moveTo(-26, wag * 0.5); ctx.lineTo(-34, wag - 8); ctx.lineTo(-31, wag * 0.5); ctx.lineTo(-34, wag + 8); ctx.fill();
-  // The body: bloated, patchy
-  ctx.fillStyle = '#6B8E23'; ctx.beginPath(); ctx.ellipse(2, 0, 20, 12, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#EA580C'; ctx.beginPath(); ctx.ellipse(-4, -4, 7, 4, 0.3, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.ellipse(8, 5, 5, 3, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#D9F99D'; ctx.beginPath(); ctx.ellipse(4, 6, 12, 4, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#4D7C0F'; ctx.beginPath(); ctx.moveTo(-6, -10); ctx.lineTo(2, -18); ctx.lineTo(8, -10); ctx.fill();
-  // Three eyes
-  for (const [ex, ey] of [[12, -5], [17, -1], [8, -8]]) { ctx.fillStyle = '#FEF08A'; ctx.beginPath(); ctx.arc(ex, ey, 3, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#111827'; ctx.fillRect(ex, ey - 1, 2, 2); }
+  pixelBlob(ctx, 0, 0, 32, 20, 'rgba(163, 230, 53, 0.16)');
+  // The tail: the flesh gone off it, the spine and ribs bare, and a ragged fin
+  const bone = (x1: number, y1: number, x2: number, y2: number) => { limb(ctx, x1, y1, x2, y2, 1.4, '#E7E5D6'); };
+  bone(-14, 0, -26, wag * 0.5);
+  for (let k = 0; k < 3; k++) { bone(-17 - k * 3, wag * 0.2, -18 - k * 3, -5); bone(-17 - k * 3, wag * 0.2, -18 - k * 3, 5); }
+  const fin = () => { ctx.moveTo(-26, wag * 0.5); ctx.lineTo(-34, wag - 8); ctx.lineTo(-32, wag - 3); ctx.lineTo(-35, wag - 1); ctx.lineTo(-31, wag * 0.5 + 1); ctx.lineTo(-35, wag + 4); ctx.lineTo(-34, wag + 8); ctx.closePath(); };
+  shaded(ctx, fin, '#84CC16', -35, wag - 8, 9, 16, 0.9);
+  ctx.strokeStyle = dark('#84CC16', 0.3); ctx.lineWidth = 0.7; ctx.beginPath(); ctx.moveTo(-27, wag * 0.5); ctx.lineTo(-33, wag - 6); ctx.moveTo(-27, wag * 0.5); ctx.lineTo(-33, wag + 6); ctx.stroke();
+  // The dorsal: spines, the membrane torn between them
+  ink(ctx, () => { ctx.moveTo(-8, -9); ctx.lineTo(-4, -17); ctx.lineTo(-2, -12); ctx.lineTo(1, -19); ctx.lineTo(3, -12); ctx.lineTo(6, -16); ctx.lineTo(9, -9); ctx.closePath(); }, '#4D7C0F', 0.9);
+  ctx.strokeStyle = lite('#4D7C0F', 0.3); ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(-6, -10); ctx.lineTo(-4, -16); ctx.moveTo(0, -10); ctx.lineTo(1, -17); ctx.stroke();
+  // The body: bloated, patchy, scaled; the sores, the pale belly glowing
+  const body = () => { ctx.moveTo(22, -1); ctx.quadraticCurveTo(20, -11, 6, -12); ctx.quadraticCurveTo(-12, -12, -16, -2); ctx.quadraticCurveTo(-12, 12, 6, 12); ctx.quadraticCurveTo(20, 11, 22, -1); ctx.closePath(); };
+  shaded(ctx, body, skin, -17, -12, 40, 24, 1.1);
+  ctx.save(); ctx.beginPath(); body(); ctx.clip();
+  ctx.fillStyle = '#D9F99D'; ctx.beginPath(); ctx.ellipse(4, 8, 14, 5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ECFCCB'; ctx.fillRect(-2, 4, 10, 1);
+  ctx.strokeStyle = dark(skin, 0.3); ctx.lineWidth = 0.7;
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 5; c++) { const x = -10 + c * 5 + (r % 2) * 2.5, y = -8 + r * 4; ctx.beginPath(); ctx.arc(x, y, 2.4, 0.2, Math.PI - 0.2); ctx.stroke(); }
+  ctx.restore();
+  for (const [sx, sy, rx, ry] of [[-4, -4, 5, 3], [9, 5, 3.6, 2.4]]) {
+    ink(ctx, () => ctx.ellipse(sx, sy, rx, ry, 0.3, 0, Math.PI * 2), '#EA580C', 0.8);
+    ctx.fillStyle = '#FDBA74'; ctx.fillRect(sx - rx * 0.5, sy - ry * 0.5, 2, 1);
+    ctx.fillStyle = '#7C2D12'; ctx.fillRect(sx, sy, 1.2, 1.2);
+  }
+  // The gill, the pectoral fin
+  ctx.strokeStyle = INK; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.arc(6, 0, 6, -0.9, 0.9); ctx.stroke();
+  ink(ctx, () => { ctx.moveTo(4, 3); ctx.lineTo(-3, 8 + wag * 0.3); ctx.lineTo(-1, 3); ctx.closePath(); }, '#84CC16', 0.8);
+  // Three eyes, none the same size
+  for (const [ex, ey, r] of [[12, -5, 3], [17, -1, 2.4], [8, -8, 2]]) eye(ctx, ex, ey, r, 0.7, 0.1, '#FEF08A');
   // The mouth, jagged, open when it lunges
-  ctx.fillStyle = '#1A2E05'; ctx.beginPath(); ctx.moveTo(22, 1); ctx.lineTo(14, lunge ? 7 : 4); ctx.lineTo(22, lunge ? 9 : 5); ctx.fill();
-  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(16, 4, 1.5, 2); ctx.fillRect(19, 4, 1.5, 2);
+  ink(ctx, () => { ctx.moveTo(22, 1); ctx.lineTo(14, lunge ? 7 : 4); ctx.lineTo(22, lunge ? 9 : 5); ctx.closePath(); }, '#1A2E05', 0.8);
+  ctx.fillStyle = '#F8FAFC'; ctx.strokeStyle = INK; ctx.lineWidth = 0.5;
+  for (const tx of [16, 19]) { ctx.beginPath(); ctx.moveTo(tx, 2.5); ctx.lineTo(tx + 1.6, 2.5); ctx.lineTo(tx + 0.8, 5); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+  if (lunge) for (const tx of [17, 20]) { ctx.beginPath(); ctx.moveTo(tx, 8.4); ctx.lineTo(tx + 1.4, 8.4); ctx.lineTo(tx + 0.7, 6.4); ctx.closePath(); ctx.fill(); ctx.stroke(); }
   ctx.restore();
 };
