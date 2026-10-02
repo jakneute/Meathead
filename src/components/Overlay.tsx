@@ -11,6 +11,8 @@ import BossPortrait from './BossPortrait';
 import CorpsePhoto from './CorpsePhoto';
 import WeaponIcon, { WeaponArt } from './WeaponIcon';
 import DossierPanel from './DossierPanel';
+import { GYM_STAGE } from '../game/stages/gym/course';
+import { GYM_DOSSIER_ID } from '../content/gymDossier';
 import { WHITE_HOUSE_ID } from '../content/whiteHouse';
 import { drawWhiteHouse, ART_W, ART_H } from '../game/scenes/ending';
 import { GARAGE_ID, SOUVENIRS } from '../content/garage';
@@ -57,6 +59,10 @@ interface OverlayProps {
   confirmLeave?: boolean;
   confirmYes?: boolean;
   onAnswerLeave?: (yes: boolean) => void;
+  /** Pause menu: its DOSSIER up (the file on this stage's boss; in the gym, the one on him), and opening / shutting it. */
+  pauseDossier?: boolean;
+  onOpenPauseDossier?: () => void;
+  onClosePauseDossier?: () => void;
   /** Pause menu: on a ride that only allows the one weapon, the rest show locked. */
   lockedWeapon?: WeaponType;
   onSelectIndex: (index: number) => void;
@@ -544,9 +550,10 @@ const EngageFlash: React.FC<{ bossId: string }> = ({ bossId }) => {
 
 /**
  * Pause menu. `selectedIndex` walks the weapon grid first, then the three
- * buttons below it (RESUME, BOSS SELECT, QUIT).
+ * buttons below it (RESUME, DOSSIER, BOSS SELECT, QUIT). DOSSIER brings up the file on the stage's boss (in the gym,
+ * the department's own file on him).
  */
-const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, weaponAmmo, selectedIndex, onWeaponIconClick, onResume, onBossSelect, onQuitToMenu, confirmLeave, confirmYes, onAnswerLeave, lockedWeapon }) => {
+const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, weaponAmmo, selectedIndex, onWeaponIconClick, onResume, onBossSelect, onQuitToMenu, confirmLeave, confirmYes, onAnswerLeave, lockedWeapon, stageId, pauseDossier, onOpenPauseDossier, onClosePauseDossier }) => {
   const isLocked = (w: WeaponType) => !!lockedWeapon && w !== lockedWeapon;
   const numWeapons = availableWeapons.length;
   const shown = selectedIndex < numWeapons ? availableWeapons[selectedIndex] : currentWeapon;
@@ -559,7 +566,7 @@ const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, we
     return (
       <button
         onClick={onClick}
-        className={`relative flex items-center gap-3 pl-8 pr-4 py-[7px] text-white text-[11px] font-black uppercase tracking-wider transition-all ${on ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
+        className={`relative flex items-center gap-2 pl-6 pr-3 py-[7px] text-white text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all ${on ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
         style={{ background: face, borderBottom: `4px solid ${edge}`, boxShadow: on ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: on ? '2px solid #FACC15' : 'none' }}
       >
         {on && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
@@ -569,7 +576,7 @@ const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, we
   };
 
   return (
-    <div className="animate-in fade-in zoom-in-95 duration-200 relative flex flex-col items-center w-[560px] px-6 pt-4 pb-3"
+    <div className="animate-in fade-in zoom-in-95 duration-200 relative flex flex-col items-center w-[600px] px-6 pt-4 pb-3"
       style={{
         background: 'linear-gradient(180deg, rgba(24,24,27,0.97) 0%, rgba(9,9,11,0.97) 100%)',
         border: '3px solid #FACC15',
@@ -604,15 +611,29 @@ const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, we
         </div>
       </div>
 
-      <div className="flex gap-3 mt-4">
+      <div className="flex gap-2 mt-4">
         {menuButton('RESUME', '▶', numWeapons, onResume, 'linear-gradient(180deg, #CA8A04, #A16207)', '#713F12')}
-        {menuButton('BOSS SELECT', '☰', numWeapons + 1, onBossSelect, 'linear-gradient(180deg, #B91C1C, #7F1D1D)', '#450A0A')}
-        {menuButton('QUIT', '✖', numWeapons + 2, onQuitToMenu, 'linear-gradient(180deg, #52525B, #3F3F46)', '#18181B')}
+        {menuButton('DOSSIER', '▤', numWeapons + 1, () => onOpenPauseDossier?.(), 'linear-gradient(180deg, #A16207, #713F12)', '#422006')}
+        {menuButton('BOSS SELECT', '☰', numWeapons + 2, onBossSelect, 'linear-gradient(180deg, #B91C1C, #7F1D1D)', '#450A0A')}
+        {menuButton('QUIT', '✖', numWeapons + 3, onQuitToMenu, 'linear-gradient(180deg, #52525B, #3F3F46)', '#18181B')}
       </div>
       <div className="mt-3 flex items-center gap-4 text-[6px] text-zinc-500 tracking-wider">
         <Prompt pad={['START', 'BACK']} kb={['ESC']} mouse="right" label="RESUME" size={15} />
         <Prompt pad={['DPAD', 'OK']} kb={['1-9']} mouse="left" label="EQUIP" size={15} />
       </div>
+
+      {/* The file on him: this stage's boss (the briefing); in the gym, the department's own, on Meathead */}
+      {pauseDossier && stageId && (
+        // (over the whole screen, not just the menu: `fixed` here is the game's own 800x600, which is scaled)
+        <div className="fixed inset-0 z-30 flex flex-col items-center justify-center bg-black/85 animate-in fade-in duration-150">
+          <div className="w-[640px] h-[520px]">
+            <DossierPanel bossId={stageId === GYM_STAGE ? GYM_DOSSIER_ID : stageId} defeated={false} />
+          </div>
+          <div className="mt-2 flex items-center gap-4 text-[6px] text-zinc-400 tracking-wider">
+            <button onClick={() => onClosePauseDossier?.()} className="contents"><Prompt pad={['BACK']} kb={['ESC']} mouse="right" label="CLOSE" size={15} /></button>
+          </div>
+        </div>
+      )}
 
       {/* Leaving for the boss select: are you sure? */}
       {confirmLeave && (

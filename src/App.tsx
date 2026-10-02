@@ -65,12 +65,12 @@ const navigateStageGrid = (index: number, dx: number, dy: number, whiteHouse: bo
   return i;
 };
 
-/** Pause menu: a 3-wide weapon grid (indices 0..n-1) above a row of three buttons. */
+/** Pause menu: a 3-wide weapon grid (indices 0..n-1) above a row of four buttons (RESUME, DOSSIER, BOSS SELECT, QUIT). */
 const navigatePauseMenu = (index: number, dx: number, dy: number, numWeapons: number) => {
   if (index >= numWeapons) {
     // The button row: left/right between buttons, up back into the arsenal
     if (dx < 0) return Math.max(numWeapons, index - 1);
-    if (dx > 0) return Math.min(numWeapons + 2, index + 1);
+    if (dx > 0) return Math.min(numWeapons + 3, index + 1);
     if (dy < 0) return numWeapons - 1;
     return index;
   }
@@ -139,6 +139,8 @@ const App: React.FC = () => {
   const [isInputLocked, setIsInputLocked] = useState(true);
   /** Stage select: the boss dossier is showing instead of the map. */
   const [showDossier, setShowDossier] = useState(false);
+  /** The pause menu's DOSSIER: the file on the boss of the stage you're on (in the gym, the one on you). */
+  const [pauseDossier, setPauseDossier] = useState(false);
   const toggleDossier = () => { if (!engaging) setShowDossier(v => !v); };
   /** How each boss died this run: the weakness weapon that wrecked his corpse, or null for a plain kill. */
   const [killRecords, setKillRecords] = useState<Record<string, WeaponType | null>>({});
@@ -220,6 +222,7 @@ const App: React.FC = () => {
   useCursorSound(wheelAt, wheelAt !== null);
   useOpenCloseSound(status === GameStatus.PAUSED, status === GameStatus.PAUSED || status === GameStatus.PLAYING);
   useOpenCloseSound(confirmLeave, status === GameStatus.PAUSED);
+  useOpenCloseSound(pauseDossier, status === GameStatus.PAUSED);
   useOpenCloseSound(showDossier, status === GameStatus.STAGE_SELECT);
   useOpenCloseSound(showArchive, status === GameStatus.STAGE_SELECT);
   useOpenCloseSound(inGarage, status === GameStatus.STAGE_SELECT);
@@ -269,10 +272,12 @@ const App: React.FC = () => {
     if (status === GameStatus.PLAYING) {
       setSelectedIndex(availableWeapons.indexOf(currentWeapon));
       setConfirmLeave(false);
+      setPauseDossier(false);
       setStatus(GameStatus.PAUSED);
     } else if (status === GameStatus.PAUSED) {
-      // (backing out of the "are you sure" first)
+      // (backing out of the "are you sure", or the file, first)
       if (confirmLeave) { setConfirmLeave(false); return; }
+      if (pauseDossier) { setPauseDossier(false); return; }
       setStatus(GameStatus.PLAYING);
     }
   };
@@ -334,8 +339,9 @@ const App: React.FC = () => {
   };
 
   const handleResume = () => {
-    // (the back button with the "are you sure" up just says no)
+    // (the back button with the "are you sure" up just says no; with the file open, it shuts the file)
     if (confirmLeave) { setConfirmLeave(false); return; }
+    if (pauseDossier) { setPauseDossier(false); return; }
     setStatus(GameStatus.PLAYING);
   };
 
@@ -500,8 +506,9 @@ const App: React.FC = () => {
     const numWeapons = availableWeapons.length;
     if (index < numWeapons) { selectWeaponByIndex(index); playMenuOk(); }
     else if (index === numWeapons) handleResume();
-    else if (index === numWeapons + 1) askBossSelect();
-    else if (index === numWeapons + 2) handleQuitToMenu();
+    else if (index === numWeapons + 1) setPauseDossier(true);
+    else if (index === numWeapons + 2) askBossSelect();
+    else if (index === numWeapons + 3) handleQuitToMenu();
   };
 
   // --- Menu input (shared by keyboard and gamepad) ---------------------------
@@ -526,6 +533,8 @@ const App: React.FC = () => {
       if (dx === 0 && dy === 0) return false;
       // (the "are you sure": YES on the left, NO on the right)
       if (confirmLeave) { if (dx) setConfirmYes(dx < 0); return true; }
+      // (the file's up: the cursor stays where it is till it's shut)
+      if (pauseDossier) return true;
       setSelectedIndex(i => navigatePauseMenu(i, dx, dy, numWeapons));
       return true;
     }
@@ -536,7 +545,7 @@ const App: React.FC = () => {
     // (nothing while the call's still fading off the stage select)
     if (callOutro || intro !== 'off') return;
     if (status === GameStatus.STAGE_SELECT) { if (lockedIndex === null) lockStage(selectedIndex); else engageStage(); }
-    else if (status === GameStatus.PAUSED) { if (confirmLeave) answerBossSelect(confirmYes); else activatePauseItem(selectedIndex); }
+    else if (status === GameStatus.PAUSED) { if (confirmLeave) answerBossSelect(confirmYes); else if (!pauseDossier) activatePauseItem(selectedIndex); }
     // The weapon screen runs its own firing range: only Start / Esc (handled there) move on
     // (the mid-game call runs its own confirm)
     else if (status === GameStatus.VICTORY && (progressionRank === 0 || callPreview)) return;
@@ -629,8 +638,8 @@ const App: React.FC = () => {
   };
 
   // (in the garage, it's the garage's own input: the stage select's is off)
-  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor, dossier: showDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon });
-  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor, dossier: showDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon };
+  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon });
+  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -661,7 +670,9 @@ const App: React.FC = () => {
       }
     };
     const onWheel = (e: WheelEvent) => {
-      const { status, cycleWeapon } = inputRef.current;
+      const { status, cycleWeapon, pauseDossier } = inputRef.current;
+      // (the pause menu's file is up: the wheel's scrolling that)
+      if (status === GameStatus.PAUSED && pauseDossier) return;
       if (status === GameStatus.PLAYING || status === GameStatus.PAUSED) cycleWeapon(e.deltaY > 0 ? 1 : -1);
     };
     // Right click is the menu "back" button, same as B on a controller (in-game it's the special)
@@ -709,7 +720,7 @@ const App: React.FC = () => {
         if (garage) { prev.a = prev.b = prev.x = prev.y = prev.start = true; frameId = requestAnimationFrame(poll); return; }
         const move = getGamepadMovement(gp, 0.25);
         // (the top button held on the dossier: the stick's scrolling it, not moving off the target)
-        const scrolling = status === GameStatus.STAGE_SELECT && inputRef.current.dossier && !hasRightStick(gp.id) && isButtonPressed(gp, GP_BUTTONS.Y);
+        const scrolling = ((status === GameStatus.STAGE_SELECT && inputRef.current.dossier) || (status === GameStatus.PAUSED && inputRef.current.pauseDossier)) && !hasRightStick(gp.id) && isButtonPressed(gp, GP_BUTTONS.Y);
         if (!scrolling && now - lastMoveAt > PAD_REPEAT_MS) {
           const dx = move.left ? -1 : move.right ? 1 : 0;
           const dy = move.up ? -1 : move.down ? 1 : 0;
@@ -729,8 +740,9 @@ const App: React.FC = () => {
         const justPressed = (k: keyof typeof pressed) => pressed[k] && !prev[k];
         const inGame = status === GameStatus.PLAYING || status === GameStatus.PAUSED;
 
-        if (inGame && justPressed('lb')) cycleWeapon(-1);
-        if (inGame && justPressed('rb')) cycleWeapon(1);
+        const fileUp = status === GameStatus.PAUSED && inputRef.current.pauseDossier;
+        if (inGame && !fileUp && justPressed('lb')) cycleWeapon(-1);
+        if (inGame && !fileUp && justPressed('rb')) cycleWeapon(1);
         // The weapon wheel, on the right stick (not on a Joy-Con on its own: it hasn't got one; and only where the stick's
         // mapped where we'd look for it): push it any way and the wheel comes up, pointing at a weapon; let it go and
         // that's the one
@@ -799,6 +811,9 @@ const App: React.FC = () => {
           onResume={handleResume}
           onBossSelect={askBossSelect}
           confirmLeave={confirmLeave}
+          pauseDossier={pauseDossier}
+          onOpenPauseDossier={() => setPauseDossier(true)}
+          onClosePauseDossier={() => setPauseDossier(false)}
           confirmYes={confirmYes}
           onAnswerLeave={answerBossSelect}
           lockedWeapon={lockedWeapon}

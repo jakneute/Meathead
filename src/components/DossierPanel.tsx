@@ -10,6 +10,8 @@ import GaragePortrait from './GaragePortrait';
 import { GARAGE_ID, GARAGE_DOSSIER } from '../content/garage';
 import { lastSouvenirOf } from '../game/garage/store';
 import { WHITE_HOUSE_ID, WHITE_HOUSE_DOSSIER, WHITE_HOUSE_LOCATION } from '../content/whiteHouse';
+import { GYM_DOSSIER_ID, GYM_DOSSIER } from '../content/gymDossier';
+import MeatheadCaricature from './MeatheadCaricature';
 
 /** The White House, for its file's photo: the north portico, its columns and the flag, on a gray sky. */
 const WhiteHousePhoto: React.FC = () => (
@@ -63,9 +65,12 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
   const garage = bossId === GARAGE_ID;
   // (and the White House has one too, once all eight are dead: the summons)
   const wh = bossId === WHITE_HOUSE_ID;
+  // (and him: the department's orders on getting hold of him, only to be read paused in the gym)
+  const asset = bossId === GYM_DOSSIER_ID;
   const d = garage ? { ...GARAGE_DOSSIER, mission: '', reality: '', arsenal: '', expect: '', background: '', intel: '', rules: '', notAlive: '' }
-    : wh ? { ...WHITE_HOUSE_DOSSIER, mission: '', reality: '', arsenal: '', expect: '', background: '', intel: '', rules: '', notAlive: '' } : DOSSIERS[bossId];
-  const loc = garage ? undefined : wh ? WHITE_HOUSE_LOCATION : BOSS_LOCATIONS[bossId];
+    : wh ? { ...WHITE_HOUSE_DOSSIER, mission: '', reality: '', arsenal: '', expect: '', background: '', intel: '', rules: '', notAlive: '' }
+    : asset ? { ...GYM_DOSSIER, mission: '', reality: '', arsenal: '', expect: '', background: '', intel: '', rules: '', notAlive: '' } : DOSSIERS[bossId];
+  const loc = garage || asset ? undefined : wh ? WHITE_HOUSE_LOCATION : BOSS_LOCATIONS[bossId];
   // Too long for the page: our own scroll bar (the browser's is hidden), moved by the mouse wheel, the right stick or dragging it
   const body = useRef<HTMLDivElement>(null);
   const [view, setView] = useState({ top: 0, height: 1, client: 1 });
@@ -141,8 +146,8 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
         {/* The rubber stamp: across the corner of the photo, off the writing; it's on the paper, so it goes up with the
             rest of the file as it's scrolled (and off the top, a long way down it) */}
         <div className="absolute top-[74px] left-[4px] rotate-[-12deg] text-[10px] px-[6px] py-[1px] font-bold tracking-widest pointer-events-none z-10"
-          style={{ background: 'rgba(232, 220, 192, 0.85)', color: garage || wh ? 'rgba(161, 98, 7, 0.9)' : defeated ? 'rgba(21, 128, 61, 0.85)' : 'rgba(185, 28, 28, 0.85)', border: `3px solid ${garage || wh ? 'rgba(161, 98, 7, 0.8)' : defeated ? 'rgba(21, 128, 61, 0.75)' : 'rgba(185, 28, 28, 0.75)'}` }}>
-          {garage ? 'UNVERIFIED' : wh ? 'REPORT IN' : defeated ? 'DISPOSED OF' : 'TERMINATE'}
+          style={{ background: 'rgba(232, 220, 192, 0.85)', color: garage || wh || asset ? 'rgba(161, 98, 7, 0.9)' : defeated ? 'rgba(21, 128, 61, 0.85)' : 'rgba(185, 28, 28, 0.85)', border: `3px solid ${garage || wh || asset ? 'rgba(161, 98, 7, 0.8)' : defeated ? 'rgba(21, 128, 61, 0.75)' : 'rgba(185, 28, 28, 0.75)'}` }}>
+          {garage ? 'UNVERIFIED' : wh ? 'REPORT IN' : asset ? 'SECURE' : defeated ? 'DISPOSED OF' : 'TERMINATE'}
         </div>
         <div className="flex justify-between items-start text-[7px] tracking-widest text-[#44403C] border-b-2 border-[#1C1917] pb-[3px] mb-[5px]">
           <span>{DOSSIER_HEADER}</span>
@@ -152,7 +157,7 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
         <div className="flex gap-2">
           {/* Mugshot, paper-clipped to the file */}
           <div className="relative shrink-0 w-[74px] h-[82px] bg-black border-2 border-[#57534E] rotate-[-2deg]" style={{ boxShadow: '2px 2px 0 rgba(0,0,0,0.4)' }}>
-            <div className={after ? 'w-full h-full grayscale contrast-125' : 'w-full h-full'}>{garage ? <GaragePortrait /> : wh ? <WhiteHousePhoto /> : <BossPortrait id={bossId} dead={after} />}</div>
+            <div className={after ? 'w-full h-full grayscale contrast-125' : 'w-full h-full'}>{garage ? <GaragePortrait /> : wh ? <WhiteHousePhoto /> : asset ? <div className="w-full h-full overflow-hidden bg-[#57534E]"><div style={{ width: 136, marginLeft: -31, marginTop: 2, transform: 'scale(0.56)', transformOrigin: 'top center' }}><MeatheadCaricature /></div></div> : <BossPortrait id={bossId} dead={after} />}</div>
             {after && (
               <svg viewBox="0 0 10 10" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none">
                 <path d="M1 1 L9 9 M9 1 L1 9" stroke="rgba(185, 28, 28, 0.85)" strokeWidth="1.1" strokeLinecap="round" />
@@ -166,12 +171,23 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
             {field('AGE', d.age)}
             {loc && field('LAST SEEN', `${loc.city}, ${loc.state}`)}
             {garage && field('LAST SEEN', 'SEVERAL PLACES. SIMULTANEOUSLY.')}
+            {asset && field('LAST SEEN', 'THE IRON PIT. ALWAYS.')}
             {after ? field('STATUS', corpseWeapon ? 'DECEASED. EXTREMELY.' : 'DECEASED.') : field('THREAT', d.threat)}
           </div>
         </div>
 
         <div className="mt-[4px] leading-[10px]"><span className="font-bold text-[#7F1D1D]">OCCUPATION: </span>{after ? after.occupation : d.occupation}</div>
-        {wh ? (
+        {asset ? (
+          <>
+            {section('THE ORDER', GYM_DOSSIER.order)}
+            {section('THE APPROACH', GYM_DOSSIER.approach)}
+            {section('THE DECOYS', GYM_DOSSIER.decoys)}
+            {section('RISKS', GYM_DOSSIER.risks)}
+            <div className="mt-[6px] p-[4px] leading-[10px] bg-[#FEF3C7] border border-[#A16207]/50 rotate-[-0.6deg]" style={{ boxShadow: '1px 1px 0 rgba(0,0,0,0.25)' }}>
+              <span className="font-bold">HANDLER'S NOTE: </span>{GYM_DOSSIER.handler}
+            </div>
+          </>
+        ) : wh ? (
           <>
             {section('THE SUMMONS', WHITE_HOUSE_DOSSIER.summons)}
             {section('INSTRUCTIONS', WHITE_HOUSE_DOSSIER.instructions)}
