@@ -151,13 +151,16 @@ const plowThrough = (ctx: FrameContext, boss: Enemy, side: 'left' | 'right') => 
   const { state, fx } = ctx;
   const n = side === 'left' ? (boss.leftThroughs = (boss.leftThroughs ?? 0) + 1) : (boss.rightThroughs = (boss.rightThroughs ?? 0) + 1);
   if (side === 'left') boss.leftThroughAt = state.frame; else boss.rightThroughAt = state.frame;
-  // (nothing left to wreck by now: it just drives through what's left, no crash, no rumble, nothing coming down)
-  if ((boss.truckPasses ?? 0) > NOTHING_LEFT_AFTER) return;
   const x = side === 'left' ? ARENA_LEFT + 10 : ARENA_RIGHT - 10;
-  shakeScreen(state, 30 + n * 6, Math.min(22, 10 + n * 2));
+  // (the crash, every time; though once there's nothing left to wreck, nothing more comes down with it, and it
+  // doesn't get any bigger)
+  const spent = (boss.truckPasses ?? 0) > NOTHING_LEFT_AFTER;
+  const m = Math.min(n, NOTHING_LEFT_AFTER);
+  shakeScreen(state, 30 + m * 6, Math.min(22, 10 + m * 2));
   fx.playGunSound('crash');
   playSound('rumble', 1, -6);
   if (n > 1) playSound('slam', 0.8, -4);
+  if (spent) return;
   const dir = side === 'left' ? 1 : -1;
   for (let i = 0; i < 18 + n * 6; i++) {
     state.particles.push({ pos: { x: x + dir * Math.random() * (40 + n * 30), y: 110 + Math.random() * 60 }, vel: { x: dir * Math.random() * 3, y: Math.random() * 2 }, life: 50 + Math.random() * 40, color: ['#E7E5E4', '#A8A29E', '#B91C1C', '#78716C', '#D6D3D1'][i % 5], size: 4 + Math.random() * 8 });
