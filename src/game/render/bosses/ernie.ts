@@ -19,7 +19,7 @@ export const drawErnie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
   const gore = goreOf(e);
   const lifting = e.bossState === 'attacking';
   const running = e.bossState === 'running';
-  const mood = moodOf(e, frame, { attacking: 'fierce', running: 'fierce', stunned_drop: 'dazed', frozen: 'shock' });
+  const mood = moodOf(e, frame, { attacking: 'fierce', perched: 'fierce', running: 'fierce', stunned_drop: 'dazed', frozen: 'shock' });
   const b = breath(frame, 0.05);
   const step = running ? Math.sin(frame * 0.5) * 3 : 0;
   ctx.save();

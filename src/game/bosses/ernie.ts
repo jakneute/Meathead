@@ -17,6 +17,9 @@ const ATTACK_INTERVAL_RAMP = 70; // ...this many fewer at 0 HP
 const ROLL_SPEED_RAMP = 2;       // extra rolling boulder speed at 0 HP
 const HEAVE_WINDUP = 26;         // holding the boulder overhead...
 const HEAVE_WINDUP_RAMP = 8;     // ...this many frames less at 0 HP
+const PERCH_WINDUP = 24;         // stood up on the boulder before he jumps off it and sends it rolling...
+const PERCH_WINDUP_RAMP = 8;     // ...this many frames less at 0 HP
+const PERCH_CLIMB = 6;           // frames getting up onto it
 const HEAVE_FLIGHT = 48;         // frames the heaved boulder takes to come down...
 const HEAVE_FLIGHT_RAMP = 8;     // ...this many fewer at 0 HP (a flatter, quicker lob)
 const JUMP_REACH_RAMP = 0.3;     // his jump at you carries this much further at 0 HP
@@ -70,12 +73,27 @@ const update = (ctx: FrameContext, boss: Enemy) => {
       boss.vel.x = 0;
       if (boss.stateTimer! <= 0) heaveBoulder(ctx, boss);
       break;
+    case 'perched': {
+      // Stood up on the boulder (the tell for the jump): up onto it, a beat, then off it at you and it goes rolling
+      boss.vel.x = 0; boss.vel.y = 0;
+      const total = boss.perchFor ?? PERCH_WINDUP;
+      const up = Math.min(1, (total - boss.stateTimer!) / PERCH_CLIMB);
+      boss.pos.y = FLOOR_Y - boss.height - ERNIE_BOULDER_SIZE * up;
+      if (boss.stateTimer! <= 0) jumpAndRoll(ctx, boss);
+      break;
+    }
     case 'running':
       runAcross(ctx, boss);
       break;
     default:
       if (boss.stateTimer! > 0 || !boss.isGroundedBoss) break;
-      if (Math.random() < 0.5) jumpAndRoll(ctx, boss);
+      if (Math.random() < 0.5) {
+        boss.bossState = 'perched';
+        boss.stateTimer = boss.perchFor = Math.round(PERCH_WINDUP - pace(boss) * PERCH_WINDUP_RAMP);
+        boss.facing = dirTo(boss, ctx.state.player);
+        // (the scrape of him getting up onto it)
+        playSound('crunch', 0.45, -4);
+      }
       else { boss.bossState = 'attacking'; boss.stateTimer = Math.round(HEAVE_WINDUP - pace(boss) * HEAVE_WINDUP_RAMP); }
   }
 };
@@ -84,6 +102,15 @@ const update = (ctx: FrameContext, boss: Enemy) => {
 const jumpAndRoll = (ctx: FrameContext, boss: Enemy) => {
   boss.vel.y = -12;
   boss.vel.x = (ctx.state.player.pos.x - boss.pos.x) * 0.03 * (1 + pace(boss) * JUMP_REACH_RAMP);
+  // (off the top of the boulder he's longer in the air than off the floor: the same distance over that longer time,
+  // so he still comes down where he would have)
+  const h = FLOOR_Y - boss.height - boss.pos.y;
+  if (h > 1) {
+    const g = GRAVITY * 0.5, v = 12;
+    boss.vel.x *= (2 * v) / (v + Math.sqrt(v * v + 2 * g * h));
+  }
+  boss.bossState = 'idle';
+  boss.perchFor = undefined;
   boss.stateTimer = Math.round(ATTACK_INTERVAL - pace(boss) * ATTACK_INTERVAL_RAMP);
   rollBoulder(ctx, boss, dirTo(boss, ctx.state.player), 'b-ernie-jump');
 };
@@ -216,6 +243,6 @@ export const ernie: BossDef = {
   spawn: { x: 7700 },
   update,
   // Floaty on the way up, heavy on the way down
-  physics: { gravity: boss => (boss.isGroundedBoss ? 1 : 0.5), onLand },
+  physics: { gravity: boss => (boss.bossState === 'perched' ? 0 : boss.isGroundedBoss ? 1 : 0.5), onLand },
   onWeaknessHit: freeze,
 };

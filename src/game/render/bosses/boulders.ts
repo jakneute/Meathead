@@ -115,8 +115,14 @@ export const drawRockChip = (ctx: CanvasRenderingContext2D, p: Projectile, frame
   ctx.restore();
 };
 
-/** Ernie holding a boulder over his head before he heaves it. */
+/** Ernie holding a boulder over his head before he heaves it; or stood up on one before he jumps off it. */
 export const drawErnieHeldBoulder = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
+  if (e.bossState === 'perched') {
+    const r = ERNIE_BOULDER_SIZE / 2;
+    // (rocking a touch under him)
+    drawRock(ctx, e.pos.x + e.width / 2, e.pos.y + e.height + r, r, Math.sin(frame * 0.6) * 0.05, ERNIE_ROCK, 11);
+    return;
+  }
   if (e.bossState !== 'attacking') return;
   const r = ERNIE_BOULDER_SIZE / 2;
   const strain = Math.sin(frame * 0.9) * 1.5; // straining under the weight

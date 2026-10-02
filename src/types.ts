@@ -190,7 +190,7 @@ export interface Player extends Entity {
 }
 
 export type BossState =
-  | 'idle' | 'barfing' | 'jumping' | 'attacking' | 'hurricane' | 'telegraphing' | 'stunned_drop'
+  | 'idle' | 'barfing' | 'jumping' | 'attacking' | 'perched' | 'hurricane' | 'telegraphing' | 'stunned_drop'
   | 'truck_incoming' | 'using_shipment' | 'speed_dash' | 'shooting' | 'teleporting'
   | 'blackout' | 'blackout_teleport' | 'ground_pound' | 'lightning_storm' | 'exhausted'
   | 'submerged_chase' | 'telegraph_emerge' | 'emerge_shatter' | 'puke_closing_in'
@@ -424,6 +424,8 @@ export interface Enemy extends Entity {
   /** Oscar, staring at his own cigarette hanging in the air in the taser's beam. */
   baffled?: boolean;
   emergeY?: number;
+  /** Ernie stood up on a boulder: how long he'll be up there (the climb up is timed off it). */
+  perchFor?: number;
   // Oily Oscar
   oscarFacing?: 1 | -1;
   slideTargetX?: number;
