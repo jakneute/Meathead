@@ -91,6 +91,8 @@ export interface StageLayout {
   bossStartX?: number;
   /** ...and the floor there, if it's not just whatever's under the top of the screen (under a ceiling, say). */
   bossStartY?: number;
+  /** Starting again at the boss, the stage's own barrier already stops him going back (Ernie's caved-in vault): no plain wall put up behind him. */
+  ownBossBarrier?: boolean;
   /** Where on screen his feet sit when he's standing (default 550 of 600): higher to see more of what's below him. */
   cameraRow?: (state: GameState) => number | undefined;
   /** How quickly the vertical camera settles (default 0.2 a frame): lower is gentler, for a climb of lots of little ledges. */

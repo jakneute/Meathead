@@ -43,6 +43,8 @@ export const ernieLayout: StageLayout = {
   bossStartX: COURSE.checkpoints[CP.DOOR].x,
   // (down under the citadel's vaults, not on top of them)
   bossStartY: COURSE.checkpoints[CP.DOOR].y,
+  // (the vault that came in behind him after the hipster: starting again here, that's what's back there, as it was)
+  ownBossBarrier: true,
   build: (state, skipToBoss) => {
     const C = COURSE;
     state.groundRuns = [...C.runs, { x1: BOSS_DOOR_X, y1: GROUND_Y, x2: STAGE_WIDTH, y2: GROUND_Y }];

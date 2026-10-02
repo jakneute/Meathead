@@ -77,7 +77,7 @@ export const respawn = (state: GameState, stageId: string | null, skipToBoss: bo
     state.camera.x = Math.max(state.cameraMinX, p.pos.x - 250);
     state.camera.y = state.cameraRestY = bossY - 550;
   }
-  if (state.bossCheckpoint && !skipToBoss) {
+  if (state.bossCheckpoint && !skipToBoss && !getStageLayout(stageId)?.ownBossBarrier) {
     const startX = getStartX(true, stageId);
     // (all the way up: a stage can put its boss start high up, like Tommy's ruins)
     state.blocks.push({ x: startX - 100, y: -6000, w: 100, h: 8000, type: 'wall' });
