@@ -54,6 +54,8 @@ export interface StageLayout {
   drawSpecialEnemy?: (ctx: CanvasRenderingContext2D, e: Enemy, state: GameState) => boolean;
   /** A special death message for how he died here (the avalanche), if any. */
   deathMessage?: (ctx: FrameContext) => string | undefined;
+  /** Fell to his death somewhere of the stage's own with a death of its own (down a fault onto a spike): which. */
+  fallDeathKind?: (ctx: FrameContext) => import('../player/deathAnim').MeatheadDeathKind | undefined;
   /** Each frame of a death scene of the stage's (state.deathScene): its sounds, on its beats. */
   deathSceneTick?: (ctx: FrameContext, t: number) => void;
   /** World space, behind everything that moves (scenery, the tram, the cabin). */

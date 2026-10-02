@@ -70,6 +70,8 @@ export const ernieLayout: StageLayout = {
     }
   },
   update: (ctx, controls) => updateErnie(ctx, controls),
+  // (down a fault: onto a spike at the bottom of it, see player/deathAnim)
+  fallDeathKind: ctx => { const rt = getErnie(ctx.state); return rt && ctx.state.player.health > 0 && rt.quakes.nearFault >= 0 ? 'spiked' : undefined; },
   deathMessage: ctx => {
     const rt = getErnie(ctx.state);
     if (!rt) return undefined;

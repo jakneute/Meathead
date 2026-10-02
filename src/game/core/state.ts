@@ -128,6 +128,8 @@ export interface GameState {
   meatheadDeath?: import('../player/deathAnim').MeatheadDeath;
   /** What's just run him through, if it's killed him (a falling icicle on the head, a cactus): the frame, and where. */
   impaleAt?: import('../player/deathAnim').Impale;
+  /** A bird that's just got him on its dive or its swoop (and killed him): which, and when. */
+  pluckedBy?: { id: string; frame: number };
   /** What of the world's on screen this frame (set as it's drawn): the camera's 800x600, or more of it zoomed out. */
   view?: { x: number; y: number; w: number; h: number };
   /** The last frame a long death on its way offered SKIP >> (see skipDying). */

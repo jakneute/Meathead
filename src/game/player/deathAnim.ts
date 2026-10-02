@@ -14,6 +14,10 @@
 //   overdose   the needle (or the powder): the colours, a spin, and he floats up and away like the ones he's dosed
 //   impaled    an icicle, point first, onto the top of his head: straight down through him, stopped dead on it, and
 //              if he was off the ground he slides down it to the floor like a kebab
+//   plucked    a bird's dive or swoop: it lands on his head, pecks his eyes out, one, two, and flies off with them;
+//              him staggering about blind as everything goes dark
+//   spiked     down a fault: the kill cam cuts to the bottom of it, a spike of rock, and him coming down onto it on his
+//              back, through the middle, and sliding down it a way
 //   cactus     run through on a cactus: lying across the top of it with the top of it out through his middle, or pinned
 //              to the side of it on one of its arms; spines all over him
 
@@ -24,8 +28,9 @@ import { hurtJustNow } from '../core/deathCause';
 import { playSound } from '../platform/audio';
 import { PARTICLE_PALETTES } from '../../constants';
 import { floorTopAt } from '../core/terrain';
+import { getStageLayout } from '../stages';
 
-export type MeatheadDeathKind = 'burnt' | 'lava' | 'boiled' | 'fried' | 'frozen' | 'buried' | 'flattened' | 'dissolved' | 'roadkill' | 'overdose' | 'impaled' | 'cactus';
+export type MeatheadDeathKind = 'burnt' | 'lava' | 'boiled' | 'fried' | 'frozen' | 'buried' | 'flattened' | 'dissolved' | 'roadkill' | 'overdose' | 'impaled' | 'cactus' | 'plucked' | 'spiked';
 
 /** What's run him through: an icicle (where), or a cactus (where, the top of it, which side he's on, and that side's edge). */
 export interface Impale { frame: number; how: 'icicle' | 'cactus_top' | 'cactus_side'; x: number; top?: number; side?: number; edge?: number }
@@ -39,12 +44,14 @@ export interface MeatheadDeath {
   /** (impaled, cactus) what went through him; and (impaled) the floor under him. */
   impale?: Impale;
   floor?: number;
+  /** (plucked) The bird, and where it was when it got him. */
+  bird?: { id: string; x: number; y: number };
 }
 
 /** How long each one plays before the death screen goes up. */
 export const MEATHEAD_DEATH_FRAMES: Record<MeatheadDeathKind, number> = {
   burnt: 95, lava: 125, boiled: 85, fried: 85, frozen: 80, buried: 95, flattened: 70, dissolved: 110, roadkill: 80, overdose: 120,
-  impaled: 80, cactus: 80,
+  impaled: 80, cactus: 80, plucked: 150, spiked: 100,
 };
 
 const BY_SOURCE: Record<string, MeatheadDeathKind> = {
@@ -70,6 +77,7 @@ const kindFor = (state: GameState): MeatheadDeathKind | undefined => {
   const h = state.lastHurt;
   if (!h || !hurtJustNow(state, h.at)) return undefined;
   if (state.impaleAt && state.impaleAt.frame === h.at) return state.impaleAt.how === 'icicle' ? 'impaled' : 'cactus';
+  if (state.pluckedBy && state.pluckedBy.frame === h.at && state.enemies.some(e => e.id === state.pluckedBy!.id)) return 'plucked';
   return BY_SOURCE[h.source] ?? (h.source.startsWith('junk_') ? 'flattened' : undefined);
 };
 
@@ -77,12 +85,14 @@ const kindFor = (state: GameState): MeatheadDeathKind | undefined => {
 export const startMeatheadDeath = (ctx: FrameContext): boolean => {
   const { state } = ctx;
   const p = state.player;
-  if (p.health > 0 || p.jetski || p.bike || p.skiing || p.swimming) return false;
-  const kind = kindFor(state);
+  if (p.jetski || p.bike || p.skiing || p.swimming) return false;
+  const kind = p.health > 0 ? getStageLayout(ctx.stageId)?.fallDeathKind?.(ctx) : kindFor(state);
   if (!kind) return false;
   const x = p.pos.x + p.width / 2, y = p.pos.y + p.height;
   const snow = state.lastHurt?.source === 'avalanche' || state.lastHurt?.source === 'snowball';
-  state.meatheadDeath = { kind, x, y, facing: p.facing === -1 ? -1 : 1, snow, impale: state.impaleAt, floor: kind === 'impaled' ? (floorTopAt(state.blocks, x, y, 0) ?? y) : undefined };
+  const bird = kind === 'plucked' ? state.enemies.find(e => e.id === state.pluckedBy!.id) : undefined;
+  state.meatheadDeath = { kind, x, y, facing: p.facing === -1 ? -1 : 1, snow, impale: state.impaleAt, floor: kind === 'impaled' ? (floorTopAt(state.blocks, x, y, 0) ?? y) : undefined,
+    bird: bird ? { id: bird.id, x: bird.pos.x, y: bird.pos.y } : undefined };
   state.deathScene = { t: 0, len: MEATHEAD_DEATH_FRAMES[kind], voiced: false };
   return true;
 };
@@ -188,6 +198,31 @@ export const tickMeatheadDeath = (ctx: FrameContext, d: MeatheadDeath, t: number
       if (t > 6 && t % 6 === 0) P.push({ pos: { x: d.x + rnd(-8, 8), y: d.impale?.how === 'cactus_top' ? (d.impale.top ?? d.y) + 6 : d.y - 30 }, vel: { x: 0, y: 1.5 }, life: 30, color: GORE[t % GORE.length], size: rnd(2, 4) });
       break;
     }
+    case 'plucked': {
+      // The bird: onto his head, pecking, and away with them
+      const e = state.enemies.find(q => q.id === d.bird?.id);
+      if (e) {
+        const hx = d.x + d.facing * 4 - e.width / 2, hy = d.y - 62 - e.height + 8;
+        e.vel = { x: 0, y: 0 };
+        if (t <= PLUCK_LAND) { const k = t / PLUCK_LAND; e.pos.x = d.bird!.x + (hx - d.bird!.x) * k; e.pos.y = d.bird!.y + (hy - d.bird!.y) * k; }
+        else if (t < PLUCK_AWAY) { e.pos.x = hx + pluckSway(t); e.pos.y = hy + (t % 8 < 3 ? 5 : 0); e.facing = d.facing; }
+        else { const k = t - PLUCK_AWAY; e.facing = (d.facing * -1) as 1 | -1; e.pos.x = hx + e.facing * k * 5; e.pos.y = hy - k * 4 - k * k * 0.02 + Math.sin(k * 0.8) * 2; }
+      }
+      if (t > PLUCK_LAND && t < PLUCK_AWAY && t % 8 === 0) playSound('punch', 0.25, 10);
+      for (const at of PLUCKS) if (t === at) {
+        playSound('splat', 0.9, 4); playSound('hurt', 0.8);
+        for (let i = 0; i < 12; i++) P.push({ pos: { x: d.x + d.facing * (at === PLUCKS[0] ? 3 : 9), y: d.y - 54 }, vel: { x: rnd(-4, 4), y: rnd(-6, -1) }, life: rnd(40, 70), color: GORE[i % GORE.length], size: rnd(2, 5) });
+      }
+      if (t === PLUCK_AWAY) playSound('whoosh', 0.8);
+      if (t > PLUCKS[0] && t % 4 === 0) P.push({ pos: { x: d.x + d.facing * 6 + rnd(-3, 3), y: d.y - 50 }, vel: { x: 0, y: 1.2 }, life: 20, color: GORE[t % GORE.length], size: rnd(2, 3) });
+      if (t === PLUCK_FALL + 12) playSound('thud', 0.9);
+      break;
+    }
+    case 'spiked':
+      if (t === 1) playSound('whoosh', 0.9, -6);
+      if (t === SPIKE_HIT) { playSound('crunch', 1); playSound('splat', 1, -4); shakeScreen(state, 18, 9); }
+      if (t === SPIKE_HIT + 8) playSound('crunch', 0.5, -8);
+      break;
     case 'overdose':
       if (t === 1) playSound('dart', 1);
       if (t === 20) playSound('powerup', 0.7, -8);
@@ -204,5 +239,14 @@ export const FROZEN_SHATTER = 52;
 export const ROADKILL_TWINKLE = 46;
 /** (impaled) Where his feet are: stopped dead where it got him, and, if that was off the ground, sliding down it to the floor. */
 export const impaledFeet = (d: MeatheadDeath, t: number) => { const k = Math.min(1, Math.max(0, (t - 6) / 12)); return d.y + ((d.floor ?? d.y) - d.y) * k * k; };
+/** (plucked) The bird lands on his head; plucks one eye, then the other; flies off with them; he goes over (blind,
+ * the dark coming in all the while from the first); and how long it all takes. */
+export const PLUCK_LAND = 10, PLUCKS = [24, 36], PLUCK_AWAY = 44, PLUCK_FALL = 110, PLUCK_FRAMES = 150;
+/** (plucked) Him staggering about blind, and the bird on his head going with him. */
+export const pluckSway = (t: number) => (t > PLUCKS[0] ? Math.sin((t - PLUCKS[0]) * 0.11) * Math.min(1, (t - PLUCKS[0]) / 30) * 14 : 0);
+/** (plucked) How dark it's got: from the first eye, slowly, all the way. */
+export const pluckDark = (t: number) => Math.max(0, Math.min(1, (t - PLUCKS[0]) / (PLUCK_FRAMES - 10 - PLUCKS[0])));
+/** (spiked) When he comes down onto it. */
+export const SPIKE_HIT = 16;
 /** (overdose) How far he's floated up. */
 export const overdoseRise = (t: number) => Math.max(0, t - 18) ** 1.45 * 0.32;

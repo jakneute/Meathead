@@ -2,7 +2,7 @@ import type { GameState } from '../../core/state';
 import type { WeaponType } from '../../../types';
 import { drawPlayer } from './player';
 import { pantsColor, bootColor } from './body';
-import { MEATHEAD_DEATH_FRAMES, LAVA_COOKOFF, FROZEN_SHATTER, ROADKILL_TWINKLE, overdoseRise, impaledFeet, MeatheadDeath } from '../../player/deathAnim';
+import { MEATHEAD_DEATH_FRAMES, LAVA_COOKOFF, FROZEN_SHATTER, ROADKILL_TWINKLE, overdoseRise, impaledFeet, PLUCKS, PLUCK_AWAY, PLUCK_FALL, pluckSway, pluckDark, SPIKE_HIT, MeatheadDeath } from '../../player/deathAnim';
 
 // Meathead's own deaths (see player/deathAnim): him, drawn in his place, going whichever way it got him.
 
@@ -242,6 +242,37 @@ export const drawMeatheadDeath = (ctx: Ctx, state: GameState, weapon: WeaponType
       }
       break;
     }
+    case 'plucked': {
+      // Stood there while it's at him, then staggering about blind, then over
+      const sway = pluckSway(t), fall = clamp01((t - PLUCK_FALL) / 12);
+      ctx.save();
+      ctx.translate(sway, 0);
+      about(ctx, x, y, -facing * fall * fall * Math.PI / 2 + (t > PLUCKS[0] ? Math.sin((t - PLUCKS[0]) * 0.11 + 1) * 0.08 * (1 - fall) : 0));
+      if (t < PLUCKS[1] + 4 && t > PLUCKS[0] - 14) ctx.translate(Math.sin(t * 2.1) * 1.2, 0);
+      body(ctx, state, d, weapon);
+      // His eyes: one gone, then both: bloody holes, running down his face
+      for (const [i, ex] of [[0, 3], [1, 9]] as const) {
+        if (t < PLUCKS[i]) continue;
+        const run = Math.min(14, (t - PLUCKS[i]) * 0.3);
+        ctx.fillStyle = '#450A0A'; ctx.fillRect(x + facing * ex - 2, y - 56, 4, 4);
+        ctx.fillStyle = '#B91C1C'; ctx.fillRect(x + facing * ex - 1, y - 52, 2, run);
+      }
+      ctx.restore();
+      // ...and away with them, in its beak, on their strings
+      const e = state.enemies.find(q => q.id === d.bird?.id);
+      if (e && t >= PLUCKS[0]) {
+        const bx = e.pos.x + e.width / 2 + (e.facing ?? 1) * e.width * 0.4, by = e.pos.y + e.height * 0.55;
+        const n = t >= PLUCKS[1] ? 2 : 1;
+        for (let k = 0; k < n; k++) {
+          const ox = (k ? 5 : -2) + (t >= PLUCK_AWAY ? Math.sin(t * 0.5 + k) * 2 : 0), oy = 9 + k * 3;
+          ctx.strokeStyle = '#B91C1C'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx + ox, by + oy); ctx.stroke();
+          ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.arc(bx + ox, by + oy + 2, 2.6, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#1E3A8A'; ctx.fillRect(bx + ox - 1, by + oy + 1.5, 2, 2);
+        }
+      }
+      void PLUCK_AWAY; void pluckDark;
+      break;
+    }
     case 'overdose': {
       // Every colour there is, a slow spin, and up he floats, blissed out, and away
       const rise = overdoseRise(t);
@@ -253,6 +284,94 @@ export const drawMeatheadDeath = (ctx: Ctx, state: GameState, weapon: WeaponType
       break;
     }
   }
+  ctx.restore();
+};
+
+/** (plucked) His sight going: the dark closing in round him, all the way to black. Screen space, over everything. */
+export const drawBlindness = (ctx: Ctx, state: GameState, width: number, height: number) => {
+  const d = state.meatheadDeath;
+  if (!d || d.kind !== 'plucked' || state.deathTimer <= 0) return;
+  const t = Math.min(state.deathScene?.t ?? 9999, MEATHEAD_DEATH_FRAMES.plucked);
+  const k = pluckDark(t);
+  if (k <= 0) return;
+  const cx = d.x - state.camera.x, cy = d.y - 40 - state.camera.y;
+  const r = Math.max(1, (1 - k) * 520);
+  const g = ctx.createRadialGradient(cx, cy, r * 0.25, cx, cy, r);
+  g.addColorStop(0, `rgba(0, 0, 0, ${k * 0.5})`); g.addColorStop(1, 'rgba(0, 0, 0, 1)');
+  ctx.save(); ctx.fillStyle = g; ctx.fillRect(0, 0, width, height);
+  // (and, the death screen up, it's gone black)
+  if (state.deathScene && state.deathScene.t >= state.deathScene.len) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, width, height); }
+  ctx.restore();
+};
+
+/**
+ * (spiked) The kill cam, down at the bottom of the fault: the walls of it going up into the dark, a sliver of daylight
+ * way up, a spike of rock up out of the floor; him coming down into it on his back, onto the point, through his middle,
+ * and sliding down it a way, jerking, still; the blood running down it. Screen space, over everything.
+ */
+export const drawSpikeCam = (ctx: Ctx, state: GameState, width: number, height: number) => {
+  const d = state.meatheadDeath;
+  if (!d || d.kind !== 'spiked' || state.deathTimer <= 0) return;
+  const t = Math.min(state.deathScene?.t ?? 9999, MEATHEAD_DEATH_FRAMES.spiked);
+  const f = state.frame;
+  ctx.save();
+  // The chasm: the far wall dark, a crack of daylight way up, the near walls in jagged bands either side
+  const g = ctx.createLinearGradient(0, 0, 0, height);
+  g.addColorStop(0, '#292524'); g.addColorStop(0.5, '#140F0C'); g.addColorStop(1, '#0C0A09');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, width, height);
+  ctx.fillStyle = 'rgba(254, 243, 199, 0.5)'; ctx.beginPath(); ctx.moveTo(width / 2 - 30, 0); ctx.lineTo(width / 2 + 40, 0); ctx.lineTo(width / 2 + 8, 30); ctx.lineTo(width / 2 - 10, 30); ctx.fill();
+  for (const side of [-1, 1]) {
+    for (let b = 0; b < 8; b++) {
+      ctx.fillStyle = ['#292524', '#1C1917', '#3F3A36', '#231F1C'][b % 4];
+      const y0 = b * (height / 8), y1 = y0 + height / 8 + 1, in0 = 60 + (8 - b) * 34 + ((b * 37) % 23), in1 = 60 + (7 - b) * 34 + ((b * 53) % 23);
+      const jag = (y: number, k: number) => ((Math.floor(y / 9) * 31 + k * 17) % 13) - 6;
+      ctx.beginPath();
+      const edge = (yy: number) => { const q = (yy - y0) / (y1 - y0); return 70 + in0 + (in1 - in0) * q + jag(yy, b); };
+      if (side < 0) { ctx.moveTo(0, y0); for (let yy = y0; yy <= y1; yy += 9) ctx.lineTo(edge(yy), yy); ctx.lineTo(0, y1); }
+      else { ctx.moveTo(width, y0); for (let yy = y0; yy <= y1; yy += 9) ctx.lineTo(width - edge(yy), yy); ctx.lineTo(width, y1); }
+      ctx.fill();
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.25)'; ctx.fillRect(side < 0 ? 0 : width - 40, y0, 40, y1 - y0);
+    }
+  }
+  // The floor, the rubble, and the spike up out of it
+  const cx = width / 2, tipY = 300, floorY = height - 40;
+  ctx.fillStyle = '#1C1917'; ctx.fillRect(0, floorY, width, height - floorY);
+  ctx.fillStyle = '#44403C'; for (let k = 0; k < 12; k++) ctx.fillRect(40 + k * 62 + ((k * 29) % 30), floorY - 6 - (k % 3) * 3, 18 + (k % 4) * 6, 8 + (k % 3) * 3);
+  const spike = (from: number, to: number) => {
+    const w = (y: number) => 3 + ((y - tipY) / (floorY - tipY)) * 46;
+    ctx.fillStyle = '#57534E'; ctx.beginPath(); ctx.moveTo(cx - w(from), from); ctx.lineTo(cx + w(from), from); ctx.lineTo(cx + w(to), to); ctx.lineTo(cx - w(to), to); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#78716C'; ctx.beginPath(); ctx.moveTo(cx - w(from) * 0.6, from); ctx.lineTo(cx - w(from) * 0.2, from); ctx.lineTo(cx - w(to) * 0.2, to); ctx.lineTo(cx - w(to) * 0.6, to); ctx.closePath(); ctx.fill();
+  };
+  spike(tipY, floorY);
+  // Him: falling in on his back, then on it, sliding down a way
+  const hit = t >= SPIKE_HIT;
+  const slide = hit ? Math.min(26, (t - SPIKE_HIT) * 1.4) * (t - SPIKE_HIT < 20 ? 1 : 1) : 0;
+  const bodyY = hit ? tipY + 26 + slide : -120 + (tipY + 26 + 120) * (t / SPIKE_HIT) ** 2;
+  const jerk = hit && t - SPIKE_HIT < 30 && (t - SPIKE_HIT) % 7 < 2 ? 2 : 0;
+  // (blood down it, under him)
+  if (hit) {
+    const run = Math.min(floorY - bodyY, (t - SPIKE_HIT) * 6);
+    ctx.fillStyle = 'rgba(153, 27, 27, 0.9)'; ctx.fillRect(cx - 3, bodyY, 6, run); ctx.fillRect(cx + 6, bodyY + 4, 3, run * 0.7);
+    ctx.fillStyle = 'rgba(127, 29, 29, 0.85)'; ctx.beginPath(); ctx.ellipse(cx, floorY, Math.min(60, (t - SPIKE_HIT) * 1.5), 5, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.save();
+  ctx.translate(cx, bodyY - jerk); ctx.scale(2, 2); ctx.rotate(-d.facing * Math.PI / 2 + (hit ? 0 : Math.sin(t * 0.4) * 0.15));
+  body(ctx, { ...state, blocks: [], camera: { x: 0, y: 0 } } as GameState, { ...d, x: 0, y: 32 }, state.player.currentWeapon);
+  ctx.restore();
+  // ...and its point out through the front of him, bloody
+  if (hit) {
+    const out = bodyY - 40;
+    spike(out - 30, out + 6);
+    ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.moveTo(cx - 7, out + 4); ctx.lineTo(cx + 7, out + 4); ctx.lineTo(cx + 2, out - 20); ctx.lineTo(cx - 2, out - 20); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#B91C1C'; ctx.beginPath(); ctx.ellipse(cx, out + 4, 14, 4, 0, 0, Math.PI * 2); ctx.fill();
+    for (let k = 0; k < 5; k++) { ctx.fillStyle = '#991B1B'; ctx.fillRect(cx - 12 + k * 6, out + 4, 2, 4 + ((k * 7 + t) % 6)); }
+  } else {
+    // (the spike's point, waiting for him)
+    void f;
+  }
+  // (and it fades out on him at the end)
+  const out = Math.max(0, Math.min(1, (t - 80) / 20));
+  if (out > 0) { ctx.fillStyle = `rgba(0, 0, 0, ${out * 0.6})`; ctx.fillRect(0, 0, width, height); }
   ctx.restore();
 };
 

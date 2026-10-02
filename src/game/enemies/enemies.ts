@@ -540,6 +540,8 @@ const moveEnemy = (ctx: FrameContext, e: Enemy) => {
 
 /** What lives in the muck (in and out of it as it likes). */
 const MUCK_DWELLERS = new Set(['sludgeling', 'mutantfish', 'amalgam']);
+/** The birds that come at him (diving or swooping). */
+const BIRDS = new Set(['eagle', 'vulture', 'hawk', 'pelican', 'grackle', 'seagull', 'pigeon']);
 
 /** Its next step (at the speed it's going), or where the hop it's starting comes down, is off the edge of the ground, down
  * into a pool of muck. */
@@ -943,6 +945,9 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     // (a boss's own weight behind it; anything else just a bump)
     if (!cheats.invincible) player.health -= kindContactDamage(e) ?? (e.type === 'boss' ? stageDef?.contact?.damage : undefined) ?? 5.5;
     state.lastHurt = { source: getContactHurtSource(ctx, e), at: state.frame };
+    // (a bird that's got him on its attack, its dive or its swoop, not just bumped into him: if that's killed him, it
+    // has his eyes; see player/deathAnim)
+    if (player.health <= 0 && BIRDS.has(e.kind ?? '') && (e.aiState === 'dive' || e.aiState === 'swoop')) state.pluckedBy = { id: e.id, frame: state.frame };
     if (player.health > 0) {
       player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;
       player.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;
