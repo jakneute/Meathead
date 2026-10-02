@@ -416,6 +416,9 @@ export const OSCAR_TASER_RELEASE_GRACE = 8;    // beam can flicker off this long
 export const OSCAR_BURST_DAMAGE = 140;
 export const OSCAR_CIGARETTE_ZAP_FRAMES = 55;  // taser held on the cigarette before it blows (let go first: it carries on)
 export const OSCAR_CIGARETTE_COMBO_DAMAGE = 200;
+/** ...but only if it blows close enough to his face to catch it: how far from his face it can be (px). Further off, it
+ * just goes off where it is (and lights any oil it's over). */
+export const OSCAR_CIGARETTE_COMBO_REACH = 150;
 export const OSCAR_ASH_FACE_FRAMES = 130;
 
 // DRUG TRADE DALE

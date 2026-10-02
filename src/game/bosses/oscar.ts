@@ -10,7 +10,7 @@ import {
   OSCAR_MAX_AIM_FRAMES, OSCAR_ROCKET_SPEED, OSCAR_SPLASH_RADIUS, OSCAR_SPLASH_DAMAGE, OSCAR_OIL_RADIUS,
   OSCAR_OIL_CELL, OSCAR_OIL_FRAMES, OSCAR_FLICK_WINDUP, OSCAR_CIGARETTE_FLIGHT, OSCAR_CIGARETTE_GRAVITY,
   OSCAR_FIRE_FRAMES, OSCAR_FIRE_SPREAD_DELAY, OSCAR_FIRE_DAMAGE, OSCAR_TASER_HOLD_FRAMES,
-  OSCAR_TASER_RELEASE_GRACE, OSCAR_BURST_DAMAGE, OSCAR_CIGARETTE_ZAP_FRAMES, OSCAR_CIGARETTE_COMBO_DAMAGE,
+  OSCAR_TASER_RELEASE_GRACE, OSCAR_BURST_DAMAGE, OSCAR_CIGARETTE_ZAP_FRAMES, OSCAR_CIGARETTE_COMBO_DAMAGE, OSCAR_CIGARETTE_COMBO_REACH,
   OSCAR_ASH_FACE_FRAMES, OSCAR_FIRE_WARNING,
 } from '../../constants';
 import { OSCAR_LINES } from '../../content/dialogue';
@@ -668,6 +668,8 @@ export const zapCigarette = (ctx: FrameContext, cig: Projectile) => {
   const boss = findOscar(state);
   if (!boss) return;
   const face = { x: midX(boss), y: boss.pos.y + 20 };
+  // (it has to go off in his face: halfway across the room, it's just a cigarette going off, and whatever oil's under it)
+  if (Math.hypot(at.x - face.x, at.y - face.y) > OSCAR_CIGARETTE_COMBO_REACH) { landCigarette(ctx, at); return; }
   fx.spawnExplosion(face, '#212121', 25, 0, 12);
   fx.spawnExplosion(face, '#FF8C00', 15, 0, 10);
   boss.health -= OSCAR_CIGARETTE_COMBO_DAMAGE;
