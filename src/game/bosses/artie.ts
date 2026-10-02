@@ -229,7 +229,10 @@ const updateIcicles = (ctx: FrameContext) => {
     const b = icicleBounds(i);
     if (b.x < hurtbox.x + hurtbox.w && b.x + b.w > hurtbox.x && b.y < hurtbox.y + hurtbox.h && b.y + b.h > hurtbox.y) {
       if (player.invincibilityTimer <= 0) {
+        // (point first onto the top of his head, not his side: if it kills him, it goes right through him and stays)
+        const onHead = b.y + b.h - i.vy <= hurtbox.y + 12 && Math.abs(player.pos.x + player.width / 2 - i.x) < player.width / 2 - 2;
         hurtPlayer(ctx, ICICLE_DAMAGE, 'ice', { x: (player.pos.x + player.width / 2 < i.x ? -1 : 1) * PLAYER_PUSHBACK_VEL_X * 0.6, y: PLAYER_PUSHBACK_VEL_Y });
+        if (onHead && player.health <= 0) { state.impaleAt = { frame: state.frame, how: 'icicle', x: i.x }; return false; }
       }
       shatter(i);
       return false;

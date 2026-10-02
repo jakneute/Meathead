@@ -74,7 +74,10 @@ const updateIcicles = (ctx: FrameContext, hz: Hazards) => {
       ic.fy += ic.vy;
       const box = { x: ic.x - ICICLE_W / 2, y: ic.fy, w: ICICLE_W, h: ICICLE_H };
       if (player.invincibilityTimer <= 0 && rectsOverlap(box, boundsOf(player))) {
+        // (point first onto the top of his head, not his side: if it kills him, it goes right through him and stays)
+        const onHead = ic.fy + ICICLE_H - ic.vy <= player.pos.y + 12 && Math.abs(pcx - ic.x) < player.width / 2 - 2;
         hurtPlayer(ctx, ICICLE_DAMAGE, 'icicle', { x: pcx < ic.x ? -4 : 4, y: -4 });
+        if (onHead && player.health <= 0) { state.impaleAt = { frame: state.frame, how: 'icicle', x: ic.x }; ic.state = 'gone'; continue; }
         shatter(ctx, ic.x, ic.fy + ICICLE_H);
         ic.state = 'gone';
         continue;

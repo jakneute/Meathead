@@ -12,6 +12,10 @@
 //   dissolved  the muck: going green, slumping into a puddle, and his skull bobs up in it and goes back under
 //   roadkill   hit by something with an engine: knocked clean out of his boots and over the top of the screen; a twinkle
 //   overdose   the needle (or the powder): the colours, a spin, and he floats up and away like the ones he's dosed
+//   impaled    an icicle, point first, onto the top of his head: straight down through him, stopped dead on it, and
+//              if he was off the ground he slides down it to the floor like a kebab
+//   cactus     run through on a cactus: lying across the top of it with the top of it out through his middle, or pinned
+//              to the side of it on one of its arms; spines all over him
 
 import type { FrameContext } from '../core/context';
 import type { GameState } from '../core/state';
@@ -19,8 +23,12 @@ import { shakeScreen } from '../core/state';
 import { hurtJustNow } from '../core/deathCause';
 import { playSound } from '../platform/audio';
 import { PARTICLE_PALETTES } from '../../constants';
+import { floorTopAt } from '../core/terrain';
 
-export type MeatheadDeathKind = 'burnt' | 'lava' | 'boiled' | 'fried' | 'frozen' | 'buried' | 'flattened' | 'dissolved' | 'roadkill' | 'overdose';
+export type MeatheadDeathKind = 'burnt' | 'lava' | 'boiled' | 'fried' | 'frozen' | 'buried' | 'flattened' | 'dissolved' | 'roadkill' | 'overdose' | 'impaled' | 'cactus';
+
+/** What's run him through: an icicle (where), or a cactus (where, the top of it, which side he's on, and that side's edge). */
+export interface Impale { frame: number; how: 'icicle' | 'cactus_top' | 'cactus_side'; x: number; top?: number; side?: number; edge?: number }
 
 export interface MeatheadDeath {
   kind: MeatheadDeathKind;
@@ -28,11 +36,15 @@ export interface MeatheadDeath {
   x: number; y: number; facing: 1 | -1;
   /** (buried) snow, or rock. */
   snow?: boolean;
+  /** (impaled, cactus) what went through him; and (impaled) the floor under him. */
+  impale?: Impale;
+  floor?: number;
 }
 
 /** How long each one plays before the death screen goes up. */
 export const MEATHEAD_DEATH_FRAMES: Record<MeatheadDeathKind, number> = {
   burnt: 95, lava: 125, boiled: 85, fried: 85, frozen: 80, buried: 95, flattened: 70, dissolved: 110, roadkill: 80, overdose: 120,
+  impaled: 80, cactus: 80,
 };
 
 const BY_SOURCE: Record<string, MeatheadDeathKind> = {
@@ -42,7 +54,8 @@ const BY_SOURCE: Record<string, MeatheadDeathKind> = {
   lava: 'lava', magmafish: 'lava',
   steam: 'boiled',
   electric: 'fried', shock: 'fried', lightning: 'fried', self_tased: 'fried',
-  ice: 'frozen', snowball: 'frozen',
+  ice: 'frozen',
+  snowball: 'buried',
   avalanche: 'buried', cave_in: 'buried', rockslide: 'buried',
   boulder: 'flattened', falling_debris: 'flattened', falling_steel: 'flattened', amalgam_fist: 'flattened', conveyor_crate: 'flattened',
   junk: 'flattened', floating_crate: 'flattened',
@@ -56,6 +69,7 @@ const BY_SOURCE: Record<string, MeatheadDeathKind> = {
 const kindFor = (state: GameState): MeatheadDeathKind | undefined => {
   const h = state.lastHurt;
   if (!h || !hurtJustNow(state, h.at)) return undefined;
+  if (state.impaleAt && state.impaleAt.frame === h.at) return state.impaleAt.how === 'icicle' ? 'impaled' : 'cactus';
   return BY_SOURCE[h.source] ?? (h.source.startsWith('junk_') ? 'flattened' : undefined);
 };
 
@@ -66,7 +80,9 @@ export const startMeatheadDeath = (ctx: FrameContext): boolean => {
   if (p.health > 0 || p.jetski || p.bike || p.skiing || p.swimming) return false;
   const kind = kindFor(state);
   if (!kind) return false;
-  state.meatheadDeath = { kind, x: p.pos.x + p.width / 2, y: p.pos.y + p.height, facing: p.facing === -1 ? -1 : 1, snow: state.lastHurt?.source === 'avalanche' };
+  const x = p.pos.x + p.width / 2, y = p.pos.y + p.height;
+  const snow = state.lastHurt?.source === 'avalanche' || state.lastHurt?.source === 'snowball';
+  state.meatheadDeath = { kind, x, y, facing: p.facing === -1 ? -1 : 1, snow, impale: state.impaleAt, floor: kind === 'impaled' ? (floorTopAt(state.blocks, x, y, 0) ?? y) : undefined };
   state.deathScene = { t: 0, len: MEATHEAD_DEATH_FRAMES[kind], voiced: false };
   return true;
 };
@@ -154,6 +170,24 @@ export const tickMeatheadDeath = (ctx: FrameContext, d: MeatheadDeath, t: number
       }
       if (t === ROADKILL_TWINKLE) playSound('ding', 0.9, 6);
       break;
+    case 'impaled': {
+      if (t === 1) {
+        playSound('crunch', 1); playSound('crack', 0.9, -4); shakeScreen(state, 14, 7);
+        for (let i = 0; i < 18; i++) P.push({ pos: { x: d.x + rnd(-6, 6), y: top + rnd(-4, 10) }, vel: { x: rnd(-5, 5), y: rnd(-8, -2) }, life: rnd(50, 80), color: GORE[i % GORE.length], size: rnd(3, 7) });
+      }
+      const slid = impaledFeet(d, t);
+      if (slid !== d.y && t < 16 && t % 2 === 0) playSound('splat', 0.25, 6);
+      if (t > 4 && t % 5 === 0) P.push({ pos: { x: d.x + rnd(-2, 2), y: slid + 1 }, vel: { x: 0, y: 1 }, life: 30, color: GORE[t % GORE.length], size: rnd(2, 4) });
+      break;
+    }
+    case 'cactus': {
+      if (t === 1) {
+        playSound('crunch', 1); playSound('splat', 0.8); shakeScreen(state, 12, 6);
+        for (let i = 0; i < 18; i++) P.push({ pos: { x: d.x + rnd(-10, 10), y: d.y - rnd(20, 44) }, vel: { x: rnd(-5, 5), y: rnd(-7, -1) }, life: rnd(50, 80), color: GORE[i % GORE.length], size: rnd(3, 7) });
+      }
+      if (t > 6 && t % 6 === 0) P.push({ pos: { x: d.x + rnd(-8, 8), y: d.impale?.how === 'cactus_top' ? (d.impale.top ?? d.y) + 6 : d.y - 30 }, vel: { x: 0, y: 1.5 }, life: 30, color: GORE[t % GORE.length], size: rnd(2, 4) });
+      break;
+    }
     case 'overdose':
       if (t === 1) playSound('dart', 1);
       if (t === 20) playSound('powerup', 0.7, -8);
@@ -168,5 +202,7 @@ export const LAVA_COOKOFF = [88, 96, 103];
 export const FROZEN_SHATTER = 52;
 /** (roadkill) When he twinkles, up off the top of the screen. */
 export const ROADKILL_TWINKLE = 46;
+/** (impaled) Where his feet are: stopped dead where it got him, and, if that was off the ground, sliding down it to the floor. */
+export const impaledFeet = (d: MeatheadDeath, t: number) => { const k = Math.min(1, Math.max(0, (t - 6) / 12)); return d.y + ((d.floor ?? d.y) - d.y) * k * k; };
 /** (overdose) How far he's floated up. */
 export const overdoseRise = (t: number) => Math.max(0, t - 18) ** 1.45 * 0.32;

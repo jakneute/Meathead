@@ -84,7 +84,10 @@ export const updateHazards = (ctx: FrameContext, hz: Hazards) => {
     const box = cactusBox(c);
     if (p.invincibilityTimer <= 0 && state.deathTimer <= 0 && rectsOverlap(box, boundsOf(p))) {
       const away = p.pos.x + p.width / 2 < c.x ? -1 : 1;
+      // (which end he met it with: coming down onto the top of it, or into its side)
+      const onTop = p.vel.y > 0 && p.pos.y + p.height - p.vel.y <= box.y + 8;
       hurtPlayer(ctx, CACTUS_DAMAGE, 'cactus', { x: away * 7, y: -9 });
+      if (p.health <= 0) state.impaleAt = { frame: state.frame, how: onTop ? 'cactus_top' : 'cactus_side', x: c.x, top: box.y, side: away, edge: away < 0 ? box.x : box.x + box.w };
       spines(state, p.pos.x + p.width / 2, p.pos.y + p.height / 2);
     }
     // A goon shoved into one (only a shove: they don't walk into them on their own)

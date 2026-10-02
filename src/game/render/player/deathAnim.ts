@@ -2,7 +2,7 @@ import type { GameState } from '../../core/state';
 import type { WeaponType } from '../../../types';
 import { drawPlayer } from './player';
 import { pantsColor, bootColor } from './body';
-import { MEATHEAD_DEATH_FRAMES, LAVA_COOKOFF, FROZEN_SHATTER, ROADKILL_TWINKLE, overdoseRise, MeatheadDeath } from '../../player/deathAnim';
+import { MEATHEAD_DEATH_FRAMES, LAVA_COOKOFF, FROZEN_SHATTER, ROADKILL_TWINKLE, overdoseRise, impaledFeet, MeatheadDeath } from '../../player/deathAnim';
 
 // Meathead's own deaths (see player/deathAnim): him, drawn in his place, going whichever way it got him.
 
@@ -205,6 +205,43 @@ export const drawMeatheadDeath = (ctx: Ctx, state: GameState, weapon: WeaponType
       }
       break;
     }
+    case 'impaled': {
+      // Stopped dead on it, the icicle straight down through him, its point in the floor; off the ground, down it he slides
+      const feet = impaledFeet(d, t), floor = d.floor ?? d.y;
+      ctx.save();
+      if (t < 6) ctx.translate(Math.sin(t * 3) * 1.5, 0);
+      ctx.translate(0, feet - y);
+      body(ctx, state, { ...d, y }, weapon, { isGrounded: feet >= floor - 0.5 });
+      ctx.restore();
+      // (blood down the length of it below him, and pooling round its point)
+      const pool = Math.min(1, t / 50);
+      ctx.fillStyle = 'rgba(127, 29, 29, 0.85)'; ctx.beginPath(); ctx.ellipse(x, floor, 6 + pool * 18, 1.5 + pool * 2, 0, 0, Math.PI * 2); ctx.fill();
+      icicle(ctx, x, floor - 120, floor + 4);
+      ctx.fillStyle = 'rgba(153, 27, 27, 0.8)'; ctx.fillRect(x - 2, feet - 64 - 10, 4, 64 + 10 + (floor - feet) * 0.9 + 4 * pool);
+      ctx.fillStyle = '#7F1D1D'; ctx.fillRect(x - 3, feet - 70, 6, 4);
+      break;
+    }
+    case 'cactus': {
+      const im = d.impale!;
+      if (im.how === 'cactus_top') {
+        // Lying across the top of it, its top out through his middle
+        const top = im.top ?? y;
+        ctx.save();
+        ctx.translate(im.x, top - 4); ctx.rotate(d.facing * Math.PI / 2); ctx.translate(-im.x, -(y - 32));
+        body(ctx, state, { ...d, x: im.x }, weapon, { isGrounded: false });
+        ctx.restore();
+        cactusTip(ctx, im.x, top - 18, 0);
+        spines(ctx, im.x, top - 4, 30, 10, t);
+      } else {
+        // Pinned to its side on one of its arms, out through his back
+        body(ctx, state, d, weapon);
+        const cy = y - 36, from = im.edge ?? x, dir = im.side ?? 1;
+        ctx.fillStyle = '#3F6212'; ctx.fillRect(Math.min(from, x + dir * 20), cy - 5, Math.abs(x + dir * 20 - from), 10);
+        cactusTip(ctx, x + dir * 22, cy, dir);
+        spines(ctx, x, y - 32, 14, 28, t);
+      }
+      break;
+    }
     case 'overdose': {
       // Every colour there is, a slow spin, and up he floats, blissed out, and away
       const rise = overdoseRise(t);
@@ -217,6 +254,31 @@ export const drawMeatheadDeath = (ctx: Ctx, state: GameState, weapon: WeaponType
     }
   }
   ctx.restore();
+};
+
+/** An icicle, point down, from top to tip. */
+const icicle = (ctx: Ctx, x: number, top: number, tip: number) => {
+  ctx.fillStyle = 'rgba(186, 230, 253, 0.95)'; ctx.beginPath(); ctx.moveTo(x - 8, top); ctx.lineTo(x + 8, top); ctx.lineTo(x + 1, tip); ctx.lineTo(x - 1, tip); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; ctx.beginPath(); ctx.moveTo(x - 6, top); ctx.lineTo(x - 3, top); ctx.lineTo(x, tip - 6); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(125, 211, 252, 0.9)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x - 8, top); ctx.lineTo(x - 1, tip); ctx.moveTo(x + 8, top); ctx.lineTo(x + 1, tip); ctx.stroke();
+};
+
+/** The rounded end of a saguaro's trunk (dir 0, pointing up) or arm (dir -1 or 1, pointing that way), out through him, bloody, with its spines. */
+const cactusTip = (ctx: Ctx, x: number, y: number, dir: number) => {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(dir === 0 ? 0 : dir * Math.PI / 2);
+  ctx.fillStyle = '#4D7C0F'; ctx.beginPath(); ctx.moveTo(-6, 16); ctx.lineTo(-6, 0); ctx.arc(0, 0, 6, Math.PI, 0); ctx.lineTo(6, 16); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#65A30D'; ctx.fillRect(-1, -4, 2, 20);
+  ctx.strokeStyle = '#FEF3C7'; ctx.lineWidth = 1; ctx.beginPath(); for (let k = 0; k < 4; k++) { ctx.moveTo(-6, 2 + k * 4); ctx.lineTo(-9, 1 + k * 4); ctx.moveTo(6, 2 + k * 4); ctx.lineTo(9, 1 + k * 4); } ctx.moveTo(0, -6); ctx.lineTo(0, -9); ctx.stroke();
+  ctx.fillStyle = 'rgba(153, 27, 27, 0.85)'; ctx.fillRect(-6, 8, 12, 4); ctx.fillRect(-2, 0, 3, 8);
+  ctx.restore();
+};
+
+/** Spines stuck in him all over, round (x, y), w by h. */
+const spines = (ctx: Ctx, x: number, y: number, w: number, h: number, t: number) => {
+  ctx.strokeStyle = '#FEF3C7'; ctx.lineWidth = 1; ctx.beginPath();
+  for (let k = 0; k < 16; k++) { const sx = x + (((k * 37) % 21) / 21 - 0.5) * w * 2, sy = y + (((k * 53) % 17) / 17 - 0.5) * h * 2, a = k * 2.1; ctx.moveTo(sx, sy); ctx.lineTo(sx + Math.cos(a) * 4, sy + Math.sin(a) * 4); }
+  ctx.stroke();
+  void t;
 };
 
 /** His bones, stood at his feet (x, y): for the x-ray. */

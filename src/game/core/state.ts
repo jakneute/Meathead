@@ -126,6 +126,8 @@ export interface GameState {
   deathScene?: { t: number; len: number; voiced?: boolean };
   /** His own death, for what got him (fire, ice, the lava...): played in his place, see player/deathAnim. */
   meatheadDeath?: import('../player/deathAnim').MeatheadDeath;
+  /** What's just run him through, if it's killed him (a falling icicle on the head, a cactus): the frame, and where. */
+  impaleAt?: import('../player/deathAnim').Impale;
   /** What of the world's on screen this frame (set as it's drawn): the camera's 800x600, or more of it zoomed out. */
   view?: { x: number; y: number; w: number; h: number };
   /** The last frame a long death on its way offered SKIP >> (see skipDying). */
