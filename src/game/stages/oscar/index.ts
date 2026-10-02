@@ -3,6 +3,7 @@
 // office and the drawing into the engine.
 
 import type { StageLayout } from '../index';
+import { inCrude } from './field';
 import type { Block } from '../../../types';
 import { BOSS_DOOR_X, GROUND_Y } from '../../../constants';
 import { groundBlocks } from '../../core/terrain';
@@ -62,6 +63,8 @@ export const oscarLayout: StageLayout = {
   update: (ctx, controls) => updateOscar(ctx, controls),
   deathSceneTick: (ctx, t) => { if (getOscar(ctx.state)?.bar.swirly) tickSwirlyPipes(t); },
   deathMessage: ctx => oscarDeathMessage(ctx),
+  // (into a pit of crude: under, and then it goes up)
+  fallDeathKind: ctx => (ctx.state.player.health > 0 && inCrude(ctx.state) ? 'fall_crude' : undefined),
   // (the chase's cars, trucks and choppers are run by the stage)
   updateSpecialEnemy: (ctx, e) => {
     if (!isChaseVehicle(e.kind)) return undefined;

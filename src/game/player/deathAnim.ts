@@ -30,7 +30,9 @@ import { PARTICLE_PALETTES } from '../../constants';
 import { floorTopAt } from '../core/terrain';
 import { getStageLayout } from '../stages';
 
-export type MeatheadDeathKind = 'burnt' | 'lava' | 'boiled' | 'fried' | 'frozen' | 'buried' | 'flattened' | 'dissolved' | 'roadkill' | 'overdose' | 'impaled' | 'cactus' | 'plucked' | 'spiked';
+export type MeatheadDeathKind = 'burnt' | 'lava' | 'boiled' | 'fried' | 'frozen' | 'buried' | 'flattened' | 'dissolved' | 'roadkill' | 'overdose' | 'impaled' | 'cactus' | 'plucked' | 'spiked'
+  // the falls (the kill cam at the bottom: see render/player/fallCams)
+  | 'fall_crevasse' | 'fall_trench' | 'fall_alley' | 'fall_crude' | 'fall_arroyo' | 'fall_rocks' | 'fall_dungeon';
 
 /** What's run him through: an icicle (where), or a cactus (where, the top of it, which side he's on, and that side's edge). */
 export interface Impale { frame: number; how: 'icicle' | 'cactus_top' | 'cactus_side'; x: number; top?: number; side?: number; edge?: number }
@@ -52,6 +54,7 @@ export interface MeatheadDeath {
 export const MEATHEAD_DEATH_FRAMES: Record<MeatheadDeathKind, number> = {
   burnt: 95, lava: 125, boiled: 85, fried: 85, frozen: 80, buried: 95, flattened: 70, dissolved: 110, roadkill: 80, overdose: 120,
   impaled: 80, cactus: 80, plucked: 150, spiked: 100,
+  fall_crevasse: 110, fall_trench: 100, fall_alley: 120, fall_crude: 150, fall_arroyo: 130, fall_rocks: 120, fall_dungeon: 110,
 };
 
 const BY_SOURCE: Record<string, MeatheadDeathKind> = {
@@ -218,6 +221,23 @@ export const tickMeatheadDeath = (ctx: FrameContext, d: MeatheadDeath, t: number
       if (t === PLUCK_FALL + 12) playSound('thud', 0.9);
       break;
     }
+    case 'fall_crevasse': case 'fall_trench': case 'fall_alley': case 'fall_crude': case 'fall_arroyo': case 'fall_rocks': case 'fall_dungeon': {
+      const s = t - FALL_HIT;
+      if (t === 1) playSound('whoosh', 0.9, -6);
+      if (s === 0) {
+        shakeScreen(state, 16, 8);
+        if (d.kind === 'fall_crude') playSound('splash', 1, -6);
+        else { playSound('crunch', 1); playSound(d.kind === 'fall_crevasse' ? 'thud' : 'splat', 1, -4); }
+        if (d.kind === 'fall_arroyo' || d.kind === 'fall_dungeon') playSound('crack', 1, -2);
+      }
+      if (d.kind === 'fall_crevasse' && s === 40) playSound('ice', 0.7, -4);
+      if (d.kind === 'fall_trench' && s > 0 && s % 24 === 0) playSound('splash', 0.25, 4);
+      if (d.kind === 'fall_crude' && s === 55) playSound('glug', 0.9, -8);
+      if (d.kind === 'fall_crude' && s === 74) { playSound('ignite', 1); playSound('boom', 0.7); }
+      if (d.kind === 'fall_rocks' && s === 30) playSound('splash', 1);
+      if (d.kind === 'fall_dungeon' && s > 36 && s < 70 && s % 8 === 0) playSound('clink', 0.6, -6);
+      break;
+    }
     case 'spiked':
       if (t === 1) playSound('whoosh', 0.9, -6);
       if (t === SPIKE_HIT) { playSound('crunch', 1); playSound('splat', 1, -4); shakeScreen(state, 18, 9); }
@@ -246,6 +266,8 @@ export const PLUCK_LAND = 10, PLUCKS = [24, 36], PLUCK_AWAY = 44, PLUCK_FALL = 1
 export const pluckSway = (t: number) => (t > PLUCKS[0] ? Math.sin((t - PLUCKS[0]) * 0.11) * Math.min(1, (t - PLUCKS[0]) / 30) * 14 : 0);
 /** (plucked) How dark it's got: from the first eye, slowly, all the way. */
 export const pluckDark = (t: number) => Math.max(0, Math.min(1, (t - PLUCKS[0]) / (PLUCK_FRAMES - 10 - PLUCKS[0])));
+/** (the falls) When he hits the bottom. */
+export const FALL_HIT = 18;
 /** (spiked) When he comes down onto it. */
 export const SPIKE_HIT = 16;
 /** (overdose) How far he's floated up. */

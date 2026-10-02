@@ -54,6 +54,8 @@ export const artieLayout: StageLayout = {
   // (zoomed out on the skis, to keep the avalanche in view)
   zoom: state => { const rt = getArtie(state); return rt ? skiZoom(state, rt.ski) : null; },
   deathMessage: ctx => { const rt = getArtie(ctx.state); return rt ? skiDeathMessage(ctx.state, rt.ski) : undefined; },
+  // (down a crevasse: wedged in it; not off the tram, into the clouds: that's its own)
+  fallDeathKind: ctx => { const p = ctx.state.player, x = p.pos.x + p.width / 2; return p.health > 0 && !(x > COURSE.gorge.x1 && x < COURSE.gorge.x2) ? 'fall_crevasse' : undefined; },
   // (the avalanche's: thrown off the far side of the mountain)
   deathSceneTick: (ctx, t) => { if (getArtie(ctx.state)?.ski.fling) flingSound(t, playSound); },
   updateSpecialEnemy: (ctx, e) => {

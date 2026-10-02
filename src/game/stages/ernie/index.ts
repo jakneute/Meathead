@@ -71,7 +71,14 @@ export const ernieLayout: StageLayout = {
   },
   update: (ctx, controls) => updateErnie(ctx, controls),
   // (down a fault: onto a spike at the bottom of it, see player/deathAnim)
-  fallDeathKind: ctx => { const rt = getErnie(ctx.state); return rt && ctx.state.player.health > 0 && rt.quakes.nearFault >= 0 ? 'spiked' : undefined; },
+  fallDeathKind: ctx => {
+    const rt = getErnie(ctx.state), p = ctx.state.player;
+    if (!rt || p.health <= 0) return undefined;
+    if (rt.quakes.nearFault >= 0) return 'spiked';
+    // (down the island's holes: into the old fort, or off the cliff road onto the rocks; the cistern's a drowning)
+    if (regionOf(p.pos.x) !== 'cell') return undefined;
+    return p.pos.x < COURSE.island.house ? 'fall_dungeon' : p.pos.x < COURSE.island.yard ? 'fall_rocks' : undefined;
+  },
   deathMessage: ctx => {
     const rt = getErnie(ctx.state);
     if (!rt) return undefined;

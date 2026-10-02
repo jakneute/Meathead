@@ -12,7 +12,7 @@ const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 const H = 64;
 
 /** Him as he was, stood at (d.x, d.y), with whatever's been done to the canvas round it. */
-const body = (ctx: Ctx, state: GameState, d: MeatheadDeath, weapon: WeaponType, extra: Record<string, unknown> = {}) => {
+export const body = (ctx: Ctx, state: GameState, d: MeatheadDeath, weapon: WeaponType, extra: Record<string, unknown> = {}) => {
   const p = state.player;
   const b = {
     ...p, pos: { x: d.x - p.width / 2, y: d.y - p.height }, facing: d.facing, hidden: false, headless: 0, shownDead: false, isGrounded: true,
@@ -38,6 +38,7 @@ const faceFor = (d: MeatheadDeath, t: number): DeathFace => {
     case 'cactus': return t < 14 ? 'agony' : 'dead';
     case 'plucked': return t < 24 ? 'scream' : 'agony';
     case 'spiked': return t < SPIKE_HIT + 18 ? 'scream' : 'dead';
+    case 'fall_crevasse': case 'fall_crude': return 'scream';
     default: return 'dead';
   }
 };

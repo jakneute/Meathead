@@ -56,6 +56,8 @@ export const barryLayout: StageLayout = {
   // (the dumpster: its clock, its lines and its sounds)
   deathSceneTick: ctx => { const rt = getBarry(ctx.state); if (rt?.dumpster) tickDumpster(ctx, rt.dumpster); else if (rt?.rip) tickRip(ctx, rt.rip); },
   deathMessage: ctx => barryDeathMessage(ctx),
+  // (down a trench in the street, onto the rebar; down an alley off the roofs, onto the pavement)
+  fallDeathKind: ctx => { const p = ctx.state.player; if (p.health <= 0) return undefined; const place = placeOf(p.pos.x + p.width / 2); return place === 'streets' ? 'fall_trench' : place === 'roofs' ? 'fall_alley' : undefined; },
   updateSpecialEnemy: (ctx, e) => {
     const rt = getBarry(ctx.state);
     if (!rt) return undefined;

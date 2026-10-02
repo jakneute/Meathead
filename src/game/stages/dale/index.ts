@@ -56,6 +56,8 @@ export const daleLayout: StageLayout = {
   },
   update: (ctx, controls) => updateDale(ctx, controls),
   deathMessage: ctx => daleDeathMessage(ctx),
+  // (down an arroyo in the desert: onto the rocks at the bottom, and the vultures)
+  fallDeathKind: ctx => (ctx.state.player.health > 0 && regionOf(ctx.state.player.pos.x) === 'desert' ? 'fall_arroyo' : undefined),
   updateSpecialEnemy: (ctx, e) => {
     const rt = getDale(ctx.state);
     return e.kind === 'junkie' && rt ? updateJunkie(ctx, e, rt.junkie, rt.talk) : undefined;

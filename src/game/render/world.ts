@@ -21,6 +21,7 @@ import { drawBossCorpse } from './bosses/corpses';
 import { drawVictoryPee } from '../scenes/victoryPeeDraw';
 import { drawPlayer } from './player/player';
 import { drawMeatheadDeath, drawBlindness, drawSpikeCam } from './player/deathAnim';
+import { drawFallCam } from './player/fallCams';
 import { drawKindEnemy, animFrame } from './enemies';
 import { isMidBoss } from '../combat/midBoss';
 import { drawBackdrop, drawBackdropFront } from './backdrops';
@@ -177,6 +178,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   if (state.checkpointBanner && state.deathTimer <= 0) drawCheckpointBanner(ctx, state.checkpointBanner, state.frame);
   drawBlindness(ctx, state, CANVAS_WIDTH, CANVAS_HEIGHT);
   drawSpikeCam(ctx, state, CANVAS_WIDTH, CANVAS_HEIGHT);
+  drawFallCam(ctx, state, CANVAS_WIDTH, CANVAS_HEIGHT);
   if (state.sewerNuke) drawSewerNukeFlash(ctx, state);
   else if (state.deathTimer > 0 && state.deathString && state.deathFreeze === undefined && !(state.deathScene && state.deathScene.t < state.deathScene.len)) drawDeathMessage(ctx, state.deathString);
   if (state.deathTimer > 0 ? state.deathFrames > SKIP_AFTER : state.dyingSkipAt !== undefined && state.frame - state.dyingSkipAt >= 0 && state.frame - state.dyingSkipAt <= 1) drawSkipPrompt(ctx, CANVAS_WIDTH);
