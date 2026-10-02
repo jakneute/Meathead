@@ -14,7 +14,7 @@ import {
 } from '../../constants';
 import { BOSS_DIALOGUE } from '../../content/dialogue';
 import { FrameContext } from '../core/context';
-import { getBossDef, hitBoss, isWeakTo, maybeReactToWeapon, weaponOf } from '../bosses/registry';
+import { getBossDef, hitBoss, maybeReactToWeapon, weaponOf } from '../bosses/registry';
 import { explodeOilRocket } from './weapons';
 import { tryCorkVent } from '../bosses/victor';
 import { ICE_BLOCK_ACCEL, ICE_BLOCK_GRACE, ICE_BLOCK_LIFE, ICE_BLOCK_MAX_SPEED } from '../bosses/artie';
@@ -469,7 +469,8 @@ const damageEnemiesInSludgePuddle = (ctx: FrameContext, p: Projectile) => {
       if (onStandInSludge) { onStandInSludge(ctx, en); continue; }
       if (en.hitCooldown && en.hitCooldown > 0) continue;
       p.life = 0;
-      hitBoss(ctx, en, 'SLUDGE', { facing: 0, damage: isWeakTo(stageId, 'SLUDGE') ? 50 : 15 });
+      // (anyone but Dale, who stands and stews in it (onStandInSludge): one hit, like a shot, and the puddle's gone)
+      hitBoss(ctx, en, 'SLUDGE', { facing: 0 });
     } else if (isMidBoss(en)) {
       // (a mid-boss wades through it: no melting, the blob that made it already did its damage)
       continue;

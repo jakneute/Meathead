@@ -12,7 +12,7 @@ import {
   DAMAGE_WALL_IMPACT_SCALER, DAMAGE_FALL_SCALER, IMPACT_DAMAGE_THRESHOLD,
   ENEMY_DOMINO_TRANSFER, ENEMY_DOMINO_LOSS, DOMINO_DAMAGE_SCALER,
   BOSS_UPPERCUT_DAMAGE, ENEMY_UPPERCUT_DAMAGE, BOSS_DIVEKICK_DAMAGE, ENEMY_DIVEKICK_DAMAGE,
-  ENEMY_HIT_COOLDOWN, ENEMY_BULLET_DAMAGE, FILTH_SHIELD_CONTACT_DAMAGE, OIL_ROCKET_OILED_DURATION,
+  ENEMY_HIT_COOLDOWN, ENEMY_BULLET_DAMAGE, FILTH_SHIELD_CONTACT_DAMAGE, FILTH_SHIELD_BOSS_DAMAGE, FILTH_SHIELD_BOSS_WEAKNESS_DAMAGE, OIL_ROCKET_OILED_DURATION,
   OILED_COLLISION_DAMAGE, OILED_CHARGE_PUSH_MULTIPLIER, OILED_CHARGE_MIN_PUSH, OVERDOSE_GRAVITY, OVERDOSE_RISE_RANGE, OVERDOSE_RISE_STEER, OVERDOSE_MAX_SIDE_SPEED,
   OVERDOSE_MAX_RISE_SPEED, OVERDOSE_DIVE_RANGE, OVERDOSE_DIVE_SPEED, OVERDOSE_DROP_GRAVITY, OVERDOSE_HIT_DAMAGE, OVERDOSE_MAX_FRAMES,
   BOTTLE_GRAVITY, THAW_BURST_DAMAGE,
@@ -831,13 +831,14 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     if (e.kind === 'lowrider' && (player.isUppercutting || player.isDivekicking)) damage = e.health;
 
     if (hasShield) {
-      damage += FILTH_SHIELD_CONTACT_DAMAGE;
+      // (a boss: one hit's worth, and it's spent)
+      damage += e.type !== 'boss' ? FILTH_SHIELD_CONTACT_DAMAGE : isWeakTo(stageId, 'SLUDGE') ? FILTH_SHIELD_BOSS_WEAKNESS_DAMAGE : FILTH_SHIELD_BOSS_DAMAGE;
       player.filthShieldTimer = 0;
       fx.spawnExplosion({ x: player.pos.x + player.width / 2, y: player.pos.y + player.height / 2 }, '#43A047', 15, 0, 15);
     }
 
-    // Frozen enemies take double damage, fly further, and shatter
-    const wasFrozen = !!(e.frozenTimer && e.frozenTimer > 0);
+    // Frozen enemies take double damage, fly further, and shatter (not a boss: frozen, Ernie's payoff is his shatter)
+    const wasFrozen = e.type !== 'boss' && !!(e.frozenTimer && e.frozenTimer > 0);
     if (wasFrozen) damage *= FROZEN_DAMAGE_MULTIPLIER;
     // (and a shoulder charge into one more again: the whole of him into a block of ice)
     if (wasFrozen && player.isCharging && !player.isSliding) damage *= FROZEN_CHARGE_MULTIPLIER;

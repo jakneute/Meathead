@@ -323,7 +323,10 @@ export const SLUDGE_LINGER_DURATION = 60;
 export const SLUDGE_COOLDOWN = 90; 
 /** The filth shield's up (it has no time limit: a hit, or putting the Sludge Barfer away, takes it down). */
 export const FILTH_SHIELD_DURATION = 240; 
-export const FILTH_SHIELD_CONTACT_DAMAGE = 250;
+export const FILTH_SHIELD_CONTACT_DAMAGE = 250;   // to a regular enemy (nothing ordinary survives it)
+/** To a boss it's one hit, the same as a shot (on top of whatever he hit him with), and it's gone: a little more on Dale,
+ * who's weak to the barf, but not much (the barfer's other tricks are what do for him). */
+export const FILTH_SHIELD_BOSS_DAMAGE = 25, FILTH_SHIELD_BOSS_WEAKNESS_DAMAGE = 35;
 
 // OIL ROCKET (OSCAR)
 export const OIL_ROCKET_DAMAGE = 45;
@@ -333,13 +336,18 @@ export const OIL_ROCKET_COOLDOWN = 45;
 export const OIL_ROCKET_OILED_DURATION = 300; // 5 seconds
 export const OIL_ROCKET_OILED_PUSHBACK_MULT = 2.5;
 export const OIL_ROCKET_NUKE_DAMAGE = 1500;
+/** A boss in the blast: a big hit, not the end of him (bigger if crude's his weakness). */
+export const OIL_ROCKET_NUKE_BOSS_DAMAGE = 75, OIL_ROCKET_NUKE_BOSS_WEAKNESS_DAMAGE = 150;
 export const OIL_ROCKET_NUKE_RADIUS = 420;          // setting an oiled enemy on fire levels everything this close
 export const OILED_COLLISION_DAMAGE = 25;
 
 // ==========================================
 // 5. BOSS & ENEMY TUNING
 // ==========================================
-export const BOSS_CHARGE_DAMAGE = 50;
+// Against a boss (666 health, a second's breather after every hit): a shot from anything is 25 (27 of them), his
+// weakness 100 (7). The charge is for making space, so it's a little more than a shot; the dive kick and the uppercut
+// are the big ones.
+export const BOSS_CHARGE_DAMAGE = 35;
 /**
  * Against regular enemies the shoulder charge is for making space (a shove, a little damage) and the slide tackle is
  * for taking out small ground critters in one go (wolverines, raccoons...: see isSmallCritter), a little damage to

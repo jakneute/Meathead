@@ -11,7 +11,7 @@ import {
   TASER_RANGE, CANVAS_WIDTH, GUN_COOLDOWN, GUN_VELOCITY,
   NEEDLE_DAMAGE, NEEDLE_COOLDOWN, SLUDGE_COOLDOWN, FILTH_SHIELD_DURATION, SLUDGE_DAMAGE,
   OIL_ROCKET_DAMAGE, OIL_ROCKET_COOLDOWN, OIL_ROCKET_SPLASH_RADIUS, OIL_ROCKET_SPLASH_DAMAGE,
-  OIL_ROCKET_OILED_DURATION, OIL_ROCKET_NUKE_DAMAGE, OIL_ROCKET_NUKE_RADIUS,
+  OIL_ROCKET_OILED_DURATION, OIL_ROCKET_NUKE_DAMAGE, OIL_ROCKET_NUKE_BOSS_DAMAGE, OIL_ROCKET_NUKE_BOSS_WEAKNESS_DAMAGE, OIL_ROCKET_NUKE_RADIUS,
 } from '../../constants';
 import { GameState } from '../core/state';
 import { FrameContext, killBoss } from '../core/context';
@@ -625,8 +625,10 @@ export const detonateNuke = (ctx: FrameContext, pos: Vector2, radius = OIL_ROCKE
       fx.spawnDamageNumber(e.pos, Math.round(dmg), true, '#FF0000');
       return;
     }
-    e.health -= OIL_ROCKET_NUKE_DAMAGE;
-    fx.spawnDamageNumber(e.pos, OIL_ROCKET_NUKE_DAMAGE, true, '#FF0000');
+    // (a boss: a big hit, not the end of him)
+    const dmg = e.type !== 'boss' ? OIL_ROCKET_NUKE_DAMAGE : isWeakTo(ctx.stageId, 'OIL_ROCKET') ? OIL_ROCKET_NUKE_BOSS_WEAKNESS_DAMAGE : OIL_ROCKET_NUKE_BOSS_DAMAGE;
+    e.health -= dmg;
+    fx.spawnDamageNumber(e.pos, dmg, true, '#FF0000');
     if (e.health > 0) return;
     // (only his weakness makes a boss erupt: anyone else the blast finishes goes over like any other kill)
     if (e.type === 'boss') killBoss(ctx, e, 0, isWeakTo(ctx.stageId, 'OIL_ROCKET'), 'OIL_ROCKET');
