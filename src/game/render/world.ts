@@ -42,7 +42,7 @@ import {
 import { drawBlasts } from './blasts';
 import { drawBossDoor, drawLairFacade } from './bossDoors';
 import { drawTommyShaftBack } from './bosses/lairs/tommy';
-import { drawFrozenShell, drawTasedFx, drawTaserBeam, isTasedNow, statusTint, tasedJitter } from './statusFx';
+import { drawFrozenShell, drawOnFire, drawTasedFx, drawTaserBeam, isTasedNow, statusTint, tasedJitter } from './statusFx';
 
 export interface WorldView {
   status: GameStatus;
@@ -749,6 +749,7 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
     }
     if (e.type !== 'boss' && e.frozenTimer && e.frozenTimer > 0) { ctx.filter = 'none'; ctx.shadowBlur = 0; drawFrozenShell(ctx, e, state.frame); }
     if (tased) { ctx.filter = 'none'; ctx.shadowBlur = 0; drawTasedFx(ctx, e, state); }
+    if (e.type !== 'boss' && e.isOnFire && e.health > 0) { ctx.filter = 'none'; ctx.shadowBlur = 0; drawOnFire(ctx, e, state.frame); }
     drawStuckNeedles(ctx, e, state.frame);
     if (!e.isBlownAway && e.drownT === undefined && !isMidBoss(e) && e.kind !== 'civilian' && e.kind !== 'visitor' && e.kind !== 'generator' && e.kind !== 'minion' && e.kind !== 'tenant' && !(e.kind === 'magmafish' && (!e.aiState || e.aiState === 'idle'))) { ctx.fillStyle = '#00FF00'; ctx.fillRect(e.pos.x, e.pos.y - 10, (e.health / e.maxHealth) * e.width, 5); }
     ctx.restore();

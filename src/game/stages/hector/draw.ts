@@ -13,7 +13,8 @@ import { drawWaterHazards, drawAirMeter } from './drawWater';
 import { STRIKE_WARN, STRIKE_RING, shockPhase, AWNING_BOUNCE, SEA_DEPTH } from './hazards';
 import { copsLeft } from './beach';
 import { towerFlash, TOWER, RISE_WARNING } from './tower';
-import { bandedGradient, pixelBlob } from '../../render/pixelArt';
+import { bandedGradient, pixelBlob, steppedGlow } from '../../render/pixelArt';
+import { drawFlameLicks } from '../../render/fx/fireball';
 import { drawBoatScene, drawBoatFront, drawTowerJunk, drawEyeArena, drawDaycare, drawDaycareFront, drawPoolWater } from './drawSet';
 import { drawEyeHud } from './eyeDraw';
 
@@ -508,12 +509,10 @@ const drawTiki = (ctx: Ctx, p: Prop, f: number, storm: number) => {
     bamboo(ctx, px - 3, y - 80, 6, 80);
     ctx.fillStyle = '#3B2810'; ctx.fillRect(px - 6, y - 90, 12, 10); ctx.fillStyle = '#5B3413'; ctx.fillRect(px - 6, y - 90, 12, 2);
     if (storm > 0.5 && (Math.floor(f / 7) + side + 5) % 5 === 0) continue;
-    const lean = -storm * 10, h = 16 + Math.sin(f * 0.4 + side) * 3 - storm * 6;
-    const flames: [number, number, string][] = [[8, h, '#DC2626'], [6, h * 0.75, '#F97316'], [3, h * 0.45, '#FDE047']];
-    for (const [w, hh, c] of flames) {
-      ctx.fillStyle = c;
-      ctx.beginPath(); ctx.moveTo(px - w, y - 90); ctx.quadraticCurveTo(px - w * 0.6 + lean * 0.4, y - 90 - hh * 0.6, px + lean, y - 90 - hh); ctx.quadraticCurveTo(px + w * 0.6 + lean * 0.4, y - 90 - hh * 0.6, px + w, y - 90); ctx.closePath(); ctx.fill();
-    }
+    // (laid over by the wind, and whipping about in it)
+    const lean = -storm * (0.6 + Math.sin(f * 0.5 + side) * 0.2), h = 22 + Math.sin(f * 0.4 + side) * 3 - storm * 6;
+    steppedGlow(ctx, px, y - 98, 20, '#F97316', 0.25, 0.05, 3);
+    drawFlameLicks(ctx, px, y - 88, 12, h, f, { seed: side + 2, n: 2, lean });
   }
 };
 

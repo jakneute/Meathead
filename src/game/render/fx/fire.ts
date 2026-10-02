@@ -27,8 +27,8 @@ let buf: HTMLCanvasElement | null = null;
 const bufFor = (w: number, h: number) => {
   if (typeof document === 'undefined') return null;
   if (!buf) buf = document.createElement('canvas');
-  if (buf.width < w) buf.width = w;
-  if (buf.height < h) buf.height = h;
+  if (buf.width < w + 2) buf.width = w + 2;
+  if (buf.height < h + 2) buf.height = h + 2;
   return buf;
 };
 
@@ -57,7 +57,7 @@ export const drawFire = (ctx: Ctx, x: number, y: number, w: number, h: number, f
   const c = bufFor(cw, ch);
   if (!c) return;
   const g = c.getContext('2d')!;
-  g.clearRect(0, 0, cw, ch);
+  g.clearRect(0, 0, cw + 2, ch + 2); // (and a pixel past it: a turned blit samples over its edge)
   const n = Math.max(2, Math.round(w / 24)), base = ch - 1, sw = w / PX;
   // (each layer, outermost first: every tongue in it, smaller and shorter the hotter the layer)
   const layers = [[1, 1], [0.86, 0.9], [0.68, 0.74], [0.5, 0.56], [0.3, 0.36], [0.14, 0.18]];

@@ -1,6 +1,7 @@
 // Draws the special kill animations (see game/enemies/deaths.ts).
 
 import { drawDummy } from '../dummies';
+import { drawFlameLicks } from '../fx/fireball';
 import type { Enemy } from '../../../types';
 import { GameState } from '../../core/state';
 import { EnemyDeath, DEATH_FRAMES } from '../../enemies/deaths';
@@ -107,12 +108,8 @@ const drawCharred = (ctx: Ctx, d: EnemyDeath, frame: number, state: GameState) =
   }
   // Flames licking up while it burns
   if (t < 24) {
-    for (let i = 0; i < 5; i++) {
-      const fx = x + (i + 0.5) * w / 5;
-      const fh = 10 + ((frame * 3 + i * 7) % 12);
-      ctx.fillStyle = i % 2 ? '#F97316' : '#FDE047';
-      ctx.beginPath(); ctx.moveTo(fx - 5, y + 6); ctx.lineTo(fx, y - fh); ctx.lineTo(fx + 5, y + 6); ctx.fill();
-    }
+    // (up off the whole of it, dying down as it goes black)
+    drawFlameLicks(ctx, x + w / 2, y + h * 0.7, w + 4, h * 0.75 + 12, frame, { seed: Math.floor(x), k: Math.min(1, (24 - t) / 8) });
   }
   // Ash pile
   if (crumble > 0) {

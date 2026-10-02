@@ -1,4 +1,4 @@
-// What being frozen or tased looks like on an ordinary enemy, and the taser's beam itself. Hard-edged and pixel-snapped
+// What being frozen, tased or set on fire looks like on an ordinary enemy, and the taser's beam itself. Hard-edged and pixel-snapped
 // (no glow blur): a shell of faceted ice with a rim, light bands and frost on it, cracking as it's about to let go; and
 // for the taser, the two wires out to the darts, a crackle running down them, arcs crawling over whoever's on the end,
 // sparks off him, and smoke coming off him as he gets close to going up.
@@ -7,6 +7,7 @@ import { Enemy } from '../../types';
 import { GameState } from '../core/state';
 import { muzzlePoint } from '../combat/muzzle';
 import { TASER_FIRE_THRESHOLD, COLORS } from '../../constants';
+import { drawFlameLicks } from './fx/fireball';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -29,6 +30,19 @@ export const isTasedNow = (e: Enemy, state: GameState) =>
 export const tasedJitter = (state: GameState) => {
   const f = state.frame;
   return { x: (f % 4 < 2 ? 2 : -2), y: (f % 3) - 1 };
+};
+
+// ---------------------------------------------------------------------------------------------------------------------
+// On fire
+// ---------------------------------------------------------------------------------------------------------------------
+
+/** An ordinary enemy on fire: flames up off it from its hips, near as wide as it is, licking up past its head (its legs
+ * still showing, running about under it).
+ * (Not a boss: the ones that burn have their own way of showing it.) */
+export const drawOnFire = (ctx: Ctx, e: Enemy, frame: number) => {
+  if (!e.isOnFire || e.health <= 0 || e.type === 'boss') return;
+  const s = seedOf(e.id);
+  drawFlameLicks(ctx, e.pos.x + e.width / 2, e.pos.y + e.height * 0.62, Math.max(16, e.width), Math.max(14, e.height * 0.7), frame + s, { seed: s });
 };
 
 // ---------------------------------------------------------------------------------------------------------------------

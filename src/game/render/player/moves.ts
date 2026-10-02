@@ -7,6 +7,8 @@ const BELT = '#78350F';
 const BUCKLE = '#FACC15';
 
 import { glowLayer } from './spriteOutline';
+import { chunky, ditherFill, drawFireball } from '../fx/fireball';
+import { steppedGlow } from '../pixelArt';
 import { drawLeg, drawArmTo, drawTorsoFromHips, drawHead, drawRamDelt, Mood } from './body';
 
 type Ctx = CanvasRenderingContext2D;
@@ -404,13 +406,16 @@ export const drawDivekick = (ctx: Ctx, frame: number) => {
   ctx.translate(0, -30);
   ctx.rotate(0.95); // 55-60 degrees down toward the target
   // Flame trailing behind along the line of the dive
-  for (let k = 0; k < 7; k++) {
-    const t = ((frame * 2 + k * 5) % 35) / 35;
-    ctx.fillStyle = k % 2 === 0 ? `rgba(255, 110, 20, ${0.7 * (1 - t)})` : `rgba(255, 215, 0, ${0.6 * (1 - t)})`;
-    ctx.beginPath();
-    ctx.ellipse(-14 - t * 50, Math.sin(frame * 0.4 + k) * 5, 8 + t * 6, 5 + t * 3, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  // (puffs of it, cooling down the ramp as they fall behind, the last of each a dithered wisp)
+  chunky(ctx, -84, -20, 104, 40, g => {
+    for (let k = 0; k < 7; k++) {
+      const t = ((frame * 2 + k * 5) % 35) / 35;
+      const px = -14 - t * 50, py = Math.sin(frame * 0.4 + k) * 5, rx = 8 + t * 6, ry = 5 + t * 3;
+      g.fillStyle = t > 0.75 ? ditherFill(g, '#B91C1C') : t > 0.5 ? '#B91C1C' : t > 0.25 ? '#EA580C' : '#F59E0B';
+      g.beginPath(); g.ellipse(px, py, rx, ry, 0, 0, Math.PI * 2); g.fill();
+      if (t < 0.5) { g.fillStyle = t < 0.25 ? '#FDE047' : '#F59E0B'; g.beginPath(); g.ellipse(px + rx * 0.2, py, rx * 0.5, ry * 0.5, 0, 0, Math.PI * 2); g.fill(); }
+    }
+  });
   ghosts(ctx, 2, k => [-k * 16, 0], 'sepia(1) saturate(6) hue-rotate(-15deg) brightness(1.1)', () => diveBody(ctx, frame, false));
   diveBody(ctx, frame, true);
   ctx.restore();
@@ -440,21 +445,9 @@ const diveBody = (ctx: Ctx, frame: number, main: boolean) => {
   if (!main) return;
   // The boot's on fire
   const g = glowLayer(ctx);
-  const glow = g.createRadialGradient(40, 0, 2, 40, 0, 20);
-  glow.addColorStop(0, 'rgba(255, 245, 180, 0.95)');
-  glow.addColorStop(0.4, 'rgba(255, 120, 20, 0.55)');
-  glow.addColorStop(1, 'rgba(255, 60, 0, 0)');
-  g.fillStyle = glow;
-  g.beginPath(); g.arc(40, 0, 20, 0, Math.PI * 2); g.fill();
-  for (let k = 0; k < 4; k++) {
-    const t = ((frame * 3 + k * 6) % 20) / 20;
-    ctx.fillStyle = k % 2 === 0 ? '#FF6D00' : '#FFD600';
-    ctx.beginPath();
-    ctx.moveTo(30 - t * 16, -6 + k * 3);
-    ctx.quadraticCurveTo(24 - t * 22, -10 + k * 4, 18 - t * 30, -4 + k * 3);
-    ctx.lineTo(30 - t * 16, -2 + k * 3);
-    ctx.fill();
-  }
+  steppedGlow(g, 40, 0, 20, '#FF7814', 0.6, 0.1, 4);
+  // (a ball of it round the boot, streaming back off it the way he's come)
+  drawFireball(ctx, 38, 0, 9, frame, { seed: 7, vx: 1, vy: 0, tail: 2.6, heat: 1 });
 };
 
 // ---------------------------------------------------------------------------

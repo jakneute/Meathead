@@ -6,6 +6,7 @@
 
 import type { GameState } from '../../core/state';
 import { bandedGradient } from '../../render/pixelArt';
+import { drawFire } from '../../render/fx/fire';
 import type { GroundRun } from '../../core/terrain';
 import { runYAt } from '../../core/terrain';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, ARENA_LEFT } from '../../../constants';
@@ -399,11 +400,7 @@ const drawBurningWreck = (ctx: Ctx, x: number, f: number) => {
   ctx.fillStyle = '#44403C'; ctx.fillRect(-18, -32, 34, 3);
   ctx.restore();
   // Flames and smoke
-  for (let i = 0; i < 5; i++) {
-    const fx = x - 22 + i * 11, h = 26 + Math.sin(f * 0.4 + i * 2) * 10;
-    ctx.fillStyle = i % 2 ? 'rgba(249, 115, 22, 0.9)' : 'rgba(253, 224, 71, 0.85)';
-    ctx.beginPath(); ctx.moveTo(fx - 7, Y - 22); ctx.quadraticCurveTo(fx + Math.sin(f * 0.3 + i) * 5, Y - 22 - h, fx + 7, Y - 22); ctx.fill();
-  }
+  drawFire(ctx, x, Y - 18, 62, 48, f, { seed: Math.floor(x) });
   for (let i = 0; i < 4; i++) {
     const t = ((f * 0.8 + i * 40) % 160) / 160;
     ctx.fillStyle = `rgba(40, 36, 34, ${0.5 * (1 - t)})`;

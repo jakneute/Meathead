@@ -4,6 +4,7 @@
 
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../constants';
 import { bandedGradient, steppedGlow } from '../render/pixelArt';
+import { chunky } from '../render/fx/fireball';
 import { GameState } from '../core/state';
 import { SEWER_NUKE, sewerNukeFrame } from './sewerNuke';
 
@@ -17,17 +18,23 @@ const hash = (n: number) => {
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 const easeOut = (v: number) => 1 - Math.pow(1 - clamp01(v), 3);
 
-/** A glowing ball of fire: white-hot core through orange to smoky red. */
-const fireball = (ctx: Ctx, x: number, y: number, r: number, heat: number) => {
-  if (r <= 0) return;
-  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-  g.addColorStop(0, heat > 0.5 ? '#FFFFFF' : '#FFE9A0');
-  g.addColorStop(0.3, heat > 0.3 ? '#FFE066' : '#FF9F1C');
-  g.addColorStop(0.6, heat > 0.2 ? '#FF7A00' : '#C2410C');
-  g.addColorStop(0.85, 'rgba(160, 30, 0, 0.8)');
-  g.addColorStop(1, 'rgba(60, 10, 0, 0)');
-  ctx.fillStyle = g;
-  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+/**
+ * Glowing balls of fire: white-hot cores through orange to smoky red, in hard bands, all of them band by band (so the
+ * lobes run together into one boiling mass, not a stack of targets). Each ball [x, y, r, heat, how many bands in it goes]:
+ * the lobes stop short of the white-hot middle, which is the core's alone. For painting inside `chunky`.
+ */
+const fireballs = (ctx: Ctx, balls: [number, number, number, number, number][]) => {
+  const rings: [number, (heat: number) => string][] = [
+    [1, () => 'rgba(60, 10, 0, 0.45)'],
+    [0.85, () => 'rgb(160, 30, 0)'],
+    [0.6, h => h > 0.2 ? '#FF7A00' : '#C2410C'],
+    [0.3, h => h > 0.3 ? '#FFE066' : '#FF9F1C'],
+    [0.12, h => h > 0.5 ? '#FFFFFF' : '#FFE9A0'],
+  ];
+  rings.forEach(([k, c], i) => { for (const [x, y, r, heat, n] of balls) {
+    if (r <= 0 || i >= n) continue;
+    ctx.fillStyle = c(heat); ctx.beginPath(); ctx.arc(x, y, r * k, 0, Math.PI * 2); ctx.fill();
+  } });
 };
 
 // ---------------------------------------------------------------------------
@@ -69,14 +76,19 @@ export const drawSewerNukeInside = (ctx: Ctx, state: GameState) => {
   }
 
   // The fireball: a boiling cluster of lobes around a white-hot core
+  // (painted chunky in bands, then laid on bright over the lot)
   ctx.globalCompositeOperation = 'lighter';
-  for (let i = 0; i < 16; i++) {
-    const a = (i / 16) * Math.PI * 2 + hash(i) * 0.4;
-    const wobble = 0.75 + 0.25 * Math.sin(t * 0.15 + i * 1.7);
-    const d = r * 0.55 * wobble;
-    fireball(ctx, n.x + Math.cos(a) * d, n.y + Math.sin(a) * d * 0.8, r * (0.35 + hash(i + 20) * 0.2), heat * 0.8);
-  }
-  fireball(ctx, n.x, n.y, r * 0.7, heat);
+  chunky(ctx, n.x - r * 1.35, n.y - r * 1.35, r * 2.7, r * 2.7, g => {
+    const balls: [number, number, number, number, number][] = [];
+    for (let i = 0; i < 16; i++) {
+      const a = (i / 16) * Math.PI * 2 + hash(i) * 0.4;
+      const wobble = 0.75 + 0.25 * Math.sin(t * 0.15 + i * 1.7);
+      const d = r * 0.55 * wobble;
+      balls.push([n.x + Math.cos(a) * d, n.y + Math.sin(a) * d * 0.8, r * (0.35 + hash(i + 20) * 0.2), heat * 0.8, 4]);
+    }
+    balls.push([n.x, n.y, r * 0.7, heat, 5]);
+    fireballs(g, balls);
+  });
   ctx.restore();
 };
 

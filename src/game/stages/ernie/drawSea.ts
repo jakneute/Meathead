@@ -6,6 +6,7 @@
 
 import type { GameState } from '../../core/state';
 import { bandedGradient } from '../../render/pixelArt';
+import { drawFire } from '../../render/fx/fire';
 import type { ErnieRuntime } from './runtime';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { STAGE_BACKDROPS } from '../../render/backdrops/stages';
@@ -465,11 +466,7 @@ const drawAftermath = (ctx: Ctx, state: GameState) => {
   for (let i = 0; i < 8; i++) { const bx = x + (hash(i + 20) - 0.5) * 500, by = Y - 40 - hash(i + 21) * 160; ctx.fillRect(bx, by, 5 + hash(i) * 8, 3); ctx.fillRect(bx + 2, by, 2, 10 + hash(i + 3) * 14); }
   // The ski, wrapped round itself, burning
   ctx.save(); ctx.translate(x - 10, Y - 4); ctx.rotate(-0.35); drawSki(ctx, f, '#44403C'); ctx.restore();
-  for (let i = 0; i < 5; i++) {
-    const fx = x - 34 + i * 14, h = 24 + Math.sin(f * 0.4 + i * 2) * 9;
-    ctx.fillStyle = i % 2 ? 'rgba(249, 115, 22, 0.9)' : 'rgba(253, 224, 71, 0.85)';
-    ctx.beginPath(); ctx.moveTo(fx - 7, Y - 14); ctx.quadraticCurveTo(fx + Math.sin(f * 0.3 + i) * 5, Y - 14 - h, fx + 7, Y - 14); ctx.fill();
-  }
+  drawFire(ctx, x - 6, Y - 10, 76, 38, f, { seed: Math.floor(x) });
   for (let i = 0; i < 4; i++) {
     const t = ((f * 0.7 + i * 50) % 200) / 200;
     ctx.fillStyle = `rgba(40, 36, 34, ${0.5 * (1 - t)})`;

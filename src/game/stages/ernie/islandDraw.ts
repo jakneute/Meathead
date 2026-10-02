@@ -10,6 +10,7 @@
 
 import type { GameState } from '../../core/state';
 import { bandedGradient, hazeBands, steppedGlow } from '../../render/pixelArt';
+import { drawFire } from '../../render/fx/fire';
 import type { GroundRun } from '../../core/terrain';
 import { runYAt } from '../../core/terrain';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
@@ -54,7 +55,7 @@ export const drawIslandBackdrop = (ctx: Ctx, state: GameState) => {
     for (let i = 0; i < 30; i++) { const h = 18 + hash(i) * 60, w = 16 + hash(i + 9) * 20; ctx.fillRect(bx + i * 30, hz - h, w, h); }
     ctx.beginPath(); ctx.moveTo(bx + 380, hz); ctx.lineTo(bx + 400, hz - 120); ctx.lineTo(bx + 420, hz); ctx.fill();
     ctx.fillRect(bx + 640, hz - 90, 10, 90);
-    ctx.fillStyle = 'rgba(249, 115, 22, 0.8)'; ctx.fillRect(bx + 220, hz - 40, 14, 8); ctx.fillRect(bx + 520, hz - 30, 10, 6);
+    drawFire(ctx, bx + 227, hz - 32, 16, 16, state.frame, { seed: 3, sparks: false, glow: 1.5 }); drawFire(ctx, bx + 525, hz - 24, 12, 12, state.frame, { seed: 8, sparks: false, glow: 1.5 });
     ctx.fillStyle = 'rgba(80, 60, 70, 0.5)'; ctx.beginPath(); ctx.arc(bx + 227, hz - 70 - (state.frame * 0.2 % 40), 16, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#4A2A4F';
   }
@@ -171,11 +172,7 @@ const drawDoorCrash = (ctx: Ctx, state: GameState, dc: DoorCrash) => {
     ctx.fillStyle = 'rgba(127, 29, 29, 0.85)';
     for (let i = 0; i < 12; i++) { const bx = x + (hash(i + 50) - 0.5) * 420; ctx.beginPath(); ctx.ellipse(bx, Y + 1, 14 + hash(i + 51) * 20, 3, 0, 0, Math.PI * 2); ctx.fill(); }
     for (let i = 0; i < 8; i++) { const bx = x + (hash(i + 60) - 0.5) * 460, by = Y - 40 - hash(i + 61) * 150; ctx.fillRect(bx, by, 5 + hash(i) * 8, 3); ctx.fillRect(bx + 2, by, 2, 10 + hash(i + 3) * 14); }
-    for (let i = 0; i < 5; i++) {
-      const fx = x - 34 + i * 14, h = 24 + Math.sin(f * 0.4 + i * 2) * 9;
-      ctx.fillStyle = i % 2 ? 'rgba(249, 115, 22, 0.9)' : 'rgba(253, 224, 71, 0.85)';
-      ctx.beginPath(); ctx.moveTo(fx - 7, Y - 10); ctx.quadraticCurveTo(fx + Math.sin(f * 0.3 + i) * 5, Y - 10 - h, fx + 7, Y - 10); ctx.fill();
-    }
+    drawFire(ctx, x - 6, Y - 6, 76, 38, f, { seed: Math.floor(x) });
     for (let i = 0; i < 4; i++) {
       const t = ((f * 0.7 + i * 50) % 200) / 200;
       ctx.fillStyle = `rgba(40, 36, 34, ${0.5 * (1 - t)})`;

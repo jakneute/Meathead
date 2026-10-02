@@ -5,6 +5,7 @@
 
 import { THROW_WINDUP } from '../../bosses/artie';
 import { Enemy } from '../../../types';
+import { drawFlameLicks } from '../fx/fireball';
 import { FaceStyle, Mood, drawHead, headAt, facingOf, goreOf, moodOf, inHead, limb, hand, foil, bodyBlood, breath } from './kit';
 
 const FACE: FaceStyle = {
@@ -162,13 +163,10 @@ export const drawArtie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
   }
   // On fire: tongues of it up off his shoulders, his back and his hair, flickering
   if (panicking) {
-    for (let k = 0; k < 7; k++) {
-      const fx = 14 + k * 9 + Math.sin(frame * 0.5 + k) * 2, base = k % 3 === 0 ? 14 : 36, hgt = 14 + Math.abs(Math.sin(frame * 0.6 + k * 1.7)) * 16;
-      ctx.fillStyle = '#FF4500';
-      ctx.beginPath(); ctx.moveTo(fx - 6, base); ctx.quadraticCurveTo(fx - 4, base - hgt * 0.6, fx + Math.sin(frame * 0.8 + k) * 3, base - hgt); ctx.quadraticCurveTo(fx + 4, base - hgt * 0.6, fx + 6, base); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#FFD700';
-      ctx.beginPath(); ctx.moveTo(fx - 3, base); ctx.quadraticCurveTo(fx - 2, base - hgt * 0.4, fx, base - hgt * 0.6); ctx.quadraticCurveTo(fx + 2, base - hgt * 0.4, fx + 3, base); ctx.closePath(); ctx.fill();
-    }
+    // (each shoulder, and his hair: his face left showing, screaming in the middle of it)
+    drawFlameLicks(ctx, 17, 40, 22, 30, frame, { seed: 3, n: 2 });
+    drawFlameLicks(ctx, 65, 40, 22, 30, frame + 3, { seed: 7, n: 2 });
+    drawFlameLicks(ctx, 41, 8, 40, 24, frame + 5, { seed: 9, n: 3 });
   }
   ctx.restore();
 };

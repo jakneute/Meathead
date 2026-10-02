@@ -5,6 +5,7 @@ import { pantsColor, bootColor } from './body';
 import type { DeathFace } from './deathFace';
 import { wall as fallWall, strata as fallStrata } from './fallCams';
 import { bandedGradient, hazeBands } from '../pixelArt';
+import { drawFlameLicks } from '../fx/fireball';
 import { MEATHEAD_DEATH_FRAMES, LAVA_COOKOFF, FROZEN_SHATTER, ROADKILL_TWINKLE, overdoseRise, impaledFeet, PLUCKS, PLUCK_AWAY, PLUCK_FALL, pluckSway, pluckDark, SPIKE_HIT, MeatheadDeath } from '../../player/deathAnim';
 
 // Meathead's own deaths (see player/deathAnim): him, drawn in his place, going whichever way it got him.
@@ -68,11 +69,9 @@ export const drawMeatheadDeath = (ctx: Ctx, state: GameState, weapon: WeaponType
         body(ctx, state, d, weapon);
         ctx.restore();
         // (the flames all over him)
-        if (t < 42) for (let k = 0; k < 7; k++) {
-          const fx = x + ((k * 13) % 34) - 17, fh = 10 + ((k * 7 + f) % 9);
-          const fy = y - 6 - ((k * 23) % 52);
-          ctx.fillStyle = k % 2 ? 'rgba(249, 115, 22, 0.85)' : 'rgba(253, 224, 71, 0.85)';
-          ctx.beginPath(); ctx.moveTo(fx - 4, fy); ctx.quadraticCurveTo(fx - 3, fy - fh * 0.6, fx + Math.sin(f * 0.5 + k) * 2, fy - fh); ctx.quadraticCurveTo(fx + 3, fy - fh * 0.6, fx + 4, fy); ctx.closePath(); ctx.fill();
+        if (t < 42) {
+          const k = Math.min(1, (42 - t) / 10);
+          drawFlameLicks(ctx, x, y - 8, 36, 62, f, { seed: 4, k, n: 5 });
         }
         // (stood there, crisp: his eyes, blinking, the only white left on him)
         if (t >= 42 && crumble === 0 && !(t >= 49 && t < 53)) {

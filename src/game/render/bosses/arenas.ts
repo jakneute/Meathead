@@ -1,6 +1,7 @@
 import { ARENA_LEFT, GROUND_Y } from '../../../constants';
 import { getArenaRight } from '../../bosses/registry';
 import { bandedGradient } from '../pixelArt';
+import { drawFire } from '../fx/fire';
 import { drawArtieLair } from './lairs/artie';
 import { drawVictorLair } from './lairs/victor';
 import { drawErnieLair } from './lairs/ernie';
@@ -219,11 +220,8 @@ const drawDaleRuin = (ctx: CanvasRenderingContext2D, left: number, right: number
   // Fires along the floor (more of them, bigger, the further gone it is), and embers going up off them
   const fires = k > 0.45 ? Math.round((k - 0.4) * 16) : 0;
   for (let i = 0; i < fires; i++) {
-    const fx = at(i, 6), fh = 14 + hash(i + 80) * 22 * k + Math.sin(frame * 0.3 + i) * 3;
-    for (const [fw, hh, c] of [[12, fh, '#DC2626'], [8, fh * 0.75, '#F97316'], [4, fh * 0.45, '#FDE047']] as [number, number, string][]) {
-      ctx.fillStyle = c;
-      ctx.beginPath(); ctx.moveTo(fx - fw, bottom); ctx.quadraticCurveTo(fx - fw * 0.5, bottom - hh * 0.6, fx + Math.sin(frame * 0.2 + i) * 2, bottom - hh); ctx.quadraticCurveTo(fx + fw * 0.5, bottom - hh * 0.6, fx + fw, bottom); ctx.closePath(); ctx.fill();
-    }
+    const fx = at(i, 6), fh = 24 + hash(i + 80) * 34 * k;
+    drawFire(ctx, fx, bottom, 26, fh, frame, { seed: i * 7 + 1, sparks: false, glow: 0.8 });
     ctx.fillStyle = '#FDBA74';
     for (let e = 0; e < 2; e++) { const q = ((frame * 1.5 + i * 40 + e * 70) % 140) / 140; ctx.globalAlpha = 1 - q; ctx.fillRect(Math.round(fx + Math.sin(q * 9 + i) * 10), Math.round(bottom - 10 - q * 160), 2, 2); }
     ctx.globalAlpha = 1;

@@ -6,6 +6,7 @@
 
 import { Enemy } from '../../../types';
 import type { GameState } from '../../core/state';
+import { drawFireball } from '../fx/fireball';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -250,11 +251,8 @@ const drawFiredancer = (ctx: Ctx, e: Enemy, f: number) => {
     const bx = hx + Math.cos(spin + ph) * 20, by = hy + Math.sin(spin + ph) * 20;
     ctx.fillStyle = '#C68B45'; ctx.fillRect(hx - 2, hy - 2, 4, 8);
     ctx.strokeStyle = '#A8A29E'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(bx, by); ctx.stroke();
-    const g = ctx.createRadialGradient(bx, by, 1, bx, by, 9);
-    g.addColorStop(0, '#FEF9C3'); g.addColorStop(0.5, '#F97316'); g.addColorStop(1, 'rgba(234, 88, 12, 0)');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(bx, by, 9, 0, Math.PI * 2); ctx.fill();
-    // (a trail of fire behind it)
-    for (let k = 1; k < 4; k++) { const tx = hx + Math.cos(spin + ph - k * 0.3) * 20, ty = hy + Math.sin(spin + ph - k * 0.3) * 20; ctx.fillStyle = `rgba(249, 115, 22, ${0.35 - k * 0.08})`; ctx.beginPath(); ctx.arc(tx, ty, 6 - k, 0, Math.PI * 2); ctx.fill(); }
+    // (a ball of fire, its tail streaming back round the way it's whirling)
+    drawFireball(ctx, bx, by, 7, f, { seed: ph * 3 + 1, vx: -Math.sin(spin + ph), vy: Math.cos(spin + ph), tail: running ? 2.4 : 1.6 });
   }
 };
 

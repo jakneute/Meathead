@@ -4,6 +4,7 @@
 
 import type { Enemy, WeaponType } from '../../../types';
 import type { GameState } from '../../core/state';
+import { drawFlameLicks } from '../../render/fx/fireball';
 import { CANVAS_WIDTH } from '../../../constants';
 import { COURSE } from './course';
 import { EyeFight, EYE_CX, EYE_CY, EYE_R, EYE_HP, eyePupil } from './eye';
@@ -115,7 +116,7 @@ export const drawEyeCorpse = (ctx: Ctx, state: GameState, weapon: WeaponType, t0
       eyeball(ctx, cx, cy + drop * 40, EYE_R * (1 - drop * 0.1), 1, f, '#D6C3A5');
       ctx.fillStyle = '#44403C'; ctx.beginPath(); ctx.ellipse(cx, cy + drop * 40 + drop * 20, EYE_R * 0.42, EYE_R * 0.42 + drop * 30, 0, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = `rgba(68, 64, 60, ${0.5 - (t % 30) / 60})`; for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.arc(cx - 30 + i * 20, cy - EYE_R - (t % 60) - i * 10, 10 + (t % 60) * 0.2, 0, Math.PI * 2); ctx.fill(); }
-      if (t < 40) { ctx.fillStyle = '#F97316'; for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.moveTo(cx - 60 + i * 24, cy - 40); ctx.lineTo(cx - 52 + i * 24, cy - 70 - (f * 3 + i * 7) % 20); ctx.lineTo(cx - 44 + i * 24, cy - 40); ctx.fill(); } }
+      if (t < 40) drawFlameLicks(ctx, cx + 12, cy - 38, 150, 46, f, { seed: 17, n: 12, k: Math.min(1, (40 - t) / 12) });
       break;
     }
     case 'BOULDER': {

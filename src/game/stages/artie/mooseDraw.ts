@@ -4,6 +4,7 @@
 
 import type { Enemy } from '../../../types';
 import type { GameState } from '../../core/state';
+import { drawFlameLicks } from '../../render/fx/fireball';
 import type { MooseCorpse, MooseFight } from './moose';
 import { MOOSE_HP } from './moose';
 
@@ -303,11 +304,7 @@ const roasted = (ctx: Ctx, frame: number) => {
   // Embers in the cracks
   for (let i = 0; i < 10; i++) { ctx.fillStyle = (frame + i * 7) % 20 < 10 ? '#F97316' : '#FDE047'; ctx.fillRect(-60 + i * 12, -40 - (i * 13) % 28, 3, 2); }
   // The antlers still burning
-  for (let i = 0; i < 6; i++) {
-    const fx = 30 + i * 8, fy = -150 + Math.sin(frame * 0.3 + i) * 3;
-    ctx.fillStyle = i % 2 ? '#F97316' : '#FDE047';
-    ctx.beginPath(); ctx.moveTo(fx - 5, fy + 14); ctx.quadraticCurveTo(fx, fy - 12 - (frame + i * 5) % 10, fx + 5, fy + 14); ctx.fill();
-  }
+  drawFlameLicks(ctx, 50, -138, 52, 32, frame, { seed: 21, n: 6 });
   // Smoke
   for (let i = 0; i < 5; i++) {
     const k = ((frame * 0.6 + i * 40) % 120) / 120;

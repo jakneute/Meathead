@@ -10,6 +10,7 @@
 
 import type { GameState } from '../../core/state';
 import { bandedGradient, checker } from '../../render/pixelArt';
+import { drawFire } from '../../render/fx/fire';
 import type { Enemy } from '../../../types';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { COURSE, Place, Prop, Room, roomOf } from './course';
@@ -285,7 +286,16 @@ const drawRoomProp = (ctx: Ctx, state: GameState, pr: Prop, room: Room) => {
     case 'boiler':
       ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.roundRect(x, y - 140, 120, 140, 20); ctx.fill();
       ctx.fillStyle = '#991B1B'; ctx.fillRect(x + 10, y - 120, 100, 6);
-      ctx.fillStyle = `rgba(249, 115, 22, ${0.6 + Math.sin(f * 0.3) * 0.3})`; ctx.fillRect(x + 40, y - 50, 40, 26); // the fire in it
+      // The firebox: an iron frame, the fire going in the back of it, the glow on the sill, a grate across the front
+      ctx.fillStyle = '#292524'; ctx.fillRect(x + 36, y - 54, 48, 34);
+      ctx.fillStyle = '#1C0A05'; ctx.fillRect(x + 40, y - 50, 40, 26);
+      ctx.save(); ctx.beginPath(); ctx.rect(x + 40, y - 50, 40, 26); ctx.clip();
+      drawFire(ctx, x + 60, y - 24, 40, 24, f, { seed: Math.floor(x), sparks: false, glow: 1.6 });
+      ctx.restore();
+      ctx.fillStyle = `rgba(253, 186, 116, ${(0.35 + Math.sin(f * 0.3) * 0.15).toFixed(3)})`; ctx.fillRect(x + 36, y - 20, 48, 2); // (the glow on the sill)
+      ctx.fillStyle = '#0C0A09'; for (let gx = x + 44; gx < x + 80; gx += 8) ctx.fillRect(gx, y - 50, 3, 26);
+      ctx.fillStyle = '#57534E'; for (let gx = x + 44; gx < x + 80; gx += 8) ctx.fillRect(gx, y - 50, 1, 26);
+      ctx.fillStyle = '#0C0A09'; ctx.fillRect(x + 40, y - 38, 40, 2);
       ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.arc(x + 60, y - 100, 12, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#111827'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 60, y - 100); ctx.lineTo(x + 68, y - 106); ctx.stroke();
       break;
     case 'bench':

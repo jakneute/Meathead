@@ -3,6 +3,7 @@
 // inside, the shaft, the lava, the hazards, and the HUD (the doorman, the
 // clashes, the fade through the club doors, the lounge's wide shot).
 
+import { drawFireball, drawFireballs, drawFireColumn, drawFireJet } from '../../render/fx/fireball';
 import { drawClubVolcano, ClubVolcano } from '../../scenes/art/clubVolcano';
 import { PIX, bandedGradient, checker, hazeBands, pixelRidge, screenRidge, steppedGlow, pixelBlob } from '../../render/pixelArt';
 import type { GameState } from '../../core/state';
@@ -348,14 +349,7 @@ const drawVents = (ctx: Ctx, state: GameState) => {
     }
     if (ph.burning) {
       const k = Math.min(1, ph.t < ph.warn + 6 ? (ph.t - ph.warn + 1) / 6 : 1);
-      const hgt = VENT_HEIGHT * k;
-      const g = ctx.createLinearGradient(0, v.y - hgt, 0, v.y);
-      g.addColorStop(0, 'rgba(254, 240, 138, 0)'); g.addColorStop(0.3, 'rgba(253, 186, 116, 0.85)'); g.addColorStop(1, v.lava ? 'rgba(234, 88, 12, 0.95)' : 'rgba(254, 240, 138, 0.95)');
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.moveTo(v.x - VENT_HALF_WIDTH, v.y);
-      for (let y = 0; y <= hgt; y += 12) ctx.lineTo(v.x - VENT_HALF_WIDTH * (1 - y / hgt * 0.5) + Math.sin(f * 0.5 + y) * 4, v.y - y);
-      for (let y = hgt; y >= 0; y -= 12) ctx.lineTo(v.x + VENT_HALF_WIDTH * (1 - y / hgt * 0.5) + Math.sin(f * 0.5 + y + 2) * 4, v.y - y);
-      ctx.closePath(); ctx.fill();
+      drawFireColumn(ctx, v.x, v.y, VENT_HALF_WIDTH, VENT_HEIGHT * k, f, v.x, !!v.lava);
     }
   }
 };
@@ -427,14 +421,9 @@ const drawJets = (ctx: Ctx, state: GameState) => {
     }
     if (ph.burning) {
       const len = j.len * Math.min(1, (ph.t - JET_WARN + 1) / 8);
-      for (let i = 0; i < 3; i++) {
-        const w = 16 - i * 5;
-        ctx.fillStyle = ['rgba(234, 88, 12, 0.85)', 'rgba(251, 146, 60, 0.9)', 'rgba(254, 240, 138, 0.95)'][i];
-        ctx.beginPath(); ctx.moveTo(j.x + j.dir * 20, j.y - w * 0.6);
-        for (let d = 0; d <= len; d += 16) ctx.lineTo(j.x + j.dir * (20 + d), j.y - w * (0.6 + d / len * 0.5) + Math.sin(f * 0.6 + d) * 3);
-        for (let d = len; d >= 0; d -= 16) ctx.lineTo(j.x + j.dir * (20 + d), j.y + w * (0.6 + d / len * 0.5) + Math.sin(f * 0.6 + d + 1) * 3);
-        ctx.closePath(); ctx.fill();
-      }
+      ctx.save(); ctx.translate(j.x + j.dir * 20, j.y); ctx.scale(j.dir, 1);
+      drawFireJet(ctx, 0, 0, len, 30, f, j.x + j.y);
+      ctx.restore();
     }
   }
 };
@@ -448,11 +437,8 @@ const drawBars = (ctx: Ctx, state: GameState) => {
       for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2 + state.frame * 0.05; ctx.fillStyle = k % 3 ? '#E4E4E7' : '#FFFFFF'; ctx.fillRect(b.x + Math.cos(a) * 8 - 2, b.y + Math.sin(a) * 8 - 2, 4, 4); }
       ctx.strokeStyle = '#A1A1AA'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(b.x, b.y - 14); ctx.lineTo(b.x, b.y - 400); ctx.stroke();
     } else { ctx.fillStyle = '#44403C'; ctx.beginPath(); ctx.arc(b.x, b.y, 10, 0, Math.PI * 2); ctx.fill(); }
-    for (const ball of barBalls(b, state.frame)) {
-      const g = ctx.createRadialGradient(ball.x, ball.y, 1, ball.x, ball.y, 11);
-      g.addColorStop(0, '#FEF9C3'); g.addColorStop(0.5, '#FB923C'); g.addColorStop(1, 'rgba(234, 88, 12, 0)');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(ball.x, ball.y, 11, 0, Math.PI * 2); ctx.fill();
-    }
+    // (each ball streaming a tail back along the way it's swinging)
+    drawFireballs(ctx, barBalls(b, state.frame).map(ball => ({ x: ball.x, y: ball.y, r: 9, vx: -(ball.y - b.y) * b.speed, vy: (ball.x - b.x) * b.speed })), state.frame, { seed: b.x, tail: 1 });
   }
 };
 
@@ -472,9 +458,11 @@ const drawBombs = (ctx: Ctx, state: GameState) => {
     } else {
       // The blast
       const k = (b.t - BOMB_WARN) / 18;
-      const g = ctx.createRadialGradient(b.x, b.ground - 20, 2, b.x, b.ground - 20, BOMB_RADIUS * (0.6 + k));
-      g.addColorStop(0, `rgba(254, 240, 138, ${1 - k})`); g.addColorStop(0.5, `rgba(249, 115, 22, ${0.8 * (1 - k)})`); g.addColorStop(1, 'rgba(120, 30, 10, 0)');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(b.x, b.ground - 20, BOMB_RADIUS * (0.6 + k), 0, Math.PI * 2); ctx.fill();
+      // (a ball of fire in hard bands, cooling as it goes)
+      ctx.save(); ctx.globalAlpha = Math.max(0, 1 - k);
+      steppedGlow(ctx, b.x, b.ground - 20, BOMB_RADIUS * (0.6 + k), '#F97316', 0.35, 0.1, 4);
+      drawFireball(ctx, b.x, b.ground - 20, BOMB_RADIUS * (0.6 + k) * 0.7, b.t, { seed: b.x, heat: k > 0.55 ? -1 : 1 });
+      ctx.restore();
     }
   }
 };

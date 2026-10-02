@@ -7,6 +7,7 @@
 
 import { Enemy } from '../../../types';
 import type { GameState } from '../../core/state';
+import { drawFlameLicks } from '../fx/fireball';
 import { DRONE_AIM } from '../../enemies/kinds/ernie';
 
 type Ctx = CanvasRenderingContext2D;
@@ -256,11 +257,7 @@ const drawBurning = (ctx: Ctx, e: Enemy, f: number) => {
   ctx.save(); ctx.translate(9, -54); ctx.rotate(-0.7 + Math.sin(f * 0.8 + 1) * 0.5); ctx.fillRect(0, -3, 20, 5); ctx.restore();
   // Mouth open, screaming
   ctx.fillStyle = '#F97316'; ctx.beginPath(); ctx.ellipse(5, -62, 2.5, 3, 0, 0, Math.PI * 2); ctx.fill();
-  // The flames all over them
-  for (let i = 0; i < 6; i++) {
-    const x = -12 + i * 5, h = 16 + Math.sin(f * 0.6 + i * 1.7) * 8;
-    const y = -20 - (i % 3) * 18;
-    ctx.fillStyle = i % 2 ? 'rgba(249, 115, 22, 0.9)' : 'rgba(253, 224, 71, 0.9)';
-    ctx.beginPath(); ctx.moveTo(x - 5, y); ctx.quadraticCurveTo(x + Math.sin(f * 0.4 + i) * 4, y - h, x + 5, y); ctx.fill();
-  }
+  // The flames all over them: up off their middle, and up off their shoulders and head
+  const seed = Math.abs(Math.round(e.homeX || 0));
+  drawFlameLicks(ctx, 0, -12, 30, 62, f, { seed, n: 5 });
 };

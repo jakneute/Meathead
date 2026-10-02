@@ -3,6 +3,8 @@
 // flying sludge. World space.
 
 import { Projectile } from '../../types';
+import { drawFireball } from './fx/fireball';
+import { steppedGlow } from './pixelArt';
 
 const angleOf = (p: Projectile) => Math.atan2(p.vel.y, p.vel.x);
 const speedOf = (p: Projectile) => Math.hypot(p.vel.x, p.vel.y);
@@ -213,9 +215,8 @@ const drawGunShot = (ctx: CanvasRenderingContext2D, p: Projectile, frame: number
     // A flare: a blinding red-orange ball throwing sparks and a trail of smoke
     const flick = 0.8 + Math.sin(frame * 0.9) * 0.2;
     ctx.fillStyle = 'rgba(120, 113, 108, 0.35)'; for (let k = 1; k <= 3; k++) { ctx.beginPath(); ctx.arc(-k * 7, (k % 2 ? -1 : 1) * 1.5, 3 + k, 0, Math.PI * 2); ctx.fill(); }
-    ctx.fillStyle = `rgba(239, 68, 68, ${0.35 * flick})`; ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#F97316'; ctx.beginPath(); ctx.arc(0, 0, 5 * flick, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#FEF9C3'; ctx.beginPath(); ctx.arc(0.5, 0, 2.5, 0, Math.PI * 2); ctx.fill();
+    steppedGlow(ctx, 0, 0, 11, '#EF4444', 0.4 * flick, 0.1, 3);
+    drawFireball(ctx, 0, 0, 6 * flick, frame, { seed: 2, vx: 1, vy: 0, tail: 1.2, heat: 1 });
     ctx.fillStyle = '#FDE047'; for (let k = 0; k < 3; k++) { const a = frame * 0.7 + k * 2.1; ctx.fillRect(Math.cos(a) * 8 - 4, Math.sin(a) * 6, 1.5, 1.5); }
   }
   ctx.restore();

@@ -9,6 +9,7 @@
 
 import type { Enemy, WeaponType } from '../../../types';
 import type { GameState } from '../../core/state';
+import { drawFire } from '../../render/fx/fire';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { KIND_STATS } from '../../enemies/kinds';
 import { COURSE } from './course';
@@ -347,7 +348,7 @@ const drawProp = (ctx: Ctx, state: GameState, fight: JunkieFight, n: PropName) =
         ctx.fillStyle = '#1C1917'; ctx.fillRect(box.x + 4, box.y + 24, 10, box.h - 24); ctx.fillRect(box.x + box.w - 14, box.y + 30, 10, box.h - 30); ctx.fillRect(box.x + 2, box.y + 18, box.w - 20, 6);
       }
       ctx.restore();
-      if (pr.state === 'going') for (let i = 0; i < 5; i++) { const x = box.x + 10 + i * 22, h = 20 + Math.sin(f * 0.5 + i) * 10; ctx.fillStyle = i % 2 ? 'rgba(249,115,22,0.85)' : 'rgba(253,224,71,0.85)'; ctx.beginPath(); ctx.moveTo(x - 8, box.y + 4); ctx.quadraticCurveTo(x, box.y - h, x + 8, box.y + 4); ctx.fill(); }
+      if (pr.state === 'going') drawFire(ctx, box.x + 54, box.y + 4, 100, 36, f, { seed: 9, smoke: 0.7 });
       if (pr.state === 'gone' && f % 6 === 0) state.particles.push({ pos: { x: box.x + Math.random() * box.w, y: box.y + 10 }, vel: { x: 0, y: -1 }, life: 30, color: '#57534E', size: 4 });
       break;
     }

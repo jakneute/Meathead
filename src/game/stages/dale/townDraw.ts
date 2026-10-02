@@ -8,6 +8,7 @@
 
 import { drawSkipPrompt } from '../../platform/skip';
 import type { GameState } from '../../core/state';
+import { drawFire } from '../../render/fx/fire';
 import type { GroundRun } from '../../core/terrain';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, BOSS_DOOR_X } from '../../../constants';
 import { COURSE, Building, Awning } from './course';
@@ -305,7 +306,7 @@ const drawJail = (ctx: Ctx, state: GameState, town: Town) => {
     ctx.beginPath(); ctx.ellipse(j.x1 + 170, Y - 2, 150, 7, 0, 0, Math.PI * 2); ctx.fill();
     for (let k = 0; k < 22; k++) { const sx = j.x1 + 20 + hash(k + 400) * 300, sy = Y - 20 - hash(k + 401) * 120, r = 3 + hash(k + 402) * 9; ctx.fillStyle = k % 3 ? 'rgba(153, 27, 27, 0.85)' : 'rgba(220, 38, 38, 0.8)'; ctx.beginPath(); ctx.ellipse(sx, sy, r, r * 0.7, hash(k) * 3, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(sx - 1, sy, 2, r * 2.5); }
     ctx.fillStyle = '#1C1917'; ctx.beginPath(); ctx.ellipse(j.x1 + 250, Y - 6, 12, 3, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(j.x1 + 244, Y - 13, 12, 7); // the souvenir hat
-    for (let k = 0; k < 6; k++) { const fx = j.x1 + 30 + k * 50, h = 40 + Math.sin(f * 0.4 + k) * 16; ctx.fillStyle = k % 2 ? 'rgba(249,115,22,0.85)' : 'rgba(253,224,71,0.8)'; ctx.beginPath(); ctx.moveTo(fx - 16, Y - 20); ctx.quadraticCurveTo(fx, Y - 20 - h, fx + 16, Y - 20); ctx.fill(); }
+    drawFire(ctx, j.x1 + 90, Y - 18, 160, 62, f, { seed: 31 }); drawFire(ctx, j.x1 + 232, Y - 18, 136, 50, f, { seed: 47 });
     if (f % 4 === 0) state.particles.push({ pos: { x: j.x1 + 60 + Math.random() * 200, y: Y - 80 }, vel: { x: (Math.random() - 0.5), y: -1.5 }, life: 40, color: '#44403C', size: 8 + Math.random() * 8 });
     return;
   }

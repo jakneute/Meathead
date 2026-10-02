@@ -4,6 +4,7 @@
 
 import type { GameState } from '../../core/state';
 import { bandedGradient } from '../../render/pixelArt';
+import { drawFire } from '../../render/fx/fire';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { drawPlayer } from '../../render/player/player';
 import { COURSE } from './course';
@@ -209,13 +210,7 @@ const wreckage = (ctx: Ctx, state: GameState) => {
   ctx.fillStyle = '#0A0A0A'; ctx.fillRect(L.x1 + 952, y - 128, 16, 4);
   ctx.fillStyle = '#7F0000'; ctx.fillRect(L.x1 + 950, y - 116, 20, 4); ctx.fillRect(L.x1 + 958, y - 116, 3, 30);
   // Fires still going
-  for (const fx of [L.x1 + 330, L.x1 + 770, L.x1 + 1150]) {
-    for (let k = 0; k < 3; k++) {
-      const h = 50 + Math.sin(f * 0.3 + k + fx) * 14;
-      ctx.fillStyle = ['rgba(234,88,12,0.85)', 'rgba(251,146,60,0.9)', 'rgba(254,240,138,0.9)'][k];
-      ctx.beginPath(); ctx.moveTo(fx - 26 + k * 7, y); ctx.quadraticCurveTo(fx + Math.sin(f * 0.2 + k) * 8, y - h - 10 + k * 10, fx + 26 - k * 7, y); ctx.fill();
-    }
-  }
+  for (const fx of [L.x1 + 330, L.x1 + 770, L.x1 + 1150]) drawFire(ctx, fx, y, 52, 80, f, { seed: Math.floor(fx), smoke: 0.6 });
   // Smoke hanging under the ceiling
   ctx.fillStyle = 'rgba(40, 30, 35, 0.4)'; ctx.fillRect(L.x1 - 60, top + 56, L.x2 - L.x1 + 60, 90);
 };

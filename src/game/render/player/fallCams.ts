@@ -4,6 +4,8 @@ import { MEATHEAD_DEATH_FRAMES, FALL_HIT, SPACE_OUT } from '../../player/deathAn
 import { body } from './deathAnim';
 import type { DeathFace } from './deathFace';
 import { bandedGradient, checker, brickPattern, steppedGlow, pixelBlob, hazeBands } from '../pixelArt';
+import { drawFire } from '../fx/fire';
+import { drawFlameLicks } from '../fx/fireball';
 
 // The falls: the kill cam cutting to the bottom of whatever he's gone down (see player/deathAnim), screen space, over
 // everything. Quick, and nasty: wedged head first in a crevasse and frozen there, onto the rebar in a dug-up street,
@@ -315,8 +317,7 @@ const crude: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
   // The flare
   const fl = 70 + Math.sin(f * 0.4) * 8;
   steppedGlow(ctx, 647, 90, 80, '#FB923C', 0.3, 0, 4);
-  ctx.fillStyle = '#F97316'; ctx.beginPath(); ctx.moveTo(634, 118); ctx.quadraticCurveTo(647, 118 - fl, 660, 118); ctx.fill();
-  ctx.fillStyle = '#FDE047'; ctx.beginPath(); ctx.moveTo(640, 118); ctx.quadraticCurveTo(647, 118 - fl * 0.55, 654, 118); ctx.fill();
+  drawFire(ctx, 647, 118, 28, fl * 1.3, f, { seed: 5, glow: 0, smoke: 0.6 });
   // The pit: black, a slow rainbow sheen on it
   bandedGradient(ctx, 0, surf, W, H - surf, ['#1C1410', '#0A0806', '#000000'], 6);
   ctx.fillStyle = '#3F3A36'; ctx.fillRect(0, surf, W, P);
@@ -338,12 +339,9 @@ const crude: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
   if (since >= 76) {
     const k = clamp01((since - 76) / 12), die = 1 - clamp01((since - 115) / 25);
     steppedGlow(ctx, 647 - 300 * k, surf, 360 * k + 1, '#F97316', 0.5 * die, 0, 5);
-    for (let i = 0; i < 30; i++) {
-      const xx = W + 20 - (i / 29) * (W + 40) * k, hgt = (60 + hash(i) * 130) * die * (0.75 + 0.25 * Math.sin(f * 0.6 + i));
-      for (const [col, sc] of [['#B91C1C', 1.1], ['#F97316', 0.85], ['#FDE047', 0.5]] as const) {
-        ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(xx - 24 * sc, surf + 4); ctx.quadraticCurveTo(xx - 10 * sc, surf - hgt * sc * 0.6, xx + Math.sin(f * 0.5 + i) * 6, surf - hgt * sc); ctx.quadraticCurveTo(xx + 12 * sc, surf - hgt * sc * 0.6, xx + 24 * sc, surf + 4); ctx.fill();
-      }
-    }
+    // (racing across from the stack's side: a wall of fire in stretches, each its own height)
+    const span = (W + 40) * k, seg = span / 6;
+    for (let i = 0; i < 6; i++) drawFire(ctx, W + 20 - seg * (i + 0.5), surf + 4, seg * 1.3, (110 + hash(i) * 90) * die, f, { seed: i * 11, glow: 0, smoke: i % 2 ? 0.8 : 0 });
     for (let i = 0; i < 6; i++) { const q = ((since * 1.5 + i * 25) % 80) / 80; pixelBlob(ctx, 100 + i * 120 + Math.sin(i) * 30, surf - 150 - q * 220, 40 + q * 30, 22 + q * 16, `rgba(28, 25, 23, ${(0.7 * (1 - q) * die).toFixed(3)})`); }
   }
 };
@@ -464,7 +462,7 @@ const dungeon: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
   const fl = Math.sin(f * 0.5) * 0.08 + Math.sin(f * 1.3) * 0.05;
   steppedGlow(ctx, 640, 170, 260 * (1 + fl), '#FDBA74', 0.3, 0, 6);
   ctx.fillStyle = '#292524'; ctx.fillRect(634, 170, 12, 40); ctx.fillStyle = '#57534E'; ctx.fillRect(628, 166, 24, 8);
-  ctx.fillStyle = '#F97316'; ctx.beginPath(); ctx.moveTo(630, 166); ctx.quadraticCurveTo(640, 132 - fl * 60, 650, 166); ctx.fill(); ctx.fillStyle = '#FDE047'; ctx.beginPath(); ctx.moveTo(635, 166); ctx.quadraticCurveTo(640, 148 - fl * 40, 645, 166); ctx.fill();
+  drawFlameLicks(ctx, 640, 166, 18, 34 * (1 + fl * 2), f, { seed: 2, n: 3 });
   hazeBands(ctx, 0, 0, W, floor, '#0C0A09', 0.5, 0.15, 6);
   // The hole up in the ceiling, light down through it
   ctx.fillStyle = 'rgba(254, 243, 199, 0.18)'; ctx.beginPath(); ctx.moveTo(cx - 70, 0); ctx.lineTo(cx + 70, 0); ctx.lineTo(cx + 120, floor); ctx.lineTo(cx - 120, floor); ctx.fill();

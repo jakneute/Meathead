@@ -7,6 +7,8 @@
 
 import type { GameState } from '../../core/state';
 import { bandedGradient, hazeBands } from '../../render/pixelArt';
+import { drawFire } from '../../render/fx/fire';
+import { drawFireball } from '../../render/fx/fireball';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { drawPlayer } from '../../render/player/player';
 import { COURSE, TRAILER_W, TRUCK_W, TRAILER_TOP, CAB_TOP, HOOD_TOP, SLEEPER_W, truckDims } from './course';
@@ -229,11 +231,8 @@ const drawWreck = (ctx: Ctx, x: number, f: number, t: number) => {
   if (t > 400) return;
   ctx.fillStyle = '#1C1917'; ctx.fillRect(x + 20, TRAILER_TOP + 50, TRAILER_W - 60, Y - 40 - TRAILER_TOP - 50);
   ctx.fillStyle = '#292524'; ctx.fillRect(x + TRAILER_W - 10, CAB_TOP + 40, TRUCK_W - TRAILER_W - 10, Y - 40 - CAB_TOP - 40);
-  for (let k = 0; k < 8; k++) {
-    const fx = x + 30 + k * 80, h = 50 + Math.sin(f * 0.4 + k) * 20;
-    ctx.fillStyle = k % 2 ? 'rgba(249,115,22,0.85)' : 'rgba(253,224,71,0.8)';
-    ctx.beginPath(); ctx.moveTo(fx - 20, TRAILER_TOP + 60); ctx.quadraticCurveTo(fx, TRAILER_TOP + 60 - h, fx + 20, TRAILER_TOP + 60); ctx.fill();
-  }
+  // (going all down it, in stretches: the load, the middle, the cab end)
+  for (const [dx, w, h] of [[130, 250, 80], [360, 230, 62], [570, 210, 76]]) drawFire(ctx, x + dx, TRAILER_TOP + 62, w, h, f, { seed: dx });
   ctx.fillStyle = 'rgba(28,25,23,0.5)'; for (let k = 0; k < 5; k++) { ctx.beginPath(); ctx.arc(x + 80 + k * 110 + (f % 40), TRAILER_TOP - 20 - (f * 2 + k * 30) % 120, 20 + k * 4, 0, Math.PI * 2); ctx.fill(); }
 };
 
@@ -295,9 +294,10 @@ const drawTruckBlast = (ctx: Ctx, x: number, t: number) => {
     const bx = x + TRUCK_W - 60 - k * 115 + Math.sin(k * 2.3) * 20, by = cy - tt * 1.4 - k * 6;
     const r = Math.min(110, 30 + tt * 5) * (1 - Math.max(0, tt - 40) / 60);
     const fade = Math.max(0, 1 - Math.max(0, tt - 30) / 40);
-    const g = ctx.createRadialGradient(bx, by, 4, bx, by, r);
-    g.addColorStop(0, `rgba(255, 255, 230, ${fade})`); g.addColorStop(0.3, `rgba(253, 224, 71, ${fade})`); g.addColorStop(0.6, `rgba(249, 115, 22, ${fade * 0.95})`); g.addColorStop(1, 'rgba(127, 29, 29, 0)');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(bx, by, r, 0, Math.PI * 2); ctx.fill();
+    // (in hard bands, white-hot going off, cooling to red as it lifts)
+    ctx.globalAlpha = fade;
+    drawFireball(ctx, bx, by, r * 0.85, t, { seed: k * 13, heat: tt < 12 ? 1 : tt > 40 ? -1 : 0 });
+    ctx.globalAlpha = 1;
   }
   // The smoke, rolling up out of it
   for (let k = 0; k < 10; k++) {
@@ -318,7 +318,7 @@ const drawTruckBlast = (ctx: Ctx, x: number, t: number) => {
     else if (k % 4 === 2) { ctx.fillStyle = '#A16207'; ctx.fillRect(-9, -9, 18, 18); ctx.strokeStyle = '#713F12'; ctx.lineWidth = 2; ctx.strokeRect(-9, -9, 18, 18); }
     else { ctx.fillStyle = '#DC2626'; ctx.beginPath(); ctx.moveTo(-12, -6); ctx.lineTo(14, -2); ctx.lineTo(-4, 8); ctx.fill(); }
     // (burning as it goes)
-    if (t < 60) { ctx.fillStyle = 'rgba(249, 115, 22, 0.7)'; ctx.beginPath(); ctx.arc(-4, -4, 6, 0, Math.PI * 2); ctx.fill(); }
+    if (t < 60) drawFireball(ctx, -4, -4, 5, t, { seed: k, heat: -1 });
     ctx.restore();
   }
   ctx.restore();
