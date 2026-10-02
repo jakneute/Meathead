@@ -197,6 +197,37 @@ export const drawJunk = (ctx: Ctx, x: number, y: number, w: number, look: string
       ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w - 14, y + 18); ctx.lineTo(x + 10, y + 18); ctx.closePath(); ctx.fill();
       ctx.fillStyle = '#DC2626'; ctx.fillRect(x + 6, y + 6, w - 12, 3);
       break;
+    case 'lift': {
+      // The way up into the Eye: a lifeguard stand's deck torn off whole (striped rail, a red cross, its flag), the
+      // updraft roaring up from it in a column of wind and sparkle, an arrow on a board saying so. Plain to see from below.
+      const cx = x + w / 2, top = y - 900;
+      ctx.save();
+      const col = ctx.createLinearGradient(0, top, 0, y);
+      col.addColorStop(0, 'rgba(224, 242, 254, 0)'); col.addColorStop(1, 'rgba(186, 230, 253, 0.35)');
+      ctx.fillStyle = col; ctx.fillRect(x + 10, top, w - 20, y - top);
+      for (let k = 0; k < 14; k++) {
+        const q = ((f * (3 + (k % 3)) + k * 67) % 900) / 900;
+        const sx = x + 16 + ((k * 41) % (w - 32)) + Math.sin(q * 12 + k) * 8, sy = y - 10 - q * 900;
+        ctx.fillStyle = k % 3 ? `rgba(255, 255, 255, ${(0.7 * (1 - q)).toFixed(3)})` : `rgba(254, 240, 138, ${(0.9 * (1 - q)).toFixed(3)})`;
+        ctx.fillRect(Math.floor(sx), Math.floor(sy), 2, k % 3 ? 14 : 3);
+      }
+      ctx.restore();
+      // (the deck: planks, the striped rail, posts)
+      ctx.fillStyle = '#92400E'; ctx.fillRect(x, y, w, 14); ctx.fillStyle = '#B45309'; for (let px = x; px < x + w; px += 18) ctx.fillRect(px, y, 16, 3);
+      ctx.fillStyle = '#78350F'; ctx.fillRect(x, y + 11, w, 3);
+      for (let px = x + 4; px < x + w; px += 32) { ctx.fillStyle = '#F8FAFC'; ctx.fillRect(px, y - 26, 4, 26); }
+      for (let k = 0; k < Math.floor(w / 16); k++) { ctx.fillStyle = k % 2 ? '#EF4444' : '#F8FAFC'; ctx.fillRect(x + k * 16, y - 26, 16, 5); }
+      ctx.fillStyle = '#EF4444'; ctx.fillRect(x + w - 30, y - 22, 4, 12); ctx.fillRect(x + w - 34, y - 18, 12, 4);
+      // (its flag, whipping)
+      ctx.fillStyle = '#78716C'; ctx.fillRect(x + 6, y - 60, 3, 34);
+      ctx.fillStyle = '#EF4444'; ctx.beginPath(); ctx.moveTo(x + 9, y - 60); ctx.lineTo(x + 34 + Math.sin(f * 0.5) * 4, y - 54); ctx.lineTo(x + 9, y - 48); ctx.fill();
+      // (the board with the arrow)
+      ctx.fillStyle = '#FDE68A'; ctx.fillRect(cx - 22, y - 58, 44, 22); ctx.strokeStyle = '#78350F'; ctx.lineWidth = 2; ctx.strokeRect(cx - 22, y - 58, 44, 22);
+      const bob = Math.sin(f * 0.2) * 2;
+      ctx.fillStyle = '#DC2626'; ctx.beginPath(); ctx.moveTo(cx, y - 56 + bob); ctx.lineTo(cx + 9, y - 46 + bob); ctx.lineTo(cx + 4, y - 46 + bob); ctx.lineTo(cx + 4, y - 39 + bob); ctx.lineTo(cx - 4, y - 39 + bob); ctx.lineTo(cx - 4, y - 46 + bob); ctx.lineTo(cx - 9, y - 46 + bob); ctx.fill();
+      ctx.fillStyle = '#78716C'; ctx.fillRect(cx - 2, y - 36, 4, 10);
+      break;
+    }
     case 'trampoline': {
       // Springy: it's for bouncing
       ctx.fillStyle = '#111827'; ctx.fillRect(x, y + 2, w, 6);

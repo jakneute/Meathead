@@ -20,7 +20,7 @@ const mix = (a: string, b: string, k: number) => {
 const centre = () => ({ x: COURSE.eye.x + EYE_CX, y: COURSE.eye.y + EYE_CY });
 
 /** The sclera: a big white ball with shading, veins spreading as it's hurt. */
-const eyeball = (ctx: Ctx, cx: number, cy: number, r: number, hurt: number, f: number, tint = '#F8FAFC') => {
+export const eyeball = (ctx: Ctx, cx: number, cy: number, r: number, hurt: number, f: number, tint = '#F8FAFC') => {
   const g = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.35, r * 0.1, cx, cy, r);
   g.addColorStop(0, '#FFFFFF'); g.addColorStop(0.7, tint); g.addColorStop(1, '#CBD5E1');
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
@@ -42,7 +42,7 @@ const eyeball = (ctx: Ctx, cx: number, cy: number, r: number, hurt: number, f: n
 };
 
 /** Iris and pupil at (px, py): a stormy grey-blue iris with a swirl, a black pupil. */
-const iris = (ctx: Ctx, px: number, py: number, r: number, dilate: number, f: number, color = '#3B5B80') => {
+export const iris = (ctx: Ctx, px: number, py: number, r: number, dilate: number, f: number, color = '#3B5B80') => {
   ctx.fillStyle = color; ctx.beginPath(); ctx.arc(px, py, r * 0.42, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = 'rgba(148, 163, 184, 0.7)'; ctx.lineWidth = 1.5;
   for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2 + f * 0.01; ctx.beginPath(); ctx.moveTo(px + Math.cos(a) * r * 0.16, py + Math.sin(a) * r * 0.16); ctx.lineTo(px + Math.cos(a + 0.4) * r * 0.4, py + Math.sin(a + 0.4) * r * 0.4); ctx.stroke(); }
@@ -51,7 +51,7 @@ const iris = (ctx: Ctx, px: number, py: number, r: number, dilate: number, f: nu
 };
 
 /** Eyelids closing over it (0 open, 1 shut). */
-const lids = (ctx: Ctx, cx: number, cy: number, r: number, shut: number) => {
+export const lids = (ctx: Ctx, cx: number, cy: number, r: number, shut: number) => {
   if (shut <= 0) return;
   ctx.fillStyle = '#C08A6B';
   const reach = r * 2 * shut;

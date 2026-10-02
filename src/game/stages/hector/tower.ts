@@ -86,10 +86,22 @@ const shiftLap = (state: GameState, dx: number) => {
 export const updateTower = (ctx: FrameContext, tr: TowerRun, onTop: () => void) => {
   const { state } = ctx;
   const { player } = state;
-  // (the flash carries on after he's up there)
+  // On the lift: the updraft carries it (and him on it) up and up, faster and faster, into the Eye; the flash as it
+  // gets there, and he's up (the flash carries on after he's up there)
   if (tr.exitT > 0) {
     tr.exitT++;
-    if (tr.exitT === 26) onTop();
+    if (tr.exitT < LIFT_FRAMES) {
+      const rise = Math.min(9, 0.5 + tr.exitT * 0.14);
+      for (const b of tr.copies[T.plats.length - 1]) {
+        b.y -= rise;
+        // (him on it, carried up with it: it's going up quicker than he could land on it)
+        const cx = player.pos.x + player.width / 2;
+        if (cx > b.x - 10 && cx < b.x + b.w + 10) { player.pos.y = b.y - player.height; player.vel.y = 0; player.isGrounded = true; }
+      }
+      if (tr.exitT % 18 === 0) playSound('whoosh', 0.6, tr.exitT / 12);
+    }
+    if (tr.exitT === LIFT_FRAMES) { playSound('thunder'); shakeScreen(state, 30, 8); }
+    if (tr.exitT === LIFT_FRAMES + 26) onTop();
   }
   if (!inTower(player.pos.x)) return;
   // The Coast Guard, up the storm after him: the mayday, cut off by the house it meets
@@ -151,20 +163,25 @@ export const updateTower = (ctx: FrameContext, tr: TowerRun, onTop: () => void) 
     player.invincibilityTimer = 0;
     for (let k = 0; k < 3; k++) state.particles.push({ pos: { x: player.pos.x + Math.random() * player.width, y: player.pos.y + Math.random() * player.height }, vel: { x: -8 - Math.random() * 6, y: -3 - Math.random() * 4 }, life: 22, color: 'rgba(226, 232, 240, 0.8)', size: 3 });
     if (tr.suckT >= SUCK_FRAMES) {
-      const lines = ['SUCKED UP INTO THE STORM', 'CARRIED OFF BY THE WIND', 'CATEGORY 5 DEATH', "LAST SEEN AIRBORNE", 'THE FIRST MEATHEAD IN SPACE', 'HOUSTON, WE HAVE A MEATHEAD'];
+      // (it doesn't stop at the clouds: see the space death)
+      const lines = ['THE FIRST MEATHEAD IN SPACE', 'HOUSTON, WE HAVE A MEATHEAD', 'ONE GIANT LEAP FOR MEATKIND', 'NOW IN LOW EARTH ORBIT', 'SPACE JUNK', 'CATEGORY 5 LIFTOFF'];
       killPlayer(ctx, lines[Math.floor(Math.random() * lines.length)]);
     }
   }
-  // Made it to the top: lightning, and you're up at the Eye
+  // Made it to the top: onto the lift, and up it goes
   if (tr.exitT === 0 && player.isGrounded && player.pos.y + player.height <= T.topY + 110) {
     tr.exitT = 1;
-    playSound('thunder');
-    shakeScreen(state, 30, 8);
+    playSound('rumble', 0.8); playSound('whoosh', 0.8, -6);
+    shakeScreen(state, 14, 4);
   }
   if (tr.exitT > 0) player.invincibilityTimer = Math.max(player.invincibilityTimer, 2);
 };
 
 /** The flash that covers the jump up to the Eye (0..1). */
-export const towerFlash = (tr: TowerRun) => (tr.exitT <= 0 ? 0 : tr.exitT < 26 ? tr.exitT / 26 : Math.max(0, 1 - (tr.exitT - 26) / 30));
+export const towerFlash = (tr: TowerRun) => { const e = tr.exitT - LIFT_FRAMES; return tr.exitT <= 0 || e < 0 ? 0 : e < 26 ? e / 26 : Math.max(0, 1 - (e - 26) / 30); };
+/** How long the lift carries him up before the flash (frames). */
+export const LIFT_FRAMES = 80;
+/** On the lift (hands off). */
+export const onLift = (tr: TowerRun) => tr.exitT > 0 && tr.exitT < LIFT_FRAMES + 26;
 
 export const TOWER = T;

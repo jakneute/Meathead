@@ -213,11 +213,13 @@ const buildTower = (): Tower => {
   // Round and up: each a jump from the last (up to ~95px higher, a gap of 40 to ~75px)
   let u = 260, y = floorY - 80;
   for (let i = 0; i < 34; i++) {
-    const w = 90 + ((i * 37) % 60);
+    // (the last: the lift, the updraft that carries you up into the Eye: wide, still, and plain to see)
+    const last = i === 33;
+    const w = last ? 170 : 90 + ((i * 37) % 60);
     // Every so often a trampoline (big bounce), and later some of it's orbiting round the storm
-    const bounce = i % 9 === 5;
-    const orbit = i > 12 && i % 5 === 2 ? (i % 2 ? 0.9 : -0.9) : undefined;
-    plats.push({ u, y, w, look: bounce ? 'trampoline' : LOOKS[i % LOOKS.length], bounce, orbit });
+    const bounce = !last && i % 9 === 5;
+    const orbit = !last && i > 12 && i % 5 === 2 ? (i % 2 ? 0.9 : -0.9) : undefined;
+    plats.push({ u, y, w, look: last ? 'lift' : bounce ? 'trampoline' : LOOKS[i % LOOKS.length], bounce, orbit });
     u = (u + w + 40 + ((i * 53) % 36)) % circumference;
     y -= bounce ? 160 : 72 + ((i * 29) % 22);
   }

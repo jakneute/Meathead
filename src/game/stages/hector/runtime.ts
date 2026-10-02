@@ -14,7 +14,7 @@ import { GROUND_Y } from '../../../constants';
 import { Beach, createBeach, updateBeach } from './beach';
 import { Hazards, createHazards, updateHazards, waterZones } from './hazards';
 import { Boat, createBoat, updateBoat } from './boat';
-import { TowerRun, createTowerRun, updateTower, inTower, TOWER } from './tower';
+import { TowerRun, createTowerRun, updateTower, inTower, onLift, TOWER } from './tower';
 import { EyeFight, createEyeFight, updateEyeFight, inEyeArena } from './eye';
 import { News, createNews, startNews, updateNews, newsOn } from './news';
 import { Daycare, createDaycare, updateDaycare, startDaycare, inDaycare } from './daycare';
@@ -125,6 +125,8 @@ export const updateHector = (ctx: FrameContext, controls: Controls): Controls =>
   updateEyeFight(ctx, rt.eye, () => { rt.clearT = 1; });
   // (the news: watch it all, or skip the lot)
   updateNews(ctx, rt.news, controls, () => startDaycare(state, rt.daycare, true));
+  // Riding the lift up into the Eye: hands off
+  if (onLift(rt.tower)) { controls = { ...NO_CONTROLS }; player.vel.x *= 0.6; }
   // Just arrived in the Eye (off the tower, or back at its checkpoint): feet planted a moment while he takes it in,
   // so a right still held from the climb doesn't walk him straight off the junk (he can still shoot)
   if (region === 'eye' && rt.eye.phase === 'intro' && rt.eye.t < EYE_ARRIVE_HOLD) {

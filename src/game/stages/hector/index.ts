@@ -2,6 +2,7 @@
 // into the game state and hooks its set pieces, hazards, the Eye and its
 // drawing into the engine.
 
+import { inEyeArena } from './eye';
 import { tickBoarded, tickWreck } from './chase';
 import type { StageLayout } from '../index';
 import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH } from '../../../constants';
@@ -64,7 +65,7 @@ export const hectorLayout: StageLayout = {
   deathSceneTick: ctx => { const c = getHector(ctx.state)?.boat.chase; if (c?.caughtT) tickBoarded(ctx, c); else if (c?.wreckT) tickWreck(ctx, c); },
   deathMessage: ctx => { const rt = getHector(ctx.state); return rt ? hazardDeathMessage(ctx.state, rt.hazards) : undefined; },
   // (the storm up the tower got him: it doesn't stop at the clouds)
-  fallDeathKind: ctx => ((getHector(ctx.state)?.tower.suckT ?? 0) > 0 ? 'space' : undefined),
+  fallDeathKind: ctx => ((getHector(ctx.state)?.tower.suckT ?? 0) > 0 ? 'space' : inEyeArena(ctx.state.player.pos.x) ? 'eye_fall' : undefined),
   updateSpecialEnemy: (ctx, e) => {
     const rt = getHector(ctx.state);
     if (!rt) return undefined;

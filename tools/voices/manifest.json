@@ -667,7 +667,7 @@
  {
   "voice": "announcer",
   "text": "MOO-SPLOSION!",
-  "from": "game/stages/hector/eye.ts:212"
+  "from": "game/stages/hector/eye.ts:213"
  },
  {
   "voice": "announcer",
@@ -1142,7 +1142,7 @@
  {
   "voice": "announcer",
   "text": "THE EYE IS CLOSED!",
-  "from": "game/stages/hector/eye.ts:330"
+  "from": "game/stages/hector/eye.ts:331"
  },
  {
   "voice": "announcer",
@@ -4726,6 +4726,11 @@
  },
  {
   "voice": "death",
+  "text": "CATEGORY 5 LIFTOFF",
+  "from": "game/stages/hector/tower.ts:168"
+ },
+ {
+  "voice": "death",
   "text": "CAUGHT A BULLET",
   "from": "content/deaths"
  },
@@ -4868,6 +4873,11 @@
   "voice": "death",
   "text": "CRUSHED BY A BOULDER",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CURIOSITY: SATISFIED",
+  "from": "game/stages/hector/eye.ts:133"
  },
  {
   "voice": "death",
@@ -5527,7 +5537,7 @@
  {
   "voice": "death",
   "text": "HOUSTON, WE HAVE A MEATHEAD",
-  "from": "game/stages/hector/tower.ts:155"
+  "from": "game/stages/hector/tower.ts:168"
  },
  {
   "voice": "death",
@@ -5736,11 +5746,6 @@
  },
  {
   "voice": "death",
-  "text": "LAST SEEN AIRBORNE",
-  "from": "game/stages/hector/tower.ts:155"
- },
- {
-  "voice": "death",
   "text": "LATER, GATOR",
   "from": "content/deaths"
  },
@@ -5861,6 +5866,11 @@
  },
  {
   "voice": "death",
+  "text": "MOST INTERESTING THING IT'S EVER SEEN",
+  "from": "game/stages/hector/eye.ts:133"
+ },
+ {
+  "voice": "death",
   "text": "MUGGED",
   "from": "content/deaths"
  },
@@ -5936,6 +5946,11 @@
  },
  {
   "voice": "death",
+  "text": "NOW IN LOW EARTH ORBIT",
+  "from": "game/stages/hector/tower.ts:168"
+ },
+ {
+  "voice": "death",
   "text": "OFFICER INVOLVED",
   "from": "content/deaths"
  },
@@ -5958,6 +5973,11 @@
   "voice": "death",
   "text": "ONE BRICK SHORT OF A HOUSE",
   "from": "game/stages/ernie/quake.ts:340"
+ },
+ {
+  "voice": "death",
+  "text": "ONE GIANT LEAP FOR MEATKIND",
+  "from": "game/stages/hector/tower.ts:168"
  },
  {
   "voice": "death",
@@ -6676,6 +6696,11 @@
  },
  {
   "voice": "death",
+  "text": "SPACE JUNK",
+  "from": "game/stages/hector/tower.ts:168"
+ },
+ {
+  "voice": "death",
   "text": "SPECIAL DELIVERY: YOU",
   "from": "game/stages/dale/convoy.ts:480"
  },
@@ -6683,6 +6708,11 @@
   "voice": "death",
   "text": "SPIT ROASTED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SPLASHDOWN",
+  "from": "game/stages/hector/eye.ts:133"
  },
  {
   "voice": "death",
@@ -6763,16 +6793,6 @@
   "voice": "death",
   "text": "STUNTMAN HE IS NOT",
   "from": "game/stages/oscar/chase.ts:584"
- },
- {
-  "voice": "death",
-  "text": "SUCKED INTO THE STORM",
-  "from": "game/stages/hector/eye.ts:132"
- },
- {
-  "voice": "death",
-  "text": "SUCKED UP INTO THE STORM",
-  "from": "game/stages/hector/tower.ts:155"
  },
  {
   "voice": "death",
@@ -6916,13 +6936,18 @@
  },
  {
   "voice": "death",
+  "text": "THE EYE SAW THE WHOLE THING",
+  "from": "game/stages/hector/eye.ts:133"
+ },
+ {
+  "voice": "death",
   "text": "THE FIREMAN STARTED IT",
   "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "THE FIRST MEATHEAD IN SPACE",
-  "from": "game/stages/hector/tower.ts:155"
+  "from": "game/stages/hector/tower.ts:168"
  },
  {
   "voice": "death",
@@ -7622,7 +7647,7 @@
  {
   "voice": "hector.coastguard",
   "text": "MAYDAY! MAYDAY! COAST GUARD SEVEN-ONE-FOUR! WE ARE IN THE",
-  "from": "game/stages/hector/tower.ts:98"
+  "from": "game/stages/hector/tower.ts:110"
  },
  {
   "voice": "hector.coastguard",
@@ -11472,7 +11497,7 @@
  {
   "voice": "meathead",
   "text": "I BENCH FOUR HUNDRED AND I'M LOSING TO A BREEZE?!",
-  "from": "game/player/deathAnim.ts:257"
+  "from": "game/player/deathAnim.ts:259"
  },
  {
   "voice": "meathead",
@@ -11802,7 +11827,7 @@
  {
   "voice": "meathead",
   "text": "I WEIGH TWO-SIXTY! WHAT KIND OF WIND DOES THIS?!",
-  "from": "game/player/deathAnim.ts:257"
+  "from": "game/player/deathAnim.ts:259"
  },
  {
   "voice": "meathead",
@@ -15507,7 +15532,7 @@
  {
   "voice": "meathead",
   "text": "THIS ISN'T WIND! THIS IS A ROCKET ENGINE!",
-  "from": "game/player/deathAnim.ts:257"
+  "from": "game/player/deathAnim.ts:259"
  },
  {
   "voice": "meathead",
@@ -16117,7 +16142,7 @@
  {
   "voice": "meathead",
   "text": "WHO PUT A JET ENGINE IN A HURRICANE?!",
-  "from": "game/player/deathAnim.ts:257"
+  "from": "game/player/deathAnim.ts:259"
  },
  {
   "voice": "meathead",
