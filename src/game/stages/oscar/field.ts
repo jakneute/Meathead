@@ -90,9 +90,20 @@ const syncOil = (state: GameState, f: Field) => {
   state.groundOil = f.oil.filter(o => !o.gone).map(o => ({ x1: o.x1, x2: o.x2, kind: o.kind }));
 };
 
-export const updateField = (ctx: FrameContext, f: Field) => {
+/**
+ * Everything on hold (a cutscene's playing out: Dirty Dan's hog): every vent and every jet of fire kept just past the
+ * end of a go, so nothing erupts and nothing so much as bubbles; once it's over they pick up again from there, quiet
+ * for a while first.
+ */
+const holdHazards = (state: GameState, f: Field) => {
+  for (const g of f.geysers) g.seen = state.frame + g.phase - GEYSER_ERUPT;
+  for (const j of f.jets) j.seen = state.frame + (j.phase % Math.max(1, j.period - j.on - JET_WARN));
+};
+
+export const updateField = (ctx: FrameContext, f: Field, held = false) => {
   const { state, fx } = ctx;
   const p = state.player;
+  if (held) holdHazards(state, f);
   // The jets: hissing and sparking, then fire; it hurts him, it burns anything in it, and it lights the oil it touches
   const jetsOn: Jet[] = [];
   for (const j of f.jets) {

@@ -124,7 +124,8 @@ export const updateOscar = (ctx: FrameContext, controls: Controls): Controls => 
   if (place === 'field' || place === 'bunker' || place === 'outside') {
     if (state.checkpoint < CP.FIELD_MID && p.isGrounded && p.pos.x > COURSE.checkpoints[CP.FIELD_MID].x) state.checkpoint = CP.FIELD_MID;
     if (state.checkpoint < CP.FIELD_MID2 && p.isGrounded && p.pos.x > COURSE.checkpoints[CP.FIELD_MID2].x) state.checkpoint = CP.FIELD_MID2;
-    updateField(ctx, rt.field);
+    // (stealing Dirty Dan's hog: the field holds still while it plays out)
+    updateField(ctx, rt.field, rt.bunker.phase === 'runout' || rt.bunker.phase === 'ride');
     // In the break room the camera holds on the room (it fits the screen)
     const B = COURSE.bunker, px = p.pos.x + p.width / 2;
     const held = ['waiting', 'break', 'clockout', 'open'].includes(rt.bunker.phase);
