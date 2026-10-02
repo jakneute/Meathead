@@ -68,6 +68,8 @@ export const updateGut = (ctx: FrameContext, input: FrameInput) => {
     playSound('splat', 0.5, -9);
     ctx.fx.announceKill('CODE BROWN!');
     gut.lineAt = state.frame + 12;
+    // (where it happened: some places care whether it was there, or he turned up like it)
+    gut.at = { x: p.pos.x + p.width / 2, y: p.pos.y + p.height };
     // The callout up over him too, in brown
     state.damageNumbers.push({
       id: `callout-${state.frame}-brown`, text: 'CODE BROWN!', pos: { x: p.pos.x + p.width / 2, y: p.pos.y - 30 },

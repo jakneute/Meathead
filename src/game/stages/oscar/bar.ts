@@ -116,7 +116,11 @@ export const updateBar = (ctx: FrameContext, b: Bar, talk: Talk, controls: Contr
     case 'drinks':
       // (or did it right here, in front of them)
       if (isShat(state) && px > B.x1 && px < B.x2) {
-        if (ctx.cheats.shittyPants) softLockAverted(ctx, b, talk); else startSwirly(ctx, b, talk, true);
+        // (did it in here, in front of them; or did it outside and came back in like that: it's where it happened
+        // that counts, not whether he'd been in before)
+        const at = p.gut?.at;
+        const inHere = !!at && at.x > B.x1 && at.x < B.x2 && at.y > B.ceil && at.y <= GROUND_Y + 4;
+        if (ctx.cheats.shittyPants) softLockAverted(ctx, b, talk); else startSwirly(ctx, b, talk, inHere);
         return { ...NO_CONTROLS };
       }
       return drinks(ctx, b, talk, controls);
