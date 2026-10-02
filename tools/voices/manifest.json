@@ -8381,6 +8381,11 @@
  },
  {
   "voice": "meathead",
+  "text": "...WAS THAT THE DOOR? IS THIS THE LAIR? I THINK THIS IS THE LAIR.",
+  "from": "DOOR_KICK"
+ },
+ {
+  "voice": "meathead",
   "text": "...WHAT WAS THAT?",
   "from": "game/stages/artie/tease.ts:20"
  },
@@ -9761,6 +9766,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DOORS ARE FOR PEOPLE WHO CAN'T KICK.",
+  "from": "DOOR_KICK"
+ },
+ {
+  "voice": "meathead",
   "text": "DOWN GOES THE KID!",
   "from": "RANGE_KILL_LINES"
  },
@@ -9853,6 +9863,11 @@
   "voice": "meathead",
   "text": "EH. PROBABLY NOTHING.",
   "from": "game/stages/artie/tease.ts:20"
+ },
+ {
+  "voice": "meathead",
+  "text": "EIGHTEEN FIFTY-NINE. GOOD RUN.",
+  "from": "DOOR_KICK"
  },
  {
   "voice": "meathead",
@@ -10177,7 +10192,7 @@
  {
   "voice": "meathead",
   "text": "FUCK YEAH! LET'S GO!",
-  "from": "App.tsx:459"
+  "from": "App.tsx:464"
  },
  {
   "voice": "meathead",
@@ -11926,6 +11941,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M ON THE LIST NOW.",
+  "from": "DOOR_KICK"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M ON THE LIST, YOU BALD FUCK!",
   "from": "HAZARD_HURT"
  },
@@ -12157,7 +12177,7 @@
  {
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
-  "from": "App.tsx:459"
+  "from": "App.tsx:464"
  },
  {
   "voice": "meathead",
@@ -12317,7 +12337,7 @@
  {
   "voice": "meathead",
   "text": "LET'S FUCKING GO!",
-  "from": "App.tsx:459"
+  "from": "App.tsx:464"
  },
  {
   "voice": "meathead",
@@ -12926,6 +12946,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NO SMOKING? I DON'T SMOKE.",
+  "from": "DOOR_KICK"
+ },
+ {
+  "voice": "meathead",
   "text": "NO TEETH? NO PROBLEM! NO LIFE!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -13052,7 +13077,7 @@
  {
   "voice": "meathead",
   "text": "OH HELL YEAH!",
-  "from": "App.tsx:459"
+  "from": "App.tsx:464"
  },
  {
   "voice": "meathead",
@@ -13268,6 +13293,11 @@
   "voice": "meathead",
   "text": "OW! THE HOT STICK GOT ME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW. ...THAT DOOR WAS LIVE.",
+  "from": "DOOR_KICK"
  },
  {
   "voice": "meathead",
@@ -13533,6 +13563,11 @@
   "voice": "meathead",
   "text": "RAT RACE OVER!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RATED FOR HURRICANES. NOT FOR ME.",
+  "from": "DOOR_KICK"
  },
  {
   "voice": "meathead",
@@ -14123,6 +14158,11 @@
   "voice": "meathead",
   "text": "SIGN THIS!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SIGNED FOR IT. WITH MY FOOT.",
+  "from": "DOOR_KICK"
  },
  {
   "voice": "meathead",

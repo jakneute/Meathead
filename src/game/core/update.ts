@@ -8,7 +8,7 @@ import {
   AMMO_PICKUP_PCT, HEALTH_PICKUP_SMALL, HEALTH_PICKUP_LARGE, PLAYER_STUN_DURATION, PARTICLE_PALETTES,
   SPOKEN_TEXT_HOLD, SPOKEN_TEXT_LINGER, CANVAS_HEIGHT, GROUND_Y,
 } from '../../constants';
-import { BOSS_DIALOGUE, CHECKPOINT_CALLOUTS } from '../../content/dialogue';
+import { BOSS_DIALOGUE, CHECKPOINT_CALLOUTS, DOOR_KICK_LINES } from '../../content/dialogue';
 import { FrameContext } from './context';
 import { Controls } from '../platform/input';
 import { respawn, getStartX } from './level';
@@ -20,7 +20,7 @@ import { playSound } from '../platform/audio';
 import { LEVEL_INTRO_STYLE } from '../../constants';
 import { updateBarfStream, updateFlameSegments } from '../combat/weapons';
 import { updateBlood } from '../player/blood';
-import { say, isTalking, deathAnnouncing, stopDeathAnnouncer, announceDeath, silenceAll, MEATHEAD_INTRO_VOICE } from '../platform/speech';
+import { say, isTalking, deathAnnouncing, stopDeathAnnouncer, announceDeath, silenceAll, MEATHEAD_INTRO_VOICE, MEATHEAD_VOICE } from '../platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../platform/skip';
 import { pickRandom, rectsOverlap, boundsOf, isOnScreen } from './utils';
 import { deathByCause, deathFallback } from './deathCause';
@@ -293,6 +293,8 @@ const updateBossTransition = (ctx: FrameContext) => {
   player.facing = 1;
   state.projectiles = [];
   if ((player.kickPose || 0) > 0) player.kickPose!--;
+  // (what he's saying stays up its time, here as anywhere)
+  if (state.playerVulgarityTimer > 0 && state.playerVulgarityTimer < 9999) state.playerVulgarityTimer--;
 
   if (state.doorState === 'opening') {
     // Up to the door, a beat, and the boot: it comes off its hinges and down flat into the room
@@ -309,6 +311,16 @@ const updateBossTransition = (ctx: FrameContext) => {
       else if (k.kickAt !== undefined && k.t - k.kickAt >= KICK_LANDS) {
         k.hitAt = k.t;
         fx.playGunSound('punch');
+        // (and he's got something to say about it: it's said, all of it, before the boss gets a word in)
+        const line = DOOR_KICK_LINES[stageId ?? ''];
+        if (line) {
+          const shown = say(line, MEATHEAD_VOICE, 'urgent', {
+            always: true,
+            onShow: spoken => { state.playerLastVulgarity = line; state.playerVulgarityTimer = spoken ? 9999 : 120; },
+            onHide: () => { if (state.playerLastVulgarity === line) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 20); },
+          });
+          if (!shown) { state.playerLastVulgarity = line; state.playerVulgarityTimer = 150; }
+        }
         playSound('crash', 0.9, -4);
         shakeScreen(state, 14, 7);
         // (the wall round it giving: chunks of it coming down off the top of the doorway)
@@ -337,7 +349,11 @@ const updateBossTransition = (ctx: FrameContext) => {
     if (player.pos.x < targetPlayerX) { step = Math.min(glideSpeed, targetPlayerX - player.pos.x); player.pos.x += step; }
     // (onto wherever the arena has him stand: a board over the sludge, say)
     player.pos.y += (targetPlayerY - player.pos.y) * 0.2;
-    if (state.camera.x >= targetCameraX && player.pos.x >= targetPlayerX) {
+    // (in, and he waits there till he's finished saying his piece: then the boss)
+    const k = state.doorKick ??= { t: 0 };
+    k.t++;
+    const talking = isTalking() || (state.playerVulgarityTimer > 0 && !!state.playerLastVulgarity);
+    if (state.camera.x >= targetCameraX && player.pos.x >= targetPlayerX && (!talking || k.t > (k.hitAt ?? 0) + 420)) {
       calmPlayer(player);
       player.pos.y = targetPlayerY;
       player.isGrounded = true;

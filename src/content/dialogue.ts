@@ -1510,6 +1510,18 @@ export const BOSS_REBUKES: Record<string, string[]> = {
  * The crouching easter egg (game/player/gut.ts): what Meathead says when his stomach starts in on him, and when he
  * loses the fight with it.
  */
+/** What Meathead says as the boot goes through each boss's door (Tommy's: he isn't sure he's in the right place). */
+export const DOOR_KICK_LINES: Record<string, string> = {
+  'Artie Avalanche': "DOORS ARE FOR PEOPLE WHO CAN'T KICK.",
+  'Victor Volcano': "I'M ON THE LIST NOW.",
+  'Ernie Earthquake': 'EIGHTEEN FIFTY-NINE. GOOD RUN.',
+  'Hector Hurricane': 'RATED FOR HURRICANES. NOT FOR ME.',
+  'Toxic Tommy': '...WAS THAT THE DOOR? IS THIS THE LAIR? I THINK THIS IS THE LAIR.',
+  'Blackout Barry': 'OW. ...THAT DOOR WAS LIVE.',
+  'Oily Oscar': "NO SMOKING? I DON'T SMOKE.",
+  'Drug Trade Dale': 'SIGNED FOR IT. WITH MY FOOT.',
+};
+
 export const GUT_LINES = {
   GRUMBLE: [
     "...SHOULDN'T HAVE HAD THE GAS STATION SUSHI.",
