@@ -229,11 +229,13 @@ const drawChinatown = (ctx: Ctx, x: number, w: number, base: number, lot: Lot) =
 
 /** A park at the top of a hill: lawn, a couple of trees, a bench, and the sky over it. */
 const drawPark = (ctx: Ctx, x: number, w: number, state: GameState, lot: Lot) => {
-  const g1 = groundUnder(state, x), g2 = groundUnder(state, x + w);
+  const g1 = groundUnder(state, x), g2 = groundUnder(state, x + w), top = Math.min(g1, g2) - 40;
   ctx.fillStyle = '#4D7C0F';
-  ctx.beginPath(); ctx.moveTo(x, g1 + 4); ctx.quadraticCurveTo(x + w / 2, Math.min(g1, g2) - 40, x + w, g2 + 4); ctx.lineTo(x + w, g2 + 8); ctx.lineTo(x, g1 + 8); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(x, g1 + 4); ctx.quadraticCurveTo(x + w / 2, top, x + w, g2 + 4); ctx.lineTo(x + w, g2 + 8); ctx.lineTo(x, g1 + 8); ctx.fill();
+  // (the lawn's top at a point along it: what stands on it stands on that, rise and all)
+  const lawnAt = (px: number) => { const t = Math.max(0, Math.min(1, (px - x) / w)); return (1 - t) * (1 - t) * (g1 + 4) + 2 * t * (1 - t) * top + t * t * (g2 + 4); };
   for (let k = 0; k < 2; k++) {
-    const tx = x + 40 + k * 80 + hash(lot.i + k) * 20, ty = Math.min(g1, g2) - 20 - k * 6;
+    const tx = x + 40 + k * 80 + hash(lot.i + k) * 20, ty = lawnAt(tx) + 2;
     ctx.fillStyle = '#57331F'; ctx.fillRect(tx - 4, ty - 70, 8, 72);
     ctx.fillStyle = k ? '#166534' : '#15803D';
     ctx.beginPath(); ctx.arc(tx, ty - 90, 34, 0, Math.PI * 2); ctx.arc(tx - 22, ty - 70, 24, 0, Math.PI * 2); ctx.arc(tx + 22, ty - 72, 24, 0, Math.PI * 2); ctx.fill();
@@ -244,8 +246,11 @@ const drawPark = (ctx: Ctx, x: number, w: number, state: GameState, lot: Lot) =>
     ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText(lot.name, x + 25, g1 - 56); ctx.textAlign = 'left';
   }
   // A bench
-  ctx.fillStyle = '#78350F'; ctx.fillRect(x + w - 60, g2 - 22, 40, 4); ctx.fillRect(x + w - 60, g2 - 30, 40, 3);
-  ctx.fillStyle = '#1C1917'; ctx.fillRect(x + w - 58, g2 - 18, 3, 16); ctx.fillRect(x + w - 25, g2 - 18, 3, 16);
+  const bg = Math.min(lawnAt(x + w - 57), lawnAt(x + w - 24)) + 2;
+  ctx.fillStyle = '#78350F'; ctx.fillRect(x + w - 60, bg - 20, 40, 4); ctx.fillRect(x + w - 60, bg - 28, 40, 3);
+  // (each leg down to the lawn under it)
+  ctx.fillStyle = '#1C1917';
+  for (const lx of [x + w - 58, x + w - 25]) ctx.fillRect(lx, bg - 16, 3, lawnAt(lx + 1) + 2 - (bg - 16));
 };
 
 type Pt = [number, number];
