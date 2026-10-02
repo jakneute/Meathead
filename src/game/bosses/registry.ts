@@ -3,7 +3,7 @@
 // Each boss's own behaviour lives in bosses/<name>.ts.
 
 import { attackless } from '../enemies/attackless';
-import { cutBossLines } from '../platform/speech';
+import { cutBossLines, cutVoice } from '../platform/speech';
 import { Enemy, Projectile, WeaponType, VulgarityType } from '../../types';
 import {
   ARENA_LEFT, ARENA_RIGHT, STAGE_WIDTH, BULLET_DAMAGE, WEAKNESS_DAMAGE, ENEMY_HIT_COOLDOWN, TASER_BOSS_DAMAGE_REDUCTION,
@@ -213,8 +213,11 @@ const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolea
   state.deadBoss = { ...boss };
   const pos = { x: boss.pos.x + boss.width / 2, y: boss.pos.y + boss.height / 2 };
 
-  // (whatever he was in the middle of saying, he doesn't get to finish: just his last words)
+  // (whatever he was in the middle of saying, he doesn't get to finish: just his last words. Nor does Meathead: what
+  // he was saying, and the words over his head, go, so the kill's his next line, not the end of the last one)
   cutBossLines();
+  cutVoice('meathead');
+  state.playerLastVulgarity = ''; state.playerVulgarityTimer = 0; state.killVoice = undefined;
   const lastWords = stageId ? (state.player.gut?.stage === 2 && BOSS_SHAT_LINES[stageId]) || BOSS_DIALOGUE.THRESHOLDS[stageId] : undefined;
   if (stageId && lastWords) speakAsBoss(stageId, lastWords[0], helpers);
 

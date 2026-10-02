@@ -1058,7 +1058,8 @@ const drawTommyPool = (ctx: CanvasRenderingContext2D, state: GameState) => {
 
 const drawPlayerSpeech = (ctx: CanvasRenderingContext2D, state: GameState) => {
   const { player } = state;
-  if (!state.playerLastVulgarity || state.playerVulgarityTimer <= 0 || state.bossExplosionTimer > 0) return;
+  // (nothing over his head once the boss is down: the death, the victory)
+  if (!state.playerLastVulgarity || state.playerVulgarityTimer <= 0 || state.bossExplosionTimer > 0 || state.bossFallen || state.victoryString !== '') return;
   ctx.save();
   ctx.font = `bold 10px ${FONT}`;
   ctx.fillStyle = 'white';
