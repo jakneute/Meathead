@@ -354,10 +354,13 @@ export const drawBossDoor = (ctx: Ctx, state: GameState, stageId: string | null)
     return;
   }
   drawBrokenFrame(ctx, door.x, door.y, door.w, door.h, f, fall);
-  // Over it goes, about its bottom edge on the room side, faster as it goes; flat, it's a slab on the floor
-  const ang = (Math.PI / 2) * fall * fall;
+  // Over it goes, about its bottom edge on the room side, faster as it goes; flat, it's a slab on the floor. (In
+  // Tommy's shaft, once what it was lying on goes: it tips off the end and slides down into the sludge, and it's gone)
+  const sunk = state.doorSunkAt !== undefined ? state.frame - state.doorSunkAt : -1;
+  if (sunk > 110) return;
+  const ang = (Math.PI / 2) * fall * fall + (sunk >= 0 ? Math.min(0.75, sunk * 0.03) : 0);
   ctx.save();
-  ctx.translate(door.x + door.w, door.y + door.h);
+  ctx.translate(door.x + door.w + (sunk >= 0 ? Math.min(60, sunk * 1.6) : 0), door.y + door.h + (sunk >= 0 ? sunk * sunk * 0.05 : 0));
   ctx.rotate(ang);
   // (seen tipping away from you: thinner the further over it is)
   ctx.scale(1 - 0.7 * fall, 1);

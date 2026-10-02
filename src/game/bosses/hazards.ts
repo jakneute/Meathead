@@ -136,6 +136,15 @@ export const updateTommyArena = (ctx: FrameContext) => {
   if (stageId !== 'Toxic Tommy' || !state.arenaLocked || !state.tommyBoards) return;
 
   state.tommyScrollY = (state.tommyScrollY + 2.5) % 400;
+  // The door he kicked in is lying across the catwalk and the first board: that board goes, and so does the door,
+  // off the end into the sludge (for good)
+  const first = state.tommyBoards[0];
+  if (state.doorState === 'done' && state.doorSunkAt === undefined && first && first.status !== 'active') {
+    state.doorSunkAt = state.frame;
+    fx.playGunSound('splash');
+    const x = first.x + first.w / 2;
+    for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 50, y: state.tommySludgeY }, vel: { x: (Math.random() - 0.5) * 5, y: -2 - Math.random() * 5 }, life: 30 + Math.random() * 20, color: i % 2 ? '#2ECC71' : '#A3E635', size: 3 + Math.random() * 4 });
+  }
   if (state.tommySludgeOiledTimer > 0) state.tommySludgeOiledTimer--;
 
   let activeCount = 0;
