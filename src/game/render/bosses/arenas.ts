@@ -841,14 +841,48 @@ const drawDaleWalls = (ctx: CanvasRenderingContext2D, left: number, right: numbe
       ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(lx + 8, dy + 12, 4, 60);
       ctx.fillStyle = '#16A34A'; ctx.fillRect(lx + 6, dy + 80, 28, 10); ctx.fillStyle = '#FFFFFF'; ctx.font = '4px "Press Start 2P", sans-serif'; ctx.textAlign = 'center'; ctx.fillText('ENTER', lx + 20, dy + 87); ctx.textAlign = 'left';
     } else {
-      // Gone: the frame bent in, a few teeth of glass left, the street outside
-      outside(lx, 40, dy);
-      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(lx, dy - 6, 40, 8);
-      ctx.save(); ctx.translate(lx + 36, dy); ctx.rotate(0.35); ctx.fillRect(0, 0, 5, 90); ctx.restore();
+      // Gone, and a lot more than the doors: the truck's taken the front of the place out to well over head height,
+      // a ragged hole up the wall with the night outside, brick showing round its edges, chunks of it still coming
+      // down after, and the glass and the wall in a heap across the floor
+      const t = frame - down;
+      const hy = bottom - 330;
+      // (the hole: through the front and on into the side of the shop, ragged all round)
+      const W = 130;
+      const edge = (y: number) => lx + 40 + (W - 40) * Math.min(1, (y - hy) / 140) - hash(Math.floor(y / 14) + 70) * 22;
+      ctx.save();
+      ctx.beginPath(); ctx.moveTo(lx, hy);
+      for (let k = 0; k <= 10; k++) ctx.lineTo(lx + k * 4, hy + 6 + hash(k + 60) * 26);
+      for (let y = hy + 20; y <= bottom; y += 14) ctx.lineTo(edge(y), y);
+      ctx.lineTo(lx, bottom); ctx.closePath(); ctx.clip();
+      outside(lx, W + 10, hy);
+      ctx.restore();
+      // (brick in the torn edges: along the top and down the side of it)
+      ctx.fillStyle = '#B91C1C'; for (let k = 0; k < 9; k++) ctx.fillRect(lx + (k % 3) * 13, hy + 4 + Math.floor(k / 3) * 7 + (k % 2) * 3, 11, 5);
+      ctx.fillStyle = '#991B1B';
+      for (let y = hy + 24; y < bottom - 20; y += 14) { const ex = edge(y); ctx.fillRect(ex - 2, y, 10, 5); if (hash(y) > 0.5) ctx.fillRect(ex + 4, y + 6, 8, 4); }
+      ctx.fillStyle = '#D6D3D1'; for (let y = hy + 30; y < bottom - 30; y += 28) { const ex = edge(y); ctx.fillRect(ex + 6, y - 3, 6, 10); }
+      // (the door frame, bent over in the hole, a few teeth of glass still in it)
+      ctx.fillStyle = '#9CA3AF';
+      ctx.save(); ctx.translate(lx + 34, dy - 20); ctx.rotate(0.5); ctx.fillRect(0, 0, 5, 110); ctx.restore();
+      ctx.save(); ctx.translate(lx + 4, dy + 40); ctx.rotate(-0.3); ctx.fillRect(0, 0, 4, 70); ctx.restore();
       ctx.fillStyle = 'rgba(191, 219, 254, 0.8)';
       for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.moveTo(lx + k * 10, dy + 2); ctx.lineTo(lx + k * 10 + 8, dy + 2); ctx.lineTo(lx + k * 10 + 3, dy + 14 + hash(k) * 24); ctx.fill(); }
-      ctx.fillStyle = '#78716C'; for (let k = 0; k < 6; k++) ctx.fillRect(lx - 4 + k * 9, bottom - 6 - (k % 2) * 3, 7, 6);
-      burst(ctx, frame - down, lx + 20, dy + 90, 1, bottom, 'glass');
+      // (chunks of the wall over it letting go, one after another, for a while after)
+      for (let k = 0; k < 5; k++) {
+        const t0 = 8 + k * 14, u = t - t0;
+        if (u < 0) { ctx.fillStyle = '#D6D3D1'; ctx.fillRect(lx + 4 + (k % 3) * 11, hy + 2 + (k % 2) * 6, 12, 9); continue; }
+        const y = Math.min(bottom - 10, hy + 6 + 0.45 * u * u);
+        ctx.save(); ctx.translate(lx + 8 + (k % 3) * 11 + u * 0.6, y); if (y < bottom - 10) ctx.rotate(u * 0.15);
+        ctx.fillStyle = k % 2 ? '#B91C1C' : '#D6D3D1'; ctx.fillRect(-6, -4, 12, 9); ctx.restore();
+      }
+      // (the heap: plaster, brick, glass, across the floor into the room)
+      ctx.fillStyle = '#78716C'; for (let k = 0; k < 20; k++) ctx.fillRect(lx - 6 + k * 9, bottom - 8 - (k % 3) * 4 - (k < 10 ? 8 : 0), 10, 8 + (k < 10 ? 8 : 0));
+      ctx.fillStyle = '#D6D3D1'; for (let k = 0; k < 14; k++) ctx.fillRect(lx + k * 11, bottom - 20 - (k % 2) * 6 - (k < 7 ? 10 : 0), 9, 6);
+      ctx.fillStyle = '#B91C1C'; for (let k = 0; k < 11; k++) ctx.fillRect(lx + 6 + k * 13, bottom - 16 - (k % 2) * 5 - (k < 5 ? 6 : 0), 9, 5);
+      ctx.fillStyle = 'rgba(191, 219, 254, 0.8)'; for (let k = 0; k < 12; k++) ctx.fillRect(lx + 20 + k * 11, bottom - 4 - (k % 2) * 2, 4, 2);
+      burst(ctx, t, lx + 20, dy + 90, 1, bottom, 'glass');
+      burst(ctx, t - 3, lx + 20, hy + 120, 1, bottom, 'brick');
+      burst(ctx, t - 6, lx + 80, hy + 200, 1, bottom, 'brick');
     }
   }
   // --- The back wall (the truck coming at it: it bulges and cracks just before)
