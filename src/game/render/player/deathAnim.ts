@@ -3,6 +3,8 @@ import type { WeaponType } from '../../../types';
 import { drawPlayer } from './player';
 import { pantsColor, bootColor } from './body';
 import type { DeathFace } from './deathFace';
+import { wall as fallWall, strata as fallStrata } from './fallCams';
+import { bandedGradient, hazeBands } from '../pixelArt';
 import { MEATHEAD_DEATH_FRAMES, LAVA_COOKOFF, FROZEN_SHATTER, ROADKILL_TWINKLE, overdoseRise, impaledFeet, PLUCKS, PLUCK_AWAY, PLUCK_FALL, pluckSway, pluckDark, SPIKE_HIT, MeatheadDeath } from '../../player/deathAnim';
 
 // Meathead's own deaths (see player/deathAnim): him, drawn in his place, going whichever way it got him.
@@ -337,23 +339,18 @@ export const drawSpikeCam = (ctx: Ctx, state: GameState, width: number, height: 
   const t = Math.min(state.deathScene?.t ?? 9999, MEATHEAD_DEATH_FRAMES.spiked);
   const f = state.frame;
   ctx.save();
-  // The chasm: the far wall dark, a crack of daylight way up, the near walls in jagged bands either side
-  const g = ctx.createLinearGradient(0, 0, 0, height);
-  g.addColorStop(0, '#292524'); g.addColorStop(0.5, '#140F0C'); g.addColorStop(1, '#0C0A09');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, width, height);
-  ctx.fillStyle = 'rgba(254, 243, 199, 0.5)'; ctx.beginPath(); ctx.moveTo(width / 2 - 30, 0); ctx.lineTo(width / 2 + 40, 0); ctx.lineTo(width / 2 + 8, 30); ctx.lineTo(width / 2 - 10, 30); ctx.fill();
+  // The chasm: a crack of daylight way up, the far dark, and the near walls of it either side, cut through the
+  // ground's layers (dirt, clay, a band of stones), roots and a broken pipe sticking out, darker the deeper
+  bandedGradient(ctx, 0, 0, width, height, ['#57534E', '#292524', '#140F0C', '#0C0A09'], 14);
+  bandedGradient(ctx, width / 2 - 40, 0, 80, 24, ['#FEF3C7', '#A8A29E'], 3);
   for (const side of [-1, 1]) {
-    for (let b = 0; b < 8; b++) {
-      ctx.fillStyle = ['#292524', '#1C1917', '#3F3A36', '#231F1C'][b % 4];
-      const y0 = b * (height / 8), y1 = y0 + height / 8 + 1, in0 = 60 + (8 - b) * 34 + ((b * 37) % 23), in1 = 60 + (7 - b) * 34 + ((b * 53) % 23);
-      const jag = (y: number, k: number) => ((Math.floor(y / 9) * 31 + k * 17) % 13) - 6;
-      ctx.beginPath();
-      const edge = (yy: number) => { const q = (yy - y0) / (y1 - y0); return 70 + in0 + (in1 - in0) * q + jag(yy, b); };
-      if (side < 0) { ctx.moveTo(0, y0); for (let yy = y0; yy <= y1; yy += 9) ctx.lineTo(edge(yy), yy); ctx.lineTo(0, y1); }
-      else { ctx.moveTo(width, y0); for (let yy = y0; yy <= y1; yy += 9) ctx.lineTo(width - edge(yy), yy); ctx.lineTo(width, y1); }
-      ctx.fill();
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.25)'; ctx.fillRect(side < 0 ? 0 : width - 40, y0, 40, y1 - y0);
-    }
+    const e = (y: number) => width / 2 + side * (40 + y * 0.42 + (Math.sin(y * 0.05 + side) * 10) + (((Math.floor(y / 18) * 31 + side * 17) % 13) - 6));
+    fallWall(ctx, side, width, height, e, () => {
+      fallStrata(ctx, 0, width, height, ['#6B4A2E', '#5A3D25', '#7A5636', '#4A3220', '#634329', '#806040'], 30, side * 5);
+      for (let k = 0; k < 40; k++) { ctx.fillStyle = k % 3 ? '#8A8178' : '#A8A29E'; ctx.fillRect(Math.floor((side < 0 ? (k * 53) % 300 : width - (k * 53) % 300) / 2) * 2, Math.floor(((k * 97) % height) / 2) * 2, 4 + (k % 3) * 2, 4); }
+      ctx.strokeStyle = '#C9A27A'; ctx.lineWidth = 1; for (let k = 0; k < 5; k++) { const y = 60 + k * 110, x = e(y); ctx.beginPath(); ctx.moveTo(x - side * 30, y); ctx.quadraticCurveTo(x - side * 4, y + 10, x + side * 14, y + 30); ctx.stroke(); }
+      hazeBands(ctx, 0, height * 0.2, width, height * 0.8, '#0C0A09', 0, 0.75, 7);
+    }, '#A07850', '#1C1410');
   }
   // The floor, the rubble, and the spike up out of it
   const cx = width / 2, tipY = 300, floorY = height - 40;
