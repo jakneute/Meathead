@@ -10,6 +10,7 @@ import { Enemy, Projectile } from '../../types';
 import { BOULDER_SPEED, ERNIE_STOMP_VIBRATION_DURATION, GRAVITY, ARENA_LEFT, ARENA_RIGHT } from '../../constants';
 import type { FrameContext } from '../core/context';
 import { BossDef, ARENA_MID, FLOOR_Y, dirTo, midX, enemyProjectile } from './shared';
+import { playSound } from '../platform/audio';
 
 const ATTACK_INTERVAL = 180;     // frames between attacks at full health...
 const ATTACK_INTERVAL_RAMP = 70; // ...this many fewer at 0 HP
@@ -135,10 +136,34 @@ const runAcross = (ctx: FrameContext, boss: Enemy) => {
   }
 };
 
+/**
+ * A quake going through the room from (x) on the floor, so you see it and hear it coming at you, not just feel it:
+ * a deep boom and a rumble rolling on after it (low, not shrill), a wave of dust racing out along the floor both
+ * ways from it, a crack of light along the floor where it went down, and grit and pebbles shaken down off the ceiling
+ * all over the room.
+ */
+export const ernieQuake = (ctx: FrameContext, x: number) => {
+  const { state } = ctx;
+  playSound('rumble', 0.85, -7);
+  playSound('thud', 0.9, -9);
+  for (const dir of [-1, 1]) {
+    for (let i = 0; i < 14; i++) {
+      state.particles.push({ pos: { x: x + dir * i * 4, y: FLOOR_Y - 4 - Math.random() * 6 }, vel: { x: dir * (6 + Math.random() * 3), y: -0.4 - Math.random() * 1.2 }, life: 34 + Math.random() * 14, color: i % 3 === 0 ? 'rgba(214, 211, 209, 0.75)' : 'rgba(168, 162, 158, 0.65)', size: 7 + Math.random() * 9 });
+    }
+    // (the crack of light running out along the floor ahead of the dust)
+    for (let i = 0; i < 6; i++) state.particles.push({ pos: { x, y: FLOOR_Y - 2 }, vel: { x: dir * (9 + i * 1.5), y: 0 }, life: 18 + i * 2, color: '#FDE68A', size: 3 });
+  }
+  // Grit and pebbles down off the ceiling, all over
+  for (let i = 0; i < 16; i++) {
+    state.particles.push({ pos: { x: ARENA_LEFT + 20 + Math.random() * (ARENA_RIGHT - ARENA_LEFT - 40), y: 104 + Math.random() * 10 }, vel: { x: (Math.random() - 0.5) * 0.6, y: 2 + Math.random() * 4 }, life: 70 + Math.random() * 40, color: i % 2 ? '#78716C' : '#A8A29E', size: 2 + Math.random() * 4 });
+  }
+};
+
 /** Every landing shakes the room (and stuns you if you're on the ground). */
 const onLand = (ctx: FrameContext, boss: Enemy, dirToPlayer: number, surface: 'block' | 'floor') => {
   ctx.bossHelpers.setScreenShake(LANDING_SHAKE);
   ctx.bossHelpers.setErnieVibration(ERNIE_STOMP_VIBRATION_DURATION);
+  if (surface === 'floor') ernieQuake(ctx, midX(boss));
   if (surface === 'floor') rollBoulder(ctx, boss, dirToPlayer, 'b-ernie-land');
 };
 

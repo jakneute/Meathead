@@ -27,6 +27,7 @@ import { shakeScreen, GameState } from '../core/state';
 import { getStageLayout } from '../stages';
 import { shieldFacing } from '../enemies/kinds';
 import { isMidBoss } from './midBoss';
+import { ernieQuake } from '../bosses/ernie';
 
 /** Moves one projectile and resolves its collisions. Returns false to remove it. */
 export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
@@ -230,7 +231,7 @@ const updatePhysicsProjectile = (ctx: FrameContext, p: Projectile): boolean => {
     if (overlapX < overlapY) {
       // Hit a wall
       if (p.isMethBarrel) { p.vel.x *= -0.8; p.pos.x = (p.pos.x + p.width / 2 < b.x + b.w / 2) ? b.x - p.width : b.x + b.w; continue; }
-      if (p.isBoulder) { if (p.isHeaved) heavedBoulderRumble(ctx); shatterBoulder(ctx, p); return false; }
+      if (p.isBoulder) { if (p.isHeaved) heavedBoulderRumble(ctx, p); shatterBoulder(ctx, p); return false; }
       if (p.isCocaine) { fx.spawnPowderExplosion({ x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, 30); return false; }
       if (p.isSludge) { p.isSliding = true; p.vel.x = 0; p.pos.x = (p.pos.x + p.width / 2 < b.x + b.w / 2) ? b.x - p.width : b.x + b.w; continue; }
       if (p.isIce && p.width > 30) { shatterIceBlock(ctx, p); return false; }
@@ -262,7 +263,7 @@ const updatePhysicsProjectile = (ctx: FrameContext, p: Projectile): boolean => {
         p.bounces = (p.bounces || 0) + 1;
         if (p.bounces > 100) { p.health = 0; return false; }
       } else {
-        if (p.isHeaved && p.vel.y > HEAVED_RUMBLE_SPEED) heavedBoulderRumble(ctx);
+        if (p.isHeaved && p.vel.y > HEAVED_RUMBLE_SPEED) heavedBoulderRumble(ctx, p);
         p.vel.y = Math.abs(p.vel.y) > 1.0 ? -p.vel.y * (p.isBoulder ? BOULDER_BOUNCE_DAMPING : 0.85) : 0;
       }
       p.pos.y = (p.pos.y + p.height / 2 < b.y + b.h / 2) ? b.y - p.height : b.y + b.h;
@@ -332,10 +333,11 @@ const shatterIceBlock = (ctx: FrameContext, p: Projectile) => {
 
 /** Ernie's lobbed boulder slamming into the floor or a wall shakes the room like his stomps (stunning you if you're on the ground). */
 const HEAVED_RUMBLE_SPEED = 8; // only real slams, not the little bounces after
-const heavedBoulderRumble = (ctx: FrameContext) => {
+const heavedBoulderRumble = (ctx: FrameContext, p: Projectile) => {
   ctx.bossHelpers.setScreenShake(25);
   ctx.bossHelpers.setErnieVibration(ERNIE_STOMP_VIBRATION_DURATION);
   ctx.fx.playGunSound('slam');
+  ernieQuake(ctx, p.pos.x + p.width / 2);
 };
 
 const shatterBoulder = (ctx: FrameContext, p: Projectile) => {
