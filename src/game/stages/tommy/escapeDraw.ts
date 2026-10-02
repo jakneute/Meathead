@@ -9,7 +9,10 @@
 // on what's left of their couch, the TV still on, and past it, the pit.
 
 import type { GameState } from '../../core/state';
-import { hazeBands } from '../../render/pixelArt';
+import { hazeBands, bandedGradient, checker, steppedGlow } from '../../render/pixelArt';
+import { INK, ink, shaded, shadedTop, dark, lite } from '../../render/npc/kit';
+import { drawPerson } from '../../render/npc/person';
+import { sewerBrick } from './sewerDraw';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, BOSS_DOOR_X } from '../../../constants';
 import { COURSE, RUINS_Y, CAVERN_ROOF } from './course';
 import type { TommyRuntime } from './runtime';
@@ -23,15 +26,26 @@ const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 
-/** A little Meathead in his yellow suit, for the cut scenes (at his feet, `s` big). */
+/** A little Meathead in his yellow suit, for the cut scenes (at his feet, `s` big): inked, lit down the left, the visor glinting. */
 const suitedMan = (ctx: Ctx, x: number, y: number, s: number, rot = 0, suit = 1) => {
   ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.scale(s, s);
-  const yellow = `rgba(250, 204, 21, ${suit})`;
-  ctx.fillStyle = suit < 1 ? '#1E3A8A' : yellow; ctx.fillRect(-9, -26, 8, 26); ctx.fillRect(2, -26, 8, 26);
-  ctx.fillStyle = suit < 1 ? '#E0AC69' : yellow; ctx.fillRect(-14, -58, 28, 34);
-  ctx.fillStyle = yellow; ctx.fillRect(-14, -58, 28, 34); ctx.fillRect(-9, -26, 8, 26); ctx.fillRect(2, -26, 8, 26);
-  ctx.beginPath(); ctx.arc(1, -66, 11, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = `rgba(31, 41, 55, ${suit})`; ctx.fillRect(1, -70, 11, 6);
+  // (under it, if it's going: his jeans, his skin)
+  if (suit < 1) {
+    shaded(ctx, () => { ctx.rect(-9, -26, 8, 26); ctx.rect(2, -26, 8, 26); }, '#1E3A8A', -9, -26, 19, 26, 1);
+    shaded(ctx, () => ctx.rect(-14, -58, 28, 34), '#E0AC69', -14, -58, 28, 34, 1);
+  }
+  ctx.globalAlpha *= suit;
+  const Y_ = '#FACC15';
+  shaded(ctx, () => ctx.rect(-9, -26, 8, 22), Y_, -9, -26, 8, 22, 1);
+  shaded(ctx, () => ctx.rect(2, -26, 8, 22), Y_, 2, -26, 8, 22, 1);
+  ink(ctx, () => { ctx.rect(-10, -5, 10, 5); ctx.rect(1, -5, 10, 5); }, '#1C1917', 1);
+  ctx.fillStyle = '#44403C'; ctx.fillRect(-9, -5, 8, 1); ctx.fillRect(2, -5, 8, 1);
+  shaded(ctx, () => ctx.roundRect(-14, -58, 28, 34, 4), Y_, -14, -58, 28, 34, 1.2);
+  ctx.fillStyle = '#CA8A04'; ctx.fillRect(0, -54, 1.5, 28); ctx.fillRect(-11, -36, 8, 1); ctx.fillRect(5, -44, 6, 1); // (the zip, creases)
+  shaded(ctx, () => ctx.arc(1, -66, 11, 0, Math.PI * 2), Y_, -10, -77, 22, 22, 1.2);
+  ink(ctx, () => ctx.roundRect(1, -70, 11, 6, 2), '#1F2937', 1);
+  ctx.fillStyle = '#94A3B8'; ctx.fillRect(3, -69, 4, 1); ctx.fillRect(3, -68, 1, 2);
+  ink(ctx, () => ctx.arc(9, -59, 2.5, 0, Math.PI * 2), '#374151', 0.8); // (the filter)
   ctx.restore();
 };
 
@@ -50,12 +64,35 @@ export const drawCutScene = (ctx: Ctx, state: GameState, rt: TommyRuntime) => {
 /** SKIP >> while the scene can be skipped (from the blast out of the cistern to the ruins). */
 export const drawEscapeSkip = (ctx: Ctx, rt: TommyRuntime) => { if (inSkippable(rt.escape) && rt.escape.sceneT > SKIP_AFTER) drawSkipPrompt(ctx, W); };
 
-/** A manhole cover, spinning (edge-on and face-on as it turns), at (x, y). */
+/** A manhole cover, spinning (edge-on and face-on as it turns), at (x, y): cast iron, its rim's thickness under it, rings and a grid on its face, lit along the top. */
 const drawCover = (ctx: Ctx, x: number, y: number, spin: number, s = 1) => {
   ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
-  ctx.fillStyle = '#44403C'; ctx.beginPath(); ctx.ellipse(0, 0, 22, 6 + Math.abs(Math.sin(spin)) * 16, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = '#292524'; ctx.lineWidth = 2; ctx.stroke();
+  const ry = 6 + Math.abs(Math.sin(spin)) * 16, face = Math.abs(Math.sin(spin));
+  ink(ctx, () => ctx.ellipse(0, 3, 22, ry, 0, 0, Math.PI * 2), '#292524', 1.4);
+  ink(ctx, () => ctx.ellipse(0, 0, 22, ry, 0, 0, Math.PI * 2), '#44403C', 1.4);
+  ctx.save(); ctx.beginPath(); ctx.ellipse(0, 0, 22, ry, 0, 0, Math.PI * 2); ctx.clip();
+  ctx.fillStyle = '#57534E'; ctx.fillRect(-22, -ry, 44, ry * 0.5);
+  if (face > 0.35) {
+    ctx.fillStyle = '#292524'; for (let gx = -15; gx <= 15; gx += 6) ctx.fillRect(gx, -ry, 2, ry * 2);
+    ctx.strokeStyle = '#292524'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(0, 0, 15, ry * 0.68, 0, 0, Math.PI * 2); ctx.stroke();
+  }
   ctx.restore();
+  ctx.strokeStyle = '#A8A29E'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(0, 0, 21, ry - 1, 0, Math.PI * 1.1, Math.PI * 1.55); ctx.stroke();
+  ctx.restore();
+};
+
+/** A street across a cut scene: asphalt with grit in it, the curb and sidewalk (lit, slab joints), the center line going by. */
+const sceneStreet = (ctx: Ctx, curb: number, road: number, line: number, scroll = 0) => {
+  ctx.fillStyle = '#3F3F46'; ctx.fillRect(-20, road, W + 40, H - road + 20);
+  checker(ctx, -20, road, W + 40, H - road + 20, 'rgba(0, 0, 0, 0.1)');
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.25)'; ctx.fillRect(-20, road, W + 40, 6);
+  ctx.fillStyle = 'rgba(161, 161, 170, 0.35)'; for (let i = 0; i < 60; i++) ctx.fillRect(((hash(i) * (W + 40) - scroll) % (W + 40) + W + 40) % (W + 40) - 20, road + 10 + hash(i * 3) * (H - road - 10), 2, 1);
+  ctx.fillStyle = '#A8A29E'; ctx.fillRect(-20, curb, W + 40, road - curb);
+  ctx.fillStyle = '#C8C3BE'; ctx.fillRect(-20, curb, W + 40, 2);
+  ctx.fillStyle = '#78716C'; ctx.fillRect(-20, road - 3, W + 40, 2);
+  ctx.fillStyle = INK; ctx.fillRect(-20, road - 1, W + 40, 1);
+  ctx.fillStyle = '#6E6863'; for (let x = -((scroll) % 48); x < W; x += 48) ctx.fillRect(x, curb, 1, road - curb - 3);
+  for (let x = -((scroll) % 90); x < W; x += 90) { ctx.fillStyle = '#FDE68A'; ctx.fillRect(x, line, 50, 5); ctx.fillStyle = '#D4B860'; ctx.fillRect(x, line + 4, 50, 1); }
 };
 
 /**
@@ -70,14 +107,14 @@ const drawLaunchScene = (ctx: Ctx, state: GameState, tt: number) => {
   ctx.save(); ctx.translate(shake, shake * 0.6);
   drawStreetSky(ctx, { ...state, camera: { x: COURSE.road.x2 - 400, y: GROUND_Y - 550 } } as GameState, 0.85, true);
   // The road, the curb, a house or two across it
-  ctx.fillStyle = '#3F3F46'; ctx.fillRect(-20, 470, W + 40, 150);
-  ctx.fillStyle = '#A8A29E'; ctx.fillRect(-20, 458, W + 40, 12);
-  ctx.fillStyle = '#FDE68A'; for (let x = 0; x < W; x += 90) ctx.fillRect(x, 540, 50, 5);
+  sceneStreet(ctx, 458, 470, 540);
   drawHouse(ctx, 120, 458, 0.9, 0);
   drawHouse(ctx, 640, 458, 0.85, 3);
   // The manhole
   const mx = 400, my = 500;
+  ink(ctx, () => ctx.ellipse(mx, my, 38, 12, 0, 0, Math.PI * 2), '#57534E', 1);
   ctx.fillStyle = '#1C1917'; ctx.beginPath(); ctx.ellipse(mx, my, 34, 10, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#0C0A09'; ctx.beginPath(); ctx.ellipse(mx, my + 2, 30, 7, 0, 0, Math.PI * 2); ctx.fill();
   if (t < 0) drawCover(ctx, mx + (rumble ? (Math.random() - 0.5) * 2 : 0), my - 2 - (rumble ? Math.random() * 2 : 0), 0, 1.5);
   else if (t < 8) drawCover(ctx, mx + (Math.random() - 0.5) * 3, my - 2 - Math.random() * 3, 0, 1.5);
   // The hazmat man, crouched on the cover with his kit: a test tube held up to the light, the meter by his knee
@@ -88,8 +125,13 @@ const drawLaunchScene = (ctx: Ctx, state: GameState, tt: number) => {
   // The geyser after it
   if (t >= 8) {
     const h = Math.min(1, (t - 8) / 8) * (my + 60);
+    ctx.fillStyle = '#3F6212'; ctx.fillRect(mx - 24, my - h, 48, h);
     ctx.fillStyle = '#65A30D'; ctx.fillRect(mx - 22, my - h, 44, h);
+    ctx.fillStyle = '#84CC16'; ctx.fillRect(mx - 16, my - h, 32, h);
+    checker(ctx, mx - 18, my - h, 2, h, '#84CC16'); checker(ctx, mx + 16, my - h, 2, h, '#84CC16', 1);
     ctx.fillStyle = '#BEF264'; ctx.fillRect(mx - 10, my - h, 20, h);
+    ctx.fillStyle = '#ECFCCB'; ctx.fillRect(mx - 6, my - h, 4, h);
+    ctx.fillStyle = 'rgba(236, 252, 203, 0.7)'; for (let i = 0; i < 6; i++) { const sy = my - ((t * 30 + i * 61) % Math.max(1, h)); ctx.fillRect(mx - 14 + i * 5, sy - 18, 2, 18); }
     for (let i = 0; i < 12; i++) { const q = ((t * 3 + i * 9) % 30) / 30; ctx.fillStyle = `rgba(190, 242, 100, ${1 - q})`; ctx.beginPath(); ctx.arc(mx + (i % 2 ? 1 : -1) * (24 + q * 70), my - q * 40, 5, 0, Math.PI * 2); ctx.fill(); }
   }
   // Him, after it, in his suit, arms up
@@ -163,17 +205,40 @@ const hazmatGone = (ctx: Ctx, x: number, y: number, t: number) => {
   for (let i = 0; i < 9; i++) { const bx = x + ((i * 53) % 260) - 130, r = 4 + ((i * 7) % 10); ctx.beginPath(); ctx.ellipse(bx, y + 18 + ((i * 11) % 30), r * 1.6, r * 0.5, 0, 0, Math.PI * 2); ctx.fill(); }
 };
 
-/** A little house on the block (its door at x, its floor at y): walls, a roof, windows, a porch light. */
+/** A little house on the block (its door at x, its floor at y): walls (siding, the shade side dithered), a shingled roof, windows lit and framed, the door, a porch light. */
 const HOUSE_COLORS = ['#9E6B5C', '#7D8C9E', '#B8A27A', '#7C9A6E', '#A7766C', '#8B7FA3'];
 const drawHouse = (ctx: Ctx, x: number, y: number, s: number, seed: number) => {
   ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
-  ctx.fillStyle = HOUSE_COLORS[seed % HOUSE_COLORS.length]; ctx.fillRect(-80, -110, 160, 110);
-  ctx.fillStyle = 'rgba(0,0,0,0.12)'; for (let yy = -104; yy < 0; yy += 9) ctx.fillRect(-80, yy, 160, 1);
-  ctx.fillStyle = ['#3F2A1D', '#4B5563', '#57534E'][seed % 3]; ctx.beginPath(); ctx.moveTo(-94, -108); ctx.lineTo(0, -168); ctx.lineTo(94, -108); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#FDE68A'; ctx.fillRect(-62, -86, 34, 28); ctx.fillRect(28, -86, 34, 28);
-  ctx.fillStyle = '#44403C'; ctx.fillRect(-62, -73, 34, 2); ctx.fillRect(-46, -86, 2, 28); ctx.fillRect(28, -73, 34, 2); ctx.fillRect(44, -86, 2, 28);
-  ctx.fillStyle = '#5B3A29'; ctx.fillRect(-14, -58, 28, 58);
-  ctx.fillStyle = '#FEF3C7'; ctx.fillRect(18, -60, 5, 6);
+  const wall = HOUSE_COLORS[seed % HOUSE_COLORS.length], roofC = ['#3F2A1D', '#4B5563', '#57534E'][seed % 3];
+  ctx.fillStyle = wall; ctx.fillRect(-80, -110, 160, 110);
+  checker(ctx, 30, -110, 50, 110, 'rgba(0, 0, 0, 0.16)');
+  ctx.fillStyle = 'rgba(0,0,0,0.14)'; for (let yy = -104; yy < 0; yy += 9) ctx.fillRect(-80, yy, 160, 1);
+  ctx.fillStyle = 'rgba(255,255,255,0.08)'; for (let yy = -103; yy < 0; yy += 9) ctx.fillRect(-80, yy, 160, 1);
+  ctx.fillStyle = lite(wall, 0.3); ctx.fillRect(-80, -110, 3, 110);
+  ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(-80, -110, 160, 5);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.strokeRect(-80, -110, 160, 110);
+  const roof = () => { ctx.moveTo(-94, -108); ctx.lineTo(0, -168); ctx.lineTo(94, -108); ctx.closePath(); };
+  ctx.beginPath(); roof(); ctx.fillStyle = roofC; ctx.fill();
+  ctx.save(); ctx.beginPath(); roof(); ctx.clip();
+  for (let ry = -114, row = 0; ry > -170; ry -= 7, row++) { ctx.fillStyle = dark(roofC, 0.35); ctx.fillRect(-94, ry, 188, 1); ctx.fillStyle = lite(roofC, 0.12); ctx.fillRect(-94, ry + 1, 188, 1); for (let sx = -94 + (row % 2) * 6; sx < 94; sx += 12) ctx.fillRect(sx, ry + 1, 1, 6); }
+  ctx.fillStyle = 'rgba(255, 230, 190, 0.12)'; ctx.beginPath(); ctx.moveTo(0, -168); ctx.lineTo(-94, -108); ctx.lineTo(0, -108); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  ctx.beginPath(); roof(); ctx.strokeStyle = INK; ctx.lineWidth = 1.4; ctx.stroke();
+  ctx.fillStyle = '#E7E5E4'; ctx.fillRect(-94, -110, 188, 3);
+  for (const wx of [-62, 28]) {
+    ink(ctx, () => ctx.rect(wx - 3, -89, 40, 34), '#E7E5E4', 1);
+    ctx.fillStyle = '#FDE68A'; ctx.fillRect(wx, -86, 34, 28);
+    ctx.fillStyle = '#F59E0B'; ctx.fillRect(wx, -86, 34, 6); checker(ctx, wx, -80, 34, 2, '#F59E0B');
+    ctx.fillStyle = '#FEF9C3'; ctx.fillRect(wx + 3, -74, 6, 4);
+    ctx.fillStyle = '#44403C'; ctx.fillRect(wx, -73, 34, 2); ctx.fillRect(wx + 16, -86, 2, 28);
+    ctx.fillStyle = '#A8A29E'; ctx.fillRect(wx - 3, -55, 40, 3);
+  }
+  ink(ctx, () => ctx.rect(-14, -58, 28, 58), '#5B3A29', 1.2);
+  ctx.fillStyle = '#4A2E20'; ctx.fillRect(-10, -54, 9, 20); ctx.fillRect(1, -54, 9, 20); ctx.fillRect(-10, -30, 9, 24); ctx.fillRect(1, -30, 9, 24);
+  ctx.fillStyle = '#7A5038'; ctx.fillRect(-13, -57, 2, 56);
+  ctx.fillStyle = '#FACC15'; ctx.fillRect(8, -30, 3, 3);
+  steppedGlow(ctx, 20.5, -57, 12, '#FEF3C7', 0.35, 0.05, 3);
+  ink(ctx, () => ctx.rect(18, -60, 5, 6), '#FEF3C7', 0.8);
   ctx.restore();
 };
 
@@ -267,9 +332,7 @@ const drawSurfScene = (ctx: Ctx, state: GameState, t: number) => {
   drawStreetSky(ctx, { ...state, camera: { x: COURSE.road.x2 + 2000 + t * 3, y: GROUND_Y - 550 } } as GameState, 0.9, false);
   const scroll = t * 7;
   // The street, going by
-  ctx.fillStyle = '#3F3F46'; ctx.fillRect(0, 500, W, 100);
-  ctx.fillStyle = '#A8A29E'; ctx.fillRect(0, 488, W, 12);
-  ctx.fillStyle = '#FDE68A'; for (let x = -((scroll) % 90); x < W; x += 90) ctx.fillRect(x, 560, 50, 5);
+  sceneStreet(ctx, 488, 500, 560, scroll);
   const crestX = 360 + Math.sin(t * 0.05) * 20;
   // The houses: every 280 along, reached by the wave and gone
   for (let i = 0; i < 12; i++) {
@@ -304,18 +367,23 @@ const drawSurfScene = (ctx: Ctx, state: GameState, t: number) => {
       ctx.globalAlpha = 1 - e * 0.6;
     } else ctx.translate(px, 510);
     if (dog) {
-      ctx.fillStyle = ['#78350F', '#A16207', '#1C1917'][i % 3];
-      ctx.fillRect(-14, -16, 28, 10); ctx.fillRect(10, -22, 10, 10);
-      ctx.fillRect(-12 + run * 0.5, -6, 4, 6); ctx.fillRect(8 - run * 0.5, -6, 4, 6); ctx.fillRect(-16, -18, 4, 3);
-      if (e > 0) { ctx.strokeStyle = '#E7E5D6'; ctx.lineWidth = 2; ctx.strokeRect(-12, -15, 24, 7); }
+      // (a dog flat out: legs going, ears back, tail out, inked and lit along its back)
+      const coat = ['#78350F', '#A16207', '#1C1917'][i % 3];
+      for (const lx of [-12 + run * 0.5, 8 - run * 0.5]) shaded(ctx, () => ctx.rect(lx, -8, 4, 8), dark(coat, 0.15), lx, -8, 4, 8, 1);
+      ink(ctx, () => { ctx.moveTo(-14, -12); ctx.lineTo(-20, -18); ctx.lineTo(-17, -19); ctx.lineTo(-12, -15); ctx.closePath(); }, coat, 1);
+      shadedTop(ctx, () => ctx.roundRect(-14, -17, 28, 11, 4), coat, -14, -17, 28, 11, 1);
+      shadedTop(ctx, () => ctx.roundRect(9, -23, 12, 10, 3), coat, 9, -23, 12, 10, 1);
+      ink(ctx, () => ctx.rect(19, -18, 5, 4), dark(coat, 0.2), 0.8);
+      ink(ctx, () => { ctx.moveTo(11, -22); ctx.lineTo(8, -27); ctx.lineTo(14, -23); ctx.closePath(); }, dark(coat, 0.3), 0.8);
+      ctx.fillStyle = '#FFFFFF'; ctx.fillRect(15, -21, 2, 2); ctx.fillStyle = INK; ctx.fillRect(16, -21, 1, 1);
+      if (e > 0) { ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.strokeRect(-12, -15, 24, 7); ctx.strokeStyle = '#E7E5D6'; ctx.lineWidth = 1.5; ctx.strokeRect(-12, -15, 24, 7); }
     } else {
       const shirt = ['#DC2626', '#2563EB', '#F59E0B', '#7C3AED', '#0D9488'][i % 5], skin = ['#E0AC69', '#8D5524', '#C68642', '#F2C9A0'][i % 4];
-      ctx.fillStyle = '#1F2937'; ctx.fillRect(-7 + run * 0.4, -24, 6, 24); ctx.fillRect(2 - run * 0.4, -24, 6, 24);
-      ctx.fillStyle = shirt; ctx.fillRect(-9, -50, 18, 27);
-      ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(0, -58, 8, 0, Math.PI * 2); ctx.fill();
-      // (arms up, running for it; looking back at it)
-      ctx.fillRect(-13, -66 + run * 0.3, 4, 16); ctx.fillRect(9, -66 - run * 0.3, 4, 16);
-      ctx.fillStyle = '#450A0A'; ctx.beginPath(); ctx.ellipse(-3, -56, 2.5, 3, 0, 0, Math.PI * 2); ctx.fill();
+      // (arms up, running for it, screaming)
+      drawPerson(ctx, 0, 0, {
+        skin, hair: { style: (['short', 'long', 'curly', 'bald', 'pony'] as const)[i % 5], color: ['#111827', '#3F2A1D', '#78350F', '#A16207'][i % 4] },
+        top: { style: (['tee', 'shirt', 'hoodie', 'tank'] as const)[i % 4], color: shirt }, legs: { color: '#1F2937' }, shoes: '#F8FAFC',
+      }, { arms: 'panic', walk: f * 0.6 + i, stride: 1, mouth: 'open', f }, 1, 1);
       if (e > 0.3) skeleton(ctx, 0, 0, 0.7, (e - 0.3) * 2);
     }
     ctx.restore();
@@ -332,6 +400,7 @@ const drawSurfScene = (ctx: Ctx, state: GameState, t: number) => {
   ctx.quadraticCurveTo(crestX + 88, top + 120, crestX + 128, H);
   ctx.closePath(); ctx.fill();
   // (lighter up at the crest, darker down in the body of it, in bands)
+  ctx.strokeStyle = 'rgba(26, 30, 8, 0.6)'; ctx.lineWidth = 2; ctx.stroke();
   ctx.save(); ctx.clip();
   hazeBands(ctx, -20, top - 30, crestX + 160, (H - top) * 0.4, '#84A13A', 0.35, 0, 5);
   hazeBands(ctx, -20, top + (H - top) * 0.4, crestX + 160, (H - top) * 0.6 + 30, '#3A4217', 0, 0.45, 6);
@@ -344,8 +413,11 @@ const drawSurfScene = (ctx: Ctx, state: GameState, t: number) => {
   for (let i = 0; i < 5; i++) {
     const jx = ((i * 173 + t * 2) % (crestX + 40)), jy = top + 60 + (i * 67) % 200;
     ctx.save(); ctx.translate(jx, jy); ctx.rotate(t * 0.05 + i);
-    ctx.fillStyle = ['#DC2626', '#1E3A8A', '#65743F', '#E7E5D6', '#44403C'][i];
-    if (i === 3) skeleton(ctx, 0, 0, 0.6, 1); else ctx.fillRect(-18, -8, 36, 16);
+    if (i === 3) skeleton(ctx, 0, 0, 0.6, 1);
+    else if (i === 0) { shadedTop(ctx, () => { ctx.moveTo(-18, 4); ctx.lineTo(-18, -2); ctx.lineTo(-8, -3); ctx.lineTo(-3, -8); ctx.lineTo(9, -8); ctx.lineTo(13, -2); ctx.lineTo(18, -1); ctx.lineTo(18, 4); ctx.closePath(); }, '#DC2626', -18, -8, 36, 12, 1); ctx.fillStyle = '#93C5FD'; ctx.fillRect(-2, -7, 5, 4); ctx.fillRect(5, -7, 4, 4); for (const wx of [-10, 10]) ink(ctx, () => ctx.arc(wx, 4, 4, 0, Math.PI * 2), '#1C1917', 1); } // (a car)
+    else if (i === 1) { shaded(ctx, () => ctx.rect(-2, 0, 4, 10), '#57534E', -2, 0, 4, 10, 1); shadedTop(ctx, () => ctx.roundRect(-8, -8, 16, 9, [5, 5, 0, 0]), '#1E3A8A', -8, -8, 16, 9, 1); ctx.fillStyle = '#DC2626'; ctx.fillRect(7, -10, 2, 6); } // (a mailbox)
+    else if (i === 2) { shaded(ctx, () => ctx.rect(-18, -2, 36, 10), '#65743F', -18, -2, 36, 10, 1); shadedTop(ctx, () => ctx.rect(-16, -9, 32, 8), '#65743F', -16, -9, 32, 8, 1); ink(ctx, () => { ctx.rect(-20, -6, 5, 14); ctx.rect(15, -6, 5, 14); }, '#4D5A2E', 1); } // (a couch)
+    else { ctx.strokeStyle = INK; ctx.lineWidth = 8; ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI * 2); ctx.stroke(); ctx.strokeStyle = '#27272A'; ctx.lineWidth = 6; ctx.stroke(); ctx.strokeStyle = '#52525B'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(0, 0, 10, Math.PI * 1.1, Math.PI * 1.6); ctx.stroke(); } // (a tire)
     ctx.restore();
   }
   // Him, on the cover on the crest, riding it
@@ -356,7 +428,7 @@ const drawSurfScene = (ctx: Ctx, state: GameState, t: number) => {
   ctx.restore();
   suitedMan(ctx, rx, ry, 1.3, -0.1 + Math.sin(t * 0.1) * 0.06);
   // (arms out for balance)
-  ctx.fillStyle = '#FACC15'; ctx.save(); ctx.translate(rx, ry - 60); ctx.rotate(Math.sin(t * 0.2) * 0.2); ctx.fillRect(-44, -4, 88, 8); ctx.restore();
+  ctx.save(); ctx.translate(rx, ry - 60); ctx.rotate(Math.sin(t * 0.2) * 0.2); shadedTop(ctx, () => ctx.roundRect(-44, -4, 88, 8, 3), '#FACC15', -44, -4, 88, 8, 1.2); ink(ctx, () => { ctx.arc(-44, 0, 5, 0, Math.PI * 2); }, '#FACC15', 1); ink(ctx, () => { ctx.arc(44, 0, 5, 0, Math.PI * 2); }, '#FACC15', 1); ctx.restore();
   // Spray off the front of it
   for (let i = 0; i < 8; i++) { const q = ((t * 4 + i * 9) % 30) / 30; ctx.fillStyle = `rgba(190, 242, 100, ${0.9 * (1 - q)})`; ctx.fillRect(rx + 30 + q * 80, ry - q * 40 + i * 3, 5, 5); }
   if (t < 12) { ctx.fillStyle = `rgba(255,255,255,${1 - t / 12})`; ctx.fillRect(0, 0, W, H); }
@@ -364,15 +436,23 @@ const drawSurfScene = (ctx: Ctx, state: GameState, t: number) => {
   void SURF_FRAMES;
 };
 
-/** A skeleton (bones, grinning), upright at its feet (x, y), `s` big. */
+/** A skeleton (bones, grinning), upright at its feet (x, y), `s` big: the bones inked, the skull lit on top. */
 const skeleton = (ctx: Ctx, x: number, y: number, s: number, a = 1) => {
   ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.globalAlpha *= Math.min(1, a);
-  ctx.fillStyle = '#E7E5D6'; ctx.beginPath(); ctx.arc(0, -70, 12, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#1C1917'; ctx.fillRect(-6, -74, 4, 4); ctx.fillRect(2, -74, 4, 4); ctx.fillRect(-4, -64, 8, 2);
-  ctx.strokeStyle = '#E7E5D6'; ctx.lineWidth = 3; ctx.beginPath();
-  ctx.moveTo(0, -58); ctx.lineTo(0, -24); for (let r = -54; r < -30; r += 6) { ctx.moveTo(-10, r); ctx.lineTo(10, r); }
-  ctx.moveTo(0, -24); ctx.lineTo(-8, 0); ctx.moveTo(0, -24); ctx.lineTo(8, 0); ctx.moveTo(0, -52); ctx.lineTo(-16, -30); ctx.moveTo(0, -52); ctx.lineTo(16, -30);
-  ctx.stroke();
+  const bones = () => {
+    ctx.beginPath();
+    ctx.moveTo(0, -58); ctx.lineTo(0, -24); for (let r = -54; r < -30; r += 6) { ctx.moveTo(-10, r); ctx.lineTo(10, r); }
+    ctx.moveTo(0, -24); ctx.lineTo(-8, 0); ctx.moveTo(0, -24); ctx.lineTo(8, 0); ctx.moveTo(0, -52); ctx.lineTo(-16, -30); ctx.moveTo(0, -52); ctx.lineTo(16, -30);
+  };
+  ctx.lineCap = 'round';
+  bones(); ctx.strokeStyle = INK; ctx.lineWidth = 5; ctx.stroke();
+  bones(); ctx.strokeStyle = '#E7E5D6'; ctx.lineWidth = 3; ctx.stroke();
+  ctx.lineCap = 'butt';
+  ink(ctx, () => ctx.arc(0, -70, 12, 0, Math.PI * 2), '#E7E5D6', 1.5);
+  ctx.fillStyle = '#FFFFF5'; ctx.fillRect(-6, -80, 6, 3);
+  ctx.fillStyle = '#B8B5A0'; ctx.fillRect(-10, -64, 20, 3);
+  ctx.fillStyle = '#1C1917'; ctx.fillRect(-6, -74, 4, 4); ctx.fillRect(2, -74, 4, 4); ctx.fillRect(-1, -68, 2, 2); ctx.fillRect(-4, -64, 8, 2);
+  ctx.fillStyle = '#E7E5D6'; ctx.fillRect(-2, -64, 1, 2); ctx.fillRect(1, -64, 1, 2);
   ctx.restore();
 };
 
@@ -381,13 +461,28 @@ const drawFamilyScene = (ctx: Ctx, state: GameState, rt: TommyRuntime, t: number
   const f = state.frame;
   const dark = clamp01((t - 30) / (FAMILY_FRAMES - 30));
   // The room: wallpaper, a window, a lamp, the rug
-  ctx.fillStyle = '#C9B99A'; ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = 'rgba(160, 120, 80, 0.25)'; for (let x = 0; x < W; x += 40) ctx.fillRect(x, 0, 16, 470);
+  // (wallpaper: stripes and a little sprig between them, darker up under the ceiling; the wainscot, the baseboard)
+  bandedGradient(ctx, 0, 0, W, 470, ['#B5A486', '#C9B99A', '#CFC0A2'], 6);
+  ctx.fillStyle = 'rgba(160, 120, 80, 0.25)'; for (let x = 0; x < W; x += 40) ctx.fillRect(x, 0, 16, 400);
+  ctx.fillStyle = 'rgba(160, 120, 80, 0.4)'; for (let x = 0; x < W; x += 40) ctx.fillRect(x + 7, 0, 2, 400);
+  ctx.fillStyle = 'rgba(120, 80, 50, 0.35)'; for (let x = 24; x < W; x += 40) for (let y = 14; y < 400; y += 30) { ctx.fillRect(x + 2, y, 4, 2); ctx.fillRect(x + 3, y - 2, 2, 6); }
+  ctx.fillStyle = '#8A6A4A'; ctx.fillRect(0, 400, W, 70); ctx.fillStyle = '#A7835E'; ctx.fillRect(0, 400, W, 3); ctx.fillStyle = '#5B3A29'; ctx.fillRect(0, 403, W, 2);
+  ctx.fillStyle = '#6E5236'; for (let x = 0; x < W; x += 50) ctx.fillRect(x, 405, 2, 60);
+  ctx.fillStyle = '#4A3424'; ctx.fillRect(0, 462, W, 8); ctx.fillStyle = '#7A5A3E'; ctx.fillRect(0, 462, W, 1);
+  // (the floor: boards, lit along one edge)
   ctx.fillStyle = '#7C5A3A'; ctx.fillRect(0, 470, W, 130);
-  ctx.fillStyle = '#9F1239'; ctx.beginPath(); ctx.ellipse(400, 540, 300, 36, 0, 0, Math.PI * 2); ctx.fill();
+  for (let y = 470; y < H; y += 14) { ctx.fillStyle = '#5E4229'; ctx.fillRect(0, y, W, 1); ctx.fillStyle = '#93704C'; ctx.fillRect(0, y + 1, W, 1); for (let x = ((y / 14) % 3) * 70; x < W; x += 210) { ctx.fillStyle = '#5E4229'; ctx.fillRect(x, y, 1, 14); } }
+  // (the rug: inked, a border band, a medallion, the fringe)
+  ink(ctx, () => ctx.ellipse(400, 540, 300, 36, 0, 0, Math.PI * 2), '#9F1239', 1.5);
+  ctx.strokeStyle = '#FDE68A'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(400, 540, 282, 30, 0, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = '#4C0519'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(400, 540, 268, 26, 0, 0, Math.PI * 2); ctx.stroke();
+  ink(ctx, () => ctx.ellipse(400, 540, 90, 12, 0, 0, Math.PI * 2), '#1E3A8A', 1);
+  ctx.fillStyle = '#FDE68A'; ctx.beginPath(); ctx.ellipse(400, 540, 40, 5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#E7E5E4'; for (const side of [-1, 1]) for (let k = -4; k <= 4; k++) ctx.fillRect(400 + side * 300 + side * 2, 540 + k * 4, side * 5, 1);
   // The window: sky, and the tower in it, coming over and filling it
-  ctx.fillStyle = '#5B3A29'; ctx.fillRect(470, 90, 230, 170);
-  ctx.fillStyle = '#F59E4B'; ctx.fillRect(480, 100, 210, 150);
+  shaded(ctx, () => ctx.rect(470, 90, 230, 170), '#5B3A29', 470, 90, 230, 170, 1.5);
+  ctx.fillStyle = '#7A5038'; ctx.fillRect(472, 92, 226, 2);
+  bandedGradient(ctx, 480, 100, 210, 150, ['#7A3F66', '#C2546A', '#F59E4B'], 6);
   // (the wave coming up the street at the window: a green wall rising in it, foam along the top, till it fills it)
   ctx.save(); ctx.beginPath(); ctx.rect(480, 100, 210, 150); ctx.clip();
   const come = dark * dark;
@@ -400,14 +495,32 @@ const drawFamilyScene = (ctx: Ctx, state: GameState, rt: TommyRuntime, t: number
     ctx.fillStyle = '#DC2626'; ctx.fillRect(500 + (f * 2) % 180, wy + 40, 30, 12); ctx.fillStyle = '#1E3A8A'; ctx.fillRect(620 - (f * 1.3) % 140, wy + 70, 10, 16);
   } else { ctx.fillStyle = '#3A4217'; ctx.fillRect(480, 100, 210, 150); }
   ctx.restore();
-  ctx.fillStyle = '#5B3A29'; ctx.fillRect(582, 100, 6, 150); ctx.fillRect(480, 172, 210, 6);
-  // The TV (a sitcom, a laugh track), a lamp
-  ctx.fillStyle = '#1C1917'; ctx.fillRect(40, 330, 150, 110); ctx.fillStyle = '#44403C'; ctx.fillRect(60, 440, 110, 30);
+  ink(ctx, () => { ctx.rect(582, 100, 6, 150); ctx.rect(480, 172, 210, 6); }, '#5B3A29', 1);
+  ctx.fillStyle = '#7A5038'; ctx.fillRect(582, 100, 2, 150); ctx.fillRect(480, 172, 210, 2);
+  shadedTop(ctx, () => ctx.rect(462, 258, 246, 8), '#7A5038', 462, 258, 246, 8, 1); // (the sill)
+  // The TV (a sitcom, a laugh track) in its wood cabinet, on its stand; a lamp
+  shaded(ctx, () => ctx.rect(60, 440, 110, 30), '#44403C', 60, 440, 110, 30, 1);
+  ctx.fillStyle = '#292524'; ctx.fillRect(68, 448, 94, 16);
+  shaded(ctx, () => ctx.roundRect(40, 330, 150, 110, 6), '#5B3A29', 40, 330, 150, 110, 1.5);
+  ink(ctx, () => ctx.rect(48, 338, 134, 92), '#1C1917', 1);
   ctx.fillStyle = f % 60 < 30 ? '#93C5FD' : '#BFDBFE'; ctx.fillRect(50, 340, 130, 88);
   ctx.fillStyle = '#FDE68A'; ctx.beginPath(); ctx.arc(95, 380, 12, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#F472B6'; ctx.beginPath(); ctx.arc(140, 386, 12, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#78716C'; ctx.fillRect(720, 290, 8, 180); ctx.fillStyle = '#FDE68A'; ctx.beginPath(); ctx.moveTo(700, 290); ctx.lineTo(748, 290); ctx.lineTo(736, 250); ctx.lineTo(712, 250); ctx.fill();
-  // The couch, and them on it
-  ctx.fillStyle = '#65743F'; ctx.fillRect(240, 380, 330, 90); ctx.fillRect(230, 340, 350, 50); ctx.fillStyle = '#4D5A2E'; ctx.fillRect(220, 370, 30, 100); ctx.fillRect(560, 370, 30, 100);
+  ctx.fillStyle = INK; ctx.fillRect(90, 377, 2, 2); ctx.fillRect(98, 377, 2, 2); ctx.fillRect(136, 383, 2, 2); ctx.fillRect(143, 383, 2, 2); ctx.fillRect(91, 384, 8, 1); ctx.fillRect(137, 390, 7, 2);
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.12)'; for (let y = 340; y < 428; y += 3) ctx.fillRect(50, y, 130, 1); // (scan lines)
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.35)'; ctx.fillRect(54, 344, 30, 3); ctx.fillRect(54, 347, 3, 16);
+  for (const kx of [100, 120]) ink(ctx, () => ctx.arc(kx, 434, 2, 0, Math.PI * 2), '#A8A29E', 0.8);
+  steppedGlow(ctx, 724, 280, 70, '#FDE68A', 0.25, 0, 4);
+  shaded(ctx, () => ctx.rect(720, 290, 8, 180), '#78716C', 720, 290, 8, 180, 1);
+  ink(ctx, () => ctx.ellipse(724, 470, 18, 4, 0, 0, Math.PI * 2), '#57534E', 1);
+  shaded(ctx, () => { ctx.moveTo(700, 290); ctx.lineTo(748, 290); ctx.lineTo(736, 250); ctx.lineTo(712, 250); ctx.closePath(); }, '#FDE68A', 700, 250, 48, 40, 1.2);
+  // The couch, and them on it: inked, lit from the lamp's side, the cushions split, the arms rolled
+  shadedTop(ctx, () => ctx.roundRect(230, 340, 350, 50, 8), '#65743F', 230, 340, 350, 50, 1.5);
+  ctx.fillStyle = '#4D5A2E'; ctx.fillRect(345, 346, 2, 40); ctx.fillRect(460, 346, 2, 40);
+  shadedTop(ctx, () => ctx.rect(240, 380, 330, 90), '#65743F', 240, 380, 330, 90, 1.5);
+  ctx.fillStyle = '#4D5A2E'; ctx.fillRect(350, 384, 2, 30); ctx.fillRect(460, 384, 2, 30); ctx.fillRect(240, 414, 330, 2);
+  ctx.fillStyle = '#7E8F52'; ctx.fillRect(244, 383, 322, 2);
+  shaded(ctx, () => ctx.roundRect(220, 370, 30, 100, [10, 10, 2, 2]), '#4D5A2E', 220, 370, 30, 100, 1.5);
+  shaded(ctx, () => ctx.roundRect(560, 370, 30, 100, [10, 10, 2, 2]), '#4D5A2E', 560, 370, 30, 100, 1.5);
   const dissolve = clamp01((crushT - 60) / 120);
   const people: [number, string, string, number][] = [[300, '#1D4ED8', '#E0AC69', 1.1], [400, '#BE185D', '#E0AC69', 1.0], [490, '#16A34A', '#E0AC69', 0.75]];
   people.forEach(([x, shirt, skin, s], i) => {
@@ -427,7 +540,7 @@ const drawFamilyScene = (ctx: Ctx, state: GameState, rt: TommyRuntime, t: number
     ctx.restore();
   });
   // The chips, a juice box
-  if (crushT === 0) { ctx.fillStyle = '#FACC15'; ctx.fillRect(330, 430, 22, 16); ctx.fillStyle = '#F97316'; ctx.fillRect(488, 390, 10, 14); }
+  if (crushT === 0) { shaded(ctx, () => ctx.rect(330, 430, 22, 16), '#FACC15', 330, 430, 22, 16, 1); ctx.fillStyle = '#DC2626'; ctx.fillRect(333, 435, 16, 4); shaded(ctx, () => ctx.rect(488, 390, 10, 14), '#F97316', 488, 390, 10, 14, 1); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(494, 386, 1, 4); }
   // Getting dark in here
   ctx.fillStyle = `rgba(20, 16, 30, ${dark * 0.55})`; ctx.fillRect(0, 0, W, H);
   // The wave through the window and the wall round it, filling the room
@@ -544,8 +657,8 @@ const drawBurnCloseUp = (ctx: Ctx, f: number, crushT: number) => {
   const zin = clamp01((crushT - 40) / 20);
   ctx.save();
   ctx.globalAlpha = zin;
-  ctx.fillStyle = '#3A4217'; ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = '#4D5A2E'; ctx.fillRect(40, 380, 720, 220);
+  bandedGradient(ctx, 0, 0, W, H, ['#2A3010', '#3A4217', '#4A5420'], 8);
+  shadedTop(ctx, () => ctx.rect(40, 380, 720, 220), '#4D5A2E', 40, 380, 720, 220, 2);
   const burn = clamp01((crushT - 70) / 110);
   const people: [number, string, string, number][] = [[190, '#1D4ED8', '#E0AC69', 2.1], [400, '#BE185D', '#E0AC69', 2.0], [610, '#16A34A', '#E0AC69', 1.6]];
   people.forEach(([x, shirt, skin, sc], i) => {
@@ -589,32 +702,50 @@ export const drawRuinsGround = (ctx: Ctx, state: GameState) => {
     if (r.x2 < state.camera.x - 60 || r.x1 > state.camera.x + W + 60) continue;
     if (r.surface === 'rubble') {
       ctx.fillStyle = '#4A3F35'; ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, 1400);
+      bandedGradient(ctx, r.x1, r.y1 + 6, r.x2 - r.x1, 120, ['#4A3F35', '#3A3029', '#2A221C'], 5);
+      ctx.fillStyle = '#2A221C'; ctx.fillRect(r.x1, r.y1 + 126, r.x2 - r.x1, 1274);
+      checker(ctx, r.x1, r.y1 + 6, r.x2 - r.x1, 120, 'rgba(0, 0, 0, 0.08)');
+      for (let x = Math.ceil(r.x1 / 31) * 31; x < r.x2 - 8; x += 31) { const yy = r.y1 + 14 + hash(x * 5) * 90, c = hash(x) > 0.5 ? '#5B4B3E' : '#6B635C'; ink(ctx, () => ctx.rect(x, yy, 6 + hash(x * 2) * 8, 4), c, 0.8); }
       ctx.fillStyle = '#5D6B3A'; ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, 6);
-      ctx.fillStyle = '#6B635C'; for (let x = r.x1; x < r.x2; x += 23) ctx.fillRect(x + hash(x) * 10, r.y1 - 4 - hash(x * 3) * 6, 8 + hash(x * 7) * 12, 6);
+      ctx.fillStyle = '#7A8A4C'; ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, 1);
+      checker(ctx, r.x1, r.y1 + 6, r.x2 - r.x1, 2, '#5D6B3A');
+      // (the rubble on it: broken brick and block, inked, lit on top)
+      for (let x = r.x1; x < r.x2; x += 23) { const rx = x + hash(x) * 10, ry = r.y1 - 4 - hash(x * 3) * 6, rw = 8 + hash(x * 7) * 12, c = hash(x * 11) > 0.6 ? '#7C4A3A' : '#6B635C'; if (rx + rw > r.x2) continue; ink(ctx, () => ctx.rect(rx, ry, rw, 6), c, 0.8); ctx.fillStyle = lite(c, 0.25); ctx.fillRect(rx + 1, ry + 0.5, rw - 2, 1); }
       // The hole's lips: the ground broken off round it
       if (r.x2 === COURSE.ruins.pit) { ctx.fillStyle = '#2A221B'; ctx.fillRect(r.x2 - 16, r.y1, 16, 60); ctx.fillStyle = '#6B635C'; ctx.fillRect(r.x2 - 26, r.y1 - 6, 18, 8); }
       if (r.x1 === COURSE.ruins.pit + COURSE.ruins.pitW) { ctx.fillStyle = '#2A221B'; ctx.fillRect(r.x1, r.y1, 16, 60); ctx.fillStyle = '#6B635C'; ctx.fillRect(r.x1 + 8, r.y1 - 6, 18, 8); }
     } else if (r.surface === 'floor') {
       ctx.fillStyle = '#3F3A36'; ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, bottom - r.y1);
+      checker(ctx, r.x1, r.y1 + 5, r.x2 - r.x1, bottom - r.y1 - 5, 'rgba(0, 0, 0, 0.1)');
+      ctx.fillStyle = '#2E2A27'; for (let x = Math.ceil(r.x1 / 64) * 64; x < r.x2; x += 64) ctx.fillRect(x, r.y1 + 5, 2, bottom - r.y1);
       ctx.fillStyle = '#57534E'; ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, 5);
+      ctx.fillStyle = '#78716C'; ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, 1); ctx.fillStyle = INK; ctx.fillRect(r.x1, r.y1 + 5, r.x2 - r.x1, 1);
     }
   }
   // The hole down: a narrow shaft from the ruins to the cavern outside Tommy's door
   const P = COURSE.ruins.pit, PW = COURSE.ruins.pitW;
   if (P + 800 > state.camera.x && P - 400 < state.camera.x + W) {
     ctx.fillStyle = '#16110E'; ctx.fillRect(P, RUINS_Y, PW, GROUND_Y - 330 - RUINS_Y);
-    ctx.fillStyle = '#2A2521'; for (let y = RUINS_Y + 10; y < GROUND_Y - 330; y += 36) { ctx.fillRect(P, y, 10, 26); ctx.fillRect(P + PW - 10, y + 18, 10, 26); }
+    checker(ctx, P + 10, RUINS_Y, PW - 20, GROUND_Y - 330 - RUINS_Y, 'rgba(42, 37, 33, 0.35)');
+    for (let y = RUINS_Y + 10; y < GROUND_Y - 330; y += 36) for (const [sx, sy] of [[P, y], [P + PW - 10, y + 18]]) { ink(ctx, () => ctx.rect(sx, sy, 10, 26), '#2A2521', 1); ctx.fillStyle = '#3D3530'; ctx.fillRect(sx + 1, sy + 1, 8, 1); }
     ctx.fillStyle = 'rgba(101, 163, 13, 0.3)'; for (let y = RUINS_Y + 80; y < GROUND_Y - 330; y += 220) ctx.fillRect(P + 14, y, 6, 70);
     // The cavern at the bottom: brick, a pipe or two, the door's at the far end of it
-    ctx.fillStyle = '#1C1714'; ctx.fillRect(P - 420, GROUND_Y - 330, 900, 330);
-    ctx.fillStyle = '#2A2521'; for (let y = GROUND_Y - 320; y < GROUND_Y; y += 16) for (let x = P - 420 + ((y / 16) % 2) * 18; x < P + 480; x += 36) ctx.fillRect(x, y, 32, 12);
-    ctx.fillStyle = '#5B4A3B'; ctx.fillRect(P - 420, GROUND_Y - 250, 900, 12);
+    ctx.fillStyle = sewerBrick(ctx, 'tommyCavern', 36, 16, ['#2A2521', '#2E2823', '#26211D'], '#1C1714'); ctx.fillRect(P - 420, GROUND_Y - 330, 900, 330);
+    hazeBands(ctx, P - 420, GROUND_Y - 330, 900, 120, '#0C0A09', 0.5, 0, 4);
+    hazeBands(ctx, P - 420, GROUND_Y - 80, 900, 80, '#2D3A12', 0, 0.3, 4);
+    ctx.fillStyle = INK; ctx.fillRect(P - 420, GROUND_Y - 251, 900, 14);
+    ctx.fillStyle = '#4A3B2F'; ctx.fillRect(P - 420, GROUND_Y - 250, 900, 12);
+    ctx.fillStyle = '#5B4A3B'; ctx.fillRect(P - 420, GROUND_Y - 249, 900, 6);
+    ctx.fillStyle = '#7A6656'; ctx.fillRect(P - 420, GROUND_Y - 248, 900, 1);
+    for (let x = P - 400; x < P + 480; x += 150) { ink(ctx, () => ctx.rect(x, GROUND_Y - 253, 8, 18), '#3F3228', 1); ctx.fillStyle = '#6B584A'; ctx.fillRect(x + 1, GROUND_Y - 252, 2, 2); }
     // Its ceiling: a slab of old brick on an iron beam, the hole he came down through the only way up
     for (const [x1, x2] of [[P - 420, P], [P + PW, P + 480]]) {
-      ctx.fillStyle = '#231C18'; ctx.fillRect(x1, GROUND_Y - CAVERN_ROOF - 160, x2 - x1, 160);
-      ctx.fillStyle = '#2F2723'; for (let y = GROUND_Y - CAVERN_ROOF - 150; y < GROUND_Y - CAVERN_ROOF - 14; y += 16) for (let x = x1 + ((y / 16) % 2) * 18; x < x2 - 4; x += 36) ctx.fillRect(x, y, Math.min(32, x2 - x), 12);
-      ctx.fillStyle = '#44403C'; ctx.fillRect(x1, GROUND_Y - CAVERN_ROOF - 14, x2 - x1, 14);
-      ctx.fillStyle = '#1C1917'; for (let x = x1 + 30; x < x2 - 10; x += 120) ctx.fillRect(x, GROUND_Y - CAVERN_ROOF - 14, 10, 14);
+      ctx.fillStyle = sewerBrick(ctx, 'tommyCavernRoof', 36, 16, ['#2F2723', '#2A231F', '#332B26'], '#231C18'); ctx.fillRect(x1, GROUND_Y - CAVERN_ROOF - 160, x2 - x1, 146);
+      ctx.fillStyle = INK; ctx.fillRect(x1, GROUND_Y - CAVERN_ROOF - 15, x2 - x1, 16);
+      ctx.fillStyle = '#44403C'; ctx.fillRect(x1, GROUND_Y - CAVERN_ROOF - 14, x2 - x1, 13);
+      ctx.fillStyle = '#6B635C'; ctx.fillRect(x1, GROUND_Y - CAVERN_ROOF - 14, x2 - x1, 2);
+      ctx.fillStyle = '#2E2A27'; ctx.fillRect(x1, GROUND_Y - CAVERN_ROOF - 4, x2 - x1, 3);
+      ctx.fillStyle = '#1C1917'; for (let x = x1 + 30; x < x2 - 10; x += 120) { ctx.fillRect(x, GROUND_Y - CAVERN_ROOF - 14, 10, 14); ctx.fillStyle = '#78716C'; ctx.fillRect(x + 12, GROUND_Y - CAVERN_ROOF - 9, 2, 2); ctx.fillRect(x - 4, GROUND_Y - CAVERN_ROOF - 9, 2, 2); ctx.fillStyle = '#1C1917'; } // (the beam's splices, their rivets)
       ctx.fillStyle = 'rgba(101, 163, 13, 0.35)'; for (let x = x1 + 50; x < x2 - 10; x += 90) ctx.fillRect(x, GROUND_Y - CAVERN_ROOF, 4, 6 + ((x * 7) % 9));
     }
     ctx.fillStyle = '#0C0A09'; ctx.fillRect(P, GROUND_Y - 330, PW, 20);
@@ -634,21 +765,25 @@ export const drawRuinsHouse = (ctx: Ctx, state: GameState) => {
   // The other houses: washed out and melted
   for (const [dx, seed] of [[-1060, 1], [-560, 4], [720, 2]] as [number, number][]) wreckedHouse(ctx, hx + dx, y, seed, f);
   // Theirs: what's standing of the walls
-  ctx.fillStyle = '#9E6B5C'; ctx.beginPath(); ctx.moveTo(hx - 260, y); ctx.lineTo(hx - 260, y - 150); ctx.lineTo(hx - 200, y - 120); ctx.lineTo(hx - 170, y - 170); ctx.lineTo(hx - 120, y - 90); ctx.lineTo(hx - 120, y); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(hx + 180, y); ctx.lineTo(hx + 180, y - 110); ctx.lineTo(hx + 230, y - 160); ctx.lineTo(hx + 260, y - 70); ctx.lineTo(hx + 260, y); ctx.fill();
-  ctx.fillStyle = 'rgba(0,0,0,0.15)'; for (let yy = y - 150; yy < y; yy += 9) { ctx.fillRect(hx - 260, yy, 140, 1); ctx.fillRect(hx + 180, yy, 80, 1); }
-  // (the green stuff's line up the walls, and the walls eaten away under it)
-  ctx.fillStyle = 'rgba(92, 104, 36, 0.35)'; ctx.fillRect(hx - 260, y - 60, 140, 60); ctx.fillRect(hx + 180, y - 60, 80, 60);
+  wallStump(ctx, [[hx - 260, y], [hx - 260, y - 150], [hx - 200, y - 120], [hx - 170, y - 170], [hx - 120, y - 90], [hx - 120, y]], '#9E6B5C', y);
+  wallStump(ctx, [[hx + 180, y], [hx + 180, y - 110], [hx + 230, y - 160], [hx + 260, y - 70], [hx + 260, y]], '#9E6B5C', y);
   // The couch, and them on it (bones, sat just where they were)
-  ctx.fillStyle = '#4D5A2E'; ctx.fillRect(hx + 40, y - 34, 120, 34); ctx.fillRect(hx + 36, y - 52, 128, 18);
+  shadedTop(ctx, () => ctx.rect(hx + 36, y - 52, 128, 18), '#4D5A2E', hx + 36, y - 52, 128, 18, 1.2);
+  shadedTop(ctx, () => ctx.rect(hx + 40, y - 34, 120, 34), '#4D5A2E', hx + 40, y - 34, 120, 34, 1.2);
+  checker(ctx, hx + 40, y - 20, 120, 20, 'rgba(26, 30, 8, 0.45)'); // (eaten away, the stuffing out)
+  ctx.fillStyle = '#D6D3C4'; ctx.fillRect(hx + 70, y - 33, 6, 3); ctx.fillRect(hx + 120, y - 31, 4, 3);
   for (let i = 0; i < 3; i++) {
     const px = hx + 62 + i * 38, s = i === 2 ? 0.75 : 1;
-    ctx.fillStyle = '#E7E5D6'; ctx.beginPath(); ctx.arc(px, y - 60 * s - 12, 7 * s, 0, Math.PI * 2); ctx.fill();
+    const bones = () => { ctx.beginPath(); ctx.moveTo(px, y - 60 * s - 5); ctx.lineTo(px, y - 34); for (let r = y - 60 * s; r < y - 38; r += 6) { ctx.moveTo(px - 7, r); ctx.lineTo(px + 7, r); } };
+    bones(); ctx.strokeStyle = INK; ctx.lineWidth = 4.5; ctx.stroke();
+    bones(); ctx.strokeStyle = '#E7E5D6'; ctx.lineWidth = 2.5; ctx.stroke();
+    ink(ctx, () => ctx.arc(px, y - 60 * s - 12, 7 * s, 0, Math.PI * 2), '#E7E5D6', 1.2);
     ctx.fillStyle = '#1C1917'; ctx.fillRect(px - 4 * s, y - 62 * s - 14, 3 * s, 3 * s); ctx.fillRect(px + 1, y - 62 * s - 14, 3 * s, 3 * s);
-    ctx.strokeStyle = '#E7E5D6'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(px, y - 60 * s - 5); ctx.lineTo(px, y - 34); for (let r = y - 60 * s; r < y - 38; r += 6) { ctx.moveTo(px - 7, r); ctx.lineTo(px + 7, r); } ctx.stroke();
   }
-  // The TV on its side, still on
-  ctx.fillStyle = '#1C1917'; ctx.fillRect(hx + 190, y - 50, 60, 46); ctx.fillStyle = f % 6 < 3 ? '#E5E7EB' : '#9CA3AF'; ctx.fillRect(hx + 196, y - 44, 48, 34);
+  // The TV on its side, still on (snow)
+  shaded(ctx, () => ctx.roundRect(hx + 190, y - 50, 60, 46, 4), '#3F2A1D', hx + 190, y - 50, 60, 46, 1.2);
+  ink(ctx, () => ctx.rect(hx + 196, y - 44, 48, 34), f % 6 < 3 ? '#E5E7EB' : '#9CA3AF', 1);
+  checker(ctx, hx + 196, y - 44, 48, 34, f % 6 < 3 ? '#9CA3AF' : '#E5E7EB', (f >> 1) & 1);
   drawLairSign(ctx, state);
   // The water, pooled and smoking, all along the block
   ctx.fillStyle = 'rgba(92, 104, 36, 0.8)';
@@ -718,54 +853,101 @@ const drawLairSign = (ctx: Ctx, state: GameState) => {
   // (big: scaled up about its middle)
   ctx.save(); ctx.translate(sx, sy + 31); ctx.scale(1.4, 1.4); ctx.translate(-sx, -(sy + 31));
   // The pole, and a little buzzing transformer box on it
-  ctx.fillStyle = '#3F3F46'; ctx.fillRect(sx - 4, sy + 60, 8, (y - sy - 60) / 1.4 + 20);
-  // The board
-  ctx.fillStyle = '#18181B'; ctx.fillRect(sx - 110, sy, 220, 62);
+  const poleH = (y - sy - 60) / 1.4 + 20;
+  shaded(ctx, () => ctx.rect(sx - 4, sy + 60, 8, poleH), '#3F3F46', sx - 4, sy + 60, 8, poleH, 1);
+  ink(ctx, () => ctx.rect(sx + 4, sy + 84, 12, 14), '#52525B', 1); ctx.fillStyle = '#A1A1AA'; ctx.fillRect(sx + 5, sy + 85, 10, 1); // (the transformer box)
+  // The board: its steel frame (lit along the top), bolts, the dark face
+  ink(ctx, () => ctx.rect(sx - 110, sy, 220, 62), '#18181B', 1);
   ctx.strokeStyle = '#3F3F46'; ctx.lineWidth = 3; ctx.strokeRect(sx - 110, sy, 220, 62);
+  ctx.fillStyle = '#71717A'; ctx.fillRect(sx - 111, sy - 1.5, 222, 1);
+  ctx.fillStyle = '#27272A'; for (let k = 0; k < 220; k += 4) ctx.fillRect(sx - 108 + k, sy + 3, 1, 56);
   // Chase lights round its edge
   for (let i = 0; i < 26; i++) {
     const perim = 2 * (220 + 62), d = (i / 26) * perim;
     const [lx, ly] = d < 220 ? [sx - 110 + d, sy] : d < 282 ? [sx + 110, sy + d - 220] : d < 502 ? [sx + 110 - (d - 282), sy + 62] : [sx - 110, sy + 62 - (d - 502)];
-    ctx.fillStyle = (i + Math.floor(f / 5)) % 3 === 0 ? '#FDE047' : '#713F12';
-    ctx.beginPath(); ctx.arc(lx, ly, 3, 0, Math.PI * 2); ctx.fill();
+    const onL = (i + Math.floor(f / 5)) % 3 === 0;
+    if (onL) { ctx.fillStyle = 'rgba(253, 224, 71, 0.3)'; ctx.beginPath(); ctx.arc(lx, ly, 5, 0, Math.PI * 2); ctx.fill(); }
+    ink(ctx, () => ctx.arc(lx, ly, 3, 0, Math.PI * 2), onL ? '#FDE047' : '#713F12', 0.8);
+    if (onL) { ctx.fillStyle = '#FFFBEB'; ctx.fillRect(lx - 1.5, ly - 1.5, 1.5, 1.5); }
   }
   // TOMMY'S LAIR, buzzing (it cuts out now and then)
   const on = (f % 97) > 6 && (f % 41) !== 3;
   ctx.save();
   ctx.font = 'bold 20px "Press Start 2P"'; ctx.textAlign = 'center';
-  ctx.shadowColor = '#84CC16'; ctx.shadowBlur = on ? 16 : 0;
+  // (its glow, in steps: the letters spread out wide and faint, then nearer and brighter, then the tube)
+  if (on) for (const [d, a] of [[3, 0.18], [2, 0.3], [1, 0.5]] as const) {
+    ctx.fillStyle = `rgba(132, 204, 22, ${a})`;
+    for (const [ox, oy] of [[-d, 0], [d, 0], [0, -d], [0, d]]) { ctx.fillText("TOMMY'S", sx + ox, sy + 28 + oy); ctx.fillText('LAIR', sx + ox, sy + 54 + oy); }
+  }
   ctx.fillStyle = on ? '#D9F99D' : '#365314';
   ctx.fillText("TOMMY'S", sx, sy + 28);
   ctx.fillText('LAIR', sx, sy + 54);
+  if (on) { ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'; ctx.font = 'bold 20px "Press Start 2P"'; ctx.save(); ctx.beginPath(); ctx.rect(sx - 110, sy + 12, 220, 3); ctx.rect(sx - 110, sy + 38, 220, 3); ctx.clip(); ctx.fillText("TOMMY'S", sx, sy + 28); ctx.fillText('LAIR', sx, sy + 54); ctx.restore(); }
   ctx.restore();
   ctx.restore();
   // The arrow: from the sign, out over the hole and straight down it, flashing
   const lit = Math.floor(f / 12) % 2 === 0;
   ctx.save();
-  ctx.strokeStyle = lit ? '#F472B6' : '#6B213F'; ctx.lineWidth = 8; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  ctx.shadowColor = '#F472B6'; ctx.shadowBlur = lit ? 14 : 0;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   const ax = P + PW / 2;
-  ctx.beginPath(); ctx.moveTo(sx + 154, sy + 31); ctx.lineTo(ax, sy + 31); ctx.lineTo(ax, y - 30); ctx.stroke();
-  ctx.fillStyle = ctx.strokeStyle;
-  ctx.beginPath(); ctx.moveTo(ax - 22, y - 40); ctx.lineTo(ax + 22, y - 40); ctx.lineTo(ax, y - 8); ctx.closePath(); ctx.fill();
+  const tube = () => { ctx.beginPath(); ctx.moveTo(sx + 154, sy + 31); ctx.lineTo(ax, sy + 31); ctx.lineTo(ax, y - 30); };
+  const head = (g: number) => { ctx.beginPath(); ctx.moveTo(ax - 22 - g, y - 40 - g * 0.6); ctx.lineTo(ax + 22 + g, y - 40 - g * 0.6); ctx.lineTo(ax, y - 8 + g); ctx.closePath(); };
+  // (its glow in two steps, the tube, the hot line down its middle)
+  if (lit) for (const [lw, a] of [[20, 0.15], [14, 0.25]] as const) { ctx.strokeStyle = `rgba(244, 114, 182, ${a})`; ctx.lineWidth = lw; tube(); ctx.stroke(); ctx.fillStyle = ctx.strokeStyle; head(lw / 3); ctx.fill(); }
+  ctx.strokeStyle = INK; ctx.lineWidth = 10; tube(); ctx.stroke();
+  ctx.strokeStyle = lit ? '#F472B6' : '#6B213F'; ctx.lineWidth = 8; tube(); ctx.stroke();
+  ink(ctx, () => { ctx.moveTo(ax - 22, y - 40); ctx.lineTo(ax + 22, y - 40); ctx.lineTo(ax, y - 8); ctx.closePath(); }, lit ? '#F472B6' : '#6B213F', 1.5);
+  ctx.strokeStyle = lit ? '#FDF2F8' : '#9D3D68'; ctx.lineWidth = 2; tube(); ctx.stroke();
   ctx.restore();
+};
+
+/** A wall left standing, broken off along `pts` (a polygon down to `base`): siding, an ink line round, the broken top lit, the green stuff's line up it and the wall eaten away under. */
+const wallStump = (ctx: Ctx, pts: [number, number][], color: string, base: number) => {
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys);
+  const path = () => { ctx.moveTo(pts[0][0], pts[0][1]); for (const p of pts.slice(1)) ctx.lineTo(p[0], p[1]); ctx.closePath(); };
+  ctx.save(); ctx.beginPath(); path(); ctx.clip();
+  ctx.fillStyle = color; ctx.fillRect(x0, y0, x1 - x0, base - y0);
+  checker(ctx, x0 + (x1 - x0) * 0.65, y0, (x1 - x0) * 0.35, base - y0, 'rgba(0, 0, 0, 0.18)');
+  ctx.fillStyle = 'rgba(0,0,0,0.15)'; for (let yy = y0; yy < base; yy += 9) ctx.fillRect(x0, yy, x1 - x0, 1);
+  ctx.fillStyle = 'rgba(255,255,255,0.08)'; for (let yy = y0 + 1; yy < base; yy += 9) ctx.fillRect(x0, yy, x1 - x0, 1);
+  ctx.fillStyle = 'rgba(92, 104, 36, 0.4)'; ctx.fillRect(x0, base - 60, x1 - x0, 60);
+  checker(ctx, x0, base - 64, x1 - x0, 4, 'rgba(92, 104, 36, 0.45)');
+  ctx.fillStyle = 'rgba(190, 242, 100, 0.35)'; ctx.fillRect(x0, base - 60, x1 - x0, 1);
+  checker(ctx, x0, base - 40, x1 - x0, 40, 'rgba(26, 30, 8, 0.35)');
+  ctx.restore();
+  ctx.beginPath(); path(); ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.stroke();
+  // (the broken top's edge: the studs and the plaster showing)
+  ctx.strokeStyle = '#D6D3C4'; ctx.lineWidth = 1; ctx.beginPath();
+  for (let i = 1; i < pts.length - 2; i++) { ctx.moveTo(pts[i][0] + 1, pts[i][1] + 2); ctx.lineTo(pts[i + 1][0] + 1, pts[i + 1][1] + 2); }
+  ctx.stroke();
 };
 
 /** Somebody else's house on the block, after: stumps of wall, a doorframe on its own, a tub or a fridge, a skeleton. */
 const wreckedHouse = (ctx: Ctx, x: number, y: number, seed: number, f: number) => {
-  ctx.fillStyle = HOUSE_COLORS[seed % HOUSE_COLORS.length];
-  ctx.beginPath(); ctx.moveTo(x - 140, y); ctx.lineTo(x - 140, y - 70 - seed * 8); ctx.lineTo(x - 110, y - 40); ctx.lineTo(x - 90, y - 90); ctx.lineTo(x - 60, y - 30); ctx.lineTo(x - 60, y); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(x + 80, y); ctx.lineTo(x + 80, y - 50); ctx.lineTo(x + 110, y - 100 + seed * 6); ctx.lineTo(x + 140, y - 40); ctx.lineTo(x + 140, y); ctx.fill();
-  ctx.fillStyle = 'rgba(92, 104, 36, 0.35)'; ctx.fillRect(x - 140, y - 50, 80, 50); ctx.fillRect(x + 80, y - 50, 60, 50);
+  const c = HOUSE_COLORS[seed % HOUSE_COLORS.length];
+  wallStump(ctx, [[x - 140, y], [x - 140, y - 70 - seed * 8], [x - 110, y - 40], [x - 90, y - 90], [x - 60, y - 30], [x - 60, y]], c, y);
+  wallStump(ctx, [[x + 80, y], [x + 80, y - 50], [x + 110, y - 100 + seed * 6], [x + 140, y - 40], [x + 140, y]], c, y);
   // The doorframe, standing on its own
-  ctx.fillStyle = '#5B3A29'; ctx.fillRect(x - 24, y - 90, 6, 90); ctx.fillRect(x + 18, y - 90, 6, 90); ctx.fillRect(x - 24, y - 94, 48, 6);
+  shaded(ctx, () => ctx.rect(x - 24, y - 90, 6, 90), '#5B3A29', x - 24, y - 90, 6, 90, 1);
+  shaded(ctx, () => ctx.rect(x + 18, y - 90, 6, 90), '#5B3A29', x + 18, y - 90, 6, 90, 1);
+  shadedTop(ctx, () => ctx.rect(x - 24, y - 94, 48, 6), '#5B3A29', x - 24, y - 94, 48, 6, 1);
   // A bathtub, or a fridge on its side
-  if (seed % 2) { ctx.fillStyle = '#F5F5F4'; ctx.fillRect(x + 30, y - 22, 44, 22); ctx.fillStyle = '#D6D3D1'; ctx.fillRect(x + 30, y - 22, 44, 4); }
-  else { ctx.fillStyle = '#E7E5E4'; ctx.fillRect(x + 20, y - 26, 60, 26); ctx.fillStyle = '#A8A29E'; ctx.fillRect(x + 64, y - 22, 3, 14); }
+  if (seed % 2) {
+    shadedTop(ctx, () => ctx.roundRect(x + 30, y - 22, 44, 22, [8, 8, 2, 2]), '#F5F5F4', x + 30, y - 22, 44, 22, 1.2);
+    ctx.fillStyle = '#D6D3D1'; ctx.fillRect(x + 32, y - 21, 40, 3);
+    for (const fx of [x + 34, x + 66]) ink(ctx, () => ctx.rect(fx, y - 3, 4, 3), '#A8A29E', 0.8); // (claw feet)
+    ink(ctx, () => ctx.rect(x + 70, y - 28, 3, 7), '#A8A29E', 0.8);
+  } else {
+    shadedTop(ctx, () => ctx.roundRect(x + 20, y - 26, 60, 26, 3), '#E7E5E4', x + 20, y - 26, 60, 26, 1.2);
+    ctx.fillStyle = '#A8A29E'; ctx.fillRect(x + 48, y - 25, 1, 24);
+    ink(ctx, () => ctx.rect(x + 64, y - 22, 3, 14), '#A8A29E', 0.8);
+    checker(ctx, x + 22, y - 10, 56, 8, 'rgba(146, 64, 14, 0.4)');
+  }
   // Whoever lived there, sat up against what's left
   skeleton(ctx, x - 90, y, 0.55);
   // Roof shingles and bricks about
-  ctx.fillStyle = '#44403C'; for (let i = 0; i < 6; i++) ctx.fillRect(x - 120 + i * 40 + ((i * 13) % 11), y - 4 - (i % 2) * 3, 14, 5);
+  for (let i = 0; i < 6; i++) { const bx = x - 120 + i * 40 + ((i * 13) % 11), by = y - 4 - (i % 2) * 3, c2 = i % 3 ? '#44403C' : '#7C4A3A'; ink(ctx, () => ctx.rect(bx, by, 14, 5), c2, 0.8); ctx.fillStyle = lite(c2, 0.25); ctx.fillRect(bx + 1, by + 0.5, 12, 1); }
   void f;
 };
 
@@ -800,9 +982,9 @@ export const drawBlast = (ctx: Ctx, state: GameState, rt: TommyRuntime) => {
   if (es.phase === 'suit' && es.t > 50) {
     // The tell: something coming up under him
     const k = clamp01((es.t - 50) / 50);
-    const g = ctx.createRadialGradient(x, floor, 4, x, floor, 30 + k * 60);
-    g.addColorStop(0, `rgba(217, 249, 157, ${0.8 * k})`); g.addColorStop(1, 'rgba(101, 163, 13, 0)');
-    ctx.fillStyle = g; ctx.fillRect(x - 100, floor - 90, 200, 110);
+    ctx.save(); ctx.beginPath(); ctx.rect(x - 100, floor - 90, 200, 110); ctx.clip();
+    steppedGlow(ctx, x, floor, 30 + k * 60, '#D9F99D', 0.6 * k, 0.05 * k, 4);
+    ctx.restore();
     ctx.strokeStyle = `rgba(190, 242, 100, ${0.5 + k * 0.5})`; ctx.lineWidth = 2;
     for (let i = 0; i < 5; i++) {
       const a = (i / 5) * Math.PI - Math.PI, len = 10 + k * 40 * (0.6 + hash(i) * 0.6);
@@ -821,9 +1003,7 @@ export const drawBlast = (ctx: Ctx, state: GameState, rt: TommyRuntime) => {
   // (never below nothing: a negative size to draw an ellipse at throws, and that stops the whole game drawing)
   const w = Math.max(2, Math.min(1, t / 5) * 64 + Math.sin(f * 0.9) * 4);
   // A glow round it
-  const glow = ctx.createLinearGradient(x - w * 2.2, 0, x + w * 2.2, 0);
-  glow.addColorStop(0, 'rgba(163, 230, 53, 0)'); glow.addColorStop(0.5, 'rgba(163, 230, 53, 0.35)'); glow.addColorStop(1, 'rgba(163, 230, 53, 0)');
-  ctx.fillStyle = glow; ctx.fillRect(x - w * 2.2, top, w * 4.4, floor - top);
+  for (const [k, a] of [[2.2, 0.1], [1.7, 0.12], [1.3, 0.14]] as const) { ctx.fillStyle = `rgba(163, 230, 53, ${a})`; ctx.fillRect(x - w * k, top, w * k * 2, floor - top); }
   // The column: wobbling edges, dark outside, bright inside
   const column = (half: number, color: string, phase: number) => {
     ctx.fillStyle = color;
@@ -832,6 +1012,7 @@ export const drawBlast = (ctx: Ctx, state: GameState, rt: TommyRuntime) => {
     for (let y = top; y <= floor; y += 16) ctx.lineTo(x + half + Math.sin(y * 0.045 - f * 0.7 + phase) * half * 0.18, y);
     ctx.closePath(); ctx.fill();
   };
+  column(w + 2, '#1A2E05', 0);
   column(w, '#3F6212', 0);
   column(w * 0.72, '#65A30D', 1.3);
   column(w * 0.4, '#BEF264', 2.1);
