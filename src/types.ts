@@ -396,6 +396,9 @@ export interface Enemy extends Entity {
   truckPasses?: number;
   /** How many times it's plowed through each end of it, and the frame it last did (the holes get bigger every time). */
   leftThroughs?: number; rightThroughs?: number; leftThroughAt?: number; rightThroughAt?: number;
+  /** How far into the place each run of the truck got (its front, world x): a run that's wrecked or crashed short of
+   * the far end only did for what it got to. */
+  truckReach?: number[];
   /** This run of the truck's already through that end. */
   truckThroughLeft?: boolean; truckThroughRight?: boolean;
   /** Standing in Meathead's sludge: frames toward the next tick, and the last frame it ticked. */

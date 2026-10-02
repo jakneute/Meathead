@@ -43,10 +43,9 @@ export const drawCustomBossArena = (
         const d = state ? state.enemies.find(e => e.type === 'boss') ?? state.deadBoss ?? undefined : undefined;
         // (each thing in the place goes when the truck gets to it on its way through, not when it sets off: the runs
         // that are over, and this one too wherever its front's already been)
-        const active = !!d?.truckActive && d.truckX !== undefined;
-        const front = active ? d!.truckX! + 350 : -1e9;
-        const done = (d?.truckPasses ?? 0) - (active ? 1 : 0);
-        const runsAt = (x: number) => done + (active && front >= x ? 1 : 0);
+        // (counted by how far each run actually got: a truck wrecked halfway leaves the far half as it was)
+        const reach = d?.truckReach ?? [];
+        const runsAt = (x: number) => { let n = 0; for (const r of reach) if (r >= x) n++; return n; };
         drawDaleArena(ctx, arenaLeft, arenaRight, arenaW, ceilingY, groundY, frame, runsAt);
         drawDaleRuin(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, Math.min(1, runsAt(arenaLeft + arenaW / 2) / DALE_RUIN_PASSES));
         drawDaleDisarray(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, runsAt);
@@ -721,7 +720,7 @@ const DALE_FALL = { gondola0: 4, gondola1: 5, signs: 4, portrait: 4, bp: 3, wet:
 const daleTilt = (n: number, fallsAt: number) => (n >= fallsAt ? -1 : Math.min(1, Math.max(0, n - (fallsAt - 3)) / 2));
 
 const drawDaleDisarray = (ctx: CanvasRenderingContext2D, left: number, right: number, top: number, bottom: number, frame: number, runsAt: (x: number) => number) => {
-  if (runsAt(right + 400) <= 0) return;
+  if (runsAt(left) <= 0) return;
   ctx.save();
   const stock = ['#EF4444', '#F97316', '#FACC15', '#22C55E', '#3B82F6', '#A855F7', '#F8FAFC', '#EC4899'];
   // A shelving unit down on its side across the floor, its stock spilled out in front of it

@@ -56,6 +56,7 @@ const sendTruck = (ctx: FrameContext, boss: Enemy) => {
   boss.truckActive = true;
   boss.truckPasses = (boss.truckPasses ?? 0) + 1;
   boss.truckThroughLeft = false; boss.truckThroughRight = false;
+  (boss.truckReach ??= []).push(-Infinity);
   ctx.bossHelpers.playGunSound('truckhorn');
 };
 
@@ -65,6 +66,8 @@ const driveTruck = (ctx: FrameContext, boss: Enemy) => {
   const { player } = state;
   boss.truckX! += DALE_TRUCK_SPEED;
   const truck = { x: boss.truckX!, y: TRUCK.y, w: TRUCK.w, h: TRUCK.h };
+  // (how far this run's got: what it's wrecked so far, and all it'll ever wreck if it doesn't make it out the far end)
+  if (boss.truckReach?.length) boss.truckReach[boss.truckReach.length - 1] = truck.x + truck.w;
   // The first time through, it takes the pharmacy's front doors out on the way in, and the back wall on the way out
   // ...and every time after, it takes more of each end with it on the way through
   if (!boss.truckThroughLeft && truck.x + truck.w >= ARENA_LEFT + 10) { boss.truckThroughLeft = true; if (boss.leftWallDownAt === undefined) smashWall(ctx, boss, 'left'); plowThrough(ctx, boss, 'left'); }
