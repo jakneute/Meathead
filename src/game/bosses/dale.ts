@@ -292,6 +292,7 @@ const throwCocaine = (ctx: FrameContext, boss: Enemy) => {
     vy = -8 - Math.random() * 4;
   }
   ctx.bossHelpers.addProjectile(enemyProjectile(`coke-${Date.now()}`, boss.pos.x, boss.pos.y + 20, vx, vy, 25, 25, 22, { isCocaine: true }));
+  ctx.bossHelpers.playGunSound('whoosh');
 };
 
 /** Bounces wall to wall, then goes home. */

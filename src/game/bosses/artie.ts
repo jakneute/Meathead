@@ -8,6 +8,7 @@ import { Enemy, Icicle, Rect } from '../../types';
 import { ARENA_LEFT, ARENA_RIGHT, PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y } from '../../constants';
 import type { FrameContext } from '../core/context';
 import { BossDef, ARENA_MID, BOSS_WALL_GAP, CEILING_Y, FLOOR_Y, enemyProjectile, hurtPlayer, midX } from './shared';
+import { playSound } from '../platform/audio';
 
 const ICE_BLOCK_SIZE = 60;
 // The block is aimed at Meathead when it's thrown and flies straight: slow off the hand,
@@ -122,6 +123,9 @@ const throwIceBlock = (ctx: FrameContext, boss: Enemy, id: string) => {
   const len = Math.hypot(dx, dy) || 1;
   ctx.bossHelpers.addProjectile(enemyProjectile(`${id}-${Date.now()}`, x, y, (dx / len) * ICE_BLOCK_START_SPEED, (dy / len) * ICE_BLOCK_START_SPEED,
     ICE_BLOCK_SIZE, ICE_BLOCK_SIZE, ICE_BLOCK_DAMAGE, { isIce: true, life: ICE_BLOCK_LIFE }));
+  // (a grunt of a heave and the block whistling off)
+  ctx.bossHelpers.playGunSound('whoosh');
+  playSound('clink', 0.5, -4);
 };
 
 /**

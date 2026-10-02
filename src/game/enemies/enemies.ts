@@ -340,6 +340,8 @@ const fireEnemyBullet = (ctx: FrameContext, e: Enemy, dir: number, from?: { x: n
   const y = from ? from.y : look ? e.pos.y + e.height - 48 : e.pos.y + 10;
   ctx.state.projectiles.push({ id: `ep-${Date.now()}-${Math.random()}`, pos: { x, y }, vel: { x: dir * (look ? shotSpeed(look, e.kind) : 7), y: 0 }, width: size, height: size, health: 1, maxHealth: 1, type: 'projectile', damage: ENEMY_BULLET_DAMAGE * weakShot(e.kind), owner: 'enemy', shooterKind: e.kind ?? 'enemy', shot: look });
   if (look) ctx.fx.playGunSound('egun', 1, look === 'slug' ? -5 : -3);
+  // (a plain shot from something without a gun of its own: a higher, thinner zap of one)
+  else ctx.fx.playGunSound('egun', 0.7, 4);
   // (the flash out the end of it)
   if (look) for (let i = 0; i < 4; i++) ctx.state.particles.push({ pos: { x: x + size / 2, y: y + size / 2 }, vel: { x: dir * (1 + Math.random() * 2), y: (Math.random() - 0.5) * 1.5 }, life: 6, color: look === 'cryo' ? '#E0F2FE' : look === 'flare' ? '#FDBA74' : '#FEF08A', size: 2 + Math.random() * 3 });
 };

@@ -124,6 +124,8 @@ export const updateVolcanoes = (ctx: FrameContext) => {
       const velX = v.type === 'wall' ? (v.pos.x < BOSS_DOOR_X + 400 ? 9 : -9) : (Math.random() - 0.5) * 4;
       const velY = v.type === 'ground' ? -9 : (Math.random() - 0.5) * 7;
       state.projectiles.push({ id: `magma-${Date.now()}-${Math.random()}`, pos: { x: tip.x - 7, y: tip.y - 7 }, vel: { x: velX, y: velY }, width: 14, height: 14, health: 1, maxHealth: 1, type: 'projectile', damage: 22, owner: 'enemy' });
+      // (a gloopy spit of it out of the crater: soft, it's going all the time)
+      if (state.frame % 24 === 0) ctx.fx.playGunSound('splat', 0.35, -6);
     }
     return v.life > 0;
   });

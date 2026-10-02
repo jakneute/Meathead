@@ -518,6 +518,7 @@ const truckThrow = (state: GameState, e: Enemy) => {
       const t = 36;
       const tx = p.pos.x + p.width / 2 + p.vel.x * t, ty = p.pos.y + p.height / 2;
       const vx = (tx - x) / t, vy = (ty - y - 0.5 * 0.35 * t * t) / t;
+      playSound('whoosh', 0.6, -3);
       state.projectiles.push({ id: `lp-${state.frame}-${Math.random()}`, pos: { x: x - 9, y: y - 8 }, vel: { x: vx, y: vy }, width: 18, height: 16, health: 1, maxHealth: 1, type: 'projectile', damage: CHIP, owner: 'enemy', shooterKind: 'pickup', thrown: 'lunchpail', item: Math.floor(Math.random() * 5), rotation: 0 });
     }
     return;

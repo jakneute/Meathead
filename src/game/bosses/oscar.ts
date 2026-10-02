@@ -347,6 +347,8 @@ const flickCigarette = (ctx: FrameContext, boss: Enemy) => {
     type: 'projectile', damage: 0, owner: 'enemy', isCigarette: true, life: T + 40, zapFrames: 0,
   });
   boss.hasCigarette = false;
+  // (flicked: a little flick of a whoosh)
+  ctx.fx.playGunSound('whoosh', 0.4, 6);
 };
 
 // ---------------------------------------------------------------------------

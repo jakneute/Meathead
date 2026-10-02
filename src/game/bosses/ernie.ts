@@ -92,6 +92,8 @@ const rollBoulder = (ctx: FrameContext, boss: Enemy, dir: number, id: string) =>
   const speed = BOULDER_SPEED + 1 + pace(boss) * ROLL_SPEED_RAMP;
   ctx.bossHelpers.addProjectile(enemyProjectile(`${id}-${Date.now()}`, insideArena(midX(boss) - ERNIE_BOULDER_SIZE / 2), FLOOR_Y - ERNIE_BOULDER_SIZE,
     dir * speed, 0, ERNIE_BOULDER_SIZE, ERNIE_BOULDER_SIZE, ROLLED_BOULDER_DAMAGE, { isBoulder: true }));
+  // (the grind of it setting off along the floor)
+  playSound('crunch', 0.7, -7);
 };
 
 /**

@@ -141,4 +141,6 @@ const throwItem = (state: GameState, e: Enemy) => {
     // (it'll knock him clean off his jump: hard, the way it was going)
     knock: { x: Math.sign(vx || 1) * 9, y: -5 },
   });
+  // (heaved out of the window: a whoosh as it goes)
+  playSound('whoosh', 0.55, -2);
 };
