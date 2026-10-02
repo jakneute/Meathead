@@ -700,7 +700,7 @@ const drawHectorArena = (
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 
 /** How many runs of the truck through the place it takes to leave it a smoldering ruin. */
-const DALE_RUIN_PASSES = 8;
+const DALE_RUIN_PASSES = 6;
 
 /**
  * Dale's pharmacy, coming apart a little more every time his truck comes through it (looks only: the fight's the
@@ -931,23 +931,12 @@ const drawDaleWalls = (ctx: CanvasRenderingContext2D, left: number, right: numbe
       // Gone, and a lot more than the doors: the truck's taken the front of the place out to well over head height,
       // a ragged hole up the wall with the night outside, brick showing round its edges, chunks of it still coming
       // down after, and the glass and the wall in a heap across the floor
-      const t = frame - down;
-      const hy = bottom - 330;
-      // (the hole: through the front and on into the side of the shop, ragged all round)
-      const W = 130;
-      const edge = (y: number) => lx + 40 + (W - 40) * Math.min(1, (y - hy) / 140) - hash(Math.floor(y / 14) + 70) * 22;
-      ctx.save();
-      ctx.beginPath(); ctx.moveTo(lx, hy);
-      for (let k = 0; k <= 10; k++) ctx.lineTo(lx + k * 4, hy + 6 + hash(k + 60) * 26);
-      for (let y = hy + 20; y <= bottom; y += 14) ctx.lineTo(edge(y), y);
-      ctx.lineTo(lx, bottom); ctx.closePath(); ctx.clip();
-      outside(lx, W + 10, hy);
-      ctx.restore();
-      // (brick in the torn edges: along the top and down the side of it)
-      ctx.fillStyle = '#B91C1C'; for (let k = 0; k < 9; k++) ctx.fillRect(lx + (k % 3) * 13, hy + 4 + Math.floor(k / 3) * 7 + (k % 2) * 3, 11, 5);
-      ctx.fillStyle = '#991B1B';
-      for (let y = hy + 24; y < bottom - 20; y += 14) { const ex = edge(y); ctx.fillRect(ex - 2, y, 10, 5); if (hash(y) > 0.5) ctx.fillRect(ex + 4, y + 6, 8, 4); }
-      ctx.fillStyle = '#D6D3D1'; for (let y = hy + 30; y < bottom - 30; y += 28) { const ex = edge(y); ctx.fillRect(ex + 6, y - 3, 6, 10); }
+      const t = frame - (boss.leftThroughAt ?? down);
+      const n = Math.max(1, boss.leftThroughs ?? 1);
+      // (bigger every time it's come through: higher up the wall, further into the shop)
+      const hy = bottom - Math.min(bottom - top - 6, 330 + (n - 1) * 45);
+      const W = Math.min(440, 130 + (n - 1) * 70);
+      drawBreach(ctx, lx, W, hy, top, bottom, 1, n, outside);
       // (the door frame, bent over in the hole, a few teeth of glass still in it)
       ctx.fillStyle = '#9CA3AF';
       ctx.save(); ctx.translate(lx + 34, dy - 20); ctx.rotate(0.5); ctx.fillRect(0, 0, 5, 110); ctx.restore();
@@ -962,10 +951,7 @@ const drawDaleWalls = (ctx: CanvasRenderingContext2D, left: number, right: numbe
         ctx.save(); ctx.translate(lx + 8 + (k % 3) * 11 + u * 0.6, y); if (y < bottom - 10) ctx.rotate(u * 0.15);
         ctx.fillStyle = k % 2 ? '#B91C1C' : '#D6D3D1'; ctx.fillRect(-6, -4, 12, 9); ctx.restore();
       }
-      // (the heap: plaster, brick, glass, across the floor into the room)
-      ctx.fillStyle = '#78716C'; for (let k = 0; k < 20; k++) ctx.fillRect(lx - 6 + k * 9, bottom - 8 - (k % 3) * 4 - (k < 10 ? 8 : 0), 10, 8 + (k < 10 ? 8 : 0));
-      ctx.fillStyle = '#D6D3D1'; for (let k = 0; k < 14; k++) ctx.fillRect(lx + k * 11, bottom - 20 - (k % 2) * 6 - (k < 7 ? 10 : 0), 9, 6);
-      ctx.fillStyle = '#B91C1C'; for (let k = 0; k < 11; k++) ctx.fillRect(lx + 6 + k * 13, bottom - 16 - (k % 2) * 5 - (k < 5 ? 6 : 0), 9, 5);
+      // (glass glittering in the heap)
       ctx.fillStyle = 'rgba(191, 219, 254, 0.8)'; for (let k = 0; k < 12; k++) ctx.fillRect(lx + 20 + k * 11, bottom - 4 - (k % 2) * 2, 4, 2);
       burst(ctx, t, lx + 20, dy + 90, 1, bottom, 'glass');
       burst(ctx, t - 3, lx + 20, hy + 120, 1, bottom, 'brick');
@@ -974,7 +960,6 @@ const drawDaleWalls = (ctx: CanvasRenderingContext2D, left: number, right: numbe
   }
   // --- The back wall (the truck coming at it: it bulges and cracks just before)
   const down = boss.rightWallDownAt;
-  const hy = bottom - 190;
   if (down === undefined) {
     const front = boss.truckActive && boss.truckX !== undefined ? boss.truckX + 350 : -1e9;
     const k = Math.max(0, Math.min(1, (front - (rx - 110)) / 110));
@@ -991,17 +976,53 @@ const drawDaleWalls = (ctx: CanvasRenderingContext2D, left: number, right: numbe
     }
     ctx.restore();
   } else {
-    // A ragged hole right through it, the night outside, bricks showing in the edges, a pile of it along the bottom
-    ctx.fillStyle = '#E7E5E4'; ctx.fillRect(rx, top, 40, hy - top + 10);
-    ctx.fillStyle = '#A8A29E'; ctx.fillRect(rx, top, 6, hy - top + 10);
-    outside(rx, 40, hy);
-    ctx.fillStyle = '#B91C1C';
-    for (let k = 0; k < 7; k++) ctx.fillRect(rx + (k % 3) * 12, hy - 4 + (k % 2) * 6 + Math.floor(k / 3) * 3, 11, 5);
-    ctx.fillStyle = '#E7E5E4';
-    ctx.beginPath(); ctx.moveTo(rx, hy); for (let k = 0; k <= 8; k++) ctx.lineTo(rx + k * 5, hy + 6 + hash(k + 40) * 16); ctx.lineTo(rx + 40, hy); ctx.fill();
-    ctx.fillStyle = '#78716C'; for (let k = 0; k < 9; k++) ctx.fillRect(rx - 26 + k * 9, bottom - 8 - (k % 3) * 4, 10, 8);
-    ctx.fillStyle = '#B91C1C'; for (let k = 0; k < 5; k++) ctx.fillRect(rx - 20 + k * 13, bottom - 16 - (k % 2) * 5, 9, 5);
-    burst(ctx, frame - down, rx + 20, hy + 90, 1, bottom, 'brick');
+    // A ragged hole right through it, bigger every time the truck's been out through it, the night outside, brick in
+    // its edges, the wall and ceiling over it coming down after, a heap of it across the floor
+    const t = frame - (boss.rightThroughAt ?? down);
+    const n = Math.max(1, boss.rightThroughs ?? 1);
+    const ry = bottom - Math.min(bottom - top - 6, 190 + (n - 1) * 55);
+    const RW = Math.min(440, 50 + (n - 1) * 75);
+    ctx.fillStyle = '#E7E5E4'; ctx.fillRect(rx, top, 40, bottom - top);
+    ctx.fillStyle = '#A8A29E'; ctx.fillRect(rx, top, 6, bottom - top);
+    drawBreach(ctx, rx + 40, RW, ry, top, bottom, -1, n, outside);
+    burst(ctx, t, rx + 20, ry + 90, -1, bottom, 'brick');
+    burst(ctx, t - 4, rx - 30, ry + 150, -1, bottom, 'brick');
+  }
+};
+
+/**
+ * A hole the truck's torn through an end of the shop: from the wall (`edgeX`, the outside face) in toward the middle
+ * (`dir` +1 from the left, -1 from the right), `w` across at the floor and up to `hy`, ragged all round, the night
+ * outside through it, brick in its torn edges; and the wall, plaster, shelving and glass of it in a heap across the
+ * floor, more of it the more times (`n`) it's been through.
+ */
+const drawBreach = (ctx: CanvasRenderingContext2D, edgeX: number, w: number, hy: number, top: number, bottom: number, dir: number, n: number,
+  outside: (x: number, w: number, y1: number) => void) => {
+  const X = (d: number) => edgeX + dir * d;
+  const reachAt = (y: number) => 40 + (w - 40) * Math.min(1, (y - hy) / 160) - hash(Math.floor(y / 14) + 70 + n) * 26;
+  ctx.save();
+  ctx.beginPath(); ctx.moveTo(X(0), hy);
+  for (let k = 0; k <= 10; k++) ctx.lineTo(X(k * 4), hy + 6 + hash(k + 60 + n) * 26);
+  for (let y = hy + 20; y <= bottom; y += 14) ctx.lineTo(X(reachAt(y)), y);
+  ctx.lineTo(X(0), bottom); ctx.closePath(); ctx.clip();
+  outside(Math.min(X(0), X(w + 10)), w + 10, hy);
+  ctx.restore();
+  // (brick in the torn edges)
+  ctx.fillStyle = '#B91C1C'; for (let k = 0; k < 9; k++) ctx.fillRect(Math.min(X((k % 3) * 13), X((k % 3) * 13 + 11)), hy + 4 + Math.floor(k / 3) * 7 + (k % 2) * 3, 11, 5);
+  ctx.fillStyle = '#991B1B';
+  for (let y = hy + 24; y < bottom - 20; y += 14) { const ex = X(reachAt(y)); ctx.fillRect(ex - 2, y, 10, 5); if (hash(y + n) > 0.5) ctx.fillRect(ex + dir * 4, y + 6, 8, 4); }
+  ctx.fillStyle = '#D6D3D1'; for (let y = hy + 30; y < bottom - 30; y += 28) { const ex = X(reachAt(y)); ctx.fillRect(ex + dir * 6, y - 3, 6, 10); }
+  // (the heap across the floor, deeper and wider every run)
+  const heap = Math.min(w + 60, 120 + n * 50);
+  ctx.fillStyle = '#78716C'; for (let d = 0; d < heap; d += 9) { const hgt = 8 + (1 - d / heap) * (6 + n * 4) + (Math.floor(d / 9) % 3) * 3; ctx.fillRect(Math.min(X(d), X(d + 10)), bottom - hgt, 10, hgt); }
+  ctx.fillStyle = '#D6D3D1'; for (let d = 4; d < heap; d += 11) ctx.fillRect(Math.min(X(d), X(d + 9)), bottom - 12 - (1 - d / heap) * (4 + n * 4) - (Math.floor(d / 11) % 2) * 5, 9, 6);
+  ctx.fillStyle = '#B91C1C'; for (let d = 8; d < heap; d += 13) ctx.fillRect(Math.min(X(d), X(d + 9)), bottom - 10 - (1 - d / heap) * (3 + n * 3) - (Math.floor(d / 13) % 2) * 4, 9, 5);
+  // (a toppled shelf and pills spilled, once it's been through a few times)
+  if (n >= 3) {
+    ctx.save(); ctx.translate(X(w * 0.6), bottom - 14); ctx.rotate(dir * 0.25);
+    ctx.fillStyle = '#E7E5E4'; ctx.fillRect(-50, -10, 100, 12); ctx.fillStyle = '#A8A29E'; ctx.fillRect(-50, 0, 100, 3);
+    ctx.restore();
+    ctx.fillStyle = '#F97316'; for (let k = 0; k < 10; k++) ctx.fillRect(X(w * 0.4 + k * 9), bottom - 4 - (k % 2) * 2, 4, 3);
   }
 };
 

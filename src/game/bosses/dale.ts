@@ -7,6 +7,7 @@
 // blows its tires so it crashes into Dale himself. Either way, no shipment
 // that round.
 
+import { playSound } from '../platform/audio';
 import { Enemy, Projectile } from '../../types';
 import {
   ARENA_LEFT, ARENA_RIGHT, BOSS_DOOR_X, STAGE_WIDTH, DALE_TRUCK_SPEED, DALE_SPEED_WINDUP, DALE_TRUCK_DAMAGE, DALE_PUSHBACK_VEL,
@@ -54,6 +55,7 @@ const sendTruck = (ctx: FrameContext, boss: Enemy) => {
   boss.truckX = TRUCK.startX;
   boss.truckActive = true;
   boss.truckPasses = (boss.truckPasses ?? 0) + 1;
+  boss.truckThroughLeft = false; boss.truckThroughRight = false;
   ctx.bossHelpers.playGunSound('truckhorn');
 };
 
@@ -64,8 +66,9 @@ const driveTruck = (ctx: FrameContext, boss: Enemy) => {
   boss.truckX! += DALE_TRUCK_SPEED;
   const truck = { x: boss.truckX!, y: TRUCK.y, w: TRUCK.w, h: TRUCK.h };
   // The first time through, it takes the pharmacy's front doors out on the way in, and the back wall on the way out
-  if (boss.leftWallDownAt === undefined && truck.x + truck.w >= ARENA_LEFT - 30) smashWall(ctx, boss, 'left');
-  if (boss.rightWallDownAt === undefined && !boss.truckCrashing && truck.x + truck.w >= ARENA_RIGHT + 10) smashWall(ctx, boss, 'right');
+  // ...and every time after, it takes more of each end with it on the way through
+  if (!boss.truckThroughLeft && truck.x + truck.w >= ARENA_LEFT - 30) { boss.truckThroughLeft = true; if (boss.leftWallDownAt === undefined) smashWall(ctx, boss, 'left'); plowThrough(ctx, boss, 'left'); }
+  if (!boss.truckThroughRight && !boss.truckCrashing && truck.x + truck.w >= ARENA_RIGHT + 10) { boss.truckThroughRight = true; if (boss.rightWallDownAt === undefined) smashWall(ctx, boss, 'right'); plowThrough(ctx, boss, 'right'); }
   const hits = (e: { pos: { x: number, y: number }, width: number, height: number }) =>
     e.pos.x < truck.x + truck.w && e.pos.x + e.width > truck.x && e.pos.y < truck.y + truck.h && e.pos.y + e.height > truck.y;
 
@@ -134,6 +137,28 @@ const smashWall = (ctx: FrameContext, boss: Enemy, side: 'left' | 'right') => {
   }
   fx.spawnExplosion({ x, y: FLOOR_Y - 30 }, '#A8A29E', 30, 0, 18);
   shakeScreen(state, 26, 12);
+};
+
+/**
+ * The truck plowing through an end of the place (every run, both ends): the hole's bigger every time (see the arena's
+ * drawing), and it goes with a big rumble: the screen shaking harder the more of it there is to come down, the
+ * crash, the rumble after, the wall and the ceiling over it coming down in chunks.
+ */
+const plowThrough = (ctx: FrameContext, boss: Enemy, side: 'left' | 'right') => {
+  const { state, fx } = ctx;
+  const n = side === 'left' ? (boss.leftThroughs = (boss.leftThroughs ?? 0) + 1) : (boss.rightThroughs = (boss.rightThroughs ?? 0) + 1);
+  if (side === 'left') boss.leftThroughAt = state.frame; else boss.rightThroughAt = state.frame;
+  const x = side === 'left' ? ARENA_LEFT + 10 : ARENA_RIGHT - 10;
+  shakeScreen(state, 30 + n * 6, Math.min(22, 10 + n * 2));
+  fx.playGunSound('crash');
+  playSound('rumble', 1, -6);
+  if (n > 1) playSound('slam', 0.8, -4);
+  const dir = side === 'left' ? 1 : -1;
+  for (let i = 0; i < 18 + n * 6; i++) {
+    state.particles.push({ pos: { x: x + dir * Math.random() * (40 + n * 30), y: 110 + Math.random() * 60 }, vel: { x: dir * Math.random() * 3, y: Math.random() * 2 }, life: 50 + Math.random() * 40, color: ['#E7E5E4', '#A8A29E', '#B91C1C', '#78716C', '#D6D3D1'][i % 5], size: 4 + Math.random() * 8 });
+  }
+  fx.spawnExplosion({ x, y: FLOOR_Y - 40 }, '#A8A29E', 20 + n * 4, 0, 16 + n * 2);
+  fx.spawnExplosion({ x: x + dir * 40, y: FLOOR_Y - 120 }, '#78716C', 14 + n * 3, dir * 4, 14);
 };
 
 /** Meathead's filth shield took the hit: the truck blows up, the shipment's lost, the shield's used up. */

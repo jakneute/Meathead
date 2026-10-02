@@ -392,6 +392,10 @@ export interface Enemy extends Entity {
   rightWallDownAt?: number;
   /** How many times his truck's been through the place (the more, the more of it's wrecked: looks only). */
   truckPasses?: number;
+  /** How many times it's plowed through each end of it, and the frame it last did (the holes get bigger every time). */
+  leftThroughs?: number; rightThroughs?: number; leftThroughAt?: number; rightThroughAt?: number;
+  /** This run of the truck's already through that end. */
+  truckThroughLeft?: boolean; truckThroughRight?: boolean;
   /** Standing in Meathead's sludge: frames toward the next tick, and the last frame it ticked. */
   sludgeDotTimer?: number;
   sludgeDotFrame?: number;

@@ -1518,7 +1518,7 @@ export const DOOR_KICK_LINES: Record<string, string> = {
   'Hector Hurricane': 'RATED FOR HURRICANES. NOT FOR ME.',
   'Toxic Tommy': '...WAS THAT THE DOOR? IS THIS THE LAIR? I THINK THIS IS THE LAIR.',
   'Blackout Barry': 'OW. ...THAT DOOR WAS LIVE.',
-  'Oily Oscar': "NO SMOKING? I DON'T SMOKE.",
+  'Oily Oscar': 'NO SMOKING. IT KILLS. SO DO I.',
   'Drug Trade Dale': 'SIGNED FOR IT. WITH MY FOOT.',
 };
 
