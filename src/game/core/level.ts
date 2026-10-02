@@ -99,8 +99,9 @@ const buildTerrain = (state: GameState, stageId: string | null): Block[] => {
       // (a floorless arena, Tommy's sludge pool, has ground only under the door)
       { x: doorX, y: GROUND_Y, w: arena?.floorless ? DOOR_WIDTH : stageWidth - doorX, h: 50, type: 'ground' },
       { x: doorX, y: 400, w: DOOR_WIDTH, h: 150, type: 'door' },
-      { x: doorX, y: -1000, w: DOOR_WIDTH, h: 1400, type: 'wall' },
-      { x: getArenaRight(stageId), y: 100, w: 40, h: 500, type: 'wall' },
+      { x: doorX, y: arena?.openTop ? -100000 : -1000, w: DOOR_WIDTH, h: arena?.openTop ? 100400 : 1400, type: 'wall' },
+      // (an open-topped arena's walls go up as far as he can: there's no getting over them, and no gap at the top)
+      { x: getArenaRight(stageId), y: arena?.openTop ? -100000 : 100, w: arena?.openTop ? stageWidth - getArenaRight(stageId) + 100 : 40, h: arena?.openTop ? 100600 : 500, type: 'wall' },
     ];
     if (!arena?.openTop) blocks.push({ x: doorX, y: -200, w: stageWidth - doorX, h: 300, type: 'wall' });
     arena?.build?.(state, blocks);

@@ -536,24 +536,28 @@ const drawTommyShaft = (ctx: CanvasRenderingContext2D, state: GameState) => {
   const arenaLeft = ARENA_LEFT;
   const arenaRight = ARENA_RIGHT;
   const arenaW = arenaRight - arenaLeft;
+  // The shaft has no top: it's drawn over whatever of it is in view, however high he's got (and down past the sludge)
+  const v = state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
+  const y0 = Math.min(v.y - 60, -500), y1 = Math.max(v.y + v.h + 60, 800);
 
   // Dark industrial sewer shaft walls
   ctx.fillStyle = '#0a1a0f';
-  ctx.fillRect(arenaLeft, -1200, arenaW, 2000);
+  ctx.fillRect(arenaLeft, y0, arenaW, y1 - y0);
 
-  // Looping brick pattern moving with state.tommyScrollY
+  // The brickwork going by (the shaft rising round him: state.tommyScrollY), wherever in it the view is
   ctx.strokeStyle = '#14301d';
   ctx.lineWidth = 1;
   const rowH = 30;
   const brickW = 60;
   const scrollOffset = state.tommyScrollY % rowH;
-  for (let y = -500 + scrollOffset; y < 650; y += rowH) {
+  const firstRow = Math.floor((y0 - scrollOffset) / rowH) * rowH + scrollOffset;
+  for (let y = firstRow; y < y1; y += rowH) {
     ctx.beginPath();
     ctx.moveTo(arenaLeft, y);
     ctx.lineTo(arenaRight, y);
     ctx.stroke();
-    const rowIdx = Math.floor(y / rowH);
-    const xOffset = (rowIdx % 2) * (brickW / 2);
+    const rowIdx = Math.round((y - scrollOffset) / rowH);
+    const xOffset = (((rowIdx % 2) + 2) % 2) * (brickW / 2);
     for (let x = arenaLeft + xOffset; x < arenaRight; x += brickW) {
       ctx.beginPath();
       ctx.moveTo(x, y);
@@ -562,26 +566,33 @@ const drawTommyShaft = (ctx: CanvasRenderingContext2D, state: GameState) => {
     }
   }
 
-  // Vertical dripping pipes
+  // Vertical dripping pipes, the full height of it (their joints going by with the brickwork)
   const pipeXs = [arenaLeft + 80, arenaLeft + 220, arenaRight - 220, arenaRight - 80];
   pipeXs.forEach((px, pIdx) => {
     ctx.fillStyle = '#1c281e';
-    ctx.fillRect(px, -500, 16, 1150);
+    ctx.fillRect(px, y0, 16, y1 - y0);
     ctx.fillStyle = '#2d4732';
-    ctx.fillRect(px + 3, -500, 4, 1150);
-    // Slime leak dripping down pipes
-    const dripY = ((-500 + state.frame * (3 + pIdx) * 2) % 900) - 200;
-    ctx.fillStyle = '#2ECC71';
-    ctx.beginPath();
-    ctx.arc(px + 8, dripY, 5, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fillRect(px + 3, y0, 4, y1 - y0);
+    ctx.fillStyle = '#14201a';
+    const jOff = state.tommyScrollY % 240;
+    for (let jy = Math.floor((y0 - jOff) / 240) * 240 + jOff; jy < y1; jy += 240) ctx.fillRect(px - 2, jy, 20, 8);
+    // Slime leaking down them
+    const span = 900;
+    for (let d = Math.floor(y0 / span) * span; d < y1; d += span) {
+      const dripY = d + ((state.frame * (3 + pIdx) * 2 + pIdx * 211) % span);
+      ctx.fillStyle = '#2ECC71';
+      ctx.beginPath();
+      ctx.arc(px + 8, dripY, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
   });
 
-  // Biohazard warning stripes on left and right borders
+  // Biohazard warning stripes on left and right borders, the full height
   const drawHazardWall = (wallX: number) => {
     ctx.fillStyle = '#1b241c';
-    ctx.fillRect(wallX, -500, 20, 1150);
-    for (let y = -500 + (state.frame % 30); y < 650; y += 30) {
+    ctx.fillRect(wallX, y0, 20, y1 - y0);
+    const off = state.frame % 30;
+    for (let y = Math.floor((y0 - off) / 30) * 30 + off; y < y1; y += 30) {
       ctx.fillStyle = '#F1C40F';
       ctx.beginPath();
       ctx.moveTo(wallX, y);
