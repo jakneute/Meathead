@@ -38,7 +38,7 @@ import {
   drawOilSlicks, drawOscarFire, drawOscarLaser, drawOscarRocket, drawFlyingCigarette, drawTaserOverload,
 } from './bosses/oscarGear';
 import { drawBlasts } from './blasts';
-import { drawBossDoor } from './bossDoors';
+import { drawBossDoor, drawLairFacade } from './bossDoors';
 
 export interface WorldView {
   status: GameStatus;
@@ -110,7 +110,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
       drawCustomBossArena(wctx, stageId!, state.frame || 0, hurricane ? hurricane.pos.x + hurricane.width / 2 : null, state);
     }
     // (the boss door: over the arena's backdrop, since once it's kicked in it's lying in there)
-    if (!isRing) drawBossDoor(wctx, state, stageId);
+    if (!isRing) { drawLairFacade(wctx, state, stageId); drawBossDoor(wctx, state, stageId); }
     drawBossHazards(wctx, state);
     if (state.bossCorpse) drawBossCorpse(wctx, state.bossCorpse, state.frame);
     if (state.bossFallen) drawBossFallen(wctx, state, stageId);

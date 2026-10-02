@@ -192,6 +192,121 @@ const drawBrokenFrame = (ctx: Ctx, x: number, y: number, w: number, h: number, f
   ctx.restore();
 };
 
+/**
+ * The outside of the lair, from the stage's side: what the boss's place is built into, standing up out of the stage
+ * and running into the wall with the door in it, so the stage's backdrop goes over into the lair through something
+ * that belongs to both rather than stopping dead at a straight wall. Rock (a cliff, a volcano's flank) with a ragged
+ * edge that spreads out toward its foot; masonry; or a building, with its cornices, windows and stains. Lit along
+ * its outer edge, shadow deepening toward the door, a shadow cast on the backdrop and the ground at its foot.
+ */
+interface Facade { kind: 'rock' | 'building' | 'masonry'; base: string; light: string; dark: string; accent?: string }
+const FACADES: Record<string, Facade> = {
+  'Artie Avalanche': { kind: 'rock', base: '#475569', light: '#7A8BA8', dark: '#2B3547', accent: '#E2E8F0' },
+  'Victor Volcano': { kind: 'rock', base: '#292524', light: '#44403C', dark: '#140F0D', accent: '#F97316' },
+  'Ernie Earthquake': { kind: 'masonry', base: '#6B3F2E', light: '#8A5540', dark: '#3B2218' },
+  'Hector Hurricane': { kind: 'building', base: '#8B929C', light: '#B4BAC3', dark: '#5B616B', accent: '#B45309' },
+  'Toxic Tommy': { kind: 'masonry', base: '#4A4436', light: '#635B48', dark: '#2A261E', accent: '#65A30D' },
+  'Blackout Barry': { kind: 'building', base: '#45454D', light: '#62626B', dark: '#27272A', accent: '#FACC15' },
+  'Oily Oscar': { kind: 'building', base: '#5E5954', light: '#7E7872', dark: '#3A3632', accent: '#0C0A09' },
+  'Drug Trade Dale': { kind: 'building', base: '#B8966E', light: '#D6BC94', dark: '#8A6E4E', accent: '#16A34A' },
+};
+
+export const drawLairFacade = (ctx: Ctx, state: GameState, stageId: string | null) => {
+  const door = state.blocks.find(b => b.type === 'door');
+  const fc = stageId ? FACADES[stageId] : undefined;
+  if (!door || !fc) return;
+  const v = state.view ?? { x: state.camera.x, y: state.camera.y, w: 800, h: 600 };
+  if (v.x + v.w < door.x - 260) return;
+  const right = door.x + door.w, ground = door.y + door.h;
+  const top = Math.min(v.y - 20, ground - 700);
+  // How far out from the wall it comes at a height: rock spreads toward its foot, ragged; masonry and buildings step
+  const reach = (y: number): number => {
+    const d = ground - y;
+    if (fc.kind === 'rock') return 54 + Math.max(0, 140 - d) * 0.7 + rnd(Math.floor(y / 18)) * 26 + Math.sin(y * 0.02) * 10;
+    if (fc.kind === 'masonry') return 70 + (d < 40 ? 16 : 0) + (Math.floor(y / 120) % 2) * 8;
+    return 86 + (d < 30 ? 10 : 0) + ((((y - top) % 160) + 160) % 160 < 14 ? 8 : 0);
+  };
+  const step = 6;
+  ctx.save();
+  // (its shadow on the backdrop beside it, a few steps, and on the ground at its foot)
+  for (let b = 0; b < 3; b++) {
+    ctx.fillStyle = `rgba(0, 0, 0, ${0.05 + b * 0.03})`;
+    ctx.beginPath(); ctx.moveTo(right, top);
+    for (let y = top; y <= ground; y += step) ctx.lineTo(door.x - reach(y) - (3 - b) * 10, y);
+    ctx.lineTo(right, ground); ctx.closePath(); ctx.fill();
+  }
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'; ctx.fillRect(door.x - reach(ground - 2) - 44, ground - 4, 50, 4);
+  // The mass of it
+  const outline = () => {
+    ctx.beginPath(); ctx.moveTo(right, top);
+    for (let y = top; y <= ground; y += step) ctx.lineTo(Math.round(door.x - reach(y)), y);
+    ctx.lineTo(right, ground); ctx.closePath();
+  };
+  outline(); ctx.fillStyle = fc.base; ctx.fill();
+  ctx.save(); outline(); ctx.clip();
+  const x0 = door.x - 260;
+  if (fc.kind === 'rock') {
+    // strata and boulders, lit on top, shadowed under
+    for (let y = Math.floor(top / 22) * 22; y < ground; y += 22) {
+      for (let x = x0 + ((y / 22) % 2) * 17; x < right; x += 34) {
+        const w = 26 + rnd(x * 3 + y) * 12, h = 14 + rnd(x + y * 5) * 6;
+        ctx.fillStyle = fc.dark; ctx.fillRect(Math.round(x), y + Math.round(h) - 3, Math.round(w), 3);
+        ctx.fillStyle = fc.light; ctx.fillRect(Math.round(x) + 2, y, Math.round(w) - 6, 2);
+      }
+    }
+    if (stageId === 'Victor Volcano') {
+      // glowing cracks through it
+      ctx.strokeStyle = fc.accent!; ctx.lineWidth = 2; ctx.globalAlpha = 0.6 + Math.sin(state.frame * 0.05) * 0.2;
+      for (let c = 0; c < 5; c++) {
+        let cx = door.x - 20 - rnd(c) * 60, cy = ground - 40 - c * 90;
+        ctx.beginPath(); ctx.moveTo(cx, cy);
+        for (let s = 0; s < 4; s++) { cx += (rnd(c * 9 + s) - 0.6) * 22; cy -= 16; ctx.lineTo(cx, cy); }
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    }
+  } else if (fc.kind === 'masonry') {
+    for (let y = Math.floor(top / 12) * 12; y < ground; y += 12) {
+      ctx.fillStyle = fc.dark; ctx.fillRect(x0, y + 10, right - x0, 2);
+      for (let x = x0 + ((y / 12) % 2) * 12; x < right; x += 24) {
+        ctx.fillStyle = fc.dark; ctx.fillRect(x, y, 2, 10);
+        ctx.fillStyle = fc.light; ctx.fillRect(x + 3, y + 1, 16, 1);
+      }
+    }
+    if (fc.accent) { ctx.fillStyle = fc.accent; ctx.globalAlpha = 0.55; for (let k = 0; k < 4; k++) ctx.fillRect(door.x - 30 - k * 16, top, 3, ground - top - rnd(k) * 200); ctx.globalAlpha = 1; }
+  } else {
+    // a building: courses of block, a cornice band every storey, windows (dark, lit, or boarded), stains running down
+    for (let y = Math.floor(top / 16) * 16; y < ground; y += 16) { ctx.fillStyle = fc.dark; ctx.fillRect(x0, y + 15, right - x0, 1); }
+    for (let y = top; y < ground - 40; y += 160) {
+      ctx.fillStyle = fc.light; ctx.fillRect(x0, y, right - x0, 6); ctx.fillStyle = fc.dark; ctx.fillRect(x0, y + 6, right - x0, 3);
+      const wx = door.x - 64, wy = y + 40;
+      if (wy + 50 < ground - 160) {
+        ctx.fillStyle = '#111827'; ctx.fillRect(wx, wy, 30, 46);
+        ctx.fillStyle = fc.light; ctx.fillRect(wx - 3, wy + 46, 36, 4);
+        if (stageId === 'Hector Hurricane') { ctx.fillStyle = fc.accent!; ctx.save(); ctx.translate(wx + 15, wy + 23); ctx.rotate(0.6); ctx.fillRect(-26, -3, 52, 6); ctx.restore(); }
+        else if (stageId === 'Blackout Barry' || stageId === 'Drug Trade Dale') { ctx.fillStyle = 'rgba(253, 224, 71, 0.35)'; ctx.fillRect(wx + 3, wy + 3, 24, 40); }
+      }
+    }
+    // stains running down from the cornices (oil, on Oscar's)
+    ctx.fillStyle = stageId === 'Oily Oscar' ? 'rgba(12, 10, 9, 0.7)' : 'rgba(0, 0, 0, 0.12)';
+    for (let k = 0; k < 6; k++) ctx.fillRect(door.x - 12 - k * 13, top + (k % 3) * 160 + 9, 3, 30 + rnd(k + 5) * 80);
+    if (stageId === 'Blackout Barry') for (let y = ground - 26; y < ground; y += 8) { ctx.fillStyle = (y / 8) % 2 ? fc.accent! : '#111827'; ctx.fillRect(door.x - reach(y), y, reach(y), 4); }
+  }
+  // (deeper in shadow toward the door: it's set back into it)
+  for (let b = 0; b < 4; b++) { ctx.fillStyle = `rgba(0, 0, 0, ${0.06 + b * 0.04})`; ctx.fillRect(door.x - 26 + b * 6, top, 40, ground - top); }
+  ctx.restore();
+  // Lit along its outer edge; snow along its ledges on Artie's
+  ctx.strokeStyle = fc.light; ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let y = top; y <= ground; y += step) { const x = Math.round(door.x - reach(y)) + 1; if (y === top) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+  ctx.stroke();
+  if (stageId === 'Artie Avalanche') {
+    ctx.fillStyle = fc.accent!;
+    for (let y = top + 30; y < ground - 20; y += 44) { const x = door.x - reach(y); ctx.fillRect(Math.round(x) - 2, y, Math.round(18 + rnd(y) * 12), 4); ctx.fillRect(Math.round(x) + 2, y - 2, 10, 2); }
+  }
+  ctx.restore();
+};
+
 /** The door, standing; going over into the room; or down flat on the floor in there. */
 export const drawBossDoor = (ctx: Ctx, state: GameState, stageId: string | null) => {
   const door = state.blocks.find(b => b.type === 'door');
