@@ -1,4 +1,5 @@
 import { Player, WeaponType } from '../../../types';
+import { drawFilthShield } from './filthShield';
 import { BOULDER_THROW_FRAMES, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
 import { SLIDE_HOLD } from '../../combat/muzzle';
@@ -38,23 +39,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
 
   // 1. Filth Shield Aura
   if (p.filthShieldTimer && p.filthShieldTimer > 0 && !state.victoryString && showFilthShield) {
-    ctx.save();
-    const pulse = Math.sin(animFrame * 0.15) * 0.2;
-    ctx.globalAlpha = 0.55 + pulse;
-    ctx.fillStyle = '#ADFF2F';
-    ctx.beginPath();
-    ctx.arc(p.pos.x + p.width / 2, p.pos.y + p.height / 2, 42, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#2E7D32';
-    ctx.lineWidth = 4;
-    ctx.stroke();
-    for (let i = 0; i < 3; i++) {
-      const bx = p.pos.x + p.width / 2 + Math.cos(animFrame * 0.1 + i * 2) * 32;
-      const by = p.pos.y + p.height / 2 + Math.sin(animFrame * 0.1 + i * 2) * 32;
-      ctx.fillStyle = '#C5E1A5';
-      ctx.beginPath(); ctx.arc(bx, by, 5, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.restore();
+    drawFilthShield(ctx, p.pos.x + p.width / 2, p.pos.y + p.height / 2, animFrame, p.filthShieldTimer);
   }
 
   // 2. Invincibility / Hurt Flicker
