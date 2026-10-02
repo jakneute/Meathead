@@ -91,7 +91,34 @@ export const drawClubBack = (ctx: Ctx, state: GameState) => {
   }
   drawFloors(ctx, state);
   drawSolids(ctx, state);
+  if (visible(state, F.x1 - 300, F.x1 + 60)) drawFloorEndWall(ctx, state);
   if (visible(state, A.x1 - 400, A.x2 + 100)) drawAtrium(ctx, state);
+};
+
+/** The club floor's left-hand end: the obsidian wall he came in through, the service door (EMPLOYEES ONLY), an exit
+ * sign glowing over it, lava veins and a neon strip up its edge. */
+const drawFloorEndWall = (ctx: Ctx, state: GameState) => {
+  const f = state.frame, x2 = COURSE.floor.x1 + 60, x1 = x2 - 360, top = state.camera.y - 40, bottom = state.camera.y + CANVAS_HEIGHT + 40;
+  bandedGradient(ctx, x1, top, x2 - x1, bottom - top, ['#0C0708', '#170A0D', '#1F0B0E'], 8);
+  // (panels, and lava in the seams)
+  ctx.fillStyle = '#0A0506'; for (let y = Math.floor(top / 120) * 120; y < bottom; y += 120) ctx.fillRect(x1, y, x2 - x1, 4);
+  ctx.strokeStyle = `rgba(249, 115, 22, ${0.35 + 0.15 * Math.sin(f * 0.05)})`; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(x2 - 120, top); for (let y = top; y < bottom; y += 50) ctx.lineTo(x2 - 140 + hash(y * 3) * 60, y); ctx.stroke();
+  // (its edge: a lit lip, the neon strip up it)
+  ctx.fillStyle = '#3F3A36'; ctx.fillRect(x2 - 8, top, 8, bottom - top);
+  const col = NEON[Math.floor(f / BEAT) % NEON.length];
+  ctx.fillStyle = col; ctx.fillRect(x2 - 5, top, 2, Y - top);
+  ctx.save(); ctx.globalAlpha = 0.18; ctx.fillRect(x2 - 14, top, 20, Y - top); ctx.restore();
+  // The service door he came in by, the exit sign over it
+  const dx = x2 - 46;
+  ctx.fillStyle = '#292524'; ctx.fillRect(dx - 34, Y - 120, 68, 120);
+  ctx.fillStyle = '#57534E'; ctx.fillRect(dx - 30, Y - 116, 60, 116);
+  ctx.fillStyle = '#44403C'; ctx.fillRect(dx - 30, Y - 70, 60, 3); ctx.fillRect(dx + 18, Y - 64, 10, 4);
+  ctx.fillStyle = '#FDE68A'; ctx.fillRect(dx - 22, Y - 100, 44, 12);
+  ctx.fillStyle = '#1C1917'; ctx.font = '5px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('EMPLOYEES', dx, Y - 95); ctx.fillText('ONLY', dx, Y - 89);
+  ctx.fillStyle = '#14532D'; ctx.fillRect(dx - 20, Y - 146, 40, 16);
+  ctx.fillStyle = '#4ADE80'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.fillText('EXIT', dx, Y - 134); ctx.textAlign = 'left';
+  ctx.save(); ctx.globalAlpha = 0.15; ctx.fillStyle = '#4ADE80'; ctx.fillRect(dx - 40, Y - 156, 80, 40); ctx.restore();
 };
 
 /** The dance floor (and every floor in here): glass tiles over lava, lit from under, pulsing to the beat. */

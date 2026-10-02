@@ -44,7 +44,8 @@ export const victorLayout: StageLayout = {
     wall(C.lounge.x1 - 60, -3000, 1400, 'lounge-end');
     // The club floor's end, and the atrium's walls (the floor comes in under the left one) and roof
     const A = C.atrium;
-    wall(C.floor.x1 - 60, -3000, 1400, 'floor-end');
+    // (the floor's left-hand end stands out into the room a way: the wall he came in through, its door, in view)
+    wall(C.floor.x1, -3000, 1400, 'floor-end');
     wall(A.x1 - 60, A.top - 500, A.floor - 170, 'atrium-left');
     wall(A.x2, A.top - 500, A.floor + 200, 'atrium-right');
     state.blocks.push({ x: A.x1 - 60, y: A.top - 520, w: A.x2 - A.x1 + 120, h: 20, type: 'wall', hidden: true, tag: 'atrium-roof' });
