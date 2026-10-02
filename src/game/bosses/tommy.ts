@@ -314,9 +314,15 @@ const stunWithOil = (ctx: FrameContext, boss: Enemy) => {
 
 /** Steps up to the door, a safe catwalk just inside it, then eight boards floating across the pool. */
 const buildArena = (state: GameState, blocks: Block[]) => {
-  // Two small steps up to the door (Meathead walks straight up them), toward the raised catwalk inside
-  blocks.push({ x: BOSS_DOOR_X - 110, y: FLOOR_Y - 23, w: 110, h: 23, type: 'ground' });
-  blocks.push({ x: BOSS_DOOR_X - 55, y: FLOOR_Y - 46, w: 55, h: 46, type: 'ground' });
+  // Three even steps up from the cavern floor to the door, the top one level with its sill and with the catwalk
+  // inside (Meathead walks straight up them); the door and its wall sit up on the top step to match. The steps are
+  // drawn with the lair's outside (see render/bossDoors.ts), not as plain ground
+  const rise = (FLOOR_Y - BOARD_Y) / 3;
+  for (let i = 0; i < 3; i++) blocks.push({ x: BOSS_DOOR_X - 165 + i * 55, y: Math.round(FLOOR_Y - rise * (i + 1)), w: 165 - i * 55, h: Math.round(rise * (i + 1)), type: 'ground', hidden: true, tag: 'tommy-step' });
+  const door = blocks.find(b => b.type === 'door');
+  if (door) door.y = BOARD_Y - door.h;
+  const over = blocks.find(b => b.type === 'wall' && b.x === BOSS_DOOR_X && b.y < 0);
+  if (over && door) over.h = door.y - over.y;
   blocks.push({ x: BOSS_DOOR_X, y: BOARD_Y, w: 90, h: 70, type: 'ground' });
   const count = 8, w = 68;
   const startX = BOSS_DOOR_X + 105, endX = ARENA_RIGHT - 25;

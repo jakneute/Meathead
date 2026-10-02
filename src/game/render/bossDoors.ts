@@ -215,9 +215,11 @@ export const drawLairFacade = (ctx: Ctx, state: GameState, stageId: string | nul
   const door = state.blocks.find(b => b.type === 'door');
   const fc = stageId ? FACADES[stageId] : undefined;
   if (!door || !fc) return;
+  // (Tommy's shaft, once he's in: its walls are the shaft's own, going by: see drawTommyShaft)
+  if (stageId === 'Toxic Tommy' && state.doorState === 'done') return;
   const v = state.view ?? { x: state.camera.x, y: state.camera.y, w: 800, h: 600 };
   if (v.x + v.w < door.x - 260) return;
-  const right = door.x + door.w, ground = door.y + door.h;
+  const right = door.x + door.w, ground = Math.max(door.y + door.h, GROUND_Y);
   const top = Math.min(v.y - 20, ground - 700);
   // How far out from the wall it comes at a height: rock spreads toward its foot, ragged; masonry and buildings step
   const reach = (y: number): number => {
@@ -301,18 +303,31 @@ export const drawLairFacade = (ctx: Ctx, state: GameState, stageId: string | nul
   for (let y = top; y <= ground; y += step) { const x = Math.round(door.x - reach(y)) + 1; if (y === top) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
   ctx.stroke();
   if (stageId === 'Toxic Tommy') {
-    // The yellow paint that's led him all the way down here keeps on to the door: the trail along the foot of the
-    // wall, a fat arrow slapped on the bricks pointing at it, a handprint, a stripe down the frame
+    // The steps up to his door: sewer stone, each tread edged in the same yellow paint, worn and mucky
+    const steps = state.blocks.filter(b => b.tag === 'tommy-step').sort((a, b) => a.y - b.y);
+    for (const st of [...steps].reverse()) {
+      ctx.fillStyle = fc.base; ctx.fillRect(st.x, st.y, st.w, ground - st.y);
+      ctx.fillStyle = fc.dark; for (let yy = st.y + 10; yy < ground; yy += 10) ctx.fillRect(st.x, yy, st.w, 1);
+      for (let xx = st.x + 14; xx < st.x + st.w; xx += 26) ctx.fillRect(xx, st.y, 1, ground - st.y);
+      ctx.fillStyle = fc.light; ctx.fillRect(st.x, st.y, st.w, 3);
+      ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(st.x, st.y + 3, 3, ground - st.y - 3);
+      ctx.fillStyle = '#FACC15'; ctx.fillRect(st.x, st.y, 12, 3); ctx.fillRect(st.x, st.y + 3, 3, 6);
+      ctx.fillStyle = 'rgba(101, 163, 13, 0.6)'; ctx.fillRect(st.x + 18, st.y + 3, 3, 8 + rnd(st.x) * 10);
+    }
+    // The yellow paint that's led him down here carries on to the door: along the floor, up the steps, a fat arrow
+    // slapped on the bricks, a handprint, a stripe down the frame
     ctx.fillStyle = '#FACC15';
     const startX = door.x - reach(ground - 2) - 10;
-    for (let x = startX; x < door.x - 2; x += 9) ctx.fillRect(Math.round(x), ground - 3 + Math.round(Math.sin(x * 0.07)), 7, 3);
-    ctx.beginPath(); ctx.ellipse(door.x - 12, ground - 1, 20, 3.5, 0, 0, Math.PI * 2); ctx.fill();
-    const ay = ground - 70;
+    const footAt = (x: number) => { let y = ground; for (const st of steps) if (x >= st.x && x <= st.x + st.w) y = Math.min(y, st.y); return y; };
+    for (let x = startX; x < door.x - 2; x += 9) ctx.fillRect(Math.round(x), footAt(x + 3) - 3 + Math.round(Math.sin(x * 0.07)), 7, 3);
+    const sill = door.y + door.h;
+    ctx.beginPath(); ctx.ellipse(door.x - 12, sill - 1, 20, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+    const ay = sill - 70;
     ctx.beginPath(); ctx.moveTo(door.x - 74, ay - 4); ctx.lineTo(door.x - 30, ay - 4); ctx.lineTo(door.x - 30, ay - 12); ctx.lineTo(door.x - 10, ay); ctx.lineTo(door.x - 30, ay + 12); ctx.lineTo(door.x - 30, ay + 4); ctx.lineTo(door.x - 74, ay + 4); ctx.closePath(); ctx.fill();
     for (let k = 0; k < 3; k++) ctx.fillRect(door.x - 66 + k * 14, ay + 4, 3, 8 + rnd(k + 70) * 18);
     ctx.fillRect(door.x - 6, door.y - 6, 5, door.h + 4);
-    ctx.beginPath(); ctx.arc(door.x - 44, ground - 118, 6, 0, Math.PI * 2); ctx.fill();
-    for (let k = 0; k < 4; k++) ctx.fillRect(door.x - 51 + k * 4, ground - 131 + (k === 0 || k === 3 ? 4 : 0), 3, 9);
+    ctx.beginPath(); ctx.arc(door.x - 44, sill - 118, 6, 0, Math.PI * 2); ctx.fill();
+    for (let k = 0; k < 4; k++) ctx.fillRect(door.x - 51 + k * 4, sill - 131 + (k === 0 || k === 3 ? 4 : 0), 3, 9);
   }
   if (stageId === 'Artie Avalanche') {
     ctx.fillStyle = fc.accent!;
@@ -342,7 +357,7 @@ export const drawBossDoor = (ctx: Ctx, state: GameState, stageId: string | null)
   // Over it goes, about its bottom edge on the room side, faster as it goes; flat, it's a slab on the floor
   const ang = (Math.PI / 2) * fall * fall;
   ctx.save();
-  ctx.translate(door.x + door.w, GROUND_Y);
+  ctx.translate(door.x + door.w, door.y + door.h);
   ctx.rotate(ang);
   // (seen tipping away from you: thinner the further over it is)
   ctx.scale(1 - 0.7 * fall, 1);

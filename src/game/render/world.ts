@@ -606,8 +606,30 @@ const drawTommyShaft = (ctx: CanvasRenderingContext2D, state: GameState) => {
   drawHazardWall(arenaLeft);
   drawHazardWall(arenaRight - 20);
 
+  // The shaft's own walls either side (the door's wall, and the far wall), going by with everything else: big
+  // blocks of sewer stone, rising, so the whole shaft reads as climbing
+  const stone = (x0: number, w: number, bottom: number) => {
+    ctx.save(); ctx.beginPath(); ctx.rect(x0, y0, w, bottom - y0); ctx.clip();
+    ctx.fillStyle = '#1f2a20'; ctx.fillRect(x0, y0, w, bottom - y0);
+    const off = state.tommyScrollY % 40;
+    for (let y = Math.floor((y0 - off) / 40) * 40 + off; y < bottom; y += 40) {
+      ctx.fillStyle = '#121a13'; ctx.fillRect(x0, y, w, 3);
+      const row = Math.round((y - off) / 40);
+      for (let x = x0 + (((row % 2) + 2) % 2) * 22; x < x0 + w; x += 44) ctx.fillRect(x, y, 3, 40);
+      ctx.fillStyle = '#2f3f30'; ctx.fillRect(x0, y + 3, w, 2);
+      // (slime weeping down out of the joints, going by with them)
+      if (hash1(row * 7 + x0) > 0.7) { ctx.fillStyle = 'rgba(46, 204, 113, 0.5)'; ctx.fillRect(x0 + 6 + hash1(row + x0) * (w - 12), y + 5, 3, 12 + hash1(row * 3) * 20); }
+    }
+    ctx.restore();
+  };
+  // (the door's wall down to the top of the doorway; the far wall all the way)
+  const door = state.blocks.find(b => b.type === 'door');
+  stone(BOSS_DOOR_X, arenaLeft - BOSS_DOOR_X, door ? door.y : 400);
+  stone(arenaRight, CANVAS_WIDTH, y1);
+
   ctx.restore();
 };
+const hash1 = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 
 /** Victor's volcano vents and telegraphs, steam blasts, and Hector's poop warnings. */
 const drawBossHazards = (ctx: CanvasRenderingContext2D, state: GameState) => {
