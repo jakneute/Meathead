@@ -18,6 +18,7 @@ import { drawEyeCorpse } from './eyeDraw';
 import { drawKindEnemy } from '../../render/enemies';
 import { sentenceShown } from '../../platform/speech';
 import { DAYCARE_LINES } from '../../../content/dialogue';
+import { bandedGradient, checker, pixelBlob } from '../../render/pixelArt';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -405,23 +406,15 @@ export const drawDaycare = (ctx: Ctx, state: GameState, dc: Daycare) => {
     const crush = t >= CRUSH_AT ? Math.min(1, (t - CRUSH_AT) / (HIT - CRUSH_AT)) : 0;
     ctx.save();
     if (crush > 0) { ctx.translate(bx, g); ctx.scale(1 + crush * 0.15, 1 - crush * 0.7); ctx.translate(-bx, -g); }
-    // A cheerful little building: pastel walls, a big sun mural, a sign, a picket fence and a playground
-    ctx.fillStyle = '#FDE68A'; ctx.fillRect(bx - 160, g - 170, 320, 170);
-    ctx.fillStyle = '#F472B6'; ctx.beginPath(); ctx.moveTo(bx - 180, g - 170); ctx.lineTo(bx, g - 250); ctx.lineTo(bx + 180, g - 170); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#FB923C'; ctx.beginPath(); ctx.arc(bx - 90, g - 110, 26, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#FB923C'; ctx.lineWidth = 3;
-    for (let a = 0; a < Math.PI * 2; a += Math.PI / 6) { ctx.beginPath(); ctx.moveTo(bx - 90 + Math.cos(a) * 32, g - 110 + Math.sin(a) * 32); ctx.lineTo(bx - 90 + Math.cos(a) * 42, g - 110 + Math.sin(a) * 42); ctx.stroke(); }
-    ctx.fillStyle = '#38BDF8'; ctx.fillRect(bx + 10, g - 90, 50, 90);
-    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(bx + 80, g - 130, 50, 40); ctx.fillStyle = '#7DD3FC'; ctx.fillRect(bx + 84, g - 126, 42, 32);
-    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(bx - 140, g - 210, 280, 30);
-    ctx.fillStyle = '#DB2777'; ctx.font = 'bold 11px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('LITTLE SUNSHINE DAYCARE', bx, g - 190); ctx.textAlign = 'left';
-    // Playground: swings, a slide, a sandbox
+    // A cheerful little building: clapboard in pastel, a shingled roof, a sun mural with a face, the kids' drawings in
+    // the windows, flower boxes, a sign in crayon letters on posts, bunting; a picket fence and a playground
+    drawLawn(ctx, bx - 420, bx + 520, g, f);
+    drawSchoolhouse(ctx, bx, g, f);
+    // Playground: swings, a slide (its ladder), a sandbox (its bucket)
     const px = bx + 260;
-    ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 5;
-    ctx.beginPath(); ctx.moveTo(px, g); ctx.lineTo(px + 30, g - 110); ctx.lineTo(px + 60, g); ctx.moveTo(px + 30, g - 110); ctx.lineTo(px + 150, g - 110); ctx.moveTo(px + 120, g); ctx.lineTo(px + 150, g - 110); ctx.lineTo(px + 180, g); ctx.stroke();
-    ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.moveTo(px - 160, g - 90); ctx.lineTo(px - 100, g); ctx.lineTo(px - 88, g); ctx.lineTo(px - 148, g - 90); ctx.fill();
-    ctx.fillStyle = '#EF4444'; ctx.fillRect(px - 170, g - 90, 8, 90);
-    ctx.fillStyle = '#FDE68A'; ctx.fillRect(bx - 300, g - 10, 90, 10);
+    drawSwingFrame(ctx, px, g);
+    drawSlide(ctx, px - 170, g);
+    drawSandbox(ctx, bx - 300, g);
     // Kids: on the swings, down the slide, in the sandbox (till they see what's coming)
     const lookUp = t >= LOOK_UP;
     for (let s = 0; s < 2 && !lookUp; s++) {
@@ -436,9 +429,8 @@ export const drawDaycare = (ctx: Ctx, state: GameState, dc: Daycare) => {
       kid(ctx, bx - 280, g, KID_COLORS[3], false, f, 3); kid(ctx, bx - 240, g, KID_COLORS[4], false, f, 4);
       adult(ctx, bx + ADULT_AT[0], g, 0, false, f); adult(ctx, bx + ADULT_AT[1], g, 1, false, f);
     }
-    // Picket fence
-    ctx.fillStyle = '#F8FAFC'; for (let x = bx - 380; x < bx + 480; x += 14) { ctx.fillRect(x, g - 34, 8, 34); ctx.beginPath(); ctx.moveTo(x, g - 34); ctx.lineTo(x + 4, g - 40); ctx.lineTo(x + 8, g - 34); ctx.fill(); }
-    ctx.fillRect(bx - 380, g - 26, 860, 4);
+    // Picket fence: shaded pickets, its rails, a gate
+    drawFence(ctx, bx - 380, bx + 480, g);
     ctx.restore();
     if (lookUp) {
       // They've seen it coming: out on the lawn, jumping up and down, cheering it in
@@ -454,16 +446,8 @@ export const drawDaycare = (ctx: Ctx, state: GameState, dc: Daycare) => {
     return;
   }
   // After: flattened, soaked, junk everywhere (a car on the roof, a boat in the sandbox) and the kids on top, loving it
-  ctx.fillStyle = '#FDE68A';
-  ctx.beginPath(); ctx.moveTo(bx - 190, g); ctx.lineTo(bx - 170, g - 50); ctx.lineTo(bx - 60, g - 70); ctx.lineTo(bx + 40, g - 40); ctx.lineTo(bx + 150, g - 60); ctx.lineTo(bx + 200, g); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#F472B6';
-  ctx.save(); ctx.translate(bx - 20, g - 70); ctx.rotate(-0.25);
-  ctx.beginPath(); ctx.moveTo(-160, 0); ctx.lineTo(0, -60); ctx.lineTo(150, 10); ctx.closePath(); ctx.fill();
-  ctx.restore();
-  ctx.fillStyle = '#FFFFFF'; ctx.save(); ctx.translate(bx + 90, g - 30); ctx.rotate(0.5); ctx.fillRect(-80, -12, 160, 24);
-  ctx.fillStyle = '#DB2777'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('LITTLE SUNSH', 0, 4); ctx.restore(); ctx.textAlign = 'left';
-  // The junk the storm dropped
-  ctx.fillStyle = '#2563EB'; ctx.save(); ctx.translate(bx - 60, g - 118); ctx.rotate(0.15); ctx.fillRect(-60, -18, 120, 30); ctx.fillStyle = '#93C5FD'; ctx.fillRect(-40, -14, 80, 10); ctx.restore();
+  drawLawn(ctx, bx - 420, bx + 520, g, f, true);
+  drawWreckedSchoolhouse(ctx, bx, g, f);
   // (the cutter, come down beside it: see drawCutterWreck)
   drawCutterWreck(ctx, bx - 300, g, f);
   // The swing set, bent in half; a shark on the slide
@@ -476,9 +460,21 @@ export const drawDaycare = (ctx: Ctx, state: GameState, dc: Daycare) => {
   coastieAssUp(ctx, bx + 560, g, 1);
   // The grown-ups, once the wave's done with them
   if (t < 0 || t >= RIDE_END) ADULT_SPLAT.forEach((dx, k) => splatAdult(ctx, bx + dx, g, k as 0 | 1));
-  // Puddles
-  ctx.fillStyle = 'rgba(56, 189, 248, 0.5)';
-  for (let x = bx - 420; x < bx + 500; x += 90) { ctx.beginPath(); ctx.ellipse(x + hash(x) * 40, g - 1, 36, 4, 0, 0, Math.PI * 2); ctx.fill(); }
+  // Puddles: the sky in them, a ripple now and then
+  for (let x = bx - 420; x < bx + 500; x += 90) {
+    const px0 = x + hash(x) * 40;
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.55)'; ctx.beginPath(); ctx.ellipse(px0, g - 1, 36, 4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(224, 242, 254, 0.8)'; ctx.fillRect(px0 - 20, g - 3, 14, 1);
+    if ((f + x) % 90 < 20) { const r = ((f + x) % 90) * 1.4; ctx.strokeStyle = `rgba(255, 255, 255, ${(0.6 - r / 50).toFixed(2)})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(px0 + 8, g - 1, r, r * 0.12, 0, 0, Math.PI * 2); ctx.stroke(); }
+  }
+  // (what the flood left: toys, crayons, a beach ball, a lunchbox)
+  for (let k = 0; k < 12; k++) {
+    const dx = bx - 380 + hash(k * 7) * 860, cols = ['#EF4444', '#3B82F6', '#22C55E', '#FACC15', '#A855F7'];
+    if (k % 4 === 0) { ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.arc(dx, g - 6, 6, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = cols[k % 5]; ctx.beginPath(); ctx.arc(dx, g - 6, 6, 0, Math.PI); ctx.fill(); }
+    else if (k % 4 === 1) { ctx.fillStyle = cols[k % 5]; ctx.save(); ctx.translate(dx, g - 2); ctx.rotate(hash(k) * 3); ctx.fillRect(-6, -1, 12, 3); ctx.restore(); }
+    else if (k % 4 === 2) { ctx.fillStyle = cols[(k + 2) % 5]; ctx.fillRect(dx - 6, g - 8, 12, 8); ctx.fillStyle = '#1C1917'; ctx.fillRect(dx - 3, g - 10, 6, 2); }
+    else { ctx.fillStyle = cols[(k + 1) % 5]; ctx.fillRect(dx - 4, g - 6, 8, 6); ctx.fillRect(dx - 2, g - 9, 4, 3); }
+  }
   // The kids, sat on top of the wreck in their floaties, cheering (once they've ridden the wave in)
   if (t < 0 || t >= RIDE_END) for (let k = 0; k < 5; k++) { const w = wreckSpot(k); floatieKid(ctx, w.x, w.y, k, f); }
   // (what they're saying: up on the wreck once they're there)
@@ -504,15 +500,20 @@ export const drawDaycareFront = (ctx: Ctx, state: GameState, dc: Daycare) => {
   if (t >= 100 && t < 190) {
     // A column of water (and a car, and a cow) falling out of the sky
     const k = Math.min(1, (t - 100) / 40);
-    const bottom = state.camera.y + (g - state.camera.y + 20) * k;
+    const bottom = state.camera.y + (g - state.camera.y) * k;
     const w = 260 + (t > 140 ? (t - 140) * 3 : 0);
     // (once it's hit, the tail end of it comes down after it and the sky's clear)
     const top = state.camera.y - 20 + (t > 140 ? Math.min(1, (t - 140) / 36) * (g - state.camera.y + 20) : 0);
     if (bottom > top) {
-      ctx.fillStyle = 'rgba(37, 99, 235, 0.85)';
-      ctx.fillRect(bx - w / 2, top, w, bottom - top);
-      ctx.fillStyle = 'rgba(224, 242, 254, 0.7)';
-      for (let i = 0; i < 12; i++) ctx.fillRect(bx - w / 2 + ((i * 37 + f * 9) % w), top + ((i * 53 + f * 21) % Math.max(1, bottom - top)), 6, 40);
+      // (in bands across it, darker at its edges, streaks rushing down it, its edges white and ragged)
+      const cols = ['#1E3A8A', '#1D4ED8', '#3B82F6', '#60A5FA', '#93C5FD', '#60A5FA', '#3B82F6', '#1D4ED8', '#1E3A8A'];
+      const bw = w / cols.length;
+      cols.forEach((c, i) => { ctx.fillStyle = c; ctx.fillRect(Math.floor(bx - w / 2 + i * bw), top, Math.ceil(bw) + 1, bottom - top); if (i) checker(ctx, Math.floor(bx - w / 2 + i * bw) - 2, top, 2, bottom - top, c, i % 2); });
+      for (let i = 0; i < 22; i++) { ctx.fillStyle = i % 3 ? 'rgba(240, 249, 255, 0.75)' : 'rgba(255, 255, 255, 0.95)'; ctx.fillRect(Math.floor(bx - w / 2 + ((i * 37 + f * 3) % w)), top + ((i * 53 + f * 21) % Math.max(1, bottom - top)), 2, 30 + (i % 4) * 12); }
+      ctx.fillStyle = 'rgba(240, 249, 255, 0.85)';
+      for (let y = top; y < bottom; y += 10) for (const side of [-1, 1]) ctx.fillRect(Math.floor(bx + side * w / 2 + Math.sin(y * 0.1 + f * 0.6) * 4) - 2, y, 4, 8);
+      // (and the spray where it's coming down, once it's down)
+      if (bottom >= g - 10) for (let k = 0; k < 8; k++) pixelBlob(ctx, bx + (k - 3.5) * w / 6 + Math.sin(f * 0.3 + k) * 8, g - 30 - (k % 3) * 18, 34, 18, 'rgba(240, 249, 255, 0.75)');
     }
     // (and a couple of the Coast Guard coming down in it, with everything else)
     if (t < 146) for (let k = 0; k < 2; k++) { const kk = Math.min(1, (t - 100) / 44); deadCoastie(ctx, bx - 60 + k * 90, state.camera.y - 40 + (g - state.camera.y) * kk - k * 60, 2.4, t * 0.2 * (k ? 1 : -1)); }
@@ -543,4 +544,153 @@ export const drawDaycareFront = (ctx: Ctx, state: GameState, dc: Daycare) => {
   }
   // Flash of the impact
   if (t >= 140 && t < 150) { ctx.fillStyle = `rgba(255,255,255,${(150 - t) / 12})`; ctx.fillRect(state.camera.x, state.camera.y, CANVAS_WIDTH, CANVAS_HEIGHT); }
+};
+
+// ---------------------------------------------------------------------------
+// The daycare, in its pieces
+// ---------------------------------------------------------------------------
+
+/** The lawn: grass in bands, blades flicked up along its top, a few flowers (soaked flat, after). */
+const drawLawn = (ctx: Ctx, x1: number, x2: number, g: number, f: number, soaked = false) => {
+  bandedGradient(ctx, x1, g - 6, x2 - x1, 12, soaked ? ['#3F6212', '#365314'] : ['#65A30D', '#4D7C0F'], 3);
+  ctx.fillStyle = soaked ? '#4D7C0F' : '#84CC16';
+  for (let x = x1; x < x2; x += 4) if (hash(x) > 0.35) ctx.fillRect(x, g - 6 - (soaked ? 0 : Math.floor(hash(x + 1) * 3) * 2), 2, soaked ? 2 : 4);
+  if (!soaked) for (let k = 0; k < 14; k++) { const x = x1 + hash(k * 13) * (x2 - x1); ctx.fillStyle = ['#F472B6', '#FDE047', '#F8FAFC'][k % 3]; ctx.fillRect(Math.floor(x), g - 9, 3, 3); ctx.fillStyle = '#FDE047'; ctx.fillRect(Math.floor(x) + 1, g - 8, 1, 1); }
+  void f;
+};
+
+/** The schoolhouse, before: pastel clapboard (shaded down its right), a shingled pink roof, the sun mural with a smile,
+ * a blue door (its window, its knob), two windows with the kids' crayon drawings taped up and flower boxes under,
+ * the sign in rainbow crayon letters up on posts, bunting along the eaves. */
+const drawSchoolhouse = (ctx: Ctx, bx: number, g: number, f: number) => {
+  const L = bx - 160, R = bx + 160, T = g - 170;
+  // Walls: clapboard
+  ctx.fillStyle = '#FDE68A'; ctx.fillRect(L, T, 320, 170);
+  for (let y = T + 8; y < g; y += 10) { ctx.fillStyle = '#FCD34D'; ctx.fillRect(L, y, 320, 2); ctx.fillStyle = '#FEF3C7'; ctx.fillRect(L, y - 2, 320, 1); }
+  ctx.fillStyle = 'rgba(180, 83, 9, 0.18)'; ctx.fillRect(R - 50, T, 50, 170); checker(ctx, R - 54, T, 4, 170, 'rgba(180, 83, 9, 0.18)');
+  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(L - 4, T, 6, 170); ctx.fillRect(R - 2, T, 6, 170); ctx.fillRect(L - 4, g - 8, 328, 8);
+  // Roof: shingles in rows, the eave's shadow under it
+  ctx.save(); ctx.beginPath(); ctx.moveTo(L - 20, T); ctx.lineTo(bx, g - 250); ctx.lineTo(R + 20, T); ctx.closePath(); ctx.clip();
+  ctx.fillStyle = '#F472B6'; ctx.fillRect(L - 20, g - 252, 360, 84);
+  for (let r = 0; r < 9; r++) { const y = g - 250 + r * 9; ctx.fillStyle = r % 2 ? '#EC4899' : '#F9A8D4'; for (let x = L - 20 + (r % 2) * 9; x < R + 20; x += 18) ctx.fillRect(x, y + 6, 14, 3); }
+  ctx.fillStyle = 'rgba(131, 24, 67, 0.3)'; ctx.beginPath(); ctx.moveTo(bx, g - 250); ctx.lineTo(R + 20, T); ctx.lineTo(bx, T); ctx.fill();
+  ctx.restore();
+  ctx.fillStyle = '#BE185D'; ctx.fillRect(L - 22, T - 2, 364, 5);
+  ctx.fillStyle = 'rgba(120, 53, 15, 0.25)'; ctx.fillRect(L, T + 3, 320, 6);
+  // Bunting along the eaves
+  for (let k = 0; k < 16; k++) { const x = L - 14 + k * 22, sway = Math.sin(f * 0.08 + k) * 1.5; ctx.fillStyle = ['#EF4444', '#3B82F6', '#22C55E', '#FACC15'][k % 4]; ctx.beginPath(); ctx.moveTo(x, T + 6); ctx.lineTo(x + 14, T + 6); ctx.lineTo(x + 7 + sway, T + 18); ctx.fill(); }
+  ctx.strokeStyle = '#78350F'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(L - 14, T + 6); ctx.lineTo(R + 14, T + 6); ctx.stroke();
+  // The sun mural, smiling
+  const sx = bx - 90, sy = g - 104;
+  ctx.fillStyle = '#FDBA74'; for (let a = 0; a < Math.PI * 2; a += Math.PI / 6) { ctx.save(); ctx.translate(sx, sy); ctx.rotate(a); ctx.beginPath(); ctx.moveTo(30, -5); ctx.lineTo(44, 0); ctx.lineTo(30, 5); ctx.fill(); ctx.restore(); }
+  ctx.fillStyle = '#FB923C'; ctx.beginPath(); ctx.arc(sx, sy, 26, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#FDBA74'; ctx.beginPath(); ctx.arc(sx - 6, sy - 6, 16, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#7C2D12'; ctx.fillRect(sx - 10, sy - 8, 4, 5); ctx.fillRect(sx + 6, sy - 8, 4, 5);
+  ctx.strokeStyle = '#7C2D12'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(sx, sy + 2, 10, 0.2, Math.PI - 0.2); ctx.stroke();
+  ctx.fillStyle = 'rgba(244, 114, 182, 0.6)'; ctx.fillRect(sx - 18, sy + 2, 6, 3); ctx.fillRect(sx + 12, sy + 2, 6, 3);
+  // The door
+  ctx.fillStyle = '#1E40AF'; ctx.fillRect(bx + 6, g - 94, 58, 94); ctx.fillStyle = '#38BDF8'; ctx.fillRect(bx + 10, g - 90, 50, 90);
+  ctx.fillStyle = '#0EA5E9'; ctx.fillRect(bx + 50, g - 90, 10, 90); ctx.fillStyle = '#E0F2FE'; ctx.fillRect(bx + 20, g - 80, 30, 22); ctx.fillStyle = '#1E40AF'; ctx.fillRect(bx + 34, g - 80, 2, 22);
+  ctx.fillStyle = '#FACC15'; ctx.fillRect(bx + 50, g - 46, 5, 5);
+  // The windows: frames, the drawings taped up, flower boxes
+  for (const wx of [bx + 80, bx - 150]) {
+    ctx.fillStyle = '#F8FAFC'; ctx.fillRect(wx, g - 134, 54, 46); ctx.fillStyle = '#7DD3FC'; ctx.fillRect(wx + 4, g - 130, 46, 38);
+    ctx.fillStyle = '#E0F2FE'; ctx.fillRect(wx + 6, g - 128, 12, 2); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(wx + 25, g - 130, 4, 38);
+    // (a crayon drawing: a house and a stick family, a red scribble sun)
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(wx + 8, g - 124, 14, 18); ctx.fillStyle = '#EF4444'; ctx.fillRect(wx + 10, g - 122, 4, 4); ctx.fillStyle = '#22C55E'; ctx.fillRect(wx + 9, g - 110, 12, 2); ctx.fillStyle = '#1C1917'; ctx.fillRect(wx + 16, g - 116, 1, 6); ctx.fillRect(wx + 19, g - 114, 1, 4);
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(wx + 32, g - 122, 14, 16); ctx.fillStyle = '#A855F7'; ctx.fillRect(wx + 35, g - 118, 8, 6); ctx.fillStyle = '#3B82F6'; ctx.fillRect(wx + 34, g - 110, 10, 2);
+    ctx.fillStyle = '#92400E'; ctx.fillRect(wx - 2, g - 88, 58, 8); ctx.fillStyle = '#78350F'; ctx.fillRect(wx - 2, g - 82, 58, 2);
+    for (let k = 0; k < 6; k++) { ctx.fillStyle = '#16A34A'; ctx.fillRect(wx + 2 + k * 9, g - 94, 3, 6); ctx.fillStyle = ['#F472B6', '#FDE047', '#F87171'][k % 3]; ctx.fillRect(wx + 1 + k * 9, g - 97, 5, 4); }
+  }
+  // The sign: a white board on posts, each letter a different crayon
+  ctx.fillStyle = '#92400E'; ctx.fillRect(bx - 128, g - 214, 6, 40); ctx.fillRect(bx + 122, g - 214, 6, 40);
+  ctx.fillStyle = '#78350F'; ctx.fillRect(bx - 144, g - 214, 288, 34); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(bx - 140, g - 210, 280, 26);
+  ctx.font = 'bold 11px "Press Start 2P"'; ctx.textAlign = 'left';
+  const text = 'LITTLE SUNSHINE DAYCARE', cw = ctx.measureText(text).width / text.length;
+  [...text].forEach((ch, k) => { ctx.fillStyle = ['#EF4444', '#F97316', '#EAB308', '#22C55E', '#3B82F6', '#A855F7', '#EC4899'][k % 7]; ctx.fillText(ch, bx - cw * text.length / 2 + k * cw, g - 191 + (k % 2)); });
+};
+
+/** The schoolhouse, after: knocked flat, its boards splintered and sticking up, the roof slid off in a heap, shingles
+ * everywhere, the sign snapped off its posts, a car upside down on top of the lot (wheels in the air), water still
+ * pouring off it all. */
+const drawWreckedSchoolhouse = (ctx: Ctx, bx: number, g: number, f: number) => {
+  // (the walls, down in a heap of boards)
+  ctx.fillStyle = '#FDE68A';
+  ctx.beginPath(); ctx.moveTo(bx - 190, g); ctx.lineTo(bx - 170, g - 50); ctx.lineTo(bx - 60, g - 70); ctx.lineTo(bx + 40, g - 40); ctx.lineTo(bx + 150, g - 60); ctx.lineTo(bx + 200, g); ctx.closePath(); ctx.fill();
+  for (let y = g - 64; y < g; y += 10) { ctx.fillStyle = '#FCD34D'; ctx.fillRect(bx - 180, y, 370, 2); }
+  ctx.fillStyle = 'rgba(120, 53, 15, 0.3)'; ctx.fillRect(bx - 190, g - 16, 390, 16);
+  // (boards splintered and sticking up out of it)
+  for (let k = 0; k < 9; k++) {
+    const x = bx - 170 + k * 42 + hash(k) * 12, a = (hash(k + 3) - 0.5) * 1.4, len = 30 + hash(k + 5) * 40;
+    ctx.save(); ctx.translate(x, g - 40 + hash(k + 9) * 20); ctx.rotate(a);
+    ctx.fillStyle = k % 3 ? '#FDE68A' : '#F8FAFC'; ctx.fillRect(-4, -len, 8, len); ctx.fillStyle = '#B45309'; ctx.fillRect(-4, -len, 8, 2);
+    ctx.fillStyle = '#FCD34D'; ctx.beginPath(); ctx.moveTo(-4, -len); ctx.lineTo(0, -len - 8); ctx.lineTo(4, -len); ctx.fill();
+    ctx.restore();
+  }
+  // (the roof, slid off in one piece onto the heap, its shingles)
+  ctx.save(); ctx.translate(bx - 20, g - 70); ctx.rotate(-0.25);
+  ctx.beginPath(); ctx.moveTo(-160, 0); ctx.lineTo(0, -60); ctx.lineTo(150, 10); ctx.closePath(); ctx.save(); ctx.clip();
+  ctx.fillStyle = '#F472B6'; ctx.fillRect(-170, -70, 330, 90);
+  for (let r = 0; r < 8; r++) { ctx.fillStyle = r % 2 ? '#EC4899' : '#F9A8D4'; for (let x = -170 + (r % 2) * 9; x < 160; x += 18) if (hash(x + r * 31) > 0.2) ctx.fillRect(x, -60 + r * 9, 14, 3); }
+  ctx.restore();
+  ctx.fillStyle = '#BE185D'; ctx.beginPath(); ctx.moveTo(-160, 0); ctx.lineTo(150, 10); ctx.lineTo(150, 14); ctx.lineTo(-160, 4); ctx.fill();
+  ctx.restore();
+  for (let k = 0; k < 18; k++) { ctx.fillStyle = k % 2 ? '#EC4899' : '#F9A8D4'; ctx.save(); ctx.translate(bx - 260 + hash(k * 3) * 560, g - 3 - hash(k) * 4); ctx.rotate(hash(k + 1) * 3); ctx.fillRect(-7, -2, 14, 4); ctx.restore(); }
+  // (the sign, snapped off, the crayon letters all that's left of the name)
+  ctx.save(); ctx.translate(bx + 90, g - 30); ctx.rotate(0.5);
+  ctx.fillStyle = '#78350F'; ctx.fillRect(-84, -16, 168, 32); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-80, -12, 160, 24);
+  ctx.font = 'bold 7px "Press Start 2P"'; ctx.textAlign = 'left';
+  [...'LITTLE SUNSH'].forEach((ch, k) => { ctx.fillStyle = ['#EF4444', '#F97316', '#EAB308', '#22C55E', '#3B82F6', '#A855F7', '#EC4899'][k % 7]; ctx.fillText(ch, -66 + k * 9, 4); });
+  ctx.fillStyle = '#FDE68A'; ctx.beginPath(); ctx.moveTo(80, -12); ctx.lineTo(70, 0); ctx.lineTo(80, 12); ctx.fill();
+  ctx.restore();
+  ctx.textAlign = 'left';
+  // The car the storm dropped on it: upside down, its wheels in the air, a door hanging open
+  ctx.save(); ctx.translate(bx - 60, g - 118); ctx.rotate(0.15);
+  ctx.fillStyle = '#1D4ED8'; ctx.fillRect(-64, -10, 128, 26); ctx.fillStyle = '#2563EB'; ctx.fillRect(-64, -10, 128, 6);
+  ctx.fillStyle = '#1E3A8A'; ctx.beginPath(); ctx.moveTo(-40, 16); ctx.lineTo(-30, 34); ctx.lineTo(30, 34); ctx.lineTo(42, 16); ctx.fill();
+  ctx.fillStyle = '#93C5FD'; ctx.fillRect(-26, 20, 22, 10); ctx.fillRect(4, 20, 22, 10);
+  for (const wx of [-44, 44]) { ctx.fillStyle = '#18181B'; ctx.beginPath(); ctx.arc(wx, -12, 13, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#A1A1AA'; ctx.beginPath(); ctx.arc(wx, -12, 5, 0, Math.PI * 2); ctx.fill(); }
+  ctx.fillStyle = '#EF4444'; ctx.fillRect(58, -4, 6, 6); ctx.fillStyle = '#FDE68A'; ctx.fillRect(-64, -4, 6, 6);
+  ctx.restore();
+  // (water still running off the lot)
+  ctx.fillStyle = 'rgba(147, 197, 253, 0.8)'; for (let k = 0; k < 8; k++) { const x = bx - 160 + k * 46, y = (f * 2 + k * 23) % 60; ctx.fillRect(x, g - 70 + y, 2, 6); }
+};
+
+/** The swing set: tube frame (lit, shaded), its seats (the kids on them are drawn by the scene). */
+const drawSwingFrame = (ctx: Ctx, px: number, g: number) => {
+  const tube = (x1: number, y1: number, x2: number, y2: number) => {
+    ctx.strokeStyle = '#B91C1C'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    ctx.strokeStyle = '#F87171'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x1 - 1, y1); ctx.lineTo(x2 - 1, y2); ctx.stroke();
+  };
+  tube(px, g, px + 30, g - 110); tube(px + 60, g, px + 30, g - 110); tube(px + 120, g, px + 150, g - 110); tube(px + 180, g, px + 150, g - 110);
+  tube(px + 26, g - 110, px + 154, g - 110);
+  ctx.fillStyle = '#7F1D1D'; for (const x of [px, px + 60, px + 120, px + 180]) ctx.fillRect(x - 4, g - 3, 8, 3);
+};
+
+/** The slide: its ladder, the yellow chute shaded down one edge. */
+const drawSlide = (ctx: Ctx, x: number, g: number) => {
+  ctx.fillStyle = '#B91C1C'; ctx.fillRect(x, g - 90, 8, 90); ctx.fillRect(x - 22, g - 90, 6, 90);
+  ctx.fillStyle = '#DC2626'; for (let y = g - 80; y < g; y += 14) ctx.fillRect(x - 20, y, 26, 3);
+  ctx.fillStyle = '#B91C1C'; ctx.fillRect(x - 24, g - 94, 34, 6);
+  ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.moveTo(x + 10, g - 90); ctx.quadraticCurveTo(x + 50, g - 70, x + 70, g); ctx.lineTo(x + 82, g); ctx.quadraticCurveTo(x + 62, g - 70, x + 22, g - 90); ctx.fill();
+  ctx.strokeStyle = '#CA8A04'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x + 22, g - 90); ctx.quadraticCurveTo(x + 62, g - 70, x + 82, g); ctx.stroke();
+  ctx.strokeStyle = '#FEF08A'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x + 13, g - 89); ctx.quadraticCurveTo(x + 52, g - 69, x + 72, g - 1); ctx.stroke();
+};
+
+/** The sandbox: a timber frame, the sand dithered, a bucket and spade. */
+const drawSandbox = (ctx: Ctx, x: number, g: number) => {
+  ctx.fillStyle = '#92400E'; ctx.fillRect(x - 4, g - 14, 98, 14); ctx.fillStyle = '#B45309'; ctx.fillRect(x - 4, g - 14, 98, 3);
+  ctx.fillStyle = '#FDE68A'; ctx.fillRect(x + 2, g - 11, 86, 6); checker(ctx, x + 2, g - 11, 86, 6, '#FCD34D');
+  ctx.fillStyle = '#EF4444'; ctx.fillRect(x + 60, g - 22, 12, 10); ctx.fillRect(x + 58, g - 23, 16, 2); ctx.strokeStyle = '#1C1917'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x + 66, g - 22, 6, Math.PI, 0); ctx.stroke();
+  ctx.fillStyle = '#3B82F6'; ctx.save(); ctx.translate(x + 30, g - 14); ctx.rotate(-0.6); ctx.fillRect(-1, -14, 2, 12); ctx.fillRect(-4, -4, 8, 6); ctx.restore();
+};
+
+/** The picket fence: pickets lit on the left and shaded on the right, two rails, a gate with a latch. */
+const drawFence = (ctx: Ctx, x1: number, x2: number, g: number) => {
+  ctx.fillStyle = '#E2E8F0'; ctx.fillRect(x1, g - 28, x2 - x1, 4); ctx.fillRect(x1, g - 14, x2 - x1, 4);
+  for (let x = x1; x < x2; x += 14) {
+    ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x, g - 34, 8, 34); ctx.beginPath(); ctx.moveTo(x, g - 34); ctx.lineTo(x + 4, g - 40); ctx.lineTo(x + 8, g - 34); ctx.fill();
+    ctx.fillStyle = '#CBD5E1'; ctx.fillRect(x + 6, g - 34, 2, 34);
+  }
+  ctx.fillStyle = '#94A3B8'; ctx.fillRect(x1 + 300, g - 24, 4, 4);
 };
