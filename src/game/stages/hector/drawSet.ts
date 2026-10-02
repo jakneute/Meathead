@@ -19,6 +19,7 @@ import { drawKindEnemy } from '../../render/enemies';
 import { sentenceShown } from '../../platform/speech';
 import { DAYCARE_LINES } from '../../../content/dialogue';
 import { bandedGradient, checker, pixelBlob } from '../../render/pixelArt';
+import { drawPerson } from '../../render/npc/person';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -337,15 +338,11 @@ const KID_COLORS = ['#F43F5E', '#22D3EE', '#FACC15', '#A3E635', '#C084FC', '#FB9
 /** Small kid at (x, feet y): shirt colour, arms (up for cheering / swinging), pigtails for some. */
 const kid = (ctx: Ctx, x: number, y: number, c: string, armsUp: boolean, f: number, seed: number) => {
   const bounce = armsUp ? Math.abs(Math.sin(f * 0.2 + seed)) * 4 : 0;
-  ctx.fillStyle = '#1E3A8A'; ctx.fillRect(x - 5, y - 12 - bounce, 4, 12); ctx.fillRect(x + 1, y - 12 - bounce, 4, 12);
-  ctx.fillStyle = c; ctx.fillRect(x - 7, y - 26 - bounce, 14, 15);
-  ctx.fillStyle = ['#F2C9A0', '#C68642', '#8D5524'][seed % 3];
-  ctx.beginPath(); ctx.arc(x, y - 33 - bounce, 6.5, 0, Math.PI * 2); ctx.fill();
-  if (armsUp) { ctx.fillRect(x - 10, y - 38 - bounce, 3, 12); ctx.fillRect(x + 7, y - 38 - bounce, 3, 12); }
-  else { ctx.fillRect(x - 10, y - 25 - bounce, 3, 10); ctx.fillRect(x + 7, y - 25 - bounce, 3, 10); }
-  ctx.fillStyle = ['#1F2937', '#78350F', '#FDE68A'][seed % 3];
-  ctx.fillRect(x - 6, y - 40 - bounce, 12, 4);
-  if (seed % 2) { ctx.fillRect(x - 9, y - 37 - bounce, 3, 5); ctx.fillRect(x + 6, y - 37 - bounce, 3, 5); }
+  drawPerson(ctx, x, y - bounce, {
+    kid: true, skin: ['#F2C9A0', '#C68642', '#8D5524'][seed % 3],
+    hair: { style: seed % 2 ? 'pigtails' : seed % 3 === 2 ? 'curly' : 'short', color: ['#1F2937', '#78350F', '#FDE68A'][seed % 3] },
+    top: { style: 'tee', color: c, accent: '#F8FAFC' }, legs: { color: seed % 2 ? '#F472B6' : '#1E3A8A', style: 'shorts' }, shoes: ['#EF4444', '#3B82F6', '#22C55E'][seed % 3],
+  }, { arms: armsUp ? 'up' : 'down', mouth: armsUp ? 'grin' : 'smile', f }, 1, seed % 2 ? -1 : 1);
 };
 
 /**
@@ -354,25 +351,18 @@ const kid = (ctx: Ctx, x: number, y: number, c: string, armsUp: boolean, f: numb
  */
 const adult = (ctx: Ctx, x: number, y: number, who: 0 | 1, panic: boolean, f: number) => {
   const hop = panic ? Math.abs(Math.sin(f * 0.35 + who)) * 3 : 0;
-  const Y = y - hop;
-  ctx.fillStyle = who === 0 ? '#0F766E' : '#A8A29E'; ctx.fillRect(x - 7, Y - 26, 6, 26); ctx.fillRect(x + 1, Y - 26, 6, 26); // legs
-  ctx.fillStyle = '#1C1917'; ctx.fillRect(x - 8, Y - 3, 7, 3); ctx.fillRect(x + 1, Y - 3, 7, 3);
-  ctx.fillStyle = who === 0 ? '#14B8A6' : '#1D4ED8'; ctx.fillRect(x - 10, Y - 50, 20, 26); // top
-  const skin = who === 0 ? '#C68642' : '#F2C9A0';
-  ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(x, Y - 57, 8, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = who === 0 ? '#1F2937' : '#78716C'; ctx.fillRect(x - 8, Y - 66, 16, 5); // hair
-  if (who === 0) { ctx.beginPath(); ctx.arc(x + 7, Y - 62, 4, 0, Math.PI * 2); ctx.fill(); } // (a bun)
-  ctx.fillStyle = skin;
-  if (panic) {
-    // Hands on the head, mouth wide
-    ctx.fillRect(x - 14, Y - 66, 4, 18); ctx.fillRect(x + 10, Y - 66, 4, 18);
-    ctx.fillStyle = '#450A0A'; ctx.beginPath(); ctx.ellipse(x + 2, Y - 53, 2.5, 3.5, 0, 0, Math.PI * 2); ctx.fill();
-  } else {
-    ctx.fillRect(x - 13, Y - 48, 4, 18); ctx.fillRect(x + 9, Y - 48, 4, 16);
-    if (who === 0) { ctx.fillStyle = '#A16207'; ctx.fillRect(x + 10, Y - 40, 10, 13); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x + 11, Y - 38, 8, 10); ctx.fillStyle = '#FACC15'; ctx.fillRect(x - 2, Y - 46, 4, 3); } // clipboard, whistle
-    else { ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x + 10, Y - 36, 7, 8); ctx.fillStyle = 'rgba(203, 213, 225, 0.6)'; ctx.fillRect(x + 12, Y - 42 - (f % 20) / 5, 1, 4); } // coffee
-    ctx.fillStyle = '#1F2937'; ctx.fillRect(x - 2, Y - 54, 5, 1);
-  }
+  // Denise: scrubs, her hair up, a whistle, the clipboard. Gary: a polo, khakis, a comb-over and his coffee
+  const denise = who === 0;
+  drawPerson(ctx, x, y - hop, denise
+    ? { skin: '#C68642', hair: { style: 'bun', color: '#1F2937' }, top: { style: 'tee', color: '#14B8A6', accent: '#0F766E' }, legs: { color: '#0F766E' }, shoes: '#F8FAFC',
+        extra: c => { c.strokeStyle = '#FACC15'; c.lineWidth = 1; c.beginPath(); c.moveTo(-3, -52); c.lineTo(1, -44); c.lineTo(5, -52); c.stroke(); c.fillStyle = '#FACC15'; c.fillRect(0, -45, 3, 2.4); } }
+    : { skin: '#F2C9A0', hair: { style: 'short', color: '#78716C' }, top: { style: 'tee', color: '#1D4ED8', accent: '#1E40AF' }, legs: { color: '#D6C7A1' }, shoes: '#78350F', build: 'fat', face: 'stubble' },
+    {
+      arms: panic ? 'panic' : 'hold', mouth: panic ? 'open' : 'flat', f,
+      prop: panic ? undefined : denise
+        ? (c, hx, hy) => { c.fillStyle = '#A16207'; c.fillRect(hx - 2, hy - 12, 10, 13); c.fillStyle = '#F8FAFC'; c.fillRect(hx - 1, hy - 10, 8, 10); c.fillStyle = '#94A3B8'; for (let k = 0; k < 3; k++) c.fillRect(hx, hy - 8 + k * 3, 6, 0.8); }
+        : (c, hx, hy) => { c.fillStyle = '#F8FAFC'; c.fillRect(hx - 2, hy - 8, 7, 8); c.strokeStyle = '#1A0B06'; c.lineWidth = 0.6; c.strokeRect(hx - 2, hy - 8, 7, 8); c.fillStyle = 'rgba(203, 213, 225, 0.6)'; c.fillRect(hx, hy - 14 - (f % 20) / 5, 1, 4); },
+    }, 1, x < COURSE.daycare.building ? 1 : -1);
 };
 
 /** What's left of a grown-up after the wave: flattened into the lawn, a lot of red round them. */

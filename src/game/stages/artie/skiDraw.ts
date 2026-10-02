@@ -1,6 +1,7 @@
 // The ski run's pieces: the skier, his skis, the obstacles, the avalanche,
 // Meathead rolled up in a snowball, the ranger cabin and the snow pile.
 
+import { drawPerson } from '../../render/npc/person';
 import { RANGER_RADIO, RANGER_RADIO_EVERY, radioLive } from './ski';
 import { bandedGradient } from '../../render/pixelArt';
 import type { GameState } from '../../core/state';
@@ -106,16 +107,14 @@ const drawSkier = (ctx: Ctx, state: GameState, ski: Ski) => {
   if (sk.state === 'flying') { ctx.translate(0, -30); ctx.rotate(sk.rot); ctx.translate(0, 30); }
   // Skis (still on him until he's kicked)
   if (sk.state === 'stand') { ctx.fillStyle = '#FACC15'; ctx.fillRect(-26, -3, 56, 4); ctx.fillRect(28, -6, 5, 4); }
-  // Legs, jacket, arms on poles
-  ctx.fillStyle = '#111827'; ctx.fillRect(-8, -30, 7, 27); ctx.fillRect(2, -30, 7, 27);
-  ctx.fillStyle = '#EC4899'; ctx.fillRect(-11, -56, 23, 28);
-  ctx.fillStyle = '#22D3EE'; ctx.fillRect(-11, -48, 23, 5); ctx.fillStyle = '#A3E635'; ctx.fillRect(-11, -43, 23, 3);
-  ctx.strokeStyle = '#9CA3AF'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(10, -44); ctx.lineTo(22, -2); ctx.moveTo(-8, -44); ctx.lineTo(-18, -2); ctx.stroke();
-  // Helmet and mirrored goggles
-  ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.arc(1, -64, 10, Math.PI, 0); ctx.fill(); ctx.fillRect(-9, -64, 20, 6);
-  ctx.fillStyle = '#FDE68A'; ctx.fillRect(-7, -60, 16, 8);
-  ctx.fillStyle = '#7C3AED'; ctx.fillRect(-2, -61, 12, 4);
+  // Him: the neon one-piece (pink, the teal and lime stripes), a bleached mullet out the back of the white helmet, the
+  // mirrored goggles, his poles
+  const pole = (c: Ctx, hx: number, hy: number) => { c.strokeStyle = '#1A0B06'; c.lineWidth = 2.6; c.beginPath(); c.moveTo(hx, hy - 3); c.lineTo(hx + 8, -1); c.stroke(); c.strokeStyle = '#CBD5E1'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(hx, hy - 3); c.lineTo(hx + 8, -1); c.stroke(); c.fillStyle = '#1A0B06'; c.fillRect(hx + 5, -5, 6, 1.4); };
+  drawPerson(ctx, 0, sk.state === 'stand' ? -3 : 0, {
+    skin: '#E8B495', hair: { style: 'mullet', color: '#FDE047' }, top: { style: 'parka', color: '#EC4899', accent: '#22D3EE' }, legs: { color: '#EC4899' }, shoes: '#111827',
+    hat: { style: 'helmet', color: '#F8FAFC' }, eyes: 'goggles',
+    extra: c => { c.fillStyle = '#A3E635'; c.fillRect(-9, -36, 18, 2); },
+  }, { arms: 'hold', mouth: sk.state === 'flying' ? 'open' : 'grin', f: state.frame, prop: pole, propBack: pole });
   ctx.restore();
   // What he's saying
   if (sk.lineT > 0 && sk.line) {

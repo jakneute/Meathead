@@ -8,6 +8,7 @@
 
 import { drawDumpster } from './dumpster';
 import { drawHydrant } from '../../render/props/hydrant';
+import { drawFire } from '../../render/fx/fire';
 import { brickPattern, checker, bandedGradient, hazeBands, pixelBlob } from '../../render/pixelArt';
 import type { GameState } from '../../core/state';
 import type { Enemy } from '../../../types';
@@ -513,14 +514,8 @@ const drawCar = (ctx: Ctx, x: number, y: number, w: number, v: number, wrecked: 
   if (!wrecked) { ctx.fillStyle = '#FEF08A'; ctx.fillRect(x + w - 4, y - 36, 4, 6); ctx.fillStyle = '#DC2626'; ctx.fillRect(x, y - 36, 4, 6); }
 };
 
-export const drawFlames = (ctx: Ctx, x: number, y: number, w: number, f: number) => {
-  for (let k = 0; k < 7; k++) {
-    const fx = x + (k * w) / 7, h = 30 + Math.sin(f * 0.4 + k * 1.7) * 14 + (k % 3) * 8;
-    ctx.fillStyle = k % 2 ? 'rgba(249, 115, 22, 0.9)' : 'rgba(253, 224, 71, 0.85)';
-    ctx.beginPath(); ctx.moveTo(fx - 10, y); ctx.quadraticCurveTo(fx, y - h, fx + 10, y); ctx.fill();
-  }
-  ctx.fillStyle = 'rgba(41, 37, 36, 0.5)'; for (let k = 0; k < 3; k++) { const t = ((f * 1.5 + k * 30) % 90) / 90; ctx.beginPath(); ctx.arc(x + w / 2 + Math.sin(k + f * 0.02) * 20, y - 40 - t * 120, 14 + t * 24, 0, Math.PI * 2); ctx.fill(); }
-};
+/** Fire along (x .. x + w), its feet at y: the shared fire (see render/fx/fire), smoke rolling off it. */
+export const drawFlames = (ctx: Ctx, x: number, y: number, w: number, f: number) => drawFire(ctx, x + w / 2, y, w, Math.min(90, 40 + w * 0.35), f, { smoke: 1, seed: Math.floor(x) });
 
 // ---------------------------------------------------------------------------
 // Over the terrain: the ledges, the lamps, the steam
