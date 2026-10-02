@@ -5,6 +5,9 @@ import { getOscarLauncher, getOscarMouth, flameStrength } from '../../bosses/osc
 import { muzzlePoint } from '../../combat/muzzle';
 import { Head, inHead } from './kit';
 import { drawFire } from '../fx/fire';
+import { FIRE_RAMP } from '../fx/fireball';
+import { steppedGlow } from '../pixelArt';
+import { INK, ink, shaded, shadedTop, dark, lite } from '../npc/kit';
 
 /** Oily Oscar's gear, laser sight, rockets, cigarette, oil slicks and fire. */
 
@@ -402,7 +405,8 @@ export const drawOscarLaser = (ctx: CanvasRenderingContext2D, state: GameState) 
 export const drawOscarRocket = (ctx: CanvasRenderingContext2D, p: Projectile, frame: number) => {
   ctx.save();
   ctx.translate(p.pos.x + p.width / 2, p.pos.y + p.height / 2);
-  ctx.rotate(Math.atan2(p.vel.y, p.vel.x));
+  if (p.vel.x < 0) ctx.scale(-1, 1);
+  ctx.rotate(Math.atan2(p.vel.y, Math.abs(p.vel.x))); // (mirrored going left, so it's never flying upside down)
   // Exhaust: chunky bands, red outside to a white-hot throat, each shivering on its own
   const exhaust = [['#B91C1C', 18, 5], ['#EA580C', 14, 4], ['#F59E0B', 10, 3], ['#FDE047', 6, 2], ['#FEF9C3', 3, 1]] as const;
   exhaust.forEach(([col, len, hw], i) => {
@@ -410,53 +414,76 @@ export const drawOscarRocket = (ctx: CanvasRenderingContext2D, p: Projectile, fr
     ctx.fillStyle = col;
     for (let x = 0; x < l; x += 2) ctx.fillRect(-12 - x - 2, -Math.round(hw * (1 - x / l) + 0.5), 2, Math.round(hw * (1 - x / l) + 0.5) * 2);
   });
-  // (a puff of smoke left behind, and a spark)
-  ctx.fillStyle = 'rgba(68, 64, 60, 0.45)';
-  ctx.fillRect(-36 - (frame % 6) * 2, -3 + (frame % 3), 6, 6);
+  // (a puff of smoke left behind, in steps, and a spark)
+  const sx = -36 - (frame % 6) * 2, sy = -3 + (frame % 3);
+  ctx.fillStyle = 'rgba(41, 37, 36, 0.45)'; ctx.fillRect(sx, sy + 2, 6, 2); ctx.fillRect(sx + 2, sy, 2, 6);
+  ctx.fillStyle = 'rgba(87, 83, 78, 0.5)'; ctx.fillRect(sx + 1, sy + 1, 4, 4);
+  ctx.fillStyle = 'rgba(168, 162, 158, 0.5)'; ctx.fillRect(sx + 1, sy + 1, 2, 2);
   if (frame % 3 === 0) { ctx.fillStyle = '#FDE047'; ctx.fillRect(-30 - (frame % 4) * 2, frame % 2 ? 4 : -6, 2, 2); }
-  // Body, warhead, fins
-  ctx.fillStyle = '#4E5B31';
-  ctx.fillRect(-12, -4, 20, 8);
-  ctx.fillStyle = '#C62828';
-  ctx.beginPath();
-  ctx.moveTo(8, -4);
-  ctx.lineTo(16, 0);
-  ctx.lineTo(8, 4);
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillStyle = '#263016';
-  ctx.fillRect(-12, -7, 5, 3);
-  ctx.fillRect(-12, 4, 5, 3);
-  // Oil sloshing out
-  ctx.fillStyle = '#000000';
-  ctx.beginPath();
-  ctx.arc(-2, 4, 2.5, 0, Math.PI * 2);
-  ctx.fill();
+  // Fins, then the tube (olive drab in steps, a yellow stencil band, rivets), then the red warhead
+  shaded(ctx, () => { ctx.moveTo(-12, -4); ctx.lineTo(-12, -7); ctx.lineTo(-8, -7); ctx.lineTo(-5, -4); ctx.closePath(); }, '#33401F', -12, -7, 7, 3);
+  shaded(ctx, () => { ctx.moveTo(-12, 4); ctx.lineTo(-12, 7); ctx.lineTo(-8, 7); ctx.lineTo(-5, 4); ctx.closePath(); }, '#33401F', -12, 4, 7, 3);
+  shadedTop(ctx, () => ctx.rect(-12, -4, 20, 8), '#556536', -12, -4, 20, 8);
+  ctx.fillStyle = '#8A9A5B'; ctx.fillRect(-11, -3, 17, 1);
+  ctx.fillStyle = '#D4A017'; ctx.fillRect(2, -3.5, 2, 7);
+  ctx.fillStyle = '#2B3418'; ctx.fillRect(-9, 1, 1, 1); ctx.fillRect(-4, 1, 1, 1);
+  shaded(ctx, () => { ctx.moveTo(8, -4); ctx.lineTo(16, 0); ctx.lineTo(8, 4); ctx.closePath(); }, '#C62828', 8, -4, 8, 8);
+  ctx.fillStyle = '#FFCDD2'; ctx.fillRect(9, -3, 2, 1);
+  // Oil sloshing out: an inked glob with a drip hanging off it, a shine on it
+  ink(ctx, () => { ctx.arc(-2, 4, 2.5, 0, Math.PI * 2); ctx.rect(-3, 5, 1.5, 3); }, '#050505', 0.8);
+  ctx.fillStyle = '#6B6B6B'; ctx.fillRect(-3, 3, 1, 1);
+  ctx.restore();
+};
+
+/**
+ * The flicked cigarette, tumbling, centred on (0, 0) and `s` times the one in his mouth: inked, a cork filter with a
+ * gold band, the paper charring toward the ash, the ember red round the edge to yellow in the middle.
+ */
+const drawTumblingCigarette = (ctx: CanvasRenderingContext2D, angle: number, frame: number, s: number) => {
+  ctx.save();
+  ctx.rotate(angle);
+  const x0 = -8.25 * s, h = 1.5 * s;
+  ctx.fillStyle = INK; ctx.fillRect(x0 - 1, -h - 1, 16.5 * s + 2, h * 2 + 2);
+  // (each part in steps: lit along the top, shadowed along the bottom)
+  const part = (a: number, b: number, c: string) => {
+    ctx.fillStyle = c; ctx.fillRect(x0 + a * s, -h, (b - a) * s, h * 2);
+    ctx.fillStyle = lite(c, 0.3); ctx.fillRect(x0 + a * s, -h, (b - a) * s, h * 0.5);
+    ctx.fillStyle = dark(c, 0.22); ctx.fillRect(x0 + a * s, h * 0.45, (b - a) * s, h * 0.55);
+  };
+  part(0, 4, '#D7A86E');
+  ctx.fillStyle = '#9C6B3A'; for (let k = 0; k < 4; k++) ctx.fillRect(x0 + (0.5 + k * 0.75) * s, -h * 0.35 + (k % 2) * h * 0.5, 1, 1); // (cork specks)
+  part(3.3, 4, '#E8B923');
+  part(4, 13, '#F5F5F0');
+  ctx.fillStyle = '#C9C2B8'; ctx.fillRect(x0 + 12.4 * s, -h, 0.6 * s, h * 2); // (charring)
+  part(13, 14.5, '#8A8580');
+  ctx.fillStyle = '#5A5550'; ctx.fillRect(x0 + 13.4 * s, -h * 0.6, 1, 1); ctx.fillRect(x0 + 13.9 * s, h * 0.2, 1, 1);
+  const hot = frame % 10 < 5 ? 1 : 0;
+  ctx.fillStyle = FIRE_RAMP[1 + hot]; ctx.fillRect(x0 + 14.5 * s, -h, 2 * s, h * 2);
+  ctx.fillStyle = FIRE_RAMP[2 + hot]; ctx.fillRect(x0 + 14.8 * s, -h * 0.6, 1.5 * s, h * 1.2);
+  ctx.fillStyle = FIRE_RAMP[4 + hot]; ctx.fillRect(x0 + 15.2 * s, -h * 0.25, 0.7 * s, h * 0.5);
   ctx.restore();
 };
 
 export const drawFlyingCigarette = (ctx: CanvasRenderingContext2D, p: Projectile, frame: number) => {
   const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
   if (p.isTased) {
+    // (a ring of current round it: a faint wide band under a hard bright line, sparks jumping off it)
+    const r = 30 + Math.random() * 6;
     ctx.save();
-    ctx.strokeStyle = '#00E5FF';
-    ctx.lineWidth = 2;
-    ctx.shadowColor = '#00E5FF';
-    ctx.shadowBlur = 10;
-    ctx.beginPath();
-    ctx.arc(cx, cy, 30 + Math.random() * 6, 0, Math.PI * 2);
-    ctx.stroke();
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.3)'; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = '#00E5FF'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#E0FFFF';
+    for (let k = 0; k < 4; k++) { const a = Math.random() * Math.PI * 2; ctx.fillRect(Math.round(cx + Math.cos(a) * (r + 3)) - 1, Math.round(cy + Math.sin(a) * (r + 3)) - 1, 2, 2); }
     ctx.restore();
   }
-  // Drawn bigger than the one in his mouth so you can spot (and zap) it
+  // Drawn bigger than the one in his mouth so you can spot (and zap) it; the ember's glow round it in stepped rings
   ctx.save();
   ctx.translate(cx, cy);
   const pulse = 1 + Math.sin(frame * 0.4) * 0.15;
-  ctx.fillStyle = 'rgba(255, 112, 67, 0.3)';
-  ctx.beginPath();
-  ctx.arc(0, 0, 26 * pulse, 0, Math.PI * 2);
-  ctx.fill();
-  drawCigarette(ctx, 0, 0, p.isTased ? (Math.random() - 0.5) : frame * 0.25, frame, 2.8, true);
+  steppedGlow(ctx, 0, 0, 26 * pulse, '#FF7043', 0.45, 0.12, 4);
+  drawTumblingCigarette(ctx, p.isTased ? (Math.random() - 0.5) : frame * 0.25, frame, 2.8);
   ctx.restore();
 };
 

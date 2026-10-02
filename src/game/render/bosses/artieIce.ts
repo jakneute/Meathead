@@ -4,6 +4,7 @@
 
 import { Enemy, Projectile } from '../../../types';
 import { GameState } from '../../core/state';
+import { steppedGlow, pixelBlob } from '../pixelArt';
 
 const FLOOR_Y = 550;
 
@@ -95,82 +96,108 @@ export const drawIcicles = (ctx: CanvasRenderingContext2D, state: GameState) => 
   ctx.restore();
 };
 
-/** Artie's thrown ice block: a frosted, faceted chunk that tumbles and trails snow. */
+/** Ice in steps, deep to bright: a face gets the step its slant to the light (upper left) earns. */
+const ICE_RAMP = ['#2F6F9E', '#4F9BCB', '#86CBEB', '#BDE9F8', '#EAFBFF'];
+const ICE_INK = '#123A57';
+/** The step for a face whose outward normal is (nx, ny) in the turned frame, the light staying put upper left. */
+const iceStep = (nx: number, ny: number, angle: number) => {
+  const c = Math.cos(angle), s = Math.sin(angle);
+  const wx = nx * c - ny * s, wy = nx * s + ny * c, len = Math.hypot(wx, wy) || 1;
+  const lit = (-0.62 * wx - 0.78 * wy) / len; // -1..1
+  return ICE_RAMP[Math.max(0, Math.min(ICE_RAMP.length - 1, Math.round((lit + 1) * 0.5 * (ICE_RAMP.length - 1) + 0.3)))];
+};
+/** A four-point sparkle, `s` the arm. */
+const sparkle = (ctx: CanvasRenderingContext2D, x: number, y: number, s: number) => {
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(Math.round(x) - 1, Math.round(y - s), 2, s * 2);
+  ctx.fillRect(Math.round(x - s), Math.round(y) - 1, s * 2, 2);
+};
+
+/** Artie's thrown ice block: a cut, faceted chunk, a flat face in the middle, bubbles frozen in it; tumbles and trails snow. */
 export const drawIceBlock = (ctx: CanvasRenderingContext2D, p: Projectile, frame: number) => {
   const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2, r = p.width / 2;
   const dir = Math.sign(p.vel.x) || 1;
+  const angle = frame * 0.08 * dir;
   ctx.save();
-  // Frost trail
+  // Frost trail: chunky puffs, fading in steps
   for (let k = 1; k <= 4; k++) {
-    ctx.fillStyle = `rgba(210, 245, 255, ${0.28 - k * 0.06})`;
-    ctx.beginPath();
-    ctx.arc(cx - dir * k * 14, cy + Math.sin(frame * 0.3 + k) * 4, r * (0.75 - k * 0.12), 0, Math.PI * 2);
-    ctx.fill();
+    ctx.globalAlpha = 0.5 - k * 0.1;
+    pixelBlob(ctx, cx - dir * k * 14, cy + Math.sin(frame * 0.3 + k) * 4, r * (0.75 - k * 0.12), r * (0.75 - k * 0.12), '#D2F5FF');
   }
+  ctx.globalAlpha = 1;
+  // Chilly glow, in rings
+  steppedGlow(ctx, cx, cy, r * 1.4, '#7FDBFF', 0.3, 0.06, 4);
   ctx.translate(cx, cy);
-  ctx.rotate(frame * 0.08 * dir);
-  // Chilly glow
-  ctx.shadowColor = '#7FDBFF';
-  ctx.shadowBlur = 16;
-  // Faceted chunk
-  const pts = [[-1, -0.7], [-0.35, -1], [0.55, -0.85], [1, -0.2], [0.8, 0.7], [0.1, 1], [-0.75, 0.8], [-1, 0.1]];
-  const body = ctx.createLinearGradient(-r, -r, r, r);
-  body.addColorStop(0, '#F4FDFF');
-  body.addColorStop(0.5, '#A8E4F7');
-  body.addColorStop(1, '#4FA3CF');
-  ctx.fillStyle = body;
-  ctx.beginPath();
-  pts.forEach(([px, py], k) => (k === 0 ? ctx.moveTo(px * r, py * r) : ctx.lineTo(px * r, py * r)));
-  ctx.closePath();
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.strokeStyle = '#2F7FAE';
-  ctx.lineWidth = 2.5;
-  ctx.stroke();
-  // Inner facets and cracks
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(-0.35 * r, -1 * r); ctx.lineTo(-0.1 * r, -0.1 * r); ctx.lineTo(0.8 * r, 0.7 * r);
-  ctx.moveTo(-0.1 * r, -0.1 * r); ctx.lineTo(-0.75 * r, 0.8 * r);
-  ctx.moveTo(-0.1 * r, -0.1 * r); ctx.lineTo(1 * r, -0.2 * r);
-  ctx.stroke();
-  ctx.strokeStyle = 'rgba(47, 127, 174, 0.6)';
-  ctx.beginPath();
-  ctx.moveTo(0.3 * r, 0.1 * r); ctx.lineTo(0.5 * r, 0.35 * r); ctx.lineTo(0.35 * r, 0.55 * r);
-  ctx.stroke();
-  // Glint
-  ctx.fillStyle = frame % 30 < 4 ? '#FFFFFF' : 'rgba(255, 255, 255, 0.6)';
-  ctx.beginPath();
-  ctx.arc(-0.45 * r, -0.5 * r, 3, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.rotate(angle);
+  const pts = [[-1, -0.7], [-0.35, -1], [0.55, -0.85], [1, -0.2], [0.8, 0.7], [0.1, 1], [-0.75, 0.8], [-1, 0.1]].map(([x, y]) => [x * r, y * r]);
+  // (the flat face in the middle: the outline pulled in round a point off-centre)
+  const fx = -0.1 * r, fy = -0.1 * r;
+  const inner = pts.map(([x, y]) => [fx + (x - fx) * 0.52, fy + (y - fy) * 0.52]);
+  const poly = (q: number[][]) => { ctx.beginPath(); q.forEach(([x, y], k) => (k === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y))); ctx.closePath(); };
+  // Ink
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = ICE_INK; ctx.lineWidth = 2.5;
+  poly(pts); ctx.stroke();
+  // The bevels round the face, each its own step
+  for (let k = 0; k < pts.length; k++) {
+    const a = pts[k], b = pts[(k + 1) % pts.length], ia = inner[k], ib = inner[(k + 1) % pts.length];
+    const nx = (a[0] + b[0]) / 2 - fx, ny = (a[1] + b[1]) / 2 - fy;
+    ctx.fillStyle = iceStep(nx, ny, angle);
+    poly([a, b, ib, ia]); ctx.fill();
+    ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 0.6; ctx.stroke(); // (no seams)
+  }
+  // The face, a step under the brightest, a lit band along its upper-left edges
+  ctx.fillStyle = '#A9DEF3';
+  poly(inner); ctx.fill();
+  ctx.save(); poly(inner); ctx.clip(); ctx.rotate(-angle);
+  ctx.fillStyle = '#C9EEFA'; ctx.beginPath(); ctx.arc(-r * 0.25, -r * 0.25, r * 0.38, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)'; ctx.lineWidth = 1;
+  poly(inner); ctx.stroke();
+  // Bubbles frozen in it, and a fracture running through
+  ctx.fillStyle = '#E4F8FF';
+  for (const [bx, by, br] of [[0.12, 0.2, 2.2], [0.28, 0.05, 1.4], [-0.25, 0.32, 1.2], [0.05, 0.42, 1]]) {
+    ctx.beginPath(); ctx.arc(bx * r, by * r, br, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0.12 * r - 1.5, 0.2 * r - 1.5, 1, 1);
+  ctx.strokeStyle = '#2F6F9E'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(0.3 * r, 0.1 * r); ctx.lineTo(0.5 * r, 0.35 * r); ctx.lineTo(0.35 * r, 0.55 * r); ctx.lineTo(0.48 * r, 0.75 * r); ctx.stroke();
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)'; ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(0.3 * r - 1, 0.1 * r); ctx.lineTo(0.5 * r - 1, 0.35 * r); ctx.lineTo(0.35 * r - 1, 0.55 * r); ctx.stroke();
+  ctx.restore();
+  // Glints: a fixed one upper left, and a sparkle now and then
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(Math.round(cx - r * 0.5), Math.round(cy - r * 0.55), 3, 2);
+  ctx.fillRect(Math.round(cx - r * 0.6), Math.round(cy - r * 0.42), 2, 2);
+  if (frame % 30 < 4) sparkle(ctx, cx - r * 0.4, cy - r * 0.5, frame % 30 < 2 ? 4 : 6);
 
   // Snowflakes shedding off it
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
   for (let k = 0; k < 3; k++) {
     const t = ((frame * 2 + k * 11) % 24) / 24;
-    ctx.fillRect(cx - dir * (r + t * 30) + Math.sin(k * 3 + t * 6) * 6, cy - r * 0.6 + k * r * 0.6 + t * 10, 2.5, 2.5);
+    ctx.fillRect(Math.round(cx - dir * (r + t * 30) + Math.sin(k * 3 + t * 6) * 6), Math.round(cy - r * 0.6 + k * r * 0.6 + t * 10), 2, 2);
   }
 };
 
-/** A shard of a shattered ice block: a spinning splinter. */
+/** A shard of a shattered ice block: a spinning splinter, a ridge down it, one side catching the light. */
 export const drawIceShard = (ctx: CanvasRenderingContext2D, p: Projectile, frame: number) => {
   const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
+  const angle = frame * 0.3 + p.pos.x * 0.05;
   ctx.save();
+  steppedGlow(ctx, cx, cy, 11, '#7FDBFF', 0.22, 0.05, 3);
   ctx.translate(cx, cy);
-  ctx.rotate(frame * 0.3 + p.pos.x * 0.05);
-  ctx.shadowColor = '#7FDBFF';
-  ctx.shadowBlur = 8;
-  ctx.fillStyle = '#D6F4FF';
-  ctx.beginPath();
-  ctx.moveTo(-9, -3); ctx.lineTo(10, 0); ctx.lineTo(-9, 4); ctx.lineTo(-5, 0);
-  ctx.closePath();
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.strokeStyle = '#3B8DBA';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
+  ctx.rotate(angle);
+  const outline = () => { ctx.beginPath(); ctx.moveTo(-9, -3); ctx.lineTo(10, 0); ctx.lineTo(-9, 4); ctx.lineTo(-5, 0); ctx.closePath(); };
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = ICE_INK; ctx.lineWidth = 2;
+  outline(); ctx.stroke();
+  // (the two sides of the ridge, each its step)
+  ctx.fillStyle = iceStep(0, -1, angle);
+  ctx.beginPath(); ctx.moveTo(-9, -3); ctx.lineTo(10, 0); ctx.lineTo(-5, 0); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = iceStep(0, 1, angle);
+  ctx.beginPath(); ctx.moveTo(-5, 0); ctx.lineTo(10, 0); ctx.lineTo(-9, 4); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.75)'; ctx.fillRect(-5, -0.5, 13, 1);
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(6, -1, 2, 2);
   ctx.restore();
 };
 

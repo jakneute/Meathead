@@ -1201,25 +1201,55 @@ const drawGooPuddle = (ctx: CanvasRenderingContext2D, state: GameState, p: GameS
     for (let i = n; i >= 0; i--) { const x = x0 + (i / n) * p.width; ctx.lineTo(x, floorAt(x) + 1.5); }
     ctx.closePath();
   };
-  // Flecks of it splattered round it, flat on the ground
-  ctx.fillStyle = '#2E7D32';
-  for (let k = 0; k < 5; k++) { const side = k % 2 ? 1 : -1, fx = side > 0 ? x1 + 3 + h(k + 9) * 14 : x0 - 3 - h(k + 9) * 14; ctx.beginPath(); ctx.ellipse(fx, floorAt(fx) - 0.6, 1.5 + h(k) * 2.5, 0.9, 0, 0, Math.PI * 2); ctx.fill(); }
-  // The body of it: dark under, the green of it, a lighter skin on top
-  const g = ctx.createLinearGradient(0, base - thick - 2, 0, base + 1);
-  g.addColorStop(0, '#7CB342'); g.addColorStop(0.35, '#43A047'); g.addColorStop(1, '#1B5E20');
-  ctx.fillStyle = g; outline(); ctx.fill();
-  ctx.strokeStyle = 'rgba(10, 40, 12, 0.7)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(top[0][0], top[0][1]); for (const [x, y] of top) ctx.lineTo(x, y); ctx.stroke();
-  // (the wet sheen along the top, broken up)
-  ctx.strokeStyle = 'rgba(220, 255, 180, 0.55)'; ctx.lineWidth = 1;
-  for (let i = 1; i < n - 1; i += 2) { if (h(i + 3) < 0.35) continue; ctx.beginPath(); ctx.moveTo(top[i][0], top[i][1] + 1.2); ctx.lineTo(top[i + 1][0], top[i + 1][1] + 1.2); ctx.stroke(); }
-  // (chunks in it)
-  for (let k = 0; k < Math.round(p.width / 22); k++) { const cx = x0 + 8 + h(k + 20) * (p.width - 16); ctx.fillStyle = k % 2 ? '#C0CA33' : '#8D6E63'; ctx.beginPath(); ctx.ellipse(cx, floorAt(cx) - thick * 0.45, 1.6 + h(k) * 1.4, 1.1, h(k) * 3, 0, Math.PI * 2); ctx.fill(); }
+  // Flecks of it splattered round it, flat on the ground, a lit pixel on each
+  for (let k = 0; k < 5; k++) {
+    const side = k % 2 ? 1 : -1, fx = Math.round(side > 0 ? x1 + 3 + h(k + 9) * 14 : x0 - 3 - h(k + 9) * 14), fw = Math.round(3 + h(k) * 5), fy = Math.round(floorAt(fx) - 1);
+    ctx.fillStyle = '#1B5E20'; ctx.fillRect(fx - fw / 2, fy, fw, 2);
+    ctx.fillStyle = '#43A047'; ctx.fillRect(fx - fw / 2 + 1, fy, Math.max(1, fw - 2), 1);
+  }
+  // The body of it, in bands that follow the ground: dark under, the green of it, a lighter skin on top
+  ctx.save(); outline(); ctx.clip();
+  for (let x = Math.floor(x0 / 2) * 2 - 2; x < x1 + 2; x += 2) {
+    const fy = floorAt(x + 1);
+    ctx.fillStyle = '#1B5E20'; ctx.fillRect(x, fy - thick - 4, 2, thick + 6);
+    ctx.fillStyle = '#2E7D32'; ctx.fillRect(x, fy - thick - 4, 2, thick * 0.75 + 4);
+    ctx.fillStyle = '#43A047'; ctx.fillRect(x, fy - thick - 4, 2, thick * 0.45 + 4);
+  }
+  // (the skin along the top, two steps deep)
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#7CB342'; ctx.lineWidth = 4; ctx.beginPath(); for (const [x, y] of top) ctx.lineTo(x, y); ctx.stroke();
+  ctx.strokeStyle = '#9CCC65'; ctx.lineWidth = 1.6; ctx.beginPath(); for (const [x, y] of top) ctx.lineTo(x, y + 0.8); ctx.stroke();
+  ctx.restore();
+  ctx.strokeStyle = '#0A280C'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0 - 2, floorAt(x0) + 1); for (const [x, y] of top) ctx.lineTo(x, y); ctx.lineTo(x1 + 2, floorAt(x1) + 1); ctx.stroke();
+  // (the wet sheen along the top, broken up, and a glint or two)
+  ctx.fillStyle = '#DCFFB4';
+  for (let i = 1; i < n - 1; i += 2) {
+    if (h(i + 3) < 0.35) continue;
+    const [ax, ay] = top[i], [bx] = top[i + 1];
+    ctx.fillRect(Math.round(ax), Math.round(ay + 1), Math.max(2, Math.round((bx - ax) * 0.6)), 1);
+    if (h(i + 7) > 0.75) { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(Math.round(ax), Math.round(ay + 1), 1, 1); ctx.fillStyle = '#DCFFB4'; }
+  }
+  // (chunks in it: a lump each, its shadow under it, lit on top)
+  for (let k = 0; k < Math.round(p.width / 22); k++) {
+    const cx = Math.round(x0 + 8 + h(k + 20) * (p.width - 16)), cy = Math.round(floorAt(cx) - thick * 0.45), cw = Math.round(2 + h(k) * 2);
+    ctx.fillStyle = '#14451A'; ctx.fillRect(cx, cy + 1, cw + 1, 1);
+    ctx.fillStyle = k % 2 ? '#C0CA33' : '#8D6E63'; ctx.fillRect(cx, cy - 1, cw, 2); ctx.fillRect(cx + 1, cy - 2, Math.max(1, cw - 2), 1);
+    ctx.fillStyle = k % 2 ? '#E6EE9C' : '#BCAAA4'; ctx.fillRect(cx, cy - 1, 1, 1);
+  }
   // Bubbles: one comes up, swells, and pops
   for (let k = 0; k < Math.max(1, Math.round(p.width / 40)); k++) {
     const period = 50 + Math.round(h(k + 30) * 40), ph = (state.frame + Math.round(h(k + 40) * period)) % period;
     const bx = x0 + 6 + h(k + 50 + Math.floor((state.frame + h(k + 40) * period) / period)) * (p.width - 12), by = floorAt(bx) - thick * 0.6;
-    if (ph < period - 6) { const r = 1 + (ph / period) * 3.2; ctx.fillStyle = 'rgba(173, 255, 47, 0.85)'; ctx.beginPath(); ctx.arc(bx, by - r * 0.6, r, Math.PI, 0); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fillRect(bx - r * 0.4, by - r * 1.2, 1, 1); }
-    else { ctx.strokeStyle = 'rgba(173, 255, 47, 0.7)'; ctx.lineWidth = 0.8; for (let s = 0; s < 4; s++) { const a = -Math.PI * (0.15 + s * 0.23); ctx.beginPath(); ctx.moveTo(bx + Math.cos(a) * 2, by + Math.sin(a) * 2); ctx.lineTo(bx + Math.cos(a) * 5, by + Math.sin(a) * 5); ctx.stroke(); } }
+    if (ph < period - 6) {
+      const r = 1 + (ph / period) * 3.2;
+      ctx.beginPath(); ctx.arc(bx, by - r * 0.6, r, Math.PI, 0); ctx.closePath();
+      ctx.fillStyle = '#9CCC65'; ctx.fill(); ctx.strokeStyle = '#1B5E20'; ctx.lineWidth = 0.8; ctx.stroke();
+      if (r > 2) { ctx.fillStyle = '#C5E1A5'; ctx.fillRect(Math.round(bx - r * 0.6), Math.round(by - r * 1.2), Math.max(1, Math.round(r * 0.6)), 1); }
+      ctx.fillStyle = '#FFFFFF'; ctx.fillRect(Math.round(bx - r * 0.4), Math.round(by - r * 1.3), 1, 1);
+    } else {
+      ctx.fillStyle = '#C5E1A5';
+      for (let s = 0; s < 4; s++) { const a = -Math.PI * (0.15 + s * 0.23); ctx.fillRect(Math.round(bx + Math.cos(a) * 4), Math.round(by + Math.sin(a) * 4), 1.5, 1.5); }
+    }
   }
 };
 

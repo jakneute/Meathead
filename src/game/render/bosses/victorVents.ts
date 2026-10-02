@@ -5,6 +5,8 @@
 import { Projectile, Volcano } from '../../../types';
 import { ARENA_LEFT, ARENA_RIGHT } from '../../../constants';
 import { CORK_FUSE } from '../../bosses/victor';
+import { steppedGlow } from '../pixelArt';
+import { FIRE_RAMP } from '../fx/fireball';
 
 const TELEGRAPH_FRAMES = 60;
 const ERUPTION_FRAMES = 180;
@@ -247,33 +249,46 @@ const drawCork = (ctx: CanvasRenderingContext2D, w: number, h: number, pressure:
 
 export const isMagma = (p: Projectile) => p.id.startsWith('magma-');
 
+/**
+ * A glob of magma: a stepped glow round it, a trail of cooling drops behind in hard steps, a molten body stepping up
+ * the fire ramp to a white-hot heart, crust plates riding on it (lit upper left) with the glow showing through the
+ * cracks between them.
+ */
 export const drawMagma = (ctx: CanvasRenderingContext2D, p: Projectile, frame: number) => {
   const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
   const speed = Math.hypot(p.vel.x, p.vel.y) || 1;
   const dx = -p.vel.x / speed, dy = -p.vel.y / speed;
   ctx.save();
-  // Trail
+  steppedGlow(ctx, cx, cy, 17, '#FF5A00', 0.32, 0.06, 4);
+  // Trail: drops cooling as they fall behind, hotter to cooler, smaller and fainter
   for (let i = 4; i >= 1; i--) {
-    ctx.fillStyle = `rgba(255, ${80 + i * 20}, 0, ${0.12 * (5 - i)})`;
-    ctx.beginPath();
-    ctx.arc(cx + dx * i * 6, cy + dy * i * 6, 7 - i, 0, Math.PI * 2);
-    ctx.fill();
+    const s = Math.max(2, 8 - i * 1.5);
+    ctx.globalAlpha = 0.9 - i * 0.16;
+    ctx.fillStyle = FIRE_RAMP[Math.max(0, 4 - i)];
+    ctx.fillRect(Math.round(cx + dx * i * 6 - s / 2), Math.round(cy + dy * i * 6 - s / 2), s, s);
   }
-  // Molten blob with a crusted edge and a white-hot core
-  ctx.shadowColor = '#FF5A00';
-  ctx.shadowBlur = 14;
-  ctx.fillStyle = '#7A1F05';
-  ctx.beginPath();
-  ctx.arc(cx, cy, 9, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = '#FF6A00';
-  ctx.beginPath();
-  ctx.arc(cx, cy, 7, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = frame % 6 < 3 ? '#FFE9A0' : '#FFC04D';
-  ctx.beginPath();
-  ctx.arc(cx - 1.5, cy - 1.5, 3.5, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.globalAlpha = 1;
+  // Ink, then the molten body: each step a bit forward of the last, the hot heart leading
+  ctx.fillStyle = '#2A0A02';
+  ctx.beginPath(); ctx.arc(cx, cy, 9.5, 0, Math.PI * 2); ctx.fill();
+  const hot = frame % 6 < 3 ? 1 : 0;
+  [[8.5, 1], [7, 2], [5, 3], [3, 4 + hot]].forEach(([rr, c], i) => {
+    ctx.fillStyle = FIRE_RAMP[c];
+    ctx.beginPath(); ctx.arc(cx - dx * i * 0.8 - i * 0.3, cy - dy * i * 0.8 - i * 0.3, rr, 0, Math.PI * 2); ctx.fill();
+  });
+  // Crust plates, slowly turning on it, a lit rim on each
+  const spin = frame * 0.05;
+  for (let k = 0; k < 4; k++) {
+    const a0 = spin + k * (Math.PI / 2) + 0.18, a1 = a0 + Math.PI / 2 - 0.42;
+    const r0 = 5.5 + (k % 2), r1 = 9;
+    const am = (a0 + a1) / 2;
+    const lit = -0.62 * Math.cos(am) - 0.78 * Math.sin(am);
+    ctx.fillStyle = lit > 0.35 ? '#7A2A0C' : lit > -0.35 ? '#4A1405' : '#2E0B03';
+    ctx.beginPath(); ctx.arc(cx, cy, r1, a0, a1); ctx.arc(cx, cy, r0, a1, a0, true); ctx.closePath(); ctx.fill();
+    if (lit > 0.35) { ctx.fillStyle = '#A8461A'; ctx.fillRect(Math.round(cx + Math.cos(am) * 7.5) - 1, Math.round(cy + Math.sin(am) * 7.5) - 1, 2, 1); }
+  }
+  // (a glint on the wet heart)
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(Math.round(cx - 2), Math.round(cy - 2), 1, 1);
   ctx.restore();
 };
