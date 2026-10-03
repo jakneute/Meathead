@@ -26,9 +26,9 @@ export const FINALE_FLAME_SIZE_CAP_DIST = 520;
 
 /** Oil rocket: the splash (usually OIL_ROCKET_SPLASH_RADIUS). */
 export const FINALE_OIL_SPLASH_RADIUS = 260;
-/** ...and what it does to an agent caught in it (usually OIL_ROCKET_SPLASH_DAMAGE): a miss into a wall or the floor
- * still kills whoever's near it, shield man and all. */
-export const FINALE_OIL_SPLASH_DAMAGE = 200;
+/** ...and what it does to an agent caught in it (usually OIL_ROCKET_SPLASH_DAMAGE): a hurt, not likely the end of him
+ * (every one of them has more than this), but he's oiled, one spark from going up. */
+export const FINALE_OIL_SPLASH_DAMAGE = 55;
 /** ...and past that, out to here, the oil off it still coats whoever it doesn't kill (the alien too). */
 export const FINALE_OIL_COAT_RADIUS = 420;
 
