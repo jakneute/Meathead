@@ -2,12 +2,17 @@
 // sign, the two of them under it with their cigarettes (then what's left of
 // them, up the wall), the bike in a heap at the foot of it burning, the machine
 // gun flung on top; and him, going over backwards off the bike.
+//
+// Everything in the 16-bit way: an ink line round each thing, its colour in steps (lit from the upper left), no
+// smooth gradients.
 
 import { drawPerson } from '../../render/npc/person';
 import type { GameState } from '../../core/state';
 import { GROUND_Y } from '../../../constants';
 import { drawFire } from '../../render/fx/fire';
-import { pixelBlob } from '../../render/pixelArt';
+import { brickPattern, checker, pixelBlob } from '../../render/pixelArt';
+import { INK, ink } from '../../render/npc/kit';
+import { slab, column, letter } from '../barry/rooms';
 import { drawPlayer } from '../../render/player/player';
 import { drawChopperBike, drawLmgProp } from '../../render/enemies/oscar';
 import { COURSE } from './course';
@@ -22,20 +27,32 @@ export const drawEndBack = (ctx: Ctx, state: GameState, en: Ending) => {
   const W = COURSE.end.wall;
   if (state.camera.x > W + 700 || state.camera.x + 800 < W - 200) return;
   const top = Y - 200;
-  ctx.fillStyle = '#7C2D12'; ctx.fillRect(W, top, 420, 200);
-  ctx.fillStyle = '#9A3412';
-  for (let r = 0; r < 20; r++) for (let c = 0; c < 18; c++) { const o = r % 2 ? 12 : 0; ctx.fillRect(W + c * 24 + o, top + r * 10, 21, 7); }
-  ctx.fillStyle = '#44403C'; ctx.fillRect(W - 6, top - 10, 432, 12); // the roof edge
-  ctx.fillStyle = '#1C1917'; ctx.fillRect(W + 250, Y - 110, 60, 110); // back door
-  ctx.fillStyle = '#FACC15'; ctx.fillRect(W + 300, Y - 60, 5, 5);
+  // (brick, the courses in two tints, grime up from the ground, inked round)
+  ctx.save(); ctx.translate(W, top);
+  ctx.fillStyle = brickPattern(ctx, 'oscar-end-brick', 24, 10, ['#9A3412', '#8E3010'], '#7C2D12'); ctx.fillRect(0, 0, 420, 200);
+  ctx.restore();
+  ctx.fillStyle = '#C2410C'; for (let r = 0; r < 20; r++) for (let c = 0; c < 18; c++) { const o = r % 2 ? 12 : 0; if ((r * 7 + c * 3) % 5 === 0) ctx.fillRect(W + c * 24 + o, top + r * 10, 8, 1); }
+  checker(ctx, W, Y - 24, 420, 24, 'rgba(28, 25, 23, 0.35)');
+  ctx.fillStyle = 'rgba(28, 25, 23, 0.35)'; ctx.fillRect(W, Y - 10, 420, 10);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(W + 0.5, top + 0.5, 419, 199);
+  slab(ctx, W - 6, top - 10, 432, 12, '#44403C'); // the roof edge
+  slab(ctx, W + 246, Y - 114, 68, 114, '#57534E');
+  slab(ctx, W + 250, Y - 110, 60, 110, '#292524'); // back door
+  ctx.fillStyle = '#1C1917'; ctx.fillRect(W + 256, Y - 102, 48, 40); ctx.fillRect(W + 256, Y - 54, 48, 46);
+  ink(ctx, () => ctx.rect(W + 300, Y - 60, 5, 5), '#FACC15');
   // The sign
-  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(W + 30, top + 40, 120, 60);
-  ctx.strokeStyle = '#B91C1C'; ctx.lineWidth = 4; ctx.strokeRect(W + 30, top + 40, 120, 60);
-  ctx.fillStyle = '#B91C1C'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center'; ctx.fillText('NO SMOKING', W + 90, top + 64);
-  ctx.font = 'bold 7px monospace'; ctx.fillText('FLAMMABLE AREA', W + 90, top + 78); ctx.fillText('BY ORDER OF MANAGEMENT', W + 90, top + 90); ctx.textAlign = 'left';
+  slab(ctx, W + 30, top + 40, 120, 60, '#F8FAFC', 1);
+  ctx.strokeStyle = '#B91C1C'; ctx.lineWidth = 4; ctx.strokeRect(W + 33, top + 43, 114, 54);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(W + 30.5, top + 40.5, 119, 59);
+  letter(ctx, 'NO SMOKING', W + 90, top + 64, 'bold 13px monospace', '#B91C1C', '#FECACA');
+  letter(ctx, 'FLAMMABLE AREA', W + 90, top + 78, 'bold 7px monospace', '#B91C1C', '#FECACA');
+  letter(ctx, 'BY ORDER OF MANAGEMENT', W + 90, top + 90, 'bold 7px monospace', '#44403C', '#E7E5E4');
+  ctx.fillStyle = '#A8A29E'; for (const [bx, by] of [[W + 33, top + 43], [W + 145, top + 43], [W + 33, top + 95], [W + 145, top + 95]]) ctx.fillRect(bx, by, 2, 2);
   // A butt can by the door, overflowing
-  ctx.fillStyle = '#6B7280'; ctx.fillRect(W + 190, Y - 36, 18, 36);
-  ctx.fillStyle = '#F8FAFC'; for (let k = 0; k < 6; k++) ctx.fillRect(W + 186 + k * 4, Y - 38 - (k % 2) * 2, 3, 2);
+  column(ctx, W + 190, Y - 36, 18, 36, '#6B7280');
+  ctx.fillStyle = '#9CA3AF'; ctx.fillRect(W + 189, Y - 38, 20, 3);
+  for (let k = 0; k < 6; k++) { const bx = W + 186 + k * 4, by = Y - 38 - (k % 2) * 2; ctx.fillStyle = '#F8FAFC'; ctx.fillRect(bx, by, 3, 2); ctx.fillStyle = '#D97706'; ctx.fillRect(bx + (k % 2 ? 2 : 0), by, 1, 2); }
+  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(W + 212, Y - 2, 4, 2); ctx.fillRect(W + 180, Y - 2, 3, 2); // (and round it)
   // What's left of the two of them, up the wall
   if (en.smokers === 'paste') drawPaste(ctx, W, state.frame - en.splatAt);
 };
@@ -46,16 +63,21 @@ const drawPaste = (ctx: Ctx, W: number, since: number) => {
   ctx.save();
   for (let i = 0; i < 26; i++) {
     const r = (6 + hash(i) * 20) * k;
-    ctx.fillStyle = ['#7F1D1D', '#991B1B', '#B91C1C', '#450A0A'][i % 4];
-    ctx.beginPath(); ctx.ellipse(W + 6 + hash(i + 3) * 70, Y - 20 - hash(i + 9) * 110, r, r * 0.6, hash(i + 5) * 3, 0, Math.PI * 2); ctx.fill();
+    const c = ['#7F1D1D', '#991B1B', '#B91C1C', '#450A0A'][i % 4], px = W + 6 + hash(i + 3) * 70, py = Y - 20 - hash(i + 9) * 110, rot = hash(i + 5) * 3;
+    ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(px, py, r, r * 0.6, rot, 0, Math.PI * 2); ctx.fill();
+    if (r > 10) { ctx.fillStyle = i % 4 === 3 ? '#7F1D1D' : '#450A0A'; ctx.beginPath(); ctx.ellipse(px + r * 0.15, py + r * 0.1, r * 0.55, r * 0.33, rot, 0, Math.PI * 2); ctx.fill(); }
   }
   // Drips running down it
-  ctx.fillStyle = '#7F1D1D';
-  for (let i = 0; i < 8; i++) { const len = Math.min(60, Math.max(0, since - 10) * 0.5) * hash(i + 20); ctx.fillRect(W + 10 + i * 8, Y - 100 + hash(i) * 50, 3, len); }
+  for (let i = 0; i < 8; i++) {
+    const len = Math.round(Math.min(60, Math.max(0, since - 10) * 0.5) * hash(i + 20)), dx = W + 10 + i * 8, dy = Math.round(Y - 100 + hash(i) * 50);
+    ctx.fillStyle = '#7F1D1D'; ctx.fillRect(dx, dy, 3, len); ctx.fillStyle = '#450A0A'; ctx.fillRect(dx + 2, dy, 1, len);
+    if (len > 4) { ctx.fillStyle = '#7F1D1D'; ctx.fillRect(dx - 1, dy + len, 4, 3); ctx.fillStyle = '#B91C1C'; ctx.fillRect(dx, dy + len, 1, 1); }
+  }
   // Bits: a hard hat, a boot, a hi-vis rag, a cigarette
-  ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.arc(W - 30, Y - 4, 9, Math.PI, 0); ctx.fill();
-  ctx.fillStyle = '#44403C'; ctx.fillRect(W - 60, Y - 8, 14, 8);
-  ctx.fillStyle = '#F97316'; ctx.fillRect(W + 20, Y - 60, 20, 8);
+  ink(ctx, () => ctx.arc(W - 30, Y - 4, 9, Math.PI, 0), '#FACC15'); ctx.fillStyle = '#FEF08A'; ctx.fillRect(W - 35, Y - 11, 4, 3);
+  ink(ctx, () => ctx.rect(W - 41, Y - 5, 22, 3), '#CA8A04');
+  ink(ctx, () => { ctx.rect(W - 60, Y - 8, 14, 8); }, '#44403C'); ctx.fillStyle = '#7F1D1D'; ctx.fillRect(W - 60, Y - 9, 6, 2);
+  ink(ctx, () => ctx.rect(W + 20, Y - 60, 20, 8), '#F97316'); ctx.fillStyle = '#FDE047'; ctx.fillRect(W + 21, Y - 57, 18, 2);
   ctx.fillStyle = '#F8FAFC'; ctx.fillRect(W - 80, Y - 3, 10, 2); ctx.fillStyle = '#EF4444'; ctx.fillRect(W - 70, Y - 3, 2, 2);
   ctx.restore();
 };

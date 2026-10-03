@@ -5,10 +5,13 @@
 // own bike under him, and the count.
 
 import type { GameState } from '../../core/state';
-import { bandedGradient, hazeBands, pixelBlob } from '../../render/pixelArt';
+import { bandedGradient, hazeBands, pixelBlob, steppedGlow } from '../../render/pixelArt';
+import { INK, ink, shaded } from '../../render/npc/kit';
+import { slab, column, letter } from '../barry/rooms';
+import { sheen, strut } from './kit';
 import { drawFire } from '../../render/fx/fire';
 import { groundLineAt } from '../../core/terrain';
-import { CANVAS_WIDTH } from '../../../constants';
+import { CANVAS_WIDTH, topBand } from '../../../constants';
 import { drawDirt, drawDerrick, drawPumpjack } from './fieldDraw';
 import { drawPickupBody, drawCruiserBody, drawChopperBike } from '../../render/enemies/oscar';
 import { drawKindCorpse } from '../../render/enemies';
@@ -39,10 +42,14 @@ export const drawChaseBack = (ctx: Ctx, state: GameState, ch: Chase) => {
   const runs = state.groundRuns.filter(r => r.x2 > v.x1 - 100 && r.x1 < v.x2 + 100);
   drawDirt(ctx, state, runs, v);
   // The ruts
-  ctx.strokeStyle = 'rgba(92, 66, 40, 0.6)'; ctx.lineWidth = 2;
-  ctx.beginPath();
-  for (let x = Math.floor(v.x1 / 40) * 40; x < v.x2 + 40; x += 40) { const y = groundLineAt(state.groundRuns, x) + 10; if (x === Math.floor(v.x1 / 40) * 40) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
-  ctx.stroke();
+  // (worn in, a stepped groove: the shadow in it, the lit lip under)
+  for (let x = Math.floor(v.x1 / 4) * 4; x < v.x2 + 40; x += 4) {
+    const y = groundLineAt(state.groundRuns, x);
+    if (y === Infinity) continue;
+    const ry = Math.round((y + 10) / 2) * 2;
+    ctx.fillStyle = 'rgba(74, 52, 30, 0.7)'; ctx.fillRect(x, ry, 4, 2);
+    ctx.fillStyle = 'rgba(214, 186, 140, 0.35)'; ctx.fillRect(x, ry + 2, 4, 1);
+  }
   // The jumps: the road cut clean through, a trench full of crude, barricades and flashing lights on the way up to it
   for (const g of ch.gaps) {
     if (g.x2 < v.x1 - 400 || g.x1 > v.x2 + 400) continue;
@@ -54,16 +61,26 @@ export const drawChaseBack = (ctx: Ctx, state: GameState, ch: Chase) => {
       const by = groundLineAt(state.groundRuns, bx);
       if (by === Infinity) continue;
       // A sawhorse barricade, striped, a light on top going
-      ctx.fillStyle = '#57534E'; ctx.fillRect(bx - 20, by - 26, 4, 26); ctx.fillRect(bx + 16, by - 26, 4, 26);
+      strut(ctx, bx - 22, by, bx - 16, by - 30, 3, '#57534E'); strut(ctx, bx + 22, by, bx + 16, by - 30, 3, '#57534E');
       for (let k = 0; k < 5; k++) { ctx.fillStyle = k % 2 ? '#F8FAFC' : '#F97316'; ctx.fillRect(bx - 24 + k * 10, by - 34, 10, 10); }
-      ctx.fillStyle = state.frame % 16 < 8 ? '#FDE047' : '#78350F'; ctx.beginPath(); ctx.arc(bx, by - 40, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fillRect(bx - 24, by - 34, 50, 2); ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(bx - 24, by - 26, 50, 2);
+      ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(bx - 23.5, by - 33.5, 49, 9);
+      const lit = state.frame % 16 < 8;
+      if (lit) steppedGlow(ctx, bx, by - 40, 16, '#FDE047', 0.4, 0.08, 3);
+      ink(ctx, () => ctx.arc(bx, by - 40, 5, 0, Math.PI * 2), lit ? '#FDE047' : '#78350F');
+      ctx.fillStyle = lit ? '#FEF9C3' : '#A16207'; ctx.fillRect(bx - 3, by - 43, 2, 2);
+      slab(ctx, bx - 3, by - 36, 6, 2, '#292524', 1);
     }
     const sx = g.x1 - 150, sy = groundLineAt(state.groundRuns, sx);
     if (sy !== Infinity) {
-      ctx.fillStyle = '#57534E'; ctx.fillRect(sx - 2, sy - 60, 4, 60);
-      ctx.fillStyle = '#F97316'; ctx.beginPath(); ctx.moveTo(sx, sy - 104); ctx.lineTo(sx + 30, sy - 74); ctx.lineTo(sx, sy - 44); ctx.lineTo(sx - 30, sy - 74); ctx.closePath(); ctx.fill();
-      ctx.strokeStyle = '#111827'; ctx.lineWidth = 2; ctx.stroke();
-      ctx.fillStyle = '#111827'; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center'; ctx.fillText('ROAD', sx, sy - 77); ctx.fillText('OUT', sx, sy - 67); ctx.textAlign = 'left';
+      column(ctx, sx - 2, sy - 60, 4, 60, '#57534E');
+      // (a diamond on its post: a dark rim, the orange face lit along its upper left, its bolts)
+      const diamond = (r: number) => () => { ctx.moveTo(sx, sy - 74 - r); ctx.lineTo(sx + r, sy - 74); ctx.lineTo(sx, sy - 74 + r); ctx.lineTo(sx - r, sy - 74); ctx.closePath(); };
+      ink(ctx, diamond(30), '#111827', 1);
+      shaded(ctx, diamond(27), '#F97316', sx - 27, sy - 101, 54, 54);
+      ctx.fillStyle = '#E5E7EB'; ctx.fillRect(sx - 1, sy - 98, 2, 2); ctx.fillRect(sx - 1, sy - 52, 2, 2);
+      letter(ctx, 'ROAD', sx, sy - 77, 'bold 8px monospace', '#111827', '#FDBA74');
+      letter(ctx, 'OUT', sx, sy - 67, 'bold 8px monospace', '#111827', '#FDBA74');
     }
   }
   // Oil on the road: a black slick with its sheen (jump it)
@@ -71,14 +88,14 @@ export const drawChaseBack = (ctx: Ctx, state: GameState, ch: Chase) => {
     for (let x = s.x - s.w / 2; x < s.x + s.w / 2; x += 8) {
       const y = groundLineAt(state.groundRuns, x);
       const edge = Math.min(1, (x - (s.x - s.w / 2)) / 20, (s.x + s.w / 2 - x) / 20);
-      ctx.fillStyle = '#0C0A09'; ctx.fillRect(x, y - 1, 8.5, 5 * edge + 2);
+      ctx.fillStyle = '#0C0A09'; ctx.fillRect(x, y - 1, 8.5, Math.round(5 * edge) + 2);
+      ctx.fillStyle = '#1E1B2E'; ctx.fillRect(x, y, 8.5, 1);
     }
     const y0 = groundLineAt(state.groundRuns, s.x);
-    ctx.fillStyle = `rgba(168, 85, 247, ${0.5 + Math.sin(state.frame * 0.2) * 0.2})`; ctx.fillRect(s.x - 20, y0, 18, 2);
-    ctx.fillStyle = 'rgba(56, 189, 248, 0.6)'; ctx.fillRect(s.x, y0 + 1, 16, 2);
+    sheen(ctx, s.x - 20, y0, 36, 0.5 + Math.sin(state.frame * 0.2) * 0.2);
     // (a hazard flag stuck in the dirt by it)
-    ctx.fillStyle = '#57534E'; ctx.fillRect(s.x - s.w / 2 - 14, y0 - 34, 2, 34);
-    ctx.fillStyle = state.frame % 20 < 10 ? '#A855F7' : '#FACC15'; ctx.beginPath(); ctx.moveTo(s.x - s.w / 2 - 12, y0 - 34); ctx.lineTo(s.x - s.w / 2 + 4, y0 - 29); ctx.lineTo(s.x - s.w / 2 - 12, y0 - 24); ctx.fill();
+    column(ctx, s.x - s.w / 2 - 15, y0 - 34, 3, 34, '#57534E');
+    ink(ctx, () => { ctx.moveTo(s.x - s.w / 2 - 12, y0 - 34); ctx.lineTo(s.x - s.w / 2 + 4, y0 - 29); ctx.lineTo(s.x - s.w / 2 - 12, y0 - 24); ctx.closePath(); }, state.frame % 20 < 10 ? '#A855F7' : '#FACC15');
   }
   // The wrecks, on fire, the driver slumped on the horn, careering off the screen
   for (const w of ch.wrecks) {
@@ -89,7 +106,7 @@ export const drawChaseBack = (ctx: Ctx, state: GameState, ch: Chase) => {
     else drawCruiserBody(ctx, w.t * 0.8, state.frame, 1, { critical: true, slumped: true });
     // On fire from end to end
     drawFire(ctx, 0, -38, 150, 36, state.frame, { seed: Math.floor(w.paint), smoke: 0.35 });
-    if (w.t % 16 < 8) { ctx.fillStyle = '#FDE047'; ctx.font = 'bold 14px monospace'; ctx.fillText('HOOONK', 20, -90); }
+    if (w.t % 16 < 8) { ctx.font = 'bold 14px monospace'; ctx.fillStyle = INK; for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [2, 2]]) ctx.fillText('HOOONK', 20 + dx, -90 + dy); ctx.fillStyle = '#FDE047'; ctx.fillText('HOOONK', 20, -90); }
     ctx.restore();
   }
 };
@@ -144,16 +161,18 @@ const drawFarThing = (ctx: Ctx, look: FarThing['look'], f: number) => {
   switch (look) {
     case 'derrick': drawDerrick(ctx, 1, 0.42); break;
     case 'tank':
-      ctx.fillStyle = '#78716C'; ctx.fillRect(-34, -44, 68, 44); ctx.fillStyle = '#A8A29E'; ctx.fillRect(-34, -44, 68, 5);
-      ctx.fillStyle = '#57534E'; for (let y = -34; y < 0; y += 10) ctx.fillRect(-34, y, 68, 1);
+      column(ctx, -34, -44, 68, 44, '#78716C');
+      ctx.fillStyle = '#57534E'; for (let y = -34; y < 0; y += 10) ctx.fillRect(-33, y, 66, 1);
+      slab(ctx, -35, -46, 70, 5, '#A8A29E', 1);
       break;
     case 'column':
-      ctx.fillStyle = '#57534E'; ctx.fillRect(-9, -150, 18, 150); ctx.fillRect(-20, -40, 40, 40);
-      ctx.strokeStyle = '#78716C'; ctx.lineWidth = 1.5; for (let y = -140; y < -40; y += 16) { ctx.beginPath(); ctx.moveTo(-12, y); ctx.lineTo(12, y); ctx.stroke(); }
-      if (f % 60 < 30) { ctx.fillStyle = '#EF4444'; ctx.fillRect(-2, -154, 4, 4); }
+      column(ctx, -20, -40, 40, 40, '#57534E');
+      column(ctx, -9, -150, 18, 112, '#57534E');
+      for (let y = -140; y < -40; y += 16) slab(ctx, -12, y - 1, 24, 3, '#78716C', 1);
+      if (f % 60 < 30) { steppedGlow(ctx, 0, -152, 8, '#EF4444', 0.4, 0.1, 3); ctx.fillStyle = '#EF4444'; ctx.fillRect(-2, -154, 4, 4); }
       break;
     case 'flare': {
-      ctx.fillStyle = '#57534E'; ctx.fillRect(-3, -120, 6, 120);
+      column(ctx, -3, -120, 6, 120, '#57534E');
       drawFire(ctx, 0, -119, 12, 34, f, { seed: 17, sparks: false, glow: 0.6 });
       break;
     }
@@ -163,9 +182,9 @@ const drawFarThing = (ctx: Ctx, look: FarThing['look'], f: number) => {
 /** Something out there that's been hit: the blast, then a wreck burning, a column of smoke going up high off it. */
 const drawFarRuin = (ctx: Ctx, fr: FarThing, f: number) => {
   // The wreck of it
-  ctx.fillStyle = '#1C1917';
-  if (fr.look === 'column') ctx.fillRect(-10, -60, 20, 60); else if (fr.look === 'tank') { ctx.beginPath(); ctx.moveTo(-34, 0); ctx.lineTo(-30, -20); ctx.lineTo(-10, -30); ctx.lineTo(10, -14); ctx.lineTo(30, -26); ctx.lineTo(34, 0); ctx.closePath(); ctx.fill(); }
-  else { ctx.save(); ctx.scale(0.42, 0.42); ctx.strokeStyle = '#1C1917'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(-40, 0); ctx.lineTo(-20, -110); ctx.lineTo(50, -150); ctx.moveTo(40, 0); ctx.lineTo(10, -100); ctx.stroke(); ctx.restore(); }
+  if (fr.look === 'column') { ink(ctx, () => { ctx.moveTo(-10, 0); ctx.lineTo(-10, -52); ctx.lineTo(-4, -60); ctx.lineTo(2, -54); ctx.lineTo(10, -62); ctx.lineTo(10, 0); ctx.closePath(); }, '#1C1917'); ctx.fillStyle = '#292524'; ctx.fillRect(-8, -50, 4, 50); }
+  else if (fr.look === 'tank') { ink(ctx, () => { ctx.moveTo(-34, 0); ctx.lineTo(-30, -20); ctx.lineTo(-10, -30); ctx.lineTo(10, -14); ctx.lineTo(30, -26); ctx.lineTo(34, 0); ctx.closePath(); }, '#1C1917'); ctx.fillStyle = '#292524'; ctx.fillRect(-28, -16, 10, 16); }
+  else { ctx.save(); ctx.scale(0.42, 0.42); strut(ctx, -40, 0, -20, -110, 5, '#1C1917'); strut(ctx, -20, -110, 50, -150, 5, '#1C1917'); strut(ctx, 40, 0, 10, -100, 5, '#1C1917'); ctx.restore(); }
   // The smoke going up, and the fire under it
   for (let k = 0; k < 7; k++) {
     const q = ((f * 0.8 + k * 20) % 140) / 140;
@@ -175,10 +194,16 @@ const drawFarRuin = (ctx: Ctx, fr: FarThing, f: number) => {
   if (fr.state === 'blowing') {
     // The fireball: blinding, then rolling up into a mushroom of smoke
     const k = fr.t / 60;
-    const g = ctx.createRadialGradient(0, -40 - k * 60, 4, 0, -40 - k * 60, 40 + k * 140);
-    g.addColorStop(0, `rgba(255, 255, 255, ${1 - k})`); g.addColorStop(0.3, `rgba(253, 224, 71, ${0.95 * (1 - k)})`); g.addColorStop(0.7, `rgba(234, 88, 12, ${0.8 * (1 - k)})`); g.addColorStop(1, 'rgba(120, 30, 10, 0)');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, -40 - k * 60, 40 + k * 140, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = `rgba(255, 247, 214, ${0.8 * (1 - k)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(0, 0, 30 + k * 260, 6 + k * 20, 0, 0, Math.PI * 2); ctx.stroke();
+    // (in hard rings: a red rim, orange, yellow, a white-hot heart)
+    const cy = -40 - k * 60, R = 40 + k * 140, a = Math.max(0, 1 - k);
+    steppedGlow(ctx, 0, cy, R, '#9A3412', 0.5 * a, 0.25 * a, 3);
+    steppedGlow(ctx, 0, cy, R * 0.7, '#EA580C', 0.8 * a, 0.6 * a, 3);
+    steppedGlow(ctx, 0, cy, R * 0.45, '#FDE047', 0.95 * a, 0.85 * a, 2);
+    steppedGlow(ctx, 0, cy, R * 0.22, '#FFFFFF', a, a, 2);
+    // (the shock ring along the ground, in cells)
+    const rx = 30 + k * 260, ry = 6 + k * 20;
+    ctx.fillStyle = `rgba(255, 247, 214, ${(0.8 * a).toFixed(3)})`;
+    for (let i = 0; i < 48; i++) { const t = (i / 48) * Math.PI * 2; ctx.fillRect(Math.round(Math.cos(t) * rx / 2) * 2 - 2, Math.round(Math.sin(t) * ry / 2) * 2 - 1, 4, 2); }
   }
 };
 
@@ -238,18 +263,20 @@ export const drawChaseWarnings = (ctx: Ctx, state: GameState, ch: Chase) => {
 export const drawChaseHud = (ctx: Ctx, ch: Chase) => {
   if (ch.phase !== 'riding' && ch.phase !== 'won') return;
   const left = Math.max(0, 1 - ch.kills / KILLS_NEEDED);
-  ctx.fillStyle = 'rgba(0,0,0,0.75)'; ctx.fillRect(420, 10, 368, 30);
-  ctx.fillStyle = '#44403C'; ctx.fillRect(426, 26, 356, 9);
-  ctx.fillStyle = '#DC2626'; ctx.fillRect(426, 26, 356 * left, 9);
-  ctx.fillStyle = '#FECACA'; ctx.font = 'bold 8px "Press Start 2P", monospace'; ctx.fillText('THE ANGRY MOB', 428, 22);
-  ctx.textAlign = 'right'; ctx.fillText(`${Math.max(0, KILLS_NEEDED - ch.kills)} LEFT`, 782, 22);
+  // (in the band along the top that's clear of the main HUD, against its right end)
+  const band = topBand(), bx = band.x2 - 368;
+  ctx.fillStyle = 'rgba(0,0,0,0.75)'; ctx.fillRect(bx, 10, 368, 30);
+  ctx.fillStyle = '#44403C'; ctx.fillRect(bx + 6, 26, 356, 9);
+  ctx.fillStyle = '#DC2626'; ctx.fillRect(bx + 6, 26, 356 * left, 9);
+  ctx.fillStyle = '#FECACA'; ctx.font = 'bold 8px "Press Start 2P", monospace'; ctx.fillText('THE ANGRY MOB', bx + 8, 22);
+  ctx.textAlign = 'right'; ctx.fillText(`${Math.max(0, KILLS_NEEDED - ch.kills)} LEFT`, bx + 362, 22);
   ctx.textAlign = 'left';
   // The hint, under it
   if (ch.hintT > 0 && ch.hint) {
     const a = Math.min(1, ch.hintT / 15, (200 - ch.hintT) / 20);
     ctx.save(); ctx.globalAlpha = Math.max(0, a);
-    ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(160, 60, 480, 26);
-    ctx.fillStyle = '#FDE68A'; ctx.font = 'bold 8px "Press Start 2P", monospace'; ctx.textAlign = 'center'; ctx.fillText(ch.hint, 400, 77); ctx.textAlign = 'left';
+    ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(band.x1, 60, band.x2 - band.x1, 26);
+    ctx.fillStyle = '#FDE68A'; ctx.font = 'bold 8px "Press Start 2P", monospace'; ctx.textAlign = 'center'; ctx.fillText(ch.hint, band.mid, 77, band.x2 - band.x1 - 12); ctx.textAlign = 'left';
     ctx.restore();
   }
 };
