@@ -4,9 +4,9 @@
 
 import type { Backdrop, View } from './index';
 import {
-  G, LayerSpec, LH, LW, PX, TILE_W, rng, hash, mix, paintBandedSky, makeRidge, fillRidge, pine, palm, wrapDraw, tileToScreenX,
+  G, LayerSpec, LH, LW, PX, TILE_W, rng, hash, mix, paintBandedSky, makeRidge, fillRidge, pine, palm, PalmTones, wrapDraw, tileToScreenX,
 } from './core';
-import { pixelBlob, hazeBands, steppedGlow, bandedGradient } from '../pixelArt';
+import { pixelBlob, hazeBands, steppedGlow, bandedGradient, checker } from '../pixelArt';
 import { drawFire } from '../fx/fire';
 
 const W = LW * PX, H = LH * PX; // screen size
@@ -55,11 +55,39 @@ const stars = (g: G, w: number, h: number, seed: number, count: number, maxY: nu
 // 1. ARTIE AVALANCHE: Anchorage, Alaska. Aurora over snowy peaks and pines.
 // ===========================================================================
 
+/**
+ * Rock faces down a ridge, painted once: under the crest, each column toned by which way that bit of slope faces (lit
+ * facing the light, a step darker turned away), `depth` deep and dithered off into the body below, and streaks of
+ * `streak` (snow down the gullies, scree) slanting down the fall line here and there.
+ */
+const ridgeFaces = (g: G, w: number, ridge: (x: number) => number, depth: number, lit: string, shade: string, streak?: string, below = 0) => {
+  for (let x = 0; x < w; x++) {
+    const y = Math.floor(ridge(x)) + below, slope = (ridge(x + 6) - ridge(x - 6)) / 2;
+    g.fillStyle = slope < -0.4 ? lit : shade;
+    const d = Math.floor(depth * (0.6 + Math.min(1, Math.abs(slope) * 0.3)));
+    g.fillRect(x, y, 1, d);
+    if ((x + y) % 2) g.fillRect(x, y + d, 1, 2);
+    if ((x + y) % 2 === 0) g.fillRect(x, y + d + 3, 1, 1);
+  }
+  if (!streak) return;
+  for (let x = 3; x < w; x += 5) {
+    if (hash(x * 0.61) < 0.6) continue;
+    const y0 = ridge(x), slope = (ridge(x + 6) - ridge(x - 6)) / 2;
+    if (Math.abs(slope) < 0.5) continue;
+    // (a streak: wide at its head, thinning, broken off at its foot)
+    const len = 4 + Math.floor(hash(x) * depth * 0.5), dir = slope < 0 ? -1 : 1;
+    g.fillStyle = streak;
+    for (let k = 0; k < len; k++) { if (k > len * 0.7 && k % 2) continue; g.fillRect((((x + Math.round(k * 0.4 * dir)) % w) + w) % w, Math.floor(y0 + below + 2 + k), k < len * 0.35 ? 2 : 1, 1); }
+  }
+};
+
 const artieFarPeaks: LayerSpec = {
   key: 'artie-far', parallax: 0.06, vertical: 0.03,
   paint: (g, w, h) => {
     const ridge = makeRidge(11, w, 175, 95, 0);
     fillRidge(g, w, h, ridge, '#2B4166');
+    // (the rock faces under the snow: lit and shaded flanks, snow down the gullies)
+    ridgeFaces(g, w, ridge, 40, '#3A5680', '#24385A', '#8FA9CF', 6);
     // Snowcaps on everything high, shaded on one side
     for (let x = 0; x < w; x++) {
       const y = ridge(x);
@@ -79,6 +107,7 @@ const artieMidPeaks: LayerSpec = {
   paint: (g, w, h) => {
     const ridge = makeRidge(23, w, 222, 55, 0.05);
     fillRidge(g, w, h, ridge, '#1B2C47', '#C8DBF5');
+    ridgeFaces(g, w, ridge, 26, '#26395A', '#152238', '#6E88AE', 4);
     for (let x = 0; x < w; x++) {
       const y = ridge(x);
       if (y > 200) continue;
@@ -86,10 +115,18 @@ const artieMidPeaks: LayerSpec = {
       g.fillRect(x, Math.floor(y), 1, Math.floor((200 - y) * 0.4 + 2));
     }
     // A cabin with warm windows
+    // (log walls, the ends of the logs lit; a roof heavy with snow, its eave hanging over; a chimney; the windows' warm
+    // light spilling out onto the snow)
     const cx = 410, cy = Math.floor(ridge(410)) + 4;
-    g.fillStyle = '#0E1624'; g.fillRect(cx - 7, cy - 6, 14, 8);
-    g.fillStyle = '#E8F1FF'; g.fillRect(cx - 9, cy - 9, 18, 3);
-    g.fillStyle = '#FCD34D'; g.fillRect(cx - 4, cy - 3, 2, 2); g.fillRect(cx + 2, cy - 3, 2, 2);
+    g.fillStyle = '#1A2234'; g.fillRect(cx - 7, cy - 6, 14, 8);
+    g.fillStyle = '#0E1624'; for (let ly = cy - 5; ly < cy + 2; ly += 2) g.fillRect(cx - 7, ly, 14, 1);
+    g.fillStyle = '#3A4458'; for (let ly = cy - 6; ly < cy + 2; ly += 2) { g.fillRect(cx - 8, ly, 1, 1); g.fillRect(cx + 7, ly, 1, 1); }
+    g.fillStyle = '#0E1624'; g.fillRect(cx + 3, cy - 13, 3, 5); g.fillStyle = '#E8F1FF'; g.fillRect(cx + 3, cy - 14, 3, 1);
+    g.fillStyle = '#A9C0E0'; g.fillRect(cx - 10, cy - 8, 20, 2); g.fillStyle = '#E8F1FF'; g.fillRect(cx - 9, cy - 10, 18, 2); g.fillRect(cx - 7, cy - 11, 14, 1);
+    g.fillStyle = '#C8DBF5'; g.fillRect(cx - 10, cy - 6, 1, 2); g.fillRect(cx + 9, cy - 6, 1, 1);
+    g.fillStyle = '#FCD34D'; g.fillRect(cx - 4, cy - 4, 2, 3); g.fillRect(cx + 2, cy - 4, 2, 3);
+    g.fillStyle = '#FFF3C4'; g.fillRect(cx - 4, cy - 4, 1, 1); g.fillRect(cx + 2, cy - 4, 1, 1);
+    checker(g, cx - 6, cy + 2, 12, 2, '#FCD34D', 0, 1);
     hazeBands(g, 0, 212, w, 40, '#2C5F8F', 0, 0.3, 4, 1);
   },
 };
@@ -305,23 +342,43 @@ const ernieHills: LayerSpec = {
   key: 'ernie-hills', parallax: 0.2,
   paint: (g, w, h) => {
     const ridge = makeRidge(71, w, 236, 34, 0);
-    fillRidge(g, w, h, ridge, '#3D2E3F');
+    fillRidge(g, w, h, ridge, '#3D2E3F', '#6A4A5E');
+    // (the hill's crest rounded off into it, a dither of shade under the rim)
+    for (let x = 0; x < w; x += 2) { const y = Math.floor(ridge(x)); g.fillStyle = '#4A3850'; g.fillRect(x + (y % 2), y + 1, 1, 1); g.fillRect(x + ((y + 1) % 2), y + 3, 1, 1); }
+    // (the rest of the city packed down the hill below them: rooftops in rows, dimmer the further down, the odd window lit)
+    const rr = rng(73);
+    for (let row = 0; row < 3; row++) for (let x = (row * 5) % 9; x < w; x += 8 + Math.floor(rr() * 4)) {
+      const y = Math.floor(ridge(x + 4)) + 12 + row * 7 + Math.floor(rr() * 3), bw = 6 + Math.floor(rr() * 3), tone = ['#56425A', '#4C3A50', '#433446'][row];
+      g.fillStyle = tone; g.fillRect(x, y, bw, h - y); g.fillStyle = mix(tone, '#F6C27A', 0.16); g.fillRect(x, y, 1, h - y);
+      g.fillStyle = mix(tone, '#000000', 0.3); g.fillRect(x + bw - 1, y + 1, 1, h - y);
+      if (rr() > 0.55) { g.fillStyle = '#E8C77A'; g.fillRect(x + 2, y + 3, 1, 2); }
+    }
     const r = rng(72);
     const colors = ['#F4A6B5', '#9FD8CB', '#F7D08A', '#B6A4E0', '#F2B880', '#A8D5F2'];
+    // The painted ladies up the hill: each lit down its left by the sunset, its right side in shade, a gable roof lit on
+    // its sunny slope, a white cornice, a bay window jutting out with its own lit and shaded sides, the stoop up to the door
     for (let x = 0; x < w; x += 12) {
       const base = ridge(x + 6);
       const hh = 14 + Math.floor(r() * 8);
       const c = colors[Math.floor(r() * colors.length)];
-      g.fillStyle = c; g.fillRect(x + 1, Math.floor(base - hh), 10, hh + 6);
-      g.fillStyle = mix(c, '#000000', 0.35); g.fillRect(x + 8, Math.floor(base - hh), 3, hh + 6);
-      // Gabled roof, bay window and a lit window or two
-      g.fillStyle = '#5B4A5E';
-      for (let k = 0; k < 5; k++) g.fillRect(x + 1 + k, Math.floor(base - hh - 5 + k), 10 - k * 2, 1);
-      g.fillStyle = hash(x) > 0.4 ? '#FDE68A' : '#2A2230';
-      g.fillRect(x + 3, Math.floor(base - hh + 4), 2, 3);
-      g.fillStyle = hash(x + 5) > 0.5 ? '#FDE68A' : '#2A2230';
-      g.fillRect(x + 7, Math.floor(base - hh + 4), 2, 3);
-      g.fillStyle = '#FFFFFF'; g.fillRect(x + 1, Math.floor(base - hh + 10), 10, 1);
+      const top = Math.floor(base - hh), lit = mix(c, '#FFF1E0', 0.35), shade = mix(c, '#2A1A30', 0.38), deep = mix(c, '#2A1A30', 0.55);
+      g.fillStyle = c; g.fillRect(x + 1, top, 10, hh + 6);
+      g.fillStyle = lit; g.fillRect(x + 1, top, 1, hh + 6);
+      g.fillStyle = shade; g.fillRect(x + 8, top, 3, hh + 6); g.fillStyle = deep; g.fillRect(x + 10, top, 1, hh + 6);
+      // (the gable: a row narrower each step up, the left half lit, the right dark, the ridge capped)
+      for (let k = 0; k < 5; k++) { const hw = 6 - k; g.fillStyle = '#6E5A70'; g.fillRect(x + 6 - hw, top - 1 - k, hw, 1); g.fillStyle = '#4A3A50'; g.fillRect(x + 6, top - 1 - k, hw, 1); }
+      g.fillStyle = '#F8F1E8'; g.fillRect(x, top, 12, 1); g.fillStyle = mix(c, '#2A1A30', 0.25); g.fillRect(x + 1, top + 1, 10, 1);
+      // (the bay window: a box jutting out over the stoop, lit left, shaded right, its three panes)
+      g.fillStyle = mix(c, '#FFFFFF', 0.12); g.fillRect(x + 2, top + 3, 6, 7);
+      g.fillStyle = lit; g.fillRect(x + 2, top + 3, 1, 7); g.fillStyle = shade; g.fillRect(x + 7, top + 3, 1, 7);
+      g.fillStyle = '#F8F1E8'; g.fillRect(x + 2, top + 2, 6, 1); g.fillStyle = deep; g.fillRect(x + 2, top + 10, 6, 1);
+      const on = hash(x) > 0.4;
+      g.fillStyle = on ? '#FDE68A' : '#2A2230'; g.fillRect(x + 3, top + 4, 1, 4); g.fillRect(x + 6, top + 4, 1, 4);
+      g.fillStyle = on ? '#FFF7D6' : '#3A3044'; g.fillRect(x + 4, top + 4, 2, 4);
+      // (a window up under the gable, and the door at the top of its stoop)
+      g.fillStyle = hash(x + 5) > 0.5 ? '#FDE68A' : '#2A2230'; g.fillRect(x + 5, top - 3, 2, 2);
+      g.fillStyle = deep; g.fillRect(x + 8, top + 11, 2, 4); g.fillStyle = '#F8F1E8'; g.fillRect(x + 7, top + 15, 4, 1);
+      g.fillStyle = mix(c, '#2A1A30', 0.3); g.fillRect(x + 7, top + 16, 4, 1);
     }
     hazeBands(g, 0, 236, w, 30, '#C4524A', 0, 0.3, 4, 1);
   },
@@ -396,44 +453,159 @@ const hectorClouds = (key: string, parallax: number, drift: number, base: number
     }
   },
 });
+/** How a row of Miami Beach's deco hotels looks: their pastel bodies, what their shadows go toward, the glass, the neon. */
+interface DecoLook { bodies: string[]; shadow: string; light: string; glass: string; lit: string; litOdds: number; neonGlow: boolean; storm: number }
+
+/** The little far palms along the shore under the hotels (sunny, and in the storm: bent over, nearly black). */
+const HECTOR_FAR_PALM: PalmTones = { trunk: '#9A8466', trunkLit: '#BCA684', ring: '#7C6A52', frond: '#4F8A52', frondLit: '#7DB07A', frondDark: '#36643E' };
+const HECTOR_FAR_PALM_STORM: PalmTones = { trunk: '#1A2236', trunkLit: '#26314C', ring: '#141A2A', frond: '#151C2E', frondLit: '#253049', frondDark: '#0E1322' };
+
+/**
+ * Miami Beach's deco hotels along the far shore, painted once: each a pastel box lit down its right side (where the
+ * sun is), its shadowed left return dithered into the face, an eyebrow ledge over every row of windows, glass with a
+ * glint of sky in it; crowned in steps with a spire, a finned pylon with its neon up it, a streamline curve with ribbon
+ * windows, or a rooftop sign frame. Tiny palms at their feet along the shore. (The same buildings in the same places
+ * sunny or stormy: the storm fades in over the sun.)
+ */
+const decoHotels = (g: G, w: number, o: DecoLook) => {
+  const r = rng(90);
+  const neon = ['#FF4FD8', '#2EE6D6', '#FFD166'];
+  const base = 232;
+  let x = 0;
+  while (x < w) {
+    const bw = 26 + Math.floor(r() * 30), bh = 50 + Math.floor(r() * 70);
+    const top = base - bh;
+    const body = o.bodies[Math.floor(r() * 4)];
+    const n = neon[Math.floor(r() * 3)];
+    const style = Math.floor(hash(x * 1.31 + bh) * 4);
+    // (the body's ramp: lit, the face, the shade, the deep shadow)
+    const lit = mix(body, o.light, 0.3), mid = body, shade = mix(body, o.shadow, 0.28), deep = mix(body, o.shadow, 0.5);
+    const box = (bx: number, by: number, ww: number, hh: number) => {
+      g.fillStyle = mid; g.fillRect(bx, by, ww, hh);
+      // (the left return in shadow, dithered into the face; the right edge catching the light)
+      g.fillStyle = deep; g.fillRect(bx, by, 2, hh);
+      checker(g, bx + 2, by, 2, hh, shade, 0, 1);
+      g.fillStyle = lit; g.fillRect(bx + ww - 2, by, 2, hh);
+      checker(g, bx + ww - 4, by, 2, hh, lit, 0, 1);
+      // (its top in the face's own tone, a shade under it: no bright lip, so it never reads as somewhere to stand)
+      g.fillStyle = shade; g.fillRect(bx + 2, by + 1, ww - 4, 1);
+    };
+    // The crown
+    const cx = x + Math.floor(bw / 2);
+    if (style === 0) {
+      // (a ziggurat in three steps, a spire up out of it with a ball on top)
+      box(x + 3, top - 5, bw - 6, 5); box(x + 7, top - 9, bw - 14, 4); box(cx - 4, top - 12, 8, 3);
+      g.fillStyle = deep; g.fillRect(cx, top - 24, 1, 12); g.fillStyle = lit; g.fillRect(cx + 1, top - 22, 1, 10);
+      g.fillStyle = o.neonGlow ? n : lit; g.fillRect(cx - 1, top - 26, 3, 2);
+    } else if (style === 1) {
+      // (streamline: a low parapet, a little drum on the roof)
+      box(x + 2, top - 3, bw - 4, 3); box(x + bw - 14, top - 9, 10, 6);
+    } else if (style === 2) {
+      // (a pylon fin up the middle, past the roof, its neon up it)
+      box(x + 3, top - 5, bw - 6, 5); box(cx - 3, top - 22, 6, 22 + Math.floor(bh * 0.6));
+      g.fillStyle = o.neonGlow ? mix(n, mid, 0.5) : shade; g.fillRect(cx - 1, top - 20, 3, Math.floor(bh * 0.6) + 18);
+      g.fillStyle = o.neonGlow ? n : mix(n, mid, 0.55); g.fillRect(cx, top - 20, 1, Math.floor(bh * 0.6) + 18);
+    } else {
+      // (a sign frame up on the roof: posts and a lattice, its letters neon in the storm)
+      box(x + 3, top - 4, bw - 6, 4);
+      g.fillStyle = deep; for (let px = x + 5; px < x + bw - 5; px += 6) g.fillRect(px, top - 14, 1, 10);
+      g.fillRect(x + 5, top - 14, bw - 10, 1); g.fillRect(x + 5, top - 9, bw - 10, 1);
+      g.fillStyle = o.neonGlow ? n : mix(n, mid, 0.4);
+      for (let lx = x + 7; lx < x + bw - 8; lx += 4) g.fillRect(lx, top - 13, 2, 3);
+    }
+    // The body
+    box(x, top, bw, base - top + 2);
+    // (the neon trim line under the cornice, a halo round it when it's lit)
+    if (o.neonGlow) { g.fillStyle = mix(n, mid, 0.55); g.fillRect(x + 2, top + 5, bw - 4, 3); }
+    g.fillStyle = o.neonGlow ? n : mix(n, mid, 0.35); g.fillRect(x + 2, top + 6, bw - 4, 1);
+    // Windows: a row a floor, an eyebrow ledge over each (lit along its top, its shadow under it)
+    const round = style === 1;
+    for (let wy = top + 12; wy < base - 3; wy += 7) {
+      g.fillStyle = mix(mid, o.light, 0.18); g.fillRect(x + 2, wy - 2, bw - 4, 1);
+      g.fillStyle = shade; g.fillRect(x + 2, wy - 1, bw - 4, 1);
+      if (round) {
+        // (ribbon windows: a band of glass with mullions)
+        g.fillStyle = o.glass; g.fillRect(x + 4, wy, bw - 9, 3);
+        g.fillStyle = mix(o.glass, o.light, 0.4); g.fillRect(x + 4, wy, bw - 9, 1);
+        g.fillStyle = shade; for (let mx = x + 7; mx < x + bw - 6; mx += 5) g.fillRect(mx, wy, 1, 3);
+        if (hash(wy * 3.1 + x) < o.litOdds) { g.fillStyle = o.lit; g.fillRect(x + 8 + Math.floor(hash(wy + x) * (bw - 18)), wy + 1, 4, 2); }
+      } else for (let wx = x + 4; wx < x + bw - 4; wx += 5) {
+        const on = hash(wx * 3 + wy) < o.litOdds;
+        g.fillStyle = on ? o.lit : o.glass; g.fillRect(wx, wy, 2, 3);
+        g.fillStyle = on ? mix(o.lit, '#FFFFFF', 0.4) : mix(o.glass, o.light, 0.45); g.fillRect(wx, wy, 1, 1);
+      }
+    }
+    if (round) {
+      // (the streamline curve on its right corner: the light rolling round it in bands)
+      g.fillStyle = mix(body, o.light, 0.45); g.fillRect(x + bw - 5, top, 2, base - top);
+      g.fillStyle = mix(body, o.light, 0.15); g.fillRect(x + bw - 3, top, 1, base - top);
+      g.fillStyle = shade; g.fillRect(x + bw - 2, top, 2, base - top);
+    }
+    x += bw + 2;
+  }
+  // The shore under them: a strip of sand, and little palms along it
+  g.fillStyle = mix(o.bodies[2], o.shadow, 0.25); g.fillRect(0, base - 2, w, 4);
+  const pr = rng(91);
+  for (let px = 6; px < w; px += 18 + Math.floor(pr() * 30)) {
+    const ph = 12 + pr() * 9, lean = -0.2 + pr() * 0.1 - o.storm * 0.6;
+    wrapDraw(w, px, 14, xx => palm(g, xx, base, ph, o.storm ? HECTOR_FAR_PALM_STORM : HECTOR_FAR_PALM, lean));
+  }
+};
+
 const hectorDeco: LayerSpec = {
   key: 'hector-deco', parallax: 0.16,
-  paint: (g, w, h) => {
-    const r = rng(90);
-    const neon = ['#FF4FD8', '#2EE6D6', '#FFD166'];
-    let x = 0;
-    while (x < w) {
-      const bw = 26 + Math.floor(r() * 30), bh = 50 + Math.floor(r() * 70);
-      const top = 232 - bh;
-      const body = ['#C7B7D9', '#A8D8D1', '#E8C8B0', '#B9C6E6'][Math.floor(r() * 4)];
-      g.fillStyle = mix(body, '#1B2440', 0.55); g.fillRect(x, top, bw, h - top);
-      // Stepped deco crown and a neon trim line
-      g.fillRect(x + 3, top - 5, bw - 6, 5); g.fillRect(x + 7, top - 9, bw - 14, 4);
-      const n = neon[Math.floor(r() * 3)];
-      g.fillStyle = n; g.fillRect(x, top + 6, bw, 1); g.fillRect(x + Math.floor(bw / 2), top - 9, 1, bh);
-      for (let wy = top + 12; wy < 232; wy += 7) for (let wx = x + 3; wx < x + bw - 3; wx += 5) {
-        g.fillStyle = hash(wx * 3 + wy) > 0.55 ? '#FFE9A8' : mix(body, '#0B1020', 0.7);
-        g.fillRect(wx, wy, 2, 3);
-      }
-      x += bw + 2;
-    }
+  paint: (g, w) => {
+    decoHotels(g, w, {
+      bodies: ['#C7B7D9', '#A8D8D1', '#E8C8B0', '#B9C6E6'].map(c => mix(c, '#1B2440', 0.55)),
+      shadow: '#070B17', light: '#8A9CC8', glass: '#141B30', lit: '#FFE9A8', litOdds: 0.45, neonGlow: true, storm: 1,
+    });
     // (the storm's spray and murk over their feet)
     hazeBands(g, 0, 196, w, 36, '#33436A', 0, 0.4, 5, 1);
   },
 };
+
+/**
+ * The sea, painted once: the colour going down in bands to the near water, a glare along the horizon, and swells in
+ * rows that get bigger and further apart the nearer they are, each lit along its crest with its trough dark under it;
+ * glints riding them (and whitecaps, in the storm, their foam dithered off at the edges).
+ */
+const seaPaint = (g: G, w: number, h: number, seed: number, stops: string[], o: { horizon: string; crest: string; trough: string; glint: string; glints: number; foam?: string }) => {
+  g.fillStyle = stops[stops.length - 1]; g.fillRect(0, 232, w, h - 232);
+  bandedGradient(g, 0, 232, w, 44, stops, 6, 1);
+  g.fillStyle = o.horizon; g.fillRect(0, 232, w, 1);
+  checker(g, 0, 233, w, 1, o.horizon, 0, 1);
+  const r = rng(seed);
+  for (let y = 235; y < h;) {
+    const depth = (y - 232) / 70, len = Math.round(4 + depth * 14), gap = Math.round(6 + depth * 16);
+    for (let x = Math.floor(r() * gap); x < w; x += len + gap + Math.floor(r() * gap)) {
+      const l = Math.max(3, Math.round(len * (0.6 + r() * 0.6))), foam = !!o.foam && depth > 0.25 && r() < 0.35;
+      wrapDraw(w, x, l, xx => {
+        g.fillStyle = o.trough; g.fillRect(xx, y + 1, l, 1 + Math.floor(depth * 1.5));
+        g.fillStyle = o.crest; g.fillRect(xx + 1, y, l - 2, 1);
+        if (foam) { g.fillStyle = o.foam!; g.fillRect(xx + 2, y - 1, Math.max(2, l - 5), 1); checker(g, xx, y - 2, l, 1, o.foam!, 0, 1); }
+      });
+    }
+    y += Math.max(2, Math.round(2 + depth * 5));
+  }
+  for (let i = 0; i < o.glints; i++) {
+    const x = Math.floor(r() * w), y = 234 + Math.floor(r() * r() * 40);
+    g.fillStyle = o.glint; g.fillRect(x, y, 1 + Math.floor(r() * 3), 1);
+  }
+};
 const hectorSea: LayerSpec = {
   key: 'hector-sea', parallax: 0.26,
-  paint: (g, w, h) => {
-    g.fillStyle = '#0C1B2C'; g.fillRect(0, 232, w, h - 232);
-    bandedGradient(g, 0, 232, w, 44, ['#1D3B5A', '#17304A', '#12263A', '#0C1B2C'], 6, 1);
-    const r = rng(95);
-    for (let i = 0; i < 160; i++) { g.fillStyle = r() > 0.5 ? '#E6F4FF' : '#7FB2D9'; g.fillRect(Math.floor(r() * w), 234 + Math.floor(r() * 40), 3 + Math.floor(r() * 5), 1); }
-  },
+  paint: (g, w, h) => seaPaint(g, w, h, 95, ['#1D3B5A', '#17304A', '#12263A', '#0C1B2C'], { horizon: '#4A5B82', crest: '#3E6A95', trough: '#091523', glint: '#7FB2D9', glints: 60, foam: '#C8DDF0' }),
   raster: { from: 232, wobble: (row, f) => Math.sin(row * 0.6 + f * 0.25) * 2.5 },
+};
+/** The strip of beach the near palms stand on: sand in bands, darker going down, dithered one into the next (no lit lip). */
+const beachStrip = (g: G, w: number, h: number, stops: string[], seed: number, fleck: string) => {
+  bandedGradient(g, 0, 268, w, h - 268, stops, 4, 1);
+  const r = rng(seed);
+  g.fillStyle = fleck; for (let i = 0; i < 90; i++) g.fillRect(Math.floor(r() * w), 270 + Math.floor(r() * (h - 272)), 1 + Math.floor(r() * 2), 1);
 };
 const hectorPalms: LayerSpec = {
   key: 'hector-palms', parallax: 0.4,
-  paint: (g, w, h) => { g.fillStyle = '#0B0F1C'; g.fillRect(0, 268, w, h - 268); },
+  paint: (g, w, h) => beachStrip(g, w, h, ['#151B2C', '#0F1424', '#0B0F1C'], 98, '#1E2638'),
 };
 /** Where the palms stand along the shore (tile x) and how tall they are. */
 const HECTOR_PALM_TREES = (() => {
@@ -442,6 +614,10 @@ const HECTOR_PALM_TREES = (() => {
   for (let x = 15; x < TILE_W; x += 55 + Math.floor(r() * 50)) trees.push({ x, h: 50 + r() * 30, phase: r() * Math.PI * 2 });
   return trees;
 })();
+/** The near palms in the hurricane: silhouettes against the murk, a faint rim of storm light along them. */
+const HECTOR_PALM_STORM: PalmTones = { trunk: '#0B0F1C', trunkLit: '#1B2338', ring: '#070A14', frond: '#0B0F1C', frondLit: '#202A44', frondDark: '#05070E', nut: '#05070E' };
+/** And in the sun: a ringed grey-brown trunk, green fronds lit along the top, coconuts. */
+const HECTOR_PALM_SUNNY: PalmTones = { trunk: '#8A6E4C', trunkLit: '#B8976A', ring: '#5E4A34', frond: '#3F7A1E', frondLit: '#79B83A', frondDark: '#24501A', nut: '#5A3A1A' };
 /**
  * The palms, whipping in the hurricane: bent hard away from the wind, rocking
  * with each gust, fronds thrashing. Every so often a big gust bends them all flat.
@@ -454,13 +630,13 @@ const swayingPalms = (ctx: G, v: View) => {
     pinned(t.x, hectorPalms, v, sx => {
       const rock = Math.sin(v.frame * 0.09 + t.phase) * 0.22 + Math.sin(v.frame * 0.23 + t.phase * 2) * 0.08;
       const lean = -1.25 + rock - gust * 0.45;
-      palm(ctx, sx / PX, 269, t.h, '#0B0F1C', lean, 0.6 + gust * 0.4, v.frame * 0.25 + t.phase);
+      palm(ctx, Math.round(sx / PX), 269, t.h, HECTOR_PALM_STORM, lean, 0.6 + gust * 0.4, v.frame * 0.25 + t.phase);
     });
   }
   ctx.restore();
 };
 
-/** Lightning: every few seconds a bolt forks down and the whole sky flashes. */
+/** Lightning: every few seconds a bolt forks down and the whole sky flashes (the bolt in a stepped halo, white-hot down its middle). */
 const lightning = (ctx: G, v: View) => {
   const cycle = 260, t = v.frame % cycle;
   const strike = Math.floor(v.frame / cycle);
@@ -469,13 +645,16 @@ const lightning = (ctx: G, v: View) => {
   ctx.fillStyle = `rgba(220, 230, 255, ${flash})`;
   ctx.fillRect(0, 0, W, H);
   if (t > 9) return;
-  ctx.strokeStyle = '#F8FAFF';
-  ctx.lineWidth = 3;
+  ctx.lineJoin = 'miter';
   ctx.beginPath();
   let x = 150 + hash(strike) * 500, y = 0;
   ctx.moveTo(x, y);
-  for (let i = 0; i < 9; i++) { x += (hash(strike * 10 + i) - 0.5) * 60; y += 30 + hash(strike + i) * 15; ctx.lineTo(x, y); }
-  ctx.stroke();
+  for (let i = 0; i < 9; i++) {
+    x += (hash(strike * 10 + i) - 0.5) * 60; y += 30 + hash(strike + i) * 15; ctx.lineTo(x, y);
+    // (a fork off it now and then, short, the same zigzag)
+    if (hash(strike * 7 + i) > 0.7) { const fx = x + (hash(i + strike) - 0.5) * 50; ctx.lineTo(fx, y + 26); ctx.lineTo(fx + (hash(i * 3) - 0.5) * 20, y + 44); ctx.moveTo(x, y); }
+  }
+  for (const [lw, c] of [[14, 'rgba(165, 180, 252, 0.18)'], [8, 'rgba(191, 219, 254, 0.35)'], [4, '#BFDBFE'], [2, '#FFFFFF']] as const) { ctx.strokeStyle = c; ctx.lineWidth = lw; ctx.stroke(); }
 };
 
 const hector: Backdrop = {
@@ -509,50 +688,59 @@ const hector: Backdrop = {
  */
 const sunnyDeco: LayerSpec = {
   key: 'hector-sunny-deco', parallax: 0.16,
-  paint: (g, w, h) => {
-    const r = rng(90);
-    const neon = ['#FF4FD8', '#2EE6D6', '#FFD166'];
-    let x = 0;
-    while (x < w) {
-      const bw = 26 + Math.floor(r() * 30), bh = 50 + Math.floor(r() * 70);
-      const top = 232 - bh;
-      const body = ['#F5D0E6', '#BDEFE8', '#FCE7C8', '#D6DDF7'][Math.floor(r() * 4)];
-      g.fillStyle = body; g.fillRect(x, top, bw, h - top);
-      g.fillRect(x + 3, top - 5, bw - 6, 5); g.fillRect(x + 7, top - 9, bw - 14, 4);
-      g.fillStyle = mix(body, '#FFFFFF', 0.5); g.fillRect(x, top, 3, h - top);
-      const n = neon[Math.floor(r() * 3)];
-      g.fillStyle = n; g.fillRect(x, top + 6, bw, 1);
-      for (let wy = top + 12; wy < 232; wy += 7) for (let wx = x + 3; wx < x + bw - 3; wx += 5) {
-        g.fillStyle = hash(wx * 3 + wy) > 0.7 ? '#7DD3FC' : mix(body, '#1E3A5F', 0.35);
-        g.fillRect(wx, wy, 2, 3);
-      }
-      x += bw + 2;
-    }
+  paint: (g, w) => {
+    decoHotels(g, w, { bodies: ['#F5D0E6', '#BDEFE8', '#FCE7C8', '#D6DDF7'], shadow: '#5A6E9A', light: '#FFFFFF', glass: '#4D7FA8', lit: '#BAE6FD', litOdds: 0.25, neonGlow: false, storm: 0 });
     // (the sea air over their feet)
     hazeBands(g, 0, 200, w, 32, '#B2DEF7', 0, 0.3, 4, 1);
   },
 };
 const sunnySea: LayerSpec = {
   key: 'hector-sunny-sea', parallax: 0.26,
-  paint: (g, w, h) => {
-    g.fillStyle = '#0E7490'; g.fillRect(0, 232, w, h - 232);
-    bandedGradient(g, 0, 232, w, 44, ['#38BDF8', '#2AA6DC', '#1C8FBE', '#0E7490'], 6, 1);
-    const r = rng(96);
-    for (let i = 0; i < 180; i++) { g.fillStyle = r() > 0.4 ? '#F0F9FF' : '#BAE6FD'; g.fillRect(Math.floor(r() * w), 234 + Math.floor(r() * 40), 2 + Math.floor(r() * 4), 1); }
-  },
+  paint: (g, w, h) => seaPaint(g, w, h, 96, ['#38BDF8', '#2AA6DC', '#1C8FBE', '#0E7490'], { horizon: '#D6F0FC', crest: '#7DD3FC', trough: '#0B6380', glint: '#F0F9FF', glints: 140 }),
   raster: { from: 232, wobble: (row, f) => Math.sin(row * 0.5 + f * 0.08) * 1 },
 };
 const sunnyPalms: LayerSpec = {
   key: 'hector-sunny-palms', parallax: 0.4,
   paint: (g, w, h) => {
-    g.fillStyle = '#E9D5A1'; g.fillRect(0, 268, w, h - 268);
-    for (const t of HECTOR_PALM_TREES) wrapDraw(w, t.x, 40, xx => palm(g, xx, 269, t.h, '#3F6212', -0.15, 0.1, t.phase));
+    beachStrip(g, w, h, ['#E9D5A1', '#DCC48C', '#CDB37A'], 97, '#F3E5BE');
+    for (const t of HECTOR_PALM_TREES) wrapDraw(w, t.x, 40, xx => palm(g, xx, 269, t.h, HECTOR_PALM_SUNNY, -0.15, 0.1, t.phase));
   },
 };
+/** The sun as a pixel disc, painted the once: a pale rim, the face, a white-hot heart up toward its top left. */
+let sunDisc: HTMLCanvasElement | null = null;
+const SUN_R = 34;
+const getSunDisc = () => {
+  if (sunDisc || typeof document === 'undefined') return sunDisc;
+  const c = document.createElement('canvas'); c.width = c.height = SUN_R * 2;
+  const g = c.getContext('2d')!;
+  const disc = (cx: number, cy: number, r: number, col: string) => {
+    g.fillStyle = col;
+    for (let y = -r; y < r; y += 2) { const hw = Math.round(Math.sqrt(Math.max(0, r * r - (y + 1) * (y + 1))) / 2) * 2; g.fillRect(cx - hw, cy + y, hw * 2, 2); }
+  };
+  disc(SUN_R, SUN_R, SUN_R, '#FDE68A');
+  disc(SUN_R, SUN_R, SUN_R - 4, '#FFF3BF');
+  disc(SUN_R - 6, SUN_R - 6, SUN_R - 14, '#FFFBEA');
+  disc(SUN_R - 9, SUN_R - 9, 8, '#FFFFFF');
+  sunDisc = c;
+  return c;
+};
+const sunPos = (v: View) => ({ x: Math.round((W * 0.78 - v.camX * 0.01 % 40) / 2) * 2, y: Math.round((90 - Math.max(-60, Math.min(60, v.camY * 0.02))) / 2) * 2 });
 const sun = (ctx: G, v: View) => {
-  const x = W * 0.78 - v.camX * 0.01 % 40, y = 90 - Math.max(-60, Math.min(60, v.camY * 0.02));
+  const { x, y } = sunPos(v);
   steppedGlow(ctx, x, y, 120, '#FFF4C4', 0.7, 0, 6);
-  ctx.fillStyle = '#FFF7D1'; ctx.beginPath(); ctx.arc(x, y, 34, 0, Math.PI * 2); ctx.fill();
+  const d = getSunDisc();
+  if (d) ctx.drawImage(d, x - SUN_R, y - SUN_R);
+};
+/** The sun's road across the sea under it: flecks of light, flickering. */
+const sunGlitter = (ctx: G, v: View) => {
+  const { x } = sunPos(v);
+  ctx.fillStyle = 'rgba(255, 251, 234, 0.85)';
+  const f = Math.floor(v.frame / 6);
+  for (let i = 0; i < 26; i++) {
+    if (hash(i * 3.7 + f) > 0.55) continue;
+    const k = hash(i * 1.9), y = 466 + Math.floor(k * k * 70 / 2) * 2, spread = 14 + k * 60;
+    ctx.fillRect(Math.round((x + (hash(i + f * 0.37) - 0.5) * spread) / 2) * 2, y, 4 + Math.floor(k * 4) * 2, 2);
+  }
 };
 // The beach at the start: not a cloud in the sky, near enough (a few little wisps)
 const hectorSunny: Backdrop = {
@@ -562,6 +750,7 @@ const hectorSunny: Backdrop = {
     hectorClouds('hector-sunny-clouds', 0.05, 0.2, 50, '#F8FAFC', 211, 4, 0.55),
     sunnyDeco,
     sunnySea,
+    sunGlitter,
     sunnyPalms,
   ],
 };
@@ -579,6 +768,7 @@ const hectorAfter: Backdrop = {
     hectorClouds('hector-after-clouds', 0.06, 0.3, 80, '#EEF2F7', 312, 11, 0.9),
     sunnyDeco,
     sunnySea,
+    sunGlitter,
     sunnyPalms,
   ],
 };
@@ -689,25 +879,66 @@ const skyline = (key: string, parallax: number, seed: number, base: number, minH
   key, parallax,
   paint: (g, w, h) => {
     const r = rng(seed);
+    // (the blacked-out copy is the same city with every light out: the same buildings, the same unlit glass)
+    const on = lit !== body;
+    // (the moon's up to the left: a cold rim down each building's left edge, its right side a step darker)
+    const rim = mix(body, '#8A9CC8', 0.22), shade = mix(body, '#000000', 0.35), glass = mix(body, '#2A3A5E', 0.3), sill = mix(body, '#000000', 0.2);
     let x = 0;
     while (x < w) {
       const bw = 14 + Math.floor(r() * 26);
       const bh = minH + Math.floor(r() * (maxH - minH));
       const top = base - bh;
       g.fillStyle = body; g.fillRect(x, top, bw, h - top);
-      if (r() > 0.6) { g.fillRect(x + Math.floor(bw / 2) - 1, top - 8, 2, 8); } // antenna
-      if (r() > 0.7) { g.fillRect(x + 2, top - 4, bw - 4, 4); } // setback
+      g.fillStyle = shade; g.fillRect(x + bw - 2, top, 2, h - top);
+      checker(g, x + bw - 4, top, 2, h - top, shade, 0, 1);
+      g.fillStyle = rim; g.fillRect(x, top, 1, h - top);
+      // (a cornice: a shadow line under the roof, nothing bright on top)
+      g.fillStyle = sill; g.fillRect(x + 1, top + 2, bw - 3, 1);
+      const style = hash(x * 0.37 + seed);
+      if (r() > 0.6) {
+        // (an antenna, its red light lit)
+        g.fillStyle = body; g.fillRect(x + Math.floor(bw / 2) - 1, top - 8, 2, 8);
+        g.fillStyle = rim; g.fillRect(x + Math.floor(bw / 2) - 1, top - 8, 1, 8);
+        if (on) { g.fillStyle = '#EF4444'; g.fillRect(x + Math.floor(bw / 2) - 1, top - 9, 2, 1); }
+      }
+      if (r() > 0.7) {
+        // (a setback on the roof)
+        g.fillStyle = body; g.fillRect(x + 2, top - 4, bw - 4, 4);
+        g.fillStyle = rim; g.fillRect(x + 2, top - 4, 1, 4); g.fillStyle = shade; g.fillRect(x + bw - 4, top - 4, 2, 4);
+      } else if (style > 0.55 && bw > 18) {
+        // (a water tower up on the roof, on its stilts, a pointed cap)
+        const tx = x + 4 + Math.floor(style * 6);
+        g.fillStyle = shade; g.fillRect(tx + 1, top - 3, 1, 3); g.fillRect(tx + 6, top - 3, 1, 3);
+        g.fillStyle = body; g.fillRect(tx, top - 9, 8, 6); g.fillRect(tx + 1, top - 11, 6, 2); g.fillRect(tx + 3, top - 12, 2, 1);
+        g.fillStyle = rim; g.fillRect(tx, top - 9, 1, 6); g.fillRect(tx + 1, top - 11, 1, 2);
+        g.fillStyle = shade; g.fillRect(tx + 6, top - 9, 2, 6); g.fillRect(tx, top - 7, 8, 1);
+      }
+      // (pilasters up the face of some)
+      if (style < 0.3) { g.fillStyle = sill; for (let px = x + 4; px < x + bw - 4; px += 6) g.fillRect(px, top + 3, 1, base - top - 3); }
+      // Windows: a grid of unlit glass, the lit ones warm (the odd one TV-blue, the odd one brighter)
       for (let wy = top + 4; wy < base; wy += 4) for (let wx = x + 2; wx < x + bw - 2; wx += 3) {
-        if (hash(wx * 13 + wy * 7 + seed) > 0.62) { g.fillStyle = lit; g.fillRect(wx, wy, 1, 2); }
+        const q = hash(wx * 13 + wy * 7 + seed);
+        if (q > 0.62 && on) { g.fillStyle = q > 0.97 ? '#8FB8FF' : q > 0.92 ? mix(lit, '#FFFFFF', 0.45) : lit; g.fillRect(wx, wy, 1, 2); }
+        else if (q > 0.3) { g.fillStyle = glass; g.fillRect(wx, wy, 1, 2); }
       }
       x += bw + 1;
     }
     if (empire) {
+      // The Empire State: its setbacks in tiers, each rimmed and shaded, the mast up top; its crown floodlit
       const ex = 260, top = base - 150;
-      g.fillStyle = body;
-      g.fillRect(ex - 14, top + 40, 28, 150); g.fillRect(ex - 9, top + 18, 18, 30); g.fillRect(ex - 5, top + 6, 10, 14); g.fillRect(ex - 1, top - 14, 2, 22);
-      g.fillStyle = '#F8FAFC'; g.fillRect(ex - 5, top + 8, 10, 2); g.fillRect(ex - 9, top + 20, 18, 2);
-      for (let wy = top + 44; wy < base; wy += 4) for (let wx = ex - 12; wx < ex + 12; wx += 3) if (hash(wx + wy) > 0.5) { g.fillStyle = lit; g.fillRect(wx, wy, 1, 2); }
+      const tier = (tx: number, ty: number, tw: number, th: number) => {
+        g.fillStyle = body; g.fillRect(tx, ty, tw, th);
+        g.fillStyle = rim; g.fillRect(tx, ty, 1, th); g.fillStyle = shade; g.fillRect(tx + tw - 2, ty, 2, th);
+      };
+      tier(ex - 18, top + 70, 36, 150); tier(ex - 14, top + 40, 28, 150); tier(ex - 11, top + 26, 22, 16); tier(ex - 9, top + 18, 18, 10); tier(ex - 5, top + 6, 10, 14); tier(ex - 1, top - 14, 2, 22);
+      if (on) {
+        // (the floodlights on the crown: the tiers lit gold going up to white, the mast lit)
+        g.fillStyle = '#5E5238'; g.fillRect(ex - 9, top + 20, 16, 6); checker(g, ex - 9, top + 26, 18, 4, '#3A3428', 0, 1);
+        g.fillStyle = '#9C8A5C'; g.fillRect(ex - 5, top + 8, 8, 10); g.fillStyle = '#6E6142'; g.fillRect(ex + 3, top + 8, 2, 10);
+        g.fillStyle = '#E8D7A8'; g.fillRect(ex - 5, top + 6, 10, 2); g.fillStyle = '#B9A468'; g.fillRect(ex - 9, top + 18, 18, 2);
+        g.fillStyle = '#CBD5E1'; g.fillRect(ex - 1, top - 14, 1, 20); g.fillStyle = '#EF4444'; g.fillRect(ex - 1, top - 15, 2, 1);
+      }
+      for (let wy = top + 44; wy < base; wy += 4) for (let wx = ex - 12; wx < ex + 12; wx += 3) { const q = hash(wx + wy); if (q > 0.5 && on) { g.fillStyle = lit; g.fillRect(wx, wy, 1, 2); } else if (q > 0.25) { g.fillStyle = glass; g.fillRect(wx, wy, 1, 2); } }
     }
     // (the night's haze over the streets at their feet)
     if (haze) hazeBands(g, 0, base - 44, w, 44, haze, 0, 0.42, 5, 1);
@@ -766,8 +997,12 @@ const barry: Backdrop = {
   layers: [
     sky('barry-sky', ['#010208', '#040915', '#0A1328', '#121E3D', '#1C2A4F'], 14, (g, w) => {
       stars(g, w, LH, 20, 90, 140);
-      g.fillStyle = '#F1F5F9'; g.beginPath(); g.arc(90, 50, 12, 0, Math.PI * 2); g.fill();
-      g.fillStyle = '#CBD5E1'; g.fillRect(84, 46, 3, 3); g.fillRect(92, 53, 4, 3);
+      // The moon: a pixel disc, a dithered ring of glow round it, the side away from the light a step greyer, its seas
+      const disc = (cx: number, cy: number, rr: number, col: string) => { g.fillStyle = col; for (let y = -rr; y <= rr; y++) { const hw = Math.round(Math.sqrt(Math.max(0, rr * rr - y * y))); g.fillRect(cx - hw, cy + y, hw * 2, 1); } };
+      disc(90, 50, 14, '#1A2747'); g.fillStyle = '#1A2747'; for (let y = -16; y <= 16; y++) for (let x = -16; x <= 16; x++) { const d = x * x + y * y; if (d > 196 && d <= 272 && (x + y) % 2 === 0) g.fillRect(90 + x, 50 + y, 1, 1); }
+      disc(90, 50, 12, '#CBD5E1'); disc(88, 48, 10, '#E2E8F0'); disc(87, 47, 6, '#F8FAFC');
+      checker(g, 92, 39, 10, 22, '#CBD5E1', 0, 1);
+      for (const [mx, my, mr] of [[85, 46, 2], [93, 53, 3], [90, 43, 1], [84, 55, 1]] as const) { disc(mx, my, mr, '#AEB9C9'); g.fillStyle = '#F8FAFC'; g.fillRect(mx - mr, my + mr, mr * 2, 1); }
     }),
     barryFar,
     barryMid,
@@ -805,17 +1040,41 @@ const oscarRefinery: LayerSpec = {
 const oscarTanks: LayerSpec = {
   key: 'oscar-tanks', parallax: 0.22,
   paint: (g, w, h) => {
-    g.fillStyle = '#150C08'; g.fillRect(0, 250, w, h - 250);
+    bandedGradient(g, 0, 250, w, h - 250, ['#21130C', '#1A0F09', '#150C08'], 3, 1);
     const r = rng(180);
+    // The storage tanks: steel drums lit down their left by the dusk (and the flares), round into shadow on the right in
+    // steps dithered one into the next; plate seams round them, a shallow roof with a railing, a stair spiralling up,
+    // oil streaked down from the top
+    const TONES = ['#4A3C30', '#B49A78', '#927A5E', '#6E5A46', '#4E4034', '#2E2620'];
+    const EDGES = [0.06, 0.28, 0.44, 0.72, 0.88, 1.01];
     for (let x = 10; x < w; x += 70 + Math.floor(r() * 50)) {
-      const tw = 40 + r() * 25, th = 24 + r() * 16;
-      g.fillStyle = '#6B5B4B'; g.fillRect(x, 250 - th, tw, th);
-      g.fillStyle = '#7F6E5C'; g.fillRect(x + 3, 250 - th, 6, th); // highlight down the curve
-      g.fillStyle = '#4A3F34'; g.fillRect(x + tw - 10, 250 - th, 10, th);
-      g.fillStyle = '#8A7866'; g.beginPath(); g.ellipse(x + tw / 2, 250 - th, tw / 2, 4, 0, 0, Math.PI * 2); g.fill(); // domed top
-      g.fillStyle = '#5A4A3C'; for (let yy = 250 - th + 8; yy < 250; yy += 8) g.fillRect(x, yy, tw, 1); // bands
-      g.fillStyle = '#231A12'; for (let i = 0; i < th; i += 5) g.fillRect(x + 4 + i * 0.6, 250 - th + i, 2, 2); // stair
-      g.fillStyle = '#3F2A1A'; g.fillRect(x - 8, 244, 90, 2); // pipe
+      const tw = Math.floor(40 + r() * 25), th = Math.floor(24 + r() * 16);
+      const top = 250 - th;
+      for (let c = 0; c < tw; c++) {
+        const u = (c + 0.5) / tw;
+        const i = EDGES.findIndex(e => u < e);
+        g.fillStyle = TONES[i]; g.fillRect(x + c, top, 1, th);
+        // (dithered into the next tone over for a column either side of each step)
+        const next = EDGES[i] - u < 1 / tw ? TONES[i + 1] : u - (EDGES[i - 1] ?? -1) < 1 / tw ? TONES[i - 1] : null;
+        if (next) checker(g, x + c, top, 1, th, next, c & 1, 1);
+      }
+      // (plate seams: a dark line, the plate under it catching a little light)
+      for (let yy = top + 8; yy < 250; yy += 8) { g.fillStyle = '#3A3027'; g.fillRect(x + 1, yy, tw - 2, 1); g.fillStyle = 'rgba(255, 220, 180, 0.08)'; g.fillRect(x + 1, yy + 1, tw - 2, 1); }
+      // (oil run down from the top here and there)
+      for (let k = 0; k < 3; k++) { const sx = x + 4 + Math.floor(hash(x * 3 + k) * (tw - 8)), sl = 4 + Math.floor(hash(x + k * 7) * th * 0.6); g.fillStyle = '#2A2018'; g.fillRect(sx, top + 1, 1, sl); g.fillRect(sx, top + sl, 2, 2); }
+      // (the roof: a shallow cone in rows, lit on the left, dull: nothing to stand on, from here)
+      for (let k = 0; k < 4; k++) {
+        const hw = Math.floor((tw / 2) * (1 - k * 0.22)), cx = x + Math.floor(tw / 2);
+        g.fillStyle = '#6E5E4E'; g.fillRect(cx - hw, top - k - 1, hw * 2, 1);
+        g.fillStyle = '#7F6E5C'; g.fillRect(cx - hw, top - k - 1, Math.floor(hw * 0.7), 1);
+      }
+      // (the railing round its edge: a rail and posts)
+      g.fillStyle = '#2E241C'; g.fillRect(x, top - 4, tw, 1); for (let px = x; px < x + tw; px += 5) g.fillRect(px, top - 4, 1, 4);
+      // (the stair up its side: treads in a dark run, a lit handrail over them)
+      for (let i = 0; i < th; i++) { const sx = Math.floor(x + 4 + i * 0.6); g.fillStyle = '#231A12'; g.fillRect(sx, top + i, i % 3 ? 1 : 3, 1); g.fillStyle = '#B49C80'; if (i > 2) g.fillRect(sx + 1, top + i - 3, 1, 1); }
+      // (its foot: a concrete ring, then the pipe along the ground, lit along its top)
+      g.fillStyle = '#2A1E16'; g.fillRect(x - 1, 248, tw + 2, 2);
+      g.fillStyle = '#3F2A1A'; g.fillRect(x - 8, 244, 90, 3); g.fillStyle = '#5A3C26'; g.fillRect(x - 8, 244, 90, 1); g.fillStyle = '#24170E'; g.fillRect(x - 8, 247, 90, 1);
     }
     hazeBands(g, 0, 232, w, 20, '#9A4A18', 0, 0.3, 4, 1);
   },
@@ -823,7 +1082,20 @@ const oscarTanks: LayerSpec = {
 const PUMPJACKS = [80, 300, 520];
 const oscarField: LayerSpec = {
   key: 'oscar-field', parallax: 0.38,
-  paint: (g, w, h) => { g.fillStyle = '#0D0705'; g.fillRect(0, 268, w, h - 268); for (let x = 0; x < w; x += 7) { g.fillStyle = hash(x) > 0.7 ? '#1C120C' : '#0D0705'; g.fillRect(x, 268, 4, 1); } },
+  paint: (g, w, h) => {
+    // The near field: dirt in dark bands (no lip to it), gravel, black puddles of crude with the dusk shining in them
+    bandedGradient(g, 0, 268, w, h - 268, ['#1A100B', '#130B07', '#0D0705'], 4, 1);
+    const r = rng(181);
+    for (let i = 0; i < 140; i++) { g.fillStyle = r() > 0.6 ? '#2A1C14' : '#070403'; g.fillRect(Math.floor(r() * w), 269 + Math.floor(r() * (h - 270)), 1 + Math.floor(r() * 2), 1); }
+    for (let i = 0; i < 9; i++) {
+      const px = Math.floor(r() * w), py = 272 + Math.floor(r() * 20), pw = 10 + Math.floor(r() * 18);
+      wrapDraw(w, px, pw, xx => {
+        g.fillStyle = '#050302'; g.fillRect(xx + 2, py, pw - 4, 1); g.fillRect(xx, py + 1, pw, 2); g.fillRect(xx + 2, py + 3, pw - 4, 1);
+        g.fillStyle = '#9A4A18'; g.fillRect(xx + 3, py + 1, Math.floor(pw * 0.4), 1);
+        g.fillStyle = '#5A2A12'; g.fillRect(xx + 3 + Math.floor(pw * 0.4), py + 1, Math.floor(pw * 0.25), 1);
+      });
+    }
+  },
 };
 
 const flares = (ctx: G, v: View) => {
@@ -841,20 +1113,46 @@ const flares = (ctx: G, v: View) => {
   // Blinking red aviation lights on the columns
   if (v.frame % 60 < 30) for (let i = 0; i < 6; i++) pinned(40 + i * 100, oscarRefinery, v, sx => { ctx.fillStyle = '#EF4444'; ctx.fillRect(sx, 150 + (i % 3) * 24, 4, 4); });
 };
-/** Pumpjacks nodding away in the foreground field. */
+/**
+ * Pumpjacks nodding away in the foreground field: dark iron against the dusk, rimmed along their tops by its glow; the
+ * beam rocking on its A-frame, the horsehead and the bridle going up and down the well, the crank and its counterweight
+ * going round behind, the pitman arm working the beam's tail.
+ */
 const pumpjacks = (ctx: G, v: View) => {
-  for (const px of PUMPJACKS) pinned(px, oscarField, v, sx => {
-    const base = 268 * PX, a = Math.sin(v.frame * 0.05 + px) * 0.35;
-    ctx.fillStyle = '#241710';
-    ctx.fillRect(sx - 30, base - 8, 70, 8);
-    ctx.beginPath(); ctx.moveTo(sx - 12, base - 8); ctx.lineTo(sx, base - 60); ctx.lineTo(sx + 12, base - 8); ctx.fill();
+  const BODY = '#241710', RIM = '#5A3220', MID = '#30201A', DARK = '#120A06';
+  for (const px of PUMPJACKS) pinned(px, oscarField, v, sx0 => {
+    const sx = Math.round(sx0 / 2) * 2, base = 268 * PX, th = v.frame * 0.05 + px, a = Math.sin(th) * 0.35;
+    // (the skid it's all bolted to)
+    ctx.fillStyle = BODY; ctx.fillRect(sx - 30, base - 8, 70, 8);
+    ctx.fillStyle = MID; ctx.fillRect(sx - 30, base - 8, 70, 2); ctx.fillStyle = DARK; ctx.fillRect(sx - 30, base - 2, 70, 2);
+    // (the A-frame: the back leg in shadow, the front one rimmed down its edge; stepped, a pixel row at a time)
+    for (const [dx, col, rim] of [[12, DARK, null], [-12, BODY, RIM]] as const) {
+      for (let y = base - 60; y < base - 8; y += 2) { const k = (y - (base - 60)) / 52, x = Math.round((sx + dx * k - 2) / 2) * 2; ctx.fillStyle = col; ctx.fillRect(x, y, 4, 2); if (rim) { ctx.fillStyle = rim; ctx.fillRect(x, y, 2, 2); } }
+    }
+    // (the crank going round behind the gearbox, its counterweight swinging, the pitman arm up to the beam's tail)
+    const cx = sx + 37, cy = base - 22, pin = { x: cx + Math.cos(th) * 9, y: cy + Math.sin(th) * 9 };
+    ctx.fillStyle = MID; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, 13, th - 0.9 + Math.PI, th + 0.9 + Math.PI); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = RIM; ctx.beginPath(); ctx.arc(cx, cy, 13, th - 0.9 + Math.PI, th - 0.3 + Math.PI); ctx.lineTo(cx, cy); ctx.fill();
+    const tail = { x: sx + Math.cos(a) * 40, y: base - 60 + Math.sin(a) * 40 };
+    ctx.strokeStyle = BODY; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(tail.x, tail.y); ctx.lineTo(pin.x, pin.y); ctx.stroke();
+    ctx.fillStyle = BODY; ctx.fillRect(sx + 30, base - 30, 14, 22);
+    ctx.fillStyle = RIM; ctx.fillRect(sx + 30, base - 30, 14, 2); ctx.fillRect(sx + 30, base - 30, 2, 22);
+    ctx.fillStyle = DARK; ctx.fillRect(sx + 42, base - 28, 2, 20);
+    // (the walking beam: rimmed along its top, dark under, the horsehead on its nose rimmed round its curve)
     ctx.save(); ctx.translate(sx, base - 60); ctx.rotate(a);
-    ctx.fillRect(-56, -5, 100, 9);
-    ctx.fillRect(-66, -10, 14, 36); // horsehead
+    ctx.fillStyle = BODY; ctx.fillRect(-56, -5, 100, 9);
+    ctx.fillStyle = RIM; ctx.fillRect(-56, -5, 100, 2); ctx.fillStyle = DARK; ctx.fillRect(-56, 2, 100, 2);
+    ctx.fillStyle = BODY; ctx.beginPath(); ctx.moveTo(-52, -10); ctx.lineTo(-60, -10); ctx.quadraticCurveTo(-70, 6, -64, 26); ctx.lineTo(-54, 26); ctx.lineTo(-52, -10); ctx.fill();
+    ctx.strokeStyle = RIM; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-52, -9); ctx.lineTo(-60, -9); ctx.quadraticCurveTo(-69, 6, -63, 25); ctx.stroke();
+    ctx.fillStyle = MID; ctx.fillRect(-4, -8, 8, 6); ctx.fillStyle = RIM; ctx.fillRect(-4, -8, 8, 2);
     ctx.restore();
-    const hx = sx - Math.cos(a) * 60, hy = base - 60 - Math.sin(a) * 60;
-    ctx.fillRect(Math.round(hx - 1), Math.round(hy + 20), 2, Math.max(0, Math.round(base - hy - 20)));
-    ctx.fillRect(sx + 30, base - 30, 14, 22); // counterweight housing
+    // (the bridle down the well: two cables and the carrier bar, the polished rod, the wellhead at its foot)
+    const hx = Math.round(sx - Math.cos(a) * 64), hy = base - 60 - Math.sin(a) * 64;
+    const rodTop = Math.round(hy + 26);
+    ctx.fillStyle = DARK; ctx.fillRect(hx - 2, rodTop, 1, Math.max(0, base - 26 - rodTop)); ctx.fillRect(hx + 2, rodTop, 1, Math.max(0, base - 26 - rodTop));
+    ctx.fillStyle = MID; ctx.fillRect(hx - 4, Math.min(base - 26, rodTop + 14), 9, 2);
+    ctx.fillStyle = '#6B4A30'; ctx.fillRect(hx, Math.min(base - 26, rodTop + 14), 1, Math.max(0, base - 10 - Math.min(base - 26, rodTop + 14)));
+    ctx.fillStyle = BODY; ctx.fillRect(hx - 5, base - 14, 11, 6); ctx.fillStyle = RIM; ctx.fillRect(hx - 5, base - 14, 11, 2);
   });
 };
 
@@ -907,11 +1205,32 @@ const oscar: Backdrop = {
 const daleSandias: LayerSpec = {
   key: 'dale-sandias', parallax: 0.05,
   paint: (g, w, h) => {
-    const ridge = makeRidge(201, w, 205, 55, 0.1);
-    fillRidge(g, w, h, ridge, '#7A3E5E');
-    // Watermelon-pink glow along the crest
-    for (let x = 0; x < w; x++) { g.fillStyle = '#C0617A'; g.fillRect(x, Math.floor(ridge(x)), 1, 2); }
-    for (let x = 0; x < w; x += 3) { g.fillStyle = '#6A3552'; g.fillRect(x, Math.floor(ridge(x)) + 6 + (x % 5), 1, 18); } // gullies
+    const ridge = makeRidge(201, w, 205, 55, 0.035);
+    // The range in the last of the sun (it's setting off to the left): the flanks facing it watermelon pink, a glow
+    // along the crest, the flanks turned away in shadow, a band of cliffs under the crest, gullies down it
+    const BODY = '#7A3E5E', LIT = '#9A4B6A', SHADE = '#6A3552', GLOW = '#C0617A';
+    for (let x = 0; x < w; x++) {
+      const y = Math.floor(ridge(x)), slope = (ridge(x + 8) - ridge(x - 8)) / 2.6;
+      g.fillStyle = BODY; g.fillRect(x, y, 1, h - y);
+      // (lit flanks a band of pink under a glowing crest; the others a band of shade under a dull one; each dithered off
+      // into the body)
+      const lit = slope < -0.5, d = lit ? Math.min(30, 12 + Math.floor(-slope * 4)) : 16;
+      g.fillStyle = lit ? LIT : SHADE; g.fillRect(x, y, 1, d);
+      if ((x + y) % 2) g.fillRect(x, y + d, 1, 2);
+      if ((x + y) % 2 === 0) g.fillRect(x, y + d + 3, 1, 1);
+      g.fillStyle = lit ? GLOW : LIT; g.fillRect(x, y, 1, lit ? 2 : 1);
+    }
+    // Gullies down the lit flanks: dark grooves slanting down the slope, a lit lip beside each, every few columns
+    for (let x = 0; x < w; x += 7) {
+      const y = ridge(x), slope = (ridge(x + 8) - ridge(x - 8)) / 2.6;
+      if (y > 196 || slope > -0.5 || hash(x * 0.37) < 0.35) continue;
+      const len = 8 + Math.floor(hash(x) * 14), dir = slope < 0 ? -1 : 1;
+      for (let k = 0; k < len; k++) {
+        const xx = (((x + Math.round(k * 0.35 * dir)) % w) + w) % w, yy = Math.floor(y + 5 + k);
+        g.fillStyle = SHADE; g.fillRect(xx, yy, 1, 1);
+        if (k % 2 === 0) { g.fillStyle = GLOW; g.fillRect((xx + w - dir) % w, yy, 1, 1); }
+      }
+    }
     // (the dusk's haze over the valley at their feet)
     hazeBands(g, 0, 190, w, 50, '#E0666A', 0, 0.45, 5, 1);
   },
@@ -919,41 +1238,96 @@ const daleSandias: LayerSpec = {
 const daleMesas: LayerSpec = {
   key: 'dale-mesas', parallax: 0.16,
   paint: (g, w, h) => {
-    g.fillStyle = '#4A2638'; g.fillRect(0, 238, w, h - 238);
+    bandedGradient(g, 0, 238, w, h - 238, ['#4E2A3B', '#462436', '#3E2030'], 3, 1);
     const r = rng(210);
+    // The mesas: flat caprock over cliffs in strata, the face turned to the sunset lit, the other in shadow, the cliffs
+    // fluted by erosion, a fan of scree down round their feet
+    const CAP = '#8A4A4F', CAP_SHADE = '#5E3442', FACE = '#5E3444', LIT = '#7A4452', SHADE = '#43233A', DEEP = '#331A2A', STRATA = '#4E2A3B';
     for (let x = 0; x < w; x += 80 + Math.floor(r() * 80)) {
       const mw = 50 + r() * 70, mh = 25 + r() * 30;
       wrapDraw(w, x, mw + 20, xx => {
-        g.fillStyle = '#4A2638';
-        g.beginPath(); g.moveTo(xx, 240); g.lineTo(xx + 12, 240 - mh); g.lineTo(xx + 12 + mw, 240 - mh); g.lineTo(xx + mw + 24, 240); g.fill();
-        g.fillStyle = '#8A4A4F'; g.fillRect(Math.floor(xx + 12), Math.floor(240 - mh), Math.floor(mw), 2); // lit caprock
-        g.fillStyle = '#3A1D2C'; for (let s = 6; s < mh; s += 7) g.fillRect(Math.floor(xx + 14), Math.floor(240 - mh + s), Math.floor(mw - 4), 1); // strata
+        const x0 = Math.floor(xx), top = Math.floor(240 - mh), capL = x0 + 12, capR = Math.floor(xx + 12 + mw);
+        for (let c = x0; c < x0 + mw + 24; c++) {
+          // (the slope at each end: the left one sunlit, the right one shadowed; the face in between)
+          const yTop = c < capL ? Math.floor(240 - mh * ((c - x0) / 12)) : c > capR ? Math.floor(240 - mh * (1 - (c - capR) / 12)) : top;
+          if (yTop >= 240) continue;
+          const col = c < capL + 3 ? LIT : c > capR - 4 ? SHADE : FACE;
+          g.fillStyle = col; g.fillRect(c, yTop, 1, 240 - yTop);
+          // (the lower cliffs a step darker, dithered into the upper)
+          const low = top + Math.floor(mh * 0.55);
+          if (low > yTop) { g.fillStyle = c > capR - 4 ? DEEP : c < capL + 3 ? FACE : STRATA; g.fillRect(c, low + 2, 1, 240 - low - 2); if (c % 2) g.fillRect(c, low, 1, 2); }
+          // (strata across the face, every few rows, broken up by the flutes)
+          g.fillStyle = c > capR - 4 ? DEEP : c < capL + 3 ? FACE : SHADE;
+          for (let s = 6; s < mh; s += 7) { const sy = top + s + ((c >> 3) % 2); if (sy > yTop + 1 && (c + s) % 9 > 1) g.fillRect(c, sy, 1, 1); }
+          // (flutes: vertical grooves down the cliff)
+          if (c > capL + 3 && c < capR - 4 && hash(c * 1.7 + x) > 0.86) { g.fillStyle = SHADE; g.fillRect(c, top + 3, 1, Math.floor(mh * (0.4 + hash(c) * 0.4))); }
+        }
+        // (the caprock: a lit band, its underside dark, overhanging a pixel)
+        g.fillStyle = CAP_SHADE; g.fillRect(capL - 1, top + 2, capR - capL + 2, 2);
+        g.fillStyle = CAP; g.fillRect(capL - 1, top, capR - capL + 2, 2);
+        // (the scree fan: dithered lighter rubble round its foot)
+        checker(g, x0 + 4, 236, mw + 16, 2, LIT, 0, 1); checker(g, x0, 238, mw + 24, 2, FACE, 1, 1);
       });
     }
     hazeBands(g, 0, 224, w, 18, '#A8406E', 0, 0.3, 3, 1);
   },
 };
 const RV_X = 360;
+/** Desert plants in silhouette, rimmed by the last of the light from the left: saguaros, chollas, yuccas, creosote. */
+const desertPlant = (g: G, x: number, base: number, hh: number, kind: number, dark: string, rim: string) => {
+  const col = (cx: number, cy: number, cw: number, ch: number) => { g.fillStyle = dark; g.fillRect(cx, cy + 1, cw, ch - 1); g.fillRect(cx + 1, cy, cw - 2, 1); g.fillStyle = rim; g.fillRect(cx, cy + 1, 1, ch - 1); };
+  if (kind === 0) {
+    // (a saguaro: a fat trunk, an arm or two crooked up off it)
+    col(x, base - hh, 3, hh);
+    const a1 = Math.floor(hh * 0.45), a2 = Math.floor(hh * 0.6);
+    g.fillStyle = dark; g.fillRect(x - 4, base - a1, 4, 2); col(x - 5, base - a1 - 6, 2, 8);
+    if (hh > 14) { g.fillStyle = dark; g.fillRect(x + 3, base - a2, 3, 2); col(x + 5, base - a2 - 5, 2, 7); }
+  } else if (kind === 1) {
+    // (a yucca: a spray of spikes off a short stem, a flower stalk up out of it)
+    g.fillStyle = dark; g.fillRect(x, base - 3, 2, 3);
+    for (let k = -3; k <= 3; k++) { const len = 5 - Math.abs(k) * 0.5; for (let s = 0; s < len; s++) g.fillRect(x + Math.round(k * s * 0.45), base - 3 - s, 1, 1); }
+    g.fillStyle = rim; g.fillRect(x - 2, base - 6, 1, 1); g.fillRect(x, base - 8, 1, 1);
+    g.fillStyle = dark; g.fillRect(x + 1, base - hh, 1, hh - 6); g.fillStyle = rim; for (let s = 0; s < 4; s++) g.fillRect(x + 1 + (s % 2 ? 1 : -1), base - hh + s * 2, 1, 1);
+  } else if (kind === 2) {
+    // (a cholla: a knotted little tree of short joints)
+    col(x, base - hh * 0.6, 2, hh * 0.6);
+    for (const [dx, dy, l] of [[-3, 0.55, 4], [2, 0.7, 5], [-2, 0.85, 3]] as const) { g.fillStyle = dark; g.fillRect(x + (dx < 0 ? dx : 2), Math.floor(base - hh * dy), Math.abs(dx), 1); col(x + dx, Math.floor(base - hh * dy - l), 2, l); }
+  } else {
+    // (creosote: a low clump, lumpy along its top)
+    for (let k = 0; k < 8; k++) { const ch = 2 + Math.round(Math.sin(k * 1.3) * 1.5 + 2); g.fillStyle = dark; g.fillRect(x - 4 + k, base - ch, 1, ch); g.fillStyle = rim; if (k < 4) g.fillRect(x - 4 + k, base - ch, 1, 1); }
+  }
+};
 const daleDesert: LayerSpec = {
   key: 'dale-desert', parallax: 0.36,
   paint: (g, w, h) => {
     g.fillStyle = '#2A1620'; g.fillRect(0, 258, w, h - 258);
     bandedGradient(g, 0, 258, w, 44, ['#5B3140', '#4A2834', '#3A1F2A', '#2A1620'], 6, 1);
     const r = rng(220);
-    // Cholla and yucca silhouettes
+    // (pebbles and the odd tuft across the flats)
+    const pr = rng(221);
+    for (let i = 0; i < 120; i++) { const y = 262 + Math.floor(pr() * pr() * 36); g.fillStyle = pr() > 0.5 ? '#6A3A4A' : '#24121A'; g.fillRect(Math.floor(pr() * w), y, 1 + Math.floor(pr() * 2), 1); }
+    // Saguaros, yuccas, chollas, creosote
     for (let x = 10; x < w; x += 25 + Math.floor(r() * 40)) {
       const hh = 8 + r() * 16;
-      g.fillStyle = '#1A0E14';
-      g.fillRect(x, 262 - hh, 3, hh);
-      if (r() > 0.4) { g.fillRect(x - 5, 262 - hh * 0.6, 5, 2); g.fillRect(x - 5, 262 - hh * 0.6 - 5, 2, 5); }
-      if (r() > 0.4) { g.fillRect(x + 3, 262 - hh * 0.45, 5, 2); g.fillRect(x + 6, 262 - hh * 0.45 - 6, 2, 6); }
+      const kind = Math.floor(hash(x * 0.71) * 4);
+      r(); r();
+      wrapDraw(w, x, 12, xx => desertPlant(g, Math.floor(xx), 262, Math.floor(hh) + 4, kind, '#1A0E14', '#7E4256'));
     }
-    // The RV, parked in the middle of nowhere
+    // The RV, parked in the middle of nowhere: cream and brown, lit along its roof by the sunset, its windows catching
+    // the sky, a door, the awning rolled up, its shadow on the sand under it
+    g.fillStyle = 'rgba(20, 8, 14, 0.5)'; g.fillRect(RV_X - 2, 260, 48, 3);
     g.fillStyle = '#E8DCC2'; g.fillRect(RV_X, 244, 42, 16);
-    g.fillStyle = '#C9B99A'; g.fillRect(RV_X, 252, 42, 2);
-    g.fillStyle = '#7C5A3A'; g.fillRect(RV_X, 256, 42, 2);
-    g.fillStyle = '#3A4A5A'; g.fillRect(RV_X + 30, 246, 10, 5); g.fillRect(RV_X + 6, 246, 7, 4); g.fillRect(RV_X + 16, 246, 7, 4);
-    g.fillStyle = '#111111'; g.fillRect(RV_X + 6, 259, 6, 4); g.fillRect(RV_X + 30, 259, 6, 4);
+    g.fillStyle = '#F6EEDB'; g.fillRect(RV_X, 244, 42, 1); g.fillRect(RV_X, 244, 1, 15);
+    g.fillStyle = '#C9B99A'; g.fillRect(RV_X + 41, 245, 1, 15); g.fillRect(RV_X + 1, 252, 40, 2);
+    g.fillStyle = '#7C5A3A'; g.fillRect(RV_X, 256, 42, 2); g.fillStyle = '#5A3E26'; g.fillRect(RV_X, 258, 42, 1);
+    // (the cab's nose, the awning rolled along the side)
+    g.fillStyle = '#D8CAAD'; g.fillRect(RV_X + 36, 241, 6, 3); g.fillStyle = '#B9A889'; g.fillRect(RV_X + 4, 245, 26, 1);
+    for (const [wx, ww] of [[RV_X + 30, 10], [RV_X + 6, 7], [RV_X + 16, 7]] as const) {
+      g.fillStyle = '#2A3A4A'; g.fillRect(wx, 246, ww, ww > 8 ? 5 : 4);
+      g.fillStyle = '#E0666A'; g.fillRect(wx, 246, ww, 1); g.fillStyle = '#F4A261'; g.fillRect(wx, 246, 2, 1);
+    }
+    g.fillStyle = '#B9A889'; g.fillRect(RV_X + 25, 247, 4, 10); g.fillStyle = '#7C5A3A'; g.fillRect(RV_X + 28, 252, 1, 1);
+    for (const wx of [RV_X + 6, RV_X + 30]) { g.fillStyle = '#111111'; g.fillRect(wx, 258, 6, 5); g.fillRect(wx + 1, 257, 4, 1); g.fillStyle = '#6B6B6B'; g.fillRect(wx + 2, 259, 2, 2); }
   },
 };
 /** Albuquerque's hot air balloons, drifting slowly across the sky. */

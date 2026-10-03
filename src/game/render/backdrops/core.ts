@@ -108,6 +108,9 @@ export const fillRidge = (g: G, w: number, h: number, ridge: (x: number) => numb
   }
 };
 
+const shadeCache = new Map<string, string>();
+const shadeOf = (c: string) => { let s = shadeCache.get(c); if (!s) { s = mix(c, '#000000', 0.35); shadeCache.set(c, s); } return s; };
+
 /** A pixel pine tree, base centred on (x, y). */
 export const pine = (g: G, x: number, y: number, h: number, color: string, snow?: string) => {
   // Three or four overlapping triangular tiers, widest at the bottom, each dusted with snow
@@ -120,6 +123,9 @@ export const pine = (g: G, x: number, y: number, h: number, color: string, snow?
       const w = Math.max(1, Math.round((r / tierH) * half * 2));
       g.fillStyle = color;
       g.fillRect(Math.round(x - w / 2), Math.round(top + r), w, 1);
+      // (the side away from the light a step darker, the boughs' undersides darker still)
+      if (w > 2) { g.fillStyle = shadeOf(color); g.fillRect(Math.round(x + w / 2 - w * 0.35), Math.round(top + r), Math.max(1, Math.round(w * 0.35)), 1); }
+      if (r > tierH * 0.8 && w > 3) { g.fillStyle = shadeOf(color); g.fillRect(Math.round(x - w / 2), Math.round(top + r), w, 1); }
       if (snow && r > 1 && r < tierH * 0.35) { g.fillStyle = snow; g.fillRect(Math.round(x - w / 2), Math.round(top + r), Math.max(1, Math.round(w * 0.45)), 1); }
     }
   }
@@ -127,27 +133,63 @@ export const pine = (g: G, x: number, y: number, h: number, color: string, snow?
   g.fillRect(Math.round(x - 1), Math.round(y - h * 0.15), 2, Math.round(h * 0.15));
 };
 
+/** A palm's colours: the trunk (lit down one side, ringed), the fronds (lit along the top, dark leaflet tips), the nuts. */
+export interface PalmTones { trunk: string; trunkLit: string; ring: string; frond: string; frondLit: string; frondDark: string; nut?: string }
+
+/** Rects gathered by colour and filled a colour at a time (one path each), in the order the colours were first named. */
+const rectBatch = (order: string[]) => {
+  const m = new Map<string, number[]>(order.map(c => [c, []]));
+  return {
+    r: (c: string, x: number, y: number, w: number, h: number) => { m.get(c)?.push(Math.round(x), Math.round(y), w, h); },
+    flush: (g: G) => { for (const [c, a] of m) { if (!a.length) continue; g.fillStyle = c; g.beginPath(); for (let i = 0; i < a.length; i += 4) g.rect(a[i], a[i + 1], a[i + 2], a[i + 3]); g.fill(); } },
+  };
+};
+
 /**
  * A pixel palm tree, trunk base at (x, y), bent by `lean` (-1..1). `flutter`
  * (0..1) and `phase` ruffle each frond separately, for trees swaying in the wind.
+ * Given tones (not a flat colour) it comes out 16-bit: a tapering ringed trunk lit
+ * down its right side, feathery fronds with leaflets hanging off them, lit along
+ * their tops, and a cluster of nuts; drawn a colour at a time, so it's cheap
+ * enough to sway live.
  */
-export const palm = (g: G, x: number, y: number, h: number, color: string, lean = 0.3, flutter = 0, phase = 0) => {
-  g.fillStyle = color;
+export const palm = (g: G, x: number, y: number, h: number, color: string | PalmTones, lean = 0.3, flutter = 0, phase = 0) => {
+  const t: PalmTones = typeof color === 'string' ? { trunk: color, trunkLit: color, ring: color, frond: color, frondLit: color, frondDark: color } : color;
+  const b = rectBatch([t.frondDark, t.trunk, t.ring, t.trunkLit, t.frond, t.frondLit, t.nut ?? t.frondDark]);
   let tx = x, ty = y;
+  // (the trunk: run by run of rows that sit at the same x, wide at the foot tapering up, a ring every few rows)
+  let runX = NaN, runW = 0, runY = y;
+  const flushRun = (endY: number) => { if (runY > endY) { b.r(t.trunk, runX, endY + 1, runW, runY - endY); if (runW > 1) b.r(t.trunkLit, runX + runW - 1, endY + 1, 1, runY - endY); } };
   for (let i = 0; i < h; i++) {
     const k = i / h;
     tx = x + lean * k * k * h * 0.4;
     ty = y - i;
-    g.fillRect(Math.round(tx), Math.round(ty), k > 0.8 ? 2 : 3, 1);
+    const cx = Math.round(tx), w = h < 30 ? (k > 0.5 ? 1 : 2) : k > 0.6 ? 3 : 4;
+    if (cx !== runX || w !== runW) { flushRun(ty); runX = cx; runW = w; runY = ty; }
+    if (i % 3 === 2 && w > 2) b.r(t.ring, cx, ty, w - 1, 1);
   }
-  for (let f = 0; f < 6; f++) {
-    const a = -Math.PI / 2 + (f - 2.5) * 0.55 + lean * 0.5 + flutter * Math.sin(phase * 1.7 + f * 1.3) * 0.35;
-    const len = h * 0.45;
-    for (let s = 0; s < len; s++) {
-      const droop = (s / len) * (s / len) * len * 0.5;
-      g.fillRect(Math.round(tx + Math.cos(a) * s), Math.round(ty + Math.sin(a) * s + droop), 2, 1);
+  flushRun(Math.round(ty) - 1);
+  const n = 7;
+  for (let f = 0; f < n; f++) {
+    const a = -Math.PI / 2 + (f - (n - 1) / 2) * 0.5 + lean * 0.5 + flutter * Math.sin(phase * 1.7 + f * 1.3) * 0.35;
+    const len = h * 0.45 * (0.82 + 0.3 * Math.abs(Math.sin(f * 2.3)));
+    for (let s = 1; s < len; s++) {
+      const q = s / len, droop = q * q * len * 0.55;
+      const px = tx + Math.cos(a) * s, py = ty + Math.sin(a) * s + droop;
+      b.r(t.frond, px, py, 2, 1);
+      if (q < 0.7) b.r(t.frondLit, px, py, 1, 1);
+      // (a leaflet hanging off every other step, long and short by turns, longest mid-frond, slanting off outward and
+      // going into the dark tone toward its tip)
+      if (s % 2 === 0 && s > 2) {
+        const ll = Math.max(1, Math.round((1 + 4 * Math.sin(Math.PI * q)) * (s % 4 === 0 ? 1 : 0.6)));
+        const dir = Math.cos(a) > 0 ? 1 : -1, up = Math.ceil(ll / 2);
+        b.r(t.frond, px + (dir > 0 ? 1 : 0), py + 1, 1, up);
+        if (ll > 1) b.r(t.frondDark, px + (dir > 0 ? 2 : -1), py + 1 + up, 1, ll - up);
+      }
     }
   }
+  if (t.nut) { b.r(t.nut, tx - 1, ty + 1, 2, 2); b.r(t.nut, tx + 1, ty + 2, 2, 2); b.r(t.nut, tx - 2, ty + 3, 2, 2); }
+  b.flush(g);
 };
 
 /** Something tiled that wraps: call draw at x, and again one tile over when it pokes past the edge. */

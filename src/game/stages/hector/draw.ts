@@ -98,27 +98,44 @@ export const drawHectorWeather = (ctx: Ctx, state: GameState): boolean => {
   return true;
 };
 
+/** A half-size canvas the storm's spiral is drawn into, the once. */
+let stormCv: HTMLCanvasElement | null = null;
+const stormCanvas = () => {
+  if (!stormCv && typeof document !== 'undefined') { stormCv = document.createElement('canvas'); stormCv.width = CANVAS_WIDTH / 2; stormCv.height = CANVAS_HEIGHT / 2; }
+  return stormCv;
+};
+
 /** Inside the hurricane: bands of cloud and rain spiralling round (turning as you go round the storm), lightning in the murk. */
 const drawInsideStorm = (ctx: Ctx, state: GameState) => {
   const f = state.frame;
   bandedGradient(ctx, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#0B1224', '#141C34', '#1A2340', '#121A30', '#0B1020'], 14);
   // The storm turning: as you go round, the bands slide past (and they spin on their own too)
   const turn = (state.camera.x / TOWER.circumference) * Math.PI * 2 + f * 0.004;
-  ctx.save();
-  ctx.translate(CANVAS_WIDTH / 2, -200 - state.camera.y * 0.05 % 200);
-  for (let band = 0; band < 7; band++) {
-    ctx.strokeStyle = band % 2 ? 'rgba(96, 112, 150, 0.25)' : 'rgba(40, 52, 88, 0.45)';
-    ctx.lineWidth = 36 + band * 8;
-    ctx.beginPath();
-    for (let a = 0; a < Math.PI * 1.6; a += 0.08) {
-      const r = 160 + band * 110 + a * 60;
-      const ang = a + turn + band * 0.7;
-      const x = Math.cos(ang) * r, y = Math.sin(ang) * r * 0.45 + 500;
-      if (a === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  // (the bands drawn at half size and blown up unsmoothed, so they come out in chunky pixels: each in three tones, a
+  // dark underside, the band, a rim lit along its top)
+  const sc = stormCanvas();
+  if (sc) {
+    const g = sc.getContext('2d')!;
+    g.clearRect(0, 0, sc.width, sc.height);
+    g.save();
+    g.scale(0.5, 0.5);
+    g.translate(CANVAS_WIDTH / 2, -200 - state.camera.y * 0.05 % 200);
+    g.lineJoin = 'round';
+    for (let band = 0; band < 7; band++) {
+      const tones = band % 2 ? ['#121930', '#36426A', '#27314C'] : ['#10162A', '#28345A', '#1D2744'];
+      const lw = 36 + band * 8;
+      g.beginPath();
+      for (let a = 0; a < Math.PI * 1.6; a += 0.08) {
+        const r = 160 + band * 110 + a * 60;
+        const ang = a + turn + band * 0.7;
+        const x = Math.cos(ang) * r, y = Math.sin(ang) * r * 0.45 + 500;
+        if (a === 0) g.moveTo(x, y); else g.lineTo(x, y);
+      }
+      [[4, 0], [0, 0], [2, 4]].forEach(([dy, thin], i) => { g.save(); g.translate(0, dy); g.strokeStyle = tones[i]; g.lineWidth = lw - thin; g.stroke(); g.restore(); });
     }
-    ctx.stroke();
+    g.restore();
+    ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(sc, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); ctx.restore();
   }
-  ctx.restore();
   // Banks of cloud going round in it, lower and darker the nearer they are, ragged at their edges
   const turnPx = (state.camera.x * 0.35 + f * 0.6);
   for (let i = 0; i < 18; i++) {

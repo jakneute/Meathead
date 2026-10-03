@@ -5,7 +5,8 @@
 // the thing's health, the cut scenes, the fades).
 
 import type { GameState } from '../../core/state';
-import { bandedGradient } from '../../render/pixelArt';
+import { bandedGradient, checker, pixelBlob } from '../../render/pixelArt';
+import { mix } from '../../render/backdrops/core';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, ARENA_LEFT } from '../../../constants';
 import { drawPlayer } from '../../render/player/player';
 import { COURSE, placeOf, RUINS_Y } from './course';
@@ -36,17 +37,44 @@ export const drawTommyBackdrop = (ctx: Ctx, state: GameState) => {
   return true;
 };
 
+/** The earth all round, painted the once as a tile: dark bands of it, stones bedded in it lit along their tops. */
+const EARTH_W = 640, EARTH_H = 480;
+let earthTile: HTMLCanvasElement | null = null;
+const earth = () => {
+  if (earthTile || typeof document === 'undefined') return earthTile;
+  const c = document.createElement('canvas'); c.width = EARTH_W; c.height = EARTH_H;
+  const g = c.getContext('2d')!;
+  const h = (n: number) => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
+  g.fillStyle = '#141211'; g.fillRect(0, 0, EARTH_W, EARTH_H);
+  // (strata: bands of slightly different earth, wavy, dithered at their seams)
+  for (let b = 0; b < 8; b++) {
+    const y0 = b * 60 + 10, col = ['#171513', '#121010', '#1A1715', '#100E0D'][b % 4];
+    for (let x = 0; x < EARTH_W; x += 2) { const y = y0 + Math.round(Math.sin((x / EARTH_W) * Math.PI * 2 * (b % 3 + 1) + b) * 6 / 2) * 2; g.fillStyle = col; g.fillRect(x, y, 2, 40); checker(g, x, y - 2, 2, 2, col); }
+  }
+  // (stones bedded in it: each a chunky lump, its top lit, its underside in shadow)
+  for (let i = 0; i < 45; i++) {
+    const x = h(i) * EARTH_W, y = h(i + 50) * EARTH_H, rw = 6 + h(i + 9) * 18, rh = 4 + h(i + 17) * 10;
+    const tone = ['#24201D', '#2A2622', '#1E1B19'][i % 3];
+    for (const ox of [0, -EARTH_W, EARTH_W]) for (const oy of [0, -EARTH_H, EARTH_H]) {
+      if (x + ox + rw < 0 || x + ox - rw > EARTH_W || y + oy + rh < 0 || y + oy - rh > EARTH_H) continue;
+      pixelBlob(g, x + ox, y + oy + 2, rw, rh, '#0A0908');
+      pixelBlob(g, x + ox, y + oy, rw, rh, tone);
+      pixelBlob(g, x + ox - rw * 0.2, y + oy - rh * 0.45, rw * 0.55, rh * 0.35, mix(tone, '#A8A29E', 0.1));
+    }
+  }
+  // (grit flecked through it)
+  for (let i = 0; i < 500; i++) { g.fillStyle = i % 3 ? '#221E1B' : '#0A0908'; g.fillRect(Math.floor(h(i * 3.3) * EARTH_W / 2) * 2, Math.floor(h(i * 5.1) * EARTH_H / 2) * 2, 2, 2); }
+  earthTile = c;
+  return c;
+};
+
 /** Solid ground all round: dark earth, rock in it (drifting slowly with the camera). */
 const drawUnderground = (ctx: Ctx, state: GameState) => {
-  bandedGradient(ctx, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#0C0A09', '#121010', '#171513', '#1C1917'], 8);
-  const ox = state.camera.x * 0.3, oy = state.camera.y * 0.3;
-  for (let i = 0; i < 40; i++) {
-    const h1 = Math.sin(i * 127.1) * 43758.5453, h2 = Math.sin(i * 311.7) * 12345.678;
-    const x = ((((h1 - Math.floor(h1)) * 1200 - ox) % 1200) + 1200) % 1200 - 200;
-    const y = ((((h2 - Math.floor(h2)) * 900 - oy) % 900) + 900) % 900 - 150;
-    ctx.fillStyle = i % 3 ? 'rgba(68, 64, 60, 0.35)' : 'rgba(87, 83, 78, 0.3)';
-    ctx.beginPath(); ctx.ellipse(x, y, 10 + (i % 5) * 7, 6 + (i % 4) * 4, (i % 7) * 0.4, 0, Math.PI * 2); ctx.fill();
-  }
+  const t = earth();
+  if (!t) { bandedGradient(ctx, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#0C0A09', '#121010', '#171513', '#1C1917'], 8); return; }
+  const ox = Math.round(state.camera.x * 0.3 / 2) * 2, oy = Math.round(state.camera.y * 0.3 / 2) * 2;
+  const sx = ((ox % EARTH_W) + EARTH_W) % EARTH_W, sy = ((oy % EARTH_H) + EARTH_H) % EARTH_H;
+  for (let x = -sx; x < CANVAS_WIDTH; x += EARTH_W) for (let y = -sy; y < CANVAS_HEIGHT; y += EARTH_H) ctx.drawImage(t, x, y);
 };
 
 export const drawTommyBack = (ctx: Ctx, state: GameState) => {
