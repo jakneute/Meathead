@@ -1349,10 +1349,24 @@ const dragIntoEnemies = (ctx: FrameContext, e: Enemy) => {
   const { state, fx } = ctx;
   if (e.enemyCollisionCooldown && e.enemyCollisionCooldown > 0) return;
   for (const other of state.enemies) {
-    if (other === e || other.type === 'boss' || other.health <= 0 || other.isBlownAway) continue;
+    if (other === e || other.health <= 0 || other.isBlownAway) continue;
     if (other.enemyCollisionCooldown && other.enemyCollisionCooldown > 0) continue;
     if (!rectsOverlap(boundsOf(e), boundsOf(other))) continue;
     const damage = Math.max(IMPACT_DAMAGE_THRESHOLD + 1, sludgeFallDamage(e));
+    // (dragged down onto a boss who takes a body into him (the finale's alien): it hurts the both of them, and the
+    // one coming down may well be splatted on him; any other boss, it goes on by)
+    if (other.type === 'boss') {
+      if (!bodyIntoBoss(ctx, e, other, damage)) continue;
+      e.health -= damage;
+      fx.spawnDamageNumber(e.pos, damage, true);
+      fx.spawnExplosion({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height }, '#FDE047', 8, 0, 8);
+      shakeScreen(state, 8, Math.min(10, toGml(e.sludgeFallSpeed || 0)) * GML_SCALE * 0.5);
+      e.enemyCollisionCooldown = 20;
+      e.sludgeFallSpeed = (e.sludgeFallSpeed || 0) * 0.5;
+      e.sludgeFallFromY = e.pos.y;
+      if (e.health <= 0) { impactKill(ctx, e, 'groundsplat', 0); return; }
+      break;
+    }
     const dir = other.pos.x + other.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;
     other.health -= damage;
     e.health -= damage;
