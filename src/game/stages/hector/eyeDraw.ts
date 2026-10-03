@@ -51,6 +51,59 @@ export const iris = (ctx: Ctx, px: number, py: number, r: number, dilate: number
   ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.beginPath(); ctx.arc(px - r * 0.12, py - r * 0.12, r * 0.07, 0, Math.PI * 2); ctx.fill();
 };
 
+/** A teardrop hanging from (x, y) (its point), r round at the bottom: inked, lit, a glint on it. */
+const teardrop = (ctx: Ctx, x: number, y: number, r: number) => {
+  const path = () => { ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + r * 1.1, y + r * 1.4, x + r, y + r * 2.1); ctx.arc(x, y + r * 2.1, r, 0, Math.PI); ctx.quadraticCurveTo(x - r * 1.1, y + r * 1.4, x, y); ctx.closePath(); };
+  path(); ctx.fillStyle = '#38BDF8'; ctx.fill(); ctx.strokeStyle = '#075985'; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.save(); path(); ctx.clip();
+  ctx.fillStyle = '#7DD3FC'; ctx.fillRect(x - r, y, r * 1.2, r * 3.2);
+  ctx.fillStyle = '#0EA5E9'; ctx.fillRect(x + r * 0.35, y + r * 1.2, r, r * 2.2);
+  ctx.restore();
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(Math.round(x - r * 0.5), Math.round(y + r * 1.6), Math.max(2, Math.round(r * 0.4)), Math.max(2, Math.round(r * 0.5)));
+};
+
+/**
+ * Bawling: a film of tears welling along the bottom of it, brimming over at both corners and running down in streams
+ * that wobble as they go, a drop swelling at the end of each and falling, big, splashing apart far below; more of it
+ * the sorer it is.
+ */
+const drawTears = (ctx: Ctx, cx: number, cy: number, t: number, sore: number, left: number) => {
+  const r = EYE_R;
+  // (the film welling up along the lower rim, inside the eye: a glossy band, a white line of light along it)
+  const brim = 6 + sore * 8 + Math.sin(t * 0.3) * 1.5;
+  ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r - 1, 0, Math.PI * 2); ctx.clip();
+  ctx.beginPath(); ctx.arc(cx, cy, r - 1, Math.PI * 0.12, Math.PI * 0.88); ctx.arc(cx, cy - brim, r - 1, Math.PI * 0.86, Math.PI * 0.14, true); ctx.closePath();
+  ctx.fillStyle = `rgba(56, 189, 248, ${(0.45 + sore * 0.3).toFixed(3)})`; ctx.fill();
+  ctx.strokeStyle = 'rgba(240, 249, 255, 0.9)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(cx, cy - brim, r - 3, Math.PI * 0.3, Math.PI * 0.7); ctx.stroke();
+  ctx.restore();
+  // (over the rim at both corners, and down)
+  for (const side of [-1, 1]) {
+    const a = Math.PI / 2 - side * 0.95, sx = cx + Math.cos(a) * r, sy = cy + Math.sin(a) * (r - 2);
+    const len = 40 + sore * 70;
+    // the stream: stepped, wobbling as it runs, narrower further down, a dark edge and a lit one
+    for (let k = 0; k < len; k += 4) {
+      const w = Math.max(3, Math.round(11 * (1 - k / len * 0.4) * (0.6 + sore * 0.4)));
+      const wob = Math.round(Math.sin(k * 0.12 + t * 0.25 + side) * 2);
+      const x = Math.round(sx + side * k * 0.08 + wob - w / 2);
+      ctx.fillStyle = '#0369A1'; ctx.fillRect(x - 1, sy + k, w + 2, 4);
+      ctx.fillStyle = '#38BDF8'; ctx.fillRect(x, sy + k, w, 4);
+      ctx.fillStyle = '#BAE6FD'; ctx.fillRect(x + 1, sy + k, 1, 4);
+    }
+    // the drop at the end of it, swelling, then letting go and falling (a new one swelling behind it)
+    const cyc = 46, q = ((t + (side > 0 ? 23 : 0)) % cyc) / cyc;
+    const ex = sx + side * len * 0.08, ey = sy + len;
+    if (q < 0.55) teardrop(ctx, ex, ey - 4, 4 + q * 10 * (0.6 + sore * 0.4));
+    else {
+      const u = (q - 0.55) / 0.45, fy = ey + u * u * 260;
+      teardrop(ctx, ex, fy, 9 * (0.6 + sore * 0.4));
+      // (and where the last one landed: a splash, apart in drops)
+      if (u > 0.85) for (let k = 0; k < 5; k++) { const ang = Math.PI * (1.1 + k * 0.2); ctx.fillStyle = k % 2 ? '#7DD3FC' : '#E0F2FE'; ctx.fillRect(Math.round(ex + Math.cos(ang) * (u - 0.85) * 120), Math.round(ey + 270 + Math.sin(ang) * (u - 0.85) * 80), 3, 3); }
+    }
+  }
+  void left;
+};
+
 /** Eyelids closing over it (0 open, 1 shut). */
 export const lids = (ctx: Ctx, cx: number, cy: number, r: number, shut: number) => {
   if (shut <= 0) return;
@@ -82,14 +135,7 @@ export const drawEye = (ctx: Ctx, state: GameState, f: EyeFight, e: Enemy) => {
   const pp = eyePupil(f);
   iris(ctx, pp.x, pp.y + bob, EYE_R, 0.2, t, sore > 0.5 ? '#7F1D1D' : '#3B5B80');
   // Bawling: brimming along the lower lid and streaming down
-  if (f.sore > 0) {
-    ctx.fillStyle = `rgba(125, 211, 252, ${0.35 + sore * 0.4})`;
-    ctx.beginPath(); ctx.ellipse(cx, cy + EYE_R * 0.82 + bob, EYE_R * 0.75, 6, 0, 0, Math.PI * 2); ctx.fill();
-    for (const side of [-1, 1]) {
-      const sx = cx + side * EYE_R * 0.55, len = 30 + ((t * 3) % 40);
-      ctx.fillRect(sx - 3, cy + EYE_R * 0.8 + bob, 6, len);
-    }
-  }
+  if (f.sore > 0) drawTears(ctx, cx, cy + bob, t, sore, f.sore);
   const shut = f.attack === 'blink' ? Math.min(1, f.attackT / 6, (75 - f.attackT) / 6) : f.phase === 'intro' ? clamp01(1 - f.t / 40) : 0;
   lids(ctx, cx, cy + bob, EYE_R, shut);
 };

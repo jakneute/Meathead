@@ -242,10 +242,10 @@ export const updateEye = (ctx: FrameContext, e: Enemy, f: EyeFight): boolean => 
   if (f.recentDamage > 0) f.recentDamage = Math.max(0, f.recentDamage - 1.2);
   if (f.sore > 0) {
     f.sore--;
-    // Bawling: tears streaming off the lower lid (just tears: these don't scald)
-    if (state.frame % 3 === 0) {
-      const a = A(), side = state.frame % 6 === 0 ? -1 : 1;
-      state.particles.push({ pos: { x: a.x + EYE_CX + side * EYE_R * (0.45 + Math.random() * 0.3), y: a.y + EYE_CY + EYE_R * 0.75 }, vel: { x: side * (0.5 + Math.random()), y: 1 + Math.random() * 2 }, life: 45, color: '#7DD3FC', size: 3 + Math.random() * 2 });
+    // Bawling (drawn with it: see eyeDraw's tears; just tears, these don't scald), and a little spray off it now and then
+    if (state.frame % 9 === 0) {
+      const a = A(), side = state.frame % 18 === 0 ? -1 : 1;
+      state.particles.push({ pos: { x: a.x + EYE_CX + side * EYE_R * 0.8, y: a.y + EYE_CY + EYE_R * 0.55 }, vel: { x: side * (1 + Math.random()), y: -1 - Math.random() }, life: 30, color: '#BAE6FD', size: 2 + Math.random() * 2 });
     }
   }
   if (e.health <= 0 || e.isBlownAway) { killEye(ctx, e, f); return false; }
