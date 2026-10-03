@@ -5,7 +5,9 @@ import type { GameState } from '../../core/state';
 import { COURSE } from './course';
 import { Tram, CABIN_W, CABIN_H, BACK_WINDOWS, RIDE, WARN_FRAMES, cabinEnemies, incomingWave, entryPoint } from './tram';
 import type { EnemyKind } from '../../../types';
-import { floorY } from './draw';
+import { floorY, slab, letter, snowCap } from './draw';
+import { INK, lite, dark } from '../../render/npc/kit';
+import { bandedGradient, checker } from '../../render/pixelArt';
 import { CANVAS_WIDTH } from '../../../constants';
 
 type Ctx = CanvasRenderingContext2D;
@@ -31,18 +33,25 @@ export const drawTramRigging = (ctx: Ctx, state: GameState) => {
     const px = COURSE.tram.x + CABIN_W / 2 + (COURSE.tram.toX - COURSE.tram.x) * u;
     if (!visible(state, px - 60, px + 60)) continue;
     const top = cableAt(px) + 6, base = floorY(state, px);
-    ctx.strokeStyle = STEEL_DARK; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(px - 26, base); ctx.lineTo(px - 8, top + 20); ctx.moveTo(px + 26, base); ctx.lineTo(px + 8, top + 20); ctx.stroke();
-    ctx.lineWidth = 2; ctx.strokeStyle = STEEL;
+    // (the legs: inked girders, lit down one edge)
+    const leg = (x0: number, x1: number, c: string, w: number) => { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(px + x0, base); ctx.lineTo(px + x1, top + 20); ctx.stroke(); };
+    for (const s of [-1, 1]) { leg(s * 26, s * 8, INK, 6); leg(s * 26, s * 8, STEEL_DARK, 4); leg(s * 26 - 1, s * 8 - 1, '#7B8BA3', 1); }
+    // (the lattice between them, inked, a lit line along each brace)
     for (let y = top + 30; y < base - 10; y += 40) {
       const k = (y - top) / (base - top);
       const w = 8 + 18 * k;
-      ctx.beginPath(); ctx.moveTo(px - w, y); ctx.lineTo(px + w, y + 40); ctx.moveTo(px + w, y); ctx.lineTo(px - w, y + 40); ctx.stroke();
+      const brace = (c: string, lw: number, dy: number) => { ctx.strokeStyle = c; ctx.lineWidth = lw; ctx.beginPath(); ctx.moveTo(px - w, y + dy); ctx.lineTo(px + w, y + 40 + dy); ctx.moveTo(px + w, y + dy); ctx.lineTo(px - w, y + 40 + dy); ctx.stroke(); };
+      brace(INK, 3.5, 0); brace(STEEL, 2, 0); brace('#94A3B8', 0.8, -0.6);
+      ctx.fillStyle = INK; ctx.fillRect(px - w - 1, y - 1, w * 2 + 2, 3); ctx.fillStyle = STEEL; ctx.fillRect(px - w, y, w * 2, 1);
     }
-    // Crossarm and sheave wheels the cable rides over
-    ctx.fillStyle = STEEL_DARK; ctx.fillRect(px - 34, top + 14, 68, 7);
-    ctx.fillStyle = '#1F2937';
-    for (const o of [-18, 18]) { ctx.beginPath(); ctx.arc(px + o, top + 8, 7, 0, Math.PI * 2); ctx.fill(); }
+    // Crossarm and sheave wheels the cable rides over (the wheels with their rims and hubs)
+    slab(ctx, px - 34, top + 14, 68, 7, STEEL_DARK);
+    for (const o of [-18, 18]) {
+      ctx.fillStyle = '#1F2937'; ctx.beginPath(); ctx.arc(px + o, top + 8, 7, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#4B5563'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(px + o, top + 8, 5, Math.PI, Math.PI * 1.7); ctx.stroke();
+      ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(px + o, top + 8, 7, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(px + o - 1, top + 7, 2, 2);
+    }
   }
   // The cable (a pair: track rope and haul rope)
   ctx.strokeStyle = '#1F2937'; ctx.lineWidth = 3;
@@ -64,28 +73,49 @@ const drawStation = (ctx: Ctx, state: GameState, x: number, y: number, dir: numb
   const x1 = x - 150, x2 = x + CABIN_W + 150;
   if (!visible(state, x1, x2)) return;
   const roofY = y - CABIN_H - HANGER - 70;
-  // Back wall planks
+  // Back wall planks (each lit down its left edge, the gap dark, nail heads, darker up under the roof)
+  const wallH = y - roofY - 20;
   ctx.fillStyle = '#3F2A1D';
-  ctx.fillRect(x1, roofY + 20, x2 - x1, y - roofY - 20);
-  ctx.fillStyle = '#4E3524';
-  for (let px = x1; px < x2; px += 18) ctx.fillRect(px, roofY + 20, 2, y - roofY - 20);
+  ctx.fillRect(x1, roofY + 20, x2 - x1, wallH);
+  for (let px = x1; px < x2; px += 18) {
+    ctx.fillStyle = '#4E3524'; ctx.fillRect(px, roofY + 20, 2, wallH);
+    ctx.fillStyle = '#22160E'; ctx.fillRect(px + 16, roofY + 20, 2, wallH);
+    ctx.fillStyle = '#5E4430'; for (let ny = roofY + 34; ny < y; ny += 46) { ctx.fillRect(px + 4, ny, 2, 2); ctx.fillRect(px + 12, ny, 2, 2); }
+    ctx.fillStyle = '#33221A'; for (let gy = roofY + 40 + ((px * 7) % 30); gy < y - 10; gy += 60) ctx.fillRect(px + 7, gy, 1, 14);
+  }
+  ctx.fillStyle = 'rgba(15, 8, 4, 0.45)'; ctx.fillRect(x1, roofY + 20, x2 - x1, 14);
+  checker(ctx, x1, roofY + 34, x2 - x1, 2, 'rgba(15, 8, 4, 0.45)');
   // Posts and a snowy roof
-  ctx.fillStyle = '#2B1D14';
-  for (const px of [x1 + 6, x1 + (x2 - x1) / 2, x2 - 16]) ctx.fillRect(px, roofY + 18, 10, y - roofY - 18);
-  ctx.fillStyle = '#5B3A26'; ctx.fillRect(x1 - 20, roofY, x2 - x1 + 40, 22);
-  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x1 - 24, roofY - 8, x2 - x1 + 48, 10);
-  // The bullwheel the cable turns around
+  for (const px of [x1 + 6, x1 + (x2 - x1) / 2, x2 - 16]) {
+    ctx.fillStyle = '#2B1D14'; ctx.fillRect(px, roofY + 18, 10, y - roofY - 18);
+    ctx.fillStyle = '#44301F'; ctx.fillRect(px, roofY + 18, 3, y - roofY - 18);
+    ctx.fillStyle = '#170F09'; ctx.fillRect(px + 8, roofY + 18, 2, y - roofY - 18);
+    ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(px + 0.5, roofY + 18, 9, y - roofY - 18);
+  }
+  slab(ctx, x1 - 20, roofY, x2 - x1 + 40, 22, '#5B3A26');
+  ctx.fillStyle = '#3F2819'; for (let bx = x1 - 14; bx < x2 + 20; bx += 26) ctx.fillRect(bx, roofY + 16, 14, 4);
+  snowCap(ctx, x1 - 24, x2 + 24, roofY - 8, 10);
+  // (icicles off the eave)
+  for (let ix = x1 - 16; ix < x2 + 16; ix += 23) { const l = 6 + ((ix * 13) % 9); ctx.fillStyle = '#BFDBFE'; ctx.beginPath(); ctx.moveTo(ix - 2, roofY + 22); ctx.lineTo(ix + 2, roofY + 22); ctx.lineTo(ix, roofY + 22 + l); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#F0F8FF'; ctx.fillRect(ix - 1, roofY + 22, 1, l * 0.6); }
+  // The bullwheel the cable turns around (an inked rim lit along its top, the spokes, a hub)
   const wx = dir < 0 ? x1 + 40 : x2 - 40, wy = cableAt(wx) + 4;
+  ctx.strokeStyle = INK; ctx.lineWidth = 7;
+  ctx.beginPath(); ctx.arc(wx, wy, 26, 0, Math.PI * 2); ctx.stroke();
   ctx.strokeStyle = '#1F2937'; ctx.lineWidth = 5;
   ctx.beginPath(); ctx.arc(wx, wy, 26, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = '#4B5563'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(wx, wy, 27, Math.PI * 1.05, Math.PI * 1.7); ctx.stroke();
   const spin = state.frame * 0.05;
-  ctx.lineWidth = 2;
-  for (let i = 0; i < 4; i++) { const a = spin + (i * Math.PI) / 2; ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx + Math.cos(a) * 24, wy + Math.sin(a) * 24); ctx.stroke(); }
-  // Sign
-  ctx.fillStyle = '#FACC15'; ctx.fillRect(x + CABIN_W / 2 - 70, roofY + 28, 140, 20);
-  ctx.fillStyle = '#111827'; ctx.font = 'bold 9px "Press Start 2P"'; ctx.textAlign = 'center';
-  ctx.fillText(dir < 0 ? 'LOWER STATION' : 'SUMMIT', x + CABIN_W / 2, roofY + 43);
-  ctx.textAlign = 'left';
+  for (let i = 0; i < 4; i++) {
+    const a = spin + (i * Math.PI) / 2;
+    ctx.strokeStyle = INK; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx + Math.cos(a) * 24, wy + Math.sin(a) * 24); ctx.stroke();
+    ctx.strokeStyle = '#374151'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx + Math.cos(a) * 24, wy + Math.sin(a) * 24); ctx.stroke();
+  }
+  slab(ctx, wx - 5, wy - 5, 10, 10, '#4B5563', 1);
+  // Sign (enameled, a rim round it, bolted on)
+  slab(ctx, x + CABIN_W / 2 - 70, roofY + 28, 140, 20, '#FACC15');
+  ctx.fillStyle = '#A16207'; ctx.fillRect(x + CABIN_W / 2 - 66, roofY + 31, 2, 2); ctx.fillRect(x + CABIN_W / 2 + 64, roofY + 31, 2, 2);
+  letter(ctx, dir < 0 ? 'LOWER STATION' : 'SUMMIT', x + CABIN_W / 2, roofY + 43, 'bold 9px "Press Start 2P"', '#111827', '#E9B10A');
 };
 
 /** The back wall of the cabin: panels around big windows you can see the mountains through. */
@@ -101,11 +131,20 @@ const drawCabinInside = (ctx: Ctx, state: GameState, tram: Tram) => {
   let px = x;
   for (const wx of BACK_WINDOWS) { ctx.fillRect(px, winTop, x + wx - winW / 2 - px, winH); px = x + wx + winW / 2; }
   ctx.fillRect(px, winTop, x + CABIN_W - px, winH);
+  // (the panels' seams and rivets; darker under the ceiling and down along the floor)
+  ctx.fillStyle = '#4A0F0F'; for (let sx = x + 32; sx < x + CABIN_W; sx += 64) { ctx.fillRect(sx, top, 2, winTop - top); ctx.fillRect(sx, winTop + winH, 2, y - winTop - winH); }
+  ctx.fillStyle = '#8C2A2A'; for (let sx = x + 34; sx < x + CABIN_W; sx += 64) { ctx.fillRect(sx, top, 1, winTop - top); ctx.fillRect(sx, winTop + winH, 1, y - winTop - winH); }
+  ctx.fillStyle = '#C2410C'; for (let sx = x + 10; sx < x + CABIN_W; sx += 16) { ctx.fillRect(sx, top + 6, 2, 2); ctx.fillRect(sx, y - 12, 2, 2); }
+  ctx.fillStyle = 'rgba(20, 4, 4, 0.45)'; ctx.fillRect(x, top, CABIN_W, 10); ctx.fillRect(x, y - 20, CABIN_W, 20);
+  checker(ctx, x, top + 10, CABIN_W, 2, 'rgba(20, 4, 4, 0.45)'); checker(ctx, x, y - 22, CABIN_W, 2, 'rgba(20, 4, 4, 0.45)');
   // Cream stripe, bench, grab rail
   ctx.fillStyle = CREAM; ctx.fillRect(x, winTop + winH + 8, CABIN_W, 6);
-  ctx.fillStyle = '#3F1010'; ctx.fillRect(x + 20, y - 34, CABIN_W - 40, 12);
+  ctx.fillStyle = '#FFFBEB'; ctx.fillRect(x, winTop + winH + 8, CABIN_W, 1); ctx.fillStyle = '#D6B97A'; ctx.fillRect(x, winTop + winH + 13, CABIN_W, 1);
+  slab(ctx, x + 20, y - 34, CABIN_W - 40, 12, '#3F1010');
+  ctx.fillStyle = '#5A1A1A'; for (let bx = x + 24; bx < x + CABIN_W - 24; bx += 48) ctx.fillRect(bx, y - 31, 44, 6);
   ctx.fillStyle = '#9CA3AF'; ctx.fillRect(x + 20, top + 20, CABIN_W - 40, 3);
-  for (let hx = x + 60; hx < x + CABIN_W - 40; hx += 70) { ctx.fillRect(hx, top + 20, 2, 14); ctx.strokeStyle = '#9CA3AF'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(hx + 1, top + 38, 5, 0, Math.PI * 2); ctx.stroke(); }
+  ctx.fillStyle = '#E5E7EB'; ctx.fillRect(x + 20, top + 20, CABIN_W - 40, 1); ctx.fillStyle = INK; ctx.fillRect(x + 20, top + 23, CABIN_W - 40, 1);
+  for (let hx = x + 60; hx < x + CABIN_W - 40; hx += 70) { ctx.fillStyle = '#9CA3AF'; ctx.fillRect(hx, top + 20, 2, 14); ctx.strokeStyle = INK; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(hx + 1, top + 38, 5, 0, Math.PI * 2); ctx.stroke(); ctx.strokeStyle = '#9CA3AF'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(hx + 1, top + 38, 5, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#E5E7EB'; ctx.fillRect(hx - 3, top + 34, 2, 2); }
   // Windows: glass with a sheen, or smashed through (with whatever's about to come through it looming outside)
   const incoming = incomingWave(tram);
   BACK_WINDOWS.forEach((wx, i) => {
@@ -125,11 +164,16 @@ const drawCabinInside = (ctx: Ctx, state: GameState, tram: Tram) => {
       }
     } else {
       ctx.fillStyle = 'rgba(186, 230, 253, 0.16)'; ctx.fillRect(l, winTop, winW, winH);
+      ctx.fillStyle = 'rgba(186, 230, 253, 0.1)'; ctx.fillRect(l, winTop, winW, 14);
       ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
       ctx.beginPath(); ctx.moveTo(l + 14, winTop); ctx.lineTo(l + 40, winTop); ctx.lineTo(l + 12, winTop + winH); ctx.lineTo(l - 2, winTop + winH); ctx.fill();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+      ctx.beginPath(); ctx.moveTo(l + 46, winTop); ctx.lineTo(l + 52, winTop); ctx.lineTo(l + 26, winTop + winH); ctx.lineTo(l + 20, winTop + winH); ctx.fill();
       if (coming) drawCracks(ctx, x + wx, winTop + winH / 2, 1 - incoming!.left / WARN_FRAMES, 60);
     }
     ctx.strokeStyle = '#2B0A0A'; ctx.lineWidth = 4; ctx.strokeRect(l, winTop, winW, winH);
+    ctx.strokeStyle = '#8C2A2A'; ctx.lineWidth = 1; ctx.strokeRect(l - 2.5, winTop - 2.5, winW + 5, winH + 5);
+    ctx.fillStyle = '#9CA3AF'; ctx.fillRect(l - 2, winTop + winH + 2, winW + 4, 3); ctx.fillStyle = '#E5E7EB'; ctx.fillRect(l - 2, winTop + winH + 2, winW + 4, 1);
   });
   drawCabinGore(ctx, tram);
 };
@@ -177,35 +221,54 @@ export const drawTramFront = (ctx: Ctx, state: GameState, tram: Tram) => {
   const top = y - CABIN_H;
   // Hanger arm up to the carriage on the cable
   const hx = x + CABIN_W / 2, cy = top - HANGER;
-  ctx.strokeStyle = STEEL_DARK; ctx.lineWidth = 7;
-  ctx.beginPath(); ctx.moveTo(hx, top); ctx.lineTo(hx, cy + 10); ctx.stroke();
-  ctx.fillStyle = STEEL_DARK; ctx.fillRect(hx - 40, cy - 2, 80, 14);
-  ctx.fillStyle = '#111827';
-  for (const o of [-26, 0, 26]) { ctx.beginPath(); ctx.arc(hx + o, cy, 7, 0, Math.PI * 2); ctx.fill(); }
-  // Roof shell
-  ctx.fillStyle = RED;
-  ctx.beginPath(); ctx.moveTo(x - 6, top + 14); ctx.quadraticCurveTo(x + CABIN_W / 2, top - 30, x + CABIN_W + 6, top + 14); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = RED_DARK; ctx.fillRect(x - 6, top + 8, CABIN_W + 12, 8);
-  ctx.fillStyle = '#F8FAFC'; // snow on the roof
-  ctx.beginPath(); ctx.moveTo(x + 40, top - 6); ctx.quadraticCurveTo(x + CABIN_W / 2, top - 32, x + CABIN_W - 40, top - 6); ctx.quadraticCurveTo(x + CABIN_W / 2, top - 20, x + 40, top - 6); ctx.fill();
+  // (the arm: a steel column, lit down its left, inked)
+  slab(ctx, hx - 3.5, cy + 6, 7, top - cy - 6, STEEL_DARK, 2);
+  // (the carriage: a steel box, bolts along it, its wheels on the cable with rims and hubs)
+  slab(ctx, hx - 40, cy - 2, 80, 14, STEEL_DARK);
+  ctx.fillStyle = '#94A3B8'; for (let bx = hx - 34; bx < hx + 40; bx += 12) ctx.fillRect(bx, cy + 7, 2, 2);
+  for (const o of [-26, 0, 26]) {
+    ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.arc(hx + o, cy, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#374151'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(hx + o, cy, 5, Math.PI, Math.PI * 1.7); ctx.stroke();
+    ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(hx + o, cy, 7, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#9CA3AF'; ctx.fillRect(hx + o - 1, cy - 1, 2, 2);
+  }
+  // Roof shell (enameled red in bands, lit across its crown, the rim dark; inked)
+  const shell = () => { ctx.beginPath(); ctx.moveTo(x - 6, top + 14); ctx.quadraticCurveTo(x + CABIN_W / 2, top - 30, x + CABIN_W + 6, top + 14); ctx.closePath(); };
+  ctx.save(); shell(); ctx.clip();
+  bandedGradient(ctx, x - 6, top - 10, CABIN_W + 12, 26, [lite(RED, 0.3), RED, dark(RED, 0.1)], 4);
+  ctx.fillStyle = lite(RED, 0.5); ctx.fillRect(x + CABIN_W * 0.2, top - 9, CABIN_W * 0.25, 2);
+  ctx.restore();
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.5; shell(); ctx.stroke();
+  slab(ctx, x - 6, top + 8, CABIN_W + 12, 8, RED_DARK);
+  // (snow on the roof: lit along its crest, its blue underside, inked)
+  const snow = () => { ctx.beginPath(); ctx.moveTo(x + 40, top - 6); ctx.quadraticCurveTo(x + CABIN_W / 2, top - 32, x + CABIN_W - 40, top - 6); ctx.quadraticCurveTo(x + CABIN_W / 2, top - 20, x + 40, top - 6); ctx.closePath(); };
+  ctx.fillStyle = '#F8FAFC'; snow(); ctx.fill();
+  ctx.fillStyle = '#A9BEDA'; ctx.beginPath(); ctx.moveTo(x + 40, top - 6); ctx.quadraticCurveTo(x + CABIN_W / 2, top - 23, x + CABIN_W - 40, top - 6); ctx.quadraticCurveTo(x + CABIN_W / 2, top - 20, x + 40, top - 6); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#3B4E6E'; ctx.lineWidth = 1; snow(); ctx.stroke();
   // Roof hatch swinging open
   if (tram.hatch > 0) {
-    ctx.fillStyle = '#111827'; ctx.fillRect(hx - 30, top + 2, 60, 12);
-    ctx.fillStyle = RED_DARK; ctx.fillRect(hx - 30, top - 26, 8, 28);
+    slab(ctx, hx - 30, top + 2, 60, 12, '#111827', 1);
+    slab(ctx, hx - 30, top - 26, 8, 28, RED_DARK, 1);
   }
-  // Underside skirt
-  ctx.fillStyle = RED_DARK;
-  ctx.beginPath(); ctx.moveTo(x - 4, y); ctx.lineTo(x + CABIN_W + 4, y); ctx.lineTo(x + CABIN_W - 20, y + 22); ctx.lineTo(x + 20, y + 22); ctx.closePath(); ctx.fill();
+  // Underside skirt (lit along its top, darker toward the keel, inked; the cream band)
+  const skirt = () => { ctx.beginPath(); ctx.moveTo(x - 4, y); ctx.lineTo(x + CABIN_W + 4, y); ctx.lineTo(x + CABIN_W - 20, y + 22); ctx.lineTo(x + 20, y + 22); ctx.closePath(); };
+  ctx.save(); skirt(); ctx.clip();
+  bandedGradient(ctx, x - 4, y, CABIN_W + 8, 22, [RED_DARK, dark(RED_DARK, 0.35)], 3);
+  ctx.restore();
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.5; skirt(); ctx.stroke();
   ctx.fillStyle = CREAM; ctx.fillRect(x + 10, y + 2, CABIN_W - 20, 4);
+  ctx.fillStyle = '#D6B97A'; ctx.fillRect(x + 10, y + 5, CABIN_W - 20, 1);
   // Doors at each end, each with a window (smashed if something came through it)
   const door = (dx: number, block: typeof tram.blocks.left, broken: boolean) => {
     const closed = state.blocks.includes(block);
     ctx.fillStyle = RED;
-    if (closed) ctx.fillRect(dx, top + 14, 14, CABIN_H - 14);
+    if (closed) slab(ctx, dx, top + 14, 14, CABIN_H - 14, RED);
     else { ctx.globalAlpha = 0.5; ctx.fillRect(dx, top + 14, 5, CABIN_H - 14); ctx.globalAlpha = 1; }
     if (!closed) return;
     ctx.fillStyle = broken ? 'rgba(15, 23, 42, 0.8)' : 'rgba(186, 230, 253, 0.6)';
     ctx.fillRect(dx + 3, top + 50, 8, 70);
+    if (!broken) { ctx.fillStyle = 'rgba(255, 255, 255, 0.45)'; ctx.fillRect(dx + 4, top + 54, 2, 30); }
+    ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(dx + 2.5, top + 49.5, 9, 71);
     ctx.fillStyle = CREAM; ctx.fillRect(dx, top + 140, 14, 4);
   };
   door(x, tram.blocks.left, tram.doorBroken[0]);
@@ -289,10 +352,14 @@ const drawCracks = (ctx: Ctx, x: number, y: number, k: number, r: number) => {
 
 /** A red warning triangle with a "!". */
 const drawWarning = (ctx: Ctx, x: number, y: number) => {
-  ctx.fillStyle = '#DC2626'; ctx.strokeStyle = '#FDE047'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(x, y - 14); ctx.lineTo(x + 14, y + 11); ctx.lineTo(x - 14, y + 11); ctx.closePath(); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 12px "Press Start 2P"'; ctx.textAlign = 'center';
-  ctx.fillText('!', x + 1, y + 9);
+  const tri = () => { ctx.beginPath(); ctx.moveTo(x, y - 14); ctx.lineTo(x + 14, y + 11); ctx.lineTo(x - 14, y + 11); ctx.closePath(); };
+  ctx.fillStyle = '#DC2626'; tri(); ctx.fill();
+  ctx.fillStyle = '#991B1B'; ctx.beginPath(); ctx.moveTo(x, y - 14); ctx.lineTo(x + 14, y + 11); ctx.lineTo(x + 4, y + 11); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#FDE047'; ctx.lineWidth = 2; tri(); ctx.stroke();
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y - 17); ctx.lineTo(x + 17, y + 13); ctx.lineTo(x - 17, y + 13); ctx.closePath(); ctx.stroke();
+  ctx.font = 'bold 12px "Press Start 2P"'; ctx.textAlign = 'center';
+  ctx.fillStyle = INK; ctx.fillText('!', x + 2, y + 10);
+  ctx.fillStyle = '#FFFFFF'; ctx.fillText('!', x + 1, y + 9);
   ctx.textAlign = 'left';
 };
 
