@@ -76,7 +76,7 @@ const CHAIN_DAMAGE = 6;
 /** The beam: its raw damage (his hide in the finale scales everything that hurts Meathead down), width, and timings. */
 /** (WEAK_BEAM: what's left of it through a flamethrower) */
 const WEAK_BEAM = 0.55;
-const BEAM_DAMAGE = 45, BEAM_HALF = 10, BEAM_FRAMES = 40, TELL_FRAMES = 72, TELL_RAMP = 36, LOCK_FRAMES = 14;
+const BEAM_DAMAGE = 45, BEAM_HALF = 10, BEAM_FRAMES = 33, TELL_FRAMES = 72, TELL_RAMP = 36, LOCK_FRAMES = 14;
 /** The beaten alien's bolts: slow, and they barely hurt. */
 const BOLT_SPEED = 2.4, BOLT_DAMAGE = 12, BOLT_EVERY = 100;
 

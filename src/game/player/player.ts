@@ -30,6 +30,7 @@ import { BOSS_DIALOGUE } from '../../content/dialogue';
 import { isStandingInOil } from '../bosses/oscar';
 import { getBossDef, getArenaRight } from '../bosses/registry';
 import { getStageLeft } from '../stages';
+import { getFinale } from '../stages/finale/state';
 
 /**
  * Secondary fire (Y on the pad, F on the keyboard), by the weapon in his hands: what it does instead. Only the oil
@@ -88,6 +89,11 @@ export const killPlayer = (ctx: FrameContext, message: string, gore = true) => {
   state.deathTimer = DEATH_SCREEN_FRAMES;
   state.deathFrames = 0;
   state.deathString = message;
+  // (whatever's still in the air goes: nothing hangs there frozen over the death screen; a puddle lying on the floor
+  // stays, it's not going anywhere; and the alien's beam cuts out)
+  state.projectiles = state.projectiles.filter(p => p.isLingering || p.slick);
+  const fin = getFinale(state);
+  if (fin) fin.beam = null;
   // (what got him gets him its own way; anything else, he comes apart)
   if (gore && !state.deathScene && !startMeatheadDeath(ctx)) meatExplosion(ctx);
   // (not a word out of him: the death announcer reads out the screen, over whoever was talking)
