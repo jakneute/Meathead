@@ -482,10 +482,13 @@ const drawProp = (ctx: Ctx, state: GameState, fight: JunkieFight, n: PropName) =
       } else {
         // The snitch, hanging, turning slowly, a sign round his neck
         const sway = Math.sin(f * 0.02) * 0.05;
+        // (frosting over as the ice goes in; frozen solid, a shell of it round him, and cracking, about to go)
         const frozen = pr.state === 'going';
-        ctx.save(); ctx.translate(cx, o.floor - 170); ctx.rotate(sway);
+        const frost = frozen ? 1 : Math.max(0, 1 - pr.hp);
+        // (frozen solid, he's stopped turning, bar a shiver as it cracks)
+        const shiver = frozen ? (f % 4 < 2 ? 0.5 : -0.5) * Math.min(1, pr.t / 12) : 0;
+        ctx.save(); ctx.translate(cx + shiver, o.floor - 170); ctx.rotate(frozen ? 0 : sway);
         ctx.strokeStyle = '#D6B98C'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 22); ctx.stroke();
-        if (frozen) ctx.filter = 'hue-rotate(170deg) saturate(0.6) brightness(1.4)';
         // (his legs, the shirt, the head lolled on the rope; the sign)
         for (const lx of [-9, 1]) shaded(ctx, () => ctx.rect(lx, 72, 8, 36), '#44403C', lx, 72, 8, 36);
         for (const lx of [-10, 1]) ink(ctx, () => ctx.roundRect(lx, 106, 9, 4, [0, 2, 1, 1]), '#1C1917', 0.8);
@@ -496,12 +499,69 @@ const drawProp = (ctx: Ctx, state: GameState, fight: JunkieFight, n: PropName) =
         ctx.fillStyle = '#9F1239'; ctx.fillRect(-2, 35, 2, 3); // (his tongue)
         slab(ctx, -13, 44, 26, 14, '#F5F5F4', 1);
         ctx.fillStyle = '#B91C1C'; ctx.font = 'bold 4px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('SNITCH', 0, 53); ctx.textAlign = 'left';
+        if (frost > 0) drawSnitchIce(ctx, frost, frozen ? pr.t : -1, f);
         ctx.restore();
-        if (frozen) { ctx.strokeStyle = 'rgba(224, 242, 254, 0.9)'; ctx.lineWidth = 2; ctx.strokeRect(cx - 16, o.floor - 150, 32, 112); }
       }
       break;
     }
   }
+};
+
+/**
+ * The ice on the snitch (in his own frame: the rope's knot at 0, his head at 30, his shoes at 110). `frost` 0 to 1 as
+ * the shotgun's ice builds up on him: frost patches, then a shell of it hugging him; `crack` (frames frozen solid, -1
+ * if he isn't yet): the shell solid, icicles off it, the cracks spreading through it till it goes.
+ */
+const SNITCH_SHELL: [number, number][] = [[-3, 18], [6, 17], [13, 24], [12, 36], [17, 40], [16, 58], [13, 72], [12, 92], [13, 113], [3, 116], [-4, 115], [-13, 113], [-12, 92], [-14, 72], [-17, 58], [-16, 40], [-12, 35], [-13, 24]];
+const drawSnitchIce = (ctx: Ctx, frost: number, crack: number, f: number) => {
+  const solid = crack >= 0;
+  const shell = () => { ctx.beginPath(); SNITCH_SHELL.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.closePath(); };
+  // Frost patches over him, more of him as it builds (on a grid: chunky, not a smear)
+  const patches = Math.round(frost * 26);
+  for (let i = 0; i < patches; i++) {
+    const h1 = Math.sin(i * 91.7) * 43758.5, h2 = Math.sin(i * 47.3 + 9) * 23421.6;
+    const px = Math.round(((h1 - Math.floor(h1)) * 24 - 12) / 2) * 2, py = Math.round((22 + (h2 - Math.floor(h2)) * 88) / 2) * 2;
+    ctx.fillStyle = i % 3 === 0 ? 'rgba(255, 255, 255, 0.85)' : 'rgba(186, 230, 253, 0.75)';
+    ctx.fillRect(px, py, 4 + (i % 2) * 2, 2 + (i % 3));
+  }
+  if (frost < 0.5 && !solid) return;
+  // The shell: banded pale blue over him, lit down its left edge, dark along its right; facets glinting
+  const k = solid ? 1 : (frost - 0.5) * 2;
+  ctx.save();
+  shell(); ctx.clip();
+  const bands = ['rgba(224, 242, 254, 0.55)', 'rgba(186, 230, 253, 0.5)', 'rgba(125, 211, 252, 0.45)', 'rgba(56, 189, 248, 0.4)'];
+  for (let i = 0; i < 4; i++) { ctx.globalAlpha = k; ctx.fillStyle = bands[i]; ctx.fillRect(-18 + i * 9, 14, 9, 104); }
+  ctx.globalAlpha = k;
+  // (facets: hard diagonal glints, and the light catching the top)
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+  for (const [x, y, l] of [[-12, 44, 10], [-10, 78, 8], [4, 26, 6], [6, 62, 7], [-6, 100, 6]] as const) for (let j = 0; j < l; j++) ctx.fillRect(x + j, y - j, 2, 1);
+  if (f % 60 < 6) { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-9 + (f % 60) * 3, 20 + (f % 60) * 14, 3, 3); }
+  // Cracking, about to go: white cracks spreading out from his chest
+  if (solid) {
+    const reach = Math.min(1, crack / 22);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (const [dx, dy] of [[1, -1.4], [1.2, 0.9], [-1.1, 1.6], [-1.3, -0.7], [0.3, 2.2], [-0.2, -2]] as const) {
+      ctx.moveTo(0, 50);
+      ctx.lineTo(Math.round(dx * 9 * reach), Math.round(50 + dy * 9 * reach));
+      ctx.lineTo(Math.round((dx * 16 + dy * 3) * reach), Math.round(50 + (dy * 18 - dx * 3) * reach));
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+  // The shell's rim: lit white up its left side, deeper blue round the right
+  ctx.globalAlpha = k;
+  shell(); ctx.strokeStyle = 'rgba(240, 249, 255, 0.95)'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(13, 24); ctx.lineTo(12, 36); ctx.lineTo(17, 40); ctx.lineTo(16, 58); ctx.lineTo(13, 72); ctx.lineTo(12, 92); ctx.lineTo(13, 113);
+  ctx.strokeStyle = 'rgba(14, 116, 144, 0.9)'; ctx.lineWidth = 1; ctx.stroke();
+  // Icicles off his shoes and the bottom of the sign
+  if (solid || frost > 0.75) {
+    ctx.fillStyle = 'rgba(224, 242, 254, 0.95)';
+    for (const [x, y, l] of [[-11, 113, 7], [-5, 115, 10], [2, 116, 6], [8, 114, 9], [-12, 58, 5], [8, 58, 6]] as const) {
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 4, y); ctx.lineTo(x + 2, y + l); ctx.closePath(); ctx.fill();
+    }
+  }
+  ctx.globalAlpha = 1;
 };
 
 /** In front: the door frame, the snitch's closet door edge, what everyone's saying. */
