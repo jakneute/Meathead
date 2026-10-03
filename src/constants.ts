@@ -177,7 +177,8 @@ export const MAX_AMMO: Record<WeaponType, number> = {
   'BOULDER': 20,
   'SHOTGUN': 50,
   'FLAMETHROWER': 500,
-  'TSUNAMI': 8,
+  // (five: Victor's 666 goes in five waves that put his fire out or blow a vent into steam, 150 each; four won't do it)
+  'TSUNAMI': 5,
   'NEEDLES': 120,
   'TASER': 400,
   'SLUDGE': 24,
