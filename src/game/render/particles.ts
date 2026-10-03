@@ -21,16 +21,66 @@ export const drawParticle = (ctx: CanvasRenderingContext2D, p: Particle) => {
     if (p.isSplat || p.isStuck) return drawSplat(ctx, p, x, y, r);
     return drawDroplet(ctx, p, x, y, r);
   }
-  ctx.fillStyle = p.color;
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fill();
   if (p.isWater) {
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
     ctx.fillStyle = GLOSS;
     ctx.beginPath();
     ctx.arc(x - r * 0.35, y - r * 0.35, r * 0.35, 0, Math.PI * 2);
     ctx.fill();
+    return;
   }
+  // Everything else (sparks, embers, charge-ups, dust, smoke, motes): chunky, on the pixel grid. Bright ones are lit
+  // things: going fast, a streak with a hot head; slower, a little four-pointed twinkle with a halo; the dull ones are
+  // dust and smoke: a clump of pixels, lit on its top
+  const lum = luminance(p.color);
+  const px = Math.round(x / 2) * 2, py = Math.round(y / 2) * 2, s = Math.max(2, Math.round(r) * 2);
+  const speed = Math.hypot(p.vel.x, p.vel.y);
+  if (lum > 0.55) {
+    ctx.fillStyle = p.color;
+    if (speed > 2.5) {
+      // (the streak: back along where it's come from, in two steps, thinning)
+      const k = Math.min(3, speed * 0.6);
+      ctx.globalAlpha *= 0.45; ctx.fillRect(Math.round((px - p.vel.x * k) / 2) * 2, Math.round((py - p.vel.y * k) / 2) * 2, Math.max(2, s / 2), Math.max(2, s / 2));
+      ctx.globalAlpha /= 0.45;
+      ctx.globalAlpha *= 0.7; ctx.fillRect(Math.round((px - p.vel.x * k * 0.5) / 2) * 2, Math.round((py - p.vel.y * k * 0.5) / 2) * 2, Math.max(2, s * 0.75), Math.max(2, s * 0.75));
+      ctx.globalAlpha /= 0.7;
+      ctx.fillRect(px - s / 2, py - s / 2, s, s);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'; ctx.fillRect(px - 1, py - 1, 2, 2);
+      return;
+    }
+    // (the twinkle: a halo, the cross, a white-hot middle; it turns on the beat)
+    ctx.globalAlpha *= 0.28; ctx.fillRect(px - s, py - s / 2, s * 2, s); ctx.fillRect(px - s / 2, py - s, s, s * 2); ctx.globalAlpha /= 0.28;
+    const arm = s + 2, tw = (Math.floor((p.life + p.pos.x) / 4) & 1) === 0;
+    if (tw) { ctx.fillRect(px - arm, py - 1, arm * 2, 2); ctx.fillRect(px - 1, py - arm, 2, arm * 2); }
+    else { ctx.fillRect(px - arm * 0.7, py - arm * 0.7, 2, 2); ctx.fillRect(px + arm * 0.7 - 2, py - arm * 0.7, 2, 2); ctx.fillRect(px - arm * 0.7, py + arm * 0.7 - 2, 2, 2); ctx.fillRect(px + arm * 0.7 - 2, py + arm * 0.7 - 2, 2, 2); }
+    ctx.fillRect(px - s / 2, py - s / 2, s, s);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'; ctx.fillRect(px - 1, py - 1, 2, 2);
+    return;
+  }
+  // (a clump: a square body with its corners knocked off, a lighter pixel on top, a darker one under)
+  ctx.fillStyle = p.color;
+  ctx.fillRect(px - s / 2, py - s / 2 + 2, s, Math.max(2, s - 4));
+  ctx.fillRect(px - s / 2 + 2, py - s / 2, Math.max(2, s - 4), s);
+  if (s >= 6) {
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.22)'; ctx.fillRect(px - s / 2 + 2, py - s / 2, Math.max(2, s / 2), 2);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'; ctx.fillRect(px - s / 2 + 2, py + s / 2 - 2, Math.max(2, s - 4), 2);
+  }
+};
+
+/** How bright a colour is (0..1), cached by its string: '#rrggbb' or 'rgb(a)(r, g, b, ...)'. */
+const lumCache = new Map<string, number>();
+const luminance = (c: string) => {
+  let v = lumCache.get(c);
+  if (v !== undefined) return v;
+  let r = 0, g = 0, b = 0;
+  if (c[0] === '#' && c.length >= 7) { r = parseInt(c.slice(1, 3), 16); g = parseInt(c.slice(3, 5), 16); b = parseInt(c.slice(5, 7), 16); }
+  else { const m = c.match(/[\d.]+/g); if (m) { r = +m[0]; g = +m[1]; b = +m[2]; } }
+  v = (Math.max(r, g, b) * 0.6 + (0.299 * r + 0.587 * g + 0.114 * b) * 0.4) / 255;
+  if (lumCache.size < 500) lumCache.set(c, v);
+  return v;
 };
 
 /** Flying blood: a droplet stretched along its path, with a wet highlight. */
