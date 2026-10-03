@@ -341,14 +341,129 @@ const seaStretches = (state: GameState) => {
   return out;
 };
 
+/** Where the marina's water ends and the open sea (the boat chase) begins: the marina's under-the-water scene stops here. */
+const MARINA_END = 13200;
+const MARINA_TILE = 800;
+let marinaDeep: HTMLCanvasElement | null = null;
+
+/**
+ * Down under the marina's docks (painted the once, a tile that repeats): the water teal under the surface going to
+ * navy, light coming down through it, the far rows of pilings green with weed and barnacled, a sailboat sunk on its
+ * side, a reef of rock, a car somebody pushed off the end of a dock, kelp swaying in silhouette, a school of fish.
+ */
+const marinaDeepTile = (): HTMLCanvasElement | null => {
+  if (marinaDeep || typeof document === 'undefined') return marinaDeep;
+  const c = document.createElement('canvas'); c.width = MARINA_TILE; c.height = SEA_DEPTH;
+  const g = c.getContext('2d')!;
+  const W = MARINA_TILE, H = SEA_DEPTH;
+  bandedGradient(g, 0, 0, W, H, ['#2C7DA0', '#21698C', '#1A5677', '#144563', '#0E334D', '#09243A'], 10);
+  // (light down through it: slanting shafts, lighter in steps)
+  for (let k = 0; k < 5; k++) {
+    const sx = 60 + k * 170 + hash(k) * 40;
+    for (let s = 0; s < 3; s++) {
+      g.fillStyle = `rgba(186, 230, 253, ${(0.05 + s * 0.03).toFixed(3)})`;
+      const w = 30 - s * 9;
+      g.beginPath(); g.moveTo(sx + s * 4, 0); g.lineTo(sx + s * 4 + w, 0); g.lineTo(sx + s * 4 + w + 70, H); g.lineTo(sx + s * 4 + 70, H); g.closePath(); g.fill();
+    }
+  }
+  // (the far rows of pilings, hazed blue: weed on them in bands, barnacles)
+  for (let x = 20; x < W; x += 96) {
+    const pw = 12;
+    g.fillStyle = '#0F3A55'; g.fillRect(x, 0, pw, H);
+    g.fillStyle = '#145173'; g.fillRect(x, 0, 3, H);
+    g.fillStyle = '#0C2E44'; g.fillRect(x + pw - 3, 0, 3, H);
+    for (let y = 18; y < H; y += 26) { g.fillStyle = '#1F5E3B'; g.fillRect(x - 2, y, pw + 4, 6); g.fillStyle = '#2F7A4D'; g.fillRect(x - 2, y, pw + 4, 2); }
+    g.fillStyle = '#7DA3B8'; for (let k = 0; k < 6; k++) g.fillRect(x + Math.round(hash(x + k) * pw), 40 + Math.round(hash(x * 3 + k) * (H - 60)), 2, 2);
+  }
+  checker(g, 0, 0, W, H, 'rgba(16, 52, 80, 0.35)');
+  // (the reef along the bottom: rock in steps, lit along the top)
+  const reef = (x: number) => H - 24 - Math.round((Math.sin(x * 0.021) * 0.5 + 0.5) * 18 + hash(Math.floor(x / 16)) * 8);
+  for (let x = 0; x < W; x += 4) { const top = reef(x); g.fillStyle = '#123247'; g.fillRect(x, top, 4, H - top); g.fillStyle = '#1D4A63'; g.fillRect(x, top, 4, 2); }
+  // (a sailboat on its side on the bottom: hull, keel up, the mast lying along the sand, a hole in her)
+  const bx = 300, by = H - 40;
+  g.fillStyle = '#0B2536'; g.beginPath(); g.moveTo(bx, by); g.quadraticCurveTo(bx + 60, by - 46, bx + 140, by - 10); g.lineTo(bx + 140, by + 18); g.lineTo(bx + 10, by + 18); g.closePath(); g.fill();
+  g.fillStyle = '#16405A'; g.beginPath(); g.moveTo(bx + 4, by); g.quadraticCurveTo(bx + 60, by - 40, bx + 136, by - 8); g.lineTo(bx + 136, by - 4); g.quadraticCurveTo(bx + 60, by - 34, bx + 6, by + 4); g.closePath(); g.fill();
+  g.fillStyle = '#071A27'; g.fillRect(bx + 60, by - 14, 16, 10);
+  g.fillStyle = '#0B2536'; g.fillRect(bx + 120, by + 12, 160, 4);
+  g.fillStyle = '#0B2536'; g.beginPath(); g.moveTo(bx + 70, by - 22); g.lineTo(bx + 90, by - 52); g.lineTo(bx + 96, by - 24); g.fill();
+  // (a car pushed off the end of a dock, nose down in the sand)
+  const cx = 620, cy = H - 30;
+  g.save(); g.translate(cx, cy); g.rotate(0.35);
+  g.fillStyle = '#0D2A3C'; g.fillRect(-36, -18, 72, 18); g.fillRect(-20, -30, 40, 14);
+  g.fillStyle = '#163E55'; g.fillRect(-36, -18, 72, 3); g.fillRect(-16, -27, 12, 9); g.fillRect(4, -27, 12, 9);
+  g.fillStyle = '#071A27'; g.beginPath(); g.arc(-22, 0, 7, 0, Math.PI * 2); g.arc(22, 0, 7, 0, Math.PI * 2); g.fill();
+  g.restore();
+  // (kelp in silhouette, tall, stepped)
+  for (let x = 40; x < W; x += 130) {
+    const h = 90 + hash(x) * 70;
+    for (let k = 0; k < h; k += 4) { const off = Math.round(Math.sin(k * 0.05 + x) * 6); g.fillStyle = '#0E3B2E'; g.fillRect(x + off, H - 20 - k, 5, 4); if (k % 16 === 8) g.fillRect(x + off + (k % 32 ? 5 : -6), H - 20 - k, 6, 2); }
+  }
+  // (and the trash: years of it, heaped along the bottom and hanging in the water: tires, carts, barrels, a fridge on
+  // its back, a toilet, a traffic cone, bottles and cans, a boot, bags drifting, six-pack rings; all of it hazed blue)
+  const junk = (x: number, y: number, kind: number, s: number) => {
+    g.save(); g.translate(x, y); g.rotate((hash(x + kind) - 0.5) * 0.8); g.scale(s, s);
+    const D = '#16384D', M = '#2F6E8C', L = '#5A9DB8';
+    switch (kind % 11) {
+      case 0: g.fillStyle = D; g.beginPath(); g.arc(0, 0, 11, 0, Math.PI * 2); g.fill(); g.fillStyle = '#0A2232'; g.beginPath(); g.arc(0, 0, 5, 0, Math.PI * 2); g.fill(); g.fillStyle = M; g.fillRect(-9, -8, 4, 2); break; // a tire
+      case 1: g.strokeStyle = M; g.lineWidth = 1.5; g.strokeRect(-14, -12, 24, 12); for (let k = -10; k < 10; k += 4) { g.beginPath(); g.moveTo(k, -12); g.lineTo(k, 0); g.stroke(); } g.fillStyle = D; g.beginPath(); g.arc(-10, 3, 2.5, 0, Math.PI * 2); g.arc(6, 3, 2.5, 0, Math.PI * 2); g.fill(); break; // a cart
+      case 2: g.fillStyle = M; g.fillRect(-8, -20, 16, 20); g.fillStyle = D; g.fillRect(-8, -14, 16, 2); g.fillRect(-8, -7, 16, 2); g.fillStyle = L; g.fillRect(-8, -20, 3, 20); break; // a barrel
+      case 3: g.fillStyle = '#4F8AA6'; g.fillRect(-16, -12, 32, 12); g.fillStyle = D; g.fillRect(-16, -12, 32, 2); g.fillRect(-2, -10, 1, 8); g.fillStyle = L; g.fillRect(-14, -10, 6, 2); break; // a fridge on its back
+      case 4: g.fillStyle = '#7FB2C6'; g.fillRect(-6, -10, 12, 6); g.fillRect(-4, -4, 10, 4); g.fillStyle = M; g.fillRect(4, -18, 6, 10); break; // a toilet
+      case 5: g.fillStyle = '#C2703A'; g.beginPath(); g.moveTo(-6, 0); g.lineTo(0, -16); g.lineTo(6, 0); g.closePath(); g.fill(); g.fillStyle = '#E8D2B0'; g.fillRect(-3, -9, 6, 2); g.fillStyle = M; g.fillRect(-8, -1, 16, 2); break; // a cone
+      case 6: g.fillStyle = '#3F9A72'; g.fillRect(-2, -10, 4, 10); g.fillRect(-1, -13, 2, 3); break; // a bottle
+      case 7: g.fillStyle = '#9FB7C2'; g.fillRect(-3, -6, 6, 6); g.fillStyle = M; g.fillRect(-3, -6, 6, 1); break; // a can
+      case 8: g.fillStyle = D; g.fillRect(-6, -10, 6, 10); g.fillRect(-6, -3, 12, 3); break; // a boot
+      case 9: g.fillStyle = 'rgba(200, 230, 240, 0.55)'; g.beginPath(); g.moveTo(-8, 0); g.quadraticCurveTo(-10, -14, 0, -16); g.quadraticCurveTo(10, -14, 8, 0); g.quadraticCurveTo(0, 4, -8, 0); g.fill(); g.fillRect(-2, -20, 1, 5); g.fillRect(2, -20, 1, 5); break; // a bag
+      default: g.strokeStyle = 'rgba(200, 225, 235, 0.7)'; g.lineWidth = 1; for (let k = 0; k < 3; k++) { g.beginPath(); g.ellipse(-6 + k * 6, 0, 3, 2, 0, 0, Math.PI * 2); g.stroke(); } // six-pack rings
+    }
+    g.restore();
+  };
+  // (heaped along the bottom: the big stuff)
+  for (let k = 0; k < 34; k++) { const x = Math.round(hash(k * 7.3) * W), kind = [0, 1, 2, 3, 4, 5, 0, 2, 1, 8, 6, 7][k % 12]; junk(x, reef(x) + 4 - hash(k) * 6, kind, 0.8 + hash(k * 2) * 0.5); }
+  // (and hanging in the water, drifting: bags, bottles, cans, rings)
+  for (let k = 0; k < 26; k++) junk(Math.round(hash(k * 3.1 + 9) * W), 20 + Math.round(hash(k * 5.7) * (H - 90)), [9, 6, 7, 10, 9, 7][k % 6], 0.8 + hash(k) * 0.4);
+  // (a school of fish, small, silver-blue, all one way)
+  g.fillStyle = '#5E8FAD';
+  for (let k = 0; k < 22; k++) { const fx = 470 + (k % 7) * 14 + hash(k) * 8, fy = 60 + Math.floor(k / 7) * 10 + hash(k * 3) * 6; g.fillRect(Math.round(fx), Math.round(fy), 6, 2); g.fillRect(Math.round(fx) - 2, Math.round(fy) - 1, 2, 4); }
+  marinaDeep = c;
+  return c;
+};
+
+/** The marina's under-the-water scene put down over a stretch of its water, going by slower than the docks (it's
+ * further off), wavering the way things do through water: each band of it shifted side to side on its own swell. */
+const drawMarinaDeep = (ctx: Ctx, state: GameState, x1: number, x2: number, y: number) => {
+  const tile = marinaDeepTile();
+  if (!tile) return false;
+  const f = state.frame;
+  ctx.save(); ctx.beginPath(); ctx.rect(x1, y, x2 - x1, SEA_DEPTH); ctx.clip();
+  ctx.imageSmoothingEnabled = false;
+  // (parallax: it slides by at a third the speed of the camera)
+  const base = state.camera.x - (((state.camera.x * 0.66) % MARINA_TILE) + MARINA_TILE) % MARINA_TILE - MARINA_TILE;
+  const from = Math.max(x1, state.camera.x - 40), to = Math.min(x2, state.camera.x + CANVAS_WIDTH + 40);
+  for (let r = 0; r < SEA_DEPTH; r += 4) {
+    const wob = Math.round(Math.sin(r * 0.07 + f * 0.06) * 3 + Math.sin(r * 0.023 - f * 0.035) * 2);
+    for (let tx = base + wob; tx < to; tx += MARINA_TILE) if (tx + MARINA_TILE > from) ctx.drawImage(tile, 0, r, MARINA_TILE, 4, tx, y + r, MARINA_TILE, 4);
+  }
+  // (light dancing on it from the swell overhead, in pixel flecks near the top)
+  ctx.fillStyle = 'rgba(224, 242, 254, 0.35)';
+  for (let x = Math.floor(from / 24) * 24; x < to; x += 24) for (let k = 0; k < 3; k++) {
+    const q = Math.sin(f * 0.08 + x * 0.3 + k * 2.1);
+    if (q > 0.55) ctx.fillRect(x + k * 7, y + 6 + k * 9 + Math.round(Math.sin(f * 0.05 + x) * 2), 4, 2);
+  }
+  ctx.restore();
+  return true;
+};
+
 const drawSea = (ctx: Ctx, state: GameState) => {
   const bottom = state.camera.y + CANVAS_HEIGHT + 60;
   const f = state.frame;
   seaStretches(state).forEach(({ x1, x2 }) => {
     if (!visible(state, x1, x2)) return;
     const y = COURSE.sea.y;
-    // The water: teal at the top going navy in steps, light coming down through it in slanting shafts
+    // The water: teal at the top going navy in steps, light coming down through it in slanting shafts (in the marina,
+    // what's down there under the docks, wavering)
     bandedGradient(ctx, x1, y, x2 - x1, SEA_DEPTH, ['#2A6688', '#1E4E6E', '#174260', '#123650', '#0B2A40'], 8);
+    if (x1 < MARINA_END) drawMarinaDeep(ctx, state, x1, Math.min(x2, MARINA_END), y);
     ctx.save(); ctx.beginPath(); ctx.rect(x1, y, x2 - x1, SEA_DEPTH); ctx.clip();
     ctx.fillStyle = 'rgba(186, 230, 253, 0.07)';
     for (let x = Math.floor(x1 / 140) * 140; x < x2; x += 140) {
