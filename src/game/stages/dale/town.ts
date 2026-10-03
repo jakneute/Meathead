@@ -54,6 +54,8 @@ const GOON_PAD = 12;
 export const AWNING_BOUNCE = 17.5;
 /** The cab: its size; how fast it comes up the street (chasing, then at you); how far off it is when you get control back. */
 export const CAB = { w: 250, h: 196 };
+/** Where the cab's wheels are, off its back end (facing right): the two drive axles, the steer axle up front. */
+export const CAB_WHEELS = [-50, 6, CAB.w - 40];
 const CHASE_SPEED = 17, RUSH_SPEED = 8, HANDOVER = 1300;
 /** Coming in off the highway: how fast the cab comes down the street into the curio shop. */
 const ARRIVE_SPEED = 21;
@@ -110,8 +112,8 @@ export const createTown = (state: GameState, startedAt: number): Town => {
   // (back after dying past the jail: it's rubble, and Riggs is in it)
   const wrecked = !!state.stageMemo.jailWrecked;
   // (died while Riggs was coming up the street, before he'd got to the jail: it never happened. The street's as it
-  // was, the tread marks, the blood and the beaten-up fronts gone with it, the tourists back)
-  if (!wrecked) { delete state.stageMemo.cabReach; delete state.stageMemo.townStains; }
+  // was, the tread marks, the blood and the beaten-up fronts gone with it, the tourists back, the ninja back in one piece where he fell)
+  if (!wrecked) { delete state.stageMemo.cabReach; delete state.stageMemo.townStains; if (state.stageMemo.ninjaDown) state.stageMemo.ninjaDown = state.stageMemo.ninjaDown.split(',').slice(0, 3).join(','); }
   return {
     phase: wrecked ? 'crashed' : 'street', t: 0,
     sniper: { on: false, x: t.x1 + 1400, y: Y - 200, state: 'track', t: 0, shots: 0, lastShot: null },
@@ -488,16 +490,18 @@ const NINJA_FRAME = 150;
 /** How close to where he comes down a prop has to be to go flying. */
 const PROP_HIT = 60;
 /** Where he ends up: his middle, on what was under him (the top of it), his head that way. */
-export interface NinjaDown { x: number; y: number; head: 1 | -1; t: number }
+export interface NinjaDown { x: number; y: number; head: 1 | -1; t: number;
+  /** Riggs's been over him: how many of the cab's axles (0..3), and the frame the last one went over. */ mangled?: number; mangledAt?: number }
 /** The tower's floor (his ledge), and the edge of it he's going off. */
 const towerLedge = () => COURSE.ledges.find(l => l.look === 'tower')!;
 export const towerEdge = (dir: number) => { const l = towerLedge(); return dir > 0 ? l.x + l.w : l.x; };
 /** Where he lies, back after a checkpoint (or if it was skipped): where he came down, or off the street side of the tower. */
 const ninjaDownMemo = (state: GameState): NinjaDown => {
-  const [x, y, head] = (state.stageMemo.ninjaDown || '').split(',').map(Number);
-  return Number.isFinite(x) && Number.isFinite(y) ? { x, y, head: head < 0 ? -1 : 1, t: 999 } : { x: towerEdge(1) + 110, y: Y, head: 1, t: 999 };
+  const [x, y, head, mangled] = (state.stageMemo.ninjaDown || '').split(',').map(Number);
+  return Number.isFinite(x) && Number.isFinite(y) ? { x, y, head: head < 0 ? -1 : 1, t: 999, mangled: mangled || 0, mangledAt: -999 } : { x: towerEdge(1) + 110, y: Y, head: 1, t: 999 };
 };
 export const ninjaDown = (state: GameState, town: Town) => town.ninja.down ?? (town.ninja.down = ninjaDownMemo(state));
+const rememberDown = (state: GameState, d: NinjaDown) => { state.stageMemo.ninjaDown = `${Math.round(d.x)},${Math.round(d.y)},${d.head},${d.mangled ?? 0}`; };
 /** How far a body this long and this thick, turned `rot`, reaches out either side of its middle, and up and down. */
 export const bodyReach = (rot: number) => ({ hx: Math.abs(Math.sin(rot)) * NINJA_HALF + Math.abs(Math.cos(rot)) * NINJA_THICK, hy: Math.abs(Math.cos(rot)) * NINJA_HALF + Math.abs(Math.sin(rot)) * NINJA_THICK });
 
@@ -621,7 +625,7 @@ const fallNinja = (ctx: FrameContext, town: Town) => {
   const head: 1 | -1 = Math.abs(hs) > 0.2 ? (hs > 0 ? 1 : -1) : (b.vx >= 0 ? 1 : -1);
   n.down = { x, y: top, head, t: 0 };
   n.body = undefined;
-  state.stageMemo.ninjaDown = `${Math.round(x)},${Math.round(top)},${head}`;
+  rememberDown(state, n.down);
   // (anything he comes down on, a photo cutout, a barrel, goes flying)
   for (const pr of town.props) if (!pr.flying && Math.abs(pr.x - x) < PROP_HIT) { pr.flying = true; pr.vx = (pr.x < x ? -1 : 1) * (4 + Math.random() * 2); pr.vy = -10; }
   // Splat
@@ -861,10 +865,36 @@ const plow = (ctx: FrameContext, town: Town) => {
     roadkill(ctx, town, e);
     return false;
   });
+  overNinja(ctx, town, cab.x - cab.speed);
   for (const pr of town.props) {
     if (pr.flying || pr.x < cab.x || pr.x > front) continue;
     pr.flying = true; pr.vx = 10 + Math.random() * 8; pr.vy = -12 - Math.random() * 8;
     playSound('crash');
+  }
+};
+
+/**
+ * The ninja, if he's lying out in the street where the cab's coming: each axle as it goes over him (a thump, a
+ * crunch, a spray of him), and what's left gets more spread up the street each time (see ninjaMangled).
+ */
+const overNinja = (ctx: FrameContext, town: Town, was: number) => {
+  const { state, fx } = ctx;
+  const n = town.ninja, cab = town.cab;
+  if (n.state !== 'dead' || cab.facing !== 1) return;
+  const d = ninjaDown(state, town);
+  // (only down on the street: on a roof, it's not going anywhere near him)
+  if (d.y < Y - 2) return;
+  for (const w of [...CAB_WHEELS].reverse()) {
+    if (!(was + w < d.x && cab.x + w >= d.x)) continue;
+    d.mangled = Math.min(3, (d.mangled ?? 0) + 1); d.mangledAt = state.frame;
+    rememberDown(state, d);
+    const at = { x: d.x, y: Y - 10 };
+    fx.spawnDeathShower(at, 1, 1.3);
+    for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * 40, y: Y - 6 }, vel: { x: 3 + Math.random() * 12, y: -2 - Math.random() * 9 }, life: 30 + Math.random() * 40, color: ['#991B1B', '#DC2626', '#111827', '#7F1D1D', '#1F2937'][i % 5], size: 2 + Math.random() * 6 });
+    shakeScreen(state, 14, 8);
+    playSound('crunch'); playSound('splat'); playSound('thud', 0.6);
+    if (d.mangled === 1) fx.spawnDamageNumber({ x: d.x - 40, y: Y - 120 }, 'SPLAT AGAIN!', true, '#F87171');
+    town.gore = Math.min(1, town.gore + 0.05);
   }
 };
 

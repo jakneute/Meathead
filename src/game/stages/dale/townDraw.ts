@@ -13,7 +13,7 @@ import type { GroundRun } from '../../core/terrain';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, BOSS_DOOR_X } from '../../../constants';
 import { COURSE, Building, Awning } from './course';
 import type { DaleRuntime } from './runtime';
-import { Town, TownProp, CAB, ninjaSpot, ninjaDown, incoming, jailWrecked, townStains, muzzle, laserEnd, NINJA_CUT, NINJA_RISE, NINJA_UP, JAIL_SKIP_AFTER, DUCK_FOR, cabReach } from './town';
+import { Town, TownProp, CAB, CAB_WHEELS, ninjaSpot, ninjaDown, incoming, jailWrecked, townStains, muzzle, laserEnd, NINJA_CUT, NINJA_RISE, NINJA_UP, JAIL_SKIP_AFTER, DUCK_FOR, cabReach } from './town';
 import type { NinjaDown } from './town';
 import { drawDaleKind } from '../../render/enemies/dale';
 import { drawPlayer } from '../../render/player/player';
@@ -750,7 +750,7 @@ export const drawCab = (ctx: Ctx, x: number, facing: 1 | -1, f: number, wrecked:
     if (gore > 0.6) ink(ctx, () => ctx.ellipse(CAB.w - 10, -h + 76, 12, 3, 0.3, 0, Math.PI * 2), '#D6B98C', 1); // a hat
   }
   // Wheels (the two drive axles under the fifth wheel, the steer axle up front)
-  for (const wx of [-50, 6, CAB.w - 40]) drawTruckWheel(ctx, wx, -26, 26, roll);
+  for (const wx of CAB_WHEELS) drawTruckWheel(ctx, wx, -26, 26, roll);
   ctx.restore();
 };
 
@@ -954,6 +954,87 @@ const ninjaSplat = (ctx: Ctx, d: NinjaDown, f: number) => {
   ctx.restore();
 };
 
+/** A torn-off end: a ragged red stump, a nub of bone in it. */
+const stump = (ctx: Ctx, x: number, y: number, h: number) => {
+  ctx.fillStyle = '#991B1B'; ctx.fillRect(x - 2, y, 4, h);
+  ctx.fillStyle = '#DC2626'; ctx.fillRect(x - 1, y + 1, 2, Math.max(1, h - 2));
+  ctx.fillStyle = '#7F1D1D'; for (let k = 0; k < h; k += 2) ctx.fillRect(x + (k % 4 ? 2 : -3), y + k, 1, 1);
+  ctx.fillStyle = '#F5F5F4'; ctx.fillRect(x - 1, y + Math.floor(h / 2) - 1, 2, 2);
+};
+
+/** A tire's print across a piece of him: dark tread blocks, slanting. */
+const treadOver = (ctx: Ctx, x: number, y: number, w: number) => {
+  ctx.fillStyle = 'rgba(24, 24, 27, 0.55)';
+  for (let k = 0; k < w; k += 5) ctx.fillRect(x + k, y, 2, 2);
+  ctx.fillStyle = 'rgba(63, 63, 70, 0.5)'; ctx.fillRect(x, y + 2, w, 1);
+};
+
+type NinjaPiece = { dx: number; rot: number; draw: (ctx: Ctx, f: number) => void; /** (a skull doesn't go flat) */ rigid?: boolean };
+/** What's left of him once a wheel's been over him (his middle at 0, the cab going +x): strewn up the street. */
+const NINJA_PIECES: NinjaPiece[] = [
+  // The body: black gi, the sash, torn off at both ends, the tread across it
+  { dx: 0, rot: 0, draw: c => { ninjaPart(c, () => c.rect(-15, -10, 30, 10), '#111827', -15, -10, 30, 10); c.fillStyle = '#0B0F19'; c.fillRect(-2, -10, 3, 10); stump(c, -16, -9, 8); stump(c, 16, -9, 8); treadOver(c, -12, -10, 26); } },
+  // A leg, the tabi still on it
+  { dx: -40, rot: -0.15, draw: c => { ninjaPart(c, () => c.rect(-13, -6, 26, 6), '#1F2937', -13, -6, 26, 6); ink(c, () => c.rect(-18, -7, 6, 7), '#0B0F19', 0.8); c.fillStyle = '#334155'; c.fillRect(-15, -7, 1, 7); stump(c, 13, -6, 6); } },
+  // An arm, the hand open
+  { dx: 30, rot: 0.25, draw: c => { ninjaPart(c, () => c.rect(-9, -5, 18, 5), '#1F2937', -9, -5, 18, 5); ink(c, () => c.rect(9, -6, 5, 6), '#E0AC69', 0.8); stump(c, -9, -5, 5); } },
+  // The head, rolled on ahead: the hood, the slit, X'd eyes in it, the headband's tails off it, the neck torn
+  { dx: 62, rot: 0.35, rigid: true, draw: (c, f) => {
+    ninjaPart(c, () => c.arc(0, -9, 9, 0, Math.PI * 2), '#111827', -9, -18, 18, 18);
+    headband(c, -8, -15, 17, f, -16);
+    c.fillStyle = '#E0AC69'; c.fillRect(-1, -12, 8, 3); c.fillStyle = '#C08A50'; c.fillRect(-1, -10, 8, 1);
+    c.strokeStyle = INK; c.lineWidth = 1; c.beginPath();
+    for (const ex of [1, 5]) { c.moveTo(ex - 1.5, -12.5); c.lineTo(ex + 1.5, -9.5); c.moveTo(ex + 1.5, -12.5); c.lineTo(ex - 1.5, -9.5); }
+    c.stroke();
+    c.fillStyle = '#991B1B'; c.fillRect(-4, -1, 8, 2); c.fillStyle = '#F5F5F4'; c.fillRect(-1, -1, 2, 1);
+  } },
+  // The other leg, dragged furthest
+  { dx: 104, rot: 0.1, draw: c => { ninjaPart(c, () => c.rect(-13, -6, 26, 6), '#1F2937', -13, -6, 26, 6); ink(c, () => c.rect(12, -7, 6, 7), '#0B0F19', 0.8); stump(c, -13, -6, 6); treadOver(c, -10, -6, 20); } },
+  // The other arm, back the other way
+  { dx: -72, rot: -0.3, draw: c => { ninjaPart(c, () => c.rect(-9, -5, 18, 5), '#1F2937', -9, -5, 18, 5); ink(c, () => c.rect(-14, -6, 5, 6), '#E0AC69', 0.8); stump(c, 9, -5, 5); } },
+  // The sword, snapped: the hilt (guard, wrapped grip, pommel, a stub of blade)...
+  { dx: 136, rot: -0.12, draw: c => { ink(c, () => c.rect(-12, -4, 14, 4), '#7F1D1D', 0.8); c.fillStyle = '#B91C1C'; for (let g = -10; g < 2; g += 4) c.fillRect(g, -4, 1, 4); ink(c, () => c.rect(-15, -4, 3, 4), '#A8A29E', 0.8); ink(c, () => c.rect(2, -7, 3, 9), '#78716C', 0.8); ink(c, () => { c.moveTo(5, -3); c.lineTo(13, -3); c.lineTo(11, -1); c.lineTo(5, -1); c.closePath(); }, '#E5E7EB', 0.6); } },
+  // ...and the blade, bent, its broken end jagged
+  { dx: 176, rot: 0.08, draw: c => { ink(c, () => { c.moveTo(-14, -3); c.lineTo(-11, -4); c.lineTo(-12, -2); c.lineTo(-9, -3); c.lineTo(10, -3); c.quadraticCurveTo(15, -3, 17, -6); c.lineTo(17, -4); c.quadraticCurveTo(15, -1, 10, -1); c.lineTo(-14, -1); c.closePath(); }, '#E5E7EB', 0.7); c.fillStyle = '#FFFFFF'; c.fillRect(-8, -3, 14, 1); c.fillStyle = '#9CA3AF'; c.fillRect(-8, -2, 14, 1); } },
+];
+/** Where a piece is after `level` axles: level 0, still in him; then further up the street with each one. */
+const pieceAt = (pc: NinjaPiece, level: number) => level <= 0 ? pc.dx * 0.25 : pc.dx * (1 + 0.22 * (level - 1)) + 16 * (level - 1);
+/** How flat he is after `level` axles. */
+const FLAT = [1, 0.85, 0.75, 0.68];
+
+/**
+ * Him after Riggs: in pieces up the street the way the cab went (the body, the legs and arms, the head in its hood
+ * and headband, the sword snapped in two), flatter with each axle, the pool smeared on after them, and the cab's
+ * tires printing him on up the street. Each axle throws the pieces on a hop.
+ */
+const ninjaMangled = (ctx: Ctx, d: NinjaDown, f: number) => {
+  const L = Math.min(3, d.mangled ?? 0), k = Math.min(1, (f - (d.mangledAt ?? -999)) / 12), x = d.x, y = d.y;
+  // The pool, smeared on up the street
+  pixelBlob(ctx, x + 20, y - 2, 60 + L * 14, 6.5, '#450A0A');
+  pixelBlob(ctx, x + 16, y - 2, 52 + L * 12, 5, '#7F1D1D');
+  pixelBlob(ctx, x + 90, y - 2, 40 + L * 10, 3.5, '#7F1D1D');
+  pixelBlob(ctx, x + 150, y - 2, 18, 2.5, '#991B1B');
+  ctx.fillStyle = '#B91C1C';
+  for (let q = 0; q < 9; q++) ctx.fillRect(Math.round(x - 60 + hash(x + q) * 260), Math.round(y - 3 - hash(x + q * 3) * 3), 2 + (q % 3), 2);
+  ctx.fillStyle = '#F87171'; ctx.fillRect(Math.round(x - 10), y - 5, 5, 1); ctx.fillRect(Math.round(x + 60), y - 4, 4, 1);
+  // The tires' prints in him, on up the street, fading out
+  for (let s = 0; s < 420; s += 6) {
+    const a = (1 - s / 420) * 0.85;
+    ctx.fillStyle = `rgba(127, 29, 29, ${a.toFixed(2)})`;
+    const tx = Math.round(x + 30 + s);
+    ctx.fillRect(tx, y - 1, 4, 3); if (s < 300) ctx.fillRect(tx + 2, y + 4, 3, 2);
+  }
+  // The pieces (thrown on a hop by the last axle)
+  const sy = FLAT[L - 1] + (FLAT[L] - FLAT[L - 1]) * k;
+  NINJA_PIECES.forEach((pc, i) => {
+    const px = pieceAt(pc, L - 1) + (pieceAt(pc, L) - pieceAt(pc, L - 1)) * k;
+    const hop = Math.sin(k * Math.PI) * (16 - i);
+    ctx.save(); ctx.translate(Math.round(x + px), y - 1 - hop); ctx.rotate(pc.rot * 0.3 + (1 - k) * (i % 2 ? 2 : -2)); ctx.scale(1, pc.rigid ? Math.max(0.92, sy) : sy);
+    pc.draw(ctx, f);
+    ctx.restore();
+  });
+};
+
 /**
  * The ninja: in black up the tower with his rifle; standing to say his piece; kneeling, the blade going in; back up
  * on his feet, staggering back off it to the edge, teetering there; over, end over end; splatted down below.
@@ -965,7 +1046,7 @@ const drawNinja = (ctx: Ctx, state: GameState, town: Town) => {
   if (n.state === 'dead' || n.state === 'fall') {
     // Where he went: the body coming down, or what's left of him
     if (n.body) { const b = n.body; if (visible(state, b.x - 60, b.x + 60)) { ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.rot); ctx.translate(0, 38); ctx.scale(n.face, 1); ninjaFigure(ctx, f, { flail: 0.6 + Math.sin(f * 0.5) * 0.3, arms: 'out', blade: true }); ctx.restore(); } }
-    else { const d = n.state === 'dead' ? ninjaDown(state, town) : n.down; if (d && visible(state, d.x - 80, d.x + 80)) ninjaSplat(ctx, d, f); }
+    else { const d = n.state === 'dead' ? ninjaDown(state, town) : n.down; if (d && visible(state, d.x - 120, d.x + 460)) { if (d.mangled) ninjaMangled(ctx, d, f); else ninjaSplat(ctx, d, f); } }
   }
   if (!visible(state, s.x - 140, s.x + 140)) return;
   // (turned to Meathead when he got up there, and that's the way he stays, speech to seppuku to over the edge)
