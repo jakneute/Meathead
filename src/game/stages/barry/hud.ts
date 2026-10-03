@@ -13,6 +13,7 @@ import { BarryRuntime, fadeAmount, elevatorFloor, DOORS, RIDE, OPEN, SURF_AIR } 
 import { placeOf } from './course';
 import { drawBubble } from './script';
 import { drawCityBurning, drawFlames } from './draw';
+import { bandedGradient } from '../../render/pixelArt';
 
 type Ctx = CanvasRenderingContext2D;
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
@@ -66,51 +67,97 @@ const drawElevatorRide = (ctx: Ctx, state: GameState, rt: BarryRuntime) => {
   if (t >= DOORS + RIDE) { doors(ctx, 1 - easeInOut((t - DOORS - RIDE) / OPEN)); return; }
   const f = state.frame;
   const k = t - DOORS;
-  // The shaft: dark concrete, the guide rails, the cables, the floors going by (painted numbers on the wall)
-  ctx.fillStyle = '#0B0C10'; ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = '#1C1D22'; ctx.fillRect(250, 0, 300, H);
-  ctx.fillStyle = '#2A2B31'; ctx.fillRect(250, 0, 8, H); ctx.fillRect(542, 0, 8, H);
-  ctx.fillStyle = '#3F3F46'; ctx.fillRect(266, 0, 5, H); ctx.fillRect(529, 0, 5, H); // the guide rails
-  const scroll = (k * 9) % 160;
-  for (let y = scroll - 160; y < H; y += 160) {
-    ctx.fillStyle = '#26272D'; ctx.fillRect(250, y, 300, 12); // each floor's slab going by
-    ctx.fillStyle = '#6B7280'; ctx.font = 'bold 10px "Press Start 2P"'; ctx.textAlign = 'left';
-    ctx.fillText(String(elevatorFloor(tr) + Math.round((scroll - y) / 160)), 276, y + 40);
-  }
-  // The car: a small box on its cables, rattling a little on the way up
-  const jig = Math.sin(f * 0.9) * 0.8;
-  const cw = 170, ch = 210, cx = W / 2 - cw / 2, cy = 190 + jig;
-  ctx.strokeStyle = '#71717A'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(W / 2 - 12, 0); ctx.lineTo(W / 2 - 12, cy); ctx.moveTo(W / 2 + 12, 0); ctx.lineTo(W / 2 + 12, cy); ctx.stroke();
-  // (the counterweight going the other way, once)
-  const cwY = -200 + k * 6;
-  if (cwY < H) { ctx.fillStyle = '#44403C'; ctx.fillRect(470, cwY, 50, 120); ctx.strokeStyle = '#71717A'; ctx.beginPath(); ctx.moveTo(495, 0); ctx.lineTo(495, cwY); ctx.stroke(); }
-  ctx.fillStyle = '#52525B'; ctx.fillRect(cx - 6, cy - 12, cw + 12, 12); ctx.fillRect(cx - 6, cy + ch, cw + 12, 10);
-  ctx.fillStyle = '#5B3A1E'; ctx.fillRect(cx, cy, cw, ch);
-  ctx.fillStyle = '#6B4423'; for (let x = cx + 4; x < cx + cw - 10; x += 42) ctx.fillRect(x, cy + 30, 38, ch - 60);
-  ctx.fillStyle = '#CA8A04'; ctx.fillRect(cx, cy + 118, cw, 4); // the handrail
-  ctx.fillStyle = '#292524'; ctx.fillRect(cx, cy + ch - 16, cw, 16);
-  // The indicator over the door, the buttons (the top one lit: it didn't help)
-  ctx.fillStyle = '#111827'; ctx.fillRect(W / 2 - 26, cy + 6, 52, 18);
   const fl = elevatorFloor(tr);
-  ctx.fillStyle = '#F97316'; ctx.font = 'bold 10px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText(fl === 1 ? 'L' : String(fl), W / 2, cy + 20);
-  ctx.fillStyle = '#9CA3AF'; ctx.fillRect(cx + cw - 26, cy + 60, 16, 44);
-  for (let b = 0; b < 5; b++) { ctx.fillStyle = b === 0 ? '#FDE047' : '#E5E7EB'; ctx.beginPath(); ctx.arc(cx + cw - 18, cy + 66 + b * 8, 2.5, 0, Math.PI * 2); ctx.fill(); }
-  // Him: stood there, bored stiff, tapping his foot
-  const p = state.player;
-  const body = { ...p, pos: { x: -1e6, y: -1e6 }, hidden: false, isGrounded: true, vel: { x: 0, y: 0 }, facing: 1 as const, isCharging: false, isSliding: false, isUppercutting: false, isDivekicking: false, isDucking: false, invincibilityTimer: 0, hurtTimer: 0, pushbackTimer: 0 };
-  const floorY = cy + ch - 16;
-  const tap = f % 18 < 5 ? 1 : 0;
-  ctx.save(); ctx.translate(W / 2 - 14, floorY - p.height / 2); ctx.translate(-(body.pos.x + body.width / 2), -(body.pos.y + body.height / 2));
-  drawPlayer(ctx, body, { ...state, deathTimer: 0 }, { currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false, footTap: tap });
+  const strain = Math.min(1, k / (RIDE - 20));
+  // The inside of the car, close in on him (a Ren and Stimpy close-up: every bead of sweat, every vein), stood there
+  // waiting, the floor lights over the door crawling up one at a time
+  // (the car: wood panelling in bands, brass trim, a fluorescent tube that won't quite stay steady)
+  bandedGradient(ctx, 0, 0, W, H, ['#3B2412', '#4A2E17', '#5B3A1E', '#4A2E17', '#2E1C0E'], 10);
+  for (let x = 20; x < W; x += 120) { ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(x, 120, 4, 360); ctx.fillStyle = 'rgba(255, 220, 170, 0.08)'; ctx.fillRect(x + 4, 120, 2, 360); }
+  ctx.fillStyle = '#1C1208'; ctx.fillRect(0, 112, W, 6);
+  const flick = (f % 97 < 3 || f % 61 === 0) ? 0.55 : 1;
+  ctx.fillStyle = `rgba(254, 249, 195, ${(0.9 * flick).toFixed(3)})`; ctx.fillRect(0, 0, W, 10);
+  ctx.fillStyle = `rgba(254, 249, 195, ${(0.08 * flick).toFixed(3)})`; ctx.fillRect(0, 10, W, 100);
+  // (the floor, and the brass rail along the back wall)
+  ctx.fillStyle = '#1F1A14'; ctx.fillRect(0, 470, W, H - 470);
+  ctx.fillStyle = '#3A3026'; for (let x = 0; x < W; x += 40) ctx.fillRect(x, 470, 38, 3);
+  ctx.fillStyle = '#7C5A12'; ctx.fillRect(0, 352, W, 8); ctx.fillStyle = '#E3B341'; ctx.fillRect(0, 352, W, 2); ctx.fillStyle = '#4A3608'; ctx.fillRect(0, 360, W, 2);
+  // The door's window (left): the shaft going by outside it, the floors sliding DOWN past (he's going up)
+  const wx = 70, wy = 150, ww = 70, wh = 280;
+  ctx.fillStyle = '#9CA3AF'; ctx.fillRect(wx - 30, 118, ww + 60, 352); ctx.fillStyle = '#D1D5DB'; ctx.fillRect(wx - 30, 118, 4, 352); ctx.fillStyle = '#6B7280'; ctx.fillRect(wx + ww + 26, 118, 4, 352);
+  ctx.save(); ctx.beginPath(); ctx.rect(wx, wy, ww, wh); ctx.clip();
+  ctx.fillStyle = '#0B0C10'; ctx.fillRect(wx, wy, ww, wh);
+  const slide = (k * 3.2) % 140;
+  for (let y = wy - 140 + slide; y < wy + wh; y += 140) {
+    // (a landing going by: its lit gap, the slab, the number painted on the wall)
+    ctx.fillStyle = '#FDE68A'; ctx.fillRect(wx, y, ww, 34); ctx.fillStyle = '#26272D'; ctx.fillRect(wx, y + 34, ww, 10);
+    ctx.fillStyle = '#6B7280'; ctx.font = 'bold 9px "Press Start 2P"'; ctx.textAlign = 'center';
+    ctx.fillText(String(fl + Math.round((wy + wh / 2 - y) / 140)), wx + ww / 2, y + 74);
+  }
   ctx.restore();
-  if (tap) { ctx.fillStyle = 'rgba(248, 250, 252, 0.7)'; ctx.font = '5px "Press Start 2P"'; ctx.textAlign = 'left'; ctx.fillText('TAP', W / 2 + 6, floorY - 6); }
-  // The muzak
-  ctx.fillStyle = '#FDE68A'; ctx.font = 'bold 12px "Press Start 2P"'; ctx.textAlign = 'left';
-  for (let n = 0; n < 3; n++) { const ft = ((f + n * 30) % 90) / 90; ctx.globalAlpha = 1 - ft; ctx.fillText(n % 2 ? '♫' : '♪', cx + 20 + n * 26, cy + 90 - ft * 60); }
+  ctx.strokeStyle = '#111827'; ctx.lineWidth = 3; ctx.strokeRect(wx - 1.5, wy - 1.5, ww + 3, wh + 3);
+  ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.fillRect(wx + 6, wy, 6, wh);
+  // The floor lights over the door: a brass panel, the numbers in a row, the one he's at lit, the UP arrow pulsing
+  const px1 = HUD_CLEAR_X + 20, pw = W - 30 - px1, py = 26;
+  ctx.fillStyle = '#4A3608'; ctx.fillRect(px1 - 4, py - 4, pw + 8, 64);
+  ctx.fillStyle = '#B8860B'; ctx.fillRect(px1, py, pw, 56); ctx.fillStyle = '#E3B341'; ctx.fillRect(px1, py, pw, 3); ctx.fillStyle = '#7C5A12'; ctx.fillRect(px1, py + 53, pw, 3);
+  // (seven to a row, the light stepping along it one floor at a time, then on to the next seven)
+  const slots = 7, sw = (pw - 70) / slots, first = Math.floor((fl - 1) / slots) * slots + 1;
+  for (let i = 0; i < slots; i++) {
+    const n = first + i;
+    const lx = px1 + 10 + i * sw + sw / 2, ly = py + 28;
+    const lit = n === fl;
+    ctx.fillStyle = '#1C1208'; ctx.beginPath(); ctx.arc(lx, ly, 17, 0, Math.PI * 2); ctx.fill();
+    if (lit) { ctx.fillStyle = 'rgba(249, 115, 22, 0.35)'; ctx.beginPath(); ctx.arc(lx, ly, 24, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = lit ? '#F97316' : n < fl ? '#3B2412' : '#2A1A0C'; ctx.beginPath(); ctx.arc(lx, ly, 14, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = lit ? '#FEF3C7' : '#6B4A2A'; ctx.font = 'bold 9px "Press Start 2P"'; ctx.textAlign = 'center';
+    if (n >= 1) ctx.fillText(n === 1 ? 'L' : String(n), lx, ly + 4);
+  }
+  // (the arrow: UP, lit, pulsing)
+  const ax = px1 + pw - 32, ay = py + 28, on = Math.floor(f / 10) % 2 === 0;
+  ctx.fillStyle = on ? '#FDE047' : '#A16207';
+  ctx.beginPath(); ctx.moveTo(ax, ay - 16); ctx.lineTo(ax + 14, ay + 2); ctx.lineTo(ax + 5, ay + 2); ctx.lineTo(ax + 5, ay + 16); ctx.lineTo(ax - 5, ay + 16); ctx.lineTo(ax - 5, ay + 2); ctx.lineTo(ax - 14, ay + 2); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#1C1208'; ctx.lineWidth = 2; ctx.stroke();
+  // (a speaker in the ceiling, the muzak coming out of it)
+  ctx.fillStyle = '#1C1208'; ctx.beginPath(); ctx.arc(230, 70, 22, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#3A2A18'; for (let k2 = -2; k2 <= 2; k2++) ctx.fillRect(230 + k2 * 7 - 1, 54, 2, 32);
+  ctx.fillStyle = '#FDE68A'; ctx.font = 'bold 16px "Press Start 2P"'; ctx.textAlign = 'left';
+  for (let n = 0; n < 3; n++) { const ft = ((f + n * 30) % 90) / 90; ctx.globalAlpha = 1 - ft; ctx.fillText(n % 2 ? '♫' : '♪', 210 + n * 34 + Math.sin(ft * 6 + n) * 8, 110 + ft * 70); }
   ctx.globalAlpha = 1;
+  // Him, close up: stood there, staring up at the lights, the strain building (the jaw going, a twitch, the sweat)
+  const S = 4, X = 480, FOOT = 470;
+  const twitch = (f % 37) < 5 && k > 40 ? (f % 2 ? 2 : -2) : 0;
+  const tap = f % 18 < 5 ? 1 : 0;
+  const pl = state.player;
+  const body = { ...pl, pos: { x: -pl.width / 2, y: -pl.height }, hidden: false, isGrounded: true, vel: { x: 0, y: 0 }, facing: 1 as const, isCharging: false, isSliding: false, isUppercutting: false, isDivekicking: false, isDucking: false, invincibilityTimer: 0, hurtTimer: 0, pushbackTimer: 0, angryTimer: k > 70 ? 10 : 0 };
+  ctx.save(); ctx.translate(X + twitch, FOOT); ctx.scale(S, S);
+  drawPlayer(ctx, body, { ...state, deathTimer: 0, camera: { x: 0, y: 0 } }, { currentWeapon: pl.currentWeapon, showFilthShield: false, invincibilityEnabled: false, footTap: tap });
+  ctx.restore();
+  // (the close-up's grotesque bits, on his head: a vein up his temple pulsing, sweat beading and running, stress lines)
+  const hx = X + twitch, hy = FOOT - 54 * S, r = 12 * S;
+  if (strain > 0.25) {
+    const pulse = 1 + Math.sin(f * 0.5) * 0.5 * strain;
+    ctx.strokeStyle = '#7E22CE'; ctx.lineWidth = 3 * pulse; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(hx - r * 0.35, hy - r * 1.05); ctx.lineTo(hx - r * 0.2, hy - r * 0.85); ctx.lineTo(hx - r * 0.34, hy - r * 0.65); ctx.lineTo(hx - r * 0.18, hy - r * 0.45); ctx.stroke();
+    ctx.strokeStyle = '#C084FC'; ctx.lineWidth = 1; ctx.stroke(); ctx.lineCap = 'butt';
+  }
+  const beads = Math.floor(strain * 7);
+  for (let b2 = 0; b2 < beads; b2++) {
+    const run = ((f * (0.6 + hash(b2) * 0.6) + b2 * 37) % 90) / 90;
+    const bx = hx + (hash(b2 * 3) - 0.6) * r * 1.4, by = hy - r * 0.9 + run * r * 1.1;
+    ctx.fillStyle = '#BAE6FD'; ctx.beginPath(); ctx.moveTo(bx, by - 7); ctx.quadraticCurveTo(bx + 5, by, bx, by + 4); ctx.quadraticCurveTo(bx - 5, by, bx, by - 7); ctx.fill();
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(bx - 2, by - 2, 2, 2);
+  }
+  if (strain > 0.5) {
+    ctx.strokeStyle = '#1C1208'; ctx.lineWidth = 2;
+    for (let i = 0; i < 6; i++) { const ang = -Math.PI * 0.95 + i * 0.32, d0 = r * 1.35, d1 = r * (1.6 + (f % 8 < 4 ? 0.08 : 0)); ctx.beginPath(); ctx.moveTo(hx + Math.cos(ang) * d0, hy + Math.sin(ang) * d0); ctx.lineTo(hx + Math.cos(ang) * d1, hy + Math.sin(ang) * d1); ctx.stroke(); }
+  }
+  // (and the steam out of his ears at the very end)
+  if (strain > 0.85) for (let i = 0; i < 3; i++) { const q = ((f * 2 + i * 13) % 40) / 40; ctx.fillStyle = `rgba(241, 245, 249, ${(0.7 * (1 - q)).toFixed(3)})`; ctx.beginPath(); ctx.arc(hx - r * 0.8 - q * 30, hy - r * 0.2 - q * 40, 6 + q * 10, 0, Math.PI * 2); ctx.fill(); }
+  if (tap) { ctx.fillStyle = 'rgba(248, 250, 252, 0.85)'; ctx.font = '8px "Press Start 2P"'; ctx.textAlign = 'left'; ctx.fillText('TAP', X + 40, FOOT - 4); }
   // What he thinks of it
   const say = k < 40 ? '' : k < 95 ? '...' : k < 150 ? '*SIGH*' : 'COME ON. COME ON.';
-  if (say && k < RIDE - 10) drawBubble(ctx, W / 2 - 10, floorY - p.height - 18, say, '#F8FAFC');
+  if (say && k < RIDE - 10) drawBubble(ctx, hx - 40, hy - r * 2.2, say, '#F8FAFC');
   ctx.textAlign = 'left';
 };
 
