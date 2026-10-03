@@ -3,7 +3,7 @@ components/Cutscene.tsx:99 voice: p.voice
 game/bosses/oscar.ts:187 name: undefined
 game/bosses/shared.ts:177 voice: getBossVoice(bossId)
 game/bosses/alien.ts:87 voice: text
-game/bosses/alien.ts:229 voice: pickRandom(ALIEN_LINES.LASER)
+game/bosses/alien.ts:228 voice: pickRandom(ALIEN_LINES.LASER)
 game/stages/artie/ski.ts:495 name: undefined
 game/stages/artie/ski.ts:500 name: undefined
 game/stages/artie/ski.ts:500 call: deathByCause(state)
@@ -77,6 +77,6 @@ game/core/update.ts:601 call: layout?.deathMessage?.(ctx)
 game/core/update.ts:601 call: deathByCause(state)
 game/core/update.ts:601 call: deathFallback(state, ctx.stageId, fell)
 game/player/player.ts:81 call: message()
-App.tsx:238 voice: getBossVoice(selectedStage)
-App.tsx:461 name: undefined
-App.tsx:462 expr: null
+App.tsx:239 voice: getBossVoice(selectedStage)
+App.tsx:466 name: undefined
+App.tsx:467 expr: null

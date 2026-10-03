@@ -5667,7 +5667,7 @@
  {
   "voice": "death",
   "text": "ELECTRIC BATH",
-  "from": "game/combat/weapons.ts:865"
+  "from": "game/combat/weapons.ts:861"
  },
  {
   "voice": "death",
@@ -7037,7 +7037,7 @@
  {
   "voice": "death",
   "text": "SHOCKING LACK OF JUDGMENT",
-  "from": "game/combat/weapons.ts:865"
+  "from": "game/combat/weapons.ts:861"
  },
  {
   "voice": "death",
@@ -7497,7 +7497,7 @@
  {
   "voice": "death",
   "text": "TASED YOURSELF IN THE POOL",
-  "from": "game/combat/weapons.ts:865"
+  "from": "game/combat/weapons.ts:861"
  },
  {
   "voice": "death",
@@ -7922,7 +7922,7 @@
  {
   "voice": "death",
   "text": "WATER CONDUCTS, GENIUS",
-  "from": "game/combat/weapons.ts:865"
+  "from": "game/combat/weapons.ts:861"
  },
  {
   "voice": "death",
@@ -9821,11 +9821,6 @@
  },
  {
   "voice": "meathead",
-  "text": "A WHOLE BOX TRUCK FULL OF DRUGS AND NOT ONE TUB OF CREATINE? AMATEUR HOUR.",
-  "from": "INTRO_QUOTES"
- },
- {
-  "voice": "meathead",
   "text": "A WOLVERINE! IT'S GOING FOR MY ANKLES!",
   "from": "HAZARD_HURT"
  },
@@ -9878,6 +9873,11 @@
   "voice": "meathead",
   "text": "ALIEN SLUSHIE. NEEDS MORE PROTEIN.",
   "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ALL THESE DRUGS AND NO CREATINE? AMATEURS.",
+  "from": "INTRO_QUOTES"
  },
  {
   "voice": "meathead",
@@ -11297,7 +11297,7 @@
  {
   "voice": "meathead",
   "text": "FUCK YEAH! LET'S GO!",
-  "from": "App.tsx:544"
+  "from": "App.tsx:549"
  },
  {
   "voice": "meathead",
@@ -13452,7 +13452,7 @@
  {
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
-  "from": "App.tsx:544"
+  "from": "App.tsx:549"
  },
  {
   "voice": "meathead",
@@ -13632,7 +13632,7 @@
  {
   "voice": "meathead",
   "text": "LET'S FUCKING GO!",
-  "from": "App.tsx:544"
+  "from": "App.tsx:549"
  },
  {
   "voice": "meathead",
@@ -14462,7 +14462,7 @@
  {
   "voice": "meathead",
   "text": "OH HELL YEAH!",
-  "from": "App.tsx:544"
+  "from": "App.tsx:549"
  },
  {
   "voice": "meathead",
