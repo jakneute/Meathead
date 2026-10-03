@@ -68,15 +68,27 @@ const navigateStageGrid = (index: number, dx: number, dy: number, whiteHouse: bo
 
 /** Pause menu: a 3-wide weapon grid (indices 0..n-1) above a row of four buttons (RESUME, DOSSIER, BOSS SELECT, QUIT). */
 const navigatePauseMenu = (index: number, dx: number, dy: number, numWeapons: number) => {
+  // (the buttons line up with the grid's columns left to right: RESUME under the first, DOSSIER the second, BOSS SELECT
+  // and QUIT the third)
+  const lastRow = Math.floor((numWeapons - 1) / 3);
   if (index >= numWeapons) {
-    // The button row: left/right between buttons, up back into the arsenal
+    // The button row: left/right between buttons, up back into the arsenal (the bottom slot of the column above)
     if (dx < 0) return Math.max(numWeapons, index - 1);
     if (dx > 0) return Math.min(numWeapons + 3, index + 1);
-    if (dy < 0) return numWeapons - 1;
+    if (dy < 0) {
+      const col = Math.min(index - numWeapons, 2);
+      const slot = lastRow * 3 + col;
+      return slot < numWeapons ? slot : slot >= 3 ? slot - 3 : numWeapons - 1;
+    }
     return index;
   }
   if (dy < 0) return index >= 3 ? index - 3 : index;
-  if (dy > 0) return index + 3 < numWeapons ? index + 3 : numWeapons;
+  if (dy > 0) {
+    if (index + 3 < numWeapons) return index + 3;
+    // (over a gap in a short bottom row: the last weapon; off the bottom row: the button under the column)
+    if (Math.floor(index / 3) < lastRow) return numWeapons - 1;
+    return numWeapons + (index % 3);
+  }
   if (dx < 0) return index > 0 ? index - 1 : index;
   if (dx > 0) return index < numWeapons - 1 ? index + 1 : index;
   return index;
@@ -463,8 +475,10 @@ const App: React.FC = () => {
 
   /** All eight dead: the White House is on the map. */
   const whiteHouseOpen = progressionRank >= 1 && STAGES_SET_1.every(s => defeatedStages.includes(s.id));
-  // (nobody left: the targets are off the screen, the White House is in their place: that's where the cursor goes)
-  useEffect(() => { if (whiteHouseOpen && selectedIndex < GARAGE_INDEX) setSelectedIndex(WHITE_HOUSE_INDEX); }, [whiteHouseOpen, selectedIndex]);
+  // (nobody left: the targets are off the screen, the White House is in their place: that's where the cursor goes. On
+  // the map only: the same cursor's the title's options and the pause menu's arsenal, and in the finale all eight are
+  // still dead, so this would snap it off weapons 1-4)
+  useEffect(() => { if (status === GameStatus.STAGE_SELECT && whiteHouseOpen && selectedIndex < GARAGE_INDEX) setSelectedIndex(WHITE_HOUSE_INDEX); }, [status, whiteHouseOpen, selectedIndex]);
   /** Who's on the damage report (in the garage): the first four, from the start of the second set; all eight once they're all dead. */
   const reportBosses = progressionRank >= 1 ? [...STAGES_SET_0, ...(whiteHouseOpen ? STAGES_SET_1 : [])].map(s => s.id) : [];
   /** The tab switch on the stage select: the map or the dossier. */
