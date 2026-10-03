@@ -22,7 +22,7 @@ interface GameCanvasProps extends GameEvents {
   /** The checkpoint to start the stage at (the skip-level cheat's picker; 0 otherwise). */
   startCheckpoint?: number;
   /** Power is 0..POWER_CELLS (special-move cells, refilling over time). */
-  onPlayerUpdate: (health: number, power: number, ammo?: Record<WeaponType, number>, forcedWeapon?: WeaponType, lockedTo?: WeaponType) => void;
+  onPlayerUpdate: (health: number, power: number, ammo?: Record<WeaponType, number>, forcedWeapon?: WeaponType, lockedTo?: WeaponType, cutscene?: boolean) => void;
 }
 
 const FRAME_MS = 1000 / 60;
@@ -111,7 +111,8 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
         // (a set piece that only allows one weapon keeps putting it back in his hands)
         const forcedWeapon: WeaponType | undefined = state.lockWeapon && p.currentWeapon !== state.lockWeapon ? state.lockWeapon : state.shouldSyncWeapon ? 'GUN' : undefined;
         state.shouldSyncWeapon = false;
-        p.onPlayerUpdate(player.health, player.power, player.weaponAmmo, forcedWeapon, state.lockWeapon);
+        // (and whether he's in a little cutscene, out of his hands: the HUD's put away for it)
+        p.onPlayerUpdate(player.health, player.power, player.weaponAmmo, forcedWeapon, state.lockWeapon, !!player.inCutscene);
       }
       draw();
     };

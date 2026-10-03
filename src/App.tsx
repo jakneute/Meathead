@@ -135,6 +135,8 @@ const App: React.FC = () => {
   /** The pause menu's "are you sure" before leaving for the boss select, and which answer's highlighted. */
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [confirmYes, setConfirmYes] = useState(false);
+  /** A little cutscene in the stage, him not in control: the HUD's put away till it's over. */
+  const [inCutscene, setInCutscene] = useState(false);
   /** What the "are you sure" is for: leaving for the boss select, or quitting to the title. */
   const [leaveTo, setLeaveTo] = useState<'boss' | 'quit'>('boss');
   const viewScale = useFitToWindow();
@@ -615,8 +617,9 @@ const App: React.FC = () => {
     setStatus(GameStatus.BOSS_VICTORY_SPEECH);
   };
 
-  const handlePlayerUpdate = (h: number, p: number, ammo?: Record<WeaponType, number>, forcedWeapon?: WeaponType, lockedTo?: WeaponType) => {
+  const handlePlayerUpdate = (h: number, p: number, ammo?: Record<WeaponType, number>, forcedWeapon?: WeaponType, lockedTo?: WeaponType, cutscene?: boolean) => {
     setHealth(h);
+    setInCutscene(!!cutscene);
     setPower(p);
     if (ammo) setWeaponAmmo(ammo);
     if (forcedWeapon) setCurrentWeapon(forcedWeapon);
@@ -783,6 +786,7 @@ const App: React.FC = () => {
       <div className="relative shrink-0 shadow-2xl border-4 border-gray-800 bg-[#121212] overflow-hidden" style={{ width: 800, height: 600, boxSizing: 'content-box', transform: `scale(${viewScale})` }}>
         {wheelAt !== null && status === GameStatus.PLAYING && <WeaponWheel weapons={availableWeapons} index={wheelAt} current={currentWeapon} />}
         {HUD_SCREENS.includes(status) && (
+          <div className="contents" style={{ visibility: inCutscene && status === GameStatus.PLAYING ? 'hidden' : undefined }}>
           <HUD
             health={health}
             maxHealth={INITIAL_PLAYER_HEALTH}
@@ -791,6 +795,7 @@ const App: React.FC = () => {
             ammo={weaponAmmo[currentWeapon]}
             maxAmmo={MAX_AMMO[currentWeapon]}
           />
+          </div>
         )}
         {/* (hidden, so it isn't painted, while the garage covers it: the map's animations and the four photos under the
             garage and its practice range were costing frames) */}

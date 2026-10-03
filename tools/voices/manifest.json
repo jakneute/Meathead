@@ -932,7 +932,7 @@
  {
   "voice": "announcer",
   "text": "SEPPUKU!",
-  "from": "game/stages/dale/town.ts:580"
+  "from": "game/stages/dale/town.ts:582"
  },
  {
   "voice": "announcer",
@@ -1162,7 +1162,7 @@
  {
   "voice": "announcer",
   "text": "TIMESHARE: VACANT",
-  "from": "game/stages/dale/town.ts:1086"
+  "from": "game/stages/dale/town.ts:1090"
  },
  {
   "voice": "announcer",
@@ -4392,37 +4392,37 @@
  {
   "voice": "dale.prisoner",
   "text": "DAN! GIMME THE KEYS! STOP PLAYING! LET ME OUT!",
-  "from": "game/stages/dale/town.ts:780"
+  "from": "game/stages/dale/town.ts:782"
  },
  {
   "voice": "dale.prisoner",
   "text": "DAN?! THERE'S A SWORD IN YOUR HEAD!",
-  "from": "game/stages/dale/town.ts:785"
+  "from": "game/stages/dale/town.ts:787"
  },
  {
   "voice": "dale.prisoner",
   "text": "HEY! HEY, YOU! THE SHERIFF LOCKED ME IN HERE FOR A PHOTO AN HOUR AGO!",
-  "from": "game/stages/dale/town.ts:668"
+  "from": "game/stages/dale/town.ts:670"
  },
  {
   "voice": "dale.prisoner",
   "text": "HEY! HEY, YOU! THE SHERIFF LOCKED ME IN HERE FOR A PHOTO AN HOUR AGO! ...ACTUALLY, STAY OVER THERE. I CAN WAIT.",
-  "from": "game/stages/dale/town.ts:668"
+  "from": "game/stages/dale/town.ts:670"
  },
  {
   "voice": "dale.prisoner",
   "text": "I HAVE A TIMESHARE!",
-  "from": "game/stages/dale/town.ts:781"
+  "from": "game/stages/dale/town.ts:783"
  },
  {
   "voice": "dale.prisoner",
   "text": "IS THAT A TRUCK?! SHERIFF DAN?!",
-  "from": "game/stages/dale/town.ts:775"
+  "from": "game/stages/dale/town.ts:777"
  },
  {
   "voice": "dale.prisoner",
   "text": "THE TRUCK'S STILL COMING! I HAVE A TIMESHARE!",
-  "from": "game/stages/dale/town.ts:786"
+  "from": "game/stages/dale/town.ts:788"
  },
  {
   "voice": "dale.riggs",
@@ -4467,7 +4467,7 @@
  {
   "voice": "dale.riggs",
   "text": "ONE BULLET?! IN ONE EAR AND OUT THE OTHER, BABY! NOTHING IN THERE TO HIT!",
-  "from": "game/stages/dale/town.ts:693"
+  "from": "game/stages/dale/town.ts:695"
  },
  {
   "voice": "dale.riggs",
@@ -4487,7 +4487,7 @@
  {
   "voice": "dale.sheriff",
   "text": "NOPE! NOT FOR TEN BUCKS AN HOUR!",
-  "from": "game/stages/dale/town.ts:776"
+  "from": "game/stages/dale/town.ts:778"
  },
  {
   "voice": "death",
@@ -4512,7 +4512,7 @@
  {
   "voice": "death",
   "text": "A JUMP WON'T CLEAR IT. UPPERCUT!",
-  "from": "game/stages/dale/town.ts:758"
+  "from": "game/stages/dale/town.ts:760"
  },
  {
   "voice": "death",
@@ -5372,7 +5372,7 @@
  {
   "voice": "death",
   "text": "FLATTENED BY A DEAD MAN",
-  "from": "game/stages/dale/town.ts:758"
+  "from": "game/stages/dale/town.ts:760"
  },
  {
   "voice": "death",
@@ -5707,7 +5707,7 @@
  {
   "voice": "death",
   "text": "IT TAKES AN UPPERCUT TO CLEAR IT",
-  "from": "game/stages/dale/town.ts:758"
+  "from": "game/stages/dale/town.ts:760"
  },
  {
   "voice": "death",
@@ -5877,7 +5877,7 @@
  {
   "voice": "death",
   "text": "LEG DAY MEETS FRONT BUMPER",
-  "from": "game/stages/dale/town.ts:758"
+  "from": "game/stages/dale/town.ts:760"
  },
  {
   "voice": "death",
@@ -6067,7 +6067,7 @@
  {
   "voice": "death",
   "text": "NOT A JUMP. AN UPPERCUT.",
-  "from": "game/stages/dale/town.ts:758"
+  "from": "game/stages/dale/town.ts:760"
  },
  {
   "voice": "death",
@@ -6457,7 +6457,7 @@
  {
   "voice": "death",
   "text": "RUN OVER BY RIGGS. AGAIN.",
-  "from": "game/stages/dale/town.ts:758"
+  "from": "game/stages/dale/town.ts:760"
  },
  {
   "voice": "death",
@@ -6702,7 +6702,7 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE UPPERCUT OVER IT",
-  "from": "game/stages/dale/town.ts:758"
+  "from": "game/stages/dale/town.ts:760"
  },
  {
   "voice": "death",
@@ -6777,7 +6777,7 @@
  {
   "voice": "death",
   "text": "SLID UNDER A TRUCK. IT HAD WHEELS",
-  "from": "game/stages/dale/town.ts:758"
+  "from": "game/stages/dale/town.ts:760"
  },
  {
   "voice": "death",
@@ -7227,7 +7227,7 @@
  {
   "voice": "death",
   "text": "THE TRUCK DIDN'T EVEN SLOW DOWN",
-  "from": "game/stages/dale/town.ts:758"
+  "from": "game/stages/dale/town.ts:760"
  },
  {
   "voice": "death",
@@ -7477,7 +7477,7 @@
  {
   "voice": "death",
   "text": "YOU SLIDE-TACKLED A TRUCK. THE TRUCK DID NOT FALL OVER",
-  "from": "game/stages/dale/town.ts:758"
+  "from": "game/stages/dale/town.ts:760"
  },
  {
   "voice": "death",
@@ -8612,7 +8612,7 @@
  {
   "voice": "meathead",
   "text": "...OKAY. SAVES ME A BULLET.",
-  "from": "game/stages/dale/town.ts:605"
+  "from": "game/stages/dale/town.ts:607"
  },
  {
   "voice": "meathead",
@@ -10472,7 +10472,7 @@
  {
   "voice": "meathead",
   "text": "FUCK YEAH! LET'S GO!",
-  "from": "App.tsx:484"
+  "from": "App.tsx:486"
  },
  {
   "voice": "meathead",
@@ -12477,7 +12477,7 @@
  {
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
-  "from": "App.tsx:484"
+  "from": "App.tsx:486"
  },
  {
   "voice": "meathead",
@@ -12637,7 +12637,7 @@
  {
   "voice": "meathead",
   "text": "LET'S FUCKING GO!",
-  "from": "App.tsx:484"
+  "from": "App.tsx:486"
  },
  {
   "voice": "meathead",
@@ -13382,7 +13382,7 @@
  {
   "voice": "meathead",
   "text": "OH HELL YEAH!",
-  "from": "App.tsx:484"
+  "from": "App.tsx:486"
  },
  {
   "voice": "meathead",
@@ -13482,12 +13482,12 @@
  {
   "voice": "meathead",
   "text": "ONE SWORD. THREE GUYS. ONE JAIL. AND I'M STILL THE ONE WHO SHIT HIMSELF TODAY.",
-  "from": "game/stages/dale/town.ts:793"
+  "from": "game/stages/dale/town.ts:795"
  },
  {
   "voice": "meathead",
   "text": "ONE SWORD. THREE GUYS. ONE JAIL. NOW THAT'S A COMPOUND MOVEMENT.",
-  "from": "game/stages/dale/town.ts:792"
+  "from": "game/stages/dale/town.ts:794"
  },
  {
   "voice": "meathead",
@@ -15033,6 +15033,11 @@
   "voice": "meathead",
   "text": "SWITCHBLADE TO THE LATS! THAT'S A NEW YORK HELLO!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SWORDS ARE FOR PUSSIES. A REAL MAN BRINGS A GUN. AND HIS FISTS.",
+  "from": "game/stages/dale/town.ts:607"
  },
  {
   "voice": "meathead",

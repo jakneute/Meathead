@@ -604,7 +604,7 @@ const updateNinja = (ctx: FrameContext, town: Town, talk: Talk): Controls | null
   }
   if (n.state === 'fall') {
     if (!n.down) fallNinja(ctx, town);
-    else if (++n.down.t === NINJA_SAY) queueLines(state, talk, [{ who: 'meathead', text: '...OKAY. SAVES ME A BULLET.' }]);
+    else if (++n.down.t === NINJA_SAY) queueLines(state, talk, [{ who: 'meathead', text: '...OKAY. SAVES ME A BULLET.' }, { who: 'meathead', text: 'SWORDS ARE FOR PUSSIES. A REAL MAN BRINGS A GUN. AND HIS FISTS.' }]);
     // The camera over to where he's coming down (no further than it has to: Meathead's still in it), then back
     const camX = n.camX ?? state.camera.x, camY = n.camY ?? state.camera.y, bx = n.down?.x ?? n.body?.x ?? camX;
     const back = !!n.down && n.down.t > NINJA_DONE;
@@ -803,6 +803,8 @@ const jailScene = (ctx: FrameContext, town: Town, talk: Talk, controls: Controls
   const t = T();
   const cab = town.cab;
   const camX = t.jail.x1 - 430;
+  // (all of it's a cutscene, him off up the street out of it: nothing comes at him, and the HUD's put away)
+  p.inCutscene = true;
   if (town.t === 1) {
     // (the cab's off up the street, out of sight, till it's time)
     cab.x = camX - CAB.w - 700; cab.speed = 0;
@@ -874,7 +876,7 @@ const jailScene = (ctx: FrameContext, town: Town, talk: Talk, controls: Controls
   }
   if (town.crashedAt >= 0 && town.t >= town.crashedAt + JAIL_AFTER) {
     town.phase = 'crashed'; town.t = 0;
-    state.cameraOverride = null;
+    state.cameraOverride = null; p.inCutscene = false;
     return controls;
   }
   return { ...NO_CONTROLS };
