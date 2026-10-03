@@ -2,6 +2,7 @@
 // being wrecked weapon by weapon, and what's being said. Kept apart from the code that runs it, so the boss (in
 // bosses/alien.ts) and the stage (here) can both get at it without importing each other.
 
+import { MAX_AMMO } from '../../../constants';
 import type { GameState } from '../../core/state';
 import type { WeaponType } from '../../../types';
 
@@ -65,6 +66,8 @@ export interface FinaleRuntime {
   shed: { x: number; y: number; vy: number; kind: number; flip: number }[];
   /** Said already (once each): the line for each thing done to him, by what it was. */
   said: Record<string, boolean>;
+  /** How long this shot's tell runs (set as the gun comes up: quicker the more ammo he's spent). */
+  tellLen?: number;
   /** Chunks off a pitched boulder that's hit him, each homing in on an agent (who it's for, where it is). */
   chunks?: { id: string; x: number; y: number; vx: number; vy: number; t: number }[];
   /** Little jets of flame off the flamethrower's nozzle, each homing in on an agent the stream isn't already burning. */
@@ -122,6 +125,17 @@ export const newFinale = (): FinaleRuntime => ({
 
 /** 0 at full health, 1 at none: he speeds up as it drops. */
 export const alienPace = (boss: { health: number; maxHealth: number }) => Math.max(0, Math.min(1, 1 - boss.health / boss.maxHealth));
+
+/**
+ * How much of his ammo Meathead's got through (0 full, 1 all gone): the average, over every weapon of his that runs
+ * out, of how empty it is. The more of it he's spent, the quicker the alien fires.
+ */
+export const ammoDrain = (state: GameState) => {
+  const p = state.player;
+  const ws = (state.availableWeapons ?? []).filter(w => w !== 'GUN' && w !== 'LMG' && Number.isFinite(MAX_AMMO[w]) && MAX_AMMO[w] > 0);
+  if (!ws.length) return 0;
+  return ws.reduce((t, w) => t + (1 - Math.max(0, Math.min(1, (p.weaponAmmo?.[w] ?? MAX_AMMO[w]) / MAX_AMMO[w]))), 0) / ws.length;
+};
 
 /** The finale as it's being drawn this frame (set by the stage as it starts drawing; the alien's sprite poses by it). */
 let drawing: FinaleRuntime | null = null;

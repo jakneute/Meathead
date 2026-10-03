@@ -24,7 +24,7 @@ import { playSound } from '../platform/audio';
 import { pickRandom } from '../core/utils';
 import { stickNeedle, BOSS_NEEDLE } from '../combat/needles';
 import { startEnemyDeath } from '../enemies/deaths';
-import { getFinale, alienPace, FinaleRuntime } from '../stages/finale/state';
+import { getFinale, alienPace, ammoDrain, FinaleRuntime } from '../stages/finale/state';
 import { ROOM_L, ROOM_R, ROOM_TOP, ROOM_MID, FLOOR } from '../stages/finale/geometry';
 import { oiledIntoFire, detonateNuke, burnEnemy } from '../combat/weapons';
 import { spillOil } from './oscar';
@@ -107,7 +107,7 @@ const anchorOn = (side: -1 | 1) => {
 const dropShot = (rt: FinaleRuntime) => { if (rt.mode === 'charge' || rt.mode === 'fire') { rt.mode = 'float'; rt.modeT = 0; rt.path = []; } rt.beam = null; };
 
 /** How fast he floats (quicker as he loses health; iced, a crawl). */
-const floatSpeed = (boss: Enemy, rt: FinaleRuntime) => (1.6 + alienPace(boss) * 3.4) * (rt.slowT > 0 ? 0.35 : 1);
+const floatSpeed = (boss: Enemy, rt: FinaleRuntime, drain = 0) => (1.6 + alienPace(boss) * 3.4) * (1 + drain * 0.25) * (rt.slowT > 0 ? 0.35 : 1);
 
 /** Toward a point at up to `speed`, easing in at the end. True once he's there. */
 const floatTo = (boss: Enemy, x: number, y: number, speed: number) => {
@@ -203,7 +203,7 @@ const floatAbout = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
     rt.modeT = 0;
   }
   const at = rt.path[0];
-  if (floatTo(boss, at.x, at.y, floatSpeed(boss, rt) * (rt.path.length > 1 ? 1.4 : 1))) {
+  if (floatTo(boss, at.x, at.y, floatSpeed(boss, rt, ammoDrain(ctx.state)) * (rt.path.length > 1 ? 1.4 : 1))) {
     rt.path.shift();
     if (rt.path.length === 0) {
       // Settled: up comes the gun
@@ -217,6 +217,7 @@ const floatAbout = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
 /** Up comes the gun, aimed at him (more or less: the way he's facing, swung toward him). */
 const startCharge = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
   rt.mode = 'charge'; rt.modeT = 0;
+  rt.tellLen = tellFrames(boss, rt, ammoDrain(ctx.state));
   const m = alienMuzzle(boss, { dx: facing(boss), dy: 0 });
   const p = ctx.state.player;
   const dx = p.pos.x + p.width / 2 - m.x, dy = p.pos.y + p.height / 2 - m.y, d = Math.hypot(dx, dy) || 1;
@@ -230,11 +231,13 @@ const startCharge = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
 const GROUNDED_SHOT_WAIT = 80;
 
 /** The tell: the gun up, the beam charging along where it's aimed (turning to follow him), then locked on. */
-const tellFrames = (boss: Enemy, rt: FinaleRuntime) => Math.round((TELL_FRAMES - alienPace(boss) * TELL_RAMP) * (rt.slowT > 0 ? 1.6 : 1));
+/** (and the more of his ammo Meathead's spent, the quicker it comes: up to a third quicker with it all gone) */
+const DRAIN_TELL = 0.35;
+const tellFrames = (boss: Enemy, rt: FinaleRuntime, drain = 0) => Math.round((TELL_FRAMES - alienPace(boss) * TELL_RAMP) * (1 - drain * DRAIN_TELL) * (rt.slowT > 0 ? 1.6 : 1));
 
 const chargeUp = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
   const p = ctx.state.player;
-  const tell = tellFrames(boss, rt);
+  const tell = rt.tellLen ?? tellFrames(boss, rt);
   boss.vel.x *= 0.8; boss.vel.y *= 0.8;
   if (rt.modeT < tell - LOCK_FRAMES) {
     const m = alienMuzzle(boss, rt.aim);

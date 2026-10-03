@@ -170,7 +170,7 @@ export const drawAlienGear = (ctx: Ctx, e: Enemy, frame: number) => {
   // The tell: the coil glowing up, a sight line flickering out along where it's aimed (white once it's locked on)
   if (rt.mode === 'charge') {
     const m = alienMuzzle(e, rt.aim);
-    const tell = Math.max(1, (72 - (1 - e.health / e.maxHealth) * 36) * (rt.slowT > 0 ? 1.6 : 1));
+    const tell = Math.max(1, rt.tellLen ?? (72 - (1 - e.health / e.maxHealth) * 36) * (rt.slowT > 0 ? 1.6 : 1));
     const k = Math.min(1, rt.modeT / tell), locked = rt.modeT >= tell - 14;
     steppedGlow(ctx, m.x, m.y, 8 + k * 22, '#ec44c4', 0.15 + k * 0.45, 0, 5);
     ctx.fillStyle = L[6]; ctx.fillRect(Math.round(m.x - 2 - k * 2), Math.round(m.y - 2 - k * 2), 4 + k * 4, 4 + k * 4);
