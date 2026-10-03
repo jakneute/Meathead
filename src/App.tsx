@@ -871,7 +871,7 @@ const App: React.FC = () => {
           whiteHouseOpen={whiteHouseOpen}
           killRecords={killRecords}
           shatKills={shatKills}
-          cheats={SHOW_CHEATS ? { flags: cheatFlags, onToggle: handleToggleCheat, onChangeRank: handleChangeRank, onPlayEnding: () => setStatus(GameStatus.ENDING), onPlayCall: () => { setCallPreview(true); setStatus(GameStatus.VICTORY); } } : undefined}
+          cheats={SHOW_CHEATS ? { flags: cheatFlags, onToggle: handleToggleCheat, onChangeRank: handleChangeRank, onPlayEnding: () => { setEndingPart('epilogue'); setStatus(GameStatus.ENDING); }, onPlayCall: () => { setCallPreview(true); setStatus(GameStatus.VICTORY); } } : undefined}
           showCall={progressionRank === 0 || callPreview}
         />
         </div>

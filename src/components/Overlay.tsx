@@ -200,7 +200,7 @@ const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['che
     <CheatToggle label="SHITTY PANTS" on={flags.shittyPants} onColor="bg-amber-800" onClick={() => onToggle('shittyPants')} />
     <div className="h-2 w-full" />
     <button onClick={onPlayCall} className="w-full px-2 py-1 border-2 border-gray-600 bg-gray-800 text-yellow-300 font-black text-[7px] uppercase shadow-[2px_2px_0px_white] hover:bg-gray-700">VIEW MID-GAME CALL</button>
-    <button onClick={onPlayEnding} className="w-full px-2 py-1 border-2 border-gray-600 bg-gray-800 text-yellow-300 font-black text-[7px] uppercase shadow-[2px_2px_0px_white] hover:bg-gray-700">VIEW ENDING</button>
+    <button onClick={onPlayEnding} className="w-full px-2 py-1 border-2 border-gray-600 bg-gray-800 text-yellow-300 font-black text-[7px] uppercase shadow-[2px_2px_0px_white] hover:bg-gray-700">VIEW FINALE</button>
     {SHOW_SOUND_TESTS && <>
       <div className="h-2 w-full" />
       <SoundTest enabled={musicOn} />
