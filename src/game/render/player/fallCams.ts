@@ -108,6 +108,22 @@ export const drawFallCam = (ctx: Ctx, state: GameState, W: number, H: number) =>
 
 type Scene = (ctx: Ctx, state: GameState, d: MeatheadDeath, t: number, f: number, hit: boolean, since: number, W: number, H: number) => void;
 
+/** A scene's still part (its walls and the like, thousands of little fills): painted the once into a canvas of its
+ * own, then just put down each frame after. */
+const stills = new Map<string, HTMLCanvasElement>();
+const still = (ctx: Ctx, key: string, W: number, H: number, paint: (g: Ctx) => void) => {
+  if (typeof document === 'undefined') { paint(ctx); return; }
+  const k = `${key}:${W}x${H}`;
+  let c = stills.get(k);
+  if (!c) {
+    c = document.createElement('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d')!; g.imageSmoothingEnabled = false;
+    paint(g);
+    stills.set(k, c);
+  }
+  ctx.drawImage(c, 0, 0);
+};
+
 // ---------------------------------------------------------------------------
 
 /**
@@ -116,11 +132,24 @@ type Scene = (ctx: Ctx, state: GameState, d: MeatheadDeath, t: number, f: number
  * blood running down the ice under him and freezing in red icicles; legs kicking, slowing, frosting over.
  */
 const crevasse: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
-  const cx = W / 2, wedge = 450;
-  const hw = (y: number) => Math.max(26, 185 - y * 0.26);
+  // (the crack narrows, then closes in a V: he's jammed in the bottom of it by the shoulders, his head down in the point)
+  const cx = W / 2, wedge = 384;
+  const hw = (y: number) => (y < 300 ? 185 - y * 0.26 : Math.max(0, 107 - (y - 300) * 0.75));
   const edge = (side: number) => (y: number) => cx + side * (hw(y) + (hash(Math.floor(y / 24) + side * 7) - 0.5) * 18 + Math.sin(y * 0.05 + side) * 6);
   // The crack itself: daylight up top, falling away into the dark
   bandedGradient(ctx, 0, 0, W, H, ['#E0F2FE', '#7DD3FC', '#1D4ED8', '#172554', '#020617', '#000000'], 18);
+  // Him: head first, down into it, then jammed (the walls are put down over him: they've got him by the shoulders)
+  const by = dropTo(t, wedge);
+  const kick = hit ? Math.sin(since * 0.9) * 0.14 * (1 - clamp01(since / 55)) : Math.sin(t * 0.5) * 0.25;
+  const frost = clamp01((since - 45) / 35);
+  ctx.save();
+  if (frost > 0) ctx.filter = `saturate(${1 - frost * 0.55}) brightness(${1 + frost * 0.18}) hue-rotate(${-frost * 12}deg)`;
+  // (squeezed in it: narrower the tighter it's got him)
+  const sq = hit ? 0.8 + 0.06 * Math.max(0, 1 - since / 6) : 1;
+  ctx.translate(cx, by); ctx.scale(sq, 1); ctx.translate(-cx, -by);
+  him(ctx, state, d, cx + (hit ? 0 : Math.sin(t * 0.4) * 12), by - (hit && since < 4 ? 4 - since : 0), Math.PI + kick, 1.6, !hit ? 'scream' : since < 45 ? 'agony' : 'frozen');
+  ctx.restore();
+  still(ctx, 'crevasse-walls', W, H, ctx => {
   // The walls: glacier ice, lit through from the crack (glowing pale at its face, deepening to dark blue back into
   // it), old layers bowed through it, big fractured planes, trapped bubbles, a band of grit
   const glow = ['#E0F2FE', '#BAE6FD', '#7DD3FC', '#38BDF8', '#0EA5E9', '#0369A1', '#0C4A6E', '#082F49'];
@@ -166,8 +195,8 @@ const crevasse: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
     }
     for (let k = 0; k < 6; k++) { const x = lip + side * (6 + k * 34), len = 10 + hash(k + side) * 24; ctx.fillStyle = '#E0F2FE'; ctx.beginPath(); ctx.moveTo(x - 4, 28); ctx.lineTo(x + 4, 28); ctx.lineTo(x, 28 + len); ctx.fill(); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(snap(x - 2), 28, P, snap(len * 0.6)); }
   }
+  });
   // Where he's scraped down the walls on the way: smears, red on the ice
-  const by = dropTo(t, wedge);
   for (const side of [-1, 1]) {
     const e = edge(side);
     for (let y = 80; y < Math.min(by, wedge - 30); y += P * 2) {
@@ -178,14 +207,16 @@ const crevasse: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
       if (hash(y * 3 + side) > 0.9) { ctx.fillStyle = '#7F1D1D'; ctx.fillRect(x + (side < 0 ? -P * 2 : wdt), y, P, snap(6 + hash(y) * 16)); }
     }
   }
-  // Him: head first, wedged; kicking, slowing, still
-  const kick = hit ? Math.sin(since * 0.9) * 0.14 * (1 - clamp01(since / 55)) : Math.sin(t * 0.5) * 0.25;
-  const frost = clamp01((since - 45) / 35);
-  ctx.save();
-  if (frost > 0) ctx.filter = `saturate(${1 - frost * 0.55}) brightness(${1 + frost * 0.18}) hue-rotate(${-frost * 12}deg)`;
-  him(ctx, state, d, cx + (hit ? 0 : Math.sin(t * 0.4) * 12), by - (hit && since < 4 ? 4 - since : 0), Math.PI + kick, 1.6, !hit ? 'scream' : since < 45 ? 'agony' : 'frozen');
-  ctx.restore();
   if (hit) {
+    // Where the ice has him: cracks starred out from his shoulders and his head, white in the blue
+    ctx.strokeStyle = 'rgba(240, 249, 255, 0.85)'; ctx.lineWidth = 1;
+    for (const [px, py, n] of [[cx - hw(wedge - 20), wedge - 20, 5], [cx + hw(wedge - 20), wedge - 20, 5], [cx, wedge + 56, 4]] as const) {
+      const grow = clamp01(since / 10);
+      for (let k = 0; k < n; k++) {
+        const a = (k / n) * Math.PI * 2 + hash(px + k), len = (14 + hash(k * 5 + px) * 22) * grow;
+        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + Math.cos(a) * len * 0.5 + (hash(k) - 0.5) * 4, py + Math.sin(a) * len * 0.5); ctx.lineTo(px + Math.cos(a) * len, py + Math.sin(a) * len); ctx.stroke();
+      }
+    }
     // The impact: blood up the walls either side of him, soaking into the ice round him
     for (const side of [-1, 1]) {
       ctx.fillStyle = 'rgba(153, 27, 27, 0.35)'; ctx.beginPath(); ctx.ellipse(cx + side * 52, wedge + 20, 26, 70, side * 0.2, 0, Math.PI * 2); ctx.fill();
