@@ -30,6 +30,8 @@ export type ThingPhase = 'dormant' | 'rise' | 'fight' | 'dying' | 'dead';
 export interface Thing {
   phase: ThingPhase;
   t: number;
+  /** Whether its rise has him in a cutscene (this set inCutscene, and takes it off). */
+  held?: boolean;
   e: Enemy | null;
   /** What it wants now, how much of it it's had, how long it's been asking, and whether it's had its fill. */
   want: WeaponType;
@@ -160,10 +162,11 @@ export const updateThingRoom = (ctx: FrameContext, th: Thing, talk: Talk, contro
       }
       return controls;
     case 'rise':
-      // Up out of the pool, and its piece said
+      // Up out of the pool, and its piece said (a cutscene while it comes up: the HUD's put away)
       p.invincibilityTimer = Math.max(p.invincibilityTimer, 2);
+      p.inCutscene = true; th.held = true;
       // (the fight's on as soon as it's up: its first ask comes after what's being said)
-      if (th.t > 90) { th.phase = 'fight'; th.t = 0; th.dropAt = state.frame + FIRST_DROP; ask(state, th, talk, true); }
+      if (th.t > 90) { th.phase = 'fight'; th.t = 0; th.dropAt = state.frame + FIRST_DROP; ask(state, th, talk, true); p.inCutscene = false; th.held = false; }
       return th.t < 90 ? { ...NO_CONTROLS } : controls;
     case 'fight': return fight(ctx, th, talk, controls);
     case 'dying':

@@ -237,6 +237,7 @@ const riding = (ctx: FrameContext, b: BikeRun, talk: Talk, controls: Controls): 
   const R = COURSE.road;
   if (px > R.hazmat - 700) {
     b.phase = 'bottle'; b.t = 0; b.step = 0; b.stepAt = 0;
+    p.inCutscene = true;
     return { ...NO_CONTROLS };
   }
   // The pace: pedaling hard, easing off (and turned to shoot back), or cruising

@@ -46,6 +46,8 @@ export interface ErnieRuntime {
   downT: number;
   /** Off the ramp and on to the island: frames of the fade to black (0 = not). */
   awayT: number;
+  /** Whether the walk down off the bridge, or the hipster's scene, has him in a cutscene (this set inCutscene, and takes it off). */
+  heldScene?: boolean;
 }
 
 export type Region = 'main' | 'bay' | 'cell';
@@ -157,10 +159,16 @@ export const updateErnie = (ctx: FrameContext, controls: Controls): Controls => 
       rt.awayT = 0;
       skipTour(state, rt.tour);
       rt.sceneT = 0;
+      rt.heldScene = false;
       return { ...NO_CONTROLS };
     }
   } else rt.sceneT = 0;
-  return updateTour(ctx, rt.tour, controls);
+  controls = updateTour(ctx, rt.tour, controls);
+  // (down off the bridge to the water, and the hipster's scene, from him catching up to Meathead out of the wreck: a
+  // cutscene, the HUD put away; given back the moment it's over)
+  if (rt.downT > 0 || inHipsterScene(rt)) { player.inCutscene = true; rt.heldScene = true; }
+  else if (rt.heldScene) { player.inCutscene = false; rt.heldScene = false; }
+  return controls;
 };
 
 /** The hipster's scene is on (from him pulling up behind, to Meathead back on his feet on the island). */

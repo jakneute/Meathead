@@ -336,7 +336,7 @@ const blowUp = (ctx: FrameContext, cv: Convoy, i: number, talk: Talk) => {
   }
   const p = state.player;
   const on = p.pos.x + p.width > x - 10 && p.pos.x < x + TRUCK_W + 10 && p.pos.y + p.height <= TRAILER_TOP + 150;
-  if (on && state.deathTimer <= 0) cv.fall = { t: 0, kind: 'boom', x: p.pos.x, y: p.pos.y, truck: i };
+  if (on && state.deathTimer <= 0) { cv.fall = { t: 0, kind: 'boom', x: p.pos.x, y: p.pos.y, truck: i }; p.inCutscene = true; }
   void talk;
 };
 
@@ -350,6 +350,8 @@ const startFall = (ctx: FrameContext, cv: Convoy, talk: Talk) => {
   cv.fall = { t: 0, kind: behind >= 0 ? 'runover' : 'flop', x, y: Y, truck: behind,
     road: { g: x, v: ROAD_SPEED, h: Math.max(0, Y - (p.pos.y + p.height)), vh: -6, rot: 0, spin: behind >= 0 ? 0.1 : -0.35, passed: 0, crunched: [], flat: 0, stoppedAt: -1, said: 0, smears: [] } };
   hush(state, talk);
+  // (a cutscene from the first frame of it)
+  p.inCutscene = true;
   // (it's just him and the road now: no junk coming, no warnings, no banners)
   cv.debris = [];
   cv.banner = null;
@@ -764,6 +766,7 @@ const watchBarf = (ctx: FrameContext, cv: Convoy, talk: Talk) => {
   // Through the roof
   replaceLines(state, talk, [{ who: 'meathead', text: '...UH OH.' }]);
   cv.fall = { t: 0, kind: 'melt', x: p.pos.x + p.width / 2, y: p.pos.y, truck: i };
+  p.inCutscene = true;
   playSound('barf');
 };
 
@@ -845,6 +848,7 @@ const updateCab = (ctx: FrameContext, cv: Convoy, talk: Talk, controls: Controls
     // Thumb down on the button
     cab.phase = 'done';
     cv.fall = { t: -20, kind: 'button', x: p.pos.x, y: p.pos.y, truck: 3 };
+    p.inCutscene = true;
     return { ...NO_CONTROLS };
   }
   if (cab.phase === 'shot' || cab.phase === 'crash') return crash(ctx, cv, talk);
@@ -879,6 +883,9 @@ const CRASH_FRAMES = 200;
 const crash = (ctx: FrameContext, cv: Convoy, talk: Talk): Controls => {
   const { state } = ctx;
   const cab = cv.cab;
+  // (Riggs shot, the truck swerving off the interstate with him hanging on: a cutscene, straight on into the crash in
+  // town, which gives him back)
+  state.player.inCutscene = true;
   if (cab.phase === 'shot' && cab.t > 150) { cab.phase = 'crash'; cab.t = 0; }
   if (cab.phase === 'crash') {
     cab.swerve = Math.sin(cab.t * 0.08) * Math.min(1, cab.t / 60);

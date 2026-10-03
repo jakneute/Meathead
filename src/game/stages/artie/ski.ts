@@ -432,7 +432,8 @@ const finale = (ctx: FrameContext, ski: Ski): Controls => {
   const cabin = COURSE.cabin;
   ski.avX += AVALANCHE_SPEED * (ski.phase === 'runout' ? 1 : 1.2);
   if (ski.phase === 'runout') {
-    // Coast in and skid to a stop past the cabin
+    // Coast in and skid to a stop past the cabin (out of his hands: the finale's cutscene starts here)
+    player.inCutscene = true;
     const left = cabin.stopX - player.pos.x;
     player.skiSpeed = Math.max(0, Math.min(SKI_BASE, left * 0.06));
     if (left < 30 && player.isGrounded) { player.skiSpeed = 0; ski.phase = 'finale'; ski.t = 0; state.cameraLeadX = 0; }

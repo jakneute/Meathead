@@ -786,6 +786,8 @@ const leave = (ctx: FrameContext, fight: JunkieFight, talk: Talk, controls: Cont
   const o = office();
   if (fight.phase === 'dead') { fight.phase = 'leaving'; fight.leaveT = 0; }
   fight.leaveT++;
+  // (a cutscene from here, him out the window and the fade to the highway: boardConvoy gives him back)
+  p.inCutscene = true;
   if (fight.leaveT === LEAVE_LINES_AT) replaceLines(state, talk, [
     { who: 'dale', text: isShat(state) ? "LOAD THE REST OF THE CARGO! MOVE IT! HE'S COMING! I CAN SMELL HIM COMING!" : "LOAD THE REST OF THE CARGO! MOVE IT! HE'S COMING!" },
     { who: 'meathead', text: "THE CARGO'S LEAVING? NOT WITHOUT ME." },

@@ -55,7 +55,15 @@ export interface BarryRuntime {
   dumpster: Dumpster | null;
   /** A test subject on hypermode got him: torn in half (see hyper.ts). */
   rip: Rip | null;
+  /** Whether a fade, the elevator or the power room going up has him in a cutscene (this set inCutscene, and takes it off). */
+  heldScene?: boolean;
 }
+
+/** In a cutscene of this file's (the HUD put away) or not: it only ever takes off one it put on. */
+const holdScene = (p: GameState['player'], rt: BarryRuntime, on: boolean) => {
+  if (on) { p.inCutscene = true; rt.heldScene = true; }
+  else if (rt.heldScene) { p.inCutscene = false; rt.heldScene = false; }
+};
 
 export const getBarry = (state: GameState) => state.stage as BarryRuntime | null;
 
@@ -111,7 +119,8 @@ export const updateBarry = (ctx: FrameContext, controls: Controls): Controls => 
   const p = state.player;
   updateTalk(state, rt.talk);
   updateBarks(state, rt);
-  if (rt.transit) return updateTransit(ctx, rt);
+  // (a fade, or the elevator: a cutscene till he's out the other side)
+  if (rt.transit) { const c = updateTransit(ctx, rt); holdScene(p, rt, !!rt.transit); return c; }
   if (rt.surf) return updateSurf(ctx, rt);
   const place = placeOf(p.pos.x);
   checkpoints(state, rt);
@@ -139,7 +148,11 @@ export const updateBarry = (ctx: FrameContext, controls: Controls): Controls => 
       controls = updatePower(ctx, rt.power, rt.talk, controls);
       // (in the water with it going through him, the stage draws him)
       p.hidden = rt.power.phase === 'surge';
-      if (rt.power.phase === 'done') startSurf(state, rt);
+      // (once it's out of his hands: the meltdown and the white-out, or the water and the current through him; then
+      // the ride down, which has him from there)
+      const pw = rt.power;
+      holdScene(p, rt, (pw.phase === 'meltdown' && pw.meltT > 90) || pw.phase === 'surge' || pw.phase === 'done');
+      if (pw.phase === 'done') { startSurf(state, rt); rt.heldScene = false; }
       break;
     }
     case 'landing': break;

@@ -217,7 +217,7 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
       state.cameraMaxX = p.pos.y < GROUND_Y - 1000 ? COURSE.ruins.x2 - CANVAS_WIDTH : undefined;
       // Walking on over the rubble, to the edge of the pit and over it
       // (only from up there: not a respawn down at the door dropping in from above it)
-      if (p.pos.x + p.width / 2 > COURSE.ruins.pit && p.pos.y > RUINS_Y - 20 && p.pos.y < RUINS_Y + 200 && !p.isGrounded) { es.phase = 'drop'; es.t = 0; es.dropT = 0; es.landedT = 0; silenceAll(); hush(state, talk); queueLines(state, talk, [{ who: 'meathead', text: 'AAAAAAAAAAAAAAAAAAAAAAAA' }]); }
+      if (p.pos.x + p.width / 2 > COURSE.ruins.pit && p.pos.y > RUINS_Y - 20 && p.pos.y < RUINS_Y + 200 && !p.isGrounded) { es.phase = 'drop'; es.t = 0; es.dropT = 0; es.landedT = 0; p.inCutscene = true; silenceAll(); hush(state, talk); queueLines(state, talk, [{ who: 'meathead', text: 'AAAAAAAAAAAAAAAAAAAAAAAA' }]); }
       return controls;
     case 'drop': {
       // A long way down: black before the bottom, and back as he hits it

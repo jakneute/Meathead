@@ -134,7 +134,9 @@ const updateFade = (ctx: FrameContext, rt: DaleRuntime): Controls => {
       boardConvoy(state, rt.convoy);
     }
   }
-  if (f.t >= FADE_OUT + FADE_HOLD + FADE_IN) rt.fade = null;
+  // (hands off the whole way, through the black and back up on the truck: a cutscene, the HUD put away till it's over)
+  state.player.inCutscene = true;
+  if (f.t >= FADE_OUT + FADE_HOLD + FADE_IN) { rt.fade = null; state.player.inCutscene = false; }
   return { ...NO_CONTROLS };
 };
 

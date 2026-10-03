@@ -30,8 +30,11 @@ export interface TommyRuntime {
   escape: Escape;
   /** Down the manhole into the sewer: still falling, or flat out seeing stars. */
   sewerFall: 'falling' | 'dazed' | null;
+  /** Whether the fall into the sewer has him in a cutscene (this set inCutscene, and takes it off). */
+  heldFall?: boolean;
   /** A cut to black and back (into the sewer): frames in, and what happens at the black. */
-  fade: { t: number; at: (() => void) | null };
+  /** `keep`: whether he was in a cutscene once the far side of it was set up (given back as the fade lets go of him). */
+  fade: { t: number; at: (() => void) | null; keep?: boolean };
 }
 
 /** The fade: frames to black, held, frames back. */
@@ -112,9 +115,12 @@ export const updateTommy = (ctx: FrameContext, controls: Controls): Controls => 
   if ((p.kickPose || 0) > 0) p.kickPose!--;
   if (rt.fade.t > 0) {
     rt.fade.t++;
-    if (rt.fade.t === FADE_OUT) { hush(state, rt.talk); rt.fade.at?.(); rt.fade.at = null; }
+    if (rt.fade.t === FADE_OUT) { hush(state, rt.talk); rt.fade.at?.(); rt.fade.at = null; rt.fade.keep = !!p.inCutscene; }
     if (rt.fade.t > FADE_OUT + FADE_HOLD + FADE_IN) rt.fade.t = 0;
-    if (rt.fade.t < FADE_OUT + FADE_HOLD / 2) return { ...NO_CONTROLS };
+    // (hands off through to black and out the other side: a cutscene, the HUD put away; then whatever the far side
+    // set up for him)
+    if (rt.fade.t > 0 && rt.fade.t < FADE_OUT + FADE_HOLD / 2) { p.inCutscene = true; return { ...NO_CONTROLS }; }
+    if (rt.fade.keep !== undefined) { p.inCutscene = rt.fade.keep; rt.fade.keep = undefined; }
   }
   const place = placeOf(p.pos.x);
   // On foot down the block: the mains going off, the flooded holes (the sewer's muck, the same stuff)
@@ -150,6 +156,9 @@ export const updateTommy = (ctx: FrameContext, controls: Controls): Controls => 
     if (state.playerStunTimer <= 0) rt.sewerFall = null;
     controls = { ...NO_CONTROLS };
   }
+  // (in through the roof and flat on his back: a cutscene, the HUD put away till he's up)
+  if (rt.sewerFall) { p.inCutscene = true; rt.heldFall = true; }
+  else if (rt.heldFall) { p.inCutscene = false; rt.heldFall = false; }
   if (place === 'sewer' || place === 'tunnel' || place === 'cistern') {
     updateSewer(ctx, rt.sewer, rt.talk);
     if (state.checkpoint < CP.CISTERN && p.isGrounded && p.pos.x > COURSE.checkpoints[CP.CISTERN].x) state.checkpoint = CP.CISTERN;

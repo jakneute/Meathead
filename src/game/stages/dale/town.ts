@@ -109,6 +109,8 @@ export interface Town {
   wallNagAt?: number; wallNags?: number;
   /** Riggs coming for him: whether he's jumped since he was last on the ground, and whether that jump was an uppercut. */
   jumped?: boolean; boosted?: boolean;
+  /** Whether the race back to the shop, the cab backing out and its run up the street have him in a cutscene (this set inCutscene, and takes it off). */
+  heldRun?: boolean;
   cab: { x: number; speed: number; facing: 1 | -1; spin: number; state: 'arrive' | 'parked' | 'reverse' | 'spin' | 'go' | 'wrecked'; t: number };
   props: TownProp[];
   /** The "sheriff": where he is; whether he's off; what came of him (skewered by the ninja's sword, pinned up the
@@ -712,6 +714,10 @@ const updateWarpath = (ctx: FrameContext, town: Town, talk: Talk, controls: Cont
     }
     return controls;
   }
+  // (the camera off down the street to the shop, the cab backing out of it, its run up the street at him: a cutscene,
+  // the HUD put away; given back the moment it's coming for him)
+  if (town.phase === 'pan' || town.phase === 'revive' || town.phase === 'chase') { p.inCutscene = true; town.heldRun = true; }
+  else if (town.heldRun) { p.inCutscene = false; town.heldRun = false; }
   if (town.phase === 'pan') {
     // The camera races back down the street to the curio shop
     state.cameraOverride = { x: t.x1, y: 0 };
@@ -752,6 +758,7 @@ const updateWarpath = (ctx: FrameContext, town: Town, talk: Talk, controls: Cont
         // Back to him, and it stays put there: the last of the street before the jail (the ninja and his sword in it),
         // the cab coming in off the left
         town.phase = 'incoming'; town.t = 0;
+        if (town.heldRun) { p.inCutscene = false; town.heldRun = false; }
         town.lockX = lockFrame();
         if (p.pos.x < town.lockX + 10) p.pos.x = town.lockX + 10;
         if (p.pos.x + p.width > town.lockX + CANVAS_WIDTH - 10) p.pos.x = town.lockX + CANVAS_WIDTH - 10 - p.width;
@@ -965,7 +972,7 @@ const jailScene = (ctx: FrameContext, town: Town, talk: Talk, controls: Controls
     else { town.sheriff.running = true; town.sheriff.x = Math.max(town.sheriff.x, camX + CANVAS_WIDTH + 60); }
     cab.speed = 26; cab.x = t.jail.x1 + 30 - CAB.w;
     // (all of it: out of a close-up too)
-    if (town.cutIn) { town.cutIn = undefined; p.inCutscene = false; }
+    if (town.cutIn) town.cutIn = undefined;
   }
   // A close-up: everything else holds where it is till it's done, then back to it
   if (town.cutIn) {
@@ -973,7 +980,7 @@ const jailScene = (ctx: FrameContext, town: Town, talk: Talk, controls: Controls
     p.inCutscene = true; p.vel.x = 0;
     const c = town.cutIn;
     if (++c.t >= (c.shot === 'sword' ? CUT_SWORD : CUT_RIGGS)) {
-      town.cutIn = undefined; p.inCutscene = false;
+      town.cutIn = undefined;
       // (out of the sky and in off the left at him; the cab already in sight down the street, flat out)
       if (c.shot === 'sword') homeSword(town, camX);
       else { cab.x = camX - CAB.w - 40; cab.speed = 26; }

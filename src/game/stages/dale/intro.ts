@@ -24,6 +24,8 @@ export interface Intro {
   /** When he spotted him, and when the truck started up. */
   spotT: number;
   goT: number;
+  /** Whether this scene has him in a cutscene (it set inCutscene, and takes it off). */
+  held?: boolean;
 }
 
 export const createIntro = (startedAt: number): Intro => ({
@@ -66,7 +68,10 @@ export const updateIntro = (ctx: FrameContext, it: Intro, talk: Talk, controls: 
     cr.vy += 0.6; cr.y += cr.vy;
     if (cr.y >= 550 - 26) { cr.y = 550 - 26; cr.broke = true; ctx.fx.spawnPowderExplosion({ x: cr.x + 13, y: cr.y + 13 }, 20); }
   }
-  // Hands off the controls till he's in the cab
+  // Hands off the controls till he's in the cab (a cutscene till then: the HUD's put away)
+  const p = state.player;
+  if (it.phase !== 'driving') { p.inCutscene = true; it.held = true; }
+  else if (it.held) { p.inCutscene = false; it.held = false; }
   return it.phase === 'driving' ? controls : { ...NO_CONTROLS };
 };
 

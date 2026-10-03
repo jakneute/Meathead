@@ -28,6 +28,8 @@ export interface VictorRuntime {
   /** Through the club doors (or in off the top of the shaft onto the club floor): frames of the fade (0 = not), and where to. */
   enterT: number;
   enterTo: 'river' | 'floor';
+  /** Whether going in through the doors has him in a cutscene (this set inCutscene, and takes it off). */
+  heldEnter?: boolean;
 }
 
 export type Region = 'main' | 'inside' | 'club' | 'lounge';
@@ -106,6 +108,9 @@ export const updateVictor = (ctx: FrameContext, controls: Controls): Controls =>
     }
     if (rt.enterT > ENTER_FRAMES + 30) rt.enterT = 0;
   }
+  // (in through the doors, the fade and out the other side: a cutscene, the HUD put away till he's in)
+  if (rt.enterT > 0) { player.inCutscene = true; rt.heldEnter = true; }
+  else if (rt.heldEnter) { player.inCutscene = false; rt.heldEnter = false; }
   // Up a shaft (the volcano's, or the club's atrium) the view stops at its right-hand wall (and lets go again anywhere
   // else); out on the trail it stops at the club: nothing past the front of it
   const S = region === 'club' ? COURSE.atrium : COURSE.shaft;

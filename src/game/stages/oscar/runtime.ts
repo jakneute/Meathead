@@ -32,7 +32,8 @@ export interface OscarRuntime {
   /** In the fight: the pull back to take in whatever the taser's holding off the screen. */
   taseCam: TaseCam;
   /** A cut to black and back: frames in, and what happens at the black. */
-  fade: { t: number; at: (() => void) | null };
+  /** `keep`: whether he was in a cutscene once the far side of it was set up (given back as the fade lets go of him). */
+  fade: { t: number; at: (() => void) | null; keep?: boolean };
 }
 
 export const FADE_OUT = 36, FADE_HOLD = 24, FADE_IN = 36;
@@ -116,9 +117,12 @@ export const updateOscar = (ctx: FrameContext, controls: Controls): Controls => 
   if ((p.kickPose || 0) > 0) p.kickPose!--;
   if (rt.fade.t > 0) {
     rt.fade.t++;
-    if (rt.fade.t === FADE_OUT) { hush(state, rt.talk); rt.fade.at?.(); rt.fade.at = null; }
+    if (rt.fade.t === FADE_OUT) { hush(state, rt.talk); rt.fade.at?.(); rt.fade.at = null; rt.fade.keep = !!p.inCutscene; }
     if (rt.fade.t > FADE_OUT + FADE_HOLD + FADE_IN) rt.fade.t = 0;
-    if (rt.fade.t < FADE_OUT + FADE_HOLD / 2) return { ...NO_CONTROLS };
+    // (hands off through to black and out the other side: a cutscene, the HUD put away; then whatever the far side
+    // set up for him)
+    if (rt.fade.t > 0 && rt.fade.t < FADE_OUT + FADE_HOLD / 2) { p.inCutscene = true; return { ...NO_CONTROLS }; }
+    if (rt.fade.keep !== undefined) { p.inCutscene = rt.fade.keep; rt.fade.keep = undefined; }
   }
   const place = placeOf(p.pos.x);
   if (place === 'field' || place === 'bunker' || place === 'outside') {

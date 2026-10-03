@@ -141,8 +141,10 @@ export const updateHector = (ctx: FrameContext, controls: Controls): Controls =>
     player.isCharging = false; player.isSliding = false; player.isUppercutting = false; player.isDivekicking = false;
   }
   // (the Eye going and the storm clearing, and the news after it: a cutscene, him out of it (the HUD's put away);
-  // given back the moment it's over)
-  const scene = (region === 'eye' && (rt.eye.phase === 'dead' || rt.eye.phase === 'done')) || newsOn(rt.news) || rt.clearT > 0;
+  // given back the moment it's over. The same for the lift up into the Eye, and drowning. And the daycare, which the
+  // news hands straight on to, holds it till it's done with it itself)
+  const scene = (region === 'eye' && (rt.eye.phase === 'dead' || rt.eye.phase === 'done')) || newsOn(rt.news) || rt.clearT > 0
+    || onLift(rt.tower) || rt.hazards.drownT > 0 || rt.daycare.phase === 'cutscene';
   if (scene) { player.inCutscene = true; rt.heldScene = true; }
   else if (rt.heldScene) { player.inCutscene = false; rt.heldScene = false; }
   // The storm dies: a whiteout, the news, then the daycare
