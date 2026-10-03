@@ -9836,6 +9836,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BIG GREEN TARGET. BIG GUNS. DUH.",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "BIG MOUTH! DEAD MOUTH!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -11946,6 +11951,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE'S TOO SQUISHY TO TACKLE. TIME FOR SOMETHING THAT GOES BOOM.",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "HE'S TRYING TO DOWNSIZE ME!",
   "from": "HAZARD_HURT"
  },
@@ -12323,6 +12333,11 @@
   "voice": "meathead",
   "text": "I DIDN'T INHALE! I DIDN'T INHALE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DIDN'T KILL EIGHT ASSHOLES FOR THEIR TOYS JUST TO SHOOT A PISTOL.",
+  "from": "FINALE_LINES"
  },
  {
   "voice": "meathead",
@@ -13606,6 +13621,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY SHOULDER JUST BOUNCES OFF THIS GUY. WHAT ELSE I GOT?",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "MY SKIN IS MELTING OFF MY ABS, ASSHOLE!",
   "from": "HURT"
  },
@@ -13973,6 +13993,11 @@
   "voice": "meathead",
   "text": "NOT DINNER! NOT YET!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT EVEN A BRUISE. FINE. PLAN B. AND C. AND D.",
+  "from": "FINALE_LINES"
  },
  {
   "voice": "meathead",
@@ -14431,6 +14456,11 @@
  },
  {
   "voice": "meathead",
+  "text": "PISTOL'S FOR WARM-UPS. TIME TO BREAK OUT THE HEAVY STUFF.",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "PIVOT TO BEING DEAD!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -14508,6 +14538,11 @@
   "voice": "meathead",
   "text": "PUMP COVER DESTOWNED",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PUNCHING HIM'S LIKE PUNCHING A WATERBED. USE THE TOYS, MEATHEAD.",
+  "from": "FINALE_LINES"
  },
  {
   "voice": "meathead",
@@ -16551,6 +16586,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THIS PEASHOOTER'S GETTING ME NOWHERE. I GOT BETTER TOYS THAN THIS.",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "THIS SEAT IS GETTING WARM.",
   "from": "game/stages/tommy/bike.ts:43"
  },
@@ -17273,6 +17313,11 @@
   "voice": "meathead",
   "text": "WHOSE SIDE ARE YOU ON?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHY AM I PLINKING HIM? I GOT A WHOLE ARSENAL OF STOLEN SHIT.",
+  "from": "FINALE_LINES"
  },
  {
   "voice": "meathead",

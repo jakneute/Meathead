@@ -1767,6 +1767,21 @@ export const ALIEN_LINES = {
  * guns runs dry and the press room's wrecked that weapon's way, and when they're all empty.
  */
 export const FINALE_LINES = {
+  /** Meathead, plinking away with the pistol while he's still got the good stuff: a nudge to use it (to himself). */
+  NUDGE_GUN: [
+    "THIS PEASHOOTER'S GETTING ME NOWHERE. I GOT BETTER TOYS THAN THIS.",
+    "WHY AM I PLINKING HIM? I GOT A WHOLE ARSENAL OF STOLEN SHIT.",
+    "PISTOL'S FOR WARM-UPS. TIME TO BREAK OUT THE HEAVY STUFF.",
+    "I DIDN'T KILL EIGHT ASSHOLES FOR THEIR TOYS JUST TO SHOOT A PISTOL.",
+    "BIG GREEN TARGET. BIG GUNS. DUH.",
+  ],
+  /** ...or throwing his body at him, which barely dents him. */
+  NUDGE_MELEE: [
+    "PUNCHING HIM'S LIKE PUNCHING A WATERBED. USE THE TOYS, MEATHEAD.",
+    "MY SHOULDER JUST BOUNCES OFF THIS GUY. WHAT ELSE I GOT?",
+    "HE'S TOO SQUISHY TO TACKLE. TIME FOR SOMETHING THAT GOES BOOM.",
+    "NOT EVEN A BRUISE. FINE. PLAN B. AND C. AND D.",
+  ],
   RADIO_IN: [
     "ALL UNITS, PRESS ROOM! PROTECT THE PRESIDENT!",
     "EAGLE IS UNDER ATTACK! REPEAT, EAGLE IS UNDER ATTACK!",

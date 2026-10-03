@@ -17,7 +17,7 @@
 
 import { Enemy, Projectile, WeaponType } from '../../types';
 import { TSUNAMI_WAVE_SPEED, TASER_TICK_RATE } from '../../constants';
-import { ALIEN_LINES } from '../../content/dialogue';
+import { ALIEN_LINES, FINALE_LINES } from '../../content/dialogue';
 import type { FrameContext } from '../core/context';
 import { BossDef, hurtPlayer, speakAsBoss, enemyProjectile } from './shared';
 import { playSound } from '../platform/audio';
@@ -377,6 +377,25 @@ const ooze = (ctx: FrameContext, x: number, y: number, dir: number, n: number) =
   for (let i = 0; i < n; i++) ctx.state.particles.push({ pos: { x, y }, vel: { x: dir * (1.5 + Math.random() * 4), y: -1.5 - Math.random() * 3 }, life: 18 + Math.random() * 16, color: i % 3 === 0 ? ALIEN.slimeDark : i % 3 === 1 ? ALIEN.slime : ALIEN.slimeLight, size: 1.5 + Math.random() * 3, grav: 0.3 });
 };
 
+/**
+ * Plinking him with the pistol, or throwing himself at him, while there's still ammo in the good stuff: every so often
+ * Meathead mutters that he's got better toys than this (not while he's begging: by then the pistol's the point).
+ */
+const NUDGE_EVERY = 720, NUDGE_GUN_HITS = 14, NUDGE_MELEE_HITS = 2;
+const nudge = (ctx: FrameContext, rt: FinaleRuntime, kind: 'gun' | 'melee') => {
+  if (rt.pleadAt !== undefined) return;
+  const p = ctx.state.player;
+  const toys = (ctx.state.availableWeapons ?? []).some(w => w !== 'GUN' && w !== 'LMG' && (p.weaponAmmo?.[w] ?? 0) >= 1);
+  if (!toys) return;
+  const n = rt.nudge ??= { gun: 0, melee: 0, at: -NUDGE_EVERY, said: 0 };
+  n[kind]++;
+  if (n[kind] < (kind === 'gun' ? NUDGE_GUN_HITS : NUDGE_MELEE_HITS) || rt.t - n.at < NUDGE_EVERY) return;
+  n.gun = 0; n.melee = 0; n.at = rt.t;
+  const pool = kind === 'gun' ? FINALE_LINES.NUDGE_GUN : FINALE_LINES.NUDGE_MELEE;
+  const text = pool[n.said++ % pool.length];
+  if (rt.lines.length < 8) rt.lines.push({ who: 'meathead', text });
+};
+
 const PLEAD_HIT_CALLOUTS = ['BAM!', 'OOF!', 'RIGHT IN THE ANTENNA!', 'MERCY DENIED!', 'SPLAT!', 'NO REFUNDS!'];
 
 const onWeaponHit = (ctx: FrameContext, boss: Enemy, weapon: WeaponType, p?: Partial<Projectile>) => {
@@ -389,6 +408,7 @@ const onWeaponHit = (ctx: FrameContext, boss: Enemy, weapon: WeaponType, p?: Par
   switch (weapon) {
     case 'GUN': case 'LMG':
       ooze(ctx, Math.max(boss.pos.x, Math.min(boss.pos.x + boss.width, hx)), hy, dir, 4);
+      nudge(ctx, rt, 'gun');
       if (rt.pleadAt !== undefined) {
         // Beaten: every round lands like a truck
         rt.flash = 12; rt.reel = 1;
@@ -556,6 +576,7 @@ export const alien: BossDef = {
   damageFor,
   onWeaponHit,
   meleeScale: 0.08,
+  onMeleeHit: (ctx, boss) => { void boss; const rt = getFinale(ctx.state); if (rt) nudge(ctx, rt, 'melee'); },
   onBodyHit,
   onTaser,
   onTaserChain,
