@@ -3,13 +3,12 @@
 import { TommyBoard } from '../../types';
 import {
   CANVAS_WIDTH, BOSS_DOOR_X, PLAYER_INVINCIBILITY_FRAMES, PLAYER_PUSHBACK_DURATION,
-  PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y, PARTICLE_PALETTES,
+  PLAYER_PUSHBACK_VEL_X, PLAYER_PUSHBACK_VEL_Y,
   TSUNAMI_WAVE_SPEED, TSUNAMI_DAMAGE_BOSS, TSUNAMI_DAMAGE_WEAKNESS, TSUNAMI_DAMAGE_MIDBOSS, TSUNAMI_DAMAGE_DOORMAN,
 } from '../../constants';
 import { FrameContext } from '../core/context';
 import { hitBoss, isWeakTo } from './registry';
 import { updateCorkedVent, ventTip, victorTsunamiHit, victorVentBlown } from './victor';
-import { pickRandom } from '../core/utils';
 import { killPlayer, landPlayer } from '../player/player';
 import { isMidBoss, midBossDamage, JUNKIE_WAVE_RESIST } from '../combat/midBoss';
 
@@ -24,18 +23,7 @@ export const updateTsunami = (ctx: FrameContext) => {
   // (built for a flat floor, then lifted to the height he fired it from)
   const offsetY = state.tsunamiOffsetY || 0;
   const tsunamiTopY = Math.pow(Math.min(1.0, dist / (CANVAS_WIDTH * 1.25)), 0.6) * 560 + offsetY;
-  const waveHeight = 600 + offsetY - tsunamiTopY;
-
-  // Wave face particles, curved so the middle leads
-  const density = 35, bendMult = 120;
-  for (let i = 0; i <= density; i++) {
-    const yPct = i / density;
-    const normalizedY = (yPct - 0.5) * 2;
-    const px = state.tsunamiX + (normalizedY * normalizedY) * bendMult * dir;
-    const py = tsunamiTopY + (yPct * waveHeight);
-    state.particles.push({ pos: { x: px + (Math.random() - 0.5) * 40, y: py + (Math.random() - 0.5) * 15 }, vel: { x: (TSUNAMI_WAVE_SPEED * 0.4 + Math.random() * 8) * dir, y: (Math.random() - 0.5) * 4 }, life: 12 + Math.random() * 18, color: pickRandom(PARTICLE_PALETTES.WATER), size: 8 + Math.random() * 12, isWater: true });
-    if (i < 3 && Math.random() > 0.4) state.particles.push({ pos: { x: px, y: py }, vel: { x: (TSUNAMI_WAVE_SPEED * 0.9) * dir, y: (Math.random() - 0.5) * 10 }, life: 20 + Math.random() * 10, color: '#FFFFFF', size: 5 + Math.random() * 5, isWater: true });
-  }
+  // (what it looks like: render/fx/tsunami.ts, drawn from where it is and how tall)
 
   // Water hitting Victor's volcano vents turns them into steam explosions
   if (stageId === 'Victor Volcano') {

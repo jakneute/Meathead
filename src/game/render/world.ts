@@ -17,6 +17,7 @@ import { drawIcicles, drawIceBlock, drawIceShard } from './bosses/artieIce';
 import { drawBoulder, drawRockChip } from './bosses/boulders';
 import { drawBullet, drawThrown, drawEnemyBullet, drawIcePellet, drawDart, drawPoopLog, drawCocaine, drawMethBarrel, drawSludgeBlob, drawDarkOrb, drawOilRocket } from './projectiles';
 import { drawParticle } from './particles';
+import { drawTsunamiBack, drawTsunamiFront } from './fx/tsunami';
 import { drawComposited, needsComposite } from './composite';
 import { drawBossCorpse } from './bosses/corpses';
 import { drawVictoryPee } from '../scenes/victoryPeeDraw';
@@ -128,6 +129,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     drawOilSlicks(wctx, state);
     drawProjectiles(wctx, state, 'puddles');
     state.pickups.forEach(p => drawPickup(wctx, p, state.frame));
+    drawTsunamiBack(wctx, state);
     drawEnemies(wctx, state, view);
     drawEnemyDeaths(wctx, state);
     if (inTommyArena && state.tommyBoards) drawTommyPool(wctx, state);
@@ -155,6 +157,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     drawBlasts(wctx, state);
     drawMoltenStream(wctx, state);
     drawParticles(wctx, state);
+    drawTsunamiFront(wctx, state);
     drawSteamRush(wctx, state);
     drawBarryLighting(wctx, state, stageId);
     if (state.sewerNuke) drawSewerNukeInside(wctx, state);
