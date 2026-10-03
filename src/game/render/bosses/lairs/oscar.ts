@@ -6,6 +6,8 @@
 
 import { bandedGradient, checker, steppedGlow, pixelRidge } from '../../pixelArt';
 import { Ctx, hash, box, bevel, label } from './kit';
+import { pixelBlob } from '../../pixelArt';
+import { drawFire } from '../../fx/fire';
 
 /** A pumpjack in silhouette, nodding. */
 const pumpjack = (ctx: Ctx, x: number, base: number, s: number, f: number, phase: number) => {
@@ -184,4 +186,97 @@ export const drawOscarLair = (ctx: Ctx, L: number, R: number, T: number, B: numb
   }
   box(ctx, L, B - 15, W, 2, '#3A2414');
   for (let k = 0; k < Math.round(W / 60); k++) { const x = L + hash(k + 70) * W; box(ctx, x, B - 12, 20 + hash(k) * 30, 3 + hash(k + 1) * 6, 'rgba(10, 6, 5, 0.45)'); }
+};
+
+/** How many times his cigarette has to set the oil going to leave the showroom a smoldering shell. */
+export const OSCAR_RUIN_BLAZES = 8;
+
+/**
+ * The showroom burning out a little more every time his cigarette sets the oil going (looks only: the fight's the
+ * same). `k` 0..1, how far gone it is: scorch up the panelling from the floor, the glass cracking; then a strip light
+ * out, ceiling tiles down with the wiring hanging and sparking, pennants burned through, frames knocked crooked; then
+ * panes blown out (shards round the frames, the field's heat coming in), fires along the floor; then soot over
+ * everything, smoke rolling under what's left of the ceiling, embers going up.
+ */
+export const drawOscarRuin = (ctx: Ctx, L: number, R: number, T: number, B: number, f: number, k: number) => {
+  if (k <= 0) return;
+  const W = R - L, wy = T + 30, wh = 210, py = wy + wh + 8;
+  const at = (i: number, s: number) => L + 40 + hash(i * 13.7 + s) * (W - 80);
+  ctx.save();
+  // Scorch up the panelling and the columns from the floor: stepped, darker at the foot, in tongues where the fires were
+  const sh = 40 + k * 150;
+  for (let b = 0; b < 5; b++) { ctx.fillStyle = `rgba(20, 12, 8, ${((0.1 + b * 0.07) * Math.min(1, k * 2.5)).toFixed(3)})`; ctx.fillRect(L, B - 14 - sh * (1 - b / 5), W, sh * (1 - b / 5)); }
+  for (let i = 0; i < Math.round(k * 12); i++) {
+    // (from the floor up, licking on past the top of the rest of it)
+    const x = at(i, 1), h = sh * 0.7 + 30 + hash(i + 3) * 90 * k;
+    ctx.fillStyle = 'rgba(12, 8, 6, 0.4)';
+    for (let y = 0; y < h; y += 4) { const hw = (1 - y / h) * (18 + hash(i) * 14); ctx.fillRect(Math.round(x - hw), Math.round(B - 18 - y), Math.round(hw * 2), 4); }
+  }
+  // The glass cracking: a star of cracks in a pane here and there (a lit side, a dark side)
+  for (let c = 0; c < Math.round(k * 10); c++) {
+    const cx = Math.round(at(c, 2)), cy = wy + 20 + hash(c + 9) * (wh - 40);
+    for (let r = 0; r < 6; r++) {
+      const a = r * 1.05 + hash(c * 3 + r), len = 14 + hash(c + r * 5) * 26;
+      for (const [col, d] of [['rgba(255, 255, 255, 0.55)', 1], ['rgba(20, 12, 8, 0.7)', 0]] as [string, number][]) {
+        ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx + d, cy);
+        ctx.lineTo(cx + d + Math.cos(a) * len * 0.5 + (hash(r + c) - 0.5) * 4, cy + Math.sin(a) * len * 0.5); ctx.lineTo(cx + d + Math.cos(a) * len, cy + Math.sin(a) * len); ctx.stroke();
+      }
+    }
+  }
+  // Panes blown out: just the jagged shards left round the frame, the dusk's heat glowing in through the hole
+  if (k > 0.4) {
+    for (let i = 0; i < Math.round((k - 0.3) * 8); i++) {
+      const x0 = L + Math.floor(hash(i * 7 + 40) * Math.floor(W / 120)) * 120 + 3, pw = 114;
+      if (x0 + pw > R) continue;
+      ctx.fillStyle = 'rgba(255, 138, 31, 0.12)'; ctx.fillRect(x0, wy, pw, wh);
+      ctx.fillStyle = 'rgba(203, 213, 225, 0.55)';
+      for (let s = 0; s < 6; s++) {
+        const sx = x0 + hash(i + s * 3) * (pw - 20), top = s % 2 === 0;
+        ctx.beginPath(); ctx.moveTo(sx, top ? wy : wy + wh); ctx.lineTo(sx + 16 + hash(s + i) * 10, top ? wy : wy + wh); ctx.lineTo(sx + 6 + hash(s * 2 + i) * 10, top ? wy + 18 + hash(s) * 30 : wy + wh - 18 - hash(s) * 30); ctx.closePath(); ctx.fill();
+      }
+    }
+  }
+  // A strip light out, ceiling tiles down (the dark above, a joist, the wiring hanging and sparking), pennants burned through
+  if (k > 0.2) {
+    for (let i = 0; i < Math.round((k - 0.1) * 7); i++) {
+      const hx = Math.round(at(i, 3) / 40) * 40, hw = 40 * (1 + Math.floor(hash(i + 30) * 2));
+      ctx.fillStyle = '#0C0A09'; ctx.fillRect(hx, T, hw, 30);
+      ctx.fillStyle = '#292524'; ctx.fillRect(hx, T + 8, hw, 4); ctx.fillStyle = '#44403C'; ctx.fillRect(hx, T + 8, hw, 1);
+      ctx.fillStyle = '#A89F90'; ctx.fillRect(hx, T + 29, hw, 1);
+      const wx = hx + hw / 2, sway = Math.round(Math.sin(f * 0.05 + i) * 3);
+      ctx.strokeStyle = '#1C1917'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(wx, T + 12); ctx.quadraticCurveTo(wx + 8, T + 40, wx + sway, T + 60); ctx.stroke();
+      if ((f + i * 23) % 44 < 4) { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(wx + sway - 1, T + 59, 3, 3); ctx.fillStyle = '#FDE047'; ctx.fillRect(wx + sway - 4, T + 63, 2, 2); ctx.fillRect(wx + sway + 3, T + 65, 2, 2); }
+      // (a slab of the tile, fallen and lying on the floor under it)
+      bevel(ctx, hx + 6, B - 18, 30, 5, '#B8B0A2', '#D6CFC2', '#7A7266', 1);
+    }
+    for (let x = L + 60, i = 0; x < R; x += 180, i++) if (hash(i + 90) < k) { box(ctx, x, T + 22, 70, 7, '#2A2420'); box(ctx, x + 2, T + 23, 66, 1, '#57534E'); }
+    for (let run = 0; run < Math.ceil(W / 240); run++) if (hash(run + 50) < k * 0.9) {
+      // (the string's burned through: the pennants are a charred clump hanging off one end)
+      const x0 = L + run * 240 + (hash(run) > 0.5 ? 236 : 4);
+      ctx.fillStyle = '#1C1917'; for (let j = 0; j < 5; j++) ctx.fillRect(x0 - 3 + (j % 2) * 2, T + 32 + j * 9, 6, 8);
+    }
+  }
+  // Employee of the month: some knocked crooked, some burned black
+  if (k > 0.3) for (let i = 0; i < 8; i++) if (hash(i + 120) < (k - 0.2)) { const x = L + 80 + i * 38, y = py + 24; box(ctx, x + 2, y + 2, 28, 30, i % 2 ? 'rgba(12, 8, 6, 0.85)' : 'rgba(40, 20, 10, 0.6)'); }
+  // Fires along the floor (more, bigger, the further gone it is), embers going up off them
+  const fires = k > 0.35 ? Math.round((k - 0.3) * 14) : 0;
+  for (let i = 0; i < fires; i++) {
+    const fx = at(i, 6), fh = 22 + hash(i + 80) * 30 * k;
+    drawFire(ctx, fx, B - 14, 24, fh, f, { seed: i * 7 + 3, sparks: false, glow: 0.7 });
+    ctx.fillStyle = '#FDBA74';
+    for (let e = 0; e < 2; e++) { const q = ((f * 1.5 + i * 40 + e * 70) % 140) / 140; ctx.globalAlpha = 1 - q; ctx.fillRect(Math.round(fx + Math.sin(q * 9 + i) * 10), Math.round(B - 24 - q * 170), 2, 2); }
+    ctx.globalAlpha = 1;
+  }
+  // Soot over everything at the end, the ceiling blackened, smoke rolling along under it
+  if (k > 0.6) {
+    const a = (k - 0.6) / 0.4;
+    ctx.fillStyle = `rgba(12, 8, 6, ${(0.16 * a).toFixed(3)})`; ctx.fillRect(L, T, W, B - T);
+    ctx.fillStyle = `rgba(12, 8, 6, ${(0.8 * a).toFixed(3)})`; ctx.fillRect(L, T, W, 30);
+    for (let i = 0; i < 10; i++) {
+      const sx = L + ((i * 131 + f * (0.3 + hash(i) * 0.4)) % (W + 120)) - 60, sy = T + 40 + hash(i + 3) * 50, r = 26 + hash(i + 7) * 26;
+      pixelBlob(ctx, sx, sy, r, r * 0.7, `rgba(30, 22, 18, ${(0.45 * a).toFixed(3)})`);
+      pixelBlob(ctx, sx - r * 0.2, sy - r * 0.3, r * 0.5, r * 0.35, `rgba(60, 48, 40, ${(0.35 * a).toFixed(3)})`);
+    }
+  }
+  ctx.restore();
 };

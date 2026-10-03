@@ -588,6 +588,8 @@ const landCigarette = (ctx: FrameContext, at: { x: number, y: number }) => {
   fx.playGunSound('ignite');
   fx.spawnExplosion(at, '#FF8C00', 14, 0, 8);
   const boss = findOscar(state);
+  // (every time he does it, a little more of the showroom goes: see drawOscarRuin)
+  if (boss) boss.blazes = (boss.blazes ?? 0) + 1;
   if (boss && Math.random() < 0.35) speakAsBoss(OSCAR, pickRandom(OSCAR_LINES.IGNITE), ctx.bossHelpers, 'casual');
 };
 

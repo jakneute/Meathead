@@ -8,7 +8,7 @@ import { drawVictorLair } from './lairs/victor';
 import { drawErnieLair } from './lairs/ernie';
 import { drawHectorLair } from './lairs/hector';
 import { drawBarryLair } from './lairs/barry';
-import { drawOscarLair } from './lairs/oscar';
+import { drawOscarLair, drawOscarRuin, OSCAR_RUIN_BLAZES } from './lairs/oscar';
 import type { Enemy } from '../../../types';
 import type { GameState } from '../../core/state';
 
@@ -65,6 +65,11 @@ export const drawCustomBossArena = (
       break;
     case 'Oily Oscar':
       drawOscarLair(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame);
+      {
+        // (more of it burned out every time his cigarette sets the oil going, up to a smoldering shell)
+        const o = state ? state.enemies.find(e => e.type === 'boss') ?? state.deadBoss ?? undefined : undefined;
+        drawOscarRuin(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, Math.min(1, (o?.blazes ?? 0) / OSCAR_RUIN_BLAZES));
+      }
       break;
     default:
       break;

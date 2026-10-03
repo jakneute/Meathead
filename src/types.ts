@@ -437,6 +437,8 @@ export interface Enemy extends Entity {
   /** How far into the place each run of the truck got (its front, world x): a run that's wrecked or crashed short of
    * the far end only did for what it got to. */
   truckReach?: number[];
+  /** (Oscar) How many times his cigarette's set the oil going: his showroom's that much more burned out (looks only). */
+  blazes?: number;
   /** This run of the truck's already through that end. */
   truckThroughLeft?: boolean; truckThroughRight?: boolean;
   /** Standing in Meathead's sludge: frames toward the next tick, and the last frame it ticked. */
