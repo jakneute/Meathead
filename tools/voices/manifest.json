@@ -572,7 +572,7 @@
  {
   "voice": "announcer",
   "text": "LAID TO REST!",
-  "from": "game/stages/tommy/thing.ts:264"
+  "from": "game/stages/tommy/thing.ts:267"
  },
  {
   "voice": "announcer",
@@ -932,7 +932,7 @@
  {
   "voice": "announcer",
   "text": "SEPPUKU!",
-  "from": "game/stages/dale/town.ts:609"
+  "from": "game/stages/dale/town.ts:611"
  },
  {
   "voice": "announcer",
@@ -1162,7 +1162,7 @@
  {
   "voice": "announcer",
   "text": "TIMESHARE: VACANT",
-  "from": "game/stages/dale/town.ts:1262"
+  "from": "game/stages/dale/town.ts:1269"
  },
  {
   "voice": "announcer",
@@ -3892,47 +3892,47 @@
  {
   "voice": "dale.dad",
   "text": "IT WAS A VERY FIT SPEED BUMP.",
-  "from": "game/stages/dale/convoy.ts:375"
- },
- {
-  "voice": "dale.dad",
-  "text": "IT WAS A VERY FIT, VERY DIRTY SPEED BUMP.",
-  "from": "game/stages/dale/convoy.ts:384"
- },
- {
-  "voice": "dale.dad",
-  "text": "THAT? THAT WAS A... SPEED BUMP, PUMPKIN.",
-  "from": "game/stages/dale/convoy.ts:373"
- },
- {
-  "voice": "dale.dad",
-  "text": "WHO WANTS NUGGETS?!",
   "from": "game/stages/dale/convoy.ts:377"
  },
  {
   "voice": "dale.dad",
-  "text": "WINDOWS UP! WHO WANTS NUGGETS?!",
+  "text": "IT WAS A VERY FIT, VERY DIRTY SPEED BUMP.",
   "from": "game/stages/dale/convoy.ts:386"
+ },
+ {
+  "voice": "dale.dad",
+  "text": "THAT? THAT WAS A... SPEED BUMP, PUMPKIN.",
+  "from": "game/stages/dale/convoy.ts:375"
+ },
+ {
+  "voice": "dale.dad",
+  "text": "WHO WANTS NUGGETS?!",
+  "from": "game/stages/dale/convoy.ts:379"
+ },
+ {
+  "voice": "dale.dad",
+  "text": "WINDOWS UP! WHO WANTS NUGGETS?!",
+  "from": "game/stages/dale/convoy.ts:388"
  },
  {
   "voice": "dale.dale",
   "text": "...GARY?",
-  "from": "game/stages/dale/convoy.ts:799"
+  "from": "game/stages/dale/convoy.ts:802"
  },
  {
   "voice": "dale.dale",
   "text": "A BINDING NAPKIN! PRESS THE RED BUTTON! THAT'S AN ORDER!",
-  "from": "game/stages/dale/convoy.ts:795"
+  "from": "game/stages/dale/convoy.ts:798"
  },
  {
   "voice": "dale.dale",
   "text": "CRICKETS, TWICE A DAY. YOU HAVE MY WORD.",
-  "from": "game/stages/dale/convoy.ts:807"
+  "from": "game/stages/dale/convoy.ts:810"
  },
  {
   "voice": "dale.dale",
   "text": "DROP EVERYTHING! I'M OUTTA HERE!",
-  "from": "game/stages/dale/intro.ts:47"
+  "from": "game/stages/dale/intro.ts:49"
  },
  {
   "voice": "dale.dale",
@@ -3947,77 +3947,77 @@
  {
   "voice": "dale.dale",
   "text": "I'LL FEED YOUR LIZARD! I'LL FEED HIM PERSONALLY!",
-  "from": "game/stages/dale/convoy.ts:797"
+  "from": "game/stages/dale/convoy.ts:800"
  },
  {
   "voice": "dale.dale",
   "text": "IT WAS IN THE FINE PRINT, RIGGS! PAGE FORTY!",
-  "from": "game/stages/dale/convoy.ts:793"
+  "from": "game/stages/dale/convoy.ts:796"
  },
  {
   "voice": "dale.dale",
   "text": "LOAD THE REST OF THE CARGO! MOVE IT! HE'S COMING!",
-  "from": "game/stages/dale/junkie.ts:790"
+  "from": "game/stages/dale/junkie.ts:792"
  },
  {
   "voice": "dale.dale",
   "text": "LOAD THE REST OF THE CARGO! MOVE IT! HE'S COMING! I CAN SMELL HIM COMING!",
-  "from": "game/stages/dale/junkie.ts:790"
+  "from": "game/stages/dale/junkie.ts:792"
  },
  {
   "voice": "dale.dale",
   "text": "OH NO! THE FEDS!",
-  "from": "game/stages/dale/intro.ts:47"
+  "from": "game/stages/dale/intro.ts:49"
  },
  {
   "voice": "dale.dale",
   "text": "RIGGS! HE'S ON YOUR TRUCK! BLOW IT! BLOW IT NOW!",
-  "from": "game/stages/dale/convoy.ts:788"
+  "from": "game/stages/dale/convoy.ts:791"
  },
  {
   "voice": "dale.dale",
   "text": "RIGGS? RIGGS?! ...THAT'S COMING OUT OF YOUR PAYCHECK!",
-  "from": "game/stages/dale/convoy.ts:870"
+  "from": "game/stages/dale/convoy.ts:874"
  },
  {
   "voice": "dale.dale",
   "text": "RIGGS. BUDDY. PAL. THINK OF THE BONUS. THINK OF THE DENTAL.",
-  "from": "game/stages/dale/convoy.ts:801"
+  "from": "game/stages/dale/convoy.ts:804"
  },
  {
   "voice": "dale.dale",
   "text": "THE WIDOW'S DENTAL, RIGGS! IT'S VERY GOOD!",
-  "from": "game/stages/dale/convoy.ts:803"
+  "from": "game/stages/dale/convoy.ts:806"
  },
  {
   "voice": "dale.dale",
   "text": "THEN SIR REGINALD GETS THE DENTAL! PRESS IT! PRESS IT! PRESS IT!",
-  "from": "game/stages/dale/convoy.ts:805"
+  "from": "game/stages/dale/convoy.ts:808"
  },
  {
   "voice": "dale.dale",
   "text": "YOU KNEW THE RISKS WHEN YOU SIGNED UP!",
-  "from": "game/stages/dale/convoy.ts:791"
+  "from": "game/stages/dale/convoy.ts:794"
  },
  {
   "voice": "dale.goon",
   "text": "...HUH?",
-  "from": "game/stages/dale/convoy.ts:505"
+  "from": "game/stages/dale/convoy.ts:507"
  },
  {
   "voice": "dale.goon",
   "text": "HELLO? ANYBODY BACK HERE?",
-  "from": "game/stages/dale/convoy.ts:505"
+  "from": "game/stages/dale/convoy.ts:507"
  },
  {
   "voice": "dale.goon",
   "text": "OH NO.",
-  "from": "game/stages/dale/convoy.ts:505"
+  "from": "game/stages/dale/convoy.ts:507"
  },
  {
   "voice": "dale.goon",
   "text": "SURPRISE!",
-  "from": "game/stages/dale/convoy.ts:505"
+  "from": "game/stages/dale/convoy.ts:507"
  },
  {
   "voice": "dale.junkie",
@@ -4347,147 +4347,147 @@
  {
   "voice": "dale.kid",
   "text": "DADDY, WHAT WAS THAT?",
-  "from": "game/stages/dale/convoy.ts:372"
- },
- {
-  "voice": "dale.kid",
-  "text": "IT HAD ABS.",
   "from": "game/stages/dale/convoy.ts:374"
  },
  {
   "voice": "dale.kid",
+  "text": "IT HAD ABS.",
+  "from": "game/stages/dale/convoy.ts:376"
+ },
+ {
+  "voice": "dale.kid",
   "text": "IT HAD ABS. AND IT SMELLED LIKE POOP.",
-  "from": "game/stages/dale/convoy.ts:383"
+  "from": "game/stages/dale/convoy.ts:385"
  },
  {
   "voice": "dale.mom",
   "text": "GARY, THERE'S A SHOE IN THE GRILLE.",
-  "from": "game/stages/dale/convoy.ts:376"
+  "from": "game/stages/dale/convoy.ts:378"
  },
  {
   "voice": "dale.mom",
   "text": "GARY, THERE'S A SHOE IN THE GRILLE. AND... GARY, WHAT IS THAT ON THE GRILLE?",
-  "from": "game/stages/dale/convoy.ts:385"
+  "from": "game/stages/dale/convoy.ts:387"
  },
  {
   "voice": "dale.ninja",
   "text": "THERE IS NO HONOR LEFT TO RESTORE. BUT I WILL TRY.",
-  "from": "game/stages/dale/town.ts:507"
+  "from": "game/stages/dale/town.ts:509"
  },
  {
   "voice": "dale.ninja",
   "text": "THERE IS ONLY ONE WAY TO RESTORE MY HONOR.",
-  "from": "game/stages/dale/town.ts:502"
+  "from": "game/stages/dale/town.ts:504"
  },
  {
   "voice": "dale.ninja",
   "text": "YOU CROSSED THE WHOLE TOWN UNDER MY SIGHTS, AND STILL YOU STAND. I HAVE FAILED MY MASTER.",
-  "from": "game/stages/dale/town.ts:501"
+  "from": "game/stages/dale/town.ts:503"
  },
  {
   "voice": "dale.ninja",
   "text": "YOU CROSSED THE WHOLE TOWN UNDER MY SIGHTS. WITH SHIT IN YOUR PANTS. AND STILL YOU STAND. I HAVE FAILED MY MASTER.",
-  "from": "game/stages/dale/town.ts:506"
+  "from": "game/stages/dale/town.ts:508"
  },
  {
   "voice": "dale.prisoner",
   "text": "DAN! GIMME THE KEYS! STOP PLAYING! LET ME OUT!",
-  "from": "game/stages/dale/town.ts:916"
+  "from": "game/stages/dale/town.ts:923"
  },
  {
   "voice": "dale.prisoner",
   "text": "DAN?! THERE'S A SWORD IN YOUR HEAD!",
-  "from": "game/stages/dale/town.ts:921"
+  "from": "game/stages/dale/town.ts:928"
  },
  {
   "voice": "dale.prisoner",
   "text": "HEY! HEY, YOU! THE SHERIFF LOCKED ME IN HERE FOR A PHOTO AN HOUR AGO!",
-  "from": "game/stages/dale/town.ts:696"
+  "from": "game/stages/dale/town.ts:698"
  },
  {
   "voice": "dale.prisoner",
   "text": "HEY! HEY, YOU! THE SHERIFF LOCKED ME IN HERE FOR A PHOTO AN HOUR AGO! ...ACTUALLY, STAY OVER THERE. I CAN WAIT.",
-  "from": "game/stages/dale/town.ts:696"
+  "from": "game/stages/dale/town.ts:698"
  },
  {
   "voice": "dale.prisoner",
   "text": "I HAVE A TIMESHARE!",
-  "from": "game/stages/dale/town.ts:917"
+  "from": "game/stages/dale/town.ts:924"
  },
  {
   "voice": "dale.prisoner",
   "text": "IS THAT A TRUCK?! SHERIFF DAN?!",
-  "from": "game/stages/dale/town.ts:911"
+  "from": "game/stages/dale/town.ts:918"
  },
  {
   "voice": "dale.prisoner",
   "text": "THE TRUCK'S STILL COMING! I HAVE A TIMESHARE!",
-  "from": "game/stages/dale/town.ts:922"
+  "from": "game/stages/dale/town.ts:929"
  },
  {
   "voice": "dale.riggs",
   "text": "...SORRY, SIR REGINALD.",
-  "from": "game/stages/dale/convoy.ts:827"
+  "from": "game/stages/dale/convoy.ts:830"
  },
  {
   "voice": "dale.riggs",
   "text": "...YOU PROMISE YOU'LL FEED HIM?",
-  "from": "game/stages/dale/convoy.ts:806"
+  "from": "game/stages/dale/convoy.ts:809"
  },
  {
   "voice": "dale.riggs",
   "text": "BLOW IT? I'M DRIVING IT, DALE!",
-  "from": "game/stages/dale/convoy.ts:789"
- },
- {
-  "voice": "dale.riggs",
-  "text": "BLOW IT? I'M DRIVING IT, DALE! AND HE SMELLS LIKE HE ALREADY BLEW!",
-  "from": "game/stages/dale/convoy.ts:789"
- },
- {
-  "voice": "dale.riggs",
-  "text": "I SIGNED UP TO DRIVE! THE AD SAID DRIVING! NOTHING ABOUT EXPLODING!",
   "from": "game/stages/dale/convoy.ts:792"
  },
  {
   "voice": "dale.riggs",
+  "text": "BLOW IT? I'M DRIVING IT, DALE! AND HE SMELLS LIKE HE ALREADY BLEW!",
+  "from": "game/stages/dale/convoy.ts:792"
+ },
+ {
+  "voice": "dale.riggs",
+  "text": "I SIGNED UP TO DRIVE! THE AD SAID DRIVING! NOTHING ABOUT EXPLODING!",
+  "from": "game/stages/dale/convoy.ts:795"
+ },
+ {
+  "voice": "dale.riggs",
   "text": "I'M NOT MARRIED! SIR REGINALD'S ALL I'VE GOT!",
-  "from": "game/stages/dale/convoy.ts:804"
+  "from": "game/stages/dale/convoy.ts:807"
  },
  {
   "voice": "dale.riggs",
   "text": "I'VE GOT A LIZARD AT HOME, DALE! WHO'S GONNA FEED MY LIZARD?!",
-  "from": "game/stages/dale/convoy.ts:796"
+  "from": "game/stages/dale/convoy.ts:799"
  },
  {
   "voice": "dale.riggs",
   "text": "IT'S SIR REGINALD, DALE! TWELVE YEARS AND YOU NEVER ASKED!",
-  "from": "game/stages/dale/convoy.ts:800"
+  "from": "game/stages/dale/convoy.ts:803"
  },
  {
   "voice": "dale.riggs",
   "text": "ONE BULLET?! IN ONE EAR AND OUT THE OTHER, BABY! NOTHING IN THERE TO HIT!",
-  "from": "game/stages/dale/town.ts:721"
+  "from": "game/stages/dale/town.ts:727"
  },
  {
   "voice": "dale.riggs",
   "text": "THE CONTRACT WAS ONE PAGE, DALE! IT WAS A NAPKIN!",
-  "from": "game/stages/dale/convoy.ts:794"
+  "from": "game/stages/dale/convoy.ts:797"
  },
  {
   "voice": "dale.riggs",
   "text": "WE DON'T GET DENTAL!",
-  "from": "game/stages/dale/convoy.ts:802"
+  "from": "game/stages/dale/convoy.ts:805"
  },
  {
   "voice": "dale.riggs",
   "text": "YOU DON'T EVEN KNOW HIS NAME!",
-  "from": "game/stages/dale/convoy.ts:798"
+  "from": "game/stages/dale/convoy.ts:801"
  },
  {
   "voice": "dale.sheriff",
   "text": "NOPE! NOT FOR TEN BUCKS AN HOUR!",
-  "from": "game/stages/dale/town.ts:912"
+  "from": "game/stages/dale/town.ts:919"
  },
  {
   "voice": "death",
@@ -4512,7 +4512,7 @@
  {
   "voice": "death",
   "text": "A JUMP WON'T CLEAR IT. UPPERCUT!",
-  "from": "game/stages/dale/town.ts:789"
+  "from": "game/stages/dale/town.ts:796"
  },
  {
   "voice": "death",
@@ -4532,7 +4532,7 @@
  {
   "voice": "death",
   "text": "A VERY FIT SPEED BUMP",
-  "from": "game/stages/dale/convoy.ts:440"
+  "from": "game/stages/dale/convoy.ts:442"
  },
  {
   "voice": "death",
@@ -4672,7 +4672,7 @@
  {
   "voice": "death",
   "text": "BLOWN SKY HIGH",
-  "from": "game/stages/dale/convoy.ts:480"
+  "from": "game/stages/dale/convoy.ts:482"
  },
  {
   "voice": "death",
@@ -4702,7 +4702,7 @@
  {
   "voice": "death",
   "text": "BOOT HILL, PLOT 12",
-  "from": "game/stages/dale/runtime.ts:188"
+  "from": "game/stages/dale/runtime.ts:190"
  },
  {
   "voice": "death",
@@ -4957,7 +4957,7 @@
  {
   "voice": "death",
   "text": "CREVASSE: 1, MEATHEAD: 0",
-  "from": "game/stages/artie/ski.ts:504"
+  "from": "game/stages/artie/ski.ts:505"
  },
  {
   "voice": "death",
@@ -4992,12 +4992,12 @@
  {
   "voice": "death",
   "text": "DEAD IN DEADWOOD GULCH",
-  "from": "game/stages/dale/runtime.ts:188"
+  "from": "game/stages/dale/runtime.ts:190"
  },
  {
   "voice": "death",
   "text": "DEATH BY A THOUSAND NEEDLES",
-  "from": "game/stages/dale/runtime.ts:182"
+  "from": "game/stages/dale/runtime.ts:184"
  },
  {
   "voice": "death",
@@ -5087,7 +5087,7 @@
  {
   "voice": "death",
   "text": "DISSOLVED IN TOXIC SLUDGE",
-  "from": "game/bosses/hazards.ts:211"
+  "from": "game/bosses/hazards.ts:199"
  },
  {
   "voice": "death",
@@ -5122,7 +5122,7 @@
  {
   "voice": "death",
   "text": "DOWN THE HOLE",
-  "from": "game/stages/barry/runtime.ts:411"
+  "from": "game/stages/barry/runtime.ts:424"
  },
  {
   "voice": "death",
@@ -5162,7 +5162,7 @@
  {
   "voice": "death",
   "text": "DRIVE-BY'D",
-  "from": "game/stages/tommy/bike.ts:576"
+  "from": "game/stages/tommy/bike.ts:577"
  },
  {
   "voice": "death",
@@ -5367,12 +5367,12 @@
  {
   "voice": "death",
   "text": "FLASH-FROZEN MEAT POPSICLE",
-  "from": "game/stages/artie/ski.ts:504"
+  "from": "game/stages/artie/ski.ts:505"
  },
  {
   "voice": "death",
   "text": "FLATTENED BY A DEAD MAN",
-  "from": "game/stages/dale/town.ts:789"
+  "from": "game/stages/dale/town.ts:796"
  },
  {
   "voice": "death",
@@ -5392,7 +5392,7 @@
  {
   "voice": "death",
   "text": "FLATTENED ON THE INTERSTATE",
-  "from": "game/stages/dale/convoy.ts:480"
+  "from": "game/stages/dale/convoy.ts:482"
  },
  {
   "voice": "death",
@@ -5402,7 +5402,7 @@
  {
   "voice": "death",
   "text": "FLINT: 1, MEATHEAD: 0",
-  "from": "game/stages/tommy/bike.ts:576"
+  "from": "game/stages/tommy/bike.ts:577"
  },
  {
   "voice": "death",
@@ -5442,7 +5442,7 @@
  {
   "voice": "death",
   "text": "FOSSIL FUEL",
-  "from": "game/stages/oscar/runtime.ts:177"
+  "from": "game/stages/oscar/runtime.ts:181"
  },
  {
   "voice": "death",
@@ -5482,7 +5482,7 @@
  {
   "voice": "death",
   "text": "FULL OF LEAD AND BARF",
-  "from": "game/stages/dale/convoy.ts:480"
+  "from": "game/stages/dale/convoy.ts:482"
  },
  {
   "voice": "death",
@@ -5552,7 +5552,7 @@
  {
   "voice": "death",
   "text": "HE HAD A LIZARD TO THINK OF",
-  "from": "game/stages/dale/convoy.ts:480"
+  "from": "game/stages/dale/convoy.ts:482"
  },
  {
   "voice": "death",
@@ -5592,7 +5592,7 @@
  {
   "voice": "death",
   "text": "HIT BY A FLYING TOASTER",
-  "from": "game/stages/barry/runtime.ts:416"
+  "from": "game/stages/barry/runtime.ts:429"
  },
  {
   "voice": "death",
@@ -5707,7 +5707,7 @@
  {
   "voice": "death",
   "text": "IT TAKES AN UPPERCUT TO CLEAR IT",
-  "from": "game/stages/dale/town.ts:789"
+  "from": "game/stages/dale/town.ts:796"
  },
  {
   "voice": "death",
@@ -5717,7 +5717,7 @@
  {
   "voice": "death",
   "text": "JUST ANOTHER NEW YORK STATISTIC",
-  "from": "game/stages/barry/runtime.ts:411"
+  "from": "game/stages/barry/runtime.ts:424"
  },
  {
   "voice": "death",
@@ -5877,7 +5877,7 @@
  {
   "voice": "death",
   "text": "LEG DAY MEETS FRONT BUMPER",
-  "from": "game/stages/dale/town.ts:789"
+  "from": "game/stages/dale/town.ts:796"
  },
  {
   "voice": "death",
@@ -5922,7 +5922,7 @@
  {
   "voice": "death",
   "text": "LOST IN THE SAND",
-  "from": "game/stages/dale/runtime.ts:187"
+  "from": "game/stages/dale/runtime.ts:189"
  },
  {
   "voice": "death",
@@ -6002,7 +6002,7 @@
  {
   "voice": "death",
   "text": "NEVER BARF WHERE YOU STAND",
-  "from": "game/stages/dale/convoy.ts:480"
+  "from": "game/stages/dale/convoy.ts:482"
  },
  {
   "voice": "death",
@@ -6017,7 +6017,7 @@
  {
   "voice": "death",
   "text": "NEW YORK WELCOMES YOU",
-  "from": "game/stages/barry/runtime.ts:416"
+  "from": "game/stages/barry/runtime.ts:429"
  },
  {
   "voice": "death",
@@ -6037,7 +6037,7 @@
  {
   "voice": "death",
   "text": "NO CONES. NO SIGN. NO CREW.",
-  "from": "game/stages/barry/runtime.ts:411"
+  "from": "game/stages/barry/runtime.ts:424"
  },
  {
   "voice": "death",
@@ -6057,7 +6057,7 @@
  {
   "voice": "death",
   "text": "NO VISITOR BADGE",
-  "from": "game/stages/barry/runtime.ts:412"
+  "from": "game/stages/barry/runtime.ts:425"
  },
  {
   "voice": "death",
@@ -6067,7 +6067,7 @@
  {
   "voice": "death",
   "text": "NOT A JUMP. AN UPPERCUT.",
-  "from": "game/stages/dale/town.ts:789"
+  "from": "game/stages/dale/town.ts:796"
  },
  {
   "voice": "death",
@@ -6172,7 +6172,7 @@
  {
   "voice": "death",
   "text": "PART OF THE RESERVE NOW",
-  "from": "game/stages/oscar/runtime.ts:177"
+  "from": "game/stages/oscar/runtime.ts:181"
  },
  {
   "voice": "death",
@@ -6247,7 +6247,7 @@
  {
   "voice": "death",
   "text": "PLANTED HEAD FIRST",
-  "from": "game/stages/artie/ski.ts:497"
+  "from": "game/stages/artie/ski.ts:498"
  },
  {
   "voice": "death",
@@ -6357,7 +6357,7 @@
  {
   "voice": "death",
   "text": "RIGGS FINALLY PRESSED THE BUTTON",
-  "from": "game/stages/dale/convoy.ts:480"
+  "from": "game/stages/dale/convoy.ts:482"
  },
  {
   "voice": "death",
@@ -6382,12 +6382,12 @@
  {
   "voice": "death",
   "text": "ROAD RASH: TERMINAL",
-  "from": "game/stages/dale/convoy.ts:480"
+  "from": "game/stages/dale/convoy.ts:482"
  },
  {
   "voice": "death",
   "text": "ROADKILL",
-  "from": "game/stages/dale/convoy.ts:480"
+  "from": "game/stages/dale/convoy.ts:482"
  },
  {
   "voice": "death",
@@ -6457,7 +6457,7 @@
  {
   "voice": "death",
   "text": "RUN OVER BY RIGGS. AGAIN.",
-  "from": "game/stages/dale/town.ts:789"
+  "from": "game/stages/dale/town.ts:796"
  },
  {
   "voice": "death",
@@ -6677,12 +6677,12 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE KILLED FASTER",
-  "from": "game/stages/dale/convoy.ts:480"
+  "from": "game/stages/dale/convoy.ts:482"
  },
  {
   "voice": "death",
   "text": "SHOULD HAVE LISTENED",
-  "from": "game/stages/tommy/thing.ts:343"
+  "from": "game/stages/tommy/thing.ts:346"
  },
  {
   "voice": "death",
@@ -6692,7 +6692,7 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE LISTENED TO YOURSELF",
-  "from": "game/stages/dale/convoy.ts:480"
+  "from": "game/stages/dale/convoy.ts:482"
  },
  {
   "voice": "death",
@@ -6702,12 +6702,12 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE UPPERCUT OVER IT",
-  "from": "game/stages/dale/town.ts:789"
+  "from": "game/stages/dale/town.ts:796"
  },
  {
   "voice": "death",
   "text": "SHOULD HAVE WORN A HELMET",
-  "from": "game/stages/tommy/bike.ts:576"
+  "from": "game/stages/tommy/bike.ts:577"
  },
  {
   "voice": "death",
@@ -6732,7 +6732,7 @@
  {
   "voice": "death",
   "text": "SIGNED OUT PERMANENTLY",
-  "from": "game/stages/barry/runtime.ts:412"
+  "from": "game/stages/barry/runtime.ts:425"
  },
  {
   "voice": "death",
@@ -6742,7 +6742,7 @@
  {
   "voice": "death",
   "text": "SKIED INTO THE ABYSS",
-  "from": "game/stages/artie/ski.ts:504"
+  "from": "game/stages/artie/ski.ts:505"
  },
  {
   "voice": "death",
@@ -6752,7 +6752,7 @@
  {
   "voice": "death",
   "text": "SKIPPED LIKE A STONE AT EIGHTY MILES AN HOUR",
-  "from": "game/stages/dale/convoy.ts:480"
+  "from": "game/stages/dale/convoy.ts:482"
  },
  {
   "voice": "death",
@@ -6777,7 +6777,7 @@
  {
   "voice": "death",
   "text": "SLID UNDER A TRUCK. IT HAD WHEELS",
-  "from": "game/stages/dale/town.ts:789"
+  "from": "game/stages/dale/town.ts:796"
  },
  {
   "voice": "death",
@@ -6807,7 +6807,7 @@
  {
   "voice": "death",
   "text": "SNOWBALLED INTO NEXT WEEK",
-  "from": "game/stages/artie/ski.ts:497"
+  "from": "game/stages/artie/ski.ts:498"
  },
  {
   "voice": "death",
@@ -6847,7 +6847,7 @@
  {
   "voice": "death",
   "text": "SPECIAL DELIVERY: YOU",
-  "from": "game/stages/dale/convoy.ts:480"
+  "from": "game/stages/dale/convoy.ts:482"
  },
  {
   "voice": "death",
@@ -6862,7 +6862,7 @@
  {
   "voice": "death",
   "text": "SPLAT ON FIFTH AVENUE",
-  "from": "game/stages/barry/runtime.ts:416"
+  "from": "game/stages/barry/runtime.ts:429"
  },
  {
   "voice": "death",
@@ -7007,7 +7007,7 @@
  {
   "voice": "death",
   "text": "TAYVON WANTS HIS BIKE BACK",
-  "from": "game/stages/tommy/bike.ts:576"
+  "from": "game/stages/tommy/bike.ts:577"
  },
  {
   "voice": "death",
@@ -7057,7 +7057,7 @@
  {
   "voice": "death",
   "text": "THE CITY THAT NEVER SLEEPS. YOU DO NOW.",
-  "from": "game/stages/barry/runtime.ts:411"
+  "from": "game/stages/barry/runtime.ts:424"
  },
  {
   "voice": "death",
@@ -7067,12 +7067,12 @@
  {
   "voice": "death",
   "text": "THE CREW WENT ON BREAK IN 1997",
-  "from": "game/stages/barry/runtime.ts:411"
+  "from": "game/stages/barry/runtime.ts:424"
  },
  {
   "voice": "death",
   "text": "THE DESERT CLAIMS ANOTHER",
-  "from": "game/stages/dale/runtime.ts:187"
+  "from": "game/stages/dale/runtime.ts:189"
  },
  {
   "voice": "death",
@@ -7132,7 +7132,7 @@
  {
   "voice": "death",
   "text": "THE INTERSTATE WON",
-  "from": "game/stages/dale/convoy.ts:480"
+  "from": "game/stages/dale/convoy.ts:482"
  },
  {
   "voice": "death",
@@ -7157,12 +7157,12 @@
  {
   "voice": "death",
   "text": "THE MOUNTAIN WON",
-  "from": "game/stages/artie/ski.ts:504"
+  "from": "game/stages/artie/ski.ts:505"
  },
  {
   "voice": "death",
   "text": "THE OTHER SIDE OF THE MOUNTAIN",
-  "from": "game/stages/artie/ski.ts:497"
+  "from": "game/stages/artie/ski.ts:498"
  },
  {
   "voice": "death",
@@ -7227,7 +7227,7 @@
  {
   "voice": "death",
   "text": "THE TRUCK DIDN'T EVEN SLOW DOWN",
-  "from": "game/stages/dale/town.ts:789"
+  "from": "game/stages/dale/town.ts:796"
  },
  {
   "voice": "death",
@@ -7252,7 +7252,7 @@
  {
   "voice": "death",
   "text": "THIN ICE",
-  "from": "game/stages/artie/ski.ts:497"
+  "from": "game/stages/artie/ski.ts:498"
  },
  {
   "voice": "death",
@@ -7287,12 +7287,12 @@
  {
   "voice": "death",
   "text": "TOOK THE EXPRESS WAY DOWN",
-  "from": "game/stages/barry/runtime.ts:416"
+  "from": "game/stages/barry/runtime.ts:429"
  },
  {
   "voice": "death",
   "text": "TOOK YOUR SWEET TIME",
-  "from": "game/stages/dale/convoy.ts:480"
+  "from": "game/stages/dale/convoy.ts:482"
  },
  {
   "voice": "death",
@@ -7382,7 +7382,7 @@
  {
   "voice": "death",
   "text": "VULTURE FOOD",
-  "from": "game/stages/dale/runtime.ts:187"
+  "from": "game/stages/dale/runtime.ts:189"
  },
  {
   "voice": "death",
@@ -7392,7 +7392,7 @@
  {
   "voice": "death",
   "text": "WANTED: DEAD. GOT IT.",
-  "from": "game/stages/dale/runtime.ts:188"
+  "from": "game/stages/dale/runtime.ts:190"
  },
  {
   "voice": "death",
@@ -7422,7 +7422,7 @@
  {
   "voice": "death",
   "text": "WHO WANTS NUGGETS?",
-  "from": "game/stages/dale/convoy.ts:440"
+  "from": "game/stages/dale/convoy.ts:442"
  },
  {
   "voice": "death",
@@ -7432,7 +7432,7 @@
  {
   "voice": "death",
   "text": "WINDOW SHOPPING",
-  "from": "game/stages/barry/runtime.ts:416"
+  "from": "game/stages/barry/runtime.ts:429"
  },
  {
   "voice": "death",
@@ -7462,7 +7462,7 @@
  {
   "voice": "death",
   "text": "YOU GOT AVALANCHED",
-  "from": "game/stages/artie/ski.ts:504"
+  "from": "game/stages/artie/ski.ts:505"
  },
  {
   "voice": "death",
@@ -7477,12 +7477,12 @@
  {
   "voice": "death",
   "text": "YOU SLIDE-TACKLED A TRUCK. THE TRUCK DID NOT FALL OVER",
-  "from": "game/stages/dale/town.ts:789"
+  "from": "game/stages/dale/town.ts:796"
  },
  {
   "voice": "death",
   "text": "YOU'RE FIRED",
-  "from": "game/stages/barry/runtime.ts:413"
+  "from": "game/stages/barry/runtime.ts:426"
  },
  {
   "voice": "dispatch",
@@ -7946,6 +7946,11 @@
  },
  {
   "voice": "hector.kid0",
+  "text": "I CAN'T EVEN SWIM!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid0",
   "text": "I FOUND A SHARK TOOTH!",
   "from": "DAYCARE_LINES"
  },
@@ -7977,11 +7982,6 @@
  {
   "voice": "hector.kid0",
   "text": "MISTER, YOU NEED A CHANGING TABLE!",
-  "from": "DAYCARE_LINES"
- },
- {
-  "voice": "hector.kid0",
-  "text": "MY FLOATIES WORKED!",
   "from": "DAYCARE_LINES"
  },
  {
@@ -8061,6 +8061,11 @@
  },
  {
   "voice": "hector.kid1",
+  "text": "I CAN'T EVEN SWIM!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid1",
   "text": "I FOUND A SHARK TOOTH!",
   "from": "DAYCARE_LINES"
  },
@@ -8092,11 +8097,6 @@
  {
   "voice": "hector.kid1",
   "text": "MISTER, YOU NEED A CHANGING TABLE!",
-  "from": "DAYCARE_LINES"
- },
- {
-  "voice": "hector.kid1",
-  "text": "MY FLOATIES WORKED!",
   "from": "DAYCARE_LINES"
  },
  {
@@ -8176,6 +8176,11 @@
  },
  {
   "voice": "hector.kid2",
+  "text": "I CAN'T EVEN SWIM!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid2",
   "text": "I FOUND A SHARK TOOTH!",
   "from": "DAYCARE_LINES"
  },
@@ -8207,11 +8212,6 @@
  {
   "voice": "hector.kid2",
   "text": "MISTER, YOU NEED A CHANGING TABLE!",
-  "from": "DAYCARE_LINES"
- },
- {
-  "voice": "hector.kid2",
-  "text": "MY FLOATIES WORKED!",
   "from": "DAYCARE_LINES"
  },
  {
@@ -8296,6 +8296,11 @@
  },
  {
   "voice": "hector.kid3",
+  "text": "I CAN'T EVEN SWIM!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid3",
   "text": "I FOUND A SHARK TOOTH!",
   "from": "DAYCARE_LINES"
  },
@@ -8327,11 +8332,6 @@
  {
   "voice": "hector.kid3",
   "text": "MISTER, YOU NEED A CHANGING TABLE!",
-  "from": "DAYCARE_LINES"
- },
- {
-  "voice": "hector.kid3",
-  "text": "MY FLOATIES WORKED!",
   "from": "DAYCARE_LINES"
  },
  {
@@ -8411,6 +8411,11 @@
  },
  {
   "voice": "hector.kid4",
+  "text": "I CAN'T EVEN SWIM!",
+  "from": "DAYCARE_LINES"
+ },
+ {
+  "voice": "hector.kid4",
   "text": "I FOUND A SHARK TOOTH!",
   "from": "DAYCARE_LINES"
  },
@@ -8442,11 +8447,6 @@
  {
   "voice": "hector.kid4",
   "text": "MISTER, YOU NEED A CHANGING TABLE!",
-  "from": "DAYCARE_LINES"
- },
- {
-  "voice": "hector.kid4",
-  "text": "MY FLOATIES WORKED!",
   "from": "DAYCARE_LINES"
  },
  {
@@ -8577,12 +8577,12 @@
  {
   "voice": "meathead",
   "text": "...EIGHTEEN.",
-  "from": "game/stages/dale/convoy.ts:399"
+  "from": "game/stages/dale/convoy.ts:401"
  },
  {
   "voice": "meathead",
   "text": "...HUH?",
-  "from": "game/stages/dale/convoy.ts:505"
+  "from": "game/stages/dale/convoy.ts:507"
  },
  {
   "voice": "meathead",
@@ -8597,7 +8597,7 @@
  {
   "voice": "meathead",
   "text": "...NOPE.",
-  "from": "game/stages/dale/convoy.ts:399"
+  "from": "game/stages/dale/convoy.ts:401"
  },
  {
   "voice": "meathead",
@@ -8612,7 +8612,7 @@
  {
   "voice": "meathead",
   "text": "...OKAY. SAVES ME A BULLET.",
-  "from": "game/stages/dale/town.ts:640"
+  "from": "game/stages/dale/town.ts:642"
  },
  {
   "voice": "meathead",
@@ -8647,7 +8647,7 @@
  {
   "voice": "meathead",
   "text": "...UH OH.",
-  "from": "game/stages/dale/convoy.ts:765"
+  "from": "game/stages/dale/convoy.ts:767"
  },
  {
   "voice": "meathead",
@@ -8922,12 +8922,12 @@
  {
   "voice": "meathead",
   "text": "A LITTLE RED DOT ON MY PECS... SNIPER! THE PORCH ROOFS! HE CAN'T SEE ME UNDER THOSE!",
-  "from": "game/stages/dale/town.ts:279"
+  "from": "game/stages/dale/town.ts:281"
  },
  {
   "voice": "meathead",
   "text": "A LOBBY. EVERYBODY IN IT LOOKS LIKE THEY HATE ME ALREADY.",
-  "from": "game/stages/barry/runtime.ts:317"
+  "from": "game/stages/barry/runtime.ts:330"
  },
  {
   "voice": "meathead",
@@ -9037,12 +9037,12 @@
  {
   "voice": "meathead",
   "text": "A SNIPER RIFLE? FOR PUSSIES. A REAL MAN GETS UP CLOSE. ...WELL. NOT TODAY. NOBODY GETS UP CLOSE TODAY.",
-  "from": "game/stages/dale/town.ts:654"
+  "from": "game/stages/dale/town.ts:656"
  },
  {
   "voice": "meathead",
   "text": "A SNIPER RIFLE? SHOOTING A GUY FROM A MILE AWAY? THAT'S FOR PUSSIES. A REAL MAN SHOOTS HIM FROM ACROSS THE STREET.",
-  "from": "game/stages/dale/town.ts:654"
+  "from": "game/stages/dale/town.ts:656"
  },
  {
   "voice": "meathead",
@@ -9137,7 +9137,7 @@
  {
   "voice": "meathead",
   "text": "AAAAAAH!",
-  "from": "game/stages/dale/convoy.ts:399"
+  "from": "game/stages/dale/convoy.ts:401"
  },
  {
   "voice": "meathead",
@@ -9192,7 +9192,7 @@
  {
   "voice": "meathead",
   "text": "AN AUTHENTIC OLD WEST TOWN. EST. NINETEEN NINETY FOUR. SURE.",
-  "from": "game/stages/dale/town.ts:270"
+  "from": "game/stages/dale/town.ts:272"
  },
  {
   "voice": "meathead",
@@ -10152,7 +10152,7 @@
  {
   "voice": "meathead",
   "text": "EAT THIS, PUSSY.",
-  "from": "game/stages/dale/town.ts:816"
+  "from": "game/stages/dale/town.ts:823"
  },
  {
   "voice": "meathead",
@@ -10277,7 +10277,7 @@
  {
   "voice": "meathead",
   "text": "FEDS? I WISH, DALE. I'M WAY WORSE.",
-  "from": "game/stages/dale/intro.ts:58"
+  "from": "game/stages/dale/intro.ts:60"
  },
  {
   "voice": "meathead",
@@ -10297,7 +10297,7 @@
  {
   "voice": "meathead",
   "text": "FIFTY EIGHT. FINE. THERE BETTER BE STAIRS.",
-  "from": "game/stages/barry/runtime.ts:328"
+  "from": "game/stages/barry/runtime.ts:341"
  },
  {
   "voice": "meathead",
@@ -10417,7 +10417,7 @@
  {
   "voice": "meathead",
   "text": "FORTY ONE. THE ELEVATOR HATES ME. EVERYTHING IN THIS CITY HATES ME.",
-  "from": "game/stages/barry/runtime.ts:328"
+  "from": "game/stages/barry/runtime.ts:341"
  },
  {
   "voice": "meathead",
@@ -11122,7 +11122,7 @@
  {
   "voice": "meathead",
   "text": "HE JUST DUCKS. CLOSER. GET CLOSER.",
-  "from": "game/stages/dale/town.ts:572"
+  "from": "game/stages/dale/town.ts:574"
  },
  {
   "voice": "meathead",
@@ -11337,7 +11337,7 @@
  {
   "voice": "meathead",
   "text": "HE'S GOT SANDBAGS UP THERE. I NEED TO GET CLOSER.",
-  "from": "game/stages/dale/town.ts:572"
+  "from": "game/stages/dale/town.ts:574"
  },
  {
   "voice": "meathead",
@@ -11377,7 +11377,7 @@
  {
   "voice": "meathead",
   "text": "HE'S RIGHT BEHIND THAT WINDSHIELD. ONE CLEAN SHOT FROM THE HOOD.",
-  "from": "game/stages/dale/convoy.ts:790"
+  "from": "game/stages/dale/convoy.ts:793"
  },
  {
   "voice": "meathead",
@@ -11457,7 +11457,7 @@
  {
   "voice": "meathead",
   "text": "HELLO? ANYBODY BACK HERE?",
-  "from": "game/stages/dale/convoy.ts:505"
+  "from": "game/stages/dale/convoy.ts:507"
  },
  {
   "voice": "meathead",
@@ -11532,7 +11532,7 @@
  {
   "voice": "meathead",
   "text": "HOLD ON. WHO'S DRIVING NOW?",
-  "from": "game/stages/dale/convoy.ts:871"
+  "from": "game/stages/dale/convoy.ts:875"
  },
  {
   "voice": "meathead",
@@ -11612,12 +11612,12 @@
  {
   "voice": "meathead",
   "text": "HOW HIGH DO THESE APARTMENTS EVEN GO?!",
-  "from": "game/stages/barry/runtime.ts:156"
+  "from": "game/stages/barry/runtime.ts:169"
  },
  {
   "voice": "meathead",
   "text": "HOW MANY WHEELS DOES THIS THING HAVE?!",
-  "from": "game/stages/dale/convoy.ts:399"
+  "from": "game/stages/dale/convoy.ts:401"
  },
  {
   "voice": "meathead",
@@ -11967,7 +11967,7 @@
  {
   "voice": "meathead",
   "text": "I SHOULD REALLY TAKE OUT THAT SNIPER BEFORE I GO ANY FURTHER.",
-  "from": "game/stages/dale/town.ts:312"
+  "from": "game/stages/dale/town.ts:314"
  },
  {
   "voice": "meathead",
@@ -12182,7 +12182,7 @@
  {
   "voice": "meathead",
   "text": "I'M GOOD. I'M GOOD.",
-  "from": "game/stages/dale/convoy.ts:399"
+  "from": "game/stages/dale/convoy.ts:401"
  },
  {
   "voice": "meathead",
@@ -12247,7 +12247,7 @@
  {
   "voice": "meathead",
   "text": "I'M OKAY!",
-  "from": "game/stages/dale/convoy.ts:399"
+  "from": "game/stages/dale/convoy.ts:401"
  },
  {
   "voice": "meathead",
@@ -12477,7 +12477,7 @@
  {
   "voice": "meathead",
   "text": "IT'S EATING THROUGH THE METAL! ONE MORE AND I'M GOING IN THERE!",
-  "from": "game/stages/dale/convoy.ts:763"
+  "from": "game/stages/dale/convoy.ts:765"
  },
  {
   "voice": "meathead",
@@ -12862,7 +12862,7 @@
  {
   "voice": "meathead",
   "text": "MY EVERYTHING!",
-  "from": "game/stages/dale/convoy.ts:399"
+  "from": "game/stages/dale/convoy.ts:401"
  },
  {
   "voice": "meathead",
@@ -13002,7 +13002,7 @@
  {
   "voice": "meathead",
   "text": "MY SPLEEN!",
-  "from": "game/stages/dale/convoy.ts:399"
+  "from": "game/stages/dale/convoy.ts:401"
  },
  {
   "voice": "meathead",
@@ -13012,7 +13012,7 @@
  {
   "voice": "meathead",
   "text": "MY TIIIIIIRES!",
-  "from": "game/stages/tommy/bike.ts:535"
+  "from": "game/stages/tommy/bike.ts:536"
  },
  {
   "voice": "meathead",
@@ -13307,7 +13307,7 @@
  {
   "voice": "meathead",
   "text": "NOBODY. NOBODY IS DRIVING NOW.",
-  "from": "game/stages/dale/convoy.ts:886"
+  "from": "game/stages/dale/convoy.ts:893"
  },
  {
   "voice": "meathead",
@@ -13317,7 +13317,7 @@
  {
   "voice": "meathead",
   "text": "NOT FROM DOWN HERE. I'VE GOT TO GET UP THERE.",
-  "from": "game/stages/dale/town.ts:572"
+  "from": "game/stages/dale/town.ts:574"
  },
  {
   "voice": "meathead",
@@ -13332,17 +13332,17 @@
  {
   "voice": "meathead",
   "text": "NOT THE FACE!",
-  "from": "game/stages/dale/convoy.ts:399"
+  "from": "game/stages/dale/convoy.ts:401"
  },
  {
   "voice": "meathead",
   "text": "NOT WITH A SNIPER ON MY BACK. HE'S UP THE BELL TOWER.",
-  "from": "game/stages/dale/town.ts:312"
+  "from": "game/stages/dale/town.ts:314"
  },
  {
   "voice": "meathead",
   "text": "NOT WITH THAT! THIS NEEDS A SURGEON'S TOUCH. THE HANDGUN. FROM THE HOOD.",
-  "from": "game/stages/dale/convoy.ts:840"
+  "from": "game/stages/dale/convoy.ts:843"
  },
  {
   "voice": "meathead",
@@ -13352,7 +13352,7 @@
  {
   "voice": "meathead",
   "text": "NOTE TO SELF: SHOOT THE DRIVER AFTER THE TRUCK STOPS.",
-  "from": "game/stages/dale/town.ts:269"
+  "from": "game/stages/dale/town.ts:271"
  },
  {
   "voice": "meathead",
@@ -13407,7 +13407,7 @@
  {
   "voice": "meathead",
   "text": "OH NO.",
-  "from": "game/stages/dale/convoy.ts:505"
+  "from": "game/stages/dale/convoy.ts:507"
  },
  {
   "voice": "meathead",
@@ -13497,12 +13497,12 @@
  {
   "voice": "meathead",
   "text": "ONE SWORD. THREE GUYS. ONE JAIL. AND I'M STILL THE ONE WHO SHIT HIMSELF TODAY.",
-  "from": "game/stages/dale/town.ts:929"
+  "from": "game/stages/dale/town.ts:936"
  },
  {
   "voice": "meathead",
   "text": "ONE SWORD. THREE GUYS. ONE JAIL. NOW THAT'S A COMPOUND MOVEMENT.",
-  "from": "game/stages/dale/town.ts:928"
+  "from": "game/stages/dale/town.ts:935"
  },
  {
   "voice": "meathead",
@@ -13522,7 +13522,7 @@
  {
   "voice": "meathead",
   "text": "OOF!",
-  "from": "game/stages/dale/convoy.ts:399"
+  "from": "game/stages/dale/convoy.ts:401"
  },
  {
   "voice": "meathead",
@@ -13577,7 +13577,7 @@
  {
   "voice": "meathead",
   "text": "OW!",
-  "from": "game/stages/dale/convoy.ts:399"
+  "from": "game/stages/dale/convoy.ts:401"
  },
  {
   "voice": "meathead",
@@ -13602,7 +13602,7 @@
  {
   "voice": "meathead",
   "text": "OW! OW!",
-  "from": "game/stages/dale/convoy.ts:399"
+  "from": "game/stages/dale/convoy.ts:401"
  },
  {
   "voice": "meathead",
@@ -13697,7 +13697,7 @@
  {
   "voice": "meathead",
   "text": "PFFT. IT'S A PUDDLE.",
-  "from": "game/stages/tommy/bike.ts:520"
+  "from": "game/stages/tommy/bike.ts:521"
  },
  {
   "voice": "meathead",
@@ -14077,7 +14077,7 @@
  {
   "voice": "meathead",
   "text": "ROOF ACCESS. AND THERE GO THE LIGHTS. THE WHOLE CITY. IN WAVES.",
-  "from": "game/stages/barry/runtime.ts:318"
+  "from": "game/stages/barry/runtime.ts:331"
  },
  {
   "voice": "meathead",
@@ -14617,7 +14617,7 @@
  {
   "voice": "meathead",
   "text": "SNIPER FIRST. THEN THE DRUGS.",
-  "from": "game/stages/dale/town.ts:312"
+  "from": "game/stages/dale/town.ts:314"
  },
  {
   "voice": "meathead",
@@ -15027,7 +15027,7 @@
  {
   "voice": "meathead",
   "text": "SURF'S UP, DUDES!",
-  "from": "game/stages/barry/runtime.ts:367"
+  "from": "game/stages/barry/runtime.ts:380"
  },
  {
   "voice": "meathead",
@@ -15037,7 +15037,7 @@
  {
   "voice": "meathead",
   "text": "SURPRISE!",
-  "from": "game/stages/dale/convoy.ts:505"
+  "from": "game/stages/dale/convoy.ts:507"
  },
  {
   "voice": "meathead",
@@ -15052,7 +15052,7 @@
  {
   "voice": "meathead",
   "text": "SWORDS ARE FOR PUSSIES.",
-  "from": "game/stages/dale/town.ts:640"
+  "from": "game/stages/dale/town.ts:642"
  },
  {
   "voice": "meathead",
@@ -15117,7 +15117,7 @@
  {
   "voice": "meathead",
   "text": "THANKS FOR THE RIDE, BUDDY.",
-  "from": "game/stages/barry/runtime.ts:391"
+  "from": "game/stages/barry/runtime.ts:404"
  },
  {
   "voice": "meathead",
@@ -15382,7 +15382,7 @@
  {
   "voice": "meathead",
   "text": "THE CARGO'S LEAVING? NOT WITHOUT ME.",
-  "from": "game/stages/dale/junkie.ts:791"
+  "from": "game/stages/dale/junkie.ts:793"
  },
  {
   "voice": "meathead",
@@ -15602,7 +15602,7 @@
  {
   "voice": "meathead",
   "text": "THE ROOF. FINALLY. ...OH COME ON, THAT ONE'S TALLER.",
-  "from": "game/stages/barry/runtime.ts:156"
+  "from": "game/stages/barry/runtime.ts:169"
  },
  {
   "voice": "meathead",
@@ -15972,7 +15972,7 @@
  {
   "voice": "meathead",
   "text": "TWENTY THREE?! I PRESSED THE TOP ONE!",
-  "from": "game/stages/barry/runtime.ts:328"
+  "from": "game/stages/barry/runtime.ts:341"
  },
  {
   "voice": "meathead",
@@ -15992,7 +15992,7 @@
  {
   "voice": "meathead",
   "text": "UGH... MY EVERYTHING.",
-  "from": "game/stages/tommy/runtime.ts:146"
+  "from": "game/stages/tommy/runtime.ts:152"
  },
  {
   "voice": "meathead",
@@ -16007,7 +16007,7 @@
  {
   "voice": "meathead",
   "text": "UNDER A PORCH ROOF! THAT'S THE ONLY PLACE HE CAN'T HIT ME!",
-  "from": "game/stages/dale/town.ts:392"
+  "from": "game/stages/dale/town.ts:394"
  },
  {
   "voice": "meathead",
@@ -16097,7 +16097,7 @@
  {
   "voice": "meathead",
   "text": "WAIT WAIT WAIT",
-  "from": "game/stages/dale/convoy.ts:399"
+  "from": "game/stages/dale/convoy.ts:401"
  },
  {
   "voice": "meathead",
@@ -16322,7 +16322,7 @@
  {
   "voice": "meathead",
   "text": "WHO LIVES UP HERE? BIRDS? RICH BIRDS?",
-  "from": "game/stages/barry/runtime.ts:156"
+  "from": "game/stages/barry/runtime.ts:169"
  },
  {
   "voice": "meathead",
@@ -16422,7 +16422,7 @@
  {
   "voice": "meathead",
   "text": "WHO'S THE ASTRONAUT?",
-  "from": "game/stages/tommy/bike.ts:494"
+  "from": "game/stages/tommy/bike.ts:495"
  },
  {
   "voice": "meathead",
@@ -16452,7 +16452,7 @@
  {
   "voice": "meathead",
   "text": "WHOA. THE ROOF'S SIZZLING. MAYBE DON'T BARF ON THE THING I'M STANDING ON.",
-  "from": "game/stages/dale/convoy.ts:763"
+  "from": "game/stages/dale/convoy.ts:765"
  },
  {
   "voice": "meathead",
@@ -16522,12 +16522,12 @@
  {
   "voice": "meathead",
   "text": "YEAH, OKAY.",
-  "from": "game/stages/tommy/thing.ts:158"
+  "from": "game/stages/tommy/thing.ts:160"
  },
  {
   "voice": "meathead",
   "text": "YEAH, OKAY. RUDE, THOUGH.",
-  "from": "game/stages/tommy/thing.ts:158"
+  "from": "game/stages/tommy/thing.ts:160"
  },
  {
   "voice": "meathead",
@@ -17502,22 +17502,22 @@
  {
   "voice": "tommy.hazmat",
   "text": "COMPLIMENTS OF THE CITY OF FLINT.",
-  "from": "game/stages/tommy/bike.ts:499"
+  "from": "game/stages/tommy/bike.ts:500"
  },
  {
   "voice": "tommy.hazmat",
   "text": "COMPLIMENTS OF THE CITY OF FLINT. AND, SIR? YOUR PANTS.",
-  "from": "game/stages/tommy/bike.ts:499"
+  "from": "game/stages/tommy/bike.ts:500"
  },
  {
   "voice": "tommy.hazmat",
   "text": "DRINK UP.",
-  "from": "game/stages/tommy/bike.ts:504"
+  "from": "game/stages/tommy/bike.ts:505"
  },
  {
   "voice": "tommy.hazmat",
   "text": "DRINK UP. IT'S CLEANER THAN YOU.",
-  "from": "game/stages/tommy/bike.ts:504"
+  "from": "game/stages/tommy/bike.ts:505"
  },
  {
   "voice": "tommy.hazmat",
@@ -17552,122 +17552,122 @@
  {
   "voice": "tommy.thing",
   "text": "A WAVE OF CLEAN WATER! DROWN US IN IT!",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "ARE YOU LISTENING TO US?",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "BURN US. BOIL US AWAY. THE FIRE.",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "FIRE! LIKE THE REFINERY! PLEASE!",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "HERE. WE BROUGHT THIS UP FOR YOU.",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "ICE! WE WANT TO FEEL SOMETHING THAT ISN'T WARM!",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "LISTEN. TO. US.",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "MEATHEAD. WE ASKED YOU FOR SOMETHING.",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "MORE... THANK YOU...",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "NOT THAT.",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "OH, THAT'S THE GOOD STUFF.",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "ROCKS. THROW ROCKS AT US. BREAK US.",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "THANK... YOU...",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "THAT'S NOT WHAT WE ASKED FOR.",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "THE COLD. FREEZE US. PLEASE. THE ICE.",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "THE ROCKS! SMASH THE BONES LOOSE!",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "WATER. CLEAN WATER. WE HAVEN'T SEEN CLEAN WATER IN YEARS.",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "WE ASKED NICELY.",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "WE DRANK THE WATER. AND NOW... THAT SMELL. PLEASE. KILL US. QUICKLY.",
-  "from": "game/stages/tommy/thing.ts:157"
+  "from": "game/stages/tommy/thing.ts:159"
  },
  {
   "voice": "tommy.thing",
   "text": "WE DRANK THE WATER. PLEASE. KILL US.",
-  "from": "game/stages/tommy/thing.ts:157"
+  "from": "game/stages/tommy/thing.ts:159"
  },
  {
   "voice": "tommy.thing",
   "text": "WE FELT THAT. ALL OF US.",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "WE WERE A NEIGHBORHOOD ONCE. WE HAD MANNERS.",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "WE'RE WAITING...",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tommy.thing",
   "text": "YES... YES...",
-  "from": "game/stages/tommy/thing.ts:123"
+  "from": "game/stages/tommy/thing.ts:125"
  },
  {
   "voice": "tourist",

@@ -625,7 +625,7 @@ export const drawDaycare = (ctx: Ctx, state: GameState, dc: Daycare) => {
     else if (k % 4 === 2) { ctx.fillStyle = cols[(k + 2) % 5]; ctx.fillRect(dx - 6, g - 8, 12, 8); ctx.fillStyle = '#1C1917'; ctx.fillRect(dx - 3, g - 10, 6, 2); }
     else { ctx.fillStyle = cols[(k + 1) % 5]; ctx.fillRect(dx - 4, g - 6, 8, 6); ctx.fillRect(dx - 2, g - 9, 4, 3); }
   }
-  // The kids, sat on top of the wreck in their floaties, cheering (once they've ridden the wave in)
+  // The kids, sat on top of the wreck, cheering (once they've ridden the wave in)
   if (t < 0 || t >= RIDE_END) for (let k = 0; k < 5; k++) { const w = wreckSpot(k); floatieKid(ctx, w.x, w.y, k, f); }
   // (what they're saying: up on the wreck once they're there)
   if (t < 0 || t >= RIDE_END) for (const [who, text] of Object.entries(dc.saying)) if (who.startsWith('kid')) { const w = wreckSpot(Number(who.slice(-1))); bubble(ctx, w.x, w.y - 50, text); }
@@ -638,8 +638,8 @@ const CHEER_SPOTS = [-330, -250, 230, 310, 390];
 const wreckSpot = (k: number) => ({ x: COURSE.daycare.building - 120 + k * 60, y: COURSE.daycare.y - 64 - (k === 2 ? 60 : 0) + (k % 2) * 8 });
 
 const floatieKid = (ctx: Ctx, x: number, y: number, k: number, f: number) => {
+  // (no floaties: they ride a tsunami in on nothing and come out of it fine; nobody says how)
   kid(ctx, x, y, KID_COLORS[k], true, f, k);
-  ctx.strokeStyle = '#F97316'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(x, y - 20, 11, 4, 0, 0, Math.PI * 2); ctx.stroke();
 };
 
 /** The flood: the whole storm coming down on the daycare at once. */
