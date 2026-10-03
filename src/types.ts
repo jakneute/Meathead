@@ -202,6 +202,8 @@ export interface Player extends Entity {
   dryFireAt?: number;
   /** Out of boulders and tried to throw one anyway: the frame he shrugged (see render/player/player.ts). */
   shrugAt?: number;
+  /** Knocked back off a wall out of a slide: whether he's staying down for it (down was held when he hit). */
+  slideLow?: boolean;
   dryWasLive?: boolean;
   // Sludge
   barfTimer?: number;

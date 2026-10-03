@@ -411,6 +411,14 @@ const updateCrouch = (ctx: FrameContext, input: FrameInput) => {
   if (!player.isGrounded || player.vel.y < 0) { if (!player.slideRecoil) player.isDucking = false; return; }
   // Holding fire with the flamethrower keeps you standing (down aims the stream instead)
   const isFlamethrowing = (ctx.currentWeapon === 'FLAMETHROWER' && input.shoot) || (!!input.secondary && SECONDARY[ctx.currentWeapon] === 'FLAMETHROWER');
+  // Knocked back off a wall out of a slide: he's either down for the whole of it (down held when he hit) or up for the
+  // whole of it, not flipped from one to the other partway through (his arm jumping to the crouch mid-stagger)
+  if (player.hurtForm === 'slide' && (player.hurtFormTimer || 0) > 0) {
+    if (player.slideLow === undefined) player.slideLow = !!input.moveDown;
+    player.isDucking = player.slideLow;
+    return;
+  }
+  player.slideLow = undefined;
   // Bouncing back off an enemy mid-slide keeps him down, until down is let go
   if (!input.moveDown) player.slideRecoil = false;
   const lockAllowsCrouch = player.lockTimer <= 0 || !!player.slideRecoil;
