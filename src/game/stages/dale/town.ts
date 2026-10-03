@@ -391,7 +391,7 @@ const updateSniper = (ctx: FrameContext, town: Town, talk: Talk) => {
         fx.spawnDamageNumber({ x: e.pos.x - 20, y: e.pos.y - 30 }, 'FRIENDLY FIRE!', true, '#FACC15');
       }
       scatterTourists(town, s.x);
-      if (s.shots === 1 && p.health > 0 && once(state, town, 'cover')) { queueLines(state, talk, [{ who: 'meathead', text: "UNDER A PORCH ROOF! THAT'S THE ONLY PLACE HE CAN'T HIT ME!" }], 40); }
+      if (s.shots === 1 && p.health > 0 && !town.said.has('sniper') && !state.stageMemo['said-sniper'] && once(state, town, 'cover')) { /* (only if he hasn't already said it, spotting the dot) */ queueLines(state, talk, [{ who: 'meathead', text: "UNDER A PORCH ROOF! THAT'S THE ONLY PLACE HE CAN'T HIT ME!" }], 40); }
     }
   }
 };
