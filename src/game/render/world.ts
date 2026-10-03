@@ -1338,14 +1338,24 @@ const goreLayers = new WeakMap<GameState, GoreLayer>();
 const goreLayer = (ctx: CanvasRenderingContext2D, state: GameState) => {
   if (typeof document === 'undefined') return null;
   let layer = goreLayers.get(state);
-  let stuck = 0, onLayer = 0;
-  for (const p of state.particles) if (p.isStuck) { stuck++; if (layer?.baked.has(p)) onLayer++; }
+  let stuck = 0, onLayer = 0, x1 = Infinity, x2 = -Infinity, y1 = Infinity, y2 = -Infinity;
+  for (const p of state.particles) if (p.isStuck) {
+    stuck++; if (layer?.baked.has(p)) onLayer++;
+    if (p.alpha === undefined) { x1 = Math.min(x1, p.pos.x); x2 = Math.max(x2, p.pos.x); y1 = Math.min(y1, p.pos.y); y2 = Math.max(y2, p.pos.y); }
+  }
   if (layer && onLayer === 0) { goreLayers.delete(state); layer = undefined; }
   if (!stuck) return null;
+  // (gore stuck somewhere off the layer, the camera having moved on since it was made (Oscar's room is two screens
+  // wide): it's made again, big enough for all of it, so none of it's left being drawn splat by splat every frame)
+  if (layer && (x1 < layer.x || x2 > layer.x + layer.w || y1 < layer.y || y2 > layer.y + layer.h) && Math.max(x2, layer.x + layer.w) - Math.min(x1, layer.x) < 4000) { goreLayers.delete(state); layer = undefined; }
   if (!layer) {
     const m = ctx.getTransform();
-    const k = Math.max(1, Math.min(2, Math.hypot(m.a, m.b)));
-    const x = state.camera.x - 120, y = state.camera.y - 120, w = CANVAS_WIDTH + 240, h = CANVAS_HEIGHT + 240;
+    // (room to spare round what's there, so a few more splats landing just past it don't mean making it again)
+    let x = Math.min(state.camera.x - 120, x1 - 300), y = Math.min(state.camera.y - 120, y1 - 120);
+    let w = Math.max(state.camera.x + CANVAS_WIDTH + 120, x2 + 300) - x, h = Math.max(state.camera.y + CANVAS_HEIGHT + 120, y2 + 120) - y;
+    if (w > 4000 || h > 2400) { x = state.camera.x - 120; y = state.camera.y - 120; w = CANVAS_WIDTH + 240; h = CANVAS_HEIGHT + 240; }
+    // (and no bigger than it needs to be in memory: a big one's painted at the world's own scale)
+    const k = w * h > 2600 * 1000 ? 1 : Math.max(1, Math.min(2, Math.hypot(m.a, m.b)));
     const canvas = document.createElement('canvas');
     canvas.width = Math.ceil(w * k); canvas.height = Math.ceil(h * k);
     layer = { canvas, x, y, w, h, k, baked: new WeakSet() };

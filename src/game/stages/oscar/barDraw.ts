@@ -12,7 +12,7 @@
 // neon as a tube with a stepped halo, no smooth gradients and no blur.
 
 import type { GameState } from '../../core/state';
-import { GROUND_Y } from '../../../constants';
+import { GROUND_Y, CANVAS_WIDTH } from '../../../constants';
 import { drawFire } from '../../render/fx/fire';
 import { drawKindCorpse } from '../../render/enemies';
 import { drawChopperBike } from '../../render/enemies/oscar';
@@ -99,7 +99,12 @@ export const drawBarBack = (ctx: Ctx, state: GameState, b: Bar) => {
       if (g.r > 22) { ctx.fillStyle = 'rgba(69, 10, 10, 0.85)'; ctx.fillRect(Math.round(g.x / 2) * 2, g.y + g.r * 0.4, 2, g.r * 0.6); ctx.fillRect(Math.round(g.x / 2) * 2, g.y + g.r, 2, 2); }
     }
     // Fire still going here and there along the floor
-    for (let k = 0; k < 9; k++) drawFire(ctx, B.x1 + 70 + k * 130, Y, 30, 36 + (k % 3) * 5, f, { seed: k * 23, smoke: 0.3, glow: 0.7 });
+    // (only the ones on screen: each is painted afresh every frame, and the camera's over in Oscar's room half the time)
+    for (let k = 0; k < 9; k++) {
+      const fx = B.x1 + 70 + k * 130;
+      if (fx < state.camera.x - 60 || fx > state.camera.x + CANVAS_WIDTH + 60) continue;
+      drawFire(ctx, fx, Y, 30, 36 + (k % 3) * 5, f, { seed: k * 23, smoke: 0.3, glow: 0.7 });
+    }
   }
   // The gas lines: yellow pipe down the walls to each joint
   const gas = intact ? '#CA8A04' : '#3F3A36';
