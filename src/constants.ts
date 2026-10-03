@@ -162,18 +162,9 @@ export const ENEMY_MASS: Record<string, number> = {
   'heavy-flyer': 300,
   shield: 250,
   tank: 300,
-  rusher: 250,
+  rusher: 450,
   boss: 500,
-  // Artie's wildlife and goons
-  wolverine: 90,
-  goat: 150,
-  eagle: 70,
-  shooter: 220,
-  charger: 300,
-  shielder: 260,
-  // Hector's
-  tourist: 220, bouncer: 320, surfer: 260, cop: 220, riotcop: 280,
-  gator: 260, pelican: 70, iguana: 60, crab: 50, civilian: 150, shark: 200,
+  // (the themed enemies carry their own: see KIND_STATS in enemies/kinds)
 };
 
 // ==========================================

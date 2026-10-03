@@ -7,6 +7,7 @@ import { standingIndoors } from '../core/terrain';
 import { boundsOf } from '../core/utils';
 import { ENEMY_MASS } from '../../constants';
 import { getBossDef } from '../bosses/registry';
+import { KIND_STATS } from '../enemies/kinds';
 
 /** An enemy of this mass gets pushed exactly as hard as the push says. */
 const REFERENCE_MASS = 200;
@@ -15,15 +16,18 @@ const MAX_PUSH_SPEED = 30;
 
 export const getEnemyMass = (e: Enemy) => {
   if (e.type === 'boss') return ENEMY_MASS.boss;
+  // (every themed enemy carries its own weight: see KIND_STATS)
+  if (e.kind && KIND_STATS[e.kind]) return KIND_STATS[e.kind].mass;
   const prefix = Object.keys(ENEMY_MASS).sort((a, b) => b.length - a.length).find(k => e.id.startsWith(k));
   return prefix ? ENEMY_MASS[prefix] : 200;
 };
 
-/** Lighter enemies fly further, heavier ones barely budge. */
-export const massScale = (e: Enemy) => Math.max(0.4, Math.min(2, REFERENCE_MASS / getEnemyMass(e)));
+/** Lighter enemies fly further, heavier ones barely budge (the really big ones hardly at all). */
+export const massScale = (e: Enemy) => Math.max(0.15, Math.min(2, REFERENCE_MASS / getEnemyMass(e)));
 
-/** Mass ratio for one enemy slamming into another: a heavy one bowls a light one over, not the reverse. */
-export const massRatio = (from: Enemy, to: Enemy) => Math.max(0.4, Math.min(2, getEnemyMass(from) / getEnemyMass(to)));
+/** Mass ratio for one enemy slamming into another: a heavy one bowls a light one over, not the reverse (a rat kicked
+ * into a bloater bounces off him; he hardly rocks). */
+export const massRatio = (from: Enemy, to: Enemy) => Math.max(0.08, Math.min(2, getEnemyMass(from) / getEnemyMass(to)));
 
 /** Shove an enemy (a push sized for a reference-weight enemy), dazing it while it goes. */
 export const pushEnemy = (e: Enemy, velX: number, velY: number, dazeFrames: number) => {
