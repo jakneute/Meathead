@@ -6,6 +6,7 @@ import { SLIDE_HOLD } from '../../combat/muzzle';
 import { drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive, drawStandingKick, drawPedalLegs, drawLedgeDrop } from './moves';
 import { KICK_POSE_FRAMES, LEDGE_DROP_FRAMES } from '../../../constants';
 import { GameState } from '../../core/state';
+import { GroundRun, runAt, treadYAt, stanceDrop, STANCE } from '../../core/terrain';
 import { beginSprite, endSprite, markEyes, eyesAt } from './spriteOutline';
 import { drawDeathBrows, drawDeathEyes, drawDeathMouth } from './deathFace';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
@@ -43,7 +44,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
 
   // 1. Filth Shield Aura
   if (p.filthShieldTimer && p.filthShieldTimer > 0 && !state.victoryString && showFilthShield) {
-    drawFilthShield(ctx, p.pos.x + p.width / 2, p.pos.y + p.height / 2, animFrame, p.filthShieldTimer);
+    drawFilthShield(ctx, p.pos.x + p.width / 2, p.pos.y + p.height / 2 + stanceDrop(p.stance, !p.isDucking && !p.isSliding && !p.isCharging), animFrame, p.filthShieldTimer);
   }
 
   // 2. Invincibility / Hurt Flicker
@@ -91,9 +92,27 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // in the air, and right down in an egg tuck ducking
   const isSki = !!p.skiing && !p.jetski && hurtT < 0 && !isCharging && !isUppercutting && !isDivekicking;
 
+  // On a slope or stairs (p.stance): drawn down onto the ground under him. Stood or walking, onto his downhill foot,
+  // each foot put down on whatever's under it (drawSlopeLeg); in any other pose, only onto the higher foot
+  const slopeLegs = !!p.stance && (isWalking || isIdle) && !isHurt && !isRelieving && !isSki && !isSeated && !surf && !p.headless;
+  const drop = stanceDrop(p.stance, slopeLegs);
+
   // Set local coordinate frame: (0, 0) is at player feet center
   const anchorX = p.pos.x + p.width / 2;
-  const anchorY = p.pos.y + p.height;
+  const anchorY = p.pos.y + p.height + drop;
+  // (the ground under him there, along from his middle the way he's facing, below his feet: one look for the run he's
+  // on, then its slope or treads; a foot on stairs goes on the higher of the treads under its heel and toe)
+  let footRun: GroundRun | undefined;
+  const groundAt = (lx: number): { y: number; angle: number } | null => {
+    const wx = anchorX + p.facing * lx;
+    const r = footRun = runAt(state.groundRuns, wx, footRun);
+    if (!r) return null;
+    if (!r.steps) return { y: treadYAt(r, wx) - anchorY, angle: Math.atan(((r.y2 - r.y1) / (r.x2 - r.x1)) * p.facing) * 0.6 };
+    const heel = runAt(state.groundRuns, wx - 5, r), toe = runAt(state.groundRuns, wx + 5, r);
+    return { y: Math.min(heel ? treadYAt(heel, wx - 5) : Infinity, toe ? treadYAt(toe, wx + 5) : Infinity) - anchorY, angle: 0 };
+  };
+  // Which way it goes, the way he's facing (+ up ahead), from the ground either side of him
+  const grade = p.stance ? ((p.facing > 0 ? p.stance.l - p.stance.r : p.stance.r - p.stance.l) / (STANCE * 2)) : 0;
   // The body goes into an offscreen sprite (origin at his feet) so it gets a cartoon outline
   const world = ctx;
   const sprite = beginSprite(world);
@@ -228,7 +247,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     bodyRot = 0.05; // Slight forward combat crouch angle
     bodyY = 0; // Feet remain firmly planted on the ground level (0)!
   } else if (isWalking) {
-    bodyY = -walkBob;
+    // (on a slope or stairs: at his highest passing one foot by the other, his lowest with them apart; and carried a
+    // little higher than he stands there, the steeper it is, the foot down the slope pushing off its toe)
+    bodyY = slopeLegs ? -(1 - Math.abs(walkStride)) * 1.5 - Math.min(4, Math.abs(p.stance!.l - p.stance!.r) * 0.35) : -walkBob;
   } else if (isIdle) {
     bodyY = -idleBreath * 0.5;
   } else if (isSwimming) {
@@ -240,6 +261,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
 
   // Lean into the run
   if (isWalking && hurtT < 0) bodyRot += Math.sign(p.vel.x) * p.facing * Math.min(1, Math.abs(p.vel.x) / PLAYER_MOVE_SPEED) * 0.07;
+  // ...and uphill, whichever way he's going: into the climb going up, back against it coming down (not the gun: below)
+  const slopeLean = slopeLegs && isWalking ? Math.max(-1, Math.min(1, grade)) * (grade * Math.sign(p.vel.x) * p.facing > 0 ? 0.07 : 0.12) : 0;
+  bodyRot += slopeLean;
 
   if (spinAroundCenter) {
     ctx.translate(0, bodyY - 32);
@@ -482,6 +506,19 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     drawBoot(ctx, -16, -4, 13, 6, false);
     drawPantLeg(ctx, 2, -22, 10, 18, pantsColor, true);
     drawBoot(ctx, 3, -4, 13, 6, true);
+  } else if (isWalking && slopeLegs) {
+    // Up or down a slope or stairs: each foot planted on the ground under it, then lifted and swung through to the
+    // next. Going up, a shorter stride and a high step, the knee coming right up; coming down, a longer, braking
+    // stride, the foot hardly lifted, reaching down for the ground ahead
+    const climb = grade * Math.sign(p.vel.x) * p.facing > 0, k = Math.min(1, Math.abs(grade) / 0.6);
+    const reach = climb ? 9 - 2.5 * k : 9 + 1.5 * k, lift = climb ? 3 + 5 * k : 2.5 - k;
+    const swing = Math.cos(walkPhase);
+    const leg = (hipX: number, footX: number, up: number, back: boolean) => {
+      const g = groundAt(footX);
+      drawSlopeLeg(ctx, hipX, footX, (g ? g.y : 0) - up, up > 0.5 ? (climb ? -0.15 : 0.1) : g ? g.angle : 0, bodyY, bodyRot, back, false);
+    };
+    leg(-4, -4 + reach * walkStride, Math.max(0, swing) * lift, true);
+    leg(4, 4 - reach * walkStride, Math.max(0, -swing) * lift, false);
   } else if (isWalking) {
     // Smooth 2-legged walking cycle with knee bend & heel strike
     // Back leg
@@ -525,6 +562,13 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     }
     drawBoot(ctx, -11, -6, 12, 7, false);
     drawBoot(ctx, 2, -6, 14, 7, true);
+  } else if (slopeLegs) {
+    // Stood on a slope or stairs: each boot down on the ground under it, the uphill knee bent, the downhill leg
+    // straight, his hips level; his feet a little closer together the steeper it is (short legs: they'd fold up)
+    const narrow = Math.min(1, Math.abs(grade) / 0.6) * 2;
+    const gb = groundAt(-5 + narrow), gf = groundAt(9 - narrow);
+    drawSlopeLeg(ctx, -5, -5 + narrow, gb ? gb.y : 0, gb ? gb.angle : 0, bodyY, bodyRot, true, false);
+    drawSlopeLeg(ctx, 7, 7 - narrow, gf ? gf.y : 0, gf ? gf.angle : 0, bodyY, bodyRot, false, true);
   } else {
     // Idle grounded solid stance
     drawPantLeg(ctx, -10, -22, 10, 16, pantsShadow);
@@ -919,6 +963,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     const armPump = isWalking ? walkStride * 8 : 0;
     const armBaseX = isDucking ? 10 : 8;
     const armBaseY = isDucking ? -26 : -42;
+    // (leaning into a slope, the gun arm doesn't: it's held out level, right where it is on the flat)
+    if (slopeLean) ctx.rotate(-slopeLean);
     // Just threw a boulder: the arm follows through from the shoulder (up and over for a lob, a low bowl otherwise)
     const throwing = (p.throwTimer || 0) > 0;
     if (throwing) {
@@ -959,7 +1005,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   finishBody();
 
   // The stink coming up off him, and the flies he's picked up
-  if (p.gut?.stage === 2 && !p.swimming) drawStink(ctx, p.pos.x + p.width / 2 - p.facing * 14, p.pos.y + p.height - 22, animFrame);
+  if (p.gut?.stage === 2 && !p.swimming) drawStink(ctx, p.pos.x + p.width / 2 - p.facing * 14, anchorY - 22, animFrame);
 
   // Pain sparks when knocked out of a special move
   if (hurtT >= 0 && hurtT < 0.5) {
@@ -969,7 +1015,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       const a = (i / 5) * Math.PI * 2 + hurtT * 3;
       const r = 18 + hurtT * 30;
       const sx = p.pos.x + p.width / 2 + Math.cos(a) * r;
-      const sy = p.pos.y + 14 + Math.sin(a) * r * 0.6;
+      const sy = p.pos.y + 14 + drop + Math.sin(a) * r * 0.6;
       ctx.fillStyle = i % 2 ? '#FFFFFF' : '#EF4444';
       ctx.fillRect(sx - 3, sy - 1, 6, 2);
       ctx.fillRect(sx - 1, sy - 3, 2, 6);
@@ -983,7 +1029,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     const starAngle = animFrame * 0.2;
     for (let s = 0; s < 3; s++) {
       const sx = p.pos.x + p.width / 2 + Math.cos(starAngle + s * 2.1) * 22;
-      const sy = p.pos.y - 12 + Math.sin(starAngle + s * 2.1) * 8;
+      const sy = p.pos.y - 12 + drop + Math.sin(starAngle + s * 2.1) * 8;
       ctx.fillStyle = '#FACC15';
       ctx.beginPath();
       ctx.arc(sx, sy, 3.5, 0, Math.PI * 2);
@@ -1174,6 +1220,45 @@ const drawHeldWeapon = (ctx: CanvasRenderingContext2D, weapon: WeaponType, wpnX:
  * floor steel-toe first, back leg tucked under, one palm planted behind.
  * Drawn in the player's local frame: (0,0) is between the feet, +x is forward.
  */
+/**
+ * A leg on a slope or stairs: from his hip at (hipX, -22) in his body (which is dropped, bobbed and leant by bodyY and
+ * bodyRot: undone here, so the boot lands where the ground is) to the sole of the boot at (footX, soleY) along the
+ * ground, its knee bent forward to make up the difference; a boot the hip can't reach is left reaching for it, the
+ * leg straight. The boot sits at `angle` (along a slope; level on a stair's tread). The same trouser legs and boots
+ * as he stands in on the flat (the near one with its pocket and, `grip`, the tread grips under it).
+ */
+const drawSlopeLeg = (ctx: CanvasRenderingContext2D, hipX: number, footX: number, soleY: number, angle: number, bodyY: number, bodyRot: number, back: boolean, grip: boolean) => {
+  const THIGH = 9, SHIN = 8, ANKLE = 5;
+  // (the sole, in his body's frame)
+  const c = Math.cos(bodyRot), sn = Math.sin(bodyRot), ly = soleY - bodyY;
+  const fx = footX * c + ly * sn, fy = -footX * sn + ly * c;
+  const hx = hipX, hy = -22;
+  let dx = fx - hx, dy = fy - ANKLE - hy;
+  const d = Math.hypot(dx, dy) || 1;
+  dx /= d; dy /= d;
+  const reach = Math.max(Math.abs(THIGH - SHIN) + 1, Math.min(THIGH + SHIN - 0.05, d));
+  const ax = hx + dx * reach, ay = hy + dy * reach;
+  // (the knee: forward of the line from the hip to the ankle)
+  const along = (THIGH * THIGH - SHIN * SHIN + reach * reach) / (2 * reach), out = Math.sqrt(Math.max(0, THIGH * THIGH - along * along));
+  const kx = hx + dx * along + dy * out, ky = hy + dy * along - dx * out;
+  const color = back ? pantsShadow : pantsColor, w = 10;
+  const seg = (x0: number, y0: number, x1: number, y1: number, len: number, pocket: boolean) => {
+    ctx.save(); ctx.translate(x0, y0); ctx.rotate(Math.atan2(y1 - y0, x1 - x0) - Math.PI / 2);
+    drawPantLeg(ctx, -w / 2, 0, w, len, color, pocket);
+    ctx.restore();
+  };
+  seg(kx, ky, ax, ay, SHIN + 2, false);
+  ctx.fillStyle = color; ctx.beginPath(); ctx.arc(kx, ky, w / 2, 0, Math.PI * 2); ctx.fill();
+  seg(hx, hy, kx, ky, THIGH + 1, !back);
+  // (the boot: on the ground at the sole; one he's reaching down for the ground with, up on its toe)
+  const toe = Math.min(0.7, Math.max(0, d - THIGH - SHIN) * 0.14);
+  ctx.save(); ctx.translate(ax, ay); ctx.rotate(angle - bodyRot + toe); ctx.translate(0, ANKLE);
+  if (back) drawBoot(ctx, -6, -6, 12, 7, false);
+  else drawBoot(ctx, -5, -6, 14, 7, true);
+  if (grip) { ctx.fillStyle = '#09090B'; ctx.fillRect(-5, 1, 14, 2); }
+  ctx.restore();
+};
+
 const drawSlideTackle = (ctx: CanvasRenderingContext2D, frame: number, weapon: WeaponType, unarmed: boolean) => {
   const rattle = frame % 4 < 2 ? 0 : 1; // floor vibration
   ctx.save();

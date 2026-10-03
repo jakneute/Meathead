@@ -837,7 +837,7 @@ const drawRubble = (ctx: Ctx, r: GroundRun) => {
 const drawStairs = (ctx: Ctx, state: GameState, r: GroundRun) => {
   const bottom = state.camera.y + CANVAS_HEIGHT + 60;
   ctx.fillStyle = '#3A3E3A'; ctx.beginPath(); ctx.moveTo(r.x1, r.y1); ctx.lineTo(r.x2, r.y2); ctx.lineTo(r.x2, bottom); ctx.lineTo(r.x1, bottom); ctx.fill();
-  const n = 8;
+  const n = r.steps?.n ?? 8;
   for (let k = 0; k < n; k++) {
     const x = r.x1 + (k / n) * (r.x2 - r.x1), y = r.y1 + ((k + 1) / n) * (r.y2 - r.y1);
     const w = (r.x2 - r.x1) / n + 1, h = (r.y1 - r.y2) / n + 1;

@@ -12,6 +12,8 @@ export interface GroundRun {
   pitAfter?: 'clouds' | 'water';
   /** The stage draws this ground itself (sand, road, boardwalk...) rather than the stage's usual material. */
   surface?: string;
+  /** Drawn as stairs: how many steps, and whether each tread sits halfway along its stretch of the slope (otherwise at its top end). */
+  steps?: { n: number; mid?: boolean };
   x1: number;
   y1: number;
   x2: number;
@@ -53,6 +55,51 @@ export const profileYAt = (runs: GroundRun[], x: number): number | undefined => 
   for (const r of runs) if (x >= r.x1 && x <= r.x2) return runYAt(r, x);
   return undefined;
 };
+
+/** The run under x (trying `near` first: the run under one foot is nearly always the one under the other). */
+export const runAt = (runs: GroundRun[], x: number, near?: GroundRun) =>
+  near && x >= near.x1 && x <= near.x2 ? near : runs.find(r => x >= r.x1 && x <= r.x2);
+
+/** Where a foot goes down at x on a run: the tread it's drawn with, if it's drawn as stairs (the slope itself otherwise). */
+export const treadYAt = (r: GroundRun, x: number) => {
+  if (!r.steps) return runYAt(r, x);
+  const n = r.steps.n, k = Math.max(0, Math.min(n - 1, Math.floor(((x - r.x1) / (r.x2 - r.x1)) * n)));
+  return r.y1 + ((r.steps.mid ? k + 0.5 : r.y2 < r.y1 ? k + 1 : k) / n) * (r.y2 - r.y1);
+};
+
+/** How far either side of his middle Meathead's feet are, stood still. */
+export const STANCE = 7;
+/**
+ * Stood on a slope or stairs: how far below his feet (the bottom of his box, which rests on the highest bit of ground
+ * under it) the slope is either side of his middle, left (l) and right (r). Undefined on the flat, over a pit, or up on
+ * something else (a crate, a ledge) that isn't the ground. One look along the profile.
+ */
+export const stanceGround = (runs: GroundRun[], x: number, w: number, feetY: number): { l: number; r: number } | undefined => {
+  const cx = x + w / 2;
+  // (the box rests on a collision column, which can stick out past its side by up to half a column)
+  const x0 = x - COLUMN_W / 2, x1 = x + w + COLUMN_W / 2;
+  let top = Infinity, l: number | undefined, r: number | undefined;
+  for (const run of runs) {
+    if (run.x2 < x0 || run.x1 > x1) continue;
+    top = Math.min(top, runYAt(run, Math.max(x0, run.x1)), runYAt(run, Math.min(x1, run.x2)));
+    if (cx - STANCE >= run.x1 && cx - STANCE <= run.x2) l = runYAt(run, cx - STANCE) - feetY;
+    if (cx + STANCE >= run.x1 && cx + STANCE <= run.x2) r = runYAt(run, cx + STANCE) - feetY;
+  }
+  if (l === undefined || r === undefined || (Math.abs(l) < 0.5 && Math.abs(r) < 0.5)) return undefined;
+  // (the top of it has to be what he's stood on: not well below him, nor over his feet)
+  if (feetY - top < -1.5 || feetY - top > COLUMN_W * 2) return undefined;
+  return { l: Math.max(0, l), r: Math.max(0, r) };
+};
+
+/** How much higher than the other the uphill foot can go, its knee bent, before the downhill one's left reaching. */
+const KNEE_TAKES = 10;
+/**
+ * How far to drop him down onto the slope from the bottom of his box: stood or walking (`legs`), down onto his
+ * downhill foot, his uphill knee bent to take the difference; in any other pose, only onto the higher foot (so
+ * nothing of him sinks into the ground on the uphill side).
+ */
+export const stanceDrop = (s: { l: number; r: number } | undefined, legs: boolean) =>
+  !s ? 0 : legs ? Math.min(Math.max(s.l, s.r), Math.min(s.l, s.r) + KNEE_TAKES) : Math.min(s.l, s.r);
 
 const standable = (b: Block) => b.type !== 'pit' && b.type !== 'door';
 

@@ -335,12 +335,13 @@ const drawPlaza = (ctx: Ctx, state: GameState) => {
     ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.textAlign = 'center';
     ctx.fillText('VISTA POINT', ex - 70, Y - 133); ctx.fillText('WATER  >>', ex - 70, Y - 117);
     ctx.textAlign = 'left';
-    // Stairs going down
-    for (let s = 0; s < 6; s++) {
-      ctx.fillStyle = INK; ctx.fillRect(ex + s * 14 - 1, Y + s * 12 - 1, 42, 14);
-      ctx.fillStyle = '#78716C'; ctx.fillRect(ex + s * 14, Y + s * 12, 40, 12);
-      ctx.fillStyle = '#A8A29E'; ctx.fillRect(ex + s * 14, Y + s * 12, 40, 2);
-      ctx.fillStyle = '#57534E'; ctx.fillRect(ex + s * 14, Y + s * 12 + 9, 40, 3);
+    // Stairs going down (each tread where he walks down them: one per 14 down the ground's slope, course.ts)
+    for (let s = 0; s <= 6; s++) {
+      const sx = ex - 26 + s * 14;
+      ctx.fillStyle = INK; ctx.fillRect(sx - 1, Y + s * 12 - 1, 42, 14);
+      ctx.fillStyle = '#78716C'; ctx.fillRect(sx, Y + s * 12, 40, 12);
+      ctx.fillStyle = '#A8A29E'; ctx.fillRect(sx, Y + s * 12, 40, 2);
+      ctx.fillStyle = '#57534E'; ctx.fillRect(sx, Y + s * 12 + 9, 40, 3);
     }
   }
 };

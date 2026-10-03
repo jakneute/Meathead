@@ -164,7 +164,7 @@ const build = () => {
   // Up the stairs to the office (the refill near the top of them, just outside Chuco's door)
   // (past the checkpoint on them, so they're there again after dying to him)
   d.pickup(8320 + W_EXT, Y - 208 - 30, 'large_health'); d.pickup(8348 + W_EXT, Y - 230 - 30, 'large_ammo');
-  d.ground(8060 + W_EXT, 8360 + W_EXT, Y, Y - 240, 'stairs');
+  d.ground(8060 + W_EXT, 8360 + W_EXT, Y, Y - 240, 'stairs', { n: 20, mid: true });
   d.ground(8360 + W_EXT, 9120 + W_EXT, Y - 240, Y - 240, 'office');
 
   // ============ THE HIGHWAY ============
@@ -207,7 +207,7 @@ const part = (x0: number) => {
   const spawns: Spawn[] = [], pickups: PickupSpot[] = [], props: Prop[] = [];
   return {
     runs, ledges, cacti, belts, awnings, buildings, spawns, pickups, props,
-    ground: (x1: number, x2: number, y1 = Y, y2 = y1, surface?: string) => { runs.push({ x1: x0 + x1, y1, x2: x0 + x2, y2, surface }); },
+    ground: (x1: number, x2: number, y1 = Y, y2 = y1, surface?: string, steps?: GroundRun['steps']) => { runs.push({ x1: x0 + x1, y1, x2: x0 + x2, y2, surface, steps }); },
     ledge: (x: number, y: number, w: number, look: Ledge['look']) => { ledges.push({ x: x0 + x, y, w, look }); },
     cactus: (x: number, y: number, h: number, look: Cactus['look']) => { cacti.push({ x: x0 + x, y, h, look }); },
     belt: (x: number, w: number, y: number, speed: number, crateEvery: number, high = false) => { belts.push({ x: x0 + x, w, y, speed, crateEvery, high }); },

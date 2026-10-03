@@ -65,6 +65,8 @@ export interface Player extends Entity {
   shoveT?: number;
   facing: 1 | -1;
   isGrounded: boolean;
+  /** Stood on a slope or stairs: how far below his feet the ground is either side of his middle (game/core/terrain.ts stanceGround; unset on the flat). */
+  stance?: { l: number; r: number };
   isDucking: boolean;
 
   // Jumping (see JUMP_* / COYOTE_* constants)

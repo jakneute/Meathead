@@ -149,7 +149,7 @@ const build = () => {
   for (const [x1, x2] of deck) { m.ground(at, x1); at = x2; }
   // (and at the far end, the stairs down off the deck: he walks down them into the fade)
   m.ground(at, 12900);
-  m.ground(12900, 12984, Y, Y + 72);
+  m.ground(12900, 12984, Y, Y + 72, 'street', { n: 6 });
   m.ground(12984, 13000, Y + 72);
   m.wreck(8850, 1); m.wreck(9750, 2); m.wreck(10420, 1); m.wreck(11480, 1); m.wreck(12500, 1);
   m.spawn('techbro', 9150); m.spawn('drone', 9900, Y - 290); m.spawn('courier', 10300);
@@ -191,7 +191,7 @@ const build = () => {
   I.fault(2450, 150, T2, 230, 'floor');
   I.ground(2600, 2640, T2, T2, 'rubble');
   // Up the stairs and out the door into the yard
-  I.ground(2640, 2720, T2, T3, 'stairs');
+  I.ground(2640, 2720, T2, T3, 'stairs', { n: 8 });
   for (const x of [700, 1000, 1300, 1680, 2000, 2280]) hang('lamp', x, Y - 330);
   for (const x of [800, 1420, 1880]) hang('plaster', x, T2 + 16);
   // THE YARD. Up top of the island, the city across the water; a fault goes open across it as you come out
@@ -254,7 +254,7 @@ const part = (x0: number) => {
   const spawns: Spawn[] = [], pickups: PickupSpot[] = [], props: Prop[] = [];
   return {
     runs, ledges, faults, wrecks, spawns, pickups, props,
-    ground: (x1: number, x2: number, y1 = Y, y2 = y1, surface = 'street') => { runs.push({ x1: x0 + x1, y1, x2: x0 + x2, y2, surface }); },
+    ground: (x1: number, x2: number, y1 = Y, y2 = y1, surface = 'street', steps?: GroundRun['steps']) => { runs.push({ x1: x0 + x1, y1, x2: x0 + x2, y2, surface, steps }); },
     ledge: (x: number, y: number, w: number, collapse?: number) => { ledges.push({ x: x0 + x, y, w, collapse }); },
     fault: (x: number, w: number, y: number, trigger: number, look: FaultLook = 'street') => { faults.push({ x: x0 + x, w, y, trigger, look }); },
     wreck: (x: number, people: number) => { wrecks.push({ x: x0 + x, people }); },

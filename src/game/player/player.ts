@@ -24,7 +24,7 @@ import { Controls } from '../platform/input';
 import { fireWeapon, updateFlamethrower } from '../combat/weapons';
 import { updateDryFire } from '../combat/dryFire';
 import { rectsOverlap, boundsOf } from '../core/utils';
-import { standingIndoors, groundLineAt } from '../core/terrain';
+import { standingIndoors, groundLineAt, stanceGround } from '../core/terrain';
 import { isChargerKind } from '../enemies/kinds';
 import { BOSS_DIALOGUE } from '../../content/dialogue';
 import { isStandingInOil } from '../bosses/oscar';
@@ -478,6 +478,8 @@ export const updatePlayerPhysics = (ctx: FrameContext, input: FrameInput) => {
   moveVertically(ctx);
   if (wasGrounded) stickToGround(ctx);
   pushOutOfSolids(state);
+  // (on a slope or stairs: where the ground is under his feet, for drawing them down onto it and the gun with them)
+  player.stance = player.isGrounded && !player.skiing && !player.jetski && !player.bike && !player.moto && !player.swimming ? stanceGround(state.groundRuns, player.pos.x, player.width, player.pos.y + player.height) : undefined;
 
   const left = getStageLeft(ctx.stageId);
   if (player.pos.x < left + 50) player.pos.x = left + 50;

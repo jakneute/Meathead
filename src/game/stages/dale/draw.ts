@@ -571,7 +571,7 @@ const drawRack = (ctx: Ctx, l: Ledge) => {
 const drawFloor = (ctx: Ctx, state: GameState, r: GroundRun) => {
   if (r.surface === 'stairs') {
     // Steel stairs, a handrail, open underneath
-    const steps = 20;
+    const steps = r.steps?.n ?? 20;
     // (the stringer under them, then the handrail and its posts, then the treads: diamond plate, a lit nosing)
     ctx.strokeStyle = INK; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(r.x1, r.y1 + 10); ctx.lineTo(r.x2, r.y2 + 10); ctx.stroke();
     ctx.strokeStyle = '#374151'; ctx.lineWidth = 6; ctx.stroke();
