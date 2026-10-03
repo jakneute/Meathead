@@ -6,6 +6,7 @@
 // split, the alien, the leg) are Ren & Stimpy gross-ups, painted at the size they're shown (the cutscene's `hires`)
 // like the gross-up of the President's gut (grossUp.ts). What doesn't move is painted once.
 
+import { shatPants, shatLegRun } from './shatLook';
 import { ART_W, ART_H, C, R, ell, hash, drawMeatheadCloseUp, curtain, whSign, hangingFlag, podium, reporters, meatheadStanding, meatheadPunched, trumpFlying } from './ending';
 import { shaded, ball, bands, layer, RAMP } from './art/snes';
 import { INK, shape, speckle, hatch } from './art/ink';
@@ -910,6 +911,9 @@ export const drawLegSinge = (ctx: Ctx, t: number) => {
   ctx.beginPath(); ctx.moveTo(-20, bootTop + 8); ctx.quadraticCurveTo(128, bootTop, 276, bootTop + 8); ctx.stroke(); ctx.setLineDash([]);
   ctx.fillStyle = 'rgba(255, 230, 200, 0.25)'; ctx.fillRect(60, bootTop + 4, 60, 1);
   shape(ctx, () => { ctx.moveTo(178, bootTop + 2); ctx.quadraticCurveTo(184, bootTop - 12, 190, bootTop + 2); ctx.lineTo(187, bootTop + 2); ctx.quadraticCurveTo(184, bootTop - 7, 181, bootTop + 2); ctx.closePath(); }, '#2A1C14', 0.8);
+
+  // (shat: it's run all the way down here)
+  if (shatPants()) shatLegRun(ctx);
 
   // The hole: ragged, burned through
   const cx = 122, cy = 60;

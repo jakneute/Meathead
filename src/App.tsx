@@ -25,7 +25,7 @@ import { setScreenMusic, setMusicPaused, musicEnabled, setMusicEnabled } from '.
 import DeployTransition from './components/DeployTransition';
 import WeaponGetScene from './components/WeaponGetScene';
 import { GameStatus, WeaponType } from './types';
-import { INITIAL_PLAYER_HEALTH, MAX_AMMO, POWER_CELLS, createFullAmmo, FINALE_STAGE } from './constants';
+import { INITIAL_PLAYER_HEALTH, MAX_AMMO, POWER_CELLS, createFullAmmo, FINALE_STAGE, WALK_ON_STAGE } from './constants';
 import { getStages, getStartingWeapons, sortWeapons, BOSS_WEAPON_MAP, WEAPONS_AFTER_SET_0, ALL_WEAPONS, STAGES_SET_0, STAGES_SET_1 } from './content/roster';
 import { VULGARITIES, BOSS_DIALOGUE, BOSS_REBUKES, BOSS_SHAT_LINES } from './content/dialogue';
 import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS, menuButtons } from './game/platform/gamepad';
@@ -190,6 +190,11 @@ const App: React.FC = () => {
   /** Which of the ending's cutscenes is up (GameStatus.ENDING): the one at the White House (it ends on the alien
    * bursting out of the President, and the fight with him follows), or the one after he's dead (then THE END). */
   const [endingPart, setEndingPart] = useState<'ending' | 'epilogue'>('ending');
+  /** He'd shit himself on the walk out to the medal (the ceremony, the alien and the fight all go with it), or, once
+   * the alien's dead, by then (the epilogue). */
+  const [endingShat, setEndingShat] = useState(false);
+  /** He came out of the gym having shit himself (the pitch goes with it). */
+  const [gymShat, setGymShat] = useState(false);
 
   const cheats = SHOW_CHEATS ? cheatFlags : NO_CHEATS;
   const screenShownAtRef = useRef(Date.now());
@@ -391,9 +396,30 @@ const App: React.FC = () => {
     setStatus(GameStatus.LEVEL_INTRO);
   };
 
+  /** All eight dead, off to Washington: the walk out to his mark (stages/whiteHouse), his to walk, then the ceremony. */
+  const startWalkOn = () => {
+    setLesson(null);
+    setSelectedStage(WALK_ON_STAGE);
+    setHealth(INITIAL_PLAYER_HEALTH);
+    setPower(POWER_CELLS);
+    setEndingShat(false);
+    resetLoadout();
+    setIsVictoryPhase(false);
+    setStatus(GameStatus.LEVEL_INTRO);
+  };
+
+  /** On his mark: the ceremony (shat, if he's gone and done it on the way). */
+  const finishWalkOn = (shat?: boolean) => {
+    pauseSpeech(false); silenceAll();
+    setEndingShat(!!shat);
+    setEndingPart('ending');
+    setStatus(GameStatus.ENDING);
+  };
+
   /** After THE END: back to the title screen. */
   const handleEndingDone = () => {
     setEndingPart('ending');
+    setEndingShat(false);
     setDefeatedStages([]);
     setKillRecords({}); setShatKills({});
     setAvailableWeapons(getStartingWeapons(progressionRank, cheats.allWeapons));
@@ -442,6 +468,7 @@ const App: React.FC = () => {
 
   /** The opening's first half is over: into the gym (his own, at five in the morning: no deploying to it). */
   const startGym = () => {
+    setGymShat(false);
     setIntro('off');
     setLesson(null);
     setSelectedStage(GYM_STAGE);
@@ -452,8 +479,10 @@ const App: React.FC = () => {
     setStatus(GameStatus.LEVEL_INTRO);
   };
 
-  /** The gym's done (the bigger fellas are in): the opening's second half, over the title, onto the stage select. */
-  const finishGym = () => {
+  /** The gym's done (the bigger fellas are in): the opening's second half, over the title, onto the stage select (shat,
+   * if he is). */
+  const finishGym = (shat?: boolean) => {
+    setGymShat(!!shat);
     setLesson(null);
     setSelectedStage(null);
     setStatus(GameStatus.START);
@@ -517,12 +546,12 @@ const App: React.FC = () => {
     if (lockedIndex === null || engaging) return;
     // Home to the garage
     if (lockedIndex === GARAGE_INDEX) { setLockedIndex(null); setInGarage(true); return; }
-    // To Washington: the flourish, then the end
+    // To Washington: the flourish, then the walk out to the medal
     if (lockedIndex === WHITE_HOUSE_INDEX) {
       setEngaging(true);
       playEngageSound();
       shoutEngage();
-      setTimeout(() => setStatus(GameStatus.ENDING), ENGAGE_FLOURISH_MS);
+      setTimeout(startWalkOn, ENGAGE_FLOURISH_MS);
       return;
     }
     const stage = getStages(progressionRank)[lockedIndex];
@@ -647,6 +676,7 @@ const App: React.FC = () => {
     // The alien: no weapon of his to take, no souvenir; the epilogue, then THE END
     if (stageId === FINALE_STAGE) {
       setIsVictoryPhase(false);
+      setEndingShat(!!shat);
       setEndingPart('epilogue');
       setStatus(GameStatus.ENDING);
       return;
@@ -885,14 +915,14 @@ const App: React.FC = () => {
           whiteHouseOpen={whiteHouseOpen}
           killRecords={killRecords}
           shatKills={shatKills}
-          cheats={SHOW_CHEATS ? { flags: cheatFlags, onToggle: handleToggleCheat, onChangeRank: handleChangeRank, onPlayEnding: () => { setEndingPart('epilogue'); setStatus(GameStatus.ENDING); }, onPlayCall: () => { setCallPreview(true); setStatus(GameStatus.VICTORY); } } : undefined}
+          cheats={SHOW_CHEATS ? { flags: cheatFlags, onToggle: handleToggleCheat, onChangeRank: handleChangeRank, onPlayEnding: () => { setEndingShat(false); setEndingPart('epilogue'); setStatus(GameStatus.ENDING); }, onPlayCall: () => { setCallPreview(true); setStatus(GameStatus.VICTORY); } } : undefined}
           showCall={progressionRank === 0 || callPreview}
         />
         </div>
-        {status === GameStatus.ENDING && (endingPart === 'epilogue' ? <EpilogueCutscene onDone={handleEndingDone} /> : <EndingCutscene onDone={startFinale} />)}
+        {status === GameStatus.ENDING && (endingPart === 'epilogue' ? <EpilogueCutscene shat={endingShat} onDone={handleEndingDone} /> : <EndingCutscene shat={endingShat} onDone={startFinale} />)}
         {intro === 'opening' && <IntroCutscene part="opening" onDone={startGym} />}
         {(intro === 'playing' || intro === 'outro') && (
-          <IntroCutscene part="pitch" onHandoff={() => { setIntro('outro'); setSelectedIndex(0); setStatus(GameStatus.STAGE_SELECT); }} onDone={() => setIntro('off')} />
+          <IntroCutscene part="pitch" shat={gymShat} onHandoff={() => { setIntro('outro'); setSelectedIndex(0); setStatus(GameStatus.STAGE_SELECT); }} onDone={() => setIntro('off')} />
         )}
         {status === GameStatus.PLAYING && <TutorialHint lesson={lesson} />}
         {((status === GameStatus.VICTORY && (progressionRank === 0 || callPreview)) || callOutro) && (
@@ -918,7 +948,7 @@ const App: React.FC = () => {
           currentWeapon={currentWeapon}
           availableWeapons={availableWeapons}
           initialAmmo={weaponAmmo}
-          cheats={{ invincible: cheats.invincible, infiniteAmmo: cheats.infiniteAmmo, infinitePower: cheats.infinitePower, shittyPants: cheats.shittyPants, skipToBoss: cheats.skipToBoss && selectedStage !== GYM_STAGE && (startAt === undefined || startAt === 'boss') }}
+          cheats={{ invincible: cheats.invincible, infiniteAmmo: cheats.infiniteAmmo, infinitePower: cheats.infinitePower, shittyPants: cheats.shittyPants || (selectedStage === FINALE_STAGE && endingShat), skipToBoss: cheats.skipToBoss && selectedStage !== GYM_STAGE && (startAt === undefined || startAt === 'boss') }}
           startCheckpoint={cheats.skipToBoss && selectedStage !== GYM_STAGE && typeof startAt === 'number' ? startAt : 0}
           bossTauntText={bossTaunt}
           onPlayerUpdate={handlePlayerUpdate}
@@ -927,7 +957,7 @@ const App: React.FC = () => {
           onBossDefeated={handleBossDefeated}
           onBossDeath={() => setIsVictoryPhase(true)}
           onIntroComplete={() => setStatus(GameStatus.PLAYING)}
-          onStageDone={finishGym}
+          onStageDone={shat => (selectedStage === WALK_ON_STAGE ? finishWalkOn(shat) : finishGym(shat))}
           onTutorialHint={setLesson}
         />
       </div>

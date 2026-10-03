@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Cutscene, { Panel } from './Cutscene';
 import {
   drawWhiteHouse, drawPressRoom, drawTrumpCloseUp, drawMedal, drawMeatheadEyes,
@@ -12,12 +12,17 @@ import { ALIEN_VOICE } from '../game/scenes/alienLook';
 import { Voice, MEATHEAD_VOICE } from '../game/platform/speech';
 import { playSound } from '../game/platform/audio';
 import { drawGrossPresident } from '../game/scenes/grossUp';
+import { setShatPants, shatClocked } from '../game/scenes/shatLook';
 
 // NES-style ending: a run of still images with text typed out underneath (see Cutscene).
 //
 // The medal, the gross-up, "Do you even lift, bro?", the punch, the freeze: THE END? ...and as the President lands,
 // the thing that was wearing him splits him down the middle and climbs out. He zaps Meathead's leg hair. It's on (and
 // `onDone` goes straight into the fight).
+//
+// `shat`: he shit himself on the walk out to his mark (see stages/whiteHouse). It shows on him in every shot (see
+// scenes/shatLook), and the moments it'd get a reaction get one: the President, the press, and Meathead, who isn't
+// bothered.
 
 const TRUMP_VOICE: Voice = { id: 'president', pitch: 0.75, rate: 0.9 };
 /** The one down front with the mic. */
@@ -32,11 +37,13 @@ const SQUARE_OFF = 56;
 /** Sounds on given frames of a panel (its draw's called once a frame, its frame counter going up by one). */
 const cue = (draw: Panel['draw'], at: Record<number, () => void>): Panel['draw'] => (c, t, talking) => { at[t]?.(); draw(c, t, talking); };
 
-const PANELS: Panel[] = [
+const panels = (shat: boolean): Panel[] => [
   { draw: (c, t) => drawWhiteHouse(c, t), text: 'WASHINGTON, D.C.\nTHE WHITE HOUSE PRESS ROOM.' },
   {
     draw: (c, t, talk) => drawPressRoom(c, t, talk), speaker: 'PRESIDENT TRUMP', voice: TRUMP_VOICE,
-    text: 'Thank you. Thank you. What a crowd. This man, Meathead, took out the most dangerous, most evil terrorists. Believe me.',
+    text: shat
+      ? "Thank you. Thank you. What a crowd. What a smell. Is that... that's him. This man, Meathead, took out the most evil terrorists. Believe me."
+      : 'Thank you. Thank you. What a crowd. This man, Meathead, took out the most dangerous, most evil terrorists. Believe me.',
   },
   {
     draw: (c, t, talk) => drawTrumpCloseUp(c, t, talk, 'proud'), speaker: 'PRESIDENT TRUMP', voice: TRUMP_VOICE,
@@ -44,7 +51,9 @@ const PANELS: Panel[] = [
   },
   {
     draw: (c, t, talk) => drawMedal(c, t, talk), speaker: 'PRESIDENT TRUMP', voice: TRUMP_VOICE,
-    text: "It's my great honor to give him the Presidential Medal of Freedom. Beautiful medal. Very expensive. Frankly, I should get one too.",
+    text: shat
+      ? "It's my great honor to give him the Presidential Medal of Freedom. At arm's length. Somebody open a window. Frankly, I should get a medal for this."
+      : "It's my great honor to give him the Presidential Medal of Freedom. Beautiful medal. Very expensive. Frankly, I should get one too.",
   },
   { draw: (c, t) => drawMeatheadEyes(c, t), text: 'Meathead looks the President up and down...', hold: 60 },
   // (a gross-up of what he's looking at, the camera tilting down it and back up as his eyes do)
@@ -55,9 +64,12 @@ const PANELS: Panel[] = [
   },
   {
     draw: (c, t, talk) => drawTrumpCloseUp(c, t, talk, 'huh'), speaker: 'PRESIDENT TRUMP', voice: TRUMP_VOICE,
-    text: 'Excuse me?',
+    text: shat ? 'Excuse me? You shit your pants. In the White House. On television.' : 'Excuse me?',
   },
-  { draw: (c, t) => drawMeatheadCloseUp(c, t, false, 'disgust'), text: 'Meathead is disgusted.', hold: 50 },
+  // (shat: he's got an answer for that; otherwise he's just disgusted)
+  shat
+    ? { draw: (c, t, talk) => drawMeatheadCloseUp(c, t, talk, 'disgust'), speaker: 'MEATHEAD', voice: MEATHEAD_VOICE, text: "IT'S PROTEIN, BRO. IT'S GOTTA GO SOMEWHERE." }
+    : { draw: (c, t) => drawMeatheadCloseUp(c, t, false, 'disgust'), text: 'Meathead is disgusted.', hold: 50 },
   {
     draw: (c, t) => drawPunch(c, t), text: '', hold: 70,
     onEnter: () => { playSound('punch', 1.5, -3); playSound('slam'); playSound('crunch'); },
@@ -89,7 +101,7 @@ const PANELS: Panel[] = [
   },
   {
     draw: (c, t, talk) => drawPressGasp(c, t, talk), speaker: 'REPORTER', voice: REPORTER_VOICE,
-    text: 'Oh my God. It was an imposter president all along!',
+    text: shat ? 'Oh my God. It was an imposter president all along! And our hero shit himself!' : 'Oh my God. It was an imposter president all along!',
   },
   {
     draw: (c, t, talk) => drawAlienCloseUp(c, t, talk), speaker: 'ALIEN', voice: ALIEN_VOICE, hires: true,
@@ -110,7 +122,7 @@ const PANELS: Panel[] = [
   { draw: drawLegSinge, text: '', hold: 120, hires: true, onEnter: () => playSound('ignite', 0.6, -3) },
   {
     draw: cue((c, t) => drawSniff(c, t), { [SNIFF_TURN]: () => playSound('slam', 0.6, -4) }),
-    text: 'Meathead smells something burning.\nHis leg hair.', hold: 40,
+    text: shat ? 'Through the other smell, Meathead smells something burning.\nHis leg hair.' : 'Meathead smells something burning.\nHis leg hair.', hold: 40,
   },
   {
     draw: (c, t, talk) => drawMeatheadCloseUp(c, t + 12, talk, 'fury'), speaker: 'MEATHEAD', voice: MEATHEAD_VOICE,
@@ -120,8 +132,15 @@ const PANELS: Panel[] = [
   { draw: cue((c, t) => drawSquareOff(c, t), { 1: () => playSound('slam', 1, -5) }), text: '' },
 ];
 
-const EndingCutscene: React.FC<{ onDone: () => void }> = ({ onDone }) => (
-  <Cutscene panels={PANELS} endAt={SQUARE_OFF} endCard="" autoEnd onDone={onDone} />
-);
+const CLEAN = panels(false);
+/** (the flies and the stink kept on each panel's frame) */
+const SHAT = panels(true).map(p => ({ ...p, draw: shatClocked(p.draw) }));
+
+const EndingCutscene: React.FC<{ shat?: boolean; onDone: () => void }> = ({ shat = false, onDone }) => {
+  // (set before the first frame's drawn, and cleared once it's gone: nothing else that draws him shows it)
+  setShatPants(shat);
+  useEffect(() => { setShatPants(shat); return () => setShatPants(false); }, [shat]);
+  return <Cutscene panels={shat ? SHAT : CLEAN} endAt={SQUARE_OFF} endCard="" autoEnd onDone={onDone} />;
+};
 
 export default EndingCutscene;

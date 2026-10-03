@@ -5,6 +5,7 @@
 // back of Meathead's head.
 
 import { ART_W, ART_H, C, R, ell, hash } from './ending';
+import { shatPants, shatFront, shatCloseUp } from './shatLook';
 import { shaded, layer, ball, box, bands, RAMP } from './art/snes';
 
 type Ctx = CanvasRenderingContext2D;
@@ -297,6 +298,8 @@ export const drawAgent = (ctx: Ctx, t: number, talking: boolean, where: 'gym' | 
   R(ctx, 115, 104, 10, 6, '#1c1c1c'); R(ctx, 114, 124, 12, 1, C.gold);
   R(ctx, 96, 118, 6, 4, C.white); R(ctx, 96, 118, 6, 1, C.red); R(ctx, 96, 120, 6, 1, C.red); R(ctx, 96, 118, 2, 2, C.blue);
   for (let i = 0; i < 40; i++) { R(ctx, 104 - Math.floor(i * 0.2), 104 + i, 1, 1, G.suitLit); R(ctx, 136 + Math.floor(i * 0.2), 104 + i, 1, 1, G.suitLit); }
+  // (Meathead's shit himself: it's coming up off him at the agent, and a fly's found the agent)
+  if (shatPants()) shatCloseUp(ctx, 120, 56);
 };
 
 /** Out of the gym and down a government corridor: two suits walking, Meathead bounding round them like a dog. */
@@ -325,9 +328,10 @@ export const drawEscort = (ctx: Ctx, t: number) => {
   bands(ctx, 0, 114, ART_W, 30, ['#4c504c', '#444844', '#3c403c', '#343834', '#2c302c']);
   for (let k = -1; k < 5; k++) { const lx = Math.round(k * 80 - scroll + 44); R(ctx, lx, 120, 30, 2, 'rgba(252, 252, 240, 0.18)'); R(ctx, lx + 6, 128, 18, 1, 'rgba(252, 252, 240, 0.1)'); }
   for (let k = 0; k < 8; k++) R(ctx, Math.round((((k * 40 - t * 1.8) % 320) + 320) % 320) - 20, 124, 18, 1, '#5c605c');
-  // The two of them, walking in step
-  agentStanding(ctx, 150, 118, t, 1);
-  agentStanding(ctx, 178, 118, t, 1);
+  // The two of them, walking in step (a good stretch further ahead of him, if he's shit himself)
+  const ahead = shatPants() ? 22 : 0;
+  agentStanding(ctx, 150 + ahead, 118, t, 1);
+  agentStanding(ctx, 178 + ahead, 118, t, 1);
   // Him: bounding round behind them, up on his toes, tongue out
   const hop = Math.abs(Math.sin(t * 0.25)) * 12;
   const cx = 96 + Math.round(Math.sin(t * 0.05) * 16);
@@ -354,6 +358,7 @@ export const drawEscort = (ctx: Ctx, t: number) => {
     const a = (t + i * 30) % 60;
     if (a < 40) { const hx = cx + 10 + i * 6, hy = y - 70 - a / 2; R(ctx, hx, hy, 2, 2, C.red); R(ctx, hx + 3, hy, 2, 2, C.red); R(ctx, hx, hy + 2, 5, 2, C.red); R(ctx, hx + 1, hy + 4, 3, 1, C.red); }
   }
+  if (shatPants()) shatFront(ctx, cx, y);
 };
 
 /** What's on the projector screen. */

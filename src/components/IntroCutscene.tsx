@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Cutscene, { Panel } from './Cutscene';
 import { drawMeatheadCloseUp } from '../game/scenes/ending';
 import { drawGrossArm, drawGrossGun } from '../game/scenes/grossUp';
@@ -7,6 +7,7 @@ import { drawGym, drawDoorwayPencils, drawPencilNeck, drawAgent, drawEscort, dra
 import { Voice, MEATHEAD_VOICE } from '../game/platform/speech';
 import { BOSS_SET_TITLES } from '../content/roster';
 import { setTitleClass } from './Overlay';
+import { setShatPants, shatClocked } from '../game/scenes/shatLook';
 
 // The opening (START GAME + INTRO), in two halves with the gym played between them.
 //
@@ -19,6 +20,9 @@ import { setTitleClass } from './Overlay';
 // room, where the four assholes are explained to him, not entirely honestly, and the government's resources are put
 // at his disposal. Then the four of them in the dark, and the title goes up onto the stage select, the way the
 // mid-game call ends.
+//
+// If he shit himself in the gym (`shat`: see game/player/gut.ts), the pitch knows it: it's on him in every shot (see
+// scenes/shatLook), the agents notice, and he's proud of it.
 
 /** The agent who does the talking: flat, quick, bored. */
 const AGENT_VOICE: Voice = { id: 'agent', pitch: 0.6, rate: 1.05 };
@@ -54,18 +58,18 @@ const OPENING: Panel[] = [
 ];
 
 /** After the gym: the bigger fellas, the pitch, and the briefing. */
-const PITCH: Panel[] = [
+const pitch = (shat: boolean): Panel[] => [
   agent('Meathead. We represent a department of the government that does not exist.'),
   // (he knows his own kind when he sees it)
   meathead('think', '...YOU GUYS LIFT?'),
   agent('...We lift.'),
   meathead('stoked', 'BROS.'),
-  agent('Those were interns. We sent them in first to see what you would do.'),
-  meathead('dumb', 'YOU SENT ME PENCIL NECKS? ...FOR ME?'),
+  agent(shat ? 'Those were interns. We sent them in first to see what you would do. We did not expect that.' : 'Those were interns. We sent them in first to see what you would do.'),
+  shat ? meathead('stoked', "THAT'S CALLED GOING TO FAILURE, BRO.") : meathead('dumb', 'YOU SENT ME PENCIL NECKS? ...FOR ME?'),
   agent('Looks like you enjoy hurting weaklings. How would you like to hurt more?'),
   meathead('think', '...', gym, 40),
   meathead('stoked', "HURT MORE WEAKLINGS?! THAT'S MY FAVORITE THING! AFTER CHEST DAY! WHERE ARE THEY?!"),
-  { draw: (c, t) => drawEscort(c, t), text: 'MEATHEAD FOLLOWS THEM OUT OF THE GYM\nLIKE A DOG THAT HEARD THE WORD "WALK."', hold: 80 },
+  { draw: (c, t) => drawEscort(c, t), text: shat ? 'MEATHEAD FOLLOWS THEM OUT OF THE GYM\nLIKE A DOG THAT HEARD "WALK." THEY WALK FASTER.' : 'MEATHEAD FOLLOWS THEM OUT OF THE GYM\nLIKE A DOG THAT HEARD THE WORD "WALK."', hold: 80 },
   slide('four', 'These are the four assholes. Very dangerous. Very weak. Extremely hurtable.'),
   slide('artie', 'Artie Avalanche. Alaska. He looked at your protein shake funny.'),
   meathead('disgust', 'MY SHAKE?!', briefing),
@@ -76,7 +80,7 @@ const PITCH: Panel[] = [
   meathead('think', "WHY DON'T YOU GUYS DO IT? YOU'VE GOT SUITS.", briefing),
   slide('drop', "We don't do that kind of thing. You do. Planes, choppers, cargo drops: unlimited resources to put you wherever you need to be."),
   meathead('think', 'UNLIMITED... PROTEIN?', briefing),
-  agent('...Unlimited resources.', 'briefing'),
+  agent(shat ? '...Unlimited resources. Starting with pants.' : '...Unlimited resources.', 'briefing'),
   // The armory: he won't need it. He's got his guns. And a gun.
   agent('And the armory. Rocket launchers, flamethrowers, anything you want. Take your pick.', 'briefing'),
   meathead('dumb', "WEAPONS? NAH. I DON'T NEED WEAPONS.", briefing),
@@ -100,17 +104,26 @@ const HOLD_TITLE = 110;
 /** How long the opening's last panel holds before the gym takes over. */
 const OPENING_END = 90;
 
+const PITCH = pitch(false);
+/** (the flies and the stink kept on each panel's frame) */
+const PITCH_SHAT = pitch(true).map(p => ({ ...p, draw: shatClocked(p.draw) }));
+
 /**
  * `part`: the opening (into the gym: `onDone` when it's over) or the pitch (`onHandoff`: bring the stage select up
- * underneath, the title landing on its heading; `onDone`: the cutscene's gone).
+ * underneath, the title landing on its heading; `onDone`: the cutscene's gone). `shat`: he came out of the gym like it
+ * (the pitch only).
  */
-const IntroCutscene: React.FC<{ part: 'opening' | 'pitch'; onHandoff?: () => void; onDone: () => void }> = ({ part, onHandoff, onDone }) => (
-  part === 'opening'
+const IntroCutscene: React.FC<{ part: 'opening' | 'pitch'; shat?: boolean; onHandoff?: () => void; onDone: () => void }> = ({ part, shat = false, onHandoff, onDone }) => {
+  const on = part === 'pitch' && shat;
+  // (set before the first frame's drawn, and cleared once it's gone)
+  setShatPants(on);
+  useEffect(() => { setShatPants(on); return () => setShatPants(false); }, [on]);
+  return part === 'opening'
     ? <Cutscene panels={OPENING} endAt={OPENING_END} endCard="" autoEnd onDone={onDone} />
     : <Cutscene
-      panels={PITCH} endAt={TITLE_AT} endCard={BOSS_SET_TITLES[0]} onDone={onDone}
+      panels={on ? PITCH_SHAT : PITCH} endAt={TITLE_AT} endCard={BOSS_SET_TITLES[0]} onDone={onDone}
       handoff={{ className: setTitleClass(BOSS_SET_TITLES[0]), selector: '[data-set-title]', after: HOLD_TITLE, onHandoff: onHandoff ?? (() => {}) }}
-    />
-);
+    />;
+};
 
 export default IntroCutscene;

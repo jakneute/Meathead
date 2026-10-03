@@ -78,6 +78,9 @@ export const OSCAR_ARENA_RIGHT = ARENA_RIGHT + (ARENA_RIGHT - ARENA_LEFT);
 /** The true final fight: the alien who was wearing the President, in the White House press room (straight off the
  * ending: no level before it, he's already facing him). See stages/finale and bosses/alien.ts. */
 export const FINALE_STAGE = 'Imposter Invasion';
+/** Before all that: the walk out to his mark for the medal, in the same press room (stages/whiteHouse). His to walk, and
+ * the ceremony when he's on it. */
+export const WALK_ON_STAGE = 'Medal Ceremony';
 /** The press room's inside is this wide (the camera pulls back to take in all of it, its side walls too). */
 export const FINALE_ARENA_RIGHT = ARENA_LEFT + 1120;
 /** Meathead's hide in the finale: everything that hurts him there does this share of what it would anywhere else. */

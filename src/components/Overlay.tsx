@@ -2,7 +2,7 @@ import React from 'react';
 import { useInputDevice, usePadFamily } from './useInputDevice';
 import { Prompt } from './ButtonIcons';
 import { GameStatus, WeaponType, SoundType } from '../types';
-import { MAX_AMMO } from '../constants';
+import { MAX_AMMO, WALK_ON_STAGE } from '../constants';
 import {
   getStages, getWeaponDescription, BOSS_SET_TITLES, BOSS_LOCATIONS, getWeaponInfo,
 } from '../content/roster';
@@ -627,12 +627,13 @@ const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, we
         <Prompt pad={['DPAD', 'OK']} kb={['1-9']} mouse="left" label="EQUIP" size={15} />
       </div>
 
-      {/* The file on him: this stage's boss (the briefing); in the gym, the department's own, on Meathead */}
-      {pauseDossier && stageId && (stageId === GYM_STAGE || DOSSIERS[stageId]) && (
+      {/* The file on him: this stage's boss (the briefing); in the gym, the department's own, on Meathead; on the walk out to
+          the medal, the summons */}
+      {pauseDossier && stageId && (stageId === GYM_STAGE || stageId === WALK_ON_STAGE || DOSSIERS[stageId]) && (
         // (over the whole screen, not just the menu: `fixed` here is the game's own 800x600, which is scaled)
         <div className="fixed inset-0 z-30 flex flex-col items-center justify-center bg-black/85 animate-in fade-in duration-150">
           <div className="w-[640px] h-[520px]">
-            <DossierPanel bossId={stageId === GYM_STAGE ? GYM_DOSSIER_ID : stageId} defeated={false} />
+            <DossierPanel bossId={stageId === GYM_STAGE ? GYM_DOSSIER_ID : stageId === WALK_ON_STAGE ? WHITE_HOUSE_ID : stageId} defeated={false} />
           </div>
           <div className="mt-2 flex items-center gap-4 text-[6px] text-zinc-400 tracking-wider">
             <button onClick={() => onClosePauseDossier?.()} className="contents"><Prompt pad={['BACK']} kb={['ESC']} mouse="right" label="CLOSE" size={15} /></button>

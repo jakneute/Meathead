@@ -1,5 +1,5 @@
 import { Rect } from '../../types';
-import { FINALE_STAGE } from '../../constants';
+import { FINALE_STAGE, WALK_ON_STAGE } from '../../constants';
 
 export const pickRandom = <T>(items: readonly T[]): T =>
   items[Math.floor(Math.random() * items.length)];
@@ -23,8 +23,8 @@ export const isOnScreen = (camera: { x: number; y: number; w?: number; h?: numbe
 
 /**
  * What of the world counts as on the screen, for the game's rules (what a stray shot can hit, what's knocked out of
- * bounds): the camera's 800x600, or, in the finale (the press room, the view pulled right back to take in all of it),
- * all of what's drawn.
+ * bounds): the camera's 800x600, or, in the press room (the finale, and the walk on before it: the view pulled right
+ * back to take in all of it), all of what's drawn.
  */
 export const screenRect = (state: { camera: { x: number; y: number }; view?: { x: number; y: number; w: number; h: number }; stageId: string | null }) =>
-  state.stageId === FINALE_STAGE && state.view ? state.view : { x: state.camera.x, y: state.camera.y, w: 800, h: 600 };
+  (state.stageId === FINALE_STAGE || state.stageId === WALK_ON_STAGE) && state.view ? state.view : { x: state.camera.x, y: state.camera.y, w: 800, h: 600 };

@@ -2,67 +2,77 @@
  {
   "voice": "agent",
   "text": "...Noted.",
-  "from": "components/IntroCutscene.tsx:34"
+  "from": "components/IntroCutscene.tsx:38"
  },
  {
   "voice": "agent",
   "text": "...Unlimited resources.",
-  "from": "components/IntroCutscene.tsx:34"
+  "from": "components/IntroCutscene.tsx:38"
+ },
+ {
+  "voice": "agent",
+  "text": "...Unlimited resources. Starting with pants.",
+  "from": "components/IntroCutscene.tsx:38"
  },
  {
   "voice": "agent",
   "text": "...We lift.",
-  "from": "components/IntroCutscene.tsx:34"
+  "from": "components/IntroCutscene.tsx:38"
  },
  {
   "voice": "agent",
   "text": "And the armory. Rocket launchers, flamethrowers, anything you want. Take your pick.",
-  "from": "components/IntroCutscene.tsx:34"
+  "from": "components/IntroCutscene.tsx:38"
  },
  {
   "voice": "agent",
   "text": "Artie Avalanche. Alaska. He looked at your protein shake funny.",
-  "from": "components/IntroCutscene.tsx:38"
+  "from": "components/IntroCutscene.tsx:42"
  },
  {
   "voice": "agent",
   "text": "Ernie Earthquake. San Francisco. An old man with some very heavy rocks. He needs help moving them. Permanently.",
-  "from": "components/IntroCutscene.tsx:38"
+  "from": "components/IntroCutscene.tsx:42"
  },
  {
   "voice": "agent",
   "text": "Hector Hurricane. Miami. He went on the news and predicted a bad forecast for your gains.",
-  "from": "components/IntroCutscene.tsx:38"
+  "from": "components/IntroCutscene.tsx:42"
  },
  {
   "voice": "agent",
   "text": "Looks like you enjoy hurting weaklings. How would you like to hurt more?",
-  "from": "components/IntroCutscene.tsx:34"
+  "from": "components/IntroCutscene.tsx:38"
  },
  {
   "voice": "agent",
   "text": "Meathead. We represent a department of the government that does not exist.",
-  "from": "components/IntroCutscene.tsx:34"
+  "from": "components/IntroCutscene.tsx:38"
  },
  {
   "voice": "agent",
   "text": "These are the four assholes. Very dangerous. Very weak. Extremely hurtable.",
-  "from": "components/IntroCutscene.tsx:38"
+  "from": "components/IntroCutscene.tsx:42"
  },
  {
   "voice": "agent",
   "text": "Those were interns. We sent them in first to see what you would do.",
-  "from": "components/IntroCutscene.tsx:34"
+  "from": "components/IntroCutscene.tsx:38"
+ },
+ {
+  "voice": "agent",
+  "text": "Those were interns. We sent them in first to see what you would do. We did not expect that.",
+  "from": "components/IntroCutscene.tsx:38"
  },
  {
   "voice": "agent",
   "text": "Victor Volcano. Hawaii. He's telling everybody you skip leg day.",
-  "from": "components/IntroCutscene.tsx:38"
+  "from": "components/IntroCutscene.tsx:42"
  },
  {
   "voice": "agent",
   "text": "We don't do that kind of thing. You do. Planes, choppers, cargo drops: unlimited resources to put you wherever you need to be.",
-  "from": "components/IntroCutscene.tsx:38"
+  "from": "components/IntroCutscene.tsx:42"
  },
  {
   "voice": "announcer",
@@ -742,7 +752,7 @@
  {
   "voice": "announcer",
   "text": "NOT YET!",
-  "from": "game/stages/gym/runtime.ts:271"
+  "from": "game/stages/gym/runtime.ts:298"
  },
  {
   "voice": "announcer",
@@ -1757,7 +1767,7 @@
  {
   "voice": "boss.alien",
   "text": "Uh... four more years?",
-  "from": "components/EndingCutscene.tsx:94"
+  "from": "components/EndingCutscene.tsx:106"
  },
  {
   "voice": "boss.alien",
@@ -5472,7 +5482,7 @@
  {
   "voice": "death",
   "text": "DIED ON CHEST DAY",
-  "from": "game/stages/gym/runtime.ts:353"
+  "from": "game/stages/gym/runtime.ts:380"
  },
  {
   "voice": "death",
@@ -6242,7 +6252,7 @@
  {
   "voice": "death",
   "text": "KILLED BY INTERNS",
-  "from": "game/stages/gym/runtime.ts:353"
+  "from": "game/stages/gym/runtime.ts:380"
  },
  {
   "voice": "death",
@@ -7227,7 +7237,7 @@
  {
   "voice": "death",
   "text": "SKIPPED THE REST OF CHEST DAY",
-  "from": "game/stages/gym/runtime.ts:353"
+  "from": "game/stages/gym/runtime.ts:380"
  },
  {
   "voice": "death",
@@ -7662,7 +7672,7 @@
  {
   "voice": "death",
   "text": "THE PENCIL NECKS WON",
-  "from": "game/stages/gym/runtime.ts:353"
+  "from": "game/stages/gym/runtime.ts:380"
  },
  {
   "voice": "death",
@@ -8357,82 +8367,127 @@
  {
   "voice": "gym.intern",
   "text": "...Is that a no?",
-  "from": "components/IntroCutscene.tsx:36"
+  "from": "components/IntroCutscene.tsx:40"
  },
  {
   "voice": "gym.intern",
   "text": "...Oh no.",
-  "from": "components/IntroCutscene.tsx:36"
+  "from": "components/IntroCutscene.tsx:40"
+ },
+ {
+  "voice": "gym.intern",
+  "text": "DON'T HURT ME! AND DON'T COME ANY CLOSER! PLEASE!",
+  "from": "game/stages/gym/runtime.ts:196"
  },
  {
   "voice": "gym.intern",
   "text": "DON'T HURT ME! I'M JUST AN INTERN! I'M NOT EVEN PAID!",
-  "from": "game/stages/gym/runtime.ts:178"
+  "from": "game/stages/gym/runtime.ts:196"
  },
  {
   "voice": "gym.intern",
   "text": "DON'T HURT ME! I'M JUST AN INTERN! I'M NOT PAID ENOUGH FOR THIS SMELL!",
-  "from": "game/stages/gym/runtime.ts:178"
+  "from": "game/stages/gym/runtime.ts:196"
+ },
+ {
+  "voice": "gym.intern",
+  "text": "EVERYBODY RUSH HIM AT ONCE! BREATHE THROUGH YOUR MOUTHS!",
+  "from": "game/stages/gym/runtime.ts:196"
  },
  {
   "voice": "gym.intern",
   "text": "EVERYBODY RUSH HIM AT ONCE! HE CAN'T GET ALL OF US!",
-  "from": "game/stages/gym/runtime.ts:178"
+  "from": "game/stages/gym/runtime.ts:196"
  },
  {
   "voice": "gym.intern",
   "text": "EVERYBODY RUSH HIM AT ONCE! HOLD YOUR BREATH! HE CAN'T GET ALL OF US!",
-  "from": "game/stages/gym/runtime.ts:178"
+  "from": "game/stages/gym/runtime.ts:196"
  },
  {
   "voice": "gym.intern",
   "text": "HE CAN'T REACH US UP HERE! ...BUT THE SMELL CAN!",
-  "from": "game/stages/gym/runtime.ts:178"
+  "from": "game/stages/gym/runtime.ts:196"
  },
  {
   "voice": "gym.intern",
   "text": "HE CAN'T REACH US UP HERE! ...CAN HE?",
-  "from": "game/stages/gym/runtime.ts:178"
+  "from": "game/stages/gym/runtime.ts:196"
+ },
+ {
+  "voice": "gym.intern",
+  "text": "HE CAN'T REACH US UP HERE! WAIT. DOESN'T SMELL RISE?",
+  "from": "game/stages/gym/runtime.ts:196"
+ },
+ {
+  "voice": "gym.intern",
+  "text": "HE SHIT HIMSELF! IS THAT A THREAT?! IS THAT A DOMINANCE THING?!",
+  "from": "game/stages/gym/runtime.ts:205"
+ },
+ {
+  "voice": "gym.intern",
+  "text": "HE'S GETTING UP! AND WHAT IS THAT SMELL?!",
+  "from": "game/stages/gym/runtime.ts:196"
  },
  {
   "voice": "gym.intern",
   "text": "HE'S GETTING UP! HE'S GETTING UP!",
-  "from": "game/stages/gym/runtime.ts:178"
+  "from": "game/stages/gym/runtime.ts:196"
  },
  {
   "voice": "gym.intern",
   "text": "HE'S GETTING UP! HE'S... OH GOD, HE SHIT HIMSELF!",
-  "from": "game/stages/gym/runtime.ts:178"
+  "from": "game/stages/gym/runtime.ts:196"
+ },
+ {
+  "voice": "gym.intern",
+  "text": "NOBODY SAID ANYTHING ABOUT THIS IN ORIENTATION!",
+  "from": "game/stages/gym/runtime.ts:205"
+ },
+ {
+  "voice": "gym.intern",
+  "text": "OH GOD. HE JUST SHIT HIMSELF. ON PURPOSE?",
+  "from": "game/stages/gym/runtime.ts:205"
+ },
+ {
+  "voice": "gym.intern",
+  "text": "STAY TOGETHER! NOBODY BREATHE!",
+  "from": "game/stages/gym/runtime.ts:196"
  },
  {
   "voice": "gym.intern",
   "text": "STAY TOGETHER! STAY UPWIND!",
-  "from": "game/stages/gym/runtime.ts:178"
+  "from": "game/stages/gym/runtime.ts:196"
  },
  {
   "voice": "gym.intern",
   "text": "STAY TOGETHER! STRENGTH IN NUMBERS!",
-  "from": "game/stages/gym/runtime.ts:178"
+  "from": "game/stages/gym/runtime.ts:196"
  },
  {
   "voice": "gym.intern",
   "text": "THE BRIEFCASES WILL PROTECT US! HOLD THEM OVER YOUR NOSES!",
-  "from": "game/stages/gym/runtime.ts:178"
+  "from": "game/stages/gym/runtime.ts:196"
+ },
+ {
+  "voice": "gym.intern",
+  "text": "THE BRIEFCASES WILL PROTECT US! NOTHING WILL PROTECT US FROM THAT!",
+  "from": "game/stages/gym/runtime.ts:196"
  },
  {
   "voice": "gym.intern",
   "text": "THE BRIEFCASES WILL PROTECT US! THEY'RE GOVERNMENT ISSUE!",
-  "from": "game/stages/gym/runtime.ts:178"
+  "from": "game/stages/gym/runtime.ts:196"
  },
  {
   "voice": "gym.intern",
   "text": "Um. Excuse me. Mister... Meathead?",
-  "from": "components/IntroCutscene.tsx:36"
+  "from": "components/IntroCutscene.tsx:40"
  },
  {
   "voice": "gym.intern",
   "text": "We're from a department of the government that, uh... doesn't exist? We just need a moment of your...",
-  "from": "components/IntroCutscene.tsx:36"
+  "from": "components/IntroCutscene.tsx:40"
  },
  {
   "voice": "hector.coastguard",
@@ -9207,7 +9262,7 @@
  {
   "voice": "meathead",
   "text": "...AND THIS.",
-  "from": "components/IntroCutscene.tsx:40"
+  "from": "components/IntroCutscene.tsx:44"
  },
  {
   "voice": "meathead",
@@ -9232,7 +9287,7 @@
  {
   "voice": "meathead",
   "text": "...NICE TRAPS, BRO.",
-  "from": "components/EndingCutscene.tsx:100"
+  "from": "components/EndingCutscene.tsx:112"
  },
  {
   "voice": "meathead",
@@ -9242,7 +9297,7 @@
  {
   "voice": "meathead",
   "text": "...NOW THOSE ARE NECKS.",
-  "from": "game/stages/gym/runtime.ts:335"
+  "from": "game/stages/gym/runtime.ts:362"
  },
  {
   "voice": "meathead",
@@ -9307,7 +9362,7 @@
  {
   "voice": "meathead",
   "text": "...YOU GUYS LIFT?",
-  "from": "components/IntroCutscene.tsx:40"
+  "from": "components/IntroCutscene.tsx:44"
  },
  {
   "voice": "meathead",
@@ -10152,7 +10207,7 @@
  {
   "voice": "meathead",
   "text": "BROS.",
-  "from": "components/IntroCutscene.tsx:40"
+  "from": "components/IntroCutscene.tsx:44"
  },
  {
   "voice": "meathead",
@@ -10187,7 +10242,7 @@
  {
   "voice": "meathead",
   "text": "BULLETS AREN'T DOING ANYTHING. HE'S HIDING BEHIND A MAT.",
-  "from": "game/stages/gym/runtime.ts:283"
+  "from": "game/stages/gym/runtime.ts:310"
  },
  {
   "voice": "meathead",
@@ -10722,7 +10777,7 @@
  {
   "voice": "meathead",
   "text": "Do you even lift, bro?",
-  "from": "components/EndingCutscene.tsx:52"
+  "from": "components/EndingCutscene.tsx:61"
  },
  {
   "voice": "meathead",
@@ -11227,7 +11282,7 @@
  {
   "voice": "meathead",
   "text": "FUCK YEAH! LET'S GO!",
-  "from": "App.tsx:515"
+  "from": "App.tsx:544"
  },
  {
   "voice": "meathead",
@@ -11733,6 +11788,11 @@
   "voice": "meathead",
   "text": "HALF THE FIELD! THE HALF YOU HAVEN'T BEEN STANDING IN!",
   "from": "game/bosses/oscar.ts:217"
+ },
+ {
+  "voice": "meathead",
+  "text": "HANDLER SAID NO SHOOTING TILL AFTER THE MEDAL.",
+  "from": "game/stages/whiteHouse/index.ts:55"
  },
  {
   "voice": "meathead",
@@ -12472,7 +12532,7 @@
  {
   "voice": "meathead",
   "text": "HURT MORE WEAKLINGS?! THAT'S MY FAVORITE THING! AFTER CHEST DAY! WHERE ARE THEY?!",
-  "from": "components/IntroCutscene.tsx:40"
+  "from": "components/IntroCutscene.tsx:44"
  },
  {
   "voice": "meathead",
@@ -12717,7 +12777,7 @@
  {
   "voice": "meathead",
   "text": "I HAVE NEVER SKIPPED LEG DAY IN MY LIFE.",
-  "from": "components/IntroCutscene.tsx:40"
+  "from": "components/IntroCutscene.tsx:44"
  },
  {
   "voice": "meathead",
@@ -12767,7 +12827,7 @@
  {
   "voice": "meathead",
   "text": "I MUST DESTROY THEM.",
-  "from": "components/IntroCutscene.tsx:40"
+  "from": "components/IntroCutscene.tsx:44"
  },
  {
   "voice": "meathead",
@@ -12787,7 +12847,7 @@
  {
   "voice": "meathead",
   "text": "I ONLY NEED MY GUNS.",
-  "from": "components/IntroCutscene.tsx:40"
+  "from": "components/IntroCutscene.tsx:44"
  },
  {
   "voice": "meathead",
@@ -13052,7 +13112,7 @@
  {
   "voice": "meathead",
   "text": "I'M MID-SET, BRO.",
-  "from": "components/IntroCutscene.tsx:40"
+  "from": "components/IntroCutscene.tsx:44"
  },
  {
   "voice": "meathead",
@@ -13372,7 +13432,7 @@
  {
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
-  "from": "App.tsx:515"
+  "from": "App.tsx:544"
  },
  {
   "voice": "meathead",
@@ -13382,12 +13442,17 @@
  {
   "voice": "meathead",
   "text": "IT'S ON, FUCKFACE.",
-  "from": "components/EndingCutscene.tsx:115"
+  "from": "components/EndingCutscene.tsx:127"
  },
  {
   "voice": "meathead",
   "text": "IT'S PARTY TIME.",
   "from": "game/stages/victor/lounge.ts:68"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S PROTEIN, BRO. IT'S GOTTA GO SOMEWHERE.",
+  "from": "components/EndingCutscene.tsx:71"
  },
  {
   "voice": "meathead",
@@ -13547,12 +13612,12 @@
  {
   "voice": "meathead",
   "text": "LET'S FUCKING GO!",
-  "from": "App.tsx:515"
+  "from": "App.tsx:544"
  },
  {
   "voice": "meathead",
   "text": "LET'S GO HURT SOME WEAKLINGS!",
-  "from": "components/IntroCutscene.tsx:40"
+  "from": "components/IntroCutscene.tsx:44"
  },
  {
   "voice": "meathead",
@@ -13882,7 +13947,7 @@
  {
   "voice": "meathead",
   "text": "MY SHAKE?!",
-  "from": "components/IntroCutscene.tsx:40"
+  "from": "components/IntroCutscene.tsx:44"
  },
  {
   "voice": "meathead",
@@ -14362,7 +14427,7 @@
  {
   "voice": "meathead",
   "text": "OF COURSE YOU EAT FAST FOOD, FATTIE.",
-  "from": "components/EpilogueCutscene.tsx:23"
+  "from": "components/EpilogueCutscene.tsx:27"
  },
  {
   "voice": "meathead",
@@ -14372,7 +14437,7 @@
  {
   "voice": "meathead",
   "text": "OH HELL YEAH!",
-  "from": "App.tsx:515"
+  "from": "App.tsx:544"
  },
  {
   "voice": "meathead",
@@ -14452,7 +14517,7 @@
  {
   "voice": "meathead",
   "text": "OKAY. NO MORE GUN. TIME FOR SHOULDER.",
-  "from": "game/stages/gym/runtime.ts:283"
+  "from": "game/stages/gym/runtime.ts:310"
  },
  {
   "voice": "meathead",
@@ -14682,12 +14747,12 @@
  {
   "voice": "meathead",
   "text": "PENCIL NECKS.",
-  "from": "components/IntroCutscene.tsx:40"
+  "from": "components/IntroCutscene.tsx:44"
  },
  {
   "voice": "meathead",
   "text": "PENCIL NECKS... INVADING MY SPACE. ON CHEST DAY.",
-  "from": "components/IntroCutscene.tsx:40"
+  "from": "components/IntroCutscene.tsx:44"
  },
  {
   "voice": "meathead",
@@ -15992,7 +16057,7 @@
  {
   "voice": "meathead",
   "text": "STOP SHOOTING THE MAT, MEATHEAD. SHOVE HIM.",
-  "from": "game/stages/gym/runtime.ts:283"
+  "from": "game/stages/gym/runtime.ts:310"
  },
  {
   "voice": "meathead",
@@ -16307,7 +16372,7 @@
  {
   "voice": "meathead",
   "text": "THAT MAT IS BULLETPROOF? WHAT KIND OF GYM IS THIS?",
-  "from": "game/stages/gym/runtime.ts:283"
+  "from": "game/stages/gym/runtime.ts:310"
  },
  {
   "voice": "meathead",
@@ -16443,6 +16508,11 @@
   "voice": "meathead",
   "text": "THAT'S ANOTHER HOUR ON THE CLOCK.",
   "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S CALLED GOING TO FAILURE, BRO.",
+  "from": "components/IntroCutscene.tsx:44"
  },
  {
   "voice": "meathead",
@@ -17197,7 +17267,7 @@
  {
   "voice": "meathead",
   "text": "UNLIMITED... PROTEIN?",
-  "from": "components/IntroCutscene.tsx:40"
+  "from": "components/IntroCutscene.tsx:44"
  },
  {
   "voice": "meathead",
@@ -17362,7 +17432,7 @@
  {
   "voice": "meathead",
   "text": "WEAPONS? NAH. I DON'T NEED WEAPONS.",
-  "from": "components/IntroCutscene.tsx:40"
+  "from": "components/IntroCutscene.tsx:44"
  },
  {
   "voice": "meathead",
@@ -17652,7 +17722,7 @@
  {
   "voice": "meathead",
   "text": "WHY ARE THERE TWO OF YOU?",
-  "from": "components/EpilogueCutscene.tsx:23"
+  "from": "components/EpilogueCutscene.tsx:27"
  },
  {
   "voice": "meathead",
@@ -17662,7 +17732,7 @@
  {
   "voice": "meathead",
   "text": "WHY DON'T YOU GUYS DO IT? YOU'VE GOT SUITS.",
-  "from": "components/IntroCutscene.tsx:40"
+  "from": "components/IntroCutscene.tsx:44"
  },
  {
   "voice": "meathead",
@@ -17897,7 +17967,7 @@
  {
   "voice": "meathead",
   "text": "YOU SENT ME PENCIL NECKS? ...FOR ME?",
-  "from": "components/IntroCutscene.tsx:40"
+  "from": "components/IntroCutscene.tsx:44"
  },
  {
   "voice": "meathead",
@@ -18542,12 +18612,17 @@
  {
   "voice": "president",
   "text": "All you can eat. Every single day.",
-  "from": "components/EpilogueCutscene.tsx:27"
+  "from": "components/EpilogueCutscene.tsx:31"
  },
  {
   "voice": "president",
   "text": "And Meathead saved me. Saved the whole planet, frankly. Nobody's ever saved a planet like this.",
-  "from": "components/EpilogueCutscene.tsx:21"
+  "from": "components/EpilogueCutscene.tsx:25"
+ },
+ {
+  "voice": "president",
+  "text": "And Meathead saved me. Saved the whole planet, frankly. Nobody's ever saved a planet like this. Or smelled like this.",
+  "from": "components/EpilogueCutscene.tsx:25"
  },
  {
   "voice": "president",
@@ -18567,27 +18642,32 @@
  {
   "voice": "president",
   "text": "Excuse me?",
-  "from": "components/EndingCutscene.tsx:56"
+  "from": "components/EndingCutscene.tsx:65"
+ },
+ {
+  "voice": "president",
+  "text": "Excuse me? You shit your pants. In the White House. On television.",
+  "from": "components/EndingCutscene.tsx:65"
  },
  {
   "voice": "president",
   "text": "Fast food, folks. The best fast food.",
-  "from": "components/EpilogueCutscene.tsx:27"
+  "from": "components/EpilogueCutscene.tsx:31"
  },
  {
   "voice": "president",
   "text": "Folks, what a night. I was held hostage. In a closet. The worst closet. Believe me.",
-  "from": "components/EpilogueCutscene.tsx:43"
+  "from": "components/EpilogueCutscene.tsx:47"
  },
  {
   "voice": "president",
   "text": "For the rest of your life. Free.",
-  "from": "components/EpilogueCutscene.tsx:27"
+  "from": "components/EpilogueCutscene.tsx:31"
  },
  {
   "voice": "president",
   "text": "Forget that medal. Fake medal, very cheap. I'll give you something much better. Something beautiful.",
-  "from": "components/EpilogueCutscene.tsx:21"
+  "from": "components/EpilogueCutscene.tsx:25"
  },
  {
   "voice": "president",
@@ -18606,8 +18686,13 @@
  },
  {
   "voice": "president",
+  "text": "It's my great honor to give him the Presidential Medal of Freedom. At arm's length. Somebody open a window. Frankly, I should get a medal for this.",
+  "from": "components/EndingCutscene.tsx:52"
+ },
+ {
+  "voice": "president",
   "text": "It's my great honor to give him the Presidential Medal of Freedom. Beautiful medal. Very expensive. Frankly, I should get one too.",
-  "from": "components/EndingCutscene.tsx:45"
+  "from": "components/EndingCutscene.tsx:52"
  },
  {
   "voice": "president",
@@ -18617,12 +18702,12 @@
  {
   "voice": "president",
   "text": "Nobody eats like this. Believe me.",
-  "from": "components/EpilogueCutscene.tsx:27"
+  "from": "components/EpilogueCutscene.tsx:31"
  },
  {
   "voice": "president",
   "text": "Nobody's ever seen anything like it. Tremendous job. The best job. People are saying he's the greatest hero in the history of heroes. Maybe ever.",
-  "from": "components/EndingCutscene.tsx:41"
+  "from": "components/EndingCutscene.tsx:48"
  },
  {
   "voice": "president",
@@ -18632,12 +18717,17 @@
  {
   "voice": "president",
   "text": "Shape-shifting aliens, running everything. Nobody knew. I knew. I didn't know, but I knew.",
-  "from": "components/EpilogueCutscene.tsx:21"
+  "from": "components/EpilogueCutscene.tsx:25"
  },
  {
   "voice": "president",
   "text": "Thank you. Thank you. What a crowd. This man, Meathead, took out the most dangerous, most evil terrorists. Believe me.",
-  "from": "components/EndingCutscene.tsx:37"
+  "from": "components/EndingCutscene.tsx:42"
+ },
+ {
+  "voice": "president",
+  "text": "Thank you. Thank you. What a crowd. What a smell. Is that... that's him. This man, Meathead, took out the most evil terrorists. Believe me.",
+  "from": "components/EndingCutscene.tsx:42"
  },
  {
   "voice": "president",
@@ -18662,7 +18752,12 @@
  {
   "voice": "reporter",
   "text": "Oh my God. It was an imposter president all along!",
-  "from": "components/EndingCutscene.tsx:90"
+  "from": "components/EndingCutscene.tsx:102"
+ },
+ {
+  "voice": "reporter",
+  "text": "Oh my God. It was an imposter president all along! And our hero shit himself!",
+  "from": "components/EndingCutscene.tsx:102"
  },
  {
   "voice": "skier",

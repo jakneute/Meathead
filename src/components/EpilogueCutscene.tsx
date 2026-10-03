@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Cutscene, { Panel } from './Cutscene';
 import { drawTrumpCloseUp, drawMeatheadCloseUp, drawPunch, type MeatheadMood } from '../game/scenes/ending';
 import { drawCloset, drawSkinRack, drawLawnPress, fireBg, drawLaunch, LAUNCH_TWINKLE, IRIS_AT, IRIS_LEN } from '../game/scenes/epilogue';
 import { drawFood } from '../game/scenes/fastFood';
 import { Voice, MEATHEAD_VOICE } from '../game/platform/speech';
 import { playSound } from '../game/platform/audio';
+import { setShatPants, shatClocked } from '../game/scenes/shatLook';
 
 // After the alien: the real President, found tied up in a broom closet in the sub-basement (a rack of spare skins
 // behind the mops: they'd been pulling the strings the whole time), holds an "emergency" press conference on the lawn
@@ -12,6 +13,9 @@ import { playSound } from '../game/platform/audio';
 // run of it up close in all its glory (see fastFood) while he sells it. He gets punched too. Up over the roof he goes, a twinkle, an iris in on Meathead's grin: THE END. For real this time.
 //
 // Same panels as the ending (see Cutscene): watch it all or skip the lot.
+//
+// `shat`: he's still (or newly) shit himself, the alien dead: it shows on him (see scenes/shatLook), and the
+// President, saved, has a word on it.
 
 const TRUMP_VOICE: Voice = { id: 'president', pitch: 0.75, rate: 0.9 };
 const TRUMP = 'PRESIDENT TRUMP';
@@ -32,7 +36,7 @@ const cue = (draw: Panel['draw'], at: Record<number, () => void>): Panel['draw']
 /** When THE END comes up: the iris has closed on him. */
 const THE_END_AT = IRIS_AT + IRIS_LEN + 6;
 
-const PANELS: Panel[] = [
+const panels = (shat: boolean): Panel[] => [
   { draw: (c, t) => drawCloset(c, t), text: 'THE WHITE HOUSE. THE SUB-BASEMENT.\nA BROOM CLOSET.', hold: 60 },
   { draw: (c, t) => drawCloset(c, t + 200), text: 'The real President. Held hostage the whole time.', hold: 70 },
   {
@@ -46,7 +50,9 @@ const PANELS: Panel[] = [
   },
   trump("Shape-shifting aliens, running everything. Nobody knew. I knew. I didn't know, but I knew.", false),
   { draw: (c, t) => drawMeatheadCloseUp(c, t, false, 'confused', { bg: g => fireBg(g, t) }), text: 'Meathead has no idea what is going on.', hold: 70 },
-  trump("And Meathead saved me. Saved the whole planet, frankly. Nobody's ever saved a planet like this."),
+  trump(shat
+    ? "And Meathead saved me. Saved the whole planet, frankly. Nobody's ever saved a planet like this. Or smelled like this."
+    : "And Meathead saved me. Saved the whole planet, frankly. Nobody's ever saved a planet like this."),
   meathead('confused', 'WHY ARE THERE TWO OF YOU?'),
   trump("Forget that medal. Fake medal, very cheap. I'll give you something much better. Something beautiful."),
   // A quick run of it, each up close for a few seconds, while he sells it
@@ -64,8 +70,15 @@ const PANELS: Panel[] = [
   { draw: cue((c, t) => drawLaunch(c, t), { 2: () => playSound('whoosh', 1, -2), [LAUNCH_TWINKLE]: () => playSound('ding', 0.9, 4) }), text: '' },
 ];
 
-const EpilogueCutscene: React.FC<{ onDone: () => void }> = ({ onDone }) => (
-  <Cutscene panels={PANELS} endAt={THE_END_AT} endCard="THE END" onDone={onDone} />
-);
+const CLEAN = panels(false);
+/** (the flies and the stink kept on each panel's frame) */
+const SHAT = panels(true).map(p => ({ ...p, draw: shatClocked(p.draw) }));
+
+const EpilogueCutscene: React.FC<{ shat?: boolean; onDone: () => void }> = ({ shat = false, onDone }) => {
+  // (set before the first frame's drawn, and cleared once it's gone)
+  setShatPants(shat);
+  useEffect(() => { setShatPants(shat); return () => setShatPants(false); }, [shat]);
+  return <Cutscene panels={shat ? SHAT : CLEAN} endAt={THE_END_AT} endCard="THE END" onDone={onDone} />;
+};
 
 export default EpilogueCutscene;

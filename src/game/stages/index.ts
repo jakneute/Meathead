@@ -18,7 +18,8 @@ import { tommyLayout } from './tommy';
 import { oscarLayout } from './oscar';
 import { gymLayout, GYM_STAGE } from './gym';
 import { finaleLayout } from './finale';
-import { FINALE_STAGE } from '../../constants';
+import { walkOnLayout } from './whiteHouse';
+import { FINALE_STAGE, WALK_ON_STAGE } from '../../constants';
 
 /** A body of water: which one (to tell them apart), how far it runs, and whether it's clean water or muck. */
 export interface WaterBody { key: string; x1: number; x2: number; surface: number; bottom: number; kind: 'clean' | 'muck' }
@@ -128,6 +129,7 @@ const LAYOUTS: Record<string, StageLayout> = {
   'Oily Oscar': oscarLayout,
   [GYM_STAGE]: gymLayout,
   [FINALE_STAGE]: finaleLayout,
+  [WALK_ON_STAGE]: walkOnLayout,
 };
 
 export const getStageLayout = (stageId: string | null): StageLayout | undefined => (stageId ? LAYOUTS[stageId] : undefined);

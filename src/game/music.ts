@@ -21,6 +21,8 @@ const STAGE_SONG: Record<string, string> = {
   'The Iron Pit': 'gym',
   // (the finale's all boss fight: the boss theme from the first frame)
   'Imposter Invasion': 'boss',
+  // (the walk out to the medal: the ceremony's music, under way before it starts)
+  'Medal Ceremony': 'title',
 };
 
 /** What the menus want (undefined: it's the game's call), whether it's paused, and how to ask the game. */

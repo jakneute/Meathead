@@ -498,7 +498,7 @@ export const warmRoom = () => { roomCanvas(null); };
 // Each frame
 // ---------------------------------------------------------------------------
 
-const has = (rt: FinaleRuntime | null, w: WeaponType) => rt?.wrecked[w] !== undefined;
+const has = (rt: Pick<FinaleRuntime, 'wrecked'> | null, w: WeaponType) => rt?.wrecked[w] !== undefined;
 
 export const drawRoomBack = (ctx: Ctx, state: GameState) => {
   const rt = getFinale(state);
@@ -573,8 +573,11 @@ export const drawRoomFront = (ctx: Ctx, state: GameState) => {
   if (rt?.beam) drawBeam(ctx, rt.beam.x, rt.beam.y, rt.beam.dx, rt.beam.dy, rt.beam.len, f, rt.beam.blocked, !!rt.beam.weak);
 };
 
+/** How the side walls are: the doors, the windows, whether the lights are out (the fight's runtime, or the walk on before it). */
+export type WallsLook = Pick<FinaleRuntime, 'doorOpen' | 'doorsShut' | 'windowBroken' | 'wrecked'>;
+
 /** The side walls, seen end on: the doors at the foot of them (open while someone's coming through), the windows. */
-const drawWalls = (ctx: Ctx, rt: FinaleRuntime, f: number) => {
+export const drawWalls = (ctx: Ctx, rt: WallsLook, f: number) => {
   for (const [i, side] of ([-1, 1] as const).entries()) {
     const x = side < 0 ? ROOM_L - WALL_T : ROOM_R;
     bandedGradient(ctx, x, VIEW_Y, WALL_T, FLOOR - VIEW_Y, ['#2a1408', '#3a1c0c', '#4c2610', '#3a1c0c'], 6);

@@ -5,6 +5,7 @@
 
 import { shaded, ball, box, bands, RAMP } from './art/snes';
 import { painting, bayer } from './art/raster';
+import { shatPants, shatFront, shatSide, shatCloseUp, shatClock, flies, stink } from './shatLook';
 
 export const ART_W = 256;
 export const ART_H = 144;
@@ -204,6 +205,8 @@ export const meatheadStanding = (ctx: Ctx, cx: number, baseY: number, withMedal:
     R(ctx, cx - 3, baseY - 45, 6, 2, C.blue);
     ell(ctx, cx, baseY - 41, 3, 3, C.gold);
   }
+  // (shit himself: it shows)
+  if (shatPants()) shatFront(ctx, cx, baseY);
 };
 
 /** Meathead mid-follow-through after the punch, facing right. */
@@ -234,6 +237,7 @@ export const meatheadPunched = (ctx: Ctx, cx: number, baseY: number) => {
   // Medal swinging out
   R(ctx, cx + 2, baseY - 50, 2, 5, C.blue);
   ell(ctx, cx + 6, baseY - 44, 3, 3, C.gold);
+  if (shatPants()) shatSide(ctx, cx - 4, baseY, 1);
 };
 
 /** Trump sailing across the room head-first, limbs trailing, hair and tie flapping. */
@@ -643,6 +647,8 @@ export const drawMedal = (ctx: Ctx, t: number, talking: boolean) => {
   // The medal glinting
   const gl = t % 40;
   if (gl < 8) { const k = gl < 4 ? gl : 8 - gl; R(ctx, 193, 119 - k, 1, 2 * k + 1, C.white); R(ctx, 193 - k, 119, 2 * k + 1, 1, C.white); }
+  // (shat: it's coming up off him from below the frame, between the two of them; a fly on its way over to the President)
+  if (shatPants()) { stink(ctx, 236, 150, 3, 30, 10, 2); flies(ctx, 140, 96, 26, 1, 2); }
 };
 
 /** Ninja Gaiden-style eyes shot: Meathead looks Trump up and down (or, later, the alien: green in them, and a jaw). */
@@ -743,6 +749,8 @@ export const drawMeatheadEyes = (ctx: Ctx, t: number, seen: 'president' | 'alien
   // The bridge of his nose: lit down the middle, in shade either side
   R(ctx, 120, 86, 16, 22, S[2]); R(ctx, 123, 86, 10, 22, S[3]); R(ctx, 126, 88, 3, 18, S[4]); R(ctx, 127, 90, 1, 12, S[5]);
   for (let y = 86; y < 108; y += 2) { R(ctx, 120 + (y % 4 === 0 ? 0 : 1), y, 1, 1, S[1]); R(ctx, 135 - (y % 4 === 0 ? 0 : 1), y, 1, 1, S[1]); }
+  // (shat: a fly, working its way round his face; he doesn't blink)
+  if (shatPants()) flies(ctx, 128, 70, 46, 1, 2);
 };
 
 /** Meathead's face, filling the frame (medal round his neck). */
@@ -956,6 +964,7 @@ export const drawMeatheadCloseUp = (ctx: Ctx, t: number, talking: boolean, mood:
   if (jolt) ctx.restore();
   if (where.pose === 'flex') drawDoubleBiceps(ctx, t);
   if (where.pose === 'gun') drawHandgunUp(ctx, t);
+  if (shatPants()) shatCloseUp(ctx);
 };
 
 /** Fury, over the top of him: flushed red (dithered), the veins up all over his head and neck, steam out of his nose. */
@@ -1184,6 +1193,8 @@ export const drawPunch = (ctx: Ctx, t: number, real = false) => {
 /** Trump flying across the press room, until the frame freezes. Returns his x (for tests). */
 export const drawFinale = (ctx: Ctx, t: number, freezeAt: number) => {
   const ft = Math.min(t, freezeAt);
+  // (the flies freeze with the frame)
+  shatClock(ft);
   curtain(ctx, 116);
   whSign(ctx, 128, 20);
   hangingFlag(ctx, 50, 38);

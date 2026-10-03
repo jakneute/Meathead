@@ -13,6 +13,8 @@ import { CANVAS_WIDTH, GROUND_Y } from '../../../constants';
 import { COURSE, CP, Room, WALL_X, WALL_W, RAT_HOLES } from './course';
 import { Talk, createTalk, updateTalk, queueLines, quiet, hush } from './script';
 import { isShat } from '../../player/gut';
+import { isTalking } from '../../platform/speech';
+import { isOnScreen, screenRect } from '../../core/utils';
 
 /** What to do to the ones in front of him (the button prompt that's up), or nothing. */
 export type Lesson = 'move' | 'fire' | 'charge' | 'push' | 'slide' | 'uppercut' | 'divekick' | 'shield';
@@ -52,6 +54,8 @@ export interface GymRuntime {
   shotIds: Set<string>;
   saidShots: number;
   notYetAt: number;
+  /** One of them's said something about him shitting himself (the once, when it happens). */
+  shatSaid?: boolean;
 }
 
 export const getGym = (state: GameState) => state.stage as GymRuntime | null;
@@ -141,14 +145,28 @@ const ROOM_LINES: Partial<Record<Room, string>> = {
   mezzanine: 'STAY TOGETHER! STRENGTH IN NUMBERS!',
   lockers: 'THE BRIEFCASES WILL PROTECT US! THEY\'RE GOVERNMENT ISSUE!',
 };
-/** The same, when he's shit himself (they're still coming: it's the job). */
-const ROOM_LINES_SHAT: typeof ROOM_LINES = {
-  free: "HE'S GETTING UP! HE'S... OH GOD, HE SHIT HIMSELF!",
-  wall: "DON'T HURT ME! I'M JUST AN INTERN! I'M NOT PAID ENOUGH FOR THIS SMELL!",
-  cardio: "EVERYBODY RUSH HIM AT ONCE! HOLD YOUR BREATH! HE CAN'T GET ALL OF US!",
-  racks: "HE CAN'T REACH US UP HERE! ...BUT THE SMELL CAN!",
-  mezzanine: 'STAY TOGETHER! STAY UPWIND!',
-  lockers: "THE BRIEFCASES WILL PROTECT US! HOLD THEM OVER YOUR NOSES!",
+/** The same, when he's shit himself (they're still coming: it's the job): one of each room's, never the same one twice running. */
+const ROOM_LINES_SHAT: Partial<Record<Room, string[]>> = {
+  free: ["HE'S GETTING UP! HE'S... OH GOD, HE SHIT HIMSELF!", "HE'S GETTING UP! AND WHAT IS THAT SMELL?!"],
+  wall: ["DON'T HURT ME! I'M JUST AN INTERN! I'M NOT PAID ENOUGH FOR THIS SMELL!", "DON'T HURT ME! AND DON'T COME ANY CLOSER! PLEASE!"],
+  cardio: ["EVERYBODY RUSH HIM AT ONCE! HOLD YOUR BREATH! HE CAN'T GET ALL OF US!", 'EVERYBODY RUSH HIM AT ONCE! BREATHE THROUGH YOUR MOUTHS!'],
+  racks: ["HE CAN'T REACH US UP HERE! ...BUT THE SMELL CAN!", "HE CAN'T REACH US UP HERE! WAIT. DOESN'T SMELL RISE?"],
+  mezzanine: ['STAY TOGETHER! STAY UPWIND!', 'STAY TOGETHER! NOBODY BREATHE!'],
+  lockers: ['THE BRIEFCASES WILL PROTECT US! HOLD THEM OVER YOUR NOSES!', 'THE BRIEFCASES WILL PROTECT US! NOTHING WILL PROTECT US FROM THAT!'],
+};
+/** When he shits himself, there and then, in front of them: whichever of them's nearest says so. */
+const SHAT_REACTIONS = [
+  'OH GOD. HE JUST SHIT HIMSELF. ON PURPOSE?',
+  "HE SHIT HIMSELF! IS THAT A THREAT?! IS THAT A DOMINANCE THING?!",
+  'NOBODY SAID ANYTHING ABOUT THIS IN ORIENTATION!',
+];
+/** The last said of each pool, so the next time round it's another. */
+const lastSaid = new WeakMap<string[], string>();
+const pickFresh = (pool: string[]) => {
+  const left = pool.length > 1 ? pool.filter(l => l !== lastSaid.get(pool)) : pool;
+  const line = left[Math.floor(Math.random() * left.length)];
+  lastSaid.set(pool, line);
+  return line;
 };
 
 export const updateGym = (ctx: FrameContext, controls: Controls): Controls => {
@@ -175,7 +193,16 @@ export const updateGym = (ctx: FrameContext, controls: Controls): Controls => {
       if (rt.said.has(room) || px < COURSE.rooms[room] - 120 || !alive(state, rt, room)) continue;
       rt.said.add(room);
       const who = rt.rooms[room].map(id => state.enemies.find(e => e.id === id && e.health > 0)).find(Boolean);
-      if (who && quiet(rt.talk)) { queueLines(state, rt.talk, [{ who: 'intern', text: (isShat(state) ? ROOM_LINES_SHAT : ROOM_LINES)[room]! }], room === 'free' ? 20 : 0); rt.speaker = who.id; }
+      if (who && quiet(rt.talk)) { queueLines(state, rt.talk, [{ who: 'intern', text: isShat(state) ? pickFresh(ROOM_LINES_SHAT[room]!) : ROOM_LINES[room]! }], room === 'free' ? 20 : 0); rt.speaker = who.id; }
+    }
+    // He's just shit himself, there and then (not the cheat: that's how he started): once he's had his say about it, and
+    // nobody's talking, the nearest of them on the screen says something
+    if (!rt.shatSaid && isShat(state) && p.gut?.at && p.gut.lineAt === undefined && state.playerVulgarityTimer <= 0 && !isTalking() && quiet(rt.talk)) {
+      rt.shatSaid = true;
+      const view = screenRect(state);
+      const who = state.enemies.filter(e => e.kind === 'suit' && e.health > 0 && !e.isBlownAway && isOnScreen(view, e))
+        .sort((a, b) => Math.abs(a.pos.x - px) - Math.abs(b.pos.x - px))[0];
+      if (who) { queueLines(state, rt.talk, [{ who: 'intern', text: pickFresh(SHAT_REACTIONS) }], 20); rt.speaker = who.id; }
     }
     // (the rooms that turn up as he gets to them)
     for (const room of Object.keys(COURSE.arrivals) as Room[]) if (!rt.arrived.has(room) && px >= COURSE.arrivals[room]!) arrive(ctx, rt, room);
@@ -335,7 +362,7 @@ const updateEnding = (ctx: FrameContext, rt: GymRuntime): Controls => {
     if (rt.t === 150) queueLines(state, rt.talk, [{ who: 'meathead', text: '...NOW THOSE ARE NECKS.' }]);
     if (rt.t > 170 && quiet(rt.talk)) { rt.phase = 'fade'; rt.t = 0; }
   } else if (rt.phase === 'fade') {
-    if (rt.t >= FADE_FRAMES) { rt.phase = 'done'; ctx.events.onStageDone?.(); }
+    if (rt.t >= FADE_FRAMES) { rt.phase = 'done'; ctx.events.onStageDone?.(isShat(state)); }
   }
   return { ...NO_CONTROLS };
 };

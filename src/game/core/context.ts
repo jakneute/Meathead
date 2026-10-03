@@ -22,8 +22,8 @@ export interface GameEvents {
   onBossEncounter: (shat?: boolean) => void;
   onBossDeath: () => void;
   onIntroComplete: () => void;
-  /** A stage that isn't a boss's (the gym) has played out to its end. */
-  onStageDone?: () => void;
+  /** A stage that isn't a boss's (the gym, the walk out to the medal) has played out to its end; `shat`: he'd shit himself by then. */
+  onStageDone?: (shat?: boolean) => void;
   /** The gym's lesson for the room he's in (a button prompt over the game), or null for none. */
   onTutorialHint?: (lesson: string | null) => void;
 }

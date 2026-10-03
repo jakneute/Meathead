@@ -206,6 +206,8 @@ const updateLevelIntro = (ctx: FrameContext) => {
     player.pos.y = (at?.y ?? GROUND_Y) - player.height;
     player.vel = { x: 0, y: 0 };
     player.isGrounded = true;
+    // (a stage that's got the camera already keeps it: no swinging in from the stage's start)
+    if (state.cameraOverride) state.camera = { ...state.cameraOverride };
     ctx.events.onIntroComplete();
     return;
   }
