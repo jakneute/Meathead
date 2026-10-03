@@ -244,15 +244,16 @@ const drawStreetFronts = (ctx: Ctx, state: GameState, burning: boolean) => {
     ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(x + 29.5, Y - 110.5, 121, 81);
     slab(ctx, x + 26, Y - 30, 128, 4, '#44403C', 1);
     if (shop < 3) {
-      // (the awning: stripes, lit along its top, a scalloped valance, its shadow on the front under it)
+      // (the awning: stripes, a scalloped valance, its shadow on the front under it; part of the building behind, so it's
+      // dimmed back into it, no lit top edge to it: nothing anyone could stand on, unlike the stoops and cars in front)
       const aw = ['#B91C1C', '#1D4ED8', '#15803D'][shop];
       checker(ctx, x + 20, Y - 126, 220, 6, 'rgba(0, 0, 0, 0.35)');
       ctx.fillStyle = aw; ctx.fillRect(x + 16, Y - 150, 228, 24);
       ctx.fillStyle = lite(aw, 0.2); for (let s = 0; s < 228; s += 24) ctx.fillRect(x + 16 + s, Y - 150, 12, 24);
-      ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fillRect(x + 16, Y - 150, 228, 3);
       ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(x + 16, Y - 133, 228, 7);
       ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(x + 15.5, Y - 150.5, 229, 25);
       for (let s = 0; s < 228; s += 12) { ctx.fillStyle = (s / 12) % 2 ? '#F8FAFC' : dark(aw, 0.1); ctx.beginPath(); ctx.arc(x + 22 + s, Y - 126, 6, 0, Math.PI); ctx.fill(); ctx.strokeStyle = INK; ctx.stroke(); }
+      ctx.fillStyle = 'rgba(10, 15, 30, 0.45)'; ctx.fillRect(x + 15, Y - 151, 230, 32);
     }
     // (the door: panels, a glass light in its top, a brass knob)
     const door = shop === 3 ? '#57534E' : '#1C1917';
@@ -748,6 +749,12 @@ const drawProp = (ctx: Ctx, state: GameState, pr: Prop) => {
       for (let px = x + 6; px < x + w; px += 70) slab(ctx, px - 1, y - h + 13, 7, 4, '#D1D5DB', 1);
       ctx.fillStyle = '#FDE047'; ctx.font = '5px "Press Start 2P"'; ctx.fillText('POST NO BILLS', x + 20, y - h + 10);
       for (let b = 0; b < Math.floor(w / 120); b++) { const bx = x + 110 + b * 120; ink(ctx, () => ctx.rect(bx, y - h + 2, 22, 10), b % 2 ? '#F472B6' : '#F8FAFC', 0.6); ctx.fillStyle = '#111827'; ctx.fillRect(bx + 3, y - h + 5, 14, 1); ctx.fillRect(bx + 3, y - h + 8, 10, 1); }
+      // (its deck up top, plainly something to stand on, unlike the shop awnings behind: bare boards, lit along the edge,
+      // hazard tape along the lip, a kick rail)
+      slab(ctx, x - 2, y - h - 5, w + 4, 6, '#C9A46B', 1);
+      ctx.fillStyle = '#EBD3A3'; ctx.fillRect(x - 1, y - h - 5, w + 2, 1);
+      ctx.fillStyle = '#8A6A3B'; for (let px = x + 30; px < x + w; px += 30) ctx.fillRect(px, y - h - 4, 1, 4);
+      for (let px = x; px < x + w; px += 16) { ctx.fillStyle = '#FACC15'; ctx.fillRect(px, y - h + 1, 8, 2); ctx.fillStyle = '#111827'; ctx.fillRect(px + 8, y - h + 1, 8, 2); }
       break;
     }
     case 'phonebooth':
