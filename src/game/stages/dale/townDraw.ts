@@ -1203,8 +1203,11 @@ const drawNinja = (ctx: Ctx, state: GameState, town: Town) => {
     ctx.fillStyle = '#991B1B';
     for (let d = 14; d < (n.off ?? 0); d += 9) ctx.fillRect(-d - (d % 4), -2, 3 + (d % 3), 2);
   }
-  // His rifle, laid down
-  pipe(ctx, -40, -4, 44, 4, '#3F3F46');
+  // His rifle, laid down on the boards where he left it: barrel, the scope on top, the stock, the bipod folded under
+  pipe(ctx, -44, -5, 50, 3, '#3F3F46');
+  slab(ctx, 2, -8, 18, 7, '#3F2A14', 1); ctx.fillStyle = '#5B3A1E'; ctx.fillRect(3, -8, 16, 1); // (the stock)
+  slab(ctx, -22, -11, 16, 4, '#18181B', 1); ctx.fillStyle = '#93C5FD'; ctx.fillRect(-23, -10, 1, 2); // (the scope)
+  ctx.fillStyle = '#27272A'; ctx.fillRect(-36, -3, 10, 2); ctx.fillRect(-6, -2, 4, 2); // (the bipod, the trigger guard)
   if (n.state === 'speech') ninjaFigure(ctx, f, { bowing: true });
   else if (n.state === 'kneel') {
     if (n.t < NINJA_RISE) ninjaFigure(ctx, f, { kneel: true, blade: true, hunch: n.t > NINJA_CUT ? Math.min(1, (n.t - NINJA_CUT) / 10) : 0, arms: n.t > NINJA_CUT ? 'clutch' : 'none' });

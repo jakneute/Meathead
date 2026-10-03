@@ -575,6 +575,9 @@ const shotAtNest = (ctx: FrameContext, town: Town, talk: Talk) => {
 /** Where the ninja is (his feet, middle). */
 export const ninjaSpot = () => ({ x: T().tower.x, y: T().tower.top });
 
+/** Meathead in the dead ninja's nest, the rifle at his feet: he's not having it (he's just thrown a sword at a truck). */
+const RIFLE_LINE = "A SNIPER RIFLE? SHOOTING A GUY FROM A MILE AWAY? THAT'S FOR PUSSIES. A REAL MAN SHOOTS HIM FROM ACROSS THE STREET.";
+const RIFLE_LINE_SHAT = "A SNIPER RIFLE? FOR PUSSIES. A REAL MAN GETS UP CLOSE. ...WELL. NOT TODAY. NOBODY GETS UP CLOSE TODAY.";
 const updateNinja = (ctx: FrameContext, town: Town, talk: Talk): Controls | null => {
   const { state, fx } = ctx;
   const p = state.player;
@@ -644,6 +647,12 @@ const updateNinja = (ctx: FrameContext, town: Town, talk: Talk): Controls | null
   }
   // (the pool keeps spreading)
   if (n.state === 'dead' && n.down && n.down.t < 999) n.down.t++;
+  // Up in his nest after it's all over (the jail's down): the rifle's lying right there, and Meathead won't touch it
+  if (n.state === 'dead' && state.stageMemo.jailWrecked && !state.stageMemo.rifleRefused && p.isGrounded && state.deathTimer <= 0
+    && Math.abs(p.pos.x + p.width / 2 - spot.x) < 120 && Math.abs(p.pos.y + p.height - spot.y) < 24 && !talk.current && !talk.queue.length) {
+    state.stageMemo.rifleRefused = 'yes';
+    queueLines(state, talk, [{ who: 'meathead', text: isShat(state) ? RIFLE_LINE_SHAT : RIFLE_LINE }]);
+  }
   return null;
 };
 
