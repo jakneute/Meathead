@@ -184,6 +184,8 @@ export const drawShadowFigure = (ctx: Ctx, t: number, talking: boolean) => {
   ctx.beginPath(); ctx.moveTo(152, 46 + bob); ctx.quadraticCurveTo(160, 30 + bob, 136, 20 + bob); ctx.quadraticCurveTo(108, 14 + bob, 94, 30 + bob); ctx.quadraticCurveTo(86, 36 + bob, 90, 44 + bob); ctx.stroke();
   // (and the edge of an ear, a jowl, catching it too)
   R(ctx, 148, 58 + bob, 1, 8, G.rim); R(ctx, 146, 70 + bob, 3, 1, G.rim);
+  // (now and then, for a moment, something in the dark where his eyes are catches the light green: easy to miss)
+  if (t % 170 >= 96 && t % 170 < 100) { R(ctx, 119, 55 + bob, 3, 1, '#7CFC4A'); R(ctx, 134, 55 + bob, 3, 1, '#7CFC4A'); }
   // The tie, long, very red
   R(ctx, 124, 80 + bob, 8, 6, C.white);
   ctx.fillStyle = G.tie; ctx.beginPath(); ctx.moveTo(125, 86 + bob); ctx.lineTo(131, 86 + bob); ctx.lineTo(133, 122); ctx.lineTo(128, 128); ctx.lineTo(123, 122); ctx.fill();
@@ -206,8 +208,9 @@ export const drawShadowFigure = (ctx: Ctx, t: number, talking: boolean) => {
       hand(128 + s * (50 + w), 74);
     }
   }
-  // The desk across the front: big, carved, a phone and a microphone on it
+  // The desk across the front: big, carved, a phone and a microphone on it, and a glass of something green
   R(ctx, 20, 112, 216, 32, '#140c06'); R(ctx, 20, 112, 216, 3, '#2c1c0c');
+  R(ctx, 196, 102, 6, 10, '#1d3a12'); R(ctx, 197, 104, 4, 7, '#3f7a1f'); R(ctx, 197, 104, 1, 1, '#9be36a'); R(ctx, 196, 101, 6, 1, '#3a3a3a');
   for (const x of [40, 180]) { R(ctx, x, 120, 36, 18, '#1c1208'); R(ctx, x + 2, 122, 32, 14, '#140c06'); }
   R(ctx, 150, 104, 3, 8, C.darkGray); ell(ctx, 151, 102, 3, 3, C.darkGray);
   R(ctx, 90, 106, 18, 6, C.darkGray); R(ctx, 92, 102, 14, 4, C.darkGray);
@@ -239,6 +242,8 @@ export const drawShadowBriefing = (ctx: Ctx, t: number, talking: boolean, slide:
   ctx.strokeStyle = G.rim; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(cx + 12, 72 + bob); ctx.quadraticCurveTo(cx + 16, 58 + bob, cx + 2, 60 + bob); ctx.quadraticCurveTo(cx - 14, 58 + bob, cx - 16, 70 + bob); ctx.stroke();
   R(ctx, cx - 3, 92 + bob, 6, 4, C.white);
+  // (the glint again, for a blink)
+  if (t % 190 >= 120 && t % 190 < 123) { R(ctx, cx - 6, 76 + bob, 2, 1, '#7CFC4A'); R(ctx, cx + 3, 76 + bob, 2, 1, '#7CFC4A'); }
   ctx.fillStyle = G.tie; ctx.beginPath(); ctx.moveTo(cx - 2, 96 + bob); ctx.lineTo(cx + 2, 96 + bob); ctx.lineTo(cx + 3, 126); ctx.lineTo(cx, 130); ctx.lineTo(cx - 3, 126); ctx.fill();
   // The pointer, jabbing at the slide while he talks
   const jab = talking && t % 20 < 6 ? 3 : 0;
