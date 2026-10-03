@@ -932,7 +932,7 @@
  {
   "voice": "announcer",
   "text": "SEPPUKU!",
-  "from": "game/stages/dale/town.ts:562"
+  "from": "game/stages/dale/town.ts:580"
  },
  {
   "voice": "announcer",
@@ -1162,7 +1162,7 @@
  {
   "voice": "announcer",
   "text": "TIMESHARE: VACANT",
-  "from": "game/stages/dale/town.ts:916"
+  "from": "game/stages/dale/town.ts:1088"
  },
  {
   "voice": "announcer",
@@ -4372,47 +4372,67 @@
  {
   "voice": "dale.ninja",
   "text": "THERE IS NO HONOR LEFT TO RESTORE. BUT I WILL TRY.",
-  "from": "game/stages/dale/town.ts:475"
+  "from": "game/stages/dale/town.ts:491"
  },
  {
   "voice": "dale.ninja",
   "text": "THERE IS ONLY ONE WAY TO RESTORE MY HONOR.",
-  "from": "game/stages/dale/town.ts:470"
+  "from": "game/stages/dale/town.ts:486"
  },
  {
   "voice": "dale.ninja",
   "text": "YOU CROSSED THE WHOLE TOWN UNDER MY SIGHTS, AND STILL YOU STAND. I HAVE FAILED MY MASTER.",
-  "from": "game/stages/dale/town.ts:469"
+  "from": "game/stages/dale/town.ts:485"
  },
  {
   "voice": "dale.ninja",
   "text": "YOU CROSSED THE WHOLE TOWN UNDER MY SIGHTS. WITH SHIT IN YOUR PANTS. AND STILL YOU STAND. I HAVE FAILED MY MASTER.",
-  "from": "game/stages/dale/town.ts:474"
+  "from": "game/stages/dale/town.ts:490"
+ },
+ {
+  "voice": "dale.prisoner",
+  "text": "DAN, THE KEYS ARE ON YOUR BELT! YOU'RE RIGHT THERE! I CAN ALMOST REACH!",
+  "from": "game/stages/dale/town.ts:787"
  },
  {
   "voice": "dale.prisoner",
   "text": "DAN! GIMME THE KEYS! STOP PLAYING! LET ME OUT!",
-  "from": "game/stages/dale/town.ts:759"
+  "from": "game/stages/dale/town.ts:780"
+ },
+ {
+  "voice": "dale.prisoner",
+  "text": "DAN?! DAN! THERE'S A SWORD IN YOUR HEAD, DAN!",
+  "from": "game/stages/dale/town.ts:785"
  },
  {
   "voice": "dale.prisoner",
   "text": "HEY! HEY, YOU! THE SHERIFF LOCKED ME IN HERE FOR A PHOTO AN HOUR AGO!",
-  "from": "game/stages/dale/town.ts:650"
+  "from": "game/stages/dale/town.ts:668"
  },
  {
   "voice": "dale.prisoner",
   "text": "HEY! HEY, YOU! THE SHERIFF LOCKED ME IN HERE FOR A PHOTO AN HOUR AGO! ...ACTUALLY, STAY OVER THERE. I CAN WAIT.",
-  "from": "game/stages/dale/town.ts:650"
+  "from": "game/stages/dale/town.ts:668"
  },
  {
   "voice": "dale.prisoner",
   "text": "I HAVE A TIMESHARE!",
-  "from": "game/stages/dale/town.ts:760"
+  "from": "game/stages/dale/town.ts:781"
  },
  {
   "voice": "dale.prisoner",
   "text": "IS THAT A TRUCK?! SHERIFF DAN?!",
-  "from": "game/stages/dale/town.ts:757"
+  "from": "game/stages/dale/town.ts:775"
+ },
+ {
+  "voice": "dale.prisoner",
+  "text": "THE TRUCK'S STILL COMING! WHY IS EVERYTHING HAPPENING?! I HAVE A TIMESHARE!",
+  "from": "game/stages/dale/town.ts:788"
+ },
+ {
+  "voice": "dale.prisoner",
+  "text": "WHERE DID THAT EVEN COME FROM?! IT CAME OUT OF THE SKY!",
+  "from": "game/stages/dale/town.ts:786"
  },
  {
   "voice": "dale.riggs",
@@ -4457,7 +4477,7 @@
  {
   "voice": "dale.riggs",
   "text": "ONE BULLET?! IN ONE EAR AND OUT THE OTHER, BABY! NOTHING IN THERE TO HIT!",
-  "from": "game/stages/dale/town.ts:675"
+  "from": "game/stages/dale/town.ts:693"
  },
  {
   "voice": "dale.riggs",
@@ -4477,7 +4497,7 @@
  {
   "voice": "dale.sheriff",
   "text": "NOPE! NOT FOR TEN BUCKS AN HOUR!",
-  "from": "game/stages/dale/town.ts:758"
+  "from": "game/stages/dale/town.ts:776"
  },
  {
   "voice": "death",
@@ -4502,7 +4522,7 @@
  {
   "voice": "death",
   "text": "A JUMP WON'T CLEAR IT. UPPERCUT!",
-  "from": "game/stages/dale/town.ts:740"
+  "from": "game/stages/dale/town.ts:758"
  },
  {
   "voice": "death",
@@ -5362,7 +5382,7 @@
  {
   "voice": "death",
   "text": "FLATTENED BY A DEAD MAN",
-  "from": "game/stages/dale/town.ts:740"
+  "from": "game/stages/dale/town.ts:758"
  },
  {
   "voice": "death",
@@ -5697,7 +5717,7 @@
  {
   "voice": "death",
   "text": "IT TAKES AN UPPERCUT TO CLEAR IT",
-  "from": "game/stages/dale/town.ts:740"
+  "from": "game/stages/dale/town.ts:758"
  },
  {
   "voice": "death",
@@ -5867,7 +5887,7 @@
  {
   "voice": "death",
   "text": "LEG DAY MEETS FRONT BUMPER",
-  "from": "game/stages/dale/town.ts:740"
+  "from": "game/stages/dale/town.ts:758"
  },
  {
   "voice": "death",
@@ -6057,7 +6077,7 @@
  {
   "voice": "death",
   "text": "NOT A JUMP. AN UPPERCUT.",
-  "from": "game/stages/dale/town.ts:740"
+  "from": "game/stages/dale/town.ts:758"
  },
  {
   "voice": "death",
@@ -6447,7 +6467,7 @@
  {
   "voice": "death",
   "text": "RUN OVER BY RIGGS. AGAIN.",
-  "from": "game/stages/dale/town.ts:740"
+  "from": "game/stages/dale/town.ts:758"
  },
  {
   "voice": "death",
@@ -6692,7 +6712,7 @@
  {
   "voice": "death",
   "text": "SHOULD HAVE UPPERCUT OVER IT",
-  "from": "game/stages/dale/town.ts:740"
+  "from": "game/stages/dale/town.ts:758"
  },
  {
   "voice": "death",
@@ -6767,7 +6787,7 @@
  {
   "voice": "death",
   "text": "SLID UNDER A TRUCK. IT HAD WHEELS",
-  "from": "game/stages/dale/town.ts:740"
+  "from": "game/stages/dale/town.ts:758"
  },
  {
   "voice": "death",
@@ -7217,7 +7237,7 @@
  {
   "voice": "death",
   "text": "THE TRUCK DIDN'T EVEN SLOW DOWN",
-  "from": "game/stages/dale/town.ts:740"
+  "from": "game/stages/dale/town.ts:758"
  },
  {
   "voice": "death",
@@ -7467,7 +7487,7 @@
  {
   "voice": "death",
   "text": "YOU SLIDE-TACKLED A TRUCK. THE TRUCK DID NOT FALL OVER",
-  "from": "game/stages/dale/town.ts:740"
+  "from": "game/stages/dale/town.ts:758"
  },
  {
   "voice": "death",
@@ -8602,7 +8622,7 @@
  {
   "voice": "meathead",
   "text": "...OKAY. SAVES ME A BULLET.",
-  "from": "game/stages/dale/town.ts:587"
+  "from": "game/stages/dale/town.ts:605"
  },
  {
   "voice": "meathead",
@@ -8912,7 +8932,7 @@
  {
   "voice": "meathead",
   "text": "A LITTLE RED DOT ON MY PECS... SNIPER! THE PORCH ROOFS! HE CAN'T SEE ME UNDER THOSE!",
-  "from": "game/stages/dale/town.ts:247"
+  "from": "game/stages/dale/town.ts:263"
  },
  {
   "voice": "meathead",
@@ -9172,7 +9192,7 @@
  {
   "voice": "meathead",
   "text": "AN AUTHENTIC OLD WEST TOWN. EST. NINETEEN NINETY FOUR. SURE.",
-  "from": "game/stages/dale/town.ts:239"
+  "from": "game/stages/dale/town.ts:254"
  },
  {
   "voice": "meathead",
@@ -11097,7 +11117,7 @@
  {
   "voice": "meathead",
   "text": "HE JUST DUCKS. CLOSER. GET CLOSER.",
-  "from": "game/stages/dale/town.ts:530"
+  "from": "game/stages/dale/town.ts:548"
  },
  {
   "voice": "meathead",
@@ -11312,7 +11332,7 @@
  {
   "voice": "meathead",
   "text": "HE'S GOT SANDBAGS UP THERE. I NEED TO GET CLOSER.",
-  "from": "game/stages/dale/town.ts:530"
+  "from": "game/stages/dale/town.ts:548"
  },
  {
   "voice": "meathead",
@@ -11942,7 +11962,7 @@
  {
   "voice": "meathead",
   "text": "I SHOULD REALLY TAKE OUT THAT SNIPER BEFORE I GO ANY FURTHER.",
-  "from": "game/stages/dale/town.ts:280"
+  "from": "game/stages/dale/town.ts:296"
  },
  {
   "voice": "meathead",
@@ -13292,7 +13312,7 @@
  {
   "voice": "meathead",
   "text": "NOT FROM DOWN HERE. I'VE GOT TO GET UP THERE.",
-  "from": "game/stages/dale/town.ts:530"
+  "from": "game/stages/dale/town.ts:548"
  },
  {
   "voice": "meathead",
@@ -13312,7 +13332,7 @@
  {
   "voice": "meathead",
   "text": "NOT WITH A SNIPER ON MY BACK. HE'S UP THE BELL TOWER.",
-  "from": "game/stages/dale/town.ts:280"
+  "from": "game/stages/dale/town.ts:296"
  },
  {
   "voice": "meathead",
@@ -13327,7 +13347,7 @@
  {
   "voice": "meathead",
   "text": "NOTE TO SELF: SHOOT THE DRIVER AFTER THE TRUCK STOPS.",
-  "from": "game/stages/dale/town.ts:238"
+  "from": "game/stages/dale/town.ts:253"
  },
  {
   "voice": "meathead",
@@ -13468,6 +13488,16 @@
   "voice": "meathead",
   "text": "ONE LESS PIGEON IN NEW YORK! NOBODY'LL NOTICE!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ONE SWORD. THREE GUYS. ONE JAIL. AND I'M STILL THE ONE WHO SHIT HIMSELF TODAY.",
+  "from": "game/stages/dale/town.ts:795"
+ },
+ {
+  "voice": "meathead",
+  "text": "ONE SWORD. THREE GUYS. ONE JAIL. NOW THAT'S A COMPOUND MOVEMENT.",
+  "from": "game/stages/dale/town.ts:794"
  },
  {
   "voice": "meathead",
@@ -13947,7 +13977,7 @@
  {
   "voice": "meathead",
   "text": "RIGGS, BUDDY... YOUR LIZARD'S GONNA HAVE TO FEND FOR HIMSELF.",
-  "from": "game/stages/dale/town.ts:919"
+  "from": "game/stages/dale/town.ts:1104"
  },
  {
   "voice": "meathead",
@@ -14587,7 +14617,7 @@
  {
   "voice": "meathead",
   "text": "SNIPER FIRST. THEN THE DRUGS.",
-  "from": "game/stages/dale/town.ts:280"
+  "from": "game/stages/dale/town.ts:296"
  },
  {
   "voice": "meathead",
@@ -15972,7 +16002,7 @@
  {
   "voice": "meathead",
   "text": "UNDER A PORCH ROOF! THAT'S THE ONLY PLACE HE CAN'T HIT ME!",
-  "from": "game/stages/dale/town.ts:360"
+  "from": "game/stages/dale/town.ts:376"
  },
  {
   "voice": "meathead",

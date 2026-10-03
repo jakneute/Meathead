@@ -20,7 +20,10 @@
 // cutouts. Warning signs, a meter: when he's close, boost-jump (an uppercut) clean
 // over him. Then a cut to the fake jail: the guy the "sheriff" locked in it for a
 // photo sees what's coming, the sheriff runs off with the keys, and the cab comes
-// through the wall, him and Riggs and all. Dale's pharmacy is past the wreck.
+// through the wall, him and Riggs and all. (If the cab went over the ninja on the
+// way, his sword went spinning off up the street out of it: it comes down out of
+// the sky on the sheriff as he runs for it, through his skull, and pins him up the
+// jail's wall, and the cab takes the lot.) Dale's pharmacy is past the wreck.
 //
 // The tourists are the town's, not enemies: Meathead can't hurt them.
 
@@ -42,6 +45,7 @@ import { makeKindEnemy } from '../../enemies/kinds';
 import { COURSE, CP } from './course';
 import { Talk, queueLines, replaceLines, hush, quiet } from './script';
 import { isShat } from '../../player/gut';
+import { CUT_SWORD, CUT_RIGGS } from './townCutIns';
 
 const Y = GROUND_Y;
 const T = () => COURSE.town;
@@ -60,6 +64,8 @@ const CHASE_SPEED = 17, RUSH_SPEED = 8, HANDOVER = 1300;
 /** Coming in off the highway: how fast the cab comes down the street into the curio shop. */
 const ARRIVE_SPEED = 21;
 
+export interface TownSword { state: 'flying' | 'aloft' | 'homing' | 'carry' | 'stuck'; x: number; y: number; vx: number; vy: number; rot: number; spin: number; t: number;
+  /** Homing and carrying: from where, to where. */ x0?: number; y0?: number; x1?: number; y1?: number }
 export interface TownProp { x: number; look: 'barrel' | 'cutout' | 'wagon' | 'hay' | 'wanted' | 'trough'; flying: boolean; vx: number; vy: number; y: number; rot: number }
 export interface Town {
   phase: 'street' | 'pan' | 'revive' | 'chase' | 'incoming' | 'jail' | 'crashed';
@@ -91,7 +97,14 @@ export interface Town {
   jumped?: boolean; boosted?: boolean;
   cab: { x: number; speed: number; facing: 1 | -1; spin: number; state: 'arrive' | 'parked' | 'reverse' | 'spin' | 'go' | 'wrecked'; t: number };
   props: TownProp[];
-  sheriff: { x: number; running: boolean };
+  /** The "sheriff": where he is; whether he's off; what came of him (skewered by the ninja's sword, pinned up the
+   * jail's wall by it, then the cab: dead). `hx`, `hy`: his head, while he's on the sword. */
+  sheriff: { x: number; running: boolean; fate?: 'skewered' | 'pinned' | 'dead'; hx?: number; hy?: number; pinT?: number; ranAt?: number };
+  /** The ninja's sword, off him when the cab went over him: spinning off up the street and up out of sight; down out
+   * of the sky on the sheriff at the jail; through him and up the wall, stuck there. */
+  sword?: TownSword;
+  /** A close-up cut in over the jail scene (the sword in the air; Riggs bearing down), and how far into it. */
+  cutIn?: { shot: 'sword' | 'riggs'; t: number };
   prisoner: { alive: boolean; said: number };
   /** Said: the sniper warning, the cover hint, the town welcome. */
   said: Set<string>;
@@ -120,7 +133,7 @@ export const createTown = (state: GameState, startedAt: number): Town => {
     closerSaid: 0,
     ninja: { state: ninjaDead ? 'dead' : 'perch', t: 999, face: -1, down: ninjaDead ? ninjaDownMemo(state) : undefined },
     cab: wrecked ? { x: t.jail.x1 + 30 - CAB.w, speed: 0, facing: 1, spin: 0, state: 'wrecked', t: 0 } : { x: t.crash - 20, speed: 0, facing: -1, spin: 0, state: 'parked', t: 0 },
-    props, sheriff: { x: wrecked ? t.x2 + 400 : t.jail.x1 - 70, running: wrecked }, prisoner: { alive: !wrecked, said: 0 },
+    props, sheriff: { x: wrecked ? t.x2 + 400 : t.jail.x1 - 70, running: wrecked, fate: wrecked && state.stageMemo.danSkewered ? 'dead' : undefined }, prisoner: { alive: !wrecked, said: 0 },
     said: new Set(), wakeT: 999,
     tourists: wrecked ? [] : makeTourists(), gore: 0, screamAt: -999, crashedAt: -1, arrive: null, shopHit: true,
   };
@@ -242,6 +255,7 @@ export const updateTown = (ctx: FrameContext, town: Town, talk: Talk, controls: 
   checkpoints(state);
   bounceAwnings(state);
   updateProps(ctx, town);
+  updateSword(ctx, town, talk);
   updateTourists(town);
   // The sniper, from the arch till you get up to him
   if (town.ninja.state === 'perch' && !town.sniper.on && p.pos.x > t.arch + 80) {
@@ -760,11 +774,26 @@ const updateWarpath = (ctx: FrameContext, town: Town, talk: Talk, controls: Cont
 const JAIL_BEGGING = [
   { who: 'prisoner', text: 'IS THAT A TRUCK?! SHERIFF DAN?!' },
   { who: 'sheriff', text: 'NOPE! NOT FOR TEN BUCKS AN HOUR!' },
+] as const;
+/** Then, with Dan off and away (no sword coming for him): the guy begs. */
+const JAIL_BEGGING_ON = [
   { who: 'prisoner', text: 'DAN! GIMME THE KEYS! STOP PLAYING! LET ME OUT!' },
   { who: 'prisoner', text: 'I HAVE A TIMESHARE!' },
 ] as const;
+/** Or, with Dan up the wall right outside his window on a sword: the guy loses it. */
+const JAIL_SKEWERED = [
+  { who: 'prisoner', text: "DAN?! DAN! THERE'S A SWORD IN YOUR HEAD, DAN!" },
+  { who: 'prisoner', text: 'WHERE DID THAT EVEN COME FROM?! IT CAME OUT OF THE SKY!' },
+  { who: 'prisoner', text: "DAN, THE KEYS ARE ON YOUR BELT! YOU'RE RIGHT THERE! I CAN ALMOST REACH!" },
+  { who: 'prisoner', text: "THE TRUCK'S STILL COMING! WHY IS EVERYTHING HAPPENING?! I HAVE A TIMESHARE!" },
+] as const;
 /** The latest the cab comes (if the begging's still going), and how long on the wreck after. */
 const JAIL_CAB_BY = 720, JAIL_AFTER = 120;
+/** Meathead, once it's all come down (the sword, Dan, the guy, the jail, the ninja up the street): plain, and in shitty pants. */
+const CARNAGE_LINE = [
+  { who: 'meathead', text: "ONE SWORD. THREE GUYS. ONE JAIL. NOW THAT'S A COMPOUND MOVEMENT." },
+  { who: 'meathead', text: "ONE SWORD. THREE GUYS. ONE JAIL. AND I'M STILL THE ONE WHO SHIT HIMSELF TODAY." },
+] as const;
 /** The skip works (and says so) after this long. */
 export const JAIL_SKIP_AFTER = SKIP_AFTER;
 
@@ -791,19 +820,53 @@ const jailScene = (ctx: FrameContext, town: Town, talk: Talk, controls: Controls
   if (skippable) offerSkip();
   if (skippable && takeSkip()) {
     hush(state, talk); cancelSpeech();
-    town.sheriff.running = true; town.sheriff.x = Math.max(town.sheriff.x, camX + CANVAS_WIDTH + 60);
+    // (the sword's on its way for him: he's up the wall on it already; otherwise he's away)
+    if (town.sword && town.sheriff.fate !== 'dead') pinSheriff(ctx, town, null);
+    else { town.sheriff.running = true; town.sheriff.x = Math.max(town.sheriff.x, camX + CANVAS_WIDTH + 60); }
     cab.speed = 26; cab.x = t.jail.x1 + 30 - CAB.w;
+    // (all of it: out of a close-up too)
+    if (town.cutIn) { town.cutIn = undefined; p.inCutscene = false; }
+  }
+  // A close-up: everything else holds where it is till it's done, then back to it
+  if (town.cutIn) {
+    state.cameraOverride = { x: camX, y: 0 };
+    p.inCutscene = true; p.vel.x = 0;
+    const c = town.cutIn;
+    if (++c.t >= (c.shot === 'sword' ? CUT_SWORD : CUT_RIGGS)) {
+      town.cutIn = undefined; p.inCutscene = false;
+      // (out of the sky and in off the left at him; the cab already in sight down the street, flat out)
+      if (c.shot === 'sword') homeSword(town, camX);
+      else { cab.x = camX - CAB.w - 40; cab.speed = 26; }
+    }
+    return { ...NO_CONTROLS };
   }
   if (town.crashedAt < 0) state.cameraOverride = { x: camX, y: 0 };
   p.vel.x = 0;
   // Dan's off once he's said his piece
-  if (!town.sheriff.running && town.t > 30 && !talk.queue.some(l => l.who === 'sheriff') && talk.current?.who !== 'sheriff') town.sheriff.running = true;
+  if (!town.sheriff.fate && !town.sheriff.running && town.t > 30 && !talk.queue.some(l => l.who === 'sheriff') && talk.current?.who !== 'sheriff') {
+    town.sheriff.running = true; town.sheriff.ranAt = town.t;
+    // (and with nobody to beg, or nobody left to: the rest of the guy's lines)
+    if (!town.sword) queueLines(state, talk, JAIL_BEGGING_ON.map(l => ({ ...l })), 20);
+  }
   if (town.sheriff.running) town.sheriff.x += 5;
+  // The sword, down out of the sky at him as he goes
+  // (a close-up of it on its way first)
+  if ((town.sword?.state === 'aloft' || town.sword?.state === 'flying') && town.sheriff.running && !town.sheriff.fate && town.t - (town.sheriff.ranAt ?? town.t) >= SWORD_LEAD) { town.sword.state = 'aloft'; town.cutIn = { shot: 'sword', t: 0 }; playSound('whoosh'); return { ...NO_CONTROLS }; }
   // The horn, closer and closer
   if (town.crashedAt < 0 && town.t > 40 && town.t % Math.max(10, 50 - Math.floor(town.t / 16)) === 0) playSound('truckhorn');
   // Here it comes (he's begged enough)
   const begged = !talk.current && !talk.queue.length && town.t > 60;
-  if (cab.speed === 0 && town.crashedAt < 0 && (begged || town.t >= JAIL_CAB_BY)) { cab.speed = 26; town.sheriff.running = true; }
+  // (if the sword's coming for Dan, not till he's up the wall and the guy's said his piece about it)
+  const swordDone = !town.sword || town.sheriff.fate === 'pinned';
+  if (cab.speed === 0 && !town.cutIn && town.crashedAt < 0 && ((begged && swordDone) || town.t >= JAIL_CAB_BY * (town.sword ? 4 : 1))) {
+    if (!town.sword) { cab.speed = 26; town.sheriff.running = true; }
+    else {
+      // Dan up the wall: then the close-up of Riggs, coming
+      if (!town.sheriff.fate || town.sheriff.fate === 'skewered') pinSheriff(ctx, town, null);
+      town.cutIn = { shot: 'riggs', t: 0 }; playSound('truckhorn');
+      return { ...NO_CONTROLS };
+    }
+  }
   if (town.crashedAt < 0 && cab.speed > 0) {
     cab.x += cab.speed;
     plow(ctx, town);
@@ -873,6 +936,83 @@ const plow = (ctx: FrameContext, town: Town) => {
   }
 };
 
+/** Where Dan ends up on the sword: his head (the sword through it), up the jail's wall left of the cell window. */
+export const SHERIFF_PIN = { x: () => T().jail.x1 + 72, y: Y - 98 };
+/** The sword coming down on Dan: how long after he's off it shows up, how long it takes to get to him, how long it carries him to the wall. */
+const SWORD_LEAD = 4, SWORD_HOME = 12, SWORD_CARRY = 12;
+/** The way it's through him, and into the wall: in the back of his skull, out his forehead, up into the stone. */
+const SWORD_PIN_ROT = -0.55;
+
+/** The ninja's sword in the air: off up the street out of the run-over and up out of sight; down on Dan; Dan up the wall. */
+const updateSword = (ctx: FrameContext, town: Town, talk: Talk) => {
+  const { state, fx } = ctx;
+  const sw = town.sword;
+  if (!sw) return;
+  sw.t++;
+  if (sw.state === 'flying') {
+    sw.vy += 0.45; sw.x += sw.vx; sw.y += sw.vy; sw.rot += sw.spin;
+    if (sw.y < state.camera.y - 140) sw.state = 'aloft';
+    // (it can't come down on anyone here: it's gone up, it comes down at the jail)
+    if (sw.vy > 0 && sw.y > Y - 40) sw.state = 'aloft';
+    return;
+  }
+  const s = town.sheriff;
+  if (sw.state === 'homing') {
+    // In off the left, spinning, rising, to the back of his head (he's running: it's where his head will be)
+    const u = Math.min(1, sw.t / SWORD_HOME);
+    const a = Math.atan2(sw.y1! - sw.y0!, sw.x1! - sw.x0!);
+    sw.x = sw.x0! + (sw.x1! - sw.x0!) * u; sw.y = sw.y0! + (sw.y1! - sw.y0!) * u - Math.sin(u * Math.PI) * 40;
+    sw.rot = a + (1 - u) * (1 - u) * Math.PI * 8;
+    if (u >= 1) {
+      // Through his skull
+      s.fate = 'skewered'; s.running = false; s.hx = sw.x; s.hy = sw.y;
+      sw.state = 'carry'; sw.t = 0; sw.x0 = sw.x; sw.y0 = sw.y; sw.x1 = SHERIFF_PIN.x(); sw.y1 = SHERIFF_PIN.y;
+      sw.rot = SWORD_PIN_ROT;
+      fx.spawnDeathShower({ x: sw.x, y: sw.y }, 1, 1.4);
+      for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: sw.x + 8, y: sw.y }, vel: { x: 3 + Math.random() * 8, y: -3 - Math.random() * 5 }, life: 30 + Math.random() * 20, color: i % 3 ? '#B91C1C' : '#F9A8D4', size: 2 + Math.random() * 4 });
+      shakeScreen(state, 12, 8); playSound('splat'); playSound('crunch');
+      fx.spawnDamageNumber({ x: sw.x - 50, y: sw.y - 60 }, 'SKEWERED!', true, '#F87171');
+      hush(state, talk);
+    }
+    return;
+  }
+  if (sw.state === 'carry') {
+    // Lifted off his feet with it and on, into the wall
+    const u = Math.min(1, sw.t / SWORD_CARRY), e = 1 - (1 - u) * (1 - u);
+    sw.x = sw.x0! + (sw.x1! - sw.x0!) * e; sw.y = sw.y0! + (sw.y1! - sw.y0!) * e;
+    s.hx = sw.x; s.hy = sw.y; s.x = sw.x;
+    if (u >= 1) pinSheriff(ctx, town, talk);
+    return;
+  }
+  if (sw.state === 'stuck' && s.fate === 'pinned') s.pinT = (s.pinT ?? 0) + 1;
+};
+
+/** The sword coming for Dan: from off the left of the shot, low, to where the back of his head will be. */
+const homeSword = (town: Town, camX: number) => {
+  const sw = town.sword!, s = town.sheriff;
+  sw.state = 'homing'; sw.t = 0;
+  sw.x0 = camX - 60; sw.y0 = Y - 40;
+  sw.x1 = s.x + 5 * SWORD_HOME - 6; sw.y1 = Y - 62;
+  sw.x = sw.x0; sw.y = sw.y0;
+  playSound('whoosh');
+};
+
+/** Into the wall: Dan up it on the sword, his feet off the ground. (`talk` null: skipped to it, nothing said.) */
+const pinSheriff = (ctx: FrameContext, town: Town, talk: Talk | null) => {
+  const { state, fx } = ctx;
+  const sw = town.sword ?? (town.sword = { state: 'stuck', x: 0, y: 0, vx: 0, vy: 0, rot: 0, spin: 0, t: 0 });
+  const s = town.sheriff;
+  sw.state = 'stuck'; sw.x = SHERIFF_PIN.x(); sw.y = SHERIFF_PIN.y; sw.rot = SWORD_PIN_ROT;
+  s.fate = 'pinned'; s.running = false; s.hx = sw.x; s.hy = sw.y; s.x = sw.x; s.pinT = 0;
+  if (!talk) return;
+  // THUNK: stone chips, dust
+  for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: sw.x + 26, y: sw.y - 20 }, vel: { x: (Math.random() - 0.3) * 6, y: -Math.random() * 5 }, life: 26 + Math.random() * 20, color: i % 2 ? '#A8A29E' : '#78716C', size: 2 + Math.random() * 4 });
+  fx.spawnExplosion({ x: sw.x + 26, y: sw.y - 20 }, '#D6D3D1', 10, 0, 6);
+  shakeScreen(state, 16, 10); playSound('thud'); playSound('clink');
+  fx.spawnDamageNumber({ x: sw.x - 60, y: sw.y - 110 }, 'PINNED!', true, '#FACC15');
+  queueLines(state, talk, JAIL_SKEWERED.map(l => ({ ...l })), 24);
+};
+
 /**
  * The ninja, if he's lying out in the street where the cab's coming: each axle as it goes over him (a thump, a
  * crunch, a spray of him), and what's left gets more spread up the street each time (see ninjaMangled).
@@ -894,6 +1034,8 @@ const overNinja = (ctx: FrameContext, town: Town, was: number) => {
     shakeScreen(state, 14, 8);
     playSound('crunch'); playSound('splat'); playSound('thud', 0.6);
     if (d.mangled === 1) fx.spawnDamageNumber({ x: d.x - 40, y: Y - 120 }, 'SPLAT AGAIN!', true, '#F87171');
+    // (the first: the sword squirts out of him, whole, and goes spinning off up the street and up out of sight)
+    if (d.mangled === 1 && !town.sword && !state.stageMemo.jailWrecked) { town.sword = { state: 'flying', x: d.x + 10, y: Y - 16, vx: 9, vy: -23, rot: -0.4, spin: 0.62, t: 0 }; playSound('clink'); playSound('whoosh'); }
     town.gore = Math.min(1, town.gore + 0.05);
   }
 };
@@ -945,8 +1087,21 @@ const crashIntoJail = (ctx: FrameContext, town: Town, talk: Talk) => {
   for (const [c, sz] of [['#F2C9A0', 12], ['#F2C9A0', 14], ['#44403C', 11], ['#1E3A8A', 10], ['#1C1917', 13], ['#E0AC69', 12]] as const) state.particles.push({ pos: { x: t.jail.x1 + 170, y: Y - 110 }, vel: { x: (Math.random() - 0.3) * 18, y: -12 - Math.random() * 10 }, life: 90, color: c, size: sz });
   fx.spawnDamageNumber({ x: t.jail.x1 + 160, y: Y - 230 }, 'TIMESHARE: VACANT', true, '#FACC15'); fx.announceKill('TIMESHARE: VACANT');
   fx.spawnDamageNumber({ x: t.jail.x1 + 40, y: Y - 330 }, 'CASE CLOSED!', true, '#F87171');
+  // Dan up the wall on the sword: the cab takes him, the sword and the wall behind them in one, all over what's left of it
+  if (town.sheriff.fate === 'pinned' || town.sheriff.fate === 'skewered') {
+    const at = { x: SHERIFF_PIN.x(), y: SHERIFF_PIN.y };
+    for (let k = 0; k < 3; k++) fx.spawnDeathShower({ x: at.x + k * 20, y: at.y + 20 + k * 15 }, k % 2 ? 1 : -1, 3);
+    fx.spawnExplosion(at, '#DC2626', 50, 6, 30);
+    // (the sword in shards, the hat, the vest, the star, a boot)
+    for (let i = 0; i < 26; i++) state.particles.push({ pos: { x: at.x, y: at.y }, vel: { x: (Math.random() - 0.2) * 20, y: -6 - Math.random() * 14 }, life: 50 + Math.random() * 40, color: i % 3 ? '#E5E7EB' : '#9CA3AF', size: 2 + Math.random() * 3 });
+    for (const [c, sz] of [['#D6B98C', 14], ['#6B4423', 12], ['#FACC15', 8], ['#5B3417', 10], ['#F2C9A0', 12], ['#F5F5F4', 11]] as const) state.particles.push({ pos: { x: at.x, y: at.y + 20 }, vel: { x: (Math.random() - 0.3) * 16, y: -14 - Math.random() * 10 }, life: 90, color: c, size: sz });
+    fx.spawnDamageNumber({ x: at.x - 70, y: Y - 280 }, 'SHERIFF: RETIRED', true, '#FDE047');
+    state.stageMemo.danSkewered = 'yes';
+    town.sheriff.fate = 'dead'; town.sheriff.running = false;
+  }
+  town.sword = undefined;
   state.stageMemo.jailWrecked = 'yes';
-  queueLines(state, talk, [{ who: 'meathead', text: "RIGGS, BUDDY... YOUR LIZARD'S GONNA HAVE TO FEND FOR HIMSELF." }], 50);
+  queueLines(state, talk, [...(state.stageMemo.danSkewered ? [CARNAGE_LINE[isShat(state) ? 1 : 0]] : []), { who: 'meathead', text: "RIGGS, BUDDY... YOUR LIZARD'S GONNA HAVE TO FEND FOR HIMSELF." }], 50);
 };
 
 /** The wreck's still burning (for the draw). */

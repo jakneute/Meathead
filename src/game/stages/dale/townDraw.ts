@@ -25,6 +25,7 @@ import type { PersonSpec } from '../../render/npc/person';
 import { INK, dark, lite, ink, shaded, shadedTop } from '../../render/npc/kit';
 import { bandedGradient, checker, pixelBlob, steppedGlow, tilePattern } from '../../render/pixelArt';
 import { RIGGS } from './convoyDraw';
+import { drawSwordCloseUp, drawRiggsCloseUp } from './townCutIns';
 import { drawCabTurn } from './cabTurn';
 
 type Ctx = CanvasRenderingContext2D;
@@ -464,6 +465,36 @@ const PRISONER: PersonSpec = {
   top: { style: 'tee', color: '#38BDF8', accent: '#FDE047' }, legs: { color: '#1E3A8A' },
 };
 
+/**
+ * What's left of Sheriff Dan, and the sword, in what's left of the jail: up the stub of its wall in sprays and runs,
+ * a hand print sliding down one, shards of the blade stuck in the stone, his hat, and his badge lying in it.
+ */
+const drawDanInTheWreck = (ctx: Ctx, x1: number, x2: number) => {
+  // (the left one's under the cab: the right one has it)
+  for (const [sx, sw, sh] of [[x2 - 50, 50, 130]] as const) {
+    for (let k = 0; k < 9; k++) {
+      const bx = sx + 4 + hash(sx + k * 7) * (sw - 8), by = Y - sh + 8 + hash(sx + k * 3) * (sh - 30);
+      pixelBlob(ctx, bx, by, 3 + hash(k + sx) * 6, 2 + hash(k * 2 + sx) * 4, k % 3 ? '#7F1D1D' : '#991B1B');
+      ctx.fillStyle = '#7F1D1D'; ctx.fillRect(Math.round(bx), Math.round(by), 2, Math.round(Y - by - 4) * (0.3 + hash(k + 9) * 0.5));
+    }
+    ctx.fillStyle = '#B91C1C'; for (let k = 0; k < 14; k++) ctx.fillRect(Math.round(sx + hash(sx * k) * sw), Math.round(Y - sh + hash(sx + k * 13) * sh * 0.8), 2, 2);
+  }
+  // (a hand, slid down the right one)
+  ctx.fillStyle = '#7F1D1D'; ctx.fillRect(x2 - 34, Y - 92, 8, 9); for (let k = 0; k < 4; k++) ctx.fillRect(x2 - 34 + k * 2, Y - 98, 1, 6); ctx.fillRect(x2 - 32, Y - 83, 4, 22);
+  // (shards of the blade, stuck in the stone)
+  for (const [sx, sy, a] of [[x2 - 44, Y - 70, 0.5], [x2 - 20, Y - 100, -0.7], [x2 - 40, Y - 40, 2.6], [x2 - 12, Y - 58, 1.9]] as const) {
+    ctx.save(); ctx.translate(sx, sy); ctx.rotate(a); ink(ctx, () => { ctx.moveTo(0, 0); ctx.lineTo(9, -1); ctx.lineTo(7, 2); ctx.closePath(); }, '#D4D4D8', 0.6); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(1, -1, 4, 1); ctx.restore();
+  }
+  // His hat, and his badge, thrown out in the gore at the foot of the right one
+  pixelBlob(ctx, x2 + 24, Y - 2, 30, 4, '#7F1D1D'); pixelBlob(ctx, x2 + 18, Y - 2, 18, 2.5, '#991B1B');
+  ctx.save(); ctx.translate(x2 + 40, Y - 4); ctx.rotate(-0.3);
+  ink(ctx, () => ctx.ellipse(0, 0, 13, 3, 0, 0, Math.PI * 2), '#D6B98C', 1); ink(ctx, () => ctx.roundRect(-6, -8, 12, 7, [4, 4, 0, 0]), '#D6B98C', 1);
+  ctx.fillStyle = '#7F1D1D'; ctx.fillRect(-4, -6, 6, 3);
+  ctx.restore();
+  ink(ctx, () => { for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + (k * Math.PI) / 5, r = k % 2 ? 2 : 4.5; ctx.lineTo(x2 + 14 + Math.cos(a) * r, Y - 4 + Math.sin(a) * r * 0.7); } ctx.closePath(); }, '#FACC15', 0.6);
+  ctx.fillStyle = '#FEF9C3'; ctx.fillRect(x2 + 12, Y - 6, 1, 1);
+};
+
 /** The fake jail: stone, bars, JAIL; the guy locked in it, the "sheriff" out front. Or what's left. */
 const drawJail = (ctx: Ctx, state: GameState, town: Town) => {
   const j = COURSE.town.jail;
@@ -485,6 +516,7 @@ const drawJail = (ctx: Ctx, state: GameState, town: Town) => {
     for (let k = 0; k < 22; k++) { const sx = j.x1 + 20 + hash(k + 400) * 300, sy = Y - 20 - hash(k + 401) * 120, r = 3 + hash(k + 402) * 9; ctx.fillStyle = k % 3 ? 'rgba(153, 27, 27, 0.85)' : 'rgba(220, 38, 38, 0.8)'; ctx.beginPath(); ctx.ellipse(sx, sy, r, r * 0.7, hash(k) * 3, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(sx - 1, sy, 2, r * 2.5); }
     ink(ctx, () => { ctx.ellipse(j.x1 + 250, Y - 6, 12, 3, 0, 0, Math.PI * 2); }, '#1C1917', 1); ink(ctx, () => ctx.roundRect(j.x1 + 244, Y - 13, 12, 7, [3, 3, 0, 0]), '#1C1917', 1); ctx.fillStyle = '#44403C'; ctx.fillRect(j.x1 + 246, Y - 12, 3, 4); // the souvenir hat
     drawFire(ctx, j.x1 + 90, Y - 18, 160, 62, f, { seed: 31 }); drawFire(ctx, j.x1 + 232, Y - 18, 136, 50, f, { seed: 47 });
+    if (state.stageMemo.danSkewered) drawDanInTheWreck(ctx, j.x1, j.x2);
     if (f % 4 === 0) state.particles.push({ pos: { x: j.x1 + 60 + Math.random() * 200, y: Y - 80 }, vel: { x: (Math.random() - 0.5), y: -1.5 }, life: 40, color: '#44403C', size: 8 + Math.random() * 8 });
     return;
   }
@@ -654,9 +686,12 @@ export const drawTownMid = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
     ctx.save(); ctx.translate(e.pos.x + e.width / 2, Y); ctx.scale(e.facing ?? 1, 1); drawDaleKind(ctx, e, f + (e.homeX ?? 0), state); ctx.restore();
   }
   if (town.arrive) drawArrival(ctx, state, town);
-  // The "sheriff", till he's off
+  // The "sheriff", till he's off (or on the ninja's sword, up the jail's wall); the sword
   const s = town.sheriff;
-  if (visible(state, s.x - 40, s.x + 40) && s.x < COURSE.town.x2 - 200) drawSheriff(ctx, s.x, f, s.running);
+  if (s.fate === 'skewered' || s.fate === 'pinned') drawSkewered(ctx, town, f);
+  else if (s.fate !== 'dead' && visible(state, s.x - 40, s.x + 40) && s.x < COURSE.town.x2 - 200) drawSheriff(ctx, s.x, f, s.running);
+  const sw = town.sword;
+  if (sw && (sw.state === 'flying' || sw.state === 'homing')) drawKatana(ctx, sw.x, sw.y, sw.rot, 36);
 };
 
 /** Meathead coming in on top of the cab (hanging on for dear life), flung off it, face down on the street. */
@@ -992,10 +1027,10 @@ const NINJA_PIECES: NinjaPiece[] = [
   { dx: 104, rot: 0.1, draw: c => { ninjaPart(c, () => c.rect(-13, -6, 26, 6), '#1F2937', -13, -6, 26, 6); ink(c, () => c.rect(12, -7, 6, 7), '#0B0F19', 0.8); stump(c, -13, -6, 6); treadOver(c, -10, -6, 20); } },
   // The other arm, back the other way
   { dx: -72, rot: -0.3, draw: c => { ninjaPart(c, () => c.rect(-9, -5, 18, 5), '#1F2937', -9, -5, 18, 5); ink(c, () => c.rect(-14, -6, 5, 6), '#E0AC69', 0.8); stump(c, 9, -5, 5); } },
-  // The sword, snapped: the hilt (guard, wrapped grip, pommel, a stub of blade)...
-  { dx: 136, rot: -0.12, draw: c => { ink(c, () => c.rect(-12, -4, 14, 4), '#7F1D1D', 0.8); c.fillStyle = '#B91C1C'; for (let g = -10; g < 2; g += 4) c.fillRect(g, -4, 1, 4); ink(c, () => c.rect(-15, -4, 3, 4), '#A8A29E', 0.8); ink(c, () => c.rect(2, -7, 3, 9), '#78716C', 0.8); ink(c, () => { c.moveTo(5, -3); c.lineTo(13, -3); c.lineTo(11, -1); c.lineTo(5, -1); c.closePath(); }, '#E5E7EB', 0.6); } },
-  // ...and the blade, bent, its broken end jagged
-  { dx: 176, rot: 0.08, draw: c => { ink(c, () => { c.moveTo(-14, -3); c.lineTo(-11, -4); c.lineTo(-12, -2); c.lineTo(-9, -3); c.lineTo(10, -3); c.quadraticCurveTo(15, -3, 17, -6); c.lineTo(17, -4); c.quadraticCurveTo(15, -1, 10, -1); c.lineTo(-14, -1); c.closePath(); }, '#E5E7EB', 0.7); c.fillStyle = '#FFFFFF'; c.fillRect(-8, -3, 14, 1); c.fillStyle = '#9CA3AF'; c.fillRect(-8, -2, 14, 1); } },
+  // The scabbard (the sword's gone, whole, off up the street): black lacquer, split open, splinters, its cord...
+  { dx: 136, rot: -0.12, draw: c => { ink(c, () => c.rect(-16, -4, 26, 4), '#1C1917', 0.8); c.fillStyle = '#44403C'; c.fillRect(-15, -4, 24, 1); c.fillStyle = '#F5F5F4'; for (let k = 0; k < 3; k++) c.fillRect(10 + k * 2, -4 + k, 2, 1); c.fillStyle = '#7C3AED'; c.fillRect(-10, -1, 3, 2); c.fillRect(-7, 0, 6, 1); c.fillStyle = '#A78BFA'; c.fillRect(-10, -1, 1, 1); } },
+  // ...and the rest of it, the end cap still on, splintered where it split
+  { dx: 176, rot: 0.08, draw: c => { ink(c, () => c.rect(-12, -4, 24, 4), '#1C1917', 0.8); c.fillStyle = '#44403C'; c.fillRect(-11, -4, 22, 1); ink(c, () => c.rect(11, -4, 3, 4), '#A8A29E', 0.6); c.fillStyle = '#E7E5E4'; for (let k = 0; k < 3; k++) c.fillRect(-14 - k * 2, -4 + k, 2, 1); } },
 ];
 /** Where a piece is after `level` axles: level 0, still in him; then further up the street with each one. */
 const pieceAt = (pc: NinjaPiece, level: number) => level <= 0 ? pc.dx * 0.25 : pc.dx * (1 + 0.22 * (level - 1)) + 16 * (level - 1);
@@ -1118,6 +1153,66 @@ const keys = (ctx: Ctx, hx: number, hy: number, f: number) => {
   for (const k of [-1, 1]) { ink(ctx, () => ctx.roundRect(hx + k * 2 + sw - 0.8, hy + 4, 1.8, 6, 0.5), '#CA8A04', 0.5); ink(ctx, () => ctx.rect(hx + k * 2 + sw + 0.8, hy + 8, 1.6, 1), '#CA8A04', 0.4); }
 };
 
+/**
+ * The ninja's sword, pommel to point along +x, turned `rot`, the point `at` along it (from the pommel) put at (x, y).
+ * `into`: from this far along, it's in the wall (not drawn), and the stone's cracked round it.
+ */
+const drawKatana = (ctx: Ctx, x: number, y: number, rot: number, at: number, into = 99) => {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.translate(-at, 0);
+  // (the blade: its back dark, the flat, the edge bright, a curve to it, his blood up it; the point)
+  const end = Math.min(72, into);
+  ink(ctx, () => { ctx.moveTo(26, -2); ctx.lineTo(Math.min(end, 66), -2.5); if (end >= 72) { ctx.lineTo(72, -1); } ctx.lineTo(Math.min(end, 66), 1.5); ctx.lineTo(26, 1.5); ctx.closePath(); }, '#D4D4D8', 0.8);
+  ctx.fillStyle = '#71717A'; ctx.fillRect(26, -2, Math.min(end, 66) - 26, 1);
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(28, 0, Math.min(end, 64) - 28, 1);
+  ctx.fillStyle = '#B91C1C'; for (let k = 28; k < Math.min(end, 52); k += 5) ctx.fillRect(k, -1 - (k % 2), 3, 2);
+  // (the collar, the guard, the wrapped grip, the pommel)
+  ink(ctx, () => ctx.rect(23, -2.5, 3, 5), '#CA8A04', 0.6);
+  ink(ctx, () => ctx.ellipse(21.5, 0, 1.6, 5.5, 0, 0, Math.PI * 2), '#292524', 0.6);
+  ink(ctx, () => ctx.rect(3, -2, 17, 4), '#7F1D1D', 0.6);
+  ctx.fillStyle = '#E7E5E4'; for (let k = 5; k < 19; k += 4) ctx.fillRect(k, -1, 1, 1);
+  ctx.fillStyle = '#B91C1C'; for (let k = 4; k < 19; k += 4) ctx.fillRect(k, -2, 2, 1);
+  ink(ctx, () => ctx.rect(0, -2.5, 3, 5), '#1C1917', 0.6);
+  ctx.restore();
+};
+
+/** Dan on the sword: carried off his feet by it, then up the wall on it, limp, his blood down the stone under him. */
+const drawSkewered = (ctx: Ctx, town: Town, f: number) => {
+  const s = town.sheriff, sw = town.sword;
+  if (s.hx === undefined || s.hy === undefined || !sw) return;
+  const pinned = s.fate === 'pinned', t = s.pinT ?? 0;
+  if (pinned) {
+    // His blood down the wall: a splash round where it went in, runs coming down off him, a pool at the bottom
+    pixelBlob(ctx, s.hx + 6, s.hy - 2, 12, 9, '#7F1D1D');
+    pixelBlob(ctx, s.hx + 10, s.hy - 6, 6, 4, '#991B1B');
+    const run = Math.min(Y - s.hy - 2, 20 + t * 0.7);
+    for (const [dx, k, w] of [[-4, 0.75, 3], [2, 1, 4], [7, 0.85, 2], [-9, 0.5, 2], [12, 0.6, 2]] as const) {
+      const l = run * k;
+      ctx.fillStyle = '#7F1D1D'; ctx.fillRect(Math.round(s.hx + dx), Math.round(s.hy + 4), w, Math.round(l));
+      ctx.fillStyle = '#B91C1C'; ctx.fillRect(Math.round(s.hx + dx), Math.round(s.hy + 4), 1, Math.round(l));
+      pixelBlob(ctx, s.hx + dx + w / 2, s.hy + 4 + l, w * 0.8 + 1, 2.5, '#991B1B');
+    }
+    if (run >= Y - s.hy - 2) pixelBlob(ctx, s.hx + 2, Y - 2, Math.min(40, 8 + (t - (Y - s.hy - 22) / 0.7) * 0.25), 3, '#7F1D1D');
+    // (the stone cracked round the point)
+    const tx = s.hx + Math.cos(sw.rot) * 24, ty = s.hy + Math.sin(sw.rot) * 24;
+    ctx.strokeStyle = '#292524'; ctx.lineWidth = 1; ctx.beginPath();
+    for (const a of [0.3, 1.5, 2.6, 3.9, 5.1]) { ctx.moveTo(tx, ty); ctx.lineTo(tx + Math.cos(a) * 9, ty + Math.sin(a) * 9); ctx.lineTo(tx + Math.cos(a + 0.3) * 15, ty + Math.sin(a + 0.3) * 15); }
+    ctx.stroke();
+    ctx.fillStyle = '#1C1917'; ctx.fillRect(Math.round(tx) - 2, Math.round(ty) - 2, 4, 4);
+  }
+  // Him, hanging off it by the head: limp (swinging, less and less), arms down, mouth open, the keys still on him
+  const sway = pinned ? Math.sin(t * 0.09) * 0.07 * Math.exp(-t / 90) : -0.3;
+  ctx.save(); ctx.translate(s.hx, s.hy); ctx.rotate(sway);
+  drawPerson(ctx, 0, 62, SHERIFF, { arms: pinned ? 'down' : 'up', mouth: 'open', f: 0, prop: (c, hx, hy) => keys(c, hx, hy + 2, f) });
+  // (the blood down his face, his eyes X'd)
+  ctx.fillStyle = '#B91C1C'; ctx.fillRect(1, -4, 2, 12); ctx.fillRect(-4, -2, 1, 9);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.beginPath();
+  for (const ex of [1, 5]) { ctx.moveTo(ex - 1.5, -3.5); ctx.lineTo(ex + 1.5, -0.5); ctx.moveTo(ex + 1.5, -3.5); ctx.lineTo(ex - 1.5, -0.5); }
+  ctx.stroke();
+  ctx.restore();
+  // The sword through his head: the grip out the back of it, the point out the front (and into the wall)
+  drawKatana(ctx, s.hx, s.hy, sw.rot, 48, pinned ? 58 : 99);
+};
+
 const drawSheriff = (ctx: Ctx, x: number, f: number, running: boolean) => {
   drawPerson(ctx, x, Y - (running ? Math.abs(Math.sin(f * 0.5)) * 2 : 0), SHERIFF,
     running
@@ -1210,6 +1305,9 @@ export const drawTownFront = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
 export const drawTownHud = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   // The jail scene can be skipped
   const tw = rt.town;
+  // The close-ups, over the lot
+  if (tw.cutIn?.shot === 'sword') drawSwordCloseUp(ctx, tw.cutIn.t, state.frame);
+  if (tw.cutIn?.shot === 'riggs') drawRiggsCloseUp(ctx, tw.cutIn.t, state.frame);
   if (tw.phase === 'jail' && tw.crashedAt < 0 && tw.t > JAIL_SKIP_AFTER) drawSkipPrompt(ctx, CANVAS_WIDTH);
   const inc = incoming(state, rt.town);
   if (!inc) return;
