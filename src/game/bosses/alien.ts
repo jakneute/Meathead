@@ -26,7 +26,7 @@ import { stickNeedle, BOSS_NEEDLE } from '../combat/needles';
 import { startEnemyDeath } from '../enemies/deaths';
 import { getFinale, alienPace, FinaleRuntime } from '../stages/finale/state';
 import { ROOM_L, ROOM_R, ROOM_TOP, ROOM_MID, FLOOR } from '../stages/finale/geometry';
-import { oiledIntoFire } from '../combat/weapons';
+import { oiledIntoFire, detonateNuke } from '../combat/weapons';
 import { spillOil } from './oscar';
 import { alienMuzzle as figureMuzzle, ALIEN } from '../scenes/alienLook';
 import { hitBoss } from './registry';
@@ -131,6 +131,7 @@ const update = (ctx: FrameContext, boss: Enemy) => {
   rt.modeT++;
   for (const k of ['slowT', 'stunT', 'pushT', 'flash'] as const) if (rt[k] > 0) rt[k]--;
   rt.reel *= 0.9;
+  flyChunks(ctx, rt);
   // (no breather, ever: the usual flicker after a hit's never wanted)
   boss.hitCooldown = 0;
   // Needles work their way out of him (a couple of seconds each), and drop out
@@ -376,6 +377,51 @@ const plead = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
   }
 };
 
+/**
+ * A pitched boulder breaking on him: chunks splinter off it, each one homing in on a Secret Service man on screen (up
+ * to eight), and whoever one finds, it kills.
+ */
+const CHUNKS_MAX = 8;
+/** How long he burns (still oiled) after a grease fire: much longer than an ordinary lighting. */
+const GREASE_FIRE_FRAMES = 600;
+const splinter = (ctx: FrameContext, rt: FinaleRuntime, x: number, y: number) => {
+  const { state } = ctx;
+  const view = state.view ?? { x: state.camera.x, y: state.camera.y, w: 800, h: 600 };
+  const targets = state.enemies
+    .filter(e => e.type !== 'boss' && e.health > 0 && !e.isBlownAway && e.pos.x + e.width > view.x && e.pos.x < view.x + view.w)
+    .sort((a, b) => Math.hypot(a.pos.x - x, a.pos.y - y) - Math.hypot(b.pos.x - x, b.pos.y - y))
+    .slice(0, CHUNKS_MAX);
+  const list = (rt.chunks ??= []);
+  targets.forEach((e, i) => {
+    const a = -Math.PI / 2 + (i - (targets.length - 1) / 2) * 0.5;
+    list.push({ id: e.id, x, y, vx: Math.cos(a) * 7, vy: Math.sin(a) * 7, t: 0 });
+  });
+  for (let i = 0; i < 14; i++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 9, y: -1 - Math.random() * 6 }, life: 24, color: i % 2 ? '#A8A29E' : '#78716C', size: 3 + Math.random() * 4, chunk: true, grav: 0.4 });
+};
+const flyChunks = (ctx: FrameContext, rt: FinaleRuntime) => {
+  const { state, fx } = ctx;
+  if (!rt.chunks?.length) return;
+  rt.chunks = rt.chunks.filter(c => {
+    const e = state.enemies.find(q => q.id === c.id);
+    c.t++;
+    if (!e || e.health <= 0 || e.isBlownAway || c.t > 90) return false;
+    // (out, then curving round onto him, faster and faster)
+    const tx = e.pos.x + e.width / 2, ty = e.pos.y + e.height / 2;
+    const dx = tx - c.x, dy = ty - c.y, d = Math.hypot(dx, dy) || 1;
+    const sp = Math.min(22, 6 + c.t * 0.9), turn = Math.min(1, 0.12 + c.t * 0.02);
+    c.vx += (dx / d * sp - c.vx) * turn; c.vy += (dy / d * sp - c.vy) * turn;
+    c.x += c.vx; c.y += c.vy;
+    state.particles.push({ pos: { x: c.x - 4, y: c.y - 4 }, vel: { x: 0, y: 0 }, life: 2, color: '#8A847F', size: 8, chunk: true });
+    if (c.t % 2 === 0) state.particles.push({ pos: { x: c.x, y: c.y }, vel: { x: -c.vx * 0.1, y: -c.vy * 0.1 }, life: 10, color: 'rgba(168, 162, 158, 0.7)', size: 3 });
+    if (d > 16) return true;
+    // Found him
+    fx.blowAwayEnemy(e, { x: Math.sign(c.vx || 1) * 16, y: -10 }, 'boulder_kill', Math.sign(c.vx) || 1, 1.4);
+    fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 20 }, 'SHRAPNEL!', true, '#D6D3D1');
+    playSound('crunch', 0.6);
+    return false;
+  });
+};
+
 const ignite = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
   boss.isOnFire = true;
   rt.burnT = BURN_FRAMES;
@@ -461,7 +507,7 @@ const onWeaponHit = (ctx: FrameContext, boss: Enemy, weapon: WeaponType, p?: Par
     case 'BOULDER':
       // (a pitched one: a fastball to the face)
       if (rt.stunT < 20) { rt.stunT = 55; callout(ctx, boss, p?.pitched ? pickRandom(PITCH_CALLOUTS) : 'BONK!', '#FDE68A'); playSound('clang', 0.7, -6); }
-      if (p?.pitched) { rt.flash = 10; rt.reel = 1; boss.pos.x += (Math.sign(p.vel?.x ?? 0) || 1) * 12; }
+      if (p?.pitched) { rt.flash = 10; rt.reel = 1; boss.pos.x += (Math.sign(p.vel?.x ?? 0) || 1) * 12; splinter(ctx, rt, hx, hy); }
       dropShot(rt);
       sayOnce(ctx, rt, 'stunned', ALIEN_LINES.STUNNED);
       break;
@@ -500,7 +546,15 @@ const onFlamed = (ctx: FrameContext, boss: Enemy, scale = 1) => {
     playSound('dry_flame', 1, -3);
     sayOnce(ctx, rt, 'blocked', ALIEN_LINES.BLOCKED);
   }
-  if (boss.isOiled && !boss.isOnFire) ignite(ctx, boss, rt);
+  // Greased and then flamed: he goes up like the whole barrel, and the room with him (every agent in it; him, a
+  // nuke's worth)
+  if (boss.isOiled && !boss.isOnFire) {
+    ignite(ctx, boss, rt);
+    // (and he stays greased and burning a good while after: the nuke itself barely scratches him)
+    rt.burnT = GREASE_FIRE_FRAMES;
+    detonateNuke(ctx, { x: cx(boss), y: boss.pos.y + boss.height / 2 });
+    callout(ctx, boss, 'GREASE FIRE!', '#FDE047');
+  }
   const igniter = scale < 1;
   if (igniter && rt.pleadAt !== undefined) return;
   rt.flameAcc += FLAME_PER_FRAME * (igniter ? IGNITER_SCALE : 1);

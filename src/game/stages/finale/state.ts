@@ -65,6 +65,8 @@ export interface FinaleRuntime {
   shed: { x: number; y: number; vy: number; kind: number; flip: number }[];
   /** Said already (once each): the line for each thing done to him, by what it was. */
   said: Record<string, boolean>;
+  /** Chunks off a pitched boulder that's hit him, each homing in on an agent (who it's for, where it is). */
+  chunks?: { id: string; x: number; y: number; vx: number; vy: number; t: number }[];
   /** Meathead's nudges to use his weapons (hits since the last, when, how many said). */
   nudge?: { gun: number; melee: number; at: number; said: number };
 
