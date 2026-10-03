@@ -70,12 +70,12 @@ game/core/deathCause.ts:53 name: undefined
 game/core/deathCause.ts:55 name: PLUCK_DEATH_LINES
 game/core/effects.ts:239 call: getHurtLines(hurtSource)
 game/core/effects.ts:239 call: killLine(category, victim)
-game/core/update.ts:214 name: undefined
-game/core/update.ts:599 name: undefined
-game/core/update.ts:599 call: pluckDeathMessage(state)
-game/core/update.ts:599 call: layout?.deathMessage?.(ctx)
-game/core/update.ts:599 call: deathByCause(state)
-game/core/update.ts:599 call: deathFallback(state, ctx.stageId, fell)
+game/core/update.ts:216 name: undefined
+game/core/update.ts:601 name: undefined
+game/core/update.ts:601 call: pluckDeathMessage(state)
+game/core/update.ts:601 call: layout?.deathMessage?.(ctx)
+game/core/update.ts:601 call: deathByCause(state)
+game/core/update.ts:601 call: deathFallback(state, ctx.stageId, fell)
 game/player/player.ts:81 call: message()
 App.tsx:238 voice: getBossVoice(selectedStage)
 App.tsx:461 name: undefined
