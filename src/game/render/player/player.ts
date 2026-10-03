@@ -110,7 +110,11 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx = world;
     // (sooted: black all over, fading back, just the whites of his eyes and a wisp of smoke off him)
     const soot = p.sootTimer && p.sootTimer > 0 ? Math.min(1, p.sootTimer / SOOT_FADE) : 0;
+    // (in the water, up against a wall or a pipe: whatever he's holding out stops at it, it doesn't poke through)
+    const walls = p.swimming ? state.blocks.filter(b => b.type !== 'pit' && !b.oneWay && b.y < anchorY - 4 && b.y + b.h > p.pos.y - 60 && b.x < anchorX + 100 && b.x + b.w > anchorX - 100) : [];
+    if (walls.length) { world.save(); world.beginPath(); world.rect(anchorX - 220, anchorY - 320, 440, 420); for (const b of walls) world.rect(b.x, b.y, b.w, b.h); world.clip('evenodd'); }
     if (sprite) endSprite(world, anchorX, anchorY, p.suit ? SUIT_TINT : soot > 0 ? `rgba(24, 20, 18, ${0.9 * soot})` : undefined);
+    if (walls.length) world.restore();
     const eye = eyesAt(anchorX, anchorY);
     if (soot > 0 && !p.suit) {
       world.globalAlpha = soot;
