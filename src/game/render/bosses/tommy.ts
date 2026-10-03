@@ -31,8 +31,9 @@ export const drawTommy = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
     return;
   }
 
-  // Sludge geyser under him while he's up out of it
-  if (isPuking || e.bossState === 'emerge_shatter' || isExhausted) {
+  // Sludge geyser under him while he's up out of it (not dead: lying there, it would go over with him, a wedge of green
+  // stuck out the side of him)
+  if ((isPuking || e.bossState === 'emerge_shatter' || isExhausted) && e.health > 0) {
     ctx.save();
     ctx.fillStyle = '#27AE60';
     ctx.beginPath();
