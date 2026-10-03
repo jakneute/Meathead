@@ -10,7 +10,8 @@ import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
 import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, WALK_ON_STAGE } from '../../../constants';
+import { drawCloudExit } from '../../render/skyClouds';
 import { say, isTalking, MEATHEAD_VOICE } from '../../platform/speech';
 import { isShat } from '../../player/gut';
 import { drawRoomBack, drawWalls } from '../finale/room';
@@ -170,6 +171,9 @@ export const walkOnLayout: StageLayout = {
   drawFront: (ctx, state) => drawWalls(ctx, { doorOpen: [Math.max(0, 1 - (getWalkOn(state)?.t ?? 99) / 50), 0], doorsShut: false, windowBroken: [false, false], wrecked: {} }, state.frame),
   drawHud: (ctx, state) => {
     const rt = getWalkOn(state);
+    // Out of the deploy's dive: the Washington clouds it ended in thinning away off the room as he comes in the door
+    // (slowing as they go: he's not falling into this one)
+    drawCloudExit(ctx, CANVAS_WIDTH, CANVAS_HEIGHT, WALK_ON_STAGE, rt?.t ?? 0, true);
     if (rt && rt.fade > 0) { ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(1, rt.fade / FADE).toFixed(3)})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
   },
   footstep: (_state, floor) => (floor.type === 'platform' ? 'metal' : 'dirt'),

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import USAMap from './USAMap';
 import { BOSS_LOCATIONS, StageInfo } from '../content/roster';
 import { WHITE_HOUSE_ID, WHITE_HOUSE_LOCATION } from '../content/whiteHouse';
-import { drawSkyClouds, DEPLOY_CLOUD_SCROLL_END } from '../game/render/skyClouds';
+import { drawSkyClouds, prepareSkyClouds, DEPLOY_CLOUD_SCROLL_END } from '../game/render/skyClouds';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/platform/gamepad';
 import { SKIP_AFTER_MS } from '../game/platform/skip';
 import SkipPrompt from './SkipPrompt';
@@ -70,6 +70,8 @@ const DeployTransition: React.FC<Props> = ({ stageId, currentStages, defeatedSta
     let tex32: Uint32Array | null = null;
     let raf = 0, start = 0;
     let padStartHeld = true, skipUp = false;
+    // (the destination's clouds, painted now rather than as he hits them)
+    prepareSkyClouds(stageId);
 
     // The texture: the recon map's own SVG, rasterised big, with a target painted on the town
     const svg = mapRef.current?.querySelector('svg');
@@ -176,9 +178,9 @@ const DeployTransition: React.FC<Props> = ({ stageId, currentStages, defeatedSta
         if (loc) { octx.font = '9px "Press Start 2P"'; octx.fillStyle = '#22D3EE'; octx.fillText(loc.coordinatesText, 16, 591); }
         octx.restore();
       }
-      // Diving into the clouds (the stage comes out of them)
+      // Diving into the clouds (the stage comes out of them: the destination's own, the same both sides of the cut)
       const cover = smooth(0.8, 0.97, u);
-      drawSkyClouds(octx, 800, 600, cover, DEPLOY_CLOUD_SCROLL_END * clamp01((u - 0.72) / 0.28));
+      drawSkyClouds(octx, 800, 600, cover, DEPLOY_CLOUD_SCROLL_END * clamp01((u - 0.72) / 0.28), stageId);
       // Carry-over flash from the LET'S GO
       const flash = 1 - clamp01(u / 0.07);
       if (flash > 0) { octx.fillStyle = `rgba(255,255,255,${flash})`; octx.fillRect(0, 0, 800, 600); }

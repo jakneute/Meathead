@@ -5,9 +5,9 @@ import { INK, ink, shaded, shadedTop, dark, lite } from './npc/kit';
 import { setBossLook } from './bosses/kit';
 import { isDummy, drawDummy } from './dummies';
 import {
-  CANVAS_WIDTH, CANVAS_HEIGHT, RING_CEILING_Y, RING_FLOOR_Y, LEVEL_INTRO_STYLE, SKYFALL_CLOUD_FRAMES, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, RENDER_SCALE, PRACTICE_RANGE_STAGE, isRangeStage, GROUND_Y, FINALE_STAGE,
+  CANVAS_WIDTH, CANVAS_HEIGHT, RING_CEILING_Y, RING_FLOOR_Y, LEVEL_INTRO_STYLE, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, RENDER_SCALE, PRACTICE_RANGE_STAGE, isRangeStage, GROUND_Y, FINALE_STAGE,
 } from '../../constants';
-import { drawSkyClouds, DEPLOY_CLOUD_SCROLL_END, SKYFALL_CLOUD_SPEED } from './skyClouds';
+import { drawCloudExit } from './skyClouds';
 import { STAGE_COLORS } from '../../content/roster';
 import { GameState, BOSS_FALL, STAIN_FRAMES, SMEAR_FRAMES } from '../core/state';
 import { drawCustomBossArena } from './bosses/arenas';
@@ -201,10 +201,8 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   else if (state.deathTimer > 0 && state.deathString && state.deathFreeze === undefined && !(state.deathScene && state.deathScene.t < state.deathScene.len)) drawDeathMessage(ctx, state.deathString);
   if (state.deathTimer > 0 ? state.deathFrames > SKIP_AFTER : state.dyingSkipAt !== undefined && state.frame - state.dyingSkipAt >= 0 && state.frame - state.dyingSkipAt <= 1) drawSkipPrompt(ctx, CANVAS_WIDTH);
   // Skyfall intro: coming down out of the clouds the deploy transition dove into
-  if (status === GameStatus.LEVEL_INTRO && LEVEL_INTRO_STYLE === 'skyfall' && state.introTimer < SKYFALL_CLOUD_FRAMES) {
-    const k = state.introTimer / SKYFALL_CLOUD_FRAMES;
-    drawSkyClouds(ctx, CANVAS_WIDTH, CANVAS_HEIGHT, 1 - k * k, DEPLOY_CLOUD_SCROLL_END + state.introTimer * SKYFALL_CLOUD_SPEED);
-  }
+  // (not on a stage that starts him on his feet: those have their own way in)
+  if (status === GameStatus.LEVEL_INTRO && LEVEL_INTRO_STYLE === 'skyfall' && !layout?.startsStanding) drawCloudExit(ctx, CANVAS_WIDTH, CANVAS_HEIGHT, stageId, state.introTimer);
 };
 
 /**
