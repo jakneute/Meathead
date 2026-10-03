@@ -174,13 +174,26 @@ const drawStreetFronts = (ctx: Ctx, state: GameState, burning: boolean) => {
     const tones = ['#5B2A1E', '#4A2C24', '#3F3A3A', '#5A3B2B', '#30343F'];
     const ti = Math.floor(hash(k + 3) * tones.length), tone = tones[ti];
     // (its face: brick in its own tone, every course shadowed under, darker where it meets the next one along)
+    // (its top bitten off, jagged: the points along the break)
+    const edge = [[x, top + hash(k + 5) * 40], ...Array.from({ length: 8 }, (_, i) => { const j = i + 1; return [x + j * 32.5, top + (j % 2 ? 30 + hash(k * 3 + j) * 70 : hash(k * 5 + j) * 30)]; })];
+    const edgeY = (ex: number) => {
+      for (let j = 1; j < edge.length; j++) if (ex <= edge[j][0]) { const [ax, ay] = edge[j - 1], [bx, by] = edge[j]; return ay + (by - ay) * (ex - ax) / (bx - ax); }
+      return edge[edge.length - 1][1];
+    };
     const face = () => {
       if (!burning) { ctx.rect(x, top, 262, h); return; }
-      // Its top bitten off, jagged
-      ctx.moveTo(x, Y); ctx.lineTo(x, top + hash(k + 5) * 40);
-      for (let j = 1; j <= 8; j++) ctx.lineTo(x + j * 32.5, top + (j % 2 ? 30 + hash(k * 3 + j) * 70 : hash(k * 5 + j) * 30));
+      ctx.moveTo(x, Y); for (const [ex, ey] of edge) ctx.lineTo(ex, ey);
       ctx.lineTo(x + 262, Y); ctx.closePath();
     };
+    // At the end, half of them on fire inside: the flames come up out of the shell, behind what's left of the wall,
+    // over its broken top and through the gaps in it (their foot's down behind the wall, never hanging in the air)
+    const onFire = burning && hash(k * 3 + 1) < 0.55;
+    if (onFire) for (let i = 0; i < 3; i++) {
+      const cx = x + 50 + i * 80;
+      let lo = -Infinity, hi = Infinity;
+      for (let ex = cx - 38; ex <= cx + 38; ex += 4) { const ey = edgeY(ex); lo = Math.max(lo, ey); hi = Math.min(hi, ey); }
+      drawFire(ctx, cx, Math.round(lo) + 6, 76, Math.min(150, lo - hi + 56), f + k * 17 + i * 23, { smoke: 1, seed: Math.floor(cx) });
+    }
     ctx.save(); ctx.beginPath(); face(); ctx.clip();
     ctx.fillStyle = brickPattern(ctx, 'barry-front-' + ti, 16, 8, [tone, lite(tone, 0.05)], dark(tone, 0.35));
     ctx.fillRect(x, top - 10, 262, h + 10);
@@ -197,6 +210,8 @@ const drawStreetFronts = (ctx: Ctx, state: GameState, burning: boolean) => {
       ctx.fillStyle = '#1C1917'; for (let d = x; d < x + 262; d += 8) ctx.fillRect(d, top + 10, 4, 3);
     }
     // Windows, some lit, a few flickering, a silhouette in one now and then; stone lintels over them, sills under
+    // (burnt out, only what's left of the wall: none up in the sky where the top's come off)
+    ctx.save(); if (burning) { ctx.beginPath(); face(); ctx.clip(); }
     for (let row = 0; row < 6; row++) for (let c = 0; c < 3; c++) {
       const wx = x + 28 + c * 78, wy = top + 30 + row * 56;
       if (wy > Y - 150) continue;
@@ -226,6 +241,7 @@ const drawStreetFronts = (ctx: Ctx, state: GameState, burning: boolean) => {
         ladder(ctx, x + 30 + (row % 2) * 90, y, x + 70 + (row % 2) * 10, y + 38);
       }
     }
+    ctx.restore();
     // The shopfront at street level: a lit window, an awning, a sign
     const shop = Math.floor(hash(k + 9) * 5);
     slab(ctx, x + 20, Y - 130, 220, 130, '#0F172A', 2);
@@ -270,8 +286,7 @@ const drawStreetFronts = (ctx: Ctx, state: GameState, burning: boolean) => {
       ink(ctx, () => ctx.rect(x + 126, Y - 10, 8, 7), '#A8A29E', 0.8);
     }
     // At the end: the tops of half of them on fire, smoke going up off them, a glow in the windows
-    if (burning && hash(k * 3 + 1) < 0.55) {
-      drawFlames(ctx, x + 30, top, 200, f + k * 17);
+    if (onFire) {
       for (let i = 0; i < 4; i++) { const t = ((f * 0.8 + i * 40 + k * 11) % 160) / 160; pixelBlob(ctx, x + 130 + Math.sin(t * 5 + k) * 30, top - 40 - t * 260, 24 + t * 50, 24 + t * 50, 'rgba(28, 25, 23, 0.55)'); }
     }
     // Graffiti: a big piece across a closed gate, a smaller one along the wall under a window, tags on the doors
@@ -321,11 +336,18 @@ const drawCollapsedLot = (ctx: Ctx, x: number, f: number, k: number) => {
   checker(ctx, x, Y - 12, 262, 12, 'rgba(0, 0, 0, 0.25)');
   ctx.restore();
   ctx.beginPath(); heap(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
-  for (let j = 0; j < 12; j++) slab(ctx, Math.round(x + 30 + hash(k * 9 + j) * 200), Math.round(Y - 10 - hash(k * 11 + j) * 70), Math.round(12 + hash(j) * 14), 8, j % 3 ? '#78716C' : '#7C4A3A', 1);
+  // (each one lying on the heap where it is, its lower end down in it: the heap's 220t(1-t) high, t across it)
+  const heapH = (hx: number) => { const t = Math.min(1, Math.max(0, (hx - x) / 262)); return 220 * t * (1 - t); };
+  for (let j = 0; j < 12; j++) {
+    const sx = Math.round(x + 30 + hash(k * 9 + j) * 200), sw = Math.round(12 + hash(j) * 14);
+    const rest = Math.min(heapH(sx), heapH(sx + sw));
+    slab(ctx, sx, Math.round(Y - rest - 4 + hash(k * 11 + j) * Math.max(0, rest - 14)), sw, 8, j % 3 ? '#78716C' : '#7C4A3A', 1);
+  }
   for (let j = 0; j < 5; j++) {
-    const rx = x + 60 + j * 35;
-    ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(rx, Y - 50); ctx.lineTo(rx + 10 - j * 4, Y - 90 - j * 6); ctx.stroke();
-    ctx.strokeStyle = '#9A3412'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(rx, Y - 50); ctx.lineTo(rx + 10 - j * 4, Y - 90 - j * 6); ctx.stroke();
+    // (stuck up out of the heap where it is: its foot down in it)
+    const rx = x + 60 + j * 35, ry = Math.round(Y - heapH(rx) + 6), up = 40 + j * 6;
+    ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx + 10 - j * 4, ry - up); ctx.stroke();
+    ctx.strokeStyle = '#9A3412'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx + 10 - j * 4, ry - up); ctx.stroke();
   } // rebar
   drawFlames(ctx, x + 70, Y - 40, 120, f + k * 13);
 };
