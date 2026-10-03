@@ -636,6 +636,19 @@ export const findTaserTarget = (state: GameState): Enemy | Projectile | null => 
     if (dist < minDist) { minDist = dist; nearest = t; }
   };
 
+  // (the finale: his own men first, any of them on screen, ahead of him or not; the alien only with none of them about,
+  // since it's through them the current gets him)
+  if (state.stageId === FINALE_STAGE) {
+    let best: Enemy | null = null, bestD = Infinity;
+    for (const e of state.enemies) {
+      if (e.type === 'boss' || e.health <= 0 || e.isBlownAway) continue;
+      const tx = e.pos.x + e.width / 2, ty = e.pos.y + e.height / 2;
+      if (tx <= v.x || tx >= v.x + v.w) continue;
+      const d = Math.hypot(tx - playerMidX, ty - playerMidY);
+      if (d < bestD) { bestD = d; best = e; }
+    }
+    if (best) return best;
+  }
   state.enemies.forEach(e => { if (e.health > 0 && !e.isBlownAway) consider(e); });
   state.projectiles.forEach(p => { if (p.isMethBarrel && p.health > 0) consider(p); });
   return nearest;
