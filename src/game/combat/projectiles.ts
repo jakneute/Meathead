@@ -673,6 +673,9 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
     // (a stray shot that's flown off screen doesn't kill what it finds out there)
     if (!isOnScreen(screenRect(state), enemy) || submerged(enemy)) continue;
     if (p.isSludge && p.isLingering) continue;
+    // (the finale's ice pellets punch on through whoever they hit, freezing each once; their life's the same)
+    const icePierce = !!p.isIce && p.owner === 'player' && inFinale(ctx.stageId);
+    if (icePierce && p.hitIds?.includes(enemy.id)) continue;
 
     // Bosses are untouchable until the arena locks (boulders bounce off)
     if (enemy.type === 'boss' && !state.arenaLocked) {
@@ -687,7 +690,7 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
     // (coming down on him from above, or plunging steeply in: a boulder spiked down, say)
     const overhead = p.vel.y > 1.5 && (p.pos.y + p.height / 2 < enemy.pos.y + enemy.height * 0.45 || p.vel.y > Math.abs(p.vel.x) * 1.5);
     // (the finale's needles go straight through a ballistic shield, into the man behind it)
-    const pierces = p.isDart && inFinale(ctx.stageId);
+    const pierces = (p.isDart && inFinale(ctx.stageId)) || icePierce;
     if (enemy.enemyType === 'shield' && enemy.isShieldActive && hitsShieldSide && !overhead && !pierces) {
       if (isBullet(p)) bulletSparks(ctx, p, boundsOf(enemy));
       if (p.isSludge) {
@@ -713,6 +716,7 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
       const landedFullHit = hitBossWithProjectile(ctx, enemy, p);
       if (isBullet(p) && enemy.health > 0 && enemy.health < hpBefore && !BLOODLESS_BOSSES.has(ctx.stageId || '')) bulletBlood(ctx, p, enemy);
       if (landedFullHit && p.isBoulder) shatterBoulder(ctx, p);
+      if (icePierce) { (p.hitIds ??= []).push(enemy.id); continue; }
       return false;
     }
 
@@ -771,6 +775,7 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
       player.killSatisfactionTimer = 60;
     }
     if (p.isBoulder) shatterBoulder(ctx, p);
+    if (icePierce) { (p.hitIds ??= []).push(enemy.id); continue; }
     return false;
   }
 
