@@ -238,7 +238,7 @@ export const updatePower = (ctx: FrameContext, pw: PowerRoom, talk: Talk, contro
   if (pw.phase === 'meltdown') {
     pw.meltT++;
     // The alarms, blasts all round the room, the floor shaking; hands off once it's really going
-    if (pw.meltT % 50 === 1) playSound('alarm');
+    if (pw.meltT % 50 === 1) playSound('alarm', 0.3); // (well under the blast and everything else going on: it's the room's, not in your ear)
     // (every blast going off with a bang of its own, things coming down, glass going, the power screaming)
     if (pw.meltT % 9 === 0) playSound(pw.meltT % 27 === 0 ? 'crash' : 'boom', 0.45 + Math.random() * 0.3, Math.round(Math.random() * 8 - 4));
     if (pw.meltT % 13 === 0) playSound('taser', 0.5, Math.round(Math.random() * 10 - 2));
