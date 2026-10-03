@@ -87,6 +87,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const isAngry = !!p.angryTimer && p.angryTimer > 0 && !isHurt && !isRelieving;
   // Sat astride the jet ski: knees forward, off-hand on the handlebars (the gun hand's free)
   const isSeated = !!p.jetski && hurtT < 0;
+  // On skis: a racer's crouch going along (knees bent, leaning into it, the off arm back for balance), knees tucked up
+  // in the air, and right down in an egg tuck ducking
+  const isSki = !!p.skiing && !p.jetski && hurtT < 0 && !isCharging && !isUppercutting && !isDivekicking;
 
   // Set local coordinate frame: (0, 0) is at player feet center
   const anchorX = p.pos.x + p.width / 2;
@@ -210,6 +213,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // Sat up straight, riding the chop (leaning back into the landings)
     bodyRot = isAirborne ? -0.12 : -0.04;
     bodyY = Math.sin(animFrame * 0.18) * 1.2;
+  } else if (isSki) {
+    if (isDucking) { bodyRot = 0.34; bodyY = 0; }
+    else if (isAirborne) { bodyRot = -0.06 + airFall * 0.12; bodyY = -2; }
+    else { bodyRot = 0.16; bodyY = -4 + Math.sin(animFrame * 0.15) * 0.8; }
   } else if (isHurt) {
     bodyRot = -0.3; // Reeling back in pain/shock
     bodyY = 2;
@@ -319,7 +326,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // Walking: the upper arm swings from the shoulder against his stride (not far: it's a heavy arm), and the elbow
     // bends forward, closing as the arm comes forward and opening as it goes back, a beat behind the swing. Standing:
     // hanging, the elbow a little bent, easing with his breathing.
-    const armAngle = isSwimming ? (swimMoving ? (animFrame * 0.2) % (Math.PI * 2) : 0.9 + Math.sin(animFrame * 0.15) * 0.9)
+    const armAngle = isSki ? (isAirborne ? 2.0 + Math.sin(animFrame * 0.2) * 0.1 : 0.85 + Math.sin(animFrame * 0.12) * 0.06)
+      : isSwimming ? (swimMoving ? (animFrame * 0.2) % (Math.PI * 2) : 0.9 + Math.sin(animFrame * 0.15) * 0.9)
       : isWalking ? 0.16 - walkStride * 0.42
       // (in the air: thrown up high behind him on the way up, coming down and out behind for balance as he falls)
       : isAirborne ? 2.5 - airFall * 1.2
@@ -406,6 +414,16 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   } else if (isSeated && p.bike) {
     // On the bike: feet on the pedals, going round (how far round's how far he's gone)
     drawPedalLegs(ctx, p.pos.x / 14);
+  } else if (isSki && !isDucking) {
+    if (isAirborne) {
+      // Knees tucked up under him, skis together
+      drawJointedLeg(ctx, -4, -22, -1.0, 1.9, pantsShadow, false);
+      drawJointedLeg(ctx, 5, -22, -1.1, 2.0, pantsColor, true);
+    } else {
+      // The racer's crouch: knees bent forward over the boots, weight forward
+      drawJointedLeg(ctx, -4, -22, -0.55, 1.05, pantsShadow, false);
+      drawJointedLeg(ctx, 5, -22, -0.62, 1.1, pantsColor, true);
+    }
   } else if (isSeated) {
     // Astride the seat: thighs out forward, shins down into the footwell
     drawJointedLeg(ctx, -4, -22, -1.3, 1.2, pantsShadow, false);
