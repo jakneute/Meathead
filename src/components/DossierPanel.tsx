@@ -192,6 +192,7 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
             {section('THE SUMMONS', WHITE_HOUSE_DOSSIER.summons)}
             {section('INSTRUCTIONS', WHITE_HOUSE_DOSSIER.instructions)}
             {section('RISKS', WHITE_HOUSE_DOSSIER.risks)}
+            {section('IRREGULARITIES', WHITE_HOUSE_DOSSIER.irregularities)}
             <div className="mt-[6px] p-[4px] leading-[10px] bg-[#FEF3C7] border border-[#A16207]/50 rotate-[-0.6deg]" style={{ boxShadow: '1px 1px 0 rgba(0,0,0,0.25)' }}>
               <span className="font-bold">HANDLER'S NOTE: </span>{WHITE_HOUSE_DOSSIER.handler}
             </div>
