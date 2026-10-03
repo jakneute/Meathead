@@ -262,7 +262,8 @@ const flyOverdosedBody = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolea
   // Plowing through anyone in the way
   const box = boundsOf(e);
   for (const o of enemies) {
-    if (!alive(o) || hitIds.includes(o.id) || !rectsOverlap(box, boundsOf(o))) continue;
+    // (a test subject on hypermode: nothing touches it, a contact high included)
+    if (!alive(o) || o.hyper || hitIds.includes(o.id) || !rectsOverlap(box, boundsOf(o))) continue;
     hitIds.push(o.id);
     o.health -= OVERDOSE_HIT_DAMAGE;
     fx.spawnDamageNumber(o.pos, OVERDOSE_HIT_DAMAGE, true);
@@ -1457,7 +1458,7 @@ const flungIntoEnemies = (ctx: FrameContext, e: Enemy, enemies: Enemy[]) => {
   const { fx } = ctx;
   const onScreenOnly = !!getStageLayout(ctx.stageId)?.collateralOnScreenOnly;
   for (const other of enemies) {
-    if (other === e || other.type === 'boss' || other.isBlownAway || other.health <= 0 || other.innocent) continue;
+    if (other === e || other.type === 'boss' || other.isBlownAway || other.health <= 0 || other.innocent || other.hyper) continue;
     if (onScreenOnly && !isOnScreen(ctx.state.camera, other, 0)) continue;
     if (e.flungHits?.includes(other.id) || !rectsOverlap(boundsOf(e), boundsOf(other))) continue;
     (e.flungHits ??= []).push(other.id);
@@ -1496,7 +1497,7 @@ const flungIntoEnemies = (ctx: FrameContext, e: Enemy, enemies: Enemy[]) => {
 const resolveShoveCollision = (ctx: FrameContext, e: Enemy, enemies: Enemy[]) => {
   const { fx } = ctx;
   for (const other of enemies) {
-    if (other === e || other.type === 'boss' || other.isBlownAway || other.health <= 0) continue;
+    if (other === e || other.type === 'boss' || other.isBlownAway || other.health <= 0 || other.hyper || e.hyper) continue;
     if (other.enemyCollisionCooldown && other.enemyCollisionCooldown > 0) continue;
     if (!rectsOverlap(boundsOf(e), boundsOf(other))) continue;
 
