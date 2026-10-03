@@ -24,7 +24,7 @@ import { playSound } from '../../platform/audio';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 import { GROUND_Y, CANVAS_WIDTH, KICK_POSE_FRAMES } from '../../../constants';
 import { COURSE, CP } from './course';
-import { Talk, queueLines, quiet, hush } from './script';
+import { Talk, queueLines, quiet, hush, ScriptLine } from './script';
 import { mountMoto } from './moto';
 import { isShat } from '../../player/gut';
 
@@ -57,6 +57,10 @@ export interface Bunker {
   stepAt: number;
   /** When he last said something about trying the flamethrower too early. */
   earlyAt: number;
+  /** When he last shoulder-charged the locked far door (they let him hear about it), and how many times he has. */
+  doorAt?: number;
+  doorN?: number;
+  rushAt?: number;
   /** He waited the break out: the room's still standing, and everybody in it went back to work. */
   peaceful: boolean;
   /** ...and then he blew it up anyway, after they'd gone back to work. Nobody even looked. */
@@ -142,6 +146,21 @@ const NAGS = [
   'WHO ARE YOU? WHO RAISED YOU?',
 ];
 const NAG_FROM = 600, NAG_EVERY = 1200;
+
+/** Him shoulder-charging the far door while it's locked: the union's got opinions (in turn, round and round; and a
+ * different one when he's shit himself). */
+const DOOR_MOCKS: ScriptLine[] = [
+  { who: 'foreman', text: "UNION DOOR, PAL. IT DOESN'T BUDGE FOR SCABS." },
+  { who: 'worker', text: "BREAK'S NOT OVER JUST 'CAUSE YOU HIT THE DOOR." },
+  { who: 'foreman', text: "YOU DENT THAT, IT'S A WORK ORDER. SIX TO EIGHT WEEKS." },
+  { who: 'worker', text: "DO IT AGAIN. I'VE GOT NOTHING BUT TIME. FIFTEEN MINUTES OF IT." },
+  { who: 'foreman', text: "THAT DOOR'S BEEN LOCKED SINCE 1974. YOU'RE NOT THE FIRST." },
+];
+const DOOR_MOCKS_SHAT: ScriptLine[] = [
+  { who: 'foreman', text: "PAL, YOU SMELL LIKE THAT AND YOU'RE HEADBUTTING DOORS NOW?" },
+  { who: 'worker', text: "THE DOOR DOESN'T WANT YOU EITHER." },
+  { who: 'foreman', text: "NOW THE DOOR'S GOT IT ON IT. THAT'S A GRIEVANCE." },
+];
 
 export const updateBunker = (ctx: FrameContext, b: Bunker, talk: Talk, controls: Controls, onGone: () => void): Controls => {
   const { state } = ctx;
@@ -257,6 +276,15 @@ const onBreak = (ctx: FrameContext, b: Bunker, talk: Talk, controls: Controls, i
     b.earlyAt = state.frame;
     hush(state, talk);
     queueLines(state, talk, [{ who: 'meathead', text: b.popped ? 'GIVE IT A SECOND. LET THE GAS BUILD UP.' : 'NOTHING TO LIGHT YET. THAT GAS LINE ON THE WALL THOUGH...' }]);
+  }
+  // Charged the locked far door: it doesn't give, and they let him know
+  const p = state.player;
+  // (the charge stops dead against it: so it's charging at it, and up against it a moment later)
+  if (inside && p.isCharging && !p.isSliding && p.facing === 1 && p.pos.x + p.width >= B.x2 - 90) b.rushAt = state.frame;
+  if (p.pos.x + p.width >= B.x2 - 24 && state.frame - (b.rushAt ?? -999) < 12 && state.frame - (b.doorAt ?? -999) > 240) {
+    b.doorAt = state.frame; b.ambientAt = state.frame;
+    const mocks = isShat(state) ? DOOR_MOCKS_SHAT : DOOR_MOCKS;
+    queueLines(state, talk, [mocks[(b.doorN = (b.doorN ?? 0) + 1) % mocks.length]]);
   }
   // He's shit himself, right there in their break room: they've got something to say about that (and stay put: it's their break)
   if (isShat(state) && !b.hinted.has('shat')) {

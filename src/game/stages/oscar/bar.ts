@@ -20,7 +20,7 @@ import { playSound } from '../../platform/audio';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 import { GROUND_Y, CANVAS_WIDTH, MAX_AMMO } from '../../../constants';
 import { COURSE, CP } from './course';
-import { Talk, queueLines, quiet, hush } from './script';
+import { Talk, queueLines, quiet, hush, ScriptLine } from './script';
 import { isShat } from '../../player/gut';
 import { Swirly, startSwirly, updateSwirly } from './swirly';
 
@@ -49,6 +49,10 @@ export interface Bar {
   flying: Flying[];
   /** When he last said something about trying the flamethrower too early. */
   earlyAt: number;
+  /** When he last shoulder-charged the locked far door (they let him hear about it), and how many times he has. */
+  doorAt?: number;
+  doorN?: number;
+  rushAt?: number;
   /** He came in having shit himself, or did it in here: they take out the trash (see swirly.ts). */
   swirly?: Swirly;
 }
@@ -82,6 +86,16 @@ export const createBar = (state: GameState, startedAt: number): Bar => {
 
 /** Where each gas line can be punctured. */
 export const barVeinBox = (i: number) => { const v = COURSE.bar.veins[i]; return { x: v.x - 16, y: v.y - 9, w: 32, h: 18 }; };
+
+/** Him shoulder-charging the back door while it's locked: it doesn't give, and the bar enjoys it (in turn, round and round). */
+const DOOR_MOCKS: ScriptLine[] = [
+  { who: 'biker', text: 'HA! THE DOOR WINS, HOSS.' },
+  { who: 'dan', text: "LOCKED MEANS LOCKED. IT DON'T MEAN TRY HARDER." },
+  { who: 'biker', text: 'DO IT AGAIN. DARLENE MISSED IT.' },
+  { who: 'biker', text: "THAT DOOR'S SOLID OAK. YOUR HEAD AIN'T." },
+  { who: 'dan', text: "LAST CALL AIN'T COME YET, CHAMP. THE DOOR KNOWS IT." },
+  { who: 'biker', text: "TINY, PUT IT ON THE BOARD. MEATHEAD ZERO, DOOR FIVE." },
+];
 
 const AMBIENT = [
   'RACK EM UP, TINY.', 'ANOTHER ROUND, DARLENE.', 'THIS SONG IS ABOUT MY BIKE.', 'WHO TOOK MY STOOL? THAT IS MY STOOL.',
@@ -180,6 +194,13 @@ const drinks = (ctx: FrameContext, b: Bar, talk: Talk, controls: Controls): Cont
     const px = p.pos.x + p.width / 2;
     const x = px < (B.x1 + B.x2) / 2 ? B.x2 - 90 : B.x1 + 70;
     if (Math.abs(x - px) > CANVAS_WIDTH / 2 + 40) state.pickups.push({ id: `bar-fuel-${state.frame}`, pos: { x: x - 10, y: GROUND_Y - 60 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 });
+  }
+  // Charged the locked back door: it doesn't give, and they let him know
+  // (the charge stops dead against it: so it's charging at it, and up against it a moment later)
+  if (p.isCharging && !p.isSliding && p.facing === 1 && p.pos.x + p.width >= B.x2 - 90) b.rushAt = state.frame;
+  if (p.pos.x + p.width >= B.x2 - 24 && state.frame - (b.rushAt ?? -999) < 12 && state.frame - (b.doorAt ?? -999) > 240) {
+    b.doorAt = state.frame; b.ambientAt = state.frame;
+    queueLines(state, talk, [DOOR_MOCKS[(b.doorN = (b.doorN ?? 0) + 1) % DOOR_MOCKS.length]]);
   }
   // They talk among themselves; and a nudge now and then about where the lines are (never a button)
   if (quiet(talk)) {
