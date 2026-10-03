@@ -783,7 +783,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     fx.spawnDamageNumber(e.pos, 0);
     if (player.isDivekicking) {
       player.diveKickHitIds.push(e.id);
-      fx.playGunSound('stomp');
+      fx.playGunSound('stomp'); fx.playGunSound('boing', 0.6);
       player.vel.y = -Math.abs(player.vel.y) * 0.5;
       player.vel.x *= 0.5;
       player.lockTimer = BOUNCE_FRAMES;
@@ -874,6 +874,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
         // Stomp: a satisfying bounce, and you can divekick again mid-bounce. It also
         // refunds a power cell on the spot (chain them for air combos; not off a head too greasy to stand on)
         if (!bossDef?.slick) player.power = Math.min(POWER_CELLS, player.power + 1);
+        fx.playGunSound('boing', 0.6);
         player.vel.y *= -0.5;
         player.vel.x *= 0.5;
         player.lockTimer = BOUNCE_FRAMES;

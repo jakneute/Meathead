@@ -160,7 +160,7 @@ const explode = (ctx: FrameContext, c: Car) => {
   const p = state.player;
   const onRoof = p.pos.x + p.width > c.x && p.pos.x < c.x + CAR_W && Math.abs(p.pos.y + p.height - c.roof.y) < 12;
   state.blocks = state.blocks.filter(b => b !== c.roof);
-  if (onRoof) { p.vel.y = -12; p.vel.x = c.dir * 6; p.isGrounded = false; }
+  if (onRoof) { p.vel.y = -12; p.vel.x = c.dir * 6; p.isGrounded = false; playSound('boing', 0.8); }
   const cx = c.x + CAR_W / 2, cy = c.y - CAR_H / 2;
   playSound('boom'); playSound('crash');
   shakeScreen(state, 25, 9);

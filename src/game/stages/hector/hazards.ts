@@ -163,7 +163,7 @@ const updateAwnings = (ctx: FrameContext, hz: Hazards) => {
     player.isGrounded = false;
     player.squash = -0.6;
     hz.awningWobble[i] = 24;
-    ctx.fx.playGunSound('jump');
+    ctx.fx.playGunSound('boing');
     ctx.fx.spawnDamageNumber({ x: player.pos.x - 10, y: b.y - 20 }, 'BOING!', false, '#FDE047');
   });
 };

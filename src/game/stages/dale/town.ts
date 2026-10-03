@@ -331,7 +331,7 @@ const bounceAwnings = (state: GameState) => {
   p.coyoteAirTimer = 0; p.coyoteJumpTimer = 0; p.jumpHoldTimer = 0;
   p.pos.y -= 2;
   p.squash = -1;
-  playSound('jump');
+  playSound('boing');
 };
 
 // ---------------------------------------------------------------------------

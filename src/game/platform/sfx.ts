@@ -168,6 +168,11 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.35, vary: 2, gap: 80,
     make: () => { const bp = bandpass(); return render(0.28, t => bp(rnd(), 400 + 2600 * (t / 0.28), 1.2) * Math.sin(Math.PI * Math.min(1, t / 0.28))); },
   },
+  boing: {
+    // A cartoon spring: a plucked twang that bends up and wobbles as it rings out
+    gain: 0.4, vary: 1.5, gap: 60,
+    make: () => { let ph = 0; return render(0.5, t => { const f = 150 + 230 * (1 - ex(t, 9)) + 40 * Math.sin(TAU * 17 * t) * ex(t, 5); ph += f / SFX_SR; const s = Math.sin(TAU * ph); return (s + 0.35 * Math.sin(TAU * ph * 2)) * Math.min(1, t / 0.006) * ex(t, 6); }); },
+  },
   jump: {
     gain: 0.18, vary: 1.5, gap: 90,
     make: () => { const bp = bandpass(); return render(0.12, t => bp(rnd(), 500 + 1800 * (t / 0.12), 1) * Math.sin(Math.PI * t / 0.12)); },

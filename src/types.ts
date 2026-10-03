@@ -42,6 +42,8 @@ export type VulgarityType = 'gun_kill' | 'boulder_kill' | 'shotgun_kill' | 'flam
 export type SoundType =
   // weapons
   | 'gun' | 'egun' | 'lmg' | 'ice' | 'flame' | 'ignite' | 'barf' | 'oil' | 'dart' | 'taser' | 'tsunami' | 'click'
+  // bouncing on something springy (an awning, a trampoline, a head)
+  | 'boing'
   // dry fire (fire pressed with it empty)
   | 'dry_lmg' | 'dry_ice' | 'dry_flame' | 'dry_boulder' | 'dry_tsunami' | 'dry_needles' | 'dry_taser' | 'dry_sludge' | 'dry_oil'
   // bodies
