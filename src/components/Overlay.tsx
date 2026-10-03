@@ -2,7 +2,7 @@ import React from 'react';
 import { useInputDevice, usePadFamily } from './useInputDevice';
 import { Prompt } from './ButtonIcons';
 import { GameStatus, WeaponType, SoundType } from '../types';
-import { MAX_AMMO, WALK_ON_STAGE } from '../constants';
+import { maxAmmo, WALK_ON_STAGE } from '../constants';
 import {
   getStages, getWeaponDescription, BOSS_SET_TITLES, BOSS_LOCATIONS, getWeaponInfo,
 } from '../content/roster';
@@ -563,8 +563,9 @@ const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, we
   const numWeapons = availableWeapons.length;
   const shown = selectedIndex < numWeapons ? availableWeapons[selectedIndex] : currentWeapon;
   const info = getWeaponInfo(shown);
-  const ammoOf = (w: WeaponType) => (MAX_AMMO[w] === Infinity ? null : (weaponAmmo[w] ?? MAX_AMMO[w]) / MAX_AMMO[w]);
-  const ammoText = (w: WeaponType) => (MAX_AMMO[w] === Infinity ? 'INFINITE' : `${Math.floor(weaponAmmo[w] ?? MAX_AMMO[w])} / ${MAX_AMMO[w]}`);
+  const full = (w: WeaponType) => maxAmmo(w, stageId);
+  const ammoOf = (w: WeaponType) => (full(w) === Infinity ? null : (weaponAmmo[w] ?? full(w)) / full(w));
+  const ammoText = (w: WeaponType) => (full(w) === Infinity ? 'INFINITE' : `${Math.floor(weaponAmmo[w] ?? full(w))} / ${full(w)}`);
 
   const menuButton = (label: string, glyph: string, index: number, onClick: () => void, face: string, edge: string) => {
     const on = selectedIndex === index;

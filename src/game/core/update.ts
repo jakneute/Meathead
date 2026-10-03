@@ -4,7 +4,7 @@ import { isMidBoss } from '../combat/midBoss';
 import { updateGut, isShat } from '../player/gut';
 import { GameStatus, WeaponType } from '../../types';
 import {
-  CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, ARENA_RIGHT, KICK_POSE_FRAMES, MAX_AMMO,
+  CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, ARENA_RIGHT, KICK_POSE_FRAMES, MAX_AMMO, maxAmmo,
   AMMO_PICKUP_PCT, HEALTH_PICKUP_SMALL, HEALTH_PICKUP_LARGE, PLAYER_STUN_DURATION, PARTICLE_PALETTES,
   SPOKEN_TEXT_HOLD, CANVAS_HEIGHT, GROUND_Y,
 } from '../../constants';
@@ -617,11 +617,11 @@ const ammoTarget = (state: FrameContext['state']): WeaponType | null => {
   const { player } = state;
   const ammo = player.weaponAmmo;
   const held = player.currentWeapon;
-  if (held !== 'GUN' && (ammo[held] ?? 0) < MAX_AMMO[held]) return held;
+  if (held !== 'GUN' && (ammo[held] ?? 0) < maxAmmo(held, state.stageId)) return held;
   const owned = (state.availableWeapons ?? (Object.keys(MAX_AMMO) as WeaponType[])).filter(w => w !== 'GUN' && MAX_AMMO[w] > 0);
   let best: WeaponType | null = null, lowest = 1;
   for (const w of owned) {
-    const share = (ammo[w] ?? 0) / MAX_AMMO[w];
+    const share = (ammo[w] ?? 0) / maxAmmo(w, state.stageId);
     if (share < lowest) { lowest = share; best = w; }
   }
   return best;
@@ -655,7 +655,8 @@ const updatePickups = (ctx: FrameContext) => {
     } else {
       const target = p.weapon && MAX_AMMO[p.weapon] > 0 ? p.weapon : ammoTarget(state);
       const pct = p.type === 'large_ammo' ? AMMO_PICKUP_PCT.LARGE : AMMO_PICKUP_PCT.SMALL;
-      if (target) player.weaponAmmo[target] = Math.min(MAX_AMMO[target], player.weaponAmmo[target] + MAX_AMMO[target] * pct);
+      const full = target ? maxAmmo(target, state.stageId) : 0;
+      if (target) player.weaponAmmo[target] = Math.min(full, player.weaponAmmo[target] + full * pct);
     }
     return false;
   });

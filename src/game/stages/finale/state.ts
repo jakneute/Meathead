@@ -2,7 +2,7 @@
 // being wrecked weapon by weapon, and what's being said. Kept apart from the code that runs it, so the boss (in
 // bosses/alien.ts) and the stage (here) can both get at it without importing each other.
 
-import { MAX_AMMO } from '../../../constants';
+import { MAX_AMMO, maxAmmo, FINALE_STAGE } from '../../../constants';
 import type { GameState } from '../../core/state';
 import type { WeaponType } from '../../../types';
 
@@ -175,7 +175,7 @@ export const ammoDrain = (state: GameState) => {
   const p = state.player;
   const ws = (state.availableWeapons ?? []).filter(w => w !== 'GUN' && w !== 'LMG' && Number.isFinite(MAX_AMMO[w]) && MAX_AMMO[w] > 0);
   if (!ws.length) return 0;
-  return ws.reduce((t, w) => t + (1 - Math.max(0, Math.min(1, (p.weaponAmmo?.[w] ?? MAX_AMMO[w]) / MAX_AMMO[w]))), 0) / ws.length;
+  return ws.reduce((t, w) => t + (1 - Math.max(0, Math.min(1, (p.weaponAmmo?.[w] ?? maxAmmo(w, FINALE_STAGE)) / maxAmmo(w, FINALE_STAGE)))), 0) / ws.length;
 };
 
 /** The finale as it's being drawn this frame (set by the stage as it starts drawing; the alien's sprite poses by it). */

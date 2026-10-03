@@ -52,7 +52,7 @@ export const respawn = (state: GameState, stageId: string | null, skipToBoss: bo
   p.vel = { x: 0, y: 0 };
   p.facing = 1;
   p.currentWeapon = 'GUN';
-  p.weaponAmmo = createFullAmmo();
+  p.weaponAmmo = createFullAmmo(stageId);
   state.shouldSyncWeapon = true;
   state.frame = 1;
   // (the frame count starts over: nothing still on offer from before)

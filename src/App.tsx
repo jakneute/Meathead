@@ -26,7 +26,7 @@ import { setScreenMusic, setMusicPaused, musicEnabled, setMusicEnabled } from '.
 import DeployTransition from './components/DeployTransition';
 import WeaponGetScene from './components/WeaponGetScene';
 import { GameStatus, WeaponType } from './types';
-import { INITIAL_PLAYER_HEALTH, MAX_AMMO, POWER_CELLS, createFullAmmo, FINALE_STAGE, WALK_ON_STAGE } from './constants';
+import { INITIAL_PLAYER_HEALTH, maxAmmo, POWER_CELLS, createFullAmmo, FINALE_STAGE, WALK_ON_STAGE } from './constants';
 import { getStages, getStartingWeapons, sortWeapons, BOSS_WEAPON_MAP, WEAPONS_AFTER_SET_0, ALL_WEAPONS, STAGES_SET_0, STAGES_SET_1 } from './content/roster';
 import { VULGARITIES, BOSS_DIALOGUE, BOSS_REBUKES, BOSS_SHAT_LINES } from './content/dialogue';
 import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS, menuButtons } from './game/platform/gamepad';
@@ -395,6 +395,8 @@ const App: React.FC = () => {
     // (he's killed all eight to get here: every one of their guns is his)
     setAvailableWeapons(ALL_WEAPONS);
     resetLoadout();
+    // (souped up, at a price: a smaller load in each)
+    setWeaponAmmo(createFullAmmo(FINALE_STAGE));
     setIsVictoryPhase(false);
     setStatus(GameStatus.LEVEL_INTRO);
   };
@@ -872,7 +874,7 @@ const App: React.FC = () => {
             power={power}
             currentWeapon={currentWeapon}
             ammo={weaponAmmo[currentWeapon]}
-            maxAmmo={MAX_AMMO[currentWeapon]}
+            maxAmmo={maxAmmo(currentWeapon, selectedStage)}
           />
           </div>
         )}
