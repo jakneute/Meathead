@@ -270,7 +270,10 @@ const useShipment = (ctx: FrameContext, boss: Enemy) => {
     finishOne(boss, 20, 80);
   } else if (boss.shipmentType === 'meth') {
     helpers.addProjectile(enemyProjectile(`meth-${Date.now()}`, boss.pos.x, boss.pos.y, -4 - Math.random() * 3, -12, 40, 50,
-      METH_BARREL_DAMAGE, { health: 100, maxHealth: 100, isMethBarrel: true, bounces: 15 }));
+      METH_BARREL_DAMAGE, { health: 100, maxHealth: 100, isMethBarrel: true, bounces: 15, bornAt: ctx.state.frame }));
+    // (just for show: his heave's follow-through, and a jolt as it leaves his hands)
+    boss.daleThrowAt = ctx.state.frame;
+    shakeScreen(ctx.state, 8, 2);
     finishOne(boss, 45, 100);
   } else {
     boss.bossState = 'speed_dash';
@@ -302,7 +305,8 @@ const throwCocaine = (ctx: FrameContext, boss: Enemy) => {
     vx = -20 - Math.random() * 8;
     vy = -8 - Math.random() * 4;
   }
-  ctx.bossHelpers.addProjectile(enemyProjectile(`coke-${Date.now()}`, boss.pos.x, boss.pos.y + 20, vx, vy, 25, 25, 22, { isCocaine: true }));
+  ctx.bossHelpers.addProjectile(enemyProjectile(`coke-${Date.now()}`, boss.pos.x, boss.pos.y + 20, vx, vy, 25, 25, 22, { isCocaine: true, bornAt: ctx.state.frame }));
+  boss.daleThrowAt = ctx.state.frame; // (just for show: his flick's follow-through)
   ctx.bossHelpers.playGunSound('whoosh');
 };
 

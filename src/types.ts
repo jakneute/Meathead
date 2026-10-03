@@ -430,6 +430,8 @@ export interface Enemy extends Entity {
   // Drug Trade Dale
   shipmentType?: 'cocaine' | 'speed' | 'meth';
   shipmentCount?: number;
+  /** Just for show: the frame he last let go of a bag or a drum (his throw's follow-through is drawn from it). */
+  daleThrowAt?: number;
   dashCount?: number;
   truckX?: number;
   truckActive?: boolean;
@@ -539,6 +541,8 @@ export interface Projectile extends Entity {
   isDart?: boolean;
   isCocaine?: boolean;
   isMethBarrel?: boolean;
+  /** Just for show: the frame it was thrown (a fresh throw's sparkle, or its spin starting with a wobble). */
+  bornAt?: number;
   isSludge?: boolean;
   /** Just for show (Tommy's puke stream, say: where it lands is what hurts): never hits him, and gone when it lands. */
   visualOnly?: boolean;

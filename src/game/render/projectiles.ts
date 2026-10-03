@@ -533,6 +533,25 @@ export const drawCocaine = (ctx: Ctx, p: Projectile, frame: number) => {
     const pr = r * (0.5 + k * 0.15);
     pixelBlob(ctx, x - p.vel.x * k * 1.2, y - p.vel.y * k * 1.2, pr, pr, `rgba(255, 255, 255, ${0.3 - k * 0.07})`, 2);
   }
+  // Fresh out of his hand: a thicker stream of powder off it, and sparkles twinkling along it, dying away
+  const age = p.bornAt === undefined ? 99 : frame - p.bornAt;
+  if (age >= 0 && age < 10) {
+    const fresh = 1 - age / 10, seed = seedOf(p.id);
+    for (let k = 1; k <= 5; k++) {
+      const pr = r * 0.32 * (1 + k * 0.12);
+      pixelBlob(ctx, x - p.vel.x * k * 0.3 + ((k * 5 + seed) % 5 - 2), y - p.vel.y * k * 0.3 + ((k * 3 + seed) % 5 - 2), pr, pr,
+        `rgba(255, 255, 255, ${(0.55 * fresh * (1 - k / 6)).toFixed(2)})`, 2);
+    }
+    for (let i = 0; i < 4; i++) {
+      const k = 0.3 + i * 0.3, side = (i % 2 ? 1 : -1) * (6 + ((seed + i * 7) % 5));
+      const sx = Math.round(x - p.vel.x * k - Math.sign(p.vel.y || 1) * side * 0.5), sy = Math.round(y - p.vel.y * k + side);
+      const arm = (age + i + seed) % 3 === 0 ? 3 : 2;
+      ctx.globalAlpha = fresh;
+      ctx.fillStyle = '#BAE6FD'; ctx.fillRect(sx - arm, sy, arm * 2 + 1, 1); ctx.fillRect(sx, sy - arm, 1, arm * 2 + 1);
+      ctx.fillStyle = '#FFFFFF'; ctx.fillRect(sx - 1, sy, 3, 1); ctx.fillRect(sx, sy - 1, 1, 3);
+      ctx.globalAlpha = 1;
+    }
+  }
   drawCocaineBag(ctx, x, y, r, frame * 0.12 + seedOf(p.id));
   ctx.restore();
 };
@@ -576,7 +595,10 @@ export const drawCocaineBag = (ctx: Ctx, x: number, y: number, r: number, angle:
 /** Dale's meth barrel: a banded steel drum with a hazard label, leaking blue crystal. */
 export const drawMethBarrel = (ctx: Ctx, p: Projectile, frame: number) => {
   const { x, y } = centerOf(p);
-  drawMethDrum(ctx, x, y, p.width, p.height, p.rotation || 0, frame);
+  // (its spin starts with a wobble: rocking off true the first few frames out of his hands, settling into the roll)
+  const age = p.bornAt === undefined ? 99 : frame - p.bornAt;
+  const wobble = age >= 0 && age < 14 ? Math.sin(age * 1.7) * 0.28 * (1 - age / 14) : 0;
+  drawMethDrum(ctx, x, y, p.width, p.height, (p.rotation || 0) + wobble, frame);
 };
 
 /** One METH drum centred on (x, y). */

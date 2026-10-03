@@ -7,7 +7,8 @@
 import { Enemy } from '../../../types';
 import { COLORS, ARENA_LEFT, ARENA_RIGHT, DALE_SPEED_WINDUP } from '../../../constants';
 import { drawCocaineBag, drawMethDrum } from '../projectiles';
-import { FaceStyle, drawHead, headAt, facingOf, goreOf, moodOf, limb, hand, shoe, foil, bodyBlood, breath } from './kit';
+import { pixelBlob } from '../pixelArt';
+import { FaceStyle, Mood, drawHead, headAt, facingOf, goreOf, moodOf, limb, hand, shoe, foil, bodyBlood, breath } from './kit';
 
 const SKIN = '#EDC3A0', SKIN_DARK = '#BB8F6E';
 const FACE: FaceStyle = {
@@ -29,10 +30,17 @@ export const drawDale = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number)
   const f = facingOf(e);
   const gore = goreOf(e);
   const sick = daleSick(e, frame);
-  const mood = sick ? (frame % 50 < 34 ? 'dazed' : 'hurt') : moodOf(e, frame, { speed_dash: 'manic', using_shipment: windingUp ? 'shock' : 'blissed', running: 'fierce' });
+  const pose = daleThrow(e, frame);
+  const base = sick ? (frame % 50 < 34 ? 'dazed' : 'hurt') : moodOf(e, frame, { speed_dash: 'manic', using_shipment: windingUp ? 'shock' : 'blissed', running: 'fierce' });
+  // (the throw's face, unless he's just been hit; stood in the barf, a grossed-out version of it)
+  const hit = e.health <= 0 || (e.hitCooldown ?? 0) > 30;
+  const mood: Mood = pose?.mood && !hit ? (sick ? SICK_THROW_MOOD[pose.mood] ?? pose.mood : pose.mood) : base;
   const b = breath(frame);
+  const td = THROW_DIR, X = (p: Pt) => 40 + td * p[0];
   ctx.save();
   ctx.scale(e.width / 80, e.height / 80);
+  // The heave: squashed down into the squat, stretched up with it overhead, a jolt as it goes (about his feet)
+  if (pose) { ctx.translate(40 + pose.jolt, 80); ctx.scale(pose.sx, pose.sy); ctx.translate(-40, -80); }
 
   // Two-tone shoes, purple slacks
   shoe(ctx, 30, 80, 14, 5, f, '#111111', '#000000', 'rgba(255,255,255,0.45)');
@@ -42,6 +50,8 @@ export const drawDale = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number)
   ctx.fillStyle = '#6C3483'; ctx.fillRect(30, 57, 0.7, 18); ctx.fillRect(50, 57, 0.7, 18);
 
   ctx.save(); ctx.translate(0, -b);
+  // (twisting at the waist: wound back away from the throw, then into it)
+  if (pose?.lean) { ctx.translate(40, 56); ctx.rotate(td * pose.lean); ctx.translate(-40, -56); }
   // Shirt, open at the neck, and the chest it's open over
   ctx.fillStyle = '#FFFFFF';
   ctx.beginPath(); ctx.moveTo(33, 32); ctx.lineTo(47, 32); ctx.lineTo(42, 48); ctx.lineTo(38, 48); ctx.closePath(); ctx.fill();
@@ -78,11 +88,36 @@ export const drawDale = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number)
   ctx.fillStyle = '#2E1045'; ctx.font = 'bold 6px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('$', 40, 43.3);
   if (frame % 60 < 6) { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(41.5, 40.5, 1, 1); }
 
+  // The drum he's heaving (in front of him coming up off the floor, then up behind his head), and the smear the
+  // throwing arm leaves going over
+  if (pose?.drum) drawMethDrum(ctx, X(pose.drum.at), pose.drum.at[1], 40 * 80 / e.width, 50 * 80 / e.height, td * pose.drum.rot, frame);
+  if (pose?.smear) drawSmear(ctx, pose.smear, X, pose.meth);
+
   // Shoulder pads, and the arms out of them (the needle in one when he's dashing on speed)
   for (const side of [-1, 1]) {
     const sx = 40 + side * 22, sy = 36;
     ctx.fillStyle = SUIT; ctx.beginPath(); ctx.roundRect(sx - 6, sy - 5, 12, 9, 3); ctx.fill();
     ctx.fillStyle = SUIT_LIGHT; ctx.fillRect(sx - 4, sy - 4.5, 8, 1);
+    // (where the throw has this hand: the near one throws, both of them for a drum)
+    const held = pose ? (side === td ? pose.near : pose.far) : undefined;
+    if (held) {
+      const hx = X(held), hy = held[1];
+      const [ex, ey] = elbowOf(sx, sy + 1, hx, hy, side);
+      limb(ctx, sx, sy + 1, ex, ey, 7.5, SUIT, SUIT_DARK);
+      limb(ctx, ex, ey, hx, hy, 6.5, SUIT, SUIT_DARK);
+      // (the cuff round the wrist, whichever way the forearm's pointing)
+      const fl = Math.hypot(hx - ex, hy - ey) || 1, ux = (hx - ex) / fl, uy = (hy - ey) / fl;
+      limb(ctx, hx - ux * 4.2, hy - uy * 4.2, hx - ux * 3, hy - uy * 3, 6.8, '#FFFFFF');
+      if (side === td && pose!.bag) drawCocaineBag(ctx, hx - td * 1.5, hy - 3, 8.5, -td * 0.5);
+      hand(ctx, hx, hy, 3.6, SKIN, SKIN_DARK);
+      ctx.fillStyle = '#FFD700'; ctx.fillRect(hx - 2, hy - 1.2, 1.4, 1.4);
+      // (his hand in under the far lapel, going for the stash in his inside pocket)
+      if (side === td && pose!.inJacket) {
+        ctx.fillStyle = SUIT_LIGHT;
+        ctx.beginPath(); ctx.moveTo(40 - td * 4, 31); ctx.lineTo(40 - td * 9, 36); ctx.lineTo(40 - td * 2, 44); ctx.closePath(); ctx.fill();
+      }
+      continue;
+    }
     const ex = sx + side * 2, ey = sy + 10;
     const hx = sx + side * 1.5 + Math.sin(frame * 0.07 + side) * 1.2, hy = sy + 19;
     limb(ctx, sx, sy + 1, ex, ey, 7.5, SUIT, SUIT_DARK);
@@ -120,9 +155,225 @@ export const drawDale = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number)
         ctx.fillStyle = '#00F0FF'; ctx.fillRect(x - 2.2, -14.6, 4.4, 0.8);
         ctx.stroke();
       }
+      if (pose?.veins) strainVeins(ctx, frame);
+      if (pose && sick) grossedOut(ctx, frame);
     },
   });
+  // A puff of the powder off his hand and sleeve as the bag goes
+  if (pose && !pose.meth && pose.since >= 0) drawPowderPuff(ctx, pose.since, X);
   ctx.restore();
+  // The floor's dust kicked up round his feet as the drum goes
+  if (pose?.meth && pose.since >= 0) drawHeaveDust(ctx, pose.since);
+  ctx.restore();
+};
+
+// ---------------------------------------------------------------------------
+// The throws: drawn from the timer he already counts down to each bag or drum, and the frame he let the last one go
+// (the logic's timing is untouched). Points are [toward the throw from his middle, down], in his 80x80 box.
+// ---------------------------------------------------------------------------
+
+type Pt = [number, number];
+/** Which way he throws: the bags and drums always fly left (see bosses/dale.ts), whichever way he's looking. */
+const THROW_DIR = -1;
+/** Frames of wind-up before the bag leaves his hand, and of follow-through after (both inside the 20 between bags). */
+const COKE_WIND = 10, COKE_FOLLOW = 10;
+/** ...and for a drum (inside the 45 between drums, and the 30 before the first). */
+const METH_WIND = 26, METH_FOLLOW = 16;
+
+interface ThrowPose {
+  meth: boolean;
+  /** Frames since it left his hands (-1 still winding up). */
+  since: number;
+  /** The throwing hand (the one on the side he throws to), and the other one (a drum takes both). */
+  near?: Pt; far?: Pt;
+  /** Twist at the waist (+ into the throw), squash/stretch about his feet, a sideways jolt. */
+  lean: number; sx: number; sy: number; jolt: number;
+  mood?: Mood; veins?: boolean;
+  /** A bag palmed in the throwing hand; his hand in his jacket for it. */
+  bag?: boolean; inJacket?: boolean;
+  drum?: { at: Pt; rot: number };
+  smear?: { from: Pt; via: Pt; to: Pt; a: number; t0: number };
+}
+
+const ease = (t: number) => { const k = Math.max(0, Math.min(1, t)); return k * k * (3 - 2 * k); };
+const mix = (a: Pt, b: Pt, t: number): Pt => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+/** Through keyframes [frame, point], eased between them. */
+const track = (keys: [number, Pt][], s: number): Pt => {
+  for (let i = 1; i < keys.length; i++) if (s <= keys[i][0]) return mix(keys[i - 1][1], keys[i][1], ease((s - keys[i - 1][0]) / (keys[i][0] - keys[i - 1][0])));
+  return keys[keys.length - 1][1];
+};
+
+const REST_NEAR: Pt = [23.5, 55], REST_FAR: Pt = [-23.5, 55];
+// The bag: in under the far lapel, out with it, cocked back across him by the far shoulder, flicked out side-arm
+const JACKET: Pt = [-6, 41], PALMED: Pt = [2, 33], COCKED: Pt = [-21, 25], FLICK: Pt = [37, 33];
+// The drum: hugged up off the floor in front of him, up behind his head, wound back, heaved
+const DRUM_LOW: Pt = [12, 56], DRUM_HIGH: Pt = [-2, 1], DRUM_BACK: Pt = [-11, 3];
+
+const cokeWindup = (k: number): ThrowPose => {
+  const p: ThrowPose = { meth: false, since: -1, lean: 0, sx: 1, sy: 1, jolt: 0 };
+  if (k < 0.35) { const t = ease(k / 0.35); p.near = mix(REST_NEAR, JACKET, t); p.inJacket = t > 0.7; }
+  else if (k < 0.55) { const t = ease((k - 0.35) / 0.2); p.near = mix(JACKET, PALMED, t); p.inJacket = t < 0.3; p.bag = t >= 0.3; }
+  else { const t = ease((k - 0.55) / 0.45); p.near = mix(PALMED, COCKED, t); p.bag = true; p.lean = -0.08 * t; p.mood = 'grin'; }
+  return p;
+};
+
+const cokeRelease = (s: number): ThrowPose => ({
+  meth: false, since: s, sx: 1, sy: 1, jolt: 0,
+  // (the wrist snaps over, the arm whips on past and down, then back to his side)
+  near: track([[0, FLICK], [1, [39, 39]], [2, [34, 46]], [4, [31, 50]], [COKE_FOLLOW - 1, REST_NEAR]], s),
+  lean: s < 2 ? 0.09 : 0.09 * (1 - ease((s - 2) / (COKE_FOLLOW - 3))),
+  mood: s < 7 ? 'wink' : undefined,
+  smear: s < 3 ? { from: COCKED, via: [14, 16], to: FLICK, a: 1 - s / 3, t0: s * 0.3 } : undefined,
+});
+
+/** The drum in both hands, gripped round its sides (low down hugging it, round the bottom with it up overhead). */
+const gripDrum = (p: ThrowPose, at: Pt, rot: number, lift: number) => {
+  const gy = 2 + lift * 15, c = Math.cos(rot), sn = Math.sin(rot);
+  const grip = (gx: number): Pt => [at[0] + gx * c - gy * sn, at[1] + gx * sn + gy * c];
+  p.drum = { at, rot }; p.near = grip(19); p.far = grip(-19);
+};
+
+const methWindup = (k: number, frame: number): ThrowPose => {
+  const p: ThrowPose = { meth: true, since: -1, lean: 0, sx: 1, sy: 1, jolt: 0, veins: k > 0.15 };
+  if (k < 0.3) {
+    // Down into a squat over it
+    const t = ease(k / 0.3);
+    p.sx = 1 + 0.07 * t; p.sy = 1 - 0.1 * t; p.mood = 'hurt';
+    gripDrum(p, DRUM_LOW, 0, 0);
+  } else if (k < 0.72) {
+    // Up with it (shaking under the weight), the squat springing up into a stretch
+    const t = ease((k - 0.3) / 0.42), shake = frame % 4 < 2 ? 0.7 : -0.7;
+    p.sx = 1.07 - 0.1 * t; p.sy = 0.9 + 0.15 * t; p.mood = 'hurt';
+    const at = mix(DRUM_LOW, DRUM_HIGH, t);
+    gripDrum(p, [at[0] + shake * t, at[1]], -0.12 * t, t);
+  } else {
+    // Wound back with it, twisting away from the throw
+    const t = ease((k - 0.72) / 0.28);
+    p.sx = 0.97; p.sy = 1.05 - 0.02 * t; p.lean = -0.14 * t; p.mood = 'fierce';
+    gripDrum(p, mix(DRUM_HIGH, DRUM_BACK, t), -0.12 - 0.33 * t, 1);
+  }
+  return p;
+};
+
+const methRelease = (s: number): ThrowPose => {
+  // Stretched out after it as it goes, then landing back on his heels (squashed), and settling
+  const settle = 1 - ease((s - 4) / 8);
+  const sq = s < 1 ? [0.95, 1.06] : s < 4 ? [1.07, 0.93] : [1 + 0.07 * settle, 1 - 0.07 * settle];
+  return {
+    meth: true, since: s, sx: sq[0], sy: sq[1],
+    jolt: [2.2, -1.8, 1.4, -1, 0.6, -0.3][s] ?? 0,
+    near: track([[0, [40, 24]], [3, [38, 34]], [6, [32, 44]], [METH_FOLLOW - 1, REST_NEAR]], s),
+    far: track([[0, [24, 21]], [3, [22, 31]], [6, [8, 44]], [METH_FOLLOW - 1, REST_FAR]], s),
+    lean: s < 4 ? 0.16 : 0.16 * (1 - ease((s - 4) / (METH_FOLLOW - 5))),
+    mood: s < 9 ? 'roar' : undefined, veins: s < 6,
+    smear: s < 3 ? { from: DRUM_BACK, via: [12, -20], to: [44, 20], a: 1 - s / 3, t0: s * 0.3 } : undefined,
+  };
+};
+
+/** Where he is in a throw this frame, if he's in one. */
+const daleThrow = (e: Enemy, frame: number): ThrowPose | null => {
+  const meth = e.shipmentType === 'meth';
+  if ((!meth && e.shipmentType !== 'cocaine') || e.health <= 0) return null;
+  const s = e.daleThrowAt === undefined ? -1 : frame - e.daleThrowAt;
+  if (s >= 0 && s < (meth ? METH_FOLLOW : COKE_FOLLOW)) return meth ? methRelease(s) : cokeRelease(s);
+  const T = e.stateTimer ?? 0, wind = meth ? METH_WIND : COKE_WIND;
+  if (e.bossState !== 'using_shipment' || (e.shipmentCount ?? 0) <= 0 || T <= 0 || T > wind) return null;
+  const k = (wind - T) / (wind - 1);
+  return meth ? methWindup(k, frame) : cokeWindup(k);
+};
+
+/** An elbow between shoulder and hand, bent outward (dead straight when it can't reach). */
+const elbowOf = (sx: number, sy: number, hx: number, hy: number, side: number): Pt => {
+  const l1 = 10.2, l2 = 9.2, dx = hx - sx, dy = hy - sy, d = Math.hypot(dx, dy) || 1;
+  if (d >= l1 + l2 - 0.01) return [sx + dx * l1 / (l1 + l2), sy + dy * l1 / (l1 + l2)];
+  const a = (l1 * l1 - l2 * l2 + d * d) / (2 * d), h = Math.sqrt(Math.max(0, l1 * l1 - a * a));
+  const nx = -dy / d, ny = dx / d, out = nx * side + ny * 0.5 >= 0 ? 1 : -1;
+  return [sx + dx * a / d + nx * h * out, sy + dy * a / d + ny * h * out];
+};
+
+/** The arm's smear going over: banded (lavender, then white, then a hot white core), tapering off toward its tail. */
+const drawSmear = (ctx: CanvasRenderingContext2D, sm: NonNullable<ThrowPose['smear']>, X: (p: Pt) => number, heavy: boolean) => {
+  const at = (t: number): Pt => {
+    const u = 1 - t;
+    return [u * u * X(sm.from) + 2 * u * t * X(sm.via) + t * t * X(sm.to), u * u * sm.from[1] + 2 * u * t * sm.via[1] + t * t * sm.to[1]];
+  };
+  const w = heavy ? 11 : 6, N = 10;
+  ctx.save();
+  ctx.lineCap = 'round';
+  for (const [k, color, alpha] of [[1, '#C39BD3', 0.75], [0.6, '#F4ECF7', 0.85], [0.25, '#FFFFFF', 1]] as const) {
+    ctx.strokeStyle = color; ctx.globalAlpha = alpha * sm.a;
+    for (let i = 0; i < N; i++) {
+      const t1 = sm.t0 + (1 - sm.t0) * (i / N), t2 = sm.t0 + (1 - sm.t0) * ((i + 1) / N);
+      const [x1, y1] = at(t1), [x2, y2] = at(t2);
+      // (stepped thicker toward the hand)
+      ctx.lineWidth = Math.max(1, Math.round(w * k * (0.35 + 0.65 * (i + 1) / N)));
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    }
+  }
+  // Speed lines trailing under it
+  ctx.globalAlpha = 0.8 * sm.a; ctx.fillStyle = '#FFFFFF';
+  for (const t of [0.45, 0.65, 0.85]) { const [x, y] = at(t); ctx.fillRect(Math.round(x) - 1, Math.round(y + (heavy ? 8 : 5)), 3, 1); }
+  ctx.restore();
+};
+
+/** White powder puffing off his hand and sleeve as the bag leaves it, and dusting the cuff a moment after. */
+const drawPowderPuff = (ctx: CanvasRenderingContext2D, s: number, X: (p: Pt) => number) => {
+  const fade = 1 - s / COKE_FOLLOW;
+  for (let i = 0; i < 6; i++) {
+    const a = -0.9 + i * 0.32, r = 3 + s * 1.3 + (i % 3) * 0.8;
+    const x = X([FLICK[0] - 2 + Math.cos(a) * r, 0]), y = FLICK[1] - 1 + Math.sin(a) * r - s * 0.6;
+    const pr = Math.max(1, 2.6 - s * 0.15 + (i % 2) * 0.8);
+    pixelBlob(ctx, x, y, pr, pr, `rgba(255, 255, 255, ${(0.85 * fade).toFixed(2)})`, 1);
+  }
+  // (a cloud off the sleeve, behind the hand)
+  pixelBlob(ctx, X([FLICK[0] - 9 - s * 0.5, 0]), FLICK[1] - 3 - s * 0.8, 3 + s * 0.4, 2 + s * 0.3, `rgba(241, 245, 249, ${(0.6 * fade).toFixed(2)})`, 1);
+  ctx.fillStyle = `rgba(255, 255, 255, ${fade.toFixed(2)})`;
+  for (let i = 0; i < 4; i++) ctx.fillRect(Math.round(X([FLICK[0] - 4 - i * 2.3, 0])), Math.round(FLICK[1] + 2 + (i % 2) * 2 + s * 0.5), 1, 1);
+};
+
+/** Dust kicked up off the floor round his feet as the drum goes: chunky puffs rolling out both ways, shaded in bands. */
+const drawHeaveDust = (ctx: CanvasRenderingContext2D, s: number) => {
+  const fade = 1 - s / METH_FOLLOW;
+  for (const dir of [-1, 1]) {
+    for (let i = 0; i < 3; i++) {
+      const x = 40 + dir * (15 + s * 2.2 + i * 7), y = 78 - i * 1.5 - s * 0.35, r = 4.5 + s * 0.45 - i * 0.6;
+      pixelBlob(ctx, x, y + 1, r, r * 0.7, `rgba(125, 118, 106, ${(0.85 * fade).toFixed(2)})`, 1);
+      pixelBlob(ctx, x, y, r * 0.85, r * 0.6, `rgba(168, 160, 144, ${(0.95 * fade).toFixed(2)})`, 1);
+      pixelBlob(ctx, x - dir * 0.8, y - 1, r * 0.5, r * 0.35, `rgba(226, 220, 208, ${fade.toFixed(2)})`, 1);
+    }
+  }
+};
+
+/** The throw's faces when he's stood in the barf: the flick's grin and wink go to a pursed, squinting sneer, the
+ * heave's bellow goes to a gag (tongue out), and he grits his teeth winding back rather than shouting. */
+const SICK_THROW_MOOD: Partial<Record<Mood, Mood>> = { grin: 'grump', wink: 'grump', fierce: 'hurt', roar: 'dazed' };
+
+/** Grossed out, throwing anyway: his nose wrinkled up, his eyes watering (in the head's space). */
+const grossedOut = (ctx: CanvasRenderingContext2D, frame: number) => {
+  ctx.save();
+  // Wrinkles across the bridge of his nose, and a curled-up nostril
+  ctx.strokeStyle = SKIN_DARK; ctx.lineWidth = 0.6; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-0.6, -1.8); ctx.lineTo(1.6, -2.1); ctx.moveTo(-0.3, -0.8); ctx.lineTo(1.9, -1.1); ctx.moveTo(2.6, 1.4); ctx.lineTo(3.6, 0.6); ctx.stroke();
+  // Tears welling up and running down
+  for (const [x, ph] of [[-5, 0], [4.5, 9]] as const) {
+    const t = ((frame + ph) % 18) / 18;
+    ctx.fillStyle = '#1E6FA8'; ctx.fillRect(x - 0.9, -1.6 + t * 6, 1.8, 1.8 + t * 0.6);
+    ctx.fillStyle = '#BAE6FD'; ctx.fillRect(x - 0.6, -1.4 + t * 6, 1.2, 1.2 + t * 0.6);
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(x - 0.5, -1.4 + t * 6, 0.5, 0.5);
+  }
+  ctx.restore();
+};
+
+/** Veins standing out on his forehead and temple under the strain, pulsing (in the head's space). */
+const strainVeins = (ctx: CanvasRenderingContext2D, frame: number) => {
+  const w = frame % 12 < 6 ? 0.9 : 0.7;
+  ctx.save();
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (const [color, lw] of [['#7B2D3B', w + 0.5], ['#C0566A', w]] as const) {
+    ctx.strokeStyle = color; ctx.lineWidth = lw;
+    ctx.beginPath(); ctx.moveTo(2.5, -9.5); ctx.lineTo(4, -8); ctx.lineTo(3, -6.5); ctx.moveTo(4, -8); ctx.lineTo(5.6, -7.6); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-8.5, -6); ctx.lineTo(-7.5, -4.2); ctx.lineTo(-8.2, -2.5); ctx.stroke();
+  }
   ctx.restore();
 };
 
@@ -151,7 +402,9 @@ export const drawDaleDrugs = (ctx: CanvasRenderingContext2D, e: Enemy, frame: nu
     // What's left of the shipment, piled up beside him: the same bags and drums he throws
     const right = e.pos.x - 6, groundY = 550;
     const pile = e.shipmentType === 'cocaine' ? { gap: 22, rowH: 18, perRow: [4, 3, 2, 1] } : { gap: 42, rowH: 50, perRow: [3, 2] };
-    let left = e.shipmentCount!;
+    // (less the drum he's got hold of)
+    const holding = e.shipmentType === 'meth' && (e.stateTimer ?? 0) > 0 && (e.stateTimer ?? 0) <= METH_WIND;
+    let left = e.shipmentCount! - (holding ? 1 : 0);
     pile.perRow.forEach((n, row) => {
       for (let c = 0; c < n && left > 0; c++, left--) {
         const cx = right - pile.gap / 2 - c * pile.gap - row * pile.gap / 2;
