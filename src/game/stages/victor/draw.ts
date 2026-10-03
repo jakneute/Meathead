@@ -5,7 +5,9 @@
 
 import { drawFireball, drawFireballs, drawFireColumn, drawFireJet } from '../../render/fx/fireball';
 import { drawClubVolcano, ClubVolcano } from '../../scenes/art/clubVolcano';
-import { PIX, bandedGradient, checker, hazeBands, pixelRidge, screenRidge, steppedGlow, pixelBlob } from '../../render/pixelArt';
+import { PIX, bandedGradient, checker, hazeBands, pixelRidge, screenRidge, steppedGlow, pixelBlob, tilePattern } from '../../render/pixelArt';
+import { INK, dark, ink } from '../../render/npc/kit';
+import { slab, column, pipe, letter } from '../barry/rooms';
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { COURSE, isLava } from './course';
@@ -13,7 +15,7 @@ import { getVictor, regionOf, enterFade } from './runtime';
 import { ventPhase, VENT_HEIGHT, VENT_HALF_WIDTH, BOMB_WARN, BOMB_RADIUS, jetPhase, JET_WARN, barBalls } from './hazards';
 import { drawDoormanCorpse, drawDoormanHud, drawClashingMeathead } from './doormanDraw';
 import { drawLoungeBack, drawLoungeFront, drawWideShot, drawLoungeHud, drawAftermathFade } from './loungeDraw';
-import { drawClubBackdrop, drawClubBack, drawClubLedge, drawClubFront, drawInnocentsTally } from './clubDraw';
+import { drawClubBackdrop, drawClubBack, drawClubLedge, drawClubFront, drawInnocentsTally, neonText, neonStrip, crackLine, drawPartyWindow } from './clubDraw';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -170,89 +172,133 @@ const drawClub = (ctx: Ctx, state: GameState, open: boolean) => {
   const C = COURSE.club, f = state.frame;
   if (!visible(state, C.x1 - 400, C.door + 300)) return;
   const y = C.y;
-  // The front of it, and the rock it's cut into
-  ctx.fillStyle = '#140908'; ctx.fillRect(C.door - 260, y - 560, 560, 560);
-  ctx.fillStyle = '#1F0E0B'; ctx.fillRect(C.door - 200, y - 420, 440, 420);
-  for (let i = 0; i < 8; i++) { ctx.fillStyle = '#2A1410'; ctx.fillRect(C.door - 200 + i * 55, y - 420, 3, 420); }
-  // The doors: black lacquer with brass handles; open, there's light and bass inside
-  const dx = C.door - 20, dw = 130, dh = 190;
-  if (open) {
-    const g = ctx.createLinearGradient(dx, y - dh, dx, y);
-    g.addColorStop(0, '#7C3AED'); g.addColorStop(1, '#EC4899');
-    ctx.fillStyle = g; ctx.fillRect(dx, y - dh, dw, dh);
-    ctx.fillStyle = 'rgba(255,255,255,0.15)'; for (let i = 0; i < 4; i++) ctx.fillRect(dx + ((f * 3 + i * 40) % dw), y - dh, 6, dh);
-    ctx.fillStyle = '#0A0505'; ctx.fillRect(dx - 30, y - dh, 30, dh); ctx.fillRect(dx + dw, y - dh, 30, dh);
-  } else {
-    ctx.fillStyle = '#0A0505'; ctx.fillRect(dx, y - dh, dw, dh);
-    ctx.fillStyle = '#1C1917'; ctx.fillRect(dx + dw / 2 - 1, y - dh, 2, dh);
-    ctx.fillStyle = '#CA8A04'; ctx.fillRect(dx + dw / 2 - 12, y - dh / 2, 6, 18); ctx.fillRect(dx + dw / 2 + 6, y - dh / 2, 6, 18);
+  // The rock it's cut into: rough basalt in blocks, lit down its left edge where the crater's glow catches it
+  const rx = C.door - 260;
+  ctx.fillStyle = '#140908'; ctx.fillRect(rx, y - 560, 560, 560);
+  ctx.fillStyle = basalt(ctx); ctx.fillRect(rx, y - 560, 560, 560);
+  ctx.fillStyle = '#3A1812'; ctx.fillRect(rx, y - 560, 4, 560); checker(ctx, rx + 4, y - 560, 6, 560, '#2A110D');
+  ctx.fillStyle = INK; ctx.fillRect(rx - 1, y - 560, 1, 560);
+  // The front: columns of basalt, each lit down its left, shaded down its right, cracked across where it's jointed
+  const fx = C.door - 200;
+  for (let i = 0; i < 8; i++) {
+    const cx = fx + i * 55, cw = i === 7 ? 440 - 7 * 55 : 55;
+    ctx.fillStyle = '#1F0E0B'; ctx.fillRect(cx, y - 420, cw, 420);
+    ctx.fillStyle = '#2E1610'; ctx.fillRect(cx + 3, y - 420, 8, 420); checker(ctx, cx + 11, y - 420, 4, 420, '#2E1610');
+    ctx.fillStyle = '#160906'; ctx.fillRect(cx + cw - 8, y - 420, 8, 420); checker(ctx, cx + cw - 12, y - 420, 4, 420, '#160906');
+    ctx.fillStyle = INK; ctx.fillRect(cx, y - 420, 2, 420);
+    ctx.fillStyle = '#3A1C14'; ctx.fillRect(cx + 2, y - 420, 1, 420);
+    for (let j = 0; j < 4; j++) { const jy = Math.round(y - 400 + hash(i * 5 + j) * 380); ctx.fillStyle = INK; ctx.fillRect(cx + 2, jy, cw - 2, 1); ctx.fillStyle = '#3A1C14'; ctx.fillRect(cx + 2, jy + 1, cw - 2, 1); }
+  }
+  slab(ctx, fx - 6, y - 428, 452, 10, '#2A1410');
+  // The marquee: a black board edged in gold, bulbs chasing round it
+  const mx = C.door + 45 - 200, my = y - 340, mw = 400, mh = 118;
+  slab(ctx, mx - 6, my - 6, mw + 12, mh + 12, '#A16207');
+  slab(ctx, mx, my, mw, mh, '#120708');
+  for (let i = 0; i < 40; i++) {
+    const t = i / 40, per = 2 * (mw + mh);
+    let d = t * per, bx: number, by: number;
+    if (d < mw) { bx = mx + d; by = my - 3; } else if ((d -= mw) < mh) { bx = mx + mw + 3; by = my + d; } else if ((d -= mh) < mw) { bx = mx + mw - d; by = my + mh + 3; } else { d -= mw; bx = mx - 3; by = my + mh - d; }
+    const lit = (i + Math.floor(f / 6)) % 3 === 0;
+    ctx.fillStyle = INK; ctx.fillRect(Math.round(bx) - 2, Math.round(by) - 2, 4, 4);
+    ctx.fillStyle = lit ? '#FEF9C3' : '#854D0E'; ctx.fillRect(Math.round(bx) - 1, Math.round(by) - 1, 2, 2);
   }
   // The sign: big pink neon over the door, flickering a little
   const on = Math.floor(f / 7) % 23 !== 0;
-  ctx.save();
-  ctx.textAlign = 'center';
-  ctx.shadowColor = '#EC4899'; ctx.shadowBlur = on ? 22 : 4;
-  ctx.fillStyle = on ? '#FBCFE8' : '#9D174D';
-  ctx.font = 'bold 24px "Press Start 2P"';
-  ctx.fillText('CLUB CALDERA', C.door + 45, y - 300);
-  ctx.shadowColor = '#22D3EE'; ctx.shadowBlur = on ? 16 : 3;
-  ctx.fillStyle = on ? '#CFFAFE' : '#155E75';
-  ctx.font = 'bold 12px "Press Start 2P"';
-  ctx.fillText('MEMBERS ONLY', C.door + 45, y - 260);
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = '#FDE68A'; ctx.font = '8px "Press Start 2P"';
-  ctx.fillText('STRICTLY NO SHIRTLESS GUESTS', C.door + 45, y - 236);
-  ctx.restore();
-  // Red carpet to the door, velvet rope on brass posts
+  neonText(ctx, 'CLUB CALDERA', C.door + 45, y - 300, 'bold 24px "Press Start 2P"', '#EC4899', '#FBCFE8', on);
+  neonText(ctx, 'MEMBERS ONLY', C.door + 45, y - 260, 'bold 12px "Press Start 2P"', '#22D3EE', '#CFFAFE', on);
+  letter(ctx, 'STRICTLY NO SHIRTLESS GUESTS', C.door + 45, y - 236, '8px "Press Start 2P"', '#FDE68A', '#713F12');
+  // The doors: black lacquer with brass handles, in a gold frame under a little canopy; open, there's light and bass inside
+  const dx = C.door - 20, dw = 130, dh = 190;
+  slab(ctx, dx - 8, y - dh - 8, dw + 16, dh + 8, '#A16207');
+  if (open) {
+    bandedGradient(ctx, dx, y - dh, dw, dh, ['#6D28D9', '#7C3AED', '#A21CAF', '#DB2777', '#EC4899'], 8);
+    for (let i = 0; i < 4; i++) { const bx = Math.round((dx + ((f * 3 + i * 40) % dw)) / 2) * 2; ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.fillRect(bx - 2, y - dh, 10, dh); ctx.fillStyle = 'rgba(255,255,255,0.14)'; ctx.fillRect(bx, y - dh, 6, dh); }
+    // (the doors thrown back against the jambs)
+    slab(ctx, dx - 30, y - dh, 30, dh, '#0A0505'); slab(ctx, dx + dw, y - dh, 30, dh, '#0A0505');
+  } else {
+    for (const lx of [dx, dx + dw / 2]) {
+      slab(ctx, lx, y - dh, dw / 2, dh, '#0E0808');
+      // (the leaf's panels, bevelled)
+      for (const py of [y - dh + 14, y - dh / 2 + 10]) { ctx.fillStyle = '#060303'; ctx.fillRect(lx + 10, py, dw / 2 - 20, dh / 2 - 34); ctx.fillStyle = '#2A1A1A'; ctx.fillRect(lx + 10, py + dh / 2 - 36, dw / 2 - 20, 2); ctx.fillRect(lx + dw / 2 - 12, py, 2, dh / 2 - 34); }
+      ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fillRect(lx + 6, y - dh + 4, 3, dh - 8);
+    }
+    for (const hx of [dx + dw / 2 - 12, dx + dw / 2 + 6]) column(ctx, hx, y - dh / 2, 6, 18, '#CA8A04');
+  }
+  slab(ctx, dx - 40, y - dh - 22, dw + 80, 14, '#1C1917');
+  neonStrip(ctx, dx - 38, y - dh - 9, dw + 76, 2, '#EC4899', on ? 1 : 0.3);
+  // Red carpet to the door (gold edged), velvet rope on brass posts
+  ctx.fillStyle = INK; ctx.fillRect(C.door - 320, y - 4, 340, 7);
   ctx.fillStyle = '#991B1B'; ctx.fillRect(C.door - 320, y - 3, 340, 5);
+  ctx.fillStyle = '#DC2626'; ctx.fillRect(C.door - 320, y - 3, 340, 1);
+  ctx.fillStyle = '#CA8A04'; ctx.fillRect(C.door - 320, y - 2, 340, 1);
   const ropeX = C.door - 300;
-  ctx.fillStyle = '#CA8A04';
-  for (const px of [ropeX, ropeX + 120]) { ctx.fillRect(px - 3, y - 50, 6, 50); ctx.beginPath(); ctx.arc(px, y - 52, 6, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(px - 9, y - 4, 18, 4); }
-  ctx.strokeStyle = '#B91C1C'; ctx.lineWidth = 5;
-  ctx.beginPath(); ctx.moveTo(ropeX, y - 44); ctx.quadraticCurveTo(ropeX + 60, y - 22, ropeX + 120, y - 44); ctx.stroke();
+  for (const px of [ropeX, ropeX + 120]) { column(ctx, px - 3, y - 50, 6, 50, '#CA8A04'); slab(ctx, px - 9, y - 5, 18, 5, '#A16207', 1); }
+  // (the rope sags between them, inked, a sheen along it)
+  const ropePts: [number, number][] = [];
+  for (let k = 0; k <= 12; k++) { const t = k / 12; ropePts.push([ropeX + 120 * t, y - 44 + 44 * t * (1 - t)]); }
+  const stroke = (w: number, c: string, dy = 0) => { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); ropePts.forEach(([px, py], k) => k ? ctx.lineTo(px, py + dy) : ctx.moveTo(px, py + dy)); ctx.stroke(); };
+  stroke(7, INK); stroke(5, '#991B1B'); stroke(2, '#DC2626', -1);
+  for (const px of [ropeX, ropeX + 120]) { ink(ctx, () => ctx.arc(px, y - 52, 6, 0, Math.PI * 2), '#CA8A04'); ctx.fillStyle = '#FEF08A'; ctx.fillRect(px - 3, y - 56, 2, 2); }
 };
+
+/** Rough-cut basalt (a tile): blocks of it in uneven courses, the joints dark, a lit lip under each. */
+const basalt = (ctx: Ctx) => tilePattern(ctx, 'victor-basalt', 96, 64, g => {
+  for (let row = 0; row < 3; row++) {
+    const y0 = [0, 22, 42][row], h = [22, 20, 22][row];
+    for (let x = -32 + row * 20; x < 96; x += 40 + row * 6) {
+      g.fillStyle = 'rgba(0,0,0,0.45)'; g.fillRect(((x % 96) + 96) % 96, y0, 2, h);
+      g.fillStyle = 'rgba(255,200,170,0.05)'; g.fillRect(((x + 2) % 96 + 96) % 96, y0 + 2, 1, h - 4);
+    }
+    g.fillStyle = 'rgba(0,0,0,0.45)'; g.fillRect(0, y0 + h - 2, 96, 2);
+    g.fillStyle = 'rgba(255,200,170,0.06)'; g.fillRect(0, y0, 96, 1);
+  }
+  g.fillStyle = 'rgba(0,0,0,0.25)'; for (let i = 0; i < 18; i++) g.fillRect((i * 37) % 94, (i * 23) % 62, 2, 2);
+});
 
 /** The shaft: rock walls with glowing seams, pipes and furnace grilles, and the lit window near the top. */
 const drawShaftWalls = (ctx: Ctx, state: GameState) => {
   const S = COURSE.shaft, f = state.frame;
   if (!visible(state, S.x1 - 200, S.x2 + 200)) return;
   const top = Math.max(S.top - 520, state.camera.y - 20), bottom = Math.min(S.floor + 200, state.camera.y + CANVAS_HEIGHT + 20);
-  // Back wall of the chimney: darker, with pipes running up it
+  // Back wall of the chimney: darker, rough blocks, with pipes running up it
   ctx.fillStyle = 'rgba(20, 8, 6, 0.85)'; ctx.fillRect(S.x1, top, S.x2 - S.x1, bottom - top);
+  ctx.fillStyle = basalt(ctx); ctx.fillRect(S.x1, top, S.x2 - S.x1, bottom - top);
   for (const px of [S.x1 + 120, S.x1 + 420, S.x2 - 90]) {
-    ctx.fillStyle = '#3F2A22'; ctx.fillRect(px, top, 14, bottom - top);
-    ctx.fillStyle = '#57382D'; ctx.fillRect(px + 2, top, 3, bottom - top);
-    for (let y = Math.ceil(top / 160) * 160; y < bottom; y += 160) { ctx.fillStyle = '#2A1B16'; ctx.fillRect(px - 3, y, 20, 8); }
+    column(ctx, px, top, 14, bottom - top, '#4A3128');
+    // (flanged and bolted every so often)
+    for (let y = Math.ceil(top / 160) * 160; y < bottom; y += 160) { slab(ctx, px - 3, y, 20, 8, '#2A1B16', 1); ctx.fillStyle = '#78574A'; ctx.fillRect(px - 1, y + 3, 2, 2); ctx.fillRect(px + 13, y + 3, 2, 2); }
   }
-  // Furnace grilles glowing in the back wall
+  // Furnace grilles glowing in the back wall: an iron frame, the fire behind the bars in bands, its glow round it
   for (let y = Math.ceil((top - S.floor) / 400) * 400 + S.floor; y < bottom; y += 400) {
-    const gx = S.x1 + 250 + (hash(y) - 0.5) * 200;
-    ctx.fillStyle = '#1C1917'; ctx.fillRect(gx - 40, y - 60, 80, 50);
+    const gx = Math.round(S.x1 + 250 + (hash(y) - 0.5) * 200);
     const glow = 0.5 + 0.5 * Math.sin(f * 0.08 + y);
-    ctx.fillStyle = `rgba(249, 115, 22, ${0.5 + glow * 0.4})`;
-    for (let i = 0; i < 5; i++) ctx.fillRect(gx - 34 + i * 15, y - 54, 9, 38);
+    steppedGlow(ctx, gx, y - 35, 80, '#F97316', 0.08 + glow * 0.08, 0.02, 4);
+    slab(ctx, gx - 40, y - 60, 80, 50, '#1C1917');
+    ctx.save(); ctx.globalAlpha = 0.6 + glow * 0.4;
+    for (let i = 0; i < 5; i++) bandedGradient(ctx, gx - 34 + i * 15, y - 54, 9, 38, ['#7C2D12', '#C2410C', '#F97316', '#FDBA74'], 4);
+    ctx.restore();
+    ctx.fillStyle = INK; for (let i = 0; i < 5; i++) { ctx.fillRect(gx - 35 + i * 15, y - 55, 11, 1); ctx.fillRect(gx - 35 + i * 15, y - 55, 1, 40); }
+    ctx.fillStyle = '#44403C'; ctx.fillRect(gx - 38, y - 58, 76, 1);
   }
-  // The side walls themselves
-  for (const [x, w] of [[S.x1 - 60, 60], [S.x2, 60]] as [number, number][]) {
+  // The side walls themselves: rock, lit along the face toward the shaft, lava in its cracks
+  for (const [x, w, face] of [[S.x1 - 60, 60, S.x1 - 4], [S.x2, 60, S.x2]] as [number, number, number][]) {
     ctx.fillStyle = '#1A0A07'; ctx.fillRect(x, top, w, bottom - top);
-    ctx.strokeStyle = 'rgba(249, 115, 22, 0.7)'; ctx.lineWidth = 2;
-    for (let y = Math.ceil(top / 70) * 70; y < bottom; y += 70) { ctx.beginPath(); ctx.moveTo(x + 10, y); ctx.lineTo(x + 30, y + 20 + hash(y + x) * 20); ctx.lineTo(x + 50, y + 34); ctx.stroke(); }
+    ctx.fillStyle = basalt(ctx); ctx.fillRect(x, top, w, bottom - top);
+    ctx.fillStyle = '#3A1812'; ctx.fillRect(face, top, 4, bottom - top);
+    checker(ctx, face === S.x2 ? face + 4 : face - 6, top, 6, bottom - top, '#2A110D');
+    ctx.fillStyle = INK; ctx.fillRect(face === S.x2 ? face - 1 : face + 4, top, 1, bottom - top);
+    for (let y = Math.ceil(top / 70) * 70; y < bottom; y += 70) crackLine(ctx, [[x + 10, y], [x + 30, y + 20 + hash(y + x) * 20], [x + 50, y + 34]], 'rgba(249, 115, 22, 0.8)', 'rgba(249, 115, 22, 0.2)');
   }
   // The opening at the foot of the left wall (where the river comes in) stays dark
   ctx.fillStyle = '#0A0404'; ctx.fillRect(S.x1 - 60, S.floor - 170, 60, 170);
+  ctx.fillStyle = '#3A1812'; ctx.fillRect(S.x1 - 60, S.floor - 172, 60, 2); ctx.fillStyle = INK; ctx.fillRect(S.x1 - 60, S.floor - 170, 60, 1);
   // The window at the top of the right wall: into the club itself (its main floor: the VIP lounge is further on), warm
   // light and silhouettes moving behind the glass
   const w = S.window;
   if (w.y > state.camera.y - 200 && w.y < state.camera.y + CANVAS_HEIGHT + 200) {
-    const g = ctx.createLinearGradient(w.x - 20, w.y - 60, w.x - 20, w.y + 60);
-    g.addColorStop(0, '#A855F7'); g.addColorStop(1, '#EC4899');
-    ctx.fillStyle = g; ctx.fillRect(w.x - 10, w.y - 60, 60, 120);
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
-    for (let i = 0; i < 2; i++) { const sx = w.x + 5 + ((f * 0.4 + i * 30) % 40); ctx.fillRect(sx, w.y - 20, 10, 60); ctx.beginPath(); ctx.arc(sx + 5, w.y - 26, 6, 0, Math.PI * 2); ctx.fill(); }
-    ctx.strokeStyle = '#CA8A04'; ctx.lineWidth = 4; ctx.strokeRect(w.x - 10, w.y - 60, 60, 120);
-    ctx.fillStyle = '#FDE68A'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('CLUB CALDERA', w.x + 20, w.y - 68); ctx.textAlign = 'left';
-    // Bass thumping out of it
-    if (Math.floor(f / 15) % 2) { ctx.strokeStyle = 'rgba(236, 72, 153, 0.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(w.x - 10, w.y, 30, Math.PI * 0.6, Math.PI * 1.4); ctx.stroke(); }
+    drawPartyWindow(ctx, w.x, w.y, f, 'CLUB CALDERA');
+    // Bass thumping out of it (rings of it, stepped)
+    if (Math.floor(f / 15) % 2) for (let k = 0; k < 9; k++) { const a = Math.PI * (0.62 + k * 0.095); ctx.fillStyle = 'rgba(236, 72, 153, 0.6)'; ctx.fillRect(Math.round(w.x - 10 + Math.cos(a) * 30), Math.round(w.y + Math.sin(a) * 30), 2, 4); }
   }
 };
 
@@ -278,22 +324,33 @@ const drawLava = (ctx: Ctx, state: GameState) => {
     if (!isLava(r) || !visible(state, r.x1, r.x2)) continue;
     const x1 = Math.max(r.x1, state.camera.x - 260), x2 = Math.min(r.x2, state.camera.x + CANVAS_WIDTH + 260);
     const y = r.y1;
-    // The glow above it
-    const glow = ctx.createLinearGradient(0, y - 40, 0, y);
-    glow.addColorStop(0, 'rgba(249, 115, 22, 0)'); glow.addColorStop(1, 'rgba(249, 115, 22, 0.22)');
-    ctx.fillStyle = glow; ctx.fillRect(x1, y - 40, x2 - x1, 40);
-    // The lava: bright at the top, darker crust rolling in it
-    const g = ctx.createLinearGradient(0, y, 0, y + 120);
-    g.addColorStop(0, '#FDE047'); g.addColorStop(0.15, '#F97316'); g.addColorStop(0.6, '#B91C1C'); g.addColorStop(1, '#450A0A');
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.moveTo(x1, bottom);
-    for (let x = x1; x <= x2; x += 10) ctx.lineTo(x, y + Math.sin(x * 0.05 + f * 0.08) * 3);
-    ctx.lineTo(x2, bottom); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = 'rgba(69, 10, 10, 0.55)';
-    for (let x = Math.ceil(x1 / 60) * 60; x < x2; x += 60) { const cx = x + ((f * 0.5 + hash(x) * 60) % 60); ctx.beginPath(); ctx.ellipse(cx, y + 14 + hash(x) * 20, 18, 4, 0, 0, Math.PI * 2); ctx.fill(); }
-    // Bubbles popping
-    ctx.fillStyle = '#FEF08A';
-    for (let x = Math.ceil(x1 / 90) * 90; x < x2; x += 90) { const t = (f + hash(x) * 60) % 60; if (t < 12) { ctx.beginPath(); ctx.arc(x + hash(x + 1) * 60, y - t * 0.6, 3 + t * 0.3, 0, Math.PI * 2); ctx.fill(); } }
+    // The glow above it, in steps
+    hazeBands(ctx, x1, y - 40, x2 - x1, 40, '#F97316', 0, 0.22, 5);
+    // The lava: bright at the top, in bands going down, the surface rolling in 4px steps; darker crust riding in it
+    const xs = Math.floor(x1 / 4) * 4;
+    const surf = (x: number) => Math.round((y + Math.sin(x * 0.05 + f * 0.08) * 3) / 2) * 2;
+    ctx.save(); ctx.beginPath();
+    for (let x = xs; x < x2; x += 4) ctx.rect(x, surf(x), 4, bottom - surf(x));
+    ctx.clip();
+    bandedGradient(ctx, xs, y - 4, x2 - xs, 124, ['#FDE047', '#FB923C', '#F97316', '#DC2626', '#B91C1C', '#7F1D1D', '#450A0A'], 12);
+    ctx.fillStyle = '#450A0A'; ctx.fillRect(xs, y + 120, x2 - xs, Math.max(0, bottom - y - 120));
+    for (let x = Math.ceil(x1 / 60) * 60; x < x2; x += 60) {
+      const cx = x + ((f * 0.5 + hash(x) * 60) % 60), cy = y + 14 + hash(x) * 20;
+      pixelBlob(ctx, cx, cy, 18, 4, 'rgba(69, 10, 10, 0.6)');
+      ctx.fillStyle = 'rgba(253, 224, 71, 0.5)'; ctx.fillRect(Math.round(cx / 2) * 2 - 10, Math.round(cy / 2) * 2 - 4, 12, 2);
+    }
+    ctx.restore();
+    // (the skin of it, lit along the top)
+    for (let x = xs; x < x2; x += 4) { const sy = surf(x); ctx.fillStyle = '#FEF9C3'; ctx.fillRect(x, sy, 4, 2); ctx.fillStyle = '#FDE047'; ctx.fillRect(x, sy + 2, 4, 2); }
+    // Bubbles popping: a ring swelling up, then gone
+    for (let x = Math.ceil(x1 / 90) * 90; x < x2; x += 90) {
+      const t = (f + hash(x) * 60) % 60;
+      if (t >= 12) continue;
+      const bx = x + hash(x + 1) * 60, by = y - t * 0.6, br = 3 + t * 0.3;
+      pixelBlob(ctx, bx, by, br + 1, br + 1, '#EA580C');
+      pixelBlob(ctx, bx, by, br, br, '#FEF08A');
+      ctx.fillStyle = '#FFFFFF'; ctx.fillRect(Math.round(bx - br * 0.5), Math.round(by - br * 0.6), 2, 2);
+    }
   }
 };
 
@@ -302,17 +359,25 @@ const drawLedges = (ctx: Ctx, state: GameState) => {
     if (!visible(state, l.x, l.x + l.w) || l.y < state.camera.y - 40 || l.y > state.camera.y + CANVAS_HEIGHT + 40) continue;
     if (drawClubLedge(ctx, l, state.frame)) continue;
     if (l.look === 'catwalk') {
-      // Steel grating on brackets out of the wall
-      ctx.fillStyle = '#3F3F46'; ctx.fillRect(l.x, l.y, l.w, 8);
-      ctx.fillStyle = '#18181B'; for (let x = l.x + 4; x < l.x + l.w - 4; x += 8) ctx.fillRect(x, l.y + 2, 4, 4);
-      ctx.fillStyle = '#A1A1AA'; ctx.fillRect(l.x, l.y, l.w, 2);
-      ctx.fillStyle = '#27272A'; ctx.fillRect(l.x + 10, l.y + 8, 5, 18); ctx.fillRect(l.x + l.w - 15, l.y + 8, 5, 18);
-      ctx.fillStyle = '#FACC15'; for (let x = l.x; x < l.x + l.w; x += 20) ctx.fillRect(x, l.y - 2, 10, 2);
+      // Steel grating on brackets out of the wall: the deck lit along its top edge, the holes through it, inked
+      column(ctx, l.x + 10, l.y + 8, 5, 18, '#3F3F46'); column(ctx, l.x + l.w - 15, l.y + 8, 5, 18, '#3F3F46');
+      pipe(ctx, l.x, l.y, l.w, 8, '#52525B');
+      for (let x = l.x + 4; x < l.x + l.w - 4; x += 8) { ctx.fillStyle = '#18181B'; ctx.fillRect(x, l.y + 2, 4, 4); ctx.fillStyle = '#71717A'; ctx.fillRect(x, l.y + 6, 4, 1); }
+      ctx.fillStyle = '#A1A1AA'; ctx.fillRect(l.x, l.y, l.w, 2); ctx.fillStyle = '#D4D4D8'; ctx.fillRect(l.x, l.y, l.w, 1);
+      ctx.fillStyle = INK; ctx.fillRect(l.x - 1, l.y, 1, 8); ctx.fillRect(l.x + l.w, l.y, 1, 8); ctx.fillRect(l.x, l.y - 3, l.w, 1);
+      for (let x = l.x; x < l.x + l.w; x += 20) { ctx.fillStyle = '#FACC15'; ctx.fillRect(x, l.y - 2, 10, 2); ctx.fillStyle = '#1C1917'; ctx.fillRect(x + 10, l.y - 2, 10, 2); }
     } else {
-      // A slab of basalt with a lip of glowing cracks
-      ctx.fillStyle = '#2A1410'; ctx.beginPath(); ctx.moveTo(l.x, l.y); ctx.lineTo(l.x + l.w, l.y); ctx.lineTo(l.x + l.w - 10, l.y + 22); ctx.lineTo(l.x + 12, l.y + 26); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#1A0B08'; ctx.fillRect(l.x, l.y, l.w, 5);
-      ctx.fillStyle = '#F97316'; for (let x = l.x + 6; x < l.x + l.w - 6; x += 16) ctx.fillRect(x + hash(x) * 6, l.y + 2, 4, 2);
+      // A slab of basalt with a lip of glowing cracks: lit along the top, its underside in shadow, inked round
+      const shape = () => { ctx.moveTo(l.x, l.y); ctx.lineTo(l.x + l.w, l.y); ctx.lineTo(l.x + l.w - 10, l.y + 22); ctx.lineTo(l.x + 12, l.y + 26); ctx.closePath(); };
+      ctx.save(); ctx.beginPath(); shape(); ctx.clip();
+      ctx.fillStyle = '#2A1410'; ctx.fillRect(l.x, l.y, l.w, 26);
+      ctx.fillStyle = '#1A0B08'; ctx.fillRect(l.x, l.y + 16, l.w, 10); checker(ctx, l.x, l.y + 12, l.w, 4, '#1A0B08');
+      ctx.fillStyle = '#3A1C14'; ctx.fillRect(l.x, l.y + 5, 6, 12);
+      ctx.restore();
+      ctx.beginPath(); shape(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = '#4A2016'; ctx.fillRect(l.x, l.y, l.w, 2);
+      ctx.fillStyle = '#1A0B08'; ctx.fillRect(l.x, l.y + 2, l.w, 3);
+      for (let x = l.x + 6; x < l.x + l.w - 6; x += 16) { const cx = Math.round(x + hash(x) * 6); ctx.fillStyle = 'rgba(249, 115, 22, 0.3)'; ctx.fillRect(cx - 2, l.y + 1, 8, 4); ctx.fillStyle = '#F97316'; ctx.fillRect(cx, l.y + 2, 4, 2); ctx.fillStyle = '#FDE047'; ctx.fillRect(cx + 1, l.y + 2, 2, 1); }
     }
   }
 };
@@ -322,10 +387,19 @@ const drawRafts = (ctx: Ctx, state: GameState) => {
   for (const r of rt.hazards.rafts) {
     const b = r.block;
     if (r.t > 0 || !visible(state, b.x, b.x + b.w)) continue;
-    ctx.fillStyle = '#1C1917';
-    ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x + b.w, b.y); ctx.lineTo(b.x + b.w - 8, b.y + 18); ctx.lineTo(b.x + 10, b.y + 20); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#44403C'; ctx.fillRect(b.x + 4, b.y, b.w - 8, 3);
+    const shape = () => { ctx.moveTo(b.x, b.y); ctx.lineTo(b.x + b.w, b.y); ctx.lineTo(b.x + b.w - 8, b.y + 18); ctx.lineTo(b.x + 10, b.y + 20); ctx.closePath(); };
+    // A crust of rock riding the lava: lit on top, shaded under, the molten edge where it's sitting in it
+    ctx.save(); ctx.beginPath(); shape(); ctx.clip();
+    ctx.fillStyle = '#1C1917'; ctx.fillRect(b.x, b.y, b.w, 20);
+    ctx.fillStyle = '#292524'; ctx.fillRect(b.x, b.y + 3, b.w, 4); checker(ctx, b.x, b.y + 7, b.w, 2, '#292524');
     ctx.fillStyle = 'rgba(249, 115, 22, 0.9)'; ctx.fillRect(b.x, b.y + 14, b.w, 3);
+    ctx.fillStyle = 'rgba(253, 224, 71, 0.9)'; ctx.fillRect(b.x, b.y + 14, b.w, 1);
+    checker(ctx, b.x, b.y + 12, b.w, 2, 'rgba(249, 115, 22, 0.6)');
+    ctx.restore();
+    ctx.beginPath(); shape(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = '#44403C'; ctx.fillRect(b.x + 4, b.y, b.w - 8, 3);
+    ctx.fillStyle = '#78716C'; ctx.fillRect(b.x + 4, b.y, b.w - 8, 1);
+    ctx.fillStyle = '#0C0A09'; for (let k = 1; k < 4; k++) ctx.fillRect(Math.round(b.x + (b.w * k) / 4 + hash(b.w + k) * 8), b.y + 4, 2, 6);
   }
 };
 
@@ -334,16 +408,21 @@ const drawVents = (ctx: Ctx, state: GameState) => {
   for (const v of COURSE.vents) {
     if (!visible(state, v.x - 60, v.x + 60)) continue;
     const ph = ventPhase(v, f);
-    // The crack (a lava spout's just a patch of bubbling)
-    if (!v.lava) { ctx.fillStyle = '#0A0404'; ctx.beginPath(); ctx.ellipse(v.x, v.y + 1, 22, 5, 0, 0, Math.PI * 2); ctx.fill(); }
-    ctx.fillStyle = `rgba(249, 115, 22, ${ph.warning ? 0.9 : 0.35})`;
-    ctx.beginPath(); ctx.ellipse(v.x, v.y, 14 + (ph.warning ? Math.sin(f * 0.8) * 3 : 0), 3, 0, 0, Math.PI * 2); ctx.fill();
+    // The crack (a lava spout's just a patch of bubbling): a split in the rock, its lip lit, the glow down in it
+    if (!v.lava) {
+      pixEllipse(ctx, v.x, v.y + 1, 23, 6, INK);
+      pixEllipse(ctx, v.x, v.y + 1, 22, 5, '#0A0404');
+      ctx.fillStyle = '#4A2016'; ctx.fillRect(Math.round(v.x) - 20, Math.round(v.y) - 4, 14, 2); ctx.fillRect(Math.round(v.x) + 6, Math.round(v.y) - 4, 12, 2);
+    }
+    const gw = 14 + (ph.warning ? Math.sin(f * 0.8) * 3 : 0);
+    pixEllipse(ctx, v.x, v.y, gw, 3, `rgba(249, 115, 22, ${ph.warning ? 0.9 : 0.35})`);
+    if (ph.warning) pixEllipse(ctx, v.x, v.y, gw * 0.5, 1, '#FDE047');
     if (ph.warning && v.lava) drawSpoutWarning(ctx, v.x, v.y, ph.t / ph.warn, f);
     else if (ph.warning) {
       // Smoke and sparks: it's about to go
       for (let i = 0; i < 4; i++) {
-        const t = ((f * 2 + i * 13) % 40) / 40;
-        ctx.fillStyle = `rgba(120, 113, 108, ${0.6 * (1 - t)})`; ctx.beginPath(); ctx.arc(v.x + Math.sin(i * 2 + f * 0.1) * 8, v.y - t * 60, 5 + t * 10, 0, Math.PI * 2); ctx.fill();
+        const t = ((f * 2 + i * 13) % 40) / 40, r = 5 + t * 10;
+        pixelBlob(ctx, v.x + Math.sin(i * 2 + f * 0.1) * 8, v.y - t * 60, r, r, `rgba(120, 113, 108, ${(0.6 * (1 - t)).toFixed(2)})`);
       }
       ctx.fillStyle = '#FDE047'; ctx.fillRect(v.x - 8 + (f * 7) % 16, v.y - 10 - (f * 3) % 20, 2, 2);
     }
@@ -361,16 +440,18 @@ const drawVents = (ctx: Ctx, state: GameState) => {
 const drawSpoutWarning = (ctx: Ctx, x: number, y: number, k: number, f: number) => {
   const late = k > 0.7;
   const pulse = 0.5 + 0.5 * Math.sin(f * (late ? 1.1 : 0.5));
-  // The column to come: a heat shimmer where it'll be, the full height of it
+  // The column to come: a heat shimmer where it'll be, the full height of it (in bands, fading up, the edges stepped)
   ctx.save();
   const a = (0.1 + 0.3 * k) * (0.6 + 0.4 * pulse);
-  const g = ctx.createLinearGradient(0, y - VENT_HEIGHT, 0, y);
-  g.addColorStop(0, 'rgba(253, 186, 116, 0)'); g.addColorStop(0.5, `rgba(251, 146, 60, ${a * 0.6})`); g.addColorStop(1, `rgba(249, 115, 22, ${a})`);
-  ctx.fillStyle = g;
-  ctx.beginPath(); ctx.moveTo(x - VENT_HALF_WIDTH, y);
-  for (let yy = 0; yy <= VENT_HEIGHT; yy += 14) ctx.lineTo(x - VENT_HALF_WIDTH * (1 - yy / VENT_HEIGHT * 0.5) + Math.sin(f * 0.3 + yy * 0.1) * 3, y - yy);
-  for (let yy = VENT_HEIGHT; yy >= 0; yy -= 14) ctx.lineTo(x + VENT_HALF_WIDTH * (1 - yy / VENT_HEIGHT * 0.5) + Math.sin(f * 0.3 + yy * 0.1 + 2) * 3, y - yy);
-  ctx.closePath(); ctx.fill();
+  ctx.beginPath();
+  for (let yy = 0; yy < VENT_HEIGHT; yy += 14) {
+    const l = x - VENT_HALF_WIDTH * (1 - yy / VENT_HEIGHT * 0.5) + Math.sin(f * 0.3 + yy * 0.1) * 3;
+    const r = x + VENT_HALF_WIDTH * (1 - yy / VENT_HEIGHT * 0.5) + Math.sin(f * 0.3 + yy * 0.1 + 2) * 3;
+    ctx.rect(Math.round(l / 2) * 2, y - yy - 14, Math.round((r - l) / 2) * 2, 14);
+  }
+  ctx.clip();
+  hazeBands(ctx, x - VENT_HALF_WIDTH - 6, y - VENT_HEIGHT, VENT_HALF_WIDTH * 2 + 12, VENT_HEIGHT, '#F97316', 0, a, 6);
+  ctx.restore(); ctx.save();
   // Its edges, dashed, flickering in the last moments
   if (late && f % 6 < 4) {
     ctx.strokeStyle = 'rgba(254, 240, 138, 0.55)'; ctx.lineWidth = 2; ctx.setLineDash([6, 6]); ctx.lineDashOffset = -f * 2;
@@ -380,10 +461,13 @@ const drawSpoutWarning = (ctx: Ctx, x: number, y: number, k: number, f: number) 
   ctx.restore();
   // The lava swelling up: a dome, bigger and brighter as it comes
   const r = 16 + 22 * k, h = 4 + 16 * k + (late ? pulse * 4 : 0);
-  ctx.fillStyle = '#7C2D12'; ctx.beginPath(); ctx.ellipse(x, y + 2, r + 4, h * 0.5 + 3, 0, Math.PI, 0); ctx.fill();
-  ctx.fillStyle = late ? (f % 8 < 4 ? '#FDE047' : '#FB923C') : '#EA580C';
-  ctx.beginPath(); ctx.ellipse(x, y + 2, r, h, 0, Math.PI, 0); ctx.fill();
-  ctx.fillStyle = 'rgba(254, 240, 138, 0.8)'; ctx.beginPath(); ctx.ellipse(x - r * 0.3, y + 2 - h * 0.55, r * 0.35, h * 0.25, 0, 0, Math.PI * 2); ctx.fill();
+  const hot = late ? (f % 8 < 4 ? '#FDE047' : '#FB923C') : '#EA580C';
+  pixEllipse(ctx, x, y + 2, r + 5, h * 0.5 + 4, INK, true);
+  pixEllipse(ctx, x, y + 2, r + 4, h * 0.5 + 3, '#7C2D12', true);
+  pixEllipse(ctx, x, y + 2, r + 1, h + 1, INK, true);
+  pixEllipse(ctx, x, y + 2, r, h, dark(hot, 0.2), true);
+  pixEllipse(ctx, x - r * 0.08, y + 2, r * 0.8, h * 0.85, hot, true);
+  pixEllipse(ctx, x - r * 0.3, y + 2 - h * 0.55, r * 0.35, h * 0.25, 'rgba(254, 240, 138, 0.85)');
   // Boiling: bubbles swelling and popping round it
   for (let i = 0; i < 5; i++) {
     const bt = ((f + i * 11) % 24) / 24;
@@ -400,8 +484,18 @@ const drawSpoutWarning = (ctx: Ctx, x: number, y: number, k: number, f: number) 
   }
   // Smoke off the top
   for (let i = 0; i < 3; i++) {
-    const t = ((f * 2 + i * 13) % 40) / 40;
-    ctx.fillStyle = `rgba(68, 64, 60, ${0.5 * (1 - t)})`; ctx.beginPath(); ctx.arc(x + Math.sin(i * 2 + f * 0.1) * 10, y - 20 - t * 80, 6 + t * 12, 0, Math.PI * 2); ctx.fill();
+    const t = ((f * 2 + i * 13) % 40) / 40, sr = 6 + t * 12;
+    pixelBlob(ctx, x + Math.sin(i * 2 + f * 0.1) * 10, y - 20 - t * 80, sr, sr, `rgba(68, 64, 60, ${(0.5 * (1 - t)).toFixed(2)})`);
+  }
+};
+
+/** A flat ellipse in 2px rows (a crack, a dome, a pool): `half` for just the top half of it. */
+const pixEllipse = (ctx: Ctx, cx: number, cy: number, rw: number, rh: number, c: string, half = false) => {
+  ctx.fillStyle = c;
+  const n = Math.max(1, Math.ceil(rh / 2));
+  for (let i = -n; i < (half ? 0 : n); i++) {
+    const v = (i + 0.5) / n, w = Math.round(rw * Math.sqrt(Math.max(0, 1 - v * v)) / 2) * 2;
+    if (w > 0) ctx.fillRect(Math.round(cx / 2) * 2 - w, Math.round(cy / 2) * 2 + i * 2, w * 2, 2);
   }
 };
 
@@ -412,11 +506,17 @@ const drawJets = (ctx: Ctx, state: GameState) => {
     const ph = jetPhase(j, f);
     // The nozzle (in the club, a chrome pyro cannon with a neon ring)
     const club = regionOf(j.x) === 'club';
-    ctx.fillStyle = club ? '#D4D4D8' : '#52525B'; ctx.fillRect(j.dir > 0 ? j.x : j.x - 22, j.y - 12, 22, 24);
-    ctx.fillStyle = club ? '#F472B6' : '#18181B'; ctx.fillRect(j.dir > 0 ? j.x + 18 : j.x - 22, j.y - 8, 4, 16);
-    if (club) { ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(j.dir > 0 ? j.x + 2 : j.x - 20, j.y - 10, 16, 3); }
+    const nx = j.dir > 0 ? j.x : j.x - 22, mx = j.dir > 0 ? j.x + 18 : j.x - 22;
+    // (a barrel lit along the top, a collar where it's set in the wall, the muzzle)
+    slab(ctx, j.dir > 0 ? nx - 4 : nx + 18, j.y - 16, 8, 32, club ? '#3F3F46' : '#292524', 1);
+    pipe(ctx, nx, j.y - 12, 22, 24, club ? '#D4D4D8' : '#52525B');
+    if (club) { neonStrip(ctx, mx, j.y - 8, 4, 16, '#F472B6', 0.7); ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillRect(j.dir > 0 ? j.x + 2 : j.x - 20, j.y - 9, 16, 2); }
+    else { ctx.fillStyle = '#18181B'; ctx.fillRect(mx, j.y - 8, 4, 16); ctx.fillStyle = INK; ctx.fillRect(mx, j.y - 8, 4, 1); }
+    ctx.fillStyle = INK; ctx.fillRect(nx, j.y - 12, 1, 24); ctx.fillRect(nx + 21, j.y - 12, 1, 24);
     if (ph.warning) {
-      ctx.fillStyle = `rgba(249, 115, 22, ${0.5 + 0.5 * Math.sin(f * 0.9)})`; ctx.beginPath(); ctx.arc(j.x + j.dir * 24, j.y, 8 + (ph.t / JET_WARN) * 6, 0, Math.PI * 2); ctx.fill();
+      const gr = 8 + (ph.t / JET_WARN) * 6;
+      steppedGlow(ctx, j.x + j.dir * 24, j.y, gr, '#F97316', 0.5 + 0.5 * Math.sin(f * 0.9), 0.25, 3);
+      steppedGlow(ctx, j.x + j.dir * 24, j.y, gr * 0.45, '#FDE047', 0.8, 0.5, 2);
       ctx.fillStyle = '#FDE047'; for (let i = 0; i < 3; i++) ctx.fillRect(j.x + j.dir * (26 + ((f * 5 + i * 9) % 30)), j.y - 6 + i * 5, 2, 2);
     }
     if (ph.burning) {
@@ -432,11 +532,23 @@ const drawBars = (ctx: Ctx, state: GameState) => {
   for (const b of COURSE.bars) {
     if (b.y < state.camera.y - 200 || b.y > state.camera.y + CANVAS_HEIGHT + 200) continue;
     if (regionOf(b.x) === 'club') {
-      // A disco ball at the hub: mirror tiles, glints going round
-      ctx.fillStyle = '#A1A1AA'; ctx.beginPath(); ctx.arc(b.x, b.y, 14, 0, Math.PI * 2); ctx.fill();
-      for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2 + state.frame * 0.05; ctx.fillStyle = k % 3 ? '#E4E4E7' : '#FFFFFF'; ctx.fillRect(b.x + Math.cos(a) * 8 - 2, b.y + Math.sin(a) * 8 - 2, 4, 4); }
-      ctx.strokeStyle = '#A1A1AA'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(b.x, b.y - 14); ctx.lineTo(b.x, b.y - 400); ctx.stroke();
-    } else { ctx.fillStyle = '#44403C'; ctx.beginPath(); ctx.arc(b.x, b.y, 10, 0, Math.PI * 2); ctx.fill(); }
+      // A disco ball at the hub: mirror tiles in rows, lit upper left, glints going round
+      ctx.fillStyle = INK; ctx.fillRect(b.x - 1, b.y - 400, 3, 386); ctx.fillStyle = '#A1A1AA'; ctx.fillRect(b.x, b.y - 400, 1, 386);
+      ink(ctx, () => ctx.arc(b.x, b.y, 14, 0, Math.PI * 2), '#71717A');
+      ctx.save(); ctx.beginPath(); ctx.arc(b.x, b.y, 13, 0, Math.PI * 2); ctx.clip();
+      const spin = Math.floor(state.frame / 6) % 2;
+      for (let ty = -14; ty < 14; ty += 4) for (let tx = -14 + ((ty / 4 + spin) & 1) * 2; tx < 14; tx += 4) {
+        const d = (tx + ty + 4) / 28;
+        ctx.fillStyle = d < -0.35 ? '#F4F4F5' : d < 0 ? '#D4D4D8' : d < 0.35 ? '#A1A1AA' : '#52525B';
+        ctx.fillRect(b.x + tx, b.y + ty, 3, 3);
+      }
+      ctx.restore();
+      for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2 + state.frame * 0.05; ctx.fillStyle = k % 3 ? '#E4E4E7' : '#FFFFFF'; ctx.fillRect(Math.round(b.x + Math.cos(a) * 8 - 2), Math.round(b.y + Math.sin(a) * 8 - 2), 4, 4); }
+    } else {
+      ink(ctx, () => ctx.arc(b.x, b.y, 10, 0, Math.PI * 2), '#44403C');
+      ctx.fillStyle = '#292524'; ctx.beginPath(); ctx.arc(b.x, b.y, 9, Math.PI * 0.1, Math.PI * 0.9); ctx.fill();
+      ctx.fillStyle = '#78716C'; ctx.fillRect(b.x - 5, b.y - 6, 4, 2); ctx.fillRect(b.x - 6, b.y - 4, 2, 2);
+    }
     // (each ball streaming a tail back along the way it's swinging)
     drawFireballs(ctx, barBalls(b, state.frame).map(ball => ({ x: ball.x, y: ball.y, r: 9, vx: -(ball.y - b.y) * b.speed, vy: (ball.x - b.x) * b.speed })), state.frame, { seed: b.x, tail: 1 });
   }
@@ -451,10 +563,13 @@ const drawBombs = (ctx: Ctx, state: GameState) => {
       ctx.strokeStyle = `rgba(239, 68, 68, ${0.5 + 0.5 * (Math.floor(b.t / 4) % 2)})`; ctx.lineWidth = 3;
       ctx.beginPath(); ctx.ellipse(b.x, b.ground - 2, BOMB_RADIUS * (1.2 - k * 0.4), 10, 0, 0, Math.PI * 2); ctx.stroke();
       const bx = b.x + (1 - k) * 380, by = b.ground - 20 - (1 - k) * 700 + Math.sin(k * Math.PI) * -60;
-      ctx.fillStyle = 'rgba(120, 113, 108, 0.5)';
-      for (let i = 1; i < 5; i++) { ctx.beginPath(); ctx.arc(bx + i * 14, by - i * 22, 8 + i * 2, 0, Math.PI * 2); ctx.fill(); }
-      ctx.fillStyle = '#1C1917'; ctx.beginPath(); ctx.arc(bx, by, 16, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = '#F97316'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(bx - 10, by - 4); ctx.lineTo(bx - 2, by + 2); ctx.lineTo(bx + 8, by - 6); ctx.stroke();
+      for (let i = 1; i < 5; i++) pixelBlob(ctx, bx + i * 14, by - i * 22, 8 + i * 2, 8 + i * 2, 'rgba(120, 113, 108, 0.5)');
+      // (a lump of rock, glowing through its cracks, lit on the side toward the crater)
+      ink(ctx, () => ctx.arc(bx, by, 16, 0, Math.PI * 2), '#1C1917', 2);
+      ctx.fillStyle = '#292524'; ctx.beginPath(); ctx.arc(bx - 1, by - 1, 13, Math.PI * 0.95, Math.PI * 1.7); ctx.lineTo(bx - 1, by - 1); ctx.fill();
+      ctx.fillStyle = '#44403C'; ctx.fillRect(Math.round(bx) - 9, Math.round(by) - 10, 4, 2); ctx.fillRect(Math.round(bx) - 11, Math.round(by) - 8, 2, 4);
+      crackLine(ctx, [[bx - 10, by - 4], [bx - 2, by + 2], [bx + 8, by - 6]], '#F97316', 'rgba(249, 115, 22, 0.3)');
+      crackLine(ctx, [[bx - 2, by + 2], [bx, by + 10]], '#EA580C');
     } else {
       // The blast
       const k = (b.t - BOMB_WARN) / 18;
