@@ -43,8 +43,11 @@ export const createFx = (state: GameState) => {
   };
 
   /** Big "SPLAT!"-style callout over a special kill. */
-  const spawnKillCallout = (e: { pos: Vector2, width: number, height?: number, kind?: string }, kind: KillCallout) => {
+  const spawnKillCallout = (e: { pos: Vector2, width: number, height?: number, kind?: string, health?: number, isBlownAway?: boolean }, kind: KillCallout) => {
     if (e.kind === 'tenant') return;
+    // (no kill, no callout: the kill that's just been tried on it didn't take (it was spared, never having been on the
+    // screen), and something sweeping over it every frame, like the tsunami, would call it out every frame)
+    if (e.health !== undefined && e.health > 0 && !e.isBlownAway) return;
     const { color } = KILL_CALLOUTS[kind];
     // (the ones that name what it hit go by what's actually under it)
     const bySurface = SURFACE_CALLOUTS[kind];
