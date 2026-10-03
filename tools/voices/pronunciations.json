@@ -5,6 +5,7 @@
     { "in": "FACEPLANT", "say": "FACE PLANT" },
     { "in": "GANGRENE", "say": "GANG GREEN", "word": true },
     { "in": "NAMASTE", "say": "NAH MUH STAY" },
+    { "in": "BANDANA", "say": "BAN DANNUH", "word": true },
     { "in": "CARBON FIB-", "say": "CARBON FYE-" },
     { "in": "WAY TOO EASY", "say": "WAY TOO EE-ZEE" },
     { "in": "FISH LIVES", "say": "FISH LIVS" },
