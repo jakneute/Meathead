@@ -192,6 +192,12 @@ const drawLedge = (ctx: Ctx, l: Ledge, frame: number) => {
       ctx.strokeStyle = c; ctx.lineWidth = lw; ctx.beginPath(); ctx.moveTo(x - 6, y + 14); ctx.lineTo(x + w * 0.6, y + 16); ctx.lineTo(x + w + 4, y + 34); ctx.stroke();
     }
     ctx.strokeStyle = '#D6D3D1'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x - 6, y + 13); ctx.lineTo(x + w * 0.6, y + 15); ctx.stroke();
+    // (the top you stand on: a fresh plank lip along it, lit bright, inked, nailed: this one's real, unlike the houses'
+    // porch roofs back behind the fences)
+    ink(ctx, () => ctx.rect(x - 7, y - 3, w + 14, 5), '#C8A46A', 1);
+    ctx.fillStyle = '#F5E2B8'; ctx.fillRect(x - 6, y - 2, w + 12, 2);
+    ctx.fillStyle = '#8A6A3A'; ctx.fillRect(x - 6, y + 1, w + 12, 1);
+    ctx.fillStyle = '#3F3A36'; for (let nx = x; nx < x + w; nx += 24) ctx.fillRect(nx, y - 1, 1, 1);
     return;
   }
   if (l.look === 'carroof') {

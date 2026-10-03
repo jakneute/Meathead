@@ -319,9 +319,10 @@ const drawHouse = (ctx: Ctx, x: number, base: number, k: number, dusk: number) =
   ctx.fillStyle = burned ? '#1C1917' : '#5B3A29'; ctx.fillRect(x + 131, base - 59, 22, 28);
   ctx.fillStyle = burned ? '#0C0A09' : '#4A2E20'; ctx.fillRect(x + 134, base - 56, 7, 10); ctx.fillRect(x + 143, base - 56, 7, 10); ctx.fillRect(x + 134, base - 44, 7, 10); ctx.fillRect(x + 143, base - 44, 7, 10);
   ctx.fillStyle = '#FACC15'; ctx.fillRect(x + 149, base - 46, 2, 2);
-  shaded(ctx, () => ctx.rect(x + 110, base - 64, 4, 34), '#78716C', x + 110, base - 64, 4, 34, 1);
-  shaded(ctx, () => ctx.rect(x + 176, base - 64, 4, 34), '#78716C', x + 176, base - 64, 4, 34, 1);
-  shadedTop(ctx, () => ctx.rect(x + 106, base - 68, 78, 5), '#78716C', x + 106, base - 68, 78, 5, 1);
+  shaded(ctx, () => ctx.rect(x + 110, base - 64, 4, 34), '#5A544E', x + 110, base - 64, 4, 34, 1);
+  shaded(ctx, () => ctx.rect(x + 176, base - 64, 4, 34), '#5A544E', x + 176, base - 64, 4, 34, 1);
+  // (its roof dim and unlit, part of the house: nothing to get up on, unlike the lit lip of the porch roofs out front)
+  shaded(ctx, () => ctx.rect(x + 106, base - 68, 78, 5), '#4A4540', x + 106, base - 68, 78, 5, 1);
   if (!burned && dusk > 0.35 && hash(k * 41) < 0.6) { ctx.fillStyle = '#FEF3C7'; ctx.fillRect(x + 158, base - 60, 3, 4); steppedGlow(ctx, x + 159.5, base - 58, 10, '#FDE68A', 0.35, 0.05, 3); } // (the porch light)
   // A sign in the yard now and then
   const sign = hash(k * 17);
