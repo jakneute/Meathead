@@ -57,6 +57,8 @@ interface OverlayProps {
   onQuitToMenu: () => void;
   /** Pause menu: the "are you sure" before leaving for the boss select (and which answer's highlighted), and the answer. */
   confirmLeave?: boolean;
+  /** What he shouted going in: the flourish slams the same words up. */
+  engageShout?: string;
   /** What the "are you sure" is for: the boss select (this stage's progress) or quitting (the whole run). */
   leaveTo?: 'boss' | 'quit';
   confirmYes?: boolean;
@@ -110,7 +112,7 @@ const Overlay: React.FC<OverlayProps> = (props) => {
       {status === GameStatus.START && <TitleScreen {...props} />}
       {status === GameStatus.STAGE_SELECT && <StageSelectScreen {...props} />}
       {status === GameStatus.STAGE_SELECT && props.engaging && props.lockedIndex !== null && (
-        <EngageFlash bossId={props.lockedIndex === WHITE_HOUSE_INDEX ? WHITE_HOUSE_ID : getStages(props.progressionRank)[props.lockedIndex]?.id || ''} />
+        <EngageFlash shout={props.engageShout} bossId={props.lockedIndex === WHITE_HOUSE_INDEX ? WHITE_HOUSE_ID : getStages(props.progressionRank)[props.lockedIndex]?.id || ''} />
       )}
       {status === GameStatus.PAUSED && <PauseMenu {...props} />}
       {status === GameStatus.BOSS_INTRO && <BossIntroScreen {...props} />}
@@ -498,7 +500,7 @@ const ENGAGE_BANDS = ["LET'S FUCKIN' GO!!", 'NO MERCY', 'NO DIGNITY', 'NO QUESTI
  * background, hazard tape and marquee bands scrolling across, and the big slam-in
  * "LET'S FUCKIN' GO!!" over the target's name.
  */
-const EngageFlash: React.FC<{ bossId: string }> = ({ bossId }) => {
+const EngageFlash: React.FC<{ bossId: string; shout?: string }> = ({ bossId, shout }) => {
   const marquee = (dir: 'l' | 'r', color: string) => (
     <div className="relative w-full overflow-hidden whitespace-nowrap py-[4px] border-y-4 border-black" style={{ background: color }}>
       <div className={`inline-block text-[16px] font-black italic tracking-widest text-black ${dir === 'l' ? 'mh-marquee-l' : 'mh-marquee-r'}`}>
@@ -537,7 +539,7 @@ const EngageFlash: React.FC<{ bossId: string }> = ({ bossId }) => {
       <div className="absolute -inset-x-10 bottom-[74px] rotate-3 mh-bands">{marquee('r', '#EF4444')}</div>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-5">
         <div className="mh-slam text-[48px] leading-[1.15] font-black italic text-center [text-shadow:4px_4px_0_#000,-2px_-2px_0_#000,0_0_24px_rgba(239,68,68,0.9)]">
-          LET'S FUCKIN'<br />GO!!
+          {shout ?? "LET'S FUCKIN' GO!!"}
         </div>
         <div className="overflow-hidden">
           <div className="mh-sub px-3 py-1 bg-black border-2 border-red-600 text-[10px] font-black tracking-widest text-white">

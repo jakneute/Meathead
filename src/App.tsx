@@ -135,6 +135,8 @@ const App: React.FC = () => {
   /** The pause menu's "are you sure" before leaving for the boss select, and which answer's highlighted. */
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [confirmYes, setConfirmYes] = useState(false);
+  /** What he shouted going into the stage (the flourish puts the same words up). */
+  const [engageShout, setEngageShout] = useState(ENGAGE_SHOUTS[0]);
   /** A little cutscene in the stage, him not in control: the HUD's put away till it's over. */
   const [inCutscene, setInCutscene] = useState(false);
   /** What the "are you sure" is for: leaving for the boss select, or quitting to the title. */
@@ -475,6 +477,8 @@ const App: React.FC = () => {
   };
 
   /** Second confirmation: Meathead fires himself up, then the stage starts. */
+  /** What he shouts going in, and what goes up on the screen with it (the same words). */
+  const shoutEngage = () => { const s = ENGAGE_SHOUTS[Math.floor(Math.random() * ENGAGE_SHOUTS.length)]; setEngageShout(s); speak(s, MEATHEAD_MENU_VOICE); };
   const engageStage = (picked?: StartAt) => {
     if (lockedIndex === null || engaging) return;
     // Home to the garage
@@ -483,7 +487,7 @@ const App: React.FC = () => {
     if (lockedIndex === WHITE_HOUSE_INDEX) {
       setEngaging(true);
       playEngageSound();
-      speak(ENGAGE_SHOUTS[Math.floor(Math.random() * ENGAGE_SHOUTS.length)], MEATHEAD_MENU_VOICE);
+      shoutEngage();
       setTimeout(() => setStatus(GameStatus.ENDING), ENGAGE_FLOURISH_MS);
       return;
     }
@@ -492,7 +496,7 @@ const App: React.FC = () => {
     if (cheats.skipToBoss && startAt === undefined && picked === undefined) { setPickFor(stage.id); return; }
     setEngaging(true);
     playEngageSound();
-    speak(ENGAGE_SHOUTS[Math.floor(Math.random() * ENGAGE_SHOUTS.length)], MEATHEAD_MENU_VOICE);
+    shoutEngage();
     // Then the swoop down onto his hometown (DeployTransition), which drops you into the stage
     setTimeout(() => setDeployingTo(stage.id), ENGAGE_FLOURISH_MS);
   };
@@ -818,6 +822,7 @@ const App: React.FC = () => {
           onResume={handleResume}
           onBossSelect={askBossSelect}
           confirmLeave={confirmLeave}
+          engageShout={engageShout}
           leaveTo={leaveTo}
           pauseDossier={pauseDossier}
           onOpenPauseDossier={() => setPauseDossier(true)}
