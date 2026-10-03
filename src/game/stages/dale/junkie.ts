@@ -44,10 +44,10 @@ const W = KIND_STATS.junkie.w, H = KIND_STATS.junkie.h;
 export type PropName = 'desk' | 'cabinet' | 'fan' | 'closet';
 export const PROPS: PropName[] = ['desk', 'cabinet', 'fan', 'closet'];
 /** How much of each of his things a hit from the right weapon takes: the flames a frame's worth, a wave a frame's
- * worth of it passing over, a boulder, a shard of ice. (Burn the desk for five seconds, two or three waves on the
+ * worth of it passing over, a boulder, a shard of ice. (Burn the desk for five seconds, four waves on the
  * cabinet, five boulders for the fan (however hard they're thrown), eight or nine blasts of ice on the snitch: more than he's likely carrying, so
  * Chuco's pockets make up the rest: see pocketAmmo.) */
-export const PROP_TAKES: Record<PropName, number> = { desk: 1 / 300, cabinet: 1 / 64, fan: 0.201, closet: 0.025 };
+export const PROP_TAKES: Record<PropName, number> = { desk: 1 / 300, cabinet: 1 / 4, fan: 0.201, closet: 0.025 };
 /** The weapon that gets at each stash. */
 export const PROP_WEAPON: Record<PropName, WeaponType> = { desk: 'FLAMETHROWER', cabinet: 'TSUNAMI', fan: 'BOULDER', closet: 'SHOTGUN' };
 
@@ -64,6 +64,8 @@ export interface PropState {
   hp: number;
   /** When it last took some (it flashes). */
   hitAt: number;
+  /** The cabinet: the wave going over it now's been counted (one wave, one count, however long it's over it). */
+  waveIn?: boolean;
 }
 export interface Stash { x: number; y: number; vy: number; landed: boolean; taken: boolean; from: PropName }
 /** (headbutt: killed by his own head, into the wall) */
@@ -637,8 +639,12 @@ const updateProps = (ctx: FrameContext, fight: JunkieFight, talk: Talk) => {
     let took = 0;
     // The desk: the flamethrower's flames on it, for a while
     if (n === 'desk' && state.flameSegments.some(s => rectsOverlap(box, { x: s.x - s.size / 2, y: s.y - s.size / 2, w: s.size, h: s.size }))) took = PROP_TAKES.desk;
-    // The cabinet: the tidal wave passing over it (one wave does most of it)
-    if (n === 'cabinet' && state.tsunamiActive && Math.abs(state.tsunamiX - o.cabinet) < 90) { took = PROP_TAKES.cabinet; pr.dir = state.tsunamiDir; }
+    // The cabinet: a tidal wave passing over it, counted once a wave (four of them wash it away)
+    if (n === 'cabinet') {
+      const over = state.tsunamiActive && Math.abs(state.tsunamiX - o.cabinet) < 90;
+      if (over && !pr.waveIn) { took = PROP_TAKES.cabinet; pr.dir = state.tsunamiDir; }
+      pr.waveIn = over || (pr.waveIn && state.tsunamiActive);
+    }
     // The fan: boulders (heaved up at it: a rolled one never gets up there)
     if (n === 'fan') { const b = state.projectiles.find(pj => pj.isBoulder && pj.owner === 'player' && rectsOverlap(box, boundsOf(pj)) && state.frame - pr.hitAt > 20); if (b) { took = PROP_TAKES.fan; b.vel.y = Math.abs(b.vel.y) * 0.4; b.vel.x *= -0.4; } }
     // The snitch: shotgun ice, a good few blasts of it
