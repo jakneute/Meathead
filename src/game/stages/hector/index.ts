@@ -15,6 +15,7 @@ import { hazardDeathMessage, waterZones, waterBodyAt } from './hazards';
 import { drawHectorBack, drawHectorMid, drawHectorFront, drawHectorHud, drawHectorBackdrop, drawHectorWeather } from './draw';
 import { drawEye } from './eyeDraw';
 import { drawSharksRound } from './drawSet';
+import { drawStormFore } from './stormWall';
 import { TOWER } from './tower';
 import { hectorScene } from './lighting';
 import { gatorZoom } from './gatorCam';
@@ -93,7 +94,7 @@ export const hectorLayout: StageLayout = {
   drawBackdrop: (ctx, state) => !!getHector(state) && drawHectorBackdrop(ctx, state),
   drawBackdropFront: (ctx, state) => !!getHector(state) && drawHectorWeather(ctx, state),
   // Climbing the storm: the world's wrapped round the eye wall
-  drawOverCylinder: (ctx, state, radius, around) => drawSharksRound(ctx, state, radius, around),
+  drawOverCylinder: (ctx, state, radius, around) => { drawSharksRound(ctx, state, radius, around); drawStormFore(ctx, state, radius, around); },
   cylinder: state => (regionOf(state.player.pos.x) === 'tower' ? { radius: TOWER.radius } : null),
   // (up the storm, every ledge is a different height: the camera drifts after him rather than jerking to each one)
   // (a gator eating somebody: the camera pulls back to show it)

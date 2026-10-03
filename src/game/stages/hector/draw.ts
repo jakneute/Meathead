@@ -19,6 +19,7 @@ import { drawFlameLicks } from '../../render/fx/fireball';
 import { drawBoatScene, drawBoatFront, drawTowerJunk, drawEyeArena, drawDaycare, drawDaycareFront, drawPoolWater } from './drawSet';
 import { drawEyeHud } from './eyeDraw';
 import { stamp } from '../../render/stamp';
+import { drawStormWall, stormFlash, stormBoltX } from './stormWall';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -148,13 +149,13 @@ const drawInsideStorm = (ctx: Ctx, state: GameState) => {
     pixelBlob(ctx, x, y, w, h, c);
     pixelBlob(ctx, x + w * 0.3, y - h * 0.5, w * 0.35, h * 0.7, c);
   }
-  // Lightning somewhere in the storm
-  const cycle = 200, t = f % cycle;
-  if (t < 8) {
-    ctx.fillStyle = `rgba(210, 225, 255, ${t < 3 ? 0.35 : 0.12})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    const s = Math.floor(f / cycle);
+  // Lightning somewhere in the storm (the same flash lights the eye wall and everything on it: see stormWall)
+  const flash = stormFlash(f);
+  if (flash > 0) {
+    ctx.fillStyle = `rgba(210, 225, 255, ${(0.35 * flash).toFixed(3)})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    const s = Math.floor(f / 200);
     ctx.strokeStyle = '#E0E7FF'; ctx.lineWidth = 2; ctx.beginPath();
-    let x = 100 + hash(s) * 600, y = 0; ctx.moveTo(x, y);
+    let x = stormBoltX(f), y = 0; ctx.moveTo(x, y);
     for (let i = 0; i < 8; i++) { x += (hash(s * 9 + i) - 0.5) * 70; y += 35; ctx.lineTo(x, y); }
     ctx.stroke();
   }
@@ -167,7 +168,7 @@ const drawInsideStorm = (ctx: Ctx, state: GameState) => {
 export const drawHectorBack = (ctx: Ctx, state: GameState) => {
   const rt = getHector(state)!;
   const region = regionOf(state.camera.x + 400);
-  if (region === 'tower') { drawEyeWall(ctx, state); return; }
+  if (region === 'tower') { drawEyeWall(ctx, state, rt.tower.riseY); return; }
   if (region === 'eye') return;
   drawSea(ctx, state);
   for (const p of COURSE.props) if (visible(state, p.x - (p.w ?? 100), p.x + (p.w ?? 100) + 100)) drawProp(ctx, state, p, rt);
@@ -1479,38 +1480,11 @@ const drawPoliceCruiser = (ctx: Ctx, state: GameState, rt: HectorRuntime) => {
 // The storm tower's eye wall (drawn flat; the renderer wraps it round)
 // ---------------------------------------------------------------------------
 
-const drawEyeWall = (ctx: Ctx, state: GameState) => {
-  const C = TOWER.circumference;
+const drawEyeWall = (ctx: Ctx, state: GameState, riseY: number) => {
   const x0 = state.camera.x - 600, x1 = state.camera.x + CANVAS_WIDTH + 600;
-  const top = state.camera.y - 20, h = CANVAS_HEIGHT + 40;
-  bandedGradient(ctx, x0, top, x1 - x0, h, ['#26324F', '#202B45', '#1A233A', '#141B30'], 8);
-  // Streaks of rain and cloud whirling down the wall (they repeat every lap, so the wrap's seamless)
   const f = state.frame;
-  for (let k = Math.floor((x0 - TOWER.x0) / (C / 24)) - 1; k * (C / 24) + TOWER.x0 < x1; k++) {
-    const x = TOWER.x0 + k * (C / 24);
-    const seed = ((k % 24) + 24) % 24;
-    ctx.fillStyle = seed % 3 === 0 ? 'rgba(148, 163, 184, 0.18)' : 'rgba(71, 85, 105, 0.3)';
-    const w = 18 + hash(seed) * 30;
-    const slide = (f * (2 + hash(seed + 5) * 3) + hash(seed) * 600) % 600;
-    for (let y = top - 600 + slide; y < top + h; y += 300) {
-      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w, y + 20); ctx.lineTo(x + w - 20, y + 260); ctx.lineTo(x - 20, y + 240); ctx.closePath(); ctx.fill();
-    }
-  }
-  // Banks of cloud whirling round the wall (they repeat every lap too), lower and darker the nearer they are
-  for (let row = 0; row < 80; row++) {
-    const y = TOWER.floorY - 90 - row * 150;
-    if (y < top - 60) break;
-    if (y > top + h + 60) continue;
-    const slot = C / 8;
-    for (let k = Math.floor((x0 - TOWER.x0) / slot) - 1; k * slot + TOWER.x0 < x1; k++) {
-      const seed = ((k % 8) + 8) % 8 + row * 11;
-      const bx = TOWER.x0 + k * slot + ((hash(seed) * slot + f * (1.2 + hash(seed + 1) * 1.5)) % slot);
-      const w = 80 + hash(seed + 2) * 100, hh = 11 + hash(seed + 3) * 10;
-      const c = row % 3 === 0 ? 'rgba(74, 92, 134, 0.45)' : row % 3 === 1 ? 'rgba(52, 66, 104, 0.55)' : 'rgba(36, 46, 78, 0.6)';
-      pixelBlob(ctx, bx, y + Math.sin(f * 0.02 + seed) * 5, w, hh, c);
-      pixelBlob(ctx, bx + w * 0.3, y - hh * 0.5, w * 0.35, hh * 0.7, c);
-    }
-  }
+  // The cloud of the wall turning round, scud dragged over it, lightning in it
+  drawStormWall(ctx, state, riseY);
   // The floor of the storm: a churning ring of water at the bottom
   if (state.camera.y + CANVAS_HEIGHT > TOWER.floorY - 20) {
     bandedGradient(ctx, x0, TOWER.floorY, x1 - x0, 200, ['#2C5378', '#1E3A5F', '#152B47', '#0B1A30'], 6);

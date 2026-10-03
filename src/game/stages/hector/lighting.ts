@@ -12,6 +12,7 @@ import { COURSE } from './course';
 import { getHector, regionOf } from './runtime';
 import { STRIKE_WARN, STRIKE_FLASH } from './hazards';
 import { nearView, inArena } from '../lightKit';
+import { stormFlash } from './stormWall';
 
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 const rgba = (hex: string, a: number) => `rgba(${parseInt(hex.slice(1, 3), 16)}, ${parseInt(hex.slice(3, 5), 16)}, ${parseInt(hex.slice(5, 7), 16)}, ${a})`;
@@ -22,7 +23,8 @@ export const hectorScene = (state: GameState): SceneLight | null => {
   if (!rt) return null;
   const region = regionOf(state.camera.x + 400);
   if (region === 'daycare') return null;
-  if (region === 'tower') return { dark: 0.42, shade: [6, 10, 26], lights: [] };
+  // (up the storm, its lightning lights everything for a moment)
+  if (region === 'tower') return { dark: 0.42 * (1 - 0.45 * stormFlash(state.frame)), shade: [6, 10, 26], lights: [] };
   if (region === 'eye') return { dark: 0.3, shade: [8, 12, 30], lights: [] };
   const storm = rt.beach.storm;
   if (storm <= 0.02) return null;
