@@ -6,7 +6,7 @@
 //
 // What each weapon does to him:
 //   shotgun ice: slows him right down (his float, his tell);       flamethrower: puts his shot out (and cooks him);
-//   tsunami: carries him off with it, into the wall;              boulder: knocks him silly for a moment;
+//   tsunami: carries him off with it, into the wall (no stun);    boulder: knocks him silly for a moment;
 //   needles: stick in him and work their way out (he never ODs); taser: just tingles him, unless it's come to him
 //     off his own men (the current jumping off them onto him): that stuns him (with none of them left, it can't);
 //   sludge: drags him down onto the floor in it, stuck there a good while (and he takes more there);
@@ -166,7 +166,7 @@ const update = (ctx: FrameContext, boss: Enemy) => {
     }
     return;
   }
-  if (rt.pushT > 0) { washed(boss, rt); return; }
+  if (rt.pushT > 0) { washed(ctx, boss, rt); return; }
   if (rt.stunT > 0) { reeling(boss, rt); return; }
   // (back up out of a sag)
   if (bottom(boss) > FLOAT_BOTTOM_LO + 1 && rt.mode !== 'plead') { boss.pos.y -= 1.5; if (bottom(boss) < FLOAT_BOTTOM_LO) boss.pos.y = FLOAT_BOTTOM_LO - boss.height; }
@@ -350,9 +350,11 @@ const sludged = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
   }
 };
 
-/** Carried off by a wave (and into the wall, if it gets him there). */
-const washed = (boss: Enemy, rt: FinaleRuntime) => {
-  rt.beam = null;
+/** Carried off by a wave (and into the wall, if it gets him there): pushed, not stunned, so a shot he's lining up
+ * or firing keeps going while he goes. */
+const washed = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
+  if (rt.mode === 'charge') chargeUp(ctx, boss, rt);
+  else if (rt.mode === 'fire') fireBeam(ctx, boss, rt);
   boss.pos.x += rt.pushDir * TSUNAMI_WAVE_SPEED * 0.6 * Math.min(1, rt.pushT / 20);
   boss.pos.y = Math.min(FLOAT_BOTTOM_LO - boss.height, boss.pos.y + 0.5);
   boss.pos.x = Math.max(ROOM_L + 4, Math.min(ROOM_R - boss.width - 4, boss.pos.x));
@@ -624,7 +626,6 @@ const onTsunami = (ctx: FrameContext, boss: Enemy, dir: number, first: boolean) 
   if (!rt) return;
   if (first) {
     rt.pushT = 46; rt.pushDir = dir; rt.slammed = false;
-    dropShot(rt);
     hitBoss(ctx, boss, 'TSUNAMI', { facing: dir });
     sayOnce(ctx, rt, 'pushed', ALIEN_LINES.PUSHED);
   }
@@ -633,7 +634,6 @@ const onTsunami = (ctx: FrameContext, boss: Enemy, dir: number, first: boolean) 
   const atWall = dir > 0 ? boss.pos.x + boss.width >= ROOM_R - 6 : boss.pos.x <= ROOM_L + 6;
   if (atWall && !rt.slammed) {
     rt.slammed = true;
-    rt.stunT = Math.max(rt.stunT, 50);
     boss.health -= WALL_SLAM_DAMAGE;
     ctx.fx.spawnDamageNumber(boss.pos, WALL_SLAM_DAMAGE, true);
     callout(ctx, boss, 'WALL SPLAT!', '#38BDF8');
