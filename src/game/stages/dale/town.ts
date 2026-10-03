@@ -604,7 +604,7 @@ const updateNinja = (ctx: FrameContext, town: Town, talk: Talk): Controls | null
   }
   if (n.state === 'fall') {
     if (!n.down) fallNinja(ctx, town);
-    else if (++n.down.t === NINJA_SAY) queueLines(state, talk, [{ who: 'meathead', text: '...OKAY. SAVES ME A BULLET.' }, { who: 'meathead', text: 'SWORDS ARE FOR PUSSIES. A REAL MAN BRINGS A GUN. AND HIS FISTS.' }]);
+    else if (++n.down.t === NINJA_SAY) queueLines(state, talk, [{ who: 'meathead', text: '...OKAY. SAVES ME A BULLET.' }, { who: 'meathead', text: 'SWORDS ARE FOR PUSSIES.' }]);
     // The camera over to where he's coming down (no further than it has to: Meathead's still in it), then back
     const camX = n.camX ?? state.camera.x, camY = n.camY ?? state.camera.y, bx = n.down?.x ?? n.body?.x ?? camX;
     const back = !!n.down && n.down.t > NINJA_DONE;
