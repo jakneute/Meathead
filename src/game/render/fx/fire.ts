@@ -23,10 +23,13 @@ const RAMP = ['#7F1D1D', '#B91C1C', '#EA580C', '#F59E0B', '#FDE047', '#FEF9C3'];
 const PX = 2;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 
-let buf: HTMLCanvasElement | null = null;
+/** (taken in turn: see fireball.ts) */
+const BUFS: HTMLCanvasElement[] = [];
+let bufAt = 0;
 const bufFor = (w: number, h: number) => {
   if (typeof document === 'undefined') return null;
-  if (!buf) buf = document.createElement('canvas');
+  bufAt = (bufAt + 1) % 8;
+  const buf = BUFS[bufAt] ??= document.createElement('canvas');
   if (buf.width < w + 2) buf.width = w + 2;
   if (buf.height < h + 2) buf.height = h + 2;
   return buf;

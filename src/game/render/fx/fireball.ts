@@ -8,7 +8,10 @@ const PX = 2;
 export const FIRE_RAMP = ['#7F1D1D', '#B91C1C', '#EA580C', '#F59E0B', '#FDE047', '#FEF9C3'];
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 
-let buf: HTMLCanvasElement | null = null;
+/** The little canvases it's painted in: taken in turn, so one's never painted over while the last copy out of it is
+ * still being put down (reusing the one would make each wait on the one before). */
+const BUFS: HTMLCanvasElement[] = [];
+let bufAt = 0;
 
 /**
  * Paint something chunky: `paint` draws in the caller's coordinates as normal, but into a half-size canvas covering
@@ -18,7 +21,8 @@ export const chunky = (ctx: Ctx, x0: number, y0: number, w: number, h: number, p
   if (typeof document === 'undefined' || w <= 0 || h <= 0) return;
   const sx = Math.floor(x0 / PX) * PX, sy = Math.floor(y0 / PX) * PX;
   const cw = Math.ceil((w + x0 - sx) / PX) + 1, ch = Math.ceil((h + y0 - sy) / PX) + 1;
-  if (!buf) buf = document.createElement('canvas');
+  bufAt = (bufAt + 1) % 8;
+  const buf = BUFS[bufAt] ??= document.createElement('canvas');
   // (a clear margin round what's copied out: drawn turned, the copy's edges sample a pixel past it, and whatever an
   // earlier, bigger one left there would show as a faint box)
   if (buf.width < cw + 2) buf.width = cw + 2;

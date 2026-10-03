@@ -125,26 +125,55 @@ export const drawVolcano = (ctx: Ctx, cx: number, base: number, s: number, f: nu
   void k;
 };
 
+/**
+ * Something painted the once into a canvas of its own (key: what it is), to be put down every frame after: the cave's
+ * sky, its rock columns and stalactites, each a strip that wraps round as it scrolls by.
+ */
+const strips = new Map<string, HTMLCanvasElement>();
+const strip = (key: string, w: number, h: number, paint: (g: Ctx) => void): HTMLCanvasElement | null => {
+  if (typeof document === 'undefined') return null;
+  let c = strips.get(key);
+  if (!c) { c = document.createElement('canvas'); c.width = w; c.height = h; paint(c.getContext('2d')!); strips.set(key, c); }
+  return c;
+};
+/** Puts a wrapping strip down across the screen, scrolled `off` (its own repeat is its width). */
+const wrapStrip = (ctx: Ctx, c: HTMLCanvasElement, off: number) => {
+  const w = c.width;
+  for (let x = Math.round(((off % w) + w) % w) - w; x < CANVAS_WIDTH; x += w) ctx.drawImage(c, x, 0);
+};
+
 /** Inside the volcano: black rock lit red from below, stalactites, embers going up. */
 const drawCave = (ctx: Ctx, state: GameState) => {
   const f = state.frame;
   // (black rock up top, the lava's glow coming up it from below, in bands)
-  bandedGradient(ctx, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#080304', '#100505', '#1F0806', '#3A0F08', '#5A160A'], 12);
+  const sky = strip('victor-cave-sky', CANVAS_WIDTH, CANVAS_HEIGHT, g => bandedGradient(g, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#080304', '#100505', '#1F0806', '#3A0F08', '#5A160A'], 12));
+  if (sky) ctx.drawImage(sky, 0, 0); else bandedGradient(ctx, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#080304', '#100505', '#1F0806', '#3A0F08', '#5A160A'], 12);
   // Rock columns far back: each with a lit edge on the side the lava's light comes up, a dithered shadow down the other
-  for (let i = 0; i < 12; i++) {
-    const x = Math.round(((i * 137 - state.camera.x * 0.1) % 1100 + 1100) % 1100 - 150), w = Math.round(40 + hash(i) * 60);
-    ctx.fillStyle = '#140605'; ctx.fillRect(x, 0, w, CANVAS_HEIGHT);
-    ctx.fillStyle = '#2A0E0A'; ctx.fillRect(x, CANVAS_HEIGHT * 0.45, 3, CANVAS_HEIGHT * 0.55);
-    checker(ctx, x + 3, CANVAS_HEIGHT * 0.5, 4, CANVAS_HEIGHT * 0.5, '#2A0E0A');
-    checker(ctx, x + w - 6, 0, 6, CANVAS_HEIGHT, '#0A0202');
-    // (a seam or two of something glowing in the rock)
-    if (hash(i * 3.3) > 0.5) { ctx.fillStyle = '#7C2D12'; for (let k = 0; k < 6; k++) ctx.fillRect(x + 8 + Math.round(hash(i + k) * (w - 16)), 200 + k * 50 + Math.round(hash(i * 7 + k) * 30), 2, 2); }
-  }
+  const cols = strip('victor-cave-cols', 1100, CANVAS_HEIGHT, g => {
+    for (let i = 0; i < 12; i++) for (const wrap of [0, -1100]) {
+      const x = (i * 137) % 1100 + wrap, w = Math.round(40 + hash(i) * 60);
+      g.fillStyle = '#140605'; g.fillRect(x, 0, w, CANVAS_HEIGHT);
+      g.fillStyle = '#2A0E0A'; g.fillRect(x, CANVAS_HEIGHT * 0.45, 3, CANVAS_HEIGHT * 0.55);
+      checker(g, x + 3, CANVAS_HEIGHT * 0.5, 4, CANVAS_HEIGHT * 0.5, '#2A0E0A');
+      checker(g, x + w - 6, 0, 6, CANVAS_HEIGHT, '#0A0202');
+      // (a seam or two of something glowing in the rock)
+      if (hash(i * 3.3) > 0.5) { g.fillStyle = '#7C2D12'; for (let k = 0; k < 6; k++) g.fillRect(x + 8 + Math.round(hash(i + k) * (w - 16)), 200 + k * 50 + Math.round(hash(i * 7 + k) * 30), 2, 2); }
+    }
+  });
+  if (cols) wrapStrip(ctx, cols, -state.camera.x * 0.1 - 150);
   // Stalactites: dark, a lit edge down the lava side, dripping now and then
+  const lens = (i: number) => Math.round(30 + hash(i + 5) * 90);
+  const stal = strip('victor-cave-stal', 1000, 140, g => {
+    for (let i = 0; i < 16; i++) for (const wrap of [0, -1000, 1000]) {
+      const x = (i * 83) % 1000 + wrap, len = lens(i);
+      for (let y = 0; y < len; y += 2) { const hw = Math.max(1, Math.round(14 * (1 - y / len))); g.fillStyle = '#0C0404'; g.fillRect(x - hw, y, hw * 2, 2); g.fillStyle = '#1E0A08'; g.fillRect(x + hw - 2, y, 2, 2); }
+    }
+  });
+  if (stal) wrapStrip(ctx, stal, -state.camera.x * 0.2 - 100);
   for (let i = 0; i < 16; i++) {
-    const x = Math.round(((i * 83 - state.camera.x * 0.2) % 1000 + 1000) % 1000 - 100), len = Math.round(30 + hash(i + 5) * 90);
-    for (let y = 0; y < len; y += 2) { const hw = Math.max(1, Math.round(14 * (1 - y / len))); ctx.fillStyle = '#0C0404'; ctx.fillRect(x - hw, y, hw * 2, 2); ctx.fillStyle = '#1E0A08'; ctx.fillRect(x + hw - 2, y, 2, 2); }
-    if ((f + i * 29) % 90 < 50) { ctx.fillStyle = '#F97316'; ctx.fillRect(x - 1, len + ((f + i * 29) % 90) * 4, 2, 4); }
+    if ((f + i * 29) % 90 >= 50) continue;
+    const x = Math.round(((i * 83 - state.camera.x * 0.2) % 1000 + 1000) % 1000 - 100);
+    ctx.fillStyle = '#F97316'; ctx.fillRect(x - 1, lens(i) + ((f + i * 29) % 90) * 4, 2, 4);
   }
   // Embers
   for (let i = 0; i < 30; i++) {
@@ -327,19 +356,21 @@ const drawLava = (ctx: Ctx, state: GameState) => {
     // The glow above it, in steps
     hazeBands(ctx, x1, y - 40, x2 - x1, 40, '#F97316', 0, 0.22, 5);
     // The lava: bright at the top, in bands going down, the surface rolling in 4px steps; darker crust riding in it
+    // (the body of it, below where the surface rolls, is the one banded strip, painted the once and put down; the
+    // rolling top's filled in a column at a time; no clipping to a few hundred little rects every frame)
     const xs = Math.floor(x1 / 4) * 4;
     const surf = (x: number) => Math.round((y + Math.sin(x * 0.05 + f * 0.08) * 3) / 2) * 2;
-    ctx.save(); ctx.beginPath();
-    for (let x = xs; x < x2; x += 4) ctx.rect(x, surf(x), 4, bottom - surf(x));
-    ctx.clip();
-    bandedGradient(ctx, xs, y - 4, x2 - xs, 124, ['#FDE047', '#FB923C', '#F97316', '#DC2626', '#B91C1C', '#7F1D1D', '#450A0A'], 12);
+    const body = strip('victor-lava-body', 64, 124, g => bandedGradient(g, 0, 0, 64, 124, ['#FDE047', '#FB923C', '#F97316', '#DC2626', '#B91C1C', '#7F1D1D', '#450A0A'], 12));
+    if (body) { ctx.fillStyle = ctx.createPattern(body, 'repeat-x')!; ctx.save(); ctx.translate(0, y - 4); ctx.fillRect(xs, 8, x2 - xs, 116); ctx.restore(); }
+    else bandedGradient(ctx, xs, y - 4, x2 - xs, 124, ['#FDE047', '#FB923C', '#F97316', '#DC2626', '#B91C1C', '#7F1D1D', '#450A0A'], 12);
     ctx.fillStyle = '#450A0A'; ctx.fillRect(xs, y + 120, x2 - xs, Math.max(0, bottom - y - 120));
+    ctx.fillStyle = '#FDE047'; for (let x = xs; x < x2; x += 4) { const sy = surf(x); if (sy < y + 4) ctx.fillRect(x, sy, 4, y + 4 - sy); }
     for (let x = Math.ceil(x1 / 60) * 60; x < x2; x += 60) {
-      const cx = x + ((f * 0.5 + hash(x) * 60) % 60), cy = y + 14 + hash(x) * 20;
-      pixelBlob(ctx, cx, cy, 18, 4, 'rgba(69, 10, 10, 0.6)');
-      ctx.fillStyle = 'rgba(253, 224, 71, 0.5)'; ctx.fillRect(Math.round(cx / 2) * 2 - 10, Math.round(cy / 2) * 2 - 4, 12, 2);
+      const cx = Math.round((x + ((f * 0.5 + hash(x) * 60) % 60)) / 2) * 2, cy = Math.round((y + 14 + hash(x) * 20) / 2) * 2;
+      // (a crust: a chunky lozenge of dark, a lit lip on it)
+      ctx.fillStyle = 'rgba(69, 10, 10, 0.6)'; ctx.fillRect(cx - 14, cy - 2, 28, 4); ctx.fillRect(cx - 18, cy, 36, 2); ctx.fillRect(cx - 10, cy - 4, 20, 2);
+      ctx.fillStyle = 'rgba(253, 224, 71, 0.5)'; ctx.fillRect(cx - 10, cy - 4, 12, 2);
     }
-    ctx.restore();
     // (the skin of it, lit along the top)
     for (let x = xs; x < x2; x += 4) { const sy = surf(x); ctx.fillStyle = '#FEF9C3'; ctx.fillRect(x, sy, 4, 2); ctx.fillStyle = '#FDE047'; ctx.fillRect(x, sy + 2, 4, 2); }
     // Bubbles popping: a ring swelling up, then gone

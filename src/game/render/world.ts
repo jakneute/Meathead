@@ -25,7 +25,7 @@ import { drawMeatheadDeath, drawBlindness, drawSpikeCam } from './player/deathAn
 import { drawFallCam } from './player/fallCams';
 import { drawCrashCam } from './player/crashDeath';
 import { drawEyeFallCam } from './player/eyeFallCam';
-import { drawKindEnemy, animFrame } from './enemies';
+import { drawKindEnemy, animFrame, KIND_TOP_REACH } from './enemies';
 import { isMidBoss } from '../combat/midBoss';
 import { drawBackdrop, drawBackdropFront } from './backdrops';
 import { drawTerrain, drawGroundProfile } from './backdrops/terrain';
@@ -742,11 +742,16 @@ const drawBossFallen = (ctx: CanvasRenderingContext2D, state: GameState, stageId
   ctx.restore();
 };
 
+/** How far off the screen an enemy can be and still be drawn (anything further, isn't). */
+const CULL = 500;
+
 const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, stageId, bossTauntText }: WorldView) => {
   const { enemies, player } = state;
   enemies.forEach(live => {
     // (a tenant's dead as he falls, but he's still to be seen going)
     if (live.health <= 0 && !live.isBlownAway && !(live.kind === 'tenant' && (live.aiState === 'fall' || live.aiState === 'splat'))) return;
+    // (nowhere near the screen: not drawn, its fire and all; a good way out either side, for the zoomed-out views)
+    if (live.type !== 'boss' && (live.pos.x + live.width < state.camera.x - CULL || live.pos.x > state.camera.x + CANVAS_WIDTH + CULL || live.pos.y + live.height < state.camera.y - CULL || live.pos.y > state.camera.y + CANVAS_HEIGHT + CULL)) return;
     // (dead and going: without whatever attack it was in the middle of, so that doesn't go flying with it)
     const e = live.isBlownAway || live.health <= 0 ? attackless(live) : live;
     ctx.save();
@@ -782,7 +787,7 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
       else drawKindEnemy(ctx, e, state);
       // Dazed from a knock: a few stars going round his head
       if ((e.pauseTimer || 0) > 0 && !e.isBlownAway && e.health > 0) {
-        const hx = e.pos.x + e.width / 2, hy = e.pos.y - 8;
+        const hx = e.pos.x + e.width / 2, hy = e.pos.y - 8 - (KIND_TOP_REACH[e.kind] ?? 0) * 0.6; // (round his head, where it's drawn)
         ctx.save(); ctx.fillStyle = '#FDE047'; ctx.font = 'bold 10px "Press Start 2P"'; ctx.textAlign = 'center';
         for (let k = 0; k < 3; k++) { const a = state.frame * 0.25 + (k * Math.PI * 2) / 3; ctx.fillText('*', hx + Math.cos(a) * 14, hy + Math.sin(a) * 4); }
         ctx.restore();
@@ -811,7 +816,7 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
     if (tased) { ctx.filter = 'none'; ctx.shadowBlur = 0; drawTasedFx(ctx, e, state); }
     if (e.type !== 'boss' && e.isOnFire && e.health > 0) { ctx.filter = 'none'; ctx.shadowBlur = 0; drawOnFire(ctx, e, state.frame); }
     drawStuckNeedles(ctx, e, state.frame);
-    if (!e.isBlownAway && e.drownT === undefined && !isMidBoss(e) && e.kind !== 'civilian' && e.kind !== 'visitor' && e.kind !== 'generator' && e.kind !== 'minion' && e.kind !== 'tenant' && !(e.kind === 'magmafish' && (!e.aiState || e.aiState === 'idle'))) { ctx.fillStyle = '#00FF00'; ctx.fillRect(e.pos.x, e.pos.y - 10, (e.health / e.maxHealth) * e.width, 5); }
+    if (!e.isBlownAway && e.drownT === undefined && !isMidBoss(e) && e.kind !== 'civilian' && e.kind !== 'visitor' && e.kind !== 'generator' && e.kind !== 'minion' && e.kind !== 'tenant' && !(e.kind === 'magmafish' && (!e.aiState || e.aiState === 'idle'))) { ctx.fillStyle = '#00FF00'; ctx.fillRect(e.pos.x, e.pos.y - 10 - (e.kind ? KIND_TOP_REACH[e.kind] ?? 0 : 0), (e.health / e.maxHealth) * e.width, 5); } // (over its head, not across it)
     ctx.restore();
   });
 };
