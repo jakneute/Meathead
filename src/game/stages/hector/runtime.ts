@@ -27,6 +27,8 @@ export interface HectorRuntime {
   tower: TowerRun;
   eye: EyeFight;
   daycare: Daycare;
+  /** Whether the Eye's death and the news have him in a cutscene (this file set inCutscene, and takes it off). */
+  heldScene?: boolean;
   /** The news bulletin between the Eye dying and the flood landing. */
   news: News;
   /** The storm dying (after the Eye): frames of the whiteout into sunshine. */
@@ -138,6 +140,11 @@ export const updateHector = (ctx: FrameContext, controls: Controls): Controls =>
     controls = { ...NO_CONTROLS };
     player.isCharging = false; player.isSliding = false; player.isUppercutting = false; player.isDivekicking = false;
   }
+  // (the Eye going and the storm clearing, and the news after it: a cutscene, him out of it (the HUD's put away);
+  // given back the moment it's over)
+  const scene = (region === 'eye' && (rt.eye.phase === 'dead' || rt.eye.phase === 'done')) || newsOn(rt.news) || rt.clearT > 0;
+  if (scene) { player.inCutscene = true; rt.heldScene = true; }
+  else if (rt.heldScene) { player.inCutscene = false; rt.heldScene = false; }
   // The storm dies: a whiteout, the news, then the daycare
   if (rt.clearT > 0) {
     rt.clearT++;
