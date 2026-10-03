@@ -94,9 +94,13 @@ export const drawBarMid = (ctx: Ctx, state: GameState, b: Bar) => {
   if (intact) { ctx.fillStyle = `hsl(${(f * 3) % 360}, 90%, 60%)`; ctx.fillRect(J + 8, Y - 70, 34, 26); ctx.fillStyle = '#FDE047'; ctx.fillRect(J + 10, Y - 36, 30, 4); }
   ctx.fillStyle = intact ? '#57341F' : '#1C1410'; ctx.fillRect(B.x1 + 480, Y - 56, 270, 12); ctx.fillStyle = intact ? '#3B2418' : '#140E0B'; ctx.fillRect(B.x1 + 486, Y - 44, 258, 44);
   if (intact) for (const sx of [B.x1 + 510, B.x1 + 580, B.x1 + 650]) { ctx.fillStyle = '#B91C1C'; ctx.fillRect(sx - 10, Y - 40, 20, 6); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(sx - 2, Y - 34, 4, 34); }
-  ctx.fillStyle = intact ? '#166534' : '#1C1917'; ctx.fillRect(B.x1 + 860, Y - 46, 140, 12); ctx.fillStyle = intact ? '#44291A' : '#140E0B'; ctx.fillRect(B.x1 + 866, Y - 34, 8, 34); ctx.fillRect(B.x1 + 986, Y - 34, 8, 34);
-  if (intact) { ctx.fillStyle = '#FDE68A'; ctx.beginPath(); ctx.moveTo(B.x1 + 900, Y - 150); ctx.lineTo(B.x1 + 960, Y - 150); ctx.lineTo(B.x1 + 970, Y - 136); ctx.lineTo(B.x1 + 890, Y - 136); ctx.fill(); ctx.fillStyle = 'rgba(253, 230, 138, 0.12)'; ctx.beginPath(); ctx.moveTo(B.x1 + 890, Y - 136); ctx.lineTo(B.x1 + 970, Y - 136); ctx.lineTo(B.x1 + 1010, Y - 46); ctx.lineTo(B.x1 + 850, Y - 46); ctx.fill(); }
-  ctx.fillStyle = intact ? '#7F1D1D' : '#1C1917'; ctx.fillRect(B.x1 + 1060, Y - 70, 26, 70); ctx.fillRect(B.x1 + 1086, Y - 34, 60, 34);
+  const PT = B.x1 + 800;
+  ctx.fillStyle = intact ? '#166534' : '#1C1917'; ctx.fillRect(PT, Y - 46, 140, 12); ctx.fillStyle = intact ? '#44291A' : '#140E0B'; ctx.fillRect(PT + 6, Y - 34, 8, 34); ctx.fillRect(PT + 126, Y - 34, 8, 34);
+  if (intact) { ctx.fillStyle = '#FDE68A'; ctx.beginPath(); ctx.moveTo(PT + 40, Y - 150); ctx.lineTo(PT + 100, Y - 150); ctx.lineTo(PT + 110, Y - 136); ctx.lineTo(PT + 30, Y - 136); ctx.fill(); ctx.fillStyle = 'rgba(253, 230, 138, 0.12)'; ctx.beginPath(); ctx.moveTo(PT + 30, Y - 136); ctx.lineTo(PT + 110, Y - 136); ctx.lineTo(PT + 150, Y - 46); ctx.lineTo(PT - 10, Y - 46); ctx.fill(); }
+  // The booth, out of the way of the bathroom: its high back at the left end, the seat (him on it, sleeping it off)
+  const BT = B.x1 + 956;
+  ctx.fillStyle = intact ? '#7F1D1D' : '#1C1917'; ctx.fillRect(BT, Y - 70, 20, 70); ctx.fillRect(BT + 20, Y - 34, 70, 34);
+  if (intact) { ctx.fillStyle = '#991B1B'; ctx.fillRect(BT, Y - 70, 20, 4); ctx.fillRect(BT + 20, Y - 34, 70, 4); ctx.fillStyle = '#450A0A'; ctx.fillRect(BT + 20, Y - 6, 70, 6); }
   if (intact) {
     // (the toilet in the HOGS: behind its wall till he's in there)
     drawToilet(ctx, false);
@@ -123,8 +127,9 @@ const drawBarBiker = (ctx: Ctx, state: GameState, k: BarBiker) => {
     case 'counter': case 'counter2': at(k.x, Y - 8, 1); ctx.fillStyle = '#FDE68A'; ctx.fillRect(k.x + 14, Y - 70, 7, 10); break; // a beer
     case 'bartender': at(k.x, Y, -1); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(k.x - 16, Y - 48, 10, 4); break;
     case 'pool': case 'pool2': at(k.x, Y, k.look === 'pool' ? 1 : -1); ctx.strokeStyle = '#D6B98C'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(k.x, Y - 42); ctx.lineTo(k.x + (k.look === 'pool' ? 60 : -60), Y - 52 + Math.sin(f * 0.1) * 3); ctx.stroke(); break;
-    case 'booth': ctx.save(); ctx.translate(k.x, Y - 36); ctx.rotate(-Math.PI / 2 + 0.2); drawKindCorpse(ctx, 'biker', -27, -72, 54, 72, 1, phase, state); ctx.restore();
-      ctx.fillStyle = '#111827'; ctx.font = 'bold 10px monospace'; const z = (f % 90) / 90; ctx.globalAlpha = 1 - z; ctx.fillText('Z', k.x + 10 + z * 10, Y - 60 - z * 20); ctx.globalAlpha = 1; break;
+    // (flat out along the seat: boots at its end, his head up against the back, snoring)
+    case 'booth': ctx.save(); ctx.translate(k.x, Y - 52 + Math.sin(f * 0.05)); ctx.rotate(-Math.PI / 2 + 0.06); drawKindCorpse(ctx, 'biker', -27, -72, 54, 72, 1, phase, state); ctx.restore();
+      ctx.fillStyle = '#111827'; ctx.font = 'bold 10px monospace'; const z = (f % 90) / 90; ctx.globalAlpha = 1 - z; ctx.fillText('Z', k.x - 64 + z * 10, Y - 64 - z * 20); ctx.globalAlpha = 1; break;
   }
 };
 

@@ -66,7 +66,7 @@ export const createBar = (state: GameState, startedAt: number): Bar => {
     bikers: [
       { x: B.x1 + 150, look: 'band' }, { x: B.x1 + 250, look: 'dance' },
       { x: B.x1 + 520, look: 'counter' }, { x: B.x1 + 590, look: 'counter2' }, { x: B.x1 + 700, look: 'bartender' },
-      { x: B.x1 + 830, look: 'pool' }, { x: B.x1 + 960, look: 'pool2' }, { x: B.x1 + 1100, look: 'booth' },
+      { x: B.x1 + 770, look: 'pool' }, { x: B.x1 + 900, look: 'pool2' }, { x: B.x1 + 1042, look: 'booth' },
     ],
     hinted: new Set(), ambientAt: 0, ambient: 0, progressAt: 0, gunHintAt: -999, gore: [], flying: [], earlyAt: -999,
   };
