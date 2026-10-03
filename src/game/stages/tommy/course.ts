@@ -91,11 +91,14 @@ export interface Course {
 const Y = GROUND_Y;
 const HOOD_X0 = -120000;
 /** The block before it, on foot (it ends where the corner's street starts). */
-const BLOCK_LEN = 3800, BLOCK_X0 = HOOD_X0 - BLOCK_LEN;
+const BLOCK_LEN = 5800, BLOCK_X0 = HOOD_X0 - BLOCK_LEN;
 const ROAD_START = 1400;
 /** How long the road is, and how far past it the hazmat man's waiting. */
 export const ROAD_LEN = 26000;
 const SEWER_X0 = -80000;
+/** The stretch of walkways and channels let into the sewer before the manhole man (everything from there on is built
+ * this much further along). */
+const SEWER_MID = 1600, SEWER_X1 = SEWER_X0 + SEWER_MID;
 const RUINS_X0 = BOSS_DOOR_X - 3000;
 /** The hole down (local to the ruins), and how wide it is. */
 const PIT = 2560, PIT_W = 110;
@@ -169,9 +172,29 @@ const build = () => {
   // The last hole: a car roof, the main blowing up out of the water past it, a pallet past that; a dog on the far side
   k.channel(3200, 3560, HOLE_SURFACE, HOLE_FLOOR);
   k.ledge(3270, Y - 8, 90, 'carroof'); k.main(3405, 130, 40, 'pipe', HOLE_SURFACE); k.ledge(3450, HOLE_SURFACE - 8, 60, 'pallet');
-  k.ground(3560, BLOCK_LEN);
+  k.ground(3560, 4200);
   k.spawn('pitbull', 3720);
   k.pickup(3640, Y - 30, 'small_health');
+  // Three hydrants in a row going off one after the other (run them on the beat), one of the crew up on the porch roof
+  // before them, shooting down at you while you wait for your gap
+  k.ledge(3730, Y - 115, 120, 'porchroof'); k.spawn('banger', 3790, Y - 115);
+  k.main(3910, 120, 0); k.main(4010, 120, 40); k.main(4110, 120, 80);
+  // The widest hole yet: a car roof, a pallet, the main blowing up between that and the next car roof (time the jump
+  // through it), a last pallet; two things in the water, one of the crew holding the far roof
+  k.channel(4200, 4720, HOLE_SURFACE, HOLE_FLOOR);
+  k.ledge(4260, Y - 8, 100, 'carroof'); k.ledge(4400, HOLE_SURFACE - 8, 50, 'pallet');
+  k.main(4475, 140, 60, 'pipe', HOLE_SURFACE);
+  k.ledge(4500, Y - 8, 110, 'carroof'); k.ledge(4640, HOLE_SURFACE - 8, 50, 'pallet');
+  k.spawn('sludgeling', 4330, HOLE_FLOOR); k.spawn('sludgeling', 4600, HOLE_FLOOR); k.spawn('banger', 4580, Y - 8);
+  k.ground(4720, BLOCK_LEN);
+  k.pickup(4780, Y - 30, 'small_health');
+  // Rats, then a brute and one of the crew together; a dumpster with one up on the porch roof over it, and a last
+  // wreck with a dog behind it, just short of the corner
+  k.spawn('rat', 4880); k.spawn('rat', 4930); k.spawn('rat', 4990);
+  k.spawn('bruiser', 5120); k.spawn('banger', 5200);
+  k.solid(5300, 96, 60, 'dumpster'); k.pickup(5348, Y - 90, 'small_ammo');
+  k.ledge(5420, Y - 115, 140, 'porchroof'); k.spawn('banger', 5500, Y - 115);
+  k.solid(5600, 120, 52, 'wreck'); k.spawn('pitbull', 5760);
 
   // ============ THE HOOD ============
   const h = part(HOOD_X0);
@@ -215,50 +238,65 @@ const build = () => {
   s.ground(0, 700); s.channel(700, 860);
   s.ground(860, 1600); s.channel(1600, 1900); s.ledge(1720, Y - 6, 60, 'grate');
   s.ground(1900, 2700); s.channel(2700, 3200); s.ledge(2800, Y - 6, 70, 'grate'); s.ledge(3010, Y - 6, 70, 'grate');
-  s.ground(3200, 4000); s.ledge(3680, Y - 130, 220, 'pipe');
+  // A long channel on a run of grates, a pipe dripping onto each of the middle ones (wait them out), sludgelings under
+  s.ground(3200, 3450); s.spawn('rat', 3330);
+  s.channel(3450, 4000); s.ledge(3540, Y - 6, 60, 'grate'); s.ledge(3700, Y - 6, 60, 'grate'); s.ledge(3860, Y - 6, 60, 'grate');
+  s.drip(3730, Y - 250, 110, 0); s.drip(3890, Y - 250, 110, 55);
+  s.spawn('sludgeling', 3620, CHANNEL_FLOOR); s.spawn('sludgeling', 3790, CHANNEL_FLOOR); s.spawn('sludgeling', 3960, CHANNEL_FLOOR);
+  // A walkway with a pipe run along over it: a hazmat suit up on the pipe, a bloater down on the walkway under him
+  s.ground(4000, 4420); s.pickup(4060, Y - 30, 'small_health');
+  s.ledge(4150, Y - 130, 230, 'pipe'); s.spawn('hazmat', 4300, Y - 130); s.pickup(4190, Y - 160, 'small_ammo');
+  s.spawn('bloater', 4340); s.drip(4250, Y - 250, 120, 30);
+  // A narrow channel, one grate, another suit on the far side of it
+  s.channel(4420, 4600); s.ledge(4485, Y - 6, 50, 'grate'); s.spawn('sludgeling', 4560, CHANNEL_FLOOR);
+  s.ground(4600, SEWER_MID + 3200); s.spawn('hazmat', 4720);
+
+  // (on from here, SEWER_MID further along)
+  const s2 = part(SEWER_X1);
+  s2.ground(3200, 4000); s2.ledge(3680, Y - 130, 220, 'pipe');
   // (wide past the manhole man, too wide to jump: a pipe hung from the roof over the middle of it to hop across on, high
   // enough that anything he's shoved along the walkway goes under it and in, not across)
-  s.channel(4000, 4300); s.ledge(4095, Y - 92, 110, 'hangpipe');
-  s.ground(4300, 4760);
+  s2.channel(4000, 4300); s2.ledge(4095, Y - 92, 110, 'hangpipe');
+  s2.ground(4300, 4760);
   // The flooded tunnel: the muck right up near its roof, pipes down from the roof to go under, grates up off the floor to go over
-  s.channel(4760, 7200, TUNNEL_SURFACE, TUNNEL_FLOOR);
-  s.bar(5150, 60, TUNNEL_ROOF, Y + 60); s.bar(5520, 50, Y + 95, TUNNEL_FLOOR); s.bar(5900, 60, TUNNEL_ROOF, Y + 70);
-  s.bar(6280, 50, Y + 90, TUNNEL_FLOOR); s.bar(6620, 60, TUNNEL_ROOF, Y + 75); s.bar(6950, 50, Y + 95, TUNNEL_FLOOR);
+  s2.channel(4760, 7200, TUNNEL_SURFACE, TUNNEL_FLOOR);
+  s2.bar(5150, 60, TUNNEL_ROOF, Y + 60); s2.bar(5520, 50, Y + 95, TUNNEL_FLOOR); s2.bar(5900, 60, TUNNEL_ROOF, Y + 70);
+  s2.bar(6280, 50, Y + 90, TUNNEL_FLOOR); s2.bar(6620, 60, TUNNEL_ROOF, Y + 75); s2.bar(6950, 50, Y + 95, TUNNEL_FLOOR);
   // Mutant fish in it, to shoot as he swims (hanging about in the open water between the pipes and grates)
-  for (const fx of [5330, 5720, 6100, 6460, 6800]) s.spawn('mutantfish', fx, Y + 150);
+  for (const fx of [5330, 5720, 6100, 6460, 6800]) s2.spawn('mutantfish', fx, Y + 150);
   // Up out of it: a walkway, the second locker
-  s.ground(7200, 7700);
+  s2.ground(7200, 7700);
   // The flooded pit: in at the top left, down past the baffles, under the wall at the bottom, back up the far side
-  s.channel(7700, 8600, TUNNEL_SURFACE, PIT_FLOOR);
-  s.bar(8130, 40, TUNNEL_ROOF, Y + 850);
+  s2.channel(7700, 8600, TUNNEL_SURFACE, PIT_FLOOR);
+  s2.bar(8130, 40, TUNNEL_ROOF, Y + 850);
   // Down the left: a shelf to go round, then one the other way, then a slot in the middle of one, a post under that to
   // weave past, and a last shelf with a narrow way round it at the far wall
-  s.bar(7700, 300, Y + 180, Y + 212); s.bar(7830, 300, Y + 360, Y + 392);
-  s.bar(7700, 170, Y + 520, Y + 552); s.bar(7950, 180, Y + 520, Y + 552);
-  s.bar(7900, 40, Y + 640, Y + 740);
-  s.bar(7790, 340, Y + 830, Y + 862);
+  s2.bar(7700, 300, Y + 180, Y + 212); s2.bar(7830, 300, Y + 360, Y + 392);
+  s2.bar(7700, 170, Y + 520, Y + 552); s2.bar(7950, 180, Y + 520, Y + 552);
+  s2.bar(7900, 40, Y + 640, Y + 740);
+  s2.bar(7790, 340, Y + 830, Y + 862);
   // Under the wall at the bottom (a hump on the floor past it to get over), then up the right: round the end of a shelf,
   // through a gap in the middle of the next, round the near end of one, the far end of the next, and the near end of the last
-  s.bar(8300, 60, Y + 930, PIT_FLOOR);
-  s.bar(8170, 310, Y + 760, Y + 792);
-  s.bar(8170, 110, Y + 620, Y + 652); s.bar(8420, 180, Y + 620, Y + 652);
-  s.bar(8260, 340, Y + 480, Y + 512);
-  s.bar(8170, 280, Y + 330, Y + 362);
-  s.bar(8300, 300, Y + 180, Y + 212);
+  s2.bar(8300, 60, Y + 930, PIT_FLOOR);
+  s2.bar(8170, 310, Y + 760, Y + 792);
+  s2.bar(8170, 110, Y + 620, Y + 652); s2.bar(8420, 180, Y + 620, Y + 652);
+  s2.bar(8260, 340, Y + 480, Y + 512);
+  s2.bar(8170, 280, Y + 330, Y + 362);
+  s2.bar(8300, 300, Y + 180, Y + 212);
   for (const [fx, fy] of [[7860, Y + 100], [7760, Y + 280], [8040, Y + 440], [7780, Y + 640], [8050, Y + 680], [7980, Y + 920], [8420, Y + 880],
-    [8350, Y + 700], [8520, Y + 560], [8420, Y + 410], [8300, Y + 260], [8460, Y + 100]]) s.spawn('mutantfish', fx, fy);
+    [8350, Y + 700], [8520, Y + 560], [8420, Y + 410], [8300, Y + 260], [8460, Y + 100]]) s2.spawn('mutantfish', fx, fy);
   // On into the cistern (a walkway, and the pool at the far end where it lives)
-  s.ground(8600, 9550); s.channel(9550, 10000, Y + 20, Y + 220);
+  s2.ground(8600, 9550); s2.channel(9550, 10000, Y + 20, Y + 220);
   // What's down here
   s.spawn('rat', 1150); s.spawn('hazmat', 1480); s.spawn('sludgeling', 1660, CHANNEL_FLOOR); s.spawn('sludgeling', 1860, CHANNEL_FLOOR);
   s.spawn('rat', 2250); s.spawn('bloater', 2480); s.spawn('sludgeling', 2760, CHANNEL_FLOOR); s.spawn('sludgeling', 2960, CHANNEL_FLOOR); s.spawn('sludgeling', 3140, CHANNEL_FLOOR);
-  s.spawn('manhole', 3480); s.spawn('hazmat', 3790, Y - 130); s.spawn('rat', 3900); s.spawn('bloater', 4450);
-  s.drip(2080, Y - 250, 110, 0); s.drip(2300, Y - 250, 130, 50); s.drip(2840, Y - 250, 120, 30); s.drip(3040, Y - 250, 120, 90); s.drip(3560, Y - 250, 100, 20);
+  s2.spawn('manhole', 3480); s2.spawn('hazmat', 3790, Y - 130); s2.spawn('rat', 3900); s2.spawn('bloater', 4450);
+  s.drip(2080, Y - 250, 110, 0); s.drip(2300, Y - 250, 130, 50); s.drip(2840, Y - 250, 120, 30); s.drip(3040, Y - 250, 120, 90); s2.drip(3560, Y - 250, 100, 20);
   // (a big one where he drops in: he's likely come down off the road hurt)
   s.pickup(380, Y - 30, 'large_health');
-  s.pickup(2600, Y - 30, 'small_ammo'); s.pickup(3780, Y - 160, 'small_health');
-  s.pickup(4380, Y - 30, 'large_health'); s.pickup(4440, Y - 30, 'small_ammo');
-  s.pickup(7450, Y - 30, 'small_health');
+  s.pickup(2600, Y - 30, 'small_ammo'); s2.pickup(3780, Y - 160, 'small_health');
+  s2.pickup(4380, Y - 30, 'large_health'); s2.pickup(4440, Y - 30, 'small_ammo');
+  s2.pickup(7450, Y - 30, 'small_health');
 
   // ============ THE RUINS ============
   const u = part(RUINS_X0);
@@ -266,12 +304,12 @@ const build = () => {
   // (a block's worth of what's left: the family's house, and more either side of it)
   u.ground(900, PIT, RUINS_Y); u.ground(PIT + PIT_W, 3000, RUINS_Y); u.ground(2200, 3000, Y);
   u.pickup(2700, Y - 30, 'large_health'); u.pickup(2780, Y - 30, 'large_ammo');
-  return { k, h, r, s, u, junk, waves, END };
+  return { k, h, r, s, s2, u, junk, waves, END };
 };
 
 const buildCourse = (): Course => {
-  const { k, h, r, s, u, junk, waves, END } = build();
-  const all = [k, h, r, s, u];
+  const { k, h, r, s, s2, u, junk, waves, END } = build();
+  const all = [k, h, r, s, s2, u];
   const runs = all.flatMap(p => p.runs);
   runs.sort((a, b) => a.x1 - b.x1 || a.y1 - b.y1);
   // (the stage draws all of its own ground, and the gaps between the parts)
@@ -287,26 +325,26 @@ const buildCourse = (): Course => {
     pickups: all.flatMap(p => p.pickups),
     props: all.flatMap(p => p.props),
     junk, waves,
-    drips: s.drips,
+    drips: [...s.drips, ...s2.drips],
     // (the flooded holes up on the block first, then the sewer's)
-    channels: [...k.channels, ...s.channels],
-    bars: s.bars,
+    channels: [...k.channels, ...s.channels, ...s2.channels],
+    bars: s2.bars,
     solids: k.solids,
     mains: k.mains,
     hood: { x1: BLOCK_X0, x2: RX, corner: HOOD_X0 + 900, bike: HOOD_X0 + 1000, stop: HOOD_X0 + 620 },
     road: { x1: RX, x2: RX + END, hazmat: RX + ROAD_LEN + 520, manhole: RX + ROAD_LEN + 760 },
     sewer: {
-      x1: SEWER_X0, x2: SEWER_X0 + 10000, drop: SEWER_X0 + 200, lockers: [SEWER_X0 + 4600, SEWER_X0 + 7580],
+      x1: SEWER_X0, x2: SEWER_X1 + 10000, drop: SEWER_X0 + 200, lockers: [SEWER_X1 + 4600, SEWER_X1 + 7580],
       // (the roof comes down a little way in from each end: room to drop in, and to climb out)
-      tunnel: { x1: SEWER_X0 + 4760, x2: SEWER_X0 + 7200, roof: TUNNEL_ROOF, surface: TUNNEL_SURFACE, floor: TUNNEL_FLOOR, roof1: SEWER_X0 + 4900, roof2: SEWER_X0 + 7060 },
+      tunnel: { x1: SEWER_X1 + 4760, x2: SEWER_X1 + 7200, roof: TUNNEL_ROOF, surface: TUNNEL_SURFACE, floor: TUNNEL_FLOOR, roof1: SEWER_X1 + 4900, roof2: SEWER_X1 + 7060 },
       // (the roof over the pit leaves it open at each end: in at the top left, out at the top right)
-      pit: { x1: SEWER_X0 + 7700, x2: SEWER_X0 + 8600, floor: PIT_FLOOR, roof1: SEWER_X0 + 7770, roof2: SEWER_X0 + 8530 },
-      cistern: { x1: SEWER_X0 + 9200, x2: SEWER_X0 + 10000, pool: SEWER_X0 + 9550, rack: SEWER_X0 + 9280 },
+      pit: { x1: SEWER_X1 + 7700, x2: SEWER_X1 + 8600, floor: PIT_FLOOR, roof1: SEWER_X1 + 7770, roof2: SEWER_X1 + 8530 },
+      cistern: { x1: SEWER_X1 + 9200, x2: SEWER_X1 + 10000, pool: SEWER_X1 + 9550, rack: SEWER_X1 + 9280 },
     },
     ruins: { x1: RUINS_X0 + 900, x2: BOSS_DOOR_X, y: RUINS_Y, house: RUINS_X0 + 2130, pit: RUINS_X0 + PIT, pitW: PIT_W },
     checkpoints: [
       { x: BLOCK_X0 + 150, y: Y }, { x: BLOCK_X0 + 1940, y: Y }, { x: RX + 60, y: Y }, { x: RX + 12000, y: Y },
-      { x: SEWER_X0 + 200, y: Y }, { x: SEWER_X0 + 4450, y: Y }, { x: SEWER_X0 + 7400, y: Y }, { x: SEWER_X0 + 8700, y: Y }, { x: RUINS_X0 + 1640, y: RUINS_Y },
+      { x: SEWER_X0 + 200, y: Y }, { x: SEWER_X1 + 4450, y: Y }, { x: SEWER_X1 + 7400, y: Y }, { x: SEWER_X1 + 8700, y: Y }, { x: RUINS_X0 + 1640, y: RUINS_Y },
     ],
     left: BLOCK_X0 - 2000,
     startX: BLOCK_X0,
