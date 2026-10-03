@@ -224,7 +224,7 @@ export const updateBunker = (ctx: FrameContext, b: Bunker, talk: Talk, controls:
     case 'outside':
       // Across the yard on his own; up to the bikers, and it's Dirty Dan's chopper
       if (state.checkpoint < CP.YARD && p.isGrounded && px > COURSE.checkpoints[CP.YARD].x) state.checkpoint = CP.YARD;
-      if (p.isGrounded && px > b.bikers[0].x - 620) { b.phase = 'runout'; b.t = 0; b.step = 0; b.stepAt = 0; }
+      if (p.isGrounded && px > b.bikers[0].x - 440) { b.phase = 'runout'; b.t = 0; b.step = 0; b.stepAt = 0; }
       return controls;
     case 'runout': return runOut(ctx, b, talk);
     case 'ride': {
