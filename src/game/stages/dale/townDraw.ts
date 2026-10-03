@@ -535,7 +535,7 @@ const drawJail = (ctx: Ctx, state: GameState, town: Town) => {
       ink(ctx, () => { ctx.moveTo(sx, Y - sh); for (let k = 0; k <= 4; k++) ctx.lineTo(sx + sw * k / 4, Y - sh - (k % 2) * 10); ctx.lineTo(sx + sw, Y - sh + 6); ctx.closePath(); }, '#57534E', 1);
     }
     for (let i = 0; i < 14; i++) { ctx.save(); ctx.translate(j.x1 + 33 + i * 22, Y - 9 - (i % 4) * 12); ctx.rotate((hash(i + 300) - 0.5) * 0.6); slab(ctx, -13, -7, 26, 14, i % 3 ? '#78716C' : '#8A847F', 1); ctx.restore(); }
-    drawCab(ctx, j.x1 + 30 - CAB.w + 120, 1, f, true, 0.18);
+    drawCab(ctx, j.x1 + 30 - CAB.w + 120, 1, f, true, 0.18, 0, false, 0, true);
     });
     // What's left of the two of them, up the rubble and across the street (painted the once)
     drawSpatterLayer(ctx, JAIL_GORE, { x: j.x1 - 40, y: Y - 160, w: w + 200, h: 170 }, () => jailSpatter(state, j.x1, j.x2));
@@ -751,7 +751,7 @@ const drawArrival = (ctx: Ctx, state: GameState, town: Town) => {
 const cabSpeed = (cab: Town['cab']) =>
   cab.state === 'reverse' ? 3.5 : cab.state === 'spin' || (cab.state === 'go' && cab.speed === 0) ? 1 : cab.state === 'parked' || cab.state === 'wrecked' ? 0 : cab.speed;
 
-export const drawCab = (ctx: Ctx, x: number, facing: 1 | -1, f: number, wrecked: boolean, tilt: number, roll = 0, slumped = false, gore = 0) => {
+export const drawCab = (ctx: Ctx, x: number, facing: 1 | -1, f: number, wrecked: boolean, tilt: number, roll = 0, slumped = false, gore = 0, riggsDead = false) => {
   ctx.save();
   ctx.translate(x + CAB.w / 2, Y);
   ctx.scale(facing, 1);
@@ -820,6 +820,39 @@ export const drawCab = (ctx: Ctx, x: number, facing: 1 | -1, f: number, wrecked:
   }
   // Wheels (the two drive axles under the fifth wheel, the steer axle up front)
   for (const wx of CAB_WHEELS) drawTruckWheel(ctx, wx, -26, 26, roll);
+  if (wrecked && riggsDead) drawRiggsOnTheHood(ctx, h);
+  ctx.restore();
+};
+
+/**
+ * Riggs, after the jail: gone out through the side window from the waist up and splayed face down along the hood,
+ * arms out over the front of it, his legs still in the cab; glass in him, blood out of him across the hood, down the
+ * grille, sprayed up the inside of the window (cab space: the hood's top at -h + 70, the window 84..124).
+ */
+const drawRiggsOnTheHood = (ctx: Ctx, h: number) => {
+  const hoodY = -h + 70;
+  ctx.save();
+  ctx.filter = 'brightness(0.72) sepia(0.25)';
+  // Sprayed up the inside of the window frame he went out through, the glass gone but for teeth round the edge
+  drawSpatter(ctx, { x: 108, y: -h + 34, size: 9, seed: 911, dx: 0.9, dy: 0.2, clip: [84, -h + 16, 40, 44], color: '#7F1D1D', drips: true });
+  ctx.fillStyle = '#93C5FD';
+  for (const [gx, gy, gw, gh] of [[84, -h + 16, 6, 9], [96, -h + 16, 4, 5], [118, -h + 16, 6, 7], [84, -h + 50, 5, 10], [119, -h + 52, 5, 8]]) {
+    ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(gx + gw, gy); ctx.lineTo(gx + (gx < 100 ? 0 : gw), gy + gh); ctx.closePath(); ctx.fill();
+  }
+  // Him: hips at the sill, the rest of him out along the hood, head and arms toward the grille
+  ctx.save();
+  ctx.beginPath(); ctx.rect(110, -h - 40, CAB.w, h); ctx.clip();
+  ctx.translate(114, hoodY - 13); ctx.rotate(Math.PI / 2 + 0.06); ctx.translate(0, 28 * 1.4);
+  drawPerson(ctx, 0, 0, RIGGS, { mouth: 'open', arms: 'up' }, 1.4);
+  ctx.restore();
+  // The blood: a pool out from under him across the hood, over the front edge, in runs down the grille and the bumper
+  drawSpatter(ctx, { on: 'floor', x: 196, y: hoodY, size: 26, seed: 917, dx: 1, x1: 130, x2: CAB.w, color: '#7F1D1D' });
+  ctx.fillStyle = '#7F1D1D';
+  for (let k = 0; k < 6; k++) ctx.fillRect(CAB.w - 12 + (k % 3) * 4, hoodY + 4, 2, 18 + ((k * 13) % 34));
+  ctx.fillStyle = '#991B1B'; ctx.fillRect(CAB.w - 10, hoodY + 2, 8, 3);
+  // (and a shard of the window in his back, low, leaning back the way he came out)
+  ink(ctx, () => { ctx.moveTo(130, hoodY - 24); ctx.lineTo(124, hoodY - 32); ctx.lineTo(136, hoodY - 25); ctx.closePath(); }, '#BFDBFE', 0.8);
+  ctx.fillStyle = '#B91C1C'; ctx.fillRect(128, hoodY - 24, 7, 3); ctx.fillRect(131, hoodY - 21, 2, 6);
   ctx.restore();
 };
 
