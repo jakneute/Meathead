@@ -56,6 +56,8 @@ export interface FinaleRuntime {
   sludgeFreeT: number;
   /** Flamed while he's shooting: his beam's weakened for this many frames more. */
   dampT?: number;
+  /** This shot's beam has been soaked up by his filth shield: it stops dead on him, the rest of the way through. */
+  soaked?: boolean;
   /** When a nuke last caught him (he can only be nuked every so often). */
   nukeAt?: number;
   /** When the taser last came off his men onto him (for the callout, once a go). */

@@ -219,7 +219,7 @@ const floatAbout = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
 
 /** Up comes the gun, aimed at him (more or less: the way he's facing, swung toward him). */
 const startCharge = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
-  rt.mode = 'charge'; rt.modeT = 0;
+  rt.mode = 'charge'; rt.modeT = 0; rt.soaked = false;
   rt.tellLen = tellFrames(boss, rt, ammoDrain(ctx.state));
   const m = alienMuzzle(boss, { dx: facing(boss), dy: 0 });
   const p = ctx.state.player;
@@ -291,6 +291,20 @@ const fireBeam = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
   }
   const weak = !!blocked || (rt.dampT ?? 0) > 0;
   if (rt.dampT) rt.dampT--;
+  // His filth shield (the Sludge Barfer's) soaks it up: the shield's gone, and so is the shot, all of it, stopped dead
+  // on him for as long as it lasts (it's one hit, like any other the shield takes)
+  const onHim = p.health > 0 && beamTouches({ x: m.x, y: m.y, dx: rt.aim.dx, dy: rt.aim.dy, len }, p.pos.x - 20, p.pos.y - 20, p.width + 40, p.height + 40);
+  if (onHim && !rt.soaked && (p.filthShieldTimer ?? 0) > 0) {
+    rt.soaked = true;
+    p.filthShieldTimer = 0;
+    fx.spawnExplosion({ x: pcx, y: p.pos.y + p.height / 2 }, '#ADFF2F', 18, 0, 12);
+    callout(ctx, boss, 'ABSORBED!', '#84CC16');
+    playSound('splat', 0.9); playSound('dry_flame', 0.6, 4);
+  }
+  if (onHim && rt.soaked) {
+    len = Math.max(0, Math.min(len, (pcx - m.x) * rt.aim.dx + (p.pos.y + p.height / 2 - m.y) * rt.aim.dy - 26));
+    if (state.frame % 2 === 0) for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: m.x + rt.aim.dx * len, y: m.y + rt.aim.dy * len }, vel: { x: -rt.aim.dx * 2 + (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 16, color: i % 2 ? '#84CC16' : 'rgba(132, 204, 22, 0.6)', size: 3 + Math.random() * 3 });
+  }
   rt.beam = { x: m.x, y: m.y, dx: rt.aim.dx, dy: rt.aim.dy, len, blocked, weak };
   if (state.frame % 9 === 0) playSound('alienBeam', 0.8);
   // A little kick back off it
@@ -306,7 +320,7 @@ const fireBeam = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
     if (state.frame % 2 === 0) state.particles.push({ pos: { x: ex, y: ey }, vel: { x: -rt.aim.dx * (2 + Math.random() * 4) + (Math.random() - 0.5) * 3, y: -rt.aim.dy * 3 - Math.random() * 3 }, life: 14, color: Math.random() < 0.5 ? ALIEN.laser[4] : '#FFFFFF', size: 2 + Math.random() * 3 });
     if (rt.modeT === 6 && rt.scorch.length < 24) rt.scorch.push({ x: ex, y: ey, at: state.frame });
     // Meathead in it
-    if (p.invincibilityTimer <= 0 && p.health > 0 && beamTouches(rt.beam, p.pos.x, p.pos.y, p.width, p.height)) {
+    if (!(onHim && rt.soaked) && p.invincibilityTimer <= 0 && p.health > 0 && beamTouches(rt.beam, p.pos.x, p.pos.y, p.width, p.height)) {
       const k = weak ? WEAK_BEAM : 1;
       hurtPlayer(ctx, Math.round(BEAM_DAMAGE * k), 'alien_laser', { x: rt.aim.dx * 7 * k, y: -5 * k });
       for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: pcx, y: p.pos.y + p.height * 0.6 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 26, color: i % 2 ? 'rgba(87, 83, 78, 0.6)' : '#F97316', size: 3 + Math.random() * 4 });
