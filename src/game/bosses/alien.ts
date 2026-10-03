@@ -707,15 +707,17 @@ const onBodyHit = (ctx: FrameContext, boss: Enemy, body: Enemy, force: number) =
   if (boss.health <= 0) ctx.bossHelpers.killBoss(boss, Math.sign(body.vel.x) || 1, true, contact ? 'NEEDLES' : 'GUN', 'alien_kill');
 };
 
-/** A nuke on him: heavily resisted (well under a rocket's hit), and only every so often: in between, it's like it never
- * happened to him (the room still goes, his men with it). */
-const NUKE_DAMAGE = 60, NUKE_EVERY = 720;
+/** A nuke on him: heavily resisted (well under a rocket's hit), and only when he's not already in the oil fire (oiled
+ * and burning, a grease fire): while he's going up, another blast doesn't touch him (the room still goes, his men with
+ * it). The blast that a grease fire sets off as it lights him is the one that counts. */
+const NUKE_DAMAGE = 60;
 const nukeDamage = (ctx: FrameContext, boss: Enemy) => {
   const rt = getFinale(ctx.state);
   if (!rt) return NUKE_DAMAGE;
   const { frame } = ctx.state;
-  if (rt.nukeAt !== undefined && frame - rt.nukeAt < NUKE_EVERY) {
-    if (frame !== rt.nukeAt) callout(ctx, boss, 'SHRUGGED OFF!', '#A8A29E');
+  if (boss.isOnFire && boss.isOiled && rt.greaseAt !== frame) {
+    if (rt.nukeAt !== frame) callout(ctx, boss, 'SHRUGGED OFF!', '#A8A29E');
+    rt.nukeAt = frame;
     return 0;
   }
   rt.nukeAt = frame;
