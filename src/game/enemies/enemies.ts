@@ -36,7 +36,7 @@ import { copMelee, isMeleeCop } from './copMelee';
 import { submerged } from './kinds/victor';
 import { isMidBoss } from '../combat/midBoss';
 import { isBeingTased } from '../combat/statusEffects';
-import { hurtTaken } from '../core/resist';
+import { hurtTaken, gritty } from '../core/resist';
 
 /** On the screen right now (the view as drawn, pulled back or pushed in included). */
 const onCamera = (state: FrameContext['state'], e: Enemy) => {
@@ -970,6 +970,9 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     if (player.health > 0) {
       player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;
       player.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;
+      // (the finale: he takes it and keeps going, no knockback, nothing interrupted)
+      if (gritty(stageId)) { fx.speakVulgarity('hurt', getContactHurtSource(ctx, e)); fx.playGunSound('hurt'); }
+      else {
       // (hurt out of a rebound: the hurt takes over, the rebound's done)
       player.recoiling = false; player.lockTimer = 0; player.slideRecoil = false;
       player.isHarmlessPushback = false;
@@ -980,6 +983,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
       // (a goat's headbutt sends you a lot further)
       const butt = e.kind === 'goat' ? 1.8 : 1;
       player.vel = { x: (player.pos.x < e.pos.x ? -1 : 1) * PLAYER_PUSHBACK_VEL_X * butt, y: PLAYER_PUSHBACK_VEL_Y * butt };
+      }
     }
     bossDef?.onTouchPlayer?.(ctx, e);
     if (e.id.startsWith('rusher') || isChargerKind(e.kind)) e.pauseTimer = 60;

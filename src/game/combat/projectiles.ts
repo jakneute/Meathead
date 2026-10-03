@@ -28,7 +28,7 @@ import { getStageLayout } from '../stages';
 import { shieldFacing } from '../enemies/kinds';
 import { isMidBoss } from './midBoss';
 import { ernieQuake } from '../bosses/ernie';
-import { hurtTaken } from '../core/resist';
+import { hurtTaken, gritty } from '../core/resist';
 
 /** Moves one projectile and resolves its collisions. Returns false to remove it. */
 export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
@@ -717,6 +717,9 @@ const resolveEnemyProjectileHit = (ctx: FrameContext, p: Projectile): boolean =>
     if (player.health > 0) {
       player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;
       player.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;
+      // (the finale: he takes it and keeps going, no knockback, nothing interrupted)
+      if (gritty(stageId)) { fx.speakVulgarity('hurt', getProjectileHurtSource(p, stageId)); fx.playGunSound('hurt'); }
+      else {
       // (hurt out of a rebound: the hurt takes over, the rebound's done)
       player.recoiling = false; player.lockTimer = 0; player.slideRecoil = false;
       player.isHarmlessPushback = false;
@@ -730,6 +733,7 @@ const resolveEnemyProjectileHit = (ctx: FrameContext, p: Projectile): boolean =>
       player.isSliding = false;
       player.isUppercutting = false;
       player.isDivekicking = false;
+      }
     }
   }
   if (p.isBoulder) fx.spawnRockShatter(p.pos);

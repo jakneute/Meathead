@@ -10,7 +10,7 @@ import type { FrameContext } from '../core/context';
 import type { GameState } from '../core/state';
 import type { Fx } from '../core/effects';
 import { say, getBossVoice, SpeechPriority } from '../platform/speech';
-import { hurtTaken } from '../core/resist';
+import { hurtTaken, gritty } from '../core/resist';
 
 // ---------------------------------------------------------------------------
 // Arena geometry (the standard boss room)
@@ -198,6 +198,8 @@ export const hurtPlayer = (
   player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;
   player.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;
   ctx.fx.playGunSound('hurt');
+  // (the finale: he takes it and keeps going)
+  if (gritty(ctx.stageId)) { ctx.fx.speakVulgarity('hurt', source); return; }
   // (hurt out of a rebound: the hurt takes over, the rebound's done)
   player.recoiling = false; player.lockTimer = 0; player.slideRecoil = false;
   player.isHarmlessPushback = false;
