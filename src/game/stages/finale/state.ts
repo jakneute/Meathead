@@ -50,6 +50,12 @@ export interface FinaleRuntime {
   /** What's wrong with him, frames left: iced (slow), stunned (a boulder, the taser through his men), sludged down to
    * the floor, carried off by a wave, on fire. */
   slowT: number; stunT: number; groundT: number; pushT: number; burnT: number;
+  /** Just up out of the sludge: it can't drag him back down again yet (no pinning him for good). */
+  sludgeFreeT: number;
+  /** When the taser last came off his men onto him (for the callout, once a go). */
+  chainAt?: number;
+  /** When a boulder last knocked him silly (he can't be kept that way: a breather before it can again). */
+  stunAt?: number;
   /** Which way the wave's carrying him, and whether he's slammed into the wall yet this wave. */
   pushDir: number; slammed: boolean;
   /** Down on the floor in the sludge: how far he's fallen, and when he landed. */
@@ -144,7 +150,7 @@ export const getFinale = (state: GameState): FinaleRuntime | null => {
 export const newFinale = (): FinaleRuntime => ({
   kind: 'finale', t: 0,
   mode: 'float', modeT: 0, side: 1, path: [], shots: 0, aim: { dx: -1, dy: 0 }, beam: null,
-  slowT: 0, stunT: 0, groundT: 0, pushT: 0, burnT: 0, pushDir: 0, slammed: false, fallV: 0,
+  slowT: 0, stunT: 0, groundT: 0, pushT: 0, burnT: 0, sludgeFreeT: 0, pushDir: 0, slammed: false, fallV: 0,
   flash: 0, reel: 0, needleAt: [], flameAcc: 0, tasedAcc: 0, skin: 1, shed: [], said: {},
   wrecked: {}, scorch: [], doorOpen: [0, 0], doorsShut: false, windowBroken: [false, false],
   spawnT: 100, spawnSide: -1, spawned: 0,

@@ -180,6 +180,8 @@ const updateOilRocket = (ctx: FrameContext, p: Projectile): boolean => {
 
   const box = boundsOf(p);
   const explode = () => { explodeOilRocket(ctx, { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 }, p.vel.x); return false; };
+  // (the finale's press room: it goes off on the side walls, not out through the doorways at their feet)
+  if (inFinale(ctx.stageId) && (p.pos.x < ROOM_L || p.pos.x + p.width > ROOM_R)) return explode();
   for (const b of state.blocks) {
     // Rockets fired inside the arena pass through the (closed) door wall behind them
     if (state.arenaLocked && b.x <= BOSS_DOOR_X + DOOR_WIDTH && p.vel.x > 0) continue;

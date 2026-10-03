@@ -31,7 +31,7 @@ import { FINALE_LINES } from '../../content/dialogue';
 import { shakeScreen } from '../core/state';
 import {
   inFinale, FINALE_SHOTGUN_PELLETS, FINALE_FLAME_RANGE, FINALE_FLAME_SEGMENTS, FINALE_FLAME_WIDTH, FINALE_FLAME_GROWTH, FINALE_FLAME_SIZE_CAP_DIST,
-  FINALE_OIL_SPLASH_RADIUS, PITCH_FRAMES, PITCH_RELEASE_AT, PITCH_SPEED, PITCH_SIZE, PITCH_LIFE, FINALE_BARF_FRAMES,
+  FINALE_OIL_SPLASH_RADIUS, FINALE_OIL_SPLASH_DAMAGE, PITCH_FRAMES, PITCH_RELEASE_AT, PITCH_SPEED, PITCH_SIZE, PITCH_LIFE, FINALE_BARF_FRAMES,
 } from './finaleBuffs';
 
 /** The bits of this frame's input that weapons care about. */
@@ -689,10 +689,11 @@ export const explodeOilRocket = (ctx: FrameContext, pos: Vector2, rocketVelX?: n
       fx.spawnDamageNumber(e.pos, Math.round(dmg));
       return;
     }
-    e.health -= OIL_ROCKET_SPLASH_DAMAGE;
+    const splash = big ? FINALE_OIL_SPLASH_DAMAGE : OIL_ROCKET_SPLASH_DAMAGE;
+    e.health -= splash;
     e.isOiled = e.kind !== 'moose';
     e.oiledTimer = OIL_ROCKET_OILED_DURATION;
-    fx.spawnDamageNumber(e.pos, OIL_ROCKET_SPLASH_DAMAGE);
+    fx.spawnDamageNumber(e.pos, splash);
 
     const pushDir = (rocketVelX !== undefined && Math.abs(rocketVelX) > 0.1) ? Math.sign(rocketVelX) : (dx >= 0 ? 1 : -1);
     const isAirEnemy = e.enemyType === 'flyer' || e.enemyType === 'drone' || e.behavior === 'fly' || e.behavior === 'hover';

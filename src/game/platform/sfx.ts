@@ -93,9 +93,10 @@ const SFX: Record<string, SfxDef> = {
     make: () => { const lp = lowpass(), lp2 = lowpass(); return render(2.2, t => lp(rnd(), 3200 * ex(Math.max(0, t - 0.25), 1.6) + 250) * Math.min(1, t / 0.2) * ex(Math.max(0, t - 0.2), 1.3) * 1.2 + lp2(rnd(), 120) * ex(t, 1) * 2); },
   },
   alienCharge: {
-    // The alien's ray gun winding up: a wobbling saucer whine climbing, a buzz growing under it
-    gain: 0.32, vary: 0.4, gap: 300,
-    make: () => { const bp = bandpass(); let ph = 0, ph2 = 0; return render(1.0, t => { const f = 220 + 900 * t * t + 30 * Math.sin(TAU * 9 * t); ph += f / SFX_SR; ph2 += (f * 0.5) / SFX_SR; return (Math.sin(TAU * ph) * 0.7 + bp(Math.sign(Math.sin(TAU * ph2)), 800 + 1200 * t, 0.8) * 0.5 * t) * Math.min(1, t / 0.05); }); },
+    // The alien's ray gun winding up: a soft wobbling saucer whine climbing, a low hum growing under it (kept mellow:
+    // it's heard a lot)
+    gain: 0.18, vary: 0.4, gap: 300,
+    make: () => { const lp = lowpass(); let ph = 0, ph2 = 0; return render(0.9, t => { const f = 200 + 480 * t * t + 18 * Math.sin(TAU * 7 * t); ph += f / SFX_SR; ph2 += (f * 0.5) / SFX_SR; return (Math.sin(TAU * ph) * 0.7 + lp(Math.sign(Math.sin(TAU * ph2)), 500 + 500 * t) * 0.22 * t) * Math.min(1, t / 0.08) * Math.min(1, (0.9 - t) / 0.12); }); },
   },
   alienBeam: {
     // The beam going: a fat buzzing roar with a hum through it (played over and over while it runs)

@@ -9,7 +9,8 @@
 //   tsunami: carries him off with it, into the wall (no stun);    boulder: knocks him silly for a moment;
 //   needles: stick in him and work their way out (he never ODs); taser: just tingles him, unless it's come to him
 //     off his own men (the current jumping off them onto him): that stuns him (with none of them left, it can't);
-//   sludge: drags him down onto the floor in it, stuck there a good while (and he takes more there);
+//   sludge: drags him down onto the floor in it, stuck there a good while (and he takes more there), his aim thrown;
+// Only the boulder and that taser chain stun him (and never for good): everything else, he keeps his shot going through.
 //   oil rocket: a big hit, and it coats him (oiled, he goes up at a touch of fire);
 //   his own men, flung, shoved or overdosed into him: a good hit each (a contact high).
 // Once every one of Meathead's guns is empty, his men pull out, and it's just the two of them, he gives up: he lobs
@@ -130,7 +131,7 @@ const update = (ctx: FrameContext, boss: Enemy) => {
   if (!rt) return;
   const p = state.player;
   rt.modeT++;
-  for (const k of ['slowT', 'stunT', 'pushT', 'flash'] as const) if (rt[k] > 0) rt[k]--;
+  for (const k of ['slowT', 'stunT', 'pushT', 'flash', 'sludgeFreeT'] as const) if (rt[k] > 0) rt[k]--;
   rt.reel *= 0.9;
   flyChunks(ctx, rt);
   flyJets(ctx, rt);
@@ -230,6 +231,17 @@ const startCharge = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
 
 /** Pinned down in the sludge, he still takes his shots at him from the floor (a beat between them). */
 const GROUNDED_SHOT_WAIT = 80;
+/** How long he's pinned (from when it first gets him: more sludge on him hurts, but doesn't keep him down longer). */
+const GROUNDED_FRAMES = 300;
+/** Once he's up out of it, how long before it can drag him down again. */
+const SLUDGE_FREE_FRAMES = 240;
+/** Knocked silly by a boulder: how long, and how long after before another can do it again. */
+const STUN_FRAMES = 55;
+const STUN_FREE_FRAMES = 150;
+/** The taser through his men: held while it keeps coming, up to this long (from the start of it). */
+const CHAIN_STUN_FRAMES = 24, CHAIN_STUN_MAX = 90;
+/** Out of the last stun long enough to be stunned again? */
+const canStun = (rt: FinaleRuntime, frame: number) => rt.stunAt === undefined || frame - rt.stunAt > CHAIN_STUN_MAX + STUN_FREE_FRAMES;
 
 /** The tell: the gun up, the beam charging along where it's aimed (turning to follow him), then locked on. */
 /** (and the more of his ammo Meathead's spent, the quicker it comes: up to a third quicker with it all gone) */
@@ -346,7 +358,12 @@ const sludged = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
     // Hauling himself up out of it, the sludge stringing off him
     boss.pos.y -= 2.4;
     if (state.frame % 4 === 0) state.particles.push({ pos: { x: boss.pos.x + Math.random() * boss.width, y: bottom(boss) - 6 }, vel: { x: 0, y: 1.5 }, life: 30, color: '#65A30D', size: 3, grav: 0.3 });
-    if (bottom(boss) <= FLOAT_BOTTOM_LO || rt.groundT <= 0) { rt.groundT = 0; boss.pos.y = Math.min(boss.pos.y, FLOAT_BOTTOM_LO - boss.height); rt.mode = rt.mode === 'plead' ? 'plead' : 'float'; rt.modeT = 0; rt.path = []; }
+    if (bottom(boss) <= FLOAT_BOTTOM_LO || rt.groundT <= 0) {
+      rt.groundT = 0; rt.sludgeFreeT = SLUDGE_FREE_FRAMES;
+      boss.pos.y = Math.min(boss.pos.y, FLOAT_BOTTOM_LO - boss.height);
+      // (a shot he's in the middle of, he finishes)
+      if (rt.mode !== 'charge' && rt.mode !== 'fire') { rt.mode = rt.mode === 'plead' ? 'plead' : 'float'; rt.modeT = 0; rt.path = []; }
+    }
   }
 };
 
@@ -539,10 +556,15 @@ const onWeaponHit = (ctx: FrameContext, boss: Enemy, weapon: WeaponType, p?: Par
       break;
     case 'BOULDER':
       // (a pitched one: a fastball to the face)
-      if (rt.stunT < 20) { rt.stunT = 55; callout(ctx, boss, p?.pitched ? pickRandom(PITCH_CALLOUTS) : 'BONK!', '#FDE68A'); playSound('clang', 0.7, -6); }
+      // (the one thing that stuns him: and not again till he's had a moment out of it, so he can't be kept that way;
+      // a rock to the face then still hurts, it just doesn't put him out)
+      if (rt.stunT <= 0 && canStun(rt, state.frame)) {
+        rt.stunT = STUN_FRAMES; rt.stunAt = state.frame;
+        callout(ctx, boss, p?.pitched ? pickRandom(PITCH_CALLOUTS) : 'BONK!', '#FDE68A'); playSound('clang', 0.7, -6);
+        dropShot(rt);
+        sayOnce(ctx, rt, 'stunned', ALIEN_LINES.STUNNED);
+      }
       if (p?.pitched) { rt.flash = 10; rt.reel = 1; boss.pos.x += (Math.sign(p.vel?.x ?? 0) || 1) * 12; splinter(ctx, rt, hx, hy); }
-      dropShot(rt);
-      sayOnce(ctx, rt, 'stunned', ALIEN_LINES.STUNNED);
       break;
     case 'NEEDLES':
       if (p && p.pos && p.vel) stickNeedle(boss, p as Projectile, BOSS_NEEDLE);
@@ -550,10 +572,19 @@ const onWeaponHit = (ctx: FrameContext, boss: Enemy, weapon: WeaponType, p?: Par
       if (rt.needleAt.length > 14) { rt.needleAt.shift(); boss.needleOffsets?.shift(); }
       break;
     case 'SLUDGE':
-      if (rt.groundT <= 40) { callout(ctx, boss, 'GROUNDED!', '#84CC16'); rt.fallV = 0; }
-      rt.groundT = Math.max(rt.groundT, 300);
-      dropShot(rt);
-      sayOnce(ctx, rt, 'grounded', ALIEN_LINES.GROUNDED);
+      // (it only drags him down from up in the air, and not again straight after he's hauled himself out: more of
+      // it on him still hurts, but he can't be kept down for good)
+      if (rt.groundT <= 0 && rt.sludgeFreeT <= 0) {
+        callout(ctx, boss, 'GROUNDED!', '#84CC16'); rt.fallV = 0;
+        rt.groundT = GROUNDED_FRAMES;
+        // (not out of his shot: yanked down mid-way through it, his aim's knocked off, and a locked beam goes
+        // sweeping down the room with him)
+        if (rt.mode === 'charge' || rt.mode === 'fire') {
+          const a = Math.atan2(rt.aim.dy, rt.aim.dx) + (Math.random() < 0.5 ? -1 : 1) * (0.3 + Math.random() * 0.25);
+          rt.aim = { dx: Math.cos(a), dy: Math.sin(a) };
+        }
+        sayOnce(ctx, rt, 'grounded', ALIEN_LINES.GROUNDED);
+      }
       break;
     case 'OIL_ROCKET':
       rt.flash = 10; rt.reel = 0.7;
@@ -612,11 +643,16 @@ const onTaser = (ctx: FrameContext, boss: Enemy) => {
 const onTaserChain = (ctx: FrameContext, boss: Enemy) => {
   const rt = getFinale(ctx.state);
   if (!rt) return;
-  // Off his own men onto him: it holds him (and fries him a bit)
-  if (rt.stunT <= 0) callout(ctx, boss, 'GROUNDED OUT!', '#00E5FF');
-  rt.stunT = Math.max(rt.stunT, 24);
+  // Off his own men onto him: it holds him (and fries him a bit). Held for a spell, then he shakes it off for a while,
+  // however long the current keeps coming: no keeping him locked up
+  const { frame } = ctx.state;
+  if (rt.stunT <= 0 && canStun(rt, frame)) {
+    rt.stunT = CHAIN_STUN_FRAMES; rt.stunAt = frame;
+    callout(ctx, boss, 'GROUNDED OUT!', '#00E5FF');
+    dropShot(rt);
+  } else if (rt.stunT > 0 && rt.stunAt !== undefined && frame - rt.stunAt < CHAIN_STUN_MAX) rt.stunT = Math.max(rt.stunT, 24);
+  rt.chainAt = frame;
   boss.isTased = true;
-  dropShot(rt);
   if (ctx.state.frame % TASER_TICK_RATE === 0) hitBoss(ctx, boss, 'TASER', { facing: ctx.state.player.facing, damage: CHAIN_DAMAGE });
   sayOnce(ctx, rt, 'chain', ALIEN_LINES.CHAIN);
 };
