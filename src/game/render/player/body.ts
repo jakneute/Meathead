@@ -102,6 +102,25 @@ export const drawTorso = (ctx: Ctx, torsoTop: number, torsoHeight: number, pecY:
   ctx.closePath();
   ctx.fill();
   drawTorsoBlood(ctx, torsoTop, torsoHeight, pecY);
+  // In the finale he's still got the President's medal on: the blue ribbon round his neck (under his chin), the
+  // medal on his chest between the pecs, a white star on gold
+  if (singed) drawMedalOn(ctx, torsoTop, pecY);
+};
+
+/** The Presidential Medal of Freedom, as he wears it in the finale (torso frame). */
+const drawMedalOn = (ctx: Ctx, torsoTop: number, pecY: number) => {
+  const my = pecY + 6;
+  ctx.fillStyle = '#1E3A8A';
+  ctx.beginPath(); ctx.moveTo(-7, torsoTop - 5); ctx.lineTo(-4.5, torsoTop - 5); ctx.lineTo(0.6, my - 2); ctx.lineTo(-1.6, my - 2); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(7, torsoTop - 5); ctx.lineTo(4.5, torsoTop - 5); ctx.lineTo(-0.6, my - 2); ctx.lineTo(1.6, my - 2); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#3B82F6'; ctx.fillRect(-6, torsoTop - 4, 1, 3); ctx.fillRect(5.5, torsoTop - 4, 1, 3);
+  // (the medal: a gold rim, a red-and-white star, a glint)
+  ctx.fillStyle = '#78350F'; ctx.beginPath(); ctx.arc(0, my + 0.5, 3.6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.arc(0, my, 3.2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, r = k % 2 ? 1 : 2.4; ctx.lineTo(Math.cos(a) * r, my + Math.sin(a) * r); } ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#DC2626'; ctx.fillRect(-0.5, my - 0.5, 1, 1);
+  ctx.fillStyle = '#FEF9C3'; ctx.fillRect(-2.4, my - 2.4, 1, 1);
 };
 
 /** The lifting belt across his waist at `beltY`: the strap, the gold buckle, studs, stitching. */
@@ -188,7 +207,8 @@ export const drawArm = (ctx: Ctx, sx: number, sy: number, ex: number, ey: number
   for (let k = -1; k <= 1; k++) ctx.fillRect(hx + kx * fistR * 0.55 - ky * k * fistR * 0.45 - 0.4, hy + ky * fistR * 0.55 + kx * k * fistR * 0.45 - 0.4, 0.9, 0.9);
 };
 
-/** The alien's ray gun went through his jeans at the shin in the ending's cutscene: in the finale, the hole's there. */
+/** The alien's ray gun went through his jeans at the shin in the ending's cutscene: in the finale, the hole's there
+ * (and he's still wearing the medal the President gave him). */
 let singed = false;
 export const setLegSinge = (on: boolean) => { singed = on; };
 
