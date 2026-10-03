@@ -88,6 +88,12 @@ export const drawOscarFire = (ctx: CanvasRenderingContext2D, state: GameState) =
       case 'right': ctx.translate(c.x + c.w, c.y + c.h); ctx.rotate(-Math.PI / 2); break;
     }
     const len = c.surface === 'floor' || c.surface === 'ceiling' ? c.w : c.h;
+    // The oil itself going, under the flames: a white-hot seam along the surface, orange round it, flickering (the
+    // one fire in the room that's live; the room's own burning is smoldering, or far off out the windows)
+    const hot = state.frame + c.index * 7;
+    ctx.fillStyle = '#EA580C'; ctx.fillRect(-1, -5, len + 2, 5);
+    ctx.fillStyle = '#FDE047'; ctx.fillRect(0, -4, len, 3);
+    ctx.fillStyle = '#FEF9C3'; for (let x = (hot * 3) % 10; x < len; x += 10) ctx.fillRect(Math.round(x), -3, 4, 1);
     drawFlameTongues(ctx, len, s, c.index, state.frame, c.surface === 'floor');
     ctx.restore();
   }

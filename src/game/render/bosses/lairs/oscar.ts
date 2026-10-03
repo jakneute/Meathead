@@ -229,6 +229,11 @@ export const drawOscarRuin = (ctx: Ctx, L: number, R: number, T: number, B: numb
       const x0 = L + Math.floor(hash(i * 7 + 40) * Math.floor(W / 120)) * 120 + 3, pw = 114;
       if (x0 + pw > R) continue;
       ctx.fillStyle = 'rgba(255, 138, 31, 0.12)'; ctx.fillRect(x0, wy, pw, wh);
+      // (out past the hole, the lot burning: far off, behind the glass line, dimmed down like the rest of the back of
+      // the room, sat on the sill; nothing in here, nothing that can touch him)
+      ctx.save(); ctx.globalAlpha = 0.5;
+      drawFire(ctx, x0 + pw / 2, wy + wh, pw - 30, 26 + hash(i + 70) * 34 * k, f, { seed: i * 11 + 5, sparks: false, glow: 0 });
+      ctx.restore();
       ctx.fillStyle = 'rgba(203, 213, 225, 0.55)';
       for (let s = 0; s < 6; s++) {
         const sx = x0 + hash(i + s * 3) * (pw - 20), top = s % 2 === 0;
@@ -258,11 +263,19 @@ export const drawOscarRuin = (ctx: Ctx, L: number, R: number, T: number, B: numb
   }
   // Employee of the month: some knocked crooked, some burned black
   if (k > 0.3) for (let i = 0; i < 8; i++) if (hash(i + 120) < (k - 0.2)) { const x = L + 80 + i * 38, y = py + 24; box(ctx, x + 2, y + 2, 28, 30, i % 2 ? 'rgba(12, 8, 6, 0.85)' : 'rgba(40, 20, 10, 0.6)'); }
-  // Fires along the floor (more, bigger, the further gone it is), embers going up off them
+  // Burned down along the foot of the panelling (more of it, the further gone it is): smoldering, not burning, so it
+  // never reads as the oil fire that can actually get him: a charred heap glowing dull red in its cracks, a wisp of
+  // smoke, embers drifting up off it
   const fires = k > 0.35 ? Math.round((k - 0.3) * 14) : 0;
   for (let i = 0; i < fires; i++) {
-    const fx = at(i, 6), fh = 22 + hash(i + 80) * 30 * k;
-    drawFire(ctx, fx, B - 14, 24, fh, f, { seed: i * 7 + 3, sparks: false, glow: 0.7 });
+    const fx = Math.round(at(i, 6)), pulse = 0.55 + 0.45 * Math.sin(f * 0.07 + i * 1.9);
+    ctx.fillStyle = '#1C1917'; ctx.fillRect(fx - 14, B - 20, 28, 6); ctx.fillRect(fx - 9, B - 24, 18, 4);
+    ctx.fillStyle = '#292524'; ctx.fillRect(fx - 9, B - 24, 18, 1); ctx.fillRect(fx - 14, B - 20, 5, 1);
+    ctx.globalAlpha = pulse;
+    ctx.fillStyle = '#7F1D1D'; ctx.fillRect(fx - 11, B - 18, 22, 2); ctx.fillRect(fx - 6, B - 22, 12, 2);
+    ctx.fillStyle = '#B45309'; ctx.fillRect(fx - 7 + (i % 3) * 3, B - 18, 4, 2); ctx.fillRect(fx + 2 - (i % 2) * 5, B - 22, 3, 1);
+    ctx.globalAlpha = 1;
+    for (let w = 0; w < 2; w++) { const q = ((f * 0.5 + i * 37 + w * 60) % 120) / 120; pixelBlob(ctx, fx + Math.sin(q * 5 + i) * 6, B - 28 - q * 60, 5 + q * 9, 4 + q * 6, `rgba(41, 37, 36, ${(0.35 * (1 - q)).toFixed(3)})`); }
     ctx.fillStyle = '#FDBA74';
     for (let e = 0; e < 2; e++) { const q = ((f * 1.5 + i * 40 + e * 70) % 140) / 140; ctx.globalAlpha = 1 - q; ctx.fillRect(Math.round(fx + Math.sin(q * 9 + i) * 10), Math.round(B - 24 - q * 170), 2, 2); }
     ctx.globalAlpha = 1;
