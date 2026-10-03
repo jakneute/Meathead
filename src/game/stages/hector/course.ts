@@ -10,7 +10,7 @@
 // Each is built in its own coordinates and shifted into place.
 
 import { BOSS_DOOR_X, GROUND_Y } from '../../../constants';
-import type { GroundRun } from '../../core/terrain';
+import { profileYAt, type GroundRun } from '../../core/terrain';
 import type { EnemyKind } from '../../../types';
 
 export const CP = { BEACH: 0, STORM: 1, MOTEL: 2, MARINA: 3, CHASE: 4, TOWER: 5, EYE: 6, DOOR: 7 } as const;
@@ -75,6 +75,9 @@ export interface Tower {
   pickups: { u: number; y: number; type: PickupSpot['type'] }[];
 }
 
+/** Props that stand on the ground (put down on it wherever they're placed, slopes and all). */
+const STANDS = new Set(['umbrella', 'net', 'palm', 'tiki', 'sign', 'powerline']);
+
 // Where each part sits in the world
 const MAIN_LEN = 28100;
 const MAIN_X0 = BOSS_DOOR_X - 1500 - 300 - MAIN_LEN;  // the main run ends at the daycare wall (open water up to it)
@@ -99,12 +102,14 @@ const buildMain = () => {
 
   // ============ MIAMI BEACH, SUNNY ============
   // Sand, a gentle dune, sunbathers, a volleyball game, a lifeguard tower, the tiki bar
+  // (the dune's flat along the top, where the umbrella's up and the towels are down: they lie flat)
   ground(0, 1150, 'sand');
-  ground(1150, 1350, 'sand', Y, Y - 30);
-  ground(1350, 1550, 'sand', Y - 30, Y);
-  ground(1550, 2700, 'sand');
+  ground(1150, 1300, 'sand', Y, Y - 30);
+  ground(1300, 1500, 'sand', Y - 30);
+  ground(1500, 1650, 'sand', Y - 30, Y);
+  ground(1650, 2700, 'sand');
   props.push({ look: 'umbrella', x: 330, y: Y, color: '#F43F5E' }, { look: 'umbrella', x: 720, y: Y, color: '#FACC15' },
-    { look: 'net', x: 910, y: Y }, { look: 'umbrella', x: 1400, y: Y - 30, color: '#22D3EE' }, { look: 'umbrella', x: 2170, y: Y, color: '#A3E635' },
+    { look: 'net', x: 910, y: Y }, { look: 'umbrella', x: 1400, y: Y, color: '#22D3EE' }, { look: 'umbrella', x: 2170, y: Y, color: '#A3E635' },
     { look: 'tiki', x: 2450, y: Y, text: 'TIKI BAR' }, { look: 'palm', x: 120, y: Y }, { look: 'palm', x: 1080, y: Y }, { look: 'palm', x: 2350, y: Y });
   plats.push({ x: 1700, y: Y - 118, w: 96, look: 'lifeguard' });
   civ(0, 300); civ(0, 380); civ(1, 560); civ(0, 690); civ(2, 860); civ(2, 960); civ(3, 1180);
@@ -195,6 +200,8 @@ const buildMain = () => {
   // (a long way out: the Coast Guard's after him the whole way)
   const sea = { x1: 13200, x2: MAIN_LEN + 300, y: Y + 10, spoutX: 27400 };
 
+  // Whatever stands on the ground stands on it, at the height it is where it's stood (up on the dune and all)
+  for (const p of props) if (STANDS.has(p.look)) p.y = profileYAt(runs, p.x) ?? p.y;
   // Every beach umbrella's canopy is a trampoline
   for (const p of props) if (p.look === 'umbrella') plats.push({ x: p.x - 45, y: p.y - 108, w: 90, look: 'umbrella' });
   return { runs, plats, floats, shocks, strikes, debris, spawns, civilians, pickups, props, stormAt, shelters, fisherman, boat, sea };
