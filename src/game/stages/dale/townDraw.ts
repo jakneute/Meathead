@@ -86,8 +86,10 @@ export const drawTownBack = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
 
 /** The street: packed dirt, wagon ruts, hoofprints; the ground under it. */
 const drawStreet = (ctx: Ctx, state: GameState, r: GroundRun) => {
-  const bottom = state.camera.y + CANVAS_HEIGHT + 60;
-  const x0 = Math.max(r.x1, state.camera.x - 40), x1 = Math.min(r.x2, state.camera.x + CANVAS_WIDTH + 40);
+  // (what's on screen: the view, which is wider than the camera while it's eased out for the ninja)
+  const v = state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
+  const bottom = v.y + v.h + 60;
+  const x0 = Math.max(r.x1, v.x - 40), x1 = Math.min(r.x2, v.x + v.w + 40);
   if (x1 <= x0) return;
   // Packed dirt in bands (sunlit on top, darker going down), pebbles and grit through it
   bandedGradient(ctx, x0, r.y1, x1 - x0, Math.min(140, bottom - r.y1), ['#B07B45', '#A0703F', '#93653A', '#865B34'], 5);
@@ -263,7 +265,8 @@ const drawBattered = (ctx: Ctx, b: Building) => {
 
 /** Riggs's tracks up the street: two dark bands of tread, gouged in, from the curio shop as far as he's got. */
 const drawTracks = (ctx: Ctx, state: GameState, from: number, to: number) => {
-  const x0 = Math.max(from, state.camera.x - 40), x1 = Math.min(to, state.camera.x + CANVAS_WIDTH + 40);
+  const v = state.view ?? { x: state.camera.x, w: CANVAS_WIDTH };
+  const x0 = Math.max(from, v.x - 40), x1 = Math.min(to, v.x + v.w + 40);
   if (x1 <= x0) return;
   ctx.fillStyle = 'rgba(68, 40, 20, 0.55)'; ctx.fillRect(x0, Y + 12, x1 - x0, 7); ctx.fillRect(x0, Y + 30, x1 - x0, 7);
   ctx.fillStyle = 'rgba(40, 24, 12, 0.5)';

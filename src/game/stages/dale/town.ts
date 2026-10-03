@@ -86,7 +86,7 @@ export interface Town {
   shopHit: boolean;
   /** Times Meathead's said he needs to get closer (shooting at the nest from down there). */
   closerSaid: number;
-  ninja: { state: 'perch' | 'speech' | 'kneel' | 'fall' | 'dead'; t: number; /** Which way he turned to face Meathead (and stays that way). */ face: 1 | -1; /** Which way he's aiming, up there (he turns round after him if he gets past). */ aim?: 1 | -1;
+  ninja: { state: 'perch' | 'speech' | 'kneel' | 'fall' | 'dead'; t: number; /** How far the camera's eased out for his piece (0..1). */ zoomK?: number; /** Which way he turned to face Meathead (and stays that way). */ face: 1 | -1; /** Which way he's aiming, up there (he turns round after him if he gets past). */ aim?: 1 | -1;
     /** Shot at from down there: frames left ducked behind his sandbags, and when he last came back up. */ duck?: number; upAt?: number;
     /** After the cut: how far he's staggered back from his spot, and how far over he's tipped at the edge (and how fast). */ off?: number; tip?: number; tipV?: number; teeter?: number;
     /** Off the tower: his middle, how it's going, which way up. */ body?: { x: number; y: number; vx: number; vy: number; rot: number; spin: number };
@@ -556,6 +556,8 @@ const updateNinja = (ctx: FrameContext, town: Town, talk: Talk): Controls | null
   const p = state.player;
   const n = town.ninja;
   n.t++;
+  // (his piece and the seppuku: the camera eases out a little so he's in the shot up there, not up under the HUD)
+  n.zoomK = Math.max(0, Math.min(1, (n.zoomK ?? 0) + (n.state === 'speech' || n.state === 'kneel' ? 0.03 : -0.04)));
   const spot = ninjaSpot();
   if (n.state === 'perch') {
     // Up close: that's it for him
@@ -1104,3 +1106,13 @@ const crashIntoJail = (ctx: FrameContext, town: Town, talk: Talk) => {
 
 /** The wreck's still burning (for the draw). */
 export const jailWrecked = (state: GameState, town: Town) => town.phase === 'crashed' || !!state.stageMemo.jailWrecked;
+
+/** How far out the camera goes for the ninja's piece, about the bottom middle of the screen (the ground stays put, the
+ * view opens up above it, where he is). */
+const NINJA_ZOOM = 0.78;
+export const ninjaZoom = (state: GameState, town: Town) => {
+  const k = town.ninja.zoomK ?? 0;
+  if (k <= 0) return null;
+  const e = k * k * (3 - 2 * k);
+  return { scale: 1 - e * (1 - NINJA_ZOOM), x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + CANVAS_HEIGHT };
+};

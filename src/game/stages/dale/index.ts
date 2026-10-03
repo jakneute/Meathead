@@ -10,7 +10,7 @@ import { COURSE } from './course';
 import { createDaleRuntime, getDale, updateDale, regionOf, daleDeathMessage } from './runtime';
 import { officeBlocks, updateJunkie, hitJunkie } from './junkie';
 import { beltBlocks } from './hazards';
-import { jailWall } from './town';
+import { jailWall, ninjaZoom } from './town';
 import { HIGHWAY_CAM_Y, truckTilt } from './convoy';
 import { drawDaleBackdrop, drawDaleBack, drawDaleMid, drawDaleFront, drawDaleHud, drawDaleWeather } from './draw';
 import { drawJunkie } from './junkieDraw';
@@ -22,6 +22,7 @@ export const daleLayout: StageLayout = {
   startX: COURSE.startX,
   verticalCamera: true,
   lighting: state => daleScene(state),
+  zoom: state => { const t = getDale(state)?.town; return t ? ninjaZoom(state, t) : null; },
   // (back after dying to Dale: in the rubble of the jail, the camera held short of his door till you go through it)
   bossStartX: COURSE.town.jail.x1 - 60,
   build: (state, skipToBoss) => {
