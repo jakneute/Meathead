@@ -5,7 +5,7 @@
 import { G, LayerSpec, blitLayer } from './core';
 import { STAGE_BACKDROPS } from './stages';
 
-export interface View { camX: number; camY: number; frame: number; }
+export interface View { camX: number; camY: number; frame: number; /** How much of the place is burning (0..1: a stage's own say, for its backdrop's fires). */ burn?: number }
 
 /** A live (redrawn every frame) effect between layers, in screen space. */
 export type Live = (ctx: G, view: View) => void;
@@ -18,10 +18,10 @@ export interface Backdrop {
 }
 
 /** Draws the stage's backdrop across the screen. Returns false if the stage has none. */
-export const drawBackdrop = (ctx: G, stageId: string | null, camX: number, camY: number, frame: number): boolean => {
+export const drawBackdrop = (ctx: G, stageId: string | null, camX: number, camY: number, frame: number, burn = 0): boolean => {
   const bd = stageId ? STAGE_BACKDROPS[stageId] : undefined;
   if (!bd) return false;
-  const view = { camX, camY, frame };
+  const view = { camX, camY, frame, burn };
   for (const l of bd.layers) {
     if (typeof l === 'function') { ctx.save(); l(ctx, view); ctx.restore(); }
     else blitLayer(ctx, l, camX, camY, frame);

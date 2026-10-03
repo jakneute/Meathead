@@ -852,12 +852,38 @@ const pumpjacks = (ctx: G, v: View) => {
   });
 };
 
+/**
+ * The field going up (when the stage says it is: v.burn): fires stood on each layer's own ground, pinned to it so they
+ * go by with it, smaller and dimmer the farther back; each on a heap of black wreck, its light on the ground round it,
+ * its smoke going up. Between the layers, so the nearer ones stand in front of them.
+ */
+const fieldFires = (spec: LayerSpec, ground: number, xs: number[], scale: number) => (ctx: G, v: View) => {
+  const k = v.burn ?? 0;
+  if (k <= 0) return;
+  xs.forEach((tx, i) => {
+    // (more of them going the more of it's burning)
+    if (i / xs.length > k + 0.15) return;
+    pinned(tx, spec, v, sx => {
+      const y = ground * PX, w = (34 + (i % 3) * 14) * scale, h = (30 + ((i * 7) % 4) * 10) * scale;
+      steppedGlow(ctx, sx, y - h * 0.2, w * 1.3, '#FB923C', 0.3 * k, 0, 4);
+      // (the wreck it's burning on: a black heap, twisted bits of it sticking up)
+      pixelBlob(ctx, sx - w * 0.1, y, w * 0.3, 4 * scale, '#0C0705'); pixelBlob(ctx, sx + w * 0.18, y, w * 0.2, 3 * scale, '#0C0705');
+      ctx.fillStyle = '#0C0705'; ctx.fillRect(Math.round(sx - w * 0.25), Math.round(y - 12 * scale), Math.max(2, Math.round(3 * scale)), Math.round(12 * scale)); ctx.fillRect(Math.round(sx + w * 0.15), Math.round(y - 8 * scale), Math.max(2, Math.round(2 * scale)), Math.round(8 * scale));
+      drawFire(ctx, sx, y + 1, w, h, v.frame, { seed: tx + i * 7, glow: 0, sparks: scale > 0.7, k: Math.min(1, 0.5 + k) });
+      // (its smoke, leaning off with the wind, going up into the pall)
+      for (let s = 0; s < 3; s++) { const q = ((v.frame * 0.5 + s * 40 + i * 17) % 120) / 120; pixelBlob(ctx, sx + q * 40 * scale, y - h - q * 200 * scale, (10 + q * 34) * scale, (8 + q * 26) * scale, `rgba(28, 25, 23, ${(0.55 * k * (1 - q * 0.6)).toFixed(3)})`, 4); }
+    });
+  });
+};
+
 const oscar: Backdrop = {
   layers: [
     sky('oscar-sky', ['#140A08', '#2E160E', '#5A2A12', '#9A4A18', '#D07A2A', '#E9AC52'], 16),
     oscarRefinery,
     flares,
+    fieldFires(oscarRefinery, 225, [60, 210, 330, 420, 560], 0.45),
     oscarTanks,
+    fieldFires(oscarTanks, 250, [30, 170, 290, 400, 520, 610], 0.6),
     oscarField,
     pumpjacks,
   ],

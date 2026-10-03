@@ -8,8 +8,7 @@
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, ARENA_LEFT } from '../../../constants';
 import { drawBackdrop } from '../../render/backdrops';
-import { drawFire } from '../../render/fx/fire';
-import { steppedGlow, pixelBlob } from '../../render/pixelArt';
+import { hazeBands } from '../../render/pixelArt';
 import { COURSE, placeOf } from './course';
 import { getOscar, fadeAmount, OscarRuntime } from './runtime';
 import { drawDirt, drawOil, drawOilFire, drawPits, drawLedges, drawProps, drawJetPipes, drawJetFire } from './fieldDraw';
@@ -40,22 +39,11 @@ export const drawOscarBackdrop = (ctx: Ctx, state: GameState) => {
   const k = devastation(state, rt);
   const chasing = view(state) === 'chase';
   if (k <= 0 && !chasing) return false;
-  drawBackdrop(ctx, 'Oily Oscar', state.camera.x, state.camera.y, state.frame || 0);
+  drawBackdrop(ctx, 'Oily Oscar', state.camera.x, state.camera.y, state.frame || 0, k);
   // (on the chase: what's out across the field in the distance, and the wrecks careering into it)
   if (chasing) drawFarField(ctx, state, rt.chase);
-  // The smoke: a pall coming down over the sky, fires along the horizon under it
-  const g = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-  g.addColorStop(0, `rgba(20, 14, 12, ${0.75 * k})`); g.addColorStop(0.6, `rgba(60, 30, 18, ${0.5 * k})`); g.addColorStop(1, `rgba(120, 50, 20, ${0.3 * k})`);
-  ctx.fillStyle = g; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  const fires = Math.round(3 + k * 9);
-  for (let i = 0; i < fires; i++) {
-    const x = ((i * 173 - state.camera.x * 0.3) % (CANVAS_WIDTH + 200) + CANVAS_WIDTH + 200) % (CANVAS_WIDTH + 200) - 100;
-    const h = 40 + Math.sin(state.frame * 0.1 + i) * 10 + (i % 3) * 20;
-    const base = 420 - (i % 4) * 12;
-    steppedGlow(ctx, x, base, h * 1.6, '#FDBA74', 0.5 * k, 0.04 * k, 5);
-    drawFire(ctx, x, base + 4, h * 0.7, h * 0.5, state.frame, { seed: i * 11, glow: 0, sparks: false, k: Math.min(1, 0.4 + k) });
-    for (let s = 0; s < 3; s++) { const q = ((state.frame * 0.5 + s * 40 + i * 17) % 120) / 120; pixelBlob(ctx, x + q * 30, base - h - q * 240, 16 + q * 40, 13 + q * 32, `rgba(28, 25, 23, ${(0.6 * k).toFixed(3)})`, 4); }
-  }
+  // The smoke: a pall coming down over the sky (the fires under it are the backdrop's own, stood on its ground)
+  hazeBands(ctx, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, '#140E0C', 0.75 * k, 0.25 * k, 10);
   return true;
 };
 
