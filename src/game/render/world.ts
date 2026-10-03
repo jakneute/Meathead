@@ -334,6 +334,46 @@ const drawCheckpointBanner = (ctx: CanvasRenderingContext2D, b: { text: string; 
 /** The offscreen strip the cylinder pass draws the world into (reused). */
 let cylinderStrip: HTMLCanvasElement | null = null;
 
+/** The cylinder's screen columns, merged into runs: [destX, destW, srcX, srcW] (cached per radius). */
+let cylinderRunCache: { key: string; runs: [number, number, number, number][] } | null = null;
+const cylinderRuns = (radius: number, pad: number) => {
+  const key = `${radius}:${pad}`;
+  if (cylinderRunCache?.key === key) return cylinderRunCache.runs;
+  const half = CANVAS_WIDTH / 2, STEP = 2;
+  // Each 2px screen column takes the strip column at the matching angle
+  const cols: [number, number, number][] = []; // [destX, srcLeft, srcRight]
+  for (let sx = 0; sx < CANVAS_WIDTH; sx += STEP) {
+    const d = sx + STEP / 2 - half;
+    if (Math.abs(d) >= radius) continue;
+    const a = Math.asin(d / radius);
+    const src = pad + half + radius * a;
+    const srcW = Math.min(14, STEP / Math.max(0.12, Math.cos(a)));
+    cols.push([sx, src - srcW / 2, src + srcW / 2]);
+  }
+  // Merge neighbours while one straight mapping still lands every device pixel within a fraction of where it did
+  const TOL = 0.35 / RENDER_SCALE, sub = 1 / RENDER_SCALE;
+  const fits = (i: number, j: number) => {
+    const x0 = cols[i][0], x1 = cols[j][0] + STEP, s0 = cols[i][1], s1 = cols[j][2];
+    for (let k = i; k <= j; k++) {
+      const [cx, l, r] = cols[k];
+      for (let x = cx + sub / 2; x < cx + STEP; x += sub) {
+        const want = l + ((x - cx) / STEP) * (r - l), got = s0 + ((x - x0) / (x1 - x0)) * (s1 - s0);
+        if (Math.abs(want - got) > TOL) return false;
+      }
+    }
+    return true;
+  };
+  const runs: [number, number, number, number][] = [];
+  for (let i = 0; i < cols.length;) {
+    let j = i;
+    while (j + 1 < cols.length && cols[j + 1][0] === cols[j][0] + STEP && fits(i, j + 1)) j++;
+    runs.push([cols[i][0], cols[j][0] + STEP - cols[i][0], cols[i][1], cols[j][2] - cols[i][1]]);
+    i = j + 1;
+  }
+  cylinderRunCache = { key, runs };
+  return runs;
+};
+
 /**
  * The rotating-tower trick (Castlevania Bloodlines, Mickey Mania): the world's
  * drawn flat into a strip wider than the screen, then laid back onto the screen
@@ -356,18 +396,11 @@ const drawCylinderWorld = (ctx: CanvasRenderingContext2D, radius: number, worldP
   s.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
   s.clearRect(0, 0, w, CANVAS_HEIGHT);
   worldPass(s, pad);
-  // Wrap it round: each 2px screen column takes the strip column at the matching angle
-  const STEP = 2;
+  // Wrap it round: each 2px screen column takes the strip column at the matching angle (runs of columns that
+  // map near enough linearly are laid on in one blit: the same samples, give or take a fraction of a pixel)
   ctx.save();
   ctx.imageSmoothingEnabled = false;
-  for (let sx = 0; sx < CANVAS_WIDTH; sx += STEP) {
-    const d = sx + STEP / 2 - half;
-    if (Math.abs(d) >= radius) continue;
-    const a = Math.asin(d / radius);
-    const src = pad + half + radius * a;
-    const srcW = Math.min(14, STEP / Math.max(0.12, Math.cos(a)));
-    ctx.drawImage(cylinderStrip, (src - srcW / 2) * RENDER_SCALE, 0, srcW * RENDER_SCALE, CANVAS_HEIGHT * RENDER_SCALE, sx, 0, STEP, CANVAS_HEIGHT);
-  }
+  for (const [dx, dw, sx, sw] of cylinderRuns(radius, pad)) ctx.drawImage(cylinderStrip, sx * RENDER_SCALE, 0, sw * RENDER_SCALE, CANVAS_HEIGHT * RENDER_SCALE, dx, 0, dw, CANVAS_HEIGHT);
   // Shading round the sides as it turns away from you
   for (const side of [-1, 1]) {
     const x0 = half + side * radius * 0.35, x1 = half + side * radius;
@@ -748,7 +781,9 @@ const drawBossFallen = (ctx: CanvasRenderingContext2D, state: GameState, stageId
 const CULL = 500;
 
 const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, stageId, bossTauntText }: WorldView) => {
-  const { enemies, player } = state;
+  const { player } = state;
+  // (a test subject on hypermode is coming for him and nobody else: it's drawn over all the rest of them)
+  const enemies = state.enemies.some(e => e.hyper) ? [...state.enemies.filter(e => !e.hyper), ...state.enemies.filter(e => e.hyper)] : state.enemies;
   enemies.forEach(live => {
     // (a tenant's dead as he falls, but he's still to be seen going)
     if (live.health <= 0 && !live.isBlownAway && !(live.kind === 'tenant' && (live.aiState === 'fall' || live.aiState === 'splat'))) return;

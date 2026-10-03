@@ -254,12 +254,15 @@ const drawRisingStorm = (ctx: Ctx, state: GameState, top: number) => {
   }
   ctx.restore();
   // (a lip of foam along the crest, so you can see it coming: white over its shade, inked under)
-  for (let x = Math.floor(x0 / 4) * 4; x <= x1; x += 4) {
-    const y = crest(x);
-    ctx.fillStyle = INK; ctx.fillRect(x, y + 4, 4, 2);
-    ctx.fillStyle = '#94A3B8'; ctx.fillRect(x, y + 2, 4, 2);
-    ctx.fillStyle = (x / 4) % 3 ? '#E2E8F0' : '#F8FAFC'; ctx.fillRect(x, y, 4, 2);
-  }
+  // (only what's in view; a colour at a time, since none of it overlaps)
+  const v = state.view, lip0 = Math.floor(x0 / 4) * 4;
+  const lipA = v ? lip0 + Math.max(0, Math.floor((v.x - 8 - lip0) / 4)) * 4 : lip0, lipB = v ? Math.min(x1, v.x + v.w + 8) : x1;
+  const lip: number[] = [];
+  for (let x = lipA; x <= lipB; x += 4) lip.push(crest(x));
+  ctx.fillStyle = INK; lip.forEach((y, i) => ctx.fillRect(lipA + i * 4, y + 4, 4, 2));
+  ctx.fillStyle = '#94A3B8'; lip.forEach((y, i) => ctx.fillRect(lipA + i * 4, y + 2, 4, 2));
+  ctx.fillStyle = '#E2E8F0'; lip.forEach((y, i) => { const x = lipA + i * 4; if ((x / 4) % 3) ctx.fillRect(x, y, 4, 2); });
+  ctx.fillStyle = '#F8FAFC'; lip.forEach((y, i) => { const x = lipA + i * 4; if (!((x / 4) % 3)) ctx.fillRect(x, y, 4, 2); });
   // Spray whipping off the top of it, in streaks that fade back along themselves
   for (let i = 0; i < 30; i++) {
     const x = Math.round(x0 + ((i * 97 + f * (6 + (i % 4))) % (x1 - x0))), y = Math.round(top - 30 - ((i * 37 + f * 2) % 50));

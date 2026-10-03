@@ -199,8 +199,10 @@ export const drawStreetGround = (ctx: Ctx, state: GameState) => {
     ctx.fillStyle = '#57534E'; ctx.fillRect(0, 8, len + 1, 1);
     ctx.fillStyle = '#52525B'; ctx.fillRect(0, 9, len + 1, 4);
     ctx.fillStyle = '#1C1917'; ctx.fillRect(0, 9, len + 1, 1);
-    for (let s = 0; s < len; s += 50) if (hash(r.x1 + s) > 0.3) { ctx.fillStyle = '#FDE68A'; ctx.fillRect(s, 34, 26, 3); ctx.fillStyle = '#B5A060'; ctx.fillRect(s + 18 + hash(s) * 6, 34, 3, 3); }
-    ctx.fillStyle = 'rgba(0,0,0,0.3)'; for (let s = 10; s < len; s += 37) { const cy = 14 + hash(r.x1 + s) * 40, cw = 12 + hash(s) * 10; ctx.fillRect(s, cy, cw, 1); ctx.fillRect(s + cw, cy + 1, 4, 1); } // cracks
+    // (the line and the cracks only where they're on screen: the rest of the run's left alone)
+    const v0 = Math.max(0, s0 - 120), v1 = Math.min(len, s1 + 120);
+    for (let s = Math.floor(v0 / 50) * 50; s < v1; s += 50) if (hash(r.x1 + s) > 0.3) { ctx.fillStyle = '#FDE68A'; ctx.fillRect(s, 34, 26, 3); ctx.fillStyle = '#B5A060'; ctx.fillRect(s + 18 + hash(s) * 6, 34, 3, 3); }
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'; for (let s = 10 + Math.max(0, Math.floor((v0 - 10) / 37)) * 37; s < v1; s += 37) { const cy = 14 + hash(r.x1 + s) * 40, cw = 12 + hash(s) * 10; ctx.fillRect(s, cy, cw, 1); ctx.fillRect(s + cw, cy + 1, 4, 1); } // cracks
     ctx.restore();
   }
 };

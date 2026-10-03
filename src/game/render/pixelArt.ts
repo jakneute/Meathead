@@ -113,22 +113,32 @@ export const pixelRidge = (
   tones: { fill: string; rim: string; lit?: string; shade?: string }, lightFrom = 1, px = PIX,
 ) => {
   const xs = Math.floor(x0 / px) * px;
+  // (each column's crest, and whether it's on a lit flank)
+  const ys: number[] = [], lits: boolean[] = [];
   for (let x = xs; x < x1; x += px) {
-    const y = Math.floor(ridge(x + scroll) / px) * px;
-    ctx.fillStyle = tones.fill;
-    ctx.fillRect(x, y, px, bottom - y);
+    ys.push(Math.floor(ridge(x + scroll) / px) * px);
     // (the slope here: which way it faces)
     const facing = ridge(x + scroll + 6) - ridge(x + scroll - 6);
-    const lit = tones.lit && Math.sign(facing) === lightFrom && Math.abs(facing) > 1.5;
-    if (lit) { ctx.fillStyle = tones.lit!; ctx.fillRect(x, y + px * 2, px, px * 4); }
+    lits.push(!!tones.lit && Math.sign(facing) === lightFrom && Math.abs(facing) > 1.5);
+  }
+  // (drawn a colour at a time, neighbouring columns at the same height in one go: the columns don't overlap, so
+  // it comes out the same as going along column by column, body then flank then rim)
+  const n = ys.length;
+  if (n) {
+    ctx.fillStyle = tones.fill;
+    for (let i = 0; i < n;) { let j = i + 1; while (j < n && ys[j] === ys[i]) j++; ctx.fillRect(xs + i * px, ys[i], (j - i) * px, bottom - ys[i]); i = j; }
+    if (lits.includes(true)) {
+      ctx.fillStyle = tones.lit!;
+      for (let i = 0; i < n;) { if (!lits[i]) { i++; continue; } let j = i + 1; while (j < n && lits[j] && ys[j] === ys[i]) j++; ctx.fillRect(xs + i * px, ys[i] + px * 2, (j - i) * px, px * 4); i = j; }
+    }
     ctx.fillStyle = tones.rim;
-    ctx.fillRect(x, y, px, px * (lit ? 2 : 1));
+    for (let i = 0; i < n;) { let j = i + 1; while (j < n && ys[j] === ys[i] && lits[j] === lits[i]) j++; ctx.fillRect(xs + i * px, ys[i], (j - i) * px, px * (lits[i] ? 2 : 1)); i = j; }
   }
   if (tones.shade) {
     // (under the rim, the crest rounded off into the body: a dithered strip following the ridge)
+    if (xs < x1) ctx.fillStyle = tones.shade;
     for (let x = xs; x < x1; x += px * 2) {
       const y = Math.floor(ridge(x + scroll) / px) * px;
-      ctx.fillStyle = tones.shade;
       ctx.fillRect(x + (Math.floor(y / px) % 2) * px, y + px * 3, px, px);
       ctx.fillRect(x + ((Math.floor(y / px) + 1) % 2) * px, y + px * 5, px, px);
     }
@@ -155,17 +165,29 @@ export const steppedGlow = (ctx: Ctx, cx: number, cy: number, radius: number, co
 /** A soft-edged chunky blob (a cloud, a smoke puff, fog): a solid middle, a dithered skirt round it. */
 export const pixelBlob = (ctx: Ctx, cx: number, cy: number, rw: number, rh: number, color: string, px = PIX) => {
   const x0 = Math.floor((cx - rw) / px) * px, x1 = cx + rw;
+  // (what of the canvas it can land on, in its own space: columns wholly off the canvas aren't drawn at all)
+  let vx0 = -Infinity, vx1 = Infinity, vy0 = -Infinity, vy1 = Infinity;
+  const t = ctx.getTransform?.();
+  if (t && t.b === 0 && t.c === 0 && t.a > 0 && t.d > 0 && ctx.canvas) {
+    vx0 = -t.e / t.a - px; vx1 = (ctx.canvas.width - t.e) / t.a + px;
+    vy0 = -t.f / t.d - px * 2; vy1 = (ctx.canvas.height - t.f) / t.d + px * 2;
+  }
+  let styled = false;
   for (let x = x0; x < x1; x += px) {
     const u = (x + px / 2 - cx) / rw;
     if (Math.abs(u) >= 1) continue;
+    if (!styled) { ctx.fillStyle = color; styled = true; }
+    if (x + px < vx0) continue;
+    if (x > vx1) break;
     const half = Math.sqrt(1 - u * u) * rh;
     const y0 = Math.floor((cy - half) / px) * px, y1 = Math.ceil((cy + half) / px) * px;
+    if (y1 < vy0 || y0 > vy1) continue;
     const h = y1 - y0;
     // (the outer ring of cells only every other one, so the edge breaks up)
-    const solid = Math.max(0, h - px * 4);
-    ctx.fillStyle = color;
-    ctx.fillRect(x, y0 + px * 2, px, solid);
     const col = Math.floor(x / px);
+    // (tall enough, the caps and the middle meet end to end: the column in one go)
+    if (h >= px * 4) { if (col % 2 === 0) ctx.fillRect(x, y0, px, h); else ctx.fillRect(x, y0 + px, px, h - px * 2); continue; }
+    // (a sliver: the caps overlap, each drawn as it is)
     if (col % 2 === 0) { ctx.fillRect(x, y0, px, px * 2); ctx.fillRect(x, y1 - px * 2, px, px * 2); }
     else { ctx.fillRect(x, y0 + px, px, px); ctx.fillRect(x, y1 - px * 2, px, px); }
   }
