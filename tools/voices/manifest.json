@@ -8126,12 +8126,42 @@
  },
  {
   "voice": "finale.radio",
+  "text": "AIR SUPPORT, YOU'RE CLEARED THROUGH THE WINDOWS! YES, THROUGH THEM!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "ALL AGENTS: AIM FOR THE BIG ONE! NO, THE OTHER BIG ONE!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
   "text": "ALL UNITS, FALL BACK! FALL BACK! THIS IS ABOVE OUR PAY GRADE!",
   "from": "FINALE_LINES"
  },
  {
   "voice": "finale.radio",
   "text": "ALL UNITS, PRESS ROOM! PROTECT THE PRESIDENT!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "BACKUP INBOUND! TELL THEM TO BRING BIGGER GUNS! AND A MOP!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "CODE RED! CODE GREEN! WHATEVER COLOR HE IS, CODE THAT!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "DID ANYBODY ELSE SEE THE PRESIDENT EAT A STAPLER?! KEEP PROTECTING HIM!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "DOES THE PRESIDENT USUALLY HAVE AN EXTRA ELBOW?! NOT OUR CALL! ENGAGE!",
   "from": "FINALE_LINES"
  },
  {
@@ -8146,7 +8176,32 @@
  },
  {
   "voice": "finale.radio",
+  "text": "I TOOK A BULLET FOR THREE PRESIDENTS! I WILL NOT TAKE A ROCK!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "JETPACK TEAM, GO! MIND THE CHANDELIER! THERE'S NO CHANDELIER! GO!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "MEDICAL TO THE PRESS ROOM! AND A PRIEST! AND MAYBE AN ASTRONAUT!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
   "text": "MORE UNITS TO THE BRIEFING ROOM! THE BIG GUY'S EATING US ALIVE!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "PERIMETER COMPROMISED! ALSO THE CARPET! ALSO MY PANTS!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "PROTECT THE PRESIDENT! DO NOT LOOK DIRECTLY AT THE PRESIDENT!",
   "from": "FINALE_LINES"
  },
  {
@@ -8161,12 +8216,37 @@
  },
  {
   "voice": "finale.radio",
+  "text": "SHIRTLESS SUBJECT IN THE BRIEFING ROOM! REPEAT, NO SHIRT!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
   "text": "THE PRESIDENT IS... GREEN? PROTECT HIM ANYWAY!",
   "from": "FINALE_LINES"
  },
  {
   "voice": "finale.radio",
+  "text": "THE PRESS POOL IS ON FIRE! THE PRESS ARE FINE! THE POOL IS ON FIRE!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "THIS IS AGENT HOLLIS! I'M RETIRING! EFFECTIVE IMMEDIATELY! COMING IN ANYWAY!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "THIS IS NOT IN THE MANUAL. I'VE READ THE MANUAL. TWICE.",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
   "text": "WHO AUTHORIZED THE JETPACKS? NEVER MIND, SEND THEM!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "WHO LET THE GYM GUY THROUGH SECURITY?! HE SET OFF EVERY DETECTOR AND WE WAVED HIM IN!",
   "from": "FINALE_LINES"
  },
  {

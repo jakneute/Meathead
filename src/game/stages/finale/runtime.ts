@@ -48,6 +48,15 @@ const WRECK_BANNER: Partial<Record<WeaponType, [string, string]>> = {
   NEEDLES: ['NEEDLES EVERYWHERE!', '#E879F9'],
 };
 
+/** A radio line not heard yet this fight (none twice: once they've all been said, the radio's got nothing new). */
+const freshRadio = (rt: FinaleRuntime, pool: readonly string[]) => {
+  const left = pool.filter(l => !rt.said[`radio:${l}`]);
+  if (!left.length) return null;
+  const line = pickRandom(left);
+  rt.said[`radio:${line}`] = true;
+  return line;
+};
+
 const queue = (rt: FinaleRuntime, who: 'alien' | 'meathead' | 'radio', text: string, shat?: string) => {
   if (rt.lines.length < 8) rt.lines.push({ who, text, shat });
 };
@@ -117,7 +126,8 @@ const spawnAgents = (ctx: FrameContext, rt: FinaleRuntime, boss: Enemy) => {
   }
   // The radio: who's coming in (once in a while, never over anyone)
   if (rt.radioCd <= 0 && (rt.spawned <= 3 || Math.random() < 0.3)) {
-    queue(rt, 'radio', rt.spawned <= 3 ? FINALE_LINES.RADIO_IN[0] : pickRandom(FINALE_LINES.RADIO_IN.slice(1)));
+    const line = rt.spawned <= 3 ? freshRadio(rt, FINALE_LINES.RADIO_IN.slice(0, 1)) : freshRadio(rt, FINALE_LINES.RADIO_IN.slice(1));
+    if (line) queue(rt, 'radio', line);
     rt.radioCd = 840;
   }
 };
@@ -154,7 +164,7 @@ const spawnJet = (ctx: FrameContext, rt: FinaleRuntime, side: -1 | 1) => {
   if (!rt.windowBroken[w]) {
     rt.windowBroken[w] = true;
     ctx.fx.spawnGlassShatter({ x: side < 0 ? ROOM_L : ROOM_R, y: (WINDOW_TOP + WINDOW_BOTTOM) / 2 });
-    if (!rt.said.jets) { rt.said.jets = true; queue(rt, 'radio', pickRandom(FINALE_LINES.RADIO_JETS)); }
+    if (!rt.said.jets) { rt.said.jets = true; const line = freshRadio(rt, FINALE_LINES.RADIO_JETS); if (line) queue(rt, 'radio', line); }
   }
 };
 
