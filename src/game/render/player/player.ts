@@ -24,6 +24,8 @@ export interface PlayerDrawOptions {
   surf?: boolean;
   /** Throw his shadow as the stage's light falls (his silhouette on the ground and up the walls): the world's own draw of him. */
   castShadow?: boolean;
+  /** Something in his lead hand in place of the gun (a stage's cutscene: the ninja's sword), drawn in his hand's frame at the fist (x, y), the way the arm's turned. */
+  hold?: (ctx: CanvasRenderingContext2D, x: number, y: number) => void;
 }
 
 /** How long the handgun's kick takes to settle (frames after a shot). */
@@ -36,7 +38,7 @@ const SOOT_FADE = 120;
 const SUIT_TINT = 'rgba(250, 204, 21, 0.78)';
 
 /** Draws Meathead: effects auras, then body layers back-to-front, then the held weapon. */
-export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled, footTap = 0, surf = false, castShadow = false }: PlayerDrawOptions) => {
+export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled, footTap = 0, surf = false, castShadow = false, hold }: PlayerDrawOptions) => {
   // (talking, in whatever pose: the heads drawn for the moves work their jaws too)
   setTalking(state.playerVulgarityTimer > 0 && !!state.playerLastVulgarity && !p.hidden);
   if ((state.deathTimer > 0 && !p.headless && !p.shownDead) || p.hidden) return;
@@ -1012,7 +1014,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     const wpnY = armBaseY + 2;
 
     // (his hand's empty for a moment after a throw)
-    if (!isUnarmed && !throwing) drawHeldWeapon(ctx, currentWeapon, wpnX, wpnY, p.flameAngle || 0, animFrame);
+    if (hold) hold(ctx, wpnX, wpnY);
+    else if (!isUnarmed && !throwing) drawHeldWeapon(ctx, currentWeapon, wpnX, wpnY, p.flameAngle || 0, animFrame);
   }
   ctx.restore();
 

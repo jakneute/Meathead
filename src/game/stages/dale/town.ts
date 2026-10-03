@@ -12,18 +12,21 @@
 // springy, too: land on one and it throws you up onto the rooftops.
 //
 // Up on the tower the sniper turns out to be a ninja, and when Meathead reaches
-// him he's so ashamed of missing that he kneels and commits seppuku on the spot.
+// him he's so ashamed of missing that he kneels and commits seppuku on the spot,
+// staggers off the street side of the tower and comes down in the street, always
+// in the one spot, his sword beside him.
 //
 // Back down on the street: a cut back down to the curio shop, and the second
 // hitman isn't dead after all. Riggs backs the cab out, spins it round and comes
 // up the street flat out, through the tourists (every last one) and the photo
-// cutouts. Warning signs, a meter: when he's close, boost-jump (an uppercut) clean
-// over him. Then a cut to the fake jail: the guy the "sheriff" locked in it for a
-// photo sees what's coming, the sheriff runs off with the keys, and the cab comes
-// through the wall, him and Riggs and all. (If the cab went over the ninja on the
-// way, his sword went spinning off up the street out of it: it comes down out of
-// the sky on the sheriff as he runs for it, through his skull, and pins him up the
-// jail's wall, and the cab takes the lot.) Dale's pharmacy is past the wreck.
+// cutouts, and over the ninja (knocking his sword on along the street). Warning
+// signs, a meter: when he's close, boost-jump (an uppercut) clean over him.
+// Landed, Meathead picks the sword up and hurls it after the cab (EAT THIS,
+// PUSSY.); it sails on over it. Then a cut to the fake jail: the guy the
+// "sheriff" locked in it for a photo sees what's coming, the sheriff runs off
+// with the keys, right into the sword's way: through his skull, and up the jail's
+// wall on it. Then the cab comes through the wall and takes the lot. Dale's
+// pharmacy is past the wreck.
 //
 // The tourists are the town's, not enemies: Meathead can't hurt them.
 
@@ -33,10 +36,9 @@ import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
 import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
-import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
+import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, BOULDER_THROW_FRAMES } from '../../../constants';
 import { shakeScreen } from '../../core/state';
 import { rectsOverlap, boundsOf, isOnScreen } from '../../core/utils';
-import { floorTopAt } from '../../core/terrain';
 import { hurtPlayer } from '../../bosses/shared';
 import { killPlayer } from '../../player/player';
 import { playSound, playSniperShot, playHornDrone } from '../../platform/audio';
@@ -64,11 +66,23 @@ const CHASE_SPEED = 17, RUSH_SPEED = 8, HANDOVER = 1300;
 /** Coming in off the highway: how fast the cab comes down the street into the curio shop. */
 const ARRIVE_SPEED = 21;
 
-export interface TownSword { state: 'flying' | 'aloft' | 'homing' | 'carry' | 'stuck'; x: number; y: number; vx: number; vy: number; rot: number; spin: number; t: number;
+/**
+ * The ninja's sword: coming down off the tower with him; lying in the street beside him; knocked on along it by the
+ * cab; in Meathead's hand; thrown, and away up the street out of sight; in off the left at Dan; carrying him; stuck
+ * in the wall. (x, y: its middle.)
+ */
+export interface TownSword { state: 'falling' | 'lying' | 'skid' | 'held' | 'flying' | 'aloft' | 'homing' | 'carry' | 'stuck'; x: number; y: number; vx: number; vy: number; rot: number; spin: number; t: number;
+  /** The cab's knocked it along the street already (once is all). */ knocked?: boolean;
   /** Homing and carrying: from where, to where. */ x0?: number; y0?: number; x1?: number; y1?: number }
+/** After he's cleared the cab: down onto the street; over to the sword; crouched for it; winding up; the throw. */
+export interface TownFlourish { step: 'land' | 'walk' | 'grab' | 'windup' | 'throw'; t: number }
 export interface TownProp { x: number; look: 'barrel' | 'cutout' | 'wagon' | 'hay' | 'wanted' | 'trough'; flying: boolean; vx: number; vy: number; y: number; rot: number }
 export interface Town {
-  phase: 'street' | 'pan' | 'revive' | 'chase' | 'incoming' | 'jail' | 'crashed';
+  phase: 'street' | 'pan' | 'revive' | 'chase' | 'incoming' | 'flourish' | 'jail' | 'crashed';
+  /** Over the cab: him picking the sword up and throwing it (see flourish). */
+  flourish?: TownFlourish;
+  /** Skipped from the throw: the jail scene skips the lot as soon as it's set up. */
+  skipAll?: boolean;
   /** While the cab's coming for him: where the camera's locked (its left edge). */
   lockX?: number;
   /** The jail scene: when the cab went into it (-1 till then). */
@@ -100,8 +114,8 @@ export interface Town {
   /** The "sheriff": where he is; whether he's off; what came of him (skewered by the ninja's sword, pinned up the
    * jail's wall by it, then the cab: dead). `hx`, `hy`: his head, while he's on the sword. */
   sheriff: { x: number; running: boolean; fate?: 'skewered' | 'pinned' | 'dead'; hx?: number; hy?: number; pinT?: number; ranAt?: number };
-  /** The ninja's sword, off him when the cab went over him: spinning off up the street and up out of sight; down out
-   * of the sky on the sheriff at the jail; through him and up the wall, stuck there. */
+  /** The ninja's sword: down in the street beside him; thrown up the street by Meathead after the cab; in on the
+   * sheriff at the jail; through him and up the wall, stuck there. */
   sword?: TownSword;
   /** A close-up cut in over the jail scene (the sword in the air; Riggs bearing down), and how far into it. */
   cutIn?: { shot: 'sword' | 'riggs'; t: number };
@@ -121,17 +135,19 @@ export const createTown = (state: GameState, startedAt: number): Town => {
     { x: t.x1 + 4900, look: 'hay' }, { x: t.x1 + 5150, look: 'barrel' },
   ].map(p => ({ ...p, look: p.look as TownProp['look'], flying: false, vx: 0, vy: 0, y: Y, rot: 0 }))
     // (whatever the ninja came down on is gone)
-    .filter(p => !ninjaDead || Math.abs(p.x - ninjaDownMemo(state).x) >= PROP_HIT);
+    .filter(p => !ninjaDead || Math.abs(p.x - NINJA_LAND_X()) >= PROP_HIT);
   // (back after dying past the jail: it's rubble, and Riggs is in it)
   const wrecked = !!state.stageMemo.jailWrecked;
   // (died while Riggs was coming up the street, before he'd got to the jail: it never happened. The street's as it
-  // was, the tread marks, the blood and the beaten-up fronts gone with it, the tourists back, the ninja back in one piece where he fell)
-  if (!wrecked) { delete state.stageMemo.cabReach; delete state.stageMemo.townStains; if (state.stageMemo.ninjaDown) state.stageMemo.ninjaDown = state.stageMemo.ninjaDown.split(',').slice(0, 3).join(','); }
+  // was, the tread marks, the blood and the beaten-up fronts gone with it, the tourists back, the ninja back in one
+  // piece where he fell, his sword back beside him)
+  if (!wrecked) { delete state.stageMemo.cabReach; delete state.stageMemo.townStains; delete state.stageMemo.ninjaMangled; }
   return {
+    sword: ninjaDead && !wrecked ? swordLying() : undefined,
     phase: wrecked ? 'crashed' : 'street', t: 0,
     sniper: { on: false, x: t.x1 + 1400, y: Y - 200, state: 'track', t: 0, shots: 0, lastShot: null },
     closerSaid: 0,
-    ninja: { state: ninjaDead ? 'dead' : 'perch', t: 999, face: -1, down: ninjaDead ? ninjaDownMemo(state) : undefined },
+    ninja: { state: ninjaDead ? 'dead' : 'perch', t: 999, face: -1, down: ninjaDead ? restingNinja(state) : undefined },
     cab: wrecked ? { x: t.jail.x1 + 30 - CAB.w, speed: 0, facing: 1, spin: 0, state: 'wrecked', t: 0 } : { x: t.crash - 20, speed: 0, facing: -1, spin: 0, state: 'parked', t: 0 },
     props, sheriff: { x: wrecked ? t.x2 + 400 : t.jail.x1 - 70, running: wrecked, fate: wrecked && state.stageMemo.danSkewered ? 'dead' : undefined }, prisoner: { alive: !wrecked, said: 0 },
     said: new Set(), wakeT: 999,
@@ -503,21 +519,29 @@ const STAGGER = 2.4, TEETER = 16, NINJA_HALF = 38, NINJA_THICK = 11;
 const NINJA_FRAME = 150;
 /** How close to where he comes down a prop has to be to go flying. */
 const PROP_HIT = 60;
-/** Where he ends up: his middle, on what was under him (the top of it), his head that way. */
+/** Where he ends up: his middle, on the street, his head that way. */
 export interface NinjaDown { x: number; y: number; head: 1 | -1; t: number;
   /** Riggs's been over him: how many of the cab's axles (0..3), and the frame the last one went over. */ mangled?: number; mangledAt?: number }
 /** The tower's floor (his ledge), and the edge of it he's going off. */
 const towerLedge = () => COURSE.ledges.find(l => l.look === 'tower')!;
 export const towerEdge = (dir: number) => { const l = towerLedge(); return dir > 0 ? l.x + l.w : l.x; };
-/** Where he lies, back after a checkpoint (or if it was skipped): where he came down, or off the street side of the tower. */
-const ninjaDownMemo = (state: GameState): NinjaDown => {
-  const [x, y, head, mangled] = (state.stageMemo.ninjaDown || '').split(',').map(Number);
-  return Number.isFinite(x) && Number.isFinite(y) ? { x, y, head: head < 0 ? -1 : 1, t: 999, mangled: mangled || 0, mangledAt: -999 } : { x: towerEdge(1) + 110, y: Y, head: 1, t: 999 };
-};
-export const ninjaDown = (state: GameState, town: Town) => town.ninja.down ?? (town.ninja.down = ninjaDownMemo(state));
-const rememberDown = (state: GameState, d: NinjaDown) => { state.stageMemo.ninjaDown = `${Math.round(d.x)},${Math.round(d.y)},${d.head},${d.mangled ?? 0}`; };
-/** How far a body this long and this thick, turned `rot`, reaches out either side of its middle, and up and down. */
-export const bodyReach = (rot: number) => ({ hx: Math.abs(Math.sin(rot)) * NINJA_HALF + Math.abs(Math.cos(rot)) * NINJA_THICK, hy: Math.abs(Math.cos(rot)) * NINJA_HALF + Math.abs(Math.sin(rot)) * NINJA_THICK });
+/**
+ * Where the camera's locked while Riggs comes for him (its left edge): the last stretch of street before the jail.
+ * The ninja's in it, and his sword, so after the jump Meathead's got a clear walk to it.
+ */
+const lockFrame = () => T().jail.x1 - 20 - CANVAS_WIDTH;
+/** Where the ninja always comes down (his middle, on the street, past the chapel), his head up the street; his sword, beside him. */
+export const NINJA_LAND_X = () => lockFrame() + 130;
+const NINJA_HEAD = 1, SWORD_BESIDE = 60;
+/** The sword where it came down, lying in the street. */
+const swordLying = (): TownSword => ({ state: 'lying', x: NINJA_LAND_X() + SWORD_BESIDE, y: SWORD_REST_Y, vx: 0, vy: 0, rot: SWORD_REST_ROT, spin: 0, t: 0 });
+/** Lying in the street: its middle this far up off it, at this angle (near enough flat, the guard holding it up off the dirt). */
+const SWORD_REST_Y = Y - 4, SWORD_REST_ROT = -0.05;
+/** Where he lies (the same spot every time), and what Riggs has done to him (kept, for after a checkpoint). */
+const restingNinja = (state: GameState): NinjaDown => ({ x: NINJA_LAND_X(), y: Y, head: NINJA_HEAD, t: 999, mangled: Number(state.stageMemo.ninjaMangled) || 0, mangledAt: -999 });
+export const ninjaDown = (state: GameState, town: Town) => town.ninja.down ?? (town.ninja.down = restingNinja(state));
+/** How many frames something dropped from `y` going `vy` (+ down) takes to get down to `floor`, falling as he does. */
+const fallFrames = (y: number, vy: number, floor: number) => { let n = 0; while (y < floor && n < 400) { vy = Math.min(22, vy + 0.62); y += vy; n++; } return Math.max(1, n); };
 
 /**
  * His nest up the tower: sandbags along the rail. Anything Meathead fires up there from the street goes into the
@@ -582,7 +606,8 @@ const updateNinja = (ctx: FrameContext, town: Town, talk: Talk): Controls | null
     if (n.t === NINJA_CUT) { fx.spawnDeathShower({ x: spot.x + 6, y: spot.y - 20 }, 0, 1.2); shakeScreen(state, 6, 3); fx.spawnDamageNumber({ x: spot.x - 50, y: spot.y - 90 }, 'SEPPUKU!', true, '#F87171'); fx.announceKill('SEPPUKU!'); }
     if (n.t === NINJA_RISE) playSound('thud', 0.3);
     if (n.t < NINJA_UP) return { ...NO_CONTROLS };
-    // Back off it, away from Meathead, bleeding all the way, to the edge
+    // Back off it, bleeding all the way, to the edge: always the street side (backward, facing back down the street)
+    n.face = -1;
     const dir = -n.face, edge = Math.abs(towerEdge(dir) - spot.x) - 6;
     if ((n.off ?? 0) < edge) {
       n.off = Math.min(edge, (n.off ?? 0) + STAGGER * (0.6 + 0.6 * Math.abs(Math.sin(n.t * 0.35))));
@@ -595,9 +620,14 @@ const updateNinja = (ctx: FrameContext, town: Town, talk: Talk): Controls | null
     n.tipV = (n.tipV ?? 0.02) + 0.012 + (n.tip ?? 0) * 0.05;
     n.tip = (n.tip ?? 0) + n.tipV;
     if (n.tip >= 1.05) {
-      // Let go of the edge: off he goes, end over end, the way he was tipping
+      // Let go of the edge: off he goes, end over end, the way he was tipping, out over the chapel's roof and down
+      // into the street, in the one spot; and his sword with him, out of his sash, down beside him
       const fx = spot.x + dir * (n.off ?? 0), a = n.tip, w = n.tipV;
-      n.body = { x: fx + dir * Math.sin(a) * NINJA_HALF, y: spot.y - Math.cos(a) * NINJA_HALF, vx: dir * (Math.cos(a) * w * NINJA_HALF + 2.6), vy: Math.sin(a) * w * NINJA_HALF, rot: dir * a, spin: dir * w * 0.8 };
+      const b = n.body = { x: fx + dir * Math.sin(a) * NINJA_HALF, y: spot.y - Math.cos(a) * NINJA_HALF, vx: 0, vy: Math.sin(a) * w * NINJA_HALF, rot: dir * a, spin: dir * w * 0.8 };
+      b.vx = (NINJA_LAND_X() - b.x) / fallFrames(b.y, b.vy, Y - NINJA_THICK);
+      const sw = town.sword = { ...swordLying(), state: 'falling' as const, x: b.x + 8, y: b.y - 12, vy: b.vy - 5, rot: a, spin: 0.38 };
+      sw.vx = (swordLying().x - sw.x) / fallFrames(sw.y, sw.vy, SWORD_REST_Y);
+      playSound('whoosh', 0.5);
       n.state = 'fall'; n.t = 0; n.camX = state.camera.x; n.camY = state.camera.y;
     }
     return { ...NO_CONTROLS };
@@ -618,30 +648,17 @@ const updateNinja = (ctx: FrameContext, town: Town, talk: Talk): Controls | null
 };
 
 /**
- * Off the tower: gravity and a tumble; kept clear of the tower (he went off the outside of it); onto whatever's really
- * under him (the street, or a roof), and splat: the lot of him out across it, and flat.
+ * Off the tower: gravity and a tumble, out over the chapel's roof to his spot in the street, and splat: the lot of him
+ * out across it, and flat.
  */
 const fallNinja = (ctx: FrameContext, town: Town) => {
   const { state, fx } = ctx;
   const n = town.ninja, b = n.body!;
-  const l = towerLedge(), chapel = COURSE.buildings.find(k => k.look === 'church')!;
-  const was = b.y + bodyReach(b.rot).hy;
   b.vy = Math.min(22, b.vy + 0.62); b.x += b.vx; b.y += b.vy; b.rot += b.spin;
-  // (nothing of him through the tower: down past it, he's out past its side)
-  const r = bodyReach(b.rot);
-  if (b.y + r.hy > l.y && b.y - r.hy < chapel.top && b.x + r.hx > l.x && b.x - r.hx < l.x + l.w) b.x = b.vx > 0 ? l.x + l.w + r.hx : l.x - r.hx;
-  // What's under him (the first thing his lowest point gets to, under his middle)
-  const top = floorTopAt(state.blocks, b.x, was, 0);
-  if (top === null || b.y + r.hy < top) { if (b.y > Y + 600) b.vy = 0; return; }
-  // (all of him on it, if it's a roof he's come down near the end of)
-  const under = state.blocks.find(k => k.y === top && b.x >= k.x && b.x <= k.x + k.w);
-  const x = under && under.w > NINJA_HALF * 2 + 8 ? Math.max(under.x + NINJA_HALF + 4, Math.min(under.x + under.w - NINJA_HALF - 4, b.x)) : b.x;
-  // His head's whichever end of him was out that way when he hit
-  const hs = Math.sin(b.rot);
-  const head: 1 | -1 = Math.abs(hs) > 0.2 ? (hs > 0 ? 1 : -1) : (b.vx >= 0 ? 1 : -1);
-  n.down = { x, y: top, head, t: 0 };
+  if (b.y < Y - NINJA_THICK) return;
+  const x = NINJA_LAND_X(), top = Y;
+  n.down = { x, y: top, head: NINJA_HEAD, t: 0 };
   n.body = undefined;
-  rememberDown(state, n.down);
   // (anything he comes down on, a photo cutout, a barrel, goes flying)
   for (const pr of town.props) if (!pr.flying && Math.abs(pr.x - x) < PROP_HIT) { pr.flying = true; pr.vx = (pr.x < x ? -1 : 1) * (4 + Math.random() * 2); pr.vy = -10; }
   // Splat
@@ -723,9 +740,12 @@ const updateWarpath = (ctx: FrameContext, town: Town, talk: Talk, controls: Cont
       // Following it up the street till it's close enough, then back to him
       state.cameraOverride = { x: cab.x + CAB.w - 520, y: 0 };
       if (p.pos.x - (cab.x + CAB.w) < HANDOVER) {
-        // Back to him, and it stays put there: him on the right of it, the cab coming in off the left
+        // Back to him, and it stays put there: the last of the street before the jail (the ninja and his sword in it),
+        // the cab coming in off the left
         town.phase = 'incoming'; town.t = 0;
-        town.lockX = Math.round(p.pos.x + p.width / 2 - CANVAS_WIDTH * 0.62);
+        town.lockX = lockFrame();
+        if (p.pos.x < town.lockX + 10) p.pos.x = town.lockX + 10;
+        if (p.pos.x + p.width > town.lockX + CANVAS_WIDTH - 10) p.pos.x = town.lockX + CANVAS_WIDTH - 10 - p.width;
         state.cameraOverride = { x: town.lockX, y: 0 };
       }
       return { ...NO_CONTROLS };
@@ -760,11 +780,116 @@ const updateWarpath = (ctx: FrameContext, town: Town, talk: Talk, controls: Cont
       killPlayer(ctx, lines[Math.floor(Math.random() * lines.length)], false);
       return { ...NO_CONTROLS };
     }
-    // Cleared it: over to the jail
-    if (cab.x > p.pos.x + p.width + 60 && state.deathTimer <= 0) { town.phase = 'jail'; town.t = 0; hush(state, talk); }
+    // Cleared it: he gets the sword and sends it after the cab (or, with no sword to be had, which shouldn't happen,
+    // straight over to the jail)
+    if (cab.x > p.pos.x + p.width + 60 && state.deathTimer <= 0) {
+      hush(state, talk);
+      if (town.sword && (town.sword.state === 'lying' || town.sword.state === 'skid')) { town.phase = 'flourish'; town.t = 0; town.flourish = { step: 'land', t: 0 }; return flourish(ctx, town, talk); }
+      town.phase = 'jail'; town.t = 0;
+    }
     return controls;
   }
+  if (town.phase === 'flourish') return flourish(ctx, town, talk);
   return controls;
+};
+
+// ---------------------------------------------------------------------------
+// Over the cab: the sword, after it
+// ---------------------------------------------------------------------------
+
+/**
+ * Landed: how near the sword he goes (his middle, off its middle, the side he came from); the crouch for it, and
+ * when it's in his hand; the wind-up; the arm's follow-through; the throw (px a frame along, up); the cab, away.
+ */
+const GRAB_OFF = 40, GRAB_FOR = 14, GRAB_AT = 7, WINDUP = 20, FOLLOW = BOULDER_THROW_FRAMES, THROW_VX = 24, THROW_VY = -13, AWAY_SPEED = 15;
+export const FLOURISH = { GRAB_FOR, GRAB_AT, WINDUP };
+/** As he lets it go. */
+const THROW_LINE = { who: 'meathead', text: 'EAT THIS, PUSSY.' } as const;
+
+/**
+ * Over the cab and down on the street: he goes and gets the ninja's sword (it's right there, in the shot), crouches for
+ * it, comes up with it, and winds up, furious, and hurls it overhand after the cab as it roars off up the street.
+ * It sails on over it, up the street out of sight; then the cut to the jail (and where it comes down). Skippable: the
+ * lot, the jail and all.
+ */
+const flourish = (ctx: FrameContext, town: Town, talk: Talk): Controls => {
+  const { state } = ctx;
+  const p = state.player;
+  const fl = town.flourish!, sw = town.sword!, cab = town.cab;
+  fl.t++;
+  // (killed in the middle of it, somehow: he's himself again for it, and it all comes back after)
+  if (state.deathTimer > 0) { p.hidden = false; return { ...NO_CONTROLS }; }
+  p.inCutscene = true;
+  const lockX = town.lockX ?? state.camera.x;
+  state.cameraOverride = { x: lockX, y: 0 };
+  // The cab, on up the street flat out (and once it's out of the shot, it waits there: the jail's next)
+  if (cab.x < lockX + CANVAS_WIDTH + 100) { cab.speed += (AWAY_SPEED - cab.speed) * 0.08; cab.x += cab.speed; plow(ctx, town); }
+  if (town.t > SKIP_AFTER) offerSkip();
+  if (town.t > SKIP_AFTER && takeSkip()) {
+    // Skipped: thrown, and the jail's skipped too (all or nothing)
+    hush(state, talk); cancelSpeech();
+    sw.state = 'aloft';
+    endFlourish(town, p);
+    town.skipAll = true;
+    return { ...NO_CONTROLS };
+  }
+  const pc = p.pos.x + p.width / 2;
+  const go = (dir: number): Controls => ({ ...NO_CONTROLS, left: dir < 0, right: dir > 0 });
+  if (fl.step === 'land') {
+    // Down onto the street, and the cab off the sword (it's not still under it)
+    const down = p.isGrounded && p.pos.y + p.height >= Y - 2;
+    if (sw.state === 'lying' && cab.x > sw.x + 40 && down && fl.t > 4) { fl.step = 'walk'; fl.t = 0; }
+    else if (fl.t > 150 && down) { sw.state = 'lying'; sw.y = SWORD_REST_Y; sw.rot = SWORD_REST_ROT; fl.step = 'walk'; fl.t = 0; }
+    return { ...NO_CONTROLS };
+  }
+  if (fl.step === 'walk') {
+    // Over to it, from whichever side he's on (right on top of it: he just turns to it)
+    const side = pc <= sw.x ? -1 : 1;
+    const to = sw.x + side * GRAB_OFF, d = to - pc;
+    if (Math.abs(d) > 5 && fl.t < 200) return go(d);
+    p.vel.x = 0; p.facing = side < 0 ? 1 : -1;
+    fl.step = 'grab'; fl.t = 0;
+    return { ...NO_CONTROLS };
+  }
+  // From here he's drawn by the stage (crouched for it, the sword in his hand, the wind-up: see drawFlourish)
+  p.vel.x = 0;
+  p.hidden = true;
+  if (fl.step === 'grab') {
+    if (fl.t === GRAB_AT) { sw.state = 'held'; playSound('clink'); }
+    if (fl.t >= GRAB_FOR) {
+      // Up with it, round to face up the street after the cab, and wound right up
+      fl.step = 'windup'; fl.t = 0; p.facing = 1;
+      hush(state, talk);
+      queueLines(state, talk, [{ ...THROW_LINE }], 4);
+    }
+    return { ...NO_CONTROLS };
+  }
+  if (fl.step === 'windup') {
+    // (shaking with it, steam coming off him)
+    if (fl.t % 4 === 0) state.particles.push({ pos: { x: pc - 6 + Math.random() * 12, y: p.pos.y + 2 }, vel: { x: (Math.random() - 0.5) * 1.2, y: -1.6 - Math.random() }, life: 22, color: '#E5E7EB', size: 4 + Math.random() * 3 });
+    if (fl.t >= WINDUP) {
+      // Let it go: over the top, after the cab, and up over it
+      fl.step = 'throw'; fl.t = 0;
+      sw.state = 'flying'; sw.t = 0; sw.x = pc + 10; sw.y = p.pos.y + 6; sw.vx = THROW_VX; sw.vy = THROW_VY; sw.rot = -0.6; sw.spin = 0.62;
+      shakeScreen(state, 8, 5);
+      playSound('whoosh');
+    }
+    return { ...NO_CONTROLS };
+  }
+  // The follow-through, then him again, stood there watching it go; the cut once it's gone and he's said it
+  if (fl.t >= FOLLOW) p.hidden = false;
+  if (fl.t >= FOLLOW && sw.state === 'aloft' && quiet(talk)) {
+    endFlourish(town, p);
+    town.t = 0;
+  }
+  return { ...NO_CONTROLS };
+};
+
+/** Out of it, over to the jail. */
+const endFlourish = (town: Town, p: GameState['player']) => {
+  town.flourish = undefined;
+  p.hidden = false; p.facing = 1;
+  town.phase = 'jail'; town.t = 0;
 };
 
 /**
@@ -808,6 +933,8 @@ const jailScene = (ctx: FrameContext, town: Town, talk: Talk, controls: Controls
   if (town.t === 1) {
     // (the cab's off up the street, out of sight, till it's time)
     cab.x = camX - CAB.w - 700; cab.speed = 0;
+    // (and him, back down the street where he threw it from: not in the shot)
+    if (p.pos.x + p.width > camX - 40) p.pos.x = camX - 120 - p.width;
     state.cameraOverride = { x: camX, y: 0 };
     state.camera.x = camX;
     queueLines(state, talk, JAIL_BEGGING.map(l => ({ ...l })), 20);
@@ -818,9 +945,11 @@ const jailScene = (ctx: FrameContext, town: Town, talk: Talk, controls: Controls
     state.enemies = state.enemies.filter(e => e.type === 'boss' || e.pos.x + e.width < camX - 100 || e.pos.x > camX + CANVAS_WIDTH + 100);
   }
   // Skipped: straight to it coming through the wall
+  // (or skipped already, from the throw: the lot)
   const skippable = town.t > JAIL_SKIP_AFTER && town.crashedAt < 0;
   if (skippable) offerSkip();
-  if (skippable && takeSkip()) {
+  if ((town.skipAll && town.crashedAt < 0) || (skippable && takeSkip())) {
+    town.skipAll = false;
     hush(state, talk); cancelSpeech();
     // (the sword's on its way for him: he's up the wall on it already; otherwise he's away)
     if (town.sword && town.sheriff.fate !== 'dead') pinSheriff(ctx, town, null);
@@ -851,7 +980,7 @@ const jailScene = (ctx: FrameContext, town: Town, talk: Talk, controls: Controls
     if (!town.sword) queueLines(state, talk, JAIL_BEGGING_ON.map(l => ({ ...l })), 20);
   }
   if (town.sheriff.running) town.sheriff.x += 5;
-  // The sword, down out of the sky at him as he goes
+  // The sword (Meathead's throw, after the cab), coming down on him as he goes
   // (a close-up of it on its way first)
   if ((town.sword?.state === 'aloft' || town.sword?.state === 'flying') && town.sheriff.running && !town.sheriff.fate && town.t - (town.sheriff.ranAt ?? town.t) >= SWORD_LEAD) { town.sword.state = 'aloft'; town.cutIn = { shot: 'sword', t: 0 }; playSound('whoosh'); return { ...NO_CONTROLS }; }
   // The horn, closer and closer
@@ -931,6 +1060,7 @@ const plow = (ctx: FrameContext, town: Town) => {
     return false;
   });
   overNinja(ctx, town, cab.x - cab.speed);
+  overSword(ctx, town, cab.x - cab.speed);
   for (const pr of town.props) {
     if (pr.flying || pr.x < cab.x || pr.x > front) continue;
     pr.flying = true; pr.vx = 10 + Math.random() * 8; pr.vy = -12 - Math.random() * 8;
@@ -945,25 +1075,44 @@ const SWORD_LEAD = 4, SWORD_HOME = 12, SWORD_CARRY = 12;
 /** The way it's through him, and into the wall: in the back of his skull, out his forehead, up into the stone. */
 const SWORD_PIN_ROT = -0.55;
 
-/** The ninja's sword in the air: off up the street out of the run-over and up out of sight; down on Dan; Dan up the wall. */
+/** How hard the street takes it: the bounce back up off it, and how much of its way along it keeps. */
+const SWORD_BOUNCE = 0.3, SWORD_SKID = 0.5;
+/** Thrown: how fast it comes down (it goes on up over the cab first). */
+const THROW_G = 0.42;
+
+/**
+ * The ninja's sword: down off the tower with him into the street; knocked along it by the cab (a hop, a bounce, a
+ * skid); thrown, up the street over the cab and out of sight; in on Dan; Dan up the wall.
+ */
 const updateSword = (ctx: FrameContext, town: Town, talk: Talk) => {
   const { state, fx } = ctx;
   const sw = town.sword;
   if (!sw) return;
   sw.t++;
+  if (sw.state === 'falling' || sw.state === 'skid') {
+    sw.vy = Math.min(22, sw.vy + 0.62); sw.x += sw.vx; sw.y += sw.vy; sw.rot += sw.spin;
+    if (sw.y < SWORD_REST_Y) return;
+    sw.y = SWORD_REST_Y;
+    // (off the tower, it's come down where it comes down: flat, beside him; knocked along, a bounce first)
+    if (sw.state === 'skid' && sw.vy > 4) { sw.vy = -sw.vy * SWORD_BOUNCE; sw.vx *= SWORD_SKID; sw.spin *= 0.4; playSound('clink', 0.6); return; }
+    sw.state = 'lying'; sw.vx = 0; sw.vy = 0; sw.spin = 0; sw.rot = SWORD_REST_ROT;
+    for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: sw.x + (Math.random() - 0.5) * 50, y: Y - 2 }, vel: { x: (Math.random() - 0.5) * 2, y: -Math.random() * 2 }, life: 20, color: i % 2 ? '#C9A97A' : '#D6B98C', size: 2 + Math.random() * 3 });
+    playSound('clink');
+    return;
+  }
   if (sw.state === 'flying') {
-    sw.vy += 0.45; sw.x += sw.vx; sw.y += sw.vy; sw.rot += sw.spin;
-    if (sw.y < state.camera.y - 140) sw.state = 'aloft';
-    // (it can't come down on anyone here: it's gone up, it comes down at the jail)
-    if (sw.vy > 0 && sw.y > Y - 40) sw.state = 'aloft';
+    sw.vy += THROW_G; sw.x += sw.vx; sw.y += sw.vy; sw.rot += sw.spin;
+    // (up the street out of the shot: it comes down at the jail)
+    if (sw.x > state.camera.x + CANVAS_WIDTH + 60 || sw.y < state.camera.y - 80) sw.state = 'aloft';
     return;
   }
   const s = town.sheriff;
   if (sw.state === 'homing') {
-    // In off the left, spinning, rising, to the back of his head (he's running: it's where his head will be)
+    // In off the left, spinning, coming down, to the back of his head (he's run right into its way: it's where his
+    // head will be)
     const u = Math.min(1, sw.t / SWORD_HOME);
     const a = Math.atan2(sw.y1! - sw.y0!, sw.x1! - sw.x0!);
-    sw.x = sw.x0! + (sw.x1! - sw.x0!) * u; sw.y = sw.y0! + (sw.y1! - sw.y0!) * u - Math.sin(u * Math.PI) * 40;
+    sw.x = sw.x0! + (sw.x1! - sw.x0!) * u; sw.y = sw.y0! + (sw.y1! - sw.y0!) * u - Math.sin(u * Math.PI) * 18;
     sw.rot = a + (1 - u) * (1 - u) * Math.PI * 8;
     if (u >= 1) {
       // Through his skull
@@ -989,11 +1138,11 @@ const updateSword = (ctx: FrameContext, town: Town, talk: Talk) => {
   if (sw.state === 'stuck' && s.fate === 'pinned') s.pinT = (s.pinT ?? 0) + 1;
 };
 
-/** The sword coming for Dan: from off the left of the shot, low, to where the back of his head will be. */
+/** The sword coming for Dan: Meathead's throw, in off the left of the shot (from up the street), coming down, to where the back of his head will be. */
 const homeSword = (town: Town, camX: number) => {
   const sw = town.sword!, s = town.sheriff;
   sw.state = 'homing'; sw.t = 0;
-  sw.x0 = camX - 60; sw.y0 = Y - 40;
+  sw.x0 = camX - 60; sw.y0 = Y - 180;
   sw.x1 = s.x + 5 * SWORD_HOME - 6; sw.y1 = Y - 62;
   sw.x = sw.x0; sw.y = sw.y0;
   playSound('whoosh');
@@ -1016,6 +1165,24 @@ const pinSheriff = (ctx: FrameContext, town: Town, talk: Talk | null) => {
 };
 
 /**
+ * The sword, lying in the street where the cab's coming: the first wheel to get to it knocks it on up the street, end
+ * over end, a bounce and a skid, to wherever it ends up (on ahead of the cab, short of where Meathead's stood if he's
+ * further on: either way, in the shot, out of the way of the cab by the time he's down off his jump).
+ */
+const overSword = (ctx: FrameContext, town: Town, was: number) => {
+  const { state } = ctx;
+  const sw = town.sword, cab = town.cab;
+  if (!sw || sw.state !== 'lying' || sw.knocked || cab.facing !== 1) return;
+  if (!CAB_WHEELS.some(w => was + w < sw.x && cab.x + w >= sw.x)) return;
+  const p = state.player, lockX = town.lockX ?? state.camera.x;
+  const to = Math.min(lockX + CANVAS_WIDTH - 120, sw.x + Math.max(70, Math.min(300, p.pos.x + p.width / 2 - 150 - sw.x)));
+  // (the hop: up, and down on the street again where it's going (the bounce and the skid take it a little further))
+  const vy = -8, n = fallFrames(SWORD_REST_Y, vy, SWORD_REST_Y + 0.01);
+  sw.state = 'skid'; sw.knocked = true; sw.vy = vy; sw.vx = (to - sw.x) / (n * (1 + SWORD_SKID * 0.6)); sw.spin = 0.5;
+  playSound('clink');
+};
+
+/**
  * The ninja, if he's lying out in the street where the cab's coming: each axle as it goes over him (a thump, a
  * crunch, a spray of him), and what's left gets more spread up the street each time (see ninjaMangled).
  */
@@ -1024,20 +1191,16 @@ const overNinja = (ctx: FrameContext, town: Town, was: number) => {
   const n = town.ninja, cab = town.cab;
   if (n.state !== 'dead' || cab.facing !== 1) return;
   const d = ninjaDown(state, town);
-  // (only down on the street: on a roof, it's not going anywhere near him)
-  if (d.y < Y - 2) return;
   for (const w of [...CAB_WHEELS].reverse()) {
     if (!(was + w < d.x && cab.x + w >= d.x)) continue;
     d.mangled = Math.min(3, (d.mangled ?? 0) + 1); d.mangledAt = state.frame;
-    rememberDown(state, d);
+    state.stageMemo.ninjaMangled = String(d.mangled);
     const at = { x: d.x, y: Y - 10 };
     fx.spawnDeathShower(at, 1, 1.3);
     for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * 40, y: Y - 6 }, vel: { x: 3 + Math.random() * 12, y: -2 - Math.random() * 9 }, life: 30 + Math.random() * 40, color: ['#991B1B', '#DC2626', '#111827', '#7F1D1D', '#1F2937'][i % 5], size: 2 + Math.random() * 6 });
     shakeScreen(state, 14, 8);
     playSound('crunch'); playSound('splat'); playSound('thud', 0.6);
     if (d.mangled === 1) fx.spawnDamageNumber({ x: d.x - 40, y: Y - 120 }, 'SPLAT AGAIN!', true, '#F87171');
-    // (the first: the sword squirts out of him, whole, and goes spinning off up the street and up out of sight)
-    if (d.mangled === 1 && !town.sword && !state.stageMemo.jailWrecked) { town.sword = { state: 'flying', x: d.x + 10, y: Y - 16, vx: 9, vy: -23, rot: -0.4, spin: 0.62, t: 0 }; playSound('clink'); playSound('whoosh'); }
     town.gore = Math.min(1, town.gore + 0.05);
   }
 };

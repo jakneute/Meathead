@@ -10,10 +10,10 @@ import { drawSkipPrompt } from '../../platform/skip';
 import type { GameState } from '../../core/state';
 import { drawFire } from '../../render/fx/fire';
 import type { GroundRun } from '../../core/terrain';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, BOSS_DOOR_X } from '../../../constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, BOSS_DOOR_X, BOULDER_THROW_FRAMES } from '../../../constants';
 import { COURSE, Building, Awning } from './course';
 import type { DaleRuntime } from './runtime';
-import { Town, TownProp, CAB, CAB_WHEELS, ninjaSpot, ninjaDown, incoming, jailWrecked, townStains, muzzle, laserEnd, NINJA_CUT, NINJA_RISE, NINJA_UP, JAIL_SKIP_AFTER, DUCK_FOR, cabReach } from './town';
+import { Town, TownProp, CAB, CAB_WHEELS, ninjaSpot, ninjaDown, incoming, jailWrecked, townStains, muzzle, laserEnd, NINJA_CUT, NINJA_RISE, NINJA_UP, JAIL_SKIP_AFTER, DUCK_FOR, cabReach, FLOURISH } from './town';
 import type { NinjaDown } from './town';
 import { drawDaleKind } from '../../render/enemies/dale';
 import { drawPlayer } from '../../render/player/player';
@@ -724,8 +724,40 @@ export const drawTownMid = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   const s = town.sheriff;
   if (s.fate === 'skewered' || s.fate === 'pinned') drawSkewered(ctx, town, f);
   else if (s.fate !== 'dead' && visible(state, s.x - 40, s.x + 40) && s.x < COURSE.town.x2 - 200) drawSheriff(ctx, s.x, f, s.running);
+  // The ninja's sword: coming down with him, lying in the street beside him (a glint off it), knocked along, thrown, in on Dan
   const sw = town.sword;
-  if (sw && (sw.state === 'flying' || sw.state === 'homing')) drawKatana(ctx, sw.x, sw.y, sw.rot, 36);
+  if (sw && (sw.state === 'falling' || sw.state === 'lying' || sw.state === 'skid' || sw.state === 'flying' || sw.state === 'homing') && visible(state, sw.x - 50, sw.x + 50)) {
+    drawKatana(ctx, sw.x, sw.y, sw.rot, 36);
+    if (sw.state === 'lying') {
+      const g = (f % 110) / 22;
+      if (g < 1) { const gx = Math.round(sw.x - 8 + g * 40), gy = Math.round(sw.y - 1); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(gx - 4, gy, 9, 1); ctx.fillRect(gx, gy - 4, 1, 9); }
+    }
+  }
+  drawFlourish(ctx, state, town);
+};
+
+/**
+ * Meathead over the cab, with the ninja's sword (the stage draws him: the real him is hidden meanwhile): crouched
+ * for it, coming up with it in his hand; wound up, the arm back over his head, furious, shaking with it; the arm
+ * coming over, empty, after the throw.
+ */
+const drawFlourish = (ctx: Ctx, state: GameState, town: Town) => {
+  const fl = town.flourish, p = state.player;
+  if (!fl || !p.hidden || fl.step === 'land' || fl.step === 'walk') return;
+  const grab = fl.step === 'grab', wind = fl.step === 'windup';
+  const shake = wind ? (fl.t % 2 ? 1 : -1) * Math.min(2, fl.t / 5) : 0;
+  const body = {
+    ...p, pos: { x: p.pos.x + shake, y: p.pos.y }, hidden: false, isGrounded: true, vel: { x: 0, y: 0 },
+    isDucking: grab && fl.t < FLOURISH.GRAB_FOR - 2, isCharging: false, isSliding: false, isUppercutting: false, isDivekicking: false,
+    invincibilityTimer: 0, hurtTimer: 0, pushbackTimer: 0, hurtForm: undefined, hurtFormTimer: 0, angryTimer: grab ? 0 : 30,
+    throwLob: true, throwTimer: wind ? BOULDER_THROW_FRAMES : fl.step === 'throw' ? Math.max(0, BOULDER_THROW_FRAMES - fl.t) : 0,
+  };
+  const held = grab ? fl.t >= FLOURISH.GRAB_AT : wind;
+  drawPlayer(ctx, body, { ...state, deathTimer: 0 }, {
+    currentWeapon: p.currentWeapon, showFilthShield: false, invincibilityEnabled: false,
+    // (the gun put away: the sword by its grip in his fist, the blade on out the way the arm's going)
+    hold: (c, x, y) => { if (held) drawKatana(c, x + 3, y + 1, grab ? 0.35 : 0.1, 12); },
+  });
 };
 
 /** Meathead coming in on top of the cab (hanging on for dear life), flung off it, face down on the street. */
@@ -1090,7 +1122,7 @@ const NINJA_PIECES: NinjaPiece[] = [
   { dx: 104, rot: 0.1, draw: c => { ninjaPart(c, () => c.rect(-13, -6, 26, 6), '#1F2937', -13, -6, 26, 6); ink(c, () => c.rect(12, -7, 6, 7), '#0B0F19', 0.8); stump(c, -13, -6, 6); treadOver(c, -10, -6, 20); } },
   // The other arm, back the other way
   { dx: -72, rot: -0.3, draw: c => { ninjaPart(c, () => c.rect(-9, -5, 18, 5), '#1F2937', -9, -5, 18, 5); ink(c, () => c.rect(-14, -6, 5, 6), '#E0AC69', 0.8); stump(c, 9, -5, 5); } },
-  // The scabbard (the sword's gone, whole, off up the street): black lacquer, split open, splinters, its cord...
+  // The scabbard (the sword's not in it: it came down beside him): black lacquer, split open, splinters, its cord...
   { dx: 136, rot: -0.12, draw: c => { ink(c, () => c.rect(-16, -4, 26, 4), '#1C1917', 0.8); c.fillStyle = '#44403C'; c.fillRect(-15, -4, 24, 1); c.fillStyle = '#F5F5F4'; for (let k = 0; k < 3; k++) c.fillRect(10 + k * 2, -4 + k, 2, 1); c.fillStyle = '#7C3AED'; c.fillRect(-10, -1, 3, 2); c.fillRect(-7, 0, 6, 1); c.fillStyle = '#A78BFA'; c.fillRect(-10, -1, 1, 1); } },
   // ...and the rest of it, the end cap still on, splintered where it split
   { dx: 176, rot: 0.08, draw: c => { ink(c, () => c.rect(-12, -4, 24, 4), '#1C1917', 0.8); c.fillStyle = '#44403C'; c.fillRect(-11, -4, 22, 1); ink(c, () => c.rect(11, -4, 3, 4), '#A8A29E', 0.6); c.fillStyle = '#E7E5E4'; for (let k = 0; k < 3; k++) c.fillRect(-14 - k * 2, -4 + k, 2, 1); } },
@@ -1102,7 +1134,7 @@ const FLAT = [1, 0.85, 0.75, 0.68];
 
 /**
  * Him after Riggs: in pieces up the street the way the cab went (the body, the legs and arms, the head in its hood
- * and headband, the sword snapped in two), flatter with each axle, the pool smeared on after them, and the cab's
+ * and headband, the scabbard split in two), flatter with each axle, the pool smeared on after them, and the cab's
  * tires printing him on up the street. Each axle throws the pieces on a hop.
  */
 const ninjaMangled = (ctx: Ctx, d: NinjaDown, f: number) => {
@@ -1365,7 +1397,7 @@ export const drawTownHud = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   // The close-ups, over the lot
   if (tw.cutIn?.shot === 'sword') drawSwordCloseUp(ctx, tw.cutIn.t, state.frame);
   if (tw.cutIn?.shot === 'riggs') drawRiggsCloseUp(ctx, tw.cutIn.t, state.frame);
-  if (tw.phase === 'jail' && tw.crashedAt < 0 && tw.t > JAIL_SKIP_AFTER) drawSkipPrompt(ctx, CANVAS_WIDTH);
+  if ((tw.phase === 'jail' && tw.crashedAt < 0 && tw.t > JAIL_SKIP_AFTER) || (tw.phase === 'flourish' && tw.t > JAIL_SKIP_AFTER)) drawSkipPrompt(ctx, CANVAS_WIDTH);
   const inc = incoming(state, rt.town);
   if (!inc) return;
   const f = state.frame;
