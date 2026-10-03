@@ -121,7 +121,8 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, shitty = false, o
       const gp0 = getActiveGamepad();
       if (!eggRef.current && raw < FADE_END && (kb.isDown('p') || (!!gp0 && isButtonPressed(gp0, GP_BUTTONS.Y)))) eggRef.current = true;
       const now = sceneTime(raw);
-      setT(now);
+      // (once it's down to the range, nothing on the page moves with the clock any more: no re-rendering it every frame)
+      if (now < rangeAt + 1000 || eggRef.current) setT(now);
       if (eggRef.current) {
         const e = raw - FADE_END;
         setEgg(e);

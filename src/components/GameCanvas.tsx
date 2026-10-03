@@ -140,7 +140,10 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
     // Fixed 60fps timestep (with a 2ms margin to avoid jitter on 60Hz displays)
     let frameId = 0;
     let lastTime = 0;
+    // (the weapon-get scene's up over it, black, after its fade-in: the stage under it needn't run, or be drawn, at all)
+    const coveredAt = status === GameStatus.BOSS_VICTORY_SPEECH ? performance.now() + 1200 : Infinity;
     const loop = (now: number) => {
+      if (now > coveredAt) { frameId = requestAnimationFrame(loop); return; }
       if (lastTime === 0) lastTime = now;
       const elapsed = now - lastTime;
       if (elapsed >= FRAME_MS - 2) {
