@@ -8,8 +8,8 @@ import { playSound } from '../game/platform/audio';
 
 // After the alien: the real President, found tied up in a broom closet in the sub-basement (a rack of spare skins
 // behind the mops: they'd been pulling the strings the whole time), holds an "emergency" press conference on the lawn
-// in front of the burning White House. Meathead has no idea what's going on. Better than a medal: fast food, offered
-// item by item, each one up close in all its glory (see fastFood), Meathead more appalled by each. He gets punched too. Up over the roof he goes, a twinkle, an iris in on Meathead's grin: THE END. For real this time.
+// in front of the burning White House. Meathead has no idea what's going on. Better than a medal: fast food, a quick
+// run of it up close in all its glory (see fastFood) while he sells it. He gets punched too. Up over the roof he goes, a twinkle, an iris in on Meathead's grin: THE END. For real this time.
 //
 // Same panels as the ending (see Cutscene): watch it all or skip the lot.
 
@@ -22,9 +22,9 @@ const trump = (text: string, hands = true, mood: 'proud' | 'huh' = 'proud'): Pan
 const meathead = (mood: MeatheadMood, text: string, hold?: number): Panel =>
   ({ draw: (c, t, talk) => drawMeatheadCloseUp(c, t, talk, mood, { bg: g => fireBg(g, t) }), speaker: 'MEATHEAD', voice: MEATHEAD_VOICE, text, hold });
 
-/** The President offering it, over a close-up of it (in far too much detail). */
+/** The President selling it, over a close-up of it (in far too much detail): a few seconds each. */
 const offer = (food: Parameters<typeof drawFood>[0], text: string): Panel =>
-  ({ draw: drawFood(food), hires: true, speaker: TRUMP, voice: TRUMP_VOICE, text, hold: 50 });
+  ({ draw: drawFood(food), hires: true, speaker: TRUMP, voice: TRUMP_VOICE, text, hold: 60 });
 
 /** Sounds on given frames of a panel (its draw's called once a frame). */
 const cue = (draw: Panel['draw'], at: Record<number, () => void>): Panel['draw'] => (c, t, talking) => { at[t]?.(); draw(c, t, talking); };
@@ -49,15 +49,11 @@ const PANELS: Panel[] = [
   trump("And Meathead saved me. Saved the whole planet, frankly. Nobody's ever saved a planet like this."),
   meathead('confused', 'WHY ARE THERE TWO OF YOU?'),
   trump("Forget that medal. Fake medal, very cheap. I'll give you something much better. Something beautiful."),
-  trump('Fast food. The best fast food. All you can eat, for life. Believe me.'),
-  // The offers, one by one, each up close; Meathead taking each worse than the last
-  offer('burger', 'The biggest burger. Six patties, eight cheeses. They named it after me. Beautiful burger.'),
-  meathead('macros', "SIX PATTIES... EIGHT CHEESES... CARRY THE ONE... THAT'S ZERO GAINS, BRO."),
-  offer('chicken', "Buckets of chicken. Extra crispy, extra skin. The skin's the best part. Everybody says so."),
-  meathead('gag', "THAT'S NOT PROTEIN, BRO. THAT'S A GREASE SPONGE WITH A BONE IN IT."),
-  offer('fries', "Fries. Golden fries, nice and soaked. You'll never have a dry fry again."),
-  meathead('horrified', "I'M JUST LOOKING AT IT AND MY SIX-PACK'S TURNING INTO A KEG."),
-  offer('soda', 'And the biggest soda. A bucket of it. I have two a night. Very healthy.'),
+  // A quick run of it, each up close for a few seconds, while he sells it
+  offer('burger', 'Fast food, folks. The best fast food.'),
+  offer('chicken', 'All you can eat. Every single day.'),
+  offer('fries', 'For the rest of your life. Free.'),
+  offer('soda', 'Nobody eats like this. Believe me.'),
   meathead('disgust', 'OF COURSE YOU EAT FAST FOOD, FATTIE.'),
   trump('Excuse me?', false, 'huh'),
   {

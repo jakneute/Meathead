@@ -13046,11 +13046,6 @@
  },
  {
   "voice": "meathead",
-  "text": "I'M JUST LOOKING AT IT AND MY SIX-PACK'S TURNING INTO A KEG.",
-  "from": "components/EpilogueCutscene.tsx:23"
- },
- {
-  "voice": "meathead",
   "text": "I'M LOSING MY BALANCE, GOD DAMNIT!",
   "from": "HURT"
  },
@@ -15576,11 +15571,6 @@
  },
  {
   "voice": "meathead",
-  "text": "SIX PATTIES... EIGHT CHEESES... CARRY THE ONE... THAT'S ZERO GAINS, BRO.",
-  "from": "components/EpilogueCutscene.tsx:23"
- },
- {
-  "voice": "meathead",
   "text": "SKEWERED BY THE NATIONAL BIRD!",
   "from": "HAZARD_HURT"
  },
@@ -16488,11 +16478,6 @@
   "voice": "meathead",
   "text": "THAT'S NOT GOOD. THAT'S A LOT OF RUMBLING.",
   "from": "game/stages/tommy/escape.ts:117"
- },
- {
-  "voice": "meathead",
-  "text": "THAT'S NOT PROTEIN, BRO. THAT'S A GREASE SPONGE WITH A BONE IN IT.",
-  "from": "components/EpilogueCutscene.tsx:23"
  },
  {
   "voice": "meathead",
@@ -18556,23 +18541,18 @@
  },
  {
   "voice": "president",
+  "text": "All you can eat. Every single day.",
+  "from": "components/EpilogueCutscene.tsx:27"
+ },
+ {
+  "voice": "president",
   "text": "And Meathead saved me. Saved the whole planet, frankly. Nobody's ever saved a planet like this.",
   "from": "components/EpilogueCutscene.tsx:21"
  },
  {
   "voice": "president",
-  "text": "And the biggest soda. A bucket of it. I have two a night. Very healthy.",
-  "from": "components/EpilogueCutscene.tsx:27"
- },
- {
-  "voice": "president",
   "text": "Blackout Barry. New York, my city. Turns off all the lights. And he stole your headphones. Right off your head.",
   "from": "components/RadioCutscene.tsx:23"
- },
- {
-  "voice": "president",
-  "text": "Buckets of chicken. Extra crispy, extra skin. The skin's the best part. Everybody says so.",
-  "from": "components/EpilogueCutscene.tsx:27"
  },
  {
   "voice": "president",
@@ -18591,13 +18571,18 @@
  },
  {
   "voice": "president",
-  "text": "Fast food. The best fast food. All you can eat, for life. Believe me.",
-  "from": "components/EpilogueCutscene.tsx:21"
+  "text": "Fast food, folks. The best fast food.",
+  "from": "components/EpilogueCutscene.tsx:27"
  },
  {
   "voice": "president",
   "text": "Folks, what a night. I was held hostage. In a closet. The worst closet. Believe me.",
   "from": "components/EpilogueCutscene.tsx:43"
+ },
+ {
+  "voice": "president",
+  "text": "For the rest of your life. Free.",
+  "from": "components/EpilogueCutscene.tsx:27"
  },
  {
   "voice": "president",
@@ -18608,11 +18593,6 @@
   "voice": "president",
   "text": "Four more. Worse than the first four. Worst on this whole planet, and I've seen a lot of planets. And they're laughing at your gains. I made slides. Beautiful slides.",
   "from": "components/RadioCutscene.tsx:23"
- },
- {
-  "voice": "president",
-  "text": "Fries. Golden fries, nice and soaked. You'll never have a dry fry again.",
-  "from": "components/EpilogueCutscene.tsx:27"
  },
  {
   "voice": "president",
@@ -18636,6 +18616,11 @@
  },
  {
   "voice": "president",
+  "text": "Nobody eats like this. Believe me.",
+  "from": "components/EpilogueCutscene.tsx:27"
+ },
+ {
+  "voice": "president",
   "text": "Nobody's ever seen anything like it. Tremendous job. The best job. People are saying he's the greatest hero in the history of heroes. Maybe ever.",
   "from": "components/EndingCutscene.tsx:41"
  },
@@ -18653,11 +18638,6 @@
   "voice": "president",
   "text": "Thank you. Thank you. What a crowd. This man, Meathead, took out the most dangerous, most evil terrorists. Believe me.",
   "from": "components/EndingCutscene.tsx:37"
- },
- {
-  "voice": "president",
-  "text": "The biggest burger. Six patties, eight cheeses. They named it after me. Beautiful burger.",
-  "from": "components/EpilogueCutscene.tsx:27"
  },
  {
   "voice": "president",
