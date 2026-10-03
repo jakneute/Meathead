@@ -460,9 +460,27 @@ const drawMarinaDeep = (ctx: Ctx, state: GameState, x1: number, x2: number, y: n
 const drawSea = (ctx: Ctx, state: GameState) => {
   const bottom = state.camera.y + CANVAS_HEIGHT + 60;
   const f = state.frame;
+  // Out on the boat, the coast guard after him: the sea's open water, deep and churned up, nothing to see down in it
+  // (no marina floor, no weed, no trash: it's opaque, top to the bottom of the screen)
+  const boat = getHector(state)?.boat;
+  const chasing = !!boat?.chase && (boat.phase === 'riding' || boat.phase === 'spout');
   seaStretches(state).forEach(({ x1, x2 }) => {
     if (!visible(state, x1, x2)) return;
     const y = COURSE.sea.y;
+    if (chasing) {
+      const from = Math.max(x1, state.camera.x - 40), to = Math.min(x2, state.camera.x + CANVAS_WIDTH + 40);
+      bandedGradient(ctx, from, y, to - from, bottom - y, ['#2A6688', '#1E4E6E', '#174260', '#123650', '#0B2A40', '#081F30'], 10);
+      // (the chop: darker troughs and lit crests in rows, sliding by, smaller and closer together going down)
+      for (let r = 0, yy = y + 14; yy < bottom; r++, yy += 12 + r * 3) {
+        const drift = (f * (1.2 - Math.min(0.9, r * 0.12)) + r * 37) % 48;
+        for (let x = Math.floor((from - drift) / 48) * 48 + drift; x < to; x += 48) {
+          const w = 18 + hash(x + r * 7) * 14;
+          ctx.fillStyle = 'rgba(8, 26, 40, 0.45)'; ctx.fillRect(Math.round(x / 2) * 2, Math.round(yy / 2) * 2 + 2, Math.round(w / 2) * 2, 2);
+          ctx.fillStyle = 'rgba(125, 211, 252, 0.18)'; ctx.fillRect(Math.round(x / 2) * 2 + 4, Math.round(yy / 2) * 2, Math.round(w / 2) * 2 - 6, 2);
+        }
+      }
+      return;
+    }
     // The water: teal at the top going navy in steps, light coming down through it in slanting shafts (in the marina,
     // what's down there under the docks, wavering)
     bandedGradient(ctx, x1, y, x2 - x1, SEA_DEPTH, ['#2A6688', '#1E4E6E', '#174260', '#123650', '#0B2A40'], 8);
@@ -793,11 +811,13 @@ const drawProp = (ctx: Ctx, state: GameState, p: Prop, rt: HectorRuntime) => {
       const bi = rt.hazards.awningBlocks.findIndex(b => b.tag === `awning-${idx}`);
       const wob = bi >= 0 ? rt.hazards.awningWobble[bi] : 0;
       const give = wob > 0 ? Math.sin(wob * 0.6) * (wob / 24) * 8 : 0;
-      ctx.save(); ctx.translate(p.x, p.y + give); ctx.rotate(sway * 0.25 + (storm > 0 ? Math.sin(f * 0.4 + p.x) * 0.05 * storm : 0));
+      // (the pole's planted: it's the top that gives, the pole taking it up, its foot staying in the sand)
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(sway * 0.25 + (storm > 0 ? Math.sin(f * 0.4 + p.x) * 0.05 * storm : 0));
       // (the pole: lit down one side, inked, a crank halfway up)
-      ink(ctx, () => ctx.rect(-2, -92, 4, 92), '#E5E7EB');
-      ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-1, -92, 1, 92); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(1, -92, 1, 92);
-      ink(ctx, () => ctx.rect(-3, -50, 6, 6), '#9CA3AF');
+      ink(ctx, () => ctx.rect(-2, -92 + give, 4, 92 - give), '#E5E7EB');
+      ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-1, -92 + give, 1, 92 - give); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(1, -92 + give, 1, 92 - give);
+      ink(ctx, () => ctx.rect(-3, -50 + give / 2, 6, 6), '#9CA3AF');
+      ctx.translate(0, give);
       // (the canopy: panels in its color and white, lit to the upper left, a shade to the right, ribs, a scalloped hem)
       const col = p.color ?? '#F43F5E';
       const canopy = () => { ctx.moveTo(-55, -80); ctx.quadraticCurveTo(0, -120, 55, -80); ctx.closePath(); };
@@ -904,13 +924,17 @@ const drawProp = (ctx: Ctx, state: GameState, p: Prop, rt: HectorRuntime) => {
     }
     case 'yacht': {
       const w = p.w ?? 280, x = p.x, y = p.y;
+      // (she's afloat behind the dock: her keel's down in the water, not stood on the boards)
+      const keel = COURSE.sea.y + 14, belly = keel - y;
       // The hull: white, inked, a shade along its belly and toward the stern, a navy stripe, portholes, a rub rail
-      const hull = () => { ctx.moveTo(x, y - 90); ctx.lineTo(x + w, y - 90); ctx.lineTo(x + w - 30, y + 10); ctx.lineTo(x + 20, y + 10); ctx.closePath(); };
+      const hull = () => { ctx.moveTo(x, y - 90); ctx.lineTo(x + w, y - 90); ctx.lineTo(x + w - 30, keel); ctx.lineTo(x + 20, keel); ctx.closePath(); };
       ctx.save(); ctx.beginPath(); hull(); ctx.clip();
-      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x, y - 90, w, 100);
-      ctx.fillStyle = '#E2E8F0'; ctx.fillRect(x, y - 20, w, 30);
-      ctx.fillStyle = '#CBD5E1'; ctx.fillRect(x, y - 4, w, 14); checker(ctx, x, y - 22, w, 2, '#E2E8F0');
-      ctx.fillStyle = 'rgba(26, 11, 6, 0.1)'; ctx.fillRect(x, y - 90, 24, 100);
+      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(x, y - 90, w, 90 + belly);
+      ctx.fillStyle = '#E2E8F0'; ctx.fillRect(x, y - 20, w, 20 + belly);
+      ctx.fillStyle = '#CBD5E1'; ctx.fillRect(x, y - 4, w, 4 + belly); checker(ctx, x, y - 22, w, 2, '#E2E8F0');
+      // (her bottom paint, from the waterline down)
+      ctx.fillStyle = '#7F1D1D'; ctx.fillRect(x, COURSE.sea.y - 2, w, keel - COURSE.sea.y + 2); ctx.fillStyle = '#B91C1C'; ctx.fillRect(x, COURSE.sea.y - 2, w, 2);
+      ctx.fillStyle = 'rgba(26, 11, 6, 0.1)'; ctx.fillRect(x, y - 90, 24, 90 + belly);
       ctx.fillStyle = '#1E3A8A'; ctx.fillRect(x, y - 40, w, 6); ctx.fillStyle = '#3B82F6'; ctx.fillRect(x, y - 40, w, 1);
       ctx.restore();
       ctx.beginPath(); hull(); ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.stroke();
@@ -1132,14 +1156,21 @@ const drawPlat = (ctx: Ctx, state: GameState, p: Plat, i: number, rt: HectorRunt
 };
 
 const drawFloats = (ctx: Ctx, state: GameState, rt: HectorRuntime) => {
-  for (const b of rt.hazards.floatBlocks) {
-    if (!visible(state, b.x, b.x + b.w)) continue;
-    // Blue barrels lashed under it (banded, lit, inked), the deck on top: planks, gaps, a nail each
-    for (let x = b.x + 12; x < b.x + b.w - 10; x += 34) {
-      ink(ctx, () => ctx.ellipse(x + 8, b.y + 16, 12, 9, 0, 0, Math.PI * 2), '#2563EB');
-      ctx.fillStyle = '#1E40AF'; ctx.fillRect(x - 3, b.y + 19, 22, 4);
-      ctx.fillStyle = '#60A5FA'; ctx.fillRect(x, b.y + 10, 8, 2);
-      ctx.fillStyle = '#1E3A8A'; ctx.fillRect(x + 2, b.y + 8, 1, 16); ctx.fillRect(x + 14, b.y + 8, 1, 16);
+  rt.hazards.floatBlocks.forEach((b, i) => {
+    if (!visible(state, b.x, b.x + b.w)) return;
+    // Blue drums stood up under it, lashed on (banded, lit, inked), long enough to be down in the water even at the
+    // top of its bob; the deck on top: planks, gaps, a nail each
+    const fd = COURSE.floats[i], len = COURSE.sea.y + 10 - (fd.y - fd.amp) - 8;
+    for (let x = b.x + 8; x < b.x + b.w - 18; x += 34) {
+      const top = b.y + 8;
+      ink(ctx, () => ctx.rect(x, top, 20, len), '#2563EB');
+      ctx.fillStyle = '#60A5FA'; ctx.fillRect(x + 2, top, 3, len);
+      ctx.fillStyle = '#1E40AF'; ctx.fillRect(x + 15, top, 4, len);
+      for (const k of [0.3, 0.62]) {
+        const hy = Math.round(top + len * k);
+        ctx.fillStyle = '#1E3A8A'; ctx.fillRect(x, hy, 20, 2); ctx.fillStyle = '#93C5FD'; ctx.fillRect(x + 2, hy - 1, 3, 1);
+      }
+      ctx.fillStyle = '#1E3A8A'; ctx.fillRect(x - 1, top, 22, 3);
     }
     ctx.fillStyle = '#854D0E'; ctx.fillRect(b.x, b.y, b.w, 10);
     for (let x = b.x; x < b.x + b.w; x += 18) {
@@ -1147,7 +1178,7 @@ const drawFloats = (ctx: Ctx, state: GameState, rt: HectorRuntime) => {
       ctx.fillStyle = '#44403C'; ctx.fillRect(x + 7, b.y + 4, 2, 2);
     }
     ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(b.x + 0.5, b.y + 0.5, b.w - 1, 9);
-  }
+  });
 };
 
 /** Where a shock zone's downed line goes into the water (the powerline prop's frayed end). */
