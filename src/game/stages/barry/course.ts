@@ -126,7 +126,8 @@ const buildStreets = (s: Part) => {
   s.spawn('pimp', 900); s.spawn('hooker', 1040, Y, 0);
   s.spawn('rat', 700);
   // A trench where they've dug the street up (the first gap: plain, planks over it to teach it)
-  s.prop('barrier', 1130, Y); s.prop('barrier', 1310, Y);
+  // (the sawhorses either side of each trench stand on the street, all four legs, a couple of px in from its edge)
+  s.prop('barrier', 1128, Y); s.prop('barrier', 1352, Y);
   s.ledge(1170, Y - 10, 110, 'plank');
   s.ground(1330, 2300);
   // The first steam grate, on its own with nothing else going on (see what it does), a fire escape ladder over it
@@ -142,7 +143,7 @@ const buildStreets = (s: Part) => {
   s.spawn('mugger', 2260);
   // Dug up again, wider, a steam grate right before it (catch the blast and it takes you over)
   s.vent(2180, 120, 170, 60);
-  s.prop('barrier', 2290, Y); s.prop('barrier', 2530, Y);
+  s.prop('barrier', 2278, Y); s.prop('barrier', 2562, Y);
   s.ground(2540, 3700);
   s.spawn('rat', 2700); s.spawn('rat', 2760);
   // An avenue: dumpsters, a stoop, the hookers working the corner, the pimp up on the stoop
@@ -154,7 +155,7 @@ const buildStreets = (s: Part) => {
   s.prop('phonebooth', 3480, Y);
   s.pickup(3060, Y - 150, 'small_health');
   // A long trench, two grates to hop across on, the scaffold overhead the safe way
-  s.prop('barrier', 3690, Y); s.prop('barrier', 4230, Y);
+  s.prop('barrier', 3678, Y); s.prop('barrier', 4262, Y);
   s.ground(3790, 4060, Y); s.vent(3850, 130, 140, 30);
   s.ledge(3760, Y - 210, 520, 'scaffold'); s.prop('scaffold', 3760, Y, 520, 210);
   s.spawn('bum', 4420, Y, 1);
@@ -167,7 +168,7 @@ const buildStreets = (s: Part) => {
   s.pickup(4660, Y - 90, 'small_ammo');
   // The last stretch: up the loading docks and over the steam, everybody out on the street
   s.ledge(5180, Y - 100, 180, 'stoop');
-  s.prop('barrier', 5470, Y); s.prop('barrier', 5650, Y);
+  s.prop('barrier', 5458, Y); s.prop('barrier', 5682, Y);
   s.ground(5660, 6800);
   s.spawn('pimp', 5900); s.spawn('hooker', 6000, Y, 3); s.spawn('bum', 6200, Y, 3); s.spawn('mugger', 6350);
   s.lamp(5750, Y - 230, 0.3); s.lamp(6150, Y - 230, 0); s.lamp(6550, Y - 230, 0.5);
