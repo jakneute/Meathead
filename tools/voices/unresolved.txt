@@ -1,17 +1,19 @@
-components/Cutscene.tsx:86 voice: p.voice
-components/Cutscene.tsx:94 voice: p.voice
-game/bosses/shared.ts:139 voice: getBossVoice(bossId)
+components/Cutscene.tsx:91 voice: p.voice
+components/Cutscene.tsx:99 voice: p.voice
 game/bosses/oscar.ts:187 name: undefined
-game/stages/artie/ski.ts:494 name: undefined
-game/stages/artie/ski.ts:499 name: undefined
-game/stages/artie/ski.ts:499 call: deathByCause(state)
+game/bosses/shared.ts:166 voice: getBossVoice(bossId)
+game/bosses/alien.ts:83 voice: text
+game/bosses/alien.ts:227 voice: pickRandom(ALIEN_LINES.LASER)
+game/stages/artie/ski.ts:495 name: undefined
+game/stages/artie/ski.ts:500 name: undefined
+game/stages/artie/ski.ts:500 call: deathByCause(state)
 game/stages/hector/hazards.ts:443 name: undefined
 game/stages/hector/hazards.ts:449 name: undefined
 game/stages/hector/daycare.ts:39 voice: voiceOf(who)
 game/stages/hector/chase.ts:361 call: deathByCause(state)
 game/stages/victor/hazards.ts:266 name: undefined
 game/stages/victor/hazards.ts:274 name: undefined
-game/stages/ernie/quake.ts:344 name: undefined
+game/stages/ernie/quake.ts:347 name: undefined
 game/stages/ernie/index.ts:23 name: undefined
 game/stages/ernie/alcatraz.ts:72 voice: voice
 game/stages/ernie/jetski.ts:496 name: undefined
@@ -20,56 +22,58 @@ game/stages/ernie/doorCrash.ts:115 voice: 'hipster'
 game/stages/ernie/doorCrash.ts:147 voice: 'meathead'
 game/stages/ernie/bridge.ts:187 expr: 4
 game/stages/ernie/bridge.ts:187 expr: 72
-game/stages/dale/runtime.ts:175 name: undefined
-game/stages/dale/runtime.ts:180 call: deathByCause(state)
-game/stages/dale/runtime.ts:189 name: undefined
+game/stages/dale/runtime.ts:177 name: undefined
+game/stages/dale/runtime.ts:182 call: deathByCause(state)
+game/stages/dale/runtime.ts:191 name: undefined
 game/stages/dale/script.ts:82 voice: VOICES[line.who]
 game/stages/barry/script.ts:77 voice: VOICES[line.who]
-game/stages/barry/runtime.ts:409 name: undefined
-game/stages/barry/runtime.ts:409 call: deathByCause(state)
-game/stages/barry/runtime.ts:418 name: undefined
-game/stages/tommy/runtime.ts:175 name: undefined
-game/stages/tommy/runtime.ts:177 call: deathByCause(ctx.state)
-game/stages/tommy/runtime.ts:177 call: bikeDeathMessage(rt.bike)
-game/stages/tommy/runtime.ts:177 call: thingDeathMessage(rt.thing)
-game/stages/tommy/runtime.ts:177 call: escapeDeathMessage(rt.escape)
-game/stages/tommy/thing.ts:171 voice: talk
-game/stages/tommy/thing.ts:194 voice: talk
-game/stages/tommy/thing.ts:207 voice: talk
-game/stages/tommy/thing.ts:208 voice: talk
-game/stages/tommy/thing.ts:257 voice: talk
-game/stages/tommy/thing.ts:325 voice: talk
-game/stages/tommy/thing.ts:344 call: Math.floor(Math.random() * 3)
-game/stages/tommy/thing.ts:344 name: undefined
-game/stages/tommy/thing.ts:113 expr: 0
-game/stages/tommy/thing.ts:207 expr: th.asks + state.frame
-game/stages/tommy/thing.ts:327 expr: th.asks + state.frame
-game/stages/tommy/bike.ts:574 name: undefined
+game/stages/barry/runtime.ts:422 name: undefined
+game/stages/barry/runtime.ts:422 call: deathByCause(state)
+game/stages/barry/runtime.ts:431 name: undefined
+game/stages/tommy/runtime.ts:184 name: undefined
+game/stages/tommy/runtime.ts:186 call: deathByCause(ctx.state)
+game/stages/tommy/runtime.ts:186 call: bikeDeathMessage(rt.bike)
+game/stages/tommy/runtime.ts:186 call: thingDeathMessage(rt.thing)
+game/stages/tommy/runtime.ts:186 call: escapeDeathMessage(rt.escape)
+game/stages/tommy/thing.ts:174 voice: talk
+game/stages/tommy/thing.ts:197 voice: talk
+game/stages/tommy/thing.ts:210 voice: talk
+game/stages/tommy/thing.ts:211 voice: talk
+game/stages/tommy/thing.ts:260 voice: talk
+game/stages/tommy/thing.ts:328 voice: talk
+game/stages/tommy/thing.ts:347 call: Math.floor(Math.random() * 3)
+game/stages/tommy/thing.ts:347 name: undefined
+game/stages/tommy/thing.ts:115 expr: 0
+game/stages/tommy/thing.ts:210 expr: th.asks + state.frame
+game/stages/tommy/thing.ts:330 expr: th.asks + state.frame
+game/stages/tommy/bike.ts:575 name: undefined
 game/stages/tommy/escape.ts:278 name: undefined
 game/stages/tommy/script.ts:81 voice: VOICES[line.who]
 game/stages/oscar/bunker.ts:314 template: `${NUMBERS[left] ?? left} MINUTE${left === 1 ? '' : 'S'} LEFT, FELLAS. SAVOR IT.`
-game/stages/oscar/runtime.ts:172 name: undefined
-game/stages/oscar/runtime.ts:175 call: deathByCause(ctx.state)
-game/stages/oscar/runtime.ts:178 call: chaseDeathMessage(rt.chase)
+game/stages/oscar/runtime.ts:176 name: undefined
+game/stages/oscar/runtime.ts:179 call: deathByCause(ctx.state)
+game/stages/oscar/runtime.ts:182 call: chaseDeathMessage(rt.chase)
 game/stages/oscar/chase.ts:584 name: undefined
 game/stages/oscar/bar.ts:186 template: `NOT ENOUGH GAS YET. ${left === 1 ? 'ONE MORE LINE' : 'TWO MORE LINES'} TO OPEN.`
 game/stages/oscar/script.ts:79 voice: VOICES[line.who]
 game/stages/gym/runtime.ts:349 name: undefined
 game/stages/gym/runtime.ts:351 call: deathByCause(ctx.state)
 game/stages/gym/script.ts:77 voice: VOICES[line.who]
+game/stages/finale/runtime.ts:344 name: ALIEN_ID
+game/stages/finale/runtime.ts:70 call: getFinale(state)
 game/core/deathCause.ts:50 name: undefined
 game/core/deathCause.ts:52 name: undefined
 game/core/deathCause.ts:53 name: undefined
 game/core/deathCause.ts:55 name: PLUCK_DEATH_LINES
 game/core/effects.ts:239 call: getHurtLines(hurtSource)
 game/core/effects.ts:239 call: killLine(category, victim)
-game/core/update.ts:191 name: undefined
-game/core/update.ts:574 name: undefined
-game/core/update.ts:574 call: pluckDeathMessage(state)
-game/core/update.ts:574 call: layout?.deathMessage?.(ctx)
-game/core/update.ts:574 call: deathByCause(state)
-game/core/update.ts:574 call: deathFallback(state, ctx.stageId, fell)
+game/core/update.ts:199 name: undefined
+game/core/update.ts:584 name: undefined
+game/core/update.ts:584 call: pluckDeathMessage(state)
+game/core/update.ts:584 call: layout?.deathMessage?.(ctx)
+game/core/update.ts:584 call: deathByCause(state)
+game/core/update.ts:584 call: deathFallback(state, ctx.stageId, fell)
 game/player/player.ts:80 call: message()
-App.tsx:211 voice: getBossVoice(selectedStage)
-App.tsx:395 name: undefined
-App.tsx:396 expr: null
+App.tsx:233 voice: getBossVoice(selectedStage)
+App.tsx:435 name: undefined
+App.tsx:436 expr: null

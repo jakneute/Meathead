@@ -5577,7 +5577,7 @@
  {
   "voice": "death",
   "text": "ELECTRIC BATH",
-  "from": "game/combat/weapons.ts:808"
+  "from": "game/combat/weapons.ts:848"
  },
  {
   "voice": "death",
@@ -6947,7 +6947,7 @@
  {
   "voice": "death",
   "text": "SHOCKING LACK OF JUDGMENT",
-  "from": "game/combat/weapons.ts:808"
+  "from": "game/combat/weapons.ts:848"
  },
  {
   "voice": "death",
@@ -7407,7 +7407,7 @@
  {
   "voice": "death",
   "text": "TASED YOURSELF IN THE POOL",
-  "from": "game/combat/weapons.ts:808"
+  "from": "game/combat/weapons.ts:848"
  },
  {
   "voice": "death",
@@ -7832,7 +7832,7 @@
  {
   "voice": "death",
   "text": "WATER CONDUCTS, GENIUS",
-  "from": "game/combat/weapons.ts:808"
+  "from": "game/combat/weapons.ts:848"
  },
  {
   "voice": "death",
@@ -11137,7 +11137,7 @@
  {
   "voice": "meathead",
   "text": "FUCK YEAH! LET'S GO!",
-  "from": "App.tsx:501"
+  "from": "App.tsx:515"
  },
  {
   "voice": "meathead",
@@ -12936,6 +12936,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M JUST LOOKING AT IT AND MY SIX-PACK'S TURNING INTO A KEG.",
+  "from": "components/EpilogueCutscene.tsx:23"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M LOSING MY BALANCE, GOD DAMNIT!",
   "from": "HURT"
  },
@@ -13262,7 +13267,7 @@
  {
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
-  "from": "App.tsx:501"
+  "from": "App.tsx:515"
  },
  {
   "voice": "meathead",
@@ -13432,7 +13437,7 @@
  {
   "voice": "meathead",
   "text": "LET'S FUCKING GO!",
-  "from": "App.tsx:501"
+  "from": "App.tsx:515"
  },
  {
   "voice": "meathead",
@@ -14222,7 +14227,7 @@
  {
   "voice": "meathead",
   "text": "OF COURSE YOU EAT FAST FOOD, FATTIE.",
-  "from": "components/EpilogueCutscene.tsx:22"
+  "from": "components/EpilogueCutscene.tsx:23"
  },
  {
   "voice": "meathead",
@@ -14232,7 +14237,7 @@
  {
   "voice": "meathead",
   "text": "OH HELL YEAH!",
-  "from": "App.tsx:501"
+  "from": "App.tsx:515"
  },
  {
   "voice": "meathead",
@@ -15421,6 +15426,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SIX PATTIES... EIGHT CHEESES... CARRY THE ONE... THAT'S ZERO GAINS, BRO.",
+  "from": "components/EpilogueCutscene.tsx:23"
+ },
+ {
+  "voice": "meathead",
   "text": "SKEWERED BY THE NATIONAL BIRD!",
   "from": "HAZARD_HURT"
  },
@@ -16311,6 +16321,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S NOT PROTEIN, BRO. THAT'S A GREASE SPONGE WITH A BONE IN IT.",
+  "from": "components/EpilogueCutscene.tsx:23"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S ONE SMALL STEP FOR MEAT!",
   "from": "KILL_LINES"
  },
@@ -16422,7 +16437,7 @@
  {
   "voice": "meathead",
   "text": "The field? The union? The bar? Water under the bridge, pal. Burning water. Now let's talk about YOU. What are you driving these days?",
-  "from": "game/core/update.ts:200"
+  "from": "game/core/update.ts:203"
  },
  {
   "voice": "meathead",
@@ -16972,7 +16987,7 @@
  {
   "voice": "meathead",
   "text": "Two jet skis, sonny. Two tour groups. And now my front hall's caved in. I schedule my quakes AROUND the tour groups!",
-  "from": "game/core/update.ts:200"
+  "from": "game/core/update.ts:203"
  },
  {
   "voice": "meathead",
@@ -17477,7 +17492,7 @@
  {
   "voice": "meathead",
   "text": "WHY ARE THERE TWO OF YOU?",
-  "from": "components/EpilogueCutscene.tsx:22"
+  "from": "components/EpilogueCutscene.tsx:23"
  },
  {
   "voice": "meathead",
@@ -17577,12 +17592,12 @@
  {
   "voice": "meathead",
   "text": "You blew my whole power room, man. With Gary in it. My... roommate. Eleven years. One bedroom. We were ROOMMATES, man.",
-  "from": "game/core/update.ts:200"
+  "from": "game/core/update.ts:203"
  },
  {
   "voice": "meathead",
   "text": "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!",
-  "from": "game/core/update.ts:200"
+  "from": "game/core/update.ts:203"
  },
  {
   "voice": "meathead",
@@ -17622,7 +17637,7 @@
  {
   "voice": "meathead",
   "text": "You crashed my VIP lounge, bro. Those were investors. Now they're a geothermal feature.",
-  "from": "game/core/update.ts:200"
+  "from": "game/core/update.ts:203"
  },
  {
   "voice": "meathead",
@@ -17652,12 +17667,12 @@
  {
   "voice": "meathead",
   "text": "You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.",
-  "from": "game/core/update.ts:200"
+  "from": "game/core/update.ts:203"
  },
  {
   "voice": "meathead",
   "text": "You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I'M the terrorist?",
-  "from": "game/core/update.ts:200"
+  "from": "game/core/update.ts:203"
  },
  {
   "voice": "meathead",
@@ -17702,7 +17717,7 @@
  {
   "voice": "meathead",
   "text": "You put the neighbors down. You knocked over my water tower and surfed it through the block. That took WEEKS to fill!",
-  "from": "game/core/update.ts:200"
+  "from": "game/core/update.ts:203"
  },
  {
   "voice": "meathead",
@@ -17827,7 +17842,7 @@
  {
   "voice": "meathead",
   "text": "YOU'RE TOAST.",
-  "from": "game/core/update.ts:200"
+  "from": "game/core/update.ts:203"
  },
  {
   "voice": "meathead",
@@ -18366,18 +18381,23 @@
  },
  {
   "voice": "president",
-  "text": "Aliens. Shape-shifting aliens. Running everything. Nobody knew. I knew. I didn't know, but I knew. Many people are saying I knew.",
-  "from": "components/EpilogueCutscene.tsx:20"
+  "text": "And Meathead saved me. Saved the whole planet, frankly. Nobody's ever saved a planet like this.",
+  "from": "components/EpilogueCutscene.tsx:21"
  },
  {
   "voice": "president",
-  "text": "And this man, Meathead, saved me. Saved the country. Saved the whole planet, frankly. Nobody's ever saved a planet like this. Tremendous.",
-  "from": "components/EpilogueCutscene.tsx:20"
+  "text": "And the biggest soda. A bucket of it. I have two a night. Very healthy.",
+  "from": "components/EpilogueCutscene.tsx:27"
  },
  {
   "voice": "president",
   "text": "Blackout Barry. New York, my city. Turns off all the lights. And he stole your headphones. Right off your head.",
   "from": "components/RadioCutscene.tsx:23"
+ },
+ {
+  "voice": "president",
+  "text": "Buckets of chicken. Extra crispy, extra skin. The skin's the best part. Everybody says so.",
+  "from": "components/EpilogueCutscene.tsx:27"
  },
  {
   "voice": "president",
@@ -18396,23 +18416,28 @@
  },
  {
   "voice": "president",
-  "text": "Fast food. The best fast food. The biggest burgers, buckets of chicken, all you can eat, for life. Believe me.",
-  "from": "components/EpilogueCutscene.tsx:20"
+  "text": "Fast food. The best fast food. All you can eat, for life. Believe me.",
+  "from": "components/EpilogueCutscene.tsx:21"
  },
  {
   "voice": "president",
-  "text": "Folks. Folks. What a night. I was held hostage. In a closet. A very small closet, the worst closet. Believe me.",
-  "from": "components/EpilogueCutscene.tsx:38"
+  "text": "Folks, what a night. I was held hostage. In a closet. The worst closet. Believe me.",
+  "from": "components/EpilogueCutscene.tsx:43"
  },
  {
   "voice": "president",
-  "text": "Forget that medal. He gave you that? Fake medal. Very cheap. I'm going to give you something much better. Something beautiful.",
-  "from": "components/EpilogueCutscene.tsx:20"
+  "text": "Forget that medal. Fake medal, very cheap. I'll give you something much better. Something beautiful.",
+  "from": "components/EpilogueCutscene.tsx:21"
  },
  {
   "voice": "president",
   "text": "Four more. Worse than the first four. Worst on this whole planet, and I've seen a lot of planets. And they're laughing at your gains. I made slides. Beautiful slides.",
   "from": "components/RadioCutscene.tsx:23"
+ },
+ {
+  "voice": "president",
+  "text": "Fries. Golden fries, nice and soaked. You'll never have a dry fry again.",
+  "from": "components/EpilogueCutscene.tsx:27"
  },
  {
   "voice": "president",
@@ -18446,8 +18471,18 @@
  },
  {
   "voice": "president",
+  "text": "Shape-shifting aliens, running everything. Nobody knew. I knew. I didn't know, but I knew.",
+  "from": "components/EpilogueCutscene.tsx:21"
+ },
+ {
+  "voice": "president",
   "text": "Thank you. Thank you. What a crowd. This man, Meathead, took out the most dangerous, most evil terrorists. Believe me.",
   "from": "components/EndingCutscene.tsx:37"
+ },
+ {
+  "voice": "president",
+  "text": "The biggest burger. Six patties, eight cheeses. They named it after me. Beautiful burger.",
+  "from": "components/EpilogueCutscene.tsx:27"
  },
  {
   "voice": "president",
