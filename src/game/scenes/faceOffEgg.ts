@@ -5,7 +5,10 @@
 
 import { INK, hash, shape, speckle } from './art/ink';
 import { vein, bead } from './grossUp';
-import { SKIN_LIT, SKIN, SKIN_MID, SKIN_DARK, skin, bulge, pores, groove, shadeIn, lats, torso, traps, neck, head, guardArm, boot } from './faceOff';
+import {
+  SKIN_LIT, SKIN, SKIN_MID, SKIN_DARK, skin, bulge, pores, groove, shadeIn, lats, traps, boot,
+  Layer, pictureScale, stamp, warmLayer, torsoStatic, torsoLive, neckStatic, neckVein, HEAD, headLive, guardArmStamped, FACE_OFF_SHARED_LAYERS,
+} from './faceOff';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -124,7 +127,7 @@ const glutes = (ctx: Ctx, clench: number) => {
 };
 
 /** His back: the slab of it from the traps to the belt line, the shoulder blades, the spine down the middle, the hair. */
-const back = (ctx: Ctx, t: number) => {
+const back = (ctx: Ctx) => {
   lats(ctx);
   const path = () => { ctx.moveTo(50, 100); ctx.lineTo(60, 236); ctx.lineTo(140, 236); ctx.lineTo(150, 100); ctx.closePath(); };
   skin(ctx, path, 50, 100, 150, 236);
@@ -149,8 +152,10 @@ const back = (ctx: Ctx, t: number) => {
   for (const [x, y] of [[84, 118], [122, 126], [112, 140]] as const) { shape(ctx, () => ctx.arc(x, y, 1.4, 0, Math.PI * 2), '#D9785A', 0.3); }
   ctx.restore();
   for (const [x, y, r] of [[70, 140, 1.4], [132, 150, 1.2], [96, 170, 1.1]] as const) bead(ctx, x, y, r);
-  const run = (t / 30) % 50; bead(ctx, 104, 180 + run, 1.3);
 };
+
+/** The bead of sweat running down the small of his back (clear of the traps, the head and the arms drawn after it). */
+const backRun = (ctx: Ctx, t: number) => { ctx.lineCap = 'round'; const run = (t / 30) % 50; bead(ctx, 104, 180 + run, 1.3); };
 
 /** The back of his head: the flat-top from behind, clippered right up the back, the ears, the folds of the neck. */
 const backOfHead = (ctx: Ctx) => {
@@ -182,14 +187,20 @@ const backOfHead = (ctx: Ctx) => {
 };
 
 /** An arm from behind, the hand round front holding it: the delt, the triceps' horseshoe, the elbow out, the forearm going forward. */
-const backArm = (ctx: Ctx, s: number, t: number) => {
+const backArmUpper = (ctx: Ctx, s: number) => {
   const X = (x: number) => 100 + s * (x - 100);
   const upper = () => { ctx.moveTo(X(172), 112); ctx.bezierCurveTo(X(186), 150, X(178), 188, X(160), 196); ctx.bezierCurveTo(X(146), 190, X(142), 150, X(148), 116); ctx.closePath(); };
   bulge(ctx, upper, X(164), 150, 28);
   pores(ctx, upper, Math.min(X(142), X(186)), 112, 44, 84, 160 + s, 90);
   // (the horseshoe of the triceps)
   groove(ctx, [X(152), 140, X(160), 170, X(172), 170, X(176), 142], 1.4, 0.55);
+};
+const backArmVein = (ctx: Ctx, s: number, t: number) => {
+  const X = (x: number) => 100 + s * (x - 100);
   vein(ctx, [[X(170), 172], [X(166), 182], [X(160), 190]], 1.2, 1 + Math.sin(t / 240 + s) * 0.1);
+};
+const backArmRest = (ctx: Ctx, s: number) => {
+  const X = (x: number) => 100 + s * (x - 100);
   // (the forearm's gone round in front of him, out of sight: just the elbow sticking back)
   // (the elbow, rough)
   shape(ctx, () => ctx.ellipse(X(160), 194, 5, 4, 0, 0, Math.PI * 2), 'rgba(185, 120, 80, 0.7)', 0.6);
@@ -216,7 +227,7 @@ const stream = (ctx: Ctx, t: number, flow: number) => {
  * He'd shit himself before the boss went down, and it's all still there: the crack and the bottoms of both cheeks
  * smeared brown, runs down the backs of his thighs, the seat of the pants round his ankles full of it, flies, stink.
  */
-const shitOn = (ctx: Ctx, p: number) => {
+const shitOn = (ctx: Ctx) => {
   ctx.save();
   // (the crack and the cheeks either side of it, smeared)
   const smear = () => {
@@ -238,7 +249,13 @@ const shitOn = (ctx: Ctx, p: number) => {
   }
   // (the seat of the pants round his ankles: full of it)
   for (const s of [-1, 1]) shape(ctx, () => ctx.ellipse(100 + s * 32, 388, 18, 6, 0, 0, Math.PI * 2), 'rgba(92, 58, 26, 0.9)', 0);
-  // (the stink coming up off him, and flies round it)
+  ctx.restore();
+};
+
+/** The stink coming up off him, and flies round it. */
+const stinkAndFlies = (ctx: Ctx, p: number) => {
+  ctx.save();
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   ctx.strokeStyle = 'rgba(132, 204, 22, 0.55)'; ctx.lineWidth = 2;
   for (let k = 0; k < 4; k++) {
     const q = ((p / 900 + k / 4) % 1), sx = 60 + k * 26, sy = 300 - q * 90;
@@ -254,29 +271,46 @@ const shitOn = (ctx: Ctx, p: number) => {
   ctx.restore();
 };
 
+// Everything that doesn't move is painted once and stamped (see `stamp` in faceOff.ts); in the picture's units.
+const URINAL: Layer = { key: 'egg-urinal', x: 30, y: 110, w: 140, h: 330, draw: c => urinal(c) };
+const BACK_LEGS: Layer = { key: 'egg-back-legs', x: 20, y: 230, w: 170, h: 210, draw: c => { for (const s of [-1, 1]) boot(c, s); for (const s of [-1, 1]) bareLeg(c, s, true); pantsDown(c, false); } };
+const GLUTES = [0, 2].map(clench => [false, true].map(shitty => ({ key: `egg-glutes${clench}${shitty}`, x: 40, y: 210, w: 120, h: 190, draw: (c: Ctx) => { glutes(c, clench); if (shitty) shitOn(c); } } as Layer)));
+const BACK: Layer = { key: 'egg-back', x: 20, y: 0, w: 160, h: 240, draw: c => { back(c); traps(c); backOfHead(c); } };
+const BACK_ARMS = [-1, 1].map(s => [
+  { key: `egg-arm-u${s}`, x: s < 0 ? 10 : 130, y: 70, w: 60, h: 140, draw: (c: Ctx) => backArmUpper(c, s) },
+  { key: `egg-arm-r${s}`, x: s < 0 ? 10 : 130, y: 70, w: 60, h: 140, draw: (c: Ctx) => backArmRest(c, s) },
+] as Layer[]);
+const FRONT_BODY: Layer = { key: 'egg-front-body', x: 20, y: 90, w: 160, h: 350, draw: c => { for (const s of [-1, 1]) boot(c, s); for (const s of [-1, 1]) bareLeg(c, s, false); pantsDown(c, true); lats(c); torsoStatic(c); } };
+const FRONT_MID: Layer = { key: 'egg-front-mid', x: 40, y: 50, w: 120, h: 250, draw: c => { groinStatic(c); traps(c); neckStatic(c); } };
+/** What the front view will want, painted while he's still at it from behind (a frame at a time, no hitch on the turn). */
+const FRONT_LAYERS = [FRONT_BODY, FRONT_MID, ...FACE_OFF_SHARED_LAYERS];
+
 export const drawEggBack = (ctx: Ctx, p: number, shitty = false) => {
+  const k = pictureScale(ctx);
   const flow = p < EGG_PEE_MS - 400 ? 1 : Math.max(0, (EGG_PEE_MS - p) / 400);
   const shaking = p > EGG_PEE_MS && p < EGG_PEE_MS + EGG_SHAKE_MS;
   const jig = shaking ? Math.sin(p / 22) * 2 : 0;
-  urinal(ctx);
+  stamp(ctx, URINAL, k);
   stream(ctx, p, flow);
-  for (const s of [-1, 1]) boot(ctx, s);
-  for (const s of [-1, 1]) bareLeg(ctx, s, true);
-  pantsDown(ctx, false);
+  stamp(ctx, BACK_LEGS, k);
   ctx.save(); ctx.translate(0, jig * 0.4);
-  glutes(ctx, shaking ? 2 : 0);
-  if (shitty) shitOn(ctx, p);
+  stamp(ctx, GLUTES[shaking ? 1 : 0][shitty ? 1 : 0], k);
+  if (shitty) stinkAndFlies(ctx, p);
   ctx.translate(jig, 0);
-  back(ctx, p);
-  traps(ctx);
-  backOfHead(ctx);
+  stamp(ctx, BACK, k); // (back, traps, backOfHead)
+  backRun(ctx, p);
   // (the arms, hands round front on it: shaking it off at the end)
-  for (const s of [-1, 1]) { ctx.save(); ctx.translate(0, s < 0 ? jig : 0); backArm(ctx, s, p); ctx.restore(); }
+  for (const s of [-1, 1]) {
+    const [u, r] = BACK_ARMS[s < 0 ? 0 : 1];
+    ctx.save(); ctx.translate(0, s < 0 ? jig : 0); stamp(ctx, u, k); backArmVein(ctx, s, p); stamp(ctx, r, k); ctx.restore();
+  }
   ctx.restore();
+  // (and ahead of time, a frame at a time: him clenching as he shakes, then the front of him for after the turn)
+  if (p > EGG_PEE_MS - 800) warmLayer([GLUTES[1][shitty ? 1 : 0], ...FRONT_LAYERS], k);
 };
 
 /** The front of him with it all out: bare legs, the pants round his ankles, the hair, the balls, and it, standing up. */
-const groin = (ctx: Ctx, t: number, boing: number) => {
+const groinStatic = (ctx: Ctx) => {
   // (the hips, bare: the V of the obliques down into it, the skin paler where the pants were)
   const hips = () => { ctx.moveTo(58, 228); ctx.lineTo(142, 228); ctx.bezierCurveTo(146, 244, 144, 256, 140, 262); ctx.lineTo(100, 280); ctx.lineTo(60, 262); ctx.bezierCurveTo(56, 256, 54, 244, 58, 228); ctx.closePath(); };
   const g = ctx.createLinearGradient(58, 0, 142, 0);
@@ -305,6 +339,10 @@ const groin = (ctx: Ctx, t: number, boing: number) => {
     ctx.restore();
   }
   groove(ctx, [100, 270, 100.5, 276, 100, 282, 100, 288], 1, 0.6);
+};
+
+/** It: drawn over the rest of the groin (and clear of the traps and the neck, drawn before it now). */
+const groinShaft = (ctx: Ctx, t: number, boing: number) => {
   // (it: standing straight up, tilted a little, bobbing from the turn; shaded, a vein, the head)
   ctx.save();
   ctx.translate(100, 262);
@@ -328,24 +366,24 @@ const groin = (ctx: Ctx, t: number, boing: number) => {
 /** The face-off, as drawFaceOff, but bare from the waist down at the urinal (see the top of the file). */
 export const drawEggFront = (ctx: Ctx, t: number, windup: number, punching: boolean, boing: number) => {
   const breathe = 1 + Math.sin(t / 420) * 0.012;
-  urinal(ctx);
+  const k = pictureScale(ctx);
+  stamp(ctx, URINAL, k);
   ctx.save();
   ctx.translate(100, 200); ctx.scale(breathe, breathe); ctx.translate(-100, -200);
-  for (const s of [-1, 1]) boot(ctx, s);
-  for (const s of [-1, 1]) bareLeg(ctx, s, false);
-  pantsDown(ctx, true);
-  lats(ctx);
-  torso(ctx, t);
-  groin(ctx, t, boing);
-  traps(ctx);
-  neck(ctx, t, windup);
-  head(ctx, t, windup, punching);
+  // (boots, bare legs, the pants down, lats, torso, groin, traps, neck, head: what never changes painted once)
+  stamp(ctx, FRONT_BODY, k);
+  torsoLive(ctx, t);
+  stamp(ctx, FRONT_MID, k);
+  groinShaft(ctx, t, boing);
+  neckVein(ctx, t, windup);
+  stamp(ctx, HEAD, k);
+  headLive(ctx, t, windup, punching);
   ctx.restore();
   // (he's a lefty: the right stays up in the guard, it's the left, on our right, that draws back and goes)
-  guardArm(ctx, -1, t);
+  guardArmStamped(ctx, -1, t, k);
   if (!punching) {
     ctx.save(); ctx.translate(windup * 14, windup * 10); ctx.translate(160, 104); ctx.rotate(windup * 14 * Math.PI / 180); ctx.translate(-160, -104);
-    guardArm(ctx, 1, t);
+    guardArmStamped(ctx, 1, t, k);
     ctx.restore();
   } else {
     bulge(ctx, () => ctx.arc(148, 106, 30, 0, Math.PI * 2), 148, 106, 30, 2.8);

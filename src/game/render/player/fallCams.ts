@@ -111,8 +111,7 @@ type Scene = (ctx: Ctx, state: GameState, d: MeatheadDeath, t: number, f: number
 /** A scene's still part (its walls and the like, thousands of little fills): painted the once into a canvas of its
  * own, then just put down each frame after. */
 const stills = new Map<string, HTMLCanvasElement>();
-const still = (ctx: Ctx, key: string, W: number, H: number, paint: (g: Ctx) => void) => {
-  if (typeof document === 'undefined') { paint(ctx); return; }
+const stillCanvas = (key: string, W: number, H: number, paint: (g: Ctx) => void) => {
   const k = `${key}:${W}x${H}`;
   let c = stills.get(k);
   if (!c) {
@@ -121,35 +120,43 @@ const still = (ctx: Ctx, key: string, W: number, H: number, paint: (g: Ctx) => v
     paint(g);
     stills.set(k, c);
   }
-  ctx.drawImage(c, 0, 0);
+  return c;
+};
+const still = (ctx: Ctx, key: string, W: number, H: number, paint: (g: Ctx) => void) => {
+  if (typeof document === 'undefined') { paint(ctx); return; }
+  ctx.drawImage(stillCanvas(key, W, H, paint), 0, 0);
+};
+/** A still painted at the picture's own resolution (its device pixels: copied 1:1, the same pixels as painting it there). */
+const sharpStills = new Map<string, HTMLCanvasElement>();
+const sharpStill = (ctx: Ctx, key: string, W: number, H: number, paint: (g: Ctx) => void) => {
+  const m = ctx.getTransform(), k = Math.hypot(m.a, m.b);
+  if (typeof document === 'undefined' || m.b !== 0 || m.c !== 0 || m.a !== m.d) { paint(ctx); return; }
+  const id = `${key}:${W}x${H}@${k}`;
+  let c = sharpStills.get(id);
+  if (!c) {
+    c = document.createElement('canvas'); c.width = Math.round(W * k); c.height = Math.round(H * k);
+    const g = c.getContext('2d')!; g.setTransform(k, 0, 0, k, 0, 0); g.imageSmoothingEnabled = false;
+    g.lineCap = ctx.lineCap; g.lineJoin = ctx.lineJoin; // (strokes end the way they would've in the picture)
+    paint(g);
+    sharpStills.set(id, c);
+  }
+  ctx.drawImage(c, 0, 0, W, H);
+};
+/** Paint a still ahead of when it's needed. */
+const warmStill = (key: string, W: number, H: number, paint: (g: Ctx) => void) => {
+  if (typeof document !== 'undefined') stillCanvas(key, W, H, paint);
 };
 
 // ---------------------------------------------------------------------------
 
-/**
- * Artie's crevasses: glacier ice in its layers (old snow, blue ice, grit), snow overhanging the lips up top, the crack
- * narrowing into the black. Him head first down it, scraping the walls red as he goes, wedged where it's too tight,
- * blood running down the ice under him and freezing in red icicles; legs kicking, slowing, frosting over.
- */
-const crevasse: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
-  // (the crack narrows, then closes in a V: he's jammed in the bottom of it by the shoulders, his head down in the point)
-  const cx = W / 2, wedge = 384;
-  const hw = (y: number) => (y < 300 ? 185 - y * 0.26 : Math.max(0, 107 - (y - 300) * 0.75));
-  const edge = (side: number) => (y: number) => cx + side * (hw(y) + (hash(Math.floor(y / 24) + side * 7) - 0.5) * 18 + Math.sin(y * 0.05 + side) * 6);
-  // The crack itself: daylight up top, falling away into the dark
-  bandedGradient(ctx, 0, 0, W, H, ['#E0F2FE', '#7DD3FC', '#1D4ED8', '#172554', '#020617', '#000000'], 18);
-  // Him: head first, down into it, then jammed (the walls are put down over him: they've got him by the shoulders)
-  const by = dropTo(t, wedge);
-  const kick = hit ? Math.sin(since * 0.9) * 0.14 * (1 - clamp01(since / 55)) : Math.sin(t * 0.5) * 0.25;
-  const frost = clamp01((since - 45) / 35);
-  ctx.save();
-  if (frost > 0) ctx.filter = `saturate(${1 - frost * 0.55}) brightness(${1 + frost * 0.18}) hue-rotate(${-frost * 12}deg)`;
-  // (squeezed in it: narrower the tighter it's got him)
-  const sq = hit ? 0.8 + 0.06 * Math.max(0, 1 - since / 6) : 1;
-  ctx.translate(cx, by); ctx.scale(sq, 1); ctx.translate(-cx, -by);
-  him(ctx, state, d, cx + (hit ? 0 : Math.sin(t * 0.4) * 12), by - (hit && since < 4 ? 4 - since : 0), Math.PI + kick, 1.6, !hit ? 'scream' : since < 45 ? 'agony' : 'frozen');
-  ctx.restore();
-  still(ctx, 'crevasse-walls', W, H, ctx => {
+/** The crevasse kill cam's crack: how wide it is down it (it narrows, then closes in a V at the bottom), and its faces. */
+const crevasseHalfWidth = (y: number) => (y < 300 ? 185 - y * 0.26 : Math.max(0, 107 - (y - 300) * 0.75));
+const crevasseEdge = (W: number) => (side: number) => (y: number) =>
+  W / 2 + side * (crevasseHalfWidth(y) + (hash(Math.floor(y / 24) + side * 7) - 0.5) * 18 + Math.sin(y * 0.05 + side) * 6);
+
+/** The crevasse's walls, its snow and icicles: its still part. */
+const crevasseWalls = (W: number, H: number) => (ctx: Ctx) => {
+  const edge = crevasseEdge(W);
   // The walls: glacier ice, lit through from the crack (glowing pale at its face, deepening to dark blue back into
   // it), old layers bowed through it, big fractured planes, trapped bubbles, a band of grit
   const glow = ['#E0F2FE', '#BAE6FD', '#7DD3FC', '#38BDF8', '#0EA5E9', '#0369A1', '#0C4A6E', '#082F49'];
@@ -157,21 +164,31 @@ const crevasse: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
     const e = edge(side);
     wall(ctx, side, W, H, e, () => {
       // (in from the face in steps, each step's seam dithered, following the face's line)
+      // (a step's rows are filled as one shape: rows never overlap, and within a row the steps still go down in order,
+      // so it's the same pixels for a few fills instead of thousands)
+      const steps = glow.map(() => [] as number[]);
       for (let y = 0; y < H; y += P) {
         const ex = e(y);
         for (let b = 0; b < glow.length; b++) {
           const dIn = 6 + b * b * 7 + Math.sin(y * 0.03 + b + side) * 4;
           const x = snap(side < 0 ? ex - dIn : ex + dIn);
-          ctx.fillStyle = glow[b];
-          if (side < 0) ctx.fillRect(0, y, x, P); else ctx.fillRect(x, y, W - x, P);
-          if ((y / P + b) % 2 === 0) ctx.fillRect(side < 0 ? x : x - P, y, P, P);
+          // (a step that's gone off the edge of the picture is left out: nothing of it would show)
+          if (side < 0 ? x > 0 : x < W) steps[b].push(side < 0 ? 0 : x, y, side < 0 ? x : W - x);
+          if ((y / P + b) % 2 === 0) steps[b].push(side < 0 ? x : x - P, y, P);
         }
       }
-      // (the old layers, bowed, faint)
+      steps.forEach((rects, b) => {
+        ctx.fillStyle = glow[b]; ctx.beginPath();
+        for (let i = 0; i < rects.length; i += 3) ctx.rect(rects[i], rects[i + 1], rects[i + 2], P);
+        ctx.fill();
+      });
+      // (the old layers, bowed, faint: each one a shape of its own, its bits side by side)
       for (let k = 0; k < 12; k++) {
         const y0 = 40 + k * 46 + hash(k + side) * 20;
         ctx.fillStyle = k % 3 === 0 ? 'rgba(100, 116, 139, 0.45)' : 'rgba(240, 249, 255, 0.28)';
-        for (let x = 0; x < W; x += P * 2) ctx.fillRect(x, snap(y0 + Math.sin(x * 0.012 + k) * 14 + (side < 0 ? -x : x - W) * 0.04), P * 2, P);
+        ctx.beginPath();
+        for (let x = 0; x < W; x += P * 2) ctx.rect(x, snap(y0 + Math.sin(x * 0.012 + k) * 14 + (side < 0 ? -x : x - W) * 0.04), P * 2, P);
+        ctx.fill();
       }
       // (big fractured planes, a shade lighter, their edges catching the light)
       for (let k = 0; k < 6; k++) {
@@ -188,14 +205,45 @@ const crevasse: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
   // Snow over the lips, its underside in shadow, icicles off it
   for (const side of [-1, 1]) {
     const lip = edge(side)(20);
+    // (column by column, side by side: the snow as one shape, its shadow as another over it)
+    const cols: number[] = [];
     for (let x = 0; x < 230; x += P) {
       const sx = side < 0 ? lip - x : lip + x, top = snap(4 + Math.sin(x * 0.07) * 4), bot = snap(26 + Math.sin(x * 0.05 + 1) * 6 + (x < 30 ? 6 : 0));
-      ctx.fillStyle = '#F8FAFC'; ctx.fillRect(snap(sx), top, P, bot - top);
-      ctx.fillStyle = '#BFDBFE'; ctx.fillRect(snap(sx), bot - P * 2, P, P * 2);
+      cols.push(snap(sx), top, bot);
     }
+    ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); for (let i = 0; i < cols.length; i += 3) ctx.rect(cols[i], cols[i + 1], P, cols[i + 2] - cols[i + 1]); ctx.fill();
+    ctx.fillStyle = '#BFDBFE'; ctx.beginPath(); for (let i = 0; i < cols.length; i += 3) ctx.rect(cols[i], cols[i + 2] - P * 2, P, P * 2); ctx.fill();
     for (let k = 0; k < 6; k++) { const x = lip + side * (6 + k * 34), len = 10 + hash(k + side) * 24; ctx.fillStyle = '#E0F2FE'; ctx.beginPath(); ctx.moveTo(x - 4, 28); ctx.lineTo(x + 4, 28); ctx.lineTo(x, 28 + len); ctx.fill(); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(snap(x - 2), 28, P, snap(len * 0.6)); }
   }
-  });
+};
+
+/** The crevasse kill cam's walls painted ahead of time (on Artie's mountain, before anyone's gone down one), so the
+ * cam doesn't stall on its first frame painting them. */
+export const warmCrevasseCam = (W: number, H: number) => warmStill('crevasse-walls', W, H, crevasseWalls(W, H));
+
+/**
+ * Artie's crevasses: glacier ice in its layers (old snow, blue ice, grit), snow overhanging the lips up top, the crack
+ * narrowing into the black. Him head first down it, scraping the walls red as he goes, wedged where it's too tight,
+ * blood running down the ice under him and freezing in red icicles; legs kicking, slowing, frosting over.
+ */
+const crevasse: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
+  // (the crack narrows, then closes in a V: he's jammed in the bottom of it by the shoulders, his head down in the point)
+  const cx = W / 2, wedge = 384;
+  const hw = crevasseHalfWidth, edge = crevasseEdge(W);
+  // The crack itself: daylight up top, falling away into the dark
+  bandedGradient(ctx, 0, 0, W, H, ['#E0F2FE', '#7DD3FC', '#1D4ED8', '#172554', '#020617', '#000000'], 18);
+  // Him: head first, down into it, then jammed (the walls are put down over him: they've got him by the shoulders)
+  const by = dropTo(t, wedge);
+  const kick = hit ? Math.sin(since * 0.9) * 0.14 * (1 - clamp01(since / 55)) : Math.sin(t * 0.5) * 0.25;
+  const frost = clamp01((since - 45) / 35);
+  ctx.save();
+  if (frost > 0) ctx.filter = `saturate(${1 - frost * 0.55}) brightness(${1 + frost * 0.18}) hue-rotate(${-frost * 12}deg)`;
+  // (squeezed in it: narrower the tighter it's got him)
+  const sq = hit ? 0.8 + 0.06 * Math.max(0, 1 - since / 6) : 1;
+  ctx.translate(cx, by); ctx.scale(sq, 1); ctx.translate(-cx, -by);
+  him(ctx, state, d, cx + (hit ? 0 : Math.sin(t * 0.4) * 12), by - (hit && since < 4 ? 4 - since : 0), Math.PI + kick, 1.6, !hit ? 'scream' : since < 45 ? 'agony' : 'frozen');
+  ctx.restore();
+  still(ctx, 'crevasse-walls', W, H, crevasseWalls(W, H));
   // Where he's scraped down the walls on the way: smears, red on the ice
   for (const side of [-1, 1]) {
     const e = edge(side);
@@ -387,6 +435,8 @@ const crude: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
  */
 const motoPit: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
   const cx = W / 2, top = 150, surf = 440;
+  // (the sky, the walls and the crude don't move: painted the once)
+  sharpStill(ctx, 'moto-pit', W, H, ctx => {
   // A strip of the evening up top, the trench falling away into the dark below it
   bandedGradient(ctx, 0, 0, W, top, ['#1E1B4B', '#7C2D12', '#EA580C', '#FDBA74'], 10);
   bandedGradient(ctx, 0, top, W, surf - top, ['#3F2A1D', '#1C1410', '#0A0806'], 8);
@@ -410,6 +460,7 @@ const motoPit: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
   // The crude: black, the sheen sliding on it
   bandedGradient(ctx, 0, surf, W, H - surf, ['#1C1410', '#0A0806', '#000000'], 6);
   ctx.fillStyle = '#3F3A36'; ctx.fillRect(0, surf, W, P);
+  });
   for (let k = 0; k < 7; k++) { const x = snap(cx - 220 + k * 70 + Math.sin(f * 0.05 + k) * 10), y = surf + P * 2 + (k % 3) * P * 3; const c = ['rgba(167, 139, 250, 0.4)', 'rgba(52, 211, 153, 0.35)', 'rgba(251, 191, 36, 0.35)'][k % 3]; ctx.fillStyle = c; ctx.fillRect(x, y, 40, P); }
   const L = since - MOTO_PIT_LANDS, lit = since - MOTO_PIT_LIGHTS;
   // Him: in, thrashing, up to his chest (till it's on him)
@@ -458,6 +509,8 @@ const motoPit: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
  * backwards over a rock, the vultures circling down onto him. */
 const arroyo: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
   const cx = W / 2, floor = 520, rockTop = 450;
+  // (the sky, the walls, the floor and the rock don't move: painted the once)
+  sharpStill(ctx, 'arroyo', W, H, ctx => {
   bandedGradient(ctx, 0, 0, W, H, ['#FDE68A', '#FDBA74', '#F97316', '#7C2D12'], 14);
   for (const side of [-1, 1]) {
     const e = (y: number) => cx + side * (170 + Math.sin(y * 0.02 + side) * 40 + (hash(Math.floor(y / 30) + side * 5) - 0.5) * 24 - y * 0.05);
@@ -478,6 +531,7 @@ const arroyo: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
   ctx.fillStyle = '#9A3412'; ctx.beginPath(); ctx.ellipse(cx - 12, floor - 6, 44, floor - rockTop - 8, 0, Math.PI, 0); ctx.fill();
   ctx.fillStyle = '#C2410C'; ctx.fillRect(cx - 34, rockTop + 8, 30, P); ctx.fillRect(cx - 40, rockTop + 14, 12, P);
   checker(ctx, cx + 20, rockTop + 12, 40, 50, 'rgba(67, 20, 7, 0.5)');
+  });
   // Him: down on his back over it, each end hanging down off it
   if (!hit) him(ctx, state, d, cx, dropTo(t, rockTop - 30), -d.facing * Math.PI / 2 + Math.sin(t * 0.4) * 0.2, 2, 'scream');
   else {

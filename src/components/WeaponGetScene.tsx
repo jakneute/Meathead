@@ -15,7 +15,7 @@ import { SKIP_AFTER_MS } from '../game/platform/skip';
 import SkipPrompt from './SkipPrompt';
 import { playWhoosh, playPunchImpact, playThud, playTypeClack, playGlassShatterSound, playSound, playSquelch } from '../game/platform/audio';
 import { speak, cancelSpeech, MEATHEAD_VOICE } from '../game/platform/speech';
-import { drawFaceOff } from '../game/scenes/faceOff';
+import { drawFaceOff, releaseFaceOffLayers } from '../game/scenes/faceOff';
 import { drawEggBack, drawEggFront, EGG_MS, EGG_PEE_MS, EGG_SHAKE_MS, EGG_TURN_MS } from '../game/scenes/faceOffEgg';
 
 // After a boss: fade out of the victory lap into a black void, face to face with
@@ -439,6 +439,8 @@ const GiantFist: React.FC = () => (
  */
 export const FaceOffMeathead: React.FC<{ t: number; windup: number; punching: boolean; egg?: number | null; shitty?: boolean }> = ({ t, windup, punching, egg = null, shitty = false }) => {
   const ref = useRef<HTMLCanvasElement>(null);
+  // (the parts of him that never change are painted once, offscreen: let go of them when he's gone)
+  useEffect(() => releaseFaceOffLayers, []);
   useEffect(() => {
     const c = ref.current;
     if (!c) return;

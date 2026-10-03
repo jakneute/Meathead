@@ -11,6 +11,8 @@ import { drawTramRigging, drawTramBack, drawTramFront, drawTramHud } from './tra
 import { tramFloorLineAt, CABIN_W } from './tram';
 import { drawMooseCorpse, drawMooseHud } from './mooseDraw';
 import { drawSkiMid, drawSkiFront, drawSkiHud } from './skiDraw';
+import { warmCrevasseCam } from '../../render/player/fallCams';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -124,6 +126,8 @@ export const snowCap = (ctx: Ctx, x0: number, x1: number, y: number, h: number) 
 };
 
 export const drawArtieBack = (ctx: Ctx, state: GameState) => {
+  // (the crevasse kill cam's walls painted now, not on the frame he goes down one: it would stall)
+  warmCrevasseCam(CANVAS_WIDTH, CANVAS_HEIGHT);
   drawCave(ctx, state);
   // Pylons rise out of the clouds; the stations and the cabin are in front of them
   drawTramRigging(ctx, state);

@@ -15,6 +15,50 @@ type Ctx = CanvasRenderingContext2D;
 
 export const SKIN_LIT = '#F6CF9C', SKIN = '#E0AC69', SKIN_MID = '#C98A48', SKIN_DARK = '#8E5A28', SKIN_DEEP = '#5E3A18';
 
+// ---------------------------------------------------------------------------
+// Painted once: the parts that don't move from frame to frame (thousands of pores, hairs, bristles and specks) go
+// into an offscreen canvas at the picture's device scale the first time they're needed, and are stamped from then on.
+// Only what lives (veins throbbing, sweat running, the brows and the mouth on the wind-up) is drawn every frame.
+// ---------------------------------------------------------------------------
+
+/** A static layer: its name, the box it's painted in (in the picture's units: on multiples of 10, so on whole device
+ *  pixels), and how to paint it. */
+export interface Layer { key: string; x: number; y: number; w: number; h: number; draw: (c: Ctx) => void }
+
+const layers = new Map<string, { c: HTMLCanvasElement; k: number }>();
+
+/** Device pixels per unit of the picture (its vertical scale: the turn's squeeze is only ever horizontal). */
+export const pictureScale = (ctx: Ctx) => Math.abs(ctx.getTransform().d);
+
+const painted = (L: Layer, k: number) => layers.get(L.key)?.k === k;
+
+/** A layer's offscreen canvas, painted the first time it's asked for (`k`: device pixels per unit). */
+const layerCanvas = (L: Layer, k: number) => {
+  let l = layers.get(L.key);
+  if (!l || l.k !== k) {
+    const c = document.createElement('canvas');
+    c.width = Math.ceil(L.w * k); c.height = Math.ceil(L.h * k);
+    const g = c.getContext('2d')!;
+    g.setTransform(k, 0, 0, k, -L.x * k, -L.y * k);
+    g.lineCap = 'round'; g.lineJoin = 'round'; // (as the picture's own context always has them by then)
+    L.draw(g);
+    l = { c, k }; layers.set(L.key, l);
+  }
+  return l.c;
+};
+
+/** Stamp a static layer where it goes (at rest, copied 1:1). */
+export const stamp = (ctx: Ctx, L: Layer, k: number) => {
+  const c = layerCanvas(L, k);
+  ctx.drawImage(c, L.x, L.y, c.width / k, c.height / k);
+};
+
+/** Paint the first of these that isn't yet (ahead of when they're needed, a frame at a time, so there's no hitch). */
+export const warmLayer = (Ls: Layer[], k: number) => { const L = Ls.find(L => !painted(L, k)); if (L) layerCanvas(L, k); };
+
+/** Let go of the painted layers (the scene's over). */
+export const releaseFaceOffLayers = () => layers.clear();
+
 /** Fill a path with skin, lit from the upper left, an olive tinge down in the shadows, and an ink line round it. */
 export const skin = (ctx: Ctx, path: () => void, x0: number, y0: number, x1: number, y1: number, line = 2.6) => {
   const g = ctx.createLinearGradient(x0, y0, x1, y1);
@@ -148,7 +192,10 @@ export const lats = (ctx: Ctx) => {
 };
 
 /** The torso: the pecs, the six-pack in its rows, the obliques, the trail down to the belt, veins, sweat, a scar. */
-export const torso = (ctx: Ctx, t: number) => {
+export const torso = (ctx: Ctx, t: number) => { torsoStatic(ctx); torsoLive(ctx, t); };
+
+/** The torso, all but the vein along the V and the sweat running (nothing of it overlaps those). */
+export const torsoStatic = (ctx: Ctx) => {
   const path = () => { ctx.moveTo(50, 100); ctx.lineTo(60, 240); ctx.lineTo(140, 240); ctx.lineTo(150, 100); ctx.closePath(); };
   skin(ctx, path, 50, 100, 150, 240);
   pores(ctx, path, 50, 100, 100, 140, 21, 260);
@@ -167,7 +214,6 @@ export const torso = (ctx: Ctx, t: number) => {
   for (const s of [-1, 1]) for (let k = 0; k < 4; k++) groove(ctx, [100 + s * 38, 140 + k * 16, 100 + s * 34, 146 + k * 16, 100 + s * 32, 150 + k * 16, 100 + s * 28, 154 + k * 16], 1.2, 0.5);
   // (the V down into the belt, a vein along it)
   groove(ctx, [70, 206, 80, 214, 90, 220, 96, 228], 1.6, 0.6); groove(ctx, [130, 206, 120, 214, 110, 220, 104, 228], 1.6, 0.6);
-  vein(ctx, [[78, 200], [84, 210], [86, 218], [92, 226]], 1.2, 1 + Math.sin(t / 300) * 0.1);
   // (the navel, the trail of hair down from it)
   shape(ctx, () => ctx.ellipse(100, 211, 2.4, 3.4, 0, 0, Math.PI * 2), '#6B3A14', 0.8);
   ctx.strokeStyle = 'rgba(40, 20, 8, 0.65)'; ctx.lineWidth = 0.4;
@@ -193,6 +239,11 @@ export const torso = (ctx: Ctx, t: number) => {
   for (let k = 0; k < 6; k++) { const x = 112 + k * 4; ctx.beginPath(); ctx.moveTo(x, 104); ctx.lineTo(x + 0.6, 109); ctx.stroke(); }
   // Sweat: beads on the chest, one running down the abs
   for (const [x, y, r] of [[66, 132, 1.6], [126, 128, 1.4], [92, 150, 1.2], [112, 176, 1.5], [84, 190, 1.1]] as const) bead(ctx, x, y, r);
+};
+
+/** The torso's living part: the vein along the V (well inside its outline), the bead of sweat running down the abs. */
+export const torsoLive = (ctx: Ctx, t: number) => {
+  vein(ctx, [[78, 200], [84, 210], [86, 218], [92, 226]], 1.2, 1 + Math.sin(t / 300) * 0.1);
   const run = (t / 30) % 60;
   bead(ctx, 104, 150 + run, 1.4);
   ctx.strokeStyle = 'rgba(255, 245, 225, 0.25)'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(104, 150); ctx.lineTo(104, 150 + run); ctx.stroke();
@@ -209,8 +260,12 @@ export const traps = (ctx: Ctx) => {
 };
 
 /** The neck: as wide as his head, the cords of it standing out, a vein up it, the Adam's apple. */
-export const neck = (ctx: Ctx, t: number, windup: number) => {
-  const path = () => { ctx.moveTo(78, 60); ctx.lineTo(76, 88); ctx.lineTo(124, 88); ctx.lineTo(122, 60); ctx.closePath(); };
+export const neck = (ctx: Ctx, t: number, windup: number) => { neckStatic(ctx); neckVein(ctx, t, windup); };
+
+const neckPath = (ctx: Ctx) => { ctx.moveTo(78, 60); ctx.lineTo(76, 88); ctx.lineTo(124, 88); ctx.lineTo(122, 60); ctx.closePath(); };
+
+export const neckStatic = (ctx: Ctx) => {
+  const path = () => neckPath(ctx);
   const g = ctx.createLinearGradient(76, 0, 124, 0);
   g.addColorStop(0, SKIN_MID); g.addColorStop(0.4, SKIN); g.addColorStop(1, SKIN_DARK);
   shape(ctx, path, g, 2.6);
@@ -219,12 +274,21 @@ export const neck = (ctx: Ctx, t: number, windup: number) => {
   ctx.fillStyle = 'rgba(60, 30, 10, 0.45)'; ctx.fillRect(70, 60, 60, 10);
   groove(ctx, [84, 70, 88, 78, 90, 84, 94, 90], 1.6, 0.6); groove(ctx, [116, 70, 112, 78, 110, 84, 106, 90], 1.6, 0.6);
   shape(ctx, () => ctx.ellipse(100, 78, 4, 3, 0, 0, Math.PI * 2), SKIN, 0.6);
+  ctx.restore();
+};
+
+/** The vein up his neck (inside the neck). */
+export const neckVein = (ctx: Ctx, t: number, windup: number) => {
+  ctx.save(); ctx.beginPath(); neckPath(ctx); ctx.clip();
   vein(ctx, [[112, 66], [114, 74], [113, 82], [116, 90]], 1.4, 1 + windup * 0.5 + Math.sin(t / 200) * 0.08);
   ctx.restore();
 };
 
 /** His head: square, the flat-top, the stubble, the ears, the brows, the eyes (bloodshot, dead on the lens), the nose, the mouth. */
-export const head = (ctx: Ctx, t: number, windup: number, punching: boolean) => {
+export const head = (ctx: Ctx, t: number, windup: number, punching: boolean) => { headStatic(ctx); headLive(ctx, t, windup, punching); };
+
+/** As much of the head as never changes: the ears, the face and its stubble, the flat-top, the sideburns. */
+export const headStatic = (ctx: Ctx) => {
   // The ears: thick, a cauliflower ear on the left
   for (const s of [-1, 1]) {
     const X = (x: number) => 100 + s * (x - 100);
@@ -264,6 +328,10 @@ export const head = (ctx: Ctx, t: number, windup: number, punching: boolean) => 
   ctx.strokeStyle = INK; ctx.lineWidth = 0.6;
   for (let k = 0; k < 34; k++) { const x = 67 + k * 2; ctx.beginPath(); ctx.moveTo(x, 11); ctx.lineTo(x + (hash(k) - 0.5), 9 - hash(k * 7) * 1.5); ctx.stroke(); }
   for (const s of [-1, 1]) { const x = s < 0 ? 66 : 128; ctx.fillStyle = '#18181B'; ctx.fillRect(x, 26, 6, 18); speckle(ctx, x, 26, 6, 18, 30, 'rgba(82, 82, 91, 0.6)', 61 + s, 0.5); }
+};
+
+/** The rest of the head, over that: the rage vein, the sweat, the brows, the eyes, the nose, the mouth. */
+export const headLive = (ctx: Ctx, t: number, windup: number, punching: boolean) => {
   // The rage vein, throbbing harder on the wind-up
   const throb = 1 + windup * 0.9 + Math.sin(t / 120) * 0.12;
   vein(ctx, [[76, 30], [80, 34], [82, 38], [79, 43]], 1.3, throb);
@@ -327,18 +395,36 @@ export const head = (ctx: Ctx, t: number, windup: number, punching: boolean) => 
 
 /** One guard arm: the delt, the upper arm down to the elbow, the forearm back up, the fist by his jaw, knuckles split. */
 export const guardArm = (ctx: Ctx, s: 1 | -1, t: number) => {
+  guardArmUpper(ctx, s); guardArmVein(ctx, s, t, 0); guardArmFore(ctx, s); guardArmVein(ctx, s, t, 1); guardArmRest(ctx, s);
+};
+
+/** The guard arm's living part: the vein down the upper arm (0) or up the forearm (1), throbbing. */
+export const guardArmVein = (ctx: Ctx, s: 1 | -1, t: number, which: 0 | 1) => {
   const X = (x: number) => 100 + s * (x - 100);
-  // (the upper arm, down from the shoulder)
+  if (which === 0) vein(ctx, [[X(170), 128], [X(174), 140], [X(170), 154], [X(166), 166]], 1.4, 1 + Math.sin(t / 250 + s) * 0.1);
+  else vein(ctx, [[X(146), 160], [X(142), 140], [X(144), 124], [X(138), 106]], 1.6, 1 + Math.sin(t / 220 + s * 2) * 0.12);
+};
+
+/** The upper arm, down from the shoulder. */
+export const guardArmUpper = (ctx: Ctx, s: 1 | -1) => {
+  const X = (x: number) => 100 + s * (x - 100);
   const upper = () => { ctx.moveTo(X(168), 118); ctx.bezierCurveTo(X(184), 150, X(172), 178, X(150), 172); ctx.bezierCurveTo(X(140), 152, X(146), 128, X(152), 116); ctx.closePath(); };
   bulge(ctx, upper, X(162), 145, 26);
   pores(ctx, upper, Math.min(X(140), X(184)), 116, 44, 62, 70 + s, 80);
   shadeIn(ctx, upper, Math.min(X(140), X(184)), 140, 44, 40, 0.25);
-  vein(ctx, [[X(170), 128], [X(174), 140], [X(170), 154], [X(166), 166]], 1.4, 1 + Math.sin(t / 250 + s) * 0.1);
-  // (the forearm, back up to the fist)
+};
+
+/** The forearm, back up to the fist. */
+export const guardArmFore = (ctx: Ctx, s: 1 | -1) => {
+  const X = (x: number) => 100 + s * (x - 100);
   const fore = () => { ctx.moveTo(X(150), 172); ctx.bezierCurveTo(X(160), 150, X(150), 110, X(140), 92); ctx.lineTo(X(124), 100); ctx.bezierCurveTo(X(132), 122, X(138), 150, X(136), 172); ctx.closePath(); };
   bulge(ctx, fore, X(144), 130, 24);
   pores(ctx, fore, Math.min(X(124), X(160)), 92, 36, 80, 80 + s, 80);
-  vein(ctx, [[X(146), 160], [X(142), 140], [X(144), 124], [X(138), 106]], 1.6, 1 + Math.sin(t / 220 + s * 2) * 0.12);
+};
+
+/** The rest of the guard arm, over its veins: the vein that doesn't throb, the hair, the delt, the fist. */
+export const guardArmRest = (ctx: Ctx, s: 1 | -1) => {
+  const X = (x: number) => 100 + s * (x - 100);
   vein(ctx, [[X(140), 150], [X(136), 132], [X(134), 116]], 1, 1);
   // (hair on the forearm)
   ctx.strokeStyle = 'rgba(40, 20, 8, 0.5)'; ctx.lineWidth = 0.35;
@@ -360,24 +446,46 @@ export const guardArm = (ctx: Ctx, s: 1 | -1, t: number) => {
 };
 
 /** Meathead, square to the lens in his guard: see the top of the file. */
+const FO_BODY: Layer = { key: 'fo-body', x: 20, y: 90, w: 160, h: 350, draw: c => { legs(c); lats(c); torsoStatic(c); } };
+const FO_MID: Layer = { key: 'fo-mid', x: 40, y: 50, w: 120, h: 210, draw: c => { belt(c); traps(c); neckStatic(c); } };
+export const HEAD: Layer = { key: 'fo-head', x: 50, y: 0, w: 100, h: 80, draw: headStatic };
+const armLayers = (s: 1 | -1) => {
+  const x = s > 0 ? 110 : 10, y = 60, w = 80, h = 130;
+  return [
+    { key: `fo-arm-u${s}`, x, y, w, h, draw: (c: Ctx) => guardArmUpper(c, s) },
+    { key: `fo-arm-f${s}`, x, y, w, h, draw: (c: Ctx) => guardArmFore(c, s) },
+    { key: `fo-arm-r${s}`, x, y, w, h, draw: (c: Ctx) => guardArmRest(c, s) },
+  ];
+};
+const ARM_LAYERS = { [-1]: armLayers(-1), [1]: armLayers(1) } as Record<1 | -1, Layer[]>;
+/** Everything the face-off's guard arms and head stamp (the urinal egg's front view uses them too). */
+export const FACE_OFF_SHARED_LAYERS = [HEAD, ...ARM_LAYERS[-1], ...ARM_LAYERS[1]];
+
+/** A guard arm, as guardArm, from its painted layers and its live veins. */
+export const guardArmStamped = (ctx: Ctx, s: 1 | -1, t: number, k: number) => {
+  const [u, f, r] = ARM_LAYERS[s];
+  stamp(ctx, u, k); guardArmVein(ctx, s, t, 0); stamp(ctx, f, k); guardArmVein(ctx, s, t, 1); stamp(ctx, r, k);
+};
+
 export const drawFaceOff = (ctx: Ctx, t: number, windup: number, punching: boolean) => {
+  const k = pictureScale(ctx);
   const breathe = 1 + Math.sin(t / 420) * 0.012;
   ctx.save();
   ctx.translate(100, 200); ctx.scale(breathe, breathe); ctx.translate(-100, -200);
-  legs(ctx);
-  lats(ctx);
-  torso(ctx, t);
-  belt(ctx);
-  traps(ctx);
-  neck(ctx, t, windup);
-  head(ctx, t, windup, punching);
+  // (as legs, lats, torso, belt, traps, neck, head: the parts of them that never change painted once)
+  stamp(ctx, FO_BODY, k);
+  torsoLive(ctx, t);
+  stamp(ctx, FO_MID, k);
+  neckVein(ctx, t, windup);
+  stamp(ctx, HEAD, k);
+  headLive(ctx, t, windup, punching);
   ctx.restore();
   // His right guard (our left), and the left (the punching arm): back on the wind-up, gone mid-punch
   // (he's a lefty: the right stays up in the guard, it's the left, on our right, that draws back and goes)
-  guardArm(ctx, -1, t);
+  guardArmStamped(ctx, -1, t, k);
   if (!punching) {
     ctx.save(); ctx.translate(windup * 14, windup * 10); ctx.translate(160, 104); ctx.rotate(windup * 14 * Math.PI / 180); ctx.translate(-160, -104);
-    guardArm(ctx, 1, t);
+    guardArmStamped(ctx, 1, t, k);
     ctx.restore();
   } else {
     // (the shoulder driving through, the arm already gone at the lens)
