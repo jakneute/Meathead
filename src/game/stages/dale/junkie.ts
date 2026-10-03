@@ -74,6 +74,9 @@ export interface JunkieFight {
   t: number;
   man: Enemy | null;
   walls: Block[];
+  /** When he last had something to say about being shot full of needles, and how many times he has. */
+  dartAt?: number;
+  dartN?: number;
   props: Record<PropName, PropState>;
   stashes: Stash[];
   corpse: JunkieCorpse | null;
@@ -194,12 +197,27 @@ const LINES = {
     "WHAT'D YOU SAY?! SAY IT AGAIN, WALL! SAY IT TO MY FACE!",
   ],
   shot: ["YOU CALL THAT A BULLET?!", "THAT TICKLES, FED!"],
+  /** Shot with the rusty needle cannon: on him, of all people (in turn, round and round). */
+  darts: [
+    "NEEDLES?! IN ME?! BRO, THAT'S JUST TUESDAY!",
+    "RUSTY?! THAT'S HOW I LIKE 'EM!",
+    "TETANUS?! I'VE HAD TETANUS SINCE NINETY-EIGHT!",
+    "THAT ONE WAS EMPTY, FED! YOU'RE SHOOTING BLANKS!",
+    "DO THAT AGAIN. NO, SERIOUSLY. DO THAT AGAIN.",
+    "YOU KNOW I PAY GOOD MONEY FOR THIS, RIGHT?!",
+    "GOT VEINS LIKE A GARDEN HOSE, FED! YOU CAN'T MISS!",
+  ],
 };
 /** The ones that change when he's walked in having shit himself (the crackhead's still up for it: he's smelled worse). */
 const LINES_SHAT = {
   intro: [{ who: 'junkie', text: "WHO LET YOU IN HERE?! WHAT IS THAT?! THIS IS A PLACE OF BUSINESS!" }, { who: 'junkie', text: "YOU WANT SOME?! HUH?! I'VE SMELLED WORSE! I'VE BEEN WORSE!" }] as ScriptLine[],
   idle: ["TIGHT! TIGHT! TIGHT! ...WHAT IS THAT?!", "LOOK AT MY EYES! THEY'RE WATERING! WHY ARE THEY WATERING?!", "YOU SHIT YOUR PANTS?! I RESPECT THAT! I STILL GOTTA KILL YOU!", "DALE SAYS YOU'RE A FED! FEDS DON'T SHIT THEMSELVES! ...DO THEY?!"],
   grab: ["COME HERE, MUSCLES! ...OH, IT'S WARM!", "GOTCHA! HUH?! EWW! HUH?!"],
+  darts: [
+    "NEEDLES AND YOU SHIT YOURSELF?! WHO'S THE JUNKIE HERE?!",
+    "YOU SHOOT ME UP AND YOU SMELL LIKE THAT?! I RESPECT IT!",
+    "RUSTY NEEDLES FROM A GUY IN DIRTY PANTS! HYGIENE, FED!",
+  ],
   throw: ["GET OUTTA MY OFFICE! AND TAKE THAT WITH YOU!", "AND STAY OUT! AND CHANGE!"],
 };
 
@@ -554,7 +572,12 @@ export const hitJunkie = (ctx: FrameContext, m: Enemy, p: Projectile, fight: Jun
   fight.hpFlash = 5;
   ctx.fx.spawnDamageNumber({ x: p.pos.x, y: p.pos.y - 10 }, Math.max(1, Math.round(dmg)));
   for (let i = 0; i < 2; i++) ctx.state.particles.push({ pos: { x: p.pos.x, y: p.pos.y }, vel: { x: -Math.sign(p.vel.x || 1) * (1 + Math.random() * 3), y: -Math.random() * 4 }, life: 20, color: '#8B0000', size: 2 + Math.random() * 2 });
-  if (Math.random() < 0.02) junkieSays(ctx.state, talk, LINES.shot);
+  // (the needle cannon, on him of all people: it barely registers, and he's thrilled about it)
+  if (p.isDart && ctx.state.frame - (fight.dartAt ?? -999) > 300 && !talk.current && !talk.queue.length) {
+    fight.dartAt = ctx.state.frame;
+    const pool = isShat(ctx.state) ? LINES_SHAT.darts : LINES.darts;
+    queueLines(ctx.state, talk, [{ who: 'junkie', text: pool[(fight.dartN = (fight.dartN ?? 0) + 1) % pool.length] }]);
+  } else if (!p.isDart && Math.random() < 0.02) junkieSays(ctx.state, talk, LINES.shot);
   return true;
 };
 
