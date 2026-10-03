@@ -17,7 +17,7 @@ import { GameState } from '../core/state';
 import { FrameContext, killBoss } from '../core/context';
 import { hitBoss, getBossDef, getBossDamage, isWeakTo } from '../bosses/registry';
 import { pickRandom, rectsOverlap, boundsOf, screenRect } from '../core/utils';
-import { findFlyingCigarette, igniteOilWithFlame, spillOil } from '../bosses/oscar';
+import { findFlyingCigarette, igniteOilWithFlame } from '../bosses/oscar';
 import { getStageLayout } from '../stages';
 import { playSound } from '../platform/audio';
 import { icicleBounds, meltIcicle } from '../bosses/artie';
@@ -739,11 +739,7 @@ const bigOilSplash = (ctx: FrameContext, pos: Vector2, radius: number) => {
     const a = (i / 26) * Math.PI * 2 + Math.random() * 0.2, sp = radius / 22 * (0.6 + Math.random() * 0.5);
     state.particles.push({ pos: { ...pos }, vel: { x: Math.cos(a) * sp, y: Math.sin(a) * sp - 2 }, life: 26 + Math.random() * 16, color: i % 3 === 0 ? '#44403C' : i % 3 === 1 ? '#1C1917' : '#0C0A09', size: 5 + Math.random() * 6, grav: 0.35 });
   }
-  const above = GROUND_Y - pos.y;
-  if (above >= -10 && above < radius) {
-    const half = Math.sqrt(Math.max(0, radius * radius - above * above)) * 0.8;
-    spillOil(state, pos.x - half, pos.x + half);
-  }
+  // (no slick left on the floor after it: nothing for Meathead to bog down in)
 };
 
 /** How far a blast set off by a fire hazard reaches (contained: round him, not the whole screen). */

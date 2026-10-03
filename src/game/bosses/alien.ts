@@ -28,7 +28,6 @@ import { startEnemyDeath } from '../enemies/deaths';
 import { getFinale, alienPace, ammoDrain, FinaleRuntime } from '../stages/finale/state';
 import { ROOM_L, ROOM_R, ROOM_TOP, ROOM_MID, FLOOR } from '../stages/finale/geometry';
 import { oiledIntoFire, detonateNuke, burnEnemy } from '../combat/weapons';
-import { spillOil } from './oscar';
 import { alienMuzzle as figureMuzzle, ALIEN } from '../scenes/alienLook';
 import { hitBoss } from './registry';
 import { startKillCam, killCamPlaying } from '../stages/finale/killCam';
@@ -147,8 +146,7 @@ const update = (ctx: FrameContext, boss: Enemy) => {
     state.particles.push({ pos: o, vel: { x: (Math.random() - 0.5) * 2, y: -1 }, life: 60, color: '#E5E7EB', size: 3, grav: 0.4 });
   }
   boss.needleCount = rt.needleAt.length;
-  // Oiled: drips of it pooling on the floor under him; on fire: burning, till it's burnt off
-  if (boss.isOiled && state.frame % 18 === 0) spillOil(state, cx(boss) - 14, cx(boss) + 14);
+  // On fire: burning, till it's burnt off (oiled, nothing pools on the floor under him: no slick to bog Meathead down)
   if (boss.isOnFire) {
     rt.burnT--;
     if (state.frame % FLAME_TICK === 0) { boss.health -= BURN_TICK_DAMAGE; ctx.fx.spawnDamageNumber(boss.pos, BURN_TICK_DAMAGE, false, '#F97316'); if (boss.health <= 0) { ctx.bossHelpers.killBoss(boss, 0, true, 'FLAMETHROWER'); return; } }
