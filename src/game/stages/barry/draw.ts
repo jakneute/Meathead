@@ -734,6 +734,7 @@ const drawProp = (ctx: Ctx, state: GameState, pr: Prop) => {
       ctx.fillStyle = '#F8FAFC'; ctx.font = '6px "Press Start 2P"'; ctx.fillText('NO DUMPING', x + 14, y - 40);
       for (const cx of [x + 10, x + w - 18]) { slab(ctx, cx, y - 5, 8, 3, '#374151', 1); ink(ctx, () => ctx.arc(cx + 4, y - 2, 2.5, 0, Math.PI * 2), '#1F2937', 0.8); }
       slab(ctx, x - 4, y - 72, w + 8, 8, '#14532D', 2);
+      standLip(ctx, x - 4, y - 72, w + 8, '#2E9B57');
       shaded(ctx, () => ctx.ellipse(x + 30, y - 76, 16, 8, 0, 0, Math.PI * 2), '#1F2937', x + 14, y - 84, 32, 16); // a bag on top
       ctx.fillStyle = '#4B5563'; ctx.fillRect(x + 22, y - 81, 6, 1); ctx.fillStyle = INK; ctx.fillRect(x + 30, y - 85, 2, 3);
       break;
@@ -894,12 +895,20 @@ const drawClimbBlackout = (ctx: Ctx, state: GameState) => {
   }
 };
 
+/** The top of something you can stand on, made plain: a bright lip along it, lit on its edge, a dark line under. */
+const standLip = (ctx: Ctx, x: number, y: number, w: number, color: string) => {
+  ctx.fillStyle = INK; ctx.fillRect(x - 1, y - 1, w + 2, 6);
+  ctx.fillStyle = color; ctx.fillRect(x, y, w, 4);
+  ctx.fillStyle = lite(color, 0.55); ctx.fillRect(x, y, w, 2);
+};
+
 const drawLedge = (ctx: Ctx, state: GameState, l: Ledge) => {
   const { x, y, w } = l;
   switch (l.look) {
     case 'stoop': {
       // Brownstone steps (each tread lit along its nosing, the riser under it in shadow), an iron railing with its newel posts
-      ctx.fillStyle = '#5A3B2B'; ctx.fillRect(x, y, w, Y - y);
+      // (warmer and lighter than the fronts behind it, a bright landing on top: you can stand on it)
+      ctx.fillStyle = '#7A4E36'; ctx.fillRect(x, y, w, Y - y);
       ctx.fillStyle = 'rgba(0,0,0,0.12)'; for (let px = x + 7; px < x + w; px += 19) ctx.fillRect(px, y + 6, 1, Y - y - 6);
       for (let yy = y + 14; yy < Y; yy += 14) { ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(x, yy, w, 3); ctx.fillStyle = '#7A5640'; ctx.fillRect(x, yy + 3, w, 1); }
       checker(ctx, x + w - 10, y, 10, Y - y, 'rgba(0, 0, 0, 0.2)');
@@ -909,6 +918,7 @@ const drawLedge = (ctx: Ctx, state: GameState, l: Ledge) => {
       ctx.fillStyle = '#3F3F46'; for (let px = x + 6; px < x + w; px += 12) ctx.fillRect(px - 1, y - 24, 1, 22);
       ctx.fillStyle = INK; ctx.fillRect(x + 4, y - 27, w - 8, 3); ctx.fillStyle = '#52525B'; ctx.fillRect(x + 4, y - 27, w - 8, 1);
       for (const px of [x + 4, x + w - 7]) { column(ctx, px - 1, y - 30, 5, 30, '#18181B'); ink(ctx, () => ctx.arc(px + 1.5, y - 32, 3, 0, Math.PI * 2), '#27272A', 0.8); ctx.fillStyle = '#71717A'; ctx.fillRect(px, y - 34, 1, 1); }
+      standLip(ctx, x, y, w, '#C08A64');
       break;
     }
     case 'rooftop': break;
