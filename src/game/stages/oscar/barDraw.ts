@@ -100,8 +100,8 @@ export const drawBarMid = (ctx: Ctx, state: GameState, b: Bar) => {
   if (intact) {
     // (the toilet in the HOGS: behind its wall till he's in there)
     drawToilet(ctx, false);
-    // (the ones taking him out are drawn with him)
-    const busy = b.swirly && b.swirly.phase !== 'react' ? b.swirly.carriers : [];
+    // (the ones taking him out are drawn with him, from the moment they clock it: not stood there twice)
+    const busy = b.swirly ? b.swirly.carriers : [];
     b.bikers.forEach((k, i) => { if (!busy.includes(i)) drawBarBiker(ctx, state, k); });
     if (b.swirly) drawSwirly(ctx, state, b);
     drawToilet(ctx, true);

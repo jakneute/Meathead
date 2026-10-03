@@ -829,6 +829,12 @@ const oscarField: LayerSpec = {
 const flares = (ctx: G, v: View) => {
   for (const fx of FLARES) pinned(fx, oscarRefinery, v, sx => {
     const y = 95 * PX;
+    // (the stack it's on: up from the refinery's ground, guyed, a ladder up it, the tip scorched)
+    ctx.fillStyle = '#26160E'; ctx.fillRect(Math.round(sx - 4), y, 8, 225 * PX - y);
+    ctx.fillStyle = '#3C2416'; ctx.fillRect(Math.round(sx - 4), y, 2, 225 * PX - y);
+    ctx.fillStyle = '#1A0E08'; for (let ly = y + 8; ly < 225 * PX; ly += 6) ctx.fillRect(Math.round(sx + 4), ly, 3, 1);
+    ctx.fillStyle = '#4A2E1C'; ctx.fillRect(Math.round(sx - 6), y, 12, 3); ctx.fillStyle = '#0C0705'; ctx.fillRect(Math.round(sx - 5), y - 2, 10, 2);
+    ctx.strokeStyle = 'rgba(26, 14, 8, 0.7)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(sx, y + 40); ctx.lineTo(sx - 46, 225 * PX); ctx.moveTo(sx, y + 40); ctx.lineTo(sx + 46, 225 * PX); ctx.stroke();
     steppedGlow(ctx, sx, y - 20, 70, '#FB923C', 0.35, 0, 5);
     drawFire(ctx, sx, y + 2, 16, 46, v.frame, { seed: fx, glow: 0 });
   });
