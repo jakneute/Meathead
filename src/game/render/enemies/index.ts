@@ -36,9 +36,10 @@ export const drawKindEnemy = (ctx: Ctx, e: Enemy, state: GameState) => {
  * A themed enemy's body standing still, for its death animation (the caller
  * squashes, tints, clips or spins it). (x, y, w, h) is the box it died in.
  */
-export const drawKindCorpse = (ctx: Ctx, kind: EnemyKind, x: number, y: number, w: number, h: number, facing: 1 | -1, phase: number, state: GameState, variant?: number) => {
+export const drawKindCorpse = (ctx: Ctx, kind: EnemyKind, x: number, y: number, w: number, h: number, facing: 1 | -1, phase: number, state: GameState, variant?: number, vx = 0) => {
+  // (vx: drawn on the move, legs going, `phase` the frame of it)
   const still = {
-    kind, pos: { x, y }, width: w, height: h, vel: { x: 0, y: 0 }, facing, homeX: phase, variant,
+    kind, pos: { x, y }, width: w, height: h, vel: { x: vx, y: 0 }, facing, homeX: phase, variant,
     aiState: 'recover', aiTimer: 0, shootTimer: 0, isShieldActive: false, health: 1, maxHealth: 1,
   } as unknown as Enemy;
   drawKindPose(ctx, still, facing, phase, state);

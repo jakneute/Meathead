@@ -407,7 +407,7 @@ const drawLowrider = (ctx: Ctx, e: Enemy, f: number, frame: number) => {
   for (const y of [-29.6, -25.6]) { ink(ctx, () => ctx.roundRect(-78.4, y, 2.8, 3, 0.8), '#DC2626', 0.6); ctx.fillStyle = '#FCA5A5'; ctx.fillRect(-78, y + 0.5, 1, 0.8); }
   // The crew, leaning out toward him with their pistols
   for (const w of LOWRIDER_WINDOWS) {
-    if (e.health <= 0) break;
+    if (e.health <= 0 || e.isBlownAway) break;
     ctx.save(); ctx.translate(w.x, w.y); ctx.scale(aim, 1);
     gunman(ctx, pick(e, ['#DC2626', '#1D4ED8', '#F8FAFC']));
     ctx.restore();
@@ -418,6 +418,16 @@ const drawLowrider = (ctx: Ctx, e: Enemy, f: number, frame: number) => {
     ctx.fillStyle = 'rgba(229, 231, 235, 0.45)'; ctx.beginPath(); ctx.arc(0, -4, 8, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = 'rgba(248, 250, 252, 0.7)'; ctx.beginPath(); ctx.arc(-3, -4, 4, 0, Math.PI * 2); ctx.arc(4, -6, 3, 0, Math.PI * 2); ctx.fill();
   }
+};
+
+/** One of a lowrider's crew out of it (thrown out: see gunDeaths.ts): his legs under him, his top half as in the window;
+ * his feet at (x, feetY). */
+export const drawCrewman = (ctx: Ctx, x: number, feetY: number, facing: 1 | -1, shirt: string) => {
+  ctx.save(); ctx.translate(x, feetY); ctx.scale(facing, 1);
+  legs(ctx, -20, 0, 0, '#1E3A8A', '#F8FAFC');
+  ctx.translate(-1, -18);
+  gunman(ctx, shirt);
+  ctx.restore();
 };
 
 /** One of the crew in a lowrider's window: a tee in his colors, a cap on backwards, an arm out with a pistol. Facing right. */

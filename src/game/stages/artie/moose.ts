@@ -21,6 +21,7 @@ import { hurtPlayer } from '../../bosses/shared';
 import { midBossProjectileDamage } from '../../combat/midBoss';
 import { KIND_STATS } from '../../enemies/kinds';
 import { COURSE, CP } from './course';
+import { noteAnimalKill } from '../../player/animalDeaths';
 
 export const MOOSE_HP = KIND_STATS.moose.hp;
 const W = KIND_STATS.moose.w, H = KIND_STATS.moose.h;
@@ -212,6 +213,7 @@ const touchPlayer = (ctx: FrameContext, m: Enemy, fight: MooseFight) => {
     endSpecial();
     react('stomp');
     hurtPlayer(ctx, 25, 'moose', { x: -Math.sign(px - mx || 1) * 3, y: -3 }, 50);
+    if (p.health <= 0) noteAnimalKill(state, m, 'stomped');
     state.playerStunTimer = 45;
     shakeScreen(state, 20, 8);
     shout('TRAMPLED!', '#F97316');
@@ -220,6 +222,7 @@ const touchPlayer = (ctx: FrameContext, m: Enemy, fight: MooseFight) => {
     endSpecial();
     react('buck');
     hurtPlayer(ctx, 12, 'moose', { x: (px < mx ? -1 : 1) * 11, y: -15 }, 40);
+    if (p.health <= 0) noteAnimalKill(state, m, 'satOn');
     shout('BUCKED OFF!', '#FACC15');
   } else if (special === 'hit') {
     endSpecial();
@@ -227,17 +230,20 @@ const touchPlayer = (ctx: FrameContext, m: Enemy, fight: MooseFight) => {
       // Shoulder or fist to the face: it scoops you up on its antlers and flings you
       react('heave');
       hurtPlayer(ctx, 15, 'moose', { x: -m.facing! * 4, y: -24 }, 45);
+      if (p.health <= 0) noteAnimalKill(state, m, 'lawndart');
       shout('HEAVED!', '#38BDF8');
     } else {
       // From behind: both hind legs, square in the chest
       react('kick');
       hurtPlayer(ctx, 18, 'moose', { x: -m.facing! * 19, y: -8 }, 45);
+      if (p.health <= 0) noteAnimalKill(state, m, 'punted');
       shout('KICKED!', '#A3E635');
     }
     shakeScreen(state, 14, 6);
   } else if (m.aiState === 'charge' || m.aiState === 'skid' || m.aiState === 'enter') {
     // In its way: run clean over (then it pulls up and backs off, rather than pinning you to the wall)
     hurtPlayer(ctx, 18, 'moose', { x: m.facing! * 13, y: -9 }, 40);
+    if (p.health <= 0) noteAnimalKill(state, m, 'peedOn');
     if (m.aiState !== 'enter') {
       if (m.aiState === 'charge') { m.aiState = 'skid'; m.aiTimer = 0; }
       fight.retreatNext = true;

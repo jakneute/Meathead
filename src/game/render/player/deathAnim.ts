@@ -7,6 +7,8 @@ import { wall as fallWall, strata as fallStrata } from './fallCams';
 import { bandedGradient, hazeBands } from '../pixelArt';
 import { drawFlameLicks } from '../fx/fireball';
 import { mhVaporK, medalFall, MH_VAPOR_HOLD, MH_VAPOR_GO, MH_MEDAL_DROP } from '../../player/deathAnim';
+import { drawAnimalDeath } from './animalDeaths';
+import { headshotOver, headshotFeet, HS_STAND } from '../../player/deathAnim';
 import { airfallY, MEATHEAD_DEATH_FRAMES, LAVA_COOKOFF, FROZEN_SHATTER, ROADKILL_TWINKLE, overdoseRise, impaledFeet, PLUCKS, PLUCK_AWAY, PLUCK_FALL, pluckSway, pluckDark, SPIKE_HIT, MeatheadDeath } from '../../player/deathAnim';
 import { drawBloodPool } from '../spatter';
 
@@ -394,6 +396,24 @@ export const drawMeatheadDeath = (ctx: Ctx, state: GameState, weapon: WeaponType
       body(ctx, state, d, weapon, { isGrounded: false, vel: { x: 0, y: 1 } });
       break;
     }
+    case 'headshot': {
+      // Stood there a beat, his head snapped back the way it went, the hole in his forehead; then over, stiff, the way
+      // it went (dropping, up in the air), till he hits the floor (and he's all over it: see the particles)
+      const dir = (d.dir ?? 1) < 0 ? -1 : 1;
+      if (t >= (d.hitAt ?? 26)) break;
+      const feet = headshotFeet(d, t), over = headshotOver(d, t);
+      const snap = t < HS_STAND ? Math.sin(Math.min(1, t / 3) * Math.PI / 2) * 0.16 * (1 - t / (HS_STAND * 2)) : 0.08;
+      ctx.translate(0, feet - y);
+      about(ctx, x, y, dir * (over * Math.PI / 2 + snap));
+      body(ctx, state, d, weapon, { isGrounded: feet >= (d.floor ?? y) - 0.5, deathFace: t < 3 ? 'shock' : 'dead' });
+      // (the hole: dark in the middle, a red rim, a run of blood down between his eyes)
+      const hx = x + facing * 6, hy = y - 59;
+      ctx.fillStyle = '#B91C1C'; ctx.fillRect(hx - 2, hy - 2, 4, 4);
+      ctx.fillStyle = '#1C0A0A'; ctx.fillRect(hx - 1, hy - 1, 2, 2);
+      ctx.fillStyle = '#991B1B'; ctx.fillRect(hx - 1, hy + 2, 2, Math.min(8, 1 + t * 0.6));
+      break;
+    }
+    default: drawAnimalDeath(ctx, state, d, weapon, t, f);
   }
   ctx.restore();
 };

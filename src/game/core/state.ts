@@ -101,6 +101,8 @@ export interface GameState {
   introTimer: number;
   /** Skyfall intro: the intro frame he hit the ground on (0 while he's still falling). */
   introLandedAt?: number;
+  /** Skyfall intro: how far above its place the camera is, coming down with him out of the sky (drawn only: the camera's own y stays put). */
+  introLift?: number;
   deathTimer: number;
   /** Frames the death screen's been up (it can be skipped after a moment; it waits for the death announcer). */
   /**
@@ -133,6 +135,10 @@ export interface GameState {
   impaleAt?: import('../player/deathAnim').Impale;
   /** A bird that's just got him on its dive or its swoop (and killed him): which, and when. */
   pluckedBy?: { id: string; frame: number };
+  /** An animal whose attack has just killed him (its lunge, its charge, its bite): which, when, and how it finishes him. */
+  animalKill?: { id: string; frame: number; how: import('../player/animalDeaths').AnimalDeathKind };
+  /** An enemy's bullet has just killed him: when, and which way it was going (it goes through his forehead). */
+  shotDead?: { frame: number; dir: number };
   /** What of the world's on screen this frame (set as it's drawn): the camera's 800x600, or more of it zoomed out. */
   view?: { x: number; y: number; w: number; h: number };
   /** The last frame a long death on its way offered SKIP >> (see skipDying). */
@@ -448,6 +454,7 @@ export const resetStageState = (s: GameState) => {
   s.isMeatheadSpeaking = false;
 
   s.introTimer = 0;
+  s.introLift = 0;
   s.deathTimer = 0;
   s.deathFrames = 0;
   stopDeathAnnouncer();

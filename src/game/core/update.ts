@@ -24,7 +24,7 @@ import { getFinale } from '../stages/finale/state';
 import { say, isTalking, deathAnnouncing, stopDeathAnnouncer, announceDeath, silenceAll, MEATHEAD_INTRO_VOICE, MEATHEAD_VOICE, setNoRepeatScope } from '../platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../platform/skip';
 import { pickRandom, rectsOverlap, boundsOf, isOnScreen } from './utils';
-import { deathByCause, deathFallback, pluckDeathMessage } from './deathCause';
+import { deathByCause, deathFallback, pluckDeathMessage, animalDeathMessage } from './deathCause';
 import { killPlayer, DEATH_SCREEN_FRAMES, gateControls, tickPlayerTimers, updatePlayerActions, updatePlayerPhysics, getSpecialForm, interruptSpecialWithHurt } from '../player/player';
 import { updateTsunami, updateSteamExplosions, updateVolcanoes, updateTommyArena } from '../bosses/hazards';
 import { updateTaser, updateBurningProjectiles, updateEnemyStatusEffects } from '../combat/statusEffects';
@@ -45,6 +45,12 @@ const INTRO_JUMP_FRAMES = 60;
 
 /** Skyfall: where he starts above the top of the screen, how fast he's already going, and how he falls. */
 const SKYFALL_START_ABOVE = 700, SKYFALL_START_SPEED = 12, SKYFALL_GRAVITY = 0.9, SKYFALL_MAX_SPEED = 30;
+/**
+ * Skyfall from the deploy (the stage's own start, not a checkpoint): he starts this far over the camera's place and
+ * this fast, and the camera comes down with him, holding him FOLLOW_Y down the screen (less on a high floor), easing
+ * in over the last EASE of it to arrive on its place, still, just before he hits.
+ */
+const SKYFALL_DESCENT_ABOVE = 1300, SKYFALL_DESCENT_SPEED = 22, SKYFALL_FOLLOW_Y = 300, SKYFALL_EASE = 240;
 /** Skyfall: frames crouched in the landing, when he says his line, and when you get control. */
 const SKYFALL_CROUCH = 24, SKYFALL_LINE_AT = 14, SKYFALL_DONE_AT = 72;
 
@@ -226,7 +232,7 @@ const updateLevelIntro = (ctx: FrameContext) => {
   }
 
   if (LEVEL_INTRO_STYLE === 'skyfall') {
-    skyfall(ctx, baseStartX + 150, at?.y ?? (cheats.skipToBoss ? getStageLayout(stageId)?.bossStartY : undefined));
+    skyfall(ctx, baseStartX + 150, at?.y ?? (cheats.skipToBoss ? getStageLayout(stageId)?.bossStartY : undefined), !at && !cheats.skipToBoss);
   } else if (state.introTimer < INTRO_JUMP_START) {
     player.pos.x = baseStartX - 150;
   } else {
@@ -246,7 +252,7 @@ const updateLevelIntro = (ctx: FrameContext) => {
 };
 
 /** He plummets out of the sky onto the start of the stage, craters the snow (or dirt), and gets up swinging. */
-const skyfall = (ctx: FrameContext, x: number, floor?: number) => {
+const skyfall = (ctx: FrameContext, x: number, floor?: number, descent = false) => {
   const { state } = ctx;
   const { player } = state;
   player.pos.x = x;
@@ -254,8 +260,8 @@ const skyfall = (ctx: FrameContext, x: number, floor?: number) => {
   // checkpoint, the floor the checkpoint's on (indoors, he comes down through whatever's over it)
   const ground = floor ?? floorTopAt(state.blocks, x + player.width / 2, state.camera.y, 0) ?? 550;
   if (state.introTimer === 1) {
-    player.pos.y = state.camera.y - SKYFALL_START_ABOVE;
-    player.vel = { x: 0, y: SKYFALL_START_SPEED };
+    player.pos.y = state.camera.y - (descent ? SKYFALL_DESCENT_ABOVE : SKYFALL_START_ABOVE);
+    player.vel = { x: 0, y: descent ? SKYFALL_DESCENT_SPEED : SKYFALL_START_SPEED };
     state.introLandedAt = 0;
   }
   if (!state.introLandedAt) {
@@ -292,6 +298,11 @@ const skyfall = (ctx: FrameContext, x: number, floor?: number) => {
       ctx.events.onIntroComplete();
     }
   }
+  // The camera coming down with him, where he's got to this frame (at a checkpoint, or the boss, he just drops in:
+  // there's often a ceiling over it)
+  const followY = Math.min(SKYFALL_FOLLOW_Y, ground - state.camera.y - player.height - 120);
+  const above = state.camera.y + followY - player.pos.y;
+  state.introLift = descent && !state.introLandedAt && above > 0 ? above * above / (above + SKYFALL_EASE) : 0;
 };
 
 /** The boss door: he walks up to it and kicks it in, it comes down flat into the room, and he walks in over it (no going back). */
@@ -598,7 +609,7 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
   if ((player.health <= 0 || player.pos.y > state.camera.y + 1000) && state.deathTimer <= 0) {
     // (the stage's own say first, then what got him, then the fall or the boss; plain YOU DIED only if nothing's known)
     const fell = player.health > 0;
-    killPlayer(ctx, (fell ? undefined : pluckDeathMessage(state)) ?? layout?.deathMessage?.(ctx) ?? (fell ? undefined : deathByCause(state)) ?? deathFallback(state, ctx.stageId, fell) ?? "YOU DIED");
+    killPlayer(ctx, (fell ? undefined : pluckDeathMessage(state) ?? animalDeathMessage(state)) ?? layout?.deathMessage?.(ctx) ?? (fell ? undefined : deathByCause(state)) ?? deathFallback(state, ctx.stageId, fell) ?? "YOU DIED");
   }
   if (player.isTasing && player.currentWeapon === 'TASER' && state.frame % 3 === 0) ctx.fx.playGunSound('taser');
   return true;

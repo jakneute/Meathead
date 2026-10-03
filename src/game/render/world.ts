@@ -7,7 +7,7 @@ import { isDummy, drawDummy } from './dummies';
 import {
   CANVAS_WIDTH, CANVAS_HEIGHT, RING_CEILING_Y, RING_FLOOR_Y, LEVEL_INTRO_STYLE, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, RENDER_SCALE, PRACTICE_RANGE_STAGE, isRangeStage, GROUND_Y, FINALE_STAGE,
 } from '../../constants';
-import { drawCloudExit } from './skyClouds';
+import { drawCloudExit, drawSkyAbove } from './skyClouds';
 import { STAGE_COLORS } from '../../content/roster';
 import { GameState, BOSS_FALL, STAIN_FRAMES, SMEAR_FRAMES } from '../core/state';
 import { drawCustomBossArena } from './bosses/arenas';
@@ -24,6 +24,7 @@ import { drawBossCorpse } from './bosses/corpses';
 import { drawVictoryPee } from '../scenes/victoryPeeDraw';
 import { drawPlayer } from './player/player';
 import { drawMeatheadDeath, drawBlindness, drawSpikeCam } from './player/deathAnim';
+import { drawAnimalDeathScreen, animalInDeath } from './player/animalDeaths';
 import { drawFallCam } from './player/fallCams';
 import { drawCrashCam } from './player/crashDeath';
 import { drawEyeFallCam } from './player/eyeFallCam';
@@ -63,6 +64,18 @@ const FONT = '"Press Start 2P"';
 
 /** Renders one frame of the game world (everything except the React HUD/menus). */
 export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view: WorldView) => {
+  // The skyfall's camera, coming down out of the sky with him: drawn from up there, the camera's own place untouched
+  const lift = view.status === GameStatus.LEVEL_INTRO ? state.introLift ?? 0 : 0;
+  if (lift <= 0) { drawWorldAt(ctx, state, view, 0); return; }
+  const restY = state.camera.y;
+  state.camera.y = restY - lift;
+  try { drawWorldAt(ctx, state, view, lift); } finally { state.camera.y = restY; }
+};
+
+/** How much of the camera's height the backdrop comes down by (it's far off: it moves less than the world). */
+const BACKDROP_LIFT = 0.3;
+
+const drawWorldAt = (ctx: CanvasRenderingContext2D, state: GameState, view: WorldView, lift: number) => {
   const { status, stageId } = view;
   stampsForStage(stageId);
   if (status === GameStatus.STAGE_SELECT || status === GameStatus.START) {
@@ -77,7 +90,10 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
 
   const isRange = isRangeStage(stageId), isRing = stageId === PRACTICE_RANGE_STAGE;
   const colors = isRange ? { ground: '#0A0A0C', bg: '#000', accent: '#7F1D1D' } : STAGE_COLORS[stageId || ""] || { ground: COLORS.GROUND, bg: COLORS.BG_DARK, accent: '#fff' };
-  // Layered parallax scenery for the stage (a flat colour where there isn't any)
+  // Layered parallax scenery for the stage (a flat colour where there isn't any); coming down out of the sky, drawn from
+  // its own place, lower down the screen, the sky carried on up over it
+  const backLift = lift > 0 ? Math.round(lift * BACKDROP_LIFT / 2) * 2 : 0;
+  if (backLift) { ctx.save(); ctx.translate(0, backLift); state.camera.y += lift; }
   if (isRing) {
     drawRing(ctx, state.frame || 0);
   } else if (isRange) {
@@ -88,6 +104,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     ctx.fillStyle = colors.bg;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   }
+  if (backLift) { state.camera.y -= lift; ctx.restore(); drawSkyAbove(ctx, CANVAS_WIDTH, backLift, stageId); }
 
   // World space (camera + screen shake; a paused frame holds still). shiftX widens the view to the left (the cylinder pass draws a wider strip)
   const worldPass = (wctx: CanvasRenderingContext2D, shiftX: number) => {
@@ -197,6 +214,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   drawFallCam(ctx, state, CANVAS_WIDTH, CANVAS_HEIGHT);
   drawCrashCam(ctx, state, CANVAS_WIDTH, CANVAS_HEIGHT, view.currentWeapon);
   drawEyeFallCam(ctx, state, CANVAS_WIDTH, CANVAS_HEIGHT);
+  drawAnimalDeathScreen(ctx, state, CANVAS_WIDTH, CANVAS_HEIGHT, view.currentWeapon);
   if (state.sewerNuke) drawSewerNukeFlash(ctx, state);
   else if (state.deathTimer > 0 && state.deathString && state.deathFreeze === undefined && !(state.deathScene && state.deathScene.t < state.deathScene.len)) drawDeathMessage(ctx, state.deathString);
   if (state.deathTimer > 0 ? state.deathFrames > SKIP_AFTER : state.dyingSkipAt !== undefined && state.frame - state.dyingSkipAt >= 0 && state.frame - state.dyingSkipAt <= 1) drawSkipPrompt(ctx, CANVAS_WIDTH);
@@ -797,6 +815,8 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
   enemies.forEach(live => {
     // (a tenant's dead as he falls, but he's still to be seen going)
     if (live.health <= 0 && !live.isBlownAway && !(live.kind === 'tenant' && (live.aiState === 'fall' || live.aiState === 'splat'))) return;
+    // (the animal that's killing him: his death draws it, doing it)
+    if (animalInDeath(state, live)) return;
     // (nowhere near the screen: not drawn, its fire and all; a good way out either side, for the zoomed-out views)
     if (live.type !== 'boss' && (live.pos.x + live.width < state.camera.x - CULL || live.pos.x > state.camera.x + CANVAS_WIDTH + CULL || live.pos.y + live.height < state.camera.y - CULL || live.pos.y > state.camera.y + CANVAS_HEIGHT + CULL)) return;
     // (dead and going: without whatever attack it was in the middle of, so that doesn't go flying with it)

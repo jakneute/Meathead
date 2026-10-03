@@ -2,7 +2,9 @@
 // him), or the boss whose fight it was, or the fall. See content/deaths.ts.
 
 import type { GameState } from './state';
-import { DEATH_LINES, BOSS_DEATH_LINES, FALL_DEATH_LINES, PLUCK_DEATH_LINES } from '../../content/deaths';
+import { DEATH_LINES, BOSS_DEATH_LINES, FALL_DEATH_LINES, PLUCK_DEATH_LINES, ANIMAL_DEATH_LINES } from '../../content/deaths';
+import { ANIMAL_AIR_OK } from '../player/animalDeaths';
+import { isShat } from '../player/gut';
 import { pickRandom } from './utils';
 import { floorTopAt } from './terrain';
 
@@ -53,6 +55,21 @@ export const pluckDeathMessage = (state: GameState): string | undefined => {
   if (!h || !pb || pb.frame !== h.at || !hurtJustNow(state, h.at) || state.player.health > 0) return undefined;
   const kind = state.enemies.find(e => e.id === pb.id)?.kind ?? '';
   return pickRandom([...(PLUCK_DEATH_LINES[kind] ?? []), ...PLUCK_DEATH_LINES.any]);
+};
+
+/** An animal's attack got him, and it's finished him its own way (see player/animalDeaths): that, whatever the stage
+ * would have said. */
+export const animalDeathMessage = (state: GameState): string | undefined => {
+  const h = state.lastHurt, ak = state.animalKill, p = state.player;
+  // (riding something: he's flung off it, whatever got him)
+  if (p.skiing || p.jetski || p.bike || p.moto) return undefined;
+  // (up in the air, for most of them: he just falls and bursts)
+  if (!ANIMAL_AIR_OK.has(ak?.how as never) && airDrop(state) !== undefined) return undefined;
+  if (!h || !ak || ak.frame !== h.at || !hurtJustNow(state, h.at) || p.health > 0) return undefined;
+  const kind = state.enemies.find(e => e.id === ak.id)?.kind;
+  if (!kind) return undefined;
+  const lines = (ak.how === 'eaten' && isShat(state) ? ANIMAL_DEATH_LINES['eaten.shat'] : undefined) ?? ANIMAL_DEATH_LINES[`${ak.how}.${kind}`] ?? ANIMAL_DEATH_LINES[ak.how];
+  return lines ? pickRandom(lines) : undefined;
 };
 
 /** Everything else: off the bottom of the world, or the boss got him. */

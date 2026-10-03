@@ -8,6 +8,8 @@
 //   ceilinged (an overdose that went up into a ceiling): flattened on the underside of it, dripping, and it stays
 //   vaporized (the finale alien's beam): lit up in its pink, then gone, a pixel at a time from the side it came in, the bits
 //             blowing off and up; left behind, a heap of ash on a scorch mark, his smoking shoes and his sunglasses
+//   plugged   (the pistol, on a person), gunned (the pistol, on an animal), ejected (a lowrider's crew, thrown out of it):
+//             see gunDeaths.ts
 // The enemy itself is removed; one of these plays in its place.
 
 import { Enemy, EnemyKind, Vector2 } from '../../types';
@@ -16,8 +18,9 @@ import type { GameState } from '../core/state';
 import { floorTopAt } from '../core/terrain';
 import { isMidBoss } from '../combat/midBoss';
 import { kindHead } from '../render/enemies/index';
+import { GunDeath, GunMode, startGunDeath, updateGunDeath, updateEjected } from './gunDeaths';
 
-export type EnemyDeathKind = 'charred' | 'fried' | 'melted' | 'greased' | 'pancaked' | 'headshot' | 'ceilinged' | 'vaporized';
+export type EnemyDeathKind = 'charred' | 'fried' | 'melted' | 'greased' | 'pancaked' | 'headshot' | 'ceilinged' | 'vaporized' | 'plugged' | 'gunned' | 'ejected';
 
 export interface EnemyDeath {
   kind: EnemyDeathKind;
@@ -39,10 +42,16 @@ export interface EnemyDeath {
   /** (headshot) The head, off: where it sat on the body (its middle, from the body's top left) and how big; where it's
    * got to (world), how it's going, its spin. */
   head?: { ox: number; oy: number; r: number; x: number; y: number; vx: number; vy: number; rot: number; landed: boolean };
+  /** (plugged, gunned) How the pistol's kill is going. */
+  gd?: GunDeath;
+  /** (ejected, and the pancake he becomes) One of a lowrider's crew: his shirt, which way he faces, his tumble. */
+  crew?: { shirt: string; facing: 1 | -1; spin: number };
 }
 
 export const DEATH_FRAMES: Record<EnemyDeathKind, number> = {
   charred: 95, fried: 85, melted: 110, greased: 160, pancaked: 130, headshot: 170, ceilinged: 600, vaporized: 110,
+  // (these end themselves: see gunDeaths.ts)
+  plugged: 600, gunned: 600, ejected: 600,
 };
 
 /** (vaporized) How long it's held lit up in the beam before it starts going, and how long it takes to go (frames). */
@@ -89,6 +98,13 @@ const deathFacing = (state: GameState, e: Enemy): 1 | -1 => {
 /** (vaporized) What it goes to: the beam's pink, white-hot, ash. */
 const VAPOR_BITS = ['#FF8CE4', '#FFFFFF', '#EC44C4', '#A8A29E', '#FFD8F6', '#57534E'];
 
+/** The pistol's kill: `mode` from gunDeathMode (a person, or which animal), `vel` the round's. */
+export const startGunKill = (state: GameState, e: Enemy, mode: GunMode, vel: Vector2) => {
+  const n = state.enemyDeaths.length;
+  startEnemyDeath(state, e, mode === 'person' || mode === 'lying' || mode === 'jetski' ? 'plugged' : 'gunned', vel);
+  if (state.enemyDeaths.length > n) startGunDeath(state, state.enemyDeaths[n], e, mode, vel);
+};
+
 export const startEnemyDeath = (state: GameState, e: Enemy, kind: EnemyDeathKind, vel?: Vector2) => {
   if (isMidBoss(e)) return; // (a mid-boss leaves its own corpse)
   if (e.kind === 'tenant') return; // (a tenant always goes out of his window: the stage sees to it)
@@ -122,6 +138,8 @@ export const startEnemyDeath = (state: GameState, e: Enemy, kind: EnemyDeathKind
 /** Advances every death animation, with the smoke, sparks and bubbles that go with them. */
 export const updateEnemyDeaths = (state: GameState) => {
   state.enemyDeaths = state.enemyDeaths.filter(d => {
+    if (d.gd && (d.kind === 'plugged' || d.kind === 'gunned')) return updateGunDeath(state, d);
+    if (d.kind === 'ejected') return updateEjected(state, d);
     // Killed down in a pool: up it comes, bubbling, to the surface first
     if (d.floatTo !== undefined && d.y + d.h > d.floatTo) {
       d.y = Math.max(d.floatTo - d.h, d.y - 2.2);

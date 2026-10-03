@@ -10,6 +10,8 @@ import { GameState } from '../../core/state';
 import { EnemyDeath, DEATH_FRAMES, vaporK, VAPOR_HOLD, VAPOR_GO } from '../../enemies/deaths';
 import { drawKindCorpse, kindHead, isHumanoidKind, isLyingKind, KIND_HEAD, skeletonOf } from './index';
 import { drawBloodPool } from '../spatter';
+import { drawCrewman } from './tommy';
+import { drawGunDeath, drawEjected } from './gunDeaths';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -46,6 +48,8 @@ export const drawEnemyDeaths = (ctx: Ctx, state: GameState) => {
       }
       case 'headshot': drawHeadshot(ctx, d, state); break;
       case 'vaporized': drawVaporized(ctx, d, state.frame, state); break;
+      case 'plugged': case 'gunned': drawGunDeath(ctx, d, state, drawBody); break;
+      case 'ejected': drawEjected(ctx, d, state, drawBody); break;
     }
     ctx.restore();
   }
@@ -56,7 +60,8 @@ export const drawEnemyDeaths = (ctx: Ctx, state: GameState) => {
  * clipped as the animation wants), anything else as its coloured block.
  * Scaling is about the middle of its feet.
  */
-const drawBody = (ctx: Ctx, d: EnemyDeath, state: GameState, o: { filter?: string; sx?: number; sy?: number; clipFromY?: number } = {}) => {
+export type BodyOpts = { filter?: string; sx?: number; sy?: number; clipFromY?: number; run?: number; phase?: number };
+const drawBody = (ctx: Ctx, d: EnemyDeath, state: GameState, o: BodyOpts = {}) => {
   const { x, y, w, h } = d;
   ctx.save();
   if (o.clipFromY !== undefined) { ctx.beginPath(); ctx.rect(x - w, o.clipFromY, w * 3, y + h - o.clipFromY + 4); ctx.clip(); }
@@ -64,7 +69,8 @@ const drawBody = (ctx: Ctx, d: EnemyDeath, state: GameState, o: { filter?: strin
   ctx.translate(fx, fy); ctx.scale(o.sx ?? 1, o.sy ?? 1); ctx.translate(-fx, -fy);
   const body = (c: Ctx) => {
     if (d.dummy) drawDummy(c, { id: `dummy-${d.dummy}`, pos: { x, y }, width: w, height: h, vel: { x: d.sprite?.facing ?? 1, y: 0 } } as Enemy, 0);
-    else if (d.sprite) drawKindCorpse(c, d.sprite.kind, x, y, w, h, d.sprite.facing, d.sprite.phase, state, d.sprite.variant);
+    else if (d.crew) drawCrewman(c, x + w / 2, y + h, d.crew.facing, d.crew.shirt);
+    else if (d.sprite) drawKindCorpse(c, d.sprite.kind, x, y, w, h, d.sprite.facing, o.phase ?? d.sprite.phase, state, d.sprite.variant, o.run ?? 0);
     else { c.fillStyle = d.color; c.fillRect(x, y, w, h); }
   };
   // (under a filter: drawn plain and put down filtered once, not filtered shape by shape)

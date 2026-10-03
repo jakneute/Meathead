@@ -11,6 +11,7 @@
 
 import { SKYFALL_CLOUD_FRAMES, WALK_ON_STAGE } from '../../constants';
 import { WHITE_HOUSE_ID } from '../../content/whiteHouse';
+import { checker } from './pixelArt';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -34,7 +35,7 @@ const mix = (a: RGB, b: RGB, k: number): RGB => [Math.round(a[0] + (b[0] - a[0])
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(v => (v + 0.5) / 16);
 const bayer = (x: number, y: number) => BAYER[(y & 3) * 4 + (x & 3)];
 
-type Mote = 'snow' | 'ash' | 'embers' | 'rain' | 'smog' | 'dust' | 'soot';
+type Mote = 'snow' | 'ash' | 'embers' | 'smog' | 'dust' | 'soot';
 
 interface CloudLook {
   /** The murk between the puffs, top to bottom (lit from above). */
@@ -47,8 +48,8 @@ interface CloudLook {
   glow?: { color: string; a: number; flicker?: 'pulse' | 'blackout' };
   /** What's in the air with him. */
   motes?: Mote[];
-  /** Sheet lightning, a bolt in the gaps. */
-  lightning?: boolean;
+  /** A sun glinting through from up top on the right (where the stage's own sun is), and how strong. */
+  sun?: { color: string; a: number };
   /** Sideways drift (px per px fallen), sway (px), puffs (x the usual), how fast they go by (x the usual). */
   drift: number; sway: number; density: number; speed: number;
 }
@@ -75,10 +76,11 @@ const LOOKS: Record<string, CloudLook> = {
     murk: ['#ECE6EA', '#DCD2DA', '#CCBCC4'], ramp: ['#7E7488', '#A49CAE', '#C8C2CE', '#E6E0E4', '#FFF8F0'], streak: '#FFFFFF',
     glow: { color: '#F69A5A', a: 0.28 }, drift: 0.22, sway: 6, density: 1.35, speed: 0.75,
   },
-  // Miami: the hurricane's outer bands (it's parked over the beach), slate cloud, rain driving sideways, lightning
+  // Miami Beach, sunny (the storm's not got there yet): fair-weather cumulus, white and blue, clear blue sky between,
+  // the sun glinting through
   'Hector Hurricane': {
-    murk: ['#56627E', '#404C68', '#2E3852'], ramp: ['#141A2C', '#262F4A', '#3C4868', '#5E6C8E', '#9CA8C6'], streak: '#C8D4F0',
-    motes: ['rain'], lightning: true, drift: -0.3, sway: 34, density: 1.25, speed: 1.15,
+    murk: ['#4FA6EA', '#7CBEF0', '#ACD8F6'], ramp: ['#6E92C4', '#9EBCE2', '#CCE0F4', '#EEF6FD', '#FFFFFF'], streak: '#FFFFFF',
+    sun: { color: '#FFE69A', a: 0.55 }, drift: 0.06, sway: 8, density: 0.9, speed: 1,
   },
   // Flint: the plant's smog, a sick yellow-green, glowing from underneath, slow and greasy
   'Toxic Tommy': {
@@ -225,7 +227,25 @@ const paintGlow = (color: RGB) => {
   return c;
 };
 
-interface Sprites { far: HTMLCanvasElement[]; mid: HTMLCanvasElement[]; near: HTMLCanvasElement[]; wisp: HTMLCanvasElement[]; murk: HTMLCanvasElement; glow?: HTMLCanvasElement }
+/** A sun's glare, 160 cells across: stepped rings, brightest in the middle, each seam dithered. */
+const paintSun = (color: RGB) => {
+  const S = 160, STEPS = 6;
+  const c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d')!;
+  const img = g.createImageData(S, S), d = img.data;
+  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+    const r = Math.hypot(x + 0.5 - S / 2, y + 0.5 - S / 2) / (S / 2);
+    if (r >= 1) continue;
+    const v = (1 - r) * STEPS, s = Math.floor(v), f = v - s;
+    const k = f > 0.65 && bayer(x, y) < (f - 0.65) / 0.35 ? s + 1 : s;
+    const i = (y * S + x) * 4;
+    d[i] = color[0]; d[i + 1] = color[1]; d[i + 2] = color[2]; d[i + 3] = Math.round(255 * Math.pow(k / STEPS, 1.8));
+  }
+  g.putImageData(img, 0, 0);
+  return c;
+};
+
+interface Sprites { far: HTMLCanvasElement[]; mid: HTMLCanvasElement[]; near: HTMLCanvasElement[]; wisp: HTMLCanvasElement[]; murk: HTMLCanvasElement; glow?: HTMLCanvasElement; sun?: HTMLCanvasElement }
 const cache = new Map<CloudLook, Sprites>();
 
 const spritesFor = (look: CloudLook): Sprites => {
@@ -242,6 +262,7 @@ const spritesFor = (look: CloudLook): Sprites => {
     wisp: [0, 1, 2].map(i => paintPuff(400 + i, 70 + Math.round(hash(i + 31) * 40), 10 + Math.round(hash(i + 32) * 6), 'wisp', wisp)),
     murk: paintMurk(murk),
     glow: look.glow ? paintGlow(rgb(look.glow.color)) : undefined,
+    sun: look.sun ? paintSun(rgb(look.sun.color)) : undefined,
   };
   cache.set(look, s);
   return s;
@@ -262,8 +283,6 @@ const LAYERS = [
   { key: 'near', n: 6, speed: 2, part: 1.7, sway: 0.7, seed: 300 },
 ] as const;
 
-/** The lightning's strikes, as stretches of the fall (none across DEPLOY_CLOUD_SCROLL_END: both halves agree on it). */
-const STRIKES: [number, number][] = [[870, 930], [1520, 1570]];
 
 const drawLayer = (ctx: Ctx, w: number, h: number, cover: number, scroll: number, look: CloudLook, sprites: HTMLCanvasElement[], L: typeof LAYERS[number]) => {
   const n = Math.round(L.n * look.density);
@@ -302,20 +321,20 @@ const drawStreaks = (ctx: Ctx, w: number, h: number, cover: number, scroll: numb
   }
 };
 
-/** What's in the air with him: snow, ash, embers, rain, smog, dust or soot, going by at its own speed. */
+/** What's in the air with him: snow, ash, embers, smog, dust or soot, going by at its own speed. */
 const drawMotes = (ctx: Ctx, w: number, h: number, cover: number, scroll: number, look: CloudLook, kind: Mote) => {
   const a = step8(cover);
   if (a <= 0) return;
   ctx.globalAlpha = a;
-  const span = h + 80, base = { snow: 700, ash: 760, embers: 820, rain: 880, smog: 940, dust: 1000, soot: 1060 }[kind];
-  const count = { snow: 70, ash: 40, embers: 34, rain: 56, smog: 36, dust: 70, soot: 44 }[kind];
+  const span = h + 80, base = { snow: 700, ash: 760, embers: 820, smog: 940, dust: 1000, soot: 1060 }[kind];
+  const count = { snow: 70, ash: 40, embers: 34, smog: 36, dust: 70, soot: 44 }[kind];
   const flick = Math.floor(scroll / 24);
   for (let i = 0; i < count; i++) {
     const k = base + i;
-    const sp = { snow: 0.7, ash: 0.6, embers: 2, rain: 2.8, smog: 0.45, dust: 0.9, soot: 1.2 }[kind] * (0.7 + hash(k) * 0.6);
+    const sp = { snow: 0.7, ash: 0.6, embers: 2, smog: 0.45, dust: 0.9, soot: 1.2 }[kind] * (0.7 + hash(k) * 0.6);
     const y = wrap(hash(k + 1) * span - scroll * sp, span) - 40;
     const sway = kind === 'snow' || kind === 'ash' || kind === 'smog' ? Math.sin(scroll * 0.01 + i) * 18 : 0;
-    const drift = kind === 'dust' ? scroll * 0.9 : kind === 'rain' ? -scroll * 0.9 : scroll * look.drift;
+    const drift = kind === 'dust' ? scroll * 0.9 : scroll * look.drift;
     const x = snap(wrap(hash(k + 2) * w + drift + sway, w));
     const yy = snap(y), big = hash(k + 3) > 0.7;
     switch (kind) {
@@ -335,13 +354,6 @@ const drawMotes = (ctx: Ctx, w: number, h: number, cover: number, scroll: number
         ctx.fillStyle = '#C8320C'; ctx.fillRect(x, yy + 2, 2, big ? 6 : 2);
         break;
       }
-      case 'rain': {
-        // (driven slantwise: stepped down the slope, 2px wide)
-        ctx.fillStyle = big ? '#DCE6FF' : '#8EA0C8';
-        const segs = big ? 7 : 5;
-        for (let s = 0; s < segs; s++) ctx.fillRect(x + s * 2, yy + s * 6, 2, 6);
-        break;
-      }
       case 'smog':
         ctx.fillStyle = big ? '#D8E66A' : '#9AB040';
         ctx.fillRect(x, yy, big ? 6 : 4, big ? 4 : 2);
@@ -359,19 +371,6 @@ const drawMotes = (ctx: Ctx, w: number, h: number, cover: number, scroll: number
   }
 };
 
-/** A bolt forking down through the gaps, chunky and stepped (white down its middle, a pale halo round it). */
-const drawBolt = (ctx: Ctx, w: number, h: number, seed: number) => {
-  const pts: [number, number][] = [];
-  let x = w * (0.25 + hash(seed) * 0.5), y = -10;
-  while (y < h * 0.8) { pts.push([x, y]); y += 24 + hash(seed + y) * 20; x += (hash(seed + y * 1.3) - 0.5) * 70; }
-  for (const [size, col] of [[10, '#7C8CE0'], [6, '#C8D4FF'], [2, '#FFFFFF']] as const) {
-    ctx.fillStyle = col;
-    for (let i = 1; i < pts.length; i++) {
-      const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], steps = Math.ceil(Math.abs(y1 - y0) / 4);
-      for (let s = 0; s <= steps; s++) { const t = s / steps; ctx.fillRect(snap(x0 + (x1 - x0) * t - size / 2), snap(y0 + (y1 - y0) * t), size, 4); }
-    }
-  }
-};
 
 /**
  * cover: 1 is solid cloud, 0 is clear. scroll: how far you've fallen through it
@@ -387,17 +386,12 @@ export const drawSkyClouds = (ctx: Ctx, w: number, h: number, cover: number, scr
   // The murk between the puffs
   ctx.globalAlpha = step8(cover * 1.4 - 0.4);
   if (ctx.globalAlpha > 0) ctx.drawImage(sp.murk, 0, 0, w, h);
-  // A strike: the bolt in the gaps behind the near cloud, the whole lot lit up
-  const strike = look.lightning ? STRIKES.find(([a, b]) => scroll >= a && scroll < b) : undefined;
-  const sf = strike ? (scroll - strike[0]) / (strike[1] - strike[0]) : -1;
   drawLayer(ctx, w, h, cover, scroll, look, sp.far, LAYERS[0]);
-  if (strike && (sf < 0.2 || (sf > 0.35 && sf < 0.5))) { ctx.globalAlpha = step8(cover); drawBolt(ctx, w, h, strike[0]); }
   drawLayer(ctx, w, h, cover, scroll, look, sp.wisp, LAYERS[1]);
   drawLayer(ctx, w, h, cover, scroll, look, sp.mid, LAYERS[2]);
   drawStreaks(ctx, w, h, cover, scroll, look);
-  for (const m of look.motes ?? []) if (m !== 'rain') drawMotes(ctx, w, h, cover, scroll, look, m);
+  for (const m of look.motes ?? []) drawMotes(ctx, w, h, cover, scroll, look, m);
   drawLayer(ctx, w, h, cover, scroll, look, sp.near, LAYERS[3]);
-  if (look.motes?.includes('rain')) drawMotes(ctx, w, h, cover, scroll, look, 'rain');
   // Light from below, added on (the fire, the city), the bellies catching it
   if (look.glow && sp.glow) {
     const f = look.glow.flicker;
@@ -408,11 +402,12 @@ export const drawSkyClouds = (ctx: Ctx, w: number, h: number, cover: number, scr
     ctx.drawImage(sp.glow, 0, h - h / 2, w, h / 2);
     ctx.globalCompositeOperation = 'source-over';
   }
-  if (strike) {
-    const fl = sf < 0.15 ? 0.55 : sf < 0.35 ? 0.15 : sf < 0.5 ? 0.4 : 0.1 * (1 - sf);
+  // The sun glinting through from up over the top right (it doesn't go by: it's that far off)
+  if (look.sun && sp.sun) {
     ctx.globalCompositeOperation = 'lighter';
-    ctx.globalAlpha = step8(cover * fl);
-    ctx.fillStyle = '#B8C4FF'; ctx.fillRect(0, 0, w, h);
+    ctx.globalAlpha = step8(cover * look.sun.a);
+    ctx.drawImage(sp.sun, snap(w * 0.84 - 200), snap(-40 - 200), 400, 400);
+    ctx.globalCompositeOperation = 'source-over';
   }
   ctx.restore();
 };
@@ -430,4 +425,55 @@ export const drawCloudExit = (ctx: Ctx, w: number, h: number, stageId: string | 
   if (k >= 1) return;
   const scroll = settle ? DEPLOY_CLOUD_SCROLL_END + SKYFALL_CLOUD_SPEED * (t - t * t / (2 * SKYFALL_CLOUD_FRAMES)) : skyfallScroll(t);
   drawSkyClouds(ctx, w, h, 1 - k * k, scroll, stageId);
+};
+
+// ---------------------------------------------------------------------------
+// The sky over the stage's own, for the skyfall's camera coming down through it
+// ---------------------------------------------------------------------------
+
+/** The top of each stage's sky where he lands (what its backdrop paints along the top), and whether it's starry. */
+const ZENITH: Record<string, { color: string; stars?: boolean }> = {
+  'Artie Avalanche': { color: '#040714', stars: true },
+  'Victor Volcano': { color: '#1F0A1A' },
+  'Ernie Earthquake': { color: '#221537' },
+  'Hector Hurricane': { color: '#1D8FE0' },
+  'Toxic Tommy': { color: '#3E6FB0' },
+  'Blackout Barry': { color: '#010208', stars: true },
+  'Oily Oscar': { color: '#140A08' },
+  'Drug Trade Dale': { color: '#140C2E', stars: true },
+};
+
+/** How tall each step of the sky is above the backdrop, going up, and how much deeper each one is. */
+const ZENITH_BAND = 48, ZENITH_STEP = 0.07, ZENITH_STEPS = 5;
+
+/**
+ * The sky carried on up from the top of the stage's backdrop (drawn h lower down the screen, the camera above its
+ * place): the same colour where they meet, deeper a step at a time going up, banded, each seam dithered, and the
+ * stars on, if it's a starry one, going by with it.
+ */
+export const drawSkyAbove = (ctx: Ctx, w: number, h: number, stageId?: string | null) => {
+  if (h <= 0) return;
+  const z = (stageId && ZENITH[stageId]) || { color: '#0A1020' };
+  const base = rgb(z.color);
+  const band = (k: number) => { const c = mix(base, [0, 0, 0], Math.min(k, ZENITH_STEPS) * ZENITH_STEP); return `rgb(${c[0]}, ${c[1]}, ${c[2]})`; };
+  ctx.save();
+  // (bands counted up from the seam, so they stay put on the sky as it slides down)
+  for (let k = 0; h - k * ZENITH_BAND > 0; k++) {
+    const y1 = h - k * ZENITH_BAND, y0 = Math.max(0, y1 - ZENITH_BAND);
+    ctx.fillStyle = band(k);
+    ctx.fillRect(0, y0, w, y1 - y0 + (k === 0 ? 2 : 0));
+    // (the seam under this band: a checker row of it down into the one below, and of that up into it)
+    if (k > 0 && k <= ZENITH_STEPS) { checker(ctx, 0, y1, w, 2, band(k), 0); checker(ctx, 0, y1 - 2, w, 2, band(k - 1), 1); }
+  }
+  if (z.stars) {
+    for (let i = 0; i < 60; i++) {
+      const y = snap(h - 8 - hash(i + 1500) * 1600);
+      if (y < 0 || y > h - 6) continue;
+      const x = snap(hash(i + 1600) * w), big = hash(i + 1700) > 0.85;
+      ctx.fillStyle = big ? '#BFD4FF' : '#6E7FA8';
+      ctx.fillRect(x, y, 2, 2);
+      if (big) { ctx.fillStyle = '#4A5A86'; ctx.fillRect(x - 2, y, 2, 2); ctx.fillRect(x + 2, y, 2, 2); ctx.fillRect(x, y - 2, 2, 2); ctx.fillRect(x, y + 2, 2, 2); }
+    }
+  }
+  ctx.restore();
 };

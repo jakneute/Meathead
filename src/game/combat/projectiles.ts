@@ -31,6 +31,10 @@ import { inFinale, FINALE_FREEZE_TIME, PITCH_SPEED, PITCH_HOMING, FINALE_SLUDGE_
 import { ROOM_L, ROOM_R, FLOOR } from '../stages/finale/geometry';
 import { ernieQuake } from '../bosses/ernie';
 import { hurtTaken, gritty } from '../core/resist';
+import { startGunKill } from '../enemies/deaths';
+import { gunDeathMode } from '../enemies/gunDeaths';
+import { spared } from '../enemies/enemies';
+import { isEnemyBullet } from '../player/deathAnim';
 
 /** Moves one projectile and resolves its collisions. Returns false to remove it. */
 export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
@@ -769,8 +773,11 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
     if (p.isIce) spawnIceMist(state, p, 8);
     if (isBullet(p) && enemy.health > 0 && !wasFrozen && !BLOODLESS.has(enemy.kind || '')) bulletBlood(ctx, p, enemy);
     if (enemy.health <= 0) {
+      // (the plain pistol: a person through the forehead, an animal its own stupid way: see gunDeaths.ts)
+      const gunMode = !wasFrozen && p.id.startsWith('p-') && !p.isLmg && !spared(enemy) ? gunDeathMode(enemy) : null;
       // Killing an enemy that was already frozen shatters it
       if (wasFrozen) { fx.spawnGlassShatter(enemy.pos); fx.spawnKillCallout(enemy, 'shatter'); }
+      else if (gunMode) startGunKill(state, enemy, gunMode, p.vel);
       else fx.spawnDeathShower(enemy.pos, 0, 1.2);
       fx.spawnPickup(enemy.pos);
       fx.speakVulgarity(p.isBoulder ? 'boulder_kill' : (p.isIce ? 'shotgun_kill' : (p.isSludge ? 'sludge_kill' : 'gun_kill')));
@@ -840,6 +847,8 @@ const resolveEnemyProjectileHit = (ctx: FrameContext, p: Projectile): boolean =>
   if (!cheats.invincible) {
     player.health -= hurtTaken(stageId, p.damage / 2);
     state.lastHurt = { source: getProjectileHurtSource(p, stageId), at: state.frame };
+    // (a bullet that's killed him: through his forehead, see player/deathAnim)
+    if (player.health <= 0 && isEnemyBullet(p)) state.shotDead = { frame: state.frame, dir: Math.sign(p.vel.x) || (player.pos.x + player.width / 2 < p.pos.x ? -1 : 1) };
     if (player.health > 0) {
       player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;
       player.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;

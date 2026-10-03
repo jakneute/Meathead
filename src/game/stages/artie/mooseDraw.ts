@@ -68,6 +68,9 @@ const livePose = (m: Enemy, frame: number): Pose => {
       const rearing = t < 18;
       return { ...base, tilt: rearing ? -0.4 * (t / 18) : 0, pivotX: -45, rear: rearing, head: rearing ? -0.2 : 0.35, mouth: 0.5, eye: '#DC2626' };
     }
+    // (killing Meathead, see render/player/animalDeaths: sat down on him, rump first; nose down, having a sniff)
+    case 'sit': return { ...base, tilt: -0.34, pivotX: -45, fold: [0.15, 0.1, -1.45, 2.5], head: -0.2, mouth: 0.25 };
+    case 'sniff': return { ...base, head: 0.75 + Math.sin(frame * 0.6) * 0.04 };
     default: return base;
   }
 };

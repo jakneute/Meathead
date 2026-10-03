@@ -69,7 +69,7 @@ for (const [k, v] of Object.entries(dialogue.FINALE_LINES)) for (const t of allS
 for (const [k, v] of Object.entries(dialogue.OSCAR_LINES)) for (const t of allStrings(v)) add(k.endsWith('_BACK') ? 'meathead' : 'boss.oscar', t, 'OSCAR_LINES');
 // The death announcer: the plain death screen, and the one the sewer blows up with
 add('death', 'YOU DIED', 'killPlayer');
-for (const t of allStrings([deaths.DEATH_LINES, deaths.BOSS_DEATH_LINES, deaths.FALL_DEATH_LINES, deaths.PLUCK_DEATH_LINES, deaths.BACKTRACK_DEATH_LINES])) add('death', t, 'content/deaths');
+for (const t of allStrings([deaths.DEATH_LINES, deaths.BOSS_DEATH_LINES, deaths.FALL_DEATH_LINES, deaths.PLUCK_DEATH_LINES, deaths.ANIMAL_DEATH_LINES, deaths.BACKTRACK_DEATH_LINES])) add('death', t, 'content/deaths');
 add('death', 'YOU SET FIRE TO AN OIL-SOAKED TOXIC WASTE MONSTER IN A METHANE-FILLED SEWER. YOU BOTH DIED.', 'SEWER_NUKE_MESSAGE');
 // The daycare: the kids and the grown-ups, and all the kids' chatter in each of their voices
 for (const l of dialogue.DAYCARE_LINES.cheer) add(`hector.${l.who}`, l.text, 'DAYCARE_LINES');

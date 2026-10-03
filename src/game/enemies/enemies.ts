@@ -27,6 +27,7 @@ import { getAttackHitbox, harmlessBounce, recoilOff, getContactHurtSource } from
 import { shakeScreen } from '../core/state';
 import type { GameState } from '../core/state';
 import { startEnemyDeath } from './deaths';
+import { ejectLowriderCrew } from './gunDeaths';
 import { getEnemyMass, enemyGrip, massRatio } from '../combat/knockback';
 import { floorTopAt, groundLineAt } from '../core/terrain';
 import { getStageLeft, getStageLayout } from '../stages';
@@ -38,6 +39,7 @@ import { isMidBoss } from '../combat/midBoss';
 import { isBeingTased } from '../combat/statusEffects';
 import { hurtTaken, gritty } from '../core/resist';
 import { inFinale } from '../combat/finaleBuffs';
+import { noteAnimalKill } from '../player/animalDeaths';
 
 /** On the screen right now (the view as drawn, pulled back or pushed in included). */
 const onCamera = (state: FrameContext['state'], e: Enemy) => {
@@ -59,6 +61,8 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
   e.spawnPos ??= { x: e.pos.x, y: e.pos.y };
   if (!e.seen && onCamera(state, e)) e.seen = true;
   if (spared(e) && e.health <= 0 && !e.isBlownAway) e.health = e.maxHealth;
+  // (a lowrider done for, however: its crew go flying out of it)
+  if (e.kind === 'lowrider' && (e.health <= 0 || e.isBlownAway)) ejectLowriderCrew(state, e);
   // A stage's mid-boss runs itself
   const special = e.kind ? getStageLayout(ctx.stageId)?.updateSpecialEnemy?.(ctx, e) : undefined;
   if (special !== undefined) return special;
@@ -1003,6 +1007,8 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     // (a bird that's got him on its attack, its dive or its swoop, not just bumped into him: if that's killed him, it
     // has his eyes; see player/deathAnim)
     if (player.health <= 0 && BIRDS.has(e.kind ?? '') && (e.aiState === 'dive' || e.aiState === 'swoop')) state.pluckedBy = { id: e.id, frame: state.frame };
+    // (any other animal that's got him on its attack, its lunge, its charge, its bite: it finishes him its own way)
+    if (player.health <= 0) noteAnimalKill(state, e);
     if (player.health > 0) {
       player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;
       player.hurtTimer = PLAYER_INVINCIBILITY_FRAMES;

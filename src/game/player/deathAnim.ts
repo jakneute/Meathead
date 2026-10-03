@@ -33,6 +33,10 @@
 //              clattering down onto it
 //   fall_moto  (the kill cam) off the chopper into the trench across the road: into the crude, and the chopper in after
 //              him, on top of him; its pipes light the lot
+//   headshot   an enemy's bullet (any gun goon's, a gunner's out of a car): through his forehead, out the back of his
+//              head in a spray, his head snapped back; and over he goes, the way it went, and bursts on the floor (shot
+//              up in the air, he drops first, and bursts where he lands)
+//   (and the animals' own, when it's their attack that's done it: see animalDeaths)
 
 import type { FrameContext } from '../core/context';
 import type { GameState } from '../core/state';
@@ -44,6 +48,9 @@ import { floorTopAt } from '../core/terrain';
 import { getStageLayout } from '../stages';
 import { say, MEATHEAD_VOICE } from '../platform/speech';
 import { getFinale } from '../stages/finale/state';
+import type { Projectile } from '../../types';
+import { isShat } from './gut';
+import { AnimalDeathKind, ANIMAL_DEATH_FRAMES, ANIMAL_AIR_OK, tickAnimalDeath } from './animalDeaths';
 
 export type MeatheadDeathKind = 'burnt' | 'lava' | 'boiled' | 'fried' | 'frozen' | 'buried' | 'flattened' | 'dissolved' | 'roadkill' | 'overdose' | 'impaled' | 'cactus' | 'plucked' | 'spiked'
   // the finale alien's beam
@@ -57,7 +64,11 @@ export type MeatheadDeathKind = 'burnt' | 'lava' | 'boiled' | 'fried' | 'frozen'
   // the storm up Hector's tower: launched clean out of the atmosphere, to float there
   | 'space'
   // off the junk in the Eye of the storm, down into the sea, the Eye watching him all the way down
-  | 'eye_fall';
+  | 'eye_fall'
+  // an enemy's bullet, through the forehead
+  | 'headshot'
+  // an animal's attack (see animalDeaths)
+  | AnimalDeathKind;
 
 /** What's run him through: an icicle (where), or a cactus (where, the top of it, which side he's on, and that side's edge). */
 export interface Impale { frame: number; how: 'icicle' | 'cactus_top' | 'cactus_side'; x: number; top?: number; side?: number; edge?: number }
@@ -84,8 +95,13 @@ export interface MeatheadDeath {
   /** (airfall) When he hits the floor (frames in), and whether he's on fire on the way down. */
   hitAt?: number;
   burning?: boolean;
-  /** (vaporized) Which way the beam was going (he goes from the side it came in). */
+  /** (vaporized) Which way the beam was going (he goes from the side it came in); (headshot) which way the bullet was. */
   dir?: number;
+  /** (an animal's) The animal (drawn by the death in its own place: see render/player/animalDeaths): where it was (its
+   * middle, its feet), its size, which side of him it was on, and which way it was going. */
+  animal?: { id: string; x: number; y: number; w: number; h: number; side: 1 | -1; dir: 1 | -1 };
+  /** (an animal's) He'd shat himself (the gator has an opinion about that). */
+  shat?: boolean;
 }
 
 /** The things he rides (the boat's the stage's own: see hector/chase). */
@@ -96,6 +112,7 @@ export const MEATHEAD_DEATH_FRAMES: Record<MeatheadDeathKind, number> = {
   burnt: 95, lava: 125, boiled: 85, fried: 85, frozen: 80, buried: 95, flattened: 70, dissolved: 110, roadkill: 80, overdose: 120,
   impaled: 80, cactus: 80, plucked: 150, spiked: 100, crash: 150, fall_moto: 150, airfall: 60, vaporized: 120,
   space: 360, eye_fall: 190, fall_crevasse: 110, fall_trench: 100, fall_alley: 120, fall_crude: 150, fall_arroyo: 130, fall_rocks: 120, fall_dungeon: 110,
+  headshot: 50, ...ANIMAL_DEATH_FRAMES,
 };
 
 const BY_SOURCE: Record<string, MeatheadDeathKind> = {
@@ -138,6 +155,8 @@ const kindFor = (state: GameState): MeatheadDeathKind | undefined => {
   if (!h || !hurtJustNow(state, h.at)) return undefined;
   if (state.impaleAt && state.impaleAt.frame === h.at) return state.impaleAt.how === 'icicle' ? 'impaled' : 'cactus';
   if (state.pluckedBy && state.pluckedBy.frame === h.at && state.enemies.some(e => e.id === state.pluckedBy!.id)) return 'plucked';
+  if (state.animalKill && state.animalKill.frame === h.at && state.enemies.some(e => e.id === state.animalKill!.id)) return state.animalKill.how;
+  if (state.shotDead && state.shotDead.frame === h.at) return 'headshot';
   return BY_SOURCE[h.source] ?? (h.source.startsWith('junk_') ? 'flattened' : undefined);
 };
 
@@ -165,6 +184,7 @@ export const startMeatheadDeath = (ctx: FrameContext): boolean => {
     return true;
   }
   if (!kind) return false;
+  if (kind === 'headshot') return startHeadshot(ctx, x, y);
   const snow = state.lastHurt?.source === 'avalanche' || state.lastHurt?.source === 'snowball';
   const bird = kind === 'plucked' ? state.enemies.find(e => e.id === state.pluckedBy!.id) : undefined;
   // (vaporized: from the side the beam came in, and what's left of him drops to the floor)
@@ -172,6 +192,18 @@ export const startMeatheadDeath = (ctx: FrameContext): boolean => {
   state.meatheadDeath = { kind, x, y, facing: p.facing === -1 ? -1 : 1, snow, impale: state.impaleAt, floor: kind === 'impaled' || kind === 'vaporized' ? (floorTopAt(state.blocks, x, y, 0) ?? y) : undefined,
     dir: kind === 'vaporized' ? (beam ? Math.sign(beam.dx) || 1 : -p.facing) : undefined,
     bird: bird ? { id: bird.id, x: bird.pos.x, y: bird.pos.y } : undefined, ride: kind === 'crash' ? ride : undefined };
+  // (an animal's: where it was, and the floor under him, for the ones that start up in the air)
+  const beast = state.animalKill && kind === state.animalKill.how ? state.enemies.find(e => e.id === state.animalKill!.id) : undefined;
+  if (beast) {
+    const d = state.meatheadDeath, ax = beast.pos.x + beast.width / 2;
+    const side = (Math.sign(ax - x) || -d.facing) as 1 | -1;
+    const going = Math.sign(beast.vel.x) || beast.facing || -side;
+    // (kicked: he goes the way its hind legs sent him; the rest carry on the way they were going, or face)
+    const dir = (kind === 'punted' ? -(beast.facing ?? -1) : kind === 'halved' || kind === 'gored' ? going : beast.facing ?? -side) as 1 | -1;
+    d.animal = { id: beast.id, x: ax, y: beast.pos.y + beast.height, w: beast.width, h: beast.height, side, dir };
+    d.floor = floorTopAt(state.blocks, x, y, 0) ?? (ANIMAL_AIR_OK.has(kind as AnimalDeathKind) ? y + 2000 : y);
+    d.shat = isShat(state);
+  }
   state.deathScene = { t: 0, len: MEATHEAD_DEATH_FRAMES[kind], voiced: false };
   return true;
 };
@@ -179,7 +211,7 @@ export const startMeatheadDeath = (ctx: FrameContext): boolean => {
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 const GORE = PARTICLE_PALETTES.GORE;
 /** The deaths that work up in the air as they are (the rest, up there, are an airfall). */
-const AIR_OK = new Set<MeatheadDeathKind>(['roadkill', 'overdose', 'impaled', 'cactus', 'space', 'eye_fall', 'spiked', 'vaporized']);
+const AIR_OK = new Set<MeatheadDeathKind>(['roadkill', 'overdose', 'impaled', 'cactus', 'space', 'eye_fall', 'spiked', 'vaporized', 'headshot', ...ANIMAL_AIR_OK]);
 /** (airfall) How fast he drops. */
 export const AIR_G = 0.7;
 /** (airfall) Where he is, t frames in (his feet), till he hits. */
@@ -393,11 +425,68 @@ export const tickMeatheadDeath = (ctx: FrameContext, d: MeatheadDeath, t: number
       if (t === SPIKE_HIT) { playSound('crunch', 1); playSound('splat', 1, -4); shakeScreen(state, 18, 9); }
       if (t === SPIKE_HIT + 8) playSound('crunch', 0.5, -8);
       break;
+    case 'headshot': tickHeadshot(ctx, d, t); break;
     case 'overdose':
       if (t === 1) playSound('dart', 1);
       if (t === 20) playSound('powerup', 0.7, -8);
       if (t % 3 === 0) { const y = d.y - overdoseRise(t); P.push({ pos: { x: d.x + rnd(-20, 20), y: y - rnd(0, 64) }, vel: { x: rnd(-0.8, 0.8), y: rnd(-1, 0.6) }, life: 30, color: ['#F472B6', '#A78BFA', '#67E8F9', '#FDE047', '#86EFAC'][t % 5], size: rnd(2, 5) }); }
       break;
+    default: if (d.animal) tickAnimalDeath(ctx, d, t);
+  }
+};
+
+/** Is this a bullet (a gun goon's slug or tracer, a gunner's out of a car, the old generic goons' rounds), not something
+ * thrown, sprayed, zapped, frozen or lit? */
+export const isEnemyBullet = (p: Projectile) =>
+  !p.thrown && !p.isDart && !p.isIce && !p.isPoop && !p.isBoulder && !p.isShrapnel && !p.isSludge && !p.isTased && !p.isCocaine && !p.isMethBarrel && !p.sadBolt
+  && !!p.shooterKind && (p.shot === 'slug' || p.shot === 'tracer' || (!p.shot && p.shooterKind === 'enemy'));
+
+/** (headshot) Stood there, his head snapped back; then going over. */
+export const HS_STAND = 8, HS_OVER = 18;
+/** (headshot) How far he's gone over (0..1), t frames in (up in the air, all the way down). */
+export const headshotOver = (d: MeatheadDeath, t: number) => {
+  const hit = d.hitAt ?? HS_STAND + HS_OVER;
+  const air = (d.floor ?? d.y) - d.y > 16;
+  const k = air ? Math.min(1, t / hit) : Math.max(0, Math.min(1, (t - HS_STAND) / HS_OVER));
+  return k * k;
+};
+/** (headshot) Where his feet are: where he was; up in the air, dropping to the floor. */
+export const headshotFeet = (d: MeatheadDeath, t: number) => Math.min(d.floor ?? d.y, d.y + 0.5 * AIR_G * t * t);
+
+const startHeadshot = (ctx: FrameContext, x: number, y: number): boolean => {
+  const { state } = ctx;
+  const p = state.player;
+  const dir = (state.shotDead?.dir || -p.facing) as 1 | -1;
+  // (up in the air: down to whatever's under him, or off the bottom over nothing)
+  const floor = floorTopAt(state.blocks, x, y, 0) ?? y + 2000;
+  const drop = floor - y;
+  const hitAt = drop > 16 ? Math.max(HS_STAND + 6, Math.round(Math.sqrt((2 * drop) / AIR_G))) : HS_STAND + HS_OVER;
+  state.meatheadDeath = { kind: 'headshot', x, y, facing: p.facing === -1 ? -1 : 1, dir, floor, hitAt };
+  state.deathScene = { t: 0, len: hitAt + MEATHEAD_DEATH_FRAMES.headshot, voiced: false };
+  return true;
+};
+
+const tickHeadshot = (ctx: FrameContext, d: MeatheadDeath, t: number) => {
+  const { state } = ctx;
+  const P = state.particles, dir = d.dir ?? 1;
+  if (t === 1) {
+    // In at the forehead, out the back: blood, brains and bits of skull, in a spray the way it was going
+    playSound('splat', 1, 2); playSound('crunch', 0.9, 4); shakeScreen(state, 10, 5);
+    const hx = d.x + dir * 4, hy = d.y - 58;
+    for (let i = 0; i < 34; i++) {
+      const a = (dir > 0 ? 0 : Math.PI) + rnd(-0.6, 0.5) * dir, sp = rnd(3, 10);
+      P.push({ pos: { x: hx, y: hy }, vel: { x: Math.cos(a) * sp, y: Math.sin(a) * sp - 1.5 }, life: rnd(40, 80), color: ['#B91C1C', '#7F1D1D', '#F9A8D4', '#F5F5F4', '#DC2626', '#FBCFE8'][i % 6], size: rnd(2, 5) });
+    }
+    for (let i = 0; i < 6; i++) P.push({ pos: { x: hx + dir * 6, y: hy }, vel: { x: dir * rnd(0.5, 1.5), y: rnd(-0.6, 0.2) }, life: rnd(20, 30), color: 'rgba(153, 27, 27, 0.35)', size: rnd(8, 14) });
+  }
+  // (a dribble off the hole while he's going over)
+  if (t > 2 && t < (d.hitAt ?? 26) && t % 3 === 0) P.push({ pos: { x: d.x + rnd(-2, 2), y: headshotFeet(d, t) - 58 }, vel: { x: dir * 0.5, y: 0.6 }, life: 20, color: GORE[t % GORE.length], size: rnd(2, 3) });
+  if (t === d.hitAt) {
+    // Down: and he goes, all over the floor, from where he came down (his middle, lying the way he went over)
+    const p = state.player, floor = d.floor ?? d.y;
+    p.pos.x = d.x + dir * 28 - p.width / 2; p.pos.y = floor - p.height / 2 - 6;
+    meatExplosion(ctx);
+    playSound('thud', 1);
   }
 };
 

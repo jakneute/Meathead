@@ -272,6 +272,33 @@ export const PLUCK_DEATH_LINES: Record<string, string[]> = {
   any: ['EYES: GONE', 'NO EYES, NO GAINS'],
 };
 
+/** An animal's attack that got him, and the way it finished him (see player/animalDeaths): by the way, and by the way
+ * and the animal (`how.kind`, which goes first). */
+export const ANIMAL_DEATH_LINES: Record<string, string[]> = {
+  'throat.wolverine': ['THE WOLVERINE WENT FOR THE THROAT', 'JUGULARED BY A WOLVERINE'],
+  'throat.coyote': ['THE COYOTE TOOK YOUR THROAT', 'DINNER FOR THE PACK'],
+  'throat.pitbull': ['LOCKJAW. ON YOUR THROAT.', 'HE WAS A GOOD BOY. JUST NOT TO YOU.'],
+  'throat.raccoon': ['A RACCOON ATE YOUR THROAT', 'THE TRASH PANDA WENT FOR THE NECK'],
+  throat: ['THROAT: GONE', 'GO FOR THE THROAT, THEY SAID'],
+  eaten: ['EATEN LEG FIRST', 'NEVER SKIPPED LEG DAY. NOW YOU HAVE NO LEGS.', 'SERVED IN COURSES'],
+  'eaten.shat': ['THE GATOR STOPPED AT THE SHORTS', 'TOO GROSS FOR A GATOR'],
+  gored: ['HUNG UP ON THE HORNS', 'TAKEN FOR A RIDE BY A STEER', 'SHISH KEBAB, TEXAS STYLE'],
+  halved: ['BITTEN IN HALF BY A FLYING SHARK', 'YOUR LEGS STAYED BEHIND'],
+  nutcracked: ['PINCHED WHERE IT COUNTS', 'CRABS. THE BAD KIND.'],
+  'swollen.rattlesnake': ['SWELLED UP AND POPPED', 'SNAKE BIT. THEN POPPED.'],
+  'swollen.scorpion': ['STUNG, SWOLE, POPPED', 'TOO SWOLE. EVEN FOR YOU.'],
+  swollen: ['SWELLED UP AND POPPED'],
+  ratted: ['A RAT WENT UP YOUR PANTS AND OUT YOUR MOUTH', 'THE RAT TOOK THE SCENIC ROUTE'],
+  goated: ['KING OF THE HILL: THE GOAT', 'THE GOAT SCREAMED ON YOUR CORPSE'],
+  bowled: ['STRIKE!', 'BOWLED OVER BY AN ARMADILLO'],
+  iguanas: ['BURIED IN IGUANAS', 'IT RAINED LIZARDS. ON YOU.'],
+  stomped: ['STOMPED INTO THE SNOW', 'TRAMPLED FLAT BY A MOOSE'],
+  lawndart: ['LAWN DARTED BY A MOOSE', 'HEAD FIRST INTO THE SNOW'],
+  punted: ['PUNTED INTO THE SCREEN', 'THE MOOSE KICKED YOU INTO NEXT WEEK'],
+  satOn: ['SAT ON BY A MOOSE', 'DIED UNDER A MOOSE BUTT'],
+  peedOn: ['RUN OVER, THEN PEED ON', 'THE MOOSE MARKED ITS TERRITORY. ON YOU.'],
+};
+
 /** Artie's: the tram's taken him up and gone, and he's tried to go back the way he came, straight off the edge. */
 export const BACKTRACK_DEATH_LINES = ['THE TRAM ONLY GOES ONE WAY', 'NO REFUNDS ON THE TRAM', 'FORWARD. THE WORD IS FORWARD.', 'BACKTRACKED OFF A MOUNTAIN', 'WHERE DID YOU THINK YOU WERE GOING?'];
 
