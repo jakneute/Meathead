@@ -636,22 +636,59 @@ const drawRoomProp = (ctx: Ctx, state: GameState, pr: Prop, room: Room) => {
       break;
     }
     case 'shelves': {
-      // Steel shelving, loaded: boxes and jugs, each inked and lit, tape across the boxes
+      // Steel shelving, loaded with what a janitor goes through: cardboard cases taped shut, paint cans, bleach jugs,
+      // packs of toilet paper, spray bottles; all different, in no particular order, each inked and lit
       column(ctx, x, y - h, 6, h, '#4B5563'); column(ctx, x + w - 6, y - h, 6, h, '#4B5563');
       ctx.fillStyle = '#374151'; for (let yy = y - h + 4; yy < y; yy += 6) { ctx.fillRect(x + 2, yy, 2, 2); ctx.fillRect(x + w - 4, yy, 2, 2); }
-      for (let yy = y - h; yy < y; yy += 34) {
-        for (let k = 0; k < 5; k++) {
-          const col = ['#2563EB', '#FACC15', '#DC2626', '#F8FAFC', '#16A34A'][(k + Math.floor(yy)) % 5];
-          const bx = x + 10 + k * 26, by = yy + 5;
-          if (col === '#F8FAFC' || col === '#2563EB') {
-            // (a jug: a cap, a handle)
-            shaded(ctx, () => ctx.roundRect(bx, by + 2, 16, 20, [4, 4, 1, 1]), col, bx, by + 2, 16, 20);
-            ink(ctx, () => ctx.rect(bx + 5, by - 1, 6, 4), dark(col, 0.4), 0.8);
-            ctx.fillStyle = INK; ctx.fillRect(bx + 3, by + 10, 8, 1);
+      for (let yy = y - h, row = 0; yy < y; yy += 34, row++) {
+        const sy = Math.min(yy + 34, y); // (stood on the shelf under them, or the floor)
+        let bx = x + 9;
+        for (let k = 0; bx < x + w - 14; k++) {
+          const pick = Math.floor(hash(x * 0.13 + row * 7.1 + k * 3.7) * 5);
+          if (pick === 0) {
+            // (a cardboard case: brown, the flaps' seam taped, a shipping label off to one side)
+            const bw = 26, bh = 20;
+            slab(ctx, bx, sy - bh, bw, bh, '#A0764A', 1);
+            ctx.fillStyle = '#C49A6C'; ctx.fillRect(bx + 1, sy - bh + 1, bw - 2, 2);
+            ctx.fillStyle = '#7A5A36'; ctx.fillRect(bx + bw / 2 - 1, sy - bh, 2, bh);
+            ctx.fillStyle = 'rgba(214, 211, 209, 0.75)'; ctx.fillRect(bx + bw / 2 - 3, sy - bh, 6, 7);
+            ctx.fillStyle = '#F5F5F4'; ctx.fillRect(bx + 3, sy - 11, 8, 6); ctx.fillStyle = '#57534E'; ctx.fillRect(bx + 4, sy - 9, 6, 1); ctx.fillRect(bx + 4, sy - 7, 4, 1);
+            bx += bw + 3;
+          } else if (pick === 1) {
+            // (two paint cans: squat, a lid rim lit, a wire bail, a run of the paint down the side)
+            for (let c = 0; c < 2; c++) {
+              const cx = bx + c * 13, paint = ['#94A3B8', '#E7E5E4', '#A3A3A3'][(row + c + k) % 3];
+              shaded(ctx, () => ctx.rect(cx, sy - 14, 11, 14), '#9CA3AF', cx, sy - 14, 11, 14, 1);
+              ctx.fillStyle = '#D1D5DB'; ctx.fillRect(cx, sy - 15, 11, 2);
+              ctx.fillStyle = paint; ctx.fillRect(cx + 2, sy - 13, 2, 6 + c * 3);
+              ctx.strokeStyle = '#4B5563'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx + 1, sy - 15); ctx.quadraticCurveTo(cx + 5.5, sy - 22, cx + 10, sy - 15); ctx.stroke();
+            }
+            bx += 29;
+          } else if (pick === 2) {
+            // (a bleach jug: white, a blue cap, the handle's hole, the label's band)
+            shaded(ctx, () => ctx.roundRect(bx, sy - 20, 15, 20, [5, 3, 1, 1]), '#F1F5F9', bx, sy - 20, 15, 20, 1);
+            ink(ctx, () => ctx.rect(bx + 2, sy - 23, 5, 3), '#2563EB', 0.8);
+            ctx.fillStyle = '#94A3B8'; ctx.fillRect(bx + 9, sy - 17, 3, 4);
+            ctx.fillStyle = '#60A5FA'; ctx.fillRect(bx + 1, sy - 10, 13, 4);
+            bx += 19;
+          } else if (pick === 3) {
+            // (a pack of toilet paper: the rolls' round ends in a block, in its plastic, the brand stripe)
+            slab(ctx, bx, sy - 18, 24, 18, '#F8FAFC', 1);
+            ctx.fillStyle = '#CBD5E1'; for (let r = 0; r < 2; r++) for (let q = 0; q < 3; q++) { ctx.fillRect(bx + 2 + q * 7, sy - 16 + r * 8, 6, 6); }
+            ctx.fillStyle = '#94A3B8'; for (let r = 0; r < 2; r++) for (let q = 0; q < 3; q++) ctx.fillRect(bx + 4 + q * 7, sy - 14 + r * 8, 2, 2);
+            ctx.fillStyle = '#16A34A'; ctx.fillRect(bx + 1, sy - 9, 22, 2);
+            bx += 27;
           } else {
-            slab(ctx, bx, by, 16, 22, dark(col, 0.15), 1);
-            ctx.fillStyle = lite(col, 0.4); ctx.fillRect(bx + 7, by + 1, 2, 20);
-            ctx.fillStyle = '#F8FAFC'; ctx.fillRect(bx + 3, by + 12, 10, 5); ctx.fillStyle = INK; ctx.fillRect(bx + 4, by + 14, 7, 1);
+            // (spray bottles, a couple of them: the trigger head, the dip tube through the see-through bottle)
+            for (let c = 0; c < 2; c++) {
+              const cx = bx + c * 10, liquid = c ? '#F9A8D4' : '#86EFAC';
+              ink(ctx, () => ctx.rect(cx, sy - 14, 8, 14), liquid, 0.8);
+              ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.fillRect(cx + 1, sy - 13, 1, 12);
+              ctx.fillStyle = '#334155'; ctx.fillRect(cx + 4, sy - 13, 1, 12);
+              ink(ctx, () => ctx.rect(cx + 1, sy - 19, 6, 5), '#1F2937', 0.8);
+              ctx.fillStyle = '#1F2937'; ctx.fillRect(cx + 6, sy - 19, 3, 2); ctx.fillRect(cx + 5, sy - 17, 1, 3);
+            }
+            bx += 23;
           }
         }
         slab(ctx, x, yy, w, 5, '#6B7280', 1);
