@@ -661,8 +661,9 @@ export const zapCigarette = (ctx: FrameContext, cig: Projectile) => {
 
   cig.health = 0;
   const at = { x: cig.pos.x + cig.width / 2, y: cig.pos.y + cig.height / 2 };
-  fx.spawnExplosion(at, '#FF4500', 30, 0, 14);
-  fx.spawnExplosion(at, '#FFD700', 20, 0, 10);
+  // (a bigger burst than it was, the size of what it reaches)
+  fx.spawnExplosion(at, '#FF4500', 40, 0, 18);
+  fx.spawnExplosion(at, '#FFD700', 26, 0, 13);
   fx.playGunSound('boom');
   shakeScreen(state, 25, 12);
   overloadTaser(ctx);
