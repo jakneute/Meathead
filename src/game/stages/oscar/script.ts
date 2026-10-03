@@ -82,7 +82,7 @@ export const updateTalk = (state: GameState, talk: Talk) => {
       if (!spoken) cur.until = state.frame + readFor;
       if (mine) { state.playerLastVulgarity = line.text; state.playerVulgarityTimer = spoken ? 9999 : readFor; }
     },
-    onHide: () => { if (mine && state.playerLastVulgarity === line.text) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 20); },
+    onHide: () => { if (mine && state.playerLastVulgarity === line.text) state.playerVulgarityTimer = 0; },
     onDone: () => { cur.done = true; },
   });
 };

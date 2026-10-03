@@ -148,7 +148,7 @@ const talk = (fight: DoormanFight, pool: string[], force = false) => {
   const priority = force ? (fight.hintSpeakingSince !== undefined || fight.hintQueue?.length ? 'queue' : 'urgent') : 'casual';
   const shown = say(text, DOORMAN_VOICE, priority, {
     onShow: () => { fight.line = text; fight.lineT = 150; },
-    onHide: () => { if (fight.line === text) fight.lineT = Math.min(fight.lineT, 20); },
+    onHide: () => { if (fight.line === text) fight.lineT = 0; },
   });
   if (!shown && force) { fight.line = text; fight.lineT = 110; }
 };
@@ -544,7 +544,7 @@ const sayHint = (state: GameState, fight: DoormanFight) => {
       state.isMeatheadSpeaking = true;
       if (!spoken) { fight.hintSpeakingSince = undefined; fight.hintQuietUntil = state.frame + readFor; }
     },
-    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 30); },
+    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; },
     onDone: () => {
       // (with no voice there's nothing to wait on: the reading time set above stands)
       if (!voiced) return;

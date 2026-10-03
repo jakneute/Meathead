@@ -19,7 +19,7 @@ import type { Tram } from './tram';
 const meatheadSays = (state: GameState, text: string) => {
   const shown = say(text, MEATHEAD_VOICE, 'queue', {
     onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 150; },
-    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 30); },
+    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; },
   });
   if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 120; }
 };

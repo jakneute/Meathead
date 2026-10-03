@@ -6,7 +6,7 @@
 
 import type { GameState } from '../../core/state';
 import type { Enemy } from '../../../types';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_X } from '../../../constants';
 import { drawPlayer } from '../../render/player/player';
 import { drawBarryKind } from '../../render/enemies/barry';
 import { BarryRuntime, fadeAmount, elevatorFloor, DOORS, RIDE, OPEN, SURF_AIR } from './runtime';
@@ -16,8 +16,6 @@ import { drawCityBurning, drawFlames } from './draw';
 
 type Ctx = CanvasRenderingContext2D;
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
-/** Where the main HUD (top left) ends: anything up top goes right of this. */
-const HUD_CLEAR_X = 310;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 
 /** Over the world: the dark and the lights, then the power room's readout. */

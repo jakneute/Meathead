@@ -6,7 +6,7 @@ import { GameStatus, WeaponType } from '../../types';
 import {
   CANVAS_WIDTH, GRAVITY, BOSS_DOOR_X, DOOR_WIDTH, ARENA_RIGHT, KICK_POSE_FRAMES, MAX_AMMO,
   AMMO_PICKUP_PCT, HEALTH_PICKUP_SMALL, HEALTH_PICKUP_LARGE, PLAYER_STUN_DURATION, PARTICLE_PALETTES,
-  SPOKEN_TEXT_HOLD, SPOKEN_TEXT_LINGER, CANVAS_HEIGHT, GROUND_Y,
+  SPOKEN_TEXT_HOLD, CANVAS_HEIGHT, GROUND_Y,
 } from '../../constants';
 import { BOSS_DIALOGUE, CHECKPOINT_CALLOUTS, DOOR_KICK_LINES } from '../../content/dialogue';
 import { FrameContext } from './context';
@@ -194,7 +194,7 @@ const updateLevelIntro = (ctx: FrameContext) => {
     const quote = quotes[0];
     const said = say(quote, MEATHEAD_INTRO_VOICE, 'queue', {
       onShow: spoken => { state.playerLastVulgarity = quote; state.playerVulgarityTimer = spoken ? SPOKEN_TEXT_HOLD : 180; },
-      onHide: () => { if (state.playerLastVulgarity === quote) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, SPOKEN_TEXT_LINGER); },
+      onHide: () => { if (state.playerLastVulgarity === quote) state.playerVulgarityTimer = 0; },
       onDone: () => { state.isMeatheadSpeaking = false; },
     });
     if (said) state.isMeatheadSpeaking = true;
@@ -319,7 +319,7 @@ const updateBossTransition = (ctx: FrameContext) => {
           const shown = say(line, MEATHEAD_VOICE, 'urgent', {
             always: true,
             onShow: spoken => { state.playerLastVulgarity = line; state.playerVulgarityTimer = spoken ? 9999 : 120; },
-            onHide: () => { if (state.playerLastVulgarity === line) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 20); },
+            onHide: () => { if (state.playerLastVulgarity === line) state.playerVulgarityTimer = 0; },
           });
           if (!shown) { state.playerLastVulgarity = line; state.playerVulgarityTimer = 150; }
         }

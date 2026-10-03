@@ -109,7 +109,7 @@ export const updateBeach = (ctx: FrameContext, b: Beach) => {
     const line = b.killed > 0 ? 'GREAT. NOW IT\'S RAINING.' : 'OH, GREAT. WEATHER.';
     const shown = say(line, MEATHEAD_VOICE, 'urgent', {
       onShow: () => { state.playerLastVulgarity = line; state.playerVulgarityTimer = 150; },
-      onHide: () => { if (state.playerLastVulgarity === line) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 30); },
+      onHide: () => { if (state.playerLastVulgarity === line) state.playerVulgarityTimer = 0; },
     });
     if (!shown) { state.playerLastVulgarity = line; state.playerVulgarityTimer = 120; }
   }

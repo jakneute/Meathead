@@ -57,13 +57,13 @@ const meatheadSays = (state: GameState, text: string) => {
   // (after whoever's talking: nobody talks over anybody)
   const shown = say(text, MEATHEAD_VOICE, 'queue', {
     onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 150; },
-    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 30); },
+    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; },
   });
   if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 120; }
 };
 const OLDMAN_VOICE: Voice = { id: 'oldman', pitch: 0.8, rate: 0.9 };
 const oldManSays = (b: Boat, text: string) => {
-  say(text, OLDMAN_VOICE, 'queue', { onShow: () => { b.oldMan.line = text; b.oldMan.lineT = 120 + text.length * 3; }, onHide: () => { if (b.oldMan.line === text) b.oldMan.lineT = Math.min(b.oldMan.lineT, 20); } });
+  say(text, OLDMAN_VOICE, 'queue', { onShow: () => { b.oldMan.line = text; b.oldMan.lineT = 120 + text.length * 3; }, onHide: () => { if (b.oldMan.line === text) b.oldMan.lineT = 0; } });
 };
 /** Where the scene waits for the line before to be finished: each answer, the kick, "...STILL BITIN'", getting in the boat, and off. */
 const BOAT_HOLDS = new Set([80, 150, 230, 300, 320, 340, 379]);

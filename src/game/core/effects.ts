@@ -1,7 +1,7 @@
 import { spared } from '../enemies/enemies';
 import { Vector2, PickupType, VulgarityType, Enemy } from '../../types';
 import {
-  PARTICLE_PALETTES, BOULDER_SHRAPNEL_DAMAGE, VULGARITY_TEXT_DURATION, VOICE_LINE_COOLDOWN_FRAMES, SPOKEN_TEXT_HOLD, SPOKEN_TEXT_LINGER, isRangeStage } from '../../constants';
+  PARTICLE_PALETTES, BOULDER_SHRAPNEL_DAMAGE, VULGARITY_TEXT_DURATION, VOICE_LINE_COOLDOWN_FRAMES, SPOKEN_TEXT_HOLD, isRangeStage } from '../../constants';
 import { VULGARITIES, BOSS_DIALOGUE, KILL_LINES, KILL_CALLOUTS, KillCallout, ENEMY_KILL_LINES, GENERIC_KILL_LINES, RANGE_KILL_LINES, SURFACE_CALLOUTS } from '../../content/dialogue';
 import { groundUnder } from './groundUnder';
 import { GameState } from './state';
@@ -244,7 +244,7 @@ export const createFx = (state: GameState) => {
         state.playerVulgarityTimer = spoken ? SPOKEN_TEXT_HOLD : VULGARITY_TEXT_DURATION;
       },
       onHide: () => {
-        if (state.playerLastVulgarity === text) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, SPOKEN_TEXT_LINGER);
+        if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0;
       },
       onDone: () => {
         state.isMeatheadSpeaking = false;

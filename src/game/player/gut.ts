@@ -27,7 +27,7 @@ const meatheadSays = (state: GameState, text: string, after = false) => {
   // (`after`: it waits its turn behind whoever's talking: the announcer's callout)
   const shown = say(text, MEATHEAD_VOICE, after ? 'queue' : 'casual', {
     onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 180; },
-    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 30); },
+    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; },
   });
   if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 150; }
 };

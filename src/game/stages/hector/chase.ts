@@ -118,12 +118,12 @@ export const createChase = (): Chase => ({
 
 const hail = (c: Chase, text: string) => {
   c.lineAt = c.t;
-  say(text, LOUDHAILER, 'queue', { onShow: () => { c.hail = text; c.hailT = 100 + text.length * 3; }, onHide: () => { if (c.hail === text) c.hailT = Math.min(c.hailT, 20); } });
+  say(text, LOUDHAILER, 'queue', { onShow: () => { c.hail = text; c.hailT = 100 + text.length * 3; }, onHide: () => { if (c.hail === text) c.hailT = 0; } });
 };
 const meatheadSays = (state: GameState, text: string) => {
   const shown = say(text, MEATHEAD_VOICE, 'queue', {
     onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 150; },
-    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 30); },
+    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; },
   });
   if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 120; }
 };

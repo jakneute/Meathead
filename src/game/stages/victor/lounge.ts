@@ -65,7 +65,7 @@ export const crashPose = (t: number) => {
 };
 
 const meatheadSays = (lg: Lounge, text: string) => {
-  const shown = say(text, MEATHEAD_VOICE, 'urgent', { onShow: () => { lg.line = text; lg.lineT = 120; }, onHide: () => { if (lg.line === text) lg.lineT = Math.min(lg.lineT, 30); } });
+  const shown = say(text, MEATHEAD_VOICE, 'urgent', { onShow: () => { lg.line = text; lg.lineT = 120; }, onHide: () => { if (lg.line === text) lg.lineT = 0; } });
   if (!shown) { lg.line = text; lg.lineT = 100; }
 };
 
@@ -82,7 +82,7 @@ export const updateLounge = (ctx: FrameContext, lg: Lounge, controls: Controls):
         const text = AFTERMATH_LINES[Math.floor(Math.random() * AFTERMATH_LINES.length)];
         const shown = say(text, MEATHEAD_VOICE, 'urgent', {
           onShow: spoken => { state.playerLastVulgarity = text; state.playerVulgarityTimer = spoken ? 9999 : 170; },
-          onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 30); },
+          onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; },
         });
         if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 170; }
       }

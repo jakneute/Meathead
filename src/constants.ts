@@ -11,13 +11,20 @@ import { WeaponType } from './types';
 // ==========================================
 export const CANVAS_WIDTH = 800;
 export const CANVAS_HEIGHT = 600;
+/**
+ * The main HUD's corner (top left: health, power, the weapon): anything a stage puts up across the top of the screen
+ * (a boss's bar, a counter, a meter, a hint) goes right of HUD_CLEAR_X or below HUD_CLEAR_Y, never under it. Use
+ * topBand() for a bar along the top.
+ */
+export const HUD_CLEAR_X = 310, HUD_CLEAR_Y = 104;
+/** The stretch along the top of the screen that's clear of the main HUD (for a bar, a counter, a banner). */
+export const topBand = () => ({ x1: HUD_CLEAR_X + 10, x2: CANVAS_WIDTH - 20, mid: (HUD_CLEAR_X + 10 + CANVAS_WIDTH - 20) / 2 });
 /** The game canvas has this many real pixels per game pixel, so text and lines stay crisp when the window is scaled up. */
 export const RENDER_SCALE = 2;
 export const SCREEN_SHAKE_MAX = 15;
 export const VULGARITY_TEXT_DURATION = 120;
 export const BOSS_VULGARITY_DURATION = 150;
 export const SPOKEN_TEXT_HOLD = 1200;   // text stays up while its line is being spoken...
-export const SPOKEN_TEXT_LINGER = 30;   // ...and this long after it finishes
 export const BOSS_WEAPON_REACTION_CHANCE = 0.15;   // chance a boss taunts back when hit by a weapon
 export const BOSS_WEAPON_REACTION_COOLDOWN = 240; // frames between those taunts
 export const BOSS_OWN_WEAPON_DAMAGE = 0.12;      // a boss hit with his own weapon takes this much of the usual damage

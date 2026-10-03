@@ -25,7 +25,7 @@ import { say, cancelSpeech, MEATHEAD_VOICE } from '../../platform/speech';
 const meatheadSays = (state: GameState, text: string) => {
   const shown = say(text, MEATHEAD_VOICE, 'queue', {
     onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 180; },
-    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 30); },
+    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; },
   });
   if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 160; }
 };

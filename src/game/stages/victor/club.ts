@@ -71,7 +71,7 @@ const STAIRS_LINE = "...THERE WERE STAIRS? I COULD'VE TAKEN THE STAIRS INSTEAD O
 const meatheadSays = (state: GameState, text: string) => {
   const shown = say(text, MEATHEAD_VOICE, 'queue', {
     onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 160; },
-    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 30); },
+    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; },
   });
   if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 140; }
 };
@@ -97,7 +97,7 @@ export const updateClub = (ctx: FrameContext, club: Club, lounge: Lounge) => {
       const text = isShat(state) ? pick(YELLS_SHAT) : pick(YELLS);
       const shown = say(text, (who.variant ?? 0) % 2 ? PARTY_GIRL : PARTY_GUY, 'casual', {
         onShow: () => { club.yell = { id: who.id, text, until: state.frame + 60 + text.length * 3 }; },
-        onHide: () => { if (club.yell?.text === text) club.yell.until = Math.min(club.yell.until, state.frame + 10); },
+        onHide: () => { if (club.yell?.text === text) club.yell.until = state.frame; },
       });
       club.yellAt = state.frame + (shown ? 110 + Math.random() * 100 : 30);
     } else club.yellAt = state.frame + 30;

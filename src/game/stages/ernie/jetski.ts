@@ -475,7 +475,7 @@ const launch = (ctx: FrameContext, js: JetSki, onLanded: () => void): Controls =
   if (js.chaserLine === 'no' && c.state !== 'riding') {
     js.chaserLine = 'done';
     const text = 'THE HIPSTER?! GET YOUR OWN RAMP!';
-    say(text, MEATHEAD_VOICE, 'queue', { onShow: () => { js.line = text; js.lineT = 120; }, onHide: () => { if (js.line === text) js.lineT = Math.min(js.lineT, 20); } });
+    say(text, MEATHEAD_VOICE, 'queue', { onShow: () => { js.line = text; js.lineT = 120; }, onHide: () => { if (js.line === text) js.lineT = 0; } });
   }
   // ...and straight on to the island the moment they're both up out of the view (his line finishes over the fade, and
   // the island waits for it)

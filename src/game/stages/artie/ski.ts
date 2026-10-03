@@ -126,7 +126,7 @@ const meatheadSays = (state: GameState, text: string) => {
   // (after whoever's talking: nobody talks over anybody here but the kick)
   const shown = say(text, MEATHEAD_VOICE, 'queue', {
     onShow: () => { state.playerLastVulgarity = text; state.playerVulgarityTimer = 150; },
-    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 30); },
+    onHide: () => { if (state.playerLastVulgarity === text) state.playerVulgarityTimer = 0; },
   });
   if (!shown) { state.playerLastVulgarity = text; state.playerVulgarityTimer = 120; }
 };
@@ -134,7 +134,7 @@ const meatheadSays = (state: GameState, text: string) => {
 const SKIER_VOICE: Voice = { id: 'skier', pitch: 1.2, rate: 1.1 };
 /** The skier's lines: in turn, except the scream, which cuts his carbon fiber short (`cut`). */
 const skierSays = (ski: Ski, text: string, cut = false) => {
-  say(text, SKIER_VOICE, cut ? 'urgent' : 'queue', { onShow: () => { ski.skier.line = text; ski.skier.lineT = 110 + text.length * 3; }, onHide: () => { if (ski.skier.line === text) ski.skier.lineT = Math.min(ski.skier.lineT, 20); } });
+  say(text, SKIER_VOICE, cut ? 'urgent' : 'queue', { onShow: () => { ski.skier.line = text; ski.skier.lineT = 110 + text.length * 3; }, onHide: () => { if (ski.skier.line === text) ski.skier.lineT = 0; } });
   if (cut) { ski.skier.line = text; ski.skier.lineT = 110; }
 };
 /** Where the scene waits for the line before to be finished: before Meathead answers, before the skier answers him, before the rumble, before "...OH SHIT." */

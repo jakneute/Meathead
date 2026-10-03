@@ -7,7 +7,7 @@ import { cutBossLines, cutVoice } from '../platform/speech';
 import { Enemy, Projectile, WeaponType, VulgarityType } from '../../types';
 import {
   ARENA_LEFT, ARENA_RIGHT, STAGE_WIDTH, BULLET_DAMAGE, WEAKNESS_DAMAGE, ENEMY_HIT_COOLDOWN, TASER_BOSS_DAMAGE_REDUCTION,
-  BOSS_WEAPON_REACTION_CHANCE, BOSS_WEAPON_REACTION_COOLDOWN, SPOKEN_TEXT_LINGER, BOSS_OWN_WEAPON_DAMAGE, BOSS_OWN_WEAPON_REACTION_CHANCE,
+  BOSS_WEAPON_REACTION_CHANCE, BOSS_WEAPON_REACTION_COOLDOWN, BOSS_OWN_WEAPON_DAMAGE, BOSS_OWN_WEAPON_REACTION_CHANCE,
 } from '../../constants';
 import { BOSS_DIALOGUE, BOSS_WEAPON_REACTIONS, BOSS_OWN_WEAPON_LINES, BOSS_SHAT_LINES } from '../../content/dialogue';
 import { BOSS_WEAPON_MAP } from '../../content/roster';
@@ -77,7 +77,7 @@ export const createBossHelpers = (
     killBoss: (boss, facing, wasWeakness, weapon = currentWeapon, killLine) =>
       triggerBossDeath(boss, facing, wasWeakness, stageId, weapon, state, helpers, killLine),
     setBossVulgarity: (t, d) => { state.bossLastVulgarity = t; state.bossVulgarityTimer = d; },
-    endBossVulgarity: (t) => { if (state.bossLastVulgarity === t) state.bossVulgarityTimer = Math.min(state.bossVulgarityTimer, SPOKEN_TEXT_LINGER); },
+    endBossVulgarity: (t) => { if (state.bossLastVulgarity === t) state.bossVulgarityTimer = 0; },
     setScreenShake: (d) => { state.screenShakeTimer = d; },
     setErnieVibration: (d) => { state.ernieVibrationTimer = d; },
     setPlayerStun: (d) => { state.playerStunTimer = d; },

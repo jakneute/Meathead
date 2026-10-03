@@ -71,7 +71,7 @@ const goHyper = (ctx: FrameContext, e: Enemy) => {
   playSound('slam'); playSound('crunch', 0.8, -8);
   say('UH OH. THAT ONE WAS ONE TOO MANY.', MEATHEAD_VOICE, 'queue', {
     onShow: () => { state.playerLastVulgarity = 'UH OH. THAT ONE WAS ONE TOO MANY.'; state.playerVulgarityTimer = 150; },
-    onHide: () => { state.playerVulgarityTimer = Math.min(state.playerVulgarityTimer, 30); },
+    onHide: () => { state.playerVulgarityTimer = 0; },
   });
 };
 
