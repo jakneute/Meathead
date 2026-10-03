@@ -12,6 +12,7 @@ import EndingCutscene from './components/EndingCutscene';
 import EpilogueCutscene from './components/EpilogueCutscene';
 import RadioCutscene from './components/RadioCutscene';
 import IntroCutscene from './components/IntroCutscene';
+import { WHITE_HOUSE_ID } from './content/whiteHouse';
 import TutorialHint from './components/TutorialHint';
 import { useCursorSound, useOpenCloseSound } from './components/useCursorSound';
 import { GYM_STAGE } from './game/stages/gym';
@@ -546,12 +547,12 @@ const App: React.FC = () => {
     if (lockedIndex === null || engaging) return;
     // Home to the garage
     if (lockedIndex === GARAGE_INDEX) { setLockedIndex(null); setInGarage(true); return; }
-    // To Washington: the flourish, then the walk out to the medal
+    // To Washington: the flourish, the swoop down onto it (as for any stage), then the walk out to the medal
     if (lockedIndex === WHITE_HOUSE_INDEX) {
       setEngaging(true);
       playEngageSound();
       shoutEngage();
-      setTimeout(startWalkOn, ENGAGE_FLOURISH_MS);
+      setTimeout(() => setDeployingTo(WHITE_HOUSE_ID), ENGAGE_FLOURISH_MS);
       return;
     }
     const stage = getStages(progressionRank)[lockedIndex];
@@ -933,7 +934,7 @@ const App: React.FC = () => {
             stageId={deployingTo}
             currentStages={getStages(progressionRank)}
             defeatedStages={defeatedStages}
-            onDone={() => { const id = deployingTo; setDeployingTo(null); handleSelectStage(id); }}
+            onDone={() => { const id = deployingTo; setDeployingTo(null); if (id === WHITE_HOUSE_ID) startWalkOn(); else handleSelectStage(id); }}
           />
         )}
         {status === GameStatus.BOSS_VICTORY_SPEECH && <WeaponGetScene stageId={selectedStage} souvenirs={souvenirs} shitty={killedShat} onDone={handleStart} />}

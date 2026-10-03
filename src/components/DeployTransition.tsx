@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import USAMap from './USAMap';
 import { BOSS_LOCATIONS, StageInfo } from '../content/roster';
+import { WHITE_HOUSE_ID, WHITE_HOUSE_LOCATION } from '../content/whiteHouse';
 import { drawSkyClouds, DEPLOY_CLOUD_SCROLL_END } from '../game/render/skyClouds';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/platform/gamepad';
 import { SKIP_AFTER_MS } from '../game/platform/skip';
@@ -60,7 +61,7 @@ const DeployTransition: React.FC<Props> = ({ stageId, currentStages, defeatedSta
   const [skipShown, setSkipShown] = useState(false);
 
   useEffect(() => {
-    const loc = BOSS_LOCATIONS[stageId];
+    const loc = stageId === WHITE_HOUSE_ID ? WHITE_HOUSE_LOCATION : BOSS_LOCATIONS[stageId];
     const target = { x: (loc?.coords.x ?? 220) * TEX_SCALE, y: (loc?.coords.y ?? 145) * TEX_SCALE };
     const canvas = canvasRef.current!, overlay = overlayRef.current!;
     const ctx = canvas.getContext('2d')!, octx = overlay.getContext('2d')!;
@@ -208,7 +209,9 @@ const DeployTransition: React.FC<Props> = ({ stageId, currentStages, defeatedSta
       {skipShown && <SkipPrompt onSkip={() => finish()} />}
       {/* The recon map, rendered off-screen just to lift its SVG for the texture */}
       <div ref={mapRef} className="absolute -left-[9999px] top-0 w-[440px] pointer-events-none" aria-hidden>
-        <USAMap selectedBossId={stageId} defeatedStages={defeatedStages} currentStages={currentStages} />
+        {/* (Washington: the star on it, the targets all off the map, as on the select screen) */}
+        <USAMap selectedBossId={stageId} defeatedStages={defeatedStages} currentStages={stageId === WHITE_HOUSE_ID ? [] : currentStages}
+          whiteHouse={stageId === WHITE_HOUSE_ID} whiteHouseSelected={stageId === WHITE_HOUSE_ID} />
       </div>
       <canvas ref={canvasRef} width={W} height={H} className="absolute inset-0 w-full h-full" style={{ imageRendering: 'pixelated' }} />
       <canvas ref={overlayRef} width={800} height={600} className="absolute inset-0 w-full h-full" />
