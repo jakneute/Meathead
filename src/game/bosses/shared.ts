@@ -120,8 +120,8 @@ export interface BossDef {
   onTsunami?: (ctx: FrameContext, boss: Enemy, dir: number, first: boolean) => void;
   /** The oil rocket coats him (isOiled), the way it does a regular enemy. */
   oilable?: boolean;
-  /** What a fire-meets-oil blast does to him (once a blast), in place of the usual. */
-  nukeDamage?: number;
+  /** What a fire-meets-oil blast does to him (once a blast), in place of the usual (0: it doesn't touch him). */
+  nukeDamage?: number | ((ctx: FrameContext, boss: Enemy) => number);
   /** A fire-meets-oil blast has caught him (and not killed him). */
   onNuke?: (ctx: FrameContext, boss: Enemy) => void;
   /** What he's full of, if it isn't blood (the colors his eruption sprays). */

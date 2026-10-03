@@ -803,7 +803,10 @@ export const detonateNuke = (ctx: FrameContext, pos: Vector2, radius = OIL_ROCKE
     }
     // (a boss: a big hit, not the end of him; once a blast, there being no breather to stop it landing again)
     const def = e.type === 'boss' ? getBossDef(ctx.stageId) : undefined;
-    const dmg = e.type !== 'boss' ? OIL_ROCKET_NUKE_DAMAGE : def?.nukeDamage ?? (isWeakTo(ctx.stageId, 'OIL_ROCKET') ? OIL_ROCKET_NUKE_BOSS_WEAKNESS_DAMAGE : OIL_ROCKET_NUKE_BOSS_DAMAGE);
+    const own = typeof def?.nukeDamage === 'function' ? def.nukeDamage(ctx, e) : def?.nukeDamage;
+    const dmg = e.type !== 'boss' ? OIL_ROCKET_NUKE_DAMAGE : own ?? (isWeakTo(ctx.stageId, 'OIL_ROCKET') ? OIL_ROCKET_NUKE_BOSS_WEAKNESS_DAMAGE : OIL_ROCKET_NUKE_BOSS_DAMAGE);
+    // (a boss it can't touch just now)
+    if (dmg <= 0) return;
     e.health -= dmg;
     fx.spawnDamageNumber(e.pos, dmg, true, '#FF0000');
     if (e.health > 0) { def?.onNuke?.(ctx, e); return; }

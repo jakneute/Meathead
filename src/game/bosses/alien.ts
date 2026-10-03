@@ -709,6 +709,21 @@ const onBodyHit = (ctx: FrameContext, boss: Enemy, body: Enemy, force: number) =
   if (boss.health <= 0) ctx.bossHelpers.killBoss(boss, Math.sign(body.vel.x) || 1, true, contact ? 'NEEDLES' : 'GUN', 'alien_kill');
 };
 
+/** A nuke on him: heavily resisted (well under a rocket's hit), and only every so often: in between, it's like it never
+ * happened to him (the room still goes, his men with it). */
+const NUKE_DAMAGE = 60, NUKE_EVERY = 720;
+const nukeDamage = (ctx: FrameContext, boss: Enemy) => {
+  const rt = getFinale(ctx.state);
+  if (!rt) return NUKE_DAMAGE;
+  const { frame } = ctx.state;
+  if (rt.nukeAt !== undefined && frame - rt.nukeAt < NUKE_EVERY) {
+    if (frame !== rt.nukeAt) callout(ctx, boss, 'SHRUGGED OFF!', '#A8A29E');
+    return 0;
+  }
+  rt.nukeAt = frame;
+  return NUKE_DAMAGE;
+};
+
 const onNuke = (ctx: FrameContext, boss: Enemy) => {
   const rt = getFinale(ctx.state);
   if (!rt) return;
@@ -750,7 +765,7 @@ export const alien: BossDef = {
   onTsunami,
   onFlamed,
   oilable: true,
-  nukeDamage: 120,
+  nukeDamage,
   onNuke,
   onDeath,
   alwaysErupts: true,

@@ -224,7 +224,9 @@ export const updatePlayerActions = (ctx: FrameContext, input: FrameInput) => {
   updateDryFire(ctx, input);
   // Secondary fire: with the oil rocket launcher out, the flamethrower (if he's got it), so he can light what he's slicked
   const secondary = !!input.secondary && !input.shoot && !armsBusy(player) ? SECONDARY[currentWeapon] : undefined;
-  const altFlame = secondary === 'FLAMETHROWER' && (state.availableWeapons?.includes('FLAMETHROWER') ?? false);
+  // (the igniter's part of the launcher: out of rockets, it's out too)
+  const altFlame = secondary === 'FLAMETHROWER' && (state.availableWeapons?.includes('FLAMETHROWER') ?? false)
+    && (ctx.cheats.infiniteAmmo || currentWeapon !== 'OIL_ROCKET' || player.weaponAmmo.OIL_ROCKET > 0);
   // (it's an igniter, not the flamethrower proper: shorter, and a lot weaker)
   if (altFlame) updateFlamethrower({ ...ctx, currentWeapon: 'FLAMETHROWER' }, { ...input, shoot: true }, true);
   else updateFlamethrower(ctx, input);
@@ -412,7 +414,7 @@ const updateCrouch = (ctx: FrameContext, input: FrameInput) => {
   // included; a slide that bounced off something keeps him down, though)
   if (!player.isGrounded || player.vel.y < 0) { if (!player.slideRecoil) player.isDucking = false; return; }
   // Holding fire with the flamethrower keeps you standing (down aims the stream instead)
-  const isFlamethrowing = (ctx.currentWeapon === 'FLAMETHROWER' && input.shoot) || (!!input.secondary && SECONDARY[ctx.currentWeapon] === 'FLAMETHROWER');
+  const isFlamethrowing = (ctx.currentWeapon === 'FLAMETHROWER' && input.shoot) || (!!input.secondary && SECONDARY[ctx.currentWeapon] === 'FLAMETHROWER' && (ctx.cheats.infiniteAmmo || player.weaponAmmo.OIL_ROCKET > 0));
   // Knocked back off a wall out of a slide: he's either down for the whole of it (down held when he hit) or up for the
   // whole of it, not flipped from one to the other partway through (his arm jumping to the crouch mid-stagger)
   if (player.hurtForm === 'slide' && (player.hurtFormTimer || 0) > 0) {

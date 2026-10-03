@@ -56,6 +56,8 @@ export interface FinaleRuntime {
   sludgeFreeT: number;
   /** Flamed while he's shooting: his beam's weakened for this many frames more. */
   dampT?: number;
+  /** When a nuke last caught him (he can only be nuked every so often). */
+  nukeAt?: number;
   /** When the taser last came off his men onto him (for the callout, once a go). */
   chainAt?: number;
   /** When a boulder last knocked him silly (he can't be kept that way: a breather before it can again). */
