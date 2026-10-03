@@ -18,6 +18,7 @@ import { sentenceShown } from '../../platform/speech';
 import { checker, pixelBlob, steppedGlow } from '../../render/pixelArt';
 import { INK, dark, lite, ink, shaded } from '../../render/npc/kit';
 import { slab } from '../barry/rooms';
+import { drawBloodPool } from '../../render/spatter';
 
 type Ctx = CanvasRenderingContext2D;
 const W = KIND_STATS.doorman.w, H = KIND_STATS.doorman.h;
@@ -240,7 +241,7 @@ export const drawDoormanCorpse = (ctx: Ctx, c: DoormanCorpse, f: number) => {
   ctx.save();
   ctx.translate(c.x, c.y);
   ctx.scale(c.facing === 1 ? 1 : -1, 1);
-  const blood = (w: number) => { const r = Math.min(w, 20 + t * 0.6); pixelBlob(ctx, 0, -1, r, 5, '#6B0000'); ctx.fillStyle = '#8B1A1A'; ctx.fillRect(Math.round(-r * 0.6), -4, Math.round(r * 0.5), 2); };
+  const blood = (w: number) => drawBloodPool(ctx, 0, 3, Math.round(Math.min(w, 20 + t * 0.6)), 243, { color: '#7A0A0A' });
   const body = (tint?: string) => {
     ctx.save(); if (tint) ctx.filter = tint;
     ctx.save(); ctx.translate(-30, -14); ctx.rotate(-Math.PI / 2); torso(ctx, 0, 0, 0); ctx.restore();

@@ -24,6 +24,8 @@ import { drawPerson } from '../../render/npc/person';
 import type { PersonSpec } from '../../render/npc/person';
 import { INK, dark, lite, ink, shaded, shadedTop } from '../../render/npc/kit';
 import { bandedGradient, checker, pixelBlob, steppedGlow, tilePattern } from '../../render/pixelArt';
+import { drawBloodPool, drawSpatter, drawSpatterLayer, floorSpan, Spatter } from '../../render/spatter';
+import { stamp } from '../../render/stamp';
 import { RIGGS } from './convoyDraw';
 import { drawSwordCloseUp, drawRiggsCloseUp } from './townCutIns';
 import { drawCabTurn } from './cabTurn';
@@ -35,15 +37,32 @@ const Y = GROUND_Y;
 // Behind everything that moves
 // ---------------------------------------------------------------------------
 
+/** The jail's gore: whose layer it's painted on. */
+const JAIL_GORE = {};
+/**
+ * The cab came in from the left and the two of them went everywhere: a pool across the street under it all, and the
+ * rest sprayed on the stubs of wall and the heap (the way the cab was going), none of it up in the air between them.
+ */
+const jailSpatter = (state: GameState, x1: number, x2: number): Spatter[] => {
+  const on = [x1, Y - 90, 40, 90, x2 - 50, Y - 130, 50, 130];
+  for (let i = 0; i < 14; i++) on.push(x1 + 33 + i * 22 - 12, Y - 9 - (i % 4) * 12 - 6, 24, 12 + (i % 4) * 12);
+  const span = floorSpan(state.groundRuns, x1 + 170, Y);
+  const out: Spatter[] = [{ on: 'floor', x: x1 + 170, y: Y, size: 140, seed: 400, dx: 0.7, x1: span.x1, x2: span.x2, color: '#7F1D1D' }];
+  for (let k = 0; k < 22; k++) {
+    const sx = x1 + 20 + hash(k + 400) * 300, sy = Y - 20 - hash(k + 401) * 120, r = 3 + hash(k + 402) * 9;
+    out.push({ x: sx, y: sy, size: 2 + r * 0.6, seed: 401 + k, dx: 0.7, dy: -0.2, clip: on, color: k % 3 ? '#991B1B' : '#C62828' });
+  }
+  return out;
+};
+
 export const drawTownBack = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   const t = COURSE.town;
   for (const r of state.groundRuns) if (r.surface === 'street' && visible(state, r.x1, r.x2)) drawStreet(ctx, state, r);
   // Where Riggs ran the tourists down: blood across the street, drag marks after it, the way he was going
   for (const sx of townStains(state)) {
     if (!visible(state, sx - 80, sx + 120)) continue;
-    ctx.fillStyle = 'rgba(127, 29, 29, 0.9)'; ctx.beginPath(); ctx.ellipse(sx, Y + 3, 30 + hash(sx) * 16, 4, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'rgba(153, 27, 27, 0.8)'; for (let k = 0; k < 6; k++) ctx.fillRect(sx + 10 + k * 14, Y + 1 + (k % 2), 10 - k, 2);
-    for (let k = 0; k < 5; k++) { const bx = sx - 20 + hash(sx + k) * 70; ctx.beginPath(); ctx.arc(bx, Y + 2 - hash(sx * k) * 3, 2 + hash(sx + k * 3) * 3, 0, Math.PI * 2); ctx.fill(); }
+    const span = floorSpan(state.groundRuns, sx, Y);
+    drawSpatter(ctx, { on: 'smear', x: sx, y: Y + 5, size: 30 + hash(sx) * 16, seed: sx, dx: 0.8, x1: span.x1, x2: span.x2, color: '#7F1D1D' });
   }
   // Where the cab's been: its tracks up the street, gouged into the dirt
   const reach = cabReach(state);
@@ -226,14 +245,13 @@ const drawBattered = (ctx: Ctx, b: Building) => {
   ctx.save(); ctx.translate(g2 - 4, Y - 66); ctx.rotate(0.9 + hash(s + 9) * 0.4);
   slab(ctx, 0, -3, 44, 7, '#8B5A2B', 1); ctx.fillStyle = '#D6B98C'; ctx.fillRect(40, -3, 4, 7); ctx.restore();
   // Blood: sprayed up the front where they hit it, run down it, a long smear dragged along it
-  ctx.fillStyle = 'rgba(127, 29, 29, 0.85)';
-  const sprays = 2 + Math.floor(hash(s + 11) * 3);
+  // (on its front only, thrown on the way the cab was going)
+  const sprays = 2 + Math.floor(hash(s + 11) * 3), front = [b.x1, b.top, w, Y - b.top];
   for (let k = 0; k < sprays; k++) {
     const cx = b.x1 + 20 + hash(s + 20 + k) * (w - 40), cy = Y - 70 - hash(s + 30 + k) * 70;
-    ctx.beginPath(); ctx.ellipse(cx, cy, 9 + hash(s + k) * 8, 6 + hash(s + k + 1) * 5, hash(k + s) * 3, 0, Math.PI * 2); ctx.fill();
-    for (let d = 0; d < 9; d++) { const a = hash(s + k * 9 + d) * Math.PI * 2, r = 12 + hash(s + d * 3 + k) * 26; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r * 0.7, 1.5 + hash(d + k) * 2.5, 0, Math.PI * 2); ctx.fill(); }
-    for (let d = 0; d < 3; d++) ctx.fillRect(cx - 6 + d * 6, cy + 4, 2, 12 + hash(s + k + d * 5) * 34);
+    drawSpatter(ctx, { x: cx, y: cy, size: 7 + hash(s + k) * 6, seed: Math.round(s) + k, dx: 0.8, dy: -0.15, clip: front, color: '#7F1D1D' });
   }
+  ctx.fillStyle = 'rgba(127, 29, 29, 0.85)';
   ctx.fillStyle = 'rgba(153, 27, 27, 0.6)'; ctx.fillRect(b.x1 + hash(s + 40) * w * 0.4, Y - 44 - hash(s + 41) * 20, w * 0.35, 5);
   // What came off it, in a heap at the foot of it: planks, glass
   for (let k = 0; k < 5; k++) {
@@ -474,7 +492,7 @@ const drawDanInTheWreck = (ctx: Ctx, x1: number, x2: number) => {
   for (const [sx, sw, sh] of [[x2 - 50, 50, 130]] as const) {
     for (let k = 0; k < 9; k++) {
       const bx = sx + 4 + hash(sx + k * 7) * (sw - 8), by = Y - sh + 8 + hash(sx + k * 3) * (sh - 30);
-      pixelBlob(ctx, bx, by, 3 + hash(k + sx) * 6, 2 + hash(k * 2 + sx) * 4, k % 3 ? '#7F1D1D' : '#991B1B');
+      drawSpatter(ctx, { x: bx, y: by, size: 2 + hash(k + sx) * 5, seed: 495 + k, dx: 0.6, clip: [sx, Y - sh, sw, sh], color: k % 3 ? '#7F1D1D' : '#991B1B', drips: false });
       ctx.fillStyle = '#7F1D1D'; ctx.fillRect(Math.round(bx), Math.round(by), 2, Math.round(Y - by - 4) * (0.3 + hash(k + 9) * 0.5));
     }
     ctx.fillStyle = '#B91C1C'; for (let k = 0; k < 14; k++) ctx.fillRect(Math.round(sx + hash(sx * k) * sw), Math.round(Y - sh + hash(sx + k * 13) * sh * 0.8), 2, 2);
@@ -486,7 +504,7 @@ const drawDanInTheWreck = (ctx: Ctx, x1: number, x2: number) => {
     ctx.save(); ctx.translate(sx, sy); ctx.rotate(a); ink(ctx, () => { ctx.moveTo(0, 0); ctx.lineTo(9, -1); ctx.lineTo(7, 2); ctx.closePath(); }, '#D4D4D8', 0.6); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(1, -1, 4, 1); ctx.restore();
   }
   // His hat, and his badge, thrown out in the gore at the foot of the right one
-  pixelBlob(ctx, x2 + 24, Y - 2, 30, 4, '#7F1D1D'); pixelBlob(ctx, x2 + 18, Y - 2, 18, 2.5, '#991B1B');
+  drawBloodPool(ctx, x2 + 24, Y + 1, 30, 507, { dx: 0.4 });
   ctx.save(); ctx.translate(x2 + 40, Y - 4); ctx.rotate(-0.3);
   ink(ctx, () => ctx.ellipse(0, 0, 13, 3, 0, 0, Math.PI * 2), '#D6B98C', 1); ink(ctx, () => ctx.roundRect(-6, -8, 12, 7, [4, 4, 0, 0]), '#D6B98C', 1);
   ctx.fillStyle = '#7F1D1D'; ctx.fillRect(-4, -6, 6, 3);
@@ -502,6 +520,8 @@ const drawJail = (ctx: Ctx, state: GameState, town: Town) => {
   const f = state.frame;
   if (jailWrecked(state, town)) {
     // Blown open: rubble, the cab buried in it, burning
+    // (the wall's stubs, the heap and the cab in it don't change: painted the once and stamped)
+    stamp(ctx, `dale-jail-wreck-${j.x1}`, j.x1 - 230, Y - 340, w + 330, 410, ctx => {
     // (two stubs of wall, blocks showing, and the rest in a heap)
     for (const [sx, sw, sh] of [[j.x1, 40, 90], [j.x2 - 50, 50, 130]]) {
       ctx.fillStyle = '#57534E'; ctx.fillRect(sx, Y - sh, sw, sh);
@@ -510,16 +530,18 @@ const drawJail = (ctx: Ctx, state: GameState, town: Town) => {
     }
     for (let i = 0; i < 14; i++) { ctx.save(); ctx.translate(j.x1 + 33 + i * 22, Y - 9 - (i % 4) * 12); ctx.rotate((hash(i + 300) - 0.5) * 0.6); slab(ctx, -13, -7, 26, 14, i % 3 ? '#78716C' : '#8A847F', 1); ctx.restore(); }
     drawCab(ctx, j.x1 + 30 - CAB.w + 120, 1, f, true, 0.18);
-    // What's left of the two of them, up the rubble and across the street
-    ctx.fillStyle = 'rgba(127, 29, 29, 0.9)';
-    ctx.beginPath(); ctx.ellipse(j.x1 + 170, Y - 2, 150, 7, 0, 0, Math.PI * 2); ctx.fill();
-    for (let k = 0; k < 22; k++) { const sx = j.x1 + 20 + hash(k + 400) * 300, sy = Y - 20 - hash(k + 401) * 120, r = 3 + hash(k + 402) * 9; ctx.fillStyle = k % 3 ? 'rgba(153, 27, 27, 0.85)' : 'rgba(220, 38, 38, 0.8)'; ctx.beginPath(); ctx.ellipse(sx, sy, r, r * 0.7, hash(k) * 3, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(sx - 1, sy, 2, r * 2.5); }
+    });
+    // What's left of the two of them, up the rubble and across the street (painted the once)
+    drawSpatterLayer(ctx, JAIL_GORE, { x: j.x1 - 40, y: Y - 160, w: w + 200, h: 170 }, () => jailSpatter(state, j.x1, j.x2));
     ink(ctx, () => { ctx.ellipse(j.x1 + 250, Y - 6, 12, 3, 0, 0, Math.PI * 2); }, '#1C1917', 1); ink(ctx, () => ctx.roundRect(j.x1 + 244, Y - 13, 12, 7, [3, 3, 0, 0]), '#1C1917', 1); ctx.fillStyle = '#44403C'; ctx.fillRect(j.x1 + 246, Y - 12, 3, 4); // the souvenir hat
     drawFire(ctx, j.x1 + 90, Y - 18, 160, 62, f, { seed: 31 }); drawFire(ctx, j.x1 + 232, Y - 18, 136, 50, f, { seed: 47 });
     if (state.stageMemo.danSkewered) drawDanInTheWreck(ctx, j.x1, j.x2);
     if (f % 4 === 0) state.particles.push({ pos: { x: j.x1 + 60 + Math.random() * 200, y: Y - 80 }, vel: { x: (Math.random() - 0.5), y: -1.5 }, life: 40, color: '#44403C', size: 8 + Math.random() * 8 });
     return;
   }
+  // (the jail's front, the bars and the door don't change: painted the once and stamped, the man behind the bars live)
+  const cx = j.x1 + 110, cy = Y - 130;
+  stamp(ctx, `dale-jail-${j.x1}-${w}`, j.x1 - 10, Y - 240, w + 20, 244, ctx => {
   // (dressed stone: each block lit top left, shadowed bottom right, the mortar between, the odd chip; inked round)
   ctx.fillStyle = '#5E5852'; ctx.fillRect(j.x1, Y - 230, w, 230);
   ctx.save(); ctx.beginPath(); ctx.rect(j.x1, Y - 230, w, 230); ctx.clip();
@@ -539,10 +561,10 @@ const drawJail = (ctx: Ctx, state: GameState, town: Town) => {
   slab(ctx, j.x1 + 78, Y - 166, 184, 14, '#1C1917', 1);
   letter(ctx, 'PHOTOS WITH THE SHERIFF $10', j.x1 + 170, Y - 156, '6px "Press Start 2P"', '#F8FAFC', '#57534E');
   // The cell window, and the guy in it
-  const cx = j.x1 + 110, cy = Y - 130;
   slab(ctx, cx - 4, cy - 4, 128, 78, '#78716C', 2);
   ctx.fillStyle = '#0C0A09'; ctx.fillRect(cx, cy, 120, 70);
   ctx.fillStyle = '#1C1917'; ctx.fillRect(cx, cy + 40, 120, 30);
+  });
   const shake = Math.sin(f * (town.phase === 'jail' ? 1.3 : 0.6)) * (town.phase === 'jail' ? 5 : 2);
   if (town.prisoner.alive) {
     // Head and shoulders in the window (the souvenir hat, a souvenir tee; his face between two bars), hands up on the
@@ -551,16 +573,22 @@ const drawJail = (ctx: Ctx, state: GameState, town: Town) => {
     drawPerson(ctx, cx + 51 + shake, cy + 116.5, PRISONER, { arms: 'up', mouth: town.phase === 'jail' ? 'open' : 'o', f }, 1.33);
     ctx.restore();
   }
+  // (the bars, and the door, padlocked, over to the right of the window, clear of his fists)
+  stamp(ctx, `dale-jail-bars-${j.x1}-${w}`, cx - 4, Y - 134, j.x2 - cx + 8, 138, ctx => {
   for (let x = cx + 6; x < cx + 120; x += 14) column(ctx, x - 0.5, cy, 5, 70, '#374151');
   pipe(ctx, cx, cy, 120, 4, '#374151'); pipe(ctx, cx, cy + 66, 120, 4, '#374151');
   ctx.fillStyle = '#9CA3AF'; for (let x = cx + 6; x < cx + 120; x += 14) ctx.fillRect(x + 0.5, cy + 4, 1, 62);
+  jailDoor(ctx, j.x2);
+  });
   // (his fists round the bars, shaking them)
   if (town.prisoner.alive) for (const [bx, by] of [[cx + 64.3 + shake, cy + 23.4], [cx + 37.7 + shake, cy + 26]]) {
     ink(ctx, () => ctx.roundRect(bx - 4, by - 3.5, 8, 7, 2.5), '#F2C9A0', 0.9);
     ctx.fillStyle = '#D4A27C'; ctx.fillRect(bx - 3, by - 0.5, 6, 0.8);
   }
-  // The door, padlocked
-  // (iron-strapped planks, rivets, the hinges, the padlock with a glint on it)
+};
+/** The jail's door, padlocked: iron-strapped planks, rivets, the hinges, the padlock with a glint on it. */
+const jailDoor = (ctx: Ctx, x2: number) => {
+  const j = { x2 };
   shaded(ctx, () => ctx.rect(j.x2 - 70, Y - 110, 50, 110), '#44403C', j.x2 - 70, Y - 110, 50, 110);
   ctx.fillStyle = '#2E2A27'; for (let x = j.x2 - 60; x < j.x2 - 20; x += 10) ctx.fillRect(x, Y - 108, 1, 108);
   for (const sy of [Y - 96, Y - 56, Y - 20]) { pipe(ctx, j.x2 - 70, sy, 50, 6, '#292524'); ctx.fillStyle = '#A8A29E'; for (let x = j.x2 - 66; x < j.x2 - 22; x += 10) ctx.fillRect(x, sy + 2, 2, 2); }
@@ -951,12 +979,8 @@ const ninjaFigure = (ctx: Ctx, f: number, o: { kneel?: boolean; hunch?: number; 
 const ninjaSplat = (ctx: Ctx, d: NinjaDown, f: number) => {
   const k = Math.min(1, d.t / 60), x = d.x, y = d.y;
   // The pool: near black at the rim, red, a wet shine; gobbets thrown out either end
-  pixelBlob(ctx, x, y - 2, 30 + k * 34, 4 + k * 3.5, '#450A0A');
-  pixelBlob(ctx, x, y - 2, 26 + k * 30, 3 + k * 2.5, '#7F1D1D');
-  pixelBlob(ctx, x + d.head * 26, y - 2, 10 + k * 6, 2.5, '#991B1B');
-  ctx.fillStyle = '#B91C1C';
-  for (let q = 0; q < 6; q++) { const sx = x + (hash(x + q) - 0.5) * 150 * (0.4 + k * 0.6); ctx.fillRect(Math.round(sx), Math.round(y - 3 - hash(x + q * 3) * 3), 2 + (q % 2) * 2, 2); }
-  ctx.fillStyle = '#F87171'; ctx.fillRect(Math.round(x - 22 - k * 10), y - 4, 4, 1); ctx.fillRect(Math.round(x + 14 + k * 12), y - 5, 3, 1);
+  drawBloodPool(ctx, x, y + 1, Math.round(30 + k * 34), Math.round(x), { dx: d.head * 0.5 });
+  drawBloodPool(ctx, x + d.head * 26, y + 1, Math.round(10 + k * 6), Math.round(x) + 1, { dx: d.head * 0.8, color: '#991B1B' });
   const sq = d.t < 4 ? 0.5 : d.t < 10 ? 0.5 + ((d.t - 4) / 6) * 0.5 : 1;
   ctx.save(); ctx.translate(x, y - 1); ctx.scale(d.head, sq);
   const black = '#111827', dk = '#1F2937';
@@ -1045,13 +1069,8 @@ const FLAT = [1, 0.85, 0.75, 0.68];
 const ninjaMangled = (ctx: Ctx, d: NinjaDown, f: number) => {
   const L = Math.min(3, d.mangled ?? 0), k = Math.min(1, (f - (d.mangledAt ?? -999)) / 12), x = d.x, y = d.y;
   // The pool, smeared on up the street
-  pixelBlob(ctx, x + 20, y - 2, 60 + L * 14, 6.5, '#450A0A');
-  pixelBlob(ctx, x + 16, y - 2, 52 + L * 12, 5, '#7F1D1D');
-  pixelBlob(ctx, x + 90, y - 2, 40 + L * 10, 3.5, '#7F1D1D');
-  pixelBlob(ctx, x + 150, y - 2, 18, 2.5, '#991B1B');
-  ctx.fillStyle = '#B91C1C';
-  for (let q = 0; q < 9; q++) ctx.fillRect(Math.round(x - 60 + hash(x + q) * 260), Math.round(y - 3 - hash(x + q * 3) * 3), 2 + (q % 3), 2);
-  ctx.fillStyle = '#F87171'; ctx.fillRect(Math.round(x - 10), y - 5, 5, 1); ctx.fillRect(Math.round(x + 60), y - 4, 4, 1);
+  drawBloodPool(ctx, x + 10, y + 1, 50 + L * 12, Math.round(x) + 7, { dx: 0.4 });
+  drawSpatter(ctx, { on: 'smear', x: x + 90, y: y + 2, size: 50 + L * 12, seed: Math.round(x) + 8, dx: 0.9, color: '#7F1D1D' });
   // The tires' prints in him, on up the street, fading out
   for (let s = 0; s < 420; s += 6) {
     const a = (1 - s / 420) * 0.85;
@@ -1109,8 +1128,7 @@ const drawNinja = (ctx: Ctx, state: GameState, town: Town) => {
   // Where he knelt: the pool, and a trail of it back to the edge after him (he's staggering backwards: -x, here)
   if (cut) {
     const t = n.state === 'kneel' ? n.t : 999;
-    pixelBlob(ctx, 4, -1, 14 + Math.min(18, (t - NINJA_CUT) * 0.3), 2.5, '#7F1D1D');
-    pixelBlob(ctx, 2, -1, 8 + Math.min(10, (t - NINJA_CUT) * 0.15), 1.5, '#B91C1C');
+    drawBloodPool(ctx, 4, 2, Math.round(14 + Math.min(18, (t - NINJA_CUT) * 0.3)), 1138, { dx: -0.3 });
     ctx.fillStyle = '#991B1B';
     for (let d = 14; d < (n.off ?? 0); d += 9) ctx.fillRect(-d - (d % 4), -2, 3 + (d % 3), 2);
   }
@@ -1182,8 +1200,8 @@ const drawSkewered = (ctx: Ctx, town: Town, f: number) => {
   const pinned = s.fate === 'pinned', t = s.pinT ?? 0;
   if (pinned) {
     // His blood down the wall: a splash round where it went in, runs coming down off him, a pool at the bottom
-    pixelBlob(ctx, s.hx + 6, s.hy - 2, 12, 9, '#7F1D1D');
-    pixelBlob(ctx, s.hx + 10, s.hy - 6, 6, 4, '#991B1B');
+    const jw = COURSE.town.jail;
+    drawSpatter(ctx, { x: s.hx + 6, y: s.hy - 2, size: 11, seed: 1213, dx: 0.5, dy: -0.2, clip: [jw.x1, Y - 230, jw.x2 - jw.x1, 230], color: '#7F1D1D', drips: false });
     const run = Math.min(Y - s.hy - 2, 20 + t * 0.7);
     for (const [dx, k, w] of [[-4, 0.75, 3], [2, 1, 4], [7, 0.85, 2], [-9, 0.5, 2], [12, 0.6, 2]] as const) {
       const l = run * k;
@@ -1191,7 +1209,7 @@ const drawSkewered = (ctx: Ctx, town: Town, f: number) => {
       ctx.fillStyle = '#B91C1C'; ctx.fillRect(Math.round(s.hx + dx), Math.round(s.hy + 4), 1, Math.round(l));
       pixelBlob(ctx, s.hx + dx + w / 2, s.hy + 4 + l, w * 0.8 + 1, 2.5, '#991B1B');
     }
-    if (run >= Y - s.hy - 2) pixelBlob(ctx, s.hx + 2, Y - 2, Math.min(40, 8 + (t - (Y - s.hy - 22) / 0.7) * 0.25), 3, '#7F1D1D');
+    if (run >= Y - s.hy - 2) drawBloodPool(ctx, s.hx + 2, Y + 1, Math.round(Math.min(40, 8 + (t - (Y - s.hy - 22) / 0.7) * 0.25)), 1222);
     // (the stone cracked round the point)
     const tx = s.hx + Math.cos(sw.rot) * 24, ty = s.hy + Math.sin(sw.rot) * 24;
     ctx.strokeStyle = '#292524'; ctx.lineWidth = 1; ctx.beginPath();

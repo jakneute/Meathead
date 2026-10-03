@@ -681,6 +681,8 @@ export interface Particle {
   isStuck?: boolean;
   /** Blood that's hit the floor and lies there (fades normally, unlike isStuck). */
   isSplat?: boolean;
+  /** Blood landed on a floor: how far that floor goes, so its splat lies on it and nowhere else. */
+  splatOn?: SplatSurface;
   /** Draw at this opacity instead of fading with life (short, bright bursts). */
   alpha?: number;
   /** A glob of the flamethrower's molten stream: drips, cools as it goes (its crust darkening), and lies where it lands. */
@@ -689,6 +691,19 @@ export interface Particle {
   grav?: number;
   /** Drawn as a plain block on the pixel grid (lit on its top-left), never as a twinkle, streak or clump. */
   chunk?: boolean;
+}
+
+/**
+ * The floor a drop of blood landed on: the height of its top at each 2px column either side of where the drop came
+ * down, as far as it goes on (to an edge, a gap or a wall), from x0. Its splat is cut off past that.
+ */
+export interface SplatSurface {
+  face: 'floor';
+  /** How it was going when it hit. */
+  vx: number;
+  vy: number;
+  x0: number;
+  cols: number[];
 }
 
 export interface DamageNumber {

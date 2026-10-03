@@ -24,6 +24,7 @@ import { COURSE } from './course';
 import type { Bar, BarBiker } from './bar';
 import { barIntact, barVeinBox } from './bar';
 import { drawToilet, drawSwirly } from './swirlyDraw';
+import { drawBloodPool, drawSpatterLayer, Spatter } from '../../render/spatter';
 
 type Ctx = CanvasRenderingContext2D;
 const Y = GROUND_Y;
@@ -92,12 +93,8 @@ export const drawBarBack = (ctx: Ctx, state: GameState, b: Bar) => {
       pipe(ctx, B.x1 + 490, top + 124 + s * 40, 250, 4, '#57534E');
     }
   } else {
-    // Blood up the walls and everywhere (on the walls: behind him)
-    for (const g of b.gore) if (g.kind === 'splat') {
-      ctx.fillStyle = g.r > 20 ? 'rgba(69, 10, 10, 0.85)' : 'rgba(127, 29, 29, 0.85)'; ctx.beginPath(); ctx.ellipse(g.x, g.y, g.r, g.r * 0.6, g.rot, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = g.r > 20 ? 'rgba(127, 29, 29, 0.9)' : 'rgba(185, 28, 28, 0.85)'; ctx.beginPath(); ctx.ellipse(g.x - g.r * 0.15, g.y - g.r * 0.1, g.r * 0.6, g.r * 0.36, g.rot, 0, Math.PI * 2); ctx.fill();
-      if (g.r > 22) { ctx.fillStyle = 'rgba(69, 10, 10, 0.85)'; ctx.fillRect(Math.round(g.x / 2) * 2, g.y + g.r * 0.4, 2, g.r * 0.6); ctx.fillRect(Math.round(g.x / 2) * 2, g.y + g.r, 2, 2); }
-    }
+    // Blood up the walls and everywhere (on the walls: behind him), painted the once
+    drawSpatterLayer(ctx, b.gore, { x: B.x1, y: top, w: W, h: Y - top + 10 }, () => barSpatter(b));
     // Fire still going here and there along the floor
     // (only the ones on screen: each is painted afresh every frame, and the camera's over in Oscar's room half the time)
     for (let k = 0; k < 9; k++) {
@@ -117,6 +114,27 @@ export const drawBarBack = (ctx: Ctx, state: GameState, b: Bar) => {
     const vb = barVeinBox(i);
     gasJoint(ctx, vb.x, vb.y, vb.w, vb.h, 3, b.open[i]);
   }
+};
+
+/**
+ * What of them went up the walls: each splat flung out away from whichever of them it came out of, on the back wall
+ * (and none of it up past where the ceiling was, into the sky, or onto the back door); the ones that came down low,
+ * pools on the floor.
+ */
+const barSpatter = (b: Bar): Spatter[] => {
+  const B = COURSE.bar, top = B.ceil;
+  const wall = [B.x1, top + 4, B.x2 - 24 - B.x1, Y - top - 4];
+  const out: Spatter[] = [];
+  b.gore.forEach((g, i) => {
+    if (g.kind !== 'splat') return;
+    // (thrown from the nearest of them, the way it's from him)
+    const from = b.bikers.reduce((m, k) => Math.abs(k.x - g.x) < Math.abs(m - g.x) ? k.x : m, b.bikers[0]?.x ?? g.x);
+    const ddx = g.x - from, ddy = g.y - (Y - 40), d = Math.hypot(ddx, ddy) || 1, force = Math.min(1, 0.35 + d / 400);
+    const color = g.r > 20 ? '#6B1414' : i % 3 ? '#7F1D1D' : '#991B1B';
+    if (g.y > Y - 46) out.push({ on: 'floor', x: g.x, y: Y, size: 10 + g.r * 1.3, seed: i * 31 + 7, dx: Math.sign(ddx) * force, x1: B.x1, x2: B.x2 - 24, color });
+    else out.push({ on: 'wall', x: g.x, y: g.y, size: 3 + g.r * 0.42, seed: i * 31 + 7, dx: (ddx / d) * force, dy: (ddy / d) * force, clip: wall, color });
+  });
+  return out;
 };
 
 /** The furniture, and them: the band, the drinkers, the pool players, the bartender, the one passed out in the booth. After: what's left of them. */
@@ -264,9 +282,7 @@ const drawRemains = (ctx: Ctx, g: { x: number; y: number; rot: number; kind: str
   if (g.kind === 'bones') {
     ctx.scale(g.rot ? -1 : 1, 1);
     // (the pool under him, darker at its edge)
-    ctx.fillStyle = '#450A0A'; ctx.beginPath(); ctx.ellipse(0, -2, 34, 5, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.ellipse(-4, -3, 26, 3, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#B91C1C'; ctx.fillRect(-14, -5, 8, 1);
+    drawBloodPool(ctx, 0, 1, 32, Math.round(g.x), { color: '#6B1414' });
     const bone = (draw: () => void) => {
       ctx.lineCap = 'round';
       ctx.strokeStyle = INK; ctx.lineWidth = 5; ctx.beginPath(); draw(); ctx.stroke();

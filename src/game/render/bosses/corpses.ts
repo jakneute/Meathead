@@ -12,6 +12,7 @@ import { skull } from '../../scenes/art/ink';
 import { pixelBlob } from '../pixelArt';
 import { drawFire } from '../fx/fire';
 import { drawFlameLicks } from '../fx/fireball';
+import { drawBloodPool } from '../spatter';
 
 type Ctx = CanvasRenderingContext2D;
 type Style = 'charred' | 'melted' | 'stone' | 'shattered' | 'flattened' | 'dissolved' | 'overdosed' | 'oiled' | 'fried';
@@ -860,7 +861,7 @@ const puddle = (ctx: CanvasRenderingContext2D, x: number, floor: number, w: numb
 };
 
 const bloodPool = (ctx: CanvasRenderingContext2D, x: number, floor: number, w: number) => {
-  puddle(ctx, x, floor, w, 'rgba(110, 0, 0, 0.9)', 'rgba(255, 120, 120, 0.35)');
+  drawBloodPool(ctx, x, floor + 1, Math.round(w), Math.round(x) ^ 0x2f, { color: '#7A0A0A' });
   gore(ctx, x, floor, 5, w);
 };
 

@@ -21,6 +21,7 @@ import { DAYCARE_LINES } from '../../../content/dialogue';
 import { bandedGradient, checker, hazeBands, pixelBlob } from '../../render/pixelArt';
 import { drawPerson } from '../../render/npc/person';
 import { INK, dark, lite, ink } from '../../render/npc/kit';
+import { drawBloodPool } from '../../render/spatter';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -513,12 +514,10 @@ const adult = (ctx: Ctx, x: number, y: number, who: 0 | 1, panic: boolean, f: nu
 
 /** What's left of a grown-up after the wave: flattened into the lawn, a lot of red round them. */
 const splatAdult = (ctx: Ctx, x: number, y: number, who: 0 | 1) => {
-  // A fan of it sprayed up whatever's behind them, then the pool
-  ctx.fillStyle = 'rgba(153, 27, 27, 0.85)';
-  for (let k = 0; k < 9; k++) { const a = -Math.PI * (0.15 + 0.7 * k / 8), r = 30 + hash(x + k * 5) * 40; ctx.beginPath(); ctx.moveTo(x - 4, y - 4); ctx.lineTo(x + Math.cos(a) * r - 3, y + Math.sin(a) * r); ctx.lineTo(x + Math.cos(a) * r + 3, y + Math.sin(a) * r); ctx.closePath(); ctx.fill(); ctx.beginPath(); ctx.arc(x + Math.cos(a) * r, y + Math.sin(a) * r, 3, 0, Math.PI * 2); ctx.fill(); }
-  ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.ellipse(x, y - 2, 52, 9, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#B91C1C'; ctx.beginPath(); ctx.ellipse(x - 6, y - 3, 34, 6, 0, 0, Math.PI * 2); ctx.fill();
-  for (let k = 0; k < 6; k++) { ctx.fillStyle = k % 2 ? '#991B1B' : '#DC2626'; ctx.beginPath(); ctx.arc(x - 50 + k * 20 + hash(x + k) * 8, y - 2 - hash(x * 3 + k) * 4, 2 + hash(k + x) * 3, 0, Math.PI * 2); ctx.fill(); }
+  // The pool, and what was squeezed out of them sprayed along the lawn either side (on the grass: none of it up in the air)
+  drawBloodPool(ctx, x, y, 52, x | 0, { dx: 0 });
+  drawBloodPool(ctx, x - 44 - hash(x) * 10, y, 12, (x | 0) + 1, { dx: -0.9, color: '#991B1B' });
+  drawBloodPool(ctx, x + 44 + hash(x + 1) * 10, y, 10, (x | 0) + 2, { dx: 0.9, color: '#B91C1C' });
   // (pancaked: the body a smear the colors of their clothes, an arm and a shoe out of it)
   ctx.fillStyle = who === 0 ? '#14B8A6' : '#1D4ED8'; ctx.fillRect(x - 18, y - 8, 30, 7);
   ctx.fillStyle = who === 0 ? '#0F766E' : '#A8A29E'; ctx.fillRect(x + 12, y - 6, 20, 5);

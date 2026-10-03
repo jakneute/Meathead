@@ -24,6 +24,7 @@ import { drawPerson } from '../../render/npc/person';
 import type { PersonSpec } from '../../render/npc/person';
 import { INK, ink, limb, shadedTop } from '../../render/npc/kit';
 import { drawCrate } from './draw';
+import { drawBloodPool } from '../../render/spatter';
 
 type Ctx = CanvasRenderingContext2D;
 const Y = GROUND_Y;
@@ -561,7 +562,7 @@ const drawFall = (ctx: Ctx, state: GameState, cv: Convoy, talk: Talk) => {
     const stopped = r.stoppedAt >= 0;
     const still = stopped ? fall.t - r.stoppedAt : 0;
     // Once he's stopped: a pool of it spreading out under him, and a twitch now and then
-    if (stopped) { ctx.fillStyle = 'rgba(127, 29, 29, 0.9)'; ctx.beginPath(); ctx.ellipse(fall.x, Y - 2, Math.min(70, 20 + still * 0.6), 5, 0, 0, Math.PI * 2); ctx.fill(); }
+    if (stopped) drawBloodPool(ctx, fall.x, Y, Math.round(Math.min(70, 20 + still * 0.6)), 564, { dx: -0.4 });
     const twitch = stopped && (still % 47 < 5 || still % 83 < 3) ? (Math.random() - 0.5) * 0.25 : 0;
     const body = { ...p, pos: { x: -1e6, y: -1e6 }, hidden: false, isGrounded: false, vel: { x: -3, y: 4 }, isCharging: false, isSliding: false, isUppercutting: false, isDivekicking: false, invincibilityTimer: 0, hurtTimer: 30, pushbackTimer: 30 };
     ctx.save();
@@ -748,7 +749,7 @@ const drawMeltScene = (ctx: Ctx, state: GameState, cv: Convoy) => {
       health: u >= MELT.FIRE ? (p.maxHealth ?? 100) * Math.max(0.04, 1 - (u - MELT.FIRE) / (MELT.KILL - MELT.FIRE)) : p.health };
     const feet = landed ? IN_FLOOR : IN_ROOF - 40 + (IN_FLOOR - IN_ROOF + 40) * dropK * dropK;
     // (he goes down backwards once it stops)
-    if (down > 0) { ctx.fillStyle = 'rgba(127, 29, 29, 0.9)'; ctx.beginPath(); ctx.ellipse(IN_HOLE - 20, IN_FLOOR - 1, 20 + (u - MELT.STOP) * 0.6, 4, 0, 0, Math.PI * 2); ctx.fill(); }
+    if (down > 0) drawBloodPool(ctx, IN_HOLE - 20, IN_FLOOR + 1, Math.round(20 + (u - MELT.STOP) * 0.6), 751, { x1: 0, x2: IN_CRATES.x1 });
     ctx.save();
     const jerk = firing ? (hash(u * 3) - 0.5) * 6 : 0;
     ctx.translate(IN_HOLE + jerk - down * 18, feet - p.height / 2 + down * (p.height / 2 - 12));

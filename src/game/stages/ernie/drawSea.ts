@@ -21,6 +21,7 @@ import { drawAlcatraz, bubble } from './draw';
 import { drawPerson } from '../../render/npc/person';
 import type { PersonSpec, Pose } from '../../render/npc/person';
 import { INK, ink, limb, shaded, shadedTop, dark, lite } from '../../render/npc/kit';
+import { drawSpatter } from '../../render/spatter';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -678,9 +679,8 @@ const drawAftermath = (ctx: Ctx, state: GameState) => {
   // Blood up the cell bars (running down) and across the floor (a wet glint on each pool)
   for (let i = 0; i < 12; i++) {
     const bx = x + (hash(i) - 0.5) * 420, rw = 14 + hash(i + 1) * 20;
-    ctx.fillStyle = 'rgba(127, 29, 29, 0.85)'; ctx.beginPath(); ctx.ellipse(bx, Y + 1, rw, 3, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'rgba(69, 10, 10, 0.8)'; ctx.fillRect(bx - rw * 0.6, Y + 2, rw * 1.2, 1);
-    ctx.fillStyle = 'rgba(254, 202, 202, 0.5)'; ctx.fillRect(bx - rw * 0.4, Y, 3, 1);
+    // (thrown out from the crash, lying on the floor either side of the crater, not over it)
+    drawSpatter(ctx, { on: 'floor', x: bx, y: Y + 1, size: rw, seed: 900 + i, dx: Math.sign(bx - x) * 0.7, clip: [x - 400, Y - 40, 340, 60, x + 60, Y - 40, 340, 60] });
   }
   for (let i = 0; i < 8; i++) {
     const bx = Math.round(x + (hash(i + 20) - 0.5) * 500), by = Math.round(Y - 40 - hash(i + 21) * 160), sw = Math.round(5 + hash(i) * 8), run = Math.round(10 + hash(i + 3) * 14);

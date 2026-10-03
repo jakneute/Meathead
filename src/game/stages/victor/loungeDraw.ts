@@ -15,6 +15,7 @@ import { COURSE } from './course';
 import { Lounge, crashPose, PARTY_FRAMES, FLIGHT_FRAMES, WIDE_FRAMES, BLAST_AT, SCREAM_AT, ZOOM_OUT, ZOOM_IN_AT, FADE_IN, blastAmount } from './lounge';
 import { drawVolcano } from './draw';
 import { sentenceShown } from '../../platform/speech';
+import { drawSpatter } from '../../render/spatter';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -281,11 +282,8 @@ const wreckage = (ctx: Ctx, state: GameState) => {
   const top = y - 620;
   for (let i = 0; i < 14; i++) {
     const x = L.x1 + hash(i) * (L.x2 - L.x1 - 100), sy = y - 150 - hash(i + 5) * 300, rw = 10 + hash(i + 2) * 30, rh = 6 + hash(i + 3) * 20;
-    pixelBlob(ctx, x, sy, rw, rh, '#7F0000');
-    pixelBlob(ctx, x - 4, sy - 2, rw * 0.5, rh * 0.4, '#991B1B');
-    // (running down the wall)
-    const run = Math.round(20 + hash(i + 8) * 40);
-    ctx.fillStyle = '#7F0000'; ctx.fillRect(Math.round(x) - 2, Math.round(sy), 3, run); ctx.fillRect(Math.round(x) - 3, Math.round(sy) + run, 5, 3);
+    // (thrown out from the middle of the room, on the wall: running down it)
+    drawSpatter(ctx, { x, y: sy, size: 4 + (rw + rh) * 0.28, seed: 285 + i, dx: Math.sign(x - (L.x1 + L.x2) / 2) * 0.6, dy: -0.2, clip: [L.x1, top + 90, L.x2 - L.x1, y - top - 90], color: '#8B0000' });
   }
   // The hole in the ceiling (dusk through it): the torn edge, the sky in bands, lath and plaster hanging off it
   pixelBlob(ctx, L.x1 + 620, top + 20, 152, 62, INK);

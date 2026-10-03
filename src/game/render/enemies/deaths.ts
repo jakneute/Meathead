@@ -8,6 +8,7 @@ import type { Enemy } from '../../../types';
 import { GameState } from '../../core/state';
 import { EnemyDeath, DEATH_FRAMES } from '../../enemies/deaths';
 import { drawKindCorpse, kindHead, isHumanoidKind, isLyingKind, KIND_HEAD, skeletonOf } from './index';
+import { drawBloodPool } from '../spatter';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -533,10 +534,7 @@ const drawPancaked = (ctx: Ctx, d: EnemyDeath, state: GameState) => {
   ctx.globalAlpha = fadeOut(d, 30);
   const cx = x + w / 2, fy = y + h, seed = seedOf(d);
   // The pool: near black at the rim, red, a wet shine; gobbets squeezed out either end
-  pixelBlob(ctx, cx, fy - 2, w * 1.05 + 3, 6.5, '#450A0A');
-  pixelBlob(ctx, cx, fy - 2, w * 0.95, 5, '#7F1D1D');
-  pixelBlob(ctx, cx - w * 0.72, fy - 2, 7, 3.5, '#B91C1C');
-  pixelBlob(ctx, cx + w * 0.78, fy - 2, 6, 3, '#B91C1C');
+  drawBloodPool(ctx, cx, fy + 1, Math.round(w * 1.05 + 3), seed, { color: '#7F1D1D' });
   ctx.fillStyle = '#991B1B';
   for (let k = 0; k < 5; k++) { const sx = cx + (hash(seed + k) - 0.5) * w * 2.8; ctx.fillRect(Math.round(sx), Math.round(fy - 3 - hash(seed + k * 3) * 3), 2 + (k % 2) * 2, 2); }
   ctx.fillStyle = '#F87171'; ctx.fillRect(Math.round(cx - w * 0.7), Math.round(fy - 4), 3, 1); ctx.fillRect(Math.round(cx + w * 0.4), Math.round(fy - 6), 4, 1);

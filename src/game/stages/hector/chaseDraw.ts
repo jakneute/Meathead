@@ -11,6 +11,7 @@ import { drawPadFace } from '../../render/padGlyph';
 import { COURSE } from './course';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { INK, hash, lin, shape, speckle, blood, deadFace, flames } from '../../scenes/art/ink';
+import { drawBloodPool } from '../../render/spatter';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -540,8 +541,7 @@ export const coastieAssUp = (ctx: Ctx, x: number, y: number, s: number) => {
   }
   // (the head, driven into the dirt to the shoulders: the neck going in, a crater of thrown-up dirt round it, clods
   // and torn turf, and blood sprayed out round where he went in)
-  ctx.fillStyle = 'rgba(127, 29, 29, 0.75)'; ctx.beginPath(); ctx.ellipse(-19, 0.6, 15, 2.6, 0, 0, Math.PI * 2); ctx.fill();
-  for (let k = 0; k < 9; k++) { const a = Math.PI + (k / 8) * Math.PI, r = 9 + hash(k * 3.3) * 9; ctx.fillStyle = k % 2 ? '#991B1B' : '#B91C1C'; ctx.beginPath(); ctx.ellipse(-19 + Math.cos(a) * r * 1.3, Math.sin(a) * r * 0.5 - 1, 1 + hash(k) * 1.2, 0.8 + hash(k * 7) * 0.8, 0, 0, Math.PI * 2); ctx.fill(); }
+  drawBloodPool(ctx, -19, 1.6, 15, 5413, { color: '#991B1B' });
   shape(ctx, () => { ctx.moveTo(-14, -6); ctx.quadraticCurveTo(-17, -3, -18, 0); ctx.lineTo(-13, 0); ctx.quadraticCurveTo(-12, -3, -9, -6); ctx.closePath(); }, '#E8B495', 0.6);
   shape(ctx, () => { ctx.moveTo(-29, 0.5); ctx.quadraticCurveTo(-27, -5, -22, -4.5); ctx.quadraticCurveTo(-19, -7, -15, -4); ctx.quadraticCurveTo(-11, -4.5, -9, 0.5); ctx.closePath(); }, '#5B3A24', 0.7);
   ctx.fillStyle = '#3F2A1D'; ctx.fillRect(-22, -3, 3, 1.2); ctx.fillRect(-15, -2, 2.4, 1);

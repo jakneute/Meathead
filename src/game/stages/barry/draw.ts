@@ -26,10 +26,12 @@ import { COURSE, Ledge, Prop, placeOf, roomOf } from './course';
 import { getBarry, BarryRuntime, ventState, barkOf } from './runtime';
 import { saying, drawBubble } from './script';
 import { drawGraffiti, drawTagOnly } from './graffiti';
+import { stamp } from '../../render/stamp';
 import { drawSurge, drawSurgeFlash } from './surgeDraw';
 import { lampLevel, blackout, blackoutUp, blackoutAt } from './lighting';
 import { drawRooms, drawRoomFront, slab, column, pipe, letter } from './rooms';
 import { drawBarryOverlays, drawBarryScreenHud } from './hud';
+import { drawBloodPool, drawSpatter, floorSpan } from '../../render/spatter';
 
 type Ctx = CanvasRenderingContext2D;
 export const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -180,7 +182,7 @@ const drawStreetFronts = (ctx: Ctx, state: GameState, burning: boolean) => {
       for (let j = 1; j < edge.length; j++) if (ex <= edge[j][0]) { const [ax, ay] = edge[j - 1], [bx, by] = edge[j]; return ay + (by - ay) * (ex - ax) / (bx - ax); }
       return edge[edge.length - 1][1];
     };
-    const face = () => {
+    const face = (ctx: Ctx) => {
       if (!burning) { ctx.rect(x, top, 262, h); return; }
       ctx.moveTo(x, Y); for (const [ex, ey] of edge) ctx.lineTo(ex, ey);
       ctx.lineTo(x + 262, Y); ctx.closePath();
@@ -194,7 +196,14 @@ const drawStreetFronts = (ctx: Ctx, state: GameState, burning: boolean) => {
       for (let ex = cx - 38; ex <= cx + 38; ex += 4) { const ey = edgeY(ex); lo = Math.max(lo, ey); hi = Math.min(hi, ey); }
       drawFire(ctx, cx, Math.round(lo) + 6, 76, Math.min(150, lo - hi + 56), f + k * 17 + i * 23, { smoke: 1, seed: Math.floor(cx) });
     }
-    ctx.save(); ctx.beginPath(); face(); ctx.clip();
+    // The front itself (brick, windows, fire escapes, the shopfront, the graffiti) doesn't change: painted the once and
+    // stamped (a window going out for a second or so is another picture of it)
+    let out = '';
+    for (let row = 0; row < 6; row++) for (let c = 0; c < 3; c++) {
+      if (top + 30 + row * 56 <= Y - 150 && hash(k * 31 + row * 7 + c) < (burning ? 0.2 : 0.45) && !(hash(k * 5 + row + c + Math.floor(f / 90)) > 0.04)) out += row * 3 + c + ',';
+    }
+    stamp(ctx, `barry-front-${k}-${burning ? 1 : 0}-${out}`, x - 8, top - 12, 280, Y - top + 16, ctx => {
+    ctx.save(); ctx.beginPath(); face(ctx); ctx.clip();
     ctx.fillStyle = brickPattern(ctx, 'barry-front-' + ti, 16, 8, [tone, lite(tone, 0.05)], dark(tone, 0.35));
     ctx.fillRect(x, top - 10, 262, h + 10);
     ctx.fillStyle = 'rgba(255,255,255,0.05)'; ctx.fillRect(x, top, 262, 30);
@@ -202,7 +211,7 @@ const drawStreetFronts = (ctx: Ctx, state: GameState, burning: boolean) => {
     ctx.fillStyle = 'rgba(0,0,0,0.12)'; ctx.fillRect(x + 252, top, 10, h);
     if (burning) { for (let j = 0; j < 3; j++) pixelBlob(ctx, x + 40 + j * 80, top + 90 + hash(k + j) * 120, 26, 40, 'rgba(0,0,0,0.35)'); } // scorch
     ctx.restore();
-    if (burning) { ctx.beginPath(); face(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke(); }
+    if (burning) { ctx.beginPath(); face(ctx); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke(); }
     // A cornice: a moulded ledge, lit along its top, dentils under it (gone with the top, where it's been bitten off)
     if (!burning) {
       slab(ctx, x - 4, top, 270, 10, '#2A2420', 2);
@@ -211,7 +220,7 @@ const drawStreetFronts = (ctx: Ctx, state: GameState, burning: boolean) => {
     }
     // Windows, some lit, a few flickering, a silhouette in one now and then; stone lintels over them, sills under
     // (burnt out, only what's left of the wall: none up in the sky where the top's come off)
-    ctx.save(); if (burning) { ctx.beginPath(); face(); ctx.clip(); }
+    ctx.save(); if (burning) { ctx.beginPath(); face(ctx); ctx.clip(); }
     for (let row = 0; row < 6; row++) for (let c = 0; c < 3; c++) {
       const wx = x + 28 + c * 78, wy = top + 30 + row * 56;
       if (wy > Y - 150) continue;
@@ -285,15 +294,16 @@ const drawStreetFronts = (ctx: Ctx, state: GameState, burning: boolean) => {
       slab(ctx, x + 20, Y - 6, 220, 6, '#57534E', 1);
       ink(ctx, () => ctx.rect(x + 126, Y - 10, 8, 7), '#A8A29E', 0.8);
     }
-    // At the end: the tops of half of them on fire, smoke going up off them, a glow in the windows
-    if (onFire) {
-      for (let i = 0; i < 4; i++) { const t = ((f * 0.8 + i * 40 + k * 11) % 160) / 160; pixelBlob(ctx, x + 130 + Math.sin(t * 5 + k) * 30, top - 40 - t * 260, 24 + t * 50, 24 + t * 50, 'rgba(28, 25, 23, 0.55)'); }
-    }
     // Graffiti: a big piece across a closed gate, a smaller one along the wall under a window, tags on the doors
     const words = GRAFFITI[Math.floor(hash(k + 23) * GRAFFITI.length)];
     if (shop === 4) drawGraffiti(ctx, x + 40, Y - 44, words, 30, k + 101, 196);
     else if (hash(k + 17) < 0.5) drawGraffiti(ctx, x + 36, Y - 7, words, 15, k + 57, 128);
     if (hash(k + 29) < 0.45) drawTagOnly(ctx, x + 176, Y - 46, k + 7);
+    });
+    // At the end: the tops of half of them on fire, smoke going up off them (it never comes down over the front)
+    if (onFire) {
+      for (let i = 0; i < 4; i++) { const t = ((f * 0.8 + i * 40 + k * 11) % 160) / 160; pixelBlob(ctx, x + 130 + Math.sin(t * 5 + k) * 30, top - 40 - t * 260, 24 + t * 50, 24 + t * 50, 'rgba(28, 25, 23, 0.55)'); }
+    }
   }
 };
 
@@ -319,6 +329,11 @@ const GRAFFITI = ['BARRY SUX', 'NO LIGHT', '4EVA', 'CON ED = DEAD', 'LIGHTS OUT'
 
 /** A lot where a building's come down: a heap of rubble and rebar, a jagged stub of wall, fire in the heap, smoke. */
 const drawCollapsedLot = (ctx: Ctx, x: number, f: number, k: number) => {
+  // (all of it but the fire in the heap is still: painted the once and stamped)
+  stamp(ctx, `barry-lot-${k}`, x - 4, Y - 250, 272, 256, ctx => collapsedLot(ctx, x, k));
+  drawFlames(ctx, x + 70, Y - 40, 120, f + k * 13);
+};
+const collapsedLot = (ctx: Ctx, x: number, k: number) => {
   // The wall stub: brick, broken off jagged, a window hole through it
   const stub = () => { ctx.moveTo(x + 10, Y); ctx.lineTo(x + 20, Y - 140 - hash(k) * 80); ctx.lineTo(x + 40, Y - 110); ctx.lineTo(x + 52, Y - 170 - hash(k + 1) * 60); ctx.lineTo(x + 70, Y - 90); ctx.lineTo(x + 70, Y); ctx.closePath(); };
   ctx.save(); ctx.beginPath(); stub(); ctx.clip();
@@ -349,7 +364,6 @@ const drawCollapsedLot = (ctx: Ctx, x: number, f: number, k: number) => {
     ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx + 10 - j * 4, ry - up); ctx.stroke();
     ctx.strokeStyle = '#9A3412'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx + 10 - j * 4, ry - up); ctx.stroke();
   } // rebar
-  drawFlames(ctx, x + 70, Y - 40, 120, f + k * 13);
 };
 
 /** The roofs' buildings: each roof's building down to the bottom of the screen, windows lit or out with the blackout. */
@@ -639,15 +653,15 @@ const drawBoard = (ctx: Ctx, state: GameState, rt: BarryRuntime) => {
   if (!(x > 0 || x < 0)) return;
   if (rt.surf?.phase === 'air') return;
   // What he left on the street skidding along it (it stays)
-  const x0 = COURSE.landing.x1 + 40;
+  const x0 = COURSE.landing.x1 + 40, span = floorSpan(state.groundRuns, x, Y);
   for (let sx = x0; sx < x - 10; sx += 6) {
     const k = (sx - x0) / Math.max(1, x - x0), w = 6 + hash(sx) * 5;
     ctx.fillStyle = hash(sx * 3) < 0.5 ? 'rgba(127, 29, 29, 0.9)' : 'rgba(153, 27, 27, 0.85)';
     ctx.fillRect(sx, Y + 1, 7, 2 + (1 - k) * 2 + (hash(sx * 7) < 0.15 ? w : 0) * 0.4);
-    if (hash(sx * 11) < 0.08) { ctx.beginPath(); ctx.ellipse(sx, Y + 3, w * 1.6, 2.5, 0, 0, Math.PI * 2); ctx.fill(); }
+    if (hash(sx * 11) < 0.08) drawSpatter(ctx, { on: 'smear', x: sx, y: Y + 4, size: w * 1.6, seed: sx, dx: 0.9, x1: span.x1, x2: span.x2, color: '#7F1D1D' });
   }
   // (and a pool where he stopped)
-  if (!rt.surf) { ctx.fillStyle = 'rgba(127, 29, 29, 0.9)'; ctx.beginPath(); ctx.ellipse(x, Y + 3, 46, 5, 0, 0, Math.PI * 2); ctx.fill(); }
+  if (!rt.surf) drawBloodPool(ctx, x, Y + 4, 46, 77, { dx: 0.5, x1: span.x1, x2: span.x2 });
   drawMinionFlat(ctx, x, Y, state.frame);
   // Still riding it down the street, crouched low, arms out
   if (rt.surf?.phase === 'slide') {

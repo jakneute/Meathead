@@ -118,6 +118,22 @@ const drawSplat = (ctx: CanvasRenderingContext2D, p: Particle, x: number, y: num
   const onFloor = !!p.isSplat;
   // Floor splats spread out into a flat puddle; wall/ceiling ones stay round
   const big = r * (onFloor ? 2.4 : 1.4);
+  // (one that's come down near the edge of what it's on is cut off there: none of it hangs off a ledge or up a wall)
+  const on = p.splatOn;
+  if (onFloor && on?.cols && on.x0 !== undefined) {
+    const lo = on.x0, hi = on.x0 + on.cols.length * 2, reach = big * 2.3 + r;
+    if (x - reach < lo || x + reach > hi) {
+      ctx.save();
+      ctx.beginPath(); ctx.rect(lo, y - reach - 40, hi - lo, reach * 2 + 80); ctx.clip();
+      paintSplat(ctx, p, x, y, r, onFloor, big);
+      ctx.restore();
+      return;
+    }
+  }
+  paintSplat(ctx, p, x, y, r, onFloor, big);
+};
+
+const paintSplat = (ctx: CanvasRenderingContext2D, p: Particle, x: number, y: number, r: number, onFloor: boolean, big: number) => {
   ctx.fillStyle = p.color;
   ctx.beginPath();
   const points = 9;

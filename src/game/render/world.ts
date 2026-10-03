@@ -46,6 +46,7 @@ import { drawBlasts } from './blasts';
 import { drawBossDoor, drawLairFacade } from './bossDoors';
 import { drawTommyShaftBack } from './bosses/lairs/tommy';
 import { drawFrozenShell, drawOnFire, drawTasedFx, drawTaserBeam, isTasedNow, statusTint, tasedJitter } from './statusFx';
+import { stampsForStage } from './stamp';
 
 export interface WorldView {
   status: GameStatus;
@@ -60,6 +61,7 @@ const FONT = '"Press Start 2P"';
 /** Renders one frame of the game world (everything except the React HUD/menus). */
 export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view: WorldView) => {
   const { status, stageId } = view;
+  stampsForStage(stageId);
   if (status === GameStatus.STAGE_SELECT || status === GameStatus.START) {
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -1347,13 +1349,22 @@ const goreLayer = (ctx: CanvasRenderingContext2D, state: GameState) => {
   if (!stuck) return null;
   // (gore stuck somewhere off the layer, the camera having moved on since it was made (Oscar's room is two screens
   // wide): it's made again, big enough for all of it, so none of it's left being drawn splat by splat every frame)
-  if (layer && (x1 < layer.x || x2 > layer.x + layer.w || y1 < layer.y || y2 > layer.y + layer.h) && Math.max(x2, layer.x + layer.w) - Math.min(x1, layer.x) < 4000) { goreLayers.delete(state); layer = undefined; }
+  const cam = state.camera;
+  let x = Math.min(cam.x - 120, x1 - 300), y = Math.min(cam.y - 120, y1 - 120);
+  let w = Math.max(cam.x + CANVAS_WIDTH + 120, x2 + 300) - x, h = Math.max(cam.y + CANVAS_HEIGHT + 120, y2 + 120) - y;
+  // (too much for one: as much of it round the view as one can take; what's past that is drawn as it is. And it's
+  // only made again for that once the view's left it, not every frame)
+  const fits = w <= 4000 && h <= 2400;
+  if (!fits) {
+    const cx = cam.x + CANVAS_WIDTH / 2, cy = cam.y + CANVAS_HEIGHT / 2;
+    if (w > 4000) { x = Math.max(x, Math.min(x + w - 4000, cx - 2000)); w = 4000; }
+    if (h > 2400) { y = Math.max(y, Math.min(y + h - 2400, cy - 1200)); h = 2400; }
+  }
+  const outside = !!layer && (x1 < layer.x || x2 > layer.x + layer.w || y1 < layer.y || y2 > layer.y + layer.h);
+  const viewOff = !!layer && (cam.x < layer.x || cam.x + CANVAS_WIDTH > layer.x + layer.w || cam.y < layer.y || cam.y + CANVAS_HEIGHT > layer.y + layer.h);
+  if (layer && (fits ? outside : viewOff)) { goreLayers.delete(state); layer = undefined; }
   if (!layer) {
     const m = ctx.getTransform();
-    // (room to spare round what's there, so a few more splats landing just past it don't mean making it again)
-    let x = Math.min(state.camera.x - 120, x1 - 300), y = Math.min(state.camera.y - 120, y1 - 120);
-    let w = Math.max(state.camera.x + CANVAS_WIDTH + 120, x2 + 300) - x, h = Math.max(state.camera.y + CANVAS_HEIGHT + 120, y2 + 120) - y;
-    if (w > 4000 || h > 2400) { x = state.camera.x - 120; y = state.camera.y - 120; w = CANVAS_WIDTH + 240; h = CANVAS_HEIGHT + 240; }
     // (and no bigger than it needs to be in memory: a big one's painted at the world's own scale)
     const k = w * h > 2600 * 1000 ? 1 : Math.max(1, Math.min(2, Math.hypot(m.a, m.b)));
     const canvas = document.createElement('canvas');

@@ -19,6 +19,7 @@ import { saying, drawBubble } from './script';
 import { bandedGradient, checker, hazeBands, tilePattern } from '../../render/pixelArt';
 import { INK as INK_LINE, dark, lite, ink, shaded } from '../../render/npc/kit';
 import { slab, column, pipe } from '../../render/bosses/daleTruck';
+import { drawBloodPool, drawSpatter } from '../../render/spatter';
 
 type Ctx = CanvasRenderingContext2D;
 const W = KIND_STATS.junkie.w, H = KIND_STATS.junkie.h;
@@ -345,8 +346,7 @@ export const drawOffice = (ctx: Ctx, state: GameState, fight: JunkieFight) => {
       for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; ctx.moveTo(x, c.y); ctx.lineTo(x - c.side * Math.abs(Math.cos(a)) * 30, c.y + Math.sin(a) * 30); }
       ctx.stroke();
     }
-    ctx.fillStyle = 'rgba(127, 29, 29, 0.8)'; ctx.beginPath(); ctx.arc(x - c.side * 4, c.y, 7, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'rgba(127, 29, 29, 0.8)'; ctx.fillRect(x - c.side * 4 - 1, c.y + 5, 2, 12);
+    drawSpatter(ctx, { x: x - c.side * 4, y: c.y, size: 6, seed: Math.round(c.y), dx: -c.side * 0.5, color: '#7F1D1D' });
   }
   // His side table by the window (where he's at when you come in), a pile of it on the glass
   const tx = o.x2 - 60;
@@ -542,7 +542,7 @@ export const drawJunkieCorpse = (ctx: Ctx, c: JunkieCorpse, f: number) => {
   ctx.save();
   ctx.translate(c.x, c.y);
   ctx.scale(c.facing, 1);
-  const blood = (w: number) => { ctx.fillStyle = '#6B0000'; ctx.beginPath(); ctx.ellipse(0, -1, Math.min(w, 20 + (f - c.t0) * 0.6), 4, 0, 0, Math.PI * 2); ctx.fill(); };
+  const blood = (w: number) => drawBloodPool(ctx, 0, 2, Math.round(Math.min(w, 20 + (f - c.t0) * 0.6)), 545, { color: '#7A0A0A' });
   const body = (tint?: string) => {
     ctx.save(); if (tint) ctx.filter = tint;
     ctx.save(); ctx.translate(-20, -10); ctx.rotate(-Math.PI / 2); torso(ctx, 0, 0, 0, 'dazed'); ctx.restore();

@@ -10,6 +10,7 @@ import { ink } from '../npc/kit';
 import { drawBike } from '../../stages/tommy/streetDraw';
 import { drawChopperBike } from '../enemies/oscar';
 import { drawSki } from '../../stages/ernie/drawSea';
+import { drawBloodPool } from '../spatter';
 import {
   MeatheadDeath, CRASH_LAND, CRASH_V, CRASH_VX, CRASH_G, CRASH_PILE, CRASH_BLAST, SKID, skidAt, CRASH_SKIPS, CRASH_BALL_STOP,
   MEATHEAD_DEATH_FRAMES,
@@ -198,7 +199,7 @@ const drawCrash = (ctx: Ctx, state: GameState, d: MeatheadDeath, t: number, weap
         ctx.fillStyle = '#7F1D1D'; ctx.fillRect(x0, gLand - 3, x1 - x0, 3);
         ctx.fillStyle = '#5B0B0B'; for (let k = x0; k < x1; k += 6) ctx.fillRect(k, gLand - 4 + ((k / 6) % 2), 3, 1);
         const pool = clamp01((s - 18) / 50);
-        if (pool > 0) { ctx.fillStyle = '#5B0B0B'; ctx.beginPath(); ctx.ellipse(bx, gRest - 1, 10 + pool * 26, 2 + pool * 2, 0, 0, PI * 2); ctx.fill(); ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.ellipse(bx - F * 4, gRest - 1.5, 6 + pool * 18, 1 + pool * 1.5, 0, 0, PI * 2); ctx.fill(); }
+        if (pool > 0) drawBloodPool(ctx, bx, gRest + 1, Math.round(10 + pool * 26), 201, { dx: F * 0.6 });
       }
       // Him: in the air, then down and sliding on his face to a stop
       if (air) { const a = flight(state, d, t); him(ctx, state, d, weapon, a.mx, a.my, a.rot, 'scream'); }

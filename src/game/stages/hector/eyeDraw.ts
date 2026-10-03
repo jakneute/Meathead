@@ -8,6 +8,7 @@ import { drawFlameLicks } from '../../render/fx/fireball';
 import { CANVAS_WIDTH } from '../../../constants';
 import { COURSE } from './course';
 import { EyeFight, EYE_CX, EYE_CY, EYE_R, EYE_HP, eyePupil } from './eye';
+import { drawBloodPool } from '../../render/spatter';
 
 type Ctx = CanvasRenderingContext2D;
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
@@ -168,7 +169,7 @@ export const drawEyeCorpse = (ctx: Ctx, state: GameState, weapon: WeaponType, t0
     case 'BOULDER': {
       // Popped under a rock: a splat of white and red with the iris squeezed out the side
       ctx.fillStyle = '#F1F5F9'; ctx.beginPath(); ctx.ellipse(cx, cy + 50, EYE_R * 1.5, EYE_R * 0.35, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#B91C1C'; for (let i = 0; i < 8; i++) { ctx.beginPath(); ctx.ellipse(cx - 100 + i * 28, cy + 58, 10, 4, 0, 0, Math.PI * 2); ctx.fill(); }
+      drawBloodPool(ctx, cx, cy + 61, 108, 171, { color: '#B91C1C' });
       iris(ctx, cx + EYE_R * 1.3, cy + 44, EYE_R * 0.6, 1, f);
       ctx.fillStyle = '#78716C'; ctx.beginPath(); ctx.arc(cx, cy + 10, 40, 0, Math.PI * 2); ctx.fill();
       break;

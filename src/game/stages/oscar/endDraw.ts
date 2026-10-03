@@ -11,6 +11,7 @@ import type { GameState } from '../../core/state';
 import { GROUND_Y } from '../../../constants';
 import { drawFire } from '../../render/fx/fire';
 import { brickPattern, checker, pixelBlob } from '../../render/pixelArt';
+import { drawSpatter, drawSpatterLayer, Spatter } from '../../render/spatter';
 import { INK, ink } from '../../render/npc/kit';
 import { slab, column, letter } from '../barry/rooms';
 import { drawPlayer } from '../../render/player/player';
@@ -57,16 +58,36 @@ export const drawEndBack = (ctx: Ctx, state: GameState, en: Ending) => {
   if (en.smokers === 'paste') drawPaste(ctx, W, state.frame - en.splatAt);
 };
 
+/** Who the paste was: the layer it's painted on is theirs. */
+const PASTE = {};
+/**
+ * The two of them, hit from the left by the bike and burst against the bricks: a big splat each, thrown on up and
+ * along the wall the way the bike was going, more flung round them. Only on the bricks: not over the sign, the butt
+ * can, the door, or off the wall's end.
+ */
+const pasteSpatter = (W: number, k: number): Spatter[] => {
+  const top = Y - 200;
+  const wall = [W, top, 30, 200, W + 30, top, 120, 40, W + 30, top + 100, 120, 100, W + 150, top, 38, 200, W + 188, top, 52, 160];
+  const out: Spatter[] = [
+    { x: W + 34, y: Y - 78, size: 20 * k, seed: 11, dx: 0.7, dy: -0.35, clip: wall, color: '#A51D1D' },
+    { x: W + 62, y: Y - 52, size: 17 * k, seed: 12, dx: 0.75, dy: -0.15, clip: wall, color: '#B91C1C' },
+  ];
+  for (let i = 0; i < 26; i += 2) {
+    const r = (6 + hash(i) * 20) * k;
+    out.push({ x: W + 6 + hash(i + 3) * 70, y: Y - 20 - hash(i + 9) * 110, size: 2 + r * 0.32, seed: 40 + i, dx: 0.6, dy: -0.3, clip: wall, color: ['#991B1B', '#B91C1C', '#7F1D1D', '#C62828'][i % 4] });
+  }
+  // (and what ran down to the foot of the wall)
+  out.push({ on: 'floor', x: W + 40, y: Y, size: 26 * k, seed: 13, dx: 0.4, x1: W - 56, x2: W + 186, color: '#7F1D1D' });
+  return out;
+};
+
 /** Two of the union up against the wall: a red smear, a hard hat, a cigarette still smoking on the ground. */
 const drawPaste = (ctx: Ctx, W: number, since: number) => {
   const k = Math.min(1, since / 8);
   ctx.save();
-  for (let i = 0; i < 26; i++) {
-    const r = (6 + hash(i) * 20) * k;
-    const c = ['#7F1D1D', '#991B1B', '#B91C1C', '#450A0A'][i % 4], px = W + 6 + hash(i + 3) * 70, py = Y - 20 - hash(i + 9) * 110, rot = hash(i + 5) * 3;
-    ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(px, py, r, r * 0.6, rot, 0, Math.PI * 2); ctx.fill();
-    if (r > 10) { ctx.fillStyle = i % 4 === 3 ? '#7F1D1D' : '#450A0A'; ctx.beginPath(); ctx.ellipse(px + r * 0.15, py + r * 0.1, r * 0.55, r * 0.33, rot, 0, Math.PI * 2); ctx.fill(); }
-  }
+  // (painted the once, all of it there; till then, as it spreads)
+  if (k < 1) for (const sp of pasteSpatter(W, k)) drawSpatter(ctx, sp);
+  else drawSpatterLayer(ctx, PASTE, { x: W - 60, y: Y - 200, w: 300, h: 206 }, () => pasteSpatter(W, 1));
   // Drips running down it
   for (let i = 0; i < 8; i++) {
     const len = Math.round(Math.min(60, Math.max(0, since - 10) * 0.5) * hash(i + 20)), dx = W + 10 + i * 8, dy = Math.round(Y - 100 + hash(i) * 50);

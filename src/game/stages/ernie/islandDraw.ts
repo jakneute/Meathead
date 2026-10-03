@@ -22,6 +22,8 @@ import { faultAmount, collapseState, quakeAmount } from './quake';
 import { drawFault } from './faultDraw';
 import { DoorCrash, CRASH_X, CAVE_X, CAVE_W, NIGHT_TOUR, dropAmount, crashed, cavedIn, lookingUp, ceilingTear, hipsterY } from './doorCrash';
 import { drawTourist, TOURIST_LOOKS, drawHipsterDrilling, drawHipsterDead } from './drawSea';
+import { drawSpatter } from '../../render/spatter';
+import { stamp } from '../../render/stamp';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -263,9 +265,8 @@ const drawDoorCrash = (ctx: Ctx, state: GameState, dc: DoorCrash) => {
     // (blood: pools across the floor, a wet glint on each; splashed up the vault, running down)
     for (let i = 0; i < 12; i++) {
       const bx = x + (hash(i + 50) - 0.5) * 420, rw = 14 + hash(i + 51) * 20;
-      ctx.fillStyle = 'rgba(127, 29, 29, 0.85)'; ctx.beginPath(); ctx.ellipse(bx, Y + 1, rw, 3, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = 'rgba(69, 10, 10, 0.8)'; ctx.fillRect(bx - rw * 0.6, Y + 2, rw * 1.2, 1);
-      ctx.fillStyle = 'rgba(254, 202, 202, 0.5)'; ctx.fillRect(bx - rw * 0.4, Y, 3, 1);
+      // (thrown out from the blast, lying on the floor either side of the crater, not over it)
+      drawSpatter(ctx, { on: 'floor', x: bx, y: Y + 1, size: rw, seed: 950 + i, dx: Math.sign(bx - x) * 0.7, clip: [x - 400, Y - 40, 340, 60, x + 60, Y - 40, 340, 60] });
     }
     for (let i = 0; i < 8; i++) {
       const bx = Math.round(x + (hash(i + 60) - 0.5) * 460), by = Math.round(Y - 40 - hash(i + 61) * 150), sw = Math.round(5 + hash(i) * 8), run = Math.round(10 + hash(i + 3) * 14);
@@ -673,7 +674,28 @@ const fortBrick = (ctx: Ctx) => tilePattern(ctx, 'ernie-fort-brick', 52, 24, g =
 const drawCitadel = (ctx: Ctx, state: GameState) => {
   const x1 = Math.max(CITADEL[0], state.camera.x - 20), x2 = Math.min(CITADEL[1], state.camera.x + CANVAS_WIDTH + 20);
   if (x2 <= x1) return;
-  const top = state.camera.y - 20;
+  // The rock and the vaults don't change: painted the once in chunks CITADEL_CHUNK wide (from a little above the top of
+  // the view, in steps) and stamped; the water dripping down the brick live, over them
+  const top = Math.floor((state.camera.y - 20) / 400) * 400;
+  for (let cx = Math.floor(x1 / CITADEL_CHUNK) * CITADEL_CHUNK; cx < x2; cx += CITADEL_CHUNK) {
+    const a = Math.max(CITADEL[0], cx), b = Math.min(CITADEL[1], cx + CITADEL_CHUNK);
+    if (b <= a) continue;
+    // (each a little over into the next, so no seam shows where two meet between pixels)
+    stamp(ctx, `ernie-citadel-${cx}-${top}`, cx - 2, top, CITADEL_CHUNK + 4, Y - top, g => {
+      g.save(); g.beginPath(); g.rect(cx - 2, top, CITADEL_CHUNK + 4, Y - top); g.clip();
+      citadelStill(g, a, b, top);
+      g.restore();
+    });
+  }
+  for (let x = Math.floor((x1 - 20) / 200) * 200; x < x2; x += 200) {
+    const wx = Math.round(x + 10 + hash(x) * 10);
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.45)'; ctx.fillRect(wx + 1, VAULT + ((state.frame * 0.6 + hash(x + 5) * 200) % (Y - VAULT)), 1, 4);
+  }
+  const sx = CITADEL[0] + 60;
+  if (visible(state, sx, sx + 200)) signBoard(ctx, sx, VAULT + 10, 170, 22, 'CITADEL 1859: NO ENTRY', 7, '#1C1917', '#E7E5E4');
+};
+const CITADEL_CHUNK = 256;
+const citadelStill = (ctx: Ctx, x1: number, x2: number, top: number) => {
   // The bedrock over it all: strata with ragged edges, dithered one into the next, a stone bedded in here and there
   ctx.fillStyle = '#231813'; ctx.fillRect(x1, top, x2 - x1, VAULT - top);
   for (let y = Math.floor(top / 50) * 50; y < VAULT; y += 50) {
@@ -694,7 +716,8 @@ const drawCitadel = (ctx: Ctx, state: GameState) => {
   ctx.fillStyle = 'rgba(20, 10, 6, 0.35)'; ctx.fillRect(x1, VAULT, x2 - x1, 20);
   checker(ctx, x1, VAULT + 20, x2 - x1, 4, 'rgba(20, 10, 6, 0.35)');
   ctx.fillStyle = INK; ctx.fillRect(x1, VAULT - 2, x2 - x1, 3);
-  for (let x = Math.floor(x1 / 200) * 200; x < x2; x += 200) {
+  // (from the vault before: its lamp's light reaches over)
+  for (let x = Math.floor((x1 - 60) / 200) * 200; x < x2; x += 200) {
     const ax = x + 100, ay = VAULT + 90;
     // (the opening, its depth stepping back into the dark)
     ctx.fillStyle = '#1C120D';
@@ -722,11 +745,8 @@ const drawCitadel = (ctx: Ctx, state: GameState) => {
     const wx = Math.round(x + 10 + hash(x) * 10);
     ctx.fillStyle = 'rgba(30, 41, 59, 0.35)'; ctx.fillRect(wx, VAULT, 4, Y - VAULT);
     checker(ctx, wx - 2, VAULT, 2, Y - VAULT, 'rgba(30, 41, 59, 0.3)'); checker(ctx, wx + 4, VAULT + 30, 2, Y - VAULT - 30, 'rgba(30, 41, 59, 0.3)', 1);
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.45)'; ctx.fillRect(wx + 1, VAULT + ((state.frame * 0.6 + hash(x + 5) * 200) % (Y - VAULT)), 1, 4);
     ctx.fillStyle = 'rgba(74, 222, 128, 0.12)'; ctx.fillRect(wx - 3, Y - 30, 10, 30); checker(ctx, wx - 5, Y - 40, 14, 10, 'rgba(74, 222, 128, 0.12)');
   }
-  const sx = CITADEL[0] + 60;
-  if (visible(state, sx, sx + 200)) signBoard(ctx, sx, VAULT + 10, 170, 22, 'CITADEL 1859: NO ENTRY', 7, '#1C1917', '#E7E5E4');
 };
 
 // ---------------------------------------------------------------------------

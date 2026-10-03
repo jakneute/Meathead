@@ -7,6 +7,7 @@ import type { DeathFace } from './deathFace';
 import { bandedGradient, checker, brickPattern, steppedGlow, pixelBlob, hazeBands } from '../pixelArt';
 import { drawFire } from '../fx/fire';
 import { drawFlameLicks, drawFireball } from '../fx/fireball';
+import { drawBloodPool } from '../spatter';
 
 // The falls: the kill cam cutting to the bottom of whatever he's gone down (see player/deathAnim), screen space, over
 // everything. Quick, and nasty: wedged head first in a crevasse and frozen there, onto the rebar in a dug-up street,
@@ -31,14 +32,11 @@ const him = (ctx: Ctx, state: GameState, d: MeatheadDeath, x: number, y: number,
 /** Coming down: from above the top of the screen to y by FALL_HIT. */
 const dropTo = (t: number, y: number) => (t >= FALL_HIT ? y : -160 + (y + 160) * (t / FALL_HIT) ** 2);
 
-/** A pool of blood spreading at (x, y), r wide: dark, a wet highlight, a ragged dithered rim. */
+/** A pool of blood spreading at (x, y), r wide (see drawBloodPool). */
 export const pool = (ctx: Ctx, x: number, y: number, r: number) => {
   if (r < 2) return;
-  const h = Math.max(3, r * 0.16);
-  ctx.fillStyle = '#5B0B0B'; ctx.beginPath(); ctx.ellipse(x, y, r, h, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.ellipse(x - r * 0.08, y - h * 0.15, r * 0.82, h * 0.7, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = 'rgba(254, 202, 202, 0.45)'; ctx.fillRect(snap(x - r * 0.4), snap(y - h * 0.4), snap(r * 0.3), P);
-  for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; ctx.fillStyle = '#5B0B0B'; ctx.fillRect(snap(x + Math.cos(a) * (r + 3)), snap(y + Math.sin(a) * (h + 1)), P, P); }
+  // (on the floor its middle's on: its top half a pool's height over y)
+  drawBloodPool(ctx, x, y + Math.max(3, r * 0.16) * 0.5, Math.round(r), Math.round(x * 3 + y));
 };
 
 /** Blood splashed on a surface round (x, y): drops and streaks flung out from it, r far. */

@@ -16,6 +16,7 @@ import type { GameState } from '../../core/state';
 import { INK, ink, shaded, shadedTop, lite, dark, eye, limb } from '../npc/kit';
 import { featherWing } from './hector';
 import { drawPerson, type PersonSpec } from '../npc/person';
+import { drawBloodPool } from '../spatter';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -912,10 +913,7 @@ export const drawTenantDeath = (ctx: Ctx, e: Enemy, f: number) => {
     // Flat on the street: the pool spreading out under him, him squashed flat in it, a slipper off to one side
     const t = Math.min(1, (e.aiTimer || 0) / 60);
     const gy = e.pos.y + e.height;
-    ctx.fillStyle = 'rgba(69, 10, 10, 0.9)'; ctx.beginPath(); ctx.ellipse(cx, gy - 2, 27 + t * 30, 5.6 + t * 3, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'rgba(127, 29, 29, 0.95)'; ctx.beginPath(); ctx.ellipse(cx, gy - 2.4, 24 + t * 28, 4.4 + t * 2.6, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'rgba(248, 113, 113, 0.5)'; ctx.fillRect(cx - 14 - t * 16, gy - 5 - t * 2, 10 + t * 8, 1);
-    ctx.fillStyle = '#B91C1C'; for (let k = 0; k < 6; k++) ctx.fillRect(cx - 40 + k * 15, gy - 3 - (k % 2) * 2, 5, 3);
+    drawBloodPool(ctx, cx, gy + 1, Math.round(27 + t * 30), Math.round(cx), { color: '#7F1D1D' });
     ctx.translate(cx, gy - 5); ctx.scale(1.25, 0.55);
     for (const ly of [-4, 2.4]) { shaded(ctx, () => ctx.rect(-26, ly, 16, 6), bottom, -26, ly, 16, 6); ink(ctx, () => ctx.ellipse(-27, ly + 3, 3, 3, 0, 0, Math.PI * 2), skin, 1); } // legs, splayed
     shaded(ctx, () => ctx.roundRect(-12, -7, 24, 14, 3), top, -12, -7, 24, 14);

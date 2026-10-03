@@ -7,6 +7,7 @@ import { wall as fallWall, strata as fallStrata } from './fallCams';
 import { bandedGradient, hazeBands } from '../pixelArt';
 import { drawFlameLicks } from '../fx/fireball';
 import { airfallY, MEATHEAD_DEATH_FRAMES, LAVA_COOKOFF, FROZEN_SHATTER, ROADKILL_TWINKLE, overdoseRise, impaledFeet, PLUCKS, PLUCK_AWAY, PLUCK_FALL, pluckSway, pluckDark, SPIKE_HIT, MeatheadDeath } from '../../player/deathAnim';
+import { drawBloodPool } from '../spatter';
 
 // Meathead's own deaths (see player/deathAnim): him, drawn in his place, going whichever way it got him.
 
@@ -182,7 +183,7 @@ export const drawMeatheadDeath = (ctx: Ctx, state: GameState, weapon: WeaponType
       // Flat as a pancake (a bounce of it first), a twitch, and the pool under him
       const sq = t < 8 ? 0.45 - (t / 8) * 0.31 : 0.14 + (t > 34 && t < 40 ? Math.sin((t - 34) / 6 * Math.PI) * 0.04 : 0);
       const pool = clamp01(t / 50);
-      ctx.fillStyle = 'rgba(127, 29, 29, 0.85)'; ctx.beginPath(); ctx.ellipse(x, y, 20 + pool * 26, 2 + pool * 3, 0, 0, Math.PI * 2); ctx.fill();
+      drawBloodPool(ctx, x, y + 2, Math.round(20 + pool * 26), 185);
       about(ctx, x, y, 0, 1 + (1 - sq) * 0.9, sq);
       body(ctx, state, d, weapon);
       break;
@@ -250,7 +251,7 @@ export const drawMeatheadDeath = (ctx: Ctx, state: GameState, weapon: WeaponType
       ctx.restore();
       // (blood down the length of it below him, and pooling round its point)
       const pool = Math.min(1, t / 50);
-      ctx.fillStyle = 'rgba(127, 29, 29, 0.85)'; ctx.beginPath(); ctx.ellipse(x, floor, 6 + pool * 18, 1.5 + pool * 2, 0, 0, Math.PI * 2); ctx.fill();
+      drawBloodPool(ctx, x, floor + 1, Math.round(6 + pool * 18), 253);
       icicle(ctx, x, floor - 120, floor + 4);
       ctx.fillStyle = 'rgba(153, 27, 27, 0.8)'; ctx.fillRect(x - 2, feet - 64 - 10, 4, 64 + 10 + (floor - feet) * 0.9 + 4 * pool);
       ctx.fillStyle = '#7F1D1D'; ctx.fillRect(x - 3, feet - 70, 6, 4);
@@ -402,7 +403,7 @@ export const drawSpikeCam = (ctx: Ctx, state: GameState, width: number, height: 
   if (hit) {
     const run = Math.min(floorY - bodyY, (t - SPIKE_HIT) * 6);
     ctx.fillStyle = 'rgba(153, 27, 27, 0.9)'; ctx.fillRect(cx - 3, bodyY, 6, run); ctx.fillRect(cx + 6, bodyY + 4, 3, run * 0.7);
-    ctx.fillStyle = 'rgba(127, 29, 29, 0.85)'; ctx.beginPath(); ctx.ellipse(cx, floorY, Math.min(60, (t - SPIKE_HIT) * 1.5), 5, 0, 0, Math.PI * 2); ctx.fill();
+    drawBloodPool(ctx, cx, floorY + 2, Math.round(Math.min(60, (t - SPIKE_HIT) * 1.5)), 405);
   }
   ctx.save();
   ctx.translate(cx, bodyY - jerk); ctx.scale(2, 2); ctx.rotate(-d.facing * Math.PI / 2 + (hit ? 0 : Math.sin(t * 0.4) * 0.15));

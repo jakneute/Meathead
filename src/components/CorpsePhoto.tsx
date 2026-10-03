@@ -3,6 +3,7 @@ import { WeaponType } from '../types';
 import { drawBossCorpse } from '../game/render/bosses/corpses';
 import { drawBoss } from '../game/render/bosses';
 import { createBoss } from '../game/bosses/registry';
+import { drawBloodPool } from '../game/render/spatter';
 
 // The scene is drawn in game pixels, then scaled down to fit the photo
 const SCENE_W = 190, SCENE_H = 100, FLOOR = 86;
@@ -54,7 +55,7 @@ const drawFallen = (ctx: CanvasRenderingContext2D, bossId: string) => {
   // (lying along the floor: he's as long as he was tall)
   ctx.save();
   // the pool, and the chalk
-  ctx.fillStyle = 'rgba(127, 29, 29, 0.75)'; ctx.beginPath(); ctx.ellipse(SCENE_W / 2, FLOOR + 3, e.height * scale * 0.55, 5, 0, 0, Math.PI * 2); ctx.fill();
+  drawBloodPool(ctx, SCENE_W / 2, FLOOR + 5, Math.round(e.height * scale * 0.55), 57);
   // (standing, his feet are at 0,0 and he's up the -y; turned a quarter over, he's along the floor, head to the left,
   // and lifted by half his width so he's lying on it)
   ctx.translate(SCENE_W / 2 + (e.height * scale) / 2, FLOOR - (e.width * scale) / 2);

@@ -37,6 +37,7 @@ import { updateVictoryPee, peeFinished } from '../scenes/victoryPee';
 import { getBossDef, getArenaRight, getStageWidth } from '../bosses/registry';
 import { getStageLayout } from '../stages';
 import { groundLineAt, floorTopAt, runYAt } from './terrain';
+import { landOnFloor } from './splatSurface';
 
 const INTRO_JUMP_START = 80;
 const INTRO_JUMP_FRAMES = 60;
@@ -647,6 +648,7 @@ const updateParticles = (ctx: FrameContext) => {
   const { state, stageId } = ctx;
   // Tommy's arena floor is a sludge pool: blood just sinks into it
   const bloodSplatsOnFloor = !(state.arenaLocked && getBossDef(stageId)?.arena?.floorless);
+  const waterAt = getStageLayout(stageId)?.waterBodyAt;
   state.particles = state.particles.filter(p => {
     if (p.isSplat) {
       p.life--;
@@ -661,9 +663,8 @@ const updateParticles = (ctx: FrameContext) => {
         p.vel.x *= 0.99;
         const floor = groundLineAt(state.groundRuns, p.pos.x);
         if (bloodSplatsOnFloor && p.pos.y + p.size >= floor && p.pos.y + p.size < floor + 30) {
-          p.isSplat = true;
-          p.pos.y = floor - 2 - p.size / 2; // centred on the floor line
-          p.vel = { x: 0, y: 0 };
+          // (on the floor it's come down on, as far as that goes: or gone, come down in water or inside a wall)
+          if (!landOnFloor(state, p, floor, waterAt)) return false;
           p.life = Math.max(p.life, 150 + Math.random() * 90);
           return true;
         }
