@@ -782,10 +782,8 @@ const JAIL_BEGGING_ON = [
 ] as const;
 /** Or, with Dan up the wall right outside his window on a sword: the guy loses it. */
 const JAIL_SKEWERED = [
-  { who: 'prisoner', text: "DAN?! DAN! THERE'S A SWORD IN YOUR HEAD, DAN!" },
-  { who: 'prisoner', text: 'WHERE DID THAT EVEN COME FROM?! IT CAME OUT OF THE SKY!' },
-  { who: 'prisoner', text: "DAN, THE KEYS ARE ON YOUR BELT! YOU'RE RIGHT THERE! I CAN ALMOST REACH!" },
-  { who: 'prisoner', text: "THE TRUCK'S STILL COMING! WHY IS EVERYTHING HAPPENING?! I HAVE A TIMESHARE!" },
+  { who: 'prisoner', text: "DAN?! THERE'S A SWORD IN YOUR HEAD!" },
+  { who: 'prisoner', text: "THE TRUCK'S STILL COMING! I HAVE A TIMESHARE!" },
 ] as const;
 /** The latest the cab comes (if the begging's still going), and how long on the wreck after. */
 const JAIL_CAB_BY = 720, JAIL_AFTER = 120;
@@ -1101,7 +1099,7 @@ const crashIntoJail = (ctx: FrameContext, town: Town, talk: Talk) => {
   }
   town.sword = undefined;
   state.stageMemo.jailWrecked = 'yes';
-  queueLines(state, talk, [...(state.stageMemo.danSkewered ? [CARNAGE_LINE[isShat(state) ? 1 : 0]] : []), { who: 'meathead', text: "RIGGS, BUDDY... YOUR LIZARD'S GONNA HAVE TO FEND FOR HIMSELF." }], 50);
+  if (state.stageMemo.danSkewered) queueLines(state, talk, [{ ...CARNAGE_LINE[isShat(state) ? 1 : 0] }], 50);
 };
 
 /** The wreck's still burning (for the draw). */

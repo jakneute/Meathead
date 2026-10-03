@@ -1162,7 +1162,7 @@
  {
   "voice": "announcer",
   "text": "TIMESHARE: VACANT",
-  "from": "game/stages/dale/town.ts:1088"
+  "from": "game/stages/dale/town.ts:1086"
  },
  {
   "voice": "announcer",
@@ -4391,17 +4391,12 @@
  },
  {
   "voice": "dale.prisoner",
-  "text": "DAN, THE KEYS ARE ON YOUR BELT! YOU'RE RIGHT THERE! I CAN ALMOST REACH!",
-  "from": "game/stages/dale/town.ts:787"
- },
- {
-  "voice": "dale.prisoner",
   "text": "DAN! GIMME THE KEYS! STOP PLAYING! LET ME OUT!",
   "from": "game/stages/dale/town.ts:780"
  },
  {
   "voice": "dale.prisoner",
-  "text": "DAN?! DAN! THERE'S A SWORD IN YOUR HEAD, DAN!",
+  "text": "DAN?! THERE'S A SWORD IN YOUR HEAD!",
   "from": "game/stages/dale/town.ts:785"
  },
  {
@@ -4426,12 +4421,7 @@
  },
  {
   "voice": "dale.prisoner",
-  "text": "THE TRUCK'S STILL COMING! WHY IS EVERYTHING HAPPENING?! I HAVE A TIMESHARE!",
-  "from": "game/stages/dale/town.ts:788"
- },
- {
-  "voice": "dale.prisoner",
-  "text": "WHERE DID THAT EVEN COME FROM?! IT CAME OUT OF THE SKY!",
+  "text": "THE TRUCK'S STILL COMING! I HAVE A TIMESHARE!",
   "from": "game/stages/dale/town.ts:786"
  },
  {
@@ -13492,12 +13482,12 @@
  {
   "voice": "meathead",
   "text": "ONE SWORD. THREE GUYS. ONE JAIL. AND I'M STILL THE ONE WHO SHIT HIMSELF TODAY.",
-  "from": "game/stages/dale/town.ts:795"
+  "from": "game/stages/dale/town.ts:793"
  },
  {
   "voice": "meathead",
   "text": "ONE SWORD. THREE GUYS. ONE JAIL. NOW THAT'S A COMPOUND MOVEMENT.",
-  "from": "game/stages/dale/town.ts:794"
+  "from": "game/stages/dale/town.ts:792"
  },
  {
   "voice": "meathead",
@@ -13973,11 +13963,6 @@
   "voice": "meathead",
   "text": "RIDE THIS!",
   "from": "ENEMY_KILL_LINES"
- },
- {
-  "voice": "meathead",
-  "text": "RIGGS, BUDDY... YOUR LIZARD'S GONNA HAVE TO FEND FOR HIMSELF.",
-  "from": "game/stages/dale/town.ts:1104"
  },
  {
   "voice": "meathead",
