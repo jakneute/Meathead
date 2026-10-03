@@ -77,3 +77,43 @@ export const drawPitchArm = (ctx: Ctx, k: number, sx: number, sy: number) => {
     }
   }
 };
+
+// ---------------------------------------------------------------------------
+// The keg toss: the alien behind him, so it goes back over his head, a strongman throwing a keg for height. The rock
+// down between his knees in both hands, a deep squat, then drive: hips through, arms swung straight up and over, the
+// rock let go overhead and behind, his back arched right over after it, up on his toes.
+// ---------------------------------------------------------------------------
+
+/** How far he leans and sinks: the squat, then arched back over after the rock. */
+export const kegLean = (k: number) => {
+  const [rot, y] = key(k, [[0, 0.06, 4], [0.38, 0.12, 9], [R - 0.08, -0.12, -2], [R, -0.32, -4], [R + 0.2, -0.42, -3], [1, -0.2, 0]]);
+  return { rot, y };
+};
+
+/** Both legs the same: bent deep in the squat, then driving straight, up on the toes at the release. */
+export const drawKegLegs = (ctx: Ctx, k: number) => {
+  const [kx, ky, toe] = key(k, [[0, 6, -12, 0], [0.38, 11, -9, 0], [R - 0.08, 2, -12, 0.2], [R, 0, -12, 0.35], [1, 1, -11, 0.1]]);
+  drawLeg(ctx, [-4, -22], [-4 + kx * 0.6, ky], [-8, 0], toe, true);
+  drawLeg(ctx, [5, -22], [5 + kx, ky], [9, 0], toe, false);
+};
+
+/** Where the rock is (local), and so where both his hands are, through the toss. */
+const kegRock = (k: number) => key(k, [[0, 8, -16], [0.38, 10, -12], [R - 0.1, 10, -50], [R, -4, -74], [R + 0.2, -10, -72], [1, -6, -66]]);
+
+/** The free arm (shoulder at (-15, -45)): both hands on the rock all the way, and up over his head after it. */
+export const drawKegGloveArm = (ctx: Ctx, k: number) => {
+  const [hx, hy] = kegRock(k);
+  drawArm(ctx, -15, -45, (-15 + hx) / 2 - 3, (-45 + hy) / 2 + 4, hx - 4, hy, skinTone, skinShadow, skinHighlight);
+};
+
+/** The throwing arm (from its shoulder at (sx, sy)), on the other side of the rock; the rock drawn in his hands till it's gone. */
+export const drawKegArm = (ctx: Ctx, k: number, sx: number, sy: number) => {
+  const [hx, hy] = kegRock(k);
+  drawArm(ctx, sx, sy, (sx + hx) / 2 + 3, (sy + hy) / 2 + 4, hx + 4, hy, skinTone, skinShadow, skinHighlight, hx + 5);
+  if (k < R) drawRock(ctx, hx, hy, 9, k * 2, PLAYER_ROCK, 7);
+  // (the heave: a strained arc of air over his head as it goes)
+  if (k >= R - 0.06 && k < R + 0.14) {
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    for (let i = 0; i < 4; i++) { const a = -1.2 - i * 0.4, r = 30; ctx.fillRect(Math.round(Math.cos(a) * r), Math.round(-44 + Math.sin(a) * r), 4, 2); }
+  }
+};

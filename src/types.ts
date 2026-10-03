@@ -130,6 +130,8 @@ export interface Player extends Entity {
   throwLob?: boolean;
   /** The finale's boulder: the throw's a fastball pitch (the windup, the leg kick, the arm whipped over the top). */
   throwPitch?: boolean;
+  /** ...and the alien behind him: thrown backward over his head instead, like a strongman's keg toss. */
+  throwKeg?: boolean;
   invincibilityTimer: number;
   /** Knockback from taking damage; input is ignored while it runs. */
   pushbackTimer: number;

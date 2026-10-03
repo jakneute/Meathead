@@ -3,7 +3,7 @@ import { drawFilthShield } from './filthShield';
 import { BOULDER_THROW_FRAMES, GUN_COOLDOWN, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
 import { SLIDE_HOLD } from '../../combat/muzzle';
-import { pitchLean, drawPitchLegs, drawPitchArm, drawPitchGloveArm } from './pitch';
+import { pitchLean, drawPitchLegs, drawPitchArm, drawPitchGloveArm, kegLean, drawKegLegs, drawKegArm, drawKegGloveArm } from './pitch';
 import { PITCH_FRAMES } from '../../combat/finaleBuffs';
 import { drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive, drawStandingKick, drawPedalLegs, drawLedgeDrop } from './moves';
 import { KICK_POSE_FRAMES, LEDGE_DROP_FRAMES, FINALE_STAGE } from '../../../constants';
@@ -280,7 +280,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // ...and uphill, whichever way he's going: into the climb going up, back against it coming down (not the gun: below)
   const slopeLean = slopeLegs && isWalking ? Math.max(-1, Math.min(1, grade)) * (grade * Math.sign(p.vel.x) * p.facing > 0 ? 0.07 : 0.12) : 0;
   bodyRot += slopeLean;
-  if (pitchK >= 0) { const lean = pitchLean(pitchK); bodyRot = lean.rot * (isAirborne ? 0.5 : 1); bodyY = lean.y; }
+  if (pitchK >= 0) { const lean = p.throwKeg ? kegLean(pitchK) : pitchLean(pitchK); bodyRot = lean.rot * (isAirborne ? 0.5 : 1); bodyY = lean.y; }
 
   if (spinAroundCenter) {
     ctx.translate(0, bodyY - 32);
@@ -361,7 +361,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fill();
   } else if (pitchK >= 0) {
     // Pitching: the glove arm (over the torso, below)
-    freeArm = () => drawPitchGloveArm(ctx, pitchK);
+    freeArm = () => (p.throwKeg ? drawKegGloveArm : drawPitchGloveArm)(ctx, pitchK);
   } else if (isDucking) {
     // Crouched: the arm down at his side in front of him, the fist resting on his thigh (drawn over the torso, below)
     freeArm = () => drawArm(ctx, -15, -30, -17, -19, -13, -11, skinTone, skinShadow, skinHighlight);
@@ -416,7 +416,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   ctx.save();
   if (pitchK >= 0 && !isAirborne) {
     // Pitching: the leg kick, the stride, the back leg up behind him
-    drawPitchLegs(ctx, pitchK);
+    (p.throwKeg ? drawKegLegs : drawPitchLegs)(ctx, pitchK);
   } else if (isDivekicking) {
     // Rear leg bent at knee (tucked aerodynamic)
     ctx.fillStyle = pantsShadow;
@@ -1028,7 +1028,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       ctx.fillStyle = skinTone; ctx.fillRect(hx - 1, hy - 2, 7, 3); ctx.fillStyle = skinShadow; ctx.fillRect(hx - 1, hy + 1, 7, 1); // (the open palm)
     } else if (pitchK >= 0) {
       // Pitching: the throwing arm, the rock in his fist till it's gone
-      drawPitchArm(ctx, pitchK, armBaseX + 6, armBaseY - 3);
+      (p.throwKeg ? drawKegArm : drawPitchArm)(ctx, pitchK, armBaseX + 6, armBaseY - 3);
     } else {
     // Shoulder at the edge of his chest, elbow down by his side (pumping a little as he walks), the fist out at the gun
     drawArm(ctx, armBaseX + 6, armBaseY - 3, armBaseX + 4 + pump * 0.4, armBaseY + 8, armBaseX + 11 + pump, armBaseY + 6, skinTone, skinShadow, skinHighlight, armBaseX + 15 + pump);

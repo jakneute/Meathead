@@ -254,6 +254,8 @@ const finaleAlien = (state: GameState) => state.enemies.find(e => e.type === 'bo
 /** Where the rock leaves his hand, at the top of the arm's whip over (his hand up by his head, out in front). */
 const pitchHand = (state: GameState) => {
   const p = state.player;
+  // (a keg toss lets go up over his head, behind him)
+  if (p.throwKeg) return { x: p.pos.x + p.width / 2 - p.facing * 8, y: p.pos.y - 14 };
   return { x: p.pos.x + p.width / 2 + p.facing * 16, y: p.pos.y + 6 };
 };
 
@@ -263,7 +265,10 @@ const startPitch = (ctx: FrameContext) => {
   const { state } = ctx;
   const p = state.player;
   const alien = finaleAlien(state);
-  if (alien && !p.isTasing && !p.isFlaming) p.facing = alien.pos.x + alien.width / 2 < p.pos.x + p.width / 2 ? -1 : 1;
+  // (his back to the alien: he doesn't turn round for it; he heaves it back over his head, a strongman's keg toss)
+  const behind = !!alien && Math.sign(alien.pos.x + alien.width / 2 - (p.pos.x + p.width / 2)) === -p.facing;
+  p.throwKeg = behind;
+  if (alien && !behind && !p.isTasing && !p.isFlaming) p.facing = alien.pos.x + alien.width / 2 < p.pos.x + p.width / 2 ? -1 : 1;
   p.throwTimer = PITCH_FRAMES;
   p.throwPitch = true;
   p.throwLob = false;
