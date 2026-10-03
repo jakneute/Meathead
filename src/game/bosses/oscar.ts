@@ -666,13 +666,14 @@ export const zapCigarette = (ctx: FrameContext, cig: Projectile) => {
   fx.spawnExplosion(at, '#FFD700', 26, 0, 13);
   fx.playGunSound('boom');
   shakeScreen(state, 25, 12);
-  overloadTaser(ctx);
 
   const boss = findOscar(state);
   if (!boss) return;
   const face = { x: midX(boss), y: boss.pos.y + 20 };
-  // (it has to go off in his face: halfway across the room, it's just a cigarette going off, and whatever oil's under it)
+  // (it has to go off in his face: halfway across the room, it's just a cigarette going off, and whatever oil's under it;
+  // and the taser's none the worse for it: it only overloads on the one that gets him)
   if (Math.hypot(at.x - face.x, at.y - face.y) > OSCAR_CIGARETTE_COMBO_REACH) { landCigarette(ctx, at); return; }
+  overloadTaser(ctx);
   fx.spawnExplosion(face, '#212121', 25, 0, 12);
   fx.spawnExplosion(face, '#FF8C00', 15, 0, 10);
   boss.health -= OSCAR_CIGARETTE_COMBO_DAMAGE;
