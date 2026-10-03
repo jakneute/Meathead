@@ -423,7 +423,11 @@ const meatheadThumbsUp = (ctx: Ctx, cx: number, baseY: number, t: number) => {
   if (t % 30 < 10) { R(ctx, cx + 22, baseY - 74, 1, 3, C.white); R(ctx, cx + 21, baseY - 73, 3, 1, C.white); }
 };
 
-export const LAUNCH_TWINKLE = 58, IRIS_AT = 84, IRIS_LEN = 40;
+/** How much slower than it was he goes up and away (so you get to watch him go). */
+const FLIGHT_SLOW = 2.2;
+/** (his flight laid out at its old pace: f = t / FLIGHT_SLOW) */
+const TWINKLE_F = 58;
+export const LAUNCH_TWINKLE = Math.round(TWINKLE_F * FLIGHT_SLOW), IRIS_AT = LAUNCH_TWINKLE + 26, IRIS_LEN = 40;
 /** Where the iris closes: Meathead's face. */
 const IRIS = { x: 92, y: 66 };
 
@@ -437,11 +441,12 @@ export const drawLaunch = (ctx: Ctx, t: number) => {
   // The podium on its side
   R(ctx, 104, 108, 42, 16, RAMP.wood[3]); R(ctx, 104, 108, 42, 2, RAMP.wood[5]); ell(ctx, 124, 116, 6, 5, C.gold);
   // Him going: big across the lawn and up, smaller over the roof, a speck, gone
-  if (t < 22) trumpFlying(ctx, 130 + t * 3.4, 62 - t * 1.6, t);
-  else if (t < 42) { const k = (t - 22) / 20; trumpTumbling(ctx, 200 + k * 16, 26 - k * 10, t, 1); }
-  else if (t < LAUNCH_TWINKLE) { const k = (t - 42) / (LAUNCH_TWINKLE - 42); trumpTumbling(ctx, 216 + k * 8, 16 - k * 6, t, 2); }
+  const f = t / FLIGHT_SLOW;
+  if (f < 22) trumpFlying(ctx, 130 + f * 3.4, 62 - f * 1.6, t);
+  else if (f < 42) { const k = (f - 22) / 20; trumpTumbling(ctx, 200 + k * 16, 26 - k * 10, t, 1); }
+  else if (f < TWINKLE_F) { const k = (f - 42) / (TWINKLE_F - 42); trumpTumbling(ctx, 216 + k * 8, 16 - k * 6, t, 2); }
   else if (t < LAUNCH_TWINKLE + 18) twinkle(ctx, 224, 10, (t - LAUNCH_TWINKLE) / 18);
-  if (t < 40) meatheadPunched(ctx, 82, 124); else meatheadThumbsUp(ctx, IRIS.x, 124, t);
+  if (f < 40) meatheadPunched(ctx, 82, 124); else meatheadThumbsUp(ctx, IRIS.x, 124, t);
   reporters(ctx, t, 1);
   // The iris: black closing in round his face, in whole pixels, stopping on his grin
   if (t >= IRIS_AT) {
