@@ -17,10 +17,11 @@ import { updateEnemyDeaths } from '../enemies/deaths';
 import { updateVolcanoFinale } from '../scenes/volcanoFinale';
 import { calmPlayer, DEFAULT_SHAKE, shakeScreen, BOSS_FALL, STAIN_FRAMES, SMEAR_FRAMES, BLAST_FRAMES, OIL_SPLASH_FRAMES } from './state';
 import { playSound } from '../platform/audio';
-import { LEVEL_INTRO_STYLE } from '../../constants';
+import { LEVEL_INTRO_STYLE, FINALE_STAGE } from '../../constants';
 import { updateBarfStream, updateFlameSegments } from '../combat/weapons';
 import { updateBlood } from '../player/blood';
-import { say, isTalking, deathAnnouncing, stopDeathAnnouncer, announceDeath, silenceAll, MEATHEAD_INTRO_VOICE, MEATHEAD_VOICE } from '../platform/speech';
+import { getFinale } from '../stages/finale/state';
+import { say, isTalking, deathAnnouncing, stopDeathAnnouncer, announceDeath, silenceAll, MEATHEAD_INTRO_VOICE, MEATHEAD_VOICE, setNoRepeatScope } from '../platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../platform/skip';
 import { pickRandom, rectsOverlap, boundsOf, isOnScreen } from './utils';
 import { deathByCause, deathFallback, pluckDeathMessage } from './deathCause';
@@ -55,6 +56,8 @@ export const stepGame = (ctx: FrameContext, status: GameStatus, controls: Contro
   const { state } = ctx;
   // A paused game is frozen solid: no timers, no animation
   if (status === GameStatus.PAUSED) return false;
+  // (the finale: nobody says the same thing twice in a life of it)
+  setNoRepeatScope(ctx.stageId === FINALE_STAGE ? getFinale(state) : null);
   state.frame++;
   if (state.screenShakeTimer > 0 && --state.screenShakeTimer === 0) state.screenShakeMagnitude = DEFAULT_SHAKE;
 

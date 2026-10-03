@@ -39,7 +39,18 @@ export const MEATHEAD_MENU_VOICE: Voice = { id: 'meathead', pitch: 0.1, rate: 1.
 export const LINE_REPEAT_COOLDOWN_MS = 45_000;
 const lastSaidAt = new Map<string, number>();
 
-const isFresh = (line: string, now: number) => now - (lastSaidAt.get(line) ?? -Infinity) >= LINE_REPEAT_COOLDOWN_MS;
+/**
+ * A stretch where nobody says the same thing twice (the finale, one life of it): while it's set, a line already said in
+ * it isn't fresh, and won't be said again, however long ago it was. A new scope (a new life) starts it over.
+ */
+let noRepeatScope: object | null = null;
+let saidInScope = new Set<string>();
+export const setNoRepeatScope = (scope: object | null) => {
+  if (scope === noRepeatScope) return;
+  noRepeatScope = scope;
+  saidInScope = new Set();
+};
+const isFresh = (line: string, now: number) => !saidInScope.has(line) && now - (lastSaidAt.get(line) ?? -Infinity) >= LINE_REPEAT_COOLDOWN_MS;
 
 /** Picks a random line that hasn't been said recently (without claiming it). Null if none are available. */
 export const pickFreshLine = (lines: readonly string[]): string | null => {
@@ -288,21 +299,22 @@ const busy = () => {
  * talking, or it was said too recently), in which case nothing is shown either.
  */
 export const say = (text: string, voice: Voice, priority: SpeechPriority, hooks: LineHooks): boolean => {
+  if (saidInScope.has(text)) return false;
   if (!hooks.always && !isFresh(text, Date.now())) return false;
   const line: Line = { text, voice, queuedAt: Date.now(), casual: priority === 'casual', ...hooks };
   if (priority === 'urgent') {
     cancelSpeech();
     start(line);
-    return true;
+    if (noRepeatScope) saidInScope.add(text); return true;
   }
   // (a recorded line playing outside the queue, the announcer or a radio, has the floor too: nobody starts over it)
   if (!busy() && queue.length === 0 && outside === 0) {
     start(line);
-    return true;
+    if (noRepeatScope) saidInScope.add(text); return true;
   }
   if (priority === 'queue' && queue.length < MAX_QUEUE && !queue.some(q => q.text === text)) {
     queue.push(line);
-    return true;
+    if (noRepeatScope) saidInScope.add(text); return true;
   }
   return false;
 };
@@ -375,9 +387,12 @@ export const announce = (text: string, chance = ANNOUNCE_CHANCE, always = false)
   const now = Date.now();
   if (!always && (Math.random() > chance || now - lastAnnounced < ANNOUNCE_GAP_MS)) return false;
   if (!hasClip(ANNOUNCER_VOICE.id, text)) return false;
+  // (in the finale, not the same call twice in a life)
+  if (saidInScope.has(text)) return false;
   // (never over anybody: if someone's talking, or Meathead's only just finished, it just doesn't happen)
   if (isTalking() || (!always && now - meatheadDoneAt < KILL_VOICE_GAP_MS)) return false;
   lastAnnounced = now;
+  if (noRepeatScope) saidInScope.add(text);
   announcerDoneAt = now + 3000; // (till it says it's done)
   speak(text, ANNOUNCER_VOICE, { onDone: () => { announcerDoneAt = Date.now(); } });
   return true;
