@@ -31,7 +31,7 @@ import { FINALE_LINES } from '../../content/dialogue';
 import { shakeScreen } from '../core/state';
 import {
   inFinale, FINALE_SHOTGUN_PELLETS, FINALE_FLAME_RANGE, FINALE_FLAME_SEGMENTS, FINALE_FLAME_WIDTH, FINALE_FLAME_GROWTH, FINALE_FLAME_SIZE_CAP_DIST,
-  FINALE_OIL_SPLASH_RADIUS, FINALE_OIL_SPLASH_DAMAGE, PITCH_FRAMES, PITCH_RELEASE_AT, PITCH_SPEED, PITCH_SIZE, PITCH_LIFE, FINALE_BARF_FRAMES,
+  FINALE_OIL_SPLASH_RADIUS, FINALE_OIL_SPLASH_DAMAGE, FINALE_OIL_COAT_RADIUS, PITCH_FRAMES, PITCH_RELEASE_AT, PITCH_SPEED, PITCH_SIZE, PITCH_LIFE, FINALE_BARF_FRAMES,
 } from './finaleBuffs';
 
 /** The bits of this frame's input that weapons care about. */
@@ -663,11 +663,24 @@ export const explodeOilRocket = (ctx: FrameContext, pos: Vector2, rocketVelX?: n
   const radius = big ? FINALE_OIL_SPLASH_RADIUS : OIL_ROCKET_SPLASH_RADIUS;
   if (big) bigOilSplash(ctx, pos, radius);
 
+  const oilable = (e: Enemy) => e.type !== 'boss' || ctx.stageId === TOXIC_TOMMY || !!getBossDef(ctx.stageId)?.oilable;
   state.enemies.forEach(e => {
     if (e.health <= 0 || e.isBlownAway) return;
     const dx = (e.pos.x + e.width / 2) - pos.x;
     const dy = (e.pos.y + e.height / 2) - pos.y;
-    if (dx * dx + dy * dy >= radius * radius) return;
+    // (the finale: measured to the nearest of him, not his middle: the alien's a big target)
+    const d2 = big
+      ? Math.max(0, Math.abs(dx) - e.width / 2) ** 2 + Math.max(0, Math.abs(dy) - e.height / 2) ** 2
+      : dx * dx + dy * dy;
+    if (d2 >= radius * radius) {
+      // The finale: out past the blast, the oil off it still coats whoever it reaches (a miss still greases them up)
+      if (big && d2 < FINALE_OIL_COAT_RADIUS * FINALE_OIL_COAT_RADIUS && oilable(e) && !isMidBoss(e) && e.kind !== 'moose') {
+        if (!e.isOiled) fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 10 }, 'OILED!', false, '#A8A29E');
+        e.isOiled = true;
+        e.oiledTimer = Math.max(e.oiledTimer ?? 0, OIL_ROCKET_OILED_DURATION);
+      }
+      return;
+    }
 
     if (e.type === 'boss') {
       if (e.hitCooldown && e.hitCooldown > 0) return;

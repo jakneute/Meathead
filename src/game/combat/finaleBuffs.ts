@@ -29,6 +29,8 @@ export const FINALE_OIL_SPLASH_RADIUS = 260;
 /** ...and what it does to an agent caught in it (usually OIL_ROCKET_SPLASH_DAMAGE): a miss into a wall or the floor
  * still kills whoever's near it, shield man and all. */
 export const FINALE_OIL_SPLASH_DAMAGE = 200;
+/** ...and past that, out to here, the oil off it still coats whoever it doesn't kill (the alien too). */
+export const FINALE_OIL_COAT_RADIUS = 420;
 
 /** Boulder, pitched: the windup and follow-through (frames), when in it the rock leaves his hand (frames left), its
  * speed, how hard it homes in on the alien, its size and how long it flies at most. */
