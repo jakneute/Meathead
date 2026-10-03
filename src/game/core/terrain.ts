@@ -81,7 +81,10 @@ export const stanceGround = (runs: GroundRun[], x: number, w: number, feetY: num
   let top = Infinity, l: number | undefined, r: number | undefined;
   for (const run of runs) {
     if (run.x2 < x0 || run.x1 > x1) continue;
-    top = Math.min(top, runYAt(run, Math.max(x0, run.x1)), runYAt(run, Math.min(x1, run.x2)));
+    const runTop = Math.min(runYAt(run, Math.max(x0, run.x1)), runYAt(run, Math.min(x1, run.x2)));
+    // (a run well down under him isn't what he's stood on: a floor a level below, under the one he's on)
+    if (runTop - feetY > COLUMN_W * 2) continue;
+    top = Math.min(top, runTop);
     if (cx - STANCE >= run.x1 && cx - STANCE <= run.x2) l = runYAt(run, cx - STANCE) - feetY;
     if (cx + STANCE >= run.x1 && cx + STANCE <= run.x2) r = runYAt(run, cx + STANCE) - feetY;
   }
