@@ -8,7 +8,7 @@ import {
   FLAMETHROWER_GROWTH, FLAMETHROWER_SHRINK, FLAMETHROWER_AIM_LERP, FLAMETHROWER_AIM_DEG, FLAMETHROWER_NOZZLE_GAP,
   FLAMETHROWER_SEGMENT_LIFETIME, FLAMETHROWER_SEGMENT_SIZE, FLAMETHROWER_AMMO_EVERY, GML_SCALE, ALT_FLAME_DAMAGE_SCALE, ALT_FLAME_RANGE_SCALE,
   TSUNAMI_COOLDOWN, COLORS, PARTICLE_PALETTES,
-  TASER_RANGE, CANVAS_WIDTH, GUN_COOLDOWN, GUN_VELOCITY, FINALE_STAGE,
+  TASER_RANGE, CANVAS_WIDTH, CANVAS_HEIGHT, GUN_COOLDOWN, GUN_VELOCITY, FINALE_STAGE,
   NEEDLE_DAMAGE, NEEDLE_COOLDOWN, SLUDGE_COOLDOWN, FILTH_SHIELD_DURATION, SLUDGE_DAMAGE,
   OIL_ROCKET_DAMAGE, OIL_ROCKET_COOLDOWN, OIL_ROCKET_SPLASH_RADIUS, OIL_ROCKET_SPLASH_DAMAGE,
   OIL_ROCKET_OILED_DURATION, OIL_ROCKET_NUKE_DAMAGE, OIL_ROCKET_NUKE_BOSS_DAMAGE, OIL_ROCKET_NUKE_BOSS_WEAKNESS_DAMAGE, OIL_ROCKET_NUKE_RADIUS,
@@ -358,6 +358,26 @@ const fizzle = (ctx: FrameContext, justPressed: boolean) => {
   if (state.frame % 12 === 0) playSound('glug');
 };
 
+/** How often a jet spits off the finale's flamethrower, and how far it'll go for someone. */
+const FLAME_JET_EVERY = 9, FLAME_JET_REACH = 640;
+const spitFlameJet = (ctx: FrameContext, nozzle: { x: number; y: number }, dir: { x: number; y: number }) => {
+  const { state } = ctx;
+  const rt = getFinale(state);
+  if (!rt) return;
+  const jets = (rt.flameJets ??= []);
+  if (jets.length >= 6) return;
+  const taken = new Set(jets.map(j => j.id));
+  const view = state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
+  const target = state.enemies
+    .filter(e => e.type !== 'boss' && e.health > 0 && !e.isBlownAway && !e.isOnFire && e.burntAt !== state.frame && !taken.has(e.id)
+      && e.pos.x + e.width > view.x && e.pos.x < view.x + view.w && Math.hypot(e.pos.x + e.width / 2 - nozzle.x, e.pos.y + e.height / 2 - nozzle.y) < FLAME_JET_REACH)
+    .sort((a, b) => Math.hypot(a.pos.x - nozzle.x, a.pos.y - nozzle.y) - Math.hypot(b.pos.x - nozzle.x, b.pos.y - nozzle.y))[0];
+  if (!target) return;
+  // (off the nozzle at an angle, up or down off the stream, then round onto him)
+  const a = Math.atan2(dir.y, dir.x) + (Math.random() < 0.5 ? -1 : 1) * (0.5 + Math.random() * 0.4);
+  jets.push({ id: target.id, x: nozzle.x, y: nozzle.y, vx: Math.cos(a) * 7, vy: Math.sin(a) * 7, t: 0 });
+};
+
 export const updateFlamethrower = (ctx: FrameContext, input: WeaponInput, alt = false) => {
   const { state, fx, cheats, currentWeapon } = ctx;
   const { player } = state;
@@ -435,6 +455,8 @@ export const updateFlamethrower = (ctx: FrameContext, input: WeaponInput, alt = 
         life: FLAMETHROWER_SEGMENT_LIFETIME, alpha: 1, density: 1 - i / segments, alt, big: finale || undefined,
       });
     }
+    // (the finale's: little jets spitting off the nozzle as it goes, each curling off after an agent the stream isn't on)
+    if (big && state.frame % FLAME_JET_EVERY === 0) spitFlameJet(ctx, nozzle, dir);
     const maxRange = alt ? FLAMETHROWER_MAX_RANGE * ALT_FLAME_RANGE_SCALE : big ? FINALE_FLAME_RANGE : FLAMETHROWER_MAX_RANGE;
     if (range < maxRange) player.flameRange = range + (maxRange - range) * (big ? FINALE_FLAME_GROWTH : FLAMETHROWER_GROWTH);
     else player.flameRange = range + (maxRange - range) * FLAMETHROWER_SHRINK;
@@ -535,7 +557,7 @@ export const updateFlameSegments = (ctx: FrameContext) => {
 };
 
 /** One flame segment touching an enemy. */
-const burnEnemy = (ctx: FrameContext, e: Enemy, scale = 1) => {
+export const burnEnemy = (ctx: FrameContext, e: Enemy, scale = 1) => {
   const { state, fx } = ctx;
   const { player } = state;
 

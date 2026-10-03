@@ -67,6 +67,8 @@ export interface FinaleRuntime {
   said: Record<string, boolean>;
   /** Chunks off a pitched boulder that's hit him, each homing in on an agent (who it's for, where it is). */
   chunks?: { id: string; x: number; y: number; vx: number; vy: number; t: number }[];
+  /** Little jets of flame off the flamethrower's nozzle, each homing in on an agent the stream isn't already burning. */
+  flameJets?: { id: string; x: number; y: number; vx: number; vy: number; t: number }[];
   /** Meathead's nudges to use his weapons (hits since the last, when, how many said). */
   nudge?: { gun: number; melee: number; at: number; said: number };
 

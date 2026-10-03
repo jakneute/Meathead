@@ -26,7 +26,7 @@ import { stickNeedle, BOSS_NEEDLE } from '../combat/needles';
 import { startEnemyDeath } from '../enemies/deaths';
 import { getFinale, alienPace, FinaleRuntime } from '../stages/finale/state';
 import { ROOM_L, ROOM_R, ROOM_TOP, ROOM_MID, FLOOR } from '../stages/finale/geometry';
-import { oiledIntoFire, detonateNuke } from '../combat/weapons';
+import { oiledIntoFire, detonateNuke, burnEnemy } from '../combat/weapons';
 import { spillOil } from './oscar';
 import { alienMuzzle as figureMuzzle, ALIEN } from '../scenes/alienLook';
 import { hitBoss } from './registry';
@@ -132,6 +132,7 @@ const update = (ctx: FrameContext, boss: Enemy) => {
   for (const k of ['slowT', 'stunT', 'pushT', 'flash'] as const) if (rt[k] > 0) rt[k]--;
   rt.reel *= 0.9;
   flyChunks(ctx, rt);
+  flyJets(ctx, rt);
   // (no breather, ever: the usual flicker after a hit's never wanted)
   boss.hitCooldown = 0;
   // Needles work their way out of him (a couple of seconds each), and drop out
@@ -381,7 +382,7 @@ const plead = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
  * A pitched boulder breaking on him: chunks splinter off it, each one homing in on a Secret Service man on screen (up
  * to eight), and whoever one finds, it kills.
  */
-const CHUNKS_MAX = 8;
+const CHUNKS_MAX = 6;
 /** How long he burns (still oiled) after a grease fire: much longer than an ordinary lighting. */
 const GREASE_FIRE_FRAMES = 600;
 const splinter = (ctx: FrameContext, rt: FinaleRuntime, x: number, y: number) => {
@@ -396,7 +397,7 @@ const splinter = (ctx: FrameContext, rt: FinaleRuntime, x: number, y: number) =>
     const a = -Math.PI / 2 + (i - (targets.length - 1) / 2) * 0.5;
     list.push({ id: e.id, x, y, vx: Math.cos(a) * 7, vy: Math.sin(a) * 7, t: 0 });
   });
-  for (let i = 0; i < 14; i++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 9, y: -1 - Math.random() * 6 }, life: 24, color: i % 2 ? '#A8A29E' : '#78716C', size: 3 + Math.random() * 4, chunk: true, grav: 0.4 });
+  for (let i = 0; i < 10; i++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 9, y: -1 - Math.random() * 6 }, life: 24, color: i % 2 ? '#A8A29E' : '#78716C', size: 3 + Math.random() * 4, chunk: true, grav: 0.4 });
 };
 const flyChunks = (ctx: FrameContext, rt: FinaleRuntime) => {
   const { state, fx } = ctx;
@@ -418,6 +419,32 @@ const flyChunks = (ctx: FrameContext, rt: FinaleRuntime) => {
     fx.blowAwayEnemy(e, { x: Math.sign(c.vx || 1) * 16, y: -10 }, 'boulder_kill', Math.sign(c.vx) || 1, 1.4);
     fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 20 }, 'SHRAPNEL!', true, '#D6D3D1');
     playSound('crunch', 0.6);
+    return false;
+  });
+};
+
+/** The flamethrower's little homing jets: a curl of fire out to whoever each's after, and he's alight. */
+const flyJets = (ctx: FrameContext, rt: FinaleRuntime) => {
+  const { state } = ctx;
+  if (!rt.flameJets?.length) return;
+  rt.flameJets = rt.flameJets.filter(j => {
+    const e = state.enemies.find(q => q.id === j.id);
+    j.t++;
+    if (!e || e.health <= 0 || e.isBlownAway || e.isOnFire || j.t > 70) return false;
+    const tx = e.pos.x + e.width / 2, ty = e.pos.y + e.height / 2;
+    const dx = tx - j.x, dy = ty - j.y, d = Math.hypot(dx, dy) || 1;
+    const sp = Math.min(16, 6 + j.t * 0.6), turn = Math.min(1, 0.1 + j.t * 0.025);
+    j.vx += (dx / d * sp - j.vx) * turn; j.vy += (dy / d * sp - j.vy) * turn;
+    j.x += j.vx; j.y += j.vy;
+    // (a little tongue of fire: a hot head, a trail cooling off behind it)
+    state.particles.push({ pos: { x: j.x - 4, y: j.y - 4 }, vel: { x: 0, y: 0 }, life: 3, color: '#FEF3C7', size: 7, alpha: 0.95 });
+    state.particles.push({ pos: { x: j.x - 3, y: j.y - 3 }, vel: { x: -j.vx * 0.15, y: -j.vy * 0.15 - 0.3 }, life: 10, color: j.t % 2 ? '#F97316' : '#FDBA74', size: 6, alpha: 0.85 });
+    if (j.t % 3 === 0) state.particles.push({ pos: { x: j.x, y: j.y }, vel: { x: (Math.random() - 0.5), y: -0.8 }, life: 16, color: '#DC2626', size: 4, alpha: 0.6 });
+    if (d > 14) return true;
+    // Caught him: alight
+    burnEnemy(ctx, e);
+    if (e.health > 0 && !e.isBlownAway) e.isOnFire = true;
+    playSound('ignite', 0.5);
     return false;
   });
 };
