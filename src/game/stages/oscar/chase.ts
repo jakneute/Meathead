@@ -217,7 +217,8 @@ const loop = (state: GameState, ch: Chase) => {
   // (not Oscar, sat waiting in his room: he stays put)
   for (const e of state.enemies) { if (e.type === 'boss' || placeOf(e.pos.x) !== 'chase') continue; e.pos.x += d; if (e.homeX !== undefined && !isChaseVehicle(e.kind)) e.homeX += d; }
   for (const q of state.projectiles) q.pos.x += d;
-  for (const q of state.pickups) q.pos.x += d;
+  // (only what's on the road: the rest of the stage's pickups, the refill outside the bar and the rest, stay put)
+  for (const q of state.pickups) if (placeOf(q.pos.x) === 'chase') q.pos.x += d;
   for (const q of state.particles) q.pos.x += d;
   for (const s of state.flameSegments) s.x += d;
   for (const w of ch.wrecks) w.x += d;
