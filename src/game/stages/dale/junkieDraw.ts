@@ -1,7 +1,7 @@
 // Chuco and his office, drawn. Him: wiry, shaved head, goatee, a mouthful of
 // gold, bloodshot eyes out on stalks, a white tank top under gold chains, baggy
 // khakis, a gold-plated pistol in his waistband. His poses (twitching after you,
-// reaching for your collar, the gold pistol, face down in a pile of blue, out of
+// reaching for your collar, the gold pistol, face down in a pile of crystal, out of
 // his mind, head down flat out at the wall, seeing stars). His office: wood
 // paneling, the window out onto the yard, his desk, the filing cabinet, the
 // ceiling fan, the coat closet with the snitch in it, and what they all end up
@@ -166,8 +166,8 @@ const poseBent = (ctx: Ctx, f: number, lean: number) => {
   arm(ctx, -8, -70, Math.PI * 0.35, 24, true);
   torso(ctx, -36, lean, f, 'snort');
   ctx.save(); ctx.translate(0, -36); ctx.rotate(lean); arm(ctx, 10, -34, 1.2, 22); ctx.restore();
-  // Sniffing: a little cloud of blue at his nose
-  if (f % 16 < 8) { ctx.fillStyle = 'rgba(125, 211, 252, 0.7)'; ctx.beginPath(); ctx.arc(34, -30 + lean * 10, 3 + (f % 8) * 0.4, 0, Math.PI * 2); ctx.fill(); }
+  // Sniffing: a little cloud of it at his nose
+  if (f % 16 < 8) { ctx.fillStyle = 'rgba(245, 245, 244, 0.7)'; ctx.beginPath(); ctx.arc(34, -30 + lean * 10, 3 + (f % 8) * 0.4, 0, Math.PI * 2); ctx.fill(); }
 };
 
 const poseReach = (ctx: Ctx, f: number, lunging: boolean) => {
@@ -353,7 +353,7 @@ export const drawOffice = (ctx: Ctx, state: GameState, fight: JunkieFight) => {
   column(ctx, tx - 26, floor - 36, 4, 36, '#CA8A04'); column(ctx, tx + 22, floor - 36, 4, 36, '#CA8A04');
   ink(ctx, () => ctx.rect(tx - 30, floor - 40, 60, 5), 'rgba(186, 230, 253, 0.8)', 1);
   ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; ctx.fillRect(tx - 28, floor - 39, 20, 1);
-  if (fight.phase === 'waiting' || fight.phase === 'intro') { ink(ctx, () => { ctx.moveTo(tx - 12, floor - 40); ctx.lineTo(tx - 2, floor - 47); ctx.lineTo(tx + 8, floor - 40); ctx.closePath(); }, '#7DD3FC', 0.8); ctx.fillStyle = '#E0F2FE'; ctx.fillRect(tx - 5, floor - 45, 2, 2); }
+  if (fight.phase === 'waiting' || fight.phase === 'intro') { ink(ctx, () => { ctx.moveTo(tx - 12, floor - 40); ctx.lineTo(tx - 2, floor - 47); ctx.lineTo(tx + 8, floor - 40); ctx.closePath(); }, '#E7E5E4', 0.8); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(tx - 5, floor - 45, 2, 2); }
   // His things (and how much they've got left in them, while there's a fight on)
   for (const n of PROPS) drawProp(ctx, state, fight, n);
   if (fight.phase === 'fight') for (const n of PROPS) propBar(ctx, fight, n, f);
@@ -374,12 +374,12 @@ const propBar = (ctx: Ctx, fight: JunkieFight, n: PropName, f: number) => {
   ctx.fillStyle = flash ? '#FFFFFF' : PROP_COLORS[n]; ctx.fillRect(x, y, w * pr.hp, 4);
 };
 
-/** A baggie of it: blue, glittering. */
+/** A baggie of it: plain crystal meth, glassy white shards, glittering. */
 const drawStash = (ctx: Ctx, x: number, y: number, f: number) => {
-  ink(ctx, () => ctx.roundRect(x - 10, y - 10, 20, 14, 3), 'rgba(224, 242, 254, 0.85)', 1);
-  ctx.fillStyle = '#38BDF8'; ctx.fillRect(x - 7, y - 5, 14, 8);
-  ctx.fillStyle = '#0284C7'; ctx.fillRect(x - 7, y + 1, 14, 2);
-  ctx.fillStyle = '#E0F2FE'; for (let i = 0; i < 4; i++) ctx.fillRect(x - 6 + i * 4, y - 4 + (i % 2) * 3, 2, 2);
+  ink(ctx, () => ctx.roundRect(x - 10, y - 10, 20, 14, 3), 'rgba(245, 245, 244, 0.85)', 1);
+  ctx.fillStyle = '#D6D3D1'; ctx.fillRect(x - 7, y - 5, 14, 8);
+  ctx.fillStyle = '#A8A29E'; ctx.fillRect(x - 7, y + 1, 14, 2);
+  ctx.fillStyle = '#FFFFFF'; for (let i = 0; i < 4; i++) ctx.fillRect(x - 6 + i * 4, y - 4 + (i % 2) * 3, 2, 2);
   ink(ctx, () => ctx.rect(x - 10, y - 11, 20, 2), '#DC2626', 0.6);
   if (f % 20 < 10) { ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.fillRect(x + 4 + (f % 3), y - 14, 2, 2); }
 };
@@ -407,8 +407,8 @@ const drawProp = (ctx: Ctx, state: GameState, fight: JunkieFight, n: PropName) =
         column(ctx, box.x + 14, box.y - 16, 3, 16, '#A16207');
         ink(ctx, () => { ctx.moveTo(box.x + 6, box.y - 16); ctx.lineTo(box.x + 9, box.y - 23); ctx.lineTo(box.x + 21, box.y - 23); ctx.lineTo(box.x + 24, box.y - 16); ctx.closePath(); }, '#15803D', 1);
         ctx.fillStyle = '#4ADE80'; ctx.fillRect(box.x + 10, box.y - 22, 6, 1);
-        ink(ctx, () => { ctx.moveTo(box.x + 40, box.y); ctx.lineTo(box.x + 52, box.y - 8); ctx.lineTo(box.x + 64, box.y); ctx.closePath(); }, '#7DD3FC', 0.8);
-        ctx.fillStyle = '#E0F2FE'; ctx.fillRect(box.x + 48, box.y - 5, 3, 2);
+        ink(ctx, () => { ctx.moveTo(box.x + 40, box.y); ctx.lineTo(box.x + 52, box.y - 8); ctx.lineTo(box.x + 64, box.y); ctx.closePath(); }, '#E7E5E4', 0.8);
+        ctx.fillStyle = '#FFFFFF'; ctx.fillRect(box.x + 48, box.y - 5, 3, 2);
         slab(ctx, box.x + 74, box.y - 8, 16, 8, '#65A30D', 1); slab(ctx, box.x + 78, box.y - 14, 16, 6, '#65A30D', 1);
         ctx.fillStyle = '#ECFCCB'; ctx.fillRect(box.x + 80, box.y - 12, 3, 2); ctx.fillRect(box.x + 76, box.y - 6, 3, 3);
         slab(ctx, box.x + 96, box.y - 6, 12, 6, '#1C1917', 1); ctx.fillStyle = '#DC2626'; ctx.fillRect(box.x + 99, box.y - 4, 2, 1);
@@ -434,8 +434,8 @@ const drawProp = (ctx: Ctx, state: GameState, fight: JunkieFight, n: PropName) =
         ctx.fillStyle = '#111827'; ctx.font = '3px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText(labels[i], 0, -90 + i * 25);
       }
       ctx.restore(); ctx.textAlign = 'left';
-      if (pr.state === 'going' && pr.t < 60) for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * 60, y: o.floor - Math.random() * 80 }, vel: { x: pr.dir * (2 + Math.random() * 3), y: -Math.random() * 3 }, life: 20, color: i % 2 ? '#93C5FD' : '#E0F2FE', size: 3 + Math.random() * 4 });
-      if (pr.state !== 'intact') { ctx.fillStyle = 'rgba(147, 197, 253, 0.35)'; ctx.beginPath(); ctx.ellipse(cx, o.floor - 2, 90, 5, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#F8FAFC'; for (let i = 0; i < 5; i++) ctx.fillRect(cx - 60 + i * 26, o.floor - 4 - (i % 2) * 2, 12, 3); }
+      if (pr.state === 'going' && pr.t < 60) for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * 60, y: o.floor - Math.random() * 80 }, vel: { x: pr.dir * (2 + Math.random() * 3), y: -Math.random() * 3 }, life: 20, color: i % 2 ? '#D6D3D1' : '#FFFFFF', size: 3 + Math.random() * 4 });
+      if (pr.state !== 'intact') { ctx.fillStyle = 'rgba(231, 229, 228, 0.35)'; ctx.beginPath(); ctx.ellipse(cx, o.floor - 2, 90, 5, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#F8FAFC'; for (let i = 0; i < 5; i++) ctx.fillRect(cx - 60 + i * 26, o.floor - 4 - (i % 2) * 2, 12, 3); }
       break;
     }
     case 'fan': {
@@ -449,7 +449,7 @@ const drawProp = (ctx: Ctx, state: GameState, fight: JunkieFight, n: PropName) =
         ink(ctx, () => ctx.ellipse(0, 0, 12, 7, 0, 0, Math.PI * 2), '#78350F', 1);
         ctx.fillStyle = '#A16207'; ctx.fillRect(-8, -4, 8, 2);
         // The package taped on top of it
-        ink(ctx, () => ctx.rect(-7, -12, 14, 6), '#38BDF8', 0.8); ctx.fillStyle = '#BAE6FD'; ctx.fillRect(-6, -11, 5, 1);
+        ink(ctx, () => ctx.rect(-7, -12, 14, 6), '#D6D3D1', 0.8); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(-6, -11, 5, 1);
         ink(ctx, () => ctx.rect(-9, -10, 18, 2), '#9CA3AF', 0.5);
         ink(ctx, () => { ctx.arc(0, 8, 6, 0, Math.PI); ctx.closePath(); }, '#FEF9C3', 0.8);
         ctx.restore();

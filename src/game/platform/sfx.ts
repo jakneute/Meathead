@@ -401,8 +401,10 @@ const SFX: Record<string, SfxDef> = {
     make: () => { const hp = highpass(), lp = lowpass(); return render(2.6, t => hp(rnd(), 2500) * ex(t, 30) * 1.2 + lp(rnd(), 1600 * ex(t, 2) + 70) * ex(t, 1.1) * (0.7 + 0.3 * Math.sin(TAU * 3 * t)) * 1.4); },
   },
   roar: {
-    gain: 0.5, vary: 1, gap: 400,
-    make: () => { const bp = bandpass(); let ph = 0; return render(1.1, t => { ph += (95 + 12 * Math.sin(TAU * 6 * t)) / SFX_SR; return Math.tanh(3 * (((ph % 1) * 2 - 1) + rnd() * 0.3)) * 0.5 + bp(rnd(), 700, 0.6) * 0.5 * Math.min(1, t / 0.08) * ex(t, 1.8); }); },
+    // Chuco heading for the wall: a growl under his breath, not a buzz (the saw's low-passed, barely driven, eased in
+    // and out, shorter)
+    gain: 0.28, vary: 1, gap: 400,
+    make: () => { const bp = bandpass(), lp = lowpass(); let ph = 0; return render(0.75, t => { ph += (95 + 12 * Math.sin(TAU * 6 * t)) / SFX_SR; const env = Math.min(1, t / 0.12) * Math.min(1, (0.75 - t) / 0.25); return (lp(Math.tanh(1.2 * (((ph % 1) * 2 - 1) + rnd() * 0.3)), 420) * 0.8 + bp(rnd(), 600, 0.6) * 0.3 * ex(t, 1.8)) * env; }); },
   },
   bellow: {
     // The moose

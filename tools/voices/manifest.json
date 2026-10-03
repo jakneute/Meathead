@@ -4141,7 +4141,7 @@
  },
  {
   "voice": "dale.junkie",
-  "text": "IN THE FILING CABINET?! WHO FILES THEIR BLUE?! ...ME! I DO! THANK YOU!",
+  "text": "IN THE FILING CABINET?! WHO FILES THEIR CRYSTAL?! ...ME! I DO! THANK YOU!",
   "from": "game/stages/dale/junkie.ts:226"
  },
  {
@@ -4176,7 +4176,7 @@
  },
  {
   "voice": "dale.junkie",
-  "text": "NOBODY STANDS BETWEEN ME AND MY BLUE!",
+  "text": "NOBODY STANDS BETWEEN ME AND MY CRYSTAL!",
   "from": "game/stages/dale/junkie.ts:226"
  },
  {
@@ -4246,7 +4246,7 @@
  },
  {
   "voice": "dale.junkie",
-  "text": "THE FAN?! WHEN DID I PUT BLUE IN THE FAN?! BLESS YOU, MAN!",
+  "text": "THE FAN?! WHEN DID I PUT CRYSTAL IN THE FAN?! BLESS YOU, MAN!",
   "from": "game/stages/dale/junkie.ts:226"
  },
  {
@@ -10472,7 +10472,7 @@
  {
   "voice": "meathead",
   "text": "FUCK YEAH! LET'S GO!",
-  "from": "App.tsx:480"
+  "from": "App.tsx:484"
  },
  {
   "voice": "meathead",
@@ -12477,7 +12477,7 @@
  {
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
-  "from": "App.tsx:480"
+  "from": "App.tsx:484"
  },
  {
   "voice": "meathead",
@@ -12637,7 +12637,7 @@
  {
   "voice": "meathead",
   "text": "LET'S FUCKING GO!",
-  "from": "App.tsx:480"
+  "from": "App.tsx:484"
  },
  {
   "voice": "meathead",
@@ -13382,7 +13382,7 @@
  {
   "voice": "meathead",
   "text": "OH HELL YEAH!",
-  "from": "App.tsx:480"
+  "from": "App.tsx:484"
  },
  {
   "voice": "meathead",
@@ -15437,7 +15437,7 @@
  {
   "voice": "meathead",
   "text": "The field? The union? The bar? Water under the bridge, pal. Burning water. Now let's talk about YOU. What are you driving these days?",
-  "from": "game/core/update.ts:195"
+  "from": "game/core/update.ts:196"
  },
  {
   "voice": "meathead",
@@ -15957,7 +15957,7 @@
  {
   "voice": "meathead",
   "text": "Two jet skis, sonny. Two tour groups. And now my front hall's caved in. I schedule my quakes AROUND the tour groups!",
-  "from": "game/core/update.ts:195"
+  "from": "game/core/update.ts:196"
  },
  {
   "voice": "meathead",
@@ -16532,12 +16532,12 @@
  {
   "voice": "meathead",
   "text": "You blew my whole power room, man. With Gary in it. My... roommate. Eleven years. One bedroom. We were ROOMMATES, man.",
-  "from": "game/core/update.ts:195"
+  "from": "game/core/update.ts:196"
  },
  {
   "voice": "meathead",
   "text": "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!",
-  "from": "game/core/update.ts:195"
+  "from": "game/core/update.ts:196"
  },
  {
   "voice": "meathead",
@@ -16577,7 +16577,7 @@
  {
   "voice": "meathead",
   "text": "You crashed my VIP lounge, bro. Those were investors. Now they're a geothermal feature.",
-  "from": "game/core/update.ts:195"
+  "from": "game/core/update.ts:196"
  },
  {
   "voice": "meathead",
@@ -16607,12 +16607,12 @@
  {
   "voice": "meathead",
   "text": "You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.",
-  "from": "game/core/update.ts:195"
+  "from": "game/core/update.ts:196"
  },
  {
   "voice": "meathead",
   "text": "You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I'M the terrorist?",
-  "from": "game/core/update.ts:195"
+  "from": "game/core/update.ts:196"
  },
  {
   "voice": "meathead",
@@ -16657,7 +16657,7 @@
  {
   "voice": "meathead",
   "text": "You put the neighbors down. You knocked over my water tower and surfed it through the block. That took WEEKS to fill!",
-  "from": "game/core/update.ts:195"
+  "from": "game/core/update.ts:196"
  },
  {
   "voice": "meathead",
@@ -16767,7 +16767,7 @@
  {
   "voice": "meathead",
   "text": "YOU'RE TOAST.",
-  "from": "game/core/update.ts:195"
+  "from": "game/core/update.ts:196"
  },
  {
   "voice": "meathead",

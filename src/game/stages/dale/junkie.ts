@@ -172,8 +172,8 @@ const SPELL: Record<PropName, string> = {
 /** A stash out of one of his things: he'd forgotten all about it, and he's touched you found it for him. */
 const FOUND: Record<PropName, string[]> = {
   desk: ["MY DESK STASH! I FORGOT I HAD A DESK STASH! THANKS, MUSCLES!", "I BEEN LOOKING FOR THAT SINCE TUESDAY! YOU'RE A GOOD FRIEND, FED!"],
-  cabinet: ["IN THE FILING CABINET?! WHO FILES THEIR BLUE?! ...ME! I DO! THANK YOU!", "I THOUGHT THAT DRAWER WAS TAXES! BEST TAXES EVER!"],
-  fan: ["THE FAN?! WHEN DID I PUT BLUE IN THE FAN?! BLESS YOU, MAN!", "SO THAT'S WHY IT WOBBLED! THANK YOU, MUSCLES!"],
+  cabinet: ["IN THE FILING CABINET?! WHO FILES THEIR CRYSTAL?! ...ME! I DO! THANK YOU!", "I THOUGHT THAT DRAWER WAS TAXES! BEST TAXES EVER!"],
+  fan: ["THE FAN?! WHEN DID I PUT CRYSTAL IN THE FAN?! BLESS YOU, MAN!", "SO THAT'S WHY IT WOBBLED! THANK YOU, MUSCLES!"],
   closet: ["HE WAS HOLDING FOR ME THE WHOLE TIME?! THAT SNITCH! ...THANKS FOR ICING HIM!", "I FORGOT HE HAD IT ON HIM! I FORGOT HE WAS IN THERE! YOU'RE THE BEST, FED!"],
 };
 const LINES = {
@@ -182,7 +182,7 @@ const LINES = {
   grab: ["COME HERE, MUSCLES!", "GOTCHA! HUH?! HUH?!"],
   throw: ["GET OUTTA MY OFFICE!", "AND STAY OUT!"],
   gun: ["YOU LIKE MY GUN?! IT'S GOLD!", "SHE'S GOLD AND SHE'S LOADED!"],
-  slap: ["OUTTA MY WAY!", "MOVE, MEATHEAD!", "NOBODY STANDS BETWEEN ME AND MY BLUE!"],
+  slap: ["OUTTA MY WAY!", "MOVE, MEATHEAD!", "NOBODY STANDS BETWEEN ME AND MY CRYSTAL!"],
   high: ["OHHHH YEAHHHH! I CAN SEE THROUGH TIME!", "I'M A FREIGHT TRAIN, BABY!"],
   dazed: ["...THE WALL STARTED IT.", "WHO PUT THAT THERE?", "I'M OKAY! I'M OKAY!"],
   /** Off to headbutt a wall: what the wall did to him. */
@@ -362,7 +362,7 @@ export const updateJunkie = (ctx: FrameContext, m: Enemy, fight: JunkieFight, ta
     }
     case 'snort':
       m.vel.x = 0;
-      if (m.aiTimer % 10 === 0) for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: mx + m.facing! * 10, y: o.floor - 8 }, vel: { x: (Math.random() - 0.5) * 2, y: -1 - Math.random() * 2 }, life: 20, color: i % 2 ? '#7DD3FC' : '#E0F2FE', size: 2 + Math.random() * 2 });
+      if (m.aiTimer % 10 === 0) for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: mx + m.facing! * 10, y: o.floor - 8 }, vel: { x: (Math.random() - 0.5) * 2, y: -1 - Math.random() * 2 }, life: 20, color: i % 2 ? '#D6D3D1' : '#FFFFFF', size: 2 + Math.random() * 2 });
       if (m.aiTimer > SNORT) { start(m, 'high'); junkieSays(state, talk, LINES.high); shakeScreen(state, 8, 4); } // (after his thank-you, if he's still at it)
       break;
     case 'high':
@@ -698,7 +698,7 @@ const revealStash = (ctx: FrameContext, fight: JunkieFight, n: PropName, talk: T
   const x = n === 'cabinet' ? pr.x : n === 'desk' ? o.desk : n === 'fan' ? o.fan : o.closet - 30;
   const y = n === 'fan' ? pr.y - 20 : n === 'closet' ? o.floor - 90 : o.floor - 40;
   fight.stashes.push({ x, y, vy: -3, landed: false, taken: false, from: n });
-  for (let i = 0; i < 16; i++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 6, y: -Math.random() * 6 }, life: 30, color: i % 2 ? '#38BDF8' : '#BAE6FD', size: 2 + Math.random() * 3 });
+  for (let i = 0; i < 16; i++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 6, y: -Math.random() * 6 }, life: 30, color: i % 2 ? '#D6D3D1' : '#F5F5F4', size: 2 + Math.random() * 3 });
   if (n === 'closet') { ctx.fx.spawnDeathShower({ x: o.closet, y: o.floor - 100 }, 0, 0.6); ctx.fx.spawnDamageNumber({ x: o.closet - 60, y: o.floor - 180 }, 'SNITCHES GET SHATTERED!', true, '#7DD3FC'); }
   void talk;
 };
