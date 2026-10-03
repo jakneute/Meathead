@@ -8,7 +8,7 @@ import {
   AMMO_PICKUP_PCT, HEALTH_PICKUP_SMALL, HEALTH_PICKUP_LARGE, PLAYER_STUN_DURATION, PARTICLE_PALETTES,
   SPOKEN_TEXT_HOLD, CANVAS_HEIGHT, GROUND_Y,
 } from '../../constants';
-import { BOSS_DIALOGUE, CHECKPOINT_CALLOUTS, DOOR_KICK_LINES } from '../../content/dialogue';
+import { BOSS_DIALOGUE, CHECKPOINT_CALLOUTS, DOOR_KICK_LINES, DOOR_KICK_LINES_SHAT } from '../../content/dialogue';
 import { FrameContext } from './context';
 import { Controls } from '../platform/input';
 import { respawn, getStartX } from './level';
@@ -339,7 +339,7 @@ const updateBossTransition = (ctx: FrameContext) => {
         k.hitAt = k.t;
         fx.playGunSound('punch');
         // (and he's got something to say about it: it's said, all of it, before the boss gets a word in)
-        const line = DOOR_KICK_LINES[stageId ?? ''];
+        const line = (isShat(state) ? DOOR_KICK_LINES_SHAT : DOOR_KICK_LINES)[stageId ?? ''];
         if (line) {
           const shown = say(line, MEATHEAD_VOICE, 'urgent', {
             always: true,

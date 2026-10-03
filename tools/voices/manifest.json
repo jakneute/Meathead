@@ -262,7 +262,7 @@
  {
   "voice": "announcer",
   "text": "CODE BROWN!",
-  "from": "game/player/gut.ts:69"
+  "from": "game/player/gut.ts:74"
  },
  {
   "voice": "announcer",
@@ -9356,6 +9356,11 @@
  },
  {
   "voice": "meathead",
+  "text": "...WAS THAT THE DOOR? OR WAS THAT ME? THAT WAS ME.",
+  "from": "game/core/update.ts:344"
+ },
+ {
+  "voice": "meathead",
   "text": "...WHAT WAS THAT?",
   "from": "game/stages/artie/tease.ts:20"
  },
@@ -10841,6 +10846,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DOORS ARE FOR PEOPLE WHO CAN'T KICK. ...SHOULDN'T HAVE KICKED.",
+  "from": "game/core/update.ts:344"
+ },
+ {
+  "voice": "meathead",
   "text": "DOWN GOES THE KID!",
   "from": "RANGE_KILL_LINES"
  },
@@ -10948,6 +10958,11 @@
   "voice": "meathead",
   "text": "EIGHTEEN FIFTY-NINE. GOOD RUN.",
   "from": "DOOR_KICK"
+ },
+ {
+  "voice": "meathead",
+  "text": "EIGHTEEN FIFTY-NINE. GOOD RUN. SPEAKING OF RUNS.",
+  "from": "game/core/update.ts:344"
  },
  {
   "voice": "meathead",
@@ -13181,6 +13196,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M ON THE LIST NOW. UNDER \"DO NOT SEAT.\"",
+  "from": "game/core/update.ts:344"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M ON THE LIST, YOU BALD FUCK!",
   "from": "HAZARD_HURT"
  },
@@ -14286,6 +14306,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NO SMOKING. GOOD. NOBODY LIGHT A MATCH NEAR ME.",
+  "from": "game/core/update.ts:344"
+ },
+ {
+  "voice": "meathead",
   "text": "NO SMOKING. IT KILLS. SO DO I.",
   "from": "DOOR_KICK"
  },
@@ -14691,6 +14716,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OW. ...THAT DOOR WAS LIVE. NOW SO ARE MY SHORTS.",
+  "from": "game/core/update.ts:344"
+ },
+ {
+  "voice": "meathead",
   "text": "PAL. PAL. EXTENDED WARRANTY. ON YOU. BUMPER TO BUMPER.",
   "from": "game/bosses/oscar.ts:217"
  },
@@ -14993,6 +15023,11 @@
   "voice": "meathead",
   "text": "RATED FOR HURRICANES. NOT FOR ME.",
   "from": "DOOR_KICK"
+ },
+ {
+  "voice": "meathead",
+  "text": "RATED FOR HURRICANES. NOT FOR WHAT JUST SHIFTED IN MY PANTS.",
+  "from": "game/core/update.ts:344"
  },
  {
   "voice": "meathead",
@@ -15613,6 +15648,11 @@
   "voice": "meathead",
   "text": "SIGNED FOR IT. WITH MY FOOT.",
   "from": "DOOR_KICK"
+ },
+ {
+  "voice": "meathead",
+  "text": "SIGNED FOR IT. WITH MY FOOT. LEFT A LITTLE SOMETHING EXTRA.",
+  "from": "game/core/update.ts:344"
  },
  {
   "voice": "meathead",

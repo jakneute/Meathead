@@ -1634,6 +1634,17 @@ export const DOOR_KICK_LINES: Record<string, string> = {
   'Oily Oscar': 'NO SMOKING. IT KILLS. SO DO I.',
   'Drug Trade Dale': 'SIGNED FOR IT. WITH MY FOOT.',
 };
+/** ...and with his pants shat (a high kick in those: it squelches). */
+export const DOOR_KICK_LINES_SHAT: Record<string, string> = {
+  'Artie Avalanche': "DOORS ARE FOR PEOPLE WHO CAN'T KICK. ...SHOULDN'T HAVE KICKED.",
+  'Victor Volcano': "I'M ON THE LIST NOW. UNDER \"DO NOT SEAT.\"",
+  'Ernie Earthquake': 'EIGHTEEN FIFTY-NINE. GOOD RUN. SPEAKING OF RUNS.',
+  'Hector Hurricane': 'RATED FOR HURRICANES. NOT FOR WHAT JUST SHIFTED IN MY PANTS.',
+  'Toxic Tommy': "...WAS THAT THE DOOR? OR WAS THAT ME? THAT WAS ME.",
+  'Blackout Barry': 'OW. ...THAT DOOR WAS LIVE. NOW SO ARE MY SHORTS.',
+  'Oily Oscar': "NO SMOKING. GOOD. NOBODY LIGHT A MATCH NEAR ME.",
+  'Drug Trade Dale': 'SIGNED FOR IT. WITH MY FOOT. LEFT A LITTLE SOMETHING EXTRA.',
+};
 
 export const GUT_LINES = {
   GRUMBLE: [
