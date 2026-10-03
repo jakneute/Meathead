@@ -721,7 +721,16 @@ const drawProp = (ctx: Ctx, state: GameState, pr: Prop) => {
       ctx.fillStyle = 'rgba(240, 249, 255, 0.5)'; ctx.fillRect(x + 90, y, 20, 1); ctx.fillRect(x + 124, y + 1, 10, 1);
       break;
     case 'car': drawCar(ctx, x, y, pr.w ?? 150, pr.v ?? 0, false); break;
-    case 'burningcar': drawCar(ctx, x, y, 150, 3, true); drawFlames(ctx, x + 20, y - 60, 110, f); break;
+    case 'burningcar': {
+      // A wreck, burning the way a car does: up out of the cabin (no wider than its roof), out of the engine under the
+      // hood, a lick at the tank end, the glow of it in the empty windows
+      drawCar(ctx, x, y, 150, 3, true);
+      ctx.fillStyle = 'rgba(249, 115, 22, 0.55)'; ctx.fillRect(x + 48, y - 60, 30, 18); ctx.fillRect(x + 82, y - 60, 20, 18);
+      drawFire(ctx, x + 75, y - 62, 58, 64, f, { seed: Math.floor(x), smoke: 1 });
+      drawFire(ctx, x + 122, y - 40, 32, 36, f, { seed: Math.floor(x) + 7, glow: 0.5 });
+      drawFire(ctx, x + 22, y - 38, 20, 22, f, { seed: Math.floor(x) + 13, glow: 0.4 });
+      break;
+    }
     case 'rubble': for (let k = 0; k < 8; k++) slab(ctx, x + k * 18, y - 6 - (k % 3) * 8, 20, 10, k % 3 === 1 ? '#7C4A3A' : '#57534E', 1); break;
     case 'dumpster': {
       // A dumpster: steel, ribbed, its lid down, NO DUMPING stenciled on it, casters, a bag slung on top
