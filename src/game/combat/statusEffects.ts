@@ -132,6 +132,9 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
     player.taserTargetId = null;
     return;
   }
+  // (got hold of something behind him, Oscar's cigarette flicked over his head, say: he turns round to it, so the
+  // beam comes out of the gun at it, not out of his back)
+  if (Math.abs(dx) > 6 && Math.sign(dx) !== player.facing) player.facing = Math.sign(dx) as 1 | -1;
 
   if ((target as Projectile).isCigarette) {
     zapCigarette(ctx, target as Projectile);
