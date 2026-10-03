@@ -100,6 +100,8 @@ const update = (ctx: FrameContext, boss: Enemy) => {
 
 /** The original attack: a big jump toward Meathead that sends a boulder rolling at him. */
 const jumpAndRoll = (ctx: FrameContext, boss: Enemy) => {
+  // (the push off: a heave and the air going past him)
+  playSound('whoosh', 0.7, -4);
   boss.vel.y = -12;
   boss.vel.x = (ctx.state.player.pos.x - boss.pos.x) * 0.03 * (1 + pace(boss) * JUMP_REACH_RAMP);
   // (off the top of the boulder he's longer in the air than off the floor: the same distance over that longer time,
@@ -175,6 +177,8 @@ export const ernieQuake = (ctx: FrameContext, x: number) => {
   const { state } = ctx;
   playSound('rumble', 0.85, -7);
   playSound('thud', 0.9, -9);
+  // (and the hit itself, up where you can hear it on any speakers: the boom's mostly felt)
+  playSound('slam', 0.9, -3);
   for (const dir of [-1, 1]) {
     for (let i = 0; i < 14; i++) {
       state.particles.push({ pos: { x: x + dir * i * 4, y: FLOOR_Y - 4 - Math.random() * 6 }, vel: { x: dir * (6 + Math.random() * 3), y: -0.4 - Math.random() * 1.2 }, life: 34 + Math.random() * 14, color: i % 3 === 0 ? 'rgba(214, 211, 209, 0.75)' : 'rgba(168, 162, 158, 0.65)', size: 7 + Math.random() * 9 });
