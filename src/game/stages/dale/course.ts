@@ -161,9 +161,9 @@ const build = () => {
   d.ledge(9070, Y - 110, 90, 'rack');
   d.spawn('sicario', 9110, Y - 110);
   d.belt(7850 + W_EXT, 190, Y - 50, -2.8, 110);
-  // (up on the belt: it's in the way of the floor)
-  d.pickup(7990 + W_EXT, Y - 80, 'large_health'); d.pickup(8030 + W_EXT, Y - 80, 'large_ammo');
-  // Up the stairs to the office
+  // Up the stairs to the office (the refill near the top of them, just outside Chuco's door)
+  // (past the checkpoint on them, so they're there again after dying to him)
+  d.pickup(8320 + W_EXT, Y - 208 - 30, 'large_health'); d.pickup(8348 + W_EXT, Y - 230 - 30, 'large_ammo');
   d.ground(8060 + W_EXT, 8360 + W_EXT, Y, Y - 240, 'stairs');
   d.ground(8360 + W_EXT, 9120 + W_EXT, Y - 240, Y - 240, 'office');
 
