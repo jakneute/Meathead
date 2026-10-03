@@ -475,7 +475,10 @@ const drawCurioShop = (ctx: Ctx, x: number, hit: boolean) => {
   ctx.fillStyle = '#8B6B3D'; for (let k = 0; k < 6; k++) ctx.fillRect(x + 52 + k * 36, Y - 176 + (k % 2) * 6, 22, 2);
   ink(ctx, hole, '#1C1917', 1.5);
   ctx.save(); ctx.beginPath(); hole(); ctx.clip(); ctx.fillStyle = '#0C0A09'; ctx.fillRect(x + 40, Y - 200, 250, 60); ctx.restore();
-  for (let i = 0; i < 8; i++) slab(ctx, x + 50 + i * 30, Y - 12 - (i % 3) * 8, 22, 10, '#A0703F', 1);
+  // (the rubble: a row of chunks down on the floor, and a few more lying across the gaps between them, on them, not
+  // up in the air)
+  for (let i = 0; i < 8; i++) slab(ctx, x + 50 + i * 30, Y - 10, 22, 10, '#A0703F', 1);
+  for (let i = 0; i < 7; i += 2) slab(ctx, x + 65 + i * 30 + (i % 4 ? 3 : -2), Y - 19, 22, 9, i % 4 ? '#B07D48' : '#946638', 1);
   ink(ctx, () => ctx.rect(x + 90, Y - 30, 14, 12), '#F472B6', 1); ink(ctx, () => ctx.rect(x + 200, Y - 26, 18, 10), '#22D3EE', 1); // souvenirs everywhere
   ctx.fillStyle = 'rgba(191, 219, 254, 0.8)'; for (let k = 0; k < 9; k++) ctx.fillRect(x + 64 + k * 23, Y - 3 - (k % 2) * 2, 3, 2);
 };
