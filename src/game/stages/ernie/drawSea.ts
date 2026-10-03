@@ -440,8 +440,12 @@ const drawRamp = (ctx: Ctx, x: number, f: number) => {
   ctx.fillStyle = '#C2410C'; ctx.fillRect(x - 70, Y - 1, 240, 3);
   ctx.fillStyle = INK; for (let k = x - 40; k < x + 170; k += 40) ctx.fillRect(k, Y - 8, 1, 10);
   checker(ctx, x - 74, Y + 1, 250, 2, 'rgba(224, 242, 254, 0.6)');
-  // (the banner on its posts)
-  for (const bx of [x + 24, x + 162]) { ctx.fillStyle = INK; ctx.fillRect(bx - 1, Y - 170, 6, 60); ctx.fillStyle = '#78716C'; ctx.fillRect(bx, Y - 170, 4, 60); ctx.fillStyle = '#A8A29E'; ctx.fillRect(bx, Y - 170, 1, 60); }
+  // (the banner on its posts, each post planted on the deck where it stands, a bracket bolted down at its foot)
+  for (const bx of [x + 24, x + 152]) {
+    const deck = Y - Math.min(110, ((bx + 2 - (x - 60)) / 200) * 110) - 3, h = deck - (Y - 170);
+    ctx.fillStyle = INK; ctx.fillRect(bx - 1, Y - 170, 6, h); ctx.fillStyle = '#78716C'; ctx.fillRect(bx, Y - 170, 4, h); ctx.fillStyle = '#A8A29E'; ctx.fillRect(bx, Y - 170, 1, h);
+    ctx.fillStyle = INK; ctx.fillRect(bx - 4, deck - 3, 12, 5); ctx.fillStyle = '#57534E'; ctx.fillRect(bx - 3, deck - 2, 10, 3); ctx.fillStyle = '#A8A29E'; ctx.fillRect(bx - 3, deck - 2, 10, 1);
+  }
   ctx.fillStyle = INK; ctx.fillRect(x + 19, Y - 171, 152, 32);
   ctx.fillStyle = '#FDE047'; ctx.fillRect(x + 20, Y - 170, 150, 30);
   ctx.fillStyle = '#FEF9C3'; ctx.fillRect(x + 20, Y - 170, 150, 2);
