@@ -410,17 +410,35 @@ const twinkle = (ctx: Ctx, x: number, y: number, k: number) => {
   if (r > 4) { R(ctx, x - 2, y - 2, 1, 1, C.white); R(ctx, x + 2, y + 2, 1, 1, C.white); R(ctx, x + 2, y - 2, 1, 1, C.white); R(ctx, x - 2, y + 2, 1, 1, C.white); }
 };
 
-/** Meathead turned to the camera with a thumbs up (his left), grinning, medal on. */
-const meatheadThumbsUp = (ctx: Ctx, cx: number, baseY: number, t: number) => {
-  meatheadStanding(ctx, cx, baseY, true, { r: false });
-  // (the left arm, his: up, bent, the thumb up by his shoulder)
-  R(ctx, cx + 13, baseY - 50, 7, 10, C.mSkin);
-  R(ctx, cx + 16, baseY - 64, 6, 16, C.mSkin); R(ctx, cx + 16, baseY - 64, 2, 16, C.mSkinLight);
-  R(ctx, cx + 15, baseY - 66, 8, 6, C.mSkin); R(ctx, cx + 18, baseY - 71, 3, 6, C.mSkin); R(ctx, cx + 18, baseY - 71, 1, 6, C.mSkinLight);
-  R(ctx, cx + 15, baseY - 62, 8, 1, C.mSkinShade);
-  // (the grin)
+/**
+ * Meathead to the camera, both guns up: a double-biceps flex, the upper arms out level from the shoulders, the forearms
+ * up, the fists by his ears, the peaks pumping on the beat; grinning, medal on.
+ */
+const meatheadFlex = (ctx: Ctx, cx: number, baseY: number, t: number) => {
+  meatheadStanding(ctx, cx, baseY, true, { l: false, r: false });
+  const pump = Math.floor(t / 14) % 2, sy = baseY - 48;
+  for (const side of [-1, 1]) {
+    const lit = side < 0;
+    const sh = cx + side * 13, el = cx + side * 27;
+    // (the upper arm out to the elbow, the bicep peaking up off it, bigger on the beat)
+    const x0 = Math.min(sh, el), w = Math.abs(el - sh);
+    R(ctx, x0, sy - 1, w, 7, lit ? C.mSkin : RAMP.mSkin[3]);
+    const peak = 4 + pump;
+    R(ctx, x0 + 3, sy - 1 - peak, w - 6, peak, lit ? C.mSkin : RAMP.mSkin[3]);
+    R(ctx, x0 + 4, sy - 1 - peak, w - 8, 1, C.mSkinLight);
+    R(ctx, x0, sy + 5, w, 1, C.mSkinShade);
+    // (the forearm up from the elbow, the fist by his ear)
+    const fx = side < 0 ? el - 1 : el - 6;
+    R(ctx, fx, sy - 18, 7, 19, lit ? C.mSkin : RAMP.mSkin[3]);
+    R(ctx, fx + (side < 0 ? 0 : 5), sy - 18, 2, 19, lit ? C.mSkinLight : RAMP.mSkin[2]);
+    R(ctx, fx - 1, sy - 24, 9, 7, C.mSkin); R(ctx, fx - 1, sy - 18, 9, 1, C.mSkinShade);
+    R(ctx, fx + 1, sy - 22, 1, 3, C.mSkinShade); R(ctx, fx + 4, sy - 22, 1, 3, C.mSkinShade);
+    // (a vein standing up on the beat)
+    if (pump) R(ctx, x0 + Math.round(w / 2) - 1, sy - 2 - peak + 2, 3, 1, '#c96b4b');
+  }
+  // (the grin, teeth and all)
   R(ctx, cx - 4, baseY - 54, 8, 2, C.white); R(ctx, cx - 4, baseY - 52, 8, 1, C.darkRed);
-  if (t % 30 < 10) { R(ctx, cx + 22, baseY - 74, 1, 3, C.white); R(ctx, cx + 21, baseY - 73, 3, 1, C.white); }
+  if (t % 30 < 10) { R(ctx, cx + 30, baseY - 76, 1, 3, C.white); R(ctx, cx + 29, baseY - 75, 3, 1, C.white); }
 };
 
 /** How much slower than it was he goes up and away (so you get to watch him go). */
@@ -428,8 +446,8 @@ const FLIGHT_SLOW = 2.2;
 /** (his flight laid out at its old pace: f = t / FLIGHT_SLOW) */
 const TWINKLE_F = 58;
 export const LAUNCH_TWINKLE = Math.round(TWINKLE_F * FLIGHT_SLOW), IRIS_AT = LAUNCH_TWINKLE + 26, IRIS_LEN = 40;
-/** Where the iris closes: Meathead's face. */
-const IRIS = { x: 92, y: 66 };
+/** Where the iris closes: Meathead's face and his flexed guns. */
+const IRIS = { x: 92, y: 62 };
 
 /**
  * He sails up over the lawn, over the burning roof, off into the night, and goes out with a twinkle; Meathead turns
@@ -446,16 +464,18 @@ export const drawLaunch = (ctx: Ctx, t: number) => {
   else if (f < 42) { const k = (f - 22) / 20; trumpTumbling(ctx, 200 + k * 16, 26 - k * 10, t, 1); }
   else if (f < TWINKLE_F) { const k = (f - 42) / (TWINKLE_F - 42); trumpTumbling(ctx, 216 + k * 8, 16 - k * 6, t, 2); }
   else if (t < LAUNCH_TWINKLE + 18) twinkle(ctx, 224, 10, (t - LAUNCH_TWINKLE) / 18);
-  if (f < 40) meatheadPunched(ctx, 82, 124); else meatheadThumbsUp(ctx, IRIS.x, 124, t);
+  if (f < 40) meatheadPunched(ctx, 82, 124); else meatheadFlex(ctx, IRIS.x, 124, t);
   reporters(ctx, t, 1);
   // The iris: black closing in round his face, in whole pixels, stopping on his grin
   if (t >= IRIS_AT) {
-    const k = clamp01((t - IRIS_AT) / IRIS_LEN), r = Math.round(300 - (300 - 20) * (1 - (1 - k) ** 2));
+    // (an oval, wide enough at the end for his face and both his guns)
+    const k = clamp01((t - IRIS_AT) / IRIS_LEN), e = 1 - (1 - k) ** 2;
+    const rx = 300 - (300 - 44) * e, ry = 300 - (300 - 26) * e;
     ctx.fillStyle = C.black;
     for (let y = 0; y < ART_H; y++) {
-      const dy = y - IRIS.y, hw = r * r - dy * dy;
+      const dy = (y - IRIS.y) / ry, hw = 1 - dy * dy;
       if (hw <= 0) { ctx.fillRect(0, y, ART_W, 1); continue; }
-      const w = Math.round(Math.sqrt(hw));
+      const w = Math.round(rx * Math.sqrt(hw));
       ctx.fillRect(0, y, Math.max(0, IRIS.x - w), 1); ctx.fillRect(IRIS.x + w, y, ART_W, 1);
     }
   }
