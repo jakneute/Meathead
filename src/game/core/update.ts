@@ -458,7 +458,9 @@ const holdOffForCutscene = (ctx: FrameContext) => {
   for (const e of state.enemies) {
     if (e.type === 'boss' || isMidBoss(e) || e.health <= 0 || e.isBlownAway) continue;
     e.pauseTimer = Math.max(e.pauseTimer || 0, 2);
-    e.vel = { x: 0, y: 0 };
+    // (one caught mid-jump comes on down to the ground and waits there: it's not left hanging in the air)
+    const flies = e.enemyType === 'flyer' || e.enemyType === 'drone' || e.behavior === 'fly' || e.behavior === 'hover';
+    e.vel = { x: 0, y: flies ? 0 : Math.max(0, e.vel.y) };
     e.shootTimer = Math.max(e.shootTimer || 0, 30);
   }
 };
