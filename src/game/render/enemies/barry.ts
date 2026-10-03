@@ -1004,10 +1004,12 @@ const drawMinion = (ctx: Ctx, e: Enemy, f: number) => {
   ctx.moveTo(1, -66.6); ctx.lineTo(4.6, -68 - (panic ? 1 : 0)); ctx.moveTo(7.2, -68 - (panic ? 1 : 0)); ctx.lineTo(10.4, -66.6); ctx.stroke();
   ctx.beginPath(); ctx.ellipse(0.6, -63, 10, 10.6, 0, Math.PI * 1.05, Math.PI * 1.75);
   ctx.strokeStyle = INK; ctx.lineWidth = 2.6; ctx.stroke(); ctx.strokeStyle = '#374151'; ctx.lineWidth = 1.2; ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(-6.6, -59); ctx.quadraticCurveTo(-3, -53.6, 5, -55.6);
+  // (panicking, the mic's knocked down off his mouth, so you can see him screaming)
+  const micX = panic ? 1.5 : 5.4, micY = panic ? -51.6 : -55.6;
+  ctx.beginPath(); ctx.moveTo(-6.6, -59); ctx.quadraticCurveTo(-3, -53.6 + (panic ? 2 : 0), micX - 0.4, micY);
   ctx.strokeStyle = INK; ctx.lineWidth = 1.8; ctx.stroke(); ctx.strokeStyle = '#374151'; ctx.lineWidth = 0.7; ctx.stroke();
   ink(ctx, () => ctx.roundRect(-9.6, -64, 5, 7, 2), '#1F2937', 0.8);
-  ink(ctx, () => ctx.arc(5.4, -55.6, 1.4, 0, Math.PI * 2), '#111827', 0.5);
+  ink(ctx, () => ctx.arc(micX, micY, 1.4, 0, Math.PI * 2), '#111827', 0.5);
   if (panic) ink(ctx, () => ctx.ellipse(-3, -61 + (f % 12), 1.2, 1.8, 0, 0, Math.PI * 2), 'rgba(147, 197, 253, 0.95)', 0.5); // sweat
 };
 

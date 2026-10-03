@@ -93,7 +93,7 @@ export const drawPerson = (ctx: Ctx, x: number, y: number, s: PersonSpec, p: Pos
   const sleeve = s.top.color, longS = s.top.long ?? ['jacket', 'hoodie', 'robe', 'parka', 'flannel', 'shirt'].includes(s.top.style);
   const armW = kid ? 5 : 5.5;
   const arms = p.arms ?? 'down';
-  const backHand = arms === 'up' ? [-10, shoulderY - 16] : arms === 'panic' ? [-6, headY - 6] : arms === 'hips' ? [-10, hipY + 2] : arms === 'cross' ? [6, shoulderY + 10] : [-7 - Math.sin(ph) * stride * 0.6, hipY + 4];
+  const backHand = arms === 'up' ? [-10, shoulderY - 16] : arms === 'panic' ? [-13, headY - 9] : arms === 'hips' ? [-10, hipY + 2] : arms === 'cross' ? [6, shoulderY + 10] : [-7 - Math.sin(ph) * stride * 0.6, hipY + 4];
   arm(ctx, -bodyW / 2 + 2, shoulderY + 3, backHand[0], backHand[1], dark(sleeve, 0.15), skinD, longS, armW);
   if (p.propBack) p.propBack(ctx, backHand[0], backHand[1]);
   // ---- The body: the garment shaded, its details
@@ -192,7 +192,7 @@ export const drawPerson = (ctx: Ctx, x: number, y: number, s: PersonSpec, p: Pos
     }
   }
   // ---- The front arm, over the body
-  const handF: [number, number] = arms === 'up' ? [10, shoulderY - 18] : arms === 'wave' ? [13 + Math.sin(f * 0.4) * 3, shoulderY - 14] : arms === 'panic' ? [7, headY - 7]
+  const handF: [number, number] = arms === 'up' ? [10, shoulderY - 18] : arms === 'wave' ? [13 + Math.sin(f * 0.4) * 3, shoulderY - 14] : arms === 'panic' ? [15, headY - 11]
     : arms === 'hold' ? [14, shoulderY + 10] : arms === 'point' ? [20, shoulderY + 1] : arms === 'hips' ? [10, hipY + 1] : arms === 'cross' ? [-6, shoulderY + 12] : [7 + Math.sin(ph) * stride * 0.6, hipY + 4];
   arm(ctx, bodyW / 2 - 2, shoulderY + 3, handF[0], handF[1], sleeve, skin, longS, armW);
   if (p.prop) p.prop(ctx, handF[0], handF[1]);
