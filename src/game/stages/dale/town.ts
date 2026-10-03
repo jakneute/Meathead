@@ -30,9 +30,10 @@ import type { FrameContext } from '../../core/context';
 import type { GameState } from '../../core/state';
 import type { Controls } from '../../platform/input';
 import { NO_CONTROLS } from '../../platform/input';
-import { GROUND_Y, CANVAS_WIDTH } from '../../../constants';
+import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { shakeScreen } from '../../core/state';
 import { rectsOverlap, boundsOf, isOnScreen } from '../../core/utils';
+import { floorTopAt } from '../../core/terrain';
 import { hurtPlayer } from '../../bosses/shared';
 import { killPlayer } from '../../player/player';
 import { playSound, playSniperShot, playHornDrone } from '../../platform/audio';
@@ -77,8 +78,11 @@ export interface Town {
   shopHit: boolean;
   /** Times Meathead's said he needs to get closer (shooting at the nest from down there). */
   closerSaid: number;
-  ninja: { state: 'perch' | 'speech' | 'kneel' | 'dead'; t: number; /** Which way he turned to face Meathead (and stays that way). */ face: 1 | -1; /** Which way he's aiming, up there (he turns round after him if he gets past). */ aim?: 1 | -1;
-    /** Shot at from down there: frames left ducked behind his sandbags, and when he last came back up. */ duck?: number; upAt?: number };
+  ninja: { state: 'perch' | 'speech' | 'kneel' | 'fall' | 'dead'; t: number; /** Which way he turned to face Meathead (and stays that way). */ face: 1 | -1; /** Which way he's aiming, up there (he turns round after him if he gets past). */ aim?: 1 | -1;
+    /** Shot at from down there: frames left ducked behind his sandbags, and when he last came back up. */ duck?: number; upAt?: number;
+    /** After the cut: how far he's staggered back from his spot, and how far over he's tipped at the edge (and how fast). */ off?: number; tip?: number; tipV?: number; teeter?: number;
+    /** Off the tower: his middle, how it's going, which way up. */ body?: { x: number; y: number; vx: number; vy: number; rot: number; spin: number };
+    /** Down: where he lies (his middle, on whatever was under him), which way his head is, frames since he hit. */ down?: NinjaDown; /** Where the camera was when he went over (it goes back there after). */ camX?: number; camY?: number };
   /** Meathead up against the jail with the sniper still up the tower: when he last said so, and how many times. */
   wallNagAt?: number; wallNags?: number;
   /** Riggs coming for him: whether he's jumped since he was last on the ground, and whether that jump was an uppercut. */
@@ -100,7 +104,9 @@ export const createTown = (state: GameState, startedAt: number): Town => {
     { x: t.x1 + 1180, look: 'barrel' }, { x: t.x1 + 1650, look: 'cutout' }, { x: t.x1 + 2000, look: 'trough' }, { x: t.x1 + 2520, look: 'hay' },
     { x: t.x1 + 3130, look: 'wagon' }, { x: t.x1 + 3580, look: 'wanted' }, { x: t.x1 + 4080, look: 'barrel' }, { x: t.x1 + 4600, look: 'cutout' },
     { x: t.x1 + 4900, look: 'hay' }, { x: t.x1 + 5150, look: 'barrel' },
-  ].map(p => ({ ...p, look: p.look as TownProp['look'], flying: false, vx: 0, vy: 0, y: Y, rot: 0 }));
+  ].map(p => ({ ...p, look: p.look as TownProp['look'], flying: false, vx: 0, vy: 0, y: Y, rot: 0 }))
+    // (whatever the ninja came down on is gone)
+    .filter(p => !ninjaDead || Math.abs(p.x - ninjaDownMemo(state).x) >= PROP_HIT);
   // (back after dying past the jail: it's rubble, and Riggs is in it)
   const wrecked = !!state.stageMemo.jailWrecked;
   // (died while Riggs was coming up the street, before he'd got to the jail: it never happened. The street's as it
@@ -110,7 +116,7 @@ export const createTown = (state: GameState, startedAt: number): Town => {
     phase: wrecked ? 'crashed' : 'street', t: 0,
     sniper: { on: false, x: t.x1 + 1400, y: Y - 200, state: 'track', t: 0, shots: 0, lastShot: null },
     closerSaid: 0,
-    ninja: { state: ninjaDead ? 'dead' : 'perch', t: 999, face: -1 },
+    ninja: { state: ninjaDead ? 'dead' : 'perch', t: 999, face: -1, down: ninjaDead ? ninjaDownMemo(state) : undefined },
     cab: wrecked ? { x: t.jail.x1 + 30 - CAB.w, speed: 0, facing: 1, spin: 0, state: 'wrecked', t: 0 } : { x: t.crash - 20, speed: 0, facing: -1, spin: 0, state: 'parked', t: 0 },
     props, sheriff: { x: wrecked ? t.x2 + 400 : t.jail.x1 - 70, running: wrecked }, prisoner: { alive: !wrecked, said: 0 },
     said: new Set(), wakeT: 999,
@@ -469,8 +475,31 @@ const NINJA_LINES_SHAT = [
   { who: 'ninja', text: 'THERE IS NO HONOR LEFT TO RESTORE. BUT I WILL TRY.' },
 ] as const;
 
-/** The seppuku: when the blade goes in, when he's down (and you've got control back). */
-export const NINJA_CUT = 30, NINJA_DONE = 70;
+/**
+ * The seppuku: when the blade goes in; when he's back up off his knees (it doesn't take, and he staggers back off it,
+ * away from Meathead, to the edge of the tower, teeters, and goes over); after he hits, when Meathead says his piece
+ * and when you've got control back.
+ */
+export const NINJA_CUT = 30, NINJA_RISE = 52, NINJA_UP = 62, NINJA_SAY = 14, NINJA_DONE = 70;
+/** Staggering back: how fast; how long he teeters on the edge; his half-length and half-width, end over end. */
+const STAGGER = 2.4, TEETER = 16, NINJA_HALF = 38, NINJA_THICK = 11;
+/** How much street to keep in view round where he's coming down. */
+const NINJA_FRAME = 150;
+/** How close to where he comes down a prop has to be to go flying. */
+const PROP_HIT = 60;
+/** Where he ends up: his middle, on what was under him (the top of it), his head that way. */
+export interface NinjaDown { x: number; y: number; head: 1 | -1; t: number }
+/** The tower's floor (his ledge), and the edge of it he's going off. */
+const towerLedge = () => COURSE.ledges.find(l => l.look === 'tower')!;
+export const towerEdge = (dir: number) => { const l = towerLedge(); return dir > 0 ? l.x + l.w : l.x; };
+/** Where he lies, back after a checkpoint (or if it was skipped): where he came down, or off the street side of the tower. */
+const ninjaDownMemo = (state: GameState): NinjaDown => {
+  const [x, y, head] = (state.stageMemo.ninjaDown || '').split(',').map(Number);
+  return Number.isFinite(x) && Number.isFinite(y) ? { x, y, head: head < 0 ? -1 : 1, t: 999 } : { x: towerEdge(1) + 110, y: Y, head: 1, t: 999 };
+};
+export const ninjaDown = (state: GameState, town: Town) => town.ninja.down ?? (town.ninja.down = ninjaDownMemo(state));
+/** How far a body this long and this thick, turned `rot`, reaches out either side of its middle, and up and down. */
+export const bodyReach = (rot: number) => ({ hx: Math.abs(Math.sin(rot)) * NINJA_HALF + Math.abs(Math.cos(rot)) * NINJA_THICK, hy: Math.abs(Math.cos(rot)) * NINJA_HALF + Math.abs(Math.sin(rot)) * NINJA_THICK });
 
 /**
  * His nest up the tower: sandbags along the rail. Anything Meathead fires up there from the street goes into the
@@ -523,7 +552,7 @@ const updateNinja = (ctx: FrameContext, town: Town, talk: Talk): Controls | null
   // His piece, and the seppuku: everything else holds off (the goons, the hawks, whatever they'd already fired), and
   // nothing gets at Meathead while he's stood there listening
   // (it's a cutscene: see holdOffForCutscene)
-  if (n.state === 'speech' || n.state === 'kneel') p.inCutscene = true;
+  if (n.state === 'speech' || n.state === 'kneel' || n.state === 'fall') p.inCutscene = true;
   if (n.state === 'speech') {
     p.vel.x = 0;
     if (!talk.current && !talk.queue.length && n.t > 20) { n.state = 'kneel'; n.t = 0; playSound('clink'); }
@@ -531,11 +560,81 @@ const updateNinja = (ctx: FrameContext, town: Town, talk: Talk): Controls | null
   }
   if (n.state === 'kneel') {
     if (n.t === NINJA_CUT) { fx.spawnDeathShower({ x: spot.x + 6, y: spot.y - 20 }, 0, 1.2); shakeScreen(state, 6, 3); fx.spawnDamageNumber({ x: spot.x - 50, y: spot.y - 90 }, 'SEPPUKU!', true, '#F87171'); fx.announceKill('SEPPUKU!'); }
-    if (n.t === NINJA_CUT + 20) queueLines(state, talk, [{ who: 'meathead', text: '...OKAY. SAVES ME A BULLET.' }]);
-    if (n.t > NINJA_DONE) { n.state = 'dead'; n.t = 0; state.stageMemo.ninjaDead = 'yes'; p.inCutscene = false; }
+    if (n.t === NINJA_RISE) playSound('thud', 0.3);
+    if (n.t < NINJA_UP) return { ...NO_CONTROLS };
+    // Back off it, away from Meathead, bleeding all the way, to the edge
+    const dir = -n.face, edge = Math.abs(towerEdge(dir) - spot.x) - 6;
+    if ((n.off ?? 0) < edge) {
+      n.off = Math.min(edge, (n.off ?? 0) + STAGGER * (0.6 + 0.6 * Math.abs(Math.sin(n.t * 0.35))));
+      if (n.t % 3 === 0) state.particles.push({ pos: { x: spot.x + dir * n.off + n.face * 4, y: spot.y - 26 }, vel: { x: dir * 0.5, y: 1 }, life: 26, color: n.t % 2 ? '#991B1B' : '#B91C1C', size: 2 + Math.random() * 2 });
+      return { ...NO_CONTROLS };
+    }
+    // Teetering there, arms going, then over
+    n.teeter = (n.teeter ?? 0) + 1;
+    if (n.teeter < TEETER) return { ...NO_CONTROLS };
+    n.tipV = (n.tipV ?? 0.02) + 0.012 + (n.tip ?? 0) * 0.05;
+    n.tip = (n.tip ?? 0) + n.tipV;
+    if (n.tip >= 1.05) {
+      // Let go of the edge: off he goes, end over end, the way he was tipping
+      const fx = spot.x + dir * (n.off ?? 0), a = n.tip, w = n.tipV;
+      n.body = { x: fx + dir * Math.sin(a) * NINJA_HALF, y: spot.y - Math.cos(a) * NINJA_HALF, vx: dir * (Math.cos(a) * w * NINJA_HALF + 2.6), vy: Math.sin(a) * w * NINJA_HALF, rot: dir * a, spin: dir * w * 0.8 };
+      n.state = 'fall'; n.t = 0; n.camX = state.camera.x; n.camY = state.camera.y;
+    }
     return { ...NO_CONTROLS };
   }
+  if (n.state === 'fall') {
+    if (!n.down) fallNinja(ctx, town);
+    else if (++n.down.t === NINJA_SAY) queueLines(state, talk, [{ who: 'meathead', text: '...OKAY. SAVES ME A BULLET.' }]);
+    // The camera over to where he's coming down (no further than it has to: Meathead's still in it), then back
+    const camX = n.camX ?? state.camera.x, camY = n.camY ?? state.camera.y, bx = n.down?.x ?? n.body?.x ?? camX;
+    const back = !!n.down && n.down.t > NINJA_DONE;
+    state.cameraOverride = back ? { x: camX, y: camY } : { x: Math.max(bx + NINJA_FRAME - CANVAS_WIDTH, Math.min(bx - NINJA_FRAME, camX)), y: Math.max(camY, Y + 40 - CANVAS_HEIGHT) };
+    if (back && Math.abs(state.camera.x - camX) < 1 && Math.abs(state.camera.y - camY) < 1) { n.state = 'dead'; n.t = 0; state.stageMemo.ninjaDead = 'yes'; p.inCutscene = false; state.cameraOverride = null; }
+    return { ...NO_CONTROLS };
+  }
+  // (the pool keeps spreading)
+  if (n.state === 'dead' && n.down && n.down.t < 999) n.down.t++;
   return null;
+};
+
+/**
+ * Off the tower: gravity and a tumble; kept clear of the tower (he went off the outside of it); onto whatever's really
+ * under him (the street, or a roof), and splat: the lot of him out across it, and flat.
+ */
+const fallNinja = (ctx: FrameContext, town: Town) => {
+  const { state, fx } = ctx;
+  const n = town.ninja, b = n.body!;
+  const l = towerLedge(), chapel = COURSE.buildings.find(k => k.look === 'church')!;
+  const was = b.y + bodyReach(b.rot).hy;
+  b.vy = Math.min(22, b.vy + 0.62); b.x += b.vx; b.y += b.vy; b.rot += b.spin;
+  // (nothing of him through the tower: down past it, he's out past its side)
+  const r = bodyReach(b.rot);
+  if (b.y + r.hy > l.y && b.y - r.hy < chapel.top && b.x + r.hx > l.x && b.x - r.hx < l.x + l.w) b.x = b.vx > 0 ? l.x + l.w + r.hx : l.x - r.hx;
+  // What's under him (the first thing his lowest point gets to, under his middle)
+  const top = floorTopAt(state.blocks, b.x, was, 0);
+  if (top === null || b.y + r.hy < top) { if (b.y > Y + 600) b.vy = 0; return; }
+  // (all of him on it, if it's a roof he's come down near the end of)
+  const under = state.blocks.find(k => k.y === top && b.x >= k.x && b.x <= k.x + k.w);
+  const x = under && under.w > NINJA_HALF * 2 + 8 ? Math.max(under.x + NINJA_HALF + 4, Math.min(under.x + under.w - NINJA_HALF - 4, b.x)) : b.x;
+  // His head's whichever end of him was out that way when he hit
+  const hs = Math.sin(b.rot);
+  const head: 1 | -1 = Math.abs(hs) > 0.2 ? (hs > 0 ? 1 : -1) : (b.vx >= 0 ? 1 : -1);
+  n.down = { x, y: top, head, t: 0 };
+  n.body = undefined;
+  state.stageMemo.ninjaDown = `${Math.round(x)},${Math.round(top)},${head}`;
+  // (anything he comes down on, a photo cutout, a barrel, goes flying)
+  for (const pr of town.props) if (!pr.flying && Math.abs(pr.x - x) < PROP_HIT) { pr.flying = true; pr.vx = (pr.x < x ? -1 : 1) * (4 + Math.random() * 2); pr.vy = -10; }
+  // Splat
+  const at = { x, y: top - 6 };
+  fx.spawnDeathShower(at, 0, 1.6);
+  fx.spawnExplosion(at, '#7F1D1D', 18, 0, 22);
+  for (let i = 0; i < 30; i++) {
+    const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.8, sp = 3 + Math.random() * 8;
+    state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 60, y: top - 4 }, vel: { x: Math.cos(a) * sp * 1.4, y: Math.sin(a) * sp }, life: 30 + Math.random() * 40, color: ['#B91C1C', '#7F1D1D', '#D6B98C', '#111827', '#DC2626', '#A8916B'][i % 6], size: 2 + Math.random() * 5 });
+  }
+  shakeScreen(state, 22, 12);
+  playSound('splat'); playSound('crunch'); playSound('thud');
+  fx.spawnDamageNumber({ x: x - 40, y: top - 70 }, 'SPLAT!', true, '#F87171');
 };
 
 // ---------------------------------------------------------------------------

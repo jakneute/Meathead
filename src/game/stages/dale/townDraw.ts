@@ -13,7 +13,8 @@ import type { GroundRun } from '../../core/terrain';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, BOSS_DOOR_X } from '../../../constants';
 import { COURSE, Building, Awning } from './course';
 import type { DaleRuntime } from './runtime';
-import { Town, TownProp, CAB, ninjaSpot, incoming, jailWrecked, townStains, muzzle, laserEnd, NINJA_CUT, NINJA_DONE, JAIL_SKIP_AFTER, DUCK_FOR, cabReach } from './town';
+import { Town, TownProp, CAB, ninjaSpot, ninjaDown, incoming, jailWrecked, townStains, muzzle, laserEnd, NINJA_CUT, NINJA_RISE, NINJA_UP, JAIL_SKIP_AFTER, DUCK_FOR, cabReach } from './town';
+import type { NinjaDown } from './town';
 import { drawDaleKind } from '../../render/enemies/dale';
 import { drawPlayer } from '../../render/player/player';
 import { saying, drawBubble } from './script';
@@ -22,8 +23,9 @@ import { wheelTurn, drawTruckWheel, slab, column, pipe, letter, redPaint, headBe
 import { drawPerson } from '../../render/npc/person';
 import type { PersonSpec } from '../../render/npc/person';
 import { INK, dark, lite, ink, shaded, shadedTop } from '../../render/npc/kit';
-import { bandedGradient, checker, steppedGlow, tilePattern } from '../../render/pixelArt';
+import { bandedGradient, checker, pixelBlob, steppedGlow, tilePattern } from '../../render/pixelArt';
 import { RIGGS } from './convoyDraw';
+import { drawCabTurn } from './cabTurn';
 
 type Ctx = CanvasRenderingContext2D;
 const Y = GROUND_Y;
@@ -636,10 +638,11 @@ export const drawTownMid = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   if (cab.state !== 'wrecked' && visible(state, cab.x - 40, cab.x + CAB.w + 40)) {
     const parked = cab.state === 'parked';
     ctx.save();
-    if (cab.state === 'spin') { ctx.translate(cab.x + CAB.w / 2, 0); ctx.scale(Math.cos(cab.spin * Math.PI), 1); ctx.translate(-(cab.x + CAB.w / 2), 0); }
     // (Riggs slumped over the wheel from the highway till his second wind)
     const slumped = cab.state === 'arrive' || (parked && town.phase === 'street');
-    drawCab(ctx, cab.x, cab.facing, f, false, parked ? 0.1 : 0, wheelTurn(cab.x * cab.facing, cabSpeed(cab) * cab.facing, 26, f), slumped, town.gore);
+    const roll = wheelTurn(cab.x * cab.facing, cabSpeed(cab) * cab.facing, 26, f);
+    // (swinging round, out of the shop: the Mode 7 turn; otherwise side on)
+    if (!drawCabTurn(ctx, cab, town.phase, f, g => drawCab(g, 0, 1, f, false, 0, roll, slumped, town.gore), town.gore)) drawCab(ctx, cab.x, cab.facing, f, false, parked ? 0.1 : 0, roll, slumped, town.gore);
     ctx.restore();
     ctx.save();
     ctx.restore();
@@ -859,15 +862,115 @@ const headband = (ctx: Ctx, x: number, y: number, w: number, f: number, tx: numb
   ink(ctx, () => { ctx.moveTo(x, y); ctx.lineTo(tx, y + wave); ctx.lineTo(tx - 1, y + 2 + wave); ctx.lineTo(x, y + 3); ctx.closePath(); }, '#B91C1C', 0.6);
 };
 
-/** The ninja: in black up the tower with his rifle; standing to say his piece; kneeling; face down. */
+/** An arm: a black sleeve from the shoulder out `len` at angle `a` (0 = straight down), a bare hand on the end. */
+const ninjaArm = (ctx: Ctx, sx: number, sy: number, a: number, len: number) => {
+  ctx.save(); ctx.translate(sx, sy); ctx.rotate(a);
+  ninjaPart(ctx, () => ctx.rect(-3, 0, 6, len), '#1F2937', -3, 0, 6, len);
+  ink(ctx, () => ctx.rect(-3, len, 6, 5), '#E0AC69', 0.8);
+  ctx.restore();
+};
+
+/**
+ * Him, his feet at 0 and facing +x: kneeling or on his feet; hunched over the blade (0..1); his legs going (a stride
+ * phase) or flung apart (flail 0..1); his arms clutching his middle, windmilling, or flung out.
+ */
+const ninjaFigure = (ctx: Ctx, f: number, o: { kneel?: boolean; hunch?: number; stride?: number; flail?: number; arms?: 'none' | 'clutch' | 'wave' | 'out'; blade?: boolean; bowing?: boolean }) => {
+  const black = '#111827', dark = '#1F2937';
+  const kneel = !!o.kneel, hip = kneel ? -14 : -30, top = kneel ? -44 : -60;
+  if (kneel) ninjaPart(ctx, () => ctx.rect(-12, -14, 26, 14), dark, -12, -14, 26, 14);
+  else for (const [lx, side] of [[-8, -1], [2, 1]] as const) {
+    // (each leg off the hip: striding, or flung wide)
+    const a = (o.stride !== undefined ? Math.sin(o.stride) * 0.35 * side : 0) + side * (o.flail ?? 0) * 0.7;
+    ctx.save(); ctx.translate(lx + 3.5, hip); ctx.rotate(-a); ninjaPart(ctx, () => ctx.rect(-3.5, 0, 7, 30), dark, -3.5, 0, 7, 30); ctx.restore();
+  }
+  ctx.save(); ctx.translate(0, hip); ctx.rotate((o.hunch ?? 0) * 0.45); ctx.translate(0, -hip);
+  const arms = o.arms ?? 'none', sh = top + 5;
+  // (the far arm, behind him)
+  if (arms === 'wave') ninjaArm(ctx, -4, sh, Math.PI + f * 0.55, 20);
+  if (arms === 'out') ninjaArm(ctx, -4, sh, Math.PI * 0.75 + Math.sin(f * 0.7) * 0.3, 20);
+  ninjaPart(ctx, () => ctx.rect(-10, top, 20, 30), black, -10, top, 20, 30);
+  ctx.fillStyle = '#0B0F19'; ctx.fillRect(-10, top + 12, 20, 3); // (the sash)
+  ninjaPart(ctx, () => ctx.arc(0, top - 8, 9, 0, Math.PI * 2), black, -9, top - 17, 18, 18);
+  ninjaEyes(ctx, 1, top - 11, 7);
+  headband(ctx, -9, top - 15, 18, f, -14);
+  if (o.blade) {
+    // The short blade, in him to the hilt, and what it's done
+    ink(ctx, () => ctx.rect(10, top + 18, 12, 2), '#E5E7EB', 0.6); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(13, top + 18, 6, 1);
+    ink(ctx, () => ctx.rect(6, top + 16, 5, 6), '#7F1D1D', 0.6);
+    ctx.fillStyle = '#991B1B'; ctx.fillRect(4, top + 19, 6, 9); ctx.fillStyle = '#B91C1C'; ctx.fillRect(5, top + 20, 3, 5);
+  }
+  if (o.bowing) ink(ctx, () => ctx.rect(8, top + 10, 6, 6), '#E0AC69', 0.8); // (bowing, hands together)
+  // (the near arm)
+  if (arms === 'clutch') ninjaArm(ctx, 4, sh, -0.9, 13);
+  if (arms === 'wave') ninjaArm(ctx, 4, sh, f * 0.55, 20);
+  if (arms === 'out') ninjaArm(ctx, 4, sh, -Math.PI * 0.7 + Math.sin(f * 0.6) * 0.3, 20);
+  ctx.restore();
+};
+
+/**
+ * Him where he came down, splatted: flat on his back (his head `head` way) in the pool he's making, the blade still
+ * stood up out of his middle, one knee up and the other leg out, an arm flung up over his head and the other off
+ * the wrong way, eyes X'd. `t`: frames since he hit (squashed right flat, then he gives back up a little; the pool
+ * spreads).
+ */
+const ninjaSplat = (ctx: Ctx, d: NinjaDown, f: number) => {
+  const k = Math.min(1, d.t / 60), x = d.x, y = d.y;
+  // The pool: near black at the rim, red, a wet shine; gobbets thrown out either end
+  pixelBlob(ctx, x, y - 2, 30 + k * 34, 4 + k * 3.5, '#450A0A');
+  pixelBlob(ctx, x, y - 2, 26 + k * 30, 3 + k * 2.5, '#7F1D1D');
+  pixelBlob(ctx, x + d.head * 26, y - 2, 10 + k * 6, 2.5, '#991B1B');
+  ctx.fillStyle = '#B91C1C';
+  for (let q = 0; q < 6; q++) { const sx = x + (hash(x + q) - 0.5) * 150 * (0.4 + k * 0.6); ctx.fillRect(Math.round(sx), Math.round(y - 3 - hash(x + q * 3) * 3), 2 + (q % 2) * 2, 2); }
+  ctx.fillStyle = '#F87171'; ctx.fillRect(Math.round(x - 22 - k * 10), y - 4, 4, 1); ctx.fillRect(Math.round(x + 14 + k * 12), y - 5, 3, 1);
+  const sq = d.t < 4 ? 0.5 : d.t < 10 ? 0.5 + ((d.t - 4) / 6) * 0.5 : 1;
+  ctx.save(); ctx.translate(x, y - 1); ctx.scale(d.head, sq);
+  const black = '#111827', dk = '#1F2937';
+  // (the far arm, off behind him the wrong way)
+  ninjaArm(ctx, 10, -9, 2.5, 15);
+  // (the legs: one out straight along the ground; the other with its knee stood up)
+  ninjaPart(ctx, () => ctx.rect(-44, -7, 32, 7), dk, -44, -7, 32, 7);
+  ink(ctx, () => ctx.rect(-48, -9, 5, 9), '#0B0F19', 0.8);
+  ctx.save(); ctx.translate(-12, -6); ctx.rotate(-2.4); ninjaPart(ctx, () => ctx.rect(-3.5, 0, 7, 17), dk, -3.5, 0, 7, 17); ctx.restore();
+  ctx.save(); ctx.translate(-23, -18); ctx.rotate(0.75); ninjaPart(ctx, () => ctx.rect(-3.5, 0, 7, 18), dk, -3.5, 0, 7, 18); ctx.restore();
+  // (the body, the sash across it, him in the middle of it)
+  ninjaPart(ctx, () => ctx.rect(-14, -12, 30, 12), black, -14, -12, 30, 12);
+  ctx.fillStyle = '#0B0F19'; ctx.fillRect(-3, -12, 3, 12);
+  pixelBlob(ctx, 2, -12, 8, 2.5, '#991B1B');
+  // (the blade, still in him to the hilt, stood up out of him: the guard, the wrapped grip, its pommel)
+  ink(ctx, () => ctx.rect(-5, -15, 12, 3), '#78716C', 0.8);
+  ink(ctx, () => ctx.rect(-1, -30, 5, 15), '#7F1D1D', 0.8);
+  ctx.fillStyle = '#B91C1C'; for (let g = -28; g < -16; g += 4) ctx.fillRect(-1, g, 5, 1);
+  ctx.fillStyle = '#FCA5A5'; ctx.fillRect(0, -29, 1, 12);
+  ink(ctx, () => ctx.rect(-1, -33, 5, 3), '#A8A29E', 0.8);
+  // (the head, on its back, the slit to the sky with the eyes X'd in it, the headband's tails across the dirt)
+  ninjaPart(ctx, () => ctx.arc(25, -9, 9, 0, Math.PI * 2), black, 16, -18, 18, 18);
+  headband(ctx, 17, -6, 16, f, 40);
+  ctx.fillStyle = '#E0AC69'; ctx.fillRect(21, -17, 9, 3); ctx.fillStyle = '#C08A50'; ctx.fillRect(21, -15, 9, 1);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.beginPath();
+  for (const ex of [23, 28]) { ctx.moveTo(ex - 1.5, -17.5); ctx.lineTo(ex + 1.5, -14.5); ctx.moveTo(ex + 1.5, -17.5); ctx.lineTo(ex - 1.5, -14.5); }
+  ctx.stroke();
+  // (the near arm, flung up over his head)
+  ninjaArm(ctx, 12, -10, -2.3, 17);
+  ctx.restore();
+};
+
+/**
+ * The ninja: in black up the tower with his rifle; standing to say his piece; kneeling, the blade going in; back up
+ * on his feet, staggering back off it to the edge, teetering there; over, end over end; splatted down below.
+ */
 const drawNinja = (ctx: Ctx, state: GameState, town: Town) => {
   const n = town.ninja;
   const s = ninjaSpot();
-  if (!visible(state, s.x - 60, s.x + 60)) return;
   const f = state.frame;
-  // (turned to Meathead when he got up there, and that's the way he stays, speech to seppuku to face down)
+  if (n.state === 'dead' || n.state === 'fall') {
+    // Where he went: the body coming down, or what's left of him
+    if (n.body) { const b = n.body; if (visible(state, b.x - 60, b.x + 60)) { ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.rot); ctx.translate(0, 38); ctx.scale(n.face, 1); ninjaFigure(ctx, f, { flail: 0.6 + Math.sin(f * 0.5) * 0.3, arms: 'out', blade: true }); ctx.restore(); } }
+    else { const d = n.state === 'dead' ? ninjaDown(state, town) : n.down; if (d && visible(state, d.x - 80, d.x + 80)) ninjaSplat(ctx, d, f); }
+  }
+  if (!visible(state, s.x - 140, s.x + 140)) return;
+  // (turned to Meathead when he got up there, and that's the way he stays, speech to seppuku to over the edge)
   ctx.save(); ctx.translate(s.x, s.y); ctx.scale(n.state === 'perch' ? (n.aim ?? -1) : n.face, 1);
-  const black = '#111827', dark = '#1F2937';
+  const black = '#111827';
   if (n.state === 'perch') {
     // (shot at: head down behind the sandbags, just the top of his head and the headband showing)
     if (n.duck) {
@@ -883,29 +986,32 @@ const drawNinja = (ctx: Ctx, state: GameState, town: Town) => {
     pipe(ctx, 4, -24, 50, 4, '#3F3F46'); slab(ctx, 20, -28, 12, 4, '#18181B', 1); slab(ctx, 50, -26, 8, 8, '#18181B', 1);
     ctx.fillStyle = '#93C5FD'; ctx.fillRect(30, -27, 1, 2); // (the scope's glass)
     ctx.fillStyle = 'rgba(239, 68, 68, 0.8)'; ctx.fillRect(58, -23, 2, 2);
-  } else {
-    const kneel = n.state !== 'speech';
-    const slump = n.state === 'dead' ? 1 : n.state === 'kneel' ? Math.min(1, Math.max(0, (n.t - NINJA_CUT - 10) / (NINJA_DONE - NINJA_CUT - 10))) : 0;
-    ctx.rotate(slump * 1.2);
-    if (!kneel) { ninjaPart(ctx, () => ctx.rect(-8, -30, 7, 30), dark, -8, -30, 7, 30); ninjaPart(ctx, () => ctx.rect(2, -30, 7, 30), dark, 2, -30, 7, 30); }
-    else ninjaPart(ctx, () => ctx.rect(-12, -14, 26, 14), dark, -12, -14, 26, 14);
-    const top = kneel ? -44 : -60;
-    ninjaPart(ctx, () => ctx.rect(-10, top, 20, 30), black, -10, top, 20, 30);
-    ctx.fillStyle = '#0B0F19'; ctx.fillRect(-10, top + 12, 20, 3); // (the sash)
-    ninjaPart(ctx, () => ctx.arc(0, top - 8, 9, 0, Math.PI * 2), black, -9, top - 17, 18, 18);
-    ninjaEyes(ctx, 1, top - 11, 7);
-    headband(ctx, -9, top - 15, 18, f, -14);
-    if (n.state === 'kneel' || n.state === 'dead') {
-      // The short blade, and what it's done
-      ink(ctx, () => ctx.rect(4, top + 18, 14, 2), '#E5E7EB', 0.6); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(8, top + 18, 6, 1);
-      ink(ctx, () => ctx.rect(2, top + 16, 5, 6), '#7F1D1D', 0.6);
-      if (n.t > NINJA_CUT || n.state === 'dead') { ctx.fillStyle = '#991B1B'; ctx.beginPath(); ctx.ellipse(6, 0, 18 + Math.min(20, n.t * 0.2), 3, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#B91C1C'; ctx.beginPath(); ctx.ellipse(4, -1, 10 + Math.min(12, n.t * 0.1), 1.5, 0, 0, Math.PI * 2); ctx.fill(); }
-    } else {
-      // Bowing, hands together
-      ink(ctx, () => ctx.rect(8, top + 10, 6, 6), '#E0AC69', 0.8);
+    ctx.restore();
+    return;
+  }
+  const cut = n.state !== 'speech' && (n.t > NINJA_CUT || n.state !== 'kneel');
+  // Where he knelt: the pool, and a trail of it back to the edge after him (he's staggering backwards: -x, here)
+  if (cut) {
+    const t = n.state === 'kneel' ? n.t : 999;
+    pixelBlob(ctx, 4, -1, 14 + Math.min(18, (t - NINJA_CUT) * 0.3), 2.5, '#7F1D1D');
+    pixelBlob(ctx, 2, -1, 8 + Math.min(10, (t - NINJA_CUT) * 0.15), 1.5, '#B91C1C');
+    ctx.fillStyle = '#991B1B';
+    for (let d = 14; d < (n.off ?? 0); d += 9) ctx.fillRect(-d - (d % 4), -2, 3 + (d % 3), 2);
+  }
+  // His rifle, laid down
+  pipe(ctx, -40, -4, 44, 4, '#3F3F46');
+  if (n.state === 'speech') ninjaFigure(ctx, f, { bowing: true });
+  else if (n.state === 'kneel') {
+    if (n.t < NINJA_RISE) ninjaFigure(ctx, f, { kneel: true, blade: true, hunch: n.t > NINJA_CUT ? Math.min(1, (n.t - NINJA_CUT) / 10) : 0, arms: n.t > NINJA_CUT ? 'clutch' : 'none' });
+    else {
+      // Up, and back off it to the edge (wobbling); teetering there, arms going; tipping over it, from his heels
+      const off = n.off ?? 0, tip = n.tip ?? 0;
+      ctx.translate(-off, 0);
+      if (tip > 0) ctx.rotate(-tip);
+      else if (n.t >= NINJA_UP) ctx.rotate(Math.sin(n.t * 0.3) * (n.teeter ? 0.12 : 0.06));
+      ninjaFigure(ctx, n.t, n.t < NINJA_UP ? { kneel: n.t < NINJA_RISE + 5, hunch: 1, arms: 'clutch', blade: true }
+        : n.teeter ? { hunch: 0.2 - tip, arms: 'wave', blade: true } : { hunch: 0.8, stride: n.t * 0.6, arms: 'clutch', blade: true });
     }
-    // His rifle, laid down
-    pipe(ctx, -40, -4, 44, 4, '#3F3F46');
   }
   ctx.restore();
 };
