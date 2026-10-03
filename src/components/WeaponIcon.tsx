@@ -1,10 +1,129 @@
 import React from 'react';
 import { WeaponType } from '../types';
 
-// Weapon art (32x32 pixel-style SVGs with outlines and shading) and the arsenal
-// cards they sit on in the pause menu.
+// Weapon art and the arsenal cards they sit on in the pause menu. Each weapon is painted pixel by pixel on a 32x32
+// grid the way the sprites are: its colors in flat steps lit from the upper left (dithered a row where two steps
+// meet), an ink line round every solid part, a hard white glint. Painted once, then drawn as merged SVG rects.
 
-const O = '#0B0B0F'; // outline
+const O = '#0B0B0F'; // ink
+const N = 32;
+
+type Pt = [number, number];
+type Cell = { c: string; o: string | null } | null;
+
+/** A 32x32 pixel canvas: each cell a color and the ink it wants round it (null: none). */
+class Pix {
+  g: Cell[] = new Array(N * N).fill(null);
+  keep = new Set<number>();
+  set(x: number, y: number, c: string, o: string | null = O) { if (x >= 0 && y >= 0 && x < N && y < N) this.g[y * N + x] = { c, o }; }
+  has(x: number, y: number) { return x >= 0 && y >= 0 && x < N && y < N && !!this.g[y * N + x]; }
+  /** Leave this cell empty when the ink goes on (a hole you see through). */
+  hole(x: number, y: number) { this.keep.add(y * N + x); }
+}
+
+/** Every pixel whose center passes the test. */
+const cells = (test: (x: number, y: number) => boolean): Pt[] => {
+  const out: Pt[] = [];
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (test(x + 0.5, y + 0.5)) out.push([x, y]);
+  return out;
+};
+const rectC = (x: number, y: number, w: number, h: number): Pt[] => cells((px, py) => px > x && px < x + w && py > y && py < y + h);
+const polyC = (v: Pt[]): Pt[] => cells((px, py) => {
+  let inside = false;
+  for (let i = 0, j = v.length - 1; i < v.length; j = i++) {
+    const [xi, yi] = v[i], [xj, yj] = v[j];
+    if ((yi > py) !== (yj > py) && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+});
+const ellC = (cx: number, cy: number, rx: number, ry: number): Pt[] => cells((px, py) => ((px - cx) / rx) ** 2 + ((py - cy) / ry) ** 2 <= 1);
+/** A quadratic curve as points (for paths). */
+const quad = (a: Pt, c: Pt, b: Pt, n = 8): Pt[] => {
+  const out: Pt[] = [];
+  for (let i = 1; i <= n; i++) { const t = i / n, u = 1 - t; out.push([u * u * a[0] + 2 * u * t * c[0] + t * t * b[0], u * u * a[1] + 2 * u * t * c[1] + t * t * b[1]]); }
+  return out;
+};
+
+/** Pick a step of a ramp from 0..1, dithering the last quarter of each step into the next on a checkerboard. */
+const step = (ramp: string[], t: number, x: number, y: number) => {
+  const f = Math.max(0, Math.min(0.9999, t)) * ramp.length;
+  let i = Math.floor(f);
+  if (f - i > 0.75 && (x + y) % 2 === 0) i++;
+  return ramp[Math.min(ramp.length - 1, i)];
+};
+const bbox = (P: Pt[]) => {
+  let x0 = N, y0 = N, x1 = 0, y1 = 0;
+  for (const [x, y] of P) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+  return { x0, y0, w: Math.max(1, x1 - x0), h: Math.max(1, y1 - y0) };
+};
+type Fill = (x: number, y: number) => string;
+const paint = (p: Pix, P: Pt[], f: Fill | string, o: string | null = O) => { for (const [x, y] of P) p.set(x, y, typeof f === 'string' ? f : f(x, y), o); };
+/** Top to bottom in steps (a lit top edge down to the shadow under it). */
+const rows = (P: Pt[], ramp: string[]): Fill => { const b = bbox(P); return (x, y) => ramp[Math.min(ramp.length - 1, Math.floor(((y - b.y0) / (b.h + 1)) * ramp.length))]; };
+/** Left to right in steps (a cylinder standing up: the ramp's order is left to right). */
+const cols = (P: Pt[], ramp: string[]): Fill => { const b = bbox(P); return (x) => ramp[Math.min(ramp.length - 1, Math.floor(((x - b.x0) / (b.w + 1)) * ramp.length))]; };
+/** Lit from the upper left: light at the top left corner to dark at the bottom right, dithered. */
+const diag = (P: Pt[], ramp: string[]): Fill => { const b = bbox(P); return (x, y) => step(ramp, ((x - b.x0) + (y - b.y0)) / (b.w + b.h), x, y); };
+/** Round things: light around a spot up and left, falling off in rings. */
+const radial = (P: Pt[], ramp: string[], lx: number, ly: number): Fill => {
+  let m = 1; for (const [x, y] of P) m = Math.max(m, Math.hypot(x - lx, y - ly));
+  return (x, y) => step(ramp, Math.hypot(x - lx, y - ly) / m, x, y);
+};
+/** A pixel line (Bresenham). */
+const line = (p: Pix, x0: number, y0: number, x1: number, y1: number, c: string, o: string | null = O) => {
+  const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+  let err = dx + dy;
+  for (;;) {
+    p.set(x0, y0, c, o);
+    if (x0 === x1 && y0 === y1) break;
+    const e2 = 2 * err;
+    if (e2 >= dy) { err += dy; x0 += sx; }
+    if (e2 <= dx) { err += dx; y0 += sy; }
+  }
+};
+const polyline = (p: Pix, v: Pt[], c: string, o: string | null = O) => { for (let i = 1; i < v.length; i++) line(p, v[i - 1][0], v[i - 1][1], v[i][0], v[i][1], c, o); };
+/** The hard white glint, a softer pixel beside it. */
+const glint = (p: Pix, x: number, y: number, soft?: string) => { p.set(x, y, '#FFFFFF'); if (soft) p.set(x + 1, y, soft); };
+
+/** Ink round everything that wants it, then the cells as SVG rects (runs merged along each row). */
+const finish = (p: Pix): React.ReactNode => {
+  const g = p.g.slice();
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    if (p.g[y * N + x] || p.keep.has(y * N + x)) continue;
+    let ink: string | null = null;
+    // (the four sides first, so a part's own ink wins over a corner's)
+    for (const [dx, dy] of [[0, -1], [-1, 0], [1, 0], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+      const nx = x + dx, ny = y + dy;
+      if (nx < 0 || ny < 0 || nx >= N || ny >= N) continue;
+      const c = p.g[ny * N + nx];
+      if (c && c.o) { ink = c.o; break; }
+    }
+    if (ink) g[y * N + x] = { c: ink, o: null };
+  }
+  const out: React.ReactNode[] = [];
+  for (let y = 0; y < N; y++) {
+    let x = 0;
+    while (x < N) {
+      const c = g[y * N + x];
+      if (!c) { x++; continue; }
+      let w = 1;
+      while (x + w < N && g[y * N + x + w]?.c === c.c) w++;
+      out.push(<rect key={`${x}-${y}`} x={x} y={y} width={w} height={1} fill={c.c} />);
+      x += w;
+    }
+  }
+  return <g>{out}</g>;
+};
+const draw = (fn: (p: Pix) => void) => { const p = new Pix(); fn(p); return finish(p); };
+
+// Ramps, lightest first
+const GUNMETAL = ['#A1A1AA', '#71717A', '#52525B', '#3F3F46', '#27272A', '#18181B'];
+const STEEL = ['#F1F5F9', '#CBD5E1', '#94A3B8', '#64748B', '#475569'];
+const WOOD = ['#FBBF24', '#D97706', '#B45309', '#92400E', '#78350F'];
+const OLIVE = ['#7A7A55', '#63634A', '#4F4F3A', '#3F3F2E', '#2F2F22', '#1F1F16'];
+const BRASS = ['#FEF08A', '#FACC15', '#CA8A04', '#A16207'];
+const FIRE = ['#FEF9C3', '#FDE047', '#F59E0B', '#EA580C', '#B91C1C'];
+const RED = ['#FECACA', '#F87171', '#EF4444', '#DC2626', '#B91C1C', '#7F1D1D'];
 
 /** The picture of each weapon. */
 export const WeaponArt: React.FC<{ type: WeaponType; size?: number }> = ({ type, size = 44 }) => (
@@ -14,161 +133,277 @@ export const WeaponArt: React.FC<{ type: WeaponType; size?: number }> = ({ type,
 );
 
 const ART: Record<WeaponType, React.ReactNode> = {
-  // Dirty Dan's light machine gun: long, black, a belt of brass hanging off it
-  LMG: (
-    <g>
-      <rect x="1" y="11" width="22" height="7" fill={O} />
-      <rect x="2" y="12" width="20" height="5" fill="#27272A" />
-      <rect x="22" y="12" width="9" height="4" fill={O} />
-      <rect x="22" y="13" width="8" height="2" fill="#3F3F46" />
-      <rect x="24" y="13" width="1" height="2" fill="#18181B" /><rect x="27" y="13" width="1" height="2" fill="#18181B" />
-      <rect x="10" y="17" width="7" height="7" fill={O} />
-      <rect x="11" y="18" width="5" height="5" fill="#3F3F2E" />
-      <rect x="17" y="17" width="2" height="2" fill="#CA8A04" /><rect x="18" y="19" width="2" height="2" fill="#CA8A04" /><rect x="19" y="21" width="2" height="2" fill="#CA8A04" /><rect x="20" y="23" width="2" height="2" fill="#CA8A04" />
-      <rect x="5" y="17" width="3" height="6" fill="#18181B" />
-      <rect x="2" y="12" width="20" height="1" fill="#6B7280" />
-    </g>
-  ),
-  // Handgun: a chunky semi-auto with a serrated slide and a rubber grip
-  GUN: (
-    <g>
-      <rect x="5" y="9" width="23" height="8" fill={O} />
-      <rect x="6" y="10" width="21" height="5" fill="#4B5563" />
-      <rect x="6" y="10" width="21" height="1" fill="#9CA3AF" />
-      <rect x="8" y="12" width="1" height="3" fill="#1F2937" /><rect x="10" y="12" width="1" height="3" fill="#1F2937" /><rect x="12" y="12" width="1" height="3" fill="#1F2937" />
-      <rect x="25" y="8" width="2" height="2" fill={O} />
-      <rect x="27" y="11" width="3" height="3" fill={O} />
-      <rect x="7" y="16" width="16" height="3" fill={O} />
-      <rect x="8" y="16" width="14" height="2" fill="#374151" />
-      <path d="M7 18 L14 18 L13 28 L5 28 Z" fill={O} />
-      <path d="M8 19 L13 19 L12 27 L6 27 Z" fill="#27272A" />
-      <rect x="8" y="21" width="4" height="1" fill="#3F3F46" /><rect x="7" y="23" width="4" height="1" fill="#3F3F46" /><rect x="7" y="25" width="4" height="1" fill="#3F3F46" />
-      <path d="M14 18 L18 18 L18 22 Q16 23 14 21 Z" fill={O} />
-      <rect x="15" y="19" width="2" height="1" fill="#6B7280" />
-    </g>
-  ),
-  // Big Fuckin' Boulder: a craggy rock, lit from the top left
-  BOULDER: (
-    <g>
-      <path d="M6 10 L12 4 L21 5 L28 11 L29 20 L24 27 L12 28 L4 22 L3 14 Z" fill={O} />
-      <path d="M7 11 L12 6 L20 7 L26 12 L27 20 L23 25 L12 26 L6 21 L5 14 Z" fill="#78716C" />
-      <path d="M7 11 L12 6 L20 7 L17 11 L11 13 L7 15 Z" fill="#A8A29E" />
-      <path d="M17 18 L23 17 L26 21 L23 25 L16 25 Z" fill="#57534E" />
-      <path d="M12 14 L15 18 L13 22" stroke={O} strokeWidth="1" fill="none" />
-      <path d="M20 10 L22 14" stroke={O} strokeWidth="1" fill="none" />
-      <rect x="10" y="8" width="2" height="1" fill="#E7E5E4" />
-    </g>
-  ),
-  // Shotgun Ice: a frosted-over shotgun trailing snowflakes
-  SHOTGUN: (
-    <g>
-      <rect x="3" y="14" width="24" height="6" fill={O} />
-      <rect x="4" y="15" width="22" height="3" fill="#0284C7" />
-      <rect x="4" y="15" width="22" height="1" fill="#7DD3FC" />
-      <rect x="11" y="17" width="8" height="4" fill={O} />
-      <rect x="12" y="18" width="6" height="2" fill="#38BDF8" />
-      <path d="M2 15 L6 15 L7 20 L5 24 L1 23 Z" fill={O} />
-      <path d="M3 16 L5 16 L6 20 L4 22 L2 21 Z" fill="#0369A1" />
-      <rect x="6" y="13" width="3" height="2" fill="#E0F2FE" />
-      <rect x="15" y="13" width="4" height="2" fill="#E0F2FE" />
-      <rect x="22" y="13" width="2" height="2" fill="#E0F2FE" />
-      <g fill="#F0F9FF">
-        <rect x="26" y="5" width="1" height="7" /><rect x="23" y="8" width="7" height="1" />
-        <rect x="24" y="6" width="1" height="1" /><rect x="28" y="6" width="1" height="1" /><rect x="24" y="10" width="1" height="1" /><rect x="28" y="10" width="1" height="1" />
-      </g>
-      <rect x="28" y="16" width="3" height="2" fill="#BAE6FD" />
-    </g>
-  ),
-  // Flamethrower: fuel tank, hose and a nozzle belching fire
-  FLAMETHROWER: (
-    <g>
-      <rect x="2" y="15" width="8" height="12" rx="1" fill={O} />
-      <rect x="3" y="16" width="6" height="10" fill="#B91C1C" />
-      <rect x="4" y="16" width="1" height="10" fill="#F87171" />
-      <rect x="3" y="19" width="6" height="1" fill="#7F1D1D" />
-      <path d="M9 20 Q12 22 13 19" stroke={O} strokeWidth="2" fill="none" />
-      <rect x="11" y="16" width="10" height="4" fill={O} />
-      <rect x="12" y="17" width="8" height="2" fill="#52525B" />
-      <rect x="12" y="17" width="8" height="1" fill="#A1A1AA" />
-      <path d="M21 18 Q25 11 31 10 Q27 15 31 18 Q27 21 31 26 Q25 25 21 18 Z" fill="#EA580C" />
-      <path d="M22 18 Q25 14 28 13 Q26 16 28 18 Q26 20 28 23 Q25 22 22 18 Z" fill="#FACC15" />
-      <path d="M22 18 Q24 16 25 16 Q24 18 25 20 Q24 20 22 18 Z" fill="#FEF9C3" />
-    </g>
-  ),
-  // TSUNAMI!: a towering curling wave with a crest of foam
-  TSUNAMI: (
-    <g>
-      <path d="M2 28 L2 20 Q4 8 16 5 Q27 3 29 11 Q24 8 20 12 Q24 12 25 16 Q20 14 17 18 Q15 22 16 28 Z" fill={O} />
-      <path d="M3 27 L3 20 Q5 9 16 6 Q25 4 27 9 Q23 7 19 11 Q22 12 23 14 Q19 13 16 17 Q14 21 15 27 Z" fill="#1D4ED8" />
-      <path d="M4 26 L4 21 Q6 13 13 10 Q10 15 10 20 Q10 24 12 26 Z" fill="#1E3A8A" />
-      <path d="M16 6 Q25 4 27 9 Q23 7 19 11 Q17 9 14 9 Z" fill="#93C5FD" />
-      <g fill="#F8FAFC">
-        <rect x="24" y="7" width="2" height="1" /><rect x="21" y="6" width="2" height="1" /><rect x="18" y="7" width="2" height="1" />
-        <rect x="26" y="10" width="1" height="1" /><rect x="20" y="10" width="1" height="1" />
-      </g>
-      <rect x="1" y="28" width="30" height="2" fill="#1E40AF" />
-    </g>
-  ),
-  // Rusty Needle Cannon: a fat syringe full of something neon
-  NEEDLES: (
-    <g transform="rotate(-35 16 16)">
-      <rect x="6" y="12" width="16" height="8" fill={O} />
-      <rect x="7" y="13" width="14" height="6" fill="#E5E7EB" opacity="0.7" />
-      <rect x="11" y="14" width="10" height="4" fill="#EC4899" />
-      <rect x="11" y="14" width="10" height="1" fill="#F9A8D4" />
-      <rect x="9" y="13" width="1" height="2" fill="#6B7280" /><rect x="13" y="13" width="1" height="2" fill="#6B7280" /><rect x="17" y="13" width="1" height="2" fill="#6B7280" />
-      <rect x="22" y="14" width="2" height="4" fill={O} />
-      <rect x="24" y="15" width="7" height="2" fill="#9CA3AF" />
-      <rect x="24" y="15" width="7" height="1" fill="#D1D5DB" />
-      <rect x="2" y="15" width="4" height="2" fill={O} />
-      <rect x="1" y="11" width="2" height="10" fill={O} />
-      <rect x="1" y="12" width="1" height="8" fill="#9A3412" />
-    </g>
-  ),
-  // Taser Overload: a stun gun with arcing prongs
-  TASER: (
-    <g>
-      <path d="M4 13 L20 13 L20 19 L12 19 L10 27 L4 27 L6 19 L4 19 Z" fill={O} />
-      <path d="M5 14 L19 14 L19 18 L11 18 L9 26 L5 26 L7 18 L5 18 Z" fill="#27272A" />
-      <rect x="5" y="14" width="14" height="1" fill="#52525B" />
-      <rect x="11" y="15" width="6" height="2" fill="#FACC15" />
-      <rect x="20" y="14" width="3" height="1" fill="#A1A1AA" /><rect x="20" y="17" width="3" height="1" fill="#A1A1AA" />
-      <path d="M23 15 L26 12 L25 16 L29 13 L27 18 L31 17 L26 21 L27 17 L23 18 Z" fill="#FDE047" />
-      <path d="M24 15 L26 14 L25.5 16.5 L28 15.5 L26.5 18 Z" fill="#FFFFFF" />
-    </g>
-  ),
-  // Sludge Barfer: a leaking barrel of glowing toxic goo
-  SLUDGE: (
-    <g>
-      <rect x="6" y="6" width="17" height="22" rx="2" fill={O} />
-      <rect x="7" y="7" width="15" height="20" fill="#3F6212" />
-      <rect x="8" y="7" width="3" height="20" fill="#65A30D" />
-      <rect x="7" y="11" width="15" height="2" fill="#1A2E05" />
-      <rect x="7" y="21" width="15" height="2" fill="#1A2E05" />
-      <circle cx="15" cy="17" r="3" fill="#FACC15" />
-      <path d="M15 14.5 L16 16.5 L14 16.5 Z M13 18 L14.5 17.5 L14 19 Z M17 18 L15.5 17.5 L16 19 Z" fill={O} />
-      <path d="M22 9 Q27 8 28 13 Q29 18 27 22 Q26 18 25 15 Q24 12 22 12 Z" fill="#84CC16" />
-      <path d="M22 9 Q26 9 27 12 Q25 11 22 11 Z" fill="#D9F99D" />
-      <rect x="26" y="23" width="2" height="3" fill="#84CC16" /><rect x="25" y="27" width="4" height="2" fill="#65A30D" />
-    </g>
-  ),
-  // Oil Rocket Launcher: a launch tube with a greasy warhead poking out
-  OIL_ROCKET: (
-    <g>
-      <rect x="2" y="11" width="22" height="9" fill={O} />
-      <rect x="3" y="12" width="20" height="7" fill="#3F3F46" />
-      <rect x="3" y="12" width="20" height="2" fill="#71717A" />
-      <rect x="6" y="12" width="2" height="7" fill="#FACC15" />
-      <rect x="9" y="19" width="4" height="6" fill={O} />
-      <rect x="10" y="20" width="2" height="4" fill="#27272A" />
-      <path d="M23 12 L27 12 L31 15.5 L27 19 L23 19 Z" fill={O} />
-      <path d="M24 13 L27 13 L29.5 15.5 L27 18 L24 18 Z" fill="#111111" />
-      <rect x="25" y="13" width="2" height="1" fill="#6B7280" />
-      <path d="M26 19 Q27 22 26 24 Q25 22 26 19 Z" fill="#111111" />
-      <path d="M21 20 Q22 24 21 26 Q20 24 21 20 Z" fill="#111111" />
-      <path d="M2 13 L0 11 L0 20 L2 18 Z" fill="#DC2626" />
-    </g>
-  ),
+  // Handgun: a chunky semi-auto, serrated slide over the frame, the wood grip he holds it by
+  GUN: draw(p => {
+    p.set(4, 10, '#27272A'); p.set(4, 11, '#18181B');                                   // the hammer, cocked
+    const grip = polyC([[6, 16], [15, 16], [13.5, 29], [4.5, 29]]);
+    paint(p, grip, '#27272A');
+    const panel = polyC([[7.5, 17], [13.5, 17], [12.3, 27.6], [6.2, 27.6]]);
+    const wood = diag(panel, WOOD);
+    paint(p, panel, (x, y) => ((x + y) % 2 === 0 && y % 2 === 1 ? '#92400E' : wood(x, y)));   // checkered
+    paint(p, rectC(5, 28, 8, 1.6), '#52525B');                                          // the magazine's base plate
+    const frame = rectC(8, 14, 17, 2.6);
+    paint(p, frame, rows(frame, ['#52525B', '#3F3F46', '#27272A']));
+    // trigger guard, drawn in ink round a hole, the trigger in it
+    for (const [x, y] of [[15, 17], [15, 18], [15, 19], [16, 20], [17, 20], [18, 20], [19, 19], [19, 18], [19, 17]] as Pt[]) p.set(x, y, O, null);
+    p.set(16, 17, '#A1A1AA', null); p.set(16, 18, '#71717A', null);
+    for (const [x, y] of [[17, 17], [18, 17], [17, 18], [18, 18], [16, 19], [17, 19], [18, 19]] as Pt[]) p.hole(x, y);
+    const slide = rectC(5, 8, 22, 6);
+    paint(p, slide, rows(slide, ['#71717A', '#52525B', '#3F3F46', '#3F3F46', '#27272A', '#18181B']));
+    for (const sx of [7, 9, 11]) { p.set(sx, 10, '#18181B'); p.set(sx, 11, '#18181B'); p.set(sx, 12, '#18181B'); p.set(sx + 1, 10, '#71717A'); }
+    paint(p, rectC(16, 10, 5, 1), '#18181B'); p.set(16, 9, '#A1A1AA');                   // ejection port
+    p.set(6, 7, '#3F3F46'); p.set(7, 7, '#3F3F46'); p.set(25, 7, '#52525B');             // sights
+    const bush = rectC(27, 9, 2, 4);
+    paint(p, bush, rows(bush, ['#CBD5E1', '#94A3B8', '#64748B', '#475569']));
+    p.set(28, 10, '#18181B'); p.set(28, 11, '#18181B');                                  // the bore
+    paint(p, rectC(6, 8, 6, 1), '#A1A1AA');
+    glint(p, 7, 8, '#E4E4E7');
+  }),
+
+  // Shotgun Ice: the cryo shotgun, coolant glowing in its bands, frost on it, a snowflake coming off it
+  SHOTGUN: draw(p => {
+    const stock = polyC([[9, 12.5], [9, 19], [3.5, 23.5], [1, 23.5], [1, 16], [5, 13.5]]);
+    paint(p, stock, diag(stock, ['#0369A1', '#075985', '#0C4A6E', '#082F49']));
+    paint(p, rectC(1, 16, 1, 7.5), '#082F49');                                           // butt pad
+    const pump = rectC(16, 16, 9, 3);
+    paint(p, pump, rows(pump, ['#0EA5E9', '#0369A1', '#0C4A6E']));
+    for (const gx of [18, 20, 22]) p.set(gx, 17, '#082F49');
+    paint(p, rectC(25, 16, 3, 2), rows(rectC(25, 16, 3, 2), ['#CBD5E1', '#64748B']));   // magazine tube cap
+    const rec = rectC(8, 11, 11, 7);
+    paint(p, rec, rows(rec, ['#38BDF8', '#0EA5E9', '#0284C7', '#0284C7', '#0369A1', '#075985', '#0C4A6E']));
+    for (const bx of [10, 13, 16]) for (let y = 12; y <= 16; y++) { p.set(bx, y, y === 12 ? '#F0F9FF' : '#7DD3FC'); p.set(bx + 1, y, y === 12 ? '#BAE6FD' : '#38BDF8'); }
+    for (const [x, y] of [[10, 18], [10, 19], [11, 20], [12, 20], [13, 19], [13, 18]] as Pt[]) p.set(x, y, O, null); // trigger guard
+    p.set(11, 18, '#94A3B8', null); p.hole(12, 19); p.hole(11, 19); p.hole(12, 18);
+    const barrel = rectC(19, 12, 10, 4);
+    paint(p, barrel, rows(barrel, STEEL.slice(0, 4)));
+    const muz = rectC(28, 11, 2, 6);
+    paint(p, muz, rows(muz, ['#F0F9FF', '#E0F2FE', '#BAE6FD', '#7DD3FC', '#38BDF8', '#0EA5E9']));
+    p.set(29, 13, '#0C4A6E'); p.set(29, 14, '#0C4A6E');                                  // the bore, frosted round
+    // frost caked on the top edges, an icicle under the barrel
+    for (const [x0, x1] of [[9, 11], [19, 22], [25, 26]]) for (let x = x0; x <= x1; x++) p.set(x, 10, x === x0 ? '#FFFFFF' : '#E0F2FE');
+    p.set(20, 11, '#E0F2FE'); p.set(26, 11, '#BAE6FD');
+    p.set(26, 18, '#BAE6FD'); p.set(26, 19, '#7DD3FC');
+    glint(p, 9, 11);
+    // the snowflake
+    const SF = '#F0F9FF', SO = '#0C4A6E';
+    for (let k = -3; k <= 3; k++) { p.set(24 + k, 4, SF, SO); p.set(24, 4 + k, SF, SO); }
+    for (const [x, y] of [[22, 2], [26, 2], [22, 6], [26, 6]] as Pt[]) p.set(x, y, '#BAE6FD', SO);
+    p.set(24, 4, '#FFFFFF', SO);
+    p.set(30, 8, '#BAE6FD', null); p.set(31, 6, '#E0F2FE', null);                       // a breath of frost off the muzzle
+  }),
+
+  // Flamethrower: the red fuel canister and its gauge, a hose over to the finned barrel, fire out of the nozzle
+  FLAMETHROWER: draw(p => {
+    const tank = rectC(2, 11, 7, 17).filter(([x, y]) => !((y === 11 || y === 27) && (x === 2 || x === 8)));
+    paint(p, tank, cols(tank, ['#B91C1C', '#F87171', '#EF4444', '#DC2626', '#B91C1C', '#991B1B', '#7F1D1D']));
+    for (const sy of [14, 24]) for (let x = 2; x <= 8; x++) p.set(x, sy, x === 3 ? '#A1A1AA' : x > 6 ? '#27272A' : '#52525B');
+    paint(p, ellC(5.5, 19.5, 2.2, 2.2), '#FDE68A');                                       // gauge
+    p.set(4, 18, '#FEF9C3'); p.set(5, 19, '#7F1D1D'); p.set(6, 18, '#7F1D1D');
+    paint(p, rectC(4, 9, 3, 2), rows(rectC(4, 9, 3, 2), ['#A1A1AA', '#52525B']));       // valve
+    p.set(2, 13, '#FECACA');
+    // the hose, up off the valve and over into the back of the barrel
+    const hose: Pt[] = [[5, 8], [6, 7], [7, 6], [8, 6], [9, 7], [10, 8], [10, 9], [10, 10], [10, 11], [11, 12]];
+    polyline(p, hose, '#27272A'); polyline(p, hose.map(([x, y]) => [x + 1, y + 1] as Pt), '#18181B');
+    p.set(7, 6, '#52525B'); p.set(8, 6, '#52525B');
+    // grip under the barrel
+    const grip = polyC([[12, 18], [16, 18], [15, 24], [11, 24]]);
+    paint(p, grip, diag(grip, ['#3F3F46', '#27272A', '#18181B']));
+    const body = rectC(10, 13, 10, 6);
+    paint(p, body, rows(body, GUNMETAL.slice(1)));
+    for (const fx of [12, 15, 18]) { p.set(fx, 12, '#71717A'); for (let y = 13; y <= 18; y++) p.set(fx, y, y === 13 ? '#A1A1AA' : '#18181B'); }
+    const noz = rectC(20, 13, 3, 5);
+    paint(p, noz, rows(noz, ['#FDBA74', '#F97316', '#EA580C', '#C2410C', '#9A3412']));
+    glint(p, 12, 13);
+    // the fire, in flat rings hotter toward the nozzle
+    const flame = polyC([[23, 13], [26, 8.5], [30.5, 4.5], [29, 10], [31.5, 15.5], [29, 21], [30.5, 26.5], [26, 22.5], [23, 18]]);
+    paint(p, flame, (x, y) => { const d = Math.hypot(x - 22.5, (y - 15.5) * 0.9); return step(FIRE, d / 9, x, y); }, '#7F1D1D');
+    p.set(27, 3, '#FDE047', '#7F1D1D'); p.set(25, 27, '#F59E0B', null);                  // embers
+  }),
+
+  // Big Fuckin' Boulder: the rock he throws, tan and craggy, moss on top, cracked, lit from the upper left
+  BOULDER: draw(p => {
+    const rock = polyC([[7, 8], [12, 3.5], [21, 3.5], [27.5, 8.5], [29.5, 17.5], [26, 26], [15, 29], [5.5, 25], [2.5, 15.5]]);
+    paint(p, rock, radial(rock, ['#F0D2A8', '#D7A86E', '#B07D45', '#8B5A2B', '#6B4220', '#4E2F12'], 9, 7));
+    // a lit facet up top and a shadowed one under the right
+    paint(p, polyC([[18, 17], [28, 15], [26, 26], [17, 27.5]]), (x, y) => step(['#6B4220', '#4E2F12', '#3B2410'], ((x - 17) + (y - 16)) / 20, x, y));
+    paint(p, polyC([[8, 9], [12.5, 5], [19, 5.5], [16, 10], [10, 12]]), (x, y) => ((x + y) % 2 ? '#F0D2A8' : '#E2BC88'));
+    // cracks, the lip under each catching the light
+    const C = '#2A1808';
+    const crack1: Pt[] = [[12, 13], [14, 16], [13, 20], [15, 23]], crack2: Pt[] = [[14, 16], [18, 17]], crack3: Pt[] = [[21, 7], [22, 10], [24, 11]];
+    for (const c of [crack1, crack2, crack3]) { polyline(p, c.map(([x, y]) => [x + 1, y] as Pt), '#D7A86E'); polyline(p, c, C); }
+    // moss on the crown
+    const moss = ellC(12.5, 5, 4.5, 2.4).concat(ellC(9, 7, 2, 1.5));
+    paint(p, moss, diag(moss, ['#BEF264', '#84CC16', '#65A30D', '#3F6212']));
+    p.set(15, 7, '#65A30D'); p.set(11, 8, '#3F6212');
+    for (const [x, y] of [[20, 13], [8, 18], [24, 21], [11, 24], [19, 9]] as Pt[]) p.set(x, y, '#4E2F12');
+    for (const [x, y] of [[6, 14], [17, 12], [9, 21]] as Pt[]) p.set(x, y, '#F0D2A8');
+    glint(p, 7, 11, '#F0D2A8');
+  }),
+
+  // TSUNAMI!: a towering wave curling over, foam riding its crest, dark water under the lip
+  TSUNAMI: draw(p => {
+    const outline: Pt[] = [[2, 27], [2, 20], ...quad([2, 20], [4, 7], [16, 4]), ...quad([16, 4], [27, 2.5], [29.5, 11]), ...quad([29.5, 11], [24, 7.5], [20, 12]),
+      ...quad([20, 12], [24, 12], [25.5, 16]), ...quad([25.5, 16], [20, 14], [17.5, 18]), ...quad([17.5, 18], [15, 22], [16.5, 27])];
+    const wave = polyC(outline);
+    paint(p, wave, diag(wave, ['#93C5FD', '#60A5FA', '#3B82F6', '#2563EB', '#1D4ED8', '#1E40AF', '#1E3A8A']));
+    // the face of it, deep under the curl
+    const under = polyC([[14, 9], [20, 8], [19, 13], [16, 17], [14, 24], [9, 26], [11, 16]]);
+    paint(p, under, (x, y) => step(['#1D4ED8', '#1E40AF', '#1E3A8A', '#172554'], ((x - 9) + (y - 8)) / 22, x, y));
+    // streaks running up the face
+    polyline(p, [[5, 24], [5, 19], [7, 14], [10, 10], [14, 7]], '#93C5FD');
+    polyline(p, [[8, 25], [8, 21], [10, 16]], '#60A5FA');
+    // the foam on the crest: the top edge white, a dithered row of it under that
+    const W = wave.filter(([x, y]) => x >= 12 && !wave.some(([a, b]) => a === x && b === y - 1));
+    for (const [x, y] of W) { if (y > 12) continue; p.set(x, y, '#FFFFFF'); if ((x + y) % 2 === 0 || x > 24) p.set(x, y + 1, '#DBEAFE'); }
+    p.set(29, 11, '#DBEAFE'); p.set(28, 10, '#FFFFFF');
+    // spray off the lip
+    for (const [x, y] of [[29, 3], [24, 1], [30, 7]] as Pt[]) p.set(x, y, '#DBEAFE', null);
+    // the sea under it
+    const sea = rectC(1, 26, 30, 4);
+    paint(p, sea, rows(sea, ['#60A5FA', '#2563EB', '#1D4ED8', '#1E3A8A']));
+    for (let x = 1; x <= 30; x++) if (x > 16 && (x % 4 === 0 || x % 4 === 1)) p.set(x, 26, '#DBEAFE');
+    glint(p, 6, 13);
+  }),
+
+  // Rusty Needle Cannon: a fat syringe full of neon pink, the plunger rusting, a bead on the needle's tip
+  NEEDLES: draw(p => {
+    // Laid along the diagonal up to the right: u runs along it, v across it (v < 0 is the lit side, up and left)
+    const on = (u0: number, u1: number, w: number) => cells((px, py) => { const u = (px - py) / Math.SQRT2, v = (px + py - 32) / Math.SQRT2; return u >= u0 && u < u1 && Math.abs(v) <= w; });
+    const vOf = (x: number, y: number) => (x + 0.5 + y + 0.5 - 32) / Math.SQRT2;
+    const across = (ramp: string[], w: number): Fill => (x, y) => step(ramp, (vOf(x, y) + w) / (2 * w), x, y);
+    const press = on(-20, -17.6, 4.3);
+    paint(p, press, across(RED.slice(1), 4.3));
+    const rod = on(-17.6, -12, 1.1);
+    paint(p, rod, (x, y) => ((x * 7 + y * 3) % 5 === 0 ? '#9A3412' : across(['#D1D5DB', '#9CA3AF', '#6B7280'], 1.1)(x, y)));
+    const flange = on(-12, -10.6, 5.6);
+    paint(p, flange, (x, y) => ((x + y * 2) % 4 === 0 ? '#B45309' : across(['#F3F4F6', '#D1D5DB', '#9CA3AF', '#6B7280'], 5.6)(x, y)));
+    const barrel = on(-10.6, 6.5, 3.6);
+    paint(p, barrel, (x, y) => {
+      const v = vOf(x, y), u = (x - y) / Math.SQRT2;
+      if (Math.abs(v) > 2.6) return v < 0 ? '#F1F5F9' : '#94A3B8';                    // the glass wall
+      if (u < -8.4) return '#CBD5E1';                                                    // empty glass behind the stopper
+      if (u < -6.6) return '#27272A';                                                    // the rubber stopper
+      return step(['#FFC2F3', '#FF6BE3', '#FF2BD6', '#C0139E', '#86106F'], (v + 2.6) / 5.2, x, y); // the good stuff
+    });
+    for (const mu of [-4, -1, 2, 5]) for (const [x, y] of on(mu, mu + 0.8, 3.6)) if (vOf(x, y) < -1.4) p.set(x, y, '#475569');
+    const hub = on(6.5, 9.4, 2.1);
+    paint(p, hub, across(RED.slice(1, 5), 2.1));
+    const needle = on(9.4, 19.6, 0.75);
+    paint(p, needle, (x, y) => (vOf(x, y) < 0 ? '#F3F4F6' : '#9CA3AF'));
+    p.set(29, 2, '#FF6BE3', '#86106F');                                                  // a bead of it on the tip
+    for (const [x, y] of on(-9.6, -9, 1)) p.set(x, y, '#FFFFFF');                        // the glass's shine
+    glint(p, 11, 15);
+  }),
+
+  // Taser Overload: a hazard-striped stun gun, the cyan emitter, a bolt crackling off the prongs
+  TASER: draw(p => {
+    const grip = polyC([[5, 16], [12, 16], [10.5, 28], [3.5, 28]]);
+    paint(p, grip, (x, y) => (y % 2 === 0 && x > 4 && x < 10 ? '#3F3F46' : diag(grip, ['#3F3F46', '#27272A', '#18181B'])(x, y)));
+    for (const [x, y] of [[13, 17], [13, 18], [14, 19], [15, 19], [16, 18], [16, 17]] as Pt[]) p.set(x, y, O, null);
+    p.set(14, 17, '#A1A1AA', null); p.hole(15, 17); p.hole(15, 18); p.hole(14, 18);
+    const body = rectC(3, 10, 18, 7);
+    paint(p, body, (x, y) => {
+      if (y >= 14) return (x + y) % 4 < 2 ? (y === 14 ? '#FDE047' : '#FACC15') : '#18181B';  // hazard stripes along the bottom
+      return ['#71717A', '#52525B', '#3F3F46', '#27272A'][y - 10];
+    });
+    paint(p, rectC(5, 11, 2, 2), '#22C55E'); p.set(5, 11, '#BBF7D0');                   // charge light
+    paint(p, rectC(9, 11, 7, 1), '#18181B'); paint(p, rectC(9, 12, 7, 1), '#164E63');   // the charge meter
+    for (let x = 9; x < 14; x++) p.set(x, 12, '#00E5FF');
+    glint(p, 4, 10, '#A1A1AA');
+    const emit = rectC(21, 9, 3, 9);
+    paint(p, emit, rows(emit, ['#E0FFFF', '#67F3FF', '#00E5FF', '#00E5FF', '#00A3B8', '#006B7A']));
+    for (const py of [10, 15]) { paint(p, rectC(24, py, 3, 1), '#E5E7EB'); paint(p, rectC(24, py + 1, 3, 1), '#6B7280'); }
+    // the arc: a cyan bolt with a white-hot core, out between the prongs
+    const G = '#00E5FF', K = '#164E63';
+    const bolt: Pt[] = [[27, 13], [29, 10], [28, 13], [31, 12]];
+    polyline(p, bolt, G, K); polyline(p, bolt.map(([x, y]) => [x, y + 1] as Pt), G, K);
+    polyline(p, bolt, '#FFFFFF', K);
+    polyline(p, [[26, 9], [27, 6], [29, 7], [30, 3]], G, K); p.set(27, 6, '#FFFFFF', K);
+    polyline(p, [[26, 18], [28, 20], [27, 22], [30, 24]], G, K); p.set(28, 20, '#FFFFFF', K);
+  }),
+
+  // Sludge Barfer: a drum of glowing toxic goo, slopping out of the top and down its side into a puddle
+  SLUDGE: draw(p => {
+    const drum = rectC(5, 8, 16, 20).filter(([x, y]) => !((y === 8 || y === 27) && (x === 5 || x === 20)));
+    paint(p, drum, cols(drum, ['#365314', '#65A30D', '#84CC16', '#4D7C0F', '#3F6212', '#3F6212', '#365314', '#1A2E05']));
+    // the rolling hoops, the lit edge of each up top
+    for (const hy of [12, 22]) for (let x = 5; x <= 20; x++) { p.set(x, hy, x < 9 ? '#A3E635' : x < 16 ? '#65A30D' : '#3F6212'); p.set(x, hy + 1, '#1A2E05'); }
+    for (let x = 6; x <= 19; x++) { p.set(x, 8, x < 10 ? '#BEF264' : '#84CC16'); p.set(x, 9, '#1A2E05'); }   // the lid's rim
+    // the hazard label
+    const LAB = ['.YYYYY.', 'YKKYKKY', 'YKKYKKY', 'YYYKYYY', 'YYKKKYY', 'YYKKKYY', '.YYYYY.'];
+    LAB.forEach((r, j) => [...r].forEach((ch, i) => { if (ch !== '.') p.set(9 + i, 15 + j, ch === 'K' ? O : (i + j < 4 ? '#FDE047' : '#FACC15')); }));
+    // the goo: welling up out of the bung, over the lip, a tongue of it down the front and a run down the side
+    const S = ['#F7FEE7', '#D9F99D', '#BEF264', '#A3E635', '#84CC16', '#65A30D'], SO = '#1A2E05';
+    const goo = ellC(15.5, 6.5, 4.5, 2.6).concat(rectC(15, 8, 3, 6), ellC(16.5, 14, 1.6, 1.6), rectC(19, 8, 4, 2), rectC(21, 9, 2, 12), ellC(22, 21, 1.5, 1.6));
+    paint(p, goo, diag(goo, S), SO);
+    const pool = ellC(23, 28.5, 7.5, 2);
+    paint(p, pool, diag(pool, S.slice(1)), SO);
+    for (const [x, y] of [[28, 23], [27, 24], [28, 24], [27, 25], [28, 25]] as Pt[]) p.set(x, y, y === 23 ? '#D9F99D' : '#A3E635', SO);                                 // a drip falling
+    for (const [x, y] of [[13, 5], [17, 5], [21, 10], [19, 27]] as Pt[]) p.set(x, y, '#FFFFFF');
+    p.set(14, 6, '#65A30D'); p.set(18, 7, '#84CC16');                                  // bubbles
+    glint(p, 7, 10);
+  }),
+
+  // Oil Rocket Launcher: an olive launch tube with hazard bands and a sight, the red warhead coated in crude
+  OIL_ROCKET: draw(p => {
+    const bell = rectC(1, 10, 3, 10);
+    paint(p, bell, rows(bell, ['#52525B', '#3F3F46', '#27272A', '#27272A', '#18181B']));
+    const grip = polyC([[9, 18], [12, 18], [12, 24.5], [9, 24.5]]);
+    paint(p, grip, diag(grip, ['#3F3F46', '#27272A', '#18181B']));
+    paint(p, rectC(15, 18, 2, 3), '#27272A');
+    const tube = rectC(4, 11, 18, 7);
+    paint(p, tube, rows(tube, OLIVE));
+    for (const bx of [6, 17]) for (let y = 11; y <= 17; y++) { p.set(bx, y, ['#FEF08A', '#FACC15', '#FACC15', '#EAB308', '#CA8A04', '#A16207', '#854D0E'][y - 11]); p.set(bx + 1, y, ['#FACC15', '#EAB308', '#EAB308', '#CA8A04', '#A16207', '#854D0E', '#713F12'][y - 11]); }
+    const sight = rectC(10, 7, 5, 3);
+    paint(p, sight, rows(sight, ['#52525B', '#3F3F46', '#27272A']));
+    p.set(12, 10, '#27272A'); p.set(14, 8, '#F87171'); p.set(14, 7, '#FECACA');         // mount, the red dot
+    // the warhead: a steel collar, then the fat red cone
+    paint(p, rectC(22, 11, 1, 7), rows(rectC(22, 11, 1, 7), STEEL));
+    const war = polyC([[23, 9.5], [26.5, 9.5], [31, 14.5], [26.5, 19.5], [23, 19.5]]);
+    paint(p, war, radial(war, RED.slice(1), 24, 11));
+    // crude slopped over it, wet, running off in drips
+    const oil = ellC(25.5, 10.5, 2.6, 1.6).concat(rectC(27, 11, 1, 3), ellC(27.5, 14.5, 0.9, 1.2), rectC(24, 19, 2, 2), ellC(25, 22.5, 1, 1.2), rectC(19, 18, 1, 2));
+    paint(p, oil, '#0A0A0A');
+    p.set(19, 21, '#0A0A0A'); p.set(25, 25, '#0A0A0A');
+    for (const [x, y] of [[24, 10], [27, 12], [24, 22]] as Pt[]) p.set(x, y, '#71717A');
+    p.set(25, 10, '#E5E7EB');
+    glint(p, 24, 13, '#FECACA');
+    paint(p, rectC(4, 11, 2, 1), '#A3A38A');
+    glint(p, 9, 11);
+  }),
+
+  // Dirty Dan's light machine gun: long and black, a vented shroud, a box of rounds hanging off it, the belt
+  LMG: draw(p => {
+    const stock = polyC([[1, 10.5], [8, 11.5], [8, 16], [1, 18]]);
+    paint(p, stock, diag(stock, ['#52525B', '#3F3F46', '#27272A', '#18181B']));
+    paint(p, rectC(1, 11, 1, 7), '#18181B');
+    const grip = polyC([[8, 16], [11.5, 16], [10.5, 23], [7, 23]]);
+    paint(p, grip, diag(grip, ['#3F3F46', '#27272A', '#18181B']));
+    paint(p, rectC(21, 15, 7, 1), '#52525B');                                           // the bipod, folded up under it
+    const rec = rectC(7, 10, 14, 6);
+    paint(p, rec, rows(rec, ['#71717A', '#52525B', '#3F3F46', '#3F3F46', '#27272A', '#18181B']));
+    // carry handle (a hole through it)
+    paint(p, rectC(12, 6, 6, 1), '#52525B'); p.set(12, 7, '#3F3F46'); p.set(17, 7, '#3F3F46');
+    paint(p, rectC(12, 8, 6, 2), '#3F3F46'); paint(p, rectC(12, 8, 6, 1), '#71717A');
+    for (let x = 13; x <= 16; x++) p.hole(x, 7);
+    const shroud = rectC(21, 11, 7, 4);
+    paint(p, shroud, rows(shroud, ['#71717A', '#52525B', '#3F3F46', '#27272A']));
+    for (const vx of [22, 25]) { p.set(vx, 12, '#0B0B0F'); p.set(vx + 1, 12, '#0B0B0F'); p.set(vx, 13, '#52525B'); }
+    p.set(26, 10, '#3F3F46');                                                            // front sight
+    paint(p, rectC(28, 12, 1, 2), '#94A3B8');
+    paint(p, rectC(29, 11, 2, 4), rows(rectC(29, 11, 2, 4), ['#A1A1AA', '#71717A', '#52525B', '#3F3F46']));
+    // the ammo box, olive drab, and the belt of brass out of it
+    const box = rectC(12, 16, 7, 7);
+    paint(p, box, diag(box, ['#8A8A60', ...OLIVE]));
+    paint(p, rectC(12, 17, 7, 1), '#1F1F16'); p.set(15, 19, '#CBD5E1'); p.set(15, 20, '#64748B');
+    paint(p, rectC(13, 21, 3, 1), '#FACC15');
+    for (let k = 0; k < 4; k++) {
+      const cx = 19 + k, cy = 16 + k * 2;
+      p.set(cx, cy, BRASS[0]); p.set(cx + 1, cy, BRASS[1]); p.set(cx, cy + 1, BRASS[2]); p.set(cx + 1, cy + 1, BRASS[3]);
+      p.set(cx + 2, cy + 1, '#C2410C');                                                 // the copper tip
+    }
+    glint(p, 8, 10, '#D4D4D8');
+  }),
 };
 
 interface WeaponIconProps {
