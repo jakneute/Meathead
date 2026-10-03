@@ -37,12 +37,12 @@ const LESSONS: Record<Lesson, { how: React.ReactNode; what: string; note?: strin
   push: {
     how: <Prompt pad={['B']} kb={['SHIFT']} mouse="right" size={SIZE} label="SHOULDER CHARGE (HOLD IT)" />,
     what: 'NOTHING GETS THROUGH THAT MAT. CHARGE INTO IT AND HOLD THE BUTTON: A CHARGE SHOVES ANYONE BEHIND A SHIELD BACK, AS FAR AS YOU KEEP IT UP.',
-    note: 'DRIVE HIM INTO THE WALL AND THAT\'S HIM DONE. (OR JUST HOP THE WALL AND LEAVE HIM THERE.)',
+    note: 'DRIVE HIM INTO THE WALL AND THAT\'S HIM DONE. (OR HOP THE WALL AND DIVE KICK HIM: THE MAT DOESN\'T COVER HIS HEAD.)',
   },
   slide: { how: <Combo dir="DOWN" kb={['C']} />, what: 'GYM RATS. ACTUAL RATS. TOO LOW TO SHOOT: SLIDE TACKLE THEM.' },
   uppercut: { how: <Combo dir="UP" kb={['E']} />, what: 'THEY THINK THEY\'RE SAFE UP ON THE RACKS. UPPERCUT THEM OFF.' },
   divekick: { how: <Combo dir="DOWN" kb={['C']} air />, what: "JUMP OFF THE EDGE AND DIVE KICK THEM. LAND ON A HEAD, BOUNCE, DO IT AGAIN. A KICK THAT KILLS GOES STRAIGHT THROUGH HIM: NO BOUNCE, AND THAT'S THE COMBO OVER.", note: "DIVE KICKS ARE FREE, AND ONE THAT DOESN'T KILL GIVES YOU POWER BACK: KEEP BOUNCING OFF THE TOUGH ONES AND YOU CAN GO FOREVER." },
-  shield: { how: <Prompt pad={['B']} kb={['SHIFT']} mouse="right" size={SIZE} label="SHOULDER CHARGE" />, what: 'A BRIEFCASE WON\'T STOP YOU. CHARGE IT, AND DRIVE HIM INTO THE WALL.' },
+  shield: { how: <Prompt pad={['B']} kb={['SHIFT']} mouse="right" size={SIZE} label="SHOULDER CHARGE" />, what: 'A BRIEFCASE WON\'T STOP YOU. CHARGE IT, AND DRIVE HIM INTO THE WALL.', note: 'A SHIELD WON\'T STOP A DIVE KICK EITHER: COME DOWN ON HIM FROM ABOVE AND IT GOES RIGHT THROUGH.' },
 };
 
 const TutorialHint: React.FC<{ lesson: string | null }> = ({ lesson }) => {
