@@ -267,7 +267,8 @@ const App: React.FC = () => {
 
   const cycleWeapon = (dir: number) => {
     const count = availableWeapons.length;
-    if (count <= 1 || lockedWeapon) return;
+    // (not in a scene he isn't in control of: the arsenal's put away with the HUD)
+    if (count <= 1 || lockedWeapon || (status === GameStatus.PLAYING && inCutscene)) return;
     // Functional update so several wheel ticks between renders all register
     setCurrentWeapon(current => {
       const idx = availableWeapons.indexOf(current);
@@ -288,6 +289,7 @@ const App: React.FC = () => {
 
   /** Number-key hotkeys (keyboard): 1 = the first weapon in the arsenal. Empty slots do nothing. */
   const selectWeaponHotkey = (index: number) => {
+    if (status === GameStatus.PLAYING && inCutscene) return;
     if (index < availableWeapons.length) handleWeaponIconClick(index);
   };
 
@@ -719,8 +721,8 @@ const App: React.FC = () => {
   };
 
   // (in the garage, it's the garage's own input: the stage select's is off)
-  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon });
-  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon };
+  const inputRef = useRef({ status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon, cutscene: inCutscene });
+  inputRef.current = { status, togglePause, cycleWeapon, moveSelection, confirmSelection, handleResume, selectWeaponHotkey, switchTab, stageSelectBack, toggleMusic, introOn: intro !== 'off', garage: inGarage || !!pickFor, dossier: showDossier, pauseDossier, weaponCount: availableWeapons.length, locked: !!lockedWeapon, cutscene: inCutscene };
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -827,8 +829,9 @@ const App: React.FC = () => {
         // The weapon wheel, on the right stick (not on a Joy-Con on its own: it hasn't got one; and only where the stick's
         // mapped where we'd look for it): push it any way and the wheel comes up, pointing at a weapon; let it go and
         // that's the one
-        const { weaponCount, locked, selectWeaponHotkey } = inputRef.current;
-        if (status === GameStatus.PLAYING && hasRightStick(gp.id) && gp.mapping === 'standard' && weaponCount > 1 && !locked) {
+        const { weaponCount, locked, selectWeaponHotkey, cutscene } = inputRef.current;
+        // (not in a scene he isn't in control of: it goes with the HUD)
+        if (status === GameStatus.PLAYING && !cutscene && hasRightStick(gp.id) && gp.mapping === 'standard' && weaponCount > 1 && !locked) {
           const rx = gp.axes[2] ?? 0, ry = gp.axes[3] ?? 0, mag = Math.hypot(rx, ry);
           if (mag > 0.55) {
             const i = wheelIndexAt(rx, ry, weaponCount);
@@ -860,7 +863,7 @@ const App: React.FC = () => {
   return (
     <div className="relative w-screen h-screen flex items-center justify-center bg-black overflow-hidden">
       <div className="relative shrink-0 shadow-2xl border-4 border-gray-800 bg-[#121212] overflow-hidden" style={{ width: 800, height: 600, boxSizing: 'content-box', transform: `scale(${viewScale})` }}>
-        {wheelAt !== null && status === GameStatus.PLAYING && <WeaponWheel weapons={availableWeapons} index={wheelAt} current={currentWeapon} />}
+        {wheelAt !== null && status === GameStatus.PLAYING && !inCutscene && <WeaponWheel weapons={availableWeapons} index={wheelAt} current={currentWeapon} />}
         {HUD_SCREENS.includes(status) && (
           <div className="contents" style={{ visibility: inCutscene && status === GameStatus.PLAYING ? 'hidden' : undefined }}>
           <HUD
