@@ -94,6 +94,20 @@ export const updateFinale = (ctx: FrameContext, controls: Controls): Controls =>
     shedSkin(ctx, rt, boss);
     if (rt.pleadAt !== undefined) beg(ctx, rt);
   }
+  // He's dead (before he ever got to begging, with his men still about): every one of them left goes off like a
+  // grenade, there and then (whatever kept them going went with him)
+  if ((!boss || boss.health <= 0 || state.bossExplosionTimer > 0) && !rt.said.agentsPopped) {
+    rt.said.agentsPopped = true;
+    const left = agents(ctx);
+    for (const e of left) {
+      const c = { x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 };
+      ctx.fx.spawnExplosion(c, '#F97316', 14, 0, 12);
+      ctx.fx.spawnDeathShower(e.pos, 0, 2.2);
+      ctx.fx.blowAwayEnemy(e, { x: (Math.random() - 0.5) * 30, y: -14 - Math.random() * 10 }, 'oil_kill', 0, 2.5);
+      ctx.fx.spawnDamageNumber({ x: e.pos.x, y: e.pos.y - 24 }, 'POP!', true, '#F97316');
+    }
+    if (left.length) playSound('boom', 0.8);
+  }
   fallingSkin(rt);
   pumpLines(ctx, rt);
   return controls;
