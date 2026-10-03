@@ -150,7 +150,10 @@ export const updateQuakes = (ctx: FrameContext, qk: Quakes, active: boolean) => 
   const p = state.player;
   const px = p.pos.x + p.width / 2;
   if (qk.banner < 999) qk.banner++;
-  if (active) {
+  // (a little cutscene, him out of it: whatever quake's going stops dead, and none starts till it's over)
+  const hold = !!p.inCutscene;
+  if (hold) qk.t = 0;
+  if (active && !hold) {
     // The first one's scripted: once he's up the first hill
     if (qk.first && px > COURSE.streets.x1 + FIRST_QUAKE_AT) { qk.first = false; startQuake(state, qk, 220); qk.next = 600; }
     else if (!qk.first && qk.t <= 0 && --qk.next <= 0) {
