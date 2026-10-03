@@ -29,6 +29,7 @@ import { drawBayBackdrop, drawSeaBack, drawSeaMid, drawSeaFront, drawSeaHud, dra
 import { drawIslandBackdrop, drawIslandBack } from './islandDraw';
 import { CRASH_X, hipsterY } from './doorCrash';
 import { sentenceShown } from '../../platform/speech';
+import { drawCityBackdrop, freeCitySky } from './citySky';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -77,87 +78,15 @@ const layer = (ctx: Ctx, state: GameState, i: number) => {
 export const drawErnieBackdrop = (ctx: Ctx, state: GameState): boolean => {
   const rt = getErnie(state)!;
   const region = regionOf(state.camera.x + 400);
+  if (region !== 'main') freeCitySky();
   if (region === 'cell') { drawIslandBackdrop(ctx, state); return true; }
   if (region === 'bay') { drawBayBackdrop(ctx, state, rt); return true; }
-  // The streets: sunset over the city (the painted ladies up the hills, the bay and the bridge out beyond them)
-  const k = Math.max(0, Math.min(1, (state.camera.x + 400 - COURSE.streets.x1) / (COURSE.bridge.x1 - COURSE.streets.x1)));
-  ctx.save();
-  // (the city sinks away as you climb, and rises as you drop)
-  ctx.translate(0, Math.max(-40, Math.min(40, -(state.camera.y - (Y - 550)) * 0.15)));
-  layer(ctx, state, 0);
-  // Over the toll plaza the city behind fades into the view from the bridge (the bay far below, Marin ahead)
-  const toBridge = Math.max(0, Math.min(1, (state.camera.x + 400 - (COURSE.bridge.x1 - 900)) / 700));
-  // (the bay out beyond the city, with the far headlands, but not the bridge: you're headed for that, it's never scenery)
-  if (toBridge < 1) { drawFarBay(ctx, state); layer(ctx, state, 2); layer(ctx, state, 3); layer(ctx, state, 4); }
-  if (toBridge > 0) { ctx.globalAlpha = toBridge; drawBridgeView(ctx, state); ctx.globalAlpha = 1; }
-  ctx.restore();
+  // The streets and the bridge: the city at sunset, and the bay past it (one panorama: see citySky.ts)
+  drawCityBackdrop(ctx, state, quakeAmount(rt.quakes), () => { layer(ctx, state, 2); layer(ctx, state, 3); });
   // Dust in the air in a quake
   const a = quakeAmount(rt.quakes);
   if (a > 0) { ctx.fillStyle = `rgba(120, 100, 80, ${a * 0.18})`; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
-  void k;
   return true;
-};
-
-/** Behind the city: the far headlands and the bay under the sunset (no bridge). */
-const drawFarBay = (ctx: Ctx, state: GameState) => {
-  const W = CANVAS_WIDTH, horizon = 410;
-  const drift = state.camera.x * 0.1;
-  const ridge = (x: number) => horizon - 12 - 22 * Math.sin((x + drift) * 0.005) - 8 * Math.sin((x + drift) * 0.019);
-  // (the headlands: lit along the crest by the sunset, fading into the haze down by the water)
-  ctx.fillStyle = '#4B3D5A';
-  ctx.beginPath(); ctx.moveTo(0, horizon);
-  for (let x = 0; x <= W + 20; x += 16) ctx.lineTo(x, ridge(x));
-  ctx.lineTo(W + 20, horizon); ctx.fill();
-  for (let x = 0; x < W; x += 2) { const y = Math.round(ridge(x) / 2) * 2; ctx.fillStyle = '#7A4E6A'; ctx.fillRect(x, y, 2, 2); if ((x / 2) % 2) { ctx.fillStyle = '#5E4462'; ctx.fillRect(x, y + 4, 2, 2); } }
-  hazeBands(ctx, 0, horizon - 30, W, 30, '#B4436C', 0, 0.35, 4);
-  // (the water: in bands, the swell's lines across it)
-  bandedGradient(ctx, 0, horizon, W, CANVAS_HEIGHT + 80 - horizon, ['#4A5A7E', '#3B5B80', '#2E4A6B', '#25405C'], 8);
-  ctx.fillStyle = '#5276A0';
-  for (let y = horizon + 4; y < CANVAS_HEIGHT + 60; y += 6) for (let x = ((y * 7 - drift * 0.5) % 22 + 22) % 22; x < W; x += 22) ctx.fillRect(x, y, 8, 2);
-  ctx.fillStyle = 'rgba(246, 194, 122, 0.3)';
-  for (let y = horizon + 2; y < horizon + 40; y += 6) for (let x = ((y * 13 - drift * 0.5) % 46 + 46) % 46; x < W; x += 46) ctx.fillRect(x, y, 6, 1);
-};
-
-/** Out on the bridge: the bay far below, the city behind you, the Marin headlands ahead, the island out in the water. */
-const drawBridgeView = (ctx: Ctx, state: GameState) => {
-  const W = CANVAS_WIDTH, f = state.frame;
-  const horizon = 330;
-  // (a slow drift as you go, from where the bridge starts)
-  const cx = (state.camera.x - (COURSE.bridge.x1 - 1200)) * 0.03;
-  // The bay
-  bandedGradient(ctx, 0, horizon, W, CANVAS_HEIGHT + 80 - horizon, ['#6C5B7B', '#35567A', '#2E4A6B', '#25405C', '#1B2F4A'], 14);
-  ctx.fillStyle = 'rgba(246, 194, 122, 0.35)';
-  for (let i = 0; i < 30; i++) { const x = ((hash(i) * W + f * 0.2) % W), y = horizon + 6 + hash(i + 3) * 200; ctx.fillRect(x, y, 10 + hash(i + 5) * 30, 1); }
-  // The city behind (left), fading into the haze: each tower lit down its sunward edge, a window or two catching it
-  for (let i = 0; i < 26; i++) {
-    const x = Math.round(-60 + i * 18 - cx), h = Math.round(20 + hash(i * 7) * 50);
-    if (x > W * 0.45) break;
-    ctx.fillStyle = '#4B3D5A'; ctx.fillRect(x, horizon - h, 16, h);
-    ctx.fillStyle = '#3A2E48'; ctx.fillRect(x, horizon - h, 2, h);
-    ctx.fillStyle = '#7A5A78'; ctx.fillRect(x + 14, horizon - h, 2, h); ctx.fillRect(x, horizon - h, 16, 1);
-    if (hash(i * 7 + 1) < 0.4) { ctx.fillStyle = '#F6C27A'; ctx.fillRect(x + 4 + Math.round(hash(i) * 8), horizon - h + 6, 2, 2); }
-  }
-  // (the pyramid)
-  ctx.fillStyle = '#4B3D5A'; ctx.beginPath(); ctx.moveTo(120 - cx, horizon - 100); ctx.lineTo(108 - cx, horizon); ctx.lineTo(132 - cx, horizon); ctx.fill();
-  ctx.fillStyle = '#7A5A78'; ctx.beginPath(); ctx.moveTo(120 - cx, horizon - 100); ctx.lineTo(132 - cx, horizon); ctx.lineTo(126 - cx, horizon); ctx.fill();
-  hazeBands(ctx, 0, horizon - 70, W * 0.5, 70, '#B4436C', 0, 0.4, 5);
-  // Marin ahead (right): green-brown headlands, lit along the crest, the gullies down them in shadow
-  const mx0 = W * 0.55;
-  const mRidge = (x: number) => horizon - 20 - 60 * Math.sin((x - mx0) / (W * 0.45) * Math.PI * 0.9) - hash(x) * 6;
-  ctx.fillStyle = '#3D4A3A';
-  ctx.beginPath(); ctx.moveTo(mx0 - cx * 0.5, horizon);
-  for (let x = mx0; x <= W + 20; x += 20) ctx.lineTo(x - cx * 0.5, mRidge(x));
-  ctx.lineTo(W + 20, horizon); ctx.fill();
-  for (let x = mx0; x < W + 20; x += 20) {
-    const x0 = Math.round(x - cx * 0.5), y0 = Math.round(mRidge(x)), y1 = Math.round(mRidge(x + 20));
-    ctx.strokeStyle = '#6E7A50'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x0, y0 + 1); ctx.lineTo(x0 + 20, y1 + 1); ctx.stroke();
-    if (hash(x + 3) < 0.5) pixelBlob(ctx, x0 + 10, y0 + 14 + hash(x + 4) * 16, 8, 4, '#2E3A2E');
-  }
-  hazeBands(ctx, mx0 - cx * 0.5, horizon - 40, W, 40, '#9A6A7C', 0, 0.35, 4);
-  // The island, a speck out in the water
-  drawAlcatraz(ctx, W * 0.42 - cx * 0.6, horizon + 2, 0.35, f);
-  layer(ctx, state, 2);
-  layer(ctx, state, 3);
 };
 
 /** Alcatraz: the rock, the cell house on top, the water tower and the lighthouse. Drawn at scale s with its base on the water at (x, y). */
@@ -301,9 +230,41 @@ const drawFireEscape = (ctx: Ctx, x: number, y: number, w: number) => {
   ctx.fillStyle = '#6B7280'; ctx.fillRect(x, y, w, 1);
 };
 
+/**
+ * Where the bridge comes down onto the land at either end: the abutment the deck sits on (concrete, its face in
+ * panels, down out of sight), and the anchorage the main cable goes into (a dim block with a pitched cap: behind
+ * everything, nothing to get up on).
+ */
+const abutment = (ctx: Ctx, state: GameState, x: number) => {
+  const bottom = state.camera.y + CANVAS_HEIGHT + 20, w = 64;
+  ctx.fillStyle = INK; ctx.fillRect(x - 1, Y + 24, w + 2, bottom - Y - 24);
+  bandedGradient(ctx, x, Y + 25, w, bottom - Y - 25, ['#8A8480', '#77716E', '#66605E', '#57524F'], 6);
+  ctx.fillStyle = '#A8A29E'; ctx.fillRect(x, Y + 25, 3, bottom - Y - 25);
+  ctx.fillStyle = '#4A4542'; ctx.fillRect(x + w - 8, Y + 25, 8, bottom - Y - 25); checker(ctx, x + w - 12, Y + 25, 4, bottom - Y - 25, '#4A4542');
+  // (the panels down it, each with its shadow; the bearing under the girder)
+  for (let y = Y + 60; y < bottom; y += 70) { ctx.fillStyle = '#4A4542'; ctx.fillRect(x + 3, y, w - 11, 2); ctx.fillStyle = '#9A948F'; ctx.fillRect(x + 3, y + 2, w - 11, 1); }
+  for (const fx of [x + 14, x + 30, x + 46]) { ctx.fillStyle = '#5E5956'; ctx.fillRect(fx, Y + 66, 3, Math.max(0, Math.min(200, bottom - Y - 70))); ctx.fillStyle = '#948E8A'; ctx.fillRect(fx - 1, Y + 66, 1, Math.max(0, Math.min(200, bottom - Y - 70))); }
+  ctx.fillStyle = INK; ctx.fillRect(x + 6, Y + 24, w - 12, 6); ctx.fillStyle = '#44403C'; ctx.fillRect(x + 7, Y + 25, w - 14, 4);
+};
+const anchorage = (ctx: Ctx, cx: number, base: number) => {
+  const w = 60, x = cx - w / 2, top = Y - 30;
+  ctx.fillStyle = INK; ctx.fillRect(x - 1, top - 1, w + 2, base - top + 1);
+  ctx.fillStyle = '#5E5866'; ctx.fillRect(x, top, w, base - top);
+  ctx.fillStyle = '#6E6876'; ctx.fillRect(x, top, 3, base - top);
+  ctx.fillStyle = '#4A4552'; ctx.fillRect(x + w - 10, top, 10, base - top); checker(ctx, x + w - 14, top, 4, base - top, '#4A4552');
+  for (let y = top + 10; y < base; y += 12) { ctx.fillStyle = '#4E4856'; ctx.fillRect(x + 3, y, w - 13, 1); }
+  // (the cap, pitched up to where the cable goes in)
+  const cap = () => { ctx.beginPath(); ctx.moveTo(x - 3, top); ctx.lineTo(cx, Y - 58); ctx.lineTo(x + w + 3, top); ctx.closePath(); };
+  cap(); ctx.fillStyle = '#4E4856'; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
+  ctx.save(); cap(); ctx.clip(); ctx.fillStyle = '#3E3946'; ctx.fillRect(cx, Y - 60, w, 32); ctx.restore();
+  ctx.fillStyle = '#5A1810'; ctx.fillRect(cx - 5, Y - 46, 10, 6);
+};
+
 /** The toll plaza before the bridge, and the way down off the far end. */
 const drawPlaza = (ctx: Ctx, state: GameState) => {
   const px = COURSE.bridge.x1 - 480;
+  // The bridge comes off the land here: the anchorage by the toll gantry, the abutment the deck sits on
+  if (visible(state, COURSE.bridge.x1 - 360, COURSE.bridge.x1 + 80)) { anchorage(ctx, COURSE.bridge.x1 - 300, Y); abutment(ctx, state, COURSE.bridge.x1 - 24); }
   if (visible(state, px - 100, px + 500)) {
     // The toll gantry over the road: the bridge's own red steel, riveted, lit on the left
     for (const gx of [px, px + 380]) {
@@ -329,6 +290,37 @@ const drawPlaza = (ctx: Ctx, state: GameState) => {
     slab(ctx, px + 56, Y - 96, 58, 8, RED);
   }
   const ex = COURSE.bridge.exit;
+  // And down onto it again at the far end: the abutment, the stairs' concrete under them, the headland (the cable's
+  // anchorage up it), the grass along its top
+  if (visible(state, ex - 80, COURSE.bridge.x2 + 500)) {
+    const bottom = state.camera.y + CANVAS_HEIGHT + 20, lx = ex + 70, ly = Y + 72;
+    abutment(ctx, state, ex - 40);
+    // (the stairs' concrete, stepped under the treads)
+    for (let st = 0; st <= 6; st++) {
+      const sx = ex - 26 + st * 14, sy = Y + st * 12 + 12;
+      ctx.fillStyle = INK; ctx.fillRect(sx - 1, sy, 16, bottom - sy);
+      ctx.fillStyle = st % 2 ? '#625C58' : '#6A6460'; ctx.fillRect(sx, sy, 15, bottom - sy);
+    }
+    const rx2 = state.camera.x + CANVAS_WIDTH + 40;
+    if (rx2 > lx) {
+      bandedGradient(ctx, lx, ly, rx2 - lx, bottom - ly, ['#6A5A48', '#5A4C3E', '#4A3E34', '#3A3029'], 8);
+      for (let x = Math.ceil(lx / 40) * 40; x < rx2; x += 40) { ctx.fillStyle = '#3A3029'; ctx.fillRect(x + Math.round(hash(x) * 20), ly + 30 + Math.round(hash(x + 1) * 60), 18, 3); ctx.fillStyle = '#7A6A56'; ctx.fillRect(x + Math.round(hash(x) * 20), ly + 29 + Math.round(hash(x + 1) * 60), 10, 1); }
+      ctx.fillStyle = '#4D6B2A'; ctx.fillRect(lx, ly, rx2 - lx, 8);
+      ctx.fillStyle = '#7A9A3A'; ctx.fillRect(lx, ly, rx2 - lx, 2);
+      checker(ctx, lx, ly + 8, rx2 - lx, 2, '#4D6B2A');
+      ctx.fillStyle = INK; ctx.fillRect(lx, ly - 1, rx2 - lx, 1);
+    }
+    // (Marin's headland going up behind the landing: dim, in the evening's shade, no edge lit along it, the anchorage
+    // set into it)
+    const hx0 = lx + 60, hill = (x: number) => ly - 160 * (1 - Math.cos(Math.min(1, Math.max(0, (x - hx0) / 520)) * Math.PI)) / 2;
+    if (rx2 > hx0) {
+      ctx.fillStyle = '#3A4034';
+      for (let x = Math.floor(hx0 / 4) * 4; x < rx2; x += 4) { const y = Math.round(hill(x) / 2) * 2; ctx.fillRect(x, y, 4, ly - y + 2); }
+      ctx.fillStyle = '#2E3429';
+      for (let x = Math.floor(hx0 / 4) * 4; x < rx2; x += 4) { const y = Math.round(hill(x) / 2) * 2; if (y < ly - 4) ctx.fillRect(x, y + 6, 4, 2); if (hash(x) > 0.7 && y < ly - 20) pixelBlob(ctx, x, y + 2, 8, 5, '#2A3026'); }
+    }
+    if (visible(state, COURSE.bridge.x2 + 260, COURSE.bridge.x2 + 340)) anchorage(ctx, COURSE.bridge.x2 + 300, ly);
+  }
   if (visible(state, ex - 200, ex + 100)) {
     slab(ctx, ex - 72, Y - 106, 6, 106, '#E7E5E4', 1);
     signPlate(ctx, ex - 130, Y - 150, 120, 44, '#166534', '', 7);
@@ -393,7 +385,7 @@ const drawBridge = (ctx: Ctx, state: GameState, br: Bridge) => {
   for (const tx of B.towers) if (visible(state, tx - 80, tx + 80)) drawTower(ctx, tx, state);
   // Suspender cables (each inked, lit down one side) and the main cable, its wrapping bands
   ctx.beginPath();
-  for (let x = Math.ceil(x1 / 50) * 50; x < x2; x += 50) { if (B.towers.some(t => Math.abs(x - t) < 40)) continue; ctx.moveTo(x, cableY(x)); ctx.lineTo(x, Y + FAR_LANE); }
+  for (let x = Math.ceil(Math.max(x1, B.x1) / 50) * 50; x < Math.min(x2, B.exit); x += 50) { if (B.towers.some(t => Math.abs(x - t) < 40)) continue; ctx.moveTo(x, cableY(x)); ctx.lineTo(x, Y + FAR_LANE); }
   ctx.strokeStyle = '#5A1810'; ctx.lineWidth = 3; ctx.stroke();
   ctx.strokeStyle = RED_DARK; ctx.lineWidth = 2; ctx.stroke();
   ctx.save(); ctx.translate(-0.5, 0); ctx.strokeStyle = RED; ctx.lineWidth = 1; ctx.stroke(); ctx.restore();
@@ -404,7 +396,7 @@ const drawBridge = (ctx: Ctx, state: GameState, br: Bridge) => {
   cable(-2); ctx.strokeStyle = RED_LIGHT; ctx.lineWidth = 2; ctx.stroke();
   ctx.fillStyle = RED_DARK; for (let x = Math.ceil(x1 / 25) * 25; x < x2; x += 25) ctx.fillRect(x, cableY(x) - 3, 1, 6);
   // The far lane (the cars going over the side from it): the deck edge lit, its shadowed underside, the curb
-  const fl1 = Math.max(B.x1, x1), fl2 = Math.min(B.x2, x2);
+  const fl1 = Math.max(B.x1, x1), fl2 = Math.min(B.exit, x2);
   ctx.fillStyle = '#57534E'; ctx.fillRect(fl1, Y + FAR_LANE, fl2 - fl1, -FAR_LANE);
   ctx.fillStyle = '#44403C'; ctx.fillRect(fl1, Y + FAR_LANE + 6, fl2 - fl1, -FAR_LANE - 6);
   checker(ctx, fl1, Y + FAR_LANE + 4, fl2 - fl1, 2, '#44403C');
@@ -413,7 +405,8 @@ const drawBridge = (ctx: Ctx, state: GameState, br: Bridge) => {
   ctx.fillStyle = '#D6D3D1'; for (let x = Math.ceil(fl1 / 70) * 70; x < fl2 - 30; x += 70) ctx.fillRect(x + 35, Y + FAR_LANE + 4, 24, 1);
   for (const c of br.cars) drawBgCar(ctx, c, state.frame);
   // The steel under the deck (broken where the deck's gone)
-  for (const r of state.groundRuns) if (r.surface === 'deck' && visible(state, r.x1, r.x2)) drawDeck(ctx, r.x1, r.x2, state);
+  // (not the stairs down off the far end, nor the bottom of them: they're on the land, see drawPlaza)
+  for (const r of state.groundRuns) if (r.surface === 'deck' && r.y1 === Y && r.y2 === Y && visible(state, r.x1, r.x2)) drawDeck(ctx, r.x1, r.x2, state);
   COURSE.spans.forEach((s, i) => {
     const st = br.spans[i];
     if (!visible(state, s.x - 40, s.x + s.w + 40)) return;

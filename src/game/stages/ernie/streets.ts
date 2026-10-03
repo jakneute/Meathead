@@ -43,8 +43,15 @@ export const groundUnder = (runs: GroundRun[], x: number) => {
   }
   return best ?? GROUND_Y;
 };
-/** The ground a lot's building stands on. */
-export const lotBase = (runs: GroundRun[], lot: Lot) => Math.max(groundUnder(runs, lot.x + 4), groundUnder(runs, lot.x + LOT_W - 4)) + 4;
+/** The street's height at points across a lot (its ends and every 17 between). */
+const across = (runs: GroundRun[], lot: Lot) => { const out: number[] = []; for (let x = lot.x; x <= lot.x + LOT_W; x += 17) out.push(groundUnder(runs, x)); return out; };
+/**
+ * The ground a lot's building stands on: the street's highest point along the front, the way they build them up a
+ * hill here (the house level, its foundation taking up the rest down to the street on the downhill side: see lotFoot).
+ */
+export const lotBase = (runs: GroundRun[], lot: Lot) => Math.min(...across(runs, lot)) + 4;
+/** How far down the street goes along a lot's front (its lowest point): the foundation runs down to this. */
+export const lotFoot = (runs: GroundRun[], lot: Lot) => Math.max(...across(runs, lot)) + 4;
 
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 

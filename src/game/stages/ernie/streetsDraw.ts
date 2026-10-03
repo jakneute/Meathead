@@ -7,7 +7,7 @@
 import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH } from '../../../constants';
 import { COURSE } from './course';
-import { lotAt, LOT_W, Lot, groundUnder as groundAt, lotBase } from './streets';
+import { lotAt, LOT_W, Lot, groundUnder as groundAt, lotBase, lotFoot } from './streets';
 import { bandedGradient, checker, steppedGlow } from '../../render/pixelArt';
 import { INK, ink, shaded, dark, lite } from '../../render/npc/kit';
 
@@ -78,12 +78,25 @@ const neighborTop = (state: GameState, x: number, fallback: number) => {
 export const drawDistricts = (ctx: Ctx, state: GameState, shake: number) => {
   const S = COURSE.streets;
   const i0 = Math.floor((state.camera.x - 250 - S.x1) / LOT_W), i1 = Math.floor((state.camera.x + CANVAS_WIDTH + 250 - S.x1) / LOT_W);
-  const lots: { lot: Lot; base: number }[] = [];
+  const lots: { lot: Lot; base: number; foot: number }[] = [];
   for (let i = Math.max(0, i0); i <= i1; i++) {
     const lot = lotAt(S.x1 + i * LOT_W + 1);
     if (!lot) continue;
-    lots.push({ lot, base: lotBase(state.groundRuns, lot) });
+    lots.push({ lot, base: lotBase(state.groundRuns, lot), foot: lotFoot(state.groundRuns, lot) });
   }
+  // Behind them: the party walls where one meets the next (a row here is built wall to wall, nothing to see between),
+  // and a building's side wall where it meets a cross street's corner
+  for (let n = 0; n + 1 < lots.length; n++) {
+    const a = lots[n], b = lots[n + 1];
+    const ab = BUILT.has(a.lot.kind), bb = BUILT.has(b.lot.kind);
+    if (!(ab && (bb || b.lot.kind === 'cross')) && !(bb && a.lot.kind === 'cross')) continue;
+    const ta = ab ? a.base - lotHeight(a.lot.kind, a.lot.i) : Infinity, tb = bb ? b.base - lotHeight(b.lot.kind, b.lot.i) : Infinity;
+    const top = ab && bb ? Math.max(ta, tb) : Math.min(ta, tb), gx = b.lot.x - 7, bottom = Math.max(a.foot, b.foot) + 12;
+    ctx.fillStyle = INK; ctx.fillRect(gx, top, 10, bottom - top);
+    ctx.fillStyle = '#2A2230'; ctx.fillRect(gx + 1, top + 2, 8, bottom - top - 2);
+  }
+  // Up a hill, each one's foundation: from the house level down to the street on the downhill side
+  for (const { lot, base, foot } of lots) if (BUILT.has(lot.kind) && foot > base) drawFoundation(ctx, lot.x, LOT_W - 4, base, foot, lot.i);
   for (const { lot, base } of lots) {
     const wob = shake > 0 ? Math.sin(state.frame * 0.9 + lot.i * 2) * shake * 2 : 0;
     const x = lot.x + wob, w = LOT_W - 4, f = state.frame;
@@ -114,6 +127,33 @@ export const drawDistricts = (ctx: Ctx, state: GameState, shake: number) => {
       ink(ctx, () => { ctx.rect(lx - 6, ly, 12, 2); ctx.rect(lx - 6, ly + 19, 12, 2); }, '#FACC15', 0.6);
       ctx.fillStyle = '#FACC15'; ctx.fillRect(lx - 1, ly + 21, 2, 6); ctx.fillStyle = '#CA8A04'; ctx.fillRect(lx, ly + 21, 1, 6);
     }
+  }
+};
+
+/** The lots with a building on them (the rest are a park or a cross street). */
+const BUILT = new Set<Lot['kind']>(['victorian', 'shop', 'taqueria', 'glass', 'chinatown']);
+
+/**
+ * A building's foundation up a hill: the concrete under it, from its floor (base) down to the street at its downhill
+ * end (foot), in board-formed courses, a vent or two, darker toward the street. No lit edge along the top: it's the
+ * house's, not something to stand on.
+ */
+const drawFoundation = (ctx: Ctx, x: number, w: number, base: number, foot: number, i: number) => {
+  const h = foot - base + 14;
+  ctx.fillStyle = INK; ctx.fillRect(x - 1, base - 2, w + 2, h + 2);
+  ctx.fillStyle = '#665F5A'; ctx.fillRect(x, base, w, h);
+  ctx.fillStyle = '#57504C'; ctx.fillRect(x, base + Math.round(h / 2), w, h - Math.round(h / 2));
+  // (the board-formed courses, each one's shadow under its lip)
+  for (let y = base + 9; y < base + h; y += 9) { ctx.fillStyle = '#4A4440'; ctx.fillRect(x, y, w, 1); ctx.fillStyle = '#7A726B'; ctx.fillRect(x, y + 1, w, 1); }
+  // (shaded down the right like the house over it, the shadow of the house along the top)
+  ctx.fillStyle = 'rgba(30, 20, 30, 0.3)'; ctx.fillRect(x + w - 10, base, 10, h);
+  ctx.fillStyle = 'rgba(20, 12, 20, 0.45)'; ctx.fillRect(x, base, w, 3);
+  // A vent or two (dark, barred)
+  if (h > 26) for (let k = 0; k < 2; k++) {
+    const vx = Math.round(x + 18 + k * (w * 0.5) + hash(i * 3 + k) * 20), vy = base + 8;
+    ctx.fillStyle = INK; ctx.fillRect(vx - 1, vy - 1, 16, 9);
+    ctx.fillStyle = '#1E1A1E'; ctx.fillRect(vx, vy, 14, 7);
+    ctx.fillStyle = '#5A5450'; ctx.fillRect(vx + 3, vy, 1, 7); ctx.fillRect(vx + 7, vy, 1, 7); ctx.fillRect(vx + 11, vy, 1, 7);
   }
 };
 
