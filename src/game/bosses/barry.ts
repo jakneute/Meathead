@@ -32,6 +32,10 @@ export const BARRY_TOLERANCE_FRAMES = 330;         // needles bounce off (starts
 const HIGH_FLOAT_Y = 150;
 /** His tell shrinks this much more again than his other timings by the end (on top of the speed-up). */
 const TELL_SQUEEZE = 0.2;
+/** The ground pound's live edges (what it takes to be touching them: see groundPound), for the tell lighting them up. */
+export const POUND_ZONES = { floorY: 540, ceilingY: 150, wall: 20 };
+/** Where nothing in the storm can reach: right under him, the bolts kept off either side (see lightningStorm). */
+export const stormSafe = (boss: Enemy): [number, number] => [boss.pos.x - STRIKE.safeGap + STRIKE.width / 2, boss.pos.x + boss.width + STRIKE.safeGap - STRIKE.width / 2];
 
 const update = (ctx: FrameContext, boss: Enemy) => {
   // Speeding up hard as he loses health: every phase timing shrinks, most of it early (he's frantic by half)
@@ -140,9 +144,9 @@ const groundPound = (ctx: FrameContext, boss: Enemy, frames: Frames) => {
   if (boss.electrifiedTimer < 0) return;
   boss.electrifiedTimer--;
 
-  const touchesFloor = player.isGrounded || player.pos.y + player.height >= 540;
-  const touchesCeiling = player.pos.y <= 150;
-  const touchesWall = player.pos.x <= ARENA_LEFT + 20 || player.pos.x + player.width >= ARENA_RIGHT - 20;
+  const touchesFloor = player.isGrounded || player.pos.y + player.height >= POUND_ZONES.floorY;
+  const touchesCeiling = player.pos.y <= POUND_ZONES.ceilingY;
+  const touchesWall = player.pos.x <= ARENA_LEFT + POUND_ZONES.wall || player.pos.x + player.width >= ARENA_RIGHT - POUND_ZONES.wall;
   if ((touchesFloor || touchesCeiling || touchesWall) && (player.invincibilityTimer || 0) <= 0) {
     helpers.spawnExplosion({ x: player.pos.x + player.width / 2, y: player.pos.y + player.height / 2 }, '#ffff00', 12, 0, 10);
     helpers.playGunSound('taser');

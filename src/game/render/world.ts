@@ -27,6 +27,7 @@ import { drawCrashCam } from './player/crashDeath';
 import { drawEyeFallCam } from './player/eyeFallCam';
 import { drawKindEnemy, animFrame, KIND_TOP_REACH } from './enemies';
 import { isMidBoss } from '../combat/midBoss';
+import { POUND_ZONES, stormSafe } from '../bosses/barry';
 import { drawBackdrop, drawBackdropFront } from './backdrops';
 import { drawTerrain, drawGroundProfile } from './backdrops/terrain';
 import { groundLineAt } from '../core/terrain';
@@ -1395,6 +1396,45 @@ const drawDamageNumbers = (ctx: CanvasRenderingContext2D, state: GameState) => {
   });
 };
 
+/**
+ * Barry's tell: what's about to be live lights up while he winds up, flickering faster and brighter as it comes. The
+ * ground pound: the floor, the ceiling and the walls, in bands as deep as you'd have to be into them to get it. The
+ * storm: the whole room but the column right under him, which stays dark (that's where to be).
+ */
+const drawBarryTell = (ctx: CanvasRenderingContext2D, state: GameState, boss: Enemy) => {
+  const left = Math.round(state.camera.x), top = Math.round(state.camera.y);
+  const k = Math.max(0, Math.min(1, 1 - (boss.stateTimer || 0) / 60));
+  if (k <= 0) return;
+  const on = Math.floor(state.frame / Math.max(2, Math.round(8 - k * 6))) % 2 === 0;
+  const a = (on ? 0.35 : 0.18) * (0.3 + k * 0.7);
+  ctx.save();
+  ctx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
+  ctx.translate(-left, -top);
+  const ceil = 100, floor = GROUND_Y, L = ARENA_LEFT, R = ARENA_RIGHT;
+  /** A live band: a pale charge over it, dithered at its inner edge, crackle dashes running along its middle. */
+  const band = (x: number, y: number, w: number, h: number, along: 'x' | 'y') => {
+    ctx.fillStyle = `rgba(0, 229, 255, ${a.toFixed(3)})`; ctx.fillRect(x, y, w, h);
+    ctx.globalAlpha = a; checker(ctx, x, y, w, h, 'rgba(224, 255, 255, 0.6)', state.frame & 1); ctx.globalAlpha = 1;
+    ctx.fillStyle = `rgba(255, 255, 160, ${(on ? 0.9 : 0.5) * k})`;
+    if (along === 'x') for (let dx = (state.frame * 6) % 24; dx < w; dx += 24) ctx.fillRect(x + dx, y + h / 2 - 1, 10, 2);
+    else for (let dy = (state.frame * 6) % 24; dy < h; dy += 24) ctx.fillRect(x + w / 2 - 1, y + dy, 2, 10);
+  };
+  if (boss.jumpCount === 0) {
+    const fy = POUND_ZONES.floorY, cy = POUND_ZONES.ceilingY, wall = POUND_ZONES.wall + 30;
+    band(L, fy - 10, R - L, floor - fy + 10, 'x');
+    band(L, ceil, R - L, cy - ceil, 'x');
+    band(L, ceil, wall, floor - ceil, 'y');
+    band(R - wall, ceil, wall, floor - ceil, 'y');
+  } else {
+    const [s1, s2] = stormSafe(boss);
+    if (s1 > L) band(L, ceil, s1 - L, floor - ceil, 'y');
+    if (s2 < R) band(s2, ceil, R - s2, floor - ceil, 'y');
+    // (the safe column's edges, inked, so it reads)
+    ctx.fillStyle = `rgba(15, 23, 42, ${(0.5 * k).toFixed(3)})`; ctx.fillRect(s1 - 2, ceil, 2, floor - ceil); ctx.fillRect(s2, ceil, 2, floor - ceil);
+  }
+  ctx.restore();
+};
+
 /** Blackout Barry dims the room while teleporting and flashes it when electrified. */
 const drawBarryLighting = (ctx: CanvasRenderingContext2D, state: GameState, stageId: string | null) => {
   const { enemies } = state;
@@ -1413,7 +1453,8 @@ const drawBarryLighting = (ctx: CanvasRenderingContext2D, state: GameState, stag
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     ctx.restore();
   } else if (isBarryStage && activeBarry) {
-    if (activeBarry.bossState === 'ground_pound' && (activeBarry.electrifiedTimer || 0) > 0) {
+    if (activeBarry.bossState === 'telegraphing') drawBarryTell(ctx, state, activeBarry);
+    else if (activeBarry.bossState === 'ground_pound' && (activeBarry.electrifiedTimer || 0) > 0) {
       // Half-second electrified flash lighting up the room when he lands
       ctx.save();
       ctx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
