@@ -306,7 +306,7 @@ const RANGER_LEG_SCALE = 0.75;
  * sticking out of the snow still gripping his radio. Every so often the legs
  * spasm, and the radio asks if he's there.
  */
-const drawBuriedRanger = (ctx: Ctx, state: GameState, bx: number, by: number, radio: boolean) => {
+const drawBuriedRanger = (ctx: Ctx, state: GameState, bx: number, by: number, radio: boolean, armTop = by) => {
   const f = state.frame;
   ctx.save();
   ctx.translate(bx, by); ctx.scale(RANGER_SCALE, RANGER_SCALE);
@@ -354,11 +354,12 @@ const drawBuriedRanger = (ctx: Ctx, state: GameState, bx: number, by: number, ra
   leg(-1, true);
   leg(1, false);
   // The missing boot, lying a little way off
-  ctx.save(); ctx.translate(x - 52, y - 2); ctx.rotate(-1.2);
+  ctx.save(); ctx.translate(x + 26, y - 2); ctx.rotate(1.2);
   shaded(ctx, () => ctx.rect(-6, -7, 13, 14), '#3F2A1D', -6, -7, 13, 14); slab(ctx, -6, 6, 13, 3, '#1C1917', 1);
   ctx.restore();
-  // A glove through the snow, still holding the radio, fingers twitching
-  const gx = x + 40, gy = y + 3;
+  // A glove through the snow, still holding the radio, fingers twitching (up out of the snow where it is over there:
+  // the pile's not level)
+  const gx = x - 34, gy = y + 5 + (armTop - by) / RANGER_SCALE;
   shaded(ctx, () => ctx.rect(gx - 4, gy - 16, 9, 16), '#4D5A2A', gx - 4, gy - 16, 9, 16); // sleeve
   shaded(ctx, () => ctx.rect(gx + 5, gy - 30 - (cycle < 16 ? 3 : 0), 3, 7), '#78350F', gx + 5, gy - 33, 3, 10); // twitching finger
   shaded(ctx, () => ctx.rect(gx - 4, gy - 44, 10, 20), '#1F2937', gx - 4, gy - 44, 10, 20); // radio
@@ -435,9 +436,9 @@ const drawWreck = (ctx: Ctx, state: GameState, ski: Ski) => {
     letter(ctx, 'RANGER', 0, -58, 'bold 7px "Press Start 2P"', '#FDE68A', '#052E16');
     letter(ctx, 'STATION', 0, -47, 'bold 7px "Press Start 2P"', '#FDE68A', '#052E16');
   });
-  drawBuriedRanger(ctx, state, c.x + 225, top(c.x + 225) + 6, radioLive(state, ski));
+  drawBuriedRanger(ctx, state, c.x + 225, top(c.x + 225) + 6, radioLive(state, ski), top(c.x + 225 - 34 * RANGER_SCALE) + 6);
   // His hat, blown clean off and landed up the pile from him (the brim, the pinched crown, the band)
-  const hx = c.x + 305, hy = top(c.x + 305) - 4;
+  const hx = c.x + 150, hy = top(c.x + 150) + 2;
   ink(ctx, () => ctx.ellipse(hx, hy, 20, 5, 0.15, 0, Math.PI * 2), '#A16207');
   shaded(ctx, () => { ctx.moveTo(hx - 10, hy); ctx.lineTo(hx - 9, hy - 11); ctx.lineTo(hx - 1, hy - 13); ctx.lineTo(hx + 7, hy - 11); ctx.lineTo(hx + 8, hy); ctx.closePath(); }, '#A16207', hx - 10, hy - 13, 18, 13);
   ctx.fillStyle = '#78350F'; ctx.fillRect(hx - 10, hy - 5, 18, 3);

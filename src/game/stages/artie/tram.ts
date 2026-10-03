@@ -26,8 +26,8 @@ export const WAVES: { t: number; spawns: [EnemyKind, Entry][] }[] = [
   { t: 150, spawns: [['wolverine', 'left'], ['wolverine', 'right']] },
   { t: 440, spawns: [['eagle', 'back1'], ['shooter', 'roof']] },
   { t: 780, spawns: [['goat', 'right'], ['shielder', 'left']] },
-  { t: 1120, spawns: [['eagle', 'back0'], ['wolverine', 'right']] },
-  { t: 1460, spawns: [['shielder', 'roof'], ['shooter', 'back1']] },
+  { t: 1120, spawns: [['eagle', 'back2'], ['wolverine', 'right']] },
+  { t: 1460, spawns: [['shielder', 'roof'], ['shooter', 'back0']] },
   { t: 1800, spawns: [['charger', 'right'], ['eagle', 'back1']] },
 ];
 
@@ -256,6 +256,8 @@ const burstIn = (ctx: FrameContext, tram: Tram, kind: EnemyKind, entry: Entry) =
     x = tram.x + BACK_WINDOWS[i];
     tram.broken[i] = true;
     fx.spawnGlassShatter({ x, y: floor - 120 });
+    // (cut up coming through it: his blood on the frame and what's left of the glass)
+    tram.gore.push({ x: BACK_WINDOWS[i] + (Math.random() - 0.5) * 60, y: -150 + Math.random() * 40, seed: tram.gore.length * 7.31 + i * 13.7 });
   }
   const e: Enemy = makeKindEnemy(kind, x, kind === 'eagle' ? floor - 110 : y);
   // They come in already going

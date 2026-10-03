@@ -175,7 +175,19 @@ const drawCabinInside = (ctx: Ctx, state: GameState, tram: Tram) => {
     ctx.strokeStyle = '#8C2A2A'; ctx.lineWidth = 1; ctx.strokeRect(l - 2.5, winTop - 2.5, winW + 5, winH + 5);
     ctx.fillStyle = '#9CA3AF'; ctx.fillRect(l - 2, winTop + winH + 2, winW + 4, 3); ctx.fillStyle = '#E5E7EB'; ctx.fillRect(l - 2, winTop + winH + 2, winW + 4, 1);
   });
+  // (the blood's on the wall, the frames and the shards left in them: not hanging in the air where a pane's gone)
+  ctx.save(); ctx.beginPath(); ctx.rect(x - 20, top - 20, CABIN_W + 40, CABIN_H + 40);
+  BACK_WINDOWS.forEach((wx, i) => {
+    if (!tram.broken[i]) return;
+    const l = x + wx - winW / 2;
+    ctx.rect(l + 2, winTop + 2, winW - 4, winH - 4);
+    for (const [sx, sy, dir] of [[l, winTop, 1], [l + winW, winTop, -1], [l, winTop + winH, 1], [l + winW, winTop + winH, -1]] as [number, number, number][]) {
+      ctx.moveTo(sx, sy); ctx.lineTo(sx + dir * 26, sy); ctx.lineTo(sx + dir * 6, sy + (sy === winTop ? 22 : -18)); ctx.closePath();
+    }
+  });
+  ctx.clip('evenodd');
   drawCabinGore(ctx, tram);
+  ctx.restore();
 };
 
 const rnd = (n: number) => { const v = Math.sin(n * 91.7 + 17.3) * 43758.5453; return v - Math.floor(v); };
