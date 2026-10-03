@@ -5,7 +5,9 @@
 // the fades. The convoy's in convoyDraw.ts, the town in townDraw.ts.
 
 import type { GameState } from '../../core/state';
-import { bandedGradient, checker, hazeBands } from '../../render/pixelArt';
+import { bandedGradient, checker, hazeBands, steppedGlow, tilePattern } from '../../render/pixelArt';
+import { INK, dark, lite, ink, shadedTop } from '../../render/npc/kit';
+import { slab, column, pipe, letter, hazard } from '../../render/bosses/daleTruck';
 import type { GroundRun } from '../../core/terrain';
 import { runYAt } from '../../core/terrain';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, ARENA_LEFT } from '../../../constants';
@@ -73,10 +75,13 @@ const drawTumbleweed = (ctx: Ctx, state: GameState) => {
   if (ground === null) return;
   const y = ground - 12 - Math.abs(Math.sin(f * 0.07)) * 8;
   ctx.save();
-  ctx.strokeStyle = '#6E5230'; ctx.lineWidth = 1.5;
   ctx.translate(wx, y); ctx.rotate(f * 0.06);
-  ctx.beginPath(); for (let i = 0; i < 5; i++) { ctx.moveTo(-6, (i - 2) * 2.5); ctx.lineTo(6, (2 - i) * 2.5); } ctx.stroke();
-  ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI * 2); ctx.stroke();
+  // (a dark tangle under a sunlit one)
+  for (const [c, w] of [['#4A3418', 2], ['#9A7442', 1]] as const) {
+    ctx.strokeStyle = c; ctx.lineWidth = w;
+    ctx.beginPath(); for (let i = 0; i < 5; i++) { ctx.moveTo(-6, (i - 2) * 2.5); ctx.lineTo(6, (2 - i) * 2.5); } ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI * 2); ctx.stroke();
+  }
   ctx.restore();
 };
 
@@ -106,20 +111,20 @@ const drawArroyos = (ctx: Ctx, state: GameState) => {
  */
 const drawEmployeeSign = (ctx: Ctx, x: number, y: number, f: number) => {
   const w = 300, h = 84;
-  // The chains up to the rafters
-  ctx.strokeStyle = '#71717A'; ctx.lineWidth = 2;
-  for (const cx of [x + 30, x + w - 30]) { ctx.beginPath(); ctx.moveTo(cx, y - 40); ctx.lineTo(cx, y); ctx.stroke(); }
+  // The chains up to the rafters (links, lit on one side)
+  for (const cx of [x + 30, x + w - 30]) for (let cy = y - 40; cy < y; cy += 6) { ctx.fillStyle = INK; ctx.fillRect(cx - 2, cy, 4, 5); ctx.fillStyle = (cy / 6) % 2 ? '#A1A1AA' : '#71717A'; ctx.fillRect(cx - 1, cy + 1, 2, 3); }
   // The frame and the board
-  ctx.fillStyle = '#92400E'; ctx.fillRect(x - 4, y - 4, w + 8, h + 8);
-  ctx.fillStyle = '#EAB308'; ctx.fillRect(x - 1, y - 1, w + 2, h + 2);
-  const board = ctx.createLinearGradient(0, y, 0, y + h);
-  board.addColorStop(0, '#5B21B6'); board.addColorStop(1, '#3B0764');
-  ctx.fillStyle = board; ctx.fillRect(x + 3, y + 3, w - 6, h - 6);
+  slab(ctx, x - 4, y - 4, w + 8, h + 8, '#92400E', 2);
+  slab(ctx, x - 1, y - 1, w + 2, h + 2, '#EAB308', 2);
+  bandedGradient(ctx, x + 3, y + 3, w - 6, h - 6, ['#6D28D9', '#5B21B6', '#4C1D95', '#3B0764'], 5);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(x + 2.5, y + 2.5, w - 5, h - 5);
   // The photo: nobody in it
   const px = x + 12, py = y + 12, pw = 50, ph = 60;
-  ctx.fillStyle = '#FACC15'; ctx.fillRect(px - 3, py - 3, pw + 6, ph + 6);
-  ctx.fillStyle = '#E5E7EB'; ctx.fillRect(px, py, pw, ph);
-  ctx.fillStyle = '#9CA3AF'; ctx.beginPath(); ctx.arc(px + pw / 2, py + 22, 11, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(px + 9, py + 36, pw - 18, 24);
+  slab(ctx, px - 3, py - 3, pw + 6, ph + 6, '#FACC15', 2);
+  bandedGradient(ctx, px, py, pw, ph, ['#F3F4F6', '#E5E7EB', '#D1D5DB'], 3);
+  ink(ctx, () => { ctx.arc(px + pw / 2, py + 22, 11, 0, Math.PI * 2); }, '#9CA3AF', 1);
+  ink(ctx, () => ctx.roundRect(px + 9, py + 36, pw - 18, 24, [8, 8, 0, 0]), '#9CA3AF', 1);
+  ctx.fillStyle = '#B8BEC6'; ctx.fillRect(px + 12, py + 39, 6, 20);
   ctx.fillStyle = '#6B7280'; ctx.font = 'bold 14px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('?', px + pw / 2, py + 29);
   // The words, each fitted to the space right of the photo
   const tx = px + pw + 12, tw = x + w - 12 - tx, mid = tx + tw / 2;
@@ -128,15 +133,14 @@ const drawEmployeeSign = (ctx: Ctx, x: number, y: number, f: number) => {
   ctx.fillStyle = '#FDE047'; fit('EMPLOYEE', 14, 'bold'); ctx.fillText('EMPLOYEE', mid, y + 39);
   fit('OF THE MONTH', 10, 'bold'); ctx.fillText('OF THE MONTH', mid, y + 54);
   // The name plate
-  ctx.fillStyle = '#D6D3D1'; ctx.fillRect(tx + 8, y + 60, tw - 16, 14);
-  ctx.fillStyle = '#1C1917'; fit('NOBODY, AGAIN', 7, 'bold'); ctx.fillText('NOBODY, AGAIN', mid, y + 70);
+  slab(ctx, tx + 8, y + 60, tw - 16, 14, '#D6D3D1', 1);
+  ctx.textAlign = 'center'; ctx.fillStyle = '#1C1917'; fit('NOBODY, AGAIN', 7, 'bold'); ctx.fillText('NOBODY, AGAIN', mid, y + 70);
   ctx.textAlign = 'left';
   // Gold stars either side of the title, twinkling
   for (const [sx, sy, k] of [[tx + 2, y + 34, 0], [x + w - 12, y + 34, 1]] as const) {
     const r = 5 + Math.sin(f * 0.1 + k * 2) * 1;
-    ctx.fillStyle = '#FDE047'; ctx.beginPath();
-    for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 5, rr = i % 2 ? r * 0.45 : r; ctx.lineTo(sx + Math.cos(a) * rr, sy + Math.sin(a) * rr); }
-    ctx.fill();
+    ink(ctx, () => { for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 5, rr = i % 2 ? r * 0.45 : r; ctx.lineTo(sx + Math.cos(a) * rr, sy + Math.sin(a) * rr); } ctx.closePath(); }, '#FDE047', 0.8);
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(sx - 1, sy - 2, 1, 1);
   }
 };
 
@@ -250,9 +254,12 @@ const drawGulchRims = (ctx: Ctx, state: GameState) => {
       ctx.beginPath(); ctx.moveTo(edge, lip);
       for (let y = lip; y < Math.min(bottom, lip + 400); y += 14) ctx.lineTo(edge - dir * (3 + hash(seed + y) * 7), y + 7);
       ctx.lineTo(edge, Math.min(bottom, lip + 400)); ctx.closePath(); ctx.fill();
+      // (each stratum's lit top edge down the face)
+      for (let y = lip + 4, k = 0; y < bottom; k++) { ctx.fillStyle = 'rgba(255, 210, 160, 0.25)'; ctx.fillRect(x0, Math.floor(y), face, 1); y += 12 + hash(seed + k) * 12; }
       // An overhanging lip and a couple of loose stones on it
-      ctx.fillStyle = '#D48A4C'; ctx.beginPath(); ctx.moveTo(edge + dir * 30, lip); ctx.lineTo(edge - dir * 6, lip); ctx.lineTo(edge - dir * 2, lip + 8); ctx.lineTo(edge + dir * 30, lip + 6); ctx.fill();
-      ctx.fillStyle = '#8A5A3A'; ctx.beginPath(); ctx.arc(edge + dir * 12, lip - 2, 3, 0, Math.PI * 2); ctx.arc(edge + dir * 20, lip - 1.5, 2, 0, Math.PI * 2); ctx.fill();
+      ink(ctx, () => { ctx.moveTo(edge + dir * 30, lip); ctx.lineTo(edge - dir * 6, lip); ctx.lineTo(edge - dir * 2, lip + 8); ctx.lineTo(edge + dir * 30, lip + 6); }, '#D48A4C', 1);
+      ctx.fillStyle = '#E8A86A'; ctx.fillRect(Math.min(edge + dir * 26, edge - dir * 4), lip + 1, 28, 1);
+      for (const [sx, r] of [[12, 3], [20, 2]]) { ink(ctx, () => ctx.arc(edge + dir * sx, lip - r + 1, r, 0, Math.PI * 2), '#8A5A3A', 0.8); ctx.fillStyle = '#B07A52'; ctx.fillRect(edge + dir * sx - 1, lip - r * 2 + 2, 1, 1); }
     }
   }
 };
@@ -266,26 +273,54 @@ const drawScenery = (ctx: Ctx, state: GameState) => {
     if (!run) continue;
     const y = runYAt(run, x);
     const h = hash(k + 7);
-    if (h < 0.3) { ctx.fillStyle = '#8A5A3A'; ctx.beginPath(); ctx.ellipse(x, y - 4, 10 + h * 20, 6 + h * 6, 0, Math.PI, 0); ctx.fill(); ctx.fillStyle = '#A8764F'; ctx.fillRect(x - 6, y - 9, 8, 2); }
-    else if (h < 0.5) { ctx.strokeStyle = '#4D7C0F'; ctx.lineWidth = 2; for (let i = -3; i <= 3; i++) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + i * 4, y - 16 - Math.abs(3 - Math.abs(i)) * 4); ctx.stroke(); } }
-    else if (h < 0.56) {
-      // A bleached cow skull
-      ctx.fillStyle = '#F5F0E1'; ctx.beginPath(); ctx.ellipse(x, y - 6, 8, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(x - 3, y - 4, 6, 6);
-      ctx.strokeStyle = '#F5F0E1'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x - 7, y - 9); ctx.quadraticCurveTo(x - 16, y - 12, x - 18, y - 20); ctx.moveTo(x + 7, y - 9); ctx.quadraticCurveTo(x + 16, y - 12, x + 18, y - 20); ctx.stroke();
-      ctx.fillStyle = '#1C1917'; ctx.fillRect(x - 5, y - 8, 3, 3); ctx.fillRect(x + 2, y - 8, 3, 3);
-    } else if (h < 0.75) { ctx.fillStyle = '#6B7F3A'; ctx.beginPath(); ctx.arc(x, y - 5, 7 + h * 5, Math.PI, 0); ctx.fill(); ctx.fillStyle = '#556B2F'; ctx.beginPath(); ctx.arc(x + 6, y - 3, 5, Math.PI, 0); ctx.fill(); }
+    if (h < 0.3) {
+      // A boulder: lit on top, the dark under it, a crack across it
+      const rw = 10 + h * 20, rh = 6 + h * 6;
+      shadedTop(ctx, () => ctx.ellipse(x, y - 4, rw, rh, 0, Math.PI, 0), '#8A5A3A', x - rw, y - 4 - rh, rw * 2, rh);
+      ctx.fillStyle = '#B98A62'; ctx.fillRect(x - 6, y - 4 - rh + 2, 8, 2);
+      ctx.fillStyle = '#5A3520'; ctx.fillRect(x + rw * 0.2, y - 4 - rh * 0.6, 1, rh * 0.5);
+    } else if (h < 0.5) {
+      // A yucca: blades fanning out, a dark one behind each lit one, inked tips
+      for (let i = -3; i <= 3; i++) { const tx = x + i * 4, ty = y - 16 - Math.abs(3 - Math.abs(i)) * 4; ctx.strokeStyle = INK; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(tx, ty); ctx.stroke(); }
+      for (let i = -3; i <= 3; i++) { const tx = x + i * 4, ty = y - 16 - Math.abs(3 - Math.abs(i)) * 4; ctx.strokeStyle = i < 0 ? '#6E9A22' : '#3F6212'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(tx, ty); ctx.stroke(); }
+      ctx.fillStyle = '#A3C55A'; ctx.fillRect(x - 5, y - 10, 1, 4);
+    } else if (h < 0.56) {
+      // A bleached cow skull (inked; the horns, the sockets, the nose holes, a crack)
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = INK; ctx.lineWidth = 4.5; ctx.beginPath(); ctx.moveTo(x - 7, y - 9); ctx.quadraticCurveTo(x - 16, y - 12, x - 18, y - 20); ctx.moveTo(x + 7, y - 9); ctx.quadraticCurveTo(x + 16, y - 12, x + 18, y - 20); ctx.stroke();
+      ctx.strokeStyle = '#E7DFC8'; ctx.lineWidth = 2.5; ctx.stroke();
+      ctx.lineCap = 'butt';
+      ink(ctx, () => { ctx.ellipse(x, y - 6, 8, 6, 0, 0, Math.PI * 2); ctx.rect(x - 3, y - 4, 6, 6); }, '#F5F0E1', 1);
+      ctx.fillStyle = '#F5F0E1'; ctx.fillRect(x - 2, y - 5, 4, 4);
+      ctx.fillStyle = '#D6CCAE'; ctx.fillRect(x + 3, y - 8, 4, 6);
+      ctx.fillStyle = '#1C1917'; ctx.fillRect(x - 5, y - 8, 3, 3); ctx.fillRect(x + 2, y - 8, 3, 3); ctx.fillRect(x - 2, y, 1, 1); ctx.fillRect(x + 1, y, 1, 1);
+    } else if (h < 0.75) {
+      // A creosote bush: two humps, lit along their tops, specks of yellow bloom
+      const r = 7 + h * 5;
+      shadedTop(ctx, () => ctx.arc(x, y - 5, r, Math.PI, 0), '#6B7F3A', x - r, y - 5 - r, r * 2, r);
+      shadedTop(ctx, () => ctx.arc(x + 6, y - 3, 5, Math.PI, 0), '#556B2F', x + 1, y - 8, 10, 5);
+      ctx.fillStyle = '#FDE047'; ctx.fillRect(x - 3, y - 5 - r + 3, 1, 1); ctx.fillRect(x + 2, y - 5 - r + 5, 1, 1);
+    }
   }
   // Fence posts and barbed wire along the turnout, a sign
   const lx = COURSE.landing.truckX;
   if (visible(state, lx - 700, lx + 800)) {
-    ctx.strokeStyle = '#6B4A2A'; ctx.lineWidth = 4;
-    for (let x = lx - 540; x < lx + 700; x += 120) { ctx.beginPath(); ctx.moveTo(x, Y); ctx.lineTo(x, Y - 50); ctx.stroke(); }
-    ctx.strokeStyle = 'rgba(120, 113, 108, 0.8)'; ctx.lineWidth = 1;
-    for (const dy of [36, 22]) { ctx.beginPath(); ctx.moveTo(lx - 540, Y - dy); for (let x = lx - 540; x < lx + 700; x += 20) ctx.lineTo(x + 20, Y - dy + Math.sin(x) * 1.5); ctx.stroke(); }
-    ctx.fillStyle = '#D6B98C'; ctx.fillRect(lx - 470, Y - 110, 90, 44); ctx.fillStyle = '#6B4A2A'; ctx.fillRect(lx - 428, Y - 66, 6, 66);
-    ctx.fillStyle = '#7F1D1D'; ctx.font = 'bold 7px "Press Start 2P"'; ctx.textAlign = 'center';
-    ctx.fillText('NO', lx - 425, Y - 96); ctx.fillText('TRESPASSING', lx - 425, Y - 84); ctx.font = '5px "Press Start 2P"'; ctx.fillText('(OR FEDS)', lx - 425, Y - 74);
-    ctx.textAlign = 'left';
+    for (let x = lx - 540; x < lx + 700; x += 120) { column(ctx, x - 2, Y - 50, 5, 50, '#6B4A2A'); ctx.fillStyle = '#3F2A16'; ctx.fillRect(x - 1, Y - 50, 3, 1); }
+    ctx.strokeStyle = 'rgba(120, 113, 108, 0.9)'; ctx.lineWidth = 1;
+    for (const dy of [36, 22]) {
+      ctx.beginPath(); ctx.moveTo(lx - 540, Y - dy); for (let x = lx - 540; x < lx + 700; x += 20) ctx.lineTo(x + 20, Y - dy + Math.sin(x) * 1.5); ctx.stroke();
+      // (the barbs)
+      ctx.fillStyle = '#57534E'; for (let x = lx - 530; x < lx + 700; x += 20) { const by = Y - dy + Math.sin(x - 10) * 1.5; ctx.fillRect(x - 1, by - 2, 1, 4); ctx.fillRect(x - 2, by - 1, 3, 1); }
+    }
+    // (the sign: weathered planks on a post, stenciled red, a bullet hole or two)
+    column(ctx, lx - 428, Y - 66, 6, 66, '#6B4A2A');
+    slab(ctx, lx - 470, Y - 110, 90, 44, '#D6B98C', 2);
+    ctx.fillStyle = '#B8996A'; ctx.fillRect(lx - 468, Y - 96, 86, 1); ctx.fillRect(lx - 468, Y - 82, 86, 1);
+    ctx.fillStyle = '#9A7A4E'; ctx.fillRect(lx - 460, Y - 104, 6, 1); ctx.fillRect(lx - 400, Y - 88, 8, 1); ctx.fillRect(lx - 440, Y - 74, 5, 1);
+    ctx.fillStyle = INK; ctx.fillRect(lx - 393, Y - 102, 2, 2); ctx.fillRect(lx - 456, Y - 78, 2, 2);
+    letter(ctx, 'NO', lx - 425, Y - 96, 'bold 7px "Press Start 2P"', '#7F1D1D', '#B8996A');
+    letter(ctx, 'TRESPASSING', lx - 425, Y - 84, 'bold 7px "Press Start 2P"', '#7F1D1D', '#B8996A');
+    letter(ctx, '(OR FEDS)', lx - 425, Y - 74, '5px "Press Start 2P"', '#7F1D1D', '#B8996A');
   }
 };
 
@@ -315,26 +350,48 @@ const drawLanding = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   }
   if (it.crate) {
     if (!it.crate.broke) drawCrate(ctx, it.crate.x - 14, it.crate.y, 28);
-    else { ctx.fillStyle = '#92400E'; ctx.fillRect(it.crate.x - 18, Y - 6, 12, 6); ctx.fillRect(it.crate.x, Y - 5, 16, 5); ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.ellipse(it.crate.x, Y - 2, 22, 4, 0, 0, Math.PI * 2); ctx.fill(); }
+    else {
+      // (smashed: its boards in the dirt, inked, the powder spilled in a heap)
+      ctx.fillStyle = '#E2E8F0'; ctx.beginPath(); ctx.ellipse(it.crate.x, Y - 2, 22, 4, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.ellipse(it.crate.x - 2, Y - 3, 16, 3, 0, 0, Math.PI * 2); ctx.fill();
+      slab(ctx, it.crate.x - 18, Y - 6, 12, 6, '#B7791F', 1);
+      ctx.save(); ctx.translate(it.crate.x + 8, Y - 3); ctx.rotate(-0.25); slab(ctx, -8, -3, 16, 5, '#A16207', 1); ctx.restore();
+    }
   }
 };
 
-/** A wooden crate of "produce". */
-export const drawCrate = (ctx: Ctx, x: number, y: number, s: number) => {
-  ctx.fillStyle = '#A16207'; ctx.fillRect(x, y, s, s);
-  ctx.strokeStyle = '#713F12'; ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, s - 2, s - 2);
-  ctx.beginPath(); ctx.moveTo(x + 2, y + 2); ctx.lineTo(x + s - 2, y + s - 2); ctx.stroke();
-  ctx.fillStyle = '#713F12'; ctx.fillRect(x, y + s / 2 - 1, s, 2);
-  ctx.fillStyle = '#1E3A8A'; ctx.font = 'bold 4px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('PRODUCE', x + s / 2, y + s / 2 - 3); ctx.textAlign = 'left';
+/**
+ * A wooden crate of "produce" (s wide, h tall): planks lit along their tops, a frame round the face and a brace
+ * across it, nail heads, the stencil, inked round.
+ */
+export const drawCrate = (ctx: Ctx, x: number, y: number, s: number, h = s) => {
+  ctx.fillStyle = '#A16207'; ctx.fillRect(x, y, s, h);
+  const pl = Math.max(4, Math.round(h / 4));
+  for (let py = y; py < y + h; py += pl) { ctx.fillStyle = '#C08A2E'; ctx.fillRect(x, py, s, 1); ctx.fillStyle = '#7C4A0E'; ctx.fillRect(x, py + pl - 1, s, 1); }
+  // (the frame round the face, lit top left; the brace corner to corner)
+  const e = Math.max(2, Math.round(s / 10));
+  ctx.fillStyle = '#854D0E'; ctx.fillRect(x, y, s, e); ctx.fillRect(x, y + h - e, s, e); ctx.fillRect(x, y, e, h); ctx.fillRect(x + s - e, y, e, h);
+  ctx.fillStyle = '#CA9A3E'; ctx.fillRect(x, y, s, 1); ctx.fillRect(x, y, 1, h);
+  ctx.strokeStyle = '#713F12'; ctx.lineWidth = e; ctx.beginPath(); ctx.moveTo(x + e, y + e); ctx.lineTo(x + s - e, y + h - e); ctx.stroke();
+  ctx.fillStyle = '#3F2A10'; for (const [nx, ny] of [[x + e / 2, y + e / 2], [x + s - e, y + e / 2], [x + e / 2, y + h - e], [x + s - e, y + h - e]]) ctx.fillRect(Math.floor(nx), Math.floor(ny), 1, 1);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y + 0.5, s - 1, h - 1);
+  ctx.fillStyle = '#1E3A8A'; ctx.font = 'bold 4px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('PRODUCE', x + s / 2, y + h / 2 - 3); ctx.textAlign = 'left';
 };
 
-/** A shelf of sandstone jutting out of the ground. */
+/** A shelf of sandstone jutting out of the ground: a lit lip, its strata, the shadow under it, inked. */
 const drawLedge = (ctx: Ctx, l: Ledge) => {
   if (l.look === 'rack') return drawRack(ctx, l);
-  ctx.fillStyle = '#8A4A2A';
-  ctx.beginPath(); ctx.moveTo(l.x - 4, l.y + 2); ctx.lineTo(l.x + l.w + 4, l.y + 2); ctx.lineTo(l.x + l.w - 10, l.y + 22); ctx.lineTo(l.x + 12, l.y + 26); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#C8763F'; ctx.fillRect(l.x - 4, l.y, l.w + 8, 4);
-  ctx.fillStyle = '#6B3420'; for (let x = l.x + 8; x < l.x + l.w - 8; x += 22) ctx.fillRect(x, l.y + 8, 10, 2);
+  const rock = () => { ctx.moveTo(l.x - 4, l.y + 2); ctx.lineTo(l.x + l.w + 4, l.y + 2); ctx.lineTo(l.x + l.w - 10, l.y + 22); ctx.lineTo(l.x + 12, l.y + 26); ctx.closePath(); };
+  ctx.save(); ctx.beginPath(); rock(); ctx.clip();
+  ctx.fillStyle = '#8A4A2A'; ctx.fillRect(l.x - 4, l.y, l.w + 8, 28);
+  ctx.fillStyle = '#9E5A34'; ctx.fillRect(l.x - 4, l.y + 4, l.w + 8, 5);
+  ctx.fillStyle = '#6B3420'; ctx.fillRect(l.x - 4, l.y + 16, l.w + 8, 12);
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'; ctx.fillRect(l.x + l.w - 30, l.y, 40, 28);
+  ctx.fillStyle = '#5A2A18'; for (let x = l.x + 8; x < l.x + l.w - 8; x += 22) ctx.fillRect(x, l.y + 10, 10, 2);
+  ctx.fillStyle = '#B86E40'; for (let x = l.x + 14; x < l.x + l.w - 8; x += 22) ctx.fillRect(x, l.y + 9, 6, 1);
+  ctx.restore();
+  ctx.beginPath(); rock(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.lineJoin = 'round'; ctx.stroke();
+  slab(ctx, l.x - 4, l.y, l.w + 8, 4, '#C8763F', 1);
 };
 
 // ---------------------------------------------------------------------------
@@ -352,25 +409,31 @@ const drawWarehouse = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
     // (each rib of it: a lit edge on the left, a shadowed one on the right)
     for (let x = Math.floor(wx1 / 14) * 14; x < wx2; x += 14) { ctx.fillStyle = '#57534E'; ctx.fillRect(x, top, 6, Y - top); ctx.fillStyle = '#625E58'; ctx.fillRect(x, top, 2, Y - top); ctx.fillStyle = '#36322F'; ctx.fillRect(x + 6, top, 2, Y - top); }
     // (rust run down the ribs here and there)
-    for (let x = Math.floor(wx1 / 90) * 90; x < wx2; x += 90) { if (hash(x * 0.37) < 0.55) continue; ctx.fillStyle = 'rgba(120, 53, 15, 0.3)'; ctx.fillRect(x + Math.round(hash(x) * 60), ceil + 20 + Math.round(hash(x * 3) * 80), 4, 60 + Math.round(hash(x * 5) * 200)); }
+    for (let x = Math.ceil(wx1 / 90) * 90; x < wx2 - 64; x += 90) { if (hash(x * 0.37) < 0.55) continue; ctx.fillStyle = 'rgba(120, 53, 15, 0.3)'; ctx.fillRect(x + Math.round(hash(x) * 60), ceil + 20 + Math.round(hash(x * 3) * 80), 4, 60 + Math.round(hash(x * 5) * 200)); }
     // The roof: girders along it, the purlins between, the whole underside in shadow
     const gx1 = Math.max(W.x1, wx1), gx2 = Math.min(W.x2, wx2);
     if (gx2 > gx1) {
       ctx.fillStyle = '#292524'; ctx.fillRect(gx1, ceil - 40, gx2 - gx1, 40);
       ctx.fillStyle = '#3A3330'; ctx.fillRect(gx1, ceil - 40, gx2 - gx1, 4); ctx.fillRect(gx1, ceil - 8, gx2 - gx1, 8);
       ctx.fillStyle = '#1C1917'; ctx.fillRect(gx1, ceil - 36, gx2 - gx1, 2); ctx.fillRect(gx1, ceil - 10, gx2 - gx1, 2);
-      for (let x = Math.floor(gx1 / 130) * 130; x < gx2; x += 130) { ctx.fillStyle = '#3A3330'; ctx.fillRect(x, ceil - 40, 10, 40); ctx.fillStyle = '#4A433E'; ctx.fillRect(x, ceil - 40, 3, 40); }
+      for (let x = Math.ceil(gx1 / 130) * 130; x < gx2 - 10; x += 130) { ctx.fillStyle = '#3A3330'; ctx.fillRect(x, ceil - 40, 10, 40); ctx.fillStyle = '#4A433E'; ctx.fillRect(x, ceil - 40, 3, 40); }
       checker(ctx, gx1, ceil, gx2 - gx1, 14, 'rgba(0, 0, 0, 0.25)');
     }
   }
   for (let x = W.x1 + 120; x < W.x2; x += 260) {
     if (!visible(state, x - 20, x + 20)) continue;
-    ctx.fillStyle = '#78350F'; ctx.fillRect(x - 8, ceil, 16, Y - ceil);
-    ctx.fillStyle = '#92400E'; for (let y = ceil + 10; y < Y; y += 30) { ctx.beginPath(); ctx.moveTo(x - 8, y); ctx.lineTo(x + 8, y + 15); ctx.lineTo(x - 8, y + 30); ctx.strokeStyle = '#78350F'; ctx.lineWidth = 2; ctx.stroke(); }
-    // A strip light on chains
-    ctx.strokeStyle = '#1C1917'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x + 60, ceil); ctx.lineTo(x + 60, ceil + 30); ctx.moveTo(x + 120, ceil); ctx.lineTo(x + 120, ceil + 30); ctx.stroke();
+    // A steel column (rust-red I-beam: its flanges lit and shadowed, the web between, bolted plates up it)
+    column(ctx, x - 8, ceil, 16, Y - ceil, '#8A3A12');
+    ctx.fillStyle = '#5A240A'; ctx.fillRect(x - 3, ceil, 6, Y - ceil);
+    ctx.fillStyle = '#A84B1C'; ctx.fillRect(x - 3, ceil, 1, Y - ceil);
+    for (let y = ceil + 40; y < Y - 20; y += 90) { slab(ctx, x - 9, y, 18, 8, '#7A3210', 1); ctx.fillStyle = '#D6A27A'; ctx.fillRect(x - 6, y + 3, 1, 1); ctx.fillRect(x + 5, y + 3, 1, 1); }
+    slab(ctx, x - 12, Y - 8, 24, 8, '#57534E', 1);
+    // A strip light on chains (a steel hood, the tube under it, lit or flickering)
+    ctx.fillStyle = '#1C1917'; for (const cx of [x + 60, x + 120]) for (let cy = ceil; cy < ceil + 28; cy += 4) ctx.fillRect(cx, cy, 1, 3);
     const flick = hash(x + Math.floor(state.frame / 7)) > 0.97 ? 0.3 : 1;
-    ctx.fillStyle = `rgba(254, 249, 195, ${flick})`; ctx.fillRect(x + 54, ceil + 30, 72, 6);
+    slab(ctx, x + 52, ceil + 27, 76, 5, '#57534E', 1);
+    ctx.fillStyle = `rgba(254, 249, 195, ${flick})`; ctx.fillRect(x + 54, ceil + 31, 72, 5);
+    ctx.fillStyle = `rgba(255, 255, 255, ${flick})`; ctx.fillRect(x + 56, ceil + 32, 68, 1);
     // (its pool of light down the wall, in steps)
     for (let k = 0; k < 5; k++) {
       const a = 0.15 * flick * (1 - k / 5), span = Y - ceil - 36, y0 = ceil + 36 + k * span / 5, y1 = y0 + span / 5;
@@ -391,10 +454,12 @@ const drawWarehouse = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   // The loading dock door (you come in through it): the outside wall, the rolled-up door
   const dx = W.x1;
   if (visible(state, dx - 60, dx + 60)) {
+    // (the wall over the door, end on: corrugated, each rib lit on top and shadowed under; the door's header)
     ctx.fillStyle = '#9CA3AF'; ctx.fillRect(dx - 30, top - 30, 30, Y - 170 - top + 30);
-    ctx.fillStyle = '#6B7280'; for (let y = top - 30; y < Y - 170; y += 10) ctx.fillRect(dx - 30, y, 30, 3);
-    ctx.fillStyle = '#374151'; ctx.fillRect(dx - 34, Y - 176, 40, 12);
-    ctx.fillStyle = '#FDE047'; for (let i = 0; i < 6; i++) ctx.fillRect(dx - 34 + i * 7, Y - 176, 3, 12);
+    for (let y = top - 30; y < Y - 170; y += 10) { ctx.fillStyle = '#C7CCD3'; ctx.fillRect(dx - 30, y, 30, 1); ctx.fillStyle = '#6B7280'; ctx.fillRect(dx - 30, y + 6, 30, 3); }
+    ctx.fillStyle = INK; ctx.fillRect(dx - 31, top - 30, 1, Y - 170 - top + 30); ctx.fillRect(dx - 1, top - 30, 1, Y - 170 - top + 30);
+    slab(ctx, dx - 34, Y - 176, 40, 12, '#374151', 1);
+    hazard(ctx, dx - 33, Y - 174, 38, 8, 4);
   }
   // The belts, the crates riding them
   COURSE.belts.forEach((b, i) => { if (visible(state, b.x, b.x + b.w)) { drawBelt(ctx, i, rt.hazards.beltShift[i], state.frame); drawFeed(ctx, i, rt.hazards.beltTimers[i], state.frame); } });
@@ -416,30 +481,36 @@ const drawBelt = (ctx: Ctx, i: number, shift: number, frame: number) => {
   if (b.high) {
     // Hung from the roof: the rods down to it, the truss under it, swaying a hair with the motor's shake
     const sway = Math.sin(frame * 0.2 + i) * 0.6;
-    ctx.strokeStyle = '#1C1917'; ctx.lineWidth = 2;
-    for (let x = box.x + 30; x < box.x + box.w; x += 120) { ctx.beginPath(); ctx.moveTo(x, COURSE.warehouse.ceiling); ctx.lineTo(x + sway, box.y + 10); ctx.stroke(); }
-    ctx.fillStyle = '#374151'; ctx.fillRect(box.x + 4, box.y + 10, box.w - 8, 10);
-    ctx.strokeStyle = '#4B5563'; ctx.lineWidth = 1.5;
-    for (let x = box.x + 6; x < box.x + box.w - 16; x += 16) { ctx.beginPath(); ctx.moveTo(x, box.y + 20); ctx.lineTo(x + 8, box.y + 10); ctx.lineTo(x + 16, box.y + 20); ctx.stroke(); }
+    for (let x = box.x + 30; x < box.x + box.w; x += 120) {
+      ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x, COURSE.warehouse.ceiling); ctx.lineTo(x + sway, box.y + 10); ctx.stroke();
+      ctx.strokeStyle = '#57534E'; ctx.lineWidth = 1; ctx.stroke();
+    }
+    pipe(ctx, box.x + 4, box.y + 10, box.w - 8, 10, '#374151');
+    ctx.strokeStyle = '#6B7280'; ctx.lineWidth = 1.5;
+    for (let x = box.x + 6; x < box.x + box.w - 16; x += 16) { ctx.beginPath(); ctx.moveTo(x, box.y + 19); ctx.lineTo(x + 8, box.y + 11); ctx.lineTo(x + 16, box.y + 19); ctx.stroke(); }
     ctx.fillStyle = '#FACC15'; ctx.fillRect(box.x + 4, box.y + 10, box.w - 8, 2);
     // (and the hazard stripes along its underside: don't stand under this)
-    for (let x = box.x + 4; x < box.x + box.w - 10; x += 12) { ctx.fillStyle = '#FACC15'; ctx.fillRect(x, box.y + 20, 6, 3); ctx.fillStyle = '#111827'; ctx.fillRect(x + 6, box.y + 20, 6, 3); }
+    hazard(ctx, box.x + 4, box.y + 20, box.w - 14, 4, 4);
   } else {
-    // The machine under it
-    ctx.fillStyle = '#374151'; ctx.fillRect(box.x + 10, box.y + 10, box.w - 20, box.h - 10);
-    ctx.fillStyle = '#1F2937'; for (let x = box.x + 20; x < box.x + box.w - 20; x += 40) ctx.fillRect(x, box.y + 14, 6, box.h - 14);
-    ctx.fillStyle = '#FACC15'; ctx.fillRect(box.x + 10, box.y + 10, box.w - 20, 4);
+    // The machine under it (a steel housing, lit along the top, its access panels, hazard tape along the lip)
+    slab(ctx, box.x + 10, box.y + 10, box.w - 20, box.h - 10, '#374151', 2);
+    for (let x = box.x + 20; x < box.x + box.w - 20; x += 40) { ctx.fillStyle = '#1F2937'; ctx.fillRect(x, box.y + 14, 6, box.h - 14); ctx.fillStyle = '#4B5563'; ctx.fillRect(x, box.y + 14, 1, box.h - 14); }
+    hazard(ctx, box.x + 10, box.y + 10, box.w - 20, 4, 4);
   }
-  // The belt: black rubber, its ridges going by
+  // The belt: black rubber (a sheen along its top), its ridges going by, the drums at either end
   ctx.fillStyle = '#111827'; ctx.fillRect(box.x, box.y, box.w, 10);
+  ctx.fillStyle = '#374151'; ctx.fillRect(box.x, box.y, box.w, 1);
   ctx.fillStyle = '#4B5563';
   const off = ((shift % 16) + 16) % 16;
-  for (let x = box.x + off; x < box.x + box.w; x += 16) ctx.fillRect(x, box.y + 1, 3, 3);
-  ctx.fillStyle = '#6B7280'; ctx.beginPath(); ctx.arc(box.x + 5, box.y + 5, 6, 0, Math.PI * 2); ctx.arc(box.x + box.w - 5, box.y + 5, 6, 0, Math.PI * 2); ctx.fill();
+  for (let x = box.x + off; x < box.x + box.w; x += 16) { ctx.fillRect(x, box.y + 1, 3, 3); }
+  ctx.fillStyle = INK; ctx.fillRect(box.x, box.y + 9, box.w, 1);
+  for (const dx of [box.x + 5, box.x + box.w - 5]) {
+    ink(ctx, () => ctx.arc(dx, box.y + 5, 6, 0, Math.PI * 2), '#6B7280', 1);
+    ctx.fillStyle = '#9CA3AF'; ctx.fillRect(dx - 3, box.y + 1, 3, 2); ctx.fillStyle = INK; ctx.fillRect(dx - 1, box.y + 4, 2, 2);
+  }
   // An arrow painted on the side: which way it runs
-  ctx.fillStyle = '#FDE047';
   const dir = COURSE.belts[i].speed < 0 ? -1 : 1;
-  if (!b.high) for (let x = box.x + 40; x < box.x + box.w - 40; x += 90) { ctx.beginPath(); ctx.moveTo(x + dir * 12, box.y + 26); ctx.lineTo(x - dir * 6, box.y + 20); ctx.lineTo(x - dir * 6, box.y + 32); ctx.fill(); }
+  if (!b.high) for (let x = box.x + 40; x < box.x + box.w - 40; x += 90) ink(ctx, () => { ctx.moveTo(x + dir * 12, box.y + 26); ctx.lineTo(x - dir * 6, box.y + 20); ctx.lineTo(x - dir * 6, box.y + 32); ctx.closePath(); }, '#FDE047', 1);
 };
 
 /**
@@ -451,10 +522,12 @@ const drawFeed = (ctx: Ctx, i: number, timer: number, frame: number) => {
   const b = COURSE.belts[i], fx = feedX(i), cx = fx + CRATE / 2;
   const top = Math.max(b.y - 200, COURSE.warehouse.ceiling - 40), mouth = b.y - CRATE - 14;
   const warn = timer <= CRATE_WARN;
-  // The chute: steel, a window down it
-  ctx.fillStyle = '#4B5563'; ctx.fillRect(cx - 22, top, 44, mouth - top);
-  ctx.fillStyle = '#1F2937'; ctx.fillRect(cx - 16, top + 10, 32, mouth - top - 20);
-  ctx.fillStyle = '#6B7280'; ctx.fillRect(cx - 22, top, 4, mouth - top); ctx.fillRect(cx + 18, top, 4, mouth - top);
+  // The chute: steel, a window down it, rivets up its edges
+  column(ctx, cx - 22, top, 44, mouth - top, '#4B5563');
+  ctx.fillStyle = '#111827'; ctx.fillRect(cx - 16, top + 10, 32, mouth - top - 20);
+  ctx.fillStyle = '#1F2937'; ctx.fillRect(cx - 15, top + 11, 30, mouth - top - 22);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(cx - 16.5, top + 9.5, 33, mouth - top - 19);
+  ctx.fillStyle = '#9CA3AF'; for (let y = top + 6; y < mouth - 4; y += 14) { ctx.fillRect(cx - 20, y, 1, 1); ctx.fillRect(cx + 19, y, 1, 1); }
   // (the crate coming down it, while it's on its way)
   if (warn) {
     const k = 1 - timer / CRATE_WARN;
@@ -463,31 +536,35 @@ const drawFeed = (ctx: Ctx, i: number, timer: number, frame: number) => {
     ctx.restore();
   }
   // The hopper mouth: hazard stripes round it, lit up red as the crate's about to come out
-  ctx.fillStyle = '#111827'; ctx.fillRect(cx - 26, mouth, 52, 10);
-  for (let x = 0; x < 52; x += 8) { ctx.fillStyle = (x / 8) % 2 ? '#111827' : '#FACC15'; ctx.fillRect(cx - 26 + x, mouth, 4, 10); }
+  hazard(ctx, cx - 26, mouth, 52, 10, 5);
+  ctx.fillStyle = INK; ctx.fillRect(cx - 27, mouth, 1, 10); ctx.fillRect(cx + 26, mouth, 1, 10);
   if (warn && timer < 20 && Math.floor(frame / 4) % 2) { ctx.fillStyle = 'rgba(239, 68, 68, 0.55)'; ctx.fillRect(cx - 26, mouth, 52, 10); }
   // The beacon on the side of it: dark till one's coming, then going round, flashing amber, throwing its light about
   const bx = cx + 30, by = mouth - 30;
-  ctx.fillStyle = '#374151'; ctx.fillRect(bx - 5, by + 6, 10, 6);
-  ctx.fillStyle = warn ? (Math.floor(frame / 5) % 2 ? '#F59E0B' : '#FDE68A') : '#78350F';
-  ctx.beginPath(); ctx.arc(bx, by + 4, 9, Math.PI, 0); ctx.fill();
+  slab(ctx, bx - 6, by + 5, 12, 7, '#374151', 1);
+  const lens = warn ? (Math.floor(frame / 5) % 2 ? '#F59E0B' : '#FDE68A') : '#78350F';
+  if (warn) steppedGlow(ctx, bx, by + 2, 18, '#FBBF24', 0.3, 0.05, 3);
+  ink(ctx, () => { ctx.arc(bx, by + 4, 9, Math.PI, 0); ctx.closePath(); }, lens, 1);
+  ctx.fillStyle = dark(lens, 0.25); ctx.fillRect(bx + 3, by - 3, 4, 7);
+  ctx.fillStyle = lite(lens, 0.6); ctx.fillRect(bx - 5, by - 1, 2, 3);
   if (warn) {
     const a = frame * 0.3;
     ctx.fillStyle = 'rgba(251, 191, 36, 0.22)';
     ctx.beginPath(); ctx.moveTo(bx, by + 2); ctx.lineTo(bx + Math.cos(a) * 140, by + 2 + Math.sin(a) * 60); ctx.lineTo(bx + Math.cos(a + 0.4) * 140, by + 2 + Math.sin(a + 0.4) * 60); ctx.fill();
     // (and an arrow over the mouth, pointing down at where it'll land)
-    if (Math.floor(frame / 8) % 2) { ctx.fillStyle = '#EF4444'; ctx.beginPath(); ctx.moveTo(cx - 8, mouth - 30); ctx.lineTo(cx + 8, mouth - 30); ctx.lineTo(cx, mouth - 18); ctx.fill(); }
+    if (Math.floor(frame / 8) % 2) ink(ctx, () => { ctx.moveTo(cx - 8, mouth - 30); ctx.lineTo(cx + 8, mouth - 30); ctx.lineTo(cx, mouth - 18); ctx.closePath(); }, '#EF4444', 1);
   }
 };
 
 /** Orange steel pallet racking, a pallet on top. */
 const drawRack = (ctx: Ctx, l: Ledge) => {
-  ctx.fillStyle = '#EA580C'; ctx.fillRect(l.x + 2, l.y, 6, Y - l.y); ctx.fillRect(l.x + l.w - 8, l.y, 6, Y - l.y);
-  ctx.strokeStyle = '#C2410C'; ctx.lineWidth = 2;
-  for (let y = l.y + 10; y < Y - 10; y += 30) { ctx.beginPath(); ctx.moveTo(l.x + 5, y); ctx.lineTo(l.x + l.w - 5, y + 20); ctx.stroke(); }
-  ctx.fillStyle = '#1D4ED8'; ctx.fillRect(l.x, l.y + 4, l.w, 8);
-  ctx.fillStyle = '#B45309'; ctx.fillRect(l.x + 2, l.y - 2, l.w - 4, 6);
-  ctx.fillStyle = '#78350F'; for (let x = l.x + 6; x < l.x + l.w - 6; x += 18) ctx.fillRect(x, l.y - 2, 3, 6);
+  // (the cross bracing behind, then the uprights: punched with their slots)
+  for (let y = l.y + 10; y < Y - 10; y += 30) { ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(l.x + 5, y); ctx.lineTo(l.x + l.w - 5, y + 20); ctx.stroke(); ctx.strokeStyle = '#C2410C'; ctx.lineWidth = 1.5; ctx.stroke(); }
+  for (const ux of [l.x + 2, l.x + l.w - 8]) { column(ctx, ux, l.y, 6, Y - l.y, '#EA580C'); ctx.fillStyle = '#7C2D12'; for (let y = l.y + 6; y < Y - 4; y += 8) ctx.fillRect(ux + 2, y, 2, 3); }
+  pipe(ctx, l.x, l.y + 4, l.w, 8, '#1D4ED8');
+  // (the pallet on top: its slats, the blocks between)
+  slab(ctx, l.x + 2, l.y - 2, l.w - 4, 6, '#B45309', 1);
+  for (let x = l.x + 6; x < l.x + l.w - 6; x += 18) { ctx.fillStyle = '#78350F'; ctx.fillRect(x, l.y - 1, 3, 4); ctx.fillStyle = '#D97706'; ctx.fillRect(x + 4, l.y - 1, 6, 1); }
 };
 
 /** The warehouse floor (concrete), the steel stairs up, the office floor. */
@@ -495,30 +572,44 @@ const drawFloor = (ctx: Ctx, state: GameState, r: GroundRun) => {
   if (r.surface === 'stairs') {
     // Steel stairs, a handrail, open underneath
     const steps = 20;
+    // (the stringer under them, then the handrail and its posts, then the treads: diamond plate, a lit nosing)
+    ctx.strokeStyle = INK; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(r.x1, r.y1 + 10); ctx.lineTo(r.x2, r.y2 + 10); ctx.stroke();
+    ctx.strokeStyle = '#374151'; ctx.lineWidth = 6; ctx.stroke();
+    ctx.strokeStyle = '#4B5563'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(r.x1, r.y1 + 8); ctx.lineTo(r.x2, r.y2 + 8); ctx.stroke();
+    for (let x = r.x1; x <= r.x2; x += 60) { const y = runYAt(r, x); column(ctx, x - 1, y - 40, 3, 40, '#9CA3AF'); }
+    ctx.strokeStyle = INK; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(r.x1, r.y1 - 40); ctx.lineTo(r.x2, r.y2 - 40); ctx.stroke();
+    ctx.strokeStyle = '#9CA3AF'; ctx.lineWidth = 3; ctx.stroke();
+    ctx.strokeStyle = '#E5E7EB'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(r.x1, r.y1 - 41); ctx.lineTo(r.x2, r.y2 - 41); ctx.stroke();
     for (let i = 0; i < steps; i++) {
       const x = r.x1 + (i / steps) * (r.x2 - r.x1), w = (r.x2 - r.x1) / steps;
       const y = runYAt(r, x + w / 2);
-      ctx.fillStyle = '#6B7280'; ctx.fillRect(x, y, w + 1, 5);
+      slab(ctx, x, y, w + 1, 5, '#6B7280', 1);
+      ctx.fillStyle = '#9CA3AF'; for (let k = 3; k < w - 2; k += 4) ctx.fillRect(x + k, y + 2, 2, 1);
       ctx.fillStyle = '#374151'; ctx.fillRect(x, y + 5, 2, 10);
     }
-    ctx.strokeStyle = '#9CA3AF'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(r.x1, r.y1 - 40); ctx.lineTo(r.x2, r.y2 - 40); ctx.stroke();
-    ctx.lineWidth = 2; for (let x = r.x1; x <= r.x2; x += 60) { const y = runYAt(r, x); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - 40); ctx.stroke(); }
-    ctx.strokeStyle = '#374151'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(r.x1, r.y1 + 10); ctx.lineTo(r.x2, r.y2 + 10); ctx.stroke();
     return;
   }
   if (r.surface === 'office') {
-    // The mezzanine: the office floor on steel joists
-    ctx.fillStyle = '#57534E'; ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, 26);
-    ctx.fillStyle = '#292524'; for (let x = r.x1; x < r.x2; x += 40) ctx.fillRect(x, r.y1 + 26, 8, Y - r.y1 - 26);
-    ctx.fillStyle = '#78716C'; ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, 4);
+    // The mezzanine: the office floor on steel joists (the deck's edge lit, the joists in shadow under it)
+    pipe(ctx, r.x1, r.y1, r.x2 - r.x1, 26, '#57534E');
+    ctx.fillStyle = '#44403C'; for (let x = r.x1; x < r.x2; x += 40) ctx.fillRect(x + 20, r.y1 + 8, 1, 12);
+    for (let x = r.x1; x < r.x2; x += 40) { column(ctx, x, r.y1 + 26, 8, Y - r.y1 - 26, '#292524'); }
+    ctx.fillStyle = '#A8A29E'; ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, 2);
     return;
   }
+  // The concrete: power-troweled slab (speckled, the joints sawn into it), the yellow lane marks, worn
   const bottom = state.camera.y + CANVAS_HEIGHT + 60;
   ctx.fillStyle = '#6B6660'; ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, bottom - r.y1);
+  ctx.fillStyle = tilePattern(ctx, 'daleConcrete', 40, 20, g => {
+    g.fillStyle = '#7A756F'; for (const [a, b] of [[3, 4], [17, 11], [29, 3], [35, 15], [9, 16], [24, 7]]) g.fillRect(a, b, 1, 1);
+    g.fillStyle = '#5C5751'; for (const [a, b] of [[11, 2], [21, 17], [38, 9], [6, 10], [31, 12]]) g.fillRect(a, b, 1, 1);
+  });
+  ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, bottom - r.y1);
   ctx.fillStyle = '#8A857E'; ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, 3);
-  ctx.fillStyle = '#FACC15'; for (let x = r.x1 + 30; x < r.x2; x += 90) ctx.fillRect(x, r.y1 + 8, 40, 3);
-  ctx.fillStyle = 'rgba(0,0,0,0.2)'; for (let x = r.x1; x < r.x2; x += 120) ctx.fillRect(x, r.y1, 2, 40);
+  ctx.fillStyle = '#A8A29E'; ctx.fillRect(r.x1, r.y1, r.x2 - r.x1, 1);
+  hazeBands(ctx, r.x1, r.y1 + 3, r.x2 - r.x1, 40, '#1C1917', 0.25, 0, 4);
+  for (let x = r.x1 + 30; x < r.x2; x += 90) { ctx.fillStyle = '#FACC15'; ctx.fillRect(x, r.y1 + 8, 40, 3); ctx.fillStyle = '#A16207'; ctx.fillRect(x, r.y1 + 10, 40, 1); ctx.fillStyle = '#6B6660'; ctx.fillRect(x + 12 + (x % 7), r.y1 + 8, 3, 2); }
+  for (let x = r.x1; x < r.x2; x += 120) { ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(x, r.y1, 1, 40); ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(x + 1, r.y1, 1, 40); }
 };
 
 // ---------------------------------------------------------------------------
@@ -543,9 +634,9 @@ const drawCactus = (ctx: Ctx, c: Cactus, f: number) => {
   const g = '#43B02A', light = '#9BE15D', dark = '#23701A', line = '#08200A';
   const spines: { x: number; y: number; a: number }[] = [];
   // A dusty red halo on the ground under it
-  const halo = ctx.createRadialGradient(c.x, c.y, 4, c.x, c.y, c.look === 'saguaro' ? 44 : 36);
-  halo.addColorStop(0, 'rgba(220, 38, 38, 0.45)'); halo.addColorStop(1, 'rgba(220, 38, 38, 0)');
-  ctx.fillStyle = halo; ctx.beginPath(); ctx.ellipse(c.x, c.y, 46, 9, 0, 0, Math.PI * 2); ctx.fill();
+  // (in steps, out from the foot of it)
+  const hr = c.look === 'saguaro' ? 44 : 36;
+  for (let k = 0; k < 3; k++) { ctx.fillStyle = 'rgba(220, 38, 38, 0.16)'; ctx.beginPath(); ctx.ellipse(c.x, c.y, Math.min(46, hr * (1 - k * 0.3)), 9 - k * 2.5, 0, 0, Math.PI * 2); ctx.fill(); }
   if (c.look === 'saguaro') {
     const trunk = (x: number, y: number, w: number, h: number, pass: 'line' | 'fill') => {
       if (pass === 'line') { ctx.fillStyle = line; ctx.beginPath(); ctx.roundRect(x - w / 2 - 3, y - h - 3, w + 6, h + 3, [w / 2 + 3, w / 2 + 3, 0, 0]); ctx.fill(); return; }
@@ -614,26 +705,41 @@ const drawWarehouseOutside = (ctx: Ctx, state: GameState) => {
   const x1 = W.x1 - 30, x2 = COURSE.office.x2 + 60, top = Y - 520;
   ctx.save();
   ctx.globalAlpha = a;
-  ctx.fillStyle = '#A8A29E'; ctx.fillRect(x1, top, x2 - x1, Y - top);
-  ctx.fillStyle = '#8A8580';
-  for (let x = x1; x < x2; x += 14) if (visible(state, x, x + 6)) ctx.fillRect(x, top, 6, Y - top);
-  // The roof's edge, rust streaks
-  ctx.fillStyle = '#57534E'; ctx.fillRect(x1 - 10, top - 14, x2 - x1 + 20, 16);
-  ctx.fillStyle = 'rgba(146, 64, 14, 0.35)'; for (let x = x1 + 60; x < x2; x += 230) if (visible(state, x, x + 12)) ctx.fillRect(x, top + 2, 10, 120 + hash(x) * 160);
+  // The siding: corrugated steel in bands (lit up under the eaves, the dust of the yard up the bottom), each rib lit
+  // on its left and shadowed on its right
+  const vx1 = Math.max(x1, state.camera.x - 20), vx2 = Math.min(x2, state.camera.x + CANVAS_WIDTH + 20);
+  if (vx2 > vx1) {
+    bandedGradient(ctx, vx1, top, vx2 - vx1, Y - top, ['#B8B3AE', '#ABA6A1', '#A8A29E', '#9E9690', '#94877A'], 6);
+    for (let x = Math.floor(vx1 / 14) * 14; x < vx2; x += 14) { ctx.fillStyle = '#8A8580'; ctx.fillRect(x, top, 6, Y - top); ctx.fillStyle = '#C4BFBA'; ctx.fillRect(x, top, 1, Y - top); ctx.fillStyle = '#6E6964'; ctx.fillRect(x + 5, top, 1, Y - top); }
+    checker(ctx, vx1, Y - 24, vx2 - vx1, 24, 'rgba(160, 112, 63, 0.35)');
+  }
+  // The roof's edge (a gutter), rust streaks
+  pipe(ctx, x1 - 10, top - 14, x2 - x1 + 20, 16, '#57534E');
+  for (let x = x1 + 60; x < x2; x += 230) if (visible(state, x, x + 12)) { const h = 120 + hash(x) * 160; ctx.fillStyle = 'rgba(146, 64, 14, 0.35)'; ctx.fillRect(x, top + 2, 10, h); ctx.fillStyle = 'rgba(146, 64, 14, 0.3)'; ctx.fillRect(x + 3, top + 2, 4, h + 30); }
   // Its name down the side
   const sx = x1 + 170;
   if (visible(state, sx, sx + 520)) {
-    ctx.fillStyle = '#FEF3C7'; ctx.fillRect(sx, top + 60, 520, 90);
-    ctx.strokeStyle = '#7F1D1D'; ctx.lineWidth = 5; ctx.strokeRect(sx, top + 60, 520, 90);
-    ctx.fillStyle = '#B91C1C'; ctx.font = 'bold 26px "Press Start 2P"'; ctx.textAlign = 'center';
-    ctx.fillText('DESERT SUN', sx + 260, top + 100); ctx.font = 'bold 14px "Press Start 2P"'; ctx.fillText('PRODUCE CO.', sx + 260, top + 124);
-    ctx.font = '7px "Press Start 2P"'; ctx.fillStyle = '#1C1917'; ctx.fillText('WHOLESALE ONLY - NO VISITORS - NO FEDS', sx + 260, top + 142); ctx.textAlign = 'left';
+    slab(ctx, sx - 3, top + 57, 526, 96, '#7F1D1D', 3);
+    slab(ctx, sx + 2, top + 62, 516, 86, '#FEF3C7', 2);
+    ctx.fillStyle = '#F5E6B8'; ctx.fillRect(sx + 4, top + 128, 512, 18);
+    ctx.fillStyle = 'rgba(146, 64, 14, 0.25)'; ctx.fillRect(sx + 120, top + 64, 6, 40); ctx.fillRect(sx + 400, top + 64, 4, 60); // (rust run down it)
+    letter(ctx, 'DESERT SUN', sx + 260, top + 100, 'bold 26px "Press Start 2P"', '#B91C1C', '#7F1D1D');
+    letter(ctx, 'PRODUCE CO.', sx + 260, top + 124, 'bold 14px "Press Start 2P"', '#B91C1C', '#7F1D1D');
+    letter(ctx, 'WHOLESALE ONLY - NO VISITORS - NO FEDS', sx + 260, top + 142, '7px "Press Start 2P"', '#1C1917', '#D6C79A');
+    // (a sun coming up behind the name, in steps)
+    for (let k = 0; k < 3; k++) { ctx.fillStyle = ['#FDBA74', '#FB923C', '#F97316'][k]; ctx.beginPath(); ctx.arc(sx + 40, top + 112, 22 - k * 6, Math.PI, 0); ctx.fill(); }
+    ctx.fillStyle = INK; ctx.fillRect(sx + 16, top + 112, 48, 1);
   }
-  // The loading dock's door, rolled up: the way in
+  // The loading dock's door, rolled up: the way in (the dark inside, the door's slats rolled up under its hood, the
+  // hazard stripes along the bottom of it, the bumpers)
   ctx.fillStyle = '#0C0A09'; ctx.fillRect(x1, Y - 190, 120, 190);
-  ctx.fillStyle = '#6B7280'; for (let y = Y - 206; y < Y - 186; y += 5) ctx.fillRect(x1, y, 120, 3);
-  ctx.fillStyle = '#FDE047'; for (let i = 0; i < 8; i++) ctx.fillRect(x1 + i * 16, Y - 190, 8, 5);
-  ctx.fillStyle = '#FACC15'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.fillText('DOCK 1', x1 + 20, Y - 212);
+  bandedGradient(ctx, x1, Y - 190, 120, 60, ['#1C1917', '#0C0A09'], 3);
+  slab(ctx, x1 - 4, Y - 212, 128, 8, '#57534E', 1);
+  for (let y = Y - 206; y < Y - 186; y += 5) { ctx.fillStyle = '#6B7280'; ctx.fillRect(x1, y, 120, 3); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(x1, y, 120, 1); ctx.fillStyle = INK; ctx.fillRect(x1, y + 3, 120, 1); }
+  hazard(ctx, x1, Y - 190, 120, 5, 4);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(x1 - 0.5, Y - 206.5, 121, 207);
+  for (const bx of [x1 + 4, x1 + 104]) slab(ctx, bx, Y - 30, 12, 14, '#1C1917', 1);
+  letter(ctx, 'DOCK 1', x1 + 48, Y - 216, 'bold 8px "Press Start 2P"', '#FACC15', '#57534E');
   ctx.restore();
 };
 
