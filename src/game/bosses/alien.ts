@@ -382,10 +382,10 @@ const plead = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
 };
 
 /**
- * A pitched boulder breaking on him: chunks splinter off it, each one homing in on a Secret Service man on screen (up
- * to eight), and whoever one finds, it kills.
+ * A pitched boulder breaking on him: chunks splinter off it, each one homing in on a Secret Service man on screen (just
+ * a couple), and whoever one finds, it kills.
  */
-const CHUNKS_MAX = 6;
+const CHUNKS_MAX = 2;
 /** How long he burns (still oiled) after a grease fire: much longer than an ordinary lighting. */
 const GREASE_FIRE_FRAMES = 600;
 const splinter = (ctx: FrameContext, rt: FinaleRuntime, x: number, y: number) => {
@@ -400,7 +400,7 @@ const splinter = (ctx: FrameContext, rt: FinaleRuntime, x: number, y: number) =>
     const a = -Math.PI / 2 + (i - (targets.length - 1) / 2) * 0.5;
     list.push({ id: e.id, x, y, vx: Math.cos(a) * 7, vy: Math.sin(a) * 7, t: 0 });
   });
-  for (let i = 0; i < 10; i++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 9, y: -1 - Math.random() * 6 }, life: 24, color: i % 2 ? '#A8A29E' : '#78716C', size: 3 + Math.random() * 4, chunk: true, grav: 0.4 });
+  for (let i = 0; i < 5; i++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 9, y: -1 - Math.random() * 6 }, life: 24, color: i % 2 ? '#A8A29E' : '#78716C', size: 3 + Math.random() * 4, chunk: true, grav: 0.4 });
 };
 const flyChunks = (ctx: FrameContext, rt: FinaleRuntime) => {
   const { state, fx } = ctx;
