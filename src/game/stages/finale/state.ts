@@ -22,10 +22,12 @@ export type AlienMode =
 export interface AlienBeam {
   /** Where it comes out (the ray gun's muzzle) and which way it's going (a unit vector). */
   x: number; y: number; dx: number; dy: number;
-  /** How far it reaches this frame (to a wall, the floor, the ceiling, or a flamethrower in the way). */
+  /** How far it reaches this frame (to a wall, the floor or the ceiling: a flamethrower doesn't stop it). */
   len: number;
-  /** A flamethrower's in its way: where the two meet. */
+  /** A flamethrower's in its way: where the two meet (it goes on through, weakened, past there). */
   blocked?: { x: number; y: number };
+  /** Weakened (the flamethrower on it or on him): it still hurts, just not as much. */
+  weak?: boolean;
 }
 
 /** A line waiting to be said (one at a time: nobody talks over anybody). */
@@ -52,6 +54,8 @@ export interface FinaleRuntime {
   slowT: number; stunT: number; groundT: number; pushT: number; burnT: number;
   /** Just up out of the sludge: it can't drag him back down again yet (no pinning him for good). */
   sludgeFreeT: number;
+  /** Flamed while he's shooting: his beam's weakened for this many frames more. */
+  dampT?: number;
   /** When the taser last came off his men onto him (for the callout, once a go). */
   chainAt?: number;
   /** When a boulder last knocked him silly (he can't be kept that way: a breather before it can again). */

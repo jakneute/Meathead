@@ -567,7 +567,7 @@ export const drawRoomFront = (ctx: Ctx, state: GameState) => {
     ctx.fillRect(VIEW_X, VIEW_Y, VIEW_W, VIEW_H);
   }
   // The alien's beam, over everything (it lights the dark)
-  if (rt?.beam) drawBeam(ctx, rt.beam.x, rt.beam.y, rt.beam.dx, rt.beam.dy, rt.beam.len, f, !!rt.beam.blocked);
+  if (rt?.beam) drawBeam(ctx, rt.beam.x, rt.beam.y, rt.beam.dx, rt.beam.dy, rt.beam.len, f, rt.beam.blocked, !!rt.beam.weak);
 };
 
 /** The side walls, seen end on: the doors at the foot of them (open while someone's coming through), the windows. */

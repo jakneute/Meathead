@@ -5,7 +5,7 @@
 // hits (every round, pellet, needle and punch counts), and Meathead's own moves barely dent him.
 //
 // What each weapon does to him:
-//   shotgun ice: slows him right down (his float, his tell);       flamethrower: puts his shot out (and cooks him);
+//   shotgun ice: slows him right down (his float, his tell);       flamethrower: weakens his shot (and cooks him);
 //   tsunami: carries him off with it, into the wall (no stun);    boulder: knocks him silly for a moment;
 //   needles: stick in him and work their way out (he never ODs); taser: just tingles him, unless it's come to him
 //     off his own men (the current jumping off them onto him): that stuns him (with none of them left, it can't);
@@ -74,6 +74,8 @@ const BODY_MIN = 25, BODY_MAX = 160, BODY_SCALE = 1.6, CONTACT_HIGH_DAMAGE = 160
 const CHAIN_DAMAGE = 6;
 
 /** The beam: its raw damage (his hide in the finale scales everything that hurts Meathead down), width, and timings. */
+/** (WEAK_BEAM: what's left of it through a flamethrower) */
+const WEAK_BEAM = 0.55;
 const BEAM_DAMAGE = 45, BEAM_HALF = 10, BEAM_FRAMES = 40, TELL_FRAMES = 72, TELL_RAMP = 36, LOCK_FRAMES = 14;
 /** The beaten alien's bolts: slow, and they barely hurt. */
 const BOLT_SPEED = 2.4, BOLT_DAMAGE = 12, BOLT_EVERY = 100;
@@ -278,16 +280,19 @@ const fireBeam = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
   const p = state.player;
   const m = alienMuzzle(boss, rt.aim);
   let len = toWall(m.x, m.y, rt.aim.dx, rt.aim.dy);
-  // His flamethrower in the way of it, pointed back at him: the beam stops dead at the flame
+  // His flamethrower in the way of it, pointed back at him: the two meet, and it goes on through weakened (it still
+  // hurts: he's still got to get out of it)
   let blocked: { x: number; y: number } | undefined;
   const pcx = p.pos.x + p.width / 2;
   if (p.isFlaming && (p.flameRange || 0) > 20 && Math.sign(cx(boss) - pcx) === p.facing && Math.sign(rt.aim.dx) === -p.facing) {
     const tipX = pcx + p.facing * (24 + (p.flameRange || 0));
-    // (the flame right up to the gun, or past it: it's smothered at the muzzle)
+    // (the flame right up to the gun, or past it: they meet at the muzzle)
     const t = Math.max(0, (tipX - m.x) / (rt.aim.dx || 1e-3));
-    if (t < len) { len = t; blocked = { x: m.x + rt.aim.dx * t, y: m.y + rt.aim.dy * t }; }
+    if (t < len) blocked = { x: m.x + rt.aim.dx * t, y: m.y + rt.aim.dy * t };
   }
-  rt.beam = { x: m.x, y: m.y, dx: rt.aim.dx, dy: rt.aim.dy, len, blocked };
+  const weak = !!blocked || (rt.dampT ?? 0) > 0;
+  if (rt.dampT) rt.dampT--;
+  rt.beam = { x: m.x, y: m.y, dx: rt.aim.dx, dy: rt.aim.dy, len, blocked, weak };
   if (state.frame % 9 === 0) playSound('alienBeam', 0.8);
   // A little kick back off it
   boss.pos.x -= rt.aim.dx * 0.4;
@@ -295,14 +300,16 @@ const fireBeam = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
     if (state.frame % 2 === 0) for (let i = 0; i < 3; i++) state.particles.push({ pos: { ...blocked }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 4 }, life: 16 + Math.random() * 10, color: i % 2 ? ALIEN.laser[5] : '#FDE047', size: 2 + Math.random() * 3 });
     if (state.frame % 4 === 0) fx.spawnSteamExplosionParticles(blocked, 3);
     sayOnce(ctx, rt, 'blocked', ALIEN_LINES.BLOCKED);
-  } else {
+  }
+  {
     // Where it hits the wall: sparks and a scorch mark left behind
     const ex = m.x + rt.aim.dx * len, ey = m.y + rt.aim.dy * len;
     if (state.frame % 2 === 0) state.particles.push({ pos: { x: ex, y: ey }, vel: { x: -rt.aim.dx * (2 + Math.random() * 4) + (Math.random() - 0.5) * 3, y: -rt.aim.dy * 3 - Math.random() * 3 }, life: 14, color: Math.random() < 0.5 ? ALIEN.laser[4] : '#FFFFFF', size: 2 + Math.random() * 3 });
     if (rt.modeT === 6 && rt.scorch.length < 24) rt.scorch.push({ x: ex, y: ey, at: state.frame });
     // Meathead in it
     if (p.invincibilityTimer <= 0 && p.health > 0 && beamTouches(rt.beam, p.pos.x, p.pos.y, p.width, p.height)) {
-      hurtPlayer(ctx, BEAM_DAMAGE, 'alien_laser', { x: rt.aim.dx * 7, y: -5 });
+      const k = weak ? WEAK_BEAM : 1;
+      hurtPlayer(ctx, Math.round(BEAM_DAMAGE * k), 'alien_laser', { x: rt.aim.dx * 7 * k, y: -5 * k });
       for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: pcx, y: p.pos.y + p.height * 0.6 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 26, color: i % 2 ? 'rgba(87, 83, 78, 0.6)' : '#F97316', size: 3 + Math.random() * 4 });
     }
   }
@@ -603,11 +610,10 @@ const onFlamed = (ctx: FrameContext, boss: Enemy, scale = 1) => {
   // (every flame segment touching him calls this: once a frame)
   if ((boss.burntAt ?? -1) === state.frame) return;
   boss.burntAt = state.frame;
-  // His shot's put out
+  // His shot's weakened (not put out: it still comes, it still hurts)
   if (rt.mode === 'charge' || rt.mode === 'fire') {
-    rt.mode = 'sputter'; rt.modeT = 0; rt.beam = null;
-    callout(ctx, boss, 'SHOT SNUFFED!', '#F97316');
-    playSound('dry_flame', 1, -3);
+    if (!(rt.dampT && rt.dampT > 0)) { callout(ctx, boss, 'LASER WEAKENED!', '#F97316'); playSound('dry_flame', 0.8, -3); }
+    rt.dampT = 10;
     sayOnce(ctx, rt, 'blocked', ALIEN_LINES.BLOCKED);
   }
   // Greased and then flamed: he goes up like the whole barrel, and the room with him (every agent in it; him, a

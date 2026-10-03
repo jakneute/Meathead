@@ -1556,7 +1556,7 @@
  },
  {
   "voice": "boss.alien",
-  "text": "HEY! YOU PUT OUT MY LASER! I WAS USING THAT!",
+  "text": "HEY! YOU ARE MELTING MY LASER! I WAS USING THAT!",
   "from": "ALIEN_LINES"
  },
  {
@@ -5657,7 +5657,7 @@
  {
   "voice": "death",
   "text": "ELECTRIC BATH",
-  "from": "game/combat/weapons.ts:848"
+  "from": "game/combat/weapons.ts:849"
  },
  {
   "voice": "death",
@@ -7027,7 +7027,7 @@
  {
   "voice": "death",
   "text": "SHOCKING LACK OF JUDGMENT",
-  "from": "game/combat/weapons.ts:848"
+  "from": "game/combat/weapons.ts:849"
  },
  {
   "voice": "death",
@@ -7487,7 +7487,7 @@
  {
   "voice": "death",
   "text": "TASED YOURSELF IN THE POOL",
-  "from": "game/combat/weapons.ts:848"
+  "from": "game/combat/weapons.ts:849"
  },
  {
   "voice": "death",
@@ -7912,7 +7912,7 @@
  {
   "voice": "death",
   "text": "WATER CONDUCTS, GENIUS",
-  "from": "game/combat/weapons.ts:848"
+  "from": "game/combat/weapons.ts:849"
  },
  {
   "voice": "death",

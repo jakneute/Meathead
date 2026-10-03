@@ -209,30 +209,46 @@ export const drawAlienGear = (ctx: Ctx, e: Enemy, frame: number) => {
   if (e.isOnFire) drawFire(ctx, cx, feet - 20, e.width * 0.8, e.height * 0.9, frame, { seed: 77, smoke: 0.7, sparks: true, glow: 1 });
 };
 
-/** The beam: a fat white-hot core, pink round it, magenta round that, wobbling; banded like the cutscene's. */
-export const drawBeam = (ctx: Ctx, x: number, y: number, dx: number, dy: number, len: number, frame: number, blocked: boolean) => {
+/** The beam: a fat white-hot core, pink round it, magenta round that, wobbling; banded like the cutscene's. Weakened
+ * (a flamethrower on it), it's thinner and paler: past where the flame meets it, or all of it with the flame on him. */
+export const drawBeam = (ctx: Ctx, x: number, y: number, dx: number, dy: number, len: number, frame: number, clash?: { x: number; y: number }, weak = false) => {
   const L = ALIEN.laser;
   const ex = x + dx * len, ey = y + dy * len;
   const wob = Math.sin(frame * 1.3) * 1.5;
+  // (where it goes weak: the clash, or straight from the muzzle)
+  const cut = !weak ? len : clash ? Math.max(0, Math.min(len, (clash.x - x) * dx + (clash.y - y) * dy)) : 0;
   ctx.save();
   ctx.lineCap = 'butt';
-  for (const [w, c] of [[30 + wob * 2, 'rgba(192, 28, 152, 0.28)'], [20 + wob, L[2]], [13, L[3]], [8, L[4]], [3, L[6]]] as const) {
-    ctx.strokeStyle = c; ctx.lineWidth = w;
-    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(ex, ey); ctx.stroke();
-  }
+  const bands = [[30 + wob * 2, 'rgba(192, 28, 152, 0.28)'], [20 + wob, L[2]], [13, L[3]], [8, L[4]], [3, L[6]]] as const;
+  const run = (s0: number, s1: number, k: number, alpha: number) => {
+    if (s1 <= s0) return;
+    ctx.globalAlpha = alpha;
+    for (const [w, c] of bands) {
+      ctx.strokeStyle = c; ctx.lineWidth = Math.max(1, Math.round(w * k));
+      ctx.beginPath(); ctx.moveTo(x + dx * s0, y + dy * s0); ctx.lineTo(x + dx * s1, y + dy * s1); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  };
+  run(0, cut, 1, 1);
+  // (weakened: thinner, flickering, a bit see-through)
+  run(cut, len, 0.5 + (frame % 4 < 2 ? 0.08 : 0), 0.75);
   // Rings of it rippling down the beam
   const nx = -dy, ny = dx;
   for (let s = (frame * 14) % 60; s < len; s += 60) {
-    const px = x + dx * s, py = y + dy * s;
+    const px = x + dx * s, py = y + dy * s, r = s < cut ? 9 : 5;
     ctx.fillStyle = L[5];
-    ctx.fillRect(Math.round(px + nx * 9 - 2), Math.round(py + ny * 9 - 2), 4, 4);
-    ctx.fillRect(Math.round(px - nx * 9 - 2), Math.round(py - ny * 9 - 2), 4, 4);
+    ctx.fillRect(Math.round(px + nx * r - 2), Math.round(py + ny * r - 2), 4, 4);
+    ctx.fillRect(Math.round(px - nx * r - 2), Math.round(py - ny * r - 2), 4, 4);
   }
-  // The flare at the muzzle, and the splash where it ends
+  // The flare at the muzzle, the clash with the flame, and the splash where it ends
   steppedGlow(ctx, x, y, 26, '#ec44c4', 0.5, 0, 4);
   ctx.fillStyle = L[6]; ctx.fillRect(Math.round(x - 5), Math.round(y - 5), 10, 10);
-  steppedGlow(ctx, ex, ey, blocked ? 34 : 24, blocked ? '#fde047' : '#ec44c4', 0.55, 0, 4);
-  ctx.fillStyle = blocked ? '#fef9c3' : L[6]; ctx.fillRect(Math.round(ex - 6), Math.round(ey - 6), 12, 12);
+  if (clash) {
+    steppedGlow(ctx, clash.x, clash.y, 34, '#fde047', 0.55, 0, 4);
+    ctx.fillStyle = '#fef9c3'; ctx.fillRect(Math.round(clash.x - 6), Math.round(clash.y - 6), 12, 12);
+  }
+  steppedGlow(ctx, ex, ey, weak ? 16 : 24, '#ec44c4', 0.55, 0, 4);
+  ctx.fillStyle = L[6]; ctx.fillRect(Math.round(ex - (weak ? 4 : 6)), Math.round(ey - (weak ? 4 : 6)), weak ? 8 : 12, weak ? 8 : 12);
   ctx.restore();
 };
 

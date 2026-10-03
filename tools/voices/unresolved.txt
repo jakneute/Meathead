@@ -2,8 +2,8 @@ components/Cutscene.tsx:91 voice: p.voice
 components/Cutscene.tsx:99 voice: p.voice
 game/bosses/oscar.ts:187 name: undefined
 game/bosses/shared.ts:177 voice: getBossVoice(bossId)
-game/bosses/alien.ts:84 voice: text
-game/bosses/alien.ts:228 voice: pickRandom(ALIEN_LINES.LASER)
+game/bosses/alien.ts:87 voice: text
+game/bosses/alien.ts:231 voice: pickRandom(ALIEN_LINES.LASER)
 game/stages/artie/ski.ts:495 name: undefined
 game/stages/artie/ski.ts:500 name: undefined
 game/stages/artie/ski.ts:500 call: deathByCause(state)
