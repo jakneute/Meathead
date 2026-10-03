@@ -260,5 +260,8 @@ export const PLUCK_DEATH_LINES: Record<string, string[]> = {
   any: ['EYES: GONE', 'NO EYES, NO GAINS'],
 };
 
+/** Artie's: the tram's taken him up and gone, and he's tried to go back the way he came, straight off the edge. */
+export const BACKTRACK_DEATH_LINES = ['THE TRAM ONLY GOES ONE WAY', 'NO REFUNDS ON THE TRAM', 'FORWARD. THE WORD IS FORWARD.', 'BACKTRACKED OFF A MOUNTAIN', 'WHERE DID YOU THINK YOU WERE GOING?'];
+
 /** Off the bottom of the world (nothing more particular). */
 export const FALL_DEATH_LINES = ['GRAVITY: 1, MEATHEAD: 0', 'WATCH YOUR STEP', 'A LONG WAY DOWN', 'FELL FOR IT'];

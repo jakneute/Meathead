@@ -4477,7 +4477,7 @@
  {
   "voice": "death",
   "text": "ACT OF GOD",
-  "from": "game/stages/hector/chase.ts:360"
+  "from": "game/stages/hector/chase.ts:361"
  },
  {
   "voice": "death",
@@ -4502,6 +4502,11 @@
  {
   "voice": "death",
   "text": "ARTIE PUT YOU ON ICE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BACKTRACKED OFF A MOUNTAIN",
   "from": "content/deaths"
  },
  {
@@ -5371,6 +5376,11 @@
  },
  {
   "voice": "death",
+  "text": "FORWARD. THE WORD IS FORWARD.",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "FOSSIL FUEL",
   "from": "game/stages/oscar/runtime.ts:177"
  },
@@ -5977,6 +5987,11 @@
  {
   "voice": "death",
   "text": "NO FRIES, NO MERCY",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "NO REFUNDS ON THE TRAM",
   "from": "content/deaths"
  },
  {
@@ -7146,6 +7161,11 @@
  },
  {
   "voice": "death",
+  "text": "THE TRAM ONLY GOES ONE WAY",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "THE TRUCK DIDN'T EVEN SLOW DOWN",
   "from": "game/stages/dale/town.ts:641"
  },
@@ -7332,6 +7352,11 @@
  {
   "voice": "death",
   "text": "WELL DONE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "WHERE DID YOU THINK YOU WERE GOING?",
   "from": "content/deaths"
  },
  {
@@ -10552,7 +10577,7 @@
  {
   "voice": "meathead",
   "text": "Get that camera outta my face.",
-  "from": "components/WeaponGetScene.tsx:132"
+  "from": "components/WeaponGetScene.tsx:136"
  },
  {
   "voice": "meathead",
@@ -10677,7 +10702,7 @@
  {
   "voice": "meathead",
   "text": "GIVE THOSE BACK, YOU FEATHERED BASTARD!",
-  "from": "game/player/deathAnim.ts:232"
+  "from": "game/player/deathAnim.ts:276"
  },
  {
   "voice": "meathead",
@@ -11582,7 +11607,7 @@
  {
   "voice": "meathead",
   "text": "I BENCH FOUR HUNDRED AND I'M LOSING TO A BREEZE?!",
-  "from": "game/player/deathAnim.ts:261"
+  "from": "game/player/deathAnim.ts:325"
  },
  {
   "voice": "meathead",
@@ -11637,7 +11662,7 @@
  {
   "voice": "meathead",
   "text": "I CAN'T SEE MY GAINS!",
-  "from": "game/player/deathAnim.ts:232"
+  "from": "game/player/deathAnim.ts:276"
  },
  {
   "voice": "meathead",
@@ -11917,7 +11942,7 @@
  {
   "voice": "meathead",
   "text": "I WEIGH TWO-SIXTY! WHAT KIND OF WIND DOES THIS?!",
-  "from": "game/player/deathAnim.ts:261"
+  "from": "game/player/deathAnim.ts:325"
  },
  {
   "voice": "meathead",
@@ -12762,7 +12787,7 @@
  {
   "voice": "meathead",
   "text": "MY EYES! MY BEAUTIFUL EYES!",
-  "from": "game/player/deathAnim.ts:232"
+  "from": "game/player/deathAnim.ts:276"
  },
  {
   "voice": "meathead",
@@ -15627,7 +15652,7 @@
  {
   "voice": "meathead",
   "text": "THIS ISN'T WIND! THIS IS A ROCKET ENGINE!",
-  "from": "game/player/deathAnim.ts:261"
+  "from": "game/player/deathAnim.ts:325"
  },
  {
   "voice": "meathead",
@@ -16237,7 +16262,7 @@
  {
   "voice": "meathead",
   "text": "WHO PUT A JET ENGINE IN A HURRICANE?!",
-  "from": "game/player/deathAnim.ts:261"
+  "from": "game/player/deathAnim.ts:325"
  },
  {
   "voice": "meathead",
@@ -16287,7 +16312,7 @@
  {
   "voice": "meathead",
   "text": "WHO TURNED OFF THE LIGHTS?!",
-  "from": "game/player/deathAnim.ts:232"
+  "from": "game/player/deathAnim.ts:276"
  },
  {
   "voice": "meathead",

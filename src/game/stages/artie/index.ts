@@ -12,6 +12,8 @@ import { drawArtieBack, drawArtieMid, drawArtieFront, drawArtieHud } from './dra
 import { updateMoose, hitMoose } from './moose';
 import { drawMoose } from './mooseDraw';
 import { skiDeathMessage, skiZoom } from './ski';
+import { BACKTRACK_DEATH_LINES } from '../../../content/deaths';
+import { pickRandom } from '../../core/utils';
 import { artieScene } from './lighting';
 
 export const artieLayout: StageLayout = {
@@ -53,7 +55,14 @@ export const artieLayout: StageLayout = {
   update: (ctx, controls) => updateArtie(ctx, controls),
   // (zoomed out on the skis, to keep the avalanche in view)
   zoom: state => { const rt = getArtie(state); return rt ? skiZoom(state, rt.ski) : null; },
-  deathMessage: ctx => { const rt = getArtie(ctx.state); return rt ? skiDeathMessage(ctx.state, rt.ski) : undefined; },
+  deathMessage: ctx => {
+    const rt = getArtie(ctx.state);
+    if (!rt) return undefined;
+    // (the tram's gone up and left him at the top, and he's tried to go back the way he came: off the edge, into the gorge)
+    const p = ctx.state.player, x = p.pos.x + p.width / 2;
+    if (p.health > 0 && x > COURSE.gorge.x1 && x < COURSE.gorge.x2 && rt.tram.phase !== 'docked' && rt.tram.phase !== 'closing' && rt.tram.phase !== 'riding') return pickRandom(BACKTRACK_DEATH_LINES);
+    return skiDeathMessage(ctx.state, rt.ski);
+  },
   // (down a crevasse: wedged in it; not off the tram, into the clouds: that's its own)
   fallDeathKind: ctx => { const p = ctx.state.player, x = p.pos.x + p.width / 2; return p.health > 0 && !(x > COURSE.gorge.x1 && x < COURSE.gorge.x2) ? 'fall_crevasse' : undefined; },
   // (the avalanche's: thrown off the far side of the mountain)

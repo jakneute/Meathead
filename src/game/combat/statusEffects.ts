@@ -4,7 +4,7 @@ import { Enemy, Projectile } from '../../types';
 import {
   CANVAS_WIDTH, TASER_RANGE, TASER_DOT_DAMAGE, TASER_FIRE_THRESHOLD,
   TASER_TICK_RATE, TASER_AMMO_CONSUMPTION_RATE, TASER_CHAIN_REACH, TASER_CHAIN_MAX, FIRE_TICK_RATE, FIRE_DOT_DAMAGE,
-  FIRE_DOT_DAMAGE_HEAVY, NEEDLE_DOT_TICK_RATE, NEEDLE_DOT_DAMAGE_PER_STACK,
+  FIRE_DOT_DAMAGE_HEAVY, FIRE_DOT_DAMAGE_ENEMY, NEEDLE_DOT_TICK_RATE, NEEDLE_DOT_DAMAGE_PER_STACK,
 } from '../../constants';
 import { FrameContext, killBoss } from '../core/context';
 import { updateBossAI, getBossDef, hitBoss } from '../bosses/registry';
@@ -251,7 +251,7 @@ export const updateEnemyStatusEffects = (ctx: FrameContext) => {
       e.fireTimer = (e.fireTimer || 0) + 1;
       if (e.fireTimer >= FIRE_TICK_RATE) {
         const isBoss = e.type === 'boss';
-        const dmg = isBoss ? FIRE_DOT_DAMAGE : FIRE_DOT_DAMAGE_HEAVY;
+        const dmg = isBoss ? FIRE_DOT_DAMAGE : FIRE_DOT_DAMAGE_ENEMY;
         e.health -= dmg;
         fx.spawnDamageNumber(e.pos, dmg);
         e.fireTimer = 0;

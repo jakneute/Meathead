@@ -297,6 +297,7 @@ export const ALT_FLAME_RANGE_SCALE = 0.65;          // of its reach
 export const FIRE_TICK_RATE = 12;
 export const FIRE_DOT_DAMAGE = 4;
 export const FIRE_DOT_DAMAGE_HEAVY = 112;
+export const FIRE_DOT_DAMAGE_ENEMY = 90; // (an enemy on fire: a touch less than a burning barrel takes)
 
 // TSUNAMI (HURRICANE)
 export const TSUNAMI_COOLDOWN = 120;
