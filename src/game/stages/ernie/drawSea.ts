@@ -5,7 +5,7 @@
 // what's left afterwards.
 
 import type { GameState } from '../../core/state';
-import { bandedGradient } from '../../render/pixelArt';
+import { bandedGradient, checker, hazeBands, pixelBlob, steppedGlow } from '../../render/pixelArt';
 import { drawFire } from '../../render/fx/fire';
 import type { ErnieRuntime } from './runtime';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
@@ -20,7 +20,7 @@ import { TOURISTS, FADE_IN, DROP_AT, IMPACT_AT, skiDrop, tourWrecked, tourLaughi
 import { drawAlcatraz, bubble } from './draw';
 import { drawPerson } from '../../render/npc/person';
 import type { PersonSpec, Pose } from '../../render/npc/person';
-import { INK, ink, limb, shaded } from '../../render/npc/kit';
+import { INK, ink, limb, shaded, shadedTop, dark, lite } from '../../render/npc/kit';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -44,10 +44,17 @@ export const drawBayBackdrop = (ctx: Ctx, state: GameState, rt: ErnieRuntime) =>
   // (no bridge back here: out on the water it's just the far shore, the bay, and the island ahead)
   const W = CANVAS_WIDTH, horizon = 412, f = state.frame;
   const drift = state.camera.x * 0.02;
+  const ridge = (x: number) => horizon - 18 - 22 * Math.sin((x + drift) * 0.006) - 10 * Math.sin((x + drift) * 0.021) - hash(Math.floor((x + drift) / 16)) * 4;
   ctx.fillStyle = '#4B3D5A';
   ctx.beginPath(); ctx.moveTo(0, horizon);
-  for (let x = 0; x <= W + 20; x += 16) ctx.lineTo(x, horizon - 18 - 22 * Math.sin((x + drift) * 0.006) - 10 * Math.sin((x + drift) * 0.021) - hash(Math.floor((x + drift) / 16)) * 4);
+  for (let x = 0; x <= W + 20; x += 16) ctx.lineTo(x, ridge(x));
   ctx.lineTo(W + 20, horizon); ctx.fill();
+  // (the far shore lit along its crest by the sunset, fading into the haze down by the water)
+  for (let x = 0; x < W; x += 16) {
+    const y0 = ridge(x), y1 = ridge(x + 16);
+    ctx.strokeStyle = '#7A4E6A'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y0 + 1); ctx.lineTo(x + 16, y1 + 1); ctx.stroke();
+  }
+  hazeBands(ctx, 0, horizon - 30, W, 30, '#B4436C', 0, 0.35, 4);
   bandedGradient(ctx, 0, horizon, W, CANVAS_HEIGHT - horizon, ['#6C5B7B', '#3B5B80', '#35526F', '#2E4A66', '#294461'], 10);
   ctx.fillStyle = 'rgba(246, 194, 122, 0.4)';
   for (let i = 0; i < 26; i++) { const x = ((hash(i) * W - state.camera.x * 0.1 + f * 0.1) % W + W) % W, y = horizon + 4 + hash(i + 3) * 60; ctx.fillRect(x, y, 8 + hash(i + 5) * 26, 1); }
@@ -65,11 +72,11 @@ export const drawSeaBack = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
   // The water, all the way down
   ctx.fillStyle = '#0F2640'; ctx.fillRect(x1, Y - 2, x2 - x1, state.camera.y + CANVAS_HEIGHT + 40 - Y);
   bandedGradient(ctx, x1, Y - 2, x2 - x1, 400, ['#2F5C85', '#274C70', '#1E3B5A', '#163049', '#0F2640'], 10);
-  // Streaks on the water (fixed in the world, so they rush past when he's flying along)
-  ctx.fillStyle = 'rgba(224, 242, 254, 0.35)';
+  // Streaks on the water (fixed in the world, so they rush past when he's flying along): lit swell, its trough under it
   for (let x = Math.floor(x1 / 90) * 90; x < x2; x += 90) {
-    const y = Y + 14 + hash(x) * 120;
-    ctx.fillRect(x + hash(x + 1) * 40, y, 24 + hash(x + 2) * 30, 2);
+    const y = Math.round(Y + 14 + hash(x) * 120), sx = Math.round(x + hash(x + 1) * 40), w = Math.round(24 + hash(x + 2) * 30);
+    ctx.fillStyle = 'rgba(224, 242, 254, 0.35)'; ctx.fillRect(sx, y, w, 2);
+    ctx.fillStyle = 'rgba(10, 24, 44, 0.35)'; ctx.fillRect(sx + 4, y + 2, w - 8, 2);
   }
   // The pier
   if (visible(state, B.x1, B.pier)) drawPier(ctx, state);
@@ -79,32 +86,58 @@ export const drawSeaBack = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
 const drawPier = (ctx: Ctx, state: GameState) => {
   const B = COURSE.bay;
   const top = Y - 50;
-  // Pilings down into the water
-  ctx.fillStyle = '#4A3222';
-  for (let x = B.x1 + 20; x < B.pier; x += 70) ctx.fillRect(x, top, 12, Y + 120 - top);
+  // Pilings down into the water: round timbers lit down the left, weed and barnacles at the waterline
+  for (let x = B.x1 + 20; x < B.pier; x += 70) {
+    ctx.fillStyle = INK; ctx.fillRect(x - 1, top, 14, Y + 120 - top);
+    ctx.fillStyle = '#4A3222'; ctx.fillRect(x, top, 12, Y + 120 - top);
+    ctx.fillStyle = '#6B4A30'; ctx.fillRect(x, top, 4, Y + 120 - top);
+    ctx.fillStyle = '#33221A'; ctx.fillRect(x + 9, top, 3, Y + 120 - top);
+    ctx.fillStyle = '#3F5A2A'; ctx.fillRect(x, Y - 4, 12, 8); checker(ctx, x, Y + 4, 12, 6, '#3F5A2A');
+    ctx.fillStyle = '#D6D3D1'; ctx.fillRect(x + 2, Y - 2, 2, 2); ctx.fillRect(x + 7, Y + 1, 2, 2);
+  }
   ctx.fillStyle = 'rgba(15, 38, 64, 0.5)'; ctx.fillRect(B.x1, Y, B.pier - B.x1, 120);
-  // The planks
+  checker(ctx, B.x1, Y - 2, B.pier - B.x1, 2, 'rgba(224, 242, 254, 0.4)');
+  // The planks: lit along the top, the grain, their ends, the stringer under them
+  ctx.fillStyle = INK; ctx.fillRect(B.x1, top - 1, B.pier - B.x1, 14);
   ctx.fillStyle = '#8A6A45'; ctx.fillRect(B.x1, top, B.pier - B.x1, 12);
   ctx.fillStyle = '#A8845A'; ctx.fillRect(B.x1, top, B.pier - B.x1, 2);
+  ctx.fillStyle = '#C4A070'; ctx.fillRect(B.x1, top, B.pier - B.x1, 1);
+  ctx.fillStyle = '#6E5236'; ctx.fillRect(B.x1, top + 9, B.pier - B.x1, 3);
   ctx.fillStyle = '#5E4630'; for (let x = B.x1; x < B.pier; x += 16) ctx.fillRect(x, top, 2, 12);
+  ctx.fillStyle = '#76593A'; for (let x = B.x1; x < B.pier; x += 16) { ctx.fillRect(x + 5, top + 4 + (x / 16) % 3, 6, 1); }
+  ctx.fillStyle = '#3A2A1C'; ctx.fillRect(B.x1, top + 12, B.pier - B.x1, 6); checker(ctx, B.x1, top + 18, B.pier - B.x1, 2, '#3A2A1C');
   // A sign, a bollard with a rope, lifebuoy
-  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(B.x1 + 120, top - 90, 6, 90);
+  ctx.fillStyle = INK; ctx.fillRect(B.x1 + 119, top - 90, 8, 90);
+  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(B.x1 + 120, top - 90, 6, 90); ctx.fillStyle = '#CBD5E1'; ctx.fillRect(B.x1 + 124, top - 90, 2, 90);
+  ctx.fillStyle = INK; ctx.fillRect(B.x1 + 69, top - 125, 112, 52);
   ctx.fillStyle = '#1E3A8A'; ctx.fillRect(B.x1 + 70, top - 124, 110, 50);
+  ctx.fillStyle = '#3B5BB0'; ctx.fillRect(B.x1 + 70, top - 124, 110, 2); ctx.fillStyle = '#172C6A'; ctx.fillRect(B.x1 + 70, top - 76, 110, 2);
+  ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 1; ctx.strokeRect(B.x1 + 72.5, top - 121.5, 105, 45);
   ctx.fillStyle = '#F8FAFC'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'center';
   ctx.fillText('SAUSALITO', B.x1 + 125, top - 110); ctx.fillText('JET SKI RENTAL', B.x1 + 125, top - 98);
   // (a red placard hung across the bottom of the sign)
+  ctx.fillStyle = INK; ctx.fillRect(B.x1 + 93, top - 95, 64, 16);
   ctx.fillStyle = '#F8FAFC'; ctx.fillRect(B.x1 + 94, top - 94, 62, 14);
+  ctx.fillStyle = '#CBD5E1'; ctx.fillRect(B.x1 + 94, top - 82, 62, 2);
   ctx.fillStyle = '#DC2626'; ctx.fillText('CLOSED', B.x1 + 125, top - 83);
   ctx.textAlign = 'left';
-  ctx.fillStyle = '#27272A'; ctx.fillRect(B.pier - 30, top - 16, 12, 16);
+  // (the bollard: an iron post with a cap, a turn of rope round it)
+  ctx.fillStyle = INK; ctx.fillRect(B.pier - 31, top - 17, 14, 17); ctx.fillRect(B.pier - 33, top - 19, 18, 5);
+  ctx.fillStyle = '#27272A'; ctx.fillRect(B.pier - 30, top - 16, 12, 16); ctx.fillRect(B.pier - 32, top - 18, 16, 3);
+  ctx.fillStyle = '#52525B'; ctx.fillRect(B.pier - 30, top - 16, 3, 16); ctx.fillRect(B.pier - 32, top - 18, 16, 1);
+  ctx.fillStyle = '#D6B98A'; ctx.fillRect(B.pier - 30, top - 9, 12, 3); ctx.fillStyle = '#A8865A'; ctx.fillRect(B.pier - 30, top - 7, 12, 1);
   // The lifebuoy, hung on its post on the pier (a hook at the top, the ring hanging off it)
   const lx = B.x1 + 300;
-  ctx.fillStyle = '#5E4630'; ctx.fillRect(lx - 3, top - 74, 6, 74);
+  ctx.fillStyle = INK; ctx.fillRect(lx - 4, top - 77, 8, 77);
+  ctx.fillStyle = '#5E4630'; ctx.fillRect(lx - 3, top - 74, 6, 74); ctx.fillStyle = '#7A5C3E'; ctx.fillRect(lx - 3, top - 74, 2, 74);
   ctx.fillStyle = '#44403C'; ctx.fillRect(lx - 3, top - 76, 6, 3);
   ctx.strokeStyle = '#9CA3AF'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(lx, top - 62); ctx.lineTo(lx, top - 56); ctx.stroke();
+  ctx.strokeStyle = INK; ctx.lineWidth = 8; ctx.beginPath(); ctx.arc(lx, top - 40, 14, 0, Math.PI * 2); ctx.stroke();
   ctx.strokeStyle = '#F97316'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(lx, top - 40, 14, 0, Math.PI * 2); ctx.stroke();
   ctx.strokeStyle = '#F8FAFC'; ctx.lineWidth = 6;
   for (const a of [0.25, 1.82, 3.39, 4.96]) { ctx.beginPath(); ctx.arc(lx, top - 40, 14, a, a + 0.35); ctx.stroke(); }
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(lx, top - 40, 15, Math.PI * 1.05, Math.PI * 1.45); ctx.stroke();
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(lx, top - 40, 13, Math.PI * 0.05, Math.PI * 0.5); ctx.stroke();
   void state;
 };
 
@@ -206,10 +239,11 @@ export const drawHipsterDrilling = (ctx: Ctx, x: number, y: number, f: number) =
   ctx.save();
   ctx.translate(x, y);
   // The bore: spiral bands of churned dirt whipping round him
-  ctx.strokeStyle = 'rgba(120, 90, 60, 0.7)'; ctx.lineWidth = 3;
   for (let k = 0; k < 4; k++) {
     const ph = spin + k * 1.6;
-    ctx.beginPath(); ctx.ellipse(0, -40 + k * 26, 30 + k * 4, 7, 0, ph % (Math.PI * 2), ph % (Math.PI * 2) + Math.PI * 0.9); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(0, -40 + k * 26, 30 + k * 4, 7, 0, ph % (Math.PI * 2), ph % (Math.PI * 2) + Math.PI * 0.9);
+    ctx.strokeStyle = 'rgba(74, 52, 40, 0.8)'; ctx.lineWidth = 4; ctx.stroke();
+    ctx.strokeStyle = 'rgba(156, 120, 84, 0.8)'; ctx.lineWidth = 2; ctx.stroke();
   }
   ctx.save();
   ctx.scale(Math.cos(spin) || 0.05, 1);
@@ -250,20 +284,43 @@ export const drawHipsterDead = (ctx: Ctx, x: number, y: number, f: number) => {
   ctx.save(); ctx.translate(34, 6); ctx.rotate(1.4); kombucha(ctx, -1, 7); ctx.restore();
   ctx.fillStyle = 'rgba(217, 119, 6, 0.5)'; ctx.beginPath(); ctx.ellipse(44, 10, 12, 3, 0, 0, Math.PI * 2); ctx.fill();
   // Smoking
-  for (let i = 0; i < 3; i++) { const t = ((f * 0.6 + i * 40) % 120) / 120; ctx.fillStyle = `rgba(60, 55, 50, ${0.5 * (1 - t)})`; ctx.beginPath(); ctx.arc(-10 + i * 14 + Math.sin(i + f * 0.02) * 6, -12 - t * 70, 5 + t * 12, 0, Math.PI * 2); ctx.fill(); }
+  for (let i = 0; i < 3; i++) { const t = ((f * 0.6 + i * 40) % 120) / 120, r = 5 + t * 12; pixelBlob(ctx, -10 + i * 14 + Math.sin(i + f * 0.02) * 6, -12 - t * 70, r, r * 0.8, `rgba(60, 55, 50, ${(0.5 * (1 - t)).toFixed(3)})`, 1.5); }
   ctx.restore();
 };
 
 /** The hipster's ski (the one Meathead takes off him, so it's the same one all the way to Alcatraz). */
 const HIPSTER_SKI = '#14B8A6';
 
-/** A jet ski, facing right, its keel at (0, 0). */
-const drawSki = (ctx: Ctx, f: number, color = HIPSTER_SKI) => {
-  ctx.fillStyle = color;
-  ctx.beginPath(); ctx.moveTo(-38, -4); ctx.lineTo(30, -4); ctx.quadraticCurveTo(44, -8, 42, -18); ctx.lineTo(10, -20); ctx.lineTo(-34, -16); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-34, -12, 64, 3);
-  ctx.fillStyle = '#111827'; ctx.fillRect(-38, -4, 70, 3);
-  ctx.fillStyle = '#1F2937'; ctx.fillRect(-26, -24, 30, 6); // (the seat)
+/** A jet ski, facing right, its keel at (0, 0) (the waterline about y = -4): the white hull, the deck in `color`. */
+export const drawSki = (ctx: Ctx, f: number, color = HIPSTER_SKI) => {
+  // The jet nozzle astern
+  ink(ctx, () => ctx.roundRect(-42, -12, 5, 5, 1), '#27272A', 1);
+  // The hull: white glassfibre under the rub rail, grimy at the waterline, a stripe down it in the deck's color
+  const hull = () => { ctx.moveTo(-38, -14); ctx.lineTo(-37, -4); ctx.lineTo(30, -4); ctx.quadraticCurveTo(40, -6, 44, -18); ctx.closePath(); };
+  shadedTop(ctx, hull, '#F1F5F9', -38, -18, 82, 14, 1.2);
+  ctx.save(); ctx.beginPath(); hull(); ctx.clip();
+  ctx.fillStyle = '#94A3B8'; ctx.fillRect(-38, -7, 82, 2);
+  checker(ctx, -38, -9, 82, 2, '#CBD5E1', 0, 1);
+  ctx.fillStyle = INK; ctx.beginPath(); ctx.moveTo(-30, -11); ctx.lineTo(32, -14); ctx.lineTo(30, -11.6); ctx.lineTo(-30, -9); ctx.fill();
+  ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(-30, -10.6); ctx.lineTo(31, -13.4); ctx.lineTo(30, -12); ctx.lineTo(-30, -9.6); ctx.fill();
+  ctx.restore();
+  // (the keel strake along the bottom)
+  ctx.fillStyle = INK; ctx.fillRect(-38, -4, 70, 3);
+  ctx.fillStyle = '#374151'; ctx.fillRect(-36, -4, 64, 1);
+  // The deck: lit along the top, the seat well, the hood rising to the bars
+  const deck = () => { ctx.moveTo(-38, -14); ctx.lineTo(-35, -20); ctx.lineTo(-4, -21); ctx.lineTo(8, -24); ctx.lineTo(24, -23); ctx.quadraticCurveTo(38, -21, 44, -18); ctx.closePath(); };
+  shadedTop(ctx, deck, color, -38, -24, 82, 10, 1.2);
+  ctx.fillStyle = lite(color, 0.45); ctx.fillRect(10, -22.6, 13, 1); ctx.fillRect(-32, -19, 12, 1);
+  ctx.fillStyle = dark(color, 0.35); ctx.fillRect(-2, -19.6, 1, 4);
+  // (the rub rail, the bumper on the bow)
+  ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-38, -14); ctx.lineTo(44, -18);
+  ctx.strokeStyle = INK; ctx.lineWidth = 2.6; ctx.stroke(); ctx.strokeStyle = '#4B5563'; ctx.lineWidth = 1.2; ctx.stroke(); ctx.lineCap = 'butt';
+  ink(ctx, () => ctx.roundRect(41, -20, 4.4, 4, 1.4), '#27272A', 0.8);
+  // The seat: black, padded, the stitching, the grab strap
+  ink(ctx, () => ctx.roundRect(-27, -26, 30, 6, [3, 3, 1, 1]), '#1F2937', 1);
+  ctx.fillStyle = '#4B5563'; ctx.fillRect(-25, -25, 25, 1);
+  ctx.fillStyle = '#111827'; ctx.fillRect(-13, -25.6, 1, 5);
+  ctx.fillStyle = '#9CA3AF'; ctx.fillRect(-24, -21.4, 20, 0.8);
   void f;
 };
 
@@ -281,17 +338,22 @@ const drawRide = (ctx: Ctx, state: GameState) => {
   ctx.translate(feetX, feetY + 2);
   ctx.rotate(tilt);
   drawSki(ctx, state.frame);
-  // The steering column up to where his hands are
-  ctx.strokeStyle = '#111827'; ctx.lineWidth = 4;
-  ctx.beginPath(); ctx.moveTo(26, -16); ctx.lineTo(18, -40); ctx.stroke();
-  ctx.fillStyle = '#111827'; ctx.fillRect(12, -44, 14, 4);
+  // The steering column up to where his hands are (inked, lit down one side), the bars and their grips
+  ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(26, -16); ctx.lineTo(18, -40);
+  ctx.strokeStyle = INK; ctx.lineWidth = 6; ctx.stroke(); ctx.strokeStyle = '#27272A'; ctx.lineWidth = 4; ctx.stroke();
+  ctx.strokeStyle = '#52525B'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(25, -17); ctx.lineTo(17, -39); ctx.stroke();
+  ctx.lineCap = 'butt';
+  ink(ctx, () => ctx.rect(12, -44, 14, 4), '#111827', 1);
+  ctx.fillStyle = '#374151'; ctx.fillRect(12.5, -43.5, 13, 1);
   ctx.restore();
-  // Spray: off the back normally, a rooster tail on a wheelie
+  // Spray: off the back normally, a rooster tail on a wheelie (chunky drops, lit, thinning out as they go)
   if (p.isGrounded || p.isCharging) {
     for (let i = 0; i < (p.isCharging ? 8 : 3); i++) {
       const t = ((state.frame * 2 + i * 7) % 20) / 20;
-      ctx.fillStyle = `rgba(224, 242, 254, ${0.8 * (1 - t)})`;
-      ctx.beginPath(); ctx.arc(feetX - 40 - t * (p.isCharging ? 60 : 30), feetY - t * (p.isCharging ? 50 : 14) + (p.isCharging ? 0 : 0), 3 + t * 6, 0, Math.PI * 2); ctx.fill();
+      const sx = Math.round(feetX - 40 - t * (p.isCharging ? 60 : 30)), sy = Math.round(feetY - t * (p.isCharging ? 50 : 14)), r = Math.round(3 + t * 6);
+      pixelBlob(ctx, sx, sy, r, r, `rgba(125, 211, 252, ${(0.6 * (1 - t)).toFixed(3)})`);
+      pixelBlob(ctx, sx - 1, sy - 1, r * 0.6, r * 0.6, `rgba(240, 249, 255, ${(0.8 * (1 - t)).toFixed(3)})`);
     }
   }
 };
@@ -302,33 +364,88 @@ const drawWreck = (ctx: Ctx, w: FloatingWreck, f: number) => {
   ctx.save();
   ctx.translate(w.x, Y + bob);
   if (w.look === 'car') {
+    // A car gone off the bridge, nose down, wallowing: lit along its roof, the glass, a headlight still on
     ctx.rotate(0.12);
-    ctx.fillStyle = '#B91C1C'; ctx.fillRect(-44, -24, 88, 26); ctx.fillRect(-26, -36, 50, 14);
-    ctx.fillStyle = '#1E293B'; ctx.fillRect(-22, -34, 18, 10); ctx.fillRect(2, -34, 18, 10);
-    ctx.fillStyle = '#FDE68A'; ctx.fillRect(38, -18, 6, 5);
+    const cab = () => { ctx.moveTo(-26, -24); ctx.lineTo(-22, -36); ctx.lineTo(20, -36); ctx.lineTo(24, -24); ctx.closePath(); };
+    const body = () => ctx.rect(-44, -24, 88, 26);
+    shadedTop(ctx, cab, '#B91C1C', -26, -36, 50, 14);
+    shadedTop(ctx, body, '#B91C1C', -44, -24, 88, 26);
+    ink(ctx, () => { ctx.rect(-22, -34, 18, 10); ctx.rect(2, -34, 18, 10); }, '#1E293B');
+    ctx.fillStyle = '#334155'; ctx.fillRect(-21.5, -33.5, 17, 3); ctx.fillRect(2.5, -33.5, 17, 3);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; ctx.fillRect(-20, -32, 2, 5); ctx.fillRect(4, -32, 2, 5);
+    ctx.fillStyle = '#7F1D1D'; ctx.fillRect(-1, -22, 1, 18); ctx.fillRect(6, -16, 5, 2);
+    ink(ctx, () => ctx.rect(38, -18, 6, 5), '#FDE68A', 0.8);
+    ctx.fillStyle = '#FFFBEB'; ctx.fillRect(39, -17, 2, 2);
+    ink(ctx, () => ctx.rect(-46, -14, 6, 5), '#9CA3AF', 0.8);
+    // (the water lapping up its sides)
+    ctx.fillStyle = 'rgba(30, 59, 90, 0.7)'; ctx.fillRect(-46, -4, 92, 8);
+    checker(ctx, -46, -6, 92, 2, 'rgba(30, 59, 90, 0.7)');
   } else if (w.look === 'buoy') {
-    ctx.fillStyle = '#F97316'; ctx.beginPath(); ctx.moveTo(-14, 0); ctx.lineTo(-8, -34); ctx.lineTo(8, -34); ctx.lineTo(14, 0); ctx.fill();
-    ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-11, -20, 22, 6);
-    ctx.fillStyle = f % 50 < 25 ? '#FDE047' : '#78350F'; ctx.fillRect(-3, -44, 6, 10);
+    // A channel buoy: the cone lit down its left, the white band, the cage and its light winking
+    const cone = () => { ctx.moveTo(-14, 0); ctx.lineTo(-8, -34); ctx.lineTo(8, -34); ctx.lineTo(14, 0); ctx.closePath(); };
+    shaded(ctx, cone, '#F97316', -14, -34, 28, 34);
+    ctx.save(); ctx.beginPath(); cone(); ctx.clip();
+    ctx.fillStyle = '#F8FAFC'; ctx.fillRect(-14, -20, 28, 6);
+    ctx.fillStyle = '#CBD5E1'; ctx.fillRect(4, -20, 10, 6);
+    ctx.fillStyle = INK; ctx.fillRect(-14, -21, 28, 1); ctx.fillRect(-14, -14, 28, 1);
+    ctx.restore();
+    ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-6, -34); ctx.lineTo(-4, -46); ctx.lineTo(4, -46); ctx.lineTo(6, -34); ctx.stroke();
+    const on = f % 50 < 25;
+    if (on) steppedGlow(ctx, 0, -39, 16, '#FDE047', 0.35, 0.05, 3);
+    ink(ctx, () => ctx.rect(-3, -44, 6, 10), on ? '#FDE047' : '#78350F', 0.8);
+    if (on) { ctx.fillStyle = '#FFFBEB'; ctx.fillRect(-2, -43, 2, 4); }
   } else {
+    // A crate: planks lit along their tops, the cross brace, nail heads, inked
     ctx.rotate(Math.sin(w.rot) * 0.1);
-    ctx.fillStyle = '#A16207'; ctx.fillRect(-22, -32, 44, 32);
+    ink(ctx, () => ctx.rect(-22, -32, 44, 32), '#A16207', 1.5);
+    ctx.fillStyle = '#B87A1E'; for (let y = -32; y < 0; y += 8) ctx.fillRect(-21, y + 1, 42, 2);
+    ctx.fillStyle = '#854D0E'; for (let y = -32; y < 0; y += 8) ctx.fillRect(-21, y + 7, 42, 1);
     ctx.strokeStyle = '#78350F'; ctx.lineWidth = 3; ctx.strokeRect(-22, -32, 44, 32);
     ctx.beginPath(); ctx.moveTo(-22, -32); ctx.lineTo(22, 0); ctx.stroke();
+    ctx.strokeStyle = '#B87A1E'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-21, -33); ctx.lineTo(23, -1); ctx.stroke();
+    ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(-23.5, -33.5, 47, 35);
+    ctx.fillStyle = '#44403C'; for (const [nx, ny] of [[-19, -29], [18, -29], [-19, -4], [18, -4]]) ctx.fillRect(nx, ny, 2, 2);
   }
   ctx.restore();
   // Chop around it
-  ctx.fillStyle = 'rgba(224, 242, 254, 0.7)'; ctx.fillRect(box.x - 6, Y - 1, box.w + 12, 3);
+  ctx.fillStyle = 'rgba(224, 242, 254, 0.7)'; ctx.fillRect(box.x - 6, Y - 1, box.w + 12, 2);
+  checker(ctx, box.x - 10, Y - 3, box.w + 20, 2, 'rgba(224, 242, 254, 0.6)');
+  checker(ctx, box.x - 2, Y + 1, box.w + 4, 2, 'rgba(224, 242, 254, 0.4)', 1);
 };
 
 const drawRamp = (ctx: Ctx, x: number, f: number) => {
   // A wooden ramp on floats, a banner on it
-  ctx.fillStyle = '#6B4A2E';
-  ctx.beginPath(); ctx.moveTo(x - 60, Y); ctx.lineTo(x + 140, Y - 110); ctx.lineTo(x + 160, Y - 110); ctx.lineTo(x + 160, Y); ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = '#8A6A45'; ctx.lineWidth = 3;
-  ctx.beginPath(); for (let k = 0; k < 8; k++) { const t = k / 8; ctx.moveTo(x - 60 + t * 200, Y - t * 110); ctx.lineTo(x - 50 + t * 200, Y - t * 110 + 8); } ctx.stroke();
+  const ramp = () => { ctx.beginPath(); ctx.moveTo(x - 60, Y); ctx.lineTo(x + 140, Y - 110); ctx.lineTo(x + 160, Y - 110); ctx.lineTo(x + 160, Y); ctx.closePath(); };
+  // (the frame under it: posts and a brace, seen through the side)
+  ctx.save(); ramp(); ctx.clip();
+  ctx.fillStyle = '#4A321E'; ctx.fillRect(x - 60, Y - 110, 220, 110);
+  ctx.fillStyle = '#5E4128'; for (const px of [x + 20, x + 80, x + 140]) ctx.fillRect(px, Y - 110, 8, 110);
+  ctx.fillStyle = '#7A5838'; for (const px of [x + 20, x + 80, x + 140]) ctx.fillRect(px, Y - 110, 2, 110);
+  ctx.strokeStyle = '#5E4128'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(x + 24, Y); ctx.lineTo(x + 144, Y - 100); ctx.stroke();
+  ctx.fillStyle = '#3A2616'; ctx.fillRect(x + 150, Y - 110, 10, 110);
+  ctx.restore();
+  ramp(); ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.stroke();
+  // (the deck boards up the slope, each lit on its leading edge)
+  ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x - 60, Y); ctx.lineTo(x + 140, Y - 110); ctx.lineTo(x + 160, Y - 110);
+  ctx.strokeStyle = INK; ctx.lineWidth = 7; ctx.stroke(); ctx.strokeStyle = '#8A6A45'; ctx.lineWidth = 5; ctx.stroke();
+  ctx.strokeStyle = '#B08A5C'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x - 58, Y - 3); ctx.lineTo(x + 140, Y - 112); ctx.lineTo(x + 160, Y - 112); ctx.stroke();
+  ctx.lineCap = 'butt';
+  ctx.strokeStyle = '#5E4630'; ctx.lineWidth = 2;
+  ctx.beginPath(); for (let k = 0; k < 8; k++) { const t = k / 8; ctx.moveTo(x - 60 + t * 200, Y - t * 110 - 2); ctx.lineTo(x - 56 + t * 200, Y - t * 110 + 3); } ctx.stroke();
+  // (the floats it's on: orange drums, lit on top, the water slapping round them)
+  ctx.fillStyle = INK; ctx.fillRect(x - 71, Y - 9, 242, 12);
   ctx.fillStyle = '#F97316'; ctx.fillRect(x - 70, Y - 8, 240, 10);
+  ctx.fillStyle = '#FDBA74'; ctx.fillRect(x - 70, Y - 8, 240, 2);
+  ctx.fillStyle = '#C2410C'; ctx.fillRect(x - 70, Y - 1, 240, 3);
+  ctx.fillStyle = INK; for (let k = x - 40; k < x + 170; k += 40) ctx.fillRect(k, Y - 8, 1, 10);
+  checker(ctx, x - 74, Y + 1, 250, 2, 'rgba(224, 242, 254, 0.6)');
+  // (the banner on its posts)
+  for (const bx of [x + 24, x + 162]) { ctx.fillStyle = INK; ctx.fillRect(bx - 1, Y - 170, 6, 60); ctx.fillStyle = '#78716C'; ctx.fillRect(bx, Y - 170, 4, 60); ctx.fillStyle = '#A8A29E'; ctx.fillRect(bx, Y - 170, 1, 60); }
+  ctx.fillStyle = INK; ctx.fillRect(x + 19, Y - 171, 152, 32);
   ctx.fillStyle = '#FDE047'; ctx.fillRect(x + 20, Y - 170, 150, 30);
+  ctx.fillStyle = '#FEF9C3'; ctx.fillRect(x + 20, Y - 170, 150, 2);
+  ctx.fillStyle = '#CA8A04'; ctx.fillRect(x + 20, Y - 142, 150, 2);
   ctx.fillStyle = '#111827'; ctx.font = 'bold 8px "Press Start 2P"'; ctx.textAlign = 'center';
   ctx.fillText('ALCATRAZ TOURS', x + 95, Y - 159); ctx.fillText('THIS WAY >>', x + 95, Y - 147);
   ctx.textAlign = 'left';
@@ -415,7 +532,7 @@ export const drawCellMid = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {
       const t = tour.t - (DROP_AT - 8);
       const gx = C.crashX + (hash(i) - 0.5) * 160, gy = Y - 500 + t * (8 + hash(i + 2) * 8);
       if (gy > Y) continue;
-      ctx.fillStyle = 'rgba(203, 213, 225, 0.8)'; ctx.fillRect(gx, gy, 4, 6);
+      ctx.fillStyle = INK; ctx.fillRect(gx - 1, gy - 1, 6, 8); ctx.fillStyle = 'rgba(203, 213, 225, 0.9)'; ctx.fillRect(gx, gy, 4, 6); ctx.fillStyle = '#F8FAFC'; ctx.fillRect(gx, gy, 2, 2);
     }
   }
 };
@@ -544,20 +661,35 @@ export const drawTourist = (ctx: Ctx, look: string, i: number, f: number, up: bo
 const drawAftermath = (ctx: Ctx, state: GameState) => {
   const C = COURSE.cellblock, f = state.frame;
   const x = C.crashX;
-  // Scorch and the crater
-  ctx.fillStyle = 'rgba(20, 16, 14, 0.8)'; ctx.beginPath(); ctx.ellipse(x, Y + 2, 190, 12, 0, 0, Math.PI * 2); ctx.fill();
+  // Scorch out round it in rings, and the crater: its lip chipped, its throat black
+  ctx.fillStyle = 'rgba(20, 16, 14, 0.45)'; ctx.beginPath(); ctx.ellipse(x, Y + 2, 190, 12, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(20, 16, 14, 0.6)'; ctx.beginPath(); ctx.ellipse(x, Y + 2, 135, 9, 0, 0, Math.PI * 2); ctx.fill();
+  checker(ctx, x - 190, Y - 2, 55, 4, 'rgba(20, 16, 14, 0.5)'); checker(ctx, x + 135, Y - 2, 55, 4, 'rgba(20, 16, 14, 0.5)', 1);
   ctx.fillStyle = '#1C1917'; ctx.beginPath(); ctx.ellipse(x, Y + 4, 70, 10, 0, 0, Math.PI); ctx.fill();
-  // Blood up the cell bars and across the floor
-  ctx.fillStyle = 'rgba(127, 29, 29, 0.85)';
-  for (let i = 0; i < 12; i++) { const bx = x + (hash(i) - 0.5) * 420; ctx.beginPath(); ctx.ellipse(bx, Y + 1, 14 + hash(i + 1) * 20, 3, 0, 0, Math.PI * 2); ctx.fill(); }
-  for (let i = 0; i < 8; i++) { const bx = x + (hash(i + 20) - 0.5) * 500, by = Y - 40 - hash(i + 21) * 160; ctx.fillRect(bx, by, 5 + hash(i) * 8, 3); ctx.fillRect(bx + 2, by, 2, 10 + hash(i + 3) * 14); }
+  ctx.fillStyle = '#0A0807'; ctx.beginPath(); ctx.ellipse(x, Y + 4, 54, 7, 0, 0, Math.PI); ctx.fill();
+  for (let i = 0; i < 9; i++) {
+    const px = Math.round(x - 74 + i * 18 + hash(i + 70) * 6), py = Y - 2 + Math.round(hash(i + 71) * 3), s = 4 + Math.round(hash(i + 72) * 3);
+    ctx.fillStyle = INK; ctx.fillRect(px - 1, py - 1, s + 2, s + 2); ctx.fillStyle = i % 2 ? '#6B706A' : '#8A8F87'; ctx.fillRect(px, py, s, s); ctx.fillStyle = '#A3A8A0'; ctx.fillRect(px, py, s, 1);
+  }
+  // Blood up the cell bars (running down) and across the floor (a wet glint on each pool)
+  for (let i = 0; i < 12; i++) {
+    const bx = x + (hash(i) - 0.5) * 420, rw = 14 + hash(i + 1) * 20;
+    ctx.fillStyle = 'rgba(127, 29, 29, 0.85)'; ctx.beginPath(); ctx.ellipse(bx, Y + 1, rw, 3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(69, 10, 10, 0.8)'; ctx.fillRect(bx - rw * 0.6, Y + 2, rw * 1.2, 1);
+    ctx.fillStyle = 'rgba(254, 202, 202, 0.5)'; ctx.fillRect(bx - rw * 0.4, Y, 3, 1);
+  }
+  for (let i = 0; i < 8; i++) {
+    const bx = Math.round(x + (hash(i + 20) - 0.5) * 500), by = Math.round(Y - 40 - hash(i + 21) * 160), sw = Math.round(5 + hash(i) * 8), run = Math.round(10 + hash(i + 3) * 14);
+    ctx.fillStyle = '#7F1D1D'; ctx.fillRect(bx, by, sw, 3); ctx.fillRect(bx + 2, by, 2, run);
+    ctx.fillStyle = '#991B1B'; ctx.fillRect(bx, by, sw - 2, 1);
+    ctx.fillStyle = '#450A0A'; ctx.fillRect(bx + 1, by + run, 3, 2);
+  }
   // The ski, wrapped round itself, burning
   ctx.save(); ctx.translate(x - 10, Y - 4); ctx.rotate(-0.35); drawSki(ctx, f, '#44403C'); ctx.restore();
   drawFire(ctx, x - 6, Y - 10, 76, 38, f, { seed: Math.floor(x) });
   for (let i = 0; i < 4; i++) {
-    const t = ((f * 0.7 + i * 50) % 200) / 200;
-    ctx.fillStyle = `rgba(40, 36, 34, ${0.5 * (1 - t)})`;
-    ctx.beginPath(); ctx.arc(x + t * 20, Y - 40 - t * 300, 14 + t * 30, 0, Math.PI * 2); ctx.fill();
+    const t = ((f * 0.7 + i * 50) % 200) / 200, r = 14 + t * 30;
+    pixelBlob(ctx, x + t * 20, Y - 40 - t * 300, r, r * 0.8, `rgba(40, 36, 34, ${(0.5 * (1 - t)).toFixed(3)})`);
   }
   // The tour: charred, in bits, strewn out from the middle. The guide's flag, still standing. A selfie stick.
   TOURISTS.forEach((tr, i) => {
@@ -566,20 +698,44 @@ const drawAftermath = (ctx: Ctx, state: GameState) => {
     ctx.save();
     ctx.translate(bx, Y);
     ctx.rotate((hash(i + 40) - 0.5) * 0.4);
-    // A charred body, flat out
-    ctx.fillStyle = '#1C1917'; ctx.fillRect(-L.h * 0.45, -9, L.h * 0.8, 9);
+    // A charred body, flat out: inked, a burnt sheen along its top, the cracks still glowing, a scrap of shirt
+    const len = L.h * 0.8;
+    ctx.fillStyle = INK; ctx.fillRect(-L.h * 0.45 - 1, -10, len + 2, 11);
+    ctx.beginPath(); ctx.arc(L.h * 0.4, -6, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#1C1917'; ctx.fillRect(-L.h * 0.45, -9, len, 9);
     ctx.beginPath(); ctx.arc(L.h * 0.4, -6, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#44403C'; ctx.fillRect(-L.h * 0.45, -9, len, 2); ctx.fillRect(L.h * 0.4 - 3, -11, 4, 2);
+    ctx.fillStyle = (f + i * 9) % 40 < 20 ? '#F97316' : '#B45309';
+    ctx.fillRect(-L.h * 0.1, -5, 3, 1); ctx.fillRect(L.h * 0.15, -4, 1, 3);
     ctx.fillStyle = L.shirt; ctx.globalAlpha = 0.5; ctx.fillRect(-L.h * 0.2, -8, L.h * 0.3, 4); ctx.globalAlpha = 1;
-    ctx.fillStyle = '#7F1D1D'; ctx.fillRect(-L.h * 0.5, -3, 10, 3);
+    checker(ctx, -L.h * 0.2, -8, L.h * 0.3, 4, '#1C1917', 0, 1);
+    ctx.fillStyle = '#7F1D1D'; ctx.fillRect(-L.h * 0.5, -3, 10, 3); ctx.fillStyle = '#B91C1C'; ctx.fillRect(-L.h * 0.5, -3, 6, 1);
     ctx.restore();
     // A limb, further off
-    if (i % 2 === 0) { ctx.fillStyle = '#1C1917'; ctx.save(); ctx.translate(bx + (i % 4 ? 70 : -80), Y - 3); ctx.rotate(hash(i) * 3); ctx.fillRect(-8, -2, 16, 5); ctx.restore(); }
+    if (i % 2 === 0) {
+      ctx.save(); ctx.translate(bx + (i % 4 ? 70 : -80), Y - 3); ctx.rotate(hash(i) * 3);
+      ctx.fillStyle = INK; ctx.fillRect(-9, -3, 18, 7); ctx.fillStyle = '#1C1917'; ctx.fillRect(-8, -2, 16, 5); ctx.fillStyle = '#44403C'; ctx.fillRect(-8, -2, 16, 1);
+      ctx.fillStyle = '#7F1D1D'; ctx.fillRect(-9, -2, 2, 5);
+      ctx.restore();
+    }
   });
-  ctx.fillStyle = '#78350F'; ctx.save(); ctx.translate(x + 240, Y); ctx.rotate(0.3); ctx.fillRect(-1, -60, 2, 60); ctx.fillStyle = '#FDE047'; ctx.fillRect(1, -60, 18, 12); ctx.restore();
-  ctx.fillStyle = '#111827'; ctx.save(); ctx.translate(x - 250, Y - 2); ctx.rotate(-0.1); ctx.fillRect(0, 0, 34, 2); ctx.fillRect(32, -5, 7, 9); ctx.restore();
+  // (the guide's flag, on its stick)
+  ctx.save(); ctx.translate(x + 240, Y); ctx.rotate(0.3);
+  ctx.fillStyle = INK; ctx.fillRect(-2, -61, 4, 61); ctx.fillStyle = '#78350F'; ctx.fillRect(-1, -60, 2, 60);
+  ink(ctx, () => ctx.rect(1, -60, 18, 12), '#FDE047', 0.8); ctx.fillStyle = '#CA8A04'; ctx.fillRect(4, -52, 12, 1);
+  ctx.restore();
+  // (the selfie stick, the phone)
+  ctx.save(); ctx.translate(x - 250, Y - 2); ctx.rotate(-0.1);
+  ctx.fillStyle = INK; ctx.fillRect(-1, -1, 36, 4); ctx.fillStyle = '#94A3B8'; ctx.fillRect(0, 0, 34, 2);
+  ink(ctx, () => ctx.rect(32, -5, 7, 9), '#111827', 0.8); ctx.fillStyle = '#38BDF8'; ctx.fillRect(33, -4, 5, 2);
+  ctx.restore();
   // A balloon, drifting up
   const by = Y - 120 - ((f * 0.4) % 400);
-  if (by > Y - 470) { ctx.fillStyle = '#F472B6'; ctx.beginPath(); ctx.arc(x - 90, by, 8, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(x - 90, by + 8, 1, 20); }
+  if (by > Y - 470) {
+    ctx.strokeStyle = '#9CA3AF'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x - 90, by + 8); ctx.quadraticCurveTo(x - 86, by + 18, x - 90, by + 28); ctx.stroke();
+    shaded(ctx, () => ctx.ellipse(x - 90, by, 7, 8.5, 0, 0, Math.PI * 2), '#F472B6', x - 97, by - 9, 14, 17, 0.8);
+    ctx.fillStyle = '#FBCFE8'; ctx.fillRect(x - 94, by - 5, 2, 3);
+  }
 };
 
 export const drawCellFront = (ctx: Ctx, state: GameState, rt: ErnieRuntime) => {

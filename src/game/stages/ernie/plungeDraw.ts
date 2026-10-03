@@ -7,6 +7,8 @@ import type { GameState } from '../../core/state';
 import { CANVAS_WIDTH } from '../../../constants';
 import { drawFlung } from '../../render/player/moves';
 import type { Plunge } from './bridge';
+import { bandedGradient, checker } from '../../render/pixelArt';
+import { INK, ink, shadedTop } from '../../render/npc/kit';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -38,22 +40,28 @@ export const drawBayCorpse = (ctx: Ctx, state: GameState, pl: Plunge, water: num
   const fade = Math.min(1, t / 20);
   // The bay round him: grey-green chop, the light catching the tops of it
   const x1 = state.camera.x - 200, w = CANVAS_WIDTH + 400;
-  const g = ctx.createLinearGradient(0, water - 6, 0, water + 220);
-  g.addColorStop(0, '#3F5D63'); g.addColorStop(0.4, '#25393D'); g.addColorStop(1, '#0F1A1C');
-  ctx.fillStyle = g; ctx.fillRect(x1, water - 4, w, 400);
-  ctx.strokeStyle = 'rgba(203, 213, 225, 0.35)'; ctx.lineWidth = 1.5;
-  for (let k = 0; k < 18; k++) { const wx = x1 + ((k * 97 + f * 0.6) % w), wy = water + 4 + (k % 6) * 22; ctx.beginPath(); ctx.moveTo(wx, wy); ctx.quadraticCurveTo(wx + 12, wy - 3, wx + 24, wy); ctx.stroke(); }
+  ctx.fillStyle = '#0F1A1C'; ctx.fillRect(x1, water - 4, w, 400);
+  bandedGradient(ctx, x1, water - 4, w, 224, ['#3F5D63', '#324B50', '#25393D', '#1A2A2D', '#0F1A1C'], 8);
+  for (let k = 0; k < 18; k++) {
+    const wx = Math.round(x1 + ((k * 97 + f * 0.6) % w)), wy = water + 4 + (k % 6) * 22;
+    ctx.fillStyle = 'rgba(203, 213, 225, 0.4)'; ctx.fillRect(wx + 6, wy - 2, 12, 2); ctx.fillRect(wx, wy, 6, 2); ctx.fillRect(wx + 18, wy, 6, 2);
+    ctx.fillStyle = 'rgba(203, 213, 225, 0.2)'; ctx.fillRect(wx + 8, wy, 8, 1);
+  }
   // The blood, spreading out under him through the water
   const r = Math.min(150, 20 + t * 0.9);
-  const bg = ctx.createRadialGradient(x, water + 8, 4, x, water + 8, r);
-  bg.addColorStop(0, `rgba(127, 29, 29, ${0.75 * fade})`); bg.addColorStop(0.6, `rgba(127, 29, 29, ${0.35 * fade})`); bg.addColorStop(1, 'rgba(127, 29, 29, 0)');
-  // (in the water, not over it: kept below the surface, and the water itself going red with it, waves and all)
+  // (in the water, not over it: kept below the surface, and the water itself going red with it, waves and all; in
+  // rings, thickest in the middle, a dithered fringe round the outside)
+  const blood = (a: number) => `rgba(127, 29, 29, ${(a * fade).toFixed(3)})`;
+  const rings: [number, number][] = [[1, 0.1], [0.8, 0.22], [0.55, 0.42], [0.3, 0.7]];
   ctx.save();
   ctx.beginPath(); ctx.rect(x - r - 10, water - 3, (r + 10) * 2, r + 40); ctx.clip();
-  ctx.globalCompositeOperation = 'multiply';
-  ctx.fillStyle = bg; ctx.beginPath(); ctx.ellipse(x, water + 4, r, r * 0.3, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.globalAlpha = 0.5; ctx.fillStyle = bg; ctx.beginPath(); ctx.ellipse(x, water + 4, r, r * 0.3, 0, 0, Math.PI * 2); ctx.fill();
+  for (const [comp, ga] of [['multiply', 1], ['source-over', 0.5]] as const) {
+    ctx.globalCompositeOperation = comp; ctx.globalAlpha = ga;
+    for (const [k, a] of rings) { ctx.fillStyle = blood(a); ctx.beginPath(); ctx.ellipse(x, water + 4, r * k, r * k * 0.3, 0, 0, Math.PI * 2); ctx.fill(); }
+  }
+  ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+  ctx.beginPath(); ctx.ellipse(x, water + 4, r * 1.1, r * 0.33, 0, 0, Math.PI * 2); ctx.ellipse(x, water + 4, r, r * 0.3, 0, 0, Math.PI * 2, true); ctx.clip('evenodd');
+  checker(ctx, x - r * 1.1, water - 3, r * 2.2, r * 0.4 + 10, blood(0.15));
   ctx.restore();
   // The rings off him as he bobs (bigger on a twitch)
   for (let k = 0; k < 3; k++) {
@@ -84,14 +92,23 @@ export const drawBayCorpse = (ctx: Ctx, state: GameState, pl: Plunge, water: num
 /** A herring gull, side on: white, grey back, yellow beak with its red spot; wings going (or folded, stood). */
 const drawGull = (ctx: Ctx, x: number, y: number, f: number, stood: boolean) => {
   ctx.save(); ctx.translate(x, y);
-  ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.ellipse(0, -8, 10, 6, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(9, -13, 4.5, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.moveTo(13, -13); ctx.lineTo(19, -12); ctx.lineTo(13, -11); ctx.fill();
+  // (the legs, under him when he's stood)
+  if (stood) { ctx.fillStyle = INK; ctx.fillRect(-1.6, -3, 2.6, 4); ctx.fillRect(1.4, -3, 2.6, 4); ctx.fillStyle = '#F59E0B'; ctx.fillRect(-1, -2, 1.5, 3); ctx.fillRect(2, -2, 1.5, 3); }
+  // The body and head: white, the belly shadowed, inked
+  shadedTop(ctx, () => { ctx.ellipse(0, -8, 10, 6, 0, 0, Math.PI * 2); ctx.moveTo(13.5, -13); ctx.arc(9, -13, 4.5, 0, Math.PI * 2); }, '#F8FAFC', -10, -17.5, 23.5, 15.5, 0.9);
+  // The beak (yellow, its red spot), the eye
+  ink(ctx, () => { ctx.moveTo(13, -13.4); ctx.lineTo(19, -12); ctx.lineTo(13, -10.8); ctx.closePath(); }, '#FACC15', 0.7);
   ctx.fillStyle = '#DC2626'; ctx.fillRect(16, -12.5, 1.5, 1.2);
   ctx.fillStyle = '#111827'; ctx.fillRect(10, -14.5, 1.5, 1.5);
-  ctx.fillStyle = '#94A3B8';
-  if (stood) { ctx.beginPath(); ctx.ellipse(-2, -9, 9, 4, -0.1, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#F59E0B'; ctx.fillRect(-1, -2, 1.5, 3); ctx.fillRect(2, -2, 1.5, 3); }
-  else { const up = Math.sin(f * 0.3) * 10; ctx.beginPath(); ctx.moveTo(-4, -10); ctx.lineTo(-16, -12 - up); ctx.lineTo(4, -9); ctx.fill(); }
+  // The grey back and wing (folded, or going), its black tip
+  if (stood) {
+    shadedTop(ctx, () => ctx.ellipse(-2, -9, 9, 4, -0.1, 0, Math.PI * 2), '#94A3B8', -11, -13, 18, 8, 0.8);
+  } else {
+    const up = Math.sin(f * 0.3) * 10;
+    ink(ctx, () => { ctx.moveTo(-4, -10); ctx.lineTo(-16, -12 - up); ctx.lineTo(4, -9); ctx.closePath(); }, '#94A3B8', 0.8);
+    ctx.fillStyle = '#CBD5E1'; ctx.beginPath(); ctx.moveTo(-4, -10); ctx.lineTo(-10, -11 - up * 0.5); ctx.lineTo(0, -9.6); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#111827'; ctx.fillRect(-16, -13 - up, 3, 2);
+  }
   ctx.fillStyle = '#111827'; ctx.fillRect(-11, -9, 3, 2);
   ctx.restore();
 };

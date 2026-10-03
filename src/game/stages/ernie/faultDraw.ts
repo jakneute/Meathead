@@ -10,6 +10,8 @@ import type { GameState } from '../../core/state';
 import type { GroundRun } from '../../core/terrain';
 import { CANVAS_HEIGHT } from '../../../constants';
 import type { Fault } from './course';
+import { bandedGradient, checker, hazeBands, steppedGlow } from '../../render/pixelArt';
+import { INK } from '../../render/npc/kit';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -123,25 +125,18 @@ const drawFissure = (ctx: Ctx, state: GameState, f: Fault, seed: number, spread:
     for (let n = right.length - 1; n >= 0; n--) ctx.lineTo(right[n][0], right[n][1]);
     ctx.closePath();
   };
-  // The dark
-  const g = ctx.createLinearGradient(0, f.y, 0, f.y + DEPTH);
-  g.addColorStop(0, '#1E150F'); g.addColorStop(0.35, '#0D0906'); g.addColorStop(1, '#000000');
-  ctx.fillStyle = g;
-  path(); ctx.fill();
+  // The dark, in bands down into the black
   ctx.save();
   path(); ctx.clip();
-  // A glow way down there, breathing
-  const glow = ctx.createRadialGradient(f.x + f.w / 2, f.y + DEPTH, 4, f.x + f.w / 2, f.y + DEPTH, f.w * 0.6);
-  glow.addColorStop(0, `rgba(249, 115, 22, ${0.28 + 0.1 * Math.sin(state.frame * 0.05 + seed)})`); glow.addColorStop(1, 'rgba(249, 115, 22, 0)');
-  ctx.fillStyle = glow; ctx.fillRect(f.x - 40, f.y + DEPTH - f.w, f.w + 80, f.w + 40);
+  bandedGradient(ctx, f.x - 60, f.y, f.w + 120, DEPTH + 40, ['#1E150F', '#140E0A', '#0D0906', '#050302', '#000000', '#000000'], 8);
+  // A glow way down there, breathing (in rings)
+  steppedGlow(ctx, f.x + f.w / 2, f.y + DEPTH, f.w * 0.6, '#F97316', 0.28 + 0.1 * Math.sin(state.frame * 0.05 + seed), 0, 4);
   // The far wall of the crack, lit a little from above, fading into the dark
-  const back = ctx.createLinearGradient(0, f.y, 0, f.y + 140);
-  back.addColorStop(0, 'rgba(90, 67, 49, 0.55)'); back.addColorStop(1, 'rgba(90, 67, 49, 0)');
-  ctx.fillStyle = back;
   ctx.beginPath(); ctx.moveTo(left[0][0] + 6, f.y);
   for (let d = 0; d < 140; d += 14) ctx.lineTo(f.x + f.w * (0.3 + hash(seed + d) * 0.15), f.y + d);
   for (let d = 140; d >= 0; d -= 14) ctx.lineTo(f.x + f.w * (0.62 + hash(seed + d + 3) * 0.15), f.y + d);
-  ctx.closePath(); ctx.fill();
+  ctx.closePath(); ctx.clip();
+  hazeBands(ctx, f.x, f.y, f.w, 140, '#5A4331', 0.55, 0, 6);
   ctx.restore();
   // The walls: the road's layers cut through (sidewalk, curb, asphalt, then dirt and rock), a lit edge on the left, shadow on the right
   for (const [pts, side] of [[left, -1], [right, 1]] as [[number, number][], number][]) {
@@ -155,11 +150,17 @@ const drawFissure = (ctx: Ctx, state: GameState, f: Fault, seed: number, spread:
     ctx.clip();
     const layers: [number, number, string][] = [[0, 10, SIDEWALK], [10, 14, CURB], [14, 46, ASPHALT], [46, 120, DIRT], [120, 240, '#3A2C22'], [240, DEPTH + 40, '#241A13']];
     for (const [a, b, c] of layers) { ctx.fillStyle = c; ctx.fillRect(f.x - 30, f.y + a, f.w + 60, b - a); }
+    // (each layer dithered into the one over it)
+    for (const [a, , c] of layers.slice(1)) checker(ctx, f.x - 30, f.y + a - 2, f.w + 60, 2, c);
     ctx.fillStyle = side < 0 ? 'rgba(255, 237, 213, 0.12)' : 'rgba(0, 0, 0, 0.35)';
     ctx.fillRect(f.x - 30, f.y, f.w + 60, DEPTH);
-    // Stones in the dirt
-    ctx.fillStyle = '#6B5A4C';
-    for (let n = 0; n < 8; n++) { const d = 50 + hash(seed + n * 9 + side) * 220; ctx.beginPath(); ctx.ellipse(wall(f, seed, 1, d, side) - side * 5, f.y + d, 3 + hash(n + seed) * 3, 2 + hash(n) * 2, 0, 0, Math.PI * 2); ctx.fill(); }
+    // Stones in the dirt, lit on top
+    for (let n = 0; n < 8; n++) {
+      const d = 50 + hash(seed + n * 9 + side) * 220, sx = Math.round(wall(f, seed, 1, d, side) - side * 5), rw = Math.round(3 + hash(n + seed) * 3), rh = Math.round(2 + hash(n) * 2);
+      ctx.fillStyle = '#2A1F17'; ctx.fillRect(sx - rw - 1, f.y + d - rh - 1, rw * 2 + 2, rh * 2 + 2);
+      ctx.fillStyle = '#6B5A4C'; ctx.fillRect(sx - rw, f.y + d - rh, rw * 2, rh * 2);
+      ctx.fillStyle = '#8A7868'; ctx.fillRect(sx - rw, f.y + d - rh, rw, 1);
+    }
     ctx.restore();
     // The broken edge of the wall
     ctx.strokeStyle = side < 0 ? 'rgba(120, 94, 72, 0.9)' : 'rgba(20, 14, 10, 0.9)';
@@ -177,18 +178,23 @@ const drawFissure = (ctx: Ctx, state: GameState, f: Fault, seed: number, spread:
   ctx.stroke();
   // A snapped water main in the left wall, spraying out into the crack
   const py = f.y + 64, px = wall(f, seed, spread, 64, -1);
+  ctx.fillStyle = INK; ctx.fillRect(px - 11, py - 6, 20, 12);
   ctx.fillStyle = '#57534E'; ctx.fillRect(px - 10, py - 5, 18, 10);
+  ctx.fillStyle = '#78716C'; ctx.fillRect(px - 10, py - 5, 18, 3); ctx.fillStyle = '#3F3B37'; ctx.fillRect(px - 10, py + 3, 18, 2);
+  ctx.fillStyle = INK; ctx.beginPath(); ctx.ellipse(px + 8, py, 3.5, 6, 0, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#292524'; ctx.beginPath(); ctx.ellipse(px + 8, py, 2.5, 5, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = 'rgba(191, 219, 254, 0.8)';
   for (let n = 0; n < 10; n++) {
-    const t = ((state.frame * 0.05 + n * 0.1) % 1);
-    ctx.fillRect(px + 10 + t * 26, py + t * t * 60 - Math.sin(t * 3) * 4, 3, 3);
+    const t = ((state.frame * 0.05 + n * 0.1) % 1), wx = px + 10 + t * 26, wy = py + t * t * 60 - Math.sin(t * 3) * 4;
+    ctx.fillStyle = 'rgba(96, 165, 250, 0.8)'; ctx.fillRect(wx, wy, 3, 3);
+    ctx.fillStyle = 'rgba(239, 246, 255, 0.9)'; ctx.fillRect(wx, wy, 2, 2);
   }
   // A severed cable in the right wall, twitching and spitting sparks now and then
   const cy = f.y + 36, cx = wall(f, seed, spread, 36, 1);
   const tw = Math.sin(state.frame * 0.4 + seed) * 3;
-  ctx.strokeStyle = '#111827'; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.moveTo(cx + 4, cy); ctx.quadraticCurveTo(cx - 12, cy + 8, cx - 16 + tw, cy + 26); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx + 4, cy); ctx.quadraticCurveTo(cx - 12, cy + 8, cx - 16 + tw, cy + 26);
+  ctx.strokeStyle = INK; ctx.lineWidth = 5; ctx.stroke(); ctx.strokeStyle = '#111827'; ctx.lineWidth = 3; ctx.stroke();
+  ctx.strokeStyle = '#4B5563'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx + 4, cy - 1); ctx.quadraticCurveTo(cx - 12, cy + 7, cx - 17 + tw, cy + 25); ctx.stroke();
+  ctx.fillStyle = '#B45309'; ctx.fillRect(cx - 18 + tw, cy + 25, 3, 2);
   if ((state.frame + seed * 7) % 70 < 8) {
     ctx.fillStyle = '#FDE047';
     for (let n = 0; n < 6; n++) ctx.fillRect(cx - 16 + tw + (hash(state.frame + n) - 0.5) * 16, cy + 26 + (hash(state.frame + n + 9) - 0.5) * 14, 2, 2);
@@ -214,10 +220,16 @@ const drawLips = (ctx: Ctx, f: Fault, seed: number, spread: number) => {
     };
     slab(0, 9, SIDEWALK); slab(9, 12, CURB); slab(12, 22, ASPHALT); slab(0, 2, SIDEWALK_TOP);
     ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'; ctx.fillRect(-len * 0.5, 0, 1, 9);
+    // (its broken end inked, the layers showing in the break)
+    ctx.strokeStyle = INK; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(end(0), 0); ctx.lineTo(end(9), 9); ctx.lineTo(end(12), 12); ctx.lineTo(end(22), 22); ctx.lineTo(0, 22); ctx.stroke();
     ctx.restore();
     // A little rubble lodged at the hinge
-    ctx.fillStyle = '#57534E';
-    ctx.beginPath(); ctx.arc(x0 - side * 4, f.y + 20, 4, 0, Math.PI * 2); ctx.arc(x0 - side * 10, f.y + 26, 3, 0, Math.PI * 2); ctx.fill();
+    for (const [rx, ry, rr] of [[x0 - side * 4, f.y + 20, 4], [x0 - side * 10, f.y + 26, 3]]) {
+      ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(rx, ry, rr + 1, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#57534E'; ctx.beginPath(); ctx.arc(rx, ry, rr, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#8A8580'; ctx.fillRect(rx - rr + 1, ry - rr + 1, rr, 1);
+    }
   }
 };
 
@@ -235,9 +247,12 @@ const drawTumbling = (ctx: Ctx, f: Fault, seed: number, since: number) => {
     ctx.translate(x + (c - (n - 1) / 2) * t * 0.3, y + 10);
     ctx.rotate((hash(seed + c * 3) - 0.5) * t * 0.12);
     ctx.globalAlpha = Math.max(0, 1 - y / (f.y + DEPTH) * 0.2 - (y - f.y) / DEPTH);
+    ctx.fillStyle = INK; ctx.fillRect(-w / 2 - 1, -9, w + 2, 26);
     ctx.fillStyle = ASPHALT; ctx.fillRect(-w / 2, 2, w, 14);
     ctx.fillStyle = SIDEWALK; ctx.fillRect(-w / 2, -8, w, 10);
     ctx.fillStyle = SIDEWALK_TOP; ctx.fillRect(-w / 2, -8, w, 2);
+    ctx.fillStyle = CURB; ctx.fillRect(-w / 2, 0, w, 2);
+    ctx.fillStyle = '#2A292C'; ctx.fillRect(-w / 2, 13, w, 3);
     ctx.restore();
   }
 };
