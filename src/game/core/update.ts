@@ -678,6 +678,13 @@ const updateParticles = (ctx: FrameContext) => {
         const floor = groundLineAt(state.groundRuns, p.pos.x) - 2;
         if (p.pos.y > floor && p.pos.y < floor + 30) { p.pos.y = floor; p.vel.y = -p.vel.y * 0.3; p.vel.x *= 0.8; }
       }
+      // (a dry fire's bits: a casing, a pebble, a drip; they fall, bounce once or twice and lie there)
+      else if (p.grav) {
+        p.vel.y += p.grav;
+        // (on whatever's under it: a ledge, a platform, the ground)
+        const floor = (floorTopAt(state.blocks, p.pos.x, p.pos.y + p.size - p.vel.y, 2) ?? groundLineAt(state.groundRuns, p.pos.x)) - p.size;
+        if (p.pos.y > floor && p.pos.y < floor + 30) { p.pos.y = floor; p.vel.y = Math.abs(p.vel.y) > 1.5 ? -p.vel.y * 0.35 : 0; p.vel.x *= 0.6; }
+      }
       p.life--;
     }
     return p.life > 0;

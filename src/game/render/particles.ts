@@ -37,6 +37,12 @@ export const drawParticle = (ctx: CanvasRenderingContext2D, p: Particle) => {
   // dust and smoke: a clump of pixels, lit on its top
   const lum = luminance(p.color);
   const px = Math.round(x / 2) * 2, py = Math.round(y / 2) * 2, s = Math.max(2, Math.round(r) * 2);
+  // (a plain block: a casing, a pebble, a drop; lit on its top-left once it's big enough to have one)
+  if (p.chunk) {
+    ctx.fillStyle = p.color; ctx.fillRect(px - s / 2, py - s / 2, s, s);
+    if (s >= 4) { ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; ctx.fillRect(px - s / 2, py - s / 2, 2, 2); }
+    return;
+  }
   const speed = Math.hypot(p.vel.x, p.vel.y);
   if (lum > 0.55) {
     ctx.fillStyle = p.color;

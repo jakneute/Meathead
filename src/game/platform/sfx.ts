@@ -96,6 +96,52 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.35, vary: 1, gap: 40,
     make: () => render(0.05, t => (Math.sin(TAU * 3200 * t) * 0.6 + rnd() * 0.4) * ex(t, 120) + (t > 0.018 && t < 0.024 ? rnd() * 0.5 : 0)),
   },
+  // ---- Dry fire: fire pressed with nothing left in it (combat/dryFire.ts), one apiece ----
+  dry_lmg: {
+    // The bolt slamming home on nothing (clack-clack), and one spent casing bouncing away on the floor (tink, tink, tik)
+    gain: 0.5, vary: 1, gap: 150,
+    make: () => { const bolt = metal(700, [1, 2.3, 3.9], 40), bolt2 = metal(520, [1, 2.5, 4.4], 34), tink = metal(3100, [1, 2.6, 4.3], 30), lp = lowpass(); const bounces = [0.2, 0.34, 0.43, 0.49]; return render(0.6, t => bolt(t) * (t < 0.06 ? 1 : 0) + (t < 0.003 ? rnd() : 0) + (t > 0.07 ? bolt2(t - 0.07) + lp(rnd(), 1500) * ex(t - 0.07, 60) * 0.6 : 0) + bounces.reduce((v, at, k) => v + (t > at ? tink(t - at) * 0.5 / (1 + k * 0.6) : 0), 0)); },
+  },
+  dry_ice: {
+    // The ice gun: a hollow clunk (the pump on an empty tube), a frosty little hiss out of the barrel, one sad tinkle
+    gain: 0.45, vary: 1, gap: 150,
+    make: () => { const body = glide(210, 120, 20), lp = lowpass(), hp = highpass(); return render(0.5, t => body(t) * ex(t, 16) * 0.9 + lp(rnd(), 900) * ex(t, 45) * 0.8 + (t > 0.08 ? hp(rnd(), 5000) * Math.sin(Math.PI * Math.min(1, (t - 0.08) / 0.3)) * 0.4 : 0) + (t > 0.3 ? Math.sin(TAU * 4200 * t) * ex(t - 0.3, 22) * 0.25 : 0)); },
+  },
+  dry_flame: {
+    // The pilot light catching on nothing: puh... puh-puh (little coughs of gas), and a thin hiss trailing off
+    gain: 0.5, vary: 1.5, gap: 150,
+    make: () => { const lp = lowpass(), bp = bandpass(); const coughs = [0, 0.16, 0.24]; return render(0.65, t => lp(rnd(), 500) * coughs.reduce((v, at, k) => { const u = t - at; return v + (u > 0 ? Math.min(1, u / 0.006) * ex(u, 28) * (1 - k * 0.25) : 0); }, 0) * 2 + (t > 0.25 ? bp(rnd(), 4500, 0.7) * Math.min(1, (t - 0.25) / 0.05) * ex(t - 0.25, 7) * 0.3 : 0)); },
+  },
+  dry_boulder: {
+    // The blunderbuss with no rock in it: one pebble rattling out and down (tok, tok, tik) and a dribble of grit after it
+    gain: 0.45, vary: 2, gap: 150,
+    make: () => { const c = crackle(0.05), lp = lowpass(); const knocks = [[0, 900], [0.17, 1100], [0.27, 1250], [0.33, 1300]]; return render(0.65, t => knocks.reduce((v, [at, f], k) => v + (t > at ? Math.sin(TAU * f * (t - at)) * ex(t - at, 55) / (1 + k * 0.5) + (t - at < 0.002 ? rnd() * 0.5 : 0) : 0), 0) + lp(c(), 2500) * Math.sin(Math.PI * Math.min(1, t / 0.65)) * 2); },
+  },
+  dry_tsunami: {
+    // Where a wall of water ought to be: plip... plip... plip (a sad little dribble, each drop a touch lower)
+    gain: 0.4, vary: 1.5, gap: 200,
+    make: () => { const drops = [[0.02, 900], [0.2, 760], [0.42, 620]]; return render(0.75, t => drops.reduce((v, [at, f]) => { const u = t - at; return v + (u > 0 && u < 0.12 ? Math.sin(TAU * f * u * (1 + u * 14)) * ex(u, 30) : 0); }, 0)); },
+  },
+  dry_needles: {
+    // The plunger going down on an empty syringe: a thin rising hiss of air, then one drop landing (plip)
+    gain: 0.35, vary: 1.5, gap: 150,
+    make: () => { const bp = bandpass(); return render(0.45, t => (t < 0.25 ? bp(rnd(), 2200 + 4000 * (t / 0.25), 2) * Math.sin(Math.PI * t / 0.25) : 0) + (t > 0.32 ? Math.sin(TAU * 1300 * (t - 0.32) * (1 + (t - 0.32) * 12)) * ex(t - 0.32, 35) * 0.8 : 0)); },
+  },
+  dry_taser: {
+    // Flat batteries: a weak buzz that sags and dies (bzzt... zt), a crackle or two in it
+    gain: 0.3, vary: 1, gap: 150,
+    make: () => { const bp = bandpass(); let ph = 0; return render(0.4, t => { ph += (118 - 70 * Math.min(1, t / 0.35)) / SFX_SR; const on = t < 0.12 || (t > 0.2 && t < 0.26); return bp(Math.sign(Math.sin(TAU * ph)) * (0.6 + 0.4 * rnd()) + (Math.random() < 0.05 ? rnd() * 2 : 0), 1400, 0.6) * (on ? 1 : 0.05) * ex(t, 5); }); },
+  },
+  dry_sludge: {
+    // The barfer coming up empty: a small wet burp (a low reed, wobbling) and one drip off the end
+    gain: 0.3, vary: 1.5, gap: 150,
+    make: () => { const lp = lowpass(), bp = bandpass(); let ph = 0; return render(0.55, t => { ph += (95 + 25 * Math.sin(t * 40) - 60 * t) / SFX_SR; const burp = t < 0.3 ? lp(Math.tanh(4 * Math.sin(TAU * ph)), 900) * Math.min(1, t / 0.02) * Math.min(1, (0.3 - t) / 0.08) + bp(rnd(), 450, 1) * 0.3 * ex(t, 10) : 0; const u = t - 0.4; return burp + (u > 0 ? Math.sin(TAU * 700 * u * (1 + u * 16)) * ex(u, 32) * 0.6 : 0); }); },
+  },
+  dry_oil: {
+    // The launcher with no rocket in it: the trigger's click, and a tiny limp pfft out of the tube
+    gain: 0.45, vary: 1, gap: 150,
+    make: () => { const bp = bandpass(); return render(0.3, t => (Math.sin(TAU * 2600 * t) * 0.6 + rnd() * 0.4) * ex(t, 140) + (t > 0.09 ? bp(rnd(), 1200, 0.8) * Math.sin(Math.PI * Math.min(1, (t - 0.09) / 0.14)) * 0.9 : 0)); },
+  },
   // ---- Bodies ----
   punch: {
     gain: 0.6, vary: 2, gap: 35, voices: 3,

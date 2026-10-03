@@ -42,6 +42,8 @@ export type VulgarityType = 'gun_kill' | 'boulder_kill' | 'shotgun_kill' | 'flam
 export type SoundType =
   // weapons
   | 'gun' | 'egun' | 'lmg' | 'ice' | 'flame' | 'ignite' | 'barf' | 'oil' | 'dart' | 'taser' | 'tsunami' | 'click'
+  // dry fire (fire pressed with it empty)
+  | 'dry_lmg' | 'dry_ice' | 'dry_flame' | 'dry_boulder' | 'dry_tsunami' | 'dry_needles' | 'dry_taser' | 'dry_sludge' | 'dry_oil'
   // bodies
   | 'punch' | 'stomp' | 'splat' | 'crunch' | 'hurt' | 'whoosh' | 'jump' | 'land' | 'thud' | 'slam'
   // things breaking
@@ -193,6 +195,10 @@ export interface Player extends Entity {
   taserTimer?: number;
   /** Frames until the taser works again (it overloads after bursting Oily Oscar). */
   taserOverloadTimer?: number;
+  /** Dry fire (see combat/dryFire.ts): the frame the last empty-gun gag went off, and whether he was firing it with
+   * something in it last frame (so running dry mid-hold gets one too). */
+  dryFireAt?: number;
+  dryWasLive?: boolean;
   // Sludge
   barfTimer?: number;
   /** Victory lap after a weakness kill: frames spent relieving himself on the corpse. */
@@ -675,6 +681,10 @@ export interface Particle {
   alpha?: number;
   /** A glob of the flamethrower's molten stream: drips, cools as it goes (its crust darkening), and lies where it lands. */
   molten?: boolean;
+  /** Falls (this much more speed each frame) and comes to rest on the ground, with a little bounce: a casing, a pebble, a drip. */
+  grav?: number;
+  /** Drawn as a plain block on the pixel grid (lit on its top-left), never as a twinkle, streak or clump. */
+  chunk?: boolean;
 }
 
 export interface DamageNumber {

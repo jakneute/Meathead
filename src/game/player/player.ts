@@ -22,6 +22,7 @@ import { SKIP_AFTER, offerSkip, takeSkip } from '../platform/skip';
 import { GameState, shakeScreen } from '../core/state';
 import { Controls } from '../platform/input';
 import { fireWeapon, updateFlamethrower } from '../combat/weapons';
+import { updateDryFire } from '../combat/dryFire';
 import { rectsOverlap, boundsOf } from '../core/utils';
 import { standingIndoors, groundLineAt } from '../core/terrain';
 import { isChargerKind } from '../enemies/kinds';
@@ -219,6 +220,8 @@ export const updatePlayerActions = (ctx: FrameContext, input: FrameInput) => {
   player.currentWeapon = currentWeapon;
   // Mid shoulder charge, uppercut or divekick his hands are busy: no shooting (a slide tackle's fine, gun out front)
   if (armsBusy(player)) input = { ...input, shoot: false, shootPressed: false };
+  // (fire pressed with it empty: its own little failure; before anything fires, so the last shot doesn't count as one)
+  updateDryFire(ctx, input);
   // Secondary fire: with the oil rocket launcher out, the flamethrower (if he's got it), so he can light what he's slicked
   const secondary = !!input.secondary && !input.shoot && !armsBusy(player) ? SECONDARY[currentWeapon] : undefined;
   const altFlame = secondary === 'FLAMETHROWER' && (state.availableWeapons?.includes('FLAMETHROWER') ?? false);
