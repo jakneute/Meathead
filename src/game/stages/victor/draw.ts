@@ -104,15 +104,35 @@ export const drawVolcano = (ctx: Ctx, cx: number, base: number, s: number, f: nu
     // (a lit edge down the left flank, where the crater's light catches it)
     if (u < -0.2 && u > -0.98) { ctx.fillStyle = '#4A2016'; ctx.fillRect(x, yy, PIX, PIX); }
   }
+  // Gullies cut down its flanks by old flows: each a dark groove, lit along its left lip; rock outcrops between them,
+  // lit on top; the crater's rim jagged
+  ctx.lineCap = 'butt';
+  for (let g = 0; g < 9; g++) {
+    const u = -0.85 + g * 0.21 + (hash(g) - 0.5) * 0.08;
+    const x0 = cx + u * crater, x1 = cx + u * half * (0.95 + hash(g + 3) * 0.1), mx = (x0 + x1) / 2 + (hash(g + 7) - 0.5) * 30 * s;
+    const path = () => { ctx.beginPath(); ctx.moveTo(x0, top + 3 * s); ctx.quadraticCurveTo(mx, top + h * 0.5, x1, base - 2); };
+    path(); ctx.strokeStyle = 'rgba(8, 3, 3, 0.55)'; ctx.lineWidth = Math.max(2, 4 * s); ctx.stroke();
+    ctx.save(); ctx.translate(-Math.max(1, 2 * s), 0); path(); ctx.strokeStyle = 'rgba(90, 40, 28, 0.45)'; ctx.lineWidth = Math.max(1, 1.5 * s); ctx.stroke(); ctx.restore();
+  }
+  for (let o = 0; o < 14; o++) {
+    const fy = 0.18 + hash(o * 3.3) * 0.75, y = top + h * fy, w = crater + (half - crater) * fy;
+    const ox = cx + (hash(o * 5.1) - 0.5) * 1.6 * w, ow = (6 + hash(o) * 10) * s, oh = (3 + hash(o + 1) * 4) * s;
+    ctx.fillStyle = '#120605'; ctx.fillRect(Math.round(ox - ow / 2), Math.round(y), Math.round(ow), Math.max(2, Math.round(oh)));
+    ctx.fillStyle = '#4A2016'; ctx.fillRect(Math.round(ox - ow / 2), Math.round(y), Math.round(ow), Math.max(1, Math.round(s * 1.5)));
+  }
+  ctx.fillStyle = '#4A2016';
+  for (let k2 = -6; k2 <= 6; k2++) { const rx = cx + (k2 / 6) * crater * 1.05, rh = (2 + hash(k2 + 20) * 4) * s; ctx.fillRect(Math.round(rx - 2 * s), Math.round(top - rh + 2), Math.max(2, Math.round(4 * s)), Math.max(2, Math.round(rh))); }
   // The crater, glowing: rings of light, the heart of it near white
   steppedGlow(ctx, cx, top, crater * 1.7, '#F97316', 0.7, 0, 4);
   ctx.fillStyle = '#FEF08A'; ctx.beginPath(); ctx.arc(cx, top, crater * 0.45, 0, Math.PI * 2); ctx.fill();
-  // Lava running down the flanks
-  ctx.strokeStyle = `rgba(249, 115, 22, ${0.75 + 0.2 * Math.sin(f * 0.05)})`; ctx.lineWidth = Math.max(2, 5 * s);
+  // Lava running down the flanks: a dark crusted edge, the molten middle, a white-hot thread down the heart of it,
+  // pulsing
+  const pulse = 0.8 + 0.2 * Math.sin(f * 0.05);
   for (const [dx, bend] of [[-0.5, -0.3], [0.3, 0.25], [0.7, 0.1]] as [number, number][]) {
-    ctx.beginPath(); ctx.moveTo(cx + dx * crater, top + 4);
-    ctx.quadraticCurveTo(cx + dx * half * 0.4 + bend * half * 0.4, top + h * 0.5, cx + dx * half * 0.75, base - 6);
-    ctx.stroke();
+    const path = () => { ctx.beginPath(); ctx.moveTo(cx + dx * crater, top + 4); ctx.quadraticCurveTo(cx + dx * half * 0.4 + bend * half * 0.4, top + h * 0.5, cx + dx * half * 0.75, base - 6); };
+    path(); ctx.strokeStyle = 'rgba(127, 29, 29, 0.85)'; ctx.lineWidth = Math.max(3, 8 * s); ctx.stroke();
+    path(); ctx.strokeStyle = `rgba(249, 115, 22, ${pulse.toFixed(3)})`; ctx.lineWidth = Math.max(2, 5 * s); ctx.stroke();
+    path(); ctx.strokeStyle = `rgba(254, 240, 138, ${(pulse * 0.9).toFixed(3)})`; ctx.lineWidth = Math.max(1, 1.6 * s); ctx.stroke();
   }
   if (club) drawClubVolcano(ctx, { cx, top, base, half, crater, s, f, ...club });
   // Now and then it spits (bombs arcing up out of the crater)

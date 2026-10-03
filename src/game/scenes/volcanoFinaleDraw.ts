@@ -3,7 +3,7 @@
 // final launch with the death message.
 
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../constants';
-import { bandedGradient, steppedGlow } from '../render/pixelArt';
+import { bandedGradient, steppedGlow, pixelBlob } from '../render/pixelArt';
 import { GameState, createGameState, createPlayer } from '../core/state';
 import { Player } from '../../types';
 import { createFullAmmo } from '../../constants';
@@ -13,7 +13,7 @@ import { drawBoss, makeSitter } from '../render/bosses';
 import { inHead } from '../render/bosses/kit';
 import { VOLCANO_FINALE, VOLCANO_FINALE_MESSAGE } from './volcanoFinale';
 import { drawSpelledMessage } from './sewerNukeDraw';
-import { drawClubVolcano } from './art/clubVolcano';
+import { drawVolcano } from '../stages/victor/draw';
 
 type Ctx = CanvasRenderingContext2D;
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
@@ -85,8 +85,7 @@ const drawScene = (ctx: Ctx, t: number, erupting: boolean, e: number) => {
       const k = i / 26;
       const y = PEAK_Y - 20 - k * (230 * grow + 40);
       const r = (30 + k * 80) * (0.5 + grow * 0.5);
-      ctx.fillStyle = `rgba(${40 + i * 2}, ${30 + i}, ${28 + i}, 0.9)`;
-      ctx.beginPath(); ctx.arc(CX + Math.sin(i * 1.7 + e * 0.03) * 30 * k, y, r, 0, Math.PI * 2); ctx.fill();
+      pixelBlob(ctx, CX + Math.sin(i * 1.7 + e * 0.03) * 30 * k, y, r, r * 0.9, `rgba(${40 + i * 2}, ${30 + i}, ${28 + i}, 0.9)`, 4);
     }
     // Lava lit from below
     steppedGlow(ctx, CX, PEAK_Y, 260, '#FF9628', 0.55, 0, 6);
@@ -94,22 +93,14 @@ const drawScene = (ctx: Ctx, t: number, erupting: boolean, e: number) => {
     // Rumbling: smoke puffing from the crater, harder and faster as it builds
     for (let i = 0; i < 8; i++) {
       const s = ((t * (1 + t / 60) + i * 13) % 60) / 60;
-      ctx.fillStyle = `rgba(60, 45, 45, ${0.6 * (1 - s)})`;
-      ctx.beginPath(); ctx.arc(CX + Math.sin(i * 2 + s * 4) * 20, PEAK_Y - 10 - s * 90, 12 + s * 24, 0, Math.PI * 2); ctx.fill();
+      pixelBlob(ctx, CX + Math.sin(i * 2 + s * 4) * 20, PEAK_Y - 10 - s * 90, 12 + s * 24, 10 + s * 20, `rgba(60, 45, 45, ${(0.6 * (1 - s)).toFixed(3)})`);
     }
   }
 
-  // The volcano
-  ctx.fillStyle = '#2A0E08';
-  ctx.beginPath();
-  ctx.moveTo(CX - 420, BASE_Y); ctx.lineTo(CX - 70, PEAK_Y + 8); ctx.lineTo(CX - 40, PEAK_Y);
-  ctx.lineTo(CX + 40, PEAK_Y); ctx.lineTo(CX + 70, PEAK_Y + 8); ctx.lineTo(CX + 420, BASE_Y);
-  ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#3D160C';
-  ctx.beginPath(); ctx.moveTo(CX - 420, BASE_Y); ctx.lineTo(CX - 70, PEAK_Y + 8); ctx.lineTo(CX - 40, PEAK_Y); ctx.lineTo(CX - 20, BASE_Y); ctx.closePath(); ctx.fill();
-  // The club it is: lit up and pumping while it rumbles; when it blows, the power flickers and goes
+  // The volcano: the same mountain as all the way up the trail (its rock, its gullies, the lava down it, the club it
+  // is), lit up and pumping while it rumbles; when it blows, the power flickers and goes
   const power = erupting ? (e < 30 && hash(e) > 0.4 ? 1 - e / 30 : 0) : 1;
-  drawClubVolcano(ctx, { cx: CX, top: PEAK_Y, base: BASE_Y, half: 420, crater: 40, s: 0.96, f: t, show: 1, power });
+  drawVolcano(ctx, CX, BASE_Y, (BASE_Y - PEAK_Y) / 280, t, 1, { show: 1, power });
   // Three glowing plugged vents on its flank (the ones you corked), cracking as it builds
   const build = erupting ? 1 : t / VOLCANO_FINALE.ERUPT;
   for (const [vx, vy] of [[-150, 430], [130, 400], [20, 470]]) {
