@@ -169,6 +169,18 @@ export const stepRange = (range: GameState, controls: Controls, weapon: WeaponTy
     }
     return respawns.calledAt !== undefined && t >= respawns.calledAt + CANCEL_END;
   }
+  // Knocked clean out of it and still going (blown through the ropes by a rocket, a blast, a shove: past the walls,
+  // up over the ceiling, down through the mat): put back in the ring, where he was, with a puff, not left out there
+  const floor = floorOf(range.stageId), ceiling = range.stageId === PRACTICE_RANGE_STAGE ? RING_CEILING_Y : 0;
+  for (const e of range.enemies) {
+    if (!e.id.startsWith('dummy-') || e.health <= 0 || e.isBlownAway) continue;
+    if (e.pos.x + e.width > -10 && e.pos.x < CANVAS_WIDTH + 10 && e.pos.y + e.height > ceiling - 10 && e.pos.y < floor + 10) continue;
+    const air = e.id.startsWith('dummy-air');
+    e.pos = { x: Math.max(20, Math.min(CANVAS_WIDTH - e.width - 20, e.pos.x)), y: air ? (e.initialY ?? 330) : floor - e.height };
+    e.vel = { x: e.pos.x > CANVAS_WIDTH / 2 ? -(air ? 2 : 1.2) : (air ? 2 : 1.2), y: 0 };
+    e.pauseTimer = 0; e.returnHome = false;
+    for (let i = 0; i < 10; i++) range.particles.push({ pos: { x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 }, vel: { x: (Math.random() - 0.5) * 5, y: -Math.random() * 4 }, life: 22, color: i % 2 ? '#EF4444' : '#FFFFFF', size: 3 + Math.random() * 3 });
+  }
   // Both dummies always come back (the other side of the ring from him)
   for (const kind of DUMMY_KINDS) {
     if (range.enemies.some(e => e.id.startsWith(`dummy-${kind}`) && !e.isBlownAway && e.health > 0)) continue;

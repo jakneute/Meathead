@@ -1,5 +1,6 @@
 // Draws the special kill animations (see game/enemies/deaths.ts).
 
+import { drawComposited } from '../composite';
 import { drawDummy } from '../dummies';
 import { drawFlameLicks } from '../fx/fireball';
 import { eye } from '../npc/kit';
@@ -60,10 +61,14 @@ const drawBody = (ctx: Ctx, d: EnemyDeath, state: GameState, o: { filter?: strin
   if (o.clipFromY !== undefined) { ctx.beginPath(); ctx.rect(x - w, o.clipFromY, w * 3, y + h - o.clipFromY + 4); ctx.clip(); }
   const fx = x + w / 2, fy = y + h;
   ctx.translate(fx, fy); ctx.scale(o.sx ?? 1, o.sy ?? 1); ctx.translate(-fx, -fy);
-  if (o.filter) ctx.filter = o.filter;
-  if (d.dummy) drawDummy(ctx, { id: `dummy-${d.dummy}`, pos: { x, y }, width: w, height: h, vel: { x: d.sprite?.facing ?? 1, y: 0 } } as Enemy, 0);
-  else if (d.sprite) drawKindCorpse(ctx, d.sprite.kind, x, y, w, h, d.sprite.facing, d.sprite.phase, state, d.sprite.variant);
-  else { ctx.fillStyle = d.color; ctx.fillRect(x, y, w, h); }
+  const body = (c: Ctx) => {
+    if (d.dummy) drawDummy(c, { id: `dummy-${d.dummy}`, pos: { x, y }, width: w, height: h, vel: { x: d.sprite?.facing ?? 1, y: 0 } } as Enemy, 0);
+    else if (d.sprite) drawKindCorpse(c, d.sprite.kind, x, y, w, h, d.sprite.facing, d.sprite.phase, state, d.sprite.variant);
+    else { c.fillStyle = d.color; c.fillRect(x, y, w, h); }
+  };
+  // (under a filter: drawn plain and put down filtered once, not filtered shape by shape)
+  if (o.filter) { ctx.filter = o.filter; drawComposited(ctx, { x: x - w - 40, y: y - h - 60, w: w * 3 + 80, h: h * 2 + 100 }, body); }
+  else body(ctx);
   ctx.restore();
 };
 

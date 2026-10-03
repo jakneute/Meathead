@@ -820,7 +820,10 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
       if (curT && state.bossExplosionTimer <= 0) { ctx.save(); ctx.font = 'bold 12px "Press Start 2P"'; ctx.fillStyle = 'white'; ctx.shadowColor = 'black'; ctx.shadowBlur = 6; ctx.textAlign = 'center'; ctx.fillText(sentenceShown(curT), e.pos.x + e.width / 2, e.pos.y - 30); ctx.restore(); }
       drawBossOverlay(ctx, e, stageId, state.frame);
     } else if (isDummy(e)) {
-      drawDummy(ctx, e, animFrame(e, state.frame));
+      // (oiled, needled: the filter and the shadow on the finished dummy once, not on each of its shapes; firing oil
+      // rockets into the ring's dummies was paying for a blur on every one of them, every frame)
+      if (needsComposite(ctx)) drawComposited(ctx, { x: e.pos.x - 40, y: e.pos.y - 60, w: e.width + 80, h: e.height + 100 }, c => drawDummy(c, e, animFrame(e, state.frame)));
+      else drawDummy(ctx, e, animFrame(e, state.frame));
     } else if (e.kind && getStageLayout(stageId)?.drawSpecialEnemy?.(ctx, e, state)) {
       // (a stage's mid-boss draws itself)
     } else if (e.kind) {

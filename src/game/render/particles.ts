@@ -93,24 +93,23 @@ const luminance = (c: string) => {
 const drawDroplet = (ctx: CanvasRenderingContext2D, p: Particle, x: number, y: number, r: number) => {
   const speed = Math.hypot(p.vel.x, p.vel.y);
   const stretch = 1 + Math.min(2.2, speed * 0.12);
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(Math.atan2(p.vel.y, p.vel.x));
+  // (along its path: the shape's points turned by hand, not the canvas turned and put back for each of a thousand drops)
+  const a = Math.atan2(p.vel.y, p.vel.x), c = Math.cos(a), s = Math.sin(a);
+  const px = (u: number, v: number) => x + u * c - v * s, py = (u: number, v: number) => y + u * s + v * c;
   ctx.fillStyle = p.color;
   ctx.beginPath();
   // Teardrop: round head leading, pointed tail behind
-  ctx.moveTo(-r * stretch * 1.4, 0);
-  ctx.quadraticCurveTo(-r * 0.2, -r, r * 0.6, -r * 0.85);
-  ctx.arc(r * 0.6, 0, r * 0.85, -Math.PI / 2, Math.PI / 2);
-  ctx.quadraticCurveTo(-r * 0.2, r, -r * stretch * 1.4, 0);
+  ctx.moveTo(px(-r * stretch * 1.4, 0), py(-r * stretch * 1.4, 0));
+  ctx.quadraticCurveTo(px(-r * 0.2, -r), py(-r * 0.2, -r), px(r * 0.6, -r * 0.85), py(r * 0.6, -r * 0.85));
+  ctx.arc(px(r * 0.6, 0), py(r * 0.6, 0), r * 0.85, a - Math.PI / 2, a + Math.PI / 2);
+  ctx.quadraticCurveTo(px(-r * 0.2, r), py(-r * 0.2, r), px(-r * stretch * 1.4, 0), py(-r * stretch * 1.4, 0));
   ctx.fill();
   if (r > 2) {
     ctx.fillStyle = GLOSS;
     ctx.beginPath();
-    ctx.arc(r * 0.7, -r * 0.3, r * 0.28, 0, Math.PI * 2);
+    ctx.arc(px(r * 0.7, -r * 0.3), py(r * 0.7, -r * 0.3), r * 0.28, 0, Math.PI * 2);
     ctx.fill();
   }
-  ctx.restore();
 };
 
 /** Blood that's landed: an irregular splat with spatter around it and a thick drip. */
