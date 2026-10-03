@@ -354,13 +354,22 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // Walking: the upper arm swings from the shoulder against his stride (not far: it's a heavy arm), and the elbow
     // bends forward, closing as the arm comes forward and opening as it goes back, a beat behind the swing. Standing:
     // hanging, the elbow a little bent, easing with his breathing.
+    // Swimming somewhere, he doesn't do the crawl: he hauls himself through the water one-armed like it's a lat
+    // pulldown, the arm up high behind his head, then a hard yank down to his hip, the elbow driving down and the fist
+    // coming down past his ear, and back up for another rep, elbow first, slower (never round past his face)
+    const swimHaul = (() => {
+      const ph = (animFrame * 0.035) % 1;
+      if (ph < 0.42) { const t = ph / 0.42, e = t * t * (3 - 2 * t); return { angle: 2.9 - 2.45 * e, bend: -1.6 * Math.sin(Math.PI * t) }; }
+      const t = (ph - 0.42) / 0.58, e = t * t * (3 - 2 * t);
+      return { angle: 0.45 + 2.45 * e, bend: 1.1 * Math.sin(Math.PI * t) };
+    })();
     const armAngle = isSki ? (isAirborne ? 2.0 + Math.sin(animFrame * 0.2) * 0.1 : 0.85 + Math.sin(animFrame * 0.12) * 0.06)
-      : isSwimming ? (swimMoving ? (animFrame * 0.2) % (Math.PI * 2) : 0.9 + Math.sin(animFrame * 0.15) * 0.9)
+      : isSwimming ? (swimMoving ? swimHaul.angle : 0.9 + Math.sin(animFrame * 0.15) * 0.9)
       : isWalking ? 0.16 - walkStride * 0.42
       // (in the air: thrown up high behind him on the way up, coming down and out behind for balance as he falls)
       : isAirborne ? 2.5 - airFall * 1.2
       : 0.2 + Math.sin(animFrame * 0.05) * 0.04;
-    const bend = isSwimming ? 0.2
+    const bend = isSwimming ? (swimMoving ? swimHaul.bend : 0.2)
       : isWalking ? 0.12 + Math.max(0, -Math.sin(walkPhase - 0.55)) * 0.5
       : isAirborne ? 0.45
       : 0.14 + Math.sin(animFrame * 0.05 + 0.8) * 0.05;
