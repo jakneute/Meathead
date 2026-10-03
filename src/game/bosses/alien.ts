@@ -153,7 +153,16 @@ const update = (ctx: FrameContext, boss: Enemy) => {
   boss.harmless = rt.groundT > 0 || rt.mode === 'plead';
   if (rt.mode !== 'plead' && rt.mode !== 'fire' && rt.mode !== 'charge') boss.facing = p.pos.x + p.width / 2 < cx(boss) ? -1 : 1;
 
-  if (rt.groundT > 0) { sludged(ctx, boss, rt); return; }
+  if (rt.groundT > 0) {
+    sludged(ctx, boss, rt);
+    // (stuck to the floor, not out of it: he still takes his shots from down there)
+    if (rt.groundT > 0 && rt.mode !== 'plead') {
+      if (rt.mode === 'charge') chargeUp(ctx, boss, rt);
+      else if (rt.mode === 'fire') fireBeam(ctx, boss, rt);
+      else if (rt.modeT > GROUNDED_SHOT_WAIT) startCharge(ctx, boss, rt);
+    }
+    return;
+  }
   if (rt.pushT > 0) { washed(boss, rt); return; }
   if (rt.stunT > 0) { reeling(boss, rt); return; }
   // (back up out of a sag)
@@ -196,19 +205,27 @@ const floatAbout = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
     rt.path.shift();
     if (rt.path.length === 0) {
       // Settled: up comes the gun
-      rt.mode = 'charge'; rt.modeT = 0;
-      const m = alienMuzzle(boss, { dx: facing(boss), dy: 0 });
-      const p = ctx.state.player;
-      const dx = p.pos.x + p.width / 2 - m.x, dy = p.pos.y + p.height / 2 - m.y, d = Math.hypot(dx, dy) || 1;
-      rt.aim = { dx: dx / d * 0.6 + facing(boss) * 0.4, dy: dy / d * 0.6 };
-      const n = Math.hypot(rt.aim.dx, rt.aim.dy) || 1; rt.aim.dx /= n; rt.aim.dy /= n;
-      playSound('alienCharge', 0.9, rt.slowT > 0 ? -5 : 0);
-      if (Math.random() < 0.3) say(ctx, pickRandom(ALIEN_LINES.LASER));
+      startCharge(ctx, boss, rt);
       // (a beat at the spot before the next spot, the faster he goes the shorter)
       rt.path = [];
     }
   }
 };
+
+/** Up comes the gun, aimed at him (more or less: the way he's facing, swung toward him). */
+const startCharge = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
+  rt.mode = 'charge'; rt.modeT = 0;
+  const m = alienMuzzle(boss, { dx: facing(boss), dy: 0 });
+  const p = ctx.state.player;
+  const dx = p.pos.x + p.width / 2 - m.x, dy = p.pos.y + p.height / 2 - m.y, d = Math.hypot(dx, dy) || 1;
+  rt.aim = { dx: dx / d * 0.6 + facing(boss) * 0.4, dy: dy / d * 0.6 };
+  const n = Math.hypot(rt.aim.dx, rt.aim.dy) || 1; rt.aim.dx /= n; rt.aim.dy /= n;
+  playSound('alienCharge', 0.9, rt.slowT > 0 ? -5 : 0);
+  if (Math.random() < 0.3) say(ctx, pickRandom(ALIEN_LINES.LASER));
+};
+
+/** Pinned down in the sludge, he still takes his shots at him from the floor (a beat between them). */
+const GROUNDED_SHOT_WAIT = 80;
 
 /** The tell: the gun up, the beam charging along where it's aimed (turning to follow him), then locked on. */
 const tellFrames = (boss: Enemy, rt: FinaleRuntime) => Math.round((TELL_FRAMES - alienPace(boss) * TELL_RAMP) * (rt.slowT > 0 ? 1.6 : 1));
