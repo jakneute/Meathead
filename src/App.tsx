@@ -135,6 +135,8 @@ const App: React.FC = () => {
   /** The pause menu's "are you sure" before leaving for the boss select, and which answer's highlighted. */
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [confirmYes, setConfirmYes] = useState(false);
+  /** What the "are you sure" is for: leaving for the boss select, or quitting to the title. */
+  const [leaveTo, setLeaveTo] = useState<'boss' | 'quit'>('boss');
   const viewScale = useFitToWindow();
   const [isInputLocked, setIsInputLocked] = useState(true);
   /** Stage select: the boss dossier is showing instead of the map. */
@@ -346,10 +348,12 @@ const App: React.FC = () => {
   };
 
   /** BOSS SELECT in the pause menu: asks first (NO highlighted). */
-  const askBossSelect = () => { setConfirmYes(false); setConfirmLeave(true); };
+  const askBossSelect = () => { setLeaveTo('boss'); setConfirmYes(false); setConfirmLeave(true); };
+  /** QUIT in the pause menu: asks first too (NO highlighted): it's the whole run gone, not just the stage. */
+  const askQuit = () => { setLeaveTo('quit'); setConfirmYes(false); setConfirmLeave(true); };
   const answerBossSelect = (yes: boolean) => {
     setConfirmLeave(false);
-    if (yes) handleBossSelect();
+    if (yes) { if (leaveTo === 'quit') handleQuitToMenu(); else handleBossSelect(); }
   };
 
   /** After THE END: back to the title screen. */
@@ -506,7 +510,7 @@ const App: React.FC = () => {
     else if (index === numWeapons) handleResume();
     else if (index === numWeapons + 1) setPauseDossier(true);
     else if (index === numWeapons + 2) askBossSelect();
-    else if (index === numWeapons + 3) handleQuitToMenu();
+    else if (index === numWeapons + 3) askQuit();
   };
 
   // --- Menu input (shared by keyboard and gamepad) ---------------------------
@@ -809,13 +813,14 @@ const App: React.FC = () => {
           onResume={handleResume}
           onBossSelect={askBossSelect}
           confirmLeave={confirmLeave}
+          leaveTo={leaveTo}
           pauseDossier={pauseDossier}
           onOpenPauseDossier={() => setPauseDossier(true)}
           onClosePauseDossier={() => setPauseDossier(false)}
           confirmYes={confirmYes}
           onAnswerLeave={answerBossSelect}
           lockedWeapon={lockedWeapon}
-          onQuitToMenu={handleQuitToMenu}
+          onQuitToMenu={askQuit}
           onSelectIndex={(i) => { if (lockedIndex === null && !engaging) setSelectedIndex(i); }}
           lockedIndex={lockedIndex}
           engaging={engaging}

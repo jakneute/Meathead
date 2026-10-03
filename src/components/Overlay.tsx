@@ -57,6 +57,8 @@ interface OverlayProps {
   onQuitToMenu: () => void;
   /** Pause menu: the "are you sure" before leaving for the boss select (and which answer's highlighted), and the answer. */
   confirmLeave?: boolean;
+  /** What the "are you sure" is for: the boss select (this stage's progress) or quitting (the whole run). */
+  leaveTo?: 'boss' | 'quit';
   confirmYes?: boolean;
   onAnswerLeave?: (yes: boolean) => void;
   /** Pause menu: its DOSSIER up (the file on this stage's boss; in the gym, the one on him), and opening / shutting it. */
@@ -553,7 +555,7 @@ const EngageFlash: React.FC<{ bossId: string }> = ({ bossId }) => {
  * buttons below it (RESUME, DOSSIER, BOSS SELECT, QUIT). DOSSIER brings up the file on the stage's boss (in the gym,
  * the department's own file on him).
  */
-const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, weaponAmmo, selectedIndex, onWeaponIconClick, onResume, onBossSelect, onQuitToMenu, confirmLeave, confirmYes, onAnswerLeave, lockedWeapon, stageId, pauseDossier, onOpenPauseDossier, onClosePauseDossier }) => {
+const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, weaponAmmo, selectedIndex, onWeaponIconClick, onResume, onBossSelect, onQuitToMenu, confirmLeave, leaveTo, confirmYes, onAnswerLeave, lockedWeapon, stageId, pauseDossier, onOpenPauseDossier, onClosePauseDossier }) => {
   const isLocked = (w: WeaponType) => !!lockedWeapon && w !== lockedWeapon;
   const numWeapons = availableWeapons.length;
   const shown = selectedIndex < numWeapons ? availableWeapons[selectedIndex] : currentWeapon;
@@ -635,12 +637,12 @@ const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, we
         </div>
       )}
 
-      {/* Leaving for the boss select: are you sure? */}
+      {/* Leaving for the boss select, or quitting: are you sure? */}
       {confirmLeave && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-20 animate-in fade-in duration-150">
           <div className="flex flex-col items-center px-8 py-5" style={{ background: 'linear-gradient(180deg, #27272A, #09090B)', border: '3px solid #EF4444', boxShadow: '0 0 0 3px #000, 0 0 30px rgba(239,68,68,0.35)' }}>
             <div className="text-yellow-400 text-[15px] font-black italic tracking-widest mb-2" style={{ textShadow: '2px 2px 0 #7F1D1D' }}>ARE YOU SURE?</div>
-            <div className="text-zinc-300 text-[8px] font-black uppercase tracking-wider mb-4">YOU'LL LOSE YOUR PROGRESS ON THIS STAGE</div>
+            <div className="text-zinc-300 text-[8px] font-black uppercase tracking-wider mb-4">{leaveTo === 'quit' ? "YOU'LL LOSE ALL YOUR PROGRESS: EVERY BOSS, EVERY WEAPON" : "YOU'LL LOSE YOUR PROGRESS ON THIS STAGE"}</div>
             <div className="flex gap-4">
               {([['YES', true, 'linear-gradient(180deg, #B91C1C, #7F1D1D)', '#450A0A'], ['NO', false, 'linear-gradient(180deg, #52525B, #3F3F46)', '#18181B']] as const).map(([label, yes, face, edge]) => {
                 const on = !!confirmYes === yes;
