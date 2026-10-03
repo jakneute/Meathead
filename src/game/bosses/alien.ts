@@ -153,8 +153,6 @@ const update = (ctx: FrameContext, boss: Enemy) => {
     if (state.frame % FLAME_TICK === 0) { boss.health -= BURN_TICK_DAMAGE; ctx.fx.spawnDamageNumber(boss.pos, BURN_TICK_DAMAGE, false, '#F97316'); if (boss.health <= 0) { ctx.bossHelpers.killBoss(boss, 0, true, 'FLAMETHROWER'); return; } }
     if (rt.burnT <= 0) { boss.isOnFire = false; boss.isOiled = false; boss.oiledTimer = 0; }
   }
-  // A fire burning round the walls (the room's on fire): oiled, he catches if he goes near it
-  if (boss.isOiled && !boss.isOnFire && rt.wrecked.FLAMETHROWER !== undefined && (boss.pos.x < ROOM_L + 60 || boss.pos.x + boss.width > ROOM_R - 60)) ignite(ctx, boss, rt);
   // (in the sludge, or begging: nothing to bump into)
   boss.harmless = rt.groundT > 0 || rt.mode === 'plead';
   if (rt.mode !== 'plead' && rt.mode !== 'fire' && rt.mode !== 'charge') boss.facing = p.pos.x + p.width / 2 < cx(boss) ? -1 : 1;

@@ -15,7 +15,6 @@ import { say, isTalking, MEATHEAD_VOICE, Voice } from '../../platform/speech';
 import { playSound } from '../../platform/audio';
 import { speakAsBoss } from '../../bosses/shared';
 import { ALIEN_ID } from '../../bosses/alien';
-import { spillOil, lightOil } from '../../bosses/oscar';
 import { isShat } from '../../player/gut';
 import { shakeScreen } from '../../core/state';
 import { pickRandom } from '../../core/utils';
@@ -194,7 +193,8 @@ const checkWrecks = (ctx: FrameContext, rt: FinaleRuntime) => {
   if (limited.length > 0 && rt.retreatAt === undefined && limited.every(w => rt.wrecked[w] !== undefined)) callRetreat(ctx, rt);
 };
 
-/** One of his guns has just run dry: the room goes its way (a crash, a shake, the banner, and him saying so). */
+/** One of his guns has just run dry: the room goes its way (a crash, a shake, the banner, and him saying so). Looks
+ * only, every one of them: nothing in the fight changes (the lights going out darkens it, that's all). */
 const wreck = (ctx: FrameContext, rt: FinaleRuntime, w: WeaponType) => {
   const { state, fx } = ctx;
   rt.wrecked[w] = rt.t;
@@ -208,33 +208,19 @@ const wreck = (ctx: FrameContext, rt: FinaleRuntime, w: WeaponType) => {
   };
   switch (w) {
     case 'SHOTGUN': playSound('ice', 1, -6); playSound('glass'); across(40, ['#E0F2FE', '#FFFFFF', '#BAE6FD'], 2); break;
-    case 'FLAMETHROWER': playSound('ignite', 1, -4); playSound('flame', 1, -6); lightOil(state, { x: ROOM_L - 10, y: -200, w: ROOM_R - ROOM_L + 20, h: 800 }); break;
+    case 'FLAMETHROWER': playSound('ignite', 1, -4); playSound('flame', 1, -6); break;
     case 'BOULDER': playSound('crash', 1, -6); playSound('rumble', 1, -4); across(50, ['#78716C', '#A8A29E', '#57534E'], 4); break;
     case 'TSUNAMI': playSound('tsunami', 0.8, -3); fx.spawnSteamExplosionParticles({ x: ROOM_MID, y: FLOOR - 40 }, 10); break;
     case 'SLUDGE': playSound('barf', 1, -5); across(40, ['#84CC16', '#65A30D', '#3F6212'], 3); break;
     case 'TASER': playSound('taser', 1, -5); playSound('crack', 1, -3); across(30, ['#00E5FF', '#FFFFFF'], 3, 20); break;
-    case 'OIL_ROCKET': playSound('oil', 1, -6); coatInOil(state); across(40, ['#1C1917', '#292524', '#44403C'], 3); break;
+    case 'OIL_ROCKET': playSound('oil', 1, -6); across(40, ['#1C1917', '#292524', '#44403C'], 3); break;
     case 'NEEDLES': playSound('dart', 1, -4); playSound('glass', 0.6); across(30, ['#E5E7EB', '#E879F9'], 3); break;
   }
 };
 
-/** The room oiled: slicks over the floor either side (the same oil as Oscar's: slippery, and it burns), down the walls. */
-const coatInOil = (state: FrameContext['state']) => {
-  spillOil(state, ROOM_L + 200, ROOM_L + 520);
-  spillOil(state, ROOM_R - 520, ROOM_R - 200);
-  spillOil(state, ROOM_L, ROOM_L, 'left', 200, FLOOR);
-  spillOil(state, ROOM_R, ROOM_R, 'right', 200, FLOOR);
-};
-
-/** What the wrecks do while they last: the oil kept fresh (it doesn't dry up in here), and lit now and then by the fire. */
+/** What the wrecks do while they last (looks only: drips off the ceiling, sparks). */
 const wreckedRoom = (ctx: FrameContext, rt: FinaleRuntime) => {
   const { state } = ctx;
-  if (rt.wrecked.OIL_ROCKET !== undefined && rt.t % 300 === 0) coatInOil(state);
-  // The fire round the walls catches the oil down them, every so often (it runs along the floor slicks from there)
-  if (rt.wrecked.OIL_ROCKET !== undefined && rt.wrecked.FLAMETHROWER !== undefined && rt.t % 480 === 240) {
-    const side = (rt.t / 480) % 2 < 1 ? -1 : 1;
-    if (lightOil(state, { x: side < 0 ? ROOM_L - 6 : ROOM_R - 6, y: 380, w: 12, h: FLOOR - 380 })) playSound('ignite', 0.8);
-  }
   // Sludge dripping off the ceiling; water off it in the flood
   if (rt.wrecked.SLUDGE !== undefined && rt.t % 9 === 0) state.particles.push({ pos: { x: ROOM_L + 20 + Math.random() * (ROOM_R - ROOM_L - 40), y: -146 }, vel: { x: 0, y: 1 }, life: 160, color: Math.random() < 0.5 ? '#84CC16' : '#65A30D', size: 2 + Math.random() * 3, grav: 0.25 });
   if (rt.wrecked.TSUNAMI !== undefined && rt.t % 14 === 0) state.particles.push({ pos: { x: ROOM_L + 20 + Math.random() * (ROOM_R - ROOM_L - 40), y: -146 }, vel: { x: 0, y: 1 }, life: 160, color: '#7DD3FC', size: 2, grav: 0.3 });

@@ -513,12 +513,15 @@ export const drawRoomBack = (ctx: Ctx, state: GameState) => {
   if (!rt) return;
   // Scorch marks where the beam's hit
   for (const s of rt.scorch) { const a = Math.max(0.25, 1 - (f - s.at) / 2400); ctx.fillStyle = `rgba(20, 8, 16, ${(0.55 * a).toFixed(3)})`; ctx.beginPath(); ctx.ellipse(s.x, s.y, 14, 10, 0, 0, Math.PI * 2); ctx.fill(); if (f - s.at < 120) { ctx.fillStyle = `rgba(255, 140, 228, ${(1 - (f - s.at) / 120).toFixed(3)})`; ctx.fillRect(s.x - 3, s.y - 3, 6, 6); } }
-  // The fire up the curtains and the drapes; smoke rolling under the ceiling
+  // The fire up the curtains and the drapes; smoke rolling under the ceiling. Background, and it looks it: dimmed back
+  // with the rest of the room behind him, no glow thrown off, nothing on the floor (the fire that can hurt is bright)
   if (has(rt, 'FLAMETHROWER')) {
     const k = Math.min(1, (rt.t - rt.wrecked.FLAMETHROWER!) / 90);
+    ctx.save(); ctx.globalAlpha = 0.55;
     for (const [i, [x, y, w, h]] of ([[CUR_L + 30, DAIS_TOP - 10, 60, 160], [CUR_R - 40, DAIS_TOP - 10, 60, 190], [ROOM_MID - 90, ROOM_TOP + 200, 40, 90], [BACK_WINDOWS[0] - BW_W / 2 - 20, BW_BOT + 10, 40, 140], [BACK_WINDOWS[1] + BW_W / 2 + 20, BW_BOT + 10, 40, 150], [ROOM_MID + 120, ROOM_TOP + 240, 34, 80]] as const).entries()) {
-      drawFire(ctx, x, y, w, h, f + i * 17, { seed: i * 31, smoke: 0.5, sparks: i % 2 === 0, glow: 0.8, k });
+      drawFire(ctx, x, y, w, h, f + i * 17, { seed: i * 31, smoke: 0.5, sparks: false, glow: 0, k });
     }
+    ctx.restore();
     for (let b = 0; b < 3; b++) { const u = ((f * 0.3 + b * 140) % 420) / 420; pixelBlob(ctx, ROOM_L + u * (ROOM_R - ROOM_L), ROOM_TOP + 30 + b * 18, 140, 22, 'rgba(28, 22, 20, 0.35)'); }
   }
   // The sludge bubbling in its pools
