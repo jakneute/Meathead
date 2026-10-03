@@ -6,6 +6,7 @@ import { buildLevel } from '../game/core/level';
 import { Cheats, GameEvents, createFrameContext } from '../game/core/context';
 import { KeyboardMouseState, HeldButtonGate, readControls } from '../game/platform/input';
 import { stepGame } from '../game/core/update';
+import { canSkip } from '../game/platform/skip';
 import { drawWorld } from '../game/render/world';
 import { closeAudio } from '../game/platform/audio';
 import { setGameMusic, gameMusicCue } from '../game/music';
@@ -111,8 +112,8 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
         // (a set piece that only allows one weapon keeps putting it back in his hands)
         const forcedWeapon: WeaponType | undefined = state.lockWeapon && p.currentWeapon !== state.lockWeapon ? state.lockWeapon : state.shouldSyncWeapon ? 'GUN' : undefined;
         state.shouldSyncWeapon = false;
-        // (and whether he's in a little cutscene, out of his hands: the HUD's put away for it)
-        p.onPlayerUpdate(player.health, player.power, player.weaponAmmo, forcedWeapon, state.lockWeapon, !!player.inCutscene);
+        // (and whether he's in a little cutscene, out of his hands, or one that can be skipped: the HUD's put away for it)
+        p.onPlayerUpdate(player.health, player.power, player.weaponAmmo, forcedWeapon, state.lockWeapon, !!player.inCutscene || (canSkip() && state.deathTimer <= 0));
       }
       draw();
     };
