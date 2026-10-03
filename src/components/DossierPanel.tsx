@@ -67,9 +67,9 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
   const wh = bossId === WHITE_HOUSE_ID;
   // (and him: the department's orders on getting hold of him, only to be read paused in the gym)
   const asset = bossId === GYM_DOSSIER_ID;
-  const d = garage ? { ...GARAGE_DOSSIER, mission: '', reality: '', arsenal: '', expect: '', background: '', intel: '', notAlive: '' }
-    : wh ? { ...WHITE_HOUSE_DOSSIER, mission: '', reality: '', arsenal: '', expect: '', background: '', intel: '', notAlive: '' }
-    : asset ? { ...GYM_DOSSIER, mission: '', reality: '', arsenal: '', expect: '', background: '', intel: '', notAlive: '' } : DOSSIERS[bossId];
+  const d = garage ? { ...GARAGE_DOSSIER, mission: '', reality: '', arsenal: '', expect: '', resistance: '', background: '', intel: '', notAlive: '' }
+    : wh ? { ...WHITE_HOUSE_DOSSIER, mission: '', reality: '', arsenal: '', expect: '', resistance: '', background: '', intel: '', notAlive: '' }
+    : asset ? { ...GYM_DOSSIER, mission: '', reality: '', arsenal: '', expect: '', resistance: '', background: '', intel: '', notAlive: '' } : DOSSIERS[bossId];
   const loc = garage || asset ? undefined : wh ? WHITE_HOUSE_LOCATION : BOSS_LOCATIONS[bossId];
   // Too long for the page: our own scroll bar (the browser's is hidden), moved by the mouse wheel, the right stick or dragging it
   const body = useRef<HTMLDivElement>(null);
@@ -239,6 +239,7 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
             {section('WHAT HE THINKS HE\'S DOING', d.mission)}
             {section('WHAT HE\'S ACTUALLY DOING', d.reality)}
             {section('HOW HE FIGHTS', d.arsenal)}
+            {d.resistance && section("WHO'S IN THE WAY", d.resistance)}
             {/* (the ground he's going in over, then the man himself: one section, the one picking up from the other) */}
             {section('FIELD INTEL', <>{d.expect}<div className="mt-[3px]"><span className="font-bold">THE TARGET: </span>{d.intel}</div></>)}
             {section('WHY NOT BRING HIM IN ALIVE', d.notAlive)}
