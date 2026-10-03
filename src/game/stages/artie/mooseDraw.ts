@@ -30,6 +30,16 @@ interface Pose {
   rear: boolean;
   mouth: number;
   eye: string;
+  /** Dead: the mane lies flat. */
+  dead?: boolean;
+  /** Legs folded or splayed instead: [fore angle, fore bend, hind angle, hind bend]. */
+  fold?: [number, number, number, number];
+  /** The head (both antlers) behind the body, not over it; or left off it (drawn on its own). */
+  headBehind?: boolean;
+  noHead?: boolean;
+  /** What's done to it: on the hide (body's frame, under the near legs) and on the head (head's frame). */
+  onBody?: (ctx: Ctx) => void;
+  onHead?: (ctx: Ctx) => void;
 }
 
 const livePose = (m: Enemy, frame: number): Pose => {
@@ -92,6 +102,9 @@ const ell = (ctx: Ctx, cx: number, cy: number, rx: number, ry: number, r: number
   ctx.moveTo(cx + rx * Math.cos(r), cy + rx * Math.sin(r)); ctx.ellipse(cx, cy, rx, ry, r, 0, Math.PI * 2);
 };
 
+/** Rump, barrel and hump, as one outline. */
+const hidePath = (ctx: Ctx) => { ell(ctx, -42, -62, 30, 25, -0.1); ell(ctx, -4, -60, 52, 26, 0); ell(ctx, 28, -74, 34, 26, -0.2); };
+
 /** The whole animal in a pose, local frame: feet at y = 0, facing +x. */
 const drawMooseBody = (ctx: Ctx, pose: Pose, frame: number) => {
   ctx.save();
@@ -100,17 +113,18 @@ const drawMooseBody = (ctx: Ctx, pose: Pose, frame: number) => {
   ctx.rotate(pose.tilt);
   ctx.translate(-pose.pivotX, 0);
 
+  if (pose.headBehind && !pose.noHead) { ctx.save(); headTransform(ctx, pose); antler(ctx, true); head(ctx, pose, frame); antler(ctx, false); ctx.restore(); }
   // Far legs (darker)
   legs(ctx, pose, true);
   // Far antler behind the head
-  ctx.save(); headTransform(ctx, pose); antler(ctx, true); ctx.restore();
+  if (!pose.headBehind && !pose.noHead) { ctx.save(); headTransform(ctx, pose); antler(ctx, true); ctx.restore(); }
 
   // The stubby tail
   ink(ctx, () => { ctx.moveTo(-66, -80); ctx.quadraticCurveTo(-76, -78, -74, -66); ctx.lineTo(-68, -66); ctx.closePath(); }, FUR_DARK, 1.2);
   // Rump, barrel and the big shoulder hump, as one: the ink round the lot, then the hide over it, banded (lit along
   // the back, the belly in shadow), the hump darker; the coat's grain in strokes
   const mixFur = mix(FUR_DARK, FUR, 0.5);
-  const hide = () => { ell(ctx, -42, -62, 30, 25, -0.1); ell(ctx, -4, -60, 52, 26, 0); ell(ctx, 28, -74, 34, 26, -0.2); };
+  const hide = () => hidePath(ctx);
   ctx.beginPath(); hide(); ctx.strokeStyle = INK; ctx.lineWidth = 2.6; ctx.lineJoin = 'round'; ctx.stroke();
   ctx.save(); ctx.beginPath(); hide(); ctx.clip();
   ctx.fillStyle = FUR; ctx.fillRect(-80, -110, 160, 80);
@@ -134,23 +148,27 @@ const drawMooseBody = (ctx: Ctx, pose: Pose, frame: number) => {
   for (let i = 0; i < 6; i++) ctx.fillRect(8 + i * 8, -60 + (i % 2) * 4, 1, 5);
   ctx.restore();
 
-  // The mane: a shaggy crest along the hump, rooted in it (no line along its foot)
+  // The mane: a shaggy crest along the hump, rooted in it (no line along its foot); lying flat once it's dead
+  const crest = pose.dead ? 0.4 : 1;
   ink(ctx, () => {
     ctx.moveTo(4, -90);
-    for (let i = 0; i < 8; i++) { const x = 6 + i * 7, b = Math.abs(i - 3.5) * 2; ctx.lineTo(x + 1, -98 + b); ctx.lineTo(x + 4.5, -107 + b * 1.2); ctx.lineTo(x + 7, -97.5 + b); }
+    for (let i = 0; i < 8; i++) { const x = 6 + i * 7, b = Math.abs(i - 3.5) * 2; ctx.lineTo(x + 1, -98 + b); ctx.lineTo(x + 4.5, -98 + b - (9 - b * 0.2) * crest); ctx.lineTo(x + 7, -97.5 + b); }
     ctx.lineTo(64, -86);
   }, '#24160C', 1.2);
   ctx.fillStyle = '#3A2414'; for (let i = 0; i < 8; i++) { const b = Math.abs(i - 3.5) * 2; ctx.fillRect(9 + i * 7, -101 + b * 1.1, 1, 3); }
+  pose.onBody?.(ctx);
 
   // Near legs
   legs(ctx, pose, false);
 
   // Neck, head, bell, near antler
-  ctx.save();
-  headTransform(ctx, pose);
-  head(ctx, pose, frame);
-  antler(ctx, false);
-  ctx.restore();
+  if (!pose.headBehind && !pose.noHead) {
+    ctx.save();
+    headTransform(ctx, pose);
+    head(ctx, pose, frame);
+    antler(ctx, false);
+    ctx.restore();
+  }
   ctx.restore();
 };
 
@@ -199,6 +217,7 @@ const head = (ctx: Ctx, pose: Pose, _frame: number) => {
   ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(85.4, -80, 1.3, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#FFFFFF'; ctx.fillRect(83.6, -81.8, 1.2, 1.2);
   ink(ctx, () => { ctx.moveTo(77, -86); ctx.lineTo(93, -82); ctx.lineTo(92, -84.6); ctx.lineTo(78, -88); ctx.closePath(); }, '#1C1917', 0.8);
+  pose.onHead?.(ctx);
 };
 
 /** A broad palmate antler with tines along the top edge. */
@@ -237,6 +256,7 @@ const legs = (ctx: Ctx, pose: Pose, far: boolean) => {
   const fx = far ? 22 : 36, hx = far ? -46 : -32;
   const off = far ? Math.PI : 0;
   const swing = (phase: number) => Math.sin(pose.legPhase + phase + off) * 0.55 * pose.legSwing;
+  if (pose.fold) { const [fa, fb, ha, hb] = pose.fold; leg(ctx, fx, -44, fa, fb, far); leg(ctx, hx, -46, ha, hb, far); return; }
   // Front leg: raised and folded when rearing
   leg(ctx, fx, -44, pose.rear ? -1.1 : swing(0), pose.rear ? 1.3 : 0, far);
   // Hind leg: kicked straight back
@@ -272,13 +292,26 @@ const leg = (ctx: Ctx, x: number, y: number, a: number, bend: number, far: boole
 // What's left of it
 // ---------------------------------------------------------------------------
 
-const deadPose: Pose = { legPhase: 0, legSwing: 0, tilt: 0, pivotX: 0, head: 0.2, kick: false, rear: false, mouth: 0.7, eye: '#1C1917' };
+const deadPose: Pose = { legPhase: 0, legSwing: 0, tilt: 0, pivotX: 0, head: 0.2, kick: false, rear: false, mouth: 0.7, eye: '#1C1917', dead: true };
+
+/** The corpse's own frame (where it lies, facing +x), so a wound found in the body's frame can be put back in it. */
+let corpseFrame: DOMMatrix | null = null;
+/** A point in the current frame, in the corpse's. */
+const at = (ctx: Ctx, x: number, y: number): [number, number] => {
+  const p = (corpseFrame ? corpseFrame.inverse().multiply(ctx.getTransform()) : ctx.getTransform()).transformPoint(new DOMPoint(x, y));
+  return [p.x, p.y];
+};
+/** The turn that points +y at the ground, from here (so drips and tongues hang whichever way the frame's turned). */
+const fall = (ctx: Ctx) => { const m = ctx.getTransform().inverse(); return Math.atan2(-m.c, m.d); };
+/** Nothing of it goes under the snow. */
+const aboveGround = (ctx: Ctx) => { ctx.beginPath(); ctx.rect(-400, -400, 800, 400); ctx.clip(); };
 
 export const drawMooseCorpse = (ctx: Ctx, c: MooseCorpse, frame: number) => {
   const age = frame - c.t0;
   ctx.save();
   ctx.translate(c.x, c.y);
   ctx.scale(c.facing, 1);
+  corpseFrame = ctx.getTransform();
   switch (c.weapon) {
     case 'GUN': gunned(ctx, frame, age); break;
     case 'SHOTGUN': shattered(ctx, frame); break;
@@ -292,6 +325,7 @@ export const drawMooseCorpse = (ctx: Ctx, c: MooseCorpse, frame: number) => {
     default: gunned(ctx, frame, age);
   }
   ctx.restore();
+  corpseFrame = null;
 };
 
 const pool = (ctx: Ctx, w: number, color = BLOOD) => {
@@ -301,74 +335,176 @@ const pool = (ctx: Ctx, w: number, color = BLOOD) => {
   ctx.beginPath(); ctx.ellipse(-w * 0.3, -3, w * 0.3, 2, 0, 0, Math.PI * 2); ctx.fill();
 };
 
-/** Belly up, legs stiff in the air, full of holes. */
-const bellyUp = (ctx: Ctx, frame: number, filter = 'none', lift = 0) => {
-  ctx.save();
-  // Flipped over: its back on the ground, belly and legs up
-  ctx.translate(0, -96 - lift);
-  ctx.rotate(Math.PI);
-  ctx.filter = filter;
-  drawMooseBody(ctx, { ...deadPose, legSwing: 0 }, frame);
+/** The tongue lolling out of a corner of the mouth, hanging whichever way's down. */
+const tongue = (ctx: Ctx, x: number, y: number, len = 14, color = '#E11D48') => {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(fall(ctx));
+  ink(ctx, () => { ctx.moveTo(-3, 0); ctx.lineTo(-3.8, len - 5); ctx.quadraticCurveTo(-3, len + 1, 0.4, len + 1); ctx.quadraticCurveTo(4, len, 3.8, len - 5); ctx.lineTo(3, 0); }, color, 0.9);
+  ctx.fillStyle = lite(color, 0.3); ctx.fillRect(-2.6, 1, 1.2, len - 6);
+  ctx.fillStyle = dark(color, 0.35); ctx.fillRect(0, 2, 0.9, len - 6); // (the groove)
   ctx.restore();
 };
 
-const xEyes = (ctx: Ctx, x: number, y: number) => {
-  ctx.strokeStyle = '#111'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(x - 4, y - 4); ctx.lineTo(x + 4, y + 4); ctx.moveTo(x + 4, y - 4); ctx.lineTo(x - 4, y + 4); ctx.stroke();
+/** The eye shut in an X (head's frame). */
+const xEye = (ctx: Ctx) => {
+  ink(ctx, () => ctx.ellipse(84, -80, 4.6, 3.6, 0, 0, Math.PI * 2), dark(FUR, 0.15), 1);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(81.4, -82.6); ctx.lineTo(86.6, -77.4); ctx.moveTo(86.6, -82.6); ctx.lineTo(81.4, -77.4); ctx.stroke();
 };
+/** X eye, tongue out. */
+const deadFace = (ctx: Ctx) => { xEye(ctx); tongue(ctx, 99, -55); };
+
+/** The head and both antlers on their own, chin down on the snow (corpse's frame, the neck's root about x = 60, y = -50, resting on its bell,
+ *  the snout toward +x); `onHead` in the head's frame. */
+const lyingHead = (ctx: Ctx, frame: number, onHead: (c: Ctx) => void, mouth = 0.6) => {
+  ctx.save(); ctx.translate(24, 30); ctx.translate(48, -80); ctx.rotate(0.2); ctx.translate(-48, 80);
+  antler(ctx, true);
+  head(ctx, { ...deadPose, mouth, onHead }, frame);
+  antler(ctx, false);
+  ctx.restore();
+};
+
+/** Over on its back, legs stiff in the air: rolled so the rump and hump both rest on the snow, the neck wrung round so
+ *  the head lies the right way up on the snow by its shoulder. `after` draws on it in the body's frame. */
+const BELLY_UP = Math.PI + 0.18;
+const bellyUp = (ctx: Ctx, frame: number, o: { filter?: string; onBody?: (c: Ctx) => void; onHead?: (c: Ctx) => void; after?: (c: Ctx) => void } = {}) => {
+  ctx.save();
+  aboveGround(ctx);
+  ctx.filter = o.filter ?? 'none';
+  ctx.save(); ctx.scale(-1, 1); lyingHead(ctx, frame, o.onHead ?? deadFace); ctx.restore();
+  ctx.translate(0, -93);
+  ctx.rotate(BELLY_UP);
+  drawMooseBody(ctx, { ...deadPose, noHead: true, onBody: o.onBody }, frame);
+  ctx.filter = 'none';
+  o.after?.(ctx);
+  ctx.restore();
+};
+
+/** A bullet hole, still oozing down whichever way's down. */
+const hole = (ctx: Ctx, x: number, y: number, frame: number, i: number) => {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(fall(ctx));
+  const run = 5 + ((frame / 3 + i * 5) % 8);
+  ctx.fillStyle = BLOOD; ctx.fillRect(-1.2, 0, 2.4, run);
+  ctx.fillStyle = BLOOD_BRIGHT; ctx.fillRect(-0.6, 0, 1, run - 1);
+  ink(ctx, () => ctx.arc(0, run, 1.7, 0, Math.PI * 2), BLOOD_BRIGHT, 0.6);
+  ink(ctx, () => ctx.arc(0, 0, 3.4, 0, Math.PI * 2), BLOOD, 0.9);
+  ctx.fillStyle = '#1C0505'; ctx.beginPath(); ctx.arc(0.4, 0.4, 1.9, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = lite(BLOOD_BRIGHT, 0.3); ctx.fillRect(-2, -2, 1.2, 1.2);
+  ctx.restore();
+};
+/** Where the rounds went in (body's frame): belly, flank, shoulder, haunch, clear of the near legs. */
+const GUN_HOLES: [number, number][] = [[-48, -50], [-20, -42], [-6, -50], [10, -40], [-22, -62], [2, -66], [20, -56], [52, -64]];
 
 const gunned = (ctx: Ctx, frame: number, age: number) => {
   pool(ctx, 60 + Math.min(40, age * 0.3));
-  bellyUp(ctx, frame);
-  // Bullet holes, each still oozing
-  const holes: [number, number][] = [[-30, -62], [-6, -74], [14, -58], [32, -70], [-44, -48], [4, -44]];
-  for (const [x, y] of holes) {
-    ctx.fillStyle = '#1C0505'; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = BLOOD_BRIGHT; ctx.fillRect(x - 1, y + 3, 2, 6 + ((frame / 3 + x) % 8));
+  bellyUp(ctx, frame, { onBody: c => GUN_HOLES.forEach(([x, y], i) => hole(c, x, y, frame, i)) });
+};
+
+/** A frozen piece of it: the hide (lit from above) round the broken faces, meat with its fat and a bone through it,
+ *  all of it rimed and glazed in ice. */
+const ICE = '#BFDBFE';
+const chunk = (ctx: Ctx, x: number, outline: number[][], meats: number[][][], bones: number[][], mane = false) => {
+  ctx.save(); ctx.translate(x, 0);
+  const poly = (pts: number[][]) => () => { pts.forEach(([px, py], i) => i ? ctx.lineTo(px, py) : ctx.moveTo(px, py)); ctx.closePath(); };
+  const out = poly(outline);
+  const ys = outline.map(p => p[1]), xs = outline.map(p => p[0]);
+  const top = Math.min(...ys), l = Math.min(...xs), w = Math.max(...xs) - l;
+  // (the rime round it)
+  ctx.beginPath(); out(); ctx.strokeStyle = ICE; ctx.lineWidth = 5; ctx.lineJoin = 'round'; ctx.stroke();
+  shadedTop(ctx, out, FUR, l, top, w, -top, 1.4);
+  if (mane) {
+    const t = outline.filter(p => p[1] < top + 6), x0 = t[0][0], x1 = t[t.length - 1][0];
+    ink(ctx, () => { ctx.moveTo(x0, top + 2); for (let i = 0; i < 6; i++) { const px = x0 + i * (x1 - x0) / 6; ctx.lineTo(px + 2, top - 5 + (i % 2) * 2); ctx.lineTo(px + (x1 - x0) / 6, top + 2); } ctx.closePath(); }, '#24160C', 1);
   }
-  // Tongue lolling out, X eye
-  ctx.fillStyle = '#E11D48'; ctx.beginPath(); ctx.ellipse(-104, -30, 9, 4, 0.6, 0, Math.PI * 2); ctx.fill();
-  xEyes(ctx, -84, -36);
+  for (const m of meats) {
+    ink(ctx, poly(m), '#A3202A', 1);
+    ctx.save(); ctx.beginPath(); poly(m)(); ctx.clip();
+    const mx = m.reduce((s, p) => s + p[0], 0) / m.length, my = m.reduce((s, p) => s + p[1], 0) / m.length;
+    ctx.fillStyle = lite('#A3202A', 0.2); ctx.fillRect(mx - 8, my - 30, 4, 60);
+    ctx.fillStyle = '#EBD3C2'; ctx.fillRect(mx - 6, my - 8, 10, 1.4); ctx.fillRect(mx - 3, my + 5, 8, 1.4); // (the fat)
+    ctx.restore();
+  }
+  for (const [bx, by, r] of bones) {
+    ink(ctx, () => ctx.arc(bx, by, r, 0, Math.PI * 2), '#EFE6D2', 1);
+    ctx.fillStyle = '#8F1D2C'; ctx.beginPath(); ctx.arc(bx + 0.4, by + 0.4, r * 0.45, 0, Math.PI * 2); ctx.fill();
+  }
+  // The glaze: the ice over the lot, lit along the top in a step, a frost of glints
+  ctx.save(); ctx.beginPath(); out(); ctx.clip();
+  ctx.fillStyle = 'rgba(191, 219, 254, 0.16)'; ctx.fillRect(l, top, w, -top);
+  ctx.fillStyle = 'rgba(240, 249, 255, 0.45)'; ctx.fillRect(l, top, w, 3);
+  ctx.fillStyle = '#F0F9FF';
+  for (let i = 0; i < 5; i++) ctx.fillRect(l + 4 + ((i * 13) % (w - 6)), top + 6 + ((i * 7) % Math.max(4, -top - 10)), 1.4, 1.4);
+  ctx.restore();
+  ctx.beginPath(); out(); ctx.strokeStyle = INK; ctx.lineWidth = 1.4; ctx.stroke();
+  ctx.restore();
 };
 
 const shattered = (ctx: Ctx, frame: number) => {
   pool(ctx, 90, 'rgba(127, 16, 16, 0.7)');
-  // Frozen chunks of moose: fur outside, red meat and white bone at the breaks, rimed in ice
-  const chunks: [number, number, number, number, number][] = [[-70, -26, 36, 30, 0.3], [-28, -34, 44, 36, -0.2], [22, -30, 40, 32, 0.4], [64, -22, 30, 24, -0.5], [-4, -12, 26, 14, 0.1]];
-  for (const [x, y, w, h, r] of chunks) {
-    ctx.save(); ctx.translate(x, y); ctx.rotate(r);
-    ctx.fillStyle = FUR; ctx.fillRect(-w / 2, -h / 2, w, h);
-    ctx.fillStyle = BLOOD_BRIGHT; ctx.fillRect(-w / 2, h / 2 - 8, w, 8);
-    ctx.fillStyle = '#F5F5F4'; ctx.fillRect(-4, h / 2 - 7, 8, 5);
-    ctx.fillStyle = 'rgba(191, 219, 254, 0.55)'; ctx.fillRect(-w / 2 - 2, -h / 2 - 2, w + 4, h + 4);
-    ctx.restore();
-  }
-  // A leg and the head, snapped off, antler broken
-  ctx.save(); ctx.translate(96, -8); ctx.rotate(1.3); shin(ctx, false); ctx.restore();
-  ctx.save(); ctx.translate(-130, 60); ctx.scale(0.9, 0.9); head(ctx, deadPose, frame); antler(ctx, false); ctx.restore();
+  ctx.save(); aboveGround(ctx);
+  // Rump (its tail), barrel (its ribs), hump (its mane), each standing where it fell
+  ink(ctx, () => { ctx.moveTo(-126, -26); ctx.quadraticCurveTo(-134, -24, -132, -14); ctx.lineTo(-126, -16); ctx.closePath(); }, FUR_DARK, 1.1);
+  chunk(ctx, -100, [[-24, 0], [-27, -13], [-21, -27], [-8, -34], [6, -33], [14, -26], [18, -18], [13, -11], [19, -5], [16, 0]],
+    [[[14, -26], [18, -18], [13, -11], [19, -5], [16, 0], [7, 0], [9, -9], [5, -18]]], [[11, -14, 3.6]]);
+  chunk(ctx, -46, [[-24, 0], [-28, -8], [-24, -18], [-28, -28], [-16, -38], [2, -41], [20, -37], [26, -28], [22, -20], [28, -12], [24, 0]],
+    [[[-24, 0], [-28, -8], [-24, -18], [-28, -28], [-19, -28], [-16, -18], [-19, -8], [-16, 0]], [[26, -28], [22, -20], [28, -12], [24, 0], [16, 0], [18, -12], [14, -22]]],
+    [[22, -24, 2.2], [22, -14, 2.2], [20, -5, 2.2]]);
+  chunk(ctx, 6, [[-22, 0], [-26, -10], [-21, -22], [-25, -32], [-12, -42], [6, -46], [22, -40], [28, -26], [26, -12], [22, 0]],
+    [[[-22, 0], [-26, -10], [-21, -22], [-25, -32], [-16, -30], [-13, -20], [-16, -8], [-14, 0]]], [[-18, -19, 4]], true);
+  // The head, chin down in the snow, the neck broken off clean (meat and the bone in it), frosted over
+  lyingHead(ctx, frame, c => {
+    xEye(c); tongue(c, 99, -55, 10);
+    ink(c, () => c.ellipse(36, -77, 5, 18, 0.1, 0, Math.PI * 2), '#A3202A', 1);
+    ink(c, () => c.arc(36.5, -78, 3.6, 0, Math.PI * 2), '#EFE6D2', 1);
+    c.fillStyle = 'rgba(191, 219, 254, 0.22)'; c.beginPath(); c.moveTo(34, -96); c.lineTo(102, -78); c.lineTo(112, -62); c.lineTo(70, -56); c.lineTo(38, -58); c.closePath(); c.fill();
+  }, 0.4);
+  // A leg, snapped at the knee, lying in front
+  ctx.save(); ctx.translate(-76, -5.6); ctx.rotate(-Math.PI / 2); shin(ctx, false); ctx.restore();
+  ink(ctx, () => ctx.ellipse(-77, -5.6, 2.4, 5, 0, 0, Math.PI * 2), '#A3202A', 0.9);
+  ctx.restore();
   // Ice shards glinting
-  ctx.fillStyle = '#E0F2FE';
-  for (let i = 0; i < 9; i++) { const x = -90 + i * 22; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 4, -8 - (i % 3) * 4); ctx.lineTo(x + 8, 0); ctx.fill(); }
+  for (let i = 0; i < 9; i++) {
+    const x = -96 + i * 23, h = 8 + (i % 3) * 4;
+    ink(ctx, () => { ctx.moveTo(x, 0); ctx.lineTo(x + 3, -h); ctx.lineTo(x + 7, 0); ctx.closePath(); }, '#E0F2FE', 0.8);
+    ctx.fillStyle = (frame + i * 9) % 40 < 4 ? '#FFFFFF' : '#F0F9FF'; ctx.fillRect(x + 2.4, -h + 3, 1, h - 4);
+  }
 };
 
 const roasted = (ctx: Ctx, frame: number) => {
   ctx.fillStyle = '#0C0A09'; ctx.beginPath(); ctx.ellipse(0, -2, 90, 8, 0, 0, Math.PI * 2); ctx.fill();
-  // A charred carcass, legs curled: the whole thing blackened
-  ctx.save(); ctx.filter = 'brightness(0.18) sepia(1) contrast(1.6)';
-  ctx.translate(0, 10); drawMooseBody(ctx, { ...deadPose, tilt: 0.05, rear: true }, frame);
+  // Charred where it stood: dropped to its front knees, the hind legs locked, the head hung, the whole thing blackened;
+  // a hole burnt through its flank to the ribs, the antlers still alight
+  let flames: [number, number][] = [[40, -130], [60, -130]];
+  ctx.save(); aboveGround(ctx); ctx.filter = 'brightness(0.18) sepia(1) contrast(1.6)';
+  drawMooseBody(ctx, {
+    ...deadPose, tilt: 0.23, pivotX: -32, head: 0.4, mouth: 0.3, fold: [-0.23, 1.57, -0.23, 0],
+    onBody: c => {
+      c.save(); c.filter = 'none';
+      ink(c, () => c.ellipse(-8, -58, 20, 13, 0, 0, Math.PI * 2), '#F97316', 1.2);
+      c.fillStyle = '#FDE047'; c.beginPath(); c.ellipse(-9, -59, 17, 10.5, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#1C0A04'; c.beginPath(); c.ellipse(-8, -58, 15, 9.5, 0, 0, Math.PI * 2); c.fill();
+      c.save(); c.beginPath(); c.ellipse(-8, -58, 15, 9.5, 0, 0, Math.PI * 2); c.clip();
+      for (let i = 0; i < 5; i++) {
+        const x = -20 + i * 6;
+        c.beginPath(); c.moveTo(x, -70); c.quadraticCurveTo(x + 4, -58, x + 1, -46);
+        c.strokeStyle = INK; c.lineWidth = 3.4; c.stroke();
+        c.strokeStyle = '#E7E5E4'; c.lineWidth = 2; c.stroke();
+      }
+      c.restore();
+      // (embers in the cracks of the hide)
+      for (let i = 0; i < 9; i++) { c.fillStyle = (frame + i * 7) % 20 < 10 ? '#F97316' : '#FDE047'; c.fillRect(-60 + i * 13, -76 + ((i * 13) % 26), 3, 1.6); }
+      c.restore();
+    },
+    onHead: c => { flames = [at(c, 44, -128), at(c, 60, -134)]; },
+  }, frame);
   ctx.restore();
-  // Ribs burnt through
-  ctx.strokeStyle = '#E7E5E4'; ctx.lineWidth = 2.5;
-  for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc(-4 + i * 11 - 26, -48, 14, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke(); }
-  // Embers in the cracks
-  for (let i = 0; i < 10; i++) { ctx.fillStyle = (frame + i * 7) % 20 < 10 ? '#F97316' : '#FDE047'; ctx.fillRect(-60 + i * 12, -40 - (i * 13) % 28, 3, 2); }
-  // The antlers still burning
-  drawFlameLicks(ctx, 50, -138, 52, 32, frame, { seed: 21, n: 6 });
-  // Smoke
+  // The antlers still burning, on them
+  const [[ax, ay], [bx, by]] = flames;
+  drawFlameLicks(ctx, (ax + bx) / 2, (ay + by) / 2 + 6, 40, 30, frame, { seed: 21, n: 6 });
+  // Smoke off them
   for (let i = 0; i < 5; i++) {
     const k = ((frame * 0.6 + i * 40) % 120) / 120;
     ctx.fillStyle = `rgba(40,40,40,${0.5 - k * 0.45})`;
-    ctx.beginPath(); ctx.arc(-20 + i * 12 + k * 20, -80 - k * 110, 8 + k * 16, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(ax - 10 + i * 6 + k * 20, ay - 20 - k * 100, 8 + k * 16, 0, Math.PI * 2); ctx.fill();
   }
 };
 
@@ -377,102 +513,247 @@ const flattened = (ctx: Ctx, frame: number) => {
   ctx.fillStyle = BLOOD;
   ctx.beginPath(); ctx.ellipse(0, -2, 120, 9, 0, 0, Math.PI * 2); ctx.fill();
   for (const d of [-1, 1]) for (let i = 0; i < 5; i++) { ctx.fillRect(d * (70 + i * 14), -6 - (i % 2) * 5, 8, 4); }
-  // The moose pressed flat, legs splayed out, antlers sticking out from under
-  ctx.save(); ctx.translate(0, -2); ctx.scale(1.3, 0.22); drawMooseBody(ctx, { ...deadPose, legSwing: 0 }, frame); ctx.restore();
-  ctx.save(); ctx.translate(-20, 4); antler(ctx, false); ctx.restore();
-  for (const [x, a] of [[-70, -1.2], [-40, -1.4], [40, 1.3], [70, 1.1]] as [number, number][]) { ctx.save(); ctx.translate(x, -6); ctx.rotate(a); shin(ctx, false); ctx.restore(); }
-  // The boulder that did it
-  ctx.fillStyle = '#6B645C'; ctx.beginPath(); ctx.ellipse(0, -46, 56, 44, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#857D73'; ctx.beginPath(); ctx.ellipse(-14, -60, 26, 18, -0.3, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = '#3F3A34'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-20, -80); ctx.lineTo(-6, -58); ctx.lineTo(10, -64); ctx.stroke();
-  ctx.fillStyle = '#F8FAFC'; ctx.beginPath(); ctx.ellipse(-6, -88, 30, 6, 0, 0, Math.PI * 2); ctx.fill(); // snow cap
+  // The legs splayed out from under it
+  for (const [x, a] of [[-58, 1.45], [-44, 1.5], [30, -1.5], [44, -1.45]] as [number, number][]) { ctx.save(); ctx.translate(x, -8); ctx.rotate(a); shin(ctx, x > 0); ctx.restore(); }
+  // The moose pressed flat, antlers and all, its head out from under
+  ctx.save(); ctx.translate(0, -1); ctx.scale(1.25, 0.24); drawMooseBody(ctx, { ...deadPose, head: 0, mouth: 0.9 }, frame); ctx.restore();
+  // The eye popped out onto the snow on its stalk, the tongue squeezed out flat
+  ink(ctx, () => ctx.ellipse(105, -19, 3, 1.6, 0, 0, Math.PI * 2), '#1C0505', 0.8);
+  ctx.strokeStyle = BLOOD; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(105, -19); ctx.quadraticCurveTo(112, -16, 114, -6); ctx.stroke();
+  ink(ctx, () => ctx.arc(115, -4, 3.6, 0, Math.PI * 2), '#F5F5F4', 0.9);
+  ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(116.4, -4, 1.4, 0, Math.PI * 2); ctx.fill();
+  ink(ctx, () => ctx.ellipse(136, -3, 10, 2.6, 0, 0, Math.PI * 2), '#E11D48', 0.9);
+  // The boulder that did it: stone in steps (lit upper left), its crack, its cap of snow
+  const rock = () => ctx.ellipse(-4, -46, 56, 44, 0, 0, Math.PI * 2);
+  ctx.save(); ctx.beginPath(); rock(); ctx.clip();
+  ctx.fillStyle = '#6B645C'; ctx.fillRect(-60, -90, 112, 88);
+  ctx.fillStyle = '#7C746A'; ctx.beginPath(); ctx.ellipse(-14, -58, 40, 30, -0.3, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#8E867B'; ctx.beginPath(); ctx.ellipse(-22, -66, 22, 14, -0.3, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#524C45'; ctx.beginPath(); ctx.ellipse(16, -16, 50, 24, -0.3, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  ctx.beginPath(); rock(); ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.stroke();
+  ctx.strokeStyle = '#3F3A34'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-20, -80); ctx.lineTo(-6, -58); ctx.lineTo(10, -64); ctx.moveTo(-6, -58); ctx.lineTo(-10, -44); ctx.stroke();
+  ink(ctx, () => { ctx.moveTo(-34, -84); ctx.quadraticCurveTo(-6, -96, 22, -84); ctx.quadraticCurveTo(8, -80, -6, -82); ctx.quadraticCurveTo(-22, -80, -34, -84); }, '#F8FAFC', 1.2); // snow cap
+  ctx.fillStyle = '#CBD5E1'; ctx.fillRect(-14, -83, 18, 1.4);
 };
 
 const drowned = (ctx: Ctx, frame: number) => {
   pool(ctx, 110, 'rgba(56, 189, 248, 0.45)');
-  // Bloated and belly up, blue around the edges
-  ctx.save(); ctx.translate(0, -10); ctx.scale(1.2, 1.25); bellyUp(ctx, frame, 'hue-rotate(160deg) saturate(0.5) brightness(0.8)'); ctx.restore();
-  // Belly swollen like a drum, eyes bulging
-  ctx.fillStyle = 'rgba(148, 163, 184, 0.9)'; ctx.beginPath(); ctx.ellipse(0, -78, 44, 22, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#F5F5F4'; ctx.beginPath(); ctx.arc(-98, -42, 7, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(-98, -42, 2, 0, Math.PI * 2); ctx.fill();
+  // Bloated and belly up, blue round the edges: the belly swollen like a drum, the eyes bulging, the tongue fat
+  let belly: [number, number] = [0, -80];
+  bellyUp(ctx, frame, {
+    filter: 'hue-rotate(160deg) saturate(0.5) brightness(0.8)',
+    onBody: c => {
+      c.save(); c.filter = 'none';
+      ink(c, () => c.ellipse(-6, -40, 42, 17, 0, 0, Math.PI * 2), '#7D8DA3', 1.4);
+      c.fillStyle = '#93A3B8'; c.beginPath(); c.ellipse(-6, -34, 36, 9, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#B4C2D3'; c.beginPath(); c.ellipse(-10, -29, 22, 3.4, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#5E6E84'; for (const x of [-26, -6, 14]) c.fillRect(x, -48, 1, 6); // (the stretch marks)
+      c.restore();
+      belly = at(c, -6, -23);
+    },
+    onHead: c => {
+      c.save(); c.filter = 'none';
+      ink(c, () => c.arc(85, -80, 6, 0, Math.PI * 2), '#F5F5F4', 1.1);
+      c.fillStyle = INK; c.beginPath(); c.arc(86, -80, 1.6, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = '#DC2626'; c.lineWidth = 0.6; c.beginPath(); c.moveTo(80, -80); c.lineTo(83, -79); c.moveTo(85, -85); c.lineTo(85, -82); c.stroke();
+      tongue(c, 99, -55, 16, '#9F5F86');
+      c.restore();
+    },
+  });
   // A fish flopping on it
   const hop = Math.abs(Math.sin(frame * 0.2)) * 14;
-  ctx.save(); ctx.translate(10, -104 - hop); ctx.rotate(Math.sin(frame * 0.4) * 0.5);
-  ctx.fillStyle = '#94A3B8'; ctx.beginPath(); ctx.ellipse(0, 0, 12, 5, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(-10, 0); ctx.lineTo(-18, -6); ctx.lineTo(-18, 6); ctx.fill();
-  ctx.fillStyle = '#111'; ctx.fillRect(7, -2, 2, 2);
+  ctx.save(); ctx.translate(belly[0], belly[1] - 5 - hop); ctx.rotate(Math.sin(frame * 0.4) * 0.5);
+  ink(ctx, () => { ctx.moveTo(-10, 0); ctx.lineTo(-18, -6); ctx.lineTo(-17, 6); ctx.closePath(); }, '#64748B', 0.9);
+  ink(ctx, () => ctx.ellipse(0, 0, 12, 5, 0, 0, Math.PI * 2), '#94A3B8', 1);
+  ctx.fillStyle = '#CBD5E1'; ctx.fillRect(-6, 1.4, 12, 1.6);
+  ctx.fillStyle = INK; ctx.fillRect(7, -2, 2, 2);
   ctx.restore();
 };
 
 const overdosed = (ctx: Ctx, frame: number) => {
   pool(ctx, 60, 'rgba(232, 121, 249, 0.35)');
-  // Slumped on its haunches, head drooped, twitching
+  // Slumped on its haunches, propped on its forelegs, the head hung, eyes rolled back, twitching; the syringes still in it
   const twitch = frame % 50 < 4 ? Math.sin(frame * 3) * 3 : 0;
-  ctx.save(); ctx.translate(twitch, 0); ctx.filter = `hue-rotate(${(frame * 4) % 360}deg) saturate(1.5)`;
-  drawMooseBody(ctx, { ...deadPose, tilt: -0.35, pivotX: -45, head: 0.9, rear: false, kick: false }, frame);
+  let mouth: [number, number] = [60, -30];
+  ctx.save(); aboveGround(ctx); ctx.translate(twitch, 32); ctx.filter = `hue-rotate(${(frame * 4) % 360}deg) saturate(1.5)`;
+  drawMooseBody(ctx, {
+    ...deadPose, tilt: -0.45, pivotX: -45, head: 1.25, mouth: 0.6, fold: [0.45, 0, -0.62, 2.64],
+    onBody: c => {
+      c.save(); c.filter = 'none';
+      for (const [x, y, a] of [[-58, -78, -0.7], [-22, -84, -0.1], [52, -80, 0.7]] as [number, number, number][]) {
+        c.save(); c.translate(x, y); c.rotate(a);
+        c.strokeStyle = '#9CA3AF'; c.lineWidth = 1; c.beginPath(); c.moveTo(0, 3); c.lineTo(0, -6); c.stroke(); // (the needle, in)
+        ink(c, () => c.rect(-2.6, -20, 5.2, 14), '#E5E7EB', 0.9);
+        c.fillStyle = '#E879F9'; c.fillRect(-1.6, -14, 3.2, 7.4);
+        c.fillStyle = '#F8FAFC'; c.fillRect(-1.6, -19, 1, 4);
+        ink(c, () => { c.rect(-0.8, -26, 1.6, 6); c.rect(-3.4, -27.4, 6.8, 1.6); }, '#D1D5DB', 0.7); // (the plunger, pushed)
+        c.restore();
+      }
+      c.restore();
+    },
+    onHead: c => {
+      c.save(); c.filter = 'none';
+      ink(c, () => c.ellipse(84, -80, 4.6, 3.6, 0, 0, Math.PI * 2), '#F5F5F4', 1);
+      c.fillStyle = '#7C3AED'; c.beginPath(); c.arc(85, -83, 2, 0, Math.PI); c.fill(); // (rolled up)
+      c.restore();
+      mouth = at(c, 100, -55);
+    },
+  }, frame);
   ctx.restore();
-  // Foam pouring out of its mouth
-  ctx.fillStyle = '#F8FAFC';
-  for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc(70 + Math.sin(i + frame * 0.1) * 4, -8 - i * 5, 4 + (i % 2) * 2, 0, Math.PI * 2); ctx.fill(); }
-  // Syringes still in it
-  for (const [x, y, a] of [[-30, -90, -0.4], [0, -104, 0.2], [26, -96, 0.5]] as [number, number, number][]) {
-    ctx.save(); ctx.translate(x, y); ctx.rotate(a);
-    ctx.fillStyle = '#E5E7EB'; ctx.fillRect(-2, -18, 5, 16); ctx.fillStyle = '#E879F9'; ctx.fillRect(-1, -14, 3, 10); ctx.fillStyle = '#9CA3AF'; ctx.fillRect(0, -2, 1, 8);
-    ctx.restore();
+  // Foam pouring out of its mouth into a heap
+  ctx.fillStyle = '#F8FAFC'; ctx.strokeStyle = '#CBD5E1'; ctx.lineWidth = 1;
+  const [mx, my] = mouth;
+  for (let i = 0; i < 7; i++) {
+    const k = i / 6, x = mx + Math.sin(i + frame * 0.1) * 3 + k * 4, y = my + (-4 - my) * k;
+    ctx.beginPath(); ctx.arc(x, y, 3 + (i % 2) * 1.6 + k * 2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
   }
+};
+
+/** Bone: a pale line with its ink. */
+const bone = (ctx: Ctx, path: () => void, w = 3, col = '#EDE6D6') => {
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath(); path(); ctx.strokeStyle = INK; ctx.lineWidth = w + 1.8; ctx.stroke();
+  ctx.beginPath(); path(); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.stroke();
+  ctx.lineCap = 'butt';
 };
 
 const fried = (ctx: Ctx, frame: number) => {
   ctx.fillStyle = '#0C0A09'; ctx.beginPath(); ctx.ellipse(0, -2, 90, 8, 0, 0, Math.PI * 2); ctx.fill();
-  // Crisped black, fur standing on end; flashing x-ray skeleton
+  // Crisped black; flashing, the skeleton in it shows; the current still arcing hoof to hoof
   const xray = frame % 12 < 3;
-  bellyUp(ctx, frame, xray ? 'invert(1) brightness(2)' : 'grayscale(1) brightness(0.25) contrast(1.6)');
-  if (xray) {
-    ctx.strokeStyle = '#0F172A'; ctx.lineWidth = 3;
-    for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc(-26 + i * 11, -62, 14, 0, Math.PI); ctx.stroke(); }
-  }
-  // Sparks jumping off it
-  ctx.strokeStyle = '#67E8F9'; ctx.lineWidth = 2;
-  if (frame % 18 < 7) for (let k = 0; k < 3; k++) { let x = -40 + k * 40, y = -110; ctx.beginPath(); ctx.moveTo(x, y); for (let s = 0; s < 4; s++) { x += Math.sin(frame + k * 5 + s) * 8; y -= 8; ctx.lineTo(x, y); } ctx.stroke(); }
+  let smoke: [number, number] = [0, -60];
+  bellyUp(ctx, frame, {
+    filter: xray ? 'invert(1) brightness(2)' : 'grayscale(1) brightness(0.25) contrast(1.6)',
+    onHead: c => {
+      if (!xray) { xEye(c); return; }
+      c.save(); c.filter = 'none';
+      // (the skull: the brainpan, the long snout, the socket, the jaw and its teeth)
+      const s = '#0F172A';
+      c.strokeStyle = s; c.lineWidth = 2.2; c.lineJoin = 'round';
+      c.beginPath(); c.moveTo(66, -88); c.lineTo(100, -76); c.quadraticCurveTo(110, -72, 108, -64); c.lineTo(76, -64); c.closePath(); c.stroke();
+      c.beginPath(); c.arc(84, -79, 4, 0, Math.PI * 2); c.stroke();
+      c.beginPath(); c.moveTo(74, -60); c.lineTo(104, -57); c.stroke();
+      c.fillStyle = s; for (let i = 0; i < 4; i++) c.fillRect(88 + i * 4, -62, 2, 2);
+      bone(c, () => { c.moveTo(40, -80); c.lineTo(66, -78); }, 3, s);
+      c.restore();
+    },
+    after: c => {
+      if (xray) {
+        // (spine, ribs, pelvis, the legs' long bones)
+        const s = '#0F172A';
+        bone(c, () => { c.moveTo(-68, -74); c.quadraticCurveTo(-30, -86, 10, -84); c.quadraticCurveTo(30, -84, 44, -80); }, 3, s);
+        for (let i = 0; i < 7; i++) { const x = -30 + i * 9; bone(c, () => { c.moveTo(x, -84); c.quadraticCurveTo(x - 6, -62, x + 3, -40); }, 1.8, s); }
+        bone(c, () => c.ellipse(-46, -66, 10, 7, 0.4, 0, Math.PI * 2), 2, s);
+        for (const [x, y] of [[22, -46], [36, -44], [-46, -46], [-32, -46]]) bone(c, () => { c.moveTo(x, y); c.lineTo(x, y + 21); c.lineTo(x + 0.4, y + 41); }, 2.4, s);
+      } else if (frame % 18 < 9) {
+        // (arcs between the upturned hooves)
+        const up = fall(c) - Math.PI / 2;
+        const ux = -Math.sin(up + Math.PI), uy = Math.cos(up + Math.PI);
+        c.strokeStyle = '#67E8F9'; c.lineWidth = 2;
+        for (const [x0, x1, k] of [[22, 36, 0], [-46, -32, 1], [-32, 22, 2]]) {
+          c.beginPath(); c.moveTo(x0, 0);
+          for (let s = 1; s <= 5; s++) {
+            const u = s / 5, b = Math.sin(u * Math.PI) * Math.abs(x1 - x0) * 0.3 + Math.sin(frame + k * 5 + s) * 3;
+            c.lineTo(x0 + (x1 - x0) * u + ux * b, uy * b);
+          }
+          c.strokeStyle = '#67E8F9'; c.lineWidth = 2; c.stroke();
+          c.strokeStyle = '#ECFEFF'; c.lineWidth = 0.8; c.stroke();
+        }
+      }
+      smoke = at(c, -4, -36);
+    },
+  });
   // Smoke
-  for (let i = 0; i < 4; i++) { const k = ((frame * 0.5 + i * 30) % 100) / 100; ctx.fillStyle = `rgba(60,60,60,${0.45 - k * 0.4})`; ctx.beginPath(); ctx.arc(-10 + i * 10, -100 - k * 90, 7 + k * 12, 0, Math.PI * 2); ctx.fill(); }
+  for (let i = 0; i < 4; i++) { const k = ((frame * 0.5 + i * 30) % 100) / 100; ctx.fillStyle = `rgba(60,60,60,${0.45 - k * 0.4})`; ctx.beginPath(); ctx.arc(smoke[0] - 14 + i * 10, smoke[1] - 6 - k * 90, 7 + k * 12, 0, Math.PI * 2); ctx.fill(); }
 };
 
 const dissolved = (ctx: Ctx, frame: number) => {
-  // Green puddle bubbling, with the bones sticking out of it
-  ctx.fillStyle = '#4D7C0F'; ctx.beginPath(); ctx.ellipse(0, -4, 110, 12, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#84CC16'; ctx.beginPath(); ctx.ellipse(-10, -7, 80, 7, 0, 0, Math.PI * 2); ctx.fill();
-  // Ribcage and spine
-  ctx.strokeStyle = '#F5F5F4'; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.moveTo(-60, -34); ctx.lineTo(40, -40); ctx.stroke();
-  for (let i = 0; i < 7; i++) { ctx.beginPath(); ctx.moveTo(-50 + i * 13, -36); ctx.quadraticCurveTo(-46 + i * 13, -14, -54 + i * 13, -6); ctx.stroke(); }
-  // Skull, still wearing its antlers
-  ctx.save(); ctx.translate(-20, 28);
-  ctx.fillStyle = '#F5F5F4'; ctx.beginPath(); ctx.moveTo(66, -92); ctx.lineTo(102, -78); ctx.lineTo(108, -62); ctx.lineTo(72, -60); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(84, -78, 4, 0, Math.PI * 2); ctx.fill();
+  // Green puddle bubbling, what's left of it sunk in it where it stood: spine and ribs, the hips, a leg's bones, the
+  // hooves (they don't melt), the skull at the front still wearing its antlers
+  ctx.fillStyle = '#3F6212'; ctx.beginPath(); ctx.ellipse(0, -4, 112, 12, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#4D7C0F'; ctx.beginPath(); ctx.ellipse(0, -4, 104, 10, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#84CC16'; ctx.beginPath(); ctx.ellipse(-10, -7, 80, 6, 0, 0, Math.PI * 2); ctx.fill();
+  // (the far antler, the skull, the near antler, at the front where the head was)
+  ctx.save(); ctx.translate(0, 50);
+  antler(ctx, true);
+  const skull = () => { ctx.moveTo(62, -90); ctx.lineTo(100, -77); ctx.quadraticCurveTo(112, -72, 110, -62); ctx.lineTo(104, -56); ctx.lineTo(72, -58); ctx.closePath(); };
+  shadedTop(ctx, skull, '#EDE6D6', 62, -90, 50, 34, 1.2);
+  ink(ctx, () => ctx.ellipse(84, -78, 5, 4, 0, 0, Math.PI * 2), '#1C1917', 0.8);
+  ink(ctx, () => ctx.ellipse(106, -66, 3, 4.4, 0.3, 0, Math.PI * 2), '#1C1917', 0.8);
+  ctx.fillStyle = '#F8FAFC'; for (let i = 0; i < 5; i++) ctx.fillRect(84 + i * 4, -58, 2.4, 2.4);
   antler(ctx, false);
   ctx.restore();
+  // (neck and spine sagging into it, the ribs over, the hips)
+  bone(ctx, () => { ctx.moveTo(-70, -12); ctx.quadraticCurveTo(-20, -24, 34, -14); ctx.quadraticCurveTo(52, -12, 64, -8); });
+  ctx.fillStyle = '#C9BFA8'; for (let i = 0; i < 14; i++) ctx.fillRect(-66 + i * 9, -17 - Math.sin((i / 13) * Math.PI) * 4, 1.4, 4);
+  for (let i = 0; i < 7; i++) { const x = -38 + i * 11, h = 26 - Math.abs(i - 3) * 3; bone(ctx, () => { ctx.moveTo(x, -18); ctx.quadraticCurveTo(x + 3, -18 - h * 1.4, x + 10, -6); }, 2.2); }
+  bone(ctx, () => ctx.ellipse(-58, -18, 10, 6, -0.3, 0, Math.PI * 2), 2.4);
+  // (a leg's bones up out of it, a hoof on the end; another hoof just lying there)
+  bone(ctx, () => { ctx.moveTo(-50, -8); ctx.lineTo(-74, -26); ctx.lineTo(-92, -14); }, 3);
+  ctx.save(); ctx.translate(-92, -14); ctx.rotate(2.2); ink(ctx, () => ctx.roundRect(-5.4, -1, 10.8, 5.4, [1.4, 1.4, 2, 2]), HOOF, 1); ctx.restore();
+  bone(ctx, () => { ctx.moveTo(30, -8); ctx.lineTo(44, -30); }, 3);
+  ink(ctx, () => ctx.roundRect(48, -9, 10.8, 5.4, [1.4, 1.4, 2, 2]), HOOF, 1);
+  // The goo's near lip, over their feet
+  ctx.save(); ctx.beginPath(); ctx.rect(-120, -7, 240, 20); ctx.clip();
+  ctx.fillStyle = 'rgba(101, 163, 13, 0.92)'; ctx.beginPath(); ctx.ellipse(0, -4, 104, 10, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#A3E635'; ctx.fillRect(-60, -6, 40, 1.4); ctx.fillRect(10, -5.6, 30, 1.4);
+  ctx.restore();
   // Bubbles
-  for (let i = 0; i < 6; i++) { const b = Math.sin(frame * 0.2 + i * 1.7); if (b > 0) { ctx.fillStyle = '#BEF264'; ctx.beginPath(); ctx.arc(-80 + i * 32, -10 - b * 6, 3 + b * 4, 0, Math.PI * 2); ctx.fill(); } }
+  for (let i = 0; i < 6; i++) { const b = Math.sin(frame * 0.2 + i * 1.7); if (b > 0) { ink(ctx, () => ctx.arc(-80 + i * 32, -8 - b * 6, 2 + b * 3.4, 0, Math.PI * 2), '#BEF264', 0.8); ctx.fillStyle = '#ECFCCB'; ctx.fillRect(-81 + i * 32 - b, -10 - b * 7, 1.4, 1.4); } }
+};
+
+/** Where it tore (body's frame): ragged, top to bottom between the shoulder and the haunch. */
+const TEAR: [number, number][] = [[-6, -116], [-10, -100], [-4, -92], [-12, -84], [-5, -76], [-11, -66], [-3, -58], [-10, -50], [-4, -42], [-12, -34], [-6, -26], [-8, 40]];
+/** One half: `side` -1 the back half, 1 the front; the raw end along the tear, its spine and ribs, dripping. */
+const half = (ctx: Ctx, side: -1 | 1, pose: Pose, frame: number) => {
+  const tear = (dx: number, start: boolean) => TEAR.forEach(([x, y], i) => (start && !i ? ctx.moveTo(x + dx, y) : ctx.lineTo(x + dx, y)));
+  ctx.save();
+  ctx.beginPath(); ctx.moveTo(side * 300, -200); tear(0, false); ctx.lineTo(side * 300, 40); ctx.closePath(); ctx.clip();
+  drawMooseBody(ctx, pose, frame);
+  // The meat along the tear, and the dark inside it
+  ctx.save(); ctx.beginPath(); hidePath(ctx); ctx.clip();
+  ctx.beginPath(); tear(0, true); for (let i = TEAR.length - 1; i >= 0; i--) ctx.lineTo(TEAR[i][0] + side * 9, TEAR[i][1]); ctx.closePath();
+  ctx.fillStyle = BLOOD_BRIGHT; ctx.fill();
+  ctx.beginPath(); tear(0, true); for (let i = TEAR.length - 1; i >= 0; i--) ctx.lineTo(TEAR[i][0] + side * 3.4, TEAR[i][1]); ctx.closePath();
+  ctx.fillStyle = '#4A0808'; ctx.fill();
+  ctx.fillStyle = lite(BLOOD_BRIGHT, 0.25); for (const y of [-80, -62, -46]) ctx.fillRect(-9 + side * 6, y, 2, 4);
+  ctx.restore();
+  ctx.restore();
+  // (the spine and a rib or two, snapped, poking out; the blood running off it)
+  bone(ctx, () => { ctx.moveTo(-8 + side * 6, -82); ctx.lineTo(-8 - side * 4, -84); }, 3.4);
+  bone(ctx, () => { ctx.moveTo(-6 + side * 6, -60); ctx.lineTo(-6 - side * 3, -63); ctx.moveTo(-9 + side * 6, -48); ctx.lineTo(-9 - side * 2, -50); }, 1.8);
+  ctx.save(); ctx.translate(-8, -34); ctx.rotate(fall(ctx));
+  const run = 4 + ((frame / 4 + (side + 1) * 3) % 6);
+  ctx.fillStyle = BLOOD_BRIGHT; ctx.fillRect(-1, 0, 2, run); ctx.beginPath(); ctx.arc(0, run, 1.6, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
 };
 
 const blownInHalf = (ctx: Ctx, frame: number) => {
   pool(ctx, 120, '#0B0705');
   pool(ctx, 60, BLOOD);
-  // Rear half, left behind, and the front half thrown forward; guts strung between
-  ctx.save(); ctx.translate(-50, 0); ctx.beginPath(); ctx.rect(-120, -200, 120, 220); ctx.clip();
-  drawMooseBody(ctx, { ...deadPose, tilt: 0.1, pivotX: -45 }, frame); ctx.restore();
-  ctx.save(); ctx.translate(60, 10); ctx.rotate(0.35); ctx.beginPath(); ctx.rect(0, -200, 160, 220); ctx.clip();
-  drawMooseBody(ctx, { ...deadPose, head: 0.6 }, frame); ctx.restore();
-  // The torn ends
-  ctx.fillStyle = BLOOD_BRIGHT; ctx.fillRect(-54, -86, 8, 50); ctx.fillRect(56, -70, 8, 46);
-  ctx.strokeStyle = '#BE123C'; ctx.lineWidth = 5;
-  ctx.beginPath(); ctx.moveTo(-48, -50); ctx.bezierCurveTo(-20, -10, 10, -40 + Math.sin(frame * 0.1) * 3, 58, -30); ctx.stroke();
-  ctx.strokeStyle = '#9F1239'; ctx.lineWidth = 4;
-  ctx.beginPath(); ctx.moveTo(-48, -64); ctx.bezierCurveTo(-10, -60, 20, -8, 58, -52); ctx.stroke();
+  // Blown in two, both halves down on their bellies: the back half where it was, hind legs kicked out straight; the front
+  // thrown on ahead, forelegs folded, its head down on the snow. The guts strung out on the snow between
+  const LIE: [number, number, number, number] = [-1.2, 2.77, 1.4, 0];
+  ctx.save(); aboveGround(ctx);
+  ctx.save(); ctx.translate(-42, 32); half(ctx, -1, { ...deadPose, fold: LIE }, frame); ctx.restore();
+  ctx.save(); ctx.translate(44, 32); half(ctx, 1, { ...deadPose, fold: LIE, head: 0.5, onHead: deadFace }, frame); ctx.restore();
+  ctx.restore();
+  // The guts: tubes inked, lit along the top, sagging to the snow
+  const sway = Math.sin(frame * 0.1) * 2;
+  const gut = (path: () => void, w: number, col: string) => {
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); path(); ctx.strokeStyle = INK; ctx.lineWidth = w + 2; ctx.stroke();
+    ctx.beginPath(); path(); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.stroke();
+    ctx.save(); ctx.translate(0, -w * 0.25); ctx.beginPath(); path(); ctx.strokeStyle = lite(col, 0.35); ctx.lineWidth = 1.2; ctx.stroke(); ctx.restore();
+    ctx.lineCap = 'butt';
+  };
+  gut(() => { ctx.moveTo(-50, -20); ctx.bezierCurveTo(-36, 0, -20, -4 + sway, -8, -5); ctx.bezierCurveTo(4, -6, 10, -2, 22, -4); ctx.bezierCurveTo(30, -6, 34, -14, 38, -22); }, 4.6, '#C2566B');
+  gut(() => { ctx.moveTo(-50, -38); ctx.bezierCurveTo(-30, -36, -34, -8, -20, -6); ctx.bezierCurveTo(-8, -4, -6, -16, 6, -14 + sway); ctx.bezierCurveTo(18, -12, 24, -40, 38, -44); }, 3.4, '#D9798A');
+  // (a coil of it heaped on the snow)
+  for (const [x, w] of [[-14, 7], [-4, 8], [6, 6]] as [number, number][]) gut(() => ctx.ellipse(x, -4.6, w, 3, 0, Math.PI, Math.PI * 2), 3.4, '#C2566B');
   // Oil sheen
-  ctx.fillStyle = `hsla(${(frame * 3) % 360}, 70%, 60%, 0.4)`; ctx.fillRect(-40, -4, 30, 2);
+  ctx.fillStyle = `hsla(${(frame * 3) % 360}, 70%, 60%, 0.4)`; ctx.fillRect(-70, -4, 30, 2);
 };
 
 // ---------------------------------------------------------------------------
