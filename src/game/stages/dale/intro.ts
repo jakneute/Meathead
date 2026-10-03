@@ -70,9 +70,11 @@ export const updateIntro = (ctx: FrameContext, it: Intro, talk: Talk, controls: 
   }
   // Hands off the controls till he's in the cab (a cutscene till then: the HUD's put away)
   const p = state.player;
-  if (it.phase !== 'driving') { p.inCutscene = true; it.held = true; }
+  // (not once the truck's gone, either: this is the frame it goes, and the scene's not run again after it)
+  const scene = it.phase !== 'driving' && it.phase !== 'gone';
+  if (scene) { p.inCutscene = true; it.held = true; }
   else if (it.held) { p.inCutscene = false; it.held = false; }
-  return it.phase === 'driving' ? controls : { ...NO_CONTROLS };
+  return scene ? { ...NO_CONTROLS } : controls;
 };
 
 /** Dale in view (not in the cab yet). */
