@@ -849,7 +849,7 @@ export const BOSS_DIALOGUE: {
     'Toxic Tommy': ['FLINT WATER? PASS ME A GLASS. MORE MINERALS FOR THE GAINS.', 'You put the neighbors down. You knocked over my water tower and surfed it through the block. That took WEEKS to fill!'],
     'Blackout Barry': ['LIGHTS OUT? GOOD. MY ABS GLOW IN THE DARK.', 'You blew my whole power room, man. With Gary in it. My... roommate. Eleven years. One bedroom. We were ROOMMATES, man.'],
     'Oily Oscar': ['BABY OIL\'S FOR POSING. CRUDE OIL\'S FOR YOUR FUNERAL.', 'The field? The union? The bar? Water under the bridge, pal. Burning water. Now let\'s talk about YOU. What are you driving these days?'],
-    'Drug Trade Dale': ['TIME TO CUT OUT THE MIDDLEMAN.', 'You blew up my whole fleet! And Riggs! Who\'s gonna feed Sir Reginald now?!'],
+    'Drug Trade Dale': ['A WHOLE BOX TRUCK FULL OF DRUGS AND NOT ONE TUB OF CREATINE? AMATEUR HOUR.', 'You blew up my whole fleet! And Riggs! Who\'s gonna feed Sir Reginald now?!'],
     'default': ["I'll break you in half!", "YOU'RE TOAST."]
   }
 };
