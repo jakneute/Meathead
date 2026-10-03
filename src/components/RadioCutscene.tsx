@@ -25,7 +25,7 @@ const meathead = (mood: 'dumb' | 'disgust' | 'think' | 'stoked', text: string): 
   ({ draw: (c, t, talk) => drawMeatheadCloseUp(c, t, talk, mood, { bg: garage, medal: false }), speaker: 'MEATHEAD', voice: MEATHEAD_VOICE, text });
 
 const PANELS: Panel[] = [
-  { draw: (c, t) => drawGarage(c, t, false), text: "MEATHEAD'S GARAGE.\nHOME GYM (STILL UNDER CONSTRUCTION).", hold: 70 },
+  { draw: (c, t) => drawGarage(c, t, false), text: "MEATHEAD'S GARAGE.", hold: 70 },
   { draw: (c, t) => drawRadioCloseUp(c, t, true), text: '*KSSHHHH*\nTHE RADIO CRACKLES TO LIFE.', hold: 50, onEnter: () => playSquelch() },
   shadow("Meathead. Big guy. Tremendous guy. Four assholes, all dead. Nobody's ever killed assholes like you. People are saying it."),
   { draw: (c, t, talk) => drawGarage(c, t, false, talk), speaker: 'MEATHEAD', voice: MEATHEAD_VOICE, text: "Cool. I'm gonna go hit the gym. It's chest day." },
