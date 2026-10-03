@@ -8,7 +8,7 @@
 //             corkscrews, the hawk lawn-darts into the dirt beak first, the grackle bounces)
 //   goat:     faints: locks up, trembles, keels over legs up, and bursts lying there
 //   coyote:   leaps, hangs in the air legs going, sweats, and drops like a stone
-//   pit bull: chases his tail, faster and faster, till he flies apart
+//   pit bull: "bang, play dead" for real: knocked over onto his back, legs paddling the air, slowing, stiff; bursts
 //   longhorn: sways, rolls over legs up with the ground shaking, swells up, and bursts (his horns stick in the dirt)
 //   gator:    a death roll, over and over, ends up belly up, legs twitching, and bursts
 //   shark:    belly up, drifts up, swells, pops: and out falls a license plate
@@ -365,13 +365,15 @@ const beast = (state: GameState, d: EnemyDeath, g: GunDeath) => {
       break;
     }
     case 'pitbull': {
-      // Round and round after his own tail, faster and faster, till he flies apart
-      const period = Math.max(2, Math.round(9 - k / 5));
-      if (k % period === 0 && d.sprite) d.sprite.facing = (-d.sprite.facing) as 1 | -1;
-      g.run = 4; g.anim += 2;
-      g.oy = -Math.abs(Math.sin(k * 0.45)) * (3 + k / 12);
-      if (k % 4 === 0) nick(state, cx, d.y + d.h * 0.5 + g.oy, k % 8 ? 1 : -1, 2);
-      if (k >= 48) burst(state, d, g, cx, d.y + d.h * 0.5 + g.oy, 0, 1.2);
+      // "Bang, play dead": knocked back off his feet with a hop, over onto his back; legs paddling the air like he's
+      // dreaming, slower and slower; a last kick, stiff; bursts
+      const back = -(d.sprite?.facing ?? 1);
+      if (k <= 12) { const u = k / 12; g.ox = back * Math.round(u * 6); const c = Math.cos(Math.PI * u); g.sy = (c < 0 ? -1 : 1) * Math.max(0.25, Math.abs(c)); g.oy = -Math.sin(Math.PI * u) * 12; g.run = 0; }
+      if (k === 12) { playSound('thud', 0.5); dust(state, cx, d.floorY, 5, d.w * 0.4); }
+      if (k > 12) { g.sy = -1; g.oy = 0; }
+      if (k > 12 && k < 44) { g.run = Math.max(0.5, 4 - (k - 12) / 8); g.anim += g.run * 0.5; }
+      else if (k >= 44) { g.run = 0; if (k === 46) g.oy = -2; }
+      if (k >= 58) burst(state, d, g, cx, d.floorY - 8, 0, 1.2);
       break;
     }
     case 'longhorn': {
