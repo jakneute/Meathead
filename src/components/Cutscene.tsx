@@ -22,6 +22,9 @@ export interface Panel {
   /** Drawn at the full size it's shown at, not blown up from the pixel art (a close-up in far too much detail). The
    * drawing's still in the art's coordinates. */
   hires?: boolean;
+  /** A card (styled like the end card) up in place of the text from `cardAt` frames in: a THE END that isn't. */
+  card?: string;
+  cardAt?: number;
 }
 
 const TYPE_FRAMES_PER_CHAR = 2;
@@ -55,6 +58,7 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
   const [shownChars, setShownChars] = useState(0);
   const [theEnd, setTheEnd] = useState(false);
   const [skipUp, setSkipUp] = useState(false);
+  const [card, setCard] = useState<string | null>(null);
   // Mutable state the loop works on
   const run = useRef({ panel: 0, t: 0, total: 0, typedAt: -1, speaking: false, spoke: false, finished: false });
   const onDoneRef = useRef(onDone);
@@ -76,6 +80,7 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
     r.panel = i; r.t = 0; r.typedAt = -1; r.speaking = false; r.spoke = false;
     setPanelIndex(i);
     setShownChars(0);
+    setCard(null);
     const p = PANELS[i];
     p.onEnter?.();
     if (p.voice && p.radio && canSpeak()) {
@@ -162,6 +167,7 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
       if (cv.width !== ART_W * s) { cv.width = ART_W * s; cv.height = ART_H * s; }
       ctx.setTransform(s, 0, 0, s, 0, 0);
       p.draw(ctx, r.t, talking);
+      if (p.card && r.t === Math.max(1, p.cardAt ?? 1)) setCard(p.card);
       if (r.panel === LAST) {
         if (r.t === endAt) setTheEnd(true);
         // (straight on into what comes next, no card: the gym's opening, into the gym)
@@ -227,9 +233,9 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
         </div>
       )}
       <div style={{ position: 'absolute', left: 40, right: 40, top: 474, bottom: 12 }} className="text-left">
-        {theEnd && handoff ? null : theEnd ? (
-          <div className={`h-full flex items-center justify-center text-center text-white ${endCard.length > 12 ? 'text-2xl tracking-wider leading-relaxed' : 'text-5xl tracking-widest'}`} style={{ textShadow: '4px 4px 0 #d82800' }}>
-            {endCard}
+        {theEnd && handoff ? null : theEnd || card ? (
+          <div className={`h-full flex items-center justify-center text-center text-white ${(theEnd ? endCard : card!).length > 12 ? 'text-2xl tracking-wider leading-relaxed' : 'text-5xl tracking-widest'}`} style={{ textShadow: '4px 4px 0 #d82800' }}>
+            {theEnd ? endCard : card}
           </div>
         ) : (
           <>

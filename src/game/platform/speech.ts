@@ -22,6 +22,7 @@ export const BOSS_VOICES: Record<string, Voice> = {
   'Toxic Tommy': { id: 'boss.tommy', pitch: 0.4, rate: 0.8 },
   'Blackout Barry': { id: 'boss.barry', pitch: 0.9, rate: 1.4 },
   'Oily Oscar': { id: 'boss.oscar', pitch: 1.3, rate: 0.9 },
+  'Imposter Invasion': { id: 'boss.alien', pitch: 0.5, rate: 0.85 },
 };
 
 export const getBossVoice = (bossId: string | null): Voice =>

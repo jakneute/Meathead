@@ -1435,6 +1435,281 @@
   "from": "game/stages/barry/dumpster.ts:85"
  },
  {
+  "voice": "boss.alien",
+  "text": "...GUYS? GUYS?! WHERE ARE YOU GOING?!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "AT LEAST TELL ME YOUR SECRET! HOW ARE YOU SO STRONG?!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "BEHOLD! THE LASER OF MY PEOPLE!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "COLD! COLD! MY BLOOD IS ALREADY COLD!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "DISGUSTING! IT IS IN MY EAR HOLES!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "EVEN MY SKIN SUIT WANTS TO LEAVE!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "FEAR ME! I AM VERY LARGE!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "FIRE?! MY ONE WEAKNESS! ONE OF MANY!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "HA! YOUR SHOCK STICK CANNOT HOLD ME!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "HEY! YOU PUT OUT MY LASER! I WAS USING THAT!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "I AM ON FIRE! THIS IS NOT IN THE BROCHURE!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "I AM SO GREASY! LIKE A HOT DOG!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "I CAN OFFER YOU GOLD! SPACE GOLD! IT IS LIKE GOLD, BUT IN SPACE!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "I CANNOT FLOAT! I AM TOO STICKY!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "I CANNOT SWIM! WE HAVE NO OCEANS!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "I HAVE A FAMILY ON ZORBLAX! FOUR WIVES! NINE HUNDRED LARVAE!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "I HAVE BEEN SHOT BY BIGGER THINGS ON ZORBLAX!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "I HAVE NO NOSE AND STILL I CAN SMELL YOU!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "I SEE TWO OF YOU! BOTH UGLY!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "I WAS ONLY FOLLOWING ORDERS! ZORBLAX COMMAND MADE ME WEAR THE MAN!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "I WILL MAKE YOU VICE PRESIDENT! NO! KING! KING OF THE MEATS!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "I WILL MELT YOUR HAIRY LEGS!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "I... AM... SO... SLOW... NOW...",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "KILLED... BY A MAN... WHO SOILED HIMSELF...",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "MY BEAUTIFUL BODY! SO SLIPPERY NOW!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "MY FLOATING! IT DOES NOT WORK!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "MY LASER IS BIGGER THAN YOUR LASER!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "MY OWN MEN! THEY ARE CONDUCTIVE!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "MY SKIN SUIT IS RUINED! IT WAS A RENTAL!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "NEEDLES DO NOTHING! WE HAVE NO VEINS!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "NOT ON THE CARPET! THE CARPET IS HISTORIC!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "OW! A ROCK! ON MY HEAD! MY BIG HEAD!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "PEW PEW, EARTH MAN!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "PEW? PEW? IS THAT ALL?",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "PLEASE! I WILL GO HOME! I WILL TELL THEM EARTH IS ONLY ROCKS!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "STAND STILL SO I CAN ZAP YOU!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "STAY BACK! YOUR PANTS ARE A WEAPON!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "STOP BLOWING UP MY PRESS CONFERENCE!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "STOP COOKING ME! I AM NOT A BARBECUE!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "TELL... THE MOTHER SHIP... I WAS... VERY LARGE...",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "THAT ONE FELT NICE, ACTUALLY.",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "TINGLES! ONLY TINGLES!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "Uh... four more years?",
+  "from": "components/EndingCutscene.tsx:94"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "WAIT! WAIT! LET US TALK LIKE TWO REASONABLE MEATS!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "WATER?! INSIDE A BUILDING?!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "WE CAN SHARE EARTH! YOU TAKE THE GYMS! I TAKE EVERYTHING ELSE!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "WHAT IS THAT SMELL?! IS THIS HOW EARTH MEN GREET THEIR LEADER?!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "WHEEEE! I MEAN, OW!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "WHO THROWS ROCKS INDOORS?!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "WHY IS MY AGENT SO HAPPY?!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "WHY IS YOUR PLANET'S AMMUNITION SO CHILLY?!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "YOUR PATHETIC EARTH WEAPONS TICKLE MY BIG GREEN BODY!",
+  "from": "THRESHOLDS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "YOUR TINY GUN IS ADORABLE!",
+  "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "ZORBLAX COMMAND WAS RIGHT! THIS PLANET IS DISGUSTING!",
+  "from": "SHAT"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "ZORBLAX COMMAND WILL HEAR OF THIS! LOUDLY!",
+  "from": "THRESHOLDS"
+ },
+ {
   "voice": "boss.artie",
   "text": "A LITTLE TINGLE. HOW ADORABLE.",
   "from": "REACTIONS"
@@ -4506,6 +4781,11 @@
  },
  {
   "voice": "death",
+  "text": "A COWARD'S BULLET",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "A GRACKLE STOLE YOUR EYES",
   "from": "content/deaths"
  },
@@ -4536,6 +4816,11 @@
  },
  {
   "voice": "death",
+  "text": "ABDUCTED. PERMANENTLY.",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "ACT OF GOD",
   "from": "game/stages/hector/chase.ts:361"
  },
@@ -4543,6 +4828,11 @@
   "voice": "death",
   "text": "AIR CONDITIONED",
   "from": "game/stages/ernie/quake.ts:342"
+ },
+ {
+  "voice": "death",
+  "text": "AIR SUPPORT ARRIVED",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -4621,6 +4911,11 @@
  },
  {
   "voice": "death",
+  "text": "BEATEN BY A RIOT SHIELD",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "BEATEN BY A SHIELD",
   "from": "content/deaths"
  },
@@ -4692,6 +4987,11 @@
  {
   "voice": "death",
   "text": "BODY CHECKED BY A PENCIL NECK",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BODY-BLOCKED TO DEATH",
   "from": "content/deaths"
  },
  {
@@ -5087,7 +5387,7 @@
  {
   "voice": "death",
   "text": "DISSOLVED IN TOXIC SLUDGE",
-  "from": "game/bosses/hazards.ts:199"
+  "from": "game/bosses/hazards.ts:202"
  },
  {
   "voice": "death",
@@ -5237,7 +5537,7 @@
  {
   "voice": "death",
   "text": "ELECTRIC BATH",
-  "from": "game/combat/weapons.ts:693"
+  "from": "game/combat/weapons.ts:705"
  },
  {
   "voice": "death",
@@ -5661,6 +5961,11 @@
  },
  {
   "voice": "death",
+  "text": "HOW. JUST HOW.",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "HOWLED AT",
   "from": "content/deaths"
  },
@@ -5712,6 +6017,11 @@
  {
   "voice": "death",
   "text": "JET SKIED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "JETPACKED TO DEATH",
   "from": "content/deaths"
  },
  {
@@ -5787,6 +6097,11 @@
  {
   "voice": "death",
   "text": "KILLED BY A RAT WITH WINGS",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A SAD LITTLE LASER",
   "from": "content/deaths"
  },
  {
@@ -5878,6 +6193,11 @@
   "voice": "death",
   "text": "LEG DAY MEETS FRONT BUMPER",
   "from": "game/stages/dale/town.ts:796"
+ },
+ {
+  "voice": "death",
+  "text": "LEG HAIRS: GONE. MEATHEAD: GONE.",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -6276,6 +6596,16 @@
  },
  {
   "voice": "death",
+  "text": "PROBED AND FRIED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PROTECTED TO DEATH",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "PUKED TO DEATH",
   "from": "content/deaths"
  },
@@ -6392,6 +6722,11 @@
  {
   "voice": "death",
   "text": "ROCKED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "ROCKETEERED",
   "from": "content/deaths"
  },
  {
@@ -6572,7 +6907,7 @@
  {
   "voice": "death",
   "text": "SHOCKING LACK OF JUDGMENT",
-  "from": "game/combat/weapons.ts:693"
+  "from": "game/combat/weapons.ts:705"
  },
  {
   "voice": "death",
@@ -6641,7 +6976,17 @@
  },
  {
   "voice": "death",
+  "text": "SHOT BY THE SECRET SERVICE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "SHOT DEAD",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT DOWN FROM ABOVE",
   "from": "content/deaths"
  },
  {
@@ -6652,6 +6997,11 @@
  {
   "voice": "death",
   "text": "SHOT FROM A SQUAD CAR",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT FROM BEHIND A SHIELD",
   "from": "content/deaths"
  },
  {
@@ -6901,6 +7251,11 @@
  },
  {
   "voice": "death",
+  "text": "STONEWALLED",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "STOOD ON A BURNING GUSHER",
   "from": "content/deaths"
  },
@@ -6981,6 +7336,11 @@
  },
  {
   "voice": "death",
+  "text": "TACKLED BY A SUIT",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "TACKY AND DEAD",
   "from": "content/deaths"
  },
@@ -6996,13 +7356,18 @@
  },
  {
   "voice": "death",
+  "text": "TAKEN OUT BY THE SECRET SERVICE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "TAKEN OUT WITH THE TRASH",
   "from": "content/deaths"
  },
  {
   "voice": "death",
   "text": "TASED YOURSELF IN THE POOL",
-  "from": "game/combat/weapons.ts:693"
+  "from": "game/combat/weapons.ts:705"
  },
  {
   "voice": "death",
@@ -7022,6 +7387,11 @@
  {
   "voice": "death",
   "text": "TEXAS JUSTICE",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "THE ALIEN WINS. EARTH IS DOOMED.",
   "from": "content/deaths"
  },
  {
@@ -7281,6 +7651,11 @@
  },
  {
   "voice": "death",
+  "text": "TOOK A BULLET FOR NOBODY",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "TOOK THE EXPRESS DOWN",
   "from": "game/stages/artie/tram.ts:107"
  },
@@ -7366,6 +7741,11 @@
  },
  {
   "voice": "death",
+  "text": "VAPORIZED BY A FAKE PRESIDENT",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "VENTED",
   "from": "content/deaths"
  },
@@ -7407,7 +7787,7 @@
  {
   "voice": "death",
   "text": "WATER CONDUCTS, GENIUS",
-  "from": "game/combat/weapons.ts:693"
+  "from": "game/combat/weapons.ts:705"
  },
  {
   "voice": "death",
@@ -7693,6 +8073,56 @@
   "voice": "doorman",
   "text": "YOU'RE NOT ON THE LIST. YOU'RE NOT ON ANY LIST.",
   "from": "game/stages/victor/doorman.ts:149"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "AGENT DOWN! AGENT DOWN! AGENT VERY DOWN!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "ALL UNITS, FALL BACK! FALL BACK! THIS IS ABOVE OUR PAY GRADE!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "ALL UNITS, PRESS ROOM! PROTECT THE PRESIDENT!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "EAGLE IS UNDER ATTACK! REPEAT, EAGLE IS UNDER ATTACK!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "HOLD THE LINE! SOMEBODY GET THE PRESIDENT A NAPKIN!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "MORE UNITS TO THE BRIEFING ROOM! THE BIG GUY'S EATING US ALIVE!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "PROTOCOL SAYS PROTECT THE PRESIDENT. PROTOCOL DOESN'T SAY WHAT HE IS.",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "SEND IN THE JETPACKS!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "THE PRESIDENT IS... GREEN? PROTECT HIM ANYWAY!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "finale.radio",
+  "text": "WHO AUTHORIZED THE JETPACKS? NEVER MIND, SEND THEM!",
+  "from": "FINALE_LINES"
  },
  {
   "voice": "guide",
@@ -8596,6 +9026,11 @@
  },
  {
   "voice": "meathead",
+  "text": "...NICE TRAPS, BRO.",
+  "from": "components/EndingCutscene.tsx:100"
+ },
+ {
+  "voice": "meathead",
   "text": "...NOPE.",
   "from": "game/stages/dale/convoy.ts:401"
  },
@@ -8911,6 +9346,16 @@
  },
  {
   "voice": "meathead",
+  "text": "A JETPACK TO THE NUTS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A KING DOESN'T NEED CLEAN PANTS. A KING NEEDS YOU DEAD.",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "A LAMP! ON MY HEAD! IN JAIL!",
   "from": "HAZARD_HURT"
  },
@@ -9201,6 +9646,16 @@
  },
  {
   "voice": "meathead",
+  "text": "AND I'M FOLLOWING MY PROGRAM. TODAY IS ALIEN DAY.",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "AND I'M FOLLOWING MY PROGRAM. TODAY IS ALIEN DAY. AND LAUNDRY DAY.",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "AND THESE VAULTS HAVE STOOD, UNTOUCHED, SINCE EIGHTEEN FIFTY-NINE.",
   "from": "game/stages/ernie/doorCrash.ts:71"
  },
@@ -9336,6 +9791,16 @@
  },
  {
   "voice": "meathead",
+  "text": "BALLISTIC SHIELD TO THE FACE, FUCK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "BALLISTIC? MORE LIKE BALL-LESS!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "BALLOON MAN, MEET WATER BALLOON.",
   "from": "RANGE_KILL_LINES"
  },
@@ -9353,6 +9818,11 @@
   "voice": "meathead",
   "text": "BARRY'S LIGHTS ARE OUT. HIS, SPECIFICALLY.",
   "from": "BOSS_REBUKES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BATTERY'S DEAD! SO ARE THE LIGHTS!",
+  "from": "FINALE_LINES"
  },
  {
   "voice": "meathead",
@@ -9563,6 +10033,16 @@
   "voice": "meathead",
   "text": "CACTUS! IN MY GLUTES! THERE'S A CACTUS IN MY GLUTES!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "CAN I BENCH IT? NO? THEN SHUT UP.",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CAN SPACE GOLD BUY ME NEW PANTS? NO? THEN SHUT UP.",
+  "from": "ALIEN_LINES"
  },
  {
   "voice": "meathead",
@@ -9786,6 +10266,11 @@
  },
  {
   "voice": "meathead",
+  "text": "COME OUT FROM BEHIND THAT THING AND FIGHT!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "CONGRATULATIONS, PLAYER. YOU DID THE ONE THING. I'M WEEPING.",
   "from": "game/stages/victor/doorman.ts:539"
  },
@@ -9853,6 +10338,16 @@
   "voice": "meathead",
   "text": "CREATINE WITHDRAWAL",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CREATINE, SPITE, AND A WHOLE LOT OF FIBER. HOLD STILL.",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CREATINE, SPITE, AND NO CARDIO. NOW HOLD STILL.",
+  "from": "ALIEN_LINES"
  },
  {
   "voice": "meathead",
@@ -9996,13 +10491,18 @@
  },
  {
   "voice": "meathead",
+  "text": "DIVE IN FRONT OF THIS!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "DIVE KICKED A GUY SLIDING ON THE FLOOR! BRILLIANT! SLIDE!",
   "from": "game/stages/victor/doorman.ts:539"
  },
  {
   "voice": "meathead",
   "text": "Do you even lift, bro?",
-  "from": "components/EndingCutscene.tsx:34"
+  "from": "components/EndingCutscene.tsx:52"
  },
  {
   "voice": "meathead",
@@ -10042,6 +10542,11 @@
  {
   "voice": "meathead",
   "text": "DON'T OIL UP THE MERCHANDISE, MOTHERFUCKER!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "DON'T TOUCH ME, YOU SPACE BOOGER!",
   "from": "HURT"
  },
  {
@@ -10108,6 +10613,11 @@
   "voice": "meathead",
   "text": "DUCK. I SHOULD'VE DUCKED.",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "EARTH IS CLOSED, BITCH!",
+  "from": "KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10487,7 +10997,7 @@
  {
   "voice": "meathead",
   "text": "FUCK YEAH! LET'S GO!",
-  "from": "App.tsx:486"
+  "from": "App.tsx:501"
  },
  {
   "voice": "meathead",
@@ -10587,6 +11097,11 @@
  {
   "voice": "meathead",
   "text": "GET DOWN HERE AND FIGHT LIKE A MAN, FLYER!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GET DOWN HERE, ROCKETEER!",
   "from": "HAZARD_HURT"
  },
  {
@@ -10751,6 +11266,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GET YOUR SLIMY HANDS OFF ME!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "GET YOUR SURFBOARD OUT OF MY TEETH!",
   "from": "HAZARD_HURT"
  },
@@ -10803,6 +11323,11 @@
   "voice": "meathead",
   "text": "GO BACK TO OHIO AND TAKE YOUR PISTOL WITH YOU!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "GO BACK TO SPACE, FUCKFACE!",
+  "from": "KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -10936,6 +11461,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GROUNDED, FLYBOY!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "GUEST LIST'S A LOT SHORTER NOW.",
   "from": "game/stages/victor/lounge.ts:83"
  },
@@ -11051,6 +11581,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE FEELS LIKE A WET BAG OF HAM!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "HE FROSTED MY NIPPLES WITH THAT RAY GUN!",
   "from": "HAZARD_HURT"
  },
@@ -11063,6 +11598,11 @@
   "voice": "meathead",
   "text": "HE HEADBUTTED THE WALL?! OKAY! KEEP HIM HIGH! FIND HIM MORE STASH!",
   "from": "game/stages/dale/junkie.ts:231"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE HIT ME LIKE A LINEBACKER IN LOAFERS!",
+  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
@@ -11111,6 +11651,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE HIT ME WITH THE SHIELD! THAT'S NOT WHAT IT'S FOR!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "HE HIT THE CANVAS! AND THE CANVAS HIT BACK!",
   "from": "RANGE_KILL_LINES"
  },
@@ -11147,6 +11692,11 @@
  {
   "voice": "meathead",
   "text": "HE PIMP SLAPPED ME INTO THE CEILING!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE PISTOL-WHIPPED ME! I'M THE HERO!",
   "from": "HAZARD_HURT"
  },
  {
@@ -11476,6 +12026,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HIDE BEHIND THAT, DUMBASS!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "HIDING BEHIND AN ICE CUBE, COWARD?",
   "from": "HAZARD_HURT"
  },
@@ -11581,6 +12136,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HOT FLOOR! HOT FLOOR!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "HOT FOOT! HOT FOOT! HOT FOOT!",
   "from": "HAZARD_HURT"
  },
@@ -11603,6 +12163,11 @@
   "voice": "meathead",
   "text": "HOT STEAM IN MY FACE! STOP SCALDING THE MERCHANDISE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOUSTON, YOU'RE DEAD!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -11816,6 +12381,16 @@
  },
  {
   "voice": "meathead",
+  "text": "I DON'T TALK. I LIFT.",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DON'T TALK. I LIFT. AND APPARENTLY I SHIT.",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "I DON'T WANT WHAT YOU'RE SELLING!",
   "from": "HAZARD_HURT"
  },
@@ -12021,6 +12596,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I WAXED THOSE! I WAXED THOSE FOR THE CEREMONY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "I WEIGH TWO-SIXTY! WHAT KIND OF WIND DOES THIS?!",
   "from": "game/player/deathAnim.ts:325"
  },
@@ -12138,6 +12718,16 @@
   "voice": "meathead",
   "text": "I'M A MEATBALL IN A SNOWBALL!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M ALL PUKED OUT! THE ROOM ISN'T!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M ALREADY KING OF THE MEATS. YOU'RE A GREEN SNACK.",
+  "from": "ALIEN_LINES"
  },
  {
   "voice": "meathead",
@@ -12291,6 +12881,16 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M TAKING THE GYMS AND A SHOWER. YOU GET NOTHING.",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M THE HERO, YOU IDIOTS!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M THE ONE IN DISTRESS NOW, TINFOIL!",
   "from": "HAZARD_HURT"
  },
@@ -12406,6 +13006,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IMPEACHED!",
+  "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "INCINERATED SCUM",
   "from": "VULGARITIES"
  },
@@ -12471,6 +13076,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT SMELLS LIKE BURNT PROTEIN!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S CHEWING ON MY CALVES! THOSE ARE EXPENSIVE!",
   "from": "HAZARD_HURT"
  },
@@ -12492,12 +13102,17 @@
  {
   "voice": "meathead",
   "text": "IT'S MEAT TIME, BABY!",
-  "from": "App.tsx:486"
+  "from": "App.tsx:501"
  },
  {
   "voice": "meathead",
   "text": "IT'S NOT A PYRAMID, PAL. IT'S A REVERSE FUNNEL.",
   "from": "game/bosses/oscar.ts:217"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S ON, FUCKFACE.",
+  "from": "components/EndingCutscene.tsx:115"
  },
  {
   "voice": "meathead",
@@ -12596,6 +13211,11 @@
  },
  {
   "voice": "meathead",
+  "text": "LAST ROCKET! THE WHOLE ROOM'S GREASED!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "LATER, ASSHOLE!",
   "from": "GENERIC_KILL_LINES"
  },
@@ -12652,7 +13272,7 @@
  {
   "voice": "meathead",
   "text": "LET'S FUCKING GO!",
-  "from": "App.tsx:486"
+  "from": "App.tsx:501"
  },
  {
   "voice": "meathead",
@@ -12763,6 +13383,11 @@
   "voice": "meathead",
   "text": "MAX TONNAGE",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MAYDAY, MOTHERFUCKER!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -12946,6 +13571,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY LEG HAIRS! NOT AGAIN!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "MY LUNGS ARE BURNING FROM YOUR ACID BILE, BITCH!",
   "from": "HURT"
  },
@@ -12997,6 +13627,11 @@
  {
   "voice": "meathead",
   "text": "MY SKULL IS HARDER THAN YOUR COCONUT, BRAH!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY SOLES ARE MELTING!",
   "from": "HAZARD_HURT"
  },
  {
@@ -13146,6 +13781,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NICE FORM. TERRIBLE TASTE IN BOSSES.",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "NICE HAT! I'LL TAKE IT! NO I WON'T!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -13162,6 +13802,11 @@
  {
   "voice": "meathead",
   "text": "NICE ICE CUBE! ENJOY THE AFTERLIFE!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE JETPACK. DUMBASS.",
   "from": "ENEMY_KILL_LINES"
  },
  {
@@ -13183,6 +13828,11 @@
   "voice": "meathead",
   "text": "NICE SKIS. DON'T WORRY ABOUT IT.",
   "from": "game/stages/artie/ski.ts:127"
+ },
+ {
+  "voice": "meathead",
+  "text": "NICE TACKLE. NICE CORPSE.",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -13238,6 +13888,16 @@
   "voice": "meathead",
   "text": "NO MORE PIZZA CRUSTS FOR YOU!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO MORE QUESTIONS!",
+  "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO MORE ROCKS! JUST RUBBLE!",
+  "from": "FINALE_LINES"
  },
  {
   "voice": "meathead",
@@ -13391,13 +14051,18 @@
  },
  {
   "voice": "meathead",
+  "text": "OF COURSE YOU EAT FAST FOOD, FATTIE.",
+  "from": "components/EpilogueCutscene.tsx:22"
+ },
+ {
+  "voice": "meathead",
   "text": "OFF THE CLOCK! FOREVER!",
   "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
   "text": "OH HELL YEAH!",
-  "from": "App.tsx:486"
+  "from": "App.tsx:501"
  },
  {
   "voice": "meathead",
@@ -13541,8 +14206,28 @@
  },
  {
   "voice": "meathead",
+  "text": "OUT OF EVERYTHING! GUESS IT'S JUST ME AND THE PISTOL!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "OUT OF FUEL! THE CURTAINS AREN'T!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "OUT OF ICE! ENJOY THE FREEZER, E.T.!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "OUT OF MY WAY, NOODLE-ARM!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "OUT OF NEEDLES! THIS PLACE LOOKS LIKE A REHAB NOW!",
+  "from": "FINALE_LINES"
  },
  {
   "voice": "meathead",
@@ -13653,6 +14338,11 @@
   "voice": "meathead",
   "text": "PATHETIC",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PATHETIC. THROW IT LIKE YOU MEAN IT.",
+  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
@@ -13786,6 +14476,16 @@
  },
  {
   "voice": "meathead",
+  "text": "PROTECT HIM?! HE'S A FUCKING ALIEN!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "PROTECT THIS!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "PROTEIN POWDER IS NOT A SCAM!",
   "from": "components/RadioCutscene.tsx:25"
  },
@@ -13867,6 +14567,11 @@
  {
   "voice": "meathead",
   "text": "QUIT HIDING BEHIND THAT SHIELD AND FIGHT ME!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "QUIT ZAPPING MY PUMP, YOU GREEN BASTARD!",
   "from": "HAZARD_HURT"
  },
  {
@@ -14311,6 +15016,16 @@
  },
  {
   "voice": "meathead",
+  "text": "SHOOTING AROUND THE SHIELD? COWARD!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOOTING FROM THE SKY? THAT'S CHEATING!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "SHOOTING THE DESK? IT'S A DESK. IT NEEDS SOMETHING HOTTER.",
   "from": "game/stages/dale/junkie.ts:683"
  },
@@ -14377,6 +15092,11 @@
  {
   "voice": "meathead",
   "text": "SHOULD'VE CALLED THE SHERIFF!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOULD'VE CHECKED HIS BADGE, GENIUS!",
   "from": "ENEMY_KILL_LINES"
  },
  {
@@ -15016,6 +15736,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SUNGLASSES INDOORS? YOU EARNED THAT.",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SURF'S DOWN, DUDE!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -15066,13 +15791,28 @@
  },
  {
   "voice": "meathead",
+  "text": "TACKLED BY A SUIT! WEAK!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "TAINTED PRODUCT ASSHOLE, I'LL BREAK YOUR VAULT!",
   "from": "HURT"
  },
  {
   "voice": "meathead",
+  "text": "TAKE A BULLET? TAKE ALL OF THEM!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "TAKE A FLIGHT ON PURE ROID POWER",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TAKE ME TO YOUR LEADER? I AM THE LEADER NOW!",
+  "from": "KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -15098,6 +15838,11 @@
   "voice": "meathead",
   "text": "TELL MY SPOTTER... I LOVE HIM",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TELL YOUR LARVAE I SHIT MYSELF AND STILL WON.",
+  "from": "ALIEN_LINES"
  },
  {
   "voice": "meathead",
@@ -15196,6 +15941,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT LASER SINGED MY GLUTES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT MAT IS BULLETPROOF? WHAT KIND OF GYM IS THIS?",
   "from": "game/stages/gym/runtime.ts:283"
  },
@@ -15261,6 +16011,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT TICKLED, LOSER.",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT TRUCK ALMOST COMPACTED MY GLUTES!",
   "from": "HURT"
  },
@@ -15321,6 +16076,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S ALL THE WATER! HOPE YOU BROUGHT A MOP!",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S ANOTHER HOUR ON THE CLOCK.",
   "from": "KILL_LINES"
  },
@@ -15346,6 +16106,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S NOT A TAN, THAT'S A THIRD-DEGREE BURN!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S NOT DANCING! THAT'S ASSAULT!",
   "from": "HAZARD_HURT"
  },
@@ -15353,6 +16118,11 @@
   "voice": "meathead",
   "text": "THAT'S NOT GOOD. THAT'S A LOT OF RUMBLING.",
   "from": "game/stages/tommy/escape.ts:117"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S ONE SMALL STEP FOR MEAT!",
+  "from": "KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -15368,6 +16138,11 @@
   "voice": "meathead",
   "text": "THE AD SAID LIGHT SPARRING. THE AD LIED.",
   "from": "KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE AIR FORCE IS ON HIS SIDE TOO?!",
+  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
@@ -15457,7 +16232,12 @@
  {
   "voice": "meathead",
   "text": "The field? The union? The bar? Water under the bridge, pal. Burning water. Now let's talk about YOU. What are you driving these days?",
-  "from": "game/core/update.ts:196"
+  "from": "game/core/update.ts:200"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE FLOOR'S ON FIRE! WHO DID THIS?! OH. ME.",
+  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
@@ -15483,6 +16263,11 @@
   "voice": "meathead",
   "text": "THE GROUND'S SHAKING? NAH, THAT'S JUST ME WALKING.",
   "from": "INTRO_QUOTES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE GYMS ARE EVERYTHING ELSE, DUMBASS.",
+  "from": "ALIEN_LINES"
  },
  {
   "voice": "meathead",
@@ -15611,6 +16396,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE SECRET SERVICE IS SHOOTING THE WRONG GUY!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "THE SEWER LITTER BIT ME!",
   "from": "HAZARD_HURT"
  },
@@ -15623,6 +16413,11 @@
   "voice": "meathead",
   "text": "THE STORM IS CHUCKING LAWN FURNITURE AT ME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE SUIT DIDN'T HELP!",
+  "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
@@ -15658,6 +16453,11 @@
   "voice": "meathead",
   "text": "THE WIND HIT ME WITH AN UMBRELLA!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEN THEY'RE ABOUT TO LEARN ABOUT DEADLIFTS. DEAD. LIFTS.",
+  "from": "ALIEN_LINES"
  },
  {
   "voice": "meathead",
@@ -15977,7 +16777,7 @@
  {
   "voice": "meathead",
   "text": "Two jet skis, sonny. Two tour groups. And now my front hall's caved in. I schedule my quakes AROUND the tour groups!",
-  "from": "game/core/update.ts:196"
+  "from": "game/core/update.ts:200"
  },
  {
   "voice": "meathead",
@@ -16103,6 +16903,11 @@
   "voice": "meathead",
   "text": "WALLET'S STAYING IN MY PANTS!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WAS THAT SUPPOSED TO HURT?",
+  "from": "HAZARD_HURT"
  },
  {
   "voice": "meathead",
@@ -16301,6 +17106,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHO GAVE THE SECRET SERVICE JETPACKS?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "WHO HAS A STANDBY JET SKI?",
   "from": "game/stages/ernie/jetski.ts:136"
  },
@@ -16461,6 +17271,16 @@
  },
  {
   "voice": "meathead",
+  "text": "WHOSE SIDE ARE YOU ON?!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHY ARE THERE TWO OF YOU?",
+  "from": "components/EpilogueCutscene.tsx:22"
+ },
+ {
+  "voice": "meathead",
   "text": "WHY DOESN'T ANYBODY LABEL ANYTHING?!",
   "from": "game/stages/tommy/escape.ts:212"
  },
@@ -16516,6 +17336,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WRONG GUY, SUNGLASSES!",
+  "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "WRONG MOVE AND HE FOLDS ME LIKE A LAWN CHAIR! MATCH HIM, DUMMY!",
   "from": "game/stages/victor/doorman.ts:539"
  },
@@ -16552,12 +17377,12 @@
  {
   "voice": "meathead",
   "text": "You blew my whole power room, man. With Gary in it. My... roommate. Eleven years. One bedroom. We were ROOMMATES, man.",
-  "from": "game/core/update.ts:196"
+  "from": "game/core/update.ts:200"
  },
  {
   "voice": "meathead",
   "text": "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!",
-  "from": "game/core/update.ts:196"
+  "from": "game/core/update.ts:200"
  },
  {
   "voice": "meathead",
@@ -16597,7 +17422,7 @@
  {
   "voice": "meathead",
   "text": "You crashed my VIP lounge, bro. Those were investors. Now they're a geothermal feature.",
-  "from": "game/core/update.ts:196"
+  "from": "game/core/update.ts:200"
  },
  {
   "voice": "meathead",
@@ -16627,12 +17452,12 @@
  {
   "voice": "meathead",
   "text": "You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.",
-  "from": "game/core/update.ts:196"
+  "from": "game/core/update.ts:200"
  },
  {
   "voice": "meathead",
   "text": "You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I'M the terrorist?",
-  "from": "game/core/update.ts:196"
+  "from": "game/core/update.ts:200"
  },
  {
   "voice": "meathead",
@@ -16677,7 +17502,7 @@
  {
   "voice": "meathead",
   "text": "You put the neighbors down. You knocked over my water tower and surfed it through the block. That took WEEKS to fill!",
-  "from": "game/core/update.ts:196"
+  "from": "game/core/update.ts:200"
  },
  {
   "voice": "meathead",
@@ -16766,6 +17591,16 @@
  },
  {
   "voice": "meathead",
+  "text": "YOU'RE NOT GOING HOME. SMELL THAT? THAT'S YOUR FUTURE.",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'RE NOT GOING HOME. YOU'RE GOING IN MY PROTEIN SHAKE.",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "YOU'RE NOT ON MY LIST EITHER!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -16786,8 +17621,13 @@
  },
  {
   "voice": "meathead",
+  "text": "YOU'RE STILL WEARING HIS SKIN, YOU SICK FUCK!",
+  "from": "HURT"
+ },
+ {
+  "voice": "meathead",
   "text": "YOU'RE TOAST.",
-  "from": "game/core/update.ts:196"
+  "from": "game/core/update.ts:200"
  },
  {
   "voice": "meathead",
@@ -16847,6 +17687,11 @@
  {
   "voice": "meathead",
   "text": "YOUR SHIELD WAS WATER, IDIOT!",
+  "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR SHIELD'S BULLETPROOF. YOU'RE NOT.",
   "from": "ENEMY_KILL_LINES"
  },
  {
@@ -17321,6 +18166,16 @@
  },
  {
   "voice": "president",
+  "text": "Aliens. Shape-shifting aliens. Running everything. Nobody knew. I knew. I didn't know, but I knew. Many people are saying I knew.",
+  "from": "components/EpilogueCutscene.tsx:20"
+ },
+ {
+  "voice": "president",
+  "text": "And this man, Meathead, saved me. Saved the country. Saved the whole planet, frankly. Nobody's ever saved a planet like this. Tremendous.",
+  "from": "components/EpilogueCutscene.tsx:20"
+ },
+ {
+  "voice": "president",
   "text": "Blackout Barry. New York, my city. Turns off all the lights. And he stole your headphones. Right off your head.",
   "from": "components/RadioCutscene.tsx:23"
  },
@@ -17337,7 +18192,22 @@
  {
   "voice": "president",
   "text": "Excuse me?",
-  "from": "components/EndingCutscene.tsx:38"
+  "from": "components/EndingCutscene.tsx:56"
+ },
+ {
+  "voice": "president",
+  "text": "Fast food. The best fast food. The biggest burgers, buckets of chicken, all you can eat, for life. Believe me.",
+  "from": "components/EpilogueCutscene.tsx:20"
+ },
+ {
+  "voice": "president",
+  "text": "Folks. Folks. What a night. I was held hostage. In a closet. A very small closet, the worst closet. Believe me.",
+  "from": "components/EpilogueCutscene.tsx:38"
+ },
+ {
+  "voice": "president",
+  "text": "Forget that medal. He gave you that? Fake medal. Very cheap. I'm going to give you something much better. Something beautiful.",
+  "from": "components/EpilogueCutscene.tsx:20"
  },
  {
   "voice": "president",
@@ -17357,7 +18227,7 @@
  {
   "voice": "president",
   "text": "It's my great honor to give him the Presidential Medal of Freedom. Beautiful medal. Very expensive. Frankly, I should get one too.",
-  "from": "components/EndingCutscene.tsx:27"
+  "from": "components/EndingCutscene.tsx:45"
  },
  {
   "voice": "president",
@@ -17367,7 +18237,7 @@
  {
   "voice": "president",
   "text": "Nobody's ever seen anything like it. Tremendous job. The best job. People are saying he's the greatest hero in the history of heroes. Maybe ever.",
-  "from": "components/EndingCutscene.tsx:23"
+  "from": "components/EndingCutscene.tsx:41"
  },
  {
   "voice": "president",
@@ -17377,7 +18247,7 @@
  {
   "voice": "president",
   "text": "Thank you. Thank you. What a crowd. This man, Meathead, took out the most dangerous, most evil terrorists. Believe me.",
-  "from": "components/EndingCutscene.tsx:19"
+  "from": "components/EndingCutscene.tsx:37"
  },
  {
   "voice": "president",
@@ -17398,6 +18268,11 @@
   "voice": "reporter",
   "text": "BREAKING NEWS: THE HURRICANE HAS JUST... STOPPED. OUR OLD WEATHERMAN, HECTOR, ISN'T PICKING UP.",
   "from": "game/stages/hector/news.ts:68"
+ },
+ {
+  "voice": "reporter",
+  "text": "Oh my God. It was an imposter president all along!",
+  "from": "components/EndingCutscene.tsx:90"
  },
  {
   "voice": "skier",

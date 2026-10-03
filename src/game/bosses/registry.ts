@@ -25,12 +25,13 @@ import { dale } from './dale';
 import { barry } from './barry';
 import { tommy } from './tommy';
 import { oscar } from './oscar';
+import { alien } from './alien';
 
 export type { BossDef, BossHelpers };
 export { speakAsBoss };
 
 export const BOSS_DEFS: Record<string, BossDef> = Object.fromEntries(
-  [artie, victor, ernie, hector, dale, barry, tommy, oscar].map(def => [def.id, def]),
+  [artie, victor, ernie, hector, dale, barry, tommy, oscar, alien].map(def => [def.id, def]),
 );
 
 export const getBossDef = (stageId: string | null): BossDef | undefined => (stageId ? BOSS_DEFS[stageId] : undefined);
@@ -112,8 +113,9 @@ export const isWeakTo = (stageId: string | null, weapon: WeaponType) => getBossD
 /** It's the weapon Meathead took off him (only with cheats for now; a refight, one day): it barely hurts him. */
 export const isOwnWeapon = (stageId: string | null, weapon: WeaponType) => !!stageId && BOSS_WEAPON_MAP[stageId] === weapon;
 
-export const getBossDamage = (stageId: string | null, weapon: WeaponType) => {
+export const getBossDamage = (stageId: string | null, weapon: WeaponType, state?: GameState) => {
   const def = getBossDef(stageId);
+  if (def?.damageFor && state) return def.damageFor(weapon, state);
   if (def && weapon === def.weakness) return def.weaknessDamage ?? WEAKNESS_DAMAGE;
   if (weapon === 'TASER') return Math.floor(BULLET_DAMAGE * TASER_BOSS_DAMAGE_REDUCTION);
   return BULLET_DAMAGE;
@@ -130,12 +132,15 @@ export const hitBoss = (
 ) => {
   const { stageId, state, fx } = ctx;
   const isWeakness = isWeakTo(stageId, weapon);
-  const full = damage ?? getBossDamage(stageId, weapon);
+  const def = getBossDef(stageId);
+  const full = damage ?? getBossDamage(stageId, weapon, state);
   const dmg = isOwnWeapon(stageId, weapon) ? Math.max(0.1, full * BOSS_OWN_WEAPON_DAMAGE) : full;
   boss.health -= dmg;
-  boss.hitCooldown = ENEMY_HIT_COOLDOWN;
+  // (a boss with no breather between hits never gets one)
+  boss.hitCooldown = def?.noBreather ? 0 : ENEMY_HIT_COOLDOWN;
   fx.spawnDamageNumber(boss.pos, dmg, isWeakness);
-  if (isWeakness && boss.health > 0) getBossDef(stageId)?.onWeaknessHit?.(ctx, boss, p);
+  if (isWeakness && boss.health > 0) def?.onWeaknessHit?.(ctx, boss, p);
+  if (boss.health > 0) def?.onWeaponHit?.(ctx, boss, weapon, p);
   maybeReactToWeapon(boss, weapon, stageId, state, ctx.bossHelpers);
   if (boss.health <= 0) ctx.bossHelpers.killBoss(boss, facing, isWeakness, weapon);
   return isWeakness;
@@ -210,6 +215,9 @@ const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolea
   // (dead already: one death each. A second blow landing on the same frame, or his own truck, or the puddle he's
   // stood in, doesn't turn a man going over into a man erupting)
   if (state.bossExplosionTimer > 0 || state.bossFallen || state.bossCorpse) return;
+  const def = getBossDef(stageId);
+  // (one who always goes the gory way: however he's killed)
+  if (def?.alwaysErupts) wasWeakness = true;
   state.deadBoss = { ...boss };
   const pos = { x: boss.pos.x + boss.width / 2, y: boss.pos.y + boss.height / 2 };
 
@@ -254,7 +262,10 @@ const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolea
     // Nudged out of the corners so the whole mess stays in view
     const corpseX = Math.max(ARENA_LEFT + CORPSE_WALL_GAP, Math.min(getArenaRight(stageId) - CORPSE_WALL_GAP, pos.x));
     state.bossCorpse = { stageId: stageId || '', weapon, x: corpseX, y: floor, facing: playerFacing < 0 ? -1 : 1, frame0: state.frame };
+    const n0 = state.particles.length;
     helpers.spawnDeathShower(state.bossExplosionPos, playerFacing, 35, true, 120);
+    // (one who isn't full of blood: what he is full of)
+    if (def?.gore) for (let i = n0; i < state.particles.length; i++) state.particles[i].color = def.gore[i % def.gore.length];
   } else {
     helpers.spawnDeathShower(pos, playerFacing, 6, true, 45);
     // Not his weakness: no eruption, he just goes over, dead (away from what hit him, unless there's a wall that way)
@@ -275,5 +286,5 @@ const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolea
 
   // (only the needles' own kill is an overdose: a charge into him with the needles in hand, high or not, is just a charge)
   if (wasWeakness && weapon === 'NEEDLES') helpers.spawnDamageNumber(boss.pos, "OVERDOSE!", true, "#FF00FF");
-  helpers.speakVulgarity(killLine ?? KILL_LINE_FOR[weapon] ?? 'gun_kill');
+  helpers.speakVulgarity(killLine ?? def?.killLine ?? KILL_LINE_FOR[weapon] ?? 'gun_kill');
 };

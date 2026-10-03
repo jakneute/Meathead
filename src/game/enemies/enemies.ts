@@ -22,7 +22,7 @@ import { FrameContext, killBoss } from '../core/context';
 import type { ThrownKind, EnemyKind } from '../../types';
 import { THROWN, shotLook, shotSpeed } from './shots';
 import { getBossDef, getStageWidth, isWeakTo } from '../bosses/registry';
-import { rectsOverlap, boundsOf, isOnScreen } from '../core/utils';
+import { rectsOverlap, boundsOf, isOnScreen, screenRect } from '../core/utils';
 import { getAttackHitbox, harmlessBounce, recoilOff, getContactHurtSource } from '../player/player';
 import { shakeScreen } from '../core/state';
 import type { GameState } from '../core/state';
@@ -36,6 +36,7 @@ import { copMelee, isMeleeCop } from './copMelee';
 import { submerged } from './kinds/victor';
 import { isMidBoss } from '../combat/midBoss';
 import { isBeingTased } from '../combat/statusEffects';
+import { hurtTaken } from '../core/resist';
 
 /** On the screen right now (the view as drawn, pulled back or pushed in included). */
 const onCamera = (state: FrameContext['state'], e: Enemy) => {
@@ -124,8 +125,9 @@ const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
   const { state, fx, stageId } = ctx;
   // (one that's never been on the screen hasn't gone anywhere: it wandered off something out of sight; it's put back
   // where it started, none the worse)
+  const scr = screenRect(state);
   if (spared(e)) {
-    const off = e.pos.y > state.camera.y + CANVAS_HEIGHT + 200 && !hasFloorBelow(state, e);
+    const off = e.pos.y > scr.y + scr.h + 200 && !hasFloorBelow(state, e);
     if (off && e.spawnPos) { e.pos = { ...e.spawnPos }; e.vel = { x: 0, y: 0 }; e.pauseTimer = 0; }
     return false;
   }
@@ -143,8 +145,8 @@ const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
   // (On a hilly stage things sit above and below the view all the time, hopping, leaping and flying about:
   // only ones launched by a hit count going up, and only ones with nothing under them going down)
   const launched = (e.pauseTimer || 0) > 0 && e.vel.y < -2;
-  const up = !openAbove && e.pos.y + e.height < state.camera.y && (!hilly || launched);
-  const down = e.pos.y > state.camera.y + CANVAS_HEIGHT && (!hilly || !hasFloorBelow(state, e));
+  const up = !openAbove && e.pos.y + e.height < scr.y && (!hilly || launched);
+  const down = e.pos.y > scr.y + scr.h && (!hilly || !hasFloorBelow(state, e));
   // (going out of bounds is about falling off the bottom or being launched off the top; off the ends only counts
   // on the old flat stages, where being knocked clean off either end is the joke)
   const side = !getStageLayout(stageId) && (e.pos.x + e.width < getStageLeft(stageId) || e.pos.x > getStageWidth(stageId));
@@ -153,7 +155,7 @@ const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
   const cx = e.pos.x + e.width / 2;
   // The callout goes up at the edge of the screen they left by (the renderer keeps it all on screen)
   const edge = {
-    pos: { x: Math.max(state.camera.x, Math.min(state.camera.x + CANVAS_WIDTH, cx)) - 10, y: state.camera.y + (up ? 75 : down ? 530 : Math.max(90, Math.min(520, e.pos.y - state.camera.y))) },
+    pos: { x: Math.max(scr.x, Math.min(scr.x + scr.w, cx)) - 10, y: scr.y + (up ? 75 : down ? scr.h - 70 : Math.max(90, Math.min(scr.h - 80, e.pos.y - scr.y))) },
     width: 20,
   };
   fx.spawnKillCallout(edge, up ? 'moon' : down ? 'cliff' : 'yeet');
@@ -183,7 +185,9 @@ const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
 const flyOverdosedBody = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolean => {
   const { state, fx } = ctx;
   const mid = (o: Enemy) => ({ x: o.pos.x + o.width / 2, y: o.pos.y + o.height / 2 });
-  const alive = (o: Enemy) => o !== e && o.type !== 'boss' && !o.isBlownAway && o.health > 0;
+  // (a boss who can take a body into him (the finale's alien) is something to aim at too)
+  const bodiesHitBoss = !!getBossDef(ctx.stageId)?.onBodyHit && state.arenaLocked;
+  const alive = (o: Enemy) => o !== e && (o.type !== 'boss' || bodiesHitBoss) && !o.isBlownAway && o.health > 0;
   const hitIds = e.overdoseHitIds || (e.overdoseHitIds = []);
   const c = mid(e);
   e.overdosePhase = e.overdosePhase || 'rise';
@@ -265,6 +269,7 @@ const flyOverdosedBody = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolea
     // (a test subject on hypermode: nothing touches it, a contact high included)
     if (!alive(o) || o.hyper || hitIds.includes(o.id) || !rectsOverlap(box, boundsOf(o))) continue;
     hitIds.push(o.id);
+    if (o.type === 'boss') { bodyIntoBoss(ctx, e, o, OVERDOSE_HIT_DAMAGE); continue; }
     o.health -= OVERDOSE_HIT_DAMAGE;
     fx.spawnDamageNumber(o.pos, OVERDOSE_HIT_DAMAGE, true);
     fx.spawnExplosion(mid(o), '#E879F9', 14, 0, 10);
@@ -355,8 +360,9 @@ const BURST = 3, BURST_GAP = 6;
 const moveEnemy = (ctx: FrameContext, e: Enemy) => {
   const { state } = ctx;
   const { player } = state;
-  const onScreen = e.pos.x + e.width > state.camera.x && e.pos.x < state.camera.x + CANVAS_WIDTH
-    && e.pos.y + e.height > state.camera.y && e.pos.y < state.camera.y + CANVAS_HEIGHT;
+  const scr = screenRect(state);
+  const onScreen = e.pos.x + e.width > scr.x && e.pos.x < scr.x + scr.w
+    && e.pos.y + e.height > scr.y && e.pos.y < scr.y + scr.h;
   const isStunned = (e.pauseTimer || 0) > 0;
   const isHeld = (e.frozenTimer && e.frozenTimer > 0) || e.isTased;
   const air = isAirEnemy(e);
@@ -752,7 +758,8 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   const { player } = state;
   // (a fish down under the lava: nothing to touch)
   if (submerged(e)) return true;
-  const onScreen = e.pos.x + e.width > state.camera.x && e.pos.x < state.camera.x + CANVAS_WIDTH;
+  const scr = screenRect(state);
+  const onScreen = e.pos.x + e.width > scr.x && e.pos.x < scr.x + scr.w;
   // Shoulder first into a raised shield: he doesn't go through it, he drives the man behind it back
   if (onScreen && shieldShove(ctx, e)) return true;
   // Straight into a mugger's switchblade: he sticks you
@@ -774,7 +781,9 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
 
   // (a regular enemy can only be hit once per move, but a fresh charge right after lands again: you can keep shoving him;
   // a boss keeps his breather between hits)
-  const fresh = e.type !== 'boss' && e.hitByMove !== player.moveId;
+  // (one with no breather at all: each move lands on him once, and the next move lands again)
+  const breatherless = e.type === 'boss' && !!bossDef?.noBreather;
+  const fresh = (e.type !== 'boss' || breatherless) && e.hitByMove !== player.moveId;
   // A dive kick, shoulder charge or slide into a boss still in his breather: nothing goes in, but he doesn't go through
   // him either: a dive kick bounces off his head same as a stomp (no power back for it), a charge or slide rebounds
   // off him same as off anyone who's still standing
@@ -795,7 +804,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     if (bossDef?.slick) slipOff(ctx, e, bossDef.slick);
     return true;
   }
-  if (attackHit && onScreen && (!e.hitCooldown || e.hitCooldown <= 0 || fresh)) {
+  if (attackHit && onScreen && (breatherless ? fresh : (!e.hitCooldown || e.hitCooldown <= 0 || fresh))) {
     // Each uppercut / divekick only hits a given enemy once
     if (player.isUppercutting && player.uppercutHitIds.includes(e.id)) return true;
     if (player.isDivekicking && player.diveKickHitIds.includes(e.id)) return true;
@@ -838,6 +847,8 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     else if (player.isDivekicking) damage = (e.type === 'boss' ? BOSS_DIVEKICK_DAMAGE : ENEMY_DIVEKICK_DAMAGE);
     // (the bike's bunny hop or slam into a lowrider: that's the car wrecked)
     if (e.kind === 'lowrider' && (player.isUppercutting || player.isDivekicking)) damage = e.health;
+    // (a boss his moves barely dent)
+    if (e.type === 'boss' && bossDef?.meleeScale !== undefined) damage *= bossDef.meleeScale;
 
     if (hasShield) {
       // (a boss: one hit's worth, and it's spent)
@@ -853,7 +864,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     if (wasFrozen && player.isCharging && !player.isSliding) damage *= FROZEN_CHARGE_MULTIPLIER;
 
     e.health -= damage;
-    e.hitCooldown = ENEMY_HIT_COOLDOWN;
+    e.hitCooldown = breatherless ? 0 : ENEMY_HIT_COOLDOWN;
     e.hitByMove = player.moveId;
     fx.spawnDamageNumber(e.pos, damage, player.isUppercutting || !!player.isDivekicking || wasFrozen || hasShield);
     fx.playGunSound(wasFrozen ? 'crack' : player.isDivekicking ? 'stomp' : 'punch');
@@ -951,7 +962,7 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
   // (frozen solid, it's a block of ice: it doesn't hurt to bump into)
   if (!e.harmless && !isAttacking && !bouncedOff && !isFrozen(e) && player.invincibilityTimer <= 0 && rectsOverlap(hurtbox, boundsOf(e))) {
     // (a boss's own weight behind it; anything else just a bump)
-    if (!cheats.invincible) player.health -= kindContactDamage(e) ?? (e.type === 'boss' ? stageDef?.contact?.damage : undefined) ?? 5.5;
+    if (!cheats.invincible) player.health -= hurtTaken(stageId, kindContactDamage(e) ?? (e.type === 'boss' ? stageDef?.contact?.damage : undefined) ?? 5.5);
     state.lastHurt = { source: getContactHurtSource(ctx, e), at: state.frame };
     // (a bird that's got him on its attack, its dive or its swoop, not just bumped into him: if that's killed him, it
     // has his eyes; see player/deathAnim)
@@ -1460,11 +1471,25 @@ const collateral = (e: Enemy) => {
   return toGml(Math.hypot(e.vel.x, e.vel.y)) * weight * DOMINO_DAMAGE_SCALER * COLLATERAL_SCALE;
 };
 
+/**
+ * A body into a boss who takes them (the finale's alien: his own men thrown at him): the boss's business what it does.
+ * False if this boss doesn't (the body goes on by, as it always has).
+ */
+const bodyIntoBoss = (ctx: FrameContext, body: Enemy, boss: Enemy, force: number): boolean => {
+  const def = getBossDef(ctx.stageId);
+  if (!def?.onBodyHit || !ctx.state.arenaLocked || body.innocent) return false;
+  def.onBodyHit(ctx, boss, body, force);
+  return true;
+};
+
 /** A body he sent flying dead: it hits everyone in its way (once each), by its weight and speed, and knocks them on. */
 const flungIntoEnemies = (ctx: FrameContext, e: Enemy, enemies: Enemy[]) => {
   const { fx } = ctx;
   const onScreenOnly = !!getStageLayout(ctx.stageId)?.collateralOnScreenOnly;
   for (const other of enemies) {
+    // (a boss who takes a body into him: once each body, by how hard it hits)
+    if (other.type === 'boss' && other !== e && !e.flungHits?.includes(other.id) && other.health > 0 && rectsOverlap(boundsOf(e), boundsOf(other))
+      && bodyIntoBoss(ctx, e, other, collateral(e) * CORPSE_COLLATERAL)) { (e.flungHits ??= []).push(other.id); continue; }
     if (other === e || other.type === 'boss' || other.isBlownAway || other.health <= 0 || other.innocent || other.hyper) continue;
     if (onScreenOnly && !isOnScreen(ctx.state.camera, other, 0)) continue;
     if (e.flungHits?.includes(other.id) || !rectsOverlap(boundsOf(e), boundsOf(other))) continue;
@@ -1504,6 +1529,8 @@ const flungIntoEnemies = (ctx: FrameContext, e: Enemy, enemies: Enemy[]) => {
 const resolveShoveCollision = (ctx: FrameContext, e: Enemy, enemies: Enemy[]) => {
   const { fx } = ctx;
   for (const other of enemies) {
+    if (other.type === 'boss' && other !== e && other.health > 0 && !(e.enemyCollisionCooldown && e.enemyCollisionCooldown > 0) && rectsOverlap(boundsOf(e), boundsOf(other))
+      && bodyIntoBoss(ctx, e, other, isFrozen(e) ? FROZEN_ENEMY_IMPACT_DAMAGE * 2 : collateral(e))) { e.enemyCollisionCooldown = 20; e.vel.x *= -0.3; continue; }
     if (other === e || other.type === 'boss' || other.isBlownAway || other.health <= 0 || other.hyper || e.hyper) continue;
     if (other.enemyCollisionCooldown && other.enemyCollisionCooldown > 0) continue;
     if (!rectsOverlap(boundsOf(e), boundsOf(other))) continue;

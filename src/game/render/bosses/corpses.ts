@@ -13,11 +13,14 @@ import { pixelBlob } from '../pixelArt';
 import { drawFire } from '../fx/fire';
 import { drawFlameLicks } from '../fx/fireball';
 import { drawBloodPool } from '../spatter';
+import { drawAlienCorpse } from './alien';
 
 type Ctx = CanvasRenderingContext2D;
-type Style = 'charred' | 'melted' | 'stone' | 'shattered' | 'flattened' | 'dissolved' | 'overdosed' | 'oiled' | 'fried';
+type Style = 'charred' | 'melted' | 'stone' | 'shattered' | 'flattened' | 'dissolved' | 'overdosed' | 'oiled' | 'fried' | 'alien';
 
 const styleFor = (stageId: string, weapon: WeaponType): Style => {
+  // (the finale's alien, finished off with the pistol, a body, or anything else that isn't a wreck of its own)
+  if (stageId === 'Imposter Invasion' && !['FLAMETHROWER', 'TSUNAMI', 'SHOTGUN', 'BOULDER', 'SLUDGE', 'NEEDLES', 'OIL_ROCKET', 'TASER'].includes(weapon)) return 'alien';
   switch (weapon) {
     case 'FLAMETHROWER': return stageId === 'Artie Avalanche' ? 'melted' : 'charred';
     case 'TSUNAMI': return 'stone';
@@ -248,6 +251,7 @@ export const drawBossCorpse = (ctx: Ctx, c: BossCorpse, frame: number) => {
     case 'overdosed': overdosed(ctx, c, x, floor, age, frame); break;
     case 'oiled': oiled(ctx, c, x, floor, age, frame); break;
     case 'fried': fried(ctx, c, x, floor, age, frame); break;
+    case 'alien': drawAlienCorpse(ctx, x, floor, c.facing, age, frame); break;
     default: charred(ctx, c, x, floor, age, frame);
   }
   ctx.restore();

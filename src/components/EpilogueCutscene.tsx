@@ -1,0 +1,62 @@
+import React from 'react';
+import Cutscene, { Panel } from './Cutscene';
+import { drawTrumpCloseUp, drawMeatheadCloseUp, drawPunch } from '../game/scenes/ending';
+import { drawCloset, drawSkinRack, drawLawnPress, fireBg, drawLaunch, LAUNCH_TWINKLE, IRIS_AT, IRIS_LEN } from '../game/scenes/epilogue';
+import { Voice, MEATHEAD_VOICE } from '../game/platform/speech';
+import { playSound } from '../game/platform/audio';
+
+// After the alien: the real President, found tied up in a broom closet in the sub-basement (a rack of spare skins
+// behind the mops: they'd been pulling the strings the whole time), holds an "emergency" press conference on the lawn
+// in front of the burning White House. Meathead has no idea what's going on. Better than a medal: fast food. He gets
+// punched too. Up over the roof he goes, a twinkle, an iris in on Meathead's grin: THE END. For real this time.
+//
+// Same panels as the ending (see Cutscene): watch it all or skip the lot.
+
+const TRUMP_VOICE: Voice = { id: 'president', pitch: 0.75, rate: 0.9 };
+const TRUMP = 'PRESIDENT TRUMP';
+
+/** The real one up close, the fire behind him: in a state, and (`hands`) selling it. */
+const trump = (text: string, hands = true, mood: 'proud' | 'huh' = 'proud'): Panel =>
+  ({ draw: (c, t, talk) => drawTrumpCloseUp(c, t, talk, mood, { bg: g => fireBg(g, t), rough: true, hands }), speaker: TRUMP, voice: TRUMP_VOICE, text });
+const meathead = (mood: 'confused' | 'disgust', text: string, hold?: number): Panel =>
+  ({ draw: (c, t, talk) => drawMeatheadCloseUp(c, t, talk, mood, { bg: g => fireBg(g, t) }), speaker: 'MEATHEAD', voice: MEATHEAD_VOICE, text, hold });
+
+/** Sounds on given frames of a panel (its draw's called once a frame). */
+const cue = (draw: Panel['draw'], at: Record<number, () => void>): Panel['draw'] => (c, t, talking) => { at[t]?.(); draw(c, t, talking); };
+
+/** When THE END comes up: the iris has closed on him. */
+const THE_END_AT = IRIS_AT + IRIS_LEN + 6;
+
+const PANELS: Panel[] = [
+  { draw: (c, t) => drawCloset(c, t), text: 'THE WHITE HOUSE. THE SUB-BASEMENT.\nA BROOM CLOSET.', hold: 60 },
+  { draw: (c, t) => drawCloset(c, t + 200), text: 'The real President. Held hostage the whole time.', hold: 70 },
+  {
+    draw: (c, t) => drawSkinRack(c, t),
+    text: 'Behind the mops, a rack of spare skins.\nShape-shifting alien imposters, pulling the strings all along.', hold: 60,
+  },
+  { draw: (c, t) => drawLawnPress(c, t, false), text: 'THE SOUTH LAWN.\nAN "EMERGENCY" PRESS CONFERENCE.', hold: 70, onEnter: () => playSound('siren', 0.4) },
+  {
+    draw: (c, t, talk) => drawLawnPress(c, t, talk), speaker: TRUMP, voice: TRUMP_VOICE,
+    text: 'Folks. Folks. What a night. I was held hostage. In a closet. A very small closet, the worst closet. Believe me.',
+  },
+  trump("Aliens. Shape-shifting aliens. Running everything. Nobody knew. I knew. I didn't know, but I knew. Many people are saying I knew.", false),
+  { draw: (c, t) => drawMeatheadCloseUp(c, t, false, 'confused', { bg: g => fireBg(g, t) }), text: 'Meathead has no idea what is going on.', hold: 70 },
+  trump("And this man, Meathead, saved me. Saved the country. Saved the whole planet, frankly. Nobody's ever saved a planet like this. Tremendous."),
+  meathead('confused', 'WHY ARE THERE TWO OF YOU?'),
+  trump("Forget that medal. He gave you that? Fake medal. Very cheap. I'm going to give you something much better. Something beautiful."),
+  trump('Fast food. The best fast food. The biggest burgers, buckets of chicken, all you can eat, for life. Believe me.'),
+  meathead('disgust', 'OF COURSE YOU EAT FAST FOOD, FATTIE.'),
+  trump('Excuse me?', false, 'huh'),
+  {
+    draw: (c, t) => drawPunch(c, t, true), text: '', hold: 70,
+    onEnter: () => { playSound('punch', 1.5, -3); playSound('slam'); playSound('crunch'); },
+  },
+  // Up over the roof, gone with a twinkle; the iris in on Meathead's grin. THE END.
+  { draw: cue((c, t) => drawLaunch(c, t), { 2: () => playSound('whoosh', 1, -2), [LAUNCH_TWINKLE]: () => playSound('ding', 0.9, 4) }), text: '' },
+];
+
+const EpilogueCutscene: React.FC<{ onDone: () => void }> = ({ onDone }) => (
+  <Cutscene panels={PANELS} endAt={THE_END_AT} endCard="THE END" onDone={onDone} />
+);
+
+export default EpilogueCutscene;

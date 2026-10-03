@@ -188,8 +188,27 @@ export const drawArm = (ctx: Ctx, sx: number, sy: number, ex: number, ey: number
   for (let k = -1; k <= 1; k++) ctx.fillRect(hx + kx * fistR * 0.55 - ky * k * fistR * 0.45 - 0.4, hy + ky * fistR * 0.55 + kx * k * fistR * 0.45 - 0.4, 0.9, 0.9);
 };
 
-/** A trouser leg: shaded down the back, a crease at the knee and (on the near leg) a cargo pocket. */
-export const drawPantLeg = (ctx: Ctx, x: number, y: number, w: number, h: number, color: string, pocket = false) => {
+/** The alien's ray gun went through his jeans at the shin in the ending's cutscene: in the finale, the hole's there. */
+let singed = false;
+export const setLegSinge = (on: boolean) => { singed = on; };
+
+/**
+ * The hole the alien's laser burned in his jeans, on the near shin (`at` its middle, in the leg's own frame): a halo
+ * of scorch on the denim, the frayed edge charred black, his skin showing through, a couple of curled-up leg hairs.
+ */
+const drawSinge = (ctx: Ctx, x: number, y: number) => {
+  ctx.fillStyle = 'rgba(70, 36, 12, 0.55)'; ctx.beginPath(); ctx.ellipse(x, y, 3.6, 3, 0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#140a04'; ctx.beginPath(); ctx.ellipse(x, y, 2.6, 2.1, 0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = skinTone; ctx.beginPath(); ctx.ellipse(x + 0.2, y - 0.1, 1.7, 1.3, 0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#C68B45'; ctx.fillRect(x - 1, y + 0.4, 2.2, 0.7);
+  ctx.fillStyle = '#2a1608'; ctx.fillRect(x - 0.6, y - 0.9, 0.6, 0.6); ctx.fillRect(x + 0.5, y - 0.4, 0.6, 0.6);
+  // (the edge: a bright ember or two still in it)
+  ctx.fillStyle = '#F97316'; ctx.fillRect(x + 2, y - 1, 0.7, 0.7);
+};
+
+/** A trouser leg: shaded down the back, a crease at the knee and (on the near leg) a cargo pocket. `singeAt`: on the
+ * near shin, how far down it the laser's hole is (in the finale only). */
+export const drawPantLeg = (ctx: Ctx, x: number, y: number, w: number, h: number, color: string, pocket = false, singeAt?: number) => {
   ctx.fillStyle = color;
   ctx.fillRect(x, y, w, h);
   // Blood soaking into the fabric as he takes a beating
@@ -214,6 +233,7 @@ export const drawPantLeg = (ctx: Ctx, x: number, y: number, w: number, h: number
     ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
     ctx.fillRect(x + w * 0.35, y + 2, w * 0.5, 0.8);
   }
+  if (singed && singeAt !== undefined) drawSinge(ctx, x + w * 0.6, y + h * singeAt);
 };
 
 /** A combat boot: laces, a thick sole and (on the near foot) a shiny steel toe. */
@@ -245,7 +265,7 @@ export const drawJointedLeg = (ctx: Ctx, hipX: number, hipY: number, thighAngle:
   ctx.rotate(kneeBend);
   ctx.fillStyle = color;
   ctx.beginPath(); ctx.arc(0, 0, w / 2, 0, Math.PI * 2); ctx.fill();
-  drawPantLeg(ctx, -w / 2 + 0.5, 0, w - 1, 10, color);
+  drawPantLeg(ctx, -w / 2 + 0.5, 0, w - 1, 10, color, false, near ? 0.45 : undefined);
   drawBoot(ctx, -w / 2, 9, w + 4, 7, near);
   ctx.restore();
 };
@@ -265,13 +285,13 @@ export const drawArmTo = (ctx: Ctx, shoulder: [number, number], elbow: [number, 
  */
 export const drawLeg = (ctx: Ctx, hip: [number, number], knee: [number, number], foot: [number, number], toeAngle: number, back: boolean) => {
   const color = back ? pantsShadow : pantsColor, w = back ? 10 : 11;
-  const seg = (a: [number, number], b: [number, number], width: number, pocket: boolean) => {
+  const seg = (a: [number, number], b: [number, number], width: number, pocket: boolean, singeAt?: number) => {
     const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
     ctx.save(); ctx.translate(a[0], a[1]); ctx.rotate(Math.atan2(b[1] - a[1], b[0] - a[0]) - Math.PI / 2);
-    drawPantLeg(ctx, -width / 2, 0, width, len + 1, color, pocket);
+    drawPantLeg(ctx, -width / 2, 0, width, len + 1, color, pocket, singeAt);
     ctx.restore();
   };
-  seg(knee, foot, w - 1, false);
+  seg(knee, foot, w - 1, false, back ? undefined : 0.45);
   ctx.fillStyle = color; ctx.beginPath(); ctx.arc(knee[0], knee[1], w / 2, 0, Math.PI * 2); ctx.fill();
   seg(hip, knee, w, !back);
   ctx.fillStyle = color; ctx.beginPath(); ctx.arc(knee[0], knee[1], w / 2 - 0.5, 0, Math.PI * 2); ctx.fill();

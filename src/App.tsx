@@ -9,6 +9,7 @@ import HUD from './components/HUD';
 import Overlay, { CheatFlags } from './components/Overlay';
 import GameCanvas from './components/GameCanvas';
 import EndingCutscene from './components/EndingCutscene';
+import EpilogueCutscene from './components/EpilogueCutscene';
 import RadioCutscene from './components/RadioCutscene';
 import IntroCutscene from './components/IntroCutscene';
 import TutorialHint from './components/TutorialHint';
@@ -24,7 +25,7 @@ import { setScreenMusic, setMusicPaused, musicEnabled, setMusicEnabled } from '.
 import DeployTransition from './components/DeployTransition';
 import WeaponGetScene from './components/WeaponGetScene';
 import { GameStatus, WeaponType } from './types';
-import { INITIAL_PLAYER_HEALTH, MAX_AMMO, POWER_CELLS, createFullAmmo } from './constants';
+import { INITIAL_PLAYER_HEALTH, MAX_AMMO, POWER_CELLS, createFullAmmo, FINALE_STAGE } from './constants';
 import { getStages, getStartingWeapons, sortWeapons, BOSS_WEAPON_MAP, WEAPONS_AFTER_SET_0, ALL_WEAPONS, STAGES_SET_0, STAGES_SET_1 } from './content/roster';
 import { VULGARITIES, BOSS_DIALOGUE, BOSS_REBUKES, BOSS_SHAT_LINES } from './content/dialogue';
 import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS, menuButtons } from './game/platform/gamepad';
@@ -174,6 +175,9 @@ const App: React.FC = () => {
   const [souvenirs, setSouvenirs] = useState<Souvenir[]>([]);
   /** The target being flown to after ENGAGE (the Mode 7 swoop), or null. */
   const [deployingTo, setDeployingTo] = useState<string | null>(null);
+  /** Which of the ending's cutscenes is up (GameStatus.ENDING): the one at the White House (it ends on the alien
+   * bursting out of the President, and the fight with him follows), or the one after he's dead (then THE END). */
+  const [endingPart, setEndingPart] = useState<'ending' | 'epilogue'>('ending');
 
   const cheats = SHOW_CHEATS ? cheatFlags : NO_CHEATS;
   const screenShownAtRef = useRef(Date.now());
@@ -360,8 +364,24 @@ const App: React.FC = () => {
     if (yes) { if (leaveTo === 'quit') handleQuitToMenu(); else handleBossSelect(); }
   };
 
+  /** The ending's cutscene is done (IT'S ON): straight into the fight with the alien, in the press room, on his feet,
+   * topped right up (health, power, every gun he's got). */
+  const startFinale = () => {
+    pauseSpeech(false); silenceAll();
+    setLesson(null);
+    setSelectedStage(FINALE_STAGE);
+    setHealth(INITIAL_PLAYER_HEALTH);
+    setPower(POWER_CELLS);
+    // (he's killed all eight to get here: every one of their guns is his)
+    setAvailableWeapons(ALL_WEAPONS);
+    resetLoadout();
+    setIsVictoryPhase(false);
+    setStatus(GameStatus.LEVEL_INTRO);
+  };
+
   /** After THE END: back to the title screen. */
   const handleEndingDone = () => {
+    setEndingPart('ending');
     setDefeatedStages([]);
     setKillRecords({}); setShatKills({});
     setAvailableWeapons(getStartingWeapons(progressionRank, cheats.allWeapons));
@@ -610,6 +630,13 @@ const App: React.FC = () => {
   };
 
   const handleBossDefeated = (stageId: string, corpseWeapon?: WeaponType, shat?: boolean) => {
+    // The alien: no weapon of his to take, no souvenir; the epilogue, then THE END
+    if (stageId === FINALE_STAGE) {
+      setIsVictoryPhase(false);
+      setEndingPart('epilogue');
+      setStatus(GameStatus.ENDING);
+      return;
+    }
     setKillRecords(prev => ({ ...prev, [stageId]: corpseWeapon ?? null }));
     setShatKills(prev => ({ ...prev, [stageId]: !!shat }));
     setKilledShat(!!shat);
@@ -848,7 +875,7 @@ const App: React.FC = () => {
           showCall={progressionRank === 0 || callPreview}
         />
         </div>
-        {status === GameStatus.ENDING && <EndingCutscene onDone={handleEndingDone} />}
+        {status === GameStatus.ENDING && (endingPart === 'epilogue' ? <EpilogueCutscene onDone={handleEndingDone} /> : <EndingCutscene onDone={startFinale} />)}
         {intro === 'opening' && <IntroCutscene part="opening" onDone={startGym} />}
         {(intro === 'playing' || intro === 'outro') && (
           <IntroCutscene part="pitch" onHandoff={() => { setIntro('outro'); setSelectedIndex(0); setStatus(GameStatus.STAGE_SELECT); }} onDone={() => setIntro('off')} />

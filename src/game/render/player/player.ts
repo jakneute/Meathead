@@ -4,14 +4,14 @@ import { BOULDER_THROW_FRAMES, GUN_COOLDOWN, COLORS, INITIAL_PLAYER_HEALTH, PLAY
 import { peeProgress } from '../../scenes/victoryPee';
 import { SLIDE_HOLD } from '../../combat/muzzle';
 import { drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive, drawStandingKick, drawPedalLegs, drawLedgeDrop } from './moves';
-import { KICK_POSE_FRAMES, LEDGE_DROP_FRAMES } from '../../../constants';
+import { KICK_POSE_FRAMES, LEDGE_DROP_FRAMES, FINALE_STAGE } from '../../../constants';
 import { GameState } from '../../core/state';
 import { GroundRun, runAt, treadYAt, stanceDrop, STANCE } from '../../core/terrain';
 import { beginSprite, endSprite, markEyes, eyesAt } from './spriteOutline';
 import { drawPlayerShadow } from './shadow';
 import { drawDeathBrows, drawDeathEyes, drawDeathMouth } from './deathFace';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
-import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, bootColor, bootToe, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawHead, setTalking, drawTalkingMouth } from './body';
+import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, bootColor, bootToe, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawHead, setTalking, drawTalkingMouth, setLegSinge } from './body';
 
 export interface PlayerDrawOptions {
   currentWeapon: WeaponType;
@@ -44,6 +44,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   if ((state.deathTimer > 0 && !p.headless && !p.shownDead) || p.hidden) return;
   const animFrame = state.playerAnimFrame;
   setGore(1 - p.health / INITIAL_PLAYER_HEALTH);
+  // (the finale: the hole the alien's laser burned in his jeans, from the cutscene)
+  setLegSinge(state.stageId === FINALE_STAGE);
   const gore = getGore();
   ctx.save();
 
@@ -525,7 +527,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // Staggered backwards
     drawPantLeg(ctx, -14, -20, 10, 16, pantsShadow);
     drawBoot(ctx, -16, -4, 13, 6, false);
-    drawPantLeg(ctx, 2, -22, 10, 18, pantsColor, true);
+    drawPantLeg(ctx, 2, -22, 10, 18, pantsColor, true, 0.74);
     drawBoot(ctx, 3, -4, 13, 6, true);
   } else if (isWalking && slopeLegs) {
     // Up or down a slope or stairs: each foot planted on the ground under it, then lifted and swung through to the
@@ -556,7 +558,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.save();
     ctx.translate(4, -20);
     ctx.rotate(walkStride * 0.5);
-    drawPantLeg(ctx, -4, 0, 10, 14, pantsColor);
+    drawPantLeg(ctx, -4, 0, 10, 14, pantsColor, false, 0.66);
     drawBoot(ctx, -5, 12, 14, 7, true);
     ctx.restore();
   } else if (isRelieving && pee.drop < 1) {
@@ -594,7 +596,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // Idle grounded solid stance
     drawPantLeg(ctx, -10, -22, 10, 16, pantsShadow);
     drawBoot(ctx, -11, -6, 12, 7, false);
-    drawPantLeg(ctx, 2, -22, 10, 16, pantsColor, true);
+    drawPantLeg(ctx, 2, -22, 10, 16, pantsColor, true, 0.72);
     // (the front boot tipping up on its heel when he's tapping his foot)
     ctx.save(); ctx.translate(2, 0); ctx.rotate(-footTap * 0.4); ctx.translate(-2, 0);
     drawBoot(ctx, 2, -6, 14, 7, true);
@@ -1272,12 +1274,12 @@ const drawSlopeLeg = (ctx: CanvasRenderingContext2D, hipX: number, footX: number
   const along = (THIGH * THIGH - SHIN * SHIN + reach * reach) / (2 * reach), out = Math.sqrt(Math.max(0, THIGH * THIGH - along * along));
   const kx = hx + dx * along + dy * out, ky = hy + dy * along - dx * out;
   const color = back ? pantsShadow : pantsColor, w = 10;
-  const seg = (x0: number, y0: number, x1: number, y1: number, len: number, pocket: boolean) => {
+  const seg = (x0: number, y0: number, x1: number, y1: number, len: number, pocket: boolean, singeAt?: number) => {
     ctx.save(); ctx.translate(x0, y0); ctx.rotate(Math.atan2(y1 - y0, x1 - x0) - Math.PI / 2);
-    drawPantLeg(ctx, -w / 2, 0, w, len, color, pocket);
+    drawPantLeg(ctx, -w / 2, 0, w, len, color, pocket, singeAt);
     ctx.restore();
   };
-  seg(kx, ky, ax, ay, SHIN + 2, false);
+  seg(kx, ky, ax, ay, SHIN + 2, false, back ? undefined : 0.45);
   ctx.fillStyle = color; ctx.beginPath(); ctx.arc(kx, ky, w / 2, 0, Math.PI * 2); ctx.fill();
   seg(hx, hy, kx, ky, THIGH + 1, !back);
   // (the boot: on the ground at the sole; one he's reaching down for the ground with, up on its toe)

@@ -19,7 +19,8 @@ export const shotLook = (kind?: EnemyKind): ShotLook | undefined =>
   : kind === 'banger' || kind === 'lowrider' ? 'tracer'
   : kind === 'labtech' ? 'zap'
   : kind === 'tourist' || kind === 'cop' || kind === 'techbro' || kind === 'sicario' || kind === 'jetskier' || kind === 'drone' || kind === 'junkie'
-    || kind === 'pimp' || kind === 'guard' || kind === 'exec' || kind === 'ranger' || kind === 'cruiser' || kind === 'parkranger' || kind === 'suit' ? 'slug'
+    || kind === 'pimp' || kind === 'guard' || kind === 'exec' || kind === 'ranger' || kind === 'cruiser' || kind === 'parkranger' || kind === 'suit'
+    || kind === 'agent' || kind === 'agentshield' || kind === 'jetagent' ? 'slug'
   : undefined;
 
 /** How fast each kind of shot goes (a rifle's faster than a pistol, a flare's slow and bright). */

@@ -29,6 +29,13 @@ export const BOSS_DIALOGUE: {
   INTRO_QUOTES: Record<string, string[]>;
 } = {
   HURT: {
+    // The finale: bumping into the alien (the President's skin still flapping off him)
+    'Imposter Invasion': [
+      "GET YOUR SLIMY HANDS OFF ME!",
+      "HE FEELS LIKE A WET BAG OF HAM!",
+      "DON'T TOUCH ME, YOU SPACE BOOGER!",
+      "YOU'RE STILL WEARING HIS SKIN, YOU SICK FUCK!",
+    ],
     'Artie Avalanche': [
       "I'LL SHOVE THAT ICICLE UP YOUR ASS!",
       "MY BLOOD IS LITERALLY FREEZING, FUCK YOU!",
@@ -817,6 +824,58 @@ export const BOSS_DIALOGUE: {
       "YOU BOUNCED RIGHT OFF MY ABS, DUMBASS!",
       "OUT OF MY WAY, NOODLE-ARM!"
     ],
+    // The finale: the alien's ray gun (the leg hairs, again), the sad little bolts he lobs once he's beaten, and the
+    // press room burning; the Secret Service, by what got him
+    'alien_laser': [
+      "MY LEG HAIRS! NOT AGAIN!",
+      "THAT LASER SINGED MY GLUTES!",
+      "QUIT ZAPPING MY PUMP, YOU GREEN BASTARD!",
+      "I WAXED THOSE! I WAXED THOSE FOR THE CEREMONY!",
+      "IT SMELLS LIKE BURNT PROTEIN!",
+      "THAT'S NOT A TAN, THAT'S A THIRD-DEGREE BURN!",
+    ],
+    'alien_shot': [
+      "WAS THAT SUPPOSED TO HURT?",
+      "PATHETIC. THROW IT LIKE YOU MEAN IT.",
+      "THAT TICKLED, LOSER.",
+    ],
+    'fire@Imposter Invasion': [
+      "THE FLOOR'S ON FIRE! WHO DID THIS?! OH. ME.",
+      "HOT FLOOR! HOT FLOOR!",
+      "MY SOLES ARE MELTING!",
+    ],
+    'agent': [
+      "HE PISTOL-WHIPPED ME! I'M THE HERO!",
+      "WRONG GUY, SUNGLASSES!",
+    ],
+    'agent_shot': [
+      "THE SECRET SERVICE IS SHOOTING THE WRONG GUY!",
+      "I'M THE HERO, YOU IDIOTS!",
+      "PROTECT HIM?! HE'S A FUCKING ALIEN!",
+      "WHOSE SIDE ARE YOU ON?!",
+    ],
+    'agentrush': [
+      "TACKLED BY A SUIT! WEAK!",
+      "NICE FORM. TERRIBLE TASTE IN BOSSES.",
+      "HE HIT ME LIKE A LINEBACKER IN LOAFERS!",
+    ],
+    'agentshield': [
+      "HE HIT ME WITH THE SHIELD! THAT'S NOT WHAT IT'S FOR!",
+      "BALLISTIC SHIELD TO THE FACE, FUCK!",
+    ],
+    'agentshield_shot': [
+      "SHOOTING AROUND THE SHIELD? COWARD!",
+      "COME OUT FROM BEHIND THAT THING AND FIGHT!",
+    ],
+    'jetagent': [
+      "A JETPACK TO THE NUTS!",
+      "WHO GAVE THE SECRET SERVICE JETPACKS?!",
+    ],
+    'jetagent_shot': [
+      "GET DOWN HERE, ROCKETEER!",
+      "SHOOTING FROM THE SKY? THAT'S CHEATING!",
+      "THE AIR FORCE IS ON HIS SIDE TOO?!",
+    ],
     'drone': [
       "GET THAT BUZZING DRONE AWAY FROM MY LATS!",
       "A DRONE HIT ME! AM I ON CAMERA?!",
@@ -839,7 +898,8 @@ export const BOSS_DIALOGUE: {
     'Toxic Tommy': { 75: 'HOLD STILL, I\'M CHECKING YOUR WATER PRESSURE!', 50: 'I DRANK IT ALL FOR THEM! ALL OF IT!', 25: 'I\'M BACKING UP! I\'M BACKING UP!', 0: 'FLUSH ME... DOWN WITH THE NEIGHBORS...' },
     'Blackout Barry': { 75: 'THAT\'S FOR GARY! MY... COWORKER! JUST A COWORKER, MAN!', 50: 'YOU KNOW WHO R&D TESTS THAT STUFF ON? ME, MAN.', 25: 'WE HAD MATCHING TATTOOS, MAN! A WORK THING! IT WAS A WORK THING!', 0: 'GARY... THERE THEY ARE... THE STARS... WE SAID WE\'D SEE THEM TOGETHER...' },
     'Oily Oscar': { 75: 'A TOUGH SELL! I LIKE THAT, PAL! I LOVE THAT!', 50: 'OKAY! OKAY! EVERYBODY\'S GOT A PRICE! WHAT\'S YOURS?!', 25: 'TAKE THE WALLET! TAKE THE WATCH! TAKE THE TEETH! JUST GO!', 0: 'FINAL... OFFER...' },
-    'Drug Trade Dale': { 75: 'YOU\'RE NOT EVEN A FED! WHO ARE YOU?!', 50: 'THREE HITMEN! I PAID FOR THREE HITMEN!', 25: 'OKAY, OKAY! I\'M DIPPING INTO THE INVENTORY!', 0: 'CLOSED... FOR INVENTORY...' }
+    'Drug Trade Dale': { 75: 'YOU\'RE NOT EVEN A FED! WHO ARE YOU?!', 50: 'THREE HITMEN! I PAID FOR THREE HITMEN!', 25: 'OKAY, OKAY! I\'M DIPPING INTO THE INVENTORY!', 0: 'CLOSED... FOR INVENTORY...' },
+    'Imposter Invasion': { 75: 'YOUR PATHETIC EARTH WEAPONS TICKLE MY BIG GREEN BODY!', 50: 'ZORBLAX COMMAND WILL HEAR OF THIS! LOUDLY!', 25: 'MY SKIN SUIT IS RUINED! IT WAS A RENTAL!', 0: 'TELL... THE MOTHER SHIP... I WAS... VERY LARGE...' }
   },
   INTRO_QUOTES: {
     'Artie Avalanche': ['COLD? I\'M RUNNING ON FOUR SCOOPS OF PRE-WORKOUT. I\'M A DAMN FURNACE.', 'You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I\'M the terrorist?'],
@@ -867,6 +927,15 @@ export const KILL_LINES: Record<Exclude<VulgarityType, 'hurt'>, string[]> = {
   taser_kill: VULGARITIES.TASER_KILL,
   sludge_kill: VULGARITIES.SLUDGE_KILL,
   oil_kill: VULGARITIES.OIL_KILL,
+  // Over the alien going up
+  alien_kill: [
+    "GO BACK TO SPACE, FUCKFACE!",
+    "IMPEACHED!",
+    "TAKE ME TO YOUR LEADER? I AM THE LEADER NOW!",
+    "EARTH IS CLOSED, BITCH!",
+    "THAT'S ONE SMALL STEP FOR MEAT!",
+    "NO MORE QUESTIONS!",
+  ],
   death: VULGARITIES.DEATH,
   truck_wreck: ["BARF BEATS BUMPER, BITCH!", "YOUR DELIVERY GOT DENIED!", "RETURN TO SENDER, DALE!", "TOTALED BY A PROTEIN SHAKE!"],
   // The practice range's hired help: the wannabe boxer who answered an ad, and the guy on the balloons
@@ -1237,6 +1306,17 @@ export const BOSS_OWN_WEAPON_LINES: Record<string, string[]> = {
 };
 
 export const BOSS_WEAPON_REACTIONS: Record<string, Partial<Record<WeaponType, string[]>>> = {
+  'Imposter Invasion': {
+    GUN: ["YOUR TINY GUN IS ADORABLE!", "PEW? PEW? IS THAT ALL?", "I HAVE BEEN SHOT BY BIGGER THINGS ON ZORBLAX!"],
+    SHOTGUN: ["COLD! COLD! MY BLOOD IS ALREADY COLD!", "WHY IS YOUR PLANET'S AMMUNITION SO CHILLY?!"],
+    FLAMETHROWER: ["FIRE?! MY ONE WEAKNESS! ONE OF MANY!", "STOP COOKING ME! I AM NOT A BARBECUE!"],
+    BOULDER: ["OW! A ROCK! ON MY HEAD! MY BIG HEAD!", "WHO THROWS ROCKS INDOORS?!"],
+    TSUNAMI: ["WATER?! INSIDE A BUILDING?!", "I CANNOT SWIM! WE HAVE NO OCEANS!"],
+    NEEDLES: ["NEEDLES DO NOTHING! WE HAVE NO VEINS!", "THAT ONE FELT NICE, ACTUALLY."],
+    TASER: ["HA! YOUR SHOCK STICK CANNOT HOLD ME!", "TINGLES! ONLY TINGLES!"],
+    SLUDGE: ["DISGUSTING! IT IS IN MY EAR HOLES!", "I CANNOT FLOAT! I AM TOO STICKY!"],
+    OIL_ROCKET: ["MY BEAUTIFUL BODY! SO SLIPPERY NOW!", "STOP BLOWING UP MY PRESS CONFERENCE!"],
+  },
   'Artie Avalanche': {
     GUN: ["A PEASHOOTER? HOW QUAINT.", "BULLETS CHIP ICE, NOT MY EGO.", "IS THAT ALL YOUR TINY GUN CAN DO?"],
     SHOTGUN: ["YOU'RE FIRING ICE AT ME? I AM ICE, IDIOT.", "OH NO, NOT A GENTLE SNOW FLURRY.", "THANKS FOR THE REFILL, MEATFACE."],
@@ -1480,6 +1560,11 @@ export const ENEMY_KILL_LINES: Partial<Record<string, string[]>> = {
   pickup: ["UNION BUSTED!", "OFF THE CLOCK! FOREVER!", "TRUCK YOU!"],
   cruiser: ["PULL OVER THIS!", "LICENSE AND REGISTRATION? DEAD!", "HIGH SPEED CHASE! HIGH SPEED DEAD!"],
   chopper: ["EASY RIDE! EASY KILL!", "LAID YOUR BIKE DOWN! AND YOU!", "RIDE THIS!"],
+  // The finale's Secret Service
+  agent: ["PROTECT THIS!", "TAKE A BULLET? TAKE ALL OF THEM!", "SHOULD'VE CHECKED HIS BADGE, GENIUS!", "SUNGLASSES INDOORS? YOU EARNED THAT."],
+  agentrush: ["NICE TACKLE. NICE CORPSE.", "THE SUIT DIDN'T HELP!", "DIVE IN FRONT OF THIS!"],
+  agentshield: ["YOUR SHIELD'S BULLETPROOF. YOU'RE NOT.", "HIDE BEHIND THAT, DUMBASS!", "BALLISTIC? MORE LIKE BALL-LESS!"],
+  jetagent: ["HOUSTON, YOU'RE DEAD!", "GROUNDED, FLYBOY!", "NICE JETPACK. DUMBASS.", "MAYDAY, MOTHERFUCKER!"],
 };
 
 /** A kill, any kill: nothing about who or how. */
@@ -1573,6 +1658,14 @@ export const GUT_LINES = {
  * (see GUT_LINES): an intro, the 75/50/25 callouts, their last words, and what they shout when he hits them.
  */
 export const BOSS_SHAT_LINES: Record<string, { intro: string; 75: string; 50: string; 25: string; 0: string; react: string[] }> = {
+  'Imposter Invasion': {
+    intro: "WHAT IS THAT SMELL?! IS THIS HOW EARTH MEN GREET THEIR LEADER?!",
+    75: "I HAVE NO NOSE AND STILL I CAN SMELL YOU!",
+    50: "ZORBLAX COMMAND WAS RIGHT! THIS PLANET IS DISGUSTING!",
+    25: "EVEN MY SKIN SUIT WANTS TO LEAVE!",
+    0: "KILLED... BY A MAN... WHO SOILED HIMSELF...",
+    react: ["STAY BACK! YOUR PANTS ARE A WEAPON!", "NOT ON THE CARPET! THE CARPET IS HISTORIC!"],
+  },
   'Artie Avalanche': {
     intro: "WHAT IS THAT SMELL?! THAT'S IN YOUR PANTS! YOU WALKED INTO MY VAULT LIKE THAT?!",
     75: "I'M NOT TOUCHING YOU! I'LL FREEZE YOU FROM OVER HERE!",
@@ -1637,4 +1730,67 @@ export const BOSS_SHAT_LINES: Record<string, { intro: string; 75: string; 50: st
     0: "CLOSED... FOR FUMIGATION...",
     react: ["SIR REGINALD WOULD NEVER!", "THAT'S A FELONY IN NEW MEXICO, MAN!"],
   },
+};
+
+/**
+ * The finale's alien: what he says about what's being done to him (once each, the first time), what he shouts firing
+ * his ray gun, and, once he's beaten (every gun Meathead's got is empty, his men are gone), the begging: each plea
+ * answered by Meathead (the other way if Meathead's shit himself), in order, one after another.
+ */
+export const ALIEN_LINES = {
+  LASER: ["BEHOLD! THE LASER OF MY PEOPLE!", "PEW PEW, EARTH MAN!", "I WILL MELT YOUR HAIRY LEGS!", "STAND STILL SO I CAN ZAP YOU!", "MY LASER IS BIGGER THAN YOUR LASER!", "FEAR ME! I AM VERY LARGE!"],
+  SLOWED: "I... AM... SO... SLOW... NOW...",
+  STUNNED: "I SEE TWO OF YOU! BOTH UGLY!",
+  GROUNDED: "MY FLOATING! IT DOES NOT WORK!",
+  PUSHED: "WHEEEE! I MEAN, OW!",
+  BLOCKED: "HEY! YOU PUT OUT MY LASER! I WAS USING THAT!",
+  CONTACT: "WHY IS MY AGENT SO HAPPY?!",
+  CHAIN: "MY OWN MEN! THEY ARE CONDUCTIVE!",
+  OILED: "I AM SO GREASY! LIKE A HOT DOG!",
+  BURNING: "I AM ON FIRE! THIS IS NOT IN THE BROCHURE!",
+  /** When his men have all run off and it's just him. */
+  ALONE: "...GUYS? GUYS?! WHERE ARE YOU GOING?!",
+  PLEAS: [
+    { plea: "WAIT! WAIT! LET US TALK LIKE TWO REASONABLE MEATS!", reply: "I DON'T TALK. I LIFT.", shat: "I DON'T TALK. I LIFT. AND APPARENTLY I SHIT." },
+    { plea: "I CAN OFFER YOU GOLD! SPACE GOLD! IT IS LIKE GOLD, BUT IN SPACE!", reply: "CAN I BENCH IT? NO? THEN SHUT UP.", shat: "CAN SPACE GOLD BUY ME NEW PANTS? NO? THEN SHUT UP." },
+    { plea: "I WAS ONLY FOLLOWING ORDERS! ZORBLAX COMMAND MADE ME WEAR THE MAN!", reply: "AND I'M FOLLOWING MY PROGRAM. TODAY IS ALIEN DAY.", shat: "AND I'M FOLLOWING MY PROGRAM. TODAY IS ALIEN DAY. AND LAUNDRY DAY." },
+    { plea: "I HAVE A FAMILY ON ZORBLAX! FOUR WIVES! NINE HUNDRED LARVAE!", reply: "THEN THEY'RE ABOUT TO LEARN ABOUT DEADLIFTS. DEAD. LIFTS.", shat: "TELL YOUR LARVAE I SHIT MYSELF AND STILL WON." },
+    { plea: "WE CAN SHARE EARTH! YOU TAKE THE GYMS! I TAKE EVERYTHING ELSE!", reply: "THE GYMS ARE EVERYTHING ELSE, DUMBASS.", shat: "I'M TAKING THE GYMS AND A SHOWER. YOU GET NOTHING." },
+    { plea: "I WILL MAKE YOU VICE PRESIDENT! NO! KING! KING OF THE MEATS!", reply: "I'M ALREADY KING OF THE MEATS. YOU'RE A GREEN SNACK.", shat: "A KING DOESN'T NEED CLEAN PANTS. A KING NEEDS YOU DEAD." },
+    { plea: "PLEASE! I WILL GO HOME! I WILL TELL THEM EARTH IS ONLY ROCKS!", reply: "YOU'RE NOT GOING HOME. YOU'RE GOING IN MY PROTEIN SHAKE.", shat: "YOU'RE NOT GOING HOME. SMELL THAT? THAT'S YOUR FUTURE." },
+    { plea: "AT LEAST TELL ME YOUR SECRET! HOW ARE YOU SO STRONG?!", reply: "CREATINE, SPITE, AND NO CARDIO. NOW HOLD STILL.", shat: "CREATINE, SPITE, AND A WHOLE LOT OF FIBER. HOLD STILL." },
+  ],
+};
+
+/**
+ * The finale's other voices: the Secret Service's radio (them coming in, and pulling out), and Meathead as each of his
+ * guns runs dry and the press room's wrecked that weapon's way, and when they're all empty.
+ */
+export const FINALE_LINES = {
+  RADIO_IN: [
+    "ALL UNITS, PRESS ROOM! PROTECT THE PRESIDENT!",
+    "EAGLE IS UNDER ATTACK! REPEAT, EAGLE IS UNDER ATTACK!",
+    "THE PRESIDENT IS... GREEN? PROTECT HIM ANYWAY!",
+    "PROTOCOL SAYS PROTECT THE PRESIDENT. PROTOCOL DOESN'T SAY WHAT HE IS.",
+    "MORE UNITS TO THE BRIEFING ROOM! THE BIG GUY'S EATING US ALIVE!",
+    "AGENT DOWN! AGENT DOWN! AGENT VERY DOWN!",
+    "HOLD THE LINE! SOMEBODY GET THE PRESIDENT A NAPKIN!",
+  ],
+  RADIO_JETS: [
+    "SEND IN THE JETPACKS!",
+    "WHO AUTHORIZED THE JETPACKS? NEVER MIND, SEND THEM!",
+  ],
+  RADIO_RETREAT: "ALL UNITS, FALL BACK! FALL BACK! THIS IS ABOVE OUR PAY GRADE!",
+  /** Meathead, as each gun runs dry (and the room's wrecked its way). */
+  WRECKED: {
+    SHOTGUN: "OUT OF ICE! ENJOY THE FREEZER, E.T.!",
+    FLAMETHROWER: "OUT OF FUEL! THE CURTAINS AREN'T!",
+    BOULDER: "NO MORE ROCKS! JUST RUBBLE!",
+    TSUNAMI: "THAT'S ALL THE WATER! HOPE YOU BROUGHT A MOP!",
+    SLUDGE: "I'M ALL PUKED OUT! THE ROOM ISN'T!",
+    TASER: "BATTERY'S DEAD! SO ARE THE LIGHTS!",
+    OIL_ROCKET: "LAST ROCKET! THE WHOLE ROOM'S GREASED!",
+    NEEDLES: "OUT OF NEEDLES! THIS PLACE LOOKS LIKE A REHAB NOW!",
+  } as Partial<Record<WeaponType, string>>,
+  ALL_OUT: "OUT OF EVERYTHING! GUESS IT'S JUST ME AND THE PISTOL!",
 };

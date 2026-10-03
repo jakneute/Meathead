@@ -5,7 +5,7 @@ import { INK, ink, shaded, shadedTop, dark, lite } from './npc/kit';
 import { setBossLook } from './bosses/kit';
 import { isDummy, drawDummy } from './dummies';
 import {
-  CANVAS_WIDTH, CANVAS_HEIGHT, RING_CEILING_Y, RING_FLOOR_Y, LEVEL_INTRO_STYLE, SKYFALL_CLOUD_FRAMES, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, RENDER_SCALE, PRACTICE_RANGE_STAGE, isRangeStage, GROUND_Y,
+  CANVAS_WIDTH, CANVAS_HEIGHT, RING_CEILING_Y, RING_FLOOR_Y, LEVEL_INTRO_STYLE, SKYFALL_CLOUD_FRAMES, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, RENDER_SCALE, PRACTICE_RANGE_STAGE, isRangeStage, GROUND_Y, FINALE_STAGE,
 } from '../../constants';
 import { drawSkyClouds, DEPLOY_CLOUD_SCROLL_END, SKYFALL_CLOUD_SPEED } from './skyClouds';
 import { STAGE_COLORS } from '../../content/roster';
@@ -16,6 +16,7 @@ import { drawVentTelegraph, drawVent, drawMagma, isMagma } from './bosses/victor
 import { drawIcicles, drawIceBlock, drawIceShard } from './bosses/artieIce';
 import { drawBoulder, drawRockChip } from './bosses/boulders';
 import { drawBullet, drawThrown, drawEnemyBullet, drawIcePellet, drawDart, drawPoopLog, drawCocaine, drawMethBarrel, drawSludgeBlob, drawDarkOrb, drawOilRocket } from './projectiles';
+import { drawSadBolt } from './bosses/alien';
 import { drawParticle } from './particles';
 import { drawTsunamiBack, drawTsunamiFront } from './fx/tsunami';
 import { drawComposited, needsComposite } from './composite';
@@ -635,7 +636,8 @@ const drawRangeVoid = (ctx: CanvasRenderingContext2D, frame: number) => {
 
 const drawBlocks = (ctx: CanvasRenderingContext2D, state: GameState, colors: { ground: string, accent: string }) => {
   state.blocks.forEach(b => {
-    if (b.type === 'door') return;
+    // (one the stage draws itself, as part of its scenery)
+    if (b.type === 'door' || b.hidden) return;
     else if (b.type === 'pit') ctx.fillStyle = '#f00';
     else {
       ctx.fillStyle = colors.ground;
@@ -866,7 +868,7 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
     if (tased) { ctx.filter = 'none'; ctx.shadowBlur = 0; drawTasedFx(ctx, e, state); }
     if (e.type !== 'boss' && e.isOnFire && e.health > 0) { ctx.filter = 'none'; ctx.shadowBlur = 0; drawOnFire(ctx, e, state.frame); }
     drawStuckNeedles(ctx, e, state.frame);
-    if (!e.isBlownAway && e.drownT === undefined && !isMidBoss(e) && e.kind !== 'civilian' && e.kind !== 'visitor' && e.kind !== 'generator' && e.kind !== 'minion' && e.kind !== 'tenant' && !(e.kind === 'magmafish' && (!e.aiState || e.aiState === 'idle'))) { ctx.fillStyle = '#00FF00'; ctx.fillRect(e.pos.x, e.pos.y - 10 - (e.kind ? KIND_TOP_REACH[e.kind] ?? 0 : 0), (e.health / e.maxHealth) * e.width, 5); } // (over its head, not across it)
+    if (!e.isBlownAway && e.drownT === undefined && !isMidBoss(e) && !(e.type === 'boss' && stageId === FINALE_STAGE) && e.kind !== 'civilian' && e.kind !== 'visitor' && e.kind !== 'generator' && e.kind !== 'minion' && e.kind !== 'tenant' && !(e.kind === 'magmafish' && (!e.aiState || e.aiState === 'idle'))) { ctx.fillStyle = '#00FF00'; ctx.fillRect(e.pos.x, e.pos.y - 10 - (e.kind ? KIND_TOP_REACH[e.kind] ?? 0 : 0), (e.health / e.maxHealth) * e.width, 5); } // (over its head, not across it)
     ctx.restore();
   });
 };
@@ -1333,6 +1335,7 @@ const drawProjectiles = (ctx: CanvasRenderingContext2D, state: GameState, layer:
     else if (p.isOilRocket) drawOilRocket(ctx, p, state.frame);
     else if (p.isIce) drawIcePellet(ctx, p, state.frame);
     else if (p.thrown) drawThrown(ctx, p, state.frame);
+    else if (p.sadBolt) drawSadBolt(ctx, p, state.frame);
     else if (p.owner === 'player') drawBullet(ctx, p);
     else drawEnemyBullet(ctx, p, state.frame);
     ctx.restore();

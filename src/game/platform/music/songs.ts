@@ -288,6 +288,8 @@ export const SONGS: Record<string, Song> = {
       'Blackout Barry': { inst: { lead: 'sax', color: 'strings' } },
       'Oily Oscar': { inst: { lead: 'harmonica', color: 'banjo' } },
       'Drug Trade Dale': { inst: { lead: 'trumpet', color: 'nylon' } },
+      // (the alien: a wobbly saucer organ on the lead, brass stabs under it)
+      'Imposter Invasion': { inst: { lead: 'organ', color: 'brass' } },
     },
   },
 

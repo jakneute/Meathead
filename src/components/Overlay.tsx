@@ -11,6 +11,7 @@ import BossPortrait from './BossPortrait';
 import CorpsePhoto from './CorpsePhoto';
 import WeaponIcon, { WeaponArt } from './WeaponIcon';
 import DossierPanel from './DossierPanel';
+import { DOSSIERS } from '../content/dossiers';
 import { GYM_STAGE } from '../game/stages/gym/course';
 import { GYM_DOSSIER_ID } from '../content/gymDossier';
 import { WHITE_HOUSE_ID } from '../content/whiteHouse';
@@ -627,7 +628,7 @@ const PauseMenu: React.FC<OverlayProps> = ({ availableWeapons, currentWeapon, we
       </div>
 
       {/* The file on him: this stage's boss (the briefing); in the gym, the department's own, on Meathead */}
-      {pauseDossier && stageId && (
+      {pauseDossier && stageId && (stageId === GYM_STAGE || DOSSIERS[stageId]) && (
         // (over the whole screen, not just the menu: `fixed` here is the game's own 800x600, which is scaled)
         <div className="fixed inset-0 z-30 flex flex-col items-center justify-center bg-black/85 animate-in fade-in duration-150">
           <div className="w-[640px] h-[520px]">

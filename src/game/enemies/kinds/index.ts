@@ -23,6 +23,7 @@ import { runVictorKindAI } from './victor';
 import { runErnieKindAI } from './ernie';
 import { runDaleKindAI } from './dale';
 import { runTommyKindAI } from './tommy';
+import { runFinaleKindAI } from './finale';
 
 /** (mass: how heavy it is, for every push and shove: what it takes to move it, and what it does to whatever it's flung
  * into; 200 is a grown man, and a push is sized for him) */
@@ -139,6 +140,11 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
   bob: { w: 40, h: 76, hp: 99999, contact: 0, mass: 250 },
   // (the one cowering behind a gym mat: nothing gets through it, nothing hurts him; only being driven into a wall does)
   cower: { w: 44, h: 60, hp: 99999, contact: 0, mass: 220 },
+  // The finale's Secret Service: a man with his pistol, one who tackles, one behind a ballistic shield, the jetpack men
+  agent: { w: 40, h: 66, hp: 110, contact: 6, mass: 210 },
+  agentrush: { w: 50, h: 70, hp: 200, contact: 12, mass: 320 },
+  agentshield: { w: 52, h: 70, hp: 160, contact: 8, mass: 280 },
+  jetagent: { w: 44, h: 66, hp: 90, contact: 8, mass: 200, air: true },
 };
 
 /**
@@ -152,7 +158,7 @@ export const isSmallCritter = (kind?: EnemyKind) =>
 /** The ones that run you down like the rusher. */
 export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind === 'bouncer' || kind === 'smokejumper' || kind === 'firedancer' || kind === 'courier' || kind === 'convict' || kind === 'enforcer'
   || kind === 'hooker' || kind === 'mugger' || kind === 'commuter' || kind === 'intern' || kind === 'janitor' || kind === 'subject'
-  || kind === 'bruiser' || kind === 'bloater' || kind === 'biker' || kind === 'temp';
+  || kind === 'bruiser' || kind === 'bloater' || kind === 'biker' || kind === 'temp' || kind === 'agentrush';
 
 let spawnCount = 0;
 
@@ -229,6 +235,11 @@ export const makeKindEnemy = (kind: EnemyKind, x: number, groundY: number): Enem
     case 'clerk': return { ...base, enemyType: 'shield', behavior: 'shoot', isShieldActive: true };
     case 'bob': return { ...base, harmless: true };
     case 'cower': return { ...base, enemyType: 'shield', isShieldActive: true, harmless: true, unshakeable: true };
+    // The Secret Service come in through the press room's doors (and the jetpack men its windows) and get into
+    // position first (the stage's 'enter'), then do their jobs: see kinds/finale.ts
+    case 'agent': case 'agentrush': return { ...base, aiState: 'enter' };
+    case 'agentshield': return { ...base, enemyType: 'shield', isShieldActive: true, aiState: 'enter' };
+    case 'jetagent': return { ...base, enemyType: 'flyer', initialY: pos.y, aiState: 'enter' };
     default: return base;
   }
 };
@@ -268,6 +279,7 @@ export const runKindAI = (ctx: FrameContext, e: Enemy): boolean => {
     // Oscar's wildlife: the armadillo scurries and rolls at you like the wolverine lunges; the longhorn charges like the goat
     case 'armadillo': wolverine(ctx, e); return false;
     case 'longhorn': goat(ctx, e); return false;
+    case 'agent': case 'agentrush': case 'agentshield': case 'jetagent': return runFinaleKindAI(ctx, e);
     default: return false;
   }
 };

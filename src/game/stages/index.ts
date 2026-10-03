@@ -17,6 +17,8 @@ import { barryLayout } from './barry';
 import { tommyLayout } from './tommy';
 import { oscarLayout } from './oscar';
 import { gymLayout, GYM_STAGE } from './gym';
+import { finaleLayout } from './finale';
+import { FINALE_STAGE } from '../../constants';
 
 /** A body of water: which one (to tell them apart), how far it runs, and whether it's clean water or muck. */
 export interface WaterBody { key: string; x1: number; x2: number; surface: number; bottom: number; kind: 'clean' | 'muck' }
@@ -96,6 +98,8 @@ export interface StageLayout {
   collateralOnScreenOnly?: boolean;
   /** He's already standing there when it starts (the gym): no dropping in out of the sky. */
   startsStanding?: boolean;
+  /** The stage's update keeps running once the boss's arena has locked (a stage that's all arena: the finale). */
+  runsInArena?: boolean;
   /** Where you start when you go straight to the boss (or die to him), if not the usual spot just outside his door. */
   bossStartX?: number;
   /** ...and the floor there, if it's not just whatever's under the top of the screen (under a ceiling, say). */
@@ -118,6 +122,7 @@ const LAYOUTS: Record<string, StageLayout> = {
   'Toxic Tommy': tommyLayout,
   'Oily Oscar': oscarLayout,
   [GYM_STAGE]: gymLayout,
+  [FINALE_STAGE]: finaleLayout,
 };
 
 export const getStageLayout = (stageId: string | null): StageLayout | undefined => (stageId ? LAYOUTS[stageId] : undefined);

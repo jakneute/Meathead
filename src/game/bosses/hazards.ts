@@ -7,7 +7,7 @@ import {
   TSUNAMI_WAVE_SPEED, TSUNAMI_DAMAGE_BOSS, TSUNAMI_DAMAGE_WEAKNESS, TSUNAMI_DAMAGE_MIDBOSS, TSUNAMI_DAMAGE_DOORMAN,
 } from '../../constants';
 import { FrameContext } from '../core/context';
-import { hitBoss, isWeakTo } from './registry';
+import { hitBoss, isWeakTo, getBossDef } from './registry';
 import { updateCorkedVent, ventTip, victorTsunamiHit, victorVentBlown } from './victor';
 import { killPlayer, landPlayer } from '../player/player';
 import { isMidBoss, midBossDamage, JUNKIE_WAVE_RESIST } from '../combat/midBoss';
@@ -56,6 +56,9 @@ export const updateTsunami = (ctx: FrameContext) => {
     if (e.type === 'boss') {
       // (Victor: in full only for putting his fire out or blowing a vent; see victorTsunamiHit)
       if (stageId === 'Victor Volcano') { if (state.arenaLocked) victorTsunamiHit(ctx, e); return; }
+      // (a boss with a way of his own with it: each frame it's got him, and whether it's the first of this wave)
+      const onTsunami = getBossDef(stageId)?.onTsunami;
+      if (onTsunami) { if (state.arenaLocked) { onTsunami(ctx, e, dir, e.tsunamiWave !== state.tsunamiSerial); e.tsunamiWave = state.tsunamiSerial; } return; }
       if (!state.arenaLocked || (e.hitCooldown && e.hitCooldown > 0)) return;
       hitBoss(ctx, e, 'TSUNAMI', { facing: dir, damage: isWeakTo(stageId, 'TSUNAMI') ? TSUNAMI_DAMAGE_WEAKNESS : TSUNAMI_DAMAGE_BOSS });
     } else if (isMidBoss(e)) {

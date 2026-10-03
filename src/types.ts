@@ -37,7 +37,7 @@ export interface Entity {
 
 export type WeaponType = 'GUN' | 'BOULDER' | 'SHOTGUN' | 'FLAMETHROWER' | 'TSUNAMI' | 'NEEDLES' | 'TASER' | 'SLUDGE' | 'OIL_ROCKET' | 'LMG';
 
-export type VulgarityType = 'gun_kill' | 'boulder_kill' | 'shotgun_kill' | 'flamethrower_kill' | 'tsunami_kill' | 'hurt' | 'death' | 'charge_kill' | 'uppercut_kill' | 'dart_kill' | 'taser_kill' | 'sludge_kill' | 'oil_kill' | 'truck_wreck' | 'range_boxer_kill' | 'range_balloon_kill';
+export type VulgarityType = 'gun_kill' | 'boulder_kill' | 'shotgun_kill' | 'flamethrower_kill' | 'tsunami_kill' | 'hurt' | 'death' | 'charge_kill' | 'uppercut_kill' | 'dart_kill' | 'taser_kill' | 'sludge_kill' | 'oil_kill' | 'truck_wreck' | 'range_boxer_kill' | 'range_balloon_kill' | 'alien_kill';
 
 export type SoundType =
   // weapons
@@ -59,6 +59,8 @@ export type SoundType =
   | 'fart'
   // (Hector's flying logs)
   | 'poopflight' | 'poopsplat'
+  // (the finale's alien: his ray gun charging and firing, and the sad little bolts he lobs once he's beaten)
+  | 'alienCharge' | 'alienBeam' | 'sadBolt'
   // his footsteps, by what he's walking on
   | 'step_hard' | 'step_snow' | 'step_metal' | 'step_wood' | 'step_dirt' | 'step_sand' | 'step_wet';
 
@@ -257,7 +259,10 @@ export type EnemyKind =
   // his riot shield), its wildlife (armadillos, longhorns), and the chase: union pickups, ranger cruisers, the bikers' choppers
   | 'ranger' | 'biker' | 'deputy' | 'armadillo' | 'longhorn' | 'grackle' | 'pickup' | 'cruiser' | 'chopper'
   // The gym: the department's pencil necks (sent in first, to see what he'd do)
-  | 'suit' | 'temp' | 'clerk' | 'bob' | 'cower';
+  | 'suit' | 'temp' | 'clerk' | 'bob' | 'cower'
+  // The finale: the Secret Service flooding the White House press room (a shooter, a man who tackles, one behind a
+  // ballistic shield, and the jetpack men)
+  | 'agent' | 'agentrush' | 'agentshield' | 'jetagent';
 
 export interface Enemy extends Entity {
   /** A beachgoer running from the smell (Meathead's shit himself: game/player/gut.ts), not from a shooting. */
@@ -546,6 +551,8 @@ export interface Projectile extends Entity {
   isSludge?: boolean;
   /** Just for show (Tommy's puke stream, say: where it lands is what hurts): never hits him, and gone when it lands. */
   visualOnly?: boolean;
+  /** One of the beaten alien's sad little bolts (slow, droopy, barely hurts): drawn by the finale stage. */
+  sadBolt?: boolean;
   isOilRocket?: boolean;
   /** A round out of the machine gun. */
   isLmg?: boolean;

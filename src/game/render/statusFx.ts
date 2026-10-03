@@ -254,11 +254,17 @@ export const drawTaserBeam = (ctx: Ctx, state: GameState) => {
   const cx = target.pos.x + target.width / 2, cy = target.pos.y + target.height / 2;
   // The two darts: one high in him, one low
   // The current jumping on from it to whoever's right up against it, and on from them
-  for (const [a, b] of player.taserLinks ?? []) {
+  // (a long jump, the finale's across the room: as jagged the whole way as a short one is, kinks every 20px or so
+  // and swinging wider the further it goes, not one stretched-thin zigzag; at most a dozen drawn)
+  for (const [a, b] of (player.taserLinks ?? []).slice(0, 12)) {
     const ea = enemies.find(e => e.id === a), eb = enemies.find(e => e.id === b);
     if (!ea || !eb) continue;
+    const ax = ea.pos.x + ea.width / 2, ay = ea.pos.y + ea.height / 2, bx = eb.pos.x + eb.width / 2, by = eb.pos.y + eb.height / 2;
+    const len = Math.hypot(bx - ax, by - ay), seed = step * 29 + a.length * 7 + b.length;
     ctx.beginPath();
-    arcPath(ctx, ea.pos.x + ea.width / 2, ea.pos.y + ea.height / 2, eb.pos.x + eb.width / 2, eb.pos.y + eb.height / 2, 10, step * 29 + a.length * 7 + b.length, 6);
+    arcPath(ctx, ax, ay, bx, by, Math.min(34, 10 + len * 0.05), seed, Math.max(6, Math.min(48, Math.round(len / 20))));
+    // (and a fork off a long one, a second thinner bolt on its own path)
+    if (len > 260) arcPath(ctx, ax, ay, bx, by, Math.min(26, 6 + len * 0.035), seed + 977, Math.max(6, Math.min(40, Math.round(len / 26))));
     strokeCurrent(ctx);
   }
   const darts: [number, number][] = [[cx - player.facing * 2, cy - Math.min(10, target.height * 0.2)], [cx + player.facing * 2, cy + Math.min(8, target.height * 0.18)]];

@@ -19,6 +19,8 @@ const STAGE_SONG: Record<string, string> = {
   'Artie Avalanche': 'artie', 'Victor Volcano': 'victor', 'Ernie Earthquake': 'ernie', 'Hector Hurricane': 'hector',
   'Toxic Tommy': 'tommy', 'Blackout Barry': 'barry', 'Oily Oscar': 'oscar', 'Drug Trade Dale': 'dale',
   'The Iron Pit': 'gym',
+  // (the finale's all boss fight: the boss theme from the first frame)
+  'Imposter Invasion': 'boss',
 };
 
 /** What the menus want (undefined: it's the game's call), whether it's paused, and how to ask the game. */

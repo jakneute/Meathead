@@ -10,6 +10,7 @@ import type { FrameContext } from '../core/context';
 import type { GameState } from '../core/state';
 import type { Fx } from '../core/effects';
 import { say, getBossVoice, SpeechPriority } from '../platform/speech';
+import { hurtTaken } from '../core/resist';
 
 // ---------------------------------------------------------------------------
 // Arena geometry (the standard boss room)
@@ -101,6 +102,32 @@ export interface BossDef {
   onTaser?: (ctx: FrameContext, boss: Enemy) => void;
   /** Replaces the flamethrower's usual effect on him (Oscar's suit is fireproof). */
   onFlamed?: (ctx: FrameContext, boss: Enemy) => void;
+  /** No breather between hits: every round, pellet, needle and punch counts (his hitCooldown is never set). */
+  noBreather?: boolean;
+  /** What a hit from each weapon does to him, in place of the usual (see getBossDamage). */
+  damageFor?: (weapon: WeaponType, state: GameState) => number;
+  /** One of Meathead's weapons has just hit him (after its damage, if it didn't kill him). */
+  onWeaponHit?: (ctx: FrameContext, boss: Enemy, weapon: WeaponType, p?: Partial<Projectile>) => void;
+  /** Meathead's own moves (the charge, the slide, the uppercut, the dive kick) do this share of their usual damage. */
+  meleeScale?: number;
+  /** A body (flung by a move, shoved, sliding on oil, overdosed and flying) has gone into him: what it does to him. */
+  onBodyHit?: (ctx: FrameContext, boss: Enemy, body: Enemy, force: number) => void;
+  /** The taser's current has jumped onto him off one of the men round him. */
+  onTaserChain?: (ctx: FrameContext, boss: Enemy) => void;
+  /** Meathead's tsunami has him (every frame it does; `first` the first frame of each wave). Replaces the usual hit. */
+  onTsunami?: (ctx: FrameContext, boss: Enemy, dir: number, first: boolean) => void;
+  /** The oil rocket coats him (isOiled), the way it does a regular enemy. */
+  oilable?: boolean;
+  /** What a fire-meets-oil blast does to him (once a blast), in place of the usual. */
+  nukeDamage?: number;
+  /** A fire-meets-oil blast has caught him (and not killed him). */
+  onNuke?: (ctx: FrameContext, boss: Enemy) => void;
+  /** What he's full of, if it isn't blood (the colors his eruption sprays). */
+  gore?: string[];
+  /** However he dies, he goes the way a boss killed by his weakness goes (the eruption, a corpse left behind). */
+  alwaysErupts?: boolean;
+  /** What Meathead says over him dying, whatever did it. */
+  killLine?: VulgarityType;
 }
 
 // ---------------------------------------------------------------------------
@@ -164,7 +191,7 @@ export const hurtPlayer = (
   knockback?: { x: number; y: number }, pushbackFrames = PLAYER_PUSHBACK_DURATION,
 ) => {
   const player: Player = ctx.state.player;
-  if (!ctx.cheats.invincible) player.health -= damage;
+  if (!ctx.cheats.invincible) player.health -= hurtTaken(ctx.stageId, damage);
   // (what hurt him, for the death screen: the killing blow included)
   ctx.state.lastHurt = { source, at: ctx.state.frame };
   if (player.health <= 0) return;

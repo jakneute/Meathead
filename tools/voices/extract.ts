@@ -34,6 +34,7 @@ const add = (voice: string, text: string, from: string) => {
 const BOSS_ID: Record<string, string> = {
   'Artie Avalanche': 'boss.artie', 'Victor Volcano': 'boss.victor', 'Ernie Earthquake': 'boss.ernie', 'Hector Hurricane': 'boss.hector',
   'Toxic Tommy': 'boss.tommy', 'Blackout Barry': 'boss.barry', 'Oily Oscar': 'boss.oscar', 'Drug Trade Dale': 'boss.dale',
+  'Imposter Invasion': 'boss.alien',
 };
 const allStrings = (v: unknown): string[] => typeof v === 'string' ? [v] : Array.isArray(v) ? v.flatMap(allStrings) : v && typeof v === 'object' ? Object.values(v).flatMap(allStrings) : [];
 
@@ -58,6 +59,10 @@ for (const t of allStrings(dialogue.GUT_LINES)) add('meathead', t, 'GUT');
 for (const t of Object.values(dialogue.DOOR_KICK_LINES)) add('meathead', t, 'DOOR_KICK');
 for (const t of allStrings(dialogue.DALE_LINES)) add('boss.dale', t, 'DALE_LINES');
 for (const t of allStrings(dialogue.BARRY_LINES)) add('boss.barry', t, 'BARRY_LINES');
+// The finale: the alien (his begging answered by Meathead, both ways), the Secret Service's radio, Meathead's guns running dry
+for (const [k, v] of Object.entries(dialogue.ALIEN_LINES)) if (k !== 'PLEAS') for (const t of allStrings(v)) add('boss.alien', t, 'ALIEN_LINES');
+for (const p of dialogue.ALIEN_LINES.PLEAS) { add('boss.alien', p.plea, 'ALIEN_LINES'); add('meathead', p.reply, 'ALIEN_LINES'); add('meathead', p.shat, 'ALIEN_LINES'); }
+for (const [k, v] of Object.entries(dialogue.FINALE_LINES)) for (const t of allStrings(v)) add(k.startsWith('RADIO') ? 'finale.radio' : 'meathead', t, 'FINALE_LINES');
 // (his sales talk; the _BACK tables are Meathead's answers to it)
 for (const [k, v] of Object.entries(dialogue.OSCAR_LINES)) for (const t of allStrings(v)) add(k.endsWith('_BACK') ? 'meathead' : 'boss.oscar', t, 'OSCAR_LINES');
 // The death announcer: the plain death screen, and the one the sewer blows up with
@@ -82,7 +87,7 @@ const VOICE_CONSTS: Record<string, string> = {
   MEATHEAD_VOICE: 'meathead', MEATHEAD_INTRO_VOICE: 'meathead', MEATHEAD_MENU_VOICE: 'meathead',
   AGENT_VOICE: 'agent', SHADOW_VOICE: 'president', TRUMP_VOICE: 'president', REPORTER_VOICE: 'reporter', DOORMAN_VOICE: 'doorman',
   GUIDE_VOICE: 'guide', TOURIST_VOICE: 'tourist', HIPSTER_VOICE: 'hipster', SKIER_VOICE: 'skier', OLDMAN_VOICE: 'oldman',
-  GOON_VOICE: 'dale.goon', GUEST_VOICE: 'guest', DISPATCH_VOICE: 'dispatch', BOXER_VOICE: 'boxer', BALLOON_VOICE: 'balloon',
+  ALIEN_VOICE: 'boss.alien', GOON_VOICE: 'dale.goon', GUEST_VOICE: 'guest', DISPATCH_VOICE: 'dispatch', BOXER_VOICE: 'boxer', BALLOON_VOICE: 'balloon',
 };
 /** A stage's script voices (its VOICES table in script.ts): who, to the voice id the game actually plays them in. */
 const stageVoices = new Map<string, Record<string, string>>();

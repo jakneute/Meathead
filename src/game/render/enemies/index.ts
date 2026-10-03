@@ -13,6 +13,7 @@ import { drawHectorKind } from './hector';
 import { drawTommyKind } from './tommy';
 import { drawOscarKind } from './oscar';
 import { drawGymKind } from './gym';
+import { drawFinaleKind } from './finale';
 import { isChargerKind } from '../../enemies/kinds';
 import type { GameState } from '../../core/state';
 import { INK, ink, shaded, shadedTop, lite, dark, limb } from '../npc/kit';
@@ -70,6 +71,7 @@ export const KIND_HEAD: Record<EnemyKind, { x: number; y: number; r: number }> =
   ranger: { x: 2, y: -65, r: 8 }, biker: { x: 4, y: -74, r: 9 }, deputy: { x: 2, y: -65, r: 8 }, armadillo: { x: 16, y: -10, r: 4 },
   longhorn: { x: 42, y: -40, r: 8 }, pickup: { x: 26, y: -52, r: 7 }, cruiser: { x: 10, y: -63, r: 7 }, chopper: { x: -3, y: -70, r: 8 },
   suit: { x: 2, y: -76, r: 7 }, temp: { x: 2, y: -76, r: 7 }, clerk: { x: 2, y: -76, r: 7 }, bob: { x: 0, y: -76, r: 9 }, cower: { x: -2, y: -50, r: 7 },
+  agent: { x: 2, y: -67, r: 8 }, agentrush: { x: 6, y: -76, r: 9 }, agentshield: { x: 0, y: -67, r: 8 }, jetagent: { x: 2, y: -67, r: 8 },
 };
 
 /** How far its drawing stands up over the top of its box (a head, a hat, a raised arm: what the box leaves out), for
@@ -84,6 +86,7 @@ export const KIND_TOP_REACH: Partial<Record<EnemyKind, number>> = {
   scientist: 12, tenant: 3, minion: 11, banger: 9, bruiser: 20, lowrider: 16, hazmat: 9, bloater: 13, manhole: 8,
   sludgeling: 3, mutantfish: 5, hawk: 12, grackle: 11, ranger: 14, biker: 11, deputy: 11, longhorn: 7,
   pickup: 20, cruiser: 20, chopper: 16, suit: 6, temp: 6, clerk: 6, bob: 8,
+  agent: 10, agentrush: 6, agentshield: 10, jetagent: 10,
 };
 
 /** Where its head is, for the one that's posed its own way: the sunbather (a beachgoer of pastime 0, and still lying on
@@ -105,7 +108,8 @@ export const isHumanoidKind = (kind?: EnemyKind) =>
   || kind === 'exec' || kind === 'intern' || kind === 'hr' || kind === 'exterminator' || kind === 'janitor' || kind === 'custodian'
   || kind === 'labtech' || kind === 'subject' || kind === 'scientist' || kind === 'tenant' || kind === 'minion'
   || kind === 'banger' || kind === 'bruiser' || kind === 'hazmat' || kind === 'bloater' || kind === 'manhole'
-  || kind === 'ranger' || kind === 'biker' || kind === 'deputy' || kind === 'suit' || kind === 'temp' || kind === 'clerk' || kind === 'cower';
+  || kind === 'ranger' || kind === 'biker' || kind === 'deputy' || kind === 'suit' || kind === 'temp' || kind === 'clerk' || kind === 'cower'
+  || kind === 'agent' || kind === 'agentrush' || kind === 'agentshield' || kind === 'jetagent';
 
 /** What an x-ray shows inside it. (A rattlesnake's all spine, like a fish; a scorpion's legs and claws, like a crab.) */
 export const skeletonOf = (kind: EnemyKind): 'person' | 'four-legs' | 'bird' | 'fish' | 'crab' | 'machine' =>
@@ -134,6 +138,7 @@ const drawKindPose = (ctx: Ctx, e: Enemy, facing: number, f: number, state: Game
     case 'ranger': case 'biker': case 'deputy': case 'armadillo': case 'longhorn': case 'grackle': case 'pickup': case 'cruiser': case 'chopper':
       drawOscarKind(ctx, e, f, state); break;
     case 'suit': case 'temp': case 'clerk': case 'bob': case 'cower': drawGymKind(ctx, e, f); break;
+    case 'agent': case 'agentrush': case 'agentshield': case 'jetagent': drawFinaleKind(ctx, e, f, state); break;
     default: drawHectorKind(ctx, e, f, state); break;
   }
   ctx.restore();

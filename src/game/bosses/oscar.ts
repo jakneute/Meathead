@@ -441,6 +441,26 @@ const addOil = (state: GameState, surface: OilCell['surface'], index: number, r:
   state.oilCells.push(cell);
 };
 
+/**
+ * Oil on the floor (or a wall) somewhere other than Oscar's own blasts: the finale's alien dripping it, the press room
+ * coated in it. The same strips as his (`x1` to `x2` along the floor, from the arena's left), so it slicks the floor,
+ * catches, spreads and burns just the same.
+ */
+export const spillOil = (state: GameState, x1: number, x2: number, surface: 'floor' | 'left' | 'right' = 'floor', y1 = FLOOR_Y - 4, y2 = FLOOR_Y) => {
+  const C = OSCAR_OIL_CELL;
+  if (surface === 'floor') {
+    for (let i = Math.max(0, Math.floor((x1 - ARENA_LEFT) / C)); i <= Math.floor((x2 - ARENA_LEFT) / C); i++) addOil(state, 'floor', i, { x: ARENA_LEFT + i * C, y: FLOOR_Y - 4, w: C, h: 4 });
+    return;
+  }
+  for (let j = Math.floor(y1 / C); j <= Math.floor((y2 - 1) / C); j++) addOil(state, surface, j, { x: surface === 'left' ? x1 : x1 - 4, y: j * C, w: 4, h: C });
+};
+/** Sets alight whatever oil's in `r` (and it spreads from there). True if any did. */
+export const lightOil = (state: GameState, r: Rect) => {
+  const cells = state.oilCells.filter(c => c.burn <= 0 && c.igniteIn < 0 && rectsOverlap(r, c));
+  for (const c of cells) ignite(state, c);
+  return cells.length > 0;
+};
+
 /** Strips touching each other (including round the corners where walls meet floor/ceiling). */
 const areNeighbours = (a: OilCell, b: OilCell) =>
   a !== b && rectsOverlap({ x: a.x - 3, y: a.y - 3, w: a.w + 6, h: a.h + 6 }, b);

@@ -21,13 +21,14 @@ import { ICE_BLOCK_ACCEL, ICE_BLOCK_GRACE, ICE_BLOCK_LIFE, ICE_BLOCK_MAX_SPEED }
 import { pushEnemy } from './knockback';
 import { stickNeedle, ENEMY_NEEDLE } from './needles';
 import { updateOscarRocket, updateCigarette } from '../bosses/oscar';
-import { pickRandom, rectsOverlap, boundsOf, isOnScreen } from '../core/utils';
+import { pickRandom, rectsOverlap, boundsOf, isOnScreen, screenRect } from '../core/utils';
 import { getAttackHitbox } from '../player/player';
 import { shakeScreen, GameState } from '../core/state';
 import { getStageLayout } from '../stages';
 import { shieldFacing } from '../enemies/kinds';
 import { isMidBoss } from './midBoss';
 import { ernieQuake } from '../bosses/ernie';
+import { hurtTaken } from '../core/resist';
 
 /** Moves one projectile and resolves its collisions. Returns false to remove it. */
 export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
@@ -554,7 +555,7 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
   for (const enemy of state.enemies) {
     if (enemy.health <= 0 || enemy.isBlownAway || !rectsOverlap(reach, boundsOf(enemy))) continue;
     // (a stray shot that's flown off screen doesn't kill what it finds out there)
-    if (!isOnScreen(state.camera, enemy) || submerged(enemy)) continue;
+    if (!isOnScreen(screenRect(state), enemy) || submerged(enemy)) continue;
     if (p.isSludge && p.isLingering) continue;
 
     // Bosses are untouchable until the arena locks (boulders bounce off)
@@ -711,7 +712,7 @@ const resolveEnemyProjectileHit = (ctx: FrameContext, p: Projectile): boolean =>
   }
 
   if (!cheats.invincible) {
-    player.health -= (p.damage / 2);
+    player.health -= hurtTaken(stageId, p.damage / 2);
     state.lastHurt = { source: getProjectileHurtSource(p, stageId), at: state.frame };
     if (player.health > 0) {
       player.invincibilityTimer = PLAYER_INVINCIBILITY_FRAMES;

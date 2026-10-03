@@ -2,13 +2,13 @@
 
 import { Enemy, Projectile } from '../../types';
 import {
-  CANVAS_WIDTH, TASER_RANGE, TASER_DOT_DAMAGE, TASER_FIRE_THRESHOLD,
+  CANVAS_WIDTH, TASER_DOT_DAMAGE, TASER_FIRE_THRESHOLD,
   TASER_TICK_RATE, TASER_AMMO_CONSUMPTION_RATE, TASER_CHAIN_REACH, TASER_CHAIN_MAX, FIRE_TICK_RATE, FIRE_DOT_DAMAGE,
   FIRE_DOT_DAMAGE_HEAVY, FIRE_DOT_DAMAGE_ENEMY, NEEDLE_DOT_TICK_RATE, NEEDLE_DOT_DAMAGE_PER_STACK,
 } from '../../constants';
 import { FrameContext, killBoss } from '../core/context';
 import { updateBossAI, getBossDef, hitBoss } from '../bosses/registry';
-import { fireWeapon, findTaserTarget, tasedHimself } from './weapons';
+import { fireWeapon, findTaserTarget, tasedHimself, taserReach, taserChainReach } from './weapons';
 import { getStageLayout } from '../stages';
 import type { WaterBody } from '../stages';
 import { isMidBoss, midBossDamage, MIDBOSS_DAMAGE } from './midBoss';
@@ -46,7 +46,7 @@ const chainFrom = (ctx: FrameContext, from: Enemy) => {
   for (let i = 0; i < caught.length && caught.length - 1 < TASER_CHAIN_MAX; i++) {
     for (const e of enemies) {
       if (caught.length - 1 >= TASER_CHAIN_MAX) break;
-      if (caught.includes(e) || !chainable(ctx, e) || gapBetween(caught[i], e) > TASER_CHAIN_REACH) continue;
+      if (caught.includes(e) || !chainable(ctx, e) || gapBetween(caught[i], e) > taserChainReach(ctx.state, TASER_CHAIN_REACH)) continue;
       caught.push(e); links.push([caught[i].id, e.id]);
     }
   }
@@ -128,7 +128,7 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
 
   const dx = (target.pos.x + target.width / 2) - (player.pos.x + player.width / 2);
   const dy = (target.pos.y + target.height / 2) - (player.pos.y + player.height / 2);
-  if (Math.hypot(dx, dy) > TASER_RANGE + 100) {
+  if (Math.hypot(dx, dy) > taserReach(state) + 100) {
     player.taserTargetId = null;
     return;
   }
@@ -174,6 +174,16 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
   // fried and set alight the same as it
   const chained = target.type === 'enemy' ? chainFrom(ctx, target as Enemy) : [];
   if (target.type === 'enemy') { for (const e of chained) zapOne(ctx, e); zapOne(ctx, target as Enemy); }
+  // (a boss the current can jump onto off his own men (the finale's alien): from whichever of them's nearest him)
+  const onChain = getBossDef(stageId)?.onTaserChain;
+  if (onChain && target.type === 'enemy' && state.arenaLocked) {
+    const boss = enemies.find(e => e.type === 'boss' && e.health > 0);
+    const from = boss && [target as Enemy, ...chained].filter(c => c.health > 0 || c === target).sort((a, b) => gapBetween(a, boss) - gapBetween(b, boss))[0];
+    if (boss && from && gapBetween(from, boss) <= taserChainReach(state, TASER_CHAIN_REACH)) {
+      player.taserLinks = [...(player.taserLinks ?? []), [from.id, boss.id]];
+      onChain(ctx, boss);
+    }
+  }
   else {
     target.isTased = true;
     if (state.frame % TASER_TICK_RATE === 0) {

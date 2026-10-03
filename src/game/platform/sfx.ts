@@ -92,6 +92,21 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.7, vary: 0.5, gap: 300,
     make: () => { const lp = lowpass(), lp2 = lowpass(); return render(2.2, t => lp(rnd(), 3200 * ex(Math.max(0, t - 0.25), 1.6) + 250) * Math.min(1, t / 0.2) * ex(Math.max(0, t - 0.2), 1.3) * 1.2 + lp2(rnd(), 120) * ex(t, 1) * 2); },
   },
+  alienCharge: {
+    // The alien's ray gun winding up: a wobbling saucer whine climbing, a buzz growing under it
+    gain: 0.32, vary: 0.4, gap: 300,
+    make: () => { const bp = bandpass(); let ph = 0, ph2 = 0; return render(1.0, t => { const f = 220 + 900 * t * t + 30 * Math.sin(TAU * 9 * t); ph += f / SFX_SR; ph2 += (f * 0.5) / SFX_SR; return (Math.sin(TAU * ph) * 0.7 + bp(Math.sign(Math.sin(TAU * ph2)), 800 + 1200 * t, 0.8) * 0.5 * t) * Math.min(1, t / 0.05); }); },
+  },
+  alienBeam: {
+    // The beam going: a fat buzzing roar with a hum through it (played over and over while it runs)
+    gain: 0.34, vary: 0.6, gap: 160, voices: 2,
+    make: () => { const lp = lowpass(), bp = bandpass(); let ph = 0; return render(0.32, t => { ph += (95 + 6 * Math.sin(TAU * 31 * t)) / SFX_SR; return (lp(Math.sign(Math.sin(TAU * ph)) + rnd() * 0.3, 1800) * 0.9 + bp(rnd(), 2600, 1.2) * 0.4) * Math.min(1, t / 0.01); }); },
+  },
+  sadBolt: {
+    // A sad little laser: pew... wew (drooping), half-hearted
+    gain: 0.3, vary: 1, gap: 120,
+    make: () => { let ph = 0; return render(0.5, t => { ph += (900 * ex(t, 4) + 160) / SFX_SR; return (Math.sin(TAU * ph) * 0.7 + Math.sign(Math.sin(TAU * ph)) * 0.15) * Math.min(1, t / 0.01) * ex(t, 5); }); },
+  },
   click: {
     gain: 0.35, vary: 1, gap: 40,
     make: () => render(0.05, t => (Math.sin(TAU * 3200 * t) * 0.6 + rnd() * 0.4) * ex(t, 120) + (t > 0.018 && t < 0.024 ? rnd() * 0.5 : 0)),

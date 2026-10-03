@@ -141,7 +141,11 @@ const updateBossExplosion = (ctx: FrameContext) => {
   state.bossExplosionTimer--;
   state.screenShakeTimer = 5;
   if (state.frame % 3 === 0) {
+    const n0 = state.particles.length;
     fx.spawnDeathShower(state.bossExplosionPos, (Math.random() - 0.5) * 4, 15.0, true, 180);
+    // (a boss who isn't full of blood sprays what he is full of)
+    const gore = getBossDef(ctx.stageId)?.gore;
+    if (gore) for (let i = n0; i < state.particles.length; i++) state.particles[i].color = gore[i % gore.length];
     fx.spawnExplosion(state.bossExplosionPos, pickRandom(PARTICLE_PALETTES.FIRE), 10, (Math.random() - 0.5) * 15, 60);
   }
   state.particles = state.particles.filter(p => {
@@ -515,7 +519,7 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
   if (state.victoryString) { updateVictorySequence(ctx); return false; }
   // A hand-built stage runs its hazards and set pieces (and can take over the controls for cutscenes)
   const layout = getStageLayout(ctx.stageId);
-  if (layout && !state.arenaLocked) controls = layout.update(ctx, controls);
+  if (layout && (!state.arenaLocked || layout.runsInArena)) controls = layout.update(ctx, controls);
   callCheckpoint(ctx);
   holdOffForCutscene(ctx);
 

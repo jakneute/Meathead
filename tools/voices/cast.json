@@ -11,6 +11,8 @@
   "boss.barry": { "voice": "am_liam", "speed": 0.88, "rate": 1.0 },
   "boss.oscar": { "voice": "am_michael", "speed": 1.12, "rate": 0.95 },
   "boss.dale": { "voice": "am_adam", "speed": 1.2, "rate": 1.08 },
+  "boss.alien": { "voice": [["bm_lewis", 0.55], ["am_onyx", 0.45]], "speed": 0.92, "rate": 0.8, "gain": 1.15 },
+  "finale.radio": { "voice": "bm_daniel", "speed": 1.1, "rate": 0.96, "fx": "radio" },
 
   "agent": { "voice": "bm_daniel", "speed": 0.95, "rate": 0.94 },
   "president": { "voice": [["am_santa", 0.5], ["am_adam", 0.5]], "speed": 1.02, "rate": 0.9 },

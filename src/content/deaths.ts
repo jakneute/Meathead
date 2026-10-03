@@ -227,6 +227,17 @@ export const DEATH_LINES: Record<string, string[]> = {
   doorman_uppercut: ['UPPERCUT BY YOUR OWN MOVE', 'UPPERCUT BY A BOUNCER'],
   doorman_clash: ['OUT-MUSCLED', 'LOST THE CLASH'],
 
+  // ---- The press room (the finale)
+  alien_laser: ['VAPORIZED BY A FAKE PRESIDENT', 'PROBED AND FRIED', 'LEG HAIRS: GONE. MEATHEAD: GONE.'],
+  alien_shot: ['KILLED BY A SAD LITTLE LASER', 'HOW. JUST HOW.'],
+  agent: ['PROTECTED TO DEATH', 'TAKEN OUT BY THE SECRET SERVICE'],
+  agent_shot: ['SHOT BY THE SECRET SERVICE', 'TOOK A BULLET FOR NOBODY'],
+  agentrush: ['TACKLED BY A SUIT', 'BODY-BLOCKED TO DEATH'],
+  agentshield: ['STONEWALLED', 'BEATEN BY A RIOT SHIELD'],
+  agentshield_shot: ['SHOT FROM BEHIND A SHIELD', 'A COWARD\'S BULLET'],
+  jetagent: ['JETPACKED TO DEATH', 'ROCKETEERED'],
+  jetagent_shot: ['SHOT DOWN FROM ABOVE', 'AIR SUPPORT ARRIVED'],
+
   // ---- Anywhere
   shield: ['BEATEN BY A SHIELD', 'COULDN\'T GET PAST THE SHIELD'],
   bullet: ['SHOT DEAD', 'CAUGHT A BULLET'],
@@ -246,6 +257,7 @@ export const BOSS_DEATH_LINES: Record<string, string[]> = {
   'Blackout Barry': ['BARRY TURNED YOUR LIGHTS OUT', 'LIGHTS OUT'],
   'Oily Oscar': ['OSCAR GREASED YOU', 'CRUDE AWAKENING'],
   'Drug Trade Dale': ['DALE CUT YOU OFF', 'BAD DEAL'],
+  'Imposter Invasion': ['ABDUCTED. PERMANENTLY.', 'THE ALIEN WINS. EARTH IS DOOMED.'],
 };
 
 /** A bird's dive that got him: it landed on his head and took his eyes (by the bird; anything else, the last two). */

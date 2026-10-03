@@ -15,6 +15,7 @@ import { drawDaleTruck } from './daleTruck';
 import { drawErnieHeldBoulder } from './boulders';
 import { drawIceEncasing } from './artieIce';
 import { drawComposited, needsComposite } from '../composite';
+import { drawAlien, drawAlienGear } from './alien';
 
 type Draw = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => void;
 
@@ -44,6 +45,7 @@ const BOSS_SPRITES: Record<string, BossSprite> = {
   'Blackout Barry': { body: drawBarry, gear: drawBarryStorm, overlay: drawBarryTolerance, post: barryFx },
   'Toxic Tommy': { body: drawTommy, post: tommyFx },
   'Oily Oscar': { body: drawOscar, gear: drawOscarGear, gearReach: 170 },
+  'Imposter Invasion': { body: drawAlien, gear: drawAlienGear, gearReach: 120 },
 };
 
 /** How each boss poses when drawn outside a fight (portraits, corpses): a calm, fully-visible state. */

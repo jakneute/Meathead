@@ -8,7 +8,7 @@ import {
   FLAMETHROWER_GROWTH, FLAMETHROWER_SHRINK, FLAMETHROWER_AIM_LERP, FLAMETHROWER_AIM_DEG, FLAMETHROWER_NOZZLE_GAP,
   FLAMETHROWER_SEGMENT_LIFETIME, FLAMETHROWER_SEGMENT_SIZE, FLAMETHROWER_AMMO_EVERY, GML_SCALE, ALT_FLAME_DAMAGE_SCALE, ALT_FLAME_RANGE_SCALE,
   TSUNAMI_COOLDOWN, COLORS, PARTICLE_PALETTES,
-  TASER_RANGE, CANVAS_WIDTH, GUN_COOLDOWN, GUN_VELOCITY,
+  TASER_RANGE, CANVAS_WIDTH, GUN_COOLDOWN, GUN_VELOCITY, FINALE_STAGE,
   NEEDLE_DAMAGE, NEEDLE_COOLDOWN, SLUDGE_COOLDOWN, FILTH_SHIELD_DURATION, SLUDGE_DAMAGE,
   OIL_ROCKET_DAMAGE, OIL_ROCKET_COOLDOWN, OIL_ROCKET_SPLASH_RADIUS, OIL_ROCKET_SPLASH_DAMAGE,
   OIL_ROCKET_OILED_DURATION, OIL_ROCKET_NUKE_DAMAGE, OIL_ROCKET_NUKE_BOSS_DAMAGE, OIL_ROCKET_NUKE_BOSS_WEAKNESS_DAMAGE, OIL_ROCKET_NUKE_RADIUS,
@@ -16,7 +16,7 @@ import {
 import { GameState } from '../core/state';
 import { FrameContext, killBoss } from '../core/context';
 import { hitBoss, getBossDef, getBossDamage, isWeakTo } from '../bosses/registry';
-import { pickRandom, rectsOverlap, boundsOf } from '../core/utils';
+import { pickRandom, rectsOverlap, boundsOf, screenRect } from '../core/utils';
 import { findFlyingCigarette, igniteOilWithFlame } from '../bosses/oscar';
 import { getStageLayout } from '../stages';
 import { playSound } from '../platform/audio';
@@ -196,7 +196,7 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
       state.tsunamiActive = true;
       state.tsunamiSerial = (state.tsunamiSerial ?? 0) + 1;
       state.tsunamiDir = facing;
-      state.tsunamiStartX = facing === 1 ? state.camera.x : state.camera.x + CANVAS_WIDTH;
+      { const scr = screenRect(state); state.tsunamiStartX = facing === 1 ? scr.x : scr.x + scr.w; }
       state.tsunamiX = state.tsunamiStartX;
       // The wave's built for a flat floor at GROUND_Y: lift (or drop) it to where his feet are as he fires it (up in the
       // air, on a ledge, over a pit: it goes along at the height he was, not the floor under him)
@@ -497,21 +497,29 @@ const burnEnemy = (ctx: FrameContext, e: Enemy, scale = 1) => {
   }
 };
 
+/** How far the taser reaches (to lock on, and to jump from one to the next): the whole of what's on screen in the
+ * finale (the press room, pulled back to take it all in), its usual reach anywhere else. */
+export const taserReach = (state: GameState) => (state.stageId === FINALE_STAGE ? 2400 : TASER_RANGE);
+/** The current jumps from one to the next this far apart (edge to edge) at most. */
+export const taserChainReach = (state: GameState, usual: number) => (state.stageId === FINALE_STAGE ? 2400 : usual);
+
 /** Nearest on-screen enemy or meth barrel in front of the player, within taser range. */
 export const findTaserTarget = (state: GameState): Enemy | Projectile | null => {
   const { player, camera } = state;
+  // (what's on screen: the camera's view, or all of what a pulled-back view takes in)
+  const v = state.stageId === FINALE_STAGE && state.view ? state.view : { x: camera.x, w: CANVAS_WIDTH };
   const playerMidX = player.pos.x + player.width / 2;
   const playerMidY = player.pos.y + player.height / 2;
   // Oily Oscar's flicked cigarette takes priority over everything
   const cigarette = findFlyingCigarette(state);
   if (cigarette) return cigarette;
   let nearest: Enemy | Projectile | null = null;
-  let minDist = TASER_RANGE;
+  let minDist = taserReach(state);
 
   const consider = (t: Enemy | Projectile) => {
     const tx = t.pos.x + t.width / 2;
     const ty = t.pos.y + t.height / 2;
-    if (tx <= camera.x || tx >= camera.x + CANVAS_WIDTH) return;
+    if (tx <= v.x || tx >= v.x + v.w) return;
     const inFront = (player.facing === 1 && tx > playerMidX) || (player.facing === -1 && tx < playerMidX);
     if (!inFront) return;
     const dist = Math.hypot(tx - playerMidX, ty - playerMidY);
@@ -537,7 +545,8 @@ export const explodeOilRocket = (ctx: FrameContext, pos: Vector2, rocketVelX?: n
     if (e.type === 'boss') {
       if (e.hitCooldown && e.hitCooldown > 0) return;
       // Bosses don't get oiled up, except Toxic Tommy (it clogs him up, and there's the matter of setting him alight)
-      if (ctx.stageId === TOXIC_TOMMY) {
+      // and any other who can be (the finale's alien: slick, dripping, and one spark from going up)
+      if (ctx.stageId === TOXIC_TOMMY || getBossDef(ctx.stageId)?.oilable) {
         e.isOiled = e.kind !== 'moose';
         e.oiledTimer = OIL_ROCKET_OILED_DURATION;
       }
@@ -620,11 +629,13 @@ export const detonateNuke = (ctx: FrameContext, pos: Vector2, radius = OIL_ROCKE
     });
   }
 
+  // (in the finale's press room a full-size one clears the whole room: that's what it's for there)
+  const reach = state.stageId === FINALE_STAGE && radius === OIL_ROCKET_NUKE_RADIUS ? 2400 : radius;
   state.enemies.forEach(e => {
     if (e.health <= 0 || e.isBlownAway) return;
     const dx = (e.pos.x + e.width / 2) - pos.x;
     const dy = (e.pos.y + e.height / 2) - pos.y;
-    if (dx * dx + dy * dy >= radius * radius) return;
+    if (dx * dx + dy * dy >= reach * reach) return;
     // (a mid-boss caught in the blast takes a big hit, not the end of it)
     if (isMidBoss(e)) {
       const dmg = midBossDamage(e, MIDBOSS_NUKE_DAMAGE);
@@ -633,11 +644,12 @@ export const detonateNuke = (ctx: FrameContext, pos: Vector2, radius = OIL_ROCKE
       fx.spawnDamageNumber(e.pos, Math.round(dmg), true, '#FF0000');
       return;
     }
-    // (a boss: a big hit, not the end of him)
-    const dmg = e.type !== 'boss' ? OIL_ROCKET_NUKE_DAMAGE : isWeakTo(ctx.stageId, 'OIL_ROCKET') ? OIL_ROCKET_NUKE_BOSS_WEAKNESS_DAMAGE : OIL_ROCKET_NUKE_BOSS_DAMAGE;
+    // (a boss: a big hit, not the end of him; once a blast, there being no breather to stop it landing again)
+    const def = e.type === 'boss' ? getBossDef(ctx.stageId) : undefined;
+    const dmg = e.type !== 'boss' ? OIL_ROCKET_NUKE_DAMAGE : def?.nukeDamage ?? (isWeakTo(ctx.stageId, 'OIL_ROCKET') ? OIL_ROCKET_NUKE_BOSS_WEAKNESS_DAMAGE : OIL_ROCKET_NUKE_BOSS_DAMAGE);
     e.health -= dmg;
     fx.spawnDamageNumber(e.pos, dmg, true, '#FF0000');
-    if (e.health > 0) return;
+    if (e.health > 0) { def?.onNuke?.(ctx, e); return; }
     // (only his weakness makes a boss erupt: anyone else the blast finishes goes over like any other kill)
     if (e.type === 'boss') killBoss(ctx, e, 0, isWeakTo(ctx.stageId, 'OIL_ROCKET'), 'OIL_ROCKET');
     else {

@@ -75,6 +75,13 @@ export const ARENA_LEFT = BOSS_DOOR_X + DOOR_WIDTH;
 export const ARENA_RIGHT = 7960;
 /** Oily Oscar's refinery is twice as wide as a normal boss room, so the camera scrolls inside it. */
 export const OSCAR_ARENA_RIGHT = ARENA_RIGHT + (ARENA_RIGHT - ARENA_LEFT);
+/** The true final fight: the alien who was wearing the President, in the White House press room (straight off the
+ * ending: no level before it, he's already facing him). See stages/finale and bosses/alien.ts. */
+export const FINALE_STAGE = 'Imposter Invasion';
+/** The press room's inside is this wide (the camera pulls back to take in all of it, its side walls too). */
+export const FINALE_ARENA_RIGHT = ARENA_LEFT + 1120;
+/** Meathead's hide in the finale: everything that hurts him there does this share of what it would anywhere else. */
+export const FINALE_DAMAGE_TAKEN = 0.06;
 
 // ==========================================
 // 3. PLAYER CORE STATS

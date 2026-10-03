@@ -56,8 +56,8 @@ export const updateVictoryPee = (ctx: FrameContext) => {
     if (t > PEE_START + 12 && t <= PEE_START + PEE_FRAMES && (state.frame % 5 === 0 || Math.random() < 0.08)) ctx.fx.playGunSound('tinkle');
   }
 
-  // In a wide arena the camera keeps him and the corpse in view
-  if (getArenaRight(stageId) - ARENA_LEFT > CANVAS_WIDTH) {
+  // In a wide arena the camera keeps him and the corpse in view (unless a stage holds the camera on it all)
+  if (getArenaRight(stageId) - ARENA_LEFT > CANVAS_WIDTH && !state.cameraOverride) {
     const target = (p.pos.x + p.width / 2 + corpse.x) / 2 - CANVAS_WIDTH / 2;
     const clamped = Math.max(BOSS_DOOR_X, Math.min(getStageWidth(stageId) - CANVAS_WIDTH, target));
     state.camera.x += (clamped - state.camera.x) * 0.1;
