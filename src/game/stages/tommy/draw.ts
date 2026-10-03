@@ -11,9 +11,10 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y, ARENA_LEFT } from '../../../cons
 import { drawPlayer } from '../../render/player/player';
 import { COURSE, placeOf, RUINS_Y } from './course';
 import { getTommy, fadeAmount, TommyRuntime } from './runtime';
-import { drawStreetSky, drawStreetGround, drawStreetFronts, drawJunk, drawCorner, drawRoadEnd, drawRiddenBike, drawTumble, drawCarRampSigns } from './streetDraw';
+import { drawStreetGround, drawStreetFronts, drawJunk, drawCorner, drawRoadEnd, drawRiddenBike, drawTumble, drawCarRampSigns } from './streetDraw';
 import { drawSewerBack, drawSewerGround, drawDrips, drawMuckFront, drawChunks } from './sewerDraw';
 import { drawCutScene, drawRuinsGround, drawRuinsHouse, drawSuitMelt, drawBlast, drawEscapeSkip } from './escapeDraw';
+import { drawRuinsSky, drawStreetBackdrop } from './flintSky';
 import { drawThingBar, drawThing, drawThingDrops } from './thingDraw';
 import { drawBlockBack, drawBlockFront } from './blockDraw';
 import { thingSpot, THING_SURFACE } from './thing';
@@ -31,8 +32,8 @@ export const drawTommyBackdrop = (ctx: Ctx, state: GameState) => {
   const downAtTheDoor = state.camera.x + CANVAS_WIDTH > COURSE.ruins.x1 && state.camera.y > RUINS_Y + 1400;
   if (state.camera.x + CANVAS_WIDTH / 2 > ARENA_LEFT - 100 || downAtTheDoor) { drawUnderground(ctx, state); return true; }
   const place = view(state);
-  if (place === 'hood' || place === 'road') drawStreetSky(ctx, state);
-  else if (place === 'ruins') drawStreetSky(ctx, state, 1, false);
+  if (place === 'hood' || place === 'road') drawStreetBackdrop(ctx, state);
+  else if (place === 'ruins') drawRuinsSky(ctx, state);
   else { ctx.fillStyle = '#0C0A09'; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
   return true;
 };
