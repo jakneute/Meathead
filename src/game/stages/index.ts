@@ -82,6 +82,11 @@ export interface StageLayout {
   /** Push the camera in: by `scale`, about the world point (x, y) (which stays put on screen). Null for no zoom. */
   /** How it's lit where the camera is: how dark, what color the dark is, its lights (render/lighting.ts). Null: as drawn. */
   lighting?: (state: GameState) => SceneLight | null;
+  /**
+   * Real walls behind the play (a room's back wall, say) that his shadow can be thrown up by a lamp in front of him,
+   * in view; `hole`s cut out of them (a window).
+   */
+  shadowWalls?: (state: GameState) => { x: number; y: number; w: number; h: number; hole?: boolean }[];
   /** The taser keeps hold of what it's on when it goes off the screen (the stage pulls the view back to show it). */
   taserReachesOffscreen?: boolean;
   zoom?: (state: GameState) => { scale: number; x: number; y: number; shiftX?: number; shiftY?: number } | null;

@@ -125,6 +125,19 @@ const WALLS: Record<Room['kind'], { wall: string; trim: string; floor: string; s
   power: { wall: '#27303F', trim: '#1E2530', floor: '#1F2937', slab: '#0B0F17' },
 };
 
+/**
+ * The room's back wall, for his shadow to be thrown up by the lights in there: from the cornice down to the
+ * baseboard, end to end, but not the glass in it (the office's windows, the lobby's front).
+ */
+export const roomShadowWalls = (place: Place): { x: number; y: number; w: number; h: number; hole?: boolean }[] => {
+  const room = roomOf(place);
+  if (!room) return [];
+  const out: { x: number; y: number; w: number; h: number; hole?: boolean }[] = [{ x: room.x1, y: room.ceiling + 9, w: room.x2 - room.x1, h: Y - 14 - room.ceiling - 9 }];
+  if (room.kind === 'office') for (let x = room.x1 + 80; x < room.x2 - 120; x += 420) out.push({ x, y: room.ceiling + 30, w: 120, h: Y - room.ceiling - 110, hole: true });
+  if (room.kind === 'lobby') out.push({ x: room.x1, y: room.ceiling + 30, w: 120, h: Y - room.ceiling - 44, hole: true });
+  return out;
+};
+
 export const drawRooms = (ctx: Ctx, state: GameState, rt: BarryRuntime, place: Place) => {
   const room = roomOf(place)!;
   const c = WALLS[room.kind];

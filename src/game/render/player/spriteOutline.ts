@@ -85,7 +85,11 @@ export const glowLayer = (ctx: CanvasRenderingContext2D): CanvasRenderingContext
 
 /** Outlines what was drawn since beginSprite and draws it into the world with its feet at (x, y). */
 /** `tint`: a colour laid over the body (not the outline), keeping its shading under it (a hazmat suit, say). */
-export const endSprite = (world: CanvasRenderingContext2D, x: number, y: number, tint?: string) => {
+/**
+ * `under`: drawn into the world first, under the character, given its dark silhouette (the outline's, before anything
+ * else goes on it) and the rect it's drawn in about the feet (a shadow of whatever pose it's in, for nothing extra).
+ */
+export const endSprite = (world: CanvasRenderingContext2D, x: number, y: number, tint?: string, under?: (sil: { img: CanvasImageSource; x: number; y: number; w: number; h: number }) => void) => {
   if (!body || !out) return;
   const o = out.getContext('2d')!;
   o.setTransform(1, 0, 0, 1, 0, 0);
@@ -100,6 +104,7 @@ export const endSprite = (world: CanvasRenderingContext2D, x: number, y: number,
   o.globalCompositeOperation = 'source-in';
   o.fillStyle = OUTLINE;
   o.fillRect(0, 0, out.width, out.height);
+  under?.({ img: out, x: -ORIGIN_X, y: -ORIGIN_Y, w: W, h: H });
   if (glowUsed && glow) {
     o.globalCompositeOperation = 'destination-over';
     o.drawImage(glow, 0, 0);

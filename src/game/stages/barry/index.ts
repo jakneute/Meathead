@@ -15,7 +15,7 @@ import { createBarryRuntime, getBarry, updateBarry, barryDeathMessage } from './
 import { updateTenant, hitTenant } from './climb';
 import { updateGenerator, updateMinion } from './power';
 import { drawBarryBackdrop, drawBarryBack, drawBarryMid, drawBarryFront, drawBarryHud, drawBarryWeather } from './draw';
-import { drawGenerator } from './rooms';
+import { drawGenerator, roomShadowWalls } from './rooms';
 import { drawTenantDeath } from '../../render/enemies/barry';
 import { roomZoom, barryScene } from './lighting';
 import { drawSurgeMinion } from './surgeDraw';
@@ -101,4 +101,5 @@ export const barryLayout: StageLayout = {
   },
   zoom: state => roomZoom(state),
   lighting: state => { const rt = getBarry(state); return rt ? barryScene(state, rt) : null; },
+  shadowWalls: state => roomShadowWalls(placeOf(state.player.pos.x + state.player.width / 2)),
 };

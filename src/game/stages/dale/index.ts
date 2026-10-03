@@ -22,6 +22,11 @@ export const daleLayout: StageLayout = {
   startX: COURSE.startX,
   verticalCamera: true,
   lighting: state => daleScene(state),
+  // (inside the warehouse: the corrugated wall behind him, for the strip lights to throw his shadow up)
+  shadowWalls: state => {
+    const W = COURSE.warehouse, x = state.player.pos.x;
+    return x > W.x1 - 100 && x < W.x2 + 100 ? [{ x: W.x1, y: W.ceiling, w: W.x2 - W.x1, h: GROUND_Y - W.ceiling }] : [];
+  },
   zoom: state => { const t = getDale(state)?.town; return t ? ninjaZoom(state, t) : null; },
   // (back after dying to Dale: in the rubble of the jail, the camera held short of his door till you go through it)
   bossStartX: COURSE.town.jail.x1 - 60,

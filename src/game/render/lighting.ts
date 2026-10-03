@@ -96,7 +96,7 @@ export const dynamicLights = (state: GameState): Light[] => {
 };
 
 /** How much a light's on (x, y), 0..1. */
-const lightOn = (l: Light, x: number, y: number) => {
+export const lightOn = (l: Light, x: number, y: number) => {
   const dx = x - l.x, dy = y - l.y;
   if (l.cone) {
     if (dy < 0 || dy > l.r) return 0;

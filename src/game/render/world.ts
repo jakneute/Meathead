@@ -36,6 +36,7 @@ import { drawEnemyDeaths } from './enemies/deaths';
 import { drawSewerNukeInside, drawSewerNukeFlash, drawSewerNukeOutside } from '../scenes/sewerNukeDraw';
 import { drawVolcanoFinaleInside, drawVolcanoFinaleOutside } from '../scenes/volcanoFinaleDraw';
 import { drawSceneLighting } from './lighting';
+import { noteShadowStage } from './player/shadow';
 import { sentenceShown } from '../platform/speech';
 import { drawPickup } from './pickups';
 import { SKIP_AFTER, drawSkipPrompt } from '../platform/skip';
@@ -139,6 +140,7 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
         currentWeapon: view.currentWeapon,
         showFilthShield: status === GameStatus.PLAYING,
         invincibilityEnabled: view.invincibilityEnabled,
+        castShadow: true,
       });
       if (tilt) wctx.restore();
       if (state.meatheadDeath && state.deathTimer > 0) drawMeatheadDeath(wctx, state, view.currentWeapon);
@@ -177,6 +179,8 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
   else worldPass(ctx, 0);
   // The stage's lighting over the lot (the same for everything in it: him, them, the pickups)
   const scene = layout?.lighting?.(state);
+  // (what his shadow goes by next frame: the light on him, the walls it can go up, where there's water)
+  noteShadowStage(stageId, scene, layout?.shadowWalls?.(state), layout?.waterBodyAt ? (x, y) => !!layout.waterBodyAt!(state, x, y) : undefined);
   if (scene) drawSceneLighting(ctx, state, cylinder ? { ...scene, flat: true } : scene, { camX: state.camera.x, camY: state.camera.y, zoom: layout?.zoom?.(state) });
   layout?.drawHud?.(ctx, state);
 

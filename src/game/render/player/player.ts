@@ -8,6 +8,7 @@ import { KICK_POSE_FRAMES, LEDGE_DROP_FRAMES } from '../../../constants';
 import { GameState } from '../../core/state';
 import { GroundRun, runAt, treadYAt, stanceDrop, STANCE } from '../../core/terrain';
 import { beginSprite, endSprite, markEyes, eyesAt } from './spriteOutline';
+import { drawPlayerShadow } from './shadow';
 import { drawDeathBrows, drawDeathEyes, drawDeathMouth } from './deathFace';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
 import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, bootColor, bootToe, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawHead, setTalking, drawTalkingMouth } from './body';
@@ -21,6 +22,8 @@ export interface PlayerDrawOptions {
   footTap?: number;
   /** Surfing (on Barry's man, down out of the sky): knees bent low, arms out wide for balance, throwing a shaka, no gun. */
   surf?: boolean;
+  /** Throw his shadow as the stage's light falls (his silhouette on the ground and up the walls): the world's own draw of him. */
+  castShadow?: boolean;
 }
 
 /** How long the handgun's kick takes to settle (frames after a shot). */
@@ -33,7 +36,7 @@ const SOOT_FADE = 120;
 const SUIT_TINT = 'rgba(250, 204, 21, 0.78)';
 
 /** Draws Meathead: effects auras, then body layers back-to-front, then the held weapon. */
-export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled, footTap = 0, surf = false }: PlayerDrawOptions) => {
+export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled, footTap = 0, surf = false, castShadow = false }: PlayerDrawOptions) => {
   // (talking, in whatever pose: the heads drawn for the moves work their jaws too)
   setTalking(state.playerVulgarityTimer > 0 && !!state.playerLastVulgarity && !p.hidden);
   if ((state.deathTimer > 0 && !p.headless && !p.shownDead) || p.hidden) return;
@@ -53,7 +56,6 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.globalAlpha = 0.45;
   }
 
-  drawGroundShadow(ctx, p, state);
   // White flash for the first few frames of taking damage
   if (p.hurtTimer && p.hurtTimer > PLAYER_INVINCIBILITY_FRAMES - 6) ctx.filter = 'brightness(2.4) saturate(0.3)';
 
@@ -115,6 +117,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const grade = p.stance ? ((p.facing > 0 ? p.stance.l - p.stance.r : p.stance.r - p.stance.l) / (STANCE * 2)) : 0;
   // The body goes into an offscreen sprite (origin at his feet) so it gets a cartoon outline
   const world = ctx;
+  // His shadow: thrown from his silhouette as he's drawn (below), or, on a vehicle the stage draws or drawn anywhere
+  // but the world, just a pool under him
+  const throwShadow = castShadow && !p.jetski && typeof document !== 'undefined';
+  if (!throwShadow) drawPlayerShadow(world, p, state, anchorX, anchorY, null);
   const sprite = beginSprite(world);
   if (sprite) ctx = sprite;
   ctx.save();
@@ -132,7 +138,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // (in the water, up against a wall or a pipe: whatever he's holding out stops at it, it doesn't poke through)
     const walls = p.swimming ? state.blocks.filter(b => b.type !== 'pit' && !b.oneWay && b.y < anchorY - 4 && b.y + b.h > p.pos.y - 60 && b.x < anchorX + 100 && b.x + b.w > anchorX - 100) : [];
     if (walls.length) { world.save(); world.beginPath(); world.rect(anchorX - 220, anchorY - 320, 440, 420); for (const b of walls) world.rect(b.x, b.y, b.w, b.h); world.clip('evenodd'); }
-    if (sprite) endSprite(world, anchorX, anchorY, p.suit ? SUIT_TINT : soot > 0 ? `rgba(24, 20, 18, ${0.9 * soot})` : undefined);
+    if (sprite) endSprite(world, anchorX, anchorY, p.suit ? SUIT_TINT : soot > 0 ? `rgba(24, 20, 18, ${0.9 * soot})` : undefined, throwShadow ? sil => drawPlayerShadow(world, p, state, anchorX, anchorY, sil) : undefined);
     if (walls.length) world.restore();
     const eye = eyesAt(anchorX, anchorY);
     if (soot > 0 && !p.suit) {
@@ -1317,27 +1323,6 @@ const drawSlideTackle = (ctx: CanvasRenderingContext2D, frame: number, weapon: W
   // (his actual weapon, where game/combat/muzzle.ts says shots come out mid-slide)
   if (!unarmed) drawHeldWeapon(ctx, weapon, SLIDE_HOLD.x, SLIDE_HOLD.y, 0, frame);
 
-  ctx.restore();
-};
-
-/** Soft shadow on the ground below Meathead, shrinking and fading with height. */
-const drawGroundShadow = (ctx: CanvasRenderingContext2D, p: Player, state: GameState) => {
-  const cx = p.pos.x + p.width / 2;
-  const feetY = p.pos.y + p.height;
-  let groundY = Infinity;
-  for (const b of state.blocks) {
-    if (b.type === 'pit' || b.type === 'door' || cx < b.x || cx > b.x + b.w || b.y < feetY - 4) continue;
-    groundY = Math.min(groundY, b.y);
-  }
-  const height = groundY - feetY;
-  if (!isFinite(groundY) || height > 320) return;
-  const k = 1 - height / 320;
-  ctx.save();
-  ctx.globalAlpha *= 0.35 * k;
-  ctx.fillStyle = '#000000';
-  ctx.beginPath();
-  ctx.ellipse(cx, groundY, p.width * 0.65 * (0.5 + 0.5 * k), 5 * (0.5 + 0.5 * k), 0, 0, Math.PI * 2);
-  ctx.fill();
   ctx.restore();
 };
 
