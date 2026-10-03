@@ -24,7 +24,6 @@ import { icicleBounds, meltIcicle } from '../bosses/artie';
 import { pushEnemy } from './knockback';
 import { isMidBoss, midBossDamage, MIDBOSS_DAMAGE, MIDBOSS_SPLASH_DAMAGE, MIDBOSS_NUKE_DAMAGE } from './midBoss';
 import { muzzlePoint, flamethrowerNozzle } from './muzzle';
-import { floorTopAt } from '../core/terrain';
 import { detonateSewerNuke, TOXIC_TOMMY } from '../scenes/sewerNuke';
 import { killPlayer } from '../player/player';
 
@@ -199,9 +198,9 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
       state.tsunamiDir = facing;
       state.tsunamiStartX = facing === 1 ? state.camera.x : state.camera.x + CANVAS_WIDTH;
       state.tsunamiX = state.tsunamiStartX;
-      // The wave's built for a flat floor at GROUND_Y: lift (or drop) it to the ground he's standing on (or over)
-      const feet = player.pos.y + player.height;
-      state.tsunamiOffsetY = (floorTopAt(state.blocks, player.pos.x + player.width / 2, feet, 0) ?? feet) - GROUND_Y;
+      // The wave's built for a flat floor at GROUND_Y: lift (or drop) it to where his feet are as he fires it (up in the
+      // air, on a ledge, over a pit: it goes along at the height he was, not the floor under him)
+      state.tsunamiOffsetY = player.pos.y + player.height - GROUND_Y;
       player.shootCooldown = TSUNAMI_COOLDOWN;
       fx.playGunSound('tsunami');
       useAmmo();
