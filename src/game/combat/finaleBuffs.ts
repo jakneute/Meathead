@@ -1,5 +1,5 @@
 // The finale's souped-up arsenal. In the White House press room (and only there) every one of Meathead's guns is
-// turned up to eleven, each its own way (the taser's whole-room reach is in combat/weapons.ts):
+// souped up, each its own way (the taser's whole-room reach is in combat/weapons.ts):
 //   shotgun ice: a fan of shards two and a half times as thick (the same spread), the agents it catches frozen 2.5x as long;
 //   flamethrower: wall to wall, and a fatter stream;                 oil rocket: a much bigger splash;
 //   needles: an overdosed agent always ends up in the alien, and they go straight through a ballistic shield;

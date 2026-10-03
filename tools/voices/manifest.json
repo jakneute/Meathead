@@ -5657,7 +5657,7 @@
  {
   "voice": "death",
   "text": "ELECTRIC BATH",
-  "from": "game/combat/weapons.ts:849"
+  "from": "game/combat/weapons.ts:865"
  },
  {
   "voice": "death",
@@ -7027,7 +7027,7 @@
  {
   "voice": "death",
   "text": "SHOCKING LACK OF JUDGMENT",
-  "from": "game/combat/weapons.ts:849"
+  "from": "game/combat/weapons.ts:865"
  },
  {
   "voice": "death",
@@ -7487,7 +7487,7 @@
  {
   "voice": "death",
   "text": "TASED YOURSELF IN THE POOL",
-  "from": "game/combat/weapons.ts:849"
+  "from": "game/combat/weapons.ts:865"
  },
  {
   "voice": "death",
@@ -7912,7 +7912,7 @@
  {
   "voice": "death",
   "text": "WATER CONDUCTS, GENIUS",
-  "from": "game/combat/weapons.ts:849"
+  "from": "game/combat/weapons.ts:865"
  },
  {
   "voice": "death",
@@ -11616,12 +11616,12 @@
  },
  {
   "voice": "meathead",
-  "text": "GOOD THING I SOUPED UP MY TOYS IN THE GARAGE. EVERYTHING GOES TO ELEVEN NOW.",
+  "text": "GOOD THING I SOUPED UP MY TOYS IN THE GARAGE. SHOULD'VE SOUPED UP MY PANTS.",
   "from": "FINALE_LINES"
  },
  {
   "voice": "meathead",
-  "text": "GOOD THING I SOUPED UP MY TOYS IN THE GARAGE. SHOULD'VE SOUPED UP MY PANTS.",
+  "text": "GOOD THING I SOUPED UP MY TOYS IN THE GARAGE. TIME TO TAKE 'EM FOR A SPIN.",
   "from": "FINALE_LINES"
  },
  {

@@ -1859,7 +1859,7 @@ export const FINALE_LINES = {
   ALL_OUT: "OUT OF EVERYTHING! GUESS IT'S JUST ME AND THE PISTOL!",
   /** Meathead, just after the fight starts: he souped up his toys for this one (a hint, not a manual). */
   SOUPED_UP: [
-    { text: "GOOD THING I SOUPED UP MY TOYS IN THE GARAGE. EVERYTHING GOES TO ELEVEN NOW.", shat: "GOOD THING I SOUPED UP MY TOYS IN THE GARAGE. SHOULD'VE SOUPED UP MY PANTS." },
+    { text: "GOOD THING I SOUPED UP MY TOYS IN THE GARAGE. TIME TO TAKE 'EM FOR A SPIN.", shat: "GOOD THING I SOUPED UP MY TOYS IN THE GARAGE. SHOULD'VE SOUPED UP MY PANTS." },
     { text: "FLAMETHROWER GOES WALL TO WALL. ROCKS? I PITCH 'EM NOW.", shat: "FLAMETHROWER GOES WALL TO WALL. ROCKS? I PITCH 'EM NOW. MY SHORTS? DON'T ASK." },
   ],
   /** Over the alien's death, after the announcer's had his say (by how he went: game/bosses/alienDeath.ts). */
