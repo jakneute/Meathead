@@ -25,13 +25,16 @@
 //              sparks, the chopper down on top of him, and it goes up; off the jet ski, skipping like a stone and in head
 //              first, legs up, going under; off the skis, into the snow and rolling on as a snowball, bigger and bigger,
 //              his boots sticking out of it
+//   airfall    killed up in the air by anything that needs him on the ground for it (the lava, the steam, the
+//              shock, the ice, a bird's beak...) or by nothing in particular: he drops out of the air, limp and
+//              tumbling, to the floor, and bursts on it
 //   fall_moto  (the kill cam) off the chopper into the trench across the road: into the crude, and the chopper in after
 //              him, on top of him; its pipes light the lot
 
 import type { FrameContext } from '../core/context';
 import type { GameState } from '../core/state';
 import { shakeScreen } from '../core/state';
-import { hurtJustNow } from '../core/deathCause';
+import { hurtJustNow, airDrop } from '../core/deathCause';
 import { playSound } from '../platform/audio';
 import { PARTICLE_PALETTES } from '../../constants';
 import { floorTopAt } from '../core/terrain';
@@ -43,6 +46,8 @@ export type MeatheadDeathKind = 'burnt' | 'lava' | 'boiled' | 'fried' | 'frozen'
   | 'fall_crevasse' | 'fall_trench' | 'fall_alley' | 'fall_crude' | 'fall_arroyo' | 'fall_rocks' | 'fall_dungeon' | 'fall_moto'
   // killed on something he's riding
   | 'crash'
+  // killed up in the air: drops, and bursts on the floor
+  | 'airfall'
   // the storm up Hector's tower: launched clean out of the atmosphere, to float there
   | 'space'
   // off the junk in the Eye of the storm, down into the sea, the Eye watching him all the way down
@@ -70,6 +75,9 @@ export interface MeatheadDeath {
   bird?: { id: string; x: number; y: number };
   /** (crash) What he was riding. */
   ride?: Ride;
+  /** (airfall) When he hits the floor (frames in), and whether he's on fire on the way down. */
+  hitAt?: number;
+  burning?: boolean;
 }
 
 /** The things he rides (the boat's the stage's own: see hector/chase). */
@@ -78,7 +86,7 @@ export type Ride = 'bike' | 'moto' | 'jetski' | 'ski';
 /** How long each one plays before the death screen goes up. */
 export const MEATHEAD_DEATH_FRAMES: Record<MeatheadDeathKind, number> = {
   burnt: 95, lava: 125, boiled: 85, fried: 85, frozen: 80, buried: 95, flattened: 70, dissolved: 110, roadkill: 80, overdose: 120,
-  impaled: 80, cactus: 80, plucked: 150, spiked: 100, crash: 150, fall_moto: 150,
+  impaled: 80, cactus: 80, plucked: 150, spiked: 100, crash: 150, fall_moto: 150, airfall: 60,
   space: 360, eye_fall: 190, fall_crevasse: 110, fall_trench: 100, fall_alley: 120, fall_crude: 150, fall_arroyo: 130, fall_rocks: 120, fall_dungeon: 110,
 };
 
@@ -121,8 +129,18 @@ export const startMeatheadDeath = (ctx: FrameContext): boolean => {
   const kind: MeatheadDeathKind | undefined = !ride ? cause
     : p.health > 0 ? (cause === 'fall_moto' ? cause : undefined)
     : ride === 'ski' && cause === 'buried' ? cause : 'crash';
-  if (!kind) return false;
   const x = p.pos.x + p.width / 2, y = p.pos.y + p.height;
+  // (dead up in the air, of something that needs him on the ground, or of nothing in particular: he drops, and bursts
+  // on the floor; over nothing, he bursts where he is)
+  const drop = p.health <= 0 && !ride ? airDrop(state) : undefined;
+  if (drop !== undefined && (!kind || !AIR_OK.has(kind))) {
+    if (drop === Infinity) return false;
+    const hitAt = Math.max(4, Math.round(Math.sqrt((2 * drop) / AIR_G)));
+    state.meatheadDeath = { kind: 'airfall', x, y, facing: p.facing === -1 ? -1 : 1, floor: y + drop, hitAt, burning: kind === 'burnt' || kind === 'lava' || kind === 'boiled' };
+    state.deathScene = { t: 0, len: hitAt + MEATHEAD_DEATH_FRAMES.airfall, voiced: false };
+    return true;
+  }
+  if (!kind) return false;
   const snow = state.lastHurt?.source === 'avalanche' || state.lastHurt?.source === 'snowball';
   const bird = kind === 'plucked' ? state.enemies.find(e => e.id === state.pluckedBy!.id) : undefined;
   state.meatheadDeath = { kind, x, y, facing: p.facing === -1 ? -1 : 1, snow, impale: state.impaleAt, floor: kind === 'impaled' ? (floorTopAt(state.blocks, x, y, 0) ?? y) : undefined,
@@ -133,6 +151,12 @@ export const startMeatheadDeath = (ctx: FrameContext): boolean => {
 
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 const GORE = PARTICLE_PALETTES.GORE;
+/** The deaths that work up in the air as they are (the rest, up there, are an airfall). */
+const AIR_OK = new Set<MeatheadDeathKind>(['roadkill', 'overdose', 'impaled', 'cactus', 'space', 'eye_fall', 'spiked']);
+/** (airfall) How fast he drops. */
+export const AIR_G = 0.7;
+/** (airfall) Where he is, t frames in (his feet), till he hits. */
+export const airfallY = (d: MeatheadDeath, t: number) => Math.min(d.floor ?? d.y, d.y + 0.5 * AIR_G * t * t);
 
 /** Meat, and lots of it: the plain death, him coming apart. */
 export const meatExplosion = (ctx: FrameContext) => {
@@ -255,6 +279,17 @@ export const tickMeatheadDeath = (ctx: FrameContext, d: MeatheadDeath, t: number
       break;
     }
     case 'crash': tickCrash(ctx, d, t); break;
+    case 'airfall':
+      if (t === 1) playSound('whoosh', 0.6, -4);
+      if (t === d.hitAt) {
+        // (he lands, and he goes: all of him, all over the floor)
+        const p = state.player;
+        p.pos.x = d.x - p.width / 2; p.pos.y = (d.floor ?? d.y) - p.height;
+        meatExplosion(ctx);
+        playSound('thud', 1);
+      }
+      if (d.burning && t < (d.hitAt ?? 0) && t % 2 === 0) state.particles.push({ pos: { x: d.x + rnd(-10, 10), y: airfallY(d, t) - rnd(10, 50) }, vel: { x: rnd(-1, 1), y: rnd(-3, -1) }, life: rnd(10, 18), color: t % 4 ? '#FB923C' : '#FDE047', size: rnd(4, 8) });
+      break;
     case 'fall_moto': {
       const s = t - FALL_HIT;
       if (t === 1) playSound('whoosh', 0.9, -6);

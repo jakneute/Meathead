@@ -4,6 +4,7 @@
 import type { GameState } from './state';
 import { DEATH_LINES, BOSS_DEATH_LINES, FALL_DEATH_LINES, PLUCK_DEATH_LINES } from '../../content/deaths';
 import { pickRandom } from './utils';
+import { floorTopAt } from './terrain';
 
 /**
  * How recently he has to have been hurt by it for it to be what killed him (frames). Everything that hurts him says so
@@ -29,11 +30,26 @@ export const deathByCause = (state: GameState): string | undefined => {
   return lines ? pickRandom(lines) : undefined;
 };
 
+/**
+ * Killed up in the air (off the ground by more than a step, not swimming, not riding anything): how far it is down to
+ * the floor under him, or Infinity over nothing. Undefined if he's on the ground (near enough).
+ */
+export const airDrop = (state: GameState): number | undefined => {
+  const p = state.player;
+  if (p.isGrounded || p.swimming || p.skiing || p.jetski) return undefined;
+  const x = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
+  const floor = floorTopAt(state.blocks, x, feet, 0);
+  if (floor === null) return Infinity;
+  return floor - feet > 16 ? floor - feet : undefined;
+};
+
 /** A bird took his eyes (it dived on him, and that was it): that, whatever the stage would have said. */
 export const pluckDeathMessage = (state: GameState): string | undefined => {
   const h = state.lastHurt, pb = state.pluckedBy;
   // (not riding anything: on it, whatever got him, he's flung off it)
   if (state.player.skiing || state.player.jetski) return undefined;
+  // (nor up in the air: it can't land on him there; he just falls and bursts)
+  if (airDrop(state) !== undefined) return undefined;
   if (!h || !pb || pb.frame !== h.at || !hurtJustNow(state, h.at) || state.player.health > 0) return undefined;
   const kind = state.enemies.find(e => e.id === pb.id)?.kind ?? '';
   return pickRandom([...(PLUCK_DEATH_LINES[kind] ?? []), ...PLUCK_DEATH_LINES.any]);

@@ -6,7 +6,7 @@ import type { DeathFace } from './deathFace';
 import { wall as fallWall, strata as fallStrata } from './fallCams';
 import { bandedGradient, hazeBands } from '../pixelArt';
 import { drawFlameLicks } from '../fx/fireball';
-import { MEATHEAD_DEATH_FRAMES, LAVA_COOKOFF, FROZEN_SHATTER, ROADKILL_TWINKLE, overdoseRise, impaledFeet, PLUCKS, PLUCK_AWAY, PLUCK_FALL, pluckSway, pluckDark, SPIKE_HIT, MeatheadDeath } from '../../player/deathAnim';
+import { airfallY, MEATHEAD_DEATH_FRAMES, LAVA_COOKOFF, FROZEN_SHATTER, ROADKILL_TWINKLE, overdoseRise, impaledFeet, PLUCKS, PLUCK_AWAY, PLUCK_FALL, pluckSway, pluckDark, SPIKE_HIT, MeatheadDeath } from '../../player/deathAnim';
 
 // Meathead's own deaths (see player/deathAnim): him, drawn in his place, going whichever way it got him.
 
@@ -211,6 +211,17 @@ export const drawMeatheadDeath = (ctx: Ctx, state: GameState, weapon: WeaponType
       break;
     }
     case 'crash': break; // (the crash cam has it: see crashDeath)
+    case 'airfall': {
+      // Dropping out of the air, limp, turning over, mouth open; gone once he's hit (he's all over the floor)
+      if (t >= (d.hitAt ?? 0)) break;
+      const fy = airfallY(d, t);
+      about(ctx, x, fy - 32, facing * t * 0.12);
+      ctx.translate(0, fy - y);
+      body(ctx, state, d, weapon, { isGrounded: false, vel: { x: 0, y: 8 }, deathFace: t < 6 ? 'agony' : 'dead' });
+      ctx.restore(); ctx.save();
+      if (d.burning) drawFlameLicks(ctx, x, fy - 8, 36, 56, f, { seed: 4, n: 4 });
+      break;
+    }
     case 'roadkill': {
       // Knocked clean out of his boots: them, stood where he was; him, end over end up and off the top of the screen
       ctx.fillStyle = bootColor; ctx.fillRect(x - 12, y - 8, 10, 8); ctx.fillRect(x + 2, y - 8, 10, 8);
