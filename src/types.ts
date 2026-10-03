@@ -200,6 +200,8 @@ export interface Player extends Entity {
   /** Dry fire (see combat/dryFire.ts): the frame the last empty-gun gag went off, and whether he was firing it with
    * something in it last frame (so running dry mid-hold gets one too). */
   dryFireAt?: number;
+  /** Out of boulders and tried to throw one anyway: the frame he shrugged (see render/player/player.ts). */
+  shrugAt?: number;
   dryWasLive?: boolean;
   // Sludge
   barfTimer?: number;

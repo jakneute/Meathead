@@ -116,6 +116,8 @@ export const updateDryFire = (ctx: FrameContext, input: FrameInput) => {
   if (currentWeapon === 'FLAMETHROWER' && (player.swimming || player.isDucking)) return;
   if (player.dryFireAt !== undefined && state.frame - player.dryFireAt >= 0 && state.frame - player.dryFireAt < DRY_FIRE_GAP) return;
   player.dryFireAt = state.frame;
+  // (no rocks left: there's nothing in his hand to fire, so nothing comes out; he just shrugs)
+  if (currentWeapon === 'BOULDER') { player.shrugAt = state.frame; return; }
   const m = currentWeapon === 'FLAMETHROWER' ? flamethrowerNozzle(player) : muzzlePoint(player, currentWeapon);
   // (carried along with him: he may be running)
   for (const b of gag.bits(m, player.facing, Math.random)) {

@@ -173,7 +173,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   ctx.scale(1 + squash * 0.25 - airStretch * 0.5, 1 - squash * 0.25 + airStretch);
 
   if (p.isSliding && !p.headless) {
-    drawSlideTackle(ctx, animFrame, currentWeapon, isUnarmed);
+    drawSlideTackle(ctx, animFrame, currentWeapon, isUnarmed || outOfRocks(p, currentWeapon));
     finishBody();
     ctx.restore();
     return;
@@ -371,16 +371,20 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       const t = (ph - 0.42) / 0.58, e = t * t * (3 - 2 * t);
       return { angle: 0.45 + 2.45 * e, bend: 1.1 * Math.sin(Math.PI * t) };
     })();
-    const armAngle = isSki ? (isAirborne ? 2.0 + Math.sin(animFrame * 0.2) * 0.1 : 0.85 + Math.sin(animFrame * 0.12) * 0.06)
+    // Shrugging (tried to throw a boulder with none left): the free arm out from his side, the forearm up, palm up
+    const shrug = shrugK(p, state.frame);
+    const armAngle0 = isSki ? (isAirborne ? 2.0 + Math.sin(animFrame * 0.2) * 0.1 : 0.85 + Math.sin(animFrame * 0.12) * 0.06)
       : isSwimming ? (swimMoving ? swimHaul.angle : 0.9 + Math.sin(animFrame * 0.15) * 0.9)
       : isWalking ? 0.16 - walkStride * 0.42
       // (in the air: thrown up high behind him on the way up, coming down and out behind for balance as he falls)
       : isAirborne ? 2.5 - airFall * 1.2
       : 0.2 + Math.sin(animFrame * 0.05) * 0.04;
-    const bend = isSwimming ? (swimMoving ? swimHaul.bend : 0.2)
+    const armAngle = armAngle0 + (0.6 - armAngle0) * shrug;
+    const bend0 = isSwimming ? (swimMoving ? swimHaul.bend : 0.2)
       : isWalking ? 0.12 + Math.max(0, -Math.sin(walkPhase - 0.55)) * 0.5
       : isAirborne ? 0.45
       : 0.14 + Math.sin(animFrame * 0.05 + 0.8) * 0.05;
+    const bend = bend0 + (2.5 - bend0) * shrug;
     // (in front of his body, not behind it: drawn once the torso's down, below)
     freeArm = () => {
       ctx.save();
@@ -1000,7 +1004,14 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       const k = kick * kick;
       ctx.translate(armBaseX + 6, armBaseY - 3); ctx.rotate(-0.2 * k); ctx.translate(-(armBaseX + 6) - 3 * k, -(armBaseY - 3));
     }
-    {
+    const shrugging = shrugK(p, state.frame);
+    if (shrugging > 0) {
+      // Shrugging, empty-handed: the elbow out from his side, the forearm up, the palm open and turned up (nothing in it)
+      const s = shrugging;
+      const ex = armBaseX + 4 + 6 * s, ey = armBaseY + 8 - 2 * s, hx = armBaseX + 11 + 8 * s, hy = armBaseY + 6 - 12 * s;
+      drawArm(ctx, armBaseX + 6, armBaseY - 3 - 2 * s, ex, ey, hx, hy, skinTone, skinShadow, skinHighlight, hx + 3);
+      ctx.fillStyle = skinTone; ctx.fillRect(hx - 1, hy - 2, 7, 3); ctx.fillStyle = skinShadow; ctx.fillRect(hx - 1, hy + 1, 7, 1); // (the open palm)
+    } else {
     // Shoulder at the edge of his chest, elbow down by his side (pumping a little as he walks), the fist out at the gun
     drawArm(ctx, armBaseX + 6, armBaseY - 3, armBaseX + 4 + pump * 0.4, armBaseY + 8, armBaseX + 11 + pump, armBaseY + 6, skinTone, skinShadow, skinHighlight, armBaseX + 15 + pump);
     // The fist round the grip: knuckles along the bottom
@@ -1015,7 +1026,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
 
     // (his hand's empty for a moment after a throw)
     if (hold) hold(ctx, wpnX, wpnY);
-    else if (!isUnarmed && !throwing) drawHeldWeapon(ctx, currentWeapon, wpnX, wpnY, p.flameAngle || 0, animFrame);
+    // (out of boulders: nothing in his hand at all)
+    else if (!isUnarmed && !throwing && !outOfRocks(p, currentWeapon) && shrugging <= 0) drawHeldWeapon(ctx, currentWeapon, wpnX, wpnY, p.flameAngle || 0, animFrame);
   }
   ctx.restore();
 
@@ -1391,3 +1403,14 @@ const drawReachingArm = (ctx: CanvasRenderingContext2D, sx: number, sy: number, 
   ctx.restore();
 };
 
+/** Out of boulders: his throwing hand's empty. */
+const outOfRocks = (p: Player, weapon: WeaponType) => weapon === 'BOULDER' && (p.weaponAmmo?.BOULDER ?? 1) < 1;
+/** How far into a shrug he is (0..1): up quick, held a beat, down. */
+const SHRUG_FRAMES = 40;
+const shrugK = (p: Player, frame: number) => {
+  if (p.shrugAt === undefined) return 0;
+  const t = frame - p.shrugAt;
+  if (t < 0 || t >= SHRUG_FRAMES) return 0;
+  const k = Math.min(1, t / 6, (SHRUG_FRAMES - t) / 10);
+  return k * k * (3 - 2 * k);
+};
