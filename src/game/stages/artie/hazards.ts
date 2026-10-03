@@ -4,6 +4,8 @@
 //              then drops: it hurts you, and anything else it lands on.
 //   crumbling: ledges of ice. Stand on one and it cracks, shakes, and gives way
 //              (it freezes back over a few seconds later).
+//   (the flamethrower melts both: an icicle, hanging or falling, goes in a hiss of steam; an ice ledge held in the
+//   flame a moment slumps and runs off as water, and freezes back over later like any other)
 //   wind:      shoves you back, harder in the air. Some of it comes in gusts
 //              (a flag and snow streaks show when it's blowing).
 //   snowballs: roll down the trail at you from chutes. Jump them, shoot them,
@@ -19,7 +21,7 @@ import { GRAVITY } from '../../../constants';
 import { COURSE, WindZone, SnowballChute } from './course';
 
 export interface StageIcicle { x: number; y: number; state: 'hang' | 'shake' | 'fall' | 'gone'; t: number; fy: number; vy: number }
-export interface Crumble { tag: string; block: Block; state: 'solid' | 'shake' | 'gone'; t: number }
+export interface Crumble { tag: string; block: Block; state: 'solid' | 'shake' | 'gone'; t: number; /** How long it's been in the flame. */ heat?: number }
 export interface Snowball { x: number; y: number; r: number; vx: number; vy: number; rot: number; big: boolean }
 export interface Hazards {
   icicles: StageIcicle[];
@@ -34,6 +36,19 @@ const ICICLE_W = 14, ICICLE_H = 40;
 const ICICLE_DAMAGE = 12;
 const CRUMBLE_SHAKE = 34;
 const CRUMBLE_REFREEZE = 210;
+/** How long an ice ledge holds up in the flamethrower's flame. */
+const CRUMBLE_MELT = 16;
+
+/** Is the flamethrower's flame on this box right now? */
+const inFlame = (state: GameState, box: { x: number; y: number; w: number; h: number }) =>
+  state.flameSegments.some(s => rectsOverlap({ x: s.x - s.size / 2, y: s.y - s.size / 2, w: s.size, h: s.size }, box));
+
+/** Melted: a hiss of steam off it, water running off it. */
+const steam = (ctx: FrameContext, x: number, y: number, w: number) => {
+  for (let i = 0; i < 10; i++) ctx.state.particles.push({ pos: { x: x + Math.random() * w, y }, vel: { x: (Math.random() - 0.5) * 1.5, y: -1 - Math.random() * 2 }, life: 30 + Math.random() * 20, color: 'rgba(241, 245, 249, 0.6)', size: 6 + Math.random() * 8 });
+  for (let i = 0; i < 6; i++) ctx.state.particles.push({ pos: { x: x + Math.random() * w, y: y + 4 }, vel: { x: (Math.random() - 0.5), y: 1 + Math.random() * 2 }, life: 30, color: '#93C5FD', size: 2 + Math.random() * 2 });
+  ctx.fx.playGunSound('ignite');
+};
 
 export const createHazards = (state: GameState): Hazards => ({
   icicles: COURSE.icicles.map(i => ({ x: i.x, y: i.y, state: 'hang', t: 0, fy: i.y, vy: 0 })),
@@ -63,6 +78,8 @@ const updateIcicles = (ctx: FrameContext, hz: Hazards) => {
   const pcx = player.pos.x + player.width / 2;
   for (const ic of hz.icicles) {
     if (ic.state === 'gone') continue;
+    // (in the flame: gone in a hiss of steam, hanging or falling)
+    if (inFlame(state, { x: ic.x - ICICLE_W / 2, y: ic.state === 'fall' ? ic.fy : ic.y, w: ICICLE_W, h: ICICLE_H })) { steam(ctx, ic.x - ICICLE_W / 2, (ic.state === 'fall' ? ic.fy : ic.y) + ICICLE_H / 2, ICICLE_W); ic.state = 'gone'; continue; }
     ic.t++;
     if (ic.state === 'hang') {
       if (Math.abs(pcx - ic.x) < ICICLE_TRIGGER && player.pos.y > ic.y) { ic.state = 'shake'; ic.t = 0; }
@@ -118,6 +135,17 @@ const updateCrumbles = (ctx: FrameContext, hz: Hazards) => {
   for (const c of hz.crumbles) {
     const b = c.block;
     c.t++;
+    // (held in the flame a moment, it goes: slumps and runs off as water, steaming)
+    if (c.state !== 'gone') {
+      c.heat = inFlame(state, b) ? (c.heat ?? 0) + 1 : Math.max(0, (c.heat ?? 0) - 1);
+      if (c.heat >= CRUMBLE_MELT) {
+        c.state = 'gone'; c.t = 0; c.heat = 0;
+        state.blocks = state.blocks.filter(x => x !== b);
+        steam(ctx, b.x, b.y, b.w);
+        continue;
+      }
+      if (c.heat > 0 && c.t % 3 === 0) state.particles.push({ pos: { x: b.x + Math.random() * b.w, y: b.y + b.h }, vel: { x: 0, y: 2 }, life: 20, color: '#93C5FD', size: 2 });
+    }
     if (c.state === 'solid') {
       // Anyone's weight on it sets it going: him, or anything of theirs that walks (or gets knocked) out onto it
       const on = (x: number, y: number, w: number, h: number, vy: number) => y + h >= b.y - 2 && y + h <= b.y + 4 && x + w > b.x && x < b.x + b.w && vy >= 0;

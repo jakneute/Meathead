@@ -149,13 +149,15 @@ export const drawWorld = (ctx: CanvasRenderingContext2D, state: GameState, view:
     if (state.waterShock) drawWaterShock(wctx, state.waterShock, state.frame);
     drawBlasts(wctx, state);
     drawMoltenStream(wctx, state);
-    drawParticlesAndDamageNumbers(wctx, state);
+    drawParticles(wctx, state);
     drawSteamRush(wctx, state);
     drawBarryLighting(wctx, state, stageId);
     if (state.sewerNuke) drawSewerNukeInside(wctx, state);
     if (state.volcanoFinale) drawVolcanoFinaleInside(wctx, state);
     layout?.drawFront?.(wctx, state);
     if (state.waterStains?.length) drawWaterStains(wctx, state);
+    // (the numbers and the callouts go over everything too: no door or wall of the stage's in front of them)
+    drawDamageNumbers(wctx, state);
     // (what he says goes over everything, the stage's buildings and scenery in front included)
     if (status !== GameStatus.LEVEL_INTRO || LEVEL_INTRO_STYLE === 'skyfall' || state.introTimer >= 80) drawPlayerSpeech(wctx, state);
     wctx.restore();
@@ -1328,8 +1330,8 @@ const goreLayer = (ctx: CanvasRenderingContext2D, state: GameState) => {
   return layer.baked;
 };
 
-const drawParticlesAndDamageNumbers = (ctx: CanvasRenderingContext2D, state: GameState) => {
-  const { particles, damageNumbers } = state;
+const drawParticles = (ctx: CanvasRenderingContext2D, state: GameState) => {
+  const { particles } = state;
   // Gore that's stuck fast to the walls and ceiling doesn't change: it's painted once onto a layer and the layer is
   // drawn (after a weakness kill that's a couple of thousand splats, which were being redrawn every frame)
   const layer = goreLayer(ctx, state);
@@ -1340,7 +1342,10 @@ const drawParticlesAndDamageNumbers = (ctx: CanvasRenderingContext2D, state: Gam
     drawParticle(ctx, p);
   }
   ctx.restore();
-  damageNumbers.forEach(d => {
+};
+
+const drawDamageNumbers = (ctx: CanvasRenderingContext2D, state: GameState) => {
+  state.damageNumbers.forEach(d => {
     if (d.isCallout) { drawCallout(ctx, d, state.camera); return; }
     ctx.save();
     ctx.globalAlpha = d.life / d.maxLife;

@@ -81,6 +81,8 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, shitty = false, o
   const jumpTo = (sceneT: number) => { startRef.current = performance.now() - sceneT - (eggRef.current ? EGG_MS : 0); };
   const startRef = useRef(performance.now());
   const doneRef = useRef(false);
+  /** Training's being called off (he's shat himself in the ring): it plays out, no skipping it. */
+  const cancellingRef = useRef(false);
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
   const finish = () => { if (!doneRef.current) { doneRef.current = true; onDoneRef.current(); } };
@@ -99,6 +101,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, shitty = false, o
     let id = 0;
 
     const skipOrContinue = () => {
+      if (respawns.cancelled !== undefined) return;
       const now = sceneTime(performance.now() - startRef.current);
       if (now < SKIP_AFTER_MS) return;
       if (now < rangeAt) {
@@ -154,6 +157,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, shitty = false, o
           steps++;
           // (training's been called off: he's shit himself, and the help's gone home)
           if (stepRange(range, readControls(kb), weapon, respawns)) { finish(); break; }
+          cancellingRef.current = respawns.cancelled !== undefined;
         }
         if (lastStep < wall - 200) lastStep = wall; // tab was hidden: don't fast-forward
         rc.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
@@ -294,7 +298,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, shitty = false, o
             {/* (under all that, on its own: not part of what the weapon is) */}
             {weapon === 'OIL_ROCKET' && <FlameCallout />}
           </div>
-          <button onClick={finish}
+          <button onClick={() => { if (!cancellingRef.current) finish(); }}
             className="absolute right-3 bottom-3 px-3 py-2 text-[9px] text-black bg-yellow-400 border-2 border-black shadow-[3px_3px_0_#000] animate-pulse">
             <span className="inline-flex items-center gap-2"><Prompt pad={['START']} kb={['ESC']} size={14} />CONTINUE ▶</span>
           </button>

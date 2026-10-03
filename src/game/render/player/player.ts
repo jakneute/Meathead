@@ -908,7 +908,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
 
     const pump = armPump * 0.3;
     // The handgun's kick: the arm jolted back at the shoulder and the muzzle flipped up a touch, settling over a few frames
-    const kick = currentWeapon === 'GUN' && !throwing ? Math.max(0, (p.shootCooldown - (GUN_COOLDOWN - GUN_KICK_FRAMES)) / GUN_KICK_FRAMES) : 0;
+    // (only ever the handgun's own cooldown's worth: a longer one left over from something else, coming into a stage, had
+    // the arm thrown off the screen and flying back into its socket)
+    const kick = currentWeapon === 'GUN' && !throwing && p.shootCooldown <= GUN_COOLDOWN ? Math.min(1, Math.max(0, (p.shootCooldown - (GUN_COOLDOWN - GUN_KICK_FRAMES)) / GUN_KICK_FRAMES)) : 0;
     if (kick > 0) {
       const k = kick * kick;
       ctx.translate(armBaseX + 6, armBaseY - 3); ctx.rotate(-0.2 * k); ctx.translate(-(armBaseX + 6) - 3 * k, -(armBaseY - 3));

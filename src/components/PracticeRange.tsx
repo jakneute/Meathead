@@ -33,7 +33,8 @@ const PracticeRange: React.FC<{ weapons: WeaponType[]; onLeave: () => void }> = 
     const detach = kb.attach(window);
     const respawns = newRespawns();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); leaveRef.current(); return; }
+      // (training being called off plays out: no leaving in the middle of it)
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); if (respawns.cancelled === undefined) leaveRef.current(); return; }
       const slot = /^Digit([1-9])$/.exec(e.code);
       if (slot && Number(slot[1]) <= weapons.length) setWeapon(weapons[Number(slot[1]) - 1]);
     };
@@ -49,7 +50,7 @@ const PracticeRange: React.FC<{ weapons: WeaponType[]; onLeave: () => void }> = 
         const start = isButtonPressed(gp, GP_BUTTONS.START) || isButtonPressed(gp, GP_BUTTONS.SELECT);
         if (lb && !prev.lb) cycleRef.current(-1);
         if (rb && !prev.rb) cycleRef.current(1);
-        if (start && !prev.start) leaveRef.current();
+        if (start && !prev.start && respawns.cancelled === undefined) leaveRef.current();
         prev.lb = lb; prev.rb = rb; prev.start = start;
       }
       if (lastStep === 0) lastStep = wall;
