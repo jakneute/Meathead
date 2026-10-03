@@ -14,6 +14,7 @@ import { drawFire } from '../fx/fire';
 import { drawFlameLicks } from '../fx/fireball';
 import { drawBloodPool } from '../spatter';
 import { drawAlienCorpse } from './alien';
+import { drawAlienDeath } from './alienDeaths';
 
 type Ctx = CanvasRenderingContext2D;
 type Style = 'charred' | 'melted' | 'stone' | 'shattered' | 'flattened' | 'dissolved' | 'overdosed' | 'oiled' | 'fried' | 'alien';
@@ -223,6 +224,8 @@ const cracksSoFar = (ctx: Ctx, color: string, seed: number, p: number) => {
 // ---------------------------------------------------------------------------
 
 export const drawBossCorpse = (ctx: Ctx, c: BossCorpse, frame: number) => {
+  // (one who dies his own way: the finale's alien)
+  if (c.own) { drawAlienDeath(ctx, c, frame); return; }
   const style = styleFor(c.stageId, c.weapon);
   const { x, y: floor } = c;
   const age = Math.max(0, frame - c.frame0);

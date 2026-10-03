@@ -56,6 +56,8 @@ export const stepGame = (ctx: FrameContext, status: GameStatus, controls: Contro
   const { state } = ctx;
   // A paused game is frozen solid: no timers, no animation
   if (status === GameStatus.PAUSED) return false;
+  // (a stage's slow motion: a tick that passes no game time)
+  if (getStageLayout(ctx.stageId)?.holdTick?.(ctx)) return false;
   // (the finale: nobody says the same thing twice in a life of it)
   setNoRepeatScope(ctx.stageId === FINALE_STAGE ? getFinale(state) : null);
   state.frame++;
@@ -141,6 +143,19 @@ const updateDeathScreen = (ctx: FrameContext) => {
 /** Weakness kill: the boss erupts in gore for a few seconds, which sticks to the terrain. */
 const updateBossExplosion = (ctx: FrameContext) => {
   const { state, fx } = ctx;
+  // (one who dies his own way: no eruption, just what's flying settling; it lasts as long as his death says, and then
+  // it's straight on, once nobody's talking: no victory lap, no VICTORY, nobody pissing on him)
+  const own = getBossDef(ctx.stageId)?.ownDeath;
+  if (own) {
+    moveLooseParticles(ctx);
+    if (own.playing(state) || state.victoryReported) return;
+    state.victoryQuiet = isTalking() ? 0 : state.victoryQuiet + 1;
+    if (state.victoryQuiet < TALK_BEAT && ++state.postVictoryTimer < MAX_TALK_WAIT) return;
+    state.victoryReported = true;
+    ctx.events.onBossDeath();
+    ctx.events.onBossDefeated(ctx.stageId || "", state.bossCorpse?.weapon, isShat(state));
+    return;
+  }
   state.bossExplosionTimer--;
   state.screenShakeTimer = 5;
   if (state.frame % 3 === 0) {

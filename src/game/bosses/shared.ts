@@ -7,7 +7,7 @@ import {
   SPOKEN_TEXT_HOLD,
 } from '../../constants';
 import type { FrameContext } from '../core/context';
-import type { GameState } from '../core/state';
+import type { GameState, BossCorpse } from '../core/state';
 import type { Fx } from '../core/effects';
 import { say, getBossVoice, SpeechPriority } from '../platform/speech';
 import { hurtTaken, gritty } from '../core/resist';
@@ -110,6 +110,8 @@ export interface BossDef {
   onWeaponHit?: (ctx: FrameContext, boss: Enemy, weapon: WeaponType, p?: Partial<Projectile>) => void;
   /** Meathead's own moves (the charge, the slide, the uppercut, the dive kick) do this share of their usual damage. */
   meleeScale?: number;
+  /** ...and can never finish him: a hit that would leaves him on his last point (something else has to do it). */
+  meleeCantKill?: boolean;
   /** A body (flung by a move, shoved, sliding on oil, overdosed and flying) has gone into him: what it does to him. */
   onBodyHit?: (ctx: FrameContext, boss: Enemy, body: Enemy, force: number) => void;
   /** The taser's current has jumped onto him off one of the men round him. */
@@ -128,6 +130,15 @@ export interface BossDef {
   alwaysErupts?: boolean;
   /** What Meathead says over him dying, whatever did it. */
   killLine?: VulgarityType;
+  /**
+   * He dies his own way (the finale's alien): none of the usual last words, kill line or eruption. `start` has the
+   * corpse the moment he dies (to say where it lies and how it goes, and set his death going); the eruption phase
+   * holds, quiet, for as long as `playing` says, and the victory follows.
+   */
+  ownDeath?: {
+    start: (state: GameState, corpse: BossCorpse, boss: Enemy, weapon: WeaponType, helpers: BossHelpers) => void;
+    playing: (state: GameState) => boolean;
+  };
 }
 
 // ---------------------------------------------------------------------------

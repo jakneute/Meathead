@@ -92,6 +92,11 @@ export interface StageLayout {
   /** The taser keeps hold of what it's on when it goes off the screen (the stage pulls the view back to show it). */
   taserReachesOffscreen?: boolean;
   zoom?: (state: GameState) => { scale: number; x: number; y: number; shiftX?: number; shiftY?: number } | null;
+  /**
+   * Slow motion (the finale's kill cam): run every tick, before anything else (it can keep its own real-time clock);
+   * true means this one passes no game time at all.
+   */
+  holdTick?: (ctx: FrameContext) => boolean;
   /** What he's stood on is tipping (Riggs's truck swerving): he's drawn turned by `angle` about the world point (x, y) along with it. Null: upright. */
   playerTilt?: (state: GameState) => { x: number; y: number; angle: number } | null;
   /** A body he's sent flying only takes out the ones on screen (the gym: each room's lesson is for that room, not the next one's). */

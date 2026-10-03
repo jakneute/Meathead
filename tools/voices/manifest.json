@@ -71,6 +71,16 @@
  },
  {
   "voice": "announcer",
+  "text": "ALIEN ON THE ROCKS!",
+  "from": "ALIEN_DEATH_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "ALIEN SOUP!",
+  "from": "ALIEN_DEATH_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "ANKLES TAKEN!",
   "from": "KILL_CALLOUTS"
  },
@@ -143,6 +153,11 @@
   "voice": "announcer",
   "text": "BIT THE DUST!",
   "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "BLOWN TO BITS!",
+  "from": "ALIEN_DEATH_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -287,7 +302,7 @@
  {
   "voice": "announcer",
   "text": "DEEP FRIED!",
-  "from": "KILL_CALLOUTS"
+  "from": "ALIEN_DEATH_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -356,8 +371,13 @@
  },
  {
   "voice": "announcer",
+  "text": "EXECUTED!",
+  "from": "ALIEN_DEATH_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "EXTRA CRISPY!",
-  "from": "KILL_CALLOUTS"
+  "from": "ALIEN_DEATH_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -503,6 +523,11 @@
   "voice": "announcer",
   "text": "HE'S NOT GETTING UP!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "HEADS WILL ROLL!",
+  "from": "ALIEN_DEATH_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -823,6 +848,11 @@
   "voice": "announcer",
   "text": "PLOWED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "POP GOES THE ALIEN!",
+  "from": "ALIEN_DEATH_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -1261,6 +1291,11 @@
  },
  {
   "voice": "announcer",
+  "text": "WASHED UP!",
+  "from": "ALIEN_DEATH_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "WATER CONDUCTS!",
   "from": "KILL_CALLOUTS"
  },
@@ -1486,6 +1521,11 @@
  },
  {
   "voice": "boss.alien",
+  "text": "BZZZT! I CAN SEE MY BONES! THEY ARE SO UGLY!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
   "text": "COLD! COLD! MY BLOOD IS ALREADY COLD!",
   "from": "REACTIONS"
  },
@@ -1521,6 +1561,16 @@
  },
  {
   "voice": "boss.alien",
+  "text": "I AM COOKING! WHY DO I SMELL DELICIOUS?!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "I AM MELTING! THIS IS MY LEAST FAVORITE FLAVOR!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
   "text": "I AM ON FIRE! THIS IS NOT IN THE BROCHURE!",
   "from": "ALIEN_LINES"
  },
@@ -1543,6 +1593,11 @@
   "voice": "boss.alien",
   "text": "I CANNOT SWIM! WE HAVE NO OCEANS!",
   "from": "REACTIONS"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "I FEEL SO FLOATY... AND ROUND... AND... UH OH.",
+  "from": "ALIEN_LINES"
  },
  {
   "voice": "boss.alien",
@@ -1596,7 +1651,17 @@
  },
  {
   "voice": "boss.alien",
+  "text": "MY BRAIN... IS ON... THE OUTSIDE...",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
   "text": "MY FLOATING! IT DOES NOT WORK!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "MY HEAD! WHERE IS MY HEAD?! HOW AM I STILL TALKING?!",
   "from": "ALIEN_LINES"
  },
  {
@@ -1626,6 +1691,11 @@
  },
  {
   "voice": "boss.alien",
+  "text": "NOT THE WALL! ANYTHING BUT THE WAAALL!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
   "text": "OW! A ROCK! ON MY HEAD! MY BIG HEAD!",
   "from": "REACTIONS"
  },
@@ -1642,6 +1712,11 @@
  {
   "voice": "boss.alien",
   "text": "PLEASE! I WILL GO HOME! I WILL TELL THEM EARTH IS ONLY ROCKS!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "SO... COLD... EVERYTHING IS... SHRINKING...",
   "from": "ALIEN_LINES"
  },
  {
@@ -1687,6 +1762,11 @@
  {
   "voice": "boss.alien",
   "text": "WAIT! WAIT! LET US TALK LIKE TWO REASONABLE MEATS!",
+  "from": "ALIEN_LINES"
+ },
+ {
+  "voice": "boss.alien",
+  "text": "WAIT. WHY AM I TICKING?",
   "from": "ALIEN_LINES"
  },
  {
@@ -9736,6 +9816,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ALIEN SLUSHIE. NEEDS MORE PROTEIN.",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "ALL THIS ROOM NEEDS NOW IS A LITTLE FIRE.",
   "from": "game/stages/oscar/bunker.ts:307"
  },
@@ -10158,6 +10243,11 @@
   "voice": "meathead",
   "text": "BYE, BITCH!",
   "from": "GENERIC_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "BZZZT! I CAN SEE MY BONES! THEY ARE SO UGLY!",
+  "from": "game/stages/finale/killCam.ts:174"
  },
  {
   "voice": "meathead",
@@ -12116,6 +12206,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HEAD OF STATE, MEET THE PODIUM.",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "HEADBUTT THAT, BILLY!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -12406,6 +12501,16 @@
  },
  {
   "voice": "meathead",
+  "text": "I AM COOKING! WHY DO I SMELL DELICIOUS?!",
+  "from": "game/stages/finale/killCam.ts:174"
+ },
+ {
+  "voice": "meathead",
+  "text": "I AM MELTING! THIS IS MY LEAST FAVORITE FLAVOR!",
+  "from": "game/stages/finale/killCam.ts:174"
+ },
+ {
+  "voice": "meathead",
   "text": "I BENCH FOUR HUNDRED AND I'M LOSING TO A BREEZE?!",
   "from": "game/player/deathAnim.ts:370"
  },
@@ -12563,6 +12668,11 @@
   "voice": "meathead",
   "text": "I DRINK SMELLS NOW? COOL.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I FEEL SO FLOATY... AND ROUND... AND... UH OH.",
+  "from": "game/stages/finale/killCam.ts:174"
  },
  {
   "voice": "meathead",
@@ -13311,6 +13421,11 @@
  },
  {
   "voice": "meathead",
+  "text": "JUST SAY NO, KIDS. HE SAID YES. NOW HE'S CONFETTI.",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "JUST SAYING. THAT GAS LINE ISN'T GOING TO SHOOT ITSELF.",
   "from": "game/stages/oscar/bunker.ts:305"
  },
@@ -13641,6 +13756,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY BRAIN... IS ON... THE OUTSIDE...",
+  "from": "game/stages/finale/killCam.ts:174"
+ },
+ {
+  "voice": "meathead",
   "text": "MY DELTS ARE NUMB, GOD DAMNIT!",
   "from": "HURT"
  },
@@ -13683,6 +13803,11 @@
   "voice": "meathead",
   "text": "MY GAINS! HE'S GOT MORE GAINS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY HEAD! WHERE IS MY HEAD?! HOW AM I STILL TALKING?!",
+  "from": "game/stages/finale/killCam.ts:174"
  },
  {
   "voice": "meathead",
@@ -13903,6 +14028,11 @@
   "voice": "meathead",
   "text": "NEW BOOTS!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEW COAT OF PAINT. WE'RE THE GREEN HOUSE NOW.",
+  "from": "FINALE_LINES"
  },
  {
   "voice": "meathead",
@@ -14171,6 +14301,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOT THE WALL! ANYTHING BUT THE WAAALL!",
+  "from": "game/stages/finale/killCam.ts:174"
+ },
+ {
+  "voice": "meathead",
   "text": "NOT WITH A SNIPER ON MY BACK. HE'S UP THE BELL TOWER.",
   "from": "game/stages/dale/town.ts:314"
  },
@@ -14208,6 +14343,11 @@
   "voice": "meathead",
   "text": "NOW JUST A LITTLE FIRE.",
   "from": "game/stages/oscar/bar.ts:217"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOW THAT'S A PRESS CONFERENCE. EVERYBODY GETS A PIECE.",
+  "from": "FINALE_LINES"
  },
  {
   "voice": "meathead",
@@ -14653,6 +14793,11 @@
   "voice": "meathead",
   "text": "PRE-OWNED? LIKE SOMEBODY ELSE'S? GROSS.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PRESS CONFERENCE IS OVER.",
+  "from": "FINALE_LINES"
  },
  {
   "voice": "meathead",
@@ -15211,6 +15356,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SHOCKING. ABSOLUTELY SHOCKING.",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SHOOTING AROUND THE SHIELD? COWARD!",
   "from": "HAZARD_HURT"
  },
@@ -15496,6 +15646,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SMELLS LIKE A BARBECUE AT AREA 51.",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "SMELLS LIKE BEARD OIL.",
   "from": "game/stages/ernie/jetski.ts:136"
  },
@@ -15553,6 +15708,11 @@
   "voice": "meathead",
   "text": "SNOWBALL'S CHANCE IN HELL",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SO... COLD... EVERYTHING IS... SHRINKING...",
+  "from": "game/stages/finale/killCam.ts:174"
  },
  {
   "voice": "meathead",
@@ -15623,6 +15783,11 @@
   "voice": "meathead",
   "text": "SORRY, BUDDY! IT'S FOR SCIENCE!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOUP'S ON. NOBODY EAT IT.",
+  "from": "FINALE_LINES"
  },
  {
   "voice": "meathead",
@@ -16046,6 +16211,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TELL... THE MOTHER SHIP... I WAS... VERY LARGE...",
+  "from": "game/stages/finale/killCam.ts:174"
+ },
+ {
+  "voice": "meathead",
   "text": "TEN GRAND AND THE SUIT! THE HAZMAT ONE! PUT IT ON! PLEASE PUT IT ON!",
   "from": "game/bosses/oscar.ts:217"
  },
@@ -16437,7 +16607,7 @@
  {
   "voice": "meathead",
   "text": "The field? The union? The bar? Water under the bridge, pal. Burning water. Now let's talk about YOU. What are you driving these days?",
-  "from": "game/core/update.ts:203"
+  "from": "game/core/update.ts:218"
  },
  {
   "voice": "meathead",
@@ -16987,7 +17157,7 @@
  {
   "voice": "meathead",
   "text": "Two jet skis, sonny. Two tour groups. And now my front hall's caved in. I schedule my quakes AROUND the tour groups!",
-  "from": "game/core/update.ts:203"
+  "from": "game/core/update.ts:218"
  },
  {
   "voice": "meathead",
@@ -17108,6 +17278,11 @@
   "voice": "meathead",
   "text": "WAIT WAIT WAIT",
   "from": "game/stages/dale/convoy.ts:401"
+ },
+ {
+  "voice": "meathead",
+  "text": "WAIT. WHY AM I TICKING?",
+  "from": "game/stages/finale/killCam.ts:174"
  },
  {
   "voice": "meathead",
@@ -17592,12 +17767,12 @@
  {
   "voice": "meathead",
   "text": "You blew my whole power room, man. With Gary in it. My... roommate. Eleven years. One bedroom. We were ROOMMATES, man.",
-  "from": "game/core/update.ts:203"
+  "from": "game/core/update.ts:218"
  },
  {
   "voice": "meathead",
   "text": "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!",
-  "from": "game/core/update.ts:203"
+  "from": "game/core/update.ts:218"
  },
  {
   "voice": "meathead",
@@ -17637,7 +17812,7 @@
  {
   "voice": "meathead",
   "text": "You crashed my VIP lounge, bro. Those were investors. Now they're a geothermal feature.",
-  "from": "game/core/update.ts:203"
+  "from": "game/core/update.ts:218"
  },
  {
   "voice": "meathead",
@@ -17667,12 +17842,12 @@
  {
   "voice": "meathead",
   "text": "You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.",
-  "from": "game/core/update.ts:203"
+  "from": "game/core/update.ts:218"
  },
  {
   "voice": "meathead",
   "text": "You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I'M the terrorist?",
-  "from": "game/core/update.ts:203"
+  "from": "game/core/update.ts:218"
  },
  {
   "voice": "meathead",
@@ -17717,7 +17892,7 @@
  {
   "voice": "meathead",
   "text": "You put the neighbors down. You knocked over my water tower and surfed it through the block. That took WEEKS to fill!",
-  "from": "game/core/update.ts:203"
+  "from": "game/core/update.ts:218"
  },
  {
   "voice": "meathead",
@@ -17842,7 +18017,7 @@
  {
   "voice": "meathead",
   "text": "YOU'RE TOAST.",
-  "from": "game/core/update.ts:203"
+  "from": "game/core/update.ts:218"
  },
  {
   "voice": "meathead",

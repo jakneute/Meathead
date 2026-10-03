@@ -10,6 +10,7 @@ import { createBoss } from '../../bosses/registry';
 import { ALIEN_ID } from '../../bosses/alien';
 import { newFinale, getFinale, drawingFinale } from './state';
 import { updateFinale } from './runtime';
+import { killCamZoom, killCamTick } from './killCam';
 import { drawRoomBack, drawRoomMid, drawRoomFront, drawFinaleHud } from './room';
 import { ROOM_L, ROOM_R, ROOM_TOP, FLOOR, VIEW_X, VIEW_Y, VIEW_W, VIEW_H, VIEW_SCALE, DOOR_H, RISERS, RISER_H } from './geometry';
 
@@ -50,7 +51,9 @@ export const finaleLayout: StageLayout = {
     state.cameraMinX = VIEW_X;
   },
   update: (ctx, controls) => updateFinale(ctx, controls),
-  zoom: () => ({ scale: VIEW_SCALE, x: VIEW_X, y: VIEW_Y }),
+  // (the whole room; or, him dead, the kill cam's close-up on it, in slow motion)
+  zoom: state => killCamZoom(state) ?? { scale: VIEW_SCALE, x: VIEW_X, y: VIEW_Y },
+  holdTick: killCamTick,
   // (the room's its own backdrop: nothing behind it but black)
   drawBackdrop: ctx => { ctx.fillStyle = '#05050a'; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); return true; },
   drawBack: (ctx, state) => { drawingFinale(getFinale(state)); drawRoomBack(ctx, state); },

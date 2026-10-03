@@ -226,7 +226,8 @@ const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolea
   cutBossLines();
   cutVoice('meathead');
   state.playerLastVulgarity = ''; state.playerVulgarityTimer = 0; state.killVoice = undefined;
-  const lastWords = stageId ? (state.player.gut?.stage === 2 && BOSS_SHAT_LINES[stageId]) || BOSS_DIALOGUE.THRESHOLDS[stageId] : undefined;
+  // (one who dies his own way has his own last words: see def.ownDeath)
+  const lastWords = stageId && !def?.ownDeath ? (state.player.gut?.stage === 2 && BOSS_SHAT_LINES[stageId]) || BOSS_DIALOGUE.THRESHOLDS[stageId] : undefined;
   if (stageId && lastWords) speakAsBoss(stageId, lastWords[0], helpers);
 
   state.bossVolcanoes = [];
@@ -262,10 +263,14 @@ const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolea
     // Nudged out of the corners so the whole mess stays in view
     const corpseX = Math.max(ARENA_LEFT + CORPSE_WALL_GAP, Math.min(getArenaRight(stageId) - CORPSE_WALL_GAP, pos.x));
     state.bossCorpse = { stageId: stageId || '', weapon, x: corpseX, y: floor, facing: playerFacing < 0 ? -1 : 1, frame0: state.frame };
-    const n0 = state.particles.length;
-    helpers.spawnDeathShower(state.bossExplosionPos, playerFacing, 35, true, 120);
-    // (one who isn't full of blood: what he is full of)
-    if (def?.gore) for (let i = n0; i < state.particles.length; i++) state.particles[i].color = def.gore[i % def.gore.length];
+    // (one who dies his own way: he takes it from here, the gore and all)
+    if (def?.ownDeath) def.ownDeath.start(state, state.bossCorpse, boss, weapon, helpers);
+    else {
+      const n0 = state.particles.length;
+      helpers.spawnDeathShower(state.bossExplosionPos, playerFacing, 35, true, 120);
+      // (one who isn't full of blood: what he is full of)
+      if (def?.gore) for (let i = n0; i < state.particles.length; i++) state.particles[i].color = def.gore[i % def.gore.length];
+    }
   } else {
     helpers.spawnDeathShower(pos, playerFacing, 6, true, 45);
     // Not his weakness: no eruption, he just goes over, dead (away from what hit him, unless there's a wall that way)
@@ -285,6 +290,7 @@ const triggerBossDeath = (boss: Enemy, playerFacing: number, wasWeakness: boolea
   state.arenaLocked = false;
 
   // (only the needles' own kill is an overdose: a charge into him with the needles in hand, high or not, is just a charge)
+  if (def?.ownDeath) return;
   if (wasWeakness && weapon === 'NEEDLES') helpers.spawnDamageNumber(boss.pos, "OVERDOSE!", true, "#FF00FF");
   helpers.speakVulgarity(killLine ?? def?.killLine ?? KILL_LINE_FOR[weapon] ?? 'gun_kill');
 };

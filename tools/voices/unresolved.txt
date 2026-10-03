@@ -1,9 +1,9 @@
 components/Cutscene.tsx:91 voice: p.voice
 components/Cutscene.tsx:99 voice: p.voice
 game/bosses/oscar.ts:187 name: undefined
-game/bosses/shared.ts:166 voice: getBossVoice(bossId)
-game/bosses/alien.ts:83 voice: text
-game/bosses/alien.ts:227 voice: pickRandom(ALIEN_LINES.LASER)
+game/bosses/shared.ts:177 voice: getBossVoice(bossId)
+game/bosses/alien.ts:84 voice: text
+game/bosses/alien.ts:228 voice: pickRandom(ALIEN_LINES.LASER)
 game/stages/artie/ski.ts:495 name: undefined
 game/stages/artie/ski.ts:500 name: undefined
 game/stages/artie/ski.ts:500 call: deathByCause(state)
@@ -61,18 +61,21 @@ game/stages/gym/runtime.ts:351 call: deathByCause(ctx.state)
 game/stages/gym/script.ts:77 voice: VOICES[line.who]
 game/stages/finale/runtime.ts:344 name: ALIEN_ID
 game/stages/finale/runtime.ts:70 call: getFinale(state)
+game/stages/finale/killCam.ts:186 voice: ANNOUNCER_VOICE
+game/stages/finale/killCam.ts:66 who: alien
+game/stages/finale/killCam.ts:136 who: announcer
 game/core/deathCause.ts:50 name: undefined
 game/core/deathCause.ts:52 name: undefined
 game/core/deathCause.ts:53 name: undefined
 game/core/deathCause.ts:55 name: PLUCK_DEATH_LINES
 game/core/effects.ts:239 call: getHurtLines(hurtSource)
 game/core/effects.ts:239 call: killLine(category, victim)
-game/core/update.ts:199 name: undefined
-game/core/update.ts:584 name: undefined
-game/core/update.ts:584 call: pluckDeathMessage(state)
-game/core/update.ts:584 call: layout?.deathMessage?.(ctx)
-game/core/update.ts:584 call: deathByCause(state)
-game/core/update.ts:584 call: deathFallback(state, ctx.stageId, fell)
+game/core/update.ts:214 name: undefined
+game/core/update.ts:599 name: undefined
+game/core/update.ts:599 call: pluckDeathMessage(state)
+game/core/update.ts:599 call: layout?.deathMessage?.(ctx)
+game/core/update.ts:599 call: deathByCause(state)
+game/core/update.ts:599 call: deathFallback(state, ctx.stageId, fell)
 game/player/player.ts:80 call: message()
 App.tsx:233 voice: getBossVoice(selectedStage)
 App.tsx:435 name: undefined

@@ -30,6 +30,7 @@ import { oiledIntoFire, detonateNuke, burnEnemy } from '../combat/weapons';
 import { spillOil } from './oscar';
 import { alienMuzzle as figureMuzzle, ALIEN } from '../scenes/alienLook';
 import { hitBoss } from './registry';
+import { startKillCam, killCamPlaying } from '../stages/finale/killCam';
 
 export const ALIEN_ID = 'Imposter Invasion';
 /** His size: big and bulky (his figure, scenes/alienLook.ts, drawn at ART_SCALE: every pixel of it two on the screen). */
@@ -582,6 +583,8 @@ const onFlamed = (ctx: FrameContext, boss: Enemy, scale = 1) => {
     ignite(ctx, boss, rt);
     // (and he stays greased and burning a good while after: the nuke itself barely scratches him)
     rt.burnT = GREASE_FIRE_FRAMES;
+    // (if the blast's what finishes him, it's the fire that did it)
+    rt.greaseAt = state.frame;
     detonateNuke(ctx, { x: cx(boss), y: boss.pos.y + boss.height / 2 });
     callout(ctx, boss, 'GREASE FIRE!', '#FDE047');
   }
@@ -660,7 +663,8 @@ const onBodyHit = (ctx: FrameContext, boss: Enemy, body: Enemy, force: number) =
   if (contact) sayOnce(ctx, rt, 'contact', ALIEN_LINES.CONTACT);
   // (the body bounces off him)
   body.vel.x *= -0.35; body.vel.y = Math.min(body.vel.y, -4);
-  if (boss.health <= 0) ctx.bossHelpers.killBoss(boss, Math.sign(body.vel.x) || 1, true, 'GUN', 'alien_kill');
+  // (a contact high that finishes him: the needles' kill, an overdose of his own)
+  if (boss.health <= 0) ctx.bossHelpers.killBoss(boss, Math.sign(body.vel.x) || 1, true, contact ? 'NEEDLES' : 'GUN', 'alien_kill');
 };
 
 const onNuke = (ctx: FrameContext, boss: Enemy) => {
@@ -695,6 +699,8 @@ export const alien: BossDef = {
   damageFor,
   onWeaponHit,
   meleeScale: 0.08,
+  // (and a charge, a slide, an uppercut or a dive kick can grind him down, but never finish him)
+  meleeCantKill: true,
   onMeleeHit: (ctx, boss) => { void boss; const rt = getFinale(ctx.state); if (rt) nudge(ctx, rt, 'melee'); },
   onBodyHit,
   onTaser,
@@ -706,6 +712,9 @@ export const alien: BossDef = {
   onNuke,
   onDeath,
   alwaysErupts: true,
+  // (however he goes, he goes his own way, in close-up: see stages/finale/killCam.ts, bosses/alienDeath.ts)
+  // (called through: the kill cam's module and this one load each other)
+  ownDeath: { start: (...a) => startKillCam(...a), playing: state => killCamPlaying(state) },
   // (slime, mostly; the odd bit of the President still in there)
   gore: [ALIEN.slime, ALIEN.slimeDark, ALIEN.slimeLight, ALIEN.hide[4], ALIEN.slime, ALIEN.slimeDark, '#8B0000'],
   killLine: 'alien_kill',

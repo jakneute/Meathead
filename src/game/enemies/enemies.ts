@@ -883,6 +883,8 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
     if (e.kind === 'lowrider' && (player.isUppercutting || player.isDivekicking)) damage = e.health;
     // (a boss his moves barely dent)
     if (e.type === 'boss' && bossDef?.meleeScale !== undefined) damage *= bossDef.meleeScale;
+    // (and one they can't finish: it leaves him on his last point, for something else to do it)
+    if (e.type === 'boss' && bossDef?.meleeCantKill) damage = Math.max(0, Math.min(damage, e.health - 1));
 
     if (hasShield) {
       // (a boss: one hit's worth, and it's spent)

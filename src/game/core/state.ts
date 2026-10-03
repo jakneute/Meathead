@@ -19,6 +19,9 @@ export interface BossCorpse {
   y: number;       // the floor he's lying on
   facing: 1 | -1;  // which way he fell
   frame0: number;  // when he died
+  /** A boss who dies his own way (the finale's alien): how (his renderer's business), where he was when it happened
+   * (his middle, his feet), the spot on the floor he comes down to first, and which way he was facing. */
+  own?: { how: string; from: { x: number; y: number }; spot: number; face: 1 | -1 };
 }
 
 /** Everything the simulation mutates each frame. Lives in a ref, outside React. */

@@ -1764,6 +1764,35 @@ export const ALIEN_LINES = {
     { plea: "PLEASE! I WILL GO HOME! I WILL TELL THEM EARTH IS ONLY ROCKS!", reply: "YOU'RE NOT GOING HOME. YOU'RE GOING IN MY PROTEIN SHAKE.", shat: "YOU'RE NOT GOING HOME. SMELL THAT? THAT'S YOUR FUTURE." },
     { plea: "AT LEAST TELL ME YOUR SECRET! HOW ARE YOU SO STRONG?!", reply: "CREATINE, SPITE, AND NO CARDIO. NOW HOLD STILL.", shat: "CREATINE, SPITE, AND A WHOLE LOT OF FIBER. HOLD STILL." },
   ],
+  /** His last words, by how he's going (game/bosses/alienDeath.ts): said as it starts, the once. */
+  DEATHS: {
+    ice: "SO... COLD... EVERYTHING IS... SHRINKING...",
+    fire: "I AM COOKING! WHY DO I SMELL DELICIOUS?!",
+    rock: "MY HEAD! WHERE IS MY HEAD?! HOW AM I STILL TALKING?!",
+    wave: "NOT THE WALL! ANYTHING BUT THE WAAALL!",
+    od: "I FEEL SO FLOATY... AND ROUND... AND... UH OH.",
+    zap: "BZZZT! I CAN SEE MY BONES! THEY ARE SO UGLY!",
+    melt: "I AM MELTING! THIS IS MY LEAST FAVORITE FLAVOR!",
+    nuke: "WAIT. WHY AM I TICKING?",
+    skull: "MY BRAIN... IS ON... THE OUTSIDE...",
+    plain: "TELL... THE MOTHER SHIP... I WAS... VERY LARGE...",
+  } as Record<string, string>,
+};
+
+/**
+ * The announcer, calling the alien's death the moment it lands (the big banner across the close-up while it's said),
+ * by how he went (game/bosses/alienDeath.ts). The plain death gets none.
+ */
+export const ALIEN_DEATH_CALLOUTS: Record<string, { text: string; color: string }> = {
+  ice: { text: "ALIEN ON THE ROCKS!", color: '#B3F0FF' },
+  fire: { text: "EXTRA CRISPY!", color: '#F97316' },
+  rock: { text: "HEADS WILL ROLL!", color: '#E7E5E4' },
+  wave: { text: "WASHED UP!", color: '#38BDF8' },
+  od: { text: "POP GOES THE ALIEN!", color: '#E879F9' },
+  zap: { text: "DEEP FRIED!", color: '#22D3EE' },
+  melt: { text: "ALIEN SOUP!", color: '#A3E635' },
+  nuke: { text: "BLOWN TO BITS!", color: '#FDE047' },
+  skull: { text: "EXECUTED!", color: '#F87171' },
 };
 
 /**
@@ -1833,6 +1862,19 @@ export const FINALE_LINES = {
     { text: "GOOD THING I SOUPED UP MY TOYS IN THE GARAGE. EVERYTHING GOES TO ELEVEN NOW.", shat: "GOOD THING I SOUPED UP MY TOYS IN THE GARAGE. SHOULD'VE SOUPED UP MY PANTS." },
     { text: "FLAMETHROWER GOES WALL TO WALL. ROCKS? I PITCH 'EM NOW.", shat: "FLAMETHROWER GOES WALL TO WALL. ROCKS? I PITCH 'EM NOW. MY SHORTS? DON'T ASK." },
   ],
+  /** Over the alien's death, after the announcer's had his say (by how he went: game/bosses/alienDeath.ts). */
+  KILLS: {
+    ice: "ALIEN SLUSHIE. NEEDS MORE PROTEIN.",
+    fire: "SMELLS LIKE A BARBECUE AT AREA 51.",
+    rock: "HEAD OF STATE, MEET THE PODIUM.",
+    wave: "NEW COAT OF PAINT. WE'RE THE GREEN HOUSE NOW.",
+    od: "JUST SAY NO, KIDS. HE SAID YES. NOW HE'S CONFETTI.",
+    zap: "SHOCKING. ABSOLUTELY SHOCKING.",
+    melt: "SOUP'S ON. NOBODY EAT IT.",
+    nuke: "NOW THAT'S A PRESS CONFERENCE. EVERYBODY GETS A PIECE.",
+    skull: "PRESS CONFERENCE IS OVER.",
+    plain: "GO BACK TO SPACE, FUCKFACE!",
+  } as Record<string, string>,
   /** The first boulder he pitches: the suits can wait, every pound of it's for the alien. */
   FIRST_PITCH: { text: "SCREW THE SUITS. EVERY POUND OF THIS IS FOR YOU, GREEN BOY.", shat: "SCREW THE SUITS. THIS ONE'S ALL FOR YOU, GREEN BOY. SO'S THE SMELL." },
 };

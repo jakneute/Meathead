@@ -105,6 +105,35 @@ export interface FinaleRuntime {
   hpShown?: number;
   /** A big callout over the room (a weapon run dry, the room wrecked): what, and when. */
   banner?: { text: string; color: string; at: number };
+  /** The frame a grease fire went up on him (a blast that kills him then is the fire's kill, not the rocket's). */
+  greaseAt?: number;
+  /** He's dead: the kill cam on his death (stages/finale/killCam.ts). */
+  cam?: KillCam;
+}
+
+/** The close-up on the alien's death, in slow motion: it runs on real ticks, the game's frames going slower under it. */
+export interface KillCam {
+  /** Real ticks since he died. */
+  t: number;
+  /** Game time owed: in slow motion a game frame only runs once a whole one's built up. */
+  acc: number;
+  /** What the camera's on (world) and how close (the room's 2/3 normally), easing toward what the death wants. */
+  x: number; y: number; z: number;
+  /** The close-up's region of the room, painted sharp at its zoom once (see room.ts). */
+  room: { x: number; y: number; w: number; h: number; k: number };
+  /** How many of the death's sounds have gone. */
+  cues: number;
+  /** When (real ticks) the death landed: the slow motion dips again. */
+  payT?: number;
+  /** Who's still to say what, in order (nobody over anybody), and nobody starts before `speakUntil` (real ticks). */
+  lines: { who: 'alien' | 'meathead' | 'announcer'; text: string }[];
+  speakUntil: number;
+  /** His last words, up while they're said; Meathead's, if they aren't recorded, till when. */
+  alienText: string | null; alienUntil?: number; meatheadUntil?: number;
+  /** The announcer's call: up (the banner) since when, till it's said (or, not recorded, its time). */
+  call?: { text: string; color: string; from: number; until: number };
+  /** Everything's done and said (when), and the linger after it's over: the cut. */
+  doneT?: number; over: boolean;
 }
 
 export const getFinale = (state: GameState): FinaleRuntime | null => {

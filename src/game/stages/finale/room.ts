@@ -29,6 +29,7 @@ import {
   DOOR_H, WINDOW_TOP, WINDOW_BOTTOM, RISERS, RISER_H,
 } from './geometry';
 import { drawBeam } from '../../render/bosses/alien';
+import { drawKillCamHud } from './killCam';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -473,6 +474,23 @@ const roomCanvas = (rt: FinaleRuntime | null) => {
   return c;
 };
 
+/** The kill cam's bit of the room, painted at its zoom (once: he's dead, nothing in the room changes any more). */
+let close: { key: string; c: HTMLCanvasElement } | null = null;
+const closeCanvas = (rt: FinaleRuntime) => {
+  if (typeof document === 'undefined' || !rt.cam) return null;
+  const r = rt.cam.room;
+  const key = `${wreckKey(rt)}|${r.x},${r.y},${r.w},${r.h},${r.k}`;
+  if (close?.key === key) return close.c;
+  const c = close?.c ?? document.createElement('canvas');
+  c.width = Math.round(r.w * r.k); c.height = Math.round(r.h * r.k);
+  const g = c.getContext('2d')!;
+  g.setTransform(r.k, 0, 0, r.k, -r.x * r.k, -r.y * r.k);
+  paintRoom(g);
+  for (const w of WRECK_ORDER) if (rt.wrecked[w] !== undefined) WRECKS[w](g);
+  close = { key, c };
+  return c;
+};
+
 /** Paints the room ahead of time (and each of the wrecks on their own), so the first frame of each isn't a hitch. */
 export const warmRoom = () => { roomCanvas(null); };
 
@@ -486,6 +504,9 @@ export const drawRoomBack = (ctx: Ctx, state: GameState) => {
   const rt = getFinale(state);
   const c = roomCanvas(rt);
   if (c) ctx.drawImage(c, VIEW_X, VIEW_Y, VIEW_W, VIEW_H);
+  // (the kill cam's close-up: its bit of the room painted again, sharp at that zoom)
+  const cc = rt?.cam ? closeCanvas(rt) : null;
+  if (cc && rt?.cam) ctx.drawImage(cc, rt.cam.room.x, rt.cam.room.y, rt.cam.room.w, rt.cam.room.h);
   const f = state.frame;
   // The cameras' tally lights (on air)
   for (const [i, r] of RISERS.entries()) if (f % 60 < 40) { const x = r.x + (i === 0 ? 40 : r.w - 40); steppedGlow(ctx, x - 6 * (i === 0 ? 1 : -1), r.y - 78, 6, '#ef4444', 0.6, 0, 3); R(ctx, x - 6 * (i === 0 ? 1 : -1) - 1, r.y - 79, 3, 3, '#fca5a5'); }
@@ -586,6 +607,8 @@ const drawWalls = (ctx: Ctx, rt: FinaleRuntime, f: number) => {
 
 export const drawFinaleHud = (ctx: Ctx, state: GameState) => {
   const rt = getFinale(state);
+  // (him dead: the kill cam's, and nothing else)
+  if (rt?.cam) { drawKillCamHud(ctx, state); return; }
   if (!rt || state.player.inCutscene) return;
   const boss = state.enemies.find(e => e.type === 'boss');
   const f = state.frame;

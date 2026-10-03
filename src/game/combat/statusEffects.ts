@@ -269,7 +269,8 @@ export const updateEnemyStatusEffects = (ctx: FrameContext) => {
         fx.spawnDamageNumber(e.pos, dmg);
         e.fireTimer = 0;
         if (e.health <= 0) {
-          if (isBoss) killBoss(ctx, e, 0, false);
+          // (the fire did it, whatever's in his hands now)
+          if (isBoss) killBoss(ctx, e, 0, false, e.ignitedByTaser ? 'TASER' : 'FLAMETHROWER');
           // A fire the taser started is still an electrocution
           else if (e.ignitedByTaser) fx.killWithAnimation(e, 'fried', 'taser_kill', 'fried');
           else fx.killWithAnimation(e, 'charred', 'flamethrower_kill', 'charred');
@@ -290,7 +291,7 @@ export const updateEnemyStatusEffects = (ctx: FrameContext) => {
         fx.spawnDamageNumber(e.pos, dotDmg);
         e.dotTimer = 0;
         if (e.health <= 0) {
-          if (e.type === 'boss') killBoss(ctx, e, 0, false);
+          if (e.type === 'boss') killBoss(ctx, e, 0, false, 'NEEDLES');
           else {
             fx.blowAwayEnemy(e, { x: (Math.random() - 0.5) * 10, y: -15 }, 'dart_kill');
             e.overdosed = true;
