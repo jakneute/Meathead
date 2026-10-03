@@ -8,12 +8,15 @@ import { GameState } from '../core/state';
 import { muzzlePoint } from '../combat/muzzle';
 import { TASER_FIRE_THRESHOLD, COLORS } from '../../constants';
 import { drawFlameLicks } from './fx/fireball';
+import { KIND_TOP_REACH } from './enemies/index';
 
 type Ctx = CanvasRenderingContext2D;
 
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 const seedOf = (id: string) => { let h = 7; for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 9973; return h; };
 const r = Math.round;
+/** How far its drawing stands up over its box (a themed one's head and hat; nothing, for a plain block). */
+const topReach = (e: Enemy) => (e.kind && KIND_TOP_REACH[e.kind]) || 0;
 
 /** The tint the enemy's own sprite takes while it's frozen or tased (drawn over just its pixels), or null. */
 export const statusTint = (e: Enemy, state: GameState): { color: string; alpha: number } | null => {
@@ -42,7 +45,7 @@ export const tasedJitter = (state: GameState) => {
 export const drawOnFire = (ctx: Ctx, e: Enemy, frame: number) => {
   if (!e.isOnFire || e.health <= 0 || e.type === 'boss') return;
   const s = seedOf(e.id);
-  drawFlameLicks(ctx, e.pos.x + e.width / 2, e.pos.y + e.height * 0.62, Math.max(16, e.width), Math.max(14, e.height * 0.7), frame + s, { seed: s });
+  drawFlameLicks(ctx, e.pos.x + e.width / 2, e.pos.y + e.height * 0.62, Math.max(16, e.width), Math.max(14, e.height * 0.7) + topReach(e), frame + s, { seed: s });
 };
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -59,7 +62,7 @@ export const drawFrozenShell = (ctx: Ctx, e: Enemy, frame: number) => {
   if (t <= 0 || e.type === 'boss') return;
   const s = seedOf(e.id);
   const x0 = r(e.pos.x - 5), x1 = r(e.pos.x + e.width + 5);
-  const y0 = r(e.pos.y - 4), y1 = r(e.pos.y + e.height + 2);
+  const y0 = r(e.pos.y - 4 - topReach(e)), y1 = r(e.pos.y + e.height + 2); // (up over its head, not just its box)
   const w = x1 - x0, h = y1 - y0;
   ctx.save();
   // (in its last few frames it shudders as it goes)

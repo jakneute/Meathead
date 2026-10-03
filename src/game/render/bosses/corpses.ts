@@ -188,7 +188,7 @@ export const drawBossCorpse = (ctx: CanvasRenderingContext2D, c: BossCorpse, fra
       const twitch = (frame % 50) < 4 ? Math.sin(frame * 3) * 2 : 0;
       lying(ctx, c, x, floor, frame, `hue-rotate(${(frame * 6) % 360}deg) saturate(1.6)`, twitch);
       syringes(ctx, x, floor);
-      foam(ctx, x + c.facing * 38, floor - 30, frame);
+      foam(ctx, x + c.facing * 13, floor - 36, frame); // (out of his mouth, his face up, lying on his side)
       bloodStreams(ctx, x + c.facing * 30, floor - 40, frame);
       bloodPool(ctx, x + c.facing * 30, floor, 35);
       flies(ctx, x, floor - 45, frame, age, 4);

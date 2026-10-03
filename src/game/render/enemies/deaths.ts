@@ -7,7 +7,7 @@ import { pixelBlob } from '../pixelArt';
 import type { Enemy } from '../../../types';
 import { GameState } from '../../core/state';
 import { EnemyDeath, DEATH_FRAMES } from '../../enemies/deaths';
-import { drawKindCorpse, KIND_HEAD, isHumanoidKind, skeletonOf } from './index';
+import { drawKindCorpse, kindHead, isHumanoidKind, isLyingKind, KIND_HEAD, skeletonOf } from './index';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -61,14 +61,17 @@ const drawBody = (ctx: Ctx, d: EnemyDeath, state: GameState, o: { filter?: strin
   ctx.translate(fx, fy); ctx.scale(o.sx ?? 1, o.sy ?? 1); ctx.translate(-fx, -fy);
   if (o.filter) ctx.filter = o.filter;
   if (d.dummy) drawDummy(ctx, { id: `dummy-${d.dummy}`, pos: { x, y }, width: w, height: h, vel: { x: d.sprite?.facing ?? 1, y: 0 } } as Enemy, 0);
-  else if (d.sprite) drawKindCorpse(ctx, d.sprite.kind, x, y, w, h, d.sprite.facing, d.sprite.phase, state);
+  else if (d.sprite) drawKindCorpse(ctx, d.sprite.kind, x, y, w, h, d.sprite.facing, d.sprite.phase, state, d.sprite.variant);
   else { ctx.fillStyle = d.color; ctx.fillRect(x, y, w, h); }
   ctx.restore();
 };
 
 /** Where its head is (from the middle of its feet): a themed enemy's own; the practice dummies' as they're drawn (the
  * boxer's up top of his tall frame, the balloon man's just over his little box: he's shorter than anybody). */
-const headOf = (d: EnemyDeath) => d.dummy === 'air' ? { x: 0, y: -(d.h + 3), r: 7 } : d.dummy === 'ground' ? { x: 3, y: -66, r: 9 } : KIND_HEAD[d.sprite!.kind];
+/** Lying down already when it died (the sunbather): it doesn't keel over, and its head's off the end of it. */
+const lying = (d: EnemyDeath) => !d.dummy && !!d.sprite && isLyingKind(d.sprite.kind, d.sprite.variant);
+
+const headOf = (d: EnemyDeath) => d.dummy === 'air' ? { x: 0, y: -(d.h + 3), r: 7 } : d.dummy === 'ground' ? { x: 3, y: -66, r: 9 } : kindHead(d.sprite!.kind, d.sprite!.variant);
 
 /** Where its eyes are (world coords): on a themed enemy's head, else near the top of the block. */
 const eyesAt = (d: EnemyDeath, dy = 0) => {
@@ -299,7 +302,8 @@ const drawFried = (ctx: Ctx, d: EnemyDeath, frame: number, state: GameState) => 
     const humanoid = isHumanoidKind(d.sprite.kind);
     const fx = x + w / 2, fy = y + h;
     ctx.save();
-    if (humanoid) {
+    if (lying(d)) { /* (flat out on her towel already) */ }
+    else if (humanoid) {
       // Toppled backwards about the heels
       ctx.translate(fx, fy - 2); ctx.rotate(-d.sprite.facing * (Math.PI / 2) * k); ctx.translate(-fx, -(fy - 2));
     } else {
@@ -332,10 +336,12 @@ const drawFried = (ctx: Ctx, d: EnemyDeath, frame: number, state: GameState) => 
  */
 const drawKindSkeleton = (ctx: Ctx, d: EnemyDeath, frame: number) => {
   const s = d.sprite!;
-  const head = headOf(d);
+  // (lying down: a standing one's bones, laid down along her the way she's lying, head to the head end)
+  const head = lying(d) ? KIND_HEAD[s.kind] : headOf(d);
   ctx.save();
   ctx.translate(d.x + d.w / 2, d.y + d.h);
   ctx.scale(s.facing, 1);
+  if (lying(d)) { ctx.translate(30, -8); ctx.rotate(-Math.PI / 2); }
   const w = d.w, h = d.h;
   const bones = skeletonOf(s.kind);
   const joints: number[] = [];
@@ -563,6 +569,7 @@ const drawHeadshot = (ctx: Ctx, d: EnemyDeath, state: GameState) => {
   const k = clamp01((t - 46) / 10);
   const facing = d.sprite?.facing ?? 1;
   const fx = x + w / 2, fy = y + h;
+  if (lying(d)) { drawHeadshotLying(ctx, d, state); return; }
   ctx.save();
   if (!d.sprite || isHumanoidKind(d.sprite.kind)) { ctx.translate(fx, fy - 2); ctx.rotate(-facing * (Math.PI / 2) * k); ctx.translate(-fx, -(fy - 2)); }
   else { ctx.translate(fx, fy); ctx.scale(1, 1 - 0.45 * k); ctx.translate(-fx, -fy); }
@@ -580,5 +587,37 @@ const drawHeadshot = (ctx: Ctx, d: EnemyDeath, state: GameState) => {
   else { ctx.fillStyle = d.color; ctx.fillRect(cx - hd.r, cy - hd.r, hd.r * 2, hd.r * 1.7); }
   // (and what's showing where it came off)
   ctx.fillStyle = '#991B1B'; ctx.fillRect(cx - hd.r * 0.6, cy + hd.r * 0.45, hd.r * 1.2, hd.r * 0.25);
+  ctx.restore();
+};
+
+/** The headshot on one lying down (the sunbather): the head comes off the end of her, the neck's cut across, and the rest
+ * of her stays where it was on the towel. */
+const drawHeadshotLying = (ctx: Ctx, d: EnemyDeath, state: GameState) => {
+  const hd = d.head!;
+  const { x, y, w, h } = d;
+  const facing = d.sprite?.facing ?? 1;
+  const cx = x + hd.ox, cy = y + hd.oy;
+  const neckX = cx + facing * hd.r * 0.95;
+  // The body, from the neck along: the cut's straight across her (what's past it, on the head's side, isn't drawn)
+  ctx.save();
+  ctx.beginPath();
+  if (facing === 1) ctx.rect(neckX, y - h, w * 3, h * 2 + 4); else ctx.rect(neckX - w * 3, y - h, w * 3, h * 2 + 4);
+  ctx.rect(x - w * 2, y + h - 3.4, w * 5, 8); // (and the whole of the towel, under where her head was)
+  ctx.clip();
+  drawBody(ctx, d, state);
+  ctx.restore();
+  // The stump, end on
+  ctx.fillStyle = '#7F1D1D'; ctx.beginPath(); ctx.ellipse(neckX, cy + 1, 2.4, Math.max(3, hd.r * 0.6), 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#DC2626'; ctx.beginPath(); ctx.ellipse(neckX + facing * 0.4, cy + 1, 1.4, Math.max(2, hd.r * 0.4), 0, 0, Math.PI * 2); ctx.fill();
+  // The head, wherever it's got to: cut out of her drawing at the neck and carried off
+  ctx.save();
+  ctx.translate(hd.x, hd.y); ctx.rotate(hd.rot); ctx.translate(-cx, -cy);
+  ctx.beginPath();
+  if (facing === 1) ctx.rect(cx - hd.r * 1.8, cy - hd.r * 1.6, neckX - (cx - hd.r * 1.8), hd.r * 2.6);
+  else ctx.rect(neckX, cy - hd.r * 1.6, cx + hd.r * 1.8 - neckX, hd.r * 2.6);
+  ctx.clip();
+  drawBody(ctx, d, state);
+  // (and what's showing where it came off)
+  ctx.fillStyle = '#991B1B'; ctx.fillRect(neckX - (facing === 1 ? 1.4 : 0), cy - hd.r * 0.5, 1.4, hd.r * 1.1);
   ctx.restore();
 };

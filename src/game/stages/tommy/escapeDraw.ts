@@ -384,7 +384,7 @@ const drawSurfScene = (ctx: Ctx, state: GameState, t: number) => {
         skin, hair: { style: (['short', 'long', 'curly', 'bald', 'pony'] as const)[i % 5], color: ['#111827', '#3F2A1D', '#78350F', '#A16207'][i % 4] },
         top: { style: (['tee', 'shirt', 'hoodie', 'tank'] as const)[i % 4], color: shirt }, legs: { color: '#1F2937' }, shoes: '#F8FAFC',
       }, { arms: 'panic', walk: f * 0.6 + i, stride: 1, mouth: 'open', f }, 1, 1);
-      if (e > 0.3) skeleton(ctx, 0, 0, 0.7, (e - 0.3) * 2);
+      if (e > 0.3) skeleton(ctx, 0, 0, 0.88, (e - 0.3) * 2); // (their size: the skull where their head is)
     }
     ctx.restore();
     // (and they're screaming)

@@ -13,7 +13,7 @@ import { COLORS, GRAVITY } from '../../constants';
 import type { GameState } from '../core/state';
 import { floorTopAt } from '../core/terrain';
 import { isMidBoss } from '../combat/midBoss';
-import { KIND_HEAD } from '../render/enemies/index';
+import { kindHead } from '../render/enemies/index';
 
 export type EnemyDeathKind = 'charred' | 'fried' | 'melted' | 'greased' | 'pancaked' | 'headshot' | 'ceilinged';
 
@@ -31,7 +31,7 @@ export interface EnemyDeath {
   floatTo?: number;
   isShield: boolean;
   /** A themed enemy (Artie's wildlife and goons) dies as itself, not as a coloured block. */
-  sprite?: { kind: EnemyKind; facing: 1 | -1; phase: number };
+  sprite?: { kind: EnemyKind; facing: 1 | -1; phase: number; variant?: number };
   /** One of the range's practice dummies (the boxer, the balloon man): drawn as himself (a person's bones, for the x-ray). */
   dummy?: 'ground' | 'air';
   /** (headshot) The head, off: where it sat on the body (its middle, from the body's top left) and how big; where it's
@@ -93,7 +93,7 @@ export const startEnemyDeath = (state: GameState, e: Enemy, kind: EnemyDeathKind
     floorY: floorTopAt(state.blocks, e.pos.x + e.width / 2, e.pos.y + e.height) ?? FLOOR_Y,
     landed: false,
     isShield: e.enemyType === 'shield',
-    sprite: e.kind ? { kind: e.kind, facing: deathFacing(state, e), phase: Math.abs(Math.round(e.homeX || 0)) % 997 }
+    sprite: e.kind ? { kind: e.kind, facing: deathFacing(state, e), phase: Math.abs(Math.round(e.homeX || 0)) % 997, variant: e.variant }
       // (a practice dummy's a person: he goes the way a person goes, drawn as himself)
       : e.id.startsWith('dummy-') ? { kind: 'tourist', facing: e.vel.x < 0 ? -1 : 1, phase: 0 } : undefined,
     dummy: e.id.startsWith('dummy-air') ? 'air' : e.id.startsWith('dummy-ground') ? 'ground' : undefined,
@@ -101,7 +101,7 @@ export const startEnemyDeath = (state: GameState, e: Enemy, kind: EnemyDeathKind
   const d = state.enemyDeaths[state.enemyDeaths.length - 1];
   if (kind === 'headshot') {
     // (the head goes the way the round was going: vel)
-    const hd = d.sprite ? KIND_HEAD[d.sprite.kind] : null;
+    const hd = d.sprite ? kindHead(d.sprite.kind, d.sprite.variant) : null;
     const ox = hd ? d.w / 2 + hd.x * d.sprite!.facing : d.w / 2;
     const oy = hd ? d.h + hd.y : Math.min(d.h * 0.2, 12);
     d.head = { ox, oy, r: hd ? hd.r : Math.min(d.w, d.h) * 0.22, x: d.x + ox, y: d.y + oy, vx: vel?.x ?? 0, vy: vel?.y ?? -6, rot: 0, landed: false };

@@ -312,9 +312,10 @@ export const drawDoormanCorpse = (ctx: Ctx, c: DoormanCorpse, f: number) => {
       pixelBlob(ctx, 0, -2, 80, 7, 'rgba(56, 189, 248, 0.5)');
       ctx.fillStyle = 'rgba(224, 242, 254, 0.7)'; ctx.fillRect(-60, -6, 20, 2); ctx.fillRect(30, -5, 26, 2);
       body('saturate(0.6) brightness(0.9)');
-      ink(ctx, () => ctx.arc(-10, -30, 6, 0, Math.PI * 2), '#DC2626');
-      ctx.fillStyle = '#FCA5A5'; ctx.fillRect(-13, -34, 3, 2);
-      ctx.fillStyle = INK; ctx.fillRect(-18, -32, 3, 1); ctx.fillRect(-5, -32, 3, 1); ctx.fillRect(-12, -36, 1, 2); ctx.fillRect(-8, -36, 1, 2);
+      // (the crab sat on his legs)
+      ink(ctx, () => ctx.arc(-10, -25, 6, 0, Math.PI * 2), '#DC2626');
+      ctx.fillStyle = '#FCA5A5'; ctx.fillRect(-13, -29, 3, 2);
+      ctx.fillStyle = INK; ctx.fillRect(-18, -27, 3, 1); ctx.fillRect(-5, -27, 3, 1); ctx.fillRect(-12, -31, 1, 2); ctx.fillRect(-8, -31, 1, 2);
       break;
     case 'TASER':
       // Fried: twitching, the odd flash of his skeleton
@@ -359,7 +360,8 @@ export const drawDoormanCorpse = (ctx: Ctx, c: DoormanCorpse, f: number) => {
       // Face down in a pool of it, riddled
       blood(70);
       body();
-      for (let i = 0; i < 6; i++) { ctx.fillStyle = INK; ctx.fillRect(-61 + i * 14, -23 - (i % 2) * 8, 6, 6); ctx.fillStyle = '#7F1D1D'; ctx.fillRect(-60 + i * 14, -22 - (i % 2) * 8, 4, 4); ctx.fillStyle = '#B91C1C'; ctx.fillRect(-60 + i * 14, -22 - (i % 2) * 8, 2, 2); }
+      // (the holes in him: across his back and down his legs, where he is, none in the air over him)
+      for (const [hx, hy] of [[-71, -35], [-57, -23], [-45, -37], [-37, -13], [-9, -15], [13, -16]]) { ctx.fillStyle = INK; ctx.fillRect(hx, hy, 6, 6); ctx.fillStyle = '#7F1D1D'; ctx.fillRect(hx + 1, hy + 1, 4, 4); ctx.fillStyle = '#B91C1C'; ctx.fillRect(hx + 1, hy + 1, 2, 2); }
   }
   // His membership list, on the ground next to him
   ctx.fillStyle = INK; ctx.fillRect(55, -5, 20, 6);

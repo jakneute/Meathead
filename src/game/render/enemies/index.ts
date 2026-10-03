@@ -35,9 +35,9 @@ export const drawKindEnemy = (ctx: Ctx, e: Enemy, state: GameState) => {
  * A themed enemy's body standing still, for its death animation (the caller
  * squashes, tints, clips or spins it). (x, y, w, h) is the box it died in.
  */
-export const drawKindCorpse = (ctx: Ctx, kind: EnemyKind, x: number, y: number, w: number, h: number, facing: 1 | -1, phase: number, state: GameState) => {
+export const drawKindCorpse = (ctx: Ctx, kind: EnemyKind, x: number, y: number, w: number, h: number, facing: 1 | -1, phase: number, state: GameState, variant?: number) => {
   const still = {
-    kind, pos: { x, y }, width: w, height: h, vel: { x: 0, y: 0 }, facing, homeX: phase,
+    kind, pos: { x, y }, width: w, height: h, vel: { x: 0, y: 0 }, facing, homeX: phase, variant,
     aiState: 'recover', aiTimer: 0, shootTimer: 0, isShieldActive: false, health: 1, maxHealth: 1,
   } as unknown as Enemy;
   drawKindPose(ctx, still, facing, phase, state);
@@ -46,7 +46,7 @@ export const drawKindCorpse = (ctx: Ctx, kind: EnemyKind, x: number, y: number, 
 /** Where a themed enemy's head is, from its feet, facing right (for the eyes and skull in death animations). */
 export const KIND_HEAD: Record<EnemyKind, { x: number; y: number; r: number }> = {
   wolverine: { x: 20, y: -18, r: 7 }, goat: { x: 24, y: -38, r: 8 }, eagle: { x: 18, y: -16, r: 6 },
-  shooter: { x: 0, y: -54, r: 8 }, charger: { x: 0, y: -60, r: 9 }, shielder: { x: 0, y: -60, r: 8 }, moose: { x: 60, y: -80, r: 14 },
+  shooter: { x: 0, y: -54, r: 8 }, charger: { x: 7, y: -64, r: 10 }, shielder: { x: 0, y: -60, r: 8 }, moose: { x: 60, y: -80, r: 14 },
   tourist: { x: 2, y: -60, r: 8 }, bouncer: { x: 4, y: -72, r: 9 }, surfer: { x: 2, y: -62, r: 8 }, cop: { x: 2, y: -64, r: 8 }, riotcop: { x: 2, y: -64, r: 9 },
   civilian: { x: 2, y: -60, r: 8 }, gator: { x: 34, y: -14, r: 7 }, pelican: { x: 14, y: -18, r: 6 }, iguana: { x: 15, y: -10, r: 4 },
   crab: { x: 0, y: -10, r: 5 }, shark: { x: 26, y: -18, r: 8 }, eye: { x: 0, y: -100, r: 60 },
@@ -69,8 +69,30 @@ export const KIND_HEAD: Record<EnemyKind, { x: number; y: number; r: number }> =
   amalgam: { x: 0, y: -300, r: 40 },
   ranger: { x: 2, y: -65, r: 8 }, biker: { x: 4, y: -74, r: 9 }, deputy: { x: 2, y: -65, r: 8 }, armadillo: { x: 16, y: -10, r: 4 },
   longhorn: { x: 42, y: -40, r: 8 }, pickup: { x: 26, y: -52, r: 7 }, cruiser: { x: 10, y: -63, r: 7 }, chopper: { x: -3, y: -70, r: 8 },
-  suit: { x: 2, y: -76, r: 7 }, temp: { x: 2, y: -76, r: 7 }, clerk: { x: 2, y: -76, r: 7 }, bob: { x: 0, y: -66, r: 9 }, cower: { x: -2, y: -50, r: 7 },
+  suit: { x: 2, y: -76, r: 7 }, temp: { x: 2, y: -76, r: 7 }, clerk: { x: 2, y: -76, r: 7 }, bob: { x: 0, y: -76, r: 9 }, cower: { x: -2, y: -50, r: 7 },
 };
+
+/** How far its drawing stands up over the top of its box (a head, a hat, a raised arm: what the box leaves out), for
+ * whatever goes round the whole of it (the ice it's frozen in, the flames when it's alight). */
+export const KIND_TOP_REACH: Partial<Record<EnemyKind, number>> = {
+  goat: 5, eagle: 15, shooter: 8, charger: 10, shielder: 4, tourist: 10, bouncer: 9, surfer: 9, cop: 12,
+  riotcop: 6, pelican: 5, crab: 9, shark: 10, heatsuit: 7, smokejumper: 13, blastshield: 5, vulture: 6,
+  raver: 15, firedancer: 6, partygoer: 7, techbro: 12, courier: 9, protester: 13, seagull: 6, pigeon: 8,
+  jetskier: 6, burning: 6, convict: 13, parkranger: 18, sicario: 11, enforcer: 12, cardoor: 7, rattlesnake: 13,
+  scorpion: 6, coyote: 9, visitor: 14, pimp: 20, hooker: 12, mugger: 7, bum: 19, guard: 7, commuter: 9,
+  reader: 11, exec: 7, intern: 9, hr: 9, exterminator: 7, janitor: 20, custodian: 7, labtech: 9, subject: 14,
+  scientist: 12, tenant: 3, minion: 11, banger: 9, bruiser: 20, lowrider: 16, hazmat: 9, bloater: 13, manhole: 8,
+  sludgeling: 3, mutantfish: 5, hawk: 12, grackle: 11, ranger: 14, biker: 11, deputy: 11, longhorn: 7,
+  pickup: 20, cruiser: 20, chopper: 16, suit: 6, temp: 6, clerk: 6, bob: 8,
+};
+
+/** Where its head is, for the one that's posed its own way: the sunbather (a beachgoer of pastime 0, and still lying on
+ * her towel, as a corpse) has hers down at the end of the towel, not up where a standing one's is. */
+export const kindHead = (kind: EnemyKind, variant?: number) =>
+  isLyingKind(kind, variant) ? { x: -28, y: -9, r: 6 } : KIND_HEAD[kind];
+
+/** Dies lying down already (the sunbather on her towel): nothing to keel over, her head off the end of her, not her top. */
+export const isLyingKind = (kind: EnemyKind, variant?: number) => kind === 'civilian' && !variant;
 
 /** People (their skeletons are human, and they keel over flat when they die). */
 export const isHumanoidKind = (kind?: EnemyKind) =>

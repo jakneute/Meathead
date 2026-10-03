@@ -19,7 +19,15 @@ const xray = (f: number, zap: number) => zap > 0 && f % (zap > 1 ? 4 : 6) < (zap
  * One of them, standing at (footX, footY), `h` tall: shaking and flickering while it goes through them, lifted
  * up on their toes when it's bad, cooked black after, going over backwards like a plank at the end.
  */
-const drawZapped = (ctx: Ctx, pw: PowerRoom, who: 'minion' | 'meathead', footX: number, footY: number, h: number, facing: number, f: number, body: () => void) => {
+/** Where the head is on one of them, from the feet, facing right: the skull's middle and size, the crown (where the hair
+ * stands up off), and the eyes (their height, how far out each one is). */
+type HeadAt = { x: number; y: number; r: number; crown: number; eyeY: number; eyeX: [number, number] };
+/** A head at the top of a box `h` tall (Meathead's). */
+const headAtTop = (h: number): HeadAt => { const r = h * 0.11; return { x: 2, y: -h + r + 2, r, crown: -h - 2, eyeY: -h - 2 + h * 0.1, eyeX: [2, 7] }; };
+/** The minion's (one of the townsfolk: his head up over his box, his eyes where his own are drawn). */
+const MINION_HEAD: HeadAt = { x: 1, y: -62, r: 7.6, crown: -74, eyeY: -64.6, eyeX: [3, 8.4] };
+
+const drawZapped = (ctx: Ctx, pw: PowerRoom, who: 'minion' | 'meathead', footX: number, footY: number, h: number, facing: number, f: number, body: () => void, hd: HeadAt = headAtTop(h)) => {
   const zap = surgeZap(pw), fall = surgeFall(pw, who), cooked = surgeCooked(pw);
   ctx.save();
   if (zap > 0) ctx.translate((f % 2 ? 1.5 : -1.5) * zap, zap > 1 ? -4 - (f % 3) : (f % 3 ? 0 : -1));
@@ -31,16 +39,16 @@ const drawZapped = (ctx: Ctx, pw: PowerRoom, who: 'minion' | 'meathead', footX: 
   ctx.filter = bones ? 'brightness(0.45) sepia(1) hue-rotate(150deg) saturate(5)' : cooked >= 1 ? 'brightness(0.22) saturate(0.2)' : cooked > 0 ? 'brightness(0.55) saturate(0.6)' : 'none';
   body();
   ctx.filter = 'none';
-  if (bones) drawBones(ctx, footX, footY, h, facing);
+  if (bones) drawBones(ctx, footX, footY, h, facing, hd);
   if (cooked > 0 && !bones) {
     // Hair stood straight up, and smoke off the top of him
     ctx.strokeStyle = '#1C1917'; ctx.lineWidth = 1.5;
-    const top = footY - h - 2;
+    const top = footY + hd.crown;
     ctx.beginPath();
     for (let i = -3; i <= 3; i++) { ctx.moveTo(footX + i * 2.5, top + 4); ctx.lineTo(footX + i * 3.5 + (i % 2) * 1.5, top - 5 - (i % 2 ? 2 : 0)); }
     ctx.stroke();
     // (the whites of his eyes, blinking out of the black)
-    if (cooked >= 1 && f % 90 > 6) { ctx.fillStyle = '#F8FAFC'; ctx.fillRect(footX + facing * 2 - 1, top + h * 0.1, 2.5, 2.5); ctx.fillRect(footX + facing * 7 - 1, top + h * 0.1, 2.5, 2.5); }
+    if (cooked >= 1 && f % 90 > 6) { ctx.fillStyle = '#F8FAFC'; for (const ex of hd.eyeX) ctx.fillRect(footX + facing * ex - 1, footY + hd.eyeY, 2.5, 2.5); }
   }
   if (zap > 0) {
     // It crawling over them
@@ -57,14 +65,14 @@ const drawZapped = (ctx: Ctx, pw: PowerRoom, who: 'minion' | 'meathead', footX: 
 };
 
 /** A person's skeleton, glowing white through the X-ray flicker. */
-const drawBones = (ctx: Ctx, x: number, footY: number, h: number, facing: number) => {
+const drawBones = (ctx: Ctx, x: number, footY: number, h: number, facing: number, hd: HeadAt) => {
   ctx.save();
   ctx.strokeStyle = '#FFFFFF'; ctx.fillStyle = '#FFFFFF'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
-  const skullR = h * 0.11, top = footY - h + skullR + 2;
-  ctx.beginPath(); ctx.arc(x + facing * 2, top, skullR, 0, Math.PI * 2); ctx.fill();
+  const skullR = hd.r, top = footY + hd.y, sx = x + facing * hd.x;
+  ctx.beginPath(); ctx.arc(sx, top, skullR, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#0E7490';
-  ctx.fillRect(x + facing * 2 - skullR * 0.6, top - skullR * 0.3, skullR * 0.45, skullR * 0.45);
-  ctx.fillRect(x + facing * 2 + skullR * 0.15, top - skullR * 0.3, skullR * 0.45, skullR * 0.45);
+  ctx.fillRect(sx - skullR * 0.6, top - skullR * 0.3, skullR * 0.45, skullR * 0.45);
+  ctx.fillRect(sx + skullR * 0.15, top - skullR * 0.3, skullR * 0.45, skullR * 0.45);
   const neck = top + skullR, hip = footY - h * 0.42, w = h * 0.34;
   ctx.beginPath();
   ctx.moveTo(x, neck); ctx.lineTo(x, hip);
@@ -81,7 +89,7 @@ const drawBones = (ctx: Ctx, x: number, footY: number, h: number, facing: number
 
 /** Barry's man, in it. */
 export const drawSurgeMinion = (ctx: Ctx, e: Enemy, state: GameState, pw: PowerRoom) =>
-  drawZapped(ctx, pw, 'minion', e.pos.x + e.width / 2, e.pos.y + e.height, e.height, e.facing || -1, state.frame, () => drawKindEnemy(ctx, e, state));
+  drawZapped(ctx, pw, 'minion', e.pos.x + e.width / 2, e.pos.y + e.height, e.height, e.facing || -1, state.frame, () => drawKindEnemy(ctx, e, state), MINION_HEAD);
 
 /** Meathead, in it (the stage hides him and draws him here), then the water over their feet. */
 export const drawSurge = (ctx: Ctx, state: GameState, pw: PowerRoom) => {
