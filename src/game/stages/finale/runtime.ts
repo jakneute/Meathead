@@ -29,6 +29,8 @@ const RADIO_VOICE: Voice = { id: 'finale.radio', pitch: 1, rate: 1 };
 export const MAX_GROUND = 7, MAX_AIR = 3;
 /** How often more come in (frames), fewer frames between as the alien loses health. */
 const SPAWN_EVERY = 125, SPAWN_RAMP = 50;
+/** When he mentions his souped-up toys (frames into the fight). */
+const SOUPED_UP_AT = 75;
 /** How long after the retreat's called the doors slam regardless (anyone still in the room is let out first). */
 const RETREAT_MAX = 300;
 
@@ -70,6 +72,11 @@ export const updateFinale = (ctx: FrameContext, controls: Controls): Controls =>
   if (rt.radioCd > 0) rt.radioCd--;
   for (let i = 0; i < 2; i++) if (rt.doorOpen[i] > 0 && !rt.doorsShut) rt.doorOpen[i] = Math.max(0, rt.doorOpen[i] - 0.012);
 
+  // A beat into it, he mentions (casually) what he did to his toys in the garage for this (once; never over anyone)
+  if (rt.t === SOUPED_UP_AT && !rt.said.soupedUp) {
+    rt.said.soupedUp = true;
+    for (const l of FINALE_LINES.SOUPED_UP) queue(rt, 'meathead', l.text, l.shat);
+  }
   checkWrecks(ctx, rt);
   wreckedRoom(ctx, rt);
   if (boss && boss.health > 0 && state.bossExplosionTimer <= 0) {
@@ -103,7 +110,8 @@ const spawnAgents = (ctx: FrameContext, rt: FinaleRuntime, boss: Enemy) => {
     const side = rt.spawnSide;
     rt.spawnSide = side < 0 ? 1 : -1;
     const r = Math.random();
-    const wantAir = r < 0.25 && a < airCap && rt.spawned > 2;
+    // (one in four from the air; and the first of them early, the moment the first flood's in: a window goes in)
+    const wantAir = (r < 0.25 || !rt.windowBroken.some(Boolean)) && a < airCap && rt.spawned > 2;
     if (wantAir) { spawnJet(ctx, rt, side); a++; }
     else if (g < MAX_GROUND) { spawnOnFoot(ctx, rt, side, r < 0.55 ? 'agent' : r < 0.82 ? 'agentrush' : 'agentshield'); g++; }
   }

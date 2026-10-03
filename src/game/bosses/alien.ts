@@ -48,14 +48,20 @@ export const ALIEN_HP = 15000;
  */
 export const FLOAT_BOTTOM_HI = 452, FLOAT_BOTTOM_LO = 476;
 
-/** What a hit from each weapon does to him (no breather between them: the per-hit numbers are the balance). */
+/** What a hit from each weapon does to him (no breather between them: the per-hit numbers are the balance). The
+ * finale's souped-up guns (combat/finaleBuffs.ts) hit him a lot more often in places: the shotgun's 24 shards a shot
+ * (from 10) at 2.3 each, and the barfer's longer stream (and the slick it leaves) at 5 a glob (from 8), keep what a
+ * whole clip of each does to him about what it was (a touch more). */
 const DAMAGE: Partial<Record<WeaponType, number>> = {
-  GUN: 6, LMG: 6, SHOTGUN: 5, BOULDER: 70, TSUNAMI: 220, NEEDLES: 12, TASER: 4, SLUDGE: 8, OIL_ROCKET: 160, FLAMETHROWER: 12,
+  GUN: 6, LMG: 6, SHOTGUN: 2.3, BOULDER: 70, TSUNAMI: 220, NEEDLES: 12, TASER: 4, SLUDGE: 5, OIL_ROCKET: 160, FLAMETHROWER: 12,
 };
 /** Stuck down in the sludge he takes this much more from everything. */
 const GROUNDED_MULT = 1.5;
 /** The flamethrower's per-frame burn (counted out every so often, as one hit). */
 const FLAME_PER_FRAME = 1.6, FLAME_TICK = 12;
+/** The oil rocket launcher's igniter on him (it costs nothing in here once the tank's dry, so it's only a lick of it);
+ * once he's begging, nothing (the pistol finishes him). */
+const IGNITER_SCALE = 0.15;
 /** On fire (oiled and lit): a burn on top of the usual, each tick, for this long. */
 const BURN_TICK_DAMAGE = 10, BURN_FRAMES = 240;
 /** Slammed into the wall by a wave. */
@@ -265,13 +271,20 @@ const fireBeam = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
       for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: pcx, y: p.pos.y + p.height * 0.6 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 26, color: i % 2 ? 'rgba(87, 83, 78, 0.6)' : '#F97316', size: 3 + Math.random() * 4 });
     }
   }
-  // His own men in the way: fried (an oiled one goes up)
+  // His own men in the way: vaporized (an oiled one goes up)
   for (const e of state.enemies) {
     if (e.type === 'boss' || e.health <= 0 || e.isBlownAway || !beamTouches(rt.beam, e.pos.x, e.pos.y, e.width, e.height)) continue;
+    // (a jetpack man still coming in through his window: singed, not done for; he gets his moment)
+    if (e.kind === 'jetagent' && e.aiState === 'enter') {
+      if (state.frame % 3 === 0) state.particles.push({ pos: { x: e.pos.x + Math.random() * e.width, y: e.pos.y + Math.random() * e.height }, vel: { x: (Math.random() - 0.5) * 2, y: -1 - Math.random() * 2 }, life: 18, color: Math.random() < 0.5 ? 'rgba(87, 83, 78, 0.7)' : ALIEN.laser[4], size: 3 + Math.random() * 3 });
+      continue;
+    }
     if (e.isOiled && oiledIntoFire(ctx, e)) continue;
+    // (vaporized: gone, from the side the beam came in, leaving his shoes)
     e.health = 0;
-    startEnemyDeath(state, e, 'charred');
-    fx.spawnKillCallout(e, 'charred');
+    startEnemyDeath(state, e, 'vaporized', { x: Math.sign(rt.aim.dx) || 1, y: 0 });
+    fx.spawnKillCallout(e, 'vaporized');
+    playSound('alienBeam', 0.6, 6);
   }
   // Fired with the oil still on him: the muzzle flash sets him alight
   if (boss.isOiled && !boss.isOnFire && rt.modeT === 3) ignite(ctx, boss, rt);
@@ -396,6 +409,7 @@ const nudge = (ctx: FrameContext, rt: FinaleRuntime, kind: 'gun' | 'melee') => {
   if (rt.lines.length < 8) rt.lines.push({ who: 'meathead', text });
 };
 
+const PITCH_CALLOUTS = ['STRIKE!', 'STEE-RIKE!', 'HEATER!', 'CHIN MUSIC!', 'FASTBALL!'];
 const PLEAD_HIT_CALLOUTS = ['BAM!', 'OOF!', 'RIGHT IN THE ANTENNA!', 'MERCY DENIED!', 'SPLAT!', 'NO REFUNDS!'];
 
 const onWeaponHit = (ctx: FrameContext, boss: Enemy, weapon: WeaponType, p?: Partial<Projectile>) => {
@@ -428,7 +442,9 @@ const onWeaponHit = (ctx: FrameContext, boss: Enemy, weapon: WeaponType, p?: Par
       sayOnce(ctx, rt, 'slowed', ALIEN_LINES.SLOWED);
       break;
     case 'BOULDER':
-      if (rt.stunT < 20) { rt.stunT = 55; callout(ctx, boss, 'BONK!', '#FDE68A'); playSound('clang', 0.7, -6); }
+      // (a pitched one: a fastball to the face)
+      if (rt.stunT < 20) { rt.stunT = 55; callout(ctx, boss, p?.pitched ? pickRandom(PITCH_CALLOUTS) : 'BONK!', '#FDE68A'); playSound('clang', 0.7, -6); }
+      if (p?.pitched) { rt.flash = 10; rt.reel = 1; boss.pos.x += (Math.sign(p.vel?.x ?? 0) || 1) * 12; }
       dropShot(rt);
       sayOnce(ctx, rt, 'stunned', ALIEN_LINES.STUNNED);
       break;
@@ -453,7 +469,7 @@ const onWeaponHit = (ctx: FrameContext, boss: Enemy, weapon: WeaponType, p?: Par
   }
 };
 
-const onFlamed = (ctx: FrameContext, boss: Enemy) => {
+const onFlamed = (ctx: FrameContext, boss: Enemy, scale = 1) => {
   const { state } = ctx;
   const rt = getFinale(state);
   if (!rt) return;
@@ -468,9 +484,11 @@ const onFlamed = (ctx: FrameContext, boss: Enemy) => {
     sayOnce(ctx, rt, 'blocked', ALIEN_LINES.BLOCKED);
   }
   if (boss.isOiled && !boss.isOnFire) ignite(ctx, boss, rt);
-  rt.flameAcc += FLAME_PER_FRAME;
+  const igniter = scale < 1;
+  if (igniter && rt.pleadAt !== undefined) return;
+  rt.flameAcc += FLAME_PER_FRAME * (igniter ? IGNITER_SCALE : 1);
   if (state.frame % 3 === 0) state.particles.push({ pos: { x: boss.pos.x + Math.random() * boss.width, y: boss.pos.y + Math.random() * boss.height * 0.6 }, vel: { x: (Math.random() - 0.5) * 2, y: -1 - Math.random() * 2 }, life: 18, color: Math.random() > 0.6 ? '#4B5563' : '#F97316', size: 3 + Math.random() * 3 });
-  if (rt.flameAcc >= FLAME_PER_FRAME * FLAME_TICK) {
+  if (rt.flameAcc >= FLAME_PER_FRAME * FLAME_TICK * (igniter ? IGNITER_SCALE : 1)) {
     const dmg = rt.flameAcc * (rt.groundT > 0 ? GROUNDED_MULT : 1);
     rt.flameAcc = 0;
     // (as a hit: the reaction, the number, the death if it's that)

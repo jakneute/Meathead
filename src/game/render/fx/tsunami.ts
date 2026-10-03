@@ -12,6 +12,7 @@
 import { CANVAS_WIDTH, GROUND_Y } from '../../../constants';
 import { GameState } from '../../core/state';
 import { groundLineAt } from '../../core/terrain';
+import { tsunamiTop } from '../../bosses/hazards';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -60,7 +61,7 @@ const waveOf = (state: GameState): Wave | null => {
   const off = state.tsunamiOffsetY || 0, base = Math.round(GROUND_Y + off);
   const dist = Math.abs(state.tsunamiX - state.tsunamiStartX);
   // (the same top as updateTsunami's: only what's above the floor line shows)
-  const top = Math.pow(Math.min(1, dist / (CANVAS_WIDTH * 1.25)), 0.6) * 560 + off;
+  const top = tsunamiTop(state, dist);
   const above = base - top;
   const k = clamp(above / 50, 0, 1);
   if (!(k > 0.02) || !Number.isFinite(X)) return null;

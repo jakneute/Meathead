@@ -6,6 +6,8 @@
 //   pancaked  (boulder): flattened on the floor
 //   headshot  (the sniper up the bell tower): head off in one piece, the body stood there a moment, then over
 //   ceilinged (an overdose that went up into a ceiling): flattened on the underside of it, dripping, and it stays
+//   vaporized (the finale alien's beam): lit up in its pink, then gone, a pixel at a time from the side it came in, the bits
+//             blowing off and up; left behind, a heap of ash on a scorch mark, his smoking shoes and his sunglasses
 // The enemy itself is removed; one of these plays in its place.
 
 import { Enemy, EnemyKind, Vector2 } from '../../types';
@@ -15,7 +17,7 @@ import { floorTopAt } from '../core/terrain';
 import { isMidBoss } from '../combat/midBoss';
 import { kindHead } from '../render/enemies/index';
 
-export type EnemyDeathKind = 'charred' | 'fried' | 'melted' | 'greased' | 'pancaked' | 'headshot' | 'ceilinged';
+export type EnemyDeathKind = 'charred' | 'fried' | 'melted' | 'greased' | 'pancaked' | 'headshot' | 'ceilinged' | 'vaporized';
 
 export interface EnemyDeath {
   kind: EnemyDeathKind;
@@ -40,8 +42,13 @@ export interface EnemyDeath {
 }
 
 export const DEATH_FRAMES: Record<EnemyDeathKind, number> = {
-  charred: 95, fried: 85, melted: 110, greased: 160, pancaked: 130, headshot: 170, ceilinged: 600,
+  charred: 95, fried: 85, melted: 110, greased: 160, pancaked: 130, headshot: 170, ceilinged: 600, vaporized: 110,
 };
+
+/** (vaporized) How long it's held lit up in the beam before it starts going, and how long it takes to go (frames). */
+export const VAPOR_HOLD = 8, VAPOR_GO = 36;
+/** (vaporized) How far through going it is (0..1), t frames in. */
+export const vaporK = (t: number) => Math.max(0, Math.min(1, (t - VAPOR_HOLD) / VAPOR_GO));
 
 const FLOOR_Y = 550;
 
@@ -78,6 +85,9 @@ const deathFacing = (state: GameState, e: Enemy): 1 | -1 => {
   if (e.kind && ownWay.includes(e.kind)) return e.facing === 1 ? 1 : -1;
   return state.player.pos.x + state.player.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;
 };
+
+/** (vaporized) What it goes to: the beam's pink, white-hot, ash. */
+const VAPOR_BITS = ['#FF8CE4', '#FFFFFF', '#EC44C4', '#A8A29E', '#FFD8F6', '#57534E'];
 
 export const startEnemyDeath = (state: GameState, e: Enemy, kind: EnemyDeathKind, vel?: Vector2) => {
   if (isMidBoss(e)) return; // (a mid-boss leaves its own corpse)
@@ -119,7 +129,8 @@ export const updateEnemyDeaths = (state: GameState) => {
       return true;
     }
     // Killed in mid-air (an eagle burnt, fried or melted on the wing): it drops to the ground first, then plays out
-    if (d.kind !== 'greased' && d.kind !== 'headshot' && d.kind !== 'ceilinged' && !d.landed && d.y + d.h < d.floorY - 1) {
+    // (vaporized: it goes right there, in the air if that's where it was)
+    if (d.kind !== 'greased' && d.kind !== 'headshot' && d.kind !== 'ceilinged' && d.kind !== 'vaporized' && !d.landed && d.y + d.h < d.floorY - 1) {
       d.vy = Math.min(14, Math.max(0, d.vy) + GRAVITY * 0.8);
       d.y = Math.min(d.floorY - d.h, d.y + d.vy);
       return d.y < d.floorY + 1000;
@@ -158,6 +169,17 @@ export const updateEnemyDeaths = (state: GameState) => {
         break;
       case 'pancaked':
         break;
+      case 'vaporized': {
+        // The bits coming off where it's going (two a frame at most), blown on the way the beam went and drifting up;
+        // then smoke off the shoes
+        const k = vaporK(d.t), dir = d.vx < 0 ? -1 : 1;
+        if (k > 0 && k < 1) {
+          const fx = dir > 0 ? d.x + d.w * k : d.x + d.w * (1 - k);
+          for (let i = 0; i < 2; i++) state.particles.push({ pos: { x: fx + (Math.random() - 0.5) * 4, y: d.y + Math.random() * (d.h - 8) }, vel: { x: dir * (1 + Math.random() * 2.5), y: -0.6 - Math.random() * 1.8 }, life: 18 + Math.random() * 18, color: VAPOR_BITS[(d.t + i) % VAPOR_BITS.length], size: 2 + Math.random() * 2 });
+        }
+        if (d.t > VAPOR_HOLD + VAPOR_GO && d.t < 100 && d.t % 7 === 0) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * d.w * 0.5, y: d.floorY - 6 }, vel: { x: (Math.random() - 0.5) * 0.5, y: -0.8 - Math.random() * 0.6 }, life: 34, color: 'rgba(87, 83, 78, 0.55)', size: 4 + Math.random() * 4 });
+        break;
+      }
       case 'ceilinged':
         // (dripping off the ceiling: a drop now and then, less as it goes)
         if (d.t % Math.max(6, Math.round(12 + d.t / 25)) === 0) state.particles.push({ pos: { x: d.x + d.w / 2 + (Math.random() - 0.5) * d.w * 1.3, y: d.y + d.h + 5 }, vel: { x: 0, y: 1 }, life: 60, color: Math.random() < 0.5 ? '#7F1D1D' : '#991B1B', size: 2 + Math.random() * 2.5 });

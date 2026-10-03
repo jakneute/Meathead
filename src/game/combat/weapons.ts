@@ -17,7 +17,7 @@ import { GameState } from '../core/state';
 import { FrameContext, killBoss } from '../core/context';
 import { hitBoss, getBossDef, getBossDamage, isWeakTo } from '../bosses/registry';
 import { pickRandom, rectsOverlap, boundsOf, screenRect } from '../core/utils';
-import { findFlyingCigarette, igniteOilWithFlame } from '../bosses/oscar';
+import { findFlyingCigarette, igniteOilWithFlame, spillOil } from '../bosses/oscar';
 import { getStageLayout } from '../stages';
 import { playSound } from '../platform/audio';
 import { icicleBounds, meltIcicle } from '../bosses/artie';
@@ -26,6 +26,13 @@ import { isMidBoss, midBossDamage, MIDBOSS_DAMAGE, MIDBOSS_SPLASH_DAMAGE, MIDBOS
 import { muzzlePoint, flamethrowerNozzle } from './muzzle';
 import { detonateSewerNuke, TOXIC_TOMMY } from '../scenes/sewerNuke';
 import { killPlayer } from '../player/player';
+import { getFinale } from '../stages/finale/state';
+import { FINALE_LINES } from '../../content/dialogue';
+import { shakeScreen } from '../core/state';
+import {
+  inFinale, FINALE_SHOTGUN_PELLETS, FINALE_FLAME_RANGE, FINALE_FLAME_SEGMENTS, FINALE_FLAME_WIDTH, FINALE_FLAME_GROWTH, FINALE_FLAME_SIZE_CAP_DIST,
+  FINALE_OIL_SPLASH_RADIUS, PITCH_FRAMES, PITCH_RELEASE_AT, PITCH_SPEED, PITCH_SIZE, PITCH_LIFE, FINALE_BARF_FRAMES,
+} from './finaleBuffs';
 
 /** The bits of this frame's input that weapons care about. */
 export interface WeaponInput {
@@ -109,6 +116,10 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
     case 'BOULDER': {
       // GML oBoulderBlunderbuss: one boulder per press; up+fire lobs it
       if (!input.shootPressed) break;
+      // (the finale: pitched like a fastball, straight at the alien: the windup now, the rock leaves his hand in
+      // updatePitch)
+      if (inFinale(ctx.stageId)) { startPitch(ctx); useAmmo(); break; }
+      player.throwPitch = false;
       const size = 48;
       let lob = input.moveUp;
       // Down+fire in the air: spiked down in front of him, steep and hard
@@ -144,8 +155,11 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
     case 'SHOTGUN':
       // GML oShotgunIce: an evenly spaced fan of pellets with a little jitter
       if (!input.shootPressed) break;
-      for (let i = 0; i < SHOTGUN_PELLET_COUNT; i++) {
-        const offset = i * (SHOTGUN_SPREAD_DEG / (SHOTGUN_PELLET_COUNT - 1)) - SHOTGUN_SPREAD_DEG / 2;
+      {
+      // (the finale: a fan of shards two and a half times as thick, over the same spread)
+      const pellets = inFinale(ctx.stageId) ? FINALE_SHOTGUN_PELLETS : SHOTGUN_PELLET_COUNT;
+      for (let i = 0; i < pellets; i++) {
+        const offset = i * (SHOTGUN_SPREAD_DEG / (pellets - 1)) - SHOTGUN_SPREAD_DEG / 2;
         const jitter = Math.round((Math.random() - 0.5) * 2 * SHOTGUN_JITTER_DEG);
         const angle = (offset + jitter) * Math.PI / 180;
         const speedX = SHOTGUN_PELLET_SPEED_MIN + Math.random() * (SHOTGUN_PELLET_SPEED_MAX - SHOTGUN_PELLET_SPEED_MIN);
@@ -158,6 +172,7 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
           type: 'projectile', damage: SHOTGUN_DAMAGE, owner: 'player', isIce: true,
           life: SHOTGUN_PELLET_LIFETIME, bounces: 0, fromX: pos.x + width / 2,
         });
+      }
       }
       player.shootCooldown = SHOTGUN_COOLDOWN;
       fx.playGunSound('ice');
@@ -182,8 +197,8 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
       break;
 
     case 'SLUDGE':
-      // Starts the barf stream (see updateBarfStream) and grants the filth shield
-      player.barfTimer = 24;
+      // Starts the barf stream (see updateBarfStream) and grants the filth shield (the finale: a lot more of it)
+      player.barfTimer = inFinale(ctx.stageId) ? FINALE_BARF_FRAMES : 24;
       player.shootCooldown = SLUDGE_COOLDOWN;
       player.filthShieldTimer = FILTH_SHIELD_DURATION;
       player.filthShieldHp = player.health;
@@ -200,7 +215,8 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
       state.tsunamiX = state.tsunamiStartX;
       // The wave's built for a flat floor at GROUND_Y: lift (or drop) it to where his feet are as he fires it (up in the
       // air, on a ledge, over a pit: it goes along at the height he was, not the floor under him)
-      state.tsunamiOffsetY = player.pos.y + player.height - GROUND_Y;
+      // (the finale's: along the floor, the full height of the room, wherever he fired it from)
+      state.tsunamiOffsetY = inFinale(ctx.stageId) ? 0 : player.pos.y + player.height - GROUND_Y;
       player.shootCooldown = TSUNAMI_COOLDOWN;
       fx.playGunSound('tsunami');
       useAmmo();
@@ -232,6 +248,62 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
   }
 };
 
+/** The finale's alien, if he's there and alive (what a pitched rock goes for). */
+const finaleAlien = (state: GameState) => state.enemies.find(e => e.type === 'boss' && e.health > 0 && !e.isBlownAway);
+
+/** Where the rock leaves his hand, at the top of the arm's whip over (his hand up by his head, out in front). */
+const pitchHand = (state: GameState) => {
+  const p = state.player;
+  return { x: p.pos.x + p.width / 2 + p.facing * 16, y: p.pos.y + 6 };
+};
+
+/** The finale's boulder: into the windup (turned square to the alien, the way a pitcher faces the plate). The first
+ * one, he says he's done with the suits: all of it's for the alien. */
+const startPitch = (ctx: FrameContext) => {
+  const { state } = ctx;
+  const p = state.player;
+  const alien = finaleAlien(state);
+  if (alien && !p.isTasing && !p.isFlaming) p.facing = alien.pos.x + alien.width / 2 < p.pos.x + p.width / 2 ? -1 : 1;
+  p.throwTimer = PITCH_FRAMES;
+  p.throwPitch = true;
+  p.throwLob = false;
+  p.shootCooldown = BOULDER_COOLDOWN;
+  ctx.fx.playGunSound('whoosh', 0.5, -6);
+  const rt = getFinale(state);
+  if (rt && !rt.said.firstPitch) {
+    rt.said.firstPitch = true;
+    if (rt.lines.length < 8) rt.lines.push({ who: 'meathead', text: FINALE_LINES.FIRST_PITCH.text, shat: FINALE_LINES.FIRST_PITCH.shat });
+  }
+};
+
+/**
+ * The pitch, every frame: at the top of the whip over (PITCH_RELEASE_AT frames left in it) the rock leaves his hand,
+ * a fastball dead at the alien (see updatePitchedRock in combat/projectiles.ts: it homes in on him the whole way).
+ */
+export const updatePitch = (ctx: FrameContext) => {
+  const { state, fx } = ctx;
+  const p = state.player;
+  if (!p.throwPitch || p.throwTimer !== PITCH_RELEASE_AT) return;
+  const hand = pitchHand(state);
+  const alien = finaleAlien(state);
+  // (straight at the middle of him; with him gone, straight out in front)
+  let dx = p.facing, dy = 0;
+  if (alien) { dx = alien.pos.x + alien.width / 2 - hand.x; dy = alien.pos.y + alien.height / 2 - hand.y; }
+  const d = Math.hypot(dx, dy) || 1;
+  state.projectiles.push({
+    id: `pitch-${state.frame}-${Math.random()}`,
+    pos: { x: hand.x - PITCH_SIZE / 2, y: hand.y - PITCH_SIZE / 2 },
+    vel: { x: dx / d * PITCH_SPEED, y: dy / d * PITCH_SPEED },
+    width: PITCH_SIZE, height: PITCH_SIZE, health: 1, maxHealth: 1,
+    type: 'projectile', damage: 0, owner: 'player', isBoulder: true, pitched: true, life: PITCH_LIFE, rotation: 0,
+  });
+  // (the release: a crack of air off his hand, dust kicked off his plant foot)
+  for (let i = 0; i < 6; i++) state.particles.push({ pos: { ...hand }, vel: { x: dx / d * (3 + Math.random() * 4) + (Math.random() - 0.5) * 2, y: dy / d * 3 + (Math.random() - 0.5) * 3 }, life: 8 + Math.random() * 6, color: i % 2 ? '#FFFFFF' : '#E7E5E4', size: 2 + Math.random() * 2 });
+  for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: p.pos.x + p.width / 2 + p.facing * 12, y: p.pos.y + p.height - 3 }, vel: { x: p.facing * (0.5 + Math.random() * 2), y: -0.5 - Math.random() * 1.5 }, life: 18 + Math.random() * 10, color: 'rgba(168, 162, 158, 0.6)', size: 3 + Math.random() * 3 });
+  fx.playGunSound('whoosh', 0.9, 2);
+  shakeScreen(state, 4, 3);
+};
+
 /** One puff of the sludge barf stream; called every frame while player.barfTimer runs. */
 export const updateBarfStream = (state: GameState) => {
   const { player } = state;
@@ -241,10 +313,12 @@ export const updateBarfStream = (state: GameState) => {
   // Each glob starts at the launcher's mouth
   const muzzle = muzzlePoint(player, 'SLUDGE');
   const w = 22 + Math.random() * 15, h = 22 + Math.random() * 15;
+  // (the finale: hosed out from right in front of him to clear across the room, so it lands all along the floor)
+  const vx = inFinale(state.stageId) ? 5 + Math.random() * 30 : 11 + Math.random() * 8;
   state.projectiles.push({
     id: `sludge-part-${Date.now()}-${player.barfTimer}`,
     pos: { x: player.facing === 1 ? muzzle.x - 8 : muzzle.x - w + 8, y: muzzle.y - h / 2 },
-    vel: { x: player.facing * (11 + Math.random() * 8), y: -3 - Math.random() * 9 },
+    vel: { x: player.facing * vx, y: -3 - Math.random() * 9 },
     width: w,
     height: h,
     health: 1, maxHealth: 1,
@@ -303,14 +377,16 @@ export const updateFlamethrower = (ctx: FrameContext, input: WeaponInput, alt = 
   const target = !firing ? 0 : input.moveUp ? -aimRad : input.moveDown ? aimRad : 0;
   player.flameAngle = (player.flameAngle || 0) + (target - (player.flameAngle || 0)) * FLAMETHROWER_AIM_LERP;
   if (player.isDucking) player.flameAngle = 0; // crouched: the nozzle's level, full stop
-  // (the launcher's igniter burns the flamethrower's fuel same as the flamethrower does)
-  const hasFuel = cheats.infiniteAmmo || player.weaponAmmo.FLAMETHROWER > 0;
+  // (the launcher's igniter burns the flamethrower's fuel same as the flamethrower does; in the finale, with the tank
+  // dry, it lights anyway and burns nothing: it's no flamethrower ammo, and the tank stays at 0 for the wreck)
+  const finale = inFinale(ctx.stageId);
+  const hasFuel = cheats.infiniteAmmo || player.weaponAmmo.FLAMETHROWER > 0 || (finale && alt);
   const range = player.flameRange ?? FLAMETHROWER_START_RANGE;
 
   if (firing) {
     player.flameDrainTimer = (player.flameDrainTimer || 0) + 1;
     if (player.flameDrainTimer >= FLAMETHROWER_AMMO_EVERY && hasFuel) {
-      if (!cheats.infiniteAmmo) player.weaponAmmo.FLAMETHROWER--;
+      if (!cheats.infiniteAmmo && player.weaponAmmo.FLAMETHROWER > 0) player.weaponAmmo.FLAMETHROWER--;
       player.flameDrainTimer = 0;
     }
   } else {
@@ -336,21 +412,26 @@ export const updateFlamethrower = (ctx: FrameContext, input: WeaponInput, alt = 
         size: 5 + along * 0.35 + Math.random() * 2,
       });
     }
-    const gap = range / FLAMETHROWER_SEGMENTS;
-    for (let i = 0; i < FLAMETHROWER_SEGMENTS; i++) {
+    // (the finale's flamethrower proper: wall to wall and fatter, laid in more segments so there's no gap between them)
+    const big = finale && !alt;
+    const segments = big ? FINALE_FLAME_SEGMENTS : FLAMETHROWER_SEGMENTS;
+    const gap = range / segments;
+    for (let i = 0; i < segments; i++) {
       const dist = FLAMETHROWER_NOZZLE_GAP * 0.3 + i * gap;
       const x = nozzle.x + dir.x * dist + player.vel.x;
       const y = nozzle.y + dir.y * dist + player.vel.y;
       // (the stream goes up through a jump-through ledge, or across it; only aimed down does one stop it)
       if (pointInSolid(state, x, y, dir.y > 0.2)) break;
-      const size = FLAMETHROWER_SEGMENT_SIZE * (1 + (dist / GML_SCALE) * 0.01);
+      const size = finale
+        ? FLAMETHROWER_SEGMENT_SIZE * (1 + (Math.min(dist, FINALE_FLAME_SIZE_CAP_DIST) / GML_SCALE) * 0.01) * FINALE_FLAME_WIDTH
+        : FLAMETHROWER_SEGMENT_SIZE * (1 + (dist / GML_SCALE) * 0.01);
       state.flameSegments.push({
         x, y, size, gap, dirX: dir.x, dirY: dir.y,
-        life: FLAMETHROWER_SEGMENT_LIFETIME, alpha: 1, density: 1 - i / FLAMETHROWER_SEGMENTS, alt,
+        life: FLAMETHROWER_SEGMENT_LIFETIME, alpha: 1, density: 1 - i / segments, alt, big: finale || undefined,
       });
     }
-    const maxRange = alt ? FLAMETHROWER_MAX_RANGE * ALT_FLAME_RANGE_SCALE : FLAMETHROWER_MAX_RANGE;
-    if (range < maxRange) player.flameRange = range + (maxRange - range) * FLAMETHROWER_GROWTH;
+    const maxRange = alt ? FLAMETHROWER_MAX_RANGE * ALT_FLAME_RANGE_SCALE : big ? FINALE_FLAME_RANGE : FLAMETHROWER_MAX_RANGE;
+    if (range < maxRange) player.flameRange = range + (maxRange - range) * (big ? FINALE_FLAME_GROWTH : FLAMETHROWER_GROWTH);
     else player.flameRange = range + (maxRange - range) * FLAMETHROWER_SHRINK;
     if (state.frame % 2 === 0) fx.playGunSound('flame');
   } else if (firing) {
@@ -383,8 +464,10 @@ export const updateFlameSegments = (ctx: FrameContext) => {
     seg.alpha -= 0.1;
     if (seg.life <= 0 || seg.alpha <= 0) return false;
 
-    // Fire particles along the segment, thinning out toward the tip
-    const count = Math.ceil(seg.alpha * 5 * seg.density);
+    // Fire particles along the segment, thinning out toward the tip (the finale's fat stream: fewer of them a segment,
+    // and bigger, there being more segments and far more of the stream)
+    const count = seg.big ? Math.round(seg.alpha * 2.4 * seg.density + Math.random() * 0.55) : Math.ceil(seg.alpha * 5 * seg.density);
+    const fleck = seg.big ? 1.3 : 1;
     const spread = 15 * Math.PI / 180;
     const baseAngle = Math.atan2(seg.dirY, seg.dirX);
     for (let i = 0; i < count; i++) {
@@ -397,7 +480,7 @@ export const updateFlameSegments = (ctx: FrameContext) => {
         vel: { x: Math.cos(a) * speed, y: Math.sin(a) * speed },
         life: 8 + Math.random() * 10,
         color: pickRandom(PARTICLE_PALETTES.MOLTEN),
-        size: 4 + Math.random() * 6 * seg.density + 2,
+        size: (4 + Math.random() * 6 * seg.density + 2) * fleck,
       });
     }
     // (now and then a glob of it sags off the stream and drips: it lies where it lands, glowing, then crusts over)
@@ -457,7 +540,7 @@ const burnEnemy = (ctx: FrameContext, e: Enemy, scale = 1) => {
     if (ctx.stageId === TOXIC_TOMMY && e.isOiled && state.arenaLocked) { detonateSewerNuke(ctx, e); return; }
     if (!state.arenaLocked) return;
     const onFlamed = getBossDef(ctx.stageId)?.onFlamed;
-    if (onFlamed) { onFlamed(ctx, e); return; }
+    if (onFlamed) { onFlamed(ctx, e, scale); return; }
     if (e.hitCooldown && e.hitCooldown > 0) return;
     hitBoss(ctx, e, 'FLAMETHROWER', { facing: player.facing, damage: scale < 1 ? getBossDamage(ctx.stageId, 'FLAMETHROWER') * scale : undefined });
     return;
@@ -535,12 +618,16 @@ export const findTaserTarget = (state: GameState): Enemy | Projectile | null => 
 export const explodeOilRocket = (ctx: FrameContext, pos: Vector2, rocketVelX?: number) => {
   const { state, fx } = ctx;
   fx.spawnOilSplatter(pos);
+  // (the finale: a far bigger splash, drawn (render/blasts.ts), and the oil off it comes down over the floor under it)
+  const big = inFinale(ctx.stageId);
+  const radius = big ? FINALE_OIL_SPLASH_RADIUS : OIL_ROCKET_SPLASH_RADIUS;
+  if (big) bigOilSplash(ctx, pos, radius);
 
   state.enemies.forEach(e => {
     if (e.health <= 0 || e.isBlownAway) return;
     const dx = (e.pos.x + e.width / 2) - pos.x;
     const dy = (e.pos.y + e.height / 2) - pos.y;
-    if (dx * dx + dy * dy >= OIL_ROCKET_SPLASH_RADIUS * OIL_ROCKET_SPLASH_RADIUS) return;
+    if (dx * dx + dy * dy >= radius * radius) return;
 
     if (e.type === 'boss') {
       if (e.hitCooldown && e.hitCooldown > 0) return;
@@ -587,6 +674,22 @@ export const explodeOilRocket = (ctx: FrameContext, pos: Vector2, rocketVelX?: n
 
   fx.playGunSound('oil');
   state.screenShakeTimer = 8;
+};
+
+/** The finale's oil rocket going off: a big black splash (drawn: render/blasts.ts), gobs of it flung out the whole way
+ * round, and where it's in reach of the floor, a slick laid along it under the blast (it burns, like any oil). */
+const bigOilSplash = (ctx: FrameContext, pos: Vector2, radius: number) => {
+  const { state } = ctx;
+  (state.blasts ??= []).push({ x: pos.x, y: pos.y, r: radius, t: 0, kind: 'oil' });
+  for (let i = 0; i < 26; i++) {
+    const a = (i / 26) * Math.PI * 2 + Math.random() * 0.2, sp = radius / 22 * (0.6 + Math.random() * 0.5);
+    state.particles.push({ pos: { ...pos }, vel: { x: Math.cos(a) * sp, y: Math.sin(a) * sp - 2 }, life: 26 + Math.random() * 16, color: i % 3 === 0 ? '#44403C' : i % 3 === 1 ? '#1C1917' : '#0C0A09', size: 5 + Math.random() * 6, grav: 0.35 });
+  }
+  const above = GROUND_Y - pos.y;
+  if (above >= -10 && above < radius) {
+    const half = Math.sqrt(Math.max(0, radius * radius - above * above)) * 0.8;
+    spillOil(state, pos.x - half, pos.x + half);
+  }
 };
 
 /** How far a blast set off by a fire hazard reaches (contained: round him, not the whole screen). */

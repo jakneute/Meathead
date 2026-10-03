@@ -28,6 +28,9 @@
 //   airfall    killed up in the air by anything that needs him on the ground for it (the lava, the steam, the
 //              shock, the ice, a bird's beak...) or by nothing in particular: he drops out of the air, limp and
 //              tumbling, to the floor, and bursts on it
+//   vaporized  the finale alien's beam: lit up in its pink, then gone a pixel at a time from the side it came in, the
+//              bits blowing off and up; left, his boots (smoking) on a heap of ash, and the President's medal
+//              clattering down onto it
 //   fall_moto  (the kill cam) off the chopper into the trench across the road: into the crude, and the chopper in after
 //              him, on top of him; its pipes light the lot
 
@@ -40,8 +43,11 @@ import { PARTICLE_PALETTES } from '../../constants';
 import { floorTopAt } from '../core/terrain';
 import { getStageLayout } from '../stages';
 import { say, MEATHEAD_VOICE } from '../platform/speech';
+import { getFinale } from '../stages/finale/state';
 
 export type MeatheadDeathKind = 'burnt' | 'lava' | 'boiled' | 'fried' | 'frozen' | 'buried' | 'flattened' | 'dissolved' | 'roadkill' | 'overdose' | 'impaled' | 'cactus' | 'plucked' | 'spiked'
+  // the finale alien's beam
+  | 'vaporized'
   // the falls (the kill cam at the bottom: see render/player/fallCams)
   | 'fall_crevasse' | 'fall_trench' | 'fall_alley' | 'fall_crude' | 'fall_arroyo' | 'fall_rocks' | 'fall_dungeon' | 'fall_moto'
   // killed on something he's riding
@@ -78,6 +84,8 @@ export interface MeatheadDeath {
   /** (airfall) When he hits the floor (frames in), and whether he's on fire on the way down. */
   hitAt?: number;
   burning?: boolean;
+  /** (vaporized) Which way the beam was going (he goes from the side it came in). */
+  dir?: number;
 }
 
 /** The things he rides (the boat's the stage's own: see hector/chase). */
@@ -86,7 +94,7 @@ export type Ride = 'bike' | 'moto' | 'jetski' | 'ski';
 /** How long each one plays before the death screen goes up. */
 export const MEATHEAD_DEATH_FRAMES: Record<MeatheadDeathKind, number> = {
   burnt: 95, lava: 125, boiled: 85, fried: 85, frozen: 80, buried: 95, flattened: 70, dissolved: 110, roadkill: 80, overdose: 120,
-  impaled: 80, cactus: 80, plucked: 150, spiked: 100, crash: 150, fall_moto: 150, airfall: 60,
+  impaled: 80, cactus: 80, plucked: 150, spiked: 100, crash: 150, fall_moto: 150, airfall: 60, vaporized: 120,
   space: 360, eye_fall: 190, fall_crevasse: 110, fall_trench: 100, fall_alley: 120, fall_crude: 150, fall_arroyo: 130, fall_rocks: 120, fall_dungeon: 110,
 };
 
@@ -106,6 +114,22 @@ const BY_SOURCE: Record<string, MeatheadDeathKind> = {
   traffic: 'roadkill', truck: 'roadkill', truck_charge: 'roadkill', road_car: 'roadkill', lowrider: 'roadkill', pickup: 'roadkill',
   cruiser: 'roadkill', chopper: 'roadkill', moose: 'roadkill', longhorn: 'roadkill', floating_car: 'roadkill',
   needle: 'overdose', powder_blast: 'overdose', meth_barrel: 'overdose',
+  alien_laser: 'vaporized',
+};
+
+/** (vaporized) Held lit up in the beam, then going (frames); and when the medal comes off his chest. */
+export const MH_VAPOR_HOLD = 10, MH_VAPOR_GO = 44, MH_MEDAL_DROP = 30;
+/** (vaporized) How far through going he is (0..1). */
+export const mhVaporK = (t: number) => Math.max(0, Math.min(1, (t - MH_VAPOR_HOLD) / MH_VAPOR_GO));
+/** (vaporized) Where the medal's got to: how far below his chest it's fallen (to the floor at `drop`), with one bounce. */
+export const medalFall = (t: number, drop: number) => {
+  const s = t - MH_MEDAL_DROP;
+  if (s <= 0) return 0;
+  const g = 0.6, hit = Math.sqrt((2 * drop) / g);
+  if (s < hit) return 0.5 * g * s * s;
+  const b = s - hit, up = g * hit * 0.3;
+  const y = up * b - 0.5 * g * b * b;
+  return y > 0 ? drop - y : drop;
 };
 
 /** What's just killed him, if it's got a death of its own. */
@@ -143,7 +167,10 @@ export const startMeatheadDeath = (ctx: FrameContext): boolean => {
   if (!kind) return false;
   const snow = state.lastHurt?.source === 'avalanche' || state.lastHurt?.source === 'snowball';
   const bird = kind === 'plucked' ? state.enemies.find(e => e.id === state.pluckedBy!.id) : undefined;
-  state.meatheadDeath = { kind, x, y, facing: p.facing === -1 ? -1 : 1, snow, impale: state.impaleAt, floor: kind === 'impaled' ? (floorTopAt(state.blocks, x, y, 0) ?? y) : undefined,
+  // (vaporized: from the side the beam came in, and what's left of him drops to the floor)
+  const beam = kind === 'vaporized' ? getFinale(state)?.beam : undefined;
+  state.meatheadDeath = { kind, x, y, facing: p.facing === -1 ? -1 : 1, snow, impale: state.impaleAt, floor: kind === 'impaled' || kind === 'vaporized' ? (floorTopAt(state.blocks, x, y, 0) ?? y) : undefined,
+    dir: kind === 'vaporized' ? (beam ? Math.sign(beam.dx) || 1 : -p.facing) : undefined,
     bird: bird ? { id: bird.id, x: bird.pos.x, y: bird.pos.y } : undefined, ride: kind === 'crash' ? ride : undefined };
   state.deathScene = { t: 0, len: MEATHEAD_DEATH_FRAMES[kind], voiced: false };
   return true;
@@ -152,7 +179,7 @@ export const startMeatheadDeath = (ctx: FrameContext): boolean => {
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 const GORE = PARTICLE_PALETTES.GORE;
 /** The deaths that work up in the air as they are (the rest, up there, are an airfall). */
-const AIR_OK = new Set<MeatheadDeathKind>(['roadkill', 'overdose', 'impaled', 'cactus', 'space', 'eye_fall', 'spiked']);
+const AIR_OK = new Set<MeatheadDeathKind>(['roadkill', 'overdose', 'impaled', 'cactus', 'space', 'eye_fall', 'spiked', 'vaporized']);
 /** (airfall) How fast he drops. */
 export const AIR_G = 0.7;
 /** (airfall) Where he is, t frames in (his feet), till he hits. */
@@ -231,6 +258,24 @@ export const tickMeatheadDeath = (ctx: FrameContext, d: MeatheadDeath, t: number
       if (t % 3 === 0) P.push({ pos: { x: d.x + rnd(-24, 24), y: d.y - rnd(0, 30) }, vel: { x: rnd(-0.4, 0.4), y: rnd(-1.6, -0.6) }, life: 26, color: t % 2 ? 'rgba(163, 230, 53, 0.7)' : 'rgba(132, 204, 22, 0.5)', size: rnd(4, 9) });
       if (t === 86) playSound('glug', 0.8, -6);
       break;
+    case 'vaporized': {
+      if (t === 1) { playSound('alienBeam', 1, 4); shakeScreen(state, 10, 5); }
+      if (t === MH_VAPOR_HOLD) playSound('ignite', 0.9, 8);
+      const k = mhVaporK(t), dir = (d.dir ?? 1) < 0 ? -1 : 1;
+      // (the bits off where he's going, blown on the way the beam went and up: three a frame at most)
+      if (k > 0 && k < 1) {
+        const fx = dir > 0 ? d.x - 22 + 44 * k : d.x + 22 - 44 * k;
+        for (let i = 0; i < 3; i++) P.push({ pos: { x: fx + rnd(-3, 3), y: d.y - rnd(8, 66) }, vel: { x: dir * rnd(1, 3.5), y: rnd(-2.2, -0.5) }, life: rnd(20, 38), color: ['#FF8CE4', '#FFFFFF', '#EC44C4', '#A8A29E', '#FFD8F6', '#F5D0B5'][(t + i) % 6], size: rnd(2, 4) });
+        if (t % 6 === 0) playSound('taser', 0.25, 8);
+      }
+      // (the medal hitting the floor: a clink, and another on the bounce)
+      const drop = (d.floor ?? d.y) - (d.y - 40);
+      const fallT = Math.sqrt((2 * drop) / 0.6), hit = MH_MEDAL_DROP + Math.round(fallT);
+      if (t === hit || t === hit + Math.round(fallT * 0.6)) playSound('clink', 0.9, 4);
+      // (smoke off the boots)
+      if (k >= 1 && t % 6 === 0) P.push({ pos: { x: d.x + rnd(-8, 8), y: (d.floor ?? d.y) - 8 }, vel: { x: rnd(-0.3, 0.3), y: rnd(-1.2, -0.7) }, life: 38, color: 'rgba(87, 83, 78, 0.55)', size: rnd(5, 9) });
+      break;
+    }
     case 'roadkill':
       if (t === 1) {
         playSound('crash', 1); playSound('crunch', 1); shakeScreen(state, 18, 9);

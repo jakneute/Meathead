@@ -7,7 +7,7 @@ import { eye } from '../npc/kit';
 import { pixelBlob } from '../pixelArt';
 import type { Enemy } from '../../../types';
 import { GameState } from '../../core/state';
-import { EnemyDeath, DEATH_FRAMES } from '../../enemies/deaths';
+import { EnemyDeath, DEATH_FRAMES, vaporK, VAPOR_HOLD, VAPOR_GO } from '../../enemies/deaths';
 import { drawKindCorpse, kindHead, isHumanoidKind, isLyingKind, KIND_HEAD, skeletonOf } from './index';
 import { drawBloodPool } from '../spatter';
 
@@ -45,6 +45,7 @@ export const drawEnemyDeaths = (ctx: Ctx, state: GameState) => {
         break;
       }
       case 'headshot': drawHeadshot(ctx, d, state); break;
+      case 'vaporized': drawVaporized(ctx, d, state.frame, state); break;
     }
     ctx.restore();
   }
@@ -120,6 +121,90 @@ const drawBodyMasked = (ctx: Ctx, d: EnemyDeath, state: GameState, o: Parameters
   g.globalCompositeOperation = 'source-over';
   g.setTransform(1, 0, 0, 1, 0, 0);
   ctx.drawImage(maskBuf, 0, 0, cw, ch, x0, y0, bw, bh);
+};
+
+/** (vaporized) The cell size it goes in (chunky: SNES pixels), and how ragged the edge it's going along is. */
+const VCELL = 3, VRAG = 9;
+
+/**
+ * Vaporized by the alien's beam: held a moment lit up in its pink (flickering white), then gone a cell at a time
+ * from the side the beam came in, a white-hot edge running across it; the bits blow off as particles (game side).
+ * Left: a scorch mark and a little heap of ash in grey bands, his shoes (charred, smoking) and his sunglasses on top.
+ * Killed in the air, what's left of him (the shoes) drops to the floor. The body's drawn once into the mask and eaten
+ * away there, not drawn bit by bit.
+ */
+const drawVaporized = (ctx: Ctx, d: EnemyDeath, frame: number, state: GameState) => {
+  const { x, y, w, h, t } = d;
+  const k = vaporK(t), dir = d.vx < 0 ? -1 : 1;
+  const seed = seedOf(d), cx = x + w / 2, floor = d.floorY;
+  const gone = t > VAPOR_HOLD + VAPOR_GO;
+  // (dropping, what's left of one done in mid-air)
+  const air = floor - (y + h);
+  const fall = air > 2 && gone ? Math.min(air, 0.5 * 0.8 * (t - VAPOR_HOLD - VAPOR_GO) ** 2) : 0;
+  const end = fadeOut(d, 18);
+  // (going at the end: stepped, never a smooth fade)
+  ctx.globalAlpha = end >= 1 ? 1 : end > 0.5 ? 0.66 : 0.33;
+  // The scorch mark and the heap of ash, as he goes (on the floor under him, however high he was)
+  const pile = clamp01(k * 1.3);
+  if (pile > 0 && (air <= 2 || fall >= air)) {
+    ctx.fillStyle = 'rgba(28, 25, 23, 0.5)'; ctx.beginPath(); ctx.ellipse(Math.round(cx), floor - 1, Math.round(w * 0.75), 4, 0, 0, Math.PI * 2); ctx.fill();
+    const ph = Math.round(9 * pile), pw = Math.round(w * 0.85);
+    const bands = ['#44403C', '#57534E', '#78716C', '#A8A29E'];
+    bands.forEach((c, i) => {
+      const bh = ph * (1 - i / bands.length), bw = pw * (1 - i * 0.18);
+      if (bh < 1) return;
+      ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(Math.round(cx), floor - 1, Math.round(bw / 2), Math.round(bh), 0, Math.PI, 0); ctx.fill();
+    });
+    // (cinders winking in it)
+    for (let i = 0; i < 4; i++) if ((frame + i * 5) % 16 < 8) { ctx.fillStyle = i % 2 ? '#F97316' : '#FF8CE4'; ctx.fillRect(Math.round(cx - pw * 0.35 + hash(seed + i) * pw * 0.7), floor - 2 - Math.round(hash(seed + i * 3) * ph * 0.6), 1, 1); }
+  }
+  // The body, being eaten away (the shoes kept: the bottom of it, charred)
+  {
+    const shoesFrom = y + h + 2;
+    const flick = t < VAPOR_HOLD ? (frame % 2 ? 0.75 : 0.5) : 0.35;
+    ctx.save();
+    if (fall) ctx.translate(0, fall);
+    drawBodyMasked(ctx, d, state, {}, g => {
+      // (lit up in the beam: its green over all of it, flickering white while it's held)
+      g.fillStyle = t < VAPOR_HOLD && frame % 3 === 0 ? `rgba(255, 255, 255, ${flick})` : `rgba(255, 140, 228, ${flick})`;
+      g.fillRect(x - w, y - h, w * 3, h * 3);
+      if (k <= 0) return;
+      // Eaten away: every cell the ragged edge has passed goes; the cells just ahead of it white-hot
+      const x0 = x - 12, x1 = x + w + 12;
+      const hot: [number, number][] = [];
+      g.globalCompositeOperation = 'destination-out';
+      g.fillStyle = '#000';
+      for (let cy = y - 24; cy < shoesFrom; cy += VCELL) {
+        for (let cxx = x0; cxx < x1; cxx += VCELL) {
+          const along = dir > 0 ? cxx - x0 : x1 - cxx;
+          const edge = (x1 - x0) * k + (hash(seed + cxx * 0.37 + cy * 1.31) - 0.5) * VRAG;
+          if (along < edge) g.fillRect(cxx, cy, VCELL, VCELL);
+          else if (along < edge + VCELL * 2) hot.push([cxx, cy]);
+        }
+      }
+      g.globalCompositeOperation = 'source-atop';
+      for (const [hx, hy] of hot) { g.fillStyle = (hx + hy) % 2 ? '#FFFFFF' : '#FFD8F6'; g.fillRect(hx, hy, VCELL, VCELL); }
+    });
+    ctx.restore();
+  }
+  // His shoes, left standing where he stood (charred, a lit edge, a glint), and his sunglasses dropped on the heap
+  if (k > 0.6) {
+    const f1 = d.sprite?.facing ?? 1, sy = Math.round(y + h + fall) - 4;
+    for (const off of [-7, 5]) {
+      const sx = Math.round(cx + off * f1 - (f1 < 0 ? 9 : 0));
+      ctx.fillStyle = '#0C0A09'; ctx.fillRect(sx, sy, 9, 4); ctx.fillRect(sx + (f1 > 0 ? 6 : 0), sy + 1, 3, 3);
+      ctx.fillStyle = '#57534E'; ctx.fillRect(sx + 1, sy, 6, 1);
+      ctx.fillStyle = '#F97316'; if ((frame + off) % 12 < 6) ctx.fillRect(sx + 2, sy + 1, 1, 1);
+      ctx.fillStyle = '#FFFFFF'; ctx.fillRect(sx + (f1 > 0 ? 7 : 1), sy, 1, 1);
+    }
+  }
+  if (k > 0.55 && (air <= 2 || fall >= air)) {
+    const gx = Math.round(cx - (d.sprite?.facing ?? 1) * 14 - 7), gy = floor - Math.round(5 * pile) - 3;
+    ctx.fillStyle = '#0A0A0A'; ctx.fillRect(gx, gy, 6, 4); ctx.fillRect(gx + 8, gy, 6, 4); ctx.fillRect(gx + 5, gy, 4, 1);
+    ctx.fillStyle = '#44403C'; ctx.fillRect(gx, gy, 6, 1); ctx.fillRect(gx + 8, gy, 6, 1);
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(gx + 1, gy + 1, 1, 1); ctx.fillRect(gx + 9, gy + 1, 1, 1);
+  }
+  ctx.globalAlpha = 1;
 };
 
 /**

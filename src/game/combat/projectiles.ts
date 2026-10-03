@@ -27,6 +27,8 @@ import { shakeScreen, GameState } from '../core/state';
 import { getStageLayout } from '../stages';
 import { shieldFacing } from '../enemies/kinds';
 import { isMidBoss } from './midBoss';
+import { inFinale, FINALE_FREEZE_TIME, PITCH_SPEED, PITCH_HOMING, FINALE_SLUDGE_LINGER, FINALE_SLICK_SPREAD, FINALE_SLICK_ALIEN_EVERY, FINALE_SLICK_ALIEN_DAMAGE } from './finaleBuffs';
+import { ROOM_L, ROOM_R, FLOOR } from '../stages/finale/geometry';
 import { ernieQuake } from '../bosses/ernie';
 import { hurtTaken, gritty } from '../core/resist';
 
@@ -83,6 +85,7 @@ export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
 
   // Player shotgun pellets and boulders use the GameMaker version's physics
   if (p.owner === 'player' && p.isIce) return updatePellet(ctx, p);
+  if (p.owner === 'player' && p.pitched) return updatePitchedRock(ctx, p);
   if (p.owner === 'player' && p.isBoulder) return updatePlayerBoulder(ctx, p);
 
   if (p.thrown) return updateThrown(ctx, p);
@@ -250,9 +253,11 @@ const updatePhysicsProjectile = (ctx: FrameContext, p: Projectile): boolean => {
       if (p.isSludge) {
         // Splat into a lingering puddle
         p.isLingering = true;
-        p.life = SLUDGE_LINGER_DURATION;
+        // (the finale: wider puddles that lie there a good while, running together into one slick: see spreadSlick)
+        const slick = p.owner === 'player' && inFinale(ctx.stageId);
+        p.life = slick ? FINALE_SLUDGE_LINGER : SLUDGE_LINGER_DURATION;
         p.vel = { x: 0, y: 0 };
-        p.width = 70 + Math.random() * 30;
+        p.width = slick ? 110 + Math.random() * 40 : 70 + Math.random() * 30;
         p.height = 15 + Math.random() * 10;
         p.pos.y = b.y - p.height;
         p.pos.x -= p.width / 2;
@@ -273,12 +278,14 @@ const updatePhysicsProjectile = (ctx: FrameContext, p: Projectile): boolean => {
   }
   if (!p.isLingering) p.pos.x += p.vel.x;
 
+  if (p.isSludge && p.isLingering && p.owner === 'player' && inFinale(ctx.stageId) && !spreadSlick(ctx, p)) return false;
   if (p.isSludge && p.isLingering) {
     p.life!--;
     // Only Meathead's sludge hurts enemies (Tommy's own puke puddles used to hurt him)
     if (p.owner === 'player') damageEnemiesInSludgePuddle(ctx, p);
     if (state.frame % 4 === 0) {
-      state.particles.push({ pos: { x: p.pos.x + Math.random() * p.width, y: p.pos.y + p.height / 2 }, vel: { x: (Math.random() - 0.5) * 2, y: -Math.random() * 6 }, life: 25, color: '#ADFF2F', size: 6 + Math.random() * 8 });
+      // (a slick bubbles all along it: one splash for every puddle's worth of it, so it's no busier than the puddles were)
+      for (let k = Math.ceil(p.width / 120); k > 0; k--) state.particles.push({ pos: { x: p.pos.x + Math.random() * p.width, y: p.pos.y + p.height / 2 }, vel: { x: (Math.random() - 0.5) * 2, y: -Math.random() * 6 }, life: 25, color: '#ADFF2F', size: 6 + Math.random() * 8 });
     }
     if (p.life! <= 0) return false;
   }
@@ -392,6 +399,105 @@ const spawnIceMist = (state: GameState, p: Projectile, count: number) => {
 };
 
 /**
+ * The finale's sludge, lying on the floor: puddles run together into one slick (the newer folded into the older), and
+ * the slick creeps out along the floor each way to the walls. False if this one's been folded into another (it's
+ * gone). Up on a riser it just lies there, like any puddle.
+ */
+const spreadSlick = (ctx: FrameContext, p: Projectile): boolean => {
+  const { state } = ctx;
+  p.slick ??= false;
+  const base = p.pos.y + p.height;
+  // (up on a riser it just lies there; out through a door, past the walls, it's gone as quick as any puddle)
+  if (p.pos.x + p.width <= ROOM_L || p.pos.x >= ROOM_R) { p.life = Math.min(p.life ?? 0, SLUDGE_LINGER_DURATION); return true; }
+  if (base < FLOOR - 4) return true;
+  // (creeping out to the walls)
+  const x1 = Math.max(ROOM_L, p.pos.x - FINALE_SLICK_SPREAD), x2 = Math.min(ROOM_R, p.pos.x + p.width + FINALE_SLICK_SPREAD);
+  p.pos.x = x1; p.width = x2 - x1;
+  // (run into another: the two are one)
+  for (const q of state.projectiles) {
+    if (q === p || !q.isSludge || !q.isLingering || q.owner !== 'player' || q.health <= 0 || (q.life ?? 0) <= 0) continue;
+    if (Math.abs(q.pos.y + q.height - base) > 4 || q.pos.x > x2 + 6 || q.pos.x + q.width < x1 - 6) continue;
+    const a = Math.min(q.pos.x, x1), b = Math.max(q.pos.x + q.width, x2);
+    q.pos.x = a; q.width = b - a;
+    q.height = Math.max(q.height, p.height); q.pos.y = base - q.height;
+    q.life = Math.max(q.life ?? 0, p.life ?? 0);
+    q.slick = true;
+    // (gone: and not something for another puddle to run into, the rest of this frame)
+    p.health = 0;
+    return false;
+  }
+  return true;
+};
+
+/**
+ * The finale's pitched boulder: a fastball, homing in on the alien the whole way (fast, flat, end over end). Anyone
+ * who happens to be in its way, on foot or up on a jetpack, is just dead (it doesn't slow down for them); it ends in
+ * the alien, or a wall if he's gone. The hit on him is the boulder's usual (see alien.ts: the damage, the stun).
+ */
+const updatePitchedRock = (ctx: FrameContext, p: Projectile): boolean => {
+  const { state } = ctx;
+  p.life = (p.life ?? 0) - 1;
+  const alien = state.enemies.find(e => e.type === 'boss' && e.health > 0 && !e.isBlownAway);
+  if (alien) {
+    const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
+    const dx = alien.pos.x + alien.width / 2 - cx, dy = alien.pos.y + alien.height / 2 - cy, d = Math.hypot(dx, dy) || 1;
+    p.vel.x += (dx / d * PITCH_SPEED - p.vel.x) * PITCH_HOMING;
+    p.vel.y += (dy / d * PITCH_SPEED - p.vel.y) * PITCH_HOMING;
+    const v = Math.hypot(p.vel.x, p.vel.y) || 1;
+    p.vel.x *= PITCH_SPEED / v; p.vel.y *= PITCH_SPEED / v;
+  }
+  p.pos.x += p.vel.x; p.pos.y += p.vel.y;
+  p.rotation = (p.rotation || 0) + 0.55 * (Math.sign(p.vel.x) || 1);
+  // (grit and chips streaming off it)
+  if (state.frame % 2 === 0) state.particles.push({ pos: { x: p.pos.x + p.width / 2 - p.vel.x * 0.6, y: p.pos.y + p.height / 2 - p.vel.y * 0.6 }, vel: { x: -p.vel.x * 0.08 + (Math.random() - 0.5), y: -p.vel.y * 0.08 + (Math.random() - 0.5) }, life: 10 + Math.random() * 6, color: Math.random() < 0.5 ? '#A8A29E' : '#78716C', size: 2 + Math.random() * 2 });
+  const box = boundsOf(p);
+  for (const e of state.enemies) {
+    if (e.type === 'boss' || e.health <= 0 || e.isBlownAway || e.innocent || !rectsOverlap(box, boundsOf(e))) continue;
+    wrongPlace(ctx, e, p);
+  }
+  if (alien && rectsOverlap(box, boundsOf(alien))) {
+    hitBoss(ctx, alien, 'BOULDER', { facing: p.vel.x > 0 ? 1 : -1, p });
+    pitchImpact(ctx, p);
+    return false;
+  }
+  if (p.life <= 0 || state.blocks.some(b => b.type !== 'pit' && !b.oneWay && rectsOverlap(box, b))) { shatterBoulder(ctx, p); return false; }
+  return true;
+};
+
+/** An agent who happened to be where the fastball was going: dead on the spot, sent flying, in pieces. Nobody meant it
+ * (Meathead was throwing at the alien): no kill line from him, just the callout. */
+const wrongPlace = (ctx: FrameContext, e: Enemy, p: Projectile) => {
+  const { state, fx } = ctx;
+  const dir = Math.sign(p.vel.x) || 1;
+  e.health = 0;
+  e.isBlownAway = true;
+  e.frozenTimer = 0;
+  e.vel = { x: p.vel.x * 0.55, y: Math.min(-9, p.vel.y * 0.5 - 6) };
+  fx.spawnDeathShower(e.pos, dir, 2.2);
+  fx.spawnExplosion({ x: e.pos.x + e.width / 2, y: e.pos.y + e.height * 0.4 }, '#8B0000', 14, dir * 10, 14);
+  fx.spawnKillCallout(e, 'wrongplace');
+  playSound('crunch'); playSound('splat', 0.8);
+  shakeScreen(state, 8, 6);
+};
+
+/** The fastball landing in the alien: the crack of it, chips and dust bursting off him, a ring of air, a big shake. */
+const pitchImpact = (ctx: FrameContext, p: Projectile) => {
+  const { state, fx } = ctx;
+  const at = { x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 };
+  const back = -(Math.sign(p.vel.x) || 1);
+  fx.spawnRockShatter(p.pos);
+  // (a ring of white, then the chips and dust, back off him the way it came)
+  for (let i = 0; i < 16; i++) {
+    const a = (i / 16) * Math.PI * 2;
+    state.particles.push({ pos: { ...at }, vel: { x: Math.cos(a) * 7, y: Math.sin(a) * 7 }, life: 7, color: i % 2 ? '#FFFFFF' : '#FDE68A', size: 3 });
+  }
+  for (let i = 0; i < 14; i++) state.particles.push({ pos: { ...at }, vel: { x: back * (2 + Math.random() * 8), y: -2 - Math.random() * 6 }, life: 22 + Math.random() * 18, color: ['#57534E', '#78716C', '#A8A29E', '#D6D3D1'][i % 4], size: 2 + Math.random() * 4, grav: 0.35 });
+  for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: at.x + (Math.random() - 0.5) * 20, y: at.y + (Math.random() - 0.5) * 20 }, vel: { x: back * Math.random() * 2, y: -0.5 - Math.random() }, life: 30 + Math.random() * 20, color: 'rgba(214, 211, 209, 0.55)', size: 8 + Math.random() * 8 });
+  playSound('crack', 1, -4); playSound('punch', 1, -8); playSound('thud', 1, -6);
+  shakeScreen(state, 16, 12);
+};
+
+/**
  * GML oBoulderBullet: a heavy ball. Gravity pulls it to the floor where it
  * rolls; walking into it nudges it and a charge/divekick punts it; it breaks
  * against walls and knocks into other boulders like billiard balls.
@@ -465,6 +571,16 @@ const damageEnemiesInSludgePuddle = (ctx: FrameContext, p: Projectile) => {
     if (!inPuddle) continue;
     if (en.enemyType === 'flyer') en.sludgeTimer = SLUDGE_PULL_FRAMES; // keeps flyers pinned down
 
+    if (en.type === 'boss' && p.slick !== undefined && inFinale(stageId)) {
+      // The finale's slick under a grounded alien: it eats into him now and then (it doesn't ground him: only a glob
+      // does that), and it isn't used up by it
+      if (state.frame % FINALE_SLICK_ALIEN_EVERY !== 0 || en.sludgeTickFrame === state.frame) continue;
+      en.sludgeTickFrame = state.frame;
+      en.health -= FINALE_SLICK_ALIEN_DAMAGE;
+      fx.spawnDamageNumber(en.pos, FINALE_SLICK_ALIEN_DAMAGE, false, '#84CC16');
+      if (en.health <= 0) ctx.bossHelpers.killBoss(en, 0, false, 'SLUDGE');
+      continue;
+    }
     if (en.type === 'boss') {
       const onStandInSludge = getBossDef(stageId)?.onStandInSludge;
       if (onStandInSludge) { onStandInSludge(ctx, en); continue; }
@@ -570,7 +686,9 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
     // (except from overhead: a lobbed boulder, anything coming down on top of him, goes over the shield)
     // (coming down on him from above, or plunging steeply in: a boulder spiked down, say)
     const overhead = p.vel.y > 1.5 && (p.pos.y + p.height / 2 < enemy.pos.y + enemy.height * 0.45 || p.vel.y > Math.abs(p.vel.x) * 1.5);
-    if (enemy.enemyType === 'shield' && enemy.isShieldActive && hitsShieldSide && !overhead) {
+    // (the finale's needles go straight through a ballistic shield, into the man behind it)
+    const pierces = p.isDart && inFinale(ctx.stageId);
+    if (enemy.enemyType === 'shield' && enemy.isShieldActive && hitsShieldSide && !overhead && !pierces) {
       if (isBullet(p)) bulletSparks(ctx, p, boundsOf(enemy));
       if (p.isSludge) {
         // Splats against the shield and runs down it into a puddle at his feet
@@ -639,7 +757,8 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
       // Oiled enemies go flying from any hit (light ones furthest)
       pushEnemy(enemy, p.vel.x * OIL_ROCKET_OILED_PUSHBACK_MULT, -8, 30);
     }
-    if (p.isIce) { if (!wasFrozen) enemy.frozeAt = state.frame; enemy.frozenTimer = SHOTGUN_FREEZE_TIME; }
+    // (the finale: frozen solid a good while longer)
+    if (p.isIce) { if (!wasFrozen) enemy.frozeAt = state.frame; enemy.frozenTimer = inFinale(ctx.stageId) ? FINALE_FREEZE_TIME : SHOTGUN_FREEZE_TIME; }
     fx.spawnDamageNumber(enemy.pos, p.damage, p.isBoulder);
     if (p.isIce) spawnIceMist(state, p, 8);
     if (isBullet(p) && enemy.health > 0 && !wasFrozen && !BLOODLESS.has(enemy.kind || '')) bulletBlood(ctx, p, enemy);

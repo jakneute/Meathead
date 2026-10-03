@@ -11,6 +11,14 @@ import { hitBoss, isWeakTo, getBossDef } from './registry';
 import { updateCorkedVent, ventTip, victorTsunamiHit, victorVentBlown } from './victor';
 import { killPlayer, landPlayer } from '../player/player';
 import { isMidBoss, midBossDamage, JUNKIE_WAVE_RESIST } from '../combat/midBoss';
+import { inFinale } from '../combat/finaleBuffs';
+import { ROOM_TOP } from '../stages/finale/geometry';
+
+/** The top of the wave, `dist` along from where it started: it rises full height and shrinks as it goes (lifted with
+ * where he fired it from); the finale's is floor to ceiling, the full height of the room, and stays it all the way
+ * across (its crest curling just under the ceiling, clear of the boss's bar up top). */
+export const tsunamiTop = (state: FrameContext['state'], dist: number) =>
+  inFinale(state.stageId) ? ROOM_TOP + 24 : Math.pow(Math.min(1.0, dist / (CANVAS_WIDTH * 1.25)), 0.6) * 560 + (state.tsunamiOffsetY || 0);
 
 /** The player's tsunami sweeps across the screen, killing regular enemies outright. */
 export const updateTsunami = (ctx: FrameContext) => {
@@ -22,7 +30,8 @@ export const updateTsunami = (ctx: FrameContext) => {
   const progress = dist / (CANVAS_WIDTH * 1.5);
   // (built for a flat floor, then lifted to the height he fired it from)
   const offsetY = state.tsunamiOffsetY || 0;
-  const tsunamiTopY = Math.pow(Math.min(1.0, dist / (CANVAS_WIDTH * 1.25)), 0.6) * 560 + offsetY;
+  // (the finale: the full height of the screen, top to bottom, the whole way across: see tsunamiTop)
+  const tsunamiTopY = tsunamiTop(state, dist);
   // (what it looks like: render/fx/tsunami.ts, drawn from where it is and how tall)
 
   // Water hitting Victor's volcano vents turns them into steam explosions

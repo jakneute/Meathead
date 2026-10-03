@@ -37,6 +37,7 @@ import { submerged } from './kinds/victor';
 import { isMidBoss } from '../combat/midBoss';
 import { isBeingTased } from '../combat/statusEffects';
 import { hurtTaken, gritty } from '../core/resist';
+import { inFinale } from '../combat/finaleBuffs';
 
 /** On the screen right now (the view as drawn, pulled back or pushed in included). */
 const onCamera = (state: FrameContext['state'], e: Enemy) => {
@@ -95,7 +96,9 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
   if (e.sludgeTimer && e.sludgeTimer > 0) e.sludgeTimer--;
   if (e.type !== 'boss') {
     // (killed against it: gone, unless he's a body sliding down it now)
-    if (slamIntoWalls(ctx, e, shoveSpeed)) return !!e.isBlownAway;
+    // (a jetpack man coming in through his window, or going out of it, passes through the wall there)
+    const throughWindow = e.kind === 'jetagent' && (e.aiState === 'enter' || e.aiState === 'flee');
+    if (!throughWindow && slamIntoWalls(ctx, e, shoveSpeed)) return !!e.isBlownAway;
     if (!e.isOiled && isBeingShoved(e) && (!e.enemyCollisionCooldown || e.enemyCollisionCooldown <= 0)) {
       resolveShoveCollision(ctx, e, enemies);
     }
@@ -182,6 +185,10 @@ const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
  * down if there isn't one, and splats on the ground. Anything it plows into on
  * the way takes a massive hit. Returns false once it's gone.
  */
+/** The finale's overdose: how long it kicks up off the floor before it bends round onto the alien, how fast it goes
+ * at him, and how hard it steers. */
+const OVERDOSE_HOME_AFTER = 7, OVERDOSE_HOME_SPEED = 22, OVERDOSE_HOME_STEER = 0.3;
+
 const flyOverdosedBody = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolean => {
   const { state, fx } = ctx;
   const mid = (o: Enemy) => ({ x: o.pos.x + o.width / 2, y: o.pos.y + o.height / 2 });
@@ -200,6 +207,33 @@ const flyOverdosedBody = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolea
     fx.spawnKillCallout(e, 'overdose');
     shakeScreen(state, 8);
     return false;
+  }
+
+  // The finale: an overdosed agent always ends up in the alien, whatever the angle (a beat of the usual kick up off the
+  // floor, then it bends round onto him and goes straight in; anyone in the way on the way gets it too)
+  const alien = inFinale(ctx.stageId) && bodiesHitBoss ? enemies.find(o => o.type === 'boss' && alive(o)) : undefined;
+  if (alien && !hitIds.includes(alien.id) && e.overdosePhase !== 'drop') {
+    e.overdosePhase = 'home';
+    const t = mid(alien), dx = t.x - c.x, dy = t.y - c.y, d = Math.hypot(dx, dy) || 1;
+    if (e.overdoseFrames < OVERDOSE_HOME_AFTER) e.vel.y += OVERDOSE_GRAVITY;
+    else {
+      e.vel.x += (dx / d * OVERDOSE_HOME_SPEED - e.vel.x) * OVERDOSE_HOME_STEER;
+      e.vel.y += (dy / d * OVERDOSE_HOME_SPEED - e.vel.y) * OVERDOSE_HOME_STEER;
+    }
+    e.pos.x += e.vel.x; e.pos.y += e.vel.y;
+    e.rotation = (e.rotation || 0) + 0.3;
+    if (state.frame % 2 === 0) state.particles.push({ pos: { ...c }, vel: { x: -e.vel.x * 0.1, y: -e.vel.y * 0.1 }, life: 14, color: Math.random() < 0.5 ? '#E879F9' : '#F0ABFC', size: 2 + Math.random() * 3 });
+    const box = boundsOf(e);
+    for (const o of enemies) {
+      if (!alive(o) || o.hyper || hitIds.includes(o.id) || !rectsOverlap(box, boundsOf(o))) continue;
+      hitIds.push(o.id);
+      if (o.type === 'boss') { bodyIntoBoss(ctx, e, o, OVERDOSE_HIT_DAMAGE); e.overdosePhase = 'drop'; continue; }
+      o.health -= OVERDOSE_HIT_DAMAGE;
+      fx.spawnDamageNumber(o.pos, OVERDOSE_HIT_DAMAGE, true);
+      fx.spawnExplosion(mid(o), '#E879F9', 14, 0, 10);
+      if (o.health <= 0) { fx.blowAwayEnemy(o, { x: e.vel.x * 0.7, y: Math.min(-8, e.vel.y * 0.7) }, 'dart_kill', Math.sign(e.vel.x)); fx.spawnKillCallout(o, 'contact'); }
+    }
+    return true;
   }
 
   if (e.overdosePhase === 'rise') {

@@ -15,7 +15,7 @@ import { respawn, getStartX } from './level';
 import { updateSewerNuke } from '../scenes/sewerNuke';
 import { updateEnemyDeaths } from '../enemies/deaths';
 import { updateVolcanoFinale } from '../scenes/volcanoFinale';
-import { calmPlayer, DEFAULT_SHAKE, shakeScreen, BOSS_FALL, STAIN_FRAMES, SMEAR_FRAMES, BLAST_FRAMES } from './state';
+import { calmPlayer, DEFAULT_SHAKE, shakeScreen, BOSS_FALL, STAIN_FRAMES, SMEAR_FRAMES, BLAST_FRAMES, OIL_SPLASH_FRAMES } from './state';
 import { playSound } from '../platform/audio';
 import { LEVEL_INTRO_STYLE } from '../../constants';
 import { updateBarfStream, updateFlameSegments } from '../combat/weapons';
@@ -78,7 +78,7 @@ export const stepGame = (ctx: FrameContext, status: GameStatus, controls: Contro
 const tickBlasts = (state: FrameContext['state']) => {
   if (!state.blasts?.length) return;
   for (const b of state.blasts) b.t++;
-  state.blasts = state.blasts.filter(b => b.t < BLAST_FRAMES);
+  state.blasts = state.blasts.filter(b => b.t < (b.kind === 'oil' ? OIL_SPLASH_FRAMES : BLAST_FRAMES));
 };
 
 const moveLooseParticles = (ctx: FrameContext) => {

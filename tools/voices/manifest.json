@@ -86,6 +86,11 @@
  },
  {
   "voice": "announcer",
+  "text": "ATOMIZED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "AVALANCHED!",
   "from": "KILL_CALLOUTS"
  },
@@ -102,6 +107,11 @@
  {
   "voice": "announcer",
   "text": "BARFED ON!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "BEANED!",
   "from": "KILL_CALLOUTS"
  },
  {
@@ -286,6 +296,11 @@
  },
  {
   "voice": "announcer",
+  "text": "DISINTEGRATED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "DISQUALIFIED! PERMANENTLY!",
   "from": "KILL_CALLOUTS"
  },
@@ -328,6 +343,11 @@
   "voice": "announcer",
   "text": "DUNKED!",
   "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "DUSTED!",
+  "from": "KILL_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -532,6 +552,11 @@
  {
   "voice": "announcer",
   "text": "ILLEGAL! BEAUTIFUL!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "IN THE WAY!",
   "from": "KILL_CALLOUTS"
  },
  {
@@ -1257,6 +1282,16 @@
  {
   "voice": "announcer",
   "text": "WRECKED!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "WRONG PLACE, WRONG TIME!",
+  "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "WRONG PLACE!",
   "from": "KILL_CALLOUTS"
  },
  {
@@ -5366,6 +5401,11 @@
  },
  {
   "voice": "death",
+  "text": "DISINTEGRATED. THE BOOTS SURVIVED.",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "DISPERSED",
   "from": "content/deaths"
  },
@@ -5387,7 +5427,7 @@
  {
   "voice": "death",
   "text": "DISSOLVED IN TOXIC SLUDGE",
-  "from": "game/bosses/hazards.ts:202"
+  "from": "game/bosses/hazards.ts:211"
  },
  {
   "voice": "death",
@@ -5537,7 +5577,7 @@
  {
   "voice": "death",
   "text": "ELECTRIC BATH",
-  "from": "game/combat/weapons.ts:705"
+  "from": "game/combat/weapons.ts:808"
  },
  {
   "voice": "death",
@@ -6907,7 +6947,7 @@
  {
   "voice": "death",
   "text": "SHOCKING LACK OF JUDGMENT",
-  "from": "game/combat/weapons.ts:705"
+  "from": "game/combat/weapons.ts:808"
  },
  {
   "voice": "death",
@@ -7367,7 +7407,7 @@
  {
   "voice": "death",
   "text": "TASED YOURSELF IN THE POOL",
-  "from": "game/combat/weapons.ts:705"
+  "from": "game/combat/weapons.ts:808"
  },
  {
   "voice": "death",
@@ -7746,6 +7786,11 @@
  },
  {
   "voice": "death",
+  "text": "VAPORIZED. ALL THOSE GAINS, GONE.",
+  "from": "content/deaths"
+ },
+ {
+  "voice": "death",
   "text": "VENTED",
   "from": "content/deaths"
  },
@@ -7787,7 +7832,7 @@
  {
   "voice": "death",
   "text": "WATER CONDUCTS, GENIUS",
-  "from": "game/combat/weapons.ts:705"
+  "from": "game/combat/weapons.ts:808"
  },
  {
   "voice": "death",
@@ -10876,6 +10921,16 @@
  },
  {
   "voice": "meathead",
+  "text": "FLAMETHROWER GOES WALL TO WALL. ROCKS? I PITCH 'EM NOW.",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FLAMETHROWER GOES WALL TO WALL. ROCKS? I PITCH 'EM NOW. MY SHORTS? DON'T ASK.",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
   "text": "FLAMMABLE FAILURE",
   "from": "VULGARITIES"
  },
@@ -11307,7 +11362,7 @@
  {
   "voice": "meathead",
   "text": "GIVE THOSE BACK, YOU FEATHERED BASTARD!",
-  "from": "game/player/deathAnim.ts:276"
+  "from": "game/player/deathAnim.ts:321"
  },
  {
   "voice": "meathead",
@@ -11388,6 +11443,16 @@
   "voice": "meathead",
   "text": "GOOD THING I KEEP A STANDBY. THIS IS GOING ON MY PODCAST. THE WHOLE EPISODE.",
   "from": "game/stages/ernie/jetski.ts:136"
+ },
+ {
+  "voice": "meathead",
+  "text": "GOOD THING I SOUPED UP MY TOYS IN THE GARAGE. EVERYTHING GOES TO ELEVEN NOW.",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GOOD THING I SOUPED UP MY TOYS IN THE GARAGE. SHOULD'VE SOUPED UP MY PANTS.",
+  "from": "FINALE_LINES"
  },
  {
   "voice": "meathead",
@@ -12262,7 +12327,7 @@
  {
   "voice": "meathead",
   "text": "I BENCH FOUR HUNDRED AND I'M LOSING TO A BREEZE?!",
-  "from": "game/player/deathAnim.ts:325"
+  "from": "game/player/deathAnim.ts:370"
  },
  {
   "voice": "meathead",
@@ -12317,7 +12382,7 @@
  {
   "voice": "meathead",
   "text": "I CAN'T SEE MY GAINS!",
-  "from": "game/player/deathAnim.ts:276"
+  "from": "game/player/deathAnim.ts:321"
  },
  {
   "voice": "meathead",
@@ -12617,7 +12682,7 @@
  {
   "voice": "meathead",
   "text": "I WEIGH TWO-SIXTY! WHAT KIND OF WIND DOES THIS?!",
-  "from": "game/player/deathAnim.ts:325"
+  "from": "game/player/deathAnim.ts:370"
  },
  {
   "voice": "meathead",
@@ -13507,7 +13572,7 @@
  {
   "voice": "meathead",
   "text": "MY EYES! MY BEAUTIFUL EYES!",
-  "from": "game/player/deathAnim.ts:276"
+  "from": "game/player/deathAnim.ts:321"
  },
  {
   "voice": "meathead",
@@ -14913,6 +14978,16 @@
   "voice": "meathead",
   "text": "SCREECH ALL YOU WANT, YOU FEATHERED SHIV!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SCREW THE SUITS. EVERY POUND OF THIS IS FOR YOU, GREEN BOY.",
+  "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SCREW THE SUITS. THIS ONE'S ALL FOR YOU, GREEN BOY. SO'S THE SMELL.",
+  "from": "FINALE_LINES"
  },
  {
   "voice": "meathead",
@@ -16577,7 +16652,7 @@
  {
   "voice": "meathead",
   "text": "THIS ISN'T WIND! THIS IS A ROCKET ENGINE!",
-  "from": "game/player/deathAnim.ts:325"
+  "from": "game/player/deathAnim.ts:370"
  },
  {
   "voice": "meathead",
@@ -17197,7 +17272,7 @@
  {
   "voice": "meathead",
   "text": "WHO PUT A JET ENGINE IN A HURRICANE?!",
-  "from": "game/player/deathAnim.ts:325"
+  "from": "game/player/deathAnim.ts:370"
  },
  {
   "voice": "meathead",
@@ -17247,7 +17322,7 @@
  {
   "voice": "meathead",
   "text": "WHO TURNED OFF THE LIGHTS?!",
-  "from": "game/player/deathAnim.ts:276"
+  "from": "game/player/deathAnim.ts:321"
  },
  {
   "voice": "meathead",

@@ -104,6 +104,7 @@ const seedOf = (id: string) => { let h = 0; for (let i = 0; i < id.length; i++) 
 export const drawBoulder = (ctx: CanvasRenderingContext2D, p: Projectile, frame: number) => {
   const r = p.width / 2, cx = p.pos.x + r, cy = p.pos.y + p.height / 2;
   const pal = p.owner === 'player' ? PLAYER_ROCK : ERNIE_ROCK;
+  if (p.pitched) { drawFastball(ctx, p, frame, cx, cy, r, pal); return; }
   const onGround = Math.abs(p.vel.y) < 1;
   if (onGround) {
     // (its shadow, in two steps)
@@ -126,6 +127,32 @@ export const drawBoulder = (ctx: CanvasRenderingContext2D, p: Projectile, frame:
     ctx.globalAlpha = 1;
   }
   drawRock(ctx, cx, cy, r, p.pos.x / r, pal, seedOf(p.id));
+};
+
+/**
+ * The finale's pitched boulder: a fastball. Speed lines streaming off the back of it (hard 2px streaks in stepped
+ * bands, longest through the middle, flickering in length), a smear of its own colour just behind it, then the rock
+ * itself, spinning hard.
+ */
+const drawFastball = (ctx: CanvasRenderingContext2D, p: Projectile, frame: number, cx: number, cy: number, r: number, pal: typeof PLAYER_ROCK) => {
+  const sp = Math.hypot(p.vel.x, p.vel.y) || 1, ux = p.vel.x / sp, uy = p.vel.y / sp;
+  ctx.save();
+  ctx.translate(Math.round(cx), Math.round(cy));
+  ctx.rotate(Math.atan2(uy, ux));
+  // (the smear: three steps, darkest and shortest nearest the rock)
+  const smear = [['rgba(120, 113, 108, 0.22)', 3.2], ['rgba(120, 113, 108, 0.32)', 2.2], ['rgba(168, 162, 158, 0.4)', 1.4]] as const;
+  for (const [c, len] of smear) { ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(-r * len * 0.5, 0, r * len * 0.5 + r * 0.4, r * 0.82, 0, 0, Math.PI * 2); ctx.fill(); }
+  // (the speed lines: a fan of streaks off its back, each in two bands (white core, pale stone tail), lengths flickering)
+  const lines = [-0.85, -0.55, -0.25, 0.05, 0.35, 0.65, 0.9];
+  lines.forEach((o, k) => {
+    const flick = ((frame * 3 + k * 7) % 5) / 5;
+    const len = Math.round((r * (2.6 - Math.abs(o) * 1.4)) * (0.75 + flick * 0.35) / 2) * 2;
+    const y = Math.round(o * r * 0.9 / 2) * 2, x0 = -Math.round(r * 0.7);
+    ctx.fillStyle = '#D6D3D1'; ctx.fillRect(x0 - len, y - 1, Math.round(len * 0.55), 2);
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(x0 - Math.round(len * 0.45), y - 1, Math.round(len * 0.45), 2);
+  });
+  ctx.restore();
+  drawRock(ctx, cx, cy, r, p.rotation || 0, pal, seedOf(p.id));
 };
 
 /** Shrapnel from a broken boulder: small tumbling rock chips, faceted, lit upper left as they turn. */

@@ -128,6 +128,8 @@ export interface Player extends Entity {
   /** Just threw a boulder: frames left of the throwing arm's follow-through, and whether it was the overhead lob. */
   throwTimer?: number;
   throwLob?: boolean;
+  /** The finale's boulder: the throw's a fastball pitch (the windup, the leg kick, the arm whipped over the top). */
+  throwPitch?: boolean;
   invincibilityTimer: number;
   /** Knockback from taking damage; input is ignored while it runs. */
   pushbackTimer: number;
@@ -401,7 +403,7 @@ export interface Enemy extends Entity {
   /** Enemies an overdosed body has already plowed through. */
   overdoseHitIds?: string[];
   /** Overdosed flight: rising (arcing at something), diving straight at something below, or dropping. */
-  overdosePhase?: 'rise' | 'dive' | 'drop';
+  overdosePhase?: 'rise' | 'dive' | 'drop' | 'home';
   /** Frames an overdosed body has been flying (it bursts in mid-air if it hasn't landed by OVERDOSE_MAX_FRAMES). */
   overdoseFrames?: number;
   /** The taser set it alight: if the burn finishes it, it's still an electrocution. */
@@ -525,6 +527,8 @@ export interface Projectile extends Entity {
   /** Which kind of ordinary enemy fired it ('enemy' for the plain ones), for what he shouts when it hits him. */
   shooterKind?: string;
   isBoulder?: boolean;
+  /** The finale's pitched boulder: a fastball homing in on the alien (see updatePitchedRock). */
+  pitched?: boolean;
   /** Ernie's lobbed boulder: its impacts shake the room like his stomps. */
   isHeaved?: boolean;
   /** Enemies this projectile has already hit (sludge splashes through each one once). */
@@ -568,6 +572,8 @@ export interface Projectile extends Entity {
   zapAt?: number;
   isDarkness?: boolean;
   isLingering?: boolean;
+  /** A sludge puddle grown into a slick (the finale: puddles run together and creep out along the floor). */
+  slick?: boolean;
   isSliding?: boolean;
   /** (sludge) Frames it's been running down a wall or a shield. */
   slideT?: number;
@@ -597,6 +603,8 @@ export interface FlameSegment {
   density: number;
   /** Off the oil rocket launcher's igniter (Y / F): weaker than the flamethrower proper. */
   alt?: boolean;
+  /** The finale's souped-up stream (wall to wall, fatter): it sheds fewer, bigger flecks per segment (there are more of them). */
+  big?: boolean;
 }
 
 /** An icicle Artie shakes loose from the ceiling. */

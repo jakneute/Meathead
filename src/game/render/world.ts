@@ -1239,18 +1239,21 @@ const drawPlayerSpeech = (ctx: CanvasRenderingContext2D, state: GameState) => {
  * splattered on the ground round it, and bubbles coming up through it and popping.
  */
 const drawGooPuddle = (ctx: CanvasRenderingContext2D, state: GameState, p: GameState['projectiles'][number]) => {
-  const seed = (p.id.length * 37 + Math.round(p.pos.x)) % 997;
+  // (the finale's slick grows and runs together: its lumps are pinned to the floor, not to its end, or they'd crawl)
+  const slick = p.slick !== undefined;
+  const seed = slick ? 313 : (p.id.length * 37 + Math.round(p.pos.x)) % 997;
   const h = (n: number) => { const v = Math.sin(n * 127.1 + seed * 3.7) * 43758.5453; return v - Math.floor(v); };
   const x0 = p.pos.x, x1 = p.pos.x + p.width, base = p.pos.y + p.height;
+  const g0 = slick ? Math.floor(x0 / 6) : 0;
   // (where the ground is under each bit of it: it lies along it, slope and all)
   const floorAt = (x: number) => { const g = groundLineAt(state.groundRuns, x); return g !== null && g !== undefined && Math.abs(g - base) < 24 ? g : base; };
   const thick = Math.min(9, Math.max(4, p.height * 0.55));
   const n = Math.max(6, Math.round(p.width / 6));
   const top: [number, number][] = [];
   for (let i = 0; i <= n; i++) {
-    const t = i / n, x = x0 + t * p.width;
-    const edge = Math.min(1, Math.min(t, 1 - t) * 5);
-    const lump = 0.55 + h(i) * 0.45 + Math.sin(t * 9 + seed) * 0.12;
+    const t = i / n, x = slick ? Math.min(x1, Math.max(x0, (g0 + i) * 6)) : x0 + t * p.width;
+    const edge = slick ? Math.min(1, Math.min(x - x0, x1 - x) / 22) : Math.min(1, Math.min(t, 1 - t) * 5);
+    const lump = slick ? 0.55 + h(g0 + i) * 0.45 + Math.sin((g0 + i) * 0.4) * 0.12 : 0.55 + h(i) * 0.45 + Math.sin(t * 9 + seed) * 0.12;
     top.push([x, floorAt(x) - 1 - thick * edge * lump]);
   }
   const outline = () => {
@@ -1268,7 +1271,13 @@ const drawGooPuddle = (ctx: CanvasRenderingContext2D, state: GameState, p: GameS
   }
   // The body of it, in bands that follow the ground: dark under, the green of it, a lighter skin on top
   ctx.save(); outline(); ctx.clip();
-  for (let x = Math.floor(x0 / 2) * 2 - 2; x < x1 + 2; x += 2) {
+  if (!state.groundRuns?.length) {
+    // (a flat floor: each band in one go, not a column at a time)
+    const xa = Math.floor(x0 / 2) * 2 - 2, wa = x1 + 4 - xa, fy = base;
+    ctx.fillStyle = '#1B5E20'; ctx.fillRect(xa, fy - thick - 4, wa, thick + 6);
+    ctx.fillStyle = '#2E7D32'; ctx.fillRect(xa, fy - thick - 4, wa, thick * 0.75 + 4);
+    ctx.fillStyle = '#43A047'; ctx.fillRect(xa, fy - thick - 4, wa, thick * 0.45 + 4);
+  } else for (let x = Math.floor(x0 / 2) * 2 - 2; x < x1 + 2; x += 2) {
     const fy = floorAt(x + 1);
     ctx.fillStyle = '#1B5E20'; ctx.fillRect(x, fy - thick - 4, 2, thick + 6);
     ctx.fillStyle = '#2E7D32'; ctx.fillRect(x, fy - thick - 4, 2, thick * 0.75 + 4);
@@ -1283,14 +1292,17 @@ const drawGooPuddle = (ctx: CanvasRenderingContext2D, state: GameState, p: GameS
   // (the wet sheen along the top, broken up, and a glint or two)
   ctx.fillStyle = '#DCFFB4';
   for (let i = 1; i < n - 1; i += 2) {
-    if (h(i + 3) < 0.35) continue;
+    if (h((slick ? g0 : 0) + i + 3) < 0.35) continue;
     const [ax, ay] = top[i], [bx] = top[i + 1];
     ctx.fillRect(Math.round(ax), Math.round(ay + 1), Math.max(2, Math.round((bx - ax) * 0.6)), 1);
-    if (h(i + 7) > 0.75) { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(Math.round(ax), Math.round(ay + 1), 1, 1); ctx.fillStyle = '#DCFFB4'; }
+    if (h((slick ? g0 : 0) + i + 7) > 0.75) { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(Math.round(ax), Math.round(ay + 1), 1, 1); ctx.fillStyle = '#DCFFB4'; }
   }
   // (chunks in it: a lump each, its shadow under it, lit on top)
   for (let k = 0; k < Math.round(p.width / 22); k++) {
-    const cx = Math.round(x0 + 8 + h(k + 20) * (p.width - 16)), cy = Math.round(floorAt(cx) - thick * 0.45), cw = Math.round(2 + h(k) * 2);
+    // (a slick's chunks sit one to every 22 of floor, wherever the slick's got to)
+    const cx = slick ? Math.round((Math.floor(x0 / 22) + k) * 22 + h(Math.floor(x0 / 22) + k + 20) * 16) : Math.round(x0 + 8 + h(k + 20) * (p.width - 16));
+    if (slick && (cx < x0 + 6 || cx > x1 - 6)) continue;
+    const cy = Math.round(floorAt(cx) - thick * 0.45), cw = Math.round(2 + h(k) * 2);
     ctx.fillStyle = '#14451A'; ctx.fillRect(cx, cy + 1, cw + 1, 1);
     ctx.fillStyle = k % 2 ? '#C0CA33' : '#8D6E63'; ctx.fillRect(cx, cy - 1, cw, 2); ctx.fillRect(cx + 1, cy - 2, Math.max(1, cw - 2), 1);
     ctx.fillStyle = k % 2 ? '#E6EE9C' : '#BCAAA4'; ctx.fillRect(cx, cy - 1, 1, 1);
@@ -1298,7 +1310,7 @@ const drawGooPuddle = (ctx: CanvasRenderingContext2D, state: GameState, p: GameS
   // Bubbles: one comes up, swells, and pops
   for (let k = 0; k < Math.max(1, Math.round(p.width / 40)); k++) {
     const period = 50 + Math.round(h(k + 30) * 40), ph = (state.frame + Math.round(h(k + 40) * period)) % period;
-    const bx = x0 + 6 + h(k + 50 + Math.floor((state.frame + h(k + 40) * period) / period)) * (p.width - 12), by = floorAt(bx) - thick * 0.6;
+    const bx = slick ? (Math.floor(x0 / 40) + k) * 40 + h(k + 50 + Math.floor((state.frame + h(k + 40) * period) / period)) * 34 : x0 + 6 + h(k + 50 + Math.floor((state.frame + h(k + 40) * period) / period)) * (p.width - 12), by = floorAt(bx) - thick * 0.6;
     if (ph < period - 6) {
       const r = 1 + (ph / period) * 3.2;
       ctx.beginPath(); ctx.arc(bx, by - r * 0.6, r, Math.PI, 0); ctx.closePath();

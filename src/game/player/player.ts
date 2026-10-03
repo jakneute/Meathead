@@ -21,7 +21,7 @@ import { announceDeath, silenceAll } from '../platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../platform/skip';
 import { GameState, shakeScreen } from '../core/state';
 import { Controls } from '../platform/input';
-import { fireWeapon, updateFlamethrower } from '../combat/weapons';
+import { fireWeapon, updateFlamethrower, updatePitch } from '../combat/weapons';
 import { updateDryFire } from '../combat/dryFire';
 import { rectsOverlap, boundsOf } from '../core/utils';
 import { standingIndoors, groundLineAt, stanceGround } from '../core/terrain';
@@ -228,6 +228,8 @@ export const updatePlayerActions = (ctx: FrameContext, input: FrameInput) => {
   // (it's an igniter, not the flamethrower proper: shorter, and a lot weaker)
   if (altFlame) updateFlamethrower({ ...ctx, currentWeapon: 'FLAMETHROWER' }, { ...input, shoot: true }, true);
   else updateFlamethrower(ctx, input);
+  // (the finale's pitched boulder: the rock leaves his hand partway through the windup)
+  updatePitch(ctx);
   if (input.shoot && player.shootCooldown <= 0 && hasAmmo(ctx, currentWeapon) && currentWeapon !== 'TASER' && currentWeapon !== 'FLAMETHROWER') {
     fireWeapon(ctx, input);
   }

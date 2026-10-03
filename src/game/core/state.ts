@@ -144,7 +144,7 @@ export interface GameState {
   /** Easter egg: set fire to an oiled-up Toxic Tommy and the sewer goes nuclear (plays out as the death screen). */
   sewerNuke: Vector2 | null;
   /** Fire meeting oil: the blasts going off (where, how big, how far along: see render/blasts.ts). */
-  blasts?: { x: number; y: number; r: number; t: number }[];
+  blasts?: { x: number; y: number; r: number; t: number; kind?: 'oil' }[];
   victoryString: string;
   postVictoryTimer: number;
   /** Frames since the last line finished during the VICTORY (the weapon screen waits for the talking to stop). */
@@ -282,6 +282,8 @@ export const shakeScreen = (s: GameState, frames: number, magnitude: number = DE
 export const STAIN_FRAMES = 660;
 /** How long a fire-meets-oil blast plays out (the flash, the fireball, the mushroom cap going to smoke). */
 export const BLAST_FRAMES = 110;
+/** An oil rocket's splash (the finale's big one: see render/blasts.ts), much quicker than a fire blast. */
+export const OIL_SPLASH_FRAMES = 30;
 /** How long a skid mark takes to fade. */
 export const SMEAR_FRAMES = 600;
 

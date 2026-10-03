@@ -3,6 +3,8 @@ import { drawFilthShield } from './filthShield';
 import { BOULDER_THROW_FRAMES, GUN_COOLDOWN, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
 import { SLIDE_HOLD } from '../../combat/muzzle';
+import { pitchLean, drawPitchLegs, drawPitchArm, drawPitchGloveArm } from './pitch';
+import { PITCH_FRAMES } from '../../combat/finaleBuffs';
 import { drawShoulderCharge, drawSwimCharge, drawUppercut, drawDivekick, drawJetskiWheelie, drawJetskiLeap, drawJetskiDive, drawStandingKick, drawPedalLegs, drawLedgeDrop } from './moves';
 import { KICK_POSE_FRAMES, LEDGE_DROP_FRAMES, FINALE_STAGE } from '../../../constants';
 import { GameState } from '../../core/state';
@@ -98,6 +100,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // On skis: a racer's crouch going along (knees bent, leaning into it, the off arm back for balance), knees tucked up
   // in the air, and right down in an egg tuck ducking
   const isSki = !!p.skiing && !p.jetski && hurtT < 0 && !isCharging && !isUppercutting && !isDivekicking;
+  // The finale's boulder: pitched, the whole of him in it (render/player/pitch.ts): how far through it he is (-1: not)
+  const pitchK = p.throwPitch && (p.throwTimer || 0) > 0 && hurtT < 0 && !isCharging && !isUppercutting && !isDivekicking && !isSwimming && !isSeated && !isDucking
+    ? 1 - p.throwTimer! / PITCH_FRAMES : -1;
 
   // On a slope or stairs (p.stance): drawn down onto the ground under him. Stood or walking, onto his downhill foot,
   // each foot put down on whatever's under it (drawSlopeLeg); in any other pose, only onto the higher foot
@@ -275,6 +280,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // ...and uphill, whichever way he's going: into the climb going up, back against it coming down (not the gun: below)
   const slopeLean = slopeLegs && isWalking ? Math.max(-1, Math.min(1, grade)) * (grade * Math.sign(p.vel.x) * p.facing > 0 ? 0.07 : 0.12) : 0;
   bodyRot += slopeLean;
+  if (pitchK >= 0) { const lean = pitchLean(pitchK); bodyRot = lean.rot * (isAirborne ? 0.5 : 1); bodyY = lean.y; }
 
   if (spinAroundCenter) {
     ctx.translate(0, bodyY - 32);
@@ -353,6 +359,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.beginPath();
     ctx.arc(-26, -42, 5, 0, Math.PI * 2);
     ctx.fill();
+  } else if (pitchK >= 0) {
+    // Pitching: the glove arm (over the torso, below)
+    freeArm = () => drawPitchGloveArm(ctx, pitchK);
   } else if (isDucking) {
     // Crouched: the arm down at his side in front of him, the fist resting on his thigh (drawn over the torso, below)
     freeArm = () => drawArm(ctx, -15, -30, -17, -19, -13, -11, skinTone, skinShadow, skinHighlight);
@@ -405,7 +414,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // LAYER 2: LEGS & BOOTS
   // ==========================================
   ctx.save();
-  if (isDivekicking) {
+  if (pitchK >= 0 && !isAirborne) {
+    // Pitching: the leg kick, the stride, the back leg up behind him
+    drawPitchLegs(ctx, pitchK);
+  } else if (isDivekicking) {
     // Rear leg bent at knee (tucked aerodynamic)
     ctx.fillStyle = pantsShadow;
     ctx.fillRect(-12, -24, 10, 14);
@@ -991,7 +1003,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     if (slopeLean) ctx.rotate(-slopeLean);
     // Just threw a boulder: the arm follows through from the shoulder (up and over for a lob, a low bowl otherwise)
     const throwing = (p.throwTimer || 0) > 0;
-    if (throwing) {
+    if (throwing && pitchK < 0) {
       const t = 1 - p.throwTimer! / BOULDER_THROW_FRAMES;
       const ease = 1 - Math.pow(1 - t, 3);
       const [from, to] = p.throwLob ? [-2.3, -0.8] : [1.0, -0.35];
@@ -1014,6 +1026,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
       const ex = armBaseX + 4 + 6 * s, ey = armBaseY + 8 - 2 * s, hx = armBaseX + 11 + 8 * s, hy = armBaseY + 6 - 12 * s;
       drawArm(ctx, armBaseX + 6, armBaseY - 3 - 2 * s, ex, ey, hx, hy, skinTone, skinShadow, skinHighlight, hx + 3);
       ctx.fillStyle = skinTone; ctx.fillRect(hx - 1, hy - 2, 7, 3); ctx.fillStyle = skinShadow; ctx.fillRect(hx - 1, hy + 1, 7, 1); // (the open palm)
+    } else if (pitchK >= 0) {
+      // Pitching: the throwing arm, the rock in his fist till it's gone
+      drawPitchArm(ctx, pitchK, armBaseX + 6, armBaseY - 3);
     } else {
     // Shoulder at the edge of his chest, elbow down by his side (pumping a little as he walks), the fist out at the gun
     drawArm(ctx, armBaseX + 6, armBaseY - 3, armBaseX + 4 + pump * 0.4, armBaseY + 8, armBaseX + 11 + pump, armBaseY + 6, skinTone, skinShadow, skinHighlight, armBaseX + 15 + pump);

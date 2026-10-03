@@ -6,6 +6,7 @@ import type { DeathFace } from './deathFace';
 import { wall as fallWall, strata as fallStrata } from './fallCams';
 import { bandedGradient, hazeBands } from '../pixelArt';
 import { drawFlameLicks } from '../fx/fireball';
+import { mhVaporK, medalFall, MH_VAPOR_HOLD, MH_VAPOR_GO, MH_MEDAL_DROP } from '../../player/deathAnim';
 import { airfallY, MEATHEAD_DEATH_FRAMES, LAVA_COOKOFF, FROZEN_SHATTER, ROADKILL_TWINKLE, overdoseRise, impaledFeet, PLUCKS, PLUCK_AWAY, PLUCK_FALL, pluckSway, pluckDark, SPIKE_HIT, MeatheadDeath } from '../../player/deathAnim';
 import { drawBloodPool } from '../spatter';
 
@@ -43,7 +44,80 @@ const faceFor = (d: MeatheadDeath, t: number): DeathFace => {
     case 'plucked': return t < 24 ? 'scream' : 'agony';
     case 'spiked': return t < SPIKE_HIT + 18 ? 'scream' : 'dead';
     case 'fall_crevasse': case 'fall_crude': return 'scream';
+    case 'vaporized': return t < 10 ? 'shock' : 'agony';
     default: return 'dead';
+  }
+};
+
+let vbuf: HTMLCanvasElement | null = null;
+/** (vaporized) The cell he goes in (chunky), how ragged the edge is, and the box he's drawn into (round his feet). */
+const VC = 3, VR = 10, VW = 160, VH = 130, VS = 2;
+const vhash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+
+/**
+ * Vaporized by the alien's beam: lit up in it a moment (its pink, flickering white), then gone a cell at a time from
+ * the side it came in, a white-hot edge running across him (the bits fly off as particles: tickMeatheadDeath). His
+ * boots are what's left, charred and smoking, on a heap of ash on a scorch mark; the President's medal drops off his
+ * chest as it goes and clatters down onto the heap. He's drawn once into a buffer and eaten away there.
+ */
+const drawVaporized = (ctx: Ctx, state: GameState, d: Parameters<typeof body>[2], weapon: WeaponType, t: number, f: number) => {
+  const { x, y, facing } = d;
+  const k = mhVaporK(t), dir = (d.dir ?? 1) < 0 ? -1 : 1;
+  const floor = d.floor ?? y, air = floor - y;
+  const goneAt = MH_VAPOR_HOLD + MH_VAPOR_GO;
+  const fall = air > 2 && t > goneAt ? Math.min(air, 0.5 * 0.8 * (t - goneAt) ** 2) : 0;
+  // The scorch and the heap of ash, on the floor under him
+  const pile = Math.min(1, k * 1.25);
+  if (pile > 0) {
+    ctx.fillStyle = 'rgba(28, 25, 23, 0.5)'; ctx.beginPath(); ctx.ellipse(Math.round(x), floor - 1, 30, 5, 0, 0, Math.PI * 2); ctx.fill();
+    ['#44403C', '#57534E', '#78716C', '#A8A29E'].forEach((c, i) => {
+      const bh = Math.round(10 * pile * (1 - i / 4)), bw = Math.round(24 * (1 - i * 0.17));
+      if (bh < 1) return;
+      ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(Math.round(x), floor - 1, bw, bh, 0, Math.PI, 0); ctx.fill();
+    });
+    for (let i = 0; i < 5; i++) if ((f + i * 5) % 16 < 8) { ctx.fillStyle = i % 2 ? '#F97316' : '#FF8CE4'; ctx.fillRect(Math.round(x - 16 + vhash(i) * 32), floor - 2 - Math.round(vhash(i * 3) * 6 * pile), 1, 1); }
+  }
+  // Him, eaten away (the boots kept: the last 8 of him)
+  if (typeof document !== 'undefined') {
+    const ox = x - VW / 2, oy = y - VH + 12;
+    vbuf ??= document.createElement('canvas');
+    if (vbuf.width < VW * VS || vbuf.height < VH * VS) { vbuf.width = VW * VS; vbuf.height = VH * VS; }
+    const g = vbuf.getContext('2d')!;
+    g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+    g.clearRect(0, 0, VW * VS, VH * VS);
+    g.setTransform(VS, 0, 0, VS, -ox * VS, -oy * VS);
+    body(g, state, d, weapon);
+    g.globalCompositeOperation = 'source-atop';
+    g.fillStyle = t < MH_VAPOR_HOLD && f % 3 === 0 ? 'rgba(255, 255, 255, 0.75)' : `rgba(255, 140, 228, ${t < MH_VAPOR_HOLD ? 0.55 : 0.35})`;
+    g.fillRect(ox, oy, VW, VH);
+    const boots = y - 8;
+    if (k > 0) { g.fillStyle = `rgba(23, 23, 23, ${(0.2 + k * 0.35).toFixed(2)})`; g.fillRect(ox, boots, VW, 20); }
+    if (k > 0) {
+      const x0 = x - 34, x1 = x + 34, hot: [number, number][] = [];
+      g.globalCompositeOperation = 'destination-out'; g.fillStyle = '#000';
+      for (let cy = y - 92; cy < boots; cy += VC) for (let cx = x0; cx < x1; cx += VC) {
+        const along = dir > 0 ? cx - x0 : x1 - cx;
+        const edge = (x1 - x0) * k + (vhash(cx * 0.37 + cy * 1.31) - 0.5) * VR;
+        if (along < edge) g.fillRect(cx, cy, VC, VC);
+        else if (along < edge + VC * 2) hot.push([cx, cy]);
+      }
+      g.globalCompositeOperation = 'source-atop';
+      for (const [hx, hy] of hot) { g.fillStyle = (hx + hy) % 2 ? '#FFFFFF' : '#FFD8F6'; g.fillRect(hx, hy, VC, VC); }
+    }
+    g.globalCompositeOperation = 'source-over';
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.drawImage(vbuf, 0, 0, VW * VS, VH * VS, ox, oy + fall, VW, VH);
+  }
+  // The medal, off his chest and clattering down onto the heap (a gold disc, its star, the blue ribbon trailing)
+  if (t >= MH_MEDAL_DROP) {
+    const my0 = y - 40, drop = floor - 10 * pile - 3 - my0;
+    const mx = Math.round(x + facing * 3 + dir * Math.min(10, (t - MH_MEDAL_DROP) * 0.5)), my = Math.round(my0 + medalFall(t, Math.max(0, drop)));
+    ctx.fillStyle = '#1D4ED8'; ctx.fillRect(mx - 2, my - 8, 4, 5);
+    ctx.fillStyle = '#92400E'; ctx.beginPath(); ctx.arc(mx, my, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#F59E0B'; ctx.beginPath(); ctx.arc(mx, my, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FDE68A'; ctx.fillRect(mx - 3, my - 3, 2, 2);
+    ctx.fillStyle = '#DC2626'; ctx.fillRect(mx - 1, my - 2, 2, 4); ctx.fillRect(mx - 2, my - 1, 4, 2);
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(mx, my - 1, 1, 1);
   }
 };
 
@@ -179,6 +253,7 @@ export const drawMeatheadDeath = (ctx: Ctx, state: GameState, weapon: WeaponType
       ctx.fillStyle = fleck; for (let k = 0; k < 9; k++) { const a = Math.PI + (k + 0.5) / 9 * Math.PI; ctx.fillRect(x + Math.cos(a) * mw * 0.7, y + Math.sin(a) * mh * 0.7, d.snow ? 3 : 6, d.snow ? 3 : 4); }
       break;
     }
+    case 'vaporized': drawVaporized(ctx, state, d, weapon, t, f); break;
     case 'flattened': {
       // Flat as a pancake (a bounce of it first), a twitch, and the pool under him
       const sq = t < 8 ? 0.45 - (t / 8) * 0.31 : 0.14 + (t > 34 && t < 40 ? Math.sin((t - 34) / 6 * Math.PI) * 0.04 : 0);

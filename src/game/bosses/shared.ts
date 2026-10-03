@@ -101,7 +101,7 @@ export interface BossDef {
   /** Replaces the taser's usual effect on him. */
   onTaser?: (ctx: FrameContext, boss: Enemy) => void;
   /** Replaces the flamethrower's usual effect on him (Oscar's suit is fireproof). */
-  onFlamed?: (ctx: FrameContext, boss: Enemy) => void;
+  onFlamed?: (ctx: FrameContext, boss: Enemy, scale?: number) => void;
   /** No breather between hits: every round, pellet, needle and punch counts (his hitCooldown is never set). */
   noBreather?: boolean;
   /** What a hit from each weapon does to him, in place of the usual (see getBossDamage). */

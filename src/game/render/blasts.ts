@@ -4,7 +4,7 @@
 // no smooth gradients, pixel-snapped edges, a dithered skirt where the smoke thins.
 
 import type { GameState } from '../core/state';
-import { BLAST_FRAMES } from '../core/state';
+import { BLAST_FRAMES, OIL_SPLASH_FRAMES } from '../core/state';
 import { pixelBlob } from './pixelArt';
 
 type Ctx = CanvasRenderingContext2D;
@@ -48,7 +48,61 @@ const fireRamp = (cool: number): string[] => {
 
 export const drawBlasts = (ctx: Ctx, state: GameState) => {
   if (!state.blasts?.length) return;
-  for (const b of state.blasts) drawBlast(ctx, state, b);
+  for (const b of state.blasts) (b.kind === 'oil' ? drawOilSplash : drawBlast)(ctx, state, b);
+};
+
+/** Crude, in its bands: the rim's dull brown, the body near black, a hard glossy lick of light near the top. */
+const OIL_RAMP = ['#44403C', '#292524', '#1C1917', '#0C0A09'];
+
+/**
+ * The finale's oil rocket going off: a big black splash. A ring of it slapped out flat and fast (two steps of brown
+ * and black, broken into gobs round its edge), a crown of thick drops thrown up off it, the middle a lumpy black
+ * blot with a hard sheen on top; dithered out at the end, never a smooth fade.
+ */
+const drawOilSplash = (ctx: Ctx, _state: GameState, b: { x: number; y: number; t: number; r: number }) => {
+  const { x, y, t, r } = b;
+  const k = clamp01(t / OIL_SPLASH_FRAMES);
+  const grow = ease(clamp01(t / 9));
+  const seed = Math.round(x * 0.31 + y * 0.17);
+  ctx.save();
+  // (going: thinned by a checker, then gone; no alpha fades)
+  const thin = k > 0.62;
+  // The ring: gobs round the edge of how far it's slapped out, two bands, smaller as it goes
+  const n = 22;
+  for (let i = 0; i < n; i++) {
+    if (thin && (i + t) % 2 === 0) continue;
+    const a = (i / n) * Math.PI * 2 + rand(seed + i) * 0.25;
+    const rr = r * grow * (0.82 + rand(seed + i * 3) * 0.2);
+    // (flung out sideways and up; under where it went off it's squashed flat: there's a floor there, mostly)
+    const sn = Math.sin(a);
+    const gx = x + Math.cos(a) * rr, gy = y + (sn < 0 ? sn * rr * 0.72 : sn * rr * 0.16);
+    const gr = (r * 0.06 + rand(seed + i * 7) * r * 0.04) * (1 - k * 0.7);
+    if (gr < 2) continue;
+    // (a solid black gob, lit along its top: a step of brown, then a pixel of glint)
+    ctx.fillStyle = OIL_RAMP[1]; ctx.beginPath(); ctx.ellipse(snap(gx), snap(gy), snap(gr), snap(gr * 0.8), 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = OIL_RAMP[3]; ctx.beginPath(); ctx.ellipse(snap(gx), snap(gy + gr * 0.25), snap(gr * 0.9), snap(gr * 0.6), 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#A8A29E'; ctx.fillRect(snap(gx - gr * 0.4), snap(gy - gr * 0.6), 2, 2);
+    // (a drop off the gob, trailing out behind it)
+    ctx.fillStyle = OIL_RAMP[2]; ctx.fillRect(snap(gx - Math.cos(a) * gr * 1.6) - 2, snap(gy - sn * gr * 0.9) - 2, 4, 4);
+  }
+  // The blot in the middle: lumpy, in bands, shrinking back into itself as the splash spreads out
+  const blot = r * 0.42 * grow * (1 - k * 0.6);
+  if (blot > 3 && !(thin && t % 2)) {
+    billow(ctx, x, y, blot, blot * 0.8, OIL_RAMP, seed, t);
+    // (the sheen: a hard little band of light near the top, and a pixel of white in it)
+    ctx.fillStyle = '#78716C'; ctx.fillRect(snap(x - blot * 0.35), snap(y - blot * 0.55), snap(blot * 0.5), 2);
+    ctx.fillStyle = '#E7E5E4'; ctx.fillRect(snap(x - blot * 0.2), snap(y - blot * 0.55), 2, 2);
+  }
+  // A crown of thick drops thrown up off it, falling back
+  for (let i = 0; i < 9; i++) {
+    const a = -Math.PI * (0.15 + rand(seed + i * 5) * 0.7);
+    const sp = r * (0.035 + rand(seed + i * 9) * 0.03);
+    const dx = Math.cos(a) * sp * t, dy = Math.sin(a) * sp * t + 0.35 * t * t * 0.5;
+    const s = 6 - k * 3;
+    ctx.fillStyle = i % 2 ? OIL_RAMP[1] : OIL_RAMP[3];
+    ctx.fillRect(snap(x + dx - s / 2), snap(y + dy - s / 2), snap(s), snap(s));
+  }
+  ctx.restore();
 };
 
 const drawBlast = (ctx: Ctx, state: GameState, b: { x: number; y: number; t: number; r: number }) => {

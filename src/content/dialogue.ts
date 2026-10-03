@@ -962,6 +962,8 @@ export type KillCallout =
   | 'wallsplat' | 'groundsplat' | 'flattened' | 'squished' | 'truck' | 'blowout' | 'crash' | 'compacted' | 'drowned'
   | 'moon' | 'cliff' | 'yeet' | 'conducted'
   | 'charred' | 'melted' | 'greased' | 'contact' | 'pulverized' | 'cooked'
+  // The finale: an agent who happened to be in the way of a pitched rock; one the alien's beam caught
+  | 'wrongplace' | 'vaporized'
   // On the jet ski
   | 'wheelie' | 'skileap' | 'skidive' | 'shipwreck'
   // Swimming (a lunge through the water), and on the bike (a wheelie)
@@ -1024,6 +1026,8 @@ export const KILL_CALLOUTS: Record<KillCallout, { lines: string[], color: string
   tsunami:  { lines: ["WASHED OUT!", "DROWNED!", "WIPEOUT!"], color: '#1E90FF' },
   fried:    { lines: ["FRIED!", "ZAPPED!", "SHORT CIRCUIT!"], color: '#FFFF00' },
   cooked:   { lines: ["DEEP FRIED!", "WELL DONE!", "COOKED!", "EXTRA CRISPY!", "BURNT TO A CRISP!"], color: '#F97316' },
+  wrongplace: { lines: ["WRONG PLACE!", "IN THE WAY!", "WRONG PLACE, WRONG TIME!", "BEANED!", "COLLATERAL!"], color: '#FDE68A' },
+  vaporized: { lines: ["VAPORIZED!", "DISINTEGRATED!", "DUSTED!", "ATOMIZED!"], color: '#FF8CE4' },
   wheelie:   { lines: ["WHEELIED!", "RAMMED!", "HULL CHECK!", "WAKE UP CALL!", "RIGHT OF WAY!"], color: '#38BDF8' },
   skileap:   { lines: ["CLIPPED!","SHOT DOWN!", "GROUNDED FOREVER!", "BIRDIE!", "MAN OVERBOARD!"], color: '#7DD3FC' },
   skidive:   { lines: ["SUNK!", "CAPSIZED!", "SEA-DOO'D!", "TORPEDOED!", "DAVY JONES!"], color: '#0EA5E9' },
@@ -1808,4 +1812,11 @@ export const FINALE_LINES = {
     NEEDLES: "OUT OF NEEDLES! THIS PLACE LOOKS LIKE A REHAB NOW!",
   } as Partial<Record<WeaponType, string>>,
   ALL_OUT: "OUT OF EVERYTHING! GUESS IT'S JUST ME AND THE PISTOL!",
+  /** Meathead, just after the fight starts: he souped up his toys for this one (a hint, not a manual). */
+  SOUPED_UP: [
+    { text: "GOOD THING I SOUPED UP MY TOYS IN THE GARAGE. EVERYTHING GOES TO ELEVEN NOW.", shat: "GOOD THING I SOUPED UP MY TOYS IN THE GARAGE. SHOULD'VE SOUPED UP MY PANTS." },
+    { text: "FLAMETHROWER GOES WALL TO WALL. ROCKS? I PITCH 'EM NOW.", shat: "FLAMETHROWER GOES WALL TO WALL. ROCKS? I PITCH 'EM NOW. MY SHORTS? DON'T ASK." },
+  ],
+  /** The first boulder he pitches: the suits can wait, every pound of it's for the alien. */
+  FIRST_PITCH: { text: "SCREW THE SUITS. EVERY POUND OF THIS IS FOR YOU, GREEN BOY.", shat: "SCREW THE SUITS. THIS ONE'S ALL FOR YOU, GREEN BOY. SO'S THE SMELL." },
 };
