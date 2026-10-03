@@ -12,6 +12,7 @@ import { lastSouvenirOf } from '../game/garage/store';
 import { WHITE_HOUSE_ID, WHITE_HOUSE_DOSSIER, WHITE_HOUSE_LOCATION } from '../content/whiteHouse';
 import { GYM_DOSSIER_ID, GYM_DOSSIER } from '../content/gymDossier';
 import MeatheadCaricature from './MeatheadCaricature';
+import { hasEverShat } from '../game/player/gut';
 
 /** The White House, for its file's photo: the north portico, its columns and the flag, on a gray sky. */
 const WhiteHousePhoto: React.FC = () => (
@@ -194,7 +195,7 @@ const DossierPanel: React.FC<DossierPanelProps> = ({ bossId, defeated, corpseWea
             {section('RISKS', WHITE_HOUSE_DOSSIER.risks)}
             {section('IRREGULARITIES', WHITE_HOUSE_DOSSIER.irregularities)}
             <div className="mt-[6px] p-[4px] leading-[10px] bg-[#FEF3C7] border border-[#A16207]/50 rotate-[-0.6deg]" style={{ boxShadow: '1px 1px 0 rgba(0,0,0,0.25)' }}>
-              <span className="font-bold">HANDLER'S NOTE: </span>{WHITE_HOUSE_DOSSIER.handler}
+              <span className="font-bold">HANDLER'S NOTE: </span>{WHITE_HOUSE_DOSSIER.handler}{hasEverShat() ? '' : ` ${WHITE_HOUSE_DOSSIER.spotless}`}
             </div>
           </>
         ) : garage ? (

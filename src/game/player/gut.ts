@@ -20,6 +20,10 @@ export const GUT_GRUMBLE = 7.5 * 60, GUT_ACCIDENT = 15 * 60;
 /** ...and between them, still down there: his warning to himself (he'd better get up). */
 const GUT_WARN = GUT_GRUMBLE + 3 * 60;
 
+/** Has he ever shit himself, for real (not the cheat), this session? (The D.C. file notices if he hasn't.) */
+let everShat = false;
+export const hasEverShat = () => everShat;
+
 /** Has he shit himself (this attempt)? */
 export const isShat = (state: GameState) => state.player.gut?.stage === 2;
 
@@ -63,6 +67,7 @@ export const updateGut = (ctx: FrameContext, input: FrameInput) => {
   }
   if (gut.stage === 1 && gut.t >= GUT_ACCIDENT) {
     gut.stage = 2;
+    everShat = true;
     // (all of it at once, the moment it goes: whatever he does next, it's happened)
     playSound('fart', 1, 0);
     playSound('splat', 0.5, -9);
