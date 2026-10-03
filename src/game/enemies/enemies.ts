@@ -908,6 +908,11 @@ const resolvePlayerContact = (ctx: FrameContext, e: Enemy): boolean => {
       fx.spawnPickup(e.pos);
       player.killSatisfactionTimer = 60;
       return false;
+    } else if (hasShield) {
+      // The barf shield's barf: what it kills doesn't go flying, it melts where it stands, into a bubbling green
+      // puddle like the sludge's own kills (it's only knocked back by it if it lives)
+      fx.killWithAnimation(e, 'melted', 'sludge_kill', 'melted');
+      return e.health > 0;
     } else {
       e.isBlownAway = true;
       e.meleeFlung = true;
