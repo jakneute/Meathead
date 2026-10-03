@@ -17,6 +17,7 @@ import { junkBox, geyserOn, BikeRun } from './bike';
 import { CRANK } from '../../render/player/moves';
 import { bandedGradient, hazeBands, steppedGlow, checker, pixelBlob, tilePattern } from '../../render/pixelArt';
 import { INK, ink, shaded, shadedTop, dark, lite } from '../../render/npc/kit';
+import { stamp } from '../../render/stamp';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -219,12 +220,16 @@ export const drawStreetFronts = (ctx: Ctx, state: GameState) => {
     const gL = groundLineAt(state.groundRuns, x - 20), gR = groundLineAt(state.groundRuns, x + 300);
     if (gL === Infinity || gR === Infinity) continue;
     const base = Math.min(gL, gR) - 6;
+    // (the lot and what's on it don't change, but for its lights coming on as it gets on: painted the once for each way
+    // its lights are and stamped; the wire on to the next pole live, after it, under the next lot)
+    const h = hash(k * 7.3);
+    const lights = h < 0.1 ? `${dusk > 0.4}` : h < 0.16 ? `${dusk > 0.3}` : h < 0.28 ? '' : houseLights(k, dusk);
+    stamp(ctx, `tommy-lot-${k}-${gL}-${gR}-${lights}`, x - 32, base - 340, 344, Math.max(gL, gR) - base + 350, ctx => {
     ctx.fillStyle = '#6B635C'; ctx.beginPath(); ctx.moveTo(x - 20, base); ctx.lineTo(x + 300, base); ctx.lineTo(x + 300, gR + 2); ctx.lineTo(x - 20, gL + 2); ctx.closePath(); ctx.fill();
     ctx.fillStyle = 'rgba(0,0,0,0.18)'; for (let yy = base + 8; yy < Math.max(gL, gR); yy += 10) ctx.fillRect(x - 20, yy, 320, 1);
     ctx.fillStyle = 'rgba(255,255,255,0.08)'; for (let yy = base + 9; yy < Math.max(gL, gR); yy += 10) ctx.fillRect(x - 20, yy, 320, 1);
     ctx.fillStyle = '#57534E'; ctx.fillRect(x - 20, base - 2, 320, 4);
     ctx.fillStyle = '#78716C'; ctx.fillRect(x - 20, base - 2, 320, 1);
-    const h = hash(k * 7.3);
     if (h < 0.1) drawLiquor(ctx, x, base, dusk);
     else if (h < 0.16) drawChurch(ctx, x, base, dusk);
     else if (h < 0.24) drawEmptyLot(ctx, x, base, k);
@@ -237,11 +242,22 @@ export const drawStreetFronts = (ctx: Ctx, state: GameState) => {
       ctx.fillStyle = '#6EA6A0'; for (const ix of [x + 238, x + 251, x + 264]) { ctx.fillRect(ix, base - 188, 3, 4); ctx.fillStyle = '#B9E0DA'; ctx.fillRect(ix, base - 188, 1, 2); ctx.fillStyle = '#6EA6A0'; }
       ctx.fillStyle = '#2A221C'; for (let yy = base - 170; yy < base - 10; yy += 26) ctx.fillRect(x + 252, yy, 1, 1); // (the staples, the old flyers' nails)
       if (hash(k * 23) < 0.4) { shaded(ctx, () => ctx.roundRect(x + 255, base - 170, 10, 18, 2), '#71717A', x + 255, base - 170, 10, 18, 1); ctx.fillStyle = '#A1A1AA'; ctx.fillRect(x + 256, base - 166, 8, 1); }
+    }
+    });
+    if (k % 2 === 0) {
       ctx.strokeStyle = 'rgba(28, 25, 23, 0.85)'; ctx.lineWidth = 1;
       const nx = x + 250 + LOT * 2, ng = groundLineAt(state.groundRuns, nx) - 6;
       ctx.beginPath(); ctx.moveTo(x + 250, base - 182); ctx.quadraticCurveTo(x + 250 + LOT, (base + ng) / 2 - 150, nx, ng - 182); ctx.stroke();
     }
   }
+};
+
+/** Which of a house's windows are lit, and its porch light, as it gets on (drawHouse's own rule for them). */
+const houseLights = (k: number, dusk: number) => {
+  const burned = hash(k * 3) < 0.15, boarded = hash(k * 5) < 0.4;
+  let s = '';
+  for (const [wx, wy] of [[60, -120], [150, -120], [60, -64], [180, -64]]) s += !burned && !boarded && hash(k * 13 + wx + wy) < 0.25 + dusk * 0.4 ? '1' : '0';
+  return s + (!burned && dusk > 0.35 && hash(k * 41) < 0.6 ? 'p' : '');
 };
 
 const HOUSE_PAINT = ['#8FA3A8', '#B9A38B', '#9E6B5C', '#6E8B74', '#C8B88A', '#7E7F9A'];

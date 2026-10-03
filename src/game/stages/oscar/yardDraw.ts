@@ -14,6 +14,7 @@ import { slab, column as post } from '../barry/rooms';
 import { strut } from './kit';
 import { CANVAS_WIDTH, GROUND_Y } from '../../../constants';
 import { drawChopperBike } from '../../render/enemies/oscar';
+import { stamp } from '../../render/stamp';
 import { COURSE } from './course';
 import type { Field, LiveGeyser, LiveMover } from './field';
 import { geyserErupting, geyserWarning, geyserBox, geyserK, moverAt } from './field';
@@ -85,7 +86,8 @@ export const drawYardCamp = (ctx: Ctx, state: GameState) => {
       if (!inView(state, x - 60, x + 60)) continue;
       const i = Math.floor((x - Yd.x1) / 70) + row * 100;
       ctx.save(); ctx.translate(x, Y + yOff); ctx.scale(scale * (hash(i) < 0.5 ? 1 : -1), scale);
-      drawChopperBike(ctx, 0, 0, 0, 0, ['#7F1D1D', '#1E3A8A', '#111827', '#14532D', '#78350F'][i % 5]);
+      const tank = ['#7F1D1D', '#1E3A8A', '#111827', '#14532D', '#78350F'][i % 5];
+      stamp(ctx, `parked-chopper-${tank}`, -60, -72, 120, 82, g => drawChopperBike(g, 0, 0, 0, 0, tank));
       ctx.restore();
       if (hash(i * 3) < 0.35) { ctx.save(); ctx.translate(x + 26, Y + yOff); ctx.scale(scale, scale); backBiker(ctx, 0, 0, i, f); ctx.restore(); }
     }

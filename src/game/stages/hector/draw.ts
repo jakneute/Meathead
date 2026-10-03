@@ -18,6 +18,7 @@ import { INK, dark, lite, ink } from '../../render/npc/kit';
 import { drawFlameLicks } from '../../render/fx/fireball';
 import { drawBoatScene, drawBoatFront, drawTowerJunk, drawEyeArena, drawDaycare, drawDaycareFront, drawPoolWater } from './drawSet';
 import { drawEyeHud } from './eyeDraw';
+import { stamp } from '../../render/stamp';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -988,6 +989,16 @@ const drawProp = (ctx: Ctx, state: GameState, p: Prop, rt: HectorRuntime) => {
 /** A tacky two-story motel: pastel stucco, a row of doors, windows (curtains drawn, an AC unit under each), a neon name that flickers in the storm. */
 const drawMotel = (ctx: Ctx, state: GameState, p: Prop, storm: number) => {
   const w = p.w ?? 600, h = p.h ?? 260, x = p.x, base = p.y;
+  // (the building and its sign's box never change: painted the once and stamped; the AC units' drips and the neon live)
+  stamp(ctx, `hector-motel-${x}-${base}-${w}-${h}-${p.color}`, x - 4, base - h - 54, w + 8, h + 58, g => motelStill(g, p));
+  for (let dx = 40; dx < w - 40; dx += 90) for (const fy of [base, base - h / 2 + 2]) {
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.5)'; ctx.fillRect(x + dx + 66, fy - 18 + (state.frame + dx) % 14, 1, 2);
+  }
+  const on = storm < 0.5 || Math.floor(state.frame / (5 + hash(x) * 17)) % 7 !== 0;
+  neon(ctx, p.text ?? 'MOTEL', x + w / 2, base - h - 20, 16, on ? '#F472B6' : '#4B5563', on);
+};
+const motelStill = (ctx: Ctx, p: Prop) => {
+  const w = p.w ?? 600, h = p.h ?? 260, x = p.x, base = p.y;
   const color = p.color ?? '#5EEAD4';
   // The stucco: speckled, shaded toward the right end, a scuffed plinth along the bottom
   ctx.fillStyle = '#FDF2F8'; ctx.fillRect(x, base - h, w, h);
@@ -1024,18 +1035,15 @@ const drawMotel = (ctx: Ctx, state: GameState, p: Prop, storm: number) => {
       ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fillRect(x + dx + 55, fy - 58, 2, 10); ctx.fillRect(x + dx + 58, fy - 58, 1, 6);
       slab(ctx, x + dx + 48, fy - 30, 22, 12, '#CBD5E1', 1);
       ctx.fillStyle = '#64748B'; for (let k = 0; k < 4; k++) ctx.fillRect(x + dx + 51, fy - 27 + k * 2, 16, 1);
-      ctx.fillStyle = 'rgba(56, 189, 248, 0.5)'; ctx.fillRect(x + dx + 66, fy - 18 + (state.frame + dx) % 14, 1, 2);
     }
     room++;
   }
   // The neon name on the roof: a black box on struts, a bezel, the letters in tube
-  const on = storm < 0.5 || Math.floor(state.frame / (5 + hash(x) * 17)) % 7 !== 0;
   const sx = x + w / 2 - 130, sy = base - h - 50;
   for (const px of [sx + 40, sx + 220]) { ink(ctx, () => ctx.rect(px - 2, sy + 44, 4, 6), '#4B5563'); }
   slab(ctx, sx, sy, 260, 44, '#1F2937', 2);
   ctx.fillStyle = '#0B0F19'; ctx.fillRect(sx + 5, sy + 5, 250, 34);
   ctx.fillStyle = '#9CA3AF'; for (const bx of [sx + 3, sx + 255]) for (const by of [sy + 3, sy + 39]) ctx.fillRect(bx, by, 2, 2);
-  neon(ctx, p.text ?? 'MOTEL', x + w / 2, base - h - 20, 16, on ? '#F472B6' : '#4B5563', on);
 };
 
 // ---------------------------------------------------------------------------

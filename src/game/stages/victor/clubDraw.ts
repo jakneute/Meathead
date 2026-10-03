@@ -22,6 +22,7 @@ import { COURSE } from './course';
 import { getVictor, regionOf } from './runtime';
 import { tallyTitle } from './club';
 import { sentenceShown } from '../../platform/speech';
+import { stamp } from '../../render/stamp';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -141,12 +142,10 @@ export const drawPartyWindow = (ctx: Ctx, wx: number, wy: number, f: number, lab
 // Behind everything (screen space): the club's far wall, the waterfall, the lasers
 // ---------------------------------------------------------------------------
 
-export const drawClubBackdrop = (ctx: Ctx, state: GameState) => {
-  const f = state.frame, camX = state.camera.x;
-  bandedGradient(ctx, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#0B0508', '#14050C', '#1E0610', '#2C080D', '#3B0A0A'], 12);
-  // Far obsidian panels, veined with lava: polished slabs, a lit lip down the left, the shade down the right
+/** The far obsidian slabs, a strip of them 1350 wide (they wrap round): a lit lip down the left, the shade down the right. */
+const clubSlabs = (ctx: Ctx) => {
   for (let i = 0; i < 9; i++) {
-    const x = snap(((i * 150 - camX * 0.15) % 1350 + 1350) % 1350 - 150);
+    const x = i * 150;
     const c = i % 2 ? '#120609' : '#170810';
     ctx.fillStyle = c; ctx.fillRect(x, 0, 140, CANVAS_HEIGHT);
     ctx.fillStyle = lite(c, 0.12); ctx.fillRect(x, 0, 2, CANVAS_HEIGHT); checker(ctx, x + 2, 0, 4, CANVAS_HEIGHT, lite(c, 0.06));
@@ -154,6 +153,19 @@ export const drawClubBackdrop = (ctx: Ctx, state: GameState) => {
     // (the joints between the slabs, and a sheen on each)
     for (let y = (i * 70) % 180; y < CANVAS_HEIGHT; y += 180) { ctx.fillStyle = '#07030A'; ctx.fillRect(x, y, 140, 2); ctx.fillStyle = lite(c, 0.1); ctx.fillRect(x + 2, y + 2, 136, 1); }
     ctx.fillStyle = 'rgba(255,255,255,0.04)'; ctx.fillRect(x + 14, 0, 6, CANVAS_HEIGHT);
+  }
+};
+
+export const drawClubBackdrop = (ctx: Ctx, state: GameState) => {
+  const f = state.frame, camX = state.camera.x;
+  // (the sky and the slabs never change, only scroll: each painted the once and stamped, the slabs as a strip that
+  // wraps round, put down twice; the lava in their veins pulsing live over them)
+  stamp(ctx, 'victor-club-sky', 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, g => bandedGradient(g, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#0B0508', '#14050C', '#1E0610', '#2C080D', '#3B0A0A'], 12));
+  const off = snap(((-camX * 0.15) % 1350 + 1350) % 1350);
+  for (const dx of [off - 150, off - 1500]) { ctx.save(); ctx.translate(dx, 0); stamp(ctx, 'victor-club-slabs', 0, 0, 1350, CANVAS_HEIGHT, clubSlabs); ctx.restore(); }
+  // Far obsidian panels, veined with lava: polished slabs, a lit lip down the left, the shade down the right
+  for (let i = 0; i < 9; i++) {
+    const x = snap(((i * 150 - camX * 0.15) % 1350 + 1350) % 1350 - 150);
     const pts: [number, number][] = [[x + 20 + hash(i) * 60, 0]];
     for (let y = 0; y < CANVAS_HEIGHT; y += 60) pts.push([x + 20 + hash(i * 7 + y) * 100, y]);
     const a = 0.3 + 0.15 * Math.sin(f * 0.05 + i);

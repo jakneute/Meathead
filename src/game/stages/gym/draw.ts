@@ -11,6 +11,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { COURSE, CP, MEZZ_Y, END_WALL, WALL_X, WALL_W, WALL_TOP, RAT_HOLES, Prop, Ledge } from './course';
 import { getGym, fadeAmount, GymRuntime, BigFella, TELEGRAPH } from './runtime';
 import { saying, drawBubble } from './script';
+import { stamp } from '../../render/stamp';
 
 type Ctx = CanvasRenderingContext2D;
 const Y = GROUND_Y;
@@ -29,7 +30,14 @@ export const drawGymBack = (ctx: Ctx, state: GameState) => {
   if (!rt) return;
   const x1 = Math.max(COURSE.x1, state.camera.x - 20), x2 = Math.min(COURSE.x2 + 200, state.camera.x + CANVAS_WIDTH + 20);
   drawWall(ctx, state, x1, x2);
-  for (const p of COURSE.props) { const [a, b] = propSpan(p); if (inView(state, a, b)) drawProp(ctx, state, p); }
+  for (const p of COURSE.props) {
+    const [a, b] = propSpan(p);
+    if (!inView(state, a, b)) continue;
+    // (all but the bag, swinging, and the posters, lettered in the web font, are still: painted the once and stamped)
+    if (p.look === 'bag' || p.look === 'poster') { drawProp(ctx, state, p); continue; }
+    const flat = p.look === 'mirror' || p.look === 'window';
+    stamp(ctx, `gym-prop-${p.look}-${p.x}-${p.y}`, a - 12, flat ? p.y - 10 : p.y - 196, b - a + 24, flat ? 186 : 204, g => drawProp(g, state, p));
+  }
   drawDoors(ctx, state, rt);
   drawEndWall(ctx, state);
   RAT_HOLES.forEach((x, i) => { if (inView(state, x - 40, x + 50)) drawRatHole(ctx, state, rt, x, i === RAT_HOLES.length - 1); });
@@ -38,7 +46,21 @@ export const drawGymBack = (ctx: Ctx, state: GameState) => {
 
 /** The back wall: cinderblock, the lower half painted red and the top a dirty cream, a stripe between; the ceiling's beams and the tube lights hung off them. */
 const drawWall = (ctx: Ctx, state: GameState, x1: number, x2: number) => {
-  const f = state.frame;
+  // The wall itself doesn't change: painted the once in chunks WALL_CHUNK wide and stamped; the tube lights over it live
+  for (let cx = Math.floor(x1 / WALL_CHUNK) * WALL_CHUNK; cx < x2; cx += WALL_CHUNK) {
+    const a = Math.max(COURSE.x1, cx), b = Math.min(COURSE.x2 + 200, cx + WALL_CHUNK);
+    if (b <= a) continue;
+    // (each a little over into the next, so no seam shows where two meet between pixels)
+    stamp(ctx, `gym-wall-${cx}`, cx - 2, 0, WALL_CHUNK + 4, Y, g => {
+      g.save(); g.beginPath(); g.rect(cx - 2, -10, WALL_CHUNK + 4, Y + 20); g.clip();
+      drawWallStill(g, a, b);
+      g.restore();
+    });
+  }
+  drawTubeLights(ctx, state, x1, x2);
+};
+const WALL_CHUNK = 256;
+const drawWallStill = (ctx: Ctx, x1: number, x2: number) => {
   // (the ceiling: a drop ceiling, its tiles gone yellow and water-stained in the grid, one missing (the dark up
   // through it), a duct running along under it, the trim where it meets the wall)
   ctx.fillStyle = '#6E685A'; ctx.fillRect(x1, 0, x2 - x1, 70);
@@ -75,6 +97,9 @@ const drawWall = (ctx: Ctx, state: GameState, x1: number, x2: number) => {
   for (let x = Math.floor(x1 / 70) * 70; x < x2; x += 70) { const h = 40 + hash(x) * 120; ctx.fillRect(x + hash(x + 1) * 40, 70, 6 + hash(x + 2) * 10, h); }
   // (the rubber floor's skirting)
   ctx.fillStyle = '#111'; ctx.fillRect(x1, Y - 8, x2 - x1, 8);
+};
+const drawTubeLights = (ctx: Ctx, state: GameState, x1: number, x2: number) => {
+  const f = state.frame;
   // (the tube lights, one flickering)
   for (let x = Math.floor(x1 / 320) * 320 - 220; x < x2 + 90; x += 320) {
     const flicker = (x / 320) % 5 === 2 && hash(Math.floor(f / 5) + x) > 0.85;
