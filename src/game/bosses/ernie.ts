@@ -184,10 +184,16 @@ const heaveBoulder = (ctx: FrameContext, boss: Enemy) => {
   ctx.bossHelpers.playGunSound('whoosh');
   boss.bossState = 'running';
   boss.slideTargetX = midX(boss) < ARENA_MID ? ARENA_RIGHT - boss.width - 30 : ARENA_LEFT + 30;
+  // (not the same every time: sometimes straight off, sometimes he watches it go a moment first; sometimes he really
+  // legs it, sometimes he's an old man)
+  boss.runDelay = Math.random() < 0.35 ? 0 : Math.round(8 + Math.random() * 34);
+  boss.runMul = 0.82 + Math.random() * 0.4;
 };
 
 const runAcross = (ctx: FrameContext, boss: Enemy) => {
-  const speed = (RUN_SPEED + pace(boss) * RUN_SPEED_RAMP) * (boss.scrambling ? SCRAMBLE_SPEED_MULT : 1);
+  // (watching the boulder go before he sets off)
+  if (!boss.scrambling && (boss.runDelay ?? 0) > 0) { boss.runDelay!--; boss.vel.x = 0; return; }
+  const speed = (RUN_SPEED + pace(boss) * RUN_SPEED_RAMP) * (boss.scrambling ? SCRAMBLE_SPEED_MULT : boss.runMul ?? 1);
   const dx = boss.slideTargetX! - boss.pos.x;
   // Scrambling back up after a shatter he can't be hurt (and flickers)
   if (boss.scrambling) boss.hitCooldown = Math.max(boss.hitCooldown || 0, 10);

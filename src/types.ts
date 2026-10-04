@@ -489,6 +489,9 @@ export interface Enemy extends Entity {
   punishT?: number;
   /** ...and the kick that sends it: frames of the follow-through left. */
   kickT?: number;
+  /** Ernie, after a heave: a beat watching it go before he runs for it, and how hard he runs (it's not the same every time). */
+  runDelay?: number;
+  runMul?: number;
   // Oily Oscar
   oscarFacing?: 1 | -1;
   slideTargetX?: number;
