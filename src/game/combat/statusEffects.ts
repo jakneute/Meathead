@@ -173,17 +173,19 @@ export const updateTaser = (ctx: FrameContext, input: FrameInput) => {
   // The current jumps on from it to anyone right up against it, and on from them (the daisy chain): all of them held,
   // fried and set alight the same as it
   const chained = target.type === 'enemy' ? chainFrom(ctx, target as Enemy) : [];
-  if (target.type === 'enemy') { for (const e of chained) zapOne(ctx, e); zapOne(ctx, target as Enemy); }
-  // (a boss the current can jump onto off his own men (the finale's alien): from whichever of them's nearest him)
-  const onChain = getBossDef(stageId)?.onTaserChain;
-  if (onChain && target.type === 'enemy' && state.arenaLocked) {
-    const boss = enemies.find(e => e.type === 'boss' && e.health > 0);
+  if (target.type === 'enemy') {
+    for (const e of chained) zapOne(ctx, e);
+    zapOne(ctx, target as Enemy);
+    // (a boss the current can jump onto off his own men (the finale's alien): from whichever of them's nearest him)
+    const onChain = getBossDef(stageId)?.onTaserChain;
+    const boss = onChain && state.arenaLocked ? enemies.find(e => e.type === 'boss' && e.health > 0) : undefined;
     const from = boss && [target as Enemy, ...chained].filter(c => c.health > 0 || c === target).sort((a, b) => gapBetween(a, boss) - gapBetween(b, boss))[0];
-    if (boss && from && gapBetween(from, boss) <= taserChainReach(state, TASER_CHAIN_REACH)) {
+    if (onChain && boss && from && gapBetween(from, boss) <= taserChainReach(state, TASER_CHAIN_REACH)) {
       player.taserLinks = [...(player.taserLinks ?? []), [from.id, boss.id]];
       onChain(ctx, boss);
     }
   }
+  // (not one of them: a meth barrel, held, worn down and set alight)
   else {
     target.isTased = true;
     if (state.frame % TASER_TICK_RATE === 0) {
