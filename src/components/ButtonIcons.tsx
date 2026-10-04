@@ -1,6 +1,7 @@
 import React from 'react';
 import { useInputDevice, usePadFamily } from './useInputDevice';
 import type { PadFamily } from '../game/platform/device';
+import { padIs360 } from '../game/platform/device';
 
 // Button prompts, drawn as the buttons themselves, for whichever you're using right now: a controller's buttons if
 // the controller was the last thing touched, the keyboard's keys (and the mouse) if it was the keyboard or the mouse.
@@ -41,6 +42,8 @@ export const padName = (k: string, family: PadFamily): string => {
   // (a Joy-Con on its side: its four buttons go by which way round they are)
   if ((k === 'A' || k === 'B' || k === 'X' || k === 'Y') && isJoyCon(family)) return ({ A: '▼', B: '▶', X: '◀', Y: '▲' } as const)[k];
   if (k === 'A' || k === 'B' || k === 'X' || k === 'Y') return family === 'playstation' ? ({ A: '✕', B: '○', X: '□', Y: '△' } as const)[k] : family === 'switch' ? SWITCH_LETTERS[k] : k;
+  // (an Xbox One / Series pad's START is its Menu button; a 360's says START)
+  if (k === 'START' && family === 'xbox') return padIs360() ? 'START' : 'MENU';
   if (k in OTHER_NAMES.xbox) return OTHER_NAMES[family][k as keyof typeof OTHER_NAMES.xbox];
   return k;
 };
@@ -99,6 +102,19 @@ const PadOther: React.FC<{ label: 'START' | 'LB' | 'RB' | 'DPAD' | 'RSTICK'; siz
     <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">
       <circle cx="20" cy="20" r="13" fill="#27272A" stroke="#0B0B0F" strokeWidth="2" />
       <path d={family === 'joycon-l' ? 'M13 20 H27' : 'M20 13 V27 M13 20 H27'} stroke="#E4E4E7" strokeWidth="3.5" strokeLinecap="round" />
+    </svg>
+  );
+  // (an Xbox's: the newer pads' Menu button, three lines on a little round button; a 360's, round and silver, an arrow)
+  if (label === 'START' && family === 'xbox') return padIs360() ? (
+    <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">
+      <circle cx="20" cy="20" r="13" fill="#D4D4D8" stroke="#0B0B0F" strokeWidth="2" />
+      <circle cx="20" cy="19" r="10.5" fill="#E4E4E7" />
+      <path d="M16 13.5 L26 20 L16 26.5 Z" fill="#3F3F46" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">
+      <circle cx="20" cy="20" r="13" fill="#27272A" stroke="#0B0B0F" strokeWidth="2" />
+      <path d="M13 15 H27 M13 20 H27 M13 25 H27" stroke="#E4E4E7" strokeWidth="2.6" strokeLinecap="round" />
     </svg>
   );
   const w = label === 'START' ? Math.max(60, 20 + name.length * 9) : 50;

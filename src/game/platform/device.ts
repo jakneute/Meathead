@@ -34,6 +34,19 @@ export const familyOf = (id: string): PadFamily => {
   if (s.includes('057e') || s.includes('pro controller') || s.includes('joy-con') || s.includes('nintendo') || s.includes('switch')) return 'switch';
   return 'xbox';
 };
+/**
+ * An Xbox 360 pad (its START is a round button with an arrow on it, not the newer pads' three-line Menu button): going
+ * by its own ids (045e and 028e / 028f / 0291 / 0719, or it saying so). Chrome's generic XInput name ("Xbox 360
+ * Controller (XInput STANDARD GAMEPAD)") is given to every XInput pad, the new ones too, so that alone counts as new.
+ */
+export const isXbox360Id = (id: string) => {
+  const s = id.toLowerCase();
+  if (s.includes('xinput')) return false;
+  return s.includes('xbox 360') || (s.includes('045e') && ['028e', '028f', '0291', '0719'].some(p => s.includes(p)));
+};
+let x360 = false;
+/** Is the controller in use an Xbox 360 one? */
+export const padIs360 = () => x360;
 const listeners = new Set<() => void>();
 let started = false;
 
@@ -51,7 +64,7 @@ const start = () => {
   window.addEventListener('wheel', () => { setLastInputDevice('mouse'); set('kbm'); }, true);
   const poll = () => {
     const gp = getActiveGamepad();
-    if (gp) family = familyOf(gp.id);
+    if (gp) { family = familyOf(gp.id); x360 = family === 'xbox' && isXbox360Id(gp.id); }
     if (gp && (gp.buttons.some(b => b.pressed) || gp.axes.some(a => Math.abs(a) > 0.5))) { setLastInputDevice('gamepad'); set('pad'); }
     // (the game's own reading of the pad counts too)
     else if (getLastInputDevice() === 'gamepad') set('pad');
