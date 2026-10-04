@@ -167,6 +167,11 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.65, vary: 2, gap: 40,
     make: () => { const lp = lowpass(), body = glide(130, 40, 16), bp = bandpass(); return render(0.32, t => body(t) * ex(t, 12) * 1.2 + lp(rnd(), 1500 * ex(t, 14) + 150) * ex(t, 16) + bp(rnd(), 900, 0.8) * ex(t, 35) * 0.6); },
   },
+  gunhit: {
+    // A round going into someone: a sharp crack of a hit, a wet slap of it, the thump of it in the body
+    gain: 0.55, vary: 2, gap: 35, voices: 4,
+    make: () => { const bp = bandpass(), lp = lowpass(), body = glide(150, 55, 30); return render(0.24, t => (t < 0.005 ? rnd() * 1.1 : 0) + bp(rnd(), 1500 - 950 * Math.min(1, t * 8), 0.8) * ex(t, 24) * 1.1 + lp(rnd(), 520) * ex(t, 16) * 0.8 + body(t) * ex(t, 28) * 0.9); },
+  },
   splat: {
     gain: 0.5, vary: 2.5, gap: 45, voices: 3,
     make: () => { const bp = bandpass(), body = glide(110, 50, 20); return render(0.32, t => bp(rnd(), 650 + 500 * ex(t, 20), 0.6) * ex(t, 14) * 1.2 * (0.7 + 0.3 * Math.sin(TAU * 60 * t)) + body(t) * ex(t, 22) * 0.6); },

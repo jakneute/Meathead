@@ -670,12 +670,21 @@ const bulletBlood = (ctx: FrameContext, p: Projectile, enemy: Enemy) => {
   const dir = Math.sign(p.vel.x) || 1;
   const x = Math.max(enemy.pos.x, Math.min(enemy.pos.x + enemy.width, p.pos.x + p.width / 2));
   const y = Math.max(enemy.pos.y + 4, Math.min(enemy.pos.y + enemy.height - 4, p.pos.y + p.height / 2));
-  for (let i = 0; i < 5; i++) {
+  // Out the far side of him, the way the round went: a fan of it, big drops arcing down, a red mist hanging a moment
+  const SPRAY = ['#DC2626', '#B91C1C', '#EF4444', '#7F1D1D', '#991B1B'];
+  for (let i = 0; i < 18; i++) {
     state.particles.push({
-      pos: { x, y }, vel: { x: dir * (1.5 + Math.random() * 3), y: -1.5 - Math.random() * 2.5 },
-      life: 14 + Math.random() * 14, color: PARTICLE_PALETTES.GORE[i % PARTICLE_PALETTES.GORE.length], size: 1.5 + Math.random() * 2.5,
+      pos: { x, y }, vel: { x: dir * (2.5 + Math.random() * 7.5), y: -3.5 - Math.random() * 4 + i * 0.25 },
+      life: 24 + Math.random() * 22, color: SPRAY[i % SPRAY.length], size: 3 + Math.random() * 4, grav: 0.32,
     });
   }
+  // (the burst at the wound itself: a splash of bright red, there and gone)
+  for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; state.particles.push({ pos: { x, y }, vel: { x: Math.cos(a) * 2.2 + dir, y: Math.sin(a) * 2.2 }, life: 8, color: i % 2 ? '#F87171' : '#DC2626', size: 4 + Math.random() * 2 }); }
+  // (a little spurt back out of the hole, toward him)
+  for (let i = 0; i < 4; i++) state.particles.push({ pos: { x, y }, vel: { x: -dir * (1 + Math.random() * 2.5), y: -1 - Math.random() * 2 }, life: 14 + Math.random() * 8, color: PARTICLE_PALETTES.GORE[(i + 1) % PARTICLE_PALETTES.GORE.length], size: 1.5 + Math.random() * 2, grav: 0.3 });
+  for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: x + dir * (4 + i * 6), y: y - 2 + (Math.random() - 0.5) * 6 }, vel: { x: dir * (0.6 + i * 0.4), y: -0.3 }, life: 12 + i * 3, color: '#B91C1C', size: 7 + i * 3, alpha: 0.35 });
+  // (it hit someone: you hear it)
+  playSound('gunhit', 0.7);
 };
 
 /** Player projectile vs. enemies, bosses and meth barrels. Returns false if the projectile is spent. */

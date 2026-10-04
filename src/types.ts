@@ -47,7 +47,7 @@ export type SoundType =
   // dry fire (fire pressed with it empty)
   | 'dry_lmg' | 'dry_ice' | 'dry_flame' | 'dry_boulder' | 'dry_tsunami' | 'dry_needles' | 'dry_taser' | 'dry_sludge' | 'dry_oil'
   // bodies
-  | 'punch' | 'stomp' | 'splat' | 'crunch' | 'hurt' | 'whoosh' | 'jump' | 'land' | 'thud' | 'slam'
+  | 'punch' | 'stomp' | 'splat' | 'gunhit' | 'crunch' | 'hurt' | 'whoosh' | 'jump' | 'land' | 'thud' | 'slam'
   // things breaking
   | 'clang' | 'clink' | 'crack' | 'glass' | 'crash' | 'boom' | 'nuke'
   // water
