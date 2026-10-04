@@ -288,8 +288,39 @@ export const SONGS: Record<string, Song> = {
       'Blackout Barry': { inst: { lead: 'sax', color: 'strings' } },
       'Oily Oscar': { inst: { lead: 'harmonica', color: 'banjo' } },
       'Drug Trade Dale': { inst: { lead: 'trumpet', color: 'nylon' } },
-      // (the alien: a wobbly saucer organ on the lead, brass stabs under it)
-      'Imposter Invasion': { inst: { lead: 'organ', color: 'brass' } },
+    },
+  },
+
+  // ---------------------------------------------------------------------------------------------------------------
+  // The finale (the alien who wore the President): his own theme, not the bosses' one. D minor, a saucer-organ tune
+  // wobbling over a clav arpeggio and a driving synth bass, an eerie choir under it all; then the second half, the
+  // presidential fanfare he's been hiding behind, turned sour in brass. Begging, it's all stripped away: the tune on
+  // its own, slow and thin, the choir hanging on.
+  imposter: {
+    bpm: 152,
+    parts: {
+      lead: { inst: 'organ', pan: 0.15, mml: b(
+        'o5 d4. f8 a4 g8 f8', 'o5 e4 f8 e8 d2', 'o5 d4. f8 b-4 a8 g8', 'o5 a2. r4',
+        'o5 a4. > c8 d4 c8 < a8', 'o5 g4 a8 g8 f2', 'o5 e4 f8 g8 b-4 a4', 'o5 c+2 < a2',
+        'o5 r1', 'o5 r1', 'o5 r1', 'o5 r1', 'o5 r1', 'o5 r1', 'o5 r1', 'o5 r1') },
+      fanfare: { inst: 'brass', pan: -0.15, mml: b(
+        'o5 r1', 'o5 r1', 'o5 r1', 'o5 r1', 'o5 r1', 'o5 r1', 'o5 r1', 'o5 r1',
+        'o5 f8 f16 f16 b-4 f4 d4', 'o5 g8 g16 g16 > c4 < g4 e4', 'o5 a4. g8 f4 e4', 'o5 d2. r4',
+        'o5 f8 f16 f16 b-4 > d4 c8 < b-8', 'o5 a4 g8 a8 > c2', 'o5 c+4 e4 a4 g4', 'o5 e2 c+4 < a4') },
+      ost: { inst: 'clav', vol: 0.7, pan: -0.35, mml: arp(4, [
+        ['dfa', 'd'], ['dfa', 'd'], ['dfb-', 'd'], ['c+ea', 'c+'], ['dfa', 'd'], ['dfa', 'd'], ['dgb-', 'd'], ['c+ea', 'c+'],
+        ['dfb-', 'd'], ['ceg', 'c'], ['dfa', 'd'], ['dfa', 'd'], ['dfb-', 'd'], ['ceg', 'c'], ['c+ea', 'c+'], ['c+ea', 'c+']]) },
+      bass: { inst: 'synthbass', mml: bass(2, 'R8 R8 O8 R8 R8 R8 O8 F8', [
+        'd/a', 'd/a', 'b-/f', 'a/e', 'd/a', 'd/a', 'g/d', 'a/e', 'b-/f', 'c/g', 'd/a', 'd/a', 'b-/f', 'c/g', 'a/e', 'a/e']) },
+      choir: { inst: 'choir', vol: 0.55, pan: 0.3, mml: pad(4, ['dfa', 'dfa', 'dfb-', 'c+ea', 'dfa', 'dfa', 'dgb-', 'c+ea', 'dfb-', 'ceg', 'dfa', 'dfa', 'dfb-', 'ceg', 'c+ea', 'c+ea']) },
+      hits: { inst: 'timpani', vol: 0.8, mml: ['d', 'd', 'b-', 'a', 'd', 'd', 'g', 'a', 'b-', 'c', 'd', 'd', 'b-', 'c', 'a', 'a'].map(r => `o2 ${r}4 r2.`).join(' | ') },
+      drums: { inst: 'kick', drums: true, mml: b('{kx}8 {kh}8 {sh}8 h8 {kh}8 {kh}8 {sh}8 {kh}8', DRIVE, DRIVE, ROCK_FILL, DRIVE, DRIVE, DRIVE, ROCK_FILL,
+        '{kx}8 {kh}8 {sh}8 h8 {kh}8 {kh}8 {sh}8 {kh}8', DRIVE, DRIVE, ROCK_FILL, '{kx}8 {kh}8 {sh}8 h8 {kh}8 {kh}8 {sh}8 {kh}8', DRIVE, DRIVE, 's16 s16 s16 s16 t16 t16 u16 u16 {kx}4 {kx}4') },
+    },
+    arrangements: {
+      fight: {},
+      // (begging: just the tune, on something thin and sorry, and the choir; everything else gone)
+      plead: { inst: { lead: 'flute', fanfare: 'harmonica' }, mute: ['ost', 'bass', 'hits', 'drums'], vol: { choir: 0.8 } },
     },
   },
 

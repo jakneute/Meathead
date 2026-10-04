@@ -11,6 +11,8 @@ import { play, stop, setMix, useContext, warmUp } from './platform/music/engine'
 import { SONGS } from './platform/music/songs';
 import { getStageLayout } from './stages';
 import { isMidBoss } from './combat/midBoss';
+import { getFinale } from './stages/finale/state';
+import { FINALE_STAGE } from '../constants';
 
 export interface Cue { song: string; arr?: string }
 
@@ -19,8 +21,8 @@ const STAGE_SONG: Record<string, string> = {
   'Artie Avalanche': 'artie', 'Victor Volcano': 'victor', 'Ernie Earthquake': 'ernie', 'Hector Hurricane': 'hector',
   'Toxic Tommy': 'tommy', 'Blackout Barry': 'barry', 'Oily Oscar': 'oscar', 'Drug Trade Dale': 'dale',
   'The Iron Pit': 'gym',
-  // (the finale's all boss fight: the boss theme from the first frame)
-  'Imposter Invasion': 'boss',
+  // (the finale's all boss fight: his own theme from the first frame)
+  'Imposter Invasion': 'imposter',
   // (the walk out to the medal: the ceremony's music, under way before it starts)
   'Medal Ceremony': 'title',
 };
@@ -84,6 +86,8 @@ export const gameMusicCue = (state: GameState, status: GameStatus, stageId: stri
   if (state.deathTimer > 0) return { song: 'death' };
   if (state.bossExplosionTimer > 0 || state.victoryString || state.bossCorpse) return { song: 'victory' };
   const boss = state.enemies.find(e => e.type === 'boss' && e.health > 0);
+  // (the alien: his own theme, stripped right back once he's begging)
+  if (stageId === FINALE_STAGE) return { song: 'imposter', arr: getFinale(state)?.pleadAt !== undefined ? 'plead' : 'fight' };
   if (status === GameStatus.BOSS_INTRO || (boss && state.arenaLocked)) return { song: 'boss', arr: stageId };
   const cam = state.camera;
   const mid = state.enemies.find(e => isMidBoss(e) && e.health > 0 && !e.isBlownAway && e.pos.x + e.width > cam.x - 100 && e.pos.x < cam.x + 900);
