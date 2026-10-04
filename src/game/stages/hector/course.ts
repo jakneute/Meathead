@@ -223,9 +223,10 @@ const buildTower = (): Tower => {
     // (the last: the lift, the updraft that carries you up into the Eye: wide, still, and plain to see)
     const last = i === 33;
     const w = last ? 170 : 90 + ((i * 37) % 60);
-    // Every so often a trampoline (big bounce), and later some of it's orbiting round the storm
+    // Every so often a trampoline (big bounce). (Nothing orbits: drifting junk wandered off round the lap and sat
+    // about to the left of the climb, going nowhere; it's right and up, and that's all)
     const bounce = !last && i % 9 === 5;
-    const orbit = !last && i > 12 && i % 5 === 2 ? (i % 2 ? 0.9 : -0.9) : undefined;
+    const orbit = undefined;
     plats.push({ u, y, w, look: last ? 'lift' : bounce ? 'trampoline' : LOOKS[i % LOOKS.length], bounce, orbit });
     u = (u + w + 40 + ((i * 53) % 36)) % circumference;
     y -= bounce ? 160 : 72 + ((i * 29) % 22);
