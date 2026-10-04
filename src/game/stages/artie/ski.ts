@@ -63,7 +63,7 @@ const SKI_BASE = 9.2, SKI_FAST = 11, SKI_SLOW = 7, SKI_CRASHED = 2.5;
 const SKI_HINT_FOR = 420;
 const AVALANCHE_SPEED = 8.7;
 /** How much a crash lets the avalanche close in, and how fast it drops back again skiing clean (px a frame). */
-const GAP_CRASH = 130, GAP_RECOVER = 0.35;
+const GAP_CRASH = 110, GAP_RECOVER = 0.35;
 /** It never falls further behind than this (it catches up): the zoomed-out camera always has it in view. */
 const AVALANCHE_MAX_GAP = 660;
 /** The cutscene surge: how fast it comes in, and how close behind him it stops. */

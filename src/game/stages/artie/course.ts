@@ -328,17 +328,17 @@ export const buildCourse = (): Course => {
     { run: 400, steep: 70 }, { run: 500, steep: 90, obs: [['log', 260]] }, { run: 300, steep: 50 }, { jump: 140 },
     { run: 400, steep: 80, obs: [['branch', 220]] }, { run: 500, steep: 100, obs: [['pine', 300]] }, { run: 400, steep: 70, obs: [['rock', 150], ['rock', 330]] },
     { run: 300, steep: 40 }, { jump: 170 },
-    { run: 500, steep: 110, obs: [['log', 200], ['branch', 400]] }, { run: 600, steep: 120, obs: [['pine', 250]] }, { run: 400, steep: 55 }, { jump: 180 },
-    { run: 500, steep: 120, obs: [['rock', 150], ['log', 350]] }, { run: 500, steep: 110, obs: [['branch', 150], ['pine', 380]] }, { run: 400, steep: 90 }, { jump: 160 },
-    { run: 600, steep: 140, obs: [['rock', 200], ['pine', 420]] }, { run: 500, steep: 110, obs: [['log', 150], ['branch', 330]] },
-    { run: 500, steep: 100, obs: [['rock', 180], ['log', 380]] }, { jump: 150 },
+    { run: 500, steep: 110, obs: [['log', 200]] }, { run: 600, steep: 120, obs: [['pine', 250]] }, { run: 400, steep: 55 }, { jump: 180 },
+    { run: 500, steep: 120, obs: [['rock', 150], ['log', 350]] }, { run: 500, steep: 110, obs: [['pine', 380]] }, { run: 400, steep: 90 }, { jump: 160 },
+    { run: 600, steep: 140, obs: [['rock', 200], ['pine', 420]] }, { run: 500, steep: 110, obs: [['branch', 330]] },
+    { run: 500, steep: 100, obs: [['rock', 180]] }, { jump: 150 },
     { run: 500, steep: 110, obs: [['pine', 200], ['branch', 400]] },
     // (the longer way down: a stretch through the trees, a double jump, a slalom of rocks and branches, a last long drop)
-    { run: 500, steep: 90, obs: [['pine', 120], ['pine', 300], ['branch', 440]] }, { run: 400, steep: 70, obs: [['log', 260]] }, { jump: 150 },
+    { run: 500, steep: 90, obs: [['pine', 120], ['branch', 440]] }, { run: 400, steep: 70, obs: [['log', 260]] }, { jump: 150 },
     { run: 250, steep: 40 }, { jump: 170 },
-    { run: 500, steep: 120, obs: [['rock', 120], ['branch', 260], ['rock', 400]] }, { run: 500, steep: 110, obs: [['branch', 140], ['log', 300], ['pine', 440]] },
+    { run: 500, steep: 120, obs: [['rock', 120], ['rock', 400]] }, { run: 500, steep: 110, obs: [['branch', 140], ['pine', 440]] },
     { run: 400, steep: 80 }, { jump: 190 },
-    { run: 600, steep: 150, obs: [['log', 180], ['rock', 360], ['branch', 520]] }, { run: 500, steep: 110, obs: [['pine', 220], ['rock', 400]] },
+    { run: 600, steep: 150, obs: [['log', 180], ['branch', 520]] }, { run: 500, steep: 110, obs: [['pine', 220]] },
     { run: 400, steep: 70, obs: [['branch', 200]] }, { jump: 160 },
     { run: 600, steep: 130, obs: [['rock', 200], ['log', 420]] },
   ];
@@ -352,7 +352,7 @@ export const buildCourse = (): Course => {
   }
   // The rest of the way down to the valley floor, easing out
   const drop = GROUND_Y - c.y;
-  run(900, drop * 0.7, [['rock', 300], ['log', 620]]);
+  run(900, drop * 0.7, [['rock', 300]]);
   run(700, GROUND_Y - c.y);
   const ski = { x1: skiX1, x2: c.x, obstacles };
   const cp3 = { x: skiX1 + 40, y: c.groundAt(skiX1 + 40) };
