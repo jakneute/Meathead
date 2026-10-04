@@ -238,7 +238,11 @@ const updatePhysicsProjectile = (ctx: FrameContext, p: Projectile): boolean => {
     // sludge, which got read as landing on top of a tall wall it had hit side-on, or hitting a wall it had landed on)
     const overlapX = Math.min(p.pos.x + p.width - b.x, b.x + b.w - (p.isSludge ? p.pos.x : player.pos.x));
     const overlapY = Math.min(p.pos.y + p.height - b.y, b.y + b.h - (p.isSludge ? p.pos.y : player.pos.y));
-    if (overlapX < overlapY) {
+    // (come down onto it from above, it's the floor, however deep in it fell this frame: a ledge it's landed on isn't
+    // a wall to run down the side of, and through the ledge under it; a glob of sludge coming down fast went in deeper
+    // than it was wide, and got read as hitting it side-on)
+    const fromAbove = !p.isLingering && p.vel.y > 0 && p.pos.y + p.height - p.vel.y <= b.y + 1;
+    if (overlapX < overlapY && !(fromAbove && (b.oneWay || p.isSludge))) {
       // Hit a wall
       if (p.isMethBarrel) { p.vel.x *= -0.8; p.pos.x = (p.pos.x + p.width / 2 < b.x + b.w / 2) ? b.x - p.width : b.x + b.w; continue; }
       if (p.isBoulder) { if (p.isHeaved) heavedBoulderRumble(ctx, p); shatterBoulder(ctx, p); return false; }
@@ -257,6 +261,15 @@ const updatePhysicsProjectile = (ctx: FrameContext, p: Projectile): boolean => {
       if (p.isIce && p.width > 30) { shatterIceBlock(ctx, p); return false; }
       if (p.isSludge && p.visualOnly) return false;
       if (p.isSludge) {
+        // A ledge he could drop through: it can too. A puddle on it, and just as much again runs on through, down to
+        // whatever's under it (and on through the next one, all the way down: extra barf)
+        if (b.oneWay) {
+          const w = p.width, h = p.height;
+          state.projectiles.push({
+            id: `${p.id}-drip`, pos: { x: p.pos.x + p.width / 2 - w / 2, y: b.y + b.h + 1 }, vel: { x: p.vel.x * 0.15, y: 2 },
+            width: w, height: h, health: 1, maxHealth: 1, type: 'projectile', damage: p.damage, owner: p.owner, isSludge: true, life: 150,
+          });
+        }
         // Splat into a lingering puddle
         p.isLingering = true;
         // (the finale: wider puddles that lie there a good while, running together into one slick: see spreadSlick)
