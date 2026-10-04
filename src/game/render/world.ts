@@ -1512,9 +1512,12 @@ const drawParticles = (ctx: CanvasRenderingContext2D, state: GameState) => {
   ctx.restore();
 };
 
+/** The numbers that fly up off whatever's hit: off (the words that pop up, PSSST and OILED! and the like, still show). */
+export const SHOW_DAMAGE_NUMBERS = false;
 const drawDamageNumbers = (ctx: CanvasRenderingContext2D, state: GameState) => {
   state.damageNumbers.forEach(d => {
     if (d.isCallout) { drawCallout(ctx, d, state.camera); return; }
+    if (!SHOW_DAMAGE_NUMBERS && !d.text) return;
     ctx.save();
     ctx.globalAlpha = d.life / d.maxLife;
     const txt = d.text || (d.value !== undefined ? d.value.toString() : "");
