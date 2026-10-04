@@ -76,7 +76,9 @@ const CHAIN_DAMAGE = 6;
 /** The beam: its raw damage (his hide in the finale scales everything that hurts Meathead down), width, and timings. */
 /** (WEAK_BEAM: what's left of it through a flamethrower) */
 const WEAK_BEAM = 0.55;
-const BEAM_DAMAGE = 45, BEAM_HALF = 10, BEAM_FRAMES = 33, TELL_FRAMES = 72, TELL_RAMP = 36, LOCK_FRAMES = 14;
+const BEAM_DAMAGE = 45, BEAM_HALF = 10, BEAM_FRAMES = 33, TELL_FRAMES = 72, TELL_RAMP = 36, LOCK_FRAMES = 17;
+/** A little longer to see it coming, at any speed (on top of the rest: the quickest tell's never under half a second). */
+const TELL_GRACE = 10;
 /** The beaten alien's bolts: slow, and they barely hurt. */
 const BOLT_SPEED = 2.4, BOLT_DAMAGE = 12, BOLT_EVERY = 100;
 
@@ -245,7 +247,7 @@ const canStun = (rt: FinaleRuntime, frame: number) => rt.stunAt === undefined ||
 /** The tell: the gun up, the beam charging along where it's aimed (turning to follow him), then locked on. */
 /** (and the more of his ammo Meathead's spent, the quicker it comes: up to a third quicker with it all gone) */
 const DRAIN_TELL = 0.35;
-const tellFrames = (boss: Enemy, rt: FinaleRuntime, drain = 0) => Math.round((TELL_FRAMES - alienPace(boss) * TELL_RAMP) * (1 - drain * DRAIN_TELL) * (rt.slowT > 0 ? 1.6 : 1));
+const tellFrames = (boss: Enemy, rt: FinaleRuntime, drain = 0) => Math.round(((TELL_FRAMES - alienPace(boss) * TELL_RAMP) * (1 - drain * DRAIN_TELL) + TELL_GRACE) * (rt.slowT > 0 ? 1.6 : 1));
 
 const chargeUp = (ctx: FrameContext, boss: Enemy, rt: FinaleRuntime) => {
   const p = ctx.state.player;
