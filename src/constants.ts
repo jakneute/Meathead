@@ -187,8 +187,8 @@ export const MAX_AMMO: Record<WeaponType, number> = {
   'BOULDER': 20,
   'SHOTGUN': 50,
   'FLAMETHROWER': 500,
-  // (five: Victor's 666 goes in five waves that put his fire out or blow a vent into steam, 150 each; four won't do it)
-  'TSUNAMI': 5,
+  // (eight; Victor's 666 still goes in five waves that put his fire out or blow a vent into steam, 150 each: three to spare)
+  'TSUNAMI': 8,
   'NEEDLES': 120,
   'TASER': 400,
   'SLUDGE': 24,
@@ -198,11 +198,12 @@ export const MAX_AMMO: Record<WeaponType, number> = {
 };
 
 /** A fresh ammo loadout with every weapon topped up. */
-/** The finale's souped-up guns come at a price: a smaller load each (the tsunami's five stay five). */
-export const FINALE_AMMO_SCALE = 0.7;
+/** The finale's souped-up guns come at a price: a smaller load each (and the tsunami just five). */
+export const FINALE_AMMO_SCALE = 0.7, FINALE_TSUNAMI_AMMO = 5;
 /** A weapon's full load on a stage (the finale's smaller). */
 export const maxAmmo = (w: WeaponType, stageId?: string | null) =>
-  stageId === FINALE_STAGE && w !== 'TSUNAMI' && Number.isFinite(MAX_AMMO[w]) && MAX_AMMO[w] > 0 ? Math.max(1, Math.round(MAX_AMMO[w] * FINALE_AMMO_SCALE)) : MAX_AMMO[w];
+  stageId !== FINALE_STAGE || !Number.isFinite(MAX_AMMO[w]) || MAX_AMMO[w] <= 0 ? MAX_AMMO[w]
+    : w === 'TSUNAMI' ? FINALE_TSUNAMI_AMMO : Math.max(1, Math.round(MAX_AMMO[w] * FINALE_AMMO_SCALE));
 export const createFullAmmo = (stageId?: string | null): Record<WeaponType, number> =>
   Object.fromEntries((Object.keys(MAX_AMMO) as WeaponType[]).map(w => [w, maxAmmo(w, stageId)])) as Record<WeaponType, number>;
 
