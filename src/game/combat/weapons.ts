@@ -402,8 +402,8 @@ export const updateFlamethrower = (ctx: FrameContext, input: WeaponInput, alt = 
   const target = !firing ? 0 : input.moveUp ? -aimRad : input.moveDown ? aimRad : 0;
   player.flameAngle = (player.flameAngle || 0) + (target - (player.flameAngle || 0)) * FLAMETHROWER_AIM_LERP;
   if (player.isDucking) player.flameAngle = 0; // crouched: the nozzle's level, full stop
-  // (the launcher's igniter burns the flamethrower's fuel same as the flamethrower does; in the finale, with the tank
-  // dry, it lights anyway and burns nothing: it's no flamethrower ammo, and the tank stays at 0 for the wreck)
+  // (the launcher's igniter burns the flamethrower's fuel same as the flamethrower does; in the finale it burns none of
+  // it, ever, the tank full or dry: it lights regardless, and the flamethrower's tank is left alone)
   const finale = inFinale(ctx.stageId);
   const hasFuel = cheats.infiniteAmmo || player.weaponAmmo.FLAMETHROWER > 0 || (finale && alt);
   const range = player.flameRange ?? FLAMETHROWER_START_RANGE;
@@ -411,7 +411,7 @@ export const updateFlamethrower = (ctx: FrameContext, input: WeaponInput, alt = 
   if (firing) {
     player.flameDrainTimer = (player.flameDrainTimer || 0) + 1;
     if (player.flameDrainTimer >= FLAMETHROWER_AMMO_EVERY && hasFuel) {
-      if (!cheats.infiniteAmmo && player.weaponAmmo.FLAMETHROWER > 0) player.weaponAmmo.FLAMETHROWER--;
+      if (!cheats.infiniteAmmo && player.weaponAmmo.FLAMETHROWER > 0 && !(finale && alt)) player.weaponAmmo.FLAMETHROWER--;
       player.flameDrainTimer = 0;
     }
   } else {
