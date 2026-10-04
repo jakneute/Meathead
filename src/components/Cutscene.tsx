@@ -51,12 +51,18 @@ export interface Handoff { className: string; selector: string; after: number; o
 const SETTLE_MS = 550, RISE_MS = 900, FADE_MS = 900;
 
 /** Every one can be skipped the usual way (see platform/skip): SKIP >> in the corner, or Start / Esc, jumps straight to the end card. */
-const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radio?: boolean; handoff?: Handoff; autoEnd?: boolean; onDone: () => void }> = ({ panels: PANELS, endAt, endCard, radio, handoff, autoEnd, onDone }) => {
+/** How long THE END sits there before its `endHint` comes up under it (ms). */
+const END_HINT_AFTER = 7000;
+
+const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radio?: boolean; handoff?: Handoff; autoEnd?: boolean; onDone: () => void; endHint?: React.ReactNode }> = ({ panels: PANELS, endAt, endCard, radio, handoff, autoEnd, onDone, endHint }) => {
   const LAST = PANELS.length - 1;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [panelIndex, setPanelIndex] = useState(0);
   const [shownChars, setShownChars] = useState(0);
   const [theEnd, setTheEnd] = useState(false);
+  // (sat on THE END a while: the hint, if there is one)
+  const [hintUp, setHintUp] = useState(false);
+  useEffect(() => { if (!theEnd || !endHint) return; const id = setTimeout(() => setHintUp(true), END_HINT_AFTER); return () => clearTimeout(id); }, [theEnd, endHint]);
   const [skipUp, setSkipUp] = useState(false);
   const [card, setCard] = useState<string | null>(null);
   // Mutable state the loop works on
@@ -227,6 +233,7 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
         />
       </div>
       {skipUp && !theEnd && <SkipPrompt onSkip={skip} />}
+      {hintUp && <div className="absolute left-0 right-0 bottom-[14px] text-center text-[10px] leading-[1.9] text-yellow-300 animate-in fade-in duration-1000">{endHint}</div>}
       {theEnd && handoff && (
         <div className="absolute left-0 right-0 flex justify-center" style={{ top: 510, transform: `translate(${lift.x}px, ${lift.y}px)`, transition: outro === 'rise' || outro === 'fade' ? `transform ${RISE_MS}ms cubic-bezier(0.65, 0, 0.35, 1)` : undefined }}>
           <h2 ref={titleRef} className={handoff.className}>{endCard}</h2>

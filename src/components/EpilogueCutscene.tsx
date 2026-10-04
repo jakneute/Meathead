@@ -6,6 +6,7 @@ import { drawFood } from '../game/scenes/fastFood';
 import { Voice, MEATHEAD_VOICE } from '../game/platform/speech';
 import { playSound } from '../game/platform/audio';
 import { setShatPants, shatClocked } from '../game/scenes/shatLook';
+import { Prompt } from './ButtonIcons';
 
 // After the alien: the real President, found tied up in a broom closet in the sub-basement (a rack of spare skins
 // behind the mops: they'd been pulling the strings the whole time), holds an "emergency" press conference on the lawn
@@ -78,7 +79,9 @@ const EpilogueCutscene: React.FC<{ shat?: boolean; onDone: () => void }> = ({ sh
   // (set before the first frame's drawn, and cleared once it's gone)
   setShatPants(shat);
   useEffect(() => { setShatPants(shat); return () => setShatPants(false); }, [shat]);
-  return <Cutscene panels={shat ? SHAT : CLEAN} endAt={THE_END_AT} endCard="THE END" onDone={onDone} />;
+  // (sat on THE END a while: a nudge toward the easter egg on the weapon screen, held as it fades in after a boss)
+  const hint = <>HAVE YOU TRIED HOLDING <Prompt pad={['Y']} kb={['P']} size={13} /> RIGHT AFTER MURDERING AN ASSHOLE?<br />TRY IT! IT'S FUN!</>;
+  return <Cutscene panels={shat ? SHAT : CLEAN} endAt={THE_END_AT} endCard="THE END" onDone={onDone} endHint={hint} />;
 };
 
 export default EpilogueCutscene;
