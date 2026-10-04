@@ -3,6 +3,7 @@ import { getArenaRight } from '../../bosses/registry';
 import { bandedGradient, checker, hazeBands, pixelBlob, steppedGlow, tilePattern } from '../pixelArt';
 import { INK, dark, lite, ink, shaded } from '../npc/kit';
 import { drawFire } from '../fx/fire';
+import { drawSpatter } from '../spatter';
 import { drawArtieLair } from './lairs/artie';
 import { drawVictorLair } from './lairs/victor';
 import { drawErnieLair } from './lairs/ernie';
@@ -841,20 +842,19 @@ const drawHectorFilth = (ctx: CanvasRenderingContext2D, left: number, right: num
   const BROWN = ['#4A2F12', '#5C3A17', '#6B4423', '#3B2410'];
   ctx.save();
   ctx.beginPath(); ctx.rect(left, top, w, bottom - top); ctx.clip();
-  // Smears up the glass and the pylons, each with a run down from it (longer the longer it's been that bad)
+  // Smears up the glass and the pylons, as the blood's done (spatter.ts: a lumpy splat flung the way the wind threw it,
+  // fingers, flecks, runs down from it, stepped shading and a wet shine), only brown; growing in as it gets worse
+  const SMEAR = ['#6B4423', '#5C3A17', '#7A5228', '#4E3315'];
   for (let i = 0; i < 34; i++) {
     const at = h(i) * 0.95;
     if (f < at) continue;
     const k = Math.min(1, (f - at) / 0.15);
-    const x = left + 20 + h(i + 50) * (w - 40), y = top + 30 + h(i + 90) * (bottom - top - 120), r = (6 + h(i + 130) * 14) * k;
-    ctx.fillStyle = BROWN[i % BROWN.length];
-    ctx.globalAlpha = 0.85;
-    ctx.beginPath(); ctx.ellipse(x, y, r, r * (0.6 + h(i + 7) * 0.4), h(i + 3) * 3, 0, Math.PI * 2); ctx.fill();
-    for (let s = 0; s < 4; s++) { const a = h(i * 5 + s) * Math.PI * 2; ctx.beginPath(); ctx.arc(x + Math.cos(a) * r * 1.4, y + Math.sin(a) * r * 1.2, 1 + h(i + s) * 2, 0, Math.PI * 2); ctx.fill(); }
-    const run = (8 + h(i + 170) * 50) * k * Math.min(1, f * 1.4);
-    ctx.fillRect(x - 1.5, y, 3, run); ctx.beginPath(); ctx.ellipse(x, y + run, 2.2, 3, 0, 0, Math.PI * 2); ctx.fill();
+    const x = left + 20 + h(i + 50) * (w - 40), y = top + 30 + h(i + 90) * (bottom - top - 120);
+    // (grown in steps, so it's worked out a few times, not every frame of it)
+    const size = Math.max(3, Math.round((6 + h(i + 130) * 14) * k));
+    const a = h(i + 3) * Math.PI * 2;
+    drawSpatter(ctx, { x, y, size, seed: 9100 + i * 37, on: 'wall', dx: Math.cos(a) * (0.4 + h(i + 7) * 0.5), dy: Math.sin(a) * 0.4, color: SMEAR[i % SMEAR.length] });
   }
-  ctx.globalAlpha = 1;
   // The sludge along the deck: a layer of it building up, lumpy, logs in it
   const depth = 2 + f * 12;
   ctx.fillStyle = '#4A2F12';
