@@ -49,7 +49,7 @@ game/stages/tommy/thing.ts:330 expr: th.asks + state.frame
 game/stages/tommy/bike.ts:575 name: undefined
 game/stages/tommy/escape.ts:278 name: undefined
 game/stages/tommy/script.ts:81 voice: VOICES[line.who]
-game/stages/oscar/bunker.ts:314 template: `${NUMBERS[left] ?? left} MINUTE${left === 1 ? '' : 'S'} LEFT, FELLAS. SAVOR IT.`
+game/stages/oscar/bunker.ts:375 template: `${NUMBERS[left] ?? left} MINUTE${left === 1 ? '' : 'S'} LEFT, FELLAS. SAVOR IT.`
 game/stages/oscar/runtime.ts:176 name: undefined
 game/stages/oscar/runtime.ts:179 call: deathByCause(ctx.state)
 game/stages/oscar/runtime.ts:182 call: chaseDeathMessage(rt.chase)

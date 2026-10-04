@@ -39,6 +39,9 @@ export interface Biker { x: number; y: number; vx: number; vy: number; rot: numb
 export interface Bunker {
   phase: BunkerPhase;
   t: number;
+  /** The panel over the gas line's joint: when it came loose (walking to the far side of the room shakes it off its
+   * last screw), undefined while it's still up. Till it's down, the joint can't be got at. */
+  panelAt?: number;
   /** The gas line's joint's been shot out (and when); how much gas is in the room (0..1). */
   popped: boolean;
   poppedAt: number;
@@ -105,6 +108,13 @@ export const createBunker = (state: GameState, startedAt: number): Bunker => {
   return b;
 };
 
+/** The panel over the joint (and the note taped to it), up on the wall. */
+export const panelBox = () => ({ x: COURSE.bunker.vein.x - 30, y: COURSE.bunker.vein.y - 52, w: 84, h: 70 });
+/** How long the panel hangs off its last screw before it drops, and how long it takes to hit the floor. */
+export const PANEL_HANG = 26, PANEL_FALL = 18;
+/** The joint's out in the open (the panel's on its way down, or down). */
+export const jointExposed = (b: Bunker, frame: number) => b.panelAt !== undefined && frame - b.panelAt >= PANEL_HANG;
+
 /** Where the gas line can be shot out. */
 export const veinBox = () => ({ x: COURSE.bunker.vein.x - 16, y: COURSE.bunker.vein.y - 11, w: 32, h: 22 });
 
@@ -146,6 +156,55 @@ const NAGS = [
   'WHO ARE YOU? WHO RAISED YOU?',
 ];
 const NAG_FROM = 600, NAG_EVERY = 1200;
+/** ...the first of them, while the gas line's still behind its panel. */
+const LOOK_ROUND = [
+  "THERE'S GOT TO BE ANOTHER WAY THROUGH THIS ROOM.",
+  'LET ME HAVE A LOOK AROUND. A REAL LOOK.',
+  "NOTHING IN HERE BUT SANDWICHES AND A LOCKED DOOR. ...SO FAR.",
+];
+
+/**
+ * The panel over the gas line: up on the wall, the note taped on it, the joint behind it where nobody can get at it.
+ * Walking over to the far side of the room (the door), the floor shakes it off its last screw: it hangs a moment,
+ * drops, and there's the joint. Shots into it before then just clink off it. The room has something to say.
+ */
+const panel = (ctx: FrameContext, b: Bunker, talk: Talk, px: number) => {
+  const { state, fx } = ctx;
+  const B = COURSE.bunker;
+  if (b.panelAt === undefined) {
+    // (shots into it: a clink, and nothing)
+    const pb = panelBox();
+    const hit = state.projectiles.find(q => q.owner === 'player' && rectsOverlap(boundsOf(q), pb));
+    if (hit) {
+      state.projectiles = state.projectiles.filter(q => q !== hit);
+      playSound('clink', 0.6);
+      for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: hit.pos.x, y: hit.pos.y }, vel: { x: (Math.random() - 0.5) * 3, y: -Math.random() * 2 }, life: 10, color: '#FDE047', size: 2 });
+    }
+    if (px < B.x2 - 150 || !state.player.isGrounded) return;
+    b.panelAt = state.frame;
+    playSound('clink', 0.8, -6);
+    return;
+  }
+  const t = state.frame - b.panelAt;
+  if (t === PANEL_HANG) playSound('clink', 0.7, -10);
+  if (t === PANEL_HANG + PANEL_FALL) {
+    playSound('clang'); playSound('crash', 0.5);
+    shakeScreen(state, 6, 4);
+    for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: B.vein.x + (Math.random() - 0.5) * 70, y: GROUND_Y - 4 }, vel: { x: (Math.random() - 0.5) * 4, y: -Math.random() * 3 }, life: 26, color: i % 2 ? '#A8A29E' : '#78716C', size: 3 + Math.random() * 3 });
+    fx.spawnDamageNumber({ x: B.vein.x - 20, y: B.vein.y - 40 }, 'CLANG!', false, '#D6D3D1');
+    hush(state, talk);
+    b.ambientAt = state.frame;
+    queueLines(state, talk, isShat(state) ? [
+      { who: 'worker', text: "THAT PANEL'S BEEN HANGING BY ONE SCREW SINCE NINETY-SEVEN. EVEN IT WANTS AWAY FROM YOU." },
+      { who: 'foreman', text: "DON'T TOUCH THAT GAS LINE. IT'S NOT YOUR GAS LINE." },
+      { who: 'meathead', text: '...GAS LINE, HUH.' },
+    ] : [
+      { who: 'worker', text: "THAT PANEL'S BEEN HANGING BY ONE SCREW SINCE NINETY-SEVEN." },
+      { who: 'foreman', text: "DON'T TOUCH THAT GAS LINE. IT'S NOT YOUR GAS LINE." },
+      { who: 'meathead', text: '...GAS LINE, HUH.' },
+    ]);
+  }
+};
 
 /** Him shoulder-charging the far door while it's locked: the union's got opinions (in turn, round and round; and a
  * different one when he's shit himself). */
@@ -172,6 +231,7 @@ export const updateBunker = (ctx: FrameContext, b: Bunker, talk: Talk, controls:
   for (const w of b.workers) w.t++;
   const px = p.pos.x + p.width / 2;
   const inside = px > B.x1 && px < B.x2;
+  if (b.phase === 'break' || b.phase === 'clockout' || b.phase === 'open') panel(ctx, b, talk, px);
   switch (b.phase) {
     case 'waiting':
       if (px > B.x1 + 40 && p.isGrounded) {
@@ -245,7 +305,7 @@ const gasLine = (ctx: FrameContext, b: Bunker): boolean => {
   const B = COURSE.bunker;
   const px = state.player.pos.x + state.player.width / 2;
   const canSee = px > B.x1 && px < B.x2 && B.vein.x > state.camera.x && B.vein.x < state.camera.x + CANVAS_WIDTH;
-  if (!b.popped && canSee) {
+  if (!b.popped && canSee && jointExposed(b, state.frame)) {
     const vb = veinBox();
     const hit = state.projectiles.find(q => q.owner === 'player' && rectsOverlap(boundsOf(q), vb));
     if (hit) {
@@ -275,7 +335,7 @@ const onBreak = (ctx: FrameContext, b: Bunker, talk: Talk, controls: Controls, i
   if (flameInRoom && state.frame - b.earlyAt > 300) {
     b.earlyAt = state.frame;
     hush(state, talk);
-    queueLines(state, talk, [{ who: 'meathead', text: b.popped ? 'GIVE IT A SECOND. LET THE GAS BUILD UP.' : 'NOTHING TO LIGHT YET. THAT GAS LINE ON THE WALL THOUGH...' }]);
+    queueLines(state, talk, [{ who: 'meathead', text: b.popped ? 'GIVE IT A SECOND. LET THE GAS BUILD UP.' : jointExposed(b, state.frame) ? 'NOTHING TO LIGHT YET. THAT GAS LINE ON THE WALL THOUGH...' : 'NOTHING TO LIGHT IN HERE. YET.' }]);
   }
   // Charged the locked far door: it doesn't give, and they let him know
   const p = state.player;
@@ -302,7 +362,8 @@ const onBreak = (ctx: FrameContext, b: Bunker, talk: Talk, controls: Controls, i
     else if (!b.popped && b.t > NAG_FROM && Math.floor((b.t - NAG_FROM) / NAG_EVERY) < NAGS.length && !b.hinted.has(`nag-${Math.floor((b.t - NAG_FROM) / NAG_EVERY)}`)) {
       const n = Math.floor((b.t - NAG_FROM) / NAG_EVERY);
       b.hinted.add(`nag-${n}`); b.ambientAt = state.frame;
-      queueLines(state, talk, [{ who: 'meathead', text: NAGS[n] }]);
+      // (the gas line ones once he's seen it; before that, he's looking round the room)
+      queueLines(state, talk, [{ who: 'meathead', text: n < LOOK_ROUND.length && !jointExposed(b, state.frame) ? LOOK_ROUND[n] : NAGS[n] }]);
     }
     else if (b.popped && b.gas >= 0.6 && state.frame - b.poppedAt > 700 && !b.hinted.has(`fire-${Math.floor((state.frame - b.poppedAt) / 700)}`)) { b.hinted.add(`fire-${Math.floor((state.frame - b.poppedAt) / 700)}`); b.ambientAt = state.frame; queueLines(state, talk, [{ who: 'meathead', text: 'ALL THIS ROOM NEEDS NOW IS A LITTLE FIRE.' }]); }
     // (the foreman keeps count, and calls the last minute)

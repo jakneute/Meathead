@@ -25,7 +25,7 @@ import { drawKindCorpse } from '../../render/enemies';
 import { drawChopperBike, drawLmgProp } from '../../render/enemies/oscar';
 import { COURSE } from './course';
 import type { Bunker, Worker } from './bunker';
-import { roomIntact, doorShut, veinBox, clockSeconds } from './bunker';
+import { roomIntact, doorShut, veinBox, clockSeconds, panelBox, PANEL_HANG, PANEL_FALL } from './bunker';
 
 type Ctx = CanvasRenderingContext2D;
 const Y = GROUND_Y;
@@ -132,17 +132,53 @@ export const drawBunkerBack = (ctx: Ctx, state: GameState, b: Bunker) => {
     slab(ctx, B.vein.x - 58, Y - 30, 30, 30, '#6B7280', 1);
     ctx.fillStyle = '#1C1917'; ctx.fillRect(B.vein.x - 55, Y - 26, 24, 20);
     for (let k = 0; k < 2; k++) { ctx.fillStyle = '#F97316'; ctx.fillRect(B.vein.x - 54, Y - 24 + k * 10, 22, 3); ctx.fillStyle = '#FDE047'; ctx.fillRect(B.vein.x - 50, Y - 23 + k * 10, 14, 1); }
-    // A note taped over the joint (it's been like that a while)
-    // (sized to what's written on it, with a margin all round, the text centered in it)
-    ctx.font = 'bold 6px monospace';
-    const noteW = Math.ceil(Math.max(ctx.measureText('LEAKY JOINT').width, ctx.measureText('FIX REQUESTED 1997').width)) + 10;
-    slab(ctx, B.vein.x - noteW / 2, vy - 44, noteW, 25, '#FEF9C3', 1);
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.7)'; ctx.fillRect(B.vein.x - 6, vy - 47, 12, 5); // the tape
-    letter(ctx, 'LEAKY JOINT', B.vein.x, vy - 33, 'bold 6px monospace', '#B91C1C', '#FDE68A');
-    letter(ctx, 'FIX REQUESTED 1997', B.vein.x, vy - 24, 'bold 6px monospace', '#44403C', '#FDE68A');
-    // The joint
+    // The joint (behind its panel till that comes down)
     gasJoint(ctx, vb.x, vb.y, vb.w, vb.h, 4, b.popped);
+    drawPanel(ctx, state, b);
   }
+};
+
+/**
+ * The panel over the gas line's joint: a dented steel access plate, four screws (three of them long gone), a note
+ * taped on it. Shaken loose, it swings off its last screw a moment, then drops, turning, and lies on the floor.
+ */
+const drawPanel = (ctx: Ctx, state: GameState, b: Bunker) => {
+  const pb = panelBox();
+  const t = b.panelAt === undefined ? -1 : state.frame - b.panelAt;
+  ctx.save();
+  if (t >= PANEL_HANG + PANEL_FALL) {
+    // Down: flat on the floor, under the line, the note still on it
+    ctx.translate(pb.x + pb.w / 2 + 14, Y - 3); ctx.rotate(-0.06);
+    slab(ctx, -pb.w / 2, -5, pb.w, 5, '#6B7280', 1);
+    ctx.fillStyle = '#9CA3AF'; ctx.fillRect(-pb.w / 2 + 2, -5, pb.w - 4, 1);
+    ctx.fillStyle = '#FEF9C3'; ctx.fillRect(-14, -5, 26, 2);
+    ctx.restore();
+    return;
+  }
+  // Up (or hanging off its last screw, top left, swinging out; or on its way down, turning as it goes)
+  let ox = 0, oy = 0, rot = 0;
+  if (t >= 0 && t < PANEL_HANG) rot = Math.min(0.5, t * 0.05) + Math.sin(t * 0.6) * 0.06 * Math.min(1, t / 8);
+  else if (t >= PANEL_HANG) { const u = (t - PANEL_HANG) / PANEL_FALL; oy = u * u * (Y - 3 - pb.y - pb.h * 0.5); ox = u * 14; rot = 0.5 + u * 1.1; }
+  ctx.translate(pb.x + 4 + ox, pb.y + 4 + oy); ctx.rotate(rot); ctx.translate(-4, -4);
+  // The plate: steel, lit along its top and left, a dent, scuffs
+  slab(ctx, 0, 0, pb.w, pb.h, '#6B7280', 2);
+  ctx.fillStyle = '#9CA3AF'; ctx.fillRect(2, 2, pb.w - 4, 1); ctx.fillRect(2, 2, 1, pb.h - 4);
+  ctx.fillStyle = '#4B5563'; ctx.fillRect(2, pb.h - 3, pb.w - 4, 1); ctx.fillRect(pb.w - 3, 2, 1, pb.h - 4);
+  ctx.fillStyle = '#57534E'; ctx.fillRect(pb.w - 22, pb.h - 20, 8, 5); ctx.fillStyle = '#A8A29E'; ctx.fillRect(pb.w - 22, pb.h - 20, 8, 1);
+  checker(ctx, 6, pb.h - 12, 20, 4, 'rgba(41, 37, 36, 0.35)');
+  // The screw it's hanging on (the others: just the holes)
+  ctx.fillStyle = '#D6D3D1'; ctx.fillRect(3, 3, 3, 3); ctx.fillStyle = '#44403C'; ctx.fillRect(4, 4, 1, 1);
+  ctx.fillStyle = '#1C1917'; ctx.fillRect(pb.w - 6, 3, 2, 2); ctx.fillRect(3, pb.h - 6, 2, 2); ctx.fillRect(pb.w - 6, pb.h - 6, 2, 2);
+  // Stenciled on it
+  letter(ctx, 'NO ACCESS', pb.w / 2, pb.h - 6, 'bold 5px monospace', '#FACC15', INK);
+  // The note taped on it (it's been like that a while): sized to what's on it, the text centered
+  ctx.font = 'bold 6px monospace';
+  const noteW = Math.ceil(Math.max(ctx.measureText('LEAKY JOINT').width, ctx.measureText('FIX REQUESTED 1997').width)) + 10;
+  slab(ctx, pb.w / 2 - noteW / 2, 10, noteW, 25, '#FEF9C3', 1);
+  ctx.fillStyle = 'rgba(148, 163, 184, 0.7)'; ctx.fillRect(pb.w / 2 - 6, 7, 12, 5); // the tape
+  letter(ctx, 'LEAKY JOINT', pb.w / 2, 21, 'bold 6px monospace', '#B91C1C', '#FDE68A');
+  letter(ctx, 'FIX REQUESTED 1997', pb.w / 2, 30, 'bold 6px monospace', '#44403C', '#FDE68A');
+  ctx.restore();
 };
 
 /** The furniture in the room, the union on their break (and after), the bikers out the far side. */

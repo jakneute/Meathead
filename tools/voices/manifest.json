@@ -4332,7 +4332,7 @@
  {
   "voice": "dale.dale",
   "text": "DROP EVERYTHING! I'M OUTTA HERE!",
-  "from": "game/stages/dale/intro.ts:49"
+  "from": "game/stages/dale/intro.ts:143"
  },
  {
   "voice": "dale.dale",
@@ -4367,7 +4367,7 @@
  {
   "voice": "dale.dale",
   "text": "OH NO! THE FEDS!",
-  "from": "game/stages/dale/intro.ts:49"
+  "from": "game/stages/dale/intro.ts:143"
  },
  {
   "voice": "dale.dale",
@@ -9486,6 +9486,11 @@
  },
  {
   "voice": "meathead",
+  "text": "...GAS LINE, HUH.",
+  "from": "game/stages/oscar/bunker.ts:200"
+ },
+ {
+  "voice": "meathead",
   "text": "...HUH?",
   "from": "game/stages/dale/convoy.ts:507"
  },
@@ -10097,7 +10102,7 @@
  {
   "voice": "meathead",
   "text": "ALL THIS ROOM NEEDS NOW IS A LITTLE FIRE.",
-  "from": "game/stages/oscar/bunker.ts:307"
+  "from": "game/stages/oscar/bunker.ts:368"
  },
  {
   "voice": "meathead",
@@ -10162,7 +10167,7 @@
  {
   "voice": "meathead",
   "text": "ARE YOU SERIOUSLY GOING TO WAIT OUT THEIR BREAK?",
-  "from": "game/stages/oscar/bunker.ts:305"
+  "from": "game/stages/oscar/bunker.ts:366"
  },
  {
   "voice": "meathead",
@@ -10397,7 +10402,7 @@
  {
   "voice": "meathead",
   "text": "BREAK'S OVER, BOYS.",
-  "from": "game/stages/oscar/bunker.ts:381"
+  "from": "game/stages/oscar/bunker.ts:442"
  },
  {
   "voice": "meathead",
@@ -11297,7 +11302,7 @@
  {
   "voice": "meathead",
   "text": "FEDS? I WISH, DALE. I'M WAY WORSE.",
-  "from": "game/stages/dale/intro.ts:60"
+  "from": "game/stages/dale/intro.ts:164"
  },
  {
   "voice": "meathead",
@@ -11817,7 +11822,7 @@
  {
   "voice": "meathead",
   "text": "GIVE IT A SECOND. LET THE GAS BUILD UP.",
-  "from": "game/stages/oscar/bunker.ts:278"
+  "from": "game/stages/oscar/bunker.ts:338"
  },
  {
   "voice": "meathead",
@@ -12457,7 +12462,7 @@
  {
   "voice": "meathead",
   "text": "HE'S READING THE BACK OF A YOGURT. WE'RE WATCHING A MAN READ THE BACK OF A YOGURT.",
-  "from": "game/stages/oscar/bunker.ts:305"
+  "from": "game/stages/oscar/bunker.ts:366"
  },
  {
   "voice": "meathead",
@@ -12822,7 +12827,7 @@
  {
   "voice": "meathead",
   "text": "I CAN FEEL MY GAINS LEAVING MY BODY.",
-  "from": "game/stages/oscar/bunker.ts:305"
+  "from": "game/stages/oscar/bunker.ts:366"
  },
  {
   "voice": "meathead",
@@ -13007,7 +13012,7 @@
  {
   "voice": "meathead",
   "text": "I HAVE A PRESIDENT WAITING ON ME. THEY'RE PLAYING GO FISH.",
-  "from": "game/stages/oscar/bunker.ts:305"
+  "from": "game/stages/oscar/bunker.ts:366"
  },
  {
   "voice": "meathead",
@@ -13042,12 +13047,12 @@
  {
   "voice": "meathead",
   "text": "I JUST NEED TO GET THROUGH.",
-  "from": "game/stages/oscar/bunker.ts:192"
+  "from": "game/stages/oscar/bunker.ts:252"
  },
  {
   "voice": "meathead",
   "text": "I JUST NEED TO GET THROUGH. QUICKLY. FOR EVERYBODY.",
-  "from": "game/stages/oscar/bunker.ts:186"
+  "from": "game/stages/oscar/bunker.ts:246"
  },
  {
   "voice": "meathead",
@@ -13257,12 +13262,12 @@
  {
   "voice": "meathead",
   "text": "I'LL TAKE THE BIKE. AND THE GUN.",
-  "from": "game/stages/oscar/bunker.ts:414"
+  "from": "game/stages/oscar/bunker.ts:475"
  },
  {
   "voice": "meathead",
   "text": "I'LL TAKE THE BIKE. AND THE GUN. YOU WON'T WANT THE SEAT BACK.",
-  "from": "game/stages/oscar/bunker.ts:414"
+  "from": "game/stages/oscar/bunker.ts:475"
  },
  {
   "voice": "meathead",
@@ -13737,7 +13742,7 @@
  {
   "voice": "meathead",
   "text": "JUST SAYING. THAT GAS LINE ISN'T GOING TO SHOOT ITSELF.",
-  "from": "game/stages/oscar/bunker.ts:305"
+  "from": "game/stages/oscar/bunker.ts:366"
  },
  {
   "voice": "meathead",
@@ -13848,6 +13853,11 @@
   "voice": "meathead",
   "text": "LEG SWEEP ON A CHARGING FRIDGE! GREAT PLAN!",
   "from": "game/stages/victor/doorman.ts:539"
+ },
+ {
+  "voice": "meathead",
+  "text": "LET ME HAVE A LOOK AROUND. A REAL LOOK.",
+  "from": "game/stages/oscar/bunker.ts:366"
  },
  {
   "voice": "meathead",
@@ -14562,7 +14572,7 @@
  {
   "voice": "meathead",
   "text": "NO, REALLY. I'M ASKING. ARE WE WAITING THIS OUT?",
-  "from": "game/stages/oscar/bunker.ts:305"
+  "from": "game/stages/oscar/bunker.ts:366"
  },
  {
   "voice": "meathead",
@@ -14656,13 +14666,23 @@
  },
  {
   "voice": "meathead",
+  "text": "NOTHING IN HERE BUT SANDWICHES AND A LOCKED DOOR. ...SO FAR.",
+  "from": "game/stages/oscar/bunker.ts:366"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOTHING TO LIGHT IN HERE. YET.",
+  "from": "game/stages/oscar/bunker.ts:338"
+ },
+ {
+  "voice": "meathead",
   "text": "NOTHING TO LIGHT YET. OPEN UP THE GAS LINES FIRST. A PISTOL'LL DO IT.",
   "from": "game/stages/oscar/bar.ts:189"
  },
  {
   "voice": "meathead",
   "text": "NOTHING TO LIGHT YET. THAT GAS LINE ON THE WALL THOUGH...",
-  "from": "game/stages/oscar/bunker.ts:278"
+  "from": "game/stages/oscar/bunker.ts:338"
  },
  {
   "voice": "meathead",
@@ -14777,7 +14797,7 @@
  {
   "voice": "meathead",
   "text": "OKAY. FINE. WE WAIT. I'LL JUST STAND HERE. SHRINKING.",
-  "from": "game/stages/oscar/bunker.ts:305"
+  "from": "game/stages/oscar/bunker.ts:366"
  },
  {
   "voice": "meathead",
@@ -15192,7 +15212,7 @@
  {
   "voice": "meathead",
   "text": "PURE SPITE. FEELS GREAT.",
-  "from": "game/stages/oscar/bunker.ts:219"
+  "from": "game/stages/oscar/bunker.ts:279"
  },
  {
   "voice": "meathead",
@@ -15367,7 +15387,7 @@
  {
   "voice": "meathead",
   "text": "RIGHT?!",
-  "from": "game/stages/oscar/bunker.ts:305"
+  "from": "game/stages/oscar/bunker.ts:366"
  },
  {
   "voice": "meathead",
@@ -16622,7 +16642,7 @@
  {
   "voice": "meathead",
   "text": "THAT GAS LINE. ONE SHOT. THAT'S ALL IT WOULD TAKE.",
-  "from": "game/stages/oscar/bunker.ts:305"
+  "from": "game/stages/oscar/bunker.ts:366"
  },
  {
   "voice": "meathead",
@@ -16677,7 +16697,7 @@
  {
   "voice": "meathead",
   "text": "THAT OLD GAS LINE ON THE WALL LOOKS REAL THIN...",
-  "from": "game/stages/oscar/bunker.ts:305"
+  "from": "game/stages/oscar/bunker.ts:366"
  },
  {
   "voice": "meathead",
@@ -16742,7 +16762,7 @@
  {
   "voice": "meathead",
   "text": "THAT WAS COMPLETELY UNNECESSARY.",
-  "from": "game/stages/oscar/bunker.ts:218"
+  "from": "game/stages/oscar/bunker.ts:278"
  },
  {
   "voice": "meathead",
@@ -16962,7 +16982,7 @@
  {
   "voice": "meathead",
   "text": "THE GAS LINE IS STILL RIGHT THERE, BY THE WAY.",
-  "from": "game/stages/oscar/bunker.ts:305"
+  "from": "game/stages/oscar/bunker.ts:366"
  },
  {
   "voice": "meathead",
@@ -17183,6 +17203,11 @@
   "voice": "meathead",
   "text": "THERE'S A GAS LINE UP OVER THE BAND.",
   "from": "game/stages/oscar/bar.ts:213"
+ },
+ {
+  "voice": "meathead",
+  "text": "THERE'S GOT TO BE ANOTHER WAY THROUGH THIS ROOM.",
+  "from": "game/stages/oscar/bunker.ts:366"
  },
  {
   "voice": "meathead",
@@ -17542,12 +17567,12 @@
  {
   "voice": "meathead",
   "text": "UNION RULES.",
-  "from": "game/stages/oscar/bunker.ts:333"
+  "from": "game/stages/oscar/bunker.ts:394"
  },
  {
   "voice": "meathead",
   "text": "UNION RULES. SORRY ABOUT THE ROOM.",
-  "from": "game/stages/oscar/bunker.ts:333"
+  "from": "game/stages/oscar/bunker.ts:394"
  },
  {
   "voice": "meathead",
@@ -17712,7 +17737,7 @@
  {
   "voice": "meathead",
   "text": "WE ARE NOT WAITING OUT A UNION BREAK. RIGHT?",
-  "from": "game/stages/oscar/bunker.ts:305"
+  "from": "game/stages/oscar/bunker.ts:366"
  },
  {
   "voice": "meathead",
@@ -17822,7 +17847,7 @@
  {
   "voice": "meathead",
   "text": "WHO ARE YOU? WHO RAISED YOU?",
-  "from": "game/stages/oscar/bunker.ts:305"
+  "from": "game/stages/oscar/bunker.ts:366"
  },
  {
   "voice": "meathead",
@@ -18547,12 +18572,12 @@
  {
   "voice": "oscar.biker",
   "text": "HE'S GOT DAN'S HOG! AND THE GUN!",
-  "from": "game/stages/oscar/bunker.ts:429"
+  "from": "game/stages/oscar/bunker.ts:490"
  },
  {
   "voice": "oscar.biker",
   "text": "HE'S GOT DAN'S HOG! AND THE GUN! AND HE'S SITTING ON IT LIKE THAT!",
-  "from": "game/stages/oscar/bunker.ts:429"
+  "from": "game/stages/oscar/bunker.ts:490"
  },
  {
   "voice": "oscar.biker",
@@ -18642,12 +18667,12 @@
  {
   "voice": "oscar.dan",
   "text": "NOBODY TOUCHES HER BUT DIRTY DAN.",
-  "from": "game/stages/oscar/bunker.ts:413"
+  "from": "game/stages/oscar/bunker.ts:474"
  },
  {
   "voice": "oscar.dan",
   "text": "NOBODY TOUCHES HER BUT DIRTY DAN. ...AND NOBODY THAT DIRTY.",
-  "from": "game/stages/oscar/bunker.ts:413"
+  "from": "game/stages/oscar/bunker.ts:474"
  },
  {
   "voice": "oscar.dan",
@@ -18682,122 +18707,127 @@
  {
   "voice": "oscar.foreman",
   "text": "...EVERYBODY. BACK. TO WORK.",
-  "from": "game/stages/oscar/bunker.ts:380"
+  "from": "game/stages/oscar/bunker.ts:441"
  },
  {
   "voice": "oscar.foreman",
   "text": "AND THAT'S BREAK. BACK TO IT, FELLAS.",
-  "from": "game/stages/oscar/bunker.ts:329"
+  "from": "game/stages/oscar/bunker.ts:390"
  },
  {
   "voice": "oscar.foreman",
   "text": "DON'T LOOK AT HIM. DON'T BREATHE AT HIM EITHER.",
-  "from": "game/stages/oscar/bunker.ts:126"
+  "from": "game/stages/oscar/bunker.ts:136"
  },
  {
   "voice": "oscar.foreman",
   "text": "DON'T LOOK AT THE CLOCK. THE CLOCK CAN'T HURT YOU.",
-  "from": "game/stages/oscar/bunker.ts:117"
+  "from": "game/stages/oscar/bunker.ts:127"
+ },
+ {
+  "voice": "oscar.foreman",
+  "text": "DON'T TOUCH THAT GAS LINE. IT'S NOT YOUR GAS LINE.",
+  "from": "game/stages/oscar/bunker.ts:199"
  },
  {
   "voice": "oscar.foreman",
   "text": "DOOR'S LOCKED TILL BREAK'S OVER. UNION RULES.",
-  "from": "game/stages/oscar/bunker.ts:193"
+  "from": "game/stages/oscar/bunker.ts:253"
  },
  {
   "voice": "oscar.foreman",
   "text": "DOOR'S LOCKED TILL BREAK'S OVER. UNION RULES. STAND OVER BY THE VENT.",
-  "from": "game/stages/oscar/bunker.ts:187"
+  "from": "game/stages/oscar/bunker.ts:247"
  },
  {
   "voice": "oscar.foreman",
   "text": "DOOR'S OPEN, PAL. YOU WAITED OUT THE WHOLE BREAK? LIKE THAT? RESPECT. FROM OVER HERE.",
-  "from": "game/stages/oscar/bunker.ts:332"
+  "from": "game/stages/oscar/bunker.ts:393"
  },
  {
   "voice": "oscar.foreman",
   "text": "DOOR'S OPEN, PAL. YOU WAITED OUT THE WHOLE BREAK? RESPECT.",
-  "from": "game/stages/oscar/bunker.ts:332"
+  "from": "game/stages/oscar/bunker.ts:393"
  },
  {
   "voice": "oscar.foreman",
   "text": "EGGS IS AN IMPROVEMENT.",
-  "from": "game/stages/oscar/bunker.ts:301"
+  "from": "game/stages/oscar/bunker.ts:361"
  },
  {
   "voice": "oscar.foreman",
   "text": "MINUTES LEFT",
-  "from": "game/stages/oscar/bunker.ts:113"
+  "from": "game/stages/oscar/bunker.ts:123"
  },
  {
   "voice": "oscar.foreman",
   "text": "NOW THE DOOR'S GOT IT ON IT. THAT'S A GRIEVANCE.",
-  "from": "game/stages/oscar/bunker.ts:162"
+  "from": "game/stages/oscar/bunker.ts:221"
  },
  {
   "voice": "oscar.foreman",
   "text": "ONE MINUTE, FELLAS. FINISH YOUR SANDWICHES.",
-  "from": "game/stages/oscar/bunker.ts:309"
+  "from": "game/stages/oscar/bunker.ts:370"
  },
  {
   "voice": "oscar.foreman",
   "text": "ONE MINUTE, FELLAS. HOLD YOUR NOSES. ALMOST THERE.",
-  "from": "game/stages/oscar/bunker.ts:309"
+  "from": "game/stages/oscar/bunker.ts:370"
  },
  {
   "voice": "oscar.foreman",
   "text": "PAL, YOU SMELL LIKE THAT AND YOU'RE HEADBUTTING DOORS NOW?",
-  "from": "game/stages/oscar/bunker.ts:160"
+  "from": "game/stages/oscar/bunker.ts:219"
  },
  {
   "voice": "oscar.foreman",
   "text": "SMELLS LIKE OVERTIME TO ME.",
-  "from": "game/stages/oscar/bunker.ts:301"
+  "from": "game/stages/oscar/bunker.ts:361"
  },
  {
   "voice": "oscar.foreman",
   "text": "THAT DOOR'S BEEN LOCKED SINCE 1974. YOU'RE NOT THE FIRST.",
-  "from": "game/stages/oscar/bunker.ts:157"
+  "from": "game/stages/oscar/bunker.ts:216"
  },
  {
   "voice": "oscar.foreman",
   "text": "THAT'S A GRIEVANCE. I'M FILING A GRIEVANCE.",
-  "from": "game/stages/oscar/bunker.ts:294"
+  "from": "game/stages/oscar/bunker.ts:354"
  },
  {
   "voice": "oscar.foreman",
   "text": "THIS COFFEE TASTES LIKE HE SMELLS.",
-  "from": "game/stages/oscar/bunker.ts:124"
+  "from": "game/stages/oscar/bunker.ts:134"
  },
  {
   "voice": "oscar.foreman",
   "text": "THIS COFFEE TASTES LIKE THE WELL WATER.",
-  "from": "game/stages/oscar/bunker.ts:115"
+  "from": "game/stages/oscar/bunker.ts:125"
  },
  {
   "voice": "oscar.foreman",
   "text": "UNION DOOR, PAL. IT DOESN'T BUDGE FOR SCABS.",
-  "from": "game/stages/oscar/bunker.ts:153"
+  "from": "game/stages/oscar/bunker.ts:212"
  },
  {
   "voice": "oscar.foreman",
   "text": "UP.",
-  "from": "game/stages/oscar/bunker.ts:331"
+  "from": "game/stages/oscar/bunker.ts:392"
  },
  {
   "voice": "oscar.foreman",
   "text": "WHOA, WHOA. THIS IS A UNION BREAK, PAL.",
-  "from": "game/stages/oscar/bunker.ts:190"
+  "from": "game/stages/oscar/bunker.ts:250"
  },
  {
   "voice": "oscar.foreman",
   "text": "WHOA, WHOA. THIS IS A UNION BREAK, PAL. ...WHAT IS THAT SMELL?",
-  "from": "game/stages/oscar/bunker.ts:184"
+  "from": "game/stages/oscar/bunker.ts:244"
  },
  {
   "voice": "oscar.foreman",
   "text": "YOU DENT THAT, IT'S A WORK ORDER. SIX TO EIGHT WEEKS.",
-  "from": "game/stages/oscar/bunker.ts:155"
+  "from": "game/stages/oscar/bunker.ts:214"
  },
  {
   "voice": "oscar.smokerA",
@@ -18812,92 +18842,102 @@
  {
   "voice": "oscar.worker",
   "text": "BREAK'S NOT OVER JUST 'CAUSE YOU HIT THE DOOR.",
-  "from": "game/stages/oscar/bunker.ts:154"
+  "from": "game/stages/oscar/bunker.ts:213"
  },
  {
   "voice": "oscar.worker",
   "text": "DO IT AGAIN. I'VE GOT NOTHING BUT TIME. FIFTEEN MINUTES OF IT.",
-  "from": "game/stages/oscar/bunker.ts:156"
+  "from": "game/stages/oscar/bunker.ts:215"
  },
  {
   "voice": "oscar.worker",
   "text": "FIFTEEN MINUTES. IT'S IN THE CONTRACT.",
-  "from": "game/stages/oscar/bunker.ts:191"
+  "from": "game/stages/oscar/bunker.ts:251"
  },
  {
   "voice": "oscar.worker",
   "text": "FIFTEEN MINUTES. IT'S IN THE CONTRACT. NOTHING IN THERE ABOUT THIS.",
-  "from": "game/stages/oscar/bunker.ts:185"
+  "from": "game/stages/oscar/bunker.ts:245"
  },
  {
   "voice": "oscar.worker",
   "text": "FIVE MORE MINUTES...",
-  "from": "game/stages/oscar/bunker.ts:330"
+  "from": "game/stages/oscar/bunker.ts:391"
  },
  {
   "voice": "oscar.worker",
   "text": "GIN.",
-  "from": "game/stages/oscar/bunker.ts:112"
+  "from": "game/stages/oscar/bunker.ts:122"
  },
  {
   "voice": "oscar.worker",
   "text": "GIN. ...CAN WE OPEN A WINDOW?",
-  "from": "game/stages/oscar/bunker.ts:121"
+  "from": "game/stages/oscar/bunker.ts:131"
  },
  {
   "voice": "oscar.worker",
   "text": "GO FISH.",
-  "from": "game/stages/oscar/bunker.ts:116"
+  "from": "game/stages/oscar/bunker.ts:126"
  },
  {
   "voice": "oscar.worker",
   "text": "GO FISH. GO ANYWHERE. GO DOWNWIND.",
-  "from": "game/stages/oscar/bunker.ts:125"
+  "from": "game/stages/oscar/bunker.ts:135"
  },
  {
   "voice": "oscar.worker",
   "text": "I CAN'T EAT MY YOGURT NOW. I CAN TASTE THE AIR.",
-  "from": "game/stages/oscar/bunker.ts:123"
+  "from": "game/stages/oscar/bunker.ts:133"
  },
  {
   "voice": "oscar.worker",
   "text": "MY BREAK!",
-  "from": "game/stages/oscar/bunker.ts:379"
+  "from": "game/stages/oscar/bunker.ts:440"
  },
  {
   "voice": "oscar.worker",
   "text": "MY BREAK! AND IT STILL SMELLS LIKE HIM!",
-  "from": "game/stages/oscar/bunker.ts:379"
+  "from": "game/stages/oscar/bunker.ts:440"
  },
  {
   "voice": "oscar.worker",
   "text": "NOW IT SMELLS LIKE EGGS TOO.",
-  "from": "game/stages/oscar/bunker.ts:301"
+  "from": "game/stages/oscar/bunker.ts:361"
  },
  {
   "voice": "oscar.worker",
   "text": "OH, COME ON. NOT IN THE BREAK ROOM.",
-  "from": "game/stages/oscar/bunker.ts:293"
+  "from": "game/stages/oscar/bunker.ts:353"
  },
  {
   "voice": "oscar.worker",
   "text": "SOMEBODY MICROWAVED EGGS AGAIN.",
-  "from": "game/stages/oscar/bunker.ts:301"
+  "from": "game/stages/oscar/bunker.ts:361"
+ },
+ {
+  "voice": "oscar.worker",
+  "text": "THAT PANEL'S BEEN HANGING BY ONE SCREW SINCE NINETY-SEVEN.",
+  "from": "game/stages/oscar/bunker.ts:202"
+ },
+ {
+  "voice": "oscar.worker",
+  "text": "THAT PANEL'S BEEN HANGING BY ONE SCREW SINCE NINETY-SEVEN. EVEN IT WANTS AWAY FROM YOU.",
+  "from": "game/stages/oscar/bunker.ts:198"
  },
  {
   "voice": "oscar.worker",
   "text": "THE DOOR DOESN'T WANT YOU EITHER.",
-  "from": "game/stages/oscar/bunker.ts:161"
+  "from": "game/stages/oscar/bunker.ts:220"
  },
  {
   "voice": "oscar.worker",
   "text": "WE'RE NOT LEAVING, PAL. IT'S OUR BREAK. WE'LL BREATHE THROUGH OUR MOUTHS.",
-  "from": "game/stages/oscar/bunker.ts:295"
+  "from": "game/stages/oscar/bunker.ts:355"
  },
  {
   "voice": "oscar.worker",
   "text": "WHO TOOK MY YOGURT? IT HAD MY NAME ON IT.",
-  "from": "game/stages/oscar/bunker.ts:114"
+  "from": "game/stages/oscar/bunker.ts:124"
  },
  {
   "voice": "president",
