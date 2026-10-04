@@ -241,7 +241,7 @@ const Cutscene: React.FC<{ panels: Panel[]; endAt: number; endCard: string; radi
       )}
       <div style={{ position: 'absolute', left: 40, right: 40, top: 474, bottom: 12 }} className="text-left">
         {theEnd && handoff ? null : theEnd || card ? (
-          <div className={`h-full flex items-center justify-center text-center text-white ${(theEnd ? endCard : card!).length > 12 ? 'text-2xl tracking-wider leading-relaxed' : 'text-5xl tracking-widest'}`} style={{ textShadow: '4px 4px 0 #d82800' }}>
+          <div className={`h-full flex ${hintUp && theEnd ? 'items-start pt-1' : 'items-center'} justify-center text-center text-white ${(theEnd ? endCard : card!).length > 12 ? 'text-2xl tracking-wider leading-relaxed' : 'text-5xl tracking-widest'}`} style={{ textShadow: '4px 4px 0 #d82800' }}>
             {theEnd ? endCard : card}
           </div>
         ) : (
