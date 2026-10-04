@@ -261,22 +261,24 @@ const updatePhysicsProjectile = (ctx: FrameContext, p: Projectile): boolean => {
       if (p.isIce && p.width > 30) { shatterIceBlock(ctx, p); return false; }
       if (p.isSludge && p.visualOnly) return false;
       if (p.isSludge) {
-        // A ledge he could drop through: it can too. A puddle on it, and just as much again runs on through, down to
-        // whatever's under it (and on through the next one, all the way down: extra barf)
+        // (the finale: wider puddles that lie there a good while, running together into one slick: see spreadSlick)
+        const slick = p.owner === 'player' && inFinale(ctx.stageId);
+        const puddleW = p.puddleW ?? (slick ? 110 + Math.random() * 40 : 70 + Math.random() * 30);
+        // A ledge he could drop through: it can too. It puddles there, and runs on through to whatever's under it,
+        // puddling there the same size (and on through the next one, all the way down)
         if (b.oneWay) {
-          const w = p.width, h = p.height;
           state.projectiles.push({
-            id: `${p.id}-drip`, pos: { x: p.pos.x + p.width / 2 - w / 2, y: b.y + b.h + 1 }, vel: { x: p.vel.x * 0.15, y: 2 },
-            width: w, height: h, health: 1, maxHealth: 1, type: 'projectile', damage: p.damage, owner: p.owner, isSludge: true, life: 150,
+            id: `${p.id}-drip`, pos: { x: p.pos.x, y: b.y + b.h + 1 }, vel: { x: p.vel.x * 0.15, y: 0.5 },
+            width: p.width, height: p.height, health: 1, maxHealth: 1, type: 'projectile', damage: p.damage, owner: p.owner, isSludge: true, life: 150, puddleW,
+            dripFrom: b.y + b.h,
           });
+          p.overhang = { y: b.y + b.h, x1: b.x, x2: b.x + b.w };
         }
         // Splat into a lingering puddle
         p.isLingering = true;
-        // (the finale: wider puddles that lie there a good while, running together into one slick: see spreadSlick)
-        const slick = p.owner === 'player' && inFinale(ctx.stageId);
         p.life = slick ? FINALE_SLUDGE_LINGER : SLUDGE_LINGER_DURATION;
         p.vel = { x: 0, y: 0 };
-        p.width = slick ? 110 + Math.random() * 40 : 70 + Math.random() * 30;
+        p.width = puddleW;
         p.height = 15 + Math.random() * 10;
         p.pos.y = b.y - p.height;
         p.pos.x -= p.width / 2;

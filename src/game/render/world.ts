@@ -1342,6 +1342,47 @@ const drawGooPuddle = (ctx: CanvasRenderingContext2D, state: GameState, p: GameS
   }
 };
 
+/** Barf run through a drop-through ledge: a string of it stretched down off the ledge's underside to the glob, thinning
+ * as it goes, till it's too long and lets go. */
+const GOO_DARK = '#1B5E20', GOO = '#2E7D32', GOO_LIT = '#66BB6A';
+const drawGooString = (ctx: CanvasRenderingContext2D, p: GameState['projectiles'][number]) => {
+  const cx = p.pos.x + p.width / 2, top = p.dripFrom!, end = p.pos.y + p.height * 0.3, len = end - top;
+  if (len <= 0 || len > 90) return;
+  // (fat where it hangs off the ledge and where it meets the glob, pinched thin in the middle, thinner the longer it is)
+  const w0 = Math.max(2, p.width * 0.45 * (1 - len / 110)), mid = Math.max(1, w0 * 0.3);
+  ctx.beginPath();
+  ctx.moveTo(cx - w0, top);
+  ctx.quadraticCurveTo(cx - mid, top + len * 0.5, cx - w0 * 0.8, end);
+  ctx.lineTo(cx + w0 * 0.8, end);
+  ctx.quadraticCurveTo(cx + mid, top + len * 0.5, cx + w0, top);
+  ctx.closePath();
+  ctx.fillStyle = GOO_DARK; ctx.fill();
+  ctx.fillStyle = GOO; ctx.fillRect(Math.round(cx - mid), Math.round(top), Math.max(1, Math.round(mid)), Math.round(len));
+  ctx.fillStyle = GOO_LIT; ctx.fillRect(Math.round(cx - mid), Math.round(top + 2), 1, Math.round(len * 0.4));
+  // (the blob of it still up on the ledge's underside, where the string comes off)
+  ctx.fillStyle = GOO_DARK; ctx.fillRect(Math.round(cx - w0 - 2), Math.round(top), Math.round(w0 * 2 + 4), 3);
+};
+
+/** A puddle up on a drop-through ledge: it's coming through, hanging off the underside in drips that stretch, bulb at
+ * the end, and let go (a drop falling on down), over and over while it lies there. */
+const drawGooOverhang = (ctx: CanvasRenderingContext2D, p: GameState['projectiles'][number], frame: number) => {
+  const o = p.overhang!, x0 = Math.max(o.x1 + 4, p.pos.x + 6), x1 = Math.min(o.x2 - 4, p.pos.x + p.width - 6);
+  if (x1 <= x0) return;
+  const seed = p.id.length * 31 + Math.round(p.pos.x);
+  // (a band of it along the underside, where it's soaked through)
+  ctx.fillStyle = GOO_DARK; ctx.fillRect(Math.round(x0), Math.round(o.y), Math.round(x1 - x0), 2);
+  for (let k = 0; k < 3; k++) {
+    const x = Math.round(x0 + (x1 - x0) * ((k + 0.5) / 3) + Math.sin(seed + k * 2.3) * 6);
+    const period = 46 + ((seed + k * 17) % 20), t = ((frame + seed * 7 + k * 29) % period) / period;
+    // (stretching down, bulbing at the end; then a drop let go, falling on, and the next starting)
+    const len = t < 0.75 ? 2 + (t / 0.75) * 12 : 3;
+    ctx.fillStyle = GOO_DARK; ctx.fillRect(x - 1, Math.round(o.y), 3, Math.round(len));
+    ctx.fillStyle = GOO; ctx.fillRect(x, Math.round(o.y), 1, Math.round(len));
+    if (t < 0.75) { ctx.fillStyle = GOO_DARK; ctx.fillRect(x - 2, Math.round(o.y + len - 1), 5, 4); ctx.fillStyle = GOO_LIT; ctx.fillRect(x - 1, Math.round(o.y + len), 1, 1); }
+    else { const fall = (t - 0.75) / 0.25; const dy = o.y + 14 + fall * fall * 60; ctx.fillStyle = GOO_DARK; ctx.fillRect(x - 1, Math.round(dy), 3, 4); ctx.fillStyle = GOO_LIT; ctx.fillRect(x, Math.round(dy), 1, 1); }
+  }
+};
+
 /** Puddles lie on the floor under everyone; everything else flies over them. */
 const drawProjectiles = (ctx: CanvasRenderingContext2D, state: GameState, layer: 'puddles' | 'flying') => {
   state.projectiles.forEach(p => {
@@ -1350,8 +1391,8 @@ const drawProjectiles = (ctx: CanvasRenderingContext2D, state: GameState, layer:
     if (p.isBoulder) drawBoulder(ctx, p, state.frame);
     else if (p.isShrapnel) drawRockChip(ctx, p, state.frame);
     else if (p.isSludge) {
-      if (p.isLingering) drawGooPuddle(ctx, state, p);
-      else drawSludgeBlob(ctx, p, state.frame);
+      if (p.isLingering) { drawGooPuddle(ctx, state, p); if (p.overhang) drawGooOverhang(ctx, p, state.frame); }
+      else { if (p.dripFrom !== undefined) drawGooString(ctx, p); drawSludgeBlob(ctx, p, state.frame); }
     }
     else if (p.isCocaine) drawCocaine(ctx, p, state.frame);
     else if (p.isMethBarrel) drawMethBarrel(ctx, p, state.frame);

@@ -555,6 +555,12 @@ export interface Projectile extends Entity {
   /** Just for show: the frame it was thrown (a fresh throw's sparkle, or its spin starting with a wobble). */
   bornAt?: number;
   isSludge?: boolean;
+  /** Sludge run on through a ledge: the puddle it makes is the same size as the one it left up there. */
+  puddleW?: number;
+  /** ...and the underside of the ledge it ran through (it stretches down off it in a string), or, on the puddle up on
+   * a ledge, the ledge's underside and ends (it hangs off the bottom of it in drips). */
+  dripFrom?: number;
+  overhang?: { y: number; x1: number; x2: number };
   /** Just for show (Tommy's puke stream, say: where it lands is what hurts): never hits him, and gone when it lands. */
   visualOnly?: boolean;
   /** One of the beaten alien's sad little bolts (slow, droopy, barely hurts): drawn by the finale stage. */
