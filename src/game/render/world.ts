@@ -5,7 +5,7 @@ import { INK, ink, shaded, shadedTop, dark, lite } from './npc/kit';
 import { setBossLook } from './bosses/kit';
 import { isDummy, drawDummy } from './dummies';
 import {
-  CANVAS_WIDTH, CANVAS_HEIGHT, RING_CEILING_Y, RING_FLOOR_Y, LEVEL_INTRO_STYLE, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, RENDER_SCALE, PRACTICE_RANGE_STAGE, isRangeStage, GROUND_Y, FINALE_STAGE,
+  CANVAS_WIDTH, CANVAS_HEIGHT, RING_CEILING_Y, RING_FLOOR_Y, LEVEL_INTRO_STYLE, COLORS, BOSS_DOOR_X, ARENA_LEFT, ARENA_RIGHT, RENDER_SCALE, PRACTICE_RANGE_STAGE, isRangeStage, GROUND_Y,
 } from '../../constants';
 import { drawCloudExit, drawSkyAbove } from './skyClouds';
 import { STAGE_COLORS } from '../../content/roster';
@@ -30,6 +30,7 @@ import { drawCrashCam } from './player/crashDeath';
 import { drawEyeFallCam } from './player/eyeFallCam';
 import { drawKindEnemy, animFrame, KIND_TOP_REACH } from './enemies';
 import { isMidBoss } from '../combat/midBoss';
+import { drawBossHud } from './bossHud';
 import { POUND_ZONES, stormSafe } from '../bosses/barry';
 import { drawBackdrop, drawBackdropFront } from './backdrops';
 import { drawTerrain, drawGroundProfile } from './backdrops/terrain';
@@ -204,6 +205,8 @@ const drawWorldAt = (ctx: CanvasRenderingContext2D, state: GameState, view: Worl
   noteShadowStage(stageId, scene, layout?.shadowWalls?.(state), layout?.waterBodyAt ? (x, y) => !!layout.waterBodyAt!(state, x, y) : undefined);
   if (scene) drawSceneLighting(ctx, state, cylinder ? { ...scene, flat: true } : scene, { camX: state.camera.x, camY: state.camera.y, zoom: layout?.zoom?.(state) });
   layout?.drawHud?.(ctx, state);
+  // (a boss's meter up top, as the mid-bosses get: not a bar over his head)
+  drawBossHud(ctx, state, stageId);
 
   // Screen space: the stage's weather over the level (not inside the boss arenas)
   if (state.camera.x < ARENA_LEFT - CANVAS_WIDTH / 2 && !layout?.drawBackdropFront?.(ctx, state)) drawBackdropFront(ctx, stageId, state.camera.x, state.camera.y, state.frame || 0);
@@ -886,7 +889,7 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
     if (tased) { ctx.filter = 'none'; ctx.shadowBlur = 0; drawTasedFx(ctx, e, state); }
     if (e.type !== 'boss' && e.isOnFire && e.health > 0) { ctx.filter = 'none'; ctx.shadowBlur = 0; drawOnFire(ctx, e, state.frame); }
     drawStuckNeedles(ctx, e, state.frame);
-    if (!e.isBlownAway && e.drownT === undefined && !isMidBoss(e) && !(e.type === 'boss' && stageId === FINALE_STAGE) && e.kind !== 'civilian' && e.kind !== 'visitor' && e.kind !== 'generator' && e.kind !== 'minion' && e.kind !== 'tenant' && !(e.kind === 'magmafish' && (!e.aiState || e.aiState === 'idle'))) { ctx.fillStyle = '#00FF00'; ctx.fillRect(e.pos.x, e.pos.y - 10 - (e.kind ? KIND_TOP_REACH[e.kind] ?? 0 : 0), (e.health / e.maxHealth) * e.width, 5); } // (over its head, not across it)
+    if (!e.isBlownAway && e.drownT === undefined && !isMidBoss(e) && e.type !== 'boss' && e.kind !== 'civilian' && e.kind !== 'visitor' && e.kind !== 'generator' && e.kind !== 'minion' && e.kind !== 'tenant' && !(e.kind === 'magmafish' && (!e.aiState || e.aiState === 'idle'))) drawEnemyBar(ctx, e, e.pos.y - 10 - (e.kind ? KIND_TOP_REACH[e.kind] ?? 0 : 0)); // (over its head, not across it)
     ctx.restore();
   });
 };
@@ -1381,6 +1384,28 @@ const drawGooOverhang = (ctx: CanvasRenderingContext2D, p: GameState['projectile
     if (t < 0.75) { ctx.fillStyle = GOO_DARK; ctx.fillRect(x - 2, Math.round(o.y + len - 1), 5, 4); ctx.fillStyle = GOO_LIT; ctx.fillRect(x - 1, Math.round(o.y + len), 1, 1); }
     else { const fall = (t - 0.75) / 0.25; const dy = o.y + 14 + fall * fall * 60; ctx.fillStyle = GOO_DARK; ctx.fillRect(x - 1, Math.round(dy), 3, 4); ctx.fillStyle = GOO_LIT; ctx.fillRect(x, Math.round(dy), 1, 1); }
   }
+};
+
+/**
+ * A regular enemy's health over its head, 16-bit: an inked frame, a dark trough, the bar in three bands (a lit top,
+ * the color, a shaded bottom), green going yellow then red as it drops, cut into cells, on the 2px grid.
+ */
+const BAR_RAMPS = [['#BBF7D0', '#22C55E', '#15803D'], ['#FEF08A', '#EAB308', '#A16207'], ['#FECACA', '#EF4444', '#991B1B']];
+const drawEnemyBar = (ctx: CanvasRenderingContext2D, e: Enemy, top: number) => {
+  const k = Math.max(0, Math.min(1, e.health / e.maxHealth));
+  const w = Math.max(16, Math.round(e.width / 2) * 2), x = Math.round((e.pos.x + e.width / 2 - w / 2) / 2) * 2, y = Math.round(top / 2) * 2;
+  ctx.fillStyle = '#0B0B0F'; ctx.fillRect(x - 2, y - 2, w + 4, 10);
+  ctx.fillStyle = '#3F3F46'; ctx.fillRect(x, y, w, 6);
+  ctx.fillStyle = '#18181B'; ctx.fillRect(x, y + 4, w, 2);
+  const fw = Math.round(w * k / 2) * 2;
+  if (fw > 0) {
+    const [lit, mid, dark] = BAR_RAMPS[k > 0.5 ? 0 : k > 0.25 ? 1 : 2];
+    ctx.fillStyle = mid; ctx.fillRect(x, y, fw, 6);
+    ctx.fillStyle = lit; ctx.fillRect(x, y, fw, 2);
+    ctx.fillStyle = dark; ctx.fillRect(x, y + 4, fw, 2);
+  }
+  // (cells: a notch every 8)
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.45)'; for (let cx = x + 8; cx < x + w; cx += 8) ctx.fillRect(cx, y, 1, 6);
 };
 
 /** Puddles lie on the floor under everyone; everything else flies over them. */
