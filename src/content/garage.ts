@@ -48,7 +48,7 @@ export const SOUVENIRS: Souvenir[] = [
   { id: 'chain', boss: 'Oily Oscar', spot: 'wall', name: "DIRTY DAN'S CHAIN", note: 'NOBODY TOUCHES HER BUT DIRTY DAN. DIRTY DAN IS NOT HERE.' },
   // Drug Trade Dale
   { id: 'goldgun', boss: 'Drug Trade Dale', spot: 'wall', name: "CHUCO'S GOLD PISTOL", note: 'TACKY. MOUNTED IT ANYWAY. IT KEEPS TELLING ME TO LOOK AT ITS EYES.' },
-  { id: 'badge', boss: 'Drug Trade Dale', spot: 'wall', name: "SHERIFF DAN'S BADGE", note: 'COSTUME BADGE. TEN BUCKS AN HOUR. HE RAN. I DIDN\'T. I\'M THE SHERIFF NOW.' },
+  { id: 'badge', boss: 'Drug Trade Dale', spot: 'wall', name: "SHERIFF DAN'S BADGE", note: 'COSTUME BADGE. TEN BUCKS AN HOUR. HE RAN. THE SWORD DIDN\'T MISS, AND THE CAB DIDN\'T EITHER. I\'M THE SHERIFF NOW.' },
   { id: 'lizard', boss: 'Drug Trade Dale', spot: 'floor', name: "RIGGS'S LIZARD", note: "RIGGS SAID IT'D HAVE TO FEND FOR ITSELF. IT'S FENDING FINE. IT EATS CRICKETS. TWICE A DAY. HE HAS MY WORD." },
 ];
 
