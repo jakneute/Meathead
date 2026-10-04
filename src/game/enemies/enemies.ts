@@ -39,6 +39,7 @@ import { isMidBoss } from '../combat/midBoss';
 import { isBeingTased } from '../combat/statusEffects';
 import { hurtTaken, gritty } from '../core/resist';
 import { inFinale } from '../combat/finaleBuffs';
+import { ROOM_L, ROOM_R } from '../stages/finale/geometry';
 import { noteAnimalKill } from '../player/animalDeaths';
 
 /** On the screen right now (the view as drawn, pulled back or pushed in included). */
@@ -1261,6 +1262,12 @@ const SHIELD_SHOVE_FRAMES = 50, SHIELD_SHOVE_RECOVER = 55;
  */
 const wallAgainst = (state: FrameContext['state'], e: Enemy) => {
   const box = { x: e.pos.x, y: e.pos.y + 6, w: e.width, h: e.height - 16 };
+  // (the finale's press room: its side walls are walls all the way down, the doors at their feet too: he's crushed
+  // against them, not shoved out through an open one)
+  if (inFinale(state.stageId)) {
+    if (box.x < ROOM_L) return { x: ROOM_L - 100, w: 100 };
+    if (box.x + box.w > ROOM_R) return { x: ROOM_R, w: 100 };
+  }
   const doorShut = state.doorState !== 'opening' && state.doorState !== 'open' && state.doorState !== 'closing';
   const feet = e.pos.y + e.height;
   return state.blocks.find(b => rectsOverlap(box, b) && (b.type === 'wall' || (b.type === 'door' && doorShut)
