@@ -26,6 +26,7 @@ import { updateDryFire } from '../combat/dryFire';
 import { rectsOverlap, boundsOf } from '../core/utils';
 import { standingIndoors, groundLineAt, stanceGround } from '../core/terrain';
 import { isChargerKind } from '../enemies/kinds';
+import { isMidBoss } from '../combat/midBoss';
 import { BOSS_DIALOGUE } from '../../content/dialogue';
 import { isStandingInOil } from '../bosses/oscar';
 import { getBossDef, getArenaRight } from '../bosses/registry';
@@ -82,6 +83,16 @@ export const skipDying = (ctx: FrameContext, t: number, message: () => string): 
   state.deathFrames = SKIP_AFTER + 1;
   state.dyingSkipAt = undefined;
   return true;
+};
+
+/**
+ * His death's sealed but still playing out (off the truck, over the side, out of air): the regular enemies go,
+ * quietly (no callouts, no pickups), and whatever they've got in the air with them, so nothing gets in on it with some
+ * other death or wanders through the shot. Bosses, mid-bosses, bystanders and bodies already flying stay. Call it once, as it starts.
+ */
+export const clearForDoom = (state: GameState) => {
+  state.enemies = state.enemies.filter(e => e.type === 'boss' || isMidBoss(e) || e.innocent || e.health <= 0 || e.isBlownAway);
+  state.projectiles = state.projectiles.filter(p => p.owner !== 'enemy' || p.visualOnly);
 };
 
 export const killPlayer = (ctx: FrameContext, message: string, gore = true) => {

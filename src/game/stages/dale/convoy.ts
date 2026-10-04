@@ -28,7 +28,7 @@ import { GROUND_Y, CANVAS_WIDTH } from '../../../constants';
 import { shakeScreen } from '../../core/state';
 import { rectsOverlap, boundsOf } from '../../core/utils';
 import { hurtPlayer } from '../../bosses/shared';
-import { killPlayer, skipDying } from '../../player/player';
+import { killPlayer, skipDying, clearForDoom } from '../../player/player';
 import { playSound, playHornDrone } from '../../platform/audio';
 import { say, MEATHEAD_VOICE, Voice, cutVoice } from '../../platform/speech';
 import { makeKindEnemy } from '../../enemies/kinds';
@@ -85,6 +85,8 @@ export interface Fall {
   t: number; kind: 'runover' | 'flop' | 'boom' | 'melt' | 'button'; x: number; y: number; truck: number;
   /** In the trailer: the frame it froze on when he died (the death screen holds there). */
   still?: number;
+  /** The goons have been cleared off for it (once it's sealed, nobody else gets in on it). */
+  cleared?: boolean;
   /**
    * On the road (runover, flop): his body in road coordinates (g: how far along the road; the world x is g - road),
    * how fast it's still going along the road, its height off it and how fast that's changing, its spin; how far the
@@ -448,11 +450,14 @@ const updateFall = (ctx: FrameContext, cv: Convoy, talk: Talk): Controls => {
   const { state, fx } = ctx;
   const p = state.player;
   const f = cv.fall!;
+  // (it's sealed: the goons go, and what they've fired, so none of them gets in on it or wanders through the shot)
+  if (!f.cleared) { f.cleared = true; clearForDoom(state); }
   // (in the trailer, the death screen holds on the moment: him on his feet, still taking it)
   if (f.kind === 'melt' && f.still !== undefined) return { ...NO_CONTROLS };
   f.t++;
   // (the long ones can be skipped: straight to the death screen)
-  if (skipDying(ctx, f.t, () => pick(f.kind === 'flop' ? FAMILY_DEATHS : FALL_LINES[f.kind]))) {
+  // (off the back and skipped before the family's got to him: no hit and run, just the road)
+  if (skipDying(ctx, f.t, () => pick(f.kind === 'flop' && (f.road?.suv?.hitAt ?? -1) >= 0 ? FAMILY_DEATHS : FALL_LINES[f.kind]))) {
     hush(state, talk);
     if (f.kind === 'melt') f.still = state.frame;
     return { ...NO_CONTROLS };

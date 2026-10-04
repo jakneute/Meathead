@@ -29,7 +29,7 @@ import { playSound } from '../../platform/audio';
 import { floorTopAt } from '../../core/terrain';
 import { rectsOverlap, boundsOf, isOnScreen } from '../../core/utils';
 import { COURSE } from './course';
-import { killPlayer, skipDying } from '../../player/player';
+import { killPlayer, skipDying, clearForDoom } from '../../player/player';
 
 export interface Strike { x: number; ground: number; t: number }
 export interface Debris { x: number; y: number; vx: number; rot: number; look: 'chair' | 'umbrella' | 'trashcan' | 'cooler'; size: number; warn: number }
@@ -389,6 +389,8 @@ const updateSwimming = (ctx: FrameContext, hz: Hazards) => {
     if (hz.o2 <= 0) {
       // Out of air
       hz.drownT = 1;
+      // (no coming back from it: nobody else gets in on it)
+      clearForDoom(state);
       hz.drownAt = { x: p.pos.x, y: p.pos.y, surface: zone?.surface ?? COURSE.sea.y };
       p.hidden = true;
       p.vel = { x: 0, y: 0 };

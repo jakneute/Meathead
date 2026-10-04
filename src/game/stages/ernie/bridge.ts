@@ -21,7 +21,7 @@ import { shakeScreen } from '../../core/state';
 import { playSound } from '../../platform/audio';
 import { say, MEATHEAD_VOICE } from '../../platform/speech';
 import { makeKindEnemy } from '../../enemies/kinds';
-import { killPlayer, skipDying } from '../../player/player';
+import { killPlayer, skipDying, clearForDoom } from '../../player/player';
 import { GROUND_Y, CANVAS_WIDTH } from '../../../constants';
 import { COURSE } from './course';
 import { BURNING_SCREAMS } from '../../enemies/kinds/ernie';
@@ -95,6 +95,8 @@ export const updateBridge = (ctx: FrameContext, br: Bridge, controls: Controls):
   // (not down the stairs off the end of it)
   if (onBridge(px) && px < COURSE.bridge.exit && !p.isGrounded && p.pos.y > GROUND_Y + 30 && state.deathTimer <= 0) {
     br.plunge = { t: 0, x: px, line: '', lineT: 0, splashAt: 0, corpseX: px };
+    // (no coming back from it: nobody else gets in on it)
+    clearForDoom(state);
     return updatePlunge(ctx, br.plunge);
   }
   return controls;
