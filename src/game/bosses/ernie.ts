@@ -40,7 +40,8 @@ const RESUME_FRAMES = 25;        // after scrambling, this long before his next 
 const LANDING_SHAKE = 30;
 /** Meathead caught on his feet by a quake (stunned): a beat, then a boulder sent at him fast enough to get there before
  * he's got his legs back (no faster than this). Stunned is dangerous. */
-const PUNISH_WINDUP = 8, PUNISH_MAX_SPEED = 22;
+export const PUNISH_WINDUP = 14;
+const PUNISH_MAX_SPEED = 22;
 /** The kick's follow-through (frames). */
 export const KICK_FRAMES = 12;
 export const ERNIE_BOULDER_SIZE = 72;
@@ -52,7 +53,8 @@ const insideArena = (x: number) => Math.max(ARENA_LEFT + 2, Math.min(ARENA_RIGHT
 const pace = (boss: Enemy) => Math.max(0, Math.min(1, 1 - boss.health / boss.maxHealth));
 
 const update = (ctx: FrameContext, boss: Enemy) => {
-  punish(ctx, boss);
+  // (stopped dead for it, wherever he was going: the rest waits till the rock's on its way)
+  if (punish(ctx, boss)) return;
   switch (boss.bossState) {
     case 'frozen':
       // Held solid in the ice, then he topples over
@@ -127,15 +129,22 @@ const jumpAndRoll = (ctx: FrameContext, boss: Enemy) => {
  * Meathead stunned by one of his quakes (his landing, or the heaved boulder's): Ernie sees it, and a beat later sends a
  * boulder at him quick enough to get there while he's still shaking (unless Ernie's on ice, down, or scrambling).
  */
-const punish = (ctx: FrameContext, boss: Enemy) => {
+const punish = (ctx: FrameContext, boss: Enemy): boolean => {
   const { state } = ctx;
-  if (boss.kickT) boss.kickT--;
-  if (state.playerStunTimer <= 0) { boss.sawStun = false; boss.punishT = undefined; return; }
   const able = boss.bossState !== 'frozen' && boss.bossState !== 'stunned_drop' && !boss.scrambling && boss.isGroundedBoss;
-  if (!boss.sawStun && able) { boss.sawStun = true; boss.punishT = PUNISH_WINDUP; playSound('crunch', 0.6, -6); }
-  if (boss.punishT === undefined || --boss.punishT > 0) return;
+  const hold = () => { boss.vel.x = 0; return true; };
+  if (boss.kickT) { boss.kickT--; if (able) return hold(); }
+  if (state.playerStunTimer <= 0) { boss.sawStun = false; boss.punishT = undefined; return false; }
+  if (!boss.sawStun && able) {
+    // He's seen it: he stops, turns to him, and a rock heaves up out of the floor at his feet
+    boss.sawStun = true; boss.punishT = PUNISH_WINDUP; boss.facing = dirTo(boss, state.player);
+    playSound('crunch', 0.8, -6);
+    ctx.fx.spawnDamageNumber({ x: midX(boss) - 10, y: boss.pos.y - 26 }, '!', true, '#FDE047');
+  }
+  if (boss.punishT === undefined) return false;
+  if (--boss.punishT > 0) return able ? hold() : false;
   boss.punishT = undefined;
-  if (!able) return;
+  if (!able) return false;
   const p = state.player, dir = dirTo(boss, p);
   const dist = Math.abs(p.pos.x + p.width / 2 - midX(boss));
   const frames = Math.max(8, state.playerStunTimer - 4);
@@ -143,8 +152,11 @@ const punish = (ctx: FrameContext, boss: Enemy) => {
   boss.facing = dir;
   // (the boot goes into a rock at his feet and sends it: from just in front of him)
   boss.kickT = KICK_FRAMES;
-  playSound('punch', 0.8, -8);
-  rollBoulder(ctx, boss, dir, 'b-ernie-punish', speed, midX(boss) + dir * 34);
+  playSound('punch', 0.9, -8);
+  ctx.bossHelpers.setScreenShake(8);
+  ctx.fx.spawnDamageNumber({ x: midX(boss) + dir * 30, y: boss.pos.y + 10 }, 'KICK!', true, '#F97316');
+  rollBoulder(ctx, boss, dir, 'b-ernie-punish', speed, midX(boss) + dir * (boss.width / 2 + ERNIE_BOULDER_SIZE / 2 - 10));
+  return true;
 };
 
 const rollBoulder = (ctx: FrameContext, boss: Enemy, dir: number, id: string, fast?: number, fromX = midX(boss)) => {

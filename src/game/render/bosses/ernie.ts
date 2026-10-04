@@ -5,7 +5,7 @@
 // top-left corner), in an 80x80 box.
 
 import { Enemy } from '../../../types';
-import { KICK_FRAMES } from '../../bosses/ernie';
+import { KICK_FRAMES, PUNISH_WINDUP } from '../../bosses/ernie';
 import { FaceStyle, drawHead, headAt, facingOf, goreOf, moodOf, limb, hand, shoe, foil, bodyBlood, breath } from './kit';
 
 const SKIN = '#E8C4A8', SKIN_DARK = '#B98E72';
@@ -25,7 +25,7 @@ export const drawErnie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
   const step = running ? Math.sin(frame * 0.5) * 3 : 0;
   // Kicking a rock at him (Meathead stunned): the front leg drawn back in the windup, then swung through and up
   const kicking = (e.punishT ?? 0) > 0 || (e.kickT ?? 0) > 0;
-  const kickAngle = (e.punishT ?? 0) > 0 ? -0.7 * Math.min(1, (8 - e.punishT!) / 4) : (e.kickT ?? 0) > 0 ? 1.15 * Math.sin(Math.PI * Math.min(1, (KICK_FRAMES - e.kickT! + 3) / KICK_FRAMES)) : 0;
+  const kickAngle = (e.punishT ?? 0) > 0 ? -0.7 * Math.min(1, Math.max(0, PUNISH_WINDUP - 6 - e.punishT!) / 4) : (e.kickT ?? 0) > 0 ? 1.15 * Math.sin(Math.PI * Math.min(1, (KICK_FRAMES - e.kickT! + 3) / KICK_FRAMES)) : 0;
   const frontX = f > 0 ? 50 : 30;
   ctx.save();
   ctx.scale(e.width / 80, e.height / 80);

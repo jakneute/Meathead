@@ -1,7 +1,7 @@
 // Boulders (Ernie's, and Meathead's boulder gun), plus the rock chips they break into.
 
 import { Enemy, Projectile } from '../../../types';
-import { ERNIE_BOULDER_SIZE } from '../../bosses/ernie';
+import { ERNIE_BOULDER_SIZE, PUNISH_WINDUP } from '../../bosses/ernie';
 import { pixelBlob } from '../pixelArt';
 import { dark } from '../npc/kit';
 import { mix } from '../backdrops/core';
@@ -180,6 +180,16 @@ export const drawRockChip = (ctx: CanvasRenderingContext2D, p: Projectile, frame
 
 /** Ernie holding a boulder over his head before he heaves it; or stood up on one before he jumps off it. */
 export const drawErnieHeldBoulder = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
+  // The rock he's about to kick at a stunned Meathead: heaved up out of the floor at his feet (cracks round it, dust)
+  if ((e.punishT ?? 0) > 0) {
+    const r = ERNIE_BOULDER_SIZE / 2, f = (e.facing ?? 1) >= 0 ? 1 : -1;
+    const up = Math.min(1, (PUNISH_WINDUP - e.punishT!) / 6), cx = e.pos.x + e.width / 2 + f * (e.width / 2 + r - 10), floor = e.pos.y + e.height;
+    ctx.save(); ctx.beginPath(); ctx.rect(cx - r - 8, floor - r * 2 - 20, r * 2 + 16, r * 2 + 20); ctx.clip();
+    drawRock(ctx, cx, floor - r * up + r * (1 - up) * 0.2, r, 0, ERNIE_ROCK, 5);
+    ctx.restore();
+    ctx.fillStyle = '#1B0F0C'; for (let k = -2; k <= 2; k++) ctx.fillRect(Math.round(cx + k * 9 - 4), Math.round(floor - 1), 8, 2);
+    return;
+  }
   if (e.bossState === 'perched') {
     const r = ERNIE_BOULDER_SIZE / 2;
     // (rocking a touch under him)
