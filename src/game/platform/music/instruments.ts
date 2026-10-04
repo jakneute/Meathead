@@ -98,6 +98,36 @@ const banjo = pluck(294, 0.9, 1, 0.99, 0.08);
 const harp = pluck(262, 1.6, 0.4, 0.997);
 const clav = pluck(262, 0.7, 1, 0.992, 0.1);
 
+/**
+ * An electric guitar, plugged in and turned up: Karplus-Strong strings (one, or a power chord's root, fifth and octave)
+ * picked hard, through a high-gain fuzz (asymmetric, so it growls), then a speaker cabinet (the fizz rolled off up top,
+ * the mud cut from the bottom, a honk in the mids). A one-shot that rings on as long as a guitar would.
+ */
+const electric = (hzs: [number, number][], len: number, drive: number, damp: number) => {
+  const root = pluck(hzs[0][0], 0.1, 0.85, damp);
+  const a1 = 1 - Math.exp(-TAU * 3400 / SR), a2 = 1 - Math.exp(-TAU * 4800 / SR), ah = Math.exp(-TAU * 90 / SR);
+  const am = 1 - Math.exp(-TAU * 1300 / SR);
+  // (made when it's first wanted, like the rest)
+  const make = () => {
+    const strings = hzs.map(([hz, amp]) => ({ data: pluck(hz, len, 0.85, damp, 0.13).make().data, amp }));
+    let hp = 0, hpIn = 0, lp1 = 0, lp2 = 0, mid1 = 0, mid2 = 0;
+    return shot(len, (_t, i) => {
+      let x = 0;
+      for (const s of strings) x += (s.data[i] ?? 0) * s.amp;
+      // (into the amp: the bottom cut so it doesn't flub, then driven hard, a little lopsided so it growls)
+      const h = ah * (hp + x - hpIn); hpIn = x; hp = h;
+      const d = Math.tanh(drive * (h + 0.12 * h * h));
+      // (the cabinet: two gentle lowpasses to take the fizz off, a mid hump added back)
+      lp1 += a1 * (d - lp1); lp2 += a2 * (lp1 - lp2);
+      mid1 += am * (d - mid1); mid2 += am * (mid1 - mid2);
+      return lp2 + 0.45 * (mid1 - mid2);
+    })();
+  };
+  return { make, base: root.base };
+};
+const leadGuitar = electric([[262, 1]], 2.6, 9, 0.9996);
+const powerChord = electric([[131, 1], [196, 0.8], [262, 0.55]], 2.2, 14, 0.9993);
+
 /** Every instrument there is. */
 export const INSTRUMENTS: Record<string, InstrumentDef> = {
   // ---- Held (looping) ----
@@ -140,14 +170,12 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
     base: midiOf(262), env: { a: 0.02, d: 0.1, s: 0.85, r: 0.08 }, gain: 0.45, vib: [6, 18],
   },
   guitar: {
-    // Overdriven lead: two voices a hair apart, driven hard
-    make: held(0.02, ((w) => (t: number) => Math.tanh(2.2 * w(t)))(partials([...sawPartials(262, (k) => Math.exp(-k / 6), 4000), ...sawPartials(263, (k) => 0.9 * Math.exp(-k / 6), 4000)]))),
-    base: midiOf(262), env: { a: 0.005, d: 0.3, s: 0.7, r: 0.1 }, gain: 0.38, vib: [5.5, 18],
+    // Overdriven lead: a picked electric string through a cranked amp and a cabinet, ringing out
+    make: leadGuitar.make, base: leadGuitar.base, env: { a: 0.002, d: 0, s: 1, r: 0.1 }, gain: 0.4, vib: [5.5, 18],
   },
   power: {
-    // A power chord (root, fifth, octave), driven
-    make: held(0.02, ((w) => (t: number) => Math.tanh(2.6 * w(t)))(partials([...sawPartials(131, (k) => Math.exp(-k / 6), 3500), ...sawPartials(196, (k) => 0.8 * Math.exp(-k / 6), 3500), ...sawPartials(262, (k) => 0.5 * Math.exp(-k / 6), 3500)]))),
-    base: midiOf(131), env: { a: 0.004, d: 0.25, s: 0.65, r: 0.08 }, gain: 0.34,
+    // A power chord (root, fifth, octave) on a distorted electric, chugged
+    make: powerChord.make, base: powerChord.base, env: { a: 0.002, d: 0, s: 1, r: 0.06 }, gain: 0.38,
   },
   synthbass: {
     make: held(0.01, partials(sawPartials(65, (k) => Math.exp(-k / 5), 3000))),
