@@ -233,6 +233,7 @@ const flyOverdosedBody = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolea
       if (!alive(o) || o.hyper || hitIds.includes(o.id) || !rectsOverlap(box, boundsOf(o))) continue;
       hitIds.push(o.id);
       if (o.type === 'boss') { bodyIntoBoss(ctx, e, o, OVERDOSE_HIT_DAMAGE); e.overdosePhase = 'drop'; continue; }
+      if (bounceOnToAlien(ctx, e, o, !!alien)) continue;
       o.health -= OVERDOSE_HIT_DAMAGE;
       fx.spawnDamageNumber(o.pos, OVERDOSE_HIT_DAMAGE, true);
       fx.spawnExplosion(mid(o), '#E879F9', 14, 0, 10);
@@ -309,6 +310,7 @@ const flyOverdosedBody = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolea
     if (!alive(o) || o.hyper || hitIds.includes(o.id) || !rectsOverlap(box, boundsOf(o))) continue;
     hitIds.push(o.id);
     if (o.type === 'boss') { bodyIntoBoss(ctx, e, o, OVERDOSE_HIT_DAMAGE); continue; }
+    if (bounceOnToAlien(ctx, e, o, bodiesHitBoss)) continue;
     o.health -= OVERDOSE_HIT_DAMAGE;
     fx.spawnDamageNumber(o.pos, OVERDOSE_HIT_DAMAGE, true);
     fx.spawnExplosion(mid(o), '#E879F9', 14, 0, 10);
@@ -336,6 +338,22 @@ const flyOverdosedBody = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): boolea
     }
   }
   return e.pos.y < state.camera.y + 1400;
+};
+
+/**
+ * The finale: an overdosed body plowing into a jetpack man up in the air knocks him out of it, and it's him that goes
+ * on into the alien (the high's catching: he's an overdose of his own now, homing in on the boss, his body the one that
+ * hits him). True if that's what happened.
+ */
+const bounceOnToAlien = (ctx: FrameContext, body: Enemy, o: Enemy, alienThere: boolean) => {
+  if (!alienThere || !inFinale(ctx.stageId) || o.kind !== 'jetagent' || o.overdosed) return false;
+  o.health = 0; o.isBlownAway = true; o.overdosed = true;
+  o.overdosePhase = 'home'; o.overdoseFrames = OVERDOSE_HOME_AFTER; o.overdoseHitIds = [body.id];
+  o.vel = { x: body.vel.x * 0.6, y: Math.min(-6, body.vel.y * 0.6) };
+  ctx.fx.spawnExplosion({ x: o.pos.x + o.width / 2, y: o.pos.y + o.height / 2 }, '#E879F9', 14, 0, 10);
+  ctx.fx.spawnKillCallout(o, 'contact');
+  shakeScreen(ctx.state, 8);
+  return true;
 };
 
 const isAirEnemy = (e: Enemy) => e.enemyType === 'flyer' || e.enemyType === 'drone' || e.behavior === 'fly' || e.behavior === 'hover';
