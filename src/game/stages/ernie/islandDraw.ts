@@ -681,8 +681,10 @@ const drawCitadel = (ctx: Ctx, state: GameState) => {
     const a = Math.max(CITADEL[0], cx), b = Math.min(CITADEL[1], cx + CITADEL_CHUNK);
     if (b <= a) continue;
     // (each a little over into the next, so no seam shows where two meet between pixels)
+    // (but not past the citadel's own ends: the arches start a vault back, and outside it's the open cliff)
+    const l = a > cx ? a : cx - 2, r = b < cx + CITADEL_CHUNK ? b : cx + CITADEL_CHUNK + 2;
     stamp(ctx, `ernie-citadel-${cx}-${top}`, cx - 2, top, CITADEL_CHUNK + 4, Y - top, g => {
-      g.save(); g.beginPath(); g.rect(cx - 2, top, CITADEL_CHUNK + 4, Y - top); g.clip();
+      g.save(); g.beginPath(); g.rect(l, top, r - l, Y - top); g.clip();
       citadelStill(g, a, b, top);
       g.restore();
     });
