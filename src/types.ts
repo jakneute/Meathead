@@ -484,6 +484,9 @@ export interface Enemy extends Entity {
   emergeY?: number;
   /** Ernie stood up on a boulder: how long he'll be up there (the climb up is timed off it). */
   perchFor?: number;
+  /** Ernie: he's seen Meathead stunned by a quake (once a stun), and how long till he makes him pay for it. */
+  sawStun?: boolean;
+  punishT?: number;
   // Oily Oscar
   oscarFacing?: 1 | -1;
   slideTargetX?: number;

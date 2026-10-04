@@ -38,6 +38,9 @@ const ROLLED_BOULDER_DAMAGE = 20, HEAVED_BOULDER_DAMAGE = 26;
 const SCRAMBLE_SPEED_MULT = 1.7;
 const RESUME_FRAMES = 25;        // after scrambling, this long before his next attack
 const LANDING_SHAKE = 30;
+/** Meathead caught on his feet by a quake (stunned): a beat, then a boulder sent at him fast enough to get there before
+ * he's got his legs back (no faster than this). Stunned is dangerous. */
+const PUNISH_WINDUP = 8, PUNISH_MAX_SPEED = 22;
 export const ERNIE_BOULDER_SIZE = 72;
 
 /** Keeps a boulder's left edge inside the arena (spawning in a wall would shatter it). */
@@ -47,6 +50,7 @@ const insideArena = (x: number) => Math.max(ARENA_LEFT + 2, Math.min(ARENA_RIGHT
 const pace = (boss: Enemy) => Math.max(0, Math.min(1, 1 - boss.health / boss.maxHealth));
 
 const update = (ctx: FrameContext, boss: Enemy) => {
+  punish(ctx, boss);
   switch (boss.bossState) {
     case 'frozen':
       // Held solid in the ice, then he topples over
@@ -117,8 +121,28 @@ const jumpAndRoll = (ctx: FrameContext, boss: Enemy) => {
   rollBoulder(ctx, boss, dirTo(boss, ctx.state.player), 'b-ernie-jump');
 };
 
-const rollBoulder = (ctx: FrameContext, boss: Enemy, dir: number, id: string) => {
-  const speed = BOULDER_SPEED + 1 + pace(boss) * ROLL_SPEED_RAMP;
+/**
+ * Meathead stunned by one of his quakes (his landing, or the heaved boulder's): Ernie sees it, and a beat later sends a
+ * boulder at him quick enough to get there while he's still shaking (unless Ernie's on ice, down, or scrambling).
+ */
+const punish = (ctx: FrameContext, boss: Enemy) => {
+  const { state } = ctx;
+  if (state.playerStunTimer <= 0) { boss.sawStun = false; boss.punishT = undefined; return; }
+  const able = boss.bossState !== 'frozen' && boss.bossState !== 'stunned_drop' && !boss.scrambling && boss.isGroundedBoss;
+  if (!boss.sawStun && able) { boss.sawStun = true; boss.punishT = PUNISH_WINDUP; playSound('crunch', 0.6, -6); }
+  if (boss.punishT === undefined || --boss.punishT > 0) return;
+  boss.punishT = undefined;
+  if (!able) return;
+  const p = state.player, dir = dirTo(boss, p);
+  const dist = Math.abs(p.pos.x + p.width / 2 - midX(boss));
+  const frames = Math.max(8, state.playerStunTimer - 4);
+  const speed = Math.max(BOULDER_SPEED + 1 + pace(boss) * ROLL_SPEED_RAMP, Math.min(PUNISH_MAX_SPEED, dist / frames));
+  boss.facing = dir;
+  rollBoulder(ctx, boss, dir, 'b-ernie-punish', speed);
+};
+
+const rollBoulder = (ctx: FrameContext, boss: Enemy, dir: number, id: string, fast?: number) => {
+  const speed = fast ?? BOULDER_SPEED + 1 + pace(boss) * ROLL_SPEED_RAMP;
   ctx.bossHelpers.addProjectile(enemyProjectile(`${id}-${Date.now()}`, insideArena(midX(boss) - ERNIE_BOULDER_SIZE / 2), FLOOR_Y - ERNIE_BOULDER_SIZE,
     dir * speed, 0, ERNIE_BOULDER_SIZE, ERNIE_BOULDER_SIZE, ROLLED_BOULDER_DAMAGE, { isBoulder: true }));
   // (the grind of it setting off along the floor)
@@ -197,7 +221,8 @@ const onLand = (ctx: FrameContext, boss: Enemy, dirToPlayer: number, surface: 'b
   ctx.bossHelpers.setScreenShake(LANDING_SHAKE);
   ctx.bossHelpers.setErnieVibration(ERNIE_STOMP_VIBRATION_DURATION);
   if (surface === 'floor') ernieQuake(ctx, midX(boss));
-  if (surface === 'floor') rollBoulder(ctx, boss, dirToPlayer, 'b-ernie-land');
+  // (Meathead on his feet for it: the quake's got him, and the boulder that follows is the one sent to punish him)
+  if (surface === 'floor' && !ctx.state.player.isGrounded) rollBoulder(ctx, boss, dirToPlayer, 'b-ernie-land');
 };
 
 /**
