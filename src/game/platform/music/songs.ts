@@ -355,14 +355,21 @@ export const SONGS: Record<string, Song> = {
     },
   },
 
-  // The weapon screen (and its firing range): upbeat, bouncy.
+  // The weapon screen (and its firing range): "look at this cool fucking weapon you got" (Mega Man 6's weapon get,
+  // the camera shot out): E minor, chugging power chords, a heroic brass hook over it, stabs and a pounding drive.
   weapon: {
-    bpm: 128,
+    bpm: 152,
     parts: {
-      lead: { inst: 'organ', mml: b('o5 l8 g4 b > d c4 < a4', 'o5 g4 e d g2', 'o5 g4 b > d e4 d4', 'o6 c2 < b2', 'o5 a4 b > c d4 c4', 'o5 b4 a g a2', 'o5 f+4 g a b4 a4', 'o5 g1') },
-      bass: { inst: 'slap', mml: bass(2, 'R8 r8 O8 R8 F8 R8 O8 F8', ['g/d', 'e/b', 'g/d', 'c/g', 'a/e', 'e/b', 'd/a', 'g/d']) },
-      keys: { inst: 'epiano', vol: 0.7, pan: -0.3, mml: stabs(4, ['gb>d', 'egb', 'gb>d', 'ceg', 'ace', 'egb', 'df+a', 'gb>d']) },
-      drums: { inst: 'kick', drums: true, mml: rep(FUNK, 8) },
+      riff: { inst: 'power', vol: 0.9, pan: -0.3, mml: b(
+        'o2 l8 e e e e g e a e', 'o2 l8 e e e e b e a g', 'o2 l8 c c c c e c g c', 'o2 l8 d d d d f+ d a d',
+        'o2 l8 e e e e g e a e', 'o2 l8 e e e e b e > d < b', 'o2 l8 c c c c e c g c', 'o2 l8 b b b b b b > d+ f+') },
+      bass: { inst: 'bass', mml: bass(2, 'R8 R8 R8 R8 R8 R8 O8 R8', ['e', 'e', 'c', 'd', 'e', 'e', 'c', 'b']) },
+      lead: { inst: 'trumpet', pan: 0.15, mml: b(
+        'o5 e8 e8 r8 e8 g4 a4', 'o5 b4. a8 g8 e8 r4', 'o5 c8 c8 r8 c8 e4 g4', 'o5 f+4. e8 d8 f+8 r4',
+        'o5 e8 e8 r8 e8 g4 b4', 'o6 e4. d8 < b8 g8 r4', 'o5 c8 e8 g8 > c8 < b4 a4', 'o5 d+2 f+4 b4') },
+      stabs: { inst: 'brass', vol: 0.75, pan: 0.35, mml: ['egb', 'egb', 'ceg', 'df+a', 'egb', 'egb', 'ceg', 'd+f+b'].map(c => `o4 {${c}}8 r8 r8 {${c}}8 r2`).join(' | ') },
+      hits: { inst: 'hit', vol: 0.8, mml: b('o4 e4 r2.', 'r1', 'r1', 'r1', 'o4 e4 r2.', 'r1', 'r1', 'o3 b4 r4 b4 r4') },
+      drums: { inst: 'kick', drums: true, mml: b('{kx}8 {kh}8 {sh}8 h8 {kh}8 {kh}8 {sh}8 {kh}8', DRIVE, DRIVE, ROCK_FILL, '{kx}8 {kh}8 {sh}8 h8 {kh}8 {kh}8 {sh}8 {kh}8', DRIVE, DRIVE, 's16 s16 s16 s16 t16 t16 u16 u16 {kx}4 {kx}4') },
     },
   },
 
