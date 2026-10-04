@@ -11,6 +11,8 @@ export const DEATH_LINES: Record<string, string[]> = {
   ski_log: ['LOGGED OUT', 'TIMBER'],
   ski_pine: ['TREE HUGGER', 'WRAPPED AROUND A PINE'],
   ski_branch: ['CLOTHESLINED BY A BRANCH', 'DUCK NEXT TIME'],
+  // (off a kicker on the ski run, short of the far side, down the crevasse: the stage's own scene, see artie/cliffDraw)
+  ski_cliff: ['SKIED INTO THE ABYSS', 'CREVASSE: 1, MEATHEAD: 0', 'NEVER LOOK DOWN', 'GRAVITY WAITED TILL YOU LOOKED', 'YOU WERE NOT OKAY'],
   wolverine: ['MAULED BY A WOLVERINE', 'THE WOLVERINE GOT YOUR ANKLES'],
   goat: ['HEADBUTTED OFF A MOUNTAIN', 'THE GOAT WAS THE GOAT'],
   eagle: ['PICKED APART BY AN EAGLE', 'FREEDOM HURTS'],

@@ -1,6 +1,7 @@
 // Drawing for Artie's stage: hazards, set pieces and their HUD.
 
 import { drawFlingDeath, FLING_FRAMES } from './flingDraw';
+import { drawCliffDeath } from './cliffDraw';
 import { bandedGradient, steppedGlow, checker } from '../../render/pixelArt';
 import { INK, dark, lite } from '../../render/npc/kit';
 import type { GameState } from '../../core/state';
@@ -394,6 +395,9 @@ export const drawArtieHud = (ctx: Ctx, state: GameState) => {
   drawChuteWarnings(ctx, state, getArtie(state)!.hazards);
   // Killed in the snowball: thrown off the far side of the mountain (over everything, while it plays and under the message)
   if (state.deathTimer > 0 && getArtie(state)!.ski.fling) drawFlingDeath(ctx, state, state.deathScene?.t ?? FLING_FRAMES);
+  // Off a kicker and down a crevasse: the Wile E. Coyote (the same)
+  const cliff = getArtie(state)!.ski.cliff;
+  if (state.deathTimer > 0 && cliff) drawCliffDeath(ctx, state, cliff, state.deathScene?.t ?? Infinity);
 };
 
 /** How far along a chute's telegraph is (0..1), or 0 if it isn't about to go. */

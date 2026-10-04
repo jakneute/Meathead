@@ -2,6 +2,7 @@
 // into the game state and runs its hazards and set pieces each frame.
 
 import { flingSound } from './flingDraw';
+import { tickCliff } from './cliffDraw';
 import { playSound } from '../../platform/audio';
 import type { StageLayout } from '../index';
 import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH } from '../../../constants';
@@ -65,8 +66,8 @@ export const artieLayout: StageLayout = {
   },
   // (down a crevasse: wedged in it; not off the tram, into the clouds: that's its own)
   fallDeathKind: ctx => { const p = ctx.state.player, x = p.pos.x + p.width / 2; return p.health > 0 && !(x > COURSE.gorge.x1 && x < COURSE.gorge.x2) ? 'fall_crevasse' : undefined; },
-  // (the avalanche's: thrown off the far side of the mountain)
-  deathSceneTick: (ctx, t) => { if (getArtie(ctx.state)?.ski.fling) flingSound(t, playSound); },
+  // (the avalanche's: thrown off the far side of the mountain; or off a kicker, short, down the crevasse)
+  deathSceneTick: (ctx, t) => { const ski = getArtie(ctx.state)?.ski; if (ski?.fling) flingSound(t, playSound); else if (ski?.cliff) tickCliff(ctx.state, ski.cliff, t, playSound); },
   updateSpecialEnemy: (ctx, e) => {
     const rt = getArtie(ctx.state);
     return e.kind === 'moose' && rt ? updateMoose(ctx, e, rt.moose) : undefined;

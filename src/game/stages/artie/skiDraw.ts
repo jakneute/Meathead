@@ -448,6 +448,19 @@ const drawWreck = (ctx: Ctx, state: GameState, ski: Ski) => {
 // In front: the avalanche, the snowball, Meathead's skis
 // ---------------------------------------------------------------------------
 
+/** One of Meathead's skis, its middle at the origin (under his boot), the tip to +x: the turned-up tip, lit along the
+ * top, a red stripe, inked; the bindings on it. (Under his feet, the two of them side by side read as one.) */
+export const drawHisSki = (ctx: Ctx) => {
+  const ski = () => { ctx.beginPath(); ctx.moveTo(-34, -3); ctx.lineTo(36, -3); ctx.quadraticCurveTo(40, -4, 42, -10); ctx.lineTo(44, -9); ctx.quadraticCurveTo(43, 1, 36, 1); ctx.lineTo(-34, 1); ctx.closePath(); };
+  ctx.fillStyle = '#FACC15'; ski(); ctx.fill();
+  ctx.fillStyle = '#EAB308'; ctx.beginPath(); ctx.moveTo(36, -3); ctx.quadraticCurveTo(40, -4, 42, -10); ctx.lineTo(44, -9); ctx.quadraticCurveTo(43, 1, 36, 1); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#FEF08A'; ctx.fillRect(-34, -3, 70, 1);
+  ctx.fillStyle = '#CA8A04'; ctx.fillRect(-34, 0, 70, 1);
+  ctx.fillStyle = '#DC2626'; ctx.fillRect(18, -2, 14, 2); ctx.fillRect(-30, -2, 14, 2);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ski(); ctx.stroke();
+  slab(ctx, -10, -6, 8, 4, '#111827', 1); slab(ctx, 4, -6, 8, 4, '#111827', 1);
+};
+
 export const drawSkiFront = (ctx: Ctx, state: GameState, ski: Ski) => {
   const p = state.player;
   // His skis, under his feet, following the slope
@@ -456,15 +469,7 @@ export const drawSkiFront = (ctx: Ctx, state: GameState, ski: Ski) => {
     const ahead = groundAt(state, fx + 20), behind = groundAt(state, fx - 20);
     const ang = p.isGrounded ? Math.atan2(ahead - behind, 40) : -0.15;
     ctx.save(); ctx.translate(fx, fy); ctx.rotate(ang);
-    // (the ski: the turned-up tip, lit along the top, a red stripe, inked; the bindings on it)
-    const ski = () => { ctx.beginPath(); ctx.moveTo(-34, -3); ctx.lineTo(36, -3); ctx.quadraticCurveTo(40, -4, 42, -10); ctx.lineTo(44, -9); ctx.quadraticCurveTo(43, 1, 36, 1); ctx.lineTo(-34, 1); ctx.closePath(); };
-    ctx.fillStyle = '#FACC15'; ski(); ctx.fill();
-    ctx.fillStyle = '#EAB308'; ctx.beginPath(); ctx.moveTo(36, -3); ctx.quadraticCurveTo(40, -4, 42, -10); ctx.lineTo(44, -9); ctx.quadraticCurveTo(43, 1, 36, 1); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#FEF08A'; ctx.fillRect(-34, -3, 70, 1);
-    ctx.fillStyle = '#CA8A04'; ctx.fillRect(-34, 0, 70, 1);
-    ctx.fillStyle = '#DC2626'; ctx.fillRect(18, -2, 14, 2); ctx.fillRect(-30, -2, 14, 2);
-    ctx.strokeStyle = INK; ctx.lineWidth = 1; ski(); ctx.stroke();
-    slab(ctx, -10, -6, 8, 4, '#111827', 1); slab(ctx, 4, -6, 8, 4, '#111827', 1);
+    drawHisSki(ctx);
     ctx.restore();
   }
   // Low branches reach across the run in front of everything: bold, dark-edged, iced (duck them)

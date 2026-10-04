@@ -19,7 +19,11 @@ import { deathByCause } from '../../core/deathCause';
 import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES } from '../../../constants';
 import { COURSE, CP, SkiObstacle } from './course';
 import { FLING_FRAMES } from './flingDraw';
+import { Cliff, newCliff, CLIFF_OPEN_END } from './cliffDraw';
 import { isShat } from '../../player/gut';
+import { killPlayer, clearForDoom } from '../../player/player';
+import { DEATH_LINES } from '../../../content/deaths';
+import { pickRandom } from '../../core/utils';
 
 type SkiPhase = 'waiting' | 'cutscene' | 'skiing' | 'runout' | 'finale' | 'done';
 
@@ -55,6 +59,8 @@ export interface Ski {
   hintT: number;
   /** Killed in the snowball: it's thrown him off the far side of the mountain (see drawFlingDeath). */
   fling: boolean;
+  /** Skied off into a crevasse, short of the far side: the death scene, where it's got to (see cliffDraw.ts). */
+  cliff: Cliff | null;
 }
 
 // Ski speeds (px/frame): cruising, pushing on, and dragging your heels
@@ -105,7 +111,7 @@ export const createSki = (state: GameState, startedAt: number): Ski => {
     phase: past ? 'done' : onSkis ? 'skiing' : 'waiting', t: 0, quiet: { n: 0 },
     skier: { x: COURSE.skier.x, y: COURSE.skier.y, vx: 0, vy: 0, rot: 0, state: onSkis || past ? 'gone' : 'stand', line: '', lineT: 0 },
     skis: null, avX: COURSE.checkpoints[CP.SKI].x - 650, ball: 0, ballX: 0, ballRot: 0, crash: 0,
-    broken: COURSE.ski.obstacles.map(() => false), cabinHitAt: past ? -9999 : 0, pileX: COURSE.cabin.x + 330, surge: false, arrived: false, zoom: 1, fling: false, gap: AVALANCHE_HEAD_START, hintT: 0,
+    broken: COURSE.ski.obstacles.map(() => false), cabinHitAt: past ? -9999 : 0, pileX: COURSE.cabin.x + 330, surge: false, arrived: false, zoom: 1, fling: false, cliff: null, gap: AVALANCHE_HEAD_START, hintT: 0,
   };
   if (onSkis) { state.player.skiing = true; state.player.skiSpeed = SKI_BASE; state.cameraLeadX = SKI_CAMERA_LEAD; ski.zoom = skiZoomFor(COURSE.checkpoints[CP.SKI].x - ski.avX); }
   if (past) addPile(state, ski);
@@ -347,6 +353,10 @@ const skiing = (ctx: FrameContext, ski: Ski, controls: Controls): Controls => {
     }
   });
 
+  // Off the kicker and short of the far side, below its lip: there's no getting back up onto it. That's him (the
+  // Wile E. Coyote: see cliffDraw.ts)
+  if (shortOfTheFarSide(state)) { offTheCliff(ctx, ski); return { ...NO_CONTROLS }; }
+
   // The avalanche: how far back it's held is what he's earned (the meter). Every crash lets it close in; every stretch
   // skied clean it drops back a little, a bit more pushing on, a bit less dragging his heels (it's an early one: it's
   // forgiving). Right behind him after the cutscene's surge, it hangs back till he's got his usual lead
@@ -401,6 +411,34 @@ const inBall = (ctx: FrameContext, ski: Ski): Controls => {
     }
   }
   return { ...NO_CONTROLS };
+};
+
+/** In the air over a crevasse, coming down, and lower than the far side's lip (by more than he can step up): he's
+ * not making it. */
+const shortOfTheFarSide = (state: GameState) => {
+  const p = state.player;
+  if (p.isGrounded || p.vel.y <= 0 || p.health <= 0 || state.deathTimer > 0) return false;
+  const x = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
+  if (groundLineAt(state.groundRuns, x) !== Infinity) return false;
+  // (the far side: the next run along)
+  let far: { x1: number; y1: number } | undefined;
+  for (const r of state.groundRuns) if (r.x1 > x && (!far || r.x1 < far.x1)) far = r;
+  return !!far && feet > far.y1 + FAR_LIP_MARGIN;
+};
+/** How far below the far side's lip he has to be before he's not getting onto it. */
+const FAR_LIP_MARGIN = 12;
+
+/** Over the edge: the death's sealed there and then, and the scene plays it out (see cliffDraw.ts). */
+const offTheCliff = (ctx: FrameContext, ski: Ski) => {
+  const { state } = ctx;
+  if (ski.cliff) return;
+  ski.cliff = newCliff();
+  state.player.hidden = true;
+  // (nothing's going to wander through it; and the how-to-ski prompt comes down if it's still up)
+  clearForDoom(state);
+  if (ski.hintT < SKI_HINT_FOR) { ski.hintT = SKI_HINT_FOR; ctx.events.onTutorialHint?.(null); }
+  state.deathScene = { t: 0, len: CLIFF_OPEN_END, voiced: false };
+  killPlayer(ctx, skiDeathMessage(state, ski) ?? pickRandom(DEATH_LINES.ski_cliff), false);
 };
 
 /** It's killed him: the snowball throws him off the far side of the mountain (the death scene: see flingDraw.ts). */
@@ -496,11 +534,11 @@ export const skiDeathMessage = (state: GameState, ski: Ski): string | undefined 
   const fell = state.player.health > 0;
   // (thrown off the far side of the mountain, head first into a frozen pond)
   if (ski.fling) { const l = ['THIN ICE', 'PLANTED HEAD FIRST', 'THE OTHER SIDE OF THE MOUNTAIN', 'SNOWBALLED INTO NEXT WEEK']; return l[Math.floor(Math.random() * l.length)]; }
+  // (off the kicker, short of the far side, and down the crevasse)
+  if (ski.cliff || fell) return pickRandom(DEATH_LINES.ski_cliff);
   // (something in particular got him: a log, a branch, the avalanche: that, over the mountain in general)
-  const cause = fell ? undefined : deathByCause(state);
+  const cause = deathByCause(state);
   if (cause) return cause;
-  const lines = fell
-    ? ['SKIED INTO THE ABYSS', 'CREVASSE: 1, MEATHEAD: 0']
-    : ['BURIED ALIVE', 'FLASH-FROZEN MEAT POPSICLE', 'THE MOUNTAIN WON', 'YOU GOT AVALANCHED'];
+  const lines = ['BURIED ALIVE', 'FLASH-FROZEN MEAT POPSICLE', 'THE MOUNTAIN WON', 'YOU GOT AVALANCHED'];
   return lines[Math.floor(Math.random() * lines.length)];
 };
