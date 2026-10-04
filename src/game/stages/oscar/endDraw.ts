@@ -115,10 +115,15 @@ export const drawEndMid = (ctx: Ctx, state: GameState, en: Ending) => {
   // The bike: loose and heading in, or a burning heap at the foot of the wall
   if (en.bike.state === 'loose') drawChopperBike(ctx, en.bike.x, Y, en.bike.rot, en.bike.x / 12, '#7F1D1D');
   if (en.bike.state === 'crashed') {
-    ctx.save(); ctx.translate(W - 36, Y); ctx.rotate(-0.5);
-    drawChopperBike(ctx, 0, 0, 0, 0, '#1C1917');
+    // (reared up against the wall on its back wheel: turned about that wheel's middle, so the tire sits on the
+    // ground, not down through it, and the front wheel's up against the bricks)
+    ctx.save(); ctx.translate(W - 66, Y - 13); ctx.rotate(-0.5);
+    drawChopperBike(ctx, 26, 13, 0, 0, '#1C1917');
     ctx.restore();
+    // (its glow kept above the ground: none of it down through the dirt)
+    ctx.save(); ctx.beginPath(); ctx.rect(W - 200, Y - 300, 260, 300); ctx.clip();
     drawFire(ctx, W - 46, Y, 72, 34, f, { seed: 41, glow: 0.8 });
+    ctx.restore();
     for (let k = 0; k < 3; k++) { const q = ((f + k * 30) % 90) / 90; pixelBlob(ctx, W - 40 + q * 20, Y - 40 - q * 140, 10 + q * 24, 8 + q * 19, `rgba(41, 37, 36, ${(0.5 * (1 - q)).toFixed(3)})`); }
   }
   if (en.gun.state !== 'held') drawLmgProp(ctx, en.gun.x, en.gun.y, en.gun.rot);
