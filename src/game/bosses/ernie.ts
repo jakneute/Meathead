@@ -41,6 +41,8 @@ const LANDING_SHAKE = 30;
 /** Meathead caught on his feet by a quake (stunned): a beat, then a boulder sent at him fast enough to get there before
  * he's got his legs back (no faster than this). Stunned is dangerous. */
 const PUNISH_WINDUP = 8, PUNISH_MAX_SPEED = 22;
+/** The kick's follow-through (frames). */
+export const KICK_FRAMES = 12;
 export const ERNIE_BOULDER_SIZE = 72;
 
 /** Keeps a boulder's left edge inside the arena (spawning in a wall would shatter it). */
@@ -127,6 +129,7 @@ const jumpAndRoll = (ctx: FrameContext, boss: Enemy) => {
  */
 const punish = (ctx: FrameContext, boss: Enemy) => {
   const { state } = ctx;
+  if (boss.kickT) boss.kickT--;
   if (state.playerStunTimer <= 0) { boss.sawStun = false; boss.punishT = undefined; return; }
   const able = boss.bossState !== 'frozen' && boss.bossState !== 'stunned_drop' && !boss.scrambling && boss.isGroundedBoss;
   if (!boss.sawStun && able) { boss.sawStun = true; boss.punishT = PUNISH_WINDUP; playSound('crunch', 0.6, -6); }
@@ -138,12 +141,15 @@ const punish = (ctx: FrameContext, boss: Enemy) => {
   const frames = Math.max(8, state.playerStunTimer - 4);
   const speed = Math.max(BOULDER_SPEED + 1 + pace(boss) * ROLL_SPEED_RAMP, Math.min(PUNISH_MAX_SPEED, dist / frames));
   boss.facing = dir;
-  rollBoulder(ctx, boss, dir, 'b-ernie-punish', speed);
+  // (the boot goes into a rock at his feet and sends it: from just in front of him)
+  boss.kickT = KICK_FRAMES;
+  playSound('punch', 0.8, -8);
+  rollBoulder(ctx, boss, dir, 'b-ernie-punish', speed, midX(boss) + dir * 34);
 };
 
-const rollBoulder = (ctx: FrameContext, boss: Enemy, dir: number, id: string, fast?: number) => {
+const rollBoulder = (ctx: FrameContext, boss: Enemy, dir: number, id: string, fast?: number, fromX = midX(boss)) => {
   const speed = fast ?? BOULDER_SPEED + 1 + pace(boss) * ROLL_SPEED_RAMP;
-  ctx.bossHelpers.addProjectile(enemyProjectile(`${id}-${Date.now()}`, insideArena(midX(boss) - ERNIE_BOULDER_SIZE / 2), FLOOR_Y - ERNIE_BOULDER_SIZE,
+  ctx.bossHelpers.addProjectile(enemyProjectile(`${id}-${Date.now()}`, insideArena(fromX - ERNIE_BOULDER_SIZE / 2), FLOOR_Y - ERNIE_BOULDER_SIZE,
     dir * speed, 0, ERNIE_BOULDER_SIZE, ERNIE_BOULDER_SIZE, ROLLED_BOULDER_DAMAGE, { isBoulder: true }));
   // (the grind of it setting off along the floor)
   playSound('crunch', 0.7, -7);

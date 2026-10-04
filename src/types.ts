@@ -487,6 +487,8 @@ export interface Enemy extends Entity {
   /** Ernie: he's seen Meathead stunned by a quake (once a stun), and how long till he makes him pay for it. */
   sawStun?: boolean;
   punishT?: number;
+  /** ...and the kick that sends it: frames of the follow-through left. */
+  kickT?: number;
   // Oily Oscar
   oscarFacing?: 1 | -1;
   slideTargetX?: number;

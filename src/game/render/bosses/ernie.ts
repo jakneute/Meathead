@@ -5,6 +5,7 @@
 // top-left corner), in an 80x80 box.
 
 import { Enemy } from '../../../types';
+import { KICK_FRAMES } from '../../bosses/ernie';
 import { FaceStyle, drawHead, headAt, facingOf, goreOf, moodOf, limb, hand, shoe, foil, bodyBlood, breath } from './kit';
 
 const SKIN = '#E8C4A8', SKIN_DARK = '#B98E72';
@@ -22,15 +23,31 @@ export const drawErnie = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number
   const mood = moodOf(e, frame, { attacking: 'fierce', perched: 'fierce', running: 'fierce', stunned_drop: 'dazed', frozen: 'shock' });
   const b = breath(frame, 0.05);
   const step = running ? Math.sin(frame * 0.5) * 3 : 0;
+  // Kicking a rock at him (Meathead stunned): the front leg drawn back in the windup, then swung through and up
+  const kicking = (e.punishT ?? 0) > 0 || (e.kickT ?? 0) > 0;
+  const kickAngle = (e.punishT ?? 0) > 0 ? -0.7 * Math.min(1, (8 - e.punishT!) / 4) : (e.kickT ?? 0) > 0 ? 1.15 * Math.sin(Math.PI * Math.min(1, (KICK_FRAMES - e.kickT! + 3) / KICK_FRAMES)) : 0;
+  const frontX = f > 0 ? 50 : 30;
   ctx.save();
   ctx.scale(e.width / 80, e.height / 80);
 
-  // Orthopedic shoes and slacks hitched up high
-  shoe(ctx, 30 + step, 80, 15, 6, f, '#3F2A1A', '#1C1917');
-  shoe(ctx, 50 - step, 80, 15, 6, f, '#3F2A1A', '#1C1917');
+  // Orthopedic shoes and slacks hitched up high (the kicking one's up off the floor)
+  if (!kicking || frontX !== 30) shoe(ctx, 30 + step, 80, 15, 6, f, '#3F2A1A', '#1C1917');
+  if (!kicking || frontX !== 50) shoe(ctx, 50 - step, 80, 15, 6, f, '#3F2A1A', '#1C1917');
   ctx.fillStyle = '#6B6258';
-  ctx.beginPath(); ctx.moveTo(21, 50); ctx.lineTo(59, 50); ctx.lineTo(58 - step, 75); ctx.lineTo(43 - step, 75); ctx.lineTo(40, 60); ctx.lineTo(37 + step, 75); ctx.lineTo(22 + step, 75); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#524A42'; ctx.fillRect(21, 50, 3, 25); ctx.fillRect(30 + step, 58, 0.7, 16); ctx.fillRect(50 - step, 58, 0.7, 16);
+  if (!kicking) { ctx.beginPath(); ctx.moveTo(21, 50); ctx.lineTo(59, 50); ctx.lineTo(58 - step, 75); ctx.lineTo(43 - step, 75); ctx.lineTo(40, 60); ctx.lineTo(37 + step, 75); ctx.lineTo(22 + step, 75); ctx.closePath(); ctx.fill(); }
+  // (kicking: the seat of them, and the leg he's standing on; the other one's drawn swinging, below)
+  else if (f > 0) { ctx.beginPath(); ctx.moveTo(21, 50); ctx.lineTo(59, 50); ctx.lineTo(58, 60); ctx.lineTo(40, 61); ctx.lineTo(37, 75); ctx.lineTo(22, 75); ctx.closePath(); ctx.fill(); }
+  else { ctx.beginPath(); ctx.moveTo(21, 50); ctx.lineTo(59, 50); ctx.lineTo(58, 75); ctx.lineTo(43, 75); ctx.lineTo(40, 61); ctx.lineTo(22, 60); ctx.closePath(); ctx.fill(); }
+  ctx.fillStyle = '#524A42'; ctx.fillRect(21, 50, 3, kicking && f < 0 ? 10 : 25); if (!kicking || frontX !== 30) ctx.fillRect(30 + step, 58, 0.7, 16); if (!kicking || frontX !== 50) ctx.fillRect(50 - step, 58, 0.7, 16);
+  if (kicking) {
+    // (the kicking leg: from the hip, swung about it, the shoe on the end; the slacks' own leg there painted over first)
+    const hipX = frontX, hipY = 56, a = kickAngle * f, len = 22;
+    const fx = hipX + Math.sin(a) * len, fy = hipY + Math.cos(a) * len;
+    limb(ctx, hipX, hipY, fx, fy, 11, '#6B6258', '#524A42');
+    ctx.save(); ctx.translate(fx, fy); ctx.rotate(-a * 0.6); shoe(ctx, 0, 4, 15, 6, f, '#3F2A1A', '#1C1917'); ctx.restore();
+    // (the whoosh of it, on the way through)
+    if ((e.kickT ?? 0) > KICK_FRAMES - 5) { ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(hipX, hipY, len + 4, Math.PI / 2 - f * 0.2, Math.PI / 2 - f * 1.2, f > 0); ctx.stroke(); }
+  }
   // Belt, and the rock hammer on it
   ctx.fillStyle = '#292524'; ctx.fillRect(21, 50, 38, 2.6);
   ctx.fillStyle = '#A8A29E'; ctx.fillRect(38.5, 50.2, 3, 2.2);
