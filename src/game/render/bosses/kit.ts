@@ -25,7 +25,9 @@ export type Mood =
   | 'grump'    // the old crank: one brow crushed down, a squint, lips pursed in a frown
   | 'beam'     // on air: brows high, eyes bright, every tooth in a TV smile
   | 'wink'     // the salesman: one eye shut in a wink, a lopsided grin, the gold tooth showing
-  | 'shifty';  // up to something: worried brows, eyes darting side to side, a nervous clenched grin
+  | 'shifty'   // up to something: worried brows, eyes darting side to side, a nervous clenched grin
+  | 'panic'    // caught red-handed, screaming: brows shot up and knotted, eyes like saucers, mouth wide open
+  | 'aghast';  // caught red-handed, mouth shut on it: the same brows and eyes, teeth clenched in a grimace
 
 export interface FaceStyle {
   skin: string; shadow: string; highlight: string;
@@ -127,7 +129,7 @@ export const drawHead = (
     parts.hair?.();
     parts.hat?.();
     faceBlood(ctx, gore, frame);
-    if (mood === 'hurt' || mood === 'manic' || mood === 'shock' || mood === 'shifty') sweat(ctx, mood === 'shifty' ? 'manic' : mood, frame);
+    if (mood === 'hurt' || mood === 'manic' || mood === 'shock' || mood === 'shifty' || mood === 'panic' || mood === 'aghast') sweat(ctx, mood === 'shifty' ? 'manic' : mood, frame);
   });
 };
 
@@ -248,6 +250,12 @@ const brows = (ctx: CanvasRenderingContext2D, st: FaceStyle, mood: Mood, frame: 
     case 'baffled':
       bar(L_EYE - 3.5, by - 2.6, L_EYE + 3, by - 3.6);
       bar(R_EYE + 3.5, by + 0.4, R_EYE - 3, by - 1.2);
+      break;
+    case 'panic': case 'aghast':
+      // Shot right up, the inner ends higher still, a worry crease between them
+      bar(L_EYE - 3.5, by - 1.6, L_EYE + 3, by - 4);
+      bar(R_EYE + 3.5, by - 1.6, R_EYE - 3, by - 4);
+      ctx.fillStyle = st.shadow; ctx.fillRect(-0.3, by - 2.2, 0.6, 2.4);
       break;
     case 'shock':
       bar(L_EYE - 3.5, by - 2.5, L_EYE + 3, by - 2.8);
@@ -420,7 +428,17 @@ const mouth = (ctx: CanvasRenderingContext2D, st: FaceStyle, mood: Mood, frame: 
       line(ctx, [7, my - 1.8, 7.8, my - 3], 0.6, st.shadow);
       break;
     }
-    case 'hurt': case 'shock': {
+    case 'panic': {
+      // A scream: the jaw dropped long, the top teeth, a tongue at the bottom, lips round it
+      ctx.fillStyle = lip; ell(ctx, 0.5, my + 2, 4.6, 4.4);
+      ctx.fillStyle = dark; ell(ctx, 0.5, my + 2.1, 3.7, 3.6);
+      ctx.fillStyle = teeth; ctx.fillRect(-2.8, my - 1.4, 6.6, 1.2);
+      toothLines(-2.8, 3.8, my - 1.4, 1.2);
+      ctx.fillStyle = '#DC2626'; ell(ctx, 0.5, my + 4.4, 2.4, 1.1);
+      ctx.fillStyle = '#F87171'; ctx.fillRect(-0.6, my + 3.6, 1.6, 0.5);
+      break;
+    }
+    case 'hurt': case 'shock': case 'aghast': {
       // Teeth clenched in a grimace (rattling if it's the current)
       const j = mood === 'shock' ? (frame % 4 < 2 ? 0.4 : -0.4) : 0;
       ctx.fillStyle = dark; ctx.beginPath(); ctx.roundRect(-6, my - 1, 12, 4, 1); ctx.fill();
@@ -541,6 +559,16 @@ const faceBlood = (ctx: CanvasRenderingContext2D, gore: number, frame: number) =
 const sweat = (ctx: CanvasRenderingContext2D, mood: Mood, frame: number) => {
   ctx.fillStyle = '#7DD3FC';
   if (mood === 'hurt') { disc(ctx, -13, -8, 1.4); disc(ctx, -9, -15, 1.7); disc(ctx, 12, -12, 1.2); return; }
+  if (mood === 'panic' || mood === 'aghast') {
+    // Pouring off him: beads running down both temples, drops flicked off the top of his head
+    for (const [x, ph] of [[9.5, 0], [-10.5, 13]] as const) { const k = ((frame + ph) % 26) / 26; ell(ctx, x, -9 + k * 9, 0.9, 1.3); }
+    for (const side of [-1, 1]) {
+      const k = ((frame + (side > 0 ? 0 : 9)) % 18) / 18;
+      ctx.fillStyle = '#7DD3FC'; ell(ctx, side * (11 + k * 6), -13 - k * 4 + k * k * 8, 0.8, 1.1);
+      ctx.fillStyle = '#E0F2FE'; ctx.fillRect(side * (11 + k * 6) - 0.3, -13.6 - k * 4 + k * k * 8, 0.5, 0.5);
+    }
+    return;
+  }
   const t = (frame % 70) / 70;
   ell(ctx, 9.5, -8 + t * 8, 0.9, 1.3);
   if (mood === 'shock') {

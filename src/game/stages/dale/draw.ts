@@ -16,13 +16,14 @@ import { blitLayer } from '../../render/backdrops/core';
 import type { Live } from '../../render/backdrops';
 import type { LayerSpec } from '../../render/backdrops/core';
 import { drawBackdropFront } from '../../render/backdrops';
-import { drawDeliveryTruck, DELIVERY_TRUCK } from '../../render/bosses/daleTruck';
-import { drawDale } from '../../render/bosses/dale';
+import { drawDeliveryTruck, drawCabDoorOver, DELIVERY_TRUCK, CAB_DOOR } from '../../render/bosses/daleTruck';
+import { drawDale, DaleActing } from '../../render/bosses/dale';
+import type { Mood } from '../../render/bosses/kit';
 import type { Enemy } from '../../../types';
 import { COURSE, Cactus, Ledge } from './course';
 import { getDale, regionOf, fadeAmount, DaleRuntime } from './runtime';
 import { CRATE, CRATE_WARN, beltBox, feedX } from './hazards';
-import { daleVisible } from './intro';
+import { daleVisible, loadingAt, loadClock, carriedCrate, pileCrate, CARRY, PILE_SIZE, BOARD, LIFT_OFF, Intro } from './intro';
 import { saying, drawBubble } from './script';
 import { drawOffice, drawOfficeFront, drawJunkieHud } from './junkieDraw';
 import { drawHighwayBackdrop, drawConvoyBack, drawConvoyFront, drawConvoyHud } from './convoyDraw';
@@ -302,8 +303,8 @@ const drawScenery = (ctx: Ctx, state: GameState) => {
       ctx.fillStyle = '#FDE047'; ctx.fillRect(x - 3, y - 5 - r + 3, 1, 1); ctx.fillRect(x + 2, y - 5 - r + 5, 1, 1);
     }
   }
-  // Fence posts and barbed wire along the turnout, a sign
-  const lx = COURSE.landing.truckX;
+  // Fence posts and barbed wire along the turnout, a sign (where they've always been, wherever the truck's parked)
+  const lx = COURSE.desert.x1 + 560;
   if (visible(state, lx - 700, lx + 800)) {
     for (let x = lx - 540; x < lx + 700; x += 120) { column(ctx, x - 2, Y - 50, 5, 50, '#6B4A2A'); ctx.fillStyle = '#3F2A16'; ctx.fillRect(x - 1, Y - 50, 3, 1); }
     ctx.strokeStyle = 'rgba(120, 113, 108, 0.9)'; ctx.lineWidth = 1;
@@ -324,32 +325,55 @@ const drawScenery = (ctx: Ctx, state: GameState) => {
   }
 };
 
-/** Dale's truck backed up to a stack of crates, Dale with one in his arms (then legging it, then gone). */
+/** Dale's truck backed up to a stack of crates, Dale loading it (then caught at it, legging it for the cab, driving off). */
 const drawLanding = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
   const it = rt.intro;
   const L = COURSE.landing;
   if (!visible(state, L.truckX - 300, it.truckX + DELIVERY_TRUCK.w + 400)) return;
-  // The crate pile (what they were loading)
-  const px = L.truckX - 180;
-  for (let i = 0; i < 6; i++) {
-    const cx = px + (i % 3) * 32 + (i >= 3 ? 16 : 0), cy = Y - 28 - (i >= 3 ? 28 : 0);
-    drawCrate(ctx, cx, cy, 30);
+  const f = state.frame;
+  // The crate pile (what's left of it: the loading stops where he was caught)
+  const load = loadingAt(it.phase === 'gone' && it.caughtAt < 0 ? 0 : loadClock(state, it), L.truckX);
+  for (let i = 0; i < 6; i++) if (!load.taken.includes(i)) { const c = pileCrate(i); drawCrate(ctx, c.x, c.y, PILE_SIZE); }
+  // The truck, its back hanging open from the loading (and left that way), the cab's door, him at the wheel once he's in
+  const truckY = Y - DELIVERY_TRUCK.h;
+  const b = it.phase === 'boarding' ? it.t - it.boardT : -1;
+  const door = b < 0 ? 0 : cabDoorAt(b);
+  const seated = it.phase === 'driving' || it.phase === 'gone' || (b >= 0 && door === 0 && b > BOARD.inside);
+  const said = saying(rt.talk, 'dale');
+  if (it.phase !== 'gone' || it.truckX < L.truckX + 3000) {
+    drawDeliveryTruck(ctx, it.truckX, truckY, f, false, it.speed > 0.5, it.speed, {
+      rearOpen: true, door,
+      driver: seated ? (c, wx, wy) => drawDaleAtWheel(c, it, wx, wy, f, !!said) : null,
+    });
   }
-  if (it.phase !== 'gone' || it.truckX < L.truckX + 3000) drawDeliveryTruck(ctx, it.truckX, Y - DELIVERY_TRUCK.h, state.frame, false, it.speed > 0.5, it.speed);
-  if (daleVisible(it)) {
-    const dale = { pos: { x: 0, y: 0 }, width: 80, height: 80, bossState: 'idle' } as unknown as Enemy;
+  if (daleVisible(it) && !seated) {
+    const { act, dy, jx } = daleActing(state, it, load, !!said);
+    // (loading, he's where the loading's got to: it's going on before the scene's own clock starts, while Meathead drops in)
+    const x = it.phase === 'loading' ? load.x : it.daleX;
+    const dale = { pos: { x: x - 40, y: Y - 80 + dy }, width: 80, height: 80, bossState: 'idle', facing: act.facing } as unknown as Enemy;
     ctx.save();
-    const run = it.phase === 'running' ? Math.sin(state.frame * 0.5) * 2 : 0;
-    ctx.translate(it.daleX - 40, Y - 80 + run);
-    drawDale(ctx, dale, state.frame);
+    if (b >= BOARD.step) {
+      // Climbing in: what's gone in through the doorway is in the cab (only what's still outside it, or in the
+      // doorway, or down below the sill, shows), and the door swung open over him
+      const dx1 = it.truckX + CAB_DOOR.x1, dx2 = it.truckX + CAB_DOOR.x2, sill = truckY + CAB_DOOR.bottom;
+      ctx.beginPath();
+      ctx.rect(dx1 - 200, Y - 300, 200, 320);
+      ctx.rect(dx1, truckY + CAB_DOOR.top, dx2 - dx1, sill - truckY - CAB_DOOR.top);
+      ctx.rect(dx1 - 200, sill, 400, Y + 20 - sill);
+      ctx.clip();
+    }
+    ctx.translate(x - 40 + jx, Y - 80 + dy);
+    drawDale(ctx, dale, f, act.pose);
     ctx.restore();
-    // The crate he's holding (till he drops it)
-    if (it.phase === 'loading') drawCrate(ctx, it.daleX - 14, Y - 60, 28);
-    const text = saying(rt.talk, 'dale');
-    if (text) drawBubble(ctx, it.daleX, Y - 96, text, '#FDF4FF');
+    // (in the doorway, he's behind the door; out in front of it, yanking it open, he isn't)
+    if (b >= BOARD.step) drawCabDoorOver(ctx, it.truckX, truckY, door);
+    if (said) drawBubble(ctx, x, Y - 96 + Math.min(0, dy), said, '#FDF4FF');
+  } else if (seated && said && it.phase !== 'gone') {
+    // (shouting out of the cab window)
+    drawBubble(ctx, it.truckX + CAB_DOOR.windowX, truckY + 22, said, '#FDF4FF');
   }
   if (it.crate) {
-    if (!it.crate.broke) drawCrate(ctx, it.crate.x - 14, it.crate.y, 28);
+    if (!it.crate.broke) drawCrate(ctx, it.crate.x - PILE_SIZE / 2, it.crate.y, PILE_SIZE);
     else {
       // (smashed: its boards in the dirt, inked, the powder spilled in a heap)
       ctx.fillStyle = '#E2E8F0'; ctx.beginPath(); ctx.ellipse(it.crate.x, Y - 2, 22, 4, 0, 0, Math.PI * 2); ctx.fill();
@@ -358,6 +382,138 @@ const drawLanding = (ctx: Ctx, state: GameState, rt: DaleRuntime) => {
       ctx.save(); ctx.translate(it.crate.x + 8, Y - 3); ctx.rotate(-0.25); slab(ctx, -8, -3, 16, 5, '#A16207', 1); ctx.restore();
     }
   }
+};
+
+/** How far open the cab door is, b frames after he got to it: yanked open, held while he's getting in, slammed. */
+const cabDoorAt = (b: number) => {
+  if (b < 2) return 0;
+  if (b < BOARD.open) return ease01((b - 2) / (BOARD.open - 2));
+  if (b <= BOARD.inside) return 1;
+  return Math.max(0, 1 - (b - BOARD.inside) / 3);
+};
+const ease01 = (t: number) => { const k = Math.max(0, Math.min(1, t)); return k * k * (3 - 2 * k); };
+
+/** His mouth going while his line's being said (wide open, shut, open...), otherwise shut tight in a grimace. */
+const yelling = (talking: boolean, f: number): Mood => (talking && Math.floor(f / 4) % 2 === 0 ? 'panic' : 'aghast');
+
+/**
+ * Dale on his feet this frame, by phase: loading (casual, then putting his back into the lifting and the shoving),
+ * caught (a jump out of his skin, hands to his face, yelling), the run (arms pumping, legs going, leant into it),
+ * getting in (a hop up for the handle, the door yanked, a step up, in over the seat). How high off the ground he is,
+ * and his shaking.
+ */
+const daleActing = (state: GameState, it: Intro, load: ReturnType<typeof loadingAt>, talking: boolean) => {
+  const f = state.frame;
+  let facing: 1 | -1 = 1, dy = 0, jx = 0;
+  let pose: DaleActing = { mood: 'smug' };
+  const s = it.t - it.spotT;
+  if (it.phase === 'loading') {
+    const p = load;
+    facing = p.facing;
+    const held = carriedCrate(p);
+    const bob = p.act === 'walk' ? -Math.abs(Math.sin(p.stride)) * 1.5 : 0;
+    dy = bob;
+    // (a crate in the world, as a point in his box: [out the way he's facing, down], and undoing any lean, so it
+    // stays square)
+    let lean = 0;
+    if (p.act === 'lift' && p.k < LIFT_OFF) lean = (p.pick < 3 ? 0.42 : 0.26) * ease01(p.k / LIFT_OFF);
+    else if (p.act === 'lift') lean = (p.pick < 3 ? 0.42 : 0.26) * (1 - ease01((p.k - LIFT_OFF) / (1 - LIFT_OFF)));
+    else if (p.act === 'shove') lean = 0.08 * ease01(p.k / 0.6);
+    const local = (wx: number, wy: number): [number, number] => {
+      const bx = wx - (p.x - 40), by = wy - (Y - 80 + dy);
+      const a = -facing * lean, cx = 40, cy = 56;
+      const rx = cx + (bx - cx) * Math.cos(a) - (by - cy) * Math.sin(a), ry = cy + (bx - cx) * Math.sin(a) + (by - cy) * Math.cos(a);
+      return [(rx - 40) * facing, ry];
+    };
+    const sides = (c: { x: number; y: number }, lift = 1): { near: [number, number]; far: [number, number] } => {
+      const n = local(c.x + facing * (PILE_SIZE / 2 - 1), c.y + lift), fa = local(c.x - facing * (PILE_SIZE / 2 - 1), c.y + lift);
+      // (no reaching further than his arms go: the shove's last push is all fingertips)
+      return { near: [Math.min(n[0], 44), n[1]], far: [Math.min(fa[0], 20), fa[1]] };
+    };
+    const strain = p.act === 'lift' || p.act === 'shove';
+    pose = { mood: strain ? 'grump' : 'smug', lean };
+    if (p.act === 'walk') pose.stride = { phase: p.stride, amp: 0.5 };
+    if (held) {
+      const at = local(held.x, held.y);
+      Object.assign(pose, sides(held));
+      pose.prop = { at, draw: (c, x, y) => {
+        c.save();
+        // (going into the back of the truck: past its back end, it's inside)
+        if (p.act === 'shove') { c.beginPath(); c.rect(-400, -200, it.truckX + 4 - (p.x - 40) + 400, 400); c.clip(); }
+        c.translate(x, y); c.rotate(-facing * lean);
+        drawCrate(c, -PILE_SIZE / 2, -PILE_SIZE / 2, PILE_SIZE);
+        c.restore();
+      } };
+    } else if (p.act === 'lift') {
+      // (reaching down to it)
+      const c = pileCrate(p.pick), e = ease01(p.k / LIFT_OFF);
+      const grip = sides({ x: c.x + PILE_SIZE / 2, y: c.y + PILE_SIZE / 2 });
+      pose.near = [CARRY[0] + 13 + (grip.near[0] - CARRY[0] - 13) * e, 47 + (grip.near[1] - 47) * e];
+      pose.far = [CARRY[0] - 13 + (grip.far[0] - CARRY[0] + 13) * e, 47 + (grip.far[1] - 47) * e];
+    } else if (p.act === 'shove') {
+      // (it's in: arms still out after it, coming back)
+      const back = ease01((p.k - 0.8) / 0.2);
+      pose.near = [44 - 20 * back, 44 + 3 * back]; pose.far = [20 - 20 * back, 44 + 3 * back];
+    } else if (p.act === 'dust') {
+      // (brushing his hands off)
+      const r = Math.sin(p.k * Math.PI * 4) * 3;
+      pose.near = [10 + r, 46]; pose.far = [-6 - r, 46];
+    }
+  } else if (it.phase === 'spotted') {
+    // Facing the noise: Meathead
+    facing = state.player.pos.x + state.player.width / 2 < it.daleX ? -1 : 1;
+    if (s < 6) {
+      // Jumps out of his skin, his hands flung up
+      dy = -Math.sin(Math.PI * s / 6) * 10;
+      pose = { mood: s < 3 ? 'aghast' : yelling(talking, f), near: [20, 2], far: [-20, 2], sy: 1.04 };
+    } else if (s < 24) {
+      // Hands to his face, shaking
+      jx = f % 4 < 2 ? 0.5 : -0.5;
+      pose = { mood: yelling(talking, f), near: [11, 24], far: [-11, 24] };
+    } else {
+      // About to run: turned for the cab, crouched, arms cocked
+      facing = 1;
+      pose = { mood: yelling(talking, f), near: [-4, 50], far: [10, 42], lean: -0.08, sy: 0.95 };
+    }
+  } else if (it.phase === 'running') {
+    facing = 1;
+    const ph = it.daleX / 7, amp = Math.min(1, it.runV / 4);
+    dy = -Math.abs(Math.sin(ph)) * 3 * amp;
+    // (each arm swinging against the leg on its side)
+    const arm = (o: number, base: number): [number, number] => [base + 11 * Math.sin(ph + o) * amp, 47 - 8 * Math.max(0, Math.sin(ph + o)) * amp];
+    pose = { mood: yelling(talking, f), stride: { phase: ph, amp }, lean: 0.14 * amp, near: arm(Math.PI, 20), far: arm(0, -20) };
+  } else if (it.phase === 'boarding') {
+    facing = 1;
+    const b = it.t - it.boardT;
+    // (the handle, and the open door's edge, as points in his box)
+    const hx = it.truckX + CAB_DOOR.handleX - it.daleX, hy = (Y - DELIVERY_TRUCK.h + CAB_DOOR.handleY) - (Y - 80);
+    if (b < BOARD.yank) {
+      // A hop up to the handle, and yanks
+      dy = -Math.sin(Math.PI * b / BOARD.yank) * 10;
+      pose = { mood: yelling(talking, f), near: [hx, hy - dy + (b >= 2 ? 3 : 0)], far: [-20, 30] };
+    } else if (b < BOARD.step) {
+      pose = { mood: yelling(talking, f), near: [hx - 4, hy + 4], far: [-18, 46] };
+    } else {
+      // Up onto the step, then in, ducking his head under the roof
+      const e = ease01((b - BOARD.step) / (BOARD.stepUp - BOARD.step));
+      dy = -18 * e;
+      pose = { mood: yelling(talking, f), step: e, near: [hx - 6, hy - dy - 2], far: [-14, 44], lean: b > BOARD.stepUp ? 0.12 : 0 };
+    }
+  }
+  return { act: { pose, facing }, dy, jx };
+};
+
+/** Dale at the wheel through the cab window (small, as the driver's drawn): yelling back out of it while his line's
+ * on, white-knuckled, then, once he's away, pleased with himself. */
+const drawDaleAtWheel = (ctx: Ctx, it: Intro, wx: number, wy: number, f: number, talking: boolean) => {
+  const S = 44, k = S / 80;
+  const facing: 1 | -1 = talking ? -1 : 1;
+  const mood: Mood = talking ? yelling(true, f) : it.speed > 9 ? 'grin' : 'aghast';
+  const dale = { pos: { x: wx - S / 2, y: wy - 19 * k - 1 }, width: S, height: S, bossState: 'idle', facing } as unknown as Enemy;
+  ctx.save();
+  ctx.translate(wx - S / 2, wy - 19 * k - 1);
+  drawDale(ctx, dale, f, { mood, near: [26, 46], far: [8, 46] });
+  ctx.restore();
 };
 
 /**

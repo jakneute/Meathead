@@ -92,7 +92,21 @@ export const drawDaleTruck = (ctx: Ctx, e: Enemy, frame: number) => {
  * The truck itself, its top-left at (x, y) (it's TRUCK_W long, TRUCK_H tall, facing right), moving (speed lines
  * behind it) or parked. (Dale drives it through his arena, and loads it out in the desert.)
  */
-export const drawDeliveryTruck = (ctx: Ctx, x: number, y: number, frame: number, crashing = false, moving = false, speed = 0) => {
+/**
+ * The truck in a scene (the landing): its back left open from the loading, the near door of the cab swung open (0..1),
+ * who's at the wheel (the goon in shades by default; null, nobody; or drawn by the scene, about the middle of the
+ * window, clipped to the glass). Whoever's climbing in is drawn by the scene over the truck, then drawCabDoorOver.
+ */
+export interface TruckScene {
+  rearOpen?: boolean;
+  door?: number;
+  driver?: ((ctx: Ctx, x: number, y: number) => void) | null;
+}
+
+/** The cab's near door, from the truck's x and top: its opening (the hinge on the right), the handle, the window. */
+export const CAB_DOOR = { x1: TRAILER_W + 10, x2: TRAILER_W + 60, top: 34, bottom: TRUCK_H - 16, handleX: TRAILER_W + 50, handleY: 75, windowX: TRAILER_W + 34, windowY: 52 };
+
+export const drawDeliveryTruck = (ctx: Ctx, x: number, y: number, frame: number, crashing = false, moving = false, speed = 0, scene: TruckScene = {}) => {
   // Rattling over the floor; out of control it bucks and fishtails on its rims
   const bounce = crashing ? Math.sin(frame * 1.7) * 3 + 4 : moving ? Math.sin(frame * 0.9) * 1.2 : 0;
   const lean = crashing ? Math.sin(frame * 0.6) * 0.05 - 0.02 : 0;
@@ -102,8 +116,8 @@ export const drawDeliveryTruck = (ctx: Ctx, x: number, y: number, frame: number,
   ctx.translate(x + TRUCK_W / 2, y + TRUCK_H);
   ctx.rotate(lean);
   ctx.translate(-(x + TRUCK_W / 2), -(y + TRUCK_H) + bounce);
-  drawTrailer(ctx, x, y);
-  drawCab(ctx, x + TRAILER_W + 6, y, frame);
+  drawTrailer(ctx, x, y, scene.rearOpen ? (moving ? frame : -1) : undefined);
+  drawCab(ctx, x + TRAILER_W + 6, y, frame, scene);
   ctx.restore();
   // Wheels roll with the truck (flat once the tires are blown)
   const spin = wheelTurn(x, speed, WHEEL_R, frame);
@@ -176,6 +190,31 @@ export const rearDoors = (ctx: Ctx, x: number, top: number, h: number, w = 22) =
   for (const hy of [top + 8, top + h - 14]) slab(ctx, x + w - 2, hy, 4, 6, '#6B7280', 1);
 };
 
+/**
+ * The back of the box hanging open: the dark inside past the frame, the crates already loaded stacked in there, and a
+ * door leaf swung out behind it (its inside face to us, the lock bar down it), banging back and forth once it's moving
+ * (`frame` -1: parked, still).
+ */
+const openRear = (ctx: Ctx, x: number, top: number, h: number, frame: number) => {
+  // (the inside: dark, darker toward the back, the floor lit at the lip)
+  ctx.fillStyle = '#1C1917'; ctx.fillRect(x + 3, top, 24, h);
+  ctx.fillStyle = '#292524'; ctx.fillRect(x + 3, top, 8, h);
+  ctx.fillStyle = '#57534E'; ctx.fillRect(x + 3, top + h - 3, 24, 3);
+  // (crates in there, stacked, in the gloom)
+  for (const [cx, cy] of [[x + 9, top + h - 27], [x + 9, top + h - 51], [x + 13, top + h - 75]] as const) {
+    ctx.fillStyle = '#5B3A0E'; ctx.fillRect(cx, cy, 16, 24);
+    ctx.fillStyle = '#7C4A0E'; ctx.fillRect(cx, cy, 16, 1); ctx.fillRect(cx, cy, 1, 24);
+    ctx.fillStyle = '#3F2A10'; ctx.fillRect(cx + 15, cy, 1, 24); ctx.fillRect(cx, cy + 23, 16, 1);
+  }
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(x + 3.5, top + 0.5, 23, h);
+  // The leaf, out behind on its hinges (swinging, foreshortened, when it's being bounced along)
+  const w = frame < 0 ? 24 : Math.round(8 + 16 * Math.abs(Math.cos(frame * 0.35)));
+  slab(ctx, x - w + 1, top, w, h, '#D1D5DB', 1);
+  ctx.fillStyle = '#9CA3AF'; ctx.fillRect(x - w + 3, top + 4, Math.max(1, w - 5), 1); ctx.fillRect(x - w + 3, top + h - 6, Math.max(1, w - 5), 1);
+  column(ctx, x - Math.round(w / 2) - 1, top + 3, 3, h - 6, '#9CA3AF');
+  for (const hy of [top + 8, top + h - 14]) slab(ctx, x - 2, hy, 4, 6, '#6B7280', 1);
+};
+
 /** The livery band (x .. x + w): purple stepped toward the light in the middle, gold pinstripes top and bottom. */
 export const liveryBand = (ctx: Ctx, x: number, y: number, w: number, h: number) => {
   const steps = ['#3B1677', '#4C1D95', '#5B21B6', '#6D28D9', '#7C3AED'];
@@ -187,10 +226,12 @@ export const liveryBand = (ctx: Ctx, x: number, y: number, w: number, h: number)
   ctx.fillStyle = INK; ctx.fillRect(x, y - 1, w, 1); ctx.fillRect(x, y + h, w, 1);
 };
 
-const drawTrailer = (ctx: Ctx, x: number, y: number) => {
+/** The trailer; `open` (the frame, or -1 parked) has its back hanging open. */
+const drawTrailer = (ctx: Ctx, x: number, y: number, open?: number) => {
   const top = y + 4, h = 120;
   trailerBox(ctx, x, top, TRAILER_W, h);
-  rearDoors(ctx, x + 4, top + 6, h - 12);
+  if (open === undefined) rearDoors(ctx, x + 4, top + 6, h - 12);
+  else openRear(ctx, x, top + 6, h - 12, open);
   // The livery: a purple band with the sign on it
   const bandY = top + 22, bandH = 76;
   liveryBand(ctx, x + 32, bandY, TRAILER_W - 40, bandH);
@@ -234,6 +275,50 @@ const drawTrailer = (ctx: Ctx, x: number, y: number) => {
   for (const mx of [x + 120, x + 228]) { slab(ctx, mx, top + h + 4, 8, 18, '#18181B', 1); ctx.fillStyle = '#A1A1AA'; ctx.fillRect(mx + 2, top + h + 15, 4, 2); }
 };
 
+/**
+ * The near door swung open (0..1) on its hinges at the front: the cab's insides in the doorway (the seat, the wheel,
+ * the step up), whatever the scene has in there, then the door itself, its inside face to us, foreshortened toward
+ * the hinge.
+ */
+const drawCabDoorway = (ctx: Ctx, x: number, top: number, bottom: number, open: number) => {
+  const x1 = x + 4, x2 = x + 54, y1 = top + 4, y2 = bottom - 2;
+  ctx.fillStyle = '#1C1917'; ctx.fillRect(x1, y1, x2 - x1, y2 - y1);
+  // (the windshield's light coming in over the dash)
+  ctx.fillStyle = '#2D5285'; ctx.fillRect(x2 - 10, y1 + 2, 8, 26);
+  ctx.fillStyle = '#1E3A5F'; ctx.fillRect(x2 - 10, y1 + 2, 8, 4);
+  // (the seat: its back, the cushion, the stitching)
+  slab(ctx, x1 + 4, y1 + 14, 10, 40, '#57534E', 1);
+  slab(ctx, x1 + 4, y1 + 48, 30, 10, '#57534E', 1);
+  ctx.fillStyle = '#78716C'; ctx.fillRect(x1 + 6, y1 + 24, 6, 1); ctx.fillRect(x1 + 6, y1 + 34, 6, 1);
+  // (the wheel, on its column)
+  ctx.strokeStyle = '#0F172A'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x2 - 4, y1 + 40); ctx.lineTo(x2 - 12, y1 + 28); ctx.stroke();
+  ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x2 - 16, y1 + 20); ctx.lineTo(x2 - 8, y1 + 36); ctx.stroke();
+  // (the step up, chrome)
+  slab(ctx, x1 + 2, y2 - 4, x2 - x1 - 4, 4, '#D1D5DB', 1);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(x1 + 0.5, y1 + 0.5, x2 - x1 - 1, y2 - y1 - 1);
+  cabDoorPanel(ctx, x1, x2, y1, y2, open);
+};
+
+/** The near door of the parked truck at (truckX, truckY), open (0..1), over whoever's getting in through it. */
+export const drawCabDoorOver = (ctx: Ctx, truckX: number, truckY: number, open: number) => {
+  if (open > 0) cabDoorPanel(ctx, truckX + CAB_DOOR.x1, truckX + CAB_DOOR.x2, truckY + CAB_DOOR.top, truckY + CAB_DOOR.bottom, open);
+};
+
+/** The door itself: shrinking toward its hinge as it swings out at us, the inside panel, the window frame, the pull. */
+const cabDoorPanel = (ctx: Ctx, x1: number, x2: number, y1: number, y2: number, open: number) => {
+  const w = Math.max(3, Math.round((x2 - x1) * (1 - 0.72 * open)));
+  const dx = x2 - w;
+  slab(ctx, dx, y1 - 2, w, y2 - y1 + 2, '#991B1B', 1);
+  ctx.fillStyle = '#7F1D1D'; ctx.fillRect(dx + 1, y1 + 34, w - 2, 2);
+  if (w > 6) {
+    ctx.fillStyle = '#1E3A5F'; ctx.fillRect(dx + 2, y1 + 3, w - 4, 26);
+    ctx.fillStyle = '#2D5285'; ctx.fillRect(dx + 2, y1 + 3, w - 4, 5);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'; ctx.fillRect(dx + 2 + Math.round((w - 4) * 0.6), y1 + 4, 1, 24);
+    ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.strokeRect(dx + 1.5, y1 + 2.5, w - 3, 27);
+    slab(ctx, dx + 2, y1 + 44, Math.min(8, w - 3), 3, '#D1D5DB', 1);
+  }
+};
+
 /** A stepped headlight beam off (x, y0 .. y1) out to len, going dir: three steps of light, brightest nearest. */
 export const headBeam = (ctx: Ctx, x: number, y0: number, y1: number, len: number, spread: number, dir = 1, a = 0.5) => {
   for (let k = 0; k < 3; k++) {
@@ -264,7 +349,7 @@ export const redPaint = (ctx: Ctx, path: () => void, x: number, top: number, w: 
   ctx.beginPath(); path(); ctx.strokeStyle = INK; ctx.lineWidth = line; ctx.lineJoin = 'round'; ctx.stroke();
 };
 
-const drawCab = (ctx: Ctx, x: number, y: number, frame: number) => {
+const drawCab = (ctx: Ctx, x: number, y: number, frame: number, scene: TruckScene = {}) => {
   const w = 92, top = y + 30, bottom = y + TRUCK_H - 14;
   // Exhaust stack puffing black smoke
   column(ctx, x + 4, y - 14, 7, top - y + 20, '#C0C4CA');
@@ -302,20 +387,35 @@ const drawCab = (ctx: Ctx, x: number, y: number, frame: number) => {
   flame(3); ctx.fillStyle = '#F97316'; ctx.fill();
   ctx.fillStyle = '#FEF3C7'; ctx.fillRect(x + 20, bottom - 25, 6, 1); ctx.fillRect(x + 56, bottom - 25, 6, 1);
 
-  // Tinted window with the driver (a goon in shades)
+  // Tinted window with the driver (a goon in shades, unless the scene's got someone else in there, or nobody)
   const glass = () => { ctx.moveTo(x + 8, top + 6); ctx.lineTo(x + 42, top + 6); ctx.lineTo(x + 54, top + 34); ctx.lineTo(x + 8, top + 34); ctx.closePath(); };
-  ctx.save(); ctx.beginPath(); glass(); ctx.clip();
-  ctx.fillStyle = '#1E3A5F'; ctx.fillRect(x + 8, top + 6, 48, 28);
-  ctx.fillStyle = '#2D5285'; ctx.fillRect(x + 8, top + 6, 48, 6);
-  // (him: a head, the shades, his shoulders)
-  ink(ctx, () => ctx.ellipse(x + 28, top + 22, 8, 9, 0, 0, Math.PI * 2), '#1F2937', 1);
-  ink(ctx, () => ctx.roundRect(x + 16, top + 29, 24, 10, 3), '#111827', 1);
-  ctx.fillStyle = '#0A0A0A'; ctx.fillRect(x + 22, top + 19, 14, 4);
-  ctx.fillStyle = '#9CA3AF'; ctx.fillRect(x + 31, top + 19, 2, 1);
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-  ctx.beginPath(); ctx.moveTo(x + 36, top + 8); ctx.lineTo(x + 41, top + 8); ctx.lineTo(x + 28, top + 32); ctx.lineTo(x + 23, top + 32); ctx.closePath(); ctx.fill();
-  ctx.restore();
-  ctx.beginPath(); glass(); ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.stroke();
+  const door = scene.door ?? 0;
+  if (door > 0) {
+    drawCabDoorway(ctx, x, top, bottom, door);
+  } else {
+    ctx.save(); ctx.beginPath(); glass(); ctx.clip();
+    ctx.fillStyle = '#1E3A5F'; ctx.fillRect(x + 8, top + 6, 48, 28);
+    ctx.fillStyle = '#2D5285'; ctx.fillRect(x + 8, top + 6, 48, 6);
+    if (scene.driver === undefined) {
+      // (him: a head, the shades, his shoulders)
+      ink(ctx, () => ctx.ellipse(x + 28, top + 22, 8, 9, 0, 0, Math.PI * 2), '#1F2937', 1);
+      ink(ctx, () => ctx.roundRect(x + 16, top + 29, 24, 10, 3), '#111827', 1);
+      ctx.fillStyle = '#0A0A0A'; ctx.fillRect(x + 22, top + 19, 14, 4);
+      ctx.fillStyle = '#9CA3AF'; ctx.fillRect(x + 31, top + 19, 2, 1);
+    } else if (scene.driver) {
+      // (whoever the scene's put at the wheel, through the tint)
+      scene.driver(ctx, x + 28, top + 22);
+      ctx.fillStyle = 'rgba(30, 58, 95, 0.3)'; ctx.fillRect(x + 8, top + 6, 48, 28);
+    } else {
+      // (empty: the seat back and the wheel)
+      slab(ctx, x + 12, top + 16, 9, 20, '#44403C', 1);
+      ctx.strokeStyle = '#0F172A'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 40, top + 34); ctx.lineTo(x + 46, top + 22); ctx.stroke();
+    }
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.beginPath(); ctx.moveTo(x + 36, top + 8); ctx.lineTo(x + 41, top + 8); ctx.lineTo(x + 28, top + 32); ctx.lineTo(x + 23, top + 32); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    ctx.beginPath(); glass(); ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.stroke();
+  }
   // Mirror
   slab(ctx, x + 50, top + 10, 4, 14, '#D1D5DB', 1);
 

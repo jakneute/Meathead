@@ -17,7 +17,25 @@ const FACE: FaceStyle = {
 };
 const SUIT = '#8E44AD', SUIT_DARK = '#5B2C6F', SUIT_LIGHT = '#A569BD';
 
-export const drawDale = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number) => {
+/**
+ * Dale out of the fight, acting (the landing: loading his truck, caught at it, legging it for the cab): his face, where
+ * his hands are, what's in them, his legs. Points are [toward the way he's facing from his middle, down], in his 80x80
+ * box; `near` is the hand on the side he's facing.
+ */
+export interface DaleActing {
+  mood: Mood;
+  near?: Pt; far?: Pt;
+  /** Leaning into it (+ the way he's facing), squash/stretch about his feet. */
+  lean?: number; sx?: number; sy?: number;
+  /** Running: where he is in the stride (radians) and how long it is (0..1). */
+  stride?: { phase: number; amp: number };
+  /** The near foot lifted up onto something (0..1 of a step up). */
+  step?: number;
+  /** Something he's got hold of, drawn over him and under his hands (at, in his box). */
+  prop?: { at: Pt; draw: (ctx: CanvasRenderingContext2D, x: number, y: number) => void };
+}
+
+export const drawDale = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number, act?: DaleActing) => {
   // Speed: twitching harder and harder as the needle goes in (the strobing colours are daleFx's)
   const windingUp = e.bossState === 'using_shipment' && e.shipmentType === 'speed';
   if (windingUp) {
@@ -30,24 +48,27 @@ export const drawDale = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number)
   const f = facingOf(e);
   const gore = goreOf(e);
   const sick = daleSick(e, frame);
-  const pose = daleThrow(e, frame);
+  const pose = act ? actingPose(act) : daleThrow(e, frame);
   const base = sick ? (frame % 50 < 34 ? 'dazed' : 'hurt') : moodOf(e, frame, { speed_dash: 'manic', using_shipment: windingUp ? 'shock' : 'blissed', running: 'fierce' });
   // (the throw's face, unless he's just been hit; stood in the barf, a grossed-out version of it)
   const hit = e.health <= 0 || (e.hitCooldown ?? 0) > 30;
   const mood: Mood = pose?.mood && !hit ? (sick ? SICK_THROW_MOOD[pose.mood] ?? pose.mood : pose.mood) : base;
   const b = breath(frame);
-  const td = THROW_DIR, X = (p: Pt) => 40 + td * p[0];
+  const td = act ? f : THROW_DIR, X = (p: Pt) => 40 + td * p[0];
   ctx.save();
   ctx.scale(e.width / 80, e.height / 80);
   // The heave: squashed down into the squat, stretched up with it overhead, a jolt as it goes (about his feet)
   if (pose) { ctx.translate(40 + pose.jolt, 80); ctx.scale(pose.sx, pose.sy); ctx.translate(-40, -80); }
 
-  // Two-tone shoes, purple slacks
+  // Two-tone shoes, purple slacks (or his legs going, if he's on the move)
+  if (act && (act.stride || act.step)) drawActingLegs(ctx, act, td);
+  else {
   shoe(ctx, 30, 80, 14, 5, f, '#111111', '#000000', 'rgba(255,255,255,0.45)');
   shoe(ctx, 50, 80, 14, 5, f, '#111111', '#000000', 'rgba(255,255,255,0.45)');
   ctx.fillStyle = SUIT_DARK;
   ctx.beginPath(); ctx.moveTo(23, 54); ctx.lineTo(57, 54); ctx.lineTo(56, 76); ctx.lineTo(43, 76); ctx.lineTo(40, 62); ctx.lineTo(37, 76); ctx.lineTo(24, 76); ctx.closePath(); ctx.fill();
   ctx.fillStyle = '#6C3483'; ctx.fillRect(30, 57, 0.7, 18); ctx.fillRect(50, 57, 0.7, 18);
+  }
 
   ctx.save(); ctx.translate(0, -b);
   // (twisting at the waist: wound back away from the throw, then into it)
@@ -92,6 +113,8 @@ export const drawDale = (ctx: CanvasRenderingContext2D, e: Enemy, frame: number)
   // throwing arm leaves going over
   if (pose?.drum) drawMethDrum(ctx, X(pose.drum.at), pose.drum.at[1], 40 * 80 / e.width, 50 * 80 / e.height, td * pose.drum.rot, frame);
   if (pose?.smear) drawSmear(ctx, pose.smear, X, pose.meth);
+  // (what he's carrying, held out in front of him)
+  if (act?.prop) act.prop.draw(ctx, X(act.prop.at), act.prop.at[1]);
 
   // Shoulder pads, and the arms out of them (the needle in one when he's dashing on speed)
   for (const side of [-1, 1]) {
@@ -280,6 +303,48 @@ const daleThrow = (e: Enemy, frame: number): ThrowPose | null => {
   if (e.bossState !== 'using_shipment' || (e.shipmentCount ?? 0) <= 0 || T <= 0 || T > wind) return null;
   const k = (wind - T) / (wind - 1);
   return meth ? methWindup(k, frame) : cokeWindup(k);
+};
+
+/** His acting as a pose the arms and the squash already know how to draw. */
+const actingPose = (a: DaleActing): ThrowPose => ({
+  meth: false, since: -1, near: a.near, far: a.far, lean: a.lean ?? 0, sx: a.sx ?? 1, sy: a.sy ?? 1, jolt: 0, mood: a.mood,
+});
+
+/** A knee between hip and ankle, bent toward `fwd` (dead straight when it can't reach). */
+const kneeOf = (hx: number, hy: number, ax: number, ay: number, fwd: number): Pt => {
+  const l = 11.5, dx = ax - hx, dy = ay - hy, d = Math.hypot(dx, dy) || 1;
+  if (d >= 2 * l - 0.01) return [hx + dx / 2, hy + dy / 2];
+  const h = Math.sqrt(l * l - (d / 2) * (d / 2)), nx = -dy / d, ny = dx / d, s = nx * fwd >= 0 ? 1 : -1;
+  return [hx + dx / 2 + nx * h * s, hy + dy / 2 + ny * h * s];
+};
+
+/**
+ * His legs on the move, toward `td`: a running stride (each foot reaching out ahead, planting, pushing off behind and
+ * coming through high), or the near foot stepping up. The far leg's a shade darker, behind.
+ */
+const drawActingLegs = (ctx: CanvasRenderingContext2D, a: DaleActing, td: number) => {
+  const legs = [{ hip: 40 + td * 6, ph: 0, near: true }, { hip: 40 - td * 6, ph: Math.PI, near: false }];
+  const feet = legs.map(l => {
+    if (a.stride) {
+      const p = a.stride.phase + l.ph, amp = a.stride.amp;
+      // (out ahead and down, back along the ground, then up and through)
+      return { x: l.hip + td * Math.sin(p) * 13 * amp, y: 80 - Math.max(0, Math.cos(p)) * 9 * amp, l };
+    }
+    const up = l.near ? a.step ?? 0 : 0;
+    return { x: l.hip + td * up * 5, y: 80 - up * 14, l };
+  });
+  // (the far one first, behind)
+  for (const ft of [feet[1], feet[0]]) {
+    const pants = ft.l.near ? SUIT_DARK : '#4A2359', hy = 56, ay = ft.y - 4;
+    const [kx, ky] = kneeOf(ft.l.hip, hy, ft.x, ay, td);
+    limb(ctx, ft.l.hip, hy, kx, ky, 10, pants, '#3B1A48');
+    limb(ctx, kx, ky, ft.x, ay, 8.5, pants, '#3B1A48');
+    // (the crease down the front)
+    ctx.fillStyle = '#6C3483'; ctx.fillRect(Math.round(kx) - 0.3, ky - 1, 0.7, 2);
+    shoe(ctx, ft.x, ft.y, 14, 5, td, '#111111', '#000000', 'rgba(255,255,255,0.45)');
+  }
+  // (the seat of his slacks, over the tops of both legs)
+  ctx.fillStyle = SUIT_DARK; ctx.fillRect(28, 54, 24, 6);
 };
 
 /** An elbow between shoulder and hand, bent outward (dead straight when it can't reach). */

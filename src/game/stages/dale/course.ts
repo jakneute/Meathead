@@ -96,7 +96,7 @@ const build = () => {
   // ============ THE LANDING ============
   // A dirt turnout: Dale's box truck backed up to a pile of crates, the goons loading it
   d.ground(0, 1050);
-  d.spawn('sicario', 740); d.spawn('enforcer', 900);
+  d.spawn('sicario', 620); d.spawn('enforcer', 900);
   // The first cactus: on flat ground, nothing else going on (see what it does)
   d.cactus(1200, Y, 92, 'saguaro');
   d.ground(1050, 1500);
@@ -237,7 +237,8 @@ const buildCourse = (): Course => {
     spawns: [...d.spawns, ...t.spawns],
     pickups: [...d.pickups, ...t.pickups],
     props: [...d.props, ...t.props],
-    landing: { truckX: DESERT_X0 + 560, daleX: DESERT_X0 + 520 },
+    // (the whole truck on the screen he lands on, cab and all: Dale's run for its door is in view, start to finish)
+    landing: { truckX: DESERT_X0 + 450, daleX: DESERT_X0 + 416 },
     desert: { x1: DESERT_X0, x2: DESERT_X0 + 6480 },
     warehouse: { x1: DESERT_X0 + 6480, x2: o + 8360, ceiling: Y - 470, stairs: o + 8060 },
     office,
