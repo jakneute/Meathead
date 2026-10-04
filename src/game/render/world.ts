@@ -889,7 +889,7 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
     if (tased) { ctx.filter = 'none'; ctx.shadowBlur = 0; drawTasedFx(ctx, e, state); }
     if (e.type !== 'boss' && e.isOnFire && e.health > 0) { ctx.filter = 'none'; ctx.shadowBlur = 0; drawOnFire(ctx, e, state.frame); }
     drawStuckNeedles(ctx, e, state.frame);
-    if (!e.isBlownAway && e.drownT === undefined && !isMidBoss(e) && e.type !== 'boss' && e.kind !== 'civilian' && e.kind !== 'visitor' && e.kind !== 'generator' && e.kind !== 'minion' && e.kind !== 'tenant' && !(e.kind === 'magmafish' && (!e.aiState || e.aiState === 'idle'))) drawEnemyBar(ctx, e, e.pos.y - 10 - (e.kind ? KIND_TOP_REACH[e.kind] ?? 0 : 0)); // (over its head, not across it)
+    if (SHOW_ENEMY_BARS && !e.isBlownAway && e.drownT === undefined && !isMidBoss(e) && e.type !== 'boss' && e.kind !== 'civilian' && e.kind !== 'visitor' && e.kind !== 'generator' && e.kind !== 'minion' && e.kind !== 'tenant' && !(e.kind === 'magmafish' && (!e.aiState || e.aiState === 'idle'))) drawEnemyBar(ctx, e, e.pos.y - 10 - (e.kind ? KIND_TOP_REACH[e.kind] ?? 0 : 0)); // (over its head, not across it)
     ctx.restore();
   });
 };
@@ -1390,6 +1390,8 @@ const drawGooOverhang = (ctx: CanvasRenderingContext2D, p: GameState['projectile
  * A regular enemy's health over its head, 16-bit: an inked frame, a dark trough, the bar in three bands (a lit top,
  * the color, a shaded bottom), green going yellow then red as it drops, cut into cells, on the 2px grid.
  */
+/** Regular enemies' bars over their heads: off (an option to turn them back on, maybe, later). */
+export const SHOW_ENEMY_BARS = false;
 const BAR_RAMPS = [['#BBF7D0', '#22C55E', '#15803D'], ['#FEF08A', '#EAB308', '#A16207'], ['#FECACA', '#EF4444', '#991B1B']];
 const drawEnemyBar = (ctx: CanvasRenderingContext2D, e: Enemy, top: number) => {
   const k = Math.max(0, Math.min(1, e.health / e.maxHealth));
