@@ -17,6 +17,13 @@ export const victorLayout: StageLayout = {
   music: state => {
     const px = state.player.pos.x + state.player.width / 2;
     const r = regionOf(px);
+    // (on the club floor and up its atrium: the sound system)
+    if (r === 'club') return 'dance';
+    // (up the shaft inside the volcano: the club's boom through the rock, nearer the higher he gets)
+    if (r === 'inside') {
+      const S = COURSE.shaft, up = (S.floor - (state.player.pos.y + state.player.height)) / (S.floor - S.top);
+      if (px > S.x1 - 200 && px < S.x2 + 200) return up > 0.7 ? 'inside-nearer' : up > 0.35 ? 'inside-near' : 'inside';
+    }
     if (r !== 'main') return r;
     return px >= COURSE.club.x1 - 400 ? 'club' : 'cliffs';
   },

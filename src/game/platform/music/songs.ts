@@ -128,16 +128,25 @@ export const SONGS: Record<string, Song> = {
     parts: {
       lead: { inst: 'marimba', mml: b('o5 l8 d4 f g a4 g f', 'o5 g4 f d c2', 'o5 d4 f g a4 > c d', 'o5 a2. r4', 'o5 b4 a g f4 g4', 'o5 a4 g f e4 d4', 'o5 c4 d e f4 e4', 'o5 d1') },
       bass: { inst: 'synthbass', mml: bass(2, 'R8. R16 r8 R8 O8 R8 r8 R8', ['d', 'c', 'd', 'a', 'g', 'a', 'c', 'd']) },
-      congas: { inst: 'kick', drums: true, not: ['club', 'lounge'], mml: rep('c8 c16 c16 d8 c8 r8 c8 d8 d8', 8) },
-      toms: { inst: 'kick', drums: true, only: ['cliffs', 'inside'], mml: rep('u8 r8 u8 t8 u4 u8 t8', 8) },
-      club: { inst: 'kick', drums: true, only: ['club', 'lounge'], mml: rep(FOUR, 8) },
-      stabs: { inst: 'epiano', vol: 0.7, pan: -0.3, only: ['club', 'lounge'], mml: skank(4, ['dfa', 'ceg', 'dfa', 'ace', 'gb>d', 'ace', 'ceg', 'dfa']) },
-      pad: { inst: 'choir', vol: 0.6, pan: 0.3, only: ['inside'], mml: pad(4, ['dfa', 'ceg', 'dfa', 'ace', 'gb>d', 'ace', 'ceg', 'dfa']) },
+      congas: { inst: 'kick', drums: true, not: ['club', 'lounge', 'dance'], mml: rep('c8 c16 c16 d8 c8 r8 c8 d8 d8', 8) },
+      toms: { inst: 'kick', drums: true, only: ['cliffs', 'inside', 'inside-near', 'inside-nearer'], mml: rep('u8 r8 u8 t8 u4 u8 t8', 8) },
+      club: { inst: 'kick', drums: true, only: ['club', 'lounge', 'dance'], mml: rep(FOUR, 8) },
+      stabs: { inst: 'epiano', vol: 0.7, pan: -0.3, only: ['club', 'lounge', 'dance'], mml: skank(4, ['dfa', 'ceg', 'dfa', 'ace', 'gb>d', 'ace', 'ceg', 'dfa']) },
+      pad: { inst: 'choir', vol: 0.6, pan: 0.3, only: ['inside', 'inside-near', 'inside-nearer'], mml: pad(4, ['dfa', 'ceg', 'dfa', 'ace', 'gb>d', 'ace', 'ceg', 'dfa']) },
+      // The club's sound system: a kick on every beat and a sub bass pumping on the offbeats, booming. On the floor it's
+      // right there; up the shaft it's the club through the rock, a block away (just the boom, quiet, louder as he climbs)
+      thump: { inst: 'kick', drums: true, only: ['dance', 'inside-near', 'inside-nearer'], mml: rep('k4 k4 k4 k4', 8) },
+      sub: { inst: 'synthbass', only: ['dance', 'inside-near', 'inside-nearer'], mml: bass(1, 'r8 R8 r8 R8 r8 R8 r8 R8', ['d', 'c', 'd', 'a', 'g', 'a', 'c', 'd']) },
     },
     arrangements: {
       cliffs: {},
       club: { inst: { lead: 'sax' } },
       inside: { inst: { lead: 'brass' } },
+      // (up the shaft, getting near the club: its boom coming through the rock)
+      'inside-near': { inst: { lead: 'brass' }, vol: { thump: 0.3, sub: 0.35 } },
+      'inside-nearer': { inst: { lead: 'brass' }, vol: { thump: 0.55, sub: 0.6 } },
+      // (on Club Caldera's floor and up its atrium: the sound system, loud, the sax and the stabs riding over the boom)
+      dance: { inst: { lead: 'sax' }, vol: { thump: 1.35, sub: 1.3, lead: 0.8 } },
       lounge: { inst: { lead: 'trumpet' } },
     },
   },
