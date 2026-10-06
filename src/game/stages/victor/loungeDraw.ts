@@ -3,19 +3,20 @@
 // wide shot of the volcano going off near the top, and the lounge afterwards.
 
 import type { GameState } from '../../core/state';
-import { bandedGradient, checker, hazeBands, pixelBlob, pixelRidge, steppedGlow } from '../../render/pixelArt';
+import { bandedGradient, checker, hazeBands, pixelBlob, steppedGlow } from '../../render/pixelArt';
 import { INK, dark, lite, ink, shaded, shadedTop } from '../../render/npc/kit';
 import { drawPerson, type PersonSpec, type Pose } from '../../render/npc/person';
-import { slab, pipe } from '../barry/rooms';
+import { slab, pipe, column } from '../barry/rooms';
 import { neonText, neonStrip } from './clubDraw';
 import { drawFire } from '../../render/fx/fire';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../constants';
 import { drawPlayer } from '../../render/player/player';
 import { COURSE } from './course';
 import { Lounge, crashPose, PARTY_FRAMES, FLIGHT_FRAMES, WIDE_FRAMES, BLAST_AT, SCREAM_AT, ZOOM_OUT, ZOOM_IN_AT, FADE_IN, blastAmount } from './lounge';
-import { drawVolcano } from './draw';
+import { drawWideScene, widePx, WIDE } from './loungeWide';
 import { sentenceShown } from '../../platform/speech';
 import { drawSpatter } from '../../render/spatter';
+import { furnitureIn, placed } from './furniture';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -97,17 +98,8 @@ export const drawLoungeBack = (ctx: Ctx, state: GameState, lg: Lounge) => {
   for (let gy = y - 70; gy < y - 6; gy += 6) { ctx.fillStyle = '#0C0C0E'; ctx.fillRect(L.x1 + 712, gy, 106, 2); ctx.fillStyle = '#27272A'; ctx.fillRect(L.x1 + 712, gy + 2, 106, 1); }
   if (wrecked) { ctx.fillStyle = '#3F3F46'; ctx.fillRect(L.x1 + 708, y - 84, 114, 6); }
   else neonStrip(ctx, L.x1 + 708, y - 84, 114, 6, '#22D3EE', 0.8);
-  // Couches: a tufted back, the seat cushions, rolled arms; inked, lit from above
-  for (const cx of [L.x1 + 250, L.x1 + 1080]) {
-    const seat = wrecked ? '#4A1D2E' : '#831843', back = wrecked ? '#3B1424' : '#9D174D';
-    shadedTop(ctx, () => ctx.roundRect(cx - 20, y - 90, 140, 36, [8, 8, 0, 0]), back, cx - 20, y - 90, 140, 36);
-    for (let k = 0; k < 4; k++) { ctx.fillStyle = dark(back, 0.4); ctx.fillRect(cx + k * 32, y - 76, 3, 3); }
-    shadedTop(ctx, () => ctx.rect(cx - 20, y - 60, 140, 60), seat, cx - 20, y - 60, 140, 60);
-    for (const sx of [cx + 26, cx + 72]) { ctx.fillStyle = dark(seat, 0.35); ctx.fillRect(sx, y - 58, 2, 22); }
-    ctx.fillStyle = dark(seat, 0.35); ctx.fillRect(cx - 18, y - 36, 136, 2);
-    for (const ax of [cx - 28, cx + 112]) shaded(ctx, () => ctx.roundRect(ax, y - 70, 16, 70, [8, 8, 2, 2]), back, ax, y - 70, 16, 70);
-    if (wrecked) for (let i = 0; i < 5; i++) { const sx = cx + i * 26, sy = y - 70 + (i % 2) * 10; ctx.fillStyle = INK; ctx.fillRect(sx - 1, sy - 1, 10, 6); ctx.fillStyle = '#FDE68A'; ctx.fillRect(sx, sy, 8, 4); ctx.fillStyle = '#FFFBEB'; ctx.fillRect(sx, sy, 4, 2); } // stuffing out of it
-  }
+  // The loose furniture (the tsunami knocks it about: see furniture.ts): velvet couches, stools at the bar
+  for (const p of furnitureIn(state, 'lounge')) placed(ctx, p, () => (p.kind === 'couch' ? couch(ctx, wrecked) : loungeStool(ctx, wrecked)));
   // The disco ball (up, or smashed on the floor)
   if (!wrecked) {
     const bx = L.x1 + 560, by = top + 110;
@@ -144,6 +136,28 @@ export const drawLoungeBack = (ctx: Ctx, state: GameState, lg: Lounge) => {
     pixelBlob(ctx, px, y + 4, pw, 4, '#5B0000');
     ctx.fillStyle = '#8B1A1A'; ctx.fillRect(Math.round(px - pw * 0.5), y + 2, Math.round(pw * 0.4), 2);
   }
+};
+
+/** A velvet couch, standing on (0, 0): a tufted back, the seat cushions, rolled arms; inked, lit from above. */
+const couch = (ctx: Ctx, wrecked: boolean) => {
+  const cx = -50, y = 0;
+  const seat = wrecked ? '#4A1D2E' : '#831843', back = wrecked ? '#3B1424' : '#9D174D';
+  shadedTop(ctx, () => ctx.roundRect(cx - 20, y - 90, 140, 36, [8, 8, 0, 0]), back, cx - 20, y - 90, 140, 36);
+  for (let k = 0; k < 4; k++) { ctx.fillStyle = dark(back, 0.4); ctx.fillRect(cx + k * 32, y - 76, 3, 3); }
+  shadedTop(ctx, () => ctx.rect(cx - 20, y - 60, 140, 60), seat, cx - 20, y - 60, 140, 60);
+  for (const sx of [cx + 26, cx + 72]) { ctx.fillStyle = dark(seat, 0.35); ctx.fillRect(sx, y - 58, 2, 22); }
+  ctx.fillStyle = dark(seat, 0.35); ctx.fillRect(cx - 18, y - 36, 136, 2);
+  for (const ax of [cx - 28, cx + 112]) shaded(ctx, () => ctx.roundRect(ax, y - 70, 16, 70, [8, 8, 2, 2]), back, ax, y - 70, 16, 70);
+  if (wrecked) for (let i = 0; i < 5; i++) { const sx = cx + i * 26, sy = y - 70 + (i % 2) * 10; ctx.fillStyle = INK; ctx.fillRect(sx - 1, sy - 1, 10, 6); ctx.fillStyle = '#FDE68A'; ctx.fillRect(sx, sy, 8, 4); ctx.fillStyle = '#FFFBEB'; ctx.fillRect(sx, sy, 4, 2); } // stuffing out of it
+};
+
+/** A bar stool in the lounge, standing on (0, 0): a gold post and foot, a round velvet seat. */
+const loungeStool = (ctx: Ctx, wrecked: boolean) => {
+  const seat = wrecked ? '#3B1A40' : '#6B21A8';
+  ctx.fillStyle = INK; ctx.fillRect(-9, -3, 18, 3); ctx.fillStyle = '#A16207'; ctx.fillRect(-8, -2, 16, 1);
+  column(ctx, -2, -30, 5, 28, wrecked ? '#713F12' : '#CA8A04');
+  ctx.fillStyle = INK; ctx.fillRect(-8, -16, 16, 2); ctx.fillStyle = '#A16207'; ctx.fillRect(-7, -16, 14, 1); // (the foot ring)
+  shadedTop(ctx, () => ctx.roundRect(-12, -36, 24, 7, [4, 4, 2, 2]), seat, -12, -36, 24, 7);
 };
 
 /** A disco ball: mirror tiles in rows, lit upper left, the shine going round. */
@@ -375,15 +389,14 @@ export const drawWideShot = (ctx: Ctx, state: GameState, lg: Lounge) => {
   ctx.globalAlpha = Math.min(1, t / 14);
   ctx.translate(shake, shake * 0.5);
   ctx.translate(W / 2, H / 2); ctx.scale(zoom, zoom); ctx.translate(-(W / 2 + (wx0 - W / 2) * Math.min(1, (zoom - 1) / 11)), -(H / 2 + (wy0 - H / 2) * Math.min(1, (zoom - 1) / 11)));
-  ctx.fillStyle = '#1E1B4B'; ctx.fillRect(-20, -20, W + 40, H + 40);
-  bandedGradient(ctx, -20, 0, W + 40, H + 20, ['#1E1B4B', '#4A2440', '#7C2D12', '#B5431A', '#EA580C'], 14);
-  // Stars coming out
-  ctx.fillStyle = 'rgba(255,255,255,0.7)'; for (let i = 0; i < 40; i++) ctx.fillRect(hash(i) * W, hash(i + 9) * 200, 2, 2);
-  const cx = W / 2, base = H - 70, s = 1.05;
-  // The lounge's lit window, near the top (the club all lit up round it)
-  const wx = cx + 40, wy = base - 280 * s + 60;
-  drawVolcano(ctx, cx, base, s, f, 0, { show: 1, keepClear: { x: wx, y: wy, r: 16 } });
+  // (what's in view, in the scene's own units, and how fine to draw it at this zoom)
+  const kz = Math.min(1, (zoom - 1) / 11), vcx = W / 2 + (wx0 - W / 2) * kz, vcy = H / 2 + (wy0 - H / 2) * kz;
+  const view = { x0: vcx - W / 2 / zoom - 20, x1: vcx + W / 2 / zoom + 20, y0: vcy - H / 2 / zoom - 20, y1: vcy + H / 2 / zoom + 20, zoom, px: widePx(zoom) };
+  // (the lounge's window, near the top: what the shot pulls out from)
+  const wx = wx0, wy = wy0, base = WIDE.base;
   const blast = blastAmount(lg);
+  const flash = t >= BLAST_AT ? Math.max(0, 1 - (t - BLAST_AT) / 70) : 0;
+  drawWideScene(ctx, view, f, wx, wy, flash, t > BLAST_AT + 8);
   if (blast < 0.3) {
     // The lounge's window: gold frame, pink light, the party going on behind the glass (this is what the shot pulls out from)
     ctx.fillStyle = INK; ctx.fillRect(wx - 6.5, wy - 5.5, 13, 11);
@@ -394,10 +407,6 @@ export const drawWideShot = (ctx: Ctx, state: GameState, lg: Lounge) => {
     for (let k = 0; k < 3; k++) { const sx = wx - 4 + ((f * 0.05 + k * 3.3) % 8); ctx.fillRect(sx, wy - 1, 1.2, 5); ctx.beginPath(); ctx.arc(sx + 0.6, wy - 1.8, 0.8, 0, Math.PI * 2); ctx.fill(); }
     ctx.fillStyle = '#FDE047'; ctx.fillRect(wx - 0.3, wy - 4, 0.6, 8);
   }
-  // Foreground: the plain the volcano stands on
-  // (the curve of it, column by column, a rim of the glow along its top)
-  const plain = (x: number) => { const t = (x + 20) / (W + 40); return (1 - t) * (1 - t) * (H - 50) + 2 * t * (1 - t) * (H - 80) + t * t * (H - 40); };
-  pixelRidge(ctx, -20, W + 20, H + 20, plain, 0, { fill: '#0C0505', rim: '#3A1410', lit: '#1A0909', shade: '#060202' }, -1);
   if (t >= BLAST_AT) {
     const k = (t - BLAST_AT) / (WIDE_FRAMES - BLAST_AT);
     // The flash

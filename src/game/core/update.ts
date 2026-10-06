@@ -27,6 +27,7 @@ import { pickRandom, rectsOverlap, boundsOf, isOnScreen } from './utils';
 import { deathByCause, deathFallback, pluckDeathMessage, animalDeathMessage } from './deathCause';
 import { killPlayer, DEATH_SCREEN_FRAMES, gateControls, tickPlayerTimers, updatePlayerActions, updatePlayerPhysics, getSpecialForm, interruptSpecialWithHurt } from '../player/player';
 import { updateTsunami, updateSteamExplosions, updateVolcanoes, updateTommyArena } from '../bosses/hazards';
+import { updateVictorFurniture } from '../stages/victor/furniture';
 import { updateTaser, updateBurningProjectiles, updateEnemyStatusEffects } from '../combat/statusEffects';
 import { updateEnemy, separateEnemies } from '../enemies/enemies';
 import { updateGapGrace } from '../enemies/kinds';
@@ -556,6 +557,8 @@ const updatePlaying = (ctx: FrameContext, controls: Controls): boolean => {
 
   updateBarfStream(state);
   updateTsunami(ctx);
+  // (Victor's furniture, knocked about by it: looks only)
+  if (ctx.stageId === 'Victor Volcano') updateVictorFurniture(state, getArenaRight(ctx.stageId));
   updateSteamExplosions(ctx);
   stainWater(ctx);
 

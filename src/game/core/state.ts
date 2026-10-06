@@ -7,6 +7,7 @@ import {
 import { INITIAL_PLAYER_HEALTH, POWER_CELLS, SCREEN_SHAKE_MAX } from '../../constants';
 import { resetLineCooldowns, stopDeathAnnouncer } from '../platform/speech';
 import type { GroundRun } from './terrain';
+import type { Furniture } from '../stages/victor/furniture';
 
 /** (`landing`: the door's shut behind him and he's still in the air: he comes down onto the arena floor first) */
 export type DoorState = 'closed' | 'opening' | 'open' | 'closing' | 'landing' | 'done';
@@ -197,6 +198,8 @@ export interface GameState {
    * when each of his specimen tubes gave (the frame, -1 not yet).
    */
   artieVault: { heat: number; broke: number[] };
+  /** The loose furniture round Victor's club, lounge and office, knocked about by the tsunami (looks only: see stages/victor/furniture.ts). */
+  victorFurniture: Furniture[];
   /** Ernie's vault coming apart (looks only: the fight's the same): the frame of every quake he's put through it, in order. */
   ernieWreck: { quakes: number[] };
   /**
@@ -369,6 +372,7 @@ export const createGameState = (stageId: string | null, ammo: Record<WeaponType,
   hectorFilth: 0,
   hectorFilthShown: 0,
   artieVault: { heat: 0, broke: [-1, -1, -1, -1] },
+  victorFurniture: [],
   ernieWreck: { quakes: [] },
   barryWreck: { hits: [], bolts: [], pounds: [], dim: 0 },
   totalPullForceX: 0,

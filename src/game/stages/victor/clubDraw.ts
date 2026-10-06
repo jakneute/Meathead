@@ -23,6 +23,7 @@ import { getVictor, regionOf } from './runtime';
 import { tallyTitle } from './club';
 import { sentenceShown } from '../../platform/speech';
 import { stamp } from '../../render/stamp';
+import { furnitureIn, placed, type Furniture } from './furniture';
 
 type Ctx = CanvasRenderingContext2D;
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -232,6 +233,8 @@ export const drawClubBack = (ctx: Ctx, state: GameState) => {
     }
   }
   drawFloors(ctx, state);
+  // (the loose furniture: behind the bar and the speakers, whichever way up the tsunami's left it)
+  for (const p of furnitureIn(state, 'club')) if (visible(state, p.x - 80, p.x + 80)) placed(ctx, p, () => drawClubPiece(ctx, p, f));
   drawSolids(ctx, state);
   if (visible(state, F.x1 - 300, F.x1 + 60)) drawFloorEndWall(ctx, state);
   if (visible(state, A.x1 - 400, A.x2 + 100)) drawAtrium(ctx, state);
@@ -321,8 +324,7 @@ const drawSolids = (ctx: Ctx, state: GameState) => {
       ctx.fillStyle = `rgba(249, 115, 22, ${(0.12 + k * 0.12).toFixed(2)})`; ctx.fillRect(s.x + 2, s.y + 16, s.w - 4, 12);
       ctx.fillStyle = `rgba(249, 115, 22, ${(0.6 + k * 0.4).toFixed(2)})`; ctx.fillRect(s.x + 2, s.y + 20, s.w - 4, 4);
       ctx.fillStyle = '#FEF08A'; ctx.fillRect(s.x + 2, s.y + 21, s.w - 4, 1);
-      // (stools: a chrome post, a red seat)
-      for (const sx of [s.x - 30, s.x + s.w + 10]) { column(ctx, sx + 8, s.y + 20, 6, s.h - 20, '#A1A1AA'); slab(ctx, sx, s.y + 15, 22, 6, '#B91C1C', 1); ctx.fillStyle = '#71717A'; ctx.fillRect(sx + 4, s.y + s.h - 2, 14, 2); }
+      // (its stools are loose: see drawClubPiece)
     } else {
       // Speakers stacked: cabinets (inked, lit along the top and left), cones thumping on the beat
       for (let y = s.y; y < s.y + s.h; y += 30) {
@@ -340,6 +342,39 @@ const drawSolids = (ctx: Ctx, state: GameState) => {
       }
       neonStrip(ctx, s.x, s.y, s.w, 2, '#FB923C', 0.6);
     }
+  }
+};
+
+/**
+ * A piece of the club's loose furniture (see furniture.ts), drawn standing on (0, 0): a bar stool (a chrome post, a red
+ * seat), or a VIP table (a high top of black glass on a chrome stem, neon under its edge, bottle service on it).
+ */
+const drawClubPiece = (ctx: Ctx, p: Furniture, f: number) => {
+  if (p.kind === 'stool') {
+    column(ctx, -3, -26, 6, 26, '#A1A1AA'); slab(ctx, -11, -31, 22, 6, '#B91C1C', 1);
+    ctx.fillStyle = '#71717A'; ctx.fillRect(-7, -2, 14, 2); ctx.fillStyle = INK; ctx.fillRect(-7, -1, 14, 1);
+    return;
+  }
+  // The table: its foot, the stem, the top (dark: it's no ledge), a neon strip under the rim on the beat
+  ctx.fillStyle = INK; ctx.fillRect(-13, -4, 26, 4); ctx.fillStyle = '#3F3F46'; ctx.fillRect(-12, -3, 24, 2); ctx.fillStyle = '#71717A'; ctx.fillRect(-12, -3, 24, 1);
+  column(ctx, -2, -40, 4, 37, '#A1A1AA');
+  ctx.fillStyle = INK; ctx.fillRect(-21, -45, 42, 6);
+  ctx.fillStyle = '#1C1622'; ctx.fillRect(-20, -44, 40, 4); ctx.fillStyle = '#2A2232'; ctx.fillRect(-20, -44, 40, 1);
+  neonStrip(ctx, -18, -39, 36, 1, NEON[(p.n + Math.floor(f / BEAT)) % 4], 0.35 + beatK(f) * 0.3);
+  // On it: an ice bucket with a bottle in it, or glasses and a candle
+  if (p.n % 2 === 0) {
+    ctx.fillStyle = INK; ctx.fillRect(-11, -55, 12, 11);
+    column(ctx, -10, -54, 10, 10, '#D4D4D8'); ctx.fillStyle = '#F4F4F5'; ctx.fillRect(-10, -54, 10, 2);
+    ctx.fillStyle = INK; ctx.fillRect(-8, -67, 6, 13); ctx.fillRect(-7, -71, 4, 4);
+    ctx.fillStyle = p.n % 4 ? '#14532D' : '#7F1D1D'; ctx.fillRect(-7, -66, 4, 12); ctx.fillRect(-6, -70, 2, 4);
+    ctx.fillStyle = '#4ADE80'; if (p.n % 4 === 0) ctx.fillStyle = '#F87171'; ctx.fillRect(-7, -64, 1, 8);
+    ctx.fillStyle = '#FDE68A'; ctx.fillRect(-6, -71, 2, 1);
+    for (const gx of [6, 12]) { ctx.fillStyle = INK; ctx.fillRect(gx - 1, -52, 5, 8); ctx.fillStyle = '#FDE68A'; ctx.fillRect(gx, -51, 3, 6); ctx.fillStyle = '#FEF9C3'; ctx.fillRect(gx, -51, 1, 4); }
+  } else {
+    for (const gx of [-12, 8]) { ctx.fillStyle = INK; ctx.fillRect(gx - 1, -53, 6, 9); ctx.fillStyle = '#F472B6'; ctx.fillRect(gx, -52, 4, 7); ctx.fillStyle = '#FBCFE8'; ctx.fillRect(gx, -52, 1, 5); }
+    ctx.fillStyle = INK; ctx.fillRect(-3, -51, 6, 7); ctx.fillStyle = '#7F1D1D'; ctx.fillRect(-2, -50, 4, 5);
+    const fl = Math.floor(f / 6) % 2;
+    ctx.fillStyle = '#FB923C'; ctx.fillRect(-1, -55 - fl, 2, 4 + fl); ctx.fillStyle = '#FEF08A'; ctx.fillRect(-1, -53, 1, 2);
   }
 };
 
