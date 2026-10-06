@@ -49,6 +49,8 @@ export interface Escape {
   lostAt: number;
   /** He'll wonder if this is Tommy's lair when he lands at the bottom (the first time: not coming back after a death). */
   askLair: boolean;
+  /** How many of his walk lines he's said (walking on past the little signs and the paint to the big one). */
+  walked: number;
 }
 
 /**
@@ -71,6 +73,13 @@ const LOST_LINES = [
   'THIS IS STUPID. THIS IS A STUPID NEIGHBORHOOD.', "WHY DOESN'T ANYBODY LABEL ANYTHING?!",
   "I'VE WALKED THIS WAY LIKE NINE TIMES!", 'TOMMY! COME OUT HERE AND FIGHT ME, YOU COWARD!', "I'M GONNA PUNCH THIS WHOLE BLOCK! THE WHOLE BLOCK!",
 ];
+/**
+ * Walking on from the house to the hole, past the little signs and the yellow paint all pointing him on (he can't read
+ * them, and arrows don't help): what he says as he gets to each, and the last as the big neon one comes into view.
+ * (How far past the house he says each.)
+ */
+const WALK_LINES = ['A LITTLE ARROW. ...POINTING AT WHAT?', 'PAINT. EVERYWHERE. ...SO WHERE DO I GO?', "OOH. SHINY LETTERS. ...ONE OF 'EM'S AN L, I THINK."];
+const WALK_AT = [150, 560, 1700];
 /** From here on he's angry (and stays angry: the last few, round and round). */
 const LOST_ANGRY = 7, LOST_EVERY = 540, LOST_EVERY_ANGRY = 400;
 /** The fall: how long to black, and how long it takes to come back up once he's landed. */
@@ -78,7 +87,7 @@ export const DROP_FADE = 45, DROP_FADE_IN = 40;
 
 export const createEscape = (state: GameState, startedAt: number): Escape => {
   void state;
-  return { phase: startedAt >= CP.RUINS ? 'ruins' : 'waiting', t: 0, chunks: [], dropT: 0, landedT: 0, zoomK: 0, sceneT: 0, lost: 0, lostAt: 0, askLair: startedAt < CP.RUINS };
+  return { phase: startedAt >= CP.RUINS ? 'ruins' : 'waiting', t: 0, chunks: [], dropT: 0, landedT: 0, zoomK: 0, sceneT: 0, lost: 0, lostAt: 0, askLair: startedAt < CP.RUINS, walked: 0 };
 };
 
 /** The thing's dead: the sewer starts to come apart. */
@@ -201,11 +210,17 @@ export const updateEscape = (ctx: FrameContext, es: Escape, talk: Talk, controls
     case 'melt':
       p.inCutscene = true;
       if (es.t === 20) playSound('barf');
-      // (and then, back in control, the big neon sign over the hole: he can't read it)
-      if (es.t === MELT_FRAMES - 30) queueLines(state, talk, [{ who: 'meathead', text: 'EXCUSE ME. SORRY. WRONG HOUSE.' }, { who: 'meathead', text: "OOH. SHINY LETTERS. ...ONE OF 'EM'S AN L, I THINK." }]);
+      // (and then, back in control, the walk on to the hole: see WALK_LINES)
+      if (es.t === MELT_FRAMES - 30) queueLines(state, talk, [{ who: 'meathead', text: 'EXCUSE ME. SORRY. WRONG HOUSE.' }]);
       if (es.t > MELT_FRAMES) { es.phase = 'ruins'; es.t = 0; p.inCutscene = false; }
       return { ...NO_CONTROLS };
     case 'ruins':
+      // Walking on past the little signs and the paint: what he makes of them (one at a time, each as he gets to it; the
+      // wondering where to go waits on them)
+      if (es.walked < WALK_LINES.length && p.pos.y < RUINS_Y + 40 && p.pos.x + p.width / 2 > COURSE.ruins.house + WALK_AT[es.walked] && quiet(talk)) {
+        queueLines(state, talk, [{ who: 'meathead', text: WALK_LINES[es.walked] }]);
+        es.walked++; es.lostAt = es.t;
+      }
       // Up here, lost, under a ten-foot sign he can't read: every so often he wonders out loud where he's meant to go
       if (quiet(talk) && p.pos.y < RUINS_Y + 40 && es.t >= es.lostAt + (es.lost >= LOST_ANGRY ? LOST_EVERY_ANGRY : LOST_EVERY)) {
         const i = es.lost < LOST_LINES.length ? es.lost : LOST_LINES.length - 3 + ((es.lost - LOST_LINES.length) % 3);
@@ -260,6 +275,18 @@ const rumble = (state: GameState, es: Escape) => {
   if (state.frame % 30 === 0) { shakeScreen(state, 20, 5); playSound('rumble'); }
   if (state.frame % 18 === 0) es.chunks.push({ x: C.x1 + 60 + Math.random() * (C.x2 - C.x1 - 120), y: GROUND_Y - 520, vy: 2, r: 6 + Math.random() * 10 });
   es.chunks = es.chunks.filter(c => { c.vy += 0.5; c.y += c.vy; if (c.y > GROUND_Y - 6) { for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: c.x, y: GROUND_Y - 4 }, vel: { x: (Math.random() - 0.5) * 6, y: -Math.random() * 4 }, life: 24, color: '#57534E', size: 3 + Math.random() * 3 }); return false; } return true; });
+};
+
+/** Back for Tommy after he's killed you: down outside his door already (no going back up top and down the hole again). */
+export const atTheDoor = (state: GameState, es: Escape) => {
+  const p = state.player, P = COURSE.ruins.pit;
+  es.phase = 'done'; es.askLair = false;
+  p.pos = { x: P + COURSE.ruins.pitW / 2 + 40 - p.width / 2, y: GROUND_Y - p.height };
+  p.vel = { x: 0, y: 0 }; p.facing = 1;
+  state.cameraOverride = null; state.cameraMaxX = undefined;
+  state.cameraRestY = GROUND_Y - 550; state.camera.y = GROUND_Y - 550;
+  state.cameraMinX = Math.min(P - 100, BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH);
+  state.camera.x = Math.max(state.cameraMinX, Math.min(BOSS_DOOR_X + DOOR_WIDTH - CANVAS_WIDTH, p.pos.x - 250));
 };
 
 /** The part that can be skipped: from him blown up out of the cistern to him stood in the ruins (the suit melting off him's still seen). */

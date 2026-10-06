@@ -6,11 +6,11 @@ import type { StageLayout } from '../index';
 import type { Block } from '../../../types';
 import { BOSS_DOOR_X, GROUND_Y, STAGE_WIDTH, DOOR_WIDTH, CANVAS_WIDTH } from '../../../constants';
 import { groundBlocks } from '../../core/terrain';
-import { COURSE, CP, placeOf, TUNNEL_ROOF, CAVERN_ROOF } from './course';
+import { COURSE, placeOf, TUNNEL_ROOF, CAVERN_ROOF } from './course';
 import { createTommyRuntime, getTommy, updateTommy, tommyDeathMessage } from './runtime';
 import { hitThing } from './thing';
 import { bottleZoom, isRidingBike } from './bike';
-import { doorZoom, DOOR_ZOOM } from './escape';
+import { doorZoom, DOOR_ZOOM, atTheDoor } from './escape';
 import { drawTommyBackdrop, drawTommyBack, drawTommyMid, drawTommyFront, drawTommyHud, drawTommyOverlays } from './draw';
 import { tommyScene } from './lighting';
 
@@ -41,8 +41,8 @@ export const tommyLayout: StageLayout = {
   startX: COURSE.startX,
   verticalCamera: true,
   lighting: state => tommyScene(state),
-  // (dying to Tommy: back in front of what's left of the family's house, and down the hole again)
-  bossStartX: COURSE.ruins.house - 300,
+  // (dying to Tommy: back down outside his door, where you land coming down the hole)
+  bossStartX: COURSE.ruins.pit + COURSE.ruins.pitW / 2,
   build: (state, skipToBoss) => {
     const C = COURSE;
     state.groundRuns = [...C.runs, { x1: BOSS_DOOR_X, y1: GROUND_Y, x2: STAGE_WIDTH, y2: GROUND_Y }];
@@ -81,13 +81,8 @@ export const tommyLayout: StageLayout = {
     state.cameraMinX = C.startX;
     state.player.hidden = false;
     state.stage = createTommyRuntime(state, skipToBoss);
-    // Back for Tommy: up in the ruins, in front of the house (the engine puts him at the start x at the bottom)
-    if (skipToBoss) {
-      const at = C.checkpoints[CP.RUINS];
-      state.player.pos = { x: C.ruins.house - 160, y: at.y - state.player.height };
-      state.cameraRestY = at.y - 550; state.camera.y = state.cameraRestY;
-      state.camera.x = Math.max(C.ruins.x1, state.player.pos.x - 250);
-    }
+    // Back for Tommy: down outside his door, where he landed (no walking the ruins and dropping down the hole again)
+    if (skipToBoss) atTheDoor(state, getTommy(state)!.escape);
     const cp = skipToBoss ? 0 : state.checkpoint;
     if (cp > 0) {
       const at = C.checkpoints[cp];

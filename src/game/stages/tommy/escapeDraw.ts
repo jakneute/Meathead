@@ -759,11 +759,15 @@ export const drawRuinsGround = (ctx: Ctx, state: GameState) => {
  */
 export const drawRuinsHouse = (ctx: Ctx, state: GameState) => {
   const hx = COURSE.ruins.house, y = RUINS_Y, f = state.frame;
+  drawWalkPaint(ctx, state);
+  drawLairSign(ctx, state);
   if (hx + 1500 < state.camera.x || hx - 1500 > state.camera.x + W) return;
   // The tower, down, off in the distance behind
   ctx.save(); ctx.globalAlpha = 0.55; ctx.translate(hx - 900, y - 40); ctx.rotate(-1.45); drawWaterTower(ctx, 0, 0, 0.7, 0.95, 0, true); ctx.restore();
   // The other houses: washed out and melted
-  for (const [dx, seed] of [[-1060, 1], [-560, 4], [720, 2]] as [number, number][]) wreckedHouse(ctx, hx + dx, y, seed, f);
+  for (const [dx, seed] of [[-1060, 1], [-560, 4], [720, 2], [1400, 3]] as [number, number][]) wreckedHouse(ctx, hx + dx, y, seed, f);
+  // (and an arrow sprayed on what's left of that last one's wall, pointing on)
+  paintArrow(ctx, hx + 1400 + 84, y - 44, 44, 0.9);
   // Theirs: what's standing of the walls
   wallStump(ctx, [[hx - 260, y], [hx - 260, y - 150], [hx - 200, y - 120], [hx - 170, y - 170], [hx - 120, y - 90], [hx - 120, y]], '#9E6B5C', y);
   wallStump(ctx, [[hx + 180, y], [hx + 180, y - 110], [hx + 230, y - 160], [hx + 260, y - 70], [hx + 260, y]], '#9E6B5C', y);
@@ -784,11 +788,71 @@ export const drawRuinsHouse = (ctx: Ctx, state: GameState) => {
   shaded(ctx, () => ctx.roundRect(hx + 190, y - 50, 60, 46, 4), '#3F2A1D', hx + 190, y - 50, 60, 46, 1.2);
   ink(ctx, () => ctx.rect(hx + 196, y - 44, 48, 34), f % 6 < 3 ? '#E5E7EB' : '#9CA3AF', 1);
   checker(ctx, hx + 196, y - 44, 48, 34, f % 6 < 3 ? '#9CA3AF' : '#E5E7EB', (f >> 1) & 1);
-  drawLairSign(ctx, state);
   // The water, pooled and smoking, all along the block
   ctx.fillStyle = 'rgba(92, 104, 36, 0.8)';
-  for (const [dx, w] of [[-1060, 220], [-560, 240], [0, 300], [720, 160]] as [number, number][]) { ctx.beginPath(); ctx.ellipse(hx + dx, y - 2, w, 8, 0, 0, Math.PI * 2); ctx.fill(); }
+  for (const [dx, w] of [[-1060, 220], [-560, 240], [0, 300], [720, 160], [1400, 150]] as [number, number][]) { ctx.beginPath(); ctx.ellipse(hx + dx, y - 2, w, 8, 0, 0, Math.PI * 2); ctx.fill(); }
   ctx.fillStyle = 'rgba(163, 190, 120, 0.25)'; for (let k = 0; k < 10; k++) { const t = ((f * 0.6 + k * 30) % 150) / 150; ctx.beginPath(); ctx.arc(hx - 1200 + k * 200, y - 10 - t * 100, 8 + t * 18, 0, Math.PI * 2); ctx.fill(); }
+};
+
+/** A yellow arrow slopped on with a brush, pointing right (its tip at x + len), `k` how wobbly. */
+const paintArrow = (ctx: Ctx, x: number, y: number, len: number, k = 1) => {
+  ctx.fillStyle = '#FACC15';
+  const sh = len * 0.38;
+  ctx.beginPath(); ctx.moveTo(x, y - 3 * k); ctx.lineTo(x + len - sh, y - 2); ctx.lineTo(x + len - sh, y - 8); ctx.lineTo(x + len, y);
+  ctx.lineTo(x + len - sh, y + 8); ctx.lineTo(x + len - sh, y + 2); ctx.lineTo(x, y + 3 * k); ctx.closePath(); ctx.fill();
+  // (where the brush ran dry, and a drip or two off it)
+  ctx.fillStyle = '#A16207'; ctx.fillRect(x + 2, y - 1, len * 0.3, 1);
+  ctx.fillStyle = '#FACC15'; ctx.fillRect(x + len * 0.3, y + 2, 2, 5 + 4 * k); ctx.fillRect(x + len - sh + 1, y + 7, 2, 4);
+};
+
+/**
+ * The walk from the house to the hole: little signs knocked together out of whatever was lying about, stuck in the rubble,
+ * each with a yellow arrow slopped on it pointing on, and the yellow paint dribbled the whole way along, big arrows slapped
+ * down on the ground every so often. Somebody really wanted you to find the hole.
+ */
+const drawWalkPaint = (ctx: Ctx, state: GameState) => {
+  const R = COURSE.ruins, y = RUINS_Y, f = state.frame;
+  const x0 = R.house + 260, x1 = R.pit - 260;
+  if (x1 < state.camera.x - 40 || x0 > state.camera.x + W + 40) return;
+  // The dribble: dots and dashes along the ground where the can leaked
+  ctx.fillStyle = '#FACC15';
+  for (let x = x0; x < x1; x += 11) {
+    const h = hash(x * 0.37);
+    if (h < 0.3) continue;
+    ctx.fillRect(x, y - 2, h > 0.7 ? 7 : 3, 2);
+    if (h > 0.93) { ctx.beginPath(); ctx.ellipse(x + 3, y - 1, 6 + h * 4, 2, 0, 0, Math.PI * 2); ctx.fill(); }
+  }
+  // Big arrows on the ground, splashed
+  for (const ax of R.arrows) {
+    if (ax + 120 < state.camera.x || ax - 60 > state.camera.x + W) continue;
+    ctx.fillStyle = '#FACC15';
+    ctx.beginPath(); ctx.moveTo(ax - 50, y - 2); ctx.lineTo(ax + 40, y - 2); ctx.lineTo(ax + 40, y - 7); ctx.lineTo(ax + 70, y); ctx.lineTo(ax + 40, y + 7); ctx.lineTo(ax + 40, y + 2); ctx.lineTo(ax - 50, y + 2); ctx.closePath(); ctx.fill();
+    for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.ellipse(ax - 40 + hash(ax + i) * 100, y - 1, 3 + hash(ax * 3 + i) * 4, 1.5, 0, 0, Math.PI * 2); ctx.fill(); }
+    // (a chunk of block by it, painted too: an arrow on that and all)
+    ink(ctx, () => ctx.rect(ax - 86, y - 18, 26, 18), '#6B635C', 1); ctx.fillStyle = lite('#6B635C', 0.25); ctx.fillRect(ax - 85, y - 17.5, 24, 1);
+    paintArrow(ctx, ax - 82, y - 9, 18, 0.5);
+  }
+  // The little signs: a stake, a board nailed on it (tilted, every one different), a yellow arrow and a word or two on it
+  const WORDS = [['THIS', 'WAY'], ['LAIR'], ['KEEP', 'GOING']];
+  const BOARDS: [string, number, number, number][] = [['#8A6A4A', 64, 34, -0.08], ['#7D8C9E', 56, 30, 0.1], ['#9E6B5C', 70, 36, -0.04]];
+  R.signs.forEach((sx, i) => {
+    if (sx + 60 < state.camera.x || sx - 60 > state.camera.x + W) return;
+    const [col, bw, bh, tilt] = BOARDS[i % BOARDS.length];
+    const lean = tilt * 0.6 + Math.sin(f * 0.03 + i) * 0.01;
+    ctx.save(); ctx.translate(sx, y); ctx.rotate(lean);
+    shaded(ctx, () => ctx.rect(-3, -78, 6, 78), '#5B3A29', -3, -78, 6, 78, 1);
+    ctx.translate(0, -66); ctx.rotate(tilt);
+    shadedTop(ctx, () => ctx.rect(-bw / 2, -bh / 2, bw, bh), col, -bw / 2, -bh / 2, bw, bh, 1.2);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.18)'; ctx.fillRect(-bw / 2, -bh / 2 + bh * 0.5, bw, 1);
+    ctx.fillStyle = '#44403C'; ctx.fillRect(-1, -bh / 2 + 3, 2, 2); ctx.fillRect(-1, bh / 2 - 5, 2, 2); // (the nails)
+    const words = WORDS[i % WORDS.length];
+    ctx.fillStyle = '#FACC15'; ctx.font = '8px "Press Start 2P"'; ctx.textAlign = 'left';
+    words.forEach((w, k) => ctx.fillText(w, -bw / 2 + 4, -bh / 2 + 11 + k * 10));
+    paintArrow(ctx, -bw / 2 + 6, bh / 2 - 6 - (words.length > 1 ? 0 : 6), bw - 12, 0.6);
+    // (a run of the paint down off the bottom of it)
+    ctx.fillStyle = '#FACC15'; ctx.fillRect(bw / 2 - 12, bh / 2, 2, 6 + (i * 3) % 7);
+    ctx.restore();
+  });
 };
 
 /**

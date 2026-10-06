@@ -89,7 +89,7 @@ export interface Course {
   };
   /** What's left of the house (up high), and the pit down to Tommy's door. */
   /** What's left of the house (up high), and the hole down past it (narrow: a manhole's worth) to Tommy's door. */
-  ruins: { x1: number; x2: number; y: number; house: number; pit: number; pitW: number };
+  ruins: { x1: number; x2: number; y: number; house: number; pit: number; pitW: number; signs: number[]; arrows: number[] };
   checkpoints: { x: number; y: number }[];
   left: number;
   startX: number;
@@ -114,6 +114,10 @@ const SHAFT_X = 7500, SHAFT_TOP = Y - 640, GATE_X = 7900, GATE_W = 60, GANTRY_Y 
 const RUINS_X0 = BOSS_DOOR_X - 3000;
 /** The hole down (local to the ruins), and how wide it is. */
 const PIT = 2560, PIT_W = 110;
+/** What's left of the family's house (local to the ruins), and the walk from it over the rubble to the hole. */
+const HOUSE = 2130 - 2000;
+/** Along the walk: the little hand-painted signs, and the yellow arrows slapped down on the rubble (all pointing on). */
+const SIGNS = [HOUSE + 380, HOUSE + 880, HOUSE + 1700], ARROWS = [HOUSE + 620, HOUSE + 1150, HOUSE + 2080];
 /** How high up the ruins are over the ground at Tommy's door. */
 export const RUINS_Y = Y - 2200;
 /** How high the cavern outside Tommy's door is, floor to ceiling. */
@@ -324,7 +328,7 @@ const build = () => {
   const u = part(RUINS_X0);
   // Up top: the ruins, right up to a narrow hole, and the ground on past it; down below, the floor outside the door
   // (a block's worth of what's left: the family's house, and more either side of it)
-  u.ground(900, PIT, RUINS_Y); u.ground(PIT + PIT_W, 3000, RUINS_Y); u.ground(2200, 3000, Y);
+  u.ground(HOUSE - 1230, PIT, RUINS_Y); u.ground(PIT + PIT_W, 3000, RUINS_Y); u.ground(2200, 3000, Y);
   u.pickup(2700, Y - 30, 'large_health'); u.pickup(2780, Y - 30, 'large_ammo');
   return { k, h, r, s, s2, s3, u, junk, waves, END };
 };
@@ -336,7 +340,7 @@ const buildCourse = (): Course => {
   runs.sort((a, b) => a.x1 - b.x1 || a.y1 - b.y1);
   // (the stage draws all of its own ground, and the gaps between the parts)
   for (const r of runs) {
-    r.surface ??= r.x1 >= RUINS_X0 ? (r.y1 === Y ? 'floor' : 'rubble') : r.x1 >= SEWER_X0 ? 'walk' : 'street';
+    r.surface ??= r.x1 >= RUINS_X0 + HOUSE - 1230 ? (r.y1 === Y ? 'floor' : 'rubble') : r.x1 >= SEWER_X0 ? 'walk' : 'street';
     r.pitAfter = 'clouds';
   }
   const RX = HOOD_X0 + ROAD_START;
@@ -364,10 +368,10 @@ const buildCourse = (): Course => {
       climb: { x1: SEWER_X1 + SHAFT_X, x2: SEWER_X1 + SHAFT_X + CLIMB_W, top: SHAFT_TOP, gate: { x: SEWER_X1 + GATE_X, w: GATE_W, top: GANTRY_Y + 14 }, grate: SEWER_X1 + 7860 },
       cistern: { x1: SEWER_X2 + 9200, x2: SEWER_X2 + 10000, pool: SEWER_X2 + 9550, rack: SEWER_X2 + 9280 },
     },
-    ruins: { x1: RUINS_X0 + 900, x2: BOSS_DOOR_X, y: RUINS_Y, house: RUINS_X0 + 2130, pit: RUINS_X0 + PIT, pitW: PIT_W },
+    ruins: { x1: RUINS_X0 + HOUSE - 1230, x2: BOSS_DOOR_X, y: RUINS_Y, house: RUINS_X0 + HOUSE, pit: RUINS_X0 + PIT, pitW: PIT_W, signs: SIGNS.map(x => RUINS_X0 + x), arrows: ARROWS.map(x => RUINS_X0 + x) },
     checkpoints: [
       { x: BLOCK_X0 + 150, y: Y }, { x: BLOCK_X0 + 1940, y: Y }, { x: RX + 60, y: Y }, { x: RX + 12000, y: Y },
-      { x: SEWER_X0 + 200, y: Y }, { x: SEWER_X1 + 4450, y: Y }, { x: SEWER_X1 + 7300, y: Y }, { x: SEWER_X2 + 7480, y: Y }, { x: SEWER_X2 + 8700, y: Y }, { x: RUINS_X0 + 1640, y: RUINS_Y },
+      { x: SEWER_X0 + 200, y: Y }, { x: SEWER_X1 + 4450, y: Y }, { x: SEWER_X1 + 7300, y: Y }, { x: SEWER_X2 + 7480, y: Y }, { x: SEWER_X2 + 8700, y: Y }, { x: RUINS_X0 + HOUSE - 490, y: RUINS_Y },
     ],
     left: BLOCK_X0 - 2000,
     startX: BLOCK_X0,
