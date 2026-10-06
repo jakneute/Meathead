@@ -12,6 +12,7 @@ import EndingCutscene from './components/EndingCutscene';
 import EpilogueCutscene from './components/EpilogueCutscene';
 import RadioCutscene from './components/RadioCutscene';
 import IntroCutscene from './components/IntroCutscene';
+import { PUBLIC_BUILD } from './build';
 import { WHITE_HOUSE_ID } from './content/whiteHouse';
 import TutorialHint from './components/TutorialHint';
 import { useCursorSound, useOpenCloseSound } from './components/useCursorSound';
@@ -35,7 +36,8 @@ import { speak, say, anyoneTalking, getBossVoice, takeFreshLine, MEATHEAD_MENU_V
 import { playLockInSound, playEngageSound, playMenuOk, playMenuBack } from './game/platform/audio';
 
 /** Shows the dev cheat panel on the title screen. */
-const SHOW_CHEATS = true;
+// (the public build has none: see build.ts)
+const SHOW_CHEATS = !PUBLIC_BUILD;
 
 const NO_CHEATS: CheatFlags = { allWeapons: false, invincible: false, infiniteAmmo: false, infinitePower: false, skipToBoss: false, shittyPants: false };
 
@@ -323,7 +325,7 @@ const App: React.FC = () => {
         setAvailableWeapons(getStartingWeapons(progressionRank, cheats.allWeapons));
         resetLoadout();
         // (with the intro, it plays first and brings the stage select up itself at the end)
-        if (withIntro ?? selectedIndex === 1) setIntro('opening');
+        if (PUBLIC_BUILD || (withIntro ?? selectedIndex === 1)) setIntro('opening');
         else setStatus(GameStatus.STAGE_SELECT);
         break;
       case GameStatus.BOSS_INTRO:
@@ -594,7 +596,8 @@ const App: React.FC = () => {
     if (intro !== 'off') return false;
     // The title: START GAME, or START GAME + INTRO
     if (status === GameStatus.START) {
-      if (!dy) return false;
+      // (the public build has the one: START GAME, with the intro)
+      if (!dy || PUBLIC_BUILD) return false;
       setSelectedIndex(i => (i + (dy > 0 ? 1 : -1) + 2) % 2);
       return true;
     }

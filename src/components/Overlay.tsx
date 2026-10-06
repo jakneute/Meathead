@@ -7,6 +7,7 @@ import {
   getStages, getWeaponDescription, BOSS_SET_TITLES, BOSS_LOCATIONS, getWeaponInfo,
 } from '../content/roster';
 import USAMap from './USAMap';
+import { PUBLIC_BUILD } from '../build';
 import BossPortrait from './BossPortrait';
 import CorpsePhoto from './CorpsePhoto';
 import WeaponIcon, { WeaponArt } from './WeaponIcon';
@@ -210,7 +211,8 @@ const CheatPanel: React.FC<{ rank: number, cheats: NonNullable<OverlayProps['che
   </div>
 );
 
-const TITLE_OPTIONS = [{ label: 'START GAME', intro: false }, { label: 'START GAME + INTRO', intro: true }];
+// (the public build: just the one, and it's always got the intro)
+const TITLE_OPTIONS = PUBLIC_BUILD ? [{ label: 'START GAME', intro: true }] : [{ label: 'START GAME', intro: false }, { label: 'START GAME + INTRO', intro: true }];
 
 const TitleScreen: React.FC<OverlayProps> = ({ isInputLocked, onStartGame, onSelectIndex, selectedIndex, cheats, progressionRank, whiteHouseOpen, musicOn, onToggleMusic }) => (
   <>
