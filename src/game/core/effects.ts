@@ -155,16 +155,20 @@ export const createFx = (state: GameState) => {
     playGlassShatterSound();
   };
 
-  /** 60% chance to drop a random health or ammo pickup. */
-  const spawnPickup = (pos: Vector2) => {
+  /**
+   * Maybe a pickup off a kill: health 21% of the time (15% small, 6% large); ammo 24% (three in four of those small),
+   * and only half that off a tsunami kill (a wave takes out a crowd: it shouldn't pay for itself).
+   */
+  const spawnPickup = (pos: Vector2, byWave = false) => {
     // Nothing drops in the weapon test range, nor in the finale (he's on what he walked in with)
-    if (isRangeStage(state.stageId) || state.stageId === FINALE_STAGE || Math.random() >= 0.6) return;
-    const r = Math.random();
+    if (isRangeStage(state.stageId) || state.stageId === FINALE_STAGE) return;
+    const r = Math.random(), ammo = byWave ? 0.12 : 0.24;
     let type: PickupType;
-    if (r < 0.25) type = 'small_health';
-    else if (r < 0.35) type = 'large_health';
-    else if (r < 0.8) type = 'small_ammo';
-    else type = 'large_ammo';
+    if (r < 0.15) type = 'small_health';
+    else if (r < 0.21) type = 'large_health';
+    else if (r < 0.21 + ammo * 0.75) type = 'small_ammo';
+    else if (r < 0.21 + ammo) type = 'large_ammo';
+    else return;
     state.pickups.push({
       id: `pickup-${Date.now()}-${Math.random()}`, pos: { ...pos }, vel: { x: (Math.random() - 0.5) * 4, y: -5 },
       width: 20, height: 20, type, life: 600,
@@ -333,7 +337,7 @@ export const createFx = (state: GameState) => {
     e.isBlownAway = true; e.vel = vel; e.frozenTimer = 0;
     spawnDeathShower(e.pos, showerDir, showerMult);
     playSound('splat');
-    spawnPickup(e.pos);
+    spawnPickup(e.pos, category === 'tsunami_kill');
     speakVulgarity(category);
   };
 

@@ -458,8 +458,8 @@ export const ENEMY_BULLET_DAMAGE = 16;
 // 6. PICKUPS & PROGRESSION
 // ==========================================
 export const AMMO_PICKUP_PCT = {
-  SMALL: 0.25,
-  LARGE: 0.60
+  SMALL: 0.20,
+  LARGE: 0.50
 };
 export const HEALTH_PICKUP_SMALL = 20;
 export const HEALTH_PICKUP_LARGE = 50;
