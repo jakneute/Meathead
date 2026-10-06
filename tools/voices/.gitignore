@@ -10,5 +10,7 @@ smoke.ogg
 __pycache__/
 check.txt
 check.json
+checknew.txt
+checknew.json
 pronscan.txt
 .triage.txt

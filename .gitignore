@@ -27,4 +27,7 @@ release
 # Notes, not part of the game
 Stream of Consciousness/
 Fun Stuff/
-release-public
+
+# Leftovers from Google AI Studio, where the game started
+metadata.json
+migrated_prompt_history/
