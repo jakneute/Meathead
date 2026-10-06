@@ -5,6 +5,7 @@
 
 import { bandedGradient, checker, steppedGlow, pixelBlob } from '../../pixelArt';
 import { Ctx, hash, box, bevel, label, frame as picture } from './kit';
+import { TUBE_BREAK_AT } from '../../../bosses/artie';
 
 /** A pixel icicle: three tones, stepping in to a point. */
 const icicle = (ctx: Ctx, x: number, y: number, len: number, wid: number) => {
@@ -16,19 +17,9 @@ const icicle = (ctx: Ctx, x: number, y: number, len: number, wid: number) => {
   }
 };
 
-/** One of his specimen tubes: steel caps, glass, blue coolant with bubbles coming up, and what's in it. */
-const tube = (ctx: Ctx, cx: number, top: number, bottom: number, what: number, name: string, f: number) => {
-  const w = 54, x = cx - w / 2;
-  // Coolant pipe up to the ceiling
-  box(ctx, cx - 4, top - 80, 8, 80, '#24415E'); box(ctx, cx - 4, top - 80, 2, 80, '#3E6688');
-  bevel(ctx, x - 4, top - 14, w + 8, 14, '#3A5670', '#6B8BA8', '#1C2E40');
-  bevel(ctx, x - 6, bottom - 24, w + 12, 24, '#3A5670', '#6B8BA8', '#1C2E40');
-  const gy = top, gh = bottom - 24 - top;
-  // The liquid, banded darker to the bottom
-  bandedGradient(ctx, x, gy, w, gh, ['#1E6E9E', '#175A86', '#12476C'], 6);
-  // What's in it (a dark shape through the blue)
-  const mx = cx, my = gy + gh * 0.55;
-  ctx.fillStyle = 'rgba(8, 24, 40, 0.75)';
+/** What's in a tube, as a shape (in the fill it's given; `hi` for a pale edge down it), standing at (mx, my). */
+const specimen = (ctx: Ctx, mx: number, my: number, what: number, fill: string, hi?: string) => {
+  ctx.fillStyle = fill;
   if (what === 0) { // a mammoth calf, tusk and all
     ctx.fillRect(mx - 18, my - 10, 30, 20); ctx.fillRect(mx - 22, my - 14, 14, 14); ctx.fillRect(mx - 24, my - 2, 4, 14);
     ctx.fillRect(mx - 14, my + 10, 5, 10); ctx.fillRect(mx + 4, my + 10, 5, 10);
@@ -42,8 +33,70 @@ const tube = (ctx: Ctx, cx: number, top: number, bottom: number, what: number, n
     if (what === 2) { ctx.fillRect(mx + 10, my - 4, 12, 10); ctx.fillStyle = 'rgba(200, 40, 40, 0.6)'; ctx.fillRect(mx - 1, my - 21, 2, 12); }
     else { ctx.fillStyle = 'rgba(230, 240, 250, 0.75)'; ctx.fillRect(mx - 5, my - 30, 4, 2); ctx.fillRect(mx + 1, my - 30, 4, 2); ctx.fillRect(mx + 8, my - 16, 9, 12); }
   }
-  // Bubbles coming up
-  for (let k = 0; k < 5; k++) {
+  if (hi) { ctx.fillStyle = hi; ctx.fillRect(mx - 10, my - 20, 2, 18); }
+};
+
+/** Cracks spreading over a tube's glass (k 0..1: how far they've got), out from a point on it. */
+const cracks = (ctx: Ctx, x: number, y: number, w: number, h: number, k: number, seed: number) => {
+  if (k <= 0) return;
+  const ox = x + w * (0.3 + hash(seed) * 0.4), oy = y + h * (0.25 + hash(seed + 1) * 0.4);
+  ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+  ctx.strokeStyle = 'rgba(235, 250, 255, 0.85)'; ctx.lineWidth = 1;
+  const n = Math.ceil(k * 7);
+  for (let i = 0; i < n; i++) {
+    const a = (i / 7) * Math.PI * 2 + hash(seed + i * 3) * 0.6, len = (14 + hash(seed + i * 5) * 40) * Math.min(1, k * 1.6);
+    ctx.beginPath(); ctx.moveTo(ox, oy);
+    for (let j = 1; j <= 4; j++) {
+      const px = ox + Math.cos(a + (hash(seed + i * 7 + j) - 0.5) * 0.7) * len * j / 4, py = oy + Math.sin(a + (hash(seed + i * 9 + j) - 0.5) * 0.7) * len * j / 4;
+      ctx.lineTo(Math.round(px) + 0.5, Math.round(py) + 0.5);
+    }
+    ctx.stroke();
+  }
+  box(ctx, ox - 1, oy - 1, 3, 3, 'rgba(255, 255, 255, 0.9)');
+  ctx.restore();
+};
+
+/** A row of broken glass teeth along y, pointing down (dir 1) or up (dir -1). */
+const teeth = (ctx: Ctx, x: number, y: number, w: number, dir: number, seed: number) => {
+  for (let i = 0; i < w; i += 6) {
+    const hgt = 4 + Math.round(hash(seed + i) * 14);
+    for (let j = 0; j < hgt; j += 2) {
+      const half = Math.max(1, Math.round(3 * (1 - j / hgt)));
+      box(ctx, x + i + 3 - half, y + dir * j - (dir < 0 ? 2 : 0), half * 2, 2, j < 2 ? '#7FB8DC' : 'rgba(207, 239, 255, 0.75)');
+    }
+  }
+};
+
+/**
+ * One of his specimen tubes: steel caps, glass, blue coolant with bubbles coming up, and what's in it. As the vault
+ * warms, `crack` (0..1) spreads over the glass; `broke` (frames since it gave, or -1): it's gone, teeth of glass left in
+ * the caps, the last of the coolant dripping out of the pipe, and what was in it is out on the floor (drawn there).
+ */
+const tube = (ctx: Ctx, cx: number, top: number, bottom: number, what: number, name: string, f: number, crack = 0, broke = -1) => {
+  const w = 54, x = cx - w / 2;
+  // Coolant pipe up to the ceiling
+  box(ctx, cx - 4, top - 80, 8, 80, '#24415E'); box(ctx, cx - 4, top - 80, 2, 80, '#3E6688');
+  bevel(ctx, x - 4, top - 14, w + 8, 14, '#3A5670', '#6B8BA8', '#1C2E40');
+  bevel(ctx, x - 6, bottom - 24, w + 12, 24, '#3A5670', '#6B8BA8', '#1C2E40');
+  const gy = top, gh = bottom - 24 - top;
+  if (broke >= 0) {
+    box(ctx, x, gy, w, gh, 'rgba(6, 14, 24, 0.35)');
+    teeth(ctx, x, gy, w, 1, what * 11);
+    teeth(ctx, x, gy + gh, w, -1, what * 13 + 5);
+    const every = broke < 240 ? 9 : 40;
+    for (let k = 0; k < 3; k++) {
+      const q = ((f + k * 17 + what * 7) % every) / every;
+      if (broke < 240 || k === 0) box(ctx, cx - 6 + k * 6, gy + q * gh, 2, 4, '#5FA8D3');
+    }
+    box(ctx, cx - 28, bottom - 18, 56, 10, '#D8E6F0'); label(ctx, name, cx, bottom - 10.5, '#1C2E40', 5);
+    return;
+  }
+  // The liquid, banded darker to the bottom
+  bandedGradient(ctx, x, gy, w, gh, ['#1E6E9E', '#175A86', '#12476C'], 6);
+  // What's in it (a dark shape through the blue)
+  specimen(ctx, cx, gy + gh * 0.55, what, 'rgba(8, 24, 40, 0.75)');
+  // Bubbles coming up (boiling up, the hotter it's got)
+  for (let k = 0; k < 5 + Math.round(crack * 10); k++) {
     const life = (f * (0.6 + (k % 3) * 0.25) + k * 37 + what * 13) % gh;
     const bx = x + 8 + hash(k + what * 7) * (w - 16) + Math.sin((f + k * 20) * 0.08) * 2;
     box(ctx, bx, gy + gh - life, 2 + (k % 2), 2 + (k % 2), 'rgba(200, 240, 255, 0.7)');
@@ -52,14 +105,29 @@ const tube = (ctx: Ctx, cx: number, top: number, bottom: number, what: number, n
   checker(ctx, x, gy + gh - 18, w, 18, 'rgba(230, 245, 255, 0.45)', 0);
   box(ctx, x + 6, gy, 4, gh, 'rgba(255, 255, 255, 0.22)'); box(ctx, x + 12, gy, 2, gh, 'rgba(255, 255, 255, 0.12)');
   box(ctx, x, gy, 2, gh, '#7FB8DC'); box(ctx, x + w - 2, gy, 2, gh, '#0E3550');
+  cracks(ctx, x, gy, w, gh, crack, what * 29 + 3);
   // The plate on the base
   box(ctx, cx - 28, bottom - 18, 56, 10, '#D8E6F0'); label(ctx, name, cx, bottom - 10.5, '#1C2E40', 5);
 };
 
-export const drawArtieLair = (ctx: Ctx, L: number, R: number, T: number, B: number, f: number) => {
+/** How hot it's got, as the readout shows it (degrees C). */
+const tempOf = (heat: number) => Math.round(-89 + heat * 131);
+/** The mercury: blue cold, up through yellow, red hot. */
+const mercury = (heat: number) => heat < 0.45 ? '#5DADE2' : heat < 0.75 ? '#FACC15' : '#EF4444';
+
+/**
+ * His vault. `vault` (see GameState.artieVault): how hot it's got (0..1) and when each tube gave. Fire in here warms it
+ * for good: the frost goes off the walls, the icicles on the coolant lines shrink and drip, the floor ice goes to
+ * water, the mist to steam, the coolant cores in the columns run hot, the readout and its gauge climb, and the
+ * specimen tubes crack and give.
+ */
+export const drawArtieLair = (ctx: Ctx, L: number, R: number, T: number, B: number, f: number, vault?: { heat: number; broke: number[] }) => {
   const W = R - L;
+  const heat = vault?.heat ?? 0, cold = 1 - heat;
   // The wall: cold steel, banded darker up into the gloom
   bandedGradient(ctx, L, T, W, B - T, ['#0A1626', '#0F2236', '#16304A', '#1A3956', '#16314B'], 14);
+  // (warming: a glow coming up the steel off the floor, in bands)
+  if (heat > 0.05) bandedGradient(ctx, L, T + (B - T) * 0.35, W, (B - T) * 0.65, ['rgba(255, 120, 40, 0)', `rgba(255, 110, 40, ${(heat * 0.12).toFixed(3)})`, `rgba(255, 100, 30, ${(heat * 0.24).toFixed(3)})`, `rgba(255, 90, 20, ${(heat * 0.36).toFixed(3)})`], 6);
   // Riveted panels
   for (let y = T + 24, row = 0; y < B - 20; y += 86, row++) {
     for (let x = L + 24 - (row % 2) * 60; x < R - 24; x += 120) {
@@ -69,11 +137,19 @@ export const drawArtieLair = (ctx: Ctx, L: number, R: number, T: number, B: numb
       for (const rx of [x0 + 6, x1 - 8]) for (const ry of [y + 6, y + 78]) { box(ctx, rx, ry, 2, 2, '#4C7BA6'); box(ctx, rx + 1, ry + 1, 1, 1, '#0A1626'); }
     }
   }
-  // Frost creeping in off the ceiling and up off the floor: ragged, dithered at the edge
-  box(ctx, L, T + 18, W, 30, 'rgba(210, 236, 255, 0.12)');
-  checker(ctx, L, T + 48, W, 14, 'rgba(210, 236, 255, 0.12)', 1);
-  box(ctx, L, B - 40, W, 26, 'rgba(210, 236, 255, 0.10)');
-  checker(ctx, L, B - 56, W, 16, 'rgba(210, 236, 255, 0.10)', 0);
+  // Frost creeping in off the ceiling and up off the floor: ragged, dithered at the edge (going as it warms)
+  if (cold > 0.02) {
+    box(ctx, L, T + 18, W, 30, `rgba(210, 236, 255, ${(0.12 * cold).toFixed(3)})`);
+    checker(ctx, L, T + 48, W, Math.round(14 * cold), `rgba(210, 236, 255, ${(0.12 * cold).toFixed(3)})`, 1);
+    box(ctx, L, B - 40, W, 26, `rgba(210, 236, 255, ${(0.10 * cold).toFixed(3)})`);
+    checker(ctx, L, B - 56, W, Math.round(16 * cold), `rgba(210, 236, 255, ${(0.10 * cold).toFixed(3)})`, 0);
+  }
+  // (and the meltwater running down the panels)
+  if (heat > 0.15) for (let i = 0; i < 18; i++) {
+    const x = Math.round(L + 30 + hash(i + 70) * (W - 60)), len = Math.round((30 + hash(i + 90) * 120) * Math.min(1, (heat - 0.15) * 2));
+    box(ctx, x, T + 50, 1, len, 'rgba(160, 210, 240, 0.35)');
+    box(ctx, x, T + 50 + ((f * (0.6 + hash(i) * 0.6) + i * 40) % Math.max(1, len)), 1, 3, 'rgba(220, 245, 255, 0.7)');
+  }
 
   // The vault door, centre back: a great round slab, bolted, a handwheel, frost round the bottom of it
   const cx = L + W / 2, cy = T + 190;
@@ -101,16 +177,22 @@ export const drawArtieLair = (ctx: Ctx, L: number, R: number, T: number, B: numb
   label(ctx, 'CRYO-VAULT 1', cx, cy - 58, '#BFD9EE', 6);
   // frost across the bottom of the door
   ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, 104, 0, Math.PI * 2); ctx.clip();
-  checker(ctx, cx - 110, cy + 40, 220, 30, 'rgba(235, 248, 255, 0.5)', 0);
-  box(ctx, cx - 110, cy + 70, 220, 60, 'rgba(235, 248, 255, 0.35)');
+  if (cold > 0.02) {
+    const fr = Math.round(cold * 30);
+    checker(ctx, cx - 110, cy + 70 - fr, 220, fr, `rgba(235, 248, 255, ${(0.5 * cold).toFixed(3)})`, 0);
+    box(ctx, cx - 110, cy + 70 + Math.round(heat * 40), 220, 60, `rgba(235, 248, 255, ${(0.35 * cold).toFixed(3)})`);
+  }
   ctx.restore();
 
   // Specimens either side of it
   const tubeTop = B - 200;
-  tube(ctx, L + 100, tubeTop, B - 14, 0, 'MAMMOTH', f);
-  tube(ctx, L + 190, tubeTop + 20, B - 14, 1, 'PENGUIN', f);
-  tube(ctx, R - 190, tubeTop + 20, B - 14, 2, 'LOBBYIST', f);
-  tube(ctx, R - 100, tubeTop, B - 14, 3, 'REVIEWER 2', f);
+  const TUBES: [number, number, string][] = [[L + 100, tubeTop, 'MAMMOTH'], [L + 190, tubeTop + 20, 'PENGUIN'], [R - 190, tubeTop + 20, 'LOBBYIST'], [R - 100, tubeTop, 'REVIEWER 2']];
+  TUBES.forEach(([tx0, top, name], i) => {
+    const broke = vault && vault.broke[i] >= 0 ? f - vault.broke[i] : -1;
+    // (it starts to go a little before it gives)
+    const crack = Math.max(0, Math.min(1, (heat - (TUBE_BREAK_AT[i] - 0.14)) / 0.14));
+    tube(ctx, tx0, top, B - 14, i, name, f, crack, broke);
+  });
 
   // His laminated trail map, every crevasse on it, pinned up top left; the readout top right
   picture(ctx, L + 52, T + 60, 90, 62, '#D8E6F0', '#FFFFFF', () => {
@@ -123,8 +205,21 @@ export const drawArtieLair = (ctx: Ctx, L: number, R: number, T: number, B: numb
   box(ctx, L + 95, T + 54, 4, 4, '#DC2626');
   const tx = R - 150, ty = T + 62;
   bevel(ctx, tx, ty, 96, 40, '#0B1B2B', '#3E6688', '#06101A');
-  label(ctx, 'VAULT TEMP', tx + 48, ty + 13, '#5DADE2', 5);
-  label(ctx, f % 60 < 50 ? '-89°C' : '-89 C', tx + 48, ty + 31, '#7DF9FF', 10);
+  // (above freezing, it's flashing: it was never meant to get there)
+  const temp = tempOf(heat), alarm = temp > 0 && f % 30 < 15;
+  label(ctx, alarm ? 'WARNING' : 'VAULT TEMP', tx + 48, ty + 13, alarm ? '#EF4444' : '#5DADE2', 5);
+  label(ctx, `${temp > 0 ? '+' : ''}${temp}${f % 60 < 50 ? '°' : ' '}C`, tx + 48, ty + 31, temp < -30 ? '#7DF9FF' : temp <= 0 ? '#FDE047' : '#F87171', 10);
+  // The gauge beside it: a big thermometer, the mercury climbing, freezing marked on it
+  const gx = tx - 26, gTop = ty - 8, gBot = ty + 96, run = gBot - gTop - 18;
+  const level = (h: number) => gBot - 10 - Math.round(run * (0.08 + h * 0.92));
+  bevel(ctx, gx - 2, gTop - 2, 16, gBot - gTop + 4, '#0B1B2B', '#3E6688', '#06101A');
+  box(ctx, gx + 4, gTop + 4, 4, gBot - gTop - 14, '#06101A');
+  const mTop = level(heat);
+  box(ctx, gx + 4, mTop, 4, gBot - 10 - mTop, mercury(heat)); box(ctx, gx + 4, mTop, 1, gBot - 10 - mTop, 'rgba(255, 255, 255, 0.5)');
+  ctx.fillStyle = mercury(heat); ctx.beginPath(); ctx.arc(gx + 6, gBot - 6, 6, 0, Math.PI * 2); ctx.fill();
+  box(ctx, gx + 4, gBot - 9, 2, 2, 'rgba(255, 255, 255, 0.6)');
+  for (let k = 0; k <= 6; k++) box(ctx, gx + 9, Math.round(gTop + 6 + k * (gBot - gTop - 22) / 6), 3, 1, '#6B8BA8');
+  box(ctx, gx + 8, level(89 / 131), 6, 1, '#FDE047');
 
   // Coolant lines along the ceiling, with icicles grown off them
   for (const [y, h] of [[T + 18, 12], [T + 34, 8]] as const) {
@@ -134,30 +229,60 @@ export const drawArtieLair = (ctx: Ctx, L: number, R: number, T: number, B: numb
   }
   for (let i = 0; i < 34; i++) {
     const x = L + 10 + i * (W - 20) / 33 + (hash(i) - 0.5) * 8;
-    icicle(ctx, x, T + 42, 8 + Math.round(hash(i + 5) * 22), 2 + Math.round(hash(i + 9) * 3));
+    // (shrinking as it warms, dripping off the tip)
+    const len = Math.round((8 + hash(i + 5) * 22) * (1 - heat * 0.8));
+    if (len >= 2) icicle(ctx, x, T + 42, len, 2 + Math.round(hash(i + 9) * 3));
+    if (heat > 0.1 && hash(i + 33) < heat) { const q = ((f * 1.3 + i * 23) % 90) / 90; box(ctx, Math.round(x), Math.round(T + 42 + len + q * (B - 14 - T - 42 - len)), 1, 3, 'rgba(190, 230, 255, 0.8)'); }
   }
 
   // The side columns: frosted steel, a coolant core lit inside
   for (const x of [L, R - 24]) {
     bevel(ctx, x, T, 24, B - T, '#13283C', '#34587A', '#081420');
-    const pulse = 0.5 + 0.3 * Math.sin(f * 0.08);
-    box(ctx, x + 8, T + 24, 8, B - T - 48, '#0A3A4A');
-    box(ctx, x + 10, T + 24, 4, B - T - 48, `rgba(125, 249, 255, ${pulse.toFixed(2)})`);
-    for (let y = T + 40; y < B - 30; y += 50) { box(ctx, x + 4, y, 16, 3, '#34587A'); checker(ctx, x, y + 3, 24, 6, 'rgba(235, 248, 255, 0.4)', 0); }
+    // (the cores run hot as it warms: cyan, then amber, then red and stuttering)
+    const pulse = heat > 0.75 ? (f % 9 < 3 ? 0.25 : 0.85) : 0.5 + 0.3 * Math.sin(f * (0.08 + heat * 0.2));
+    const core = heat < 0.45 ? '125, 249, 255' : heat < 0.75 ? '251, 191, 36' : '248, 80, 60';
+    box(ctx, x + 8, T + 24, 8, B - T - 48, heat < 0.45 ? '#0A3A4A' : '#3A1A0A');
+    box(ctx, x + 10, T + 24, 4, B - T - 48, `rgba(${core}, ${pulse.toFixed(2)})`);
+    for (let y = T + 40; y < B - 30; y += 50) { box(ctx, x + 4, y, 16, 3, '#34587A'); if (cold > 0.05) checker(ctx, x, y + 3, 24, Math.round(6 * cold), `rgba(235, 248, 255, ${(0.4 * cold).toFixed(3)})`, 0); }
   }
 
   // The floor: iced-over plate, a shine along it, frost at the seams
   box(ctx, L, B - 14, W, 14, '#16324C');
-  box(ctx, L, B - 14, W, 2, '#9ED4F0');
-  for (let x = L; x < R; x += 60) { box(ctx, x, B - 12, 2, 12, '#0B1B2B'); checker(ctx, x - 4, B - 12, 10, 4, 'rgba(235, 248, 255, 0.6)', 0); }
+  box(ctx, L, B - 14, W, 2, heat > 0.5 ? '#5FA8D3' : '#9ED4F0');
+  for (let x = L; x < R; x += 60) { box(ctx, x, B - 12, 2, 12, '#0B1B2B'); if (cold > 0.05) checker(ctx, x - 4, B - 12, 10, Math.max(1, Math.round(4 * cold)), `rgba(235, 248, 255, ${(0.6 * cold).toFixed(3)})`, 0); }
   for (let x = L + 20; x < R; x += 140) box(ctx, x + (f * 0.2) % 40, B - 10, 18, 1, 'rgba(255, 255, 255, 0.5)');
+  // (meltwater standing on it, drips landing in it)
+  if (heat > 0.2) {
+    const a = Math.min(1, (heat - 0.2) * 1.6);
+    for (let k = 0; k < 9; k++) {
+      const px = Math.round(L + 40 + hash(k + 120) * (W - 120)), pw = Math.round((40 + hash(k + 130) * 90) * a);
+      box(ctx, px, B - 14, pw, 2, 'rgba(70, 150, 200, 0.7)');
+      box(ctx, px + 4, B - 14, Math.max(0, pw - 8), 1, 'rgba(200, 235, 255, 0.6)');
+      if ((f + k * 13) % 50 < 6 && pw > 12) box(ctx, px + ((f + k * 13) % 50) * 2 % pw, B - 15, 2, 1, 'rgba(255, 255, 255, 0.8)');
+    }
+  }
+  // The tubes that gave: their coolant out across the floor, and what was in them out of it, face down in it, frosted
+  TUBES.forEach(([tx0], i) => {
+    if (!vault || vault.broke[i] < 0) return;
+    const t = f - vault.broke[i], spread = Math.min(1, t / 50);
+    box(ctx, Math.round(tx0 - 60 * spread), B - 14, Math.round(120 * spread), 2, '#1E6E9E');
+    box(ctx, Math.round(tx0 - 54 * spread), B - 14, Math.round(108 * spread), 1, '#7FB8DC');
+    const tip = Math.min(1, t / 14);
+    const dir = i < 2 ? 1 : -1;
+    ctx.save(); ctx.translate(tx0 + dir * 30, B - 15); ctx.rotate(dir * tip * Math.PI / 2);
+    specimen(ctx, 0, i === 0 ? -14 : i === 1 ? -18 : -26, i, '#6E8FAE', 'rgba(230, 245, 255, 0.8)');
+    ctx.restore();
+    if (t < 400 && (f + i * 7) % 24 < 12) pixelBlob(ctx, tx0 + Math.sin(f * 0.05 + i) * 20, B - 30 - (t % 60) * 0.3, 40, 10, 'rgba(220, 240, 255, 0.12)');
+  });
 
   // Cold mist rolling along the floor, and the odd flake hanging in the air
   for (let k = 0; k < 7; k++) {
     const mx = L + ((k * 131 + f * (0.25 + (k % 3) * 0.1)) % (W + 160)) - 80;
-    pixelBlob(ctx, mx, B - 22 - (k % 3) * 6, 60 + (k % 2) * 30, 10, 'rgba(220, 240, 255, 0.10)');
+    // (lifting off the floor as steam, the warmer it gets)
+    const rise = heat > 0.3 ? ((f * (0.3 + (k % 3) * 0.15) + k * 40) % 140) * (heat - 0.3) / 0.7 : 0;
+    pixelBlob(ctx, mx, B - 22 - (k % 3) * 6 - rise, 60 + (k % 2) * 30, 10, `rgba(220, 240, 255, ${(0.10 + heat * 0.06).toFixed(3)})`);
   }
-  for (let i = 0; i < 22; i++) {
+  for (let i = 0; i < Math.round(22 * cold); i++) {
     const sx = L + ((i * 37 + Math.sin(f * 0.03 + i) * 20 + f * 0.3) % W);
     const sy = T + ((i * 47 + f * (0.4 + (i % 3) * 0.2)) % (B - T));
     box(ctx, sx, sy, 2, 2, 'rgba(235, 245, 251, 0.6)');

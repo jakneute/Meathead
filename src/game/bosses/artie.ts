@@ -43,8 +43,38 @@ const ICICLE_DAMAGE = 10;
 /** A block of ice to the face: big and telegraphed, but he's the first boss. */
 const ICE_BLOCK_DAMAGE = 20;
 
+// ---------------------------------------------------------------------------
+// The vault warming up (looks only: nothing in the fight changes)
+// ---------------------------------------------------------------------------
+
+/** His specimen tubes, along the back wall (centers): the mammoth, the penguin, the lobbyist, reviewer #2. */
+export const ARTIE_TUBE_X = [ARENA_LEFT + 100, ARENA_LEFT + 190, ARENA_RIGHT - 190, ARENA_RIGHT - 100];
+/** How hot it has to get for each to give, and the order they go in (the lobbyist first, reviewer #2 holding out). */
+export const TUBE_BREAK_AT = [0.7, 0.5, 0.3, 0.9];
+/** Each time he's set alight, every frame he's on fire, and every frame the flamethrower's going in here. */
+const HEAT_PER_BURN = 0.1, HEAT_BURNING = 0.0006, HEAT_FLAME = 0.0009;
+
+/** Fire in the vault warms it, for good: the frost goes, the readout climbs, and the tubes give one by one. */
+const warmVault = (ctx: FrameContext, boss: Enemy) => {
+  const { state } = ctx, v = state.artieVault;
+  const burning = boss.bossState === 'panicking' || !!boss.isOnFire;
+  const flaming = !!state.player.isFlaming && state.player.pos.x > ARENA_LEFT - 40;
+  v.heat = Math.min(1, v.heat + (burning ? HEAT_BURNING : 0) + (flaming ? HEAT_FLAME : 0));
+  TUBE_BREAK_AT.forEach((at, i) => {
+    if (v.broke[i] >= 0 || v.heat < at) return;
+    v.broke[i] = state.frame;
+    // The glass goes: shards everywhere, the coolant out across the floor in a cloud of it
+    const x = ARTIE_TUBE_X[i], y = FLOOR_Y - 110;
+    ctx.fx.spawnExplosion({ x, y }, '#CFEFFF', 22, 0, 9, true);
+    for (let k = 0; k < 26; k++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 50, y: y + Math.random() * 80 }, vel: { x: (Math.random() - 0.5) * 7, y: -Math.random() * 4 }, life: 30 + Math.random() * 20, color: k % 3 ? '#1E6E9E' : '#7FB8DC', size: 3 + Math.random() * 3, grav: 0.35 });
+    for (let k = 0; k < 8; k++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 60, y: FLOOR_Y - 20 }, vel: { x: (Math.random() - 0.5) * 1.2, y: -0.8 - Math.random() }, life: 50, color: 'rgba(220, 240, 255, 0.45)', size: 12 + Math.random() * 10 });
+    playSound('glass'); playSound('splash', 0.7); playSound('crack', 0.6, -3);
+  });
+};
+
 const update = (ctx: FrameContext, boss: Enemy) => {
   updateIcicles(ctx);
+  warmVault(ctx, boss);
   if (boss.bossState === 'panicking') { panic(ctx, boss); return; }
   if (boss.shootTimer > 0) boss.shootTimer--;
   if (boss.isGroundedBoss && Math.abs(boss.vel.x) < 0.5) boss.sideTimer = (boss.sideTimer || 0) + 1;
@@ -141,6 +171,7 @@ const PANIC_LEAPS = 2;
  * early.
  */
 const startPanic = (ctx: FrameContext, boss: Enemy) => {
+  ctx.state.artieVault.heat = Math.min(1, ctx.state.artieVault.heat + HEAT_PER_BURN);
   boss.slideTargetX = boss.pos.x < ARENA_MID - 40 ? ARENA_RIGHT - boss.width - BOSS_WALL_GAP - 20 : ARENA_LEFT + BOSS_WALL_GAP + 20;
   boss.bossState = 'panicking';
   boss.panicLeaps = PANIC_LEAPS - 1;

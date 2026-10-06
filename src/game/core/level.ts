@@ -21,6 +21,7 @@ export const buildLevel = (state: GameState, stageId: string | null, skipToBoss:
   state.victorWallSide = 0;
   state.ernieVibrationTimer = 0;
   state.hectorFilth = 0; state.hectorFilthShown = 0;
+  state.artieVault = { heat: 0, broke: [-1, -1, -1, -1] };
   state.screenShakeTimer = 0;
   state.playerStunTimer = 0;
   state.tsunamiActive = false;

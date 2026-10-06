@@ -33,7 +33,7 @@ export const drawCustomBossArena = (
 
   switch (stageId) {
     case 'Artie Avalanche':
-      drawArtieLair(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame);
+      drawArtieLair(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame, state?.artieVault);
       break;
     case 'Victor Volcano':
       drawVictorLair(ctx, arenaLeft, arenaRight, ceilingY, groundY, frame);
