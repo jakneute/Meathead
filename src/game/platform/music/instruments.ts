@@ -149,6 +149,13 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
     make: held(0.05, partials(sawPartials(262, (k, hz) => (k % 2 ? 1 : 0.55) * (0.6 * formant(hz, 520, 260) + formant(hz, 1600, 500) + 0.15) * Math.exp(-k / 14)))),
     base: midiOf(262), env: { a: 0.03, d: 0.12, s: 0.85, r: 0.12 }, gain: 0.55, vib: [5, 16],
   },
+  mute: {
+    // A trumpet with a harmon mute in it: the bottom of it choked off, all buzz and nasal honk up top (late-night noir)
+    make: held(0.04, partials(sawPartials(262, (k, hz) => (hz < 700 ? 0.3 : 1) * (formant(hz, 1750, 450) + 0.7 * formant(hz, 3300, 700) + 0.06) * Math.exp(-k / 18))), (u) => 0.5 + 0.5 * u),
+    base: midiOf(262), env: { a: 0.02, d: 0.12, s: 0.7, r: 0.1 }, gain: 0.42, vib: [5.5, 9],
+  },
+  // Low brass that swells up out of nothing (the trombones and tuba, Herrmann's dread)
+  swell: { alias: 'brass', make: () => ({ data: new Float32Array(1) }), base: midiOf(262), env: { a: 0.9, d: 0.4, s: 0.95, r: 0.7 }, gain: 0.55, vib: [4.5, 5] },
   choir: {
     make: held(0.05, partials([262, 263, 261].flatMap((f, j) => sawPartials(f, (k, hz) => (1 - j * 0.15) * (formant(hz, 730, 160) + 0.7 * formant(hz, 1090, 180) + 0.25 * formant(hz, 2440, 300)) * 1.5, 5000)))),
     base: midiOf(262), env: { a: 0.2, d: 0.2, s: 0.9, r: 0.5 }, gain: 0.5, vib: [4.5, 10],
@@ -212,6 +219,11 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
     make: shot(2.4, (t) => Math.sin(TAU * 1047 * t) * Math.exp(-t * 1.6) + 0.5 * Math.sin(TAU * 1047 * 2.76 * t) * Math.exp(-t * 3) + 0.25 * Math.sin(TAU * 1047 * 5.4 * t) * Math.exp(-t * 6) + 0.12 * Math.sin(TAU * 1047 * 8.93 * t) * Math.exp(-t * 10)),
     base: midiOf(1047), env: { a: 0.001, d: 0, s: 1, r: 0.3 }, gain: 0.35,
   },
+  vibes: {
+    // A vibraphone: soft-mallet bars, the motor's tremolo pulsing on them
+    make: shot(3, (t) => (Math.sin(TAU * 262 * t) * Math.exp(-t * 0.9) + 0.22 * Math.sin(TAU * 262 * 4 * t) * Math.exp(-t * 3.5) + 0.08 * Math.sin(TAU * 262 * 10 * t) * Math.exp(-t * 14)) * (1 - 0.32 * (0.5 + 0.5 * Math.sin(TAU * 5.5 * t))) + (t < 0.004 ? noise() * 0.15 : 0)),
+    base: midiOf(262), env: { a: 0.002, d: 0, s: 1, r: 0.4 }, gain: 0.45,
+  },
   steel: {
     make: shot(1.6, (t) => Math.sin(TAU * 523 * t) * Math.exp(-t * 2.2) + 0.55 * Math.sin(TAU * 1046 * t) * Math.exp(-t * 3) + 0.35 * Math.sin(TAU * 523 * 3.03 * t) * Math.exp(-t * 5) + 0.2 * Math.sin(TAU * 523 * 4.1 * t) * Math.exp(-t * 7)),
     base: midiOf(523), env: { a: 0.004, d: 0, s: 1, r: 0.15 }, gain: 0.45,
@@ -246,13 +258,17 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
   rim: { drum: true, base: 60, env: { a: 0.001, d: 0, s: 1, r: 0.02 }, gain: 0.4, make: shot(0.08, (t) => Math.sin(TAU * 1700 * t) * Math.exp(-t * 60) + noise() * Math.exp(-t * 90) * 0.5) },
   tamb: { drum: true, base: 60, env: { a: 0.001, d: 0, s: 1, r: 0.03 }, gain: 0.22, make: (() => { let p = 0; return shot(0.3, (t) => { const w = noise(); const hp = w - p; p = w; return hp * Math.exp(-t * 14) * (1 + 0.5 * Math.sin(TAU * 7000 * t)); }); })() },
   sleigh: { drum: true, base: 60, env: { a: 0.001, d: 0, s: 1, r: 0.05 }, gain: 0.2, make: shot(0.45, (t) => (Math.sin(TAU * 5200 * t) + Math.sin(TAU * 6300 * t) + Math.sin(TAU * 7700 * t)) * Math.exp(-t * 10) * (0.6 + 0.4 * Math.sin(TAU * 38 * t))) },
+  // (a jazz ride: a ping on top of a wash of inharmonic shimmer, ringing on)
+  ride: { drum: true, base: 60, env: { a: 0.001, d: 0, s: 1, r: 0.2 }, gain: 0.16, make: (() => { let p = 0; return shot(1.4, (t) => { const w = noise(); const hp = w - p * 0.8; p = w; return ([3150, 4410, 5230, 6720, 8130] as const).reduce((v, f, j) => v + Math.sin(TAU * f * t) * Math.exp(-t * (3 + j)) / (j + 1), 0) * 0.5 + hp * 0.35 * Math.exp(-t * 3.5) + Math.sin(TAU * 610 * t) * Math.exp(-t * 30) * 0.4; }); })() },
+  // (brushes on the snare: a soft papery slap, no rattle to it)
+  brush: { drum: true, base: 60, env: { a: 0.001, d: 0, s: 1, r: 0.04 }, gain: 0.32, make: (() => { let lp = 0; return shot(0.28, (t) => { lp += 0.35 * (noise() - lp); return lp * Math.min(1, t / 0.008) * Math.exp(-t * 15) + Math.sin(TAU * 190 * t) * Math.exp(-t * 35) * 0.15; }); })() },
   scratch: { drum: true, base: 60, env: { a: 0.001, d: 0, s: 1, r: 0.02 }, gain: 0.3, make: (() => { let ph = 0; return shot(0.22, (t) => { ph += (300 + 1200 * Math.abs(Math.sin(TAU * 9 * t))) / SR; return Math.sin(TAU * ph) * 0.5 + noise() * 0.5 * Math.abs(Math.sin(TAU * 9 * t)); }); })() },
 };
 
 /** Letters for the drums in a drum track. */
 export const DRUM_KEYS: Record<string, string> = {
   k: 'kick', s: 'snare', h: 'hat', o: 'ohat', x: 'crash', t: 'tomh', u: 'toml', p: 'clap', c: 'conga', d: 'congal',
-  b: 'bongo', w: 'cowbell', z: 'shaker', m: 'rim', j: 'tamb', y: 'sleigh', g: 'scratch',
+  b: 'bongo', w: 'cowbell', z: 'shaker', m: 'rim', j: 'tamb', y: 'sleigh', g: 'scratch', i: 'ride', n: 'brush',
 };
 
 const built: Record<string, { buf: AudioBuffer; loop?: [number, number]; ctx: BaseAudioContext }> = {};

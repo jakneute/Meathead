@@ -74,6 +74,17 @@ const OSCAR_ROOTS = ['e', 'd', 'e', 'e', 'a', 'd', 'a', 'a'];
 const DALE_TUNE = ['o5 l8 d4. a a4 g f', 'o5 e4. f d2', 'o5 d4. a > c4 < b- a', 'o5 a2. r4', 'o5 b-4. a g4 f e', 'o5 f4. g a2', 'o5 g4 f e d4 c+4', 'o5 d1'];
 const DALE_ROOTS = ['d', 'a', 'd', 'a', 'g', 'd', 'a', 'd'];
 
+// Barry's: the tune (on the sax, in the alto's smoky middle), the high wail over the dread, the Rhodes' chords and the
+// strings' guide tones (one a bar, or two where the chord changes halfway), and the brushes and the ride
+const BARRY_TUNE = ['o4 l8 f4 a- b- > c4 < b- a-', 'o4 g4 f e- f2', 'o4 f4 a- b- > c e- d- c', 'o4 b-2. r4', 'o4 a-4 b- > c d-4 c4', 'o4 b-4 a- g f4 e-4', 'o4 d-4 e- f g4 e-4', 'o4 f1'];
+const BARRY_HIGH = ['o5 r4 c4 e-4 d-8 c8', 'o5 d-2. r8 c8', 'o5 e-4 f4 a-4. g8', 'o5 g-2. r4', 'o5 f4 a-4 > c4. < b-8', 'o5 a-4 f4 d-4 c4', 'o5 d-4. c8 < b-4 g4', 'o5 d-2 c2'];
+// (Fm9, Dbmaj7#11, Fm9 Bbm9, C7b9, Dbmaj9, Gm7b5 C7b9, Bbm7 C7#9, Fm(maj7); then Fm9 and Gb over the F pedal, Dbmaj9, Bbm9, Gm7b5, C7b9)
+const BARRY_CHORDS: [string, string?][] = [['e-ga->c'], ['fga->c'], ['e-ga->c', 'a->cd-f'], ['eb->d-g'], ['fa->ce-'], ['fb->d-', 'eb->d-'], ['fa->d-', 'eb->e-'], ['ea->cg'],
+  ['e-ga->c'], ['g-b->d-f'], ['e-ga->c'], ['g-b->d-f'], ['fa->ce-'], ['a->cd-f'], ['fb->d-'], ['eb->d-g']];
+const BARRY_TREM: [string, string?][] = [['a->e-'], ['a->c'], ['a->e-', 'a->d-'], ['b->e'], ['a->c'], ['b->f', 'b->e'], ['a->d-', 'b->e'], ['a->c'],
+  ['a->e-'], ['g->f'], ['a->e-'], ['g->f'], ['a->c'], ['a->d-'], ['b->f'], ['b->e', 'b->d-']];
+const BARRY_JAZZ = 'v11 {ki}4 {hin}8 i8 i4 {hin}8 i8';
+
 export const SONGS: Record<string, Song> = {
   // ---------------------------------------------------------------------------------------------------------------
   // The title: a big, dumb, heroic rock anthem. Power chords, a brass tune, a lot of drums.
@@ -282,29 +293,52 @@ export const SONGS: Record<string, Song> = {
     },
   },
 
-  // Barry: New York noir. Walking bass and a sax on the street; elevator music in the office tower (with something
-  // wrong under it in R&D); brass on the roofs (and for the ride down on Barry's man); the strings coming in up the
-  // fire escape; tense in the power room.
+  // Barry: New York noir, the late-70s kind (Taxi Driver: Herrmann's sax at three in the morning, the steam coming up out
+  // of the street). Sixteen bars: the tune on a lonely alto sax over a walking upright, Rhodes on minor ninths, brushes and
+  // the ride, a muted trumpet answering; then eight bars of dread on an F pedal (low brass swelling, the timpani like a
+  // heartbeat, the snare tapping and then rolling up into the top again, the harp running down) with the sax up high and
+  // wailing over it. Elevator music in the office tower (vibes, a bossa on the rim) with the dread creeping in under it in
+  // R&D; the roofs with a muted trumpet on the tune over the sax and the horn section stabbing (and for the ride down on
+  // Barry's man); the fire escape with the strings trembling in under it; the power room the dread turned up, an open
+  // trumpet and an organ.
   barry: {
-    bpm: 128,
+    bpm: 108,
     parts: {
-      lead: { inst: 'sax', mml: b('o5 l8 f4 a- b- > c4 < b- a-', 'o5 g4 f e- f2', 'o5 f4 a- b- > c e- d- c', 'o5 b-2. r4', 'o5 a-4 b- > c d-4 c4', 'o5 b-4 a- g f4 e-4', 'o5 d-4 e- f g4 e-4', 'o5 f1') },
-      walk: { inst: 'bass', mml: b('o2 l4 f a- b- > c', 'o2 l4 b- a- g e-', 'o2 l4 f a- b- > c', 'o2 l4 e- d- c < b-', 'o2 l4 d- f a- f', 'o2 l4 b- a- g e-', 'o2 l4 d- e- f g', 'o2 l4 f c e- e') },
-      comp: { inst: 'piano', vol: 0.65, pan: -0.3, mml: skank(4, ['fa-c', 'e-gb-', 'fa-c', 'e-gb-', 'd-fa-', 'e-gb-', 'd-fa-', 'fa-c']) },
-      drums: { inst: 'kick', drums: true, not: ['tower'], mml: rep('{kh}8 h16 h16 {sh}8 h8 {kh}8 h16 h16 {sh}8 {hz}8', 8) },
-      bossa: { inst: 'kick', drums: true, only: ['tower'], mml: rep('{km}8 z8 z8 {kmz}8 z8 {km}8 z8 {mz}8', 8) },
-      horns: { inst: 'brass', vol: 0.7, pan: 0.3, only: ['roofs'], mml: rep('o4 r2 {fa-c}4 r8 {fa-c}8 | o4 r2 {e-gb-}4 r4', 4) },
-      str: { inst: 'strings', vol: 0.7, only: ['lab', 'climb', 'power'], mml: rep('o4 l16 f f f f f f f f a- a- a- a- a- a- a- a- | o4 l16 g g g g g g g g e- e- e- e- e- e- e- e-', 4) },
+      lead: { inst: 'sax', pan: 0.1, mml: b(...BARRY_TUNE, ...BARRY_HIGH) },
+      // (up on the roofs: a muted trumpet on the tune an octave over the sax, the two together up top for the wail)
+      hi: { inst: 'mute', vol: 0.85, pan: 0.2, only: ['roofs', 'climb'], mml: b(...BARRY_TUNE.map(up), ...BARRY_HIGH) },
+      walk: { inst: 'bass', mml: b('o2 l4 f a- > c d', 'o3 l4 d- < a- f g-', 'o2 l4 f a- b- b', 'o3 l4 c < g e d', 'o2 l4 d- e- f a-', 'o2 l4 g b- > c < b', 'o2 l4 b- a- g e', 'o2 l4 f c e- e',
+        'o2 f1', 'o2 f1', 'o2 f1', 'o2 f2. e-4', 'o2 l4 d- f a- a', 'o2 l4 b- f d- a-', 'o2 l4 g f e- d-', 'o2 l4 c e g g-') },
+      // (the Rhodes: rootless minor ninths, laid back behind the beat; held and dark through the dread)
+      keys: { inst: 'epiano', vol: 0.7, pan: -0.3, mml: b(...BARRY_CHORDS.slice(0, 8).map(([x, y]) => `o3 {${x}}2 r8 {${y ?? x}}4.`), ...BARRY_CHORDS.slice(8).map(([x, y]) => y ? `o3 {${x}}2 {${y}}2` : `o3 {${x}}1`)) },
+      drums: { inst: 'kick', drums: true, not: ['tower', 'lab'], mml: b(BARRY_JAZZ.replace('{ki}', '{kx}'), BARRY_JAZZ, BARRY_JAZZ, BARRY_JAZZ, BARRY_JAZZ, BARRY_JAZZ, BARRY_JAZZ, 'v11 {ki}4 {hin}8 i8 {ki}4 n16 n16 t16 u16',
+        'v9 r4 h4 r4 h4', 'v9 r4 h4 r4 h4', 'v9 r4 h4 r4 h4', 'v9 r4 h4 r4 h4', 'v9 i4 {hi}4 i4 {hi}4', 'v9 i4 {hi}4 i4 {hi}4', 'v9 i4 {hi}4 i4 {hi}4', 'v9 i4 {hi}4 i4 {hi}4') },
+      bossa: { inst: 'kick', drums: true, only: ['tower', 'lab'], mml: rep('{km}8 z8 z8 {kmz}8 z8 {km}8 z8 {mz}8', 16) },
+      // (Herrmann's snare: a tap like a march a long way off, then rolling up louder into the top of the tune)
+      roll: { inst: 'kick', drums: true, not: ['tower'], mml: b(rep('r1', 8), 'v8 s8. s16 s4 r2', 'r1', 'v8 s8. s16 s4 r2', 'r1', 'r1', 'v5 [s32]16 v6 [s32]16', 'v7 [s32]16 v9 [s32]16', 'v10 [s32]16 v13 [s32]8 v15 s8 r8') },
+      // (the muted trumpets: a little "wah" in the gaps the sax leaves; stingers in the dread)
+      stab: { inst: 'mute', vol: 0.6, pan: 0.35, not: ['tower', 'lab'], mml: b('r1', 'o4 r2 r8 {fa->c}8 r8 {fa->c}8', 'r1', 'o4 r4 r8 {b->d-e}8 r8 {b->d-e}8 r4', 'r1', 'o4 r2 r8 {b->d-e}8 r4', 'r1', 'o4 r2 {a->ce}4 r4',
+        'r1', 'o4 {b->d-f}8 r4. r2', 'r1', 'o4 {b->d-g-}8 r4. r2', 'r1', 'r1', 'o4 r2 {b->d-f}8 r8 {b->d-f}8 r8', 'o4 {b->d-e}8 r8 {b->d-e}8 r8 r2') },
+      // (the dread: low brass swelling up on the F, the G-flat grinding against it a half step up)
+      low: { inst: 'swell', vol: 0.7, not: ['tower'], mml: b(rep('r1', 8), 'o2 {f>c}1', 'o2 {g->d-}1', 'o2 {f>c}1', 'o2 {g->d-}1', 'o2 {d-a-}1', 'o2 {b->f}1', 'o2 {g>d-}1', 'o2 {cb->e}1') },
+      timp: { inst: 'timpani', vol: 0.8, pan: -0.1, not: ['tower'], mml: b(rep('r1', 8), 'v12 o2 f8. f16 r2.', 'o2 f8. f16 r2.', 'o2 f8. f16 r2.', 'o2 f8. f16 r2.', 'o2 d-8. d-16 r2.', 'o2 b-8. b-16 r2.', 'o2 g8. g16 r2.', 'o2 v10 c4 r4 v8 [c32]8 v13 [c32]8') },
+      // (the night shimmering: the harp running up into the dread, and back down off the G-flat)
+      harp: { inst: 'harp', vol: 0.55, pan: -0.4, mml: b('r1', 'r1', 'r1', 'o4 r2 l16 c e g b- > c e g b-', 'r1', 'r1', 'r1', 'o4 r2 l32 c d- e f g a- b- > c d- e f g a- b- > c d-',
+        'r1', 'r1', 'r1', 'o6 r2 l32 f e- d- c < b- a- g- f e- d- c < b- a- g- f e-', 'r1', 'r1', 'r1', 'r1') },
+      // (the strings trembling on the chords' guide tones)
+      str: { inst: 'strings', vol: 0.6, pan: 0.25, only: ['lab', 'climb', 'power'], mml: b(...BARRY_TREM.map(([x, y]) => y ? `o3 l16 [{${x}}]8 [{${y}}]8` : `o3 l16 [{${x}}]16`)) },
     },
     arrangements: {
       streets: {},
-      tower: { inst: { lead: 'epiano', comp: 'bell' }, vol: { comp: 0.5, walk: 0.8 } },
-      // (R&D: the elevator music, with the strings sawing away quietly under it: something's not right in here)
-      lab: { inst: { lead: 'epiano', comp: 'bell' }, vol: { comp: 0.5, walk: 0.8, str: 0.45 } },
-      roofs: { inst: { lead: 'trumpet' } },
-      // (up the fire escape: the horns out, the power room's strings coming in, nearer the top)
-      climb: { inst: { lead: 'trumpet' }, vol: { str: 0.6 } },
-      power: { inst: { lead: 'guitar', comp: 'organ' } },
+      // (the office tower: elevator music, vibes on the tune and a bossa on the rim, the dread kept out of it)
+      tower: { inst: { lead: 'vibes' }, vol: { keys: 0.6, walk: 0.8 } },
+      // (R&D: the elevator music, the dread creeping back in under it and the strings sawing away quietly: something's not right in here)
+      lab: { inst: { lead: 'vibes' }, vol: { keys: 0.6, walk: 0.8, str: 0.45, low: 0.55, timp: 0.6, roll: 0.5 } },
+      roofs: { inst: { stab: 'brass' }, vol: { lead: 0.7, stab: 0.85 } },
+      // (up the fire escape: the strings trembling in under the horns, nearer the top)
+      climb: { inst: { stab: 'brass' }, vol: { lead: 0.7, stab: 0.85, str: 0.6 } },
+      // (the power room: the dread turned up, an open trumpet on the tune, an organ humming the chords)
+      power: { inst: { lead: 'trumpet', keys: 'organ' }, vol: { keys: 0.5, low: 1.25, timp: 1.15, roll: 1.1 } },
     },
   },
 
