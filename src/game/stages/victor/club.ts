@@ -65,6 +65,9 @@ const YELLS = [
 ];
 const pick = <T,>(l: T[]) => l[Math.floor(Math.random() * l.length)];
 
+/** The first of them he kills: he squares it with himself (not quite: the rest of the kill lines get him the rest of the way). */
+const FIRST_KILL_LINE = "THEY'RE AT VICTOR'S CLUB. THEY MUST BE BAD PEOPLE... RIGHT?";
+
 /** Up the stairs he never saw. */
 const STAIRS_LINE = "...THERE WERE STAIRS? I COULD'VE TAKEN THE STAIRS INSTEAD OF ALL THAT LAVA SHIT.";
 
@@ -83,7 +86,10 @@ export const updateClub = (ctx: FrameContext, club: Club, lounge: Lounge) => {
   // The tally: a partygoer who's gone (dead, blown away, or not there any more) is one more
   const standing = new Set<string>();
   for (const e of state.enemies) if (e.kind === 'partygoer' && e.health > 0 && !e.isBlownAway) standing.add(e.id);
+  const before = club.killed;
   for (const id of club.alive) if (!standing.has(id)) { club.killed++; club.killedAt = state.frame; if (!club.tallyGone) playSound('ding', 0.5, -8); }
+  // (the first one, always: he has to say something)
+  if (before === 0 && club.killed > 0) meatheadSays(state, FIRST_KILL_LINE);
   club.alive = standing;
   if (!club.tallyGone && p.pos.x >= A.x1 + 40) club.tallyGone = true;
   // A scream now and then, from one of them in a panic in view (only when nobody else is talking: they don't talk

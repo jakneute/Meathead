@@ -9597,7 +9597,7 @@
  {
   "voice": "meathead",
   "text": "...THERE WERE STAIRS? I COULD'VE TAKEN THE STAIRS INSTEAD OF ALL THAT LAVA SHIT.",
-  "from": "game/stages/victor/club.ts:72"
+  "from": "game/stages/victor/club.ts:75"
  },
  {
   "voice": "meathead",
@@ -17376,6 +17376,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THEY'RE AT VICTOR'S CLUB. THEY MUST BE BAD PEOPLE... RIGHT?",
+  "from": "game/stages/victor/club.ts:75"
+ },
+ {
+  "voice": "meathead",
   "text": "THEY'RE AT VICTOR'S CLUB. THEY'RE BAD PEOPLE.",
   "from": "ENEMY_KILL_LINES"
  },
@@ -19537,221 +19542,221 @@
  {
   "voice": "victor.partygirl",
   "text": "I KNEW I SHOULD'VE GONE TO THE OTHER CLUB!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "I PAID A THOUSAND DOLLARS FOR BOTTLE SERVICE!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "I PAID A THOUSAND DOLLARS FOR BOTTLE SERVICE! NOT THIS!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "I'M ON THE LIST! HE IS NOT ON THE LIST! HOW IS HE IN HERE?!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "I'M ON THE LIST! I'M ON THE LIST!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "IT'S HOT IN HERE AND IT SMELLS LIKE THAT!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "IT'S HOT IN HERE AND NOT IN A GOOD WAY!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "MY PHONE HAS NO SIGNAL IN HERE! IT IS A MOUNTAIN!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "SOMEBODY CALL SECURITY! AND A JANITOR!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "SOMEBODY CALL SECURITY! NOT THAT GUY!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "THE EMERGENCY EXIT SIGN POINTS AT THE LAVA!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "THE FIRE EXIT IS JUST MORE FIRE!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "THE FIRE EXIT IS JUST MORE FIRE! IT STILL SMELLS BETTER!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "THE LAVA SMELLS BETTER THAN HIM!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "THE ONLY WAY OUT IS UP! THROUGH THE LAVA!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "THERE IS NO EXIT! WE'RE INSIDE A VOLCANO!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "THIS IS WHY WE DON'T PARTY IN VOLCANOES, KYLE!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "WE'RE JUST HERE TO DANCE!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "WHERE'S THE EXIT?!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "WHERE'S THE EXIT?! I CAN'T BREATHE IN HERE!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "WHO PUTS A CLUB IN A VOLCANO?!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partygirl",
   "text": "WHO PUTS A CLUB IN A VOLCANO?! AND WHO SHITS IN ONE?!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "I KNEW I SHOULD'VE GONE TO THE OTHER CLUB!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "I PAID A THOUSAND DOLLARS FOR BOTTLE SERVICE!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "I PAID A THOUSAND DOLLARS FOR BOTTLE SERVICE! NOT THIS!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "I'M ON THE LIST! HE IS NOT ON THE LIST! HOW IS HE IN HERE?!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "I'M ON THE LIST! I'M ON THE LIST!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "IT'S HOT IN HERE AND IT SMELLS LIKE THAT!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "IT'S HOT IN HERE AND NOT IN A GOOD WAY!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "MY PHONE HAS NO SIGNAL IN HERE! IT IS A MOUNTAIN!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "SOMEBODY CALL SECURITY! AND A JANITOR!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "SOMEBODY CALL SECURITY! NOT THAT GUY!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "THE EMERGENCY EXIT SIGN POINTS AT THE LAVA!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "THE FIRE EXIT IS JUST MORE FIRE!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "THE FIRE EXIT IS JUST MORE FIRE! IT STILL SMELLS BETTER!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "THE LAVA SMELLS BETTER THAN HIM!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "THE ONLY WAY OUT IS UP! THROUGH THE LAVA!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "THERE IS NO EXIT! WE'RE INSIDE A VOLCANO!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "THIS IS WHY WE DON'T PARTY IN VOLCANOES, KYLE!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "WE'RE JUST HERE TO DANCE!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "WHERE'S THE EXIT?!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "WHERE'S THE EXIT?! I CAN'T BREATHE IN HERE!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "WHO PUTS A CLUB IN A VOLCANO?!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  },
  {
   "voice": "victor.partyguy",
   "text": "WHO PUTS A CLUB IN A VOLCANO?! AND WHO SHITS IN ONE?!",
-  "from": "game/stages/victor/club.ts:98"
+  "from": "game/stages/victor/club.ts:104"
  }
 ]
