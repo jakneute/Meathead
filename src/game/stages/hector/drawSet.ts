@@ -50,11 +50,34 @@ const bubble = (ctx: Ctx, x: number, y: number, said: string) => {
 // The fisherman, the boat, the spout
 // ---------------------------------------------------------------------------
 
+/** What the boat left of the old man: red spreading in the water where he was (fading), and his head, bucket hat
+ * and beard, eyes gone to X's, turning over in the air, then bobbing. */
+const drawOldManRemains = (ctx: Ctx, state: GameState, b: Boat) => {
+  const m = b.oldMan, h = m.head;
+  if (visible(state, m.x - 120, m.x + 120)) {
+    const a = Math.max(0, 0.7 - (b.phase === 'launch' ? b.t - (m.goneAt ?? 0) : 200) / 600);
+    if (a > 0) { pixelBlob(ctx, m.x + 10, COURSE.sea.y + 2, 46, 6, `rgba(127, 29, 29, ${a.toFixed(3)})`); pixelBlob(ctx, m.x - 14, COURSE.sea.y + 4, 24, 4, `rgba(185, 28, 28, ${(a * 0.8).toFixed(3)})`); }
+  }
+  if (!h || !visible(state, h.x - 30, h.x + 30)) return;
+  ctx.save(); ctx.translate(h.x, h.y); ctx.rotate(h.rot);
+  // (the neck, ragged and red underneath; the face, the beard; the bucket hat jammed on)
+  ctx.fillStyle = '#7F1D1D'; ctx.fillRect(-5, 6, 10, 4); ctx.fillStyle = '#DC2626'; ctx.fillRect(-4, 8, 3, 3); ctx.fillRect(1, 9, 2, 3);
+  ink(ctx, () => ctx.arc(0, 0, 8, 0, Math.PI * 2), '#F2C9A0', 1);
+  ink(ctx, () => { ctx.moveTo(-7, 1); ctx.quadraticCurveTo(0, 13, 7, 1); ctx.closePath(); }, '#E5E7EB', 0.8);
+  ink(ctx, () => ctx.roundRect(-10, -9, 20, 6, 2), '#A16207', 0.8);
+  ink(ctx, () => ctx.roundRect(-7, -13, 14, 6, 2), '#A16207', 0.8);
+  ctx.strokeStyle = '#1F2937'; ctx.lineWidth = 1.2; ctx.beginPath();
+  for (const ex of [-3.5, 3.5]) { ctx.moveTo(ex - 1.5, -3.5); ctx.lineTo(ex + 1.5, -0.5); ctx.moveTo(ex + 1.5, -3.5); ctx.lineTo(ex - 1.5, -0.5); }
+  ctx.stroke();
+  ctx.restore();
+};
+
 export const drawBoatScene = (ctx: Ctx, state: GameState, b: Boat) => {
   if (b.phase === 'gone' && !visible(state, COURSE.sea.spoutX - 300, COURSE.sea.spoutX + 300)) return;
   // The old man
   const m = b.oldMan;
-  if (visible(state, m.x - 60, m.x + 60)) {
+  if (m.state === 'headless') drawOldManRemains(ctx, state, b);
+  else if (visible(state, m.x - 60, m.x + 60)) {
     ctx.save();
     ctx.translate(m.x, m.y);
     if (m.state === 'flying') ctx.rotate(m.rot);

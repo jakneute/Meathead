@@ -5592,7 +5592,7 @@
  {
   "voice": "death",
   "text": "DOWN THE WELL",
-  "from": "game/stages/ernie/index.ts:27"
+  "from": "game/stages/ernie/index.ts:28"
  },
  {
   "voice": "death",
@@ -5647,7 +5647,7 @@
  {
   "voice": "death",
   "text": "DROWNED IN THE DUNGEON",
-  "from": "game/stages/ernie/index.ts:27"
+  "from": "game/stages/ernie/index.ts:28"
  },
  {
   "voice": "death",
@@ -5747,7 +5747,7 @@
  {
   "voice": "death",
   "text": "ESCAPED FROM ALCATRAZ",
-  "from": "game/stages/ernie/index.ts:26"
+  "from": "game/stages/ernie/index.ts:27"
  },
  {
   "voice": "death",
@@ -5797,7 +5797,7 @@
  {
   "voice": "death",
   "text": "FELL THROUGH THE FLOOR",
-  "from": "game/stages/ernie/index.ts:25"
+  "from": "game/stages/ernie/index.ts:26"
  },
  {
   "voice": "death",
@@ -7122,7 +7122,7 @@
  {
   "voice": "death",
   "text": "SHARK FOOD",
-  "from": "game/stages/ernie/index.ts:26"
+  "from": "game/stages/ernie/index.ts:27"
  },
  {
   "voice": "death",
@@ -7617,7 +7617,7 @@
  {
   "voice": "death",
   "text": "SWIM FOR IT",
-  "from": "game/stages/ernie/index.ts:26"
+  "from": "game/stages/ernie/index.ts:27"
  },
  {
   "voice": "death",
@@ -7797,7 +7797,7 @@
  {
   "voice": "death",
   "text": "THE HOLE",
-  "from": "game/stages/ernie/index.ts:25"
+  "from": "game/stages/ernie/index.ts:26"
  },
  {
   "voice": "death",
@@ -10612,7 +10612,7 @@
  {
   "voice": "meathead",
   "text": "CATCH YOU LATER.",
-  "from": "game/stages/hector/boat.ts:58"
+  "from": "game/stages/hector/boat.ts:60"
  },
  {
   "voice": "meathead",
@@ -12013,6 +12013,11 @@
   "voice": "meathead",
   "text": "GROUNDED, FLYBOY!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GUESS THEY'RE STILL BITIN'.",
+  "from": "game/stages/hector/boat.ts:60"
  },
  {
   "voice": "meathead",
@@ -14342,12 +14347,12 @@
  {
   "voice": "meathead",
   "text": "NEED YOUR BOAT, GRAMPS.",
-  "from": "game/stages/hector/boat.ts:58"
+  "from": "game/stages/hector/boat.ts:60"
  },
  {
   "voice": "meathead",
   "text": "NEED YOUR BOAT, GRAMPS. DON'T ASK ABOUT THE SMELL.",
-  "from": "game/stages/hector/boat.ts:58"
+  "from": "game/stages/hector/boat.ts:60"
  },
  {
   "voice": "meathead",
@@ -14732,7 +14737,7 @@
  {
   "voice": "meathead",
   "text": "OF COURSE YOU EAT FAST FOOD, FATTIE.",
-  "from": "components/EpilogueCutscene.tsx:27"
+  "from": "components/EpilogueCutscene.tsx:28"
  },
  {
   "voice": "meathead",
@@ -14762,7 +14767,7 @@
  {
   "voice": "meathead",
   "text": "OH, COME ON.",
-  "from": "game/stages/hector/boat.ts:58"
+  "from": "game/stages/hector/boat.ts:60"
  },
  {
   "voice": "meathead",
@@ -18057,7 +18062,7 @@
  {
   "voice": "meathead",
   "text": "WHY ARE THERE TWO OF YOU?",
-  "from": "components/EpilogueCutscene.tsx:27"
+  "from": "components/EpilogueCutscene.tsx:28"
  },
  {
   "voice": "meathead",
@@ -18527,32 +18532,32 @@
  {
   "voice": "oldman",
   "text": "...STILL BITIN'.",
-  "from": "game/stages/hector/boat.ts:66"
+  "from": "game/stages/hector/boat.ts:68"
  },
  {
   "voice": "oldman",
   "text": "...STILL BITIN'. HE CAN KEEP THE BOAT.",
-  "from": "game/stages/hector/boat.ts:66"
+  "from": "game/stages/hector/boat.ts:68"
  },
  {
   "voice": "oldman",
   "text": "BITIN' LIKE CRAZY TODAY.",
-  "from": "game/stages/hector/boat.ts:66"
+  "from": "game/stages/hector/boat.ts:68"
  },
  {
   "voice": "oldman",
   "text": "IN THIS WEATHER? YOU'LL GET KILLED OUT THERE!",
-  "from": "game/stages/hector/boat.ts:66"
+  "from": "game/stages/hector/boat.ts:68"
  },
  {
   "voice": "oldman",
   "text": "IN THIS WEATHER? YOU'LL GET KILLED OUT THERE! ...AND DON'T YOU SIT ON MY CUSHIONS LIKE THAT!",
-  "from": "game/stages/hector/boat.ts:66"
+  "from": "game/stages/hector/boat.ts:68"
  },
  {
   "voice": "oldman",
   "text": "WHOOAAA!",
-  "from": "game/stages/hector/boat.ts:66"
+  "from": "game/stages/hector/boat.ts:68"
  },
  {
   "voice": "oscar.biker",
@@ -18962,17 +18967,17 @@
  {
   "voice": "president",
   "text": "All you can eat. Every single day.",
-  "from": "components/EpilogueCutscene.tsx:31"
+  "from": "components/EpilogueCutscene.tsx:32"
  },
  {
   "voice": "president",
   "text": "And Meathead saved me. Saved the whole planet, frankly. Nobody's ever saved a planet like this.",
-  "from": "components/EpilogueCutscene.tsx:25"
+  "from": "components/EpilogueCutscene.tsx:26"
  },
  {
   "voice": "president",
   "text": "And Meathead saved me. Saved the whole planet, frankly. Nobody's ever saved a planet like this. Or smelled like this.",
-  "from": "components/EpilogueCutscene.tsx:25"
+  "from": "components/EpilogueCutscene.tsx:26"
  },
  {
   "voice": "president",
@@ -19002,22 +19007,22 @@
  {
   "voice": "president",
   "text": "Fast food, folks. The best fast food.",
-  "from": "components/EpilogueCutscene.tsx:31"
+  "from": "components/EpilogueCutscene.tsx:32"
  },
  {
   "voice": "president",
   "text": "Folks, what a night. I was held hostage. In a closet. The worst closet. Believe me.",
-  "from": "components/EpilogueCutscene.tsx:47"
+  "from": "components/EpilogueCutscene.tsx:48"
  },
  {
   "voice": "president",
   "text": "For the rest of your life. Free.",
-  "from": "components/EpilogueCutscene.tsx:31"
+  "from": "components/EpilogueCutscene.tsx:32"
  },
  {
   "voice": "president",
   "text": "Forget that medal. Fake medal, very cheap. I'll give you something much better. Something beautiful.",
-  "from": "components/EpilogueCutscene.tsx:25"
+  "from": "components/EpilogueCutscene.tsx:26"
  },
  {
   "voice": "president",
@@ -19052,7 +19057,7 @@
  {
   "voice": "president",
   "text": "Nobody eats like this. Believe me.",
-  "from": "components/EpilogueCutscene.tsx:31"
+  "from": "components/EpilogueCutscene.tsx:32"
  },
  {
   "voice": "president",
@@ -19067,7 +19072,7 @@
  {
   "voice": "president",
   "text": "Shape-shifting aliens, running everything. Nobody knew. I knew. I didn't know, but I knew.",
-  "from": "components/EpilogueCutscene.tsx:25"
+  "from": "components/EpilogueCutscene.tsx:26"
  },
  {
   "voice": "president",

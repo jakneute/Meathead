@@ -16,15 +16,17 @@ import { KICK_POSE_FRAMES } from '../../../constants';
 import { Chase, startChase, updateChase, spoutTakesCutter } from './chase';
 import { isShat } from '../../player/gut';
 
-type BoatPhase = 'waiting' | 'cutscene' | 'riding' | 'spout' | 'gone';
+type BoatPhase = 'waiting' | 'cutscene' | 'launch' | 'riding' | 'spout' | 'gone';
 
 export interface Boat {
   phase: BoatPhase;
   t: number;
   /** Frames it's been quiet (the scene waits for lines to finish: see BOAT_HOLDS). */
   quiet: { n: number };
-  /** The old man: sitting, flying, bobbing in the water. */
-  oldMan: { x: number; y: number; vx: number; vy: number; rot: number; state: 'fishing' | 'flying' | 'swimming'; line: string; lineT: number };
+  /** The old man: sitting, flying, bobbing in the water; or what's left once the boat's been over him (his head,
+   * flying, then bobbing, and when it went: the red in the water fades from then). */
+  oldMan: { x: number; y: number; vx: number; vy: number; rot: number; state: 'fishing' | 'flying' | 'swimming' | 'headless'; line: string; lineT: number;
+    head?: { x: number; y: number; vx: number; vy: number; rot: number; afloat: boolean }; goneAt?: number };
   x: number;
   y: number;
   block: Block;
@@ -81,6 +83,7 @@ export const updateBoat = (ctx: FrameContext, b: Boat, controls: Controls, onSuc
       if (player.isGrounded && Math.abs(player.pos.x + player.width / 2 - b.oldMan.x) < 240) { b.phase = 'cutscene'; b.t = 0; }
       return controls;
     case 'cutscene': return cutscene(ctx, b);
+    case 'launch': return launch(ctx, b);
     case 'riding': return ride(ctx, b, controls);
     case 'spout': return spout(ctx, b, onSucked);
     default: return controls;
@@ -94,6 +97,11 @@ const updateOldMan = (b: Boat) => {
     if (m.y > COURSE.sea.y + 6) { m.state = 'swimming'; m.y = COURSE.sea.y + 6; m.vx = 0; m.vy = 0; m.rot = 0; }
   } else if (m.state === 'swimming') {
     m.y = COURSE.sea.y + 6 + Math.sin(b.t * 0.1) * 3;
+  } else if (m.state === 'headless' && m.head) {
+    // (his head: up off the bow, turning over, then down and bobbing in the red)
+    const h = m.head;
+    if (!h.afloat) { h.vy += 0.55; h.x += h.vx; h.y += h.vy; h.rot += 0.3; if (h.vy > 0 && h.y >= COURSE.sea.y - 2) { h.afloat = true; h.y = COURSE.sea.y - 2; h.rot = 0.4; } }
+    else { h.y = COURSE.sea.y - 2 + Math.sin(b.t * 0.12) * 2; h.x -= 0.3; }
   }
 };
 
@@ -117,7 +125,8 @@ const cutscene = (ctx: FrameContext, b: Boat): Controls => {
     // Up and over, into the drink
     player.facing = 1;
     player.kickPose = KICK_POSE_FRAMES;
-    b.oldMan.state = 'flying'; b.oldMan.vx = 5; b.oldMan.vy = -11;
+    // (out over the boat and into the water ahead of it: right where it's about to go)
+    b.oldMan.state = 'flying'; b.oldMan.vx = 11; b.oldMan.vy = -12;
     oldManSays(b, 'WHOOAAA!');
     ctx.fx.playGunSound('splash');
     shakeScreen(state, 8, 4);
@@ -130,11 +139,40 @@ const cutscene = (ctx: FrameContext, b: Boat): Controls => {
   }
   if (t === 340) { meatheadSays(state, 'CATCH YOU LATER.'); playSound('engine'); }
   if (t >= 380) {
-    b.phase = 'riding'; b.t = 0;
+    b.phase = 'launch'; b.t = 0;
     state.cameraOverride = null;
     state.cameraLeadX = 200;
   }
   return c;
+};
+
+/** How long after the old man's gone under the bow before it's his to drive. */
+const LAUNCH_AFTER = 70;
+/**
+ * Off: the boat opens up, still the cutscene, straight over the old man bobbing in its way. The hull takes the rest of
+ * him; his head goes up off the bow, hat and all, and comes down bobbing. Then it's his to drive.
+ */
+const launch = (ctx: FrameContext, b: Boat): Controls => {
+  const { state, fx } = ctx;
+  const { player } = state;
+  player.inCutscene = true;
+  player.invincibilityTimer = Math.max(player.invincibilityTimer, 2);
+  b.speed = Math.min(7.2, b.speed + 0.22);
+  moveBoatTo(state, b, b.speed, COURSE.boat.y);
+  const m = b.oldMan;
+  if (m.state === 'swimming' && b.x + BOAT_W - 20 >= m.x) {
+    m.state = 'headless'; m.goneAt = b.t;
+    m.head = { x: m.x, y: m.y - 14, vx: 3.5, vy: -10, rot: 0, afloat: false };
+    for (let i = 0; i < 26; i++) state.particles.push({ pos: { x: m.x + (Math.random() - 0.5) * 20, y: COURSE.sea.y - 4 }, vel: { x: 1 + Math.random() * 5, y: -2 - Math.random() * 7 }, life: 26 + Math.random() * 20, color: i % 3 ? '#B91C1C' : '#7F1D1D', size: 3 + Math.random() * 4, grav: 0.35 });
+    fx.spawnExplosion({ x: m.x, y: COURSE.sea.y - 10 }, '#8B0000', 14, 0, 10);
+    playSound('crunch', 0.9); playSound('splat'); playSound('splash', 0.7);
+    shakeScreen(state, 10, 5);
+  }
+  if (m.goneAt !== undefined && b.t === m.goneAt + 24) meatheadSays(state, "GUESS THEY'RE STILL BITIN'.");
+  if (m.goneAt !== undefined && b.t >= m.goneAt + LAUNCH_AFTER) { b.phase = 'riding'; b.t = 0; }
+  // (never got to him somehow: it's his anyway, after a while)
+  if (m.goneAt === undefined && b.t > 150) { b.phase = 'riding'; b.t = 0; }
+  return { ...NO_CONTROLS };
 };
 
 /** Flat out across the open water, him at the wheel, the Coast Guard after him (see chase.ts). */

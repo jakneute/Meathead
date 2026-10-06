@@ -1,9 +1,9 @@
-components/Cutscene.tsx:91 voice: p.voice
-components/Cutscene.tsx:99 voice: p.voice
+components/Cutscene.tsx:97 voice: p.voice
+components/Cutscene.tsx:105 voice: p.voice
 game/bosses/oscar.ts:187 name: undefined
 game/bosses/shared.ts:177 voice: getBossVoice(bossId)
-game/bosses/alien.ts:87 voice: text
-game/bosses/alien.ts:228 voice: pickRandom(ALIEN_LINES.LASER)
+game/bosses/alien.ts:89 voice: text
+game/bosses/alien.ts:230 voice: pickRandom(ALIEN_LINES.LASER)
 game/stages/artie/ski.ts:441 call: skiDeathMessage(state, ski)
 game/stages/artie/ski.ts:441 name: DEATH_LINES
 game/stages/artie/ski.ts:533 name: undefined
@@ -16,7 +16,6 @@ game/stages/hector/chase.ts:361 call: deathByCause(state)
 game/stages/victor/hazards.ts:266 name: undefined
 game/stages/victor/hazards.ts:274 name: undefined
 game/stages/ernie/quake.ts:347 name: undefined
-game/stages/ernie/index.ts:23 name: undefined
 game/stages/ernie/alcatraz.ts:72 voice: voice
 game/stages/ernie/jetski.ts:496 name: undefined
 game/stages/ernie/doorCrash.ts:105 voice: 'guide'
@@ -24,6 +23,7 @@ game/stages/ernie/doorCrash.ts:115 voice: 'hipster'
 game/stages/ernie/doorCrash.ts:147 voice: 'meathead'
 game/stages/ernie/bridge.ts:189 expr: 4
 game/stages/ernie/bridge.ts:189 expr: 72
+game/stages/ernie/index.ts:24 name: undefined
 game/stages/dale/runtime.ts:177 name: undefined
 game/stages/dale/runtime.ts:182 call: deathByCause(state)
 game/stages/dale/runtime.ts:191 name: undefined
