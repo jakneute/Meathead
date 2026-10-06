@@ -37,7 +37,7 @@ export interface TowerRun {
 }
 
 /** The storm rising under you: its speed, how much faster it comes if it's far behind, and how far behind that is. */
-const RISE_SPEED = 0.6, RISE_CATCHUP = 0.01, RISE_SLACK = 520;
+const RISE_SPEED = 0.7, RISE_CATCHUP = 0.01, RISE_SLACK = 520;
 /** It starts just under the floor you land on, its crest showing at the bottom of the screen, and gives you a second to see it. */
 const RISE_START = 60, RISE_GRACE = 60;
 /** It's rising: CLIMB! (how long that's up for) */
