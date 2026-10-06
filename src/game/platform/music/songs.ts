@@ -42,9 +42,9 @@ const TRAIN = '{kh}16 h16 s16 h16 {kh}16 h16 s16 {sh}16 {kh}16 h16 s16 h16 {kh}1
 
 // The chases' grooves (each stage's own: same tempo as the stage's theme, so the song keeps its place, but twice as
 // busy, so it feels twice as fast). A bar each, and a fill to end a phrase on.
-/** Double time: kick on the beat, snare on every offbeat eighth, sixteenth hats (punk's skate beat). */
-const DOUBLE = '{kh}16 h16 {sh}16 h16 {kh}16 h16 {sh}16 h16 {kh}16 h16 {sh}16 h16 {kh}16 {kh}16 {sh}16 h16';
-const DOUBLE_FILL = '{kh}16 h16 {sh}16 h16 {kh}16 h16 {sh}16 h16 s16 s16 t16 t16 u16 u16 {kx}8';
+/** Double kick running sixteenths, the snare on every offbeat eighth: the avalanche coming down behind him. */
+const AVALANCHE = '{kh}16 k16 {sh}16 k16 {kh}16 k16 {sh}16 k16 {kh}16 k16 {sh}16 k16 {kh}16 k16 {sh}16 {kh}16';
+const AVALANCHE_FILL = '{kh}16 k16 {sh}16 k16 {kh}16 k16 {sh}16 k16 s16 s16 t16 t16 u16 u16 {kf}8';
 /** Double kick under a rock backbeat: the bikers' southern rock flat out. */
 const HAMMER = '{kh}16 h16 {kh}16 h16 {sh}16 h16 {kh}16 {kh}16 {kh}16 h16 {kh}16 h16 {sh}16 h16 {kh}16 {sh}16';
 const HAMMER_FILL = '{kh}16 h16 {kh}16 h16 {sh}16 h16 {kh}16 {kh}16 s16 s16 s16 s16 t16 t16 u16 u16';
@@ -64,8 +64,6 @@ const GALLOP_FILL = '{kh}8 t16 t16 {sh}8 t16 t16 s16 s16 t16 t16 u16 u16 {kx}8';
 const chase8 = (groove: string, fill: string) => b(groove.replace(/^\{k/, '{kx'), groove, groove, fill, groove, groove, groove, fill);
 
 // Tunes (and roots) used by more than one part of their song
-const ARTIE_TUNE = ['o5 l8 a4 > c < b a4 e4', 'o5 f4. e d4 e4', 'o5 a4 > c e d4 c4', 'o5 b2. r4', 'o5 a4 b > c d4 e4', 'o6 f4 e d c4 < b4', 'o5 a4 g4 e4 g4', 'o5 a1'];
-const ARTIE_ROOTS = ['a', 'd', 'f', 'e', 'a', 'd', 'c', 'a'];
 const ERNIE_ROOTS = ['e', 'a', 'e', 'a', 'c', 'a', 'd', 'e'];
 const HECTOR_ROOTS = ['c/g', 'd/a', 'c/g', 'c/g', 'f/c', 'c/g', 'g/d', 'c/g'];
 const TOMMY_ROOTS = ['c', 'c', 'e-', 'f', 'c', 'f', 'a-', 'c'];
@@ -84,6 +82,43 @@ const BARRY_CHORDS: [string, string?][] = [['e-ga->c'], ['fga->c'], ['e-ga->c', 
 const BARRY_TREM: [string, string?][] = [['a->e-'], ['a->c'], ['a->e-', 'a->d-'], ['b->e'], ['a->c'], ['b->f', 'b->e'], ['a->d-', 'b->e'], ['a->c'],
   ['a->e-'], ['g->f'], ['a->e-'], ['g->f'], ['a->c'], ['a->d-'], ['b->f'], ['b->e', 'b->d-']];
 const BARRY_JAZZ = 'v11 {ki}4 {hin}8 i8 i4 {hin}8 i8';
+
+// Artie's: F-sharp minor, sixteen bars. The tune (a leap up a fifth and back, then the long climb; the second eight up
+// on the flat two, G, the Phrygian menace, and the C-sharp major turning it back round), its chords (bar seven's split,
+// D then C-sharp), and the riffs.
+const ARTIE_TUNE = ['o5 l8 f+4. > c+ d4 c+4', 'o5 a4 b a f+2', 'o5 g+4. b > e4 d c+', 'o6 c+2. r4', 'o5 f+4. > c+ d4 e4', 'o6 f+4 e d c+4 < b4', 'o5 a4 b4 > c+4 < e+4', 'o5 f+1',
+  'o6 d2 c+4 < a4', 'o5 b2 g+4 e4', 'o5 a4. b > c+4 e4', 'o6 f+2. r4', 'o6 g4. f+ d4 < b4', 'o6 d4 < b g b4 > d4', 'o6 c+4 < b a g+4 e+4', 'o5 g+2. r4'];
+const ARTIE_ROOTS = ['f+', 'd', 'e', 'c+', 'f+', 'b', 'd|c+', 'f+', 'd', 'e', 'f+', 'f+', 'g', 'g', 'c+', 'c+'];
+/** The chords as voiced up in octave 4 (for the pads, and the ostinato's tones). */
+const ARTIE_CHORD: Record<string, string> = { 'f+': 'f+a>c+', d: 'f+a>d', e: 'g+b>e', 'c+': 'g+>c+e+', b: 'f+b>d', g: 'gb>d' };
+/** A bass-ish line a bar at a time: `full` with R the root (O an octave up), or `half` twice where the bar's split (d|c+). */
+const artieBars = (o: number, full: string, half: string, roots: string[]) => roots.map(r => {
+  const [x, y] = r.split('|');
+  const one = (p: string, n: string) => p.replace(/O/g, `>${n}<`).replace(/R/g, n);
+  return `o${o} ` + (y ? `${one(half, x)} ${one(half, y)}` : one(full, x));
+}).join(' | ');
+/** The ice running under it all: sixteenths up and down the chord, in threes against the beat (6 + 6 + 4). */
+const artieIce = (o: number) => ARTIE_ROOTS.map(r => {
+  const tones = (c: string) => { let up = 0; const out: string[] = []; for (const m of ARTIE_CHORD[c].match(/>|[a-g][+-]?/g)!) { if (m === '>') up++; else out.push(`o${o + up} ${m}16`); } out.push(`o${o + 1} ${out[0].split(' ')[1].replace('16', '')}16`); return out; };
+  const [x, y] = r.split('|');
+  const idx = [0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3];
+  return idx.map((k, i) => tones(y && i >= 8 ? y : x)[k]).join(' ');
+}).join(' | ');
+const artiePad = (o: number) => ARTIE_ROOTS.map(r => { const [x, y] = r.split('|'); return y ? `o${o} {${ARTIE_CHORD[x]}}2 {${ARTIE_CHORD[y]}}2` : `o${o} {${ARTIE_CHORD[x]}}1`; }).join(' | ');
+// (the riff: a dotted stab and the push into the next, on the low strings; the second eight half time, heavy)
+const ARTIE_RIFF = ['o2 l8 f+. f+16 r f+ r f+ a g+', 'o2 l8 d. d16 r d r d f+ e', 'o2 l8 e. e16 r e r e g+ a', 'o2 l8 c+. c+16 r c+ c+ c+ e+ g+',
+  'o2 l8 f+. f+16 r f+ r f+ a g+', 'o2 l8 b. b16 r b r b > d c+', 'o2 l8 d. d16 r d c+. c+16 r c+', 'o2 l8 f+. f+16 r f+ f+16 f+16 f+ a b',
+  'o2 d4. d8 r8 d8 d4', 'o2 e4. e8 r8 e8 e4', 'o2 f+4. f+8 r8 f+8 f+4', 'o2 f+4. f+8 r8 f+8 a8 g+8', 'o2 g4. g8 r8 g8 g4', 'o2 g4. g8 r8 g8 b8 a8', 'o2 c+4. c+8 r8 c+8 c+4', 'o2 l16 c+8 c+8 c+8 c+8 c+ c+ c+ c+ e+8 g+8'];
+// (the drums: a rock beat thumping the low tom; the second eight on the taiko and the toms, the gale; on the summit the
+// toms all the way; the tram half time on the ride)
+const ARTIE_BEAT = '{kh}8 h8 {sh}8 h8 {kh}8 {kh}8 {sh}8 {ku}8';
+const ARTIE_BEAT_FILL = '{kh}8 h8 {sh}8 h8 {kt}16 t16 t8 {su}16 u16 {kx}8';
+const ARTIE_GALE = '{kf}8 u16 u16 {sf}8 u8 {kf}8 f8 {su}8 u16 t16';
+const ARTIE_GALE_X = ARTIE_GALE.replace('{kf}', '{kxf}');
+const ARTIE_GALE_FILL = '{kf}8 u16 u16 {sf}8 u8 s16 s16 t16 t16 u16 u16 f16 f16';
+const ARTIE_PEAK = '{kf}8 o8 {sf}8 u16 u16 {kf}8 {kf}8 {sf}8 t16 u16';
+const ARTIE_GLIDE = '{ki}8 i8 i8 {ki}8 {si}8 i8 i8 i8';
+const ARTIE_GLIDE_FILL = '{ki}8 i8 i8 {ki}8 {si}8 t16 t16 u16 u16 f8';
 
 export const SONGS: Record<string, Song> = {
   // ---------------------------------------------------------------------------------------------------------------
@@ -149,33 +184,54 @@ export const SONGS: Record<string, Song> = {
   },
 
   // ---------------------------------------------------------------------------------------------------------------
-  // Artie: icy and a bit grand. Bells up the trail, flute on the tram, brass at the summit, hushed and hollow in the ice
-  // cave; flat out down the ski run with the avalanche behind him (a galloping guitar, the bass pumping, the drums in
-  // double time with the sleigh bells for hats); and after it, the drums gone, toms and a choir to the door.
+  // Artie: Alaska, frozen and brutal. F-sharp minor at 144, the low strings chugging a riff with some weight to it, a
+  // pulse-wave ostinato running cold sixteenths under everything, the tune up top; the second eight half time on the
+  // taiko and the toms, the gale. Up the trail a cold saw lead over the riff and the kit; on the tram the horns over a
+  // synth bass pulse and the ride, half time, hanging in the air; the high woods and the summit the whole mountain (brass
+  // and horns on the tune together, the choir, the wind howling, the toms the whole way); hushed and hollow in the ice
+  // cave (a glass harmonica on the tune, the wind moaning, a low drone, the taiko like a heartbeat and the ice cracking);
+  // flat out down the ski run with the avalanche behind him (the guitar and the saw on the tune, the power chords
+  // galloping in sixteenths, the bass pumping, double kick); and after it, the kit gone, to the door: taiko and toms,
+  // the power chords hitting, the timpani, the choir and the low brass swelling, a snare roll up into the top again.
   artie: {
-    bpm: 132,
+    bpm: 144,
     parts: {
-      lead: { inst: 'bell', mml: b(...ARTIE_TUNE) },
-      // (down the ski run: the bells doubling the guitar, the ice on the tune)
-      hook: { inst: 'bell', vol: 0.55, pan: 0.2, only: ['ski'], mml: b(...ARTIE_TUNE) },
-      arp: { inst: 'harp', vol: 0.8, pan: -0.35, mml: arp(4, [['ace', 'a'], ['dfa', 'd'], ['fac', 'f'], ['eg+b', 'e'], ['ace', 'a'], ['dfa', 'd'], ['ceg', 'c'], ['ace', 'a']]) },
-      pad: { inst: 'slowstrings', vol: 0.7, pan: 0.3, mml: pad(4, ['ace', 'dfa', 'fa>c', 'eg+b', 'ace', 'dfa', 'ceg', 'ace']) },
-      bass: { inst: 'bass', mml: bass(2, 'R4 R8 R8 F4 R4', ['a/e', 'd/a', 'f/c', 'e/b', 'a/e', 'd/a', 'c/g', 'a/e']) },
-      pump: { inst: 'bass', only: ['ski'], mml: bass(2, 'R8 O8 R8 O8 R8 O8 R8 O8', ARTIE_ROOTS) },
-      gallop: { inst: 'power', vol: 0.6, pan: -0.3, only: ['ski'], mml: bass(2, 'R8 R16 R16 R8 R16 R16 R8 R16 R16 R8 R16 R16', ARTIE_ROOTS) },
-      drums: { inst: 'kick', drums: true, not: ['ski', 'cave', 'door'], mml: rep('k8 y8 s8 y8 k8 k8 s8 y8', 8) },
-      drive: { inst: 'kick', drums: true, only: ['ski'], mml: chase8(DOUBLE.replace(/h/g, 'y'), DOUBLE_FILL.replace(/h/g, 'y')) },
-      toms: { inst: 'kick', drums: true, only: ['tram', 'cave', 'door'], mml: rep('r2 r4 t8 u8', 8) },
+      lead: { inst: 'saw', pan: 0.1, mml: b(...ARTIE_TUNE) },
+      // (on the summit and down the ski run: the tune doubled)
+      hook: { inst: 'saw', vol: 0.55, pan: 0.25, only: ['summit', 'ski'], mml: b(...ARTIE_TUNE) },
+      riff: { inst: 'power', vol: 0.75, pan: -0.3, only: ['trail', 'summit'], mml: b(...ARTIE_RIFF) },
+      gallop: { inst: 'power', vol: 0.6, pan: -0.3, only: ['ski'], mml: artieBars(2, 'R8 R16 R16 R8 R16 R16 R8 R16 R16 R8 R16 R16', 'R8 R16 R16 R8 R16 R16', ARTIE_ROOTS) },
+      // (the door: the power chords on the downbeat, then hammering into the top)
+      hits: { inst: 'power', vol: 0.7, pan: -0.3, only: ['door'], mml: b(artieBars(2, 'R2. r4', 'R2', ARTIE_ROOTS.slice(0, 12)), 'o2 g4 r4 g4 r4', 'o2 g4 g4 g4 g4', 'o2 l8 c+ c+ c+ c+ c+ c+ c+ c+', 'o2 l16 c+ c+ c+ c+ c+ c+ c+ c+ c+8 c+8 e+8 g+8') },
+      bass: { inst: 'bass', vol: 0.8, only: ['trail', 'summit'], mml: b(artieBars(2, 'R8 R8 R8 R8 R8 R8 O8 R8', 'R8 R8 O8 R8', ARTIE_ROOTS.slice(0, 8)), artieBars(2, 'R4. R8 r8 R8 R4', '', ARTIE_ROOTS.slice(8))) },
+      pump: { inst: 'bass', only: ['tram', 'ski'], mml: artieBars(2, 'R8 O8 R8 O8 R8 O8 R8 O8', 'R8 O8 R8 O8', ARTIE_ROOTS) },
+      drone: { inst: 'synthbass', only: ['cave', 'door'], mml: artieBars(2, 'R1', 'R2', ARTIE_ROOTS) },
+      ice: { inst: 'ice', vol: 0.7, pan: -0.35, not: ['door'], mml: artieIce(4) },
+      pad: { inst: 'strings', vol: 0.55, pan: 0.3, only: ['tram', 'summit', 'door'], mml: artiePad(4) },
+      low: { inst: 'swell', vol: 0.6, only: ['door'], mml: artiePad(3) },
+      // (the wind: up and down with the chords, a gust every bar or two)
+      wind: { inst: 'gale', vol: 0.8, pan: 0.15, only: ['tram', 'summit', 'cave'], mml: b('o4 a1^1', 'o4 g+1^1', 'o4 f+1^1', 'o4 a1', 'o5 c+1', 'o4 a1', 'o4 b1', 'o5 c+1^1', 'o5 d1^1', 'o5 c+1^1') },
+      drums: { inst: 'kick', drums: true, only: ['trail'], mml: b(ARTIE_BEAT.replace('{kh}', '{kx}'), ARTIE_BEAT, ARTIE_BEAT, ARTIE_BEAT_FILL, ARTIE_BEAT, ARTIE_BEAT, ARTIE_BEAT, ARTIE_BEAT_FILL,
+        ARTIE_GALE_X, ARTIE_GALE, ARTIE_GALE, ARTIE_GALE_FILL, ARTIE_GALE, ARTIE_GALE, ARTIE_GALE, ARTIE_GALE_FILL) },
+      peak: { inst: 'kick', drums: true, only: ['summit'], mml: b(ARTIE_PEAK.replace('{kf}', '{kxf}'), ARTIE_PEAK, ARTIE_PEAK, ARTIE_GALE_FILL, ARTIE_PEAK, ARTIE_PEAK, ARTIE_PEAK, ARTIE_GALE_FILL,
+        ARTIE_GALE_X, ARTIE_GALE, ARTIE_GALE_X, ARTIE_GALE_FILL, ARTIE_GALE_X, ARTIE_GALE, ARTIE_GALE_X, ARTIE_GALE_FILL) },
+      glide: { inst: 'kick', drums: true, only: ['tram'], mml: rep(b(ARTIE_GLIDE, ARTIE_GLIDE, ARTIE_GLIDE, ARTIE_GLIDE_FILL), 4) },
+      // (the cave: the taiko far off like a heartbeat, the ice cracking)
+      hollow: { inst: 'kick', drums: true, only: ['cave'], mml: rep(b('v8 f4 r4 v7 a8 r8 r4', 'v8 f4 r8 v6 a16 a16 r4 v7 u8 u8', 'v8 f4 r4 r2', 'v8 f8 f8 r4 v7 a8 r8 t8 u8'), 4) },
+      ski: { inst: 'kick', drums: true, only: ['ski'], mml: b(chase8(AVALANCHE, AVALANCHE_FILL), chase8(AVALANCHE.replace('{kh}', '{kfh}'), AVALANCHE_FILL)) },
+      door: { inst: 'kick', drums: true, only: ['door'], mml: b('v12 {fx}4 u8 u8 {sf}4 u8 u8', rep('f4 u8 u8 {sf}4 u8 u8', 7), rep('f8 f8 u8 u8 {sf}8 f8 u8 t8', 4),
+        '{sf}8 s16 s16 s8 s16 s16 {sf}8 s16 s16 s8 s16 s16', '{sf}8 s16 s16 s8 s16 s16 {sf}8 s16 s16 s8 s16 s16', 'v10 [s16]8 v12 [s16]8', 'v9 [s32]8 v11 [s32]8 v13 [s32]8 v15 [s32]8') },
+      timp: { inst: 'timpani', vol: 0.8, only: ['door'], mml: b('v12 ' + artieBars(2, 'R4 r2.', 'R4 r4', ARTIE_ROOTS.slice(0, 14)), 'o2 c+4 r4 l16 c+ c+ c+ c+ c+ c+ c+ c+', 'o2 v8 [c+32]8 v10 [c+32]8 v12 [c+32]8 v15 [c+32]8') },
     },
     arrangements: {
       trail: {},
-      tram: { inst: { lead: 'flute', pad: 'strings' } },
-      summit: { inst: { lead: 'brass', pad: 'choir' } },
-      // (in the ice cave: no kit, just the far-off toms, the bells and the harp ringing in the hollow)
-      cave: { inst: { lead: 'bell' }, vol: { lead: 0.85, arp: 0.7, bass: 0.7, toms: 0.6 } },
-      ski: { inst: { lead: 'guitar', pad: 'strings' }, mute: ['bass'], vol: { arp: 0.7, pad: 0.6 } },
-      // (the run's over, the cabin's under it: the kit gone, toms and the choir and the brass the rest of the way to the door)
-      door: { inst: { lead: 'brass', pad: 'choir' }, mute: ['arp'], vol: { lead: 0.85 } },
+      // (the tram: hanging in the air, half time, the horns on the tune, a synth pulse and the ice up front)
+      tram: { inst: { lead: 'horn', pump: 'synthbass' }, vol: { ice: 1.3, wind: 0.6, pad: 0.8, pump: 0.8 } },
+      summit: { inst: { lead: 'brass', hook: 'horn', pad: 'choir' }, vol: { hook: 1.4, wind: 1.3, peak: 0.8 } },
+      cave: { inst: { lead: 'glass' }, vol: { ice: 0.55, wind: 0.9, drone: 0.75 } },
+      ski: { inst: { lead: 'guitar' }, vol: { ice: 0.8 } },
+      // (the run's over, the cabin's under it: the kit gone, the horns on the tune, building the rest of the way to the door)
+      door: { inst: { lead: 'horn', pad: 'choir' }, vol: { drone: 0.8 } },
     },
   },
 
@@ -414,7 +470,7 @@ export const SONGS: Record<string, Song> = {
       color: { inst: 'strings', vol: 0.6, pan: 0.35, mml: rep('o4 l16 [b > d f+ <]5 b | o4 l16 g b > d < g b > d < g b > d < f+ a+ > c+ < f+ a+ > c+ < f+', 4) },
     },
     arrangements: {
-      'Artie Avalanche': { inst: { lead: 'bell', color: 'harp' } },
+      'Artie Avalanche': { inst: { lead: 'saw', color: 'ice' } },
       'Victor Volcano': { inst: { lead: 'brass', color: 'marimba' } },
       'Ernie Earthquake': { inst: { lead: 'trumpet', color: 'clav' } },
       'Hector Hurricane': { inst: { lead: 'steel', color: 'strings' } },

@@ -192,6 +192,35 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
     make: held(0.02, partials([[262, 1], [263, 0.8], [524, 0.3], [786, 0.12], [1310, 0.05]])),
     base: midiOf(262), env: { a: 0.5, d: 0.4, s: 0.8, r: 0.9 }, gain: 0.35,
   },
+  // A cold synth lead: two saws a couple of Hz apart (beating, wide), a hard glassy edge up around 2k
+  saw: {
+    make: held(0.02, partials([...sawPartials(262, (k, hz) => Math.exp(-k / 14) * (1 + 0.9 * formant(hz, 2200, 650)), 4000), ...sawPartials(264, (k, hz) => 0.75 * Math.exp(-k / 14) * (1 + 0.9 * formant(hz, 2200, 650)), 4000)]), (u) => 0.6 + 0.4 * u),
+    base: midiOf(262), env: { a: 0.01, d: 0.15, s: 0.8, r: 0.12 }, gain: 0.58, vib: [5.5, 12],
+  },
+  // French horns: dark, round, big (the mountain)
+  horn: {
+    make: held(0.1, partials([...sawPartials(262, (k, hz) => Math.exp(-k / 4) + 0.45 * formant(hz, 480, 260), 4500), ...sawPartials(263, (k, hz) => 0.7 * (Math.exp(-k / 4) + 0.45 * formant(hz, 480, 260)), 4500)]), (u) => 0.3 + 0.7 * u),
+    base: midiOf(262), env: { a: 0.07, d: 0.2, s: 0.85, r: 0.25 }, gain: 0.6, vib: [5, 8],
+  },
+  // A glass harmonica: a pure tone and its twin a hertz off (the slow shimmer), a little of the twelfth; eerie, not sweet
+  glass: {
+    make: held(0.08, partials([[523, 1], [524, 0.75], [1569, 0.14], [2616, 0.05]]), (u) => u),
+    base: midiOf(523), env: { a: 0.09, d: 0.3, s: 0.75, r: 0.45 }, gain: 0.42, vib: [4, 6],
+  },
+  // The gale: wind howling through a band (a hundred-odd partials at whole hertz, random phase, so it loops), gusting;
+  // played on a note, the band goes up and down with it
+  gale: {
+    make: (() => {
+      const list: [number, number, number][] = [];
+      for (let f = 380; f <= 900; f += 5) list.push([f + Math.floor(Math.random() * 5), formant(f, 600, 160) + 0.12, Math.random() * TAU]);
+      return held(0.25, (t) => {
+        let v = 0;
+        for (const [f, a, ph] of list) v += a * Math.sin(TAU * f * t + ph);
+        return v * (0.7 + 0.2 * Math.sin(TAU * t + 0.6) + 0.1 * Math.sin(TAU * 3 * t + 2));
+      }, (u) => u);
+    })(),
+    base: midiOf(600), env: { a: 0.7, d: 0.5, s: 0.9, r: 1.1 }, gain: 0.55,
+  },
   // ---- Plucked, struck, one-shot ----
   piano: {
     make: shot(2.6, (t) => {
@@ -218,6 +247,15 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
   bell: {
     make: shot(2.4, (t) => Math.sin(TAU * 1047 * t) * Math.exp(-t * 1.6) + 0.5 * Math.sin(TAU * 1047 * 2.76 * t) * Math.exp(-t * 3) + 0.25 * Math.sin(TAU * 1047 * 5.4 * t) * Math.exp(-t * 6) + 0.12 * Math.sin(TAU * 1047 * 8.93 * t) * Math.exp(-t * 10)),
     base: midiOf(1047), env: { a: 0.001, d: 0, s: 1, r: 0.3 }, gain: 0.35,
+  },
+  ice: {
+    // A cold pulse-wave pluck (a quarter-duty square, its brightness snapping shut), for running ostinatos
+    make: shot(0.7, (t) => {
+      let v = 0;
+      for (let k = 1; k * 523 < 9000; k++) v += (Math.sin(k * Math.PI * 0.25) / k) * Math.sin(TAU * 523 * k * t) * Math.exp(-t * (4 + k * 1.4));
+      return v;
+    }),
+    base: midiOf(523), env: { a: 0.002, d: 0, s: 1, r: 0.06 }, gain: 0.36,
   },
   vibes: {
     // A vibraphone: soft-mallet bars, the motor's tremolo pulsing on them
@@ -262,6 +300,10 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
   ride: { drum: true, base: 60, env: { a: 0.001, d: 0, s: 1, r: 0.2 }, gain: 0.16, make: (() => { let p = 0; return shot(1.4, (t) => { const w = noise(); const hp = w - p * 0.8; p = w; return ([3150, 4410, 5230, 6720, 8130] as const).reduce((v, f, j) => v + Math.sin(TAU * f * t) * Math.exp(-t * (3 + j)) / (j + 1), 0) * 0.5 + hp * 0.35 * Math.exp(-t * 3.5) + Math.sin(TAU * 610 * t) * Math.exp(-t * 30) * 0.4; }); })() },
   // (brushes on the snare: a soft papery slap, no rattle to it)
   brush: { drum: true, base: 60, env: { a: 0.001, d: 0, s: 1, r: 0.04 }, gain: 0.32, make: (() => { let lp = 0; return shot(0.28, (t) => { lp += 0.35 * (noise() - lp); return lp * Math.min(1, t / 0.008) * Math.exp(-t * 15) + Math.sin(TAU * 190 * t) * Math.exp(-t * 35) * 0.15; }); })() },
+  // (a taiko: a huge low drum, the skin's pitch dropping as it rings)
+  taiko: { drum: true, base: 60, env: { a: 0.001, d: 0, s: 1, r: 0.1 }, gain: 0.8, make: (() => { let lp = 0; return shot(0.9, (t) => { lp += 0.08 * (noise() - lp); return Math.sin(TAU * (58 * t + (75 / 9) * (1 - Math.exp(-t * 9)))) * Math.exp(-t * 4.5) + lp * 2.5 * Math.exp(-t * 18) + (t < 0.006 ? noise() * 0.5 : 0); }); })() },
+  // (ice cracking: a few sharp glassy clicks in a row)
+  crack: { drum: true, base: 60, env: { a: 0.001, d: 0, s: 1, r: 0.04 }, gain: 0.32, make: (() => { let p = 0; return shot(0.25, (t) => { const w = noise(); const hp = w - p; p = w; const clicks = t < 0.06 ? Math.exp(-((t % 0.017) * 350)) : 0; return hp * (clicks + 0.4 * Math.exp(-t * 30)) + Math.sin(TAU * 2900 * t) * Math.exp(-t * 26) * 0.35 + Math.sin(TAU * 4100 * t) * Math.exp(-t * 40) * 0.25; }); })() },
   scratch: { drum: true, base: 60, env: { a: 0.001, d: 0, s: 1, r: 0.02 }, gain: 0.3, make: (() => { let ph = 0; return shot(0.22, (t) => { ph += (300 + 1200 * Math.abs(Math.sin(TAU * 9 * t))) / SR; return Math.sin(TAU * ph) * 0.5 + noise() * 0.5 * Math.abs(Math.sin(TAU * 9 * t)); }); })() },
 };
 
@@ -269,6 +311,7 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
 export const DRUM_KEYS: Record<string, string> = {
   k: 'kick', s: 'snare', h: 'hat', o: 'ohat', x: 'crash', t: 'tomh', u: 'toml', p: 'clap', c: 'conga', d: 'congal',
   b: 'bongo', w: 'cowbell', z: 'shaker', m: 'rim', j: 'tamb', y: 'sleigh', g: 'scratch', i: 'ride', n: 'brush',
+  f: 'taiko', a: 'crack',
 };
 
 const built: Record<string, { buf: AudioBuffer; loop?: [number, number]; ctx: BaseAudioContext }> = {};
