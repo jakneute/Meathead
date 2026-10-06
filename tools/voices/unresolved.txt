@@ -2,8 +2,8 @@ components/Cutscene.tsx:97 voice: p.voice
 components/Cutscene.tsx:105 voice: p.voice
 game/bosses/oscar.ts:187 name: undefined
 game/bosses/shared.ts:177 voice: getBossVoice(bossId)
-game/bosses/alien.ts:89 voice: text
-game/bosses/alien.ts:230 voice: pickRandom(ALIEN_LINES.LASER)
+game/bosses/alien.ts:90 voice: text
+game/bosses/alien.ts:231 voice: pickRandom(ALIEN_LINES.LASER)
 game/stages/artie/ski.ts:441 call: skiDeathMessage(state, ski)
 game/stages/artie/ski.ts:441 name: DEATH_LINES
 game/stages/artie/ski.ts:533 name: undefined
@@ -77,15 +77,15 @@ game/core/deathCause.ts:70 name: undefined
 game/core/deathCause.ts:71 name: ANIMAL_DEATH_LINES
 game/core/deathCause.ts:71 name: undefined
 game/core/deathCause.ts:72 name: undefined
-game/core/effects.ts:239 call: getHurtLines(hurtSource)
-game/core/effects.ts:239 call: killLine(category, victim)
-game/core/update.ts:222 name: undefined
-game/core/update.ts:612 name: undefined
-game/core/update.ts:612 call: pluckDeathMessage(state)
-game/core/update.ts:612 call: animalDeathMessage(state)
-game/core/update.ts:612 call: layout?.deathMessage?.(ctx)
-game/core/update.ts:612 call: deathByCause(state)
-game/core/update.ts:612 call: deathFallback(state, ctx.stageId, fell)
+game/core/effects.ts:243 call: getHurtLines(hurtSource)
+game/core/effects.ts:243 call: killLine(category, victim)
+game/core/update.ts:223 name: undefined
+game/core/update.ts:615 name: undefined
+game/core/update.ts:615 call: pluckDeathMessage(state)
+game/core/update.ts:615 call: animalDeathMessage(state)
+game/core/update.ts:615 call: layout?.deathMessage?.(ctx)
+game/core/update.ts:615 call: deathByCause(state)
+game/core/update.ts:615 call: deathFallback(state, ctx.stageId, fell)
 game/player/player.ts:82 call: message()
 App.tsx:241 voice: getBossVoice(selectedStage)
 App.tsx:468 name: undefined

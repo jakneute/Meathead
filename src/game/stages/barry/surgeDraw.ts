@@ -6,7 +6,8 @@ import type { GameState } from '../../core/state';
 import type { Enemy } from '../../../types';
 import { COURSE } from './course';
 import type { PowerRoom } from './power';
-import { surgeZap, surgeFall, surgeCooked, FLOOD_FRAMES } from './power';
+import { surgeZap, surgeFall, surgeCooked, FLOOD_FRAMES, SURGE } from './power';
+import { drawSkipPrompt } from '../../platform/skip';
 import { drawPlayer } from '../../render/player/player';
 import { drawKindEnemy } from '../../render/enemies';
 
@@ -138,6 +139,7 @@ const drawWater = (ctx: Ctx, state: GameState, pw: PowerRoom) => {
 
 /** The whole room lighting up blue-white each time it cracks. Screen space. */
 export const drawSurgeFlash = (ctx: Ctx, state: GameState, pw: PowerRoom, w: number, h: number) => {
+  if (pw.phase === 'surge' && pw.beat < SURGE.length) drawSkipPrompt(ctx, w);
   const zap = surgeZap(pw);
   if (!zap || state.frame % (zap > 1 ? 5 : 8) > 1) return;
   ctx.fillStyle = `rgba(207, 250, 254, ${zap > 1 ? 0.35 : 0.22})`;

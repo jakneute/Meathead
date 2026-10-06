@@ -18,6 +18,8 @@ import { COURSE } from './course';
 import { killPlayer } from '../../player/player';
 import { Talk, queueLines, replaceLines, quiet, hush } from './script';
 import { isShat } from '../../player/gut';
+import { offerSkip, takeSkip } from '../../platform/skip';
+import { silenceAll } from '../../platform/speech';
 
 export interface PowerRoom {
   /** The announcer's last call that went up on the screen. */
@@ -277,6 +279,7 @@ export const SURGE: { min: number; zap: number; lines: { who: 'minion' | 'meathe
   { min: 70, zap: 0, lines: [{ who: 'meathead', text: 'WORTH IT.' }, { who: 'announcer', text: 'DOUBLE KNOCKOUT!' }], fall: 'meathead' },
   { min: 70, zap: 0, lines: [] },
 ];
+const SURGE_DEATH = 'ELECTROCUTED! WATER AND A POWER PLANT: NOT A COMBO';
 /** How long a beat can wait on its lines at most (a voice that never finishes doesn't hang it). */
 const SURGE_WAIT = 420;
 /** How long the water takes to cover the floor. */
@@ -316,6 +319,9 @@ const updateSurge = (ctx: FrameContext, pw: PowerRoom, talk: Talk): Controls => 
   const r = COURSE.power;
   pw.surgeT++; pw.beatT++;
   p.vel.x = 0;
+  // (it's all on him, and it ends the one way: skippable from the off, straight to the end of it)
+  offerSkip();
+  if (takeSkip()) { silenceAll(); hush(state, talk); pw.beat = SURGE.length; p.health = 0; killPlayer(ctx, SURGE_DEATH, false); return { ...NO_CONTROLS }; }
   // (the announcer's calls go up in big letters when he says them: low enough, rising slowly enough, that they're never
   // up under the HUD)
   const said = talk.current?.who === 'announcer' ? talk.current.text : '';
@@ -328,7 +334,7 @@ const updateSurge = (ctx: FrameContext, pw: PowerRoom, talk: Talk): Controls => 
     pw.beat++; pw.beatT = 0;
     const next = SURGE[pw.beat];
     if (next) replaceLines(state, talk, next.lines.map(l => ({ ...l })), 6);
-    else { hush(state, talk); p.health = 0; killPlayer(ctx, 'ELECTROCUTED! WATER AND A POWER PLANT: NOT A COMBO', false); }
+    else { hush(state, talk); p.health = 0; killPlayer(ctx, SURGE_DEATH, false); }
   }
   const zap = surgeZap(pw);
   if (zap > 0) {

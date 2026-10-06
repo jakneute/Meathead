@@ -342,7 +342,7 @@
  {
   "voice": "announcer",
   "text": "DOUBLE KNOCKOUT!",
-  "from": "game/stages/barry/power.ts:277"
+  "from": "game/stages/barry/power.ts:279"
  },
  {
   "voice": "announcer",
@@ -702,7 +702,7 @@
  {
   "voice": "announcer",
   "text": "MAXIMUM VOLTAGE!",
-  "from": "game/stages/barry/power.ts:275"
+  "from": "game/stages/barry/power.ts:277"
  },
  {
   "voice": "announcer",
@@ -927,7 +927,7 @@
  {
   "voice": "announcer",
   "text": "ROUND TWO!",
-  "from": "game/stages/barry/power.ts:275"
+  "from": "game/stages/barry/power.ts:277"
  },
  {
   "voice": "announcer",
@@ -1017,7 +1017,7 @@
  {
   "voice": "announcer",
   "text": "SHOCK THERAPY!",
-  "from": "game/stages/barry/power.ts:273"
+  "from": "game/stages/barry/power.ts:275"
  },
  {
   "voice": "announcer",
@@ -1202,7 +1202,7 @@
  {
   "voice": "announcer",
   "text": "TECHNICIAN DOWN!",
-  "from": "game/stages/barry/power.ts:276"
+  "from": "game/stages/barry/power.ts:278"
  },
  {
   "voice": "announcer",
@@ -1367,137 +1367,137 @@
  {
   "voice": "barry.minion",
   "text": "...IS IT OVER?",
-  "from": "game/stages/barry/power.ts:274"
- },
- {
-  "voice": "barry.minion",
-  "text": "AAAAAAAAAAAAAAAAH!",
-  "from": "game/stages/barry/power.ts:273"
- },
- {
-  "voice": "barry.minion",
-  "text": "BARRY GOT ME THIS HEADSET FOR OUR ANNIVERS... FOR MY WORK ANNIVERSARY.",
-  "from": "game/stages/barry/power.ts:234"
- },
- {
-  "voice": "barry.minion",
-  "text": "BARRY IS GOING TO HEAR ABOUT THIS. AND SMELL ABOUT IT.",
-  "from": "game/stages/barry/power.ts:234"
- },
- {
-  "voice": "barry.minion",
-  "text": "BARRY IS GOING TO HEAR ABOUT THIS. HE HEARS ABOUT EVERYTHING.",
-  "from": "game/stages/barry/power.ts:234"
- },
- {
-  "voice": "barry.minion",
-  "text": "BARRY'S GONNA KILL ME. OR WORSE. I'LL BE ON THE COUCH FOR A MONTH.",
-  "from": "game/stages/barry/power.ts:96"
- },
- {
-  "voice": "barry.minion",
-  "text": "CAREFUL! THOSE ARE LEASED!",
-  "from": "game/stages/barry/power.ts:234"
- },
- {
-  "voice": "barry.minion",
-  "text": "CAREFUL! THOSE ARE LEASED! AND DON'T TOUCH THEM WITH THOSE HANDS!",
-  "from": "game/stages/barry/power.ts:234"
- },
- {
-  "voice": "barry.minion",
-  "text": "DID YOU JUST... THROW WATER. IN THE POWER ROOM.",
-  "from": "game/stages/barry/power.ts:272"
- },
- {
-  "voice": "barry.minion",
-  "text": "EVERY ROLLING BLACKOUT IN THE CITY RUNS THROUGH THESE THREE BEAUTIES. AND NOW THE WHOLE ROOM SMELLS LIKE YOU.",
-  "from": "game/stages/barry/power.ts:67"
- },
- {
-  "voice": "barry.minion",
-  "text": "EVERY ROLLING BLACKOUT IN THE CITY RUNS THROUGH THESE THREE BEAUTIES. NOT THAT YOU'D UNDERSTAND LOAD BALANCING.",
-  "from": "game/stages/barry/power.ts:60"
- },
- {
-  "voice": "barry.minion",
-  "text": "I CAN SEE MY GRANDMA! SHE SAYS I SHOULD HAVE BEEN A DENTIST!",
-  "from": "game/stages/barry/power.ts:275"
- },
- {
-  "voice": "barry.minion",
-  "text": "I'M TEXTING BARRY. \"THE BIG ONE SHIT HIMSELF.\" HE'LL TEXT BACK. HE ALWAYS TEXTS BACK.",
-  "from": "game/stages/barry/power.ts:234"
- },
- {
-  "voice": "barry.minion",
-  "text": "I'M TEXTING BARRY. HE ALWAYS TEXTS BACK IN A MINUTE. ALWAYS. HE'S VERY PROFESSIONAL.",
-  "from": "game/stages/barry/power.ts:234"
- },
- {
-  "voice": "barry.minion",
-  "text": "IS THAT ALL YOU'VE GOT? THEY'RE RATED FOR HURRICANES.",
-  "from": "game/stages/barry/power.ts:234"
- },
- {
-  "voice": "barry.minion",
-  "text": "IS THAT ALL YOU'VE GOT? THEY'RE RATED FOR HURRICANES. NOT FOR WHATEVER THAT SMELL IS.",
-  "from": "game/stages/barry/power.ts:234"
- },
- {
-  "voice": "barry.minion",
-  "text": "IT'S NOT OVER! IT'S NOT OVER!",
-  "from": "game/stages/barry/power.ts:275"
- },
- {
-  "voice": "barry.minion",
-  "text": "NO NO NO NO! THAT ONE RAN THE SUBWAY SIGNALS! EVERY TRAIN ON THE A LINE IS JUST... GOING. FOREVER. TO FAR ROCKAWAY.",
-  "from": "game/stages/barry/power.ts:91"
- },
- {
-  "voice": "barry.minion",
-  "text": "OH, LOOK WHO FINALLY MADE IT UP ALL THOSE FIRE ESCAPES. YOU'RE SWEATY. AND YOU SHIT YOURSELF. IT'S SO GROSS.",
-  "from": "game/stages/barry/power.ts:65"
- },
- {
-  "voice": "barry.minion",
-  "text": "OH, LOOK WHO FINALLY MADE IT UP ALL THOSE FIRE ESCAPES. YOU'RE SWEATY. IT'S GROSS.",
-  "from": "game/stages/barry/power.ts:58"
- },
- {
-  "voice": "barry.minion",
-  "text": "TELL BARRY... THE FERN... NEEDS WATERING...",
   "from": "game/stages/barry/power.ts:276"
  },
  {
   "voice": "barry.minion",
+  "text": "AAAAAAAAAAAAAAAAH!",
+  "from": "game/stages/barry/power.ts:275"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "BARRY GOT ME THIS HEADSET FOR OUR ANNIVERS... FOR MY WORK ANNIVERSARY.",
+  "from": "game/stages/barry/power.ts:236"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "BARRY IS GOING TO HEAR ABOUT THIS. AND SMELL ABOUT IT.",
+  "from": "game/stages/barry/power.ts:236"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "BARRY IS GOING TO HEAR ABOUT THIS. HE HEARS ABOUT EVERYTHING.",
+  "from": "game/stages/barry/power.ts:236"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "BARRY'S GONNA KILL ME. OR WORSE. I'LL BE ON THE COUCH FOR A MONTH.",
+  "from": "game/stages/barry/power.ts:98"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "CAREFUL! THOSE ARE LEASED!",
+  "from": "game/stages/barry/power.ts:236"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "CAREFUL! THOSE ARE LEASED! AND DON'T TOUCH THEM WITH THOSE HANDS!",
+  "from": "game/stages/barry/power.ts:236"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "DID YOU JUST... THROW WATER. IN THE POWER ROOM.",
+  "from": "game/stages/barry/power.ts:274"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "EVERY ROLLING BLACKOUT IN THE CITY RUNS THROUGH THESE THREE BEAUTIES. AND NOW THE WHOLE ROOM SMELLS LIKE YOU.",
+  "from": "game/stages/barry/power.ts:69"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "EVERY ROLLING BLACKOUT IN THE CITY RUNS THROUGH THESE THREE BEAUTIES. NOT THAT YOU'D UNDERSTAND LOAD BALANCING.",
+  "from": "game/stages/barry/power.ts:62"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "I CAN SEE MY GRANDMA! SHE SAYS I SHOULD HAVE BEEN A DENTIST!",
+  "from": "game/stages/barry/power.ts:277"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "I'M TEXTING BARRY. \"THE BIG ONE SHIT HIMSELF.\" HE'LL TEXT BACK. HE ALWAYS TEXTS BACK.",
+  "from": "game/stages/barry/power.ts:236"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "I'M TEXTING BARRY. HE ALWAYS TEXTS BACK IN A MINUTE. ALWAYS. HE'S VERY PROFESSIONAL.",
+  "from": "game/stages/barry/power.ts:236"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "IS THAT ALL YOU'VE GOT? THEY'RE RATED FOR HURRICANES.",
+  "from": "game/stages/barry/power.ts:236"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "IS THAT ALL YOU'VE GOT? THEY'RE RATED FOR HURRICANES. NOT FOR WHATEVER THAT SMELL IS.",
+  "from": "game/stages/barry/power.ts:236"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "IT'S NOT OVER! IT'S NOT OVER!",
+  "from": "game/stages/barry/power.ts:277"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "NO NO NO NO! THAT ONE RAN THE SUBWAY SIGNALS! EVERY TRAIN ON THE A LINE IS JUST... GOING. FOREVER. TO FAR ROCKAWAY.",
+  "from": "game/stages/barry/power.ts:93"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "OH, LOOK WHO FINALLY MADE IT UP ALL THOSE FIRE ESCAPES. YOU'RE SWEATY. AND YOU SHIT YOURSELF. IT'S SO GROSS.",
+  "from": "game/stages/barry/power.ts:67"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "OH, LOOK WHO FINALLY MADE IT UP ALL THOSE FIRE ESCAPES. YOU'RE SWEATY. IT'S GROSS.",
+  "from": "game/stages/barry/power.ts:60"
+ },
+ {
+  "voice": "barry.minion",
+  "text": "TELL BARRY... THE FERN... NEEDS WATERING...",
+  "from": "game/stages/barry/power.ts:278"
+ },
+ {
+  "voice": "barry.minion",
   "text": "THAT WAS TRAFFIC CONTROL! EVERY LIGHT IN MANHATTAN JUST WENT GREEN! ALL OF THEM! AT ONCE! THE CABS! OH GOD, THE CABS!",
-  "from": "game/stages/barry/power.ts:95"
+  "from": "game/stages/barry/power.ts:97"
  },
  {
   "voice": "barry.minion",
   "text": "THE HOSPITALS! THE STOCK EXCHANGE! THE HOT DOG CARTS! AND THE FAILSAFE THAT KEEPS THIS ROOM FROM EXPLO",
-  "from": "game/stages/barry/power.ts:99"
+  "from": "game/stages/barry/power.ts:101"
  },
  {
   "voice": "barry.minion",
   "text": "THIS IS THE HEART OF THE NEW YORK POWER GRID. TOUCH NOTHING. I MEAN IT. NOTHING.",
-  "from": "game/stages/barry/power.ts:59"
+  "from": "game/stages/barry/power.ts:61"
  },
  {
   "voice": "barry.minion",
   "text": "THIS IS THE HEART OF THE NEW YORK POWER GRID. TOUCH NOTHING. SIT ON NOTHING. I MEAN IT. NOTHING.",
-  "from": "game/stages/barry/power.ts:66"
+  "from": "game/stages/barry/power.ts:68"
  },
  {
   "voice": "barry.minion",
   "text": "YOU KNOW YOU'RE ON CAMERA, RIGHT? I'M PUTTING THIS ON THE COMPANY NEWSLETTER.",
-  "from": "game/stages/barry/power.ts:234"
+  "from": "game/stages/barry/power.ts:236"
  },
  {
   "voice": "barry.minion",
   "text": "YOU KNOW YOU'RE ON CAMERA, RIGHT? THE WHOLE COMPANY'S GOING TO SEE YOUR PANTS.",
-  "from": "game/stages/barry/power.ts:234"
+  "from": "game/stages/barry/power.ts:236"
  },
  {
   "voice": "barry.resident",
@@ -5737,7 +5737,7 @@
  {
   "voice": "death",
   "text": "ELECTROCUTED! WATER AND A POWER PLANT: NOT A COMBO",
-  "from": "game/stages/barry/power.ts:331"
+  "from": "game/stages/barry/power.ts:324"
  },
  {
   "voice": "death",
@@ -9617,7 +9617,7 @@
  {
   "voice": "meathead",
   "text": "...WAS THAT THE DOOR? OR WAS THAT ME? THAT WAS ME.",
-  "from": "game/core/update.ts:355"
+  "from": "game/core/update.ts:356"
  },
  {
   "voice": "meathead",
@@ -10122,7 +10122,7 @@
  {
   "voice": "meathead",
   "text": "AAAAAAAAAAAAH!",
-  "from": "game/stages/barry/power.ts:273"
+  "from": "game/stages/barry/power.ts:275"
  },
  {
   "voice": "meathead",
@@ -10672,7 +10672,7 @@
  {
   "voice": "meathead",
   "text": "CATCH YOU LATER.",
-  "from": "game/stages/hector/boat.ts:60"
+  "from": "game/stages/hector/boat.ts:61"
  },
  {
   "voice": "meathead",
@@ -11157,7 +11157,7 @@
  {
   "voice": "meathead",
   "text": "DOORS ARE FOR PEOPLE WHO CAN'T KICK. ...SHOULDN'T HAVE KICKED.",
-  "from": "game/core/update.ts:355"
+  "from": "game/core/update.ts:356"
  },
  {
   "voice": "meathead",
@@ -11272,7 +11272,7 @@
  {
   "voice": "meathead",
   "text": "EIGHTEEN FIFTY-NINE. GOOD RUN. SPEAKING OF RUNS.",
-  "from": "game/core/update.ts:355"
+  "from": "game/core/update.ts:356"
  },
  {
   "voice": "meathead",
@@ -12087,7 +12087,7 @@
  {
   "voice": "meathead",
   "text": "GUESS THEY'RE STILL BITIN'.",
-  "from": "game/stages/hector/boat.ts:60"
+  "from": "game/stages/hector/boat.ts:61"
  },
  {
   "voice": "meathead",
@@ -12947,7 +12947,7 @@
  {
   "voice": "meathead",
   "text": "I CAN TASTE COLORS!",
-  "from": "game/stages/barry/power.ts:275"
+  "from": "game/stages/barry/power.ts:277"
  },
  {
   "voice": "meathead",
@@ -13267,7 +13267,7 @@
  {
   "voice": "meathead",
   "text": "I THINK IT'S OVER.",
-  "from": "game/stages/barry/power.ts:274"
+  "from": "game/stages/barry/power.ts:276"
  },
  {
   "voice": "meathead",
@@ -13537,7 +13537,7 @@
  {
   "voice": "meathead",
   "text": "I'M ON THE LIST NOW. UNDER \"DO NOT SEAT.\"",
-  "from": "game/core/update.ts:355"
+  "from": "game/core/update.ts:356"
  },
  {
   "voice": "meathead",
@@ -14432,12 +14432,12 @@
  {
   "voice": "meathead",
   "text": "NEED YOUR BOAT, GRAMPS.",
-  "from": "game/stages/hector/boat.ts:60"
+  "from": "game/stages/hector/boat.ts:61"
  },
  {
   "voice": "meathead",
   "text": "NEED YOUR BOAT, GRAMPS. DON'T ASK ABOUT THE SMELL.",
-  "from": "game/stages/hector/boat.ts:60"
+  "from": "game/stages/hector/boat.ts:61"
  },
  {
   "voice": "meathead",
@@ -14667,7 +14667,7 @@
  {
   "voice": "meathead",
   "text": "NO SMOKING. GOOD. NOBODY LIGHT A MATCH NEAR ME.",
-  "from": "game/core/update.ts:355"
+  "from": "game/core/update.ts:356"
  },
  {
   "voice": "meathead",
@@ -14857,7 +14857,7 @@
  {
   "voice": "meathead",
   "text": "OH, COME ON.",
-  "from": "game/stages/hector/boat.ts:60"
+  "from": "game/stages/hector/boat.ts:61"
  },
  {
   "voice": "meathead",
@@ -15092,7 +15092,7 @@
  {
   "voice": "meathead",
   "text": "OW. ...THAT DOOR WAS LIVE. NOW SO ARE MY SHORTS.",
-  "from": "game/core/update.ts:355"
+  "from": "game/core/update.ts:356"
  },
  {
   "voice": "meathead",
@@ -15412,7 +15412,7 @@
  {
   "voice": "meathead",
   "text": "RATED FOR HURRICANES. NOT FOR WHAT JUST SHIFTED IN MY PANTS.",
-  "from": "game/core/update.ts:355"
+  "from": "game/core/update.ts:356"
  },
  {
   "voice": "meathead",
@@ -16037,7 +16037,7 @@
  {
   "voice": "meathead",
   "text": "SIGNED FOR IT. WITH MY FOOT. LEFT A LITTLE SOMETHING EXTRA.",
-  "from": "game/core/update.ts:355"
+  "from": "game/core/update.ts:356"
  },
  {
   "voice": "meathead",
@@ -17117,7 +17117,7 @@
  {
   "voice": "meathead",
   "text": "The field? The union? The bar? Water under the bridge, pal. Burning water. Now let's talk about YOU. What are you driving these days?",
-  "from": "game/core/update.ts:226"
+  "from": "game/core/update.ts:227"
  },
  {
   "voice": "meathead",
@@ -17477,7 +17477,7 @@
  {
   "voice": "meathead",
   "text": "THREE BIG HUMMING BOXES. GOT IT.",
-  "from": "game/stages/barry/power.ts:61"
+  "from": "game/stages/barry/power.ts:63"
  },
  {
   "voice": "meathead",
@@ -17687,7 +17687,7 @@
  {
   "voice": "meathead",
   "text": "Two jet skis, sonny. Two tour groups. And now my front hall's caved in. I schedule my quakes AROUND the tour groups!",
-  "from": "game/core/update.ts:226"
+  "from": "game/core/update.ts:227"
  },
  {
   "voice": "meathead",
@@ -18242,7 +18242,7 @@
  {
   "voice": "meathead",
   "text": "WORTH IT.",
-  "from": "game/stages/barry/power.ts:277"
+  "from": "game/stages/barry/power.ts:279"
  },
  {
   "voice": "meathead",
@@ -18302,12 +18302,12 @@
  {
   "voice": "meathead",
   "text": "You blew my whole power room, man. With Gary in it. My... roommate. Eleven years. One bedroom. We were ROOMMATES, man.",
-  "from": "game/core/update.ts:226"
+  "from": "game/core/update.ts:227"
  },
  {
   "voice": "meathead",
   "text": "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!",
-  "from": "game/core/update.ts:226"
+  "from": "game/core/update.ts:227"
  },
  {
   "voice": "meathead",
@@ -18347,7 +18347,7 @@
  {
   "voice": "meathead",
   "text": "You crashed my VIP lounge, bro. Those were investors. Now they're a geothermal feature.",
-  "from": "game/core/update.ts:226"
+  "from": "game/core/update.ts:227"
  },
  {
   "voice": "meathead",
@@ -18377,12 +18377,12 @@
  {
   "voice": "meathead",
   "text": "You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.",
-  "from": "game/core/update.ts:226"
+  "from": "game/core/update.ts:227"
  },
  {
   "voice": "meathead",
   "text": "You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I'M the terrorist?",
-  "from": "game/core/update.ts:226"
+  "from": "game/core/update.ts:227"
  },
  {
   "voice": "meathead",
@@ -18437,7 +18437,7 @@
  {
   "voice": "meathead",
   "text": "You put the neighbors down. You knocked over my water tower and surfed it through the block. That took WEEKS to fill!",
-  "from": "game/core/update.ts:226"
+  "from": "game/core/update.ts:227"
  },
  {
   "voice": "meathead",
@@ -18452,7 +18452,7 @@
  {
   "voice": "meathead",
   "text": "YOU SAID TOUCH NOTHING. I HEARD SMASH EVERYTHING.",
-  "from": "game/stages/barry/power.ts:92"
+  "from": "game/stages/barry/power.ts:94"
  },
  {
   "voice": "meathead",
@@ -18562,7 +18562,7 @@
  {
   "voice": "meathead",
   "text": "YOU'RE TOAST.",
-  "from": "game/core/update.ts:226"
+  "from": "game/core/update.ts:227"
  },
  {
   "voice": "meathead",
@@ -18682,32 +18682,32 @@
  {
   "voice": "oldman",
   "text": "...STILL BITIN'.",
-  "from": "game/stages/hector/boat.ts:68"
+  "from": "game/stages/hector/boat.ts:69"
  },
  {
   "voice": "oldman",
   "text": "...STILL BITIN'. HE CAN KEEP THE BOAT.",
-  "from": "game/stages/hector/boat.ts:68"
+  "from": "game/stages/hector/boat.ts:69"
  },
  {
   "voice": "oldman",
   "text": "BITIN' LIKE CRAZY TODAY.",
-  "from": "game/stages/hector/boat.ts:68"
+  "from": "game/stages/hector/boat.ts:69"
  },
  {
   "voice": "oldman",
   "text": "IN THIS WEATHER? YOU'LL GET KILLED OUT THERE!",
-  "from": "game/stages/hector/boat.ts:68"
+  "from": "game/stages/hector/boat.ts:69"
  },
  {
   "voice": "oldman",
   "text": "IN THIS WEATHER? YOU'LL GET KILLED OUT THERE! ...AND DON'T YOU SIT ON MY CUSHIONS LIKE THAT!",
-  "from": "game/stages/hector/boat.ts:68"
+  "from": "game/stages/hector/boat.ts:69"
  },
  {
   "voice": "oldman",
   "text": "WHOOAAA!",
-  "from": "game/stages/hector/boat.ts:68"
+  "from": "game/stages/hector/boat.ts:69"
  },
  {
   "voice": "oscar.biker",
