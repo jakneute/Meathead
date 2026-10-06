@@ -283,7 +283,8 @@ export const updateBunker = (ctx: FrameContext, b: Bunker, talk: Talk, controls:
     case 'boom': case 'aftermath': return aftermath(ctx, b, talk);
     case 'outside':
       // Across the yard on his own; up to the bikers, and it's Dirty Dan's chopper
-      if (state.checkpoint < CP.YARD && p.isGrounded && px > COURSE.checkpoints[CP.YARD].x) state.checkpoint = CP.YARD;
+      // (the break room's behind him, however it went: dying out here, he's back out here, not doing it all again)
+      if (state.checkpoint < CP.YARD) state.checkpoint = CP.YARD;
       if (p.isGrounded && px > b.bikers[0].x - 440) { b.phase = 'runout'; b.t = 0; b.step = 0; b.stepAt = 0; }
       return controls;
     case 'runout': return runOut(ctx, b, talk);
