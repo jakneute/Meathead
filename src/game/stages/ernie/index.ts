@@ -15,6 +15,7 @@ import { skiDeathMessage, isRiding } from './jetski';
 import { drawErnieBackdrop, drawErnieBack, drawErnieMid, drawErnieFront, drawErnieHud, drawErnieWeather } from './draw';
 import { ernieScene } from './lighting';
 import { hallZoom } from './doorCrash';
+import { tourWrecked } from './alcatraz';
 import { plungeZoom, tickPlunge } from './bridge';
 
 /** Down one of the island's holes: into the old fort under the cell house, off the cliff into the bay, into the cistern. */
@@ -31,8 +32,15 @@ export const ernieLayout: StageLayout = {
   music: state => {
     const px = state.player.pos.x + state.player.width / 2;
     const r = regionOf(px);
-    if (r === 'bay') return 'bay';
-    if (r === 'cell') return 'cell';
+    const rt = getErnie(state);
+    // (on the jet ski, from the theft's end to the ramp: the chase)
+    if (r === 'bay') return rt && isRiding(rt.ski) ? 'jetski' : 'bay';
+    if (r === 'cell') {
+      // (the tour, till the ski comes through the skylight; then the island with the quakes back on: the cell house,
+      // the yard and the cliffs, the citadel's vaults down to the door)
+      if (!rt || !tourWrecked(rt.tour)) return 'cell';
+      return px < COURSE.island.house ? 'island' : px < COURSE.island.yard ? 'yard' : 'vaults';
+    }
     return onBridge(px) ? 'bridge' : 'streets';
   },
   left: COURSE.left,

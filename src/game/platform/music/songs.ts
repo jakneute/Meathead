@@ -27,6 +27,8 @@ const bass = (o: number, pattern: string, roots: string[]) => roots.map(r => {
   const [root, fifth] = r.split('/');
   return `o${o} ` + pattern.replace(/O/g, `>${root}<`).replace(/F/g, fifth ?? root).replace(/R/g, root);
 }).join(' | ');
+/** A tune an octave up (every bar's octave raised; its > and < stay as they are). */
+const up = (s: string) => s.replace(/o(\d)/g, (_, n) => `o${Number(n) + 1}`);
 
 // A few drum grooves (a bar each)
 const ROCK = '{kh}8 h8 {sh}8 h8 {kh}8 {kh}8 {sh}8 h8';
@@ -37,6 +39,40 @@ const FUNK = '{kh}16 h16 h16 k16 {sh}16 h16 h16 k16 h16 k16 h16 h16 {sh}16 h16 {
 const BOOM = 'k8 h8 {sh}8 h8 r16 k16 k8 {sh}8 h8';
 const LIGHT = 'k8 z8 m8 z8 k8 k8 m8 z8';
 const TRAIN = '{kh}16 h16 s16 h16 {kh}16 h16 s16 {sh}16 {kh}16 h16 s16 h16 {kh}16 h16 {sh}16 s16';
+
+// The chases' grooves (each stage's own: same tempo as the stage's theme, so the song keeps its place, but twice as
+// busy, so it feels twice as fast). A bar each, and a fill to end a phrase on.
+/** Double time: kick on the beat, snare on every offbeat eighth, sixteenth hats (punk's skate beat). */
+const DOUBLE = '{kh}16 h16 {sh}16 h16 {kh}16 h16 {sh}16 h16 {kh}16 h16 {sh}16 h16 {kh}16 {kh}16 {sh}16 h16';
+const DOUBLE_FILL = '{kh}16 h16 {sh}16 h16 {kh}16 h16 {sh}16 h16 s16 s16 t16 t16 u16 u16 {kx}8';
+/** Double kick under a rock backbeat: the bikers' southern rock flat out. */
+const HAMMER = '{kh}16 h16 {kh}16 h16 {sh}16 h16 {kh}16 {kh}16 {kh}16 h16 {kh}16 h16 {sh}16 h16 {kh}16 {sh}16';
+const HAMMER_FILL = '{kh}16 h16 {kh}16 h16 {sh}16 h16 {kh}16 {kh}16 s16 s16 s16 s16 t16 t16 u16 u16';
+/** Surf drums: toms running in sixteenths under the backbeat (Wipe Out). */
+const WIPE = '{kt}16 t16 t16 t16 {st}16 t16 u16 u16 {kt}16 t16 t16 t16 {st}16 t16 u16 u16';
+const WIPE_FILL = '{kt}16 t16 t16 t16 {st}16 t16 u16 u16 s16 s16 s16 s16 {su}16 {su}16 {kx}8';
+/** Salsa in a hurry: cowbell and kick on the beat, bongos and congas running sixteenths, the snare on two and four. */
+const SALSA = '{kw}16 b16 b16 c16 {sw}16 b16 c16 c16 {kw}16 b16 b16 c16 {sw}16 c16 {kd}16 d16';
+const SALSA_FILL = '{kw}16 b16 b16 c16 {sw}16 b16 c16 c16 t16 t16 t16 t16 u16 u16 {kx}8';
+/** Drum and bass's two-step over a slow tempo: the snare twice a beat, so 92 feels like 184. */
+const DNB = '{kh}16 h16 {sh}16 h16 h16 {kh}16 {sh}16 h16 {kh}16 h16 {sh}16 h16 h16 {kh}16 {sh}16 h16';
+const DNB_FILL = '{kh}16 h16 {sh}16 h16 h16 {kh}16 {sh}16 h16 s16 s16 s16 s16 t16 t16 u16 u16';
+/** A gallop on the toms (the posse riding), kick and snare under it. */
+const GALLOP = '{kh}8 t16 t16 {sh}8 t16 t16 {kh}8 t16 t16 {sh}8 u16 u16';
+const GALLOP_FILL = '{kh}8 t16 t16 {sh}8 t16 t16 s16 s16 t16 t16 u16 u16 {kx}8';
+/** Eight bars of a groove: in on a crash, a fill at the end of each four. */
+const chase8 = (groove: string, fill: string) => b(groove.replace(/^\{k/, '{kx'), groove, groove, fill, groove, groove, groove, fill);
+
+// Tunes (and roots) used by more than one part of their song
+const ARTIE_TUNE = ['o5 l8 a4 > c < b a4 e4', 'o5 f4. e d4 e4', 'o5 a4 > c e d4 c4', 'o5 b2. r4', 'o5 a4 b > c d4 e4', 'o6 f4 e d c4 < b4', 'o5 a4 g4 e4 g4', 'o5 a1'];
+const ARTIE_ROOTS = ['a', 'd', 'f', 'e', 'a', 'd', 'c', 'a'];
+const ERNIE_ROOTS = ['e', 'a', 'e', 'a', 'c', 'a', 'd', 'e'];
+const HECTOR_ROOTS = ['c/g', 'd/a', 'c/g', 'c/g', 'f/c', 'c/g', 'g/d', 'c/g'];
+const TOMMY_ROOTS = ['c', 'c', 'e-', 'f', 'c', 'f', 'a-', 'c'];
+const OSCAR_TUNE = ['o5 l8 e4 g+ a b4 a g+', 'o5 f+4 e d e2', 'o5 e4 g+ a b4 > d c+', 'o5 b2. r4', 'o5 a4 b > c+ d4 c+ < b', 'o5 a4 g+ f+ e4 d4', 'o5 c+4 d e f+4 g+4', 'o5 a1'];
+const OSCAR_ROOTS = ['e', 'd', 'e', 'e', 'a', 'd', 'a', 'a'];
+const DALE_TUNE = ['o5 l8 d4. a a4 g f', 'o5 e4. f d2', 'o5 d4. a > c4 < b- a', 'o5 a2. r4', 'o5 b-4. a g4 f e', 'o5 f4. g a2', 'o5 g4 f e d4 c+4', 'o5 d1'];
+const DALE_ROOTS = ['d', 'a', 'd', 'a', 'g', 'd', 'a', 'd'];
 
 export const SONGS: Record<string, Song> = {
   // ---------------------------------------------------------------------------------------------------------------
@@ -102,23 +138,33 @@ export const SONGS: Record<string, Song> = {
   },
 
   // ---------------------------------------------------------------------------------------------------------------
-  // Artie: icy and a bit grand. Bells up the trail, flute on the tram, brass at the summit, guitar and drums down the ski run.
+  // Artie: icy and a bit grand. Bells up the trail, flute on the tram, brass at the summit, hushed and hollow in the ice
+  // cave; flat out down the ski run with the avalanche behind him (a galloping guitar, the bass pumping, the drums in
+  // double time with the sleigh bells for hats); and after it, the drums gone, toms and a choir to the door.
   artie: {
     bpm: 132,
     parts: {
-      lead: { inst: 'bell', mml: b('o5 l8 a4 > c < b a4 e4', 'o5 f4. e d4 e4', 'o5 a4 > c e d4 c4', 'o5 b2. r4', 'o5 a4 b > c d4 e4', 'o6 f4 e d c4 < b4', 'o5 a4 g4 e4 g4', 'o5 a1') },
+      lead: { inst: 'bell', mml: b(...ARTIE_TUNE) },
+      // (down the ski run: the bells doubling the guitar, the ice on the tune)
+      hook: { inst: 'bell', vol: 0.55, pan: 0.2, only: ['ski'], mml: b(...ARTIE_TUNE) },
       arp: { inst: 'harp', vol: 0.8, pan: -0.35, mml: arp(4, [['ace', 'a'], ['dfa', 'd'], ['fac', 'f'], ['eg+b', 'e'], ['ace', 'a'], ['dfa', 'd'], ['ceg', 'c'], ['ace', 'a']]) },
       pad: { inst: 'slowstrings', vol: 0.7, pan: 0.3, mml: pad(4, ['ace', 'dfa', 'fa>c', 'eg+b', 'ace', 'dfa', 'ceg', 'ace']) },
       bass: { inst: 'bass', mml: bass(2, 'R4 R8 R8 F4 R4', ['a/e', 'd/a', 'f/c', 'e/b', 'a/e', 'd/a', 'c/g', 'a/e']) },
-      drums: { inst: 'kick', drums: true, not: ['ski'], mml: rep('k8 y8 s8 y8 k8 k8 s8 y8', 8) },
-      drive: { inst: 'kick', drums: true, only: ['ski'], mml: b(DRIVE, DRIVE, DRIVE, ROCK_FILL, DRIVE, DRIVE, DRIVE, ROCK_FILL) },
-      toms: { inst: 'kick', drums: true, only: ['tram'], mml: rep('r2 r4 t8 u8', 8) },
+      pump: { inst: 'bass', only: ['ski'], mml: bass(2, 'R8 O8 R8 O8 R8 O8 R8 O8', ARTIE_ROOTS) },
+      gallop: { inst: 'power', vol: 0.6, pan: -0.3, only: ['ski'], mml: bass(2, 'R8 R16 R16 R8 R16 R16 R8 R16 R16 R8 R16 R16', ARTIE_ROOTS) },
+      drums: { inst: 'kick', drums: true, not: ['ski', 'cave', 'door'], mml: rep('k8 y8 s8 y8 k8 k8 s8 y8', 8) },
+      drive: { inst: 'kick', drums: true, only: ['ski'], mml: chase8(DOUBLE.replace(/h/g, 'y'), DOUBLE_FILL.replace(/h/g, 'y')) },
+      toms: { inst: 'kick', drums: true, only: ['tram', 'cave', 'door'], mml: rep('r2 r4 t8 u8', 8) },
     },
     arrangements: {
       trail: {},
       tram: { inst: { lead: 'flute', pad: 'strings' } },
       summit: { inst: { lead: 'brass', pad: 'choir' } },
-      ski: { inst: { lead: 'guitar', pad: 'strings', arp: 'bell' }, vol: { arp: 0.5 } },
+      // (in the ice cave: no kit, just the far-off toms, the bells and the harp ringing in the hollow)
+      cave: { inst: { lead: 'bell' }, vol: { lead: 0.85, arp: 0.7, bass: 0.7, toms: 0.6 } },
+      ski: { inst: { lead: 'guitar', pad: 'strings' }, mute: ['bass'], vol: { arp: 0.7, pad: 0.6 } },
+      // (the run's over, the cabin's under it: the kit gone, toms and the choir and the brass the rest of the way to the door)
+      door: { inst: { lead: 'brass', pad: 'choir' }, mute: ['arp'], vol: { lead: 0.85 } },
     },
   },
 
@@ -151,71 +197,94 @@ export const SONGS: Record<string, Song> = {
     },
   },
 
-  // Ernie: San Francisco funk (slap bass, clav, a horn section); the bridge coming down; surf guitar across the bay; organ on the tour.
+  // Ernie: San Francisco funk (slap bass, clav, a horn section); the bridge coming down; surf guitar on the pier; the
+  // jet ski run across the bay as a surf chase (the toms running, the slap pumping, the horns stabbing); organ on the
+  // tour; then the island with the quakes back on: the funk and the timpani in the cell house, the horns out in the
+  // yard and down the cliffs, dark and low in the citadel's vaults on the way down to the door.
   ernie: {
     bpm: 112,
     parts: {
       lead: { inst: 'brass', pan: 0.2, mml: b('o5 l8 e r e g a4 b4', 'o6 d4 < b a g4 e4', 'o5 e r e g a4 b4', 'o6 d e d < b a2', 'o5 g4 a b > c+4 < b4', 'o5 a4 g e g2', 'o5 f+4 g a b4 a4', 'o5 e2. r4') },
-      bass: { inst: 'slap', mml: bass(2, 'R8 r16 R16 O8 R8 r16 R16 F8 R8 O8', ['e/b', 'a/e', 'e/b', 'a/e', 'c/g', 'a/e', 'd/a', 'e/b']) },
-      clav: { inst: 'clav', vol: 0.8, pan: -0.35, not: ['cell'], mml: stabs(4, ['egbd', 'ac+eg', 'egbd', 'ac+eg', 'cegb', 'aceg', 'df+ac', 'egbd']) },
-      drums: { inst: 'kick', drums: true, not: ['bridge', 'bay'], mml: rep(FUNK, 8) },
+      bass: { inst: 'slap', not: ['jetski'], mml: bass(2, 'R8 r16 R16 O8 R8 r16 R16 F8 R8 O8', ['e/b', 'a/e', 'e/b', 'a/e', 'c/g', 'a/e', 'd/a', 'e/b']) },
+      pump: { inst: 'slap', only: ['jetski'], mml: bass(2, 'R16 R16 O8 R16 R16 O8 R16 R16 O8 R16 R16 O8', ERNIE_ROOTS) },
+      clav: { inst: 'clav', vol: 0.8, pan: -0.35, not: ['cell', 'vaults'], mml: stabs(4, ['egbd', 'ac+eg', 'egbd', 'ac+eg', 'cegb', 'aceg', 'df+ac', 'egbd']) },
+      horns: { inst: 'brass', vol: 0.6, pan: 0.3, only: ['jetski', 'yard'], mml: ['egb', 'ac+e', 'egb', 'ac+e', 'ceg', 'ace', 'df+a', 'egb'].map(c => `o4 {${c}}8 r8 r4 r8 {${c}}8 {${c}}8 r8`).join(' | ') },
+      drums: { inst: 'kick', drums: true, not: ['bridge', 'bay', 'jetski'], mml: rep(FUNK, 8) },
       bridge: { inst: 'kick', drums: true, only: ['bridge'], mml: b(DRIVE, DRIVE, DRIVE, ROCK_FILL, DRIVE, DRIVE, DRIVE, ROCK_FILL) },
-      timp: { inst: 'timpani', only: ['bridge'], mml: rep('o2 e4 r4 e8 e8 r4', 8) },
+      timp: { inst: 'timpani', only: ['bridge', 'island', 'yard', 'vaults'], mml: rep('o2 e4 r4 e8 e8 r4', 8) },
       surf: { inst: 'kick', drums: true, only: ['bay'], mml: rep('{kh}8 h8 {sh}8 {kh}8 r8 k8 {sh}8 h8', 8) },
-      pad: { inst: 'strings', vol: 0.6, only: ['bridge', 'cell'], mml: pad(4, ['egb', 'ac+e', 'egb', 'ac+e', 'ceg', 'ace', 'df+a', 'egb']) },
+      wipe: { inst: 'kick', drums: true, only: ['jetski'], mml: chase8(WIPE, WIPE_FILL) },
+      pad: { inst: 'strings', vol: 0.6, only: ['bridge', 'cell', 'island', 'vaults'], mml: pad(4, ['egb', 'ac+e', 'egb', 'ac+e', 'ceg', 'ace', 'df+a', 'egb']) },
     },
     arrangements: {
       streets: {},
       bridge: { inst: { lead: 'trumpet' } },
       bay: { inst: { lead: 'guitar', clav: 'nylon' } },
+      jetski: { inst: { lead: 'guitar' }, vol: { clav: 0.7 } },
       cell: { inst: { lead: 'organ', bass: 'bass' }, vol: { drums: 0.6 } },
+      // (the tour's over and the quakes are back: the funk, the timpani rumbling under it, still the organ indoors)
+      island: { inst: { lead: 'organ' }, vol: { pad: 0.5 } },
+      yard: { inst: { lead: 'trumpet' } },
+      vaults: { inst: { lead: 'organ', bass: 'bass' }, vol: { lead: 0.8, drums: 0.5, timp: 0.8 } },
     },
   },
 
-  // Hector: Miami, salsa. Steel drum and piano on the beach; minor and stormy when the storm hits; choir up the storm tower.
+  // Hector: Miami, salsa. Steel drum and piano on the beach; minor and stormy when the storm hits; the stolen boat with
+  // the Coast Guard after it as salsa flat out (trumpet up front, the bongos and congas running sixteenths, the bass
+  // pumping, the horns stabbing every bar); choir up the storm tower.
   hector: {
     bpm: 124,
     parts: {
       lead: { inst: 'steel', mml: b('o5 l8 c e g a4 g e c', 'o5 d4 f a g2', 'o5 c e g a4 > c < a g', 'o5 e2. r4', 'o5 f4 a > c < b4 g4', 'o5 e4 g a g4 e4', 'o5 d4 e f g4 b4', 'o6 c1') },
       montuno: { inst: 'piano', vol: 0.7, pan: -0.35, mml: [['ceg', 'e'], ['dfa', 'f'], ['ceg', 'e'], ['ceg', 'e'], ['fac', 'a'], ['ceg', 'e'], ['gbd', 'b'], ['ceg', 'e']].map(([c, t]) => `o4 {${c}}8 ${t}8 r8 {${c}}8 r8 ${t}8 {${c}}8 r8`).join(' | ') },
-      bass: { inst: 'bass', mml: bass(2, 'R4. F8 r8 O8 F4', ['c/g', 'd/a', 'c/g', 'c/g', 'f/c', 'c/g', 'g/d', 'c/g']) },
-      perc: { inst: 'kick', drums: true, not: ['storm', 'tower'], mml: rep('{kw}8 b8 c8 {bw}8 {kd}8 b8 c8 {cw}8', 8) },
+      bass: { inst: 'bass', not: ['boat'], mml: bass(2, 'R4. F8 r8 O8 F4', HECTOR_ROOTS) },
+      pump: { inst: 'bass', only: ['boat'], mml: bass(2, 'R8 R8 O8 R8 F8 R8 O8 F8', HECTOR_ROOTS) },
+      perc: { inst: 'kick', drums: true, not: ['storm', 'tower', 'boat'], mml: rep('{kw}8 b8 c8 {bw}8 {kd}8 b8 c8 {cw}8', 8) },
       storm: { inst: 'kick', drums: true, only: ['storm', 'tower'], mml: b(DRIVE, DRIVE, DRIVE, ROCK_FILL, DRIVE, DRIVE, DRIVE, ROCK_FILL) },
-      horns: { inst: 'brass', vol: 0.7, pan: 0.3, only: ['beach', 'boat'], mml: rep('o4 r2 r8 {ceg}8 {ceg}8 r8 | o4 r2 r8 {dfa}8 {dfa}8 r8', 4) },
+      salsa: { inst: 'kick', drums: true, only: ['boat'], mml: chase8(SALSA, SALSA_FILL) },
+      horns: { inst: 'brass', vol: 0.7, pan: 0.3, only: ['beach'], mml: rep('o4 r2 r8 {ceg}8 {ceg}8 r8 | o4 r2 r8 {dfa}8 {dfa}8 r8', 4) },
+      mambo: { inst: 'brass', vol: 0.65, pan: 0.3, only: ['boat'], mml: ['ceg', 'dfa', 'ceg', 'ceg', 'fac', 'ceg', 'gbd', 'ceg'].map(c => `o4 {${c}}8 r8 r8 {${c}}8 r4 {${c}}8 {${c}}8`).join(' | ') },
       pad: { inst: 'choir', vol: 0.6, only: ['tower'], mml: pad(4, ['ceg', 'dfa', 'ceg', 'ceg', 'fac', 'ceg', 'gbd', 'ceg']) },
       str: { inst: 'strings', vol: 0.6, only: ['storm'], mml: pad(4, ['ce-g', 'dfa-', 'ce-g', 'ce-g', 'fa-c', 'ce-g', 'gbd', 'ce-g']) },
     },
     arrangements: {
       beach: {},
       storm: { inst: { lead: 'trumpet', montuno: 'organ' } },
-      boat: { inst: { lead: 'steel' } },
+      boat: { inst: { lead: 'trumpet' }, vol: { montuno: 1.15 } },
       tower: { inst: { lead: 'brass', montuno: 'strings' }, vol: { montuno: 0.5 } },
       daycare: { mute: ['perc'], inst: { lead: 'bell', montuno: 'harp' } },
     },
   },
 
-  // Tommy: Flint. A slow, heavy boom-bap on the corner; the same, faster and harder on the bike; hollow and dripping in the sewer.
+  // Tommy: Flint. A slow, heavy boom-bap on the corner; on the bike (and surfing the wave down the street) the same
+  // tempo with a drum and bass two-step under it, so it runs at twice the speed: the guitar on the tune, organ stabs,
+  // the bass rolling in eighths; hollow and dripping in the sewer; and the sewer coming down round him, the two-step
+  // under the sewer's own pad and the organ.
   tommy: {
     bpm: 92,
     parts: {
       lead: { inst: 'organ', mml: b('o5 l8 c4 e- f g4 f e-', 'o5 c2 r4 < b- > c', 'o5 e- f g b- a-4 g4', 'o5 f2. r4', 'o5 c4 e- f g4 b-4', 'o5 a-4 g f e-4 d4', 'o5 c4 e- d c4 < b-4', 'o5 c1') },
-      keys: { inst: 'epiano', vol: 0.7, pan: -0.3, not: ['sewer'], mml: pad(4, ['ce-gb-', 'ce-gb-', 'e-gb-', 'fa-c', 'ce-g', 'fa-c', 'a-ce-', 'ce-g'], '2 r2') },
-      bass: { inst: 'bass', mml: bass(1, 'R4. R8 r8 O8 R4', ['c', 'c', 'e-', 'f', 'c', 'f', 'a-', 'c']) },
-      drums: { inst: 'kick', drums: true, not: ['sewer', 'road'], mml: rep(BOOM, 8) },
-      road: { inst: 'kick', drums: true, only: ['road'], mml: rep('{kh}16 h16 h16 k16 {sh}16 h16 k16 h16 h16 k16 k16 h16 {sh}16 h16 h16 {sh}16', 8) },
+      keys: { inst: 'epiano', vol: 0.7, pan: -0.3, not: ['sewer', 'escape'], mml: pad(4, ['ce-gb-', 'ce-gb-', 'e-gb-', 'fa-c', 'ce-g', 'fa-c', 'a-ce-', 'ce-g'], '2 r2') },
+      bass: { inst: 'bass', not: ['road', 'escape'], mml: bass(1, 'R4. R8 r8 O8 R4', TOMMY_ROOTS) },
+      pump: { inst: 'bass', only: ['road', 'escape'], mml: bass(2, 'R8 R8 O8 R8 r8 R8 O8 R8', TOMMY_ROOTS) },
+      drums: { inst: 'kick', drums: true, not: ['sewer', 'road', 'escape'], mml: rep(BOOM, 8) },
+      road: { inst: 'kick', drums: true, only: ['road', 'escape'], mml: chase8(DNB, DNB_FILL) },
       scratch: { inst: 'kick', drums: true, only: ['hood', 'road', 'ruins'], mml: rep('r1 | r1 | r1 | r2 r4 g8 g8', 2) },
       drip: { inst: 'kick', drums: true, only: ['sewer'], mml: rep('m8 r8 r4 r8 m8 r4', 8) },
-      pad: { inst: 'pad', vol: 0.8, only: ['sewer'], mml: pad(3, ['ce-g', 'ce-g', 'e-gb-', 'fa-c', 'ce-g', 'fa-c', 'a-ce-', 'ce-g']) },
+      pad: { inst: 'pad', vol: 0.8, only: ['sewer', 'escape'], mml: pad(3, ['ce-g', 'ce-g', 'e-gb-', 'fa-c', 'ce-g', 'fa-c', 'a-ce-', 'ce-g']) },
     },
     arrangements: {
       hood: {},
-      road: { inst: { lead: 'guitar' } },
+      road: { inst: { lead: 'guitar', keys: 'organ' }, vol: { keys: 0.55 } },
       sewer: { inst: { lead: 'bell' }, vol: { lead: 0.7 } },
+      escape: { vol: { road: 0.85 } },
       ruins: { inst: { lead: 'brass' } },
     },
   },
 
-  // Barry: New York noir. Walking bass and a sax on the street; elevator music in the office tower; brass on the roofs; tense in the power room.
+  // Barry: New York noir. Walking bass and a sax on the street; elevator music in the office tower (with something
+  // wrong under it in R&D); brass on the roofs (and for the ride down on Barry's man); the strings coming in up the
+  // fire escape; tense in the power room.
   barry: {
     bpm: 128,
     parts: {
@@ -225,54 +294,76 @@ export const SONGS: Record<string, Song> = {
       drums: { inst: 'kick', drums: true, not: ['tower'], mml: rep('{kh}8 h16 h16 {sh}8 h8 {kh}8 h16 h16 {sh}8 {hz}8', 8) },
       bossa: { inst: 'kick', drums: true, only: ['tower'], mml: rep('{km}8 z8 z8 {kmz}8 z8 {km}8 z8 {mz}8', 8) },
       horns: { inst: 'brass', vol: 0.7, pan: 0.3, only: ['roofs'], mml: rep('o4 r2 {fa-c}4 r8 {fa-c}8 | o4 r2 {e-gb-}4 r4', 4) },
-      str: { inst: 'strings', vol: 0.7, only: ['power'], mml: rep('o4 l16 f f f f f f f f a- a- a- a- a- a- a- a- | o4 l16 g g g g g g g g e- e- e- e- e- e- e- e-', 4) },
+      str: { inst: 'strings', vol: 0.7, only: ['lab', 'climb', 'power'], mml: rep('o4 l16 f f f f f f f f a- a- a- a- a- a- a- a- | o4 l16 g g g g g g g g e- e- e- e- e- e- e- e-', 4) },
     },
     arrangements: {
       streets: {},
       tower: { inst: { lead: 'epiano', comp: 'bell' }, vol: { comp: 0.5, walk: 0.8 } },
+      // (R&D: the elevator music, with the strings sawing away quietly under it: something's not right in here)
+      lab: { inst: { lead: 'epiano', comp: 'bell' }, vol: { comp: 0.5, walk: 0.8, str: 0.45 } },
       roofs: { inst: { lead: 'trumpet' } },
+      // (up the fire escape: the horns out, the power room's strings coming in, nearer the top)
+      climb: { inst: { lead: 'trumpet' }, vol: { str: 0.6 } },
       power: { inst: { lead: 'guitar', comp: 'organ' } },
     },
   },
 
-  // Oscar: Texas. Banjo and harmonica in the field; elevator music in the break room; the chase is southern rock; honky-tonk at the bar.
+  // Oscar: Texas. Banjo and harmonica in the field; elevator music in the break room; the chase on Dirty Dan's chopper
+  // is southern rock flat out (the guitar and the harmonica on the tune together, double kick, the bass pumping, the
+  // power chords chugging, the banjo rolling over the top); the power chords stay in for the field on fire out back
+  // of the office; honky-tonk at the bar.
   oscar: {
     bpm: 140,
     parts: {
-      lead: { inst: 'harmonica', mml: b('o5 l8 e4 g+ a b4 a g+', 'o5 f+4 e d e2', 'o5 e4 g+ a b4 > d c+', 'o5 b2. r4', 'o5 a4 b > c+ d4 c+ < b', 'o5 a4 g+ f+ e4 d4', 'o5 c+4 d e f+4 g+4', 'o5 a1') },
+      lead: { inst: 'harmonica', mml: b(...OSCAR_TUNE) },
+      hook: { inst: 'harmonica', vol: 0.6, pan: 0.25, only: ['chase'], mml: b(...OSCAR_TUNE) },
       banjo: { inst: 'banjo', vol: 0.8, pan: -0.35, not: ['break'], mml: [['eg+b', 'e'], ['df+a', 'd'], ['eg+b', 'e'], ['eg+b', 'e'], ['ac+e', 'a'], ['df+a', 'd'], ['ac+e', 'a'], ['ac+e', 'a']].map(([c, t]) => { const n = notes(c); return `o4 l16 ${n[0]} ${n[1]} ${n[2]} o5 ${t} o4 ${n[1]} ${n[2]} o5 ${t} o4 ${n[1]} ${n[0]} ${n[1]} ${n[2]} o5 ${t} o4 ${n[2]} ${n[1]} ${n[0]} ${n[2]}`; }).join(' | ') },
-      bass: { inst: 'bass', mml: bass(2, 'R4 F4 R4 F4', ['e/b', 'd/a', 'e/b', 'e/b', 'a/e', 'd/a', 'a/e', 'a/e']) },
+      bass: { inst: 'bass', not: ['chase'], mml: bass(2, 'R4 F4 R4 F4', ['e/b', 'd/a', 'e/b', 'e/b', 'a/e', 'd/a', 'a/e', 'a/e']) },
+      pump: { inst: 'bass', only: ['chase'], mml: bass(2, 'R8 R8 O8 R8 R8 R8 O8 R8', OSCAR_ROOTS) },
       drums: { inst: 'kick', drums: true, not: ['break', 'chase'], mml: rep(TRAIN, 8) },
-      chase: { inst: 'kick', drums: true, only: ['chase'], mml: b(DRIVE, DRIVE, DRIVE, ROCK_FILL, DRIVE, DRIVE, DRIVE, ROCK_FILL) },
-      power: { inst: 'power', vol: 0.8, only: ['chase'], mml: bass(2, 'R8 R8 r8 R8 R4 R8 R8', ['e', 'd', 'e', 'e', 'a', 'd', 'a', 'a']) },
+      chase: { inst: 'kick', drums: true, only: ['chase'], mml: chase8(HAMMER, HAMMER_FILL) },
+      power: { inst: 'power', vol: 0.8, only: ['chase', 'burn'], mml: bass(2, 'R8 R8 r8 R8 R4 R8 R8', OSCAR_ROOTS) },
       muzak: { inst: 'kick', drums: true, only: ['break'], mml: rep('{km}8 z8 z8 {kz}8 m8 z8 z8 z8', 8) },
       keys: { inst: 'piano', vol: 0.7, only: ['end'], mml: skank(4, ['eg+b', 'df+a', 'eg+b', 'eg+b', 'ac+e', 'df+a', 'ac+e', 'ac+e']) },
     },
     arrangements: {
       field: {},
       break: { inst: { lead: 'epiano', bass: 'bass' }, vol: { lead: 0.8 } },
-      chase: { inst: { lead: 'guitar', banjo: 'banjo' }, vol: { banjo: 0.6 } },
+      chase: { inst: { lead: 'guitar' }, vol: { banjo: 0.75 } },
+      // (the field burning out back of the office: the field's own, the chase's power chords still in it, lower)
+      burn: { vol: { power: 0.55 } },
       end: { inst: { lead: 'piano' } },
     },
   },
 
-  // Dale: a spaghetti western. Whistling out in the desert; driving, with a trumpet, down the highway; the full showdown in town.
+  // Dale: a spaghetti western. Whistling out in the desert; the cartel's machinery ticking over in the warehouse; the
+  // convoy as a chase (a trumpet, the power chords, the bass and the toms galloping); the standoff with Riggs on the last
+  // truck stripped back to a duel (whistle, bells, the choir); the full showdown in town; and Riggs's cab coming up the
+  // street as the posse at full gallop (trumpet and whistle on the tune, the choir, the bells, the strummed guitar).
   dale: {
     bpm: 100,
     parts: {
-      lead: { inst: 'whistle', mml: b('o5 l8 d4. a a4 g f', 'o5 e4. f d2', 'o5 d4. a > c4 < b- a', 'o5 a2. r4', 'o5 b-4. a g4 f e', 'o5 f4. g a2', 'o5 g4 f e d4 c+4', 'o5 d1') },
+      lead: { inst: 'whistle', mml: b(...DALE_TUNE) },
+      // (the cab coming up the street: the whistle an octave up over the trumpet)
+      hook: { inst: 'whistle', vol: 0.6, pan: 0.2, only: ['cab'], mml: up(b(...DALE_TUNE)) },
       gtr: { inst: 'nylon', vol: 0.8, pan: -0.35, mml: [['dfa', 'd'], ['c+eg', 'c+'], ['dfa', 'd'], ['c+ea', 'a'], ['gb-d', 'g'], ['dfa', 'd'], ['c+eg', 'c+'], ['dfa', 'd']].map(([c]) => `o3 {${c}}4 {${c}}8 {${c}}8 {${c}}4 {${c}}8 {${c}}8`).join(' | ') },
-      bass: { inst: 'bass', mml: bass(2, 'R4 r8 F8 R4 F4', ['d/a', 'a/e', 'd/a', 'a/e', 'g/d', 'd/a', 'a/e', 'd/a']) },
-      timp: { inst: 'timpani', vol: 0.8, not: ['highway'], mml: rep('o2 d4 r2. | o2 a4 r2. ', 4) },
+      bass: { inst: 'bass', not: ['highway', 'cab'], mml: bass(2, 'R4 r8 F8 R4 F4', ['d/a', 'a/e', 'd/a', 'a/e', 'g/d', 'd/a', 'a/e', 'd/a']) },
+      gallop: { inst: 'bass', only: ['highway', 'cab'], mml: bass(2, 'R8 R16 R16 R8 R16 R16 R8 R16 R16 O8 R16 R16', DALE_ROOTS) },
+      timp: { inst: 'timpani', vol: 0.8, mml: rep('o2 d4 r2. | o2 a4 r2. ', 4) },
       drums: { inst: 'kick', drums: true, only: ['desert'], mml: rep('k8 r8 m8 r8 k8 k8 m8 r8', 8) },
-      road: { inst: 'kick', drums: true, only: ['highway'], mml: b(DRIVE, DRIVE, DRIVE, ROCK_FILL, DRIVE, DRIVE, DRIVE, ROCK_FILL) },
-      choir: { inst: 'choir', vol: 0.6, only: ['town'], mml: pad(4, ['dfa', 'c+eg', 'dfa', 'c+ea', 'gb->d', 'dfa', 'c+eg', 'dfa']) },
-      bells: { inst: 'bell', vol: 0.5, only: ['town'], mml: rep('o5 d2 r2 | o4 a2 r2', 4) },
+      works: { inst: 'kick', drums: true, only: ['warehouse'], mml: rep('k8 z16 z16 m8 z16 z16 k8 z16 z16 m8 z16 z16', 8) },
+      road: { inst: 'kick', drums: true, only: ['highway', 'cab'], mml: chase8(GALLOP, GALLOP_FILL) },
+      choir: { inst: 'choir', vol: 0.6, only: ['town', 'standoff', 'cab'], mml: pad(4, ['dfa', 'c+eg', 'dfa', 'c+ea', 'gb->d', 'dfa', 'c+eg', 'dfa']) },
+      bells: { inst: 'bell', vol: 0.5, only: ['town', 'standoff', 'cab'], mml: rep('o5 d2 r2 | o4 a2 r2', 4) },
     },
     arrangements: {
       desert: {},
+      warehouse: { vol: { lead: 0.85, gtr: 0.7 } },
       highway: { inst: { lead: 'trumpet', gtr: 'power' }, vol: { gtr: 0.5 } },
+      // (the last truck: Riggs and Dale arguing over the radio, him out on the hood, a duel at eighty miles an hour)
+      standoff: { vol: { gtr: 0.5, choir: 0.45 } },
       town: { inst: { lead: 'trumpet' } },
+      cab: { inst: { lead: 'trumpet' }, vol: { choir: 0.75, gtr: 0.9 } },
     },
   },
 

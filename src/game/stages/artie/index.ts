@@ -23,7 +23,12 @@ export const artieLayout: StageLayout = {
     if (!rt) return 'trail';
     if (state.player.skiing || rt.ski.phase === 'skiing' || rt.ski.phase === 'runout') return 'ski';
     if (['closing', 'riding', 'arrived', 'open'].includes(rt.tram.phase)) return 'tram';
-    if (rt.tram.phase === 'done') return rt.ski.phase === 'done' || rt.ski.phase === 'finale' ? 'trail' : 'summit';
+    if (rt.tram.phase === 'done') {
+      // (the avalanche has had the cabin: the rest of the way to the door)
+      if (rt.ski.phase === 'done' || rt.ski.phase === 'finale') return 'door';
+      const px = state.player.pos.x + state.player.width / 2;
+      return px >= COURSE.cave.x1 && px < COURSE.cave.x2 ? 'cave' : 'summit';
+    }
     return 'trail';
   },
   left: COURSE.left,

@@ -27,7 +27,10 @@ export const hectorLayout: StageLayout = {
     const r = regionOf(state.player.pos.x + state.player.width / 2);
     if (r === 'tower' || r === 'eye') return 'tower';
     if (r === 'daycare') return 'daycare';
-    if (rt && (rt.boat.phase === 'riding' || rt.boat.phase === 'spout')) return 'boat';
+    // (out on the water with the Coast Guard after him: the chase; the waterspout taking him (and them) ends it, the
+    // choir of the storm tower coming in as he goes up)
+    if (rt && rt.boat.phase === 'riding') return 'boat';
+    if (rt && rt.boat.phase === 'spout') return 'tower';
     return rt && rt.beach.storm > 0.6 ? 'storm' : 'beach';
   },
   left: COURSE.left,

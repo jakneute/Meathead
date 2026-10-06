@@ -23,8 +23,19 @@ export const tommyLayout: StageLayout = {
     return { key: `muck-${i}`, x1: c.x1, x2: c.x2, surface: c.surface, bottom: c.floor, kind: 'muck' };
   },
   music: state => {
+    const rt = getTommy(state);
+    const es = rt?.escape.phase;
+    // The way out: the sewer coming down (the dash for the suit), the hazmat man up on the street, surfing the wave down
+    // it (the bike's chase again), the family on the couch as it gets dark (hollow, the sewer's), then the ruins
+    if (es === 'rumble' || es === 'run' || es === 'suit' || es === 'blast') return 'escape';
+    if (es === 'tower') return 'hood';
+    if (es === 'surf') return 'road';
+    if (es === 'family' || es === 'crush') return 'sewer';
+    // (on the bike: the chase, from the theft to the bottle)
+    if (rt && isRidingBike(rt.bike)) return 'road';
     const p = placeOf(state.player.pos.x + state.player.width / 2);
-    return p === 'hood' || p === 'road' || p === 'ruins' ? p : 'sewer';
+    // (the end of the road, off the bike: the hazmat man and his bottle)
+    return p === 'hood' || p === 'road' ? 'hood' : p === 'ruins' ? p : 'sewer';
   },
   left: COURSE.left,
   startX: COURSE.startX,

@@ -22,8 +22,13 @@ import { drawSurgeMinion } from './surgeDraw';
 
 export const barryLayout: StageLayout = {
   music: state => {
-    const p = placeOf(state.player.pos.x + state.player.width / 2);
-    return p === 'roofs' ? 'roofs' : p === 'power' ? 'power' : p === 'streets' || p === 'landing' ? 'streets' : 'tower';
+    // (the ride down on Barry's man, over the burning city and along the street: the roofs' brass)
+    const surf = getBarry(state)?.surf;
+    if (surf && surf.phase !== 'up') return 'roofs';
+    const x = state.player.pos.x + state.player.width / 2;
+    const p = placeOf(x);
+    if (p === 'roofs') return x >= COURSE.climb.x1 ? 'climb' : 'roofs';
+    return p === 'power' ? 'power' : p === 'lab' ? 'lab' : p === 'streets' || p === 'landing' ? 'streets' : 'tower';
   },
   left: COURSE.left,
   startX: COURSE.startX,

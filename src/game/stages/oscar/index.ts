@@ -12,6 +12,7 @@ import { createOscarRuntime, getOscar, updateOscar, oscarDeathMessage } from './
 import { isChaseVehicle, updateChaseVehicle, hitChaseVehicle, chaseZoom } from './chase';
 import { drawOscarBackdrop, drawOscarBack, drawOscarMid, drawOscarFront, drawOscarHud, drawOscarOverlays } from './draw';
 import { oscarScene } from './lighting';
+import { barIntact } from './bar';
 import { taseZoom } from './taseCam';
 import { tickSwirlyPipes } from './swirly';
 import { getStageWidth } from '../../bosses/registry';
@@ -20,8 +21,17 @@ export const oscarLayout: StageLayout = {
   music: state => {
     const rt = getOscar(state);
     const p = placeOf(state.player.pos.x + state.player.width / 2);
-    if (p === 'chase') return 'chase';
-    if (p === 'end') return 'end';
+    // (on the chopper, from pulling away to enough of them wrecked; Dirty Dan and his bike before it are still the field's)
+    if (p === 'chase') return rt && (rt.chase.phase === 'riding' || rt.chase.phase === 'won') ? 'chase' : 'field';
+    if (p === 'end') {
+      const en = rt?.ending.phase;
+      // (the two out back having their smoke; then him up the road on the chopper, off it, and it into them: the chase's end)
+      if (en === 'talk') return 'field';
+      if (en === 'ridein' || en === 'flip' || en === 'landed' || en === 'toss') return 'chase';
+      // (the bikers' bar, while it's still a bar: honky-tonk; the field on fire outside it, and what's left after)
+      const x = state.player.pos.x + state.player.width / 2;
+      return rt && barIntact(rt.bar) && x >= COURSE.bar.x1 - 100 ? 'end' : 'burn';
+    }
     if (p === 'bunker' && rt && ['waiting', 'break', 'clockout', 'open'].includes(rt.bunker.phase)) return 'break';
     return 'field';
   },

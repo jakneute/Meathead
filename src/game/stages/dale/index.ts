@@ -17,7 +17,17 @@ import { drawJunkie } from './junkieDraw';
 import { daleScene } from './lighting';
 
 export const daleLayout: StageLayout = {
-  music: state => regionOf(state.player.pos.x + state.player.width / 2),
+  music: state => {
+    const rt = getDale(state);
+    const px = state.player.pos.x + state.player.width / 2;
+    const r = regionOf(px);
+    // (the convoy's a chase; the last truck, Riggs and Dale arguing over the radio and him out on the hood, a duel)
+    if (r === 'highway') return rt && (rt.convoy.cab.phase === 'bicker' || rt.convoy.cab.phase === 'standoff') ? 'standoff' : 'highway';
+    // (Riggs's cab backing out of the shop and coming up the street at him: a chase, till it's past him)
+    if (r === 'town') return rt && (rt.town.phase === 'revive' || rt.town.phase === 'chase' || rt.town.phase === 'incoming') ? 'cab' : 'town';
+    // (inside the cartel's warehouse, and up to the office)
+    return px >= COURSE.warehouse.x1 && px < COURSE.office.x2 ? 'warehouse' : 'desert';
+  },
   left: COURSE.left,
   startX: COURSE.startX,
   verticalCamera: true,
