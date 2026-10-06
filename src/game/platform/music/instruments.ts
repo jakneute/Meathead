@@ -221,6 +221,22 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
     })(),
     base: midiOf(600), env: { a: 0.7, d: 0.5, s: 0.9, r: 1.1 }, gain: 0.55,
   },
+  // A thriller synth lead: a hollow square (odd harmonics, rolled off), its twin a hertz off for a slow beat; mournful, a little menace
+  hollow: {
+    make: held(0.06, partials([...sawPartials(262, (k) => (k % 2 ? 1 : 0.12) * Math.exp(-k / 6), 4000), ...sawPartials(263, (k) => 0.6 * (k % 2 ? 1 : 0.12) * Math.exp(-k / 6), 4000)]), (u) => 0.5 + 0.5 * u),
+    base: midiOf(262), env: { a: 0.06, d: 0.25, s: 0.8, r: 0.3 }, gain: 0.5, vib: [4.8, 14],
+  },
+  // The office at night: a fluorescent tube and a radiator humming (a buzzy low tone and its twin a hertz off, the
+  // throb), the tube stuttering twice a second-loop; played as a pedal, way down in the mix
+  hum: {
+    make: held(0.1, (t) => {
+      let v = 0;
+      for (let k = 1; k * 131 < 3000; k++) v += (Math.sin(TAU * 131 * k * t) + 0.8 * Math.sin(TAU * 132 * k * t)) * (formant(131 * k, 400, 300) + 0.4) / Math.pow(k, 1.1);
+      const u = t % 1;
+      return v * (1 - 0.35 * Math.exp(-(((u - 0.37) / 0.012) ** 2)) - 0.25 * Math.exp(-(((u - 0.81) / 0.02) ** 2))) * (0.9 + 0.1 * Math.sin(TAU * 3 * t));
+    }, (u) => u),
+    base: midiOf(131), env: { a: 0.4, d: 0.3, s: 0.9, r: 0.8 }, gain: 0.3,
+  },
   // ---- Plucked, struck, one-shot ----
   piano: {
     make: shot(2.6, (t) => {
@@ -233,6 +249,16 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
   epiano: {
     make: shot(2.4, (t) => Math.sin(TAU * 262 * t + (2.2 * Math.exp(-t * 4) + 0.25) * Math.sin(TAU * 262 * t) + 0.4 * Math.exp(-t * 20) * Math.sin(TAU * 262 * 14 * t)) * Math.exp(-t * 1.1)),
     base: midiOf(262), env: { a: 0.002, d: 0, s: 1, r: 0.2 }, gain: 0.5,
+  },
+  // The office's old electric piano: two tines out of tune with each other (the chorus beating), the tape wobbling under
+  // it, the brightness gone off it
+  murk: {
+    make: shot(2.4, (t) => {
+      const wow = 1.5 * Math.sin(TAU * 1.1 * t);
+      const tine = (f: number) => Math.sin(TAU * f * t + wow + (1.4 * Math.exp(-t * 5) + 0.15) * Math.sin(TAU * f * t + wow));
+      return (tine(262) + 0.8 * tine(262 * 1.009)) * Math.exp(-t * 1.4) + Math.sin(TAU * 131 * t) * Math.exp(-t * 30) * 0.3;
+    }),
+    base: midiOf(262), env: { a: 0.003, d: 0, s: 1, r: 0.25 }, gain: 0.5,
   },
   bass: { make: bass.make, base: bass.base, env: { a: 0.003, d: 0, s: 1, r: 0.06 }, gain: 0.8 },
   slap: { make: slap.make, base: slap.base, env: { a: 0.002, d: 0, s: 1, r: 0.05 }, gain: 0.75 },
@@ -304,6 +330,8 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
   taiko: { drum: true, base: 60, env: { a: 0.001, d: 0, s: 1, r: 0.1 }, gain: 0.8, make: (() => { let lp = 0; return shot(0.9, (t) => { lp += 0.08 * (noise() - lp); return Math.sin(TAU * (58 * t + (75 / 9) * (1 - Math.exp(-t * 9)))) * Math.exp(-t * 4.5) + lp * 2.5 * Math.exp(-t * 18) + (t < 0.006 ? noise() * 0.5 : 0); }); })() },
   // (ice cracking: a few sharp glassy clicks in a row)
   crack: { drum: true, base: 60, env: { a: 0.001, d: 0, s: 1, r: 0.04 }, gain: 0.32, make: (() => { let p = 0; return shot(0.25, (t) => { const w = noise(); const hp = w - p; p = w; const clicks = t < 0.06 ? Math.exp(-((t % 0.017) * 350)) : 0; return hp * (clicks + 0.4 * Math.exp(-t * 30)) + Math.sin(TAU * 2900 * t) * Math.exp(-t * 26) * 0.35 + Math.sin(TAU * 4100 * t) * Math.exp(-t * 40) * 0.25; }); })() },
+  // (a typewriter key: a clack, a little metal in it)
+  type: { drum: true, base: 60, env: { a: 0.001, d: 0, s: 1, r: 0.02 }, gain: 0.42, make: (() => { let p = 0; return shot(0.09, (t) => { const w = noise(); const hp = w - p; p = w; return hp * Math.exp(-t * 90) + Math.sin(TAU * 900 * t) * Math.exp(-t * 70) * 0.5 + Math.sin(TAU * 3300 * t) * Math.exp(-t * 50) * 0.3; }); })() },
   scratch: { drum: true, base: 60, env: { a: 0.001, d: 0, s: 1, r: 0.02 }, gain: 0.3, make: (() => { let ph = 0; return shot(0.22, (t) => { ph += (300 + 1200 * Math.abs(Math.sin(TAU * 9 * t))) / SR; return Math.sin(TAU * ph) * 0.5 + noise() * 0.5 * Math.abs(Math.sin(TAU * 9 * t)); }); })() },
 };
 
@@ -311,7 +339,7 @@ export const INSTRUMENTS: Record<string, InstrumentDef> = {
 export const DRUM_KEYS: Record<string, string> = {
   k: 'kick', s: 'snare', h: 'hat', o: 'ohat', x: 'crash', t: 'tomh', u: 'toml', p: 'clap', c: 'conga', d: 'congal',
   b: 'bongo', w: 'cowbell', z: 'shaker', m: 'rim', j: 'tamb', y: 'sleigh', g: 'scratch', i: 'ride', n: 'brush',
-  f: 'taiko', a: 'crack',
+  f: 'taiko', a: 'crack', e: 'type',
 };
 
 const built: Record<string, { buf: AudioBuffer; loop?: [number, number]; ctx: BaseAudioContext }> = {};

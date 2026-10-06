@@ -120,6 +120,25 @@ const ARTIE_PEAK = '{kf}8 o8 {sf}8 u16 u16 {kf}8 {kf}8 {sf}8 t16 u16';
 const ARTIE_GLIDE = '{ki}8 i8 i8 {ki}8 {si}8 i8 i8 i8';
 const ARTIE_GLIDE_FILL = '{ki}8 i8 i8 {ki}8 {si}8 t16 t16 u16 u16 f8';
 
+// The map's: C minor, sixteen bars. The hook (C, up to the G, leaning on the A-flat; the B natural hanging over the G;
+// the second eight up high, the D-flat and the G at the end, the menace), its roots, the electric piano's chords and the
+// low brass's fifths.
+const MAP_TUNE = ['o5 l8 c4. g a-4 g4', 'o5 l8 f e- d e- c4 r4', 'o5 l8 c4. g a-4 > c4', 'o5 b2. r4', 'o5 l8 c4. g a-4 g4', 'o6 l8 e- d c < b- a-4 g4', 'o5 l8 a-4. g f4 d-4', 'o5 d2 < b4 r4',
+  'o6 c2 < a-4 f4', 'o5 l8 g a- g f e-2', 'o5 l8 g4. > c e-4 d4', 'o6 c2. r4', 'o6 l8 e-4. d c4 < a-4', 'o5 l8 f4. e- d-4 c4', 'o5 l8 b4. a- g4 f4', 'o5 e-2 d4 r4'];
+const MAP_ROOTS = ['c/g', 'c/g', 'a-/e-', 'g/d', 'c/g', 'c/g', 'd-/a-', 'g/d', 'f/c', 'f/c', 'c/g', 'c/g', 'a-/e-', 'd-/a-', 'g/d', 'g/d'];
+/** (Cm9, Abmaj7, G7b9, Dbmaj7, Fm7: rootless where the bass has it) */
+const MAP_CHORD: Record<string, string> = { 'c/g': 'ce-g>d', 'a-/e-': 'ce-g', 'g/d': '<b>dfa-', 'd-/a-': 'd-fa->c', 'f/c': 'ca-e-f' };
+const MAP_LOW: Record<string, string> = { 'c/g': 'cg', 'a-/e-': 'a->e-', 'g/d': 'g>d', 'd-/a-': 'd-a-', 'f/c': 'f>c' };
+/** A tune an octave down. */
+const down = (s: string) => s.replace(/o(\d)/g, (_, n) => `o${Number(n) - 1}`);
+// (the kit: a cross-stick on two and four, the hats ticking like the clock, the kick laid back; the second four pushing
+// sixteenths, the snare in for the cross-stick, toms into the turnaround)
+const MAP_TICK = 'v11 {kh}8 h8 {mh}8 h8 h8 {kh}8 {mh}8 h8';
+const MAP_TICK_FILL = 'v11 {kh}8 h8 {mh}8 h8 h8 {kh}8 m16 m16 {mo}8';
+const MAP_PUSH = 'v12 {kh}16 h16 h16 h16 {sh}16 h16 h16 k16 h16 k16 h16 h16 {sh}16 h16 {mh}16 h16';
+const MAP_PUSH_FILL = 'v12 {kh}16 h16 h16 h16 {sh}16 h16 h16 k16 t16 t16 u16 u16 {su}16 s16 s16 s16';
+const MAP_TYPE = 'v11 r4 e16 e16 e16 r16 r4 e16 r16 e16 e16 | v11 r2 e16 e16 r8 e16 e16 e16 e16';
+
 export const SONGS: Record<string, Song> = {
   // ---------------------------------------------------------------------------------------------------------------
   // The title: a big, dumb, heroic rock anthem. Power chords, a brass tune, a lot of drums.
@@ -154,32 +173,49 @@ export const SONGS: Record<string, Song> = {
   },
 
   // ---------------------------------------------------------------------------------------------------------------
-  // The map (the stage select): a cool, sneaky, funky briefing groove. Darker for the second four.
+  // The map (the stage select): the back office of the FBI at night, the cork board of mugshots and the red string, the
+  // tube flickering, cold coffee, picking which of America's most wanted to go after. C minor at 92: a synth bass
+  // pulsing a low ostinato, an out-of-tune electric piano, the tube and the radiator humming a pedal under it, a cross-
+  // stick and the hats ticking like the clock on the wall, somebody typing up a report, and a hollow thriller synth on
+  // the hook. The second four: the horns down under the hook, the bass running sixteenths, the strings trembling, the low
+  // brass swelling, the timpani, a clock ticking on the piano, the kit pushing harder: the manhunt's on.
   map: {
-    bpm: 104,
+    bpm: 92,
     parts: {
-      bass: { inst: 'slap', mml: rep('o2 l8 d r d f g r a > c < | o2 l8 d r d f a g f e', 4) },
-      keys: { inst: 'epiano', vol: 0.8, pan: -0.3, mml: stabs(4, ['dfac', 'egb-d', 'dfac', 'c+eg', 'dfac', 'egb-d', 'fac', 'c+ega']) },
-      lead: { inst: 'sax', pan: 0.2, mml: b('o5 l8 d4 f g a4 r4', 'o5 c a4 g f g4 r8', 'o5 d4 f g a4 > c d', 'o6 d4. c o5 a2', 'o5 f4 g a > c4 < a4', 'o5 g f d f g2', 'o5 a4 > c d f4 e d', 'o6 d2 r2') },
-      drums: { inst: 'kick', drums: true, mml: rep('k8 h8 {sh}8 h8 k8 k8 {sh}8 {hz}8', 8) },
-      pad: { inst: 'pad', vol: 0.6, only: ['set2'], mml: pad(3, ['dfa', 'dfa', 'dfa', 'c+ea', 'dfa', 'dfa', 'fac', 'c+ea']) },
+      lead: { inst: 'hollow', pan: 0.15, mml: b(...MAP_TUNE) },
+      horn: { inst: 'horn', vol: 0.8, pan: -0.1, only: ['set2'], mml: b(...MAP_TUNE.map(down)) },
+      bass: { inst: 'synthbass', vol: 0.9, not: ['set2'], mml: bass(2, 'q6 R8 R16 R16 r8 R8 O8 R8 F8 R8', MAP_ROOTS) },
+      run: { inst: 'synthbass', vol: 0.8, only: ['set2'], mml: bass(2, 'q5 l16 R R O R R R F R R R O R R F O R', MAP_ROOTS) },
+      keys: { inst: 'murk', vol: 0.7, pan: -0.3, mml: MAP_ROOTS.map(r => `o4 {${MAP_CHORD[r]}}4. {${MAP_CHORD[r]}}8 r2`).join(' | ') },
+      // (the clock: G and A-flat, ticking over every chord)
+      tick: { inst: 'murk', vol: 0.4, pan: 0.35, only: ['set2'], mml: rep('o5 l8 g a- g a- g a- g a-', 16) },
+      hum: { inst: 'hum', vol: 0.8, mml: rep('o3 c1^1^1^1', 4) },
+      str: { inst: 'strings', vol: 0.4, pan: 0.3, only: ['set2'], mml: MAP_ROOTS.map(r => `o4 l16 [{${MAP_CHORD[r]}}]16`).join(' | ') },
+      low: { inst: 'swell', vol: 0.6, only: ['set2'], mml: MAP_ROOTS.map(r => `o2 {${MAP_LOW[r]}}1`).join(' | ') },
+      timp: { inst: 'timpani', vol: 0.7, only: ['set2'], mml: b('v12 o2 c4 r2.', 'r1', 'r1', 'o2 g4 r2.', 'o2 c4 r2.', 'r1', 'r1', 'o2 g4 r2.', 'o2 f4 r2.', 'r1', 'o2 c4 r2.', 'r1', 'o2 a-4 r2.', 'o2 d-4 r2.', 'o2 g4 r2.', 'o2 g4 r4 v8 [g32]8 v12 [g32]8') },
+      drums: { inst: 'kick', drums: true, not: ['set2'], mml: rep(b(rep(MAP_TICK, 7), MAP_TICK_FILL), 2) },
+      push: { inst: 'kick', drums: true, only: ['set2'], mml: b(MAP_PUSH.replace('{kh}', '{kxh}'), MAP_PUSH, MAP_PUSH, MAP_PUSH, MAP_PUSH, MAP_PUSH, MAP_PUSH, MAP_PUSH_FILL, MAP_PUSH.replace('{kh}', '{kxh}'), MAP_PUSH, MAP_PUSH, MAP_PUSH, MAP_PUSH, MAP_PUSH, MAP_PUSH, MAP_PUSH_FILL) },
+      // (somebody two desks over typing up a report; the bell at the end of the line)
+      type: { inst: 'kick', drums: true, mml: b(rep(MAP_TYPE, 7), 'v11 r4 e16 e16 e16 e16 e16 e16 e16 e16 r4', 'v11 e16 e16 e16 r16 r2.') },
+      ding: { inst: 'bell', vol: 0.6, pan: 0.4, mml: b(rep('r1', 15), 'o6 r4 g4 r2') },
     },
     arrangements: {
       main: {},
-      set2: { inst: { keys: 'organ', lead: 'trumpet' }, vol: { keys: 0.7 } },
+      set2: { vol: { lead: 0.6, keys: 0.6, hum: 0.8 } },
     },
   },
 
-  // A fanfare as the map swoops down on the target (the deploy; three and a half seconds or so)
+  // The deploy: the map swooping down on the target (three and a half seconds or so). The manhunt launching: power
+  // chords and the brass hammering C three times, climbing to the E-flat and falling through the D-flat, the timpani
+  // rolling up under it on the G, and everything coming down on C minor with the taiko and the crash.
   fanfare: {
     bpm: 132, once: true,
     parts: {
-      lead: { inst: 'trumpet', mml: 'o4 l8 g g g > c4. < g > c e g2 r8' },
-      harm: { inst: 'brass', vol: 0.8, mml: 'o4 l8 e e e g4. e g c e2 r8' },
-      low: { inst: 'brass', vol: 0.8, mml: 'o3 l8 c c c e4. c e g > c2 < r8' },
-      hit: { inst: 'hit', mml: 'o4 c4 r4 r4 r8 r4 c4 r4' },
-      timp: { inst: 'timpani', mml: 'o2 l16 g g g g g g g g g g g g g g g g g g g g g g g g g4 r4' },
-      cym: { inst: 'kick', drums: true, mml: '{kx}4 r4 r4 r8 r4 {kx}4 r4' },
+      lead: { inst: 'brass', mml: 'o4 l8 c c c e-4. d- c < g > c2 r8' },
+      harm: { inst: 'horn', vol: 0.8, mml: 'o3 l8 g g g g4. f e- d e-2 r8' },
+      low: { inst: 'power', vol: 0.8, mml: 'o2 l8 c c c c4. d- c < g > c2 r8' },
+      timp: { inst: 'timpani', vol: 0.9, mml: 'o2 l16 v7 [g]6 v9 [g]6 v12 [g]6 v15 c4 r4.' },
+      drums: { inst: 'kick', drums: true, mml: 'v13 {kf}8 {kf}8 {kf}8 r8 r4 v8 [s32]4 v11 [s32]4 v14 [s32]4 v15 {kxf}4 r4.' },
     },
   },
 
