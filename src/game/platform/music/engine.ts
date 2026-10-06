@@ -143,7 +143,8 @@ const playNote = (p: Playing, part: PartPlay, e: NoteEvent, when: number) => {
   const c = ctx!;
   const lane = part.lane;
   if (!lane) return;
-  const name = lane.key;
+  // (a drum part's notes are each their own drum: the snare, the hat, the crash; not all of them the part's kick)
+  const name = typeof e.n === 'string' && INSTRUMENTS[e.n] ? e.n : lane.key;
   const def = INSTRUMENTS[name];
   const { buf, loop } = sampleFor(c, name);
   const src = c.createBufferSource();
@@ -153,7 +154,8 @@ const playNote = (p: Playing, part: PartPlay, e: NoteEvent, when: number) => {
   if (lane.lfoGain && e.d * p.spb > 0.35) lane.lfoGain.connect(src.detune);
   const env = c.createGain();
   const { a, d, s, r } = def.env;
-  const peak = e.v;
+  // (the lane's level has the part's own instrument's gain in it: a drum of its own swaps that for its own)
+  const peak = e.v * (name !== lane.key ? def.gain / (INSTRUMENTS[lane.key]?.gain || 1) : 1);
   const held = def.drum ? buf.duration : Math.max(0.03, e.d * p.spb * e.gate);
   env.gain.setValueAtTime(0, when);
   env.gain.linearRampToValueAtTime(peak, when + a);
