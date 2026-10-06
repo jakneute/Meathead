@@ -53,11 +53,15 @@ export const drawTramRigging = (ctx: Ctx, state: GameState) => {
       ctx.fillStyle = '#9CA3AF'; ctx.fillRect(px + o - 1, top + 7, 2, 2);
     }
   }
-  // The cable (a pair: track rope and haul rope)
-  ctx.strokeStyle = '#1F2937'; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.moveTo(cx0, cableAt(cx0)); ctx.lineTo(cx1, cableAt(cx1)); ctx.stroke();
-  ctx.strokeStyle = '#475569'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(cx0, cableAt(cx0) + 8); ctx.lineTo(cx1, cableAt(cx1) + 8); ctx.stroke();
+  // The cable (a pair: track rope and haul rope): up the mountain between the two stations, then level inside each,
+  // round its bullwheel
+  const a0 = COURSE.tram.x + CABIN_W / 2, a1 = COURSE.tram.toX + CABIN_W / 2;
+  const rope = (c: string, w: number, dy: number) => {
+    ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath();
+    ctx.moveTo(cx0 + 10, cableAt(a0) + dy); ctx.lineTo(a0, cableAt(a0) + dy); ctx.lineTo(a1, cableAt(a1) + dy); ctx.lineTo(cx1 - 10, cableAt(a1) + dy);
+    ctx.stroke();
+  };
+  rope('#1F2937', 3, 0); rope('#475569', 1.5, 8);
 };
 
 /** Behind the action: the stations, and the inside of the cabin. */
@@ -98,7 +102,20 @@ const drawStation = (ctx: Ctx, state: GameState, x: number, y: number, dir: numb
   // (icicles off the eave)
   for (let ix = x1 - 16; ix < x2 + 16; ix += 23) { const l = 6 + ((ix * 13) % 9); ctx.fillStyle = '#BFDBFE'; ctx.beginPath(); ctx.moveTo(ix - 2, roofY + 22); ctx.lineTo(ix + 2, roofY + 22); ctx.lineTo(ix, roofY + 22 + l); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#F0F8FF'; ctx.fillRect(ix - 1, roofY + 22, 1, l * 0.6); }
   // The bullwheel the cable turns around (an inked rim lit along its top, the spokes, a hub)
-  const wx = dir < 0 ? x1 + 40 : x2 - 40, wy = cableAt(wx) + 4;
+  // (at the cable's height where the car docks: the cable runs level in to it)
+  const wx = dir < 0 ? x1 + 40 : x2 - 40, wy = cableAt(x + CABIN_W / 2) + 4;
+  // (on its frame: a steel A-frame up from the deck to the axle, braced, so it's mounted, not hanging in the air)
+  const girder = (ax: number, ay: number, bx: number, by: number) => {
+    ctx.strokeStyle = INK; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+    ctx.strokeStyle = STEEL_DARK; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+    ctx.strokeStyle = '#7B8BA3'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ax - 1, ay); ctx.lineTo(bx - 1, by); ctx.stroke();
+  };
+  girder(wx - 30, y, wx, wy); girder(wx + 30, y, wx, wy);
+  const mid = (y + wy) / 2;
+  girder(wx - 15, mid, wx + 15, mid);
+  slab(ctx, wx - 38, y - 6, 76, 6, STEEL_DARK);
+  // (and up to the roof beam over it, where the roof's above it)
+  if (wy - 26 > roofY + 20) girder(wx, roofY + 20, wx, wy - 26);
   ctx.strokeStyle = INK; ctx.lineWidth = 7;
   ctx.beginPath(); ctx.arc(wx, wy, 26, 0, Math.PI * 2); ctx.stroke();
   ctx.strokeStyle = '#1F2937'; ctx.lineWidth = 5;
