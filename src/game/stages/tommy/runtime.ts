@@ -161,6 +161,8 @@ export const updateTommy = (ctx: FrameContext, controls: Controls): Controls => 
   else if (rt.heldFall) { p.inCutscene = false; rt.heldFall = false; }
   if (place === 'sewer' || place === 'tunnel' || place === 'cistern') {
     updateSewer(ctx, rt.sewer, rt.talk);
+    // (up out of the flooded tunnel, at the foot of the floodgate shaft: not back through the tunnel again for a fall)
+    if (state.checkpoint < CP.CLIMB && p.isGrounded && !p.swimming && p.pos.x > COURSE.checkpoints[CP.CLIMB].x && p.pos.x < COURSE.sewer.climb.x2) state.checkpoint = CP.CLIMB;
     if (state.checkpoint < CP.CISTERN && p.isGrounded && p.pos.x > COURSE.checkpoints[CP.CISTERN].x) state.checkpoint = CP.CISTERN;
   }
   if (place === 'cistern') controls = updateThingRoom(ctx, rt.thing, rt.talk, controls, () => startEscape(rt.escape));

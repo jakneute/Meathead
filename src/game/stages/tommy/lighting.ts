@@ -41,10 +41,17 @@ export const tommyScene = (state: GameState): SceneLight | null => {
   const S = COURSE.sewer;
   const lights: Light[] = [];
   for (let ax = Math.floor((state.camera.x - 400) / 420) * 420; ax < state.camera.x + CANVAS_WIDTH + 400; ax += 420) {
-    if (ax < S.x1 || ax > S.x2 || (ax > S.tunnel.x1 - 100 && ax < S.tunnel.x2) || (ax > S.pit.x1 - 100 && ax < S.pit.x2)) continue;
+    if (ax < S.x1 || ax > S.x2 || (ax > S.tunnel.x1 - 100 && ax < S.tunnel.x2) || (ax > S.pit.x1 - 100 && ax < S.pit.x2) || (ax + 210 > S.climb.x1 && ax + 210 < S.climb.x2)) continue;
     // (a caged bulb in each arch, the odd one on the blink)
     const blink = (ax / 420) % 5 === 0 && state.frame % 90 < 8 ? 0.3 : 1;
     lights.push({ x: ax + 210, y: WALK_Y - 230, r: 260, a: 0.8 * blink, color: 'rgba(253, 230, 138, 0.08)' });
+  }
+  // Up the floodgate shaft: the street's light down through the grate in the top of it, a caged bulb either side
+  const K = S.climb;
+  if (nearView(state, K.grate)) {
+    lights.push({ x: K.grate, y: K.top + 10, r: 620, a: 0.9, cone: 120, color: 'rgba(219, 234, 254, 0.1)' });
+    lights.push({ x: K.x1 + 40, y: WALK_Y - 250, r: 240, a: 0.8, color: 'rgba(253, 230, 138, 0.08)' });
+    lights.push({ x: K.x2 - 40, y: WALK_Y - 330, r: 240, a: 0.8 * (state.frame % 130 < 6 ? 0.3 : 1), color: 'rgba(253, 230, 138, 0.08)' });
   }
   if (nearView(state, S.drop)) lights.push({ x: S.drop, y: GROUND_Y - 300, r: 330, a: 0.95, cone: 110, color: 'rgba(253, 230, 138, 0.12)' });
   for (const c of COURSE.channels) {

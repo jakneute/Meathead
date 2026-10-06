@@ -9,7 +9,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_Y } from '../../../constants';
 import { COURSE, WALK_Y } from './course';
 import type { TommyRuntime } from './runtime';
 import { dripPhase } from './sewer';
-import { checker, hazeBands, tilePattern } from '../../render/pixelArt';
+import { bandedGradient, checker, hazeBands, tilePattern } from '../../render/pixelArt';
 import { INK, ink, shaded, shadedTop, dark, lite } from '../../render/npc/kit';
 
 type Ctx = CanvasRenderingContext2D;
@@ -96,7 +96,8 @@ export const drawSewerBack = (ctx: Ctx, state: GameState, rt: TommyRuntime) => {
   // manhole's light down it)
   const cw = Math.min(x1, S.cistern.x1) - x0;
   if (cw > 0) {
-    ctx.fillStyle = sewerBrick(ctx, 'tommyCeil', 34, 14, ['#201A16', '#241D18', '#1D1714'], '#141110'); ctx.fillRect(x0, GROUND_Y - 940, cw, 600);
+    // (up as far as the camera goes, climbing the floodgate shaft)
+    ctx.fillStyle = sewerBrick(ctx, 'tommyCeil', 34, 14, ['#201A16', '#241D18', '#1D1714'], '#141110'); ctx.fillRect(x0, GROUND_Y - 1400, cw, 1060);
     ctx.fillStyle = '#2E2620'; ctx.fillRect(x0, GROUND_Y - 346, cw, 6);
     ctx.fillStyle = '#4A3F37'; ctx.fillRect(x0, GROUND_Y - 346, cw, 1);
     ctx.fillStyle = INK; ctx.fillRect(x0, GROUND_Y - 340, cw, 1);
@@ -118,6 +119,7 @@ export const drawSewerBack = (ctx: Ctx, state: GameState, rt: TommyRuntime) => {
     shaded(ctx, () => ctx.rect(S.drop + 20, GROUND_Y - 520, 4, 182), '#44403C', S.drop + 20, GROUND_Y - 520, 4, 182, 1);
     for (let y = GROUND_Y - 500; y < GROUND_Y - 340; y += 18) { ink(ctx, () => ctx.rect(S.drop - 20, y, 40, 4), '#57534E', 1); ctx.fillStyle = '#A8A29E'; ctx.fillRect(S.drop - 19, y + 0.5, 38, 1); }
   }
+  drawShaft(ctx, state);
   // The cistern: a big dome, its walls curving over, ribs of brick round it lit along their tops
   const C = S.cistern;
   if (visible(state, C.x1, C.x2)) {
@@ -173,6 +175,123 @@ export const drawSewerBack = (ctx: Ctx, state: GameState, rt: TommyRuntime) => {
     ctx.fillStyle = '#111827'; ctx.font = 'bold 4px "Press Start 2P"'; ctx.textAlign = 'center'; ctx.fillText('HAZMAT SUIT', lx, WALK_Y - 116); ctx.textAlign = 'left';
   });
 
+};
+
+/**
+ * The floodgate shaft, behind him: its own brick going up out of the sewer's roof, stone up its sides, the pipes up the
+ * walls, the street grate up in the top with the day coming down through it, the winch, and the gate itself down
+ * across the walkway (riveted steel in its guides, hazard paint along its foot). Nothing up the walls has a lit top:
+ * the shelves and the gantry are what's stood on.
+ */
+const drawShaft = (ctx: Ctx, state: GameState) => {
+  const K = COURSE.sewer.climb;
+  if (!visible(state, K.x1 - 20, K.x2 + 20)) return;
+  const { x1, x2, top, gate: G } = K;
+  const w = x2 - x1, gx = G.x + G.w / 2;
+  // The back wall: brick, dark going up, grimy and green down at the walkway, the old water line across it
+  ctx.fillStyle = sewerBrick(ctx, 'tommyShaft', 30, 14, ['#2E2723', '#322A25', '#2A2420', '#352C26'], '#1D1815'); ctx.fillRect(x1, top, w, WALK_Y - top);
+  hazeBands(ctx, x1, top, w, WALK_Y - top - 120, '#0C0A09', 0.6, 0.05, 6);
+  hazeBands(ctx, x1, WALK_Y - 90, w, 90, '#2D3A12', 0, 0.35, 4);
+  checker(ctx, x1, WALK_Y - 186, w, 6, 'rgba(77, 124, 15, 0.3)');
+  ctx.fillStyle = 'rgba(77, 124, 15, 0.16)'; ctx.fillRect(x1, WALK_Y - 180, w, 180);
+  // (slime down from the top)
+  for (let sx = x1 + 50; sx < x2 - 30; sx += 70) {
+    const px = Math.round(sx + hash(sx) * 30), len = Math.round(30 + hash(sx * 3) * 110);
+    ctx.fillStyle = 'rgba(77, 124, 15, 0.4)'; ctx.fillRect(px, top, 5, len);
+    ctx.fillStyle = 'rgba(26, 46, 5, 0.5)'; ctx.fillRect(px + 4, top, 1, len);
+    checker(ctx, px - 2, top + len - 8, 9, 8, 'rgba(77, 124, 15, 0.4)');
+  }
+  // Pipes up the walls (a rusted main up the left, a conduit up the right), collared, never across
+  const riser = (x: number, pw: number, c: string) => {
+    ctx.fillStyle = dark(c, 0.35); ctx.fillRect(x, top, pw, WALK_Y - top);
+    ctx.fillStyle = dark(c, 0.1); ctx.fillRect(x + 2, top, Math.ceil(pw * 0.4), WALK_Y - top);
+    ctx.fillStyle = INK; ctx.fillRect(x, top, 1, WALK_Y - top); ctx.fillRect(x + pw - 1, top, 1, WALK_Y - top);
+    for (let y = top + 60; y < WALK_Y - 20; y += 130) {
+      ctx.fillStyle = INK; ctx.fillRect(x - 3, y, pw + 6, 12); ctx.fillStyle = '#3A302A'; ctx.fillRect(x - 2, y + 1, pw + 4, 10);
+      ctx.fillStyle = 'rgba(120, 53, 15, 0.3)'; ctx.fillRect(x + 2, y + 12, 4, 14 + hash(y) * 26);
+    }
+  };
+  riser(x1 + 34, 16, '#6B584A');
+  riser(x2 - 52, 8, '#4B5563');
+  // The sides: dressed stone up from the walkway to the top, a course at a time (lit down the inside edge)
+  for (const [px, inner] of [[x1, x1 + 15], [x2 - 16, x2 - 16]] as const) {
+    for (let y = top, k = 0; y < WALK_Y; y += 16, k++) {
+      const c = k % 2 ? '#463B33' : '#4F433A';
+      ink(ctx, () => ctx.rect(px, y, 16, 15), c, 1);
+      ctx.fillStyle = lite(c, 0.12); ctx.fillRect(inner, y + 1, 1, 13);
+    }
+  }
+  // The top: the shaft's roof, its bottom course in what light there is; the grate in it with the day up past it, and the
+  // light down through it in steps
+  ctx.fillStyle = '#2E2620'; ctx.fillRect(x1, top - 8, w, 8);
+  ctx.fillStyle = INK; ctx.fillRect(x1, top, w, 1);
+  const g0 = K.grate - 56;
+  bandedGradient(ctx, g0, top - 40, 112, 32, ['#CBD5E1', '#94A3B8', '#64748B'], 4);
+  ctx.fillStyle = '#1C1917'; ctx.fillRect(g0 - 6, top - 46, 124, 6); ctx.fillRect(g0 - 6, top - 8, 124, 8);
+  for (let bx = g0; bx <= g0 + 112; bx += 14) { ctx.fillStyle = INK; ctx.fillRect(bx, top - 40, 5, 32); ctx.fillStyle = '#44403C'; ctx.fillRect(bx + 1, top - 40, 2, 32); }
+  for (let k = 0; k < 7; k++) {
+    const span = WALK_Y - 140 - top, y0 = top + (span * k) / 7, y1 = top + (span * (k + 1)) / 7;
+    const w0 = 56 + 70 * (k / 7), w1 = 56 + 70 * ((k + 1) / 7);
+    ctx.fillStyle = `rgba(219, 234, 254, ${(0.2 * (1 - k / 7)).toFixed(3)})`;
+    ctx.beginPath(); ctx.moveTo(K.grate - w0, y0); ctx.lineTo(K.grate + w0, y0); ctx.lineTo(K.grate + w1, y1); ctx.lineTo(K.grate - w1, y1); ctx.closePath(); ctx.fill();
+  }
+  // (motes drifting in it)
+  for (let i = 0; i < 10; i++) {
+    const my = top + ((state.frame * 0.3 + hash(i) * 400) % 400), mx = K.grate + (hash(i + 3) - 0.5) * (60 + (my - top) * 0.25) + Math.sin(state.frame * 0.02 + i) * 6;
+    ctx.fillStyle = 'rgba(241, 245, 249, 0.5)'; ctx.fillRect(Math.round(mx), Math.round(my), 2, 2);
+  }
+  // (the drips' feed pipes, down from the top to the outlet)
+  for (const d of COURSE.drips) if (d.x > x1 && d.x < x2) riser(d.x - 5, 10, '#5B4A3B');
+  // The winch up top over the gate: a toothed wheel on a bracket, the gate's racks going up to it
+  for (const rx of [G.x + 8, G.x + G.w - 14]) {
+    ctx.fillStyle = INK; ctx.fillRect(rx, top + 30, 6, G.top - top - 30);
+    ctx.fillStyle = '#4B4F55'; ctx.fillRect(rx + 1, top + 30, 3, G.top - top - 30);
+    for (let y = top + 34; y < G.top; y += 6) { ctx.fillStyle = '#2A2D32'; ctx.fillRect(rx + 4, y, 2, 3); }
+  }
+  ctx.save(); ctx.translate(gx, top + 36);
+  ink(ctx, () => { for (let k = 0; k < 16; k++) { const a = (k / 16) * Math.PI * 2, r = k % 2 ? 22 : 27; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); }, '#57534E', 1.2);
+  ink(ctx, () => ctx.arc(0, 0, 16, 0, Math.PI * 2), '#44403C', 1);
+  ctx.fillStyle = '#78716C'; for (let k = 0; k < 4; k++) { ctx.save(); ctx.rotate(k * Math.PI / 4); ctx.fillRect(-15, -1.5, 30, 3); ctx.restore(); }
+  ink(ctx, () => ctx.arc(0, 0, 5, 0, Math.PI * 2), '#A8A29E', 1);
+  ctx.restore();
+  ink(ctx, () => ctx.rect(gx - 40, top - 2, 80, 12), '#3F3A36', 1);
+  // The gate's guides, floor to roof either side of it
+  for (const rx of [G.x - 10, G.x + G.w]) {
+    ink(ctx, () => ctx.rect(rx, top + 64, 10, WALK_Y - top - 64), '#3A3D42', 1);
+    ctx.fillStyle = '#23262A'; ctx.fillRect(rx + 3, top + 64, 4, WALK_Y - top - 64);
+    for (let y = top + 90; y < WALK_Y; y += 48) { ctx.fillStyle = '#6B7280'; ctx.fillRect(rx + 1, y, 2, 2); ctx.fillRect(rx + 7, y, 2, 2); }
+  }
+  // The gate: riveted steel plate, lit down its left, seams across it (sunk, not lit: it's not to be stood on), rust
+  // weeping down it, the hazard paint along its foot and the muck it's been holding back staining it to the tide line
+  const gh = WALK_Y - G.top;
+  ctx.fillStyle = '#4A4E54'; ctx.fillRect(G.x, G.top, G.w, gh);
+  ctx.fillStyle = '#5C6168'; ctx.fillRect(G.x + 2, G.top, 6, gh);
+  ctx.fillStyle = '#6E737A'; ctx.fillRect(G.x + 2, G.top, 2, gh);
+  ctx.fillStyle = '#34373C'; ctx.fillRect(G.x + G.w - 6, G.top, 6, gh);
+  ctx.fillStyle = INK; ctx.fillRect(G.x, G.top, 1, gh); ctx.fillRect(G.x + G.w - 1, G.top, 1, gh);
+  for (let y = G.top + 56; y < WALK_Y - 40; y += 70) {
+    ctx.fillStyle = '#25282C'; ctx.fillRect(G.x + 1, y, G.w - 2, 3);
+    for (let x = G.x + 8; x < G.x + G.w - 6; x += 12) {
+      for (const ry of [y - 7, y + 7]) { ctx.fillStyle = '#2A2D31'; ctx.fillRect(x, ry, 4, 4); ctx.fillStyle = '#8A9098'; ctx.fillRect(x, ry, 2, 2); }
+    }
+  }
+  for (let x = G.x + 6; x < G.x + G.w - 6; x += 13) { ctx.fillStyle = 'rgba(120, 53, 15, 0.45)'; ctx.fillRect(x, G.top + 10 + hash(x) * 60, 3, 40 + hash(x * 3) * 120); }
+  checker(ctx, G.x + 1, WALK_Y - 180, G.w - 2, 180, 'rgba(77, 124, 15, 0.35)');
+  ctx.save(); ctx.beginPath(); ctx.rect(G.x + 1, WALK_Y - 30, G.w - 2, 26); ctx.clip();
+  ctx.fillStyle = '#CA8A04'; ctx.fillRect(G.x, WALK_Y - 30, G.w, 26);
+  ctx.fillStyle = '#1C1917';
+  for (let k = -2; k < 6; k++) { ctx.beginPath(); ctx.moveTo(G.x + k * 20, WALK_Y - 4); ctx.lineTo(G.x + k * 20 + 10, WALK_Y - 4); ctx.lineTo(G.x + k * 20 + 36, WALK_Y - 30); ctx.lineTo(G.x + k * 20 + 26, WALK_Y - 30); ctx.closePath(); ctx.fill(); }
+  ctx.restore();
+  ctx.fillStyle = '#FACC15'; ctx.fillRect(G.x + 2, WALK_Y - 30, 2, 26);
+  // (a trickle of the muck seeping out under it)
+  ctx.fillStyle = 'rgba(101, 163, 13, 0.6)'; ctx.fillRect(G.x - 18, WALK_Y - 3, G.w + 36, 3); checker(ctx, G.x - 30, WALK_Y - 3, 12, 3, 'rgba(101, 163, 13, 0.6)');
+  // Caged bulbs on the walls, either side
+  for (const [bx, by] of [[x1 + 70, WALK_Y - 250], [x2 - 70, WALK_Y - 330]]) {
+    ink(ctx, () => ctx.rect(bx - 6, by - 14, 12, 6), '#3F3A36', 1);
+    ink(ctx, () => ctx.arc(bx, by, 7, 0, Math.PI * 2), '#FDE68A', 1);
+    ctx.fillStyle = '#FFFBEB'; ctx.fillRect(bx - 3, by - 3, 3, 3);
+    ctx.fillStyle = '#44403C'; for (const dx of [-7, -2, 3]) ctx.fillRect(bx + dx, by - 8, 1.5, 16);
+  }
 };
 
 /** A yellow hazmat suit hung up (hood, visor, arms, the boots): inked, lit down the left, creased. */
@@ -275,6 +394,8 @@ export const drawSewerGround = (ctx: Ctx, state: GameState) => {
       collar(ctx, l.x + 12, l.y + 3, 12, 14, '#57534E'); collar(ctx, l.x + l.w - 24, l.y + 3, 12, 14, '#57534E');
       checker(ctx, l.x + 30, l.y + 10, Math.max(0, l.w - 60), 4, 'rgba(120, 53, 15, 0.35)');
       ctx.fillStyle = 'rgba(77, 124, 15, 0.6)'; ctx.fillRect(l.x + l.w / 2, l.y + 16, 3, 8); ctx.fillStyle = 'rgba(190, 242, 100, 0.6)'; ctx.fillRect(l.x + l.w / 2, l.y + 22, 1, 1); // (a drip of the muck off it)
+    } else if (l.look === 'shelf' || l.look === 'gantry') {
+      drawShaftDeck(ctx, l.x, l.y, l.w, l.look === 'gantry');
     } else if (l.look === 'pipe') {
       shaded(ctx, () => ctx.rect(l.x + 20, l.y + 16, 6, WALK_Y - l.y - 16), '#44403C', l.x + 20, l.y + 16, 6, WALK_Y - l.y - 16, 1);
       shaded(ctx, () => ctx.rect(l.x + l.w - 26, l.y + 16, 6, WALK_Y - l.y - 16), '#44403C', l.x + l.w - 26, l.y + 16, 6, WALK_Y - l.y - 16, 1);
@@ -283,6 +404,38 @@ export const drawSewerGround = (ctx: Ctx, state: GameState) => {
       for (let x = l.x; x < l.x + l.w; x += 60) collar(ctx, x, l.y - 2, 10, 20);
     }
   }
+};
+
+/**
+ * A deck hung in the floodgate shaft (a shelf, or the gantry over the gate): steel grating with a lit lip along its top
+ * and the hazard paint under it, hung on rods from the top of the shaft; the gantry with a truss under it and a dark rail.
+ */
+const drawShaftDeck = (ctx: Ctx, x: number, y: number, w: number, gantry: boolean) => {
+  const top = COURSE.sewer.climb.top;
+  const rods = gantry ? [x + 14, x + w / 2 - 2, x + w - 18] : [x + 8, x + w - 12];
+  for (const rx of rods) { ctx.fillStyle = INK; ctx.fillRect(rx, top, 4, y - top); ctx.fillStyle = '#3A3632'; ctx.fillRect(rx + 1, top, 2, y - top); }
+  if (gantry) {
+    // (the truss under it: chords and diagonals, dark)
+    ctx.fillStyle = '#23262B'; ctx.fillRect(x + 4, y + 26, w - 8, 3);
+    ctx.strokeStyle = '#23262B'; ctx.lineWidth = 2; ctx.beginPath();
+    for (let tx = x + 4; tx < x + w - 24; tx += 24) { ctx.moveTo(tx, y + 12); ctx.lineTo(tx + 12, y + 27); ctx.lineTo(tx + 24, y + 12); }
+    ctx.stroke();
+    // (the handrail: posts, and a rail along them in the dark)
+    for (let px = x + 4; px < x + w; px += 62) { ctx.fillStyle = INK; ctx.fillRect(px, y - 30, 4, 30); ctx.fillStyle = '#3F444B'; ctx.fillRect(px + 1, y - 30, 2, 30); }
+    ctx.fillStyle = INK; ctx.fillRect(x + 4, y - 32, w - 8, 4); ctx.fillStyle = '#3A3F46'; ctx.fillRect(x + 5, y - 31, w - 10, 2);
+    ctx.fillStyle = INK; ctx.fillRect(x + 4, y - 17, w - 8, 2);
+  } else {
+    // (a bracket under each end, from its rod)
+    for (const rx of rods) { ctx.fillStyle = INK; ctx.beginPath(); ctx.moveTo(rx - 4, y + 10); ctx.lineTo(rx + 8, y + 10); ctx.lineTo(rx + 2, y + 20); ctx.closePath(); ctx.fill(); }
+  }
+  // The deck: grating, its lit lip, the yellow along its edge, the angle iron under it
+  ink(ctx, () => ctx.rect(x, y, w, 12), '#3F4650', 1);
+  for (let gx = x + 3; gx < x + w - 3; gx += 6) { ctx.fillStyle = '#0F141C'; ctx.fillRect(gx, y + 4, 3, 5); }
+  ctx.fillStyle = '#9CA3AF'; ctx.fillRect(x + 1, y + 1, w - 2, 2);
+  ctx.fillStyle = '#E5E7EB'; ctx.fillRect(x + 1, y + 1, w - 2, 1);
+  for (let gx = x + 1; gx < x + w - 1; gx += 16) { ctx.fillStyle = '#CA8A04'; ctx.fillRect(gx, y + 9, Math.min(8, x + w - 1 - gx), 2); }
+  ctx.fillStyle = '#1F242B'; ctx.fillRect(x + 2, y + 12, w - 4, 3);
+  checker(ctx, x + 2, y + 6, w - 4, 2, 'rgba(120, 53, 15, 0.4)');
 };
 
 /** The pipes that drip, the drops swelling on them, the drops falling. */

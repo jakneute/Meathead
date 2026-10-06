@@ -70,8 +70,12 @@ export const tommyLayout: StageLayout = {
     state.blocks.push(wall(S.x1, GROUND_Y - 940, S.drop - 80 - S.x1, 600, 'sewer-roof'), wall(S.drop + 80, GROUND_Y - 940, S.tunnel.x1 - S.drop - 80, 600, 'sewer-roof'));
     state.blocks.push(wall(S.tunnel.roof1, TUNNEL_ROOF - 600, S.tunnel.roof2 - S.tunnel.roof1, 600, 'tunnel-roof'));
     state.blocks.push(wall(S.pit.roof1, TUNNEL_ROOF - 600, S.pit.roof2 - S.pit.roof1, 600, 'pit-roof'));
-    // (the cistern's a dome: high enough to lob a rock at the thing in it)
-    state.blocks.push(wall(S.tunnel.x2, GROUND_Y - 940, S.cistern.x1 - S.tunnel.x2, 600, 'sewer-roof'), wall(S.cistern.x1, GROUND_Y - 1160, S.x2 - S.cistern.x1, 600, 'cistern-roof'));
+    // (the floodgate shaft goes up out of it, the gate down across the walkway in it; the cistern's a dome: high enough
+    // to lob a rock at the thing in it)
+    const K = S.climb;
+    state.blocks.push(wall(S.tunnel.x2, GROUND_Y - 940, K.x1 - S.tunnel.x2, 600, 'sewer-roof'), wall(K.x1, K.top - 600, K.x2 - K.x1, 600, 'shaft-roof'), wall(K.x2, GROUND_Y - 940, S.cistern.x1 - K.x2, 600, 'sewer-roof'));
+    state.blocks.push(wall(K.gate.x, K.gate.top, K.gate.w, GROUND_Y - K.gate.top, 'floodgate'));
+    state.blocks.push(wall(S.cistern.x1, GROUND_Y - 1160, S.x2 - S.cistern.x1, 600, 'cistern-roof'));
     // The pipes and grates in the tunnel
     C.bars.forEach((b, i) => state.blocks.push(wall(b.x, b.y1, b.w, b.y2 - b.y1, `tunnel-bar-${i}`)));
     state.cameraMinX = C.startX;
@@ -118,7 +122,10 @@ export const tommyLayout: StageLayout = {
   cameraRow: state => {
     const rt = getTommy(state);
     if (rt && isRidingBike(rt.bike)) return undefined;
-    const place = placeOf(state.player.pos.x);
+    const x = state.player.pos.x, K = COURSE.sewer.climb;
+    // (up the floodgate shaft he's nearer the middle: what's under him to come back down to, and what's over him)
+    if (x > K.x1 - 100 && x < K.x2 + 60) return 400;
+    const place = placeOf(x);
     return place === 'sewer' || place === 'tunnel' || place === 'cistern' ? 460 : undefined;
   },
   zoom: state => { const rt = getTommy(state); return rt ? bottleZoom(rt.bike) ?? doorZoom(state, rt.escape) : null; },
