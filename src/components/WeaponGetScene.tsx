@@ -14,9 +14,12 @@ import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../game/platform/
 import { SKIP_AFTER_MS } from '../game/platform/skip';
 import SkipPrompt from './SkipPrompt';
 import { playWhoosh, playPunchImpact, playThud, playTypeClack, playGlassShatterSound, playSound, playSquelch } from '../game/platform/audio';
-import { speak, cancelSpeech, MEATHEAD_VOICE } from '../game/platform/speech';
-import { drawFaceOff, releaseFaceOffLayers } from '../game/scenes/faceOff';
+import { speak, cancelSpeech, silenceAll, MEATHEAD_VOICE } from '../game/platform/speech';
+import { drawFaceOff, releaseFaceOffLayers, pictureScale } from '../game/scenes/faceOff';
 import { drawEggBack, drawEggFront, EGG_MS, EGG_PEE_MS, EGG_SHAKE_MS, EGG_TURN_MS } from '../game/scenes/faceOffEgg';
+import { SHOTS, ShotWeapon, isShotWeapon, turnPose, drawBackClothed, drawShotArm, muzzleAt, ArmPose, HOLD } from '../game/scenes/weaponShot';
+import { drawLensFx, shotCam, warmLensFx, SHOT_SFX, FX_W, FX_H } from '../game/scenes/weaponShotFx';
+import type { SoundType } from '../types';
 
 // After a boss: fade out of the victory lap into a black void, face to face with
 // Meathead in first person. He decks the camera; it goes down on its side. Then
@@ -25,6 +28,10 @@ import { drawEggBack, drawEggFront, EGG_MS, EGG_PEE_MS, EGG_SHAKE_MS, EGG_TURN_M
 // coming back. Start / Esc moves on (and skips straight to the range before that).
 // (Hold P, or the pad's top button, as it fades in, and the camera walks in on him at a urinal first: the scene's
 // clock stands still at the fade-in while that plays out, then carries on from there. See faceOffEgg.ts.)
+// With a boss's weapon, he doesn't punch it: the camera finds him with his back to it, and he turns round (each weapon
+// its own way, its own look on his face, its own line) and shoots it with what he's just won, and each weapon kills
+// the camera its own way (weaponShot.ts, weaponShotFx.ts). Walked in on at the urinal, he's already turned round:
+// he gets it out (the weapon), says his piece and shoots.
 
 // Timeline (ms)
 const FADE_END = 600;
@@ -42,11 +49,72 @@ const RANGE_DELAY = 900;
 /** Walked in on at the urinal: as he swings round, what's still coming out of him catches the lens (ms into it). */
 const EGG_SPLASH_AT = EGG_PEE_MS + EGG_SHAKE_MS + EGG_TURN_MS * 0.45;
 
+// The shots: he turns round, says his line (the clock holds at WINDUP till he's done, and a breath), brings it up on
+// the lens over WINDUP..PUNCH, and fires at PUNCH; it hits SHOTS[w].hit later.
+const TURN_AT = 1250;
+/** Walked in on: he gets the weapon out once he's turned round from the urinal, then says his line. */
+const EGG_DRAW_AT = 700, EGG_QUIP_AT = 1000;
+/** The longest the clock holds for his line. */
+const HOLD_MAX = 3500;
+
+/** What he says as he turns on the camera, by weapon: [as he is, with his pants full]. */
+const QUIPS: Record<ShotWeapon, [string, string]> = {
+  SHOTGUN: ['Chill out.', "Chill out. And don't sniff."],
+  FLAMETHROWER: ['Smile for the barbecue.', "Smell that? That's the barbecue."],
+  BOULDER: ["Here's your close-up.", 'No close-ups of the pants.'],
+  TSUNAMI: ["Hope you're waterproof.", "Hope you're waterproof. I'm not."],
+  NEEDLES: ['Time for your shot.', "Time for your shot. Don't look down."],
+  TASER: ['Stay tuned, dipshit.', "Stay tuned. Don't zoom out."],
+  SLUDGE: ['You make me sick.', 'You make me sick. I make me sick.'],
+  OIL_ROCKET: ['Breaking news.', 'Breaking news. And wind.'],
+};
+
+/** What he sounds like going round (ms into the turn). */
+const TURN_SFX: Record<ShotWeapon, [number, SoundType, number?, number?][]> = {
+  SHOTGUN: [[120, 'whoosh', 0.8, -4]],
+  FLAMETHROWER: [[0, 'whoosh', 1.4, 3]],
+  BOULDER: [[0, 'whoosh', 0.9, -5], [290, 'stomp', 1.4], [400, 'whoosh', 1, -5], [600, 'stomp', 1.5, -2]],
+  TSUNAMI: [[0, 'whoosh', 1.2], [200, 'whoosh', 1.2, 2], [400, 'whoosh', 1.2, 4]],
+  NEEDLES: [[60, 'whoosh', 0.9, 2]],
+  TASER: [[0, 'taser', 0.5, 6], [120, 'whoosh', 1], [260, 'taser', 0.5, 8]],
+  SLUDGE: [[0, 'whoosh', 0.8, -6], [300, 'glug', 0.9, -4]],
+  OIL_ROCKET: [[0, 'jump', 1.2], [400, 'land', 1.3]],
+};
+
 const HEADER = 'NEW WEAPON ACQUIRED';
 const FRAME_MS = 1000 / 60;
 
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 const easeIn = (v: number) => v * v * v;
+const smoothstep = (v: number) => v * v * (3 - 2 * v);
+const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
+
+/**
+ * His left hand with the weapon in it, scene time `t`: held on the lens; walked in on, got out from his guard first;
+ * brought up nearer the lens over the wind-up; kicked back by the shot. The boulder's drawn back over his shoulder and
+ * thrown.
+ */
+const shotPose = (w: ShotWeapon, t: number, egg: boolean): ArmPose => {
+  let hand: [number, number] = [HOLD[0], HOLD[1]], scale = 1.35, thrown = false;
+  if (egg) { const d = smoothstep(clamp01((t - EGG_DRAW_AT) / 260)); hand = [lerp(136, HOLD[0], d), lerp(84, HOLD[1], d)]; scale = 0.6 + 0.75 * d; }
+  const aim = smoothstep(clamp01((t - WINDUP) / (PUNCH - WINDUP)));
+  if (w === 'BOULDER') {
+    hand = [lerp(hand[0], 162, aim), lerp(hand[1], 80, aim)]; scale *= 1 + aim * 0.08;
+    if (t >= PUNCH) { const k = 1 - (1 - clamp01((t - PUNCH) / 140)) ** 3; hand = [lerp(162, 118, k), lerp(80, 150, k)]; scale = 1.45 + k * 0.35; thrown = true; }
+  } else {
+    hand = [lerp(hand[0], 126, aim), lerp(hand[1], 132, aim)]; scale *= 1 + aim * 0.3;
+    const rec = t >= PUNCH ? Math.max(0, 1 - (t - PUNCH) / 280) : 0;
+    hand = [hand[0] + rec * 5, hand[1] - rec * 14]; scale -= rec * 0.14;
+  }
+  return { hand, scale, thrown };
+};
+
+/** A point in his picture (200 x 440) on the screen (800 x 600), as the picture's placed, scaled, lifted and turned. */
+const toScreen = ([x, y]: [number, number], scale: number, ty: number, rotDeg: number): [number, number] => {
+  const ox = 260, oy = 1144 * 0.43, px = x * 2.6 - ox, py = y * 2.6 - oy, a = rotDeg * Math.PI / 180;
+  return [140 + ox + (px * Math.cos(a) - py * Math.sin(a)) * scale, 40 + oy + ty + (px * Math.sin(a) + py * Math.cos(a)) * scale];
+};
+
 const easeOutBounce = (x: number) => {
   const n = 7.5625, d = 2.75;
   if (x < 1 / d) return n * x * x;
@@ -72,7 +140,16 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, shitty = false, o
   const nameAt = HEADER_AT + HEADER.length * HEADER_MS + 200;
   const rangeAt = nameAt + name.length * NAME_MS + RANGE_DELAY;
 
+  const shotW = isShotWeapon(weapon) ? weapon : null;
+  const spec = shotW ? SHOTS[shotW] : null;
   const [t, setT] = useState(0);
+  /** Wall time since it started (he keeps breathing, talking, twitching while the scene's clock holds for his line). */
+  const [live, setLive] = useState(0);
+  /** His line, up while it's being said (and only then). */
+  const [caption, setCaption] = useState<string | null>(null);
+  /** Whether he's saying it; when he finished (wall ms). */
+  const talkingRef = useRef(false);
+  const saidAtRef = useRef(-Infinity);
   /** The camera walked in on him at the urinal; and how far into that it is (ms). */
   const [egg, setEgg] = useState<number | null>(null);
   const eggRef = useRef(false);
@@ -106,7 +183,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, shitty = false, o
       if (now < SKIP_AFTER_MS) return;
       if (now < rangeAt) {
         jumpTo(rangeAt);
-        cancelSpeech();
+        cancelSpeech(); silenceAll(); setCaption(null);
       } else {
         finish();
       }
@@ -114,15 +191,22 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, shitty = false, o
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); skipOrContinue(); } };
     window.addEventListener('keydown', onKey);
 
-    let lastTinkle = 0;
+    let lastTinkle = 0, held = 0;
+    const began = performance.now();
+    if (shotW) warmLensFx();
     const loop = (wall: number) => {
-      const raw = wall - startRef.current;
+      let raw = wall - startRef.current;
       // The easter egg: P, or the pad's top button, held while it fades in
       const gp0 = getActiveGamepad();
       if (!eggRef.current && raw < FADE_END && (kb.isDown('p') || (!!gp0 && isButtonPressed(gp0, GP_BUTTONS.Y)))) eggRef.current = true;
-      const now = sceneTime(raw);
+      let now = sceneTime(raw);
+      // (a shot: the clock holds with the weapon up till he's said his piece, and a breath after; no talking over it)
+      if (shotW && now > WINDUP && now < PUNCH && held < HOLD_MAX && (talkingRef.current || wall - saidAtRef.current < 160)) {
+        const over = now - WINDUP;
+        startRef.current += over; held += over; raw -= over; now = WINDUP;
+      }
       // (once it's down to the range, nothing on the page moves with the clock any more: no re-rendering it every frame)
-      if (now < rangeAt + 1000 || eggRef.current) setT(now);
+      if (now < rangeAt + 1000 || eggRef.current) { setT(now); if (shotW) setLive(wall - began); }
       if (eggRef.current) {
         const e = raw - FADE_END;
         setEgg(e);
@@ -132,10 +216,26 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, shitty = false, o
       }
 
       // Sound cues
-      once('whoosh', PUNCH, now, playWhoosh);
-      once('taunt', WINDUP - 250, now, () => speak('Get that camera outta my face.', MEATHEAD_VOICE));
-      once('impact', IMPACT, now, () => { playPunchImpact(); playGlassShatterSound(); });
-      once('thud', IMPACT + 420, now, playThud);
+      if (shotW && spec) {
+        // (turning round on it, or, walked in on, getting it out; his line; cocking it; the shot)
+        if (!eggRef.current) for (const [at, snd, vol, pitch] of TURN_SFX[shotW]) once(`turn${at}${snd}`, TURN_AT + at, now, () => playSound(snd, vol, pitch));
+        else once('draw', EGG_DRAW_AT, now, () => playSound('reload', 1.1));
+        once('quip', eggRef.current ? EGG_QUIP_AT : TURN_AT + spec.turn.ms * 0.85, now, () => {
+          talkingRef.current = true;
+          const line = QUIPS[shotW][shitty ? 1 : 0];
+          speak(line, MEATHEAD_VOICE, {
+            onStart: () => setCaption(line),
+            onDone: () => { talkingRef.current = false; saidAtRef.current = performance.now(); setCaption(null); },
+          });
+        });
+        if (shotW !== 'BOULDER') once('cock', WINDUP + 20, now, () => playSound('reload', 1));
+        for (const [at, snd, vol, pitch] of SHOT_SFX[shotW]) once(`shot${at}${snd}`, PUNCH + at, now, () => playSound(snd, vol, pitch));
+      } else {
+        once('whoosh', PUNCH, now, playWhoosh);
+        once('taunt', WINDUP - 250, now, () => speak('Get that camera outta my face.', MEATHEAD_VOICE));
+        once('impact', IMPACT, now, () => { playPunchImpact(); playGlassShatterSound(); });
+        once('thud', IMPACT + 420, now, playThud);
+      }
       once('slam', REVEAL, now, () => playTypeClack(true));
       const h = Math.min(HEADER.length, Math.max(0, Math.floor((now - HEADER_AT) / HEADER_MS)));
       if (h > typedHeader) { typedHeader = h; if (HEADER[h - 1] !== ' ') playTypeClack(false); }
@@ -174,6 +274,8 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, shitty = false, o
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weapon, name, nameAt, rangeAt, range]);
+  // (gone before he's finished: his line goes with him)
+  useEffect(() => () => { if (talkingRef.current) silenceAll(); }, []);
 
   // --- Derived animation values -------------------------------------------------
   const fade = clamp01(t / FADE_END);
@@ -181,7 +283,9 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, shitty = false, o
   // (walked in on: pulled back to start with, head to knees, his hairy ass and all, then pushing in on him as he
   // finishes and turns round, to the face-off's usual framing; the top of him held where it is as it does)
   const eggPush = egg === null ? 1 : clamp01((egg - EGG_PEE_MS * 0.55) / (EGG_PEE_MS * 0.45 + EGG_SHAKE_MS + EGG_TURN_MS));
-  const eggS = 0.62 + 0.38 * eggPush * eggPush * (3 - 2 * eggPush);
+  // (a shot: the camera finds him from behind, pulled back the same way, and pushes in on him as he turns round)
+  const shotPush = shotW && spec && egg === null ? smoothstep(clamp01((t - TURN_AT + 150) / (spec.turn.ms + 150))) : 1;
+  const eggS = egg !== null ? 0.62 + 0.38 * eggPush * eggPush * (3 - 2 * eggPush) : 0.62 + 0.38 * shotPush;
   const eggPull = { s: eggS, ty: -0.43 * 1144 * (1 - eggS) };
   const faceIn = egg !== null ? clamp01(egg / (FACE_IN_END - FADE_END)) : clamp01((t - FADE_END) / (FACE_IN_END - FADE_END));
   const windup = clamp01((t - WINDUP) / (PUNCH - WINDUP));
@@ -191,8 +295,26 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, shitty = false, o
   const blackout = clamp01((t - BLACKOUT) / (REVEAL - BLACKOUT));
   const inCinematic = t < REVEAL;
   const inRange = t >= rangeAt;
-  const punching = t >= PUNCH && t < IMPACT;
-  const shake = t >= IMPACT && t < IMPACT + 250 ? (Math.random() - 0.5) * 24 : 0;
+  const punching = !shotW && t >= PUNCH && t < IMPACT;
+  // The shot: where he is in it, what it's doing to the camera, where it came out of him on the screen
+  const shotE = t - PUNCH;
+  const cam = shotW && spec ? shotCam(shotW, shotE, spec.hit) : null;
+  const pictureScaleNow = (0.88 + faceIn * 0.12) * eggPull.s;
+  const recoil = t >= PUNCH ? Math.max(0, 1 - shotE / 280) : 0;
+  const bodyRot = shotW ? -windup * 2 + recoil * 3 : -windup * 5 + punch * 7;
+  const freezeRef = useRef<number | null>(null);
+  if (cam?.freeze && freezeRef.current === null) freezeRef.current = live;
+  const liveT = cam?.freeze && freezeRef.current !== null ? freezeRef.current : live;
+  const shotProps = shotW ? {
+    weapon: shotW,
+    turnQ: egg === null ? (t - TURN_AT) / SHOTS[shotW].turn.ms : 1,
+    armed: egg === null || t >= EGG_DRAW_AT,
+    pose: shotPose(shotW, t, egg !== null),
+    talk: caption ? 0.3 + 0.7 * Math.abs(Math.sin(live / 75)) * (0.6 + 0.4 * Math.sin(live / 210)) : 0,
+    live: liveT,
+  } : undefined;
+  const muzzle: [number, number] = shotW ? toScreen(muzzleAt(shotW, shotPose(shotW, PUNCH - 1, egg !== null)), pictureScaleNow, eggPull.ty, bodyRot) : [400, 300];
+  const shake = cam ? (cam.shake ? (Math.random() - 0.5) * cam.shake * 2 : 0) : t >= IMPACT && t < IMPACT + 250 ? (Math.random() - 0.5) * 24 : 0;
   const header = HEADER.slice(0, Math.max(0, Math.floor((t - HEADER_AT) / HEADER_MS)));
   const typed = t >= nameAt ? name.slice(0, Math.floor((t - nameAt) / NAME_MS) + 1) : '';
   const jolt = t >= nameAt && t < rangeAt - RANGE_DELAY + 120 && (t - nameAt) % NAME_MS < 45 ? (Math.random() - 0.5) * 8 : 0;
@@ -211,14 +333,21 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, shitty = false, o
               // The camera tips over onto its side: the world swings round and settles, bouncing. Lying on the
               // floor it takes all of him in, boots and all
               transformOrigin: '50% 50%',
-              transform: `translate(${easeOutBounce(fall) * 190}px, ${-easeOutBounce(fall) * 20}px) rotate(${easeOutBounce(fall) * 82}deg) scale(${1 - fall * 0.4})`,
+              // (shot: knocked flying, toppled, washed away, rolling, switched off: see weaponShotFx.ts)
+              transform: cam
+                ? `translate(${cam.x}px, ${cam.y + cam.roll}px) rotate(${cam.rot}deg) scale(${cam.scale}) scale(${cam.sx}, ${cam.sy})`
+                : `translate(${easeOutBounce(fall) * 190}px, ${-easeOutBounce(fall) * 20}px) rotate(${easeOutBounce(fall) * 82}deg) scale(${1 - fall * 0.4})`,
             }}>
             {egg !== null ? <RestroomWall /> : <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 58%, rgba(127,29,29,0.55) 0%, rgba(20,0,0,0.6) 35%, #000 70%)' }} />}
             <div className="absolute left-1/2 -translate-x-1/2 bottom-[40px] w-[560px] h-[60px] rounded-[50%]" style={{ background: 'radial-gradient(ellipse, rgba(239,68,68,0.25), transparent 70%)' }} />
-            <div className="absolute left-1/2 top-[40px]" style={{ width: 520, height: 1144, marginLeft: -260, opacity: faceIn, filter: egg !== null ? 'drop-shadow(0 6px 14px rgba(0,0,0,0.6))' : 'drop-shadow(0 0 22px rgba(239,68,68,0.45))', transform: `translateY(${eggPull.ty}px) scale(${(0.88 + faceIn * 0.12) * eggPull.s}) rotate(${-windup * 5 + punch * 7}deg)`, transformOrigin: '50% 43%' }}>
-              <FaceOffMeathead t={t} windup={windup} punching={punching || (t >= IMPACT && t < IMPACT + 180)} egg={egg} shitty={shitty} />
+            <div className="absolute left-1/2 top-[40px]" style={{ width: 520, height: 1144, marginLeft: -260, opacity: faceIn, filter: egg !== null ? 'drop-shadow(0 6px 14px rgba(0,0,0,0.6))' : 'drop-shadow(0 0 22px rgba(239,68,68,0.45))', transform: `translateY(${eggPull.ty}px) scale(${pictureScaleNow}) rotate(${bodyRot}deg)`, transformOrigin: '50% 43%' }}>
+              <FaceOffMeathead t={t} windup={shotW ? 0 : windup} punching={punching || (!shotW && t >= IMPACT && t < IMPACT + 180)} egg={egg} shitty={shitty} shot={shotProps} />
             </div>
+            {/* (a rolling picture: the black bar between frames going down it) */}
+            {cam && cam.roll > 0 && <div className="absolute left-0 right-0 bg-black" style={{ top: -cam.roll, height: 60 }} />}
           </div>
+          {/* (a flash of current through it: the picture in negative) */}
+          {cam?.invert && <div className="absolute inset-0 bg-white pointer-events-none" style={{ mixBlendMode: 'difference' }} />}
 
           {/* The fist, coming straight at the lens */}
           {punching && (
@@ -239,9 +368,18 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, shitty = false, o
           {/* (walked in on: he swung round still going, and some of it's on the lens) */}
           {egg !== null && egg >= EGG_SPLASH_AT - 120 && <LensSplash since={egg - EGG_SPLASH_AT} />}
 
+          {/* The shot, on the lens (over what he splashed on it, walked in on) */}
+          {shotW && spec && shotE >= 0 && <LensFx weapon={shotW} e={shotE} src={muzzle} hit={spec.hit} />}
+
           {/* The lens took it: cracked glass that stays put while the camera falls */}
-          {t >= IMPACT && <LensCrack />}
-          <div className="absolute inset-0 bg-white pointer-events-none" style={{ opacity: flash }} />
+          {!shotW && t >= IMPACT && <LensCrack />}
+          {!shotW && <div className="absolute inset-0 bg-white pointer-events-none" style={{ opacity: flash }} />}
+        </div>
+      )}
+      {/* His line, up only while he's saying it */}
+      {caption && inCinematic && (
+        <div className="absolute left-0 right-0 bottom-[34px] text-center pointer-events-none">
+          <span className="inline-block px-3 py-2 text-[14px] text-yellow-300 uppercase" style={{ background: 'rgba(0,0,0,0.7)', textShadow: '2px 2px 0 #7F1D1D' }}>{caption}</span>
         </div>
       )}
       <div className="absolute inset-0 bg-black pointer-events-none" style={{ opacity: inCinematic ? blackout : 0 }} />
@@ -308,7 +446,7 @@ const WeaponGetScene: React.FC<Props> = ({ stageId, souvenirs, shitty = false, o
 
       {/* Skip hint during the cinematic */}
       {!inRange && t > SKIP_AFTER_MS && (
-        <SkipPrompt onSkip={() => { jumpTo(rangeAt); cancelSpeech(); }} />
+        <SkipPrompt onSkip={() => { jumpTo(rangeAt); cancelSpeech(); silenceAll(); setCaption(null); }} />
       )}
     </div>
   );
@@ -378,6 +516,16 @@ const LensSplash: React.FC<{ since: number }> = ({ since }) => {
   );
 };
 
+/** The shot on the lens (weaponShotFx.ts): at half resolution, blown up square, so it's in chunky pixels. */
+const LensFx: React.FC<{ weapon: ShotWeapon; e: number; src: [number, number]; hit: number }> = ({ weapon, e, src, hit }) => {
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const ctx = ref.current?.getContext('2d');
+    if (ctx) drawLensFx(ctx, weapon, e, src, hit);
+  }, [weapon, e, src, hit]);
+  return <canvas ref={ref} width={FX_W} height={FX_H} className="absolute inset-0 w-full h-full pointer-events-none" style={{ imageRendering: 'pixelated' }} />;
+};
+
 /** The glass in front of the lens after a direct hit. */
 const LensCrack: React.FC = () => (
   <svg viewBox="0 0 800 600" className="absolute inset-0 w-full h-full pointer-events-none">
@@ -437,7 +585,10 @@ const GiantFist: React.FC = () => (
  * Meathead from the front, square to the camera in a boxing guard, painted in gross-up detail (see
  * game/scenes/faceOff.ts). His left fist draws back on the wind-up and is gone (it's coming at you) during the punch.
  */
-export const FaceOffMeathead: React.FC<{ t: number; windup: number; punching: boolean; egg?: number | null; shitty?: boolean }> = ({ t, windup, punching, egg = null, shitty = false }) => {
+/** A shot in place of the punch: the weapon, how far round he is, whether it's in his hand yet and where, his jaw going. */
+interface ShotProps { weapon: ShotWeapon; turnQ: number; armed: boolean; pose: ArmPose; talk: number; live: number }
+
+export const FaceOffMeathead: React.FC<{ t: number; windup: number; punching: boolean; egg?: number | null; shitty?: boolean; shot?: ShotProps }> = ({ t, windup, punching, egg = null, shitty = false, shot }) => {
   const ref = useRef<HTMLCanvasElement>(null);
   // (the parts of him that never change are painted once, offscreen: let go of them when he's gone)
   useEffect(() => releaseFaceOffLayers, []);
@@ -448,14 +599,24 @@ export const FaceOffMeathead: React.FC<{ t: number; windup: number; punching: bo
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, c.width, c.height);
     ctx.scale(c.width / 200, c.height / 440);
+    // (a shot: he's alive on the wall clock, not the scene's, which holds for his line)
+    const s = shot && shot.armed ? { face: SHOTS[shot.weapon].face, talk: shot.talk, leftArm: (cx: CanvasRenderingContext2D, k: number) => drawShotArm(cx, shot.weapon, shot.live, k, shot.pose) } : undefined;
+    if (egg === null && shot) {
+      // From behind, then turning round on the camera, his way (squeezed side on, hopping, twitching, lurching)
+      const tp = turnPose(SHOTS[shot.weapon].turn, shot.turnQ, shot.live);
+      ctx.translate(100 + tp.dx, 300 + tp.dy); ctx.rotate(tp.tilt * Math.PI / 180); ctx.scale(tp.squeeze, 1); ctx.translate(-100, -300);
+      if (!tp.front) drawBackClothed(ctx, shot.live, pictureScale(ctx), shitty);
+      else drawFaceOff(ctx, shot.live, 0, false, s);
+      return;
+    }
     if (egg === null) { drawFaceOff(ctx, t, windup, punching); return; }
     // Walked in on: from behind at the urinal; then he turns (the picture squeezing to a sliver and out again, his
     // back on one side of it, his front on the other); then the face-off, it bobbing a while from the turn
     const turnAt = EGG_PEE_MS + EGG_SHAKE_MS, q = (egg - turnAt) / EGG_TURN_MS;
     if (q > 0 && q < 1) { ctx.translate(100, 0); ctx.scale(Math.max(0.04, Math.abs(Math.cos(q * Math.PI))), 1); ctx.translate(-100, 0); }
     if (q < 0.5) drawEggBack(ctx, egg, shitty);
-    else drawEggFront(ctx, t, windup, punching, Math.max(0, 1 - (egg - turnAt - EGG_TURN_MS / 2) / 1400));
-  }, [t, windup, punching, egg, shitty]);
+    else drawEggFront(ctx, shot ? shot.live : t, windup, punching, Math.max(0, 1 - (egg - turnAt - EGG_TURN_MS / 2) / 1400), s);
+  }, [t, windup, punching, egg, shitty, shot]);
   return <canvas ref={ref} width={780} height={1716} className="w-full h-full" />;
 };
 

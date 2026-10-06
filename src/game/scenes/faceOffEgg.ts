@@ -1,13 +1,15 @@
 // The weapon-get screen's easter egg (P, or the pad's top button, held as it fades in): the camera finds him in a
 // men's room, from behind, pants and the belt down round his ankles the way he does it everywhere, his hairy ass out,
 // going at a urinal. He finishes, shakes, turns round (and he's standing to attention, for some reason), and decks
-// the camera all the same. Painted the same gross-up way as the face-off (faceOff.ts), in its coordinates.
+// the camera all the same (or, with a boss's weapon, gets it out and shoots it: weaponShot.ts). Painted the same
+// gross-up way as the face-off (faceOff.ts), in its coordinates.
 
 import { INK, hash, shape, speckle } from './art/ink';
 import { vein, bead } from './grossUp';
 import {
   SKIN_LIT, SKIN, SKIN_MID, SKIN_DARK, skin, bulge, pores, groove, shadeIn, lats, traps, boot,
   Layer, pictureScale, stamp, warmLayer, torsoStatic, torsoLive, neckStatic, neckVein, HEAD, headLive, guardArmStamped, FACE_OFF_SHARED_LAYERS,
+  FaceOffShot,
 } from './faceOff';
 
 type Ctx = CanvasRenderingContext2D;
@@ -155,7 +157,7 @@ const back = (ctx: Ctx) => {
 };
 
 /** The bead of sweat running down the small of his back (clear of the traps, the head and the arms drawn after it). */
-const backRun = (ctx: Ctx, t: number) => { ctx.lineCap = 'round'; const run = (t / 30) % 50; bead(ctx, 104, 180 + run, 1.3); };
+export const backRun = (ctx: Ctx, t: number) => { ctx.lineCap = 'round'; const run = (t / 30) % 50; bead(ctx, 104, 180 + run, 1.3); };
 
 /** The back of his head: the flat-top from behind, clippered right up the back, the ears, the folds of the neck. */
 const backOfHead = (ctx: Ctx) => {
@@ -195,7 +197,7 @@ const backArmUpper = (ctx: Ctx, s: number) => {
   // (the horseshoe of the triceps)
   groove(ctx, [X(152), 140, X(160), 170, X(172), 170, X(176), 142], 1.4, 0.55);
 };
-const backArmVein = (ctx: Ctx, s: number, t: number) => {
+export const backArmVein = (ctx: Ctx, s: number, t: number) => {
   const X = (x: number) => 100 + s * (x - 100);
   vein(ctx, [[X(170), 172], [X(166), 182], [X(160), 190]], 1.2, 1 + Math.sin(t / 240 + s) * 0.1);
 };
@@ -253,7 +255,7 @@ const shitOn = (ctx: Ctx) => {
 };
 
 /** The stink coming up off him, and flies round it. */
-const stinkAndFlies = (ctx: Ctx, p: number) => {
+export const stinkAndFlies = (ctx: Ctx, p: number) => {
   ctx.save();
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   ctx.strokeStyle = 'rgba(132, 204, 22, 0.55)'; ctx.lineWidth = 2;
@@ -275,8 +277,8 @@ const stinkAndFlies = (ctx: Ctx, p: number) => {
 const URINAL: Layer = { key: 'egg-urinal', x: 30, y: 110, w: 140, h: 330, draw: c => urinal(c) };
 const BACK_LEGS: Layer = { key: 'egg-back-legs', x: 20, y: 230, w: 170, h: 210, draw: c => { for (const s of [-1, 1]) boot(c, s); for (const s of [-1, 1]) bareLeg(c, s, true); pantsDown(c, false); } };
 const GLUTES = [0, 2].map(clench => [false, true].map(shitty => ({ key: `egg-glutes${clench}${shitty}`, x: 40, y: 210, w: 120, h: 190, draw: (c: Ctx) => { glutes(c, clench); if (shitty) shitOn(c); } } as Layer)));
-const BACK: Layer = { key: 'egg-back', x: 20, y: 0, w: 160, h: 240, draw: c => { back(c); traps(c); backOfHead(c); } };
-const BACK_ARMS = [-1, 1].map(s => [
+export const BACK: Layer = { key: 'egg-back', x: 20, y: 0, w: 160, h: 240, draw: c => { back(c); traps(c); backOfHead(c); } };
+export const BACK_ARMS = [-1, 1].map(s => [
   { key: `egg-arm-u${s}`, x: s < 0 ? 10 : 130, y: 70, w: 60, h: 140, draw: (c: Ctx) => backArmUpper(c, s) },
   { key: `egg-arm-r${s}`, x: s < 0 ? 10 : 130, y: 70, w: 60, h: 140, draw: (c: Ctx) => backArmRest(c, s) },
 ] as Layer[]);
@@ -364,7 +366,7 @@ const groinShaft = (ctx: Ctx, t: number, boing: number) => {
 };
 
 /** The face-off, as drawFaceOff, but bare from the waist down at the urinal (see the top of the file). */
-export const drawEggFront = (ctx: Ctx, t: number, windup: number, punching: boolean, boing: number) => {
+export const drawEggFront = (ctx: Ctx, t: number, windup: number, punching: boolean, boing: number, shot?: FaceOffShot) => {
   const breathe = 1 + Math.sin(t / 420) * 0.012;
   const k = pictureScale(ctx);
   stamp(ctx, URINAL, k);
@@ -377,11 +379,12 @@ export const drawEggFront = (ctx: Ctx, t: number, windup: number, punching: bool
   groinShaft(ctx, t, boing);
   neckVein(ctx, t, windup);
   stamp(ctx, HEAD, k);
-  headLive(ctx, t, windup, punching);
+  headLive(ctx, t, windup, punching, shot?.face, shot?.talk);
   ctx.restore();
   // (he's a lefty: the right stays up in the guard, it's the left, on our right, that draws back and goes)
   guardArmStamped(ctx, -1, t, k);
-  if (!punching) {
+  if (shot) shot.leftArm(ctx, k);
+  else if (!punching) {
     ctx.save(); ctx.translate(windup * 14, windup * 10); ctx.translate(160, 104); ctx.rotate(windup * 14 * Math.PI / 180); ctx.translate(-160, -104);
     guardArmStamped(ctx, 1, t, k);
     ctx.restore();

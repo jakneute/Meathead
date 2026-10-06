@@ -123,7 +123,7 @@ export const boot = (ctx: Ctx, s: number) => {
 };
 
 /** The tactical pants and the boots: a wide boxer's stance, creased, cargo pockets, steel toes, scuffed. */
-const legs = (ctx: Ctx) => {
+export const legs = (ctx: Ctx) => {
   for (const s of [-1, 1]) {
     const X = (x: number) => 100 + s * (x - 100);
     const leg = () => { ctx.moveTo(X(58), 244); ctx.lineTo(X(46), 404); ctx.lineTo(X(94), 404); ctx.lineTo(X(100), 290); ctx.closePath(); };
@@ -287,6 +287,26 @@ export const neckVein = (ctx: Ctx, t: number, windup: number) => {
 /** His head: square, the flat-top, the stubble, the ears, the brows, the eyes (bloodshot, dead on the lens), the nose, the mouth. */
 export const head = (ctx: Ctx, t: number, windup: number, punching: boolean) => { headStatic(ctx); headLive(ctx, t, windup, punching); };
 
+/**
+ * A look on his face (the weapon-get's shots: each weapon gets its own), in place of the punch's wind-up. Each pair is
+ * [his right (our left), his left (our right)].
+ */
+export interface FaceSpec {
+  /** How far each brow's raised (picture units, up). */
+  lift?: [number, number];
+  /** How narrowed each eye is (0..1, as the wind-up narrows them both). */
+  squint?: [number, number];
+  /** Eyes popped wide, pupils pinpricks. */
+  wide?: boolean;
+  /** His left eye (our right) shut: a wink. */
+  wink?: boolean;
+  /** flat: the hard line; teeth: the snarl; grin: ear to ear, all teeth; smirk: up on his left; open: mouth wide (a
+   *  roar, a whoop); sneer: the lip curled up off the teeth on his right. */
+  mouth: 'flat' | 'teeth' | 'grin' | 'smirk' | 'open' | 'sneer';
+  /** His tongue out the corner of it. */
+  tongue?: boolean;
+}
+
 /** As much of the head as never changes: the ears, the face and its stubble, the flat-top, the sideburns. */
 export const headStatic = (ctx: Ctx) => {
   // The ears: thick, a cauliflower ear on the left
@@ -331,26 +351,40 @@ export const headStatic = (ctx: Ctx) => {
 };
 
 /** The rest of the head, over that: the rage vein, the sweat, the brows, the eyes, the nose, the mouth. */
-export const headLive = (ctx: Ctx, t: number, windup: number, punching: boolean) => {
+export const headLive = (ctx: Ctx, t: number, windup: number, punching: boolean, face?: FaceSpec, talk = 0) => {
   // The rage vein, throbbing harder on the wind-up
   const throb = 1 + windup * 0.9 + Math.sin(t / 120) * 0.12;
   vein(ctx, [[76, 30], [80, 34], [82, 38], [79, 43]], 1.3, throb);
   // Sweat on his forehead
   for (const [x, y, r] of [[92, 31, 1.3], [110, 30, 1.1], [120, 34, 1.4], [86, 36, 0.9]] as const) bead(ctx, x, y, r);
   // The brows: thick, every hair, lower and harder as he winds up; a scar through the left one
+  // (with a look on his face: each brow its own way, raised, or knitted down as that eye narrows)
+  const sq = (s: number) => face ? (face.squint?.[s < 0 ? 0 : 1] ?? 0) : windup;
   for (const s of [-1, 1]) {
     const X = (x: number) => 100 + s * (x - 100);
-    const brow = () => { ctx.moveTo(X(71), 38 + windup); ctx.lineTo(X(97), 45 + windup * 2.5); ctx.lineTo(X(95), 49 + windup * 1.5); ctx.lineTo(X(71), 43 + windup); ctx.closePath(); };
+    const w = sq(s), up = face?.lift?.[s < 0 ? 0 : 1] ?? 0;
+    ctx.save(); ctx.translate(0, -up);
+    const brow = () => { ctx.moveTo(X(71), 38 + w + up * 0.4); ctx.lineTo(X(97), 45 + w * 2.5); ctx.lineTo(X(95), 49 + w * 1.5); ctx.lineTo(X(71), 43 + w + up * 0.4); ctx.closePath(); };
     shape(ctx, brow, '#141414', 1.2);
     ctx.strokeStyle = 'rgba(82, 82, 91, 0.7)'; ctx.lineWidth = 0.4;
-    for (let k = 0; k < 14; k++) { const x = X(72 + k * 1.8), y = 40 + k * 0.4 + windup * (1 + k * 0.1); ctx.beginPath(); ctx.moveTo(x, y + 3); ctx.lineTo(x + s * 1.6, y); ctx.stroke(); }
+    for (let k = 0; k < 14; k++) { const x = X(72 + k * 1.8), y = 40 + k * 0.4 + w * (1 + k * 0.1); ctx.beginPath(); ctx.moveTo(x, y + 3); ctx.lineTo(x + s * 1.6, y); ctx.stroke(); }
+    if (s > 0) { ctx.strokeStyle = '#F2D1B3'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(120, 37); ctx.lineTo(117, 46); ctx.stroke(); }
+    ctx.restore();
   }
-  ctx.strokeStyle = '#F2D1B3'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(120, 37); ctx.lineTo(117, 46); ctx.stroke();
   // The eyes: narrowing as he winds up; whites gone pink, veins in them; red irises, pinprick pupils, dead on the lens
   for (const s of [-1, 1]) {
-    const cx = 100 + s * 15, cy = 51, ry = Math.max(1.6, 4.4 - windup * 2.2);
+    const cx = 100 + s * 15, cy = 51, ry = face?.wide ? 5.6 : Math.max(1.6, 4.4 - sq(s) * 2.2);
     // (the bags under them)
     groove(ctx, [cx - 7, cy + 5, cx - 3, cy + 7, cx + 3, cy + 7, cx + 7, cy + 5], 1, 0.45);
+    if (face?.wink && s > 0) {
+      // (shut: the lid down in a hard curve, the lashes, the crow's feet bunched up beside it)
+      ctx.strokeStyle = INK; ctx.lineWidth = 1.8; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(cx - 7.4, cy - 0.6); ctx.quadraticCurveTo(cx, cy + 3.2, cx + 7.4, cy - 1.4); ctx.stroke();
+      ctx.lineWidth = 0.6;
+      for (let k = 0; k < 4; k++) { const x = cx - 4 + k * 2.8; ctx.beginPath(); ctx.moveTo(x, cy + 1.6); ctx.lineTo(x - 0.4, cy + 3.4); ctx.stroke(); }
+      for (let k = 0; k < 3; k++) groove(ctx, [cx + 8, cy - 2 + k * 2.4, cx + 10, cy - 2.4 + k * 2.6, cx + 11, cy - 2 + k * 2.8, cx + 12.5, cy - 3 + k * 3.2], 0.8, 0.5);
+      continue;
+    }
     const eye = () => ctx.ellipse(cx, cy, 7.4, ry, 0, 0, Math.PI * 2);
     const wg = ctx.createRadialGradient(cx, cy, 1, cx, cy, 8);
     wg.addColorStop(0, '#FFFFFF'); wg.addColorStop(0.6, '#FDE2E2'); wg.addColorStop(1, '#F8A5A5');
@@ -361,7 +395,7 @@ export const headLive = (ctx: Ctx, t: number, windup: number, punching: boolean)
     const ig = ctx.createRadialGradient(cx - 0.6, cy - 0.6, 0.2, cx, cy, 3);
     ig.addColorStop(0, '#F87171'); ig.addColorStop(0.6, '#B91C1C'); ig.addColorStop(1, '#450A0A');
     ctx.fillStyle = ig; ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(cx, cy, 1, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(cx, cy, face?.wide ? 0.55 : 1, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#FFF'; ctx.fillRect(cx - 1.8, cy - 1.8, 1.1, 1.1);
     // (the lid's shadow across the top of it)
     ctx.fillStyle = 'rgba(90, 40, 20, 0.35)'; ctx.fillRect(cx - 8, cy - ry, 16, ry * 0.6);
@@ -374,7 +408,8 @@ export const headLive = (ctx: Ctx, t: number, windup: number, punching: boolean)
   ctx.fillStyle = 'rgba(255, 240, 215, 0.7)'; ctx.fillRect(98.8, 49, 1.2, 6);
   for (const s of [-1, 1]) shape(ctx, () => ctx.ellipse(100 + s * 3.4, 59.4, 1.9, 1.2, s * 0.3, 0, Math.PI * 2), '#3B1A08', 0.4);
   // The mouth: a hard flat line; on the wind-up, the lips peel back on gritted teeth (one chipped, one gold), the gums
-  if (windup > 0.1 || punching) {
+  if (face && (face.mouth !== 'teeth' || talk > 0)) { mouth(ctx, t, face, talk); return; }
+  if (windup > 0.1 || punching || face?.mouth === 'teeth') {
     const lips = () => { ctx.moveTo(79, 61); ctx.quadraticCurveTo(100, 59, 121, 61); ctx.lineTo(120, 71); ctx.quadraticCurveTo(100, 73, 80, 71); ctx.closePath(); };
     shape(ctx, lips, '#7F1D1D', 1.8);
     shape(ctx, () => ctx.roundRect(82, 62.5, 36, 7, 1.5), '#F5F0E1', 0.8);
@@ -391,6 +426,95 @@ export const headLive = (ctx: Ctx, t: number, windup: number, punching: boolean)
     ctx.beginPath(); ctx.moveTo(84, 65); ctx.quadraticCurveTo(100, 63, 116, 65.5); ctx.stroke();
     ctx.strokeStyle = 'rgba(255, 220, 190, 0.5)'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(88, 68); ctx.quadraticCurveTo(100, 69, 112, 68); ctx.stroke();
   }
+};
+
+/** The teeth inside a mouth (drawn in a clip of it): the top row from `top`, the bottom row up to `bottom`, the dark
+ *  between them; the gold one, the chipped one. */
+const teethIn = (ctx: Ctx, x0: number, x1: number, top: number, bottom: number) => {
+  ctx.fillStyle = '#3F0D0D'; ctx.fillRect(x0, top, x1 - x0, bottom - top);
+  const up = top + 4.8, lo = Math.max(up + 0.8, bottom - 4);
+  ctx.fillStyle = '#F5F0E1'; ctx.fillRect(x0, top, x1 - x0, up - top); ctx.fillRect(x0, lo, x1 - x0, bottom - lo);
+  ctx.fillStyle = '#E8B4A8'; ctx.fillRect(x0, top, x1 - x0, 1.2);
+  ctx.fillStyle = 'rgba(120, 113, 108, 0.5)'; ctx.fillRect(x0, up - 0.8, x1 - x0, 0.8);
+  ctx.strokeStyle = '#78716C'; ctx.lineWidth = 0.6;
+  for (let x = x0 + 4.5; x < x1; x += 4.5) { ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, up); ctx.moveTo(x + 1, lo); ctx.lineTo(x + 1, bottom); ctx.stroke(); }
+  ctx.fillStyle = '#FACC15'; ctx.fillRect(104.6, top + 1.2, 4.4, 3.3); ctx.fillStyle = '#FEF9C3'; ctx.fillRect(105, top + 1.6, 1.2, 1);
+  ctx.fillStyle = '#3F1D0B'; ctx.beginPath(); ctx.moveTo(91.5, up); ctx.lineTo(95, up); ctx.lineTo(93, up - 2); ctx.closePath(); ctx.fill();
+};
+
+/** A few teeth showing in a sliver of mouth (the curled side of a smirk or a sneer): `path` is the sliver. */
+const sliver = (ctx: Ctx, path: () => void, x0: number, x1: number, y0: number, y1: number) => {
+  ctx.save(); ctx.beginPath(); path(); ctx.clip();
+  ctx.fillStyle = '#F5F0E1'; ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+  ctx.fillStyle = '#E8B4A8'; ctx.fillRect(x0, y0, x1 - x0, 1);
+  ctx.strokeStyle = '#78716C'; ctx.lineWidth = 0.6;
+  for (let x = x0 + 3.5; x < x1; x += 4.5) { ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke(); }
+  ctx.restore();
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.2; ctx.beginPath(); path(); ctx.stroke();
+};
+
+/** A mouth for a look on his face (see FaceSpec); `talk` (0..1) drops the jaw as he says his line. */
+const mouth = (ctx: Ctx, t: number, face: FaceSpec, talk: number) => {
+  const m = face.mouth;
+  const line = (x0: number, y0: number, cx: number, cy: number, x1: number, y1: number) => {
+    ctx.strokeStyle = '#4A2410'; ctx.lineWidth = 2.6; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo(cx, cy, x1, y1); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255, 220, 190, 0.5)'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(x0 + 4, y0 + 3); ctx.quadraticCurveTo(cx, cy + 3, x1 - 4, y1 + 3); ctx.stroke();
+  };
+  if (talk <= 0 && m === 'flat') { line(84, 65, 100, 63, 116, 65.5); return; }
+  if (talk <= 0 && m === 'smirk') {
+    // (shut on his right, hitched up on his left, the teeth showing there, a dimple cut into the cheek)
+    line(83, 65.5, 103, 67.5, 118, 59.5);
+    sliver(ctx, () => { ctx.moveTo(103, 66.4); ctx.quadraticCurveTo(111, 62.4, 118, 59.5); ctx.quadraticCurveTo(112, 66.6, 103, 66.4); ctx.closePath(); }, 102, 119, 59, 67);
+    groove(ctx, [120, 55, 122.5, 58, 122.5, 61.5, 120.5, 64.5], 1.3, 0.6);
+    face.tongue && tongue(ctx, t, 117, 61);
+    return;
+  }
+  if (talk <= 0 && m === 'sneer') {
+    // (the lip curled up off his teeth on his right, the nose wrinkled up over it, the other side turned down)
+    line(83, 63.5, 102, 63, 117, 67.5);
+    sliver(ctx, () => { ctx.moveTo(83, 63.8); ctx.quadraticCurveTo(87, 58.4, 97, 60.2); ctx.quadraticCurveTo(99, 62.6, 97, 63.6); ctx.quadraticCurveTo(90, 63, 83, 63.8); ctx.closePath(); }, 82, 99, 58, 64.5);
+    for (let k = 0; k < 3; k++) groove(ctx, [90 - k * 1.5, 50 + k * 2.6, 88 - k * 1.5, 51.5 + k * 2.6, 86.5 - k * 1.5, 53 + k * 2.6, 85 - k * 1.5, 55 + k * 2.6], 0.9, 0.55);
+    groove(ctx, [76, 56, 78.5, 59, 80, 62, 82.5, 64], 1.3, 0.55);
+    return;
+  }
+  // How open it is: talking opens any of them; the open one's open anyway
+  const open = Math.max(m === 'open' ? 0.85 : 0, talk);
+  // The corners (x, y each), how far the upper lip's middle bows up (+), and how far the lower one hangs down
+  let L = [83, 64], R = [117, 64], up = 0.8, down = 2 + open * 6;
+  if (m === 'grin') { L = [76, 58.5]; R = [124, 58.5]; up = -2.5; down = 8 + open * 4; }
+  if (m === 'smirk') { L = [86, 66]; R = [118, 60]; up = 0.8; down = 2.6 + open * 6; }
+  if (m === 'sneer') { L = [81, 61]; R = [118, 66]; up = 1.5; down = 3 + open * 6; }
+  if (m === 'open') { L = [80, 61]; R = [120, 61]; up = 1.5; down = 7 + open * 5; }
+  const mx = (L[0] + R[0]) / 2, my = (L[1] + R[1]) / 2;
+  const top = my - up - open * 1.2, bot = Math.min(73, my + down);
+  // (the curves pass through top and bot in the middle: their control points twice as far out)
+  const lips = () => { ctx.moveTo(L[0] - 1, L[1]); ctx.quadraticCurveTo(mx, 2 * (top - 1.6) - my, R[0] + 1, R[1]); ctx.quadraticCurveTo(mx, 2 * (bot + 2.6) - my, L[0] - 1, L[1]); ctx.closePath(); };
+  const inner = () => { ctx.moveTo(L[0], L[1]); ctx.quadraticCurveTo(mx, 2 * top - my, R[0], R[1]); ctx.quadraticCurveTo(mx, 2 * bot - my, L[0], L[1]); ctx.closePath(); };
+  // (the smile lines, cut deep on a grin)
+  if (m === 'grin' || m === 'smirk') for (const s of m === 'grin' ? [-1, 1] : [1]) groove(ctx, [100 + s * 24, 51, 100 + s * 28, 56, 100 + s * 28.5, 62, 100 + s * 25.5, 67], 1.4, 0.6);
+  shape(ctx, lips, '#7F1D1D', 1.8);
+  ctx.save(); ctx.beginPath(); inner(); ctx.clip();
+  teethIn(ctx, Math.min(L[0], R[0]), Math.max(L[0], R[0]), Math.min(top, L[1], R[1]) - 0.5, bot + 1);
+  if (open > 0.3) { ctx.fillStyle = '#B4535A'; ctx.beginPath(); ctx.ellipse(mx + 1, bot + 0.5, 8, 2 + open * 1.6, 0, 0, Math.PI * 2); ctx.fill(); }
+  // (spit, strung between the teeth)
+  ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 0.4; ctx.beginPath(); ctx.moveTo(mx - 12, my + 1); ctx.quadraticCurveTo(mx - 11, my + 3 + open * 3, mx - 10, my + 1); ctx.stroke();
+  ctx.restore();
+  ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.beginPath(); inner(); ctx.stroke();
+  // (the lower lip's shine)
+  ctx.fillStyle = 'rgba(255, 210, 200, 0.4)'; ctx.beginPath(); ctx.ellipse(mx - 3, bot + 2, 6, 0.8, 0, 0, Math.PI * 2); ctx.fill();
+  if (face.tongue) tongue(ctx, t, R[0], R[1]);
+};
+
+/** His tongue, out the corner of his mouth at (rx, ry) on his left: wet, the groove down it, wagging. */
+const tongue = (ctx: Ctx, t: number, rx: number, ry: number) => {
+  const wag = Math.sin(t / 90) * 1.2;
+  const tg = () => { ctx.moveTo(rx - 7, ry + 0.5); ctx.bezierCurveTo(rx - 6, ry + 9 + wag, rx + 3, ry + 11 + wag, rx + 4, ry + 3); ctx.quadraticCurveTo(rx, ry + 1, rx - 7, ry + 0.5); ctx.closePath(); };
+  const g = ctx.createLinearGradient(rx - 7, ry, rx + 4, ry + 10);
+  g.addColorStop(0, '#F9A8B4'); g.addColorStop(0.5, '#E86A80'); g.addColorStop(1, '#9F2F45');
+  shape(ctx, tg, g, 1.4);
+  ctx.strokeStyle = 'rgba(120, 30, 50, 0.6)'; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(rx - 2, ry + 2); ctx.quadraticCurveTo(rx - 1, ry + 6 + wag, rx, ry + 8 + wag); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.fillRect(rx - 4.5, ry + 3, 1.6, 1);
 };
 
 /** One guard arm: the delt, the upper arm down to the elbow, the forearm back up, the fist by his jaw, knuckles split. */
@@ -457,7 +581,7 @@ const armLayers = (s: 1 | -1) => {
     { key: `fo-arm-r${s}`, x, y, w, h, draw: (c: Ctx) => guardArmRest(c, s) },
   ];
 };
-const ARM_LAYERS = { [-1]: armLayers(-1), [1]: armLayers(1) } as Record<1 | -1, Layer[]>;
+export const ARM_LAYERS = { [-1]: armLayers(-1), [1]: armLayers(1) } as Record<1 | -1, Layer[]>;
 /** Everything the face-off's guard arms and head stamp (the urinal egg's front view uses them too). */
 export const FACE_OFF_SHARED_LAYERS = [HEAD, ...ARM_LAYERS[-1], ...ARM_LAYERS[1]];
 
@@ -467,7 +591,13 @@ export const guardArmStamped = (ctx: Ctx, s: 1 | -1, t: number, k: number) => {
   stamp(ctx, u, k); guardArmVein(ctx, s, t, 0); stamp(ctx, f, k); guardArmVein(ctx, s, t, 1); stamp(ctx, r, k);
 };
 
-export const drawFaceOff = (ctx: Ctx, t: number, windup: number, punching: boolean) => {
+/**
+ * In place of the punch (the weapon-get's shots, see weaponShot.ts): a look on his face, his jaw going as he talks
+ * (0..1), and his left arm drawn by the shot (it has the weapon in it).
+ */
+export interface FaceOffShot { face: FaceSpec; talk: number; leftArm: (ctx: Ctx, k: number) => void }
+
+export const drawFaceOff = (ctx: Ctx, t: number, windup: number, punching: boolean, shot?: FaceOffShot) => {
   const k = pictureScale(ctx);
   const breathe = 1 + Math.sin(t / 420) * 0.012;
   ctx.save();
@@ -478,12 +608,13 @@ export const drawFaceOff = (ctx: Ctx, t: number, windup: number, punching: boole
   stamp(ctx, FO_MID, k);
   neckVein(ctx, t, windup);
   stamp(ctx, HEAD, k);
-  headLive(ctx, t, windup, punching);
+  headLive(ctx, t, windup, punching, shot?.face, shot?.talk);
   ctx.restore();
   // His right guard (our left), and the left (the punching arm): back on the wind-up, gone mid-punch
   // (he's a lefty: the right stays up in the guard, it's the left, on our right, that draws back and goes)
   guardArmStamped(ctx, -1, t, k);
-  if (!punching) {
+  if (shot) shot.leftArm(ctx, k);
+  else if (!punching) {
     ctx.save(); ctx.translate(windup * 14, windup * 10); ctx.translate(160, 104); ctx.rotate(windup * 14 * Math.PI / 180); ctx.translate(-160, -104);
     guardArmStamped(ctx, 1, t, k);
     ctx.restore();

@@ -32,11 +32,11 @@ game/stages/barry/script.ts:77 voice: VOICES[line.who]
 game/stages/barry/runtime.ts:422 name: undefined
 game/stages/barry/runtime.ts:422 call: deathByCause(state)
 game/stages/barry/runtime.ts:431 name: undefined
-game/stages/tommy/runtime.ts:184 name: undefined
-game/stages/tommy/runtime.ts:186 call: deathByCause(ctx.state)
-game/stages/tommy/runtime.ts:186 call: bikeDeathMessage(rt.bike)
-game/stages/tommy/runtime.ts:186 call: thingDeathMessage(rt.thing)
-game/stages/tommy/runtime.ts:186 call: escapeDeathMessage(rt.escape)
+game/stages/tommy/runtime.ts:186 name: undefined
+game/stages/tommy/runtime.ts:188 call: deathByCause(ctx.state)
+game/stages/tommy/runtime.ts:188 call: bikeDeathMessage(rt.bike)
+game/stages/tommy/runtime.ts:188 call: thingDeathMessage(rt.thing)
+game/stages/tommy/runtime.ts:188 call: escapeDeathMessage(rt.escape)
 game/stages/tommy/thing.ts:174 voice: talk
 game/stages/tommy/thing.ts:197 voice: talk
 game/stages/tommy/thing.ts:210 voice: talk
